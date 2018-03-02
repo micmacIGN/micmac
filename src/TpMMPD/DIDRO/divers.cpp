@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "cimgeo.h"
 #include "cero_modelonepaire.h"
-
+#include "cfeatheringandmosaicking.h"
 
 extern int RegTIRVIS_main(int , char **);
 
@@ -50,6 +50,7 @@ class cCoreg2Ortho
     public:
     std::string mDir;
     cCoreg2Ortho(int argc,char ** argv);
+
     private:
     cImGeo * mO1;
     cImGeo * mO2;
@@ -86,84 +87,73 @@ cCoreg2Ortho::cCoreg2Ortho(int argc,char ** argv)
             mO1 = new cImGeo(mDir+mNameO1);
             mO2 = new cImGeo(mDir+mNameO2);
 
-            // je teste non pas la coreg mais le blending par gaussian distance weighting
-            Im2D_REAL4 I1=mO1->toRAM();
-            Im2D_REAL4 I2=mO2->toRAM();
-            Box2dr boxMosaic=mO1->boxEnglob(mO2);
-            Im2D_REAL4 mosaic=mO1->box2Im(boxMosaic);
-            Pt2dr aCorner=Pt2dr(boxMosaic._p0.x,boxMosaic._p1.y); // xmin, ymax;
-            Pt2di tr1=mO1->computeTrans(aCorner), tr2=mO2->computeTrans(aCorner);
 
-            // right now i consider that nadir position is at the center of the image
-            // express nadir position in pixel in geometry of mosaic
-            Pt2di N1((Pt2di(I1.sz()/Pt2di(2,2))+tr1)),N2((Pt2di(I2.sz()/Pt2di(2,2))+tr2));
-            double constLambda(0.5);
+            //Im2D_REAL4 I1=mO1->toRAM();
+            std::string aN("/home/lisein/data/OptrisMarseille/optris_16_sudmatin2_00010.tif");
+               Im2D_REAL4 I1=Im2D_REAL4::FromFileStd(aN);
+            // mes test bidon ici
 
-            // test la fonction Distance de chamfer sur une image binaire bidonne
-            Im2D_Bits<1> mIBin(I1.sz().x,I1.sz().y,1);
-            std::string aName("IBin1.tif");
+            ELISE_COPY(I1.all_pts(), Laplacien(I1.in_proj()),I1.out());
+
+            std::string aName("TestLaplacien.tif");
             ELISE_COPY(
-                        mIBin.all_pts(),
-                        mIBin.in(),
+                        I1.all_pts(),
+                        I1.in(),
                         Tiff_Im(aName.c_str(),
-                                    mIBin.sz(),
-                                    GenIm::int1,
+                                    I1.sz(),
+                                    GenIm::real4,
                                     Tiff_Im::No_Compr,
                                     Tiff_Im::BlackIsZero).out()
                         );
+            double mean;
+            int nb;
             ELISE_COPY(
-                        disc(Pt2dr(128,128),100),
-                        0,
-                        mIBin.out()
-                        );
+                        I1.all_pts(),
+                        Virgule(I1.in(),1),
+                        Virgule(sigma(mean),sigma(nb)));
+
+            mean= mean/nb;
+
 
             ELISE_COPY(
-                        disc(Pt2dr(500,500),100),
-                        0,
-                        mIBin.out()
-                        );
-            // la fonction chamfer fonctionne sur une image binaire et va calculer les distance à partir des pixels qui ont une valeur de 0.
-
-            // la distance maximale est de 255 car la fonction chamfer
-
-
-            Im2D_U_INT1  aD(I1.sz().x,I1.sz().y);
-            ELISE_COPY(aD.all_pts(),mIBin.in(),aD.out());
-
-            Chamfer::d32.im_dist(aD);
-
-            std::string aName3("chamferTestd32.tif");
+                        I1.all_pts(),
+                        ElSquare(I1.in()-mean)/(double)nb,
+                        I1.out());
+            aName="TestLaplacien2.tif";
             ELISE_COPY(
-                        aD.all_pts(),
-                        aD.in(),
-                        Tiff_Im(aName3.c_str(),
-                                    aD.sz(),
+                        I1.all_pts(),
+                        I1.in(),
+                        Tiff_Im(aName.c_str(),
+                                    I1.sz(),
                                     GenIm::real4,
                                     Tiff_Im::No_Compr,
                                     Tiff_Im::BlackIsZero).out()
                         );
 
             ELISE_COPY(
-                        disc(Pt2dr(700,700),200),
-                        0,
-                        aD.out()
+                        I1.all_pts(),
+                        I1.in(),
+                       sigma(mean)
                         );
+            cout << "mean laplacien " << mean/nb << "\n";
+
+            //ElSquare((aRes.in()-mean))/nb;
 
 
-             Chamfer::d5711.im_dist(aD);
+            //std::cout << "blurriness for ortho 1 :" << VarLapl(&I1,2) << "\n";
 
-             std::string aName4("chamferTestd5711.tif");
-             ELISE_COPY(
-                         aD.all_pts(),
-                         aD.in(),
-                         Tiff_Im(aName4.c_str(),
-                                     aD.sz(),
-                                     GenIm::real4,
-                                     Tiff_Im::No_Compr,
-                                     Tiff_Im::BlackIsZero).out()
-                         );
 
             /*
+            Im2D_REAL4 I2=mO2->toRAM();
+            Box2dr boxMosaic=mO1->boxEnglob(mO2);
+            Im2D_REAL4 mosaic=mO1->box2Im(boxMosaic);
+            Pt2dr aCorner=Pt2dr(boxMosaic._p0.x,boxMosaic._p1.y); // xmin, ymax;
+            Pt2di tr1=mO1->computeTrans(aCorner), tr2=mO2->computeTrans(aCorner);
+
+
+
+
+
             std::cout << "mosaic of size " << mosaic.sz() << ".\n";
 
             for (unsigned int i(1) ; i <mosaic.sz().x;i++)
@@ -353,473 +343,6 @@ cCoreg2Ortho::cCoreg2Ortho(int argc,char ** argv)
     }
 
 }
-
-
-
-class  cFeatheringAndMosaicOrtho
-{
-    public:
-    std::string mDir;
-    cFeatheringAndMosaicOrtho(int argc,char ** argv);
-    private:
-    std::map<int, cImGeo*> mIms; // key=label
-    std::map<int, Im2D_REAL4>   mIm2Ds;
-    std::map<int, Im2D_INT2>  mChamferDist;
-    std::map<int, Im2D_U_INT1>  mBlendingArea;
-    std::map<int, Im2D_U_INT1>  mMosaicArea;
-    std::string mNameMosaicOut, mFullDir;
-    int mDist;
-    std::list<std::string> mLFile;
-    cInterfChantierNameManipulateur * mICNM;
-    Box2dr mBoxOverlapTerrain;
-    double mLambda;
-};
-
-cFeatheringAndMosaicOrtho::cFeatheringAndMosaicOrtho(int argc,char ** argv)
-{
-    mDist=100; // distance chamfer de 100 pour le feathering/estompage
-    mLambda=0.2;
-    ElInitArgMain
-            (
-                argc,argv,
-                LArgMain()   << EAMC(mFullDir,"ortho pattern", eSAM_IsPatFile)
-                ,
-                LArgMain()  << EAM(mNameMosaicOut,"Out",true, "Name of resulting map")
-                            << EAM(mDist,"Dist",true, "Distance for seamline feathering blending" )
-                            << EAM(mLambda,"Lambda",true, "lambda value for gaussian distance weighting, def 0.2" )
-                );
-
-    if (!MMVisualMode)
-    {
-
-        mDir="./";
-        mNameMosaicOut="mosaicFeatheringTest1.tif";
-        mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
-        mLFile = mICNM->StdGetListOfFile(mFullDir);
-
-        cFileOriMnt MTD = StdGetFromPCP("MTDOrtho.xml",FileOriMnt);
-        Box2dr boxMosaic(Pt2dr(MTD.OriginePlani().x,MTD.OriginePlani().y+MTD.ResolutionPlani().y*MTD.NombrePixels().y),Pt2dr(MTD.OriginePlani().x+MTD.ResolutionPlani().x*MTD.NombrePixels().x,MTD.OriginePlani().y));
-        Im2D_REAL4 mosaic(MTD.NombrePixels().x,MTD.NombrePixels().y);
-        Im2D_REAL4 NbIm(MTD.NombrePixels().x,MTD.NombrePixels().y);
-        Im2D_INT4 SumDist(MTD.NombrePixels().x,MTD.NombrePixels().y);
-        Im2D_INT4 SumDist2(MTD.NombrePixels().x,MTD.NombrePixels().y);
-        Im2D_REAL4 PondInterne(MTD.NombrePixels().x,MTD.NombrePixels().y);
-        Pt2dr aCorner=Pt2dr(boxMosaic._p0.x,boxMosaic._p1.y); // xmin, ymax;
-        Pt2di sz(MTD.NombrePixels().x,MTD.NombrePixels().y);
-
-        Im2D_U_INT1 label=Im2D_U_INT1::FromFileStd("Label.tif");
-        /*
-        std::string aName("testlabel.tif");
-        ELISE_COPY(
-                    label.all_pts(),
-                    label.in(),
-                    Tiff_Im(aName.c_str(),
-                                label.sz(),
-                                GenIm::real4,
-                                Tiff_Im::No_Compr,
-                                Tiff_Im::BlackIsZero).out()
-                    );
-        */
-
-        unsigned int i(0); // i is the label of the image - and the key
-        for (auto &im : mLFile)
-        {
-            std::cout << "Image " << im <<": load and compute feathering buffer.\n";
-            // open orthos
-            mIms[i]= new cImGeo(mDir+im);
-            mIm2Ds[i]=  mIms[i]->toRAM();
-            mChamferDist[i]=Im2D_INT2(mIms[i]->Im().sz().x,mIms[i]->Im().sz().y,1);
-            Pt2di sz(mIms[i]->Im().sz());
-            Pt2di tr= -mIms[i]->computeTrans(aCorner);
-
-            // la fonction chamfer fonctionne sur une image binaire et va calculer les distance à partir des pixels qui ont une valeur de 0.
-            // la distance maximale est de 255 car la fonction chamfer
-
-            //detect seam line for this image
-            //1) translation of label to be in ortho geometry
-            Im2D_U_INT1 tmp(sz.x,sz.y,1);
-            ELISE_COPY(select(tmp.all_pts(), trans(label.in(),tr)!=(int)i),
-                       //trans(label.in(),tr),
-                       0,
-                       tmp.out()
-                       );
-            // set value to 0 for points that are not inside area of mosaicking for this image
-            // compute chamfer Distance
-            Chamfer::d32.im_dist(tmp);
-            // inverse value of distance (enveloppe interne à la seamline)
-            ELISE_COPY(mChamferDist[i].all_pts(),-tmp.in(),mChamferDist[i].out());
-
-            // je réinitialise tmp
-            ELISE_COPY(tmp.all_pts(),1,tmp.out());
-            ELISE_COPY(
-                        select(mChamferDist[i].all_pts(),mChamferDist[i].in()==-2),// distance ==-2 c'est les pixels Sur la ligne de raccord
-                        0,
-                        tmp.out());
-            // ça m'ennuie qu'il retourne une distance à par rapport au bord de l'image, comment annuler ce comportement?
-            Chamfer::d32.im_dist(tmp);
-
-            ELISE_COPY(
-                        select(mChamferDist[i].all_pts(),mChamferDist[i].in()==0),
-                        tmp.in(),
-                        mChamferDist[i].out());
-
-            // apply the hidden part masq
-
-            //std::string aNameIm =  mICNM->Assoc2To1("Key-Assoc-OpIm2PC@",im,true).first;
-            std::string aNamePC = "PC"+ im.substr(3,im.size()-2);
-
-            Im2D_U_INT1 masq=Im2D_U_INT1::FromFileStd(aNamePC);
-            // apply the mask
-            ELISE_COPY(
-                        select(mChamferDist[i].all_pts(),masq.in()==255),
-                        255,
-                        mChamferDist[i].out());
-
-            std::string aNameTmp="TestChamfer" + std::to_string(i) + ".tif";
-            ELISE_COPY(
-                        mChamferDist[i].all_pts(),
-                        mChamferDist[i].in(),
-                        Tiff_Im(aNameTmp.c_str(),
-                                mChamferDist[i].sz(),
-                                GenIm::real4,
-                                Tiff_Im::No_Compr,
-                                Tiff_Im::BlackIsZero).out()
-                        );
-            // warning, effet de bord du au calcul de distance chamfer!!!!!!!!!!!!!
-
-            // comptage du nombre d'image a utiliser pour le blending (geométrie mosaic)
-
-            ELISE_COPY(select(NbIm.all_pts(),trans(mChamferDist[i].in(mDist+1),-tr)<=mDist),
-                       //mosaic.in()+trans(mIm2Ds[i].in(0),tr)*lut_w.in()[-trans(mChamferDist[i].in(0) ,tr)],
-                       NbIm.in(0)+1,
-                       NbIm.out()
-                       );
-
-            // Q? pourquoi je ne peux pas renseigner juste in() sans avoir une erreur genre  BITMAP :  out of domain while reading (RLE mode)
-
-
-            // somme des distances de chamber dans les enveloppes externes  - pour gérer les cas de blending de 3 images
-            ELISE_COPY(select(SumDist.all_pts(),trans(mChamferDist[i].in_proj(),-tr)<=mDist & trans(mChamferDist[i].in_proj(),-tr)>0),
-                       SumDist.in(0)+trans(mChamferDist[i].in(0),-tr),
-                       SumDist.out()
-                       );
-            // somme des distances de chamber dans les enveloppes inter  - également pour gérer les cas de blending de 3 images
-            ELISE_COPY(select(SumDist2.all_pts(),trans(mChamferDist[i].in_proj(),-tr)>=-mDist & trans(mChamferDist[i].in_proj(),-tr)<0),
-                       SumDist2.in(0)+trans(mChamferDist[i].in(0),-tr),
-                       SumDist2.out()
-                       );
-
-            i++;
-        }
-
-
-        // je modifie la zone du blending de 3 images afin de 1) la réduire et 2) quel aie une forme plus adéquate
-      // non je ne peux pas faire ça sinon la zone NbIm==3 que je supprime sera considérée comme NbIm=2 alors que c'est faux
-       /* ELISE_COPY(select(NbIm.all_pts(),SumDist.in()>mDist),
-                   2,
-                   NbIm.out()
-                   );
-
-        Im2D_U_INT1 tmp(MTD.NombrePixels().x,MTD.NombrePixels().y,0);
-        ELISE_COPY(select(tmp.all_pts(),NbIm.in()==3),
-                   1,
-                   tmp.out()
-                   );
-
-        Chamfer::d32.im_dist(tmp);
-
-        std::string aNameTmp("TestTmp.tif");
-        ELISE_COPY(
-                    tmp.all_pts(),
-                    tmp.in(),
-                    Tiff_Im(aNameTmp.c_str(),
-                            tmp.sz(),
-                            GenIm::real4,
-                            Tiff_Im::No_Compr,
-                            Tiff_Im::BlackIsZero).out()
-                    );
-*/
-        std::string aNameTmp("TestCDG.tif");
-
-      aNameTmp="TestNbIm.tif";
-
-        ELISE_COPY(
-                    NbIm.all_pts(),
-                    NbIm.in(),
-                    Tiff_Im(aNameTmp.c_str(),
-                            mosaic.sz(),
-                            GenIm::real4,
-                            Tiff_Im::No_Compr,
-                            Tiff_Im::BlackIsZero).out()
-                    );
-
-
-        // détection du centre de gravité des zones de recouvements 3 images = point d'intersection des 3 images
-        Im2D_U_INT1 Ibin(MTD.NombrePixels().x,MTD.NombrePixels().y,0);
-        Im2D_U_INT1 chanferZTriple(sz.x,sz.y,0);
-        ELISE_COPY(select(Ibin.all_pts(),NbIm.in()==3),
-                   1,
-                   Ibin.out()
-                   );
-
-        U_INT1 ** d = Ibin.data();
-        int count(0);
-        Neighbourhood V8=Neighbourhood::v8();
-
-        std::cout << "start detection of area of 3 ortho blending\n";
-        for (INT x=0; x < Ibin.sz().x; x++)
-        {
-            for (INT y=0; y < Ibin.sz().y; y++)
-            {
-                if (d[y][x] == 1)
-                {
-                    count++;
-                    Liste_Pts_INT2 cc(2);
-                    ELISE_COPY
-                            (
-                                 // flux: composantes connexes du point.
-                                conc
-                                (
-                                    Pt2di(x,y),
-                                    Ibin.neigh_test_and_set(V8, 1, 0,  20) ), // on change la valeur des points sélectionné comme ça à la prochaine itération on ne sélectionne plus cette zone de composante connexe
-                                1, // valeur bidonne, c'est juste le flux que je sauve dans cc
-                                cc
-                                );
-
-                        Pt2di cdg;
-                                ELISE_COPY
-                                (
-                                    cc.all_pts(),
-                                    Virgule(FX,FY),
-                                    (cdg.sigma()) // sigma: somme des position X et Y
-                                    );
-                        cdg=cdg/cc.card(); // centre de grav: moyenne des positions
-                    //std::cout << " points d'une ligne de raccord intersectant 3 orthos : num " << count << " position " << cdg <<"\n";
-                    // fin if (d[y][x] == 1)
-                     // ok j'ai le pt d'intersection, qu'est ce que j'en fait?
-                     // 1distance autour de ce point. cela concerne uniquement la zone de recouvrement triple soit cc
-                        Im2D_U_INT1 chanfer(sz.x,sz.y,1);
-                        ELISE_COPY(cc.all_pts(),
-                                   0,
-                                   chanfer.out()
-                                   );
-                        Chamfer::d32.im_dist(chanfer);
-                        // maintenant j'utilise cette distance en combinaison avec distance Env interne
-
-
-
-
-                }
-            }
-        }
-
-        aNameTmp="TestSumDist.tif";
-        ELISE_COPY(
-                    SumDist.all_pts(),
-                    SumDist.in(),
-                    Tiff_Im(aNameTmp.c_str(),
-                            SumDist.sz(),
-                            GenIm::u_int1,
-                            Tiff_Im::No_Compr,
-                            Tiff_Im::BlackIsZero).out()
-                    );
-        aNameTmp="TestSumDistInterne.tif";
-        ELISE_COPY(
-                    SumDist2.all_pts(),
-                    SumDist2.in(),
-                    Tiff_Im(aNameTmp.c_str(),
-                            SumDist2.sz(),
-                            GenIm::real4,
-                            Tiff_Im::No_Compr,
-                            Tiff_Im::BlackIsZero).out()
-                    );
-
-         // maintenant qu'on a toute les info on applique le blending
-        std::cout << "Start Blending\n";
-
-        // look up table de weight pour enveloppe interne
-        Im1D_REAL4 lut_w(mDist+1);
-        ELISE_COPY
-        (
-        lut_w.all_pts(),
-       // FX/(double)mDist,
-        pow(0.5,pow((FX/((double)mDist-FX+1)),2*mLambda)),
-        lut_w.out()
-        );
-
-        // replace by 1 distance over the threshold of mDist
-        ELISE_COPY(select(lut_w.all_pts(),lut_w.in()>1),1,lut_w.out());
-
-        /*
-        for (unsigned int i(0); i<mDist;i++)
-        {
-            std::cout << "Internal enveloppe weighting at Dist=" << i << " is equal to " << lut_w.At(i) << "\n";
-        }
-        */
-
-        // pondération contribution de l'image à l'intérieur de son enveloppe; je peux effectuer le calcul du facteur de pondération pour toutes les images
-        //  partie fixe pondérée seulement par le nombre d'image
-
-        ELISE_COPY(select(PondInterne.all_pts(), NbIm.in()!=0),
-                   1-(NbIm.in()-1)/NbIm.in(0),
-                   PondInterne.out()
-                   );
-
-        // featherling dans l'enveloppe interne
-          ELISE_COPY(select(PondInterne.all_pts(), NbIm.in()!=0 && SumDist2.in() <=0 && SumDist2.in()>=-mDist),
-                  PondInterne.in()+ (1-(1/NbIm.in())) *  lut_w.in()[mDist+SumDist2.in()],
-                  PondInterne.out()
-                );
-
-          aNameTmp="TestPondInterne.tif";
-          ELISE_COPY(
-                      PondInterne.all_pts(),
-                      PondInterne.in(),
-                      Tiff_Im(aNameTmp.c_str(),
-                              PondInterne.sz(),
-                              GenIm::real4,
-                              Tiff_Im::No_Compr,
-                              Tiff_Im::BlackIsZero).out()
-                      );
-
-
-        for (unsigned int i(0);  i < mIms.size();i++)
-        {
-
-            std::cout << "Image" << i << "\n";
-
-            Pt2di tr= mIms[i]->computeTrans(aCorner);
-
-            // enveloppe interne
-
-/*
-            // toute l'enveloppe interne, partie fixe pondérée seulement par le nombre d'image
-            ELISE_COPY(select(mosaic.all_pts(),trans(mChamferDist[i].in(1),tr)<=0 & NbIm.in()!=0),
-                       //  ok ça ca va : mosaic.in()+    trans(mIm2Ds[i].in(0),tr)*lut_w.in()[-trans(mChamferDist[i].in(0) ,tr)],
-                       //trans(mIm2Ds[i].in(0),tr)*lut_w.in()[-trans(mChamferDist[i].in(0) ,tr)], fonctionne pas, croppe l'image
-                      // mosaic.in()+   trans(mIm2Ds[i].in(0),tr)  * (1-(NbIm.in()-1)/NbIm.in()),
-
-                       //mosaic.in()+ trans(mIm2Ds[i].in(0),tr) *(1-((NbIm.in()-1)*2.00)/(NbIm.in()*2.00)),
-                       // PONDERATION ONLY
-                       mosaic.in()+ (1-((NbIm.in()-1)*2.00)/(NbIm.in()*2.00)),
-                       mosaic.out()
-                       );
-
-
-            // buffer dans l'enveloppe interne , je peux utiliser SumDist2 si je le garde au finish? non car sumdist interne a des valeurs pour les 2 coté de la ligne de raccord
-              ELISE_COPY(select(mosaic.all_pts(),trans(mChamferDist[i].in(0),tr)<=0 & trans(mChamferDist[i].in(0),tr)>=-mDist & NbIm.in()!=0),
-                       //mosaic.in()+   trans(mIm2Ds[i].in(0),tr)  * (1-(1/NbIm.in())) *  lut_w.in()[-trans(mChamferDist[i].in(0) ,tr)],
-                      // mosaic.in()+  (1-(1/NbIm.in())) *  lut_w.in()[-trans(mChamferDist[i].in(0) ,tr)],
-                       mosaic.in()+  (1-(2.00/(2.00*NbIm.in()))) *  lut_w.in()[-trans(mChamferDist[i].in(0) ,tr)],
-                       mosaic.out()
-                    );
-
-
-            // enveloppe externe
-
-
-            // ligne de raccord entre 2 images
-            ELISE_COPY(select(mosaic.all_pts(),trans(mChamferDist[i].in(0),tr)>0 & trans(mChamferDist[i].in(0),tr)<=mDist & NbIm.in()==2),
-                       //mosaic.in()+ trans(mIm2Ds[i].in(0),tr)* (1-lut_w.in()[trans(mChamferDist[i].in(0) ,tr)]) * (1.00-(2.00/(2*NbIm.in()))) * 2.0*trans(mChamferDist[i].in(0),tr)/(2*SumDist.in(0)),// le 2.O/2 il empeche un bug débile
-                       //mosaic.in()+ (1-lut_w.in()[trans(mChamferDist[i].in(0) ,tr)]) * (1.00-(2.00/(2*NbIm.in()))) * 2.0*trans(mChamferDist[i].in(0),tr)/(2*SumDist.in(0)),
-                       // ponderation only
-                       mosaic.in()+ (1-lut_w.in()[trans(mChamferDist[i].in(0) ,tr)]) * (1.00-(2.00/(2*NbIm.in()))),
-                       mosaic.out()
-                    );
-
-
-            // raccord entre 3 images
-            ELISE_COPY(select(mosaic.all_pts(),trans(mChamferDist[i].in(0),tr)>0 & trans(mChamferDist[i].in(0),tr)<=mDist & NbIm.in()==3 & SumDist.in()>0),
-                       // ponderation only
-                      // mosaic.in()+  (1-((1-(2.00/(2.00*NbIm.in()))) * lut_w.in()[-SumDist2.in()])) * 2.0*trans(mChamferDist[i].in(0),tr)/(2.0*SumDist.in(0)),
-                        mosaic.in()+  (1-(1-(2.00/(2.00*NbIm.in())) * lut_w.in()[-SumDist2.in()])) * 2.0*trans(mChamferDist[i].in(0),tr)/(2.0*SumDist.in(0)) ,
-                       mosaic.out()
-                    );
- */
-            // enveloppe interne
-            ELISE_COPY(select(mosaic.all_pts(),trans(mChamferDist[i].in(0),tr)<0),
-                       mosaic.in()+ trans(mIm2Ds[i].in(0),tr)* PondInterne.in(),
-                       //mosaic.in()+  PondInterne.in(),
-                       mosaic.out()
-                    );
-
-            // ligne de raccord entre 2 images = partage du gateau en 2
-            ELISE_COPY(select(mosaic.all_pts(),trans(mChamferDist[i].in(0),tr)>0 & trans(mChamferDist[i].in(0),tr)<=mDist & NbIm.in()==2),
-                       mosaic.in()+ trans(mIm2Ds[i].in(0),tr)* (1-PondInterne.in()),
-                       //mosaic.in()+(1-PondInterne.in()),
-                       mosaic.out()
-                );
-
-
-            // ligne de raccord entre 3 images = partage du gateau en 3
-            for (INT x = 0 ; x< mosaic.sz().x; x++)
-            {
-                for (INT y = 0 ; y< mosaic.sz().y; y++)
-                {
-                    Pt2di pos(x,y);
-                    if (mChamferDist[i].Inside(Pt2di(pos+tr)) & NbIm.GetR(pos)==3)
-                    {
-
-                        // enveloppe interne
-                        /*
-                        if (mChamferDist[i].GetR(Pt2di(pos+tr))<0 & mChamferDist[i].GetR(Pt2di(pos+tr)) >=-mDist )
-                        {
-                        int lutPos = min( mDist-SumDist.GetR(pos)/2, mChamferDist[i].GetR(Pt2di(pos+tr)))   ;
-                         std::cout << " min of  " << mDist-SumDist.GetR(pos)/2<< " and chamber dist  " << -mChamferDist[i].GetR(Pt2di(pos+tr)) <<" give " << lutPos << "\n";
-                        //double val =     (1-PondInterne.GetR(pos)) * lut_w.At(lutPos) +  PondInterne.GetR(pos);
-                        //PondInterne.SetR(pos,val);
-                        }
-
-                      */
-                        if (mChamferDist[i].GetR(Pt2di(pos+tr))>0 & mChamferDist[i].GetR(Pt2di(pos+tr)) <=mDist & mChamferDist[i].GetR(Pt2di(pos+tr))> SumDist.GetR(pos)-mChamferDist[i].GetR(Pt2di(pos+tr)) )
-                        {
-                       double val =   mIm2Ds[i].GetR(Pt2di(pos+tr))    *  (1-PondInterne.GetR(pos)) +  mosaic.GetR(pos);
-                            //double ratio =  mChamferDist[i].GetR(Pt2di(pos+tr))/SumDist.GetR(pos);
-                        //double val =   mIm2Ds[i].GetR(Pt2di(pos+tr))    *  (1-PondInterne.GetR(pos)) *      ratio  +  mosaic.GetR(pos);
-                       // std::cout << " Chamfer dist vaut " << mChamferDist[i].GetR(Pt2di(pos+tr)) << " et somme chanfer dist vaux " << SumDist.GetR(pos) << ", ratio de " << ratio << "\n";
-                       mosaic.SetR(pos,val);
-                        }
-                        if (mChamferDist[i].GetR(Pt2di(pos+tr))>0 & mChamferDist[i].GetR(Pt2di(pos+tr)) <=mDist & mChamferDist[i].GetR(Pt2di(pos+tr))== SumDist.GetR(pos)-mChamferDist[i].GetR(Pt2di(pos+tr)) )
-                        {
-                        double val =  0.5* mIm2Ds[i].GetR(Pt2di(pos+tr))    *  (1-PondInterne.GetR(pos)) +  mosaic.GetR(pos);
-                        mosaic.SetR(pos,val);
-                        }
-
-                    }
-                }
-            }
-
-
-        }
-
-        aNameTmp="TestPondInterne2.tif";
-        ELISE_COPY(
-                    PondInterne.all_pts(),
-                    PondInterne.in(),
-                    Tiff_Im(aNameTmp.c_str(),
-                            PondInterne.sz(),
-                            GenIm::real4,
-                            Tiff_Im::No_Compr,
-                            Tiff_Im::BlackIsZero).out()
-                    );
-
-
-        aNameTmp="TestMosaic.tif";
-
-        ELISE_COPY(
-                    mosaic.all_pts(),
-                    mosaic.in(),
-                    Tiff_Im(aNameTmp.c_str(),
-                            mosaic.sz(),
-                            GenIm::real4,
-                            Tiff_Im::No_Compr,
-                            Tiff_Im::BlackIsZero).out()
-                    );
-
-    }
-
-}
-
 
 
 // the VarioCam thermic camera record images at 16 bits, we want to convert them to 8 bits. A range of temperature is provided in order to  stretch the radiometric value on this range
@@ -1943,8 +1466,8 @@ int main_test2(int argc,char ** argv)
     //RegTIRVIS_main(argc,argv);
     //test_main(argc,argv);
     //MasqTIR_main(argc,argv);
-    //cCoreg2Ortho(argc,argv);
-    cFeatheringAndMosaicOrtho(argc,argv);
+    cCoreg2Ortho(argc,argv);
+    //cFeatheringAndMosaicOrtho(argc,argv);
     //cOriTran_Appli(argc,argv);
     //TransfoMesureAppuisVario2TP_main(argc,argv);
     //statRadianceVarioCam_main(argc,argv);
@@ -1996,6 +1519,10 @@ int VarioCamTo8Bits_main(int argc,char ** argv)
 
    return EXIT_SUCCESS;
 }
+
+
+
+
 
 
 
