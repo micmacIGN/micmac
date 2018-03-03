@@ -310,6 +310,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     Pt2di  aPtDebug;
     bool   aUseArgMaskAuto=true;
     bool   OrthoImSupMNT = false;
+    std::vector<double> aParamCensus;
 
     std::vector<std::string> a12PixParam;
 
@@ -324,6 +325,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mSzW,"SzW",true,"Correlation Window Size (1 means 3x3)")
                     << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, available in image geometry")
                     << EAM(mMCorPonc,"CorPonc",true,"New One-Two Pixel Matching option, def=false, available in image geometry")
+                    << EAM(aParamCensus,"Census",true,"Parameter 4 Census, as for now used as bool", eSAM_NoInit)
                     << EAM(a12PixParam,"12PixMP",true,"One-Two Pixel Matching parameters [ZoomInit,PdsAttPix,PCCroise,?PCStd?,?\"tif\"?], \"tif\" or else \"xml\"; ; Def=[4,1,1,0,xml]", eSAM_NoInit)
                     << EAM(mForDeform,"ForDeform",true,"Set paramaters when ortho are used for deformation")
                     << EAM(mUseGpu,"UseGpu",true,"Use Cuda acceleration, def=false", eSAM_IsBool)
@@ -938,6 +940,25 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
          double aPCStd     = 0.0;          
          std::string aMCorPoncCal = "xml";
 
+         // Proposition de reecriture MPD pour limiter duplication de code
+         if (EAMIsInit(&a12PixParam))
+         {
+               //  Je pensei pas de pb  pour admettre de de 0 a 5 arg, puisque  tous ont une val def raisonnable ?
+               ELISE_ASSERT( ((a12PixParam.size()>=0) || (a12PixParam.size()<=5)) ,"if 12PixP option used must be of size at least three"); 
+
+               if (a12PixParam.size()>=1)
+                  aZoomInitMCPonc = RequireFromString<double>(a12PixParam[0],"One-Two Pixel Matching : ZoomInit");
+               if (a12PixParam.size()>=2)
+                  aPdsAttPix = RequireFromString<double>(a12PixParam[1],"One-Two Pixel Matching : PdsAttPix");
+               if (a12PixParam.size()>=3)
+                  aPCCroise  = RequireFromString<double>(a12PixParam[2],"One-Two Pixel Matching : aPCCroise");
+               if (a12PixParam.size()>=4)
+                  aPCStd     = RequireFromString<double>(a12PixParam[3],"One-Two Pixel Matching : PCStd");
+               if (a12PixParam.size()>=4)
+                  aMCorPoncCal = a12PixParam[4]; 
+         }
+
+/*
          if (int(a12PixParam.size())==3)
          {
                aZoomInitMCPonc = RequireFromString<double>(a12PixParam[0],"One-Two Pixel Matching : ZoomInit");
@@ -960,14 +981,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                aPCCroise    = RequireFromString<double>(a12PixParam[2],"One-Two Pixel Matching : PCCroise");
                aPCStd       = RequireFromString<double>(a12PixParam[3],"One-Two Pixel Matching : PCStd");
                aMCorPoncCal = a12PixParam[4]; 
-
-
-               
          }
          else
                ELISE_ASSERT( !((a12PixParam.size()==2) || (a12PixParam.size()>5)) ,"if 12PixP option used must be of size at least three"); 
-   
-
+*/
  
          if (EAMIsInit(&mDoOrtho) && mDoOrtho)
          {
@@ -1103,12 +1120,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                          + std::string(" +MCorPoncCal=") + aMCorPoncCal;
 
          }
-
-
-
-         
-
       }
+
+      if (EAMIsInit(&aParamCensus))
+      {
+      }
+
       if (mGenCubeCorrel)
           mCom = mCom + std::string(" +GCC=true");
 
