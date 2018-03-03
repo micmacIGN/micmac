@@ -4,8 +4,8 @@ cImgZBuffer::cImgZBuffer(cAppliZBufferRaster * anAppli , const std::string & aNa
 
     mAppli    (anAppli),
     mNameIm   (aNameIm),
-    mTif      (Tiff_Im::UnivConvStd(mAppli->Dir() + aNameIm)),
     mInd      (aInd),
+    mTif      (Tiff_Im::UnivConvStd(mAppli->Dir() + aNameIm)),
     mSzIm     (mTif.sz()),
     mCamGen   (mAppli->ICNM()->StdCamGenerikOfNames(mAppli->Ori(),mNameIm)),
     mImZ      (round_ni(mSzIm.x*mAppli->Reech()), round_ni(mSzIm.y*mAppli->Reech()), tElZBuf(-1.0)),
