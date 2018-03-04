@@ -1076,6 +1076,13 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                       std::string aIdIm = MMBinFile("mm3d Nikrup") + "\"1\" " + aOrtOut.c_str() 
                                           + " Box=[0,0," + ToString(aIsRGB.sz().x) + "," + ToString(aIsRGB.sz().y) + "]"; 
                       mCom12PixMRadCal.push_back(aIdIm.c_str());
+
+                      cXML_RatioCorrImage aXml;
+                      aXml.Ratio() = 1.0;
+                      std::string aRatioXmlName = StdPrefix(aOrtOut) + ".xml";
+                      MakeFileXML(aXml,aRatioXmlName);
+
+
                   }
 
              }
