@@ -379,7 +379,7 @@ int cAppliTiepTriFar::Matching()
 {
     cout<<endl<<" ======== MATCHING ========"<<endl;
 
-    int aNBMatchSuccess;
+    int aNBMatchSuccess = 0;
     cParamMatch aPrMatch;
     aPrMatch.aSzWin = 3;
     aPrMatch.aStep = 0.1;

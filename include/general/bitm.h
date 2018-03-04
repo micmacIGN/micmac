@@ -627,6 +627,8 @@ template <class Type,class TyBase> class Im2D : public Im2DGen
       void substract(const Type &aB);
       void ramp(const Type &aMin, const Type &aK);
 
+      void bitwise_add(Im2D<Type,TyBase> & aIm, Im2D<Type,TyBase> & aImOut);
+
    private :
       DataIm2D<Type,TyBase> * di2d(){return (DataIm2D<Type,TyBase> *) (_ptr);}
       const DataIm2D<Type,TyBase> * di2d() const {return (DataIm2D<Type,TyBase> *) (_ptr);}

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2160]) = {
+const char * (theNameVar_ParamMICMAC[2161]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -956,7 +956,8 @@ const char * (theNameVar_ParamMICMAC[2160]) = {
 "\n",
 "\n",
 "\n",
-"                <TypeCAH Nb=\"1\" Union=\"true\">\n",
+"                <!-- Plus union car peut avoir CensusCost + MultiCorrelPonctuel-->\n",
+"                <TypeCAH Nb=\"1\" >\n",
 "                        <CensusCost Nb=\"?\" AccessorFils=\"false\">\n",
 "                              <PdsCrown  Type=\"double\" Def=\"0.5\" Nb=\"?\"> </PdsCrown>\n",
 "                              <TypeCost Type=\"eModeCensusCost\" Nb=\"1\">   </TypeCost>\n",

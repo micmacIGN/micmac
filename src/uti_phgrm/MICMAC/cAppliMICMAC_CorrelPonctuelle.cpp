@@ -304,6 +304,7 @@ void cAppliMICMAC::DoCorrelMultiFen
    }
 }
 
+
 void cAppliMICMAC::DoCorrelRobusteNonCentree
      (
             const Box2di & aBox,

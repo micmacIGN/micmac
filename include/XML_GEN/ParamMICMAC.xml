@@ -954,7 +954,8 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 
 
 
-                <TypeCAH Nb="1" Union="true">
+                <!-- Plus union car peut avoir CensusCost + MultiCorrelPonctuel-->
+                <TypeCAH Nb="1" >
                         <CensusCost Nb="?" AccessorFils="false">
                               <PdsCrown  Type="double" Def="0.5" Nb="?"> </PdsCrown>
                               <TypeCost Type="eModeCensusCost" Nb="1">   </TypeCost>

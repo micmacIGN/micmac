@@ -295,6 +295,7 @@ void cAppliMICMAC::OneEtapeSetCur(cEtapeMecComp & anEtape)
      else
      {
          mCMS = 0;
+         mCC = 0;
      }
 
 
