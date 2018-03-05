@@ -1836,6 +1836,13 @@ const cCorrelMultiScale * cAppliMICMAC::CMS() const
    return mCMS;
 }
 
+const cCensusCost * cAppliMICMAC::CC() const
+{
+   return mCC;
+}
+
+
+
 const cEtiqBestImage *  cAppliMICMAC::EBI() const
 {
    return mEBI;

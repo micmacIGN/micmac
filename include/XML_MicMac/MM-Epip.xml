@@ -56,7 +56,6 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 
 
        <Symb> DebugClip=true  </Symb>
-       <Symb> SzW0=2  </Symb>
        <Symb> DeltaY=0  </Symb>
        <Symb> Verif=false  </Symb>
        <Symb> NbProc=${MMNbProc}  </Symb>
@@ -90,9 +89,19 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
         <eSymb> WZ4=*  Sup ${Zoom0} 4   InfEq  ${ZoomF} 4  </eSymb>
         <eSymb> WZ2=*  Sup ${Zoom0} 2   InfEq  ${ZoomF} 2  </eSymb>
         <eSymb> WZ1=*  Sup ${Zoom0} 1   InfEq  ${ZoomF} 1  </eSymb>
-        <eSymb> SzW= ? ${CMS} 1 ${SzW0}  </eSymb>
 
-        <eSymb> SzWy= ? ${CMS} 1 + ${DeltaY} ${SzW} </eSymb>
+        <Symb> SzW0=1  </Symb>
+        <Symb> NbS=3 </Symb>
+
+        <eSymb> SzW1= * ${SzW0} 2  </eSymb>
+        <eSymb> SzW2= * ${SzW0} 4  </eSymb>
+
+        <eSymb> WithW1= Sup ${NbS} 0 </eSymb>
+        <eSymb> WithW2= Sup ${NbS} 1 </eSymb>
+
+        <eSymb> SzW= ? ${CMS} ${SzW0}  ${SzW0}  </eSymb>
+
+        <eSymb> SzWy= ? ${CMS} ${SzW0}  + ${DeltaY} ${SzW} </eSymb>
         <eSymb> MMCEff= * ${MMC} ${DoEpi} </eSymb>
         <eSymb> CensusEff= * ${Census} ${DoEpi} </eSymb>
         <eSymb> NotEpi= ! ${DoEpi} </eSymb>
@@ -102,6 +111,11 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
          <Symb> HUGEDilatePLANI=5   </Symb>
          <Symb> BigDilateALTI=5     </Symb>
          <Symb> BigDilatePLANI=4    </Symb>
+
+         <Symb> ExtImIn=tif    </Symb>
+
+         <Symb> ModeCensus=eMCC_CensusCorrel </Symb>
+
 </DicoLoc>
 
 <Section_Terrain> 
@@ -153,7 +167,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
    <#WHEN VTEST=${DoEpi}>
        <MasqImageIn>
              <OneMasqueImage>
-                <PatternSel>  (.*).tif  </PatternSel>
+                <PatternSel>  (.*)\.${ExtImIn}  </PatternSel>
                 <NomMasq>  $1_Masq.tif     </NomMasq>
              </OneMasqueImage>
              <AcceptNonExistingFile> ${MasqImOptional} </AcceptNonExistingFile>
@@ -262,39 +276,32 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                             <UseGpGpu> ${UseGpu} </UseGpGpu>
                             <ModeDense> true </ModeDense>
                             <UseWAdapt> false </UseWAdapt>
-                            <ModeMax> ${MMCEff} </ModeMax>
+                            <!--   <ModeMax> ${MMCEff} </ModeMax>
+                                   Allo la terre, je comprend pas pk mode max pas defaut ??? 
+                            -->
                             <OneParamCMS>
-                                 <SzW> 1 1 </SzW>
+                                 <SzW> ${SzW0} ${SzW0} </SzW>
                                  <Sigma> 0 </Sigma>
                                  <Pds> 1.0 </Pds>
                                  <SquareW> ${SquareW} </SquareW>
                             </OneParamCMS>
-                            <OneParamCMS>
-                                 <SzW> 2 2 </SzW>
-                                 <Sigma> 1.0 </Sigma>
-                                 <Pds> 0.5 </Pds>
-                                 <SquareW> ${SquareW} </SquareW>
-                            </OneParamCMS>
+                            <#WHEN VTEST=${WithW1}>
+                                 <OneParamCMS>
+                                      <SzW> ${SzW1} ${SzW1} </SzW>
+                                      <Sigma> 1.0 </Sigma>
+                                      <Pds> 0.5 </Pds>
+                                      <SquareW> ${SquareW} </SquareW>
+                                 </OneParamCMS>
+                            </#WHEN>
 
-                            <OneParamCMS>
-                                 <SzW> 4 3 </SzW>
-                                 <Sigma> 2.0 </Sigma>
-                                 <Pds> 0.25 </Pds>
-                                 <SquareW> ${SquareW} </SquareW>
-                            </OneParamCMS>
-<!--
--->
-
-<!--
-                            <OneParamCMS>
-                                 <SzW> 8 6 </SzW>
-                                 <Sigma> 4.0 </Sigma>
-                                 <Pds> 0.125 </Pds>
-                                 <SquareW> ${SquareW} </SquareW>
-                            </OneParamCMS>
--->
-
-
+                            <#WHEN VTEST=${WithW2}>
+                                 <OneParamCMS>
+                                      <SzW> ${SzW2} ${SzW2} </SzW>
+                                      <Sigma> 2.0 </Sigma>
+                                      <Pds> 0.25 </Pds>
+                                      <SquareW> ${SquareW} </SquareW>
+                                 </OneParamCMS>
+                            </#WHEN>
                      </CorrelMultiScale>
                  </#WHEN>
                    
@@ -302,7 +309,7 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
                  <TypeCAH>
                      <#IF VTEST=${CensusEff}>
                          <CensusCost>
-                             <TypeCost> eMCC_CensusCorrel   </TypeCost>
+                             <TypeCost> ${ModeCensus}   </TypeCost>
 <!--
                              <TypeCost> eMCC_CensusMixCorrelBasic   </TypeCost>
                              <TypeCost> eMCC_CensusBasic   </TypeCost>

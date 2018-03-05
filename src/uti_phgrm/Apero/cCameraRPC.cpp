@@ -2898,8 +2898,8 @@ void cRPC::ReadEUCLIDIUM(const std::string &aFile)
             line.erase(0, pos + delim.length());
         }
                 
-        mImOff[1] = atof( (aSegs.at(2)).c_str());
-        mImScal[1] = atof(line.c_str());
+        mImOff[0] = atof( (aSegs.at(2)).c_str());
+        mImScal[0] = atof(line.c_str());
         
         aSegs.clear();
         std::getline(ASCIIfi, line);
@@ -2909,8 +2909,8 @@ void cRPC::ReadEUCLIDIUM(const std::string &aFile)
             line.erase(0, pos + delim.length());
         }
                 
-        mImOff[0] = atof( (aSegs.at(2)).c_str());
-        mImScal[0] = atof(line.c_str());
+        mImOff[1] = atof( (aSegs.at(2)).c_str());
+        mImScal[1] = atof(line.c_str());
         
         /* Inverse coefficients i
          * sample */

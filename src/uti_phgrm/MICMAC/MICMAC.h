@@ -2756,6 +2756,7 @@ class   cGPU_LoadedImGeom
        cPriseDeVue * PDV();
 
        bool Correl(double & Correl,int anX,int anY,const cGPU_LoadedImGeom & aGeoJ,int aNbIm) const;
+       bool CorreCensus(double & Correl,int anX,int anY,const cGPU_LoadedImGeom & aGeoJ,int aNbIm) const;
 
        // inline double StatIm(int anX,int anY,tGpuF **) const;
 
@@ -3081,6 +3082,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
 
 
+
         void StatResultat(const Box2di & aBox, Im2DGen & aPxRes, const cDoStatResult &);
 
 	void DoCorrelAdHoc ( const Box2di & aBoxInterne);  
@@ -3185,6 +3187,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
 
          const cCorrelAdHoc * CAH() const;
          const cCorrelMultiScale*  CMS() const;
+         const cCensusCost *       CC() const;
 
          double AhDefCost () const {return mAhDefCost;} 
          double AhEpsilon () const {return mAhEpsilon;}
@@ -3706,6 +3709,7 @@ class cAppliMICMAC  : public   cParamMICMAC,
        cSurfaceOptimiseur *    mSurfOpt;
        const cCorrelAdHoc *      mCorrelAdHoc;
        const cCorrelMultiScale*  mCMS;
+       const cCensusCost *       mCC;
        bool                      mCMS_ModeEparse;
 
        bool                  mGIm1IsInPax;
@@ -3867,6 +3871,10 @@ void CombleTrouPrgDyn (
          Im2D_Bits<1>  aMaskTer,
          Im2D_INT2     aImZ
      );
+
+// Fonction du ratio compris entre -1 et 1; 0 qd egaux
+double EcartNormalise(double aI1,double aI2);
+
 
 
 

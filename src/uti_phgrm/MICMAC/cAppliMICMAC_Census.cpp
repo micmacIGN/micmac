@@ -52,10 +52,17 @@ template <class Type> class cImFlags ;
 
 
 
+// Redifinition de la moitie superieure du graphe de 8 voisins
+//
+//     V3  V2 V1
+//       \ | / 
+//         X -  V0
 
 static int VX[4] = {1,1,0,-1};
 static int VY[4] = {0,1,1,1};
 
+// Structure optimisee lorsque l'on veut interpoler 
+// une image plusieur fois avec le meme X
 class cQckInterpolEpip
 {
     public :
@@ -360,6 +367,14 @@ std::vector<Pt3di>  VecKImGen
             aRes.push_back(Pt3di(anX,anY,aKSMin));
 
         }
+    }
+    if (MPD_MM())
+    {
+/*
+           std::cout << aRes << "\n";
+           getchar();
+[[-4,-3,2],[-3,-3,2],[-2,-3,2],[-1,-3,2],[0,-3,2],[1,-3,2],[2,-3,2],[3,-3,2],[4,-3,2],[-4,-2,2],[-3,-2,2],[-2,-2,1],[-1,-2,1],[0,-2,1],[1,-2,1],[2,-2,1],[3,-2,2],[4,-2,2],[-4,-1,2],[-3,-1,2],[-2,-1,1],[-1,-1,0],[0,-1,0],[1,-1,0],[2,-1,1],[3,-1,2],[4,-1,2],[-4,0,2],[-3,0,2],[-2,0,1],[-1,0,0],[0,0,0],[1,0,0],[2,0,1],[3,0,2],[4,0,2],[-4,1,2],[-3,1,2],[-2,1,1],[-1,1,0],[0,1,0],[1,1,0],[2,1,1],[3,1,2],[4,1,2],[-4,2,2],[-3,2,2],[-2,2,1],[-1,2,1],[0,2,1],[1,2,1],[2,2,1],[3,2,2],[4,2,2],[-4,3,2],[-3,3,2],[-2,3,2],[-1,3,2],[0,3,2],[1,3,2],[2,3,2],[3,3,2],[4,3,2]]
+*/
     }
     return aRes;
 }
@@ -1063,6 +1078,44 @@ double MS_CorrelBasic_Center
      return aMat.correlation(anEpsilon);
 }
 
+double Quick_MS_CensusQuant
+       (
+             const std::vector<cBufOnImage<float> *> & aVBOI1,
+             const std::vector<cBufOnImage<float> *> & aVBOI2,
+             int  aPx2,
+             const std::vector<std::vector<Pt2di> > & aVV,
+             const std::vector<double > &             aVPds
+       )
+{
+   
+        //      aSomEcart += ElAbs(EcartNormalise(aV1,aVC1)-EcartNormalise(aV2,aVC2));
+     float aVC1 = aVBOI1[0]->data()[0][0];
+     float aVC2 = aVBOI2[0]->data()[0][aPx2];
+     double aSomEcGlob = 0;
+     double aPdsGlob = 0;
+     int aNbScale = (int)aVV.size();
+     for (int aKS=0 ; aKS< aNbScale ; aKS++)
+     {
+          const std::vector<Pt2di> & aVP = aVV[aKS];
+          double aPds = aVPds[aKS];
+          double aSomEc = 0;
+          int aNbP = (int)aVP.size();
+          float ** anIm1 = aVBOI1[aKS]->data();
+          float ** anIm2 = aVBOI2[aKS]->data();
+          for (int aKP=0 ; aKP<aNbP ; aKP++)
+          {
+              const Pt2di aP = aVP[aKP];
+              aSomEc += ElAbs(EcartNormalise(aVC1,anIm1[aP.y][aP.x])-EcartNormalise(aVC2,anIm2[aP.y][aP.x+aPx2]));
+          }
+          aSomEcGlob += aSomEc * aPds;
+          aPdsGlob += aPds * aNbP;
+     }
+     double anEc = aSomEcGlob /aPdsGlob;
+     // anEc = ElMin100;
+     return 1 - anEc;
+}
+
+
 double Quick_MS_CorrelBasic_Center
        (
              const Pt2di & aPG1,
@@ -1080,6 +1133,23 @@ double Quick_MS_CorrelBasic_Center
              bool  ModeMax
        )
 {
+
+     if (MPD_MM())
+     {
+         // std::cout << " MODE-MAX=" << ModeMax << " SZs " << aVBOI1.size() << aVBOI2.size() << aVV.size() << aVPds.size() << "\n";
+         // MODE-MAX=1 SZs 3333
+/*
+         std::cout << aVPds << " " << aVV << "\n";
+         getchar();
+[0.111111,0.02,0.00396825] 
+[
+  [[-1,-1],[0,-1],[1,-1],[-1,0],[0,0],[1,0],[-1,1],[0,1],[1,1]],
+  [[-2,-2],[-1,-2],[0,-2],[1,-2],[2,-2],[-2,-1],[2,-1],[-2,0],[2,0],[-2,1],[2,1],[-2,2],[-1,2],[0,2],[1,2],[2,2]],
+  [[-4,-3],[-3,-3],[-2,-3],[-1,-3],[0,-3],[1,-3],[2,-3],[3,-3],[4,-3],[-4,-2],[-3,-2],[3,-2],[4,-2],[-4,-1],[-3,-1],[3,-1],[4,-1],[-4,0],[-3,0],[3,0],[4,0],[-4,1],[-3,1],[3,1],[4,1],[-4,2],[-3,2],[3,2],[4,2],[-4,3],[-3,3],[-2,3],[-1,3],[0,3],[1,3],[2,3],[3,3],[4,3]]]
+
+*/
+     }
+
      double aMaxCor = -1;
      double aCovGlob = 0;
      double aPdsGlob = 0;
@@ -1175,10 +1245,86 @@ double CensusBasic(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSz
      return ((double) aNbOk) / ((1+2*aSzV.x)*(1+2*aSzV.y));
 }
 
+double CensusQuantif(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSzV)
+{
+     cQckInterpolEpip aQI2(X2);
+
+     float aVC1 =  Im1[aP1.y][aP1.x];
+     float * aL2C = Im2[aP1.y] + aQI2.mX0; // debut de la colone Im2, centre sur la partie entiere
+     float aVC2 = aQI2.GetVal(aL2C);  // 
+     double aSomEcart = 0;
+
+     for (int aDy=-aSzV.y ; aDy<=aSzV.y ; aDy++)
+     {
+          float * aL1 = Im1[aP1.y+aDy] + aP1.x; // debut de la colone Im1, centre x1
+          float * aL2 = Im2[Y2+aDy] + aQI2.mX0; // debut de la colone Im2, centre sur la partie entiere
+          for (int aDx=-aSzV.x ; aDx<= aSzV.x ; aDx++)
+          {
+              // Val du voisin  Dx,Dy en 
+              float aV1 = aL1[aDx]; // 
+              float aV2 = aQI2.GetVal(aL2+aDx);  // 
+
+              aSomEcart += ElAbs(EcartNormalise(aV1,aVC1)-EcartNormalise(aV2,aVC2));
+          }
+     }
+     return aSomEcart / ( (1+2*aSzV.x) * (1+2*aSzV.y) );
+}
 
 
+Im2D_REAL4 AutoCorr_CensusQuant(Im2D_REAL4 anImIn,Pt2di aSzW,double aDPx)
+{
+   Pt2di aSzIm = anImIn.sz();
+   Im2D_REAL4 aRes(aSzIm.x,aSzIm.y,0.0);
+
+   for (int aX=aSzW.x ; aX<aSzIm.x -aSzW.x ; aX++)
+   {
+      for (int aY=aSzW.y+1 ; aY<aSzIm.y-aSzW.y-1 ; aY++)
+      {
+          double aC1 = CensusQuantif(anImIn.data(),Pt2di(aX,aY),anImIn.data(),aX+aDPx,aY,aSzW);
+          double aC2 = CensusQuantif(anImIn.data(),Pt2di(aX,aY),anImIn.data(),aX+aDPx,aY,aSzW);
+          double aC = (aC1+aC2) / 2.0;
+          // aC = 1-aC;
+          aC /= aDPx;
+          aRes.SetR(Pt2di(aX,aY),aC);
+      }
+   }
+   return aRes;
+}
+
+int CPP_AutoCorr_CensusQuant(int argc,char ** argv)
+{
+    std::string aNameIn,aNameOut;
+    int aSzW=2;
+    double aEps=0.1;
+
+    ElInitArgMain
+    (
+           argc,argv,
+           LArgMain() << EAMC(aNameIn,"Name of Input image", eSAM_IsPatFile),
+           LArgMain() << EAM(aSzW,"SzW",true,"Size of Window, def=2")
+                      << EAM(aEps,"Eps",true,"Size of epsilon")
+                      << EAM(aNameOut,"Out",true,"Name of output")
+
+    );
+
+    if (! EAMIsInit(&aNameOut))
+       aNameOut = "AC-CensusQ-" + StdPrefix(aNameIn) + ".tif";
+
+    Im2D_REAL4 aImIn = Im2D_REAL4::FromFileStd(aNameIn);
+    Im2D_REAL4 aRes = AutoCorr_CensusQuant(aImIn,Pt2di(aSzW,aSzW),aEps);
+
+    Tiff_Im::CreateFromIm(aRes,aNameOut);
+
+    return EXIT_SUCCESS;
+}
 
 
+/*
+*/
+
+
+// Version basique du calcul de Census par graphe;
+// Est utilise pour verifier la correction du calcul optimise
 
 
 double CensusGraphePlein(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2di aSzV)
@@ -1190,18 +1336,21 @@ double CensusGraphePlein(float ** Im1,Pt2di aP1,float ** Im2,float X2,int Y2,Pt2
 
      for (int aDy=-aSzV.y ; aDy<=aSzV.y ; aDy++)
      {
-          float * aL1 = Im1[aP1.y+aDy] + aP1.x;
-          float * aL2 = Im2[Y2+aDy] + aQI2.mX0;
+          float * aL1 = Im1[aP1.y+aDy] + aP1.x; // debut de la colone Im1, centre x1
+          float * aL2 = Im2[Y2+aDy] + aQI2.mX0; // debut de la colone Im2, centre sur la partie entiere
           for (int aDx=-aSzV.x ; aDx<= aSzV.x ; aDx++)
           {
-              float aV1 = aL1[aDx];
-              float aV2 = aQI2.GetVal(aL2+aDx);
+              // Val du voisin  Dx,Dy en 
+              float aV1 = aL1[aDx]; // 
+              float aV2 = aQI2.GetVal(aL2+aDx);  // 
               for (int aK=0 ; aK<4 ; aK++)
               {
-                   int aDx2 = aDx+VX[aK];
+                   int aDx2 = aDx+VX[aK];  // Dx-Dy des des 8 voisins
                    int aDy2 = aDy+VY[aK];
+                   // Pour ne pas sortir
                    if  ((aDx2>=-aSzV.x) && (aDx2<=aSzV.x) && (aDy2>=-aSzV.y) && (aDy2<=aSzV.y))
                    {
+                       // 
                        float aW1 = Im1[aP1.y+aDy2][aP1.x+aDx2];
                        float aW2 = aQI2.GetVal(Im2,Pt2di(aDx2,Y2+aDy2));
                        bool Inf1 = (aV1<aW1);
@@ -1281,6 +1430,14 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
   bool DoGraphe = (aCC.TypeCost() ==eMCC_GrCensus);
   bool DoCensusBasic = (aCC.TypeCost() ==eMCC_CensusBasic) || DoMixte;
   bool DoCorrel = (aCC.TypeCost() == eMCC_CensusCorrel) || DoMixte;
+  bool DoCensQuant = (aCC.TypeCost() == eMCC_CensusQuantitatif );
+  // return Quick_MS_CensusQuant(aVBOI1,aVBOI2,aPx2,aVV,aVPds);
+
+  if (MPD_MM())
+  {
+      //  std::cout << "HHHHHHHHHHHHHHHHHHHh " << aCC.TypeCost() << " "<<  eMCC_CensusCorrel << " VERIF " << Verif << "\n";
+      // getchar(); // => HHHHHHHHHHHHHHHHHHHh 2 2 VERIF 0
+  }
 
   double aSeuilHC = aCC.SeuilHautCorMixte().Val();
   double aSeuilBC = aCC.SeuilBasCorMixte().Val();
@@ -1535,6 +1692,11 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
     // interpolee a creer
     for (int aPhase = 0 ; aPhase<mNbByPix ; aPhase++)
     {
+
+        // {if (MPD_MM()) { std::cout << "Phhh " << aPhase << "\n"; getchar(); }}
+        // Au depart
+        //     toujours Ph0
+        //     ensuite Ph0/ Ph1
         
         std::vector<Im2D_INT4> mImFlag1;
         std::vector<INT4 **  > mVIF1;
@@ -1598,7 +1760,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
         std::vector<cBufOnImage<float> *> aVBOI0;
         std::vector<cBufOnImage<float> *> aVBOIC;
-        if (DoCensusBasic || DoCorrel)
+        if (DoCensusBasic || DoCorrel || DoCensQuant)
         {
              for (int aKC=0 ; aKC<aNbScale ; aKC++)
              {
@@ -1706,6 +1868,12 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                                              getchar();
                                          }
                                      }
+                                }
+                                if (DoCensQuant)
+                                {
+                                    aCost = Quick_MS_CensusQuant(aVBOI0,aVBOIC,anOffset,aVKImS,aVPds);
+                                    aGlobCostCorrel = aCost; // ?? Pas sur utilite
+  // return Quick_MS_CensusQuant(aVBOI1,aVBOI2,aPx2,aVV,aVPds);
                                 }
                                 if (DoCorrel)
                                 {

@@ -1520,6 +1520,8 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
     std::vector<double> aVRE; // Robust Estim
     std::vector<std::string>  aParamAux;
     std::vector<std::string>  aDeprParamPoly;
+    bool IdX=false;
+    bool IdY=false;
 
     // int NbTest =50;
     // double  Perc = 80.0;
@@ -1549,6 +1551,8 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
                     <<  EAM(ByKey,"ByKey",true,"When true multiple, Param is a pattern of Im1, param2 is a key of compute")
 	            <<  EAM(aDeprExpTxt,"ExpTxt",true,"DEPRECATED !!! => use Ext (string not bool)")
                     <<  EAM(aDeprParamPoly,"ParPol",true,"Param for polygonal model [Deg,x0,y0,x1,y1]")
+                    <<  EAM(IdX,"IdX",true,"Force P2.x=P1.x")
+                    <<  EAM(IdY,"IdY",true,"Force P2.y=P1.y")
     );
     ELISE_ASSERT
     (
@@ -1617,12 +1621,18 @@ int CPP_CalcMapAnalitik(int argc,char** argv)
 
         for (ElPackHomologue::iterator itCpl=aPackInLoc.begin();itCpl!=aPackInLoc.end() ; itCpl++)
         {
+            if (IdX)
+               itCpl->P2().x = itCpl->P1().x;
+            if (IdY)
+               itCpl->P2().y = itCpl->P1().y;
+
             aPackInitialGlob.Cple_Add(itCpl->ToCple());
             if (aCS1)
             {
                 itCpl->P1() = aCS1->DistInverse(itCpl->P1());
                 itCpl->P2() = aCS2->DistInverse(itCpl->P2());
             }
+
             aPackInGlob.Cple_Add(itCpl->ToCple());
             aP1Max = Sup(aP1Max, itCpl->P1());
             aP1Min = Inf(aP1Min, itCpl->P1());

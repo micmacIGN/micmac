@@ -6,6 +6,24 @@
                         <ByMkF> true </ByMkF>
                  </GenerePartiesCachees>
          </#WHEN>
+
+         <#WHEN VTEST=${CorPonc}>
+             <#WHEN VTEST=${AddZoom4MCorPonc}>
+              <CorrelAdHoc  Portee="Globale">
+                  <TypeCAH>
+                       <MultiCorrelPonctuel>
+                            <PdsCorrelStd >  ${PCStd} </PdsCorrelStd>
+                            <PdsCorrelCroise  >  ${PCCroise} </PdsCorrelCroise>
+                            <MCP_AttachePixel>
+                                <Pds> ${PdsAttPix}  </Pds>
+                                <KeyRatio> NKS-Key-Im2OrtRadCal@${Dir}@${MCorPoncCal} </KeyRatio>
+                            </MCP_AttachePixel>
+                       </MultiCorrelPonctuel>
+                  </TypeCAH>
+              </CorrelAdHoc>
+             </#WHEN>
+         </#WHEN>
+
      </EtapeMEC>
 
 

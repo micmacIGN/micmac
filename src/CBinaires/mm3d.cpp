@@ -747,6 +747,8 @@ int TestGiangNewHomol_Main(int argc,char ** argv);
 
 int TestGiangDispHomol_Main(int argc,char ** argv);
 
+int Test_Conv(int argc,char ** argv);
+
 int GetSpace_main(int argc, char ** argv);
 
 int TestDetecteur_main(int argc,char ** argv);
@@ -805,6 +807,10 @@ extern int  CPP_NOGpsLoc(int argc,char ** argv);
 
 extern int GCPRollingBasc_main(int argc, char** argv);
 extern int Generate_ImagSift(int argc, char** argv);
+
+extern int  CPP_DistHistoBinaire(int argc,char ** argv);
+
+extern int CPP_AutoCorr_CensusQuant(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -1031,6 +1037,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("LSQMatch",LSQMatch_Main ,"Giang Test LSQ"));
         aRes.push_back(cMMCom("GCPRollingBasc",GCPRollingBasc_main ,"Rolling GCPBascule"));
         aRes.push_back(cMMCom("TiepTriFar",TiepTriFar_Main ,"TestFarScene"));
+        aRes.push_back(cMMCom("DetectImBlur",Test_Conv,"compute sharpness notion for each img by variance of laplacian"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));
@@ -1052,8 +1059,11 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
         aRes.push_back(cMMCom("ProcessThmImgs",ProcessThmImgs_main,"Tool to process Thermique acquisition of IGN"));
         aRes.push_back(cMMCom("ConvertTiePPs2MM",ConvertTiePPs2MM_main,"ConvertTiePPs2MM"));
+        aRes.push_back(cMMCom("DistHB",CPP_DistHistoBinaire,"Dist Binarie Code Histo of Images"));
 
         aRes.push_back(cMMCom("ConvHomolVSFM2MM",ConvHomolVSFM2MM_main,"Convert Tie Points from Visual SFM format (.sift & .mat) to MicMac format"));
+
+        aRes.push_back(cMMCom("AC_CQ",CPP_AutoCorr_CensusQuant,"Auto correl for Census Quant"));
 
    }
 
