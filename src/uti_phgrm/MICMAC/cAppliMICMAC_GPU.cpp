@@ -249,7 +249,11 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
     mOneImage = true;
 
     if (! aCMS)
+    {
+       mPdsMS = 1.0;
+       mCumSomPdsMS = 1.0;
        return;
+    }
 
     const std::vector<cOneParamCMS> & aVP = aCMS->OneParamCMS();
 
@@ -271,6 +275,7 @@ cGPU_LoadedImGeom::cGPU_LoadedImGeom
         mMSGLI[aK]->mMyDataIm0 = mDataIm[aK];
         mMSGLI[aK]->mMaster = this;
     }
+
 
     for (int aK=0 ; aK<int(aVP.size()) ; aK++)
     {
@@ -513,7 +518,6 @@ double  cGPU_LoadedImGeom::MoyIm(int anX,int anY,int aNbScaleIm) const
 
     }
 
-
     aRes /= mMSGLI[aNbScaleIm-1]->mCumSomPdsMS;
     if (0)
     {
@@ -573,30 +577,59 @@ double Cov(const cGPU_LoadedImGeom & aGeoJ) const;
 
 bool   cGPU_LoadedImGeom::CorreCensus(double & aCorrel,int anX,int anY,const  cGPU_LoadedImGeom & aGeoJ,int aNbScaleIm) const
 {
-   return false;
-// ::MoyIm
-/*
-    if (! mOPCms)
-    {
-        return mDSom12 [anY][anX] /mNbVals;
-    }
+   static int aCpt = 0;
 
-    double aRes = 0;
-    for (int aK=0 ; aK<aNbScaleIm ; aK++)
-    {
-        cGPU_LoadedImGeom * aGLI = mMSGLI[aK];
-        aRes += aGLI->mDSom12 [anY][anX] * aGLI->mPdsMS;
-    }
-    return aRes / mMSGLI[aNbScaleIm-1]->mCumSomPdsMS;
+   if (! mDOK_Ortho[anY][anX])
       return false;
-*/
+
+   bool ModeQuant = (mAppli.CC()->TypeCost()==eMCC_CensusQuantitatif);
+
+   double anEcGlob=0;
+
+   for (int aKS=0 ; aKS<aNbScaleIm ; aKS++)
+   {
+      tDataGpu  aDI = mMSGLI[aKS]->mDOrtho;
+      tDataGpu  aDJ = aGeoJ.mMSGLI[aKS]->mDOrtho;
+      // const cCorrelMultiScale*  aCMS = mAppli.CMS();
+      float aVCI = aDI[anY][anX];
+      float aVCJ = aDJ[anY][anX];
+
+      double aScSomEc = 0;
+
+      for (int aDY=-mSzV0.y ; aDY<=mSzV0.y ;aDY++)
+      {
+          float * aLI = aDI[anY+aDY] + anX - mSzV0.x;
+          float * aLJ = aDI[anY+aDY] + anX - mSzV0.x;
+          if (ModeQuant)
+          {
+              for (int aCpt =1+2*mSzV0.x ; aCpt ; aCpt--)
+              {
+                  aScSomEc += ElAbs(EcartNormalise(aVCI,*aLI)-EcartNormalise(aVCJ,*aLJ));
+                  aLI++;
+                  aLJ++;
+              }
+          }
+      }
+      anEcGlob += aScSomEc * mMSGLI[aKS]->mPdsMS;
+   }
+   anEcGlob /= mCumSomPdsMS;
+   aCorrel =  1-anEcGlob;
+
+   if (0)
+   {
+      std::cout << "GPU_Lxxxxnsus CMS=" << mAppli.CMS() << " SZ=" <<  mMSGLI.size() << mSzV0 << mSzVMax <<  "\n";
+      getchar();
+   }
+   aCpt++;
+
+   return true;
 }
 
 bool   cGPU_LoadedImGeom::Correl(double & aCorrel,int anX,int anY,const  cGPU_LoadedImGeom & aGeoJ,int aNbScaleIm) const
 {
         if (mAppli.CC())
         {
-            return CorreCensus( aCorrel,anX,anY,aGeoJ,aNbScaleIm);
+            return CorreCensus(aCorrel,anX,anY,aGeoJ,aNbScaleIm);
         }
 
         if (! mDOK_Ortho[anY][anX])
@@ -1080,7 +1113,7 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
     {
             if (mFirstZIsInit)
             {
-                aKFirstIm = 1;
+               aKFirstIm = 1;
             }
             else
             {
@@ -1120,6 +1153,7 @@ bool  cAppliMICMAC::InitZ(int aZ,eModeInitZ aMode)
     {
           ELISE_ASSERT(aGLI_00!=0,"Incohe eModeMom_12_2_22 with no Im in cAppliMICMAC::InitZ");
     }
+
 
     for (int aKIm= aKFirstIm ; aKIm<mNbIm ; aKIm++)
     {
@@ -1624,7 +1658,6 @@ void cAppliMICMAC::DoGPU_Correl
             }
         }
 
-
         for (int aZ=mZMinGlob ; aZ<mZMaxGlob ; aZ++)
         {
             bool OkZ = InitZ(aZ,aModeInitZ);
@@ -2029,13 +2062,22 @@ void cAppliMICMAC::DoCorrelAdHoc
         {
             DoMasqueAutoByTieP(aBox,aTC.MasqueAutoByTieP().Val());
         }
-        else if (aTC.CensusCost().IsInit())
+        else if (mCC) // (aTC.CensusCost().IsInit())
         {
-             if ( GeomImages() == eGeomImage_EpipolairePure)
-                 DoCensusCorrel(aBox,aTC.CensusCost().Val());
+             ELISE_ASSERT
+             (
+                 ModeGeomIsIm1InvarPx(*this) ,
+                 "Census require ModeGeomIm for now"
+             );
+
+             if (GeomImages() == eGeomImage_EpipolairePure)
+             {
+                DoCensusCorrel(aBox,aTC.CensusCost().Val());
+             }
              else
              {
-                ELISE_ASSERT ( false, "Not epipolar geometry for census ");
+                DoGPU_Correl(aBox,nullptr,0);
+                // ELISE_ASSERT ( false, "Not epipolar geometry for census ");
              }
         }
 
