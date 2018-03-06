@@ -659,6 +659,8 @@ int TransfoMesureAppuisVario2TP_main(int argc,char ** argv)
     aPackHom.SelfSwap();
     std::cout << "Homol pack saved in  : " << aOutputFile2 << " \n" ;
     aPackHom.StdPutInFile(aOutputFile2);
+
+	return EXIT_SUCCESS;
 }
 
 
