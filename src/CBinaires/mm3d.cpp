@@ -650,6 +650,7 @@ extern int  main_test(int argc,char ** argv);
 extern int  main_test2(int argc,char ** argv);
 extern int  main_ero(int argc,char ** argv);
 extern int  main_ascii2tif(int argc,char ** argv);
+int Test_ascii2tif_BlurinessSelect(int argc,char ** argv);
 extern int  GCP2Hom_main(int argc,char ** argv);
 #if (ELISE_UNIX)
 extern int  DocEx_Introanalyse_main(int,char **);
@@ -962,7 +963,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("ResizeHomol",resizeHomol_main,"Resize Homol pack"));
         aRes.push_back(cMMCom("Ero",main_ero,"Egalisation Radiometrique pour une paire d'ortho"));
         aRes.push_back(cMMCom("Eros",EgalRadioOrto_main,"Egalisation Radiometrique d'OrthoS"));
-        aRes.push_back(cMMCom("Ascii2Tif",main_ascii2tif,"transform ascii file from irbis software into tif file."));
+        aRes.push_back(cMMCom("Ascii2Tif",main_ascii2tif,"transform ascii file to tif file, designed for ascii from irbis or sdk direct (variocam and optris)."));
+        aRes.push_back(cMMCom("Ascii2TifWithSelection",Test_ascii2tif_BlurinessSelect,"from list of ascii file from video frame, perform a selection of sharpest frame and export it in tif format."));
 
 // #if (ELISE_QT_VERSION >= 4)
         aRes.push_back(cMMCom("Masq3Dto2D",Masq3Dto2D_main,"Create a 2D Masq from Nuage and 3D Masq "));

@@ -1522,7 +1522,51 @@ int VarioCamTo8Bits_main(int argc,char ** argv)
 
 
 
+/*
+ * // useless, Giang l'a codé en bien plus propre.
+ * template <class T,class TB>
+double VarLapl(Im2D<T,TB> * aIm,int aSzW);
+//burriness is computed as variance of  Laplacian with a mean filter prior to reduce noise
+//https://www.pyimagesearch.com/2015/09/07/blur-detection-with-opencv/
+template <class T,class TB>
+double VarLapl(Im2D<T,TB> * aIm,int aSzW)
+{
+   Im2D_REAL4 aRes(aIm->sz().x,aIm->sz().y);
 
+   Fonc_Num aF = aIm->in_proj();
+
+   int aNbVois = ElSquare(1+2*aSzW);
+
+   aF = rect_som(aF,aSzW) /aNbVois;
+
+   double min,max;//  afin de pouvoir mettre le range de valeur entre 0 et 255
+   ELISE_COPY(aIm->all_pts()
+              ,aF
+              ,aRes.out());
+
+   double mean;
+   int nb;
+
+   ELISE_COPY(aRes.all_pts()
+              ,Virgule(Laplacien(aRes.in_proj())                           ,1)
+              ,Virgule(aRes.out()|sigma(mean)      ,sigma(nb)));
+
+   std::cout << "mean of laplacian : " << mean << "\n";
+   mean=mean/nb;
+
+   std::cout << "nb of value: " << nb << "\n";
+   // variance of laplacian
+   Fonc_Num aFVar = ElSquare((aRes.in()-mean));
+
+   double meanVarLap;
+   ELISE_COPY(aRes.all_pts()
+              ,aFVar
+              ,sigma(meanVarLap));
+   // mean of variance
+   meanVarLap/=nb;
+   return meanVarLap;
+}
+*/
 
 
 

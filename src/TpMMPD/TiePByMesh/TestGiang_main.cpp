@@ -185,11 +185,10 @@ double VarBlur(string aNameIm)
 
     Pt2di aSzKer(round_up((aLapl.sz().x-1)/2), round_up((aLapl.sz().y-1)/2));
 
-
     Im2D_REAL4 aIm2D = ImRead(aNameIm);
     Im2D_REAL4 aIm2D_DNs(aIm2D.sz().x, aIm2D.sz().y);
     //Show(aIm2D, som_masq(aIm2D.in(0), aDenoise), aIm2D_DNs, aNameIm + "_Dns");
-    Show(aIm2D, som_masq(aIm2D.in(0), aDenoise), aIm2D_DNs, "");
+    Show(aIm2D, som_masq(aIm2D.in(0), aDenoise), aIm2D_DNs, "test.tif");
 
 
     Im2D_REAL4 aIm2D_Lpl(aIm2D.sz().x, aIm2D.sz().y);
