@@ -619,7 +619,7 @@ extern int TestER_rpc_main(int argc,char ** argv);
 extern int GCPCtrlPly_main(int argc,char ** argv);
 extern int TestCmpIm_Ewelina(int argc,char ** argv);
 extern int TestER_hom_main(int argc,char ** argv);
-extern int TestER_tiff2pfm(int argc,char ** argv);
+extern int PFM2Tiff_main(int argc,char ** argv);
 extern int TestPush(int argc,char ** argv);
 //extern int Cillia_main(int argc,char ** argv);
 extern int Homol2GCP_main(int argc,char ** argv);
@@ -770,6 +770,8 @@ int Test_NewRechPH(int argc,char ** argv);
 
 int Homol2Way_main(int argc,char ** argv);
 
+int Homol2WayNEW_main(int argc,char ** argv);
+
 int UnWindows(int argc,char ** argv);
 
 int MakePly_CamOrthoC(int argc,char ** argv);
@@ -861,7 +863,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
        aRes.push_back(cMMCom("TestJB",TestJB_main,"random stuff"));
        aRes.push_back(cMMCom("TestER",TestER_main2,"ER test workplace"));
        aRes.push_back(cMMCom("TestER2",TestER_hom_main,"ER test hom"));
-       aRes.push_back(cMMCom("Conv2Pfm",TestER_tiff2pfm,"Tif to pfm converter"));
+       aRes.push_back(cMMCom("Tif2Pfm",PFM2Tiff_main,"Tif to pfm or the other way around"));
        aRes.push_back(cMMCom("TestAT",TestPush,"AT test workplace"));
 
 //       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));
@@ -1032,7 +1034,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TaskCorrel",TaskCorrel_main,"Creat Correlation Task XML file for TiepTri",cArgLogCom(2)));
         aRes.push_back(cMMCom("TaskCorrelGCP",TaskCorrelWithPts_main,"Creat Correlation Task XML file for GCP By Mesh",cArgLogCom(2)));
         aRes.push_back(cMMCom("FAST",FAST_main,"Some Detector interest point (FAST, FAST_NEW, DIGEO, EXTREMA)"));
-        aRes.push_back(cMMCom("Homol2Way",Homol2Way_main ,"Creat same pack homol in 2 way by combination 2 pack of each way"));
+        aRes.push_back(cMMCom("Homol2Way",Homol2WayNEW_main ,"Creat same pack homol in 2 way by combination 2 pack of each way"));
         aRes.push_back(cMMCom("CplFromHomol",CplFromHomol_main ,"Creat xml of pair images from Homol Folder"));
         aRes.push_back(cMMCom("LSQMatch",LSQMatch_Main ,"Giang Test LSQ"));
         aRes.push_back(cMMCom("GCPRollingBasc",GCPRollingBasc_main ,"Rolling GCPBascule"));
