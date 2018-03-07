@@ -310,6 +310,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     Pt2di  aPtDebug;
     bool   aUseArgMaskAuto=true;
     bool   OrthoImSupMNT = false;
+    std::vector<double> aParamCensus;
 
     std::vector<std::string> a12PixParam;
 
@@ -324,6 +325,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mSzW,"SzW",true,"Correlation Window Size (1 means 3x3)")
                     << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, available in image geometry")
                     << EAM(mMCorPonc,"CorPonc",true,"New One-Two Pixel Matching option, def=false, available in image geometry")
+                    << EAM(aParamCensus,"Census",true,"Parameter 4 Census, as for now used as bool", eSAM_NoInit)
                     << EAM(a12PixParam,"12PixMP",true,"One-Two Pixel Matching parameters [ZoomInit,PdsAttPix,PCCroise,?PCStd?,?\"tif\"?], \"tif\" or else \"xml\"; ; Def=[4,1,1,0,xml]", eSAM_NoInit)
                     << EAM(mForDeform,"ForDeform",true,"Set paramaters when ortho are used for deformation")
                     << EAM(mUseGpu,"UseGpu",true,"Use Cuda acceleration, def=false", eSAM_IsBool)
@@ -938,6 +940,25 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
          double aPCStd     = 0.0;          
          std::string aMCorPoncCal = "xml";
 
+         // Proposition de reecriture MPD pour limiter duplication de code
+         if (EAMIsInit(&a12PixParam))
+         {
+               //  Je pensei pas de pb  pour admettre de de 0 a 5 arg, puisque  tous ont une val def raisonnable ?
+               ELISE_ASSERT( ((a12PixParam.size()>=0) || (a12PixParam.size()<=5)) ,"if 12PixP option used must be of size at least three"); 
+
+               if (a12PixParam.size()>=1)
+                  aZoomInitMCPonc = RequireFromString<double>(a12PixParam[0],"One-Two Pixel Matching : ZoomInit");
+               if (a12PixParam.size()>=2)
+                  aPdsAttPix = RequireFromString<double>(a12PixParam[1],"One-Two Pixel Matching : PdsAttPix");
+               if (a12PixParam.size()>=3)
+                  aPCCroise  = RequireFromString<double>(a12PixParam[2],"One-Two Pixel Matching : aPCCroise");
+               if (a12PixParam.size()>=4)
+                  aPCStd     = RequireFromString<double>(a12PixParam[3],"One-Two Pixel Matching : PCStd");
+               if (a12PixParam.size()>=4)
+                  aMCorPoncCal = a12PixParam[4]; 
+         }
+
+/*
          if (int(a12PixParam.size())==3)
          {
                aZoomInitMCPonc = RequireFromString<double>(a12PixParam[0],"One-Two Pixel Matching : ZoomInit");
@@ -960,14 +981,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                aPCCroise    = RequireFromString<double>(a12PixParam[2],"One-Two Pixel Matching : PCCroise");
                aPCStd       = RequireFromString<double>(a12PixParam[3],"One-Two Pixel Matching : PCStd");
                aMCorPoncCal = a12PixParam[4]; 
-
-
-               
          }
          else
                ELISE_ASSERT( !((a12PixParam.size()==2) || (a12PixParam.size()>5)) ,"if 12PixP option used must be of size at least three"); 
-   
-
+*/
  
          if (EAMIsInit(&mDoOrtho) && mDoOrtho)
          {
@@ -982,70 +999,92 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
              for (int aKIm = 0; aKIm<mNbIm ; aKIm++)
              { 
                   const std::string & aNameImCur = (*mSetIm)[aKIm];
-         
-
+                  Tiff_Im aIsRGB = Tiff_Im::StdConvGen(aNameImCur.c_str(),-1,true);
+        
                   std::string aOrtCur = mICNM->Assoc1To1(aKeyOrt,aNameImCur,true);
                   std::string aOrtOut = mICNM->Assoc1To1(aKeyRadCal,StdPrefix(aNameImCur),true);
-                  std::string aOrtOutOrg = StdPrefix(aOrtOut) + "_org.tif";
-
-                  //ratio of orthos
-                  std::string aRatioCur = MMBinFile("mm3d Nikrup") + "\"/ " +
-                                        + aOrtCur.c_str() + " (max " 
-                                        + aOrtMast.c_str() + " 1.0)\" " 
-                                        + aOrtOutOrg.c_str();
-
-                  //is RGB? 
-                  std::string aRatioConv="";
-                  std::string aRatioImConvMv="";
-                  std::string aRatioImConv = StdPrefix(aOrtOutOrg) + "_gray.tif";
-                  Tiff_Im aIsRGB = Tiff_Im::StdConvGen(aNameImCur.c_str(),-1,true);
 
 
-
-                  if (aIsRGB.nb_chan()==3)
+                  if (aOrtMast!=aOrtCur) 
                   {
-                      aRatioConv = MMBinFile("mm3d Nikrup") + "\"(/ (+ (=F " 
-                                              + aOrtOutOrg.c_str() + " v0 @F) v1 @F v2 @F) 3)\" " 
-                                              + aRatioImConv.c_str();
-                      aRatioImConvMv = "mv \"" + aRatioImConv + "\" " + "\"" + aOrtOutOrg + "\""; 
 
+                      std::string aOrtOutOrg = StdPrefix(aOrtOut) + "_org.tif";
+                   
+                      //ratio of orthos
+                      std::string aRatioCur = MMBinFile("mm3d Nikrup") + "\"/ " +
+                                            + aOrtCur.c_str() + " (max " 
+                                            + aOrtMast.c_str() + " 1.0)\" " 
+                                            + aOrtOutOrg.c_str();
+                   
+                      //is RGB? 
+                      std::string aRatioConv="";
+                      std::string aRatioImConvMv="";
+                      std::string aRatioImConv = StdPrefix(aOrtOutOrg) + "_gray.tif";
 
-                  }                  
+                   
+                   
+                   
+                      if (aIsRGB.nb_chan()==3)
+                      {
+                          aRatioConv = MMBinFile("mm3d Nikrup") + "\"(/ (+ (=F " 
+                                                  + aOrtOutOrg.c_str() + " v0 @F) v1 @F v2 @F) 3)\" " 
+                                                  + aRatioImConv.c_str();
+                          aRatioImConvMv = "mv \"" + aRatioImConv + "\" " + "\"" + aOrtOutOrg + "\""; 
+                   
+                   
+                      }                  
+                   
+                      //ikth the ratios
+                      std::string aRatioIkth = MMBinFile("mm3d Nikrup") + 
+                                           + "\"ikth " + aOrtOutOrg.c_str() + " 0.5 5 0 2 5\" "
+                                           + aOrtOut.c_str();
+                   
+                   
+                   
+                      //masq
+                      std::string aRatioMasqName = StdPrefix(aOrtOut) + "_Masq.tif"; 
+                   
+                      std::string aRatioMasq = MMBinFile("mm3d Nikrup") + "\"(&& (" 
+                                                   + "< 0 " + aOrtOut.c_str() + ") ("
+                                                   + "> 10 " + aOrtOut.c_str() + "))\" " 
+                                                   + aRatioMasqName.c_str();
+                   
+                      //create xml
+                      std::string aRatioStatToXml = MMBinFile("mm3d StatIm") + aOrtOut.c_str() 
+                                                    + " [0,0] RatioXmlExport=1 Masq=" + aRatioMasqName.c_str();
+                   
+                   
+                      std::string aRatioMasqRm = "rm \"" + aRatioMasqName + "\""; 
+                   
+                   
+                   
+                      mCom12PixMRadCal.push_back(aRatioCur.c_str());
+                      if (aRatioImConv.size())
+                      {
+                          mCom12PixMRadCal.push_back(aRatioConv);
+                          mCom12PixMRadCal.push_back(aRatioImConvMv);
+                      }
 
-                  //ikth the ratios
-                  std::string aRatioIkth = MMBinFile("mm3d Nikrup") + 
-                                       + "\"ikth " + aOrtOutOrg.c_str() + " 0.5 5 0 2 5\" "
-                                       + aOrtOut.c_str();
-
-
-
-                  //masq
-                  std::string aRatioMasqName = StdPrefix(aOrtOut) + "_Masq.tif"; 
-
-                  std::string aRatioMasq = MMBinFile("mm3d Nikrup") + "\"(&& (" 
-                                               + "< 0 " + aOrtOut.c_str() + ") ("
-                                               + "> 10 " + aOrtOut.c_str() + "))\" " 
-                                               + aRatioMasqName.c_str();
-
-                  //create xml
-                  std::string aRatioStatToXml = MMBinFile("mm3d StatIm") + aOrtOut.c_str() 
-                                                + " [0,0] RatioXmlExport=1 Masq=" + aRatioMasqName.c_str();
-
-
-                  std::string aRatioMasqRm = "rm \"" + aRatioMasqName + "\""; 
-
- 
-
-                  mCom12PixMRadCal.push_back(aRatioCur.c_str());
-                  if (aRatioImConv.size())
-                  {
-                      mCom12PixMRadCal.push_back(aRatioConv);
-                      mCom12PixMRadCal.push_back(aRatioImConvMv);
+                  
+                      mCom12PixMRadCal.push_back(aRatioIkth.c_str());
+                      mCom12PixMRadCal.push_back(aRatioMasq.c_str());
+                      mCom12PixMRadCal.push_back(aRatioStatToXml.c_str());
+                      mCom12PixMRadCal.push_back(aRatioMasqRm.c_str()); 
                   }
-                  mCom12PixMRadCal.push_back(aRatioIkth.c_str());
-                  mCom12PixMRadCal.push_back(aRatioMasq.c_str());
-                  mCom12PixMRadCal.push_back(aRatioStatToXml.c_str());
-                  mCom12PixMRadCal.push_back(aRatioMasqRm.c_str());
+                  else
+                  {
+                      std::string aIdIm = MMBinFile("mm3d Nikrup") + "\"1\" " + aOrtOut.c_str() 
+                                          + " Box=[0,0," + ToString(aIsRGB.sz().x) + "," + ToString(aIsRGB.sz().y) + "]"; 
+                      mCom12PixMRadCal.push_back(aIdIm.c_str());
+
+                      cXML_RatioCorrImage aXml;
+                      aXml.Ratio() = 1.0;
+                      std::string aRatioXmlName = StdPrefix(aOrtOut) + ".xml";
+                      MakeFileXML(aXml,aRatioXmlName);
+
+
+                  }
+
              }
 
              mCom12PixM = MMBinFile("mm3d") + " ";
@@ -1103,12 +1142,12 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                          + std::string(" +MCorPoncCal=") + aMCorPoncCal;
 
          }
-
-
-
-         
-
       }
+
+      if (EAMIsInit(&aParamCensus))
+      {
+      }
+
       if (mGenCubeCorrel)
           mCom = mCom + std::string(" +GCC=true");
 

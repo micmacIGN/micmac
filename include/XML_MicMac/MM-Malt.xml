@@ -226,6 +226,19 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <Symb> NbDirPrgDyn=7 </Symb>
      <Symb> ModeAgregPrgDyn=ePrgDAgrSomme </Symb>
      <Symb> OrthoSuperpMNT=false </Symb>
+
+     <Symb>  UseCensusCost=false </Symb>
+     <Symb>  ModeCensusCost=eMCC_CensusQuantitatif </Symb>
+
+
+<!--
+        <#WHEN VTEST=${UseCensusCost}>
+              <CensusCost>
+                              <TypeCost> ${ModeCensusCost}  </TypeCost>
+             </CensusCost>
+        </#WHEN>
+-->
+
 </DicoLoc>
 
 <!--  M2 : Describe the ground zone where the matching is to be done -->
@@ -435,15 +448,35 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
             <AggregCorr> ${ModeAgrCor} </AggregCorr>
             <!---->
-            <#WHEN VTEST=${CorMS}>
-                 <#WHEN VTEST=${NotUseGpu}>
-                     <CorrelAdHoc>
-                          <TypeCAH>
-                               <GPU_Correl> </GPU_Correl>
-                          </TypeCAH>
-                     </CorrelAdHoc>
-                  </#WHEN>
-            </#WHEN>
+            <#IF VTEST=${UseCensusCost}>
+                 <CorrelAdHoc>
+                    <TypeCAH>
+                         <CensusCost>
+                              <TypeCost> ${ModeCensusCost}  </TypeCost>
+                        </CensusCost>
+                    </TypeCAH>
+                 </CorrelAdHoc>
+
+                 <#WHEN VTEST=${CorMS}>
+                      <#WHEN VTEST=${NotUseGpu}>
+                          <CorrelAdHoc>
+                               <TypeCAH>
+                                    <GPU_Correl> </GPU_Correl>
+                               </TypeCAH>
+                          </CorrelAdHoc>
+                       </#WHEN>
+                 </#WHEN>
+                 <#WHEN VTEST=${CorMS}>
+                      <#WHEN VTEST=${NotUseGpu}>
+                          <CorrelAdHoc>
+                               <TypeCAH>
+                                    <GPU_Correl> </GPU_Correl>
+                               </TypeCAH>
+                          </CorrelAdHoc>
+                       </#WHEN>
+                 </#WHEN>
+            </#IF>
+
             
             <#WHEN VTEST=${UseGpu}>
                <CorrelAdHoc>

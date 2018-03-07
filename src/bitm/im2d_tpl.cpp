@@ -1797,6 +1797,29 @@ void Im2D<Type,TyBase>::multiply(const Type &aK)
 }
 
 template <class Type,class TyBase>
+void Im2D<Type,TyBase>::bitwise_add(Im2D<Type,TyBase> & aIm, Im2D<Type,TyBase> & aImOut)
+{
+    ELISE_DEBUG_ERROR(tx() <= 0 || ty() <= 0, "Im2D<Type,TyBase>::getMinMax", "sz() = " << sz());
+    ELISE_DEBUG_ERROR(aIm.tx() <= 0 || aIm.ty() <= 0, "Im2D<Type,TyBase>::getMinMax", "sz() = " << sz());
+
+    if ( (aImOut.tx() != tx()) || (aImOut.ty() != ty()) )
+        aImOut.Resize(sz());
+
+    Type *itPix = data_lin();
+    Type *itPix_aIm = aIm.data_lin();
+    Type *itPix_aImOut = aImOut.data_lin();
+    size_t iPix = size_t(tx()) * size_t(ty());
+    while (iPix--)
+    {
+//        *itPix_aImOut++ = *itPix++ + *itPix_aIm++;
+        *itPix_aImOut = *itPix + *itPix_aIm;
+        itPix_aImOut++;
+        itPix++;
+        itPix_aIm++;
+    }
+}
+
+template <class Type,class TyBase>
 void Im2D<Type,TyBase>::substract(const Type &aB)
 {
 	ELISE_DEBUG_ERROR(tx() <= 0 || ty() <= 0, "Im2D<Type,TyBase>::getMinMax", "sz() = " << sz());

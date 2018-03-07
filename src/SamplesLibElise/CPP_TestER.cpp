@@ -1011,20 +1011,215 @@ int TestER_filtRec_main(int argc,char ** argv)
 }
 
 
-int TestER_tiff2pfm(int argc,char ** argv)
+
+class anAppli_PFM2Tiff
 {
-    std::string aIn;
-    std::string aOut = "Output.pfm";
-    Pt2di aSz;
+    public:
+        anAppli_PFM2Tiff(int argc,char ** argv);
+
+        int DoExe();
+
+
+    private: 
+        int DoPFM();
+        int DoTif();
+
+        int ReadPFMHeader(FILE *Data);
+        void SkipSpace(FILE *Data);
+        void SkipComment(FILE *Data);
+
+        std::string mInName;
+        std::string mOutName;
+        Pt2di       mSz;
+};
+
+
+//Check whether machine is little endian
+int IsLittleEndian()
+{
+    int intval = 1;
+    unsigned char *uval = (unsigned char *)&intval;
+    return uval[0] == 1;
+}
+
+anAppli_PFM2Tiff::anAppli_PFM2Tiff(int argc,char ** argv) : 
+       mInName(""),
+       mOutName(""),
+       mSz(Pt2di(0,0))
+{
 
     ElInitArgMain
     (
         argc, argv,
-        LArgMain() << EAMC(aIn,"Input file"),
-        LArgMain() << EAM(aOut,"Out",true, "Outputi pfm file")
+        LArgMain() << EAMC(mInName,"Input file"),
+        LArgMain() << EAM(mOutName,"Out",true, "Output pfm or tif file")
 	);
 
-    Tiff_Im ImgTiff = Tiff_Im::StdConvGen(aIn,-1,true);
+    /* Determine what conversion to make */
+    const char * aExt = strrchr(mInName.c_str(), '.');
+
+    if (strcmp(aExt, ".PFM") == 0 || strcmp(aExt, ".pfm") == 0)
+    {
+        DoTif();
+
+    }
+    else if (strcmp(aExt, ".TIF") == 0 || strcmp(aExt, ".tif") == 0)
+    {
+        DoPFM();
+
+    }
+    else 
+    {
+        ELISE_ASSERT(false,"PFM2Tiff_main image format not supported?");
+    }
+}
+
+int anAppli_PFM2Tiff::DoExe()
+{
+
+    return EXIT_SUCCESS;
+}
+
+void anAppli_PFM2Tiff::SkipSpace(FILE *Data)
+{
+    char aC;
+
+    do
+    { 
+        aC = std::getc(Data);
+    }
+    while (aC == '\n' || aC == ' ' || aC == '\t' || aC == '\r');
+    
+    std::ungetc(aC, Data);    
+
+}
+
+void anAppli_PFM2Tiff::SkipComment(FILE *Data)
+{
+    char aC;
+
+    while ((aC=std::getc(Data)) == '#')
+        while (std::getc(Data) != '\n') ;
+    std::ungetc(aC, Data);
+
+}
+
+int anAppli_PFM2Tiff::ReadPFMHeader(FILE *Data)
+{
+    char aC;
+
+    if (std::getc(Data) != 'P' || std::getc(Data) != 'f')
+        ELISE_ASSERT(false,"anAppli_PFM2Tiff::ReadPFMHeader(): wrong header code");
+
+    SkipSpace(Data);
+    SkipComment(Data);
+
+    SkipSpace(Data);
+    if( std::fscanf(Data,"%d",&mSz.x) == 0 )
+        ELISE_ASSERT(false,"anAppli_PFM2Tiff::ReadPFMHeader(): can't read img size");
+    SkipSpace(Data);
+    if (std::fscanf(Data,"%d",&mSz.y) == 0)
+        ELISE_ASSERT(false,"anAppli_PFM2Tiff::ReadPFMHeader(): can't read img size");
+    
+    aC = getc(Data);
+    if (aC == '\r') 
+        aC = std::getc(Data);
+
+    if (aC != '\n') 
+    {
+        if (aC == ' ' || aC == '\t' || aC == '\r')
+        {
+            ELISE_ASSERT(false,"anAppli_PFM2Tiff::ReadPFMHeader(): newline expected in file after image height");
+        }
+        else
+            ELISE_ASSERT(false,"anAppli_PFM2Tiff::ReadPFMHeader(): whitespace expected in file after image height");
+    }
+
+
+    return EXIT_SUCCESS;
+}
+
+int anAppli_PFM2Tiff::DoTif()
+{
+    if (! EAMIsInit(&mOutName))
+        mOutName = StdPrefix(mInName) + ".tif";
+
+    FILE *aFO = fopen(mInName.c_str(), "rb"); 
+    if (aFO == 0)
+        ELISE_ASSERT(false,"anAppli_PFM2Tiff::DoTif(): could not open file");
+
+    ReadPFMHeader(aFO);
+    
+    std::cout << "EEEEEEEEEE Sz=" << mSz << "\n";
+
+    SkipSpace(aFO);
+    
+    float aSc;
+    if (fscanf(aFO,"%f",&aSc)) //scale factor (if negative, little endian)
+        std::cout << "no scale read" << "\n";        
+//ELISE_ASSERT(false,"anAppli_PFM2Tiff::ReadPFMHeader(): can't read scale");
+
+    char aC = getc(aFO);
+    if (aC == '\r')
+        aC = std::getc(aFO);
+
+    //skip newline character
+    if (aC != '\n')
+    {
+        if (aC == ' ' || aC == '\t' || aC == '\r')
+        {
+            ELISE_ASSERT(false,"anAppli_PFM2Tiff::DoTif(): newline expected in file after image height");
+        }
+        else
+            ELISE_ASSERT(false,"anAppli_PFM2Tiff::DoTif(): whitespace expected in file after image height");
+    }
+
+    Im2D_REAL4 aRes(mSz.x,mSz.y);
+
+
+/*    int LitEndF = (aSc < 0);
+    int LitEndM = IsLittleEndian();
+    int needSwap = (LitEndF!= LitEndM);
+*/
+    for (int aK2=mSz.y-1; aK2>=0; aK2--)
+    {
+        float * aLine = new float[mSz.x];
+        if ((int)fread(aLine, sizeof(float), mSz.x, aFO) != mSz.x)
+            ELISE_ASSERT(false,"anAppli_PFM2Tiff::DoTif(): File is too short ");
+
+        for (int aK1=0; aK1<mSz.x; aK1++)
+            aRes.SetR(Pt2di(aK1,aK2),aLine[aK1]);
+
+
+        delete[] aLine;
+
+    }
+    fclose(aFO);
+
+    ELISE_COPY
+    (
+        aRes.all_pts(),
+        aRes.in(),
+        Tiff_Im(
+            mOutName.c_str(),
+            aRes.sz(),
+            GenIm::u_int1,
+            Tiff_Im::No_Compr,
+            Tiff_Im::BlackIsZero,
+            Tiff_Im::Empty_ARG ).out()
+    );
+
+ 
+
+    return EXIT_SUCCESS;
+}
+
+int anAppli_PFM2Tiff::DoPFM()
+{
+    if (! EAMIsInit(&mOutName))
+        mOutName = StdPrefix(mInName) + ".pfm";
+
+    Tiff_Im ImgTiff = Tiff_Im::StdConvGen(mInName,-1,true);
 
     Im2D_REAL4 I(ImgTiff.sz().x, ImgTiff.sz().y);
     ELISE_COPY
@@ -1034,30 +1229,46 @@ int TestER_tiff2pfm(int argc,char ** argv)
         I.out()
     );
    
-    aSz = ImgTiff.sz();
+    mSz = ImgTiff.sz();
     
     //save
-    FILE *stream = fopen(aOut.c_str(), "wb");
-    fprintf(stream, "Pf\n%d %d\n%f\n", aSz.x, aSz.y, float(-1.0));
+    FILE *stream = fopen(mOutName.c_str(), "wb");
+    fprintf(stream, "Pf\n%d %d\n%f\n", mSz.x, mSz.y, float(-1.0));
 
-    for (int aK2=aSz.y-1; aK2>=0; aK2--)
+    for (int aK2=mSz.y-1; aK2>=0; aK2--)
     {
-        float *aLine = new float[aSz.x]; 
-        for (int aK1=0; aK1<aSz.x; aK1++)
+        float *aLine = new float[mSz.x]; 
+        for (int aK1=0; aK1<mSz.x; aK1++)
         {
             aLine[aK1] = float(I.Val(aK1,aK2));
         }
-        std::cout << aLine[0] << " " << aLine[10] << "\n";
+        //std::cout << aLine[0] << " " << aLine[10] << "\n";
  
-        if(int(fwrite(aLine, sizeof(float), aSz.x, stream)) != aSz.x)
+        if(int(fwrite(aLine, sizeof(float), mSz.x, stream)) != mSz.x)
             ELISE_ASSERT(false,"File is too short");
+
         delete[] aLine;
     }
     fclose(stream); 
 
- 
     return EXIT_SUCCESS;
+
 }
+
+
+int PFM2Tiff_main(int argc,char ** argv)
+{
+    anAppli_PFM2Tiff anAppli(argc,argv);
+    anAppli.DoExe();
+    
+    
+    return EXIT_SUCCESS;
+
+}
+
+
+
+ 
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en

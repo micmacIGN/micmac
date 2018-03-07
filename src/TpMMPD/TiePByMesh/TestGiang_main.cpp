@@ -62,6 +62,33 @@ Im2D_REAL4 ImRead(string aNameImTif)
    return aI;
 }
 
+
+void SaveTif(Im2D_REAL4 aIm, string aSaveName)
+{
+
+        string aName =  std::string("./") + aSaveName + ".tif";
+
+        L_Arg_Opt_Tiff aL = Tiff_Im::Empty_ARG;
+        aL = aL + Arg_Tiff(Tiff_Im::ANoStrip());
+        Tiff_Im aRes
+                (
+                   aName.c_str(),
+                   aIm.sz(),
+                   GenIm::u_int1,
+                   Tiff_Im::No_Compr,
+                   Tiff_Im::BlackIsZero,
+                   aL
+                );
+        ELISE_COPY
+        (
+           aIm.all_pts(),
+           aIm.in(),
+           aRes.out()
+        );
+
+}
+
+
 void Show(Im2D_REAL4 aIm,Fonc_Num aF, Im2D_REAL4 & aImOut, string aSaveName = "")
 {
     ELISE_COPY
@@ -94,6 +121,39 @@ void Show(Im2D_REAL4 aIm,Fonc_Num aF, Im2D_REAL4 & aImOut, string aSaveName = ""
     }
 }
 
+void Show_LAP2(Im2D_REAL4 aIm,Fonc_Num aF, Im2D_REAL4 & aImOut, string aSaveName = "")
+{
+    ELISE_COPY
+    (
+       aIm.all_pts(),
+       ElAbs(aF),
+       aImOut.out()
+    );
+    if (aSaveName != "")
+    {
+        string aName =  std::string("./") + aSaveName + ".tif";
+
+        L_Arg_Opt_Tiff aL = Tiff_Im::Empty_ARG;
+        aL = aL + Arg_Tiff(Tiff_Im::ANoStrip());
+        Tiff_Im aRes
+                (
+                   aName.c_str(),
+                   aIm.sz(),
+                   GenIm::u_int1,
+                   Tiff_Im::No_Compr,
+                   Tiff_Im::BlackIsZero,
+                   aL
+                );
+        ELISE_COPY
+        (
+           aIm.all_pts(),
+           Max(0,Min(255,aF)),
+           aRes.out()
+        );
+    }
+}
+
+
 double Conv1Cell(Im2D_REAL4 & aImgIn, Im2D_REAL8 & aKer, Pt2di & aPos, Pt2di & aSzKer, double & aSomker)
 {
     double aSom=0;
@@ -106,18 +166,21 @@ double Conv1Cell(Im2D_REAL4 & aImgIn, Im2D_REAL8 & aKer, Pt2di & aPos, Pt2di & a
             //cout<<"Img "<<(aPos + aVois)<<aImgIn.GetI(aPos + aVois)<<" -aKer "<<(aVois + aSzKer)<<aKer.GetI(aVois + aSzKer)<<endl;
         }
     }
-    return abs(aSom/aSomker);
+    return (aSom/aSomker);
 }
 
 double Convol_Withker(Im2D_REAL4 & aImgIn, Im2D_REAL8 & aKer, Im2D_REAL4 & aImgOut)
 {
-    cout<<"In Conv ... "<<endl;
     aImgOut.Resize(aImgIn.sz());
     Pt2di aSzKer(round_up((aKer.sz().x-1)/2), round_up((aKer.sz().y-1)/2));
     Pt2di aRun;
-    double aSomKer = 1;
+
+    double aSomKer = aKer.som_rect();
+    if (aSomKer == 0)
+        aSomKer = 1;
     double Moy = 0;
     int aCnt = 0;
+
     for (aRun.x = aSzKer.x ;aRun.x < aImgIn.sz().x-aSzKer.x; aRun.x++)
     {
         for (aRun.y = aSzKer.y ;aRun.y < aImgIn.sz().y-aSzKer.y; aRun.y++)
@@ -169,8 +232,39 @@ double Variance(Im2D_REAL4 & aImgIn, double aMoy = 0, Pt2di aRab = Pt2di(0,0))
     return (aSumEcart/aCnt);
 }
 
-double VarBlur(string aNameIm)
+
+
+// ====== Focus measurement operator =====
+
+Im2D_REAL4 Convol_With_ELISE(string aImIn, Im2D_REAL8 & aKer)
 {
+    Im2D_REAL4 aIm2D = ImRead(aImIn);
+    Im2D_REAL4 aIm2D_DNs(aIm2D.sz().x, aIm2D.sz().y);
+
+    Im2D_REAL4 aRes(aIm2D.tx(),aIm2D.ty());
+    Fonc_Num aF = aIm2D.in(0);
+    double som_Ker = aKer.som_rect();
+    if (som_Ker == 0)
+        som_Ker=1.0;
+   ELISE_COPY(aRes.all_pts(),som_masq(aF, aKer)/som_Ker,aRes.out());
+    return aRes;
+}
+
+Im2D_REAL4 Convol_With_ELISE(Im2D_REAL4 & aImIn, Im2D_REAL8 & aKer)
+{
+    Im2D_REAL4 aRes(aImIn.tx(),aImIn.ty());
+    Fonc_Num aF = aImIn.in(0);
+    double som_Ker = aKer.som_rect();
+    if (som_Ker == 0)
+        som_Ker=1.0;
+    ELISE_COPY(aRes.all_pts(),som_masq(aF, aKer)/som_Ker,aRes.out());
+    return aRes;
+}
+
+double VarOfLap_LAP4(string aNameIm)
+{
+    // Variance of Laplacian
+    cout<<endl<<" + Im : "<<aNameIm<<endl;
     ElTimer aTimer;
     Im2D_REAL8 aLapl(3,3,
                         "0 1 0 "
@@ -178,30 +272,156 @@ double VarBlur(string aNameIm)
                         " 0 1 0"
                    );
     Im2D_REAL8 aDenoise(3,3,
-                        "0 1 0 "
-                        "1 2 1 "
-                        " 0 1 0"
+                        "1 1 1 "
+                        "1 1 1 "
+                        " 1 1 1"
                         );
 
     Pt2di aSzKer(round_up((aLapl.sz().x-1)/2), round_up((aLapl.sz().y-1)/2));
 
     Im2D_REAL4 aIm2D = ImRead(aNameIm);
     Im2D_REAL4 aIm2D_DNs(aIm2D.sz().x, aIm2D.sz().y);
-    //Show(aIm2D, som_masq(aIm2D.in(0), aDenoise), aIm2D_DNs, aNameIm + "_Dns");
-    Show(aIm2D, som_masq(aIm2D.in(0), aDenoise), aIm2D_DNs, "test.tif");
 
+    aIm2D_DNs = Convol_With_ELISE(aIm2D, aDenoise);
 
     Im2D_REAL4 aIm2D_Lpl(aIm2D.sz().x, aIm2D.sz().y);
-    //Show(aIm2D_DNs,som_masq(aIm2D_DNs.in(0), aLapl), aIm2D_Lpl, aNameIm + "_Lpl");
-    Show(aIm2D_DNs,som_masq(aIm2D_DNs.in(0), aLapl), aIm2D_Lpl, "");
-
+    aIm2D_Lpl = Convol_With_ELISE(aIm2D_DNs, aLapl);
     double aVar = Variance(aIm2D_Lpl, 0, aSzKer);
-    //cout<<"Im "<<aNameIm<<" - aVar "<<aVar<<"  Time : "<<aTimer.uval()<<endl;
+
     return aVar;
 }
 
+double VarOfLap_LAP4_G(string aNameIm)
+{
+    // Variance of Laplacian
+    ElTimer aTimer;
+    Im2D_REAL8 aLapl(3,3,
+                        "0 1 0 "
+                        "1 -4 1 "
+                        " 0 1 0"
+                   );
+    Im2D_REAL8 aDenoise(3,3,
+                        "1 1 1 "
+                        "1 1 1 "
+                        " 1 1 1"
+                        );
+    Pt2di aSzKer(round_up((aLapl.sz().x-1)/2), round_up((aLapl.sz().y-1)/2));
+    Im2D_REAL4 aIm2D = ImRead(aNameIm);
+    Im2D_REAL4 aIm2D_DNs(aIm2D.sz().x, aIm2D.sz().y);
+    Convol_Withker(aIm2D, aDenoise, aIm2D_DNs);
+    SaveTif(aIm2D_DNs, aNameIm + "_DnsG");
+
+    Im2D_REAL4 aIm2D_Lpl(aIm2D.sz().x, aIm2D.sz().y);
+    Convol_Withker(aIm2D_DNs, aLapl, aIm2D_Lpl);
+    double aVar = Variance(aIm2D_Lpl, 0, aSzKer);
+    SaveTif(aIm2D_Lpl, aNameIm + "_LplG");
+
+
+    return aVar;
+}
+
+double ModifLap_LAP2 (string aNameIm)
+{
+    // Modified Laplacian
+    ElTimer aTimer;
+    Im2D_REAL8 aLapl_x(1,3,
+                        "-1 2 -1"
+                   );
+    Im2D_REAL8 aLapl_y(3,1,
+                        "-1 "
+                        "2 "
+                        "-1"
+                   );
+    Im2D_REAL8 aDenoise(3,3,
+                        "1 1 1 "
+                        "1 1 1 "
+                        " 1 1 1"
+                        );
+
+    Pt2di aSzKer(1,1);
+
+
+    Im2D_REAL4 aIm2D = ImRead(aNameIm);
+    Im2D_REAL4 aIm2D_DNs(aIm2D.sz().x, aIm2D.sz().y);
+    aIm2D_DNs = Convol_With_ELISE(aIm2D, aDenoise);
+
+    Im2D_REAL4 aIm2D_LplX(aIm2D.sz().x, aIm2D.sz().y);
+    Im2D_REAL4 aIm2D_LplY(aIm2D.sz().x, aIm2D.sz().y);
+    aIm2D_LplX = Convol_With_ELISE(aIm2D_DNs, aLapl_x);
+    aIm2D_LplY = Convol_With_ELISE(aIm2D_DNs, aLapl_y);
+
+    Im2D_REAL4 aIm2D_LplSum(aIm2D.sz().x, aIm2D.sz().y);
+    aIm2D_LplX.bitwise_add(aIm2D_LplY, aIm2D_LplSum);
+    double aScore = aIm2D_LplSum.som_rect(Pt2dr(aSzKer), Pt2dr(aIm2D_LplSum.sz() - (aSzKer + Pt2di(1,1))));
+    return aScore;
+}
+
+double DiagonalLap_LAP3 (string aNameIm)
+{
+    // Diagonal Laplacian
+    ElTimer aTimer;
+    Im2D_REAL8 aLapl_x(1,3,
+                        "-1 2 -1"
+                   );
+    Im2D_REAL8 aLapl_y(3,1,
+                        "-1 "
+                        "2 "
+                        "-1"
+                   );
+    Im2D_REAL8 aLapl_x1(3,3,
+                        "0 0 1 "
+                        "0 -2 0 "
+                        " 1 0 0"
+                   );
+    Im2D_REAL8 aLapl_x2(3,3,
+                        "1 0 0 "
+                        "0 -2 0 "
+                        " 0 0 1"
+                   );
+    Im2D_REAL8 aDenoise(3,3,
+                        "1 1 1 "
+                        "1 1 1 "
+                        " 1 1 1"
+                        );
+
+    Pt2di aSzKer(1,1);
+    double aFac = 1.0/sqrt(2);
+    aLapl_x1.multiply(aFac);
+    aLapl_x2.multiply(aFac);
+
+    Im2D_REAL4 aIm2D = ImRead(aNameIm);
+    Im2D_REAL4 aIm2D_DNs(aIm2D.sz().x, aIm2D.sz().y);
+    aIm2D_DNs = Convol_With_ELISE(aIm2D, aDenoise);
+
+
+    Im2D_REAL4 aIm2D_LplX(aIm2D.sz().x, aIm2D.sz().y);
+    Im2D_REAL4 aIm2D_LplY(aIm2D.sz().x, aIm2D.sz().y);
+    Im2D_REAL4 aIm2D_Lplx1(aIm2D.sz().x, aIm2D.sz().y);
+    Im2D_REAL4 aIm2D_Lplx2(aIm2D.sz().x, aIm2D.sz().y);
+    aIm2D_LplX = Convol_With_ELISE(aIm2D_DNs, aLapl_x);
+    aIm2D_LplY = Convol_With_ELISE(aIm2D_DNs, aLapl_y);
+    aIm2D_Lplx1 = Convol_With_ELISE(aIm2D_DNs, aLapl_x1);
+    aIm2D_Lplx2 = Convol_With_ELISE(aIm2D_DNs, aLapl_x2);
+
+    Im2D_REAL4 aIm2D_LplSum(aIm2D.sz().x, aIm2D.sz().y);
+    aIm2D_LplX.bitwise_add(aIm2D_LplY, aIm2D_LplSum);
+    aIm2D_LplSum.bitwise_add(aIm2D_Lplx1, aIm2D_LplSum);
+    aIm2D_LplSum.bitwise_add(aIm2D_Lplx2, aIm2D_LplSum);
+
+    double aScore = aIm2D_LplSum.som_rect(Pt2dr(aSzKer), Pt2dr(aIm2D_LplSum.sz() - (aSzKer + Pt2di(1,1))));
+    return aScore;
+}
+
+
+// ========================================
 int Test_Conv(int argc,char ** argv)
 {
+
+    Im2D_REAL8 aDenoise(3,3,
+                        "1 1 1 "
+                        "1 1 1 "
+                        " 1 1 1"
+                        );
 
     string aDir = "./";
     string aPat, aPattern;
@@ -220,7 +440,7 @@ int Test_Conv(int argc,char ** argv)
     {
         // ====== test convolution function ======
         string aIm = aSetIm[aKImg];
-        double aVar = VarBlur(aIm);
+        double aVar = VarOfLap_LAP4(aIm);
         Pt2dr aPair(double(aKImg), aVar);
         aVPair.push_back(aPair);
     }

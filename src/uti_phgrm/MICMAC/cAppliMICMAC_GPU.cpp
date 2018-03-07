@@ -469,9 +469,12 @@ bool   cGPU_LoadedImGeom::InitValNorms(int anX,int anY,int aNbScaleIm)
        mMoy  = MoyIm(anX,anY,aNbScaleIm);
        //mMoy   = mDSomO[anY][anX] / mNbVals;
        //  double aDMoy = mEpsAddMoy + mMoy * mEpsMulMoy;
+       // Magouille a cause des mEpsAddMoy, mEpsMulMoy qui en vrai sont tjr == 0 !!!!
        double aDMoy = mAppli.DeltaMoy(mMoy);
 
+
        // mSigma  = mDSomO2[anY][anX] / mNbVals - QSquare(mMoy) + QSquare(aDMoy);
+
        mSigma  = MoyQuadIm(anX,anY,aNbScaleIm)  - QSquare(mMoy) + QSquare(aDMoy);
        mMoy += aDMoy;
 
@@ -568,13 +571,37 @@ double Cov(const cGPU_LoadedImGeom & aGeoJ) const;
 */
 
 
+bool   cGPU_LoadedImGeom::CorreCensus(double & aCorrel,int anX,int anY,const  cGPU_LoadedImGeom & aGeoJ,int aNbScaleIm) const
+{
+   return false;
+// ::MoyIm
+/*
+    if (! mOPCms)
+    {
+        return mDSom12 [anY][anX] /mNbVals;
+    }
+
+    double aRes = 0;
+    for (int aK=0 ; aK<aNbScaleIm ; aK++)
+    {
+        cGPU_LoadedImGeom * aGLI = mMSGLI[aK];
+        aRes += aGLI->mDSom12 [anY][anX] * aGLI->mPdsMS;
+    }
+    return aRes / mMSGLI[aNbScaleIm-1]->mCumSomPdsMS;
+      return false;
+*/
+}
 
 bool   cGPU_LoadedImGeom::Correl(double & aCorrel,int anX,int anY,const  cGPU_LoadedImGeom & aGeoJ,int aNbScaleIm) const
 {
+        if (mAppli.CC())
+        {
+            return CorreCensus( aCorrel,anX,anY,aGeoJ,aNbScaleIm);
+        }
 
         if (! mDOK_Ortho[anY][anX])
             return false;
-                double aMI  = MoyIm(anX,anY,aNbScaleIm);
+        double aMI  = MoyIm(anX,anY,aNbScaleIm);
         double aDmI = mAppli.DeltaMoy(aMI);
         double aMII =  MoyQuadIm(anX,anY,aNbScaleIm) - ElSquare(aMI) + ElSquare(aDmI);
 
@@ -1600,7 +1627,7 @@ void cAppliMICMAC::DoGPU_Correl
 
         for (int aZ=mZMinGlob ; aZ<mZMaxGlob ; aZ++)
         {
-                        bool OkZ = InitZ(aZ,aModeInitZ);
+            bool OkZ = InitZ(aZ,aModeInitZ);
             if (OkZ)
             {
                 for (int anX = mX0UtiTer ; anX <  mX1UtiTer ; anX++)
@@ -1621,25 +1648,25 @@ void cAppliMICMAC::DoGPU_Correl
 
                             switch (aModeAgr)
                             {
-                            case eAggregSymetrique :
-                                DoOneCorrelSym(anX,anY,aNbScaleIm);
-                            break;
-
-                            case eAggregIm1Maitre :
-                                 DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,false,aPdsPix);
-                            break;
-
-                            case  eAggregMaxIm1Maitre :
-                                DoOneCorrelMaxMinIm1Maitre(anX,anY,true,aNbScaleIm);
+                                case eAggregSymetrique :
+                                    DoOneCorrelSym(anX,anY,aNbScaleIm);
                                 break;
 
-                            case  eAggregMinIm1Maitre :
-                                DoOneCorrelMaxMinIm1Maitre(anX,anY,false,aNbScaleIm);
+                                case eAggregIm1Maitre :
+                                     DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,false,aPdsPix);
                                 break;
 
-                            case eAggregMoyMedIm1Maitre :
-                                 DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,true,aPdsPix);
-                            break;
+                                case  eAggregMaxIm1Maitre :
+                                    DoOneCorrelMaxMinIm1Maitre(anX,anY,true,aNbScaleIm);
+                                break;
+
+                                case  eAggregMinIm1Maitre :
+                                    DoOneCorrelMaxMinIm1Maitre(anX,anY,false,aNbScaleIm);
+                                break;
+
+                                case eAggregMoyMedIm1Maitre :
+                                     DoOneCorrelIm1Maitre(anX,anY,aMCP,aNbScaleIm,true,aPdsPix);
+                                break;
 
                             default :
                                 break;
@@ -1934,6 +1961,7 @@ void cAppliMICMAC::DoCorrelAdHoc
 
         DoInitAdHoc(aBox);
 
+        mCC = aTC.CensusCost().PtrVal();
 
         if (aTC.GPU_Correl().IsInit())
         {
@@ -2003,7 +2031,12 @@ void cAppliMICMAC::DoCorrelAdHoc
         }
         else if (aTC.CensusCost().IsInit())
         {
-             DoCensusCorrel(aBox,aTC.CensusCost().Val());
+             if ( GeomImages() == eGeomImage_EpipolairePure)
+                 DoCensusCorrel(aBox,aTC.CensusCost().Val());
+             else
+             {
+                ELISE_ASSERT ( false, "Not epipolar geometry for census ");
+             }
         }
 
 }
