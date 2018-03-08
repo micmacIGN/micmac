@@ -1,17 +1,4 @@
-#include "StdAfx.h"
-#include <fstream>
-#include "Image.h"
-#include "msd.h"
-#include "Keypoint.h"
-#include "lab_header.h"
-#include "../../uti_image/Digeo/Digeo.h"
-#include "DescriptorExtractor.h"
-#include "Arbre.h"
-
-#include "../../uti_image/Digeo/DigeoPoint.h"
-
-#define distMax 0.75
-#define rayMax 0.5
+#include "cregtirvis.h"
 
 /*******************************************************/
 
@@ -122,12 +109,27 @@ void Resizeim(Im2D<Type,TyBase> & im, Im2D<Type,TyBase> & Out, Pt2dr Newsize)
         }
     }
 }
+
+void cAppliRegTIRVIS::mkDirPastis(std::string aSH, std::string aImName, std::string aDir)
+{
+    std::string DirPastis=aDir +"/Homol" + aSH + "/Pastis" + aImName ;
+    if (!ELISE_fp::exist_file(DirPastis))
+    {
+        //create directory Pastis
+        ELISE_fp::MkDir(DirPastis);
+    }
+}
+
+
+
+
 //===============================================================================//
-// Estimate Homograhy via multiple iterations on keypoints which have not been matched during
+// Estimate Homograhy via multiple iterations on keypoints which have not been matched bu Ann during
 // the correspondence search phase
 //===============================================================================//
 
-void EnrichKps(std::vector< KeyPoint > Kpsfrom, ArbreKD * Tree, cElHomographie &Homog, int NbIter)
+
+void cAppliRegTIRVIS::EnrichKps(std::vector< KeyPoint > Kpsfrom, ArbreKD * Tree, cElHomographie &Homog, int NbIter,int ImPairKey)
 {
     ElSTDNS set< pair<int,Pt2dr> > Voisins ; // where to put nearest neighbours
 
@@ -155,11 +157,26 @@ void EnrichKps(std::vector< KeyPoint > Kpsfrom, ArbreKD * Tree, cElHomographie &
 
         std::cout<<" Computed Homography at  "<<i<<  "  Iteration\n";
         Homog.Show();
+        std::cout<<"========= >Nb of Tie point used: "<<HomologousPts.size()<<endl;
         std::cout<<" Quality parameters \n";
         std::cout<<"========= >Ecart "<<Ecart<<endl;
         std::cout<<"========= >Quality "<<Quality<<endl;
         std::cout<<"========= >If Ok=1: "<<Ok<<endl;
+
+
+        std::string aSH="-enrichedIt" + std::to_string(i);
+        //ELISE_fp::MkDirSvp(mDirTest +"/Homol" + aSH +"/");
+
+        std::string aKeyAsocHom = "NKS-Assoc-CplIm2Hom@"+ aSH +"@txt";
+
+        std::string aHomolFile= mDirTest+ mICNM->Assoc1To2(aKeyAsocHom, ThermalImages[ImPairKey], VisualImages[ImPairKey],true);
+        HomologousPts.StdPutInFile(aHomolFile);
+        HomologousPts.SelfSwap();
+        aHomolFile=  mDirTest+ mICNM->Assoc1To2(aKeyAsocHom, VisualImages[ImPairKey],ThermalImages[ImPairKey] ,true);
+        HomologousPts.StdPutInFile(aHomolFile);
     }
+
+
     //delete mImgIdx;
 }
 
@@ -622,104 +639,21 @@ void ParseHomol(string MasterImage, std::vector< cCpleString> ImCpls,std::vector
     }
 }
 
-//===============================================================================//
-/*                           OrientedImage class                                 */
-//===============================================================================//
-class Orient_Image
-{
- public:
- Orient_Image
- (
-  std::string aOriIn,
-  std::string aName,
-  cInterfChantierNameManipulateur * aICNM
- );
- std::string getName(){return mName;}
- CamStenope * getCam(){return mCam;}
- std::string getOrifileName(){return mOriFileName;}
- CamStenope   * mCam;
- 
- protected:
- 
- std::string  mName;
- std::string mOriFileName;
- };
 
-Orient_Image::Orient_Image
- ( std::string aOriIn,
- std::string aName,
- cInterfChantierNameManipulateur * aICNM):
- mName(aName),mOriFileName(aOriIn+"Orientation-"+mName+".xml")
-{
- mCam=CamOrientGenFromFile(mOriFileName,aICNM);
-}
-//===============================================================================//
-/*                                Main Function                                  */
-//===============================================================================//
 
-int RegTIRVIS_main( int argc, char ** argv )
+//Take the testdata directory to compute the homography that
+//will be used as a predictor for keypoint matching
+void cAppliRegTIRVIS::computeHomogWithMSD()
 {
 
-	// Call Elise Librairy We will be using because classes that handle 
-	// These transformations are already computed 
-
-        std::string Image_Pattern, Oris_VIS_dir,TestDataDIRpat, PlyFileIn;
-		std::string Option;
-        bool aTif=false;
-		
-    /************************************************************************/
-     //Initilialize ElInitArgMain which as i understood captures arguments entered
-     //by the operator
-	/**********************************************************************/
-		ElInitArgMain
-		(
-			argc,argv,
-            LArgMain() << EAMC(TestDataDIRpat ,"Set of images to be used to estimate the homography",eSAM_IsPatFile)
-                       << EAMC(Image_Pattern," Images pattern : Dir+ Name: prefixes Thermal: TIR, Visual: VIS", eSAM_IsPatFile)
-                       << EAMC(Oris_VIS_dir," Orientation files for visual images",eSAM_IsExistDirOri)
-                       << EAMC(PlyFileIn, " Ply file that will be used as a 3d model",eSAM_IsExistFile)
-            ,LArgMain() << EAM(Option,"Option",true," FOR NOW, DON'T DO ANYTHING")
-		);
-
-
-/**********************************************************************/
-	if (MMVisualMode) return EXIT_SUCCESS;
-
-
-
-
-/*@@@@@@@@@@@@@@@@@@@@@@@@@ Train DATA IMAGES PROCESSING @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
-
-
-
-    //Take the testdata directory to compute the homography that
-    //will be used as a predictor for keypoint matching
-
-   // MakeFileDirCompl(TestDataDIRpat);
-    //std::cout<<"Test data Directory "<<TestDataDIRpat<<endl;
-
-    //=============iNITILIAZE CHANTIER Manipulateur========
-
-    std::string aDirtest,aPatImTst;
-    SplitDirAndFile(aDirtest,aPatImTst,TestDataDIRpat);
-
-
-    std::cout<<"==============> Test data directory: "<<aDirtest<<endl;
-    std::cout<<"==============> Pattern image test: "<<aPatImTst<<endl;
-
-
-    // Chantier Manipulateur
-    cInterfChantierNameManipulateur * aICNM0=cInterfChantierNameManipulateur::BasicAlloc(aDirtest);
-    const std::vector<std::string> aSetImTest = *(aICNM0->Get(aPatImTst));
-    std::cout<<"==============> Param Chantier manipulateur set \n";
+    const std::vector<std::string> aSetImTest = *(mICNM->Get(mPatImTest));
 
 
 /*===============================================================================*/
 /*          Transform all images to 8 bits: Lab and wallis on 8 bits             */
 /*===============================================================================*/
-     std::size_t found = aPatImTst.find_last_of(".");
-     string ext = aPatImTst.substr(found+1);
+     found = mPatImTest.find_last_of(".");
+     ext = mPatImTest.substr(found+1);
      cout<<"==============> Test images Extension : "<<ext<<endl;
      list<string> cmd;
      std::cout<<aSetImTest.size()<<endl;
@@ -743,50 +677,26 @@ int RegTIRVIS_main( int argc, char ** argv )
 
 
 //===============================================================================//
-//                  Instantiate the detector MSD                                 //
-/*===============================================================================*/
-  MsdDetector msd;
-
-  msd.setPatchRadius(3);
-  msd.setSearchAreaRadius(5);
-
-  msd.setNMSRadius(5);
-  msd.setNMSScaleRadius(0);
-
-  msd.setThSaliency(0.02);
-  msd.setKNN(10);
-
-  msd.setScaleFactor(1.25f);
-  msd.setNScales(-1);
-
-  msd.setComputeOrientation(true);
-  msd.setCircularWindow(true);
-  msd.setRefinedKP(false);
-
-//===============================================================================//
 /*      Rearrange the test images in couples of thermal and visual images        */
 //===============================================================================//
 
 
 /* Arrange images so that thermal images and visual images are stored in separate vectors*/
 
-     std::vector< std::string > ThermalImages, VisualImages;
-     std::size_t found_Vis;
-     std::size_t found_Tir;
-     std::size_t found_commonPattern;
+
      for (unsigned int j=0; j<aSetImTest.size(); j++)
          {
              found_Vis = aSetImTest[j].find("VIS");
              found_Tir = aSetImTest[j].find("TIR");
              if (found_Vis!=std::string::npos)
              {
-                 VisualImages.push_back(aDirtest+aSetImTest[j]);
+                 VisualImages.push_back(aSetImTest[j]);
              }
              else
              {
                  if (found_Tir!=std::string::npos)
                  {
-                     ThermalImages.push_back(aDirtest+aSetImTest[j]);
+                     ThermalImages.push_back(aSetImTest[j]);
                  }
              }
          }
@@ -803,25 +713,24 @@ int RegTIRVIS_main( int argc, char ** argv )
 
      //Get Visual Image size
      /****************************************************/
-     Tiff_Im Image=Tiff_Im::UnivConvStd(VisualImages[0]);
+     Tiff_Im Image=Tiff_Im::UnivConvStd(mDirTest+VisualImages[0]);
      Pt2di VisualSize(Image.sz());
      /****************************************************/
-		
+
 
      //Create directory to store keypoints
-     ELISE_fp::MkDirSvp(aDirtest + "KpsTEST/");
-     string Path=aDirtest + "KpsTEST/";
+     ELISE_fp::MkDirSvp(mDirTest + "KpsTEST/");
 
      cElComposHomographie Ix(0,0,0);
      cElComposHomographie Iy(0,0,0);
      cElComposHomographie Iz(0,0,0);
-     cElHomographie Hout(Ix,Iy,Iz);
+     mH=new cElHomographie(Ix,Iy,Iz);
 
      // Specify search parameters for the QuadTree structure
     /*********************************************************/
-     FPRIMTp Pt_of_Point;
-     Box2dr box(Pt2dr(0,0), Pt2dr(VisualSize.x,VisualSize.y) );
-     ElSTDNS set<pair<int,Pt2dr> > Voisins ; // where to put nearest neighbours
+
+     box=Box2dr(Pt2dr(0,0), Pt2dr(VisualSize.x,VisualSize.y) );
+
      /*********************************************************** */
 
 
@@ -836,9 +745,9 @@ int RegTIRVIS_main( int argc, char ** argv )
           cElRegex rgxxx("vis_(.*).tif",10);
           std::string aNameMatch;
           bool rgxMatch,rgxxMatch,rgxxxMatch;
-          rgxMatch=rgx.Match(VisualImages[i]);
-          rgxxMatch=rgxx.Match(VisualImages[i]);
-          rgxxxMatch=rgxxx.Match(VisualImages[i]);
+          rgxMatch=rgx.Match(mDirTest+VisualImages[i]);
+          rgxxMatch=rgxx.Match(mDirTest+VisualImages[i]);
+          rgxxxMatch=rgxxx.Match(mDirTest+VisualImages[i]);
           if (rgxMatch||rgxxMatch||rgxxxMatch)
              {
               if(rgxMatch) aNameMatch=rgx.KIemeExprPar(1);
@@ -851,14 +760,14 @@ int RegTIRVIS_main( int argc, char ** argv )
           if (found_commonPattern!=std::string::npos)
              {
               //Process the Termal Image: MSD --> Lab --> Wallis --> SIFT Descriptor
-              Tiff_Im ImageV=Tiff_Im::UnivConvStd(VisualImages[i]);
+              Tiff_Im ImageV=Tiff_Im::UnivConvStd(mDirTest+VisualImages[i]);
 
               /**************************************************************************/
               // Check if MSD keypoints have already been computed: No need to do that again
               std::vector<KeyPoint> KpsV;
-              string directory, file;
-              SplitDirAndFile(directory,file,VisualImages[i]);
-              string filenameV=Path + file + ".txt";
+              //string directory, file;
+             // SplitDirAndFile(directory,file,VisualImages[i]);
+              string filenameV=mDirTest +  "KpsTEST/" + VisualImages[i] + ".txt";
 
 
               if (DoesFileExist(filenameV.c_str()))
@@ -919,12 +828,12 @@ int RegTIRVIS_main( int argc, char ** argv )
 
 
               //Process the Termal Image: MSD --> Lab --> Wallis --> SIFT Descriptor
-              Tiff_Im ImageTh=Tiff_Im::UnivConvStd(ThermalImages[i]);
+              Tiff_Im ImageTh=Tiff_Im::UnivConvStd(mDirTest+ThermalImages[i]);
 
               // Check if MSD keypoints have already been computed: No need to do that again
-              SplitDirAndFile(directory,file,ThermalImages[i]);
+              //SplitDirAndFile(directory,file,ThermalImages[i]);
               std::vector<KeyPoint> KpsTh;
-              string filenameTh=Path + file + ".txt";
+              string filenameTh=mDirTest + "KpsTEST/"+ ThermalImages[i] + ".txt";
 
               if (DoesFileExist(filenameTh.c_str()))
               {
@@ -959,6 +868,11 @@ int RegTIRVIS_main( int argc, char ** argv )
               vector<DigeoPoint> ListTh;
 
               aKp=KpsTh.begin();
+
+              // test jo ; si je corrige la position des Kps avec le modèle de distorion du capteur, est-ce que ça améliore le résultat?
+              //CamStenope * aCalib;
+              //if(EAMIsInit(&aCalibName)) aCalib=Std_Cal_From_File(aCalibName);
+
               for (;aKp!=KpsTh.end();++aKp)
               {
                   DigeoPoint DP;
@@ -970,22 +884,51 @@ int RegTIRVIS_main( int argc, char ** argv )
                   SIFTTh.normalize_and_truncate(descriptor);
                   //std::cout<<"Descp   "<<descriptor[50]<<endl;
                   DP.addDescriptor(descriptor);
+
+                  //std::cout << " Keypoint position before undistort ; " << aKp->getPoint() << "\n";
+                 /* if(EAMIsInit(&aCalibName))
+                  {aKp->undist(aCalib);
+                   DP.x=aKp->getPoint().x;
+                   DP.y=aKp->getPoint().y;
+                  }
+                  //std::cout << " Keypoint position after undistort ; " << aKp->getPoint() << "\n";
+*/
                   ListTh.push_back(DP);
               }
 
+
+
+
               DigeoPoint::writeDigeoFile("DigeoTH.txt",ListTh);
+
+
+              std::string aSH="-Init";
+              std::string aKeyAsocHom = "NKS-Assoc-CplIm2Hom@"+ aSH +"@txt";
+              std::string aHomolFileT2V,aHomolFileV2T, aCmd;
+              // the success of Ann require that the output directory must exist ; we create them is is do not exist already
+              mkDirPastis(aSH,VisualImages[i],mDirTest);
+              mkDirPastis(aSH,ThermalImages[i],mDirTest);
+
               list<string> cmd;
-              string aCmd=MM3DStr +  " Ann "+ std::string("-ratio 0.9") + std::string(" DigeoTH.txt") + std::string(" DigeoV.txt") + std::string(" Matches.txt");
+
+              aHomolFileV2T=  mDirTest+ mICNM->Assoc1To2(aKeyAsocHom, VisualImages[i],ThermalImages[i] ,true);
+              aCmd=MM3DStr +  " Ann "+ std::string("-ratio 0.9") + std::string(" DigeoV.txt") + std::string(" DigeoTH.txt ") + std::string(aHomolFileV2T);
+              cmd.push_back(aCmd);
+              if (mDebug) std::cout << aCmd << "\n";
+              aHomolFileT2V = mDirTest+ mICNM->Assoc1To2(aKeyAsocHom, ThermalImages[i], VisualImages[i],true);
+              aCmd=MM3DStr +  " Ann "+ std::string("-ratio 0.9") + std::string(" DigeoTH.txt") + std::string(" DigeoV.txt ") + std::string(aHomolFileT2V);
+              if (mDebug) std::cout << aCmd << "\n";
               cmd.push_back(aCmd);
               cEl_GPAO::DoComInParal(cmd);
+
 
               //Compute a Robust Homography out of the resulting Matching FIle
               ElPackHomologue HomologousPts;
 
-              bool Exist= ELISE_fp::exist_file("Matches.txt");
+              bool Exist= ELISE_fp::exist_file(aHomolFileV2T);
               if (Exist)
                   {
-                     HomologousPts= ElPackHomologue::FromFile("Matches.txt");
+                     HomologousPts= ElPackHomologue::FromFile(aHomolFileT2V);
                   }
               cElComposHomographie Ix(0,0,0);
               cElComposHomographie Iy(0,0,0);
@@ -994,31 +937,120 @@ int RegTIRVIS_main( int argc, char ** argv )
 
                double anEcart,aQuality;
                bool Ok;
-               Hout=H2estimate.RobustInit(anEcart,&aQuality,HomologousPts,Ok,50,80.0,2000);
+               H2estimate=H2estimate.RobustInit(anEcart,&aQuality,HomologousPts,Ok,50,80.0,2000);
+               mH=&H2estimate;
 
                std::cout<< " =================> Initial Homography  <=====================\n";
-               Hout.Show();
+               mH->Show();
+               std::cout<<"========= >Nb of Tie point used: "<<HomologousPts.size()<<endl;
                std::cout<<"Quality parameters \n";
                std::cout<<"========= >Ecart "<<anEcart<<endl;
                std::cout<<"========= >Quality "<<aQuality<<endl;
                std::cout<<"========= >If Ok= 1 " <<Ok<<endl;
+
+               std::string aNameFileHomog(mDirTest+"homographyTIRVIS-init.xml");
+               std::cout << "Save initial Homography TIR to VIS to " << aNameFileHomog << "\n";
+               MakeFileXML(mH->Inverse().ToXmlGen(),aNameFileHomog);
 
                ArbreKD * ArbreV= new ArbreKD(Pt_of_Point, box, KpsV.size(), 1.0);
                for (uint i=0; i<KpsV.size(); i++) {
                    ArbreV->insert(pair<int,Pt2dr>(i, Pt2dr(KpsV.at(i).getPoint().x, KpsV.at(i).getPoint().y)));
                }
 
-               // Call Enrich Keypoints to use the homography as predictor
-               EnrichKps(KpsTh,ArbreV,Hout,5);
+                 // Call Enrich Keypoints to use the homography as predictor
+               EnrichKps(KpsTh,ArbreV,*mH,5,i);
+               // EnrichKps refine the homography
+               aNameFileHomog=mDirTest+"homographyTIRVIS-final1.xml";
+
+
+               std::cout << "Save refined Homography TIR to VIS to " << aNameFileHomog << "\n";
+               MakeFileXML(mH->Inverse().ToXmlGen(),aNameFileHomog);
 
                delete ArbreV;
              }
      }
+}
 
-/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+void cAppliRegTIRVIS::initMSD()
+{
+    //===============================================================================//
+    //                  Instantiate the detector MSD                                 //
+    /*===============================================================================*/
+
+
+      msd.setPatchRadius(3);
+      msd.setSearchAreaRadius(5);
+      msd.setNMSRadius(5);
+      msd.setNMSScaleRadius(0);
+      msd.setThSaliency(0.02);
+      msd.setKNN(10);
+      msd.setScaleFactor(1.25f);
+      msd.setNScales(-1);
+      msd.setComputeOrientation(true);
+      msd.setCircularWindow(true);
+      msd.setRefinedKP(false);
+}
 
 
 
+//===============================================================================//
+/*                                Main Function                                  */
+//===============================================================================//
+
+cAppliRegTIRVIS::cAppliRegTIRVIS( int argc, char ** argv ):
+    mH(0)
+{
+        std::string Image_Pattern, Oris_VIS_dir,TestDataDIRpat, PlyFileIn, aHomogFile;
+        mDebug=1;
+        bool aTif=false;
+
+		ElInitArgMain
+		(
+			argc,argv,
+            LArgMain()
+                       << EAMC(Image_Pattern," Images pattern : Dir+ Name: prefixes Thermal: TIR, Visual: VIS", eSAM_IsPatFile)
+                       << EAMC(Oris_VIS_dir," Orientation files for visual images",eSAM_IsExistDirOri)
+                       << EAMC(PlyFileIn, " Ply file that will be used as a 3d model",eSAM_IsExistFile)
+          ,LArgMain()  << EAM(TestDataDIRpat,"ImPat4Homogr",true,"Set of images to be used to estimate the homography",eSAM_IsPatFile)
+                       << EAM(aHomogFile,"Homog", true,"The homography, if provided, will not required to estimate it ",eSAM_IsPatFile)
+                        << EAM(mDebug,"Debug",true,"Print more info to the terminal in order to facilitate debugging")
+                        //<< EAM(aCalibName,"CalibTIR",true,"Calib file for thir camera, test")
+		);
+
+    if (!MMVisualMode) {
+
+
+
+
+
+    // load of compute homography
+
+    if (EAMIsInit(&aHomogFile))
+    {
+    mICNM=cInterfChantierNameManipulateur::BasicAlloc("./");
+    // grosse bricole
+    ELISE_fp tmp = ELISE_fp(aHomogFile.c_str());
+    cElHomographie H=cElHomographie::read(tmp);
+    mH=&H;
+    } else {
+
+
+    if(EAMIsInit(&TestDataDIRpat) )
+    {
+    SplitDirAndFile(mDirTest,mPatImTest,TestDataDIRpat);
+    std::cout<<"==============> Test data directory: "<<mDirTest<<endl;
+    std::cout<<"==============> Pattern image test: "<<mPatImTest<<endl;
+    // Chantier Manipulateur
+    mICNM=cInterfChantierNameManipulateur::BasicAlloc(mDirTest);
+
+    computeHomogWithMSD();
+    } else {
+
+    std::cout << "Warn!! either a homography file (Homog) or a pattern of images with high contrast should be entered\n";
+
+    }
+
+    }
 
 
 
@@ -1099,6 +1131,9 @@ int RegTIRVIS_main( int argc, char ** argv )
  std::sort(VisualImages.begin(),VisualImages.end());
  std::sort(ThermalImages.begin(), ThermalImages.end());
 
+ Tiff_Im Image=Tiff_Im::UnivConvStd(VisualImages[0]);
+ Pt2di VisualSize(Image.sz());
+ box=Box2dr(Pt2dr(0,0), Pt2dr(VisualSize.x,VisualSize.y) );
 
 
 /***********************************************************************************/
@@ -1285,7 +1320,7 @@ if (!ELISE_fp::IsDirectory(Homolfile)) // Homolfile is not created
 {
     std::cout<<"********************************************************************************************\n"<<
                "*********************************************************************************************\n"<<
-               "     Computing thermal tie points using the homography predictor and the 3D optical model    \n"<<
+               "     Computing thermal-thermal tie points using the homography predictor and the 3D optical model    \n"<<
                "*********************************************************************************************\n"<<
                "**********************************************************************************************\n";
 
@@ -1344,11 +1379,11 @@ if (!ELISE_fp::IsDirectory(Homolfile)) // Homolfile is not created
             // Apply the computed homography to all set of keypoints
 
            /****************MSD MSD MSD MSD MSD ******************/
-            Kps1H=NewSetKpAfterHomog(Kps1,Hout);
-            Kps2H=NewSetKpAfterHomog(Kps2,Hout);
+            Kps1H=NewSetKpAfterHomog(Kps1,*mH);
+            Kps2H=NewSetKpAfterHomog(Kps2,*mH);
             /***************SIFT SIFT SIFT SIFT SIFT *************/
-            Kps1HS=NewSetKpAfterHomog(Kps1S,Hout);
-            Kps2HS=NewSetKpAfterHomog(Kps2S,Hout);
+            Kps1HS=NewSetKpAfterHomog(Kps1S,*mH);
+            Kps2HS=NewSetKpAfterHomog(Kps2S,*mH);
 
 
             std::cout<<"MSD Points "<<Kps1H.size()<<"        "<<Kps2H.size()<<endl;
@@ -1373,6 +1408,7 @@ if (!ELISE_fp::IsDirectory(Homolfile)) // Homolfile is not created
             //Use the oriented Visual Images to compute image1==>Terrain=>image2
             Orient_Image ImV1(Oris_VIS_dir,ImCpls.at(i).N1(),aICNM);
             Orient_Image ImV2(Oris_VIS_dir,ImCpls.at(i).N2(),aICNM);
+            if (mDebug) std::cout <<  "image couple " << ImCpls.at(i).N1() << " and " << ImCpls.at(i).N2() << "\n";
 
 
             //Apply Image1 ==> Terrain operation having into consideration a depth image
@@ -1534,9 +1570,9 @@ for (uint i=0; i<ThermalImages.size();i++)
 
    // Apply homography only to thermal image KeyPoints: MSD +SIFT
    /****************MSD MSD MSD MSD MSD ******************/
-    Kps1H=NewSetKpAfterHomog(Kps1,Hout);
+    Kps1H=NewSetKpAfterHomog(Kps1,*mH);
     /***************SIFT SIFT SIFT SIFT SIFT *************/
-    Kps1HS=NewSetKpAfterHomog(Kps1S,Hout);
+    Kps1HS=NewSetKpAfterHomog(Kps1S,*mH);
 
 
     //At this step, we can merge SIFT and MSD KeyPoints
@@ -2083,7 +2119,6 @@ ElPackHomologue HomologousPtsInter;
 //Update Depth Map
 Depth.raz();
 
-
 if (!ELISE_fp::IsDirectory(HomolfileInter)) // Homolfile is not created
 {
     std::cout<<"********************************************************************************************\n"<<
@@ -2163,9 +2198,9 @@ if (!ELISE_fp::IsDirectory(HomolfileInter)) // Homolfile is not created
             // Apply the computed homography to the thermal images ImageTh2
 
            /****************MSD MSD MSD MSD MSD ******************/
-            Kps2H=NewSetKpAfterHomog(Kps2,Hout);
+            Kps2H=NewSetKpAfterHomog(Kps2,*mH);
             /***************SIFT SIFT SIFT SIFT SIFT *************/
-            Kps2HS=NewSetKpAfterHomog(Kps2S,Hout);
+            Kps2HS=NewSetKpAfterHomog(Kps2S,*mH);
 
 
             std::cout<<"===========> MSD Points  "<<Kps1.size()<<"    ||   "<<Kps2H.size()<<endl;
@@ -2294,9 +2329,9 @@ if (!ELISE_fp::IsDirectory(HomolfileInter)) // Homolfile is not created
             // Apply the computed homography to the thermal images ImageTh1: Now Master image
 
            /****************MSD MSD MSD MSD MSD ******************/
-            Kps1H=NewSetKpAfterHomog(Kps1,Hout);
+            Kps1H=NewSetKpAfterHomog(Kps1,*mH);
             /***************SIFT SIFT SIFT SIFT SIFT *************/
-            Kps1HS=NewSetKpAfterHomog(Kps1S,Hout);
+            Kps1HS=NewSetKpAfterHomog(Kps1S,*mH);
 
 
             std::cout<<"===========> MSD Points  "<<Kps1.size()<<"    ||  "<<Kps2.size()<<endl;
@@ -2319,7 +2354,7 @@ if (!ELISE_fp::IsDirectory(HomolfileInter)) // Homolfile is not created
             //Use the oriented Visual Images to compute image1==>Terrain=>image2
             Orient_Image ImV1(Oris_VIS_dir,ImCpls.at(i).N1(),aICNM);
             Orient_Image ImV2(Oris_VIS_dir,ImCpls.at(i).N2(),aICNM);
-
+            if (mDebug) std::cout <<  "image couple " << ImCpls.at(i).N1() << " and " << ImCpls.at(i).N2() << "\n";
 
             //Apply Image1 ==> Terrain operation having into consideration a depth image
             // from ZBufferRaster directory
@@ -2440,9 +2475,9 @@ if (!ELISE_fp::IsDirectory(HomolfileInter)) // Homolfile is not created
                    // Apply the computed homography to the thermal images Master image
 
                   /****************MSD MSD MSD MSD MSD ******************/
-                   Kps1H=NewSetKpAfterHomog(Kps1,Hout);
+                   Kps1H=NewSetKpAfterHomog(Kps1,*mH);
                    /***************SIFT SIFT SIFT SIFT SIFT *************/
-                   Kps1HS=NewSetKpAfterHomog(Kps1S,Hout);
+                   Kps1HS=NewSetKpAfterHomog(Kps1S,*mH);
 
 
                    std::cout<<"===========> MSD Points  "<<Kps1H.size()<<"   ||   "<<Kps2.size()<<endl;
@@ -2537,9 +2572,9 @@ if (!ELISE_fp::IsDirectory(HomolfileInter)) // Homolfile is not created
           // Apply the computed homography to the thermal images Master image
 
          /****************MSD MSD MSD MSD MSD ******************/
-          Kps2H=NewSetKpAfterHomog(Kps2,Hout);
+          Kps2H=NewSetKpAfterHomog(Kps2,*mH);
           /***************SIFT SIFT SIFT SIFT SIFT *************/
-          Kps2HS=NewSetKpAfterHomog(Kps2S,Hout);
+          Kps2HS=NewSetKpAfterHomog(Kps2S,*mH);
 
 
           std::cout<<"===========> MSD Points  "<<Kps1.size()<<"    ||   "<<Kps2H.size()<<endl;
@@ -2651,12 +2686,12 @@ else
           );
     }*/
 
-return EXIT_SUCCESS ;
+    }
 }
 
-int main_test2(int argc,char ** argv)
+int main_test(int argc,char ** argv)
 {
 
-    RegTIRVIS_main(argc,argv);
+   cAppliRegTIRVIS(argc,argv);
    return EXIT_SUCCESS;
 }

@@ -279,9 +279,9 @@ double VarOfLap_LAP4(string aNameIm)
 
     Pt2di aSzKer(round_up((aLapl.sz().x-1)/2), round_up((aLapl.sz().y-1)/2));
 
-
     Im2D_REAL4 aIm2D = ImRead(aNameIm);
     Im2D_REAL4 aIm2D_DNs(aIm2D.sz().x, aIm2D.sz().y);
+
     aIm2D_DNs = Convol_With_ELISE(aIm2D, aDenoise);
 
     Im2D_REAL4 aIm2D_Lpl(aIm2D.sz().x, aIm2D.sz().y);

@@ -23,3 +23,9 @@ KeyPoint::KeyPoint(float x, float y, float size, float angle, float response)
 KeyPoint::KeyPoint(){}
 
 KeyPoint::~KeyPoint(){}
+
+void KeyPoint::undist(CamStenope * aCalib)
+{
+    Pt2dr ptUndist=aCalib->DistDirecte(Pt2dr(m_Point.x,m_Point.y));
+    m_Point=Pt2df(ptUndist.x,ptUndist.y);
+}

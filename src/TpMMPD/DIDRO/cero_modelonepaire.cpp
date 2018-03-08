@@ -13,6 +13,7 @@ cERO_ModelOnePaire::cERO_ModelOnePaire(int argc, char** argv):mO1(0),mO2(0)
     mTmpDirEROS="";
     mNbCplRadio=0;
     mDir="./";
+    mPondIncid=0;
 
     ElInitArgMain
     (
@@ -24,6 +25,7 @@ cERO_ModelOnePaire::cERO_ModelOnePaire(int argc, char** argv):mO1(0),mO2(0)
                     << EAM(mPoid2,"W2",true,"Weight we give to Ortho 2. Default 1, means we want to correct Ortho1 in order to have Ortho2 radiometry. If W1=W2, the model will try to egalize Ortho1 radiometry in order to match the mean radiometry of Ortho1 and Ortho2.")
                     << EAM(mDebug,"Debug",true,"If true, write dozens of useless intermediates results, both in the terminal and in your disk.")
                     << EAM(mTmpDirEROS,"Dir",true,"Directory where to save the results")
+                    << EAM(mPondIncid,"WIncid",true,"Weighting radiometric observation with incidence value? def false")
 
                 );
     std::cout << "launch Radiometric Egalization of 2 Orthos \n";
@@ -56,11 +58,21 @@ cERO_ModelOnePaire::cERO_ModelOnePaire(int argc, char** argv):mO1(0),mO2(0)
     // Initialise les 2 orthos
     mO1 = new cImGeo(mDir+mNameOr1);
     mO2 = new cImGeo(mDir+mNameOr2);
+
     // Determine la zone de recouvrement entre les 2 orthos
     mBoxOverlapTerrain=mO1->overlapBox(mO2);
     // clip les 2 ortho sur cette box terrain
     mO1clip = mO1->clipImTer(mBoxOverlapTerrain);
     mO2clip = mO2->clipImTer(mBoxOverlapTerrain);
+
+    if (mDebug | mPondIncid)
+    {
+    mO1->loadIncid();
+    mO2->loadIncid();
+    mI1clip = mO1->clipIncidTer(mBoxOverlapTerrain);
+    mI2clip = mO2->clipIncidTer(mBoxOverlapTerrain);
+    }
+
     /* les 2 Im2D peuvent avoir un pixels de décalage, en y dans mon exemple, pk? pas bon ça
     std::cout << "mO1clip size " << mO1clip.sz() << "\n";
     std::cout << "mO2clip size " << mO2clip.sz() << "\n"; */
@@ -73,17 +85,21 @@ cERO_ModelOnePaire::cERO_ModelOnePaire(int argc, char** argv):mO1(0),mO2(0)
                 );
     mO2clip = tmp;
 
+
+
     if (mDebug){
     saveIm2D(& mO1clip, mTmpDirERO+"Im1clipped.tif");
     saveIm2D(& mO2clip, mTmpDirERO+"Im2clipped.tif");
+
     }
 
-    // on utilise ransac pour, sur chacune des tuiles, garder 2 couples radiométriques exempt de bruit et représentatif de la tuile
+    // on utilise ransac pour, sur chacune des tuiles, garder 2 couples radiométriques exempt de bruit et représentatif de la tuile ainsi que le produit de la moyenne de l'incidence des images
     ransacOnEachTiles();
+
 
     // maintenant qu'on a fait le tour de chaque tuile:dalle, on calcul les modele Global
 
-    ransacOn2Orthos();
+    L1On2Orthos();
 
     // appliquer les modèle sur les 2 orthos isolées et effectue le mosaiquage afin de pouvoir inspecter facilement le résultat
     if (mDebug) applyRE();
@@ -181,12 +197,14 @@ void cERO_ModelOnePaire::applyRE() // pour le moment; applique la correction rad
     Im2D_REAL4 im1(mO1->applyRE(mModelER1));
     // je sauve le résultats
     saveIm2D(&im1,filename);
+    mO1->writeTFW(filename);
 
     // image 2
     filename=mTmpDirERO+"Im2_egalized.tif";
     Im2D_REAL4 im2(mO2->applyRE(mModelER2));
     // je sauve le résultats
     saveIm2D(&im2,filename);
+    mO2->writeTFW(filename);
 
     // mosaique des 2 images egalizées
     Box2dr boxMosaic=mO1->boxEnglob(mO2);
@@ -195,8 +213,7 @@ void cERO_ModelOnePaire::applyRE() // pour le moment; applique la correction rad
     Im2D_REAL4 mosaic=mO1->box2Im(boxMosaic);
     Pt2dr aCorner=Pt2dr(boxMosaic._p0.x,boxMosaic._p1.y); // xmin, ymax;
     Pt2di tr1=mO1->computeTrans(aCorner), tr2=mO2->computeTrans(aCorner);
-    mO1->loadIncid();
-    mO2->loadIncid();
+
     //saveIm2D(mO1->Incid(),mTmpDirERO+"Incid2.tif");
 
     // copy o1 in the mosaic
@@ -251,6 +268,8 @@ void cERO_ModelOnePaire::ransacOnEachTiles()
     int loopX=mO1clip.sz().x/mSzTuile.x;
     int loopY=mO1clip.sz().y/mSzTuile.y;
 
+    int aNbObs(0);
+
     for (int i(0) ; i<loopX;i++)
     {
         for (int j(0) ; j<loopY;j++)
@@ -272,10 +291,12 @@ void cERO_ModelOnePaire::ransacOnEachTiles()
                         dO2.oclip()
                         );
 
+
             // test pour voir si il y bien des données dans les 2 tuiles
+
             int nbPix(0);
             // liste de points, utilisée pour mémoriser le flux de points ou il y a des données radiométrique dans les 2 orthos.
-            Liste_Pts_INT2 fluxPt(2); // je sais pas si j'en aurai besoin
+            Liste_Pts_INT2 fluxPt(2); // j'en aurai besoin par exemple pour récupérer les valeurs d'incidences
             ELISE_COPY(
                         select(dO1.all_pts(),dO1.in()!=0 && dO2.in()!=0),
                         1,
@@ -294,8 +315,13 @@ void cERO_ModelOnePaire::ransacOnEachTiles()
             saveIm2D(& dO1, filename1);
             saveIm2D(& dO2, filename2);
             */
+
                 }
             // sur la dalle : effectue un filtre median de taille de fenetre de 5x5, le filtre médian va donc filtrer les outliers déjà à ce premier niveaux
+
+            // la function rect_median rale si il y a des valeurs négatives, donc je les enlèves
+            ELISE_COPY(select(dO1.all_pts(),dO1.in() < 0),0,dO1.out());
+            ELISE_COPY(select(dO2.all_pts(),dO2.in() < 0),0,dO2.out());
 
             ELISE_COPY(
                         dO1.all_pts(),
@@ -328,6 +354,31 @@ void cERO_ModelOnePaire::ransacOnEachTiles()
                 }
             }
 
+            double aPond(1);
+
+            if (mPondIncid)
+            {// compute average of incidence on Ort 1 and 2 on this tile
+            double aIncidMoy1(0),aIncidMoy2(0);
+            int aNb(0);
+
+            // select only pixel on the current tile
+            ELISE_COPY(
+                        rectangle(BoxPix,BoxPix+mSzTuile),
+                        Virgule(mI1clip.in(),1),
+                        Virgule(sigma(aIncidMoy1),sigma(aNb))
+                        );
+            aIncidMoy1/=aNb;
+            ELISE_COPY(
+                        rectangle(BoxPix,BoxPix+mSzTuile),
+                        mI2clip.in(),
+                        sigma(aIncidMoy2)
+                        );
+            aIncidMoy2/=aNb;
+
+            // recette de cuisine
+            aPond=100-9*std::min(10,int(100*std::max(aIncidMoy1,0.1)*std::max(aIncidMoy2,0.1)));
+            }
+
             // j'utilise la liste de ces couples d'observations radiométriques pour déterminer un modèle linéaire par RANSAC
 
             cRansac_2dline aRasac(&mObsDallage,a_plus_bx,50);
@@ -336,11 +387,86 @@ void cERO_ModelOnePaire::ransacOnEachTiles()
             aRasac.adjustModel();
 
             // pour chacune des dalles, je récupère 2 couples radiométriques prédit avec le modèle linéaire sur les observation du 1 et 3ieme quartile
-            // ce sont ces 2 observation qui sont utilisées pour le modèle d'égalisation pour la paire d'image
-            mObsGlob.push_back(predQuantile(&mObsDallage,aRasac.getModel(),1));
-            mObsGlob.push_back(predQuantile(&mObsDallage,aRasac.getModel(),3));
+            // ce sont ces 2 observations qui sont utilisées pour le modèle d'égalisation pour la paire d'image
 
-            //if(mDebug) std::cout << "fin de ransac  sur la tuile\n";
+            mObsGlob[aNbObs]=predQuantile(&mObsDallage,aRasac.getModel(),1);
+            mPondGlob[aNbObs]=aPond;
+            aNbObs++;
+            mObsGlob[aNbObs]=predQuantile(&mObsDallage,aRasac.getModel(),3);
+            mPondGlob[aNbObs]=aPond;
+            aNbObs++;
+
+            if(mDebug){
+
+                // dessinne le quadrillage de cette tuile sur les images clipped.
+                ELISE_COPY
+                (
+                border_rect(BoxPix, BoxPix+mSzTuile, 1 ),
+                P8COL::red,
+                mO1clip.out()
+                );
+
+                ELISE_COPY (
+                border_rect (BoxPix,BoxPix+mSzTuile,1),
+                P8COL::red,
+                mO2clip.out()
+                );
+
+                //std::cout << "Weigthing for these observations : " << aPond << ", Incid Ort1 =" << aIncidMoy1 << " and Incid Ort 2 = " << aIncidMoy2 << "\n";
+
+                // dessinne les 2 cpl radiometrique sur les images clipped.
+                Pt2dr q1=predQuantile(&mObsDallage,aRasac.getModel(),1);
+                Pt2dr q3=predQuantile(&mObsDallage,aRasac.getModel(),3);
+                int aSz(3),aBd(1);
+
+                ELISE_COPY
+                        (border_rect((BoxPix-Pt2di(2*aSz+aBd,2*aSz+aBd)+mSzTuile/2),(BoxPix+Pt2di(2*aSz+aBd,2*aSz+aBd)+mSzTuile/2),aBd),
+                         0,mO1clip.out()
+                         );
+                ELISE_COPY
+                        (border_rect((BoxPix-Pt2di(2*aSz,2*aSz)+mSzTuile/2),(BoxPix+mSzTuile/2),aSz),
+                         q1.x,mO1clip.out()
+                         );
+                ELISE_COPY
+                        (border_rect((BoxPix-Pt2di(0,2*aSz)+mSzTuile/2),(BoxPix+Pt2di(2*aSz,0)+mSzTuile/2),aSz),
+                         q1.y,mO1clip.out()
+                         );
+                ELISE_COPY
+                        (border_rect((BoxPix-Pt2di(2*aSz,0)+mSzTuile/2),(BoxPix+Pt2di(0,2*aSz)+mSzTuile/2),aSz),
+                         q3.x,mO1clip.out()
+                         );
+                ELISE_COPY
+                        (border_rect((BoxPix-Pt2di(0,0)+mSzTuile/2),(BoxPix+Pt2di(2*aSz,2*aSz)+mSzTuile/2),aSz),
+                         q3.y,mO1clip.out()
+                         );
+                // draw a rectangel with 4 values
+                //  | radiom im1 1 quantile    |   radiom im2 1 quantile |
+                //  | ---------------------    |   --------------------- |
+                //  | radiom im1 3 quantile    |   radiom im2 3 quantile |
+            // the same for Im2
+
+                ELISE_COPY
+                        (border_rect((BoxPix-Pt2di(2*aSz+aBd,2*aSz+aBd)+mSzTuile/2),(BoxPix+Pt2di(2*aSz+aBd,2*aSz+aBd)+mSzTuile/2),aBd),
+                         0,mO2clip.out()
+                         );
+                ELISE_COPY
+                        (border_rect((BoxPix-Pt2di(2*aSz,2*aSz)+mSzTuile/2),(BoxPix+mSzTuile/2),aSz),
+                         q1.y,mO2clip.out()
+                         );
+                ELISE_COPY
+                        (border_rect((BoxPix-Pt2di(0,2*aSz)+mSzTuile/2),(BoxPix+Pt2di(2*aSz,0)+mSzTuile/2),aSz),
+                         q1.x,mO2clip.out()
+                         );
+                ELISE_COPY
+                        (border_rect((BoxPix-Pt2di(2*aSz,0)+mSzTuile/2),(BoxPix+Pt2di(0,2*aSz)+mSzTuile/2),aSz),
+                         q3.y,mO2clip.out()
+                         );
+                ELISE_COPY
+                        (border_rect((BoxPix-Pt2di(0,0)+mSzTuile/2),(BoxPix+Pt2di(2*aSz,2*aSz)+mSzTuile/2),aSz),
+                         q3.x,mO2clip.out()
+                         );
+
+            }
             // fin travail sur la dalle
             mObsDallage.clear();
 
@@ -351,6 +477,8 @@ void cERO_ModelOnePaire::ransacOnEachTiles()
     // passe à la dalle suivante
     }
 }
+
+
 
 Pt2dr cERO_ModelOnePaire::predQuantile(std::vector<Pt2dr> * aObs, c2DLineModel aMod, int aQuartile,bool Y)
 {
@@ -378,6 +506,18 @@ Pt2dr cERO_ModelOnePaire::predQuantile(std::vector<Pt2dr> * aObs, c2DLineModel a
      }
 }
 
+Pt2dr cERO_ModelOnePaire::predQuantile(std::map<int, Pt2dr> * aObsMap, c2DLineModel aMod, int aQuartile,bool Y)
+{
+    // extract the vector of Pt2dr from the map, not interrested in the key and i am not capable of manipulating map
+    std::vector<Pt2dr> aObs;
+
+    for (std::map<int, Pt2dr>::iterator it=aObsMap->begin(); it!=aObsMap->end(); ++it)
+        aObs.push_back(it->second);
+
+   return predQuantile(&aObs, aMod,aQuartile,Y);
+}
+
+/*
 void cERO_ModelOnePaire::ransacOn2Orthos()
 {
     // on utilise les valeurs de pondération W1 et W2 pour savoir à quoi sert le modèle calculé
@@ -409,6 +549,7 @@ void cERO_ModelOnePaire::ransacOn2Orthos()
             // modifie le vecteur d'information: inverse le couple radiométrique
             std::vector<Pt2dr> aObs;
             for (unsigned int i(0); i<mObsGlob.size();i++) aObs.push_back(Pt2dr(mObsGlob.at(i).yx()));
+
             cRansac_2dline aRansac(&aObs,a_plus_bx,100);
             aRansac.adjustModel();
             if (mDebug) aRansac.affiche();
@@ -434,8 +575,75 @@ void cERO_ModelOnePaire::ransacOn2Orthos()
         aRansac2.adjustModel();
         if (mDebug) aRansac2.affiche();
         mModelER2=aRansac2.getModel();
+
     }
 }
+*/
+
+void cERO_ModelOnePaire::L1On2Orthos()
+{
+    // on utilise les valeurs de pondération W1 et W2 pour savoir à quoi sert le modèle calculé
+
+    // W1=0 et W2=1: on veut corriger im1 mais pas im2.
+    // W1=1 et W2=0: renvoie un modèle "unité", a=0 et b=1--> on veut corriger Im2 mais pas Im1
+    // W1=W2 : on veut corriger et Im1 et Im2 afin d'obtenir une radiométrie moyenne à ces deux images.
+
+    //plusieurs situation . 1iere, un des deux poids est 0
+    if (mPoid1==0 || mPoid2==0)
+    {
+        // modèle im 1 vers im 2
+        if (mPoid1==0){
+
+            if (mDebug) std::cout << "Radiom Im1 toward radiom Im2 \n";
+            cLSQ_2dline LSQ_mod(&mObsGlob,&mPondGlob);
+            LSQ_mod.adjustModelL1();
+            if (mDebug) LSQ_mod.affiche();
+            mModelER1=LSQ_mod.getModel();
+            // modèle "unité"
+            mModelER2=c2DLineModel();
+        }
+        // modèle im 2 vers im 1
+        if (mPoid2==0){
+             if (mDebug) std::cout << "Radiom Im2 toward radiom Im1 \n";
+            // modifie le vecteur d'information: inverse le couple radiométrique
+             for (std::map<int, Pt2dr>::iterator it=mObsGlob.begin(); it!=mObsGlob.end(); ++it)
+             {
+                 it->second= it->second.yx();
+             }
+            cLSQ_2dline LSQ_mod(&mObsGlob,&mPondGlob);
+            LSQ_mod.adjustModelL1();
+            if (mDebug) LSQ_mod.affiche();
+            mModelER2=LSQ_mod.getModel();
+            mModelER1=c2DLineModel();
+        }
+    }
+    if (mPoid1!=0 && mPoid2!=0)
+    {
+         if (mDebug) std::cout << "Correct Im1 and Im2 with weighting " << mPoid1 << " and " << mPoid2 << " respectively \n";
+        // création des vecteurs d'observation pour les 2 images
+        std::map<int ,Pt2dr> aObs1,aObs2;
+
+        for (auto & obs : mObsGlob)
+        {
+        aObs1[obs.first]=Pt2dr(obs.second.x,pond(obs.second));
+        aObs2[obs.first]=Pt2dr(obs.second.y,pond(obs.second));
+        }
+
+        // ajustement des modèles
+
+        cLSQ_2dline LSQ_mod(&aObs1,&mPondGlob);
+        LSQ_mod.adjustModelL1();
+        if (mDebug) LSQ_mod.affiche();
+        mModelER1=LSQ_mod.getModel();
+
+        cLSQ_2dline LSQ_mod2(&aObs2,&mPondGlob);
+        LSQ_mod2.adjustModelL1();
+        if (mDebug) LSQ_mod2.affiche();
+        mModelER2=LSQ_mod2.getModel();
+    }
+}
+
+
 
 int main_ero(int argc,char ** argv)
 {
