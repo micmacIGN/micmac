@@ -1269,6 +1269,8 @@ int statRadianceVarioCam_main(int argc,char ** argv)
         }
         // fin iter sur les mesures appuis flottant
     }
+	
+	return EXIT_SUCCESS;
 }
 
 
