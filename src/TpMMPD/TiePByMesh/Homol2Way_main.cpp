@@ -40,6 +40,170 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "InitOutil.h"
 #include <stdio.h>
 
+class cAppliHomol_2Way;
+class cImgTiep2Way;
+
+
+class cAppliHomol_2Way
+{
+    public:
+        cAppliHomol_2Way(string aFullPattern);
+        cInterfChantierNameManipulateur * ICNM() {return mICNM;}
+        vector<string> & VImg() {return mVImg;}
+        vector<cImgTiep2Way*> & VImgTiep2W() {return mVImgTiep2W;}
+        void DoFusion2Way(bool isTxt, string extHomol);
+        void ExportHom(bool isTxt, string extHomol);
+    private:
+        cInterfChantierNameManipulateur * mICNM;
+        vector<string> mVImg;
+        string mDir;
+        vector<cImgTiep2Way*> mVImgTiep2W;
+};
+
+
+class cImgTiep2Way
+{
+    public:
+        cImgTiep2Way(int ind, cAppliHomol_2Way* aAppli);
+        cAppliHomol_2Way* Appli() {return mAppli;}
+        int & Ind() {return mInd;}
+        string & Name() {return mAppli->VImg()[mInd];}
+        vector<ElPackHomologue*> & VPackHom() {return mVPackHom;}
+    private:
+        cAppliHomol_2Way* mAppli;
+        int mInd;
+        vector<ElPackHomologue*> mVPackHom;
+};
+
+
+cAppliHomol_2Way::cAppliHomol_2Way(string aFullPattern)
+{
+    std::string aNameImg;
+    SplitDirAndFile(mDir,aNameImg,aFullPattern);
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+    mVImg = *(mICNM->Get(aNameImg));
+
+    for (uint aKImg=0; aKImg<mVImg.size(); aKImg++)
+    {
+        cImgTiep2Way * aImg = new cImgTiep2Way(aKImg, this);
+        mVImgTiep2W.push_back(aImg);
+    }
+}
+
+cImgTiep2Way::cImgTiep2Way(int ind, cAppliHomol_2Way* aAppli):
+    mAppli (aAppli),
+    mInd (ind),
+    mVPackHom (vector<ElPackHomologue*>(mAppli->VImg().size()))
+{
+    for (uint aKPack=0; aKPack<mVPackHom.size(); aKPack++)
+    {
+        ElPackHomologue * aPck = new ElPackHomologue();
+        mVPackHom[aKPack] = aPck;
+    }
+}
+
+void cAppliHomol_2Way::DoFusion2Way(bool isTxt, string extHomol)
+{
+    string ExpFormat = isTxt ? std::string("txt"):std::string("dat");
+    string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                       +  std::string(extHomol)
+                       +  std::string("@")
+                       +  ExpFormat;
+
+    for (uint aKIm=0; aKIm<mVImgTiep2W.size(); aKIm++)
+    {
+        cImgTiep2Way * aIm1 = mVImgTiep2W[aKIm];
+        for (uint aKImB=0; aKImB<mVImgTiep2W.size(); aKImB++)
+        {
+            if (aKImB == aKIm)
+                continue;   // terminate current iteration
+            else
+            {
+                cImgTiep2Way * aIm2 = mVImgTiep2W[aKImB];
+                string aPathHom = mICNM->Assoc1To2(aKHIn, aIm1->Name(), aIm2->Name(), true);
+                string aPathHomInv = mICNM->Assoc1To2(aKHIn, aIm2->Name(), aIm1->Name(), true);
+                StdCorrecNameHomol_G(aPathHom, mDir);
+                if (ELISE_fp::exist_file(aPathHom))
+                {
+                    ElPackHomologue aPck12 = ElPackHomologue::FromFile(aPathHom);
+                    // ajout to aPack 12
+                    aIm1->VPackHom()[aIm2->Ind()]->Add(aPck12);
+                    // ajout to aPack 21
+                    aPck12.SelfSwap();
+                    aIm2->VPackHom()[aIm1->Ind()]->Add(aPck12);
+
+                }
+                if (ELISE_fp::exist_file(aPathHomInv))
+                {
+                    ElPackHomologue aPck21 = ElPackHomologue::FromFile(aPathHomInv);
+                    // ajout to aPack 21
+                    aIm2->VPackHom()[aIm1->Ind()]->Add(aPck21);
+                    // ajout to aPack 12
+                    aPck21.SelfSwap();
+                    aIm1->VPackHom()[aIm2->Ind()]->Add(aPck21);
+                }
+            }
+        }
+    }
+}
+
+void cAppliHomol_2Way::ExportHom(bool isTxt, string extHomol)
+{
+    string ExpFormat = isTxt ? std::string("txt"):std::string("dat");
+    string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(extHomol)
+                        +  std::string("@")
+                        +  ExpFormat;
+    for (uint aKIm=0; aKIm<mVImgTiep2W.size(); aKIm++)
+    {
+        cImgTiep2Way * aIm1 = mVImgTiep2W[aKIm];
+        for (uint aKImB=0; aKImB<mVImgTiep2W.size(); aKImB++)
+        {
+            if (aKImB == aKIm)
+                continue;   // terminate current iteration
+            else
+            {
+                cImgTiep2Way * aIm2 = mVImgTiep2W[aKImB];
+                string aPathHom = mICNM->Assoc1To2(aKHOut, aIm1->Name(), aIm2->Name(), true);
+                if (aIm1->VPackHom()[aIm2->Ind()]->size() > 0)
+                    aIm1->VPackHom()[aIm2->Ind()]->StdPutInFile(aPathHom);
+            }
+        }
+    }
+}
+
+
+int Homol2WayNEW_main(int argc,char ** argv)
+{
+    string aFullPattern;
+    string aSHIn = "Homol";
+    string aSHOut = "_2Way";
+    bool skipVide = false;
+    bool ExpTxt = false;
+    cout<<"*************************************************************************"<<endl;
+    cout<<"*    Creat same pack homol in 2 way by combination 2 pack of each way   *"<<endl;
+    cout<<"*                   Convert homol format dat <-> txt                    *"<<endl;
+    cout<<"*************************************************************************"<<endl;
+        ElInitArgMain
+                (
+                    argc,argv,
+                    //mandatory arguments
+                    LArgMain()  << EAMC(aFullPattern, "Pattern of images",  eSAM_IsPatFile),
+                    //optional arguments
+                    LArgMain()
+                    << EAM(aSHIn, "SH", true, "Input homol folder (default = Homol)")
+                    << EAM(aSHOut, "SHOut", true, "Output homol folder")
+                    << EAM(skipVide, "skipVide", true, "don't write out pack Homol vide")
+                    << EAM(ExpTxt, "ExpTxt", true, "Output format (txt=true, dat=false - def=false")
+                );
+
+        if (MMVisualMode) return EXIT_SUCCESS;
+        cAppliHomol_2Way * aAppli = new cAppliHomol_2Way(aFullPattern);
+        aAppli->DoFusion2Way(ExpTxt, aSHIn);
+        aAppli->ExportHom(ExpTxt, aSHOut);
+
+}
+
 
     /******************************************************************************
     The main function.

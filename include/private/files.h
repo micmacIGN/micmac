@@ -193,7 +193,7 @@ class  ELISE_fp
       
          ~ELISE_fp();
          ELISE_fp(eModeBinTxt ModeBin=eTxtOnPremierLigne);
-         ELISE_fp(const char *,mode_open,bool svp = false,eModeBinTxt  =eTxtOnPremierLigne);
+         ELISE_fp(const char *,mode_open=READ,bool svp = false,eModeBinTxt  =eTxtOnPremierLigne);
 
          U_INT1 read_U_INT1();
          U_INT2 read_U_INT2();

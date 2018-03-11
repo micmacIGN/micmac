@@ -44,6 +44,7 @@ public:
     cRansac_2dline();
     // création de l'objet à partir des observations, définition de la forme du modèle, d'un vecteur de pondération
     cRansac_2dline(std::vector<Pt2dr> * aObs,ModelForm model,int aNbInt);
+    cRansac_2dline(std::map<int,Pt2dr> * aObsMap,ModelForm model,int aNbInt);
     //cRansac_2dline(std::vector<Pt2dr> aObs,ModelForm model, std::vector<double> aPonderation);
     ~cRansac_2dline();
 
@@ -78,9 +79,11 @@ public:
     // création de l'objet à partir des observations, définition de la forme du modèle
     cLSQ_2dline(std::vector<Pt2dr> * aObs,ModelForm model=a_plus_bx);
     cLSQ_2dline(std::vector<Pt2dr> * aObs,std::vector<double> * aPond,ModelForm model=a_plus_bx);
+    cLSQ_2dline(std::map<int,Pt2dr> * aObsMap, std::map<int,double> * aPondMap, ModelForm model=a_plus_bx);
     ~cLSQ_2dline();
 
-    void adjustModel();
+    void adjustModelL2();//L2
+    void adjustModelL1();//L1
     // renvoie une prédiction du modèle ajusté précédement
     double predict(double aX) {return mModel.predict(aX);}
     // donne des info sur le modele
@@ -90,8 +93,9 @@ public:
 private:
     c2DLineModel mModel;
     ModelForm mModelForm;
-    std::vector<Pt2dr> * mObs;
-    std::vector<double> mPond;
+    //std::vector<Pt2dr> * mObs;
+    std::vector<std::pair<double *,Pt2dr *>> pObs; // pointers to ponderation and observation
+    double mPond;
     bool mOk;
 };
 
