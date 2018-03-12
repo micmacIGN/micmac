@@ -863,9 +863,6 @@ class cElHomographie  : public cElMap2D
           virtual void  InitFromParams(const std::vector<double> &aSol);
           virtual std::vector<double> Params() const;
 
-
-
-
           bool HasNan() const;
 
           Pt2dr Direct  (const Pt2dr & aP) const;
