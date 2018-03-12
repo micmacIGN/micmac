@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1969]) = {
+const char * (theNameVar_SuperposImage[1993]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
