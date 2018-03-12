@@ -599,7 +599,7 @@ bool   cGPU_LoadedImGeom::CorreCensus(double & aCorrel,int anX,int anY,const  cG
       for (int aDY=-mSzV0.y ; aDY<=mSzV0.y ;aDY++)
       {
           float * aLI = aDI[anY+aDY] + anX - mSzV0.x;
-          float * aLJ = aDI[anY+aDY] + anX - mSzV0.x;
+          float * aLJ = aDJ[anY+aDY] + anX - mSzV0.x;
           if (ModeQuant)
           {
               for (int aCpt =1+2*mSzV0.x ; aCpt ; aCpt--)
@@ -627,13 +627,13 @@ bool   cGPU_LoadedImGeom::CorreCensus(double & aCorrel,int anX,int anY,const  cG
 
 bool   cGPU_LoadedImGeom::Correl(double & aCorrel,int anX,int anY,const  cGPU_LoadedImGeom & aGeoJ,int aNbScaleIm) const
 {
+        if (! mDOK_Ortho[anY][anX])
+            return false;
         if (mAppli.CC())
         {
             return CorreCensus(aCorrel,anX,anY,aGeoJ,aNbScaleIm);
         }
 
-        if (! mDOK_Ortho[anY][anX])
-            return false;
         double aMI  = MoyIm(anX,anY,aNbScaleIm);
         double aDmI = mAppli.DeltaMoy(aMI);
         double aMII =  MoyQuadIm(anX,anY,aNbScaleIm) - ElSquare(aMI) + ElSquare(aDmI);
@@ -2024,7 +2024,31 @@ void cAppliMICMAC::DoCorrelAdHoc
         {
             DoCorrelRobusteNonCentree(aBox,aTC.Correl_NC_Robuste().Val());
         }
-        else if (aTC.MultiCorrelPonctuel().IsInit())
+        else if (aTC.MasqueAutoByTieP().IsInit())
+        {
+            DoMasqueAutoByTieP(aBox,aTC.MasqueAutoByTieP().Val());
+        }
+        else if (mCC) // (aTC.CensusCost().IsInit())
+        {
+             ELISE_ASSERT
+             (
+                 ModeGeomIsIm1InvarPx(*this) ,
+                 "Census require ModeGeomIm for now"
+             );
+
+             if (GeomImages() == eGeomImage_EpipolairePure)
+             {
+                DoCensusCorrel(aBox,aTC.CensusCost().Val());
+             }
+             else
+             {
+                DoGPU_Correl(aBox,nullptr,0);
+                // ELISE_ASSERT ( false, "Not epipolar geometry for census ");
+             }
+        }
+
+        // On peut avoir a la fois MCP et mCC (par ex)
+        if (aTC.MultiCorrelPonctuel().IsInit())
         {
             const cMultiCorrelPonctuel * aMCP = aTC.MultiCorrelPonctuel().PtrVal();
             const cMCP_AttachePixel * aAP = aMCP->MCP_AttachePixel().PtrVal();
@@ -2057,28 +2081,6 @@ void cAppliMICMAC::DoCorrelAdHoc
                }
             }
             DoGPU_Correl(aBox,aMCP,aPdsPix);
-        }
-        else if (aTC.MasqueAutoByTieP().IsInit())
-        {
-            DoMasqueAutoByTieP(aBox,aTC.MasqueAutoByTieP().Val());
-        }
-        else if (mCC) // (aTC.CensusCost().IsInit())
-        {
-             ELISE_ASSERT
-             (
-                 ModeGeomIsIm1InvarPx(*this) ,
-                 "Census require ModeGeomIm for now"
-             );
-
-             if (GeomImages() == eGeomImage_EpipolairePure)
-             {
-                DoCensusCorrel(aBox,aTC.CensusCost().Val());
-             }
-             else
-             {
-                DoGPU_Correl(aBox,nullptr,0);
-                // ELISE_ASSERT ( false, "Not epipolar geometry for census ");
-             }
         }
 
 }
@@ -2125,7 +2127,7 @@ void cAppliMICMAC::GlobDoCorrelAdHoc
         }
         const cTypeCAH & aTC  = mCorrelAdHoc->TypeCAH();
 
-        if (aTC.CensusCost().IsInit())
+        if ((aTC.CensusCost().IsInit()) &&  (GeomImages() == eGeomImage_EpipolairePure))
         {
             int aK=0;
             for

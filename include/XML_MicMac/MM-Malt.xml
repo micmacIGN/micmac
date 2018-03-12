@@ -465,14 +465,6 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
             <AggregCorr> ${ModeAgrCor} </AggregCorr>
             <!---->
-            <#IF VTEST=${UseCensusCost}>
-                 <CorrelAdHoc>
-                    <TypeCAH>
-                         <CensusCost>
-                              <TypeCost> ${ModeCensusCost}  </TypeCost>
-                        </CensusCost>
-                    </TypeCAH>
-                 </CorrelAdHoc>
 
                  <#WHEN VTEST=${CorMS}>
                       <#WHEN VTEST=${NotUseGpu}>
@@ -492,7 +484,6 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                           </CorrelAdHoc>
                        </#WHEN>
                  </#WHEN>
-            </#IF>
 
             
             <#WHEN VTEST=${UseGpu}>
@@ -648,21 +639,21 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                                   <UseWAdapt>  false </UseWAdapt>
                                   <#WHEN VTEST=${MS_Use1}>
                                        <OneParamCMS>
-                                            <SzW>  ${MS_Use1} ${MS_Use1} </SzW>
+                                            <SzW>  ${MS_SzW1} ${MS_SzW1} </SzW>
                                             <Sigma> ${MS_Sig1} </Sigma>
                                             <Pds> ${MS_Pds1} </Pds>
                                        </OneParamCMS>
                                   </#WHEN>
                                   <#WHEN VTEST=${MS_Use2}>
                                        <OneParamCMS>
-                                            <SzW>  ${MS_Use2} ${MS_Use2} </SzW>
+                                            <SzW>  ${MS_SzW2} ${MS_SzW2} </SzW>
                                             <Sigma> ${MS_Sig2} </Sigma>
                                             <Pds> ${MS_Pds2} </Pds>
                                        </OneParamCMS>
                                   </#WHEN>
                                   <#WHEN VTEST=${MS_Use3}>
                                        <OneParamCMS>
-                                            <SzW>  ${MS_Use3} ${MS_Use3} </SzW>
+                                            <SzW>  ${MS_SzW3} ${MS_SzW3} </SzW>
                                             <Sigma> ${MS_Sig3} </Sigma>
                                             <Pds> ${MS_Pds3} </Pds>
                                        </OneParamCMS>
@@ -670,7 +661,12 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                            </CorrelMultiScale>
                            <#WHEN VTEST=${NotUseGpu}>
                                <TypeCAH>
+                                   <#IF VTEST=${UseCensusCost}>
+                                       <CensusCost>
+                                            <TypeCost> ${ModeCensusCost}  </TypeCost>
+                                      </CensusCost>
                                       <GPU_Correl> </GPU_Correl>
+                                   </#IF>
                                 </TypeCAH>
                             </#WHEN>
                             <#WHEN VTEST=${UseGpu}>

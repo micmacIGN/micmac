@@ -232,11 +232,13 @@ Pt2di cPriseDeVue::SzIm() const
 
 const cLoadedImage & cPriseDeVue::LoadedIm() const
 {
+   ELISE_ASSERT(mLoadIm,"cPriseDeVue::LoadedIm");
    return *mLoadIm;
 }
 
 cLoadedImage & cPriseDeVue::LoadedIm()
 {
+   ELISE_ASSERT(mLoadIm,"cPriseDeVue::LoadedIm");
    return *mLoadIm;
 }
 
