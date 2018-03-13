@@ -7403,10 +7403,14 @@ class cXml_SLSRay
 
         Pt3dr & P2();
         const Pt3dr & P2()const ;
+
+        std::list< Pt3dr > & P3();
+        const std::list< Pt3dr > & P3()const ;
     private:
         double mIndCol;
         Pt3dr mP1;
         Pt3dr mP2;
+        std::list< Pt3dr > mP3;
 };
 cElXMLTree * ToXMLTree(const cXml_SLSRay &);
 
