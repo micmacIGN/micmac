@@ -179,8 +179,8 @@ class cOnePCarac
         cOneInvRad & InvR();
         const cOneInvRad & InvR()const ;
 
-        Im2D_INT1 & ImRad();
-        const Im2D_INT1 & ImRad()const ;
+        Im2D_INT1 & ImLogPol();
+        const Im2D_INT1 & ImLogPol()const ;
 
         std::vector<double> & VectRho();
         const std::vector<double> & VectRho()const ;
@@ -199,7 +199,7 @@ class cOnePCarac
         double mAutoCorrel;
         bool mOK;
         cOneInvRad mInvR;
-        Im2D_INT1 mImRad;
+        Im2D_INT1 mImLogPol;
         std::vector<double> mVectRho;
 };
 cElXMLTree * ToXMLTree(const cOnePCarac &);

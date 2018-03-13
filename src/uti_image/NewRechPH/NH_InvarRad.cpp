@@ -369,8 +369,8 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       aS2 -= ElSquare(aS1);
       aS2 = sqrt(ElMax(1e-10,aS2));
       ELISE_COPY(aImBuf.all_pts(),(aImBuf.in()-aS1)/aS2, aImBuf.out());
-      aPt.ImRad() =  Im2D_INT1(aImBuf.sz().x,aImBuf.sz().y);
-      ELISE_COPY(aImBuf.all_pts(),Max(-128,Min(127,round_ni(aImBuf.in()*32))),aPt.ImRad().out());
+      aPt.ImLogPol() =  Im2D_INT1(aImBuf.sz().x,aImBuf.sz().y);
+      ELISE_COPY(aImBuf.all_pts(),Max(-128,Min(127,round_ni(aImBuf.in()*32))),aPt.ImLogPol().out());
       aPt.VectRho() = aVRho;
       
       if (BUG)

@@ -508,14 +508,14 @@ const cOneInvRad & cOnePCarac::InvR()const
 }
 
 
-Im2D_INT1 & cOnePCarac::ImRad()
+Im2D_INT1 & cOnePCarac::ImLogPol()
 {
-   return mImRad;
+   return mImLogPol;
 }
 
-const Im2D_INT1 & cOnePCarac::ImRad()const 
+const Im2D_INT1 & cOnePCarac::ImLogPol()const 
 {
-   return mImRad;
+   return mImLogPol;
 }
 
 
@@ -545,7 +545,7 @@ void  BinaryUnDumpFromFile(cOnePCarac & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.AutoCorrel(),aFp);
     BinaryUnDumpFromFile(anObj.OK(),aFp);
     BinaryUnDumpFromFile(anObj.InvR(),aFp);
-    BinaryUnDumpFromFile(anObj.ImRad(),aFp);
+    BinaryUnDumpFromFile(anObj.ImLogPol(),aFp);
     BinaryUnDumpFromFile(anObj.VectRho(),aFp);
 }
 
@@ -565,7 +565,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
     BinaryDumpInFile(aFp,anObj.AutoCorrel());
     BinaryDumpInFile(aFp,anObj.OK());
     BinaryDumpInFile(aFp,anObj.InvR());
-    BinaryDumpInFile(aFp,anObj.ImRad());
+    BinaryDumpInFile(aFp,anObj.ImLogPol());
     BinaryDumpInFile(aFp,anObj.VectRho());
 }
 
@@ -587,7 +587,7 @@ cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
    aRes->AddFils(::ToXMLTree(std::string("AutoCorrel"),anObj.AutoCorrel())->ReTagThis("AutoCorrel"));
    aRes->AddFils(::ToXMLTree(std::string("OK"),anObj.OK())->ReTagThis("OK"));
    aRes->AddFils(ToXMLTree(anObj.InvR())->ReTagThis("InvR"));
-   aRes->AddFils(::ToXMLTree(std::string("ImRad"),anObj.ImRad())->ReTagThis("ImRad"));
+   aRes->AddFils(::ToXMLTree(std::string("ImLogPol"),anObj.ImLogPol())->ReTagThis("ImLogPol"));
    aRes->AddFils(::ToXMLTree(std::string("VectRho"),anObj.VectRho())->ReTagThis("VectRho"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
@@ -627,12 +627,12 @@ void xml_init(cOnePCarac & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.InvR(),aTree->Get("InvR",1)); //tototo 
 
-   xml_init(anObj.ImRad(),aTree->Get("ImRad",1)); //tototo 
+   xml_init(anObj.ImLogPol(),aTree->Get("ImLogPol",1)); //tototo 
 
    xml_init(anObj.VectRho(),aTree->Get("VectRho",1)); //tototo 
 }
 
-std::string  Mangling( cOnePCarac *) {return "A1E622235CA23AC9FD3F";};
+std::string  Mangling( cOnePCarac *) {return "E0CF3BC532583685FE3F";};
 
 
 std::vector< cOnePCarac > & cSetPCarac::OnePCarac()
@@ -691,7 +691,7 @@ void xml_init(cSetPCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.OnePCarac(),aTree->GetAll("OnePCarac",false,1));
 }
 
-std::string  Mangling( cSetPCarac *) {return "00FB91C136438280FE3F";};
+std::string  Mangling( cSetPCarac *) {return "55544900B54811F1FE3F";};
 
 
 cOnePCarac & cSRPC_Truth::P1()
@@ -748,7 +748,7 @@ void xml_init(cSRPC_Truth & anObj,cElXMLTree * aTree)
    xml_init(anObj.P2(),aTree->Get("P2",1)); //tototo 
 }
 
-std::string  Mangling( cSRPC_Truth *) {return "208C32A1E44ECED3FBBF";};
+std::string  Mangling( cSRPC_Truth *) {return "605FA27E9728E3ABFBBF";};
 
 
 std::vector< cSRPC_Truth > & cSetRefPCarac::SRPC_Truth()
@@ -841,7 +841,7 @@ void xml_init(cSetRefPCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.SRPC_Rand(),aTree->GetAll("SRPC_Rand",false,1));
 }
 
-std::string  Mangling( cSetRefPCarac *) {return "86C0DAE397FC78B5FD3F";};
+std::string  Mangling( cSetRefPCarac *) {return "D1AF655A5B3CE59CFE3F";};
 
 
 std::vector<double> & cCBOneBit::Coeff()

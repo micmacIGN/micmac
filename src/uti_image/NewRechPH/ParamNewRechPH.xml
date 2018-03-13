@@ -88,6 +88,14 @@
          <!-- Code Binaire : devrait etre 1D, mais flemme modifier xml_init et autres ...  -->
          <CodeBinaire  Nb="1" Type="Im2D_U_INT2"> </CodeBinaire>
    </OneInvRad>
+
+   <ProfilRad  Nb="1" Class="true" ToReference="true">
+         <!-- y :  NumVect , x : Rho -->
+         <ImProfil Nb="1" Type="Im2D_INT1"> </ImProfil>
+         <!-- Code Binaire : devrait etre 1D, mais flemme modifier xml_init et autres ...  -->
+   </OneInvRad>
+
+
    <OnePCarac   Nb="1" Class="true" ToReference="true">
          <Kind Nb="1" Type="eTypePtRemark">        </Kind>
          <Pt   Nb="1" Type="Pt2dr">     </Pt>
@@ -105,8 +113,9 @@
      <!--   codage binaire -->
     <!-- Pour visu -->
          <InvR Nb="1" RefType="OneInvRad">  </InvR>
-         <ImRad Nb="1" Type="Im2D_INT1"> </ImRad>
+         <ImLogPol Nb="1" Type="Im2D_INT1"> </ImLogPol>
          <VectRho   Nb="1" Type="std::vector<double>">  </VectRho>
+         <ProfR Nb="1" RefType="ProfilRad">  </ProfR>
    </OnePCarac>
 
    <SetPCarac  Nb="1" Class="true">

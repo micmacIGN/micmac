@@ -330,7 +330,7 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
        std::cout << "\n";
 
        {
-          Im2D_INT1 aImLogT = aNearest->ImRad();
+          Im2D_INT1 aImLogT = aNearest->ImLogPol();
           int aZoom=10;
           Pt2di aSz = aImLogT.sz();
 

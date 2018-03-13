@@ -89,6 +89,7 @@ int HomFilterMasq_main(int argc,char ** argv)
     std::string aOriMasq3D,aNameMasq3D;
     cMasqBin3D * aMasq3D = 0;
     double  aDistId=-1;
+    double  aDistHom=-1;
 
     Pt2dr  aSelecTer;
 
@@ -111,6 +112,7 @@ int HomFilterMasq_main(int argc,char ** argv)
                     << EAM(aNameMasq3D,"Masq3D",true,"File of Masq3D, Def=AperiCloud_${OriMasq3D}.ply")
                     << EAM(aSelecTer,"SelecTer",true,"[Per,Prop] Period of tiling on ground selection, Prop=proporion of selected")
                     << EAM(aDistId,"DistId",true,"Supress pair such that d(P1,P2) < DistId, def unused")
+                    << EAM(aDistHom,"DistH",true,"Distance for filtering homologous point")
     );
     bool aHasOri3D =  EAMIsInit(&aOriMasq3D);
     bool HasTerSelec = EAMIsInit(&aSelecTer);
@@ -145,7 +147,7 @@ int HomFilterMasq_main(int argc,char ** argv)
         }
         else
         {
-            ELISE_ASSERT(EAMIsInit(&aSelecTer),"Unused OriMasq3D");
+            ELISE_ASSERT(EAMIsInit(&aSelecTer) || (aDistHom>=0),"Unused OriMasq3D");
         }
         aKeyOri = "NKS-Assoc-Im2Orient@" + aOriMasq3D;
     }
@@ -288,6 +290,19 @@ std::cout << aNameIm1  << " # " << aNameIm2 << "\n";
                               Ok = OkTer;
                               aNbTestTer ++;
                               aNbInTer += OkTer;
+                          }
+
+                          if (aDistHom >0 )
+                          {
+                              Pt2dr aRP1 =  aVCam[aKN1]->Ter2Capteur(aPTer);
+                              Pt2dr aRP2 =  aVCam[aKN2]->Ter2Capteur(aPTer);
+                              double aD1 = euclid(aP1,aRP1);
+                              double aD2 = euclid(aP2,aRP2);
+                              if ((aD1+aD2) > aDistHom)
+                              {
+                                  Ok = false;
+                                  std::cout << "DIST " << aD1 << " " << aD2 << "\n";
+                              }
                           }
                       }  
 
