@@ -1393,7 +1393,7 @@ int Appli_ImPts2Dir::DoCalc()
 
         for (auto aKP : mListPt2d)
         {
-           std::cout << aKP + mMapImDirs[aNameIm]->PP()  << " 0.0 " << "\n"; 
+    //       std::cout << aKP + mMapImDirs[aNameIm]->PP()  << " 0.0 " << "\n"; 
            ElSeg3D aDir = aCG->Capteur2RayTer(aKP + mMapImDirs[aNameIm]->PP());
        
            mMapImDirs[aNameIm]->mDirs.push_back(aDir);     
