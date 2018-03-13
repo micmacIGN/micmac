@@ -40,7 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../uti_phgrm/Apero/cCameraRPC.h"
 #include "general/ptxd.h"
-
+#include "../../include/im_tpl/cPtOfCorrel.h"
 
 void CheckBounds(Pt2dr & aPmin, Pt2dr & aPmax, const Pt2dr & aP, bool & IS_INI);
 
@@ -1150,7 +1150,6 @@ int anAppli_PFM2Tiff::DoTif()
 
     ReadPFMHeader(aFO);
     
-    std::cout << "EEEEEEEEEE Sz=" << mSz << "\n";
 
     SkipSpace(aFO);
     
@@ -1188,8 +1187,10 @@ int anAppli_PFM2Tiff::DoTif()
             ELISE_ASSERT(false,"anAppli_PFM2Tiff::DoTif(): File is too short ");
 
         for (int aK1=0; aK1<mSz.x; aK1++)
+        {
+            //std::cout << aLine[aK1] << " " << "\n";
             aRes.SetR(Pt2di(aK1,aK2),aLine[aK1]);
-
+        }
 
         delete[] aLine;
 
@@ -1276,11 +1277,15 @@ class cImDir
         ElSeg3D & OC();
         const ElSeg3D & OC()const;
 
+        Pt2dr & PP();
+        const Pt2dr & PP()const;
+
         std::vector<ElSeg3D>        mDirs;
  
     private :
         const std::string           mName;
         ElSeg3D                     mOC;
+        Pt2dr                       mPP;
 };
 
 cImDir::cImDir(const std::string &aName) :
@@ -1293,6 +1298,12 @@ ElSeg3D & cImDir::OC()
 
 const ElSeg3D & cImDir::OC()const
 { return mOC; }
+
+Pt2dr & cImDir::PP()
+{ return mPP; }
+
+const Pt2dr & cImDir::PP()const
+{ return mPP; }
 
 class Appli_ImPts2Dir
 {
@@ -1325,14 +1336,14 @@ Appli_ImPts2Dir::Appli_ImPts2Dir(int argc,char ** argv) :
     mSetIm      (0)
 {
     std::string              aPattern;
-    std::vector<std::string> aCirc;//not implemented for now
+    std::vector<std::string> aCircV = {"100","500"};//not implemented for now
 
     ElInitArgMain
     (
         argc, argv,
         LArgMain() << EAMC(aPattern,"Pattern of images")
                    << EAMC(mOri,"Orientation directory"),
-        LArgMain() << EAM (aCirc,"Circ",true,"Vector of circle radii")
+        LArgMain() << EAM (aCircV,"Circ",true,"Vector of circle radii, Def=[100,500] px")
                    << EAM (mOut,"Out",true,"Output file name")
 	);
 
@@ -1346,9 +1357,22 @@ Appli_ImPts2Dir::Appli_ImPts2Dir(int argc,char ** argv) :
     mSetIm = mICNM->Get(mIms);
     mNbIm = (int)mSetIm->size();
 
-    mListPt2d.push_back(Pt2dr(100,100));
-    mListPt2d.push_back(Pt2dr(200,200));
+    //circles wrt to "0"
+    for ( auto aCircRad : aCircV )
+    {
+        double aRadCur = RequireFromString<double>(aCircRad,"Radius i");
+
+        cFastCriterCompute * aCircRI = cFastCriterCompute::Circle(aRadCur);
+        const  std::vector<Pt2di> & aVPt = aCircRI->VPt();
+
+        for ( auto aFlux : aVPt )
+            mListPt2d.push_back(Pt2dr(aFlux.x,aFlux.y));
+        
+    }
     mNbPts = int(mListPt2d.size());
+
+
+
 }
 
 int Appli_ImPts2Dir::DoCalc()
@@ -1364,11 +1388,13 @@ int Appli_ImPts2Dir::DoCalc()
         //optical center 
         CamStenope * aCam = aCG->DownCastCS();
         mMapImDirs[aNameIm]->OC() = aCam->Capteur2RayTer(aCam->PP()); 
+        mMapImDirs[aNameIm]->PP() = aCam->PP(); 
         
-        
+
         for (auto aKP : mListPt2d)
         {
-           ElSeg3D aDir = aCG->Capteur2RayTer(aKP);
+           std::cout << aKP + mMapImDirs[aNameIm]->PP()  << " 0.0 " << "\n"; 
+           ElSeg3D aDir = aCG->Capteur2RayTer(aKP + mMapImDirs[aNameIm]->PP());
        
            mMapImDirs[aNameIm]->mDirs.push_back(aDir);     
         } 
@@ -1402,7 +1428,7 @@ int Appli_ImPts2Dir::Save()
         for (int aP=0; aP<mNbPts; aP++)
         {
             cXml_SingleDir aXmlDir;
-            aXmlDir.PIm() = mListPt2d.at(aP);
+            aXmlDir.PIm() = mListPt2d.at(aP) + mMapImDirs[aNameIm]->PP();
             aXmlDir.P1() = mMapImDirs[aNameIm]->mDirs.at(aP).P0();
             aXmlDir.P2() = mMapImDirs[aNameIm]->mDirs.at(aP).P1();
 

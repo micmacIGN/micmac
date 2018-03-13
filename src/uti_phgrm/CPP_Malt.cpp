@@ -940,7 +940,6 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
          double aPCStd     = 0.0;          
          std::string aMCorPoncCal = "xml";
 
-         // Proposition de reecriture MPD pour limiter duplication de code
          if (EAMIsInit(&a12PixParam))
          {
                //  Je pensei pas de pb  pour admettre de de 0 a 5 arg, puisque  tous ont une val def raisonnable ?
@@ -958,33 +957,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   aMCorPoncCal = a12PixParam[4]; 
          }
 
-/*
-         if (int(a12PixParam.size())==3)
-         {
-               aZoomInitMCPonc = RequireFromString<double>(a12PixParam[0],"One-Two Pixel Matching : ZoomInit");
-               aPdsAttPix = RequireFromString<double>(a12PixParam[1],"One-Two Pixel Matching : PdsAttPix");
-               aPCCroise  = RequireFromString<double>(a12PixParam[2],"One-Two Pixel Matching : aPCCroise");
-
-         }
-         else if (int(a12PixParam.size())==4)
-         {
-               aZoomInitMCPonc = RequireFromString<double>(a12PixParam[0],"One-Two Pixel Matching : ZoomInit");
-               aPdsAttPix = RequireFromString<double>(a12PixParam[1],"One-Two Pixel Matching : PdsAttPix");
-               aPCCroise  = RequireFromString<double>(a12PixParam[2],"One-Two Pixel Matching : PCCroise");
-               aPCStd     = RequireFromString<double>(a12PixParam[3],"One-Two Pixel Matching : PCStd");
                
-         }
-         else if (int(a12PixParam.size())==5)
-         {
-               aZoomInitMCPonc = RequireFromString<double>(a12PixParam[0],"One-Two Pixel Matching : ZoomInit");
-               aPdsAttPix   = RequireFromString<double>(a12PixParam[1],"One-Two Pixel Matching : PdsAttPix");
-               aPCCroise    = RequireFromString<double>(a12PixParam[2],"One-Two Pixel Matching : PCCroise");
-               aPCStd       = RequireFromString<double>(a12PixParam[3],"One-Two Pixel Matching : PCStd");
-               aMCorPoncCal = a12PixParam[4]; 
-         }
-         else
-               ELISE_ASSERT( !((a12PixParam.size()==2) || (a12PixParam.size()>5)) ,"if 12PixP option used must be of size at least three"); 
-*/
  
          if (EAMIsInit(&mDoOrtho) && mDoOrtho)
          {
