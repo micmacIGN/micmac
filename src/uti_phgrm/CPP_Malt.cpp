@@ -138,6 +138,7 @@ class cAppliMalt
           std::string  mMasqImGlob;
           bool        mUseImSec;
           bool        mCorMS;
+          std::vector<std::string> mParamMS;
           bool        mMCorPonc;
           bool        mForDeform;
           bool        mUseGpu;
@@ -324,6 +325,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         LArgMain()  << EAM(mImMaster,"Master",true," Master image must exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM", eSAM_IsExistFileRP)
                     << EAM(mSzW,"SzW",true,"Correlation Window Size (1 means 3x3)")
                     << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, available in image geometry")
+                    << EAM(mParamMS,"ParamMS",true,"Param MS [SzW1,Sig1,Pds1,SzW2...]")
                     << EAM(mMCorPonc,"CorPonc",true,"New One-Two Pixel Matching option, def=false, available in image geometry")
                     << EAM(aParamCensus,"Census",true,"Parameter 4 Census, as for now used as bool", eSAM_NoInit)
                     << EAM(a12PixParam,"12PixMP",true,"One-Two Pixel Matching parameters [ZoomInit,PdsAttPix,PCCroise,?PCStd?,?\"tif\"?], \"tif\" or else \"xml\"; ; Def=[4,1,1,0,xml]", eSAM_NoInit)
@@ -925,13 +927,27 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       if (mForDeform)
           mCom = mCom + std::string(" +ForDeform=true ");
 
-      if (! EAMIsInit(&mCorMS)) 
-          mCorMS = mForDeform;
-      if (mCorMS)
+      if (EAMIsInit(&mParamMS))
       {
+          mCorMS = true;
+          ELISE_ASSERT((mParamMS.size()%3)==0,"Bad size for ParamMS");
+          for (int aKP=0 ; aKP<int(mParamMS.size()) ; aKP+=3)
+          {
+              std::string StrNumP = ToString(1+(aKP/3)) +"=";
+              mCom = mCom +  " +MS_SzW"+StrNumP  + mParamMS[aKP]
+                          +  " +MS_Sig"+StrNumP  + mParamMS[aKP+1]
+                          +  " +MS_Pds"+StrNumP  + mParamMS[aKP+2];
+          }
+          mCom = mCom + " +NbMS=" + ToString(int(mParamMS.size())/3);
+     }
+     if (! EAMIsInit(&mCorMS)) 
+          mCorMS = mForDeform;
+     if (mCorMS)
+     {
           mCom = mCom + std::string(" +CorMS=true");
           if (mType!=eGeomImage) mCom = mCom + std::string(" +MSDense=false");
-      }
+     }
+
       if (mMCorPonc)
       { 
          int aZoomInitMCPonc = 4; 
@@ -1119,6 +1135,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       if (EAMIsInit(&aParamCensus))
       {
+           mCom =     mCom 
+                   +  " +UseCensusCost=true"
+                   ;
       }
 
       if (mGenCubeCorrel)

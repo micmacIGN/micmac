@@ -1568,7 +1568,10 @@ void cAppliMICMAC::AddAnImage(const std::string & aName)
      if ( mNbPDV == 0)
          mPDV1 =  mPrisesDeVue.back();
      if ( mNbPDV== 1)
+     {
+         // std::cout << "PDVVVVVV  22222222222222\n"; getchar();
          mPDV2 =  mPrisesDeVue.back();
+     }
      
      int aDim = mPrisesDeVue.back()->Geom().DimPx();
      if (mNbPDV==0)
