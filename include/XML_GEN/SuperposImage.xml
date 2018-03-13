@@ -1651,6 +1651,7 @@
      <IndCol Nb="1" Type="double"> </IndCol>
      <P1 Nb="1"  Type="Pt3dr"> </P1>
      <P2 Nb="1"   Type="Pt3dr"> </P2>
+     <P3 Nb="*"   Type="Pt3dr"> </P3>
 </Xml_SLSRay>
 
 <Xml_OneLineSLS  Nb="1" Class="true" ToReference="true">
