@@ -40,9 +40,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
-Pt2di cAppli_NewRechPH::SzInvRad()
+Pt2di cAppli_NewRechPH::SzInvRadUse()
 {
-   return Pt2di(mNbSR, mNbTetaInv);
+   return Pt2di(mNbSR2Use, mNbTetaInv);
+}
+
+Pt2di cAppli_NewRechPH::SzInvRadCalc()
+{
+   return Pt2di(mNbSR2Calc, mNbTetaInv);
 }
 
 /*
@@ -169,6 +174,23 @@ class cRadInvStat
         double mS3;
 };
 
+   // return Pt2di(mNbSR2Use, mNbTetaInv);
+void Normalise(tImNRPH aImBuf,tImNRPH aImOut,int aX0In,int aX1In,int aSzXOut)
+{
+    int aSzY = aImBuf.sz().y;
+    double aS0,aS1,aS2;
+    ELISE_COPY
+    (
+         rectangle(Pt2di(aX0In,0),Pt2di(aX1In,aSzY)),
+         Virgule(1,aImBuf.in(),Square(aImBuf.in())),
+         Virgule(sigma(aS0),sigma(aS1),sigma(aS2))
+    );
+    aS1 /= aS0;
+    aS2 /= aS0;
+    aS2 -= ElSquare(aS1);
+    aS2 = sqrt(ElMax(1e-10,aS2));
+    ELISE_COPY(rectangle(Pt2di(aX0In,0),Pt2di(aX0In+aSzXOut,aSzY)),(aImBuf.in()-aS1)/aS2, aImBuf.out());
+}
 
 
 bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
@@ -182,7 +204,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
    }
 
    // Buf[KTeta][KRho]   pour KRho=0, duplication de la valeur centrale
-   tImNRPH aImBuf(SzInvRad().x,SzInvRad().y);
+   tImNRPH aImBuf(SzInvRadCalc().x,SzInvRadCalc().y);
    tTImNRPH aTBuf(aImBuf);
 
    std::vector<cOneScaleImRechPH *>  aVIm;
@@ -194,7 +216,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
 
    int aN0 = aPt.NivScale();
    // aVIm.push_back(mVI1.at(aN0));
-   for (int aKRho=0 ; aKRho <mNbSR ; aKRho++)
+   for (int aKRho=0 ; aKRho <mNbSR2Calc ; aKRho++)
    {
        aVIm.push_back(mVI1.at(aN0 + aKRho * mDeltaSR));
    }
@@ -238,6 +260,36 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       }
    }
 
+   // Normalisation a priori, pour l'instant sans rolling
+   if (mRollNorm)
+   {
+       for (int aX= 0 ; aX<mNbSR2Use ; aX++)
+       {
+            Normalise(aImBuf,aImBuf,aX,aX+mNbSR2Use,1);
+       }
+   }
+   else
+   {
+      Normalise(aImBuf,aImBuf,0,mNbSR2Use,mNbSR2Use);
+   }
+
+/*
+   {
+      double aS0,aS1,aS2;
+      ELISE_COPY
+      (
+         rectangle(Pt2di(0,0),SzInvRadUse()),
+         Virgule(1,aImBuf.in(),Square(aImBuf.in())),
+         Virgule(sigma(aS0),sigma(aS1),sigma(aS2))
+      );
+      aS1 /= aS0;
+      aS2 /= aS0;
+      aS2 -= ElSquare(aS1);
+      aS2 = sqrt(ElMax(1e-10,aS2));
+      ELISE_COPY(aImBuf.all_pts(),(aImBuf.in()-aS1)/aS2, aImBuf.out());
+   }
+*/
+
    if (BUG)
    {
        std::cout << "PTBBUGGGGG 111\n";
@@ -247,7 +299,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
    int aKPS2 = mNbTetaInv /4 ;
    int aKPi  = mNbTetaInv /2 ;
    int aNbGrand = ((int) eTIR_NoLabel) / 3;
-   for (int aKRho=0 ; aKRho<int(aVIm.size()) ; aKRho++)
+   for (int aKRho=0 ; aKRho<mNbSR2Use ; aKRho++)
    {
       double aRealDTeta =  aVDeltaRad[aKRho] / aVDeltaTang[aKRho];
       int aDTeta = round_ni(aRealDTeta); // Delta correspondant a 1 rho
@@ -340,11 +392,11 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
        std::string aName= aDir + "InvRad" + aNamePt +  ".tif";
 
        L_Arg_Opt_Tiff aLarg;
-       aLarg = aLarg + Arg_Tiff(Tiff_Im::AStrip( arrondi_sup(SzInvRad().x,8)));
+       aLarg = aLarg + Arg_Tiff(Tiff_Im::AStrip( arrondi_sup(SzInvRadCalc().x,8)));
        Tiff_Im  aSaveBuf
        (
            aName.c_str(),
-           SzInvRad(),
+           SzInvRadCalc(),
            GenIm::real4,
            Tiff_Im::No_Compr,
            Tiff_Im::BlackIsZero,
@@ -357,10 +409,11 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
 
    // Pour l'export xml
    {
+/*
       double aS0,aS1,aS2;
       ELISE_COPY
       (
-         aImBuf.all_pts(),
+         rectangle(Pt2di(0,0),SzInvRadUse()),
          Virgule(1,aImBuf.in(),Square(aImBuf.in())),
          Virgule(sigma(aS0),sigma(aS1),sigma(aS2))
       );
@@ -369,8 +422,10 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       aS2 -= ElSquare(aS1);
       aS2 = sqrt(ElMax(1e-10,aS2));
       ELISE_COPY(aImBuf.all_pts(),(aImBuf.in()-aS1)/aS2, aImBuf.out());
-      aPt.ImLogPol() =  Im2D_INT1(aImBuf.sz().x,aImBuf.sz().y);
-      ELISE_COPY(aImBuf.all_pts(),Max(-128,Min(127,round_ni(aImBuf.in()*32))),aPt.ImLogPol().out());
+*/
+
+      aPt.ImLogPol() =  Im2D_INT1(SzInvRadUse().x,SzInvRadUse().y);
+      ELISE_COPY(aPt.ImLogPol().all_pts(),Max(-128,Min(127,round_ni(aImBuf.in()*32))),aPt.ImLogPol().out());
       aPt.VectRho() = aVRho;
       
       if (BUG)

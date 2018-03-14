@@ -292,7 +292,7 @@ std::cout << aNameIm1  << " # " << aNameIm2 << "\n";
                               aNbInTer += OkTer;
                           }
 
-                          if (aDistHom >0 )
+                          if (Ok && (aDistHom >0 ))
                           {
                               Pt2dr aRP1 =  aVCam[aKN1]->Ter2Capteur(aPTer);
                               Pt2dr aRP2 =  aVCam[aKN2]->Ter2Capteur(aPTer);
