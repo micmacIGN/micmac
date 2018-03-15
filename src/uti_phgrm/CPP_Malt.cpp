@@ -1018,8 +1018,18 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                           aRatioConv = MMBinFile("mm3d Nikrup") + "\"(/ (+ (=F " 
                                                   + aOrtOutOrg.c_str() + " v0 @F) v1 @F v2 @F) 3)\" " 
                                                   + aRatioImConv.c_str();
-                          aRatioImConvMv = "mv \"" + aRatioImConv + "\" " + "\"" + aOrtOutOrg + "\""; 
-                   
+                          //aRatioImConvMv = "mv \"" + aRatioImConv + "\" " + "\"" + aOrtOutOrg + "\""; 
+
+                          #if ELISE_windows
+                            string src = aRatioImConv;
+                            replace(src.begin(), src.end(), '/', '\\');
+                            string dst = aOrtOutOrg;
+                            replace(dst.begin(), dst.end(), '/', '\\');
+                            aRatioImConvMv = std::string(SYS_MV) + " " + src + " " + dst;
+                          #else
+                            aRatioImConvMv = std::string(SYS_MV) + " " + aRatioImConv + " " + aOrtOutOrg;
+                          #endif
+ 
                    
                       }                  
                    
@@ -1042,9 +1052,15 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                       std::string aRatioStatToXml = MMBinFile("mm3d StatIm") + aOrtOut.c_str() 
                                                     + " [0,0] RatioXmlExport=1 Masq=" + aRatioMasqName.c_str();
                    
-                   
-                      std::string aRatioMasqRm = "rm \"" + aRatioMasqName + "\""; 
-                   
+                  
+                      std::string aRatioMasqRm; 
+                      #if ELISE_windows  
+                      string src = aRatioMasqName;
+                      replace(src.begin(), src.end(), '/', '\\');
+                      aRatioMasqRm = "del " + src;
+                      #else
+                      aRatioMasqRm = std::string(SYS_RM)+ " \"" + aRatioMasqName + "\""; 
+                      #endif
                    
                    
                       mCom12PixMRadCal.push_back(aRatioCur.c_str());
