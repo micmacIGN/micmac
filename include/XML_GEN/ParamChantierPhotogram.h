@@ -420,6 +420,26 @@ void  BinaryUnDumpFromFile(eTypeTapas &,ELISE_fp &);
 
 typedef enum
 {
+  eBBA,
+  eSBBA,
+  eSBBAFus,
+  eUndefVal
+} eTypeOriVid;
+void xml_init(eTypeOriVid & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeOriVid & aVal);
+
+eTypeOriVid  Str2eTypeOriVid(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeOriVid & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeOriVid &);
+
+std::string  Mangling( eTypeOriVid *);
+
+void  BinaryUnDumpFromFile(eTypeOriVid &,ELISE_fp &);
+
+typedef enum
+{
   eGround,
   eStatue,
   eForest,
