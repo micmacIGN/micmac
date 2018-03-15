@@ -124,9 +124,9 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mNbS         (30),
     mISF         (-1,1e10),
     mStepSR      (1.0),
-    mNbSR        (10),
+    mNbSR2Use    (10),
     mDeltaSR     (1),
-    mMaxLevR     (mNbS - (mNbSR-1) * mDeltaSR),
+    mRollNorm    (true),
     mNbTetaIm    (16),
     mMulNbTetaInv (4),
     mNbTetaInv   (mNbTetaIm*mMulNbTetaInv),
@@ -201,6 +201,10 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
                       << EAM(mScaleCorr, "ScCor",true,"Scale by correl")
                       << EAM(mISF, "ISF",true,"Interval scale forced")
    );
+
+    mNbSR2Calc = mRollNorm ?  (mNbSR2Use * 2 - 1) : mNbSR2Use;
+    mMaxLevR     = mNbS - (mNbSR2Calc-1) * mDeltaSR;
+
 
    if (! EAMIsInit(&mExtSave))
    {
