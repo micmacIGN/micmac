@@ -40,7 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "../uti_phgrm/Apero/cCameraRPC.h"
 #include "general/ptxd.h"
-
+#include "../../include/im_tpl/cPtOfCorrel.h"
 
 void CheckBounds(Pt2dr & aPmin, Pt2dr & aPmax, const Pt2dr & aP, bool & IS_INI);
 
@@ -1150,7 +1150,6 @@ int anAppli_PFM2Tiff::DoTif()
 
     ReadPFMHeader(aFO);
     
-    std::cout << "EEEEEEEEEE Sz=" << mSz << "\n";
 
     SkipSpace(aFO);
     
@@ -1188,8 +1187,10 @@ int anAppli_PFM2Tiff::DoTif()
             ELISE_ASSERT(false,"anAppli_PFM2Tiff::DoTif(): File is too short ");
 
         for (int aK1=0; aK1<mSz.x; aK1++)
+        {
+            //std::cout << aLine[aK1] << " " << "\n";
             aRes.SetR(Pt2di(aK1,aK2),aLine[aK1]);
-
+        }
 
         delete[] aLine;
 
@@ -1203,7 +1204,7 @@ int anAppli_PFM2Tiff::DoTif()
         Tiff_Im(
             mOutName.c_str(),
             aRes.sz(),
-            GenIm::u_int1,
+            GenIm::real4,
             Tiff_Im::No_Compr,
             Tiff_Im::BlackIsZero,
             Tiff_Im::Empty_ARG ).out()
@@ -1266,8 +1267,199 @@ int PFM2Tiff_main(int argc,char ** argv)
 
 }
 
+//to do - ajouter la masq?
+
+class cImDir
+{
+    public :
+        cImDir(const std::string &aName);
+
+        ElSeg3D & OC();
+        const ElSeg3D & OC()const;
+
+        Pt2dr & PP();
+        const Pt2dr & PP()const;
+
+        std::vector<ElSeg3D>        mDirs;
+ 
+    private :
+        const std::string           mName;
+        ElSeg3D                     mOC;
+        Pt2dr                       mPP;
+};
+
+cImDir::cImDir(const std::string &aName) :
+     mName(aName)  ,
+     mOC(ElSeg3D(Pt3dr(0,0,0),Pt3dr(0,0,0)))
+{}
+    
+ElSeg3D & cImDir::OC()
+{ return mOC; }
+
+const ElSeg3D & cImDir::OC()const
+{ return mOC; }
+
+Pt2dr & cImDir::PP()
+{ return mPP; }
+
+const Pt2dr & cImDir::PP()const
+{ return mPP; }
+
+class Appli_ImPts2Dir
+{
+    public : 
+        Appli_ImPts2Dir(int argc,char ** argv);
+        
+        int DoCalc();
+
+    private :
+        std::string                                   mDir;
+        std::string                                   mOri;
+        std::string                                   mIms;
+        std::string                                   mOut;
+        cInterfChantierNameManipulateur             * mICNM;
+        const cInterfChantierNameManipulateur::tSet * mSetIm;
+
+        int                                           mNbIm;
+        int                                           mNbPts;
+
+        std::vector<Pt2dr>                            mListPt2d;
+        std::map<std::string,cImDir*>                 mMapImDirs;
+       
+
+        int Save(); 
+};
+
+Appli_ImPts2Dir::Appli_ImPts2Dir(int argc,char ** argv) :
+    mOut        ("DirectionsPerImage.xml"),
+    mICNM       (0),
+    mSetIm      (0)
+{
+    std::string              aPattern;
+    std::vector<std::string> aCircV = {"100","500"};//not implemented for now
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aPattern,"Pattern of images")
+                   << EAMC(mOri,"Orientation directory"),
+        LArgMain() << EAM (aCircV,"Circ",true,"Vector of circle radii, Def=[100,500] px")
+                   << EAM (mOut,"Out",true,"Output file name")
+	);
+
+#if (ELISE_windows)
+      replace( aPattern.begin(), aPattern.end(), '\\', '/' );
+#endif
+    SplitDirAndFile(mDir,mIms,aPattern);
+    StdCorrecNameOrient(mOri,mDir);
+
+    mICNM =  cInterfChantierNameManipulateur::BasicAlloc(mDir);
+    mSetIm = mICNM->Get(mIms);
+    mNbIm = (int)mSetIm->size();
+
+    //circles wrt to "0"
+    for ( auto aCircRad : aCircV )
+    {
+        double aRadCur = RequireFromString<double>(aCircRad,"Radius i");
+
+        cFastCriterCompute * aCircRI = cFastCriterCompute::Circle(aRadCur);
+        const  std::vector<Pt2di> & aVPt = aCircRI->VPt();
+
+        for ( auto aFlux : aVPt )
+            mListPt2d.push_back(Pt2dr(aFlux.x,aFlux.y));
+        
+    }
+    mNbPts = int(mListPt2d.size());
 
 
+
+}
+
+int Appli_ImPts2Dir::DoCalc()
+{
+    for (int aKIm=0; aKIm<mNbIm; aKIm++)
+    {
+        const std::string aNameIm = (*mSetIm)[aKIm];
+        
+        cBasicGeomCap3D * aCG =  mICNM->StdCamGenerikOfNames(mOri,aNameIm);
+        
+        mMapImDirs[aNameIm] = new cImDir(aNameIm);
+      
+        //optical center 
+        CamStenope * aCam = aCG->DownCastCS();
+        mMapImDirs[aNameIm]->OC() = aCam->Capteur2RayTer(aCam->PP()); 
+        mMapImDirs[aNameIm]->PP() = aCam->PP(); 
+        
+
+        for (auto aKP : mListPt2d)
+        {
+    //       std::cout << aKP + mMapImDirs[aNameIm]->PP()  << " 0.0 " << "\n"; 
+           ElSeg3D aDir = aCG->Capteur2RayTer(aKP + mMapImDirs[aNameIm]->PP());
+       
+           mMapImDirs[aNameIm]->mDirs.push_back(aDir);     
+        } 
+        
+
+    }
+
+    Save();
+
+
+
+    return EXIT_SUCCESS;
+}
+
+int Appli_ImPts2Dir::Save()
+{
+
+    cXml_ImSetDir aXmlSet;
+
+    std::list< cXml_ImDir > aXmlDirList;
+    for (int aKIm=0; aKIm<mNbIm; aKIm++)
+    {
+        const std::string aNameIm = (*mSetIm)[aKIm];
+
+        cXml_ImDir aXmlIm;
+        aXmlIm.Name() = aNameIm;
+        aXmlIm.P1OC() = mMapImDirs[aNameIm]->OC().P0();
+        aXmlIm.P2OC() = mMapImDirs[aNameIm]->OC().P1();
+
+        std::list< cXml_SingleDir > aXmlList;
+        for (int aP=0; aP<mNbPts; aP++)
+        {
+            cXml_SingleDir aXmlDir;
+            aXmlDir.PIm() = mListPt2d.at(aP) + mMapImDirs[aNameIm]->PP();
+            aXmlDir.P1() = mMapImDirs[aNameIm]->mDirs.at(aP).P0();
+            aXmlDir.P2() = mMapImDirs[aNameIm]->mDirs.at(aP).P1();
+
+            aXmlList.push_back(aXmlDir);
+        }
+        aXmlIm.ListDir() = aXmlList;
+
+        aXmlDirList.push_back(aXmlIm);
+
+
+    }
+
+    aXmlSet.Ims() = aXmlDirList;
+    MakeFileXML(aXmlSet,mOut);
+
+    return EXIT_SUCCESS;
+}
+
+/* Extraction of direction for Manchun */
+int ImPts2Dir_main(int argc,char ** argv)
+{
+    Appli_ImPts2Dir aAppDir(argc,argv);
+
+
+    if (aAppDir.DoCalc())
+        return EXIT_SUCCESS;
+    else
+        return EXIT_FAILURE;
+
+
+}
  
 /*Footer-MicMac-eLiSe-25/06/2007
 

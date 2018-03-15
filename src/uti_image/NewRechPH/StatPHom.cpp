@@ -179,7 +179,9 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
         if ((!aV1.empty()) && (!aV2.empty()))
         {
             aI2.mVNearest.clear();
-            std::cout << "===========================================================\n";
+            std::cout << "*************===========================================================*************\n";
+            std::cout << "*************===========================================================*************\n";
+            std::cout << "*************===========================================================*************\n";
             std::cout << "For " << eToString(aLab) << " sz=" << aV1.size() << " " << aV2.size() << "\n";
 
             std::vector<double> aVD22;
@@ -190,7 +192,7 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
                  aI2.mVNearest.push_back(aP);
                  aVD22.push_back(aDist);
             }
-            mAppli.ShowStat("Nearest D for ",20,aVD22);
+            mAppli.ShowStat("Distribution du point le plus proche avec meme carac",20,aVD22);
       
  
             std::vector<double> aVD12;
@@ -336,8 +338,9 @@ void cAppliStatPHom::TestHom()
            }
         }
     }
-    ShowStat("ECAR EPIP",20,aVREpi);
-    ShowStat("ECAR COMPL",20,aVRComp);
+    //  La, on test la qualite des references , epipolaire et nuages
+    ShowStat("ECAR EPIP pour les points SIFT",20,aVREpi);
+    ShowStat("ECAR COMPLET pour les points SIFT",20,aVRComp);
 /*
     int aNB= 20;
     std::cout << "========= ECAR EPIP ==========\n";

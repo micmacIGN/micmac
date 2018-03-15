@@ -138,6 +138,7 @@ class cAppliMalt
           std::string  mMasqImGlob;
           bool        mUseImSec;
           bool        mCorMS;
+          std::vector<std::string> mParamMS;
           bool        mMCorPonc;
           bool        mForDeform;
           bool        mUseGpu;
@@ -324,6 +325,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
         LArgMain()  << EAM(mImMaster,"Master",true," Master image must exist iff Mode=GeomImage, AUTO for Using result of AperoChImSecMM", eSAM_IsExistFileRP)
                     << EAM(mSzW,"SzW",true,"Correlation Window Size (1 means 3x3)")
                     << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, available in image geometry")
+                    << EAM(mParamMS,"ParamMS",true,"Param MS [SzW1,Sig1,Pds1,SzW2...]")
                     << EAM(mMCorPonc,"CorPonc",true,"New One-Two Pixel Matching option, def=false, available in image geometry")
                     << EAM(aParamCensus,"Census",true,"Parameter 4 Census, as for now used as bool", eSAM_NoInit)
                     << EAM(a12PixParam,"12PixMP",true,"One-Two Pixel Matching parameters [ZoomInit,PdsAttPix,PCCroise,?PCStd?,?\"tif\"?], \"tif\" or else \"xml\"; ; Def=[4,1,1,0,xml]", eSAM_NoInit)
@@ -925,13 +927,27 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       if (mForDeform)
           mCom = mCom + std::string(" +ForDeform=true ");
 
-      if (! EAMIsInit(&mCorMS)) 
-          mCorMS = mForDeform;
-      if (mCorMS)
+      if (EAMIsInit(&mParamMS))
       {
+          mCorMS = true;
+          ELISE_ASSERT((mParamMS.size()%3)==0,"Bad size for ParamMS");
+          for (int aKP=0 ; aKP<int(mParamMS.size()) ; aKP+=3)
+          {
+              std::string StrNumP = ToString(1+(aKP/3)) +"=";
+              mCom = mCom +  " +MS_SzW"+StrNumP  + mParamMS[aKP]
+                          +  " +MS_Sig"+StrNumP  + mParamMS[aKP+1]
+                          +  " +MS_Pds"+StrNumP  + mParamMS[aKP+2];
+          }
+          mCom = mCom + " +NbMS=" + ToString(int(mParamMS.size())/3);
+     }
+     if (! EAMIsInit(&mCorMS)) 
+          mCorMS = mForDeform;
+     if (mCorMS)
+     {
           mCom = mCom + std::string(" +CorMS=true");
           if (mType!=eGeomImage) mCom = mCom + std::string(" +MSDense=false");
-      }
+     }
+
       if (mMCorPonc)
       { 
          int aZoomInitMCPonc = 4; 
@@ -940,7 +956,6 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
          double aPCStd     = 0.0;          
          std::string aMCorPoncCal = "xml";
 
-         // Proposition de reecriture MPD pour limiter duplication de code
          if (EAMIsInit(&a12PixParam))
          {
                //  Je pensei pas de pb  pour admettre de de 0 a 5 arg, puisque  tous ont une val def raisonnable ?
@@ -958,33 +973,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   aMCorPoncCal = a12PixParam[4]; 
          }
 
-/*
-         if (int(a12PixParam.size())==3)
-         {
-               aZoomInitMCPonc = RequireFromString<double>(a12PixParam[0],"One-Two Pixel Matching : ZoomInit");
-               aPdsAttPix = RequireFromString<double>(a12PixParam[1],"One-Two Pixel Matching : PdsAttPix");
-               aPCCroise  = RequireFromString<double>(a12PixParam[2],"One-Two Pixel Matching : aPCCroise");
-
-         }
-         else if (int(a12PixParam.size())==4)
-         {
-               aZoomInitMCPonc = RequireFromString<double>(a12PixParam[0],"One-Two Pixel Matching : ZoomInit");
-               aPdsAttPix = RequireFromString<double>(a12PixParam[1],"One-Two Pixel Matching : PdsAttPix");
-               aPCCroise  = RequireFromString<double>(a12PixParam[2],"One-Two Pixel Matching : PCCroise");
-               aPCStd     = RequireFromString<double>(a12PixParam[3],"One-Two Pixel Matching : PCStd");
                
-         }
-         else if (int(a12PixParam.size())==5)
-         {
-               aZoomInitMCPonc = RequireFromString<double>(a12PixParam[0],"One-Two Pixel Matching : ZoomInit");
-               aPdsAttPix   = RequireFromString<double>(a12PixParam[1],"One-Two Pixel Matching : PdsAttPix");
-               aPCCroise    = RequireFromString<double>(a12PixParam[2],"One-Two Pixel Matching : PCCroise");
-               aPCStd       = RequireFromString<double>(a12PixParam[3],"One-Two Pixel Matching : PCStd");
-               aMCorPoncCal = a12PixParam[4]; 
-         }
-         else
-               ELISE_ASSERT( !((a12PixParam.size()==2) || (a12PixParam.size()>5)) ,"if 12PixP option used must be of size at least three"); 
-*/
  
          if (EAMIsInit(&mDoOrtho) && mDoOrtho)
          {
@@ -1029,8 +1018,18 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                           aRatioConv = MMBinFile("mm3d Nikrup") + "\"(/ (+ (=F " 
                                                   + aOrtOutOrg.c_str() + " v0 @F) v1 @F v2 @F) 3)\" " 
                                                   + aRatioImConv.c_str();
-                          aRatioImConvMv = "mv \"" + aRatioImConv + "\" " + "\"" + aOrtOutOrg + "\""; 
-                   
+                          //aRatioImConvMv = "mv \"" + aRatioImConv + "\" " + "\"" + aOrtOutOrg + "\""; 
+
+                          #if ELISE_windows
+                            string src = aRatioImConv;
+                            replace(src.begin(), src.end(), '/', '\\');
+                            string dst = aOrtOutOrg;
+                            replace(dst.begin(), dst.end(), '/', '\\');
+                            aRatioImConvMv = std::string(SYS_MV) + " " + src + " " + dst;
+                          #else
+                            aRatioImConvMv = std::string(SYS_MV) + " " + aRatioImConv + " " + aOrtOutOrg;
+                          #endif
+ 
                    
                       }                  
                    
@@ -1053,9 +1052,15 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                       std::string aRatioStatToXml = MMBinFile("mm3d StatIm") + aOrtOut.c_str() 
                                                     + " [0,0] RatioXmlExport=1 Masq=" + aRatioMasqName.c_str();
                    
-                   
-                      std::string aRatioMasqRm = "rm \"" + aRatioMasqName + "\""; 
-                   
+                  
+                      std::string aRatioMasqRm; 
+                      #if ELISE_windows  
+                      string src = aRatioMasqName;
+                      replace(src.begin(), src.end(), '/', '\\');
+                      aRatioMasqRm = "del " + src;
+                      #else
+                      aRatioMasqRm = std::string(SYS_RM)+ " \"" + aRatioMasqName + "\""; 
+                      #endif
                    
                    
                       mCom12PixMRadCal.push_back(aRatioCur.c_str());
@@ -1146,6 +1151,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
       if (EAMIsInit(&aParamCensus))
       {
+           mCom =     mCom 
+                   +  " +UseCensusCost=true"
+                   ;
       }
 
       if (mGenCubeCorrel)

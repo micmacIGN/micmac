@@ -1491,6 +1491,30 @@
        <Triplets  Nb="*" RefType="Xml_OneTriplet"> </Triplets>
 </Xml_TopoTriplet>
 
+
+<!-- Export camera directions -->
+<Xml_SingleDir Nb="1" Class="true" ToReference="true">
+    <PIm Nb="1" Type="Pt2dr"> </PIm>
+    <P1 Nb="1" Type="Pt3dr"> </P1>
+    <P2 Nb="1" Type="Pt3dr"> </P2>
+</Xml_SingleDir>
+
+
+<Xml_ImDir Nb="1" Class="true" ToReference="true">
+    <Name Nb="1" Type="std::string"> </Name>
+    <P1OC Nb="1" Type="Pt3dr"> </P1OC>
+    <P2OC Nb="1" Type="Pt3dr"> </P2OC>
+    <ListDir Nb="*" RefType="Xml_SingleDir"> </ListDir>
+</Xml_ImDir>
+
+
+<Xml_ImSetDir Nb="1" Class="true" ToReference="true">
+    <Ims Nb="*" RefType="Xml_ImDir"> </Ims>
+</Xml_ImSetDir>
+
+
+
+
 <!-- Export RPCs -->
 <SAMP_NUM_COEFF Nb="1" Class="true" ToReference="true">
     <SAMP_NUM_COEFF_1  Nb="1" Type="double"></SAMP_NUM_COEFF_1>
@@ -1627,6 +1651,7 @@
      <IndCol Nb="1" Type="double"> </IndCol>
      <P1 Nb="1"  Type="Pt3dr"> </P1>
      <P2 Nb="1"   Type="Pt3dr"> </P2>
+     <P3 Nb="*"   Type="Pt3dr"> </P3>
 </Xml_SLSRay>
 
 <Xml_OneLineSLS  Nb="1" Class="true" ToReference="true">
