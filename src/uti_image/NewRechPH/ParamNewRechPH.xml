@@ -93,7 +93,7 @@
          <!-- y :  NumVect , x : Rho -->
          <ImProfil Nb="1" Type="Im2D_INT1"> </ImProfil>
          <!-- Code Binaire : devrait etre 1D, mais flemme modifier xml_init et autres ...  -->
-   </OneInvRad>
+   </ProfilRad>
 
 
    <OnePCarac   Nb="1" Class="true" ToReference="true">
@@ -155,6 +155,9 @@
          <CompCBOneBit  Nb="*" RefType="CompCBOneBit" Container="std::vector"> </CompCBOneBit>
    </CompCB>
 
+   <FitsParam Nb="1" Class="true" ToReference="true">
+       <CompCBOneBit  Nb="*" RefType="CompCBOneBit" Container="std::vector"> </CompCBOneBit>
+   </FitsParam>
 
 
 <Verbatim File=".h.cpp">

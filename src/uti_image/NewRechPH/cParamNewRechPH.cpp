@@ -354,6 +354,47 @@ void xml_init(cOneInvRad & anObj,cElXMLTree * aTree)
 std::string  Mangling( cOneInvRad *) {return "36C1A9F58C648BD9FE3F";};
 
 
+Im2D_INT1 & cProfilRad::ImProfil()
+{
+   return mImProfil;
+}
+
+const Im2D_INT1 & cProfilRad::ImProfil()const 
+{
+   return mImProfil;
+}
+
+void  BinaryUnDumpFromFile(cProfilRad & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.ImProfil(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cProfilRad & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.ImProfil());
+}
+
+cElXMLTree * ToXMLTree(const cProfilRad & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ProfilRad",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("ImProfil"),anObj.ImProfil())->ReTagThis("ImProfil"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cProfilRad & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.ImProfil(),aTree->Get("ImProfil",1)); //tototo 
+}
+
+std::string  Mangling( cProfilRad *) {return "5CAC442132843DCCFD3F";};
+
+
 eTypePtRemark & cOnePCarac::Kind()
 {
    return mKind;
@@ -529,6 +570,17 @@ const std::vector<double> & cOnePCarac::VectRho()const
    return mVectRho;
 }
 
+
+cProfilRad & cOnePCarac::ProfR()
+{
+   return mProfR;
+}
+
+const cProfilRad & cOnePCarac::ProfR()const 
+{
+   return mProfR;
+}
+
 void  BinaryUnDumpFromFile(cOnePCarac & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Kind(),aFp);
@@ -547,6 +599,7 @@ void  BinaryUnDumpFromFile(cOnePCarac & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.InvR(),aFp);
     BinaryUnDumpFromFile(anObj.ImLogPol(),aFp);
     BinaryUnDumpFromFile(anObj.VectRho(),aFp);
+    BinaryUnDumpFromFile(anObj.ProfR(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
@@ -567,6 +620,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
     BinaryDumpInFile(aFp,anObj.InvR());
     BinaryDumpInFile(aFp,anObj.ImLogPol());
     BinaryDumpInFile(aFp,anObj.VectRho());
+    BinaryDumpInFile(aFp,anObj.ProfR());
 }
 
 cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
@@ -589,6 +643,7 @@ cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
    aRes->AddFils(ToXMLTree(anObj.InvR())->ReTagThis("InvR"));
    aRes->AddFils(::ToXMLTree(std::string("ImLogPol"),anObj.ImLogPol())->ReTagThis("ImLogPol"));
    aRes->AddFils(::ToXMLTree(std::string("VectRho"),anObj.VectRho())->ReTagThis("VectRho"));
+   aRes->AddFils(ToXMLTree(anObj.ProfR())->ReTagThis("ProfR"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -630,9 +685,11 @@ void xml_init(cOnePCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.ImLogPol(),aTree->Get("ImLogPol",1)); //tototo 
 
    xml_init(anObj.VectRho(),aTree->Get("VectRho",1)); //tototo 
+
+   xml_init(anObj.ProfR(),aTree->Get("ProfR",1)); //tototo 
 }
 
-std::string  Mangling( cOnePCarac *) {return "E0CF3BC532583685FE3F";};
+std::string  Mangling( cOnePCarac *) {return "DE63C1E39D0090DFFE3F";};
 
 
 std::vector< cOnePCarac > & cSetPCarac::OnePCarac()
@@ -691,7 +748,7 @@ void xml_init(cSetPCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.OnePCarac(),aTree->GetAll("OnePCarac",false,1));
 }
 
-std::string  Mangling( cSetPCarac *) {return "55544900B54811F1FE3F";};
+std::string  Mangling( cSetPCarac *) {return "B54D4F78304625B6FD3F";};
 
 
 cOnePCarac & cSRPC_Truth::P1()
@@ -748,7 +805,7 @@ void xml_init(cSRPC_Truth & anObj,cElXMLTree * aTree)
    xml_init(anObj.P2(),aTree->Get("P2",1)); //tototo 
 }
 
-std::string  Mangling( cSRPC_Truth *) {return "605FA27E9728E3ABFBBF";};
+std::string  Mangling( cSRPC_Truth *) {return "805BB25FBE720C93F83F";};
 
 
 std::vector< cSRPC_Truth > & cSetRefPCarac::SRPC_Truth()
@@ -841,7 +898,7 @@ void xml_init(cSetRefPCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.SRPC_Rand(),aTree->GetAll("SRPC_Rand",false,1));
 }
 
-std::string  Mangling( cSetRefPCarac *) {return "D1AF655A5B3CE59CFE3F";};
+std::string  Mangling( cSetRefPCarac *) {return "3135839CC94F1AACFE3F";};
 
 
 std::vector<double> & cCBOneBit::Coeff()

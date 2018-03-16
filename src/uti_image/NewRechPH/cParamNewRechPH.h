@@ -129,6 +129,30 @@ std::string  Mangling( cOneInvRad *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cProfilRad
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cProfilRad & anObj,cElXMLTree * aTree);
+
+
+        Im2D_INT1 & ImProfil();
+        const Im2D_INT1 & ImProfil()const ;
+    private:
+        Im2D_INT1 mImProfil;
+};
+cElXMLTree * ToXMLTree(const cProfilRad &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cProfilRad &);
+
+void  BinaryUnDumpFromFile(cProfilRad &,ELISE_fp &);
+
+std::string  Mangling( cProfilRad *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cOnePCarac
 {
     public:
@@ -184,6 +208,9 @@ class cOnePCarac
 
         std::vector<double> & VectRho();
         const std::vector<double> & VectRho()const ;
+
+        cProfilRad & ProfR();
+        const cProfilRad & ProfR()const ;
     private:
         eTypePtRemark mKind;
         Pt2dr mPt;
@@ -201,6 +228,7 @@ class cOnePCarac
         cOneInvRad mInvR;
         Im2D_INT1 mImLogPol;
         std::vector<double> mVectRho;
+        cProfilRad mProfR;
 };
 cElXMLTree * ToXMLTree(const cOnePCarac &);
 

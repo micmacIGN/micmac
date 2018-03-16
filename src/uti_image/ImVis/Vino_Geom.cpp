@@ -266,33 +266,34 @@ const cOnePCarac * cAppli_Vino::Nearest(const Pt2dr & aPClU,double * aDist,eType
     return nullptr;
 }
 
-void ShowCurve(Im2D_INT1 aIm,int aK,const Pt2di & aP0,const Pt2di & aP1,Video_Win * aW,int aCoul)
+void ShowCurve(Im2D_INT1 aIm,int aY,const Pt2di & aP0,const Pt2di & aP1,Video_Win * aW,int aCoul)
 {
    int aTx = aIm.tx();
-   INT1 * aV = aIm.data()[aK];
+   std::cout << "TXxxx= " << aTx << "\n";
+   INT1 * aV = aIm.data()[aY];
    double aVmax = aV[0];
    double aVmin = aV[0];
-   for (int aK=1 ; aK<aTx ; aK++)
+   for (int anX=1 ; anX<aTx ; anX++)
    {
-      aVmin = ElMin(aVmin,double(aV[aK]));
-      aVmax = ElMax(aVmax,double(aV[aK]));
+      aVmin = ElMin(aVmin,double(aV[anX]));
+      aVmax = ElMax(aVmax,double(aV[anX]));
    }
 
    std::vector<double> aVX;
    std::vector<double> aVY;
-   for (int aK=0 ; aK<aTx ; aK++)
+   for (int anX=0 ; anX<aTx ; anX++)
    {
-        aVX.push_back(aP0.x+ ( aK /double(aTx-1)) * (aP1.x-aP0.x));
-        aVY.push_back(aP0.y+ ((aV[aK]-aVmin) /(aVmax-aVmin) ) * (aP1.y-aP0.y));
+        aVX.push_back(aP0.x+ ( anX /double(aTx-1)) * (aP1.x-aP0.x));
+        aVY.push_back(aP0.y+ ((aV[anX]-aVmin) /(aVmax-aVmin) ) * (aP1.y-aP0.y));
    }
    ELISE_COPY ( rectangle(aP0,aP1), 255, aW->ogray());
    
-   for (int aK=1 ; aK<int(aTx) ; aK++)
+   for (int anX=1 ; anX<int(aTx) ; anX++)
    {
        aW->draw_seg
        (
-           Pt2dr(aVX[aK-1],aVY[aK-1]),
-           Pt2dr(aVX[aK],aVY[aK]),
+           Pt2dr(aVX[anX-1],aVY[anX-1]),
+           Pt2dr(aVX[anX],aVY[anX]),
            aW->pdisc()(aCoul)
        );
    }
@@ -345,21 +346,38 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
           int aSzW    = 45;
           int aPer = 8;
 
-          for (int aK=0 ; aK<eTIR_NoLabel ; aK++)
-          {
-                int aX0 =  aMarge+(aK%aPer) * (aMarge+aSzW);
-                int aX1 =  aX0 + aSzW;
+          bool ShowInvRad = true;
+          bool ShowProfRad = true;
 
-                int aY0 =  aSz.x*aZoom + aMarge+(aK/aPer) * (aMarge+aSzW);
-                int aY1 = aY0 + aSzW;
-                ShowCurve
-                (
-                    aNearest->InvR().ImRad() ,
-                    aK,
-                    Pt2di(aX0,aY0), Pt2di(aX1,aY1),
-                    mW,
-                    1 + (aK%6)
-                );
+          std::vector<Im2D_INT1> aVIm2Show;
+          if (ShowInvRad) 
+             aVIm2Show.push_back(aNearest->InvR().ImRad());
+          if (ShowProfRad) 
+          {
+             aVIm2Show.push_back(aNearest->ProfR().ImProfil());
+          }
+
+          int aCpt = 0;
+          for (int  aKIm =0 ; aKIm<int(aVIm2Show.size()) ; aKIm++)
+          {
+               int aNbY = aVIm2Show[aKIm].sz().y;
+               for (int anY=0 ; anY<aNbY ; anY++)
+               {
+                     int aX0 =  aMarge+(aCpt%aPer) * (aMarge+aSzW);
+                     int aX1 =  aX0 + aSzW;
+
+                     int aY0 =  aSz.x*aZoom + aMarge+(aCpt/aPer) * (aMarge+aSzW);
+                     int aY1 = aY0 + aSzW;
+                     ShowCurve
+                     (
+                         aVIm2Show[aKIm],
+                         anY,
+                         Pt2di(aX0,aY0), Pt2di(aX1,aY1),
+                         mW,
+                         1 + (anY%6)
+                     );
+                     aCpt++;
+               }
           }
        }
 
