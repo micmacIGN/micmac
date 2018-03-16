@@ -175,6 +175,8 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
         for (auto aPtr1 : aV1)
             aVObj1.push_back(*aPtr1);
 
+// std::cout << "GGGGGg " << aV1.size() << " " << aV2.size() << "\n"; getchar();
+
 
         if ((!aV1.empty()) && (!aV2.empty()))
         {
