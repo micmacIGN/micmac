@@ -51,6 +51,17 @@ Header-MicMac-eLiSe-25/06/2007*/
 */
 
 
+/* to do :
+
+fusion
+- faire coherent les sorties de BBA et SBBA pourque ; peut-etre faudrait re-ecrire un peu pour que InOri soit mis plus globalement?
+- 
+
+
+*/
+
+
+
 class cAppliOriVideo
 {
 	public :
@@ -61,10 +72,12 @@ class cAppliOriVideo
 	 
 		int                        mSzW;
 		int				           mNbWinAll;		
-		int				           mNbWinVois;		
+		int				           mWMov;		
+		int				           mBBAPas;		
 		std::list< std::string >   mWName;
 
 		std::string        mInOri;
+		std::string        mInCal;
 		std::string  	   mDir;
 		std::string        mIms;
 		std::string        mSH;
@@ -83,8 +96,10 @@ class cAppliOriVideo
 		void        CalculFen   ();
 
 
-		void DoBBA();
-		void DoSBBA();
+		void DoBBA    ();
+		void DoBBA    (const std::string &,bool Init=false);
+		void DoSBBA   ();
+		void DoSBBA   (const std::string &,bool Init=false);
 		void DoSBBAFus();	
 		 
 		
@@ -101,7 +116,7 @@ void cAppliOriVideo::CalculFen()
 	//calculate the windows
 	std::vector< std::list< std::string >> aWVTmp;
 
-	std::cout << "fenetres sous traitement";
+	std::cout << "fenetres sous traitement: \n";
 	for (int aW=0; aW<mNbWinAll; aW++)
 	{
 		cListOfName              aXml;
@@ -109,13 +124,17 @@ void cAppliOriVideo::CalculFen()
 
 		for (int aIm=0; aIm<mSzW; aIm++)
 		{	
-			int aIGlob = aW*mSzW + aIm;
+			int aIGlob ;   
+			aIGlob = aW * mWMov + aIm;
+
 		
 			if (aIGlob<mNbIm)
 				aImInWL.push_back((*mSetIm)[aIGlob]);
+			
+			std::cout << " Num=" << aIGlob << " " << (*mSetIm)[aIGlob] << " \n" ;
 
 		}
-		std::cout << ".." << aW << "/" << mNbWinAll ;
+		std::cout << ".." << aW+1 << "/" << mNbWinAll << "\n" ;
 		
 		aWVTmp.push_back(aImInWL);
 
@@ -124,7 +143,7 @@ void cAppliOriVideo::CalculFen()
 		mWName.push_back(MakeFenName(aW));
 	}
 
-
+getchar();
 	//add a "tail" to each window    --- move the xml save outside
 	/*if (mNbWinVois)	
 	{
@@ -140,32 +159,128 @@ void cAppliOriVideo::CalculFen()
 	
 }
 
+void cAppliOriVideo::DoBBA(const std::string & aName,bool Init)
+{
+
+
+	std::string aCom = MMBinFile("mm3d Tapas RadialStd ") 
+                       + "NKS-Set-OfFile@" + aName 
+                       + " Out=" + mOut;
+
+	if (EAMIsInit(&mInOri) && Init)	
+		aCom += " InOri=" + mInOri;
+	else if (!Init)
+	{ 
+		mInOri = mOut;
+		aCom += " InOri=" + mInOri;
+
+	}
+
+	if (EAMIsInit(&mInCal))	
+		aCom += " InCal=" + mInCal;
+
+	//io figee
+	aCom += " LibFoc=0 DegRadMax=0 LibPP=0" ;  
+
+	if (EAMIsInit(&mSH))	
+		aCom += " SH=" + mSH;
+
+
+	std::cout << "aCom=" << aCom << "\n";
+
+	TopSystem(aCom.c_str());
+}
 
 void cAppliOriVideo::DoBBA()
 {
+	int i=0;
+
 	for (auto aW : mWName)
 	{
-		std::string aCom = MMBinFile("mm3d Tapas RadialStd ") 
-                           + "NKS-Set-OfFile@" + aW 
-                           + " InOri=" + mInOri + " Out=" + mOut;
-
-		std::cout << "aCom=" << aCom << "\n";
-
-		TopSystem(aCom.c_str());
+		if (i==0)
+			DoBBA(aW,true);
+		else
+			DoBBA(aW);
+		i++;
 	}	
 }
 
+void cAppliOriVideo::DoSBBA(const std::string & aName,bool Init)
+{
+
+	std::string aCom = MMBinFile("mm3d Martini ") 
+                       + "NKS-Set-OfFile@" + aName;
+
+
+    if (EAMIsInit(&mInOri) && Init)
+        aCom += " InOri=" + mInOri;
+    else if (!Init)
+    {
+        mInOri = "Martini" + mInCal;
+        aCom += " InOri=" + mInOri;
+
+    }
+
+
+	if (EAMIsInit(&mInCal))	
+		aCom += " OriCalib=" + mInCal;
+
+	if (EAMIsInit(&mSH))	
+		aCom += " SH=" + mSH;
+
+	std::cout << "aCom=" << aCom << "\n";
+
+	TopSystem(aCom.c_str());
+	
+}
+
 void cAppliOriVideo::DoSBBA()
-{}
+{
+	int i=0;
+
+	for (auto aW : mWName)
+	{
+		if (i==0)
+			DoSBBA(aW,true);
+		else
+			DoSBBA(aW);
+		i++;
+	}	
+}
 
 void cAppliOriVideo::DoSBBAFus()
-{}
+{
+	int i      =0;
+	int aNbBba =0;
+
+	for (auto aW : mWName)
+	{
+
+		if (aNbBba==mBBAPas)
+		{
+			DoBBA(aW);
+			aNbBba=-1;
+		}
+
+		if (i==0)
+			DoSBBA(aW,true);
+		else
+			DoSBBA(aW);
+
+		i++;
+		aNbBba++;
+	}	
+}
 
 
 cAppliOriVideo::cAppliOriVideo(int argc, char** argv) :
 	mSzW(5),
-	mNbWinVois(2),
-	mSH("")
+	mWMov(2),
+	mBBAPas(2),
+	mInOri(""),
+	mInCal(""),
+	mSH(""),
+	mOut("Out")
 {
 	std::string aPattern;
 
@@ -175,9 +290,12 @@ cAppliOriVideo::cAppliOriVideo(int argc, char** argv) :
 		LArgMain() << EAMC(mStrType,"Orientation mode (enum values)")
 		           << EAMC(aPattern,"Pattern of images")
 				   << EAMC(mSzW,"Processing window size"),
-		LArgMain() << EAM (mNbWinVois,"NbW",true,"No of windows estimated at ti; Def=2")  
-				   << EAM (mInOri,"InOri",true,"Input orientation")  
+		LArgMain() << EAM (mWMov,"M",true,"Motion of the processing window in frames; Def=2")  
+				   << EAM (mBBAPas,"BbaPas",true,"BBa step; Def=2 every other processing window")  
+				   << EAM (mInOri,"InOri",true,"Input external orientation")  
+				   << EAM (mInCal,"InCal",true,"Input internal orientation")  
 				   << EAM (mSH,"SH",true,"Homol prefix") 
+				   << EAM (mOut,"Out",true,"Output orientation") 
 	);
 
 	
@@ -190,19 +308,13 @@ cAppliOriVideo::cAppliOriVideo(int argc, char** argv) :
 	ReadType(mStrType);
 
 
-	if (EAMIsInit(&mInOri))
-		mOut = mInOri;
-	else
-		mOut = "DIV";
-
-
 
 	mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
     mSetIm = mICNM->Get(mIms);
     mNbIm = (int)mSetIm->size();
 
 
-	mNbWinAll = std::ceil(double(mNbIm)/mSzW);
+	mNbWinAll = std::floor(double((mNbIm-1) - (mSzW-1))/mWMov) +1;
 
 	CalculFen();
 
