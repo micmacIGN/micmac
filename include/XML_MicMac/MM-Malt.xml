@@ -475,15 +475,6 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                           </CorrelAdHoc>
                        </#WHEN>
                  </#WHEN>
-                 <#WHEN VTEST=${CorMS}>
-                      <#WHEN VTEST=${NotUseGpu}>
-                          <CorrelAdHoc>
-                               <TypeCAH>
-                                    <GPU_Correl> </GPU_Correl>
-                               </TypeCAH>
-                          </CorrelAdHoc>
-                       </#WHEN>
-                 </#WHEN>
 
             
             <#WHEN VTEST=${UseGpu}>

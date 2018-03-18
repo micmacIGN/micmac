@@ -183,9 +183,9 @@ bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> &
 
 bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp)
 {
-     if (mTImMod.inside(aP)) 
+     if (! mTImMod.inside(aP)) 
         return false;
-     if (aI2->mTImMod.inside(aP)) 
+     if (! aI2->mTImMod.inside(aP)) 
         return false;
 
     static Pt2di aP00(0,0);
