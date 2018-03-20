@@ -295,7 +295,10 @@ class cCompileOPC
       cCompileOPC(const cOnePCarac & aOPC) ;
 
       double   ValCB(const cCompCBOneBit & aCCOB) const;
-      int Flag(const cCompCB & aCOB) const;
+      int  ShortFlag(const cCompCB & aCOB) const;
+      int  ShortFlag(const cCompCB & aCOB,int aK0,int aK1) const;
+      tCodBin  LongFlag(const cCompCB & aCOB) const;
+
       void AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const;
 
 

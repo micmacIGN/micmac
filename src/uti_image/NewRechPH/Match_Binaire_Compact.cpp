@@ -127,7 +127,7 @@ class cCalcOB
 class cCombCalcOB
 {
     public :
-       void  Save(const std::string &) const;
+       void  Save(const std::string &,int aBitThreshold) const;
        cCompCB CCOB() const;
        const std::vector<cCalcOB> & VC() const;
        std::vector<cCalcOB> & VC() ;
@@ -188,21 +188,41 @@ double   cCompileOPC::ValCB(const cCompCBOneBit & aCCOB) const
    return aRes;
 }
 
-int cCompileOPC::Flag(const cCompCB & aCOB) const
+int cCompileOPC::ShortFlag(const cCompCB & aCOB,int aK0,int aK1) const
 {
    int aFlag = 0;
-   for (int aK=0 ; aK<int(aCOB.CompCBOneBit().size()) ; aK++)
+   for (int aK=aK0 ; aK<aK1 ; aK++)
    {
       if (ValCB(aCOB.CompCBOneBit()[aK]) > 0)
-         aFlag |= 1<<aK;
+         aFlag |= 1<<(aK-aK0);
    }
 
    return aFlag;
 }
 
+int cCompileOPC::ShortFlag(const cCompCB & aCOB) const
+{
+   return ShortFlag(aCOB,0,aCOB.CompCBOneBit().size());
+}
+
+tCodBin cCompileOPC::LongFlag(const cCompCB & aCOB) const
+{
+   int aSz = aCOB.CompCBOneBit().size();
+   int aNbByte = (aSz+15) /16;
+
+   tCodBin aRes(1,aNbByte);
+   U_INT2 * aData = aRes.data()[0];
+   for (int aByte =0 ; aByte <aNbByte ; aByte++)
+      aData[aByte] = ShortFlag(aCOB,aByte*16,ElMin((aByte+1)*16,aSz));
+   return aRes;
+}
+
+
+
+
 void cCompileOPC::AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const
 {
-   aImH.data()[Flag(aCOB)]++;
+   aImH.data()[ShortFlag(aCOB)]++;
 }
 
 /**************************************************/
@@ -335,15 +355,17 @@ cCompCB cCombCalcOB::CCOB() const
    return aCC;
 }
 
-void  cCombCalcOB::Save(const std::string & aNameSave) const
+void  cCombCalcOB::Save(const std::string & aNameSave,int aBitThreshold) const
 {
 /*
    cCompCB aCC;
    for (const auto & aCOB : mVC)
        aCC.CompCBOneBit().push_back(aCOB.COB());
 */
+   cCompCB aCCOB = CCOB();
+   aCCOB.BitThresh() = aBitThreshold;
 
-   MakeFileXML(CCOB(),aNameSave);
+   MakeFileXML(aCCOB,aNameSave);
 }
 
 cCombCalcOB cCombCalcOB::Modif
@@ -507,8 +529,8 @@ cAppli_NH_ApprentBinaire::cAppli_NH_ApprentBinaire(int argc, char ** argv) :
     mDir        ("./"),
     mDirPC      ("./PC-Ref-NH/"),
     mNbBitsMax  (16),
-    mNbT        (4000),
-    mNbRand     (4000),
+    mNbT        (400000),
+    mNbRand     (400000),
     mPdsWrong   (1.0),
     mBitMax     (1000000),
     mNumStep    (1),
@@ -912,7 +934,7 @@ void cAppli_NH_ApprentBinaire::OptimLocal(const std::string & aIn,const std::str
                      << " InH " << aSMax.mInH  
                      << " NBBB " << mNbBitsMax << "\n";
                 if (mDoSave)
-                   aCMax.Save(aOut);
+                   aCMax.Save(aOut,aSMax.mBit);
              }
         }
 /*
@@ -965,7 +987,7 @@ void cAppli_NH_ApprentBinaire::OptimCombin(const std::string & aNameSave)
                      << " MB " << aScMax.mBit  
                      << " NBBB " << mNbBitsMax << "\n";
            if (mDoSave)
-              aVCur.Save(aNameSave);
+              aVCur.Save(aNameSave,aScMax.mBit);
         }
         aCpt++;
     }

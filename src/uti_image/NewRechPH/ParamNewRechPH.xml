@@ -152,11 +152,27 @@
    </CompCBOneBit>
 
    <CompCB Nb="1" Class="true" ToReference="true">
-         <CompCBOneBit  Nb="*" RefType="CompCBOneBit" Container="std::vector"> </CompCBOneBit>
+       <BitThresh Nb="1" Type="int"> </BitThresh>
+       <CompCBOneBit  Nb="*" RefType="CompCBOneBit" Container="std::vector"> </CompCBOneBit>
    </CompCB>
 
+   
+   <FitsOneBin Nb="1" Class="true" ToReference="true">
+       <PrefName Nb="1" Type="std::string">     </PrefName> 
+       <PostName Nb="?" Type="std::string" Def="_Local.xml">     </PostName> 
+       <CCB Nb="?" RefType="CompCB">            </CCB>
+   </FitsOneBin>
+
+   <FitsOneLabel Nb="1" Class="true" ToReference="true">
+       <BinIndexed Nb="1" RefType="FitsOneBin">  </BinIndexed>  <!-- Quick one, for indexation -->
+       <BinDecision Nb="1" RefType="FitsOneBin"> </BinDecision>  <!-- Longer one making the decision -->
+   </FitsOneLabel>
+   
+   
    <FitsParam Nb="1" Class="true" ToReference="true">
-       <CompCBOneBit  Nb="*" RefType="CompCBOneBit" Container="std::vector"> </CompCBOneBit>
+       <KindOl Nb="1" Type="eTypePtRemark">     </KindOl> 
+       <OverLap  Nb="1" RefType="FitsOneLabel"> </OverLap> <!-- Quick for overlap dec -->
+       <GenLabs  Nb="*" RefType="FitsOneLabel"> </GenLabs>  <!-- 0 ou 1, sera complete autom -->
    </FitsParam>
 
 

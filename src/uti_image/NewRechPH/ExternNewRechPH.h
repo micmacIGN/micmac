@@ -43,6 +43,19 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../../include/StdAfx.h"
 
+typedef Im2D_U_INT2 tCodBin;
+int NbBitOfShortFlag(int aFlag);
+int NbBitOfFlag(tCodBin aFlag);
+typedef Im2D_U_INT2 tCodBin;
+int NbBitDifOfFlag(tCodBin aFlag1,tCodBin aFlag2);
+
+void SetOfFlagInfNbb(std::vector<int> & aRes,int aNbBitTot,int aNbBitAct);
+
+
+
+
+// ===================================================
+
 extern const std::string NH_DirRefNuage;
 extern const std::string NH_DirRef_PC;  // Point caracteristique
 
