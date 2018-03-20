@@ -485,6 +485,203 @@ int ASTERGT2MM_main(int argc, char ** argv)
 	return 0;
 }
 
+
+
+
+
+
+
+
+void ConcatenateASTERImages(string aDir, string aOutDir, vector<int> aVectDistancesBetweenImages3N, vector<int> aVectDistancesBetweenImages3B, list<string> ListScenes)
+{
+	string aStripName = ListScenes.front().substr(0, 22);
+	int nbScenes = (int)ListScenes.size();
+	string aNameFile = ListScenes.front();
+	aNameFile.erase(aNameFile.end() - 26, aNameFile.end());
+
+	//Reading correction tables
+	vector<Pt3dr> Cor_3N = ReadCorTable(aDir + aNameFile + ".VNIR_Band3N.RadiometricCorrTable.txt");
+	vector<Pt3dr> Cor_3B = ReadCorTable(aDir + aNameFile + ".VNIR_Band3B.RadiometricCorrTable.txt");
+	vector<Pt3dr> Cor_1 = ReadCorTable(aDir + aNameFile + ".VNIR_Band1.RadiometricCorrTable.txt");
+	vector<Pt3dr> Cor_2 = ReadCorTable(aDir + aNameFile + ".VNIR_Band2.RadiometricCorrTable.txt");
+
+	//Computing size of output image
+	int aSize_3Ny = 4200 + aVectDistancesBetweenImages3N.back();
+	std::cout << "Size (1/2/3N)_y:" << aSize_3Ny << endl;
+
+	int aSize_3By = 5400 + aVectDistancesBetweenImages3B.back();
+	std::cout << "Size 3B_y:" << aSize_3By << endl;
+
+	Pt2di aSize3N = { 4100,aSize_3Ny };
+	Pt2di aSize3B = { 5000,aSize_3By };
+
+	//creating output files
+	Im2D_U_INT1  aIm_3N(4100, aSize_3Ny);
+	Im2D_U_INT1  aIm_3B(5000, aSize_3By);
+	Im2D_U_INT1  aIm_1(4100, aSize_3Ny);
+	Im2D_U_INT1  aIm_2(4100, aSize_3Ny);
+
+	U_INT1 ** aData_3N = aIm_3N.data();
+	U_INT1 ** aData_3B = aIm_3B.data();
+	U_INT1 ** aData_1 = aIm_1.data();
+	U_INT1 ** aData_2 = aIm_2.data();
+
+	//for each image
+	for (u_int i = 0; i < nbScenes; i++)
+	{
+
+		aNameFile = ListScenes.front();
+		aNameFile.erase(aNameFile.end() - 26, aNameFile.end());
+		ListScenes.pop_front();
+
+		//Reading the image and applying correction tables
+		Tiff_Im aTF_3N = Tiff_Im::StdConvGen(aDir + aNameFile + ".VNIR_Band3N.ImageData.tif", 1, false);
+		Tiff_Im aTF_3B = Tiff_Im::StdConvGen(aDir + aNameFile + ".VNIR_Band3B.ImageData.tif", 1, false);
+		Tiff_Im aTF_1 = Tiff_Im::StdConvGen(aDir + aNameFile + ".VNIR_Band1.ImageData.tif", 1, false);
+		Tiff_Im aTF_2 = Tiff_Im::StdConvGen(aDir + aNameFile + ".VNIR_Band2.ImageData.tif", 1, false);
+
+		Pt2di aSz_3N = aTF_3N.sz();
+		Im2D_U_INT1  aIm_3N_loc(aSz_3N.x, aSz_3N.y);
+		Pt2di aSz_3B = aTF_3B.sz();
+		Im2D_U_INT1  aIm_3B_loc(aSz_3B.x, aSz_3B.y);
+		Pt2di aSz_1 = aTF_1.sz();
+		Im2D_U_INT1  aIm_1_loc(aSz_1.x, aSz_1.y);
+		Pt2di aSz_2 = aTF_2.sz();
+		Im2D_U_INT1  aIm_2_loc(aSz_2.x, aSz_2.y);
+
+		ELISE_COPY
+		(
+			aTF_3N.all_pts(),
+			aTF_3N.in(),
+			aIm_3N_loc.out()
+		);
+
+		U_INT1 ** aData_3N_loc = aIm_3N_loc.data();
+
+		ELISE_COPY
+		(
+			aTF_3B.all_pts(),
+			aTF_3B.in(),
+			aIm_3B_loc.out()
+		);
+
+		U_INT1 ** aData_3B_loc = aIm_3B_loc.data();
+
+		ELISE_COPY
+		(
+			aTF_1.all_pts(),
+			aTF_1.in(),
+			aIm_1_loc.out()
+		);
+
+		U_INT1 ** aData_1_loc = aIm_1_loc.data();
+
+		ELISE_COPY
+		(
+			aTF_2.all_pts(),
+			aTF_2.in(),
+			aIm_2_loc.out()
+		);
+
+		U_INT1 ** aData_2_loc = aIm_2_loc.data();
+
+
+		//Compute image for 3N
+		for (size_t aX = 0; aX < Cor_3N.size(); aX++)
+		{
+			for (int aY = 0; aY < aSz_3N.y; aY++)
+			{
+				if (Cor_1[aX].y*double(aData_1_loc[aY][aX]) / Cor_1[aX].z + Cor_1[aX].x > 255)
+					aData_1[aY+aVectDistancesBetweenImages3N[i]][aX] = 255;
+				else
+					aData_1[aY + aVectDistancesBetweenImages3N[i]][aX] = Cor_1[aX].y*double(aData_1_loc[aY][aX]) / Cor_1[aX].z + Cor_1[aX].x;
+				if (Cor_2[aX].y*double(aData_2_loc[aY][aX]) / Cor_2[aX].z + Cor_2[aX].x > 255)
+					aData_2[aY + aVectDistancesBetweenImages3N[i]][aX] = 255;
+				else
+					aData_2[aY + aVectDistancesBetweenImages3N[i]][aX] = Cor_2[aX].y*double(aData_2_loc[aY][aX]) / Cor_2[aX].z + Cor_2[aX].x;
+				if (Cor_3N[aX].y*double(aData_3N_loc[aY][aX]) / Cor_3N[aX].z + Cor_3N[aX].x > 255)
+					aData_3N[aY + aVectDistancesBetweenImages3N[i]][aX] = 255;
+				else
+					aData_3N[aY + aVectDistancesBetweenImages3N[i]][aX] = Cor_3N[aX].y*double(aData_3N_loc[aY][aX]) / Cor_3N[aX].z + Cor_3N[aX].x;
+			}
+		}
+
+		for (size_t aX = 0; aX < Cor_3B.size(); aX++)
+		{
+			for (int aY = 0; aY < aSz_3B.y; aY++)
+			{
+				if (Cor_3B[aX].y*double(aData_3B_loc[aY][aX]) / Cor_3B[aX].z + Cor_3B[aX].x > 255)
+					aData_3B[aY + aVectDistancesBetweenImages3B[i]][aX] = 255;
+				else
+					aData_3B[aY + aVectDistancesBetweenImages3B[i]][aX] = Cor_3B[aX].y*double(aData_3B_loc[aY][aX]) / Cor_3B[aX].z + Cor_3B[aX].x;
+			}
+		}
+	}
+
+	//Output
+	string aNameOut_3N = aOutDir + aStripName + "_3N.tif";
+
+	Tiff_Im  aTOut_3N
+	(
+		aNameOut_3N.c_str(),
+		aSize3N,
+		GenIm::u_int1,
+		Tiff_Im::No_Compr,
+		Tiff_Im::BlackIsZero
+	);
+
+
+	ELISE_COPY
+	(
+		aTOut_3N.all_pts(),
+		aIm_3N.in(),
+		aTOut_3N.out()
+	);
+
+
+	string aNameOut_3B = aOutDir + aStripName + "_3B.tif";
+	Tiff_Im  aTOut_3B
+	(
+		aNameOut_3B.c_str(),
+		aSize3B,
+		GenIm::u_int1,
+		Tiff_Im::No_Compr,
+		Tiff_Im::BlackIsZero
+	);
+
+
+	ELISE_COPY
+	(
+		aTOut_3B.all_pts(),
+		aIm_3B.in(),
+		aTOut_3B.out()
+	);
+
+	string aNameOut_FC = aOutDir + "FalseColor_" + aStripName + ".tif";
+	Tiff_Im  aTOut_FC
+	(
+		aNameOut_FC.c_str(),
+		aSize3N,
+		GenIm::u_int1,
+		Tiff_Im::No_Compr,
+		Tiff_Im::RGB
+	);
+
+
+	ELISE_COPY
+	(
+		aTOut_FC.all_pts(),
+		Virgule(aIm_3N.in(), aIm_2.in(), aIm_1.in()),
+		aTOut_FC.out()
+	);
+
+}
+
+
+
+
+
+
 int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 {
 	//std::string aNameIm, aNameIm2, aNameParallax, aNameDEM;
@@ -511,8 +708,8 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 	string aStripName = ListScenes.front().substr(0, 22);
 	std::cout << "Strip name: " << aStripName << endl;
 
-	vector<int> aVectDistancesBetweenImages3N;
-	vector<int> aVectDistancesBetweenImages3B;
+	vector<int> aVectDistancesBetweenImages3N = { 0 };
+	vector<int> aVectDistancesBetweenImages3B = { 0 };
 
 
 	string aDate = ListScenes.front().substr(11, 8);
@@ -620,13 +817,9 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 
 
 
-	// Concatenate image
+	// Concatenating image and destripping the images using RadiommetricCorrectionTable (same for all images of a single strip)
 	ListScenes = RegexListFileMatch(aDir, aPatScenes, 1, false);
-	//TODO : make a function that takes (vector<int> aVectDistancesBetweenImages3N, vector<int> aVectDistancesBetweenImages3B, list<string> ListScenes) and creates a concatenated image
-
-	//Destripping the images using RadiommetricCorrectionTable (same for all images of a single strip)
-	//std::string aOutDir = "../";
-	//DestripASTER(aDir, aStripName + ".tif", aOutDir);
+	ConcatenateASTERImages(aDir, aOutDir, aVectDistancesBetweenImages3N, aVectDistancesBetweenImages3B, ListScenes);
 
 
 
