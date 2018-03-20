@@ -1,0 +1,17 @@
+<FitsParam>
+   <!-- Quick for overlap dec -->
+   <KindOl> eTPR_GrayMax    </KindOl>
+   <OverLap> 
+         <BinIndexed>  <!-- Quick one, for indexation -->
+            <PrefName>  Save_CompCB_BM2_NBB16_PdsW3000_   </PrefName>
+         </BinIndexed>  
+         <BinDecision>  <!-- Longer one making the decision -->
+            <PrefName>  Save_CompCB_NBB80_PdsW10000_   </PrefName>
+         </BinDecision>  
+   </OverLap> 
+<!--
+    <Labs> 
+    </Labs>
+-->
+</FitsParam>
+

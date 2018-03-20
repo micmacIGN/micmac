@@ -163,6 +163,7 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
         mVHom.push_back(std::vector<cOnePCarac*>());
         int aDifMax = 3;
         std::vector<int>  aHistoScale(aDifMax+1,0);
+        std::vector<int>  aHistoScaleStab(aDifMax+1,0);
         double aSeuilDist = 2.0;
         double aSeuilProp = 0.02;
         int aNbOk=0;
@@ -212,6 +213,20 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
                     {
                          aNbOk++;
                          aHistoScale.at(ElMin(aDifMax,ElAbs(aV1[aK1]->NivScale() - aP->NivScale())))++;
+
+               
+                         if (0) // Affichage ScaleStab
+                         // Conclusion, on peut sans doute limiter le nombre de point avec ScaleStab
+                         // pour filtrage a priori => genre les 500 les plus stable
+                         {
+                            double aRatioS = aV1[aK1]->ScaleStab() / aP->ScaleStab();
+                            aRatioS = ElAbs(log(aRatioS) / log(2));
+                            double aEchS = ElAbs(log(aP->ScaleStab())) / log(2);
+                            
+                            std::cout << "RRRR " << aRatioS <<  " " << aEchS  <<  "  SN " << aP->NivScale() << "\n";
+                         }
+                         
+                         // aHistoScaleStab.at(ElMin(aDifMax,ElAbs(aV1[aK1]->ScaleStab() - aP->ScaleStab())))++;
                          double aPropInv = 1 - ScoreTestMatchInvRad(aVObj1,aV1[aK1],aP);
                          aScorInvR.push_back(aPropInv);
                          // if (aNbOk%10) std::cout << "aNbOk++aNbOk++ " << aNbOk << "\n";
