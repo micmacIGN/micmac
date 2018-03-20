@@ -1,4 +1,4 @@
-/*Header-MicMac-eLiSe-25/06/2007
+﻿/*Header-MicMac-eLiSe-25/06/2007
 
 MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
 eLiSe  : ELements of an Image Software Environnement
@@ -54,11 +54,22 @@ void ASTERGT2MM_Banniere()
 	std::cout << " *********************************\n\n";
 }
 
+void ASTERGT_Strip_2_MM_Banniere()
+{
+	std::cout << "\n";
+	std::cout << " *********************************\n";
+	std::cout << " *     ASTER - GeoTiff           *\n";
+	std::cout << " *     Strips of scenes          *\n";
+	std::cout << " *     2                         *\n";
+	std::cout << " *     MicMac Xml                *\n";
+	std::cout << " *********************************\n\n";
+}
+
 vector<Pt3dr> ReadCorTable(string nameFile)
 {
 	vector<Pt3dr> aCorTable;
 	std::fstream aFile(nameFile.c_str(), std::ios_base::in);
-	
+
 	// Make sure the file stream is good
 	if (!aFile) {
 		cout << endl << "Failed to open Radiommetric Correction file " << nameFile;
@@ -72,7 +83,7 @@ vector<Pt3dr> ReadCorTable(string nameFile)
 		//cout << aPt << endl;
 		aCorTable.push_back(aPt);
 	}
-	
+
 	cout << "Size for " << nameFile << " : " << aCorTable.size() << endl;
 	return aCorTable;
 }
@@ -80,7 +91,7 @@ vector<Pt3dr> ReadCorTable(string nameFile)
 string ReadDate(string aNameFile)
 {
 	std::fstream aFile(aNameFile.c_str(), std::ios_base::in);
-	string aDate ="0000000";
+	string aDate = "0000000";
 
 	// Make sure the file stream is good
 	if (!aFile) {
@@ -98,21 +109,21 @@ string ReadDate(string aNameFile)
 
 	//January 0st 1958 is Day 0 in ASTER, Jan 1st 1970 is day 0 in C++ (UNIX Time), so -4384 days difference
 	double aTime = a + (b * 100000 + c + d / 1000) / (24 * 3600 * 1000) - 4384;
-	time_t _tm = aTime*86400;
+	time_t _tm = aTime * 86400;
 
 	struct tm * curtime = localtime(&_tm);
 	std::ostringstream oss;
-	
-	#if __cplusplus < 201103L or __GNUC__ < 5
-		char buffer[256];
-		strftime(buffer, 256, "%Y%m%d", curtime);
-		oss << buffer;
-	#else
-		oss << std::put_time(curtime, "%Y%m%d");
-	#endif
-	aDate=oss.str();
 
-return aDate;
+#if __cplusplus < 201103L or __GNUC__ < 5
+	char buffer[256];
+	strftime(buffer, 256, "%Y%m%d", curtime);
+	oss << buffer;
+#else
+	oss << std::put_time(curtime, "%Y%m%d");
+#endif
+	aDate = oss.str();
+
+	return aDate;
 }
 
 void DestripASTER(string aDir, string aNameFile, string aOutDir)
@@ -156,7 +167,7 @@ void DestripASTER(string aDir, string aNameFile, string aOutDir)
 	);
 
 	U_INT1 ** aData_3B = aIm_3B.data();
-	
+
 	ELISE_COPY
 	(
 		aTF_1.all_pts(),
@@ -184,11 +195,11 @@ void DestripASTER(string aDir, string aNameFile, string aOutDir)
 			if (Cor_1[aX].y*double(aData_1[aY][aX]) / Cor_1[aX].z + Cor_1[aX].x > 255)
 				aData_1[aY][aX] = 255;
 			else
-				aData_1[aY][aX]  = Cor_1[aX].y*double(aData_1[aY][aX]) / Cor_1[aX].z + Cor_1[aX].x;
+				aData_1[aY][aX] = Cor_1[aX].y*double(aData_1[aY][aX]) / Cor_1[aX].z + Cor_1[aX].x;
 			if (Cor_2[aX].y*double(aData_2[aY][aX]) / Cor_2[aX].z + Cor_2[aX].x > 255)
 				aData_2[aY][aX] = 255;
 			else
-				aData_2[aY][aX]  = Cor_2[aX].y*double(aData_2[aY][aX]) / Cor_2[aX].z + Cor_2[aX].x;
+				aData_2[aY][aX] = Cor_2[aX].y*double(aData_2[aY][aX]) / Cor_2[aX].z + Cor_2[aX].x;
 			if (Cor_3N[aX].y*double(aData_3N[aY][aX]) / Cor_3N[aX].z + Cor_3N[aX].x > 255)
 				aData_3N[aY][aX] = 255;
 			else
@@ -367,7 +378,7 @@ vector<Pt3dr> ReadLatticeECEF(string aNameLonFile, string aNameLatFile)
 		//cout << aLongitudes[i] << endl;
 		for (u_int j = 0; j < aLatitudes[0].size(); j++)
 		{
-			double aSinLat = sin(aLatitudes[i][j]* M_PI / 180);
+			double aSinLat = sin(aLatitudes[i][j] * M_PI / 180);
 			double aCosLat = cos(aLatitudes[i][j] * M_PI / 180);
 			double aSinLon = sin(aLongitudes[i][j] * M_PI / 180);
 			double aCosLon = cos(aLongitudes[i][j] * M_PI / 180);
@@ -381,7 +392,7 @@ vector<Pt3dr> ReadLatticeECEF(string aNameLonFile, string aNameLatFile)
 		}
 
 	}
-	
+
 	return aLatticeECEF;
 }
 
@@ -396,7 +407,7 @@ void ASTERXMLWrite(string aNameFile, string aDate, vector<Pt2dr> aLatticePointsI
 	fic << "\t<Date>" << aDate << "</Date>" << endl;
 
 	fic << "\t<LatticePoints>" << endl;
-	fic << "\t\t<NbLattice>"<< aLatticePointsIm.size() << "</NbLattice>" << endl;
+	fic << "\t\t<NbLattice>" << aLatticePointsIm.size() << "</NbLattice>" << endl;
 	for (size_t i = 0; i<aLatticePointsIm.size(); i++)
 	{
 		fic << "\t\t<LatticePoint_" << i + 1 << ">" << aLatticePointsIm[i].x << " " << aLatticePointsIm[i].y << "</LatticePoint_" << i + 1 << ">" << endl;
@@ -444,12 +455,12 @@ int ASTERGT2MM_main(int argc, char ** argv)
 
 	//Destripping the images using RadiommetricCorrectionTable
 	DestripASTER(aDir, aNameFile, aOutDir);
-	
+
 	string aDate = ReadDate(aNameFile + ".VNIR_Band3N.ObservationTime.txt");
 
-	vector<Pt2dr> aLatticePointsIm_3N = ReadLatticePointsIm(aNameFile + ".VNIR_Band3N.LatticePoint.txt",false);
+	vector<Pt2dr> aLatticePointsIm_3N = ReadLatticePointsIm(aNameFile + ".VNIR_Band3N.LatticePoint.txt", false);
 	cout << "LatticePointsIm_3N read (" << aLatticePointsIm_3N.size() << " points)" << endl;
-	vector<Pt2dr> aLatticePointsIm_3B = ReadLatticePointsIm(aNameFile + ".VNIR_Band3B.LatticePoint.txt",true);
+	vector<Pt2dr> aLatticePointsIm_3B = ReadLatticePointsIm(aNameFile + ".VNIR_Band3B.LatticePoint.txt", true);
 	cout << "LatticePointsIm_3B read (" << aLatticePointsIm_3B.size() << " points)" << endl;
 
 	vector<Pt3dr> aSatellitePosition_3N = ReadSattelitePos(aNameFile + ".VNIR_Band3N.SatellitePosition.txt");
@@ -473,6 +484,13 @@ int ASTERGT2MM_main(int argc, char ** argv)
 	ASTERGT2MM_Banniere();
 	return 0;
 }
+
+
+
+
+
+
+
 
 void ConcatenateASTERImages(string aDir, string aOutDir, vector<int> aVectDistancesBetweenImages3N, vector<int> aVectDistancesBetweenImages3B, list<string> ListScenes)
 {
@@ -574,7 +592,7 @@ void ConcatenateASTERImages(string aDir, string aOutDir, vector<int> aVectDistan
 			for (int aY = 0; aY < aSz_3N.y; aY++)
 			{
 				if (Cor_1[aX].y*double(aData_1_loc[aY][aX]) / Cor_1[aX].z + Cor_1[aX].x > 255)
-					aData_1[aY+aVectDistancesBetweenImages3N[i]][aX] = 255;
+					aData_1[aY + aVectDistancesBetweenImages3N[i]][aX] = 255;
 				else
 					aData_1[aY + aVectDistancesBetweenImages3N[i]][aX] = Cor_1[aX].y*double(aData_1_loc[aY][aX]) / Cor_1[aX].z + Cor_1[aX].x;
 				if (Cor_2[aX].y*double(aData_2_loc[aY][aX]) / Cor_2[aX].z + Cor_2[aX].x > 255)
@@ -815,7 +833,7 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -831,18 +849,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
->>>>>>> master
