@@ -354,6 +354,47 @@ void xml_init(cOneInvRad & anObj,cElXMLTree * aTree)
 std::string  Mangling( cOneInvRad *) {return "36C1A9F58C648BD9FE3F";};
 
 
+Im2D_INT1 & cProfilRad::ImProfil()
+{
+   return mImProfil;
+}
+
+const Im2D_INT1 & cProfilRad::ImProfil()const 
+{
+   return mImProfil;
+}
+
+void  BinaryUnDumpFromFile(cProfilRad & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.ImProfil(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cProfilRad & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.ImProfil());
+}
+
+cElXMLTree * ToXMLTree(const cProfilRad & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ProfilRad",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("ImProfil"),anObj.ImProfil())->ReTagThis("ImProfil"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cProfilRad & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.ImProfil(),aTree->Get("ImProfil",1)); //tototo 
+}
+
+std::string  Mangling( cProfilRad *) {return "5CAC442132843DCCFD3F";};
+
+
 eTypePtRemark & cOnePCarac::Kind()
 {
    return mKind;
@@ -508,14 +549,14 @@ const cOneInvRad & cOnePCarac::InvR()const
 }
 
 
-Im2D_INT1 & cOnePCarac::ImRad()
+Im2D_INT1 & cOnePCarac::ImLogPol()
 {
-   return mImRad;
+   return mImLogPol;
 }
 
-const Im2D_INT1 & cOnePCarac::ImRad()const 
+const Im2D_INT1 & cOnePCarac::ImLogPol()const 
 {
-   return mImRad;
+   return mImLogPol;
 }
 
 
@@ -527,6 +568,17 @@ std::vector<double> & cOnePCarac::VectRho()
 const std::vector<double> & cOnePCarac::VectRho()const 
 {
    return mVectRho;
+}
+
+
+cProfilRad & cOnePCarac::ProfR()
+{
+   return mProfR;
+}
+
+const cProfilRad & cOnePCarac::ProfR()const 
+{
+   return mProfR;
 }
 
 void  BinaryUnDumpFromFile(cOnePCarac & anObj,ELISE_fp & aFp)
@@ -545,8 +597,9 @@ void  BinaryUnDumpFromFile(cOnePCarac & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.AutoCorrel(),aFp);
     BinaryUnDumpFromFile(anObj.OK(),aFp);
     BinaryUnDumpFromFile(anObj.InvR(),aFp);
-    BinaryUnDumpFromFile(anObj.ImRad(),aFp);
+    BinaryUnDumpFromFile(anObj.ImLogPol(),aFp);
     BinaryUnDumpFromFile(anObj.VectRho(),aFp);
+    BinaryUnDumpFromFile(anObj.ProfR(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
@@ -565,8 +618,9 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
     BinaryDumpInFile(aFp,anObj.AutoCorrel());
     BinaryDumpInFile(aFp,anObj.OK());
     BinaryDumpInFile(aFp,anObj.InvR());
-    BinaryDumpInFile(aFp,anObj.ImRad());
+    BinaryDumpInFile(aFp,anObj.ImLogPol());
     BinaryDumpInFile(aFp,anObj.VectRho());
+    BinaryDumpInFile(aFp,anObj.ProfR());
 }
 
 cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
@@ -587,8 +641,9 @@ cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
    aRes->AddFils(::ToXMLTree(std::string("AutoCorrel"),anObj.AutoCorrel())->ReTagThis("AutoCorrel"));
    aRes->AddFils(::ToXMLTree(std::string("OK"),anObj.OK())->ReTagThis("OK"));
    aRes->AddFils(ToXMLTree(anObj.InvR())->ReTagThis("InvR"));
-   aRes->AddFils(::ToXMLTree(std::string("ImRad"),anObj.ImRad())->ReTagThis("ImRad"));
+   aRes->AddFils(::ToXMLTree(std::string("ImLogPol"),anObj.ImLogPol())->ReTagThis("ImLogPol"));
    aRes->AddFils(::ToXMLTree(std::string("VectRho"),anObj.VectRho())->ReTagThis("VectRho"));
+   aRes->AddFils(ToXMLTree(anObj.ProfR())->ReTagThis("ProfR"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -627,12 +682,14 @@ void xml_init(cOnePCarac & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.InvR(),aTree->Get("InvR",1)); //tototo 
 
-   xml_init(anObj.ImRad(),aTree->Get("ImRad",1)); //tototo 
+   xml_init(anObj.ImLogPol(),aTree->Get("ImLogPol",1)); //tototo 
 
    xml_init(anObj.VectRho(),aTree->Get("VectRho",1)); //tototo 
+
+   xml_init(anObj.ProfR(),aTree->Get("ProfR",1)); //tototo 
 }
 
-std::string  Mangling( cOnePCarac *) {return "A1E622235CA23AC9FD3F";};
+std::string  Mangling( cOnePCarac *) {return "DE63C1E39D0090DFFE3F";};
 
 
 std::vector< cOnePCarac > & cSetPCarac::OnePCarac()
@@ -691,7 +748,7 @@ void xml_init(cSetPCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.OnePCarac(),aTree->GetAll("OnePCarac",false,1));
 }
 
-std::string  Mangling( cSetPCarac *) {return "00FB91C136438280FE3F";};
+std::string  Mangling( cSetPCarac *) {return "B54D4F78304625B6FD3F";};
 
 
 cOnePCarac & cSRPC_Truth::P1()
@@ -748,7 +805,7 @@ void xml_init(cSRPC_Truth & anObj,cElXMLTree * aTree)
    xml_init(anObj.P2(),aTree->Get("P2",1)); //tototo 
 }
 
-std::string  Mangling( cSRPC_Truth *) {return "208C32A1E44ECED3FBBF";};
+std::string  Mangling( cSRPC_Truth *) {return "805BB25FBE720C93F83F";};
 
 
 std::vector< cSRPC_Truth > & cSetRefPCarac::SRPC_Truth()
@@ -841,7 +898,7 @@ void xml_init(cSetRefPCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.SRPC_Rand(),aTree->GetAll("SRPC_Rand",false,1));
 }
 
-std::string  Mangling( cSetRefPCarac *) {return "86C0DAE397FC78B5FD3F";};
+std::string  Mangling( cSetRefPCarac *) {return "3135839CC94F1AACFE3F";};
 
 
 std::vector<double> & cCBOneBit::Coeff()
@@ -1140,6 +1197,17 @@ void xml_init(cCompCBOneBit & anObj,cElXMLTree * aTree)
 std::string  Mangling( cCompCBOneBit *) {return "1A4BB62C212BD492FE3F";};
 
 
+int & cCompCB::BitThresh()
+{
+   return mBitThresh;
+}
+
+const int & cCompCB::BitThresh()const 
+{
+   return mBitThresh;
+}
+
+
 std::vector< cCompCBOneBit > & cCompCB::CompCBOneBit()
 {
    return mCompCBOneBit;
@@ -1152,7 +1220,8 @@ const std::vector< cCompCBOneBit > & cCompCB::CompCBOneBit()const
 
 void  BinaryUnDumpFromFile(cCompCB & anObj,ELISE_fp & aFp)
 {
-   { int aNb;
+     BinaryUnDumpFromFile(anObj.BitThresh(),aFp);
+  { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
         for(  int aK=0 ; aK<aNb ; aK++)
         {
@@ -1165,6 +1234,7 @@ void  BinaryUnDumpFromFile(cCompCB & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cCompCB & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.BitThresh());
     BinaryDumpInFile(aFp,(int)anObj.CompCBOneBit().size());
     for(  std::vector< cCompCBOneBit >::const_iterator iT=anObj.CompCBOneBit().begin();
          iT!=anObj.CompCBOneBit().end();
@@ -1177,6 +1247,7 @@ cElXMLTree * ToXMLTree(const cCompCB & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CompCB",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("BitThresh"),anObj.BitThresh())->ReTagThis("BitThresh"));
   for
   (       std::vector< cCompCBOneBit >::const_iterator it=anObj.CompCBOneBit().begin();
       it !=anObj.CompCBOneBit().end();
@@ -1193,9 +1264,250 @@ void xml_init(cCompCB & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
+   xml_init(anObj.BitThresh(),aTree->Get("BitThresh",1)); //tototo 
+
    xml_init(anObj.CompCBOneBit(),aTree->GetAll("CompCBOneBit",false,1));
 }
 
-std::string  Mangling( cCompCB *) {return "9AD19DE7A43B24FDFE3F";};
+std::string  Mangling( cCompCB *) {return "62F1F7F6FA6155DCFDBF";};
+
+
+std::string & cFitsOneBin::PrefName()
+{
+   return mPrefName;
+}
+
+const std::string & cFitsOneBin::PrefName()const 
+{
+   return mPrefName;
+}
+
+
+cTplValGesInit< std::string > & cFitsOneBin::PostName()
+{
+   return mPostName;
+}
+
+const cTplValGesInit< std::string > & cFitsOneBin::PostName()const 
+{
+   return mPostName;
+}
+
+
+cTplValGesInit< cCompCB > & cFitsOneBin::CCB()
+{
+   return mCCB;
+}
+
+const cTplValGesInit< cCompCB > & cFitsOneBin::CCB()const 
+{
+   return mCCB;
+}
+
+void  BinaryUnDumpFromFile(cFitsOneBin & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.PrefName(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PostName().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PostName().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PostName().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.CCB().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.CCB().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.CCB().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cFitsOneBin & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.PrefName());
+    BinaryDumpInFile(aFp,anObj.PostName().IsInit());
+    if (anObj.PostName().IsInit()) BinaryDumpInFile(aFp,anObj.PostName().Val());
+    BinaryDumpInFile(aFp,anObj.CCB().IsInit());
+    if (anObj.CCB().IsInit()) BinaryDumpInFile(aFp,anObj.CCB().Val());
+}
+
+cElXMLTree * ToXMLTree(const cFitsOneBin & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FitsOneBin",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("PrefName"),anObj.PrefName())->ReTagThis("PrefName"));
+   if (anObj.PostName().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PostName"),anObj.PostName().Val())->ReTagThis("PostName"));
+   if (anObj.CCB().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.CCB().Val())->ReTagThis("CCB"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cFitsOneBin & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.PrefName(),aTree->Get("PrefName",1)); //tototo 
+
+   xml_init(anObj.PostName(),aTree->Get("PostName",1),std::string("_Local.xml")); //tototo 
+
+   xml_init(anObj.CCB(),aTree->Get("CCB",1)); //tototo 
+}
+
+std::string  Mangling( cFitsOneBin *) {return "8682B7876A8885EBFE3F";};
+
+
+cFitsOneBin & cFitsOneLabel::BinIndexed()
+{
+   return mBinIndexed;
+}
+
+const cFitsOneBin & cFitsOneLabel::BinIndexed()const 
+{
+   return mBinIndexed;
+}
+
+
+cFitsOneBin & cFitsOneLabel::BinDecision()
+{
+   return mBinDecision;
+}
+
+const cFitsOneBin & cFitsOneLabel::BinDecision()const 
+{
+   return mBinDecision;
+}
+
+void  BinaryUnDumpFromFile(cFitsOneLabel & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.BinIndexed(),aFp);
+    BinaryUnDumpFromFile(anObj.BinDecision(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cFitsOneLabel & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.BinIndexed());
+    BinaryDumpInFile(aFp,anObj.BinDecision());
+}
+
+cElXMLTree * ToXMLTree(const cFitsOneLabel & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FitsOneLabel",eXMLBranche);
+   aRes->AddFils(ToXMLTree(anObj.BinIndexed())->ReTagThis("BinIndexed"));
+   aRes->AddFils(ToXMLTree(anObj.BinDecision())->ReTagThis("BinDecision"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cFitsOneLabel & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.BinIndexed(),aTree->Get("BinIndexed",1)); //tototo 
+
+   xml_init(anObj.BinDecision(),aTree->Get("BinDecision",1)); //tototo 
+}
+
+std::string  Mangling( cFitsOneLabel *) {return "72C975461D54948CFF3F";};
+
+
+eTypePtRemark & cFitsParam::KindOl()
+{
+   return mKindOl;
+}
+
+const eTypePtRemark & cFitsParam::KindOl()const 
+{
+   return mKindOl;
+}
+
+
+cFitsOneLabel & cFitsParam::OverLap()
+{
+   return mOverLap;
+}
+
+const cFitsOneLabel & cFitsParam::OverLap()const 
+{
+   return mOverLap;
+}
+
+
+std::list< cFitsOneLabel > & cFitsParam::GenLabs()
+{
+   return mGenLabs;
+}
+
+const std::list< cFitsOneLabel > & cFitsParam::GenLabs()const 
+{
+   return mGenLabs;
+}
+
+void  BinaryUnDumpFromFile(cFitsParam & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.KindOl(),aFp);
+    BinaryUnDumpFromFile(anObj.OverLap(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cFitsOneLabel aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.GenLabs().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cFitsParam & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.KindOl());
+    BinaryDumpInFile(aFp,anObj.OverLap());
+    BinaryDumpInFile(aFp,(int)anObj.GenLabs().size());
+    for(  std::list< cFitsOneLabel >::const_iterator iT=anObj.GenLabs().begin();
+         iT!=anObj.GenLabs().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cFitsParam & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"FitsParam",eXMLBranche);
+   aRes->AddFils(ToXMLTree(std::string("KindOl"),anObj.KindOl())->ReTagThis("KindOl"));
+   aRes->AddFils(ToXMLTree(anObj.OverLap())->ReTagThis("OverLap"));
+  for
+  (       std::list< cFitsOneLabel >::const_iterator it=anObj.GenLabs().begin();
+      it !=anObj.GenLabs().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("GenLabs"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cFitsParam & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.KindOl(),aTree->Get("KindOl",1)); //tototo 
+
+   xml_init(anObj.OverLap(),aTree->Get("OverLap",1)); //tototo 
+
+   xml_init(anObj.GenLabs(),aTree->GetAll("GenLabs",false,1));
+}
+
+std::string  Mangling( cFitsParam *) {return "607810E6A4DA6BE0FE3F";};
 
 // };

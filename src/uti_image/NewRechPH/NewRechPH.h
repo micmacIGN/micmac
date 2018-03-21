@@ -162,7 +162,8 @@ class cOneScaleImRechPH
 class cAppli_NewRechPH
 {
     public :
-        Pt2di SzInvRad();
+        Pt2di SzInvRadUse();
+        Pt2di SzInvRadCalc();
 
         cAppli_NewRechPH(int argc,char ** argv,bool ModeTest);
 
@@ -221,7 +222,9 @@ class cAppli_NewRechPH
   Invariant Rotation
 */
         double      mStepSR;  // Pas entre les pixel de reechantillonage pour les desc
-        int         mNbSR;     // Nbre de niveau radial (entre 
+        bool        mRollNorm; // si true , normalisation par fenetre glissante, :
+        int         mNbSR2Use;     // Nbre de niveau pour utilisation
+        int         mNbSR2Calc;     // Nbre de niveau a calculer, different si rolling
         int         mDeltaSR;  // Delta entre deux niveau radiaux, genre 1 ou 2 ?
         int         mMaxLevR;  // Niv max permettant le calcul (calcule a partir des autres)
 
@@ -292,7 +295,10 @@ class cCompileOPC
       cCompileOPC(const cOnePCarac & aOPC) ;
 
       double   ValCB(const cCompCBOneBit & aCCOB) const;
-      int Flag(const cCompCB & aCOB) const;
+      int  ShortFlag(const cCompCB & aCOB) const;
+      int  ShortFlag(const cCompCB & aCOB,int aK0,int aK1) const;
+      tCodBin  LongFlag(const cCompCB & aCOB) const;
+
       void AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const;
 
 

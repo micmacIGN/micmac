@@ -6727,6 +6727,98 @@ std::string  Mangling( cXml_TopoTriplet *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_SingleDir
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_SingleDir & anObj,cElXMLTree * aTree);
+
+
+        Pt2dr & PIm();
+        const Pt2dr & PIm()const ;
+
+        Pt3dr & P1();
+        const Pt3dr & P1()const ;
+
+        Pt3dr & P2();
+        const Pt3dr & P2()const ;
+    private:
+        Pt2dr mPIm;
+        Pt3dr mP1;
+        Pt3dr mP2;
+};
+cElXMLTree * ToXMLTree(const cXml_SingleDir &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_SingleDir &);
+
+void  BinaryUnDumpFromFile(cXml_SingleDir &,ELISE_fp &);
+
+std::string  Mangling( cXml_SingleDir *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_ImDir
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_ImDir & anObj,cElXMLTree * aTree);
+
+
+        std::string & Name();
+        const std::string & Name()const ;
+
+        Pt3dr & P1OC();
+        const Pt3dr & P1OC()const ;
+
+        Pt3dr & P2OC();
+        const Pt3dr & P2OC()const ;
+
+        std::list< cXml_SingleDir > & ListDir();
+        const std::list< cXml_SingleDir > & ListDir()const ;
+    private:
+        std::string mName;
+        Pt3dr mP1OC;
+        Pt3dr mP2OC;
+        std::list< cXml_SingleDir > mListDir;
+};
+cElXMLTree * ToXMLTree(const cXml_ImDir &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_ImDir &);
+
+void  BinaryUnDumpFromFile(cXml_ImDir &,ELISE_fp &);
+
+std::string  Mangling( cXml_ImDir *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_ImSetDir
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_ImSetDir & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXml_ImDir > & Ims();
+        const std::list< cXml_ImDir > & Ims()const ;
+    private:
+        std::list< cXml_ImDir > mIms;
+};
+cElXMLTree * ToXMLTree(const cXml_ImSetDir &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_ImSetDir &);
+
+void  BinaryUnDumpFromFile(cXml_ImSetDir &,ELISE_fp &);
+
+std::string  Mangling( cXml_ImSetDir *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cSAMP_NUM_COEFF
 {
     public:
@@ -7311,10 +7403,14 @@ class cXml_SLSRay
 
         Pt3dr & P2();
         const Pt3dr & P2()const ;
+
+        std::list< Pt3dr > & P3();
+        const std::list< Pt3dr > & P3()const ;
     private:
         double mIndCol;
         Pt3dr mP1;
         Pt3dr mP2;
+        std::list< Pt3dr > mP3;
 };
 cElXMLTree * ToXMLTree(const cXml_SLSRay &);
 

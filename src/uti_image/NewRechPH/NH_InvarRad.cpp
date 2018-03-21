@@ -40,34 +40,15 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
-Pt2di cAppli_NewRechPH::SzInvRad()
+Pt2di cAppli_NewRechPH::SzInvRadUse()
 {
-   return Pt2di(mNbSR, mNbTetaInv);
+   return Pt2di(mNbSR2Use, mNbTetaInv);
 }
 
-/*
-void NormalizeVect(std::vector<double> & aVect)
+Pt2di cAppli_NewRechPH::SzInvRadCalc()
 {
-    double aS0  = 0.0;
-    double aS1  = 0.0;
-    double aS2  = 0.0;
-    for (const auto  & aVal : aVect)
-    {
-         aS0 +=  1.0;
-         aS1 +=  aVal;
-         aS2 += ElSquare(aVal);
-    }
-    aS1 /= aS0;
-    aS2 /= aS0;
-    aS2 -= ElSquare(aS1);
-    double aSig = sqrt(ElMax(1e-10,aS2));
-
-    for (auto  & aVal : aVect)
-    {
-        aVal = (aVal-aS1) / aSig;
-    }
+   return Pt2di(mNbSR2Calc, mNbTetaInv);
 }
-*/
 
 // Pt2dr aPTBUG (2914.32,1398.2);
 Pt2dr aPTBUG (2892.06,891.313);
@@ -83,6 +64,7 @@ void NormaliseSigma(double & aMoySom,double & aVarSig,const double & aPds)
 */
 
 static constexpr float DefInvRad = -1e20;
+static constexpr int DynU1 = 32;
 
 void  NormalizeVect(Im2D_INT1  aIout , Im2D_REAL4 aIin, int aK)
 {
@@ -116,7 +98,7 @@ void  NormalizeVect(Im2D_INT1  aIout , Im2D_REAL4 aIin, int aK)
       if (aDIn[aK] != DefInvRad)
       {
          float aVal =  ((aDIn[aK]-aS1) / aSig) ;
-         aDOut[aK] =  El_CTypeTraits<INT1>::Tronque(round_ni(aVal*32));
+         aDOut[aK] =  El_CTypeTraits<INT1>::Tronque(round_ni(aVal*DynU1));
 
          // aCpt++;
          // if (ElAbs(aVal)>4) aCptOF++;
@@ -133,6 +115,9 @@ void  NormalizeVect(Im2D_INT1  aIout , Im2D_REAL4 aIin, int aK)
 }
 
 
+
+
+
 class cRadInvStat
 {
     public :
@@ -146,6 +131,7 @@ class cRadInvStat
          }
          void Add(double aVal)
          {
+            mLast = aVal;
             mS0++;
             mS1 += aVal;
             mS2 += ElSquare(aVal);
@@ -163,12 +149,61 @@ class cRadInvStat
          }
     // private :
         bool mComp;
+        double mLast;
         double mS0;
         double mS1;
         double mS2;
         double mS3;
 };
 
+class cComputeProfRad
+{
+    public :
+         
+         cComputeProfRad(int aNbProf,int aNbTeta) :
+             mNbProf  (aNbProf),
+             mImProf  (aNbTeta,aNbProf,0.0),
+             mTImProf (mImProf),
+             mImNorm  (aNbTeta,aNbProf)
+         {
+         }
+
+         void Add(int aKPr,int aKTeta,const cRadInvStat & aRIS )
+         {
+             mTImProf.add(Pt2di(aKTeta,aKPr),aRIS.mLast);
+         }
+
+         Im2D_INT1 Normalize()
+         {
+            for (int aKp=0 ; aKp<mNbProf ; aKp++)
+                NormalizeVect(mImNorm,mImProf,aKp);
+            return mImNorm;
+         }
+
+   // void  NormalizeVect(Im2D_INT1  aIout , Im2D_REAL4 aIin, int aK)
+         int        mNbProf;
+         tImNRPH    mImProf;
+         tTImNRPH   mTImProf;
+         Im2D_INT1  mImNorm;
+};
+
+   // return Pt2di(mNbSR2Use, mNbTetaInv);
+void Normalise(tImNRPH aImBuf,tImNRPH aImOut,int aX0In,int aX1In,int aSzXOut)
+{
+    int aSzY = aImBuf.sz().y;
+    double aS0,aS1,aS2;
+    ELISE_COPY
+    (
+         rectangle(Pt2di(aX0In,0),Pt2di(aX1In,aSzY)),
+         Virgule(1,aImBuf.in(),Square(aImBuf.in())),
+         Virgule(sigma(aS0),sigma(aS1),sigma(aS2))
+    );
+    aS1 /= aS0;
+    aS2 /= aS0;
+    aS2 -= ElSquare(aS1);
+    aS2 = sqrt(ElMax(1e-10,aS2));
+    ELISE_COPY(rectangle(Pt2di(aX0In,0),Pt2di(aX0In+aSzXOut,aSzY)),(aImBuf.in()-aS1)/aS2, aImBuf.out());
+}
 
 
 bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
@@ -182,7 +217,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
    }
 
    // Buf[KTeta][KRho]   pour KRho=0, duplication de la valeur centrale
-   tImNRPH aImBuf(SzInvRad().x,SzInvRad().y);
+   tImNRPH aImBuf(SzInvRadCalc().x,SzInvRadCalc().y);
    tTImNRPH aTBuf(aImBuf);
 
    std::vector<cOneScaleImRechPH *>  aVIm;
@@ -194,7 +229,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
 
    int aN0 = aPt.NivScale();
    // aVIm.push_back(mVI1.at(aN0));
-   for (int aKRho=0 ; aKRho <mNbSR ; aKRho++)
+   for (int aKRho=0 ; aKRho <mNbSR2Calc ; aKRho++)
    {
        aVIm.push_back(mVI1.at(aN0 + aKRho * mDeltaSR));
    }
@@ -214,7 +249,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       aLastScale = aCurScale;
    }
 
-   Pt2di aSzIm(int(aVIm.size()),int(eTIR_NoLabel));
+   Pt2di aSzIm(mNbSR2Use,int(eTIR_NoLabel));
    aPt.InvR().ImRad() = Im2D_INT1(aSzIm.x,aSzIm.y,(INT1)0);
    Im2D_REAL4 aBufRad(aSzIm.x,aSzIm.y,DefInvRad);
    REAL4 ** aDataBR = aBufRad.data();
@@ -238,6 +273,39 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       }
    }
 
+   // Normalisation a priori, pour l'instant sans rolling
+   if (mRollNorm)
+   {
+       for (int aX= 0 ; aX<mNbSR2Use ; aX++)
+       {
+            Normalise(aImBuf,aImBuf,aX,aX+mNbSR2Use,1);
+       }
+   }
+   else
+   {
+      Normalise(aImBuf,aImBuf,0,mNbSR2Use,mNbSR2Use);
+   }
+
+/*
+   {
+      double aS0,aS1,aS2;
+      ELISE_COPY
+      (
+         rectangle(Pt2di(0,0),SzInvRadUse()),
+         Virgule(1,aImBuf.in(),Square(aImBuf.in())),
+         Virgule(sigma(aS0),sigma(aS1),sigma(aS2))
+      );
+      aS1 /= aS0;
+      aS2 /= aS0;
+      aS2 -= ElSquare(aS1);
+      aS2 = sqrt(ElMax(1e-10,aS2));
+      ELISE_COPY(aImBuf.all_pts(),(aImBuf.in()-aS1)/aS2, aImBuf.out());
+   }
+*/
+
+
+   cComputeProfRad aProfR(5,mNbTetaInv);
+
    if (BUG)
    {
        std::cout << "PTBBUGGGGG 111\n";
@@ -247,7 +315,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
    int aKPS2 = mNbTetaInv /4 ;
    int aKPi  = mNbTetaInv /2 ;
    int aNbGrand = ((int) eTIR_NoLabel) / 3;
-   for (int aKRho=0 ; aKRho<int(aVIm.size()) ; aKRho++)
+   for (int aKRho=0 ; aKRho<mNbSR2Use ; aKRho++)
    {
       double aRealDTeta =  aVDeltaRad[aKRho] / aVDeltaTang[aKRho];
       int aDTeta = round_ni(aRealDTeta); // Delta correspondant a 1 rho
@@ -282,13 +350,23 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
           double aVal = aTBuf.get(Pt2di(aKRho,aKTeta));
           double aVTp1 = aTBuf.get(Pt2di(aKRho,aKTetaPlus1));
           double aVTm1 = aTBuf.get(Pt2di(aKRho,aKTetaMoins1));
+
           aRadiom.Add(aVal);
+          aProfR.Add(0,aKTeta,aRadiom);
+
           aGradTan.Add(ElAbs(aVal-aVTp1));
+          aProfR.Add(1,aKTeta,aGradTan);
+
           aGradTanPiS2.Add(ElAbs(aVal-aTBuf.get(Pt2di(aKRho,aKTetaPiS2))));
-          aGradTanPi.Add(ElAbs(aVal-aTBuf.get(Pt2di(aKRho,aKTetaPi))));
+          aProfR.Add(2,aKTeta,aGradTanPiS2);
+
+          aGradTanPi.Add(ElAbs(aVal-aTBuf.get(Pt2di(aKRho,aKTetaPi)))); // Pas de profil, ambigu a Pi
           aLaplTan.Add(ElAbs(2*aVal-aVTp1-aVTm1));
-          aDiffOpposePi.Add  (ElAbs(aVal -aTBuf.get(Pt2di(aKROp,aKTetaPi))));
+          aProfR.Add(3,aKTeta,aLaplTan);
+
+          aDiffOpposePi.Add  (ElAbs(aVal -aTBuf.get(Pt2di(aKROp,aKTetaPi)))); // Pas de profil, ambigu
           aDiffOpposePiS2.Add(ElAbs(aVal -aTBuf.get(Pt2di(aKROp,aKTetaPiS2))));
+          aProfR.Add(4,aKTeta,aDiffOpposePiS2);
 
           if (WithRD1)
           {
@@ -340,11 +418,11 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
        std::string aName= aDir + "InvRad" + aNamePt +  ".tif";
 
        L_Arg_Opt_Tiff aLarg;
-       aLarg = aLarg + Arg_Tiff(Tiff_Im::AStrip( arrondi_sup(SzInvRad().x,8)));
+       aLarg = aLarg + Arg_Tiff(Tiff_Im::AStrip( arrondi_sup(SzInvRadCalc().x,8)));
        Tiff_Im  aSaveBuf
        (
            aName.c_str(),
-           SzInvRad(),
+           SzInvRadCalc(),
            GenIm::real4,
            Tiff_Im::No_Compr,
            Tiff_Im::BlackIsZero,
@@ -357,10 +435,11 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
 
    // Pour l'export xml
    {
+/*
       double aS0,aS1,aS2;
       ELISE_COPY
       (
-         aImBuf.all_pts(),
+         rectangle(Pt2di(0,0),SzInvRadUse()),
          Virgule(1,aImBuf.in(),Square(aImBuf.in())),
          Virgule(sigma(aS0),sigma(aS1),sigma(aS2))
       );
@@ -369,10 +448,14 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       aS2 -= ElSquare(aS1);
       aS2 = sqrt(ElMax(1e-10,aS2));
       ELISE_COPY(aImBuf.all_pts(),(aImBuf.in()-aS1)/aS2, aImBuf.out());
-      aPt.ImRad() =  Im2D_INT1(aImBuf.sz().x,aImBuf.sz().y);
-      ELISE_COPY(aImBuf.all_pts(),Max(-128,Min(127,round_ni(aImBuf.in()*32))),aPt.ImRad().out());
+*/
+
+      aPt.ImLogPol() =  Im2D_INT1(SzInvRadUse().x,SzInvRadUse().y);
+      // ELISE_COPY(aPt.ImLogPol().all_pts(),Max(-128,Min(127,round_ni(aImBuf.in()*DynU1))),aPt.ImLogPol().out());
+      ELISE_COPY(aPt.ImLogPol().all_pts(),El_CTypeTraits<INT1>::TronqueF(round_ni(aImBuf.in()*DynU1)),aPt.ImLogPol().out());
       aPt.VectRho() = aVRho;
-      
+      aPt.ProfR().ImProfil() = aProfR.Normalize();
+
       if (BUG)
       {
           std::cout << "PTBBUGGGGG 22\n";

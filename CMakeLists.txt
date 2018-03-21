@@ -610,6 +610,10 @@ ENDIF()
 
 # DEFINITION : des preprocesseurs windows
 IF (MSVC)
+	if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+		set (CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}" CACHE PATH "default install path" FORCE )
+	endif()
+
 	set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE" )
 	# Zm131 -> Erreur de compilation sous windows 7 avec Cuda et Boost
 	if (${CUDA_ENABLED})
