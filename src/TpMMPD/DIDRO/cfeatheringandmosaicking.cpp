@@ -232,12 +232,12 @@ void cFeatheringAndMosaicOrtho::ChamferDist4AllOrt()
         // Q? pourquoi je ne peux pas renseigner juste in() sans avoir une erreur genre  BITMAP :  out of domain while reading (RLE mode)
 
         // somme des distances de chamber dans les enveloppes externes  - pour gérer les cas de blending de 3 images
-        ELISE_COPY(select(mSumDistExt.all_pts(),trans(mChamferDist[i].in_proj(),-tr)<=mDist & trans(mChamferDist[i].in_proj(),-tr)>0),
+        ELISE_COPY(select(mSumDistExt.all_pts(),(trans(mChamferDist[i].in_proj(),-tr)<=mDist ) & ( trans(mChamferDist[i].in_proj(),-tr)>0 ) ),
                    mSumDistExt.in(0)+trans(mChamferDist[i].in(0),-tr),
                    mSumDistExt.out()
                    );
         // somme des distances de chamber dans les enveloppes inter  - également pour gérer les cas de blending de 3 images
-        ELISE_COPY(select(mSumDistInter.all_pts(),trans(mChamferDist[i].in_proj(),-tr)>=-mDist & trans(mChamferDist[i].in_proj(),-tr)<0),
+        ELISE_COPY(select(mSumDistInter.all_pts(),(trans(mChamferDist[i].in_proj(),-tr)>=-mDist) & ( trans(mChamferDist[i].in_proj(),-tr)<0)),
                    mSumDistInter.in(0)+trans(mChamferDist[i].in(0),-tr),
                    mSumDistInter.out()
                    );
@@ -253,7 +253,7 @@ void cFeatheringAndMosaicOrtho::WeightingNbIm1and2()
     //  pondération contribution de l'image à l'intérieur de son enveloppe; je peux effectuer le calcul du facteur de pondération pour toutes les images
     //  partie fixe pondérée seulement par le nombre d'image
 
-    ELISE_COPY(select(PondInterne.all_pts(), NbIm.in()==1 | NbIm.in()==2),
+    ELISE_COPY(select(PondInterne.all_pts(),( NbIm.in()==1) | (NbIm.in()==2)),
                1-(NbIm.in()-1)/NbIm.in(0),
                PondInterne.out()
                );
@@ -496,4 +496,11 @@ template <class T,class TB> void  cFeatheringAndMosaicOrtho::SaveTiff(std::strin
                 Tiff_Im::BlackIsZero
                 );
     ELISE_COPY(aIm->all_pts(),aIm->in(),aTF.out());
+}
+
+
+int main_featheringOrtho(int argc,char ** argv)
+{
+   cFeatheringAndMosaicOrtho(argc,argv);
+   return EXIT_SUCCESS;
 }
