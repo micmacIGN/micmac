@@ -42,7 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "RPC.h"
 
 
-//AST_L1A_00307062000183135_20160705052720_10177.VNIR_Band3N.ImageData
 
 void ASTERGT2MM_Banniere()
 {
@@ -754,7 +753,7 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 		{
 			aLatticePointsIm_3N_loc[j].y = aDistanceBetweenImages + aLatticePointsIm_3N_loc[j].y;
 		}
-		aLatticePointsIm_3N._Pop_back_n(22);
+		aLatticePointsIm_3N.erase(aLatticePointsIm_3N.end() - 22, aLatticePointsIm_3N.end());
 		aLatticePointsIm_3N.insert(aLatticePointsIm_3N.end(), aLatticePointsIm_3N_loc.begin(), aLatticePointsIm_3N_loc.end());
 
 
@@ -768,25 +767,25 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 		{
 			aLatticePointsIm_3B_loc[j].y = aDistanceBetweenImages + aLatticePointsIm_3B_loc[j].y;
 		}
-		aLatticePointsIm_3B._Pop_back_n(66);
+		aLatticePointsIm_3B.erase(aLatticePointsIm_3B.end() - 66, aLatticePointsIm_3B.end());
 		aLatticePointsIm_3B.insert(aLatticePointsIm_3B.end(), aLatticePointsIm_3B_loc.begin(), aLatticePointsIm_3B_loc.end());
 
 
 		// Satellite positions for each lattice lines
 		vector<Pt3dr> aSatellitePosition_3N_loc = ReadSattelitePos(aNameFile + ".VNIR_Band3N.SatellitePosition.txt");
-		aSatellitePosition_3N._Pop_back_n(2);
+		aSatellitePosition_3N.erase(aSatellitePosition_3N.end() - 2, aSatellitePosition_3N.end());
 		aSatellitePosition_3N.insert(aSatellitePosition_3N.end(), aSatellitePosition_3N_loc.begin(), aSatellitePosition_3N_loc.end());
 		vector<Pt3dr> aSatellitePosition_3B_loc = ReadSattelitePos(aNameFile + ".VNIR_Band3B.SatellitePosition.txt");
-		aSatellitePosition_3B._Pop_back_n(6);
+		aSatellitePosition_3B.erase(aSatellitePosition_3B.end() - 6, aSatellitePosition_3B.end());
 		aSatellitePosition_3B.insert(aSatellitePosition_3B.end(), aSatellitePosition_3B_loc.begin(), aSatellitePosition_3B_loc.end());
 
 
 		// Ground position for each lattice point
 		vector<Pt3dr> aLatticeECEF_3N_loc = ReadLatticeECEF(aNameFile + ".VNIR_Band3N.Longitude.txt", aNameFile + ".VNIR_Band3N.Latitude.txt");
-		aLatticeECEF_3N._Pop_back_n(22);
+		aLatticeECEF_3N.erase(aLatticeECEF_3N.end() - 22, aLatticeECEF_3N.end());
 		aLatticeECEF_3N.insert(aLatticeECEF_3N.end(), aLatticeECEF_3N_loc.begin(), aLatticeECEF_3N_loc.end());
 		vector<Pt3dr> aLatticeECEF_3B_loc = ReadLatticeECEF(aNameFile + ".VNIR_Band3B.Longitude.txt", aNameFile + ".VNIR_Band3B.Latitude.txt");
-		aLatticeECEF_3B._Pop_back_n(66);
+		aLatticeECEF_3B.erase(aLatticeECEF_3B.end() - 66, aLatticeECEF_3B.end());
 		aLatticeECEF_3B.insert(aLatticeECEF_3B.end(), aLatticeECEF_3B_loc.begin(), aLatticeECEF_3B_loc.end());
 
 
