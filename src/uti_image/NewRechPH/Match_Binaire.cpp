@@ -101,6 +101,11 @@ int NbBitDifOfFlag(tCodBin aFlag1,tCodBin aFlag2)
     return aRes;
 }
 
+int NbBitDifOfFlag(int aFlag1,int aFlag2)
+{
+   return NbBitOfShortFlag(aFlag1^aFlag2);
+}
+
 
 /*
 

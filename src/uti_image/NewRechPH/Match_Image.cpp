@@ -117,12 +117,21 @@ void InitOneFitsPm(cFitsOneLabel & aFOL,const std::string & aDir,eTypePtRemark a
     InitOneLabelFitsPm(aFOL.BinDecision(),aDir,aLab);
 }
 
+const  std::string TheDirXmlFits=    string("include")    + ELISE_CAR_DIR
+                                      + string("XML_MicMac") + ELISE_CAR_DIR 
+                                      + string("Fits")       + ELISE_CAR_DIR;
+const  std::string DefNameFitParam =  "FitsParam.xml";
+
 void InitFitsPm(cFitsParam & aFP,const std::string & aDir, const std::string & aName)
 {
     aFP = StdGetFromNRPH(aDir+aName,FitsParam);
     InitOneFitsPm(aFP.OverLap(),aDir,aFP.KindOl());
 }
 
+void StdInitFitsPm(cFitsParam & aFP)
+{
+    InitFitsPm(aFP,MMDir() + TheDirXmlFits,DefNameFitParam);
+}
 /*************************************************/
 /*                                               */
 /*           cAFM_Im                             */
@@ -188,15 +197,11 @@ cAFM_Im_Sec::cAFM_Im_Sec(const std::string  & aName,cAppli_FitsMatch1Im & anApli
 /*                                               */
 /*************************************************/
 
-std::string TheDirXmlFits=    string("include")    + ELISE_CAR_DIR
-                            + string("XML_MicMac") + ELISE_CAR_DIR 
-                            + string("Fits")       + ELISE_CAR_DIR;
-
 
 cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
    mImMast      (nullptr),
    mCurImSec    (nullptr),
-   mNameXmlFits ("FitsParam.xml"),
+   mNameXmlFits (DefNameFitParam),
    mExtNewH   ("")
 {
    ElInitArgMain

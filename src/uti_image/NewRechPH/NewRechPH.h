@@ -69,6 +69,10 @@ typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
 typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
 */
 
+constexpr int DynU1 = 32;
+void StdInitFitsPm(cFitsParam & aFP);
+
+
 
 
 
@@ -302,8 +306,31 @@ class cCompileOPC
       void AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const;
 
 
+      double DistIR(const cCompileOPC & aCP) const; // Dist inv to Rad
+ 
+
+      int    ComputeShiftOneC(const cCompileOPC & aCP,int aChanel) const;
+      int    ComputeShiftGlob(const cCompileOPC & aCP,double & anInc) const;
+
+      double DistIm(const cCompileOPC & aCP,int aShiftIm2) const;
+      inline int DifPer(int,int) const;
+      void SetFlag(const cFitsOneLabel & aFOL);
+      int DifShortF(const cCompileOPC &);
+      int DifLongF(const cCompileOPC &);
+
+      // double DistShift(const cCompileOPC & aCP,int aChanel,int aShiftIm2) const;
+
+
       cOnePCarac   mOPC;
       INT1 **      mDR;
+      Pt2di        mSzIR;
+      INT1 **      mIm;
+      Pt2di        mSzIm;
+      INT1 **      mProf;
+      Pt2di        mSzProf;
+      int          mNbTeta;
+      int          mShortFlag;
+      tCodBin      mLongFlag;
 };
 
 

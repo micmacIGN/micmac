@@ -64,7 +64,7 @@ void NormaliseSigma(double & aMoySom,double & aVarSig,const double & aPds)
 */
 
 static constexpr float DefInvRad = -1e20;
-static constexpr int DynU1 = 32;
+// constexpr int DynU1 = 32;
 
 void  NormalizeVect(Im2D_INT1  aIout , Im2D_REAL4 aIin, int aK)
 {
@@ -435,20 +435,22 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
 
    // Pour l'export xml
    {
-/*
-      double aS0,aS1,aS2;
-      ELISE_COPY
-      (
-         rectangle(Pt2di(0,0),SzInvRadUse()),
-         Virgule(1,aImBuf.in(),Square(aImBuf.in())),
-         Virgule(sigma(aS0),sigma(aS1),sigma(aS2))
-      );
-      aS1 /= aS0;
-      aS2 /= aS0;
-      aS2 -= ElSquare(aS1);
-      aS2 = sqrt(ElMax(1e-10,aS2));
-      ELISE_COPY(aImBuf.all_pts(),(aImBuf.in()-aS1)/aS2, aImBuf.out());
-*/
+      if (0)
+      {
+          double aS0,aS1,aS2;
+          ELISE_COPY
+          (
+             rectangle(Pt2di(0,0),SzInvRadUse()),
+             Virgule(1,aImBuf.in(),Square(aImBuf.in())),
+             Virgule(sigma(aS0),sigma(aS1),sigma(aS2))
+          );
+          aS1 /= aS0;
+          aS2 /= aS0;
+          aS2 -= ElSquare(aS1);
+          aS2 = sqrt(ElMax(1e-10,aS2));
+          std::cout << "Ssssssss  " << aS1 << " " << aS2 << "\n";
+        //   ELISE_COPY(aImBuf.all_pts(),(aImBuf.in()-aS1)/aS2, aImBuf.out());
+      }
 
       aPt.ImLogPol() =  Im2D_INT1(SzInvRadUse().x,SzInvRadUse().y);
       // ELISE_COPY(aPt.ImLogPol().all_pts(),Max(-128,Min(127,round_ni(aImBuf.in()*DynU1))),aPt.ImLogPol().out());
