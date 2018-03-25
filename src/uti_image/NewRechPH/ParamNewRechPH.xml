@@ -173,6 +173,9 @@
        <KindOl Nb="1" Type="eTypePtRemark">     </KindOl> 
        <OverLap  Nb="1" RefType="FitsOneLabel"> </OverLap> <!-- Quick for overlap dec -->
        <GenLabs  Nb="*" RefType="FitsOneLabel"> </GenLabs>  <!-- 0 ou 1, sera complete autom -->
+       <SeuilCorrDR Nb="?" Type="double" Def="0.7"> </SeuilCorrDR>  <!--  Seuil corr sur inv rad -->
+       <SeuilInc    Nb="?" Type="double" Def="0.01"> </SeuilInc>    <!-- Seuil Inco entre les div estim de shift -->
+       <SeuilCorrLP Nb="?" Type="double" Def="0.93"> </SeuilCorrLP> <!-- Seuil correl Log Polar-->
    </FitsParam>
 
 

@@ -296,6 +296,11 @@ class cAppli_NewRechPH
 class cCompileOPC
 {
     public :
+
+      // Return -1 si arret avant correl
+      double  Match(cCompileOPC & aCP2,const cFitsParam & aFP,int & aShiftOr);
+
+
       cCompileOPC(const cOnePCarac & aOPC) ;
 
       double   ValCB(const cCompCBOneBit & aCCOB) const;
@@ -331,6 +336,8 @@ class cCompileOPC
       int          mNbTeta;
       int          mShortFlag;
       tCodBin      mLongFlag;
+      bool         mFlagIsComp;
+      int          mTmpNbHom;
 };
 
 

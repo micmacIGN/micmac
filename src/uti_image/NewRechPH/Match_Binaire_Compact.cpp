@@ -306,22 +306,56 @@ int    cCompileOPC::ComputeShiftOneC(const cCompileOPC & aCP,int aChanel) const
 
 
 cCompileOPC::cCompileOPC(const cOnePCarac & aOPC) :
-   mOPC      (aOPC),
-   mDR       (mOPC.InvR().ImRad().data()),
-   mSzIR     (mOPC.InvR().ImRad().sz()),
-   mIm       (mOPC.ImLogPol().data()),
-   mSzIm     (mOPC.ImLogPol().sz()),
-   mProf     (mOPC.ProfR().ImProfil().data()),
-   mSzProf   (mOPC.ProfR().ImProfil().sz()),
-   mNbTeta   (mSzProf.x)
+   mOPC        (aOPC),
+   mDR         (mOPC.InvR().ImRad().data()),
+   mSzIR       (mOPC.InvR().ImRad().sz()),
+   mIm         (mOPC.ImLogPol().data()),
+   mSzIm       (mOPC.ImLogPol().sz()),
+   mProf       (mOPC.ProfR().ImProfil().data()),
+   mSzProf     (mOPC.ProfR().ImProfil().sz()),
+   mNbTeta     (mSzProf.x),
+   mFlagIsComp (false),
+   mTmpNbHom   (0)
 {
 }
 
 void cCompileOPC::SetFlag(const cFitsOneLabel & aFOL)
 {
+   if (mFlagIsComp) return;
    mShortFlag = ShortFlag(aFOL.BinIndexed().CCB().Val());
    mLongFlag  = LongFlag(aFOL.BinDecision().CCB().Val());
+   mFlagIsComp = true;
 }
+
+double  cCompileOPC::Match(cCompileOPC & aCP2,const cFitsParam & aFP,int & aShift)
+{
+   cCompileOPC & aCP1 = *this;
+
+   aCP1.SetFlag(aFP.OverLap());
+   aCP2.SetFlag(aFP.OverLap());
+
+   if (aCP1.DifShortF(aCP2) >  aFP.OverLap().BinIndexed().CCB().Val().BitThresh())
+      return -1;
+
+   if (aCP1.DifLongF(aCP2) >  aFP.OverLap().BinDecision().CCB().Val().BitThresh())
+      return -1;
+
+   if (aCP1.DistIR(aCP2)< aFP.SeuilCorrDR().Val())
+      return -1;
+
+   double IncoH;
+   aShift = aCP1.ComputeShiftGlob(aCP2,IncoH);
+   if (IncoH> aFP.SeuilInc().Val())
+      return -1;
+
+   double aCorrelIm  = aCP1.DistIm(aCP2,aShift);
+
+   if (aCorrelIm< aFP.SeuilCorrLP().Val())
+      return -1;
+   
+   return aCorrelIm;
+}
+
 
 int cCompileOPC::DifShortF(const cCompileOPC & aCP)
 {
