@@ -606,11 +606,6 @@ Fonc_Num  StdFoncChScale_Bilin(Fonc_Num aFonc,Pt2dr aTr,Pt2dr aSc,Pt2dr aDilate)
            );
 }
 
-
-
-
-
-
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en
