@@ -55,6 +55,8 @@ class cPairOPC
           int         mNbNonEq;
           const cCompileOPC & P1() const;
           const cCompileOPC & P2() const;
+          cCompileOPC & P1() ;
+          cCompileOPC & P2() ;
           const double & V1() const;
           const double & V2() const;
           void AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const;
@@ -93,6 +95,7 @@ class cSetPairOPC
          
           std::vector<cPairOPC>  mVP; 
           void AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const;
+          double StatDR(std::vector<double> &,std::vector<double> &,std::vector<double> &,const cFitsParam &);
       private :
           int                  mPairNbBitsMax;
           int                  mNbPair;
@@ -168,12 +171,205 @@ void MakeSetRefPCarac(cSetRefPCarac &aRes,const std::vector<std::string> & aVNam
 /*                                                */
 /**************************************************/
 
+double DistINT1(INT1 ** aD1,INT1 ** aD2,Pt2di aSz)
+{
+   int aSI= 0 ;
+   for (int aY=0 ; aY<aSz.y ; aY++)
+   {
+       INT1 * aL1 = aD1[aY];
+       INT1 * aL2 = aD2[aY];
+       for (int aX=0 ; aX<aSz.x ; aX++)
+          aSI += aL1[aX] * aL2[aX];
+   }
+   double aMoy = aSI / double(aSz.x*aSz.y);
+
+   aMoy  = aMoy / (DynU1*DynU1);
+   return aMoy;
+}
+
+double cCompileOPC::DistIR(const cCompileOPC & aCP2) const
+{
+   return DistINT1(mDR,aCP2.mDR,mSzIR);
+}
+
+int cCompileOPC::DifPer(int aK1,int aK2) const
+{
+    int aDif = ElAbs(aK1-aK2);
+    return ElMin(aDif,mNbTeta-aDif);
+}
+
+
+int    cCompileOPC::ComputeShiftGlob(const cCompileOPC & aCP,double & Incoh) const
+{
+    std::vector<int> aVS;
+    for (int aKC=0 ; aKC< mSzProf.y ; aKC++)
+        aVS.push_back(ComputeShiftOneC(aCP,aKC));
+
+    int aNbX = mSzProf.x;
+    Incoh = 1e10;
+    int aShift = 0;
+    for (int aKS1=0 ; aKS1<int(aVS.size()) ; aKS1++)
+    {
+         double aILoc = 0;
+         int aShift1 = aVS[aKS1];
+         for (int aKS2=0 ; aKS2<int(aVS.size()) ; aKS2++)
+         {
+              // int aDif = ElAbs(aShift1-aVS[aKS2]);
+              // aDif = ElMin(aDif,aNbX-aDif);
+              aILoc += DifPer(aShift1,aVS[aKS2]);
+         }
+         if (aILoc<Incoh)
+         {
+             Incoh = aILoc;
+             aShift = aShift1;
+         }
+    }
+
+    std::vector<double> aVD;
+    for (int aKS=0 ; aKS<int(aVS.size()) ; aKS++)
+        aVD.push_back(DifPer(aShift,aVS[aKS]));
+
+    Incoh = MedianeSup(aVD) / aNbX ;
+
+ 
+    return aShift;
+}
+
+double  cCompileOPC::DistIm(const cCompileOPC & aCP,int aShiftIm2) const
+{
+    int aScal = 0;
+    // int aSomI1 = 0;
+    // int aSom1 = 0;
+    int aNbX = mSzIm.x;
+    for (int anY1 =0 ; anY1<mSzIm.y ; anY1++)
+    {
+        INT1 * aL1 = mIm[anY1];
+        int anY2 = (anY1+aShiftIm2) % mSzIm.y;
+        INT1 * aL2 = aCP.mIm[anY2];
+
+        for (int aKx=0 ; aKx<aNbX ; aKx++)
+        {
+            aScal += aL1[aKx] * aL2[aKx];
+// aSomI1 += aL1[aKx];
+// aSom1++;
+        }
+
+    }
+    double aMoy = aScal / double(mSzIm.x*mSzIm.y);
+
+    aMoy  = aMoy / (DynU1*DynU1);
+
+
+/*
+std::cout   << "NB " << aSom1 / double(mSzIm.x*mSzIm.y)
+            << " MOY " << aSomI1 / double(mSzIm.x*mSzIm.y * DynU1*DynU1)   
+            << " SCAL " << aMoy  <<  " SzIm " << mSzIm << "\n"; getchar();
+*/
+    return aMoy;
+}
+
+
+int    cCompileOPC::ComputeShiftOneC(const cCompileOPC & aCP,int aChanel) const
+{
+    INT1 * aL1 = mProf[aChanel];
+    INT1 * aL2 = aCP.mProf[aChanel];
+    int aNbX = mSzProf.x;
+    int aBestC = -1e9;
+    int aRes = aNbX/2;
+
+    for (int aShift = 0 ; aShift <aNbX ; aShift++)
+    {
+        int aC = 0;
+        INT1 * aL2Dec = aL2+aShift;
+        int aNbDec = aNbX-aShift;
+
+        for (int aKx=0 ; aKx<aNbDec ; aKx++)
+        {
+            aC += aL1[aKx] * aL2Dec[aKx];
+        }
+
+        INT1 * aL1Dec = aL1 +aNbDec;
+        aNbDec  = aShift;
+        for (int aKx=0 ; aKx<aNbDec ; aKx++)
+            aC += aL1Dec[aKx] * aL2[aKx];
+
+        if (aC>aBestC)
+        {
+            aBestC= aC;
+            aRes = aShift;
+        }
+    
+    }
+    return aRes;
+}
+
+
 
 cCompileOPC::cCompileOPC(const cOnePCarac & aOPC) :
-   mOPC   (aOPC),
-   mDR    (mOPC.InvR().ImRad().data())
+   mOPC        (aOPC),
+   mDR         (mOPC.InvR().ImRad().data()),
+   mSzIR       (mOPC.InvR().ImRad().sz()),
+   mIm         (mOPC.ImLogPol().data()),
+   mSzIm       (mOPC.ImLogPol().sz()),
+   mProf       (mOPC.ProfR().ImProfil().data()),
+   mSzProf     (mOPC.ProfR().ImProfil().sz()),
+   mNbTeta     (mSzProf.x),
+   mFlagIsComp (false),
+   mTmpNbHom   (0)
 {
 }
+
+void cCompileOPC::SetFlag(const cFitsOneLabel & aFOL)
+{
+   if (mFlagIsComp) return;
+   mShortFlag = ShortFlag(aFOL.BinIndexed().CCB().Val());
+   mLongFlag  = LongFlag(aFOL.BinDecision().CCB().Val());
+   mFlagIsComp = true;
+}
+
+double  cCompileOPC::Match(cCompileOPC & aCP2,const cFitsParam & aFP,int & aShift)
+{
+   cCompileOPC & aCP1 = *this;
+
+   aCP1.SetFlag(aFP.OverLap());
+   aCP2.SetFlag(aFP.OverLap());
+
+   if (aCP1.DifShortF(aCP2) >  aFP.OverLap().BinIndexed().CCB().Val().BitThresh())
+      return -1;
+
+   if (aCP1.DifLongF(aCP2) >  aFP.OverLap().BinDecision().CCB().Val().BitThresh())
+      return -1;
+
+   if (aCP1.DistIR(aCP2)< aFP.SeuilCorrDR().Val())
+      return -1;
+
+   double IncoH;
+   aShift = aCP1.ComputeShiftGlob(aCP2,IncoH);
+   if (IncoH> aFP.SeuilInc().Val())
+      return -1;
+
+   double aCorrelIm  = aCP1.DistIm(aCP2,aShift);
+
+   if (aCorrelIm< aFP.SeuilCorrLP().Val())
+      return -1;
+   
+   return aCorrelIm;
+}
+
+
+int cCompileOPC::DifShortF(const cCompileOPC & aCP)
+{
+  return NbBitDifOfFlag(mShortFlag,aCP.mShortFlag);
+}
+
+int cCompileOPC::DifLongF(const cCompileOPC & aCP)
+{
+  return NbBitDifOfFlag(mLongFlag,aCP.mLongFlag);
+}
+
+
+
+
 
 double   cCompileOPC::ValCB(const cCompCBOneBit & aCCOB) const
 {
@@ -210,7 +406,7 @@ tCodBin cCompileOPC::LongFlag(const cCompCB & aCOB) const
    int aSz = aCOB.CompCBOneBit().size();
    int aNbByte = (aSz+15) /16;
 
-   tCodBin aRes(1,aNbByte);
+   tCodBin aRes(aNbByte,1);
    U_INT2 * aData = aRes.data()[0];
    for (int aByte =0 ; aByte <aNbByte ; aByte++)
       aData[aByte] = ShortFlag(aCOB,aByte*16,ElMin((aByte+1)*16,aSz));
@@ -262,6 +458,8 @@ bool cPairOPC::CompAndIsEq(const cCompCBOneBit & aCCOB) const
 
 const cCompileOPC & cPairOPC::P1() const { return mP1; }
 const cCompileOPC & cPairOPC::P2() const { return mP2; }
+cCompileOPC & cPairOPC::P1() { return mP1; }
+cCompileOPC & cPairOPC::P2() { return mP2; }
 const double & cPairOPC::V1() const { return mV1; }
 const double & cPairOPC::V2() const { return mV2; }
 
@@ -412,6 +610,63 @@ void cSetPairOPC::Add(const TIm2DBits<1> & aTB,int aSign)
     }
 }
 
+double cSetPairOPC::StatDR
+       (
+            std::vector<double> & aVDR,
+            std::vector<double> & aVinc,
+            std::vector<double> & aVIm,
+            const cFitsParam & aFP
+       )
+{
+   double aSeuilDR = 0.7;
+   double aSeuilInc= 0.01;
+   double aSeuilCorr= 0.93;
+   int aNbOk = 0;
+   int aNbOkS = 0;
+   int aNbOkL = 0;
+   int aSeuilS = aFP.OverLap().BinIndexed().CCB().Val().BitThresh();
+   int aSeuilL = aFP.OverLap().BinDecision().CCB().Val().BitThresh();
+   for (auto & aPair : mVP)
+   {
+        aPair.P1().SetFlag(aFP.OverLap());
+        aPair.P2().SetFlag(aFP.OverLap());
+
+        int aNbDifS = aPair.P1().DifShortF(aPair.P2());
+        int aNbDifL = aPair.P1().DifLongF(aPair.P2());
+        bool OkS = aNbDifS <= aSeuilS;
+        bool OkL = aNbDifL <= aSeuilL;
+        if (OkS) 
+           aNbOkS ++;
+        if (OkL) 
+           aNbOkL ++;
+
+
+        double aCorDR = aPair.P1().DistIR(aPair.P2());
+        aVDR.push_back(aCorDR);
+
+        double IncoH;
+        int aShift = aPair.P1().ComputeShiftGlob(aPair.P2(),IncoH);
+        aVinc.push_back(IncoH);
+
+        double aCorrelIm  = aPair.P1().DistIm(aPair.P2(),aShift);
+
+        aVIm.push_back(aCorrelIm);
+
+        bool Ok =  (aCorDR >aSeuilDR) && (IncoH<aSeuilInc) && (aCorrelIm>aSeuilCorr);
+        Ok =  Ok & OkS && OkL;
+        if (Ok) 
+           aNbOk ++;
+        // aCorrelIm  = aPair.P1().DistIm(aPair.P1(),0);
+
+        // aPair.P1().DistIm(aPair.P1(),0);
+        //  std::cout << "Cccccccc= " << aCorrelIm << "\n";
+   }
+   std::cout << "PrrrooPpp " << aNbOkS/double(mVP.size()) << " " << aNbOkL/double(mVP.size()) << "\n";
+   return aNbOk / double(mVP.size());
+}
+
+
+
 void cSetPairOPC::Reset()
 {
     for (auto & aP : mVP)
@@ -481,6 +736,8 @@ class cAppli_NH_ApprentBinaire
             void OptimCombin(const std::string &);
             void OptimLocal(const std::string & aIn,const std::string & aOut);
             cCalcOB COB(const  cCompCBOneBit &);
+
+            void StatTruthTRand();
       private :
             // Si aNumInv<0 => Random
             // aModeRand 0 => rand X, 1=> rand Y , 2 => all
@@ -522,6 +779,7 @@ class cAppli_NH_ApprentBinaire
             std::string     mExt;
             double          mSomInH;
             double          mPdhInH;
+            cFitsParam      mFitParam;
 };
 
 // cAppli_NH_ApprentBinaire::cAppli_NH_ApprentBinaire(cSetRefPCarac  & aSRPC,int aNbT,int aNbRand,int aNBBitMax) :
@@ -606,6 +864,8 @@ void cAppli_NH_ApprentBinaire::DoOne(eTypePtRemark aType)
    double aPropRand = mNbRand/double(aNbTotRand);
 
 
+   std::cout << "NB SAMPLES " << mNbT << " " << mNbRand << "\n";
+
    for (int aKS=0 ; aKS<aNbSet ; aKS++)
    {
        cSetRefPCarac aSetRP = StdGetFromNRPH(aSetName->at(aKS),SetRefPCarac);
@@ -657,6 +917,58 @@ void cAppli_NH_ApprentBinaire::DoOne(eTypePtRemark aType)
     {
        OptimLocal(mNameLocale,mNameLocale);
     }
+    else if (mNumStep==3)
+    {
+       StatTruthTRand();
+    }
+}
+
+double PropOverSeuil(const std::vector<double> & aVec,double aSeuil)
+{
+   int aNb=0 ;
+   for (const auto & aVal : aVec)  
+       if (aVal > aSeuil)
+          aNb++;
+
+   return aNb / double(aVec.size());
+}
+
+void CmpStat(const std::vector<double> &  aVTruth,const std::vector<double> &  aVRand,const std::vector<double> & aVSeuil)
+{
+   for (const auto & aSeuil : aVSeuil)
+     std::cout << "S= " << aSeuil 
+               << " Truth=" << PropOverSeuil(aVTruth,aSeuil) 
+               << " Rand=" << PropOverSeuil(aVRand,aSeuil)
+               << "\n";
+}
+
+void   cAppli_NH_ApprentBinaire::StatTruthTRand()
+{
+
+   StdInitFitsPm(mFitParam);
+   std::vector<double> aVTDr,aVTInc,aVTIm;
+   double aPropT = mVTruth.StatDR(aVTDr,aVTInc,aVTIm,mFitParam);
+
+   getchar();
+
+   std::vector<double> aVRDr,aVRInc,aVRIm;
+   double aPropR = mVRand.StatDR(aVRDr,aVRInc,aVRIm,mFitParam);
+
+   std::cout << "DistInvRad \n";
+   std::vector<double> aVDr({0.5,0.6,0.7,0.8,0.9});
+   CmpStat(aVTDr,aVRDr,aVDr);
+
+   std::cout << "Incoh \n";
+   std::vector<double> aVI({0.01,0.013,0.016,0.02,0.03,0.1});
+   CmpStat(aVTInc,aVRInc,aVI);
+
+
+   std::cout << "Correl Im \n";
+   std::vector<double> aVIm({0.7,0.8,0.9,0.92,0.93,0.95,0.97});
+   CmpStat(aVTIm,aVRIm,aVIm);
+
+
+  std::cout << "Proportion Sel, Truth=" << aPropT << " Rand=" << aPropR << "\n";
 }
 
 void SetMoyNulle(cCompCBOneBit & aCOB)

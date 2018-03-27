@@ -72,7 +72,7 @@ void SetOfFlagInfNbb(std::vector<int> & aRes,int aNbBitTot,int aNbBitAct)
     aRes.clear();
     for (int aFlag=0 ; aFlag<(1<<aNbBitTot) ; aFlag++)
     {
-       if (NbBitOfShortFlag(aFlag) <= aNbBitTot)
+       if (NbBitOfShortFlag(aFlag) <= aNbBitAct)
           aRes.push_back(aFlag);
     }
 }
@@ -99,6 +99,11 @@ int NbBitDifOfFlag(tCodBin aFlag1,tCodBin aFlag2)
         aRes += NbBitOfShortFlag(aData1[aX] ^ aData2[aX]);
 
     return aRes;
+}
+
+int NbBitDifOfFlag(int aFlag1,int aFlag2)
+{
+   return NbBitOfShortFlag(aFlag1^aFlag2);
 }
 
 

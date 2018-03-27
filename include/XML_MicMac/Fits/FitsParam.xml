@@ -6,7 +6,7 @@
             <PrefName>  Save_CompCB_BM2_NBB16_PdsW3000_   </PrefName>
          </BinIndexed>  
          <BinDecision>  <!-- Longer one making the decision -->
-            <PrefName>  Save_CompCB_NBB80_PdsW10000_   </PrefName>
+            <PrefName>  Save_CompCB_NBB80_PdsW100000_   </PrefName>
          </BinDecision>  
    </OverLap> 
 <!--

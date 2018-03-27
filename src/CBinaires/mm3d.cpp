@@ -255,6 +255,8 @@ std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC, const std::string & aLib
 int CPP_StatPHom(int argc, char ** argv);
 int CPP_PHom_RenameRef(int argc, char ** argv);
 int CPP_PHom_ApprentBinaire(int argc, char ** argv);
+int CPP_FitsMatch1Im(int argc, char ** argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -547,6 +549,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("StatPHom", CPP_StatPHom, "Stat on homologous point using orientation of 3D Model"));
 		aRes.push_back(cMMCom("PHom_RenameRef", CPP_PHom_RenameRef, "Rename Ref for PHom"));
 		aRes.push_back(cMMCom("PHom_ApBin", CPP_PHom_ApprentBinaire, "Test Binary "));
+		aRes.push_back(cMMCom("FitsMatch", CPP_FitsMatch1Im, "Test Match Images NewPHom "));
 
 	}
 
