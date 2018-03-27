@@ -245,6 +245,9 @@ extern int  CPP_EditSet(int argc,char**argv);
 int CPP_MMHelp(int argc,char ** argv);
 int ConvertOriCalib_main(int argc,char ** argv);
 
+int DroneFootPrint(int argc,char ** argv);
+
+
 std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC,const std::string & aLib)
 {
    for (int aK=0 ; aK<int(aVC.size()) ; aK++)
@@ -548,6 +551,7 @@ const std::vector<cMMCom> & getAvailableCommands()
        aRes.push_back(cMMCom("PHom_RenameRef",CPP_PHom_RenameRef,"Rename Ref for PHom"));
        aRes.push_back(cMMCom("PHom_ApBin",CPP_PHom_ApprentBinaire,"Test Binary "));
 
+       aRes.push_back(cMMCom("DroneFootPrint",DroneFootPrint,"Draw footprint from image + orientation (drone) in PLY and QGIS format"));
    }
 
    cCmpMMCom CmpMMCom;
