@@ -382,13 +382,21 @@ void cAppliApero::AddObservationsAppuisFlottants(const std::list<cObsAppuisFlott
       mSomDistFlot=0.0;
       mSomEcPtsFlot = Pt3dr(0,0,0);
       mSomAbsEcPtsFlot = Pt3dr(0,0,0);
+      mSomRmsEcPtsFlot = Pt3dr(0,0,0);
       mMaxAbsEcPtsFlot = Pt3dr(0,0,0);
       aBAF->AddObs(*itOAF,aSO);
 
       if (mNbPtsFlot)
       {
+          Pt3dr  aBias = mSomEcPtsFlot/mNbPtsFlot;
+          double aBiasPlani = euclid(Pt2dr(aBias.x,aBias.y));
+          Pt3dr  aRMS2 = mSomRmsEcPtsFlot/mNbPtsFlot;
+          Pt3dr  aRMS = Pt3dr(sqrt(aRMS2.x),sqrt(aRMS2.y),sqrt(aRMS2.z));
+          double aRMSPlani = euclid(Pt2dr(aRMS.x,aRMS.y));
           std::cout << "=== GCP STAT ===  Dist,  Moy="<< (mSomDistFlot/mNbPtsFlot) << " Max=" << mMaxDistFlot << "\n";
-          std::cout <<  " XYZ , MoyAbs=" << (mSomAbsEcPtsFlot/mNbPtsFlot) << " Max=" << mMaxAbsEcPtsFlot << " Bias=" << (mSomEcPtsFlot/mNbPtsFlot) << "\n";
+          std::cout <<  "[X,Y,Z],      MoyAbs=" << (mSomAbsEcPtsFlot/mNbPtsFlot) << " Max=" << mMaxAbsEcPtsFlot << " Bias=" << aBias << " Rms=" << aRMS << "\n";
+          std::cout <<  "[Plani,alti], Bias=[" << aBiasPlani << "," << aBias.z << "] RMS=[" << aRMSPlani << "," << aRMS.z << "]\n";
+          std::cout <<  "Norm,         Bias=" << euclid(aBias) << " RMS=" << euclid(aRMS) << "\n";
       }
    }
 }
@@ -401,7 +409,9 @@ void cAppliApero::AddEcPtsFlot(const Pt3dr & anEc)
    mSomDistFlot += aD;
    mSomEcPtsFlot = anEc + mSomEcPtsFlot;
    Pt3dr aEcAbs = Pt3dr(ElAbs(anEc.x),ElAbs(anEc.y),ElAbs(anEc.z));
-   mSomAbsEcPtsFlot = aEcAbs + mSomAbsEcPtsFlot  ;
+   mSomAbsEcPtsFlot = aEcAbs + mSomAbsEcPtsFlot;
+   Pt3dr aEcSquare = Pt3dr(pow(anEc.x,2.0),pow(anEc.y,2.0),pow(anEc.z,2.0));
+   mSomRmsEcPtsFlot = aEcSquare + mSomRmsEcPtsFlot;
    mMaxAbsEcPtsFlot = Sup(mMaxAbsEcPtsFlot,aEcAbs);
 }
 

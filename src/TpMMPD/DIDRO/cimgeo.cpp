@@ -24,6 +24,30 @@ cImGeo::cImGeo(std::string aName):
 
 }
 
+cImGeo::cImGeo(std::string aName, std::string aNameTFW ):
+    mIm(aName.c_str())
+{
+   // charge l'image
+   mIm = Tiff_Im::StdConvGen(aName,1,true);
+   mSzImPix = mIm.sz();
+
+   // sépare le nom et le directory
+   SplitDirAndFile(mDir,mName,aName);
+
+   // charge les donnée geo
+   std::vector<double> tfw = loadTFW(mDir+aNameTFW);
+   mGSD = tfw[0];
+   mOrigine = Pt2dr(tfw[1],tfw[2]);
+
+   mXmin = mOrigine.x;
+   mXmax = mXmin + mSzImPix.x*mGSD;
+   mYmax = mOrigine.y;
+   mYmin = mYmax - mSzImPix.y*mGSD;
+   mSzImTer=Pt2dr(mXmax-mXmin,mYmax-mYmin);
+   mCentre=Pt2dr(mXmin+mSzImTer.x/2,mYmin+mSzImTer.y/2);
+
+}
+
 // si on veux utiliser l'incidence, on doit la charger séparément du constructeur, car on en a pas besoin dans tout les cas
 void cImGeo::loadIncid()
 {

@@ -47,11 +47,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
 
 // =================== Test Zone ============================
-Im2D_REAL4 ImRead(string aNameImTif)
+Im2D_REAL4 ImRead(string aNameImTif, int mRech = 1)
 {
    Tiff_Im aTif = Tiff_Im::UnivConvStd(aNameImTif);
 
-   Im2D_REAL4 aI(aTif.sz().x, aTif.sz().y);
+   Pt2di aSz = Pt2di(Pt2dr(aTif.sz())/double(mRech));
+
+   Im2D_REAL4 aI(aSz.x, aSz.y);
 
    ELISE_COPY
    (
@@ -61,7 +63,6 @@ Im2D_REAL4 ImRead(string aNameImTif)
    );
    return aI;
 }
-
 
 void SaveTif(Im2D_REAL4 aIm, string aSaveName)
 {
@@ -86,6 +87,96 @@ void SaveTif(Im2D_REAL4 aIm, string aSaveName)
            aRes.out()
         );
 
+}
+
+void ReSample(Im2D_REAL4 & aIm, Im2D_REAL4 & aImOut, double mRech = 1.0)
+{
+    aImOut.Resize(Pt2di(aIm.sz()*mRech));
+    if (mRech == 1.0)
+    {
+        aImOut = aIm;
+        return;
+    }
+    if (mRech < 1.0)
+    {
+        ELISE_COPY
+        (
+            aImOut.all_pts(),
+            aIm.in()[Virgule(FX/mRech,FY/mRech)],
+            aImOut.out()
+        );
+        return;
+    }
+    if (mRech > 1.0)
+    {
+        Pt2dr aRabInterpol(1,1);
+        ELISE_COPY
+        (
+            select(  aImOut.all_pts(),
+                     (
+                          (FX<(aImOut.sz().x - aRabInterpol.x -mRech ))
+                       && (FY<(aImOut.sz().y - aRabInterpol.y -mRech ))
+                     )
+                  ),
+            aIm.in()[Virgule(FX/mRech,FY/mRech)],
+            aImOut.out()
+        );
+        return;
+    }
+}
+
+void Test_ELISE(string aNameImTif, double mRech = 1)
+{
+    Tiff_Im aTif = Tiff_Im::UnivConvStd(aNameImTif);
+
+    Pt2di aSz = Pt2di(Pt2dr(aTif.sz())*double(mRech));
+
+    Im2D_REAL4 aI(aTif.sz().x, aTif.sz().y);
+    Im2D_REAL4 aO(aSz.x, aSz.y);
+
+    Video_Win * mW = Video_Win::PtrWStd(aO.sz(),true,Pt2dr(1,1));
+
+    mW->set_sop(Elise_Set_Of_Palette::TheFullPalette());
+
+    ELISE_COPY
+    (
+        aI.all_pts(),
+        aTif.in(),
+        aI.out()
+    );
+// re-sample aI to aO
+    if (mRech <= 1.0)
+    {
+        ELISE_COPY
+        (
+            aO.all_pts(),
+            aI.in()[Virgule(FX/mRech,FY/mRech)],
+            aO.out()
+        );
+    }
+    else
+    {
+        Pt2dr aRabInterpol(1,1);
+        ELISE_COPY
+        (
+            select(  aO.all_pts(),
+                     (
+                          (FX<(aO.sz().x - aRabInterpol.x -mRech ))
+                       && (FY<(aO.sz().y - aRabInterpol.y -mRech ))
+                     )
+                  ),
+            aI.in()[Virgule(FX/mRech,FY/mRech)],
+            aO.out()
+        );
+    }
+    SaveTif(aO, aNameImTif+"_TestELISE" );
+//display aO
+    ELISE_COPY
+    (
+        aO.all_pts(),
+        aO.in()[Virgule(FX,FY)],
+        mW->ogray()
+    );
 }
 
 
@@ -261,10 +352,10 @@ Im2D_REAL4 Convol_With_ELISE(Im2D_REAL4 & aImIn, Im2D_REAL8 & aKer)
     return aRes;
 }
 
-double VarOfLap_LAP4(string aNameIm)
+double VarOfLap_LAP4(string aNameIm, double rech = 0.5)
 {
     // Variance of Laplacian
-    cout<<endl<<" + Im : "<<aNameIm<<endl;
+    cout<<" + Im : "<<aNameIm;
     ElTimer aTimer;
     Im2D_REAL8 aLapl(3,3,
                         "0 1 0 "
@@ -280,14 +371,22 @@ double VarOfLap_LAP4(string aNameIm)
     Pt2di aSzKer(round_up((aLapl.sz().x-1)/2), round_up((aLapl.sz().y-1)/2));
 
     Im2D_REAL4 aIm2D = ImRead(aNameIm);
+
     Im2D_REAL4 aIm2D_DNs(aIm2D.sz().x, aIm2D.sz().y);
 
     aIm2D_DNs = Convol_With_ELISE(aIm2D, aDenoise);
 
-    Im2D_REAL4 aIm2D_Lpl(aIm2D.sz().x, aIm2D.sz().y);
+    Im2D_REAL4 aIm2D_Rsz;
+
+    ReSample(aIm2D, aIm2D_Rsz, rech);
+
+    //SaveTif(aIm2D_Rsz, aNameIm + "_Rsz");
+
+
+    Im2D_REAL4 aIm2D_Lpl(aIm2D_Rsz.sz().x, aIm2D_Rsz.sz().y);
     aIm2D_Lpl = Convol_With_ELISE(aIm2D_DNs, aLapl);
     double aVar = Variance(aIm2D_Lpl, 0, aSzKer);
-
+    cout<<" -Var :"<<aVar<<endl;
     return aVar;
 }
 
@@ -425,13 +524,17 @@ int Test_Conv(int argc,char ** argv)
 
     string aDir = "./";
     string aPat, aPattern;
+    double rech = 0.5;
 
     ElInitArgMain
     (
           argc,argv,
           LArgMain()  << EAMC(aPattern, "PatIm",  eSAM_IsPatFile),
           LArgMain()
+                      << EAM(rech, "rech" , true, "re sample im befor compute (faster) def=0.5 - 2 times smaller")
+
     );
+
     SplitDirAndFile(aDir, aPat, aPattern);
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     vector<string>  aSetIm = *(aICNM->Get(aPat));
@@ -440,7 +543,7 @@ int Test_Conv(int argc,char ** argv)
     {
         // ====== test convolution function ======
         string aIm = aSetIm[aKImg];
-        double aVar = VarOfLap_LAP4(aIm);
+        double aVar = VarOfLap_LAP4(aIm, rech);
         Pt2dr aPair(double(aKImg), aVar);
         aVPair.push_back(aPair);
     }
@@ -495,6 +598,193 @@ void Test_FAST()
     FastNew *aDec = new FastNew(*mPic_TIm2D , 15 , 3 , TaMasq0);
     cout<<aDec->lstPt().size()<<" pts detected "<<endl;
 }
+// ============== Test Draw Rectangle on PLY ===============
+void JSON_WritePt3D(Pt3dr aPt, ofstream & aJSONOut, Pt3dr aOffSet = Pt3dr(0,0,0), bool isEnd=false)
+{
+    aPt = aPt + aOffSet;
+    aJSONOut.precision(16); // std::ios_base::precision
+    aJSONOut<<"{"<<endl;
+    aJSONOut<<" \"type\": \"Feature\","<<endl;
+    aJSONOut<<" \"geometry\": {"<<endl;
+    aJSONOut<<"  \"type\": \"Point\","<<endl;
+    aJSONOut<<"  \"coordinates\": ["<<std::fixed<<aPt.x<<", "<<aPt.y<<"]"<<endl;
+    aJSONOut<<" },"<<endl;
+    aJSONOut<<" \"properties\": {"<<endl;
+    aJSONOut<<"     \"Z\":"<<aPt.z<<endl;
+    aJSONOut<<" }"<<endl;
+    if (isEnd)
+        aJSONOut<<"}"<<endl;
+    else
+        aJSONOut<<"},"<<endl;
+    return;
+}
+
+void JSON_WritePoly(vector<Pt3dr> aPoly, ofstream & aJSONOut, Pt3dr aOffSet = Pt3dr(0,0,0), bool isEnd=false)
+{
+    aJSONOut.precision(16); // std::ios_base::precision
+    aJSONOut<<"{"<<endl;
+    aJSONOut<<" \"type\": \"Feature\","<<endl;
+    aJSONOut<<" \"geometry\": {"<<endl;
+    aJSONOut<<"  \"type\": \"Polygon\","<<endl;
+    aJSONOut<<"  \"coordinates\": ["<<endl;
+    aJSONOut<<"    ["<<endl;
+    for(uint aKP=0; aKP<aPoly.size(); aKP++)
+    {
+        Pt3dr aPt = aPoly[aKP];
+        aPt = aPt + aOffSet;
+        aJSONOut<<"     ["<<std::fixed<<aPt.x<<", "<<aPt.y<<", "<<aPt.z<<"]";
+        if (aKP == aPoly.size()-1)
+            aJSONOut<<endl;
+        else
+            aJSONOut<<","<<endl;
+    }
+    aJSONOut<<"    ]"<<endl;
+    aJSONOut<<" ]"<<endl;
+    aJSONOut<<" }"<<endl;
+    aJSONOut<<"},"<<endl;
+    return;
+}
+
+
+void DrawOneFootPrintToPly(CamStenope * aCam,
+                           string & aNameIm,
+                           cPlyCloud & aCPlyRes,
+                           Pt3di aCoul,
+                           Pt2dr aResolution,
+                           ofstream & aJSONOut,
+                           bool isEnd=false,
+                           Pt3dr aOffSetPly = Pt3dr(0,0,0),
+                           Pt3dr aOffSetGeoJSON = Pt3dr(0,0,0),
+                           bool aPlyEachImg = false)
+{
+    std::string aPathPly = "./PLYFootPrint/" + aNameIm + "_FP.ply"; // We can't get name Image from CamStenope !!!
+
+    cPlyCloud aPly;
+    cElPolygone aPolyEmprise = aCam->EmpriseSol();
+    Pt3dr aCamCentre = aCam->VraiOpticalCenter();
+    JSON_WritePt3D(aCamCentre, aJSONOut, aOffSetGeoJSON, false);
+
+    //if (aPlyEachImg)
+        //aPly.AddSphere(aCoul, aCamCentre, aCam->GetAltiSol()/30 ,20);
+    aCPlyRes.AddSphere(aCoul, aCamCentre, aCam->GetAltiSol()/90 ,aResolution.y);
+
+    list<cElPolygone::tContour> aContours =  aPolyEmprise.Contours();
+    list<cElPolygone::tContour>::iterator it = aContours.begin();
+    vector<Pt3dr> aPolyEmpreint;
+    for (; it!=aContours.end(); it++)
+    {
+        cElPolygone::tContour aCon = *it;
+        for (uint aK = 0; aK<aCon.size(); aK++)
+        {
+            cout<<aCon[aK]<<" ";
+            aPolyEmpreint.push_back(Pt3dr(aCon[aK].x, aCon[aK].y, aCam->GetAltiSol()));
+        }
+    }
+    cout<<endl;
+    ELISE_ASSERT(aPolyEmpreint.size() == 4, "Polygon Empreint != 4");
+    aCPlyRes.AddSeg(aCoul, aPolyEmpreint[0] + aOffSetPly, aPolyEmpreint[1] + aOffSetPly, aResolution.x);
+    aCPlyRes.AddSeg(aCoul, aPolyEmpreint[1] + aOffSetPly, aPolyEmpreint[2] + aOffSetPly, aResolution.x);
+    aCPlyRes.AddSeg(aCoul, aPolyEmpreint[2] + aOffSetPly, aPolyEmpreint[3] + aOffSetPly, aResolution.x);
+    aCPlyRes.AddSeg(aCoul, aPolyEmpreint[3] + aOffSetPly, aPolyEmpreint[0] + aOffSetPly, aResolution.x);
+    JSON_WritePoly(aPolyEmpreint, aJSONOut, aOffSetGeoJSON, isEnd);
+
+    if (aPlyEachImg)
+    {
+        aPly.AddSeg(aCoul, aPolyEmpreint[0] + aOffSetPly, aPolyEmpreint[1] + aOffSetPly, aResolution.x);
+        aPly.AddSeg(aCoul, aPolyEmpreint[1] + aOffSetPly, aPolyEmpreint[2] + aOffSetPly, aResolution.x);
+        aPly.AddSeg(aCoul, aPolyEmpreint[2] + aOffSetPly, aPolyEmpreint[3] + aOffSetPly, aResolution.x);
+        aPly.AddSeg(aCoul, aPolyEmpreint[3] + aOffSetPly, aPolyEmpreint[0] + aOffSetPly, aResolution.x);
+    }
+
+    aPly.PutFile(aPathPly);
+    return;
+}
+
+int DroneFootPrint(int argc,char ** argv)
+{
+    cout<<"********************************************************"<<endl;
+    cout<<"*    Draw footprint from image + orientation           *"<<endl;
+    cout<<"********************************************************"<<endl;
+
+
+    string aDir = "./";
+    string aPat, aPattern;
+    double rech = 0.5;
+    string aOri;
+    string aOutPly = "FootPrint.ply";
+    double aOffSetZ =0;
+    bool aPlyEachImg = false;
+    Pt2dr aResolution = Pt2dr(2000,20); //[resol_line, resol_sphere]
+    int aCodeProj = 2154;
+    Pt3dr aOffSetPLY = Pt3dr(0,0,0);
+    Pt3dr aOffSetGeoJSON = Pt3dr(0,0,0);
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aPattern, "PatIm",  eSAM_IsPatFile)
+                      << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
+          LArgMain()
+                      << EAM(aOutPly, "Out" , true, "PLY output - def=FootPrint.ply & FootPrint.ply.geojson (QGIS Format)")
+                      << EAM(aPlyEachImg, "PlyEachImg" , true, "PLY output separately for each image - directory PLYFootPrint")
+                      << EAM(aOffSetPLY, "OffSetPLY" , true, "OffSet for PLY [X,Y,Z]")
+                      << EAM(aOffSetGeoJSON, "OffSetGeoJSON" , true, "OffSet for geo JSON file [X,Y,Z]")
+                      << EAM(aResolution, "Resol" , true, "Resolution of line and sphere [resol_line, resol_sphere], def=[2000,20]")
+                      << EAM(aCodeProj, "CodeProj" , true, "EPSG projection code. Default = 2154 (Lambert 93)")
+                );
+
+    SplitDirAndFile(aDir, aPat, aPattern);
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    vector<string>  aSetIm = *(aICNM->Get(aPat));
+
+    vector<CamStenope*> aVCam (aSetIm.size());
+    cPlyCloud aCPlyRes;
+
+    if (aPlyEachImg)
+    {
+        ELISE_fp::MkDir("./PLYFootPrint");
+    }
+
+    ofstream aJSONOut;
+    string aNameJSON = aOutPly + ".geojson";
+    aJSONOut.open(aNameJSON.c_str());
+    aJSONOut<<"{"<<endl;
+    aJSONOut<<" \"type\": \"FeatureCollection\","<<endl;
+
+    aJSONOut<<"\"crs\": {"<<endl;
+    aJSONOut<<" \"type\": \"EPSG\","<<endl;
+    aJSONOut<<" \"properties\": {\"code\": 2154}"<<endl;
+    aJSONOut<<"},"<<endl;
+
+    aJSONOut<<" \"features\": ["<<endl;
+
+    for (uint aKIm=0; aKIm < aSetIm.size(); aKIm++)
+    {
+        string aNameIm = aSetIm[aKIm];
+        cout<<" ++ "<<aNameIm<<endl;
+        CamStenope * aCam = aICNM->StdCamStenOfNames(aNameIm, aOri);
+
+        /*
+        A typical way to generate trivial pseudo-random numbers in a determined
+                range using rand is to use the modulo of the returned value by the range span and add the initial value of the range:
+        v1 = rand() % 100;         // v1 in the range 0 to 99
+        v2 = rand() % 100 + 1;     // v2 in the range 1 to 100
+        v3 = rand() % 30 + 1985;   // v3 in the range 1985-2014
+        */
+
+        Pt3di aCoul(rand()%255, rand()%255, rand()%255);
+        bool isEnd=false;
+        if (aKIm == aSetIm.size()-1)
+            isEnd=true;
+        DrawOneFootPrintToPly(aCam, aNameIm, aCPlyRes, aCoul, aResolution, aJSONOut, isEnd, aOffSetPLY, aOffSetGeoJSON, aPlyEachImg);
+    }
+    aJSONOut<<"]"<<endl;
+    aJSONOut<<"}"<<endl;
+    aCPlyRes.PutFile(aOutPly);
+
+    cout<<"Test_Footprint finish"<<endl;
+    return EXIT_SUCCESS;
+}
 
     /******************************************************************************
     The main function.
@@ -504,6 +794,7 @@ int TestGiang_main(int argc,char ** argv)
 
     //Test_Xml();
     //Test_FAST();
+    //Test_Footprint(argc, argv);
 
     cout<<"********************************************************"<<endl;
     cout<<"*    TestGiang                                         *"<<endl;
