@@ -21882,6 +21882,245 @@ void xml_init(cXml_TopoTriplet & anObj,cElXMLTree * aTree)
 std::string  Mangling( cXml_TopoTriplet *) {return "8998B01898888FA8FF3F";};
 
 
+Pt2dr & cXml_SingleDir::PIm()
+{
+   return mPIm;
+}
+
+const Pt2dr & cXml_SingleDir::PIm()const 
+{
+   return mPIm;
+}
+
+
+Pt3dr & cXml_SingleDir::P1()
+{
+   return mP1;
+}
+
+const Pt3dr & cXml_SingleDir::P1()const 
+{
+   return mP1;
+}
+
+
+Pt3dr & cXml_SingleDir::P2()
+{
+   return mP2;
+}
+
+const Pt3dr & cXml_SingleDir::P2()const 
+{
+   return mP2;
+}
+
+void  BinaryUnDumpFromFile(cXml_SingleDir & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.PIm(),aFp);
+    BinaryUnDumpFromFile(anObj.P1(),aFp);
+    BinaryUnDumpFromFile(anObj.P2(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_SingleDir & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.PIm());
+    BinaryDumpInFile(aFp,anObj.P1());
+    BinaryDumpInFile(aFp,anObj.P2());
+}
+
+cElXMLTree * ToXMLTree(const cXml_SingleDir & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_SingleDir",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("PIm"),anObj.PIm())->ReTagThis("PIm"));
+   aRes->AddFils(::ToXMLTree(std::string("P1"),anObj.P1())->ReTagThis("P1"));
+   aRes->AddFils(::ToXMLTree(std::string("P2"),anObj.P2())->ReTagThis("P2"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_SingleDir & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.PIm(),aTree->Get("PIm",1)); //tototo 
+
+   xml_init(anObj.P1(),aTree->Get("P1",1)); //tototo 
+
+   xml_init(anObj.P2(),aTree->Get("P2",1)); //tototo 
+}
+
+std::string  Mangling( cXml_SingleDir *) {return "280D8BCA9E482DA1FC3F";};
+
+
+std::string & cXml_ImDir::Name()
+{
+   return mName;
+}
+
+const std::string & cXml_ImDir::Name()const 
+{
+   return mName;
+}
+
+
+Pt3dr & cXml_ImDir::P1OC()
+{
+   return mP1OC;
+}
+
+const Pt3dr & cXml_ImDir::P1OC()const 
+{
+   return mP1OC;
+}
+
+
+Pt3dr & cXml_ImDir::P2OC()
+{
+   return mP2OC;
+}
+
+const Pt3dr & cXml_ImDir::P2OC()const 
+{
+   return mP2OC;
+}
+
+
+std::list< cXml_SingleDir > & cXml_ImDir::ListDir()
+{
+   return mListDir;
+}
+
+const std::list< cXml_SingleDir > & cXml_ImDir::ListDir()const 
+{
+   return mListDir;
+}
+
+void  BinaryUnDumpFromFile(cXml_ImDir & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Name(),aFp);
+    BinaryUnDumpFromFile(anObj.P1OC(),aFp);
+    BinaryUnDumpFromFile(anObj.P2OC(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_SingleDir aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.ListDir().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ImDir & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Name());
+    BinaryDumpInFile(aFp,anObj.P1OC());
+    BinaryDumpInFile(aFp,anObj.P2OC());
+    BinaryDumpInFile(aFp,(int)anObj.ListDir().size());
+    for(  std::list< cXml_SingleDir >::const_iterator iT=anObj.ListDir().begin();
+         iT!=anObj.ListDir().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_ImDir & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_ImDir",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Name"),anObj.Name())->ReTagThis("Name"));
+   aRes->AddFils(::ToXMLTree(std::string("P1OC"),anObj.P1OC())->ReTagThis("P1OC"));
+   aRes->AddFils(::ToXMLTree(std::string("P2OC"),anObj.P2OC())->ReTagThis("P2OC"));
+  for
+  (       std::list< cXml_SingleDir >::const_iterator it=anObj.ListDir().begin();
+      it !=anObj.ListDir().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("ListDir"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_ImDir & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Name(),aTree->Get("Name",1)); //tototo 
+
+   xml_init(anObj.P1OC(),aTree->Get("P1OC",1)); //tototo 
+
+   xml_init(anObj.P2OC(),aTree->Get("P2OC",1)); //tototo 
+
+   xml_init(anObj.ListDir(),aTree->GetAll("ListDir",false,1));
+}
+
+std::string  Mangling( cXml_ImDir *) {return "355B0DC64D2063C6FE3F";};
+
+
+std::list< cXml_ImDir > & cXml_ImSetDir::Ims()
+{
+   return mIms;
+}
+
+const std::list< cXml_ImDir > & cXml_ImSetDir::Ims()const 
+{
+   return mIms;
+}
+
+void  BinaryUnDumpFromFile(cXml_ImSetDir & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_ImDir aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Ims().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ImSetDir & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.Ims().size());
+    for(  std::list< cXml_ImDir >::const_iterator iT=anObj.Ims().begin();
+         iT!=anObj.Ims().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_ImSetDir & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_ImSetDir",eXMLBranche);
+  for
+  (       std::list< cXml_ImDir >::const_iterator it=anObj.Ims().begin();
+      it !=anObj.Ims().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Ims"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_ImSetDir & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Ims(),aTree->GetAll("Ims",false,1));
+}
+
+std::string  Mangling( cXml_ImSetDir *) {return "6E3FC2773EE184BBFE3F";};
+
+
 double & cSAMP_NUM_COEFF::SAMP_NUM_COEFF_1()
 {
    return mSAMP_NUM_COEFF_1;
@@ -23801,11 +24040,31 @@ const Pt3dr & cXml_SLSRay::P2()const
    return mP2;
 }
 
+
+std::list< Pt3dr > & cXml_SLSRay::P3()
+{
+   return mP3;
+}
+
+const std::list< Pt3dr > & cXml_SLSRay::P3()const 
+{
+   return mP3;
+}
+
 void  BinaryUnDumpFromFile(cXml_SLSRay & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.IndCol(),aFp);
     BinaryUnDumpFromFile(anObj.P1(),aFp);
     BinaryUnDumpFromFile(anObj.P2(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             Pt3dr aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.P3().push_back(aVal);
+        }
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_SLSRay & anObj)
@@ -23813,6 +24072,12 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_SLSRay & anObj)
     BinaryDumpInFile(aFp,anObj.IndCol());
     BinaryDumpInFile(aFp,anObj.P1());
     BinaryDumpInFile(aFp,anObj.P2());
+    BinaryDumpInFile(aFp,(int)anObj.P3().size());
+    for(  std::list< Pt3dr >::const_iterator iT=anObj.P3().begin();
+         iT!=anObj.P3().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
 }
 
 cElXMLTree * ToXMLTree(const cXml_SLSRay & anObj)
@@ -23822,6 +24087,12 @@ cElXMLTree * ToXMLTree(const cXml_SLSRay & anObj)
    aRes->AddFils(::ToXMLTree(std::string("IndCol"),anObj.IndCol())->ReTagThis("IndCol"));
    aRes->AddFils(::ToXMLTree(std::string("P1"),anObj.P1())->ReTagThis("P1"));
    aRes->AddFils(::ToXMLTree(std::string("P2"),anObj.P2())->ReTagThis("P2"));
+  for
+  (       std::list< Pt3dr >::const_iterator it=anObj.P3().begin();
+      it !=anObj.P3().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("P3"),(*it))->ReTagThis("P3"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -23837,9 +24108,11 @@ void xml_init(cXml_SLSRay & anObj,cElXMLTree * aTree)
    xml_init(anObj.P1(),aTree->Get("P1",1)); //tototo 
 
    xml_init(anObj.P2(),aTree->Get("P2",1)); //tototo 
+
+   xml_init(anObj.P3(),aTree->GetAll("P3",false,1));
 }
 
-std::string  Mangling( cXml_SLSRay *) {return "004804A8DCBF1BA1FBBF";};
+std::string  Mangling( cXml_SLSRay *) {return "C65F5A5A245D11C2FD3F";};
 
 
 double & cXml_OneLineSLS::IndLine()
@@ -23914,7 +24187,7 @@ void xml_init(cXml_OneLineSLS & anObj,cElXMLTree * aTree)
    xml_init(anObj.Rays(),aTree->GetAll("Rays",false,1));
 }
 
-std::string  Mangling( cXml_OneLineSLS *) {return "400084BE18ADACC5FA3F";};
+std::string  Mangling( cXml_OneLineSLS *) {return "AC21AFDE433F75E2FD3F";};
 
 
 cTplValGesInit< bool > & cXml_ScanLineSensor::LineImIsScanLine()
@@ -24112,7 +24385,7 @@ void xml_init(cXml_ScanLineSensor & anObj,cElXMLTree * aTree)
    xml_init(anObj.Lines(),aTree->GetAll("Lines",false,1));
 }
 
-std::string  Mangling( cXml_ScanLineSensor *) {return "B848536DE6351DA5FB3F";};
+std::string  Mangling( cXml_ScanLineSensor *) {return "024C201F20E752A4FDBF";};
 
 
 std::vector< cMonomXY > & cXml_PolynXY::Monomes()

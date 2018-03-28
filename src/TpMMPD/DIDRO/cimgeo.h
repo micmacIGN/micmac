@@ -8,6 +8,7 @@ class cImGeo
 {
 public:
     //constructeur
+    cImGeo(std::string aName, std::string aNameTFW);
     cImGeo(std::string aName);
     cImGeo(cImGeo * imGeoTemplate,std::string aName);
     cImGeo(std::string aName,Im2D_REAL4 * aIm,Box2dr aBoxTer);
@@ -47,6 +48,8 @@ public:
     Im2D_REAL4 clipImPix(Pt2di aMin,Pt2di aMax); // clip l'image avec une box pixel
     Im2D_REAL4 clipImTer(Pt2dr aMin,Pt2dr aMax); // clip l'image avec une box terrain
     Im2D_REAL4 clipImTer(Box2dr aBox); // clip l'image avec une box terrain
+    Im2D_REAL4 clipIncidTer(Box2dr aBox);
+    Im2D_REAL4 clipIncidPix(Pt2di aMin,Pt2di aMax);
 
     Box2dr overlapBox(cImGeo * aIm2); // renvoie la box terrain du recouvrement des 2 images
     bool containTer(Pt2dr pt);

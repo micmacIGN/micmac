@@ -24,6 +24,30 @@ cImGeo::cImGeo(std::string aName):
 
 }
 
+cImGeo::cImGeo(std::string aName, std::string aNameTFW ):
+    mIm(aName.c_str())
+{
+   // charge l'image
+   mIm = Tiff_Im::StdConvGen(aName,1,true);
+   mSzImPix = mIm.sz();
+
+   // sépare le nom et le directory
+   SplitDirAndFile(mDir,mName,aName);
+
+   // charge les donnée geo
+   std::vector<double> tfw = loadTFW(mDir+aNameTFW);
+   mGSD = tfw[0];
+   mOrigine = Pt2dr(tfw[1],tfw[2]);
+
+   mXmin = mOrigine.x;
+   mXmax = mXmin + mSzImPix.x*mGSD;
+   mYmax = mOrigine.y;
+   mYmin = mYmax - mSzImPix.y*mGSD;
+   mSzImTer=Pt2dr(mXmax-mXmin,mYmax-mYmin);
+   mCentre=Pt2dr(mXmin+mSzImTer.x/2,mYmin+mSzImTer.y/2);
+
+}
+
 // si on veux utiliser l'incidence, on doit la charger séparément du constructeur, car on en a pas besoin dans tout les cas
 void cImGeo::loadIncid()
 {
@@ -355,6 +379,35 @@ Im2D_REAL4 cImGeo::clipImTer(Box2dr aBox)
     return im;
 }
 
+
+Im2D_REAL4 cImGeo::clipIncidTer(Box2dr aBox)
+{
+
+    // compute box in pixel
+    int U(0), V(0);
+    U = (aBox.sz().x)/GSD();
+    V = (aBox.sz().y)/GSD();
+    // initialise resulting image
+    Im2D_REAL4 im(U,V);
+
+    // inversion min max Y car en geom image l'axe des y pointe dans le sens contraire
+    Pt2dr aPMin(aBox._p0.x,aBox._p1.y), aPMax(aBox._p1.x,aBox._p0.y);
+
+    if (containTer(aBox._p0) && containTer(aBox._p1))
+    {
+     im=clipIncidPix(XY2UV(aPMin),XY2UV(aPMax));
+
+    }
+    else
+    {
+     std::cout << "Dans l'appel à la fonction cImGeo::clipIncidTer(Box2dr aBox); nous vous signalons que la box n'est pas comprise dans l'image \n";
+    }
+
+    return im;
+}
+
+
+
 Im2D_REAL4 cImGeo::clipImPix(Pt2di aMin,Pt2di aMax)
 {
     // initialise l'image retour
@@ -366,6 +419,23 @@ Im2D_REAL4 cImGeo::clipImPix(Pt2di aMin,Pt2di aMax)
    (
     Im().all_pts(),
     trans(Im().in(0),aTr),
+    im.oclip()
+   );
+    return im;
+}
+
+
+Im2D_REAL4 cImGeo::clipIncidPix(Pt2di aMin,Pt2di aMax)
+{
+    // initialise l'image retour
+    Im2D_REAL4 im(aMax.x-aMin.x,aMax.y-aMin.y);
+    // translate l'imageGeo et clip en meme temps
+    Pt2di aTr(aMin.x,aMin.y);
+
+    ELISE_COPY
+   (
+    Incid()->all_pts(),
+    trans(Incid()->in(1),aTr),
     im.oclip()
    );
     return im;

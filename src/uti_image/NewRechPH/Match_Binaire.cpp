@@ -41,7 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 static constexpr int TheNbUI2Flag = 5;
-typedef Im2D_U_INT2 tCodBin;
+// typedef Im2D_U_INT2 tCodBin;
 
 
 static constexpr int TheNbBitTabuled = 16;
@@ -67,6 +67,17 @@ int NbBitOfShortFlag(int aFlag)
    return aTab[aFlag];
 }
 
+void SetOfFlagInfNbb(std::vector<int> & aRes,int aNbBitTot,int aNbBitAct)
+{
+    aRes.clear();
+    for (int aFlag=0 ; aFlag<(1<<aNbBitTot) ; aFlag++)
+    {
+       if (NbBitOfShortFlag(aFlag) <= aNbBitAct)
+          aRes.push_back(aFlag);
+    }
+}
+
+
 int NbBitOfFlag(tCodBin aFlag)
 {
     U_INT2 * aData = aFlag.data_lin();
@@ -88,6 +99,11 @@ int NbBitDifOfFlag(tCodBin aFlag1,tCodBin aFlag2)
         aRes += NbBitOfShortFlag(aData1[aX] ^ aData2[aX]);
 
     return aRes;
+}
+
+int NbBitDifOfFlag(int aFlag1,int aFlag2)
+{
+   return NbBitOfShortFlag(aFlag1^aFlag2);
 }
 
 

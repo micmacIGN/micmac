@@ -39,11 +39,513 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "cimgeo.h"
 #include "cero_modelonepaire.h"
-
+#include "cfeatheringandmosaicking.h"
 
 extern int RegTIRVIS_main(int , char **);
 
 
+// we wish to improve coregistration between 2 orthos
+class cCoreg2Ortho
+{
+    public:
+    std::string mDir;
+    cCoreg2Ortho(int argc,char ** argv);
+
+    private:
+    cImGeo * mO1;
+    cImGeo * mO2;
+    Im2D_REAL4 mO1clip,mO2clip;
+    std::string mNameO1, mNameO2, mNameMapOut;
+    Box2dr mBoxOverlapTerrain;
+
+};
+
+
+
+cCoreg2Ortho::cCoreg2Ortho(int argc,char ** argv)
+{
+
+    ElInitArgMain
+            (
+                argc,argv,
+                LArgMain()  << EAMC(mNameO1,"Name Ortho master", eSAM_IsExistFile)
+                            << EAMC(mNameO2,"Name Ortho slave",eSAM_IsExistFile),
+                LArgMain()  << EAM(mNameMapOut,"Out",true, "Name of resulting map")
+                );
+
+    if (!MMVisualMode)
+    {
+
+        mDir="./";
+        mNameMapOut=mNameO2 +"2"+ mNameO1;
+        cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+
+        if (ELISE_fp::exist_file(mNameO1) & ELISE_fp::exist_file(mNameO2))
+        {
+            // open orthos
+            // Initialise les 2 orthos
+            mO1 = new cImGeo(mDir+mNameO1);
+            mO2 = new cImGeo(mDir+mNameO2);
+
+
+            //Im2D_REAL4 I1=mO1->toRAM();
+            std::string aN("/home/lisein/data/OptrisMarseille/optris_16_sudmatin2_00010.tif");
+               Im2D_REAL4 I1=Im2D_REAL4::FromFileStd(aN);
+            // mes test bidon ici
+
+            ELISE_COPY(I1.all_pts(), Laplacien(I1.in_proj()),I1.out());
+
+            std::string aName("TestLaplacien.tif");
+            ELISE_COPY(
+                        I1.all_pts(),
+                        I1.in(),
+                        Tiff_Im(aName.c_str(),
+                                    I1.sz(),
+                                    GenIm::real4,
+                                    Tiff_Im::No_Compr,
+                                    Tiff_Im::BlackIsZero).out()
+                        );
+            double mean;
+            int nb;
+            ELISE_COPY(
+                        I1.all_pts(),
+                        Virgule(I1.in(),1),
+                        Virgule(sigma(mean),sigma(nb)));
+
+            mean= mean/nb;
+
+
+            ELISE_COPY(
+                        I1.all_pts(),
+                        ElSquare(I1.in()-mean)/(double)nb,
+                        I1.out());
+            aName="TestLaplacien2.tif";
+            ELISE_COPY(
+                        I1.all_pts(),
+                        I1.in(),
+                        Tiff_Im(aName.c_str(),
+                                    I1.sz(),
+                                    GenIm::real4,
+                                    Tiff_Im::No_Compr,
+                                    Tiff_Im::BlackIsZero).out()
+                        );
+
+            ELISE_COPY(
+                        I1.all_pts(),
+                        I1.in(),
+                       sigma(mean)
+                        );
+            cout << "mean laplacien " << mean/nb << "\n";
+
+            //ElSquare((aRes.in()-mean))/nb;
+
+
+            //std::cout << "blurriness for ortho 1 :" << VarLapl(&I1,2) << "\n";
+
+
+            /*
+            Im2D_REAL4 I2=mO2->toRAM();
+            Box2dr boxMosaic=mO1->boxEnglob(mO2);
+            Im2D_REAL4 mosaic=mO1->box2Im(boxMosaic);
+            Pt2dr aCorner=Pt2dr(boxMosaic._p0.x,boxMosaic._p1.y); // xmin, ymax;
+            Pt2di tr1=mO1->computeTrans(aCorner), tr2=mO2->computeTrans(aCorner);
+
+
+
+
+
+            std::cout << "mosaic of size " << mosaic.sz() << ".\n";
+
+            for (unsigned int i(1) ; i <mosaic.sz().x;i++)
+            {
+                for (unsigned int j(1) ; j < mosaic.sz().y;j++)
+                {
+                    Pt2di pos(i,j);
+
+                    if (i%100==0 & j%100==0)
+                    {
+                    std::cout << "process pixel at position " << pos << " of mosaic.\n";
+                    std::cout << "Im1 position " << pos+tr1 << ".\n";
+                    std::cout << "Im2 position " << pos+tr2 << ".\n";
+                    }
+
+                    // compute distance of current position from Nadir point Im1 and Nadir point Im2
+
+                    double aDist1=euclid(Pt2di(pos-N1)), aDist2=euclid(Pt2di(pos-N2));
+                    double r=aDist1/aDist2;
+
+
+                    double Iij1(0.0),Iij2(0.0);
+                    double w1(0),w2(0);
+
+                    if (I1.Inside(Pt2di(pos+tr1)))
+                        {
+                        // I haven't loaded the mask thus I have to check here
+
+                        double val=I1.GetR(Pt2di(pos+tr1));
+
+                        if (val!=0)
+                        {
+                        Iij1=val;
+                        //std::cout << "Im1, got" << Iij1 << ".\n";
+                        //w1=pow(0.5,pow(r,2*constLambda));
+                        w1=0.5;
+                        }
+                    }
+
+
+                    if (I2.Inside(Pt2di(pos+tr2)))
+                    {
+                        double val=I2.GetR(Pt2di(pos+tr2));
+                        if (val!=0)
+                        {
+                        Iij2=val;
+                        //std::cout << "Im2, got " << Iij2 << ".\n";
+                        w2=1-w1;
+                        }
+                    }
+
+                    if (w2==0) w1=1;
+                    //if (w1==0) w2=1;
+
+                    double blend=w1*Iij1+w2*Iij2;
+                    mosaic.SetR(pos,blend);
+
+                }
+            }
+
+            std::string aName("mosaicTest.tif");
+            ELISE_COPY(
+                        mosaic.all_pts(),
+                        mosaic.in(),
+                        Tiff_Im(aName.c_str(),
+                                    mosaic.sz(),
+                                    GenIm::real4,
+                                    Tiff_Im::No_Compr,
+                                    Tiff_Im::BlackIsZero).out()
+                        );
+
+
+
+            // Determine la zone de recouvrement entre les 2 orthos
+
+            mBoxOverlapTerrain=mO1->overlapBox(mO2);
+            // clip les 2 ortho sur cette box terrain afin d'avoir des Im2D chargé en RAM
+            mO1clip = mO1->clipImTer(mBoxOverlapTerrain);
+            mO2clip = mO2->clipImTer(mBoxOverlapTerrain);
+
+            std::string aOut1A("im1.tif"),aOut2A("im2.tif");
+            ELISE_COPY(
+                        mO2clip.all_pts(),
+                        mO2clip.in(),
+                        Tiff_Im(aOut2A.c_str(),
+                                mO2clip.sz(),
+                                GenIm::real4,
+                                Tiff_Im::No_Compr,
+                                Tiff_Im::BlackIsZero).out()
+                        );
+
+            ELISE_COPY(
+                        mO1clip.all_pts(),
+                        mO1clip.in(),
+                        Tiff_Im(aOut1A.c_str(),
+                                mO1clip.sz(),
+                                GenIm::real4,
+                                Tiff_Im::No_Compr,
+                                Tiff_Im::BlackIsZero).out()
+                        );
+
+
+            Pt2dr aCorner=Pt2dr(mBoxOverlapTerrain._p0.x,mBoxOverlapTerrain._p1.y); // xmin, ymax;
+            Pt2di transO1Tobox = mO1->computeTrans(aCorner);
+            Pt2di transO2Tobox = mO2->computeTrans(aCorner);
+            // Pt2di trans = mO1->computeTrans(mO2);
+
+            Pt2di sz(25,25);
+            unsigned int pasX=mO1clip.sz().x/10;
+            unsigned int pasY=mO1clip.sz().y/10;
+            std::cout << "step x " << pasX << ", step Y " <<pasY << "\n";
+
+            for (unsigned int i(1) ; i < 10;i++)
+            {
+                for (unsigned int j(1) ; j < 10;j++)
+                {
+
+                    if((i*pasX>sz.x) & (j*pasY>sz.y) & ((i*pasX+sz.x)<mO1clip.sz().x) & ((j*pasY+sz.y)<mO1clip.sz().y) )
+                    {
+
+                        Pt2di pt=Pt2di(i*pasX,j*pasY);
+                        //Im2D_REAL4 im1(2*sz.x,2*sz.y);
+                        //Im2D_REAL4 im2(2*sz.x,2*sz.y);
+                        Im2D_REAL4 im1(mO1clip.sz().x,mO1clip.sz().y);
+                        Im2D_REAL4 im2(mO1clip.sz().x,mO1clip.sz().y);
+
+                        //Im2D_REAL4 im1=mO1clip;
+                        //Im2D_REAL4 im2=mO2clip;
+                        std::cout << " rectange " << pt-sz << " , " << pt+sz<<", tuile "<< i << ", " << j <<"\n";
+                     /*   ELISE_COPY(
+                                    rectangle(pt-sz,pt+sz),
+                                    Virgule(mO1clip.in(),mO2clip.in()),
+                                    Virgule(im1.out(),im2.out())
+                                    );
+
+                        ELISE_COPY(
+                                   rectangle(Pt2di(0,0),(Pt2di(2,2)*sz)),
+                                   trans(im1.in(),pt-sz),
+                                   im1.out()
+                                    );
+
+
+
+                        int nbPix(0);
+                        /*
+                        ELISE_COPY(
+                                    select(im1.all_pts(),im1.in()!=0 && im2.in()!=0),
+                                    1,
+                                    sigma(nbPix)
+                                    );
+                        std::cout << "Tile " << i << "," <<j << ", number of pixel with data : "<< nbPix << "\n";
+
+                     //   if (nbPix==im1.sz().x*im1.sz().y)
+                      //  {
+
+
+                        // save tile for visual check
+                        std::string aPrefix="-"+std::to_string(i)+"_"+std::to_string(j)+".tif";
+                        std::string aOut1("Tile_"+mNameO1 +aPrefix),aOut2("Tile_"+mNameO2 +aPrefix);
+                        ELISE_COPY(
+                                    im1.all_pts(),
+                                    im1.in(),
+                                    Tiff_Im(aOut1.c_str(),
+                                            im1.sz(),
+                                            GenIm::real4,
+                                            Tiff_Im::No_Compr,
+                                            Tiff_Im::BlackIsZero).out()
+                                    );
+
+                        ELISE_COPY(
+                                    im2.all_pts(),
+                                    im2.in(),
+                                    Tiff_Im(aOut2.c_str(),
+                                            im2.sz(),
+                                            GenIm::real4,
+                                            Tiff_Im::No_Compr,
+                                            Tiff_Im::BlackIsZero).out()
+                                    );
+                    }
+                    }
+
+            }
+*/
+
+        } else { std::cout << "cannot find ortho 1 and 2, please check file names\n";}
+
+    }
+
+}
+
+
+// the VarioCam thermic camera record images at 16 bits, we want to convert them to 8 bits. A range of temperature is provided in order to  stretch the radiometric value on this range
+
+class cVarioCamTo8Bits
+{
+    public:
+    std::string mDir;
+    cVarioCamTo8Bits(int argc,char ** argv);
+    private:
+    std::string mFullDir;
+    std::string mPat;
+    std::string mPrefix;
+    bool mOverwrite;
+    Pt2di mRangeT;
+    bool mCelcius;
+};
+
+
+cVarioCamTo8Bits::cVarioCamTo8Bits(int argc,char ** argv) :
+      mFullDir	("img.*.tif"),
+      mPrefix ("8bits_"),
+      mOverwrite (false),
+      mCelcius(1)
+{
+    ElInitArgMain
+    (
+    argc,argv,
+        LArgMain()  << EAMC(mFullDir,"image pattern", eSAM_IsPatFile)
+                    << EAMC(mRangeT,"temperature range"),
+        LArgMain()  << EAM(mOverwrite,"F",true, "Overwrite previous output images, def false")
+                    << EAM(mCelcius,"Celcius",true, "Is the temperature range in celcius, default true, if false, Kelvin")
+                    << EAM(mPrefix,"Prefix",true, "Prefix for output images")
+    );
+
+
+    if (!MMVisualMode)
+    {
+
+    SplitDirAndFile(mDir,mPat,mFullDir);
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+    const std::vector<std::string> aSetIm = *(aICNM->Get(mPat));
+
+    Pt2di aRangeVario;
+    // convert the range to
+    if (mCelcius) {
+        aRangeVario.x=100*(273.15+mRangeT.x) ;
+        aRangeVario.y=100*(273.15+mRangeT.y) ;
+    } else {aRangeVario=mRangeT;};
+    std::cout << "Range of radiometric value of variocam images : " << aRangeVario << "\n";
+
+    for (auto & im : aSetIm)
+    {
+        std::string NameOut(mDir+mPrefix+im);
+
+        if (ELISE_fp::exist_file(NameOut) & !mOverwrite)
+        {
+            std::cout <<"Image " << NameOut <<" already exist, use F=1 to overwrite.\n";
+        } else {
+
+        int minRad(aRangeVario.x), rangeRad(aRangeVario.y-aRangeVario.x);
+
+        // load input variocam images
+        Tiff_Im mTifIn=Tiff_Im::StdConvGen(mDir+im,1,true);
+        // create empty RAM image for imput image
+        Im2D_REAL4 imIn(mTifIn.sz().x,mTifIn.sz().y);
+        // create empty RAM image for output image
+        Im2D_U_INT1 imOut(mTifIn.sz().x,mTifIn.sz().y);
+        // fill it with tiff image value
+        ELISE_COPY(
+                    mTifIn.all_pts(),
+                    mTifIn.in(),
+                    imIn.out()
+                   );
+        // change radiometry and note min and max value
+        int aMin(255), aMax(0),aSum(0),aNb(0);
+        for (int v(0); v<imIn.sz().y;v++)
+        {
+            for (int u(0); u<imIn.sz().x;u++)
+            {
+                Pt2di pt(u,v);
+                double aVal = imIn.GetR(pt);
+                unsigned int val(0);
+
+                if(aVal!=0){
+                    if (aVal>=minRad && aVal <minRad+rangeRad)
+                    {
+                        val=255.0*(aVal-minRad)/rangeRad;
+                    }
+                    if (aVal >=minRad+rangeRad) val=255.0;
+                }
+
+                if (val>aMax) aMax=val;
+                if (val!=0){
+                    if (val<aMin) aMin=val;
+                    aSum+=val;
+                    aNb++;
+                }
+                imOut.SetR(pt,val);
+                //std::cout << "aVal a la position " << pt << " vaut " << aVal << ", transfo en " << v <<"\n";
+            }
+        }
+
+        Tiff_Im aTifOut
+                (
+                    NameOut.c_str(),
+                    imOut.sz(),
+                    GenIm::u_int1,
+                    Tiff_Im::No_Compr,
+                    Tiff_Im::BlackIsZero
+                    );
+        std::cout << "Writing " << NameOut << ", Min " << aMin <<" Max "<< aMax <<" Mean "<< aSum/aNb <<  "\n";
+
+        ELISE_COPY(imOut.all_pts(),imOut.in(),aTifOut.out());
+
+        }
+    }
+    }
+}
+
+// appliquer une translation à une orientation
+
+class cOriTran_Appli
+{
+    public:
+    cOriTran_Appli(int argc,char ** argv);
+
+    private:
+    std::string mDir;
+    std::string mFullDir;
+    std::string mPat;
+    std::string mOriIn, mOriOut;
+    Pt3dr mTr;
+};
+
+
+cOriTran_Appli::cOriTran_Appli(int argc,char ** argv)
+{
+    ElInitArgMain
+    (
+    argc,argv,
+        LArgMain()  << EAMC(mFullDir,"image pattern", eSAM_IsPatFile)
+                    << EAMC(mOriIn,"Orientation Directory", eSAM_IsExistDirOri )
+                    << EAMC(mTr,"Translation vector" )
+                    << EAMC(mOriOut,"Orientation Out" )
+        ,LArgMain()
+    );
+
+
+    if (!MMVisualMode)
+    {
+
+    SplitDirAndFile(mDir,mPat,mFullDir);
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+     StdCorrecNameOrient(mOriIn,mDir);
+    const std::vector<std::string> aSetIm = *(aICNM->Get(mPat));
+
+    // the bad way to do this, because I cannot find how to change the optical center of a camera with micmac classes
+    std::string aNameTmp("Tmp-OriTrans.txt");
+    std::string aCom = MMDir()
+                + std::string("bin/mm3d")
+
+                + " OriExport Ori-"
+                +  mOriIn + std::string("/Orientation-")
+                +  mPat + std::string(".xml")
+                + std::string(" ") + aNameTmp;
+    std::cout << aCom << "\n";
+
+    system_call(aCom.c_str());
+
+    aCom= MMDir()
+            + std::string("bin/mm3d OriConvert '#F=N_X_Y_Z_W_P_K' ")
+            +  aNameTmp + std::string(" ")
+            + std::string("OriTrans")
+            + std::string("  OffsetXYZ=") + ToString(mTr);
+
+    std::cout << aCom << "\n";
+
+    system_call(aCom.c_str());
+
+    // je fais une bascule la dessus
+
+    // je vérifie également avec un oriexport que l'offset fonctionnne
+
+    aCom="cp Ori-"+mOriIn +"/AutoCal* Ori-"+mOriOut+"/";
+    system_call(aCom.c_str());
+
+   /* aCom= MMDir()
+            + std::string("bin/mm3d GCP '#F=N_X_Y_Z_S_S_S' ")
+            +  aNameTmp + std::string(" ")
+            + std::string(mOriOut)
+            + std::string("  OffsetXYZ=") + ToString(mTr);
+
+    std::cout << aCom << "\n";
+
+    system_call(aCom.c_str());
+
+*/
+
+
+    }
+
+}
 //    Applique une homographie à l'ensemble des images thermiques pour les mettres dans la géométrie des images visibles prises simultanément
 
 class cTIR2VIS_Appli;
@@ -312,7 +814,7 @@ void cTIR2VIS_Appli::changeImRadiom(std::vector<std::string> aLIm)
 
 
 /*    comparaise des orthos thermiques pour déterminer un éventuel facteur de calibration spectrale entre 2 frame successif, expliquer pouquoi tant de variabilité spectrale est présente (mosaique moche) */
-// à priori ce n'est pas ça du tout, déjà mauvaise registration TIR --> vis du coup les ortho TIR ne se superposent pas , du coup correction radiometrique ne peut pas fonctionner.
+// à priori ce n'est pas ça du tout, déjà mauvaise registration TIR --> vis du coup les ortho TIR ne se superposent pas , du coup correction metrique ne peut pas fonctionner.
 int CmpOrthosTir_main(int argc,char ** argv)
 {
     std::string aDir, aPat="Ort_.*.tif", aPrefix="ratio";
@@ -351,7 +853,7 @@ int CmpOrthosTir_main(int argc,char ** argv)
     for (auto aCurrentImGeo: mLIm)
     {
     i++;
-    for (int j=i ; j<mLFile.size(); j++)
+    for (unsigned int j=i ; j<mLFile.size(); j++)
     {
 
         if (mLIm.at(j).Name()!=aCurrentImGeo.Name() && mLIm.at(j).overlap(&aCurrentImGeo,70))
@@ -664,7 +1166,112 @@ int TransfoMesureAppuisVario2TP_main(int argc,char ** argv)
 }
 
 
+/* j'ai saisi des points d'appuis sur un vol 2 altitudes thermiques, j'aimerai voir si cette radiance est corrélée à
+-Distance entre sensor et object  -->NON
+-angle --> PAS TESTE
+moins probable mais je teste quand même:
+-position sur capteur --> NON
+-temps écoulé depuis début du vol PAS TESTE
+ */
+int statRadianceVarioCam_main(int argc,char ** argv)
+{
+    std::string a2DMesFileName, a3DMesFileName, aOutputFile, aOri;
 
+    ElInitArgMain
+            (
+                argc,argv,
+                //mandatory arguments
+                LArgMain()  << EAMC(a2DMesFileName, "Input mes2D file",  eSAM_IsExistFile)
+                << EAMC(a3DMesFileName, "Input mes3D file",  eSAM_IsExistFile)
+                << EAMC(aOri, "Orientation",  eSAM_IsExistDirOri),
+                LArgMain()
+                << EAM(aOutputFile,"Out", true,  "Output .txt file with radiance observation for statistic",  eSAM_IsOutputFile)
+
+                );
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+
+    // open 2D measures
+    cSetOfMesureAppuisFlottants aSetOfMesureAppuisFlottants=StdGetFromPCP(a2DMesFileName,SetOfMesureAppuisFlottants);
+    // open 3D measures
+    cDicoAppuisFlottant DAF=  StdGetFromPCP(a3DMesFileName,DicoAppuisFlottant);
+    std::list<cOneAppuisDAF> & aLGCP =  DAF.OneAppuisDAF();
+
+    // create a map of GCP and position
+    std::map<std::string, Pt3dr> aGCPmap;
+
+    for (auto & GCP : aLGCP)
+    {
+        aGCPmap[GCP.NamePt()]=Pt3dr(GCP.Pt().x,GCP.Pt().y,GCP.Pt().z);
+    }
+
+
+    std::cout << "Image GCP U V rayon Radiance GroundDist \n" ;
+
+
+    for( std::list< cMesureAppuiFlottant1Im >::const_iterator iTmes1Im=aSetOfMesureAppuisFlottants.MesureAppuiFlottant1Im().begin();
+         iTmes1Im!=aSetOfMesureAppuisFlottants.MesureAppuiFlottant1Im().end();          iTmes1Im++    )
+    {
+        cMesureAppuiFlottant1Im anImTIR=*iTmes1Im;
+
+        // open the image
+        if (ELISE_fp::exist_file(anImTIR.NameIm()))
+        {
+
+            Tiff_Im mTifIn=Tiff_Im::StdConvGen(anImTIR.NameIm(),1,true);
+            // create empty RAM image
+            Im2D_REAL4 im(mTifIn.sz().x,mTifIn.sz().y);
+            // fill it with tiff image value
+            ELISE_COPY(
+                        mTifIn.all_pts(),
+                        mTifIn.in(),
+                        im.out()
+                        );
+            // open the CamStenope
+            std::string aNameOri=aICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+aOri+"@",anImTIR.NameIm(), true);
+            CamStenope * aCam(CamOrientGenFromFile(aNameOri,aICNM));
+            //std::cout << "Optical center Cam" << aCam->PseudoOpticalCenter() << "\n";
+            // loop on the
+            for (auto & appuiTIR : anImTIR.OneMesureAF1I())
+            {
+                // je garde uniquement les GCP dont le nom commence par L
+                if (appuiTIR.NamePt().substr(0,1)=="L")
+                   {
+                    Pt3dr pt = aGCPmap[appuiTIR.NamePt()];
+                   // std::cout << " Image " << anImTIR.NameIm() << " GCP " << appuiTIR.NamePt() << " ground position " << pt << " Image position " << appuiTIR.PtIm() << " \n";
+
+                    double aRadiance(0);
+                    int aNb(0);
+
+                    Pt2di UV(appuiTIR.PtIm());
+                    Pt2di sz(1,1);
+                    ELISE_COPY(
+                                rectangle(UV-sz,UV+Pt2di(2,2)*sz),// not sure how it work
+                                Virgule(im.in(),1),
+                                Virgule(sigma(aRadiance),sigma(aNb))
+                                );
+                    aRadiance/=aNb;
+                    std::cout << " Radiance on windows of " << aNb << " px " << aRadiance << " \n";
+                    aRadiance=aRadiance-27315;
+                    // now determine incid and distance from camera to GCP
+
+                    double aDist(0);
+                    Pt3dr vDist=aCam->PseudoOpticalCenter()-pt;
+                    aDist=euclid(vDist);
+
+                    double aDistUV=euclid(appuiTIR.PtIm()-aCam->PP());
+
+
+                    std::cout << anImTIR.NameIm() << " " << appuiTIR.NamePt() << " " << appuiTIR.PtIm().x   <<  " " << appuiTIR.PtIm().y  << " " << aDistUV << " " << aRadiance << " " << aDist << " \n";
+
+                    }
+                }
+
+        }
+        // fin iter sur les mesures appuis flottant
+    }
+	
+	return EXIT_SUCCESS;
+}
 
 
 int MasqTIR_main(int argc,char ** argv)
@@ -850,17 +1457,12 @@ int MasqTIR_main(int argc,char ** argv)
             Tiff_Im::BlackIsZero
             ).out()
     );
-
-
     }
     return EXIT_SUCCESS;
 }
 
 
-
-
-
-int main_test(int argc,char ** argv)
+int main_test2(int argc,char ** argv)
 {
      //cORT_Appli anAppli(argc,argv);
      //CmpOrthosTir_main(argc,argv);
@@ -868,11 +1470,108 @@ int main_test(int argc,char ** argv)
     //RegTIRVIS_main(argc,argv);
     //test_main(argc,argv);
     //MasqTIR_main(argc,argv);
-    //cERO_ModelOnePaire(argc,argv);
-    TransfoMesureAppuisVario2TP_main(argc,argv);
+    cCoreg2Ortho(argc,argv);
+    //cFeatheringAndMosaicOrtho(argc,argv);
+    //cOriTran_Appli(argc,argv);
+    //TransfoMesureAppuisVario2TP_main(argc,argv);
+    //statRadianceVarioCam_main(argc,argv);
 
    return EXIT_SUCCESS;
 }
+
+
+int main_testold(int argc,char ** argv)
+{
+ // manipulate the
+    ofstream fout("/home/lisein/data/DIDRO/lp17/GPS_RGP/GNSS_pos/test.obs");
+    ifstream fin("/home/lisein/data/DIDRO/lp17/GPS_RGP/GNSS_pos/tmp.txt");
+    string line;
+
+    std::string add("          40.000        40.000\n");
+    add="\t40.000\t40.000\n";
+      if (fin.is_open())
+      {
+        unsigned int i(0);
+        while ( getline(fin,line) )
+        {
+          i++;
+
+          if (i==17){
+              i=0;
+              fout << line << add;
+
+          } else {
+
+          if (i%2==1 && i>2)  {
+               fout << line << add;
+          } else {
+              fout << line <<"\n";}
+          }
+        }
+
+       } else { std:cout << "cannot open file in\n";}
+        fin.close();
+        fout.close();
+
+   return EXIT_SUCCESS;
+}
+
+int VarioCamTo8Bits_main(int argc,char ** argv)
+{
+
+    cVarioCamTo8Bits(argc,argv);
+
+   return EXIT_SUCCESS;
+}
+
+
+
+/*
+ * // useless, Giang l'a codé en bien plus propre.
+ * template <class T,class TB>
+double VarLapl(Im2D<T,TB> * aIm,int aSzW);
+//burriness is computed as variance of  Laplacian with a mean filter prior to reduce noise
+//https://www.pyimagesearch.com/2015/09/07/blur-detection-with-opencv/
+template <class T,class TB>
+double VarLapl(Im2D<T,TB> * aIm,int aSzW)
+{
+   Im2D_REAL4 aRes(aIm->sz().x,aIm->sz().y);
+
+   Fonc_Num aF = aIm->in_proj();
+
+   int aNbVois = ElSquare(1+2*aSzW);
+
+   aF = rect_som(aF,aSzW) /aNbVois;
+
+   double min,max;//  afin de pouvoir mettre le range de valeur entre 0 et 255
+   ELISE_COPY(aIm->all_pts()
+              ,aF
+              ,aRes.out());
+
+   double mean;
+   int nb;
+
+   ELISE_COPY(aRes.all_pts()
+              ,Virgule(Laplacien(aRes.in_proj())                           ,1)
+              ,Virgule(aRes.out()|sigma(mean)      ,sigma(nb)));
+
+   std::cout << "mean of laplacian : " << mean << "\n";
+   mean=mean/nb;
+
+   std::cout << "nb of value: " << nb << "\n";
+   // variance of laplacian
+   Fonc_Num aFVar = ElSquare((aRes.in()-mean));
+
+   double meanVarLap;
+   ELISE_COPY(aRes.all_pts()
+              ,aFVar
+              ,sigma(meanVarLap));
+   // mean of variance
+   meanVarLap/=nb;
+   return meanVarLap;
+}
+*/
+
 
 
 

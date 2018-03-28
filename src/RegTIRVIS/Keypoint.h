@@ -31,6 +31,7 @@ class KeyPoint
 	 void setSize(float sz) {m_size=sz;}
 	 void setAngle(float angle){m_angle=angle;}
      void setResponse(float response){m_response=response;}
+     void undist(CamStenope * aCalib);
      //getters
      Pt2df getPoint(){return m_Point;}
      float getAngle(){return m_angle;}

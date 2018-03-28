@@ -370,8 +370,11 @@ double VarOfLap_LAP4(string aNameIm, double rech = 0.5)
 
     Pt2di aSzKer(round_up((aLapl.sz().x-1)/2), round_up((aLapl.sz().y-1)/2));
 
-
     Im2D_REAL4 aIm2D = ImRead(aNameIm);
+
+    Im2D_REAL4 aIm2D_DNs(aIm2D.sz().x, aIm2D.sz().y);
+
+    aIm2D_DNs = Convol_With_ELISE(aIm2D, aDenoise);
 
     Im2D_REAL4 aIm2D_Rsz;
 
@@ -379,8 +382,6 @@ double VarOfLap_LAP4(string aNameIm, double rech = 0.5)
 
     //SaveTif(aIm2D_Rsz, aNameIm + "_Rsz");
 
-    Im2D_REAL4 aIm2D_DNs(aIm2D_Rsz.sz().x, aIm2D_Rsz.sz().y);
-    aIm2D_DNs = Convol_With_ELISE(aIm2D_Rsz, aDenoise);
 
     Im2D_REAL4 aIm2D_Lpl(aIm2D_Rsz.sz().x, aIm2D_Rsz.sz().y);
     aIm2D_Lpl = Convol_With_ELISE(aIm2D_DNs, aLapl);
@@ -598,8 +599,9 @@ void Test_FAST()
     cout<<aDec->lstPt().size()<<" pts detected "<<endl;
 }
 // ============== Test Draw Rectangle on PLY ===============
-void JSON_WritePt3D(Pt3dr aPt, ofstream & aJSONOut, bool isEnd=false)
+void JSON_WritePt3D(Pt3dr aPt, ofstream & aJSONOut, Pt3dr aOffSet = Pt3dr(0,0,0), bool isEnd=false)
 {
+    aPt = aPt + aOffSet;
     aJSONOut.precision(16); // std::ios_base::precision
     aJSONOut<<"{"<<endl;
     aJSONOut<<" \"type\": \"Feature\","<<endl;
@@ -617,7 +619,7 @@ void JSON_WritePt3D(Pt3dr aPt, ofstream & aJSONOut, bool isEnd=false)
     return;
 }
 
-void JSON_WritePoly(vector<Pt3dr> aPoly, ofstream & aJSONOut, bool isEnd=false)
+void JSON_WritePoly(vector<Pt3dr> aPoly, ofstream & aJSONOut, Pt3dr aOffSet = Pt3dr(0,0,0), bool isEnd=false)
 {
     aJSONOut.precision(16); // std::ios_base::precision
     aJSONOut<<"{"<<endl;
@@ -629,6 +631,7 @@ void JSON_WritePoly(vector<Pt3dr> aPoly, ofstream & aJSONOut, bool isEnd=false)
     for(uint aKP=0; aKP<aPoly.size(); aKP++)
     {
         Pt3dr aPt = aPoly[aKP];
+        aPt = aPt + aOffSet;
         aJSONOut<<"     ["<<std::fixed<<aPt.x<<", "<<aPt.y<<", "<<aPt.z<<"]";
         if (aKP == aPoly.size()-1)
             aJSONOut<<endl;
@@ -643,14 +646,23 @@ void JSON_WritePoly(vector<Pt3dr> aPoly, ofstream & aJSONOut, bool isEnd=false)
 }
 
 
-void DrawOneFootPrintToPly(CamStenope * aCam,  string & aNameIm, cPlyCloud & aCPlyRes, Pt3di aCoul, Pt2dr aResolution, ofstream & aJSONOut, bool isEnd=false, double aOffSetZ=0, bool aPlyEachImg = false)
+void DrawOneFootPrintToPly(CamStenope * aCam,
+                           string & aNameIm,
+                           cPlyCloud & aCPlyRes,
+                           Pt3di aCoul,
+                           Pt2dr aResolution,
+                           ofstream & aJSONOut,
+                           bool isEnd=false,
+                           Pt3dr aOffSetPly = Pt3dr(0,0,0),
+                           Pt3dr aOffSetGeoJSON = Pt3dr(0,0,0),
+                           bool aPlyEachImg = false)
 {
     std::string aPathPly = "./PLYFootPrint/" + aNameIm + "_FP.ply"; // We can't get name Image from CamStenope !!!
 
     cPlyCloud aPly;
     cElPolygone aPolyEmprise = aCam->EmpriseSol();
     Pt3dr aCamCentre = aCam->VraiOpticalCenter();
-    JSON_WritePt3D(aCamCentre, aJSONOut, false);
+    JSON_WritePt3D(aCamCentre, aJSONOut, aOffSetGeoJSON, false);
 
     //if (aPlyEachImg)
         //aPly.AddSphere(aCoul, aCamCentre, aCam->GetAltiSol()/30 ,20);
@@ -665,23 +677,23 @@ void DrawOneFootPrintToPly(CamStenope * aCam,  string & aNameIm, cPlyCloud & aCP
         for (uint aK = 0; aK<aCon.size(); aK++)
         {
             cout<<aCon[aK]<<" ";
-            aPolyEmpreint.push_back(Pt3dr(aCon[aK].x, aCon[aK].y, aCam->GetAltiSol() + aOffSetZ));
+            aPolyEmpreint.push_back(Pt3dr(aCon[aK].x, aCon[aK].y, aCam->GetAltiSol()));
         }
     }
     cout<<endl;
     ELISE_ASSERT(aPolyEmpreint.size() == 4, "Polygon Empreint != 4");
-    aCPlyRes.AddSeg(aCoul, aPolyEmpreint[0], aPolyEmpreint[1], aResolution.x);
-    aCPlyRes.AddSeg(aCoul, aPolyEmpreint[1], aPolyEmpreint[2], aResolution.x);
-    aCPlyRes.AddSeg(aCoul, aPolyEmpreint[2], aPolyEmpreint[3], aResolution.x);
-    aCPlyRes.AddSeg(aCoul, aPolyEmpreint[3], aPolyEmpreint[0], aResolution.x);
-    JSON_WritePoly(aPolyEmpreint, aJSONOut, isEnd);
+    aCPlyRes.AddSeg(aCoul, aPolyEmpreint[0] + aOffSetPly, aPolyEmpreint[1] + aOffSetPly, aResolution.x);
+    aCPlyRes.AddSeg(aCoul, aPolyEmpreint[1] + aOffSetPly, aPolyEmpreint[2] + aOffSetPly, aResolution.x);
+    aCPlyRes.AddSeg(aCoul, aPolyEmpreint[2] + aOffSetPly, aPolyEmpreint[3] + aOffSetPly, aResolution.x);
+    aCPlyRes.AddSeg(aCoul, aPolyEmpreint[3] + aOffSetPly, aPolyEmpreint[0] + aOffSetPly, aResolution.x);
+    JSON_WritePoly(aPolyEmpreint, aJSONOut, aOffSetGeoJSON, isEnd);
 
     if (aPlyEachImg)
     {
-        aPly.AddSeg(aCoul, aPolyEmpreint[0], aPolyEmpreint[1], 2000);
-        aPly.AddSeg(aCoul, aPolyEmpreint[1], aPolyEmpreint[2], 2000);
-        aPly.AddSeg(aCoul, aPolyEmpreint[2], aPolyEmpreint[3], 2000);
-        aPly.AddSeg(aCoul, aPolyEmpreint[3], aPolyEmpreint[0], 2000);
+        aPly.AddSeg(aCoul, aPolyEmpreint[0] + aOffSetPly, aPolyEmpreint[1] + aOffSetPly, aResolution.x);
+        aPly.AddSeg(aCoul, aPolyEmpreint[1] + aOffSetPly, aPolyEmpreint[2] + aOffSetPly, aResolution.x);
+        aPly.AddSeg(aCoul, aPolyEmpreint[2] + aOffSetPly, aPolyEmpreint[3] + aOffSetPly, aResolution.x);
+        aPly.AddSeg(aCoul, aPolyEmpreint[3] + aOffSetPly, aPolyEmpreint[0] + aOffSetPly, aResolution.x);
     }
 
     aPly.PutFile(aPathPly);
@@ -703,6 +715,9 @@ int DroneFootPrint(int argc,char ** argv)
     double aOffSetZ =0;
     bool aPlyEachImg = false;
     Pt2dr aResolution = Pt2dr(2000,20); //[resol_line, resol_sphere]
+    int aCodeProj = 2154;
+    Pt3dr aOffSetPLY = Pt3dr(0,0,0);
+    Pt3dr aOffSetGeoJSON = Pt3dr(0,0,0);
 
     ElInitArgMain
     (
@@ -712,9 +727,11 @@ int DroneFootPrint(int argc,char ** argv)
           LArgMain()
                       << EAM(aOutPly, "Out" , true, "PLY output - def=FootPrint.ply & FootPrint.ply.geojson (QGIS Format)")
                       << EAM(aPlyEachImg, "PlyEachImg" , true, "PLY output separately for each image - directory PLYFootPrint")
-                      << EAM(aOffSetZ, "OffSetZ" , true, "OffSet in altitude (for drone acquisition). To better visualize with Point cloud")
+                      << EAM(aOffSetPLY, "OffSetPLY" , true, "OffSet for PLY [X,Y,Z]")
+                      << EAM(aOffSetGeoJSON, "OffSetGeoJSON" , true, "OffSet for geo JSON file [X,Y,Z]")
                       << EAM(aResolution, "Resol" , true, "Resolution of line and sphere [resol_line, resol_sphere], def=[2000,20]")
-    );
+                      << EAM(aCodeProj, "CodeProj" , true, "EPSG projection code. Default = 2154 (Lambert 93)")
+                );
 
     SplitDirAndFile(aDir, aPat, aPattern);
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -759,7 +776,7 @@ int DroneFootPrint(int argc,char ** argv)
         bool isEnd=false;
         if (aKIm == aSetIm.size()-1)
             isEnd=true;
-        DrawOneFootPrintToPly(aCam, aNameIm, aCPlyRes, aCoul, aResolution, aJSONOut, isEnd, aOffSetZ, aPlyEachImg);
+        DrawOneFootPrintToPly(aCam, aNameIm, aCPlyRes, aCoul, aResolution, aJSONOut, isEnd, aOffSetPLY, aOffSetGeoJSON, aPlyEachImg);
     }
     aJSONOut<<"]"<<endl;
     aJSONOut<<"}"<<endl;

@@ -800,7 +800,10 @@ void cAppli_MPI2Mnt::DoMTD()
                           + PATTERN_QUOTE(mCFPI->mStrPat)
                           + std::string(" ") + mCFPI->mMMI->GetOriOfEtat()
                           + mStrRep
-                          + " DoMEC=0  Purge=true ZoomI=4 ZoomF=2  IncMax=1.0 " +
+                          + " DoMEC=0 Purge=true "
+                          + " ZoomI=" + ToString(mDeZoom * 2)
+                          + " ZoomF=" + ToString(mDeZoom)
+                          + " IncMax=1.0 "
                           + " DirMEC=" + mDirMTD
                           + " UseTA=" + ToString(mUseTA)
                           + " ZoomF=" + ToString(mDeZoom)
@@ -858,6 +861,11 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
                     << EAM(mUseTA,"UseTA",true,"Use TA as filter when exist (Def=false)",eSAM_InternalUse)
                     << EAM(mResolIm,"RI",true,"Resol Im, def=1 ",eSAM_InternalUse)
                     << EAM(mSeuilE,"SeuilE",true,"Seuil d'etirement des triangle, Def=5")
+                    << EAM(mDeZoom, "ZoomF", true, "ZoomF, Def=2")
+                    << EAM(mDirMTD, "DirMTD", true, "Subdirectory where the temporary results will be stored, Def=PIMs-TmpMnt/")
+                    << EAM(mDirOrtho, "DirOrtho", true, "Subdirectory for ortho images, Def=PIMs-ORTHO/")
+                    << EAM(mDirBasc, "DirBasc", true, "Subdirectory for surface model, Def=PIMs-TmpBasc/")
+                    << EAM(mNameMerge, "NameMerge", true, "BaseName of the surface model (*.xml), Def=PIMs-Merged.xml")
    );
 
    mResolIm  /= mDeZoom;

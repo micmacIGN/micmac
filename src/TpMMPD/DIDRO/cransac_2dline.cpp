@@ -27,6 +27,17 @@ cRansac_2dline::cRansac_2dline(std::vector<Pt2dr> * aObs, ModelForm model, int a
     }
 }
 
+
+cRansac_2dline::cRansac_2dline(std::map<int,Pt2dr> * aObsMap, ModelForm model, int aNbInt)
+{
+    std::vector<Pt2dr> aObs;
+
+    for (std::map<int, Pt2dr>::iterator it=aObsMap->begin(); it!=aObsMap->end(); ++it)
+        aObs.push_back(it->second);
+    cRansac_2dline(&aObs,model,aNbInt);
+}
+
+
 void cRansac_2dline::affiche()
 {
     // affiche les résumés du modèle
@@ -177,29 +188,41 @@ void c2DLineModel::computeCout(std::vector<Pt2dr> * aObs,std::vector<double> * a
 
 cLSQ_2dline::cLSQ_2dline(std::vector<Pt2dr> * aObs,ModelForm model):
 mModelForm(model),
-mObs(aObs),
+mPond(1),
 mOk(0)
 {
-// mettre toutes les pondérations à 1
-for (unsigned int i(0) ;i< mObs->size(); i++)
-{
-    mPond.push_back(1);
-}
+
+    for (unsigned int i(0) ; i<aObs->size();i++)
+    {
+      pObs.push_back(std::make_pair(&mPond,&aObs->at(i)));
+    }
 }
 
 cLSQ_2dline::cLSQ_2dline(std::vector<Pt2dr> * aObs,std::vector<double> * aPond,ModelForm model):
 mModelForm(model),
-mObs(aObs),
-mPond(*aPond),
 mOk(0)
 {
     // check that observation and ponderation have the same length
-    if(mPond.size()!=mObs->size())
+    if(aPond->size()!=aObs->size())
     {std::cout  <<"Warning: Ponderation vector have not the same length than observations.\n";}
-
+    if((aPond->size()==0 )|(aObs->size()==0))
+    {std::cout  <<"Warning: Observations or ponderation vector is empty.\n";}
+    for (unsigned int i(0) ; i<aObs->size();i++)
+    {
+      pObs.push_back(std::make_pair(&aPond->at(i),&aObs->at(i)));
+    }
 }
 
-cLSQ_2dline::cLSQ_2dline():mObs(0),mOk(0)
+cLSQ_2dline::cLSQ_2dline(std::map<int,Pt2dr> * aObsMap,std::map<int,double> * aPondMap, ModelForm model)
+{
+    for (std::map<int, Pt2dr>::iterator it=aObsMap->begin(); it!=aObsMap->end(); ++it)
+    {
+        pObs.push_back(std::make_pair(&aPondMap->at(it->first),&it->second));
+    }
+}
+
+
+cLSQ_2dline::cLSQ_2dline():mPond(1),mOk(0)
 {
 
 }
@@ -210,18 +233,17 @@ cLSQ_2dline::~cLSQ_2dline()
    //delete mObs;
 }
 
-void cLSQ_2dline::adjustModel()
+void cLSQ_2dline::adjustModelL2()
 {
     // Create L2SysSurResol to solve least square equation with 2 unknowns
     L2SysSurResol aSys(2);
 
     //For Each radiometric Couples, add the observations
-    int it(0);
-    for(auto & rc : *mObs){
-        double aPds[2]={rc.x,1};
-        double poids=mPond.at(it);
-        aSys.AddEquation(poids,aPds,rc.y);
-        it++;
+    for(auto & pair_pointers : pObs){
+
+        double aFormLin[2]={pair_pointers.second->x,1}; // b*x+a
+        double poids=*pair_pointers.first;
+        aSys.AddEquation(poids,aFormLin,pair_pointers.second->y);
     }
 
     Im1D_REAL8 aSol = aSys.GSSR_Solve(&mOk);
@@ -232,9 +254,39 @@ void cLSQ_2dline::adjustModel()
         //std::cout << "solution trouvée , b =" << aData[0] << " and a " << aData[1] << " \n";
         mModel=c2DLineModel(aData[1],aData[0]);
     } else {
-        std::cout << "adjustment of a 2D line by LSQ failed\n";
+        std::cout << "adjustment of a 2D line by LSQ L2 failed\n";
     }
 }
+
+
+void cLSQ_2dline::adjustModelL1()
+{
+    SystLinSurResolu aSys(2,pObs.size());
+
+    //For Each radiometric Couples, add the observations
+
+    for(auto & pair_pointers : pObs){
+
+        double aFormLin[2]={pair_pointers.second->x,1}; // b*x+a
+        int poids=*pair_pointers.first;
+        //std::cout << "add equation to systlinsurREsolu : " << pair_pointers.second->x << " + a = " <<pair_pointers.second->y << ", weighting of " << poids << "\n";
+        aSys.PushEquation(aFormLin,pair_pointers.second->y,poids);
+    }
+
+    Im1D_REAL8 aSol = aSys.L1Solve();
+    mOk=1;
+
+    if (mOk)
+    {
+        double* aData = aSol.data();
+        //std::cout << "solution trouvée , b =" << aData[0] << " and a " << aData[1] << " \n";
+        mModel=c2DLineModel(aData[1],aData[0]);
+    } else {
+        std::cout << "adjustment of a 2D line by LSQ L1 failed\n";
+    }
+
+}
+
 
 void cLSQ_2dline::affiche()
 {
@@ -243,7 +295,7 @@ void cLSQ_2dline::affiche()
     // test si l'ajustement a déjà eu lieu
     if(mOk)
     {
-    std::cout << "Observations :" << mObs->size() << "\n";
+    std::cout << "Observations :" << pObs.size() << "\n";
     std::cout << "a + b * x = y     a=" << mModel.getA() << ", b=" << mModel.getB() << ".\n";
     } else std::cout << "l'ajustement as échoué ou n'as pas encore été effectué.\n";
 }

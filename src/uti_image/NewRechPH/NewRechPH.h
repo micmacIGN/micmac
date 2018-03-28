@@ -69,6 +69,10 @@ typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
 typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
 */
 
+constexpr int DynU1 = 32;
+void StdInitFitsPm(cFitsParam & aFP);
+
+
 
 
 
@@ -162,7 +166,8 @@ class cOneScaleImRechPH
 class cAppli_NewRechPH
 {
     public :
-        Pt2di SzInvRad();
+        Pt2di SzInvRadUse();
+        Pt2di SzInvRadCalc();
 
         cAppli_NewRechPH(int argc,char ** argv,bool ModeTest);
 
@@ -221,7 +226,9 @@ class cAppli_NewRechPH
   Invariant Rotation
 */
         double      mStepSR;  // Pas entre les pixel de reechantillonage pour les desc
-        int         mNbSR;     // Nbre de niveau radial (entre 
+        bool        mRollNorm; // si true , normalisation par fenetre glissante, :
+        int         mNbSR2Use;     // Nbre de niveau pour utilisation
+        int         mNbSR2Calc;     // Nbre de niveau a calculer, different si rolling
         int         mDeltaSR;  // Delta entre deux niveau radiaux, genre 1 ou 2 ?
         int         mMaxLevR;  // Niv max permettant le calcul (calcule a partir des autres)
 
@@ -289,15 +296,48 @@ class cAppli_NewRechPH
 class cCompileOPC
 {
     public :
+
+      // Return -1 si arret avant correl
+      double  Match(cCompileOPC & aCP2,const cFitsParam & aFP,int & aShiftOr);
+
+
       cCompileOPC(const cOnePCarac & aOPC) ;
 
       double   ValCB(const cCompCBOneBit & aCCOB) const;
-      int Flag(const cCompCB & aCOB) const;
+      int  ShortFlag(const cCompCB & aCOB) const;
+      int  ShortFlag(const cCompCB & aCOB,int aK0,int aK1) const;
+      tCodBin  LongFlag(const cCompCB & aCOB) const;
+
       void AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const;
+
+
+      double DistIR(const cCompileOPC & aCP) const; // Dist inv to Rad
+ 
+
+      int    ComputeShiftOneC(const cCompileOPC & aCP,int aChanel) const;
+      int    ComputeShiftGlob(const cCompileOPC & aCP,double & anInc) const;
+
+      double DistIm(const cCompileOPC & aCP,int aShiftIm2) const;
+      inline int DifPer(int,int) const;
+      void SetFlag(const cFitsOneLabel & aFOL);
+      int DifShortF(const cCompileOPC &);
+      int DifLongF(const cCompileOPC &);
+
+      // double DistShift(const cCompileOPC & aCP,int aChanel,int aShiftIm2) const;
 
 
       cOnePCarac   mOPC;
       INT1 **      mDR;
+      Pt2di        mSzIR;
+      INT1 **      mIm;
+      Pt2di        mSzIm;
+      INT1 **      mProf;
+      Pt2di        mSzProf;
+      int          mNbTeta;
+      int          mShortFlag;
+      tCodBin      mLongFlag;
+      bool         mFlagIsComp;
+      int          mTmpNbHom;
 };
 
 

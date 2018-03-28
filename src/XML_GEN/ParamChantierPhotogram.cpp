@@ -1184,6 +1184,61 @@ void  BinaryUnDumpFromFile(eTypeTapas & anObj,ELISE_fp & aFp)
 
 std::string  Mangling( eTypeTapas *) {return "58CA7259C38FBDFBFDBF";};
 
+eTypeOriVid  Str2eTypeOriVid(const std::string & aName)
+{
+   if (aName=="eBBA")
+      return eBBA;
+   else if (aName=="eSBBA")
+      return eSBBA;
+   else if (aName=="eSBBAFus")
+      return eSBBAFus;
+   else if (aName=="eUndefVal")
+      return eUndefVal;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeOriVid\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeOriVid) 0;
+}
+void xml_init(eTypeOriVid & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeOriVid(aTree->Contenu());
+}
+std::string  eToString(const eTypeOriVid & anObj)
+{
+   if (anObj==eBBA)
+      return  "eBBA";
+   if (anObj==eSBBA)
+      return  "eSBBA";
+   if (anObj==eSBBAFus)
+      return  "eSBBAFus";
+   if (anObj==eUndefVal)
+      return  "eUndefVal";
+ std::cout << "Enum = eTypeOriVid\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeOriVid & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeOriVid & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeOriVid & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeOriVid) aIVal;
+}
+
+std::string  Mangling( eTypeOriVid *) {return "B852E3923E4851F8FE3F";};
+
 eTypeMMByP  Str2eTypeMMByP(const std::string & aName)
 {
    if (aName=="eGround")

@@ -163,6 +163,7 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
         mVHom.push_back(std::vector<cOnePCarac*>());
         int aDifMax = 3;
         std::vector<int>  aHistoScale(aDifMax+1,0);
+        std::vector<int>  aHistoScaleStab(aDifMax+1,0);
         double aSeuilDist = 2.0;
         double aSeuilProp = 0.02;
         int aNbOk=0;
@@ -175,11 +176,15 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
         for (auto aPtr1 : aV1)
             aVObj1.push_back(*aPtr1);
 
+// std::cout << "GGGGGg " << aV1.size() << " " << aV2.size() << "\n"; getchar();
+
 
         if ((!aV1.empty()) && (!aV2.empty()))
         {
             aI2.mVNearest.clear();
-            std::cout << "===========================================================\n";
+            std::cout << "*************===========================================================*************\n";
+            std::cout << "*************===========================================================*************\n";
+            std::cout << "*************===========================================================*************\n";
             std::cout << "For " << eToString(aLab) << " sz=" << aV1.size() << " " << aV2.size() << "\n";
 
             std::vector<double> aVD22;
@@ -190,7 +195,7 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
                  aI2.mVNearest.push_back(aP);
                  aVD22.push_back(aDist);
             }
-            mAppli.ShowStat("Nearest D for ",20,aVD22);
+            mAppli.ShowStat("Distribution du point le plus proche avec meme carac",20,aVD22);
       
  
             std::vector<double> aVD12;
@@ -208,6 +213,20 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
                     {
                          aNbOk++;
                          aHistoScale.at(ElMin(aDifMax,ElAbs(aV1[aK1]->NivScale() - aP->NivScale())))++;
+
+               
+                         if (0) // Affichage ScaleStab
+                         // Conclusion, on peut sans doute limiter le nombre de point avec ScaleStab
+                         // pour filtrage a priori => genre les 500 les plus stable
+                         {
+                            double aRatioS = aV1[aK1]->ScaleStab() / aP->ScaleStab();
+                            aRatioS = ElAbs(log(aRatioS) / log(2));
+                            double aEchS = ElAbs(log(aP->ScaleStab())) / log(2);
+                            
+                            std::cout << "RRRR " << aRatioS <<  " " << aEchS  <<  "  SN " << aP->NivScale() << "\n";
+                         }
+                         
+                         // aHistoScaleStab.at(ElMin(aDifMax,ElAbs(aV1[aK1]->ScaleStab() - aP->ScaleStab())))++;
                          double aPropInv = 1 - ScoreTestMatchInvRad(aVObj1,aV1[aK1],aP);
                          aScorInvR.push_back(aPropInv);
                          // if (aNbOk%10) std::cout << "aNbOk++aNbOk++ " << aNbOk << "\n";
@@ -336,8 +355,9 @@ void cAppliStatPHom::TestHom()
            }
         }
     }
-    ShowStat("ECAR EPIP",20,aVREpi);
-    ShowStat("ECAR COMPL",20,aVRComp);
+    //  La, on test la qualite des references , epipolaire et nuages
+    ShowStat("ECAR EPIP pour les points SIFT",20,aVREpi);
+    ShowStat("ECAR COMPLET pour les points SIFT",20,aVRComp);
 /*
     int aNB= 20;
     std::cout << "========= ECAR EPIP ==========\n";

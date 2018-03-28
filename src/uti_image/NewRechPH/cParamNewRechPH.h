@@ -129,6 +129,30 @@ std::string  Mangling( cOneInvRad *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cProfilRad
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cProfilRad & anObj,cElXMLTree * aTree);
+
+
+        Im2D_INT1 & ImProfil();
+        const Im2D_INT1 & ImProfil()const ;
+    private:
+        Im2D_INT1 mImProfil;
+};
+cElXMLTree * ToXMLTree(const cProfilRad &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cProfilRad &);
+
+void  BinaryUnDumpFromFile(cProfilRad &,ELISE_fp &);
+
+std::string  Mangling( cProfilRad *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cOnePCarac
 {
     public:
@@ -179,11 +203,14 @@ class cOnePCarac
         cOneInvRad & InvR();
         const cOneInvRad & InvR()const ;
 
-        Im2D_INT1 & ImRad();
-        const Im2D_INT1 & ImRad()const ;
+        Im2D_INT1 & ImLogPol();
+        const Im2D_INT1 & ImLogPol()const ;
 
         std::vector<double> & VectRho();
         const std::vector<double> & VectRho()const ;
+
+        cProfilRad & ProfR();
+        const cProfilRad & ProfR()const ;
     private:
         eTypePtRemark mKind;
         Pt2dr mPt;
@@ -199,8 +226,9 @@ class cOnePCarac
         double mAutoCorrel;
         bool mOK;
         cOneInvRad mInvR;
-        Im2D_INT1 mImRad;
+        Im2D_INT1 mImLogPol;
         std::vector<double> mVectRho;
+        cProfilRad mProfR;
 };
 cElXMLTree * ToXMLTree(const cOnePCarac &);
 
@@ -421,9 +449,13 @@ class cCompCB
         friend void xml_init(cCompCB & anObj,cElXMLTree * aTree);
 
 
+        int & BitThresh();
+        const int & BitThresh()const ;
+
         std::vector< cCompCBOneBit > & CompCBOneBit();
         const std::vector< cCompCBOneBit > & CompCBOneBit()const ;
     private:
+        int mBitThresh;
         std::vector< cCompCBOneBit > mCompCBOneBit;
 };
 cElXMLTree * ToXMLTree(const cCompCB &);
@@ -433,6 +465,110 @@ void  BinaryDumpInFile(ELISE_fp &,const cCompCB &);
 void  BinaryUnDumpFromFile(cCompCB &,ELISE_fp &);
 
 std::string  Mangling( cCompCB *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cFitsOneBin
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cFitsOneBin & anObj,cElXMLTree * aTree);
+
+
+        std::string & PrefName();
+        const std::string & PrefName()const ;
+
+        cTplValGesInit< std::string > & PostName();
+        const cTplValGesInit< std::string > & PostName()const ;
+
+        cTplValGesInit< cCompCB > & CCB();
+        const cTplValGesInit< cCompCB > & CCB()const ;
+    private:
+        std::string mPrefName;
+        cTplValGesInit< std::string > mPostName;
+        cTplValGesInit< cCompCB > mCCB;
+};
+cElXMLTree * ToXMLTree(const cFitsOneBin &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cFitsOneBin &);
+
+void  BinaryUnDumpFromFile(cFitsOneBin &,ELISE_fp &);
+
+std::string  Mangling( cFitsOneBin *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cFitsOneLabel
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cFitsOneLabel & anObj,cElXMLTree * aTree);
+
+
+        cFitsOneBin & BinIndexed();
+        const cFitsOneBin & BinIndexed()const ;
+
+        cFitsOneBin & BinDecision();
+        const cFitsOneBin & BinDecision()const ;
+    private:
+        cFitsOneBin mBinIndexed;
+        cFitsOneBin mBinDecision;
+};
+cElXMLTree * ToXMLTree(const cFitsOneLabel &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cFitsOneLabel &);
+
+void  BinaryUnDumpFromFile(cFitsOneLabel &,ELISE_fp &);
+
+std::string  Mangling( cFitsOneLabel *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cFitsParam
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cFitsParam & anObj,cElXMLTree * aTree);
+
+
+        eTypePtRemark & KindOl();
+        const eTypePtRemark & KindOl()const ;
+
+        cFitsOneLabel & OverLap();
+        const cFitsOneLabel & OverLap()const ;
+
+        std::list< cFitsOneLabel > & GenLabs();
+        const std::list< cFitsOneLabel > & GenLabs()const ;
+
+        cTplValGesInit< double > & SeuilCorrDR();
+        const cTplValGesInit< double > & SeuilCorrDR()const ;
+
+        cTplValGesInit< double > & SeuilInc();
+        const cTplValGesInit< double > & SeuilInc()const ;
+
+        cTplValGesInit< double > & SeuilCorrLP();
+        const cTplValGesInit< double > & SeuilCorrLP()const ;
+    private:
+        eTypePtRemark mKindOl;
+        cFitsOneLabel mOverLap;
+        std::list< cFitsOneLabel > mGenLabs;
+        cTplValGesInit< double > mSeuilCorrDR;
+        cTplValGesInit< double > mSeuilInc;
+        cTplValGesInit< double > mSeuilCorrLP;
+};
+cElXMLTree * ToXMLTree(const cFitsParam &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cFitsParam &);
+
+void  BinaryUnDumpFromFile(cFitsParam &,ELISE_fp &);
+
+std::string  Mangling( cFitsParam *);
 
 /******************************************************/
 /******************************************************/

@@ -88,6 +88,14 @@
          <!-- Code Binaire : devrait etre 1D, mais flemme modifier xml_init et autres ...  -->
          <CodeBinaire  Nb="1" Type="Im2D_U_INT2"> </CodeBinaire>
    </OneInvRad>
+
+   <ProfilRad  Nb="1" Class="true" ToReference="true">
+         <!-- y :  NumVect , x : Rho -->
+         <ImProfil Nb="1" Type="Im2D_INT1"> </ImProfil>
+         <!-- Code Binaire : devrait etre 1D, mais flemme modifier xml_init et autres ...  -->
+   </ProfilRad>
+
+
    <OnePCarac   Nb="1" Class="true" ToReference="true">
          <Kind Nb="1" Type="eTypePtRemark">        </Kind>
          <Pt   Nb="1" Type="Pt2dr">     </Pt>
@@ -105,8 +113,9 @@
      <!--   codage binaire -->
     <!-- Pour visu -->
          <InvR Nb="1" RefType="OneInvRad">  </InvR>
-         <ImRad Nb="1" Type="Im2D_INT1"> </ImRad>
+         <ImLogPol Nb="1" Type="Im2D_INT1"> </ImLogPol>
          <VectRho   Nb="1" Type="std::vector<double>">  </VectRho>
+         <ProfR Nb="1" RefType="ProfilRad">  </ProfR>
    </OnePCarac>
 
    <SetPCarac  Nb="1" Class="true">
@@ -143,9 +152,31 @@
    </CompCBOneBit>
 
    <CompCB Nb="1" Class="true" ToReference="true">
-         <CompCBOneBit  Nb="*" RefType="CompCBOneBit" Container="std::vector"> </CompCBOneBit>
+       <BitThresh Nb="1" Type="int"> </BitThresh>
+       <CompCBOneBit  Nb="*" RefType="CompCBOneBit" Container="std::vector"> </CompCBOneBit>
    </CompCB>
 
+   
+   <FitsOneBin Nb="1" Class="true" ToReference="true">
+       <PrefName Nb="1" Type="std::string">     </PrefName> 
+       <PostName Nb="?" Type="std::string" Def="_Local.xml">     </PostName> 
+       <CCB Nb="?" RefType="CompCB">            </CCB>
+   </FitsOneBin>
+
+   <FitsOneLabel Nb="1" Class="true" ToReference="true">
+       <BinIndexed Nb="1" RefType="FitsOneBin">  </BinIndexed>  <!-- Quick one, for indexation -->
+       <BinDecision Nb="1" RefType="FitsOneBin"> </BinDecision>  <!-- Longer one making the decision -->
+   </FitsOneLabel>
+   
+   
+   <FitsParam Nb="1" Class="true" ToReference="true">
+       <KindOl Nb="1" Type="eTypePtRemark">     </KindOl> 
+       <OverLap  Nb="1" RefType="FitsOneLabel"> </OverLap> <!-- Quick for overlap dec -->
+       <GenLabs  Nb="*" RefType="FitsOneLabel"> </GenLabs>  <!-- 0 ou 1, sera complete autom -->
+       <SeuilCorrDR Nb="?" Type="double" Def="0.7"> </SeuilCorrDR>  <!--  Seuil corr sur inv rad -->
+       <SeuilInc    Nb="?" Type="double" Def="0.01"> </SeuilInc>    <!-- Seuil Inco entre les div estim de shift -->
+       <SeuilCorrLP Nb="?" Type="double" Def="0.93"> </SeuilCorrLP> <!-- Seuil correl Log Polar-->
+   </FitsParam>
 
 
 <Verbatim File=".h.cpp">

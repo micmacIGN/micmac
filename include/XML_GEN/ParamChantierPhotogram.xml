@@ -211,6 +211,13 @@
            <eTT_NbVals> </eTT_NbVals>
    </enum>
 
+   <enum Name="eTypeOriVid">
+		<eBBA> </eBBA>
+		<eSBBA> </eSBBA>
+		<eSBBAFus> </eSBBAFus>
+		<eUndefVal> </eUndefVal>
+   </enum>
+
    <enum Name="eTypeMMByP">
        <eGround>         </eGround>
        <eStatue>         </eStatue>
