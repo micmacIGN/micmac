@@ -138,10 +138,22 @@ cParamMap2DRobustInit::cParamMap2DRobustInit(eTypeMap2D aType,int aNbTirRans,con
 
 
 
-
 void  Map2DRobustInit(const ElPackHomologue & aPackFull,cParamMap2DRobustInit & aParam);
 cElMap2D *  L2EstimMapHom(cElMap2D * aRes,const ElPackHomologue & aPack);
 cElMap2D * L2EstimMapHom(eTypeMap2D aType,const ElPackHomologue & aPack,const std::vector<std::string> * aVAux=0);
+
+ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan)
+{
+    cParamMap2DRobustInit aParam(eTM2_Simil,100,nullptr);
+    aParam.mPropRan = aPropRan;
+    Map2DRobustInit(aPackFull,aParam);
+    // cXml_Map2D    aParam. ToXmlGen();
+
+    ELISE_ASSERT(aParam.mRes->Type()==eTM2_Simil,"SimilRobustInit");
+    ElSimilitude * aResSim = static_cast<ElSimilitude *>(aParam.mRes);
+
+    return *aResSim;
+}
 
 //=====================================================================================
 

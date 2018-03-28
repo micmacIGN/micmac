@@ -40,6 +40,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
+
+ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan);
+
 class cAFM_Im;
 class cAFM_Im_Master;
 class cAFM_Im_Sec ;
@@ -49,6 +52,36 @@ class cAppli_FitsMatch1Im;
 
 // NKS-Assoc-CplIm2Hom
 
+class cCdtCplHom
+{
+    public :
+       cCdtCplHom(cCompileOPC * aPM,cCompileOPC * aPS,double aCorr,int aShift) :
+           mPM    (aPM),
+           mPS    (aPS),
+           mCorr  (aCorr),
+           mShift (aShift),
+           mOk    (true),
+           mDistS (0)
+       {
+       }
+
+       Pt2dr PM() const {return mPM->mOPC.Pt();}
+       Pt2dr PS() const {return mPS->mOPC.Pt();}
+       cCompileOPC * mPM;
+       cCompileOPC * mPS;
+       double        mCorr;
+       int           mShift;
+       bool          mOk;
+       double        mDistS;
+};
+
+class cPtFromPCC
+{
+   public :
+       Pt2dr operator() (cCdtCplHom * aCC) { return aCC->PM(); }
+};
+
+typedef ElQT<cCdtCplHom*,Pt2dr,cPtFromPCC> tQtCC ;
 
 class cAFM_Im
 {
@@ -61,6 +94,8 @@ class cAFM_Im
      protected :
          cAppli_FitsMatch1Im & mAppli;
          std::string mNameIm;
+         cMetaDataPhoto mMTD;
+         Pt2di       mSzIm;
          cSetPCarac                             mSetPC;
          std::vector<std::vector<cCompileOPC> > mVOPC;
          std::vector<cCompileOPC> &             mVIndex;
@@ -74,6 +109,12 @@ class cAFM_Im_Master : public  cAFM_Im
          void Match(cAFM_Im_Sec &);
 
          std::vector<std::vector<cCompileOPC *> > mVTabIndex;
+
+         void FilterVoisCplCt(std::vector<cCdtCplHom> & aV);
+
+         void RemoveCpleQdt(cCdtCplHom &);
+         cPtFromPCC  mArgQt;
+         tQtCC   mQt;
 };
 
 
@@ -107,9 +148,132 @@ class cAppli_FitsMatch1Im
           std::string        mExtNewH;
           std::string        mSH;
           std::string        mPostHom;
+          bool               mExpTxt;
           int                mNbBIndex;
           int                mThreshBIndex;
+          bool               mOneWay;
 };
+
+
+
+
+
+
+/*************************************************/
+/*                                               */
+/*             ::                                */
+/*                                               */
+/*************************************************/
+
+ElPackHomologue PackFromVCC(const  std::vector<cCdtCplHom> &aVCpl)
+{
+   ElPackHomologue aPack;
+   for (const auto  & aCpl : aVCpl)
+   {
+       // aNB1++;
+       aPack.Cple_Add(ElCplePtsHomologues(aCpl.mPM->mOPC.Pt(),aCpl.mPS->mOPC.Pt()));
+   }
+ 
+   return aPack;
+}
+
+bool CmpCC(const cCdtCplHom & aC1,const cCdtCplHom & aC2)
+{
+    return aC1.mDistS > aC2.mDistS;
+}
+
+
+void cAFM_Im_Master::FilterVoisCplCt(std::vector<cCdtCplHom> & aV0)
+{
+    mQt.clear(); 
+    ElPackHomologue aPack = PackFromVCC(aV0); 
+
+    ElSimilitude  aSim = SimilRobustInit(aPack,0.666);
+
+    for (auto  & aCpl : aV0)
+    {
+        aCpl.mDistS = euclid(aSim(aCpl.PM()) - aCpl.PS());
+    }
+    std::sort(aV0.begin(),aV0.end(),CmpCC);
+    // On refait une deuxieme passe car adresse pas conservee dans std::sort ...
+    for (auto  & aCpl : aV0)
+    {
+        mQt.insert(&aCpl);
+    }
+
+    double aDiag = euclid(mSzIm);
+    double aSeuilOk = aDiag / 100.0;
+    double aSeuilPb = aDiag / 5.0;
+    double aSeuilCoh = 0.3;
+
+    int aNbVois = 10;
+
+    double aSurfPP = (double(mSzIm.x) * mSzIm.y) / aV0.size() ; // Surf per point
+    double aDistSeuilNbV = sqrt(aSurfPP*aNbVois) * 2;
+
+    
+    for (auto  & aCpl : aV0)
+    {
+        if (aCpl.mDistS >aSeuilPb)
+        {
+            RemoveCpleQdt(aCpl);
+        }
+        else if (aCpl.mDistS<aSeuilOk)
+        {
+        }
+        else
+        {
+            double aSomD=0;
+            int    aNbD =0;
+            std::list<cCdtCplHom *> aLVois = mQt.KPPVois(aCpl.PM(),aNbVois+1,aDistSeuilNbV);
+            if (int(aLVois.size()) < (aNbVois/2))
+            {
+               RemoveCpleQdt(aCpl);
+            }
+            else
+            {
+                for (auto  & aCpV : aLVois)
+                {
+                    if (&aCpl!=aCpV)
+                    {
+                        Pt2dr aV1 = aSim(aCpl.PM()) - aSim(aCpV->PM());
+                        Pt2dr aV2 = aCpl.PS() - aCpV->PS();
+                        double aD = euclid(aV1-aV2) / (1+euclid(aV1)+euclid(aV2)); // +1 modelise erreur pixel
+                        aSomD += aD;
+                        aNbD ++;
+                    }
+                    else
+                    {
+                     
+                    }
+                }
+            }
+            aSomD /= aNbD;
+
+            if (aSomD> aSeuilCoh)
+               RemoveCpleQdt(aCpl);
+ 
+            // std::cout << "SOMDDD =  " << aSomD << " " <<  aCpl.mDistS / aDiag  <<  "\n";
+        }
+    }
+
+
+    std::vector<cCdtCplHom> aRes;
+    for (auto  & aCpl : aV0)
+    {
+        if (aCpl.mOk)
+           aRes.push_back(aCpl);
+    }
+    aV0 = aRes;
+}
+
+
+void cAFM_Im_Master::RemoveCpleQdt(cCdtCplHom & aCpl)
+{
+    mQt.remove(&aCpl);
+    aCpl.mOk = false;
+}
+
 
 /*************************************************/
 /*                                               */
@@ -164,6 +328,8 @@ bool CmpCPOC(const cCompileOPC &aP1,const  cCompileOPC &aP2)
 cAFM_Im::cAFM_Im (const std::string  & aNameIm,cAppli_FitsMatch1Im & anAppli) :
    mAppli  (anAppli),
    mNameIm (aNameIm),
+   mMTD    (cMetaDataPhoto::CreateExiv2(mNameIm)),
+   mSzIm   (mMTD.SzImTifOrXif()),
    mVOPC   (int(eTIR_NoLabel)),
    mVIndex (mVOPC.at(int(mAppli.FitsPm().KindOl())))
 {
@@ -194,7 +360,8 @@ cAFM_Im::~cAFM_Im()
 
 cAFM_Im_Master::cAFM_Im_Master(const std::string  & aName,cAppli_FitsMatch1Im & anApli) :
     cAFM_Im     (aName,anApli),
-    mVTabIndex  (1<< mAppli.NbBIndex())
+    mVTabIndex  (1<< mAppli.NbBIndex()),
+    mQt         (mArgQt,Box2dr(Pt2dr(-10,-10),Pt2dr(10,10)+Pt2dr(mSzIm)),5,euclid(mSzIm)/20.0)
 {
     std::vector<int> aVFlagVois;
     SetOfFlagInfNbb(aVFlagVois,mAppli.NbBIndex(),mAppli.ThreshBIndex());
@@ -228,35 +395,25 @@ cAFM_Im_Master::cAFM_Im_Master(const std::string  & aName,cAppli_FitsMatch1Im & 
      // std::cout << getchar();
 }
 
-class cCdtCplHom
-{
-    public :
-       cCdtCplHom(cCompileOPC * aPM,cCompileOPC * aPS,double aCorr,int aShift) :
-           mPM    (aPM),
-           mPS    (aPS),
-           mCorr  (aCorr),
-           mShift (aShift)
-       {
-       }
 
-       cCompileOPC * mPM;
-       cCompileOPC * mPS;
-       double        mCorr;
-       int           mShift;
-};
+
+
+
+
+
+
 
 void cAFM_Im_Master::Match(cAFM_Im_Sec & anISec)
 {
-   int aNbMin = 4;
+   int aNbMin = 6;
 
    const cFitsParam &  aFPM = mAppli.FitsPm();
    eTypePtRemark aT0 = aFPM.KindOl();
    // std::vector<cCompileOPC> & aVM = mVOPC.at(int(aT0));
    std::vector<cCompileOPC> & aVS = anISec.mVOPC.at(int(aT0));
 
-   int aNB1=0;
+   //int aNB1=0;
    // int aNBSup=0;
-   ElPackHomologue aPack;
 
    std::vector<cCdtCplHom> aVCpl;
    for (int aKs=0 ; aKs<(int)aVS.size() ; aKs++)
@@ -296,10 +453,11 @@ void cAFM_Im_Master::Match(cAFM_Im_Sec & anISec)
        aVCpl = aNewV;
    }
 
+   int aNbBefDir = aVCpl.size();
    // Filtrage directionnel
    {
       double aPropConv = 0.1;
-      double  aPropDir = 0.05;
+      double  aPropDir = 0.07;
 
       int aNbDir = 64;
       int   aMul = 100;
@@ -368,16 +526,20 @@ void cAFM_Im_Master::Match(cAFM_Im_Sec & anISec)
    if (int(aVCpl.size()) <=  aNbMin)
       return;
 
+   FilterVoisCplCt(aVCpl);
 
-   for (const auto  & aCpl : aVCpl)
-   {
-       aNB1++;
-       aPack.Cple_Add(ElCplePtsHomologues(aCpl.mPM->mOPC.Pt(),aCpl.mPS->mOPC.Pt()));
-   }
-  
-   
 
-   std::cout << anISec.mNameIm << " " << aNB1 << " Prop1 " << aNB1/double(aVS.size())  << "\n";
+   if (int(aVCpl.size()) <=  aNbMin)
+      return;
+
+
+   ElPackHomologue aPack = PackFromVCC(aVCpl);
+
+   std::cout << mNameIm << " " << anISec.mNameIm << " NbSel " << aPack.size() 
+             << " PropF " << aPack.size() /double(aVS.size())  
+             << " PropD " << aPack.size() /double(aNbBefDir)  
+             << " NBIn " << aVS.size() 
+             << "\n";
 
    aPack.StdPutInFile(mAppli.NameCple(mNameIm,anISec.mNameIm));
 
@@ -408,7 +570,9 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
    mNameXmlFits (DefNameFitParam),
    mExtNewH     (""),
    mSH          (""),
-   mPostHom     ("dat")
+   mPostHom     ("dat"),
+   mExpTxt      (false),
+   mOneWay      (true)
 {
    ElInitArgMain
    (
@@ -417,7 +581,28 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
                      << EAMC(mPatIm, "Name Image2"),
          LArgMain()  << EAM(mNameXmlFits,"XmlFits",true,"Name of xml file for Fits parameters")
                      <<  EAM(mExtNewH,"ExtPC",true,"Extension for P cararc to NewPH... ")
+                     <<  EAM(mOneWay,"1W",true,"Do computation one way (def = true) ")
+                     <<  EAM(mExpTxt,"ExpTxt",true,"Export in texte format")
    );
+
+   if (mExpTxt)
+      mPostHom = "txt";
+
+
+   {
+       cElemAppliSetFile  aPatMast(mNameMaster);
+       const std::vector<std::string>* aVMast = aPatMast.SetIm();
+       if (aVMast->size() > 1)
+       {
+           std::list<std::string> aLCom;
+           for (const auto & aNM : *aVMast)
+               aLCom.push_back(SubstArgcArvGlob(2,aNM, true));
+
+           cEl_GPAO::DoComInParal(aLCom);
+           
+           exit(EXIT_SUCCESS);
+       }
+   }
 
    if (!EAMIsInit(&mSH) )
    {
@@ -439,12 +624,15 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
    {
        if (aName != mNameMaster)
        {
-           mCurImSec = new  cAFM_Im_Sec(aName,*this);
+           if ((! mOneWay) || (aName > mNameMaster))
+           {
+              mCurImSec = new  cAFM_Im_Sec(aName,*this);
 
-           mImMast->Match(*mCurImSec);
+              mImMast->Match(*mCurImSec);
 
-           delete mCurImSec;
-           mCurImSec = nullptr;
+              delete mCurImSec;
+              mCurImSec = nullptr;
+          }
        }
    }
 }
