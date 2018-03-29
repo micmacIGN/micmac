@@ -130,9 +130,9 @@ int ReechHomol_main(int argc, char **argv)
     for (std::list<cElFilename>::iterator iTLP = aLPastis.begin() ; iTLP != aLPastis.end() ; iTLP++)
     {
         // master image
-        string aIm1 = iTLP->m_basename.substr (6,25);
+        string aIm1 = iTLP->m_basename.substr (6,iTLP->m_basename.length()-6);
         cout << "Image 1 : " << aIm1 << endl;
-        std::string aNameMap1 = "Deg_" + ToString(aVSIT.at(0).ImgTemp) + ".xml";
+        std::string aNameMap1 = "PolOfTXY-" + ToString(aVSIT.at(0).ImgTemp) + ".xml";
         cElMap2D * aMapIm1 = cElMap2D::FromFile(aNameMap1);
 
         // match the temperature for master image
@@ -140,67 +140,70 @@ int ReechHomol_main(int argc, char **argv)
         {
             if (aVSIT.at(aV).ImgName.compare(aIm1) == 0)
             {
-                aNameMap1 = "Deg_" + ToString(aVSIT.at(aV).ImgTemp) + ".xml";
+                aNameMap1 = "PolOfTXY-" + ToString(aVSIT.at(aV).ImgTemp) + ".xml";
                 * aMapIm1->FromFile(aNameMap1);
                 //cout << "Im : " << aVSIT.at(aV).ImgName << " Temp : " << aVSIT.at(aV).ImgTemp << endl;
             }
         }
         // get all .dat files of the master image
         std::string aDirPastis = aDirHomolIn + "/" + iTLP->m_basename;
-        cout << "DirPAstis" << aDirPastis << endl;
+        cout << "Dir-Pastis" << aDirPastis << endl;
         cInterfChantierNameManipulateur * aICNMP = cInterfChantierNameManipulateur::BasicAlloc(aDirPastis);
         vector<string> aLFileP = *(aICNMP->Get(".*"));
         cout << ".dat File size : " << aLFileP.size() << endl;
 
-        // matche the temperature for secondary image and correct with maps
-        for (uint aL=0; aL < aLFileP.size(); aL++)
+        if (aLFileP.size()!=0)
         {
-            // secondary image
-            string aIm2 = aLFileP.at(aL).substr(1,25);
-            cout << "Image 2 : " << aIm2 << endl;
-            std::string aNameMap2 = "Deg_" + ToString(aVSIT.at(0).ImgTemp) + ".xml";
-            cElMap2D * aMapIm2 = cElMap2D::FromFile(aNameMap2);
-
-            for (uint aT=0; aT < aVSIT.size(); aT++)
+            // matche the temperature for secondary image and correct with maps
+            for (uint aL=0; aL < aLFileP.size(); aL++)
             {
-                // match the temperature for secondary image
-                if (aVSIT.at(aT).ImgName.compare(aIm2) == 0)
+                // secondary image
+                string aIm2 = aLFileP.at(aL).substr(1,aLFileP.at(aL).length()-5);
+                cout << "Image 2 : " << aIm2 << endl;
+                std::string aNameMap2 = "PolOfTXY-" + ToString(aVSIT.at(0).ImgTemp) + ".xml";
+                cElMap2D * aMapIm2 = cElMap2D::FromFile(aNameMap2);
+
+                for (uint aT=0; aT < aVSIT.size(); aT++)
                 {
-                    aNameMap2 = "Deg_" + ToString(aVSIT.at(aT).ImgTemp) + ".xml";
-                    * aMapIm2->FromFile(aNameMap2);
-                    //cout << "Im : " << aVSIT.at(aT).ImgName << " Temp : " << aVSIT.at(aT).ImgTemp << endl;
+                    // match the temperature for secondary image
+                    if (aVSIT.at(aT).ImgName.compare(aIm2) == 0)
+                    {
+                        aNameMap2 = "PolOfTXY-" + ToString(aVSIT.at(aT).ImgTemp) + ".xml";
+                        * aMapIm2->FromFile(aNameMap2);
+                        //cout << "Im : " << aVSIT.at(aT).ImgName << " Temp : " << aVSIT.at(aT).ImgTemp << endl;
+                    }
                 }
+
+                // read Pts Homologues data
+                ElPackHomologue aPckIn, aPckOut;
+                std::string aPostfix = aSHIn.substr(5,aSHIn.size()-5);
+                std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string(aPostfix)
+                        +  std::string("@")
+                        +  std::string("dat");
+                std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+                        +  std::string("_Reech")
+                        +  std::string("@")
+                        +  std::string("dat");
+                std::string aHmIn= aICNM->Assoc1To2(aKHIn, aIm1, aIm2, true);
+
+                aPckIn =  ElPackHomologue::FromFile(aHmIn);
+                cout << "Pts Homologues size : " << aPckIn.size() << endl;
+
+                // apply maps to Pts Homologues data
+                for(ElPackHomologue::iterator iTH = aPckIn.begin(); iTH != aPckIn.end(); iTH++)
+                {
+                    Pt2dr aP1 = (iTH->P1())*2-(*aMapIm1)(iTH->P1());
+                    Pt2dr aP2 = (iTH->P2())*2-(*aMapIm2)(iTH->P2());
+                    ElCplePtsHomologues aPH (aP1,aP2);
+                    aPckOut.Cple_Add(aPH);
+                }
+
+                std::string aIm1Out = aPrefix + aIm1;
+                std::string aIm2Out = aPrefix + aIm2;
+                std::string aHmOut= aICNM->Assoc1To2(aKHOut, aIm1Out, aIm2Out, true);
+                aPckOut.StdPutInFile(aHmOut);
             }
-
-            // read Pts Homologues data
-            ElPackHomologue aPckIn, aPckOut;
-            std::string aPostfix = aSHIn.substr(5,aSHIn.size()-5);
-            std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
-                               +  std::string(aPostfix)
-                               +  std::string("@")
-                               +  std::string("dat");
-            std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
-                               +  std::string("_Reech")
-                               +  std::string("@")
-                               +  std::string("dat");
-            std::string aHmIn= aICNM->Assoc1To2(aKHIn, aIm1, aIm2, true);
-
-            aPckIn =  ElPackHomologue::FromFile(aHmIn);
-            cout << "Pts Homologues size : " << aPckIn.size() << endl;
-
-            // apply maps to Pts Homologues data
-            for(ElPackHomologue::iterator iTH = aPckIn.begin(); iTH != aPckIn.end(); iTH++)
-            {
-                Pt2dr aP1 = (iTH->P1())*2-(*aMapIm1)(iTH->P1());
-                Pt2dr aP2 = (iTH->P2())*2-(*aMapIm2)(iTH->P2());
-                ElCplePtsHomologues aPH (aP1,aP2);
-                aPckOut.Cple_Add(aPH);
-            }
-
-            std::string aIm1Out = aPrefix + aIm1;
-            std::string aIm2Out = aPrefix + aIm2;
-            std::string aHmOut= aICNM->Assoc1To2(aKHOut, aIm1Out, aIm2Out, true);
-            aPckOut.StdPutInFile(aHmOut);
         }
 
     }
@@ -568,7 +571,7 @@ int ReechMAF_main (int argc, char ** argv)
     cSetOfMesureAppuisFlottants aDicoOut;
     std::list<cMesureAppuiFlottant1Im> aLMAFOut;
     std::list<cOneMesureAF1I> aMesOut;
-    std::string aNameMapInit = "Deg_" + ToString(aVSIT.at(0).ImgTemp) + ".xml";
+    std::string aNameMapInit = "PolOfTXY-" + ToString(aVSIT.at(0).ImgTemp) + ".xml";
     cElMap2D * aMap = cElMap2D::FromFile(aNameMapInit);
 
 
@@ -579,7 +582,7 @@ int ReechMAF_main (int argc, char ** argv)
         {
             if(aVSIT.at(iV).ImgName.compare(iT1->NameIm()) == 0)
             {
-                std::string aNameMap = "Deg_" + ToString(aVSIT.at(iV).ImgTemp) + ".xml";
+                std::string aNameMap = "PolOfTXY-" + ToString(aVSIT.at(iV).ImgTemp) + ".xml";
                 * aMap->FromFile(aNameMap);
             }
         }
