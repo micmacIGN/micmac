@@ -60,7 +60,9 @@ void SaisieAppuisPredic(int argc, char ** argv,
                       double &aZMoy,
                       double &aZInc,
                       std::string & aInputSec,
-                      bool & WithMaxMinPt)
+                      bool & WithMaxMinPt,
+                      double & aGama
+                        )
 {
     MMD_InitArgcArgv(argc,argv);
 
@@ -76,6 +78,7 @@ void SaisieAppuisPredic(int argc, char ** argv,
                             << EAM(aFlou,"WBlur",true,"Size IN GROUND GEOMETRY of bluring for target")
                             << EAM(aTypePts,"Type",true,"in [MaxLoc,MinLoc,GeoCube]")
                             << EAM(aForceGray,"ForceGray",true,"Force gray image, def=true")
+                            << EAM(aGama,"Gama",true,"Gama adjustment  (def=1.0)")
                             << EAM(aModeOri,"OriMode", true, "Orientation type (GRID) (Def=Std)")
                             << EAM(aZMoy,"ZMoy",true,"Average Z, Mandatory in PB", eSAM_NoInit)
                             << EAM(aZInc,"ZInc",true,"Incertitude on Z, Mandatory in PB", eSAM_NoInit)
@@ -137,8 +140,9 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
 
     std::string aTypePts="Pts";
     bool WithMaxMinPt=false;
+    double aGama = 1.0;
 
-    SaisieAppuisPredic(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, aNameMesure, aTypePts,aMasq3D,aPIMsFilter, aFlou, aForceGray, aZMoy, aZInc,aInputSec,WithMaxMinPt);
+    SaisieAppuisPredic(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, aNameMesure, aTypePts,aMasq3D,aPIMsFilter, aFlou, aForceGray, aZMoy, aZInc,aInputSec,WithMaxMinPt, aGama);
 
     if(!MMVisualMode)
     {
@@ -185,6 +189,11 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
         if (EAMIsInit(&aInputSec))
         {
            aCom = aCom + " +WithInputSec=true  +InputSec=" + aInputSec + " ";
+        }
+
+        if (EAMIsInit(&aGama))
+        {
+           aCom = aCom + " +Gama=" + ToString(aGama) + " ";
         }
 
         std::cout << aCom << "\n";
