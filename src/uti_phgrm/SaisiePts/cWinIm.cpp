@@ -498,6 +498,7 @@ void  cWinIm::SetPt(Clik aClk)
     if (aPIm==0)
         return;
 
+
     if (aClk.shifted() && aClk.controled())
     {
         ShowInfoPt(aPIm,true);
@@ -506,6 +507,10 @@ void  cWinIm::SetPt(Clik aClk)
         return;
     }
 
+    if ((aPIm->Saisie()->Etat()== eEPI_Valide) &&  (!aClk.controled()))
+    {
+         return;
+    }
 
     /*
    if ((!aClk.shifted()) && aClk.controled())
