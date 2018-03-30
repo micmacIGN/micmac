@@ -276,6 +276,8 @@ Pt2dr cVirtualInterface::FindPoint(cImage* curIm, const Pt2dr & aPIm,eTypePts aT
 
     Pt2di aMil  = mAppli->SzRech() / 2;
     Im2D_INT4 aImA = mAppli->ImRechAlgo();
+
+
     mAppli->DecRech() = round_ni(aPIm) - aMil;
     Pt2di aDec = mAppli->DecRech();
     ELISE_COPY
@@ -291,8 +293,6 @@ Pt2dr cVirtualInterface::FindPoint(cImage* curIm, const Pt2dr & aPIm,eTypePts aT
         //  mCurIm->FilterImage(trans(aTF.in_proj(),aDec),aType),
         mAppli->ImRechVisu().out()
     );
-
-
     if (aType==eNSM_Pts)
     {
        return aPIm;
@@ -636,10 +636,10 @@ void   cAppli_SaisiePts::AddImageOfImOfName (const std::string & aName,bool Visu
 {
      if (! GetImageOfNameSVP(aName))
      {
-            mImagesTot.push_back(new cImage(aName,*this,Visualisable));
+            cImage * aIm = new cImage(aName,*this,Visualisable);
+            mImagesTot.push_back(aIm);
             mMapNameIms[aName] = mImagesTot.back();
      }
-
 }
 
 

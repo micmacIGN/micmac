@@ -761,7 +761,7 @@ void networkExport(std::map<std::string,cPic*> &allPics)
         for (itPic2=aPic1->getNbRawLinks()->begin();itPic2!=aPic1->getNbRawLinks()->end();++itPic2)
         {
             cPic* aPic2=(*itPic2).first;
-            if ((*itPic2).second>=10)
+            if ((*itPic2).second>=100)
                 oss<<"  {'from': "<<aPic1->getId()<<", 'to': "<<aPic2->getId()<<", value: "<<1+(*itPic2).second/100<<"},\n";
         }
     }

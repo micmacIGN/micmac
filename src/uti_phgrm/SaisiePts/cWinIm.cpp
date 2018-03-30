@@ -235,6 +235,8 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
                           ) : 0
                       )
 {
+    if (anAppli.Param().Gama().Val() != 1.0)
+        mVWV.SetGamaCorr(anAppli.Param().Gama().Val());
     aIm0.SetLoaded();
     SetImage(&aIm0);
 }
