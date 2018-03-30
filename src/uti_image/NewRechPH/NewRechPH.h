@@ -298,7 +298,9 @@ class cCompileOPC
     public :
 
       // Return -1 si arret avant correl
-      double  Match(cCompileOPC & aCP2,const cFitsParam & aFP,int & aShiftOr);
+      double  Match(cCompileOPC & aCP2,const cFitsParam & aFP,int & aShift,int & aLevFail);
+      std::vector<double>  Time(cCompileOPC & aCP2,const cFitsParam & aFP);
+
 
 
       cCompileOPC(const cOnePCarac & aOPC) ;
