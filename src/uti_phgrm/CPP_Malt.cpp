@@ -158,9 +158,10 @@ class cAppliMalt
 int cAppliMalt::Exe()
 {
 
-    //std::cout << "ewwwwwwwwwwwelina -> " << mCom.c_str() << 
-    //             " \n mCom12PixM=" << mCom12PixM.c_str() << "\n";
-    //getchar();
+    /*std::cout << "ewwwwwwwwwwwelina -> " << mCom.c_str() << 
+                 " \n mCom12PixM=" << mCom12PixM.c_str() << "\n"; */
+
+
 
     if (! mExe) return 0;
     int aRes = TopSystem(mCom.c_str());
@@ -977,6 +978,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
  
          if (EAMIsInit(&mDoOrtho) && mDoOrtho)
          {
+             std::string aTmpDir = "Tmp-MM-Dir/";
+             ELISE_fp::MkDirSvp( mDir+aTmpDir);             
 
              mCom = mCom + std::string(" +OrthoSuperpMNT=true ");
              //aMCorPoncCal = "tif";
@@ -991,7 +994,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   Tiff_Im aIsRGB = Tiff_Im::StdConvGen(aNameImCur.c_str(),-1,true);
         
                   std::string aOrtCur = mICNM->Assoc1To1(aKeyOrt,aNameImCur,true);
-                  std::string aOrtOut = mICNM->Assoc1To1(aKeyRadCal,StdPrefix(aNameImCur),true);
+                  //std::string aOrtOut =  aTmpDir + mICNM->Assoc1To1(aKeyRadCal,StdPrefix(aNameImCur),true);
+                  std::string aOrtOut =  mICNM->Assoc1To1(aKeyRadCal,StdPrefix(aNameImCur),true);
 
 
                   if (aOrtMast!=aOrtCur) 

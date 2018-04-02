@@ -2789,14 +2789,14 @@
             <Arrite>  1 1 </Arrite>
             <Direct>
                 <PatternTransform> (.*)\.([0-9,A-Z,a-z]{2,4}) </PatternTransform>
-                <CalcName>  #1$1_RadCal.#2  </CalcName>
+                <CalcName>  Tmp-MM-Dir/#1$1_RadCal.#2  </CalcName>
              </Direct>
         </Calcs>
         <Calcs>
             <Arrite>  1 1 </Arrite>
             <Direct>
                 <PatternTransform> (.*) </PatternTransform>
-                <CalcName>  #1$1_RadCal.#2  </CalcName>
+                <CalcName>  Tmp-MM-Dir/#1$1_RadCal.#2  </CalcName>
              </Direct>
         </Calcs>
         <Key>   NKS-Key-Im2OrtRadCal </Key>
