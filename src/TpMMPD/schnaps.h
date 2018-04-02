@@ -177,18 +177,23 @@ class cPic
     int getAllPointsOnPicSize(){return mAllPointsOnPic.size();}
     int getAllSelectedPointsOnPicSize(){return mAllSelectedPointsOnPic.size();}
     std::map<double,cPointOnPic*>  * getAllSelectedPointsOnPic(){return &mAllSelectedPointsOnPic;}
+    std::map<cPic*, long> * getNbRawLinks(){return &nbRawLinks;}
     void selectHomols();
     void selectAllHomols();
     void fillPackHomol(cPic* aPic2,string & aDirImages,cInterfChantierNameManipulateur * aICNM,std::string & aKHOut);
     std::vector<int> getStats(bool before=true);//computes repartition in homol-2, homol-3, homol-4 etc... export it as vector indexed by multiplicity
+    long getId(){return mId;}
   protected:
     std::string mName;
     cPicSize * mPicSize;
     std::map<double,cPointOnPic*> mAllPointsOnPic;//key: x+mPicSize->getPicSz().x*y
     std::map<double,cPointOnPic*> mAllSelectedPointsOnPic;//key: x+mPicSize->getPicSz().x*y
+    std::map<cPic*, long> nbRawLinks;//number of common points with other pictures
     std::vector<bool> mWinUsed;//to check repartition of homol points (with buffer)
     //int mNbWinUsed;
     double makePOPKey(Pt2dr & aPt){return aPt.x*100+mPicSize->getPicSz().x*100*aPt.y*100;}
+    long mId;
+    static long mNbIm;
 };
 
 //----------------------------------------------------------------------------

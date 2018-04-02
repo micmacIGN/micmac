@@ -412,11 +412,15 @@ class cSectionImages
         cTplValGesInit< bool > & ForceGray();
         const cTplValGesInit< bool > & ForceGray()const ;
 
+        cTplValGesInit< double > & Gama();
+        const cTplValGesInit< double > & Gama()const ;
+
         cTplValGesInit< std::string > & KeyAssocOri();
         const cTplValGesInit< std::string > & KeyAssocOri()const ;
     private:
         std::string mSetOfImages;
         cTplValGesInit< bool > mForceGray;
+        cTplValGesInit< double > mGama;
         cTplValGesInit< std::string > mKeyAssocOri;
 };
 cElXMLTree * ToXMLTree(const cSectionImages &);
@@ -573,6 +577,9 @@ class cParamSaisiePts
 
         cTplValGesInit< bool > & ForceGray();
         const cTplValGesInit< bool > & ForceGray()const ;
+
+        cTplValGesInit< double > & Gama();
+        const cTplValGesInit< double > & Gama()const ;
 
         cTplValGesInit< std::string > & KeyAssocOri();
         const cTplValGesInit< std::string > & KeyAssocOri()const ;

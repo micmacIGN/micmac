@@ -38,6 +38,15 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
+/*
+    Acceleration :
+      - Presel sur point les plus stables
+      - calcul de distance de stabilite ? => Uniquement si pas Invar Ech !!!!
+      - Apres pre-sel, a simil (ou autre) :
+             *  selection des regions homologues
+             * indexation
+*/
+
 #include "NewRechPH.h"
 
 
@@ -47,6 +56,61 @@ class cAFM_Im;
 class cAFM_Im_Master;
 class cAFM_Im_Sec ;
 class cAppli_FitsMatch1Im;
+
+
+//================================
+
+class cFHistoInt
+{
+    public :
+       void Add(int aK,double aPds=1.0);
+       cFHistoInt() ;
+       double Perc(int aK);
+       int at(int aK);
+
+       void Show();
+       
+    private :
+       std::vector<double> mHist;
+       int mSom;
+};
+
+cFHistoInt::cFHistoInt() :
+   mSom (0)
+{
+}
+
+int cFHistoInt::at(int aK)
+{
+   return ((aK>=0) && (aK<int(mHist.size()))) ? mHist.at(aK) : 0;
+}
+
+void cFHistoInt::Add(int aK,double aPds)
+{
+   mSom++;
+   while(int(mHist.size())<= aK)
+     mHist.push_back(0);
+   mHist.at(aK) += aPds;
+}
+
+double cFHistoInt::Perc(int aK)
+{
+   return mHist.at(aK) * (100.0/mSom);
+}
+
+void cFHistoInt::Show()
+{
+   double aSomPond = 0.0;
+   for (int aK=0 ; aK<int(mHist.size()) ; aK++)
+   {
+       if (at(aK))
+       {
+          aSomPond += aK * at(aK);
+          std::cout << " Hist " << aK << " %=" << Perc(aK)  << " Nb=" << at(aK) << "\n";
+       }
+   }
+   std::cout << " HistMoy= " << aSomPond / mSom << "\n";
+}
 
 //================================
 
@@ -135,6 +199,7 @@ class cAppli_FitsMatch1Im
           std::string NameCple(const std::string & aN1,const std::string & aN2) const;
           int NbBIndex() const;
           int ThreshBIndex() const;
+          bool  ShowDet() const;
 
      private :
 
@@ -152,6 +217,9 @@ class cAppli_FitsMatch1Im
           int                mNbBIndex;
           int                mThreshBIndex;
           bool               mOneWay;
+          bool               mShowDet;
+          bool               mCallBack;
+          int                mNbMaxS0;  // Nb max en presel
 };
 
 
@@ -399,6 +467,7 @@ cAFM_Im_Master::cAFM_Im_Master(const std::string  & aName,cAppli_FitsMatch1Im & 
 
 
 
+int IScal(double aS) {return round_ni(5 * log(aS)/log(2));}
 
 
 
@@ -415,7 +484,20 @@ void cAFM_Im_Master::Match(cAFM_Im_Sec & anISec)
    //int aNB1=0;
    // int aNBSup=0;
 
+   if (mAppli.ShowDet())
+   {
+      cFHistoInt aFH;
+      for (const auto & aPC : aVS)
+      {
+          aFH.Add(IScal(aPC.mOPC.ScaleStab()));
+      }
+      std::cout << "======= HISTO SCALE BEFORE ===========\n";
+      aFH.Show();
+   }
+
+   cFHistoInt aHLF;
    std::vector<cCdtCplHom> aVCpl;
+   int First= true;
    for (int aKs=0 ; aKs<(int)aVS.size() ; aKs++)
    {
       cCompileOPC & aPCS = aVS[aKs];
@@ -425,9 +507,11 @@ void cAFM_Im_Master::Match(cAFM_Im_Sec & anISec)
       
       for (int aKSel=0 ; aKSel<(int)aVSel.size() ; aKSel++)
       {
+          int aLevFail;
           int aShift;
           cCompileOPC * aPCM = aVSel[aKSel];
-          double aD =  aPCM->Match(aPCS,aFPM,aShift);
+          double aD =  aPCM->Match(aPCS,aFPM,aShift,aLevFail);
+          aHLF.Add(aLevFail);
           if (aD > 0)
           {
              aPCS.mTmpNbHom++;
@@ -435,7 +519,20 @@ void cAFM_Im_Master::Match(cAFM_Im_Sec & anISec)
 
              aVCpl.push_back(cCdtCplHom(aPCM,&aPCS,aD,aShift));
           }
+          if (First && mAppli.ShowDet())
+          {
+             std::vector<double>  aVT =  aPCM->Time(aPCS,aFPM);
+             std::cout << "================ TIMING ================\n";
+             for (int aK=0 ; aK<int(aVT.size()) ; aK++)
+                 std::cout << "  T[" << aK << "]=" << aVT[aK] << "\n";
+          }
+          First = false;
       }
+   }
+   if (mAppli.ShowDet())
+   {
+      std::cout << "======= HISTO LEV FAIL ===========\n";
+      aHLF.Show();
    }
 
    {
@@ -535,14 +632,28 @@ void cAFM_Im_Master::Match(cAFM_Im_Sec & anISec)
 
    ElPackHomologue aPack = PackFromVCC(aVCpl);
 
-   std::cout << mNameIm << " " << anISec.mNameIm << " NbSel " << aPack.size() 
+   if (mAppli.ShowDet())
+   {
+      cFHistoInt aFHDif;
+      cFHistoInt aFHScale;
+      for (const auto & aCpl : aVCpl)
+      {
+          aFHDif.Add(ElAbs(IScal(aCpl.mPM->mOPC.ScaleStab()) -  IScal(aCpl.mPS->mOPC.ScaleStab())));
+          aFHScale.Add(IScal(aCpl.mPS->mOPC.ScaleStab()));
+      }
+      std::cout << "======= HISTO SCALE AFTER  ===========\n";
+      aFHScale.Show();
+      std::cout << "======= HISTO DIFF SCALE  ===========\n";
+      aFHDif.Show();
+   }
+
+   std::cout <<"(Im " << mNameIm << " " << anISec.mNameIm << ") "
+             << "(NbSel " << aPack.size()  << " from " << aVS.size() << ")"
              << " PropF " << aPack.size() /double(aVS.size())  
              << " PropD " << aPack.size() /double(aNbBefDir)  
-             << " NBIn " << aVS.size() 
              << "\n";
 
    aPack.StdPutInFile(mAppli.NameCple(mNameIm,anISec.mNameIm));
-
 }
 
 /*************************************************/
@@ -572,7 +683,10 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
    mSH          (""),
    mPostHom     ("dat"),
    mExpTxt      (false),
-   mOneWay      (true)
+   mOneWay      (true),
+   mShowDet     (false),
+   mCallBack    (false),
+   mNbMaxS0     (1000)
 {
    ElInitArgMain
    (
@@ -583,7 +697,10 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
                      <<  EAM(mExtNewH,"ExtPC",true,"Extension for P cararc to NewPH... ")
                      <<  EAM(mOneWay,"1W",true,"Do computation one way (def = true) ")
                      <<  EAM(mExpTxt,"ExpTxt",true,"Export in texte format")
+                     <<  EAM(mCallBack,"CallBack",true,"Internal")
+                     <<  EAM(mNbMaxS0,"NbMaxPreSel",true,"Number of most significant point in presel mode")
    );
+
 
    if (mExpTxt)
       mPostHom = "txt";
@@ -596,7 +713,7 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
        {
            std::list<std::string> aLCom;
            for (const auto & aNM : *aVMast)
-               aLCom.push_back(SubstArgcArvGlob(2,aNM, true));
+               aLCom.push_back(SubstArgcArvGlob(2,aNM, true) + " CallBack=true");
 
            cEl_GPAO::DoComInParal(aLCom);
            
@@ -616,9 +733,12 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
    mThreshBIndex =  aFOL.BinIndexed().CCB().Val().BitThresh();
 
    mEASF.Init(mPatIm);
+   if (! EAMIsInit(&mShowDet))
+      mShowDet = (!mCallBack) && (mEASF.SetIm()->size()==1);
 
 
    mImMast = new cAFM_Im_Master(mNameMaster,*this);
+
 
    for (const auto &  aName : *(mEASF.SetIm()))
    {
@@ -637,15 +757,9 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
    }
 }
 
-int cAppli_FitsMatch1Im::NbBIndex() const
-{
-   return mNbBIndex;
-}
-
-int cAppli_FitsMatch1Im::ThreshBIndex() const
-{
-   return mThreshBIndex;
-}
+bool cAppli_FitsMatch1Im::ShowDet() const { return mShowDet; }
+int cAppli_FitsMatch1Im::NbBIndex() const { return mNbBIndex; }
+int cAppli_FitsMatch1Im::ThreshBIndex() const { return mThreshBIndex; }
 
 std::string cAppli_FitsMatch1Im::NameCple(const std::string & aN1,const std::string & aN2) const
 {

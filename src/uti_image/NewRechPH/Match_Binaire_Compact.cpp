@@ -327,32 +327,86 @@ void cCompileOPC::SetFlag(const cFitsOneLabel & aFOL)
    mFlagIsComp = true;
 }
 
-double  cCompileOPC::Match(cCompileOPC & aCP2,const cFitsParam & aFP,int & aShift)
+std::vector<double>  cCompileOPC::Time(cCompileOPC & aCP2,const cFitsParam & aFP)
+{
+    cCompileOPC & aCP1 = *this;
+    std::vector<double> aRes;
+    int aNb= 100000;
+
+    {
+        ElTimer aChrono;
+        for (int aK=0 ; aK<aNb ; aK++)
+            aCP1.DifShortF(aCP2);
+        aRes.push_back(aChrono.uval());
+    } 
+    {
+        ElTimer aChrono;
+        for (int aK=0 ; aK<aNb ; aK++)
+            aCP1.DifLongF(aCP2);
+        aRes.push_back(aChrono.uval());
+    } 
+    double aS=0;
+    {
+        ElTimer aChrono;
+        for (int aK=0 ; aK<aNb ; aK++)
+            aS+=aCP1.DistIR(aCP2);
+        aRes.push_back(aChrono.uval());
+    } 
+    int aShift=0;
+    {
+        ElTimer aChrono;
+        double IncoH;
+        for (int aK=0 ; aK<aNb ; aK++)
+            aShift = aCP1.ComputeShiftGlob(aCP2,IncoH);
+        aRes.push_back(aChrono.uval());
+    } 
+    {
+        ElTimer aChrono;
+        for (int aK=0 ; aK<aNb ; aK++)
+            aS+=aCP1.DistIm(aCP2,aShift);
+        aRes.push_back(aChrono.uval());
+    } 
+
+    if (aS<0) 
+       aRes.push_back(aS);
+
+    return aRes;
+}
+
+
+double  cCompileOPC::Match(cCompileOPC & aCP2,const cFitsParam & aFP,int & aShift,int & aLevelFail)
 {
    cCompileOPC & aCP1 = *this;
 
    aCP1.SetFlag(aFP.OverLap());
    aCP2.SetFlag(aFP.OverLap());
 
+   aLevelFail =0;
    if (aCP1.DifShortF(aCP2) >  aFP.OverLap().BinIndexed().CCB().Val().BitThresh())
       return -1;
 
+   aLevelFail=1;
    if (aCP1.DifLongF(aCP2) >  aFP.OverLap().BinDecision().CCB().Val().BitThresh())
       return -1;
 
+   aLevelFail=2;
    if (aCP1.DistIR(aCP2)< aFP.SeuilCorrDR().Val())
       return -1;
 
+
    double IncoH;
    aShift = aCP1.ComputeShiftGlob(aCP2,IncoH);
+   aLevelFail=3;
    if (IncoH> aFP.SeuilInc().Val())
       return -1;
 
-   double aCorrelIm  = aCP1.DistIm(aCP2,aShift);
 
+   double aCorrelIm  = aCP1.DistIm(aCP2,aShift);
+   aLevelFail=4;
    if (aCorrelIm< aFP.SeuilCorrLP().Val())
       return -1;
-   
+
+   aLevelFail=5;
    return aCorrelIm;
 }
 

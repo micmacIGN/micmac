@@ -1471,6 +1471,17 @@ const cTplValGesInit< bool > & cSectionImages::ForceGray()const
 }
 
 
+cTplValGesInit< double > & cSectionImages::Gama()
+{
+   return mGama;
+}
+
+const cTplValGesInit< double > & cSectionImages::Gama()const 
+{
+   return mGama;
+}
+
+
 cTplValGesInit< std::string > & cSectionImages::KeyAssocOri()
 {
    return mKeyAssocOri;
@@ -1495,6 +1506,14 @@ void  BinaryUnDumpFromFile(cSectionImages & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.Gama().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Gama().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Gama().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.KeyAssocOri().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.KeyAssocOri().ValForcedForUnUmp(),aFp);
         }
@@ -1507,6 +1526,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionImages & anObj)
     BinaryDumpInFile(aFp,anObj.SetOfImages());
     BinaryDumpInFile(aFp,anObj.ForceGray().IsInit());
     if (anObj.ForceGray().IsInit()) BinaryDumpInFile(aFp,anObj.ForceGray().Val());
+    BinaryDumpInFile(aFp,anObj.Gama().IsInit());
+    if (anObj.Gama().IsInit()) BinaryDumpInFile(aFp,anObj.Gama().Val());
     BinaryDumpInFile(aFp,anObj.KeyAssocOri().IsInit());
     if (anObj.KeyAssocOri().IsInit()) BinaryDumpInFile(aFp,anObj.KeyAssocOri().Val());
 }
@@ -1518,6 +1539,8 @@ cElXMLTree * ToXMLTree(const cSectionImages & anObj)
    aRes->AddFils(::ToXMLTree(std::string("SetOfImages"),anObj.SetOfImages())->ReTagThis("SetOfImages"));
    if (anObj.ForceGray().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ForceGray"),anObj.ForceGray().Val())->ReTagThis("ForceGray"));
+   if (anObj.Gama().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Gama"),anObj.Gama().Val())->ReTagThis("Gama"));
    if (anObj.KeyAssocOri().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("KeyAssocOri"),anObj.KeyAssocOri().Val())->ReTagThis("KeyAssocOri"));
   aRes->mGXml = anObj.mGXml;
@@ -1534,10 +1557,12 @@ void xml_init(cSectionImages & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.ForceGray(),aTree->Get("ForceGray",1),bool(false)); //tototo 
 
+   xml_init(anObj.Gama(),aTree->Get("Gama",1),double(1.0)); //tototo 
+
    xml_init(anObj.KeyAssocOri(),aTree->Get("KeyAssocOri",1)); //tototo 
 }
 
-std::string  Mangling( cSectionImages *) {return "6ED26217808C9BC8FF3F";};
+std::string  Mangling( cSectionImages *) {return "0C3D8CEAD0B8F4BDFE3F";};
 
 
 cTplValGesInit< double > & cProfEstimator::ZMoyen()
@@ -2015,6 +2040,17 @@ const cTplValGesInit< bool > & cParamSaisiePts::ForceGray()const
 }
 
 
+cTplValGesInit< double > & cParamSaisiePts::Gama()
+{
+   return SectionImages().Gama();
+}
+
+const cTplValGesInit< double > & cParamSaisiePts::Gama()const 
+{
+   return SectionImages().Gama();
+}
+
+
 cTplValGesInit< std::string > & cParamSaisiePts::KeyAssocOri()
 {
    return SectionImages().KeyAssocOri();
@@ -2186,6 +2222,6 @@ void xml_init(cParamSaisiePts & anObj,cElXMLTree * aTree)
    xml_init(anObj.DirectoryChantier(),aTree->Get("DirectoryChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamSaisiePts *) {return "4EC0D880CE7A1AD0FE3F";};
+std::string  Mangling( cParamSaisiePts *) {return "ACAB05A583C30E95FF3F";};
 
 // };

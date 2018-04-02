@@ -249,6 +249,8 @@ cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
 
     mScaleStab = anAppli.ScaleOfNiv(aLR->Niv());
 
+// std::cout << "aLR-aLR-aLR-aLR- NIIIV " << aLR->Niv() << "\n";
+
     int aSign = SignOfType(mLR->Type());
     std::vector<double> aVLapl;
     mLaplMax = -1;

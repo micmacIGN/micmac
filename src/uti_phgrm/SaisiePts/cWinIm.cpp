@@ -235,6 +235,8 @@ cWinIm::cWinIm(cAppli_SaisiePts& anAppli,Video_Win aW,Video_Win aWT,cImage & aIm
                           ) : 0
                       )
 {
+    if (anAppli.Param().Gama().Val() != 1.0)
+        mVWV.SetGamaCorr(anAppli.Param().Gama().Val());
     aIm0.SetLoaded();
     SetImage(&aIm0);
 }
@@ -496,6 +498,7 @@ void  cWinIm::SetPt(Clik aClk)
     if (aPIm==0)
         return;
 
+
     if (aClk.shifted() && aClk.controled())
     {
         ShowInfoPt(aPIm,true);
@@ -504,6 +507,10 @@ void  cWinIm::SetPt(Clik aClk)
         return;
     }
 
+    if ((aPIm->Saisie()->Etat()== eEPI_Valide) &&  (!aClk.controled()))
+    {
+         return;
+    }
 
     /*
    if ((!aClk.shifted()) && aClk.controled())

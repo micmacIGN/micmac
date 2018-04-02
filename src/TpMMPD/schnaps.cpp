@@ -273,8 +273,10 @@ bool cHomol::checkMerge(cHomol* aHomol)
 
 //----------------------------------------------------------------------------
 
+long cPic::mNbIm=0;
+
 cPic::cPic(std::string aDir,std::string aName,std::vector<cPicSize*> & allSizes,int aNumWindows) :
-    mName(aName),mPicSize(0)//,mNbWinUsed(0)
+    mName(aName),mPicSize(0),mId(mNbIm++)//,mNbWinUsed(0)
 {
     Tiff_Im aPic( Tiff_Im::StdConvGen(aDir+"/"+aName,1,false)); //to read file in Tmp-MM-Dir if needed
     Pt2di aPicSize=aPic.sz();
@@ -554,10 +556,6 @@ std::string CompiledKey2::getFile(std::string param1,std::string param2)
 }
 
 
-
-
-
-
 void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
                      std::string aDirImages,
                      std::string aPatIm,
@@ -629,6 +627,7 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
                 ElPackHomologue aPackIn1 =  ElPackHomologue::FromFile(aNameIn1);
                 //cout<<aNameIn1<<"  Pack size: "<<aPackIn1.size()<<"\n";
                 nb_homol_raw+=aPackIn1.size();
+                pic1->getNbRawLinks()->insert(std::make_pair<cPic*&, long>(pic2,aPackIn1.size()));
                 for (ElPackHomologue::const_iterator itP=aPackIn1.begin(); itP!=aPackIn1.end() ; ++itP)
                 {
                     Pt2dr aP1 = itP->P1();
@@ -743,6 +742,43 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
 
 }
 
+void networkExport(std::map<std::string,cPic*> &allPics)
+{
+    std::ostringstream oss;
+    oss<<"var nodes = [\n";
+    std::map<std::string,cPic*>::iterator itPic1;
+    std::map<cPic*,long>::iterator itPic2;
+    for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
+    {
+        cPic* aPic=(*itPic1).second;
+        oss<<"  {id: "<<aPic->getId()<<", 'label': '"<<aPic->getName()<<"', 'group': 1},\n";
+    }
+    oss<<"];\n";
+    oss<<"var edges = [\n";
+    for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
+    {
+        cPic* aPic1=(*itPic1).second;
+        for (itPic2=aPic1->getNbRawLinks()->begin();itPic2!=aPic1->getNbRawLinks()->end();++itPic2)
+        {
+            cPic* aPic2=(*itPic2).first;
+            if ((*itPic2).second>=100)
+                oss<<"  {'from': "<<aPic1->getId()<<", 'to': "<<aPic2->getId()<<", value: "<<1+(*itPic2).second/100<<"},\n";
+        }
+    }
+    oss<<"];\n";
+
+    std::ofstream aNetworkfile;
+    aNetworkfile.open("data.js");
+    if (!aNetworkfile.is_open())
+    {
+        std::cout<<"Impossible to create \""<<"data.js"<<"\" file!\n";
+        return;
+    }
+    aNetworkfile<<oss.str();
+    aNetworkfile.close();
+}
+
+
 int schnaps_main(int argc,char ** argv)
 {
     std::string aFullPattern;//pattern of all images
@@ -759,6 +795,7 @@ int schnaps_main(int argc,char ** argv)
     bool aMove=false;//if true, move poubelle images to a folder named "Poubelle/"
     int aMinimalMultiplicity=1;
     std::string aNameTrashFolder = "";
+    bool aNetworkExport=false;//export html network image
 
     std::cout<<"Schnaps : reduction of homologue points in image geometry\n"
             <<"S trict           \n"
@@ -788,6 +825,7 @@ int schnaps_main(int argc,char ** argv)
                    << EAM(aMove,"MoveBadImgs",true,"Move bad images to a trash folder called Poubelle, Def=false")
                    << EAM(aNameTrashFolder,"OutTrash",true,"Output name of trash folder if moving bad images, Def=Poubelle")
                    << EAM(aMinimalMultiplicity,"MiniMulti",true,"Minimal Multiplicity of selected points, Def=1")
+                   << EAM(aNetworkExport,"NetworkExport",true,"Export Network (in js), Def=false")
       );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -841,6 +879,8 @@ int schnaps_main(int argc,char ** argv)
 
     computeAllHomol(aICNM,aDirImages,aPatIm,aSetIm,allHomolsIn,aCKin,allPics,allPicSizes,veryStrict,aNumWindows);
 
+    if (aNetworkExport)
+        networkExport(allPics);
     
     /*cout<<"Cleaning Homol list..."<<std::endl;
     for (std::list<cHomol*>::iterator itHomol=allHomolsIn.begin();itHomol!=allHomolsIn.end();)
