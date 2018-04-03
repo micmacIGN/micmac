@@ -6,8 +6,10 @@ cTri2D::cTri2D(Pt2dr P1, Pt2dr P2, Pt2dr P3):
     mP3 (P3),
     mIsInCam(true),
     mReech (1.0),
-    mHaveBasis (false)
+    mHaveBasis (false),
+    mInverseOrder (false)
 {
+
 }
 
 cTri2D::cTri2D():
@@ -87,7 +89,12 @@ double cTri2D::profOfPixelInTri(Pt2dr & ptInTri2D, cTri3D & aTri3D, cBasicGeomCa
 
 bool cTri2D::orientToCam(cBasicGeomCap3D * aCam)
 {
-    if ( ((mP1-mP2) ^ (mP1-mP3)) > 0 )
+    double notion = ((mP1-mP2) ^ (mP1-mP3));
+    if (mInverseOrder)
+    {
+        notion = -notion;
+    }
+    if (notion  > 0.0 )
         return false;
     else
         return true;
@@ -95,5 +102,10 @@ bool cTri2D::orientToCam(cBasicGeomCap3D * aCam)
 
 double cTri2D::surf()
 {
-    return ((mP1/mReech-mP2/mReech) ^ (mP1/mReech-mP3/mReech));
+    double surf = (mP1/mReech-mP2/mReech) ^ (mP1/mReech-mP3/mReech);
+    if (mInverseOrder)
+    {
+        surf = -surf;
+    }
+    return (surf);
 }

@@ -12,7 +12,8 @@ cParamZbufferRaster::cParamZbufferRaster():
     mMethod  (3),
     MD_SEUIL_SURF_TRIANGLE (TT_SEUIL_SURF),
     mPercentVisible (80.0),
-    mSafe   (true)
+    mSafe   (true),
+    mInverseOrder (false)
 {
 }
 
@@ -39,6 +40,7 @@ int ZBufferRaster_main(int argc,char ** argv)
                 << EAM(aParam.mFarScene, "farScene", true, "Detect far scene part")
                 << EAM(aParam.mPercentVisible, "pVisible", true, "condition to decide far scene part : triangle visible in % nb of image (def=80%)")
                 << EAM(aParam.mSafe, "Safe", true, "check if pt 3D raster visible in img before calcul (safe but slow) - def=true")
+                << EAM(aParam.mInverseOrder, "InvOrder", true, "Inverse order of triangle's vertices (as we don't know how 's the mesh generated - def=false")
              );
 
     if (MMVisualMode) return EXIT_SUCCESS;

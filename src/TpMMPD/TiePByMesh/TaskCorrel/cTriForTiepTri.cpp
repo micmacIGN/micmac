@@ -99,6 +99,11 @@ double cTriForTiepTri::valElipse(int & aNInter)
     else
     {
         double aSurf =  (mPt1-mPt2) ^ (mPt1-mPt3);
+        if(this->mAppli->ZBuf_InverseOrder())
+        {
+            aSurf=-aSurf;
+        }
+        //cout<<"SUFFFFFFFF "<<aSurf<<endl;
         Pt3dr Pt1 = mTri3D_.P1();
         Pt3dr Pt2 = mTri3D_.P2();
         Pt3dr Pt3 = mTri3D_.P3();

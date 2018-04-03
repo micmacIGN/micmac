@@ -35,6 +35,7 @@ class cParamZbufferRaster
         double      MD_SEUIL_SURF_TRIANGLE;
         double      mPercentVisible;
         bool        mSafe;
+        bool        mInverseOrder;
 };
 
 
@@ -149,6 +150,8 @@ public:
     const Pt2dr & P3() const {return mP3;}
     static cTri2D Default();
     bool & HaveBasis() {return mHaveBasis;}
+    bool & InverseOrder() {return mInverseOrder;}
+
 
     void SetReech(double & scale);
 
@@ -168,6 +171,7 @@ private:
     bool  mIsInCam;
     double mReech;
     bool mHaveBasis;
+    bool mInverseOrder; // we don't know order of triangle's vertice in mesh
 };
 
 class cImgZBuffer
