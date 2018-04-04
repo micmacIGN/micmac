@@ -491,9 +491,9 @@ int ASTERGT2MM_main(int argc, char ** argv)
 
 
 
-void ConcatenateASTERImages(string aDir, string aOutDir, vector<int> aVectDistancesBetweenImages3N, vector<int> aVectDistancesBetweenImages3B, list<string> ListScenes)
+void ConcatenateASTERImages(string aDir, string aOutDir, vector<int> aVectDistancesBetweenImages3N, vector<int> aVectDistancesBetweenImages3B, list<string> ListScenes, string aStripName)
 {
-	string aStripName = ListScenes.front().substr(0, 22);
+
 	int nbScenes = (int)ListScenes.size();
 	string aNameFile = ListScenes.front();
 	aNameFile.erase(aNameFile.end() - 26, aNameFile.end());
@@ -684,14 +684,15 @@ void ConcatenateASTERImages(string aDir, string aOutDir, vector<int> aVectDistan
 int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 {
 	//std::string aNameIm, aNameIm2, aNameParallax, aNameDEM;
-	std::string aPatScenesInit;
+	std::string aPatScenesInit, aStripName;
 	std::string aOutDir = "../";
 	//Reading the arguments
 	ElInitArgMain
 	(
 		argc, argv,
 		LArgMain()
-		<< EAMC(aPatScenesInit, "Regular expression of ASTER scenes names", eSAM_IsPatFile),
+		<< EAMC(aPatScenesInit, "Regular expression of ASTER scenes names", eSAM_IsPatFile)
+		<< EAMC(aStripName, "Name of output ASTER strip", eSAM_IsPatFile),
 		LArgMain()
 	);
 
@@ -704,7 +705,6 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 	list<string> ListScenes = RegexListFileMatch(aDir, aPatScenes, 1, false);
 	int nbScenes = (int)ListScenes.size();
 	std::cout << "Scenes in strip: " << nbScenes << endl;
-	string aStripName = ListScenes.front().substr(0, 22);
 	std::cout << "Strip name: " << aStripName << endl;
 
 	vector<int> aVectDistancesBetweenImages3N = { 0 };
@@ -818,7 +818,7 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 
 	// Concatenating image and destripping the images using RadiommetricCorrectionTable (same for all images of a single strip)
 	ListScenes = RegexListFileMatch(aDir, aPatScenes, 1, false);
-	ConcatenateASTERImages(aDir, aOutDir, aVectDistancesBetweenImages3N, aVectDistancesBetweenImages3B, ListScenes);
+	ConcatenateASTERImages(aDir, aOutDir, aVectDistancesBetweenImages3N, aVectDistancesBetweenImages3B, ListScenes, aStripName);
 
 
 
