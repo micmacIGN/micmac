@@ -2679,6 +2679,7 @@ class cAppliApero : public NROptF1vND
          double mSomDistFlot;
          Pt3dr  mSomEcPtsFlot;
          Pt3dr  mSomAbsEcPtsFlot;
+         Pt3dr  mSomRmsEcPtsFlot;
          Pt3dr  mMaxAbsEcPtsFlot;
 
          // Utilise pour genere les identifiant permettant d'interpreter les incertitudes

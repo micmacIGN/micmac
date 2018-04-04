@@ -208,7 +208,10 @@ class cFilterImPolI
        // mChgCtx => signifie que les Symbole Elise ne peuvent pas etre reutilise et qu'il faut 
        // duplique la fonction
 
-       cFilterImPolI(tPtrCalcFF,int aNbFoncIn,int aNbFoncMax,int aNbArgNum,int aNbArgMax,const std::string & aPat,bool ChgCtx);
+       cFilterImPolI(tPtrCalcFF,int aNbFoncIn,int aNbFoncMax,int aNbArgNum,int aNbArgMax,const std::string & aPat,bool ChgCtx,const std::string & aCom);
+
+
+       void Show() const;
 
 
        tPtrCalcFF  mCalc;
@@ -219,9 +222,29 @@ class cFilterImPolI
        std::string mPat;
        cElRegex    mAutom;
        bool        mChgCtx;
+       std::string mCom;
 };
 
-cFilterImPolI::cFilterImPolI(tPtrCalcFF aCalc,int aNbFoncIn,int  aNbFoncMax,int aNbArgNum,int  aNbArgMax,const std::string & aPat,bool aChgCtx) :
+void cFilterImPolI::Show() const
+{
+           std::cout << "====== Name=[" << mPat << "]" ;
+           std::cout << "\n";
+           std::cout << " Com=" << mCom  << " ;  NbF=" ;
+           if (mNbFoncIn==mNbFoncMax) 
+              std::cout << mNbFoncIn ;
+           else
+              std::cout << "[" << mNbFoncIn << "," << mNbFoncMax << "]" ;
+
+           std::cout << "  NbA=" ;
+           if (mNbArgNum==mNbArgMax) 
+              std::cout << mNbArgNum ;
+           else
+              std::cout << "[" << mNbArgNum << "," << mNbArgMax << "]" ;
+           std::cout << "\n";
+}
+
+
+cFilterImPolI::cFilterImPolI(tPtrCalcFF aCalc,int aNbFoncIn,int  aNbFoncMax,int aNbArgNum,int  aNbArgMax,const std::string & aPat,bool aChgCtx,const std::string & aCom) :
     mCalc      (aCalc),
     mNbFoncIn  (aNbFoncIn),
     mNbFoncMax (aNbFoncMax),
@@ -229,7 +252,8 @@ cFilterImPolI::cFilterImPolI(tPtrCalcFF aCalc,int aNbFoncIn,int  aNbFoncMax,int 
     mNbArgMax  (aNbArgMax),
     mPat       ("("+aPat + ")"),
     mAutom     (mPat,10),
-    mChgCtx    (aChgCtx)
+    mChgCtx    (aChgCtx),
+    mCom       (aCom)
 {
 }
 
@@ -259,7 +283,7 @@ static Fonc_Num FPermut(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 
     return aF.permut(aVI);
 }
-static cFilterImPolI  Opermut(FPermut,1,1,1,1,"permut",false);
+static cFilterImPolI  Opermut(FPermut,1,1,1,1,"permut",false,"permut F [i1 i2]");
 
   //----------------------------------------------------------------
 static Fonc_Num FKProj(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
@@ -269,7 +293,7 @@ static Fonc_Num FKProj(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 
     return aF.kth_proj(ToInt(EndStr(anArg.mNameIn) )); // (( anArg.mNameIn.substr(1,std::string::npos)));
 }
-static cFilterImPolI  OperKProj(FKProj,1,1,0,0,"v[0-9]+",false);
+static cFilterImPolI  OperKProj(FKProj,1,1,0,0,"v[0-9]+",false,"v0 F or  v1 F  or ...." );
 
 
 
@@ -284,7 +308,7 @@ static Fonc_Num FSetSymb(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 
     return anArg.mVIn.at(1);
 }
-static cFilterImPolI  OperSetSymb(FSetSymb,1,2,0,0,"=[A-Z,a-z].*",false);
+static cFilterImPolI  OperSetSymb(FSetSymb,1,2,0,0,"=[A-Z,a-z].*",false,"=toto F or (=toto F1 F2)");
 
   //----------------------------------------------------------------
 static Fonc_Num FUseSymb(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
@@ -293,7 +317,7 @@ static Fonc_Num FUseSymb(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 
     return  *aRes;
 }
-static cFilterImPolI  OperUseSymb(FUseSymb,0,0,0,0,"@[A-Z,a-z].*",false);
+static cFilterImPolI  OperUseSymb(FUseSymb,0,0,0,0,"@[A-Z,a-z].*",false,"@toto");
 
   //----------------------------------------------------------------
 
@@ -307,7 +331,7 @@ static Fonc_Num FAssoc(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
    return aRes;
 }
 
-static cFilterImPolI  OperAssoc(FAssoc,2,10000,0,0,"\\*|\\+|max|min",false);
+static cFilterImPolI  OperAssoc(FAssoc,2,10000,0,0,"\\*|\\+|max|min",false,"max F1 F2 or (max F1 F2 F3 ....)");
 
 
   //----------------------------------------------------------------
@@ -321,7 +345,7 @@ static Fonc_Num FVirgule(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
    return aRes;
 }
 
-static cFilterImPolI  OperVirgule(FVirgule,2,10000,0,0,",",false);
+static cFilterImPolI  OperVirgule(FVirgule,2,10000,0,0,",",false,", F1 F2 or (,  F1 F2 F3 ....)");
 
 
   //----------------------------------------------------------------
@@ -333,7 +357,7 @@ static Fonc_Num FOperIf(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
     return aTest * anArg.mVIn.at(1) + (!aTest) * anArg.mVIn.at(2);
 }
 
-static cFilterImPolI  OperIf(FOperIf,3,3,0,0,"\\?",false);
+static cFilterImPolI  OperIf(FOperIf,3,3,0,0,"\\?",false,"? F1 F2 F3");
   //----------------------------------------------------------------
 
 static Fonc_Num FOperBin(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
@@ -344,7 +368,7 @@ static Fonc_Num FOperBin(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 }
 
 static std::string TheStrOpB="-|/|pow|>=|>|<|<=|==|!=|&|&&|(\\|)|(\\|\\|)|\\^|%|mod|>>|<<";
-static cFilterImPolI  OperBin(FOperBin,2,2,0,0,TheStrOpB,false);
+static cFilterImPolI  OperBin(FOperBin,2,2,0,0,TheStrOpB,false,"pow F1 F2");
   //----------------------------------------------------------------
 
 static Fonc_Num FOperUn(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg) 
@@ -355,7 +379,7 @@ static Fonc_Num FOperUn(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 }
 
 static std::string TheStrOpU="u-|~|!|signed_frac|ecart_frac|cos|sin|tan|log|log2|exp|square|cube|abs|atan|sqrt|erfcc";
-static cFilterImPolI  OperUn(FOperUn,1,1,0,0,TheStrOpU,false);
+static cFilterImPolI  OperUn(FOperUn,1,1,0,0,TheStrOpU,false,"cos F");
 
 
   //----------------------------------------------------------------
@@ -364,7 +388,7 @@ static Fonc_Num FTif(cFilterImPolI &,const cArgFilterPolI & anArg)
    return  Tiff_Im::StdConvGen(anArg.mNameIn,-1,true).in_proj();
 }
 // static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|Tif|Tiff|TIF|TIFF|jpg|jpeg|Jpg|Jpeg|JPG|JPEG)",false);
-static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|jpg|jpeg|cr2|arw|png)",false);
+static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|jpg|jpeg|cr2|arw|png)",false,"MyFile.tif");
 
   //----------------------------------------------------------------
 
@@ -380,7 +404,7 @@ static Fonc_Num FCoord(cFilterImPolI & aPolI,const cArgFilterPolI & anArg)
    return  kth_coord(aKC);
 }
 
-static cFilterImPolI  OperCoord(FCoord,0,0,0,0,"x|y|z|x[0-9]+",false);
+static cFilterImPolI  OperCoord(FCoord,0,0,0,0,"x|y|z|x[0-9]+",false,"x or y oz or x0 x1 ....");
 
 
 
@@ -390,13 +414,13 @@ static Fonc_Num FDoubleCste(cFilterImPolI &,const cArgFilterPolI & anArg)
 {
    return   Fonc_Num(ToDouble(anArg.mNameIn));
 }
-static cFilterImPolI  OperDoubleCste(FDoubleCste,0,0,0,0,"-?[0-9]+\\.[0-9]*",false);
+static cFilterImPolI  OperDoubleCste(FDoubleCste,0,0,0,0,"-?[0-9]+\\.[0-9]*",false,"3.14");
 
 static Fonc_Num FIntCste(cFilterImPolI &,const cArgFilterPolI & anArg)
 {
    return   Fonc_Num(ToInt(anArg.mNameIn));
 }
-static cFilterImPolI  OperIntCste(FIntCste,0,0,0,0,"-?[0-9]+",false);
+static cFilterImPolI  OperIntCste(FIntCste,0,0,0,0,"-?[0-9]+",false,"222");
 
   //----------------------------------------------------------------
 
@@ -405,7 +429,7 @@ static Fonc_Num FDeriche(cFilterImPolI &,const cArgFilterPolI & anArg)
    return   deriche(anArg.mVIn.at(0) ,ToDouble(anArg.mVArgs.at(0)),20);
 }
 
-static cFilterImPolI  OperDeriche(FDeriche,1,1,1,1,"deriche",true);
+static cFilterImPolI  OperDeriche(FDeriche,1,1,1,1,"deriche",true,"deriche F a ; a=exposant  in e(-a|x|)");
 
   //----------------------------------------------------------------
 
@@ -414,7 +438,7 @@ static Fonc_Num FPolar(cFilterImPolI &,const cArgFilterPolI & anArg)
    return   Polar_Def_Opun::polar(anArg.mVIn.at(0),0);
 }
 
-static cFilterImPolI  OperPolar(FPolar,1,1,0,0,"polar",false);
+static cFilterImPolI  OperPolar(FPolar,1,1,0,0,"polar",false,"polar F");
 
   //----------------------------------------------------------------
 
@@ -426,7 +450,7 @@ static Fonc_Num FExtinc(cFilterImPolI &,const cArgFilterPolI & anArg)
     return extinc(anArg.mVIn.at(0),aChmf,aD);
 }
 
-static cFilterImPolI  OperExtinc(FExtinc,1,1,1,2,"extinc",true);
+static cFilterImPolI  OperExtinc(FExtinc,1,1,1,2,"extinc",true,"extinc F c d ; c=chamfer d=distance");
 
 
   //----------------------------------------------------------------
@@ -439,7 +463,7 @@ static Fonc_Num FEroDil(cFilterImPolI &,const cArgFilterPolI & anArg)
     return (anArg.mNameIn=="erode") ? erod(anArg.mVIn.at(0),aChmf,aD) : dilat(anArg.mVIn.at(0),aChmf,aD);
 }
 
-static cFilterImPolI  OperEroDil(FEroDil,1,1,2,2,"erode|dilate",true);
+static cFilterImPolI  OperEroDil(FEroDil,1,1,2,2,"erode|dilate",true,"erode F c d ; c=chamfer d=distance");
 
   //----------------------------------------------------------------
 
@@ -452,7 +476,7 @@ static Fonc_Num FCloseOpen(cFilterImPolI &,const cArgFilterPolI & anArg)
     return (anArg.mNameIn=="open") ? open(anArg.mVIn.at(0),aChmf,aD,aDelta) : close(anArg.mVIn.at(0),aChmf,aD,aDelta);
 }
 
-static cFilterImPolI  OperCloseOpen(FCloseOpen,1,1,2,3,"open|close",true);
+static cFilterImPolI  OperCloseOpen(FCloseOpen,1,1,2,3,"open|close",true,"(open F  c d1 d2) ; c=chamfer d1,d2=distance");
 
   //----------------------------------------------------------------
 
@@ -470,7 +494,39 @@ static Fonc_Num FMoy(cFilterImPolI &,const cArgFilterPolI & anArg)
     return aRes;
 }
 
-static cFilterImPolI  OperMoy(FMoy,1,1,1,2,"moy",true);
+static cFilterImPolI  OperMoy(FMoy,1,1,1,2,"moy",true,"(moy F SzW NbIter)");
+
+  //----------------------------------------------------------------
+
+
+static Fonc_Num FMoyPond(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+    int aNbVx =  ToInt(anArg.mVArgs.at(0)) ;
+    int aNbVy =  ToInt(anArg.mVArgs.at(1)) ;
+
+    ELISE_ASSERT( int(anArg.mVArgs.size())==(2+aNbVx*aNbVy),"FMoyPond bad nb arg");
+    Im2D_REAL8 anIm(aNbVx,aNbVy);
+    int aCpt=2;
+    double aSom = 0.0;
+    for (int aKx=0 ; aKx<aNbVx ; aKx++)
+    {
+       for (int aKy=0 ; aKy<aNbVy ; aKy++)
+       {
+          double aV= ToDouble(anArg.mVArgs.at(aCpt));
+          aSom += aV;
+          anIm.SetR(Pt2di(aKx,aKy),aV);
+          aCpt++;
+       }
+    }
+    ELISE_COPY(anIm.all_pts(),anIm.in()/aSom,anIm.out());
+   
+    return som_masq(Rconv(anArg.mVIn.at(0)),anIm);
+}
+
+static cFilterImPolI  OperMoyPond(FMoyPond,1,1,2,500,"moyp",true,"(moyp F 3 3 1 2 1 2 4 2 1 2 1)");
+
+
+
 
   //----------------------------------------------------------------
 
@@ -490,7 +546,7 @@ static Fonc_Num FMaxMin(cFilterImPolI &,const cArgFilterPolI & anArg)
     return aRes;
 }
 
-static cFilterImPolI  OperMaxMin(FMaxMin,1,1,1,2,"maxv|minv",true);
+static cFilterImPolI  OperMaxMin(FMaxMin,1,1,1,2,"maxv|minv",true,"(maxv SzW NbIter)");
 
 
 
@@ -508,7 +564,7 @@ static Fonc_Num FMedian(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 
     return aRes;
 }
-static cFilterImPolI  OperMed(FMedian,1,1,1,2,"median",true);
+static cFilterImPolI  OperMed(FMedian,1,1,1,2,"median",true,"(median F SzW NbIter)");
 
 
   //----------------------------------------------------------------
@@ -538,7 +594,7 @@ static Fonc_Num FIKth(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
     aRes = aVMin + aRes * (aVMax-aVMin) / aNbVal;
     return aRes;
 }
-static cFilterImPolI  OperIKth(FIKth,1,1,5,7,"ikth",true);
+static cFilterImPolI  OperIKth(FIKth,1,1,5,7,"ikth",true,"(ikth F Prop SzW VMin VMax NbDisc ?NbIter ?SzWy)");
 
 
   //----------------------------------------------------------------
@@ -562,7 +618,7 @@ static Fonc_Num FTrans(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
 
     return trans(aFonc,Pt2di(aTX,aTY));
 }
-static cFilterImPolI  OperTrans(FTrans,1,1,2,2,"trans",true);
+static cFilterImPolI  OperTrans(FTrans,1,1,2,2,"trans",true,"trans F dx dy");
 
   //----------------------------------------------------------------
 
@@ -598,6 +654,7 @@ static std::vector<cFilterImPolI *>  VPolI()
          aRes.push_back(&OperTrans);
          aRes.push_back(&OperIKth);
          aRes.push_back(&OperMaxMin);
+         aRes.push_back(&OperMoyPond);
          // aRes.push_back(&OperSobel);
     }
 
@@ -790,6 +847,16 @@ cResFilterPolI GlobParseStrFNPolI(tCPtr & aStr)
     return aRes;
 }
 
+void NirupActionOnHelp(int argc,char ** argv)
+{
+     // std::vector<cFilterImPolI *>  aVP =  VPolI();
+     for  (const auto & aP :  VPolI())
+     {
+        aP->Show();
+     }
+}
+
+
 
 int Nikrup_main(int argc,char ** argv)
 {
@@ -799,6 +866,8 @@ int Nikrup_main(int argc,char ** argv)
     // GenIm::type_el aType=  GenIm::real4;
     std::string aNameTypeOut = "real4";
     int aNbChan;
+
+    TheActionOnHelp = NirupActionOnHelp;
 
     ElInitArgMain
     (

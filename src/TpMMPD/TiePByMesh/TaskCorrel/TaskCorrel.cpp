@@ -32,6 +32,7 @@ int TaskCorrel_main(int argc,char ** argv)
         double MD_SEUIL_SURF_TRIANGLE = TT_SEUIL_SURF_TRIANGLE;
         int MethodZBuf = 3;
         bool Safe = true;
+        bool InverseOrder = false;
         ElInitArgMain
                 (
                     argc,argv,
@@ -58,6 +59,7 @@ int TaskCorrel_main(int argc,char ** argv)
                     << EAM(Safe, "Safe", true, "Safe (but longer) in ZBuffer calcul by test visible in image (def=true)")
                     << EAM(keepAll2nd, "keepAll2nd", true, "Don't filter image 2nd")
                     << EAM(MD_SEUIL_SURF_TRIANGLE, "surfTri", true, "Threshold of surface to filter triangle too small (def=100)")
+                    << EAM(InverseOrder, "InvOrder", true, "Inverse order of triangle's vertices (as we don't know how 's the mesh generated - def=false")
                     );
 
         if (MMVisualMode) return EXIT_SUCCESS;
@@ -113,6 +115,7 @@ int TaskCorrel_main(int argc,char ** argv)
             cAppliTaskCorrel * aAppli = new cAppliTaskCorrel(aICNM , aDir, aOriInput, aNameImg, noTif);
 
             aAppli->SafeZBuf() = Safe;
+            aAppli->ZBuf_InverseOrder() = InverseOrder;
             aAppli->KeepAll2nd()=keepAll2nd;
             aAppli->SEUIL_SURF_TRIANGLE()=MD_SEUIL_SURF_TRIANGLE;
             aAppli->MethodZBuf()=MethodZBuf;

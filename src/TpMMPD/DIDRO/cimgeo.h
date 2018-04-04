@@ -8,6 +8,7 @@ class cImGeo
 {
 public:
     //constructeur
+    cImGeo(std::string aName, std::string aNameTFW);
     cImGeo(std::string aName);
     cImGeo(cImGeo * imGeoTemplate,std::string aName);
     cImGeo(std::string aName,Im2D_REAL4 * aIm,Box2dr aBoxTer);

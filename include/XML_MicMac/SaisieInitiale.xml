@@ -20,6 +20,7 @@ Antipasti ~/micmac/include/XML_MicMac/SaisieInitiale.xml DirectoryChantier="/hom
             <Symb> EnterName=true </Symb>
             <Symb> Pref2Add="" </Symb>
             <Symb> ForceGray=true </Symb>
+            <Symb> Gama=1.0 </Symb>
             <Symb> WithInputSec=false </Symb>
             <Symb> InputSec=XXXX </Symb>
             <Symb> UseMinMaxPt=false </Symb>
@@ -53,6 +54,7 @@ Antipasti ~/micmac/include/XML_MicMac/SaisieInitiale.xml DirectoryChantier="/hom
         <SectionImages>
               <SetOfImages> ${Image}  </SetOfImages>
               <ForceGray> ${ForceGray} </ForceGray>
+              <Gama> ${Gama} </Gama>
               <KeyAssocOri> ${Ori}  </KeyAssocOri>
 
 

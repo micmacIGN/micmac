@@ -545,10 +545,22 @@ class cFitsParam
 
         std::list< cFitsOneLabel > & GenLabs();
         const std::list< cFitsOneLabel > & GenLabs()const ;
+
+        cTplValGesInit< double > & SeuilCorrDR();
+        const cTplValGesInit< double > & SeuilCorrDR()const ;
+
+        cTplValGesInit< double > & SeuilInc();
+        const cTplValGesInit< double > & SeuilInc()const ;
+
+        cTplValGesInit< double > & SeuilCorrLP();
+        const cTplValGesInit< double > & SeuilCorrLP()const ;
     private:
         eTypePtRemark mKindOl;
         cFitsOneLabel mOverLap;
         std::list< cFitsOneLabel > mGenLabs;
+        cTplValGesInit< double > mSeuilCorrDR;
+        cTplValGesInit< double > mSeuilInc;
+        cTplValGesInit< double > mSeuilCorrLP;
 };
 cElXMLTree * ToXMLTree(const cFitsParam &);
 

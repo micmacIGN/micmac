@@ -38,7 +38,8 @@ class cParamAppliTaskCorrel
                                                  const std::string & aOri,
                                                  const std::string & aPatImg,
                                                  bool & aNoTif,
-                                                 string aMesureXML
+                                                 string aMesureXML,
+                                                 bool aInverseOrder
                             );
         cInterfChantierNameManipulateur * pICNM;
         string pDir;
@@ -46,6 +47,7 @@ class cParamAppliTaskCorrel
         string pPatImg;
         bool pNoTif;
         string pMesureXML;
+        bool aInverseOrder;
 };
 
 // ==========================================================================
@@ -106,6 +108,8 @@ public:
 
     bool & SafeZBuf() {return mSafeZBuf;}
 
+    bool & ZBuf_InverseOrder() {return mZBuf_InverseOrder;}
+
 private:
     cInterfChantierNameManipulateur * mICNM;
     const string mDir;
@@ -139,6 +143,7 @@ private:
     vector<cXml_TriAngulationImMaster_WithPts> mVTaskWithGCP;
 
     bool mSafeZBuf;
+    bool mZBuf_InverseOrder;
 
 
 };

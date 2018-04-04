@@ -1452,6 +1452,39 @@ const std::list< cFitsOneLabel > & cFitsParam::GenLabs()const
    return mGenLabs;
 }
 
+
+cTplValGesInit< double > & cFitsParam::SeuilCorrDR()
+{
+   return mSeuilCorrDR;
+}
+
+const cTplValGesInit< double > & cFitsParam::SeuilCorrDR()const 
+{
+   return mSeuilCorrDR;
+}
+
+
+cTplValGesInit< double > & cFitsParam::SeuilInc()
+{
+   return mSeuilInc;
+}
+
+const cTplValGesInit< double > & cFitsParam::SeuilInc()const 
+{
+   return mSeuilInc;
+}
+
+
+cTplValGesInit< double > & cFitsParam::SeuilCorrLP()
+{
+   return mSeuilCorrLP;
+}
+
+const cTplValGesInit< double > & cFitsParam::SeuilCorrLP()const 
+{
+   return mSeuilCorrLP;
+}
+
 void  BinaryUnDumpFromFile(cFitsParam & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.KindOl(),aFp);
@@ -1465,6 +1498,30 @@ void  BinaryUnDumpFromFile(cFitsParam & anObj,ELISE_fp & aFp)
               anObj.GenLabs().push_back(aVal);
         }
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SeuilCorrDR().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SeuilCorrDR().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SeuilCorrDR().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SeuilInc().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SeuilInc().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SeuilInc().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.SeuilCorrLP().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.SeuilCorrLP().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.SeuilCorrLP().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cFitsParam & anObj)
@@ -1477,6 +1534,12 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cFitsParam & anObj)
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,anObj.SeuilCorrDR().IsInit());
+    if (anObj.SeuilCorrDR().IsInit()) BinaryDumpInFile(aFp,anObj.SeuilCorrDR().Val());
+    BinaryDumpInFile(aFp,anObj.SeuilInc().IsInit());
+    if (anObj.SeuilInc().IsInit()) BinaryDumpInFile(aFp,anObj.SeuilInc().Val());
+    BinaryDumpInFile(aFp,anObj.SeuilCorrLP().IsInit());
+    if (anObj.SeuilCorrLP().IsInit()) BinaryDumpInFile(aFp,anObj.SeuilCorrLP().Val());
 }
 
 cElXMLTree * ToXMLTree(const cFitsParam & anObj)
@@ -1491,6 +1554,12 @@ cElXMLTree * ToXMLTree(const cFitsParam & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("GenLabs"));
+   if (anObj.SeuilCorrDR().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SeuilCorrDR"),anObj.SeuilCorrDR().Val())->ReTagThis("SeuilCorrDR"));
+   if (anObj.SeuilInc().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SeuilInc"),anObj.SeuilInc().Val())->ReTagThis("SeuilInc"));
+   if (anObj.SeuilCorrLP().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("SeuilCorrLP"),anObj.SeuilCorrLP().Val())->ReTagThis("SeuilCorrLP"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -1506,8 +1575,14 @@ void xml_init(cFitsParam & anObj,cElXMLTree * aTree)
    xml_init(anObj.OverLap(),aTree->Get("OverLap",1)); //tototo 
 
    xml_init(anObj.GenLabs(),aTree->GetAll("GenLabs",false,1));
+
+   xml_init(anObj.SeuilCorrDR(),aTree->Get("SeuilCorrDR",1),double(0.7)); //tototo 
+
+   xml_init(anObj.SeuilInc(),aTree->Get("SeuilInc",1),double(0.01)); //tototo 
+
+   xml_init(anObj.SeuilCorrLP(),aTree->Get("SeuilCorrLP",1),double(0.93)); //tototo 
 }
 
-std::string  Mangling( cFitsParam *) {return "607810E6A4DA6BE0FE3F";};
+std::string  Mangling( cFitsParam *) {return "3ABB396C474567C6FC3F";};
 
 // };

@@ -16,7 +16,8 @@ extern void SaisieAppuisInit(int argc, char ** argv,
                       double &aZMoy,
                       double &aZInc,
                       std::string & aInputSec,
-                      bool & WithMaxMin
+                      bool & WithMaxMin, 
+		      double & aGama
                       );
 
 
@@ -75,6 +76,7 @@ int saisieAppuisInitQT_main(int argc, char *argv[])
                 "* [Name=NameAuto] string :: {Prefix for automatic point creation}\n"
                 //"* [Name=Pref2Add] string :: {Prefix to add during import (for bug correction ?)}\n"
                 "* [Name=ForceGray] bool :: {Force gray image, def=false}\n"
+                "* [Name=Gama] double :: {Gama ,def = 1.0}\n"
                 "* [Name=OriMode] string :: {Orientation type (GRID) (Def=Std)}\n"
                 "* [Name=ZMoy] REAL :: {Average Z, Mandatory in PB}\n"
                 "* [Name=ZInc] REAL :: {Incertitude on Z, Mandatory in PB}\n\n"
@@ -102,6 +104,7 @@ int saisieAppuisInitQT_main(int argc, char *argv[])
     string aNameOri, aModeOri, aNameAuto, aPrefix2Add;  //named args
     aPrefix2Add = "";
     bool aForceGray = false;
+    double aGama = 1.0;
 
     settings.beginGroup("Misc");
     aNameAuto = settings.value("defPtName", QString("100")).toString().toStdString();
@@ -122,7 +125,7 @@ int saisieAppuisInitQT_main(int argc, char *argv[])
     std::string aInputSec;
     bool  WithMaxMin=false;
 
-    SaisieAppuisInit(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray, aZMoy, aZInc,aInputSec,WithMaxMin);
+    SaisieAppuisInit(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameOut, aNameAuto, aPrefix2Add, aForceGray, aZMoy, aZInc,aInputSec,WithMaxMin, aGama);
 
     if (!MMVisualMode)
     {
@@ -185,6 +188,9 @@ getchar();
 
         if (EAMIsInit(&aPrefix2Add))
            input << QString("+Pref2Add=") + QString(aPrefix2Add.c_str());
+
+	if (EAMIsInit(&aGama))
+           input << QString("+Gama=") + QString::number(aGama);
 
 
         char **output;

@@ -130,6 +130,7 @@ pas interfere avec format utilisateur basique, on separe -->
         <SectionImages Nb="1">
               <SetOfImages Nb="1" Type="std::string"> </SetOfImages>
               <ForceGray Nb="?" Type="bool" Def="false"> </ForceGray>
+              <Gama Nb="?" Type="double" Def="1.0"> </Gama>
               <!-- the conventional value NONE is equiv to no orient -->
               <KeyAssocOri Nb="?" Type="std::string"> </KeyAssocOri>
               <!-- Filter for visibility of points in image -->

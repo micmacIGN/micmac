@@ -11,6 +11,7 @@
              <Symb> FlouSpecified=false </Symb>
              <Symb> TypeSpecified=false </Symb>
              <Symb> ForceGray=true </Symb>
+             <Symb> Gama=1.0 </Symb>
              <Symb> WithMasq3D=false </Symb>
              <Symb> Masq3D=XXXXX </Symb>
              <Symb> WithPIMsFilter=false </Symb>
@@ -61,6 +62,7 @@
         <SectionImages>
               <SetOfImages> ${Images} </SetOfImages>
               <ForceGray> ${ForceGray} </ForceGray>
+              <Gama> ${Gama} </Gama>
               <KeyAssocOri> ${Ori}  </KeyAssocOri>
         </SectionImages>
 
