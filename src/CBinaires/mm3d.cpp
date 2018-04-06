@@ -1117,6 +1117,7 @@ extern int RefineModel_main(int argc, char **argv);
 extern int RefineJitter_main(int argc, char **argv);
 extern int ApplyParralaxCor_main(int argc, char **argv);
 extern int Dimap2Grid_main(int argc, char **argv);
+extern int DimapUseRPC_main(int argc, char **argv);
 extern int DigitalGlobe2Grid_main(int argc, char **argv);
 extern int Aster2Grid_main(int argc, char **argv);
 extern int AsterDestrip_main(int argc, char **argv);
@@ -1143,6 +1144,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 	aRes.push_back(cMMCom("Grid2RPC", Grid2RPC_main, "Calculate RPCs from the GRIDs"));
 	aRes.push_back(cMMCom("RPC", RPC_main, "test functions for upcoming RPC functions"));
 	aRes.push_back(cMMCom("Dimap2Grid", Dimap2Grid_main, "Create a Grid file from a Dimap (SPOT or Pleiades) "));
+	aRes.push_back(cMMCom("DimapUseRPC", DimapUseRPC_main, "Use Direct (image to ground) or Inverse (ground to image) RPC from Dimap file "));
 	aRes.push_back(cMMCom("DigitalGlobe2Grid", DigitalGlobe2Grid_main, "Create a Grid file from a DigitalGlobe RPB file (WorldView/Geoeye/IKONOS...) "));
 	aRes.push_back(cMMCom("Aster2Grid", Aster2Grid_main, "Creates a Grid file from the meta-data of an Aster Images"));
 	aRes.push_back(cMMCom("ASTERGT2MM", ASTERGT2MM_main, "Convert ASTER geoTiff format to MicMac Xml, also destrip images"));
