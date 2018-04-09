@@ -1509,7 +1509,7 @@ int main_testold(int argc,char ** argv)
           }
         }
 
-       } else { std:cout << "cannot open file in\n";}
+       } else { std::cout << "cannot open file in\n";}
         fin.close();
         fout.close();
 

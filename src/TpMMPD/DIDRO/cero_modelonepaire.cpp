@@ -85,8 +85,6 @@ cERO_ModelOnePaire::cERO_ModelOnePaire(int argc, char** argv):mO1(0),mO2(0)
                 );
     mO2clip = tmp;
 
-
-
     if (mDebug){
     saveIm2D(& mO1clip, mTmpDirERO+"Im1clipped.tif");
     saveIm2D(& mO2clip, mTmpDirERO+"Im2clipped.tif");
