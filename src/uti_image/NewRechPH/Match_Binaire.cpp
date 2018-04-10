@@ -39,6 +39,52 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
+template <const int NbBit> class cTabulNbB
+{
+    public :
+       static const int NbFlag = 1<<NbBit;
+       int   mTabulNbBit[NbFlag];
+
+       cTabulNbB();
+};
+
+template <const int NbBit> cTabulNbB<NbBit>::cTabulNbB()
+{
+   for (int aFlag=0 ; aFlag<NbFlag ; aFlag++)
+   {
+       mTabulNbBit[aFlag] = 0;
+       for (int aBit=0 ; aBit<NbBit ; aBit++)
+            if (aFlag & (1<<aBit))
+               mTabulNbBit[aFlag] ++;
+   }
+}
+
+inline int NbBitsOfFlag16(const int aFlag)
+{
+   static cTabulNbB<16> aTab;
+
+   return aTab.mTabulNbBit[aFlag];
+}
+
+
+
+template <const int TheNbUI2>  
+   inline tTplCodBin<TheNbUI2> operator ^ (const tTplCodBin<TheNbUI2> & aC1,const tTplCodBin<TheNbUI2> & aC2)
+{
+   tTplCodBin<TheNbUI2> aRes;
+   for (int aK=0 ; aK<TheNbUI2 ; aK++)
+      aRes.mCode[aK] = aC1.mCode[aK] ^ aC2.mCode[aK] ;
+   return aRes;
+}
+
+void FFFFF()
+{
+   tTplCodBin<5> aC1,aC2;
+   aC1 = aC1 ^ aC2;
+}
+
+
+
 
 static constexpr int TheNbUI2Flag = 5;
 // typedef Im2D_U_INT2 tCodBin;
@@ -60,6 +106,9 @@ int NbBitOfShortFlag(int aFlag)
          for (int aB=0 ; aB<TheNbBitTabuled ; aB++)
             if (aF & (1<<aB))
                aTab[aF] ++;
+{
+   std::cout << "FFf" << aF << " " << NbBitsOfFlag16(aF) << " " << aTab[aF] << "\n";
+}
       }
       first = false;
    }
@@ -76,6 +125,20 @@ void SetOfFlagInfNbb(std::vector<int> & aRes,int aNbBitTot,int aNbBitAct)
           aRes.push_back(aFlag);
     }
 }
+
+typedef std::vector<int> * tPtrVInt;
+const std::vector<int> * FlagOfNbb(int aNbBitTot,int aNbBitAct)
+{
+    static std::map<Pt2di,std::vector<int> *> TheMap;
+    tPtrVInt & aRes = TheMap[Pt2di(aNbBitTot,aNbBitAct)];
+    if (aRes==0)
+    {
+       aRes = new std::vector<int>;
+       SetOfFlagInfNbb(*aRes,aNbBitTot,aNbBitAct);
+    }
+    return aRes;
+}
+
 
 
 int NbBitOfFlag(tCodBin aFlag)

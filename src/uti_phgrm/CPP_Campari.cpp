@@ -393,6 +393,11 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
            mCom =  mCom+ " +FactMaxRes=" + ToString(aFactResElimTieP) + " ";
 
 
+       if (Viscos<=0) 
+       {
+          mCom  +=  " +UseSLM=false ";
+          Viscos = 1; // Pour eviter une / par 0 en xml
+       }
        if (EAMIsInit(&Viscos)) mCom  +=  " +Viscos=" + ToString(Viscos) + " ";
 
        if (EAMIsInit(&DetailAppuis)) mCom += " +DetailAppuis=" + ToString(DetailAppuis) + " ";
