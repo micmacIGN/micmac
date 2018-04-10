@@ -51,8 +51,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // IBC : suffix for Implement Block Cam
 
-class cIBC_ImsOneTime;  //  regroupe les pose acquise au meme temps T
-class cIBC_OneCam;      //  contient les info partagee par la meme tete de camera
+//class cIBC_ImsOneTime;  //  regroupe les pose acquise au meme temps T
+//class cIBC_OneCam;      //  contient les info partagee par la meme tete de camera
                         //  par exemple la rotation (ou le point) inconnue du bloc de camera
 
 
@@ -559,6 +559,7 @@ class  cCmp_IOT_Ptr
           return  aT1->NameTime() < aT2->NameTime();
        }
 };
+
 static cCmp_IOT_Ptr TheIOTCmp;
 
 
@@ -579,6 +580,7 @@ void  cIBC_ImsOneTime::AddPose(cPoseCam * aPC, int aNum)
     
     mCams[aNum] = aPC;
 }
+
 
 cPoseCam * cIBC_ImsOneTime::Pose(int aKP)
 {

@@ -43,6 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cParamApero.h"
 #include "BundleGen.h"
 
+class cImplemBlockCam;
 
 
 extern bool ResidualStepByStep ;
@@ -101,7 +102,7 @@ class cOneImageOfLayer;
 class cClassEquivPose;
 class cRelEquivPose;
 
-class cImplemBlockCam;
+
 class cPoseCdtImSec;
 
 std::vector<cGenPoseCam *> ToVecGP(const std::vector<cPoseCam *> &);
@@ -2698,9 +2699,6 @@ class cAppliApero : public NROptF1vND
          std::string mDirExportImRes;
          FILE *      mFileExpImRes;
 };
-
-
-
 
 #define ADDALLMAJ(aMes) AddAllMajick(__LINE__,__FILE__,aMes)
 

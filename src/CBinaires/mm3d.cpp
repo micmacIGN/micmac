@@ -789,6 +789,8 @@ int Homol2Way_main(int argc, char ** argv);
 
 int Homol2WayNEW_main(int argc, char ** argv);
 
+int Test_InitBloc(int argc, char ** argv);
+
 int UnWindows(int argc, char ** argv);
 
 int MakePly_CamOrthoC(int argc, char ** argv);
@@ -1065,6 +1067,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("GCPRollingBasc",GCPRollingBasc_main ,"Rolling GCPBascule"));
         aRes.push_back(cMMCom("TiepTriFar",TiepTriFar_Main ,"TestFarScene"));
         aRes.push_back(cMMCom("DetectImBlur",Test_Conv,"compute sharpness notion for each img by variance of laplacian"));
+        aRes.push_back(cMMCom("InitOriByBlocRigid",Test_InitBloc,"Init another camera orientation from known camera block structure and one camera ori in block"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));
