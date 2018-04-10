@@ -7,6 +7,7 @@ MMV2DirSrc=${MMV2Dir}src/
 MMV2DirBin=${MMV2Dir}bin/
 MMV2Objects=${MMV2Dir}object/
 MMV2DirIncl=${MMV2Dir}include/
+MMV2ElisePath=${MMDir}/lib/libelise_SsQt.a
 #
 #
 #       ===== INSTALLATION ========================================
@@ -72,8 +73,8 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #
 CXX=g++
 CFlags="-std=c++14" "-Wall" "-Werror" -I${MMV2Dir} -I${MMDir}/include/
-BOOST_LIBS=/usr/include/boost/stage/lib/libboost_*.a
-LibsFlags= ${MMDir}/lib/libelise_SsQt.a -lX11   ${BOOST_LIBS}
+BOOST_LIBS= -lboost_system -lboost_serialization -lboost_regex -lboost_filesystem
+LibsFlags= ${MMV2ElisePath} -lX11  ${BOOST_LIBS}
 MMV2Exe=MMVII
 #
 ${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ResultInstal}
@@ -84,6 +85,7 @@ ${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ResultInstal}
 #
 ${MMV2ResultInstal} : ${MMV2SrcInstal}
 	${CXX} ${MMV2SrcInstal} -o ${MMV2BinInstal} ${BOOST_LIBS}
+	mkdir -p `dirname ${MMV2ResultInstal}`
 	${MMV2BinInstal}
 	rm ${MMV2BinInstal}
 #
@@ -113,5 +115,7 @@ all : ${MMV2DirBin}${MMV2Exe} ${OBJ}
 Show:
 	echo ${SrcUtils}
 	echo DU=${MMV2DirUtils}
+clean :
+	rm -f ${OBJ}
 #
 #
