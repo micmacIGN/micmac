@@ -44,6 +44,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../../include/StdAfx.h"
 
 typedef Im2D_U_INT2 tCodBin;
+
+template <const int TheNbUI2> class tTplCodBin
+{
+    public :
+          U_INT2 mCode[TheNbUI2];
+};
+
+
+
+
 int NbBitOfShortFlag(int aFlag);
 int NbBitOfFlag(tCodBin aFlag);
 
@@ -51,6 +61,8 @@ int NbBitDifOfFlag(int aFlag1,int aFlag2);
 int NbBitDifOfFlag(tCodBin aFlag1,tCodBin aFlag2);
 
 void SetOfFlagInfNbb(std::vector<int> & aRes,int aNbBitTot,int aNbBitAct);
+
+const std::vector<int> * FlagOfNbb(int aNbBitTot,int aNbBitAct);
 
 
 
@@ -246,6 +258,23 @@ typedef cPtRemark * tPtrPtRemark;
 std::vector<std::vector<int> > CnP(int aP,int aN);
 
 // std::vector<Pt2di> SortedVoisinDisk(double aDistMin,double aDistMax,bool Sort);
+
+
+class cFHistoInt
+{
+    public :
+       void Add(int aK,double aPds=1.0,int aMes=-1);
+       cFHistoInt() ;
+       double Perc(int aK);
+       int at(int aK);
+
+       void Show();
+
+    private :
+       std::vector<double> mHist;
+       int mSom;
+};
+
 
 
 #endif //  _ExternNewRechPH_H_

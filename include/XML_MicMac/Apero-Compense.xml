@@ -64,8 +64,9 @@
            <eSymb>  DetailAppuis=0 </eSymb>
 
            <Symb>  Viscos=1 </Symb>
-           <eSymb>  TetaLVM=/   0.1 ${Viscos} </eSymb>
-           <eSymb>  CentreLVM=/ 1.0  ${Viscos}</eSymb>
+           <eSymb> TetaLVM=/   0.1 ${Viscos} </eSymb>
+           <eSymb> CentreLVM=/ 1.0  ${Viscos}</eSymb>
+           <Symb>  UseSLM=true </Symb>
 
            <Symb>  NbMinIterFin=4 </Symb>
            <Symb>  NbMaxIterFin=4 </Symb>
@@ -455,27 +456,28 @@
 	      <ModeResolution> ${ModeResolSysLin} </ModeResolution> 
               <NormaliseEqSc > ${NormaliseEqSc} </NormaliseEqSc>
               <NormaliseEqTr > ${NormaliseEqTr} </NormaliseEqTr>
-              <SLMGlob> 
-                 <RappelOnAngles>
-                      <ParamF >
-                          <PatternNameApply> .* </PatternNameApply>
-                          <Incertitude> ${TetaLVM} </Incertitude>
-                          <OnCur> true </OnCur>  
-                       </ParamF>
-                      <TetaApply> 0 </TetaApply>
-                      <TetaApply> 1 </TetaApply>
-                      <TetaApply> 2 </TetaApply>
-                </RappelOnAngles>
-                 <RappelOnCentres>
-                      <ParamF> 
+              <#WHEN VTEST=${UseSLM}>
+                 <SLMGlob> 
+                    <RappelOnAngles>
+                         <ParamF >
+                             <PatternNameApply> .* </PatternNameApply>
+                             <Incertitude> ${TetaLVM} </Incertitude>
+                             <OnCur> true </OnCur>  
+                          </ParamF>
+                         <TetaApply> 0 </TetaApply>
+                         <TetaApply> 1 </TetaApply>
+                         <TetaApply> 2 </TetaApply>
+                    </RappelOnAngles>
+                    <RappelOnCentres>
+                         <ParamF> 
                              <PatternNameApply> .* </PatternNameApply>
                              <Incertitude> ${CentreLVM} </Incertitude>
                              <OnCur> true </OnCur>  
-                      </ParamF>
-                      <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
-                </RappelOnCentres>
-
-             </SLMGlob>
+                         </ParamF>
+                         <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
+                    </RappelOnCentres>
+                 </SLMGlob>
+              </#WHEN>
 
              <#WHEN VTEST=${UseRegulDist}>
                   <RegDistGlob>
@@ -817,6 +819,7 @@
                                <ExportSensibParamAero Nb="?">
                                      <Dir> ${DirExportSensib} </Dir>
                                </ExportSensibParamAero>
+                            </#WHEN>
                             </#WHEN>
 
                     </SectionExport>
