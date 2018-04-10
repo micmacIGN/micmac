@@ -38,6 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
+#include "TapasCampari.h"
 
 void UseRegulDist(std::vector<double> & aVRegulDist,std::string & aCom)
 {
@@ -376,6 +377,7 @@ int  GlobDegGen = 100;
 
 int Tapas_main(int argc,char ** argv)
 {
+    cAppli_Tapas_Campari anATP;
     NoInit = "#@LL?~~XXXXXXXXXX";
 
     MMD_InitArgcArgv(argc,argv);
@@ -483,6 +485,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aVRegulDist,"RegulDist",true,"Parameter fo RegulDist [Val,Grad,Hessian,NbCase,SeuilNb]")
                     << EAM(aLVM,"MulLVM",true,"Multipier Levenberg Markard")
                     << EAM(MultipleBlock,"MultipleBlock",true,"Multiple block need special caution (only related to Levenberg Markard)")
+                    << anATP.ArgATP()
     );
 
 
@@ -745,6 +748,8 @@ int Tapas_main(int argc,char ** argv)
                         + std::string(" +RegDistSeuil=") + ToString(aSeuilNbPts);
        }
 
+
+       anATP.AddParamBloc(aCom);
 
        std::cout << "Com = " << aCom << "\n";
        int aRes = 0;

@@ -183,6 +183,9 @@ class cEqObsBlockCam  : public cNameSpaceEqF,
         double  AddObsDist(const double & aPdsDist);
         void  DoAMD(cAMD_Interf * anAMD);
 
+        // Pas utile a priori pour l'equation, mais apparu quand on le met dans Tapas pour verifier que c'est initialise
+        void SetCams(cGenPoseCam *,cGenPoseCam*,cGenPoseCam*,cGenPoseCam*); 
+        bool CamIsInit() const;
      private  :
 
          cEqObsBlockCam
@@ -207,10 +210,29 @@ class cEqObsBlockCam  : public cNameSpaceEqF,
           cIncListInterv      mLInterv;
           std::string         mNameType;
           cElCompiledFonc*    mFoncEqResidu;
+          std::vector<cGenPoseCam *> mVGP;
 #if  (HandleGL)
           cEOBC_ModeRot *     mModeR;
 #endif
 };
+
+
+bool cEqObsBlockCam::CamIsInit() const
+{
+    for (const auto & aPC : mVGP)
+       if (aPC && (!aPC->RotIsInit()))
+          return false;
+    return true;
+}
+
+
+void cEqObsBlockCam::SetCams(cGenPoseCam * aCam1,cGenPoseCam* aCam2,cGenPoseCam* aCam3,cGenPoseCam* aCam4)
+{
+    mVGP.push_back(aCam1);
+    mVGP.push_back(aCam2);
+    mVGP.push_back(aCam3);
+    mVGP.push_back(aCam4);
+}
 
 cEqObsBlockCam::cEqObsBlockCam
 (
@@ -817,6 +839,7 @@ cImplemBlockCam::cImplemBlockCam
                                                          false
                                                       );
 
+                          anEq->SetCams(nullptr,nullptr,aPcR1,aPcL1);
                           mVecEqGlob.push_back(anEq);
                        }
                    }
@@ -850,6 +873,7 @@ cImplemBlockCam::cImplemBlockCam
                                                          true
                                                       );
 
+                          anEq->SetCams(nullptr,nullptr,aPcR1,aPcL1);
                           mVecEqDistGlob.push_back(anEq);
                        }
                    }
@@ -883,6 +907,7 @@ cImplemBlockCam::cImplemBlockCam
                                                          false,
                                                          false
                                                       );
+                          anEq->SetCams(aPcR0,aPcL0,aPcR1,aPcL1);
 
                            mVecEqRel.push_back(anEq);
                        }
@@ -916,24 +941,28 @@ void cImplemBlockCam::DoCompensationRot
     for (int aKE=0 ; aKE<int(aVecEq.size()) ; aKE++)
     {
           cEqObsBlockCam &  anEQ = *(aVecEq[aKE]) ;
-          const std::vector<double> & aResidu = anEQ.AddObsRot(mAppli.RBW_PdsTr(aRBW),mAppli.RBW_PdsRot(aRBW));
-          // const std::vector<double> & aResidu = anEQ.AddObs(aRBW.PondOnTr(),aRBW.PondOnRot());
-          double aSomEcartMat = 0;
-          double aSomEcartPt = 0;
-
-          for (int aK=0 ; aK<3 ; aK++)
-              aSomEcartPt += ElSquare(aResidu[aK]);
-
-          for (int aK=3 ; aK<12 ; aK++)
-              aSomEcartMat += ElSquare(aResidu[aK]);
-
-          aGlobEcMat += aSomEcartMat;
-          aGlobEcPt += aSomEcartPt;
-       
-          if (anObs.Show().Val())   // comment activer cette option ?
+          if (anEQ.CamIsInit())
           {
-              std::cout << "    " << aKE << "   EcMat  " <<  sqrt(aSomEcartMat)   
-                   << " XYZ " <<  sqrt(aSomEcartPt) <<" \n";
+              //  std::cout << "HHHHH " << & anEQ << "\n";
+              const std::vector<double> & aResidu = anEQ.AddObsRot(mAppli.RBW_PdsTr(aRBW),mAppli.RBW_PdsRot(aRBW));
+              // const std::vector<double> & aResidu = anEQ.AddObs(aRBW.PondOnTr(),aRBW.PondOnRot());
+              double aSomEcartMat = 0;
+              double aSomEcartPt = 0;
+
+              for (int aK=0 ; aK<3 ; aK++)
+                  aSomEcartPt += ElSquare(aResidu[aK]);
+
+              for (int aK=3 ; aK<12 ; aK++)
+                  aSomEcartMat += ElSquare(aResidu[aK]);
+
+              aGlobEcMat += aSomEcartMat;
+              aGlobEcPt += aSomEcartPt;
+       
+              if (anObs.Show().Val())   // comment activer cette option ?
+              {
+                  std::cout << "    " << aKE << "   EcMat  " <<  sqrt(aSomEcartMat)   
+                       << " XYZ " <<  sqrt(aSomEcartPt) <<" \n";
+              }
           }
     }
     std::cout << " GlobMat    " <<  sqrt(aGlobEcMat/aVecEq.size())   
@@ -951,8 +980,11 @@ void cImplemBlockCam::DoCompensationDist
     for (int aKE=0 ; aKE<int(aVecEq.size()) ; aKE++)
     {
           cEqObsBlockCam &  anEQ = *(aVecEq[aKE]) ;
-          double  aResidu = anEQ.AddObsDist(mAppli.RBW_PdsTr(aRBW));
-          aGlobEcDist += ElSquare(aResidu);
+          if (anEQ.CamIsInit())
+          {
+             double  aResidu = anEQ.AddObsDist(mAppli.RBW_PdsTr(aRBW));
+             aGlobEcDist += ElSquare(aResidu);
+          }
     }
     aGlobEcDist /= aVecEq.size();
     std::cout << "Comp Dist = " << sqrt(aGlobEcDist) << "\n";
