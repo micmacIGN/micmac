@@ -539,6 +539,7 @@ class cImplemBlockCam
          void DoAMD(cAMD_Interf * anAMD,const std::vector<cEqObsBlockCam* > & aVec);
          void AddContraintes(bool Stricte);
 
+         const cStructBlockCam & SBC() const;
     private :
          void InitRF();
 
@@ -1033,6 +1034,7 @@ void  cImplemBlockCam::DoAMD(cAMD_Interf * anAMD)
 }
 
 
+const cStructBlockCam & cImplemBlockCam::SBC() const {return mSBC;}
 
 
 void cImplemBlockCam::EstimCurOri(const cXml_EstimateOrientationInitBlockCamera & anEOIB)
@@ -1187,9 +1189,53 @@ void cAppliApero::InitBlockCameras()
                              );
        cImplemBlockCam * aIBC = new cImplemBlockCam(*this,aSB,*itB,anId);
        mBlockCams[anId] = aIBC;
+       mHasBlockCams = true;
   }
 }
 
+ElRotation3D  cAppliApero::SVPGetRotationBloc(const std::string & aNameBloc,const std::string& aNamePose,std::string & aNameTimeResult)
+{
+   static std::map<std::string,cStructBlockCam> aMap;
+   if (! DicBoolFind(aMap,aNameBloc))
+   {
+       aMap[aNamePose] =  StdGetFromPCP(aNameBloc,StructBlockCam);
+   }
+   const cStructBlockCam &  aSBC = aMap[aNamePose];
+
+   ElRotation3D aRes = ElRotation3D::Id;
+   aNameTimeResult = "";
+
+
+   std::pair<std::string,std::string> aPair =   mICNM->Assoc2To1(aSBC.KeyIm2TimeCam(),aNamePose,true);
+   std::string aNameTime = aPair.first; // get a time stamp
+   std::string aNameGrp  = aPair.second;// get a cam name
+
+   for (const auto  & aPO :   aSBC.LiaisonsSHC().Val().ParamOrientSHC() )
+   {
+        if (aPO.IdGrp() == aNameGrp)
+        {
+            aNameTimeResult = aNameTime;
+            Pt3dr aTr = aPO.Vecteur();
+            ElMatrix<double> aMat = ImportMat(aPO.Rot());
+            aRes = ElRotation3D(aTr,aMat,true);
+            return aRes;
+        }
+   }
+     // std::pair<std::string,std::string> Assoc2To1(const tKey &,const std::string & aName,bool isDir);
+
+
+   return aRes;
+}
+
+
+ElRotation3D  cAppliApero::GetUnikRotationBloc(const std::string & aNameBloc,const std::string& aNamePose)
+{
+   std::string aNameTR;
+   ElRotation3D aRes = SVPGetRotationBloc(aNameBloc,aNamePose,aNameTR);
+
+   ELISE_ASSERT(aNameTR!="","cAppliApero::GetUnikRotationBloc");
+   return aRes;
+}
 
 void  cAppliApero::BlocContraintes(bool Stricte)
 {

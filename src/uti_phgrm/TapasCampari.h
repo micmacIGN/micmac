@@ -13,15 +13,22 @@ class cAppli_Tapas_Campari
        void AddParamBloc(std::string & mCom);
        LArgMain &     ArgATP();
 
-    protected :
+       bool                        mWithBlock;
+       std::vector<std::string>  SetExtendPattern
+                                 (
+                                      const std::string & aPatGlob,
+                                      const std::string & aPatCenter,
+                                      cInterfChantierNameManipulateur *
+                                 );
+       std::string ExtendPattern(const std::string & aPatGlob,const std::string & aPatCenter,cInterfChantierNameManipulateur *);
     private :
-       bool                      mWithBlock;
        std::string               mNameInputBloc;
        std::string               mNameOutputBloc;
        std::vector<std::string>  mVBlockRel;
        std::vector<std::string>  mVBlockGlob;
        std::vector<std::string>  mVBlockDistGlob;
        std::vector<std::string>  mVOptGlob;
+       cStructBlockCam           mSBC;
     private :
        void AddParamBloc(std::string & mCom,std::vector<std::string> & aVBL,const std::string & aPref,bool ModeRot);
        LArgMain                  *mArg;

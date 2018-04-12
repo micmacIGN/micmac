@@ -156,7 +156,7 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom,std::vector<std::stri
     ELISE_ASSERT(int(aVBL.size()) <= 4+IndRot,"Too many param in AddParamBloc");
 
 
-    // Gere le fait que ou Blox initialise une fois, ou toujours avec le meme nom
+    // Gere le fait que ou Blox initialise une seule fois, ou alors toujours avec le meme nom
     if (!mWithBlock)
     {
         mWithBlock = true;
@@ -164,6 +164,7 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom,std::vector<std::stri
         mNameInputBloc = aVBL[0];
         mCom = mCom + " +NameInputBloc=" + mNameInputBloc +" ";
         mNameOutputBloc = "Out-" + mNameInputBloc;
+        mSBC =   StdGetFromPCP(mNameInputBloc,StructBlockCam);
     }
     else
     {
@@ -197,6 +198,32 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom,std::vector<std::stri
 
     mCom = mCom + " +NameOutputBloc=" + mNameOutputBloc +" ";
 }
+
+std::string   cAppli_Tapas_Campari::ExtendPattern
+                           (
+                                      const std::string & aPatGlob,
+                                      const std::string & aImCenter,
+                                      cInterfChantierNameManipulateur * anICNM
+                           )
+{
+   const cInterfChantierNameManipulateur::tSet *  aSetGlob = anICNM->Get(aPatGlob);
+   std::string aKey = mSBC.KeyIm2TimeCam();
+
+   std::string aTimeC = anICNM->Assoc2To1(mSBC.KeyIm2TimeCam(),aImCenter,true).first;
+   cPatOfName aPat;
+   for (const auto & aName : *aSetGlob)
+   {
+         std::pair<std::string,std::string> aPair = anICNM->Assoc2To1(mSBC.KeyIm2TimeCam(),aName,true);
+         if (aPair.first == aTimeC) 
+            aPat.AddName(aName);
+            // std::cout << "PAIR " << aPair.first << " *** " <<  aPair.second << "\n";
+
+   }
+
+
+   return aPat.Pattern();
+}
+
 
 
 /****************************************************/

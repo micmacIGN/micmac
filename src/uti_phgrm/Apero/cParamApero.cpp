@@ -8291,6 +8291,17 @@ const cTplValGesInit< std::string > & cPosValueInit::PosFromBDOrient()const
 }
 
 
+cTplValGesInit< std::string > & cPosValueInit::PosFromBlockRigid()
+{
+   return mPosFromBlockRigid;
+}
+
+const cTplValGesInit< std::string > & cPosValueInit::PosFromBlockRigid()const 
+{
+   return mPosFromBlockRigid;
+}
+
+
 std::string & cPosValueInit::Id()
 {
    return PosFromBDAppuis().Val().Id();
@@ -8509,6 +8520,14 @@ void  BinaryUnDumpFromFile(cPosValueInit & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.PosFromBlockRigid().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PosFromBlockRigid().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PosFromBlockRigid().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.PosFromBDAppuis().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.PosFromBDAppuis().ValForcedForUnUmp(),aFp);
         }
@@ -8538,6 +8557,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cPosValueInit & anObj)
     if (anObj.PosId().IsInit()) BinaryDumpInFile(aFp,anObj.PosId().Val());
     BinaryDumpInFile(aFp,anObj.PosFromBDOrient().IsInit());
     if (anObj.PosFromBDOrient().IsInit()) BinaryDumpInFile(aFp,anObj.PosFromBDOrient().Val());
+    BinaryDumpInFile(aFp,anObj.PosFromBlockRigid().IsInit());
+    if (anObj.PosFromBlockRigid().IsInit()) BinaryDumpInFile(aFp,anObj.PosFromBlockRigid().Val());
     BinaryDumpInFile(aFp,anObj.PosFromBDAppuis().IsInit());
     if (anObj.PosFromBDAppuis().IsInit()) BinaryDumpInFile(aFp,anObj.PosFromBDAppuis().Val());
     BinaryDumpInFile(aFp,anObj.PoseFromLiaisons().IsInit());
@@ -8554,6 +8575,8 @@ cElXMLTree * ToXMLTree(const cPosValueInit & anObj)
       aRes->AddFils(::ToXMLTree(std::string("PosId"),anObj.PosId().Val())->ReTagThis("PosId"));
    if (anObj.PosFromBDOrient().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PosFromBDOrient"),anObj.PosFromBDOrient().Val())->ReTagThis("PosFromBDOrient"));
+   if (anObj.PosFromBlockRigid().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PosFromBlockRigid"),anObj.PosFromBlockRigid().Val())->ReTagThis("PosFromBlockRigid"));
    if (anObj.PosFromBDAppuis().IsInit())
       aRes->AddFils(ToXMLTree(anObj.PosFromBDAppuis().Val())->ReTagThis("PosFromBDAppuis"));
    if (anObj.PoseFromLiaisons().IsInit())
@@ -8574,6 +8597,8 @@ void xml_init(cPosValueInit & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.PosFromBDOrient(),aTree->Get("PosFromBDOrient",1)); //tototo 
 
+   xml_init(anObj.PosFromBlockRigid(),aTree->Get("PosFromBlockRigid",1)); //tototo 
+
    xml_init(anObj.PosFromBDAppuis(),aTree->Get("PosFromBDAppuis",1)); //tototo 
 
    xml_init(anObj.PoseFromLiaisons(),aTree->Get("PoseFromLiaisons",1)); //tototo 
@@ -8581,7 +8606,7 @@ void xml_init(cPosValueInit & anObj,cElXMLTree * aTree)
    xml_init(anObj.PoseInitFromReperePlan(),aTree->Get("PoseInitFromReperePlan",1)); //tototo 
 }
 
-std::string  Mangling( cPosValueInit *) {return "EC40A478BB7554D9FC3F";};
+std::string  Mangling( cPosValueInit *) {return "A83A79E7F0B2DBE7FDBF";};
 
 
 cTplValGesInit< cSetOrientationInterne > & cPoseCameraInc::OrInterne()
@@ -8977,6 +9002,17 @@ cTplValGesInit< std::string > & cPoseCameraInc::PosFromBDOrient()
 const cTplValGesInit< std::string > & cPoseCameraInc::PosFromBDOrient()const 
 {
    return PosValueInit().PosFromBDOrient();
+}
+
+
+cTplValGesInit< std::string > & cPoseCameraInc::PosFromBlockRigid()
+{
+   return PosValueInit().PosFromBlockRigid();
+}
+
+const cTplValGesInit< std::string > & cPoseCameraInc::PosFromBlockRigid()const 
+{
+   return PosValueInit().PosFromBlockRigid();
 }
 
 
@@ -9598,7 +9634,7 @@ void xml_init(cPoseCameraInc & anObj,cElXMLTree * aTree)
    xml_init(anObj.PosValueInit(),aTree->Get("PosValueInit",1)); //tototo 
 }
 
-std::string  Mangling( cPoseCameraInc *) {return "8C3D2E8989573383FF3F";};
+std::string  Mangling( cPoseCameraInc *) {return "DC0F9130DEED1581FF3F";};
 
 
 std::string & cGroupeDePose::KeyPose2Grp()
@@ -10427,7 +10463,7 @@ void xml_init(cSectionInconnues & anObj,cElXMLTree * aTree)
    xml_init(anObj.PointFlottantInc(),aTree->GetAll("PointFlottantInc",false,1));
 }
 
-std::string  Mangling( cSectionInconnues *) {return "5824DC66443884F4FD3F";};
+std::string  Mangling( cSectionInconnues *) {return "A67D742E8BAAFAAEFF3F";};
 
 
 cTplValGesInit< double > & cUseExportImageResidu::SzByPair()
@@ -26870,7 +26906,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "19A7C12DEB4C33DCFE3F";};
+std::string  Mangling( cParamApero *) {return "203ACF0B3B15D7D0FD3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

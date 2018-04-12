@@ -2220,6 +2220,11 @@ class cAppliApero : public NROptF1vND
         void CDNP_Compense(std::vector<cStatResPM> & ,cSetPMul1ConfigTPM*,cSetTiePMul*,const cObsLiaisons &);
         bool IsLastEtapeOfLastIter() const;
 
+        // Ne genere pas d'erreur mais met aNameTime a "" si pb (aucune ou multiple)
+        ElRotation3D  SVPGetRotationBloc(const std::string & aNameBloc,const std::string& aNameCam,std::string & aNameTime);
+        //  Genere erreur si moindre probleme
+        ElRotation3D  GetUnikRotationBloc(const std::string & aNameBloc,const std::string& aNameCam);
+
     private :
 
        void SetPdsRegDist(const cXmlPondRegDist *);
@@ -2649,6 +2654,7 @@ class cAppliApero : public NROptF1vND
 
         std::map<std::string,cRelEquivPose *>   mRels;
         std::map<std::string,cImplemBlockCam *> mBlockCams;
+        bool                                    mHasBlockCams;
         std::map<std::string,cAperoOffsetGPS *> mDicoOffGPS;
         int                                     mNumSauvAuto;
 

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1814]) = {
+const char * (theNameVar_ParamApero[1815]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -846,6 +846,7 @@ const char * (theNameVar_ParamApero[1814]) = {
 "\n",
 "		        <PosId Nb=\"?\" Type=\"std::string\"> </PosId> <!-- Le string est ignore --> \n",
 "		        <PosFromBDOrient Nb=\"?\" Type=\"std::string\"> </PosFromBDOrient>\n",
+"		        <PosFromBlockRigid Nb=\"?\" Type=\"std::string\"> </PosFromBlockRigid> <!-- Id Block --> \n",
 "		        <PosFromBDAppuis Nb=\"?\"> \n",
 "			      <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",
 "			      <NbTestRansac Nb=\"1\" Type=\"int\"> </NbTestRansac>\n",

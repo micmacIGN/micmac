@@ -844,6 +844,7 @@
 
 		        <PosId Nb="?" Type="std::string"> </PosId> <!-- Le string est ignore --> 
 		        <PosFromBDOrient Nb="?" Type="std::string"> </PosFromBDOrient>
+		        <PosFromBlockRigid Nb="?" Type="std::string"> </PosFromBlockRigid> <!-- Id Block --> 
 		        <PosFromBDAppuis Nb="?"> 
 			      <Id Nb="1" Type="std::string"> </Id>
 			      <NbTestRansac Nb="1" Type="int"> </NbTestRansac>

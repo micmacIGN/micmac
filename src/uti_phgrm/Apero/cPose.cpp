@@ -1568,6 +1568,10 @@ else
 //   std::cout << "NameBDDCCC " << mName << " HasC " << mHasObsOnCentre << "\n";
       }
    }
+
+   if (mPCI->PosFromBlockRigid().IsInit())
+   {
+   }
   
     // std::cout << mName << "::Prof=" << mProf2Init << "\n";
 // std::cout <<  "Init Pose " << aNamePose << "\n";
@@ -1606,6 +1610,12 @@ else
     if (mPCI->PosId().IsInit())
     {
          aRot =  ElRotation3D(Pt3dr(0,0,0),0,0,-PI);
+    }
+    else if (mPCI->PosFromBlockRigid().IsInit())
+    {
+         aRot = mAppli.GetUnikRotationBloc(mPCI->PosFromBlockRigid().Val(),mName);
+         // aRot = aRot.inv();
+         // aRot = mAppli.GetUnikRotationBloc(mPCI->PosFromBlockRigid().Val(),mName);
     }
     else if(mPCI->PosFromBDOrient().IsInit())
     {

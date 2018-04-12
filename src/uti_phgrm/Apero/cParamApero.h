@@ -2488,6 +2488,9 @@ class cPosValueInit
         cTplValGesInit< std::string > & PosFromBDOrient();
         const cTplValGesInit< std::string > & PosFromBDOrient()const ;
 
+        cTplValGesInit< std::string > & PosFromBlockRigid();
+        const cTplValGesInit< std::string > & PosFromBlockRigid()const ;
+
         std::string & Id();
         const std::string & Id()const ;
 
@@ -2544,6 +2547,7 @@ class cPosValueInit
     private:
         cTplValGesInit< std::string > mPosId;
         cTplValGesInit< std::string > mPosFromBDOrient;
+        cTplValGesInit< std::string > mPosFromBlockRigid;
         cTplValGesInit< cPosFromBDAppuis > mPosFromBDAppuis;
         cTplValGesInit< cPoseFromLiaisons > mPoseFromLiaisons;
         cTplValGesInit< cPoseInitFromReperePlan > mPoseInitFromReperePlan;
@@ -2671,6 +2675,9 @@ class cPoseCameraInc
 
         cTplValGesInit< std::string > & PosFromBDOrient();
         const cTplValGesInit< std::string > & PosFromBDOrient()const ;
+
+        cTplValGesInit< std::string > & PosFromBlockRigid();
+        const cTplValGesInit< std::string > & PosFromBlockRigid()const ;
 
         std::string & Id();
         const std::string & Id()const ;
