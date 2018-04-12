@@ -45,6 +45,270 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <stdio.h>
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
+Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<Pt2dr> & aNPts2D);
+// ========== Test Zone Verifier Aero par la fermeture de boucle ==========
+class cOneImInLoop
+{
+public:
+    cOneImInLoop(int IdLoop, int IdImg, string aNameIm);
+    void AddPt(Pt2dr aPt);
+    vector<Pt2dr> mVPt;
+    int mIdLoop;
+    int mIdImg;
+    string mNameIm;
+};
+
+cOneImInLoop::cOneImInLoop(int IdLoop, int IdImg, string aNameIm):
+    mIdLoop (IdLoop),
+    mIdImg (IdImg),
+    mNameIm (aNameIm)
+{
+
+}
+
+void cOneImInLoop::AddPt(Pt2dr aPt)
+{
+    mVPt.push_back(aPt);
+}
+
+int Test_CtrlCloseLoop(int argc, char ** argv)
+{
+    string aDir = "./";
+    string aPatIn1, aPatIn2;
+    string aPatIm1, aPatIm2;
+    string aOriA;
+    string aSH ="";
+    bool plot=false;
+    Pt2di DoTapioca(0,-1);
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aPatIn1, "PatIm1",  eSAM_IsPatFile)
+                      << EAMC(aPatIn2, "PatIm2",  eSAM_IsPatFile)
+                      << EAMC(aOriA, "Ori",  eSAM_IsExistDirOri)
+                      << EAMC(aSH, "SH file homol new format contains all selected im, "" if don't have or not sure"),
+          LArgMain()
+                      << EAM(DoTapioca, "Tapioca" , true, "Do Tapioca = [DoIt(1/0),Resolution]")
+                      << EAM(plot, "plot" , true, "Plot data (with gnuplot)")
+
+    );
+
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    SplitDirAndFile(aDir, aPatIm1, aPatIn1);
+    SplitDirAndFile(aDir, aPatIm2, aPatIn2);
+    StdCorrecNameOrient(aOriA, aICNM->Dir());
+
+    std::vector<std::string> aSetIm1 = *(aICNM->Get(aPatIm1));
+    std::vector<std::string> aSetIm2 = *(aICNM->Get(aPatIm2));
+    std::vector<std::string> aAllIm;
+    aAllIm.insert(aAllIm.end(), aSetIm1.begin(), aSetIm1.end());
+    aAllIm.insert(aAllIm.end(), aSetIm2.begin(), aSetIm2.end());
+    std::vector<cOneImInLoop*> aVImInLoop;
+    std::vector<CamStenope*> aVCam1;
+    std::vector<CamStenope*> aVCam2;
+
+    if (DoTapioca.x != 0 || aSH=="")
+    {
+        cout<<"Compute Point homologues between 2 close loop"<<endl;
+        std::list<std::string> aLCom;
+        string cmdTapioca = MM3DStr + " Tapioca All " + "\'"+aPatIn1+"|" + aPatIn2 +"\' "
+                                                     + ToString(DoTapioca.y)+ " PostFix=CtrlCloseLoop";
+        string cmdConNewFH = MM3DStr + " TestLib ConvNewFH " +"\'"+aPatIn1+"|" + aPatIn2 +"\' "
+                                    + "\'\' SH=CtrlCloseLoop Bin=0";
+
+        aLCom.push_back(cmdTapioca);
+        aLCom.push_back(cmdConNewFH);
+        cEl_GPAO::DoComInSerie(aLCom);
+        aSH = "HomolCtrlCloseLoop/PMul.txt";
+    }
+
+
+    // read new format points homologue
+    const std::string  aSHInStr = aSH;
+    cSetTiePMul * aSetTiePMul = new cSetTiePMul(0);
+    aSetTiePMul->AddFile(aSHInStr);
+
+    cout<<"Total : "<<aSetTiePMul->DicoIm().mName2Im.size()<<" imgs"<<endl;
+    std::map<std::string,cCelImTPM *> aMap_Name2Im = aSetTiePMul->DicoIm().mName2Im;
+    std::map<std::string,cCelImTPM *>::iterator aIt_Find;
+
+    vector<int> aIdAllImg;
+    vector<int> aIdImgPat1;
+    for (uint aKIm1=0; aKIm1<aSetIm1.size(); aKIm1++)
+    {
+        string aImName = aSetIm1[aKIm1];
+        aIt_Find = aMap_Name2Im.find(aImName);
+        if (aIt_Find != aMap_Name2Im.end())
+        {
+            int aImId = aIt_Find->second->Id();
+            aIdImgPat1.push_back(aImId);
+            aIdAllImg.push_back(aImId);
+            cOneImInLoop* aImLoop = new cOneImInLoop(1, aImId, aImName);
+            aVImInLoop.push_back(aImLoop);
+
+            CamStenope * aCam = aICNM->StdCamStenOfNames(aImName, aOriA);
+            aVCam1.push_back(aCam);
+        }
+        else
+        {
+            cout<<"BIG WARNING : "<<" File "<<aSH<<" don't contain image "<<aImName<<endl;
+            cout<<"Please do Tapioca for all selected control image on 2 loop"<<endl;
+            return EXIT_FAILURE;
+        }
+    }
+    vector<int> aIdImgPat2;
+    for (uint aKIm2=0; aKIm2<aSetIm2.size(); aKIm2++)
+    {
+        string aImName = aSetIm2[aKIm2];
+        aIt_Find = aMap_Name2Im.find(aImName);
+        if (aIt_Find != aMap_Name2Im.end())
+        {
+            int aImId = aIt_Find->second->Id();
+            aIdImgPat2.push_back(aImId);
+            aIdAllImg.push_back(aImId);
+            cOneImInLoop* aImLoop = new cOneImInLoop(2, aImId, aImName);
+            aVImInLoop.push_back(aImLoop);
+
+            CamStenope * aCam = aICNM->StdCamStenOfNames(aImName, aOriA);
+            aVCam2.push_back(aCam);
+        }
+        else
+        {
+            cout<<"BIG WARNING : "<<" File "<<aSH<<" don't contain image "<<aImName<<endl;
+            cout<<"Please do Tapioca for all selected control image on 2 loop"<<endl;
+            return EXIT_FAILURE;
+        }
+    }
+
+    cout<<"VPMul - Nb Config: "<<aSetTiePMul->VPMul().size()<<endl;
+    std::vector<cSetPMul1ConfigTPM *> aVCnf = aSetTiePMul->VPMul();
+
+    vector<cSetPMul1ConfigTPM * > aSelectCnf;
+    for (uint aKCnf=0; aKCnf<aVCnf.size(); aKCnf++)
+    {
+        cSetPMul1ConfigTPM* aCnf = aVCnf[aKCnf];
+        // Get config that has more than nb of selected images
+        if (aCnf->NbIm() >= aAllIm.size())
+        {
+            vector<int> aIDImgInCnf = aCnf->VIdIm();
+            bool isCnfContainAllId = true;
+            for (uint aKId=0; aKId < aIDImgInCnf.size(); aKId++)
+            {
+                for (uint aKId=0; aKId < aIdAllImg.size(); aKId++)
+                {
+                    int aQueryID = aIdAllImg[aKId];
+                    vector<int>::iterator it_Find;
+                    it_Find = find(aIDImgInCnf.begin(), aIDImgInCnf.end(), aQueryID);
+                    if (it_Find != aIDImgInCnf.end())
+                    {
+                        isCnfContainAllId = isCnfContainAllId && true;
+                    }
+                    else
+                    {
+                        isCnfContainAllId = isCnfContainAllId && false;
+                        break;
+                    }
+                }
+            }
+            if (isCnfContainAllId)
+            {
+                aSelectCnf.push_back(aCnf);
+            }
+        }
+    }
+    cout<<aSelectCnf.size()<<" cnf selected ! "<<endl;
+    // For each selected config, get pt 2D on each correspondant control image
+    for (uint aKCnf=0; aKCnf<aSelectCnf.size(); aKCnf++)
+    {
+        cSetPMul1ConfigTPM* aCnf = aSelectCnf[aKCnf];
+        for (uint aKIdImg=0; aKIdImg<aIdAllImg.size(); aKIdImg++)
+        {
+            int aQueryId = aIdAllImg[aKIdImg];
+            string aQueryName = aAllIm[aKIdImg];
+            cOneImInLoop * aImLoop = aVImInLoop[aKIdImg];
+            // get all 2D points of image ID aQueryId in aCnf
+            for (uint aKPt=0; aKPt<aCnf->NbPts(); aKPt++)
+            {
+                Pt2dr aPt = aCnf->Pt(aKPt, aQueryId);
+                aImLoop->AddPt(aPt);
+            }
+        }
+    }
+    // Intersection to get 3D points set:
+
+        // Intersect Points on Loop 1
+        vector<Pt3dr> aPtCtrlLoop1;
+        cOneImInLoop * aImLoop1 = aVImInLoop[0]; // get 1st image in loop 1
+        if (aImLoop1->mIdLoop == 1)
+        {
+            vector<Pt2dr> aVPt = aImLoop1->mVPt;
+            for (uint aKPt=0; aKPt<aVPt.size(); aKPt++)
+            {
+                vector<Pt2dr> aVPtToIntersect;
+                for (uint aKImLoop1=0; aKImLoop1<aSetIm1.size(); aKImLoop1++)
+                {
+                    cOneImInLoop * aIm = aVImInLoop[aKImLoop1];
+                    aVPtToIntersect.push_back(aIm->mVPt[aKPt]);
+                }
+                // Intersect
+                aPtCtrlLoop1.push_back(Intersect_Simple(aVCam1, aVPtToIntersect));
+            }
+        }
+        else
+        {
+            cout<<"Image is not in Good Loop 1??? Il y a vraiement prob la..";
+        }
+
+        // Intersect Points on Loop 2
+        vector<Pt3dr> aPtCtrlLoop2;
+        cOneImInLoop * aImLoop2 = aVImInLoop[aSetIm1.size()]; // get 1st image in loop 2
+        if (aImLoop2->mIdLoop == 2)
+        {
+            vector<Pt2dr> aVPt = aImLoop2->mVPt;
+            for (uint aKPt=0; aKPt<aVPt.size(); aKPt++)
+            {
+                vector<Pt2dr> aVPtToIntersect;
+                for (uint aKImLoop2=aSetIm1.size(); aKImLoop2<aVImInLoop.size(); aKImLoop2++)
+                {
+                    cOneImInLoop * aIm = aVImInLoop[aKImLoop2];
+                    aVPtToIntersect.push_back(aIm->mVPt[aKPt]);
+                }
+                // Intersect
+                aPtCtrlLoop2.push_back(Intersect_Simple(aVCam2, aVPtToIntersect));
+            }
+        }
+        else
+        {
+            cout<<"Image is not in Good Loop 2??? Il y a vraiement prob la..";
+        }
+
+        // Export Point for Close Loop Test
+        ofstream csvPt3d;
+        csvPt3d.open ("CtrlCloseLoop.csv");
+        csvPt3d<<"Ecart"<<endl;
+        for (uint aKPt=0; aKPt < aPtCtrlLoop1.size(); aKPt++)
+        {
+            double ecart = euclid(aPtCtrlLoop1[aKPt] - aPtCtrlLoop2[aKPt]);
+            csvPt3d<<ecart<<endl;
+        }
+        csvPt3d .close();
+        cout<<"Total : "<<aPtCtrlLoop1.size()<<" pts in control"<<endl;
+
+        // plot data
+        if (plot && aPtCtrlLoop1.size()>0)
+        {
+            ofstream scriptPlot;
+            scriptPlot.open ("ScriptPlot.txt");
+            scriptPlot<<"set key autotitle columnhead"<<endl;
+            scriptPlot<<"plot 'CtrlCloseLoop.csv' with boxes"<<endl;
+            System("gnuplot --persist ScriptPlot.txt");
+        }
+        ELISE_fp::RmFileIfExist("ScriptPlot.txt");
+        return EXIT_SUCCESS;
+}
+
+
 
 // =================== Test Zone Init block rigid ============================
 
@@ -1507,6 +1771,7 @@ Pt3di gen_coul_emp(int val)
 Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<Pt2dr> & aNPts2D)
 {
 
+    ELISE_ASSERT(aVCS.size() == aNPts2D.size(), "In Intersect_Simple: Nb Cam & Nb Pt2dr not coherent to intersect");
     std::vector<ElSeg3D> aVSeg;
 
     for (int aKR=0 ; aKR < int(aVCS.size()) ; aKR++)
