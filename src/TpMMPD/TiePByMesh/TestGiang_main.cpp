@@ -1335,9 +1335,10 @@ void DrawOneFootPrintToPly(CamStenope * aCam,
         aPly.AddSeg(aCoul, aPolyEmpreint[1] + aOffSetPly, aPolyEmpreint[2] + aOffSetPly, aResolution.x);
         aPly.AddSeg(aCoul, aPolyEmpreint[2] + aOffSetPly, aPolyEmpreint[3] + aOffSetPly, aResolution.x);
         aPly.AddSeg(aCoul, aPolyEmpreint[3] + aOffSetPly, aPolyEmpreint[0] + aOffSetPly, aResolution.x);
+        aPly.PutFile(aPathPly);
+
     }
 
-    aPly.PutFile(aPathPly);
     return;
 }
 
@@ -1375,9 +1376,12 @@ int DroneFootPrint(int argc,char ** argv)
     SplitDirAndFile(aDir, aPat, aPattern);
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     vector<string>  aSetIm = *(aICNM->Get(aPat));
+    StdCorrecNameOrient(aOri, aICNM->Dir());
 
     vector<CamStenope*> aVCam (aSetIm.size());
     cPlyCloud aCPlyRes;
+
+
 
     if (aPlyEachImg)
     {
