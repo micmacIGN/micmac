@@ -750,6 +750,7 @@
                     <FilterConnecBy Nb="?" Type="std::string"> </FilterConnecBy>
                     
                     <MEP_SPEC_MST Nb="?"> 
+		         <PosFromBlockRigid Nb="?" Type="std::string"> </PosFromBlockRigid> <!-- Name file bloc --> 
                          <Show Nb="?" Type="bool" Def="false"> </Show> 
 
                     <!-- On privilegie systematiquement les poses pour lesquelles on trouve un
@@ -844,7 +845,7 @@
 
 		        <PosId Nb="?" Type="std::string"> </PosId> <!-- Le string est ignore --> 
 		        <PosFromBDOrient Nb="?" Type="std::string"> </PosFromBDOrient>
-		        <PosFromBlockRigid Nb="?" Type="std::string"> </PosFromBlockRigid> <!-- Id Block --> 
+		        <PosFromBlockRigid Nb="?" Type="std::string"> </PosFromBlockRigid> <!-- Name file bloc --> 
 		        <PosFromBDAppuis Nb="?"> 
 			      <Id Nb="1" Type="std::string"> </Id>
 			      <NbTestRansac Nb="1" Type="int"> </NbTestRansac>

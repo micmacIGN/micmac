@@ -21,7 +21,9 @@ class cAppli_Tapas_Campari
                                       cInterfChantierNameManipulateur *
                                  );
        std::string ExtendPattern(const std::string & aPatGlob,const std::string & aPatCenter,cInterfChantierNameManipulateur *);
+       std::string TimeStamp(const std::string & aName,cInterfChantierNameManipulateur * anICNM);
     private :
+      
        std::string               mNameInputBloc;
        std::string               mNameOutputBloc;
        std::vector<std::string>  mVBlockRel;

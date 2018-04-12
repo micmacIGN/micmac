@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1815]) = {
+const char * (theNameVar_ParamApero[1816]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -752,6 +752,7 @@ const char * (theNameVar_ParamApero[1815]) = {
 "                    <FilterConnecBy Nb=\"?\" Type=\"std::string\"> </FilterConnecBy>\n",
 "                    \n",
 "                    <MEP_SPEC_MST Nb=\"?\"> \n",
+"		         <PosFromBlockRigid Nb=\"?\" Type=\"std::string\"> </PosFromBlockRigid> <!-- Name file bloc --> \n",
 "                         <Show Nb=\"?\" Type=\"bool\" Def=\"false\"> </Show> \n",
 "\n",
 "                    <!-- On privilegie systematiquement les poses pour lesquelles on trouve un\n",
@@ -846,7 +847,7 @@ const char * (theNameVar_ParamApero[1815]) = {
 "\n",
 "		        <PosId Nb=\"?\" Type=\"std::string\"> </PosId> <!-- Le string est ignore --> \n",
 "		        <PosFromBDOrient Nb=\"?\" Type=\"std::string\"> </PosFromBDOrient>\n",
-"		        <PosFromBlockRigid Nb=\"?\" Type=\"std::string\"> </PosFromBlockRigid> <!-- Id Block --> \n",
+"		        <PosFromBlockRigid Nb=\"?\" Type=\"std::string\"> </PosFromBlockRigid> <!-- Name file bloc --> \n",
 "		        <PosFromBDAppuis Nb=\"?\"> \n",
 "			      <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",
 "			      <NbTestRansac Nb=\"1\" Type=\"int\"> </NbTestRansac>\n",

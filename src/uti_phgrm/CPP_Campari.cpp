@@ -199,6 +199,12 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom,std::vector<std::stri
     mCom = mCom + " +NameOutputBloc=" + mNameOutputBloc +" ";
 }
 
+std::string  cAppli_Tapas_Campari::TimeStamp(const std::string & aName,cInterfChantierNameManipulateur * anICNM)
+{
+   return anICNM->Assoc2To1(mSBC.KeyIm2TimeCam(),aName,true).first;
+}
+
+
 std::string   cAppli_Tapas_Campari::ExtendPattern
                            (
                                       const std::string & aPatGlob,

@@ -167,8 +167,6 @@ void  cAppliApero::ConstructMST
        std::vector<cPoseCam *>  aVBestC;
        if (aBestCam != 0)
        {
-// BugBestCam = (aTimes==11);
-
            std::vector<double> aVCost;
            cObsLiaisonMultiple * anOLM = PackMulOfIndAndNale(aIdBd,aBestCam->Name());
            aVBestC = anOLM->BestPoseInitStd
@@ -194,6 +192,7 @@ void  cAppliApero::ConstructMST
             }
             ELISE_ASSERT(false,"aBestCam==0");
        }
+
 
 
        if (int(aVBestC.size()) < ElMin(2,aNbRotPreInit))
@@ -252,6 +251,13 @@ void  cAppliApero::ConstructMST
           {
               mProfMax = ElMax(mProfMax,aBestCam->Prof2Init());
           }
+        }
+
+std::cout << "UUUUUUUuuuuuuuuuuuuu " << mHasBlockCams << " " << aBestCam << "\n";
+        if (mHasBlockCams && aBestCam)
+        {
+           std::cout << "Blloookkk  " <<  aBestCam->Name() << "\n";
+           getchar();
         }
    }
 

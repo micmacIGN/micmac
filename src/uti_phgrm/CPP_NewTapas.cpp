@@ -435,6 +435,7 @@ int Tapas_main(int argc,char ** argv)
     std::vector<double> aVRegulDist;
     double aLVM = 1.0;
     bool MultipleBlock =false;
+    bool IsMidle= false;
 
     ElInitArgMain
     (
@@ -519,6 +520,7 @@ int Tapas_main(int argc,char ** argv)
               cInterfChantierNameManipulateur::tSet   aSetGlob = *(aICNM->Get(aPat));
               std::sort(aSetGlob.begin(),aSetGlob.end());
               ImInit  = aSetGlob[aSetGlob.size()/2];
+              IsMidle = true;
          }
 
 
@@ -754,6 +756,21 @@ int Tapas_main(int argc,char ** argv)
        anATP.AddParamBloc(aCom);
        if (anATP.mWithBlock)
        {
+           if (IsMidle)
+           {
+              cInterfChantierNameManipulateur::tSet   aSetGlob = *(aICNM->Get(aPat));
+              std::vector<std::pair<std::string,std::string> > aVP;
+              for (const auto & aS : aSetGlob)
+              {
+                  aVP.push_back(std::pair<std::string,std::string>(anATP.TimeStamp(aS,aICNM),aS));
+              }
+              std::sort(aVP.begin(),aVP.end());
+/*
+              for (const auto & aP : aVP)
+                  std::cout << "Ppppp " << aP.first << " " << aP.second << "\n";
+*/
+               ImInit=  aVP[aVP.size()/2].second;
+           }
            if (EAMIsInit(&ImInit))
            {
                aCom = aCom + " +InitCamCenter=false +InitBlocCam=true ";
