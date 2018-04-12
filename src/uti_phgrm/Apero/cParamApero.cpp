@@ -6795,14 +6795,14 @@ void xml_init(cCamGenInc & anObj,cElXMLTree * aTree)
 std::string  Mangling( cCamGenInc *) {return "8A8C5C1816652EFDFD3F";};
 
 
-cTplValGesInit< std::string > & cMEP_SPEC_MST::PosFromBlockRigid()
+cTplValGesInit< std::string > & cMEP_SPEC_MST::MSTBlockRigid()
 {
-   return mPosFromBlockRigid;
+   return mMSTBlockRigid;
 }
 
-const cTplValGesInit< std::string > & cMEP_SPEC_MST::PosFromBlockRigid()const 
+const cTplValGesInit< std::string > & cMEP_SPEC_MST::MSTBlockRigid()const 
 {
-   return mPosFromBlockRigid;
+   return mMSTBlockRigid;
 }
 
 
@@ -6876,10 +6876,10 @@ void  BinaryUnDumpFromFile(cMEP_SPEC_MST & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
-             anObj.PosFromBlockRigid().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.PosFromBlockRigid().ValForcedForUnUmp(),aFp);
+             anObj.MSTBlockRigid().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.MSTBlockRigid().ValForcedForUnUmp(),aFp);
         }
-        else  anObj.PosFromBlockRigid().SetNoInit();
+        else  anObj.MSTBlockRigid().SetNoInit();
   } ;
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
@@ -6933,8 +6933,8 @@ void  BinaryUnDumpFromFile(cMEP_SPEC_MST & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cMEP_SPEC_MST & anObj)
 {
-    BinaryDumpInFile(aFp,anObj.PosFromBlockRigid().IsInit());
-    if (anObj.PosFromBlockRigid().IsInit()) BinaryDumpInFile(aFp,anObj.PosFromBlockRigid().Val());
+    BinaryDumpInFile(aFp,anObj.MSTBlockRigid().IsInit());
+    if (anObj.MSTBlockRigid().IsInit()) BinaryDumpInFile(aFp,anObj.MSTBlockRigid().Val());
     BinaryDumpInFile(aFp,anObj.Show().IsInit());
     if (anObj.Show().IsInit()) BinaryDumpInFile(aFp,anObj.Show().Val());
     BinaryDumpInFile(aFp,anObj.MinNbPtsInit().IsInit());
@@ -6953,8 +6953,8 @@ cElXMLTree * ToXMLTree(const cMEP_SPEC_MST & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"MEP_SPEC_MST",eXMLBranche);
-   if (anObj.PosFromBlockRigid().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("PosFromBlockRigid"),anObj.PosFromBlockRigid().Val())->ReTagThis("PosFromBlockRigid"));
+   if (anObj.MSTBlockRigid().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("MSTBlockRigid"),anObj.MSTBlockRigid().Val())->ReTagThis("MSTBlockRigid"));
    if (anObj.Show().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Show"),anObj.Show().Val())->ReTagThis("Show"));
    if (anObj.MinNbPtsInit().IsInit())
@@ -6977,7 +6977,7 @@ void xml_init(cMEP_SPEC_MST & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
-   xml_init(anObj.PosFromBlockRigid(),aTree->Get("PosFromBlockRigid",1)); //tototo 
+   xml_init(anObj.MSTBlockRigid(),aTree->Get("MSTBlockRigid",1)); //tototo 
 
    xml_init(anObj.Show(),aTree->Get("Show",1),bool(false)); //tototo 
 
@@ -6992,7 +6992,7 @@ void xml_init(cMEP_SPEC_MST & anObj,cElXMLTree * aTree)
    xml_init(anObj.NbInitMinBeforeUnconnect(),aTree->Get("NbInitMinBeforeUnconnect",1),int(10000000)); //tototo 
 }
 
-std::string  Mangling( cMEP_SPEC_MST *) {return "F0B478135E6420BBFF3F";};
+std::string  Mangling( cMEP_SPEC_MST *) {return "C22C12BD9BD3CB8CFDBF";};
 
 
 eTypeContraintePoseCamera & cApplyOAI::Cstr()
@@ -8799,14 +8799,14 @@ const cTplValGesInit< std::string > & cPoseCameraInc::FilterConnecBy()const
 }
 
 
-cTplValGesInit< std::string > & cPoseCameraInc::PosFromBlockRigid()
+cTplValGesInit< std::string > & cPoseCameraInc::MSTBlockRigid()
 {
-   return MEP_SPEC_MST().Val().PosFromBlockRigid();
+   return MEP_SPEC_MST().Val().MSTBlockRigid();
 }
 
-const cTplValGesInit< std::string > & cPoseCameraInc::PosFromBlockRigid()const 
+const cTplValGesInit< std::string > & cPoseCameraInc::MSTBlockRigid()const 
 {
-   return MEP_SPEC_MST().Val().PosFromBlockRigid();
+   return MEP_SPEC_MST().Val().MSTBlockRigid();
 }
 
 
@@ -9670,7 +9670,7 @@ void xml_init(cPoseCameraInc & anObj,cElXMLTree * aTree)
    xml_init(anObj.PosValueInit(),aTree->Get("PosValueInit",1)); //tototo 
 }
 
-std::string  Mangling( cPoseCameraInc *) {return "24F934086707B09DFF3F";};
+std::string  Mangling( cPoseCameraInc *) {return "24D23BFD5A4B8D96FE3F";};
 
 
 std::string & cGroupeDePose::KeyPose2Grp()
@@ -10499,7 +10499,7 @@ void xml_init(cSectionInconnues & anObj,cElXMLTree * aTree)
    xml_init(anObj.PointFlottantInc(),aTree->GetAll("PointFlottantInc",false,1));
 }
 
-std::string  Mangling( cSectionInconnues *) {return "3C4186DD8054E884FF3F";};
+std::string  Mangling( cSectionInconnues *) {return "985D7DCE41540B8DFF3F";};
 
 
 cTplValGesInit< double > & cUseExportImageResidu::SzByPair()
@@ -26942,7 +26942,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "D222C105C88761E6FE3F";};
+std::string  Mangling( cParamApero *) {return "5EC54A21FF48E381FD3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

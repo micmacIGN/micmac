@@ -752,7 +752,7 @@ const char * (theNameVar_ParamApero[1816]) = {
 "                    <FilterConnecBy Nb=\"?\" Type=\"std::string\"> </FilterConnecBy>\n",
 "                    \n",
 "                    <MEP_SPEC_MST Nb=\"?\"> \n",
-"		         <PosFromBlockRigid Nb=\"?\" Type=\"std::string\"> </PosFromBlockRigid> <!-- Name file bloc --> \n",
+"		         <MSTBlockRigid Nb=\"?\" Type=\"std::string\" > </MSTBlockRigid> <!-- Name file bloc --> \n",
 "                         <Show Nb=\"?\" Type=\"bool\" Def=\"false\"> </Show> \n",
 "\n",
 "                    <!-- On privilegie systematiquement les poses pour lesquelles on trouve un\n",

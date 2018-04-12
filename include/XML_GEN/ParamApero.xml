@@ -750,7 +750,7 @@
                     <FilterConnecBy Nb="?" Type="std::string"> </FilterConnecBy>
                     
                     <MEP_SPEC_MST Nb="?"> 
-		         <PosFromBlockRigid Nb="?" Type="std::string"> </PosFromBlockRigid> <!-- Name file bloc --> 
+		         <MSTBlockRigid Nb="?" Type="std::string" > </MSTBlockRigid> <!-- Name file bloc --> 
                          <Show Nb="?" Type="bool" Def="false"> </Show> 
 
                     <!-- On privilegie systematiquement les poses pour lesquelles on trouve un

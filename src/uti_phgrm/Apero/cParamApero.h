@@ -2064,8 +2064,8 @@ class cMEP_SPEC_MST
         friend void xml_init(cMEP_SPEC_MST & anObj,cElXMLTree * aTree);
 
 
-        cTplValGesInit< std::string > & PosFromBlockRigid();
-        const cTplValGesInit< std::string > & PosFromBlockRigid()const ;
+        cTplValGesInit< std::string > & MSTBlockRigid();
+        const cTplValGesInit< std::string > & MSTBlockRigid()const ;
 
         cTplValGesInit< bool > & Show();
         const cTplValGesInit< bool > & Show()const ;
@@ -2085,7 +2085,7 @@ class cMEP_SPEC_MST
         cTplValGesInit< int > & NbInitMinBeforeUnconnect();
         const cTplValGesInit< int > & NbInitMinBeforeUnconnect()const ;
     private:
-        cTplValGesInit< std::string > mPosFromBlockRigid;
+        cTplValGesInit< std::string > mMSTBlockRigid;
         cTplValGesInit< bool > mShow;
         cTplValGesInit< int > mMinNbPtsInit;
         cTplValGesInit< double > mExpDist;
@@ -2617,8 +2617,8 @@ class cPoseCameraInc
         cTplValGesInit< std::string > & FilterConnecBy();
         const cTplValGesInit< std::string > & FilterConnecBy()const ;
 
-        cTplValGesInit< std::string > & PosFromBlockRigid();
-        const cTplValGesInit< std::string > & PosFromBlockRigid()const ;
+        cTplValGesInit< std::string > & MSTBlockRigid();
+        const cTplValGesInit< std::string > & MSTBlockRigid()const ;
 
         cTplValGesInit< bool > & Show();
         const cTplValGesInit< bool > & Show()const ;
