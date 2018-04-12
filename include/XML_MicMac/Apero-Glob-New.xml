@@ -292,6 +292,9 @@
 	           <CalcNameCalib>  GenerateKC-Others  </CalcNameCalib>
                    <InitNow> false </InitNow>
                    <MEP_SPEC_MST>
+                            <#WHEN  VTEST=${InitBlocCam}>
+                                   <MSTBlockRigid> ${NameInputBloc} </MSTBlockRigid> <!-- Id Block -->
+                            </#WHEN>
                            <Show> true </Show>
                            <MontageOnInit> ${MOI} </MontageOnInit>
                    </MEP_SPEC_MST>

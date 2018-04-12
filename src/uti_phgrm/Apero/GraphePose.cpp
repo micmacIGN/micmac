@@ -75,6 +75,7 @@ void  cAppliApero::ConstructMST
           const cPoseCameraInc &   aPCI
       )
 {
+
    if (mNbRotPreInit==0)
    {
       ELISE_ASSERT(false,"Cannot built MST on empty base\n");
@@ -253,10 +254,22 @@ void  cAppliApero::ConstructMST
           }
         }
 
-std::cout << "UUUUUUUuuuuuuuuuuuuu " << mHasBlockCams << " " << aBestCam << "\n";
-        if (mHasBlockCams && aBestCam)
+        if (aMST.MSTBlockRigid().IsInit()  && aBestCam)
         {
-           std::cout << "Blloookkk  " <<  aBestCam->Name() << "\n";
+           std::string aBloc = aMST.MSTBlockRigid().Val();
+           std::string aTimeStanp0;
+           ElRotation3D  aR0 =  SVPGetRotationBloc(aBloc,aBestCam->Name(),aTimeStanp0);
+
+           std::cout << "Blloookkk  " <<  aBestCam->Name()  << " " << aTimeStanp0 << "\n";
+           for (auto & aPC : aVCible)
+           {
+              std::string aTimeStanp1;
+              ElRotation3D  aR1 =  SVPGetRotationBloc(aBloc,aPC->Name(),aTimeStanp1);
+              if (  (aPC->Name()!=aBestCam->Name()) && (aTimeStanp0==aTimeStanp1))
+              {
+                   std::cout << "   lllll   " <<  aPC->Name()  << " " << aTimeStanp1 << "\n";
+              }
+           }
            getchar();
         }
    }
