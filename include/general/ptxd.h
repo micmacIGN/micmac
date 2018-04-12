@@ -51,7 +51,6 @@ class Seg2d;
 class cElTriangleComp;
 template <class Type> class Pt3d;
 
-
 inline INT  scal(INT v1 ,INT v2 ) { return v1 * v2;}
 inline REAL scal(REAL v1,REAL v2) { return v1 * v2;}
 
@@ -882,7 +881,6 @@ template <class Type> class Pt3d : public  ElStdTypeScal<Type>
      static Pt3d<Type> FromTab(const Type *);
      std::vector<Type> ToTab() const;
      static Pt3d<Type> FromTab(const std::vector<Type> &);
-
 
      Pt3d<Type> AbsP() const {return Pt3d<Type>(ElAbs(x),ElAbs(y),ElAbs(z));}
      /*

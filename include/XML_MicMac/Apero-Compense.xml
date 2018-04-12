@@ -820,8 +820,6 @@
                                      <Dir> ${DirExportSensib} </Dir>
                                </ExportSensibParamAero>
                             </#WHEN>
-                            </#WHEN>
-
                     </SectionExport>
 	      </EtapeCompensation>
 	</SectionCompensation>
