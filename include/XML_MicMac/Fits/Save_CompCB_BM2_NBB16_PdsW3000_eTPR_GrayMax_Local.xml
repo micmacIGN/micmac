@@ -1,6 +1,9 @@
 <?xml version="1.0" ?>
 <CompCB>
      <BitThresh>2</BitThresh>
+<!--
+     <BitThresh>4</BitThresh>
+-->
      <CompCBOneBit>
           <Coeff>[0.0352102181405364381,-0.0461786014962062771,0.259887738583186367]</Coeff>
           <IndX>[7,6,4]</IndX>

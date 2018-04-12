@@ -1,4 +1,4 @@
-/*Header-MicMac-eLiSe-25/06/2007
+﻿/*Header-MicMac-eLiSe-25/06/2007
 
 MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
 eLiSe  : ELements of an Image Software Environnement
@@ -491,9 +491,9 @@ int ASTERGT2MM_main(int argc, char ** argv)
 
 
 
-void ConcatenateASTERImages(string aDir, string aOutDir, vector<int> aVectDistancesBetweenImages3N, vector<int> aVectDistancesBetweenImages3B, list<string> ListScenes)
+void ConcatenateASTERImages(string aDir, string aOutDir, vector<int> aVectDistancesBetweenImages3N, vector<int> aVectDistancesBetweenImages3B, list<string> ListScenes, string aStripName)
 {
-	string aStripName = ListScenes.front().substr(0, 22);
+
 	int nbScenes = (int)ListScenes.size();
 	string aNameFile = ListScenes.front();
 	aNameFile.erase(aNameFile.end() - 26, aNameFile.end());
@@ -684,14 +684,15 @@ void ConcatenateASTERImages(string aDir, string aOutDir, vector<int> aVectDistan
 int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 {
 	//std::string aNameIm, aNameIm2, aNameParallax, aNameDEM;
-	std::string aPatScenesInit;
+	std::string aPatScenesInit, aStripName;
 	std::string aOutDir = "../";
 	//Reading the arguments
 	ElInitArgMain
 	(
 		argc, argv,
 		LArgMain()
-		<< EAMC(aPatScenesInit, "Regular expression of ASTER scenes names", eSAM_IsPatFile),
+		<< EAMC(aPatScenesInit, "Regular expression of ASTER scenes names", eSAM_IsPatFile)
+		<< EAMC(aStripName, "Name of output ASTER strip", eSAM_IsPatFile),
 		LArgMain()
 	);
 
@@ -704,7 +705,6 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 	list<string> ListScenes = RegexListFileMatch(aDir, aPatScenes, 1, false);
 	int nbScenes = (int)ListScenes.size();
 	std::cout << "Scenes in strip: " << nbScenes << endl;
-	string aStripName = ListScenes.front().substr(0, 22);
 	std::cout << "Strip name: " << aStripName << endl;
 
 	vector<int> aVectDistancesBetweenImages3N = { 0 };
@@ -742,10 +742,40 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 		std::cout << "Processing image: " << aNameFile << endl;
 		ListScenes.pop_front();
 
+		// Satellite positions for each lattice lines
+		vector<Pt3dr> aSatellitePosition_3N_loc = ReadSattelitePos(aNameFile + ".VNIR_Band3N.SatellitePosition.txt");
+		//Find duplicate in previous images
+		u_int aNbDuplicateN = 0;
+		for (u_int j = 0; j < aSatellitePosition_3N.size(); j++)
+			{
+				if (aSatellitePosition_3N[j] == aSatellitePosition_3N_loc[0]) { aNbDuplicateN = aSatellitePosition_3N.size() - j; }
+			}
+		aSatellitePosition_3N.erase(aSatellitePosition_3N.end() - aNbDuplicateN, aSatellitePosition_3N.end());
+		aSatellitePosition_3N.insert(aSatellitePosition_3N.end(), aSatellitePosition_3N_loc.begin(), aSatellitePosition_3N_loc.end());
+
+		vector<Pt3dr> aSatellitePosition_3B_loc = ReadSattelitePos(aNameFile + ".VNIR_Band3B.SatellitePosition.txt");
+		u_int aNbDuplicateB = 0;
+		for (u_int j = 0; j < aSatellitePosition_3B.size(); j++)
+		{
+			if (aSatellitePosition_3B[j] == aSatellitePosition_3B_loc[0]) { aNbDuplicateB = aSatellitePosition_3B.size() - j; }
+		}
+		aSatellitePosition_3B.erase(aSatellitePosition_3B.end() - aNbDuplicateB, aSatellitePosition_3B.end());
+		aSatellitePosition_3B.insert(aSatellitePosition_3B.end(), aSatellitePosition_3B_loc.begin(), aSatellitePosition_3B_loc.end());
+
+		// Ground position for each lattice point
+		vector<Pt3dr> aLatticeECEF_3N_loc = ReadLatticeECEF(aNameFile + ".VNIR_Band3N.Longitude.txt", aNameFile + ".VNIR_Band3N.Latitude.txt");
+		aLatticeECEF_3N.erase(aLatticeECEF_3N.end() - aNbDuplicateN * 11, aLatticeECEF_3N.end());
+		aLatticeECEF_3N.insert(aLatticeECEF_3N.end(), aLatticeECEF_3N_loc.begin(), aLatticeECEF_3N_loc.end());
+		vector<Pt3dr> aLatticeECEF_3B_loc = ReadLatticeECEF(aNameFile + ".VNIR_Band3B.Longitude.txt", aNameFile + ".VNIR_Band3B.Latitude.txt");
+		aLatticeECEF_3B.erase(aLatticeECEF_3B.end() - aNbDuplicateB * 11, aLatticeECEF_3B.end());
+		aLatticeECEF_3B.insert(aLatticeECEF_3B.end(), aLatticeECEF_3B_loc.begin(), aLatticeECEF_3B_loc.end());
+
+
+
 		//Computing coordinate of lattice points in the concatenated image
 		//3N
 		vector<Pt2dr> aLatticePointsIm_3N_loc = ReadLatticePointsIm(aNameFile + ".VNIR_Band3N.LatticePoint.txt", false);
-		aDistanceBetweenImages = aLatticePointsIm_3N.back().y - aLatticePointsIm_3N_loc[21].y;
+		aDistanceBetweenImages = aLatticePointsIm_3N.back().y - aLatticePointsIm_3N_loc[aNbDuplicateN * 11 - 1].y;
 		aVectDistancesBetweenImages3N.push_back(aDistanceBetweenImages);
 		//two lines of points are overlaping, 11 pts per line, 22nd element of next image is the last element of previous image
 
@@ -753,13 +783,13 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 		{
 			aLatticePointsIm_3N_loc[j].y = aDistanceBetweenImages + aLatticePointsIm_3N_loc[j].y;
 		}
-		aLatticePointsIm_3N.erase(aLatticePointsIm_3N.end() - 22, aLatticePointsIm_3N.end());
+		aLatticePointsIm_3N.erase(aLatticePointsIm_3N.end() - aNbDuplicateN * 11, aLatticePointsIm_3N.end());
 		aLatticePointsIm_3N.insert(aLatticePointsIm_3N.end(), aLatticePointsIm_3N_loc.begin(), aLatticePointsIm_3N_loc.end());
 
 
 		//3B
 		vector<Pt2dr> aLatticePointsIm_3B_loc = ReadLatticePointsIm(aNameFile + ".VNIR_Band3B.LatticePoint.txt", true);
-		aDistanceBetweenImages = aLatticePointsIm_3B.back().y - aLatticePointsIm_3B_loc[65].y;
+		aDistanceBetweenImages = aLatticePointsIm_3B.back().y - aLatticePointsIm_3B_loc[aNbDuplicateB * 11 - 1].y;
 		aVectDistancesBetweenImages3B.push_back(aDistanceBetweenImages);
 		//six lines of points are overlaping, 11 pts per line, 66nd element of next image is the last element of previous image
 
@@ -767,29 +797,8 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 		{
 			aLatticePointsIm_3B_loc[j].y = aDistanceBetweenImages + aLatticePointsIm_3B_loc[j].y;
 		}
-		aLatticePointsIm_3B.erase(aLatticePointsIm_3B.end() - 66, aLatticePointsIm_3B.end());
+		aLatticePointsIm_3B.erase(aLatticePointsIm_3B.end() - aNbDuplicateB * 11, aLatticePointsIm_3B.end());
 		aLatticePointsIm_3B.insert(aLatticePointsIm_3B.end(), aLatticePointsIm_3B_loc.begin(), aLatticePointsIm_3B_loc.end());
-
-
-		// Satellite positions for each lattice lines
-		vector<Pt3dr> aSatellitePosition_3N_loc = ReadSattelitePos(aNameFile + ".VNIR_Band3N.SatellitePosition.txt");
-		aSatellitePosition_3N.erase(aSatellitePosition_3N.end() - 2, aSatellitePosition_3N.end());
-		aSatellitePosition_3N.insert(aSatellitePosition_3N.end(), aSatellitePosition_3N_loc.begin(), aSatellitePosition_3N_loc.end());
-		vector<Pt3dr> aSatellitePosition_3B_loc = ReadSattelitePos(aNameFile + ".VNIR_Band3B.SatellitePosition.txt");
-		aSatellitePosition_3B.erase(aSatellitePosition_3B.end() - 6, aSatellitePosition_3B.end());
-		aSatellitePosition_3B.insert(aSatellitePosition_3B.end(), aSatellitePosition_3B_loc.begin(), aSatellitePosition_3B_loc.end());
-
-
-		// Ground position for each lattice point
-		vector<Pt3dr> aLatticeECEF_3N_loc = ReadLatticeECEF(aNameFile + ".VNIR_Band3N.Longitude.txt", aNameFile + ".VNIR_Band3N.Latitude.txt");
-		aLatticeECEF_3N.erase(aLatticeECEF_3N.end() - 22, aLatticeECEF_3N.end());
-		aLatticeECEF_3N.insert(aLatticeECEF_3N.end(), aLatticeECEF_3N_loc.begin(), aLatticeECEF_3N_loc.end());
-		vector<Pt3dr> aLatticeECEF_3B_loc = ReadLatticeECEF(aNameFile + ".VNIR_Band3B.Longitude.txt", aNameFile + ".VNIR_Band3B.Latitude.txt");
-		aLatticeECEF_3B.erase(aLatticeECEF_3B.end() - 66, aLatticeECEF_3B.end());
-		aLatticeECEF_3B.insert(aLatticeECEF_3B.end(), aLatticeECEF_3B_loc.begin(), aLatticeECEF_3B_loc.end());
-
-
-
 
 	}
 
@@ -818,7 +827,7 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 
 	// Concatenating image and destripping the images using RadiommetricCorrectionTable (same for all images of a single strip)
 	ListScenes = RegexListFileMatch(aDir, aPatScenes, 1, false);
-	ConcatenateASTERImages(aDir, aOutDir, aVectDistancesBetweenImages3N, aVectDistancesBetweenImages3B, ListScenes);
+	ConcatenateASTERImages(aDir, aOutDir, aVectDistancesBetweenImages3N, aVectDistancesBetweenImages3B, ListScenes, aStripName);
 
 
 
@@ -832,7 +841,7 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -848,17 +857,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

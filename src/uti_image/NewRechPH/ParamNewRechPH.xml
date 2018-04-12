@@ -113,6 +113,7 @@
      <!--   codage binaire -->
     <!-- Pour visu -->
          <InvR Nb="1" RefType="OneInvRad">  </InvR>
+         <MoyLP   Nb="1" Type="double">  </MoyLP> <!-- Moyenne de l'image log pol-->
          <ImLogPol Nb="1" Type="Im2D_INT1"> </ImLogPol>
          <VectRho   Nb="1" Type="std::vector<double>">  </VectRho>
          <ProfR Nb="1" RefType="ProfilRad">  </ProfR>
@@ -164,18 +165,23 @@
    </FitsOneBin>
 
    <FitsOneLabel Nb="1" Class="true" ToReference="true">
+       <KindOf Nb="1" Type="eTypePtRemark">     </KindOf> 
        <BinIndexed Nb="1" RefType="FitsOneBin">  </BinIndexed>  <!-- Quick one, for indexation -->
        <BinDecision Nb="1" RefType="FitsOneBin"> </BinDecision>  <!-- Longer one making the decision -->
    </FitsOneLabel>
+
+   <SeuilFitsParam  Nb="1" Class="true" ToReference="true">
+          <SeuilCorrDR Nb="?" Type="double" Def="0.7"> </SeuilCorrDR>  <!--  Seuil corr sur inv rad -->
+          <SeuilInc    Nb="?" Type="double" Def="0.01"> </SeuilInc>    <!-- Seuil Inco entre les div estim de shift -->
+          <SeuilCorrLP Nb="?" Type="double" Def="0.93"> </SeuilCorrLP> <!-- Seuil correl Log Polar-->
+   </SeuilFitsParam>
    
    
    <FitsParam Nb="1" Class="true" ToReference="true">
-       <KindOl Nb="1" Type="eTypePtRemark">     </KindOl> 
        <OverLap  Nb="1" RefType="FitsOneLabel"> </OverLap> <!-- Quick for overlap dec -->
        <GenLabs  Nb="*" RefType="FitsOneLabel"> </GenLabs>  <!-- 0 ou 1, sera complete autom -->
-       <SeuilCorrDR Nb="?" Type="double" Def="0.7"> </SeuilCorrDR>  <!--  Seuil corr sur inv rad -->
-       <SeuilInc    Nb="?" Type="double" Def="0.01"> </SeuilInc>    <!-- Seuil Inco entre les div estim de shift -->
-       <SeuilCorrLP Nb="?" Type="double" Def="0.93"> </SeuilCorrLP> <!-- Seuil correl Log Polar-->
+       <SeuilOL Nb="1" RefType="SeuilFitsParam">  </SeuilOL>
+       <SeuilGen Nb="1" RefType="SeuilFitsParam"> </SeuilGen>
    </FitsParam>
 
 

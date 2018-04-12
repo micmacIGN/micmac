@@ -66,7 +66,7 @@ void NormaliseSigma(double & aMoySom,double & aVarSig,const double & aPds)
 static constexpr float DefInvRad = -1e20;
 // constexpr int DynU1 = 32;
 
-void  NormalizeVect(Im2D_INT1  aIout , Im2D_REAL4 aIin, int aK)
+double  NormalizeVect(Im2D_INT1  aIout , Im2D_REAL4 aIin, int aK)
 {
    int aTx = aIout.tx();
    INT1 * aDOut =  aIout.data()[aK];
@@ -111,6 +111,7 @@ void  NormalizeVect(Im2D_INT1  aIout , Im2D_REAL4 aIin, int aK)
       }
    }
 
+   return aS1;
    // std::cout << "Prop OF " << aCptOF / double(aCpt) << "\n";
 }
 
@@ -188,7 +189,7 @@ class cComputeProfRad
 };
 
    // return Pt2di(mNbSR2Use, mNbTetaInv);
-void Normalise(tImNRPH aImBuf,tImNRPH aImOut,int aX0In,int aX1In,int aSzXOut)
+double Normalise(tImNRPH aImBuf,tImNRPH aImOut,int aX0In,int aX1In,int aSzXOut)
 {
     int aSzY = aImBuf.sz().y;
     double aS0,aS1,aS2;
@@ -203,6 +204,8 @@ void Normalise(tImNRPH aImBuf,tImNRPH aImOut,int aX0In,int aX1In,int aSzXOut)
     aS2 -= ElSquare(aS1);
     aS2 = sqrt(ElMax(1e-10,aS2));
     ELISE_COPY(rectangle(Pt2di(aX0In,0),Pt2di(aX0In+aSzXOut,aSzY)),(aImBuf.in()-aS1)/aS2, aImBuf.out());
+
+    return aS1;
 }
 
 
@@ -273,6 +276,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       }
    }
 
+   double aMoy = 0;
    // Normalisation a priori, pour l'instant sans rolling
    if (mRollNorm)
    {
@@ -283,8 +287,9 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
    }
    else
    {
-      Normalise(aImBuf,aImBuf,0,mNbSR2Use,mNbSR2Use);
+      aMoy = Normalise(aImBuf,aImBuf,0,mNbSR2Use,mNbSR2Use);
    }
+   aPt.MoyLP() = aMoy;
 
 /*
    {

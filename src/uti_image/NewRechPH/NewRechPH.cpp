@@ -131,7 +131,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mMulNbTetaInv (4),
     mNbTetaInv   (mNbTetaIm*mMulNbTetaInv),
     mS0          (1.0),
-    mScaleStab   (4.0),
+    mScaleStab   (1.0),
     mSeuilAC     (0.95),
     mSeuilCR     (0.6),
     mScaleCorr   (false),

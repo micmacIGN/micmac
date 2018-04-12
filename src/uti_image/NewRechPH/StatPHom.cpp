@@ -47,6 +47,12 @@ class cAppliStatPHom;
 class cOneImSPH;
 
 
+class cStatOneLabel
+{
+    public :
+       int mNbPtsIn;
+       int mNbPtsSeuilDist;
+};
 
 class cAppliStatPHom
 {
@@ -56,6 +62,9 @@ class cAppliStatPHom
 
        bool I1HasHom(const Pt2dr & aP1) {return mNuage1->CaptHasData(mNuage1->Plani2Index(aP1));}
        Pt2dr Hom(const Pt2dr & aP1);
+       std::vector<cStatOneLabel>  & VLabs() {return mVLabs;}
+       const cFitsParam & FP() const {return  mFP;}
+       int   NbMaxPerLab() const {return mNbMaxPerLab;}
 
 
     private :
@@ -80,6 +89,9 @@ class cAppliStatPHom
        bool              mTestFlagBin;
        std::string       mExtOut;
 
+       std::vector<cStatOneLabel>  mVLabs;
+       cFitsParam                  mFP;
+       int                         mNbMaxPerLab;
 };
 
 class cOneImSPH
@@ -108,6 +120,40 @@ class cOneImSPH
 /*                                                     */
 /*******************************************************/
 
+double ScaleGen(const cOnePCarac & aPC)
+{
+   double aS = aPC.ScaleStab();
+   if (aS<0) 
+      aS= aPC.Scale();
+   return aS;
+}
+
+void FiltrageHighestScale(std::vector<cOnePCarac*> & aVec,int aNb,bool aShow)
+{
+    if (aVec.empty()) 
+       return;
+    std::vector<double> aVStab;
+    for (const auto & aPC : aVec)
+    {
+        double aS = ScaleGen(*aPC);
+        aVStab.push_back(aS);
+    }
+
+    // On selectionne ceux qui sont au dessus de l'echelle limite
+    double aProp = 1-aNb/(double) aVec.size();
+    double aScaleLim = KthValProp(aVStab,aProp);
+    if (aShow)
+         std::cout << "SCALE LIMITE ========== " << aScaleLim  << " " << aProp << "\n"; // getchar();
+    std::vector<cOnePCarac*> aRes;
+    for (const auto & aPC : aVec)
+    {
+       if (ScaleGen(*aPC) >= aScaleLim)
+           aRes.push_back(aPC);
+    }
+    aVec = aRes;
+}
+
+
 cOneImSPH::cOneImSPH(const std::string & aName,cAppliStatPHom & anAppli) :
    mAppli   (anAppli),
    mN       (aName),
@@ -123,6 +169,10 @@ cOneImSPH::cOneImSPH(const std::string & aName,cAppliStatPHom & anAppli) :
          aPt.Pt() = aPt.Pt0();
       }
       mVVPC.at(int(aPt.Kind())).push_back(&aPt);
+   }
+   for (auto & aV : mVVPC)
+   {
+       FiltrageHighestScale(aV,anAppli.NbMaxPerLab(),true);
    }
    std::cout << " N=" << mN << " nb=" << mSPC->OnePCarac().size() << "\n";
 }
@@ -156,9 +206,17 @@ void AddRand(cSetRefPCarac & aSRef,const std::vector<cOnePCarac*> aVP, int aNb)
 
 void cOneImSPH::TestMatch(cOneImSPH & aI2)
 {
+       // std::vector<cStatOneLabel>  mVLabs;
+
 
    for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
    {
+        cStatOneLabel aSOL;
+        aSOL.mNbPtsSeuilDist = 0;
+
+        cFHistoInt aHLF;
+
+
         cSetRefPCarac aSetRef;
         mVHom.push_back(std::vector<cOnePCarac*>());
         int aDifMax = 3;
@@ -178,6 +236,9 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
 
 // std::cout << "GGGGGg " << aV1.size() << " " << aV2.size() << "\n"; getchar();
 
+        aSOL.mNbPtsIn = aV1.size();
+        //  int mNbPtsIn;
+        //  int mNbPtsDist2;
 
         if ((!aV1.empty()) && (!aV2.empty()))
         {
@@ -211,6 +272,7 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
                     aVD12.push_back(aDist);
                     if (aDist<aSeuilDist)
                     {
+                         aSOL.mNbPtsSeuilDist++;
                          aNbOk++;
                          aHistoScale.at(ElMin(aDifMax,ElAbs(aV1[aK1]->NivScale() - aP->NivScale())))++;
 
@@ -231,7 +293,6 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
                          aScorInvR.push_back(aPropInv);
                          // if (aNbOk%10) std::cout << "aNbOk++aNbOk++ " << aNbOk << "\n";
                          if (aPropInv < aSeuilProp)
-
                             aHom = aP;
                     }
                 }
@@ -243,12 +304,26 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
                     aTruth.P1() = *(aV1[aK1]);
                     aTruth.P2() = *(aHom);
                     aSetRef.SRPC_Truth().push_back(aTruth);
+                    const cFitsParam & aFP = mAppli.FP();
+                    const cFitsOneLabel & aFOL = aFP.OverLap();
+
+                    if (aLab==aFOL.KindOf())
+                    {
+                        cCompileOPC aPC1(*aV1[aK1]);
+                        cCompileOPC aPC2(*aHom);
+                        int aShift,aLevFail; 
+                        aPC1.SetFlag(aFOL,true);
+                        aPC2.SetFlag(aFOL,true);
+                        aPC1.Match(true,aPC2,aFOL,aFP.SeuilOL(),aShift,aLevFail,nullptr);
+                        aHLF.Add(aLevFail);
+                     }
                 }
             }
 
             mAppli.ShowStat("By Homol D for ",20,aVD12,0.5);
             mAppli.ShowStat("Inv Rad ",20,aScorInvR,1.0);
 
+            std::cout << "=======  Stat Dif echelle ==========\n";
             for (int aK=0 ; aK<=aDifMax ; aK++)
             {
                int aNb = aHistoScale.at(aK);
@@ -256,6 +331,11 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
                   std::cout << "  * For dif="  << aK << " perc=" << (aNb * 100.0) / aNbOk << "\n";
             }
 
+            if (aLab==eTPR_GrayMax)
+            {
+                std::cout << "======= HISTO LEV FAIL ===========\n";
+                aHLF.Show();
+            }
 
             // Test random, pas forcement tres interessant
             if (0)
@@ -283,6 +363,7 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2)
             MakeFileXML(aSetRef,aName);
         }
 
+        mAppli.VLabs().push_back(aSOL);
         // getchar();
    }
 }
@@ -377,7 +458,8 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
     mSetPI        (false),
     mExtInput     ("Std"),
     mTestFlagBin  (false),
-    mExtOut       ()
+    mExtOut       (),
+    mNbMaxPerLab  (10000)
 {
    std::string aN1,aN2;
    ElInitArgMain
@@ -391,12 +473,15 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
                      << EAM(mSetPI,"SetPI",true,"Set Integer point, def=false,for stat")
                      << EAM(mExtInput,"ExtInput",true,"Extentsion for tieP")
                      << EAM(mExtOut,"ExtOut",true,"Extentsion for output")
+                     << EAM(mNbMaxPerLab,"NbMaxPL",true,"Nb Max Per Label, def=10000")
    );
 
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
    StdCorrecNameOrient(mOri,mDir);
    StdCorrecNameHomol(mSH,mDir);
    mI1 = new cOneImSPH(aN1,*this);
+
+   StdInitFitsPm(mFP);
 
    if (1)
    {
@@ -423,6 +508,30 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
 
 
    mI1->TestMatch(*mI2);
+
+   
+   std::cout << "=================================================\n"; 
+   std::cout << "=================================================\n"; 
+   std::cout << "=================================================\n"; 
+   std::cout << "===========         STAT GLOBALE         ========\n"; 
+   std::cout << "=================================================\n"; 
+
+   std::cout << "   NB Pts Tapioca : " <<   mPack.size()  << "\n";
+   int aNbSeuilD = 0;
+
+   for (int aK=0 ; aK<int(eTPR_NoLabel) ; aK++)
+   {
+       const cStatOneLabel & aSOL = mVLabs.at(aK);
+       eTypePtRemark aLab = (eTypePtRemark) aK;
+       std::cout << "  Lab=" <<  eToString(aLab);
+       std::cout << " NbSeuilD=" << aSOL.mNbPtsSeuilDist ;
+       std::cout << " NbTot=" << aSOL.mNbPtsIn ;
+       std::cout << "\n";
+       aNbSeuilD +=  aSOL.mNbPtsSeuilDist;
+       // std::vector<cStatOneLabel>  mVLabs;
+   }
+   std::cout << " NbSeuilDist " << aNbSeuilD ;
+   std::cout << "\n";
 }
 
 

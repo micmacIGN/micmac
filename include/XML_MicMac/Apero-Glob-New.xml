@@ -143,6 +143,35 @@
                 <Symb>  RegDistNbCase=0.0 </Symb>
                 <Symb>  RegDistSeuil=0.0 </Symb>
                 <Symb>  OneBlock=true </Symb>  <!-- Si il y a plusieurs blocs, risque de baisser le SVM -->
+
+                <!-- Copi\'e de Campari pour gerer les blocs de cameras -->
+
+                <Symb> WithBloc=false </Symb>
+                <Symb> NameInputBloc=XXX </Symb>
+                <Symb> NameOutputBloc=XXX </Symb>
+
+                <Symb> WithBloc_DistGlob=false  </Symb>
+                <Symb> PdsBlocTr0_DistGlob=XXXX  </Symb>
+                <Symb> PdsBlocTrFin_DistGlob=XXXX  </Symb>
+
+                <Symb> WithBloc_TimeRel=false  </Symb>
+                <Symb> PdsBlocTr0_TimeRel=XXX  </Symb>
+                <Symb> PdsBlocRot0_TimeRel=XXX  </Symb>
+                <Symb> PdsBlocTrFin_TimeRel=XXX  </Symb>
+                <Symb> PdsBlocRotFin_TimeRel=XXX  </Symb>
+
+                <Symb> WithBloc_Glob=false  </Symb>
+                <Symb> PdsBlocTr0_Glob=XXX  </Symb>
+                <Symb> PdsBlocRot0_Glob=XXX  </Symb>
+                <Symb> PdsBlocTrFin_Glob=XXX  </Symb>
+                <Symb> PdsBlocRotFin_Glob=XXX  </Symb>
+                <Symb> WBG_Sigma=false  </Symb>
+                <Symb> WBG_Stricte=false  </Symb>
+                <Symb> WBG_Ang=xxxxx  </Symb>
+                <Symb> WBG_Center=xxxxx  </Symb>
+
+                <eSymb> With_BlockGlobalBundle=Or ${WithBloc_Glob} ${WithBloc_DistGlob}  </eSymb>
+
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -264,6 +293,29 @@
 		        </PoseFromLiaisons>
 		   </PosValueInit>
               </PoseCameraInc>
+
+              <#WHEN  VTEST=${WithBloc}>
+                 <BlockCamera>
+                      <NameFile>  ${NameInputBloc}  </NameFile>
+                      <Id> TheBlock </Id>
+                      <UseForBundle>
+                           <#WHEN  VTEST=${With_BlockGlobalBundle}>
+                               <BlockGlobalBundle >
+                                   <#WHEN  VTEST=${WBG_Sigma}>
+                                       <SigmaV0>
+                                          <Ang> ${WBG_Ang}  </Ang>
+                                          <Center> ${WBG_Center}  </Center>
+                                       </SigmaV0>
+                                   </#WHEN>
+                                   <V0Stricte> ${WBG_Stricte} </V0Stricte>
+                               </BlockGlobalBundle>
+                           </#WHEN>
+                           <RelTimeBundle >  ${WithBloc_TimeRel}  </RelTimeBundle>
+                           <GlobDistTimeBundle >  ${WithBloc_DistGlob}  </GlobDistTimeBundle>
+                      </UseForBundle>
+                 </BlockCamera>
+             </#WHEN>
+
         </SectionInconnues>
 
 
@@ -407,6 +459,39 @@
                                      <ModePonderation> eL1Secured </ModePonderation>
                               </Pond>
                            </ObsLiaisons>
+
+                            <#WHEN VTEST=${WithBloc}>
+                                <ObsBlockCamRig>
+                                    <Id> TheBlock </Id>
+                                    <Show> false </Show>
+                                    <#WHEN VTEST=${WithBloc_Glob}>
+                                        <GlobalPond>
+                                           <PondOnTr >  ${PdsBlocTr0_Glob} </PondOnTr>
+                                           <PondOnRot>  ${PdsBlocRot0_Glob} </PondOnRot>
+                                           <PondOnTrFinal > ${PdsBlocTrFin_Glob}  </PondOnTrFinal>
+                                           <PondOnRotFinal> ${PdsBlocRotFin_Glob} </PondOnRotFinal>
+                                       </GlobalPond>
+                                    </#WHEN>
+                                    <#WHEN VTEST=${WithBloc_TimeRel}>
+                                        <RelTimePond>
+                                           <PondOnTr >  ${PdsBlocTr0_TimeRel} </PondOnTr>
+                                           <PondOnRot>  ${PdsBlocRot0_TimeRel} </PondOnRot>
+                                           <PondOnTrFinal > ${PdsBlocTrFin_TimeRel}  </PondOnTrFinal>
+                                           <PondOnRotFinal> ${PdsBlocRotFin_TimeRel} </PondOnRotFinal>
+                                        </RelTimePond>
+                                    </#WHEN>
+                                    <#WHEN VTEST=${WithBloc_DistGlob}>
+                                        <GlobalDistPond>
+                                           <PondOnTr>      ${PdsBlocTr0_DistGlob}    </PondOnTr>
+                                           <PondOnTrFinal> ${PdsBlocTrFin_DistGlob}  </PondOnTrFinal>
+                                           <!-- PdsRot : Fake, unused values -->
+                                           <PondOnRot>  1.0 </PondOnRot>
+                                           <PondOnRotFinal> 1.0 </PondOnRotFinal>
+                                        </GlobalDistPond>
+                                    </#WHEN>
+                                </ObsBlockCamRig>
+                          </#WHEN>
+
 		    </SectionObservations>
 
 	      </EtapeCompensation>
@@ -793,6 +878,37 @@
                                   <ModePonderation> eL1Secured </ModePonderation>
                               </Pond>
                            </ObsLiaisons>
+                           <#WHEN VTEST=${WithBloc}>
+                                <ObsBlockCamRig>
+                                    <Id> TheBlock </Id>
+                                    <Show> false </Show>
+                                    <#WHEN VTEST=${WithBloc_Glob}>
+                                        <GlobalPond>
+                                           <PondOnTr >  ${PdsBlocTr0_Glob} </PondOnTr>
+                                           <PondOnRot>  ${PdsBlocRot0_Glob} </PondOnRot>
+                                           <PondOnTrFinal > ${PdsBlocTrFin_Glob}  </PondOnTrFinal>
+                                           <PondOnRotFinal> ${PdsBlocRotFin_Glob} </PondOnRotFinal>
+                                       </GlobalPond>
+                                    </#WHEN>
+                                    <#WHEN VTEST=${WithBloc_TimeRel}>
+                                        <RelTimePond>
+                                           <PondOnTr >  ${PdsBlocTr0_TimeRel} </PondOnTr>
+                                           <PondOnRot>  ${PdsBlocRot0_TimeRel} </PondOnRot>
+                                           <PondOnTrFinal > ${PdsBlocTrFin_TimeRel}  </PondOnTrFinal>
+                                           <PondOnRotFinal> ${PdsBlocRotFin_TimeRel} </PondOnRotFinal>
+                                        </RelTimePond>
+                                    </#WHEN>
+                                    <#WHEN VTEST=${WithBloc_DistGlob}>
+                                        <GlobalDistPond>
+                                           <PondOnTr>      ${PdsBlocTr0_DistGlob}    </PondOnTr>
+                                           <PondOnTrFinal> ${PdsBlocTrFin_DistGlob}  </PondOnTrFinal>
+                                           <!-- PdsRot : Fake, unused values -->
+                                           <PondOnRot>  1.0 </PondOnRot>
+                                           <PondOnRotFinal> 1.0 </PondOnRotFinal>
+                                        </GlobalDistPond>
+                                    </#WHEN>
+                                </ObsBlockCamRig>
+                           </#WHEN>
 		    </SectionObservations>
 
 
@@ -873,6 +989,37 @@
                           <TxtRapDetaille>
                                <NameFile> ${RapTxt}</NameFile>
                          </TxtRapDetaille>
+                          <#WHEN VTEST=${WithBloc}>
+                                <ObsBlockCamRig>
+                                    <Id> TheBlock </Id>
+                                    <Show> false </Show>
+                                    <#WHEN VTEST=${WithBloc_Glob}>
+                                        <GlobalPond>
+                                           <PondOnTr >  ${PdsBlocTr0_Glob} </PondOnTr>
+                                           <PondOnRot>  ${PdsBlocRot0_Glob} </PondOnRot>
+                                           <PondOnTrFinal > ${PdsBlocTrFin_Glob}  </PondOnTrFinal>
+                                           <PondOnRotFinal> ${PdsBlocRotFin_Glob} </PondOnRotFinal>
+                                       </GlobalPond>
+                                    </#WHEN>
+                                    <#WHEN VTEST=${WithBloc_TimeRel}>
+                                        <RelTimePond>
+                                           <PondOnTr >  ${PdsBlocTr0_TimeRel} </PondOnTr>
+                                           <PondOnRot>  ${PdsBlocRot0_TimeRel} </PondOnRot>
+                                           <PondOnTrFinal > ${PdsBlocTrFin_TimeRel}  </PondOnTrFinal>
+                                           <PondOnRotFinal> ${PdsBlocRotFin_TimeRel} </PondOnRotFinal>
+                                        </RelTimePond>
+                                    </#WHEN>
+                                    <#WHEN VTEST=${WithBloc_DistGlob}>
+                                        <GlobalDistPond>
+                                           <PondOnTr>      ${PdsBlocTr0_DistGlob}    </PondOnTr>
+                                           <PondOnTrFinal> ${PdsBlocTrFin_DistGlob}  </PondOnTrFinal>
+                                           <!-- PdsRot : Fake, unused values -->
+                                           <PondOnRot>  1.0 </PondOnRot>
+                                           <PondOnRotFinal> 1.0 </PondOnRotFinal>
+                                        </GlobalDistPond>
+                                    </#WHEN>
+                                </ObsBlockCamRig>
+                          </#WHEN>
 		    </SectionObservations>
 
 	      </EtapeCompensation>
@@ -927,6 +1074,37 @@
                           <TxtRapDetaille>
                                <NameFile> ${RapTxt}</NameFile>
                          </TxtRapDetaille>
+                          <#WHEN VTEST=${WithBloc}>
+                                <ObsBlockCamRig>
+                                    <Id> TheBlock </Id>
+                                    <Show> false </Show>
+                                    <#WHEN VTEST=${WithBloc_Glob}>
+                                        <GlobalPond>
+                                           <PondOnTr >  ${PdsBlocTr0_Glob} </PondOnTr>
+                                           <PondOnRot>  ${PdsBlocRot0_Glob} </PondOnRot>
+                                           <PondOnTrFinal > ${PdsBlocTrFin_Glob}  </PondOnTrFinal>
+                                           <PondOnRotFinal> ${PdsBlocRotFin_Glob} </PondOnRotFinal>
+                                       </GlobalPond>
+                                    </#WHEN>
+                                    <#WHEN VTEST=${WithBloc_TimeRel}>
+                                        <RelTimePond>
+                                           <PondOnTr >  ${PdsBlocTr0_TimeRel} </PondOnTr>
+                                           <PondOnRot>  ${PdsBlocRot0_TimeRel} </PondOnRot>
+                                           <PondOnTrFinal > ${PdsBlocTrFin_TimeRel}  </PondOnTrFinal>
+                                           <PondOnRotFinal> ${PdsBlocRotFin_TimeRel} </PondOnRotFinal>
+                                        </RelTimePond>
+                                    </#WHEN>
+                                    <#WHEN VTEST=${WithBloc_DistGlob}>
+                                        <GlobalDistPond>
+                                           <PondOnTr>      ${PdsBlocTr0_DistGlob}    </PondOnTr>
+                                           <PondOnTrFinal> ${PdsBlocTrFin_DistGlob}  </PondOnTrFinal>
+                                           <!-- PdsRot : Fake, unused values -->
+                                           <PondOnRot>  1.0 </PondOnRot>
+                                           <PondOnRotFinal> 1.0 </PondOnRotFinal>
+                                        </GlobalDistPond>
+                                    </#WHEN>
+                                </ObsBlockCamRig>
+                          </#WHEN>
 		    </SectionObservations>
 
                     <SectionExport>
@@ -952,6 +1130,17 @@
                             <#WHEN VTEST=${NotHasSinglePoseCalibEstim}>
                                  <ExportResiduXml> Ori${AeroOut}/Residus.xml </ExportResiduXml>
                             </#WHEN>
+                            <#WHEN  VTEST=${WithBloc}>
+                                <ExportBlockCamera>
+                                    <Id> TheBlock</Id>
+                                    <NameFile> ${NameOutputBloc} </NameFile>
+                                    <Estimate>
+                                        <Id> TheBlock </Id>
+                                        <Show> true   </Show>
+                                    </Estimate>
+
+                                </ExportBlockCamera>
+                           </#WHEN>
                     </SectionExport>
 	      </EtapeCompensation>
 	</SectionCompensation>

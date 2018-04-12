@@ -7,14 +7,16 @@ cParamAppliTaskCorrel::cParamAppliTaskCorrel(
                                              const std::string & aOri,
                                              const std::string & aPatImg,
                                              bool & aNoTif,
-                                             string  aMesureXML
+                                             string  aMesureXML,
+                                             bool aInverseOrder
                                             ):
     pICNM (aICNM),
     pDir (aDir),
     pOri (aOri),
     pPatImg (aPatImg),
     pNoTif (aNoTif),
-    pMesureXML (aMesureXML)
+    pMesureXML (aMesureXML),
+    aInverseOrder (aInverseOrder)
 {
 
 }
@@ -41,7 +43,8 @@ cAppliTaskCorrel::cAppliTaskCorrel (cInterfChantierNameManipulateur * aICNM,
     mKeepAll2nd (false),
     MD_SEUIL_SURF_TRIANGLE (TT_SEUIL_SURF_TRIANGLE),
     mWithGCP (false),
-    mSafeZBuf (true)
+    mSafeZBuf (true),
+    mZBuf_InverseOrder (false)
 {
     ElTimer aChrono;
     cout<<"In constructor cAppliTaskCorrel : ";
@@ -91,6 +94,10 @@ cAppliTaskCorrel::cAppliTaskCorrel (cInterfChantierNameManipulateur * aICNM,
     }
     cout<<"Done !"<<endl;
 
+    if (aParam->aInverseOrder)
+    {
+        this->mZBuf_InverseOrder = true;
+    }
 }
 
 //  ============================= **************** =============================
@@ -204,6 +211,11 @@ void cAppliTaskCorrel::ZBuffer()
     ElTimer aChrono;
     cParamZbufferRaster aParamZBuf;
 
+    if (this->ZBuf_InverseOrder())
+    {
+        aParamZBuf.mInverseOrder = true;
+    }
+
     cAppliZBufferRaster * aAppliZBuf = new cAppliZBufferRaster(
                                                                  mICNM,
                                                                  mDir,
@@ -228,6 +240,7 @@ void cAppliTaskCorrel::ZBuffer()
 
     ELISE_ASSERT(mVTriValid.size() == mVImgs.size(), "Sz VTriValid uncoherent Nb Img");
 
+    int cnt=0;
     for (uint aKIm=0; aKIm<mVImgs.size(); aKIm++)
     {
         cImgForTiepTri * aImg = mVImgs[aKIm];

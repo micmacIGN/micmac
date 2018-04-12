@@ -95,7 +95,7 @@ class cSetPairOPC
          
           std::vector<cPairOPC>  mVP; 
           void AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const;
-          double StatDR(std::vector<double> &,std::vector<double> &,std::vector<double> &,const cFitsParam &);
+          double StatDR(std::vector<double> &,std::vector<double> &,std::vector<double> &,const cFitsParam &,bool OverLap);
       private :
           int                  mPairNbBitsMax;
           int                  mNbPair;
@@ -167,6 +167,151 @@ void MakeSetRefPCarac(cSetRefPCarac &aRes,const std::vector<std::string> & aVNam
 
 /**************************************************/
 /*                                                */
+/*             cProfilPC                          */
+/*                                                */
+/**************************************************/
+
+cProfilPC::cProfilPC (Im2D_INT1 anIm) :
+   mIm (anIm),
+   mData (mIm.data()),
+   mSz   (mIm.sz())
+{
+}
+
+cProfilPC::cProfilPC (const cProfilPC & aPC,int) :
+    cProfilPC (Im2D_INT1(aPC.mSz.x/2,aPC.mSz.y))
+{
+    int aSzX2 = aPC.mSz.x;
+    ELISE_ASSERT((aSzX2%2)==0,"cProfilPC bad size");
+    std::vector<double> aVTmp(mSz.x);
+    double * aDTmp = aVTmp.data();
+
+
+    for (int aY=0 ; aY<mSz.y ; aY++)
+    {
+        INT1 * aL = mData[aY];
+        INT1 * aL2 = aPC.mData[aY];
+        double aS1 = 0;
+        double aS2 = 0;
+        for (int aX=0 ; aX<mSz.x ; aX++)
+        {
+            double aVal = (aL2[mod(2*aX-1,aSzX2)] + 2*aL2[2*aX] + aL2[mod(2*aX+1,aSzX2)]) / 4.0;
+            aDTmp[aX] = aVal;
+            aS1 += aVal;
+            aS2 += ElSquare(aVal);
+        }
+        aS1 /= mSz.x;
+        aS2 /= mSz.x;
+        aS2 -= ElSquare(aS1);
+        aS2 = sqrt(ElMax(aS2,1e-4));
+        for (int aX=0 ; aX<mSz.x ; aX++)
+        {
+            double aV = (aDTmp[aX]-aS1) / aS2;
+            aL[aX] = ElMax(-127,ElMin(127,round_ni(aV)));
+        }
+    }
+}
+
+
+int    cProfilPC::OptimiseLocOneShift(const cProfilPC & aCP,int aChanel,int aShift0) const
+{
+    int C0 = ComputeCorrelOneChannelOneShift(aCP,aChanel,aShift0);
+    int aCP1 =ComputeCorrelOneChannelOneShift(aCP,aChanel,aShift0+1);
+    int aCM1 =ComputeCorrelOneChannelOneShift(aCP,aChanel,aShift0-1);
+
+    if ((C0>=aCP1) && (C0>=aCM1)) return aShift0;
+
+    int aDec = (aCP1>aCM1) ? 1 : -1 ;
+    int aBestC = ElMax(aCP1,aCM1);
+    int aBestShift = aShift0 + aDec;
+
+    while (1)
+    {
+        int aNewC = ComputeCorrelOneChannelOneShift(aCP,aChanel,aBestShift+aDec);
+        if (aNewC<=aBestC)
+           return mod(aBestShift,mSz.x);
+        aBestC  = aNewC;
+        aBestShift += aDec;
+    }
+    return -1;
+}
+
+int    cProfilPC::ComputeCorrelOneChannelOneShift(const cProfilPC & aCP,int aChanel,int aShift) const
+{
+    int aNbX = mSz.x;
+    aShift = mod(aShift,aNbX);
+    INT1 * aL1 = mData[aChanel];
+    INT1 * aL2 = aCP.mData[aChanel];
+
+    int aC = 0;
+    INT1 * aL2Dec = aL2+aShift;
+    int aNbDec = aNbX-aShift;
+
+    for (int aKx=0 ; aKx<aNbDec ; aKx++)
+    {
+        aC += aL1[aKx] * aL2Dec[aKx];
+    }
+
+    INT1 * aL1Dec = aL1 +aNbDec;
+    aNbDec  = aShift;
+    for (int aKx=0 ; aKx<aNbDec ; aKx++)
+        aC += aL1Dec[aKx] * aL2[aKx];
+
+    return aC;
+}
+
+int    cProfilPC::ComputeShiftOneChannel(const cProfilPC & aCP,int aChanel) const
+{
+    // INT1 * aL1 = mData[aChanel];
+    // INT1 * aL2 = aCP.mData[aChanel];
+    int aNbX = mSz.x;
+    int aBestC = -1e9;
+    int aRes = aNbX/2;
+
+    for (int aShift = 0 ; aShift <aNbX ; aShift++)
+    {
+        int aC = ComputeCorrelOneChannelOneShift(aCP,aChanel,aShift);
+
+        if (aC>aBestC)
+        {
+            aBestC= aC;
+            aRes = aShift;
+        }
+    
+    }
+    return aRes;
+}
+
+/**************************************************/
+/*                                                */
+/*             cTimeMatch                         */
+/*                                                */
+/**************************************************/
+
+cTimeMatch::cTimeMatch() :
+    mTBinRad  (0.0),
+    mTBinLong (0.0),
+    mTDistRad (0.0),
+    mTShif    (0.0),
+    mTDist    (0.0)
+{
+}
+
+void cTimeMatch::Show()
+{
+    std::cout << " BinRad " << mTBinRad << "\n";
+    std::cout << " BinLong " << mTBinLong  << "\n";
+    std::cout << " DistRad " << mTDistRad  << "\n";
+    std::cout << " Shift " << mTShif  << "\n";
+    std::cout << " DistIm " << mTDist  << "\n";
+}
+
+
+
+
+
+/**************************************************/
+/*                                                */
 /*             cCompileOPC                        */
 /*                                                */
 /**************************************************/
@@ -198,13 +343,8 @@ int cCompileOPC::DifPer(int aK1,int aK2) const
     return ElMin(aDif,mNbTeta-aDif);
 }
 
-
-int    cCompileOPC::ComputeShiftGlob(const cCompileOPC & aCP,double & Incoh) const
+int cCompileOPC::RobustShift(const std::vector<int> & aVS,double & Incoh) const
 {
-    std::vector<int> aVS;
-    for (int aKC=0 ; aKC< mSzProf.y ; aKC++)
-        aVS.push_back(ComputeShiftOneC(aCP,aKC));
-
     int aNbX = mSzProf.x;
     Incoh = 1e10;
     int aShift = 0;
@@ -214,8 +354,6 @@ int    cCompileOPC::ComputeShiftGlob(const cCompileOPC & aCP,double & Incoh) con
          int aShift1 = aVS[aKS1];
          for (int aKS2=0 ; aKS2<int(aVS.size()) ; aKS2++)
          {
-              // int aDif = ElAbs(aShift1-aVS[aKS2]);
-              // aDif = ElMin(aDif,aNbX-aDif);
               aILoc += DifPer(aShift1,aVS[aKS2]);
          }
          if (aILoc<Incoh)
@@ -231,8 +369,72 @@ int    cCompileOPC::ComputeShiftGlob(const cCompileOPC & aCP,double & Incoh) con
 
     Incoh = MedianeSup(aVD) / aNbX ;
 
+    return aShift;
+}
+
+
+
+int    cCompileOPC::ComputeShiftGlob(const cCompileOPC & aCP,double & Incoh) const
+{
+    std::vector<int> aVS2;
+    for (int aKC=0 ; aKC< mSzProf.y ; aKC++)
+    {
+        aVS2.push_back(HeuristikComputeShiftOneC(aCP,aKC));
+        // aVS2.push_back(ComputeShiftOneC(aCP,aKC));
+    }
+    int aShift2 = RobustShift(aVS2,Incoh);
+    return aShift2;
+
+
+/*
+    std::vector<int> aVS;
+    std::vector<int> aVS2;
+    for (int aKC=0 ; aKC< mSzProf.y ; aKC++)
+    {
+        aVS.push_back(ComputeShiftOneC(aCP,aKC));
+        aVS2.push_back(HeuristikComputeShiftOneC(aCP,aKC));
+    }
+
+    int aNbX = mSzProf.x;
+    Incoh = 1e10;
+    int aShift = 0;
+    for (int aKS1=0 ; aKS1<int(aVS.size()) ; aKS1++)
+    {
+         double aILoc = 0;
+         int aShift1 = aVS[aKS1];
+         for (int aKS2=0 ; aKS2<int(aVS.size()) ; aKS2++)
+         {
+              aILoc += DifPer(aShift1,aVS[aKS2]);
+         }
+         if (aILoc<Incoh)
+         {
+             Incoh = aILoc;
+             aShift = aShift1;
+         }
+    }
+
+    std::vector<double> aVD;
+    for (int aKS=0 ; aKS<int(aVS.size()) ; aKS++)
+        aVD.push_back(DifPer(aShift,aVS[aKS]));
+
+    Incoh = MedianeSup(aVD) / aNbX ;
+
+
+    {
+       double Incoh1;
+       int aShift1 = RobustShift(aVS,Incoh1);
+
+       double Incoh2;
+       int aShift2 = RobustShift(aVS2,Incoh2);
+
+
+       ELISE_ASSERT(Incoh==Incoh1,"IIIIIII");
+       ELISE_ASSERT(aShift1==aShift,"IIIIIII");
+       std::cout << "IIiiissss " << (Incoh2-Incoh1) << " " << aShift1 - aShift2<< "\n";
+    }
  
     return aShift;
+*/
 }
 
 double  cCompileOPC::DistIm(const cCompileOPC & aCP,int aShiftIm2) const
@@ -271,38 +473,24 @@ std::cout   << "NB " << aSom1 / double(mSzIm.x*mSzIm.y)
 
 int    cCompileOPC::ComputeShiftOneC(const cCompileOPC & aCP,int aChanel) const
 {
-    INT1 * aL1 = mProf[aChanel];
-    INT1 * aL2 = aCP.mProf[aChanel];
-    int aNbX = mSzProf.x;
-    int aBestC = -1e9;
-    int aRes = aNbX/2;
 
-    for (int aShift = 0 ; aShift <aNbX ; aShift++)
-    {
-        int aC = 0;
-        INT1 * aL2Dec = aL2+aShift;
-        int aNbDec = aNbX-aShift;
-
-        for (int aKx=0 ; aKx<aNbDec ; aKx++)
-        {
-            aC += aL1[aKx] * aL2Dec[aKx];
-        }
-
-        INT1 * aL1Dec = aL1 +aNbDec;
-        aNbDec  = aShift;
-        for (int aKx=0 ; aKx<aNbDec ; aKx++)
-            aC += aL1Dec[aKx] * aL2[aKx];
-
-        if (aC>aBestC)
-        {
-            aBestC= aC;
-            aRes = aShift;
-        }
-    
-    }
-    return aRes;
+    int aCExact = mVProf[0].ComputeShiftOneChannel(aCP.mVProf[0],aChanel);
+    return  aCExact;
 }
 
+int    cCompileOPC::HeuristikComputeShiftOneC(const cCompileOPC & aCP,int aChanel) const
+{
+    int aLev = mVProf.size()-1;
+    int aShift = mVProf[aLev].ComputeShiftOneChannel(aCP.mVProf[aLev],aChanel);
+    aLev--;
+
+    for (; aLev>=0 ; aLev--)
+    {
+         aShift =  mVProf[aLev].OptimiseLocOneShift(aCP.mVProf[aLev],aChanel,2*aShift);
+    }
+
+    return aShift;
+}
 
 
 cCompileOPC::cCompileOPC(const cOnePCarac & aOPC) :
@@ -314,57 +502,184 @@ cCompileOPC::cCompileOPC(const cOnePCarac & aOPC) :
    mProf       (mOPC.ProfR().ImProfil().data()),
    mSzProf     (mOPC.ProfR().ImProfil().sz()),
    mNbTeta     (mSzProf.x),
-   mFlagIsComp (false),
+   mOL_FlagIsComp (false),
+   mDec_FlagIsComp (false),
    mTmpNbHom   (0)
 {
+    mVProf.push_back(cProfilPC(mOPC.ProfR().ImProfil()));
+    for (int aK=0 ; aK<2 ; aK++)
+    {
+        mVProf.push_back(cProfilPC(mVProf.back(),-1234568)); 
+    }
 }
 
-void cCompileOPC::SetFlag(const cFitsOneLabel & aFOL)
+void cCompileOPC::SetFlag(const cFitsOneLabel & aFOL,bool Overlap)
 {
-   if (mFlagIsComp) return;
-   mShortFlag = ShortFlag(aFOL.BinIndexed().CCB().Val());
-   mLongFlag  = LongFlag(aFOL.BinDecision().CCB().Val());
-   mFlagIsComp = true;
+   if (Overlap)
+   {
+       if (mOL_FlagIsComp) return;
+       mOL_ShortFlag = ShortFlag(aFOL.BinIndexed().CCB().Val());
+       mOL_LongFlag  = LongFlag(aFOL.BinDecision().CCB().Val());
+       mOL_FlagIsComp = true;
+   }
+   else
+   {
+       if (mDec_FlagIsComp) return;
+       mDec_ShortFlag = ShortFlag(aFOL.BinIndexed().CCB().Val());
+       mDec_LongFlag  = LongFlag(aFOL.BinDecision().CCB().Val());
+       mDec_FlagIsComp = true;
+   }
 }
 
-double  cCompileOPC::Match(cCompileOPC & aCP2,const cFitsParam & aFP,int & aShift)
+std::vector<double>  cCompileOPC::Time(cCompileOPC & aCP2,const cFitsParam & aFP)
 {
+    cCompileOPC & aCP1 = *this;
+    std::vector<double> aRes;
+    int aNb= 100000;
+
+    {
+        ElTimer aChrono;
+        for (int aK=0 ; aK<aNb ; aK++)
+            aCP1.DifShortF(aCP2,true);
+        aRes.push_back(aChrono.uval());
+    } 
+    {
+        ElTimer aChrono;
+        for (int aK=0 ; aK<aNb ; aK++)
+            aCP1.DifLongF(aCP2,true);
+        aRes.push_back(aChrono.uval());
+    } 
+    double aS=0;
+    {
+        ElTimer aChrono;
+        for (int aK=0 ; aK<aNb ; aK++)
+            aS+=aCP1.DistIR(aCP2);
+        aRes.push_back(aChrono.uval());
+    } 
+    int aShift=0;
+    {
+        ElTimer aChrono;
+        double IncoH;
+        for (int aK=0 ; aK<aNb ; aK++)
+            aShift = aCP1.ComputeShiftGlob(aCP2,IncoH);
+        aRes.push_back(aChrono.uval());
+    } 
+    {
+        ElTimer aChrono;
+        for (int aK=0 ; aK<aNb ; aK++)
+            aS+=aCP1.DistIm(aCP2,aShift);
+        aRes.push_back(aChrono.uval());
+    } 
+
+    if (aS<0) 
+       aRes.push_back(aS);
+
+    return aRes;
+}
+
+
+double  cCompileOPC::Match
+        (
+            bool          Overlap,
+            cCompileOPC & aCP2,
+            const cFitsOneLabel & aFOL,
+            const cSeuilFitsParam  & aSFP,
+            int & aShift,
+            int & aLevelFail,
+            cTimeMatch * aTM
+        )
+{
+   static ElTimer aTimer;
+   if (aTM)
+      aTimer.reinit();
+
+
    cCompileOPC & aCP1 = *this;
 
-   aCP1.SetFlag(aFP.OverLap());
-   aCP2.SetFlag(aFP.OverLap());
+   if (Overlap)
+   {
+      ELISE_ASSERT(aCP1.mOL_FlagIsComp && aCP2.mOL_FlagIsComp,"mFlagIsComp dans Match");
+   }
+   else
+   {
+      ELISE_ASSERT(aCP1.mDec_FlagIsComp && aCP2.mDec_FlagIsComp,"mFlagIsComp dans Match");
+   }
+   // aCP1.SetFlag(aFOL);
+   // aCP2.SetFlag(aFOL);
 
-   if (aCP1.DifShortF(aCP2) >  aFP.OverLap().BinIndexed().CCB().Val().BitThresh())
+   
+   aLevelFail =0;
+   bool FailBinIndex = (aCP1.DifShortF(aCP2,Overlap) >  aFOL.BinIndexed().CCB().Val().BitThresh());
+   if (aTM)
+   {
+      aTM->mTBinRad += aTimer.uval();
+      aTimer.reinit();
+   }
+   if (FailBinIndex)
       return -1;
 
-   if (aCP1.DifLongF(aCP2) >  aFP.OverLap().BinDecision().CCB().Val().BitThresh())
+
+   aLevelFail=1;
+   bool FailBinLong =  (aCP1.DifLongF(aCP2,Overlap) >  aFOL.BinDecision().CCB().Val().BitThresh());
+   if (aTM)
+   {
+      aTM->mTBinLong += aTimer.uval();
+      aTimer.reinit();
+   }
+   if (FailBinLong)
       return -1;
 
-   if (aCP1.DistIR(aCP2)< aFP.SeuilCorrDR().Val())
+   aLevelFail=2;
+   bool FailDistRad = (aCP1.DistIR(aCP2)< aSFP.SeuilCorrDR().Val());
+   if (aTM)
+   {
+      aTM->mTDistRad += aTimer.uval();
+      aTimer.reinit();
+   }
+   if (FailDistRad)
       return -1;
 
+
+   aLevelFail=3;
    double IncoH;
    aShift = aCP1.ComputeShiftGlob(aCP2,IncoH);
-   if (IncoH> aFP.SeuilInc().Val())
+   if (aTM)
+   {
+      aTM->mTShif += aTimer.uval();
+      aTimer.reinit();
+   }
+   if (IncoH> aSFP.SeuilInc().Val())
       return -1;
+
 
    double aCorrelIm  = aCP1.DistIm(aCP2,aShift);
-
-   if (aCorrelIm< aFP.SeuilCorrLP().Val())
+   aLevelFail=4;
+   bool FailCorrel = (aCorrelIm< aSFP.SeuilCorrLP().Val());
+   if (aTM)
+   {
+      aTM->mTDist += aTimer.uval();
+      aTimer.reinit();
+   }
+   if (FailCorrel)
       return -1;
-   
+
+   aLevelFail=5;
    return aCorrelIm;
 }
 
 
-int cCompileOPC::DifShortF(const cCompileOPC & aCP)
+int cCompileOPC::DifShortF(const cCompileOPC & aCP,bool Overlap)
 {
-  return NbBitDifOfFlag(mShortFlag,aCP.mShortFlag);
+  return Overlap                                    ?
+         NbBitDifOfFlag(mOL_ShortFlag  , aCP.mOL_ShortFlag)  :
+         NbBitDifOfFlag(mDec_ShortFlag , aCP.mDec_ShortFlag)  ;
 }
 
-int cCompileOPC::DifLongF(const cCompileOPC & aCP)
+int cCompileOPC::DifLongF(const cCompileOPC & aCP,bool Overlap)
 {
-  return NbBitDifOfFlag(mLongFlag,aCP.mLongFlag);
+  return  Overlap                                           ?
+          NbBitDifOfFlag(mOL_LongFlag  , aCP.mOL_LongFlag)  :
+          NbBitDifOfFlag(mDec_LongFlag , aCP.mDec_LongFlag) ;
 }
 
 
@@ -615,7 +930,8 @@ double cSetPairOPC::StatDR
             std::vector<double> & aVDR,
             std::vector<double> & aVinc,
             std::vector<double> & aVIm,
-            const cFitsParam & aFP
+            const cFitsParam & aFP,
+            bool OverLap
        )
 {
    double aSeuilDR = 0.7;
@@ -628,11 +944,12 @@ double cSetPairOPC::StatDR
    int aSeuilL = aFP.OverLap().BinDecision().CCB().Val().BitThresh();
    for (auto & aPair : mVP)
    {
-        aPair.P1().SetFlag(aFP.OverLap());
-        aPair.P2().SetFlag(aFP.OverLap());
+        ELISE_ASSERT(OverLap,"StatDR only OverLap 4 now");
+        aPair.P1().SetFlag(aFP.OverLap(),OverLap);
+        aPair.P2().SetFlag(aFP.OverLap(),OverLap);
 
-        int aNbDifS = aPair.P1().DifShortF(aPair.P2());
-        int aNbDifL = aPair.P1().DifLongF(aPair.P2());
+        int aNbDifS = aPair.P1().DifShortF(aPair.P2(),OverLap);
+        int aNbDifL = aPair.P1().DifLongF(aPair.P2(),OverLap);
         bool OkS = aNbDifS <= aSeuilS;
         bool OkL = aNbDifL <= aSeuilL;
         if (OkS) 
@@ -737,7 +1054,7 @@ class cAppli_NH_ApprentBinaire
             void OptimLocal(const std::string & aIn,const std::string & aOut);
             cCalcOB COB(const  cCompCBOneBit &);
 
-            void StatTruthTRand();
+            void StatTruthTRand(bool Overlap);
       private :
             // Si aNumInv<0 => Random
             // aModeRand 0 => rand X, 1=> rand Y , 2 => all
@@ -919,7 +1236,11 @@ void cAppli_NH_ApprentBinaire::DoOne(eTypePtRemark aType)
     }
     else if (mNumStep==3)
     {
-       StatTruthTRand();
+       StatTruthTRand(true);
+    }
+    else if (mNumStep==4)
+    {
+       StatTruthTRand(false);
     }
 }
 
@@ -942,17 +1263,17 @@ void CmpStat(const std::vector<double> &  aVTruth,const std::vector<double> &  a
                << "\n";
 }
 
-void   cAppli_NH_ApprentBinaire::StatTruthTRand()
+void   cAppli_NH_ApprentBinaire::StatTruthTRand(bool OverLap)
 {
 
    StdInitFitsPm(mFitParam);
    std::vector<double> aVTDr,aVTInc,aVTIm;
-   double aPropT = mVTruth.StatDR(aVTDr,aVTInc,aVTIm,mFitParam);
+   double aPropT = mVTruth.StatDR(aVTDr,aVTInc,aVTIm,mFitParam,OverLap);
 
    getchar();
 
    std::vector<double> aVRDr,aVRInc,aVRIm;
-   double aPropR = mVRand.StatDR(aVRDr,aVRInc,aVRIm,mFitParam);
+   double aPropR = mVRand.StatDR(aVRDr,aVRInc,aVRIm,mFitParam,OverLap);
 
    std::cout << "DistInvRad \n";
    std::vector<double> aVDr({0.5,0.6,0.7,0.8,0.9});

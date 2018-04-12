@@ -78,6 +78,10 @@ void cImgZBuffer::LoadTri(cTri3D aTri3D)
         }
     }
     cTri2D aTri = aTri3D.reprj(mCamGen);
+    if (mAppli->Param().mInverseOrder)
+    {
+        aTri.InverseOrder() = true;
+    }
     if (mAppli->Param().mFarScene)
     {
         if (

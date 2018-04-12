@@ -709,6 +709,12 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
    
    if (EAMIsInit(&mInOri))
       mRotInOri = OrientationRelFromExisting(mInOri);
+
+/*
+   if (EAMIsInit(&mBlinis))
+   {
+   }
+*/
 /*
    if (EAMIsInit(&mNameOriTest))
    {

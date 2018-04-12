@@ -46,7 +46,383 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
 
-// =================== Test Zone ============================
+// =================== Test Zone Init block rigid ============================
+
+// Orientation 1 camera series (cam0 par ex)
+// Init tout les autres cam par cam0
+extern ElMatrix<double> ImportMat(const cTypeCodageMatr & aCM);
+extern cTypeCodageMatr ExportMatr(const ElMatrix<double> & aMat);
+
+class cOneTimeStamp
+{
+public:
+    cOneTimeStamp(string aTimeStampId, string cleAssoc, cInterfChantierNameManipulateur * aICNM, cLiaisonsSHC * aLSHC);
+    void AddCam(string aCamId, string KeyIm2TimeCam);
+    void AddAllCamPossible(string KeyIm2TimeCam);
+    void SetCamRef(CamStenope * aCamRef, string aCamRefId);
+    void SetOri(string aOri);
+    void SetOriOut(string aOriOut) {mOriOut = aOriOut;}
+    CamStenope * CamRef() {return mCamRef;}
+
+
+    string & Id() {return mTimeId;}
+    string & Ori() {return mOri;}
+
+    bool & IsInit() {return mIsInit;}
+    cInterfChantierNameManipulateur * ICNM() {return mICNM;}
+    vector<CamStenope*> & VCamInBlock() {return mVCamInBlock;}
+    cLiaisonsSHC * LSHC() {return mLSHC;}
+
+    void Export(string aNameIm, string aOriOut, Pt3dr Centre, ElMatrix<double> aRot);
+
+private:
+
+    string mTimeId;
+    bool mIsInit;
+    cInterfChantierNameManipulateur * mICNM;
+    cLiaisonsSHC * mLSHC;
+    vector<string> mVNameCamInBlock; // name of all image in the same time stamp
+    vector<bool>   mVIsCamInBlockHasOriented;
+    CamStenope * mCamRef;
+    vector<CamStenope*> mVCamInBlock; // name of all image in the same time stamp
+    string mCamRefId;
+    cParamOrientSHC mCamRefOrientSHC;
+    cOrientationConique mOriRef;
+    string mOri;
+    string mOriOut;
+};
+
+cOneTimeStamp::cOneTimeStamp(string aTimeStampId, string cleAssoc, cInterfChantierNameManipulateur * aICNM, cLiaisonsSHC *aLSHC):
+    mTimeId (aTimeStampId),
+    mIsInit (true),
+    mICNM (aICNM),
+    mLSHC (aLSHC),
+    mCamRef (NULL),
+    mVCamInBlock (mLSHC->ParamOrientSHC().size())
+{
+}
+
+void cOneTimeStamp::SetOri(string aOri)
+{
+    mOri = aOri;
+    cout<<"Set Ori "<<aOri<<" "<<mOri<<endl;
+}
+
+void cOneTimeStamp::SetCamRef(CamStenope * aCamRef, string aCamRefId)
+{
+    cout<<"   + Set Cam Ref "<<endl;
+    if (mCamRef != NULL)
+    {
+        cout<<"WARN ! : this time stamp has already camRef : "<<mCamRef->NameIm()<<endl;
+    }
+    mCamRefId = aCamRefId;
+    mCamRef = aCamRef;
+    std::string aKey = "NKS-Assoc-Im2Orient@-"+ mOri;
+    std::string aOriPath =  mICNM->Assoc1To1(aKey,aCamRef->NameIm(),true);
+    if (ELISE_fp::exist_file(aOriPath))
+    {
+        cout<<"   + Get OrientationConique of Cam Ref "<<endl;
+        mOriRef=StdGetFromPCP(aOriPath,OrientationConique);
+    }
+    else
+    {
+        ELISE_ASSERT(ELISE_fp::exist_file(aOriPath), aOriPath.c_str());
+        return;
+    }
+    std::list< cParamOrientSHC >::iterator aK = mLSHC->ParamOrientSHC().begin();
+    while (aK != mLSHC->ParamOrientSHC().end())
+    {
+        cParamOrientSHC aPr =  *aK;
+        string aIdCam = aPr.IdGrp();
+        if (aIdCam == mCamRefId)
+        {
+            cout<<"   + Get cParamOrientSHC of Cam Ref .. OK "<<endl;
+            mCamRefOrientSHC = *aK;
+            break;
+        }
+        aK++;
+    }
+}
+
+void cOneTimeStamp::Export(string aNameIm, string aOriOut, Pt3dr Centre, ElMatrix<double> aRot)
+{
+    std::string aKey = "NKS-Assoc-Im2Orient@-"+ aOriOut;
+    std::string aOriPath =  mICNM->Assoc1To1(aKey,aNameIm,true);
+
+    cOrientationConique aExport=mOriRef;
+    aExport.Externe().Centre() = Centre;
+
+    cTypeCodageMatr aValRot;
+    aValRot.L1() = Pt3dr(aRot(0,0), aRot(1,0), aRot(2,0));
+    aValRot.L2() = Pt3dr(aRot(0,1), aRot(1,1), aRot(2,1));
+    aValRot.L3() = Pt3dr(aRot(0,2), aRot(1,2), aRot(2,2));
+    aExport.Externe().ParamRotation().CodageMatr().SetVal(aValRot);
+
+    MakeFileXML(aExport, aOriPath);
+
+    cout<<"     ++ Export XML "<<aOriPath<<endl;
+}
+
+
+void cOneTimeStamp::AddCam(string aCamId, string KeyIm2TimeCam)
+{
+    string aCamToFind = mICNM->Assoc1To2(KeyIm2TimeCam, mTimeId, aCamId, false);
+    cout<<"   +Add Cam : "<<endl;
+    cout<<"   + Assoc12 "<<mTimeId<<" + "<<aCamId<<" = "<<aCamToFind<<endl;
+    std::vector<std::string> aSetIm2Find = *(mICNM->Get(aCamToFind));
+    if (aSetIm2Find.size() > 1)
+    {
+        cout<<"   + WTF ? Impossible to have more than 1 camera ID "<<aCamId<<" in block "<<mTimeId<<endl;
+        return;
+    }
+    if (aSetIm2Find.size() == 0)
+    {
+        cout<<"   + Query: camID "<<aCamId<<" with TimeStamp "<<mTimeId<<" not found !"<<endl;
+        return;
+    }
+    string aIm2Find = aSetIm2Find[0];
+    // check if cam is already added
+    cout<<"   + Found Cam : "<<aIm2Find<<endl;
+    vector<string>::iterator itFind;
+    itFind = find(mVNameCamInBlock.begin(), mVNameCamInBlock.end(), aIm2Find);
+    if (itFind == mVNameCamInBlock.end())
+    {
+        mVNameCamInBlock.push_back(aIm2Find);
+        // check if cam is already orientated
+        std::string aKey = "NKS-Assoc-Im2Orient@-"+ Ori();
+        std::string aNameCam =  mICNM->Assoc1To1(aKey,aIm2Find,true);
+        if (ELISE_fp::exist_file(aNameCam))
+        {
+            cout<<"   + Cam has already oriented. Keep existed orientation !"<<endl;
+            CamStenope * aCam = mICNM->StdCamStenOfNames(aIm2Find, mOri);
+            mVCamInBlock.push_back(aCam);
+
+        }
+        else
+        {
+            cout<<"   + Cam Init by block struture. "<<endl;
+            // Init cam by blinis
+            CamStenope * aCamToInit = new CamStenope(*mCamRef, mCamRef->Orient());
+
+            aCamToInit->SetNameIm(aIm2Find);
+            // From CamId, get ori relative in Block Structure
+            std::list< cParamOrientSHC >::iterator aK = mLSHC->ParamOrientSHC().begin();
+            while (aK != mLSHC->ParamOrientSHC().end())
+            {
+                cParamOrientSHC aPrCamToInit =  *aK;
+                string aIdCam = aPrCamToInit.IdGrp();
+                if (aIdCam == aCamId)
+                {
+                    cout<<"    + Cam struct found in Blinis"<<endl;
+                    // CamToInit in BlockRef coordinate (R31)
+                    ElMatrix<double> aPrRotCam = ImportMat(aPrCamToInit.Rot());
+                    Pt3dr aPrTrCam = aPrCamToInit.Vecteur();
+                    // CamRef in BlockRef coordinate (R21)
+                    ElMatrix<double> aPrRotCamRef = ImportMat(mCamRefOrientSHC.Rot());
+                    Pt3dr aPrTrCamRef = mCamRefOrientSHC.Vecteur();
+                    // CamRef in world coordinate  (R2W)
+                    ElMatrix<double> aRotCamRef(3);
+                    aRotCamRef = ImportMat(mOriRef.Externe().ParamRotation().CodageMatr().Val());
+                    Pt3dr aCenterCamRef = mOriRef.Externe().Centre();
+
+                    // Compute CamToInit in world coordinate R3W = R31*(R21)t*R2W
+                    ElMatrix<double> R21t = aPrRotCamRef.transpose();
+                    ElMatrix<double> R31R21t(3);
+                    R31R21t.mul(aPrRotCam, R21t);
+                    ElMatrix<double> R3W(3);    // Rotation CamToInit
+                    R3W.mul(R31R21t, aRotCamRef);
+
+                    ElMatrix<double> TrInBlock(1,3);
+                    TrInBlock(0,0) = (-aPrTrCam + aPrTrCamRef).x;
+                    TrInBlock(0,1) = (-aPrTrCam + aPrTrCamRef).y;
+                    TrInBlock(0,2) = (-aPrTrCam + aPrTrCamRef).z;
+
+                    ElMatrix<double> aCenterCamRefMat(1,3);
+                    aCenterCamRefMat(0,0) = aCenterCamRef.x;
+                    aCenterCamRefMat(0,1) = aCenterCamRef.y;
+                    aCenterCamRefMat(0,2) = aCenterCamRef.z;
+
+                    ElMatrix<double> aCenterCamToInit = aRotCamRef.transpose()*TrInBlock + aCenterCamRefMat;
+                    Pt3dr aPtCenterCamToInit (aCenterCamToInit(0,0), aCenterCamToInit(0,1), aCenterCamToInit(0,2));
+
+                    Export(aIm2Find , mOriOut , aPtCenterCamToInit, R3W);
+                    // Store result in aCamToInit ???
+                    //aCamToInit->SetIncCentre(aCenterCamToInit);
+                    //aCamToInit->SetOrientation(R3W);
+                    // cout pour verifier
+                    double aL1_Cam1[3];R3W.GetLine(0,aL1_Cam1);
+                    double aL2_Cam1[3];R3W.GetLine(1,aL2_Cam1);
+                    double aL3_Cam1[3];R3W.GetLine(2,aL3_Cam1);
+                    cout<<"    + Rot: "<<endl
+                      <<"      "<<aL1_Cam1[0]<<" "<<aL1_Cam1[1]<<" "<<aL1_Cam1[2]<<endl
+                      <<"      "<<aL2_Cam1[0]<<" "<<aL2_Cam1[1]<<" "<<aL2_Cam1[2]<<endl
+                      <<"      "<<aL3_Cam1[0]<<" "<<aL3_Cam1[1]<<" "<<aL3_Cam1[2]<<endl
+                      <<endl;
+                    cout<<"    + Center = "<<aPtCenterCamToInit<<endl;
+
+
+                    mVCamInBlock.push_back(aCamToInit);
+                    cout<<"    + Init OK ! "<<endl;
+                    break;
+                }
+                aK++;
+            }
+        }
+    }
+    else
+    {
+        cout<<"    + Cam has already added ! Quit "<<endl;
+    }
+    return;
+}
+
+
+void cOneTimeStamp::AddAllCamPossible(string KeyIm2TimeCam)
+{
+    // from a time stamp & list of camId, get all Image existed
+    std::list< cParamOrientSHC >::iterator aK = mLSHC->ParamOrientSHC().begin();
+    cout<<"   + Search all possible cam to add "<<endl;
+    while (aK != mLSHC->ParamOrientSHC().end())
+    {
+        cParamOrientSHC aPr =  *aK;
+        string aIdCam = aPr.IdGrp();
+        if (aIdCam != mCamRefId)
+        {
+            this->AddCam(aIdCam, KeyIm2TimeCam);
+        }
+        aK++;
+    }
+}
+
+
+int Test_InitBloc(int argc, char ** argv)
+{
+    string aDir = "./";
+    string aPat, aPattern;
+    string aOriA;
+    string aBlinisPath = "./Blinis_Camp_Test_Blinis_GCP.xml";
+    string aOriOut = "OutInitBloc";
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aPattern, "PatIm",  eSAM_IsPatFile)
+                      << EAMC(aOriA, "Ori",  eSAM_IsExistDirOri)
+                      << EAMC(aBlinisPath, "BlinisStructCamFile" , eSAM_IsExistFile),
+          LArgMain()
+                      << EAM(aOriOut, "Out" , true, "Ori Out Folder, def=OutInitBloc")
+                );
+
+    SplitDirAndFile(aDir, aPat, aPattern);
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    // read Blinis XML
+    cStructBlockCam aSBC = StdGetFromPCP(aBlinisPath, StructBlockCam); //xml blinis
+    cout<<aSBC.KeyIm2TimeCam()<<endl; // recuperer le cle assoc
+    cLiaisonsSHC * aLSHC = aSBC.LiaisonsSHC().PtrVal();
+    std::list< cParamOrientSHC >::iterator aK = aLSHC->ParamOrientSHC().begin();
+    vector<string>aVIdCam;
+    while (aK != aLSHC->ParamOrientSHC().end())
+    {
+        cParamOrientSHC aPr =  *aK;
+        string aIdCam = aPr.IdGrp(); // $1 in image name cle inverse
+        aVIdCam.push_back(aIdCam);
+        ElMatrix<double> aRot = ImportMat(aPr.Rot());
+        aK++;
+    }
+    // $2 in image name cle inverse
+
+    // Pattern of image to init
+    vector<string>  aSetIm = *(aICNM->Get(aPat));
+    // Get orientation of all oriented image
+    vector<CamStenope*> aVCam;
+    StdCorrecNameOrient(aOriA, aICNM->Dir());
+    aOriOut = "Ori-" + aOriOut;
+    ELISE_fp::MkDirSvp(aOriOut);
+    StdCorrecNameOrient(aOriOut, aICNM->Dir(), true);
+    for (uint aKIm=0; aKIm<aSetIm.size(); aKIm++)
+    {
+        string aNameIm = aSetIm[aKIm];
+        std::string aKey = "NKS-Assoc-Im2Orient@-"+ aOriA ;
+        std::string aNameCam =  aICNM->Assoc1To1(aKey,aNameIm,true);
+        if (ELISE_fp::exist_file(aNameCam))
+        {
+            CamStenope * aCam = aICNM->StdCamStenOfNames(aNameIm, aOriA);
+            aCam->SetNameIm(aNameIm);
+            aVCam.push_back(aCam);
+        }
+        else
+        {
+            cout<<" ++ "<<aNameCam<<" not existe in "<<aOriA<<endl;
+        }
+
+    }
+
+    // On initialise les camera
+    cout<<endl<<"Init les cam.."<<endl;
+    std::map<std::string,cOneTimeStamp *> mMap_TimeId_cOneTimeStamp;
+    std::vector<cOneTimeStamp *>          mVTimeStamp; // size = nb cam in block
+    cout<<"Key Assoc : "<<aSBC.KeyIm2TimeCam()<<endl;
+    cout<<"BEGIN FUSION : "<<endl;
+    for (int aKP=0 ; aKP<int(aVCam.size()) ; aKP++)
+    {
+        // for all of oriented image
+        CamStenope * aPC = aVCam[aKP];
+        std::string aNamePose = aPC->NameIm();
+        cout<<endl<<"++ NameIm : "<<aNamePose<<endl;
+
+        // From name Im, get $1 et $2 (time stamp & CamID)
+        std::pair<std::string,std::string> aPair = aICNM->Assoc2To1(aSBC.KeyIm2TimeCam(),aNamePose,true);
+        cout<<"   + Assoc21 "<<aPair.first<<" + "<<aPair.second<<endl;
+        string nTimeId = aPair.first;
+        std::string nCamId = aPair.second;
+
+        // Creat a time stamp nBlockId if it is not existed
+        cOneTimeStamp *  aTimeStamp = NULL;
+        if (! DicBoolFind( mMap_TimeId_cOneTimeStamp, nTimeId))
+        {
+            cout<<"   ++ Create Time Stamp "<<nTimeId<<endl;
+            aTimeStamp = new cOneTimeStamp ( nTimeId,
+                                             aSBC.KeyIm2TimeCam(),
+                                             aICNM,
+                                             aLSHC
+                                             );
+            aTimeStamp->SetOri(aOriA);
+            aTimeStamp->SetOriOut(aOriOut);
+            mMap_TimeId_cOneTimeStamp.insert(std::pair<string, cOneTimeStamp*>(nTimeId , aTimeStamp));
+            aTimeStamp->SetCamRef(aPC, nCamId);
+            aTimeStamp->AddAllCamPossible(aSBC.KeyIm2TimeCam());
+            continue;
+        }
+        else
+        {   // if time stamp is already existe
+            std::map<std::string,cOneTimeStamp *>::iterator itFind;
+            itFind = mMap_TimeId_cOneTimeStamp.find(nTimeId);
+            // get TimeStamp
+
+            // Add cam to TimeStamp (normally it has already added)
+            if (itFind != mMap_TimeId_cOneTimeStamp.end())
+            {
+                cout<<"   + Time Stamp founded ! "<<endl;
+                aTimeStamp = itFind->second;
+                aTimeStamp->AddCam(nCamId, aSBC.KeyIm2TimeCam());
+
+            }
+            else
+                cout<<" PutainNNNNNNNNN"<<endl;
+        }
+    }
+
+    cout<<endl<<" ENDDDD TEST FUSIONNNN"<<endl;
+    cout<<"QUIT INIT BLOC"<<endl;
+return EXIT_SUCCESS;
+}
+
+
+
+
+// =============================================================================
+
+// =================== Test Zone Detect image blur ============================
 Im2D_REAL4 ImRead(string aNameImTif, int mRech = 1)
 {
    Tiff_Im aTif = Tiff_Im::UnivConvStd(aNameImTif);
@@ -631,6 +1007,7 @@ void JSON_WritePoly(vector<Pt3dr> aPoly, ofstream & aJSONOut, Pt3dr aOffSet = Pt
     for(uint aKP=0; aKP<aPoly.size(); aKP++)
     {
         Pt3dr aPt = aPoly[aKP];
+
         aPt = aPt + aOffSet;
         aJSONOut<<"     ["<<std::fixed<<aPt.x<<", "<<aPt.y<<", "<<aPt.z<<"]";
         if (aKP == aPoly.size()-1)
@@ -709,10 +1086,8 @@ int DroneFootPrint(int argc,char ** argv)
 
     string aDir = "./";
     string aPat, aPattern;
-    double rech = 0.5;
     string aOri;
     string aOutPly = "FootPrint.ply";
-    double aOffSetZ =0;
     bool aPlyEachImg = false;
     Pt2dr aResolution = Pt2dr(2000,20); //[resol_line, resol_sphere]
     int aCodeProj = 2154;
@@ -1191,8 +1566,6 @@ void PlyPutForCC(string & aPlyResCC, vector<Pt3dr> & aVAllPtInter, vector<double
 int TestGiangNewHomol_Main(int argc,char ** argv)
 {
     //Test_Conv(argc, argv);
-
-
     string aDir = "./";
     string aSH="";
     string aOri="";

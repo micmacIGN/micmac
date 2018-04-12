@@ -38,6 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
+#include "TapasCampari.h"
 
 /*
 Parametre de Tapas :
@@ -91,56 +92,63 @@ Parametre de Tapas :
          
 */
 
+/****************************************************/
+/*                                                  */
+/*             cAppli_Tapas_Campari                 */
+/*                                                  */
+/****************************************************/
 
-void Campari_Banniere()
+cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
+   mWithBlock(false),
+   mArg      (new LArgMain)
 {
-    std::cout <<  "\n";
-    std::cout <<  " *********************************************\n";
-    std::cout <<  " *     C-ompensation of                      *\n";
-    std::cout <<  " *     A-lter                                *\n";
-    std::cout <<  " *     M-easurements for                     *\n";
-    std::cout <<  " *     P-hotomatric                          *\n";
-    std::cout <<  " *     A-djustment after                     *\n";
-    std::cout <<  " *     R-otation (and position and etc...)   *\n";
-    std::cout <<  " *     I-nitialisation                       *\n";
-    std::cout <<  " *********************************************\n\n";
+    (*mArg) << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
+            << EAM(mVBlockDistGlob,"DistBlocGlob",true,"Param for Dist Glob bloc compute [File,SigmaDist,?MulFinal,?Export]")
+            << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
+            << EAM(mVOptGlob,"OptBlocG",true,"[SigmaTr,SigmaRot]") ;
 }
 
 
-class cAppli_Campari
+LArgMain &   cAppli_Tapas_Campari::ArgATP()
 {
-     public :
-       cAppli_Campari(int argc,char ** argv);
-
-       void AddParamBloc(std::vector<std::string> & aVBL,const std::string & aPref,bool ModeRot);
+   return (*mArg);
+}
 
 
-       int RTA();
+void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
+{
+    AddParamBloc(mCom,mVBlockRel,"TimeRel",true);
+    AddParamBloc(mCom,mVBlockGlob,"Glob",true);
+    AddParamBloc(mCom,mVBlockDistGlob,"DistGlob",false);
 
-       std::string mCom;
+    if (EAMIsInit(&mVOptGlob))
+    {
+       ELISE_ASSERT(EAMIsInit(&mVBlockGlob)|| EAMIsInit(&mVBlockDistGlob),"OptBlocG without BlocGlob");
+       ELISE_ASSERT(mVOptGlob.size()>=2,"Not enough arg in OptBlocG");
 
-       int mResult;
-       bool mExe;
-       double mGcpGrU;
-       double mGcpImU;
-       std::vector<double>      mMulRTA;
-       std::vector<std::string> GCP;
-       std::vector<std::string> GCPRTA;
-       std::string mDir,mPat;
-       std::string mStr0;
-       std::string AeroOut;
-       std::string mNameRTA;
-       bool                      mWithBlock;
-       std::string               mNameInputBloc;
-       std::string               mNameOutputBloc;
-       std::vector<std::string>  mVBlockRel;
-       std::vector<std::string>  mVBlockGlob;
-       std::vector<std::string>  mVBlockDistGlob;
-       std::vector<std::string>  mVOptGlob;
-};
+       double aSigTr,aSigRot;
+       FromString(aSigTr,mVOptGlob[0]);
+       FromString(aSigRot,mVOptGlob[1]);
+       if ((aSigTr<=0) || (aSigRot<=0))
+       {
+          ELISE_ASSERT((aSigTr==aSigRot) &&((aSigTr==-1)||(aSigTr==-2)),"Bad neg value in OptBlocG");
+       }
 
+       if (aSigTr>0)
+       {
+          mCom +=   std::string(" +WBG_Sigma=true ")
+                  + " +WBG_Center=" + ToString(1/ElSquare(aSigTr))
+                  + " +WBG_Ang=" + ToString(1/ElSquare(aSigRot))
+                  + " " ;
+       }
+       if (aSigTr==-1)
+       {
+          mCom += std::string(" +WBG_Stricte=true ");
+       }
+    }
+}
 
-void cAppli_Campari::AddParamBloc(std::vector<std::string> & aVBL,const std::string & aPref,bool ModeRot)
+void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom,std::vector<std::string> & aVBL,const std::string & aPref,bool ModeRot)
 {
     int IndRot = ModeRot ? 1 : 0;
     if (!EAMIsInit(&aVBL)) return;
@@ -148,6 +156,7 @@ void cAppli_Campari::AddParamBloc(std::vector<std::string> & aVBL,const std::str
     ELISE_ASSERT(int(aVBL.size()) <= 4+IndRot,"Too many param in AddParamBloc");
 
 
+    // Gere le fait que ou Blox initialise une fois, ou toujours avec le meme nom
     if (!mWithBlock)
     {
         mWithBlock = true;
@@ -190,11 +199,72 @@ void cAppli_Campari::AddParamBloc(std::vector<std::string> & aVBL,const std::str
 }
 
 
+/****************************************************/
+/*                                                  */
+/*                    ::                            */
+/*                                                  */
+/****************************************************/
+
+void Campari_Banniere()
+{
+    std::cout <<  "\n";
+    std::cout <<  " *********************************************\n";
+    std::cout <<  " *     C-ompensation of                      *\n";
+    std::cout <<  " *     A-lter                                *\n";
+    std::cout <<  " *     M-easurements for                     *\n";
+    std::cout <<  " *     P-hotomatric                          *\n";
+    std::cout <<  " *     A-djustment after                     *\n";
+    std::cout <<  " *     R-otation (and position and etc...)   *\n";
+    std::cout <<  " *     I-nitialisation                       *\n";
+    std::cout <<  " *********************************************\n\n";
+}
+
+/****************************************************/
+/*                                                  */
+/*             cAppli_Campari                       */
+/*                                                  */
+/****************************************************/
+
+class cAppli_Campari : public cAppli_Tapas_Campari
+{
+     public :
+       cAppli_Campari(int argc,char ** argv);
+
+       // void AddParamBloc(std::vector<std::string> & aVBL,const std::string & aPref,bool ModeRot);
+
+
+       int RTA();
+
+       std::string mCom;
+
+       int mResult;
+       bool mExe;
+       double mGcpGrU;
+       double mGcpImU;
+       std::vector<double>      mMulRTA;
+       std::vector<std::string> GCP;
+       std::vector<std::string> GCPRTA;
+       std::string mDir,mPat;
+       std::string mStr0;
+       std::string AeroOut;
+       std::string mNameRTA;
+/*
+       cAppli_Tapas_Campari      mTPC;
+       bool                      mWithBlock;
+       std::string               mNameInputBloc;
+       std::string               mNameOutputBloc;
+       std::vector<std::string>  mVBlockRel;
+       std::vector<std::string>  mVBlockGlob;
+       std::vector<std::string>  mVBlockDistGlob;
+       std::vector<std::string>  mVOptGlob;
+*/
+};
+
+
 
 cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     AeroOut    (""),
-    mNameRTA   ("SauvRTA.xml"),
-    mWithBlock (false)
+    mNameRTA   ("SauvRTA.xml")
 {
     mStr0 = MakeStrFromArgcARgv(argc,argv,true);
     MMD_InitArgcArgv(argc,argv);
@@ -290,10 +360,13 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq, set NONE if unused")
                     << EAM(aNbIterFin,"NbIterEnd",true,"Number of iteration at end, Def = 4")
                     // << EAM(GCP,"MulRTA",true,"Rolling Test Appuis , multiplier ")
+                    <<  ArgATP()
+/*
                     << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
                     << EAM(mVBlockDistGlob,"DistBlocGlob",true,"Param for Dist Glob bloc compute [File,SigmaDist,?MulFinal,?Export]")
-                    << EAM(mVOptGlob,"OptBlocG",true,"[SigmaTr,SigmaRot]")
                     << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
+                    << EAM(mVOptGlob,"OptBlocG",true,"[SigmaTr,SigmaRot]")
+*/
                     << EAM(aNbLiais,"NbLiais",true,"Param for relative weighting for tie points")
                     << EAM(aPdsGBRot,"PdsGBRot",true,"Weighting of the global rotation constraint (Generic bundle Def=0.002)")
                     << EAM(aPdsGBId,"PdsGBId",true,"Weighting of the global deformation constraint (Generic bundle Def=0.0)")
@@ -393,6 +466,11 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
            mCom =  mCom+ " +FactMaxRes=" + ToString(aFactResElimTieP) + " ";
 
 
+       if (Viscos<=0) 
+       {
+          mCom  +=  " +UseSLM=false ";
+          Viscos = 1; // Pour eviter une / par 0 en xml
+       }
        if (EAMIsInit(&Viscos)) mCom  +=  " +Viscos=" + ToString(Viscos) + " ";
 
        if (EAMIsInit(&DetailAppuis)) mCom += " +DetailAppuis=" + ToString(DetailAppuis) + " ";
@@ -507,9 +585,11 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
             ELISE_ASSERT(EAMIsInit(&GCP),"RTA without GCP");
         }
 
-        AddParamBloc(mVBlockRel,"TimeRel",true);
-        AddParamBloc(mVBlockGlob,"Glob",true);
-        AddParamBloc(mVBlockDistGlob,"DistGlob",false);
+        AddParamBloc(mCom);
+/*
+        AddParamBloc(mCom,mVBlockRel,"TimeRel",true);
+        AddParamBloc(mCom,mVBlockGlob,"Glob",true);
+        AddParamBloc(mCom,mVBlockDistGlob,"DistGlob",false);
         if (EAMIsInit(&mVOptGlob))
         {
            ELISE_ASSERT(EAMIsInit(&mVBlockGlob)|| EAMIsInit(&mVBlockDistGlob),"OptBlocG without BlocGlob");
@@ -535,6 +615,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                mCom += std::string(" +WBG_Stricte=true ");
            }
         }
+*/
         if (aUseGaussJ)
         {
            mCom +=   std::string(" +ModeResolSysLin=eSysPlein");

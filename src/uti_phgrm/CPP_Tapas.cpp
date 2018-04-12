@@ -39,6 +39,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
 
+#include "TapasCampari.h"
+
 
 
 class cMemRes
@@ -282,6 +284,7 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
 
 int Tapas_main(int argc,char ** argv)
 {
+    cAppli_Tapas_Campari anATC;
     NoInit = "#@LL?~~XXXXXXXXXX";
 
     MMD_InitArgcArgv(argc,argv);
@@ -354,6 +357,7 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
                     << EAM(aLVM,"MulLVM",true,"Multiplier Levenber Markard")
+                    << anATC.ArgATP()
     );
 
     if (!MMVisualMode)

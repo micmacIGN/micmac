@@ -249,6 +249,8 @@ cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
 
     mScaleStab = anAppli.ScaleOfNiv(aLR->Niv());
 
+// std::cout << "aLR-aLR-aLR-aLR- NIIIV " << aLR->Niv() << "\n";
+
     int aSign = SignOfType(mLR->Type());
     std::vector<double> aVLapl;
     mLaplMax = -1;
@@ -340,6 +342,56 @@ cPtRemark *  cBrinPtRemark::Nearest(int & aNivMin,double aTargetNiv)
     return aRes;
 }
 */
+
+/*****************************************************/
+/*                                                   */
+/*                  cFHistoInt                       */
+/*                                                   */
+/*****************************************************/
+
+cFHistoInt::cFHistoInt() :
+   mSom (0)
+{
+}
+
+int cFHistoInt::at(int aK)
+{
+   return ((aK>=0) && (aK<int(mHist.size()))) ? mHist.at(aK) : 0;
+}
+
+void cFHistoInt::Add(int aK,double aPds,int aLine)
+{
+   if (aK<0)
+   {
+       std::cout << "KKKKK = " << aK << " LINE=" << aLine<< "\n";
+       ELISE_ASSERT(aK>=0,"cFHistoInt::Add");
+   }
+   mSom++;
+   while(int(mHist.size())<= aK)
+     mHist.push_back(0);
+   mHist.at(aK) += aPds;
+}
+
+double cFHistoInt::Perc(int aK)
+{
+   return mHist.at(aK) * (100.0/mSom);
+}
+
+
+void cFHistoInt::Show()
+{
+   double aSomPond = 0.0;
+   for (int aK=0 ; aK<int(mHist.size()) ; aK++)
+   {
+       if (at(aK))
+       {
+          aSomPond += aK * at(aK);
+          std::cout << " Hist " << aK << " %=" << Perc(aK)  << " Nb=" << at(aK) << "\n";
+       }
+   }
+   std::cout << " HistMoy= " << aSomPond / mSom << "\n";
+}
+
 
 
 

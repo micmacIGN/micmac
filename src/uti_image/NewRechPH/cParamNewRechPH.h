@@ -203,6 +203,9 @@ class cOnePCarac
         cOneInvRad & InvR();
         const cOneInvRad & InvR()const ;
 
+        double & MoyLP();
+        const double & MoyLP()const ;
+
         Im2D_INT1 & ImLogPol();
         const Im2D_INT1 & ImLogPol()const ;
 
@@ -226,6 +229,7 @@ class cOnePCarac
         double mAutoCorrel;
         bool mOK;
         cOneInvRad mInvR;
+        double mMoyLP;
         Im2D_INT1 mImLogPol;
         std::vector<double> mVectRho;
         cProfilRad mProfR;
@@ -509,12 +513,16 @@ class cFitsOneLabel
         friend void xml_init(cFitsOneLabel & anObj,cElXMLTree * aTree);
 
 
+        eTypePtRemark & KindOf();
+        const eTypePtRemark & KindOf()const ;
+
         cFitsOneBin & BinIndexed();
         const cFitsOneBin & BinIndexed()const ;
 
         cFitsOneBin & BinDecision();
         const cFitsOneBin & BinDecision()const ;
     private:
+        eTypePtRemark mKindOf;
         cFitsOneBin mBinIndexed;
         cFitsOneBin mBinDecision;
 };
@@ -529,22 +537,13 @@ std::string  Mangling( cFitsOneLabel *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-class cFitsParam
+class cSeuilFitsParam
 {
     public:
         cGlobXmlGen mGXml;
 
-        friend void xml_init(cFitsParam & anObj,cElXMLTree * aTree);
+        friend void xml_init(cSeuilFitsParam & anObj,cElXMLTree * aTree);
 
-
-        eTypePtRemark & KindOl();
-        const eTypePtRemark & KindOl()const ;
-
-        cFitsOneLabel & OverLap();
-        const cFitsOneLabel & OverLap()const ;
-
-        std::list< cFitsOneLabel > & GenLabs();
-        const std::list< cFitsOneLabel > & GenLabs()const ;
 
         cTplValGesInit< double > & SeuilCorrDR();
         const cTplValGesInit< double > & SeuilCorrDR()const ;
@@ -555,12 +554,45 @@ class cFitsParam
         cTplValGesInit< double > & SeuilCorrLP();
         const cTplValGesInit< double > & SeuilCorrLP()const ;
     private:
-        eTypePtRemark mKindOl;
-        cFitsOneLabel mOverLap;
-        std::list< cFitsOneLabel > mGenLabs;
         cTplValGesInit< double > mSeuilCorrDR;
         cTplValGesInit< double > mSeuilInc;
         cTplValGesInit< double > mSeuilCorrLP;
+};
+cElXMLTree * ToXMLTree(const cSeuilFitsParam &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSeuilFitsParam &);
+
+void  BinaryUnDumpFromFile(cSeuilFitsParam &,ELISE_fp &);
+
+std::string  Mangling( cSeuilFitsParam *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cFitsParam
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cFitsParam & anObj,cElXMLTree * aTree);
+
+
+        cFitsOneLabel & OverLap();
+        const cFitsOneLabel & OverLap()const ;
+
+        std::list< cFitsOneLabel > & GenLabs();
+        const std::list< cFitsOneLabel > & GenLabs()const ;
+
+        cSeuilFitsParam & SeuilOL();
+        const cSeuilFitsParam & SeuilOL()const ;
+
+        cSeuilFitsParam & SeuilGen();
+        const cSeuilFitsParam & SeuilGen()const ;
+    private:
+        cFitsOneLabel mOverLap;
+        std::list< cFitsOneLabel > mGenLabs;
+        cSeuilFitsParam mSeuilOL;
+        cSeuilFitsParam mSeuilGen;
 };
 cElXMLTree * ToXMLTree(const cFitsParam &);
 

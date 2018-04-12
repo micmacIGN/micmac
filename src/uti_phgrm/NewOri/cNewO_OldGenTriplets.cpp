@@ -454,6 +454,7 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
       std::string & aInOri = mAppli->InOri();
       if (EAMIsInit(&aInOri))
       {
+          // Les deux premieres viennent de la paire sauvee en xml, donc pas besoin
           bool Ok;
           std::pair<ElRotation3D,ElRotation3D>  aPair = mAppli->NM().OriRelTripletFromExisting
                                                 (
