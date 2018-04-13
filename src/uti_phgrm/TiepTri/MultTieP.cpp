@@ -704,6 +704,24 @@ std::cout << "DONNNNNNN \n";
      // Save("DUP.txt");
 }
 
+Pt2dr cSetPMul1ConfigTPM::GetPtByImgId(int aKp,int aQueryImgID)
+{
+    // search for position of aQueryImgID in mVIdIm
+    int aPosIm;
+    auto it = std::find(mVIdIm.begin(), mVIdIm.end(), aQueryImgID);
+    if (it != mVIdIm.end())
+    {
+        auto index = std::distance(mVIdIm.begin(), it);
+        aPosIm = index;
+    }
+
+    ELISE_ASSERT(it != mVIdIm.end(), "Query Image ID not existed in this point Multp Config");
+    ELISE_ASSERT(aKp < mNbPts, "Point not exist in this config");
+    // call method Pt2dr Pt(aKp, founded_position)
+    return Pt(aKp,aPosIm);
+}
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

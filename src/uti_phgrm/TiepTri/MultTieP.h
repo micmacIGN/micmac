@@ -107,6 +107,9 @@ class cSetPMul1ConfigTPM
        void *  ConfTPM_GetVoidData() const;
        void    ConfTPM_SetVoidData(void *);
 
+       Pt2dr GetPtByImgId(int aKp, int aQueryImgID);
+
+
     private :
        int  AddrPtIm(int aKp,int aKIm) {return 2*(aKp*mNbIm  +aKIm) ;}
         
