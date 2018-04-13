@@ -84,6 +84,10 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
     Pt2di DoTapioca(0,-1);
     double seuilEcart = DBL_MAX;
 
+    Pt3di colSeg(0,255,0);
+    double aDynV = 1.1;
+    string aPlyErrName = "PlyErr.ply";
+
     ElInitArgMain
     (
           argc,argv,
@@ -95,7 +99,11 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
                       << EAM(DoTapioca, "Tapioca" , true, "Do Tapioca = [DoIt(1/0),Resolution]")
                       << EAM(plot, "plot" , true, "Plot data (with gnuplot)")
                       << EAM(seuilEcart, "DistMax" , true, "max Point distant between 2 loop (to eliminate noise) - def=Inf")
-     );
+                      << EAM(colSeg, "Col" , true, "Rayon of error vector")
+                      << EAM(aDynV, "Dynv" , true, "Multp factor of error vector")
+                      << EAM(aPlyErrName, "Ply" , true, "Name of output error vector")
+
+                );
 
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     SplitDirAndFile(aDir, aPatIm1, aPatIn1);
@@ -300,17 +308,29 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
         ofstream csvPt3d;
         csvPt3d.open ("CtrlCloseLoop.csv");
         csvPt3d<<"Ecart"<<endl;
+        CamStenope * aCam11 = aVCam1[0];
+        Pt3dr aCen1= aCam11->VraiOpticalCenter();
+
         vector<double> aVEcart;
+        cPlyCloud aPlyERROR;
+        Pt3di colPt(255,0,0);
+
         for (uint aKPt=0; aKPt < aPtCtrlLoop1.size(); aKPt++)
         {
             double ecart = euclid(aPtCtrlLoop1[aKPt] - aPtCtrlLoop2[aKPt]);
             csvPt3d<<ecart<<endl;
             aVEcart.push_back(ecart);
+
+            // Ply ERROR
+            aPlyERROR.AddPt(colPt, aPtCtrlLoop1[aKPt]);
+            Pt3dr aNorm = -aCen1 + aPtCtrlLoop1[aKPt];
+            aPlyERROR.AddSeg(colSeg, aPtCtrlLoop1[aKPt], aPtCtrlLoop1[aKPt] + aNorm*(ecart*aDynV), 500);
         }
+        aPlyERROR.PutFile(aPlyErrName);
         csvPt3d .close();
         cout<<"Total : "<<aPtCtrlLoop1.size()<<" pts in control"<<endl;
 
-        // Stat on aVEcart
+        // Stat on aVEcart && Sortie pt cloud d'erreur
         {
             // Sort ascending
             sort(aVEcart.begin(), aVEcart.end(), sortAscending);
