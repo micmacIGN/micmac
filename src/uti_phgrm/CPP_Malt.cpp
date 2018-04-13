@@ -120,6 +120,7 @@ class cAppliMalt
           bool        mDoubleOrtho;
           double      mZincCalc;
           std::string mDirMEC;
+	  std::string mDirPyram;
           std::string mDirOrthoF;
           double       mDefCor;
           double       mCostTrans;
@@ -220,6 +221,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mDoubleOrtho  (false),
     mZincCalc     (0.3),
     mDirMEC       ("MEC-Malt/"),
+    mDirPyram     ("Pyram/"),
     mDirOrthoF    (""),
     mDefCor       (0.2),
     mCostTrans    (2.0),
@@ -334,6 +336,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mUseGpu,"UseGpu",true,"Use Cuda acceleration, def=false", eSAM_IsBool)
                     << EAM(mZRegul,"Regul",true,"Regularization factor")
                     << EAM(mDirMEC,"DirMEC",true,"Subdirectory where the results will be stored")
+		    << EAM(mDirPyram,"DirPyram",true,"Subdirectory where the Pyrams will be stored")
                     << EAM(mDirOrthoF,"DirOF",true,"Subdirectory for ortho (def in Ortho-${DirMEC}) ")
                     << EAM(mUseMasqTA,"UseTA",true,"Use TA as Masq when it exists (Def is true)")
                     << EAM(mZoomFinal,"ZoomF",true,"Final zoom, (Def 2 in ortho,1 in MNE)",eSAM_IsPowerOf2)
@@ -726,6 +729,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       std::string  anArgCommuns =   std::string(" WorkDir=") + mDir
               +  std::string(" +ImPat=") + QUOTE(mIms)
               +  std::string(" +DirMEC=") + mDirMEC
+	      +  std::string(" +DirPyram=") + mDirPyram
               +  std::string(" +ZoomFinal=") + ToString(mZoomFinal)
               +  std::string(" +Ori=") + mOri
               +  std::string(" +ResolRelOrhto=") + ToString(1/(mResolOrtho*mZoomFinal))
@@ -749,6 +753,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                               +  std::string(" WorkDir=") + mDir
                               +  std::string(" +ImPat=") + QUOTE(mIms)
                               +  std::string(" +DirMEC=") + mDirMEC
+			      +  std::string(" +DirPyram=") + mDirPyram
                               +  std::string(" +ZoomFinal=") + ToString(mZoomFinal)
                               +  std::string(" +Ori=") + mOri
                               +  std::string(" +ResolRelOrhto=") + ToString(1.0/mZoomFinal)
