@@ -14,14 +14,16 @@ class cAppli_Tapas_Campari
        LArgMain &     ArgATP();
 
        bool                        mWithBlock;
-       std::vector<std::string>  SetExtendPattern
-                                 (
-                                      const std::string & aPatGlob,
-                                      const std::string & aPatCenter,
-                                      cInterfChantierNameManipulateur *
-                                 );
        std::string ExtendPattern(const std::string & aPatGlob,const std::string & aPatCenter,cInterfChantierNameManipulateur *);
        std::string TimeStamp(const std::string & aName,cInterfChantierNameManipulateur * anICNM);
+       const cStructBlockCam &  SBC() const;
+
+       void InitAllImages(const std::string & aPat,cInterfChantierNameManipulateur * anICNM);
+
+       const std::vector<std::string> & BlocImagesByTime() const;
+       const std::vector<std::string> & BlocTimeStamps() const;
+       std::map<std::string,int> & BlocCptTime() ;
+
     private :
       
        std::string               mNameInputBloc;
@@ -31,6 +33,10 @@ class cAppli_Tapas_Campari
        std::vector<std::string>  mVBlockDistGlob;
        std::vector<std::string>  mVOptGlob;
        cStructBlockCam           mSBC;
+       bool                      mNamesBlockInit;
+       std::vector<std::string>  mBlocImagesByTime;
+       std::vector<std::string>  mBlocTimeStamps;
+       std::map<std::string,int> mBlocCptTime;
     private :
        void AddParamBloc(std::string & mCom,std::vector<std::string> & aVBL,const std::string & aPref,bool ModeRot);
        LArgMain                  *mArg;

@@ -99,8 +99,9 @@ Parametre de Tapas :
 /****************************************************/
 
 cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
-   mWithBlock(false),
-   mArg      (new LArgMain)
+   mWithBlock       (false),
+   mNamesBlockInit  (false),
+   mArg             (new LArgMain)
 {
     (*mArg) << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
             << EAM(mVBlockDistGlob,"DistBlocGlob",true,"Param for Dist Glob bloc compute [File,SigmaDist,?MulFinal,?Export]")
@@ -229,6 +230,32 @@ std::string   cAppli_Tapas_Campari::ExtendPattern
 
    return aPat.Pattern();
 }
+
+const cStructBlockCam &  cAppli_Tapas_Campari::SBC() const {return mSBC;}
+
+
+void cAppli_Tapas_Campari::InitAllImages(const std::string & aPat,cInterfChantierNameManipulateur * anICNM)
+{
+    ELISE_ASSERT(mWithBlock,"cAppli_Tapas_Campari::InitAllImages");
+
+    cInterfChantierNameManipulateur::tSet   aSetGlob = *(anICNM->Get(aPat));
+    std::vector<std::pair<std::string,std::string> > aVP;
+    for (const auto & aS : aSetGlob)
+    {
+        aVP.push_back(std::pair<std::string,std::string>(TimeStamp(aS,anICNM),aS));
+        mBlocCptTime[aVP.back().first]++;
+    }
+    std::sort(aVP.begin(),aVP.end());
+    for (const auto & aPair : aVP)
+    {
+       mBlocTimeStamps.push_back(aPair.first);
+       mBlocImagesByTime.push_back(aPair.second);
+    }
+}
+
+const std::vector<std::string> & cAppli_Tapas_Campari::BlocImagesByTime() const {return mBlocImagesByTime;}
+const std::vector<std::string> & cAppli_Tapas_Campari::BlocTimeStamps() const   {return mBlocTimeStamps;}
+std::map<std::string,int> & cAppli_Tapas_Campari::BlocCptTime() {return mBlocCptTime;}
 
 
 

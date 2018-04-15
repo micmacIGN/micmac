@@ -69,6 +69,7 @@ int  cAttrArcPose::Nb() const { return mNb; }
 
 bool BugBestCam = false;
 
+
 void  cAppliApero::ConstructMST
       (
           const std::list<std::string> & aLNew,
@@ -131,46 +132,58 @@ void  cAppliApero::ConstructMST
 
    int aNbC = (int)aVCible.size(); 
 
+   cPoseCam * aLastRigidSeed;
+   std::vector<cPoseCam *> aVRigid2Init;
+   bool UseBloc = false;
+   if (aMST.MSTBlockRigid().IsInit())
+   {
+        UseBloc = true;
+        PreInitBloc(aMST.MSTBlockRigid().Val());
+   }
+
    // A chaque iteration on va affecter un sommet
    for (int aTimes=0 ; aTimes<aNbC ; aTimes++)
    {
        cPoseCam  * aBestCam = 0;
-       cObsLiaisonMultiple * aBestPack=0; GccUse(aBestPack);
-       double           aPdsMax = -1e40;
        int aNbRotPreInit = -1;
-       // Recherche du sommet a affecter
-       for (int aKC=0 ; aKC<aNbC ; aKC++)
-       {
-           cPoseCam * aPcK = aVCible[aKC];
-
-           if (! aPcK->PreInit())
-           {
-              cObsLiaisonMultiple * anOLM = PackMulOfIndAndNale(aIdBd,aPcK->Name());
-              anOLM->CompilePose();
-
-              bool GotPMul;
-              double aPds = anOLM->StdQualityZone(ZuUseInInit(),OnInit,aNbPtsMin,anExpDist,anExpNb,GotPMul);
-
-              if (aPds> 0)
-              {
-                  if (aPds>aPdsMax)
-                  {
-                      aPdsMax = aPds;
-                      aBestCam = aPcK;
-                      aBestPack= anOLM;
-                      aNbRotPreInit = anOLM->NbRotPreInit();
-                  }
-              }
-           }
-       }
-
-       // On calcule les pere-mere
        std::vector<cPoseCam *>  aVBestC;
-       if (aBestCam != 0)
+
+       if (aVRigid2Init.empty())
        {
-           std::vector<double> aVCost;
-           cObsLiaisonMultiple * anOLM = PackMulOfIndAndNale(aIdBd,aBestCam->Name());
-           aVBestC = anOLM->BestPoseInitStd
+           cObsLiaisonMultiple * aBestPack=0; GccUse(aBestPack);
+           double           aPdsMax = -1e40;
+           // Recherche du sommet a affecter
+           for (int aKC=0 ; aKC<aNbC ; aKC++)
+           {
+               cPoseCam * aPcK = aVCible[aKC];
+
+               if (! aPcK->PreInit())
+               {
+                  cObsLiaisonMultiple * anOLM = PackMulOfIndAndNale(aIdBd,aPcK->Name());
+                  anOLM->CompilePose();
+
+                  bool GotPMul;
+                  double aPds = anOLM->StdQualityZone(ZuUseInInit(),OnInit,aNbPtsMin,anExpDist,anExpNb,GotPMul);
+
+                  if (aPds> 0)
+                  {
+                      if (aPds>aPdsMax)
+                      {
+                          aPdsMax = aPds;
+                          aBestCam = aPcK;
+                          aBestPack= anOLM;
+                          aNbRotPreInit = anOLM->NbRotPreInit();
+                      }
+                  }
+               }
+           }
+
+           // On calcule les pere-mere
+           if (aBestCam != 0)
+           {
+               std::vector<double> aVCost;
+               cObsLiaisonMultiple * anOLM = PackMulOfIndAndNale(aIdBd,aBestCam->Name());
+               aVBestC = anOLM->BestPoseInitStd
                      (
                            ZuUseInInit(),
                            OnInit,
@@ -180,23 +193,30 @@ void  cAppliApero::ConstructMST
                            anExpDist,
                            anExpNb
                      );
-       }
-       else
-       {
-            for (int aKC=0 ; aKC<aNbC ; aKC++)
-            {
-               cPoseCam * aPcK = aVCible[aKC];
-               if (! aPcK->PreInit())
-               {
-                  std::cout << "  === NON INIT : " << aPcK->Name() << "\n";
-               }
-            }
-            ELISE_ASSERT(false,"aBestCam==0");
-       }
+           }
+           else  // Si pas de meilleure cam, pb de connexion => erreur
+           {
+                for (int aKC=0 ; aKC<aNbC ; aKC++)
+                {
+                   cPoseCam * aPcK = aVCible[aKC];
+                   if (! aPcK->PreInit())
+                   {
+                      std::cout << "  === NON INIT : " << aPcK->Name() << "\n";
+                   }
+                }
+                ELISE_ASSERT(false,"aBestCam==0");
+           }
+      }
+      else
+      {
+          aNbRotPreInit = 1;
+          aVBestC.push_back(aLastRigidSeed);
+          aBestCam = aVRigid2Init.back();
+      }
 
 
 
-       if (int(aVBestC.size()) < ElMin(2,aNbRotPreInit))
+       if (aVRigid2Init.empty() && (int(aVBestC.size()) < ElMin(2,aNbRotPreInit)))
        {
           if (aBestCam !=0)
           {
@@ -254,24 +274,38 @@ void  cAppliApero::ConstructMST
           }
         }
 
-        if (aMST.MSTBlockRigid().IsInit()  && aBestCam)
+ 
+        if (aVRigid2Init.empty())
         {
-           std::string aBloc = aMST.MSTBlockRigid().Val();
-           std::string aTimeStanp0;
-           ElRotation3D  aR0 =  SVPGetRotationBloc(aBloc,aBestCam->Name(),aTimeStanp0);
-
-           std::cout << "Blloookkk  " <<  aBestCam->Name()  << " " << aTimeStanp0 << "\n";
-           for (auto & aPC : aVCible)
-           {
-              std::string aTimeStanp1;
-              ElRotation3D  aR1 =  SVPGetRotationBloc(aBloc,aPC->Name(),aTimeStanp1);
-              if (  (aPC->Name()!=aBestCam->Name()) && (aTimeStanp0==aTimeStanp1))
-              {
-                   std::cout << "   lllll   " <<  aPC->Name()  << " " << aTimeStanp1 << "\n";
-              }
-           }
-           getchar();
-        }
+            if (UseBloc  && aBestCam && (aBestCam->GetSRI(true)==nullptr))
+            {
+                 cPreCompBloc * aPCB = aBestCam->GetPreCompBloc(true);
+                 if (aPCB)
+                 {
+                      ElRotation3D  aR0 =  aBestCam->GetPreCB1Pose(false)->mRot;
+                      for (auto & aPC : aPCB->mGrp)
+                      {
+                          if (aPC != aBestCam)
+                          {
+                              ElRotation3D  aL0 =  aPC->GetPreCB1Pose(false)->mRot;
+                              aPC->SetSRI(new cStructRigidInit(aBestCam,aR0.inv() * aL0));
+                              aVRigid2Init.push_back(aPC);
+                          }
+                      }
+                 }
+                 if (!aVRigid2Init.empty())
+                 {
+                     aLastRigidSeed = aBestCam;
+                 }
+            }
+         }
+         else
+         {
+            // Forcement pas vide si on est la
+            aVRigid2Init.pop_back();
+            if (aVRigid2Init.empty())
+               aLastRigidSeed = 0;
+         }
    }
 
 

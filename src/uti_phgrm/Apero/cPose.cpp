@@ -45,6 +45,13 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "Apero.h"
 
+    /* ========== cStructRigidInit ============*/
+
+cStructRigidInit::cStructRigidInit(cPoseCam * RigidMere,const ElRotation3D & aR) :
+  mCMere  (RigidMere),
+  mR0m1L0 (aR)
+{
+}
 
 
 static const int NbMinCreateIm = 200;
@@ -757,6 +764,48 @@ void cPoseCam::SetNameCalib(const std::string & aNameC)
 static int theNumCreate =0;
 
 
+cStructRigidInit * cPoseCam::GetSRI(bool SVP) const 
+{
+   if (!SVP && (mSRI==0))
+   {
+       ELISE_ASSERT(false,"NO SRI");
+   }
+   return mSRI;
+}
+void  cPoseCam::SetSRI(cStructRigidInit * aSRI) 
+{
+    ELISE_ASSERT(mSRI==0,"Muliple SRI set");
+    mSRI = aSRI;
+}
+
+cPreCompBloc * cPoseCam::GetPreCompBloc(bool SVP) const 
+{
+   if (!SVP && (mBlocCam==0))
+   {
+       ELISE_ASSERT(false,"NO Boc Cam");
+   }
+   return mBlocCam;
+}
+void  cPoseCam::SetPreCompBloc(cPreCompBloc * aBloc) 
+{
+    ELISE_ASSERT(mBlocCam==0,"Muliple Bloc set");
+    mBlocCam = aBloc;
+}
+
+cPreCB1Pose * cPoseCam::GetPreCB1Pose(bool SVP) const 
+{
+   if (!SVP && (mPoseInBlocCam==0))
+   {
+       ELISE_ASSERT(false,"NO Pose in Boc Cam");
+   }
+   return mPoseInBlocCam;
+}
+void  cPoseCam::SetPreCB1Pose(cPreCB1Pose * aPoseInBloc) 
+{
+    ELISE_ASSERT(mPoseInBlocCam==0,"Muliple Bloc set");
+    mPoseInBlocCam = aPoseInBloc;
+}
+
 
 void cPoseCam::SetOrInt(const cTplValGesInit<cSetOrientationInterne> & aTplSI)
 {
@@ -850,7 +899,10 @@ cPoseCam::cPoseCam
     mNbPosOfInit  (-1),
     mFidExist     (false),
     mCamNonOrtho         (0),
-    mEqOffsetGPS         (0)
+    mEqOffsetGPS         (0),
+    mSRI                 (nullptr),
+    mBlocCam             (nullptr),
+    mPoseInBlocCam       (nullptr)
 {
     mPrec = this;
     mNext = this;
@@ -1054,6 +1106,8 @@ void cPoseCam::Set0Prof2Init()
 {
     mProf2Init = 0;
 }
+
+bool cPoseCam::ProfIsInit() const {return mProf2Init != TheDefProf2Init ;}
 
 
 double cPoseCam::Time() const
@@ -1519,6 +1573,13 @@ bool cPoseCam::IsId(const ElAffin2D & anAff) const
 /*
 */
 
+double DistanceMatr(const ElRotation3D & aR1,const ElRotation3D & aR2)
+{
+   ElMatrix<double> aMatr = aR1.inv().Mat() * aR2.Mat(); 
+   ElMatrix<double> aId(3,true);
+
+   return aId.L2(aMatr);
+}
 
 class cTransfo3DIdent : public cTransfo3D
 {
@@ -1569,9 +1630,6 @@ else
       }
    }
 
-   if (mPCI->PosFromBlockRigid().IsInit())
-   {
-   }
   
     // std::cout << mName << "::Prof=" << mProf2Init << "\n";
 // std::cout <<  "Init Pose " << aNamePose << "\n";
@@ -1607,15 +1665,21 @@ else
     bool isForISec =  mAppli.Param().IsChoixImSec().Val();
     bool initFromBD = false;
 
-    if (mPCI->PosId().IsInit())
+
+    if  (mSRI)
+    {
+        ElRotation3D aR1 = mSRI->mCMere->CurRot()  ;  // R1 to M
+        ElRotation3D aL1Bis = aR1 * mSRI->mR0m1L0;
+        aRot = aL1Bis;
+    }
+    else if (mPCI->PosId().IsInit())
     {
          aRot =  ElRotation3D(Pt3dr(0,0,0),0,0,-PI);
     }
     else if (mPCI->PosFromBlockRigid().IsInit())
     {
-         aRot = mAppli.GetUnikRotationBloc(mPCI->PosFromBlockRigid().Val(),mName);
-         // aRot = aRot.inv();
-         // aRot = mAppli.GetUnikRotationBloc(mPCI->PosFromBlockRigid().Val(),mName);
+         mAppli.PreInitBloc(mPCI->PosFromBlockRigid().Val());
+         aRot = GetPreCB1Pose(false)->mRot;
     }
     else if(mPCI->PosFromBDOrient().IsInit())
     {
@@ -2040,6 +2104,71 @@ std::cout << "TEST MEPS STD " << mName  << " L2 " << L2
     {
        ELISE_ASSERT(false,"cPoseCam::Alloc");
     }
+
+{
+if  (mSRI && MPD_MM())
+{
+#if (0)
+   ElRotation3D aR1 = mSRI->mCMere->CurRot()  ;  // R1 to M
+   ElRotation3D aL1Bis = aR1 * mSRI->mR0m1L0;
+   aRot = aL1Bis;
+
+
+   std::string aNameOri = "MPD-CmpPolygBlinis";
+   CamStenope *  aCamR1 = mAppli.ICNM()->StdCamStenOfNames(mSRI->mCMere->Name(),aNameOri);
+   CamStenope *  aCamL1 = mAppli.ICNM()->StdCamStenOfNames(Name(),aNameOri);
+
+   ElRotation3D aRefRotL1 = aCamL1->Orient().inv();
+   ElRotation3D aRefRotR1 = aCamR1->Orient().inv();
+
+/*
+   ElRotation3D aL1Bis =  aRotR1  * mSRI->mR0m1L0;
+
+   ElRotation3D aDif = aRotL1 * aL1Bis.inv();
+   ElMatrix<double> anId(3,true);
+   if (anId.L2(aDif.Mat()) > -1)
+   {
+       std::cout  << "NAME= " << mName << " " <<  euclid(aRotL1.tr()-aL1Bis.tr()) <<  " " << anId.L2(aDif.Mat()) << "\n";
+       getchar();
+   }
+*/
+   
+
+   ElRotation3D aL1 = aRot;
+   ElRotation3D aR1 = mSRI->mCMere->CurRot()  ;  // R1 to M
+   ElRotation3D aL1Bis = aR1 * mSRI->mR0m1L0;
+
+   ElRotation3D aPassL1 =  aL1 *  aRefRotL1.inv() ; //                L1 to M
+   ElRotation3D aPassR1 =  aR1 * aRefRotR1.inv()  ; //                L1 to M
+
+   static ElRotation3D FirsrtPass = aPassR1;
+   
+   // ElRotation3D aDif = aL1.inv() * aRot;
+   ElMatrix<double> anId(3,true);
+   ElRotation3D aDif = aL1 * aL1Bis.inv();
+   if (1) // anId.L2(aDif.Mat()) > 0.01)
+   {
+       std::cout  << "NAME= " << mName  << " " << mRotIsInit  
+                 << " mere: " << mSRI->mCMere->mName << " " <<  mSRI->mCMere->mRotIsInit << "\n";
+
+       std::cout << " TR:" <<  euclid(aL1.tr()-aL1Bis.tr()) 
+                  <<  " MAT:" << anId.L2(aDif.Mat()) 
+                  <<  " PassRL " << DistanceMatr(aPassL1,aPassR1)
+                  <<  " PassFirst-R " << DistanceMatr(FirsrtPass,aPassR1)
+                  <<  " PassFirst-L " << DistanceMatr(FirsrtPass,aPassL1)
+                  << "\n";
+               
+
+       // getchar();
+   }
+   aRot = aL1Bis;
+/*
+   else
+      aRot = aL1;
+*/
+#endif
+}
+}
 
 
 //GUIMBAL

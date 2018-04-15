@@ -1239,6 +1239,74 @@ ElRotation3D  cAppliApero::GetUnikRotationBloc(const std::string & aNameBloc,con
    return aRes;
 }
 
+  //==============================================
+
+cPreCB1Pose::cPreCB1Pose(const ElRotation3D & aRot) :
+   mRot (aRot)
+{
+}
+
+cPreCompBloc::cPreCompBloc(const std::string  & aNameBloc) :
+   mNameBloc (aNameBloc)
+{
+}
+
+void cAppliApero::PreInitBloc(const std::string & aNameBloc)
+{
+  // Lecture du bloc
+  static std::map<std::string,cStructBlockCam *>  MapBloc;
+  if (! DicBoolFind(MapBloc,aNameBloc))
+     MapBloc[aNameBloc] = new cStructBlockCam(StdGetFromPCP(aNameBloc,StructBlockCam));
+  const cStructBlockCam & aStrBloc =  *(MapBloc[aNameBloc]);
+
+
+  static std::map<std::string,cPreCompBloc *>  MapTime2PCB;
+  for (auto & aPC : mVecPose)
+  {
+      cPreCompBloc * aPCB = aPC->GetPreCompBloc(true);
+      if (aPCB==0)
+      {
+          std::pair<std::string,std::string> aPair = mICNM->Assoc2To1(aStrBloc.KeyIm2TimeCam(),aPC->Name(),true);
+          std::string aNameTime = aPair.first; // get a time stamp
+          std::string aNameGrp  = aPair.second;// get a cam name
+
+          aPCB = MapTime2PCB[aNameTime];
+          if (aPCB ==0)
+          {
+              aPCB = new cPreCompBloc(aNameBloc);
+              MapTime2PCB[aNameTime] = aPCB;
+          }
+          aPCB->mGrp.push_back(aPC);
+          ElRotation3D aRot = ElRotation3D::Id;
+          int NbGotGrp = 0;
+          for (const auto  & aPO :   aStrBloc.LiaisonsSHC().Val().ParamOrientSHC() )
+          {
+               if (aPO.IdGrp() == aNameGrp)
+               {
+                   Pt3dr aTr = aPO.Vecteur();
+                   ElMatrix<double> aMat = ImportMat(aPO.Rot());
+                   aRot = ElRotation3D(aTr,aMat,true);
+                   NbGotGrp++;
+               }
+          }
+          ELISE_ASSERT(NbGotGrp,"None or multiple group in bloc");
+          
+          aPC->SetPreCompBloc (aPCB); 
+          aPC->SetPreCB1Pose(new cPreCB1Pose(aRot));
+      }
+      else
+      {
+         if (aPCB->mNameBloc!=aNameBloc)
+         {
+            std::cout << "For cam" << aPC->Name() << " Bl1=[" << aPCB->mNameBloc << "] Bl2=[" << aNameBloc <<"]\n";
+            ELISE_ASSERT(false,"Cam bellong to multiple bloc");
+         }
+      }
+  }
+}
+
+
+
 void  cAppliApero::BlocContraintes(bool Stricte)
 {
    for 

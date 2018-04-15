@@ -518,6 +518,7 @@ int Tapas_main(int argc,char ** argv)
          if (EAMIsInit(&ImInit)  && (ImInit=="MIDLE"))
          {
               cInterfChantierNameManipulateur::tSet   aSetGlob = *(aICNM->Get(aPat));
+              ELISE_ASSERT(aSetGlob.size()!=0,"Empyt pat of image");
               std::sort(aSetGlob.begin(),aSetGlob.end());
               ImInit  = aSetGlob[aSetGlob.size()/2];
               IsMidle = true;
@@ -758,25 +759,68 @@ int Tapas_main(int argc,char ** argv)
        {
            if (IsMidle)
            {
-              cInterfChantierNameManipulateur::tSet   aSetGlob = *(aICNM->Get(aPat));
-              std::vector<std::pair<std::string,std::string> > aVP;
-              for (const auto & aS : aSetGlob)
+              anATP.InitAllImages(aPat,aICNM);
+              int aNBInBl =  anATP.SBC().LiaisonsSHC().Val().ParamOrientSHC().size();
+              const std::vector<std::string> & aVImage   = anATP.BlocImagesByTime();
+              const std::vector<std::string> & aVTime = anATP.BlocTimeStamps();
+              std::map<std::string,int> & aCptTime =  anATP.BlocCptTime();
+
+              int aDistMax = -1;
+              int aKMax = -1;
+              for (int aK=0 ; aK<int(aVImage.size()) ; aK++)
               {
-                  aVP.push_back(std::pair<std::string,std::string>(anATP.TimeStamp(aS,aICNM),aS));
+                 if (aCptTime[aVTime[aK]] == aNBInBl)
+                 {
+                    int aDist = ElMin(aK,int(aVImage.size()-1-aK));
+                    if (aDist>aDistMax)
+                    {
+                       aDistMax = aDist;
+                       aKMax = aK;
+                    }
+                 }
               }
-              std::sort(aVP.begin(),aVP.end());
-/*
-              for (const auto & aP : aVP)
-                  std::cout << "Ppppp " << aP.first << " " << aP.second << "\n";
-*/
-               ImInit=  aVP[aVP.size()/2].second;
+              ELISE_ASSERT(aDistMax>=0,"No Bloc Full");
+              ImInit=  aVImage[aKMax];
            }
+
+/*
+           cInterfChantierNameManipulateur::tSet   aSetGlob = *(aICNM->Get(aPat));
+           std::vector<std::pair<std::string,std::string> > aVP;
+           std::map<std::string,int> aCptTime;
+           for (const auto & aS : aSetGlob)
+           {
+               aVP.push_back(std::pair<std::string,std::string>(anATP.TimeStamp(aS,aICNM),aS));
+               aCptTime[aVP.back().first]++;
+           }
+           if (IsMidle)
+           {
+              std::sort(aVP.begin(),aVP.end());
+              int aDistMax = -1;
+              int aKMax = -1;
+              for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+              {
+                 if (aCptTime[aVP[aK].first] == aNBInBl)
+                 {
+                    int aDist = ElMin(aK,int(aVP.size()-1-aK));
+                    if (aDist>aDistMax)
+                    {
+                       aDistMax = aDist;
+                       aKMax = aK;
+                    }
+                 }
+              }
+              ELISE_ASSERT(aDistMax>=0,"No Bloc Full");
+              ImInit=  aVP[aKMax].second;
+           }
+*/
            if (EAMIsInit(&ImInit))
            {
                aCom = aCom + " +InitCamCenter=false +InitBlocCam=true ";
                ImInit= QUOTE(anATP.ExtendPattern(aPat,ImInit,aICNM));
                aCom =   aCom + " +SetImInit="+ImInit;
            }
+           if (! EAMIsInit(&aVitesseInit))
+               aCom = aCom + std::string(" +VitesseInit=1") ;
        }
        else if (ImInit!=NoInit)
        {
@@ -786,6 +830,8 @@ int Tapas_main(int argc,char ** argv)
              ELISE_ASSERT(AeroIn==NoInit,"Incoherence AeroIn/ImInit");
        }
 
+
+       anATP.AddParamBloc(aCom);
 
        std::cout << "Com = " << aCom << "\n";
        int aRes = 0;
