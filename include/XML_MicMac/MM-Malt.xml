@@ -59,6 +59,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 <!-- Parametre de "Chantier -->
    <Symb> DirQO=Qk-ORTHO  </Symb>
    <Symb> DirMEC=MEC-Malt/  </Symb>
+   <Symb> DirPyram=Pyram/   </Symb>
    <Symb> Chantier=STD-MALT  </Symb>
    <Symb> DirTA=TA  </Symb>
    <Symb> Purge=true  </Symb>
@@ -784,7 +785,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <WorkDir >  ${Dir} </WorkDir> 
      <TmpMEC>    ${DirMEC}  </TmpMEC>
      <TmpResult> ${DirMEC}  </TmpResult>
-     <TmpPyr>    Pyram/  </TmpPyr>
+     <TmpPyr>    ${DirPyram}</TmpPyr>
 <!--
      <ByProcess>   ${MMNbProc}  </ByProcess>
 -->

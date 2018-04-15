@@ -71,6 +71,8 @@ void cOneImInLoop::AddPt(Pt2dr aPt)
     mVPt.push_back(aPt);
 }
 
+bool sortAscending(double i, double j) { return i < j; }
+
 int Test_CtrlCloseLoop(int argc, char ** argv)
 {
     string aDir = "./";
@@ -80,6 +82,11 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
     string aSH ="";
     bool plot=false;
     Pt2di DoTapioca(0,-1);
+    double seuilEcart = DBL_MAX;
+
+    Pt3di colSeg(0,255,0);
+    double aDynV = 1.1;
+    string aPlyErrName = "PlyErr.ply";
 
     ElInitArgMain
     (
@@ -91,8 +98,12 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
           LArgMain()
                       << EAM(DoTapioca, "Tapioca" , true, "Do Tapioca = [DoIt(1/0),Resolution]")
                       << EAM(plot, "plot" , true, "Plot data (with gnuplot)")
+                      << EAM(seuilEcart, "DistMax" , true, "max Point distant between 2 loop (to eliminate noise) - def=Inf")
+                      << EAM(colSeg, "Col" , true, "Rayon of error vector")
+                      << EAM(aDynV, "Dynv" , true, "Multp factor of error vector")
+                      << EAM(aPlyErrName, "Ply" , true, "Name of output error vector")
 
-    );
+                );
 
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     SplitDirAndFile(aDir, aPatIm1, aPatIn1);
@@ -104,6 +115,9 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
     std::vector<std::string> aAllIm;
     aAllIm.insert(aAllIm.end(), aSetIm1.begin(), aSetIm1.end());
     aAllIm.insert(aAllIm.end(), aSetIm2.begin(), aSetIm2.end());
+
+    cout<<"Verif : Nb ImLoop 1 "<<aSetIm1.size()<<" Nb ImLoop 2 "<<aSetIm2.size()<<" Nb AllIm "<<aAllIm.size()<<endl;
+
     std::vector<cOneImInLoop*> aVImInLoop;
     std::vector<CamStenope*> aVCam1;
     std::vector<CamStenope*> aVCam2;
@@ -129,6 +143,7 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
     cSetTiePMul * aSetTiePMul = new cSetTiePMul(0);
     aSetTiePMul->AddFile(aSHInStr);
 
+
     cout<<"Total : "<<aSetTiePMul->DicoIm().mName2Im.size()<<" imgs"<<endl;
     std::map<std::string,cCelImTPM *> aMap_Name2Im = aSetTiePMul->DicoIm().mName2Im;
     std::map<std::string,cCelImTPM *>::iterator aIt_Find;
@@ -148,6 +163,7 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
             aVImInLoop.push_back(aImLoop);
 
             CamStenope * aCam = aICNM->StdCamStenOfNames(aImName, aOriA);
+            aCam->SetNameIm(aImName);
             aVCam1.push_back(aCam);
         }
         else
@@ -157,6 +173,8 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
             return EXIT_FAILURE;
         }
     }
+
+
     vector<int> aIdImgPat2;
     for (uint aKIm2=0; aKIm2<aSetIm2.size(); aKIm2++)
     {
@@ -171,6 +189,7 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
             aVImInLoop.push_back(aImLoop);
 
             CamStenope * aCam = aICNM->StdCamStenOfNames(aImName, aOriA);
+            aCam->SetNameIm(aImName);
             aVCam2.push_back(aCam);
         }
         else
@@ -189,26 +208,20 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
     {
         cSetPMul1ConfigTPM* aCnf = aVCnf[aKCnf];
         // Get config that has more than nb of selected images
-        if (aCnf->NbIm() >= aAllIm.size())
+        if (aCnf->NbIm() >= (int)aAllIm.size())
         {
+            // Get config that contains all selected image
             vector<int> aIDImgInCnf = aCnf->VIdIm();
             bool isCnfContainAllId = true;
-            for (uint aKId=0; aKId < aIDImgInCnf.size(); aKId++)
+            for (uint aKId=0; aKId < aIdAllImg.size(); aKId++)
             {
-                for (uint aKId=0; aKId < aIdAllImg.size(); aKId++)
+                int aQueryID = aIdAllImg[aKId];
+                // is this aQueryID exist in this config image list ?
+                vector<int>::iterator it_Find;
+                it_Find = find(aIDImgInCnf.begin(), aIDImgInCnf.end(), aQueryID);
+                if(it_Find == aIDImgInCnf.end())
                 {
-                    int aQueryID = aIdAllImg[aKId];
-                    vector<int>::iterator it_Find;
-                    it_Find = find(aIDImgInCnf.begin(), aIDImgInCnf.end(), aQueryID);
-                    if (it_Find != aIDImgInCnf.end())
-                    {
-                        isCnfContainAllId = isCnfContainAllId && true;
-                    }
-                    else
-                    {
-                        isCnfContainAllId = isCnfContainAllId && false;
-                        break;
-                    }
+                    isCnfContainAllId = isCnfContainAllId && false;
                 }
             }
             if (isCnfContainAllId)
@@ -221,19 +234,19 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
     // For each selected config, get pt 2D on each correspondant control image
     for (uint aKCnf=0; aKCnf<aSelectCnf.size(); aKCnf++)
     {
-        cSetPMul1ConfigTPM* aCnf = aSelectCnf[aKCnf];
+    cSetPMul1ConfigTPM* aCnf = aSelectCnf[aKCnf];
         for (uint aKIdImg=0; aKIdImg<aIdAllImg.size(); aKIdImg++)
         {
             int aQueryId = aIdAllImg[aKIdImg];
-            string aQueryName = aAllIm[aKIdImg];
             cOneImInLoop * aImLoop = aVImInLoop[aKIdImg];
             // get all 2D points of image ID aQueryId in aCnf
-            for (uint aKPt=0; aKPt<aCnf->NbPts(); aKPt++)
+            for (uint aKPt=0; (int)aKPt<aCnf->NbPts(); aKPt++)
             {
-                Pt2dr aPt = aCnf->Pt(aKPt, aQueryId);
+                Pt2dr aPt = aCnf->GetPtByImgId(aKPt, aQueryId);
                 aImLoop->AddPt(aPt);
             }
         }
+
     }
     // Intersection to get 3D points set:
 
@@ -249,7 +262,11 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
                 for (uint aKImLoop1=0; aKImLoop1<aSetIm1.size(); aKImLoop1++)
                 {
                     cOneImInLoop * aIm = aVImInLoop[aKImLoop1];
-                    aVPtToIntersect.push_back(aIm->mVPt[aKPt]);
+                    ELISE_ASSERT(aVPt.size() == aIm->mVPt.size(), "AAAA VPT");
+                    if (aIm->mIdLoop == 1)
+                        aVPtToIntersect.push_back(aIm->mVPt[aKPt]);
+                    else
+                        ELISE_ASSERT(aIm->mIdLoop == 1,"AAAAAAAAAA Wrong Loop");
                 }
                 // Intersect
                 aPtCtrlLoop1.push_back(Intersect_Simple(aVCam1, aVPtToIntersect));
@@ -272,7 +289,11 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
                 for (uint aKImLoop2=aSetIm1.size(); aKImLoop2<aVImInLoop.size(); aKImLoop2++)
                 {
                     cOneImInLoop * aIm = aVImInLoop[aKImLoop2];
-                    aVPtToIntersect.push_back(aIm->mVPt[aKPt]);
+                    ELISE_ASSERT(aVPt.size() == aIm->mVPt.size(), "AAAA VPT");
+                    if (aIm->mIdLoop == 2)
+                        aVPtToIntersect.push_back(aIm->mVPt[aKPt]);
+                    else
+                        ELISE_ASSERT(aIm->mIdLoop == 2,"AAAAAAAAAA Wrong Loop 2");
                 }
                 // Intersect
                 aPtCtrlLoop2.push_back(Intersect_Simple(aVCam2, aVPtToIntersect));
@@ -287,13 +308,74 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
         ofstream csvPt3d;
         csvPt3d.open ("CtrlCloseLoop.csv");
         csvPt3d<<"Ecart"<<endl;
+        CamStenope * aCam11 = aVCam1[0];
+        Pt3dr aCen1= aCam11->VraiOpticalCenter();
+
+        vector<double> aVEcart;
+        cPlyCloud aPlyERROR;
+        Pt3di colPt(255,0,0);
+
         for (uint aKPt=0; aKPt < aPtCtrlLoop1.size(); aKPt++)
         {
             double ecart = euclid(aPtCtrlLoop1[aKPt] - aPtCtrlLoop2[aKPt]);
             csvPt3d<<ecart<<endl;
+            aVEcart.push_back(ecart);
+
+            // Ply ERROR
+            aPlyERROR.AddPt(colPt, aPtCtrlLoop1[aKPt]);
+            Pt3dr aNorm = -aCen1 + aPtCtrlLoop1[aKPt];
+            aPlyERROR.AddSeg(colSeg, aPtCtrlLoop1[aKPt], aPtCtrlLoop1[aKPt] + aNorm*(ecart*aDynV), 500);
         }
+        aPlyERROR.PutFile(aPlyErrName);
         csvPt3d .close();
         cout<<"Total : "<<aPtCtrlLoop1.size()<<" pts in control"<<endl;
+
+        // Stat on aVEcart && Sortie pt cloud d'erreur
+        {
+            // Sort ascending
+            sort(aVEcart.begin(), aVEcart.end(), sortAscending);
+            double aSom = 0.0;
+            int aNb = 0;
+
+            vector<int> aVRangInd;
+            int aPerInit = 10;
+            int aPerFinal = 100;
+            int aPerStep = 10;
+            for (int aKPer=aPerInit; aKPer <= aPerFinal; aKPer = aKPer + aPerStep)
+            {
+                aVRangInd.push_back(round_down(aVEcart.size()*((double)aKPer/100.0))-1);
+            }
+            int indCur=0;
+
+            vector<double> aCurEcart;
+            for (uint aKE=0; aKE<aVEcart.size(); aKE++)
+            {
+                aSom += aVEcart[aKE];
+                aNb++;
+                aCurEcart.push_back(aVEcart[aKE]);
+                if ((int)aKE == aVRangInd[indCur])
+                {
+                    //PrintOutStat.
+                    cout<<endl;
+                    std::cout << "==== Stat: "<<ToString(100.0*aKE/aVEcart.size())<<"% ====" <<endl
+                              << " Moy= " << aSom/aNb <<endl
+                              << " Med=" << KthValProp(aCurEcart,0.5)   <<endl    // score median
+                              << " 20%=" << KthValProp(aCurEcart,0.2)   <<endl    // score à 20% en premier
+                              << " 80%=" << KthValProp(aCurEcart,0.8)   <<endl    // score à 20% en premier
+                              << " Nb=" << aCurEcart.size()             <<endl
+                              << "\n";
+                    indCur++;
+                }
+            }
+
+            std::cout << "==== Stat on All: ====" <<endl
+                      << " Moy= " << aSom/aNb <<endl
+                      << " Med=" << KthValProp(aVEcart,0.5)   <<endl    // score median
+                      << " 20%=" << KthValProp(aVEcart,0.2)   <<endl    // score à 20% en premier
+                      << " 80%=" << KthValProp(aVEcart,0.8)   <<endl    // score à 20% en premier
+                      << " Nb=" << aVEcart.size()             <<endl
+                      << "\n";
+        }
 
         // plot data
         if (plot && aPtCtrlLoop1.size()>0)
@@ -301,7 +383,16 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
             ofstream scriptPlot;
             scriptPlot.open ("ScriptPlot.txt");
             scriptPlot<<"set key autotitle columnhead"<<endl;
-            scriptPlot<<"plot 'CtrlCloseLoop.csv' with boxes"<<endl;
+            string cmdPlot;
+            if (EAMIsInit(&seuilEcart))
+            {
+                cmdPlot =cmdPlot +  "plot " + "[ ] [0:"+  ToString(seuilEcart) +"] 'CtrlCloseLoop.csv' with boxes";
+            }
+            else
+            {
+                cmdPlot = "plot 'CtrlCloseLoop.csv' with boxes";
+            }
+            scriptPlot<<cmdPlot<<endl;
             System("gnuplot --persist ScriptPlot.txt");
         }
         ELISE_fp::RmFileIfExist("ScriptPlot.txt");
@@ -1780,7 +1871,10 @@ Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<
 
     for (int aKR=0 ; aKR < int(aVCS.size()) ; aKR++)
     {
+        CamStenope * aCam = aVCS[aKR];
+        //cout<<aNPts2D[aKR]<<aCam->NameIm()<<endl;
         ElSeg3D aSeg = aVCS.at(aKR)->F2toRayonR3(aNPts2D.at(aKR));
+        //cout<<"done"<<endl;
         //ElSeg3D aSeg = aVCS.at(aKR)->Capteur2RayTer(aNPts2D.at(aKR));
         aVSeg.push_back(aSeg);
     }
