@@ -160,6 +160,7 @@ cIntervLiquor::cIntervLiquor(cAppliLiquor * anAppli,int aBegin,int aEnd,int aPro
 
 // =============  cAppliLiquor ===================================
 
+
 cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
     mSzLim       (40),
     mOverlapMin  (3),
@@ -179,6 +180,10 @@ cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
                       << EAM(mExe,"Exe",true,"Execute commands")
                       << ArgATP()
     );
+
+    std::cout << "STRrrr mCalib=[" << StrInitOfEAM(&mCalib) << "]\n";
+    std::cout << "STRrrr SzLim=[" << StrInitOfEAM(&mSzLim) << "]\n";
+    std::cout << "STRrrr mOver=[" << StrInitOfEAM(&mOverlapProp) << "]\n";
 
     if (MMVisualMode) return;
 
