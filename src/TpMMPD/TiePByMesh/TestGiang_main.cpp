@@ -46,6 +46,73 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
 Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<Pt2dr> & aNPts2D);
+// ========== Test Zone Trajecto Acquisition BLoc Rigid ==========
+int Test_TrajectoFromOri(int argc, char ** argv)
+{
+    // Tracer trajectoire en concatenant tout les centres du camera dans Ori donne
+    string aDir="./";
+    string aPatIn;
+    string aPlyOut="";
+    string aPlyN;
+    string aPatIm;
+    string aOri, aBlinis;
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aPatIn, "PatIm1",  eSAM_IsPatFile)
+                      << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
+          LArgMain()
+                      << EAM(aPlyN, "Ply" , true, "Name of output PLY trajecto")
+                      << EAM(aBlinis, "Blinis" , true, "Rigid Structur")
+                );
+
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    SplitDirAndFile(aDir, aPatIm, aPatIn);
+    StdCorrecNameOrient(aOri, aICNM->Dir());
+
+    if (EAMIsInit(&aPlyN))
+    {
+        aPlyOut=aPlyN;
+    }
+    else
+    {
+        aPlyOut = aPlyOut+ "Trajecto_" + aOri + ".ply";
+    }
+
+    std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
+    ELISE_ASSERT(aSetIm.size() > 2, "Nb Img < 2 => Comment peut je trace trajecto ?");
+
+    std::vector<CamStenope*> aVCam;
+
+    cPlyCloud aPly;
+    for (uint aKCam=0; aKCam<aSetIm.size(); aKCam++)
+    {
+        string aImName = aSetIm[aKCam];
+        CamStenope * aCam = aICNM->StdCamStenOfNames(aImName, aOri);
+        aCam->SetNameIm(aImName);
+        aVCam.push_back(aCam);
+    }
+    ELISE_ASSERT(aSetIm.size() == aVCam.size(), "Nb Img != Nb Orientation");
+
+
+    double dist=euclid(aVCam[1]->VraiOpticalCenter() - aVCam[0]->VraiOpticalCenter());
+    for (uint aKCam=1; aKCam<aVCam.size(); aKCam++)
+    {
+
+            CamStenope * aCam = aVCam[aKCam-1];
+            CamStenope * aCamN = aVCam[aKCam];
+
+            Pt3dr aCentre = aCam->VraiOpticalCenter();
+            Pt3dr aCentreN = aCamN->VraiOpticalCenter();
+
+            aPly.AddSphere(Pt3di(255,0,0), aCentre, dist/20.0, 10);
+            aPly.AddSeg(Pt3di(0,255,0), aCentre, aCentreN, 200);
+
+    }
+    aPly.PutFile(aPlyOut.c_str());
+    return EXIT_SUCCESS;
+}
 // ========== Test Zone Verifier Aero par la fermeture de boucle ==========
 class cOneImInLoop
 {
@@ -71,7 +138,92 @@ void cOneImInLoop::AddPt(Pt2dr aPt)
     mVPt.push_back(aPt);
 }
 
+class cOnePtMeasure
+{
+public:
+    cOnePtMeasure(string aName);
+    void AddMeasure(Pt2dr aCoor, string aNameIm, CamStenope * aCam, int idLoop);
+    string mNamePt;
+    vector<string> mVNameIm;
+
+    vector<CamStenope*> mVCamLoop1;
+    vector<Pt2dr> mVMeasureLoop1;
+
+    vector<CamStenope*> mVCamLoop2;
+    vector<Pt2dr> mVMeasureLoop2;
+
+    bool mInLoop1;
+    bool mInLoop2;
+
+    bool operator==(const cOnePtMeasure& r) const
+    {
+        return mNamePt == r.mNamePt;
+    }
+};
+
+cOnePtMeasure::cOnePtMeasure(string aName):
+    mNamePt (aName),
+    mInLoop1 (false),
+    mInLoop2 (false)
+{}
+
+void cOnePtMeasure::AddMeasure(Pt2dr aCoor, string aNameIm, CamStenope *aCam, int idLoop)
+{
+    if (idLoop == 1)
+    {
+        mVCamLoop1.push_back(aCam);
+        mVMeasureLoop1.push_back(aCoor);
+        mVNameIm.push_back(aNameIm);
+        mInLoop1 = true;
+    }
+    if (idLoop == 2)
+    {
+        mVCamLoop2.push_back(aCam);
+        mVMeasureLoop2.push_back(aCoor);
+        mVNameIm.push_back(aNameIm);
+        mInLoop2 = true;
+    }
+    return;
+}
+
+struct MatchString
+{
+ MatchString(const std::string & s) :
+     s_(s)
+ {}
+
+ bool operator()(const cOnePtMeasure& obj) const
+ {
+   return obj.mNamePt == s_;
+ }
+
+ private:
+   const std::string & s_;
+};
+
 bool sortAscending(double i, double j) { return i < j; }
+
+int find_Obj_in_cOnePtMeasure(string & aNamePt, std::vector<cOnePtMeasure*> & aVPtMes)
+{
+    vector<string> aName;
+    for (uint aKP=0; aKP<aVPtMes.size(); aKP++)
+    {
+        cOnePtMeasure * aPt = aVPtMes[aKP];
+        aName.push_back(aPt->mNamePt);
+
+    }
+    vector<string>::iterator it;
+    it = find(aName.begin(), aName.end(), aNamePt);
+    if (it != aName.end())
+    {
+        return distance(aName.begin(), it);
+    }
+    else
+    {
+        return -1;
+    }
+}
+
 
 int Test_CtrlCloseLoop(int argc, char ** argv)
 {
@@ -87,6 +239,8 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
     Pt3di colSeg(0,255,0);
     double aDynV = 1.1;
     string aPlyErrName = "PlyErr.ply";
+    bool aSilent = true;
+    string aXML="";
 
     ElInitArgMain
     (
@@ -94,7 +248,7 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
           LArgMain()  << EAMC(aPatIn1, "PatIm1",  eSAM_IsPatFile)
                       << EAMC(aPatIn2, "PatIm2",  eSAM_IsPatFile)
                       << EAMC(aOriA, "Ori",  eSAM_IsExistDirOri)
-                      << EAMC(aSH, "SH file homol new format contains all selected im, "" if don't have or not sure"),
+                      << EAMC(aSH, "SH file homol new format contains all selected im, "" if don't have or not sure to compute homol (set with option DoTapioca)"),
           LArgMain()
                       << EAM(DoTapioca, "Tapioca" , true, "Do Tapioca = [DoIt(1/0),Resolution]")
                       << EAM(plot, "plot" , true, "Plot data (with gnuplot)")
@@ -102,7 +256,8 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
                       << EAM(colSeg, "Col" , true, "Rayon of error vector")
                       << EAM(aDynV, "Dynv" , true, "Multp factor of error vector")
                       << EAM(aPlyErrName, "Ply" , true, "Name of output error vector")
-
+                      << EAM(aSilent, "Silent" , true, "Display just 3D error")
+                      << EAM(aXML, "Saisie", true, "XML of SaisieAppuis - Ctrl on manual picked point")
                 );
 
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -116,13 +271,134 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
     aAllIm.insert(aAllIm.end(), aSetIm1.begin(), aSetIm1.end());
     aAllIm.insert(aAllIm.end(), aSetIm2.begin(), aSetIm2.end());
 
-    cout<<"Verif : Nb ImLoop 1 "<<aSetIm1.size()<<" Nb ImLoop 2 "<<aSetIm2.size()<<" Nb AllIm "<<aAllIm.size()<<endl;
+    if (!aSilent)
+    {
+        cout<<"Verif : Nb ImLoop 1 "<<aSetIm1.size()<<" Nb ImLoop 2 "<<aSetIm2.size()<<" Nb AllIm "<<aAllIm.size()<<endl;
+    }
+
+    if (EAMIsInit(&aXML))
+    {
+        // for each image in XML
+            // get imName
+            // get CamStenope
+            // check if image on loop1 or loop 2
+            // if (CamStenope existed)
+                // parcourir all measure
+                    // Get NamePt & CoorPt
+                    // Create object cOnePtMeasure
+                    // Check if object inside vector aVPtMeasure
+                    // If yes : get object and add PtCoor & imName & CamStenope
+                    // If no : stock object in aVPtMeasure, add PtCoor & imName & CamStenope to object
+
+        // for each cOnePtMeasure in aVPtMeasure
+            // Get NamePt
+            // Intersect all loop 1
+                // store in Vector<cPtCtrl>(Pt3d, NamePt)
+            // Intersect all loop 2
+                // store in Vector<cPtCtrl>(Pt3d, NamePt)
+
+        cSetOfMesureAppuisFlottants aXMLSaisie = StdGetFromPCP(aXML,SetOfMesureAppuisFlottants);
+        std::list<cMesureAppuiFlottant1Im> & aList_Im = aXMLSaisie.MesureAppuiFlottant1Im();
+        std::vector<cOnePtMeasure*> aVPtMeasure;
+        for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aList_Im.begin() ; iT1 != aList_Im.end() ; iT1++)
+        {
+            cMesureAppuiFlottant1Im aIm = *iT1;
+            string aImName = aIm.NameIm();
+            CamStenope * aCam = aICNM->StdCamStenOfNames(aImName, aOriA);
+            aCam->SetNameIm(aImName);
+
+            bool onL1=false;
+            bool onL2=false;
+            if (find(aSetIm1.begin(), aSetIm1.end(), aImName) != aSetIm1.end())
+            {
+                onL1=true;
+            }
+            if (find(aSetIm2.begin(), aSetIm2.end(), aImName) != aSetIm2.end())
+            {
+                onL2=true;
+            }
+            ELISE_ASSERT(!(onL1==true && onL2==true), "Image existid in both 2 loop => impossible");
+            if (onL1 || onL2)
+            {
+                std::list<cOneMesureAF1I> aLst_Mes = aIm.OneMesureAF1I();
+                for (std::list<cOneMesureAF1I>::iterator iTMes = aLst_Mes.begin() ; iTMes != aLst_Mes.end() ; iTMes++)
+                {
+                    cOneMesureAF1I aMes = *iTMes;
+                    string aNamePt = aMes.NamePt();
+                    Pt2dr aCoor = aMes.PtIm();
+
+                    int itF = find_Obj_in_cOnePtMeasure(aNamePt, aVPtMeasure);
+                    //std::vector<cOnePtMeasure>::iterator itF = find_if(aVPtMeasure.begin(), aVPtMeasure.end(), MatchString(aNamePt));
+
+                    if (itF == -1)
+                    {
+                        cOnePtMeasure * aPtMes = new cOnePtMeasure(aNamePt);
+                        if (onL1)
+                            aPtMes->AddMeasure(aCoor, aImName, aCam, 1);
+                        if (onL2)
+                            aPtMes->AddMeasure(aCoor, aImName, aCam, 2);
+                        aVPtMeasure.push_back(aPtMes);
+                    }
+                    else
+                    {
+                        cOnePtMeasure * aPtMesExist = aVPtMeasure[itF];
+                        if (onL1)
+                            aPtMesExist->AddMeasure(aCoor, aImName, aCam, 1);
+                        if (onL2)
+                            aPtMesExist->AddMeasure(aCoor, aImName, aCam, 2);
+                    }
+                }
+            }
+            else
+            {
+                if (!aSilent)
+                {
+                    cout<<"Image "<<aImName<<" not selected in pattern"<<endl;
+                }
+            }
+        }
+
+        // for each cOnePtMeasure in aVPtMeasure
+            // Get NamePt
+            // Intersect all loop 1
+                // store in Vector<cPtCtrl>(Pt3d, NamePt)
+            // Intersect all loop 2
+                // store in Vector<cPtCtrl>(Pt3d, NamePt)
+
+        for (uint aKPt=0; aKPt<aVPtMeasure.size(); aKPt++)
+        {
+            cOnePtMeasure * aPtMes = aVPtMeasure[aKPt];
+            string aNamePt = aPtMes->mNamePt;
+            cout<<" + Pt : "<<aNamePt<<endl;
+            Pt3dr aPt3d_Lp1;
+            Pt3dr aPt3d_Lp2;
+            if (aPtMes->mVCamLoop1.size() > 1)
+            {
+                ELISE_ASSERT(aPtMes->mVCamLoop1.size() == aPtMes->mVMeasureLoop1.size(), "Intersect Loop 1 : VCam not coherent with VMes");
+                aPt3d_Lp1 = Intersect_Simple(aPtMes->mVCamLoop1, aPtMes->mVMeasureLoop1);
+                cout<<"  + Loop 1: "<<aPt3d_Lp1<<endl;
+            }
+            if (aPtMes->mVCamLoop2.size() > 1)
+            {
+                ELISE_ASSERT(aPtMes->mVCamLoop2.size() == aPtMes->mVMeasureLoop2.size(), "Intersect Loop 2 : VCam not coherent with VMes");
+                aPt3d_Lp2 = Intersect_Simple(aPtMes->mVCamLoop2, aPtMes->mVMeasureLoop2);
+                cout<<"  + Loop 2: "<<aPt3d_Lp2<<endl;
+            }
+            if (aPtMes->mVCamLoop1.size() > 1 && aPtMes->mVCamLoop2.size() > 1)
+            {
+                cout<<"  + Delta : "<<aPt3d_Lp2-aPt3d_Lp1<<" - D="<<euclid(aPt3d_Lp2-aPt3d_Lp1)<<endl;
+            }
+
+        }
+        return EXIT_SUCCESS;
+    }
+
 
     std::vector<cOneImInLoop*> aVImInLoop;
     std::vector<CamStenope*> aVCam1;
     std::vector<CamStenope*> aVCam2;
 
-    if (DoTapioca.x != 0 || aSH=="")
+    if (DoTapioca.x != 0 || (aSH==""))
     {
         cout<<"Compute Point homologues between 2 close loop"<<endl;
         std::list<std::string> aLCom;
@@ -136,15 +412,15 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
         cEl_GPAO::DoComInSerie(aLCom);
         aSH = "HomolCtrlCloseLoop/PMul.txt";
     }
-
-
     // read new format points homologue
     const std::string  aSHInStr = aSH;
     cSetTiePMul * aSetTiePMul = new cSetTiePMul(0);
     aSetTiePMul->AddFile(aSHInStr);
 
-
-    cout<<"Total : "<<aSetTiePMul->DicoIm().mName2Im.size()<<" imgs"<<endl;
+    if (!aSilent)
+    {
+        cout<<"Total : "<<aSetTiePMul->DicoIm().mName2Im.size()<<" imgs"<<endl;
+    }
     std::map<std::string,cCelImTPM *> aMap_Name2Im = aSetTiePMul->DicoIm().mName2Im;
     std::map<std::string,cCelImTPM *>::iterator aIt_Find;
 
@@ -199,8 +475,10 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
             return EXIT_FAILURE;
         }
     }
-
-    cout<<"VPMul - Nb Config: "<<aSetTiePMul->VPMul().size()<<endl;
+    if (!aSilent)
+    {
+        cout<<"VPMul - Nb Config: "<<aSetTiePMul->VPMul().size()<<endl;
+    }
     std::vector<cSetPMul1ConfigTPM *> aVCnf = aSetTiePMul->VPMul();
 
     vector<cSetPMul1ConfigTPM * > aSelectCnf;
@@ -230,7 +508,10 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
             }
         }
     }
-    cout<<aSelectCnf.size()<<" cnf selected ! "<<endl;
+    if (!aSilent)
+    {
+        cout<<aSelectCnf.size()<<" cnf selected ! "<<endl;
+    }
     // For each selected config, get pt 2D on each correspondant control image
     for (uint aKCnf=0; aKCnf<aSelectCnf.size(); aKCnf++)
     {
@@ -328,7 +609,10 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
         }
         aPlyERROR.PutFile(aPlyErrName);
         csvPt3d .close();
-        cout<<"Total : "<<aPtCtrlLoop1.size()<<" pts in control"<<endl;
+        if (!aSilent)
+        {
+            cout<<"Total : "<<aPtCtrlLoop1.size()<<" pts in control"<<endl;
+        }
 
         // Stat on aVEcart && Sortie pt cloud d'erreur
         {
@@ -356,6 +640,8 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
                 if ((int)aKE == aVRangInd[indCur])
                 {
                     //PrintOutStat.
+                    if (!aSilent)
+                    {
                     cout<<endl;
                     std::cout << "==== Stat: "<<ToString(100.0*aKE/aVEcart.size())<<"% ====" <<endl
                               << " Moy= " << aSom/aNb <<endl
@@ -364,19 +650,28 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
                               << " 80%=" << KthValProp(aCurEcart,0.8)   <<endl    // score à 20% en premier
                               << " Nb=" << aCurEcart.size()             <<endl
                               << "\n";
+                    }
                     indCur++;
                 }
             }
 
-            std::cout << "==== Stat on All: ====" <<endl
-                      << " Moy= " << aSom/aNb <<endl
-                      << " Med=" << KthValProp(aVEcart,0.5)   <<endl    // score median
-                      << " 20%=" << KthValProp(aVEcart,0.2)   <<endl    // score à 20% en premier
-                      << " 80%=" << KthValProp(aVEcart,0.8)   <<endl    // score à 20% en premier
-                      << " Nb=" << aVEcart.size()             <<endl
-                      << "\n";
+            if (!aSilent)
+            {
+                std::cout << "==== Stat on All: ====" <<endl
+                          << " Moy= " << aSom/aNb <<endl
+                          << " Med=" << KthValProp(aVEcart,0.5)   <<endl    // score median
+                          << " 20%=" << KthValProp(aVEcart,0.2)   <<endl    // score à 20% en premier
+                          << " 80%=" << KthValProp(aVEcart,0.8)   <<endl    // score à 20% en premier
+                          << " Nb=" << aVEcart.size()             <<endl
+                          << "\n";
+            }
         }
 
+        double scaleAuto = KthValProp(aVEcart,0.8);
+        if (aSilent)
+        {
+            cout<< " 80%=" << KthValProp(aVEcart,0.8) <<" -Nb="<<aVEcart.size()<<endl;
+        }
         // plot data
         if (plot && aPtCtrlLoop1.size()>0)
         {
@@ -386,7 +681,7 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
             string cmdPlot;
             if (EAMIsInit(&seuilEcart))
             {
-                cmdPlot =cmdPlot +  "plot " + "[ ] [0:"+  ToString(seuilEcart) +"] 'CtrlCloseLoop.csv' with boxes";
+                cmdPlot =cmdPlot +  "plot " + "[ ] [0:"+  ToString(scaleAuto) +"] 'CtrlCloseLoop.csv' with boxes";
             }
             else
             {
