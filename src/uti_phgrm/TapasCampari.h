@@ -5,6 +5,8 @@
    This file, who should have exist far before, contains some devlopment common to Tapas & Campari
 */
 
+std::string BlQUOTE (const std::string &) ;
+
 
 class cAppli_Tapas_Campari
 {
@@ -23,9 +25,13 @@ class cAppli_Tapas_Campari
        const std::vector<std::string> & BlocImagesByTime() const;
        const std::vector<std::string> & BlocTimeStamps() const;
        std::map<std::string,int> & BlocCptTime() ;
+       const std::string & StrParamBloc() const;
+       int   NbInBloc() const;
+       int  LongestBloc(int aK0,int aK1);  // Plus grand sequence a time stamp = dans [K0,K1[
 
     private :
       
+       std::string               mStrParamBloc;
        std::string               mNameInputBloc;
        std::string               mNameOutputBloc;
        std::vector<std::string>  mVBlockRel;
@@ -38,7 +44,8 @@ class cAppli_Tapas_Campari
        std::vector<std::string>  mBlocTimeStamps;
        std::map<std::string,int> mBlocCptTime;
     private :
-       void AddParamBloc(std::string & mCom,std::vector<std::string> & aVBL,const std::string & aPref,bool ModeRot);
+      // ModePose = ! ModeDist
+       void AddParamBloc(std::string & mCom,std::vector<std::string> & aVBL,const std::string & aPref,bool ModePose);
        LArgMain                  *mArg;
 };
 

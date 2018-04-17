@@ -98,6 +98,13 @@ Parametre de Tapas :
 /*                                                  */
 /****************************************************/
 
+std::string BlQUOTE (const std::string & aStr)
+{
+   if (aStr.empty()) return aStr;
+
+    return " " + QUOTE(aStr) + " ";
+}
+
 cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
    mWithBlock       (false),
    mNamesBlockInit  (false),
@@ -151,6 +158,7 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
 
 void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom,std::vector<std::string> & aVBL,const std::string & aPref,bool ModeRot)
 {
+    mStrParamBloc = mStrParamBloc +  BlQUOTE(StrInitOfEAM(&aVBL)) ;
     int IndRot = ModeRot ? 1 : 0;
     if (!EAMIsInit(&aVBL)) return;
     ELISE_ASSERT(int(aVBL.size()) >= 2+IndRot ,"Not enough param in AddParamBloc");
@@ -232,6 +240,8 @@ std::string   cAppli_Tapas_Campari::ExtendPattern
 }
 
 const cStructBlockCam &  cAppli_Tapas_Campari::SBC() const {return mSBC;}
+const std::string & cAppli_Tapas_Campari::StrParamBloc() const {return mStrParamBloc;}
+
 
 
 void cAppli_Tapas_Campari::InitAllImages(const std::string & aPat,cInterfChantierNameManipulateur * anICNM)
@@ -256,6 +266,29 @@ void cAppli_Tapas_Campari::InitAllImages(const std::string & aPat,cInterfChantie
 const std::vector<std::string> & cAppli_Tapas_Campari::BlocImagesByTime() const {return mBlocImagesByTime;}
 const std::vector<std::string> & cAppli_Tapas_Campari::BlocTimeStamps() const   {return mBlocTimeStamps;}
 std::map<std::string,int> & cAppli_Tapas_Campari::BlocCptTime() {return mBlocCptTime;}
+
+int  cAppli_Tapas_Campari::NbInBloc() const
+{
+    return mSBC.LiaisonsSHC().Val().ParamOrientSHC().size();
+}
+
+
+int  cAppli_Tapas_Campari::LongestBloc(int aK0,int aK1)
+{
+     int aLong=1;
+     int aLongMax=1;
+     for (int aK=aK0+1 ; aK<aK1 ; aK++)
+     {
+         if (mBlocTimeStamps[aK]  == mBlocTimeStamps[aK-1])
+         {
+            aLong++;
+            aLongMax = ElMax(aLongMax,aLong);
+         }
+         else
+            aLong=1;
+     }
+     return aLongMax;
+}
 
 
 

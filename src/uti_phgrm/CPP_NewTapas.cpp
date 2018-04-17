@@ -760,7 +760,7 @@ int Tapas_main(int argc,char ** argv)
            if (IsMidle)
            {
               anATP.InitAllImages(aPat,aICNM);
-              int aNBInBl =  anATP.SBC().LiaisonsSHC().Val().ParamOrientSHC().size();
+              int aNBInBl =  anATP.NbInBloc();
               const std::vector<std::string> & aVImage   = anATP.BlocImagesByTime();
               const std::vector<std::string> & aVTime = anATP.BlocTimeStamps();
               std::map<std::string,int> & aCptTime =  anATP.BlocCptTime();
