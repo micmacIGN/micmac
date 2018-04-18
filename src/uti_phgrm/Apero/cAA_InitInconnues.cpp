@@ -597,6 +597,7 @@ void cAppliApero::CompileInitPoseGen(bool isPrecComp)
               }
               aLName = aNewL;
            }
+
            if (isMST)  // L'init est faite "a la volee" dans MST
            {
                ConstructMST(aLName,*itP);

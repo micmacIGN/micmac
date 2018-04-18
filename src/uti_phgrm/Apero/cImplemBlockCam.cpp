@@ -51,8 +51,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // IBC : suffix for Implement Block Cam
 
-class cIBC_ImsOneTime;  //  regroupe les pose acquise au meme temps T
-class cIBC_OneCam;      //  contient les info partagee par la meme tete de camera
+//class cIBC_ImsOneTime;  //  regroupe les pose acquise au meme temps T
+//class cIBC_OneCam;      //  contient les info partagee par la meme tete de camera
                         //  par exemple la rotation (ou le point) inconnue du bloc de camera
 
 
@@ -183,6 +183,9 @@ class cEqObsBlockCam  : public cNameSpaceEqF,
         double  AddObsDist(const double & aPdsDist);
         void  DoAMD(cAMD_Interf * anAMD);
 
+        // Pas utile a priori pour l'equation, mais apparu quand on le met dans Tapas pour verifier que c'est initialise
+        void SetCams(cGenPoseCam *,cGenPoseCam*,cGenPoseCam*,cGenPoseCam*); 
+        bool CamIsInit() const;
      private  :
 
          cEqObsBlockCam
@@ -207,10 +210,29 @@ class cEqObsBlockCam  : public cNameSpaceEqF,
           cIncListInterv      mLInterv;
           std::string         mNameType;
           cElCompiledFonc*    mFoncEqResidu;
+          std::vector<cGenPoseCam *> mVGP;
 #if  (HandleGL)
           cEOBC_ModeRot *     mModeR;
 #endif
 };
+
+
+bool cEqObsBlockCam::CamIsInit() const
+{
+    for (const auto & aPC : mVGP)
+       if (aPC && (!aPC->RotIsInit()))
+          return false;
+    return true;
+}
+
+
+void cEqObsBlockCam::SetCams(cGenPoseCam * aCam1,cGenPoseCam* aCam2,cGenPoseCam* aCam3,cGenPoseCam* aCam4)
+{
+    mVGP.push_back(aCam1);
+    mVGP.push_back(aCam2);
+    mVGP.push_back(aCam3);
+    mVGP.push_back(aCam4);
+}
 
 cEqObsBlockCam::cEqObsBlockCam
 (
@@ -517,6 +539,7 @@ class cImplemBlockCam
          void DoAMD(cAMD_Interf * anAMD,const std::vector<cEqObsBlockCam* > & aVec);
          void AddContraintes(bool Stricte);
 
+         const cStructBlockCam & SBC() const;
     private :
          void InitRF();
 
@@ -559,6 +582,7 @@ class  cCmp_IOT_Ptr
           return  aT1->NameTime() < aT2->NameTime();
        }
 };
+
 static cCmp_IOT_Ptr TheIOTCmp;
 
 
@@ -579,6 +603,7 @@ void  cIBC_ImsOneTime::AddPose(cPoseCam * aPC, int aNum)
     
     mCams[aNum] = aPC;
 }
+
 
 cPoseCam * cIBC_ImsOneTime::Pose(int aKP)
 {
@@ -817,6 +842,7 @@ cImplemBlockCam::cImplemBlockCam
                                                          false
                                                       );
 
+                          anEq->SetCams(nullptr,nullptr,aPcR1,aPcL1);
                           mVecEqGlob.push_back(anEq);
                        }
                    }
@@ -850,6 +876,7 @@ cImplemBlockCam::cImplemBlockCam
                                                          true
                                                       );
 
+                          anEq->SetCams(nullptr,nullptr,aPcR1,aPcL1);
                           mVecEqDistGlob.push_back(anEq);
                        }
                    }
@@ -883,6 +910,7 @@ cImplemBlockCam::cImplemBlockCam
                                                          false,
                                                          false
                                                       );
+                          anEq->SetCams(aPcR0,aPcL0,aPcR1,aPcL1);
 
                            mVecEqRel.push_back(anEq);
                        }
@@ -916,24 +944,28 @@ void cImplemBlockCam::DoCompensationRot
     for (int aKE=0 ; aKE<int(aVecEq.size()) ; aKE++)
     {
           cEqObsBlockCam &  anEQ = *(aVecEq[aKE]) ;
-          const std::vector<double> & aResidu = anEQ.AddObsRot(mAppli.RBW_PdsTr(aRBW),mAppli.RBW_PdsRot(aRBW));
-          // const std::vector<double> & aResidu = anEQ.AddObs(aRBW.PondOnTr(),aRBW.PondOnRot());
-          double aSomEcartMat = 0;
-          double aSomEcartPt = 0;
-
-          for (int aK=0 ; aK<3 ; aK++)
-              aSomEcartPt += ElSquare(aResidu[aK]);
-
-          for (int aK=3 ; aK<12 ; aK++)
-              aSomEcartMat += ElSquare(aResidu[aK]);
-
-          aGlobEcMat += aSomEcartMat;
-          aGlobEcPt += aSomEcartPt;
-       
-          if (anObs.Show().Val())   // comment activer cette option ?
+          if (anEQ.CamIsInit())
           {
-              std::cout << "    " << aKE << "   EcMat  " <<  sqrt(aSomEcartMat)   
-                   << " XYZ " <<  sqrt(aSomEcartPt) <<" \n";
+              //  std::cout << "HHHHH " << & anEQ << "\n";
+              const std::vector<double> & aResidu = anEQ.AddObsRot(mAppli.RBW_PdsTr(aRBW),mAppli.RBW_PdsRot(aRBW));
+              // const std::vector<double> & aResidu = anEQ.AddObs(aRBW.PondOnTr(),aRBW.PondOnRot());
+              double aSomEcartMat = 0;
+              double aSomEcartPt = 0;
+
+              for (int aK=0 ; aK<3 ; aK++)
+                  aSomEcartPt += ElSquare(aResidu[aK]);
+
+              for (int aK=3 ; aK<12 ; aK++)
+                  aSomEcartMat += ElSquare(aResidu[aK]);
+
+              aGlobEcMat += aSomEcartMat;
+              aGlobEcPt += aSomEcartPt;
+       
+              if (anObs.Show().Val())   // comment activer cette option ?
+              {
+                  std::cout << "    " << aKE << "   EcMat  " <<  sqrt(aSomEcartMat)   
+                       << " XYZ " <<  sqrt(aSomEcartPt) <<" \n";
+              }
           }
     }
     std::cout << " GlobMat    " <<  sqrt(aGlobEcMat/aVecEq.size())   
@@ -951,8 +983,11 @@ void cImplemBlockCam::DoCompensationDist
     for (int aKE=0 ; aKE<int(aVecEq.size()) ; aKE++)
     {
           cEqObsBlockCam &  anEQ = *(aVecEq[aKE]) ;
-          double  aResidu = anEQ.AddObsDist(mAppli.RBW_PdsTr(aRBW));
-          aGlobEcDist += ElSquare(aResidu);
+          if (anEQ.CamIsInit())
+          {
+             double  aResidu = anEQ.AddObsDist(mAppli.RBW_PdsTr(aRBW));
+             aGlobEcDist += ElSquare(aResidu);
+          }
     }
     aGlobEcDist /= aVecEq.size();
     std::cout << "Comp Dist = " << sqrt(aGlobEcDist) << "\n";
@@ -1001,6 +1036,7 @@ void  cImplemBlockCam::DoAMD(cAMD_Interf * anAMD)
 }
 
 
+const cStructBlockCam & cImplemBlockCam::SBC() const {return mSBC;}
 
 
 void cImplemBlockCam::EstimCurOri(const cXml_EstimateOrientationInitBlockCamera & anEOIB)
@@ -1155,8 +1191,120 @@ void cAppliApero::InitBlockCameras()
                              );
        cImplemBlockCam * aIBC = new cImplemBlockCam(*this,aSB,*itB,anId);
        mBlockCams[anId] = aIBC;
+       mHasBlockCams = true;
   }
 }
+
+ElRotation3D  cAppliApero::SVPGetRotationBloc(const std::string & aNameBloc,const std::string& aNamePose,std::string & aNameTimeResult)
+{
+   static std::map<std::string,cStructBlockCam> aMap;
+   if (! DicBoolFind(aMap,aNameBloc))
+   {
+       aMap[aNamePose] =  StdGetFromPCP(aNameBloc,StructBlockCam);
+   }
+   const cStructBlockCam &  aSBC = aMap[aNamePose];
+
+   ElRotation3D aRes = ElRotation3D::Id;
+   aNameTimeResult = "";
+
+
+   std::pair<std::string,std::string> aPair =   mICNM->Assoc2To1(aSBC.KeyIm2TimeCam(),aNamePose,true);
+   std::string aNameTime = aPair.first; // get a time stamp
+   std::string aNameGrp  = aPair.second;// get a cam name
+
+   for (const auto  & aPO :   aSBC.LiaisonsSHC().Val().ParamOrientSHC() )
+   {
+        if (aPO.IdGrp() == aNameGrp)
+        {
+            aNameTimeResult = aNameTime;
+            Pt3dr aTr = aPO.Vecteur();
+            ElMatrix<double> aMat = ImportMat(aPO.Rot());
+            aRes = ElRotation3D(aTr,aMat,true);
+            return aRes;
+        }
+   }
+     // std::pair<std::string,std::string> Assoc2To1(const tKey &,const std::string & aName,bool isDir);
+
+
+   return aRes;
+}
+
+
+ElRotation3D  cAppliApero::GetUnikRotationBloc(const std::string & aNameBloc,const std::string& aNamePose)
+{
+   std::string aNameTR;
+   ElRotation3D aRes = SVPGetRotationBloc(aNameBloc,aNamePose,aNameTR);
+
+   ELISE_ASSERT(aNameTR!="","cAppliApero::GetUnikRotationBloc");
+   return aRes;
+}
+
+  //==============================================
+
+cPreCB1Pose::cPreCB1Pose(const ElRotation3D & aRot) :
+   mRot (aRot)
+{
+}
+
+cPreCompBloc::cPreCompBloc(const std::string  & aNameBloc) :
+   mNameBloc (aNameBloc)
+{
+}
+
+void cAppliApero::PreInitBloc(const std::string & aNameBloc)
+{
+  // Lecture du bloc
+  static std::map<std::string,cStructBlockCam *>  MapBloc;
+  if (! DicBoolFind(MapBloc,aNameBloc))
+     MapBloc[aNameBloc] = new cStructBlockCam(StdGetFromPCP(aNameBloc,StructBlockCam));
+  const cStructBlockCam & aStrBloc =  *(MapBloc[aNameBloc]);
+
+
+  static std::map<std::string,cPreCompBloc *>  MapTime2PCB;
+  for (auto & aPC : mVecPose)
+  {
+      cPreCompBloc * aPCB = aPC->GetPreCompBloc(true);
+      if (aPCB==0)
+      {
+          std::pair<std::string,std::string> aPair = mICNM->Assoc2To1(aStrBloc.KeyIm2TimeCam(),aPC->Name(),true);
+          std::string aNameTime = aPair.first; // get a time stamp
+          std::string aNameGrp  = aPair.second;// get a cam name
+
+          aPCB = MapTime2PCB[aNameTime];
+          if (aPCB ==0)
+          {
+              aPCB = new cPreCompBloc(aNameBloc);
+              MapTime2PCB[aNameTime] = aPCB;
+          }
+          aPCB->mGrp.push_back(aPC);
+          ElRotation3D aRot = ElRotation3D::Id;
+          int NbGotGrp = 0;
+          for (const auto  & aPO :   aStrBloc.LiaisonsSHC().Val().ParamOrientSHC() )
+          {
+               if (aPO.IdGrp() == aNameGrp)
+               {
+                   Pt3dr aTr = aPO.Vecteur();
+                   ElMatrix<double> aMat = ImportMat(aPO.Rot());
+                   aRot = ElRotation3D(aTr,aMat,true);
+                   NbGotGrp++;
+               }
+          }
+          ELISE_ASSERT(NbGotGrp,"None or multiple group in bloc");
+          
+          aPC->SetPreCompBloc (aPCB); 
+          aPC->SetPreCB1Pose(new cPreCB1Pose(aRot));
+      }
+      else
+      {
+         if (aPCB->mNameBloc!=aNameBloc)
+         {
+            std::cout << "For cam" << aPC->Name() << " Bl1=[" << aPCB->mNameBloc << "] Bl2=[" << aNameBloc <<"]\n";
+            ELISE_ASSERT(false,"Cam bellong to multiple bloc");
+         }
+      }
+  }
+}
+
 
 
 void  cAppliApero::BlocContraintes(bool Stricte)

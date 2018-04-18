@@ -45,6 +45,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #if ElMemberTpl
 
 #define SzBuf 2000
+std::map<void *,std::string>  MapValuesEAM;
+std::set<void *>  AllAddrEAM;
 
 class cFileDebug
 {
@@ -450,6 +452,7 @@ INT LArgMain::Init
     it++
         )
     {
+        MapValuesEAM[(*it)->AddrArg()] = argv[k];
         (*it)->InitEAM(argv[k],ElGramArgMain::StdGram);
         k++;
     }
@@ -626,6 +629,9 @@ bool GenElArgMain::InitIfMatchEq(const ElSTDNS string &s,const ElGramArgMain & G
     const char * N = _name.c_str();
     const char * EQ = s.c_str();
 
+    // std::cout << "HHHHHHHH "  << EQ << " " << AddrArg() << "\n";
+    
+
     while ((*N==* EQ) && *N )
     {
         N++;
@@ -639,6 +645,7 @@ bool GenElArgMain::InitIfMatchEq(const ElSTDNS string &s,const ElGramArgMain & G
                 EQ++;
         }
         InitEAM(ElSTDNS string(EQ+1),Gram);
+        MapValuesEAM[AddrArg()] = s;
         return true;
     }
     return false;
@@ -1060,7 +1067,6 @@ int cAppliBatch::System(const char * aFile,const std::string & aCom,bool aSVP)
 {
     if ((aFile!=0) && ByMKf() && (!mIsRelancedByThis))
     {
-        // std::cout << "JJJJJ " << aCom   << "  ## " << aFile << "\n";
         mGPAO.GetOrCreate(aFile,aCom);
         return 0;
     }
@@ -1541,13 +1547,13 @@ const std::string & cAppliBatch::ThisBin() const
 
 
 
-std::set<void *>  AllAddrEAM;
 
 bool EAMIsInit(void * anAdr)
 {
     return (AllAddrEAM.find(anAdr)) != AllAddrEAM.end();
 }
 
+std::string StrInitOfEAM(void * anAdr) {return MapValuesEAM[anAdr];}
 
 // protect spaces with backslashes (for use with 'make')
 string protect_spaces( const string &i_str )

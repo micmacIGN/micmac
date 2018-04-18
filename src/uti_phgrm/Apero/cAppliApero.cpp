@@ -88,6 +88,7 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mMulSLMEtape       (1.0),
    mCurSLMIter        (0),
    mMulSLMIter        (1.0),
+   mHasBlockCams      (false),
    mNumSauvAuto       (0),
    mFpRT              (0),
    mFileDebug         (0),

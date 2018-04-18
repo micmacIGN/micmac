@@ -45,8 +45,1034 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <stdio.h>
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
+Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<Pt2dr> & aNPts2D);
+// ========== Test Zone Trajecto Acquisition BLoc Rigid ==========
+int Test_TrajectoFromOri(int argc, char ** argv)
+{
+    // Tracer trajectoire en concatenant tout les centres du camera dans Ori donne
+    string aDir="./";
+    string aPatIn;
+    string aPlyOut="";
+    string aPlyN;
+    string aPatIm;
+    string aOri, aBlinis;
 
-// =================== Test Zone ============================
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aPatIn, "PatIm1",  eSAM_IsPatFile)
+                      << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
+          LArgMain()
+                      << EAM(aPlyN, "Ply" , true, "Name of output PLY trajecto")
+                      << EAM(aBlinis, "Blinis" , true, "Rigid Structur")
+                );
+
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    SplitDirAndFile(aDir, aPatIm, aPatIn);
+    StdCorrecNameOrient(aOri, aICNM->Dir());
+
+    if (EAMIsInit(&aPlyN))
+    {
+        aPlyOut=aPlyN;
+    }
+    else
+    {
+        aPlyOut = aPlyOut+ "Trajecto_" + aOri + ".ply";
+    }
+
+    std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
+    ELISE_ASSERT(aSetIm.size() > 2, "Nb Img < 2 => Comment peut je trace trajecto ?");
+
+    std::vector<CamStenope*> aVCam;
+
+    cPlyCloud aPly;
+    for (uint aKCam=0; aKCam<aSetIm.size(); aKCam++)
+    {
+        string aImName = aSetIm[aKCam];
+        CamStenope * aCam = aICNM->StdCamStenOfNames(aImName, aOri);
+        aCam->SetNameIm(aImName);
+        aVCam.push_back(aCam);
+    }
+    ELISE_ASSERT(aSetIm.size() == aVCam.size(), "Nb Img != Nb Orientation");
+
+
+    double dist=euclid(aVCam[1]->VraiOpticalCenter() - aVCam[0]->VraiOpticalCenter());
+    for (uint aKCam=1; aKCam<aVCam.size(); aKCam++)
+    {
+
+            CamStenope * aCam = aVCam[aKCam-1];
+            CamStenope * aCamN = aVCam[aKCam];
+
+            Pt3dr aCentre = aCam->VraiOpticalCenter();
+            Pt3dr aCentreN = aCamN->VraiOpticalCenter();
+
+            aPly.AddSphere(Pt3di(255,0,0), aCentre, dist/20.0, 10);
+            aPly.AddSeg(Pt3di(0,255,0), aCentre, aCentreN, 200);
+
+    }
+    aPly.PutFile(aPlyOut.c_str());
+    return EXIT_SUCCESS;
+}
+// ========== Test Zone Verifier Aero par la fermeture de boucle ==========
+class cOneImInLoop
+{
+public:
+    cOneImInLoop(int IdLoop, int IdImg, string aNameIm);
+    void AddPt(Pt2dr aPt);
+    vector<Pt2dr> mVPt;
+    int mIdLoop;
+    int mIdImg;
+    string mNameIm;
+};
+
+cOneImInLoop::cOneImInLoop(int IdLoop, int IdImg, string aNameIm):
+    mIdLoop (IdLoop),
+    mIdImg (IdImg),
+    mNameIm (aNameIm)
+{
+
+}
+
+void cOneImInLoop::AddPt(Pt2dr aPt)
+{
+    mVPt.push_back(aPt);
+}
+
+class cOnePtMeasure
+{
+public:
+    cOnePtMeasure(string aName);
+    void AddMeasure(Pt2dr aCoor, string aNameIm, CamStenope * aCam, int idLoop);
+    string mNamePt;
+    vector<string> mVNameIm;
+
+    vector<CamStenope*> mVCamLoop1;
+    vector<Pt2dr> mVMeasureLoop1;
+
+    vector<CamStenope*> mVCamLoop2;
+    vector<Pt2dr> mVMeasureLoop2;
+
+    bool mInLoop1;
+    bool mInLoop2;
+
+    bool operator==(const cOnePtMeasure& r) const
+    {
+        return mNamePt == r.mNamePt;
+    }
+};
+
+cOnePtMeasure::cOnePtMeasure(string aName):
+    mNamePt (aName),
+    mInLoop1 (false),
+    mInLoop2 (false)
+{}
+
+void cOnePtMeasure::AddMeasure(Pt2dr aCoor, string aNameIm, CamStenope *aCam, int idLoop)
+{
+    if (idLoop == 1)
+    {
+        mVCamLoop1.push_back(aCam);
+        mVMeasureLoop1.push_back(aCoor);
+        mVNameIm.push_back(aNameIm);
+        mInLoop1 = true;
+    }
+    if (idLoop == 2)
+    {
+        mVCamLoop2.push_back(aCam);
+        mVMeasureLoop2.push_back(aCoor);
+        mVNameIm.push_back(aNameIm);
+        mInLoop2 = true;
+    }
+    return;
+}
+
+struct MatchString
+{
+ MatchString(const std::string & s) :
+     s_(s)
+ {}
+
+ bool operator()(const cOnePtMeasure& obj) const
+ {
+   return obj.mNamePt == s_;
+ }
+
+ private:
+   const std::string & s_;
+};
+
+bool sortAscending(double i, double j) { return i < j; }
+
+int find_Obj_in_cOnePtMeasure(string & aNamePt, std::vector<cOnePtMeasure*> & aVPtMes)
+{
+    vector<string> aName;
+    for (uint aKP=0; aKP<aVPtMes.size(); aKP++)
+    {
+        cOnePtMeasure * aPt = aVPtMes[aKP];
+        aName.push_back(aPt->mNamePt);
+
+    }
+    vector<string>::iterator it;
+    it = find(aName.begin(), aName.end(), aNamePt);
+    if (it != aName.end())
+    {
+        return distance(aName.begin(), it);
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+
+int Test_CtrlCloseLoop(int argc, char ** argv)
+{
+    string aDir = "./";
+    string aPatIn1, aPatIn2;
+    string aPatIm1, aPatIm2;
+    string aOriA;
+    string aSH ="";
+    bool plot=false;
+    Pt2di DoTapioca(0,-1);
+    double seuilEcart = DBL_MAX;
+
+    Pt3di colSeg(0,255,0);
+    double aDynV = 1.1;
+    string aPlyErrName = "PlyErr.ply";
+    bool aSilent = true;
+    string aXML="";
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aPatIn1, "PatIm1",  eSAM_IsPatFile)
+                      << EAMC(aPatIn2, "PatIm2",  eSAM_IsPatFile)
+                      << EAMC(aOriA, "Ori",  eSAM_IsExistDirOri)
+                      << EAMC(aSH, "SH file homol new format contains all selected im, "" if don't have or not sure to compute homol (set with option DoTapioca)"),
+          LArgMain()
+                      << EAM(DoTapioca, "Tapioca" , true, "Do Tapioca = [DoIt(1/0),Resolution]")
+                      << EAM(plot, "plot" , true, "Plot data (with gnuplot)")
+                      << EAM(seuilEcart, "DistMax" , true, "max Point distant between 2 loop (to eliminate noise) - def=Inf")
+                      << EAM(colSeg, "Col" , true, "Rayon of error vector")
+                      << EAM(aDynV, "Dynv" , true, "Multp factor of error vector")
+                      << EAM(aPlyErrName, "Ply" , true, "Name of output error vector")
+                      << EAM(aSilent, "Silent" , true, "Display just 3D error")
+                      << EAM(aXML, "Saisie", true, "XML of SaisieAppuis - Ctrl on manual picked point")
+                );
+
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    SplitDirAndFile(aDir, aPatIm1, aPatIn1);
+    SplitDirAndFile(aDir, aPatIm2, aPatIn2);
+    StdCorrecNameOrient(aOriA, aICNM->Dir());
+
+    std::vector<std::string> aSetIm1 = *(aICNM->Get(aPatIm1));
+    std::vector<std::string> aSetIm2 = *(aICNM->Get(aPatIm2));
+    std::vector<std::string> aAllIm;
+    aAllIm.insert(aAllIm.end(), aSetIm1.begin(), aSetIm1.end());
+    aAllIm.insert(aAllIm.end(), aSetIm2.begin(), aSetIm2.end());
+
+    if (!aSilent)
+    {
+        cout<<"Verif : Nb ImLoop 1 "<<aSetIm1.size()<<" Nb ImLoop 2 "<<aSetIm2.size()<<" Nb AllIm "<<aAllIm.size()<<endl;
+    }
+
+    if (EAMIsInit(&aXML))
+    {
+        // for each image in XML
+            // get imName
+            // get CamStenope
+            // check if image on loop1 or loop 2
+            // if (CamStenope existed)
+                // parcourir all measure
+                    // Get NamePt & CoorPt
+                    // Create object cOnePtMeasure
+                    // Check if object inside vector aVPtMeasure
+                    // If yes : get object and add PtCoor & imName & CamStenope
+                    // If no : stock object in aVPtMeasure, add PtCoor & imName & CamStenope to object
+
+        // for each cOnePtMeasure in aVPtMeasure
+            // Get NamePt
+            // Intersect all loop 1
+                // store in Vector<cPtCtrl>(Pt3d, NamePt)
+            // Intersect all loop 2
+                // store in Vector<cPtCtrl>(Pt3d, NamePt)
+
+        cSetOfMesureAppuisFlottants aXMLSaisie = StdGetFromPCP(aXML,SetOfMesureAppuisFlottants);
+        std::list<cMesureAppuiFlottant1Im> & aList_Im = aXMLSaisie.MesureAppuiFlottant1Im();
+        std::vector<cOnePtMeasure*> aVPtMeasure;
+        for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aList_Im.begin() ; iT1 != aList_Im.end() ; iT1++)
+        {
+            cMesureAppuiFlottant1Im aIm = *iT1;
+            string aImName = aIm.NameIm();
+            CamStenope * aCam = aICNM->StdCamStenOfNames(aImName, aOriA);
+            aCam->SetNameIm(aImName);
+
+            bool onL1=false;
+            bool onL2=false;
+            if (find(aSetIm1.begin(), aSetIm1.end(), aImName) != aSetIm1.end())
+            {
+                onL1=true;
+            }
+            if (find(aSetIm2.begin(), aSetIm2.end(), aImName) != aSetIm2.end())
+            {
+                onL2=true;
+            }
+            ELISE_ASSERT(!(onL1==true && onL2==true), "Image existid in both 2 loop => impossible");
+            if (onL1 || onL2)
+            {
+                std::list<cOneMesureAF1I> aLst_Mes = aIm.OneMesureAF1I();
+                for (std::list<cOneMesureAF1I>::iterator iTMes = aLst_Mes.begin() ; iTMes != aLst_Mes.end() ; iTMes++)
+                {
+                    cOneMesureAF1I aMes = *iTMes;
+                    string aNamePt = aMes.NamePt();
+                    Pt2dr aCoor = aMes.PtIm();
+
+                    int itF = find_Obj_in_cOnePtMeasure(aNamePt, aVPtMeasure);
+                    //std::vector<cOnePtMeasure>::iterator itF = find_if(aVPtMeasure.begin(), aVPtMeasure.end(), MatchString(aNamePt));
+
+                    if (itF == -1)
+                    {
+                        cOnePtMeasure * aPtMes = new cOnePtMeasure(aNamePt);
+                        if (onL1)
+                            aPtMes->AddMeasure(aCoor, aImName, aCam, 1);
+                        if (onL2)
+                            aPtMes->AddMeasure(aCoor, aImName, aCam, 2);
+                        aVPtMeasure.push_back(aPtMes);
+                    }
+                    else
+                    {
+                        cOnePtMeasure * aPtMesExist = aVPtMeasure[itF];
+                        if (onL1)
+                            aPtMesExist->AddMeasure(aCoor, aImName, aCam, 1);
+                        if (onL2)
+                            aPtMesExist->AddMeasure(aCoor, aImName, aCam, 2);
+                    }
+                }
+            }
+            else
+            {
+                if (!aSilent)
+                {
+                    cout<<"Image "<<aImName<<" not selected in pattern"<<endl;
+                }
+            }
+        }
+
+        // for each cOnePtMeasure in aVPtMeasure
+            // Get NamePt
+            // Intersect all loop 1
+                // store in Vector<cPtCtrl>(Pt3d, NamePt)
+            // Intersect all loop 2
+                // store in Vector<cPtCtrl>(Pt3d, NamePt)
+
+        for (uint aKPt=0; aKPt<aVPtMeasure.size(); aKPt++)
+        {
+            cOnePtMeasure * aPtMes = aVPtMeasure[aKPt];
+            string aNamePt = aPtMes->mNamePt;
+            cout<<" + Pt : "<<aNamePt<<endl;
+            Pt3dr aPt3d_Lp1;
+            Pt3dr aPt3d_Lp2;
+            if (aPtMes->mVCamLoop1.size() > 1)
+            {
+                ELISE_ASSERT(aPtMes->mVCamLoop1.size() == aPtMes->mVMeasureLoop1.size(), "Intersect Loop 1 : VCam not coherent with VMes");
+                aPt3d_Lp1 = Intersect_Simple(aPtMes->mVCamLoop1, aPtMes->mVMeasureLoop1);
+                cout<<"  + Loop 1: "<<aPt3d_Lp1<<endl;
+            }
+            if (aPtMes->mVCamLoop2.size() > 1)
+            {
+                ELISE_ASSERT(aPtMes->mVCamLoop2.size() == aPtMes->mVMeasureLoop2.size(), "Intersect Loop 2 : VCam not coherent with VMes");
+                aPt3d_Lp2 = Intersect_Simple(aPtMes->mVCamLoop2, aPtMes->mVMeasureLoop2);
+                cout<<"  + Loop 2: "<<aPt3d_Lp2<<endl;
+            }
+            if (aPtMes->mVCamLoop1.size() > 1 && aPtMes->mVCamLoop2.size() > 1)
+            {
+                cout<<"  + Delta : "<<aPt3d_Lp2-aPt3d_Lp1<<" - D="<<euclid(aPt3d_Lp2-aPt3d_Lp1)<<endl;
+            }
+
+        }
+        return EXIT_SUCCESS;
+    }
+
+
+    std::vector<cOneImInLoop*> aVImInLoop;
+    std::vector<CamStenope*> aVCam1;
+    std::vector<CamStenope*> aVCam2;
+
+    if (DoTapioca.x != 0 || (aSH==""))
+    {
+        cout<<"Compute Point homologues between 2 close loop"<<endl;
+        std::list<std::string> aLCom;
+        string cmdTapioca = MM3DStr + " Tapioca All " + "\'"+aPatIn1+"|" + aPatIn2 +"\' "
+                                                     + ToString(DoTapioca.y)+ " PostFix=CtrlCloseLoop";
+        string cmdConNewFH = MM3DStr + " TestLib ConvNewFH " +"\'"+aPatIn1+"|" + aPatIn2 +"\' "
+                                    + "\'\' SH=CtrlCloseLoop Bin=0";
+
+        aLCom.push_back(cmdTapioca);
+        aLCom.push_back(cmdConNewFH);
+        cEl_GPAO::DoComInSerie(aLCom);
+        aSH = "HomolCtrlCloseLoop/PMul.txt";
+    }
+    // read new format points homologue
+    const std::string  aSHInStr = aSH;
+    cSetTiePMul * aSetTiePMul = new cSetTiePMul(0);
+    aSetTiePMul->AddFile(aSHInStr);
+
+    if (!aSilent)
+    {
+        cout<<"Total : "<<aSetTiePMul->DicoIm().mName2Im.size()<<" imgs"<<endl;
+    }
+    std::map<std::string,cCelImTPM *> aMap_Name2Im = aSetTiePMul->DicoIm().mName2Im;
+    std::map<std::string,cCelImTPM *>::iterator aIt_Find;
+
+    vector<int> aIdAllImg;
+    vector<int> aIdImgPat1;
+    for (uint aKIm1=0; aKIm1<aSetIm1.size(); aKIm1++)
+    {
+        string aImName = aSetIm1[aKIm1];
+        aIt_Find = aMap_Name2Im.find(aImName);
+        if (aIt_Find != aMap_Name2Im.end())
+        {
+            int aImId = aIt_Find->second->Id();
+            aIdImgPat1.push_back(aImId);
+            aIdAllImg.push_back(aImId);
+            cOneImInLoop* aImLoop = new cOneImInLoop(1, aImId, aImName);
+            aVImInLoop.push_back(aImLoop);
+
+            CamStenope * aCam = aICNM->StdCamStenOfNames(aImName, aOriA);
+            aCam->SetNameIm(aImName);
+            aVCam1.push_back(aCam);
+        }
+        else
+        {
+            cout<<"BIG WARNING : "<<" File "<<aSH<<" don't contain image "<<aImName<<endl;
+            cout<<"Please do Tapioca for all selected control image on 2 loop"<<endl;
+            return EXIT_FAILURE;
+        }
+    }
+
+
+    vector<int> aIdImgPat2;
+    for (uint aKIm2=0; aKIm2<aSetIm2.size(); aKIm2++)
+    {
+        string aImName = aSetIm2[aKIm2];
+        aIt_Find = aMap_Name2Im.find(aImName);
+        if (aIt_Find != aMap_Name2Im.end())
+        {
+            int aImId = aIt_Find->second->Id();
+            aIdImgPat2.push_back(aImId);
+            aIdAllImg.push_back(aImId);
+            cOneImInLoop* aImLoop = new cOneImInLoop(2, aImId, aImName);
+            aVImInLoop.push_back(aImLoop);
+
+            CamStenope * aCam = aICNM->StdCamStenOfNames(aImName, aOriA);
+            aCam->SetNameIm(aImName);
+            aVCam2.push_back(aCam);
+        }
+        else
+        {
+            cout<<"BIG WARNING : "<<" File "<<aSH<<" don't contain image "<<aImName<<endl;
+            cout<<"Please do Tapioca for all selected control image on 2 loop"<<endl;
+            return EXIT_FAILURE;
+        }
+    }
+    if (!aSilent)
+    {
+        cout<<"VPMul - Nb Config: "<<aSetTiePMul->VPMul().size()<<endl;
+    }
+    std::vector<cSetPMul1ConfigTPM *> aVCnf = aSetTiePMul->VPMul();
+
+    vector<cSetPMul1ConfigTPM * > aSelectCnf;
+    for (uint aKCnf=0; aKCnf<aVCnf.size(); aKCnf++)
+    {
+        cSetPMul1ConfigTPM* aCnf = aVCnf[aKCnf];
+        // Get config that has more than nb of selected images
+        if (aCnf->NbIm() >= (int)aAllIm.size())
+        {
+            // Get config that contains all selected image
+            vector<int> aIDImgInCnf = aCnf->VIdIm();
+            bool isCnfContainAllId = true;
+            for (uint aKId=0; aKId < aIdAllImg.size(); aKId++)
+            {
+                int aQueryID = aIdAllImg[aKId];
+                // is this aQueryID exist in this config image list ?
+                vector<int>::iterator it_Find;
+                it_Find = find(aIDImgInCnf.begin(), aIDImgInCnf.end(), aQueryID);
+                if(it_Find == aIDImgInCnf.end())
+                {
+                    isCnfContainAllId = isCnfContainAllId && false;
+                }
+            }
+            if (isCnfContainAllId)
+            {
+                aSelectCnf.push_back(aCnf);
+            }
+        }
+    }
+    if (!aSilent)
+    {
+        cout<<aSelectCnf.size()<<" cnf selected ! "<<endl;
+    }
+    // For each selected config, get pt 2D on each correspondant control image
+    for (uint aKCnf=0; aKCnf<aSelectCnf.size(); aKCnf++)
+    {
+    cSetPMul1ConfigTPM* aCnf = aSelectCnf[aKCnf];
+        for (uint aKIdImg=0; aKIdImg<aIdAllImg.size(); aKIdImg++)
+        {
+            int aQueryId = aIdAllImg[aKIdImg];
+            cOneImInLoop * aImLoop = aVImInLoop[aKIdImg];
+            // get all 2D points of image ID aQueryId in aCnf
+            for (uint aKPt=0; (int)aKPt<aCnf->NbPts(); aKPt++)
+            {
+                Pt2dr aPt = aCnf->GetPtByImgId(aKPt, aQueryId);
+                aImLoop->AddPt(aPt);
+            }
+        }
+
+    }
+    // Intersection to get 3D points set:
+
+        // Intersect Points on Loop 1
+        vector<Pt3dr> aPtCtrlLoop1;
+        cOneImInLoop * aImLoop1 = aVImInLoop[0]; // get 1st image in loop 1
+        if (aImLoop1->mIdLoop == 1)
+        {
+            vector<Pt2dr> aVPt = aImLoop1->mVPt;
+            for (uint aKPt=0; aKPt<aVPt.size(); aKPt++)
+            {
+                vector<Pt2dr> aVPtToIntersect;
+                for (uint aKImLoop1=0; aKImLoop1<aSetIm1.size(); aKImLoop1++)
+                {
+                    cOneImInLoop * aIm = aVImInLoop[aKImLoop1];
+                    ELISE_ASSERT(aVPt.size() == aIm->mVPt.size(), "AAAA VPT");
+                    if (aIm->mIdLoop == 1)
+                        aVPtToIntersect.push_back(aIm->mVPt[aKPt]);
+                    else
+                        ELISE_ASSERT(aIm->mIdLoop == 1,"AAAAAAAAAA Wrong Loop");
+                }
+                // Intersect
+                aPtCtrlLoop1.push_back(Intersect_Simple(aVCam1, aVPtToIntersect));
+            }
+        }
+        else
+        {
+            cout<<"Image is not in Good Loop 1??? Il y a vraiement prob la..";
+        }
+
+        // Intersect Points on Loop 2
+        vector<Pt3dr> aPtCtrlLoop2;
+        cOneImInLoop * aImLoop2 = aVImInLoop[aSetIm1.size()]; // get 1st image in loop 2
+        if (aImLoop2->mIdLoop == 2)
+        {
+            vector<Pt2dr> aVPt = aImLoop2->mVPt;
+            for (uint aKPt=0; aKPt<aVPt.size(); aKPt++)
+            {
+                vector<Pt2dr> aVPtToIntersect;
+                for (uint aKImLoop2=aSetIm1.size(); aKImLoop2<aVImInLoop.size(); aKImLoop2++)
+                {
+                    cOneImInLoop * aIm = aVImInLoop[aKImLoop2];
+                    ELISE_ASSERT(aVPt.size() == aIm->mVPt.size(), "AAAA VPT");
+                    if (aIm->mIdLoop == 2)
+                        aVPtToIntersect.push_back(aIm->mVPt[aKPt]);
+                    else
+                        ELISE_ASSERT(aIm->mIdLoop == 2,"AAAAAAAAAA Wrong Loop 2");
+                }
+                // Intersect
+                aPtCtrlLoop2.push_back(Intersect_Simple(aVCam2, aVPtToIntersect));
+            }
+        }
+        else
+        {
+            cout<<"Image is not in Good Loop 2??? Il y a vraiement prob la..";
+        }
+
+        // Export Point for Close Loop Test
+        ofstream csvPt3d;
+        csvPt3d.open ("CtrlCloseLoop.csv");
+        csvPt3d<<"Ecart"<<endl;
+        CamStenope * aCam11 = aVCam1[0];
+        Pt3dr aCen1= aCam11->VraiOpticalCenter();
+
+        vector<double> aVEcart;
+        cPlyCloud aPlyERROR;
+        Pt3di colPt(255,0,0);
+
+        for (uint aKPt=0; aKPt < aPtCtrlLoop1.size(); aKPt++)
+        {
+            double ecart = euclid(aPtCtrlLoop1[aKPt] - aPtCtrlLoop2[aKPt]);
+            csvPt3d<<ecart<<endl;
+            aVEcart.push_back(ecart);
+
+            // Ply ERROR
+            aPlyERROR.AddPt(colPt, aPtCtrlLoop1[aKPt]);
+            Pt3dr aNorm = -aCen1 + aPtCtrlLoop1[aKPt];
+            aPlyERROR.AddSeg(colSeg, aPtCtrlLoop1[aKPt], aPtCtrlLoop1[aKPt] + aNorm*(ecart*aDynV), 500);
+        }
+        aPlyERROR.PutFile(aPlyErrName);
+        csvPt3d .close();
+        if (!aSilent)
+        {
+            cout<<"Total : "<<aPtCtrlLoop1.size()<<" pts in control"<<endl;
+        }
+
+        // Stat on aVEcart && Sortie pt cloud d'erreur
+        {
+            // Sort ascending
+            sort(aVEcart.begin(), aVEcart.end(), sortAscending);
+            double aSom = 0.0;
+            int aNb = 0;
+
+            vector<int> aVRangInd;
+            int aPerInit = 10;
+            int aPerFinal = 100;
+            int aPerStep = 10;
+            for (int aKPer=aPerInit; aKPer <= aPerFinal; aKPer = aKPer + aPerStep)
+            {
+                aVRangInd.push_back(round_down(aVEcart.size()*((double)aKPer/100.0))-1);
+            }
+            int indCur=0;
+
+            vector<double> aCurEcart;
+            for (uint aKE=0; aKE<aVEcart.size(); aKE++)
+            {
+                aSom += aVEcart[aKE];
+                aNb++;
+                aCurEcart.push_back(aVEcart[aKE]);
+                if ((int)aKE == aVRangInd[indCur])
+                {
+                    //PrintOutStat.
+                    if (!aSilent)
+                    {
+                    cout<<endl;
+                    std::cout << "==== Stat: "<<ToString(100.0*aKE/aVEcart.size())<<"% ====" <<endl
+                              << " Moy= " << aSom/aNb <<endl
+                              << " Med=" << KthValProp(aCurEcart,0.5)   <<endl    // score median
+                              << " 20%=" << KthValProp(aCurEcart,0.2)   <<endl    // score à 20% en premier
+                              << " 80%=" << KthValProp(aCurEcart,0.8)   <<endl    // score à 20% en premier
+                              << " Nb=" << aCurEcart.size()             <<endl
+                              << "\n";
+                    }
+                    indCur++;
+                }
+            }
+
+            if (!aSilent)
+            {
+                std::cout << "==== Stat on All: ====" <<endl
+                          << " Moy= " << aSom/aNb <<endl
+                          << " Med=" << KthValProp(aVEcart,0.5)   <<endl    // score median
+                          << " 20%=" << KthValProp(aVEcart,0.2)   <<endl    // score à 20% en premier
+                          << " 80%=" << KthValProp(aVEcart,0.8)   <<endl    // score à 20% en premier
+                          << " Nb=" << aVEcart.size()             <<endl
+                          << "\n";
+            }
+        }
+
+        double scaleAuto = KthValProp(aVEcart,0.8);
+        if (aSilent)
+        {
+            cout<< " 80%=" << KthValProp(aVEcart,0.8) <<" -Nb="<<aVEcart.size()<<endl;
+        }
+        // plot data
+        if (plot && aPtCtrlLoop1.size()>0)
+        {
+            ofstream scriptPlot;
+            scriptPlot.open ("ScriptPlot.txt");
+            scriptPlot<<"set key autotitle columnhead"<<endl;
+            string cmdPlot;
+            if (EAMIsInit(&seuilEcart))
+            {
+                cmdPlot =cmdPlot +  "plot " + "[ ] [0:"+  ToString(scaleAuto) +"] 'CtrlCloseLoop.csv' with boxes";
+            }
+            else
+            {
+                cmdPlot = "plot 'CtrlCloseLoop.csv' with boxes";
+            }
+            scriptPlot<<cmdPlot<<endl;
+            System("gnuplot --persist ScriptPlot.txt");
+        }
+        ELISE_fp::RmFileIfExist("ScriptPlot.txt");
+        return EXIT_SUCCESS;
+}
+
+
+
+// =================== Test Zone Init block rigid ============================
+
+// Orientation 1 camera series (cam0 par ex)
+// Init tout les autres cam par cam0
+extern ElMatrix<double> ImportMat(const cTypeCodageMatr & aCM);
+extern cTypeCodageMatr ExportMatr(const ElMatrix<double> & aMat);
+
+class cOneTimeStamp
+{
+public:
+    cOneTimeStamp(string aTimeStampId, string cleAssoc, cInterfChantierNameManipulateur * aICNM, cLiaisonsSHC * aLSHC);
+    void AddCam(string aCamId, string KeyIm2TimeCam);
+    void AddAllCamPossible(string KeyIm2TimeCam);
+    void SetCamRef(CamStenope * aCamRef, string aCamRefId);
+    void SetOri(string aOri);
+    void SetOriOut(string aOriOut) {mOriOut = aOriOut;}
+    CamStenope * CamRef() {return mCamRef;}
+
+
+    string & Id() {return mTimeId;}
+    string & Ori() {return mOri;}
+
+    bool & IsInit() {return mIsInit;}
+    cInterfChantierNameManipulateur * ICNM() {return mICNM;}
+    vector<CamStenope*> & VCamInBlock() {return mVCamInBlock;}
+    cLiaisonsSHC * LSHC() {return mLSHC;}
+
+    void Export(string aNameIm, string aOriOut, Pt3dr Centre, ElMatrix<double> aRot);
+
+private:
+
+    string mTimeId;
+    bool mIsInit;
+    cInterfChantierNameManipulateur * mICNM;
+    cLiaisonsSHC * mLSHC;
+    vector<string> mVNameCamInBlock; // name of all image in the same time stamp
+    vector<bool>   mVIsCamInBlockHasOriented;
+    CamStenope * mCamRef;
+    vector<CamStenope*> mVCamInBlock; // name of all image in the same time stamp
+    string mCamRefId;
+    cParamOrientSHC mCamRefOrientSHC;
+    cOrientationConique mOriRef;
+    string mOri;
+    string mOriOut;
+};
+
+cOneTimeStamp::cOneTimeStamp(string aTimeStampId, string cleAssoc, cInterfChantierNameManipulateur * aICNM, cLiaisonsSHC *aLSHC):
+    mTimeId (aTimeStampId),
+    mIsInit (true),
+    mICNM (aICNM),
+    mLSHC (aLSHC),
+    mCamRef (NULL),
+    mVCamInBlock (mLSHC->ParamOrientSHC().size())
+{
+}
+
+void cOneTimeStamp::SetOri(string aOri)
+{
+    mOri = aOri;
+    cout<<"Set Ori "<<aOri<<" "<<mOri<<endl;
+}
+
+void cOneTimeStamp::SetCamRef(CamStenope * aCamRef, string aCamRefId)
+{
+    cout<<"   + Set Cam Ref "<<endl;
+    if (mCamRef != NULL)
+    {
+        cout<<"WARN ! : this time stamp has already camRef : "<<mCamRef->NameIm()<<endl;
+    }
+    mCamRefId = aCamRefId;
+    mCamRef = aCamRef;
+    std::string aKey = "NKS-Assoc-Im2Orient@-"+ mOri;
+    std::string aOriPath =  mICNM->Assoc1To1(aKey,aCamRef->NameIm(),true);
+    if (ELISE_fp::exist_file(aOriPath))
+    {
+        cout<<"   + Get OrientationConique of Cam Ref "<<endl;
+        mOriRef=StdGetFromPCP(aOriPath,OrientationConique);
+    }
+    else
+    {
+        ELISE_ASSERT(ELISE_fp::exist_file(aOriPath), aOriPath.c_str());
+        return;
+    }
+    std::list< cParamOrientSHC >::iterator aK = mLSHC->ParamOrientSHC().begin();
+    while (aK != mLSHC->ParamOrientSHC().end())
+    {
+        cParamOrientSHC aPr =  *aK;
+        string aIdCam = aPr.IdGrp();
+        if (aIdCam == mCamRefId)
+        {
+            cout<<"   + Get cParamOrientSHC of Cam Ref .. OK "<<endl;
+            mCamRefOrientSHC = *aK;
+            break;
+        }
+        aK++;
+    }
+}
+
+void cOneTimeStamp::Export(string aNameIm, string aOriOut, Pt3dr Centre, ElMatrix<double> aRot)
+{
+    std::string aKey = "NKS-Assoc-Im2Orient@-"+ aOriOut;
+    std::string aOriPath =  mICNM->Assoc1To1(aKey,aNameIm,true);
+
+    cOrientationConique aExport=mOriRef;
+    aExport.Externe().Centre() = Centre;
+
+    cTypeCodageMatr aValRot;
+    aValRot.L1() = Pt3dr(aRot(0,0), aRot(1,0), aRot(2,0));
+    aValRot.L2() = Pt3dr(aRot(0,1), aRot(1,1), aRot(2,1));
+    aValRot.L3() = Pt3dr(aRot(0,2), aRot(1,2), aRot(2,2));
+    aExport.Externe().ParamRotation().CodageMatr().SetVal(aValRot);
+
+    MakeFileXML(aExport, aOriPath);
+
+    cout<<"     ++ Export XML "<<aOriPath<<endl;
+}
+
+
+void cOneTimeStamp::AddCam(string aCamId, string KeyIm2TimeCam)
+{
+    string aCamToFind = mICNM->Assoc1To2(KeyIm2TimeCam, mTimeId, aCamId, false);
+    cout<<"   +Add Cam : "<<endl;
+    cout<<"   + Assoc12 "<<mTimeId<<" + "<<aCamId<<" = "<<aCamToFind<<endl;
+    std::vector<std::string> aSetIm2Find = *(mICNM->Get(aCamToFind));
+    if (aSetIm2Find.size() > 1)
+    {
+        cout<<"   + WTF ? Impossible to have more than 1 camera ID "<<aCamId<<" in block "<<mTimeId<<endl;
+        return;
+    }
+    if (aSetIm2Find.size() == 0)
+    {
+        cout<<"   + Query: camID "<<aCamId<<" with TimeStamp "<<mTimeId<<" not found !"<<endl;
+        return;
+    }
+    string aIm2Find = aSetIm2Find[0];
+    // check if cam is already added
+    cout<<"   + Found Cam : "<<aIm2Find<<endl;
+    vector<string>::iterator itFind;
+    itFind = find(mVNameCamInBlock.begin(), mVNameCamInBlock.end(), aIm2Find);
+    if (itFind == mVNameCamInBlock.end())
+    {
+        mVNameCamInBlock.push_back(aIm2Find);
+        // check if cam is already orientated
+        std::string aKey = "NKS-Assoc-Im2Orient@-"+ Ori();
+        std::string aNameCam =  mICNM->Assoc1To1(aKey,aIm2Find,true);
+        if (ELISE_fp::exist_file(aNameCam))
+        {
+            cout<<"   + Cam has already oriented. Keep existed orientation !"<<endl;
+            CamStenope * aCam = mICNM->StdCamStenOfNames(aIm2Find, mOri);
+            mVCamInBlock.push_back(aCam);
+
+        }
+        else
+        {
+            cout<<"   + Cam Init by block struture. "<<endl;
+            // Init cam by blinis
+            CamStenope * aCamToInit = new CamStenope(*mCamRef, mCamRef->Orient());
+
+            aCamToInit->SetNameIm(aIm2Find);
+            // From CamId, get ori relative in Block Structure
+            std::list< cParamOrientSHC >::iterator aK = mLSHC->ParamOrientSHC().begin();
+            while (aK != mLSHC->ParamOrientSHC().end())
+            {
+                cParamOrientSHC aPrCamToInit =  *aK;
+                string aIdCam = aPrCamToInit.IdGrp();
+                if (aIdCam == aCamId)
+                {
+                    cout<<"    + Cam struct found in Blinis"<<endl;
+                    // CamToInit in BlockRef coordinate (R31)
+                    ElMatrix<double> aPrRotCam = ImportMat(aPrCamToInit.Rot());
+                    Pt3dr aPrTrCam = aPrCamToInit.Vecteur();
+                    // CamRef in BlockRef coordinate (R21)
+                    ElMatrix<double> aPrRotCamRef = ImportMat(mCamRefOrientSHC.Rot());
+                    Pt3dr aPrTrCamRef = mCamRefOrientSHC.Vecteur();
+                    // CamRef in world coordinate  (R2W)
+                    ElMatrix<double> aRotCamRef(3);
+                    aRotCamRef = ImportMat(mOriRef.Externe().ParamRotation().CodageMatr().Val());
+                    Pt3dr aCenterCamRef = mOriRef.Externe().Centre();
+
+                    // Compute CamToInit in world coordinate R3W = R31*(R21)t*R2W
+                    ElMatrix<double> R21t = aPrRotCamRef.transpose();
+                    ElMatrix<double> R31R21t(3);
+                    R31R21t.mul(aPrRotCam, R21t);
+                    ElMatrix<double> R3W(3);    // Rotation CamToInit
+                    R3W.mul(R31R21t, aRotCamRef);
+
+                    ElMatrix<double> TrInBlock(1,3);
+                    TrInBlock(0,0) = (-aPrTrCam + aPrTrCamRef).x;
+                    TrInBlock(0,1) = (-aPrTrCam + aPrTrCamRef).y;
+                    TrInBlock(0,2) = (-aPrTrCam + aPrTrCamRef).z;
+
+                    ElMatrix<double> aCenterCamRefMat(1,3);
+                    aCenterCamRefMat(0,0) = aCenterCamRef.x;
+                    aCenterCamRefMat(0,1) = aCenterCamRef.y;
+                    aCenterCamRefMat(0,2) = aCenterCamRef.z;
+
+                    ElMatrix<double> aCenterCamToInit = aRotCamRef.transpose()*TrInBlock + aCenterCamRefMat;
+                    Pt3dr aPtCenterCamToInit (aCenterCamToInit(0,0), aCenterCamToInit(0,1), aCenterCamToInit(0,2));
+
+                    Export(aIm2Find , mOriOut , aPtCenterCamToInit, R3W);
+                    // Store result in aCamToInit ???
+                    //aCamToInit->SetIncCentre(aCenterCamToInit);
+                    //aCamToInit->SetOrientation(R3W);
+                    // cout pour verifier
+                    double aL1_Cam1[3];R3W.GetLine(0,aL1_Cam1);
+                    double aL2_Cam1[3];R3W.GetLine(1,aL2_Cam1);
+                    double aL3_Cam1[3];R3W.GetLine(2,aL3_Cam1);
+                    cout<<"    + Rot: "<<endl
+                      <<"      "<<aL1_Cam1[0]<<" "<<aL1_Cam1[1]<<" "<<aL1_Cam1[2]<<endl
+                      <<"      "<<aL2_Cam1[0]<<" "<<aL2_Cam1[1]<<" "<<aL2_Cam1[2]<<endl
+                      <<"      "<<aL3_Cam1[0]<<" "<<aL3_Cam1[1]<<" "<<aL3_Cam1[2]<<endl
+                      <<endl;
+                    cout<<"    + Center = "<<aPtCenterCamToInit<<endl;
+
+
+                    mVCamInBlock.push_back(aCamToInit);
+                    cout<<"    + Init OK ! "<<endl;
+                    break;
+                }
+                aK++;
+            }
+        }
+    }
+    else
+    {
+        cout<<"    + Cam has already added ! Quit "<<endl;
+    }
+    return;
+}
+
+
+void cOneTimeStamp::AddAllCamPossible(string KeyIm2TimeCam)
+{
+    // from a time stamp & list of camId, get all Image existed
+    std::list< cParamOrientSHC >::iterator aK = mLSHC->ParamOrientSHC().begin();
+    cout<<"   + Search all possible cam to add "<<endl;
+    while (aK != mLSHC->ParamOrientSHC().end())
+    {
+        cParamOrientSHC aPr =  *aK;
+        string aIdCam = aPr.IdGrp();
+        if (aIdCam != mCamRefId)
+        {
+            this->AddCam(aIdCam, KeyIm2TimeCam);
+        }
+        aK++;
+    }
+}
+
+
+int Test_InitBloc(int argc, char ** argv)
+{
+    string aDir = "./";
+    string aPat, aPattern;
+    string aOriA;
+    string aBlinisPath = "./Blinis_Camp_Test_Blinis_GCP.xml";
+    string aOriOut = "OutInitBloc";
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aPattern, "PatIm",  eSAM_IsPatFile)
+                      << EAMC(aOriA, "Ori",  eSAM_IsExistDirOri)
+                      << EAMC(aBlinisPath, "BlinisStructCamFile" , eSAM_IsExistFile),
+          LArgMain()
+                      << EAM(aOriOut, "Out" , true, "Ori Out Folder, def=OutInitBloc")
+                );
+
+    SplitDirAndFile(aDir, aPat, aPattern);
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    // read Blinis XML
+    cStructBlockCam aSBC = StdGetFromPCP(aBlinisPath, StructBlockCam); //xml blinis
+    cout<<aSBC.KeyIm2TimeCam()<<endl; // recuperer le cle assoc
+    cLiaisonsSHC * aLSHC = aSBC.LiaisonsSHC().PtrVal();
+    std::list< cParamOrientSHC >::iterator aK = aLSHC->ParamOrientSHC().begin();
+    vector<string>aVIdCam;
+    while (aK != aLSHC->ParamOrientSHC().end())
+    {
+        cParamOrientSHC aPr =  *aK;
+        string aIdCam = aPr.IdGrp(); // $1 in image name cle inverse
+        aVIdCam.push_back(aIdCam);
+        ElMatrix<double> aRot = ImportMat(aPr.Rot());
+        aK++;
+    }
+    // $2 in image name cle inverse
+
+    // Pattern of image to init
+    vector<string>  aSetIm = *(aICNM->Get(aPat));
+    // Get orientation of all oriented image
+    vector<CamStenope*> aVCam;
+    StdCorrecNameOrient(aOriA, aICNM->Dir());
+    aOriOut = "Ori-" + aOriOut;
+    ELISE_fp::MkDirSvp(aOriOut);
+    StdCorrecNameOrient(aOriOut, aICNM->Dir(), true);
+    for (uint aKIm=0; aKIm<aSetIm.size(); aKIm++)
+    {
+        string aNameIm = aSetIm[aKIm];
+        std::string aKey = "NKS-Assoc-Im2Orient@-"+ aOriA ;
+        std::string aNameCam =  aICNM->Assoc1To1(aKey,aNameIm,true);
+        if (ELISE_fp::exist_file(aNameCam))
+        {
+            CamStenope * aCam = aICNM->StdCamStenOfNames(aNameIm, aOriA);
+            aCam->SetNameIm(aNameIm);
+            aVCam.push_back(aCam);
+        }
+        else
+        {
+            cout<<" ++ "<<aNameCam<<" not existe in "<<aOriA<<endl;
+        }
+
+    }
+
+    // On initialise les camera
+    cout<<endl<<"Init les cam.."<<endl;
+    std::map<std::string,cOneTimeStamp *> mMap_TimeId_cOneTimeStamp;
+    std::vector<cOneTimeStamp *>          mVTimeStamp; // size = nb cam in block
+    cout<<"Key Assoc : "<<aSBC.KeyIm2TimeCam()<<endl;
+    cout<<"BEGIN FUSION : "<<endl;
+    for (int aKP=0 ; aKP<int(aVCam.size()) ; aKP++)
+    {
+        // for all of oriented image
+        CamStenope * aPC = aVCam[aKP];
+        std::string aNamePose = aPC->NameIm();
+        cout<<endl<<"++ NameIm : "<<aNamePose<<endl;
+
+        // From name Im, get $1 et $2 (time stamp & CamID)
+        std::pair<std::string,std::string> aPair = aICNM->Assoc2To1(aSBC.KeyIm2TimeCam(),aNamePose,true);
+        cout<<"   + Assoc21 "<<aPair.first<<" + "<<aPair.second<<endl;
+        string nTimeId = aPair.first;
+        std::string nCamId = aPair.second;
+
+        // Creat a time stamp nBlockId if it is not existed
+        cOneTimeStamp *  aTimeStamp = NULL;
+        if (! DicBoolFind( mMap_TimeId_cOneTimeStamp, nTimeId))
+        {
+            cout<<"   ++ Create Time Stamp "<<nTimeId<<endl;
+            aTimeStamp = new cOneTimeStamp ( nTimeId,
+                                             aSBC.KeyIm2TimeCam(),
+                                             aICNM,
+                                             aLSHC
+                                             );
+            aTimeStamp->SetOri(aOriA);
+            aTimeStamp->SetOriOut(aOriOut);
+            mMap_TimeId_cOneTimeStamp.insert(std::pair<string, cOneTimeStamp*>(nTimeId , aTimeStamp));
+            aTimeStamp->SetCamRef(aPC, nCamId);
+            aTimeStamp->AddAllCamPossible(aSBC.KeyIm2TimeCam());
+            continue;
+        }
+        else
+        {   // if time stamp is already existe
+            std::map<std::string,cOneTimeStamp *>::iterator itFind;
+            itFind = mMap_TimeId_cOneTimeStamp.find(nTimeId);
+            // get TimeStamp
+
+            // Add cam to TimeStamp (normally it has already added)
+            if (itFind != mMap_TimeId_cOneTimeStamp.end())
+            {
+                cout<<"   + Time Stamp founded ! "<<endl;
+                aTimeStamp = itFind->second;
+                aTimeStamp->AddCam(nCamId, aSBC.KeyIm2TimeCam());
+
+            }
+            else
+                cout<<" PutainNNNNNNNNN"<<endl;
+        }
+    }
+
+    cout<<endl<<" ENDDDD TEST FUSIONNNN"<<endl;
+    cout<<"QUIT INIT BLOC"<<endl;
+return EXIT_SUCCESS;
+}
+
+
+
+
+// =============================================================================
+
+// =================== Test Zone Detect image blur ============================
 Im2D_REAL4 ImRead(string aNameImTif, int mRech = 1)
 {
    Tiff_Im aTif = Tiff_Im::UnivConvStd(aNameImTif);
@@ -631,6 +1657,7 @@ void JSON_WritePoly(vector<Pt3dr> aPoly, ofstream & aJSONOut, Pt3dr aOffSet = Pt
     for(uint aKP=0; aKP<aPoly.size(); aKP++)
     {
         Pt3dr aPt = aPoly[aKP];
+
         aPt = aPt + aOffSet;
         aJSONOut<<"     ["<<std::fixed<<aPt.x<<", "<<aPt.y<<", "<<aPt.z<<"]";
         if (aKP == aPoly.size()-1)
@@ -694,9 +1721,10 @@ void DrawOneFootPrintToPly(CamStenope * aCam,
         aPly.AddSeg(aCoul, aPolyEmpreint[1] + aOffSetPly, aPolyEmpreint[2] + aOffSetPly, aResolution.x);
         aPly.AddSeg(aCoul, aPolyEmpreint[2] + aOffSetPly, aPolyEmpreint[3] + aOffSetPly, aResolution.x);
         aPly.AddSeg(aCoul, aPolyEmpreint[3] + aOffSetPly, aPolyEmpreint[0] + aOffSetPly, aResolution.x);
+        aPly.PutFile(aPathPly);
+
     }
 
-    aPly.PutFile(aPathPly);
     return;
 }
 
@@ -709,10 +1737,8 @@ int DroneFootPrint(int argc,char ** argv)
 
     string aDir = "./";
     string aPat, aPattern;
-    double rech = 0.5;
     string aOri;
     string aOutPly = "FootPrint.ply";
-    double aOffSetZ =0;
     bool aPlyEachImg = false;
     Pt2dr aResolution = Pt2dr(2000,20); //[resol_line, resol_sphere]
     int aCodeProj = 2154;
@@ -736,9 +1762,12 @@ int DroneFootPrint(int argc,char ** argv)
     SplitDirAndFile(aDir, aPat, aPattern);
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     vector<string>  aSetIm = *(aICNM->Get(aPat));
+    StdCorrecNameOrient(aOri, aICNM->Dir());
 
     vector<CamStenope*> aVCam (aSetIm.size());
     cPlyCloud aCPlyRes;
+
+
 
     if (aPlyEachImg)
     {
@@ -1132,11 +2161,15 @@ Pt3di gen_coul_emp(int val)
 Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<Pt2dr> & aNPts2D)
 {
 
+    ELISE_ASSERT(aVCS.size() == aNPts2D.size(), "In Intersect_Simple: Nb Cam & Nb Pt2dr not coherent to intersect");
     std::vector<ElSeg3D> aVSeg;
 
     for (int aKR=0 ; aKR < int(aVCS.size()) ; aKR++)
     {
+        CamStenope * aCam = aVCS[aKR];
+        //cout<<aNPts2D[aKR]<<aCam->NameIm()<<endl;
         ElSeg3D aSeg = aVCS.at(aKR)->F2toRayonR3(aNPts2D.at(aKR));
+        //cout<<"done"<<endl;
         //ElSeg3D aSeg = aVCS.at(aKR)->Capteur2RayTer(aNPts2D.at(aKR));
         aVSeg.push_back(aSeg);
     }
@@ -1191,8 +2224,6 @@ void PlyPutForCC(string & aPlyResCC, vector<Pt3dr> & aVAllPtInter, vector<double
 int TestGiangNewHomol_Main(int argc,char ** argv)
 {
     //Test_Conv(argc, argv);
-
-
     string aDir = "./";
     string aSH="";
     string aOri="";

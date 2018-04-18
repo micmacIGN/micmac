@@ -287,6 +287,9 @@ template <class Type> const char * str_type(Type *);
 
 extern std::set<void *>  AllAddrEAM;
 extern std::list<std::string>  TheEmptyListEnum;
+extern std::map<void *,std::string>  MapValuesEAM;
+
+
 
 std::list<std::string> ModifListe(const std::list<std::string> &,const char * aNameType);
 
@@ -353,6 +356,7 @@ template <class Type> class ElArgMain : public GenElArgMain
 };
 
 bool EAMIsInit(void *);
+extern std::string StrInitOfEAM(void * anAdr) ;
 
 std::string StrFromArgMain(const std::string & aStr);
 
