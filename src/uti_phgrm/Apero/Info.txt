@@ -1,4 +1,10 @@
 
+GraphePose.cpp
+   MEP_SPEC_MST
+
+   mNbRotPreInit==0  => Pour initialiser les poses dans une tete de camera
+
+=========================================================================
 * DONE * CHANGER LA PONDERATION DANS RapOnZ poue adpatation pds glob
 
 (* EN FAIT GERE) ABANDONNER OU GERER VRAIMENT LA DOUBLE INCERTITUDE

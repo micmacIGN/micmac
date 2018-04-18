@@ -39,9 +39,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 #include <algorithm>
+#include "TapasCampari.h"
+
 
 class cAppliLiquor;
 class cIntervLiquor;
+
+
+// NKS-Set-OfFile
 
 // ffmpeg -i MVI_0001.MOV  -ss 30 -t 20 Im%5d_Ok.png
 
@@ -68,14 +73,16 @@ class cIntervLiquor
 
          cIntervLiquor(cAppliLiquor * anAppli,int aBegin,int aEnd,int aProf);
          int Num()   const  {return mNum;}
-         int Begin() const  {return mBegin;}
-         int End()   const  {return mEnd;}
-         std::string  NameOri() const {return "Liquor_" +  ((mProf==0) ? "Final" : ToString(mNum));}
-         std::string  NameMerge() const {return "MergeLiq_" + ToString(mNum);}
+         // int Begin() const  {return mBegin;}
+         // int End()   const  {return mEnd;}
+         const std::string & NameOri() const {return mNameOri;}
+         const std::string & NameMerge() const {return mNameMerge;}
+         const std::string & PatLOF() const {return mPatLOF;}
          void SetF1(cIntervLiquor * aIL) {mF1=aIL;}
          void SetF2(cIntervLiquor * aIL) {mF2=aIL;}
          cIntervLiquor * F1() {return mF1;}
          cIntervLiquor * F2() {return mF2;}
+         bool IsTerminal() const {return (mF1==0) && (mF2==0) ;}
 
      private :
          static int      TheCpt;
@@ -87,35 +94,45 @@ class cIntervLiquor
          int             mNum;
          cIntervLiquor * mF1;
          cIntervLiquor * mF2;
+         std::string     mNameLOF; //  Name liste of file
+         std::string     mPatLOF; //  Name liste of file
+         std::string     mNameOri; //  Name liste of file
+         std::string     mNameMerge; //  Name liste of file
 };
 
 
-class cAppliLiquor
+class cAppliLiquor : public cAppli_Tapas_Campari
 {
     public :
         cAppliLiquor(int argc,char ** argv);
         const std::string & Dir() {return mEASF.mDir;}
+        const std::string & Name(int aK) {return mVNames->at(aK);}
+        const std::string & TimeStamp(int aK) {return mVTimeStamp->at(aK);}
 
 
     private :
         cIntervLiquor * SplitRecInterv(int aDeb,int aEnd,int aProf);
         std::string ComTerm(const  cIntervLiquor&) const;
-        void DoComTerm();
         void DoComRec(int aLevel);
-        std::string  StrImMinMax(const  cIntervLiquor& anIL) const;
+        // std::string  StrImMinMax(const  cIntervLiquor& anIL) const;
+
 
 
         std::string mFullName;
         std::string mCalib;
         cElemAppliSetFile mEASF;
         const std::vector<std::string> * mVNames;
+        const std::vector<std::string> * mVTimeStamp;
         std::vector<std::list<cIntervLiquor*> > mInterv;
 
         int                              mNbIm;
         int                              mSzLim;
         int                              mOverlapMin;  // Il faut un peu de redondance
-        int                              mOverlapMax;  // Si redondance trop grande, risque de divergence au raccord
+        Pt2di                            mIntervOverlap;  // Si redondance trop grande, risque de divergence au raccord
         double                           mOverlapProp; // entre les 2, il peut sembler logique d'avoir  une raccord prop
+        bool                             mExe;
+        std::string                      mSH;
+        std::string                      mParamCommon;
 };
 
 // =============  cIntervLiquor ===================================
@@ -129,8 +146,18 @@ cIntervLiquor::cIntervLiquor(cAppliLiquor * anAppli,int aBegin,int aEnd,int aPro
    mProf  (aProf),
    mNum   (TheCpt++),
    mF1    (0),
-   mF2    (0)
+   mF2    (0),
+   mNameLOF    ("Liquor_LOF_"+ToString(mNum) + ".xml"),
+   mPatLOF     (" NKS-Set-OfFile@"+mNameLOF + " "),
+   mNameOri    ( (mProf==0) ? "LIQUOR_Final"  : ( "Liquor_Cmp_"+ ToString(mNum))),
+   mNameMerge  ("Liquor_Merge_" + ToString(mNum))
 {
+   cListOfName aLON;
+   for (int aK=mBegin ; aK<mEnd ; aK++)
+   {
+      aLON.Name().push_back(mAppli->Name(aK));
+   }
+   MakeFileXML(aLON,mNameLOF);
 }
 
 
@@ -138,11 +165,12 @@ cIntervLiquor::cIntervLiquor(cAppliLiquor * anAppli,int aBegin,int aEnd,int aPro
 
 // =============  cAppliLiquor ===================================
 
+
 cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
-    mSzLim       (40),
-    mOverlapMin  (3),
-    mOverlapMax  (40),
-    mOverlapProp (0.1)
+    mSzLim          (40),
+    mIntervOverlap  (3,40),
+    mOverlapProp    (0.1),
+    mExe            (true)
 {
 
 
@@ -153,7 +181,15 @@ cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
                       << EAMC(mCalib,"Calibration Dir",eSAM_IsExistDirOri),
            LArgMain() << EAM(mSzLim,"SzInit",true,"Sz of initial interval (Def=50)")
                       << EAM(mOverlapProp,"OverLap",true,"Prop overlap (Def=0.1) ")
+                      << EAM(mIntervOverlap,"IOL",true,"Interval Overlap Def(3,40) image / (4,8) Blocs")
+                      << EAM(mExe,"Exe",true,"Execute commands")
+                      << EAM(mSH,"SH",true,"Set of Homogue")
+                      << ArgATP()
     );
+
+    // std::cout << "STRrrr mCalib=[" << StrInitOfEAM(&mCalib) << "]\n";
+    // std::cout << "STRrrr SzLim=[" << StrInitOfEAM(&mSzLim) << "]\n";
+    // std::cout << "STRrrr mOver=[" << StrInitOfEAM(&mOverlapProp) << "]\n";
 
     if (MMVisualMode) return;
 
@@ -162,11 +198,37 @@ cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
     mNbIm = (int)mVNames->size();
     StdCorrecNameOrient(mCalib,Dir());
 
+    std::string aComPB;
+    AddParamBloc(aComPB);
+    if (mWithBlock)
+    {
+         InitAllImages(mEASF.mPat,mEASF.mICNM);
+         mVNames = & BlocImagesByTime();
+         mVTimeStamp = & BlocTimeStamps();
+         if (! EAMIsInit(&mIntervOverlap))
+         {
+              mIntervOverlap = Pt2di(4,10);
+         }
+         mIntervOverlap = Pt2di(1,1) +mIntervOverlap * NbInBloc();
+       
+    }
+    mParamCommon  =  StrParamBloc();
+    mParamCommon  += BlQUOTE(StrInitOfEAM(&mSH));
+/*
+{
+    for (const auto & aS : *mVNames)
+        std::cout << "NNN= " << aS << "\n";
+    std::cout << "BBBBB " << mWithBlock << "\n";
+    std::cout << "ARGBL " << mParamCommon  << "\n";
+
+    getchar();
+}
+*/
+
 
     SplitRecInterv(0,mNbIm,0);
-    DoComTerm();
 
-    for (int aLevel = (int)(mInterv.size() - 2);  aLevel>=0 ;  aLevel--)
+    for (int aLevel = (int)(mInterv.size() - 1);  aLevel>=0 ;  aLevel--)
     {
          DoComRec(aLevel);
     }
@@ -184,14 +246,18 @@ void  cAppliLiquor::DoComRec(int aLevel)
    )
    {
         cIntervLiquor & anIL = **II;
-        std::string aComMerge =    MM3dBinFile("Morito")
-                                + "Ori-"+ anIL.F1()->NameOri() + std::string("/Orientation.*xml ")
-                                + "Ori-"+ anIL.F2()->NameOri() + std::string("/Orientation.*xml ")
-                                +  anIL.NameMerge();
+        if (!anIL.IsTerminal())
+        {
+            std::string aComMerge =    MM3dBinFile("Morito")
+                                    + "Ori-"+ anIL.F1()->NameOri() + std::string("/Orientation.*xml ")
+                                    + "Ori-"+ anIL.F2()->NameOri() + std::string("/Orientation.*xml ")
+                                    +  anIL.NameMerge();
 
-         aLComMerge.push_back(aComMerge);
+             aLComMerge.push_back(aComMerge);
+         }
    }
-   cEl_GPAO::DoComInParal(aLComMerge);
+   if (mExe)
+      cEl_GPAO::DoComInParal(aLComMerge);
 
    std::list<std::string> aLComComp;
    for
@@ -202,24 +268,35 @@ void  cAppliLiquor::DoComRec(int aLevel)
    )
    {
         cIntervLiquor & anIL = **II;
-        std::string aComComp =     MM3dBinFile("Campari")
-                                +  QUOTE(mFullName)  + " "
+        std::string aCom;
+        if (anIL.IsTerminal())
+        {
+             aCom =  ComTerm(anIL);
+        }
+        else
+        {
+            aCom =     MM3dBinFile("Campari")
+                                +  anIL.PatLOF()
                                 +  anIL.NameMerge() + " "
                                 +  anIL.NameOri()  + " "
-                                +  StrImMinMax(anIL)
+                                //  +  StrImMinMax(anIL)
+                                +  mParamCommon
                                 +  " SigmaTieP=2.0 ";
+        }
 
         if (aLevel==0)
         {
               // aComComp = aComComp + " AllFree=true ";
         }
         // std::cout << aComComp << "\n";
-        aLComComp.push_back(aComComp);
+        aLComComp.push_back(aCom);
    }
-   cEl_GPAO::DoComInParal(aLComComp);
+   if (mExe) 
+      cEl_GPAO::DoComInParal(aLComComp);
 }
 
 
+/*
 void cAppliLiquor::DoComTerm()
 {
    std::list<std::string> aLComInit;
@@ -234,12 +311,22 @@ void cAppliLiquor::DoComTerm()
         aLComInit.push_back(aCom);
         std::cout << aCom << "\n";
    }
-   cEl_GPAO::DoComInParal(aLComInit);
+   if (mExe) 
+      cEl_GPAO::DoComInParal(aLComInit);
 }
+*/
 
 
 cIntervLiquor * cAppliLiquor::SplitRecInterv(int aDeb,int aEnd,int aProf)
 {
+   {
+       for (int aK=0 ; aK< aProf +1 ; aK++)
+           std::cout << " ++ ";
+       // std::cout << "SplitRecInterv " << Name(aDeb) << " " << Name(aEnd-1) << " " << aProf << "\n";
+       std::cout << "SplitRecInterv " << aDeb << " " << aEnd << " " << aProf << "\n";
+   }
+/*
+*/
    cIntervLiquor * aRes =  new cIntervLiquor(this,aDeb,aEnd,aProf);
    int aLarg = aEnd-aDeb;
    if (aLarg < mSzLim)
@@ -249,13 +336,35 @@ cIntervLiquor * cAppliLiquor::SplitRecInterv(int aDeb,int aEnd,int aProf)
    }
    else
    {
-         int anOverlap = ElMax(mOverlapMin,ElMin(mOverlapMax,round_ni(aLarg*mOverlapProp)));
+         int anOverlap = ElMax(mIntervOverlap.x,ElMin(mIntervOverlap.y,round_ni(aLarg*mOverlapProp)));
          int aNewLarg = round_up((aLarg + anOverlap)/2.0);
 
-         aRes->SetF1(SplitRecInterv(aDeb,aDeb+aNewLarg,aProf+1));
-         aRes->SetF2(SplitRecInterv(aEnd-aNewLarg,aEnd,aProf+1));
+         int aNewEnd = ElMin(aDeb+aNewLarg,aEnd);
+         int aNewDeb = ElMax(aEnd-aNewLarg,aDeb);
+
+         bool DoSplit = (aNewEnd < aEnd) && (aNewDeb >aDeb);
+         if (mWithBlock)
+         {
+            while ((aNewEnd < mNbIm) &&  (TimeStamp(aNewEnd-1)==TimeStamp(aNewEnd)))
+                  aNewEnd++;
+            while ((aNewDeb>0) &&  (TimeStamp(aNewDeb)==TimeStamp(aNewDeb-1)))
+                  aNewDeb --;
+            DoSplit = DoSplit &&  (aNewEnd < aEnd) && (aNewDeb >aDeb);
+            if (DoSplit)
+            {
+                 if ( (LongestBloc(aDeb,aNewEnd)!=NbInBloc()) || (LongestBloc(aNewDeb,aEnd)!=NbInBloc()) )
+                    DoSplit =false;
+            }
+         }
+
+         if (DoSplit)
+         {
+            aRes->SetF1(SplitRecInterv(aDeb,aNewEnd,aProf+1));
+            aRes->SetF2(SplitRecInterv(aNewDeb,aEnd,aProf+1));
+         }
    }
 
+   // Incremente la liste des 
    for (int aP = (int)mInterv.size() ; aP<=aProf ; aP++)
    {
       std::list<cIntervLiquor*> aL;
@@ -267,32 +376,31 @@ cIntervLiquor * cAppliLiquor::SplitRecInterv(int aDeb,int aEnd,int aProf)
    return aRes;
 }
 
+/*
 std::string  cAppliLiquor::StrImMinMax(const  cIntervLiquor& anIL) const
 {
    std::string aN1  = (*mVNames)[anIL.Begin()];
    std::string aN2  = (*mVNames)[anIL.End()-1];
    return  std::string(" ImMinMax=[" +aN1+ "," + aN2 + "] ");
 }
+*/
 
 std::string cAppliLiquor::ComTerm(const  cIntervLiquor& anIL) const
 {
 
-   // std::string aN1  = (*mVNames)[anIL.Begin()];
-   // std::string aN2  = (*mVNames)[anIL.End()-1];
-   std::string aNMil  = (*mVNames)[(anIL.End()+anIL.Begin())/2];
    std::string aOut = anIL.NameOri();
 
 
    std::string aCom = MM3dBinFile("Tapas")
                       + " Figee "
-                      + QUOTE(mFullName)
+                      + anIL.PatLOF()
                       + std::string(" InCal=" + mCalib)
                       // + std::string(" ImMinMax=[" +aN1+ "," + aN2 + "] ")
-                      + StrImMinMax(anIL)
-                      + std::string(" ImInit=" +aNMil + " ")
+                      + std::string(" ImInit=MIDLE ")
                       + std::string(" Out=" + aOut + " ")
                       + std::string(" RefineAll=false ")
                       + std::string(" SauvAutom=NONE ")
+                      + mParamCommon
                       ;
 
    return aCom;

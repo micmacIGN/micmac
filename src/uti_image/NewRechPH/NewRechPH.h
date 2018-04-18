@@ -238,7 +238,7 @@ class cAppli_NewRechPH
 
 
         double      mS0;
-        double      mScaleStab;
+        double      mScaleStab;  // Scale for selection of Gray Min/Max
         double      mSeuilAC;
         double      mSeuilCR; // Contraste relatif
         bool        mScaleCorr;
@@ -293,12 +293,48 @@ class cAppli_NewRechPH
 
 };
 
+class cProfilPC
+{
+    public :
+
+        Im2D_INT1 mIm;
+        INT1 **   mData;
+        Pt2di     mSz;
+
+        cProfilPC (Im2D_INT1);
+        cProfilPC (const cProfilPC &,int TODifferentiataFROMConstructeur);
+
+        // int    ComputeShiftAllChannel(const cProfilPC & aCP,int aChanel) const;
+        int    ComputeShiftOneChannel(const cProfilPC & aCP,int aChanel) const;
+        int    ComputeCorrelOneChannelOneShift(const cProfilPC & aCP,int aChanel,int aShift) const;
+        int    OptimiseLocOneShift(const cProfilPC & aCP,int aChanel,int aShift0) const;
+
+
+
+    private :
+        // cProfilPC (const cProfilPC &) =delete;
+};
+
+struct cTimeMatch
+{
+   public:
+     cTimeMatch();
+     void Show();
+
+   // private:
+     double  mTBinRad;
+     double  mTBinLong;
+     double  mTDistRad;
+     double  mTShif;
+     double  mTDist;
+};
+
 class cCompileOPC
 {
     public :
 
       // Return -1 si arret avant correl
-      double  Match(cCompileOPC & aCP2,const cFitsParam & aFP,int & aShift,int & aLevFail);
+      double  Match(bool Overlap,cCompileOPC & aCP2,const cFitsOneLabel &,const cSeuilFitsParam &,int & aShift,int & aLevFail,cTimeMatch *);
       std::vector<double>  Time(cCompileOPC & aCP2,const cFitsParam & aFP);
 
 
@@ -316,14 +352,17 @@ class cCompileOPC
       double DistIR(const cCompileOPC & aCP) const; // Dist inv to Rad
  
 
-      int    ComputeShiftOneC(const cCompileOPC & aCP,int aChanel) const;
-      int    ComputeShiftGlob(const cCompileOPC & aCP,double & anInc) const;
+      int  HeuristikComputeShiftOneC(const cCompileOPC & aCP,int aChanel) const;
+      int  ComputeShiftOneC(const cCompileOPC & aCP,int aChanel) const;
+      int  ComputeShiftGlob(const cCompileOPC & aCP,double & anInc) const;
+      int  RobustShift(const std::vector<int> & aVS,double & Incoh) const;
+
 
       double DistIm(const cCompileOPC & aCP,int aShiftIm2) const;
       inline int DifPer(int,int) const;
-      void SetFlag(const cFitsOneLabel & aFOL);
-      int DifShortF(const cCompileOPC &);
-      int DifLongF(const cCompileOPC &);
+      void SetFlag(const cFitsOneLabel & aFOL,bool Overlap);
+      int DifShortF(const cCompileOPC &,bool Overlap);
+      int DifLongF(const cCompileOPC &,bool Overlap);
 
       // double DistShift(const cCompileOPC & aCP,int aChanel,int aShiftIm2) const;
 
@@ -336,10 +375,19 @@ class cCompileOPC
       INT1 **      mProf;
       Pt2di        mSzProf;
       int          mNbTeta;
-      int          mShortFlag;
-      tCodBin      mLongFlag;
-      bool         mFlagIsComp;
+
+      // Overlap
+      int          mOL_ShortFlag;
+      tCodBin      mOL_LongFlag;
+      bool         mOL_FlagIsComp;
+      // Decision
+      int          mDec_ShortFlag;
+      tCodBin      mDec_LongFlag;
+      bool         mDec_FlagIsComp;
+
       int          mTmpNbHom;
+
+      std::vector<cProfilPC> mVProf;
 };
 
 

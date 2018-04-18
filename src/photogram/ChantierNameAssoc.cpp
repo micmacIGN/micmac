@@ -2103,7 +2103,10 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
             const tSet * aSet = mVM[aK]->Get(aKey);
             if (aSet!=0)
             {
-                std::cout<<"\""<<aKey<<"\": "<<aSet->size()<<" matches."<<std::endl;
+                if (!MPD_MM()) 
+                {
+                    std::cout<<"\""<<aKey<<"\": "<<aSet->size()<<" matches."<<std::endl;
+                }
 
                 return aSet;
             }

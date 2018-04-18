@@ -3224,9 +3224,49 @@ vector<Pt3dr> RPC2D::filterOutOfBound(vector<Pt3dr> aVectorGeoNormIN, vector<vec
 }
 */
 
+
+int DimapUseRPC_main(int argc, char ** argv)
+{
+	double X = 0, Y = 0, Z = 0;
+	bool doDirect=true;
+	string aNameFile, writeToFile="";
+	ElInitArgMain
+	(
+		argc, argv,
+		LArgMain() << EAMC(aNameFile, "RPC Dimap file")
+		<< EAMC(X, "X coordinate of point (longitude or column of image)")
+		<< EAMC(Y, "Y coordinate of point (latitude or row of image)")
+		<< EAMC(Z, "Z coordinate of point (altitude)"),
+		LArgMain()
+		<< EAM(doDirect, "Direct", true, "Direct (def=true, im2geo) or inverse (geo2im)")
+		<< EAM(writeToFile, "ToFile", true, "Name of output file to write data in (def -> does not write to file)")
+	);
+
+	Pt3dr aPt(X, Y, Z);
+	RPC aRPC;
+	aRPC.ReadDimap(aNameFile);
+	cout << "Dimap File read" << endl;
+	aRPC.info();
+
+	Pt3dr aPtOut;
+	if (doDirect){aPtOut = aRPC.DirectRPC(aPt); }
+	else {aPtOut = aRPC.InverseRPC(aPt); }
+	cout << "Transformed point : " << aPtOut << endl;
+
+	if (writeToFile != "")
+	{
+		std::ofstream fic;
+		fic.open(writeToFile.c_str(), std::ios::app);
+		fic << std::setprecision(16);
+		fic << aPtOut << endl;
+	}
+
+	return 0;
+}
+
 int RPC_main(int argc, char ** argv)
 {
-	double X=0, Y=0, Z=0;
+	double X = 0, Y = 0, Z = 0;
 	bool doDirect;
 	string aNameFile;
 	ElInitArgMain
@@ -3254,7 +3294,7 @@ int RPC_main(int argc, char ** argv)
 	else {aPtOut = aRPC.InverseRPC(aPt); }
 	cout << "Transformed point : " << aPtOut << endl;
 	*/
-    return 0;
+	return 0;
 }
 
 

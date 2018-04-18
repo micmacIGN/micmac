@@ -13,6 +13,7 @@ set(uti_image_NewRechPH_Src_Files
     ${UTI_IMAGE_NewRechPH_DIR}/Match_Binaire.cpp
     ${UTI_IMAGE_NewRechPH_DIR}/Match_Image.cpp
     ${UTI_IMAGE_NewRechPH_DIR}/Match_InvRad.cpp
+    ${UTI_IMAGE_NewRechPH_DIR}/Match_ImageSecPhase.cpp
 )
 
 
