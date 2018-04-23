@@ -219,6 +219,7 @@ class cInterfChantierNameManipulateur
 //  !!!! CONVENTION DIFFERENTES ENTRE StdCamStenOfNames  et les deux AUTRES , 
 //  !! NAME puis ORI
          CamStenope *  StdCamStenOfNames(const std::string & aNameIm,const std::string & anOri);  // => Ori-XX/Orientation...
+         CamStenope *  StdCamStenOfNamesSVP(const std::string & aNameIm,const std::string & anOri); // => return 0 si Ori non existed
 
 //  !!!  ORI pui NAME
          std::string  StdNameCamGenOfNames(const std::string & anOri,const std::string & aNameIm);

@@ -247,8 +247,6 @@ int ConvertOriCalib_main(int argc, char ** argv);
 
 int DroneFootPrint(int argc,char ** argv);
 
-
-
 std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC, const std::string & aLib)
 {
 	for (int aK = 0; aK<int(aVC.size()); aK++)
@@ -793,6 +791,8 @@ int Homol2WayNEW_main(int argc, char ** argv);
 
 int Test_InitBloc(int argc, char ** argv);
 
+int HomolLSMRefine_main(int argc,char ** argv);
+
 int UnWindows(int argc, char ** argv);
 
 int MakePly_CamOrthoC(int argc, char ** argv);
@@ -1074,6 +1074,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("CtrlCloseLoop",Test_CtrlCloseLoop,"Test Close Loop"));
         aRes.push_back(cMMCom("InitOriByBlocRigid",Test_InitBloc,"Init another camera orientation from known camera block structure and one camera ori in block"));
         aRes.push_back(cMMCom("TrajectoFromOri",Test_TrajectoFromOri,"Tracer Trajecto d'acquisition a partir de Orientation"));
+        aRes.push_back(cMMCom("HomolLSMRefine",HomolLSMRefine_main,"Refine Homol Pack by Least Square Matching"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));
