@@ -1271,6 +1271,14 @@
    <ListOfName Nb="1" Class="true" ToReference="true" >
         <Name Nb="*" Type="std::string"> </Name>
    </ListOfName>
+   
+    <ListOfRadiomEgalModel Nb="1" Class="true" ToReference="true" >
+		  <ModLin Nb="*">
+           <NameIm Nb="1" Type="std::string"> </NameIm>
+           <a Nb="1" Type="double"> </a>
+           <b Nb="1" Type="double"> </b>
+		</ModLin>
+   </ListOfRadiomEgalModel>
 
    <SetNameDescriptor  Nb="1" Class="true" ToReference="true" >
          <AddDirCur Nb="?" Type="bool" Def="true"> </AddDirCur>

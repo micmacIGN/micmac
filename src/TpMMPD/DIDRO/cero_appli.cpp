@@ -3,26 +3,30 @@
 cERO_Appli::cERO_Appli(int argc, char** argv)
 {
     mDebug=false;
-    mMinOverX_Y=30; // recouvrement minimum entre 2 images, calculé séparément pour axe y et x.
-    mMinOverX_Y_fichierCouple=5; // si le couple est renseigné dans un fichier, on est moins exigent
-    mPropPixRec=10 ; // recouvrement minimum effectif (no data enlevée) en proportion de pixels, 1/mPropPixRec
-    mDirOut="EROS-Tmp/" ;
+    mMinOverX_Y=60; // recouvrement minimum entre 2 images, calculé séparément pour axe y et x.
+    mMinOverX_Y_fichierCouple=20; // si le couple est renseigné dans un fichier, on est moins exigent
+    mPropPixRec=33 ; // recouvrement minimum effectif (no data enlevée) en proportion de pixels, 1/mPropPixRec
+    mDirOut="EROS/" ;
     mDir="./";
     mFullName=".*.tif";
-    mSaveSingleOrtho=true;
+    mSaveSingleOrtho=false;
+    mFileOutModels="RadiomEgalModels.xml";
 
     ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(mFullName, "Pattern of orthophoto",eSAM_IsPatFile),
         LArgMain()  << EAM(mFileClpIm,"FileCpl",true,"File of images couples like the one determined by GrapHom/oriconvert for Tapioca File, prefix Ort_ not include")
+                    << EAM(mFileOutModels,"Out",true,"xml file name for the computed radiometric equalization models, default 'RadiomEgalModels.xml'")
                     << EAM(mDebug,"Debug",true,"Print Messages and write intermediates results")
                     << EAM(mSaveSingleOrtho,"ExportSO",true,"Export Single ortho corrected, def false")
-                    << EAM(mDirOut,"Dir",true,"Directory where to store all the results")  
+                    << EAM(mDirOut,"Dir",true,"Directory where to store all intermediate results, default 'EROS/'. If Debug==0, this directory is purged at the end of the process.")
     );
     // to do: corriger mDirOut si pas de "/" à la fin
 
     SplitDirAndFile(mDir,mPatOrt,mFullName);
+    MakeFileDirCompl(mDirOut);
+    mDirOut=mDir+mDirOut;
     // define the "working directory" of this session
     mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
     // create the list of images starting from the regular expression (Pattern)
@@ -32,7 +36,7 @@ cERO_Appli::cERO_Appli(int argc, char** argv)
     if(ELISE_fp::IsDirectory(mDirOut))
     {
        std::cout << "Purge of directory " << mDirOut << "\n";
-        ELISE_fp::PurgeDirGen(mDirOut,1);
+       ELISE_fp::PurgeDirGen(mDirOut,1);
     }
 
     // on charge les orto
@@ -42,7 +46,7 @@ cERO_Appli::cERO_Appli(int argc, char** argv)
         cImGeo aIm(mDir+imName);
         mLIm.push_back(aIm);
     }
-    std::cout << mLFile.size() << " Ortho chargées.\n";
+    std::cout << mLFile.size() << " Orthoimages loaded.\n";
 
     // COUPLES d'ORTHO
     if (!ELISE_fp::exist_file(mFileClpIm) && EAMIsInit(&mFileClpIm))
@@ -64,28 +68,32 @@ cERO_Appli::cERO_Appli(int argc, char** argv)
     }
 
     // CALCUL un modèle d'égalisation pour chacun des couples
-
     computeModel4EveryPairs();
 
     // moyenne les différents modèles pour chacunes des images
     moyenneModelPerOrt();
 
-    // applique le modèle à chacune des images -- idealement, ne devrait sauver les ortho corrigée pour leur radiometrie qu'en mode debug,
-    // il faudrait effectuer le mosaiquage et la correction radiometrique d'un coup --> délivrable final sans trop de résultats intermédiaires
-    // qui plus est, il faut lancer applyRE() en multiprocess. comment sans avoir une appli autonome? aie, demander à MPD
+    saveModelsGlob();
+
+    // applique le modèle à chacune des images
     if (mSaveSingleOrtho) applyRE();
 
+    // suppression du directory intermediate results
+    if(!mSaveSingleOrtho &&  !mDebug && ELISE_fp::IsDirectory(mDirOut))
+    {
+       std::cout << "Removal of directory " << mDirOut << "\n";
+       ELISE_fp::PurgeDir(mDirOut,1);
+    }
 }
 
 void cERO_Appli::applyRE()
 {
 
-     if (ELISE_fp::exist_file(mDir+"MTDMaskOrtho.xml"))
+    /* if (ELISE_fp::exist_file(mDir+"MTDMaskOrtho.xml"))
         { System("cp " + mDir+"MTDMaskOrtho.xml"+ " " + mDirOut+"MTDMaskOrtho.xml"); } else { std::cout << "unable to copy file " << mDir+"MTDMaskOrtho.xml" <<"\n";}
         if (ELISE_fp::exist_file(mDir+"MTDOrtho.xml"))
         { System("cp " + mDir+"MTDOrtho.xml"+ " " + mDirOut+"MTDOrtho.xml"); } else { std::cout << "unable to copy file " << mDir+"MTDOrtho.xml" <<"\n";}
-
-
+    */
 
     int it(0);
     for (auto & ortho : mLIm)
@@ -95,8 +103,8 @@ void cERO_Appli::applyRE()
         std::cout << "Apply radiometric egalization on ortho " << ortho.Name() << ", save result in directory " << mDirOut <<"\n";
         Im2D_REAL4 aIm(ortho.applyRE(mL2Dmod.at(it)));
 
-
             // temporary, but now i copy hidden part, incidence images and xml in order to be able to run Tawny with corrected images
+            /*
             std::vector<std::string> Vfile;
             Vfile.push_back("PC" + ortho.Name().substr(3));
             Vfile.push_back("PC" + ortho.Name().substr(3, ortho.Name().size()-6) + "xml");
@@ -106,6 +114,7 @@ void cERO_Appli::applyRE()
             { if (ELISE_fp::exist_file(mDir+file))
                 { System("cp " + mDir+file+ " " + mDirOut+file); } else { std::cout << "unable to copy file " << mDir+file <<"\n";}
             }
+            */
 
 
         // très peu approprié de mettre ça ici, mais mon jeu test sont les images thermiques de variocam
@@ -127,7 +136,6 @@ void cERO_Appli::applyRE()
         );
         // ne pas oublier de changer le format d'écriture en u_int_4
 */
-
         // je sauve le résultats
         ELISE_COPY(
                     aIm.all_pts(),
@@ -293,7 +301,7 @@ void cERO_Appli::loadEROSmodel4OneIm(std::string aNameOrt)
 
     // sauve le modèle dans la liste des modèles
     mL2Dmod.push_back(LSQ_mod.getModel());
-
+    // exporte le modèle pour utilisation ultérieure
     }
     else
     {
@@ -301,7 +309,21 @@ void cERO_Appli::loadEROSmodel4OneIm(std::string aNameOrt)
         // modèle "unité" pour cette image, pas de correction radiometrique donc - solution temporaire
         mL2Dmod.push_back(c2DLineModel(0,1));
     }
+}
 
+void cERO_Appli::saveModelsGlob(){
+    int it(0);
+    cListOfRadiomEgalModel aLRE;
+    for (auto & OrtName : mLFile)
+    {
+       cModLin mod;
+       mod.NameIm()=OrtName;
+       mod.a()=mL2Dmod.at(it).getA();
+       mod.b()=mL2Dmod.at(it).getB();
+       aLRE.ModLin().push_back(mod);
+       it++;
+    }
+    MakeFileXML(aLRE,mDir+mFileOutModels);
 }
 
 
