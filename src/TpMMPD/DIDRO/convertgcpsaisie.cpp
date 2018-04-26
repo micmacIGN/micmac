@@ -102,7 +102,7 @@ int convertGCPSaisie_Pix4D2MM(int argc,char ** argv)
 
                     cInterfChantierNameManipulateur * aICNM= cInterfChantierNameManipulateur::BasicAlloc(dir);
                     const std::vector<std::string> aSetIm = *(aICNM->Get(aPat));
-                    int it(0);
+                    int it(1);
                     for (auto & im : aSetIm){
                         std::string pix4Dlab=dir+" ("+ToString(it+1)+").JPG";
                         KAIm[pix4Dlab]=dir+im;
