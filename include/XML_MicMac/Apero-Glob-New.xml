@@ -169,6 +169,7 @@
                 <Symb> WBG_Stricte=false  </Symb>
                 <Symb> WBG_Ang=xxxxx  </Symb>
                 <Symb> WBG_Center=xxxxx  </Symb>
+               <Symb>  InitBlocCam=false </Symb>
 
                 <eSymb> With_BlockGlobalBundle=Or ${WithBloc_Glob} ${WithBloc_DistGlob}  </eSymb>
 
@@ -241,6 +242,17 @@
                           </PosValueInit>
                    </PoseCameraInc>
               </#WHEN>
+              <#WHEN VTEST=${InitBlocCam}>
+                   <PoseCameraInc>
+                          <PatternName>   ${SetImInit}   </PatternName>
+                          <CalcNameCalib>  GenerateKC-Others  </CalcNameCalib>
+                          <PosValueInit>
+                              <PosFromBlockRigid> ${NameInputBloc} </PosFromBlockRigid> <!-- Id Block -->
+                          </PosValueInit>
+                   </PoseCameraInc>
+              </#WHEN>
+
+
               <#WHEN VTEST=${InitCamSpecif}>
                    <PoseCameraInc>
                          <PatternName>   ${SetImInit}   </PatternName>
@@ -280,6 +292,9 @@
 	           <CalcNameCalib>  GenerateKC-Others  </CalcNameCalib>
                    <InitNow> false </InitNow>
                    <MEP_SPEC_MST>
+                            <#WHEN  VTEST=${InitBlocCam}>
+                                   <MSTBlockRigid> ${NameInputBloc} </MSTBlockRigid> <!-- Id Block -->
+                            </#WHEN>
                            <Show> true </Show>
                            <MontageOnInit> ${MOI} </MontageOnInit>
                    </MEP_SPEC_MST>

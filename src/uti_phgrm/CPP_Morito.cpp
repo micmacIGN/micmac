@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
 
+
 // ffmpeg -i MVI_0001.MOV  -ss 30 -t 20 Im%5d_Ok.png
 
 // Im*_Ok => OK
@@ -73,7 +74,7 @@ class cOriMorito
         std::string mName;
 };
 
-class cAppliMorito
+class cAppliMorito 
 {
     public :
         cAppliMorito(int argc,char ** argv);
@@ -169,6 +170,7 @@ cAppliMorito::cAppliMorito(int argc,char ** argv)  :
            LArgMain() << EAM(mWithOutLayer,"WithOutLayer",true,"Is robust estimation requires or simply L2 (Def=false, other not supported now)")
                       << EAM(mDir,"Dir",true,"Global directory, Def=./")
 
+
     );
 
     if (MMVisualMode) return;
@@ -178,6 +180,7 @@ cAppliMorito::cAppliMorito(int argc,char ** argv)  :
     InitOneDir(mOri2,false);
     mDirOutLoc =  "Ori-"  + mOriOut + "/";
     mDirOutGlob = Dir() + mDirOutLoc;
+    std::string aComPB; // Pas besoin de aComPB
 
     for
     (

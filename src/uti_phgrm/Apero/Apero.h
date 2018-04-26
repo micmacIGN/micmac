@@ -43,6 +43,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cParamApero.h"
 #include "BundleGen.h"
 
+double DistanceMatr(const ElRotation3D & aR1,const ElRotation3D & aR2);
+
 class cImplemBlockCam;
 
 
@@ -107,6 +109,10 @@ class cPoseCdtImSec;
 
 std::vector<cGenPoseCam *> ToVecGP(const std::vector<cPoseCam *> &);
 std::vector<cPoseCam *> ToVecDownCastPoseCamNN(const std::vector<cGenPoseCam *> &);
+
+// Compilation des blocs, avant init
+class cPreCB1Pose;
+class cPreCompBloc;
 
 /************************************************************/
 /*                                                          */
@@ -454,6 +460,31 @@ class cPosePolynGenCam : public  cGenPoseCam
          cPolynBGC3M2D_Formelle  mCamF;
 };
 
+class cStructRigidInit
+{
+    public :
+        cStructRigidInit(cPoseCam * RigidMere,const ElRotation3D &);
+
+        cPoseCam *   mCMere;    
+        ElRotation3D mR0m1L0 ;  //  R0-1 L0 = matrice de passage selon notaion cImplemBlockCam.cpp
+};
+
+class cPreCB1Pose
+{
+   public :
+       cPreCB1Pose(const ElRotation3D &);
+       const ElRotation3D mRot;
+};
+class cPreCompBloc
+{
+    public :
+        cPreCompBloc(const std::string  & aNameBloc);
+        std::vector<cPoseCam*> mGrp;
+        const std::string            mNameBloc;
+};
+
+
+
 class cPoseCam : public cGenPoseCam
 {
      public :
@@ -533,6 +564,7 @@ class cPoseCam : public cGenPoseCam
           void  ShowRel(const cTraceCpleCam &,const cPoseCam & aCam2) const;
 
          // Si true requiert une initialisation complete
+          bool ProfIsInit() const;
           int Prof2Init() const;
           void Set0Prof2Init();
           void UpdateHeriteProf2Init(const cPoseCam &) ;
@@ -597,6 +629,15 @@ class cPoseCam : public cGenPoseCam
 
 
           cEqOffsetGPS *   EqOffsetGPS();
+         // Relatif a un couple dans un bloc
+          void SetSRI(cStructRigidInit * aSRI);
+          cStructRigidInit*  GetSRI(bool SVP) const;
+
+          // Dand cImplemBlockCam.cpp 
+          cPreCompBloc * GetPreCompBloc(bool SVP) const; // SVP => can be 0
+          void   SetPreCompBloc(cPreCompBloc *);
+          cPreCB1Pose *  GetPreCB1Pose(bool SVP) const; // SVP => can be 0
+          void  SetPreCB1Pose(cPreCB1Pose *);
      private  :
 
           void AssertHasObsCentre() const;
@@ -684,6 +725,9 @@ class cPoseCam : public cGenPoseCam
 
           CamStenope *                 mCamNonOrtho;
           cEqOffsetGPS *               mEqOffsetGPS;
+          cStructRigidInit *           mSRI;
+          cPreCompBloc *               mBlocCam;
+          cPreCB1Pose *                mPoseInBlocCam;
 };
 
 
@@ -2221,6 +2265,14 @@ class cAppliApero : public NROptF1vND
         void CDNP_Compense(std::vector<cStatResPM> & ,cSetPMul1ConfigTPM*,cSetTiePMul*,const cObsLiaisons &);
         bool IsLastEtapeOfLastIter() const;
 
+        // Ne genere pas d'erreur mais met aNameTime a "" si pb (aucune ou multiple)
+        ElRotation3D  SVPGetRotationBloc(const std::string & aNameBloc,const std::string& aNameCam,std::string & aNameTime);
+        //  Genere erreur si moindre probleme
+        ElRotation3D  GetUnikRotationBloc(const std::string & aNameBloc,const std::string& aNameCam);
+
+        void PreInitBloc(const std::string & aNameBloc);
+
+
     private :
 
        void SetPdsRegDist(const cXmlPondRegDist *);
@@ -2650,6 +2702,7 @@ class cAppliApero : public NROptF1vND
 
         std::map<std::string,cRelEquivPose *>   mRels;
         std::map<std::string,cImplemBlockCam *> mBlockCams;
+        bool                                    mHasBlockCams;
         std::map<std::string,cAperoOffsetGPS *> mDicoOffGPS;
         int                                     mNumSauvAuto;
 

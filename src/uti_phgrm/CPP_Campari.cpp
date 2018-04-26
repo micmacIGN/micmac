@@ -98,9 +98,17 @@ Parametre de Tapas :
 /*                                                  */
 /****************************************************/
 
+std::string BlQUOTE (const std::string & aStr)
+{
+   if (aStr.empty()) return aStr;
+
+    return " " + QUOTE(aStr) + " ";
+}
+
 cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
-   mWithBlock(false),
-   mArg      (new LArgMain)
+   mWithBlock       (false),
+   mNamesBlockInit  (false),
+   mArg             (new LArgMain)
 {
     (*mArg) << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
             << EAM(mVBlockDistGlob,"DistBlocGlob",true,"Param for Dist Glob bloc compute [File,SigmaDist,?MulFinal,?Export]")
@@ -150,13 +158,14 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
 
 void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom,std::vector<std::string> & aVBL,const std::string & aPref,bool ModeRot)
 {
+    mStrParamBloc = mStrParamBloc +  BlQUOTE(StrInitOfEAM(&aVBL)) ;
     int IndRot = ModeRot ? 1 : 0;
     if (!EAMIsInit(&aVBL)) return;
     ELISE_ASSERT(int(aVBL.size()) >= 2+IndRot ,"Not enough param in AddParamBloc");
     ELISE_ASSERT(int(aVBL.size()) <= 4+IndRot,"Too many param in AddParamBloc");
 
 
-    // Gere le fait que ou Blox initialise une fois, ou toujours avec le meme nom
+    // Gere le fait que ou Blox initialise une seule fois, ou alors toujours avec le meme nom
     if (!mWithBlock)
     {
         mWithBlock = true;
@@ -164,6 +173,7 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom,std::vector<std::stri
         mNameInputBloc = aVBL[0];
         mCom = mCom + " +NameInputBloc=" + mNameInputBloc +" ";
         mNameOutputBloc = "Out-" + mNameInputBloc;
+        mSBC =   StdGetFromPCP(mNameInputBloc,StructBlockCam);
     }
     else
     {
@@ -197,6 +207,89 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom,std::vector<std::stri
 
     mCom = mCom + " +NameOutputBloc=" + mNameOutputBloc +" ";
 }
+
+std::string  cAppli_Tapas_Campari::TimeStamp(const std::string & aName,cInterfChantierNameManipulateur * anICNM)
+{
+   return anICNM->Assoc2To1(mSBC.KeyIm2TimeCam(),aName,true).first;
+}
+
+
+std::string   cAppli_Tapas_Campari::ExtendPattern
+                           (
+                                      const std::string & aPatGlob,
+                                      const std::string & aImCenter,
+                                      cInterfChantierNameManipulateur * anICNM
+                           )
+{
+   const cInterfChantierNameManipulateur::tSet *  aSetGlob = anICNM->Get(aPatGlob);
+   std::string aKey = mSBC.KeyIm2TimeCam();
+
+   std::string aTimeC = anICNM->Assoc2To1(mSBC.KeyIm2TimeCam(),aImCenter,true).first;
+   cPatOfName aPat;
+   for (const auto & aName : *aSetGlob)
+   {
+         std::pair<std::string,std::string> aPair = anICNM->Assoc2To1(mSBC.KeyIm2TimeCam(),aName,true);
+         if (aPair.first == aTimeC) 
+            aPat.AddName(aName);
+            // std::cout << "PAIR " << aPair.first << " *** " <<  aPair.second << "\n";
+
+   }
+
+
+   return aPat.Pattern();
+}
+
+const cStructBlockCam &  cAppli_Tapas_Campari::SBC() const {return mSBC;}
+const std::string & cAppli_Tapas_Campari::StrParamBloc() const {return mStrParamBloc;}
+
+
+
+void cAppli_Tapas_Campari::InitAllImages(const std::string & aPat,cInterfChantierNameManipulateur * anICNM)
+{
+    ELISE_ASSERT(mWithBlock,"cAppli_Tapas_Campari::InitAllImages");
+
+    cInterfChantierNameManipulateur::tSet   aSetGlob = *(anICNM->Get(aPat));
+    std::vector<std::pair<std::string,std::string> > aVP;
+    for (const auto & aS : aSetGlob)
+    {
+        aVP.push_back(std::pair<std::string,std::string>(TimeStamp(aS,anICNM),aS));
+        mBlocCptTime[aVP.back().first]++;
+    }
+    std::sort(aVP.begin(),aVP.end());
+    for (const auto & aPair : aVP)
+    {
+       mBlocTimeStamps.push_back(aPair.first);
+       mBlocImagesByTime.push_back(aPair.second);
+    }
+}
+
+const std::vector<std::string> & cAppli_Tapas_Campari::BlocImagesByTime() const {return mBlocImagesByTime;}
+const std::vector<std::string> & cAppli_Tapas_Campari::BlocTimeStamps() const   {return mBlocTimeStamps;}
+std::map<std::string,int> & cAppli_Tapas_Campari::BlocCptTime() {return mBlocCptTime;}
+
+int  cAppli_Tapas_Campari::NbInBloc() const
+{
+    return mSBC.LiaisonsSHC().Val().ParamOrientSHC().size();
+}
+
+
+int  cAppli_Tapas_Campari::LongestBloc(int aK0,int aK1)
+{
+     int aLong=1;
+     int aLongMax=1;
+     for (int aK=aK0+1 ; aK<aK1 ; aK++)
+     {
+         if (mBlocTimeStamps[aK]  == mBlocTimeStamps[aK-1])
+         {
+            aLong++;
+            aLongMax = ElMax(aLongMax,aLong);
+         }
+         else
+            aLong=1;
+     }
+     return aLongMax;
+}
+
 
 
 /****************************************************/

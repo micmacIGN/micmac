@@ -247,8 +247,6 @@ int ConvertOriCalib_main(int argc, char ** argv);
 
 int DroneFootPrint(int argc,char ** argv);
 
-
-
 std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC, const std::string & aLib)
 {
 	for (int aK = 0; aK<int(aVC.size()); aK++)
@@ -768,6 +766,8 @@ int TestGiangDispHomol_Main(int argc, char ** argv);
 
 int Test_Conv(int argc, char ** argv);
 
+int Test_CtrlCloseLoop(int argc, char ** argv);
+
 int GetSpace_main(int argc, char ** argv);
 
 int TestDetecteur_main(int argc, char ** argv);
@@ -793,6 +793,8 @@ int Homol2WayNEW_main(int argc, char ** argv);
 
 int Test_InitBloc(int argc, char ** argv);
 
+int HomolLSMRefine_main(int argc,char ** argv);
+
 int UnWindows(int argc, char ** argv);
 
 int MakePly_CamOrthoC(int argc, char ** argv);
@@ -800,6 +802,8 @@ int MakePly_CamOrthoC(int argc, char ** argv);
 int XMLDiffSeries_main(int argc, char ** argv);
 
 int ZBufferRaster_main(int argc, char ** argv);
+
+int Test_TrajectoFromOri(int argc, char ** argv);
 
 int ConvertToNewFormatHom_Main(int argc, char ** argv);
 int UnionFiltragePHom_Main(int argc, char ** argv);
@@ -1072,7 +1076,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("GCPRollingBasc",GCPRollingBasc_main ,"Rolling GCPBascule"));
         aRes.push_back(cMMCom("TiepTriFar",TiepTriFar_Main ,"TestFarScene"));
         aRes.push_back(cMMCom("DetectImBlur",Test_Conv,"compute sharpness notion for each img by variance of laplacian"));
+        aRes.push_back(cMMCom("CtrlCloseLoop",Test_CtrlCloseLoop,"Test Close Loop"));
         aRes.push_back(cMMCom("InitOriByBlocRigid",Test_InitBloc,"Init another camera orientation from known camera block structure and one camera ori in block"));
+        aRes.push_back(cMMCom("TrajectoFromOri",Test_TrajectoFromOri,"Tracer Trajecto d'acquisition a partir de Orientation"));
+        aRes.push_back(cMMCom("HomolLSMRefine",HomolLSMRefine_main,"Refine Homol Pack by Least Square Matching"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));
