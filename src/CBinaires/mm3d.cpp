@@ -247,8 +247,6 @@ int ConvertOriCalib_main(int argc, char ** argv);
 
 int DroneFootPrint(int argc,char ** argv);
 
-
-
 std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC, const std::string & aLib)
 {
 	for (int aK = 0; aK<int(aVC.size()); aK++)
@@ -664,6 +662,8 @@ extern int  main_ascii2tif(int argc,char ** argv);
 int Test_ascii2tif_BlurinessSelect(int argc,char ** argv);
 extern int  GCP2Hom_main(int argc,char ** argv);
 int main_featheringOrtho(int argc,char ** argv);
+int main_featheringOrthoBox(int argc,char ** argv);
+int GCP2DMeasureConvert_main(int argc,char ** argv);
 
 #if (ELISE_UNIX)
 extern int  DocEx_Introanalyse_main(int, char **);
@@ -792,6 +792,8 @@ int Homol2Way_main(int argc, char ** argv);
 int Homol2WayNEW_main(int argc, char ** argv);
 
 int Test_InitBloc(int argc, char ** argv);
+
+int HomolLSMRefine_main(int argc,char ** argv);
 
 int UnWindows(int argc, char ** argv);
 
@@ -990,6 +992,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("Ascii2Tif",main_ascii2tif,"transform ascii file to tif file, designed for ascii from irbis or sdk direct (variocam and optris)."));
         aRes.push_back(cMMCom("Ascii2TifWithSelection",Test_ascii2tif_BlurinessSelect,"from list of ascii file from video frame, perform a selection of sharpest frame and export it in tif format."));
         aRes.push_back(cMMCom("SeamlineFeathering",main_featheringOrtho,"Perform mosaiking of orthos with a feathering around the seamline."));
+        aRes.push_back(cMMCom("SeamlineFeatheringBox",main_featheringOrthoBox,"Perform mosaiking of orthos with a feathering around the seamline for one tile of the mosaic"));
+        aRes.push_back(cMMCom("GCP2DMeasureConvert",GCP2DMeasureConvert_main,"Export or import 2D image marks of GCPs/Manual tie point"));
+
 
 // #if (ELISE_QT_VERSION >= 4)
         aRes.push_back(cMMCom("Masq3Dto2D",Masq3Dto2D_main,"Create a 2D Masq from Nuage and 3D Masq "));
@@ -1074,6 +1079,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("CtrlCloseLoop",Test_CtrlCloseLoop,"Test Close Loop"));
         aRes.push_back(cMMCom("InitOriByBlocRigid",Test_InitBloc,"Init another camera orientation from known camera block structure and one camera ori in block"));
         aRes.push_back(cMMCom("TrajectoFromOri",Test_TrajectoFromOri,"Tracer Trajecto d'acquisition a partir de Orientation"));
+        aRes.push_back(cMMCom("HomolLSMRefine",HomolLSMRefine_main,"Refine Homol Pack by Least Square Matching"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));

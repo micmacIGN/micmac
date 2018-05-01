@@ -568,16 +568,7 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
                      int aNumWindows)
 {
     for (unsigned int i=0;i<aSetIm.size();i++)
-    {
-        //std::cout<<" - "<<aSetIm[i]<<"\n";
-        //Tiff_Im aPic(aSetIm[i].c_str());
-        /*Tiff_Im aPic(Tiff_Im::StdConvGen(aDirImages+"/"+aSetIm[i],1,false)   );
-        Pt2di aPicSize=aPic.sz();
-        std::cout<<aPicSize<<"\n";*/
-        //allPics.push_back(new cPic(aDirImages,aSetIm[i],allPicSizes,aNumWindows));
         allPics.insert(std::make_pair<std::string,cPic*>(aSetIm[i]+aCKin.getSuffix(),new cPic(aDirImages,aSetIm[i],allPicSizes,aNumWindows)));
-        //cPic* aPic=allPics[aSetIm[i]+aCKin.getSuffix()];
-    }
 
     ELISE_ASSERT(aSetIm.size()>0,"ERROR: No image found!");
 
@@ -588,8 +579,6 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
     }
 
     //read all homol points --------------------------------------------
-
-
     std::cout<<"Read packs of homol points:"<<endl;
 
     std::map<std::string,cPic*>::iterator itPic1,itPic2;
@@ -677,15 +666,6 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
                     }
                     else if (aPointOnPic1 && aPointOnPic2 &&(aPointOnPic1->getHomol()!=aPointOnPic2->getHomol()))
                     {
-
-                        /*if ((aPointOnPic1 && (aPointOnPic1->getHomol()->getId()==8897))||
-                            (aPointOnPic2 && (aPointOnPic2->getHomol()->getId()==8897)))
-                        {
-                            std::cout<<"Try merging: "<<std::endl;
-                        if (aPointOnPic1) aPointOnPic1->getHomol()->print();
-                        if (aPointOnPic2) aPointOnPic2->getHomol()->print();
-                        }*/
-
                         if (
                                 !(aPointOnPic1->getHomol()->checkMerge(aPointOnPic2->getHomol()))
                            )
@@ -718,13 +698,6 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
                         allHomolsIn.back().add(pic1,aP1);
                         allHomolsIn.back().add(pic2,aP2);
                         if (veryStrict) allHomolsIn.back().addAppearsOnCouple(pic1,pic2);
-
-                        /*if (((fabs(aP1.x-494.410)<0.1)&&(fabs(aP1.y-1894.23)<0.1))
-                           ||((fabs(aP2.x-494.410)<0.1)&&(fabs(aP2.y-1894.23)<0.1)))
-                        {
-                            cout<<aNameIn1<<endl;
-                            allHomolsIn.back().print();
-                        }*/
 
                     }else if (aPointOnPic1 && aPointOnPic2 &&(aPointOnPic1->getHomol()==aPointOnPic2->getHomol()))
                     {
@@ -1007,24 +980,6 @@ int schnaps_main(int argc,char ** argv)
     std::cout<<std::endl;
     #endif
 
-    /*std::cout<<"Search for particular homol:\n";
-    std::list<cHomol*>::iterator itHomol;
-    std::vector<cPointOnPic*>::iterator itPointOnPic;
-    for (itHomol=allHomolsIn.begin();itHomol!=allHomolsIn.end();++itHomol)
-    {
-        for (itPointOnPic=(*itHomol)->getPointOnPics().begin();
-             itPointOnPic!=(*itHomol)->getPointOnPics().end();
-             ++itPointOnPic)
-        {
-            if (((*itPointOnPic)->getPt().x==4695.720000)
-                    &&((*itPointOnPic)->getPt().y==1305.77))
-            {
-                (*itHomol)->print();
-            }
-        }
-    }*/
-
-
     if (!DoNotFilter)
     {
         //create new homols ------------------------------------------------
@@ -1061,27 +1016,6 @@ int schnaps_main(int argc,char ** argv)
             aPic->selectAllHomols();
         }
     }
-
-    /*
-    cPic *aPic=allPics[4];
-    std::cout<<"Homol init sur "<<aPic->getName()<<":\n";
-    std::list<cPointOnPic*>::iterator itPointOnPic;
-    for (itPointOnPic=aPic->getAllPointsOnPic()->begin();
-         itPointOnPic!=aPic->getAllPointsOnPic()->end();
-         ++itPointOnPic)
-    {
-        (*itPointOnPic)->getHomol()->print();
-    }
-    std::cout<<"Homol select sur "<<aPic->getName()<<":\n";
-    //std::list<cPointOnPic*>::iterator itPointOnPic;
-    for (itPointOnPic=aPic->getAllSelectedPointsOnPic()->begin();
-         itPointOnPic!=aPic->getAllSelectedPointsOnPic()->end();
-         ++itPointOnPic)
-    {
-        (*itPointOnPic)->getHomol()->print();
-    }
-    */
-
 
     int nbBadPictures=0;
     if (ExeWrite)

@@ -166,7 +166,7 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
    {
      mCSVContent.open(mCSV);
      isCSV = true;
-     mCSVContent<< "Img,X,Y,Z,D\n";
+     mCSVContent<< "Img,X1,Y1,Z1,dX,dY,dZ,dXY,dXYZ\n";
    }
 
 
@@ -183,6 +183,7 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
        ElRotation3D aR2= aCam2->Orient();
 
        double aDC = euclid(aC1-aC2);
+       double aDCXY = euclid(Pt2dr(aC1.x,aC1.y)-Pt2dr(aC2.x,aC2.y));
        double aDM = aR1.Mat().L2(aR2.Mat());
        aSomDC += aDC;
        aSomDM += aDM;
@@ -190,13 +191,13 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
 
        if (isCSV)
        {
-           mCSVContent << anIm->mNameIm <<","<< ToString(abs(aC1.x - aC2.x)) << "," << ToString(abs(aC1.y - aC2.y)) << "," <<ToString(abs(aC1.z - aC2.z)) << "," << ToString(aDC);
+           mCSVContent << anIm->mNameIm <<","<< ToString(aC1.x) << "," << ToString(aC1.y) << "," << ToString(aC1.z) << "," << ToString(abs(aC1.x - aC2.x)) << "," << ToString(abs(aC1.y - aC2.y)) << "," <<ToString(aC1.z - aC2.z) << "," <<  ToString(aDCXY) << "," << ToString(aDC);
            mCSVContent << "\n";
        }
    }
 	
-   std::cout << "Aver;  DistC= " << aSomDC/mVSoms.size()
-             << " DistM= " << aSomDM/mVSoms.size()
+   std::cout << "Aver;  DistCenter= " << aSomDC/mVSoms.size()
+             << " DistMatrix= " << aSomDM/mVSoms.size()
              << "\n";
    if(mXmlG!="")
    {

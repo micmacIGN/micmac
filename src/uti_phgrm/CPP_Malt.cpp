@@ -975,7 +975,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   aPCCroise  = RequireFromString<double>(a12PixParam[2],"One-Two Pixel Matching : aPCCroise");
                if (a12PixParam.size()>=4)
                   aPCStd     = RequireFromString<double>(a12PixParam[3],"One-Two Pixel Matching : PCStd");
-               if (a12PixParam.size()>=4)
+               if (a12PixParam.size()>=5)
                   aMCorPoncCal = a12PixParam[4]; 
          }
 
@@ -1154,6 +1154,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                          + std::string(" +PCCroise=")    + ToString(aPCCroise)
                          + std::string(" +PCStd=")       + ToString(aPCStd)
                          + std::string(" +MCorPoncCal=") + aMCorPoncCal;
+
 
          }
       }

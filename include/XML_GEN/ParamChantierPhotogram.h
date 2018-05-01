@@ -4624,6 +4624,62 @@ std::string  Mangling( cListOfName *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cModLin
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cModLin & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameIm();
+        const std::string & NameIm()const ;
+
+        double & a();
+        const double & a()const ;
+
+        double & b();
+        const double & b()const ;
+    private:
+        std::string mNameIm;
+        double ma;
+        double mb;
+};
+cElXMLTree * ToXMLTree(const cModLin &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cModLin &);
+
+void  BinaryUnDumpFromFile(cModLin &,ELISE_fp &);
+
+std::string  Mangling( cModLin *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cListOfRadiomEgalModel
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cListOfRadiomEgalModel & anObj,cElXMLTree * aTree);
+
+
+        std::list< cModLin > & ModLin();
+        const std::list< cModLin > & ModLin()const ;
+    private:
+        std::list< cModLin > mModLin;
+};
+cElXMLTree * ToXMLTree(const cListOfRadiomEgalModel &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cListOfRadiomEgalModel &);
+
+void  BinaryUnDumpFromFile(cListOfRadiomEgalModel &,ELISE_fp &);
+
+std::string  Mangling( cListOfRadiomEgalModel *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cSetNameDescriptor
 {
     public:

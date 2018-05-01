@@ -707,24 +707,31 @@ template <class Type,class cParam> class   cTplFiltrageSpatial
 {
     public :
 
+  // === For case filter spatial in TiepTri : aVType is vector of interest point, aParam is a comparator by FastQuality ===
   cTplFiltrageSpatial(std::vector<Type> & aVType,cParam  & aParam,double aSeuilDist)
   {
+     cout<<"In Filter Spatial ..... "<<endl;
      if (aVType.size() <=1 )
         return;
+
+// === sort par comparator aParam => sort list point d'interet dans la priorité de FastQuality ===
      std::sort(aVType.begin(),aVType.end(),aParam);
 
      Pt2dr aP0 = aParam(&(aVType[0]));
      Pt2dr aP1 = aP0;
 
+// === Define an Quad-Tri ElQT structure : range (object space (min,max)) ===
      for (int aK=1 ; aK<int(aVType.size()) ; aK++)
      {
          Pt2dr aPk = aParam(&(aVType[aK]));
-         aP0 = Inf(aP0,aPk);
-         aP1 = Sup(aP1,aPk);
+         aP0 = Inf(aP0,aPk);    // aP0 store min value of vector
+         aP1 = Sup(aP1,aPk);    // aP1 store max value of vector
      }
-     Pt2dr aSz = aP1-aP0;
+     Pt2dr aSz = aP1-aP0;   // range max-min
      double aLong = ElMax(aSz.x,aSz.y);
      double aLarg = ElMin(aSz.x,aSz.y);
+
+// === If aLong=0 => input point set has just 1 element => return and do nothing ===
      if (aLong==0)
      {
         Type aV0 = aVType[0];
@@ -737,27 +744,38 @@ template <class Type,class cParam> class   cTplFiltrageSpatial
      double aRab = aLong / 1e4;
      Pt2dr aPRab(aRab,aRab);
      double aSurfElem = (aLong * ElMax(aLarg,aLong/20.0)) / aVType.size()  ;
+     cout<<" + aSurfElem = "<<aSurfElem<<endl;
 
+     cin.ignore().get(); //Pause Command for Linux Terminal
+
+// === Create a QuadTri structure : 10 is NbObjectMax, sqrt(aSurfElem) *2 is SzMin ===
      ElQT<Type *,Pt2dr,cParam>  aQt(aParam,Box2dr(aP0-aPRab,aP1+aPRab),10, sqrt(aSurfElem) *2 );
 
+
+     // "insert" tout les pt interet dans ElQT, initialization = "selected"
      for (int aK=0 ; aK<int(aVType.size()) ; aK++)
      {
+         // "insert" marche toujours parcque le "box" dans ElQT est la region Box de (Min, Max) coordonne du point d'interet
          aQt.insert(&aVType[aK]);
          aParam.SetSelected(aVType[aK],true);
      }
 
 
+// ==== Filter process : process element by element in sorted list aVType ===
      std::vector<Type> aRes;
      for (int aK=0 ; aK<int(aVType.size()) ; aK++)
      {
+         // consider un point d'interet (dans l'ordre de fastquality
          if (aParam.IsSelected(aVType[aK]))
          {
              aRes.push_back(aVType[aK]);
              std::set<Type *> aSet;
+             // recuperer tout les point dans rayon aSeuilDist autour de point aVType[aK], le stocker dans aSet
              aQt.RVoisins(aSet,aParam(&(aVType[aK])),aSeuilDist);
 
              for (typename std::set<Type *>::iterator itS=aSet.begin(); itS!=aSet.end() ; itS++)
              {
+                 // De-selectioner tout les point viens de recuperer
                   aParam.SetSelected(**itS,false);
              }
          }
