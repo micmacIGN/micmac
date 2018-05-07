@@ -132,6 +132,7 @@ class cVertex
                     ~cVertex();
 
         void		getPos(Pt3dr &pos){ pos = mPos; }
+        void		modPos(Pt3dr &pos){ mPos = pos; }
         vector<int> *  getTriIdx() { return &mTriIdx; }
         void        addIdx(int id) { if (find(mTriIdx.begin(), mTriIdx.end(), id) == mTriIdx.end()) mTriIdx.push_back(id); }
 

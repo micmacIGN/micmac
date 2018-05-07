@@ -654,7 +654,7 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
                         if (aPointOnPic2) aPointOnPic2->getHomol()->print();
                     }*/
 
-                    if (aPointOnPic1 && (!aPointOnPic2))
+                    if (aPointOnPic1 && (!aPointOnPic2)) // added on pic1 but haven't added on pic 2
                     {
                         aPointOnPic1->getHomol()->add(pic2,aP2);
                         if (veryStrict) aPointOnPic1->getHomol()->addAppearsOnCouple(pic1,pic2);
