@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[2111]) = {
+const char * (theNameVar_ParamChantierPhotogram[2119]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1273,6 +1273,14 @@ const char * (theNameVar_ParamChantierPhotogram[2111]) = {
 "   <ListOfName Nb=\"1\" Class=\"true\" ToReference=\"true\" >\n",
 "        <Name Nb=\"*\" Type=\"std::string\"> </Name>\n",
 "   </ListOfName>\n",
+"   \n",
+"    <ListOfRadiomEgalModel Nb=\"1\" Class=\"true\" ToReference=\"true\" >\n",
+"		  <ModLin Nb=\"*\">\n",
+"           <NameIm Nb=\"1\" Type=\"std::string\"> </NameIm>\n",
+"           <a Nb=\"1\" Type=\"double\"> </a>\n",
+"           <b Nb=\"1\" Type=\"double\"> </b>\n",
+"		</ModLin>\n",
+"   </ListOfRadiomEgalModel>\n",
 "\n",
 "   <SetNameDescriptor  Nb=\"1\" Class=\"true\" ToReference=\"true\" >\n",
 "         <AddDirCur Nb=\"?\" Type=\"bool\" Def=\"true\"> </AddDirCur>\n",

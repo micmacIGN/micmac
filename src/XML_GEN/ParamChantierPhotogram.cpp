@@ -13913,6 +13913,138 @@ void xml_init(cListOfName & anObj,cElXMLTree * aTree)
 std::string  Mangling( cListOfName *) {return "989865F5644C6DB3FCBF";};
 
 
+std::string & cModLin::NameIm()
+{
+   return mNameIm;
+}
+
+const std::string & cModLin::NameIm()const 
+{
+   return mNameIm;
+}
+
+
+double & cModLin::a()
+{
+   return ma;
+}
+
+const double & cModLin::a()const 
+{
+   return ma;
+}
+
+
+double & cModLin::b()
+{
+   return mb;
+}
+
+const double & cModLin::b()const 
+{
+   return mb;
+}
+
+void  BinaryUnDumpFromFile(cModLin & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameIm(),aFp);
+    BinaryUnDumpFromFile(anObj.a(),aFp);
+    BinaryUnDumpFromFile(anObj.b(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cModLin & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameIm());
+    BinaryDumpInFile(aFp,anObj.a());
+    BinaryDumpInFile(aFp,anObj.b());
+}
+
+cElXMLTree * ToXMLTree(const cModLin & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ModLin",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameIm"),anObj.NameIm())->ReTagThis("NameIm"));
+   aRes->AddFils(::ToXMLTree(std::string("a"),anObj.a())->ReTagThis("a"));
+   aRes->AddFils(::ToXMLTree(std::string("b"),anObj.b())->ReTagThis("b"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cModLin & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NameIm(),aTree->Get("NameIm",1)); //tototo 
+
+   xml_init(anObj.a(),aTree->Get("a",1)); //tototo 
+
+   xml_init(anObj.b(),aTree->Get("b",1)); //tototo 
+}
+
+std::string  Mangling( cModLin *) {return "882BD284E3B151FCFDBF";};
+
+
+std::list< cModLin > & cListOfRadiomEgalModel::ModLin()
+{
+   return mModLin;
+}
+
+const std::list< cModLin > & cListOfRadiomEgalModel::ModLin()const 
+{
+   return mModLin;
+}
+
+void  BinaryUnDumpFromFile(cListOfRadiomEgalModel & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cModLin aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.ModLin().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cListOfRadiomEgalModel & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.ModLin().size());
+    for(  std::list< cModLin >::const_iterator iT=anObj.ModLin().begin();
+         iT!=anObj.ModLin().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cListOfRadiomEgalModel & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ListOfRadiomEgalModel",eXMLBranche);
+  for
+  (       std::list< cModLin >::const_iterator it=anObj.ModLin().begin();
+      it !=anObj.ModLin().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("ModLin"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cListOfRadiomEgalModel & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.ModLin(),aTree->GetAll("ModLin",false,1));
+}
+
+std::string  Mangling( cListOfRadiomEgalModel *) {return "9823CB9929CC8097FF3F";};
+
+
 cTplValGesInit< bool > & cSetNameDescriptor::AddDirCur()
 {
    return mAddDirCur;

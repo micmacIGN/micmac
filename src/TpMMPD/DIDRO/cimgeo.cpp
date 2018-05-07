@@ -1,5 +1,9 @@
 #include "cimgeo.h"
 
+/* tfw convention: Xmin and Ymax are the position of the corner of the image, not of the center of the first pixel. xmin and ymax are at the edge of the box, and xmax and ymin are inside the image (center of last pixels)
+ * Elise convention: first pixel has position (0,0) in Im2D. last pixel has position (sz.x-1,sz.y-1)
+ */
+
 cImGeo::cImGeo(std::string aName):
     mIm(aName.c_str())
 {
@@ -16,9 +20,10 @@ cImGeo::cImGeo(std::string aName):
    mOrigine = Pt2dr(tfw[1],tfw[2]);
 
    mXmin = mOrigine.x;
-   mXmax = mXmin + mSzImPix.x*mGSD;
+   mXmax = mXmin + (mSzImPix.x)*mGSD;
    mYmax = mOrigine.y;
-   mYmin = mYmax - mSzImPix.y*mGSD;
+   mYmin = mYmax - (mSzImPix.y)*mGSD;
+   mBoxTer= Box2dr(Pt2dr(mXmin,mYmin),Pt2dr(mXmax,mYmax));
    mSzImTer=Pt2dr(mXmax-mXmin,mYmax-mYmin);
    mCentre=Pt2dr(mXmin+mSzImTer.x/2,mYmin+mSzImTer.y/2);
 
@@ -40,12 +45,12 @@ cImGeo::cImGeo(std::string aName, std::string aNameTFW ):
    mOrigine = Pt2dr(tfw[1],tfw[2]);
 
    mXmin = mOrigine.x;
-   mXmax = mXmin + mSzImPix.x*mGSD;
+   mXmax = mXmin + (mSzImPix.x)*mGSD; // minus one because the first pixel has the position xmin ymax
    mYmax = mOrigine.y;
-   mYmin = mYmax - mSzImPix.y*mGSD;
+   mYmin = mYmax - (mSzImPix.y)*mGSD;
+   mBoxTer= Box2dr(Pt2dr(mXmin,mYmin),Pt2dr(mXmax,mYmax));
    mSzImTer=Pt2dr(mXmax-mXmin,mYmax-mYmin);
    mCentre=Pt2dr(mXmin+mSzImTer.x/2,mYmin+mSzImTer.y/2);
-
 }
 
 // si on veux utiliser l'incidence, on doit la charger séparément du constructeur, car on en a pas besoin dans tout les cas
@@ -80,7 +85,6 @@ void cImGeo::loadIncid()
     }
 }
 
-
 // sorte de copie d'un objet cImGeo mais avec un autre nom de fichier sinon écrase le fichier existant
 cImGeo::cImGeo(cImGeo * imGeoTemplate,std::string aName):  mIm(Tiff_Im(aName.c_str(),
                                                                  imGeoTemplate->Im().sz(),
@@ -113,7 +117,7 @@ cImGeo::cImGeo(cImGeo * imGeoTemplate,std::string aName):  mIm(Tiff_Im(aName.c_s
 }
 
 
-std::vector<double> cImGeo::loadTFW(std::string aNameTFW)
+std::vector<double> loadTFW(std::string aNameTFW)
 {
     std::vector<double> result;
     double line;
@@ -211,7 +215,6 @@ std::vector<double> cImGeo::loadTFW(std::string aNameTFW)
     if (hRec<aRec || vRec<aRec) overlap=0;
     //std::cout << "overlap  en pourcent v et h :" << vRec << " et " << hRec << "\n";
    }
-
    return overlap;
  }
 
@@ -230,8 +233,6 @@ std::vector<double> cImGeo::loadTFW(std::string aNameTFW)
      // save le TFW
      writeTFW(aName);
  }
-
-
 
 Pt2di cImGeo::computeTrans(cImGeo * aIm2)
  {
@@ -341,7 +342,6 @@ Im2D_REAL4 cImGeo::clipImTer(Pt2dr aMin,Pt2dr aMax)
      //std::cout << "la box est contenue dans l'image \n";
      //std::cout << "aMin 2 UV " <<  XY2UV(aMin) << "\n";
      //std::cout << "aMax 2 UV " <<  XY2UV(aMax) << "\n";
-
     }
     return im;
 }
@@ -350,30 +350,22 @@ Im2D_REAL4 cImGeo::clipImTer(Box2dr aBox)
 {
 
     // compute box in pixel
-    int U(0), V(0);
-    U = (aBox.sz().x)/GSD();
-    V = (aBox.sz().y)/GSD();
-    // initialise resulting image
-    Im2D_REAL4 im(U,V);
+    //int szU(0), szV(0);
+    //szU = round((aBox.sz().x)/GSD());// again, bug if no round here, very scarce but happend
+    //szV = round((aBox.sz().y)/GSD());
+    //Pt2di apMaxPix(XY2UV(aPMin)+Pt2di(szU,szV));
+    //if(XY2UV(aPMax)!=apMaxPix) to detect bug of casting double to int. round solve the problem
 
+    Im2D_REAL4 im(1,1);
     // inversion min max Y car en geom image l'axe des y pointe dans le sens contraire
     Pt2dr aPMin(aBox._p0.x,aBox._p1.y), aPMax(aBox._p1.x,aBox._p0.y);
-    /*std::cout << "Geométrie Terrain: xmin, ymin " <<  aPMin << "\n";
-    std::cout << "Geométrie Terrain: xmax, ymax " <<   aPMax << "\n";
-    std::cout << "Geométrie Image: xmin, ymin " <<  XY2UV(aPMin) << "\n";
-    std::cout << "Geométrie Image: xmax, ymax " <<  XY2UV(aPMax) << "\n";
-*/
     if (containTer(aBox._p0) && containTer(aBox._p1))
     {
      im=clipImPix(XY2UV(aPMin),XY2UV(aPMax));
-    //std::cout << "la box est contenue dans l'image \n";
-     //std::cout << "aMin 2 UV " <<  XY2UV(aMin) << "\n";
-     //std::cout << "aMax 2 UV " <<  XY2UV(aMax) << "\n";
     }
     else
     {
      std::cout << "Dans l'appel à la fonction cImGeo::clipImTer(Box2dr aBox); nous vous signalons que la box n'est pas comprise dans l'image \n";
-
     }
 
     return im;
@@ -382,27 +374,19 @@ Im2D_REAL4 cImGeo::clipImTer(Box2dr aBox)
 
 Im2D_REAL4 cImGeo::clipIncidTer(Box2dr aBox)
 {
-
-    // compute box in pixel
-    int U(0), V(0);
-    U = (aBox.sz().x)/GSD();
-    V = (aBox.sz().y)/GSD();
     // initialise resulting image
-    Im2D_REAL4 im(U,V);
-
+    Im2D_REAL4 im(1,1);
     // inversion min max Y car en geom image l'axe des y pointe dans le sens contraire
     Pt2dr aPMin(aBox._p0.x,aBox._p1.y), aPMax(aBox._p1.x,aBox._p0.y);
 
     if (containTer(aBox._p0) && containTer(aBox._p1))
     {
      im=clipIncidPix(XY2UV(aPMin),XY2UV(aPMax));
-
     }
     else
     {
      std::cout << "Dans l'appel à la fonction cImGeo::clipIncidTer(Box2dr aBox); nous vous signalons que la box n'est pas comprise dans l'image \n";
     }
-
     return im;
 }
 
@@ -412,13 +396,12 @@ Im2D_REAL4 cImGeo::clipImPix(Pt2di aMin,Pt2di aMax)
 {
     // initialise l'image retour
     Im2D_REAL4 im(aMax.x-aMin.x,aMax.y-aMin.y);
+    //std::cout << " size of clipped Im Pix :" << im.sz() << "\n";
     // translate l'imageGeo et clip en meme temps
-    Pt2di aTr(aMin.x,aMin.y);
-
     ELISE_COPY
    (
     Im().all_pts(),
-    trans(Im().in(0),aTr),
+    trans(Im().in(0),aMin),
     im.oclip()
    );
     return im;
@@ -429,13 +412,11 @@ Im2D_REAL4 cImGeo::clipIncidPix(Pt2di aMin,Pt2di aMax)
 {
     // initialise l'image retour
     Im2D_REAL4 im(aMax.x-aMin.x,aMax.y-aMin.y);
-    // translate l'imageGeo et clip en meme temps
-    Pt2di aTr(aMin.x,aMin.y);
-
+    // translate l'imageGeo et clip en meme temp
     ELISE_COPY
    (
     Incid()->all_pts(),
-    trans(Incid()->in(1),aTr),
+    trans(Incid()->in(1),aMin),
     im.oclip()
    );
     return im;
@@ -446,42 +427,28 @@ bool cImGeo::containTer(Pt2dr pt)
   return (pt.x<=mXmax && pt.x>=mXmin && pt.y<= mYmax && pt.y>= mYmin);
 }
 
-
-Pt2di cImGeo::X2U(Pt2dr X)
+Pt2di cImGeo::XY2UV(Pt2dr XY)// UV of Elise convention, so first pix is (0,0) not (1,1)
 {
-  int x1(0),x2(0);
-  x1=(X.x-mXmin)/mGSD;
-  x2=(X.y-mXmin)/mGSD;
-  return Pt2di(x1,x2);
-}
-
-Pt2di cImGeo::Y2V(Pt2dr Y)
-{
-  int y1(0),y2(0);
-  y1=(Y.x-mYmin)/mGSD;
-  y2=(Y.y-mYmin)/mGSD;
-  return Pt2di(y1,y2);
-}
-
-Pt2di cImGeo::XY2UV(Pt2dr XY)
-{
-  int x(0),y(0);
-  x=(XY.x-mXmin)/mGSD;
-  y=(mYmax-XY.y)/mGSD;
+  double x=round(-1  + (XY.x-mXmin)/mGSD); // veery wierd bug, if i do not round the result, sometimes a problem occur during the convertion of double to int in the Pt2di() call
+  double y=round(-1  + (mYmax-XY.y)/mGSD);
   return Pt2di(x,y);
 }
 
+Pt2dr cImGeo::UV2XY(Pt2di UV)// UV of Elise convention, so first pix is (0,0) not (1,1)
+{
+  double x=mXmin+mGSD*(1+UV.x);
+  double y=mYmax-mGSD*(1+UV.y);
+  return Pt2dr(x,y);
+}
 
 int cImGeo::updateTiffIm(Im2D_REAL4 * aIm)
 {
-
     ELISE_COPY
    (
     aIm->all_pts(),
     aIm->in(),
     Im().out()
    );
-
     return EXIT_SUCCESS;
 }
 
@@ -501,11 +468,11 @@ Box2dr cImGeo::overlapBox(cImGeo * aIm2)
     if (this->overlap(aIm2) && GSD() == aIm2->GSD())
     {
       // box: pt(xmin, ymin, xmax, ymax)
-     aP1.x = max(aIm2->Xmin(),mXmin);
+     aP1.x = max(aIm2->Xmin()+aIm2->GSD(),mXmin+mGSD);// on enlève le xmin ymax qui n'as pas de pixel associé, voir convention tfw
      aP1.y = max(aIm2->Ymin(),mYmin);
 
      aP2.x = min(aIm2->Xmax(),mXmax);
-     aP2.y = min(aIm2->Ymax(),mYmax);
+     aP2.y = min(aIm2->Ymax()-aIm2->GSD(),mYmax-mGSD);
     }
     return Box2dr(aP1,aP2);
 }
@@ -574,3 +541,18 @@ Im2D_REAL4 cImGeo::applyRE(c2DLineModel aMod)
                 );
     return tmpOut;
 }
+
+cFileOriMnt TFW2FileOriMnt(std::string aTFWName){
+    if (ELISE_fp::exist_file(aTFWName)){
+    cFileOriMnt FOM;
+    std::vector<double> tfw = loadTFW(aTFWName);
+    FOM.ResolutionPlani() = Pt2dr(tfw[0],-tfw[0]);
+    FOM.OriginePlani() = Pt2dr(tfw[1],tfw[2]);
+    // warn, cannot determine nb of pixel with only the tfw file
+    return FOM;
+    } else {
+     std::cout << "Error : cannot read TFW file " << aTFWName << "\n";
+     return cFileOriMnt();
+    }
+}
+

@@ -59,9 +59,7 @@ class cCoreg2Ortho
     Box2dr mBoxOverlapTerrain;
 
 };
-
-
-
+// vocation de test divers
 cCoreg2Ortho::cCoreg2Ortho(int argc,char ** argv)
 {
 
@@ -78,270 +76,36 @@ cCoreg2Ortho::cCoreg2Ortho(int argc,char ** argv)
 
         mDir="./";
         mNameMapOut=mNameO2 +"2"+ mNameO1;
-        cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+        //cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
 
         if (ELISE_fp::exist_file(mNameO1) & ELISE_fp::exist_file(mNameO2))
         {
-            // open orthos
+
             // Initialise les 2 orthos
             mO1 = new cImGeo(mDir+mNameO1);
             mO2 = new cImGeo(mDir+mNameO2);
 
-
-            //Im2D_REAL4 I1=mO1->toRAM();
-            std::string aN("/home/lisein/data/OptrisMarseille/optris_16_sudmatin2_00010.tif");
-               Im2D_REAL4 I1=Im2D_REAL4::FromFileStd(aN);
-            // mes test bidon ici
-
-            ELISE_COPY(I1.all_pts(), Laplacien(I1.in_proj()),I1.out());
-
-            std::string aName("TestLaplacien.tif");
-            ELISE_COPY(
-                        I1.all_pts(),
-                        I1.in(),
-                        Tiff_Im(aName.c_str(),
-                                    I1.sz(),
-                                    GenIm::real4,
-                                    Tiff_Im::No_Compr,
-                                    Tiff_Im::BlackIsZero).out()
-                        );
-            double mean;
-            int nb;
-            ELISE_COPY(
-                        I1.all_pts(),
-                        Virgule(I1.in(),1),
-                        Virgule(sigma(mean),sigma(nb)));
-
-            mean= mean/nb;
-
-
-            ELISE_COPY(
-                        I1.all_pts(),
-                        ElSquare(I1.in()-mean)/(double)nb,
-                        I1.out());
-            aName="TestLaplacien2.tif";
-            ELISE_COPY(
-                        I1.all_pts(),
-                        I1.in(),
-                        Tiff_Im(aName.c_str(),
-                                    I1.sz(),
-                                    GenIm::real4,
-                                    Tiff_Im::No_Compr,
-                                    Tiff_Im::BlackIsZero).out()
-                        );
-
-            ELISE_COPY(
-                        I1.all_pts(),
-                        I1.in(),
-                       sigma(mean)
-                        );
-            cout << "mean laplacien " << mean/nb << "\n";
-
-            //ElSquare((aRes.in()-mean))/nb;
-
-
-            //std::cout << "blurriness for ortho 1 :" << VarLapl(&I1,2) << "\n";
-
-
-            /*
-            Im2D_REAL4 I2=mO2->toRAM();
-            Box2dr boxMosaic=mO1->boxEnglob(mO2);
-            Im2D_REAL4 mosaic=mO1->box2Im(boxMosaic);
-            Pt2dr aCorner=Pt2dr(boxMosaic._p0.x,boxMosaic._p1.y); // xmin, ymax;
-            Pt2di tr1=mO1->computeTrans(aCorner), tr2=mO2->computeTrans(aCorner);
-
-
-
-
-
-            std::cout << "mosaic of size " << mosaic.sz() << ".\n";
-
-            for (unsigned int i(1) ; i <mosaic.sz().x;i++)
-            {
-                for (unsigned int j(1) ; j < mosaic.sz().y;j++)
-                {
-                    Pt2di pos(i,j);
-
-                    if (i%100==0 & j%100==0)
-                    {
-                    std::cout << "process pixel at position " << pos << " of mosaic.\n";
-                    std::cout << "Im1 position " << pos+tr1 << ".\n";
-                    std::cout << "Im2 position " << pos+tr2 << ".\n";
-                    }
-
-                    // compute distance of current position from Nadir point Im1 and Nadir point Im2
-
-                    double aDist1=euclid(Pt2di(pos-N1)), aDist2=euclid(Pt2di(pos-N2));
-                    double r=aDist1/aDist2;
-
-
-                    double Iij1(0.0),Iij2(0.0);
-                    double w1(0),w2(0);
-
-                    if (I1.Inside(Pt2di(pos+tr1)))
-                        {
-                        // I haven't loaded the mask thus I have to check here
-
-                        double val=I1.GetR(Pt2di(pos+tr1));
-
-                        if (val!=0)
-                        {
-                        Iij1=val;
-                        //std::cout << "Im1, got" << Iij1 << ".\n";
-                        //w1=pow(0.5,pow(r,2*constLambda));
-                        w1=0.5;
-                        }
-                    }
-
-
-                    if (I2.Inside(Pt2di(pos+tr2)))
-                    {
-                        double val=I2.GetR(Pt2di(pos+tr2));
-                        if (val!=0)
-                        {
-                        Iij2=val;
-                        //std::cout << "Im2, got " << Iij2 << ".\n";
-                        w2=1-w1;
-                        }
-                    }
-
-                    if (w2==0) w1=1;
-                    //if (w1==0) w2=1;
-
-                    double blend=w1*Iij1+w2*Iij2;
-                    mosaic.SetR(pos,blend);
-
-                }
-            }
-
-            std::string aName("mosaicTest.tif");
-            ELISE_COPY(
-                        mosaic.all_pts(),
-                        mosaic.in(),
-                        Tiff_Im(aName.c_str(),
-                                    mosaic.sz(),
-                                    GenIm::real4,
-                                    Tiff_Im::No_Compr,
-                                    Tiff_Im::BlackIsZero).out()
-                        );
-
-
-
-            // Determine la zone de recouvrement entre les 2 orthos
+            // Dijkstra's single source shortest path algorithm
 
             mBoxOverlapTerrain=mO1->overlapBox(mO2);
-            // clip les 2 ortho sur cette box terrain afin d'avoir des Im2D chargé en RAM
-            mO1clip = mO1->clipImTer(mBoxOverlapTerrain);
-            mO2clip = mO2->clipImTer(mBoxOverlapTerrain);
+            // clip les 2 orthos sur cette box terrain
+            Im2D_REAL4 o1 = mO1->clipImTer(mBoxOverlapTerrain);
+            Im2D_REAL4 o2 = mO2->clipImTer(mBoxOverlapTerrain);
+            // determiner debut et fin de la ligne d'estompage
 
-            std::string aOut1A("im1.tif"),aOut2A("im2.tif");
-            ELISE_COPY(
-                        mO2clip.all_pts(),
-                        mO2clip.in(),
-                        Tiff_Im(aOut2A.c_str(),
-                                mO2clip.sz(),
-                                GenIm::real4,
-                                Tiff_Im::No_Compr,
-                                Tiff_Im::BlackIsZero).out()
-                        );
+            Im2D_U_INT1 over(o1.sz().x,o2.sz().y,0);
+            // carte des coût, varie de 0 à 1
+            Im2D_REAL4 cost(o1.sz().x,o2.sz().y,1.0);
+            // pixels d'overlap sont noté 1, pixel sans overlap sont noté 0
+            ELISE_COPY(select(over.all_pts(),  o1.in()!=0 && o2.in()!=0),
+                       1,
+                       over.out());
 
-            ELISE_COPY(
-                        mO1clip.all_pts(),
-                        mO1clip.in(),
-                        Tiff_Im(aOut1A.c_str(),
-                                mO1clip.sz(),
-                                GenIm::real4,
-                                Tiff_Im::No_Compr,
-                                Tiff_Im::BlackIsZero).out()
-                        );
-
-
-            Pt2dr aCorner=Pt2dr(mBoxOverlapTerrain._p0.x,mBoxOverlapTerrain._p1.y); // xmin, ymax;
-            Pt2di transO1Tobox = mO1->computeTrans(aCorner);
-            Pt2di transO2Tobox = mO2->computeTrans(aCorner);
-            // Pt2di trans = mO1->computeTrans(mO2);
-
-            Pt2di sz(25,25);
-            unsigned int pasX=mO1clip.sz().x/10;
-            unsigned int pasY=mO1clip.sz().y/10;
-            std::cout << "step x " << pasX << ", step Y " <<pasY << "\n";
-
-            for (unsigned int i(1) ; i < 10;i++)
-            {
-                for (unsigned int j(1) ; j < 10;j++)
-                {
-
-                    if((i*pasX>sz.x) & (j*pasY>sz.y) & ((i*pasX+sz.x)<mO1clip.sz().x) & ((j*pasY+sz.y)<mO1clip.sz().y) )
-                    {
-
-                        Pt2di pt=Pt2di(i*pasX,j*pasY);
-                        //Im2D_REAL4 im1(2*sz.x,2*sz.y);
-                        //Im2D_REAL4 im2(2*sz.x,2*sz.y);
-                        Im2D_REAL4 im1(mO1clip.sz().x,mO1clip.sz().y);
-                        Im2D_REAL4 im2(mO1clip.sz().x,mO1clip.sz().y);
-
-                        //Im2D_REAL4 im1=mO1clip;
-                        //Im2D_REAL4 im2=mO2clip;
-                        std::cout << " rectange " << pt-sz << " , " << pt+sz<<", tuile "<< i << ", " << j <<"\n";
-                     /*   ELISE_COPY(
-                                    rectangle(pt-sz,pt+sz),
-                                    Virgule(mO1clip.in(),mO2clip.in()),
-                                    Virgule(im1.out(),im2.out())
-                                    );
-
-                        ELISE_COPY(
-                                   rectangle(Pt2di(0,0),(Pt2di(2,2)*sz)),
-                                   trans(im1.in(),pt-sz),
-                                   im1.out()
-                                    );
-
-
-
-                        int nbPix(0);
-                        /*
-                        ELISE_COPY(
-                                    select(im1.all_pts(),im1.in()!=0 && im2.in()!=0),
-                                    1,
-                                    sigma(nbPix)
-                                    );
-                        std::cout << "Tile " << i << "," <<j << ", number of pixel with data : "<< nbPix << "\n";
-
-                     //   if (nbPix==im1.sz().x*im1.sz().y)
-                      //  {
-
-
-                        // save tile for visual check
-                        std::string aPrefix="-"+std::to_string(i)+"_"+std::to_string(j)+".tif";
-                        std::string aOut1("Tile_"+mNameO1 +aPrefix),aOut2("Tile_"+mNameO2 +aPrefix);
-                        ELISE_COPY(
-                                    im1.all_pts(),
-                                    im1.in(),
-                                    Tiff_Im(aOut1.c_str(),
-                                            im1.sz(),
-                                            GenIm::real4,
-                                            Tiff_Im::No_Compr,
-                                            Tiff_Im::BlackIsZero).out()
-                                    );
-
-                        ELISE_COPY(
-                                    im2.all_pts(),
-                                    im2.in(),
-                                    Tiff_Im(aOut2.c_str(),
-                                            im2.sz(),
-                                            GenIm::real4,
-                                            Tiff_Im::No_Compr,
-                                            Tiff_Im::BlackIsZero).out()
-                                    );
-                    }
-                    }
-
-            }
-*/
+            Tiff_Im::CreateFromIm(over,"Tmp_overlap.tif");
 
         } else { std::cout << "cannot find ortho 1 and 2, please check file names\n";}
 
     }
-
 }
 
 
@@ -425,7 +189,7 @@ cVarioCamTo8Bits::cVarioCamTo8Bits(int argc,char ** argv) :
             {
                 Pt2di pt(u,v);
                 double aVal = imIn.GetR(pt);
-                unsigned int val(0);
+                int val(0);
 
                 if(aVal!=0){
                     if (aVal>=minRad && aVal <minRad+rangeRad)
@@ -1193,7 +957,7 @@ int statRadianceVarioCam_main(int argc,char ** argv)
     // open 2D measures
     cSetOfMesureAppuisFlottants aSetOfMesureAppuisFlottants=StdGetFromPCP(a2DMesFileName,SetOfMesureAppuisFlottants);
     // open 3D measures
-    cDicoAppuisFlottant DAF=  StdGetFromPCP(a3DMesFileName,DicoAppuisFlottant);
+    cDicoAppuisFlottant DAF= StdGetFromPCP(a3DMesFileName,DicoAppuisFlottant);
     std::list<cOneAppuisDAF> & aLGCP =  DAF.OneAppuisDAF();
 
     // create a map of GCP and position
@@ -1353,10 +1117,6 @@ int MasqTIR_main(int argc,char ** argv)
     }
 
 
-
-
-
-
     std::cout << "je sauve l'image " << aName << "\n";
     ELISE_COPY
     (
@@ -1509,7 +1269,7 @@ int main_testold(int argc,char ** argv)
           }
         }
 
-       } else { std:cout << "cannot open file in\n";}
+       } else { std::cout << "cannot open file in\n";}
         fin.close();
         fout.close();
 

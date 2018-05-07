@@ -90,6 +90,7 @@ int HomFilterMasq_main(int argc,char ** argv)
     cMasqBin3D * aMasq3D = 0;
     double  aDistId=-1;
     double  aDistHom=-1;
+    bool    DoSym  = false;
 
     Pt2dr  aSelecTer;
 
@@ -113,6 +114,7 @@ int HomFilterMasq_main(int argc,char ** argv)
                     << EAM(aSelecTer,"SelecTer",true,"[Per,Prop] Period of tiling on ground selection, Prop=proporion of selected")
                     << EAM(aDistId,"DistId",true,"Supress pair such that d(P1,P2) < DistId, def unused")
                     << EAM(aDistHom,"DistH",true,"Distance for filtering homologous point")
+                    << EAM(DoSym,"Symetrise",true,"Symetrise masq")
     );
     bool aHasOri3D =  EAMIsInit(&aOriMasq3D);
     bool HasTerSelec = EAMIsInit(&aSelecTer);
@@ -128,7 +130,7 @@ int HomFilterMasq_main(int argc,char ** argv)
     }
 
     if (!EAMIsInit(&AcceptNoMask))
-       AcceptNoMask = EAMIsInit(&MasqGlob) || aHasOri3D || EAMIsInit(&aDistId);
+       AcceptNoMask = EAMIsInit(&MasqGlob) || aHasOri3D || EAMIsInit(&aDistId) || DoSym;
 
 
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -167,6 +169,7 @@ int HomFilterMasq_main(int argc,char ** argv)
 
     for (int aKN = 0 ; aKN<int(aVN->size()) ; aKN++)
     {
+        std::cout << "Prep Reste " << aVN->size() - aKN << "\n";
         std::string aNameIm = (*aVN)[aKN];
         Tiff_Im aTF = Tiff_Im::StdConvGen(aNameIm,1,false);
         Pt2di aSzG = aTF.sz();
@@ -238,6 +241,7 @@ int HomFilterMasq_main(int argc,char ** argv)
 
     for (int aKN1 = 0 ; aKN1<int(aVN->size()) ; aKN1++)
     {
+        std::cout << "Filter Reste " << aVN->size() - aKN1 << "\n";
         for (int aKN2 = 0 ; aKN2<int(aVN->size()) ; aKN2++)
         {
              std::string aNameIm1 = (*aVN)[aKN1];
@@ -251,8 +255,11 @@ std::cout << aNameIm1  << " # " << aNameIm2 << "\n";
 */
 
              std::string aNameIn = aDir + anICNM->Assoc1To2(aKHIn,aNameIm1,aNameIm2,true);
+             bool ExistFileIn =  ELISE_fp::exist_file(aNameIn);
+             std::string aNameInSym = aDir + anICNM->Assoc1To2(aKHIn,aNameIm2,aNameIm1,true);
+             bool SymThisFile = DoSym && (!ELISE_fp::exist_file(aNameInSym));
 
-             if (ELISE_fp::exist_file(aNameIn))
+             if (ExistFileIn)
              {
                   bool UseMasq = true;
                   if (EAMIsInit(&KeyEquivNoMasq))
@@ -266,6 +273,7 @@ std::cout << aNameIm1  << " # " << aNameIm2 << "\n";
 
                   ElPackHomologue aPackIn =  ElPackHomologue::FromFile(aNameIn);
                   ElPackHomologue aPackOut;
+                  ElPackHomologue aPackSymOut;
                   for (ElPackHomologue::const_iterator itP=aPackIn.begin(); itP!=aPackIn.end() ; itP++)
                   {
                       Pt2dr aP1 = itP->P1();
@@ -316,11 +324,20 @@ std::cout << aNameIm1  << " # " << aNameIm2 << "\n";
                       {
                           ElCplePtsHomologues aCple(aP1,aP2);
                           aPackOut.Cple_Add(aCple);
+                          if (SymThisFile) 
+                          {
+                              ElCplePtsHomologues aCpleSym(aP2,aP1);
+                              aPackSymOut.Cple_Add(aCpleSym);
+                          }
                       }
                   }
                   std::string aNameOut = aDir + anICNM->Assoc1To2(aKHOut,aNameIm1,aNameIm2,true);
                   aPackOut.StdPutInFile(aNameOut);
-                  std::cout << "IN " << aNameIn << " " << aNameOut  << " UseM " << UseMasq  << " Nb=" <<  aPackOut.size() << "\n";
+                  if (SymThisFile)
+                  {
+                      aPackOut.StdPutInFile(aNameInSym);
+                  }
+                  // std::cout << "IN " << aNameIn << " " << aNameOut  << " UseM " << UseMasq  << " Nb=" <<  aPackOut.size() << "\n";
              }
         }
     }
