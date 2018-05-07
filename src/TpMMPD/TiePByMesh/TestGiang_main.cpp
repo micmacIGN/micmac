@@ -304,7 +304,10 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
         {
             cMesureAppuiFlottant1Im aIm = *iT1;
             string aImName = aIm.NameIm();
-            CamStenope * aCam = aICNM->StdCamStenOfNames(aImName, aOriA);
+            CamStenope * aCam = aICNM->StdCamStenOfNamesSVP(aImName, aOriA);
+
+            if (aCam != 0)
+            {
             aCam->SetNameIm(aImName);
 
             bool onL1=false;
@@ -348,6 +351,7 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
                             aPtMesExist->AddMeasure(aCoor, aImName, aCam, 2);
                     }
                 }
+            }
             }
             else
             {

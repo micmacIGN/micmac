@@ -17,7 +17,7 @@ public:
      cInterfChantierNameManipulateur * mICNM;
      // liste de couple d'images
      cSauvegardeNamedRel mSNR ;
-     std::string mFileClpIm, mDirOut,mDir,mFullName;
+     std::string mFileClpIm, mDirOut,mDir,mFullName,mFileOutModels;
      std::list<std::string> mLFile;
      bool mDebug,mSaveSingleOrtho;
      std::string mPatOrt;
@@ -28,6 +28,7 @@ public:
      int mMinOverX_Y,mMinOverX_Y_fichierCouple,mPropPixRec;
      void moyenneModelPerOrt();
      void loadEROSmodel4OneIm(string aNameOrt);
+     void saveModelsGlob();// one model per im
 };
 
 
