@@ -803,6 +803,8 @@ int ZBufferRaster_main(int argc, char ** argv);
 
 int Test_TrajectoFromOri(int argc, char ** argv);
 
+int PlyBascule(int argc, char ** argv);
+
 int ConvertToNewFormatHom_Main(int argc, char ** argv);
 int UnionFiltragePHom_Main(int argc, char ** argv);
 
@@ -1075,6 +1077,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("InitOriByBlocRigid",Test_InitBloc,"Init another camera orientation from known camera block structure and one camera ori in block"));
         aRes.push_back(cMMCom("TrajectoFromOri",Test_TrajectoFromOri,"Tracer Trajecto d'acquisition a partir de Orientation"));
         aRes.push_back(cMMCom("HomolLSMRefine",HomolLSMRefine_main,"Refine Homol Pack by Least Square Matching"));
+        aRes.push_back(cMMCom("PlyBascule",PlyBascule,"Bascule PLY file with bascule XML (estimated by GCPBascule)"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));
