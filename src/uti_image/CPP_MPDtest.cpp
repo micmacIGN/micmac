@@ -1332,6 +1332,11 @@ void TestHomogr()
 
 int MPDtest_main (int argc,char** argv)
 {
+    {
+        Pt2di aP(101.999999,101.000001);
+        std::cout <<  "ppppppppppp "  << aP << "\n";
+        getchar();
+    }
     std::cout << "MPDtest_main in " << __FILE__ << "\n";
     {
        TestHomogr();
