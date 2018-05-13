@@ -49,25 +49,28 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*****************************************************/
 
 
-cOneScaleImRechPH::cOneScaleImRechPH(cAppli_NewRechPH &anAppli,const Pt2di & aSz,const double & aScale,const int & aNiv) :
+cOneScaleImRechPH::cOneScaleImRechPH(cAppli_NewRechPH &anAppli,const Pt2di & aSz,const double & aScale,const int & aNiv,int aPowDecim) :
    mAppli (anAppli),
    mSz    (aSz),
    mIm    (aSz.x,aSz.y),
    mTIm   (mIm),
    mImMod (1,1),
    mTImMod (mImMod),
-   mScale (aScale),
-   mNiv   (aNiv),
-   mNbPByLab (int(eTPR_NoLabel),0)
+   mScaleAbs (aScale),
+   mScalePix (mScaleAbs/aPowDecim),
+   mPowDecim (aPowDecim),
+   mNiv      (aNiv),
+   mNbPByLab   (int(eTPR_NoLabel),0),
+   mSifDifMade (false)
 {
    // cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
    // mInterp = new cTabIM2D_FromIm2D<tElNewRechPH>(aSinC,1000,false);
    mInterp = mAppli.Interp();
 
-   mVoisGauss = SortedVoisinDisk(-1,2*mScale + 4,true);
+   mVoisGauss = SortedVoisinDisk(-1,2*mScalePix + 4,true);
    for (const auto & aPt : mVoisGauss)
    {
-       mGaussVal.push_back(Gauss(mScale,euclid(aPt)));
+       mGaussVal.push_back(Gauss(mScalePix,euclid(aPt)));
    }
 }
 
@@ -112,7 +115,7 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromFile
 {
    Tiff_Im aTifF = Tiff_Im::StdConvGen(aName,1,true);
    Pt2di aP1 = (aP1Init.x > 0) ? aP1Init : aTifF.sz();
-   cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,aP1-aP0,aS0,0);
+   cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,aP1-aP0,aS0,0,1);
 
    if (anAppli.TestDirac())
    {
@@ -134,9 +137,23 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromFile
    return aRes;
 }
 
-cOneScaleImRechPH* cOneScaleImRechPH::FromScale(cAppli_NewRechPH & anAppli,cOneScaleImRechPH & anIm,const double & aSigma)
+cOneScaleImRechPH* cOneScaleImRechPH::FromScale
+                   (
+                         cAppli_NewRechPH & anAppli,
+                         cOneScaleImRechPH & anIm,
+                         const double & aSigma,
+                         int       aScaldec, // Scale decimation
+                         bool      JumpDecim
+
+                    )
 {
-     cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,anIm.mSz,aSigma,anIm.mNiv+1);
+     Pt2di aSzRes =  anIm.mSz;
+     if (JumpDecim)
+     {
+        aSzRes = aSzRes / 2;
+     }
+
+     cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,aSzRes,aSigma,anIm.mNiv+1,aScaldec);
 
      // Pour reduire le temps de calcul, si deja plusieurs iters la fon de convol est le resultat
      // de plusieurs iters ...
@@ -149,10 +166,27 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromScale(cAppli_NewRechPH & anAppli,cOneS
         std::cout << "GaussByExp, NbIter=" << aNbIter << "\n";
      }
 
+     double aScaleInit = anIm.mScalePix;
      // anIm.mIm.dup(aRes->mIm);
-     aRes->mIm.dup(anIm.mIm);
+     if (JumpDecim)
+     {
+         Pt2di aP;
+         for (aP.x=0 ; aP.x<aSzRes.x ; aP.x++)
+         {
+             for (aP.y=0 ; aP.y<aSzRes.y ; aP.y++)
+             {
+                 aRes->mTIm.oset(aP,anIm.mTIm.get(aP*2));
+             }
+         }
+         aScaleInit /= 2;
+     }
+     else
+     {
+        aRes->mIm.dup(anIm.mIm);
+     }
      // Passe au filtrage gaussien le sigma cible et le sigma actuel, il se debrouille ensuite
-     FilterGaussProgr(aRes->mIm,aSigma,anIm.mScale,aNbIter);
+     std::cout << "FILTRAGE " << aScaleInit << " => " << aRes->mScalePix << "\n";
+     FilterGaussProgr(aRes->mIm,aRes->mScalePix,aScaleInit,aNbIter);
 
 
      if (anAppli.TestDirac())
@@ -180,6 +214,7 @@ bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> &
     return true;
 }
 
+// Appele par Sift-Like
 
 bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp)
 {
@@ -195,7 +230,7 @@ bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & a
 
     if (aV0== aV2)
     {
-       int aCmp = (mScale<aI2->mScale) ? -1 : 1;
+       int aCmp = (mScaleAbs<aI2->mScaleAbs) ? -1 : 1;
        if (aCmp != aValCmp)
           return false;
     }
@@ -225,7 +260,7 @@ void cOneScaleImRechPH::CalcPtsCarac(bool Basic)
    // voisin tries excluant le pixel central, le tri permet normalement de
    // beneficier le plus rapidement possible d'une "coupe"
    // std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mAppli.DistMinMax(Basic),true);
-   std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,2*mScale + 4,true);
+   std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,3*mScalePix + 0.5,true);
 
 
    bool DoMin = mAppli.DoMin();
@@ -299,7 +334,7 @@ void cOneScaleImRechPH::Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC)
              aPC.Scale() = aBr->Scale();
              aPC.NivScale() = aBr->NivScal();
              aPC.DirMS() = aVP.back()->Pt() - aVP.front()->Pt();
-             aPC.ScaleStab() = aBr->ScaleStab();
+             aPC.ScaleStab() = aBr->BrScaleStab();
              aPC.ScaleNature() = aBr->ScaleNature();
 
              // std::cout << "DIRMS " << euclid(aPC.DirMS()) << "\n";
@@ -314,22 +349,6 @@ void cOneScaleImRechPH::Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC)
                 {
                      aPlyC->AddSphere(aCol,PtPly(*aPt,aPt->Niv()),aDistZ/6.0,3);
                 }
-/*
-             int aN0 = aBr->Niv0();
-             int aL  = aBr->Long();
-             Pt3di aCol = Ply_CoulOfType(aP.Type(),aN0,aL);
-             Pt3di aColP0 = (aN0!=0)  ? Pt3di(0,255,0)  : aCol;
-             aPlyC->AddSphere(aColP0,PtPly(*(aBr->P0()),aN0),aDistZ/6.0,3);
-
-             aPlyC->AddSphere(aCol,PtPly(*(aBr->PLast()),aN0+aL),aDistZ/6.0,3);
-
-             int aNiv = aN0;
-             for (cPtRemark * aP = aBr->P0() ; aP->LR() ; aP = aP->LR())
-             {
-                 aPlyC->AddSeg(aCol,PtPly(*aP,aNiv),PtPly(*(aP->LR()),aNiv+1),20);
-                 aNiv++;
-             }
-*/
              }
           }
           else
@@ -383,14 +402,11 @@ void cOneScaleImRechPH::InitBuf(const eTypePtRemark & aType, bool Init)
    {
       if ((*itP)->Type()==aType)
       {
-         Pt2di aPi = round_ni((*itP)->Pt());
-         if (mAppli.Inside(aPi))
-         {
-            mAppli.PtOfBuf(aPi) = Init ? *itP : 0;
-         }
+         //  Buf2
+         if (Init)
+            mAppli.AddBuf2(*itP);
          else
-         {
-         }
+            mAppli.ClearBuff2(*itP);
       }
    }
 }
@@ -398,29 +414,62 @@ void cOneScaleImRechPH::InitBuf(const eTypePtRemark & aType, bool Init)
 
 void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aHR,const eTypePtRemark & aType)
 {
+   int aRatio = mPowDecim / aHR.mPowDecim;
    cOneScaleImRechPH & aLR = *this;
 
    // Initialise la matrice haute resolution
    aLR.InitBuf(aType,true);
-   double aDist = mScale * 1.5 + 4;
+   double aDist = (mScalePix * 2.5 + 0.5) ;
 
   
+   int aNbHRTot=0;
+   int aNbLinked=0;
+
    for (const auto & aPHR : aHR.mLIPM)
    {
        if (aPHR->Type()==aType)
        {
+           aNbHRTot++;
            // Pt2di aPi = round_ni((*itP)->Pt());
-           tPtrPtRemark aPLR  =  mAppli.NearestPoint(round_ni(aPHR->Pt()),aDist);
-           if (aPLR)
+           // tPtrPtRemark aPLR  =  mAppli.NearestPoint(round_ni(aPHR->Pt())/aRatio,aDist);
+           tPtrPtRemark aPLR2 =  mAppli.NearestPoint2(round_ni(aPHR->Pt())/aRatio,aDist);
+
+           if (aPLR2)
            {
               // std::cout << "LEVS " << mNiv << " " << aHR.mNiv << "\n";
-              aPLR->MakeLink(aPHR);
+              aPLR2->MakeLink(aPHR);
+              aNbLinked++;
            }
            else
            {
            }
        }
    }
+
+/////
+   if (false)
+   {
+      int aNbLRTot=0;
+      for (const auto & aPHR : aLR.mLIPM)
+      {
+         if (aPHR->Type()==aType)
+         {
+             aNbLRTot++;
+         }
+           // Pt2di aPi = round_ni((*itP)->Pt());
+      }
+
+      if (aNbHRTot)
+      {
+         std::cout << "LLKKkkkk " << aNbHRTot << " " << aNbLinked  
+                   << " PropH=" << aNbLinked/double(aNbHRTot)
+                   << " PropHL=" << aNbLRTot/double(aNbHRTot) 
+                   << " Ratio=" << aRatio
+                   << " SP=" << mScalePix
+                   << "\n";
+      }
+   }
+   
    // Desinitalise 
    aLR.InitBuf(aType,false);
 }
@@ -438,7 +487,24 @@ void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aHR)
 
 const int &  cOneScaleImRechPH::NbExLR() const {return mNbExLR;}
 const int &  cOneScaleImRechPH::NbExHR() const {return mNbExHR;}
-const double &  cOneScaleImRechPH::Scale() const {return mScale;}
+const double &  cOneScaleImRechPH::ScaleAbs() const {return mScaleAbs;}
+const double &  cOneScaleImRechPH::ScalePix() const {return mScalePix;}
+const int & cOneScaleImRechPH::PowDecim() const {return mPowDecim;}
+bool cOneScaleImRechPH::SifDifMade() const {return mSifDifMade;}
+
+bool cOneScaleImRechPH::SameDecim(const cOneScaleImRechPH & anI2) const
+{
+   return mPowDecim == anI2.mPowDecim;
+}
+
+cOneScaleImRechPH * cOneScaleImRechPH::GetSameDecimSiftMade(cOneScaleImRechPH* aI1,cOneScaleImRechPH* aI2)
+{
+   if (! mSifDifMade) return 0;
+   if (SameDecim(*aI1) && aI1->mSifDifMade) return aI1;
+   if (SameDecim(*aI2) && aI2->mSifDifMade) return aI2;
+
+   return 0;
+}
 
 
 double cOneScaleImRechPH::GetVal(const Pt2di & aP,bool & Ok) const 
@@ -454,8 +520,7 @@ bool cOneScaleImRechPH::ComputeDirAC(cOnePCarac & aP)
 {
    aP.OK() = true;
 
-
-   cNH_CutAutoCorrelDir<tTImNRPH>  mACD(mTIm,Pt2di(aP.Pt()),ElMax(2.0,1+mScale),round_up(mScale));
+   cNH_CutAutoCorrelDir<tTImNRPH>  mACD(mTIm,Pt2di(aP.Pt()),ElMax(2.0,1+mScalePix),round_up(mScalePix));
    
     
    mACD.AutoCorrel(Pt2di(aP.Pt()),2.0);
@@ -468,7 +533,7 @@ bool cOneScaleImRechPH::ComputeDirAC(cOnePCarac & aP)
 
    
    aP.AutoCorrel() = aR.y;
-   aP.DirAC() = Pt2dr::FromPolar(mScale,aR.x);
+   aP.DirAC() = Pt2dr::FromPolar(mScalePix,aR.x);
 
    // std::cout << "AUTOC " << aP.AutoCorrel() << " " <<  mAppli.SeuilAC() << "\n";
 
@@ -485,10 +550,11 @@ bool cOneScaleImRechPH::ComputeDirAC(cOnePCarac & aP)
 
 bool    cOneScaleImRechPH::AffinePosition(cOnePCarac & aPt)
 {
+
     Pt2dr aPt0 = aPt.Pt();
     aPt.Pt0() = aPt0;
     int aNbGrid = 2;
-    double aStep = mScale/2;
+    double aStep = mScalePix/2;
 
     // On verifie on est dedans
     {
@@ -566,8 +632,8 @@ bool    cOneScaleImRechPH::AffinePosition(cOnePCarac & aPt)
 
          for (int aK=0 ; aK<10 ; aK++)
          {
-            double aDx = X + NRrandC() * mScale / 20.0;
-            double aDy = Y + NRrandC() * mScale / 20.0;
+            double aDx = X + NRrandC() * mScalePix / 20.0;
+            double aDy = Y + NRrandC() * mScalePix / 20.0;
             double aV =  (aDS[1]*aDx + aDS[2]*aDy + aDS[3]*aDx*aDx + aDS[4]*aDx*aDy + aDS[5]*aDy*aDy);
             double aVm = (aDS[1]*X + aDS[2]*Y + aDS[3]*X*X + aDS[4]*X*Y + aDS[5]*Y*Y);
             double aCheck = (aV-aVm) * aS;
@@ -581,11 +647,12 @@ bool    cOneScaleImRechPH::AffinePosition(cOnePCarac & aPt)
      }
 
      Pt2dr aCor(X,Y);
-     if (euclid(aCor) > mScale)
+     if (euclid(aCor) > mScalePix)
      {
         return (aPt.OK() = false);
      }
-     aPt.Pt() = aPt.Pt() + aCor;
+     // std::cout << "Afffffinne Pos " << aPt.Pt()  << " " << aPt.Pt() + aCor << "\n";
+     aPt.Pt() = (aPt.Pt() + aCor)* double(mPowDecim);
 
      return true;
 }

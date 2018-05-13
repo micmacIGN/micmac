@@ -237,7 +237,7 @@ class cBrinPtRemark
         bool    Ok() const {return mOk;}
         double  Scale() const {return  mScale;}
         double  ScaleNature() const {return  mScaleNature;}
-        double  ScaleStab() const {return  mScaleStab;}
+        double  BrScaleStab() const {return  mBrScaleStab;}
         int     NivScal() const {return mNivScal;}
         double  LaplMax() const {return mLaplMax;}
     private :
@@ -247,7 +247,7 @@ class cBrinPtRemark
         int         mNivScal;
         double      mScale;
         double      mScaleNature;
-        double      mScaleStab;
+        double      mBrScaleStab;
         double      mLaplMax;
         double      mLaplMaxNature;
 };

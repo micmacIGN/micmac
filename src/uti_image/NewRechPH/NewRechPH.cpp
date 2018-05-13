@@ -40,6 +40,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
+double TimeAndReset(ElTimer &aChrono )
+{
+   double aRes = aChrono.uval();
+   aChrono.reinit();
+
+   return aRes;
+}
+
 std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt)
 {
     std::string aDirGlob = DirOfFile(aNameGlob);
@@ -54,9 +62,11 @@ void  cAppli_NewRechPH::Clik()
    if (mW1) mW1->clik_in();
 }
 
-void cAppli_NewRechPH::AddScale(cOneScaleImRechPH * aI1,cOneScaleImRechPH *)
+void cAppli_NewRechPH::AddScale(cOneScaleImRechPH * aI1,cOneScaleImRechPH * aI2)
 {
+    // std::cout << "---------PPppp   " << aI1->PowDecim() << " " << aI2->PowDecim() << "\n";
     mVI1.push_back(aI1);
+    mVImHS.push_back(aI2);
 }
 
 void cAppli_NewRechPH::AddBrin(cBrinPtRemark * aBr)
@@ -119,8 +129,16 @@ void TestSigma2(double a)
 }
 */
 
+double cAppli_NewRechPH::IndScalDecim(const double & aS ) const
+{
+   return log(aS/mEch0Decim) / log(2.0);
+}
+
+
 cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
-    mPowS        (pow(2.0,1/5.0)),
+    mNbByOct     (5.0),
+    mPowS        (pow(2.0,1/mNbByOct)),
+    mEch0Decim   (pow(2.0,1.5)),
     mNbS         (30),
     mISF         (-1,1e10),
     mStepSR      (1.0),
@@ -142,6 +160,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mDoMax       (true),
     mDoPly       (false),
     mPlyC        (0),
+    mDeZoomLn2   (7),
     mHistLong    (1000,0),
     mHistN0      (1000,0),
     mExtSave     ("Std"),
@@ -187,7 +206,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
                       << EAM(mNbS,  "NbS",true,"Number of level")
                       << EAM(mS0,   "S0",true,"ScaleInit, Def=1")
                       << EAM(mDoPly, "DoPly",true,"Generate ply file, for didactic purpose")
-                      << EAM(mBox, "Box",true,"Box for computation")
+                      << EAM(mBoxCalc, "Box",true,"Box for computation")
                       << EAM(mModeTest, "Test",true,"if true add W")
                       << EAM(aSeuilPersist, "SP",true,"Threshold persistance")
                       << EAM(mBasic, "Basic",true,"Basic")
@@ -201,6 +220,9 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
                       << EAM(mScaleCorr, "ScCor",true,"Scale by correl")
                       << EAM(mISF, "ISF",true,"Interval scale forced")
    );
+
+
+   ElTimer  aChrono;
 
     mNbSR2Calc = mRollNorm ?  (mNbSR2Use * 2 - 1) : mNbSR2Use;
     mMaxLevR     = mNbS - (mNbSR2Calc-1) * mDeltaSR;
@@ -222,15 +244,16 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
       mPlyC = new cPlyCloud;
    }
 
-   mP0 = Pt2di(0,0);
-   mP1 = mTestDirac ? Pt2di(1000,1000) : Pt2di(-1,-1);
-   if (EAMIsInit(&mBox))
+   mP0Calc = Pt2di(0,0);
+   mP1Calc = mTestDirac ? Pt2di(1000,1000) : Pt2di(-1,-1);
+   if (EAMIsInit(&mBoxCalc))
    {
-       mP0 = mBox._p0;
-       mP1 = mBox._p1;
+       mP0Calc = mBoxCalc._p0;
+       mP1Calc = mBoxCalc._p1;
    }
    // Create top scale
-   AddScale(cOneScaleImRechPH::FromFile(*this,mS0,mName,mP0,mP1),nullptr);
+   cOneScaleImRechPH * aIm0 = cOneScaleImRechPH::FromFile(*this,mS0,mName,mP0Calc,mP1Calc);
+   AddScale(aIm0,aIm0);
 
    // Create matr of link, will have do it much less memory consuming (tiling of list ?)
    mIm0         = mVI1.back()->Im();
@@ -239,7 +262,10 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
    mImContrast  = tImNRPH(mSzIm.x,mSzIm.y);
    mTImContrast = tTImNRPH(mImContrast);
    ComputeContrast();
-   mBufLnk  = std::vector<std::vector<cPtRemark *> >(mSzIm.y,std::vector<cPtRemark *>(mSzIm.x,(cPtRemark *)0));
+
+   mSzLn2 = (mSzIm + Pt2di(mDeZoomLn2,mDeZoomLn2)) / mDeZoomLn2;
+   mBufLnk2  = std::vector<std::vector<tLPtBuf> >(mSzLn2.y,std::vector<tLPtBuf>(mSzLn2.x,tLPtBuf() ));
+   
 
    double aScaleMax = mS0*pow(mPowS,mNbS);
    // Used for  nearest point researh
@@ -256,32 +282,96 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
    }
    // mVI1.back()->Show(mW1);
 
+   int aPowDecim =1;
+   // bool DecimBegun = false;  
+   // Variables utilisee pour traiter
+   int  KLastDecim=-11000;
+
+   double aTimeLecture = TimeAndReset(aChrono);
+  
    for (int aK=0 ; aK<mNbS ; aK++)
    {
         // Init from low resol
         if (aK!=0)
         {
-           AddScale
-           (
-              cOneScaleImRechPH::FromScale(*this,*mVI1.back(),mS0*pow(mPowS,aK)),
-              0
-           );
+           double aScale = mS0*pow(mPowS,aK);
+           double ISD = IndScalDecim(aScale);
+           double ISDPrec = IndScalDecim(mVI1.back()->ScaleAbs());
+           bool  Decim = (ISD>0) && (round_down(ISD)!=round_down(ISDPrec));
+           if (Decim) 
+           {
+              aPowDecim *= 2;
+              KLastDecim = aK;
+           }
+           bool ReplikScale = (aK<= (KLastDecim+2));
+           if (0)
+           {
+               std::cout << " IIII " << IndScalDecim(aScale) << " " << ISDPrec
+                         << " RRR " << round_down(ISD) << " " << round_down(ISDPrec) 
+                         << " " << aPowDecim 
+                         <<  (Decim  ? "*" : " ") 
+                         <<  (ReplikScale ? "#" : " ")
+                         << "\n";
+           }
+           
+           cOneScaleImRechPH * aImLS =  cOneScaleImRechPH::FromScale(*this,*mVI1.back(),aScale,aPowDecim,Decim);
+           cOneScaleImRechPH * aImHS = aImLS;
+           if (ReplikScale)
+           {
+               cOneScaleImRechPH * aBackHS = mVImHS.back();
+               aImHS = cOneScaleImRechPH::FromScale(*this,*mVImHS.back(),aScale,aBackHS->PowDecim(),false);
+           }
+           AddScale(aImLS,aImHS);
+           
 
         }
-        std::cout << "DONE SCALE " << aK << " on " << mNbS << "\n";
+        std::cout << "DONE SCALE " << aK << " on " << mNbS  << "\n";
    }
+   double aTimeGauss = TimeAndReset(aChrono);
    cSetPCarac aSPC;
    if (mAddModeSift)
    {
        for (int aK=0 ; aK<mNbS-1 ; aK++)
        {
-            mVI1[aK]->SiftMakeDif(mVI1[aK+1]);
+           // std::cout << "SFUFT MAKE DIFF " << aK << "\n";
+           bool aDoDifLS =  mVI1[aK]->SameDecim(*mVI1[aK+1]);
+           if (aDoDifLS) 
+              mVI1[aK]->SiftMakeDif(mVI1[aK+1]);
+
+           bool aDoDifHS =      mVImHS[aK]->SameDecim(*mVImHS[aK+1])  // Il faut que les Hs soient compatible
+                           && ( (mVI1[aK]!= mVImHS[aK]) || (mVI1[aK+1]!= mVImHS[aK+1]) ); // et que cela apport qqch
+           if (aDoDifHS)
+              mVImHS[aK]->SiftMakeDif(mVImHS[aK+1]);
+
+           ELISE_ASSERT(aDoDifLS||aDoDifHS,"None diff possible");
+           // std::cout << "HHHhhh " << aDoDifLS << " " << aDoDifHS << "\n";
        }
        for (int aK=1 ; aK<mNbS-2 ; aK++)
        {
-            mVI1[aK]->SiftMaxLoc(mVI1[aK-1],mVI1[aK+1],aSPC);
+            // bool
+            cOneScaleImRechPH *  aILsUp   = mVI1[aK]->GetSameDecimSiftMade(mVI1[aK-1],mVImHS[aK-1]);
+            cOneScaleImRechPH *  aILsDown = mVI1[aK]->GetSameDecimSiftMade(mVI1[aK+1],mVImHS[aK+1]);
+
+            if ((aILsUp!=0) && (aILsDown!=0))
+            {
+                mVI1[aK]->SiftMaxLoc(aILsUp,aILsDown,aSPC);
+            }
+            else
+            {
+                cOneScaleImRechPH *  aIHsUp   = mVImHS[aK]->GetSameDecimSiftMade(mVI1[aK-1],mVImHS[aK-1]);
+                cOneScaleImRechPH *  aIHsDown = mVImHS[aK]->GetSameDecimSiftMade(mVI1[aK+1],mVImHS[aK+1]);
+                if ((aIHsUp!=0) && (aIHsDown!=0))
+                {
+                    mVImHS[aK]->SiftMaxLoc(aIHsUp,aIHsDown,aSPC);
+                }
+                else
+                {
+                    ELISE_ASSERT(false,"SIFT, scale assertion failed");
+                }
+            }
        }
    }
+   double aTimeSift = TimeAndReset(aChrono);
    if (mAddModeTopo)
    {
        for (int aK=0 ; aK<mNbS ; aK++)
@@ -312,6 +402,12 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
        }
 
    }
+   else
+   {
+   }
+
+
+   double aTimeTopo = TimeAndReset(aChrono);
 
    for (auto & aPt : aSPC.OnePCarac())
        aPt.OK() = true;
@@ -328,12 +424,16 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
        }
        //  ComputeDirAC(cBrinPtRemark &);
 
+       // C'est la que la decimation est invalidee
        if (aPt.OK())
        {
           mVI1[aPt.NivScale()]->AffinePosition(aPt);
        }
        mVI1[aPt.NivScale()]->NbPOfLab(int(aPt.Kind())) ++;
   }
+
+  double aTimeAffine = TimeAndReset(aChrono);
+
 
   for (auto & aPt : aSPC.OnePCarac())
   {
@@ -343,15 +443,29 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
        }
 
        // Put in global coord
-       aPt.Pt() =  aPt.Pt() + Pt2dr(mP0);
+       aPt.Pt() =  aPt.Pt() + Pt2dr(mP0Calc);
        if (aPt.OK())
           aNewL.push_back(aPt);
   }
   aSPC.OnePCarac() = aNewL;
 
+  double aTimeCalcImage = TimeAndReset(aChrono);
 
-   // MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
-   MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
+
+  // MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
+  MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
+
+  double aTimeXml = TimeAndReset(aChrono);
+
+
+  std::cout << "================== Time ========= \n";
+  std::cout << "   Lecture =" << aTimeLecture << "\n";
+  std::cout << "   Gaussian=" << aTimeGauss << "\n";
+  std::cout << "   Laplacia=" << aTimeSift << "\n";
+  std::cout << "   Topologi=" << aTimeTopo << "\n";
+  std::cout << "   Affinage=" << aTimeAffine << "\n";
+  std::cout << "   CalcInva=" << aTimeCalcImage << "\n";
+  std::cout << "   SauvXml =" << aTimeXml << "\n";
 }
 
 bool  cAppli_NewRechPH::ComputeContrastePt(cOnePCarac & aPt)
@@ -460,7 +574,8 @@ void cAppli_NewRechPH::ComputeContrast()
    std::cout << "MOY = " << aMoy << "\n";
 
 
-   if (1)
+   // Pb si lance en //, si necessaire le mettre en option
+   if (0)
    {
       Tiff_Im::CreateFromIm(aImC0,"ImC0.tif");
       Tiff_Im::CreateFromIm(mImContrast,"ImSeuilContraste.tif");
@@ -494,7 +609,7 @@ void cAppli_NewRechPH::AdaptScaleValide(cOnePCarac & aPC)
 
 bool cAppli_NewRechPH::OkNivStab(int aNiv)
 {
-   return mVI1.at(aNiv)->Scale() >= mScaleStab;
+   return mVI1.at(aNiv)->ScaleAbs() >= mScaleStab;
 }
 
 bool cAppli_NewRechPH::Inside(const Pt2di & aP) const
@@ -502,13 +617,6 @@ bool cAppli_NewRechPH::Inside(const Pt2di & aP) const
     return (aP.x>=0) && (aP.y>=0) && (aP.x<mSzIm.x) && (aP.y<mSzIm.y);
 }
 
-tPtrPtRemark &  cAppli_NewRechPH::PtOfBuf(const Pt2di & aP)
-{
-     
-    ELISE_ASSERT(Inside(aP),"cAppli_NewRechPH::PtOfBuf"); 
-
-    return mBufLnk[aP.y][aP.x];
-}
 
 double  cAppli_NewRechPH::DistMinMax(bool Basic) const  
 {
@@ -519,32 +627,80 @@ double  cAppli_NewRechPH::DistMinMax(bool Basic) const
    return mDistMinMax;
 }
 
+///   ============== Buf2 ==================
 
-
-
-tPtrPtRemark  cAppli_NewRechPH::NearestPoint(const Pt2di & aP,const double & aDist)
+bool   cAppli_NewRechPH::InsideBuf2(const Pt2di & aP)
 {
-   double aD2 = ElSquare(aDist);
-   for (int aKV=0 ; aKV<int(mVoisLnk.size()) ; aKV++)
-   {
-       const Pt2di & aVois = mVoisLnk[aKV];
-       if (square_euclid(aVois) > aD2)
-          return 0;
-       Pt2di aPV = aP + aVois;
-       if (Inside(aPV))
-       {
-           tPtrPtRemark  aRes = mBufLnk[aPV.y][aPV.x];
-           if (aRes) return aRes;
-       }
-   }
-   return 0;
+    return (aP.x>=0) && (aP.y>=0) && (aP.x<mSzLn2.x) && (aP.y<mSzLn2.y);
 }
+
+Pt2di cAppli_NewRechPH::PIndex2(const Pt2di & aP) const
+{
+   return Pt2di((aP.x+mDeZoomLn2/2)/mDeZoomLn2,(aP.y+mDeZoomLn2/2)/mDeZoomLn2);
+}
+
+tLPtBuf & cAppli_NewRechPH::LPOfBuf2(const Pt2dr & aPG)
+{
+    Pt2di aPInd = PIndex2(round_ni(aPG));
+
+    return mBufLnk2.at(aPInd.y).at(aPInd.x);
+}
+
+void cAppli_NewRechPH::ClearBuff2(const tPtrPtRemark & aP)
+{
+   LPOfBuf2(aP->Pt()).clear();
+}
+
+
+void cAppli_NewRechPH::AddBuf2(const tPtrPtRemark & aP)
+{
+    LPOfBuf2(aP->Pt()).push_front(aP);
+}
+
+tPtrPtRemark  cAppli_NewRechPH::NearestPoint2(const Pt2di & aPG,const double & aDistFull)
+{
+    Pt2di aPInd = PIndex2(aPG);
+    int aDistRed = round_up(aDistFull/mDeZoomLn2+1e-5);
+    tPtrPtRemark aResult = nullptr;
+    double aDMin= ElSquare(aDistFull);
+
+    int aX0 = ElMax(0,aPInd.x-aDistRed);
+    int aX1 = ElMin(mSzLn2.x-1,aPInd.x+aDistRed);
+    int aY0 = ElMax(0,aPInd.y-aDistRed);
+    int aY1 = ElMin(mSzLn2.y-1,aPInd.y+aDistRed);
+
+    for (int aX=aX0 ; aX<=aX1; aX++)
+    {
+        for (int aY=aY0 ; aY<=aY1; aY++)
+        {
+             for (auto & itP : mBufLnk2[aY][aX])
+             {
+                 double aDist = square_euclid(Pt2dr(aPG)-(itP)->Pt());
+                 if (aDist<=aDMin)
+                 {
+                      aDMin = aDist;
+                      aResult = itP;
+                 }
+             }
+        }
+    }
+
+    return aResult;
+}
+
+/*
+        tPtrPtRemark  NearestPoint2(const Pt2di &,const double & aDist);
+        void AddBuf2(const tPtrPtRemark &);
+        void ClearBuff2(const tPtrPtRemark &);
+*/
+
+
 
 const Pt2di & cAppli_NewRechPH::SzIm() const  {return mSzIm;}
 
-double cAppli_NewRechPH::ScaleOfNiv(const int & aNiv) const
+double cAppli_NewRechPH::ScaleAbsOfNiv(const int & aNiv) const
 {
-   return mVI1.at(aNiv)->Scale();
+   return mVI1.at(aNiv)->ScaleAbs();
 }
 
 bool cAppli_NewRechPH::OkNivLapl(int aNiv)
