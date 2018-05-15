@@ -1,0 +1,45 @@
+La question de la lecture-ecriture d'objet dans des fichiers est cruciale pour un systeme
+comme MicMac.
+
+A priori, je trouve pas mal le systeme xml actuel utilisé, ses avantages sont :
+
+   * fichier assez lisible en xml
+   * generation facile
+   * existence du double mode binaire/xml permet de l'utiliser en communication inter programme et de le debuguer
+   * gestion des compatibilite avec les anciens fichier (tant que l'on ne rejoute pas de champs obligatoire ...)
+
+
+
+Son principale incovenient est d'etre completement non standard, s'il existe un bon systeme de remplacement
+plus ou moins standardisé, ce serait à étudier.  
+
+=> http://www.boost.org/doc/libs/1_65_1/libs/serialization/doc/index.html
+
+
+Apparemment boost.serialize le ferait, a etudier serieusement !! De toute facon, ce n'est pas une fonction vitale en terme d'efficacite . Le point a verifier est de pouvoir faire a la fois du texte (meme si ce n'est plus du xml) et du binaire assez rapide.
+
+
+
+
+Sinon, une amélioration à apporter est que, au maximum, les classes C++ aient tout les data issue du XML, sinon il y a duplication de code .
+
+Acutellement :
+
+Xml
+---
+
+<Xml_Toto class...>
+   <I Type="int" ... > <I>
+</Xml_Toto>
+
+C++
+---
+
+class cTautau
+{
+    public :
+         FromXml(&Xml_Toto) ;
+    private :
+        int  mI;
+};
+

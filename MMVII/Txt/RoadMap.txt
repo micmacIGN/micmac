@@ -1,0 +1,127 @@
+Nom de code, projet 2007  ( = MMVII ;-) 
+
+Limitation du Micmac actuel => qualité logicielle
+
+    * peu ou pas du tout documenté
+    * beaucoup de conception/implémentation faites au fil de l'eau
+    * utilise peu de librairie externe (facile pour le portage)
+    * check memoire et fonctionnel abandonne
+
+Conséquence :
+
+   * pas maintenable si MPD ne s'en occupe pas
+   * pas ou peu utilisable en tant que librairie
+
+Objectif ambitieux :
+
+    * avoir les meme fonctionnalité que le MM actuel
+    * avoir un code utilisable en tant que librairie
+    * avoir un code maintenable sans MPD
+    * avoir un code "safe" => bcp de check (acces memoire/ liberation memoire) et de bench
+    * code utilisable en enseignement
+    * completer le MM actuel grace a plus de contributions
+
+Difficulté :
+
+C'est un peu l'angoisse de la feuille blanche, il y a beaucoup de chose
+dans MicMac, si on veut tout reprendre en rearchitecturant proprement a la base, on peut
+passer qq annees homme sans rien avoir, pas motivant , surtout dans un cadre
+ou cela est fait par des volontaires et non pas financé en tant qu'investissement
+
+
+Démarche progressive :
+
+   * partir d'un ensemble minimaliste mais "bien" conçu qui croitra prorgressivement
+   * le code linkera au départ avec la lib MicMac, 
+   * certains  services offert par les classes (quasi tous au depart) seront 
+     en fait exécuté par la lib MicMac
+   * pour ne pas polluer le nouveau MicMac,  la règle est que seule les
+     cpp du nouveau MicMac pourront inclure les header de l'ancien
+   * les header eux contiendront quelque declartion obligatoire de classe de l'ancien MicMac
+
+
+   Par exemple :
+
+   =>  MMVII.h
+
+       class ElCamera;  // Declare une class micmac
+
+       class cGeomImage : public cMapping<3,double,2,double>  // Mappin R^3 => R^2
+       {
+            private :
+                ElCamera * mOldCam;  // Au depart on utilisera les camera 
+       };
+
+
+   =>  MMVII.cpp
+
+       #include <StdAfx.h>
+
+       Pt2dr cGeomImage::Map(Pt3dr aP) {return mOldCam->TerToIm(aP);}
+
+Travail préliminaire :
+
+ Choix des librairie externe :
+
+     * pour le binding ? typage dynamique ?
+     * pour les image ?
+     * utilise-t-on OpenMVG, OpenCV ... a priori non , mais a voir
+     * eigen, boost,
+     * code differenciation
+     * utiliser un gestionnaire de code (QT creator ...)
+     * choix outil de docu
+     * lib-tiff ? lib-jpeg ? dcraw  ?
+     
+
+  Regle de codage, de commentaire, de test, de versionnement etc ...
+ 
+Ne faire un push qu'apres avoir tourne au plus haut niveau de check
+=> utiliser toute les classes de verif
+
+
+Calendrier :
+
+    * Communication => quand ? 
+  
+    * 10/2017 => fin 01/2018, MPD travaille seul, avec le soutien technique d'ER/MD 
+       en mode "bac a sable", pour voir a quoi peut ressembler ;
+       soutien ER/MD pour choix des logiciels externes (doxygen etc ...), discussion etc ...
+
+    * 02/2018 => 08/2018   un noyau MPD/ER/MD (autre ?) travaille sur un sous ensemble, sans doute
+      un sous ensemble de la géométrie image (sans bundle au depart ?)
+
+     * appel plus géneral à contributions
+      
+
+Objectif intermédiaire :
+
+     * avoir a l'automne 2018 un noyau utilisable par les étudiant en TD de photogra
+
+=> 1 pour se donner un objectif pratique motivant
+=> 2 c'est un bon test pour voir si la librairie est utilisable facilement
+
+
+
+Different jalon possible :
+
+Pour eviter l'effet page-blanche, il faut imaginer differentes stratégies qui permettent d'arriver a avoir des ensemble interessant, sans que ce decoupage fasse perdre du temps pour arriver au module complet....
+
+   * mettre les outils Tapioca dans MMVVI , necessite surtout de revoir l'archi des processe et appli
+   * avancer ensuite dans une implementation maison de SIFT ?
+
+   * mettre des outils d'orientation elementaire (notamment les outils purement algebrique : space resectio, tomasi kanade, essential, homographie/planar, 11 Parameter etc, epipolar...)
+   
+   * mettre Martini,
+ 
+   * bundle complet sauf calibration interne
+
+Ajouter un binding Python ?
+
+    * a reflechir si volontaire pour le faire 
+    * si uniquement ligne de commande, peu d'interet, mais a voir si au niveau objet; depend
+      aussi librairie support ?
+
+
+
+   
+
