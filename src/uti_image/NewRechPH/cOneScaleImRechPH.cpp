@@ -340,7 +340,7 @@ void cOneScaleImRechPH::Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC)
        if (aP.HRs().empty()) mNbExHR ++;
        if (!aP.LR()) mNbExLR ++;
    }
-   std::cout << " Nb Br = "<<  aNbBr  << " \%Ok " << 100.0*( aNbBrOk/double(aNbBr))  << " OK=" << aNbBrOk << "\n";
+   std::cout << " Nb Br = "<<  aNbBr  << " perc Ok " << 100.0*( aNbBrOk/double(aNbBr))  << " OK=" << aNbBrOk << "\n";
 
    // std::cout << "NIV=" << mNiv << " HR " << mNbExHR << " LR " << mNbExLR << "\n";
 }

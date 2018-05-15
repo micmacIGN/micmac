@@ -1,4 +1,5 @@
 #include "cLSQTemplate.h"
+#include "../schnaps.h"
 
 cLSQMatch::cLSQMatch(cImgMatch * aTmpl, cImgMatch * aImg) :
 	mTemplate(aTmpl),
@@ -922,6 +923,7 @@ bool cLSMHomol::DoLSMRefine   (
                         double aGr2X = aNewVD2.x;  // derive en X
                         double aGr2Y = aNewVD2.y;  // derive en Y
                         double aV2   = aNewVD2.z;  // valeur d'intensite
+                       /*
                         mCoeff[0] = aV1 ; // A
                         mCoeff[1] = 1.0 ; // B
                         mCoeff[2] = -aGr2X; // im00.x
@@ -933,15 +935,20 @@ bool cLSMHomol::DoLSMRefine   (
                         mCoeff[7] = -aGr2Y *aPC1.y;  // im01.y
 
                         aSys.AddEquation(1.0,mCoeff,aV2);
+                        */
 
-                        /*
-                mCoeff[0] = aV2 ; // A
-                mCoeff[1] = 1.0 ; // B
-                mCoeff[2] = aGr2X; // im00.x
-                mCoeff[3] = aGr2Y;  // im00.y
+                        mCoeff[0] = aV2 ; // A
+                        mCoeff[1] = 1.0 ; // B
+                        mCoeff[2] = aGr2X; // im00.x
+                        mCoeff[3] = aGr2Y;  // im00.y
 
-                aSys.AddEquation(1.0,mCoeff,aV1-aV2);
-                */
+                        mCoeff[4] = aGr2X*aPC1.x; // im10.x
+                        mCoeff[5] = aGr2Y *aPC1.x;  // im10.y
+                        mCoeff[6] = aGr2X*aPC1.y; // im01.x
+                        mCoeff[7] = aGr2Y *aPC1.y;  // im01.y
+
+                        aSys.AddEquation(1.0,mCoeff,aV1-aV2);
+
                     }
                     else
                     {
@@ -998,7 +1005,189 @@ bool cLSMHomol::DoLSMRefine   (
     }
 }
 
+bool insideTif(Pt2dr & aPt, Tiff_Im & aTif)
+{
+    Pt2dr aSz(aTif.sz());
+    if (
+            aPt.x < aSz.x && aPt.y < aSz.y
+         && aPt.x >= 0 && aPt.y >= 0
+       )
+    {
+        return true;
+    }
+    return false;
+}
 
+Pt2dr doLSM1Cpl(Pt2dr & aPt1, Pt2dr & aPt2, Tiff_Im & aTif1, Tiff_Im & aTif2, cParamLSQMatch & aParam)
+{
+
+    cInterpolateurIm2D<double>  * mInterpol = new cInterpolBilineaire<double>;
+
+    Pt2dr aSzW(5.0,5.0);
+    bool aOK1=false;
+    bool aOK2=false;
+    // Load Im1 & Im2
+    tIm2DM  mIm2D_1(1,1);
+    tIm2DM  mIm2D_2(1,1);
+    mIm2D_1.Resize(aTif1.sz());
+    mIm2D_2.Resize(aTif2.sz());
+    ELISE_COPY(mIm2D_1.all_pts(), aTif1.in(), mIm2D_1.out());
+    ELISE_COPY(mIm2D_2.all_pts(), aTif2.in(), mIm2D_2.out());
+
+    // Check Im1 & Im2
+    {
+        Pt2dr aRab(1.0,1.0);
+        Pt2dr aPtInf = aPt1 - (aSzW-Pt2dr(1.0,1.0))/2 - aRab;
+        Pt2dr aPtSup = aPt1 + (aSzW-Pt2dr(1.0,1.0))/2 + aRab;
+        Pt2dr aSzModif = aPtSup - aPtInf;
+        if (mIm2D_1.Inside(round_down(aPtInf)) && mIm2D_1.Inside(round_up(aPtSup)))
+        {
+            aOK1 = true;
+        }
+        aPtInf = aPt2 - (aSzW-Pt2dr(1.0,1.0))/2 - aRab;
+        aPtSup = aPt2 + (aSzW-Pt2dr(1.0,1.0))/2 + aRab;
+        aSzModif = aPtSup - aPtInf;
+        if (mIm2D_2.Inside(round_down(aPtInf)) && mIm2D_2.Inside(round_up(aPtSup)))
+        {
+            aOK2 = true;
+        }
+    }
+
+    if (aOK1 && aOK2)
+    {
+        // Do LSM
+        Pt2dr aPt2_Update = aPt2;
+        ElAffin2D aAff1To2 = ElAffin2D::trans(Pt2dr(aPt2 - aPt1));
+        for (int aK=0; aK<aParam.mNbIter; aK++)
+        {
+
+            Im1D_REAL8 aSol(8);
+            Pt2dr aPt(0,0);
+            L2SysSurResol aSys(8);
+            double mCoeff[8];
+            double eqOK=true;
+            //  ==== Add eq ===== :
+            Pt2dr aSzWR = (aSzW-Pt2dr(1.0,1.0))/2;
+            for (aPt.x = -aSzWR.x; aPt.x < aSzWR.x; aPt.x = aPt.x + aParam.mStepLSQ)
+            {
+                for (aPt.y = -aSzWR.y; aPt.y < aSzWR.y; aPt.y = aPt.y + aParam.mStepLSQ)
+                {
+                    Pt2dr aPC1 = aPt1 + aPt;
+                    //Pt2dr aPC2 = aPt2_Update + aPt;
+                    Pt2dr aPC2 = aAff1To2(aPC1);
+
+
+                    if (mIm2D_2.Inside(round_down(aPC2)))
+                    {
+
+                        double aV1 = mInterpol->GetVal(mIm2D_1.data(),aPC1);    // value of center point (point master)
+                        Pt3dr aNewVD2= mInterpol->GetValDer(mIm2D_2.data(),aPC2);   // Get intensity & derive value of point 2nd img
+                        double aGr2X = aNewVD2.x;  // derive en X
+                        double aGr2Y = aNewVD2.y;  // derive en Y
+                        double aV2   = aNewVD2.z;  // valeur d'intensite
+
+                        mCoeff[0] = aV1 ; // A
+                        mCoeff[1] = 1.0 ; // B
+
+                        mCoeff[2] = -aGr2X; // im00.x
+                        mCoeff[3] = -aGr2Y;  // im00.y
+
+                        mCoeff[4] = -aGr2X*aPC1.x; // im10.x
+                        mCoeff[5] = -aGr2Y *aPC1.x;  // im10.y
+                        mCoeff[6] = -aGr2X*aPC1.y; // im01.x
+                        mCoeff[7] = -aGr2Y *aPC1.y;  // im01.y
+
+                        aSys.AddEquation(1.0,mCoeff,aV2);
+                    }
+                    else
+                    {
+                        eqOK=false;
+                        break;
+                    }
+                }
+                if (eqOK == false)
+                    {break;}
+            }
+
+
+            bool OK = false;
+            if (eqOK == true)
+                aSol = aSys.Solve(&OK);
+
+
+            if (OK && eqOK)
+            {
+                double * aResLSQ = aSol.data();
+                Pt2dr aI00(aResLSQ[2], aResLSQ[3]);
+                //Pt2dr aI10(0, 0);
+                //Pt2dr aI01(0, 0);
+
+                Pt2dr aI10(aResLSQ[4], aResLSQ[5]);
+                Pt2dr aI01(aResLSQ[6], aResLSQ[7]);
+
+                ElAffin2D  aDeltaAff(aI00,aI10,aI01);
+                aAff1To2 = aAff1To2 + aDeltaAff;
+
+                aPt2_Update = aAff1To2(aPt1);
+
+            }
+        }
+        if (euclid(aPt2_Update - aPt2) < 2.5) // threshold modif = 2.5 pxl
+        {
+            return aPt2_Update;
+        }
+    }
+    return aPt2;
+}
+
+void doLSQRefineHomol(
+                        vector<Pt2dr> & aVPt,
+                        vector<Tiff_Im> & aVTifIm,
+                        cParamLSQMatch & aParam,
+                        vector<Pt2dr> & aVPtOut
+                     )
+{
+    cout<<"   ++ LSM...";
+    Pt2dr aModif(0.0, 0.0);
+    aVPtOut.push_back(aVPt[0]);
+    for (uint aKTif1 = 0; aKTif1 < aVTifIm.size(); aKTif1++)
+    {
+        for (uint aKTif2 = aKTif1 + 1; aKTif2 < aVTifIm.size(); aKTif2++)
+        {
+            Tiff_Im aTif1 = aVTifIm[aKTif1];
+            Tiff_Im aTif2 = aVTifIm[aKTif2];
+            Pt2dr aPt1 = aVPt[aKTif1];
+            Pt2dr aPt2 = aVPt[aKTif2];
+            Pt2dr aPt2LSM = doLSM1Cpl(aPt1, aPt2, aTif1, aTif2, aParam);
+            aModif += (aPt2 - aPt2LSM).AbsP();
+            aVPtOut.push_back(aPt2LSM);
+        }
+    }
+    cout<<"done ! - Shift = "<<aModif<<endl;
+}
+
+/*
+Write a class :
++ aPoint :
+  + fusion each point => this point appears in which picture
+  + a list to keep aPicture object (picture of same point)
+  + a list to keep point coordinate.
+
+
++ aPicture :
+  + Keep picture data. (Execute 1 time ELISE_COPY)
+  + Keep picture Tiff_Info
+  + Keep list homologue point
+
+
++ Main function :
+  + Create structure of fusioned homol point (use schnaps)
+  + From each homol fusioned point => create a "homolpoint" object :
+     + List of contained image.
+     + key unique (compute from image coordinate)
+     + Goal : from keyunique => query all Pic & Homol on Pic
+
+*/
 
 int HomolLSMRefine_main(int argc,char ** argv)
 {
@@ -1028,7 +1217,8 @@ int HomolLSMRefine_main(int argc,char ** argv)
                      << EAM(aExpTxt, "TXT", true, "format homol txt(true)/dat(false) -def=false")
                      << EAM(aOutHom, "Out", true, "Output Homol Folder. Default = _LSM")
                );
-
+   // ===========================  LSM WORKED ORIGINAL ================================== //
+/*
         // Recuperer list d'image
         cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
         SplitDirAndFile(aDir, aPatIm, aPatIn);
@@ -1076,5 +1266,161 @@ int HomolLSMRefine_main(int argc,char ** argv)
                 }
             }
         }
+*/
+      // =========================== ======================= ================================== //
+
+      // =========================== TEST WITH SCHNAPS ========================== //
+
+       // Initialize name manipulator & files
+       std::string aDirImages;
+       SplitDirAndFile(aDirImages,aPatIm,aPatIn);
+       std::cout<<"Working dir: "<<aDirImages<<std::endl;
+       std::cout<<"Images pattern: "<<aPatIm<<std::endl;
+
+       StdCorrecNameHomol(aHomol,aDirImages);
+
+       cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
+       std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
+
+
+       // Init Keys for homol files
+       std::list<cHomol> allHomolsIn;
+       std::string anExt = aExpTxt ? "txt" : "dat";
+       std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
+               +  std::string(aHomol)
+               +  std::string("@")
+               +  std::string(anExt);
+
+       std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+               +  std::string(aOutHom)
+               +  std::string("@")
+               +  std::string(anExt);
+
+       CompiledKey2 aCKin(aICNM,aKHIn);
+       CompiledKey2 aCKout(aICNM,aKHOut);
+
+       //create pictures list, and pictures size list ---------------------
+       //std::vector<cPic*> allPics;
+       std::map<std::string,cPic*> allPics;
+
+       std::vector<cPicSize*> allPicSizes;
+
+       std::cout<<"Found "<<aSetIm.size()<<" pictures."<<endl;
+
+
+       computeAllHomol( aICNM, aDirImages, aPatIm, aSetIm, allHomolsIn, aCKin, allPics, allPicSizes, false, 10000);
+
+       int aNumBadHomol=0;
+
+       for (std::list<cHomol>::iterator itHomol=allHomolsIn.begin();itHomol!=allHomolsIn.end();++itHomol)
+       {
+           if ((itHomol)->isBad()) aNumBadHomol++;
+       }
+
+       std::cout<<"Found "<<allHomolsIn.size()<<" Homol points (incl. "<<aNumBadHomol<<" bad ones): "<<100*aNumBadHomol/allHomolsIn.size()<<"% bad!\n";
+
+       // Read Tiff_Im
+       vector<Tiff_Im> aVTifSetIm;
+       for (uint aKIm=0; aKIm<aSetIm.size(); aKIm++)
+       {
+            string aNIm = aSetIm[aKIm];
+            Tiff_Im aTif = Tiff_Im::UnivConvStd(aDirImages + aNIm);
+            aVTifSetIm.push_back(aTif);
+       }
+
+       // Create homol struct
+       vector< vector<ElPackHomologue> > aHomFolder;
+       for (uint aKIm=0; aKIm<aSetIm.size(); aKIm++)
+       {
+           vector<ElPackHomologue> aPatis;
+           for (uint aKIm=0; aKIm<aSetIm.size(); aKIm++)
+           {
+                ElPackHomologue aPack;
+                aPatis.push_back(aPack);
+           }
+           aHomFolder.push_back(aPatis);
+       }
+
+
+       for (std::list<cHomol>::iterator itP=allHomolsIn.begin();itP!=allHomolsIn.end();++itP)
+       {
+           if (!(itP)->isBad())
+           {
+                cout<<"Read 1 homol : "<<endl;
+                cHomol aHPt = *itP;
+                int aNbPic = aHPt.getPointOnPicsSize();
+                cout<<"  + NbPic : "<<aNbPic<<endl;
+
+                vector<Tiff_Im> aVTifIm;
+                vector<Pt2dr>  aVPt;
+                vector<int>   aVInd;
+                for(unsigned int aKPt=0; aKPt<aNbPic; aKPt++)
+                {
+                    cPointOnPic * aPt = aHPt.getPointOnPic(aKPt);
+                    string aName = aPt->getPic()->getName();
+                    Pt2dr aCPt = aPt->getPt();
+                    cout<<"   ++ "<<aName<<" "<<aCPt<<"...";
+
+                    std::vector<std::string>::iterator itF = find(aSetIm.begin(), aSetIm.end(), aName);
+                    if (itF != aSetIm.end())
+                    {
+                        auto p = distance(aSetIm.begin(), itF);
+                        aVTifIm.push_back(aVTifSetIm[p]);
+                        aVPt.push_back(aCPt);
+                        aVInd.push_back((int)p);
+                        cout<<"OK ! "<<endl;
+                    }
+                    else
+                    {
+                        cout<<" not found ! "<<endl;
+                        continue;
+                    }
+                }
+                // Do LSQ
+                if (aVPt.size() > 1 && aVTifIm.size() > 1)
+                {
+                    vector<Pt2dr> aVPtLSM;
+                    doLSQRefineHomol(
+                                        aVPt,
+                                        aVTifIm,
+                                        aParam,
+                                        aVPtLSM
+                                    );
+
+                    // save homol - combination of all point in aVPtLSM and its index in aHomFolder
+                    for (uint aKP1=0; aKP1 < aVInd.size(); aKP1++)
+                    {
+                        for (uint aKP2=aKP1+1; aKP2 < aVInd.size(); aKP2++)
+                        {
+                            ElPackHomologue aPck = aHomFolder[aVInd[aKP1]][aVInd[aKP2]];
+                            ElCplePtsHomologues aCpl( aVPtLSM[aVInd[aKP1]], aVPtLSM[aVInd[aKP2]] );
+                            aPck.Cple_Add(aCpl);
+                        }
+                    }
+                }
+
+           }
+       }
+       // Export homol :
+       for (uint aKPck = 0; aKPck < aHomFolder.size(); aKPck++)
+       {
+           string aIm1 = aSetIm[aKPck];
+           vector<ElPackHomologue> aVPck = aHomFolder[aKPck];
+           for (uint aKPck_2 = 0; aKPck_2 < aVPck.size(); aKPck_2++)
+           {
+               string aIm2 = aSetIm[aKPck_2];
+               ElPackHomologue aPck = aVPck[aKPck_2];
+               if (aPck.size() > 0)
+               {
+                   std::string aHomO = aICNM->Assoc1To2(aKHOut, aIm1, aIm2, true);
+                   aPck.StdPutInFile(aHomO);
+                   cout<<"Write : "<<aIm1<<" & "<<aIm2<<" : NbPt = "<<aPck.size()<<" pts"<<endl;
+               }
+           }
+       }
+
+
+
+      // ======================================================================== //
         return EXIT_SUCCESS;
 }
