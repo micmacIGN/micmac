@@ -1,4 +1,0 @@
-Ce dossier contient un certains nombre d'utilitaires, notamment sur les chaines de caracteres,
-qui sont a priori sans lien avec le "coeur de metier" MMVII (traitement d'image ou photogra)
-mais utiles pour la gestion de chantier, lecture arg etc ...
-
