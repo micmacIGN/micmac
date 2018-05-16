@@ -67,6 +67,8 @@
            <eSymb> TetaLVM=/   0.1 ${Viscos} </eSymb>
            <eSymb> CentreLVM=/ 1.0  ${Viscos}</eSymb>
            <Symb>  UseSLM=true </Symb>
+	   <Symb>  IntrLVM=0.1 </Symb>
+	   <Symb>  AddViscInt=false </Symb>
 
            <Symb>  NbMinIterFin=4 </Symb>
            <Symb>  NbMaxIterFin=4 </Symb>
@@ -476,8 +478,18 @@
                          </ParamF>
                          <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
                     </RappelOnCentres>
-                 </SLMGlob>
+		<#WHEN VTEST=${AddViscInt}>
+  			<RappelOnIntrinseque>
+                                <ParamF> 
+                                       <PatternNameApply> .* </PatternNameApply>
+                                       <Incertitude> ${IntrLVM} </Incertitude>
+                                       <OnCur> true </OnCur>  
+                                </ParamF>
+                          </RappelOnIntrinseque>
+		</#WHEN>
+		                 </SLMGlob>
               </#WHEN>
+
 
              <#WHEN VTEST=${UseRegulDist}>
                   <RegDistGlob>
