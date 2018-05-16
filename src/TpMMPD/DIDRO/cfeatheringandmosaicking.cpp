@@ -629,7 +629,7 @@ cFeatheringAndMosaicOrtho::cFeatheringAndMosaicOrtho(int argc,char ** argv):lut_
         {loadREModels();} else { std::cout << "Warning, cannot find file " << mFileModelsRadiomEgal << ", i go on without radiometric equalization.\n";}
         }
 
-        // je me passe de MTDOrtho, de manière à pouvroi effectuer le mosaickage uniquement sur un échantillon des orthos
+        // je me passe de MTDOrtho, de manière à pouvoir effectuer le mosaickage uniquement sur un échantillon des orthos
         //MTD = StdGetFromPCP("MTDOrtho.xml",FileOriMnt);
         MTD =  TFW2FileOriMnt(mKA->KeyAssocNameTif2TFW(mLabel));
         Tiff_Im  aLabelGlob(mLabel.c_str());

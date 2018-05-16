@@ -338,6 +338,7 @@ template <class Type> class Pt2d : public  ElStdTypeScal<Type>
      Output WhichMax();
      Output WhichMin();
 
+     Pt2d<Type> AbsP() const {return Pt2d<Type>(ElAbs(x),ElAbs(y));}
 
      private :
           void Verif_adr_xy();

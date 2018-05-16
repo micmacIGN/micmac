@@ -68,10 +68,10 @@ private:
 
     void checkParam();
     void computeRE();
-    void DetermineMosaicFootprint();
+    void DetermineMosaicFootprint(); // and split in tile of result
     void GenLabelTable();
-    void GenerateTiff();
-    void SplitInBoxes();
+    void GenerateTiff();// and tfw file
+    void SplitInBoxes(); // box of computation, not of results
     void DoMosaicAndFeather(); // for each box
     void banniereFeathering();
 

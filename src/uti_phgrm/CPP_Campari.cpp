@@ -364,6 +364,7 @@ class cAppli_Campari : public cAppli_Tapas_Campari
        std::string mStr0;
        std::string AeroOut;
        std::string mNameRTA;
+
        cInterfChantierNameManipulateur * mICNM;
 
 /*
@@ -376,6 +377,7 @@ class cAppli_Campari : public cAppli_Tapas_Campari
        std::vector<std::string>  mVBlockDistGlob;
        std::vector<std::string>  mVOptGlob;
 */
+
 };
 
 
@@ -488,14 +490,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(GCPRTA,"GCPRTA",true,"Internal Use, GCP for RTA ")
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq, set NONE if unused")
                     << EAM(aNbIterFin,"NbIterEnd",true,"Number of iteration at end, Def = 4")
-                    // << EAM(GCP,"MulRTA",true,"Rolling Test Appuis , multiplier ")
                     <<  ArgATP()
-/*
-                    << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
-                    << EAM(mVBlockDistGlob,"DistBlocGlob",true,"Param for Dist Glob bloc compute [File,SigmaDist,?MulFinal,?Export]")
-                    << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
-                    << EAM(mVOptGlob,"OptBlocG",true,"[SigmaTr,SigmaRot]")
-*/
                     << EAM(aNbLiais,"NbLiais",true,"Param for relative weighting for tie points")
                     << EAM(aPdsGBRot,"PdsGBRot",true,"Weighting of the global rotation constraint (Generic bundle Def=0.002)")
                     << EAM(aPdsGBId,"PdsGBId",true,"Weighting of the global deformation constraint (Generic bundle Def=0.0)")
@@ -721,36 +716,6 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         }
 
         AddParamBloc(mCom);
-/*
-        AddParamBloc(mCom,mVBlockRel,"TimeRel",true);
-        AddParamBloc(mCom,mVBlockGlob,"Glob",true);
-        AddParamBloc(mCom,mVBlockDistGlob,"DistGlob",false);
-        if (EAMIsInit(&mVOptGlob))
-        {
-           ELISE_ASSERT(EAMIsInit(&mVBlockGlob)|| EAMIsInit(&mVBlockDistGlob),"OptBlocG without BlocGlob");
-           ELISE_ASSERT(mVOptGlob.size()>=2,"Not enough arg in OptBlocG");
-
-           double aSigTr,aSigRot;
-           FromString(aSigTr,mVOptGlob[0]);
-           FromString(aSigRot,mVOptGlob[1]);
-           if ((aSigTr<=0) || (aSigRot<=0))
-           {
-               ELISE_ASSERT((aSigTr==aSigRot) &&((aSigTr==-1)||(aSigTr==-2)),"Bad neg value in OptBlocG");
-           }
-
-           if (aSigTr>0)
-           {
-                mCom +=   std::string(" +WBG_Sigma=true ")
-                        + " +WBG_Center=" + ToString(1/ElSquare(aSigTr))
-                        + " +WBG_Ang=" + ToString(1/ElSquare(aSigRot))
-                        + " " ;
-           }
-           if (aSigTr==-1)
-           {
-               mCom += std::string(" +WBG_Stricte=true ");
-           }
-        }
-*/
         if (aUseGaussJ)
         {
            mCom +=   std::string(" +ModeResolSysLin=eSysPlein");
