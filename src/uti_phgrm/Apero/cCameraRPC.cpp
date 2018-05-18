@@ -45,7 +45,8 @@ bool DEBUG_EWELINA=false;
 bool DEBUG_MPD_ONLY_NUM = false;
 bool DEBUG_MPD_ONLY_DEN = false;
 
-Pt3dr NODATA_TITAN(-1.000000,-1.000000,-1.000000);
+Pt3dr  NODATA_TITAN(-1.000000,-1.000000,-1.000000);
+double NEWPARAM_REGUL = 0.00001; 
 
 /* Image coordinates order: [Line, Sample] = [row, col] =  [y, x]*/
 /******************************************************/
@@ -1221,6 +1222,7 @@ void cRPC::Initialize(const std::string &aName,
     else if(aType==eTIGB_MMScanLineSensor)
     {
         ISMETER=true;
+        NEWPARAM_REGUL = 0.00005; //problems with RPC estimation for TITAN
 
         /* Grid in 3D */
         std::vector<Pt3dr> aGrid3D,aGrid3DTest;
@@ -2340,8 +2342,8 @@ void cRPC::LearnParamNEW(std::vector<Pt3dr> &aGridIn,
 
     int    aK, aNPts = int(aGridIn.size()), iter=0;
     double aSeuil=1e-8;
-    //double aReg=0.00001;
-    double aReg=0.0001;
+    //double aReg=0.00001;//replaced by a global variable
+    //double aReg=0.0001;//TITAN RADAR
     double aV1=1, aV0=2;
     
     //initialized to 0
@@ -2396,9 +2398,11 @@ void cRPC::LearnParamNEW(std::vector<Pt3dr> &aGridIn,
         
         /* Add regularizer */
         for(aK=0; aK<39; aK++)
-        {    
-            aSys1.AddTermQuad(aK,aK,aReg);
-            aSys2.AddTermQuad(aK,aK,aReg);
+        {  
+            //aSys1.AddTermQuad(aK,aK,aReg);
+            //aSys2.AddTermQuad(aK,aK,aReg);
+            aSys1.AddTermQuad(aK,aK,NEWPARAM_REGUL);
+            aSys2.AddTermQuad(aK,aK,NEWPARAM_REGUL);
         }
 
         bool ok;
