@@ -10,16 +10,13 @@
 
 c_Appli_FeatheringAndMosaic::c_Appli_FeatheringAndMosaic(int argc,char ** argv)
 {
-    mDist=50;
-    mLambda=0.4;
-    mDebug=0;
+
     mLabel="Label.tif";
     mNameMosaicOut="MosaicFeathering.tif";
-    mTmpDir="Tmp-Mosaicking/";
     mDilat=300;
-    mSzTuile=Pt2di(10000,10000);
+    mSzTuile=Pt2di(10000,10000);// tile for processing
+    mSzTuileFile=Pt2di(25000,25000); // tile for writing result
     mMasqLim=127; // in the mask map, value range from 0 (visible) to 255 (not visible).
-    mDoRE=0;
     mFileModelsRadiomEgal="RadiomEgalModels.xml";
     mLabel="Label-Feathering.tif";
     mComputeRE=0;
@@ -37,6 +34,7 @@ c_Appli_FeatheringAndMosaic::c_Appli_FeatheringAndMosaic(int argc,char ** argv)
                 << EAM(mDoRE,"ApplyRE",true, "Apply Radiometric Egalization? require to dertermine models of radiometric equalization beforehand (mm3d TestLib EROS or ComputeRE==1). def false" )
                 << EAM(mFileModelsRadiomEgal,"FileRE",true, "Name of xml file with models of Radiometric Egalization, def 'RadiomEgalModels.xml'. " )
                 << EAM(mSzTuile,"SzBox",true, "Size [pix] of mosaic tile for multiprocess computation, def=[10000,10000]." )
+                << EAM(mSzTuileFile,"SzTile",true, "Size [pix] of mosaic tile for writing result, def=[25000,25000]." )
                 << EAM(mDilat,"Buffer",true, "Buffer [pix] to apply for each tile in order to avoid edge effect, def=300." )
                 << EAM(mDebug,"Debug",true, "Write intermediate results for debug purpose." )
                 << EAM(mTmpDir,"TmpDir",true, "Directory for intermediate results generated in debug mode." )
@@ -54,7 +52,7 @@ c_Appli_FeatheringAndMosaic::c_Appli_FeatheringAndMosaic(int argc,char ** argv)
         if (!EAMIsInit(&mNameMosaicOut)) mNameMosaicOut=mDir+mNameMosaicOut;
         mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
         mLFile = mICNM->StdGetListOfFile(aPatOrt);
-        mKA=new cMyICNM(mICNM,mTmpDir);
+        //mKA=new cMyICNM(mICNM,mTmpDir);
 
         if(ELISE_fp::IsDirectory(mTmpDir) && mDebug)
         {
@@ -74,13 +72,13 @@ c_Appli_FeatheringAndMosaic::c_Appli_FeatheringAndMosaic(int argc,char ** argv)
             std::cout << "Determine mosaic footprint\n";
             DetermineMosaicFootprint();
             GenLabelTable();
-            label=Im2D_U_INT2::FromFileStd(mLabel);
+            //label=Im2D_U_INT2::FromFileStd(mLabel);
         } else {
         // load and use an existing label map and set the size/gsd of mosaic footprint accordingly
         if (ELISE_fp::exist_file(mLabel)) {
         std::cout << "Load images label from file " << mLabel << "\n" ;
         label=Im2D_U_INT2::FromFileStd(mLabel);
-        std::string aTfwFile(mKA->KeyAssocNameTif2TFW(mLabel));
+        std::string aTfwFile(KeyAssocNameTif2TFW(mLabel));
         // look for tfw or MTD file
         if (ELISE_fp::exist_file(aTfwFile))
         {
@@ -123,7 +121,7 @@ c_Appli_FeatheringAndMosaic::c_Appli_FeatheringAndMosaic(int argc,char ** argv)
         std::cout << "Perform the mosaicking for every box of size [pix] " << mSzTuile << ".\n";
         DoMosaicAndFeather(); // for each box
         // rm xml file with image name
-        if (!mDebug) for (int i(1);i<=mNbBox;i++) ELISE_fp::RmFileIfExist(mDir+mKA->nameXmlImList(i));
+        if (!mDebug) for (int i(1);i<=mNbBox;i++) ELISE_fp::RmFileIfExist(mDir+nameXmlImList(i));
 
         banniereFeathering();
     }
@@ -170,26 +168,38 @@ void c_Appli_FeatheringAndMosaic::DetermineMosaicFootprint(){
     aCorner=Pt2dr(mBoxGlob._p0.x,mBoxGlob._p1.y); // xmin, ymax;
     MTD.ResolutionPlani()=Pt2dr(aGSD,-aGSD);
     MTD.OriginePlani()=Pt2dr(xmin,ymax);
+
+    // split ground footprint in tile if too large
+    SplitInTiles();
 }
 
 
 void c_Appli_FeatheringAndMosaic::GenLabelTable()
 {
     std::cout << "Divide mosaic space between every ortho (label map generation) based on their incidence.\n";
-    Im2D_U_INT2 ImLabel(sz.x,sz.y,65535);
-    Im2D_REAL4 ImScoreIncid(sz.x,sz.y,100.0);
-
     std::string fileDicoLab(mLabel.substr(0,mLabel.size()-4)+"-Dico.txt");
     FILE * aFOut = FopenNN(fileDicoLab.c_str(),"w","out");
+
+    for (auto &aBox : mTiles) {
+    int idBox=aBox.first;
+    Box2di box=aBox.second;
+    Pt2di aSz(box.P1().x-box.P0().x,box.P1().y-box.P0().y);
+    Pt2dr corner=Pt2dr(aCorner.x+box.P0().x*MTD.ResolutionPlani().x,
+                       aCorner.y+box.P0().y*MTD.ResolutionPlani().y);
+
+    if (mTiling) std::cout << "Tile number " << idBox << ".\n";
+
+    Im2D_U_INT2 ImLabel(aSz.x,aSz.y,65535);
+    Im2D_REAL4 ImScoreIncid(aSz.x,aSz.y,100.0);
 
     int imLab(0);
     for (auto &im : mLFile)
     {
-        fprintf(aFOut,"%s %i\n", im.c_str(),imLab);
+        if(idBox==0) fprintf(aFOut,"%s %i\n", im.c_str(),imLab); // only first tile
 
-        std::string incidName=mDir+mKA->KeyAssocNameOrt2Incid(im);
-        std::string TFWName=mKA->KeyAssocNameTif2TFW(im);
-        std::string pcName=mDir+mKA->KeyAssocNameOrt2PC(im);
+        std::string incidName=mDir+KeyAssocNameOrt2Incid(im);
+        std::string TFWName=KeyAssocNameTif2TFW(im);
+        std::string pcName=mDir+KeyAssocNameOrt2PC(im);
 
         // load the incidence map and hidden part map
         // le tfw convient pour im masque PC mais par pour de l'image incid qui est sous resolue.     
@@ -211,9 +221,8 @@ void c_Appli_FeatheringAndMosaic::GenLabelTable()
         255,
         imPC.out()
         );
-        //Tiff_Im::CreateFromIm(imPC,mKA->KAIncidName(im,mTmpDir));
 
-        cMetaDataPartiesCachees MTD = StdGetFromSI(mKA->KeyAssocNamePC2MTD(pcName),MetaDataPartiesCachees);
+        cMetaDataPartiesCachees MTD = StdGetFromSI(KeyAssocNamePC2MTD(pcName),MetaDataPartiesCachees);
         int aFact=MTD.SsResolIncH().Val();
 
         Im2D_REAL4 imIncid=Im2D_REAL4::FromFileStd(incidName);
@@ -224,45 +233,58 @@ void c_Appli_FeatheringAndMosaic::GenLabelTable()
 
         TIm2D<REAL4,REAL> mTScLoc(imIncid);
 
-        mTrs[imLab]= Masq.computeTrans(aCorner);
+        mTrs[imLab]= Masq.computeTrans(aCorner);// translation between ortho and corner of the complete mosaic
         Pt2di aP;
 
        // same incid map so no reason to save it again ,expect maybe the tfw (that have not the same resol)
-        if (mDebug) mKA->writeTFW(mKA->KAIncidName(im,mTmpDir),Pt2dr(Masq.GSD()*aFact,-Masq.GSD()*aFact),Pt2dr(Masq.OriginePlani().x,Masq.OriginePlani().y));
-       //Tiff_Im::CreateFromIm(imIncid,mKA->KAIncidName(im,mTmpDir));
+        if (mDebug) writeTFW(KAIncidName(im,mTmpDir),Pt2dr(Masq.GSD()*aFact,-Masq.GSD()*aFact),Pt2dr(Masq.OriginePlani().x,Masq.OriginePlani().y));
+
+        // current orto instersect box
+        if(box.contains(-mTrs[imLab]) | box.contains(-mTrs[imLab]+Masq.SzUV())){
 
         for (aP.x =0 ; aP.x < Masq.SzUV().x ; aP.x++)
         {
             for (aP.y =0 ; aP.y < Masq.SzUV().y ; aP.y++)
             {
                 double aValIncid=mTScLoc.getr(Pt2dr(aP)/aFact,10e3);
-                if ((imPC.GetR(aP) < mMasqLim) && (aValIncid<3) && (aValIncid>=0))
+                Pt2di aPinMosaic = aP-mTrs[imLab];
+                if ((imPC.GetR(aP) < mMasqLim) && (aValIncid<3) && (aValIncid>=0) && box.contains(aPinMosaic))
                 {
-                    Pt2di aPinMosaic = aP-mTrs[imLab];
-                    double aScore = ImScoreIncid.GetR(aPinMosaic);
+                    Pt2di aPinMosaicTile=aPinMosaic-box.P0();
+                    double aScore = ImScoreIncid.GetR(aPinMosaicTile);
 
                     if (aScore>aValIncid)// incid should be as low as possible
                     {
-                        ImLabel.SetR(aPinMosaic,imLab);
-                        ImScoreIncid.SetR(aPinMosaic,aValIncid);
+                        ImLabel.SetR(aPinMosaicTile,imLab);
+                        ImScoreIncid.SetR(aPinMosaicTile,aValIncid);
                     }
                 }
             }
         }
+        }
         imLab++;
     }
-    ElFclose(aFOut);
+    if(idBox==0) ElFclose(aFOut);
     // save label map and tfw file
 
-    if (ELISE_fp::exist_file(mLabel)) std::cout << "I overwrite file " << mLabel << "\n";
-    ELISE_fp::RmFileIfExist(mLabel);
-    Tiff_Im::CreateFromIm(ImLabel,mLabel);
-    mKA->writeTFW(mLabel, MTD.ResolutionPlani(),aCorner);
+    std::string aNameLabel, aNameIncid("IncidScore.tif");
+    if (!mTiling){
+    aNameLabel=mLabel;
+    } else {
+    aNameIncid=KAtifNameTile(aNameIncid,idBox);
+    aNameLabel=KAtifNameTile(mLabel,idBox);
+    }
+
+    if (ELISE_fp::exist_file(aNameLabel)) std::cout << "I overwrite file " << aNameLabel << "\n";
+    ELISE_fp::RmFileIfExist(aNameLabel);
+    Tiff_Im::CreateFromIm(ImLabel,aNameLabel);
+    writeTFW(aNameLabel, MTD.ResolutionPlani(),corner);
 
     if (mDebug) {
-        std::string aNameIncid("IncidScore.tif");
         Tiff_Im::CreateFromIm(ImScoreIncid,mTmpDir+aNameIncid);
-        mKA->writeTFW(mTmpDir+aNameIncid, MTD.ResolutionPlani(),aCorner);
+        writeTFW(mTmpDir+aNameIncid, MTD.ResolutionPlani(),corner);
+    }
+    // end for every tile
     }
 }
 
@@ -292,44 +314,74 @@ void c_Appli_FeatheringAndMosaic::checkParam()
 
 void c_Appli_FeatheringAndMosaic::GenerateTiff()
 {
-    ELISE_fp::RmFileIfExist(mNameMosaicOut);
-    Tiff_Im  aTF(mNameMosaicOut.c_str(),sz,GenIm::real4, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
-    mKA->writeTFW(mNameMosaicOut, MTD.ResolutionPlani(),aCorner);
 
-    if (mDebug)
-    {
-        if (!ELISE_fp::IsDirectory(mTmpDir)) ELISE_fp::MkDir(mTmpDir);
-        Tiff_Im  aNbIm(mKA->nameNbIm().c_str(),sz,GenIm::int1, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
-        mKA->writeTFW(mKA->nameNbIm(), MTD.ResolutionPlani(),aCorner);
-        Tiff_Im  aSumDistInterne(mKA->nameSDI().c_str(),sz,GenIm::int2, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
-        mKA->writeTFW(mKA->nameSDI(), MTD.ResolutionPlani(),aCorner);
-        Tiff_Im  aSumDistExterne(mKA->nameSDE().c_str(),sz,GenIm::int2, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
-        mKA->writeTFW(mKA->nameSDE(), MTD.ResolutionPlani(),aCorner);
-        Tiff_Im  aSumWeighting(mKA->nameSW().c_str(),sz,GenIm::real4, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
-        mKA->writeTFW(mKA->nameSW(), MTD.ResolutionPlani(),aCorner);
-        Tiff_Im  aInternalWeighting(mKA->nameIW().c_str(),sz,GenIm::real4, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
-        mKA->writeTFW(mKA->nameIW(), MTD.ResolutionPlani(),aCorner);
+    for (auto &aBox : mTiles) {
+        int idBox=aBox.first;
+        Box2di box=aBox.second;
+        std::string NameMosaicOut=KAtifNameTile(mNameMosaicOut,idBox);
+        ELISE_fp::RmFileIfExist(NameMosaicOut);
+
+        Pt2di aSz(box.P1().x-box.P0().x,box.P1().y-box.P0().y);
+
+        Pt2dr corner=Pt2dr(aCorner.x+box.P0().x*MTD.ResolutionPlani().x,
+                           aCorner.y+box.P0().y*MTD.ResolutionPlani().y);
+                           //boxMosaic._p1.y+mBox.P0().y*MTD.ResolutionPlani().y
+        Tiff_Im  aTF(NameMosaicOut.c_str(),aSz,GenIm::real4, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
+        writeTFW(NameMosaicOut, MTD.ResolutionPlani(),corner);
+
+        if (mDebug)
+        {
+            if (!ELISE_fp::IsDirectory(mTmpDir)) ELISE_fp::MkDir(mTmpDir);
+            Tiff_Im  aNbIm(KAtifNameTile(nameNbIm(),idBox).c_str(),aSz,GenIm::int1, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
+            writeTFW(KAtifNameTile(nameNbIm(),idBox), MTD.ResolutionPlani(),corner);
+            Tiff_Im  aSumDistInterne(KAtifNameTile(nameSDI(),idBox).c_str(),aSz,GenIm::int2, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
+            writeTFW(KAtifNameTile(nameSDI(),idBox), MTD.ResolutionPlani(),corner);
+            Tiff_Im  aSumDistExterne(KAtifNameTile(nameSDE(),idBox).c_str(),aSz,GenIm::int2, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
+            writeTFW(KAtifNameTile(nameSDE(),idBox), MTD.ResolutionPlani(),corner);
+            Tiff_Im  aSumWeighting(KAtifNameTile(nameSW(),idBox).c_str(),aSz,GenIm::real4, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
+            writeTFW(KAtifNameTile(nameSW(),idBox), MTD.ResolutionPlani(),corner);
+            Tiff_Im  aInternalWeighting(KAtifNameTile(nameIW(),idBox).c_str(),aSz,GenIm::real4, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
+            writeTFW(KAtifNameTile(nameIW(),idBox), MTD.ResolutionPlani(),corner);
+        }
     }
+
+}
+
+// key assoc name tiff for each tile
+std::string cMyICNM::KAtifNameTile(std::string aTifName, int idBox)
+{
+    std::string Name;
+    if (mTiling){
+    Name=aTifName.substr(0, aTifName.size()-4)+"_Tile"+ToString(idBox)+".tif";
+    }else { Name=aTifName;}
+    return Name;
 }
 
 void c_Appli_FeatheringAndMosaic::SplitInBoxes()
 {
-    int nbL=round_up((double)sz.y/mSzTuile.y);
-    int nbC=round_up((double)sz.x/mSzTuile.x);
     int i(0);
+    for (auto &aTile : mTiles){
+    int idBox=aTile.first;
+    Box2di box=aTile.second;
+    Pt2di aSz(box.P1().x-box.P0().x,box.P1().y-box.P0().y);
+
+
+    int nbL=round_up((double)aSz.y/mSzTuile.y);
+    int nbC=round_up((double)aSz.x/mSzTuile.x);
 
     for (int l(0); l<nbL;l++)
     {
         for (int c(0); c<nbC;c++)
         {
+            // box calcul dans la geometrie de la Mosaique globale
             int dxMin(-mDilat),dxMax(+mDilat),dyMin(-mDilat),dyMax(+mDilat);
-            int xMin=ElMax(0,c*mSzTuile.x-mDilat);
+            int xMin=ElMax(0,box.P0().x+c*mSzTuile.x-mDilat);
             if (xMin==0) dxMin=0;
-            int xMax=ElMin(sz.x,(c+1)*mSzTuile.x+mDilat);
+            int xMax=ElMin(sz.x,box.P0().x+(c+1)*mSzTuile.x+mDilat);
             if (xMax==sz.x) dxMax=0;
-            int yMin=ElMax(0,l*mSzTuile.y-mDilat);
+            int yMin=ElMax(0,box.P0().y+l*mSzTuile.y-mDilat);
             if (yMin==0) dyMin=0;
-            int yMax=ElMin(sz.y,(l+1)*mSzTuile.y+mDilat);
+            int yMax=ElMin(sz.y,box.P0().y+(l+1)*mSzTuile.y+mDilat);
             if (yMax==sz.y) dyMax=0;
             Box2di aBox(Pt2di(xMin,yMin),Pt2di(xMax,yMax));
             Box2di aDilat(Pt2di(dxMin,dyMin),Pt2di(dxMax,dyMax));
@@ -339,17 +391,27 @@ void c_Appli_FeatheringAndMosaic::SplitInBoxes()
 
             Liste_Pts_INT2 lpt(3);
 
-            ELISE_COPY(rectangle(aBox).chc(Virgule(FX,FY,label.in())),
+            label=Im2D_U_INT2::FromFileStd(KAtifNameTile(mLabel,idBox));
+            // une box de calcul va nécessiter plusieurs tuile car dilatation de bord pour éviter effet de bord.
+            // une box de calcul peut déborder d'une tuile Im2D label
+            // box calcul dans la geometrie de la tuile
+            Box2di boxGeomTile=Box2di(aBox.P0()-box.P0(), aBox.P1()-box.P0());
+
+            ELISE_COPY(rectangle(boxGeomTile).chc(Virgule(FX,FY,label.in_proj())),
                        1,
                        lpt);
 
-            std::vector<int> labs=mKA->extractImID(&lpt);
+            std::vector<int> labs=extractImID(&lpt);
 
             if (labs.size()!=0){
                 i++;
                 mBoxes[i]=aBox;
                 mDilatBoxes[i]=aDilat;
-                std::cout << "Box number " << i << ": " << mBoxes[i] <<"\n";
+                mTileofBoxes[i]=idBox;
+
+                std::string tile("");
+                 if (mTiling) tile = " of Tile number " + ToString(idBox);
+                std::cout << "Box number " << i << ": " << mBoxes[i] << tile << "\n";
                 // create list of image and save it in xml file
                 cListOfName aLON;
                 for (auto & id : labs)
@@ -357,7 +419,7 @@ void c_Appli_FeatheringAndMosaic::SplitInBoxes()
                     std::list<std::string>::iterator it = std::next(mLFile.begin(), id);
                     aLON.Name().push_back(*it);
                 }
-                MakeFileXML(aLON,mDir+mKA->nameXmlImList(i));
+                MakeFileXML(aLON,mDir+nameXmlImList(i));
 
             } else {
                 if (mDebug) std::cout << "No image for box " << aBox << "\n";
@@ -365,7 +427,39 @@ void c_Appli_FeatheringAndMosaic::SplitInBoxes()
         }
     }
     mNbBox=i;
+    }
     std::cout << "Split mosaic in  " << mNbBox << " boxes.\n";
+}
+
+
+void c_Appli_FeatheringAndMosaic::SplitInTiles()
+{
+    int nbL=round_up((double)sz.y/mSzTuileFile.y);
+    int nbC=round_up((double)sz.x/mSzTuileFile.x);
+    int i(0);
+
+    for (int l(0); l<nbL;l++)
+    {
+        for (int c(0); c<nbC;c++)
+        {
+            int xMin=ElMax(0,c*mSzTuileFile.x);
+            int xMax=ElMin(sz.x,(c+1)*mSzTuileFile.x);
+            int yMin=ElMax(0,l*mSzTuileFile.y);
+            int yMax=ElMin(sz.y,(l+1)*mSzTuileFile.y);
+            Box2di aBox(Pt2di(xMin,yMin),Pt2di(xMax,yMax));
+            mTiles[i]=aBox;
+
+            std::cout << "Tile  " << i << ": footprint in pixel is " << aBox << "\n";
+            i++;
+        }
+    }
+    if (i>1) {
+        std::cout << "Split resulting files in " << i << " Tiles.\n";
+        mTiling=1;
+        // rigth now, tiling not working with edge buffer
+        std::cout << "Warn, tiling of result, edge effet may occur \n";
+        mDilat=0;
+    }
 }
 
 void c_Appli_FeatheringAndMosaic::DoMosaicAndFeather()
@@ -374,20 +468,27 @@ void c_Appli_FeatheringAndMosaic::DoMosaicAndFeather()
     for (auto & boxMap :mBoxes)
     {
         int i(boxMap.first);
+        Box2di box=boxMap.second;
+        Box2di tile=mTiles[mTileofBoxes[i]];
+        // box dans geom de la tuile
+        if (mTiling) box=Box2di(box.P0()-tile.P0(), box.P1()-tile.P0());
+        std::string tiling=(mTiling) ? " Tile="+ToString(mTileofBoxes[i]) : " ";
+
 
         std::string aCom =    MMBinFile(MM3DStr) + " TestLib SeamlineFeatheringBox "
                 + "'"+mFullDir + "'  "
                 + mNameMosaicOut + " "
                 + mLabel + " "
-                + ToString(mBoxes[i]) + " "
+                + ToString(box) + " "
                 + ToString(mDilatBoxes[i]) + " "
-                + mDir+mKA->nameXmlImList(i) + " "
+                + mDir+nameXmlImList(i) + " "
                 + ToString(i)
+                + tiling
                 + " Debug=" + ToString(mDebug)
                 + " Lambda=" + ToString(mLambda)
                 + " Dist=" + ToString(mDist)
                 + " TmpDir=" + mTmpDir
-                + " Message='Tile num " + ToString(i) + " of " + ToString(mNbBox)+"'"
+                + " Message='Box num " + ToString(i) + " of " + ToString(mNbBox)+" " + tiling +  "'"
                 ;
         if (mDoRE) aCom= aCom+ " FileRE=" + mFileModelsRadiomEgal;
         aLCom.push_back(aCom);
@@ -422,14 +523,20 @@ int main_featheringOrtho(int argc,char ** argv)
  *
  */
 
-cMyICNM::cMyICNM(cInterfChantierNameManipulateur * aICNM, string aTmpDir):mICNM(aICNM)
+cMyICNM::cMyICNM()
 {
+    mTmpDir="Tmp-Mosaicking/";
+    mDoRE=false;
+    mDist=50; // distance chamfer of 50 for feathering/estompage
+    mLambda=0.4;
+    mDebug=0;
     mNameImList="MosaickingImList_Box";
-    mNameNbIm=aTmpDir+"NbIm.tif";
-    mNameInternalW=aTmpDir+"InternalWeighting.tif";
-    mNameSumDistExt=aTmpDir+"SumDistExt.tif";
-    mNameSumDistInt=aTmpDir+"SumDistInt.tif";
-    mNameSumWeighting=aTmpDir+"SumWeighting.tif";
+    mNameNbIm="NbIm.tif";
+    mNameInternalW="InternalWeighting.tif";
+    mNameSumDistExt="SumDistExt.tif";
+    mNameSumDistInt="SumDistInt.tif";
+    mNameSumWeighting="SumWeighting.tif";
+    mTiling=0;
 }
 
 std::string cMyICNM::KeyAssocNameOrt2PC(std::string aOrtName)
@@ -565,13 +672,9 @@ std::map<int,int> cMyICNM::extractHist(Liste_Pts_INT2 * aListePt)
 
 cFeatheringAndMosaicOrtho::cFeatheringAndMosaicOrtho(int argc,char ** argv):lut_w(Im1D_REAL4(1,1)),mProgressBar(" No multiprocess mosaicking")
 {
-    mDist=50; // distance chamfer of 50 for feathering/estompage
-    mLambda=0.4;
-    mDebug=0;
+
     mLabel="Label.tif";// from tawny tool
     mNameMosaicOut="MosaicFeathering.tif";
-    mTmpDir="Tmp-Mosaicking/";
-    mDoRE=false;
 
     ElInitArgMain
             (
@@ -588,6 +691,7 @@ cFeatheringAndMosaicOrtho::cFeatheringAndMosaicOrtho(int argc,char ** argv):lut_
                 << EAM(mDist,"Dist",true, "Distance for seamline feathering blending, in chamfer 32 distance" )
                 << EAM(mLambda,"Lambda",true, "lambda value for gaussian distance weighting, def 0.4." )
                 << EAM(mDebug,"Debug",true, "Write intermediate results for debug purpose." )
+                << EAM(mIdTile,"Tile",true, "Id of tile to write result." )
                 << EAM(mTmpDir,"TmpDir",true, "Directory for intermediate results generated in debug mode." )
                 << EAM(mProgressBar,"Message",true, "message that is printed - used as progress bar." )
                 << EAM(mFileModelsRadiomEgal,"FileRE",true, "xml file of radiometric equalization models, if provided perform the equalisation prior to mosaicking." )
@@ -599,8 +703,28 @@ cFeatheringAndMosaicOrtho::cFeatheringAndMosaicOrtho(int argc,char ** argv):lut_
         std::string aPatOrt;
         SplitDirAndFile(mDir,aPatOrt,mFullDir);
         mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
-        mKA=new cMyICNM(mICNM,mTmpDir);
         MakeFileDirCompl(mTmpDir);
+
+        if (EAMIsInit(&mIdTile)) {
+
+            mTiling=1;
+            // modify meaning of mBox, which is related to the tile and not to the global mosaic
+            // la c'est mrd car je lisais la taille de la zone en lisant le nombre de pixel de label.tif, no way
+            // sauver le MTD -appli global et le recharger?? oui c'est encore le plus simple
+            // change name of input and output
+            mNameMosaicOut=KAtifNameTile(mNameMosaicOut,mIdTile);
+            mLabel=KAtifNameTile(mLabel,mIdTile);
+            mNameNbIm=KAtifNameTile(mNameNbIm,mIdTile);
+            mNameInternalW=KAtifNameTile(mNameInternalW,mIdTile);
+            mNameSumDistExt=KAtifNameTile(mNameSumDistExt,mIdTile);
+            mNameSumDistInt=KAtifNameTile(mNameSumDistInt,mIdTile);
+            mNameSumWeighting=KAtifNameTile(mNameSumWeighting,mIdTile);
+
+        }
+        MTD =  TFW2FileOriMnt(KeyAssocNameTif2TFW(mLabel));
+        Tiff_Im  aLabelGlob(mLabel.c_str());
+        MTD.NombrePixels()=aLabelGlob.sz();
+
         // list of all images
         mLFile = mICNM->StdGetListOfFile(aPatOrt);
         // list of images used in this box
@@ -629,12 +753,6 @@ cFeatheringAndMosaicOrtho::cFeatheringAndMosaicOrtho(int argc,char ** argv):lut_
         {loadREModels();} else { std::cout << "Warning, cannot find file " << mFileModelsRadiomEgal << ", i go on without radiometric equalization.\n";}
         }
 
-        // je me passe de MTDOrtho, de manière à pouvoir effectuer le mosaickage uniquement sur un échantillon des orthos
-        //MTD = StdGetFromPCP("MTDOrtho.xml",FileOriMnt);
-        MTD =  TFW2FileOriMnt(mKA->KeyAssocNameTif2TFW(mLabel));
-        Tiff_Im  aLabelGlob(mLabel.c_str());
-        MTD.NombrePixels()=aLabelGlob.sz();
-
         Box2dr boxMosaic(Pt2dr(MTD.OriginePlani().x,MTD.OriginePlani().y+MTD.ResolutionPlani().y*MTD.NombrePixels().y),Pt2dr(MTD.OriginePlani().x+MTD.ResolutionPlani().x*MTD.NombrePixels().x,MTD.OriginePlani().y));
         sz=Pt2di(mBox.P1().x-mBox.P0().x,mBox.P1().y-mBox.P0().y);
         aCorner=Pt2dr(boxMosaic._p0.x+mBox.P0().x*MTD.ResolutionPlani().x,boxMosaic._p1.y+mBox.P0().y*MTD.ResolutionPlani().y); // xmin, ymax;
@@ -644,7 +762,7 @@ cFeatheringAndMosaicOrtho::cFeatheringAndMosaicOrtho(int argc,char ** argv):lut_
         // read a tile of an existing tiff file and copy it in im2D ram memory
         label=Im2D_U_INT2(sz.x,sz.y,65535);
         ELISE_COPY(label.all_pts(),
-                   trans(aLabelGlob.in(),mBox.P0()),
+                   trans(aLabelGlob.in_proj(),mBox.P0()),
                    label.out());
 
         NbIm=Im2D_INT1(sz.x,sz.y);
@@ -679,15 +797,15 @@ cFeatheringAndMosaicOrtho::cFeatheringAndMosaicOrtho(int argc,char ** argv):lut_
         if (mDebug)
         {
             // save the map of number of image
-            aName=mKA->nameNbIm();
+            aName=nameNbIm();
             std::cout << "Save map of number of ortho used for each location , file " << aName << "\n";
-            mKA->SaveBoxInTiff(aName,& NbIm,mBox2Save,mBox);
-            aName=mKA->nameSDI();
+            SaveBoxInTiff(aName,& NbIm,mBox2Save,mBox);
+            aName=nameSDI();
             std::cout << "Save map of sum of chamfer distance inside enveloppe for each location , file " << aName << "\n";
-            mKA->SaveBoxInTiff(aName,& mSumDistInter,mBox2Save,mBox);
-            aName=mKA->nameSDE();
+            SaveBoxInTiff(aName,& mSumDistInter,mBox2Save,mBox);
+            aName=nameSDE();
             std::cout << "Save map of sum of chamfer distance outside enveloppe for each location , file " << aName << "\n";
-            mKA->SaveBoxInTiff(aName,& mSumDistExt,mBox2Save,mBox);
+            SaveBoxInTiff(aName,& mSumDistExt,mBox2Save,mBox);
         }
 
         if (mDebug) std::cout << "Compute weighting for each orthoimage in blending zone with 2 images.\n";
@@ -701,9 +819,9 @@ cFeatheringAndMosaicOrtho::cFeatheringAndMosaicOrtho(int argc,char ** argv):lut_
         if (mDebug)
         {
             // save the map of internal weighting
-            aName=mKA->nameIW();
+            aName=nameIW();
             std::cout << "Save map of internal weighting , file " << aName << "\n";
-            mKA->SaveBoxInTiff(aName,& PondInterne,mBox2Save,mBox);
+            SaveBoxInTiff(aName,& PondInterne,mBox2Save,mBox);
         }
 
         std::cout << "Compute mosaic by multipling orthoimage value by weighting map.\n";
@@ -712,9 +830,9 @@ cFeatheringAndMosaicOrtho::cFeatheringAndMosaicOrtho(int argc,char ** argv):lut_
 
         if (mDebug)
         {
-            aName=mKA->nameSW();
+            aName=nameSW();
             std::cout << "Save map of sum of weighting, should be equal to 1 everywhere , file " << aName << "\n";
-            mKA->SaveBoxInTiff(aName,& mSumWeighting,mBox2Save,mBox);
+            SaveBoxInTiff(aName,& mSumWeighting,mBox2Save,mBox);
         }
 
         // case mDist=0
@@ -725,7 +843,7 @@ cFeatheringAndMosaicOrtho::cFeatheringAndMosaicOrtho(int argc,char ** argv):lut_
 
         }
 
-        mKA->SaveBoxInTiff(mNameMosaicOut, & mosaic,mBox2Save,mBox);
+        SaveBoxInTiff(mNameMosaicOut, & mosaic,mBox2Save,mBox);
 
         banniereFeatheringBox();
     }
@@ -824,7 +942,7 @@ void cFeatheringAndMosaicOrtho::ChamferDist4AllOrt()
                     mChamferDist[i].out());
 
         // apply the hidden part masq
-        std::string aNamePC=mDir+mKA->KeyAssocNameOrt2PC(im);
+        std::string aNamePC=mDir+KeyAssocNameOrt2PC(im);
         Im2D_U_INT1 masq=Im2D_U_INT1::FromFileStd(aNamePC);
 
         // apply the mask of the ortho and the mask of the label
@@ -836,9 +954,9 @@ void cFeatheringAndMosaicOrtho::ChamferDist4AllOrt()
         // save chamfer map for checking purpose
         if (mDebug)
         {
-            Tiff_Im::CreateFromIm(mChamferDist[i],mKA->KAChamferName(im,mTmpDir,mNumBox));
+            Tiff_Im::CreateFromIm(mChamferDist[i],KAChamferName(im,mTmpDir,mNumBox));
             // save TFW file
-            mIms[i]->writeTFW(mKA->KAChamferName(im,mTmpDir,mNumBox));
+            mIms[i]->writeTFW(KAChamferName(im,mTmpDir,mNumBox));
         }
         // comptage du nombre d'image a utiliser pour le blending (geométrie mosaic)
         ELISE_COPY(select(NbIm.all_pts(),trans(mChamferDist[i].in(mDist+1),-mTrs[i])<=mDist),
@@ -941,7 +1059,7 @@ void cFeatheringAndMosaicOrtho::WeightingNbIm3AndMore()
                 ELISE_COPY(cc.all_pts().chc(Virgule(FX,FY,label.in())),
                            1,
                            lpt);
-                std::vector<int> labs=mKA->extractImID(&lpt);
+                std::vector<int> labs=extractImID(&lpt);
 
 
                 if (labs.size()==3){
@@ -1140,8 +1258,8 @@ void cFeatheringAndMosaicOrtho::ComputeMosaic()
                        mSumWeighting.out()
                        );
             // individual weighting
-            Tiff_Im::CreateFromIm(mImWs[i],mKA->KAWeightingName(im,mTmpDir,mNumBox));
-            mIms[i]->writeTFW(mKA->KAWeightingName(im,mTmpDir,mNumBox));
+            Tiff_Im::CreateFromIm(mImWs[i],KAWeightingName(im,mTmpDir,mNumBox));
+            mIms[i]->writeTFW(KAWeightingName(im,mTmpDir,mNumBox));
         }
     }
 }
