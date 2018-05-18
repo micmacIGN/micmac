@@ -1,7 +1,8 @@
 # scripts to run before build
+image: Visual Studio 2015
 before_build:
   - echo Running cmake...
-  - set QTDIR=C:\Qt\5.8\msvc2015_64
+  - set QTDIR=C:\Qt\5.9.5\msvc2015_64
   - set PATH=%PATH%;%QTDIR%\bin
   - set INSTALL_DIR_LOCAL=%CD%
   - mkdir build
