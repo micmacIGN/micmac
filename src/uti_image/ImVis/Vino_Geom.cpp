@@ -269,7 +269,7 @@ const cOnePCarac * cAppli_Vino::Nearest(const Pt2dr & aPClU,double * aDist,eType
 void ShowCurve(Im2D_INT1 aIm,int aY,const Pt2di & aP0,const Pt2di & aP1,Video_Win * aW,int aCoul)
 {
    int aTx = aIm.tx();
-   std::cout << "TXxxx= " << aTx << "\n";
+   // std::cout << "TXxxx= " << aTx << "\n";
    INT1 * aV = aIm.data()[aY];
    double aVmax = aV[0];
    double aVmin = aV[0];

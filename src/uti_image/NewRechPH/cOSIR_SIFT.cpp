@@ -82,7 +82,6 @@ double cOneScaleImRechPH::ComputeContrast()
 
 void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR,cSetPCarac & aSPC)
 {
-// std::cout << "ENTER LAPL TIFF Scccc  \n";
    // std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mScale+2,true);
    std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,2,true);
    Im2D_U_INT1 aIFlag = MakeFlagMontant(mImMod);
@@ -93,7 +92,6 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
    int aSSCstr = 0;
    bool DoMin = mAppli.DoMin();
    bool DoMax = mAppli.DoMax();
-// std::cout << "BOUCCLLLLEEE   ENTER LAPL TIFF Scccc  \n";
    for (aP.x = 1 ; aP.x <mSz.x-1 ; aP.x++)
    {
 // static int aCpt=0; aCpt++; std::cout << "XXXX CPTTTTT= " << aCpt << "\n";
@@ -125,40 +123,54 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
                }
            }
           if (aLab != eTPR_NoLabel)
-           {
+          {
                cOnePCarac aPC;
                aPC.DirMS() = Pt2dr(0,0);
                aPC.Kind() =  aLab;
                aPC.Pt() =  Pt2dr(aP);
-               aPC.Scale() = mScale;
+               aPC.Scale() = mScaleAbs;
                aPC.NivScale() = mNiv;
                // mAppli.AdaptScaleValide(aPC);
                aPC.ScaleStab() = -1;
                aSPC.OnePCarac().push_back(aPC);
-           }
+          }
        }
     }
 
-    std::cout << "LAPL TIFF Scccc= " << mScale  << " SpaceE=" <<  aSpaceNbExtr << " Scale=" << aSS_NbExtr  << " Ctsr=" << aSSCstr<< "\n";
+    std::cout << "    LAPL TIFF Scccc= " << mScaleAbs  << " SpaceE=" <<  aSpaceNbExtr << " Scale=" << aSS_NbExtr  << " Ctsr=" << aSSCstr<< "\n";
 }
 
 void cOneScaleImRechPH::SiftMakeDif(cOneScaleImRechPH* aLR)
 {
-   Symb_FNum aDif = (mIm.in()-aLR->mIm.in());
    InitImMod();
-   double aMoy,aAbsMoy;
-   double aNb = mSz.x * mSz.y;
-   ELISE_COPY
-   (
-       mImMod.all_pts(),
-       Virgule(aDif,Abs(aDif)),
-       Virgule(mImMod.out()|sigma(aMoy),sigma(aAbsMoy))
-   );
    if (mAppli.SaveFileLapl())
    {
-      std::cout << "LAPL TIFF Scccc= " << mScale  << " M=" << aMoy/aNb << " AM=" << aAbsMoy/aNb << "\n";
+      Symb_FNum aDif = (mIm.in()-aLR->mIm.in());
+      double aMoy,aAbsMoy;
+      double aNb = mSz.x * mSz.y;
+      ELISE_COPY
+      (
+          mImMod.all_pts(),
+          Virgule(aDif,Abs(aDif)),
+          Virgule(mImMod.out()|sigma(aMoy),sigma(aAbsMoy))
+      );
+      std::cout << "LAPL TIFF Scccc= " << mScaleAbs  << " M=" << aMoy/aNb << " AM=" << aAbsMoy/aNb << "\n";
       Tiff_Im::CreateFromIm(mImMod,"LAPL-"  + ToString(mNiv) + ".tif");
    }
+   else
+   {
+       for (int aY=0 ; aY<mSz.y ; aY++)
+       {
+          tElNewRechPH * aLIm  =      mIm.data()[aY];
+          tElNewRechPH * aLRIm = aLR->mIm.data()[aY];
+          tElNewRechPH * aIMod =   mImMod.data()[aY];
+          for (int aX=0 ; aX<mSz.x ; aX++)
+          {
+              aIMod[aX] = aLIm[aX]-aLRIm[aX];
+          }
+       }
+   }
+   mSifDifMade = true;
 }
 
 

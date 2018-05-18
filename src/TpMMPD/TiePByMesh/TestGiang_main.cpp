@@ -46,6 +46,57 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
 Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<Pt2dr> & aNPts2D);
+// ========== PLYBascule ==========
+int PlyBascule(int argc, char ** argv)
+{
+    string aPlyO="";
+    string aPly;
+    string aXML;
+    bool aBin=1;
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aPly, "Input Ply (mesh or C3DC dense cloud)",  eSAM_IsExistFile)
+                      << EAMC(aXML, "Bascule XML (xml result from GCPBascule)", eSAM_IsExistFile),
+          LArgMain()
+                      << EAM(aPlyO, "Out" , true, "Name of output PLY")
+                      << EAM(aBin, "Bin" , true, "Binary (1 - def) / ASCII (0)")
+                );
+
+    // Lire XML
+    cXml_ParamBascRigide  *  aTransf = OptStdGetFromPCP(aXML,Xml_ParamBascRigide);
+    double aScl = aTransf->Scale();
+    Pt3dr aTr = aTransf->Trans();
+
+    // Lire PLY
+    cout<<"Lire PLY .... "<<endl;
+    cMesh myMesh(aPly, true);
+    const int nVertex = myMesh.getVertexNumber();
+    cout<<"Nb Face = "<<myMesh.getFacesNumber()<<endl;
+    cout<<"Nb Vertices = "<<myMesh.getVertexNumber()<<endl;
+
+    cout<<"Bascule ...."<<endl;
+
+    for (double aKV=0; aKV<nVertex ; aKV++)
+    {
+        cVertex* aV = myMesh.getVertex(aKV);
+        Pt3dr aPt;
+        aV->getPos(aPt);
+        Pt3dr aPtBasc(
+                    scal(aTransf->ParamRotation().L1() , aPt) * aScl + aTr.x,
+                    scal(aTransf->ParamRotation().L2() , aPt) * aScl + aTr.y,
+                    scal(aTransf->ParamRotation().L3() , aPt) * aScl + aTr.z
+                     );
+
+        aV->modPos(aPtBasc);
+    }
+    cout<<"Write output PLY...."<<endl;
+    myMesh.write(aPlyO, aBin);
+    cout<<"Done !"<<endl;
+    return EXIT_SUCCESS;
+}
+
 // ========== Test Zone Trajecto Acquisition BLoc Rigid ==========
 int Test_TrajectoFromOri(int argc, char ** argv)
 {
@@ -597,6 +648,11 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
         Pt3dr aCen1= aCam11->VraiOpticalCenter();
 
         vector<double> aVEcart;
+        vector<double> aVEcart_X;
+        vector<double> aVEcart_Y;
+        vector<double> aVEcart_Z;
+
+
         cPlyCloud aPlyERROR;
         Pt3di colPt(255,0,0);
 
@@ -605,6 +661,10 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
             double ecart = euclid(aPtCtrlLoop1[aKPt] - aPtCtrlLoop2[aKPt]);
             csvPt3d<<ecart<<endl;
             aVEcart.push_back(ecart);
+            Pt3dr aVEc = (aPtCtrlLoop1[aKPt] - aPtCtrlLoop2[aKPt]).AbsP();
+            aVEcart_X.push_back(aVEc.x);
+            aVEcart_Y.push_back(aVEc.y);
+            aVEcart_Z.push_back(aVEc.z);
 
             // Ply ERROR
             aPlyERROR.AddPt(colPt, aPtCtrlLoop1[aKPt]);
@@ -622,7 +682,13 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
         {
             // Sort ascending
             sort(aVEcart.begin(), aVEcart.end(), sortAscending);
+            sort(aVEcart_X.begin(), aVEcart_X.end(), sortAscending);
+            sort(aVEcart_Y.begin(), aVEcart_Y.end(), sortAscending);
+            sort(aVEcart_Z.begin(), aVEcart_Z.end(), sortAscending);
+
             double aSom = 0.0;
+            Pt3dr aSom3D(0.0, 0.0, 0.0);
+
             int aNb = 0;
 
             vector<int> aVRangInd;
@@ -639,6 +705,10 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
             for (uint aKE=0; aKE<aVEcart.size(); aKE++)
             {
                 aSom += aVEcart[aKE];
+                aSom3D.x += aVEcart_X[aKE];
+                aSom3D.y += aVEcart_Y[aKE];
+                aSom3D.z += aVEcart_Z[aKE];
+
                 aNb++;
                 aCurEcart.push_back(aVEcart[aKE]);
                 if ((int)aKE == aVRangInd[indCur])
@@ -668,13 +738,40 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
                           << " 80%=" << KthValProp(aVEcart,0.8)   <<endl    // score à 20% en premier
                           << " Nb=" << aVEcart.size()             <<endl
                           << "\n";
+
+                std::cout << "==== Stat on X: ====" <<endl
+                          << " Moy= " << aSom3D.x/aNb <<endl
+                          << " Med=" << KthValProp(aVEcart_X,0.5)   <<endl    // score median
+                          << " 20%=" << KthValProp(aVEcart_X,0.2)   <<endl    // score à 20% en premier
+                          << " 80%=" << KthValProp(aVEcart_X,0.8)   <<endl    // score à 20% en premier
+                          << " Nb=" << aVEcart.size()             <<endl
+                          << "\n";
+
+                std::cout << "==== Stat on Y: ====" <<endl
+                          << " Moy= " << aSom3D.y/aNb <<endl
+                          << " Med=" << KthValProp(aVEcart_Y,0.5)   <<endl    // score median
+                          << " 20%=" << KthValProp(aVEcart_Y,0.2)   <<endl    // score à 20% en premier
+                          << " 80%=" << KthValProp(aVEcart_Y,0.8)   <<endl    // score à 20% en premier
+                          << " Nb=" << aVEcart.size()             <<endl
+                          << "\n";
+
+                std::cout << "==== Stat on Z: ====" <<endl
+                          << " Moy= " << aSom3D.z/aNb <<endl
+                          << " Med=" << KthValProp(aVEcart_Z,0.5)   <<endl    // score median
+                          << " 20%=" << KthValProp(aVEcart_Z,0.2)   <<endl    // score à 20% en premier
+                          << " 80%=" << KthValProp(aVEcart_Z,0.8)   <<endl    // score à 20% en premier
+                          << " Nb=" << aVEcart.size()             <<endl
+                          << "\n";
             }
         }
 
         double scaleAuto = KthValProp(aVEcart,0.8);
         if (aSilent)
         {
-            cout<< " 80%=" << KthValProp(aVEcart,0.8) <<" -Nb="<<aVEcart.size()<<endl;
+            cout<< " 80% (3D)=" << KthValProp(aVEcart,0.8) <<" -Nb="<<aVEcart.size()<<endl;
+            cout<< " 80% (X)=" << KthValProp(aVEcart_X,0.8) <<" -Nb="<<aVEcart.size()<<endl;
+            cout<< " 80% (Y)=" << KthValProp(aVEcart_Y,0.8) <<" -Nb="<<aVEcart.size()<<endl;
+            cout<< " 80% (Z)=" << KthValProp(aVEcart_Z,0.8) <<" -Nb="<<aVEcart.size()<<endl;
         }
         // plot data
         if (plot && aPtCtrlLoop1.size()>0)
@@ -2353,6 +2450,13 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
     //ajout au nuage de point
     cout<<"Nb Pt 3d : "<<aVResidu.size();
     cout<<"Res max = "<<resMax<<" -res Min = "<<resMin<<endl;
+
+
+    // Chercher max and min multiplicity
+    int aMaxOvLap = *max_element(aVNbImgOvlap.begin(), aVNbImgOvlap.end());
+    int aMinOvLap = *min_element(aVNbImgOvlap.begin(), aVNbImgOvlap.end());
+    cout<<" Max Min Overlap = "<<aMaxOvLap<<" "<<aMinOvLap<<endl;
+
     for (uint aKPt=0; aKPt<aVAllPtInter.size(); aKPt++)
     {
         //parcourir tout les points
@@ -2364,7 +2468,9 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
         {
             aCPlyRes.AddPt(gen_coul_heat_map(aVResidu[aKPt], resMin,  resMax), aVAllPtInter[aKPt]);
         }
-        aCPlyEmp.AddPt(gen_coul_emp(aVNbImgOvlap[aKPt]), aVAllPtInter[aKPt]);
+        //aCPlyEmp.AddPt(gen_coul_emp(aVNbImgOvlap[aKPt]), aVAllPtInter[aKPt]);
+        // faut donner le pourcentage de niveau de gris
+        aCPlyEmp.AddPt(aCPlyEmp.Gray(((double(aVNbImgOvlap[aKPt]) - double(aMinOvLap))/double(aMaxOvLap-aMinOvLap))), aVAllPtInter[aKPt]);
         //===== stats Multiplicite ========
         int nbImgsVu1Pts = aVNbImgOvlap[aKPt];
         aStats[nbImgsVu1Pts]++;

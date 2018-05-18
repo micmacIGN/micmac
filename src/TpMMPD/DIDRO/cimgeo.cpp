@@ -351,7 +351,7 @@ Im2D_REAL4 cImGeo::clipImTer(Box2dr aBox)
 
     // compute box in pixel
     //int szU(0), szV(0);
-    //szU = round((aBox.sz().x)/GSD());// again, bug if no round here, very scarce but happend
+    //szU = round((aBox.sz().x)/GSD());// again, bug if no round here, very scarce but bug may happend
     //szV = round((aBox.sz().y)/GSD());
     //Pt2di apMaxPix(XY2UV(aPMin)+Pt2di(szU,szV));
     //if(XY2UV(aPMax)!=apMaxPix) to detect bug of casting double to int. round solve the problem

@@ -41,6 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _NewRechPH_H_
 #define _NewRechPH_H_
 
+#include  <forward_list>
+
 class cAppli_NewRechPH;
 class cOneScaleImRechPH;
 
@@ -51,6 +53,7 @@ class cOneScaleImRechPH;
 void TestTouch();
 void TestLearnOPC(cSetRefPCarac & aSRP);
 
+double TimeAndReset(ElTimer &);
 
 #define StdGetFromNRPH(aStr,aObj)\
 StdGetObjFromFile<c##aObj>\
@@ -73,6 +76,7 @@ constexpr int DynU1 = 32;
 void StdInitFitsPm(cFitsParam & aFP);
 
 
+typedef std::forward_list<tPtrPtRemark> tLPtBuf;
 
 
 
@@ -98,7 +102,9 @@ class cOneScaleImRechPH
                  (
                       cAppli_NewRechPH &,    // Application
                       cOneScaleImRechPH &,   // niveau du dessus
-                      const double & aSigma  // a sigma abs
+                      const double & aSigma,  // a sigma abs
+                      int       aScaldec, // Scale decimation
+                      bool      JumpDecim
                  );
           tImNRPH  Im() {return mIm;}  // simple accesseur a l'image
           tTImNRPH TIm() {return mTIm;}  // simple accesseur a l'image
@@ -111,7 +117,9 @@ class cOneScaleImRechPH
 
           const int &  NbExLR() const ;
           const int &  NbExHR() const ;
-          const double &  Scale() const ;
+          const double &  ScaleAbs() const ;
+          const double &  ScalePix() const ;
+          const int &  PowDecim() const ;
           int  Niv() const {return mNiv;}
           double GetVal(const Pt2di & aP,bool & Ok) const;
 
@@ -127,6 +135,11 @@ class cOneScaleImRechPH
           int& NbPOfLab(int aK) {return mNbPByLab.at(aK);}
 
           double QualityScaleCorrel(const Pt2di &,int aSign,bool ImInit);
+          bool SameDecim(const cOneScaleImRechPH &) const;  // Meme niveau de decimation
+          bool SifDifMade() const;  // Meme niveau de decimation
+
+         // return le premier a meme decim ou sinon 0
+         cOneScaleImRechPH * GetSameDecimSiftMade(cOneScaleImRechPH*,cOneScaleImRechPH*);
 
       private :
           void InitImMod();
@@ -136,7 +149,7 @@ class cOneScaleImRechPH
           void InitBuf(const eTypePtRemark & aType, bool Init);
 
 
-          cOneScaleImRechPH(cAppli_NewRechPH &,const Pt2di & aSz,const double & aScale,const int & aNiv);
+          cOneScaleImRechPH(cAppli_NewRechPH &,const Pt2di & aSz,const double & aScale,const int & aNiv,int aPowDecim);
  
           // Selectionne les maxima locaux a cette echelle
           bool  SelectVois(const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp);
@@ -146,13 +159,17 @@ class cOneScaleImRechPH
    
           cAppli_NewRechPH & mAppli;
           Pt2di     mSz;
-          tImNRPH   mIm;
+          tImNRPH   mIm;   // Image brute
           tTImNRPH  mTIm;
+
+
           tImNRPH   mImMod;   // Dif en Sift, corner en harris etc ...
           tTImNRPH  mTImMod;
           tInterpolNRPH * mInterp;
 
-          double    mScale;
+          double    mScaleAbs;    // Scale Absolu
+          double    mScalePix; // Tient compte de la decimation
+          int       mPowDecim;
           int       mNiv;
           int       mNbExLR; 
           int       mNbExHR;
@@ -160,6 +177,7 @@ class cOneScaleImRechPH
           double             mQualScaleCorrel;
           std::vector<Pt2di>   mVoisGauss;
           std::vector<double>  mGaussVal;
+          bool                 mSifDifMade;
 };
 
 
@@ -179,13 +197,15 @@ class cAppli_NewRechPH
 
 
         // double    ThreshCstrIm0() {return mThreshCstrIm0;}
+        bool                                 InsideBuf2(const Pt2di &);
+        tPtrPtRemark  NearestPoint2(const Pt2di &,const double & aDist);
+        void AddBuf2(const tPtrPtRemark &);
+        void ClearBuff2(const tPtrPtRemark &);
 
         bool Inside(const Pt2di & aP) const;
         const Pt2di & SzIm() const ;
-        tPtrPtRemark & PtOfBuf(const Pt2di &);
-        tPtrPtRemark  NearestPoint(const Pt2di &,const double & aDist);
         bool       TestDirac() const {return mTestDirac;}
-        double ScaleOfNiv(const int &) const;
+        double ScaleAbsOfNiv(const int &) const;
         void AddBrin(cBrinPtRemark *);
 
         int&  NbSpace()          { return  mNbSpace;}
@@ -211,13 +231,21 @@ class cAppli_NewRechPH
            return   (aScale>=mISF.x) && (aScale<=mISF.y);
         }
         void AdaptScaleValide(cOnePCarac & aPC);
+
+        double IndScalDecim(const double & ) const;
+
     private :
+        Pt2di PIndex2(const Pt2di & aP) const;
+        tLPtBuf & LPOfBuf2(const Pt2dr & aP);
+        
         void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);
         void Clik();
         bool  CalvInvariantRot(cOnePCarac & aPt);
 
         std::string mName;
-        double      mPowS;
+        double      mNbByOct;    // Nombre d'echelle dans une puisse de 2
+        double      mPowS;       // Ratio d'echelle entre 2
+        double      mEch0Decim;  // Premiere echelle de decimation
         int         mNbS;
 
         Pt2dr   mISF; // Interval Scale Forced
@@ -243,11 +271,12 @@ class cAppli_NewRechPH
         double      mSeuilCR; // Contraste relatif
         bool        mScaleCorr;
         Pt2di       mSzIm;
-        Box2di      mBox;
-        Pt2di       mP0; // P0-P1 => "vrai" box
-        Pt2di       mP1;
+        Box2di      mBoxCalc;
+        Pt2di       mP0Calc; // P0-P1 => "vrai" box
+        Pt2di       mP1Calc;
 
         std::vector<cOneScaleImRechPH *> mVI1;
+        std::vector<cOneScaleImRechPH *> mVImHS; // Celle qui ont une echelle eventuellement plus large
         Video_Win  * mW1;
         bool         mModeTest;
     
@@ -260,7 +289,10 @@ class cAppli_NewRechPH
         double       mDZPlyLay;
         double       mNbInOct;  // Number in one octave
 
-        std::vector<std::vector<cPtRemark *> >  mBufLnk;
+        int                                    mDeZoomLn2;
+        Pt2di                                  mSzLn2;
+        std::vector<std::vector<tLPtBuf> >     mBufLnk2;
+
         std::vector<Pt2di>                      mVoisLnk;
         std::vector<cBrinPtRemark *>            mVecB;
         std::vector<int>                        mHistLong;
@@ -290,7 +322,6 @@ class cAppli_NewRechPH
         tImNRPH   mImContrast;
         tTImNRPH  mTImContrast;
         tInterpolNRPH * mInterp;
-
 };
 
 class cProfilPC
