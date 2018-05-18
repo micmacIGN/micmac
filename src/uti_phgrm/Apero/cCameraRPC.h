@@ -281,6 +281,14 @@ class cRPC
         void ReadASCII(const std::string &aFile);
         int  ReadASCIIMeta(const std::string &aMeta, const std::string &aFile);
         void ReadEUCLIDIUM(const std::string &aFile);
+        void ReadScanLineSensor(const std::string &,
+                                std::vector<Pt3dr> &,
+                                std::vector<Pt3dr> &);
+        void ReadScanLineSensor(const std::string &,
+                                std::vector<Pt3dr> &,
+                                std::vector<Pt3dr> &,
+                                std::vector<Pt3dr> &,
+                                std::vector<Pt3dr> &);
 
         
         /* Change coordinate system */
@@ -335,7 +343,10 @@ class cRPC
         void ReconstructValidityxy();
         void ReconstructValidityXY();
         void ReconstructValidityH();
-
+        void FillAndVerifyBord(double &aL, double &aC,
+                               const Pt3dr &aP1, const Pt3dr &aP2,
+                               const std::list< Pt3dr > &aP3,
+                               std::vector<Pt3dr> & aG3d, std::vector<Pt3dr> & aG2d);
 
         /* Update scales, offsets */
         void NewImOffScal(const std::vector<Pt3dr> & aGrid);
