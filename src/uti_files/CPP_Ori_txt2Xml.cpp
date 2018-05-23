@@ -1617,6 +1617,7 @@ int OriExport_main(int argc,char ** argv)
     bool AddFormat=false;
     bool onlyC=false;
     bool onlyA=false;
+    Pt3dr LA;
     std::string aModeExport="WPK";
     std::string aFormat ="N W P K X Y Z";
     // eExportOri aModeEO = eEO_WPK;
@@ -1630,6 +1631,7 @@ int OriExport_main(int argc,char ** argv)
                     << EAM(aModeExport,"ModeExp",true,"Mode export, def=WPK (Omega Phi Kapa)",eSAM_None,ListOfVal(eEO_NbVals,"eEO_"))
                     << EAM(onlyC,"OnlyCenters",true,"Export only camera centers, def=false",eSAM_IsBool)
                     << EAM(onlyA,"OnlyAngles",true,"Export only camera angles, def=false",eSAM_IsBool)
+                    << EAM(LA,"LA",true,"Lever-Arm, if provided, export camera center and camera-center corrected for LeverArm")
     );
 
     eExportOri aModeEO;
@@ -1638,14 +1640,15 @@ int OriExport_main(int argc,char ** argv)
 
     eConventionsOrientation aCO = eConvAngPhotoMDegre;
     if (aModeEO==eEO_WPK)
-       aCO = eConvAngPhotoMDegre;
-    else if (aModeH==eEO_AMM)
-       aCO = eConvApero_DistM2C;
+           aCO = eConvAngPhotoMDegre;
+        else if (aModeH==eEO_AMM)
+           aCO = eConvApero_DistM2C;
     else
     {
         ELISE_ASSERT(false,"unsupported mode of conv or");
     }
 
+    if (EAMIsInit(&LA)) aFormat ="N W P K X Y Z Xla Yla Zla";
 
     if (!MMVisualMode)
     {
@@ -1666,7 +1669,13 @@ int OriExport_main(int argc,char ** argv)
 				fprintf(aFP,"%s %lf %lf %lf\n",aNameIm.c_str(),aA.x,aA.y,aA.z);
 			else if(onlyC && !onlyA)
 				fprintf(aFP,"%s %lf %lf %lf\n",aNameIm.c_str(),aC.x,aC.y,aC.z);
-			else
+            else if (EAMIsInit(&LA)){
+
+                Pt3dr aCla; // center corrected for Lever-Arm
+                aCla=aC-aCS->Orient().Mat()*LA;
+                fprintf(aFP,"%s %lf %lf %lf %lf %lf %f %f %f %f\n",aNameIm.c_str(),aA.x,aA.y,aA.z,aC.x,aC.y,aC.z,aCla.x,aCla.y,aCla.z);
+            }
+            else
 				fprintf(aFP,"%s %lf %lf %lf %lf %lf %f\n",aNameIm.c_str(),aA.x,aA.y,aA.z,aC.x,aC.y,aC.z);
         }
 

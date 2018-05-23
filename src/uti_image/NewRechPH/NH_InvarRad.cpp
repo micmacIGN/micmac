@@ -211,7 +211,7 @@ double Normalise(tImNRPH aImBuf,tImNRPH aImOut,int aX0In,int aX1In,int aSzXOut)
 
 bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
 {
-   bool BUG= false &&  (euclid(aPt.Pt()+Pt2dr(mP0)-aPTBUG) < 0.02);
+   bool BUG= false &&  (euclid(aPt.Pt()+Pt2dr(mP0Calc)-aPTBUG) < 0.02);
    static int aCpt=0;
    aCpt++;
    if (aPt.NivScale() >= mMaxLevR)
@@ -225,9 +225,9 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
 
    std::vector<cOneScaleImRechPH *>  aVIm;
    // Tableau des distance / au centre pour echantillonner
-   std::vector<double>               aVRho;
-   std::vector<double>               aVDeltaRad;
-   std::vector<double>               aVDeltaTang;
+   std::vector<double>               aVRhoAbs;
+   std::vector<double>               aVDeltaRadAbs;  // distance entre deux  rho consecutif
+   std::vector<double>               aVDeltaTangAbs; // distance entre deux  teta consecutif
    double aStepTeta =  (2*PI)/mNbTetaInv;
 
    int aN0 = aPt.NivScale();
@@ -237,19 +237,19 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
        aVIm.push_back(mVI1.at(aN0 + aKRho * mDeltaSR));
    }
 
-   double aLastScale = ElSquare(aVIm.at(0)->Scale()) / aVIm.at(1)->Scale();
-   double aRho = 0.0;
+   double aLastScaleAbs = ElSquare(aVIm.at(0)->ScaleAbs()) / aVIm.at(1)->ScaleAbs();
+   double aRhoAbs = 0.0;
 
    for (int aKRho=0 ; aKRho<int(aVIm.size()) ; aKRho++)
    {
-      double aCurScale = aVIm.at(aKRho)->Scale();
-      double aDRho = ((aCurScale+aLastScale) / 2.0) *  mStepSR;
-      aRho += aDRho;
+      double aCurScaleAbs = aVIm.at(aKRho)->ScaleAbs();
+      double aDRhoAbs = ((aCurScaleAbs+aLastScaleAbs) / 2.0) *  mStepSR;
+      aRhoAbs += aDRhoAbs;
 
-      aVRho.push_back(aRho);
-      aVDeltaRad.push_back(aDRho);
-      aVDeltaTang.push_back(aCurScale*aStepTeta);
-      aLastScale = aCurScale;
+      aVRhoAbs.push_back(aRhoAbs);
+      aVDeltaRadAbs.push_back(aDRhoAbs);
+      aVDeltaTangAbs.push_back(aCurScaleAbs*aStepTeta);
+      aLastScaleAbs = aCurScaleAbs;
    }
 
    Pt2di aSzIm(mNbSR2Use,int(eTIR_NoLabel));
@@ -266,8 +266,11 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       for (int aKRho=0 ; aKRho<int(aVIm.size()) ; aKRho++)
       {
           double aDef = -1e5; 
-          Pt2dr aP = aPt.Pt() + aPTeta * aVRho.at(aKRho);
-          double aVal = aVIm.at(aKRho)->TIm().getr(aP,aDef);
+          Pt2dr aP = aPt.Pt() + aPTeta * aVRhoAbs.at(aKRho);
+          cOneScaleImRechPH & aIm = *(aVIm.at(aKRho));
+          double aVal = aIm.TIm().getr(aP/aIm.PowDecim(),aDef);
+          // double aVal = aVIm.at(aKRho)->TIm().getr(aP / ,aDef);
+          // double aVal = aVIm.at(aKRho)->GetValImPAbs(aP,aDef);
           if (aVal==aDef)
           {
              return aPt.OK() = false;
@@ -322,8 +325,8 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
    int aNbGrand = ((int) eTIR_NoLabel) / 3;
    for (int aKRho=0 ; aKRho<mNbSR2Use ; aKRho++)
    {
-      double aRealDTeta =  aVDeltaRad[aKRho] / aVDeltaTang[aKRho];
-      int aDTeta = round_ni(aRealDTeta); // Delta correspondant a 1 rho
+      double aRealDTeta =  aVDeltaRadAbs[aKRho] / aVDeltaTangAbs[aKRho];
+      int aDTeta = ElMax(1,round_ni(aRealDTeta)); // Delta correspondant a 1 rho
 
       std::vector<cRadInvStat> aVRIS(aNbGrand,cRadInvStat());
 
@@ -460,7 +463,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       aPt.ImLogPol() =  Im2D_INT1(SzInvRadUse().x,SzInvRadUse().y);
       // ELISE_COPY(aPt.ImLogPol().all_pts(),Max(-128,Min(127,round_ni(aImBuf.in()*DynU1))),aPt.ImLogPol().out());
       ELISE_COPY(aPt.ImLogPol().all_pts(),El_CTypeTraits<INT1>::TronqueF(round_ni(aImBuf.in()*DynU1)),aPt.ImLogPol().out());
-      aPt.VectRho() = aVRho;
+      aPt.VectRho() = aVRhoAbs;
       aPt.ProfR().ImProfil() = aProfR.Normalize();
 
       if (BUG)

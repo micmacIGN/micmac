@@ -1357,7 +1357,33 @@ Appli_ImPts2Dir::Appli_ImPts2Dir(int argc,char ** argv) :
     mSetIm = mICNM->Get(mIms);
     mNbIm = (int)mSetIm->size();
 
+
+
+    //verify input
+    ELISE_ASSERT(aCircV.size()==3,"Circ vector size must equal 3 in Appli_ImPts2Dir::Appli_ImPts2Dir");
+
+
+    int aCirc0 = RequireFromString<double>(aCircV.at(0),"Rad start");
+    int aCirc1 = RequireFromString<double>(aCircV.at(1),"Rad end");
+    int aCirc2 = RequireFromString<double>(aCircV.at(2),"Rad int");
+
+    int aRad0   = aCirc0 > aCirc1 ? aCirc1 : aCirc0;
+    int aRadEnd = aCirc0 > aCirc1 ? aCirc0 : aCirc1;
+    int aRadInc = aCirc2;
+    
+
     //circles wrt to "0"
+    for (int aK=aRad0; aK<=aRadEnd; aK+=aRadInc)
+    {
+        cFastCriterCompute * aCircRI = cFastCriterCompute::Circle(aK);
+        const  std::vector<Pt2di> & aVPt = aCircRI->VPt();
+
+        for ( auto aFlux : aVPt )
+            mListPt2d.push_back(Pt2dr(aFlux.x,aFlux.y));
+
+        
+    }
+/*
     for ( auto aCircRad : aCircV )
     {
         double aRadCur = RequireFromString<double>(aCircRad,"Radius i");
@@ -1368,7 +1394,7 @@ Appli_ImPts2Dir::Appli_ImPts2Dir(int argc,char ** argv) :
         for ( auto aFlux : aVPt )
             mListPt2d.push_back(Pt2dr(aFlux.x,aFlux.y));
         
-    }
+    }*/
     mNbPts = int(mListPt2d.size());
 
 

@@ -64,7 +64,8 @@ class cAppliStatPHom
        Pt2dr Hom(const Pt2dr & aP1);
        std::vector<cStatOneLabel>  & VLabs() {return mVLabs;}
        const cFitsParam & FP() const {return  mFP;}
-       int   NbMaxPerLab() const {return mNbMaxPerLab;}
+       int &  NbMaxPerLab() {return mNbMaxPerLab;}
+       double &  ScaleLim() {return mScaleLim;}
 
 
     private :
@@ -92,6 +93,7 @@ class cAppliStatPHom
        std::vector<cStatOneLabel>  mVLabs;
        cFitsParam                  mFP;
        int                         mNbMaxPerLab;
+       double                      mScaleLim;
 };
 
 class cOneImSPH
@@ -128,7 +130,19 @@ double ScaleGen(const cOnePCarac & aPC)
    return aS;
 }
 
-void FiltrageHighestScale(std::vector<cOnePCarac*> & aVec,int aNb,bool aShow)
+void FiltrageValueHighestScale(std::vector<cOnePCarac*> & aVec,double aScaleLim)
+{
+    std::vector<cOnePCarac*> aRes;
+    for (const auto & aPC : aVec)
+    {
+       if (ScaleGen(*aPC) >= aScaleLim)
+           aRes.push_back(aPC);
+    }
+    std::cout << "Filtrage Scale " << aVec.size() << " => " << aRes.size() << "\n";
+    aVec = aRes;
+}
+
+void FiltrageNbHighestScale(std::vector<cOnePCarac*> & aVec,int aNb,bool aShow)
 {
     if (aVec.empty()) 
        return;
@@ -144,14 +158,9 @@ void FiltrageHighestScale(std::vector<cOnePCarac*> & aVec,int aNb,bool aShow)
     double aScaleLim = KthValProp(aVStab,aProp);
     if (aShow)
          std::cout << "SCALE LIMITE ========== " << aScaleLim  << " " << aProp << "\n"; // getchar();
-    std::vector<cOnePCarac*> aRes;
-    for (const auto & aPC : aVec)
-    {
-       if (ScaleGen(*aPC) >= aScaleLim)
-           aRes.push_back(aPC);
-    }
-    aVec = aRes;
+    FiltrageValueHighestScale(aVec,aScaleLim);
 }
+
 
 
 cOneImSPH::cOneImSPH(const std::string & aName,cAppliStatPHom & anAppli) :
@@ -172,9 +181,13 @@ cOneImSPH::cOneImSPH(const std::string & aName,cAppliStatPHom & anAppli) :
    }
    for (auto & aV : mVVPC)
    {
-       FiltrageHighestScale(aV,anAppli.NbMaxPerLab(),true);
+       if (EAMIsInit(&anAppli.NbMaxPerLab()))
+          FiltrageNbHighestScale(aV,anAppli.NbMaxPerLab(),true);
+       if (EAMIsInit(&anAppli.ScaleLim()))
+          FiltrageValueHighestScale(aV,anAppli.ScaleLim());
    }
    std::cout << " N=" << mN << " nb=" << mSPC->OnePCarac().size() << "\n";
+   // std::cout << "oOooOooooooooooooooo \n"; getchar();
 }
 
 
@@ -459,7 +472,8 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
     mExtInput     ("Std"),
     mTestFlagBin  (false),
     mExtOut       (),
-    mNbMaxPerLab  (10000)
+    mNbMaxPerLab  (10000),
+    mScaleLim     (0.0)
 {
    std::string aN1,aN2;
    ElInitArgMain
@@ -474,6 +488,7 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
                      << EAM(mExtInput,"ExtInput",true,"Extentsion for tieP")
                      << EAM(mExtOut,"ExtOut",true,"Extentsion for output")
                      << EAM(mNbMaxPerLab,"NbMaxPL",true,"Nb Max Per Label, def=10000")
+                     << EAM(mScaleLim,"ScaleLim",true,"Scale minimal, def=0")
    );
 
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
@@ -551,6 +566,11 @@ extern const std::string NH_DirRef_PC;  // Point caracteristique
 */
 
 
+/**************************************************************/
+/*                                                            */
+/*                  cAppli_RenameRef                          */
+/*                                                            */
+/**************************************************************/
 
 
 class cAppli_RenameRef

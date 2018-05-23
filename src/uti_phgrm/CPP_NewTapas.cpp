@@ -56,9 +56,6 @@ void UseRegulDist(std::vector<double> & aVRegulDist,std::string & aCom)
    }
 }
 
-namespace NEW_TAPAS
-{
-
 
 class cMemRes
 {
@@ -176,11 +173,6 @@ const char * Modele[NbModele] = {
 
 
 
-
-std::string eModAutom;
-double PropDiag = -1.0;
-
-
 void ShowAuthorizedModel()
 {
    std::cout << "\n";
@@ -189,7 +181,7 @@ void ShowAuthorizedModel()
        std::cout << "   " << Modele[aKM] << "\n";
 }
 
-std::list<std::string> GetAuthorizedModel()
+std::list<std::string> cAppli_Tapas_Campari::GetAuthorizedModel()
 {
     std::list<std::string> list;
     for (int aKM=0 ; aKM<NbModele ; aKM++)
@@ -197,33 +189,8 @@ std::list<std::string> GetAuthorizedModel()
     return list;
 }
 
-bool GlobLibAff = true;
 
-bool GlobLibDec = true;
-bool GlobLibPP  =true;
-bool GlobLibCD=true;
-bool GlobLibFoc=true;
-int  GlobDRadMaxUSer = 100;
-int  GlobDegGen = 100;
-
-int  LocDegGen  = 100;
-bool LocLibDec = true;
-bool LocLibCD=true;
-int  LocDRadMaxUSer = 100;
-bool LocLibPP  =true;
-bool LocLibFoc=true;
-
-bool ModeleAdditional=false;
-bool ModeleAddFour=false;
-bool ModeleAddPoly=false;
-bool IsAutoCal = false;
-bool IsFigee   = false;
-std::string TheModelAdd = "";
-
-
-
-
-void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
+void cAppli_Tapas_Campari::InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
 {
 
     int aKModele = -1;
@@ -237,9 +204,6 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
         ShowAuthorizedModel();
         ELISE_ASSERT(false,"Value is not a correct model\n");
     }
-
-
-
 
     if (aMod==Modele[0])  // RadialBasic
     {
@@ -338,6 +302,8 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
               LocLibCD = false;
               LocDegGen =  (aKModele-19);
               TheModelAdd = "eModelePolyDeg" +  ToString(LocDegGen);
+              LocDegAdd=(aKModele-19);// voir avec MPD, on dirai que dans tapas le param degAdd de campari n'existe pas et est "confondu/interchangeable" avec DegGen
+              // de plus, eModeleRadFour n'as pas l'air de passer dans campari
         }
         eModAutom = "eCalibAutomNone";
     }
@@ -357,6 +323,18 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
         ELISE_ASSERT(false,"internal error for calib in tapas\n");
     }
 
+   SyncLocAndGlobVar();
+
+}
+
+/*
+bool GlobLibFoc=true;
+int  GlobDRadMaxUSer = 100;
+int  GlobDegGen = 100;
+*/
+
+void cAppli_Tapas_Campari::SyncLocAndGlobVar(){
+
     if (! EAMIsInit(&GlobLibDec))       GlobLibDec = LocLibDec;
     if (! EAMIsInit(&GlobLibPP ))       GlobLibPP = LocLibPP ;
     if (! EAMIsInit(&GlobLibCD ))       GlobLibCD = LocLibCD ;
@@ -364,18 +342,14 @@ void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *)
     if (! EAMIsInit(&GlobDRadMaxUSer )) GlobDRadMaxUSer = LocDRadMaxUSer ;
     if (! EAMIsInit(&GlobDegGen ))      GlobDegGen = LocDegGen;
 
-
     if (EAMIsInit(&GlobLibAff))  ElSetMax(GlobDegGen,(GlobLibAff ? 1 : 0));
 
+    if (! EAMIsInit(&GlobDegAdd ))      GlobDegAdd = LocDegAdd;
+
 }
-/*
-bool GlobLibFoc=true;
-int  GlobDRadMaxUSer = 100;
-int  GlobDegGen = 100;
-*/
 
 
-int Tapas_main(int argc,char ** argv)
+int Tapas_main_new(int argc,char ** argv)
 {
     cAppli_Tapas_Campari anATP;
     NoInit = "#@LL?~~XXXXXXXXXX";
@@ -440,7 +414,7 @@ int Tapas_main(int argc,char ** argv)
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aModele,"Calibration model",eSAM_None,GetAuthorizedModel())
+        LArgMain()  << EAMC(aModele,"Calibration model",eSAM_None,anATP.GetAuthorizedModel())
                     << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
         LArgMain()  << EAM(ExpTxt,"ExpTxt",true,"Export in text format (Def=false)",eSAM_IsBool)
                     << EAM(AeroOut,"Out",true, "Directory of Output Orientation", eSAM_IsOutputDirOri)
@@ -452,19 +426,19 @@ int Tapas_main(int argc,char ** argv)
                     << EAM(aVitesseInit,"VitesseInit",true)
                     << EAM(aPPDec,"PPRel",true, "Principal point shift")
                     << EAM(aDecentre,"Decentre",true, "Principal point is shifted (Def=false)")
-                    << EAM(PropDiag,"PropDiag",true, "Hemi-spherik fisheye diameter to diagonal ratio")
+                    << EAM(anATP.PropDiag,"PropDiag",true, "Hemi-spherik fisheye diameter to diagonal ratio")
                     << EAM(SauvAutom,"SauvAutom",true, "Save intermediary results to, Set NONE if dont want any", eSAM_IsOutputFile)
                     << EAM(ImInit,"ImInit",true, "Force first image", eSAM_IsExistFile)
                     << EAM(MOI,"MOI",true,"MOI", eSAM_IsBool)
                     << EAM(DBF,"DBF",true,"Debug (internal use : DebugPbCondFaisceau=true) ",eSAM_InternalUse)
                     << EAM(Debug,"Debug",true,"Partial file for debug", eSAM_InternalUse)
-                    << EAM(GlobDRadMaxUSer,"DegRadMax",true,"Max degree of radial, default model dependent")
-                    << EAM(GlobDegGen,"DegGen",true,"Max degree of general polynome, default model dependent (generally 0 or 1)")
-                    << EAM(GlobLibAff,"LibAff",true,"Free affine parameter, Def=true", eSAM_IsBool)
-                    << EAM(GlobLibDec,"LibDec",true,"Free decentric parameter, Def=true", eSAM_IsBool)
-                    << EAM(GlobLibPP  ,"LibPP",true,"Free principal point, Def=true", eSAM_IsBool)
-                    << EAM(GlobLibCD,"LibCP",true,"Free distorsion center, Def=true", eSAM_IsBool)
-                    << EAM(GlobLibFoc,"LibFoc",true,"Free focal, Def=true", eSAM_IsBool)
+                    << EAM(anATP.GlobDRadMaxUSer,"DegRadMax",true,"Max degree of radial, default model dependent")
+                    << EAM(anATP.GlobDegGen,"DegGen",true,"Max degree of general polynome, default model dependent (generally 0 or 1)")
+                    << EAM(anATP.GlobLibAff,"LibAff",true,"Free affine parameter, Def=true", eSAM_IsBool)
+                    << EAM(anATP.GlobLibDec,"LibDec",true,"Free decentric parameter, Def=true", eSAM_IsBool)
+                    << EAM(anATP.GlobLibPP  ,"LibPP",true,"Free principal point, Def=true", eSAM_IsBool)
+                    << EAM(anATP.GlobLibCD,"LibCP",true,"Free distorsion center, Def=true", eSAM_IsBool)
+                    << EAM(anATP.GlobLibFoc,"LibFoc",true,"Free focal, Def=true", eSAM_IsBool)
                     << EAM(aRapTxt,"RapTxt",true, "RapTxt", eSAM_NoInit)
                     << EAM(TolLPPCD,"LinkPPaPPs",true, "Link PPa and PPs (double)", eSAM_NoInit)
                     << EAM(aPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)", eSAM_IsPatFile)
@@ -543,9 +517,9 @@ int Tapas_main(int argc,char ** argv)
 
     // std::cout << "IFCCCCC " << IsForCalib << " " << CentreLVM << " " << RayFEInit << "\n"; getchar();
 
-        InitVerifModele(aModele,aICNM);
+        anATP.InitVerifModele(aModele,aICNM);
 
-        if (PropDiag<0) PropDiag = 1.0;
+        if (anATP.PropDiag<0) anATP.PropDiag = 1.0;
 
         if (AeroOut=="")
            AeroOut = "" +  aModele;
@@ -577,24 +551,25 @@ int Tapas_main(int argc,char ** argv)
                            //+ std::string(" +PatternAllIm=") + aPat + std::string(" ")
                            + std::string(" +AeroOut=-") + AeroOut
                            + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
-                           + std::string(" +ModeleCam=") + eModAutom
+                           + std::string(" +ModeleCam=") + anATP.eModAutom
                            + std::string(" DoCompensation=") + ToString(DoC)
                            + std::string(" +SeuilFE=") + ToString(SeuilFEAutom)
                            + std::string(" +TetaLVM=") + ToString(TetaLVM)
                            + std::string(" +CentreLVM=") + ToString(CentreLVM)
                            + std::string(" +IntrLVM=") + ToString(IntrLVM)
+               
                            + std::string(" +RayFEInit=") + ToString(RayFEInit)
                            + std::string(" +CalibIn=-") + CalibIn
                            + std::string(" +AeroIn=-") + AeroIn
                            + std::string(" +VitesseInit=") + ToString(2+aVitesseInit)
-                           + std::string(" +PropDiagU=") + ToString(PropDiag)
+                           + std::string(" +PropDiagU=") + ToString(anATP.PropDiag)
 
-                           + std::string(" +DegRadMax=") + ToString(GlobDRadMaxUSer)
-                           + std::string(" +LibFoc=") + ToString(GlobLibFoc && (!SpecFocale))
-                           + std::string(" +LibPP=") + ToString(GlobLibPP && (!SpecPP))
-                           + std::string(" +LibCD=") + ToString(GlobLibCD)
-                           + std::string(" +DegGen=") + ToString(GlobDegGen)
-                           + std::string(" +LibDec=") + ToString(GlobLibDec)
+                           + std::string(" +DegRadMax=") + ToString(anATP.GlobDRadMaxUSer)
+                           + std::string(" +LibFoc=") + ToString(anATP.GlobLibFoc && (!SpecFocale))
+                           + std::string(" +LibPP=") + ToString(anATP.GlobLibPP && (!SpecPP))
+                           + std::string(" +LibCD=") + ToString(anATP.GlobLibCD)
+                           + std::string(" +DegGen=") + ToString(anATP.GlobDegGen)
+                           + std::string(" +LibDec=") + ToString(anATP.GlobLibDec)
                            + std::string(" +Fast=") + ToString(! AffineAll)
                            + std::string(" +UsePano=true") 
                            + std::string(" +CondMaxPano=") + ToString(CondMaxPano)
@@ -637,14 +612,14 @@ int Tapas_main(int argc,char ** argv)
 
 
 
-        if (ModeleAdditional)
+        if (anATP.ModeleAdditional)
         {
               aCom = aCom + std::string(" +HasModeleAdd=true")
-                          + std::string(" +ModeleAdditionnel=") + TheModelAdd;
+                          + std::string(" +ModeleAdditionnel=") + anATP.TheModelAdd;
         }
 
 
-        if (EAMIsInit(&GlobLibAff) && (!GlobLibAff))
+        if (EAMIsInit(&anATP.GlobLibAff) && (!anATP.GlobLibAff))
         {
               aCom = aCom + " +LiberteAff=false ";
         }
@@ -729,8 +704,8 @@ int Tapas_main(int argc,char ** argv)
           aCom  = aCom + " +CalibLibre=" + QUOTE(aCalLibre) ;
        }
 
-       if (IsAutoCal) aCom  = aCom + " +AutoCal=true";
-       if (IsFigee) aCom  = aCom + " +CalFigee=true";
+       if (anATP.IsAutoCal) aCom  = aCom + " +AutoCal=true";
+       if (anATP.IsFigee) aCom  = aCom + " +CalFigee=true";
 
        if (EAMIsInit(&SinglePos))
        {
@@ -882,13 +857,11 @@ int Tapas_main(int argc,char ** argv)
    else
        return EXIT_SUCCESS;
 }
-}
-
 
 
 int New_Tapas_main(int argc,char ** argv)
 {
-   return  NEW_TAPAS::Tapas_main(argc,argv);
+   return  Tapas_main_new(argc,argv);
 }
 
 

@@ -229,7 +229,7 @@ int SignOfType(eTypePtRemark aKind)
 
 cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
     mLR        (aLR),
-    mScaleStab (-1)
+    mBrScaleStab (-1)
 {
     std::vector<cPtRemark *> aVPt;
     mLR->RecGetAllPt(aVPt);
@@ -247,7 +247,7 @@ cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
     mOk = (aNbMult==0) && anAppli.OkNivStab(aLR->Niv()) && (aNivMin==0);
     if (!mOk) return;
 
-    mScaleStab = anAppli.ScaleOfNiv(aLR->Niv());
+    mBrScaleStab = anAppli.ScaleAbsOfNiv(aLR->Niv());
 
 // std::cout << "aLR-aLR-aLR-aLR- NIIIV " << aLR->Niv() << "\n";
 
@@ -277,7 +277,7 @@ cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
                return;
            }
 
-           double aScale = anAppli.ScaleOfNiv(aNiv);
+           double aScale = anAppli.ScaleAbsOfNiv(aNiv);
            if ((aLapl>mLaplMax)  && anAppli.ScaleIsValid(aScale))
            {
                mNivScal = aNiv;

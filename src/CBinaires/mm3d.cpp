@@ -432,8 +432,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("Sift", Sift_main, " Tool for extracting points of interest using Lowe's SIFT method"));
 		aRes.push_back(cMMCom("SysCoordPolyn", SysCoordPolyn_main, " Tool for creating a polynomial coordinate system from a set of known pair of coordinate"));
 
-		aRes.push_back(cMMCom("OldTapas", Tapas_main, " Interface to Apero to compute external and internal orientations", cArgLogCom(3)));
-		aRes.push_back(cMMCom("Tapas", New_Tapas_main, "NEW version !! Compatible . Call \"OldTapas\" if problem specific to this version", cArgLogCom(3)));
+        aRes.push_back(cMMCom("OldTapas", Tapas_main, " Old Tapas", cArgLogCom(3)));
+        aRes.push_back(cMMCom("Tapas", New_Tapas_main, "Interface to Apero to compute external and internal orientations", cArgLogCom(3)));
 		aRes.push_back(cMMCom("NewTapas", New_Tapas_main, "Replace OldTapas - now same as Tapas", cArgLogCom(3)));
 
 		aRes.push_back(cMMCom("Tapioca", Tapioca_main, " Interface to Pastis for tie point detection and matching", cArgLogCom(3)));

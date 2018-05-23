@@ -62,7 +62,7 @@ const char * (theNameVar_SuperposImage[1994]) = {
 "        <eTIGB_MMDGlobe>    </eTIGB_MMDGlobe>\n",
 "        <eTIGB_MMIkonos>    </eTIGB_MMIkonos>\n",
 "        <eTIGB_MMASTER>     </eTIGB_MMASTER>\n",
-"        <eTIGB_MMSpice>     </eTIGB_MMSpice>\n",
+"        <eTIGB_MMScanLineSensor>     </eTIGB_MMScanLineSensor>\n",
 "        <eTIGB_NbVals>      </eTIGB_NbVals>\n",
 "    </enum>\n",
 "\n",
