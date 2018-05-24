@@ -204,6 +204,10 @@ void c_Appli_FeatheringAndMosaic::GenLabelTable()
         // load the incidence map and hidden part map
         // le tfw convient pour im masque PC mais par pour de l'image incid qui est sous resolue.     
         cImGeo Masq(pcName,TFWName);
+        mTrs[imLab]= Masq.computeTrans(aCorner);// translation between ortho and corner of the complete mosaic
+        // current orto instersect box?
+        if(box.contains(-mTrs[imLab]) | box.contains(-mTrs[imLab]+Masq.SzUV())){
+
         Im2D_REAL4 imPC=Masq.toRAM();
 
         // avoid border problem (eg from inapropriate incid value on the edge) by shrinking the mask image
@@ -233,15 +237,11 @@ void c_Appli_FeatheringAndMosaic::GenLabelTable()
 
         TIm2D<REAL4,REAL> mTScLoc(imIncid);
 
-        mTrs[imLab]= Masq.computeTrans(aCorner);// translation between ortho and corner of the complete mosaic
+
         Pt2di aP;
 
        // same incid map so no reason to save it again ,expect maybe the tfw (that have not the same resol)
         if (mDebug) writeTFW(KAIncidName(im,mTmpDir),Pt2dr(Masq.GSD()*aFact,-Masq.GSD()*aFact),Pt2dr(Masq.OriginePlani().x,Masq.OriginePlani().y));
-
-        // current orto instersect box
-        if(box.contains(-mTrs[imLab]) | box.contains(-mTrs[imLab]+Masq.SzUV())){
-
         for (aP.x =0 ; aP.x < Masq.SzUV().x ; aP.x++)
         {
             for (aP.y =0 ; aP.y < Masq.SzUV().y ; aP.y++)
