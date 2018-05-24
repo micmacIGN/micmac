@@ -551,7 +551,7 @@ std::string cMyICNM::KeyAssocNameOrt2Incid(std::string aOrtName)
     std::string Name = mICNM->Assoc1To1(aKey,aOrtName,true);
     return Name;
 }
-std::string cMyICNM::KeyAssocNameTif2TFW(std::string aOrtName)
+std::string KeyAssocNameTif2TFW(std::string aOrtName)
 {
     std::string TFWName=aOrtName.substr(0, aOrtName.size()-3)+"tfw";
     return TFWName;
@@ -587,7 +587,7 @@ template <class T,class TB> void  cMyICNM::SaveBoxInTiff(std::string aName,  Im2
 }
 
 // write tfw for all resulting map
-int cMyICNM::writeTFW(std::string aNameTiffFile, Pt2dr aGSD, Pt2dr aXminYmax)
+int writeTFW(std::string aNameTiffFile, Pt2dr aGSD, Pt2dr aXminYmax)
 {
     std::string aNameTFW=KeyAssocNameTif2TFW(aNameTiffFile);
     std::ofstream aTFW(aNameTFW.c_str());

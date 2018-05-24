@@ -2,6 +2,8 @@
 #define CDENSITYMAPPH_H
 #include "StdAfx.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
+extern int writeTFW(std::string aNameTiffFile, Pt2dr aGSD, Pt2dr aXminYmax);
+extern std::string KeyAssocNameTif2TFW(std::string aOrtName);
 
 Fonc_Num GaussBlur(Fonc_Num f);
 
@@ -35,7 +37,7 @@ private:
     Im2D_REAL4 mDM;
     std::vector<std::string> mImName;
 
-    bool mSmoothing;
+    bool mSmoothing, mMultiplicity;
     std::map<int, CamStenope*> mCams;
 
 };

@@ -7,7 +7,6 @@ Im2D_REAL8 aDenoise(3,3,
                     " 0 1 0"
                     );
 
-
 cDensityMapPH::cDensityMapPH(int argc,char ** argv)
 {
 
@@ -16,6 +15,7 @@ cDensityMapPH::cDensityMapPH(int argc,char ** argv)
     mExpTxt=0;
     mDir="./";
     mSmoothing=1;
+    mMultiplicity=0;
 
     ElInitArgMain
             (
@@ -30,12 +30,15 @@ cDensityMapPH::cDensityMapPH(int argc,char ** argv)
                 << EAM(mGSD,"GSD",true, "Ground Sample Distance of the resulting density map" )
                 << EAM(mWidth,"Width",true, "Size [pix] of width resulting density map" )
                 << EAM(mSmoothing,"Smooth",true, "Apply Gaussian filter to smooth the result, def true" )
+                << EAM(mMultiplicity,"Multi",true, "if true, density map depict not number of tie point but value of max multiplicity. Def false." )
                 << EAM(mDebug,"Debug",true, "Print message in terminal to help debugging." )
 
                 );
 
     if (!MMVisualMode)
     {
+        if (!EAMIsInit(&mOut) && mMultiplicity) mOut="TiePoints_MultiplicityMap.tif";
+
         mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
 
         // load orientations
@@ -70,6 +73,9 @@ cDensityMapPH::cDensityMapPH(int argc,char ** argv)
         std::string aOut(mDir+mOut);
         if (mSmoothing) ELISE_COPY(mDM.all_pts(),som_masq(mDM.in_proj(),aDenoise)/6,mDM.out());
         Tiff_Im::CreateFromIm(mDM,aOut);
+        writeTFW(aOut,Pt2dr(mGSD,-mGSD),Pt2dr(mBoxTerrain.P0().x,mBoxTerrain.P1().y));
+
+
         if (mDebug) std::cout << "Result saved in " << aOut << ".\n";
 
     }
@@ -126,8 +132,8 @@ void cDensityMapPH::determineGSD(){
         }
         aGSDmean=aGSDmean/mCams.size();
         if (mDebug) std::cout << "mean GSD of images is " << aGSDmean << ".\n";
-        // let's give 100 pixe per nadir image in ground geometry
-        mGSD=aGSDmean*(((double)mCams[0]->Sz().x)/10.00);
+        // let's give 625 pixels per nadir image in ground geometry
+        mGSD=aGSDmean*(((double)mCams[0]->Sz().x)/25.00);
 
         if (mDebug) std::cout << "Image size is" << ToString(mCams[0]->Sz()) << ".\n";
         if (mDebug) std::cout << "GSD computed for Density map is equal to " << mGSD << ".\n";
@@ -152,9 +158,9 @@ void cDensityMapPH::populateDensityMap(){
 
         Pt2dr PosXY(Pt.x,Pt.y);
         Pt2di PosUV=XY2UV(PosXY);
-        //std::cout << "got a point " << PosXY << " , pos pixel : " << PosUV <<"\n";
         double aVal=mDM.GetR(PosUV);
-        mDM.SetR(PosUV,aVal+1);
+
+        if (!mMultiplicity){mDM.SetR(PosUV,aVal+1);} else {mDM.SetR(PosUV,ElMax((int)aVal,aCnf->NbIm()));}
        }
      cnt++;
      if(cnt>progBar) {
@@ -168,7 +174,7 @@ void cDensityMapPH::populateDensityMap(){
 Pt2di cDensityMapPH::XY2UV(Pt2dr aVal){
     if (mBoxTerrain.contains(aVal))
     {
-    Pt2di aRes((aVal.x-mBoxTerrain.P0().x)/mGSD,(aVal.y-mBoxTerrain.P0().y)/mGSD);
+    Pt2di aRes((aVal.x-mBoxTerrain.P0().x)/mGSD,(-aVal.y+mBoxTerrain.P1().y)/mGSD);
     return aRes;
     }   else {return Pt2di(0,0);}
 }
