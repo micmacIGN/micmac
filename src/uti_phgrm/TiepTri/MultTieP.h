@@ -37,6 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+extern Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<Pt2dr> & aNPts2D);
 
 #ifndef _MultTieP_
 #define _MultTieP_
@@ -108,7 +109,8 @@ class cSetPMul1ConfigTPM
        void    ConfTPM_SetVoidData(void *);
 
        Pt2dr GetPtByImgId(int aKp, int aQueryImgID);
-
+       std::vector<Pt3d<double> > IntersectBundle(std::map<int, CamStenope *> aMCams); //aMCams are Camera indexed by the Id fo Image
+       std::vector<Pt3d<double> > IntersectBundle(std::map<int, CamStenope *> aMCams, std::vector<Pt2dr*> & aVResid); // return reproj error in aVResod
 
     private :
        int  AddrPtIm(int aKp,int aKIm) {return 2*(aKp*mNbIm  +aKIm) ;}
