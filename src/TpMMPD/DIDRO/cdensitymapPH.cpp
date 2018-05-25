@@ -1,6 +1,8 @@
 #include "cdensitymapPH.h"
 
 // create a map of the entire area with very low resolution that depict the density of tie point (point homologue PH)
+// or also Multiplicity of tie point map or Residual map
+
 Im2D_REAL8 aDenoise(3,3,
                     "0 1 0 "
                     "1 2 1 "
@@ -16,6 +18,7 @@ cDensityMapPH::cDensityMapPH(int argc,char ** argv)
     mDir="./";
     mSmoothing=1;
     mMultiplicity=0;
+    mResid=0;
 
     ElInitArgMain
             (
@@ -31,6 +34,7 @@ cDensityMapPH::cDensityMapPH(int argc,char ** argv)
                 << EAM(mWidth,"Width",true, "Size [pix] of width resulting density map" )
                 << EAM(mSmoothing,"Smooth",true, "Apply Gaussian filter to smooth the result, def true" )
                 << EAM(mMultiplicity,"Multi",true, "if true, density map depict not number of tie point but value of max multiplicity. Def false." )
+                << EAM(mResid,"Multi",true, "if true, density map depict not number of tie point but value of max reprojection error. Def false." )
                 << EAM(mDebug,"Debug",true, "Print message in terminal to help debugging." )
 
                 );

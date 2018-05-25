@@ -37,7 +37,7 @@ private:
     Im2D_REAL4 mDM;
     std::vector<std::string> mImName;
 
-    bool mSmoothing, mMultiplicity;
+    bool mSmoothing, mMultiplicity,mResid;
     std::map<int, CamStenope*> mCams;
 
 };
