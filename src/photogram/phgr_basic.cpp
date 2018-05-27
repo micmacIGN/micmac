@@ -1814,6 +1814,14 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
                     aType = eTIGB_MMDGlobe;
                     return;
                 }
+                
+                //Xml_ScanLineSensor
+                if (aTree->Get("Xml_ScanLineSensor") !=0)
+                {
+                    aType = eTIGB_MMScanLineSensor;
+                    return;
+                }
+
            }
            else
            {
@@ -1889,7 +1897,8 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
              aType==eTIGB_MMDGlobe || 
              aType==eTIGB_MMEuclid || 
              aType==eTIGB_MMIkonos || 
-             aType==eTIGB_MMOriGrille )
+             aType==eTIGB_MMOriGrille ||
+             aType==eTIGB_MMScanLineSensor )
     {
 	
 	return CameraRPC::CamRPCOrientGenFromFile(aName, aType, aChSys);
@@ -1915,6 +1924,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
                 case eTIGB_MMEuclid :
                 case eTIGB_MMIkonos :
                 case eTIGB_MMOriGrille :
+                case eTIGB_MMScanLineSensor :
                       return  CameraRPC::CamRPCOrientGenFromFile(aName,aTrueType,aChSys);
 
                 default : ;
@@ -3952,6 +3962,15 @@ void CamStenope::CoinsProjZ(Pt3dr &aP1,Pt3dr &aP2,Pt3dr &aP3,Pt3dr &aP4, double 
     aP2 = ImEtZ2Terrain(Pt2dr(Sz().x,0.f),aZ);    // HAUT DROIT
     aP3 = ImEtZ2Terrain(Pt2dr(0.f,Sz().y),aZ);    // BAS GAUCHE
     aP4 = ImEtZ2Terrain(Pt2dr(Sz().x,Sz().y),aZ); // BAS DROIT
+}
+// return ground box
+Box2dr CamStenope::BoxTer(double aZ) const
+{
+    Pt3dr aP1,aP2,aP3,aP4;
+    CoinsProjZ(aP1,aP2,aP3,aP4,aZ);
+    Pt2dr aPMin = Pt2dr(ElMin(aP1.x,ElMin(aP2.x,ElMin(aP3.x,aP4.x))),ElMin(aP1.y,ElMin(aP2.y,ElMin(aP3.y,aP4.y))));
+    Pt2dr aPMax = Pt2dr(ElMax(aP1.x,ElMax(aP2.x,ElMax(aP3.x,aP4.x))),ElMax(aP1.y,ElMax(aP2.y,ElMax(aP3.y,aP4.y))));
+    return Box2dr(aPMin,aPMax);
 }
 
 void ElCamera::SetSzPixel(const Pt2dr & aSzP)

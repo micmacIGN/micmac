@@ -2450,6 +2450,13 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
     //ajout au nuage de point
     cout<<"Nb Pt 3d : "<<aVResidu.size();
     cout<<"Res max = "<<resMax<<" -res Min = "<<resMin<<endl;
+
+
+    // Chercher max and min multiplicity
+    int aMaxOvLap = *max_element(aVNbImgOvlap.begin(), aVNbImgOvlap.end());
+    int aMinOvLap = *min_element(aVNbImgOvlap.begin(), aVNbImgOvlap.end());
+    cout<<" Max Min Overlap = "<<aMaxOvLap<<" "<<aMinOvLap<<endl;
+
     for (uint aKPt=0; aKPt<aVAllPtInter.size(); aKPt++)
     {
         //parcourir tout les points
@@ -2461,7 +2468,9 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
         {
             aCPlyRes.AddPt(gen_coul_heat_map(aVResidu[aKPt], resMin,  resMax), aVAllPtInter[aKPt]);
         }
-        aCPlyEmp.AddPt(gen_coul_emp(aVNbImgOvlap[aKPt]), aVAllPtInter[aKPt]);
+        //aCPlyEmp.AddPt(gen_coul_emp(aVNbImgOvlap[aKPt]), aVAllPtInter[aKPt]);
+        // faut donner le pourcentage de niveau de gris
+        aCPlyEmp.AddPt(aCPlyEmp.Gray(((double(aVNbImgOvlap[aKPt]) - double(aMinOvLap))/double(aMaxOvLap-aMinOvLap))), aVAllPtInter[aKPt]);
         //===== stats Multiplicite ========
         int nbImgsVu1Pts = aVNbImgOvlap[aKPt];
         aStats[nbImgsVu1Pts]++;

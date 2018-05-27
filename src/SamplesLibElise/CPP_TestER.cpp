@@ -39,6 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 #include "../uti_phgrm/Apero/cCameraRPC.h"
+#include "../uti_phgrm/NewOri/NewOri.h"
 #include "general/ptxd.h"
 #include "../../include/im_tpl/cPtOfCorrel.h"
 
@@ -1357,7 +1358,33 @@ Appli_ImPts2Dir::Appli_ImPts2Dir(int argc,char ** argv) :
     mSetIm = mICNM->Get(mIms);
     mNbIm = (int)mSetIm->size();
 
+
+
+    //verify input
+    ELISE_ASSERT(aCircV.size()==3,"Circ vector size must equal 3 in Appli_ImPts2Dir::Appli_ImPts2Dir");
+
+
+    int aCirc0 = RequireFromString<double>(aCircV.at(0),"Rad start");
+    int aCirc1 = RequireFromString<double>(aCircV.at(1),"Rad end");
+    int aCirc2 = RequireFromString<double>(aCircV.at(2),"Rad int");
+
+    int aRad0   = aCirc0 > aCirc1 ? aCirc1 : aCirc0;
+    int aRadEnd = aCirc0 > aCirc1 ? aCirc0 : aCirc1;
+    int aRadInc = aCirc2;
+    
+
     //circles wrt to "0"
+    for (int aK=aRad0; aK<=aRadEnd; aK+=aRadInc)
+    {
+        cFastCriterCompute * aCircRI = cFastCriterCompute::Circle(aK);
+        const  std::vector<Pt2di> & aVPt = aCircRI->VPt();
+
+        for ( auto aFlux : aVPt )
+            mListPt2d.push_back(Pt2dr(aFlux.x,aFlux.y));
+
+        
+    }
+/*
     for ( auto aCircRad : aCircV )
     {
         double aRadCur = RequireFromString<double>(aCircRad,"Radius i");
@@ -1368,7 +1395,7 @@ Appli_ImPts2Dir::Appli_ImPts2Dir(int argc,char ** argv) :
         for ( auto aFlux : aVPt )
             mListPt2d.push_back(Pt2dr(aFlux.x,aFlux.y));
         
-    }
+    }*/
     mNbPts = int(mListPt2d.size());
 
 
@@ -1459,6 +1486,68 @@ int ImPts2Dir_main(int argc,char ** argv)
         return EXIT_FAILURE;
 
 
+}
+
+
+void TestEllips_3D();
+int  FictiveObstest_main(int argc,char ** argv)
+{
+    while (1)
+    {
+        cPlyCloud aPlyEl0, aPlyEl1;
+
+
+        int aNbPts =  4 + NRrandom3(20);
+        cXml_Elips3D  anEl;
+
+        Pt3dr aC0 (NRrandC(),NRrandC(),NRrandC());
+        Pt3dr aU0 (NRrandC(),NRrandC(),NRrandC());
+        Pt3dr aU1 (NRrandC(),NRrandC(),NRrandC());
+        Pt3dr aU2 (NRrandC(),NRrandC(),NRrandC());
+        RazEllips(anEl);
+        for (int aK=0 ; aK<aNbPts ; aK++)
+        {
+             // Pt3dr aP NRrandC(),NRrandC(),NRrandC());
+             Pt3dr aP = aC0 + aU0 *  NRrandC() + aU1 * NRrandC() + aU2 * NRrandC();
+             aP = aP * 10;
+             AddEllips(anEl,aP,1.0);
+             if(1)
+                aPlyEl0.AddPt(Pt3di(255,255,255),aP);
+        }
+        NormEllips(anEl);
+
+        cGenGaus3D aGG1(anEl);
+        std::vector<Pt3dr> aVP;
+
+        aGG1.GetDistribGaus(aVP,1+NRrandom3(2),2+NRrandom3(2),3+NRrandom3(2));
+    
+        if(1)
+            for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+                aPlyEl1.AddPt(Pt3di(255,255,255),aVP[aK]);
+
+        RazEllips(anEl);
+        for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+            AddEllips(anEl,aVP[aK],1.0);
+
+        NormEllips(anEl);
+        cGenGaus3D aGG2(anEl);
+
+        for (int aK=0 ; aK< 3 ; aK++)
+        {
+            std::cout << "RATIO VP " << aGG1.ValP(aK) /  aGG2.ValP(aK) << " "
+                      <<  euclid( aGG1.VecP(aK) - aGG2.VecP(aK))       << " "
+                      <<  " VP="  << aGG1.ValP(aK)       << " "
+                      << "\n";
+        }
+
+        aPlyEl0.PutFile("El0-" + ToString(aNbPts) + ".ply");
+        aPlyEl1.PutFile("El1-" + ToString(aNbPts) + ".ply");
+
+        getchar();
+    }
+        
+
+    return EXIT_SUCCESS;
 }
  
 /*Footer-MicMac-eLiSe-25/06/2007

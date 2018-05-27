@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <algorithm>
 #include "TapasCampari.h"
 
+
 /*
 Parametre de Tapas :
 
@@ -107,13 +108,46 @@ std::string BlQUOTE (const std::string & aStr)
 
 cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
    mWithBlock       (false),
+   LocDegGen(100),
+   LocLibDec(true),
+   LocLibCD(true),
+   LocDRadMaxUSer(100),
+   LocLibPP(true),
+   LocLibFoc(true),
+   LocDegAdd(0),
+   IsAutoCal(false),
+   IsFigee(false),
+   PropDiag(-1.0),
+   GlobLibAff(true),
+   GlobLibDec(true),
+   GlobLibPP(true),
+   GlobLibCD(true),
+   GlobLibFoc(true),
+   GlobDRadMaxUSer(100),
+   GlobDegGen(100),
+   GlobDegAdd(0),
+   ModeleAdditional(false),
+   ModeleAddFour(false),
+   ModeleAddPoly(false),
+   TheModelAdd(""),
    mNamesBlockInit  (false),
    mArg             (new LArgMain)
 {
     (*mArg) << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
             << EAM(mVBlockDistGlob,"DistBlocGlob",true,"Param for Dist Glob bloc compute [File,SigmaDist,?MulFinal,?Export]")
             << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
-            << EAM(mVOptGlob,"OptBlocG",true,"[SigmaTr,SigmaRot]") ;
+            << EAM(mVOptGlob,"OptBlocG",true,"[SigmaTr,SigmaRot]")
+            << EAM(GlobLibFoc,"FocFree",true,"Foc Free (Def=false)", eSAM_IsBool)
+            << EAM(GlobLibPP,"PPFree",true,"Principal Point Free (Def=false)", eSAM_IsBool)
+            << EAM(GlobLibAff,"AffineFree",true,"Affine Parameter (Def=false)", eSAM_IsBool)
+            << EAM(GlobDegAdd,"DegAdd",true, "When specified, degree of additionnal parameter")
+            << EAM(GlobDegGen,"DegFree",true, "When specified degree of freedom of parameters generiqs")
+            << EAM(GlobDRadMaxUSer,"DRMax",true, "When specified degree of freedom of radial parameters")
+            << EAM(GlobLibCD,"LibCP",true,"Free distorsion center, Def context dependant", eSAM_IsBool)
+            // alias
+            << EAM(GlobLibCD,"LibCD",true,"Free distorsion center, Def context dependant. Principal Point should be also free if CD is free", eSAM_IsBool)
+            << EAM(GlobLibDec,"LibDec",true,"Free decentric parameter, Def context dependant", eSAM_IsBool)
+               ;
 }
 
 
@@ -341,6 +375,20 @@ class cAppli_Campari : public cAppli_Tapas_Campari
        std::string mStr0;
        std::string AeroOut;
        std::string mNameRTA;
+
+       cInterfChantierNameManipulateur * mICNM;
+
+/*
+       cAppli_Tapas_Campari      mTPC;
+       bool                      mWithBlock;
+       std::string               mNameInputBloc;
+       std::string               mNameOutputBloc;
+       std::vector<std::string>  mVBlockRel;
+       std::vector<std::string>  mVBlockGlob;
+       std::vector<std::string>  mVBlockDistGlob;
+       std::vector<std::string>  mVOptGlob;
+*/
+
 };
 
 
@@ -357,10 +405,20 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
 
     bool  CPI1 = false;
     bool  CPI2 = false;
-    bool  FocFree = false;
-    bool  PPFree = false;
-    bool  AffineFree = false;
-    bool  AllFree = false;
+    GlobLibFoc = false;
+    GlobLibPP =  false;
+    GlobLibAff=  false;
+    GlobLibDec = false;
+    GlobLibCD=   false;
+    // local variable: in campari, used only with GradualRefineCal argument
+    LocLibFoc = true;
+    LocLibPP =  true;
+    LocLibDec = true;
+    LocLibCD=   true;
+    bool  AllFree = false;  
+    std::string CalibMod2Refine;
+    bool AddViscInterne=false;
+    double ViscosInterne=0.1;
 
     bool  AllPoseFigee = false;
     std::string  PatPoseFigee;
@@ -378,9 +436,10 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
 
     Pt3dr aGpsLA;
 
-    int aDegAdd = 0;
-    int aDegFree = 0;
-    int aDrMax = 0;
+    GlobDegAdd = 0;
+    GlobDegGen=0;
+    GlobDRadMaxUSer=0;
+
     bool AcceptGB=true;
     std::string aSetHom="";
     int aNbIterFin = 4;
@@ -420,22 +479,18 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aFactResElimTieP,"FactElimTieP", true, "Fact elimination of tie point (prop to SigmaTieP, Def=5)")
                     << EAM(CPI1,"CPI1",true,"Calib Per Im, Firt time", eSAM_IsBool)
                     << EAM(CPI2,"CPI2",true,"Calib Per Im, After first time, reUsing Calib Per Im As input", eSAM_IsBool)
-                    << EAM(FocFree,"FocFree",true,"Foc Free (Def=false)", eSAM_IsBool)
-                    << EAM(PPFree,"PPFree",true,"Principal Point Free (Def=false)", eSAM_IsBool)
-                    << EAM(AffineFree,"AffineFree",true,"Affine Parameter (Def=false)", eSAM_IsBool)
-                    << EAM(AllFree,"AllFree",true,"Affine Parameter (Def=false)", eSAM_IsBool)
+                    << EAM(AllFree,"AllFree",true,"Refine all calibration parameters (Def=false, exept for GradualRefineCal option)", eSAM_IsBool)
+                    << EAM(CalibMod2Refine,"GradualRefineCal",true,"Calibration model to refine gradually",eSAM_None)
                     << EAM(DetailAppuis,"DetGCP",true,"Detail on GCP (Def=false)", eSAM_IsBool)
-                    << EAM(Viscos,"Visc",true,"Viscosity in Levenberg-Marquardt like resolution (Def=1.0)")
+                    << EAM(Viscos,"Visc",true,"Viscosity on external orientation in Levenberg-Marquardt like resolution (Def=1.0)")
+                    << EAM(AddViscInterne,"AddViscInterne",true,"Add Viscosity on calibration parameter (Def=false)")
+                    << EAM(ViscosInterne,"ViscInterne",true,"Viscosity on calibration parameter (Def=0.1), use it with AddViscInterne=true")
                     << EAM(ExpTxt,"ExpTxt",true, "Export in text format (Def=false)",eSAM_IsBool)
                     << EAM(aImMinMax,"ImMinMax",true, "Im max and min to avoid tricky pat")
-                    << EAM(aDegAdd,"DegAdd",true, "When specified, degree of additionnal parameter")
-                    << EAM(aDegFree,"DegFree",true, "When specified degree of freedom of parameters generiqs")
-                    << EAM(aDrMax,"DRMax",true, "When specified degree of freedom of radial parameters")
- 		    << EAM(AllPoseFigee,"PoseFigee",true,"Does the external orientation of the cameras are frozen or free (Def=false, i.e. camera poses are free)", eSAM_IsBool)
- 		    << EAM(PatPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)")
- 		    << EAM(PatCentreFigee,"FrozenCenters",true,"List of frozen poses (pattern)")
- 		    << EAM(PatAngleFigee,"FrozenOrients",true,"List of frozen poses (pattern)")
-
+                    << EAM(AllPoseFigee,"PoseFigee",true,"Does the external orientation of the cameras are frozen or free (Def=false, i.e. camera poses are free)", eSAM_IsBool)
+                    << EAM(PatPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)")
+                    << EAM(PatCentreFigee,"FrozenCenters",true,"List of frozen poses (pattern)")
+                    << EAM(PatAngleFigee,"FrozenOrients",true,"List of frozen poses (pattern)")
                     << EAM(AcceptGB,"AcceptGB",true,"Accepte new Generik Bundle image, Def=true, set false for perfect backward compatibility")
                     << EAM(mMulRTA,"MulRTA",true,"Rolling Test Appuis , multiplier ")
                     << EAM(mNameRTA,"NameRTA",true,"Name for save results of Rolling Test Appuis , Def=SauvRTA.xml")
@@ -447,14 +502,12 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aPdsGBRot,"PdsGBRot",true,"Weighting of the global rotation constraint (Generic bundle Def=0.002)")
                     << EAM(aPdsGBId,"PdsGBId",true,"Weighting of the global deformation constraint (Generic bundle Def=0.0)")
                     << EAM(aPdsGBIter,"PdsGBIter",true,"Weighting of the change of the global rotation constraint between iterations (Generic bundle Def=1e-6)")
-
                     << EAM(aExportSensib,"ExportSensib",true,"Export sensiblity (accuracy) estimator : correlation , varaiance, inverse matrix variance ... ")
                     << EAM(aUseGaussJ,"UseGaussJ",true,"Use GaussJ instead of Cholesky (Def depend of others) ")
                     << EAM(NormaliseEq,"NormEq",true,"Flag for Norm Eq, 1->Sc, 2-Tr, Def=3 (All), tuning purpose ")
                     << EAM(aParamCCCC,"ContrCalCamCons",true,"Constraint on calibration for conseq camera [Key,Simga] ")
-		    << EAM(aVRegulDist,"RegulDist",true,"Parameter fo RegulDist [Val,Grad,Hessian,NbCase,SeuilNb]")
+                    << EAM(aVRegulDist,"RegulDist",true,"Parameter fo RegulDist [Val,Grad,Hessian,NbCase,SeuilNb]")
                     << EAM(RapTxt,"RapTxt",true,"Output report of residual for each point")
-
                     << EAM(aVExpImRes,"ExpImRes",true,"Sz of Im Res=[Cam,Pose,Pair]")
 
     );
@@ -467,6 +520,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     #endif
         SplitDirAndFile(mDir,mPat,aFullDir);
         StdCorrecNameOrient(AeroIn,mDir);
+        mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
 
         std::string aSetIm = "NKS-Set-OfPattern@[[" + mPat + "]]";
 
@@ -497,7 +551,13 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
             }
        }
 
+       if (EAMIsInit(&CalibMod2Refine)){
 
+       InitVerifModele(CalibMod2Refine,mICNM);
+       if (!EAMIsInit(&AllFree)) AllFree=1;
+       }
+
+       if (!GlobLibPP && GlobLibCD) std::cout << "Warning, distorsion center is set to free but Principal point is set to frozen.\n I will not adjust Distorsion center.\n";
 
        mCom =     MM3dBinFile_quotes( "Apero" )
                            +  ToStrBlkCorr( Basic_XML_MM_File("Apero-Compense.xml") )
@@ -514,16 +574,18 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                            +  std::string(" +PdsGBIter=") + ToString(aPdsGBIter) + " "
                           ;
 
-        if (LastIterSupl)  mCom += " +LastIterSupl=true";
-        if (CPI1 || CPI2) mCom       += " +CPI=true ";
-        if (CPI2) mCom       += " +CPIInput=true ";
-        if (FocFree) mCom    += " +FocFree=true ";
-        if (PPFree) mCom    += " +PPFree=true ";
-        if (AffineFree) mCom += " +AffineFree=true ";
-        if (AllFree) mCom    += " +AllFree=true ";
+        if (LastIterSupl)  mCom +=          " +LastIterSupl=true";
+        if (CPI1 || CPI2) mCom       +=     " +CPI=true ";
+        if (CPI2) mCom       +=             " +CPIInput=true ";
+        if (GlobLibFoc) mCom    +=          " +FocFree=true ";
+        if (GlobLibPP) mCom    +=           " +PPFree=true ";
+        if (GlobLibAff) mCom +=             " +AffineFree=true ";
+        if (GlobLibCD) mCom +=              " +LibCD=true ";
+        if (GlobLibDec) mCom +=              "+LibDec=true ";
+        if (AllFree) mCom    +=             " +AllFree=true ";
         if (ExpTxt) mCom += std::string(" +Ext=") + (ExpTxt?"txt ":"dat ")  ;
         if (EAMIsInit(&RapTxt)) mCom += std::string(" +RapTxt=") + RapTxt + " ";
- 	if (AllPoseFigee) mCom    += " +PoseFigee=true ";
+    if (AllPoseFigee) mCom    +=            " +PoseFigee=true ";
 
         if (EAMIsInit(&PatPoseFigee))
         {
@@ -548,6 +610,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
           Viscos = 1; // Pour eviter une / par 0 en xml
        }
        if (EAMIsInit(&Viscos)) mCom  +=  " +Viscos=" + ToString(Viscos) + " ";
+
+       if (EAMIsInit(&AddViscInterne)) mCom  +=  " +AddViscInt=true +IntrLVM=" + ToString(ViscosInterne) + " ";
 
        if (EAMIsInit(&DetailAppuis)) mCom += " +DetailAppuis=" + ToString(DetailAppuis) + " ";
 
@@ -591,9 +655,9 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                    + std::string("+GrIncGr=") + ToString(mGcpGrU) + " "
                    + std::string("+GrIncIm=") + ToString(mGcpImU) + " ";
         }
-        if (aDegAdd>0)  mCom = mCom + " +HasModeleAdd=true  +ModeleAdditionnel=eModelePolyDeg" +  ToString(aDegAdd);
-        if (aDegFree>0)  mCom = mCom + " +DegGen=" +  ToString(aDegFree);
-        if (aDrMax>0)   mCom = mCom + " +DRMax=" +  ToString(aDrMax);
+        if (GlobDegAdd>0)  mCom = mCom + " +HasModeleAdd=true  +ModeleAdditionnel=eModelePolyDeg" +  ToString(GlobDegAdd);
+        if (GlobDegGen>0)  mCom = mCom + " +DegGen=" +  ToString(GlobDegGen);
+        if (GlobDRadMaxUSer>0)   mCom = mCom + " +DRMax=" +  ToString(GlobDRadMaxUSer);
 
         if (EAMIsInit(&EmGPS))
         {

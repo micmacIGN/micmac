@@ -47,6 +47,9 @@
            <Symb>  FocFree=false </Symb>
            <Symb>  PPFree=false </Symb>
            <Symb>  AffineFree=false </Symb>
+           <Symb>  LibCD=false </Symb>
+           <Symb>  LibDec=false </Symb>
+         
 
  	   <Symb>  PoseFigee=false </Symb>
 
@@ -67,6 +70,8 @@
            <eSymb> TetaLVM=/   0.1 ${Viscos} </eSymb>
            <eSymb> CentreLVM=/ 1.0  ${Viscos}</eSymb>
            <Symb>  UseSLM=true </Symb>
+			<Symb>  IntrLVM=0.1 </Symb>
+			<Symb>  AddViscInt=false </Symb>
 
            <Symb>  NbMinIterFin=4 </Symb>
            <Symb>  NbMaxIterFin=4 </Symb>
@@ -128,6 +133,13 @@
            <eSymb> DR1Free= SupEq ${DRMax} 1 </eSymb>
            <eSymb> DR2Free= SupEq ${DRMax} 2 </eSymb>
            <eSymb> DR3Free= SupEq ${DRMax} 3 </eSymb>
+           <eSymb> DR4Free= SupEq ${DRMax} 4 </eSymb>
+           <eSymb> DR5Free= SupEq ${DRMax} 5 </eSymb>
+           <eSymb> DR6Free= SupEq ${DRMax} 6 </eSymb>
+           <eSymb> DR7Free= SupEq ${DRMax} 7 </eSymb>
+           <eSymb> DR8Free= SupEq ${DRMax} 8 </eSymb>
+           <eSymb> DR9Free= SupEq ${DRMax}  9 </eSymb>
+           <eSymb> DR10Free=SupEq ${DRMax} 10 </eSymb>
 
            <Symb> AcceptGB=true </Symb>
            <Symb> PdsGBRot=0.002</Symb>
@@ -476,8 +488,18 @@
                          </ParamF>
                          <OnlyWhenNoCentreInit> true</OnlyWhenNoCentreInit>
                     </RappelOnCentres>
-                 </SLMGlob>
+		<#WHEN VTEST=${AddViscInt}>
+  			<RappelOnIntrinseque>
+                                <ParamF> 
+                                       <PatternNameApply> .* </PatternNameApply>
+                                       <Incertitude> ${IntrLVM} </Incertitude>
+                                       <OnCur> true </OnCur>  
+                                </ParamF>
+                          </RappelOnIntrinseque>
+		</#WHEN>
+		                 </SLMGlob>
               </#WHEN>
+
 
              <#WHEN VTEST=${UseRegulDist}>
                   <RegDistGlob>
@@ -565,6 +587,12 @@
                                <ContraintesCamerasInc>
                                    <Val> eLib_PP_CD_10  </Val>
                                </ContraintesCamerasInc>
+                                 <#WHEN VTEST=${LibCD}>
+                                         <ContraintesCamerasInc>
+                                              <Val> eLib_PP_CD_Lies      </Val>
+                                              <TolContrainte>  1e-5 </TolContrainte>
+                                         </ContraintesCamerasInc>
+                                   </#WHEN>
                             </SectionContraintes>
                              <Messages>  LIB  PP </Messages>
                          </IterationsCompensation>
@@ -584,7 +612,18 @@
                          </IterationsCompensation>
                          <IterationsCompensation> </IterationsCompensation>
                    </#WHEN>
-
+                   <#WHEN VTEST=${LibDec}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <Val> eLiberte_Dec1      </Val>
+                                        <Val> eLiberte_Phgr_Std_Dec      </Val>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  Decentrik </Messages>
+                         </IterationsCompensation>
+                        <IterationsCompensation> </IterationsCompensation>
+                    </#WHEN>
 
                    <#WHEN VTEST=${DR1Free}>
                          <IterationsCompensation>
@@ -621,6 +660,99 @@
                          </IterationsCompensation>
                          <IterationsCompensation> </IterationsCompensation>
                    </#WHEN>
+                   
+                   <#WHEN VTEST=${LibCD}>
+                         <IterationsCompensation>
+                              <SectionContraintes>
+                                    <ContraintesCamerasInc>
+                                        <#IF VTEST=${PPFree}>
+                                             <Val>  eLib_PP_CD_11    </Val>
+                                             <Val>  eLib_PP_CD_01    </Val>
+                                        </#IF>
+                                    </ContraintesCamerasInc>
+                              </SectionContraintes>
+                              <Messages>  LIB  CD </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+                   
+                    <#WHEN VTEST=${DR4Free}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_DR4  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  DR4 </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+                   <#WHEN VTEST=${DR5Free}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_DR5  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  DR5 </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+                   <#WHEN VTEST=${DR6Free}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_DR6  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  DR6 </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+                   <#WHEN VTEST=${DR7Free}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_DR7  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  DR7 </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+                   <#WHEN VTEST=${DR8Free}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_DR8  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  DR8 </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+                   <#WHEN VTEST=${DR9Free}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_DR9  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  DR9 </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
+                   <#WHEN VTEST=${DR10Free}>
+                         <IterationsCompensation>
+                            <SectionContraintes>
+                               <ContraintesCamerasInc>
+                                   <Val> eLiberte_DR10  </Val>
+                               </ContraintesCamerasInc>
+                            </SectionContraintes>
+                             <Messages>  LIB  DR10 </Messages>
+                         </IterationsCompensation>
+                         <IterationsCompensation> </IterationsCompensation>
+                   </#WHEN>
 
 
                    <#WHEN VTEST=${DoPolyn2}>
@@ -647,7 +779,6 @@
                               <Messages>  LIB  Polyn3 </Messages>
                          </IterationsCompensation>
                     </#WHEN>
-
 
                    <#WHEN VTEST=${AllFree}>
                          <IterationsCompensation>

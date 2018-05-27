@@ -432,8 +432,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("Sift", Sift_main, " Tool for extracting points of interest using Lowe's SIFT method"));
 		aRes.push_back(cMMCom("SysCoordPolyn", SysCoordPolyn_main, " Tool for creating a polynomial coordinate system from a set of known pair of coordinate"));
 
-		aRes.push_back(cMMCom("OldTapas", Tapas_main, " Interface to Apero to compute external and internal orientations", cArgLogCom(3)));
-		aRes.push_back(cMMCom("Tapas", New_Tapas_main, "NEW version !! Compatible . Call \"OldTapas\" if problem specific to this version", cArgLogCom(3)));
+        aRes.push_back(cMMCom("OldTapas", Tapas_main, " Old Tapas", cArgLogCom(3)));
+        aRes.push_back(cMMCom("Tapas", New_Tapas_main, "Interface to Apero to compute external and internal orientations", cArgLogCom(3)));
 		aRes.push_back(cMMCom("NewTapas", New_Tapas_main, "Replace OldTapas - now same as Tapas", cArgLogCom(3)));
 
 		aRes.push_back(cMMCom("Tapioca", Tapioca_main, " Interface to Pastis for tie point detection and matching", cArgLogCom(3)));
@@ -628,6 +628,7 @@ extern int TestCmpIm_Ewelina(int argc, char ** argv);
 extern int TestER_hom_main(int argc, char ** argv);
 extern int PFM2Tiff_main(int argc, char ** argv);
 extern int ImPts2Dir_main(int argc, char ** argv);
+extern int FictiveObstest_main(int argc, char ** argv);
 extern int OriVideo_main(int argc, char ** argv);
 extern int TestPush(int argc, char ** argv);
 //extern int Cillia_main(int argc,char ** argv);
@@ -664,6 +665,7 @@ extern int  GCP2Hom_main(int argc,char ** argv);
 int main_featheringOrtho(int argc,char ** argv);
 int main_featheringOrthoBox(int argc,char ** argv);
 int GCP2DMeasureConvert_main(int argc,char ** argv);
+int main_densityMapPH(int argc,char ** argv);
 
 #if (ELISE_UNIX)
 extern int  DocEx_Introanalyse_main(int, char **);
@@ -893,6 +895,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("TestER2", TestER_hom_main, "ER test hom"));
 		aRes.push_back(cMMCom("Tif2Pfm", PFM2Tiff_main, "Tif to pfm or the other way around"));
 		aRes.push_back(cMMCom("Im2Dir", ImPts2Dir_main, "Extract directions from images"));
+		aRes.push_back(cMMCom("FictObs", FictiveObstest_main, "someee stuff"));
 		aRes.push_back(cMMCom("OriDIV", OriVideo_main, "Orientate a video acquisition"));
 		aRes.push_back(cMMCom("TestAT", TestPush, "AT test workplace"));
 
@@ -997,6 +1000,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("SeamlineFeathering",main_featheringOrtho,"Perform mosaiking of orthos with a feathering around the seamline."));
         aRes.push_back(cMMCom("SeamlineFeatheringBox",main_featheringOrthoBox,"Perform mosaiking of orthos with a feathering around the seamline for one tile of the mosaic"));
         aRes.push_back(cMMCom("GCP2DMeasureConvert",GCP2DMeasureConvert_main,"Export or import 2D image marks of GCPs/Manual tie point"));
+        aRes.push_back(cMMCom("DensityMapHomol",main_densityMapPH,"Compute a Density map of tie point"));
 
 
 // #if (ELISE_QT_VERSION >= 4)

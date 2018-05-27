@@ -217,8 +217,6 @@ private:
 
   stringstream stream_;
 
-
-
 };
 
 void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
@@ -235,8 +233,8 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
   int nbIm = (int)ListIm.size();
   cout<<"Images to process: "<<nbIm<<endl;
 
-  string cmdDRUNK,cmdConv, cmdCopyMeta;
-  list<string> ListDrunk,ListConvert, ListCopyMeta, ListSimpleCopy;
+  string cmdDRUNK, cmdConv, cmdRM, cmdCopyMeta;
+  list<string> ListDrunk, ListConvert, ListRM, ListCopyMeta;
 
   string meshlabProjectFileName=aNameDir + "/meshlabRast-"+ aOri + "/meshlabProj.mlp";
 
@@ -247,7 +245,7 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
   writer.writeHeaderStuff();
 
   //prepare the list of command if undistortion is required. If not just write out the right things in the mlp file
-  for(int i=0;i<nbIm;i++)
+  for(int i=0;i<nbIm;++i)
     {
       //Reading the images list
       string aFullName=ListIm.front();
@@ -257,7 +255,8 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
 
       cout<<aFullName<<" ("<<i+1<<" of "<<nbIm<<")"<<endl;
       ListIm.pop_front();
-
+    string aMeshLabImageFullName = aNameDir + "meshlabRast-" + aOri + ELISE_STR_DIR + aFullName;
+    string aMeshLabImageRawName = aNameDir + "meshlabRast-" + aOri + ELISE_STR_DIR + aRawName;
       if (aUnDist)
         {
           //Creating the numerical format for the output files names
@@ -265,33 +264,25 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
           sprintf(nb, "%08d", i);
 
           //Creating the lists of DRUNK and Convert commands
-          cmdDRUNK=MMDir() + "bin/Drunk " + aNameDir + aFullName + " " + aOri + " Out=" + "meshlabRast-" + aOri + "/ Talk=0";
+      cmdDRUNK = MM3dBinFile("Drunk") + " " + aNameDir + aFullName + " " + aOri + " Out=" + "meshlabRast-" + aOri + ELISE_STR_DIR + " Talk=0";
           ListDrunk.push_back(cmdDRUNK);
 
-
-#if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
-          cmdConv="convert ephemeral:" + aNameDir + "meshlabRast-" + aOri + "/" + aFullName + ".tif " + aNameDir + "meshlabRast-"+ aOri +"/"+ aRawName + ".jpg";
-#endif
-#if (ELISE_windows)
-          cmdConv=MMDir() + "binaire-aux/convert ephemeral:" + aNameDir + "meshlabRast-" + aOri + "/" + aFullName + ".tif " + aNameDir + "meshlabRast-"+ aOri +"/"+ aRawName + ".jpg";
-#endif
+      cmdConv = g_externalToolHandler.get("convert").callName() + " " + aMeshLabImageFullName + ".tif " + aMeshLabImageRawName  + ".jpg";
           ListConvert.push_back(cmdConv);
 
+      //Remove temporary tiffs created by Drunk
+      cmdRM = string(SYS_RM)+ " " + aMeshLabImageFullName + ".tif";
+      ListRM.push_back(cmdRM);
+
           //also copy the metadata from the original
-#if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
-          cmdCopyMeta = "exiftool -overwrite_original -TagsFromFile " + aNameDir + aFullName + " " + aNameDir + "meshlabRast-"+ aOri +"/"+ aRawName + ".jpg";
-#endif
-#if (ELISE_windows)
-          cmdCopyMeta =MMDir() + "binaire-aux/exiftool -overwrite_original -TagsFromFile " + aNameDir + aFullName + " " + aNameDir + "meshlabRast-"+ aOri +"/"+ aRawName + ".jpg";
-#endif
-
+      cmdCopyMeta = g_externalToolHandler.get("exiftool").callName() + " -overwrite_original -TagsFromFile " + aNameDir
+          + aFullName + " " + aMeshLabImageRawName + ".jpg";
           ListCopyMeta.push_back(cmdCopyMeta);
-
         }
 
 
       //Formating the camera name
-      string aNameCam="Ori-" + aOri + "/Orientation-" + aFullName + ".xml";
+    string aNameCam="Ori-" + aOri + ELISE_STR_DIR + "Orientation-" + aFullName + ".xml";
 
       //Loading the camera
       cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
@@ -339,13 +330,7 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
         }
       else
         {
-
-#if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
-          cmdConv="convert " +  aNameDir + aFullName  + " " + aNameDir + "meshlabRast-"+ aOri +"/"+ aRawName + ".jpg";
-#endif
-#if (ELISE_windows)
-          cmdConv=MMDir() + "binaire-aux/convert "  +  aNameDir + aFullName  + " " + aNameDir + "meshlabRast-"+ aOri +"/"+ aRawName + ".jpg";
-#endif
+      cmdConv = g_externalToolHandler.get("convert").callName() + " " + aNameDir + aFullName  + " " + aMeshLabImageRawName + ".jpg";
           ListConvert.push_back(cmdConv);
 
           NS_ParamChantierPhotogram::cCalibrationInternConique cal_xml = aCam->ExportCalibInterne2XmlStruct(aCam->Sz());
@@ -367,8 +352,6 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
           //BUT it seems that is causing problems when importing in meshlab.
 
           principal_point = viewport / 2.0;
-
-
         }
 
 
@@ -401,6 +384,8 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
       cout<<"Converting into .jpg"<<endl;
       cEl_GPAO::DoComInParal(ListConvert,aNameDir + "MkConvert");
 
+    //Remove tiffs from drunk
+    cEl_GPAO::DoComInSerie(ListRM);
 
       //Copy the metadata - it is better to keep metadatas sync
       cout<<"Copying metadata"<<endl;
@@ -439,6 +424,18 @@ int Apero2Meshlab_main(int argc,char ** argv)
       SplitDirAndFile(aDir, aPat, aFullPattern);
       StdCorrecNameOrient(aOri, aDir);
 
+    //if aUnDist == true, we need to run convert and exiftool
+    if(aUnDist)
+    {
+      if(!g_externalToolHandler.get("convert").isCallable())
+      {
+        ELISE_ERROR_RETURN("convert command unavailable")
+      }
+      if(!g_externalToolHandler.get("exiftool").isCallable())
+      {
+        ELISE_ERROR_RETURN("exiftool command unavailable")
+      }
+    }
       Apero2Meshlab(aFullPattern, aOri, aUnDist);
 
       return EXIT_SUCCESS;
@@ -446,10 +443,6 @@ int Apero2Meshlab_main(int argc,char ** argv)
   else
       return EXIT_SUCCESS;
 }
-
-
-
-
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

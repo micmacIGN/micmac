@@ -22,12 +22,42 @@ class cAppli_Tapas_Campari
 
        void InitAllImages(const std::string & aPat,cInterfChantierNameManipulateur * anICNM);
 
+       void InitVerifModele(const std::string & aMod,cInterfChantierNameManipulateur *);
+       std::list<std::string> GetAuthorizedModel();
+       void SyncLocAndGlobVar();
+
        const std::vector<std::string> & BlocImagesByTime() const;
        const std::vector<std::string> & BlocTimeStamps() const;
        std::map<std::string,int> & BlocCptTime() ;
        const std::string & StrParamBloc() const;
        int   NbInBloc() const;
        int  LongestBloc(int aK0,int aK1);  // Plus grand sequence a time stamp = dans [K0,K1[
+       std::string eModAutom;
+
+       int  LocDegGen;
+       bool LocLibDec;
+       bool LocLibCD;
+       int  LocDRadMaxUSer;
+       bool LocLibPP ;
+       bool LocLibFoc;
+       int LocDegAdd;
+       bool IsAutoCal;
+       bool IsFigee;
+       double PropDiag;
+       bool GlobLibAff;
+       bool GlobLibDec;
+       bool GlobLibPP;
+       bool GlobLibCD;
+       bool GlobLibFoc;
+       int  GlobDRadMaxUSer;
+       int  GlobDegGen;
+       int GlobDegAdd;
+
+       bool ModeleAdditional;
+       bool ModeleAddFour;
+       bool ModeleAddPoly;
+       std::string TheModelAdd;
+
 
     private :
       
@@ -43,6 +73,9 @@ class cAppli_Tapas_Campari
        std::vector<std::string>  mBlocImagesByTime;
        std::vector<std::string>  mBlocTimeStamps;
        std::map<std::string,int> mBlocCptTime;
+
+
+
     private :
       // ModePose = ! ModeDist
        void AddParamBloc(std::string & mCom,std::vector<std::string> & aVBL,const std::string & aPref,bool ModePose);
