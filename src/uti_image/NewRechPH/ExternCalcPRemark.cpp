@@ -40,9 +40,22 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
-cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & aExt)
+cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & aExt,eTypePtRemark aLab)
 {
-   return new cSetPCarac(StdGetFromNRPH(NameFileNewPCarac(aNameIm,true, aExt),SetPCarac));
+   
+   cSetPCarac * aRes =  new cSetPCarac(StdGetFromNRPH(NameFileNewPCarac(aNameIm,true, aExt),SetPCarac));
+   if (aLab!= eTPR_NoLabel)
+   {
+      std::vector<cOnePCarac> aNewV;
+      for (auto & aPC : aRes->OnePCarac())
+      {
+          if (aLab==aPC.Kind())
+             aNewV.push_back(aPC);
+      }
+     
+      aRes->OnePCarac() = aNewV;
+   }
+   return aRes;
 /*
    return new cSetPCarac
                (
@@ -182,27 +195,36 @@ void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW,bool
 /*****************************************************/
 
 cPtRemark::cPtRemark(const Pt2dr & aPt,eTypePtRemark aType,int aNiv) :
-     mPtR   (aPt),
+     mRPt   (aPt),
      mType  (aType),
-     mHRs   (),
-     mLR    (0),
+     mHighRs (),
+     mLowR  (0),
      mNiv   (aNiv)
 {
 }
 
 
-void cPtRemark::MakeLink(cPtRemark * aHR)
+void cPtRemark::MakeLink(cPtRemark * aHighRes)
 {
-   mHRs.push_back(aHR);
-   aHR->mLR = this;
+   mHighRs.push_back(aHighRes);
+   aHighRes->mLowR = this;
 }
 
 void  cPtRemark::RecGetAllPt(std::vector<cPtRemark *> & aRes)
 {
      aRes.push_back(this);
-     for (auto & aPt:  mHRs)
+     for (auto & aPt:  mHighRs)
          aPt->RecGetAllPt(aRes);
 }
+
+
+Pt2dr cPtRemark::RPtAbs(cAppli_NewRechPH & anAppli) const
+{
+    cOneScaleImRechPH *  anIm = anAppli.GetImOfNiv(mNiv,true);
+    return mRPt * (double) anIm->PowDecim();
+}
+
+
 
 /*****************************************************/
 /*                                                   */
@@ -216,10 +238,12 @@ int SignOfType(eTypePtRemark aKind)
    {
        case eTPR_LaplMax :
        case eTPR_GrayMax :
+       case eTPR_BifurqMax :
             return 1;
 
        case eTPR_LaplMin :
        case eTPR_GrayMin :
+       case eTPR_BifurqMin :
             return -1;
        default :
             ELISE_ASSERT(false,"cAppli_NewRechPH::PtOfBuf");
@@ -228,8 +252,9 @@ int SignOfType(eTypePtRemark aKind)
 }
 
 cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
-    mLR        (aLR),
-    mBrScaleStab (-1)
+    mLR          (aLR),
+    mBrScaleStab (-1),
+    mBifurk      (nullptr)
 {
     std::vector<cPtRemark *> aVPt;
     mLR->RecGetAllPt(aVPt);
@@ -240,14 +265,40 @@ cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
     for (auto & aPt:  aVPt)
     {
         aNivMin = ElMin(aNivMin,aPt->Niv());
-        if (aPt->HRs().size()>=2)
+        if (aPt->HighRs().size()>=2)
+        {
            aNbMult++;
+           mBifurk = aPt;
+        }
     }
+
+    if (aNbMult==1)
+    {
+       mOk = true;
+       mNivScal =  mBifurk->Niv();
+       mScale =  anAppli.ScaleAbsOfNiv(mNivScal);
+       mBrScaleStab =  mScale;
+       mScaleNature =  mScale;
+       return;
+       // static int aCpt=0; aCpt++;
+       // std::cout << "PMUuUL ====== " << aCpt << "=======================================================================\n";
+    }
+    mBifurk = nullptr;
 
     mOk = (aNbMult==0) && anAppli.OkNivStab(aLR->Niv()) && (aNivMin==0);
     if (!mOk) return;
 
     mBrScaleStab = anAppli.ScaleAbsOfNiv(aLR->Niv());
+
+
+/*
+    bool  Debug = (mBrScaleStab >=15.0);
+    if (Debug)
+    {
+        Pt2dr aPt =  aLR->RPtAbs(anAppli);
+        std::cout << "SSSS mBrScaleStab " << mBrScaleStab << " " << aPt <<  " " << (aPt/512.0) << "\n";
+    }
+*/
 
 // std::cout << "aLR-aLR-aLR-aLR- NIIIV " << aLR->Niv() << "\n";
 
@@ -265,11 +316,11 @@ cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
 
           if (anAppli.ScaleCorr())
           {
-              aLapl = anAppli.GetImOfNiv(aNiv)->QualityScaleCorrel(round_ni(aPt->Pt()),aSign,true)  ;
+              aLapl = anAppli.GetImOfNiv(aNiv,true)->QualityScaleCorrel(round_ni(aPt->RPt()),aSign,true)  ;
           }
           else
           {
-              aLapl =  anAppli.GetLapl(aNiv,round_ni(aPt->Pt()),mOk) * aSign;
+              aLapl =  anAppli.GetLapl(aNiv,round_ni(aPt->RPt()),mOk) * aSign;
           }
  
            if (!mOk)

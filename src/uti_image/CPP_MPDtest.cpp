@@ -1330,8 +1330,14 @@ void TestHomogr()
 }
 
 
+extern void TestFilterGauss();
+
 int MPDtest_main (int argc,char** argv)
 {
+    {
+        TestFilterGauss();
+        exit(EXIT_SUCCESS);
+    }
     {
         Pt2di aP(101.999999,101.000001);
         std::cout <<  "ppppppppppp "  << aP << "\n";

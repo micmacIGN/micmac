@@ -50,6 +50,8 @@ class cOneScaleImRechPH;
 #include "ExternNewRechPH.h"
 #include "LoccPtOfCorrel.h"
 
+typedef cOnePCarac * tPCPtr;
+
 void TestTouch();
 void TestLearnOPC(cSetRefPCarac & aSRP);
 
@@ -125,7 +127,7 @@ class cOneScaleImRechPH
 
 // Sift 
           void SiftMakeDif(cOneScaleImRechPH* );
-          void SiftMaxLoc(cOneScaleImRechPH* aLR,cOneScaleImRechPH* aHR,cSetPCarac&);
+          void SiftMaxLoc(cOneScaleImRechPH* aLR,cOneScaleImRechPH* aHR,cSetPCarac&,bool FromLR);
           // bool OkSiftContrast(cOnePCarac & aP) ;
           // double ComputeContrast() ;
 
@@ -187,6 +189,8 @@ class cAppli_NewRechPH
         Pt2di SzInvRadUse();
         Pt2di SzInvRadCalc();
 
+        double RatioDecimLRHR(int aNiv,bool LR);
+
         cAppli_NewRechPH(int argc,char ** argv,bool ModeTest);
 
         double   DistMinMax(bool Basic) const ;
@@ -195,17 +199,24 @@ class cAppli_NewRechPH
         cPlyCloud * PlyC()  const {return mPlyC;}
         const double & DZPlyLay() const {return  mDZPlyLay;}
 
+       
+        cOneScaleImRechPH * ImCalc(const cOnePCarac &);
+        // cOneScaleImRechPH * ImCalc(const cPtRemark  &);
+
 
         // double    ThreshCstrIm0() {return mThreshCstrIm0;}
         bool                                 InsideBuf2(const Pt2di &);
-        tPtrPtRemark  NearestPoint2(const Pt2di &,const double & aDist);
+        tPtrPtRemark  NearestPoint2(const Pt2dr &,const double & aDist);
         void AddBuf2(const tPtrPtRemark &);
         void ClearBuff2(const tPtrPtRemark &);
 
         bool Inside(const Pt2di & aP) const;
         const Pt2di & SzIm() const ;
         bool       TestDirac() const {return mTestDirac;}
+        bool       SaveIm() const {return mSaveIm;}
         double ScaleAbsOfNiv(const int &) const;
+        int    INivOfScale(const double &) const;
+        double  NivOfScale(const double &) const;
         void AddBrin(cBrinPtRemark *);
 
         int&  NbSpace()          { return  mNbSpace;}
@@ -219,7 +230,7 @@ class cAppli_NewRechPH
         bool  OkNivLapl(int aNiv);
         double GetLapl(int aNiv,const Pt2di & aP,bool &Ok);
 
-        cOneScaleImRechPH * GetImOfNiv(int aNiv);
+        cOneScaleImRechPH * GetImOfNiv(int aNiv,bool LR);
         void ComputeContrast();
         bool ComputeContrastePt(cOnePCarac & aPt);
         tInterpolNRPH * Interp() {return mInterp;}
@@ -234,13 +245,20 @@ class cAppli_NewRechPH
 
         double IndScalDecim(const double & ) const;
 
+        int  GetNexIdPts();
     private :
+        void  FilterSPC(cSetPCarac & aSPC);
+        void  FilterSPC(cSetPCarac & aSPC,cSetPCarac & aRes,eTypePtRemark aLabel);
+
+        void  FilterSPC(cSetPCarac & aRes,eTypePtRemark aLabel);
+        void  FilterSPC();
+
         Pt2di PIndex2(const Pt2di & aP) const;
         tLPtBuf & LPOfBuf2(const Pt2dr & aP);
         
         void AddScale(cOneScaleImRechPH *,cOneScaleImRechPH *);
         void Clik();
-        bool  CalvInvariantRot(cOnePCarac & aPt);
+        bool  CalvInvariantRot(cOnePCarac & aPt,bool ModeTest); // ModeTest : juste pour savoir si probable calcul est possible
 
         std::string mName;
         double      mNbByOct;    // Nombre d'echelle dans une puisse de 2
@@ -260,8 +278,8 @@ class cAppli_NewRechPH
         int         mDeltaSR;  // Delta entre deux niveau radiaux, genre 1 ou 2 ?
         int         mMaxLevR;  // Niv max permettant le calcul (calcule a partir des autres)
 
-        int         mNbTetaIm;  // Assez si on veut pouvoir interpoler entre les angles pour recalage
-        int         mMulNbTetaInv; // Comme ceux pour l'invariance ne coutent pas très cher, on a interet a en mettre + ?
+        // int         mNbTetaIm;  // Assez si on veut pouvoir interpoler entre les angles pour recalage
+        // int         mMulNbTetaInv; // Comme ceux pour l'invariance ne coutent pas très cher, on a interet a en mettre + ?
         int         mNbTetaInv; // Calcule, 
 
 
@@ -275,8 +293,8 @@ class cAppli_NewRechPH
         Pt2di       mP0Calc; // P0-P1 => "vrai" box
         Pt2di       mP1Calc;
 
-        std::vector<cOneScaleImRechPH *> mVI1;
-        std::vector<cOneScaleImRechPH *> mVImHS; // Celle qui ont une echelle eventuellement plus large
+        std::vector<cOneScaleImRechPH *> mVILowR;
+        std::vector<cOneScaleImRechPH *> mVIHighR; // Celle qui ont une echelle eventuellement plus large
         Video_Win  * mW1;
         bool         mModeTest;
     
@@ -303,6 +321,7 @@ class cAppli_NewRechPH
         bool                                    mAddModeTopo;
         bool                                    mLapMS;
         bool                                    mTestDirac;
+        bool                                    mSaveIm;
         bool                                    mSaveFileLapl;
         // double                                  mPropCtrsIm0;
         // double                                  mThreshCstrIm0;  /// Computed on first lapla
@@ -316,12 +335,22 @@ class cAppli_NewRechPH
         int     mSzContrast;      // 2
         double  mPropCalcContr;   // 0.25
 
+        cPtFromCOPC mArgQt;
+        tQtOPC * mQT;
+        int    mNbMaxLabByIm;   // Nombre max pour une image
+        int    mNbMaxLabBy10MP; // Nombre max par 10 MegaPix
+        int    mNbMaxLabInBox;  // Calcule a partir des 2 autres
+        int    mNbPreAnalyse;   // Those save for pre analysis (visib graph, initial model etc ...)
+        double mDistStdLab;     // Average dist between
+
 
         tImNRPH   mIm0;
         tTImNRPH  mTIm0;
         tImNRPH   mImContrast;
         tTImNRPH  mTImContrast;
         tInterpolNRPH * mInterp;
+        int          mIdPts;
+        bool          mCallBackMulI; // Est on en call back pour cause d'image multiple
 };
 
 class cProfilPC
@@ -420,8 +449,6 @@ class cCompileOPC
 
       std::vector<cProfilPC> mVProf;
 };
-
-
 
 
 #endif //  _NewRechPH_H_

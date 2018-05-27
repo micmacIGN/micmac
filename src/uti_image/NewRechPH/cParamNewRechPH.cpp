@@ -11,6 +11,10 @@ eTypePtRemark  Str2eTypePtRemark(const std::string & aName)
       return eTPR_GrayMax;
    else if (aName=="eTPR_GrayMin")
       return eTPR_GrayMin;
+   else if (aName=="eTPR_BifurqMax")
+      return eTPR_BifurqMax;
+   else if (aName=="eTPR_BifurqMin")
+      return eTPR_BifurqMin;
    else if (aName=="eTPR_GraySadl")
       return eTPR_GraySadl;
    else if (aName=="eTPR_NoLabel")
@@ -36,6 +40,10 @@ std::string  eToString(const eTypePtRemark & anObj)
       return  "eTPR_GrayMax";
    if (anObj==eTPR_GrayMin)
       return  "eTPR_GrayMin";
+   if (anObj==eTPR_BifurqMax)
+      return  "eTPR_BifurqMax";
+   if (anObj==eTPR_BifurqMin)
+      return  "eTPR_BifurqMin";
    if (anObj==eTPR_GraySadl)
       return  "eTPR_GraySadl";
    if (anObj==eTPR_NoLabel)
@@ -62,7 +70,7 @@ void  BinaryUnDumpFromFile(eTypePtRemark & anObj,ELISE_fp & aFp)
    anObj=(eTypePtRemark) aIVal;
 }
 
-std::string  Mangling( eTypePtRemark *) {return "42EC1EA5DA0B93EFFE3F";};
+std::string  Mangling( eTypePtRemark *) {return "144D06F863256DC2FE3F";};
 
 eTypeInvRad  Str2eTypeInvRad(const std::string & aName)
 {
@@ -592,6 +600,39 @@ const cProfilRad & cOnePCarac::ProfR()const
    return mProfR;
 }
 
+
+int & cOnePCarac::Id()
+{
+   return mId;
+}
+
+const int & cOnePCarac::Id()const 
+{
+   return mId;
+}
+
+
+int & cOnePCarac::HeapInd()
+{
+   return mHeapInd;
+}
+
+const int & cOnePCarac::HeapInd()const 
+{
+   return mHeapInd;
+}
+
+
+double & cOnePCarac::Prio()
+{
+   return mPrio;
+}
+
+const double & cOnePCarac::Prio()const 
+{
+   return mPrio;
+}
+
 void  BinaryUnDumpFromFile(cOnePCarac & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Kind(),aFp);
@@ -612,6 +653,9 @@ void  BinaryUnDumpFromFile(cOnePCarac & anObj,ELISE_fp & aFp)
     BinaryUnDumpFromFile(anObj.ImLogPol(),aFp);
     BinaryUnDumpFromFile(anObj.VectRho(),aFp);
     BinaryUnDumpFromFile(anObj.ProfR(),aFp);
+    BinaryUnDumpFromFile(anObj.Id(),aFp);
+    BinaryUnDumpFromFile(anObj.HeapInd(),aFp);
+    BinaryUnDumpFromFile(anObj.Prio(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
@@ -634,6 +678,9 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePCarac & anObj)
     BinaryDumpInFile(aFp,anObj.ImLogPol());
     BinaryDumpInFile(aFp,anObj.VectRho());
     BinaryDumpInFile(aFp,anObj.ProfR());
+    BinaryDumpInFile(aFp,anObj.Id());
+    BinaryDumpInFile(aFp,anObj.HeapInd());
+    BinaryDumpInFile(aFp,anObj.Prio());
 }
 
 cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
@@ -658,6 +705,9 @@ cElXMLTree * ToXMLTree(const cOnePCarac & anObj)
    aRes->AddFils(::ToXMLTree(std::string("ImLogPol"),anObj.ImLogPol())->ReTagThis("ImLogPol"));
    aRes->AddFils(::ToXMLTree(std::string("VectRho"),anObj.VectRho())->ReTagThis("VectRho"));
    aRes->AddFils(ToXMLTree(anObj.ProfR())->ReTagThis("ProfR"));
+   aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
+   aRes->AddFils(::ToXMLTree(std::string("HeapInd"),anObj.HeapInd())->ReTagThis("HeapInd"));
+   aRes->AddFils(::ToXMLTree(std::string("Prio"),anObj.Prio())->ReTagThis("Prio"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -703,9 +753,15 @@ void xml_init(cOnePCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.VectRho(),aTree->Get("VectRho",1)); //tototo 
 
    xml_init(anObj.ProfR(),aTree->Get("ProfR",1)); //tototo 
+
+   xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
+
+   xml_init(anObj.HeapInd(),aTree->Get("HeapInd",1)); //tototo 
+
+   xml_init(anObj.Prio(),aTree->Get("Prio",1)); //tototo 
 }
 
-std::string  Mangling( cOnePCarac *) {return "96CDA234A73B1FAAFD3F";};
+std::string  Mangling( cOnePCarac *) {return "2F74EFE5CE3E5EB5FD3F";};
 
 
 std::vector< cOnePCarac > & cSetPCarac::OnePCarac()
@@ -764,7 +820,7 @@ void xml_init(cSetPCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.OnePCarac(),aTree->GetAll("OnePCarac",false,1));
 }
 
-std::string  Mangling( cSetPCarac *) {return "AEC8D8B3BEEB0CA4FE3F";};
+std::string  Mangling( cSetPCarac *) {return "6EF5C674976564A6FF3F";};
 
 
 cOnePCarac & cSRPC_Truth::P1()
@@ -821,7 +877,7 @@ void xml_init(cSRPC_Truth & anObj,cElXMLTree * aTree)
    xml_init(anObj.P2(),aTree->Get("P2",1)); //tototo 
 }
 
-std::string  Mangling( cSRPC_Truth *) {return "57012D64E0B9E8C3FEBF";};
+std::string  Mangling( cSRPC_Truth *) {return "6075DF910E844CA9FBBF";};
 
 
 std::vector< cSRPC_Truth > & cSetRefPCarac::SRPC_Truth()
@@ -914,7 +970,7 @@ void xml_init(cSetRefPCarac & anObj,cElXMLTree * aTree)
    xml_init(anObj.SRPC_Rand(),aTree->GetAll("SRPC_Rand",false,1));
 }
 
-std::string  Mangling( cSetRefPCarac *) {return "4C82BC83862739A7FE3F";};
+std::string  Mangling( cSetRefPCarac *) {return "16061EEBAF69449CFE3F";};
 
 
 std::vector<double> & cCBOneBit::Coeff()
@@ -1449,7 +1505,7 @@ void xml_init(cFitsOneLabel & anObj,cElXMLTree * aTree)
    xml_init(anObj.BinDecision(),aTree->Get("BinDecision",1)); //tototo 
 }
 
-std::string  Mangling( cFitsOneLabel *) {return "F97812B24DBE65DCFD3F";};
+std::string  Mangling( cFitsOneLabel *) {return "38C773E8510B17FDFE3F";};
 
 
 cTplValGesInit< double > & cSeuilFitsParam::SeuilCorrDR()
@@ -1656,6 +1712,6 @@ void xml_init(cFitsParam & anObj,cElXMLTree * aTree)
    xml_init(anObj.SeuilGen(),aTree->Get("SeuilGen",1)); //tototo 
 }
 
-std::string  Mangling( cFitsParam *) {return "E8A6A86802AA2EDFFE3F";};
+std::string  Mangling( cFitsParam *) {return "F84695B5EA3426D6FB3F";};
 
 // };

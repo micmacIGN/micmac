@@ -7,6 +7,8 @@ typedef enum
   eTPR_LaplMin,
   eTPR_GrayMax,
   eTPR_GrayMin,
+  eTPR_BifurqMax,
+  eTPR_BifurqMin,
   eTPR_GraySadl,
   eTPR_NoLabel
 } eTypePtRemark;
@@ -214,6 +216,15 @@ class cOnePCarac
 
         cProfilRad & ProfR();
         const cProfilRad & ProfR()const ;
+
+        int & Id();
+        const int & Id()const ;
+
+        int & HeapInd();
+        const int & HeapInd()const ;
+
+        double & Prio();
+        const double & Prio()const ;
     private:
         eTypePtRemark mKind;
         Pt2dr mPt;
@@ -233,6 +244,9 @@ class cOnePCarac
         Im2D_INT1 mImLogPol;
         std::vector<double> mVectRho;
         cProfilRad mProfR;
+        int mId;
+        int mHeapInd;
+        double mPrio;
 };
 cElXMLTree * ToXMLTree(const cOnePCarac &);
 

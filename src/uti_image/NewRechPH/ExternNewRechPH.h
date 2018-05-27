@@ -79,7 +79,7 @@ void FilterHistoFlag(Im1D_REAL8 aH,int aNbConvol,double aFactConv,bool DoNorm);
 
 std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
 void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW,bool HighLight);
-cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & Ext="Std");
+cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & Ext="Std",eTypePtRemark aLab=eTPR_NoLabel);
 
 void TestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
 double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
@@ -112,8 +112,8 @@ cFullParamCB  Optimize
 class cAppli_NewRechPH;
 
 
-typedef float   tElNewRechPH ;
-typedef double  tElBufNRPH ;
+typedef INT2   tElNewRechPH ;
+typedef int    tElBufNRPH ;
 typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
 typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
 typedef cInterpolateurIm2D<tElNewRechPH>  tInterpolNRPH;
@@ -200,22 +200,23 @@ class cPtRemark
     public :
        cPtRemark(const Pt2dr & aPt,eTypePtRemark aType,int aNiv) ;
 
-       const Pt2dr & Pt() const          {return mPtR;}
+       const Pt2dr & RPt() const          {return mRPt;}
+       Pt2dr RPtAbs(cAppli_NewRechPH &) const;
        const eTypePtRemark & Type() const {return mType;}
        
        void MakeLink(cPtRemark * aHR /*Higher Resol */);
-       tContHRPR &  HRs()  {return mHRs;}
-       cPtRemark * LR()    {return mLR;}
+       tContHRPR &  HighRs()  {return mHighRs;}
+       cPtRemark * LowR()    {return mLowR;}
        int   Niv() const   {return mNiv;}
 
        void  RecGetAllPt(std::vector<cPtRemark *> &);
     private :
 
        cPtRemark(const cPtRemark &); // N.I.
-       Pt2dr           mPtR;
+       Pt2dr           mRPt;
        eTypePtRemark   mType;
-       tContHRPR         mHRs; // Higher Resol
-       cPtRemark     *   mLR; // Lower Resol
+       tContHRPR         mHighRs; // Higher Resol
+       cPtRemark     *   mLowR; // Lower Resol
        int               mNiv;
 };
 
@@ -240,6 +241,7 @@ class cBrinPtRemark
         double  BrScaleStab() const {return  mBrScaleStab;}
         int     NivScal() const {return mNivScal;}
         double  LaplMax() const {return mLaplMax;}
+        cPtRemark * Bifurk() const {return mBifurk;}
     private :
         cPtRemark * mLR;
         int         mNiv0;
@@ -250,6 +252,7 @@ class cBrinPtRemark
         double      mBrScaleStab;
         double      mLaplMax;
         double      mLaplMaxNature;
+        cPtRemark * mBifurk;
 };
 
 typedef cPtRemark * tPtrPtRemark;
@@ -274,6 +277,14 @@ class cFHistoInt
        std::vector<double> mHist;
        int mSom;
 };
+
+class cPtFromCOPC
+{
+   public :
+       Pt2dr operator() (cOnePCarac * aOPC) { return aOPC->Pt(); }
+};
+
+typedef ElQT<cOnePCarac*,Pt2dr,cPtFromCOPC> tQtOPC ;
 
 
 

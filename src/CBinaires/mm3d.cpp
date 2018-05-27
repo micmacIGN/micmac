@@ -836,6 +836,7 @@ extern int  CPP_NOGpsLoc(int argc, char ** argv);
 
 extern int GCPRollingBasc_main(int argc, char** argv);
 extern int Generate_ImagSift(int argc, char** argv);
+extern int Generate_ImagePer(int argc, char** argv);
 
 extern int  CPP_DistHistoBinaire(int argc, char ** argv);
 
@@ -1086,6 +1087,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));
+        aRes.push_back(cMMCom("GenImPer",Generate_ImagePer ," Generate periodic image"));
         aRes.push_back(cMMCom("MakePly_CamOrthoC",MakePly_CamOrthoC ,"Generate Ply to illustrate the long foc pb"));
         aRes.push_back(cMMCom("XMLDiffSeries",XMLDiffSeries_main ,"Generate pair images for tapioca in part c"));
         aRes.push_back(cMMCom("ZBufferRaster",ZBufferRaster_main ,"Z Buffer Raster"));

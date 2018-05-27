@@ -17,8 +17,13 @@
    <enum Name="eTypePtRemark">
       <eTPR_LaplMax>      </eTPR_LaplMax>
       <eTPR_LaplMin>      </eTPR_LaplMin>
+
       <eTPR_GrayMax>      </eTPR_GrayMax>
       <eTPR_GrayMin>      </eTPR_GrayMin>
+
+      <eTPR_BifurqMax>    </eTPR_BifurqMax>
+      <eTPR_BifurqMin>    </eTPR_BifurqMin>
+
       <eTPR_GraySadl>      </eTPR_GraySadl>
       <eTPR_NoLabel>  </eTPR_NoLabel>
    </enum>
@@ -117,6 +122,9 @@
          <ImLogPol Nb="1" Type="Im2D_INT1"> </ImLogPol>
          <VectRho   Nb="1" Type="std::vector<double>">  </VectRho>
          <ProfR Nb="1" RefType="ProfilRad">  </ProfR>
+         <Id   Nb="1" Type="int">  </Id>  <!-- Tuning -->
+         <HeapInd   Nb="1" Type="int">  </HeapInd>  <!-- Tuning -->
+         <Prio   Nb="1" Type="double">  </Prio>  <!-- Tuning -->
    </OnePCarac>
 
    <SetPCarac  Nb="1" Class="true">
