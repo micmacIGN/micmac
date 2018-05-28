@@ -6,6 +6,9 @@ Micmac nécessite pour fonctionner la présence des outils suivants sur votre sy
 - [exiftool](www.sno.phy.queensu.ca/~phil/exiftool) et [exiv2](www.exiv2.org) pour la lecture/écriture des métadonnées image,
 - [proj4](http://trac.osgeo.org/proj/) pour la conversion de systèmes de coordonnées.
 
+Ces outils s'installent facilement à l'aide de la commande suivante sur les ditributions Debian/Ubuntu :
+`sudo apt-get install make imagemagick libimage-exiftool-perl exiv2 proj-bin qt5-default`
+
 Vous pouvez vérifier que Micmac trouve correctement les programmes ci-dessus grâce à la commande :
 `bin/mm3d CheckDependencies` (si vous vous trouvez dans le répertoire de Micmac)
 
