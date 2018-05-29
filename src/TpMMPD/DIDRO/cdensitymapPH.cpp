@@ -36,6 +36,7 @@ cDensityMapPH::cDensityMapPH(int argc,char ** argv)
                 << EAM(mSmoothing,"Smooth",true, "Apply Gaussian filter to smooth the result, def true" )
                 << EAM(mMultiplicity,"Multi",true, "if true, density map depict not number of tie point but value of max multiplicity. Def false." )
                 << EAM(mResid,"Resid",true, "if true, density map depict not number of tie point but value of max reprojection error. Def false." )
+                << EAM(mThreshResid,"MaxResid",true, "Tie point are probably not filtered for outliers. Threshold to reject them in case option 'Resid' is true. default 5pixels of reprojection error." )
                 << EAM(mDebug,"Debug",true, "Print message in terminal to help debugging." )
 
                 );
