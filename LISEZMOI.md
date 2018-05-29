@@ -1,9 +1,9 @@
 # Prérequis
 
 Micmac nécessite pour fonctionner la présence des outils suivants sur votre système :
-- [make](www.gnu.org/software/make) pour la gestion de taches en parallèle,
-- *convert*, d'[ImageMagick](www.imagemagick.org), pour la conversion de format des images,
-- [exiftool](www.sno.phy.queensu.ca/~phil/exiftool) et [exiv2](www.exiv2.org) pour la lecture/écriture des métadonnées image,
+- [make](http://www.gnu.org/software/make) pour la gestion de taches en parallèle,
+- *convert*, d'[ImageMagick](http://www.imagemagick.org), pour la conversion de format des images,
+- [exiftool](http://www.sno.phy.queensu.ca/~phil/exiftool) et [exiv2](http://www.exiv2.org) pour la lecture/écriture des métadonnées image,
 - [proj4](http://trac.osgeo.org/proj/) pour la conversion de systèmes de coordonnées.
 
 Ces outils s'installent facilement à l'aide de la commande suivante sur les ditributions Debian/Ubuntu :
