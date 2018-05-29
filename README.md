@@ -8,10 +8,12 @@ Some external tools need to be present on your system for Micmac to run properly
 - [exiftool](www.sno.phy.queensu.ca/~phil/exiftool) and [exiv2](www.exiv2.org), to read/write image meta-data,
 - [proj4](http://trac.osgeo.org/proj/) for coordinate system conversion.
 
-On Debian/Ubuntu distribution you can easily install this tools by calling this command :
+On Debian/Ubuntu distribution you can easily install these tools by calling this command:
+
 `sudo apt-get install make imagemagick libimage-exiftool-perl exiv2 proj-bin qt5-default`
 
-You can check before-hand that Micmac is able to find those programs by calling the command :
+You can check before-hand that Micmac is able to find those programs by calling the command:
+
 `bin/mm3d CheckDependencies` (in Micmac directory)
 
 *NOT FOUND* near one of the tools indicates either the specified executable is not on your disk or it cannot be found in the
