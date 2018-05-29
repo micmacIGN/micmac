@@ -3,9 +3,9 @@
 # Prerequisites
 
 Some external tools need to be present on your system for Micmac to run properly :
-- [make](www.gnu.org/software/make) for parallel processes management,
-- *convert*, from [ImageMagick](www.imagemagick.org), for image format conversion,
-- [exiftool](www.sno.phy.queensu.ca/~phil/exiftool) and [exiv2](www.exiv2.org), to read/write image meta-data,
+- [make](http://www.gnu.org/software/make) for parallel processes management,
+- *convert*, from [ImageMagick](http://www.imagemagick.org), for image format conversion,
+- [exiftool](http://www.sno.phy.queensu.ca/~phil/exiftool) and [exiv2](http://www.exiv2.org), to read/write image meta-data,
 - [proj4](http://trac.osgeo.org/proj/) for coordinate system conversion.
 
 On Debian/Ubuntu distribution you can easily install these tools by calling this command:
