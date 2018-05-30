@@ -71,8 +71,8 @@ endif()
 
 set(VERBOSE 0)
 
-set (MICMAC_VERSION_MAJOR 1)
-set (MICMAC_VERSION_MINOR 0)
+set(MICMAC_VERSION_MAJOR 1)
+set(MICMAC_VERSION_MINOR 0)
 
 ##############################
 ## 			OPTIONS			##
@@ -85,57 +85,58 @@ OPTION(WITH_INTERFACE  "build graphic interface" OFF)
 OPTION(WITH_KAKADU  "Include KAKADU Support" OFF)
 
 # Utiliser Ign orientation
-OPTION(WITH_IGN_ORI "Include Ign orientation" OFF )
+OPTION(WITH_IGN_ORI "Include Ign orientation" OFF)
 
 # Utiliser Ign orientation
-OPTION(WITH_IGN_IMAGE "Include Ign image" OFF )
+OPTION(WITH_IGN_IMAGE "Include Ign image" OFF)
 
 # Utiliser les en-tetes precompilees
-OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON )
+OPTION(WITH_HEADER_PRECOMP "En-tetes precompilees" ON)
 
 # Utiliser les en-tetes precompilees
-OPTION(BUILD_ONLY_ELISE_MM3D "Projet Elise et MM3D uniquement" OFF )
+OPTION(BUILD_ONLY_ELISE_MM3D "Projet Elise et MM3D uniquement" OFF)
 
 # construire l'interface graphique
 OPTION(WITH_ETALONPOLY  "Build etalonnage polygone" ON)
 
 # construire les binaires Poisson
-OPTION(BUILD_POISSON "Build Poisson binaries" ON )
+OPTION(BUILD_POISSON "Build Poisson binaries" ON)
 
 # construire le binaire Rnx2rtkp
-OPTION(BUILD_RNX2RTKP "Build Rnx2rtkp binaries" OFF )
+OPTION(BUILD_RNX2RTKP "Build Rnx2rtkp binaries" OFF)
 
 # Utiliser Cuda
-OPTION(CUDA_ENABLED "Utilisation de cuda" OFF )
+OPTION(CUDA_ENABLED "Utilisation de cuda" OFF)
 
-OPTION(WITH_OPENCL  "Utilisation d'OpenCL" OFF )
+OPTION(WITH_OPENCL  "Utilisation d'OpenCL" OFF)
 
 # Multi thread Poisson avec OpenMP
-OPTION(WITH_OPEN_MP "use OpenMP" OFF )
+OPTION(WITH_OPEN_MP "use OpenMP" OFF)
 
 # print system calls
-OPTION(TRACE_SYSTEM "print system calls" OFF )
+OPTION(TRACE_SYSTEM "print system calls" OFF)
 
 # compile low-level test bench
-OPTION(BUILD_BENCH "compile low-level test bench" OFF )
+OPTION(BUILD_BENCH "compile low-level test bench" OFF)
 
-# Interfaces de saisie des paramètres
-OPTION(WITH_QT5 "compile Qt interfaces" OFF )
-
-# Interfaces de saisie des paramètres
-OPTION(WITH_QT4 "compile Qt 4 interfaces" OFF )
+# Interfaces de saisie des paramï¿½tres
+OPTION(WITH_QT5 "compile Qt interfaces" OFF)
 
 # Compilateur C++11
-OPTION(WITH_CPP11 "Compilateur C++11" ON )
+OPTION(WITH_CPP11 "Compilateur C++11" ON)
 
 OPTION(DEPLOY "compile for end-user" OFF)
 
-OPTION(UPDATE_TRANSLATIONS "Update source translation translations/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)")
+# Utiliser Doxygen
+OPTION(WITH_DOXYGEN "Generation de documentation" OFF )
+
+# Update QT translations
+OPTION(UPDATE_TRANSLATIONS "Update source translation translations/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)" OFF)
 
 # fichier contenant la fonction gerant les en-tetes precompilees
 include(precompiled_headers.cmake)
 
-if ( TRACE_SYSTEM )
+if (TRACE_SYSTEM)
 	add_definitions(-D__TRACE_SYSTEM__=${TRACE_SYSTEM})
 endif()
 
@@ -143,7 +144,7 @@ if (__DEBUG)
 	add_definitions(-D__DEBUG=${__DEBUG})
 endif()
 
-if ( WITH_OPEN_MP )
+if (WITH_OPEN_MP)
 	FIND_PACKAGE(OpenMP REQUIRED)
 	if (${CUDA_ENABLED})
 	    message("using OpenMP for Poisson 3d shell computing and Cuda precompute")
@@ -154,10 +155,6 @@ if ( WITH_OPEN_MP )
 	list( APPEND CMAKE_CXX_FLAGS ${OpenMP_CXX_FLAGS} )
 	set(USE_OPEN_MP 1)
 endif()
-
-# Utiliser Doxygen
-OPTION(WITH_DOXYGEN "Generation de documentation" OFF )
-
 
 ######################################
 ## 	Trouver les EXES et Libs	##
@@ -170,114 +167,82 @@ set(UnixBinPath
 		/usr/bin
 		/usr/local/bin)
 
-set(qt_version 0)
 set(DEPLOY 0)
-set(PROJECT_SRC_DIR \"${PROJECT_SOURCE_DIR}\" )
+set(PROJECT_SRC_DIR \"${PROJECT_SOURCE_DIR}\") #TODO: why???
+set(QT_ENABLED 0) #TODO: not sure we should keep running if WITH_QT5=1 and OpenGL or QT is not found
 
-if(${WITH_QT5} OR ${WITH_QT4})
+if(${WITH_QT5})
 	find_package(OpenGL REQUIRED)
 
-	if ( OPENGL_FOUND )
-		message( STATUS "-----> OpenGL found" )
+	if (OPENGL_FOUND)
+		message(STATUS "-----> OpenGL found")
 
-		if ( MSVC )
-				include("${PROJECT_SOURCE_DIR}/src/saisieQT/FindWindowsSDK.txt")
-				# ajoute /lib a tous les repertoires contenant un SDK
-				foreach( sdk_dir ${WINDOWSSDK_DIRS} )
-						list( APPEND SDK_LIB_DIRS "${sdk_dir}/lib" )
-				endforeach()
-				set( CMAKE_PREFIX_PATH "${SDK_LIB_DIRS}" )
-				message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
+		if (MSVC)
+			include("${PROJECT_SOURCE_DIR}/src/saisieQT/FindWindowsSDK.txt")
+			# ajoute /lib a tous les repertoires contenant un SDK
+			foreach( sdk_dir ${WINDOWSSDK_DIRS} )
+				list( APPEND SDK_LIB_DIRS "${sdk_dir}/lib" )
+			endforeach()
+			set( CMAKE_PREFIX_PATH "${SDK_LIB_DIRS}" )
+			message (" WindowsSDKDir : " ${CMAKE_PREFIX_PATH} )
 		endif()
 
-		if (${WITH_QT5})
-			find_package(Qt5Widgets REQUIRED)
-			find_package(Qt5Xml REQUIRED)
-			find_package(Qt5Concurrent REQUIRED)
-			find_package(Qt5OpenGL REQUIRED)
+		find_package(Qt5Widgets REQUIRED)
+		find_package(Qt5Xml REQUIRED)
+		find_package(Qt5Concurrent REQUIRED)
+		find_package(Qt5OpenGL REQUIRED)
 
-			if (Qt5Widgets_FOUND)
-				if (POLICY CMP0045)
-					cmake_policy(SET CMP0045 NEW) # target of get_target_property must exists or a FATAL_ERROR is issued
-				endif()
+		if (Qt5Widgets_FOUND)
+			if (POLICY CMP0045)
+				cmake_policy(SET CMP0045 NEW) # target of get_target_property must exists or a FATAL_ERROR is issued
+			endif()
+			get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+			get_target_property(QT_MOC_EXECUTABLE Qt5::moc IMPORTED_LOCATION)
+			get_target_property(QT_UIC_EXECUTABLE Qt5::uic IMPORTED_LOCATION)
+			get_target_property(QT_RCC_EXECUTABLE Qt5::rcc IMPORTED_LOCATION)
 
-				get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+			qmake_query(QT_VERSION)
+			qmake_query(QT_INSTALL_LIBS)
+			qmake_query(QT_INSTALL_PLUGINS)
+
+			if (QT_VERSION VERSION_LESS "5.4.0")
+				message(STATUS "Qt version < 5.4.0: using shortcuts patch")
+				set(__QT_5_SHORTCUT_PATCH 1)
 			endif()
 
-			if (Qt5Widgets_FOUND)
-				get_target_property(QT_MOC_EXECUTABLE Qt5::moc IMPORTED_LOCATION)
-				get_target_property(QT_UIC_EXECUTABLE Qt5::uic IMPORTED_LOCATION)
-				get_target_property(QT_RCC_EXECUTABLE Qt5::rcc IMPORTED_LOCATION)
+			set(QT_CMAKE_LIBRARIES Qt5::Core Qt5::Gui Qt5::Xml Qt5::OpenGL)
 
-				qmake_query(QT_VERSION)
-				qmake_query(QT_INSTALL_LIBS)
-				qmake_query(QT_INSTALL_PLUGINS)
-
-				message(STATUS "using Qt " ${QT_VERSION})
-
-				if (QT_VERSION VERSION_LESS "5.4.0")
-					message(STATUS "Qt version < 5.4.0: using shortcuts patch")
-					set(__QT_5_SHORTCUT_PATCH 1)
-				endif()
-
-				set(qt_version 5)
-				set(QT_CMAKE_LIBRARIES Qt5::Core Qt5::Gui Qt5::Xml Qt5::OpenGL)
-
-				get_target_property(qt_core_lib Qt5::Core LOCATION)
-				get_target_property(qt_gui_lib Qt5::Gui LOCATION)
-				get_target_property(qt_xml_lib Qt5::Xml LOCATION)
-				get_target_property(qt_opengl_lib Qt5::OpenGL LOCATION)
-				if (MSVC)
-					#~ LOCATION property points to dll files, transform to lib files path
-					qmake_query(QT_INSTALL_BINS)
-					qt_dll_to_lib("${QT_INSTALL_BINS}" "${QT_INSTALL_LIBS}" qt_opengl_lib)
-					qt_dll_to_lib("${QT_INSTALL_BINS}" "${QT_INSTALL_LIBS}" qt_core_lib)
-					qt_dll_to_lib("${QT_INSTALL_BINS}" "${QT_INSTALL_LIBS}" qt_gui_lib)
-					qt_dll_to_lib("${QT_INSTALL_BINS}" "${QT_INSTALL_LIBS}" qt_xml_lib)
-				endif()
-				set(QT_LIBRARIES ${qt_core_lib} ${qt_gui_lib} ${qt_xml_lib} ${qt_opengl_lib})
-
-				set(QT_INCLUDE_DIRS "${Qt5Core_INCLUDE_DIRS};${Qt5Widgets_INCLUDE_DIRS};${QtXml_INCLUDE_DIRS};${Qt5Concurrent_INCLUDE_DIRS};${Qt5OpenGL_INCLUDE_DIRS}")
-				list(REMOVE_DUPLICATES QT_INCLUDE_DIRS)
-				include_dirs_to_flags("${QT_INCLUDE_DIRS}" QT_INCLUDES)
-
-				set(QT_DEFINITIONS "-DQT_NO_DEBUG;${Qt5Core_DEFINITIONS};${Qt5Widgets_DEFINITIONS};${QtXml_DEFINITIONS};${Qt5Concurrent_DEFINITIONS};${Qt5OpenGL_DEFINITIONS}")
-				list(REMOVE_DUPLICATES QT_DEFINITIONS)
-			elseif(${WITH_QT5} AND NOT Qt5Widgets_FOUND)
-			    message("WARNING QT 5 not found")
-			    message("Set Qt5_DIR to qt CMAKE directory")
-			    message("   Qt5_DIR --> C:\\Qt\\Qt5.0.1\\5.0.1\\msvc2010\\lib\\cmake\\Qt5")
-			    message("   Qt5_DIR --> /opt/Qt5.x.x/5.x.x/gcc_64/lib/cmake/Qt5")
-
+			get_target_property(qt_core_lib Qt5::Core LOCATION)
+			get_target_property(qt_gui_lib Qt5::Gui LOCATION)
+			get_target_property(qt_xml_lib Qt5::Xml LOCATION)
+			get_target_property(qt_opengl_lib Qt5::OpenGL LOCATION)
+			if (MSVC)
+				#~ LOCATION property points to dll files, transform to lib files path
+				qmake_query(QT_INSTALL_BINS)
+				qt_dll_to_lib("${QT_INSTALL_BINS}" "${QT_INSTALL_LIBS}" qt_opengl_lib)
+				qt_dll_to_lib("${QT_INSTALL_BINS}" "${QT_INSTALL_LIBS}" qt_core_lib)
+				qt_dll_to_lib("${QT_INSTALL_BINS}" "${QT_INSTALL_LIBS}" qt_gui_lib)
+				qt_dll_to_lib("${QT_INSTALL_BINS}" "${QT_INSTALL_LIBS}" qt_xml_lib)
 			endif()
+			
+			set(QT_LIBRARIES ${qt_core_lib} ${qt_gui_lib} ${qt_xml_lib} ${qt_opengl_lib})
+			set(QT_INCLUDE_DIRS "${Qt5Core_INCLUDE_DIRS};${Qt5Widgets_INCLUDE_DIRS};${QtXml_INCLUDE_DIRS};${Qt5Concurrent_INCLUDE_DIRS};${Qt5OpenGL_INCLUDE_DIRS}")
+			list(REMOVE_DUPLICATES QT_INCLUDE_DIRS)
+			include_dirs_to_flags("${QT_INCLUDE_DIRS}" QT_INCLUDES)
+			set(QT_DEFINITIONS "-DQT_NO_DEBUG;${Qt5Core_DEFINITIONS};${Qt5Widgets_DEFINITIONS};${QtXml_DEFINITIONS};${Qt5Concurrent_DEFINITIONS};${Qt5OpenGL_DEFINITIONS}")
+			list(REMOVE_DUPLICATES QT_DEFINITIONS)
+	
+			message(STATUS "-----> using Qt " ${QT_VERSION})
+			set(QT_ENABLED 1) #TODO: not sure we should keep running if WITH_QT5=1 and OpenGL or QT is not found
 
-		elseif (${WITH_QT4})
-			FIND_PACKAGE(Qt4 QUIET COMPONENTS QtCore QtGui QtOpenGL QtXml)
-
-			include(${QT_USE_FILE})
-
-			if( QT4_FOUND )
-			    message( STATUS "-----> Qt4 found" )
-			    set(qt_version 4)
-			else()
-			    message( "Qt not available, Qt graphical tools disabled" )
-			    message( "**************************************************************************************************************************************" )
-			    message( "If Qt is installed, please set QT_QMAKE_EXECUTABLE" )
-			    message( "**************************************************************************************************************************************" )
+			if (DARWIN)
+				set(CMAKE_INSTALL_RPATH "${QT_INSTALL_LIBS}" "${QT_INSTALL_PLUGINS}" "@executable_path/../Frameworks")
 			endif()
-
 		endif()
+
 	else()
-		message( "OpenGL not available, Qt graphical tools disabled" )
+		message(WARNING "OpenGL not available, Qt graphical tools disabled")
 	endif()
-endif()
-
-IF (qt_version EQUAL 5 AND DARWIN)
-	set(CMAKE_INSTALL_RPATH "${QT_INSTALL_LIBS}" "${QT_INSTALL_PLUGINS}" "@executable_path/../Frameworks")
-endif()
-
-if ( NOT ${qt_version} EQUAL 0 )
-	message(STATUS "QT tools enabled (Qt" ${qt_version} ")")
 endif()
 
 if (${DEPLOY})
@@ -291,7 +256,7 @@ if(${WITH_CPP11})
 		IF (NOT DARWIN)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 		ELSE()
-		# MODIF MPD , reverse Gregoire, car gnu++11 mulitiple par 6 le temps de compilation
+		# MODIF MPD, reverse Gregoire, car gnu++11 mulitplie par 6 le temps de compilation
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 		ENDIF()
 		message(${CMAKE_CXX_FLAGS})
@@ -356,18 +321,15 @@ if (${CUDA_ENABLED})
 			  include_directories ( ${Boost_INCLUDE_DIR} )
 		 endif()
 	else()
-			if(MSVC AND NOT MSVC12 )
-				message(FATAL_ERROR "This version of visual doesn't support c++11")
-			endif()
+		if(MSVC AND NOT MSVC12 )
+			message(FATAL_ERROR "This version of visual doesn't support c++11")
+		endif()
 	    if(NOT ${WITH_CPP11})
 		SET(WITH_CPP11 ON CACHE BOOL "Compilateur C++11" FORCE)
 		IF(NOT MSVC)
 			message("c++11")
 			# support c++11
-			ADD_DEFINITIONS(
-				-std=c++11 # Or -std=c++0x
-				# Other flags
-			)
+			ADD_DEFINITIONS(-std=c++11) #+other flags?
 		endif()
 	    endif()
 	endif()
@@ -395,7 +357,7 @@ if (NOT GIT_REVISION_DIST)
 		message(STATUS "-- Git executable NOT found")
 	endif(GIT_FOUND)
 endif()
-message( STATUS "Derniere revision git de MicMac : " ${GIT_REVISION_DIST})
+message(STATUS "Derniere revision git de MicMac : " ${GIT_REVISION_DIST})
 
 set(GIT_REV ${GIT_REVISION_DIST} CACHE STRING "Revision" FORCE)
 
@@ -451,7 +413,7 @@ IF(${WITH_IGN_ORI} OR ${WITH_IGN_IMAGE})
 		LIST(APPEND SOCLE_COMPONENTS geometry)
 	ENDIF()
 
-	FIND_PACKAGE( IgnSocle  COMPONENTS "${SOCLE_COMPONENTS}")
+	FIND_PACKAGE(IgnSocle  COMPONENTS "${SOCLE_COMPONENTS}")
 	FIND_PACKAGE(TinyXML)
 	FIND_PACKAGE(PROJ4)
 
@@ -462,11 +424,11 @@ IF(${WITH_IGN_ORI} OR ${WITH_IGN_IMAGE})
 		FIND_PACKAGE(Geos)
 	endif()
 
-	FIND_PACKAGE( Boost 1.48.0 COMPONENTS unit_test_framework date_time filesystem system serialization thread regex chrono REQUIRED)
+	FIND_PACKAGE(Boost 1.48.0 COMPONENTS unit_test_framework date_time filesystem system serialization thread regex chrono REQUIRED)
 
-	#add_definitions( "-DBOOST_THREAD_USE_LIB" )
-	add_definitions( "-DBOOST_TYPEOF_COMPLIANT" )
-	add_definitions( "-DBoost_USE_STATIC_LIBS" )
+	#add_definitions("-DBOOST_THREAD_USE_LIB")
+	add_definitions("-DBOOST_TYPEOF_COMPLIANT")
+	add_definitions("-DBoost_USE_STATIC_LIBS")
 	SET(Boost_USE_MULTITHREADED ON)
 	SET(Boost_USE_STATIC_LIBS ON)
 
@@ -523,43 +485,42 @@ IF(${WITH_IGN_ORI} OR ${WITH_IGN_IMAGE})
 ENDIF()
 
 # Utiliser la librairie du MATIS pour gerer les orientations coniques
-IF(${WITH_MATIS_ORI})
+if(${WITH_MATIS_ORI})
 	FIND_PACKAGE( MatisOrientation )
-	IF(NOT MatisOrientation_FOUND)
+	if(NOT MatisOrientation_FOUND)
 		MESSAGE("Warning! MatisOrientation not found. Micmac will be built without MatisOrientation support.")
-	ELSE()
+	else()
 		OPTION(MICMAC_USE_PROJ4 "Use PROJ4" OFF)
 		#-- recherche de boost
 		SET(Boost_USE_MULTITHREADED ON)
 		FIND_PACKAGE( Boost 1.48.0 COMPONENTS unit_test_framework date_time system filesystem serialization thread regex chrono REQUIRED)
 		FIND_PACKAGE(TICPP REQUIRED)
-		IF ( TICPP_FOUND)
+		if (TICPP_FOUND)
 			LINK_DIRECTORIES(${TICPP_LIBRARY_DIRS})
 			INCLUDE_DIRECTORIES(${TICPP_INCLUDE_DIRS})
-		ENDIF()
+		endif()
 
-		IF (MICMAC_USE_PROJ4)
-			FIND_PACKAGE( PROJ4 REQUIRED )
+		if (MICMAC_USE_PROJ4)
+			FIND_PACKAGE(PROJ4 REQUIRED)
 			LINK_DIRECTORIES(${PROJ4_LIBRARY_DIRS})
 			INCLUDE_DIRECTORIES(${PROJ4_INCLUDE_DIRS})
-		ENDIF()
+		endif()
 
-		ADD_DEFINITIONS(-D__USE_ORIENTATIONMATIS__ )
-		LINK_DIRECTORIES(${MatisOrientation_LIBRARY_DIRS})
-		INCLUDE_DIRECTORIES(${MatisOrientation_INCLUDE_DIRS})
-
+		add_definitions(-D__USE_ORIENTATIONMATIS__ )
+		link_directories(${MatisOrientation_LIBRARY_DIRS})
+		include_directories(${MatisOrientation_INCLUDE_DIRS})
 	ENDIF()
 ENDIF()
 
 
 # VERIFICATION si ImageMagick est installe
 
-if(NOT WIN32) # ImageMagick n'est pas obligatoire sous windows puisque les exécutables nécessaire sont fournis
+if(NOT WIN32) # ImageMagick n'est pas obligatoire sous windows puisque les exï¿½cutables nï¿½cessaire sont fournis
 	find_package(ImageMagick QUIET)
 
 	if(NOT ImageMagick_FOUND)
-			MESSAGE("\n***   ATTENTION!!! Vous devez installer Image Magick. ***")
-			MESSAGE("***   http://www.imagemagick.org/script/index.php     ***\n")
+		message("\n***   ATTENTION!!! Vous devez installer Image Magick. ***")
+		message("***   http://www.imagemagick.org/script/index.php     ***\n")
 	endif(NOT ImageMagick_FOUND)
 endif()
 
@@ -570,46 +531,43 @@ if (MINGW)
 endif()
 
 if(NOT WIN32)
-
 	# VERIFICATION si Proj4 est installe
 	#find_program(PROJ4_EXECUTABLE proj4 PATHS ${UnixBinPath} )
 	if(PROJ4_EXECUTABLE_FOUND)
-
 		message("Proj4 non trouve!!")
-
 	endif()
 
 	# VERIFICATION si X11 est present sous MacOS et Linux
 	OPTION(NO_X11  "ignoring X11 libraries even if existing" OFF)
 
-	IF (NOT NO_X11)
-		#message("Trying to find X11 packageÉ")
+	if (NOT NO_X11)
+		#message("Trying to find X11 packageï¿½")
 		FIND_PACKAGE(X11)
-	ELSE()
+	else()
 		message("Ignoring X11 package...")
 		set(X11_LIBRARY_DIR "") # au cas ou on ait fait une passe de cmake sans actier 'NO_X11'
-	ENDIF()
-
-	IF ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
-		set( DYN_LIB_LIBRARY dl )
 	endif()
 
-	IF (X11_FOUND)
+	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		set(DYN_LIB_LIBRARY dl)
+	endif()
+
+	if (X11_FOUND)
 		#message("X11 Found : ")
 		#message("   include dir   : " ${X11_INCLUDE_DIR} )
 		#message("   libraries     : " ${X11_LIBRARIES} )
 		#message("   libraries dir : " ${X11_LIBRARY_DIR} )
 	INCLUDE_DIRECTORIES( ${X11_INCLUDE_DIR} )
-	ELSE()
+	else()
 		set(NO_X11)
 		MESSAGE("X11 Not Found : pas de SaisieMasq")
-	ENDIF()
-ELSE()
-	set( CMAKE_BUILD_TYPE Release )
-ENDIF()
+	endif()
+else()
+	set(CMAKE_BUILD_TYPE Release) #TODO: why not release for Linux/DARWIN?? 
+endif()
 
 # DEFINITION : des preprocesseurs windows
-IF (MSVC)
+if (MSVC)
 	if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 		set (CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}" CACHE PATH "default install path" FORCE )
 	endif()
@@ -625,36 +583,36 @@ IF (MSVC)
 			string( FIND "${CMAKE_CXX_FLAGS}" "/Zm1000" has_zm1000 )
 			if ( ${has_zm1000} LESS 0 )
 				# la valeur par defaut Zm1000 n'existe plus a partir de la version 2.8.11
-				set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${zm_value}")
+				set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${zm_value}")
 			else()
 				# REPLACE pour eviter le conflit Zm1000 vs ZmXXX
 				string(REPLACE "/Zm1000" ${zm_value} CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 			endif()
 	elseif (NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.0.0")) # 19 is visual studio 2015
 		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm263")
-	elseif ( ${CMAKE_SYSTEM_VERSION} MATCHES "5.1" )
-		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm131") # 5.1 is windows xp
+	elseif (${CMAKE_SYSTEM_VERSION} MATCHES "5.1" )
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm131") # 5.1 is windows xp
 	else()
-		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm170")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm170")
 	endif()
 
 	if(NOT (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "8.0.0"))
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 	endif()
-ENDIF()
+endif()
 
 # DEFINITION : Dossier include
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # DEFINITION : des preprocesseurs G++
-IF (CMAKE_COMPILER_IS_GNUCC)
+if (CMAKE_COMPILER_IS_GNUCC)
 	#~ add_compile_options(-O2 -Wall) // pas gere par le cmake de la forge
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall")
-ENDIF()
+endif()
 
 # DEFINITION : Windows : le projet debug est genere directement sous bin pour avoir les informations de Debug
 
-IF (MSVC)
+if (MSVC)
 	 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
 	 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
 endif()
@@ -663,7 +621,7 @@ set(BUILD_PATH_BIN  ${PROJECT_SOURCE_DIR}/bin CACHE PATH "binaires install path"
 set(BUILD_PATH_LIB  ${PROJECT_SOURCE_DIR}/lib CACHE PATH "library install path")
 
 # DEFINITION : du dossier d'installation
-set(Install_Dir		${BUILD_PATH_BIN})
+set(Install_Dir	${BUILD_PATH_BIN})
 set(Install_Dir_lib ${BUILD_PATH_LIB})
 
 # DEFINITION : du dossier des sources d'Elise
@@ -680,9 +638,9 @@ if (${BUILD_RNX2RTKP})
 	add_subdirectory(${PROJECT_SOURCE_DIR}/CodeExterne/rnx2rtkp)
 endif()
 # CONSTRUCTION : Librairie ELISE
-set( code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere)
+set(code_genere_dir ${PROJECT_SOURCE_DIR}/CodeGenere)
 include(${code_genere_dir}/Sources.cmake)
-ADD_SUBDIRECTORY(${ELISE_DIR})
+add_subdirectory(${ELISE_DIR})
 
 # Doxygen
 if(${WITH_DOXYGEN})
@@ -693,7 +651,7 @@ if(${WITH_DOXYGEN})
     endif(DOXYGEN_FOUND)
 endif()
 
-if ( ${BUILD_BENCH} )
+if (${BUILD_BENCH})
    include(${PROJECT_SOURCE_DIR}/BenchElise/bench/CMakeLists.txt)
    include(${PROJECT_SOURCE_DIR}/BenchElise/bench_mm3d/CMakeLists.txt)
 endif()
@@ -702,7 +660,7 @@ if (OUTPUT_ELISE_FILES)
 	include("output_elise_files.cmake")
 endif()
 
-CONFIGURE_FILE (
+CONFIGURE_FILE(
 	"include/general/CMake_defines.h.in"
 	"${CMAKE_SOURCE_DIR}/include/general/CMake_defines.h"
 )

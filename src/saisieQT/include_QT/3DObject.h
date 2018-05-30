@@ -12,7 +12,7 @@
 	#include "MipmapHandler.h"
 #endif
 
-typedef enum // Attention repercutions sur QT ... TODO à regler
+typedef enum // Attention repercutions sur QT ... TODO ï¿½ regler
 {
   qEPI_NonSaisi,	// 0
   qEPI_Refute,		// 1
@@ -852,10 +852,6 @@ std::ostream & operator <<( std::ostream &aStream, const QSize &aSize );
 
 	inline void __check_gl_error(const std::string &aWhere)
 	{
-		#if ELISE_QT_VERSION == 4
-			ELISE_DEBUG_ERROR(glGetError == NULL, aWhere, "glGetError == NULL");
-		#endif
-
 		const GLenum err = glGetError();
 
 		ELISE_DEBUG_ERROR(err != GL_NO_ERROR, aWhere, "glGetError() = " << glErrorToString(err));

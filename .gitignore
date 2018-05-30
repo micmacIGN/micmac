@@ -15,6 +15,7 @@ build_vc_kakadu/
 build*
 Build*
 .project
+.vscode
 ModelingProject1/ModelDefinition/ModelingProject1.uml
 ModelingProject1/ModelingProject1.modelproj
 ModelingProject1/UMLClassDiagram1.classdiagram

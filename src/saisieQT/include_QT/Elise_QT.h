@@ -17,10 +17,6 @@ using namespace std;
 #include "windows.h"
 #endif
 
-#if ELISE_QT_VERSION == 4
-#include <gl_core_2_1.h>
-#endif
-
 #if ELISE_Darwin
     #include <OpenGL/gl.h>
 #else
@@ -37,11 +33,7 @@ using namespace std;
 #include <QColor>
 #include <QCheckBox>
 #include <QComboBox>
-#if ELISE_QT_VERSION == 5
 #include <QtConcurrent/QtConcurrentRun>
-#elif ELISE_QT_VERSION == 4
-#include <QtConcurrentRun>
-#endif
 #include <QDebug>
 #include <QDir>
 #include <QDomDocument>
@@ -58,10 +50,8 @@ using namespace std;
 #include <QGLContext>
 #include <QGLBuffer>
 
-#if ELISE_QT_VERSION == 5
 #include <QOpenGLFunctions>
 #include <QOpenGLContext>
-#endif
 
 #include <QGridLayout>
 #include <QtGui>

@@ -95,7 +95,7 @@ INCLUDE (${XINTER_DIR}/Sources.cmake)
 
 if(${WITH_ETALONPOLY})
 	INCLUDE (${UTI_ETAPOLY_DIR}/Sources.cmake)
-	set( LIB_ETAL_POLYG libEtalPolyg )
+	set(LIB_ETAL_POLYG libEtalPolyg)
 endif()
 
 # ORGANISATION des en-tetes ELISE et fichiers Xml
@@ -142,20 +142,18 @@ if (WINDOWS)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC)
-
     execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-
     if(GCC_VERSION VERSION_GREATER 4.8 OR GCC_VERSION VERSION_EQUAL 4.8)
       set_source_files_properties(${TIFF_DIR}/el_dcraw.c PROPERTIES COMPILE_FLAGS -Wno-aggressive-loop-optimizations)
     endif()
+endif()
 
+if(QT_ENABLED)
+	set(SAISIE_DIR ${PROJECT_SOURCE_DIR}/src/saisieQT)
+	include(${SAISIE_DIR}/Elise_QT.cmake)
 endif()
 
 set(libElise elise)
-
-set(SAISIE_DIR ${PROJECT_SOURCE_DIR}/src/saisieQT)
-
-include(${SAISIE_DIR}/Elise_QT.cmake)
 
 # CONSTRUCTION : Lib ELISE
 
@@ -174,11 +172,12 @@ else()
 	add_library(${libElise} ${Elise_Src_Files} ${QT_ALLFILES})
 endif()
 
-if( ${qt_version} EQUAL 5 )
+if(QT_ENABLED)
 	target_link_libraries(${libElise} Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Concurrent Qt5::OpenGL)
+	add_subdirectory(saisieQT)
 endif()
 
-INSTALL(TARGETS ${libElise} ARCHIVE DESTINATION ${BUILD_PATH_LIB})
+install(TARGETS ${libElise} ARCHIVE DESTINATION ${BUILD_PATH_LIB})
 
 if (${WITH_HEADER_PRECOMP} AND (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_IS_CLANG))
 	enable_precompiled_headers_GCC(StdAfx.h ${libElise} "-fPIC -std=gnu++11")
@@ -186,16 +185,12 @@ if (${WITH_HEADER_PRECOMP} AND (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_I
 endif()
 
 # INSTALLATION : Dossier de destination lors de l'install
-#install(TARGETS elise ARCHIVE DESTINATION ${Install_Dir})
+# install(TARGETS elise ARCHIVE DESTINATION ${Install_Dir})
 
 add_subdirectory(CBinaires)
 
 if (WITH_INTERFACE)
 	add_subdirectory(interface)
-endif()
-
-if (NOT ${qt_version} EQUAL 0)
-	add_subdirectory(saisieQT)
 endif()
 
 set(Elise_Src_Files ${Elise_Src_Files} PARENT_SCOPE)

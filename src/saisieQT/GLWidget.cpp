@@ -194,15 +194,7 @@ void GLWidget::paintGL()
 	CHECK_GL_ERROR("GLWidget::paintGL end");
 }
 
-void GLWidget::initializeGL()
-{
-#if ELISE_QT_VERSION == 4
-    if(!glPopMatrix && ogl_LoadFunctions() == ogl_LOAD_FAILED)
-    {
-        printf("ogl_LOAD_FAILED ERROR LOAD FUNCTIONS OPENGL\n");
-    }
-#endif
-}
+void GLWidget::initializeGL() {} //TODO: RJ rm this
 
 int GLWidget::getWindowMeanValue(QPoint pos, int r)
 {
@@ -271,12 +263,7 @@ void GLWidget::overlay()
 
 int GLWidget::PixelRatio()
 {
-#if ELISE_QT_VERSION >= 5
     return devicePixelRatio();
-#else
-    return 1;
-#endif
-
 }
 
 void GLWidget::setInteractionMode(int mode, bool showmessage, bool showcams)
@@ -461,7 +448,7 @@ void GLWidget::checkTiles()
 
 		if (getGLData()->glImageMasked().glImage())
 		{
-		    //recherche des tuiles intersectées
+		    //recherche des tuiles intersectï¿½es
 
 		    QRectF aRectGL(QPointF(aRect.x(),aRect.y()),aRect.size());
 
@@ -520,16 +507,16 @@ void GLWidget::checkTiles()
 	//                    {
 	//                        tile->getMaskedImage()->_m_mask = new QImage(maskedImg->_m_mask->copy(rect));
 	//                    }
-	//                    else //il y a eu une saisie: il faut utiliser _m_rescaled_mask, car c'est lui qui stocke toutes les modifications (à changer ?)
+	//                    else //il y a eu une saisie: il faut utiliser _m_rescaled_mask, car c'est lui qui stocke toutes les modifications (ï¿½ changer ?)
 	//                    {
-	//                        //application du facteur d'échelle au QRect puis crop dans _m_rescaled_mask
+	//                        //application du facteur d'ï¿½chelle au QRect puis crop dans _m_rescaled_mask
 	//                        float scaleFactor = getGLData()->glImage().getLoadedImageRescaleFactor();
 
 	//                        QTransform trans = QTransform::fromScale(scaleFactor,scaleFactor);
 
 	//                        QImage rescaled_mask_crop = maskedImg->_m_rescaled_mask->copy(trans.mapRect(rect));
 
-	//                        //application du facteur d'échelle inverse (rescaled => full size)
+	//                        //application du facteur d'ï¿½chelle inverse (rescaled => full size)
 	//                        QImage mask_crop = rescaled_mask_crop.scaled(sz, Qt::KeepAspectRatio);
 
 	//                        tile->getMaskedImage()->_m_mask = new QImage(mask_crop);
@@ -811,12 +798,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     }
 
     m_lastClickZoom = event->pos() * PixelRatio();
-
-#if ELISE_QT_VERSION == 5
     setZoom(getZoom()*pow(1.1f,event->angleDelta().y() / 70.0f ));
-#else
-    setZoom(getZoom()*pow(1.1f,event->delta() / 70.0f ));
-#endif
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
@@ -950,12 +932,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
     if (hasDataLoaded())
     {
 
-#if ELISE_QT_VERSION == 5
         QPointF mPos = event->localPos();
-#else
-        QPointF mPos = event->posF();
-#endif
-
         mPos *= PixelRatio();
         QPointF pos = m_bDisplayMode2D ?  _matrixManager.WindowToImage(mPos, getZoom()) : mPos;
 
@@ -971,7 +948,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         {
             if (currentPolygon()->isSelected())                    // MOVE POLYGON
             {
-                //TODO: a verifier => y inversé en 3D - OK en 2D
+                //TODO: a verifier => y inversï¿½ en 3D - OK en 2D
                 QPoint lastPos = m_lastPosWindow*PixelRatio();
                 QPointF translation = m_bDisplayMode2D ? _matrixManager.WindowToImage(lastPos, getZoom()) : lastPos;
                 currentPolygon()->translate(pos - translation);
@@ -1061,12 +1038,7 @@ void GLWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (hasDataLoaded() && m_interactionMode == TRANSFORM_CAMERA && m_GLData->cloudCount() )
     {
-#if ELISE_QT_VERSION == 5
         QPointF pos = event->localPos();
-#else
-        QPointF pos = event->posF();
-#endif
-
         if (m_GLData->position2DClouds(_matrixManager,pos))
            update();
     }
@@ -1114,7 +1086,7 @@ void GLWidget::contextMenuEvent(QContextMenuEvent * event)
 
 void GLWidget::enterEvent(QEvent *event)
 {
-    // pour avoir le focus lorsque le curseur entre dans la fenêtre (par ex. movePointWithArrows)
+    // pour avoir le focus lorsque le curseur entre dans la fenï¿½tre (par ex. movePointWithArrows)
     // TODO a verifier -> peut etre gerer aussi deplacement en dehors de la fenetre
     setFocus(Qt::ActiveWindowFocusReason);
     setFocusPolicy(Qt::StrongFocus);

@@ -1,7 +1,5 @@
 add_executable(mm3d mm3d.cpp)
 
-#target_link_libraries(mm3d elise ${X11_LIBRARIES} ${WINSOCK2_LIBRARY} ${DYN_LIB_LIBRARY} ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ANN)
-
 target_link_libraries(mm3d elise ${X11_LIBRARIES} ${WINSOCK2_LIBRARY} ${DYN_LIB_LIBRARY} ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ANN)
 
 if(MINGW)
@@ -9,7 +7,7 @@ if(MINGW)
 	target_link_libraries(mm3d msvcr100)
 endif()
 
-if (( ${qt_version} EQUAL 5 ) AND UNIX)
+if (QT_ENABLED AND UNIX)
 	target_link_libraries(mm3d dl)
 endif()
 
@@ -42,23 +40,19 @@ endif()
 
 if(KAKADU_FOUND)
         if(UNIX)
-          target_link_libraries(mm3d pthread  ${KAKADU_LIBRARIES})
+          target_link_libraries(mm3d pthread ${KAKADU_LIBRARIES})
         else()
-                target_link_libraries(mm3d  ${KAKADU_LIBRARIES})
+                target_link_libraries(mm3d ${KAKADU_LIBRARIES})
         endif()
 endif()
-
 
 if(Boost_FOUND)
     target_link_libraries(mm3d ${Boost_LIBRARIES} ${Boost_THREADAPI})
 endif()
 
-
-
 INSTALL(TARGETS mm3d RUNTIME DESTINATION ${Install_Dir})
 
 INCLUDE( InstallRequiredSystemLibraries )
-
 
 if (NOT ${BUILD_ONLY_ELISE_MM3D})
         add_executable(AperiCloud  AperiCloud.c)
