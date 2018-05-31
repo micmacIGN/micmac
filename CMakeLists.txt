@@ -251,7 +251,7 @@ endif()
 
 if(${WITH_CPP11})
 	if(NOT MSVC)
-		message("Compile with c++11 support")
+		message(STATUS "-----> Compile with c++11 support")
 		# support c++11
 		if(NOT DARWIN) #TODO: if(NOT clang), the "precomopiled header bug" it tries to fix, is clang related, not osx related   
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -259,7 +259,7 @@ if(${WITH_CPP11})
 		# MODIF MPD, reverse Gregoire, car gnu++11 mulitplie par 6 le temps de compilation
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 		endif()
-		message("compile with " ${CMAKE_CXX_FLAGS} "flag")
+		message(STATUS "-- FLAG: " ${CMAKE_CXX_FLAGS})
     endif()
 endif()
 
@@ -593,7 +593,6 @@ if(CMAKE_COMPILER_IS_GNUCC)
 endif()
 
 # DEFINITION : Windows : le projet debug est genere directement sous bin pour avoir les informations de Debug
-
 if(MSVC)
 	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/bin)
