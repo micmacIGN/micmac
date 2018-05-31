@@ -1,8 +1,8 @@
 set(Src_TD_PPMD
 	${TDPPMD_DIR}/ReechHomol.cpp
-        ${TDPPMD_DIR}/DeformAnalyse.cpp
-        ${TDPPMD_DIR}/MatchTops.cpp
-        ${TDPPMD_DIR}/MoyMAF.cpp
+    ${TDPPMD_DIR}/DeformAnalyse.cpp
+    ${TDPPMD_DIR}/MatchTops.cpp
+    ${TDPPMD_DIR}/MoyMAF.cpp
 	${TDPPMD_DIR}/TD_MMProgMars2017.cpp
 	${TDPPMD_DIR}/cTD_Camera.cpp
 	${TDPPMD_DIR}/cTD_SetAppuis.cpp
@@ -80,8 +80,6 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/TaskCorrel.cpp
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/cplfromhomol.cpp
     ${TDPPMD_DIR}/TiePByMesh/TaskCorrel/GCPByMesh.cpp
-
-
     
     ${TDPPMD_DIR}/TiePByMesh/XMLDiffSeries/cAppliXMLDiffSeries.cpp
     ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/cAppliZBufferRaster.cpp
@@ -89,7 +87,6 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/cTri3D.cpp
     ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/cTri2D.cpp
     ${TDPPMD_DIR}/TiePByMesh/ZBufferRaster/ZBufferRaster.cpp
-
 
 	${TDPPMD_DIR}/EsSim/cAppliEsSimilitude.cpp
 	${TDPPMD_DIR}/EsSim/cImgEsSimilitude.cpp
@@ -122,14 +119,10 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/../RegTIRVIS/RegTIRVIS.cpp
 	${TDPPMD_DIR}/../RegTIRVIS/Resize.cpp
 
-
     ${TDPPMD_DIR}/RollingBasc/cAppliRollingBasc.cpp
 
     ${TDPPMD_DIR}/TiePByMesh/TiepTriFar/TiepTriFar.cpp
     ${TDPPMD_DIR}/TiePByMesh/TiepTriFar/TiepTriFar_method.cpp
-
-
-
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})

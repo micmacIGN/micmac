@@ -68,7 +68,7 @@ set(qt_ressource_files "${SAISIE_DIR}/icones/icones.qrc")
 qt5_add_resources(RC_SRCS ${qt_ressource_files})
 qt5_wrap_ui(saisie_ui ${ui_toWrap})
 
-if (WIN32)
+if(WIN32)
 	add_definitions(-DELISE_windows)
 endif()
 

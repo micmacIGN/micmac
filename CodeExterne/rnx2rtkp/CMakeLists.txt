@@ -28,12 +28,12 @@ add_executable(Rnx2rtkp
 
 target_compile_definitions(Rnx2rtkp PUBLIC -DTRACE -DENAGLO -DENAQZS -DENAGAL -DNFREQ=3)
 
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	TARGET_LINK_LIBRARIES(Rnx2rtkp m rt)
-ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	TARGET_LINK_LIBRARIES(Rnx2rtkp winmm.lib)
-ENDIF()
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	target_link_libraries(Rnx2rtkp m rt)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	target_link_libraries(Rnx2rtkp winmm.lib)
+endif()
 
-if (BIN_AUX_FULL_PATH)
-	INSTALL(TARGETS Rnx2rtkp RUNTIME DESTINATION ${BIN_AUX_FULL_PATH})
+if(BIN_AUX_FULL_PATH)
+	install(TARGETS Rnx2rtkp RUNTIME DESTINATION ${BIN_AUX_FULL_PATH})
 endif()

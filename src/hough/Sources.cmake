@@ -12,7 +12,7 @@ set(Hough_Src_Files
 	${HOUGH_DIR}/hough_sub_pixel.cpp
 )
 
-SOURCE_GROUP(Hough FILES ${Hough_Src_Files})
+source_group(Hough FILES ${Hough_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

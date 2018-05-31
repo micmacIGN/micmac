@@ -4,7 +4,7 @@ set(San_Src_Files
 	${SAN_DIR}/torique.cpp
 )
 
-SOURCE_GROUP(San FILES ${San_Src_Files})
+source_group(San FILES ${San_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

@@ -5,7 +5,7 @@ if(QT_ENABLED)
         ../include/general/visual_buttons.h
     )
 
-QT5_WRAP_CPP(Uti_HEADERS_MOCED ${Uti_Headers_ToMoc})
+qt5_wrap_cpp(Uti_HEADERS_MOCED ${Uti_Headers_ToMoc})
 endif()
 
 set(Util_Src_Files
@@ -51,7 +51,7 @@ set(Util_Src_Files
         ${UTIL_DIR}/PlyFile.cpp
 )
 
-SOURCE_GROUP(Util FILES ${Util_Src_Files})
+source_group(Util FILES ${Util_Src_Files})
 
 set(Elise_Src_Files
         ${Elise_Src_Files}

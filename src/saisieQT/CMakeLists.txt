@@ -19,7 +19,7 @@ set(saisieqt_files ${saisieqt_files} PARENT_SCOPE)
 
 set(FILES_TO_TRANSLATE ${FILES_TO_TRANSLATE} ${saisieQT_SRCS} PARENT_SCOPE)
 
-if (UPDATE_TRANSLATIONS)
+if(UPDATE_TRANSLATIONS)
     set(translation_dir ${CMAKE_SOURCE_DIR}/include/qt/translations)
     #message ("translation_dir " ${translation_dir})
 
