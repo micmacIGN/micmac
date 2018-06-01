@@ -271,7 +271,7 @@ if(${CUDA_ENABLED})
 	option(CUDA_NVTOOLS "Use NV TOOLS" OFF )
 
 	find_package(CUDA REQUIRED)
-	indclude(FindCUDA)
+	include(FindCUDA)
 
 	if(CUDA_FOUND)
 		set(Cuda_Sample_path_Windows_VISTA_7_8 "$ENV{AllUsersProfile}/NVIDIA Corporation/CUDA Samples/v${CUDA_VERSION}/")
