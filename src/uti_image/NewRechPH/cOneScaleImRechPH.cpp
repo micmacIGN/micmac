@@ -268,6 +268,31 @@ bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & a
 }
 
 
+bool cOneScaleImRechPH::IsCol(int aRhoMax,const  std::vector<std::vector<Pt2di> >  & aVVPt,const Pt2di & aP)
+{
+   if ((aP.x <=aRhoMax) || (aP.y<=aRhoMax) || (aP.x>=mSz.x-aRhoMax-1) || (aP.y>=mSz.y-aRhoMax-1))
+      return false;
+
+   int aV0 = mTIm.get(aP);
+   for (const auto & aVpt :  aVVPt)
+   {
+       std::vector<int> aVB;
+       for (const auto aVois : aVpt)
+       {
+           aVB.push_back(CmpValAndDec(aV0,mTIm.get(aP+aVois),aVois));
+       }
+       aVB.push_back(aVB[0]);
+       int aNbTrans = 0;
+       for (int aK=1 ; aK<int(aVB.size()) ; aK++)
+          if (aVB.at(aK-1) != aVB.at(aK))
+             aNbTrans ++;
+
+      if (aNbTrans!=2) 
+         return false;
+   }
+
+   return true;
+}
 
 
 
@@ -275,6 +300,19 @@ bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & a
 
 void cOneScaleImRechPH::CalcPtsCarac(bool Basic)
 {
+   std::vector<std::vector<Pt2di> > aVVPts;
+   int aRhoMaxCol=0;
+   {
+      for (double aRho = 1.5; aRho < 3.0 * mScalePix  ; aRho+= 0.7)
+      {
+          cFastCriterCompute * aFCC = cFastCriterCompute::Circle(aRho);
+
+          aVVPts.push_back(aFCC->VPt());
+          delete aFCC;
+          aRhoMaxCol = ElMax(round_up(aRho+1.5),aRhoMaxCol);
+      }
+   }
+
    static bool First = true;
    U_INT1  NbTrans[256];
    if (First)
@@ -301,6 +339,9 @@ void cOneScaleImRechPH::CalcPtsCarac(bool Basic)
    int aNbMax = 0;
    int aNbMin = 0;
    int aNbCol = 0;
+   int aNbMaxStab = 0;
+   int aNbMinStab = 0;
+   int aNbColStab = 0;
 
    bool DoMin = mAppli.DoMin();
    bool DoMax = mAppli.DoMax();
@@ -323,7 +364,8 @@ void cOneScaleImRechPH::CalcPtsCarac(bool Basic)
               // std::cout << "DAxx "<< DoMax << " " << aFlag << "\n";
                if (SelectVois(aP,aVoisMinMax,1))
                {
-                  aLab = eTPR_GrayMax;
+                   aLab = eTPR_GrayMax;
+                   aNbMaxStab++;
                }
            }
            if (DoMin &&  (aFlag == 255) )
@@ -333,12 +375,19 @@ void cOneScaleImRechPH::CalcPtsCarac(bool Basic)
                if (SelectVois(aP,aVoisMinMax,-1))
                {
                    aLab = eTPR_GrayMin;
+                   aNbMinStab++;
                }
            }
 
-           if (NbTrans[aFlag] == 2)
+           // Les cols donnent un mauvais score
+           if (false && (NbTrans[aFlag] == 2))
            {
                aNbCol++;
+               if (IsCol(aRhoMaxCol,aVVPts,aP))
+               {
+                   aLab = eTPR_GraySadl;
+                   aNbColStab++;
+               }
            }
 
            if (aLab!=eTPR_NoLabel)
@@ -348,7 +397,15 @@ void cOneScaleImRechPH::CalcPtsCarac(bool Basic)
         }
    }
 
-   std::cout << "  ====================  NbMin " << aNbMin << " NbMax " << aNbMax << " Col " << aNbCol << "\n";
+   // Ne pas supprimer, stat utile sur les cols
+   if (0)
+   {
+      std::cout << "  ====================  "
+                << " NbMin " << aNbMin  << " " << aNbMinStab/double(aNbMin)
+                << " NbMax " << aNbMax  << " " << aNbMaxStab/double(aNbMax)
+                << " NbCol " << aNbCol  << " " << aNbMaxStab/double(aNbCol)
+                << "\n";
+   }
 
 }
 
@@ -392,7 +449,10 @@ void cOneScaleImRechPH::Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC)
              if (aBif)
              {
                 aPC.Pt() = aBif->RPt();
-                aPC.Kind() = (SignOfType(aBif->Type())==1) ? eTPR_BifurqMax : eTPR_BifurqMin;
+                int aS = SignOfType(aBif->Type());
+                if (aS==1)  aPC.Kind() = eTPR_BifurqMax;
+                if (aS==-1) aPC.Kind() = eTPR_BifurqMin;
+                if (aS==0) aPC.Kind() = eTPR_BifurqSadl;
                 aPC.DirMS() = Pt2dr(0,0);
              }
              else

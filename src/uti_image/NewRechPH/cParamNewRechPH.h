@@ -9,8 +9,9 @@ typedef enum
   eTPR_GrayMin,
   eTPR_BifurqMax,
   eTPR_BifurqMin,
+  eTPR_NoLabel,
   eTPR_GraySadl,
-  eTPR_NoLabel
+  eTPR_BifurqSadl
 } eTypePtRemark;
 void xml_init(eTypePtRemark & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypePtRemark & aVal);
@@ -615,6 +616,163 @@ void  BinaryDumpInFile(ELISE_fp &,const cFitsParam &);
 void  BinaryUnDumpFromFile(cFitsParam &,ELISE_fp &);
 
 std::string  Mangling( cFitsParam *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXAPA_OneMatch
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXAPA_OneMatch & anObj,cElXMLTree * aTree);
+
+
+        std::string & Master();
+        const std::string & Master()const ;
+
+        std::string & Pattern();
+        const std::string & Pattern()const ;
+
+        std::string & PatternRef();
+        const std::string & PatternRef()const ;
+    private:
+        std::string mMaster;
+        std::string mPattern;
+        std::string mPatternRef;
+};
+cElXMLTree * ToXMLTree(const cXAPA_OneMatch &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXAPA_OneMatch &);
+
+void  BinaryUnDumpFromFile(cXAPA_OneMatch &,ELISE_fp &);
+
+std::string  Mangling( cXAPA_OneMatch *);
+
+class cXAPA_PtCar
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXAPA_PtCar & anObj,cElXMLTree * aTree);
+
+
+        std::string & Pattern();
+        const std::string & Pattern()const ;
+    private:
+        std::string mPattern;
+};
+cElXMLTree * ToXMLTree(const cXAPA_PtCar &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXAPA_PtCar &);
+
+void  BinaryUnDumpFromFile(cXAPA_PtCar &,ELISE_fp &);
+
+std::string  Mangling( cXAPA_PtCar *);
+
+class cXlmAimeOneDir
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXlmAimeOneDir & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< bool > & DoIt();
+        const cTplValGesInit< bool > & DoIt()const ;
+
+        cTplValGesInit< bool > & DoMatch();
+        const cTplValGesInit< bool > & DoMatch()const ;
+
+        cTplValGesInit< bool > & DoPtCar();
+        const cTplValGesInit< bool > & DoPtCar()const ;
+
+        cTplValGesInit< bool > & DoRef();
+        const cTplValGesInit< bool > & DoRef()const ;
+
+        cTplValGesInit< int > & ZoomF();
+        const cTplValGesInit< int > & ZoomF()const ;
+
+        cTplValGesInit< int > & NumMatch();
+        const cTplValGesInit< int > & NumMatch()const ;
+
+        std::string & Dir();
+        const std::string & Dir()const ;
+
+        std::string & Ori();
+        const std::string & Ori()const ;
+
+        std::list< cXAPA_OneMatch > & XAPA_OneMatch();
+        const std::list< cXAPA_OneMatch > & XAPA_OneMatch()const ;
+
+        std::string & Pattern();
+        const std::string & Pattern()const ;
+
+        cXAPA_PtCar & XAPA_PtCar();
+        const cXAPA_PtCar & XAPA_PtCar()const ;
+    private:
+        cTplValGesInit< bool > mDoIt;
+        cTplValGesInit< bool > mDoMatch;
+        cTplValGesInit< bool > mDoPtCar;
+        cTplValGesInit< bool > mDoRef;
+        cTplValGesInit< int > mZoomF;
+        cTplValGesInit< int > mNumMatch;
+        std::string mDir;
+        std::string mOri;
+        std::list< cXAPA_OneMatch > mXAPA_OneMatch;
+        cXAPA_PtCar mXAPA_PtCar;
+};
+cElXMLTree * ToXMLTree(const cXlmAimeOneDir &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXlmAimeOneDir &);
+
+void  BinaryUnDumpFromFile(cXlmAimeOneDir &,ELISE_fp &);
+
+std::string  Mangling( cXlmAimeOneDir *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlAimeParamApprentissage
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlAimeParamApprentissage & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< bool > & DefDoIt();
+        const cTplValGesInit< bool > & DefDoIt()const ;
+
+        cTplValGesInit< bool > & DefDoMatch();
+        const cTplValGesInit< bool > & DefDoMatch()const ;
+
+        cTplValGesInit< bool > & DefDoPtCar();
+        const cTplValGesInit< bool > & DefDoPtCar()const ;
+
+        cTplValGesInit< bool > & DefDoRef();
+        const cTplValGesInit< bool > & DefDoRef()const ;
+
+        cTplValGesInit< std::string > & DefParamPtCar();
+        const cTplValGesInit< std::string > & DefParamPtCar()const ;
+
+        std::list< cXlmAimeOneDir > & XlmAimeOneDir();
+        const std::list< cXlmAimeOneDir > & XlmAimeOneDir()const ;
+    private:
+        cTplValGesInit< bool > mDefDoIt;
+        cTplValGesInit< bool > mDefDoMatch;
+        cTplValGesInit< bool > mDefDoPtCar;
+        cTplValGesInit< bool > mDefDoRef;
+        cTplValGesInit< std::string > mDefParamPtCar;
+        std::list< cXlmAimeOneDir > mXlmAimeOneDir;
+};
+cElXMLTree * ToXMLTree(const cXmlAimeParamApprentissage &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlAimeParamApprentissage &);
+
+void  BinaryUnDumpFromFile(cXmlAimeParamApprentissage &,ELISE_fp &);
+
+std::string  Mangling( cXmlAimeParamApprentissage *);
 
 /******************************************************/
 /******************************************************/

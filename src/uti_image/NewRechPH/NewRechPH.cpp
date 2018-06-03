@@ -48,13 +48,6 @@ double TimeAndReset(ElTimer &aChrono )
    return aRes;
 }
 
-std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt)
-{
-    std::string aDirGlob = DirOfFile(aNameGlob);
-    std::string aDirLoc= "NewPH" + anExt + "/";
-    ELISE_fp::MkDirSvp(aDirGlob+aDirLoc);
-    return aDirGlob+aDirLoc + NameWithoutDir(aNameGlob) + (Bin ? ".dmp" : ".xml");
-}
 
 
 void  cAppli_NewRechPH::Clik()
@@ -529,7 +522,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
 
 
   // MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
-  MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
+  SaveStdSetCaracMultiLab(aSPC,mName,mExtSave);
 
   double aTimeXml = TimeAndReset(aChrono);
 
@@ -859,35 +852,148 @@ int Test_NewRechPH(int argc,char ** argv)
 
 }
 
-/*
-int Generate_ImagSift(int argc,char ** argv)
+/*******************************************************************/
+/*                                                                 */
+/*                    Apprentissage                                */
+/*                                                                 */
+/*******************************************************************/
+
+class cAimeApprentissage
 {
-     Pt2di aSz(1000,1000);
-     Im2D_REAL4 aIm(aSz.x,aSz.y);
+     public :
 
-     for (int aKx=0 ; aKx<10 ; aKx++)
-     {
-         for (int aKy=0 ; aKy<10 ; aKy++)
-         {
-             Pt2di aP0(aKx*100,aKy*100);
-             Pt2di aP1((aKx+1)*100,(aKy+1)*100);
-             Pt2dr aMil = Pt2dr(aP0+aP1) / 2.0;
+        cAimeApprentissage(int argc,char ** argv);
+    private :
+        void DoOneDir(const cXlmAimeOneDir &);
+        void DoOneMatch();
+        void DoOnePtCar();
+        void DoOneRef();
+        void CD(const std::string &);
 
-             double aSigma = (0.5*aKx+1.5*aKy+1);
-             double aSign = ((aKx+aKy) % 2)   ? 1 : -1;
+        const cXlmAimeOneDir * mCurDir;
+        std::string mNameParam;
+        cXmlAimeParamApprentissage mParam;
+        
+};
 
-             ELISE_COPY
-             (
-                  rectangle(aP0,aP1),
-                  128 * (1+aSign * exp(-  ( Square(FX-aMil.x) + Square(FY-aMil.y)) / Square(aSigma))),
-                  aIm.out()
-             );
-
-         }
-     }
-     Tiff_Im::CreateFromIm(aIm,"TestSift.tif");
+void cAimeApprentissage::CD(const std::string & aDir)
+{
+// Pas sur que ce soit portable, et comme cela ne tournera que sur ma machine ...
+#if (ELISE_OS==ELISE_LINUX)
+    int aRes = chdir(aDir.c_str());
+    if (aRes)
+    {
+    }
+#endif
 }
-*/
+
+void cAimeApprentissage::DoOneRef()
+{
+    std::list<std::string>  aLCom;
+    for (const auto & aMatch : mCurDir->XAPA_OneMatch())
+    {
+        //                 <PatternRef Nb="1" Type="std::string">    </PatternRef>
+        std::list<std::string>  aLN =  RegexListFileMatch("./",aMatch.PatternRef(),1,false);
+        std::cout << "=============================  " <<  aMatch.Master()  << "\n";
+        for (const auto & aName : aLN)
+        {
+            if (aName!=aMatch.Master())
+            {
+               std::string aCom =   "mm3d StatPHom " 
+                                 + aMatch.Master() +  " "
+                                 + aName           +  " "
+                                 + mCurDir->Ori()  + " "
+                                 + "NC= ";
+               aLCom.push_back(aCom);
+               // std::cout << "   NAMME= " << aName << "\n";
+            }
+        }
+
+    }
+    cEl_GPAO::DoComInParal(aLCom);
+}
+
+void cAimeApprentissage::DoOnePtCar()
+{
+    std::string aComPtCar =     "mm3d TestLib TestNewRechPH " 
+                              + QUOTE(mCurDir->XAPA_PtCar().Pattern())  + " "
+                              + mParam.DefParamPtCar().Val() + " "
+                           ;
+    System(aComPtCar);
+}
+
+void cAimeApprentissage::DoOneMatch()
+{
+    for (const auto & aMatch : mCurDir->XAPA_OneMatch())
+    {
+        int aZoomF = mCurDir->ZoomF().Val();
+        int aNumMatch = 6 - round_ni(log(aZoomF/4)/log(2));
+        aNumMatch = mCurDir->NumMatch().ValWithDef(aNumMatch);
+        std::string  aComMatch =      "mm3d Malt GeomImage " 
+                              +  QUOTE(aMatch.Pattern()) + " " 
+                              +  mCurDir->Ori() + " " 
+                              + "  Master=" + aMatch.Master()   + " "
+                              + " ZoomF=" + ToString(mCurDir->ZoomF().Val()) + " " 
+                           ;
+        std::string aComRename = " mm3d PHom_RenameRef " + ToString(aNumMatch) + " " + aMatch.Master() ;
+        std::cout << aComMatch << "\n";
+        std::cout << aComRename << "\n";
+        System(aComMatch);
+        System(aComRename);
+    }
+}
+
+void cAimeApprentissage::DoOneDir(const cXlmAimeOneDir & aXAOD)
+{
+   mCurDir  = & aXAOD;
+   if (!mCurDir->DoIt().ValWithDef(mParam.DefDoIt().Val()))
+      return;
+
+   CD(mCurDir->Dir());
+   {
+      if (mCurDir->DoMatch().ValWithDef(mParam.DefDoMatch().Val()))
+      {
+         DoOneMatch();
+      }
+
+      if (mCurDir->DoPtCar().ValWithDef(mParam.DefDoPtCar().Val()))
+      {
+         DoOnePtCar();
+      }
+
+      if (mCurDir->DoRef().ValWithDef(mParam.DefDoRef().Val()))
+      {
+         DoOneRef();
+      }
+   }
+   std::string aComCp = "cp PC-Ref-NH/* ../PC-Ref-NH/";
+   System(aComCp);
+   CD("..");
+}
+
+cAimeApprentissage::cAimeApprentissage(int argc,char ** argv)
+{
+   MMD_InitArgcArgv(argc,argv);
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()  << EAMC(mNameParam, "Name Parameter",  eSAM_IsPatFile),
+         LArgMain()  //  << EAM(mPowS, "PowS",true,"Scale Pow")
+   );
+
+   mParam = StdGetFromNRPH(mNameParam,XmlAimeParamApprentissage);
+   for (const auto  & aP : mParam.XlmAimeOneDir())
+   {
+      DoOneDir(aP);
+   }
+   
+}
+
+int CPP_AimeApprent(int argc,char ** argv)
+{
+   cAimeApprentissage anAA(argc,argv);
+   return EXIT_SUCCESS;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

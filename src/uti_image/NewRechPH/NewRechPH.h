@@ -113,6 +113,7 @@ class cOneScaleImRechPH
 
 
           void CalcPtsCarac(bool Basic);
+          bool IsCol(int aRhoMax,const  std::vector<std::vector<Pt2di> >  & aVVPt,const Pt2di & aP);
           void Show(Video_Win* aW);
           void CreateLink(cOneScaleImRechPH & aLR);
           void Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC);
