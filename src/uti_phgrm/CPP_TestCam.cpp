@@ -310,6 +310,7 @@ int TestDistortion_main(int argc,char ** argv)
     Pt2dr aPt2d;
     Pt3dr aPt3d;
     REAL prof=10;
+    bool showAngles=false;
 
     ElInitArgMain
     (
@@ -318,6 +319,7 @@ int TestDistortion_main(int argc,char ** argv)
         LArgMain()  <<  EAM(aPt2d, "p2d", true, "Point in picture coordinates")
                     <<  EAM(aPt3d, "p3d", true, "Point in world coordinates")
                     <<  EAM(prof, "prof", true, "prof for p2d (default=10)")
+                    <<  EAM(showAngles, "showAngles", true, "show angles in/out (default=false)")
     );
 
     cElemAppliSetFile anEASF(aNameCalib);
@@ -353,7 +355,27 @@ int TestDistortion_main(int argc,char ** argv)
     Pt3dr aPtTer(0.976092906909062696, -0.797308401978953252, -8.10257300823790594);
     std::cout << "Ter2Capteur "<< aCam->Ter2Capteur(aPtTer) << " " << aCam->NormC2M(aCam->Ter2Capteur(aPtTer)) << "\n";*/
 
-   return EXIT_SUCCESS;
+    if (showAngles)
+    {
+        //table of input angles VS ouput angles
+        std::cout<<"\ninAngle outAngle outX/f\n";
+        double inAngle,outAngle;
+        Pt3dr inPt3d;
+        Pt2dr outPt2d;
+        for (int i=-90;i<=90;i++)
+        {
+            inAngle=i*PI/180;
+            inPt3d=Pt3dr(sin(inAngle),0,cos(inAngle));
+            outPt2d=aCam->L3toF2(inPt3d);
+            if ((outPt2d.x>0)&&(outPt2d.x<aCam->Sz().x))
+            {
+                outAngle=atan((outPt2d.x-aCam->PP().x)/aCam->Focale());
+                std::cout<<inAngle<<" "<<outAngle<<" "<<(outPt2d.x-aCam->PP().x)/aCam->Focale()<<"\n";
+            }
+        }
+    }
+
+    return EXIT_SUCCESS;
 }
 
 
