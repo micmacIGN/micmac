@@ -310,7 +310,89 @@ REAL cStatOneClassEquiv::Cov() const
          }
      }
      if (verbose) std::cout << "aSigmaTot = " << aSigmaTot<<std::endl;
+    // REAL aSigmaTotMoyenne = 0.0;
+    // std::vector<REAL> vMoyenne;
+    // for (int aIndPix=0; aIndPix<mNbOK ; aIndPix++)// Pour chaque pixel de la vignette
+    // {
+    //     int aKPix = mIndOK[aIndPix];// Le pointeur dans le tableau pour ce pixel
+    //     {
+    //        REAL aS1=0.0;
+    //        for (INT aKDist=0; aKDist<mKCurDist ; aKDist++)// Pour toutes les images dispo
+    //        {
+    //           double aV =  mData[aKDist][aKPix];
+    //           aS1 += aV;
+    //        }
+    //        vMoyenne.push_back(aS1/mKCurDist);
+    //     }
+    // }
+    // for (int aIndPix=0; aIndPix<mNbOK ; aIndPix++)// Pour chaque pixel de la vignette
+    // {
+    //     int aKPix = mIndOK[aIndPix];// Le pointeur dans le tableau pour ce pixel
+    //     {
+    //        REAL aS=0.0;
+    //        for (INT aKDist=0; aKDist<mKCurDist ; aKDist++)// Pour toutes les images dispo
+    //        {
+    //           double aV =  mData[aKDist][aKPix];
+    //           aS += ElSquare(aV - vMoyenne[aIndPix]);
+    //        }
+    //        aSigmaTotMoyenne += aS;
+    //     }
+    // }
+    // if (verbose) std::cout << "aSigmaTotMoyenne = " << aSigmaTotMoyenne<<std::endl;
 
+//    REAL aSigmaTotMed = 0.0;
+//    std::vector<REAL> vMed;
+//    for (int aIndPix=0; aIndPix<mNbOK ; aIndPix++)// Pour chaque pixel de la vignette
+//    {
+//        int aKPix = mIndOK[aIndPix];// Le pointeur dans le tableau pour ce pixel
+//        {
+//           REAL aS1=0.0;
+//           std::vector<REAL> vMedPix;
+//           for (INT aKDist=0; aKDist<mKCurDist ; aKDist++)// Pour toutes les images dispo
+//           {
+//              double aV =  mData[aKDist][aKPix];
+//              vMedPix.push_back(aV);
+//           }
+//           std::sort(vMedPix.begin(),vMedPix.end());
+//           vMed.push_back(vMedPix[vMedPix.size()/2]);
+//        }
+//    }
+
+/* Mediane des covariances
+    std::vector<REAL> vScore;
+    for (INT aKDist=0; aKDist<mKCurDist ; aKDist++)
+    {
+        REAL aS=0.0;
+        for (int aIndPix=0; aIndPix<mNbOK ; aIndPix++)// Pour chaque pixel de la vignette
+         {
+           int aKPix = mIndOK[aIndPix];// Le pointeur dans le tableau pour ce pixel
+           double aV =  mData[aKDist][aKPix];
+           aS += ElSquare(aV - vMed[aIndPix]);
+         }
+         vScore.push_back(aS);
+    }
+    std::sort(vScore.begin(),vScore.end());
+    aSigmaTotMed = vScore[vScore.size()/2] * vScore.size();
+    if (verbose) std::cout << "aSigmaTotMed = " << aSigmaTotMed<<std::endl;
+*/
+
+//// /* Version ini
+//    for (int aIndPix=0; aIndPix<mNbOK ; aIndPix++)// Pour chaque pixel de la vignette
+//    {
+//        int aKPix = mIndOK[aIndPix];// Le pointeur dans le tableau pour ce pixel
+//        {
+//           REAL aS=0.0;
+//           for (INT aKDist=0; aKDist<mKCurDist ; aKDist++)// Pour toutes les images dispo
+//           {
+//              double aV =  mData[aKDist][aKPix];
+//              aS += ElSquare(aV - vMed[aIndPix]);
+//           }
+//           aSigmaTotMed += aS;
+//        }
+//    }
+//    if (verbose) std::cout << "aSigmaTotMed = " << aSigmaTotMed << std::endl;
+//    aSigmaTot = aSigmaTotMed;
+////*/
 /*
   for (int aKPix=0; aKPix<mNbV ; aKPix++)
   {
