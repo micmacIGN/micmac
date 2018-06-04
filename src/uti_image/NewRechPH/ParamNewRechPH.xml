@@ -17,10 +17,21 @@
    <enum Name="eTypePtRemark">
       <eTPR_LaplMax>      </eTPR_LaplMax>
       <eTPR_LaplMin>      </eTPR_LaplMin>
+
       <eTPR_GrayMax>      </eTPR_GrayMax>
       <eTPR_GrayMin>      </eTPR_GrayMin>
-      <eTPR_GraySadl>      </eTPR_GraySadl>
+
+      <eTPR_BifurqMax>    </eTPR_BifurqMax>
+      <eTPR_BifurqMin>    </eTPR_BifurqMin>
+
       <eTPR_NoLabel>  </eTPR_NoLabel>
+      <!-- Apparement les sadl points sont peu fiables, en plus il
+          semblent (???) couter cher en temps, donc on les met pas ,
+          mais on laisse dans le code si on reprend + tard
+      -->
+
+      <eTPR_GraySadl>      </eTPR_GraySadl>
+      <eTPR_BifurqSadl>    </eTPR_BifurqSadl>
    </enum>
 
 <!--
@@ -117,6 +128,9 @@
          <ImLogPol Nb="1" Type="Im2D_INT1"> </ImLogPol>
          <VectRho   Nb="1" Type="std::vector<double>">  </VectRho>
          <ProfR Nb="1" RefType="ProfilRad">  </ProfR>
+         <Id   Nb="1" Type="int">  </Id>  <!-- Tuning -->
+         <HeapInd   Nb="1" Type="int">  </HeapInd>  <!-- Tuning -->
+         <Prio   Nb="1" Type="double">  </Prio>  <!-- Tuning -->
    </OnePCarac>
 
    <SetPCarac  Nb="1" Class="true">
@@ -183,6 +197,41 @@
        <SeuilOL Nb="1" RefType="SeuilFitsParam">  </SeuilOL>
        <SeuilGen Nb="1" RefType="SeuilFitsParam"> </SeuilGen>
    </FitsParam>
+
+<!--
+mm3d Malt GeomImage "Soldat-Hue-IMGP703[0-2].JPG" AllRel Master=Soldat-Hue-IMGP7031.JPG ZoomF=4
+mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
+-->
+
+   <XmlAimeParamApprentissage Nb="1" Class="true" ToReference="true">
+       <DefDoIt Nb="?" Type="bool" Def="true"> </DefDoIt>
+       <DefDoMatch Nb="?" Type="bool" Def="true"> </DefDoMatch>
+       <DefDoPtCar Nb="?" Type="bool" Def="true"> </DefDoPtCar>
+       <DefDoRef   Nb="?" Type="bool" Def="true"> </DefDoRef>
+       <DefParamPtCar Nb="?" Type="std::string" Def=""> </DefParamPtCar>
+
+       <XlmAimeOneDir Nb="*">
+            <DoIt Nb="?" Type="bool"> </DoIt>
+            <DoMatch Nb="?" Type="bool"> </DoMatch>
+            <DoPtCar Nb="?" Type="bool"> </DoPtCar>
+            <DoRef   Nb="?" Type="bool"> </DoRef>
+            <ZoomF Nb="?" Type="int" Def="4"> </ZoomF>
+            <NumMatch Nb="?" Type="int"> </NumMatch>
+
+            <Dir Nb="1" Type="std::string"> </Dir>
+            <Ori Nb="1" Type="std::string"> </Ori>
+
+            <XAPA_OneMatch Nb="*">
+                <Master Nb="1" Type="std::string">        </Master>
+                <Pattern Nb="1" Type="std::string">       </Pattern>
+                <PatternRef Nb="1" Type="std::string">    </PatternRef>
+            </XAPA_OneMatch>
+
+            <XAPA_PtCar Nb="1">
+                <Pattern  Nb="1" Type="std::string" AccessorFils="false"> </Pattern>
+            </XAPA_PtCar>
+       </XlmAimeOneDir>
+   </XmlAimeParamApprentissage>
 
 
 <Verbatim File=".h.cpp">

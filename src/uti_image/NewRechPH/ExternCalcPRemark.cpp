@@ -40,21 +40,52 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
-cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & aExt)
+std::string NameFileNewPCarac(eTypePtRemark aLab,const std::string & aNameGlob,bool Bin,const std::string & anExt)
 {
-   return new cSetPCarac(StdGetFromNRPH(NameFileNewPCarac(aNameIm,true, aExt),SetPCarac));
-/*
-   return new cSetPCarac
-               (
-                   StdGetObjFromFile<cSetPCarac>
-                   (
-                        NameFileNewPCarac(aNameIm,true, aExt),
-                        MMDir() + "src/uti_image/NewRechPH/ParamNewRechPH.xml",
-                        "SetPCarac",
-                        "SetPCarac"
-                    )
-               );
-*/
+    std::string aDirGlob = DirOfFile(aNameGlob);
+    std::string aDirLoc= "NewPH" + anExt + "/";
+    ELISE_fp::MkDirSvp(aDirGlob+aDirLoc);
+
+    return aDirGlob+aDirLoc + NameWithoutDir(aNameGlob) +  "_" + eToString(aLab) + (Bin ? ".dmp" : ".xml");
+}
+
+
+cSetPCarac * LoadStdSetCarac(eTypePtRemark aLab,const std::string & aNameIm,const std::string & aExt)
+{
+   if (aLab != eTPR_NoLabel)
+   {
+      return new cSetPCarac(StdGetFromNRPH(NameFileNewPCarac(aLab,aNameIm,true, aExt),SetPCarac));
+   }
+
+   cSetPCarac * aRes = new cSetPCarac;
+   for (int aKLab=0 ; aKLab<int(eTPR_NoLabel) ; aKLab++)
+   {
+       cSetPCarac * aSetLab =  new cSetPCarac(StdGetFromNRPH(NameFileNewPCarac(eTypePtRemark(aKLab),aNameIm,true, aExt),SetPCarac));
+       for (auto & aPC : aSetLab->OnePCarac())
+       {
+           aRes->OnePCarac().push_back(aPC);
+       }
+       delete aSetLab;
+   }
+     
+   return aRes;
+}
+
+void  SaveStdSetCaracMultiLab(const cSetPCarac aSetGlob,const std::string & aNameIm,const std::string & aExt)
+{
+   for (int aKLab=0 ; aKLab<int(eTPR_NoLabel) ; aKLab++)
+   {
+      cSetPCarac  aSetLab ;
+      eTypePtRemark aLab = (eTypePtRemark) aKLab;
+      for (auto & aPC : aSetGlob.OnePCarac())
+      {
+         if (aPC.Kind() == aLab)
+         {
+            aSetLab.OnePCarac().push_back(aPC);
+         }
+      }
+      MakeFileXML(aSetLab,NameFileNewPCarac(aLab,aNameIm,true,aExt));
+   }
 }
 
 
@@ -182,27 +213,36 @@ void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW,bool
 /*****************************************************/
 
 cPtRemark::cPtRemark(const Pt2dr & aPt,eTypePtRemark aType,int aNiv) :
-     mPtR   (aPt),
+     mRPt   (aPt),
      mType  (aType),
-     mHRs   (),
-     mLR    (0),
+     mHighRs (),
+     mLowR  (0),
      mNiv   (aNiv)
 {
 }
 
 
-void cPtRemark::MakeLink(cPtRemark * aHR)
+void cPtRemark::MakeLink(cPtRemark * aHighRes)
 {
-   mHRs.push_back(aHR);
-   aHR->mLR = this;
+   mHighRs.push_back(aHighRes);
+   aHighRes->mLowR = this;
 }
 
 void  cPtRemark::RecGetAllPt(std::vector<cPtRemark *> & aRes)
 {
      aRes.push_back(this);
-     for (auto & aPt:  mHRs)
+     for (auto & aPt:  mHighRs)
          aPt->RecGetAllPt(aRes);
 }
+
+
+Pt2dr cPtRemark::RPtAbs(cAppli_NewRechPH & anAppli) const
+{
+    cOneScaleImRechPH *  anIm = anAppli.GetImOfNiv(mNiv,true);
+    return mRPt * (double) anIm->PowDecim();
+}
+
+
 
 /*****************************************************/
 /*                                                   */
@@ -216,11 +256,15 @@ int SignOfType(eTypePtRemark aKind)
    {
        case eTPR_LaplMax :
        case eTPR_GrayMax :
+       case eTPR_BifurqMax :
             return 1;
 
        case eTPR_LaplMin :
        case eTPR_GrayMin :
+       case eTPR_BifurqMin :
             return -1;
+       case eTPR_GraySadl :
+            return 0;
        default :
             ELISE_ASSERT(false,"cAppli_NewRechPH::PtOfBuf");
    }
@@ -228,8 +272,9 @@ int SignOfType(eTypePtRemark aKind)
 }
 
 cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
-    mLR        (aLR),
-    mBrScaleStab (-1)
+    mLR          (aLR),
+    mBrScaleStab (-1),
+    mBifurk      (nullptr)
 {
     std::vector<cPtRemark *> aVPt;
     mLR->RecGetAllPt(aVPt);
@@ -240,73 +285,102 @@ cBrinPtRemark::cBrinPtRemark(cPtRemark * aLR,cAppli_NewRechPH & anAppli) :
     for (auto & aPt:  aVPt)
     {
         aNivMin = ElMin(aNivMin,aPt->Niv());
-        if (aPt->HRs().size()>=2)
+        if (aPt->HighRs().size()>=2)
+        {
            aNbMult++;
+           mBifurk = aPt;
+        }
     }
+
+    if (aNbMult==1) 
+    {
+       mOk = true;
+       mNivScal =  mBifurk->Niv();
+       mScale =  anAppli.ScaleAbsOfNiv(mNivScal);
+       mBrScaleStab =  mScale;
+       mScaleNature =  mScale;
+       return;
+       // static int aCpt=0; aCpt++;
+       // std::cout << "PMUuUL ====== " << aCpt << "=======================================================================\n";
+    }
+    mBifurk = nullptr;
 
     mOk = (aNbMult==0) && anAppli.OkNivStab(aLR->Niv()) && (aNivMin==0);
     if (!mOk) return;
 
     mBrScaleStab = anAppli.ScaleAbsOfNiv(aLR->Niv());
 
+
+/*
+    bool  Debug = (mBrScaleStab >=15.0);
+    if (Debug)
+    {
+        Pt2dr aPt =  aLR->RPtAbs(anAppli);
+        std::cout << "SSSS mBrScaleStab " << mBrScaleStab << " " << aPt <<  " " << (aPt/512.0) << "\n";
+    }
+*/
+
 // std::cout << "aLR-aLR-aLR-aLR- NIIIV " << aLR->Niv() << "\n";
 
     int aSign = SignOfType(mLR->Type());
-    std::vector<double> aVLapl;
-    mLaplMax = -1;
-    mLaplMaxNature = -1;
 
-    for (auto & aPt:  aVPt)
+    if (aSign)
     {
-        int aNiv = aPt->Niv();
-        if (anAppli.OkNivLapl(aNiv))
+        std::vector<double> aVLapl;
+        mLaplMax = -1;
+        mLaplMaxNature = -1;
+
+        for (auto & aPt:  aVPt)
         {
-           double aLapl =  0;
+            int aNiv = aPt->Niv();
+            if (anAppli.OkNivLapl(aNiv))
+            {
+               double aLapl =  0;
 
-          if (anAppli.ScaleCorr())
-          {
-              aLapl = anAppli.GetImOfNiv(aNiv)->QualityScaleCorrel(round_ni(aPt->Pt()),aSign,true)  ;
-          }
-          else
-          {
-              aLapl =  anAppli.GetLapl(aNiv,round_ni(aPt->Pt()),mOk) * aSign;
-          }
+              if (anAppli.ScaleCorr())
+              {
+                  aLapl = anAppli.GetImOfNiv(aNiv,true)->QualityScaleCorrel(round_ni(aPt->RPt()),aSign,true)  ;
+              }
+              else
+              {
+                  aLapl =  anAppli.GetLapl(aNiv,round_ni(aPt->RPt()),mOk) * aSign;
+              }
  
-           if (!mOk)
-           {
-               return;
-           }
+               if (!mOk)
+               {
+                   return;
+               }
 
-           double aScale = anAppli.ScaleAbsOfNiv(aNiv);
-           if ((aLapl>mLaplMax)  && anAppli.ScaleIsValid(aScale))
-           {
-               mNivScal = aNiv;
-               mScale   =  aScale;
-               mLaplMax = aLapl;
-           }
-           if (aLapl>mLaplMaxNature) 
-           {
-                mScaleNature = mScale;
-                mLaplMaxNature = aLapl;
-           }
-        }
+               double aScale = anAppli.ScaleAbsOfNiv(aNiv);
+               if ((aLapl>mLaplMax)  && anAppli.ScaleIsValid(aScale))
+               {
+                   mNivScal = aNiv;
+                   mScale   =  aScale;
+                   mLaplMax = aLapl;
+               }
+               if (aLapl>mLaplMaxNature) 
+               {
+                    mScaleNature = mScale;
+                    mLaplMaxNature = aLapl;
+               }
+            }
       //   std::cout << "CORRELL " << anAppli.GetImOfNiv(aNiv)->QualityScaleCorrel(round_ni(aPt->Pt()),aSign,true)  << " \n";
-    }
+        }
 
-    if (mLaplMax==-1)
-    {
-       mOk = false;
-       return ;
-    }
+        if (mLaplMax==-1)
+        {
+           mOk = false;
+           return ;
+        }
+   }
+   else
+   {
+         mNivScal =  mLR->Niv();
+         mScale =  mBrScaleStab;
+         mScaleNature =  mBrScaleStab;
+   }
     
-    // getchar();
-    // std::cout << "SSsSSsS= " <<  aLaplMax << "\n";
-
 /*
-    static int aNbBr= 0;
-    static int aNbOk=0;
-    aNbBr++;
-    aNbOk += aNbBr;
 */
 }
 

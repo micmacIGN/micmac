@@ -254,6 +254,7 @@ std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC, const std::string & aLib
 	return aVC;
 }
 
+int CPP_AimeApprent(int argc, char ** argv);
 int CPP_StatPHom(int argc, char ** argv);
 int CPP_PHom_RenameRef(int argc, char ** argv);
 int CPP_PHom_ApprentBinaire(int argc, char ** argv);
@@ -549,6 +550,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("ProfilIm", CPP_ProfilImage, "Image profiling  2D->1D "));
 		aRes.push_back(cMMCom("EditSet", CPP_EditSet, "Edition creation of a set of images/files"));
 		aRes.push_back(cMMCom("StatPHom", CPP_StatPHom, "Stat on homologous point using orientation of 3D Model"));
+		aRes.push_back(cMMCom("AimeApprent", CPP_AimeApprent, "Stat on homologous point using orientation of 3D Model"));
 		aRes.push_back(cMMCom("PHom_RenameRef", CPP_PHom_RenameRef, "Rename Ref for PHom"));
 		aRes.push_back(cMMCom("PHom_ApBin", CPP_PHom_ApprentBinaire, "Test Binary "));
 		aRes.push_back(cMMCom("FitsMatch", CPP_FitsMatch1Im, "Test Match Images NewPHom "));
@@ -838,6 +840,7 @@ extern int  CPP_NOGpsLoc(int argc, char ** argv);
 
 extern int GCPRollingBasc_main(int argc, char** argv);
 extern int Generate_ImagSift(int argc, char** argv);
+extern int Generate_ImagePer(int argc, char** argv);
 
 extern int  CPP_DistHistoBinaire(int argc, char ** argv);
 
@@ -1090,6 +1093,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));
+        aRes.push_back(cMMCom("GenImPer",Generate_ImagePer ," Generate periodic image"));
         aRes.push_back(cMMCom("MakePly_CamOrthoC",MakePly_CamOrthoC ,"Generate Ply to illustrate the long foc pb"));
         aRes.push_back(cMMCom("XMLDiffSeries",XMLDiffSeries_main ,"Generate pair images for tapioca in part c"));
         aRes.push_back(cMMCom("ZBufferRaster",ZBufferRaster_main ,"Z Buffer Raster"));

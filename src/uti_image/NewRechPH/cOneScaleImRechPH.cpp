@@ -115,24 +115,33 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromFile
 {
    Tiff_Im aTifF = Tiff_Im::StdConvGen(aName,1,true);
    Pt2di aP1 = (aP1Init.x > 0) ? aP1Init : aTifF.sz();
-   cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,aP1-aP0,aS0,0,1);
+   Pt2di aSzIm = aP1-aP0;
+   cOneScaleImRechPH * aRes = new cOneScaleImRechPH(anAppli,aSzIm,aS0,0,1);
 
    if (anAppli.TestDirac())
    {
         ELISE_COPY(aRes->mIm.all_pts(),0,aRes->mIm.out());
         aRes->mTIm.oset((aP1-aP0)/2,1000);
 
-      Tiff_Im::CreateFromIm(aRes->mIm,"LA-Im0.tif");
+        Tiff_Im::CreateFromIm(aRes->mIm,"LA-Im0.tif");
    }
    else
    {
-      ELISE_COPY ( aRes->mIm.all_pts(),trans(aTifF.in_proj(),aP0),aRes->mIm.out());
+      Im2D_REAL4 aImFl(aSzIm.x,aSzIm.y);
+
+      double aVMax,aVMin;
+      ELISE_COPY (aRes->mIm.all_pts(),trans(aTifF.in_proj(),aP0),aImFl.out() | VMax(aVMax) | VMin(aVMin) );
+
+      double aMoy = (aVMax+aVMin) / 2;
+      double aDyn = 3e4 / (aVMax-aVMin) ; // Ca sature a 32xxx ca laisse du rab
+
+      ELISE_COPY ( aRes->mIm.all_pts(),(aImFl.in()-aMoy)*aDyn,aRes->mIm.out());
    }
 
    std::cout << "S00000000000 = " << aS0 << "\n";
    FilterGaussProgr(aRes->mIm,aS0,1.0,4);
 
-   if (anAppli.TestDirac())
+   if (anAppli.SaveIm())
       Tiff_Im::CreateFromIm(aRes->mIm,"LA-Gaus0.tif");
    return aRes;
 }
@@ -163,7 +172,7 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromScale
         if (aRes->mNiv==1) aNbIter = 3;
         else if (aRes->mNiv>=2) aNbIter = 2;
 
-        std::cout << "GaussByExp, NbIter=" << aNbIter << "\n";
+        // std::cout << "GaussByExp, NbIter=" << aNbIter << "\n";
      }
 
      double aScaleInit = anIm.mScalePix;
@@ -185,15 +194,18 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromScale
         aRes->mIm.dup(anIm.mIm);
      }
      // Passe au filtrage gaussien le sigma cible et le sigma actuel, il se debrouille ensuite
-     std::cout << "FILTRAGE " << aScaleInit << " => " << aRes->mScalePix << "\n";
+     // std::cout << "FILTRAGE " << aScaleInit << " => " << aRes->mScalePix << "\n";
      FilterGaussProgr(aRes->mIm,aRes->mScalePix,aScaleInit,aNbIter);
 
 
+     if (anAppli.SaveIm())
+     {
+        Tiff_Im::CreateFromIm(aRes->mIm,"LA-Gaus"+ ToString(aRes->Niv()) + ".tif");
+     }
+   
      if (anAppli.TestDirac())
      {
-        tImNRPH aIm =  aRes->mIm;
-        Tiff_Im::CreateFromIm(aIm,"LA-Gaus"+ ToString(aRes->Niv()) + ".tif");
-        TestDist(anIm.mSz,aIm.in(),aSigma);
+        TestDist(anIm.mSz,aRes->mIm.in(),aSigma);
      }
      return aRes;
 }
@@ -204,10 +216,11 @@ cOneScaleImRechPH* cOneScaleImRechPH::FromScale
 bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp)
 {
     tElNewRechPH aV0 =  mTIm.get(aP);
+    tElNewRechPH aVDef = aV0 - aValCmp; // Si c'est Max, aValCmp=1, donc neutre
     for (int aKV=0 ; aKV<int(aVVois.size()) ; aKV++)
     {
         const Pt2di & aVois = aVVois[aKV];
-        tElNewRechPH aV1 =  mTIm.get(aP+aVois,aV0);
+        tElNewRechPH aV1 =  mTIm.get(aP+aVois,aVDef);
         if (CmpValAndDec(aV0,aV1,aVois) != aValCmp)
            return false;
     }
@@ -241,10 +254,12 @@ bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & a
           return false;
     }
 
+    tElNewRechPH aVDef = aV0 -  aValCmp;
+
     for (int aKV=0 ; aKV<int(aVVois.size()) ; aKV++)
     {
         const Pt2di & aVois = aVVois[aKV];
-        tElNewRechPH aV1 =  aI2->mTImMod.get(aP+aVois,aV0);
+        tElNewRechPH aV1 =  aI2->mTImMod.get(aP+aVois,aVDef);
         if (CmpValAndDec(aV0,aV1,aVois) != aValCmp)
            return false;
     }
@@ -253,15 +268,80 @@ bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & a
 }
 
 
+bool cOneScaleImRechPH::IsCol(int aRhoMax,const  std::vector<std::vector<Pt2di> >  & aVVPt,const Pt2di & aP)
+{
+   if ((aP.x <=aRhoMax) || (aP.y<=aRhoMax) || (aP.x>=mSz.x-aRhoMax-1) || (aP.y>=mSz.y-aRhoMax-1))
+      return false;
+
+   int aV0 = mTIm.get(aP);
+   for (const auto & aVpt :  aVVPt)
+   {
+       std::vector<int> aVB;
+       for (const auto aVois : aVpt)
+       {
+           aVB.push_back(CmpValAndDec(aV0,mTIm.get(aP+aVois),aVois));
+       }
+       aVB.push_back(aVB[0]);
+       int aNbTrans = 0;
+       for (int aK=1 ; aK<int(aVB.size()) ; aK++)
+          if (aVB.at(aK-1) != aVB.at(aK))
+             aNbTrans ++;
+
+      if (aNbTrans!=2) 
+         return false;
+   }
+
+   return true;
+}
+
+
+
 // Recherche tous les points topologiquement interessant
 
 void cOneScaleImRechPH::CalcPtsCarac(bool Basic)
 {
+   std::vector<std::vector<Pt2di> > aVVPts;
+   int aRhoMaxCol=0;
+   {
+      for (double aRho = 1.5; aRho < 3.0 * mScalePix  ; aRho+= 0.7)
+      {
+          cFastCriterCompute * aFCC = cFastCriterCompute::Circle(aRho);
+
+          aVVPts.push_back(aFCC->VPt());
+          delete aFCC;
+          aRhoMaxCol = ElMax(round_up(aRho+1.5),aRhoMaxCol);
+      }
+   }
+
+   static bool First = true;
+   U_INT1  NbTrans[256];
+   if (First)
+   {
+       for (int aFlag=0 ; aFlag<256 ; aFlag++)
+       {
+           NbTrans[aFlag] = 0;
+           for (int aB=0 ; aB<8 ; aB++)
+           {
+               int aNextB = (aB+1) % 8;
+               bool In0 = ((aFlag & (1<<aB)) != 0);
+               bool In1 = ((aFlag & (1<<aNextB)) != 0);
+               if (In0 != In1)
+                  NbTrans[aFlag]++;
+           }
+       }
+   }
+   First = false;
    // voisin tries excluant le pixel central, le tri permet normalement de
    // beneficier le plus rapidement possible d'une "coupe"
    // std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mAppli.DistMinMax(Basic),true);
-   std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,3*mScalePix + 0.5,true);
+   std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,6*mScalePix + 0.5,true);
 
+   int aNbMax = 0;
+   int aNbMin = 0;
+   int aNbCol = 0;
+   int aNbMaxStab = 0;
+   int aNbMinStab = 0;
+   int aNbColStab = 0;
 
    bool DoMin = mAppli.DoMin();
    bool DoMax = mAppli.DoMax();
@@ -278,15 +358,36 @@ void cOneScaleImRechPH::CalcPtsCarac(bool Basic)
 
 // std::cout << "DDDDDDDDd " << mAppli.DistMinMax(Basic) << "\n";
            
-           if (DoMax &&  (aFlag == 0)  && SelectVois(aP,aVoisMinMax,1))
+           if (DoMax &&  (aFlag == 0) )
            {
+               aNbMax++;
               // std::cout << "DAxx "<< DoMax << " " << aFlag << "\n";
-               aLab = eTPR_GrayMax;
+               if (SelectVois(aP,aVoisMinMax,1))
+               {
+                   aLab = eTPR_GrayMax;
+                   aNbMaxStab++;
+               }
            }
-           if (DoMin &&  (aFlag == 255) && SelectVois(aP,aVoisMinMax,-1))
+           if (DoMin &&  (aFlag == 255) )
            {
+               aNbMin++;
                // std::cout << "DInnn "<< DoMin << " " << aFlag << "\n";
-               aLab = eTPR_GrayMin;
+               if (SelectVois(aP,aVoisMinMax,-1))
+               {
+                   aLab = eTPR_GrayMin;
+                   aNbMinStab++;
+               }
+           }
+
+           // Les cols donnent un mauvais score
+           if (false && (NbTrans[aFlag] == 2))
+           {
+               aNbCol++;
+               if (IsCol(aRhoMaxCol,aVVPts,aP))
+               {
+                   aLab = eTPR_GraySadl;
+                   aNbColStab++;
+               }
            }
 
            if (aLab!=eTPR_NoLabel)
@@ -296,11 +397,28 @@ void cOneScaleImRechPH::CalcPtsCarac(bool Basic)
         }
    }
 
+   // Ne pas supprimer, stat utile sur les cols
+   if (0)
+   {
+      std::cout << "  ====================  "
+                << " NbMin " << aNbMin  << " " << aNbMinStab/double(aNbMin)
+                << " NbMax " << aNbMax  << " " << aNbMaxStab/double(aNbMax)
+                << " NbCol " << aNbCol  << " " << aNbMaxStab/double(aNbCol)
+                << "\n";
+   }
+
 }
 
-Pt3dr cOneScaleImRechPH::PtPly(const cPtRemark & aP,int aNiv)
+Pt3dr cOneScaleImRechPH::PtPly(const cPtRemark & aPRem,int aNiv)
 {
-   return Pt3dr(aP.Pt().x,aP.Pt().y,aNiv*mAppli.DZPlyLay());
+   Pt2dr aPt = aPRem.RPtAbs(mAppli);
+/*
+{
+  cOneScaleImRechPH *  aIm = mAppli.GetImOfNiv(aPRem.Niv());
+  std::cout << "PPPPppp = " <<  aIm->PowDecim() << "\n";;
+}
+*/
+   return Pt3dr(aPt.x,aPt.y,aNiv*mAppli.DZPlyLay());
 }
 
 void cOneScaleImRechPH::Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC)
@@ -315,7 +433,8 @@ void cOneScaleImRechPH::Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC)
        cPtRemark & aP = **itIPM;
        double aDistZ = mAppli.DZPlyLay();
 
-       if (!aP.LR())
+       // On est sur de regarder que les tetes d'arbres puisque on exige qu'il n'y ait pas de pere
+       if (!aP.LowR())
        {
           cBrinPtRemark * aBr = new cBrinPtRemark(&aP,mAppli);
           aNbBr++;
@@ -326,16 +445,32 @@ void cOneScaleImRechPH::Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC)
 
              cOnePCarac aPC;
              std::vector<cPtRemark *> aVP = aBr->GetAllPt();
-             cPtRemark * aPMax =  aVP.at(aVP.size() - 1 -aBr->NivScal());
-             ELISE_ASSERT(aPMax->Niv()==aBr->NivScal(),"cOneScaleImRechPH::Export Incohe in Niv");
+             cPtRemark * aBif = aBr->Bifurk();
+             if (aBif)
+             {
+                aPC.Pt() = aBif->RPt();
+                int aS = SignOfType(aBif->Type());
+                if (aS==1)  aPC.Kind() = eTPR_BifurqMax;
+                if (aS==-1) aPC.Kind() = eTPR_BifurqMin;
+                if (aS==0) aPC.Kind() = eTPR_BifurqSadl;
+                aPC.DirMS() = Pt2dr(0,0);
+             }
+             else
+             {
+                  cPtRemark * aPMax =  aVP.at(aVP.size() - 1 -aBr->NivScal());
+                  ELISE_ASSERT(aPMax->Niv()==aBr->NivScal(),"cOneScaleImRechPH::Export Incohe in Niv");
 
-             aPC.Kind() =  aVP.at(0)->Type();
-             aPC.Pt() =  aPMax->Pt();
+                  aPC.Pt() =  aPMax->RPt();
+                  aPC.Kind() =  aVP.at(0)->Type();
+                  aPC.DirMS() = aVP.back()->RPtAbs(mAppli) - aVP.front()->RPtAbs(mAppli);
+             }
+
              aPC.Scale() = aBr->Scale();
-             aPC.NivScale() = aBr->NivScal();
-             aPC.DirMS() = aVP.back()->Pt() - aVP.front()->Pt();
              aPC.ScaleStab() = aBr->BrScaleStab();
              aPC.ScaleNature() = aBr->ScaleNature();
+
+             aPC.NivScale() = aBr->NivScal();
+             aPC.Id() = mAppli.GetNexIdPts();
 
              // std::cout << "DIRMS " << euclid(aPC.DirMS()) << "\n";
 
@@ -356,8 +491,8 @@ void cOneScaleImRechPH::Export(cSetPCarac & aSPC,cPlyCloud *  aPlyC)
           }
        }
  
-       if (aP.HRs().empty()) mNbExHR ++;
-       if (!aP.LR()) mNbExLR ++;
+       if (aP.HighRs().empty()) mNbExHR ++;
+       if (!aP.LowR()) mNbExLR ++;
    }
    std::cout << " Nb Br = "<<  aNbBr  << " perc Ok " << 100.0*( aNbBrOk/double(aNbBr))  << " OK=" << aNbBrOk << "\n";
 
@@ -381,7 +516,7 @@ void cOneScaleImRechPH::Show(Video_Win* aW)
 
        ELISE_COPY
        (
-          disc((*itIPM)->Pt(),2.0),
+          disc((*itIPM)->RPt(),2.0),
           Virgule(aC.x,aC.y,aC.z),
           Virgule(aIR.oclip(),aIV.oclip(),aIB.oclip())
        );
@@ -419,7 +554,7 @@ void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aHR,const eTypePtRemark &
 
    // Initialise la matrice haute resolution
    aLR.InitBuf(aType,true);
-   double aDist = (mScalePix * 2.5 + 0.5) ;
+   double aDist = (mScalePix * 6.0 + 0.5) ;
 
   
    int aNbHRTot=0;
@@ -432,7 +567,7 @@ void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aHR,const eTypePtRemark &
            aNbHRTot++;
            // Pt2di aPi = round_ni((*itP)->Pt());
            // tPtrPtRemark aPLR  =  mAppli.NearestPoint(round_ni(aPHR->Pt())/aRatio,aDist);
-           tPtrPtRemark aPLR2 =  mAppli.NearestPoint2(round_ni(aPHR->Pt())/aRatio,aDist);
+           tPtrPtRemark aPLR2 =  mAppli.NearestPoint2(aPHR->RPt()/aRatio,aDist);
 
            if (aPLR2)
            {
@@ -447,7 +582,7 @@ void cOneScaleImRechPH::CreateLink(cOneScaleImRechPH & aHR,const eTypePtRemark &
    }
 
 /////
-   if (false)
+   if (0) // (aType==eTPR_GrayMax)
    {
       int aNbLRTot=0;
       for (const auto & aPHR : aLR.mLIPM)
