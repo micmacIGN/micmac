@@ -445,12 +445,13 @@ void  MyBisCr::write_liaison()
       }
    }
 
-   if (StdPostfix(mNameXML)=="dat")
+   if ((StdPostfix(mNameXML)=="dat") || (StdPostfix(mNameXML)=="txt"))
    {
-         ELISE_fp aFP(mNameXML.c_str(),ELISE_fp::WRITE);
+         // ELISE_fp aFP(mNameXML.c_str(),ELISE_fp::WRITE);
          ElPackHomologue aPackSauv = mLiaisons;
          aPackSauv.ApplyHomographies(mH1,mH2);
-         aPackSauv.write(aFP);
+         // aPackSauv.write(aFP);
+        aPackSauv.StdPutInFile(mNameXML);
    }
    else if (StdPostfix(mNameXML)=="xml")
    {

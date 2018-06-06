@@ -43,6 +43,109 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 extern int RegTIRVIS_main(int , char **);
 
+// survey of a concrete wall, orientation very distorded, we export every tie point as GCP with a Z fixed by the user, in order to use them in campari
+class cTPM2GCPwithConstantZ{
+public:
+    cTPM2GCPwithConstantZ(int argc,char ** argv);
+private:
+    cInterfChantierNameManipulateur * mICNM;
+    bool mExpTxt,mDebug;
+    double mZ;
+    std::string mDir,mOriPat,mOut3D,mOut2D,mFileSH;
+    std::list<std::string> mOriFL;// OriFileList
+    cSetTiePMul * mTPM;
+    std::vector<std::string> mImName;
+    std::map<int, CamStenope*> mCams;
+};
+
+cTPM2GCPwithConstantZ::cTPM2GCPwithConstantZ(int argc,char ** argv)
+{
+
+    mOut2D="FakeGCP-2D.xml";
+    mOut3D="FakeGCP-3D.xml";
+    mDebug=0;
+    mDir="./";
+    ElInitArgMain
+            (
+                argc,argv,
+                LArgMain()  << EAMC(mDir,"Working Directory", eSAM_IsDir)
+                            << EAMC(mOriPat,"Orientation (xml) list of file", eSAM_IsPatFile)
+                            << EAMC(mFileSH,"File of new set of homol format (PMulMachin).",eSAM_IsExistFile )
+                ,
+                LArgMain()
+                << EAM(mZ,"Z",true, "Altitude to set for all tie points" )
+                << EAM(mOut2D,"Out2D",true, "Name of resulting image measures file, def FakeGCP-2D.xml" )
+                << EAM(mOut3D,"Out3D",true, "Name of resulting ground measures file, def FakeGCP-3D.xml" )
+                << EAM(mDebug,"Debug",true, "Print message in terminal to help debugging." )
+                );
+    if (!MMVisualMode)
+    {
+        mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+        // load Tie point
+        mTPM = new cSetTiePMul(0);
+        mTPM->AddFile(mFileSH);
+        // load orientations
+        mOriFL = mICNM->StdGetListOfFile(mOriPat);
+        std::string aKey= "NKS-Assoc-Ori2ImGen"  ;
+        std::string aTmp1, aNameOri;
+        for (auto &aOri : mOriFL){
+            // retrieve name of image from name of orientation xml
+            SplitDirAndFile(aTmp1,aNameOri,aOri);
+            std::string NameIm = mICNM->Assoc1To1(aKey,aNameOri,true);
+            mImName.push_back(NameIm);
+            // retrieve IdIm
+            cCelImTPM * ImTPM=mTPM->CelFromName(NameIm);
+            if (ImTPM) {
+            // map of Camera is idexed by the Id of Image (cSetTiePMul)
+            mCams[ImTPM->Id()]=CamOrientGenFromFile(aOri,mICNM);
+            } else {
+            std::cout << "No tie points found for image " << NameIm << ".\n";
+            }
+        }
+
+        // initialize dicco appui and mesureappui
+        // 2D
+        cSetOfMesureAppuisFlottants MAF;
+        // 3D
+        cDicoAppuisFlottant DAF;
+
+        // loop on every config of TPM of the set of TPM
+        int label(0);
+        for (auto & aCnf : mTPM->VPMul())
+        {
+           // retrieve 3D position in model geometry
+                std::vector<Pt3dr> aPts=aCnf->IntersectBundle(mCams);
+                // add the points
+                int aKp(0);
+                for (auto & Pt: aPts){
+                    // position 3D fake
+                    Pt3dr PosXYZ(Pt.x,Pt.y,mZ);
+                    cOneAppuisDAF GCP;
+                    GCP.Pt()=PosXYZ;
+                    GCP.NamePt()=std::string(to_string(label));
+                    DAF.OneAppuisDAF().push_back(GCP);
+
+                    // position 2D
+                    for (int nIm(0); nIm<aCnf->NbIm();nIm++)
+                    {
+                        int IdIm=aCnf->VIdIm().at(nIm);
+                        cMesureAppuiFlottant1Im aMark;
+                        aMark.NameIm()=mTPM->NameFromId(IdIm);
+                        cOneMesureAF1I currentMAF;
+                        currentMAF.NamePt()=std::string(to_string(label));
+                        currentMAF.PtIm()= aCnf->GetPtByImgId(aKp,IdIm);
+                        aMark.OneMesureAF1I().push_back(currentMAF);
+                        MAF.MesureAppuiFlottant1Im().push_back(aMark);
+                    }
+                label++;  // total count of pt
+                aKp++; // count of pt in config
+                }
+        }
+
+         MakeFileXML(MAF,mOut2D);
+         MakeFileXML(DAF,mOut3D);
+        }
+}
 
 // we wish to improve coregistration between 2 orthos
 class cCoreg2Ortho
@@ -1230,11 +1333,12 @@ int main_test2(int argc,char ** argv)
     //RegTIRVIS_main(argc,argv);
     //test_main(argc,argv);
     //MasqTIR_main(argc,argv);
-    cCoreg2Ortho(argc,argv);
+    //cCoreg2Ortho(argc,argv);
     //cFeatheringAndMosaicOrtho(argc,argv);
     //cOriTran_Appli(argc,argv);
     //TransfoMesureAppuisVario2TP_main(argc,argv);
     //statRadianceVarioCam_main(argc,argv);
+    cTPM2GCPwithConstantZ(argc,argv);
 
    return EXIT_SUCCESS;
 }

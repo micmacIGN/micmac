@@ -204,6 +204,10 @@ void c_Appli_FeatheringAndMosaic::GenLabelTable()
         // load the incidence map and hidden part map
         // le tfw convient pour im masque PC mais par pour de l'image incid qui est sous resolue.     
         cImGeo Masq(pcName,TFWName);
+        mTrs[imLab]= Masq.computeTrans(aCorner);// translation between ortho and corner of the complete mosaic
+        // current orto instersect box?
+        if(box.contains(-mTrs[imLab]) | box.contains(-mTrs[imLab]+Masq.SzUV())){
+
         Im2D_REAL4 imPC=Masq.toRAM();
 
         // avoid border problem (eg from inapropriate incid value on the edge) by shrinking the mask image
@@ -233,15 +237,11 @@ void c_Appli_FeatheringAndMosaic::GenLabelTable()
 
         TIm2D<REAL4,REAL> mTScLoc(imIncid);
 
-        mTrs[imLab]= Masq.computeTrans(aCorner);// translation between ortho and corner of the complete mosaic
+
         Pt2di aP;
 
        // same incid map so no reason to save it again ,expect maybe the tfw (that have not the same resol)
         if (mDebug) writeTFW(KAIncidName(im,mTmpDir),Pt2dr(Masq.GSD()*aFact,-Masq.GSD()*aFact),Pt2dr(Masq.OriginePlani().x,Masq.OriginePlani().y));
-
-        // current orto instersect box
-        if(box.contains(-mTrs[imLab]) | box.contains(-mTrs[imLab]+Masq.SzUV())){
-
         for (aP.x =0 ; aP.x < Masq.SzUV().x ; aP.x++)
         {
             for (aP.y =0 ; aP.y < Masq.SzUV().y ; aP.y++)
@@ -551,7 +551,7 @@ std::string cMyICNM::KeyAssocNameOrt2Incid(std::string aOrtName)
     std::string Name = mICNM->Assoc1To1(aKey,aOrtName,true);
     return Name;
 }
-std::string cMyICNM::KeyAssocNameTif2TFW(std::string aOrtName)
+std::string KeyAssocNameTif2TFW(std::string aOrtName)
 {
     std::string TFWName=aOrtName.substr(0, aOrtName.size()-3)+"tfw";
     return TFWName;
@@ -587,7 +587,7 @@ template <class T,class TB> void  cMyICNM::SaveBoxInTiff(std::string aName,  Im2
 }
 
 // write tfw for all resulting map
-int cMyICNM::writeTFW(std::string aNameTiffFile, Pt2dr aGSD, Pt2dr aXminYmax)
+int writeTFW(std::string aNameTiffFile, Pt2dr aGSD, Pt2dr aXminYmax)
 {
     std::string aNameTFW=KeyAssocNameTif2TFW(aNameTiffFile);
     std::ofstream aTFW(aNameTFW.c_str());

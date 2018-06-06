@@ -136,7 +136,18 @@ cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
     (*mArg) << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
             << EAM(mVBlockDistGlob,"DistBlocGlob",true,"Param for Dist Glob bloc compute [File,SigmaDist,?MulFinal,?Export]")
             << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
-            << EAM(mVOptGlob,"OptBlocG",true,"[SigmaTr,SigmaRot]") ;
+            << EAM(mVOptGlob,"OptBlocG",true,"[SigmaTr,SigmaRot]")
+            << EAM(GlobLibFoc,"FocFree",true,"Foc Free (Def=false)", eSAM_IsBool)
+            << EAM(GlobLibPP,"PPFree",true,"Principal Point Free (Def=false)", eSAM_IsBool)
+            << EAM(GlobLibAff,"AffineFree",true,"Affine Parameter (Def=false)", eSAM_IsBool)
+            << EAM(GlobDegAdd,"DegAdd",true, "When specified, degree of additionnal parameter")
+            << EAM(GlobDegGen,"DegFree",true, "When specified degree of freedom of parameters generiqs")
+            << EAM(GlobDRadMaxUSer,"DRMax",true, "When specified degree of freedom of radial parameters")
+            << EAM(GlobLibCD,"LibCP",true,"Free distorsion center, Def context dependant", eSAM_IsBool)
+            // alias
+            << EAM(GlobLibCD,"LibCD",true,"Free distorsion center, Def context dependant. Principal Point should be also free if CD is free", eSAM_IsBool)
+            << EAM(GlobLibDec,"LibDec",true,"Free decentric parameter, Def context dependant", eSAM_IsBool)
+               ;
 }
 
 
@@ -395,9 +406,15 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     bool  CPI1 = false;
     bool  CPI2 = false;
     GlobLibFoc = false;
-    GlobLibPP = false;
-    //bool  AffineFree = false;
-    GlobLibAff=false;
+    GlobLibPP =  false;
+    GlobLibAff=  false;
+    GlobLibDec = false;
+    GlobLibCD=   false;
+    // local variable: in campari, used only with GradualRefineCal argument
+    LocLibFoc = true;
+    LocLibPP =  true;
+    LocLibDec = true;
+    LocLibCD=   true;
     bool  AllFree = false;  
     std::string CalibMod2Refine;
     bool AddViscInterne=false;
@@ -419,11 +436,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
 
     Pt3dr aGpsLA;
 
-    //int aDegAdd = 0;
     GlobDegAdd = 0;
-    //int aDegFree = 0;
     GlobDegGen=0;
-    //int aDrMax = 0;
     GlobDRadMaxUSer=0;
 
     bool AcceptGB=true;
@@ -465,10 +479,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aFactResElimTieP,"FactElimTieP", true, "Fact elimination of tie point (prop to SigmaTieP, Def=5)")
                     << EAM(CPI1,"CPI1",true,"Calib Per Im, Firt time", eSAM_IsBool)
                     << EAM(CPI2,"CPI2",true,"Calib Per Im, After first time, reUsing Calib Per Im As input", eSAM_IsBool)
-                    << EAM(GlobLibFoc,"FocFree",true,"Foc Free (Def=false)", eSAM_IsBool)
-                    << EAM(GlobLibPP,"PPFree",true,"Principal Point Free (Def=false)", eSAM_IsBool)
-                    << EAM(GlobLibAff,"AffineFree",true,"Affine Parameter (Def=false)", eSAM_IsBool)
-                    << EAM(AllFree,"AllFree",true,"Refine all calibration parameters (Def=false)", eSAM_IsBool)
+                    << EAM(AllFree,"AllFree",true,"Refine all calibration parameters (Def=false, exept for GradualRefineCal option)", eSAM_IsBool)
                     << EAM(CalibMod2Refine,"GradualRefineCal",true,"Calibration model to refine gradually",eSAM_None)
                     << EAM(DetailAppuis,"DetGCP",true,"Detail on GCP (Def=false)", eSAM_IsBool)
                     << EAM(Viscos,"Visc",true,"Viscosity on external orientation in Levenberg-Marquardt like resolution (Def=1.0)")
@@ -476,14 +487,10 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(ViscosInterne,"ViscInterne",true,"Viscosity on calibration parameter (Def=0.1), use it with AddViscInterne=true")
                     << EAM(ExpTxt,"ExpTxt",true, "Export in text format (Def=false)",eSAM_IsBool)
                     << EAM(aImMinMax,"ImMinMax",true, "Im max and min to avoid tricky pat")
-                    << EAM(GlobDegAdd,"DegAdd",true, "When specified, degree of additionnal parameter")
-                    << EAM(GlobDegGen,"DegFree",true, "When specified degree of freedom of parameters generiqs")
-                    << EAM(GlobDRadMaxUSer,"DRMax",true, "When specified degree of freedom of radial parameters")
                     << EAM(AllPoseFigee,"PoseFigee",true,"Does the external orientation of the cameras are frozen or free (Def=false, i.e. camera poses are free)", eSAM_IsBool)
                     << EAM(PatPoseFigee,"FrozenPoses",true,"List of frozen poses (pattern)")
                     << EAM(PatCentreFigee,"FrozenCenters",true,"List of frozen poses (pattern)")
                     << EAM(PatAngleFigee,"FrozenOrients",true,"List of frozen poses (pattern)")
-
                     << EAM(AcceptGB,"AcceptGB",true,"Accepte new Generik Bundle image, Def=true, set false for perfect backward compatibility")
                     << EAM(mMulRTA,"MulRTA",true,"Rolling Test Appuis , multiplier ")
                     << EAM(mNameRTA,"NameRTA",true,"Name for save results of Rolling Test Appuis , Def=SauvRTA.xml")
@@ -495,14 +502,12 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aPdsGBRot,"PdsGBRot",true,"Weighting of the global rotation constraint (Generic bundle Def=0.002)")
                     << EAM(aPdsGBId,"PdsGBId",true,"Weighting of the global deformation constraint (Generic bundle Def=0.0)")
                     << EAM(aPdsGBIter,"PdsGBIter",true,"Weighting of the change of the global rotation constraint between iterations (Generic bundle Def=1e-6)")
-
                     << EAM(aExportSensib,"ExportSensib",true,"Export sensiblity (accuracy) estimator : correlation , varaiance, inverse matrix variance ... ")
                     << EAM(aUseGaussJ,"UseGaussJ",true,"Use GaussJ instead of Cholesky (Def depend of others) ")
                     << EAM(NormaliseEq,"NormEq",true,"Flag for Norm Eq, 1->Sc, 2-Tr, Def=3 (All), tuning purpose ")
                     << EAM(aParamCCCC,"ContrCalCamCons",true,"Constraint on calibration for conseq camera [Key,Simga] ")
                     << EAM(aVRegulDist,"RegulDist",true,"Parameter fo RegulDist [Val,Grad,Hessian,NbCase,SeuilNb]")
                     << EAM(RapTxt,"RapTxt",true,"Output report of residual for each point")
-
                     << EAM(aVExpImRes,"ExpImRes",true,"Sz of Im Res=[Cam,Pose,Pair]")
 
     );
@@ -547,9 +552,12 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
        }
 
        if (EAMIsInit(&CalibMod2Refine)){
+
        InitVerifModele(CalibMod2Refine,mICNM);
-       if (EAMIsInit(&AllFree) && AllFree) std::cout << "Warn, use of GradualRefineCal Argument with AllFree=true, autocalibration will take place not in a gradual way.\n";
+       if (!EAMIsInit(&AllFree)) AllFree=1;
        }
+
+       if (!GlobLibPP && GlobLibCD) std::cout << "Warning, distorsion center is set to free but Principal point is set to frozen.\n I will not adjust Distorsion center.\n";
 
        mCom =     MM3dBinFile_quotes( "Apero" )
                            +  ToStrBlkCorr( Basic_XML_MM_File("Apero-Compense.xml") )
@@ -570,8 +578,10 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         if (CPI1 || CPI2) mCom       +=     " +CPI=true ";
         if (CPI2) mCom       +=             " +CPIInput=true ";
         if (GlobLibFoc) mCom    +=          " +FocFree=true ";
-        if (GlobLibPP) mCom    +=              " +PPFree=true ";
+        if (GlobLibPP) mCom    +=           " +PPFree=true ";
         if (GlobLibAff) mCom +=             " +AffineFree=true ";
+        if (GlobLibCD) mCom +=              " +LibCD=true ";
+        if (GlobLibDec) mCom +=              "+LibDec=true ";
         if (AllFree) mCom    +=             " +AllFree=true ";
         if (ExpTxt) mCom += std::string(" +Ext=") + (ExpTxt?"txt ":"dat ")  ;
         if (EAMIsInit(&RapTxt)) mCom += std::string(" +RapTxt=") + RapTxt + " ";

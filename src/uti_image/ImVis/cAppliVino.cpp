@@ -86,10 +86,12 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
     mExtImNewP         ("Std"),
     mWithPCarac        (false),
     mSPC               (0),
+    mQTPC              (0),
     mSeuilAC           (0.95),
     mSeuilContRel      (0.6),
     mCheckNuage        (nullptr),
-    mCheckOri          (nullptr)
+    mCheckOri          (nullptr),
+    mNameLab           ("eTPR_NoLabel")
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)
@@ -149,8 +151,11 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
                     << EAM(mSzSift,"ResolSift",true,"Resol of sift point to visualize")
                     << EAM(mPatSecIm,"PSI",true,"Pattern Imaage Second")
                     << EAM(mCheckHom,"CheckH",true,"Check Hom : [Cloud,Ori]")
+                    << EAM(mNameLab,"Label",true,"Label for New Point ")
                     // << EAM(mCurStats->IntervDyn(),"Dyn",true,"Max Min value for dynamic")
     );
+
+    mLabel =   Str2eTypePtRemark(mNameLab);
 
     if (aNameImExtern !="")
       mNameIm = aNameImExtern;
@@ -289,7 +294,17 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
         if (mImNewP=="")
            mImNewP = mNameIm;
         mWithPCarac = true;
-        mSPC =  LoadStdSetCarac(mImNewP,mExtImNewP);
+
+        // ELISE_ASSERT(false,"Vino revoir labels");
+        mSPC =  LoadStdSetCarac(mLabel,mImNewP,mExtImNewP);
+        mQTPC = new tQtOPC (mArgQt,Box2dr(Pt2dr(-10,-10),Pt2dr(10,10)+Pt2dr(mTifSz)),5,euclid(mTifSz)/50.0);
+
+        for (int aKP=0 ; aKP<int(mSPC->OnePCarac().size()) ; aKP++)
+        {
+            mSPC->OnePCarac()[aKP].Id() = aKP;
+            mQTPC->insert(&(mSPC->OnePCarac()[aKP]));
+        }
+
     }
     if (EAMIsInit(&mSzSift))
     {
@@ -390,10 +405,12 @@ void cAppli_Vino::PostInitVirtual()
                 {
                     Pt2dr aPIm2 = aCap2->Ter2Capteur(aPTer);
                     double aDist;
-                    aHom = mAVSI[0]->Nearest(aPIm2,&aDist,aPt.Kind());
-                    if (aDist>2.0)
+                    double aSeuilD=2.0;
+                    aHom = mAVSI[0]->Nearest(aSeuilD,aPIm2,&aDist,aPt.Kind());
+                    if (aDist>aSeuilD)
                     {
-                        aHom = nullptr;
+                        ELISE_ASSERT(aHom==nullptr,"Incoherence in Nearest");
+                        // aHom = nullptr;
                     }
                 }
             }

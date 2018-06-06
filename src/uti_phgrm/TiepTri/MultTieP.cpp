@@ -338,7 +338,6 @@ cCelImTPM * cDicoImTPM::AddIm(const std::string & aNameIm,bool & IsNew)
    return aRes;
 }
 
-
 /*********************************************************************/
 /*                                                                   */
 /*                  cSetPMul1ConfigTPM                               */
@@ -456,6 +455,11 @@ cCelImTPM * cSetTiePMul::CelFromName(const std::string & aName)
 cCelImTPM * cSetTiePMul::CelFromInt(const int & anId)
 {
     return mDicoIm.mNum2Im.at(anId);
+}
+
+std::string cSetTiePMul::NameFromId(const int & anId)
+{
+    return mDicoIm.mNum2Im.at(anId)->Name();
 }
 
 int cSetTiePMul::NbIm() const
@@ -721,6 +725,71 @@ Pt2dr cSetPMul1ConfigTPM::GetPtByImgId(int aKp,int aQueryImgID)
     return Pt(aKp,aPosIm);
 }
 
+// return position of every tie point in model geometry
+std::vector<Pt3d<double> > cSetPMul1ConfigTPM::IntersectBundle(std::map<int,CamStenope*> aMCams)
+{
+    std::vector<Pt3dr> aRes;
+    std::vector<CamStenope*> aVCam;
+    std::vector<int> aVIdIm;
+
+    // loop on mVIdIm and determine if the Camera is provided in the Map of Cam
+    for (auto & IdIm: mVIdIm){
+        bool found (0);
+
+        for (auto & Cam : aMCams){
+            if (Cam.first==IdIm) {
+                found=1;
+                aVCam.push_back(Cam.second);
+                aVIdIm.push_back(IdIm);
+                break;
+            }
+        }
+    }
+
+    if (aVIdIm.size()>1)
+    {
+    for (int aKPt(0);aKPt<mNbPts;aKPt++){
+        std::vector<Pt2dr> aVPt;
+        for (auto & IdIm : aVIdIm) {aVPt.push_back(GetPtByImgId(aKPt, IdIm));}
+        aRes.push_back(Intersect_Simple(aVCam, aVPt));
+    }
+    } else { std::cout <<"Warn, for this TiePointMul config, not enough camera to perform bundle pseudo-intersection.\n";}
+    return aRes;
+}
+
+// return position of every tie point in model geometry + reproj error
+std::vector<Pt3d<double> > cSetPMul1ConfigTPM::IntersectBundle(std::map<int,CamStenope*> aMCams, std::vector<double> &aVResid)
+{
+    std::vector<Pt3dr> aRes;
+    std::vector<CamStenope*> aVCam;
+    std::vector<int> aVIdIm;
+    if (aVResid.size()>0) aVResid.clear();
+
+    // loop on mVIdIm and determine if the Camera is provided in the Map of Cam
+    for (auto & IdIm: mVIdIm){
+        bool found (0);
+
+        for (auto & Cam : aMCams){
+            if (Cam.first==IdIm) {
+                found=1;
+                aVCam.push_back(Cam.second);
+                aVIdIm.push_back(IdIm);
+                break;
+            }
+        }
+    }
+    if (aVIdIm.size()>1)
+    {
+    for (int aKPt(0);aKPt<mNbPts;aKPt++){
+        std::vector<Pt2dr> aVPt;
+        for (auto & IdIm : aVIdIm) {aVPt.push_back(GetPtByImgId(aKPt, IdIm));}
+        Pt3dr Pt=Intersect_Simple(aVCam, aVPt);
+        aRes.push_back(Pt);
+        aVResid.push_back(cal_Residu(Pt, aVCam, aVPt));
+    }
+    } else { std::cout <<"Warn, for this TiePointMul config, not enough camera to perform bundle pseudo-intersection.\n";}
+    return aRes;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

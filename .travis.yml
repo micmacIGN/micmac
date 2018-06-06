@@ -5,13 +5,19 @@ matrix:
     dist: trusty
     sudo: required
     compiler: gcc
+  - os: osx
+    osx_image: xcode9.3
+    compiler: clang
+
 before_install:
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get update -qq && sudo apt-get
   install -qq qtbase5-dev; fi
+- if [ "${TRAVIS_OS_NAME}" = "osx" ]; then brew update && brew install qt && export PATH="/usr/local/opt/qt/bin:$PATH"; fi
+#Hombrew bug: https://github.com/Homebrew/homebrew-core/issues/8392
 script:
 - mkdir build
 - cd build
-- if [ "${TRAVIS_OS_NAME}" = "linux" ]; then cmake .. -DWITH_QT5=On; fi
+- cmake .. -DWITH_QT5=On
 - make -j2
 - make install
 after_success:
