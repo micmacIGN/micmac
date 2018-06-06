@@ -879,7 +879,9 @@ class cAimeApprentissage
 void cAimeApprentissage::CD(const std::string & aDir)
 {
 // Pas sur que ce soit portable, et comme cela ne tournera que sur ma machine ...
-#if (ELISE_OS==ELISE_LINUX)
+#ifdef _WIN32
+#elif __APPLE__
+#else
     int aRes = chdir(aDir.c_str());
     if (aRes)
     {
