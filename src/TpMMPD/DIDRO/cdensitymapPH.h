@@ -28,7 +28,7 @@ private:
     bool mExpTxt,mDebug;
     std::string mSH,mDir,mOriPat,mOut,mFileSH;
     std::list<std::string> mOriFL;// OriFileList
-
+    double mThreshResid;
     Box2dr mBoxTerrain;
     Pt2di mSz;
     int mWidth;

@@ -1049,6 +1049,8 @@ class cAppli_NH_ApprentBinaire
             // cAppli_NH_ApprentBinaire(cSetRefPCarac  & aSRPC,int aNbT,int aNbRand,int aNBBitMax);
             cScoreOPC Score(const cCombCalcOB &);
             double ComputeInH(const cCombCalcOB &);
+            // Score base sur le fait que les histo vrai et faux sont different
+            double ComputeScoreHistoBinaire(const cCombCalcOB &);
             cScoreOPC ScoreModif(std::vector<int> & ,const std::vector<cCompCBOneBit> &);
             void OptimCombin(const std::string &);
             void OptimLocal(const std::string & aIn,const std::string & aOut);
@@ -1353,6 +1355,31 @@ cScoreOPC cAppli_NH_ApprentBinaire::FinishScore()
    
    return mVTruth.Score(mVRand,mPdsWrong,mBitMax);
 }
+
+
+/*
+double cAppli_NH_ApprentBinaire::ComputeScoreHistoBinaire(const cCombCalcOB & aComb)
+{
+   if (aComb.VC().size()==1)
+   {
+      return mSomInH ;
+   }
+   int aNBB =  aComb.VC().size();
+   int aSzH = 1<<aNBB;
+   Im1D_REAL8 aHT(aSzH,0.0);
+   Im1D_REAL8 aHR(aSzH,0.0);
+
+   cCompCB aCOB =  aComb.CCOB() ;
+   mVTruth.AddFlag(aCOB,aHT);
+   mVRand.AddFlag(aCOB,aHR);
+
+   int aNb=8;
+   double aSzF = 0.5;
+
+   FilterHistoFlag(aHT,aNb,aSzF,false);
+   FilterHistoFlag(aHR,aNb,aSzF,false);
+}
+*/
 
 
 double cAppli_NH_ApprentBinaire::ComputeInH(const cCombCalcOB & aComb)

@@ -240,28 +240,35 @@ void cAppli_Vino::ShowVect()
       ShowVectPCarac();
 }
 
-int  cAppli_Vino::IndexNearest(const Pt2dr & aPClU,double * aDist,eTypePtRemark aType)
+int  cAppli_Vino::IndexNearest(double aDistSeuil,const Pt2dr & aPClU,double * aDist,eTypePtRemark aType)
 {
-   int aRes = -1;
+   cVecTplResRVoisin<cOnePCarac *> aVRV;
+   mQTPC->RVoisins(aVRV,aPClU,aDistSeuil);
+
+
+   // mAppli.Qt2()->KPPVois(aP0,2,100.0);
+   cOnePCarac * aRes=nullptr;
    double aDMin=1e20;
-   for (int aKP=0 ; aKP<int(mSPC->OnePCarac().size()) ; aKP++)
+   // for (int aKP=0 ; aKP<int(mSPC->OnePCarac().size()) ; aKP++)
+   for (const auto & aPCP : static_cast<std::vector<cOnePCarac *> &>(aVRV) )
    {
-       const auto & aPC = mSPC->OnePCarac()[aKP];
-       double aDist = euclid(aPC.Pt(),aPClU);
-       if (  ((aPC.Kind()==aType)||(aType==eTPR_NoLabel)) && (aDist<aDMin))
+       // const auto & aPC = mSPC->OnePCarac()[aKP];
+       double aDist = euclid(aPCP->Pt(),aPClU);
+       if (  ((aPCP->Kind()==aType)||(aType==eTPR_NoLabel)) && (aDist<aDMin))
        {
           aDMin = aDist;
-          aRes = aKP;
+          aRes = aPCP;
        }
    }
    if (aDist) 
       *aDist = aDMin;
-   return aRes;
+   int anIndex =  (aRes ? aRes->Id() : -1);
+   return anIndex;
 }
 
-const cOnePCarac * cAppli_Vino::Nearest(const Pt2dr & aPClU,double * aDist,eTypePtRemark aType)
+const cOnePCarac * cAppli_Vino::Nearest(double aDistSeuil,const Pt2dr & aPClU,double * aDist,eTypePtRemark aType)
 {
-    int I = IndexNearest(aPClU,aDist,aType);
+    int I = IndexNearest(aDistSeuil,aPClU,aDist,aType);
     if (I>=0) return &(mSPC->OnePCarac()[I]);
     return nullptr;
 }
@@ -307,7 +314,7 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
 
    mW->draw_circle_loc(aPClW,3.0,mW->pdisc()(P8COL::cyan));
 
-   const cOnePCarac *  aNearest = Nearest(aPClU);
+   const cOnePCarac *  aNearest = Nearest(1000.0,aPClU);
    if (aNearest)
    {
        // mW->draw_circle_loc(aU2W(aNearest->Pt()),3.0,mW->pdisc()(P8COL::magenta));
@@ -322,6 +329,7 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
           std::cout << "#########################################################\n";
 
        std::cout << "PTT=" << aNearest->Pt() << mNameIm <<  "\n";
+       std::cout << "  * Id= : " << aNearest->Id() << "\n";
        std::cout << "  * AutoC : " << aNearest->AutoCorrel() << "\n";
        std::cout << "  * Scale : "      << aNearest->Scale()      << "\n";
        std::cout << "  * SStab : "      << aNearest->ScaleStab()      << "\n";
@@ -383,8 +391,8 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
 
        if (! mVptHom.empty())
        {
-           int  aK = IndexNearest(aPClU);
-           ELISE_ASSERT(aNearest==&(mSPC->OnePCarac()[aK]),"NEAREST !!??");
+           int  aK = IndexNearest(1000.0,aPClU);
+           ELISE_ASSERT((aK>=0) && aNearest==&(mSPC->OnePCarac()[aK]),"NEAREST !!??");
            const cOnePCarac * aPCHom = mVptHom.at(aK);
            if (aPCHom)
            {

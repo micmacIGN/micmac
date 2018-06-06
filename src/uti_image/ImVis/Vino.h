@@ -223,8 +223,8 @@ class cAppli_Vino : public cXml_EnvVino,
         void PostInitVirtual();
         void  Boucle();
         cXml_EnvVino & EnvXml() {return static_cast<cXml_EnvVino &> (*this);}
-        const cOnePCarac * Nearest(const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
-        int  IndexNearest(const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
+        const cOnePCarac * Nearest(double aDistSeuil,const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
+        int  IndexNearest(double aDistSeuil,const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
 
      private :
         void  ExeOneClik(Clik &);
@@ -384,6 +384,8 @@ class cAppli_Vino : public cXml_EnvVino,
         std::string    mNameSift;
         int            mWithPCarac;
         cSetPCarac *   mSPC;
+        cPtFromCOPC    mArgQt;
+        tQtOPC     *   mQTPC;
         std::vector<Siftator::SiftPoint> mVSift;
         double         mSeuilAC;
         double         mSeuilContRel;
@@ -392,6 +394,8 @@ class cAppli_Vino : public cXml_EnvVino,
         cElNuage3DMaille *         mCheckNuage;
         cBasicGeomCap3D  *         mCheckOri;
         std::vector<const cOnePCarac*>   mVptHom;
+        std::string                      mNameLab;
+        eTypePtRemark                    mLabel;
         
 };
 

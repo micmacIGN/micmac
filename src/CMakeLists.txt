@@ -175,7 +175,7 @@ else()
 endif()
 
 if( ${qt_version} EQUAL 5 )
-	qt5_use_modules(${libElise} Widgets Core Gui Xml Concurrent OpenGL)
+	target_link_libraries(${libElise} Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Concurrent Qt5::OpenGL)
 endif()
 
 INSTALL(TARGETS ${libElise} ARCHIVE DESTINATION ${BUILD_PATH_LIB})

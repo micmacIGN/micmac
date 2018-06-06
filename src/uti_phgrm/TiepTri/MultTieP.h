@@ -38,6 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 extern Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<Pt2dr> & aNPts2D);
+extern double cal_Residu( Pt3dr aPInter3D , vector<CamStenope*> & aVCamInter, vector<Pt2dr> & aVPtInter);
 
 #ifndef _MultTieP_
 #define _MultTieP_
@@ -67,6 +68,7 @@ class cCelImTPM
          void *  ImTPM_GetVoidData() const;
          void    ImTPM_SetVoidData(void *);
          int     & Id() {return mId;}
+         std::string  & Name() {return mNameIm;}
     private :
          std::string mNameIm;
          int         mId;
@@ -110,7 +112,7 @@ class cSetPMul1ConfigTPM
 
        Pt2dr GetPtByImgId(int aKp, int aQueryImgID);
        std::vector<Pt3d<double> > IntersectBundle(std::map<int, CamStenope *> aMCams); //aMCams are Camera indexed by the Id fo Image
-       std::vector<Pt3d<double> > IntersectBundle(std::map<int, CamStenope *> aMCams, std::vector<Pt2dr*> & aVResid); // return reproj error in aVResod
+       std::vector<Pt3d<double> > IntersectBundle(std::map<int, CamStenope *> aMCams, std::vector<double> & aVResid); // return reproj error in aVResod
 
     private :
        int  AddrPtIm(int aKp,int aKIm) {return 2*(aKp*mNbIm  +aKIm) ;}
@@ -165,6 +167,7 @@ class cSetTiePMul
         cDicoImTPM & DicoIm();
         cCelImTPM * CelFromName(const std::string & aName);
         cCelImTPM * CelFromInt(const int & anId);
+        std::string NameFromId(const int & anId);
 
         const std::vector<cSetPMul1ConfigTPM *> & VPMul();
         int NbIm() const;

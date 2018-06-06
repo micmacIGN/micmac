@@ -19,6 +19,7 @@ cDensityMapPH::cDensityMapPH(int argc,char ** argv)
     mSmoothing=1;
     mMultiplicity=0;
     mResid=0;
+    mThreshResid=5;
 
     ElInitArgMain
             (
@@ -34,7 +35,7 @@ cDensityMapPH::cDensityMapPH(int argc,char ** argv)
                 << EAM(mWidth,"Width",true, "Size [pix] of width resulting density map" )
                 << EAM(mSmoothing,"Smooth",true, "Apply Gaussian filter to smooth the result, def true" )
                 << EAM(mMultiplicity,"Multi",true, "if true, density map depict not number of tie point but value of max multiplicity. Def false." )
-                << EAM(mResid,"Multi",true, "if true, density map depict not number of tie point but value of max reprojection error. Def false." )
+                << EAM(mResid,"Resid",true, "if true, density map depict not number of tie point but value of max reprojection error. Def false." )
                 << EAM(mDebug,"Debug",true, "Print message in terminal to help debugging." )
 
                 );
@@ -42,6 +43,7 @@ cDensityMapPH::cDensityMapPH(int argc,char ** argv)
     if (!MMVisualMode)
     {
         if (!EAMIsInit(&mOut) && mMultiplicity) mOut="TiePoints_MultiplicityMap.tif";
+        if (!EAMIsInit(&mOut) && mResid) mOut="TiePoints_MaxResidualMap.tif";
 
         mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
 
@@ -156,16 +158,31 @@ void cDensityMapPH::populateDensityMap(){
     for (auto & aCnf : mTPM->VPMul())
     {
        // retrieve 3D position in model geometry
-       std::vector<Pt3dr> aPts=aCnf->IntersectBundle(mCams);
+        if (!mResid) {
+            std::vector<Pt3dr> aPts=aCnf->IntersectBundle(mCams);
+            // add the points to the density map
+            for (auto & Pt: aPts){
+                Pt2dr PosXY(Pt.x,Pt.y);
+                Pt2di PosUV=XY2UV(PosXY);
+                double aVal=mDM.GetR(PosUV);
+                if (!mMultiplicity){mDM.SetR(PosUV,aVal+1);} else {mDM.SetR(PosUV,ElMax((int)aVal,aCnf->NbIm()));}
+            }
+        }
+       if (mResid) {
+       std::vector<double> aResid;
+       std::vector<Pt3dr> aPts=aCnf->IntersectBundle(mCams,aResid);
        // add the points to the density map
+       int i(0);
        for (auto & Pt: aPts){
-
-        Pt2dr PosXY(Pt.x,Pt.y);
-        Pt2di PosUV=XY2UV(PosXY);
-        double aVal=mDM.GetR(PosUV);
-
-        if (!mMultiplicity){mDM.SetR(PosUV,aVal+1);} else {mDM.SetR(PosUV,ElMax((int)aVal,aCnf->NbIm()));}
+           Pt2dr PosXY(Pt.x,Pt.y);
+           Pt2di PosUV=XY2UV(PosXY);
+           double aVal=mDM.GetR(PosUV);
+           if (aResid.at(i)<mThreshResid) mDM.SetR(PosUV,ElMax(aVal,aResid.at(i)));
+           if (mDebug) std::cout << "Reprojection error for this point is equal to " << aResid.at(i) << "\n";
+           i++;
        }
+       }
+
      cnt++;
      if(cnt>progBar) {
          std::cout << "-";
