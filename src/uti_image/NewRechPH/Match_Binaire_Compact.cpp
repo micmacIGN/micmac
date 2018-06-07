@@ -81,6 +81,7 @@ class cScoreOPC
           std::vector<double> mHCumT;
           std::vector<double> mHCumR;
           double mInH;
+          Pt2dr  mDistH;
 };
 
 class cSetPairOPC
@@ -747,7 +748,8 @@ cScoreOPC::cScoreOPC(double aScore,double aHTrue,double aHRand,int aBit) :
    mHTrue (aHTrue),
    mHRand (aHRand),
    mBit   (aBit),
-   mInH   (0.0)
+   mInH   (0.0),
+   mDistH (0,0)
 {
 }
            
@@ -1050,7 +1052,7 @@ class cAppli_NH_ApprentBinaire
             cScoreOPC Score(const cCombCalcOB &);
             double ComputeInH(const cCombCalcOB &);
             // Score base sur le fait que les histo vrai et faux sont different
-            double ComputeScoreHistoBinaire(const cCombCalcOB &);
+            Pt2dr ComputeScoreHistoBinaire(const cCombCalcOB &); // DifMoy / Dif truth-Rand
             cScoreOPC ScoreModif(std::vector<int> & ,const std::vector<cCompCBOneBit> &);
             void OptimCombin(const std::string &);
             void OptimLocal(const std::string & aIn,const std::string & aOut);
@@ -1098,6 +1100,7 @@ class cAppli_NH_ApprentBinaire
             std::string     mExt;
             double          mSomInH;
             double          mPdhInH;
+            Pt2dr           mPdHistBin;
             cFitsParam      mFitParam;
 };
 
@@ -1113,7 +1116,8 @@ cAppli_NH_ApprentBinaire::cAppli_NH_ApprentBinaire(int argc, char ** argv) :
     mNumStep    (1),
     mDoSave     (true),
     mExt        (""),
-    mPdhInH     (0)
+    mPdhInH     (0),
+    mPdHistBin  (0,0)
 {
    Pt2di aNbTR;
    ElInitArgMain
@@ -1129,6 +1133,7 @@ cAppli_NH_ApprentBinaire::cAppli_NH_ApprentBinaire(int argc, char ** argv) :
                      << EAM(mNameInput,"Input",true,"Name input if != def")
                      << EAM(mExt,"Ext",true,"Extension to add to name")
                      << EAM(mPdhInH,"PdsInH",true,"Pds for In hoomogeneite")
+                     << EAM(mPdHistBin,"HBin",true,"Pds for histo Ran/Truth ")
    );
    if (EAMIsInit(&aNbTR))
    {
@@ -1357,28 +1362,49 @@ cScoreOPC cAppli_NH_ApprentBinaire::FinishScore()
 }
 
 
-/*
-double cAppli_NH_ApprentBinaire::ComputeScoreHistoBinaire(const cCombCalcOB & aComb)
+void MakeProba(Im1D_REAL8 aH)
 {
-   if (aComb.VC().size()==1)
-   {
-      return mSomInH ;
-   }
+    double aSom;
+    ELISE_COPY(aH.all_pts(),aH.in(),sigma(aSom));
+    ELISE_COPY(aH.all_pts(),aH.in()/aSom,aH.out());
+   
+}
+
+Pt2dr cAppli_NH_ApprentBinaire::ComputeScoreHistoBinaire(const cCombCalcOB & aComb)
+{
    int aNBB =  aComb.VC().size();
    int aSzH = 1<<aNBB;
-   Im1D_REAL8 aHT(aSzH,0.0);
-   Im1D_REAL8 aHR(aSzH,0.0);
 
    cCompCB aCOB =  aComb.CCOB() ;
-   mVTruth.AddFlag(aCOB,aHT);
-   mVRand.AddFlag(aCOB,aHR);
+
 
    int aNb=8;
    double aSzF = 0.5;
 
+   Im1D_REAL8 aHT(aSzH,0.0);
+   mVTruth.AddFlag(aCOB,aHT);
    FilterHistoFlag(aHT,aNb,aSzF,false);
+   MakeProba(aHT);
+
+   Im1D_REAL8 aHR(aSzH,0.0);
+   mVRand.AddFlag(aCOB,aHR);
    FilterHistoFlag(aHR,aNb,aSzF,false);
+   MakeProba(aHR);
+
+   double aDifH=0;
+   double aDifM=0;
+   ELISE_COPY
+   (
+      aHT.all_pts(),
+      Virgule(Abs(aHT.in()-aHR.in()),Abs(aHR.in()-1/double(aSzH))),
+      Virgule(sigma(aDifH),sigma(aDifM))
+   );
+   // // std::cout << "DifH= " << aDifH << " DifM=" << aDifM << "\n";
+
+ 
+   return  Pt2dr(aDifM,aDifH);
 }
+/*
 */
 
 
@@ -1436,6 +1462,12 @@ cScoreOPC cAppli_NH_ApprentBinaire::Score(const cCombCalcOB & aComb)
       aRes.mInH = ComputeInH(aComb);
       aRes.mScore -= aRes.mInH * mPdhInH ;
    }
+   if (euclid(mPdHistBin) != 0.0)
+   {
+        aRes.mDistH = ComputeScoreHistoBinaire(aComb);
+        //  return  Pt2dr(aDifM,aDifH);  on penalise inhom sur la verite, on favorise disntance entre verite et rand
+        aRes.mScore += - aRes.mDistH.x * mPdHistBin.x + aRes.mDistH.y * mPdHistBin.y;
+   }
    return aRes;
 }
 
@@ -1473,8 +1505,8 @@ cCalcOB cAppli_NH_ApprentBinaire::COB(const  cCompCBOneBit & aCOB) {return cCalc
 std::vector<cCalcOB> cAppli_NH_ApprentBinaire::SelectGermes()
 {
     int aNbCoef= 3;
-    int aNbInOneLine= (mPdhInH !=0)  ? 1 : 3;
-    int aNbTests = (mPdhInH !=0)  ? 10 : 100;
+    int aNbInOneLine=  ((euclid(mPdHistBin) !=0) || (mPdhInH !=0)) ? 1 : 3;
+    int aNbTests = ((euclid(mPdHistBin) !=0) || (mPdhInH !=0))  ? 10 : 100;
 
     std::vector<cCalcOB> aVGlobC;
     for (int aMode=0 ; aMode<3 ; aMode++)
@@ -1520,6 +1552,7 @@ std::vector<cCalcOB> cAppli_NH_ApprentBinaire::SelectGermes()
                std::cout << "SSSSSSS glob : " << aScMax.mHTrue 
                          << " "<< aScMax.mHRand << " " << aScMax.mBit 
                          << " InH " << aScMax.mInH 
+                         << " DistH " << aScMax.mDistH 
                          << " Mode=" << aMode << "  KIReste=" << aNbIR - aKIR
                          << "\n";
            }
@@ -1592,6 +1625,7 @@ void cAppli_NH_ApprentBinaire::OptimLocal(const std::string & aIn,const std::str
                      << " Rand : "<< aSMax.mHRand 
                      << " MB " << aSMax.mBit  
                      << " InH " << aSMax.mInH  
+                     << " DistH " << aSMax.mDistH 
                      << " NBBB " << mNbBitsMax << "\n";
                 if (mDoSave)
                    aCMax.Save(aOut,aSMax.mBit);
@@ -1644,6 +1678,7 @@ void cAppli_NH_ApprentBinaire::OptimCombin(const std::string & aNameSave)
                      << " True : " << aScMax.mHTrue 
                      << " Rand : "<< aScMax.mHRand 
                      << " InH " << aScMax.mInH  
+                     << " DistH " << aScMax.mDistH 
                      << " MB " << aScMax.mBit  
                      << " NBBB " << mNbBitsMax << "\n";
            if (mDoSave)
