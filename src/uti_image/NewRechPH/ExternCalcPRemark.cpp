@@ -71,7 +71,7 @@ cSetPCarac * LoadStdSetCarac(eTypePtRemark aLab,const std::string & aNameIm,cons
    return aRes;
 }
 
-void  SaveStdSetCaracMultiLab(const cSetPCarac aSetGlob,const std::string & aNameIm,const std::string & aExt)
+void  SaveStdSetCaracMultiLab(const cSetPCarac aSetGlob,const std::string & aNameIm,const std::string & aExt,int aSeuilHS)
 {
    for (int aKLab=0 ; aKLab<int(eTPR_NoLabel) ; aKLab++)
    {
@@ -84,7 +84,36 @@ void  SaveStdSetCaracMultiLab(const cSetPCarac aSetGlob,const std::string & aNam
             aSetLab.OnePCarac().push_back(aPC);
          }
       }
-      MakeFileXML(aSetLab,NameFileNewPCarac(aLab,aNameIm,true,aExt));
+      if (aSeuilHS<0)
+      {
+         MakeFileXML(aSetLab,NameFileNewPCarac(aLab,aNameIm,true,aExt));
+      }
+      else
+      {
+          std::vector<double> aVScale;
+          for (auto & aPC : aSetLab.OnePCarac())
+              aVScale.push_back(ScaleGen(aPC));
+          int aKSeuil = ElMax(0, int(aVScale.size()-1)-aSeuilHS);
+          double aScaleLim = KthVal(aVScale,aKSeuil);
+          cSetPCarac aSetHighS;
+          cSetPCarac aSetLowS;
+          for (auto & aPC : aSetLab.OnePCarac())
+          {
+              if (ScaleGen(aPC) >= aScaleLim)
+              {
+                 aSetHighS.OnePCarac().push_back(aPC);
+              }
+              else
+              {
+                 aSetLowS.OnePCarac().push_back(aPC);
+              }
+          }
+std::cout << "HHHhhhhhh " << aSetLab.OnePCarac().size() << " " 
+                          <<  aSetHighS.OnePCarac().size() << " " 
+                          << aSetLowS.OnePCarac().size() << "\n" ;
+          MakeFileXML(aSetLowS,NameFileNewPCarac(aLab,aNameIm,true,aExt));
+          MakeFileXML(aSetHighS,NameFileNewPCarac(aLab,aNameIm,true,"_HighS"+aExt));
+      }
    }
 }
 

@@ -185,7 +185,8 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
 
     mQT                (nullptr),
     mNbMaxLabByIm      (100000),
-    mNbMaxLabBy10MP    (5000),
+    mNbMinLabByIm      (8000),
+    mNbMaxLabBy10MP    (10000),
     mNbPreAnalyse      (1000),
 
     mIm0               (1,1),
@@ -237,6 +238,8 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
                       << EAM(mEch0Decim, "Ech0Dec",true,"First Scale of Decimation")
                       << EAM(DoComputeDirAC, "DoCDA",true,"ComputeDirAC - debug purpose")
                       << EAM(mCallBackMulI, "CallBackMulI",true,"Call back multiple images")
+                      << EAM(mNbMaxLabByIm, "NbMaxLabByIm",true,"Def ="+ToString(mNbMaxLabByIm))
+                      << EAM(mNbMaxLabBy10MP, "NbMaxLabBy10MP",true,"Def ="+ToString(mNbMaxLabBy10MP))
    );
 
    
@@ -296,6 +299,9 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
    mSzIm = mIm0.sz();
 
    mNbMaxLabInBox = ElMin(mNbMaxLabByIm,round_ni((mSzIm.x/1e7)*mSzIm.y*mNbMaxLabBy10MP));
+   mNbMaxLabInBox = ElMax(mNbMaxLabInBox,mNbMinLabByIm);
+   std::cout << "mNbMaxLabInBoxmNbMaxLabInBox " << mNbMaxLabInBox << "\n";
+
    mDistStdLab   =  sqrt((mSzIm.x * double(mSzIm.y)) / (mNbMaxLabInBox * PI)); // PI * mDistStdLab ^2 = Surf
    mQT = new tQtOPC (mArgQt,Box2dr(Pt2dr(-10,-10),Pt2dr(10,10)+Pt2dr(mSzIm)),5,50);
 
@@ -522,7 +528,8 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
 
 
   // MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
-  SaveStdSetCaracMultiLab(aSPC,mName,mExtSave);
+  int NbHighScale = 750;
+  SaveStdSetCaracMultiLab(aSPC,mName,mExtSave,NbHighScale);
 
   double aTimeXml = TimeAndReset(aChrono);
 
@@ -864,7 +871,8 @@ class cAimeApprentissage
 
         cAimeApprentissage(int argc,char ** argv);
     private :
-        void DoOneDir(const cXlmAimeOneDir &);
+        void DoOneDir (const cXlmAimeOneDir &);
+        void DoOneAppr(const cXlmAimeOneApprent &,int aCpt);
         void DoOneMatch();
         void DoOnePtCar();
         void DoOneRef();
@@ -873,7 +881,8 @@ class cAimeApprentissage
         const cXlmAimeOneDir * mCurDir;
         std::string mNameParam;
         cXmlAimeParamApprentissage mParam;
-        
+        bool mExe;
+        bool mForShowPerf;
 };
 
 void cAimeApprentissage::CD(const std::string & aDir)
@@ -912,7 +921,8 @@ void cAimeApprentissage::DoOneRef()
         }
 
     }
-    cEl_GPAO::DoComInParal(aLCom);
+    if (mExe)
+       cEl_GPAO::DoComInParal(aLCom);
 }
 
 void cAimeApprentissage::DoOnePtCar()
@@ -920,8 +930,11 @@ void cAimeApprentissage::DoOnePtCar()
     std::string aComPtCar =     "mm3d TestLib TestNewRechPH " 
                               + QUOTE(mCurDir->XAPA_PtCar().Pattern())  + " "
                               + mParam.DefParamPtCar().Val() + " "
+                              + " NbMaxLabBy10MP=20000"
                            ;
-    System(aComPtCar);
+    // std::cout << aComPtCar << "\n";
+    if (mExe)
+        System(aComPtCar);
 }
 
 void cAimeApprentissage::DoOneMatch()
@@ -940,8 +953,11 @@ void cAimeApprentissage::DoOneMatch()
         std::string aComRename = " mm3d PHom_RenameRef " + ToString(aNumMatch) + " " + aMatch.Master() ;
         std::cout << aComMatch << "\n";
         std::cout << aComRename << "\n";
-        System(aComMatch);
-        System(aComRename);
+        if (mExe)
+        {
+           System(aComMatch);
+           System(aComRename);
+        }
     }
 }
 
@@ -966,29 +982,96 @@ void cAimeApprentissage::DoOneDir(const cXlmAimeOneDir & aXAOD)
       if (mCurDir->DoRef().ValWithDef(mParam.DefDoRef().Val()))
       {
          DoOneRef();
+         std::string aComCp = "cp PC-Ref-NH/* ../PC-Ref-NH/";
+         if (mExe)
+            System(aComCp);
       }
    }
-   std::string aComCp = "cp PC-Ref-NH/* ../PC-Ref-NH/";
-   System(aComCp);
    CD("..");
 }
 
-cAimeApprentissage::cAimeApprentissage(int argc,char ** argv)
+
+void cAimeApprentissage::DoOneAppr(const cXlmAimeOneApprent & anAOP,int aCpt)
+{
+    int anEt0 =  mForShowPerf ? 2 : 0;
+    for (int aNbEt=anEt0 ; aNbEt<=2 ; aNbEt++)
+    {
+         std::cout << "\n====================================================\n\n";
+         std::list<std::string> aLCom;
+         for (int aKLab=0 ; aKLab<eTPR_NoLabel ; aKLab++)
+         {
+             eTypePtRemark aLab = eTypePtRemark(aKLab);
+             std::string aNameLab = eToString(aLab);
+             double aT = mParam.TimeOut().Val();
+             if (aNbEt==2) 
+                aT *= 2.0;
+             std::string aCom =      "mm3d PHom_ApBin "
+                                   + aNameLab
+                                   + " Step=" + ToString(aNbEt)
+                                   + " PdsW=" + ToString(anAOP.PdsW())
+                                   + " NBB=" + ToString(anAOP.NbBB())
+                                   + " TimeOut=" + ToString(aT)
+                                ;
+
+             if (anAOP.BitM().IsInit())
+                aCom  = aCom + " BitM=" + ToString(anAOP.BitM().Val());
+             if (aNbEt<=1)
+             {
+                 std::string aNbTR = ToString((aNbEt==0) ? mParam.NbExEt0() : mParam.NbExEt1());
+                 aCom  = aCom + " NbTR=["+ aNbTR + "," +  aNbTR  + "]";
+             }
+             if (mForShowPerf)
+             {
+                aCom  = aCom + " ForShowPerf=true";
+             }
+
+             std::cout << aCom << "\n";
+             if (mForShowPerf)
+             {
+                System(aCom);
+             }
+             else
+             {
+                aLCom.push_back(aCom);
+             }
+         }
+         if (mExe)
+            cEl_GPAO::DoComInParal(aLCom);
+    }
+}
+
+
+
+cAimeApprentissage::cAimeApprentissage(int argc,char ** argv) :
+    mExe          (true),
+    mForShowPerf  (false)
 {
    MMD_InitArgcArgv(argc,argv);
    ElInitArgMain
    (
          argc,argv,
          LArgMain()  << EAMC(mNameParam, "Name Parameter",  eSAM_IsPatFile),
-         LArgMain()  //  << EAM(mPowS, "PowS",true,"Scale Pow")
+         LArgMain()  << EAM(mExe, "Exe",true,"Execute commands")
+                     << EAM(mForShowPerf,"ForShowPerf",true,"Dont compute, only show performance")
    );
 
    mParam = StdGetFromNRPH(mNameParam,XmlAimeParamApprentissage);
-   for (const auto  & aP : mParam.XlmAimeOneDir())
+   if (mForShowPerf) 
+      mExe=false;
+
+   if (!mForShowPerf)
    {
-      DoOneDir(aP);
+      for (const auto  & aP : mParam.XlmAimeOneDir())
+      {
+         DoOneDir(aP);
+      }
    }
-   
+   int aCpt=0;
+   for (const auto  & aOAp : mParam.XlmAimeApprent().XlmAimeOneApprent())
+   {
+       DoOneAppr(aOAp,aCpt);
+       aCpt++;
+   }
 }
 
 int CPP_AimeApprent(int argc,char ** argv)

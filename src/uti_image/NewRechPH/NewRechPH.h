@@ -339,6 +339,7 @@ class cAppli_NewRechPH
         cPtFromCOPC mArgQt;
         tQtOPC * mQT;
         int    mNbMaxLabByIm;   // Nombre max pour une image
+        int    mNbMinLabByIm;   // Nomvre min pour couper
         int    mNbMaxLabBy10MP; // Nombre max par 10 MegaPix
         int    mNbMaxLabInBox;  // Calcule a partir des 2 autres
         int    mNbPreAnalyse;   // Those save for pre analysis (visib graph, initial model etc ...)
