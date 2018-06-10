@@ -4250,6 +4250,85 @@ int RecalRPC_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+
+
+bool CalcCentreOptiqueGrille(const OrientationGrille & aOri, Pt3dr & aCentre)
+{
+    /* Intersectioin of two segs to get the satellite height */
+    Pt2dr aDZ = aOri.GetRangeZ();
+
+    Pt2dr aDC = aOri.GetRangeCol();
+    Pt2dr aDR = aOri.GetRangeRow();
+
+    Pt2dr aP0(aDC.x,aDR.x+0.5*(aDR.y-aDR.x));
+    Pt2dr aP1(aDC.y,aDR.x+0.5*(aDR.y-aDR.x));
+
+    Pt2dr aP0GrZ0,aP0GrZ1,aP1GrZ0,aP1GrZ1;
+
+    aOri.ImageAndPx2Obj(aP0.x,aP0.y,&aDZ.x,aP0GrZ0.x,aP0GrZ0.y);
+    aOri.ImageAndPx2Obj(aP0.x,aP0.y,&aDZ.y,aP0GrZ1.x,aP0GrZ1.y);
+
+    aOri.ImageAndPx2Obj(aP1.x,aP1.y,&aDZ.x,aP1GrZ0.x,aP1GrZ0.y);
+    aOri.ImageAndPx2Obj(aP1.x,aP1.y,&aDZ.y,aP1GrZ1.x,aP1GrZ1.y);
+
+
+    std::vector<double> aVPds;
+    std::vector<ElSeg3D> aVS;
+
+    aVS.push_back(ElSeg3D(Pt3dr(aP0GrZ0.x,aP0GrZ0.y,aDZ.x),Pt3dr(aP0GrZ1.x,aP0GrZ1.y,aDZ.y)));
+    aVS.push_back(ElSeg3D(Pt3dr(aP1GrZ0.x,aP1GrZ0.y,aDZ.x),Pt3dr(aP1GrZ1.x,aP1GrZ1.y,aDZ.y)));
+    aVPds.push_back(1.0);
+    aVPds.push_back(1.0);
+
+    bool aIsOK;
+    aCentre = ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK);
+
+    if (aIsOK==false)  
+        return EXIT_SUCCESS;
+    else
+        return EXIT_FAILURE;
+
+
+}
+
+int CalcBsurHGrille_main(int argc,char ** argv)
+{
+    std::string aGRIName1,aGRIName2;
+    std::string aDir;
+    std::string aName;
+
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aGRIName1,"First image")
+                   << EAMC(aGRIName2,"Second image"),
+        LArgMain()
+     );
+
+
+    OrientationGrille aGRI1(aGRIName1);
+    OrientationGrille aGRI2(aGRIName2);
+
+
+    Pt3dr aCentre1,aCentre2;
+    
+    if (! CalcCentreOptiqueGrille(aGRI1,aCentre1))
+        return EXIT_FAILURE;
+
+    if (! CalcCentreOptiqueGrille(aGRI2,aCentre2))
+        return EXIT_FAILURE;
+
+
+    double aB = euclid(aCentre2-aCentre1);
+
+    std::cout << "B=" << aB << ", H=" << aCentre1.z << ", B/H=" << aB/aCentre1.z << "\n";
+
+    return(1);    
+
+    
+}
+
 int CalcBsurH_main(int argc,char ** argv)
 {
     
