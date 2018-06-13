@@ -208,6 +208,9 @@ mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
        <DefDoMatch Nb="?" Type="bool" Def="true"> </DefDoMatch>
        <DefDoPtCar Nb="?" Type="bool" Def="true"> </DefDoPtCar>
        <DefDoRef   Nb="?" Type="bool" Def="true"> </DefDoRef>
+       <DefDoApprComb   Nb="?" Type="bool" Def="true"> </DefDoApprComb>
+       <DefDoApprLocal1   Nb="?" Type="bool" Def="true"> </DefDoApprLocal1>
+       <DefDoApprLocal2   Nb="?" Type="bool" Def="true"> </DefDoApprLocal2>
        <DefParamPtCar Nb="?" Type="std::string" Def=""> </DefParamPtCar>
 
        <XlmAimeOneDir Nb="*">
@@ -231,6 +234,18 @@ mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
                 <Pattern  Nb="1" Type="std::string" AccessorFils="false"> </Pattern>
             </XAPA_PtCar>
        </XlmAimeOneDir>
+
+       <XlmAimeApprent Nb="1">
+             <NbExEt0 Nb="1" Type="int">       </NbExEt0>
+             <NbExEt1 Nb="1" Type="int">       </NbExEt1>
+             <TimeOut Nb="?" Type="double" Def="300.0">       </TimeOut>
+             <XlmAimeOneApprent  Nb="*">
+                  <PdsW Nb="1" Type="double">  </PdsW>
+                  <NbBB Nb="1" Type="int">     </NbBB>
+                  <BitM Nb="?" Type="int">     </BitM>
+             </XlmAimeOneApprent>
+       </XlmAimeApprent>
+
    </XmlAimeParamApprentissage>
 
 
