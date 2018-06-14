@@ -2636,7 +2636,8 @@ Pt3dr  cPoseCam::AddObsCentre
    if (mEqOffsetGPS)
    {
        Pt3dr aResidu = mEqOffsetGPS->Residu(mObsCentre.mCentre);
-       std::cout << "Lever Arm, Cam: " << mName << " Residual " << aResidu  << " LA: " <<  mEqOffsetGPS->Base()->ValueBase() << "\n";
+       double aNormLA = euclid(mEqOffsetGPS->Base()->ValueBase());
+       std::cout << "Lever Arm, Cam: " << mName << " Residual " << aResidu  << " LA: " <<  mEqOffsetGPS->Base()->ValueBase() << ", " << aNormLA << "\n";
 
        double aPdsPX = aPondPlani.PdsOfError(euclid(Pt2dr(aResidu.x,aResidu.y))/sqrt(2.));
        double aPdsPY = aPdsPX;
