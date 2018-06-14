@@ -302,8 +302,8 @@ void cAppli_Tapas_Campari::InitVerifModele(const std::string & aMod,cInterfChant
               LocLibCD = false;
               LocDegGen =  (aKModele-19);
               TheModelAdd = "eModelePolyDeg" +  ToString(LocDegGen);
-              LocDegAdd=(aKModele-19);// voir avec MPD, on dirai que dans tapas le param degAdd de campari n'existe pas et est "confondu/interchangeable" avec DegGen
-              // de plus, eModeleRadFour n'as pas l'air de passer dans campari
+              LocDegAdd=(aKModele-19);// dans tapas le param degAdd de campari n'existe pas et est "confondu/interchangeable" avec DegGen?
+
         }
         eModAutom = "eCalibAutomNone";
     }
@@ -435,9 +435,7 @@ int Tapas_main_new(int argc,char ** argv)
                     << EAM(anATP.GlobDRadMaxUSer,"DegRadMax",true,"Max degree of radial, default model dependent")
                     << EAM(anATP.GlobDegGen,"DegGen",true,"Max degree of general polynome, default model dependent (generally 0 or 1)")
                     << EAM(anATP.GlobLibAff,"LibAff",true,"Free affine parameter, Def=true", eSAM_IsBool)
-                    << EAM(anATP.GlobLibDec,"LibDec",true,"Free decentric parameter, Def=true", eSAM_IsBool)
                     << EAM(anATP.GlobLibPP  ,"LibPP",true,"Free principal point, Def=true", eSAM_IsBool)
-                    << EAM(anATP.GlobLibCD,"LibCP",true,"Free distorsion center, Def=true", eSAM_IsBool)
                     << EAM(anATP.GlobLibFoc,"LibFoc",true,"Free focal, Def=true", eSAM_IsBool)
                     << EAM(aRapTxt,"RapTxt",true, "RapTxt", eSAM_NoInit)
                     << EAM(TolLPPCD,"LinkPPaPPs",true, "Link PPa and PPs (double)", eSAM_NoInit)

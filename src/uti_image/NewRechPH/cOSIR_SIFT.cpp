@@ -80,8 +80,15 @@ double cOneScaleImRechPH::ComputeContrast()
 }
 */
 
-void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR,cSetPCarac & aSPC)
+void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR,cSetPCarac & aSPC,bool FromLR)
 {
+   // Ajoute l'image de calcul dans le resultat, pour affinage etc ....
+   // ELISE_ASSERT(false,"Finire cOneScaleImRechPH::SiftMaxLoc");
+
+   double aRatioPt =  mAppli.RatioDecimLRHR(mNiv,FromLR);
+
+
+   ELISE_ASSERT(mSifDifMade && aLR->mSifDifMade,"Sift dif pb in cOneScaleImRechPH::SiftMaxLoc");
    // std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mScale+2,true);
    std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,2,true);
    Im2D_U_INT1 aIFlag = MakeFlagMontant(mImMod);
@@ -127,11 +134,12 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
                cOnePCarac aPC;
                aPC.DirMS() = Pt2dr(0,0);
                aPC.Kind() =  aLab;
-               aPC.Pt() =  Pt2dr(aP);
+               aPC.Pt() =  Pt2dr(aP) / aRatioPt ;
                aPC.Scale() = mScaleAbs;
                aPC.NivScale() = mNiv;
                // mAppli.AdaptScaleValide(aPC);
                aPC.ScaleStab() = -1;
+               aPC.Id() = mAppli.GetNexIdPts();
                aSPC.OnePCarac().push_back(aPC);
           }
        }

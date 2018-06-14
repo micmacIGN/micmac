@@ -866,6 +866,31 @@ void cAppliOptimTriplet::Execute()
    aXml.BSurH() = aBOnH;
    aXml.PMed() = aPMed;
 
+
+   std::vector<Pt2df> & aVP1 = *(mRedH123[0]);
+   std::vector<Pt2df> & aVP2 = *(mRedH123[1]);
+   std::vector<Pt2df> & aVP3 = *(mRedH123[2]);
+
+   //calcul d'ellipse par triplet
+   cXml_Elips3D anElips3D;
+   RazEllips(anElips3D);
+
+   for (int aK=0; aK<int(aVP1.size()); aK++)
+   {
+       std::vector<Pt3dr> aW1;
+       std::vector<Pt3dr> aW2;
+       AddSegOfRot(aW1,aW2,mIm1->Ori(),aVP1.at(aK));
+       AddSegOfRot(aW1,aW2,mIm2->Ori(),aVP2.at(aK));
+       AddSegOfRot(aW1,aW2,mIm2->Ori(),aVP3.at(aK));
+
+       bool OkI;
+       Pt3dr aI = InterSeg(aW1,aW2,OkI);
+        
+       AddEllips(anElips3D,aI,1.0);
+   }
+   NormEllips(anElips3D);
+   aXml.Elips() = anElips3D; 
+
    MakeFileXML(aXml,aNameSauveXml);
    MakeFileXML(aXml,aNameSauveBin);
 

@@ -346,9 +346,12 @@ cAFM_Im::cAFM_Im (const std::string  & aNameIm,cAppli_FitsMatch1Im & anAppli) :
    mSzIm   (mMTD.SzImTifOrXif()),
    mVSetCC (int(eTIR_NoLabel))
 {
+/*
     std::string aNamePC = NameFileNewPCarac(mNameIm,true,anAppli.ExtNewH());
-
     mSetPC = StdGetFromNRPH(aNamePC,SetPCarac);
+*/
+   ELISE_ASSERT(false,"cAFM_Im::cAFM_Im to do revoir cAFM_Im::cAFM_Im par label ...");
+   mSetPC = *LoadStdSetCarac(eTPR_NoLabel,mNameIm,mAppli.ExtNewH());
     
     for (const auto & aPC : mSetPC.OnePCarac())
     {

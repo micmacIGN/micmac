@@ -66,11 +66,11 @@ void NormaliseSigma(double & aMoySom,double & aVarSig,const double & aPds)
 static constexpr float DefInvRad = -1e20;
 // constexpr int DynU1 = 32;
 
-double  NormalizeVect(Im2D_INT1  aIout , Im2D_REAL4 aIin, int aK)
+template <class Type,class TypeBuf> double  NormalizeVect(Im2D_INT1  aIout ,Im2D<Type,TypeBuf> aIin,int aK)
 {
    int aTx = aIout.tx();
    INT1 * aDOut =  aIout.data()[aK];
-   REAL4 * aDIn =  aIin.data()[aK];
+   Type * aDIn =  aIin.data()[aK];
 
    double aS0  = 0.0;
    double aS1  = 0.0;
@@ -189,7 +189,7 @@ class cComputeProfRad
 };
 
    // return Pt2di(mNbSR2Use, mNbTetaInv);
-double Normalise(tImNRPH aImBuf,tImNRPH aImOut,int aX0In,int aX1In,int aSzXOut)
+double Normalise(Im2D_REAL4 aImBuf,Im2D_REAL4 aImOut,int aX0In,int aX1In,int aSzXOut)
 {
     int aSzY = aImBuf.sz().y;
     double aS0,aS1,aS2;
@@ -209,19 +209,20 @@ double Normalise(tImNRPH aImBuf,tImNRPH aImOut,int aX0In,int aX1In,int aSzXOut)
 }
 
 
-bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
+bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt,bool aModeTest)
 {
    bool BUG= false &&  (euclid(aPt.Pt()+Pt2dr(mP0Calc)-aPTBUG) < 0.02);
    static int aCpt=0;
    aCpt++;
    if (aPt.NivScale() >= mMaxLevR)
    {
+      static int aCpt=0; aCpt++;
       return aPt.OK() = false;
    }
 
    // Buf[KTeta][KRho]   pour KRho=0, duplication de la valeur centrale
-   tImNRPH aImBuf(SzInvRadCalc().x,SzInvRadCalc().y);
-   tTImNRPH aTBuf(aImBuf);
+   Im2D_REAL4 aImBuf(SzInvRadCalc().x,SzInvRadCalc().y);
+   TIm2D<REAL4,REAL8> aTBuf(aImBuf);
 
    std::vector<cOneScaleImRechPH *>  aVIm;
    // Tableau des distance / au centre pour echantillonner
@@ -234,7 +235,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
    // aVIm.push_back(mVI1.at(aN0));
    for (int aKRho=0 ; aKRho <mNbSR2Calc ; aKRho++)
    {
-       aVIm.push_back(mVI1.at(aN0 + aKRho * mDeltaSR));
+       aVIm.push_back(mVILowR.at(aN0 + aKRho * mDeltaSR));
    }
 
    double aLastScaleAbs = ElSquare(aVIm.at(0)->ScaleAbs()) / aVIm.at(1)->ScaleAbs();
@@ -251,6 +252,21 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
       aVDeltaTangAbs.push_back(aCurScaleAbs*aStepTeta);
       aLastScaleAbs = aCurScaleAbs;
    }
+
+
+   // On verifie maintenant que l'on est dedans, pour pouvoir tourner en mode test
+   {
+      double aRho = aRhoAbs * 1.1  + 5.0;
+      Pt2dr aPRho(aRho,aRho);
+      Pt2dr aP0 = aPt.Pt() - aPRho;
+      Pt2dr aP1 = aPt.Pt() + aPRho;
+      if ((aP0.x<0) || (aP0.y<0) || (aP1.x > mSzIm.x) || (aP1.y > mSzIm.y))
+      {
+         return aPt.OK() = false;
+      }
+   }
+   if (aModeTest)
+      return true;
 
    Pt2di aSzIm(mNbSR2Use,int(eTIR_NoLabel));
    aPt.InvR().ImRad() = Im2D_INT1(aSzIm.x,aSzIm.y,(INT1)0);
@@ -477,7 +493,91 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt)
    return true;
 }
 
+//   ====================================================================
+//   ====================================================================
+//   ====================================================================
 
+class cOnePCarac_HeapParam
+{
+     public :
+        static void SetIndex(tPCPtr   aPCP,int i) { aPCP->HeapInd() = i; }
+        static int  Index(tPCPtr     aPCP) { return aPCP->HeapInd(); }
+};
+class cOnePCarac_HeapCompare
+{
+    public :
+// compare score correl global
+        bool operator () (tPCPtr   & aPCP1,tPCPtr   & aPCP2) {return aPCP1->Prio() > aPCP2->Prio();}
+        // est ce que objet 1 est meuilleur que 2
+};
+
+
+double ScalePrio(tPCPtr aPCP)
+{
+   double aSP = aPCP->ScaleStab();
+   if(aSP>0) return aSP;
+   return aPCP->Scale();
+}
+
+
+void  cAppli_NewRechPH::FilterSPC(cSetPCarac & aSPC,cSetPCarac & aRes,eTypePtRemark aLabel)
+{
+   mQT->clear();
+   cOnePCarac_HeapCompare aCmp; // if aR1 > aR2
+   ElHeap<tPCPtr,cOnePCarac_HeapCompare,cOnePCarac_HeapParam> aHeap(aCmp); // He
+   for (auto & aPC :  aSPC.OnePCarac())
+   {
+       if ((aPC.Kind() == aLabel) && aPC.OK())
+       {
+           aPC.Prio() = ScalePrio(&aPC);
+           mQT->insert(&aPC);
+           aHeap.push(&aPC);
+       }
+   }
+
+   // std::cout <<  " FilterSPCFilllllll  " <<  aHeap.nb() << "\n"; // getchar();
+   tPCPtr aPCP;
+   int aNb2Add = mNbMaxLabInBox;
+   while (aHeap.pop(aPCP) && aNb2Add)
+   {
+       mQT->remove(aPCP);
+       aNb2Add--;
+       aRes.OnePCarac().push_back(*aPCP);
+       double aDistInfl = mDistStdLab * 3;
+       cVecTplResRVoisin<cOnePCarac *> aVRV;
+       mQT->RVoisins(aVRV,aPCP->Pt(),aDistInfl);
+       std::vector<cOnePCarac *> & aVV = aVRV;
+       for (const auto & aVois : aVV)
+       {
+           if (aVois==aPCP)
+           {
+           }
+           else
+           {
+               double aDist = euclid(aPCP->Pt()-aVois->Pt());
+               double aPds = aDist / aDistInfl;
+               aVois->Prio() *= aPds;
+               aHeap.MAJ(aVois);  
+           }
+       }
+   }
+
+   // std::cout << "RRRRRr   "<< aRes.OnePCarac().size() << "\n"; getchar();
+   // std::cout <<  " FilterSPCFilllllll  " <<  aHeap.nb() << " " << aNb2Add    << "\n"; // getchar();
+}
+
+
+void  cAppli_NewRechPH::FilterSPC(cSetPCarac & aSPC)
+{
+   cSetPCarac aNew;
+
+   for (int aKLab=0 ; aKLab<int(eTPR_NoLabel) ; aKLab++)
+   {
+       FilterSPC(aSPC,aNew,eTypePtRemark(aKLab));
+   }
+
+   aSPC = aNew;
+}
 
 
 

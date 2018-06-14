@@ -254,6 +254,7 @@ std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC, const std::string & aLib
 	return aVC;
 }
 
+int CPP_AimeApprent(int argc, char ** argv);
 int CPP_StatPHom(int argc, char ** argv);
 int CPP_PHom_RenameRef(int argc, char ** argv);
 int CPP_PHom_ApprentBinaire(int argc, char ** argv);
@@ -549,6 +550,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("ProfilIm", CPP_ProfilImage, "Image profiling  2D->1D "));
 		aRes.push_back(cMMCom("EditSet", CPP_EditSet, "Edition creation of a set of images/files"));
 		aRes.push_back(cMMCom("StatPHom", CPP_StatPHom, "Stat on homologous point using orientation of 3D Model"));
+		aRes.push_back(cMMCom("AimeApprent", CPP_AimeApprent, "Stat on homologous point using orientation of 3D Model"));
 		aRes.push_back(cMMCom("PHom_RenameRef", CPP_PHom_RenameRef, "Rename Ref for PHom"));
 		aRes.push_back(cMMCom("PHom_ApBin", CPP_PHom_ApprentBinaire, "Test Binary "));
 		aRes.push_back(cMMCom("FitsMatch", CPP_FitsMatch1Im, "Test Match Images NewPHom "));
@@ -628,6 +630,7 @@ extern int TestCmpIm_Ewelina(int argc, char ** argv);
 extern int TestER_hom_main(int argc, char ** argv);
 extern int PFM2Tiff_main(int argc, char ** argv);
 extern int ImPts2Dir_main(int argc, char ** argv);
+extern int FictiveObstest_main(int argc, char ** argv);
 extern int OriVideo_main(int argc, char ** argv);
 extern int TestPush(int argc, char ** argv);
 //extern int Cillia_main(int argc,char ** argv);
@@ -664,6 +667,7 @@ extern int  GCP2Hom_main(int argc,char ** argv);
 int main_featheringOrtho(int argc,char ** argv);
 int main_featheringOrthoBox(int argc,char ** argv);
 int GCP2DMeasureConvert_main(int argc,char ** argv);
+int main_densityMapPH(int argc,char ** argv);
 
 #if (ELISE_UNIX)
 extern int  DocEx_Introanalyse_main(int, char **);
@@ -836,6 +840,7 @@ extern int  CPP_NOGpsLoc(int argc, char ** argv);
 
 extern int GCPRollingBasc_main(int argc, char** argv);
 extern int Generate_ImagSift(int argc, char** argv);
+extern int Generate_ImagePer(int argc, char** argv);
 
 extern int  CPP_DistHistoBinaire(int argc, char ** argv);
 
@@ -892,6 +897,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("TestER2", TestER_hom_main, "ER test hom"));
 		aRes.push_back(cMMCom("Tif2Pfm", PFM2Tiff_main, "Tif to pfm or the other way around"));
 		aRes.push_back(cMMCom("Im2Dir", ImPts2Dir_main, "Extract directions from images"));
+		aRes.push_back(cMMCom("FictObs", FictiveObstest_main, "someee stuff"));
 		aRes.push_back(cMMCom("OriDIV", OriVideo_main, "Orientate a video acquisition"));
 		aRes.push_back(cMMCom("TestAT", TestPush, "AT test workplace"));
 
@@ -996,6 +1002,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("SeamlineFeathering",main_featheringOrtho,"Perform mosaiking of orthos with a feathering around the seamline."));
         aRes.push_back(cMMCom("SeamlineFeatheringBox",main_featheringOrthoBox,"Perform mosaiking of orthos with a feathering around the seamline for one tile of the mosaic"));
         aRes.push_back(cMMCom("GCP2DMeasureConvert",GCP2DMeasureConvert_main,"Export or import 2D image marks of GCPs/Manual tie point"));
+        aRes.push_back(cMMCom("DensityMapHomol",main_densityMapPH,"Compute a Density map of tie point"));
 
 
 // #if (ELISE_QT_VERSION >= 4)
@@ -1086,6 +1093,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));
+        aRes.push_back(cMMCom("GenImPer",Generate_ImagePer ," Generate periodic image"));
         aRes.push_back(cMMCom("MakePly_CamOrthoC",MakePly_CamOrthoC ,"Generate Ply to illustrate the long foc pb"));
         aRes.push_back(cMMCom("XMLDiffSeries",XMLDiffSeries_main ,"Generate pair images for tapioca in part c"));
         aRes.push_back(cMMCom("ZBufferRaster",ZBufferRaster_main ,"Z Buffer Raster"));
@@ -1144,6 +1152,7 @@ extern int SATvalid_main(int argc, char ** argv);
 extern int SATTrajectory_main(int argc, char ** argv);
 extern int SatEmpriseSol_main(int argc, char ** argv);
 extern int CalcBsurH_main(int argc, char ** argv);
+extern int CalcBsurHGrille_main(int argc, char ** argv);
 extern int CPP_SATDef2D_main(int argc, char ** argv);
 extern int CPP_TestRPCDirectGen(int argc, char ** argv);
 extern int CPP_TestRPCBackProj(int argc, char ** argv);
@@ -1177,6 +1186,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 	aRes.push_back(cMMCom("SatFootprint", SatEmpriseSol_main, "Satellite foortprints in ply"));
 	aRes.push_back(cMMCom("SatTrajectory", SATTrajectory_main, "Satellite trajectories in ply"));
 	aRes.push_back(cMMCom("BsurH", CalcBsurH_main, "Calculate the b/h ratio for a pattern of images"));
+	aRes.push_back(cMMCom("BsurHGRI", CalcBsurHGrille_main, "Calculate the b/h ratio for a pattern of images"));
 	aRes.push_back(cMMCom("SATD2D", CPP_SATDef2D_main, "Visualize 2D deformation fields of a pushbroom image"));
 	aRes.push_back(cMMCom("TestRPC", CPP_TestRPCDirectGen, "Test the calculation of direct RPCs"));
 	aRes.push_back(cMMCom("TestRPCBackprj", CPP_TestRPCBackProj, "Backproject a point to images"));

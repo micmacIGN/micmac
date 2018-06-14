@@ -4,6 +4,9 @@
 //#include "../../uti_image/NewRechPH/cParamNewRechPH.h"
 //#include "../../uti_image/NewRechPH/ExternNewRechPH.h"
 
+int writeTFW(std::string aNameTiffFile, Pt2dr aGSD, Pt2dr aXminYmax);
+std::string KeyAssocNameTif2TFW(std::string aOrtName);
+
 // member class that is used both by appli "mother" and software "box"
 class  cMyICNM
 {
@@ -17,7 +20,7 @@ public:
     std::string nameXmlImList(const int i){return mNameImList + ToString(i) + ".xml";}
     std::string KeyAssocNameOrt2PC(std::string aOrtName);
     std::string KeyAssocNameOrt2Incid(std::string aOrtName);
-    std::string KeyAssocNameTif2TFW(std::string aOrtName);
+
     std::string KeyAssocNamePC2MTD(std::string aPCName);
     std::string KAChamferName(std::string aImName, string aDir, int aBox);
     std::string KAIncidName(std::string aImName, string aDir);
@@ -27,7 +30,7 @@ public:
     std::vector<int> extractImID( Liste_Pts_INT2 * aListePt);
     std::map<int,int> extractHist( Liste_Pts_INT2 * aListePt);
 
-    int writeTFW(std::string aNameTiffFile, Pt2dr aGSD, Pt2dr aXminYmax);
+
     //template <class T,class TB> void SaveTiff(std::string aName,  Im2D<T,TB> * aIm);
     template <class T,class TB> void SaveBoxInTiff(std::string aName,  Im2D<T,TB> * aIm,Box2di aBox2Save,Box2di aBox);
     bool mTiling;

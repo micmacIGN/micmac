@@ -41,7 +41,7 @@ class ExternalToolHandler
 public:
 	ExternalToolHandler();
 
-	// returns a ExternalToolItem for i_tool commande
+	// returns an ExternalToolItem for i_tool command
 	const ExternalToolItem & get( const std::string &i_tool );
 private:
 	list<std::string> m_pathDirectories; // the list of directories in PATH environment variable
