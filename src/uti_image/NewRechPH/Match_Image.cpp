@@ -97,13 +97,14 @@ void FiltrageDirectionnel(std::vector<cCdtCplHom> & aVCpl)
       return;
    int aNbDir = aVCpl[0].mPM->mSzIm.y;
 
-   double aPropConv = 0.1;
-   double  aPropDir = 0.07;
+   double aPropConv = 0.1;  // Taille normalise du filtre de convolution
+   double  aPropDir = 0.07; // Seuil prorportionnel de l'écart en direction
 
    int   aMul = 100;
        
 
-   int aSeuilDir = ElMax(1,round_ni(aPropDir*aNbDir));
+   // Seuil de distance directionnelle
+   int aSeuilDir = ElMax(1,round_up(aPropDir*aNbDir));
    // Poids du filtre de convolution
    int aNbConv = round_up(aNbDir*aPropConv);
 
