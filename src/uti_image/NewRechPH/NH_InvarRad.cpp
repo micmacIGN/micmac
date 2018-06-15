@@ -561,6 +561,8 @@ void  cAppli_NewRechPH::FilterSPC(cSetPCarac & aSPC,cSetPCarac & aRes,eTypePtRem
            }
        }
    }
+
+   // std::cout << "RRRRRr   "<< aRes.OnePCarac().size() << "\n"; getchar();
    // std::cout <<  " FilterSPCFilllllll  " <<  aHeap.nb() << " " << aNb2Add    << "\n"; // getchar();
 }
 

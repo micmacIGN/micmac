@@ -39,6 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "Apero.h"
 
 
+static bool   mPhaseContrainte = false;
 
 //  AJOUT DES OBSERVATIONS
 
@@ -198,10 +199,24 @@ void cAppliApero::AddObservationsBaseGpsInit()
           {
               if (aTab[aK] > 0)
               {
-                 cMultiContEQF  aRes;
-                 aBG->AddFoncRappInit(aRes,aK,aK+1,1);
-                 mSetEq.AddContrainte(aRes,false,ElSquare(1/aTab[aK]));
+                 if (! mPhaseContrainte)
+                 {
+                      cMultiContEQF  aRes;
+                      aBG->AddFoncRappInit(aRes,aK,aK+1,1);
+                      mSetEq.AddContrainte(aRes,false,ElSquare(1/aTab[aK]));
+                 }
               }
+              // Convention "<0" ~ a contrainte stricte
+              else if (aTab[aK]<0)
+              {
+                 if (mPhaseContrainte)
+                 {
+                     cMultiContEQF  aRes;
+                     aBG->AddFoncRappInit(aRes,aK,aK+1,-1);
+                     mSetEq.AddContrainte(aRes,true,-1);
+                 }
+              }
+
           }
        }
     }
@@ -533,6 +548,7 @@ Fonc_Num Correl(Fonc_Num Cov,Fonc_Num Var1, Fonc_Num Var2)
 
 void cAppliApero::OneIterationCompensation(const cIterationsCompensation & anIter,const cEtapeCompensation & anEC,bool IsLast)
 {
+    mPhaseContrainte = true;
     if (mSqueezeDOCOAC)
     {
         ELISE_ASSERT(mSqueezeDOCOAC==1,"Multiple mSqueezeDOCOAC");
@@ -561,10 +577,13 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
         itC->second->InitAvantCompens();
     }
 
-
+    AddObservationsBaseGpsInit();
     ActiveContraintes(true);
+
     mSetEq.SetPhaseEquation();
     ActiveContraintes(false);
+    mPhaseContrainte=false;
+
     AddObservationsBaseGpsInit();
 
 

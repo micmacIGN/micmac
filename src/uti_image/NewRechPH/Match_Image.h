@@ -42,16 +42,18 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _NewRechMATCH_IMAGE_H_
 
 
+// AFM :  Appli Fits Match
 
 ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan);
 
-class cIndexCodeBinaire;
-class cAFM_Im;
-class cAFM_Im_Master;
-class cAFM_Im_Sec ;
-class cAppli_FitsMatch1Im;
+class cIndexCodeBinaire; // Permet de retrouver rapidement les element ayant peu de bits differents avec un pt car donne
+class cCdtCplHom; // Stocke une hypothese de deux pts car apparie le Master(M) et le secondaire
+class cSetOPC; // Un ensemble pt car, incluant un index binaire
+class cAFM_Im; // Class maitre  des image , master ou secondaire
+class cAFM_Im_Master; // Specialisation master
+class cAFM_Im_Sec ;   // Specialisation secondaire
+class cAppli_FitsMatch1Im; // class application
 
-class cSetOPC;
 
 //============================================================
 
@@ -70,6 +72,7 @@ class cIndexCodeBinaire
          bool                                     mOverlap;
 };
 
+// Stocke une hypothese de deux pts car apparie le Master(M) et le secondaire
 class cCdtCplHom
 {
     public :
@@ -90,9 +93,10 @@ class cCdtCplHom
        double        mCorr;
        int           mShift;
        bool          mOk;
-       double        mDistS;
+       double        mDistS; // Dist / a la predic simil
 };
 
+// Foncteur pour mettre le cCdtCplHom dans un quod tree
 class cPtFromPCC
 {
    public :
@@ -101,6 +105,8 @@ class cPtFromPCC
 
 typedef ElQT<cCdtCplHom*,Pt2dr,cPtFromPCC> tQtCC ;
 
+
+// 
 class cSetOPC
 {
     public :
@@ -210,6 +216,19 @@ class cAppli_FitsMatch1Im
 };
 
 
+// transforme les couples apparies en des points homologues classiques
+ElPackHomologue PackFromVCC(const  std::vector<cCdtCplHom> &aVCpl);
+
+// compare les couples, pour trier par mDistS decroissante
+bool CmpCC(const cCdtCplHom & aC1,const cCdtCplHom & aC2) ;
+
+
+// Filtre les couples  selon un critere de direction globale
+//  1- Evalue cette direction par calcul de l'histogramme (convolue)
+//  2- calcule la direction principale
+//  3- filtre les points loin de cette direction
+
+void FiltrageDirectionnel(std::vector<cCdtCplHom> & aVCpl);
 
 
 
