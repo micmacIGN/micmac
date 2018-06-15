@@ -1961,6 +1961,8 @@ template  <class Type> ElDistortion22_Gen *
    return new cDistPrecond2SinAtgtS2(aVar,aP);
 }
 
+
+
 template  <class Type> Fonc_Num cFEEquiSolid_Precond<Type>::NormGradC2M(Pt2d<Fonc_Num> aP,Fonc_Num * aState)
 {
   // std::cout << "FALSSEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\n";
@@ -1968,6 +1970,201 @@ template  <class Type> Fonc_Num cFEEquiSolid_Precond<Type>::NormGradC2M(Pt2d<Fon
 
   Fonc_Num aR2 = Square(aP.x)+Square(aP.y);
   return cos(atan(sqrt(aR2))/2) / (1+aR2);
+}
+
+/*********************************************************************/
+/*                                                                   */
+/*         ModeleStereographique                                     */
+/*                                                                   */
+/*   phi(r) =  2 tan(atan(r)/2) / r                                  */
+/*                                                                   */
+/*********************************************************************/
+
+    //  PRECOND EN  2 TAN  (ATAN /2 )
+
+// 1 - r^2 / 4 + r^4 /8 - 5 r ^6 / 64
+
+// Preconditionneur parent
+double Dl_PrecStereographique(double x)
+{
+    return 1 - x/4.0  +  x*x/8.0 - (5/64.0)*x*x*x;
+}
+double Std_PrecStereographique(double x)
+{
+   x  = sqrt(ElAbs(x));
+   return (2* tan(atan(x)/2) ) /x;
+}
+double  PrecStereographique(double x)
+{
+   x = ElAbs(x);
+   if  (x<1e-5) return Dl_PrecStereographique(x);
+   return Std_PrecStereographique(x);
+} 
+
+// Preconditionneur inverse 
+
+double Inv_PrecStereographique(double x)
+{
+   if (x<1e-5) return 1;
+   double aSqX = sqrt(x);
+   return tan(2*atan(aSqX/2.0)) / aSqX;
+}
+
+
+// Derivee du preconditionneur
+
+
+double Dl_Der_PrecStereographique(double x)
+{
+   return -1/4.0 + x/4 -  x *x * (15/64.0);
+}
+
+
+double Std_Der_PrecStereographique(double x)
+{
+   double aSqrX = sqrt(x);
+   double aAtS2 = atan(aSqrX)/2.0;
+
+
+   return   1 /(2*x*(x+1) * ElSquare(cos(aAtS2)))
+           - tan(aAtS2) / (x * aSqrX);
+}
+
+double Der_PrecStereographique(double x)
+{
+   x = ElAbs(x);
+   if (x<1e-5) return Dl_Der_PrecStereographique(x);
+
+   return Std_Der_PrecStereographique(x);
+}
+
+double SqM2CRx_StereoG(double x)
+{
+   return  ElSquare(2* tan(  atan(sqrt(ElAbs(x)))  /2.0));
+}
+
+double Dl_Der_SqM2CRx_StereoG(double x)
+{
+   // x -x^ 2 /2 + 5 X^3 / 16
+   return 1 - x  + (15*x*x)/16.0;
+}
+
+double Std_Der_SqM2CRx_StereoG(double x)
+{
+   double aSqX = sqrt(x);
+   double aAtS2 = atan(aSqX)/2.0;
+   return 2* tan(aAtS2) / (aSqX * (x+1) * ElSquare(cos(aAtS2)));
+}
+
+double Der_SqM2CRx_StereoG(double x)
+{
+   x = ElAbs(x);
+   if (x<1e-5) return Dl_Der_SqM2CRx_StereoG(x);
+
+   return Std_Der_SqM2CRx_StereoG(x);
+}
+
+template <class Type> class cFEStereoGraphique_Precond : public cFE_Precond<Type>
+{
+    public :
+        static Fonc_Num  NormGradC2M(Pt2d<Fonc_Num> ,Fonc_Num *);
+        static Type  M2CRxSRx(const Type  &);
+        static Type  C2MRxSRx(const Type & );  // M2C(sqrt(V)) / sqrt(V)
+        static Type  SqM2CRx(const Type & );  // M2C(srqt(V)) ^2 
+        static ElDistortion22_Gen   *  DistPreCond(const double &   aVar,const Pt2dr & ) ;
+};
+
+
+
+template  <class Type> Fonc_Num cFEStereoGraphique_Precond<Type>::NormGradC2M(Pt2d<Fonc_Num> aP,Fonc_Num * aState)
+{
+    ELISE_ASSERT(false,"cFEStereoGraphique_Precond::NormGradC2M");
+    return 0.0;
+}
+
+
+template  <class Type>  Type  cFEStereoGraphique_Precond<Type>::M2CRxSRx(const Type  & aVal)
+{
+   return PrecStereographique(aVal);
+}
+template  <class Type>  Type  cFEStereoGraphique_Precond<Type>::C2MRxSRx(const Type  & aVal)
+{
+   return Inv_PrecStereographique(aVal);
+}
+
+template  <class Type>  Type  cFEStereoGraphique_Precond<Type>::SqM2CRx(const Type  & aVal)
+{
+   return SqM2CRx_StereoG(aVal);
+}
+template  <class Type> ElDistortion22_Gen * 
+    cFEStereoGraphique_Precond<Type>::DistPreCond(const double &   aVar,const Pt2dr & aP)
+{
+   ELISE_ASSERT(false,"cFEStereoGraphique_Precond:::DistPreCond");
+   return nullptr;
+}
+/*
+*/
+
+
+
+
+
+
+void TestCondStereo()
+{
+     for (double aV=1e-8 ; aV<=10  ; aV*=2.0)
+     {
+         double aEpsilon = aV * 1e-4;
+         double aDerNum = SqM2CRx_StereoG(aV+aEpsilon) - SqM2CRx_StereoG(aV-aEpsilon);
+         aDerNum /= 2 * aEpsilon;
+         double aDerAnalytik = Std_Der_SqM2CRx_StereoG(aV);
+         double aDerDl  = Der_SqM2CRx_StereoG(aV);
+
+         std::cout << "Derriv " << aDerAnalytik 
+                 << " A/N " << aDerAnalytik/aDerNum -1.0 
+                 << " A/D " << aDerAnalytik/aDerDl -1.0 
+                 << "\n";
+     }
+   if (0)
+   {
+      for (double aV=1e-8 ; aV<=10  ; aV*=2.0)
+      {
+        double aV1 =  aV * ElSquare(PrecStereographique(aV));
+        double aV2 = SqM2CRx_StereoG(aV);
+
+        std::cout << " R12 " << aV1/aV2 -1.0 << "\n";
+      }
+     for (double aV=1e-8 ; aV<=10  ; aV*=2.0)
+     {
+         double aEpsilon = aV * 1e-4;
+         double aDerNum = Std_PrecStereographique(aV+aEpsilon) - Std_PrecStereographique(aV-aEpsilon);
+         aDerNum /= 2 * aEpsilon;
+         double aDerAnalytik = Std_Der_PrecStereographique(aV);
+         double aDerDl  = Dl_Der_PrecStereographique(aV);
+
+         std::cout << "Derriv " << aDerAnalytik 
+                 << " A/N " << aDerAnalytik/aDerNum -1.0 
+                 << " A/D " << aDerAnalytik/aDerDl -1.0 
+                 << "\n";
+     }
+   }
+
+
+   if (0) // Verif dev limite
+   {
+     for (double aV=1e-60 ; aV<=100 ; aV*=10.0)
+     {
+       double aPC1 =  Dl_PrecStereographique(aV);
+       double aPC2 = Std_PrecStereographique(aV);
+       double aPC3 =     PrecStereographique(aV);
+
+        std::cout << " logV=" << log(aV) / log(10.0)
+                  << "  PC1 " << aPC1 -1.0 
+                  << "  PC2 " << aPC2 -1.0 
+                  << " R12 " << aPC1/aPC2 -1.0 
+                  << " R23 " << aPC2 / aPC3-1.0 << "\n";
+     }
+   }
 }
 
 
