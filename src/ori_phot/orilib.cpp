@@ -3295,6 +3295,7 @@ class cDistFromCIC
        cCam_Polyn7 *             mCamPolyn7;
        cCamLin_FishEye_10_5_5 *     mCamLinFE_10_5_5;
        cCamEquiSol_FishEye_10_5_5 *     mCamEquiSolFE_10_5_5;
+       cCamStereoGraphique_FishEye_10_5_5 *     mCamStereographique_FE_10_5_5;
            cCamStenopeGrid *         mCamGrid;
 
        cCalibrationInternConique   mCIC;
@@ -3416,6 +3417,7 @@ cCamera_Param_Unif_Gen *  cDistFromCIC::CamUnif()
     if (mCamPolyn7) return mCamPolyn7;
     if (mCamLinFE_10_5_5) return mCamLinFE_10_5_5;
     if (mCamEquiSolFE_10_5_5) return mCamEquiSolFE_10_5_5;
+    if (mCamStereographique_FE_10_5_5) return mCamStereographique_FE_10_5_5;
 
 
     if (mCamDR_PPas)   return mCamDR_PPas;
@@ -3576,6 +3578,7 @@ cDistFromCIC::cDistFromCIC
        mCamPolyn7 = 0;
        mCamLinFE_10_5_5 = 0;
        mCamEquiSolFE_10_5_5 = 0;
+       mCamStereographique_FE_10_5_5 = 0;
        mCamGrid = 0;
 
        cCalibDistortion  aCD = aVCD[aKD];
@@ -3954,6 +3957,7 @@ cDistFromCIC::cDistFromCIC
 
            case eModele_FishEye_10_5_5 :
            case eModele_EquiSolid_FishEye_10_5_5 :
+           case eModele_Stereographik_FishEye_10_5_5  :
                {
                     std::vector<double> aVE = aCIU.Etats();
 if (0)
@@ -3984,9 +3988,9 @@ if (0)
                                                    &aPar,
                                                    &aVE
                                                );
-                mCam = mCamLinFE_10_5_5;
+                         mCam = mCamLinFE_10_5_5;
                     }
-                    else
+                    else if (aCIU.TypeModele()==eModele_EquiSolid_FishEye_10_5_5)
                     {
                         mCamEquiSolFE_10_5_5 = new cCamEquiSol_FishEye_10_5_5
                                                (
@@ -3998,7 +4002,21 @@ if (0)
                                                    &aPar,
                                                    &aVE
                                                );
-                mCam = mCamEquiSolFE_10_5_5;
+                        mCam = mCamEquiSolFE_10_5_5;
+                    }
+                    else  // eModele_Stereographik_FishEye_10_5_5
+                    {
+                        mCamStereographique_FE_10_5_5 = new cCamStereoGraphique_FishEye_10_5_5
+                                               (
+                                                   aKC2M,
+                                                   aCIC.F(),
+                                                   aCIC.PP(),
+                                                   Pt2dr(aCIC.SzIm()),
+                                                   aCIC.ParamAF(),
+                                                   &aPar,
+                                                   &aVE
+                                               );
+                        mCam = mCamStereographique_FE_10_5_5;
                     }
                };
            break;

@@ -79,6 +79,7 @@ typedef enum
   eCalibAutomFour19x2,
   eCalibAutomEbner,
   eCalibAutomBrown,
+  eCalibAutomFishEyeStereographique,
   eCalibAutomNone
 } eTypeCalibAutom;
 void xml_init(eTypeCalibAutom & aVal,cElXMLTree * aTree);

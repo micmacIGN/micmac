@@ -133,7 +133,7 @@ void Tapas_Banniere()
 }
 
 
-#define  NbModele 29
+#define  NbModele 30
 
 const char * Modele[NbModele] = {
                                    "RadialBasic",     // 0
@@ -151,12 +151,10 @@ const char * Modele[NbModele] = {
                                    "Four11x2",         // 12
                                    "Four15x2",         // 13
                                    "Four19x2",         // 14
-
                                    "AddFour7x2",          // 15
                                    "AddFour11x2",         // 16
                                    "AddFour15x2",         // 17
                                    "AddFour19x2",         // 18
-
                                    "AddPolyDeg0",          // 19
                                    "AddPolyDeg1",          // 20
                                    "AddPolyDeg2",          // 21
@@ -165,10 +163,9 @@ const char * Modele[NbModele] = {
                                    "AddPolyDeg5",          // 24
                                    "AddPolyDeg6",          // 25
                                    "AddPolyDeg7",          // 26
-
                                    "Ebner",                // 27
-                                   "Brown"                 // 28
-
+                                   "Brown",                 // 28
+                                   "FishEyeStereo"          // 29
                                 };
 
 
@@ -239,7 +236,7 @@ void cAppli_Tapas_Campari::InitVerifModele(const std::string & aMod,cInterfChant
                PropDiag = 0.52;
         }
     }
-    else if ((aMod==Modele[9]) || (aMod==Modele[10])) // "FishEyeBasic" +  "FE_EquiSolBasic"
+    else if ((aMod==Modele[9]) || (aMod==Modele[10]) ||  (aMod==Modele[29]) ) // "FishEyeBasic" +  "FE_EquiSolBasic"
     {
         LocDegGen = 1;
         LocDRadMaxUSer = 3;
@@ -248,6 +245,8 @@ void cAppli_Tapas_Campari::InitVerifModele(const std::string & aMod,cInterfChant
         eModAutom = "eCalibAutomFishEyeLineaire";
         if (aMod==Modele[10])
            eModAutom = "eCalibAutomFishEyeEquiSolid";
+        else if (aMod==Modele[29])
+           eModAutom = "eCalibAutomFishEyeStereographique";
     }
     else if ((aMod==Modele[4]) || (aMod==Modele[5])) // AutoCal  +  Figee
     {

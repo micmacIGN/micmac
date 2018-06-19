@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[2119]) = {
+const char * (theNameVar_ParamChantierPhotogram[2124]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -291,6 +291,7 @@ const char * (theNameVar_ParamChantierPhotogram[2119]) = {
 "   <enum Name=\"eTypePreCondRad\">\n",
 "       <ePCR_Atgt>         </ePCR_Atgt>\n",
 "       <ePCR_2SinAtgtS2>   </ePCR_2SinAtgtS2>\n",
+"       <ePCR_Stereographik>   </ePCR_Stereographik>\n",
 "   </enum>\n",
 "\n",
 "   <enum Name=\"eTypeSake\">\n",
@@ -367,6 +368,7 @@ const char * (theNameVar_ParamChantierPhotogram[2119]) = {
 "  <!-- Modele \"equi solid\" en 2 sin(teta/2) , type Nikkor 10,5 mm -->\n",
 "        <eModele_EquiSolid_FishEye_10_5_5>     </eModele_EquiSolid_FishEye_10_5_5>\n",
 "\n",
+"\n",
 "        <eModele_DRad_PPaEqPPs >     </eModele_DRad_PPaEqPPs>\n",
 "        <eModele_Fraser_PPaEqPPs >     </eModele_Fraser_PPaEqPPs>\n",
 "\n",
@@ -378,6 +380,9 @@ const char * (theNameVar_ParamChantierPhotogram[2119]) = {
 "\n",
 "        <eModelePolyDeg0 >     </eModelePolyDeg0>\n",
 "        <eModelePolyDeg1 >     </eModelePolyDeg1>\n",
+"\n",
+"  <!-- Modele \"stereographique\" en 2 tan(teta/2) , type Samyan 8.5 mm   -->\n",
+"        <eModele_Stereographik_FishEye_10_5_5>     </eModele_Stereographik_FishEye_10_5_5>\n",
 "   </enum>\n",
 "\n",
 "\n",

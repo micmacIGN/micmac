@@ -1980,6 +1980,18 @@ template  <class Type> Fonc_Num cFEEquiSolid_Precond<Type>::NormGradC2M(Pt2d<Fon
 /*                                                                   */
 /*********************************************************************/
 
+
+
+Fonc_Num PrecStereographique  (Fonc_Num f);
+Fonc_Num SqM2CRx_StereoG  (Fonc_Num f);
+Fonc_Num Inv_PrecStereographique  (Fonc_Num f)
+{
+   ELISE_ASSERT(false,"Inv_PrecStereographique");
+   return 0;
+}
+
+
+
     //  PRECOND EN  2 TAN  (ATAN /2 )
 
 // 1 - r^2 / 4 + r^4 /8 - 5 r ^6 / 64
@@ -2064,15 +2076,46 @@ double Der_SqM2CRx_StereoG(double x)
    return Std_Der_SqM2CRx_StereoG(x);
 }
 
-template <class Type> class cFEStereoGraphique_Precond : public cFE_Precond<Type>
+
+//=====================  cDistPrecondSterographique
+/*
+class cDistPrecondSterographique : public cDistPrecondRadial
 {
-    public :
-        static Fonc_Num  NormGradC2M(Pt2d<Fonc_Num> ,Fonc_Num *);
-        static Type  M2CRxSRx(const Type  &);
-        static Type  C2MRxSRx(const Type & );  // M2C(sqrt(V)) / sqrt(V)
-        static Type  SqM2CRx(const Type & );  // M2C(srqt(V)) ^2 
-        static ElDistortion22_Gen   *  DistPreCond(const double &   aVar,const Pt2dr & ) ;
+      public :
+         cDistPrecondSterographique(double aFocApriori,const Pt2dr & aCentre);
+      private :
+        double  DerMultDirect(const double & ) const ;
+        double  MultDirect(const double & ) const ;
+        double  MultInverse(const double & ) const ;
+        int     Mode() const ;
 };
+*/
+
+
+cDistPrecondSterographique::cDistPrecondSterographique(double aFocApriori,const Pt2dr & aCentre) :
+    cDistPrecondRadial(aFocApriori,aCentre)
+{
+}
+double  cDistPrecondSterographique::DerMultDirect(const double & aV) const
+{
+   return  Der_PrecStereographique(aV);
+}
+double  cDistPrecondSterographique::MultDirect(const double & aX) const 
+{
+    return PrecStereographique(aX);
+}
+double  cDistPrecondSterographique::MultInverse(const double & aX) const 
+{
+    return Inv_PrecStereographique(aX);
+}
+
+int     cDistPrecondSterographique::Mode() const 
+{
+    return ePCR_Stereographik;
+}
+
+
+// =======================   cFEStereoGraphique_Precond   ========
 
 
 
@@ -2099,8 +2142,7 @@ template  <class Type>  Type  cFEStereoGraphique_Precond<Type>::SqM2CRx(const Ty
 template  <class Type> ElDistortion22_Gen * 
     cFEStereoGraphique_Precond<Type>::DistPreCond(const double &   aVar,const Pt2dr & aP)
 {
-   ELISE_ASSERT(false,"cFEStereoGraphique_Precond:::DistPreCond");
-   return nullptr;
+   return new cDistPrecondSterographique(aVar,aP);
 }
 /*
 */
@@ -2615,8 +2657,13 @@ template <> const int   cDistLin_FishEye_10_5_5::TheType= (int) eModele_FishEye_
 template <> const std::string  cDistEquiSol_FishEye_10_5_5::TheName="EquiSolid_FishEye_10_5_5";
 template <> const int   cDistEquiSol_FishEye_10_5_5::TheType= (int) eModele_EquiSolid_FishEye_10_5_5;
 
+
+template <> const std::string  cDistStereoGraphique_FishEye_10_5_5::TheName="Stereographique_FishEye_10_5_5";
+template <> const int   cDistStereoGraphique_FishEye_10_5_5::TheType= (int) eModele_Stereographik_FishEye_10_5_5;
+
 INSTANT_ONE_Num_FE(cFELinear_Precond,10,5,5,50)
 INSTANT_ONE_Num_FE(cFEEquiSolid_Precond,10,5,5,50)
+INSTANT_ONE_Num_FE(cFEStereoGraphique_Precond,10,5,5,50)
 
 
 
