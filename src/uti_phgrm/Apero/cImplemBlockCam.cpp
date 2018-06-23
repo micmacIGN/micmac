@@ -718,7 +718,11 @@ void cImplemBlockCam::InitRF()
     )
     {
         cIBC_OneCam * aCam = mName2Cam[itPOS->IdGrp()];
-        ELISE_ASSERT(aCam!=0,"Cannot get cam from IdGrp");
+        if (aCam==0)
+        {
+            std::cout << "For group [" << itPOS->IdGrp() << "]\n";
+            ELISE_ASSERT(false,"Cannot get cam from IdGrp");
+        }
         ELISE_ASSERT(! aCam->V0Init(),"Multiple Init For IdGrp");
         aCam->Init0(*itPOS,mAppli.SetEq(),mBlGB);
     }
