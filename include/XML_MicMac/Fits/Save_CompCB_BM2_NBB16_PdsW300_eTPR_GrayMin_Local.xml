@@ -2,99 +2,99 @@
 <CompCB>
      <BitThresh>2</BitThresh>
      <CompCBOneBit>
-          <Coeff>[-0.299585579946610947,0.121491756218050695,0.101761812634039731]</Coeff>
-          <IndX>[9,2,3]</IndX>
-          <IndY>[3,3,3]</IndY>
+          <Coeff>[-0.194229934692333628,-1.22319047098464484,1.49791841114324309]</Coeff>
+          <IndX>[2,1,9]</IndX>
+          <IndY>[11,6,2]</IndY>
           <IndBit>-1</IndBit>
      </CompCBOneBit>
      <CompCBOneBit>
-          <Coeff>[-0.658347274800133442,-0.121891905259535957,0.410815784315780197]</Coeff>
-          <IndX>[1,5,9]</IndX>
-          <IndY>[6,14,24]</IndY>
+          <Coeff>[1.40227958223758975,-0.153755479944601703,0.179058488868596072]</Coeff>
+          <IndX>[1,6,0]</IndX>
+          <IndY>[1,1,1]</IndY>
           <IndBit>-1</IndBit>
      </CompCBOneBit>
      <CompCBOneBit>
-          <Coeff>[0.906473465163576853,0.710077880485380453,-1.35548977229110257]</Coeff>
-          <IndX>[1,1,1]</IndX>
-          <IndY>[28,23,0]</IndY>
-          <IndBit>-1</IndBit>
-     </CompCBOneBit>
-     <CompCBOneBit>
-          <Coeff>[0.356411341170263518,-0.223740993282941864,0.321866212037046906]</Coeff>
-          <IndX>[4,1,9]</IndX>
-          <IndY>[22,22,22]</IndY>
-          <IndBit>-1</IndBit>
-     </CompCBOneBit>
-     <CompCBOneBit>
-          <Coeff>[0.332938577756095033,-0.474963850890896155,0.161576234721486273]</Coeff>
-          <IndX>[8,6,0]</IndX>
-          <IndY>[0,0,0]</IndY>
-          <IndBit>-1</IndBit>
-     </CompCBOneBit>
-     <CompCBOneBit>
-          <Coeff>[-1.5078223902592629,1.61825790721860252,0.496873229675031169]</Coeff>
-          <IndX>[8,5,1]</IndX>
-          <IndY>[9,9,9]</IndY>
-          <IndBit>-1</IndBit>
-     </CompCBOneBit>
-     <CompCBOneBit>
-          <Coeff>[0.0144177096012021201,-0.0905798888418924142,0.111428060217241692]</Coeff>
-          <IndX>[7,9,4]</IndX>
+          <Coeff>[-1.76321344321323292,0.415033361747821294,0.413427065891101342]</Coeff>
+          <IndX>[0,1,9]</IndX>
           <IndY>[5,5,5]</IndY>
           <IndBit>-1</IndBit>
      </CompCBOneBit>
      <CompCBOneBit>
-          <Coeff>[-0.442570906284665,0.39662428999569993,0.16528312535695644]</Coeff>
+          <Coeff>[1.85049105752302356,0.324969042154243659,0.207528568457990947]</Coeff>
+          <IndX>[0,4,3]</IndX>
+          <IndY>[7,7,7]</IndY>
+          <IndBit>-1</IndBit>
+     </CompCBOneBit>
+     <CompCBOneBit>
+          <Coeff>[-1.31714888200344804,-1.81874494046120594,3.42520747133842018]</Coeff>
+          <IndX>[3,4,9]</IndX>
+          <IndY>[0,0,0]</IndY>
+          <IndBit>-1</IndBit>
+     </CompCBOneBit>
+     <CompCBOneBit>
+          <Coeff>[-0.476645406874969924,0.09320527478199854,-0.359944172734454726]</Coeff>
+          <IndX>[4,9,5]</IndX>
+          <IndY>[32,2,26]</IndY>
+          <IndBit>-1</IndBit>
+     </CompCBOneBit>
+     <CompCBOneBit>
+          <Coeff>[1.40468739193143199,-1.41715632031924788,0.0807586820553819196]</Coeff>
+          <IndX>[4,0,6]</IndX>
+          <IndY>[22,22,22]</IndY>
+          <IndBit>-1</IndBit>
+     </CompCBOneBit>
+     <CompCBOneBit>
+          <Coeff>[-0.994802313081546874,-1.39357155606273664,1.35533150313565587]</Coeff>
+          <IndX>[9,2,7]</IndX>
+          <IndY>[11,11,11]</IndY>
+          <IndBit>-1</IndBit>
+     </CompCBOneBit>
+     <CompCBOneBit>
+          <Coeff>[-0.0972626267588937998,-0.0804454086931355866,0.62815099438542954]</Coeff>
+          <IndX>[6,4,0]</IndX>
+          <IndY>[18,25,9]</IndY>
+          <IndBit>-1</IndBit>
+     </CompCBOneBit>
+     <CompCBOneBit>
+          <Coeff>[0.751745817998245469,-0.102936853133468648,-0.63472168373340021]</Coeff>
+          <IndX>[4,0,9]</IndX>
+          <IndY>[0,0,0]</IndY>
+          <IndBit>-1</IndBit>
+     </CompCBOneBit>
+     <CompCBOneBit>
+          <Coeff>[0.719349503517150879,-0.699053198099136353,-0.0202963054180145264]</Coeff>
           <IndX>[0,0,0]</IndX>
-          <IndY>[0,32,2]</IndY>
+          <IndY>[30,28,23]</IndY>
           <IndBit>-1</IndBit>
      </CompCBOneBit>
      <CompCBOneBit>
-          <Coeff>[0.0187112208663063398,1.91790628040612599,1.97682591743288105]</Coeff>
-          <IndX>[0,6,3]</IndX>
+          <Coeff>[0.3885425675591484,-0.00641475059159019728,-0.0246939735723482462]</Coeff>
+          <IndX>[9,4,3]</IndX>
+          <IndY>[0,26,27]</IndY>
+          <IndBit>-1</IndBit>
+     </CompCBOneBit>
+     <CompCBOneBit>
+          <Coeff>[0.270899630938179869,0.014734918982207303,-1.07234880074088879]</Coeff>
+          <IndX>[6,7,0]</IndX>
+          <IndY>[18,21,22]</IndY>
+          <IndBit>-1</IndBit>
+     </CompCBOneBit>
+     <CompCBOneBit>
+          <Coeff>[-0.59528457868133311,0.0162892427071047625,0.416972129777769152]</Coeff>
+          <IndX>[2,1,0]</IndX>
           <IndY>[0,0,0]</IndY>
           <IndBit>-1</IndBit>
      </CompCBOneBit>
      <CompCBOneBit>
-          <Coeff>[-0.196704217537438747,-0.361209447611747114,0.566705305341759114]</Coeff>
-          <IndX>[8,7,9]</IndX>
-          <IndY>[0,0,0]</IndY>
+          <Coeff>[-0.266921136155685135,1.16542617627665557,-1.88946154541756584]</Coeff>
+          <IndX>[3,9,0]</IndX>
+          <IndY>[25,25,25]</IndY>
           <IndBit>-1</IndBit>
      </CompCBOneBit>
      <CompCBOneBit>
-          <Coeff>[-0.418156361822970446,0.442205355425778934,0.00113320010659097845]</Coeff>
-          <IndX>[6,9,2]</IndX>
-          <IndY>[2,4,5]</IndY>
-          <IndBit>-1</IndBit>
-     </CompCBOneBit>
-     <CompCBOneBit>
-          <Coeff>[0.0126639441623776893,0.0288226188863842173,-0.328351106166804296]</Coeff>
-          <IndX>[0,8,3]</IndX>
-          <IndY>[22,15,0]</IndY>
-          <IndBit>-1</IndBit>
-     </CompCBOneBit>
-     <CompCBOneBit>
-          <Coeff>[1.08568095689529409,-0.808068560612134834,-0.397936398861780671]</Coeff>
-          <IndX>[5,9,1]</IndX>
-          <IndY>[22,22,22]</IndY>
-          <IndBit>-1</IndBit>
-     </CompCBOneBit>
-     <CompCBOneBit>
-          <Coeff>[0.338480914780711906,-0.30519488040063536,0.813090746787730967]</Coeff>
-          <IndX>[9,1,6]</IndX>
-          <IndY>[22,22,22]</IndY>
-          <IndBit>-1</IndBit>
-     </CompCBOneBit>
-     <CompCBOneBit>
-          <Coeff>[-0.000754640570492313111,0.820123945813562738,-0.111066911772224816]</Coeff>
-          <IndX>[1,6,8]</IndX>
-          <IndY>[22,4,5]</IndY>
-          <IndBit>-1</IndBit>
-     </CompCBOneBit>
-     <CompCBOneBit>
-          <Coeff>[0.22542147847415972,0.441240499502849381,-0.549013433452260391]</Coeff>
-          <IndX>[6,6,6]</IndX>
-          <IndY>[21,22,10]</IndY>
+          <Coeff>[-0.846591651351219943,-0.251565068181777041,0.922481412960373892]</Coeff>
+          <IndX>[8,5,2]</IndX>
+          <IndY>[23,23,23]</IndY>
           <IndBit>-1</IndBit>
      </CompCBOneBit>
 </CompCB>

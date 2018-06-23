@@ -78,6 +78,7 @@ class cAppliStatPHom
        Pt2dr Hom(const Pt2dr & aP1);
        std::vector<cStatOneLabel>  & VLabs() {return mVLabs;}
        const cFitsParam & FP() const {return  mFP;}
+       cFitsParam & FP() {return  mFP;}
        int &  NbMaxHighScale() {return mNbMaxHighScale;}
        int &  NbMaxValid() {return mNbMaxValid;}
        int &  NbMaxTested() {return mNbMaxTested;}
@@ -249,6 +250,7 @@ void AddRand(cSetRefPCarac & aSRef,const std::vector<cOnePCarac*> aVP, int aNb)
 
 void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
 {
+   cFitsOneLabel * aFOL = FOLOfLab(&(mAppli.FP()),aLab,true);
        // std::vector<cStatOneLabel>  mVLabs;
    // for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
    Load(aLab);
@@ -363,17 +365,15 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
                     aTruth.P1() = *(aV1[aK1]);
                     aTruth.P2() = *(aHom);
                     aSetRef.SRPC_Truth().push_back(aTruth);
-                    const cFitsParam & aFP = mAppli.FP();
-                    const cFitsOneLabel & aFOL = aFP.OverLap();
 
-                    if (aLab==aFOL.KindOf())
+                    if (aFOL)
                     {
                         cCompileOPC aPC1(*aV1[aK1]);
                         cCompileOPC aPC2(*aHom);
                         int aShift,aLevFail; 
-                        aPC1.SetFlag(aFOL,true);
-                        aPC2.SetFlag(aFOL,true);
-                        aPC1.Match(true,aPC2,aFOL,aFP.SeuilOL(),aShift,aLevFail,nullptr);
+                        aPC1.SetFlag(*aFOL);
+                        aPC2.SetFlag(*aFOL);
+                        aPC1.Match(aPC2,*aFOL,mAppli.FP().SeuilOL(),aShift,aLevFail,nullptr);
                         aHLF.Add(aLevFail);
                      }
                 }

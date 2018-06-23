@@ -1075,7 +1075,54 @@ int Contrast_main(int argc,char ** argv)
 }
 
 
+int TournIm_main(int argc,char ** argv)
+{
+    std::string aNameIm;
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(aNameIm,"Name of Input image", eSAM_IsExistFile),
+         LArgMain()
+    );
 
+    Tiff_Im aTif =  Tiff_Im::StdConvGen(aNameIm,-1,true);
+    std::vector<Im2DGen *>  aVIm = aTif.ReadVecOfIm();
+    Pt2di aSz = aVIm[0]->sz();
+    std::cout << "SZ IN " << aSz << "\n";
+
+    std::string aNameOut ="T90-"+ aNameIm;
+    Tiff_Im aTifOut
+            (
+                aNameOut.c_str(),
+                Pt2di(aSz.y,aSz.x),
+                aTif.type_el(),
+                Tiff_Im::No_Compr,
+                aTif.phot_interp()
+            );
+    std::cout << "SZ OUT " << aTifOut.sz() << "\n";
+
+    Fonc_Num aF;
+    int aKIm=0;
+    Fonc_Num aFTrans = Virgule(FY,aSz.y-1-FX);
+    // aFTrans  = Virgule(FY,aSz.y-1-FX);
+    for (auto aI : aVIm)
+    {
+
+        Fonc_Num aNewF = aI->in()[aFTrans];
+        aF = (aKIm) ? Virgule(aF,aNewF) : aNewF;
+        aKIm++;
+    }
+    int aX0,aX1,aY0,aY1;
+    ELISE_COPY(
+         aTifOut.all_pts(),
+         aFTrans, // Virgule(FY,aSz.x-1-FX),
+         Virgule(VMin(aX0)|VMax(aX1),VMin(aY0)|VMax(aY1))
+    );
+    std::cout << "XXX " << aX0 << " " << aX1 << ";; Y " << aY0 << " " << aY1 << "\n";
+    ELISE_COPY(aTifOut.all_pts(),aF,aTifOut.out());
+
+    return EXIT_SUCCESS;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

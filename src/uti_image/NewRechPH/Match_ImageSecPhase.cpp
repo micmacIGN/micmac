@@ -61,6 +61,92 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*************************************************/
 
 
+//  aTBuf.oset(Pt2di(aKRho,aKTeta),aVal);
+
+
+double DistHistoGrad(cCompileOPC & aMast,int aShift,cCompileOPC & aSec)
+{
+    Pt2di aSzInit = aMast.mSzIm;
+    Pt2di aSzG (aSzInit.x-1,aSzInit.y);
+
+    TIm2D<INT1,INT>  aImM (aMast.mOPC.ImLogPol());
+    TIm2D<INT1,INT>  aImS ( aSec.mOPC.ImLogPol());
+
+    double aSomEcPds = 0;
+    double aSomPds = 0;
+
+/*
+    Im2D_REAL4 aMGx(aSzG.x,aSzG.y);
+    TIm2D<REAL4,REAL8> aTMGx(aMGx);
+    Im2D_REAL4 aMGy(aSzG.x,aSzG.y);
+    TIm2D<REAL4,REAL8> aTMGy(aMGy);
+    double aSumGM = 0;
+    Im2D_REAL4 aMN(aSzG.x,aSzG.y);
+    TIm2D<REAL4,REAL8> aTMN(aMN);
+
+    Im2D_REAL4 aSGx(aSzG.x,aSzG.y);
+    TIm2D<REAL4,REAL8> aTSGx(aSGx);
+    Im2D_REAL4 aSGy(aSzG.x,aSzG.y);
+    TIm2D<REAL4,REAL8> aTSGy(aSGy);
+    double aSumGS = 0;
+    Im2D_REAL4 aSN(aSzG.x,aSzG.y);
+    TIm2D<REAL4,REAL8> aTSN(aSN);
+*/
+    
+    double aSomEcRad =0;
+    double aSomEcGrad =0;
+    int aNb=0;
+    for (int aKRho=0 ; aKRho<aSzG.x; aKRho++)
+    {
+        for (int aKTeta=0 ; aKTeta<aSzG.y; aKTeta++)
+        {
+             Pt2di aPM (aKRho  ,  aKTeta);
+             Pt2di aPMr(aPM.x+1,  aPM.y);
+             Pt2di aPMt(aPM.x  , (aPM.y+1)%aSzG.y);
+
+
+             Pt2di aPS  (aKRho  ,  (aKTeta+aShift + aSzG.y) %aSzG.y);
+             Pt2di aPSr (aPS.x+1,aPS.y);
+             Pt2di aPSt (aPS.x  ,(aPS.y+1)%aSzG.y);
+
+             Pt2dr aGradM (aImM.get(aPM)-aImM.get(aPMr),aImM.get(aPM)-aImM.get(aPMt));
+             double aNormM = euclid(aGradM);
+
+             Pt2dr aGradS (aImS.get(aPS)-aImS.get(aPSr),aImS.get(aPS)-aImS.get(aPSt));
+             double aNormS = euclid(aGradS);
+             double aPds = sqrt(sqrt(aNormM*aNormS));
+             // double aPds = sqrt(aNormM*aNormS);
+             aSomEcRad += ElAbs(aImM.get(aPM)-aImS.get(aPS));
+             aSomEcGrad += dist4(aGradM-aGradS);
+             aNb++;
+             if (aPds > 0)
+             {
+                aGradM = aGradM / aNormM;
+                aGradS = aGradS / aNormS;
+                Pt2dr aPEcart = aGradM / aGradS;
+                aPEcart = aPEcart - Pt2dr(1,0);
+                aSomEcPds +=  aPds * euclid(aPEcart);
+                aSomPds += aPds;
+             }
+        }
+    }
+/*
+Pt2dr aPM = aMast.mOPC.Pt();
+Pt2dr aPS = aSec.mOPC.Pt();
+std::cout << "PppPpp " << aPM << " " << aPS << (aPM+aPS) / 2.0 << aPM-aPS 
+          << " ECART RAD " << aSomEcRad/aNb 
+          << " ECART Grad " << aSomEcGrad/aNb 
+          << "\n";
+std::cout << "mShitfBestmShitfBest " << aMast.mShitfBest 
+          << " " << (aSomEcPds / aSomPds) 
+          <<  aSzInit 
+          << "\n";
+*/
+
+    return aSomEcPds / aSomPds;
+}
+
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en

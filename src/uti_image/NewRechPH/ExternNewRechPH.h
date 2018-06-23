@@ -290,6 +290,9 @@ typedef ElQT<cOnePCarac*,Pt2dr,cPtFromCOPC> tQtOPC ;
 
 double ScaleGen(const cOnePCarac & aPC);
 
+cFitsOneLabel * FOLOfLab(cFitsParam *,eTypePtRemark aLab,bool SVP);
+const cFitsOneLabel * FOLOfLab(const cFitsParam *,eTypePtRemark aLab,bool SVP);
+
 
 
 #endif //  _ExternNewRechPH_H_

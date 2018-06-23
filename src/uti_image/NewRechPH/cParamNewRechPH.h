@@ -534,12 +534,16 @@ class cFitsOneLabel
         cFitsOneBin & BinIndexed();
         const cFitsOneBin & BinIndexed()const ;
 
-        cFitsOneBin & BinDecision();
-        const cFitsOneBin & BinDecision()const ;
+        cFitsOneBin & BinDecisionShort();
+        const cFitsOneBin & BinDecisionShort()const ;
+
+        cFitsOneBin & BinDecisionLong();
+        const cFitsOneBin & BinDecisionLong()const ;
     private:
         eTypePtRemark mKindOf;
         cFitsOneBin mBinIndexed;
-        cFitsOneBin mBinDecision;
+        cFitsOneBin mBinDecisionShort;
+        cFitsOneBin mBinDecisionLong;
 };
 cElXMLTree * ToXMLTree(const cFitsOneLabel &);
 
@@ -568,10 +572,26 @@ class cSeuilFitsParam
 
         cTplValGesInit< double > & SeuilCorrLP();
         const cTplValGesInit< double > & SeuilCorrLP()const ;
+
+        cTplValGesInit< double > & ExposantPdsDistGrad();
+        const cTplValGesInit< double > & ExposantPdsDistGrad()const ;
+
+        cTplValGesInit< double > & SeuilDistGrad();
+        const cTplValGesInit< double > & SeuilDistGrad()const ;
+
+        cTplValGesInit< double > & SeuilCorrelRatio12();
+        const cTplValGesInit< double > & SeuilCorrelRatio12()const ;
+
+        cTplValGesInit< double > & SeuilGradRatio12();
+        const cTplValGesInit< double > & SeuilGradRatio12()const ;
     private:
         cTplValGesInit< double > mSeuilCorrDR;
         cTplValGesInit< double > mSeuilInc;
         cTplValGesInit< double > mSeuilCorrLP;
+        cTplValGesInit< double > mExposantPdsDistGrad;
+        cTplValGesInit< double > mSeuilDistGrad;
+        cTplValGesInit< double > mSeuilCorrelRatio12;
+        cTplValGesInit< double > mSeuilGradRatio12;
 };
 cElXMLTree * ToXMLTree(const cSeuilFitsParam &);
 
@@ -592,8 +612,8 @@ class cFitsParam
         friend void xml_init(cFitsParam & anObj,cElXMLTree * aTree);
 
 
-        cFitsOneLabel & OverLap();
-        const cFitsOneLabel & OverLap()const ;
+        cFitsOneLabel & DefInit();
+        const cFitsOneLabel & DefInit()const ;
 
         std::list< cFitsOneLabel > & GenLabs();
         const std::list< cFitsOneLabel > & GenLabs()const ;
@@ -604,7 +624,7 @@ class cFitsParam
         cSeuilFitsParam & SeuilGen();
         const cSeuilFitsParam & SeuilGen()const ;
     private:
-        cFitsOneLabel mOverLap;
+        cFitsOneLabel mDefInit;
         std::list< cFitsOneLabel > mGenLabs;
         cSeuilFitsParam mSeuilOL;
         cSeuilFitsParam mSeuilGen;
