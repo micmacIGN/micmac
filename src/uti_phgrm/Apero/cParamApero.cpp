@@ -250,6 +250,8 @@ eTypeCalibAutom  Str2eTypeCalibAutom(const std::string & aName)
       return eCalibAutomEbner;
    else if (aName=="eCalibAutomBrown")
       return eCalibAutomBrown;
+   else if (aName=="eCalibAutomFishEyeStereographique")
+      return eCalibAutomFishEyeStereographique;
    else if (aName=="eCalibAutomNone")
       return eCalibAutomNone;
   else
@@ -289,6 +291,8 @@ std::string  eToString(const eTypeCalibAutom & anObj)
       return  "eCalibAutomEbner";
    if (anObj==eCalibAutomBrown)
       return  "eCalibAutomBrown";
+   if (anObj==eCalibAutomFishEyeStereographique)
+      return  "eCalibAutomFishEyeStereographique";
    if (anObj==eCalibAutomNone)
       return  "eCalibAutomNone";
  std::cout << "Enum = eTypeCalibAutom\n";
@@ -313,7 +317,7 @@ void  BinaryUnDumpFromFile(eTypeCalibAutom & anObj,ELISE_fp & aFp)
    anObj=(eTypeCalibAutom) aIVal;
 }
 
-std::string  Mangling( eTypeCalibAutom *) {return "53FA1EF823E1F48BFE3F";};
+std::string  Mangling( eTypeCalibAutom *) {return "93BCB8F66AB20F99FE3F";};
 
 eTypeContraintePoseCamera  Str2eTypeContraintePoseCamera(const std::string & aName)
 {
@@ -5546,7 +5550,7 @@ void xml_init(cCalibAutomNoDist & anObj,cElXMLTree * aTree)
    xml_init(anObj.PositionRelPP(),aTree->Get("PositionRelPP",1),Pt2dr(Pt2dr(0.5,0.5))); //tototo 
 }
 
-std::string  Mangling( cCalibAutomNoDist *) {return "D6F5DBABFA324CC2FD3F";};
+std::string  Mangling( cCalibAutomNoDist *) {return "78EC5D33965178BEFE3F";};
 
 
 cTplValGesInit< cCalibrationInternConique > & cCalValueInit::CalFromValues()
@@ -5715,7 +5719,7 @@ void xml_init(cCalValueInit & anObj,cElXMLTree * aTree)
    xml_init(anObj.CalibAutomNoDist(),aTree->Get("CalibAutomNoDist",1)); //tototo 
 }
 
-std::string  Mangling( cCalValueInit *) {return "9CAD1B247F2C4380FC3F";};
+std::string  Mangling( cCalValueInit *) {return "6130291441ACEDC3FD3F";};
 
 
 std::vector< double > & cAddParamAFocal::Coeffs()
@@ -6268,7 +6272,7 @@ void xml_init(cCalibrationCameraInc & anObj,cElXMLTree * aTree)
    xml_init(anObj.CalibPerPose(),aTree->Get("CalibPerPose",1)); //tototo 
 }
 
-std::string  Mangling( cCalibrationCameraInc *) {return "4B0AFE084B646EAAFC3F";};
+std::string  Mangling( cCalibrationCameraInc *) {return "E2A53DD235D4AE8BFF3F";};
 
 
 cTplValGesInit< cXml_SigmaRot > & cBlockGlobalBundle::SigmaV0()
@@ -10499,7 +10503,7 @@ void xml_init(cSectionInconnues & anObj,cElXMLTree * aTree)
    xml_init(anObj.PointFlottantInc(),aTree->GetAll("PointFlottantInc",false,1));
 }
 
-std::string  Mangling( cSectionInconnues *) {return "985D7DCE41540B8DFF3F";};
+std::string  Mangling( cSectionInconnues *) {return "4CECE2192C59959DFE3F";};
 
 
 cTplValGesInit< double > & cUseExportImageResidu::SzByPair()
@@ -26942,7 +26946,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "5EC54A21FF48E381FD3F";};
+std::string  Mangling( cParamApero *) {return "6B299FDA5148BF83FF3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

@@ -289,6 +289,7 @@
    <enum Name="eTypePreCondRad">
        <ePCR_Atgt>         </ePCR_Atgt>
        <ePCR_2SinAtgtS2>   </ePCR_2SinAtgtS2>
+       <ePCR_Stereographik>   </ePCR_Stereographik>
    </enum>
 
    <enum Name="eTypeSake">
@@ -365,6 +366,7 @@
   <!-- Modele "equi solid" en 2 sin(teta/2) , type Nikkor 10,5 mm -->
         <eModele_EquiSolid_FishEye_10_5_5>     </eModele_EquiSolid_FishEye_10_5_5>
 
+
         <eModele_DRad_PPaEqPPs >     </eModele_DRad_PPaEqPPs>
         <eModele_Fraser_PPaEqPPs >     </eModele_Fraser_PPaEqPPs>
 
@@ -376,6 +378,9 @@
 
         <eModelePolyDeg0 >     </eModelePolyDeg0>
         <eModelePolyDeg1 >     </eModelePolyDeg1>
+
+  <!-- Modele "stereographique" en 2 tan(teta/2) , type Samyan 8.5 mm   -->
+        <eModele_Stereographik_FishEye_10_5_5>     </eModele_Stereographik_FishEye_10_5_5>
    </enum>
 
 

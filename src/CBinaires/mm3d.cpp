@@ -208,6 +208,8 @@ int TestDistortion_main(int argc, char ** argv);
 int Blinis_main(int argc, char ** argv);
 int Contrast_main(int argc, char ** argv);
 int Nikrup_main(int argc, char ** argv);
+int TournIm_main(int argc,char ** argv);
+
 
 int TestCamRPC(int argc, char** argv);
 int TestBundleInter_main(int argc, char ** argv);
@@ -284,6 +286,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("Blinis", Blinis_main, "Block Initialisation ", cArgLogCom(2)));
 		aRes.push_back(cMMCom("ContrastFilter", Contrast_main, "Some contrast filtering "));
 		aRes.push_back(cMMCom("Nikrup", Nikrup_main,/*(*/ "Generik image filter, using invert polish like notation ;-) "));
+		aRes.push_back(cMMCom("Turn90Im", TournIm_main, "Turn image of 90 degre"));
 		aRes.push_back(cMMCom("RedTieP", RedTieP_main, "Test tie points filtering "));
 		aRes.push_back(cMMCom("OriRedTieP", OriRedTie_main, "Tie points filtering, using Martini results "));
 		aRes.push_back(cMMCom("Vino", Vino_Main, "Image Viewer"));

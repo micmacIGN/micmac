@@ -108,9 +108,11 @@ void  SaveStdSetCaracMultiLab(const cSetPCarac aSetGlob,const std::string & aNam
                  aSetLowS.OnePCarac().push_back(aPC);
               }
           }
+/*
 std::cout << "HHHhhhhhh " << aSetLab.OnePCarac().size() << " " 
                           <<  aSetHighS.OnePCarac().size() << " " 
                           << aSetLowS.OnePCarac().size() << "\n" ;
+*/
           MakeFileXML(aSetLowS,NameFileNewPCarac(aLab,aNameIm,true,aExt));
           MakeFileXML(aSetHighS,NameFileNewPCarac(aLab,aNameIm,true,"_HighS"+aExt));
       }

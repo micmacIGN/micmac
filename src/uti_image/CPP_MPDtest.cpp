@@ -1331,9 +1331,14 @@ void TestHomogr()
 
 
 extern void TestFilterGauss();
+extern void TestCondStereo();
 
 int MPDtest_main (int argc,char** argv)
 {
+    {
+        TestCondStereo();
+        exit(EXIT_SUCCESS);
+    }
     {
         TestFilterGauss();
         exit(EXIT_SUCCESS);

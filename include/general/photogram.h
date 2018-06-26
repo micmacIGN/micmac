@@ -2086,6 +2086,18 @@ class cDistPrecond2SinAtgtS2 : public cDistPrecondRadial
         int     Mode() const ;
 };
 
+class cDistPrecondSterographique : public cDistPrecondRadial
+{
+      public :
+         cDistPrecondSterographique(double aFocApriori,const Pt2dr & aCentre);
+      private :
+        double  DerMultDirect(const double & ) const ;
+        double  MultDirect(const double & ) const ;
+        double  MultInverse(const double & ) const ;
+        int     Mode() const ;
+};
+
+
 
 class cElDistFromCam : public ElDistortion22_Gen
 {

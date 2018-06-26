@@ -848,7 +848,7 @@ double Dl_f2SAtRxS2SRx(double x)
 }
 double Std_f2SAtRxS2SRx(double x)
 {
-   x  = sqrt(x);
+   x  = sqrt(ElAbs(x));
    return (2* sin(atan(x)/2) ) /x;
 }
 double  f2SAtRxS2SRx(double x)
@@ -857,6 +857,9 @@ double  f2SAtRxS2SRx(double x)
    if  (x<1e-5) return Dl_f2SAtRxS2SRx(x);
    return Std_f2SAtRxS2SRx(x);
 }
+
+
+
 
 double Dl_Der2SAtRxS2SRx(double x)
 {
@@ -880,7 +883,7 @@ double Der2SAtRxS2SRx(double x)
 
 double f4S2AtRxS2(double x)
 {
-   return  ElSquare(2* sin(atan(sqrt(ElAbs(x)))/2.0));
+   return  ElSquare(2* sin(  atan(sqrt(ElAbs(x)))  /2.0));
 }
 
 double  Dl_Der4S2AtRxS2(double x)
