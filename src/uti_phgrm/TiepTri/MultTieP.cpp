@@ -194,6 +194,7 @@ class cAppliConvertToNewFormatHom
         const std::vector<std::string> * mFilesIm;
         bool                             mDoNewOri;
         bool                             mBin;
+        bool                             mExpTxt;
         std::string                      mSH;
         cVirtInterf_NewO_NameManager *   mVNM;
 };
@@ -201,7 +202,8 @@ class cAppliConvertToNewFormatHom
 
 cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) :
       mDoNewOri (true),
-      mBin      (true)
+      mBin      (true),
+      mExpTxt   (false)
 {
     
    ElInitArgMain
@@ -212,6 +214,7 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
          LArgMain()  << EAM(mSH ,"SH","Set of Homogues")
                      << EAM(mBin,"Bin",true,"Binary, def=true (postix dat/txt)")
                      << EAM(mDoNewOri,"DoNewOri",true,"Tuning")
+                     << EAM(mExpTxt,"ExpTxt",true,"input homol in txt format? def false, dat format")
    );
 
    mEASF.Init(mPatImage);
@@ -220,7 +223,7 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
         ELISE_fp::RmFileIfExist("NewOriTmp" + mSH + "Quick");
    if (mDoNewOri)
    {
-        std::string aCom =  MM3dBinFile("TestLib NO_AllOri2Im ") + QUOTE(mPatImage) + " GenOri=false " + " SH=" + mSH + " AUS=true";
+        std::string aCom =  MM3dBinFile("TestLib NO_AllOri2Im ") + QUOTE(mPatImage) + " GenOri=false " + " SH=" + mSH + " AUS=true"+ " ExpTxt="+ToString(mExpTxt);
         cout<<aCom<<endl;
         System(aCom);
 

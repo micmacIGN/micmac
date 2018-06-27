@@ -479,11 +479,11 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aFactResElimTieP,"FactElimTieP", true, "Fact elimination of tie point (prop to SigmaTieP, Def=5)")
                     << EAM(CPI1,"CPI1",true,"Calib Per Im, Firt time", eSAM_IsBool)
                     << EAM(CPI2,"CPI2",true,"Calib Per Im, After first time, reUsing Calib Per Im As input", eSAM_IsBool)
-                    << EAM(AllFree,"AllFree",true,"Refine all calibration parameters (Def=false, exept for GradualRefineCal option)", eSAM_IsBool)
+                    << EAM(AllFree,"AllFree",true,"Refine all calibration parameters (Def=false)", eSAM_IsBool)
                     << EAM(CalibMod2Refine,"GradualRefineCal",true,"Calibration model to refine gradually",eSAM_None)
                     << EAM(DetailAppuis,"DetGCP",true,"Detail on GCP (Def=false)", eSAM_IsBool)
                     << EAM(Viscos,"Visc",true,"Viscosity on external orientation in Levenberg-Marquardt like resolution (Def=1.0)")
-                    << EAM(AddViscInterne,"AddViscInterne",true,"Add Viscosity on calibration parameter (Def=false)")
+                    << EAM(AddViscInterne,"AddViscInterne",true,"Add Viscosity on calibration parameter (Def=false, exept for GradualRefineCal)")
                     << EAM(ViscosInterne,"ViscInterne",true,"Viscosity on calibration parameter (Def=0.1), use it with AddViscInterne=true")
                     << EAM(ExpTxt,"ExpTxt",true, "Export in text format (Def=false)",eSAM_IsBool)
                     << EAM(aImMinMax,"ImMinMax",true, "Im max and min to avoid tricky pat")
@@ -554,7 +554,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
        if (EAMIsInit(&CalibMod2Refine)){
 
        InitVerifModele(CalibMod2Refine,mICNM);
-       if (!EAMIsInit(&AllFree)) AllFree=1;
+       if (!EAMIsInit(&AddViscInterne)) AddViscInterne=1;
        }
 
        if (!GlobLibPP && GlobLibCD) std::cout << "Warning, distorsion center is set to free but Principal point is set to frozen.\n I will not adjust Distorsion center.\n";
