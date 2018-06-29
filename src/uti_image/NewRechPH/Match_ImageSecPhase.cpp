@@ -51,6 +51,102 @@ Header-MicMac-eLiSe-25/06/2007*/
 */
 
 #include "NewRechPH.h"
+#include "Match_Image.h"
+
+
+
+/*************************************************/
+/*                                               */
+/*           cBiaisedRandGenerator               */
+/*                                               */
+/*************************************************/
+
+
+cBiaisedRandGenerator::cBiaisedRandGenerator(const std::vector<double> & aVec) :
+   mNb  (aVec.size())
+{
+    mCumul.push_back(0.0);
+    for (const auto & aVal : aVec)
+    {
+       ELISE_ASSERT(aVal>=0,"cBiaisedRandGenerator val<0");
+       mCumul.push_back(mCumul.back()+aVal);
+    }
+    double aVMax = mCumul.back();
+
+    ELISE_ASSERT(aVMax!=0,"cBiaisedRandGenerator no val >0");
+
+    for (auto & aVal : mCumul)
+    {
+       aVal /= aVMax;
+       std::cout << "VvVvVvvv " << aVal << "\n";
+    }
+}
+
+int cBiaisedRandGenerator::Generate()
+{
+    return Generate(NRrandom3());
+}
+
+int cBiaisedRandGenerator::Generate(double aVal)
+{
+    if (aVal<=0) return 0;
+    
+    std::vector<double>::iterator aLB = lower_bound(mCumul.begin(),mCumul.end(),aVal);
+    // std::vector<double>::iterator aLB = upper_bound(mCumul.begin(),mCumul.end(),aVal);
+    ELISE_ASSERT (aLB != mCumul.end(),"cBiaisedRandGenerator::Generate");
+    return aLB - mCumul.begin()-1;
+}
+
+void TestcBiaisedRandGenerator()
+{
+   std::vector<double>  aV;
+   aV.push_back(1.0);
+   aV.push_back(2.0);
+   aV.push_back(4.0);
+   aV.push_back(1.0);
+   cBiaisedRandGenerator aCBR(aV);
+
+   std::cout << "Grrr " << aCBR.Generate(-0.01) << "\n";
+   std::cout << "Grrr " << aCBR.Generate(0.0) << "\n";
+   std::cout << "Grrr " << aCBR.Generate(0.001) << "\n";
+   std::cout << "Grrr " << aCBR.Generate(0.2) << "\n";
+   std::cout << "Grrr " << aCBR.Generate(0.99) << "\n";
+   std::cout << "Grrr " << aCBR.Generate(1.0) << "\n";
+
+   getchar();
+   
+
+   cFHistoInt aFH;
+   for (int aK=0 ; aK<1000000 ; aK++)
+   {
+       int  aG = aCBR.Generate();
+// std::cout << "Gggggg " << aG << "\n";
+       aFH.Add(aG);
+   }
+   for (int aK=0 ; aK<int(aV.size()) ; aK++)
+   {
+       std::cout << "BiasedRanGen " << aFH.Perc(aK) / aV[aK] << "\n";
+   }
+
+
+/*
+   std::cout << "TTT " << aCBR.Test(-0.001) << "\n";
+   std::cout << "TTT " << aCBR.Test(0) << "\n";
+   std::cout << "TTT " << aCBR.Test(0.1) << "\n";
+   std::cout << "TTT " << aCBR.Test(1.0) << "\n";
+   std::cout << "TTT " << aCBR.Test(2.0) << "\n";
+   std::cout << "TTT " << aCBR.Test(3.0) << "\n";
+   std::cout << "TTT " << aCBR.Test(7.0) << "\n";
+   std::cout << "TTT " << aCBR.Test(8.0) << "\n";
+   std::cout << "TTT " << aCBR.Test(8.1) << "\n";
+   std::cout << "TTT " << aCBR.Test(1999998.1) << "\n";
+
+   // double * aV = lower_bound(
+    // emplate <class ForwardIterator, class T>
+  // ForwardIterator lower_bound (ForwardIterator first, ForwardIterator last, const T& val);
+*/
+}
+
 
 
 
@@ -64,7 +160,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 //  aTBuf.oset(Pt2di(aKRho,aKTeta),aVal);
 
 
-double DistHistoGrad(cCompileOPC & aMast,int aShift,cCompileOPC & aSec)
+double cAppli_FitsMatch1Im::DistHistoGrad(cCompileOPC & aMast,int aShift,cCompileOPC & aSec)
 {
     Pt2di aSzInit = aMast.mSzIm;
     Pt2di aSzG (aSzInit.x-1,aSzInit.y);
@@ -114,7 +210,7 @@ double DistHistoGrad(cCompileOPC & aMast,int aShift,cCompileOPC & aSec)
 
              Pt2dr aGradS (aImS.get(aPS)-aImS.get(aPSr),aImS.get(aPS)-aImS.get(aPSt));
              double aNormS = euclid(aGradS);
-             double aPds = sqrt(sqrt(aNormM*aNormS));
+             double aPds = pow(aNormM*aNormS,ExposantPdsDistGrad()/2.0); //  2.0 prend en compte la racine carre
              // double aPds = sqrt(aNormM*aNormS);
              aSomEcRad += ElAbs(aImM.get(aPM)-aImS.get(aPS));
              aSomEcGrad += dist4(aGradM-aGradS);
@@ -145,6 +241,71 @@ std::cout << "mShitfBestmShitfBest " << aMast.mShitfBest
 
     return aSomEcPds / aSomPds;
 }
+
+
+
+cPrediCoord::cPrediCoord(Pt2di aSzGlob,int  aNbPix,double aMulDist,cElMap2D & aMap,const std::vector<cCdtCplHom> aVC) :
+   mSzGlob (aSzGlob),
+   mFacRed (dist8(mSzGlob)/double(aNbPix)),
+   mSzRed  (round_up(Pt2dr(mSzGlob)/ mFacRed)),
+   mImX    (mSzRed.x,mSzRed.y,0.0),
+   mTImX   (mImX),
+   mImY    (mSzRed.x,mSzRed.y,0.0),
+   mTImY   (mImY),
+   mImPds  (mSzRed.x,mSzRed.y,0.0),
+   mTImPds (mImPds)
+{
+    for (const auto & aCpl : aVC)
+    {
+         Pt2dr aPM = aCpl.PM() ;
+         Pt2dr aPS = aCpl.PS() ;
+         Pt2dr aPDif = aPS-aMap(aPM);
+         double aPds = 1.0;
+         Pt2dr aPInd = aPM / mFacRed;
+         mTImPds.incr(aPInd,aPds);
+         mTImX.incr(aPInd,aPds*aPDif.x);
+         mTImY.incr(aPInd,aPds*aPDif.y);
+    }
+
+    double aSurfMoy = (mSzRed.x * mSzRed.y) / ElMax(1,int(aVC.size()));
+    double aDistMoy = sqrt(aSurfMoy);
+    aDistMoy *= aMulDist;
+    double aFact = FactExpFromSigma2(ElSquare(aDistMoy));
+    FilterExp(mImPds,aFact);
+    FilterExp(mImX,aFact);
+    FilterExp(mImY,aFact);
+
+    ELISE_COPY
+    (
+       mImX.all_pts(),
+       Virgule(mImX.in(),mImY.in())/Max(1e-10,mImPds.in()),
+       Virgule(mImX.out(),mImY.out())
+    );
+    
+
+    Tiff_Im::CreateFromIm(mImX,"ImX.tif");
+    Tiff_Im::CreateFromIm(mImY,"ImY.tif");
+    // double 
+    // double FactExpFromSigma2(double aS2)
+}
+
+void  OneTestcPrediCoord(double aDist)
+{
+   std::vector<cCdtCplHom>  aVC;
+   ElSimilitude aSim;
+   cPrediCoord aPC(Pt2di(2000,2000),1000,aDist,aSim,aVC);
+}
+
+void OneTestcPrediCoord()
+{
+   OneTestcPrediCoord(2.0);
+   OneTestcPrediCoord(5.0);
+   OneTestcPrediCoord(10.0);
+   OneTestcPrediCoord(20.0);
+   OneTestcPrediCoord(50.0);
+   OneTestcPrediCoord(100.0);
+}
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

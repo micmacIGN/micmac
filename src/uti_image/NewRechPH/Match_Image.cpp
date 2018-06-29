@@ -116,7 +116,7 @@ class cStatHist
 };
 
 
-void FiltrageDirectionnel(std::vector<cCdtCplHom> & aVCpl)
+void FiltrageDirectionnel(std::vector<cCdtCplHom> & aVCpl,cAppli_FitsMatch1Im & anAppli)
 {
    if (aVCpl.empty()) 
       return;
@@ -185,7 +185,7 @@ void FiltrageDirectionnel(std::vector<cCdtCplHom> & aVCpl)
        aDif = ElMin(aDif,aNbDir-aDif);
        bool Ok  = (aDif < aSeuilDir);
 
-       double aDHG =  DistHistoGrad(*(aCpl.mPM),aCpl.mShift,*(aCpl.mPS));
+       double aDHG =  anAppli.DistHistoGrad(*(aCpl.mPM),aCpl.mShift,*(aCpl.mPS));
        // std::cout << "FILTR DIP " << aDHG << " OK=" << Ok  << "\n";
        aSH.Add(Ok, aDHG);
        if (Ok)
@@ -554,6 +554,7 @@ void cAFM_Im_Master::FilterVoisCplCt(std::vector<cCdtCplHom> & aV0)
     ElSimilitude  aSim = SimilRobustInit(aPack,0.666);
 
     aSim = aS0;
+    mAppli.SetCurMapping(new ElSimilitude(aSim));
 
     for (auto  & aCpl : aV0)
     {
@@ -643,7 +644,7 @@ int IScal(double aS) {return round_ni(5 * log(aS)/log(2));}
 
 void cAFM_Im_Master::FiltrageSpatialGlob(std::vector<cCdtCplHom> & aVCpl,int aNbMin)
 {
-   FiltrageDirectionnel(aVCpl);
+   FiltrageDirectionnel(aVCpl,mAppli);
    if (mAppli.ShowDet())
       std::cout << "After  filt dir " << aVCpl.size() << "\n";
 
@@ -658,7 +659,15 @@ void cAFM_Im_Master::FiltrageSpatialGlob(std::vector<cCdtCplHom> & aVCpl,int aNb
 }
 
 
-void cAFM_Im_Master::MatchOne(bool OverLap,cAFM_Im_Sec & anISec, cSetOPC & aSetM,cSetOPC & aSetS,std::vector<cCdtCplHom> & aOld,int aNbMin)
+void cAFM_Im_Master::MatchOne
+     (
+          bool OverLap,
+          cAFM_Im_Sec & anISec, 
+          cSetOPC & aSetM,
+          cSetOPC & aSetS,
+          std::vector<cCdtCplHom> & aOld,
+          int aNbMin
+     )
 {
    cTimeMatch aTimeMatch;
    cTimeMatch * aPtrTM = mAppli.ShowDet() ? &aTimeMatch : nullptr;
@@ -711,8 +720,8 @@ void cAFM_Im_Master::MatchOne(bool OverLap,cAFM_Im_Sec & anISec, cSetOPC & aSetM
           aHLF.Add(aLevFail,1,__LINE__);
           if (aD > 0)
           {
-             double aScoreGrad = DistHistoGrad(*aPCM,aShift,aPCS);
-             if (aScoreGrad < 0.5)
+             double aScoreGrad = mAppli.DistHistoGrad(*aPCM,aShift,aPCS);
+             if (aScoreGrad < mAppli.SeuilDistGrad())
              {
                  double aScoreCor = ElMax(0.0,1-aD);
                  aPCS.SetMatch(aPCM,aScoreCor,aScoreGrad,-aShift);
@@ -759,39 +768,52 @@ void cAFM_Im_Master::MatchOne(bool OverLap,cAFM_Im_Sec & anISec, cSetOPC & aSetM
 
 bool  cAFM_Im_Master::MatchGlob(cAFM_Im_Sec & anISec)
 {
-    int aNbBeforeDir=0;
+    // int aNbBeforeDir=0;
     int aNbMin0 = 6;
     std::vector<cCdtCplHom> aVCpl;
 
     
-    eTypePtRemark aLab = mAppli.LabInit();
-    int aKL = int(aLab);
+    std::vector<int> aVLab;
+    aVLab.push_back(int(mAppli.LabInit()));
+
+    // eTypePtRemark aLab = mAppli.LabInit();
+    // int aKL = int(aLab);
     
     // Premier calcul sur nb de points reduit
+    // for (const auto & aKL : aVLab)
+    for (int aKL=0 ; aKL< int(eTPR_NoLabel) ; aKL++)
     {
-       cSetOPC & aSetM = *(mSetInd0[aKL]);
-       cSetOPC & aSetS = *(anISec.mSetInd0[aKL]);
-
-       MatchOne(true,anISec,aSetM,aSetS,aVCpl,aNbMin0);
-
-       if (mAppli.ShowDet())
-          std::cout << "After match one " << aVCpl.size() << "\n";
-       if (int(aVCpl.size()) <= aNbMin0) 
+       cSetOPC * aSetM = (mSetInd0[aKL]);
+       cSetOPC * aSetS = (anISec.mSetInd0[aKL]);
+       if (aSetS && aSetM)
        {
-          return false;
+          MatchOne(true,anISec,*aSetM,*aSetS,aVCpl,aNbMin0);
        }
-
-       aNbBeforeDir = aVCpl.size();
-
-       if (mAppli.DoFiltrageSpatial())
-           FiltrageSpatialGlob(aVCpl,aNbMin0);
-       if (mAppli.ShowDet())
-          std::cout << "After Filtrage sparial  " << aVCpl.size() << "\n";
-       if (int(aVCpl.size()) <=  aNbMin0)
-          return false ;
     }
+
+    if (mAppli.ShowDet())
+       std::cout << "After match one " << aVCpl.size() << "\n";
+    if (int(aVCpl.size()) <= aNbMin0) 
+    {
+       return false;
+    }
+
+    // aNbBeforeDir = aVCpl.size();
+
+    if (mAppli.DoFiltrageSpatial())
+       FiltrageSpatialGlob(aVCpl,aNbMin0);
+    if (mAppli.ShowDet())
+       std::cout << "After Filtrage sparial  " << aVCpl.size() << "\n";
+    if (int(aVCpl.size()) <=  aNbMin0)
+       return false ;
     ElPackHomologue aPack = PackFromVCC(aVCpl);
     aPack.StdPutInFile(mAppli.NameCple(mNameIm,anISec.mNameIm));
+
+    {
+         std::cout << "Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n";
+         cPrediCoord aPC(mSzIm,100,2.0,mAppli.CurMapping(),aVCpl);
+    }
+
     return true ;
 }
 
@@ -804,7 +826,15 @@ bool  cAFM_Im_Master::MatchGlob(cAFM_Im_Sec & anISec)
 cAFM_Im_Sec::cAFM_Im_Sec(const std::string  & aName,cAppli_FitsMatch1Im & anApli) :
     cAFM_Im(aName,anApli)
 {
-    LoadLab( false, false,mAppli.LabInit());
+
+    for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
+    { 
+       eTypePtRemark aLab =  eTypePtRemark(aKL);
+       if (mAppli.LabInInit(aLab))
+       {
+          LoadLab(false,false,aLab);
+       }
+    }
     // mSetInd0.InitLabel(mAppli.FitsPm().OverLap(),false,true);
 }
 
@@ -829,7 +859,9 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
    mShowDet     (false),
    mCallBack    (false),
    mNbMaxS0     (1000,200),
-   mDoFiltrageSpatial  (true)
+   mDoFiltrageSpatial  (true),
+   mFlagLabsInit (1 << int(eTPR_GrayMax)),
+   mCurMap       (0)
 {
 
    ElInitArgMain
@@ -846,8 +878,11 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
                      <<  EAM(mShowDet,"ShowDet",true,"Show Details, def=true if 1 pair")
                      <<  EAM(mDoFiltrageSpatial,"DoFS",true,"Do spatial filtering")
                      <<  EAM(mSelf,"Self",true,"Accept self match (tuning)")
+                     <<  EAM(mFlagLabsInit,"FLI",true,"Flag Labs Init, def=>GrayMax, -1=> all")
    );
 
+   if (mFlagLabsInit<0)
+     mFlagLabsInit = ((1<<int(eTPR_NoLabel)) - 1);
 
    if (mExpTxt)
       mPostHom = "txt";
@@ -930,6 +965,12 @@ eTypePtRemark  cAppli_FitsMatch1Im::LabInit() const {return eTPR_GrayMax;}
    }
 }
 
+bool cAppli_FitsMatch1Im::LabInInit(eTypePtRemark aLab) const
+{
+   return (mFlagLabsInit & (1<<int(aLab))) != 0;
+}
+
+
 Pt2di cAppli_FitsMatch1Im::NbMaxS0() const {return mNbMaxS0;}
 bool cAppli_FitsMatch1Im::ShowDet() const { return mShowDet; }
 //   int cAppli_FitsMatch1Im::NbBIndex() const { return mNbBIndex; }
@@ -954,12 +995,23 @@ double   cAppli_FitsMatch1Im::SeuilDistGrad() const
 {
    return mFitsPm.SeuilGen().SeuilDistGrad().Val();
 }
-/*
 double   cAppli_FitsMatch1Im::ExposantPdsDistGrad() const
 {
    return mFitsPm.SeuilGen().ExposantPdsDistGrad().Val();
 }
-*/
+
+void cAppli_FitsMatch1Im::SetCurMapping(cElMap2D * aMap)
+{
+    delete mCurMap;
+    mCurMap = aMap;
+}
+
+cElMap2D &  cAppli_FitsMatch1Im::CurMapping()
+{
+   ELISE_ASSERT(mCurMap!=0,"cAppli_FitsMatch1Im::CurMapping");
+   return *mCurMap;
+}
+
 
 
 #if (0)

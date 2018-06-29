@@ -293,6 +293,20 @@ double ScaleGen(const cOnePCarac & aPC);
 cFitsOneLabel * FOLOfLab(cFitsParam *,eTypePtRemark aLab,bool SVP);
 const cFitsOneLabel * FOLOfLab(const cFitsParam *,eTypePtRemark aLab,bool SVP);
 
+class cBiaisedRandGenerator
+{
+     public :
+        cBiaisedRandGenerator(const std::vector<double> & aV);
+        int Generate();
+        int Generate(double aVal);
+     private :
+        int mNb;
+        std::vector<double> mCumul;
+
+};
+
+
+
 
 
 #endif //  _ExternNewRechPH_H_

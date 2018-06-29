@@ -21,6 +21,11 @@
         <SeuilCorrDR > 0.6 </SeuilCorrDR> 
         <SeuilInc    > 0.13  </SeuilInc> 
         <SeuilCorrLP > 0.93 </SeuilCorrLP>
+        <SeuilDistGrad> 0.5 </SeuilDistGrad>
+        <ExposantPdsDistGrad> 1.0 </ExposantPdsDistGrad>
+        <SeuilCorrelRatio12 > 0.7 </SeuilCorrelRatio12>
+        <SeuilGradRatio12 >   0.7 </SeuilGradRatio12>
+
    </SeuilGen>
    <SeuilOL>  
         <SeuilCorrDR > 0.6 </SeuilCorrDR> 
