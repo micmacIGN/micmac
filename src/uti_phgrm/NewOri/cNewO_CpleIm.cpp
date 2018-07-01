@@ -284,7 +284,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    cXml_O2IComputed aXCmp;
    RazEllips(aXCmp.Elips());
    cXml_O2ITiming & aTiming = aXCmp.Timing();
-
+        
 
    for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
    {
@@ -542,6 +542,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
     {
         AddEllips(anElips2D,itP->P1(),itP->Pds());
+        //std::cout << "ewlinaaaa " << itP->P1() << "\n";
     }
     NormEllips(anElips2D);
     aXCmp.Elips2().SetVal(anElips2D);

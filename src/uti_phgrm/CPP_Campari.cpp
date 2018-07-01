@@ -389,6 +389,8 @@ class cAppli_Campari : public cAppli_Tapas_Campari
        std::vector<std::string>  mVOptGlob;
 */
 
+       std::vector<double>   mPdsErrorGps;
+
 };
 
 
@@ -472,6 +474,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         LArgMain()  << EAM(GCP,"GCP",true,"[GrMes.xml,GrUncertainty,ImMes.xml,ImUnc]", eSAM_NoInit)
                     << EAM(EmGPS,"EmGPS",true,"Embedded GPS [Gps-Dir,GpsUnc, ?GpsAlti?], GpsAlti if != Plani", eSAM_NoInit)
                     << EAM(aGpsLA,"GpsLa",true,"Gps Lever Arm, in combination with EmGPS", eSAM_NoInit)
+                    << EAM(mPdsErrorGps,"PdsResiduGps",true,"Gps weigthing according to error [Mode,MaxPlani,SigmaPlani,MaxAlti,SigmaAlti] Mode=2 (Gauss), 1 (L1 sec)", eSAM_NoInit)
                     << EAM(aVMultiLA,"MultiLA",true,"If multiple LA indicates the patterns of different subsets (first pattern being implicitely first mandatory parameter) ", eSAM_NoInit)
                     << EAM(aIncLA,"IncLA",true,"Inc on initial value of LA (Def not used)")
                     << EAM(aPatGPS,"PatGPS",true,"When EmGPS, filter images where GPS is used")
@@ -700,6 +703,25 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                              + " +IncLaY=" + ToString(aIncLA.y)
                              + " +IncLaZ=" + ToString(aIncLA.z) ;
             }
+        }
+
+        if (EAMIsInit(&mPdsErrorGps))
+        {
+            ELISE_ASSERT(mPdsErrorGps.size()==5,"Bad size for PdsResiduGps");
+            std::string aModePond;
+            if (mPdsErrorGps[0]==1)  
+               aModePond="eL1Secured";
+            else if (mPdsErrorGps[0]==2)  
+               aModePond= "ePondGauss";
+            else
+            {
+               ELISE_ASSERT(false,"Bad size for PdsResiduGps");
+            }
+            mCom = mCom + " +ModePondCentre=" + aModePond
+                        + " +EcartMaxPlaniPondCentre=" + ToString(mPdsErrorGps[1])
+                        + " +SigmaPlaniPondCentre=" + ToString(mPdsErrorGps[2])
+                        + " +EcartMaxAltiPondCentre=" + ToString(mPdsErrorGps[3])
+                        + " +SigmaPlaniPondCentre=" + ToString(mPdsErrorGps[4]) ;
         }
 
 

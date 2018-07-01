@@ -181,18 +181,23 @@
    <FitsOneLabel Nb="1" Class="true" ToReference="true">
        <KindOf Nb="1" Type="eTypePtRemark">     </KindOf> 
        <BinIndexed Nb="1" RefType="FitsOneBin">  </BinIndexed>  <!-- Quick one, for indexation -->
-       <BinDecision Nb="1" RefType="FitsOneBin"> </BinDecision>  <!-- Longer one making the decision -->
+       <BinDecisionShort Nb="1" RefType="FitsOneBin"> </BinDecisionShort>  <!-- Quick with lowe error -->
+       <BinDecisionLong  Nb="1" RefType="FitsOneBin"> </BinDecisionLong>  <!-- Long with low error -->
    </FitsOneLabel>
 
    <SeuilFitsParam  Nb="1" Class="true" ToReference="true">
           <SeuilCorrDR Nb="?" Type="double" Def="0.7"> </SeuilCorrDR>  <!--  Seuil corr sur inv rad -->
           <SeuilInc    Nb="?" Type="double" Def="0.01"> </SeuilInc>    <!-- Seuil Inco entre les div estim de shift -->
           <SeuilCorrLP Nb="?" Type="double" Def="0.93"> </SeuilCorrLP> <!-- Seuil correl Log Polar-->
+          <ExposantPdsDistGrad Nb="?" Type="double" Def="0.5"> </ExposantPdsDistGrad> <!-- Seuil correl Log Polar-->
+          <SeuilDistGrad Nb="?" Type="double" Def="0.5"> </SeuilDistGrad> <!-- Seuil correl Log Polar-->
+          <SeuilCorrelRatio12 Nb="?" Type="double" Def="0.6"> </SeuilCorrelRatio12>
+          <SeuilGradRatio12 Nb="?" Type="double" Def="0.6">   </SeuilGradRatio12>
    </SeuilFitsParam>
    
    
    <FitsParam Nb="1" Class="true" ToReference="true">
-       <OverLap  Nb="1" RefType="FitsOneLabel"> </OverLap> <!-- Quick for overlap dec -->
+       <DefInit  Nb="1" RefType="FitsOneLabel"> </DefInit>  <!-- 0 ou 1, sera complete autom -->
        <GenLabs  Nb="*" RefType="FitsOneLabel"> </GenLabs>  <!-- 0 ou 1, sera complete autom -->
        <SeuilOL Nb="1" RefType="SeuilFitsParam">  </SeuilOL>
        <SeuilGen Nb="1" RefType="SeuilFitsParam"> </SeuilGen>
@@ -208,6 +213,9 @@ mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
        <DefDoMatch Nb="?" Type="bool" Def="true"> </DefDoMatch>
        <DefDoPtCar Nb="?" Type="bool" Def="true"> </DefDoPtCar>
        <DefDoRef   Nb="?" Type="bool" Def="true"> </DefDoRef>
+       <DefDoApprComb   Nb="?" Type="bool" Def="true"> </DefDoApprComb>
+       <DefDoApprLocal1   Nb="?" Type="bool" Def="true"> </DefDoApprLocal1>
+       <DefDoApprLocal2   Nb="?" Type="bool" Def="true"> </DefDoApprLocal2>
        <DefParamPtCar Nb="?" Type="std::string" Def=""> </DefParamPtCar>
 
        <XlmAimeOneDir Nb="*">
@@ -231,6 +239,18 @@ mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
                 <Pattern  Nb="1" Type="std::string" AccessorFils="false"> </Pattern>
             </XAPA_PtCar>
        </XlmAimeOneDir>
+
+       <XlmAimeApprent Nb="1">
+             <NbExEt0 Nb="1" Type="int">       </NbExEt0>
+             <NbExEt1 Nb="1" Type="int">       </NbExEt1>
+             <TimeOut Nb="?" Type="double" Def="300.0">       </TimeOut>
+             <XlmAimeOneApprent  Nb="*">
+                  <PdsW Nb="1" Type="double">  </PdsW>
+                  <NbBB Nb="1" Type="int">     </NbBB>
+                  <BitM Nb="?" Type="int">     </BitM>
+             </XlmAimeOneApprent>
+       </XlmAimeApprent>
+
    </XmlAimeParamApprentissage>
 
 

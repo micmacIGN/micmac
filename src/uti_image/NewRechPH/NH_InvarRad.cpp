@@ -530,8 +530,10 @@ void  cAppli_NewRechPH::FilterSPC(cSetPCarac & aSPC,cSetPCarac & aRes,eTypePtRem
        if ((aPC.Kind() == aLabel) && aPC.OK())
        {
            aPC.Prio() = ScalePrio(&aPC);
-           mQT->insert(&aPC);
-           aHeap.push(&aPC);
+           if (mQT->insert(&aPC,true))
+           {
+              aHeap.push(&aPC);
+           }
        }
    }
 
@@ -561,6 +563,8 @@ void  cAppli_NewRechPH::FilterSPC(cSetPCarac & aSPC,cSetPCarac & aRes,eTypePtRem
            }
        }
    }
+
+   // std::cout << "RRRRRr   "<< aRes.OnePCarac().size() << "\n"; getchar();
    // std::cout <<  " FilterSPCFilllllll  " <<  aHeap.nb() << " " << aNb2Add    << "\n"; // getchar();
 }
 

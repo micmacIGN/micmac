@@ -78,8 +78,10 @@ class cAppliStatPHom
        Pt2dr Hom(const Pt2dr & aP1);
        std::vector<cStatOneLabel>  & VLabs() {return mVLabs;}
        const cFitsParam & FP() const {return  mFP;}
+       cFitsParam & FP() {return  mFP;}
        int &  NbMaxHighScale() {return mNbMaxHighScale;}
-       int &  NbMaxTot() {return mNbMaxTot;}
+       int &  NbMaxValid() {return mNbMaxValid;}
+       int &  NbMaxTested() {return mNbMaxTested;}
        double &  ScaleLim() {return mScaleLim;}
        tQtOPC * Qt2() {return  mQt2;}
 
@@ -111,7 +113,8 @@ class cAppliStatPHom
        std::vector<cStatOneLabel>  mVLabs;
        cFitsParam                  mFP;
        int                         mNbMaxHighScale;
-       int                         mNbMaxTot;
+       int                         mNbMaxTested;
+       int                         mNbMaxValid;
        double                      mScaleLim;
        double                      mSeuilBigRes;
        cPtFromCOPC                 mArgQt;
@@ -133,7 +136,6 @@ class cOneImSPH
          cBasicGeomCap3D *  mCam;
          cSetPCarac *       mCurSPC;
          std::vector<cOnePCarac*>  mCurAPC; // Classe par label
-         // std::vector<cOnePCarac*>               mVNearest;
          std::vector<cOnePCarac*>  mVHom;
          Tiff_Im            mTif;
 };
@@ -248,6 +250,7 @@ void AddRand(cSetRefPCarac & aSRef,const std::vector<cOnePCarac*> aVP, int aNb)
 
 void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
 {
+   cFitsOneLabel * aFOL = FOLOfLab(&(mAppli.FP()),aLab,true);
        // std::vector<cStatOneLabel>  mVLabs;
    // for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
    Load(aLab);
@@ -274,7 +277,7 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
         std::vector<cOnePCarac>  aVObj1;
         std::vector<cOnePCarac>  aVSelObj1;
         {
-           cRandNParmiQ aSelMaxTot(mAppli.NbMaxTot(),aV1.size());
+           cRandNParmiQ aSelMaxTot(mAppli.NbMaxValid(),aV1.size());
            for (auto aPtr1 : aV1)
            {
                aVObj1.push_back(*aPtr1);
@@ -298,7 +301,6 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
             {
                mAppli.Qt2()->insert(aP2); 
             }
-            // aI2.mVNearest.clear();
             std::cout << "*************===========================================================*************\n";
             std::cout << "*************===========================================================*************\n";
             std::cout << "*************===========================================================*************\n";
@@ -308,8 +310,7 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
             for (int aK2=0 ; aK2< int(aV2.size()); aK2++)
             {
                  double aDist;
-                 cOnePCarac * aP = aI2.Nearest(aV2[aK2]->Pt(),aDist,1e-5);
-                 // aI2.mVNearest.push_back(aP);
+                 /*cOnePCarac * aP = */ aI2.Nearest(aV2[aK2]->Pt(),aDist,1e-5);
                  aVD22.push_back(aDist);
             }
             mAppli.ShowStat("Distribution du point le plus proche avec meme carac",20,aVD22);
@@ -317,7 +318,7 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
  
             std::vector<double> aVD12;
             std::vector<double> aScorInvR;
-            cRandNParmiQ aSelMaxTot(mAppli.NbMaxTot(),aV1.size());
+            cRandNParmiQ aSelMaxTot(mAppli.NbMaxTested(),aV1.size());
             for (int aK1=0 ; aK1< int(aV1.size()); aK1++)
             {
                 Pt2dr aP1 = aV1[aK1]->Pt();
@@ -364,17 +365,15 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
                     aTruth.P1() = *(aV1[aK1]);
                     aTruth.P2() = *(aHom);
                     aSetRef.SRPC_Truth().push_back(aTruth);
-                    const cFitsParam & aFP = mAppli.FP();
-                    const cFitsOneLabel & aFOL = aFP.OverLap();
 
-                    if (aLab==aFOL.KindOf())
+                    if (aFOL)
                     {
                         cCompileOPC aPC1(*aV1[aK1]);
                         cCompileOPC aPC2(*aHom);
                         int aShift,aLevFail; 
-                        aPC1.SetFlag(aFOL,true);
-                        aPC2.SetFlag(aFOL,true);
-                        aPC1.Match(true,aPC2,aFOL,aFP.SeuilOL(),aShift,aLevFail,nullptr);
+                        aPC1.SetFlag(*aFOL);
+                        aPC2.SetFlag(*aFOL);
+                        aPC1.Match(aPC2,*aFOL,mAppli.FP().SeuilOL(),aShift,aLevFail,nullptr);
                         aHLF.Add(aLevFail);
                      }
                 }
@@ -530,7 +529,8 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
     mTestFlagBin  (false),
     mExtOut       (),
     mNbMaxHighScale  (100000000),
-    mNbMaxTot     (10000),
+    mNbMaxTested  (30000),
+    mNbMaxValid   (1000),
     mScaleLim     (0.0),
     mSeuilBigRes  (100.0)
 {
@@ -546,7 +546,8 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
                      << EAM(mExtInput,"ExtInput",true,"Extentsion for tieP")
                      << EAM(mExtOut,"ExtOut",true,"Extentsion for output")
                      << EAM(mNbMaxHighScale,"NbMaxHS",true,"Nb Max of high scale , def=infinity")
-                     << EAM(mNbMaxTot,"NbMaxTot",true,"Nb Max of high scale , def=10000")
+                     << EAM(mNbMaxValid,"NbMaxTot",true,"Nb Max for valid, def=1000")
+                     << EAM(mNbMaxTested,"NbMaxTot",true,"Nb Max Testesd def=30000")
                      << EAM(mScaleLim,"ScaleLim",true,"Scale minimal, def=0")
    );
 

@@ -45,6 +45,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 class cAppli_NewRechPH;
 class cOneScaleImRechPH;
+class cCompileOPC;
 
 #include "cParamNewRechPH.h"
 #include "ExternNewRechPH.h"
@@ -297,7 +298,7 @@ class cAppli_NewRechPH
         std::vector<cOneScaleImRechPH *> mVILowR;
         std::vector<cOneScaleImRechPH *> mVIHighR; // Celle qui ont une echelle eventuellement plus large
         Video_Win  * mW1;
-        bool         mModeTest;
+        bool         mModeVisu;
     
 
         double       mDistMinMax;
@@ -339,6 +340,7 @@ class cAppli_NewRechPH
         cPtFromCOPC mArgQt;
         tQtOPC * mQT;
         int    mNbMaxLabByIm;   // Nombre max pour une image
+        int    mNbMinLabByIm;   // Nomvre min pour couper
         int    mNbMaxLabBy10MP; // Nombre max par 10 MegaPix
         int    mNbMaxLabInBox;  // Calcule a partir des 2 autres
         int    mNbPreAnalyse;   // Those save for pre analysis (visib graph, initial model etc ...)
@@ -352,6 +354,8 @@ class cAppli_NewRechPH
         tInterpolNRPH * mInterp;
         int          mIdPts;
         bool          mCallBackMulI; // Est on en call back pour cause d'image multiple
+        int          mModeTest;
+        int          mNbHighScale;
 };
 
 class cProfilPC
@@ -369,7 +373,6 @@ class cProfilPC
         int    ComputeShiftOneChannel(const cProfilPC & aCP,int aChanel) const;
         int    ComputeCorrelOneChannelOneShift(const cProfilPC & aCP,int aChanel,int aShift) const;
         int    OptimiseLocOneShift(const cProfilPC & aCP,int aChanel,int aShift0) const;
-
 
 
     private :
@@ -390,13 +393,33 @@ struct cTimeMatch
      double  mTDist;
 };
 
+// Memorise de maniere compacte les deux meilleurs scores
+class c2BestCOPC
+{
+    public :
+      void SetNew(cCompileOPC * aNew,double aScore,int aShift);
+      c2BestCOPC();
+      void ResetMatch();
+      double  Ratio12() const;
+
+      cCompileOPC *mBest;
+      int          mShitfBest;
+      double       mScore1;
+      double       mScore2;
+};
+
+
 class cCompileOPC
 {
     public :
 
       // Return -1 si arret avant correl
-      double  Match(bool Overlap,cCompileOPC & aCP2,const cFitsOneLabel &,const cSeuilFitsParam &,int & aShift,int & aLevFail,cTimeMatch *);
+      double  Match(cCompileOPC & aCP2,const cFitsOneLabel &,const cSeuilFitsParam &,int & aShift,int & aLevFail,cTimeMatch *);
       std::vector<double>  Time(cCompileOPC & aCP2,const cFitsParam & aFP);
+
+      void SetMatch(cCompileOPC * aMatch,double aScoreCorr,double aScoreCorrGrad,int aShift);
+      bool OkCpleBest(double aRatioCor,double aRatioGrad) const;
+      void ResetMatch();
 
 
 
@@ -421,9 +444,16 @@ class cCompileOPC
 
       double DistIm(const cCompileOPC & aCP,int aShiftIm2) const;
       inline int DifPer(int,int) const;
-      void SetFlag(const cFitsOneLabel & aFOL,bool Overlap);
-      int DifShortF(const cCompileOPC &,bool Overlap);
-      int DifLongF(const cCompileOPC &,bool Overlap);
+      void SetFlag(const cFitsOneLabel & aFOL);
+      // int DifIndexFlag(const cCompileOPC &);
+      int DifDecShortFlag(const cCompileOPC &);
+      int DifDecLongFlag(const cCompileOPC &);
+
+      cCompileOPC * CorrBest() const;
+      // double        Score1() const;
+      // double        Score2() const;
+      // double        Ratio12() const;
+      int           CorrShiftBest() const;
 
       // double DistShift(const cCompileOPC & aCP,int aChanel,int aShiftIm2) const;
 
@@ -438,17 +468,19 @@ class cCompileOPC
       int          mNbTeta;
 
       // Overlap
-      int          mOL_ShortFlag;
-      tCodBin      mOL_LongFlag;
-      bool         mOL_FlagIsComp;
-      // Decision
-      int          mDec_ShortFlag;
-      tCodBin      mDec_LongFlag;
-      bool         mDec_FlagIsComp;
+      int          mIndexFlag;
+      int          mDecShortFlag;
+      tCodBin      mDecLongFlag;
+      bool         mFlagIsComp;
 
       int          mTmpNbHom;
 
       std::vector<cProfilPC> mVProf;
+
+      c2BestCOPC  m2BCor;
+      c2BestCOPC  m2BGrad;
+
+      cCompileOPC(const cCompileOPC & aOPC) = delete; // N.I.
 };
 
 

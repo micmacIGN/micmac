@@ -89,21 +89,47 @@ bool CmpCC(const cCdtCplHom & aC1,const cCdtCplHom & aC2)
     return aC1.mDistS > aC2.mDistS;
 }
 
+class cStatHist
+{
+   public :
+      cStatHist() :
+         mSomOk (0),
+         mNbOk (0),
+         mSomNotOk (0),
+         mNbNotOk (0)
+      {
+      }
+      void Show(const std::string & aName)
+      {
+           std::cout  << " NB " << mNbOk << " " << mNbNotOk
+                      << "========== " << aName <<  " " << (mSomOk/mNbOk) << " " << (mSomNotOk/mNbNotOk) << "\n";
+      }
+      void Add(bool Ok,double aCor)
+      {
+         (Ok ? mNbOk  : mNbNotOk)  ++;
+         (Ok ? mSomOk : mSomNotOk) += aCor;
+      }
+      double mSomOk;
+      double mNbOk;
+      double mSomNotOk;
+      double mNbNotOk;
+};
 
 
-void FiltrageDirectionnel(std::vector<cCdtCplHom> & aVCpl)
+void FiltrageDirectionnel(std::vector<cCdtCplHom> & aVCpl,cAppli_FitsMatch1Im & anAppli)
 {
    if (aVCpl.empty()) 
       return;
    int aNbDir = aVCpl[0].mPM->mSzIm.y;
 
-   double aPropConv = 0.1;
-   double  aPropDir = 0.07;
+   double aPropConv = 0.1;  // Taille normalise du filtre de convolution
+   double  aPropDir = 0.07; // Seuil prorportionnel de l'écart en direction
 
    int   aMul = 100;
        
 
-   int aSeuilDir = ElMax(1,round_ni(aPropDir*aNbDir));
+   // Seuil de distance directionnelle
+   int aSeuilDir = ElMax(1,round_up(aPropDir*aNbDir));
    // Poids du filtre de convolution
    int aNbConv = round_up(aNbDir*aPropConv);
 
@@ -151,15 +177,22 @@ void FiltrageDirectionnel(std::vector<cCdtCplHom> & aVCpl)
        }
    }
 
+   cStatHist aSH;
    std::vector<cCdtCplHom> aNewV;
    for (const auto  & aCpl : aVCpl)
    {
        int aDif = mod(aCpl.mShift-aKMax,aNbDir);
        aDif = ElMin(aDif,aNbDir-aDif);
-       if (aDif < aSeuilDir)
+       bool Ok  = (aDif < aSeuilDir);
+
+       double aDHG =  anAppli.DistHistoGrad(*(aCpl.mPM),aCpl.mShift,*(aCpl.mPS));
+       // std::cout << "FILTR DIP " << aDHG << " OK=" << Ok  << "\n";
+       aSH.Add(Ok, aDHG);
+       if (Ok)
           aNewV.push_back(aCpl);
 
    }
+   aSH.Show("Filtrage Directionnel");
    aVCpl = aNewV;
 }
 
@@ -169,6 +202,35 @@ void FiltrageDirectionnel(std::vector<cCdtCplHom> & aVCpl)
 /*             ::                                */
 /*                                               */
 /*************************************************/
+
+cFitsOneLabel * FOLOfLab(cFitsParam * aFP,eTypePtRemark aLab,bool SVP)
+{
+   for (auto & aFOL : aFP->GenLabs())
+       if (aFOL.KindOf() == aLab)
+          return &aFOL;
+
+   if (!SVP) 
+   {
+       std::cout << "For lab = " << eToString(aLab) << "\n";
+       ELISE_ASSERT(false,"FOLOfLab");
+   }
+   return 0;
+}
+const cFitsOneLabel * FOLOfLab(const cFitsParam * aFP,eTypePtRemark aLab,bool SVP)
+{
+   for (const auto & aFOL : aFP->GenLabs())
+       if (aFOL.KindOf() == aLab)
+          return &aFOL;
+
+   if (!SVP) 
+   {
+       std::cout << "For lab = " << eToString(aLab) << "\n";
+       ELISE_ASSERT(false,"FOLOfLab");
+   }
+   return 0;
+}
+
+
 
 void InitOneLabelFitsPm(cFitsOneBin & aFB,const std::string & aDir,eTypePtRemark aLab)
 {
@@ -186,7 +248,8 @@ void InitOneFitsPm(cFitsOneLabel & aFOL,const std::string & aDir)
     eTypePtRemark aLab = aFOL.KindOf();
     InitOneLabelFitsPm(aFOL.BinIndexed(),aDir,aLab);
     ELISE_ASSERT(aFOL.BinIndexed().CCB().Val().CompCBOneBit().size()<=16,"InitOneFitsPm");
-    InitOneLabelFitsPm(aFOL.BinDecision(),aDir,aLab);
+    InitOneLabelFitsPm(aFOL.BinDecisionShort(),aDir,aLab);
+    InitOneLabelFitsPm(aFOL.BinDecisionLong(),aDir,aLab);
 }
 
 const  std::string TheDirXmlFits=    string("include")    + ELISE_CAR_DIR
@@ -197,7 +260,19 @@ const  std::string DefNameFitParam =  "FitsParam.xml";
 void InitFitsPm(cFitsParam & aFP,const std::string & aDir, const std::string & aName)
 {
     aFP = StdGetFromNRPH(aDir+aName,FitsParam);
-    InitOneFitsPm(aFP.OverLap(),aDir);
+    InitOneFitsPm(aFP.DefInit(),aDir);
+
+    for (int aKL=0 ; aKL<eTPR_NoLabel ; aKL++)
+    {
+        eTypePtRemark aLab = eTypePtRemark(aKL);
+        const cFitsOneLabel * aFOL = FOLOfLab(&aFP,aLab,true);
+        if (aFOL==0)
+        {
+            aFP.GenLabs().push_back(aFP.DefInit());
+            aFP.GenLabs().back().KindOf() = aLab;
+        }
+    }
+
     for (auto & aFOL : aFP.GenLabs())
         InitOneFitsPm(aFOL,aDir);
 }
@@ -207,44 +282,42 @@ void StdInitFitsPm(cFitsParam & aFP)
     InitFitsPm(aFP,MMDir() + TheDirXmlFits,DefNameFitParam);
 }
 
+
 /*************************************************/
 /*                                               */
 /*              cIndexCodeBinaire                */
 /*                                               */
 /*************************************************/
 
-cIndexCodeBinaire::cIndexCodeBinaire(const cCompCB & aCCB,bool Overlap) :
+cIndexCodeBinaire::cIndexCodeBinaire(const cCompCB & aCCB) :
    mNBBTot    (aCCB.CompCBOneBit().size()),
    mNBBVois   (aCCB.BitThresh()),
    mFlagV     (FlagOfNbb(mNBBTot,mNBBVois)),
-   mVTabIndex (1<<mNBBTot),
-   mOverlap   (Overlap)
+   mVTabIndex (1<<mNBBTot)
 {
 }
 
-void cIndexCodeBinaire::Add(cCompileOPC & aPC)
+void cIndexCodeBinaire::Add(cCompileOPC * aPC)
 {
-   int aFlag =  mOverlap ? aPC.mOL_ShortFlag : aPC.mDec_ShortFlag;
-   for (const auto & aFlagV : *mFlagV)
+   int aFlagPC =   aPC->mIndexFlag ;
+   for (const auto & aFlagVois : *mFlagV)
    {
-       mVTabIndex.at(aFlag^aFlagV).push_back(&aPC);
+       mVTabIndex.at(aFlagPC^aFlagVois).push_back(aPC);
    }
 }
 
 const std::vector<cCompileOPC *> & cIndexCodeBinaire::VectVois(const cCompileOPC & aPC)
 {
-     return mVTabIndex.at(mOverlap ? aPC.mOL_ShortFlag :  aPC.mDec_ShortFlag);
+     return mVTabIndex.at(aPC.mIndexFlag);
 }
 
 void cIndexCodeBinaire::Add(cSetOPC & aSet,const cFitsOneLabel & aFOL)
 {
-std::cout << "cIndexCodeBinaire::Add " << aSet.VOpc().size() << "\n";
     for (auto & aCel : mVTabIndex)
        aCel.clear();
 
     for (auto & aPC : aSet.VOpc())
     {
-        aPC.SetFlag(aFOL,mOverlap);
         Add(aPC);
     }
 }
@@ -263,46 +336,24 @@ cSetOPC::cSetOPC() :
 {
 }
 
-void cSetOPC::FiltrageFromHighestScale(const cSetOPC & aBigSet,int aNb,bool aShow)
+void cSetOPC::InitLabel(const cFitsOneLabel & aFOL,const cSeuilFitsParam & aSeuil,bool DoIndex)
 {
-    std::vector<double> aVStab;
-    for (const auto & aPC : aBigSet.mVOpc)
-    {
-        aVStab.push_back(aPC.mOPC.ScaleStab());
-    }
-
-    // On selectionne ceux qui sont au dessus de l'echelle limite
-    double aProp = 1-aNb/(double) aBigSet.mVOpc.size();
-    double aScaleLim = KthValProp(aVStab,aProp);
-    if (aShow)
-         std::cout << "SCALE LIMITE ========== " << aScaleLim  << " " << aProp << "\n"; // getchar();
-    mVOpc.clear();
-    for (const auto & aPC : aBigSet.mVOpc)
-    {
-       if (aPC.mOPC.ScaleStab() >= aScaleLim)
-           mVOpc.push_back(aPC);
-    }
-   
-}
-void cSetOPC::InitLabel(const cFitsOneLabel & aFOL,const cSeuilFitsParam & aSeuil,bool DoIndex,bool Overlap) 
-{
-std::cout << " cSetOPC::InitLabe " << DoIndex << " " << Overlap << "\n";
     if (DoIndex)
     {
-       mIndexCB = new cIndexCodeBinaire(aFOL.BinIndexed().CCB().Val(),Overlap);
+       mIndexCB = new cIndexCodeBinaire(aFOL.BinIndexed().CCB().Val());
        mIndexCB->Add(*this,aFOL);
     }
     mFOL = & aFOL;
     mSeuil = & aSeuil;
 }
 
-void  cSetOPC::Add(const cCompileOPC& anOPC)
+void  cSetOPC::Add(cCompileOPC* anOPC)
 {
    mVOpc.push_back(anOPC);
 }
 
-const std::vector<cCompileOPC> &  cSetOPC::VOpc() const { return mVOpc; }
-std::vector<cCompileOPC> &  cSetOPC::VOpc() { return mVOpc; }
+const std::vector<cCompileOPC*> &  cSetOPC::VOpc() const { return mVOpc; }
+std::vector<cCompileOPC*> &  cSetOPC::VOpc() { return mVOpc; }
 
 
 cIndexCodeBinaire & cSetOPC::Ind()
@@ -322,7 +373,18 @@ const cSeuilFitsParam & cSetOPC::Seuil() const
    return *mSeuil;
 }
 
-cCompileOPC& cSetOPC::At(int aK) {return mVOpc.at(aK);}
+cCompileOPC& cSetOPC::At(int aK) {return *(mVOpc.at(aK));}
+
+cSetOPC::~cSetOPC()
+{
+    DeleteAndClear(mVOpc);
+}
+ 
+void cSetOPC::ResetMatch()
+{
+    for (auto & aPC : mVOpc)
+        aPC->ResetMatch();
+}
 
 
 
@@ -343,41 +405,70 @@ cAFM_Im::cAFM_Im (const std::string  & aNameIm,cAppli_FitsMatch1Im & anAppli) :
    mAppli  (anAppli),
    mNameIm (aNameIm),
    mMTD    (cMetaDataPhoto::CreateExiv2(mNameIm)),
-   mSzIm   (mMTD.SzImTifOrXif()),
-   mVSetCC (int(eTIR_NoLabel))
+   mSzIm   (mMTD.SzImTifOrXif())
 {
-/*
-    std::string aNamePC = NameFileNewPCarac(mNameIm,true,anAppli.ExtNewH());
-    mSetPC = StdGetFromNRPH(aNamePC,SetPCarac);
-*/
-   ELISE_ASSERT(false,"cAFM_Im::cAFM_Im to do revoir cAFM_Im::cAFM_Im par label ...");
-   mSetPC = *LoadStdSetCarac(eTPR_NoLabel,mNameIm,mAppli.ExtNewH());
-    
-    for (const auto & aPC : mSetPC.OnePCarac())
-    {
-        // mVSetCC.at(int(aPC.Kind())).mVOpc.push_back(cCompileOPC(aPC));
-        mVSetCC.at(int(aPC.Kind())).Add(cCompileOPC(aPC));
-    }
-
-    mSetInd0.FiltrageFromHighestScale(mVSetCC.at(mAppli.LabOL()),anAppli.NbMaxS0().x,anAppli.ShowDet());
+   for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
+   {
+      mVSetCC.push_back(nullptr);
+      mSetInd0.push_back(nullptr);
+   }
 }
 
+typedef cSetOPC * tPtrSO;
 
+void cAFM_Im::LoadLab(bool DoIndex,bool aGlob, eTypePtRemark aLab)
+{
+   const cFitsOneLabel * aFOL =  FOLOfLab(&(mAppli.FitsPm()),aLab,false);
+
+   std::vector<cSetOPC*> &  aV = aGlob ? mVSetCC : mSetInd0;
+   tPtrSO  & aSet = aV[int(aLab)];
+   delete aSet;
+   aSet = new cSetOPC;
+
+   std::string aExt = mAppli.ExtNewH();
+   if (! aGlob)
+      aExt = "_HighS" + aExt;
+   cSetPCarac* aSetPC = LoadStdSetCarac(aLab,mNameIm,aExt);
+
+    for (const auto & aPC : aSetPC->OnePCarac())
+    {
+        cCompileOPC  * aCPC = new cCompileOPC(aPC);
+        aCPC->SetFlag(*aFOL);
+        aSet->Add(aCPC);
+    }
+
+    // On rajoute dans Glob ceux d'indexe 0 
+    if (aGlob)
+    {
+       for (const auto & aPC : mSetInd0[int(aLab)]->VOpc())
+       {
+           aSet->Add(aPC);
+       }
+    }
+
+    const cSeuilFitsParam & aSeuil =  aGlob ?  mAppli.FitsPm().SeuilGen()   : mAppli.FitsPm().SeuilOL();
+    aSet->InitLabel(*aFOL,aSeuil,DoIndex);
+
+    delete aSetPC;
+}
 
 cAFM_Im::~cAFM_Im()
 {
-//   static cSetPCarac TheSetPC;
-//   mSetPC = TheSetPC;
 }
 
-void cAFM_Im::SetFlagVSetCC(bool DoIndex)
+const std::string & cAFM_Im::NameIm() const {return mNameIm;}
+
+void cAFM_Im::ResetMatch()
 {
-    for (const auto &  aFOL : mAppli.FitsPm().GenLabs() )
-    {
-         mVSetCC.at(int(aFOL.KindOf())).InitLabel(aFOL,mAppli.FitsPm().SeuilGen(),DoIndex,false);
-    }
+   for (auto & aV : mVSetCC)
+   {
+       aV->ResetMatch();
+   }
+   for (auto & aV : mSetInd0)
+   {
+       aV->ResetMatch();
+   }
 }
-
 
 /*************************************************/
 /*                                               */
@@ -389,26 +480,81 @@ cAFM_Im_Master::cAFM_Im_Master(const std::string  & aName,cAppli_FitsMatch1Im & 
     cAFM_Im     (aName,anApli),
     mQt         (mArgQt,Box2dr(Pt2dr(-10,-10),Pt2dr(10,10)+Pt2dr(mSzIm)),5,euclid(mSzIm)/20.0)
 {
-    mSetInd0.InitLabel(mAppli.FitsPm().OverLap(),mAppli.FitsPm().SeuilOL(),true,true);
-
-    SetFlagVSetCC(true);
-/*
-    mIndexCB.Add(mSetInd0,mAppli.FitsPm().OverLap());
-    for (auto & aPC : mSetInd0.mVOpc)
-    {
-        aPC.SetFlag(mAppli.FitsPm().OverLap());
-        mIndexCB.Add(aPC);
+   for (int aKL = 0; aKL<eTPR_NoLabel ; aKL++)
+   {
+     // LoadLab(bool DoIndex,bool aGlob, eTypePtRemark aLab)
+       LoadLab( true, false,eTypePtRemark(aKL));
+       LoadLab(false,true,eTypePtRemark(aKL));
    }
-*/
 }
 
 
-void cAFM_Im_Master::FilterVoisCplCt(std::vector<cCdtCplHom> & aV0)
+ElSimilitude   cAFM_Im_Master::RobusteSimilitude(std::vector<cCdtCplHom> & aV0,double aDistSeuilNbV)
 {
+    mQt.clear(); 
+    for (auto  & aCpl : aV0)
+    {
+        mQt.insert(&aCpl);
+    }
+
+    ElSimilitude aRes;
+    double aScoreMin = 1e20;
+
+    for (auto  & aCpl1 : aV0)
+    {
+        std::list<cCdtCplHom *> aLVois = mQt.KPPVois(aCpl1.PM(),3,aDistSeuilNbV);
+        for (auto  & aCpl2 : aLVois)
+        {
+            if (&aCpl1 != aCpl2)
+            {
+                //  S  = aTr + aFact * aM
+                Pt2dr aFact = (aCpl1.PS() - aCpl2->PS()) /  (aCpl1.PM() - aCpl2->PM());
+                Pt2dr aTr =  aCpl1.PS() - aCpl1.PM()*aFact ;
+                ElSimilitude aSim(aTr,aFact);
+
+                // std::cout << "hhhhh  " << aSim(aCpl1.PM()) -  aCpl1.PS() << aSim(aCpl2->PM()) -  aCpl2->PS()  << "\n";
+
+                Pt2dr aBarryS = (aCpl1.PS() + aCpl2->PS()) / 2.0;
+
+                double aScore = 0;
+                for (auto  & aCpl3 : aV0)
+                {
+                   double aD = euclid(aCpl3.PS()-aBarryS);
+                   double anEcart = euclid(aSim(aCpl3.PM()) -  aCpl3.PS());
+                   double anAnErr = anEcart/ElMax(aDistSeuilNbV,aD) + 0.3* anEcart/aDistSeuilNbV;
+                   aScore += anAnErr;
+                }
+                if (aScore < aScoreMin)
+                {
+                    aScoreMin = aScore;
+                    aRes = aSim;
+                }
+            }
+        }
+    }
+    mQt.clear(); 
+    return aRes;
+}
+
+void cAFM_Im_Master::FilterVoisCplCt(std::vector<cCdtCplHom> & aV0)
+{       
+    double aDiag = euclid(mSzIm);
+    double aSeuilOk = aDiag / 100.0;
+    double aSeuilPb = aDiag / 5.0;
+    double aSeuilCoh = 0.3;
+    int aNbVois = 10;
+    double aSurfPP = (double(mSzIm.x) * mSzIm.y) / aV0.size() ; // Surf per point
+    double aDistSeuilNbV = sqrt(aSurfPP*aNbVois) * 2;
+
+    ElSimilitude aS0 = RobusteSimilitude(aV0,aDistSeuilNbV);
+
     mQt.clear(); 
     ElPackHomologue aPack = PackFromVCC(aV0); 
 
     ElSimilitude  aSim = SimilRobustInit(aPack,0.666);
+
+    aSim = aS0;
+    mAppli.SetCurMapping(new ElSimilitude(aSim));
 
     for (auto  & aCpl : aV0)
     {
@@ -421,15 +567,6 @@ void cAFM_Im_Master::FilterVoisCplCt(std::vector<cCdtCplHom> & aV0)
         mQt.insert(&aCpl);
     }
 
-    double aDiag = euclid(mSzIm);
-    double aSeuilOk = aDiag / 100.0;
-    double aSeuilPb = aDiag / 5.0;
-    double aSeuilCoh = 0.3;
-
-    int aNbVois = 10;
-
-    double aSurfPP = (double(mSzIm.x) * mSzIm.y) / aV0.size() ; // Surf per point
-    double aDistSeuilNbV = sqrt(aSurfPP*aNbVois) * 2;
 
     
     for (auto  & aCpl : aV0)
@@ -477,13 +614,16 @@ void cAFM_Im_Master::FilterVoisCplCt(std::vector<cCdtCplHom> & aV0)
         }
     }
 
+    cStatHist aSH;
 
     std::vector<cCdtCplHom> aRes;
     for (auto  & aCpl : aV0)
     {
+        aSH.Add(aCpl.mOk,aCpl.mPM->m2BGrad.mScore1);
         if (aCpl.mOk)
            aRes.push_back(aCpl);
     }
+    aSH.Show("Filtrage spatial");
     aV0 = aRes;
 }
 
@@ -502,23 +642,33 @@ int IScal(double aS) {return round_ni(5 * log(aS)/log(2));}
 
 
 
-
 void cAFM_Im_Master::FiltrageSpatialGlob(std::vector<cCdtCplHom> & aVCpl,int aNbMin)
 {
-   FiltrageDirectionnel(aVCpl);
+   FiltrageDirectionnel(aVCpl,mAppli);
+   if (mAppli.ShowDet())
+      std::cout << "After  filt dir " << aVCpl.size() << "\n";
+
    if (int(aVCpl.size()) <=  aNbMin)
+   {
       return ;
+   }
 
    FilterVoisCplCt(aVCpl);
    if (int(aVCpl.size()) <=  aNbMin)
       return ;
-
 }
 
 
-void cAFM_Im_Master::MatchOne(bool OverLap,cAFM_Im_Sec & anISec, cSetOPC & aSetM,cSetOPC & aSetS,std::vector<cCdtCplHom> & aOld,int aNbMin)
+void cAFM_Im_Master::MatchOne
+     (
+          bool OverLap,
+          cAFM_Im_Sec & anISec, 
+          cSetOPC & aSetM,
+          cSetOPC & aSetS,
+          std::vector<cCdtCplHom> & aOld,
+          int aNbMin
+     )
 {
-   std::vector<cCdtCplHom> aVCpl;
    cTimeMatch aTimeMatch;
    cTimeMatch * aPtrTM = mAppli.ShowDet() ? &aTimeMatch : nullptr;
 
@@ -535,8 +685,8 @@ void cAFM_Im_Master::MatchOne(bool OverLap,cAFM_Im_Sec & anISec, cSetOPC & aSetM
       cFHistoInt aFH;
       for (const auto & aPC : aSetS.VOpc())
       {
-          if(aPC.mOPC.ScaleStab()>0)
-             aFH.Add(IScal(aPC.mOPC.ScaleStab()),1,__LINE__);
+          if(aPC->mOPC.ScaleStab()>0)
+             aFH.Add(IScal(aPC->mOPC.ScaleStab()),1,__LINE__);
       }
       std::cout << "======= HISTO SCALE BEFORE ===========\n";
       aFH.Show();
@@ -544,28 +694,43 @@ void cAFM_Im_Master::MatchOne(bool OverLap,cAFM_Im_Sec & anISec, cSetOPC & aSetM
 
    cFHistoInt aHLF;
    int First= true;
+
+   int aNbCpleIndex =0;
+   int aNbCpleSel =0;
+   int aNbCpleTot =     aSetS.VOpc().size() * aSetM.VOpc().size() ;
    for (int aKs=0 ; aKs<(int)aSetS.VOpc().size() ; aKs++)
    {
       cCompileOPC & aPCS = aSetS.At(aKs);
-      aPCS.SetFlag(aSetM.FOL(),OverLap);
+      // aPCS.S etFlag(aSetM.FOL());
       // int aFlagS = aPCS.mShortFlag;
       // std::vector<cCompileOPC *> & aVSel = mVTabIndex.at(aFlagS);
 
       const std::vector<cCompileOPC *> & aVSel = aSetM.Ind().VectVois(aPCS);
+
+      aNbCpleIndex += aVSel.size();
+
+      // std::cout << "SSSIND " << aVSel.size() << " on " << aSetM.VOpc().size() << "\n";
       
       for (int aKSel=0 ; aKSel<(int)aVSel.size() ; aKSel++)
       {
           int aLevFail;
           int aShift;
           cCompileOPC * aPCM = aVSel[aKSel];
-          double aD =  aPCM->Match(OverLap,aPCS,aSetM.FOL(),aSetM.Seuil(),aShift,aLevFail,aPtrTM);
+          double aD =  aPCM->Match(aPCS,aSetM.FOL(),aSetM.Seuil(),aShift,aLevFail,aPtrTM);
           aHLF.Add(aLevFail,1,__LINE__);
           if (aD > 0)
           {
-             aPCS.mTmpNbHom++;
-             aPCM->mTmpNbHom++;
-
-             aVCpl.push_back(cCdtCplHom(aPCM,&aPCS,aD,aShift));
+             double aScoreGrad = mAppli.DistHistoGrad(*aPCM,aShift,aPCS);
+             if (aScoreGrad < mAppli.SeuilDistGrad())
+             {
+                 double aScoreCor = ElMax(0.0,1-aD);
+                 aPCS.SetMatch(aPCM,aScoreCor,aScoreGrad,-aShift);
+                 aPCM->SetMatch(&aPCS,aScoreCor,aScoreGrad,aShift);
+                 aNbCpleSel++;
+                 // std::cout << "DddddddddD= " << aD << "\n";
+                 aPCS.mTmpNbHom++;
+                 aPCM->mTmpNbHom++;
+             }
           }
           if (First && mAppli.ShowDet())
           {
@@ -581,113 +746,74 @@ void cAFM_Im_Master::MatchOne(bool OverLap,cAFM_Im_Sec & anISec, cSetOPC & aSetM
    {
       std::cout << "======= HISTO LEV FAIL ===========\n";
       aHLF.Show();
-      std::cout << "NbCouple " << aSetS.VOpc().size() * aSetM.VOpc().size() << "\n";
+      std::cout << "NbSom " << aSetS.VOpc().size()  << " " <<  aSetM.VOpc().size()  << "\n";
+      std::cout << "NbCouple " << aSetS.VOpc().size() * aSetM.VOpc().size() 
+                               << " PropI=" << aNbCpleIndex/double(aNbCpleTot)
+                               << " PropS=" << aNbCpleSel/double(aNbCpleTot)
+                               << "\n";
       std::cout << "======= TIME EFFECTIF  ===========\n";
       aPtrTM->Show();
    }
-
+   for (auto & aPCM : aSetM.VOpc())
    {
-       for (const auto  & aCpl : aVCpl)
-       {
-          if ((aCpl.mPM->mTmpNbHom==1) && (aCpl.mPS->mTmpNbHom==1))
-             aOld.push_back(aCpl);
-       }
-       for (const auto  & aCpl : aVCpl)
-       {
-          aCpl.mPM->mTmpNbHom=0; 
-          aCpl.mPS->mTmpNbHom=0; 
-       }
+         if (aPCM->OkCpleBest(mAppli.SeuilCorrelRatio12(),mAppli.SeuilGradRatio12()))
+         {
+            cCompileOPC * aPCS = aPCM->m2BCor.mBest;
+            aOld.push_back(cCdtCplHom(aPCM,aPCS,aPCM->m2BCor.mScore1,aPCM->CorrShiftBest()));
+         }
    }
-
-/*
-   int aNbBeforeDir = aVCpl.size();
-
-   FiltrageSpatialGlob(aVCpl,aNbMin);
-   if (int(aVCpl.size()) <=  aNbMin)
-      return ;
-
-   if (mAppli.ShowDet())
-   {
-      cFHistoInt aFHDif;
-      cFHistoInt aFHScale;
-      for (const auto & aCpl : aVCpl)
-      {
-          aFHDif.Add(ElAbs(IScal(aCpl.mPM->mOPC.ScaleStab()) -  IScal(aCpl.mPS->mOPC.ScaleStab())));
-          aFHScale.Add(IScal(aCpl.mPS->mOPC.ScaleStab()));
-      }
-      std::cout << "======= HISTO SCALE AFTER  ===========\n";
-      aFHScale.Show();
-      std::cout << "======= HISTO DIFF SCALE  ===========\n";
-      aFHDif.Show();
-   }
-
-   std::cout <<"(Im " << mNameIm << " " << anISec.mNameIm << ") "
-             << "(NbSel " << aVCpl.size()  << " from " << aSetS.mVOpc.size() << ")"
-             << " PropF " << aVCpl.size() /double(aSetS.mVOpc.size())  
-             << " PropD " << aVCpl.size() /double(aNbBeforeDir)  
-             << "\n";
-
-*/
-
    return ;
 }
 
+
 bool  cAFM_Im_Master::MatchGlob(cAFM_Im_Sec & anISec)
 {
-    int aNbBeforeDir=0;
+    // int aNbBeforeDir=0;
     int aNbMin0 = 6;
     std::vector<cCdtCplHom> aVCpl;
 
+    
+    std::vector<int> aVLab;
+    aVLab.push_back(int(mAppli.LabInit()));
+
+    // eTypePtRemark aLab = mAppli.LabInit();
+    // int aKL = int(aLab);
+    
     // Premier calcul sur nb de points reduit
+    // for (const auto & aKL : aVLab)
+    for (int aKL=0 ; aKL< int(eTPR_NoLabel) ; aKL++)
     {
-       MatchOne(true,anISec,mSetInd0, anISec.mSetInd0,aVCpl,aNbMin0);
-       if (int(aVCpl.size()) <= aNbMin0) 
-          return false;
-
-       aNbBeforeDir = aVCpl.size();
-
-       FiltrageSpatialGlob(aVCpl,aNbMin0);
-       if (int(aVCpl.size()) <=  aNbMin0)
-          return false ;
+       cSetOPC * aSetM = (mSetInd0[aKL]);
+       cSetOPC * aSetS = (anISec.mSetInd0[aKL]);
+       if (aSetS && aSetM)
+       {
+          MatchOne(true,anISec,*aSetM,*aSetS,aVCpl,aNbMin0);
+       }
     }
 
     if (mAppli.ShowDet())
+       std::cout << "After match one " << aVCpl.size() << "\n";
+    if (int(aVCpl.size()) <= aNbMin0) 
     {
-       cFHistoInt aFHDif;
-       cFHistoInt aFHScale;
-       for (const auto & aCpl : aVCpl)
-       {
-          aFHDif.Add(ElAbs(IScal(aCpl.mPM->mOPC.ScaleStab()) -  IScal(aCpl.mPS->mOPC.ScaleStab())),1,__LINE__);
-          aFHScale.Add(IScal(aCpl.mPS->mOPC.ScaleStab()),1,__LINE__);
-       }
-       std::cout << "======= HISTO SCALE AFTER  ===========\n";
-       aFHScale.Show();
-       std::cout << "======= HISTO DIFF SCALE  ===========\n";
-       aFHDif.Show();
+       return false;
     }
 
-    int aNbInit =  anISec.mSetInd0.VOpc().size();
-    std::cout <<"(Im " << mNameIm << " " << anISec.mNameIm << ") "
-              << "(NbSel " << aVCpl.size()  << " from " << aNbInit << ")"
-              << " PropF " << aVCpl.size() /double(aNbInit)  
-              << " PropD " << aVCpl.size() /double(aNbBeforeDir)  
-              << "\n";
+    // aNbBeforeDir = aVCpl.size();
 
-    anISec.SetFlagVSetCC(false);
-    aVCpl.clear();
-    for (auto & aFOL : mAppli.FitsPm().GenLabs())
-    {
-       int aKL = int(aFOL.KindOf());
-       MatchOne(false,anISec,mVSetCC.at(aKL), anISec.mVSetCC.at(aKL),aVCpl,aNbMin0);
-
-       std::cout << "HHHHHHHHHHHHhh " << mVSetCC.at(aKL).VOpc().size() << " => " << aVCpl.size() << "\n";
-    }
-    FiltrageSpatialGlob(aVCpl,aNbMin0);
-
-    // :std::vector<cCdtCplHom> aVCpl.clear();
-
+    if (mAppli.DoFiltrageSpatial())
+       FiltrageSpatialGlob(aVCpl,aNbMin0);
+    if (mAppli.ShowDet())
+       std::cout << "After Filtrage sparial  " << aVCpl.size() << "\n";
+    if (int(aVCpl.size()) <=  aNbMin0)
+       return false ;
     ElPackHomologue aPack = PackFromVCC(aVCpl);
     aPack.StdPutInFile(mAppli.NameCple(mNameIm,anISec.mNameIm));
+
+    {
+         std::cout << "Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n";
+         cPrediCoord aPC(mSzIm,100,2.0,mAppli.CurMapping(),aVCpl);
+    }
+
     return true ;
 }
 
@@ -700,6 +826,15 @@ bool  cAFM_Im_Master::MatchGlob(cAFM_Im_Sec & anISec)
 cAFM_Im_Sec::cAFM_Im_Sec(const std::string  & aName,cAppli_FitsMatch1Im & anApli) :
     cAFM_Im(aName,anApli)
 {
+
+    for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
+    { 
+       eTypePtRemark aLab =  eTypePtRemark(aKL);
+       if (mAppli.LabInInit(aLab))
+       {
+          LoadLab(false,false,aLab);
+       }
+    }
     // mSetInd0.InitLabel(mAppli.FitsPm().OverLap(),false,true);
 }
 
@@ -715,14 +850,18 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
    mImMast      (nullptr),
    mCurImSec    (nullptr),
    mNameXmlFits (DefNameFitParam),
-   mExtNewH     (""),
+   mExtNewH     ("Std"),
    mSH          (""),
    mPostHom     ("dat"),
    mExpTxt      (false),
    mOneWay      (true),
+   mSelf        (false),
    mShowDet     (false),
    mCallBack    (false),
-   mNbMaxS0     (1000,200)
+   mNbMaxS0     (1000,200),
+   mDoFiltrageSpatial  (true),
+   mFlagLabsInit (1 << int(eTPR_GrayMax)),
+   mCurMap       (0)
 {
 
    ElInitArgMain
@@ -737,8 +876,13 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
                      <<  EAM(mCallBack,"CallBack",true,"Internal")
                      <<  EAM(mNbMaxS0,"NbMaxPreSel",true,"Number of most significant point in presel mode(x before,y after)")
                      <<  EAM(mShowDet,"ShowDet",true,"Show Details, def=true if 1 pair")
+                     <<  EAM(mDoFiltrageSpatial,"DoFS",true,"Do spatial filtering")
+                     <<  EAM(mSelf,"Self",true,"Accept self match (tuning)")
+                     <<  EAM(mFlagLabsInit,"FLI",true,"Flag Labs Init, def=>GrayMax, -1=> all")
    );
 
+   if (mFlagLabsInit<0)
+     mFlagLabsInit = ((1<<int(eTPR_NoLabel)) - 1);
 
    if (mExpTxt)
       mPostHom = "txt";
@@ -765,11 +909,15 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
    }
    
    InitFitsPm(mFitsPm,MMDir()+TheDirXmlFits,mNameXmlFits);
+   mLabInit = mFitsPm.DefInit().KindOf();
+/*
+eTypePtRemark  cAppli_FitsMatch1Im::LabInit() const {return eTPR_GrayMax;}
    mLabOL = mFitsPm.OverLap().KindOf();
     // const cFitsParam & aFitsPM = anAppli.FitsPm();
    const cFitsOneLabel & aFOL = mFitsPm.OverLap();
    mNbBIndex =  aFOL.BinIndexed().CCB().Val().CompCBOneBit().size();
    mThreshBIndex =  aFOL.BinIndexed().CCB().Val().BitThresh();
+*/
 
    mEASF.Init(mPatIm);
    if (! EAMIsInit(&mShowDet))
@@ -782,13 +930,14 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
    int aNbFailConseq=0;
    for (const auto &  aName : *(mEASF.SetIm()))
    {
-       if (aName != mNameMaster)
+       if ((aName != mNameMaster) || (mSelf))
        {
-           if ((! mOneWay) || (aName > mNameMaster))
+           if ((! mOneWay) || (aName >= mNameMaster))
            {
               mCurImSec = new  cAFM_Im_Sec(aName,*this);
 
-               if ( mImMast->MatchGlob(*mCurImSec))
+               bool OkMatch = mImMast->MatchGlob(*mCurImSec);
+               if (OkMatch)
                {
                    aNbFailConseq=0;
                }
@@ -801,6 +950,8 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
                {
                     std::cout << "None for " << mNameMaster << " " << aName << "\n";
                }
+
+               std::cout << "HHHH  " << OkMatch << " " <<  aName << "\n";
                   
                // aPack.StdPutInFile(mAppli.NameCple(mNameIm,anISec.mNameIm));
               // cSetOPC & aSetM = mSetInd0;
@@ -808,22 +959,63 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
 
               delete mCurImSec;
               mCurImSec = nullptr;
+              mImMast->ResetMatch();
           }
        }
    }
 }
 
+bool cAppli_FitsMatch1Im::LabInInit(eTypePtRemark aLab) const
+{
+   return (mFlagLabsInit & (1<<int(aLab))) != 0;
+}
+
+
 Pt2di cAppli_FitsMatch1Im::NbMaxS0() const {return mNbMaxS0;}
 bool cAppli_FitsMatch1Im::ShowDet() const { return mShowDet; }
-int cAppli_FitsMatch1Im::NbBIndex() const { return mNbBIndex; }
-int cAppli_FitsMatch1Im::ThreshBIndex() const { return mThreshBIndex; }
-eTypePtRemark  cAppli_FitsMatch1Im::LabOL() const {return mLabOL;}
+//   int cAppli_FitsMatch1Im::NbBIndex() const { return mNbBIndex; }
+//   int cAppli_FitsMatch1Im::ThreshBIndex() const { return mThreshBIndex; }
+eTypePtRemark  cAppli_FitsMatch1Im::LabInit() const {return mLabInit;}
+bool   cAppli_FitsMatch1Im::DoFiltrageSpatial() const {return mDoFiltrageSpatial;}
 
 std::string cAppli_FitsMatch1Im::NameCple(const std::string & aN1,const std::string & aN2) const
 {
       return  mEASF.mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+ mSH +"@" + mPostHom,aN1,aN2,true);
 }
 
+double   cAppli_FitsMatch1Im::SeuilCorrelRatio12() const
+{
+   return mFitsPm.SeuilGen().SeuilCorrelRatio12().Val();
+}
+double   cAppli_FitsMatch1Im::SeuilGradRatio12() const
+{
+   return mFitsPm.SeuilGen().SeuilGradRatio12().Val();
+}
+double   cAppli_FitsMatch1Im::SeuilDistGrad() const
+{
+   return mFitsPm.SeuilGen().SeuilDistGrad().Val();
+}
+double   cAppli_FitsMatch1Im::ExposantPdsDistGrad() const
+{
+   return mFitsPm.SeuilGen().ExposantPdsDistGrad().Val();
+}
+
+void cAppli_FitsMatch1Im::SetCurMapping(cElMap2D * aMap)
+{
+    delete mCurMap;
+    mCurMap = aMap;
+}
+
+cElMap2D &  cAppli_FitsMatch1Im::CurMapping()
+{
+   ELISE_ASSERT(mCurMap!=0,"cAppli_FitsMatch1Im::CurMapping");
+   return *mCurMap;
+}
+
+
+
+#if (0)
+#endif
 int CPP_FitsMatch1Im(int argc,char ** argv)
 {
    cAppli_FitsMatch1Im anAppli(argc,argv);

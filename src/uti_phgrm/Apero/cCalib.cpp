@@ -958,6 +958,7 @@ if (1)
    else if(
                   (aType==eCalibAutomFishEyeLineaire)
               ||  (aType==eCalibAutomFishEyeEquiSolid)
+              ||  (aType==eCalibAutomFishEyeStereographique)
           )
    {
        cCalibrationInterneUnif aCIU;
@@ -966,6 +967,8 @@ if (1)
            aCIU.TypeModele() = eModele_FishEye_10_5_5 ;
        else if  (aType==eCalibAutomFishEyeEquiSolid)
            aCIU.TypeModele() = eModele_EquiSolid_FishEye_10_5_5 ;
+       else if  (aType==eCalibAutomFishEyeStereographique)
+           aCIU.TypeModele() = eModele_Stereographik_FishEye_10_5_5 ;
 
        aCIU.Etats().push_back(aF);
        aCIU.Params().push_back(aMil.x);
