@@ -25,7 +25,7 @@ cDensityMapPH::cDensityMapPH(int argc,char ** argv)
             (
                 argc,argv,
                 LArgMain()   << EAMC(mDir,"Working Directory", eSAM_IsDir)
-                << EAMC(mOriPat,"Orientation (xml) list of file", eSAM_IsPatFile)
+                << EAMC(mOriPat,"Orientation (xml) list of file, ex 'Ori-Rel/Orientation.*.xml'", eSAM_IsPatFile)
                 ,
                 LArgMain()  << EAM(mSH,"SH",true, "Set of Homol name")
                 << EAM(mExpTxt,"ExpTxt",true, "Are tie points in txt format? default false, means standard binary format is used." )
@@ -65,10 +65,10 @@ cDensityMapPH::cDensityMapPH(int argc,char ** argv)
             // retrieve IdIm
             cCelImTPM * ImTPM=mTPM->CelFromName(NameIm);
             if (ImTPM) {
-            // map of Camera is idexed by the Id of Image (cSetTiePMul)
-            mCams[ImTPM->Id()]=CamOrientGenFromFile(aOri,mICNM);
+                // map container of Camera is indexed by the Id of Image (cSetTiePMul)
+                mCams[ImTPM->Id()]=CamOrientGenFromFile(aOri,mICNM);
             } else {
-            std::cout << "No tie points found for image " << NameIm << ".\n";
+                std::cout << "No tie points found for image " << NameIm << ".\n";
             }
         }
 
@@ -158,7 +158,7 @@ void cDensityMapPH::populateDensityMap(){
     int cnt(0);
     for (auto & aCnf : mTPM->VPMul())
     {
-       // retrieve 3D position in model geometry
+        // retrieve 3D position in model geometry
         if (!mResid) {
             std::vector<Pt3dr> aPts=aCnf->IntersectBundle(mCams);
             // add the points to the density map
@@ -169,26 +169,26 @@ void cDensityMapPH::populateDensityMap(){
                 if (!mMultiplicity){mDM.SetR(PosUV,aVal+1);} else {mDM.SetR(PosUV,ElMax((int)aVal,aCnf->NbIm()));}
             }
         }
-       if (mResid) {
-       std::vector<double> aResid;
-       std::vector<Pt3dr> aPts=aCnf->IntersectBundle(mCams,aResid);
-       // add the points to the density map
-       int i(0);
-       for (auto & Pt: aPts){
-           Pt2dr PosXY(Pt.x,Pt.y);
-           Pt2di PosUV=XY2UV(PosXY);
-           double aVal=mDM.GetR(PosUV);
-           if (aResid.at(i)<mThreshResid) mDM.SetR(PosUV,ElMax(aVal,aResid.at(i)));
-           if (mDebug) std::cout << "Reprojection error for this point is equal to " << aResid.at(i) << "\n";
-           i++;
-       }
-       }
+        if (mResid) {
+            std::vector<double> aResid;
+            std::vector<Pt3dr> aPts=aCnf->IntersectBundle(mCams,aResid);
+            // add the points to the density map
+            int i(0);
+            for (auto & Pt: aPts){
+                Pt2dr PosXY(Pt.x,Pt.y);
+                Pt2di PosUV=XY2UV(PosXY);
+                double aVal=mDM.GetR(PosUV);
+                if (aResid.at(i)<mThreshResid) mDM.SetR(PosUV,ElMax(aVal,aResid.at(i)));
+                if (mDebug) std::cout << "Reprojection error for this point is equal to " << aResid.at(i) << "\n";
+                i++;
+            }
+        }
 
-     cnt++;
-     if(cnt>progBar) {
-         std::cout << "-";
-         cnt=0;
-     }
+        cnt++;
+        if(cnt>progBar) {
+            std::cout << "-";
+            cnt=0;
+        }
     }
     std::cout << "\n";
 }
@@ -196,8 +196,8 @@ void cDensityMapPH::populateDensityMap(){
 Pt2di cDensityMapPH::XY2UV(Pt2dr aVal){
     if (mBoxTerrain.contains(aVal))
     {
-    Pt2di aRes((aVal.x-mBoxTerrain.P0().x)/mGSD,(-aVal.y+mBoxTerrain.P1().y)/mGSD);
-    return aRes;
+        Pt2di aRes((aVal.x-mBoxTerrain.P0().x)/mGSD,(-aVal.y+mBoxTerrain.P1().y)/mGSD);
+        return aRes;
     }   else {return Pt2di(0,0);}
 }
 
@@ -206,3 +206,103 @@ int main_densityMapPH(int argc,char ** argv)
     cDensityMapPH(argc,argv);
     return EXIT_SUCCESS;
 }
+
+
+cManipulate_NF_TP::cManipulate_NF_TP(int argc,char ** argv)
+{
+
+    mOut="Out.txt";
+    mDebug=0;
+    mDir="./";
+    mPrintTP_info=0;
+
+    ElInitArgMain
+            (
+                argc,argv,
+                LArgMain()   << EAMC(mDir,"Working Directory", eSAM_IsDir)
+                << EAMC(mOriPat,"Orientation (xml) list of file, ex 'Ori-Rel/Orientation.*.xml'", eSAM_IsPatFile)
+                << EAMC(mFileSH,"File of new set of homol format.",eSAM_IsExistFile )
+                ,
+                LArgMain()
+
+
+                << EAM(mOut,"Out",true, "Name of results" )
+                << EAM(mDebug,"Debug",true, "Print message in terminal to help debugging." )
+                << EAM(mPrintTP_info,"PrintTP",true, "Print message in terminal to help debugging." )
+
+                );
+
+    if (!MMVisualMode)
+    {
+        // this object is used for regular expression manipulation and key of association utilisation
+        mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+        // load list of orientation files from regular expression
+        mOriFL = mICNM->StdGetListOfFile(mOriPat);
+        // load the set of Tie Point
+        mTPM = new cSetTiePMul(0);
+        mTPM->AddFile(mFileSH);
+
+        // Now that we have 1) list of orientation file and 2) Tie point with New format, we recover the ID of each images (used to manipulate tie points) and the name of each image)
+        // the map container mCams will contains the index of the image and the camera stenopee object which is the one used for photogrammetric computation like "intersect bundle", which compute 3D position of a tie point from UV coordinates
+
+        // an association key that give the name of an image from the name of an orientation.
+        std::string aKey= "NKS-Assoc-Ori2ImGen"  ;
+        std::string aTmp1, aNameOri;
+
+        for (auto &aOri : mOriFL){
+
+            // retrieve name of image from name of orientation xml
+            SplitDirAndFile(aTmp1,aNameOri,aOri);
+            std::string NameIm = mICNM->Assoc1To1(aKey,aNameOri,true);
+            mImName.push_back(NameIm);
+            // retrieve IdIm
+            cCelImTPM * ImTPM=mTPM->CelFromName(NameIm);
+            if (ImTPM) {
+                // map container of Camera is indexed by the Id of Image (cSetTiePMul)
+                mCams[ImTPM->Id()]=CamOrientGenFromFile(aOri,mICNM);
+                // map container of image name indexed by the Id of image
+            } else {
+                std::cout << "No tie points found for image " << NameIm << ".\n";
+            }
+        }
+
+        // now we are ready to manipulate the set of tie points
+
+        // loop on every config of TPM of the set of Tie Point Multiple
+        int count_Cnf(0); // a counter for the number of tie point configuration in the set of TPM
+        for (auto & aCnf : mTPM->VPMul())
+        {
+            // initiate a vector that will contains all the mean reprojection error for all tie point
+            std::vector<double> aResid;
+            // do 2 things; compute pseudo intersection of bundle for have 3D position of all tie point of the config and fill the "aResid" vector with mean reprojection error
+            std::vector<Pt3dr> aPts=aCnf->IntersectBundle(mCams,aResid);
+
+            // if the goal of my function is just to print XYZ Resid Multiplicity
+            if (mPrintTP_info){
+
+                int i(0);
+                for (auto & Pt: aPts){
+
+
+                    std::cout << "Config " << count_Cnf << "Point " << i << "have XYZ position " << Pt << " and mean reprojection error of " << aResid.at(i) << " and multiplicity of " << aCnf->NbIm() <<"\n";
+
+                    std::cout << "Radiometry of this point may be extratcted from pixel position UV " << aCnf->Pt(i,aCnf->VIdIm().at(0)) << " of image " << aCnf->VIdIm().at(0) << " which name is " << mTPM->NameFromId(aCnf->VIdIm().at(0)) <<"\n";
+                    i++;
+                }
+            }
+
+            if (mDebug) std::cout << "manipulation of tie point is finished for configuration number " << count_Cnf << "\n";
+
+            count_Cnf++;
+        }
+
+    }
+}
+
+
+int main_manipulateNF_PH(int argc,char ** argv)
+{
+    cManipulate_NF_TP(argc,argv);
+    return EXIT_SUCCESS;
+}
+
