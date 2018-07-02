@@ -18519,6 +18519,17 @@ void xml_init(cObsAppuisFlottant & anObj,cElXMLTree * aTree)
 std::string  Mangling( cObsAppuisFlottant *) {return "6979847B82116EC1FE3F";};
 
 
+cTplValGesInit< std::string > & cRappelOnZ::KeyGrpApply()
+{
+   return mKeyGrpApply;
+}
+
+const cTplValGesInit< std::string > & cRappelOnZ::KeyGrpApply()const 
+{
+   return mKeyGrpApply;
+}
+
+
 double & cRappelOnZ::Z()
 {
    return mZ;
@@ -18575,7 +18586,15 @@ const cTplValGesInit< std::string > & cRappelOnZ::LayerMasq()const
 
 void  BinaryUnDumpFromFile(cRappelOnZ & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.Z(),aFp);
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.KeyGrpApply().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.KeyGrpApply().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.KeyGrpApply().SetNoInit();
+  } ;
+    BinaryUnDumpFromFile(anObj.Z(),aFp);
     BinaryUnDumpFromFile(anObj.IncC(),aFp);
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
@@ -18605,6 +18624,8 @@ void  BinaryUnDumpFromFile(cRappelOnZ & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cRappelOnZ & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.KeyGrpApply().IsInit());
+    if (anObj.KeyGrpApply().IsInit()) BinaryDumpInFile(aFp,anObj.KeyGrpApply().Val());
     BinaryDumpInFile(aFp,anObj.Z());
     BinaryDumpInFile(aFp,anObj.IncC());
     BinaryDumpInFile(aFp,anObj.IncE().IsInit());
@@ -18619,6 +18640,8 @@ cElXMLTree * ToXMLTree(const cRappelOnZ & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"RappelOnZ",eXMLBranche);
+   if (anObj.KeyGrpApply().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("KeyGrpApply"),anObj.KeyGrpApply().Val())->ReTagThis("KeyGrpApply"));
    aRes->AddFils(::ToXMLTree(std::string("Z"),anObj.Z())->ReTagThis("Z"));
    aRes->AddFils(::ToXMLTree(std::string("IncC"),anObj.IncC())->ReTagThis("IncC"));
    if (anObj.IncE().IsInit())
@@ -18637,6 +18660,8 @@ void xml_init(cRappelOnZ & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
+   xml_init(anObj.KeyGrpApply(),aTree->Get("KeyGrpApply",1)); //tototo 
+
    xml_init(anObj.Z(),aTree->Get("Z",1)); //tototo 
 
    xml_init(anObj.IncC(),aTree->Get("IncC",1)); //tototo 
@@ -18648,7 +18673,7 @@ void xml_init(cRappelOnZ & anObj,cElXMLTree * aTree)
    xml_init(anObj.LayerMasq(),aTree->Get("LayerMasq",1)); //tototo 
 }
 
-std::string  Mangling( cRappelOnZ *) {return "C203EE2C98D9BAD5FE3F";};
+std::string  Mangling( cRappelOnZ *) {return "28FE37DEF854479BFE3F";};
 
 
 std::string & cObsLiaisons::NameRef()
@@ -18681,6 +18706,17 @@ cTplValGesInit< cPonderationPackMesure > & cObsLiaisons::PondSurf()
 const cTplValGesInit< cPonderationPackMesure > & cObsLiaisons::PondSurf()const 
 {
    return mPondSurf;
+}
+
+
+cTplValGesInit< std::string > & cObsLiaisons::KeyGrpApply()
+{
+   return RappelOnZ().Val().KeyGrpApply();
+}
+
+const cTplValGesInit< std::string > & cObsLiaisons::KeyGrpApply()const 
+{
+   return RappelOnZ().Val().KeyGrpApply();
 }
 
 
@@ -18810,7 +18846,7 @@ void xml_init(cObsLiaisons & anObj,cElXMLTree * aTree)
    xml_init(anObj.RappelOnZ(),aTree->Get("RappelOnZ",1)); //tototo 
 }
 
-std::string  Mangling( cObsLiaisons *) {return "04B9935F23D4E8D7FD3F";};
+std::string  Mangling( cObsLiaisons *) {return "19784B05C4689683FE3F";};
 
 
 cTplValGesInit< cElRegex_Ptr > & cObsCentrePDV::PatternApply()
@@ -19577,7 +19613,7 @@ void xml_init(cSectionObservations & anObj,cElXMLTree * aTree)
    xml_init(anObj.ObsRelGPS(),aTree->GetAll("ObsRelGPS",false,1));
 }
 
-std::string  Mangling( cSectionObservations *) {return "1E6856E43F8916C7FE3F";};
+std::string  Mangling( cSectionObservations *) {return "9732D9F2CD13BE90FD3F";};
 
 
 cTplValGesInit< bool > & cExportAsGrid::DoExport()
@@ -25722,7 +25758,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "624821E634B552B0FE3F";};
+std::string  Mangling( cEtapeCompensation *) {return "32810426875AE4ECFE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -25781,7 +25817,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "34183706AB8EFA95FCBF";};
+std::string  Mangling( cSectionCompensation *) {return "484984F91BC41A94FC3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -26946,7 +26982,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "6B299FDA5148BF83FF3F";};
+std::string  Mangling( cParamApero *) {return "4DFDCC287A99B4ABFE3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

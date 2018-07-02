@@ -174,7 +174,9 @@ cOneCombinMult::cOneCombinMult
 )   :
    mPLiaisTer (new cManipPt3TerInc(aVCF[0]->Set(),anEqS,aVCF)),
    // mCSVP  (aVP),
-   mGenVP (aVP)
+   mGenVP (aVP),
+   mRapOnZ (0),
+   mRappelOnZApply (0)
 {
 
 
@@ -185,8 +187,53 @@ cOneCombinMult::cOneCombinMult
           mNumCams.push_back(aK);
        }
    }
+   {
+       for (const auto & aGPC : aVP)
+       {
+	  std::cout << "   * " << aGPC->Name() << "\n";
+       }
+       std::cout << "###############\n";
+   }
+
    // std::cout << "JJJJJJJJ : " << aVCF.size()  << " " << mNumCams.size() << "\n"; getchar();
 }
+
+
+void cOneCombinMult::InitRapOnZ(cRapOnZ * aRAZ,cAppliApero & anAppli)
+{
+   if (mRapOnZ== aRAZ) 
+      return;
+
+   mRapOnZ= aRAZ;
+   if (mRapOnZ==nullptr)
+   {
+      mRappelOnZApply = false;
+      return;
+   }
+
+   std::string  aKGA = aRAZ->KeyGrpApply();
+
+   if (aKGA=="")
+   {
+      mRappelOnZApply = true;
+      return;
+   }
+
+   mRappelOnZApply = true;
+   std::string aN0 = anAppli.ICNM()->Assoc1To1(aKGA,mGenVP[0]->Name(),true);
+   for (int aK=1 ; (aK<int(mGenVP.size())) && mRappelOnZApply  ; aK++)
+   {
+	if (anAppli.ICNM()->Assoc1To1(aKGA,mGenVP[aK]->Name(),true) != aN0)
+           mRappelOnZApply = false;
+   }
+}
+
+
+bool cOneCombinMult::RappelOnZApply() const
+{
+  return mRappelOnZApply;
+}
+
 
 cManipPt3TerInc * cOneCombinMult::LiaisTer()
 {

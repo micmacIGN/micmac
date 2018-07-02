@@ -211,7 +211,13 @@
            <Symb> EcartMaxAltiPondCentre=1e20 </Symb>
            <Symb> SigmaPlaniPondCentre=1e20 </Symb>
            <Symb> SigmaAltiPondCentre=1e20 </Symb>
+
+           <Symb> WithRapOnZ=false </Symb>
+           <Symb> ZRapOnZ=0 </Symb>
+           <Symb> SigmaRapOnZ=1.0 </Symb>
+           <Symb> KeyGrpRapOnZ=XXXX </Symb>
        </DicoLoc>
+
 
 
 
@@ -830,6 +836,19 @@
 				     <SigmaPond> ${SigmaTieP} </SigmaPond>
 				     <EcartMax>  ${MaxResTieP} </EcartMax>
                                   </Pond>
+
+                                   <#WHEN  VTEST=${WithRapOnZ}>
+				       <RappelOnZ>
+                                             <KeyGrpApply > ${KeyGrpRapOnZ} </KeyGrpApply>
+                                             <Z > ${ZRapOnZ}</Z>
+                                             <IncC > ${SigmaRapOnZ} </IncC>
+                                             <IncE > ${SigmaRapOnZ} </IncE>
+					     <!--
+                                                  <SeuilR Nb="?" Type="double"> </SeuilR> 
+				              -->
+                                       </RappelOnZ>
+                                   </#WHEN>
+
                               </ObsLiaisons>
 		              <TxtRapDetaille>
 		                    <NameFile> ${RapTxt}</NameFile>

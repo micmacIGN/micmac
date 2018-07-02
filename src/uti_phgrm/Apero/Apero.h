@@ -1010,10 +1010,15 @@ class cOneCombinMult
         cGenPoseCam *  GenPose0() const;
         cGenPoseCam *  GenPoseK(int aK) const;
         void AddLink(cAppliApero &);
+	void InitRapOnZ(cRapOnZ *,cAppliApero & anAppli);
+	bool RappelOnZApply() const;
     private :
 	 cManipPt3TerInc  * mPLiaisTer;
 	 std::vector<int>   mNumCams;
 	 std::vector<cGenPoseCam *>  mGenVP;
+	 // Pour savoir le rappel on Z calcule 
+	 cRapOnZ *   mRapOnZ;
+	 bool        mRappelOnZApply;
 };
 
 Pt3dr TestInterFaisceaux

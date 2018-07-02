@@ -147,6 +147,7 @@ cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
             // alias
             << EAM(GlobLibCD,"LibCD",true,"Free distorsion center, Def context dependant. Principal Point should be also free if CD is free", eSAM_IsBool)
             << EAM(GlobLibDec,"LibDec",true,"Free decentric parameter, Def context dependant", eSAM_IsBool)
+            << EAM(mRapOnZ,"RapOnZ",true,"Force Rappel on Z [Z,Sigma,KeyGrp]")
                ;
 }
 
@@ -159,6 +160,16 @@ LArgMain &   cAppli_Tapas_Campari::ArgATP()
 
 void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
 {
+    if (EAMIsInit(&mRapOnZ))
+    {
+	 ELISE_ASSERT(mRapOnZ.size()==3,"Bad size for RapOnZ");
+	 mCom = mCom + " +WithRapOnZ=true" 
+		     + " +ZRapOnZ=" + mRapOnZ[0] 
+		     + " +SigmaRapOnZ=" + mRapOnZ[1] 
+		     + " +KeyGrpRapOnZ=" + mRapOnZ[2] + " "
+		 ;
+    }
+
     AddParamBloc(mCom,mVBlockRel,"TimeRel",true);
     AddParamBloc(mCom,mVBlockGlob,"Glob",true);
     AddParamBloc(mCom,mVBlockDistGlob,"DistGlob",false);
