@@ -244,22 +244,40 @@ std::cout << "mShitfBestmShitfBest " << aMast.mShitfBest
 
 
 
-cPrediCoord::cPrediCoord(Pt2di aSzGlob,int  aNbPix,double aMulDist,cElMap2D & aMap,const std::vector<cCdtCplHom> aVC) :
+Pt2dr cPrediCoord::Predic(const Pt2dr & aP) const
+{
+   Pt2dr aPInd = aP / mFacRed; 
+   // Pt2dr aPDif = aPS-(*aMap)(aPM);
+   return (*mMap)(aP) + Pt2dr(mTImX.getprojR(aPInd),mTImY.getprojR(aPInd));
+}
+
+
+
+cPrediCoord::cPrediCoord(Pt2di aSzGlob,int  aNbPix) :
    mSzGlob (aSzGlob),
    mFacRed (dist8(mSzGlob)/double(aNbPix)),
+   mMap    (0),
    mSzRed  (round_up(Pt2dr(mSzGlob)/ mFacRed)),
    mImX    (mSzRed.x,mSzRed.y,0.0),
    mTImX   (mImX),
    mImY    (mSzRed.x,mSzRed.y,0.0),
    mTImY   (mImY),
    mImPds  (mSzRed.x,mSzRed.y,0.0),
-   mTImPds (mImPds)
+   mTImPds (mImPds),
+   mImInc  (mSzRed.x,mSzRed.y,0.0),
+   mTImInc (mImInc)
 {
+}
+ 
+
+void cPrediCoord::Init(double aMulDist,cElMap2D * aMap,const std::vector<cCdtCplHom> aVC) 
+{
+    mMap = aMap;
     for (const auto & aCpl : aVC)
     {
          Pt2dr aPM = aCpl.PM() ;
          Pt2dr aPS = aCpl.PS() ;
-         Pt2dr aPDif = aPS-aMap(aPM);
+         Pt2dr aPDif = aPS-(*aMap)(aPM);
          double aPds = 1.0;
          Pt2dr aPInd = aPM / mFacRed;
          mTImPds.incr(aPInd,aPds);
@@ -283,17 +301,55 @@ cPrediCoord::cPrediCoord(Pt2di aSzGlob,int  aNbPix,double aMulDist,cElMap2D & aM
     );
     
 
-    Tiff_Im::CreateFromIm(mImX,"ImX.tif");
-    Tiff_Im::CreateFromIm(mImY,"ImY.tif");
+    // Tiff_Im::CreateFromIm(mImX,"ImX.tif");
+    // Tiff_Im::CreateFromIm(mImY,"ImY.tif");
     // double 
     // double FactExpFromSigma2(double aS2)
+
+/*
+    for (const auto & aCpl : aVC)
+    {
+         Pt2dr aPM = aCpl.PM() ;
+         Pt2dr aPS = aCpl.PS() ;
+         std::cout << "Dif " << Predic(aPM) - aPS << "\n";
+    }
+*/
+
+    Im2D_REAL8 aImNorm(mSzRed.x,mSzRed.y);
+    double aSomNorm = 0.0;
+    double aNbRed = mSzRed.x * mSzRed.y;
+    ELISE_COPY(mImX.all_pts(),sqrt(Square(mImX.in())+Square(mImY.in())),aImNorm.out() | sigma(aSomNorm));
+    aSomNorm /= aNbRed;
+ 
+    std::cout << "NORM=" << aSomNorm << "\n";
+
+    int aSzMaxMin = euclid(mSzRed) / 10.0;
+    Im2D_REAL8 aImVarX(mSzRed.x,mSzRed.y);
+    Im2D_REAL8 aImVarY(mSzRed.x,mSzRed.y);
+
+    ELISE_COPY(mImX.all_pts(),rect_max(mImX.in(-1e10),aSzMaxMin)-rect_min(mImX.in(1e10),aSzMaxMin),aImVarX.out());
+    ELISE_COPY(mImY.all_pts(),rect_max(mImY.in(-1e10),aSzMaxMin)-rect_min(mImY.in(1e10),aSzMaxMin),aImVarY.out());
+
+    // Tiff_Im::CreateFromIm(aImVarX,"IVarX.tif");
+    // Tiff_Im::CreateFromIm(aImVarY,"IVarY.tif");
+   
+
+    ELISE_COPY
+    (
+         mImInc.all_pts(),
+         aImNorm.in()/5.0 + aSomNorm/12.0 + Max(aImVarX.in(),aImVarY.in()) + euclid(mSzGlob) /100.0,
+         mImInc.out()
+    );
+
+    // Tiff_Im::CreateFromIm(mImInc,"ImInc.tif");
 }
 
 void  OneTestcPrediCoord(double aDist)
 {
    std::vector<cCdtCplHom>  aVC;
    ElSimilitude aSim;
-   cPrediCoord aPC(Pt2di(2000,2000),1000,aDist,aSim,aVC);
+   cPrediCoord aPC(Pt2di(2000,2000),1000);
+   aPC.Init(aDist,&aSim,aVC);
 }
 
 void OneTestcPrediCoord()
