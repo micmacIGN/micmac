@@ -86,12 +86,12 @@
 #endif
 
 
-#ifdef NODEPS
+//#ifdef NODEPS
 	#define JASPER 0  //MPD
 	#define NO_JASPER
 	#define NO_JPEG
 	#define NO_LCMS
-#endif
+//#endif
 #if JASPER //MPD
 	#include <jasper/jasper.h>	/* Decode Red camera movies */
 #endif
