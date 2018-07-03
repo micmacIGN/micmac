@@ -148,6 +148,7 @@ void FiltrageDirectionnel(std::vector<cCdtCplHom> & aVCpl,cAppli_FitsMatch1Im & 
    std::vector<int> aHDir(aNbDir,0.0);
    for (const auto  & aCpl : aVCpl)
    {
+       // std::cout << "DIR=" << aCpl.mShift << "\n";
        ELISE_ASSERT(aCpl.mShift<aNbDir,"Dir over 64");
        aHDir[aCpl.mShift]++;
    }
@@ -652,8 +653,9 @@ int IScal(double aS) {return round_ni(5 * log(aS)/log(2));}
 
 void cAFM_Im_Master::FiltrageSpatialGlob(std::vector<cCdtCplHom> & aVCpl,int aNbMin)
 {
+  std::cout << "Avant  filt dir " << aVCpl.size() << "\n";
    FiltrageDirectionnel(aVCpl,mAppli);
-   if (mAppli.ShowDet())
+   // if (mAppli.ShowDet())
       std::cout << "After  filt dir " << aVCpl.size() << "\n";
 
    if (int(aVCpl.size()) <=  aNbMin)
@@ -662,6 +664,7 @@ void cAFM_Im_Master::FiltrageSpatialGlob(std::vector<cCdtCplHom> & aVCpl,int aNb
    }
 
    FilterVoisCplCt(aVCpl);
+  std::cout << "At end   " << aVCpl.size() << "\n";
    if (int(aVCpl.size()) <=  aNbMin)
       return ;
 }
@@ -800,12 +803,14 @@ bool  cAFM_Im_Master::MatchLow(cAFM_Im_Sec & anISec,std::vector<cCdtCplHom> & aV
        if (aSetS && aSetM)
        {
           MatchOne(true,anISec,*aSetM,*aSetS,aVCpl,aNbMin0);
-
        }
     }
 
     if (mAppli.ShowDet())
-       std::cout << "After match one " << aVCpl.size() << "\n";
+    {
+       std::cout << "After-match_one " << aVCpl.size() << "\n";
+       // getchar();
+    }
     if (int(aVCpl.size()) <= aNbMin0) 
     {
        return false;
@@ -845,7 +850,10 @@ bool  cAFM_Im_Master::MatchGlob(cAFM_Im_Sec & anISec)
     ElPackHomologue aPack = PackFromVCC(aVCpl);
     aPack.StdPutInFile(mAppli.NameCple(mNameIm,anISec.mNameIm));
 
-    mPredicGeom.Init(2.0,&(mAppli.CurMapping()),aVCpl);
+    if (mAppli.DoFiltrageSpatial())
+    {
+        mPredicGeom.Init(2.0,&(mAppli.CurMapping()),aVCpl);
+    }
 
     return true ;
 }
