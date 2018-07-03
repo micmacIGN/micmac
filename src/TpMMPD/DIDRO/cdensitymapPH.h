@@ -42,4 +42,26 @@ private:
 
 };
 
+
+// manipulate the e format of tie points (cSetTiePMul), ex to export sparce 3D points cloud with custom information like reprojection error or multiplicity
+class cManipulate_NF_TP
+{
+public:
+    cManipulate_NF_TP(int argc,char ** argv);
+
+private:
+
+    cInterfChantierNameManipulateur * mICNM;
+    bool mDebug;
+    bool mPrintTP_info;
+    std::string mDir,mOriPat,mOut,mFileSH;
+    std::list<std::string> mOriFL;// xml Orientation File List
+    cSetTiePMul * mTPM;
+    // vector of image names
+    std::vector<std::string> mImName;
+    // map indexed by ID of image containing the CamStenope of the image, which is the orientation of the camera (external and calibration)
+    std::map<int, CamStenope*> mCams;
+};
+
+
 #endif // CDENSITYMAPPH_H

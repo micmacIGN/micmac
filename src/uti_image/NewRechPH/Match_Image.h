@@ -130,6 +130,29 @@ class cSetOPC
        const cSeuilFitsParam *  mSeuil;
 };
 
+class cPrediCoord
+{
+     public :
+        cPrediCoord(Pt2di aSzGlob,int  aNbPix);
+        void  Init(double aMulDist,cElMap2D * aMap,const std::vector<cCdtCplHom> aVC);
+        Pt2dr Predic(const Pt2dr &) const;
+        double Inc(const Pt2dr &) const;
+     private :
+         Pt2di                mSzGlob;
+         double               mFacRed;
+         cElMap2D *           mMap;
+         Pt2di                mSzRed;
+         Im2D_REAL8           mImX;
+         TIm2D<REAL8,REAL8>   mTImX;
+         Im2D_REAL8           mImY;
+         TIm2D<REAL8,REAL8>   mTImY;
+         Im2D_REAL8           mImPds;
+         TIm2D<REAL8,REAL8>   mTImPds;
+
+         Im2D_REAL8           mImInc;
+         TIm2D<REAL8,REAL8>   mTImInc;
+};
+
 
 class cAFM_Im
 {
@@ -140,7 +163,7 @@ class cAFM_Im
 
          cAFM_Im (const std::string  &,cAppli_FitsMatch1Im &);
          ~cAFM_Im ();
-         void LoadLab(bool DoIndex,bool Glob,eTypePtRemark aLab);
+         void LoadLab(bool DoIndex,bool Glob,eTypePtRemark aLab,bool MaintainIfExist);
          const std::string & NameIm() const;
 
          void ResetMatch();
@@ -163,6 +186,8 @@ class cAFM_Im_Master : public  cAFM_Im
      public :
          cAFM_Im_Master (const std::string  &,cAppli_FitsMatch1Im &);
          void MatchOne(bool OverLap,cAFM_Im_Sec & , cSetOPC & ,cSetOPC & ,std::vector<cCdtCplHom> & ,int aNbMin);
+         bool MatchLow(cAFM_Im_Sec & anISec,std::vector<cCdtCplHom> & aVCpl);
+
 
          bool             MatchGlob(cAFM_Im_Sec &);
 
@@ -177,6 +202,8 @@ class cAFM_Im_Master : public  cAFM_Im
 
          cPtFromPCC  mArgQt;
          tQtCC   mQt;
+
+         cPrediCoord        mPredicGeom;
 };
 
 
@@ -184,7 +211,10 @@ class cAFM_Im_Sec : public  cAFM_Im
 {
      public :
          cAFM_Im_Sec (const std::string  &,cAppli_FitsMatch1Im &);
+         void LoadLabsLow(bool AllLabs);
+         bool mAllLoaded;
 };
+
 
 class cAppli_FitsMatch1Im
 {
@@ -202,6 +232,14 @@ class cAppli_FitsMatch1Im
           double   SeuilCorrelRatio12() const;
           double   SeuilGradRatio12() const;
           double   SeuilDistGrad() const;
+          double   ExposantPdsDistGrad() const;
+// Dist "a la sift"
+          double DistHistoGrad(cCompileOPC & aMast,int aShift,cCompileOPC & aSec);
+
+          bool LabInInit(eTypePtRemark) const;
+
+          void SetCurMapping(cElMap2D * aMap);
+          cElMap2D & CurMapping();
 
      private :
           cFitsParam         mFitsPm;
@@ -224,6 +262,8 @@ class cAppli_FitsMatch1Im
           Pt2di              mNbMaxS0;  // Nb max en presel x=> pour overlap en point a analyser, y=> pour modele 3D, y en point voulu
           eTypePtRemark      mLabInit;
           bool               mDoFiltrageSpatial;
+          int                mFlagLabsInit;
+          cElMap2D *         mCurMap;
 };
 
 
@@ -242,8 +282,7 @@ bool CmpCC(const cCdtCplHom & aC1,const cCdtCplHom & aC2) ;
 void FiltrageDirectionnel(std::vector<cCdtCplHom> & aVCpl);
 
 
-// Dist "a la sift"
-double DistHistoGrad(cCompileOPC & aMast,int aShift,cCompileOPC & aSec);
+
 
 
 

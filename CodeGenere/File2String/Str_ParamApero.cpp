@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1817]) = {
+const char * (theNameVar_ParamApero[1819]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1398,6 +1398,8 @@ const char * (theNameVar_ParamApero[1817]) = {
 "			     <PondSurf Nb=\"?\" RefType=\"PonderationPackMesure\"> </PondSurf>\n",
 "                             <!-- TRI VALEUR Si on le donne : x =Z, y = Poids compens z=seuil -->\n",
 "                             <RappelOnZ Nb=\"?\">  \n",
+"			           <!-- Si KeyGrpApply est init, ne s'applique que quand toutes les cameras sont du meme KeyGrpApply -->\n",
+"			           <KeyGrpApply Nb=\"?\" Type=\"std::string\"> </KeyGrpApply>\n",
 "                                   <Z Nb=\"1\" Type=\"double\"> </Z>\n",
 "                                   <!-- Incertitude pour l'estimation et la compensation -->\n",
 "                                   <IncC Nb=\"1\" Type=\"double\"> </IncC>\n",

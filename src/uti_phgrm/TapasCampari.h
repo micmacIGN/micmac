@@ -58,6 +58,8 @@ class cAppli_Tapas_Campari
        bool ModeleAddPoly;
        std::string TheModelAdd;
 
+       bool UseRappOnZ();
+
 
     private :
       
@@ -73,6 +75,7 @@ class cAppli_Tapas_Campari
        std::vector<std::string>  mBlocImagesByTime;
        std::vector<std::string>  mBlocTimeStamps;
        std::map<std::string,int> mBlocCptTime;
+       std::vector<std::string>  mRapOnZ;
 
 
 

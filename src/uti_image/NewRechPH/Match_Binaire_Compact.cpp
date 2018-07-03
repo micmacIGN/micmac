@@ -548,10 +548,17 @@ bool cCompileOPC::OkCpleBest(double aRatioCorr,double aRatioGrad) const
    if (aBestM->m2BGrad.mBest != this)
       return false;
 
+/*
    std::cout << "RRrrratio Cor " << m2BCor.Ratio12()   << " " <<  aBestM->m2BCor.Ratio12()
                       << " Grad " << m2BGrad.Ratio12() << " " <<  aBestM->m2BGrad.Ratio12()
                       << " Dist " <<  m2BCor.mScore1 << " " << m2BGrad.mScore1
                       << "\n";
+*/
+    if ( (m2BCor.Ratio12()>aRatioCorr) || (aBestM->m2BCor.Ratio12()>aRatioCorr))
+       return false;
+
+    if ( (m2BGrad.Ratio12()>aRatioGrad) || (aBestM->m2BGrad.Ratio12()>aRatioGrad))
+       return false;
   
    return true;
 }

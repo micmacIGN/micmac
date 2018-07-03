@@ -137,7 +137,7 @@ int   cAppli_NewRechPH::INivOfScale(const double & aScale) const
    return round_ni(NivOfScale(aScale));
 }
 
-cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
+cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeVisu) :
     mNbByOct     (5.0),
     mPowS        (pow(2.0,1/mNbByOct)),
     mEch0Decim   (pow(2.0,1.001)),
@@ -157,7 +157,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mSeuilCR     (0.6),
     mScaleCorr   (false),
     mW1          (0),
-    mModeTest    (ModeTest),
+    mModeVisu    (ModeVisu),
     mDistMinMax  (3.0),
     mDoMin       (true),
     mDoMax       (true),
@@ -194,7 +194,9 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
     mImContrast        (1,1),
     mTImContrast       (mImContrast),
     mIdPts             (0),
-    mCallBackMulI      (false)
+    mCallBackMulI      (false),
+    mModeTest          (0),
+    mNbHighScale       (750)
 {
    cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
    mInterp = new cTabIM2D_FromIm2D<tElNewRechPH>(aSinC,1000,false);
@@ -222,7 +224,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
                       << EAM(mS0,   "S0",true,"ScaleInit, Def=1")
                       << EAM(mDoPly, "DoPly",true,"Generate ply file, for didactic purpose")
                       << EAM(mBoxCalc, "Box",true,"Box for computation")
-                      << EAM(mModeTest, "Test",true,"if true add W")
+                      << EAM(mModeVisu, "Visu",true,"if true add W")
                       << EAM(aSeuilPersist, "SP",true,"Threshold persistance")
                       << EAM(mBasic, "Basic",true,"Basic")
                       << EAM(mAddModeSift, "Sift",true,"Add SIFT Mode")
@@ -240,6 +242,8 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
                       << EAM(mCallBackMulI, "CallBackMulI",true,"Call back multiple images")
                       << EAM(mNbMaxLabByIm, "NbMaxLabByIm",true,"Def ="+ToString(mNbMaxLabByIm))
                       << EAM(mNbMaxLabBy10MP, "NbMaxLabBy10MP",true,"Def ="+ToString(mNbMaxLabBy10MP))
+                      << EAM(mModeTest, "ModeTest",true,"1=only exe new file, 2=only print new file ")
+                      << EAM(mNbHighScale, "NbHS",true,"Number of point in High Scale, Def=750 ")
    );
 
    
@@ -281,6 +285,21 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
    {
       mPlyC = new cPlyCloud;
    }
+   std::string aNameFileTest; // Pour voir si process ok
+
+   if (mModeTest!=0)
+   {
+       std::string aNameSave = NameFileNewPCarac(eTPR_GrayMax,mName,true,"_HighS"+mExtSave);
+       bool Done =  ELISE_fp::exist_file(aNameSave);
+
+       std::cout << "for " << aNameSave << ", Done=" << Done << "\n";
+       if (Done || (mModeTest!=1))
+          exit(EXIT_SUCCESS);
+   }
+   aNameFileTest = "TEST-NEWRCHPH-" + mName + ".txt";
+   ELISE_fp aFile(aNameFileTest.c_str(),ELISE_fp::WRITE);
+   aFile.close();
+
 
    mP0Calc = Pt2di(0,0);
    mP1Calc = mTestDirac ? Pt2di(1000,1000) : Pt2di(-1,-1);
@@ -324,7 +343,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
    {
       mDZPlyLay = ElMin(mSzIm.x,mSzIm.y)/ double(mNbS);
    }
-   if (mModeTest)
+   if (mModeVisu)
    {
       mW1 = Video_Win::PtrWStd(mSzIm);
    }
@@ -528,8 +547,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
 
 
   // MakeFileXML(aSPC,NameFileNewPCarac(mName,true,mExtSave));
-  int NbHighScale = 750;
-  SaveStdSetCaracMultiLab(aSPC,mName,mExtSave,NbHighScale);
+  SaveStdSetCaracMultiLab(aSPC,mName,mExtSave,mNbHighScale);
 
   double aTimeXml = TimeAndReset(aChrono);
 
@@ -549,6 +567,11 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeTest) :
   std::cout << "   Affinage=" << aTimeAffine << "\n";
   std::cout << "   CalcInva=" << aTimeCalcImage << "\n";
   std::cout << "   SauvXml =" << aTimeXml << "\n";
+
+  if (aNameFileTest!="")
+  {
+      ELISE_fp::RmFileIfExist(aNameFileTest);
+  }
 }
 
 bool  cAppli_NewRechPH::ComputeContrastePt(cOnePCarac & aPt)

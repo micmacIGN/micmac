@@ -298,7 +298,7 @@ class cAppli_NewRechPH
         std::vector<cOneScaleImRechPH *> mVILowR;
         std::vector<cOneScaleImRechPH *> mVIHighR; // Celle qui ont une echelle eventuellement plus large
         Video_Win  * mW1;
-        bool         mModeTest;
+        bool         mModeVisu;
     
 
         double       mDistMinMax;
@@ -354,6 +354,8 @@ class cAppli_NewRechPH
         tInterpolNRPH * mInterp;
         int          mIdPts;
         bool          mCallBackMulI; // Est on en call back pour cause d'image multiple
+        int          mModeTest;
+        int          mNbHighScale;
 };
 
 class cProfilPC
@@ -371,7 +373,6 @@ class cProfilPC
         int    ComputeShiftOneChannel(const cProfilPC & aCP,int aChanel) const;
         int    ComputeCorrelOneChannelOneShift(const cProfilPC & aCP,int aChanel,int aShift) const;
         int    OptimiseLocOneShift(const cProfilPC & aCP,int aChanel,int aShift0) const;
-
 
 
     private :

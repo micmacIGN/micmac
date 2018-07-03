@@ -368,7 +368,7 @@ void cAppliApero::AddObservationsLiaisons(const std::list<cObsLiaisons> & aL,boo
           {
               const cRappelOnZ & aRaz = itOL->RappelOnZ().Val();
               double anI = aRaz.IncC();
-              aRAZ = new cRapOnZ(aRaz.Z(),anI,aRaz.IncE().ValWithDef(anI),aRaz.LayerMasq().ValWithDef(""));
+              aRAZ = new cRapOnZ(aRaz.Z(),anI,aRaz.IncE().ValWithDef(anI),aRaz.LayerMasq().ValWithDef(""),aRaz.KeyGrpApply().ValWithDef(""));
           }
 
           cPackObsLiaison * aPackL = GetEntreeNonVide(mDicoLiaisons,anId,"AddObservationsLiaisons"); 
