@@ -1337,8 +1337,14 @@ extern void TestcBiaisedRandGenerator();
 extern void OneTestcPrediCoord();
 
 
+extern void TestcGeneratorEqColLin();
+
 int MPDtest_main (int argc,char** argv)
 {
+    {
+        TestcGeneratorEqColLin();
+        exit(EXIT_SUCCESS);
+    }
     {
         OneTestcPrediCoord();
         exit(EXIT_SUCCESS);

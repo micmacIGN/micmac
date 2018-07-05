@@ -56,6 +56,7 @@ set(Photogram_Src_Files
 	${PHOTOGR_DIR}/phgr_quickm33.cpp
 	${PHOTOGR_DIR}/phgr_bundle_gen.cpp
 	${PHOTOGR_DIR}/phgr_vrai_bundle.cpp
+	${PHOTOGR_DIR}/phgr_test_equation_colinear.cpp
 )
 
 SOURCE_GROUP(Photogram FILES ${Photogram_Src_Files})
