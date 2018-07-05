@@ -2,6 +2,8 @@
 #define CDENSITYMAPPH_H
 #include "StdAfx.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
+#include "../imagesimpleprojection.h"
+
 extern int writeTFW(std::string aNameTiffFile, Pt2dr aGSD, Pt2dr aXminYmax);
 extern std::string KeyAssocNameTif2TFW(std::string aOrtName);
 
@@ -53,6 +55,7 @@ private:
 
     cInterfChantierNameManipulateur * mICNM;
     bool mDebug;
+    bool mSavePly;
     bool mPrintTP_info;
     std::string mDir,mOriPat,mOut,mFileSH;
     std::list<std::string> mOriFL;// xml Orientation File List
@@ -61,6 +64,8 @@ private:
     std::vector<std::string> mImName;
     // map indexed by ID of image containing the CamStenope of the image, which is the orientation of the camera (external and calibration)
     std::map<int, CamStenope*> mCams;
+    // map indexed by ID of image containing 3 canal RGB images
+    std::map<int, cISR_ColorImg*> mIms;
 };
 
 
