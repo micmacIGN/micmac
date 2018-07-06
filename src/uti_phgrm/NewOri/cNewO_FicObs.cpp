@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
-
+//extern bool ERupnik_MM();
 
 class cAppliFictObs : public cCommonMartiniAppli
 {
@@ -81,8 +81,6 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
         std::string  aName3R = aNM->NameOriOptimTriplet(true,a3.Name1(),a3.Name2(),a3.Name3());
         cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
     
-        if ( ERupnik_MM() ) 
-            std::cout << "aXml3Ori=" << aName3R << "\n";
     }
 
     /*
