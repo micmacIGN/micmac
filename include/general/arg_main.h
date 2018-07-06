@@ -646,6 +646,7 @@ int Dmp2Xml_main(int argc,char ** argv);
 
 int Morito_main(int argc,char ** argv);
 int Liquor_main(int argc,char ** argv);
+int Luxor_main(int argc,char ** argv);
 
 
 
