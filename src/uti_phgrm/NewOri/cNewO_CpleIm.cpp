@@ -839,6 +839,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    cCommonMartiniAppli aCMA;
    std::string aNameIm1;
    std::string aPatGlob;
+   bool aExpTxt=0;
 
 
    ElInitArgMain
@@ -849,10 +850,13 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                    << aCMA.ArgCMA()
                    << EAM(aNameIm1,"NameIm1",true,"Name of Image1, internal purpose")
                    << EAM(aPatGlob,"PatGlob",true,"Name of Image1, internal purpose")
+                   << EAM(aExpTxt,"ExpTxt",true,"input homol format is txt? def false, binary format")
    );
 
    bool aModeIm1 = EAMIsInit(&aNameIm1);
-
+	
+	std::string aInHomol="dat";
+   if (aExpTxt) aInHomol="txt";
    if (aModeIm1) 
       aPat = aNameIm1;
    
@@ -877,8 +881,10 @@ int TestAllNewOriImage_main(int argc,char ** argv)
        {
            std::string aName = (*aVIm)[aK];
            aNM->NameXmlOri2Im(aName,aName,true);
-           std::string aCom =  GlobArcArgv  + " NameIm1=" + aName + " PatGlob="+ QUOTE(anEASF.mPat);
+           std::string aCom =  GlobArcArgv  + " NameIm1=" + aName + " PatGlob="+ QUOTE(anEASF.mPat) + " ExpTxt=" + ToString(aExpTxt);
 
+          if (aCMA.mShow) 
+             std::cout << "Com= " << aCom << "\n";
 
            aExePaq.AddCom(aCom);
        }
@@ -887,13 +893,15 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    else
    {
        // Mode ou on execute vraiment pour une image
-       std::string aKeySub = "NKS-Set-HomolOfOneImage@"+ aCMA.mPrefHom + "@dat@" + aNameIm1;
+       std::string aKeySub = "NKS-Set-HomolOfOneImage@"+ aCMA.mPrefHom + "@"+ aInHomol +"@" + aNameIm1;
        const cInterfChantierNameManipulateur::tSet *   aVH = anICNM->Get(aKeySub);
-       std::string aKeyH = "NKS-Assoc-CplIm2Hom@"+ aCMA.mPrefHom  + "@dat";
+       std::string aKeyH = "NKS-Assoc-CplIm2Hom@"+ aCMA.mPrefHom  + "@"+ aInHomol ;
 
        cListOfName aLON;
 
-       cElRegex anAutom(aPatGlob,10);
+       // cElRegex anAutom(aPatGlob,10);
+
+       const cInterfChantierSetNC::tSet * aSetGlob = anICNM->Get(aPatGlob);
 
 
        aNM->Dir3POneImage(aNameIm1,true);
@@ -909,9 +917,12 @@ int TestAllNewOriImage_main(int argc,char ** argv)
            std::string aNameIm2 = aPair.second;
            std::string aNameHomReciproque = anICNM->Assoc1To2(aKeyH,aNameIm2,aNameIm1,true);
 
+// std::cout << "N2=" << aNameIm2 << " " << aSetName->SetBasicIsIn(aNameIm2) << "\n";
+
            if (    ((aNameIm1<aNameIm2) || (aCMA.mAcceptUnSym  && (!ELISE_fp::exist_file(aDir+aNameHomReciproque))) )  // Pour ne faire le calcul que dans un sens
                 && (ELISE_fp::exist_file(aDir+aNameIm2))  //  Precaution si qqun a detruit
-                && (anAutom.Match(aNameIm2))   // Pour que l'image soit dans le pattern
+                // && (anAutom.Match(aNameIm2))   // Pour que l'image soit dans le pattern
+                && (BoolFind(*aSetGlob,aNameIm2))   // Pour que l'image soit dans le pattern
               )
            {
 

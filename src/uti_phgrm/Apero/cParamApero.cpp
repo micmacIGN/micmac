@@ -250,6 +250,8 @@ eTypeCalibAutom  Str2eTypeCalibAutom(const std::string & aName)
       return eCalibAutomEbner;
    else if (aName=="eCalibAutomBrown")
       return eCalibAutomBrown;
+   else if (aName=="eCalibAutomFishEyeStereographique")
+      return eCalibAutomFishEyeStereographique;
    else if (aName=="eCalibAutomNone")
       return eCalibAutomNone;
   else
@@ -289,6 +291,8 @@ std::string  eToString(const eTypeCalibAutom & anObj)
       return  "eCalibAutomEbner";
    if (anObj==eCalibAutomBrown)
       return  "eCalibAutomBrown";
+   if (anObj==eCalibAutomFishEyeStereographique)
+      return  "eCalibAutomFishEyeStereographique";
    if (anObj==eCalibAutomNone)
       return  "eCalibAutomNone";
  std::cout << "Enum = eTypeCalibAutom\n";
@@ -313,7 +317,7 @@ void  BinaryUnDumpFromFile(eTypeCalibAutom & anObj,ELISE_fp & aFp)
    anObj=(eTypeCalibAutom) aIVal;
 }
 
-std::string  Mangling( eTypeCalibAutom *) {return "53FA1EF823E1F48BFE3F";};
+std::string  Mangling( eTypeCalibAutom *) {return "93BCB8F66AB20F99FE3F";};
 
 eTypeContraintePoseCamera  Str2eTypeContraintePoseCamera(const std::string & aName)
 {
@@ -5546,7 +5550,7 @@ void xml_init(cCalibAutomNoDist & anObj,cElXMLTree * aTree)
    xml_init(anObj.PositionRelPP(),aTree->Get("PositionRelPP",1),Pt2dr(Pt2dr(0.5,0.5))); //tototo 
 }
 
-std::string  Mangling( cCalibAutomNoDist *) {return "D6F5DBABFA324CC2FD3F";};
+std::string  Mangling( cCalibAutomNoDist *) {return "78EC5D33965178BEFE3F";};
 
 
 cTplValGesInit< cCalibrationInternConique > & cCalValueInit::CalFromValues()
@@ -5715,7 +5719,7 @@ void xml_init(cCalValueInit & anObj,cElXMLTree * aTree)
    xml_init(anObj.CalibAutomNoDist(),aTree->Get("CalibAutomNoDist",1)); //tototo 
 }
 
-std::string  Mangling( cCalValueInit *) {return "9CAD1B247F2C4380FC3F";};
+std::string  Mangling( cCalValueInit *) {return "6130291441ACEDC3FD3F";};
 
 
 std::vector< double > & cAddParamAFocal::Coeffs()
@@ -6268,7 +6272,7 @@ void xml_init(cCalibrationCameraInc & anObj,cElXMLTree * aTree)
    xml_init(anObj.CalibPerPose(),aTree->Get("CalibPerPose",1)); //tototo 
 }
 
-std::string  Mangling( cCalibrationCameraInc *) {return "4B0AFE084B646EAAFC3F";};
+std::string  Mangling( cCalibrationCameraInc *) {return "E2A53DD235D4AE8BFF3F";};
 
 
 cTplValGesInit< cXml_SigmaRot > & cBlockGlobalBundle::SigmaV0()
@@ -10499,7 +10503,7 @@ void xml_init(cSectionInconnues & anObj,cElXMLTree * aTree)
    xml_init(anObj.PointFlottantInc(),aTree->GetAll("PointFlottantInc",false,1));
 }
 
-std::string  Mangling( cSectionInconnues *) {return "985D7DCE41540B8DFF3F";};
+std::string  Mangling( cSectionInconnues *) {return "4CECE2192C59959DFE3F";};
 
 
 cTplValGesInit< double > & cUseExportImageResidu::SzByPair()
@@ -18515,6 +18519,17 @@ void xml_init(cObsAppuisFlottant & anObj,cElXMLTree * aTree)
 std::string  Mangling( cObsAppuisFlottant *) {return "6979847B82116EC1FE3F";};
 
 
+cTplValGesInit< std::string > & cRappelOnZ::KeyGrpApply()
+{
+   return mKeyGrpApply;
+}
+
+const cTplValGesInit< std::string > & cRappelOnZ::KeyGrpApply()const 
+{
+   return mKeyGrpApply;
+}
+
+
 double & cRappelOnZ::Z()
 {
    return mZ;
@@ -18571,7 +18586,15 @@ const cTplValGesInit< std::string > & cRappelOnZ::LayerMasq()const
 
 void  BinaryUnDumpFromFile(cRappelOnZ & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.Z(),aFp);
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.KeyGrpApply().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.KeyGrpApply().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.KeyGrpApply().SetNoInit();
+  } ;
+    BinaryUnDumpFromFile(anObj.Z(),aFp);
     BinaryUnDumpFromFile(anObj.IncC(),aFp);
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
@@ -18601,6 +18624,8 @@ void  BinaryUnDumpFromFile(cRappelOnZ & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cRappelOnZ & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.KeyGrpApply().IsInit());
+    if (anObj.KeyGrpApply().IsInit()) BinaryDumpInFile(aFp,anObj.KeyGrpApply().Val());
     BinaryDumpInFile(aFp,anObj.Z());
     BinaryDumpInFile(aFp,anObj.IncC());
     BinaryDumpInFile(aFp,anObj.IncE().IsInit());
@@ -18615,6 +18640,8 @@ cElXMLTree * ToXMLTree(const cRappelOnZ & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"RappelOnZ",eXMLBranche);
+   if (anObj.KeyGrpApply().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("KeyGrpApply"),anObj.KeyGrpApply().Val())->ReTagThis("KeyGrpApply"));
    aRes->AddFils(::ToXMLTree(std::string("Z"),anObj.Z())->ReTagThis("Z"));
    aRes->AddFils(::ToXMLTree(std::string("IncC"),anObj.IncC())->ReTagThis("IncC"));
    if (anObj.IncE().IsInit())
@@ -18633,6 +18660,8 @@ void xml_init(cRappelOnZ & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
+   xml_init(anObj.KeyGrpApply(),aTree->Get("KeyGrpApply",1)); //tototo 
+
    xml_init(anObj.Z(),aTree->Get("Z",1)); //tototo 
 
    xml_init(anObj.IncC(),aTree->Get("IncC",1)); //tototo 
@@ -18644,7 +18673,7 @@ void xml_init(cRappelOnZ & anObj,cElXMLTree * aTree)
    xml_init(anObj.LayerMasq(),aTree->Get("LayerMasq",1)); //tototo 
 }
 
-std::string  Mangling( cRappelOnZ *) {return "C203EE2C98D9BAD5FE3F";};
+std::string  Mangling( cRappelOnZ *) {return "28FE37DEF854479BFE3F";};
 
 
 std::string & cObsLiaisons::NameRef()
@@ -18677,6 +18706,17 @@ cTplValGesInit< cPonderationPackMesure > & cObsLiaisons::PondSurf()
 const cTplValGesInit< cPonderationPackMesure > & cObsLiaisons::PondSurf()const 
 {
    return mPondSurf;
+}
+
+
+cTplValGesInit< std::string > & cObsLiaisons::KeyGrpApply()
+{
+   return RappelOnZ().Val().KeyGrpApply();
+}
+
+const cTplValGesInit< std::string > & cObsLiaisons::KeyGrpApply()const 
+{
+   return RappelOnZ().Val().KeyGrpApply();
 }
 
 
@@ -18806,7 +18846,7 @@ void xml_init(cObsLiaisons & anObj,cElXMLTree * aTree)
    xml_init(anObj.RappelOnZ(),aTree->Get("RappelOnZ",1)); //tototo 
 }
 
-std::string  Mangling( cObsLiaisons *) {return "04B9935F23D4E8D7FD3F";};
+std::string  Mangling( cObsLiaisons *) {return "19784B05C4689683FE3F";};
 
 
 cTplValGesInit< cElRegex_Ptr > & cObsCentrePDV::PatternApply()
@@ -19573,7 +19613,7 @@ void xml_init(cSectionObservations & anObj,cElXMLTree * aTree)
    xml_init(anObj.ObsRelGPS(),aTree->GetAll("ObsRelGPS",false,1));
 }
 
-std::string  Mangling( cSectionObservations *) {return "1E6856E43F8916C7FE3F";};
+std::string  Mangling( cSectionObservations *) {return "9732D9F2CD13BE90FD3F";};
 
 
 cTplValGesInit< bool > & cExportAsGrid::DoExport()
@@ -25718,7 +25758,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "624821E634B552B0FE3F";};
+std::string  Mangling( cEtapeCompensation *) {return "32810426875AE4ECFE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -25777,7 +25817,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "34183706AB8EFA95FCBF";};
+std::string  Mangling( cSectionCompensation *) {return "484984F91BC41A94FC3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -26942,7 +26982,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "5EC54A21FF48E381FD3F";};
+std::string  Mangling( cParamApero *) {return "4DFDCC287A99B4ABFE3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

@@ -960,7 +960,11 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    cElemAppliSetFile anEASF(aFullPat);
    const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
 
-   cSetName * aSetN= anEASF.mICNM->KeyOrPatSelector(aFullPat);
+{
+   std::cout << "aVImaVIm " << aVIm->size() << "\n";
+}
+
+   /// cSetName * aSet N= anEASF.mICNM->KeyOrPatSelector(aFullPat);
    std::set<std::string> aSetName(aVIm->begin(),aVIm->end());
    std::string aDir = anEASF.mDir;
 
@@ -977,7 +981,8 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
        aNb++;
        const std::string & aN1 = itC->N1();
        const std::string & aN2 = itC->N2();
-       if (aSetN->SetBasicIsIn(aN1) && aSetN->SetBasicIsIn(aN2) && (aNb>=(aNb0+1)))
+       // if (aSet N->SetBasicIsIn(aN1) && aSet N->SetBasicIsIn(aN2) && (aNb>=(aNb0+1)))
+       if (DicBoolFind(aSetName,aN1) && DicBoolFind(aSetName,aN2) && (aNb>=(aNb0+1)))
        {
             std::string aCom =   MM3dBinFile("TestLib NO_OneImOptTrip") 
                             + " " + aN1

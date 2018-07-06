@@ -79,6 +79,7 @@ typedef enum
   eCalibAutomFour19x2,
   eCalibAutomEbner,
   eCalibAutomBrown,
+  eCalibAutomFishEyeStereographique,
   eCalibAutomNone
 } eTypeCalibAutom;
 void xml_init(eTypeCalibAutom & aVal,cElXMLTree * aTree);
@@ -5114,6 +5115,9 @@ class cRappelOnZ
         friend void xml_init(cRappelOnZ & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< std::string > & KeyGrpApply();
+        const cTplValGesInit< std::string > & KeyGrpApply()const ;
+
         double & Z();
         const double & Z()const ;
 
@@ -5129,6 +5133,7 @@ class cRappelOnZ
         cTplValGesInit< std::string > & LayerMasq();
         const cTplValGesInit< std::string > & LayerMasq()const ;
     private:
+        cTplValGesInit< std::string > mKeyGrpApply;
         double mZ;
         double mIncC;
         cTplValGesInit< double > mIncE;
@@ -5159,6 +5164,9 @@ class cObsLiaisons
 
         cTplValGesInit< cPonderationPackMesure > & PondSurf();
         const cTplValGesInit< cPonderationPackMesure > & PondSurf()const ;
+
+        cTplValGesInit< std::string > & KeyGrpApply();
+        const cTplValGesInit< std::string > & KeyGrpApply()const ;
 
         double & Z();
         const double & Z()const ;

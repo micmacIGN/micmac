@@ -174,7 +174,9 @@ cOneCombinMult::cOneCombinMult
 )   :
    mPLiaisTer (new cManipPt3TerInc(aVCF[0]->Set(),anEqS,aVCF)),
    // mCSVP  (aVP),
-   mGenVP (aVP)
+   mGenVP (aVP),
+   mRapOnZ (0),
+   mRappelOnZApply (true)
 {
 
 
@@ -185,8 +187,56 @@ cOneCombinMult::cOneCombinMult
           mNumCams.push_back(aK);
        }
    }
-   // std::cout << "JJJJJJJJ : " << aVCF.size()  << " " << mNumCams.size() << "\n"; getchar();
+
 }
+
+
+void cOneCombinMult::InitRapOnZ(const cRapOnZ * aRAZ,cAppliApero & anAppli)
+{
+   if (mRapOnZ== aRAZ) 
+      return;
+
+   mRapOnZ= aRAZ;
+   if (mRapOnZ==nullptr)
+   {
+      mRappelOnZApply = false;
+      return;
+   }
+
+   std::string  aKGA = aRAZ->KeyGrpApply();
+
+   if ((aKGA=="") || (aKGA=="NONE"))
+   {
+      mRappelOnZApply = true;
+      return;
+   }
+
+   mRappelOnZApply = true;
+   std::string aN0 = anAppli.ICNM()->Assoc1To1(aKGA,mGenVP[0]->Name(),true);
+   for (int aK=1 ; (aK<int(mGenVP.size())) && mRappelOnZApply  ; aK++)
+   {
+	   if (anAppli.ICNM()->Assoc1To1(aKGA,mGenVP[aK]->Name(),true) != aN0)
+           mRappelOnZApply = false;
+   }
+
+   if (0 && mRappelOnZApply)
+   {
+       std::cout << "NNNN " << aN0 << "\n";
+       std::cout << "RRRRR " << mRappelOnZApply << "\n";
+       for (const auto & aGPC : mGenVP)
+       {
+	       std::cout << "   * " << aGPC->Name() << "\n";
+       }
+       std::cout << "###############\n";
+   }
+}
+
+
+bool cOneCombinMult::RappelOnZApply() const
+{
+  return mRappelOnZApply;
+}
+
 
 cManipPt3TerInc * cOneCombinMult::LiaisTer()
 {
@@ -1176,6 +1226,10 @@ double cObsLiaisonMultiple::AddObsLM
              static int aCpt=0; aCpt++;
              aNbMult += (aNbRInit>=3);
              const cRapOnZ * aRAZ = aPM->OnPRaz()? aRAZGlob : 0;
+             aCOM->InitRapOnZ(aRAZ,mAppli);
+             if (! aCOM->RappelOnZApply())
+                aRAZ = 0;
+
              const cResiduP3Inc & aRes = aCOM->LiaisTer()->UsePointLiaison(mAppli.ArgUPL(),aLimBsHP,aLimBsHRefut,0.0,aNupl,aVpds,false,aRAZ);
 
 

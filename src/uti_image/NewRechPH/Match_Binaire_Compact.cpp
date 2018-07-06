@@ -61,8 +61,8 @@ class cPairOPC
           const double & V2() const;
           void AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const;
       private :
-          cCompileOPC mP1;
-          cCompileOPC mP2;
+          cCompileOPC * mP1;
+          cCompileOPC * mP2;
           mutable double      mV1;
           mutable double      mV2;
 };
@@ -96,7 +96,7 @@ class cSetPairOPC
          
           std::vector<cPairOPC>  mVP; 
           void AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const;
-          double StatDR(std::vector<double> &,std::vector<double> &,std::vector<double> &,const cFitsParam &,bool OverLap);
+          double StatDR(std::vector<double> &,std::vector<double> &,std::vector<double> &,const cFitsParam &,eTypePtRemark aType);
       private :
           int                  mPairNbBitsMax;
           int                  mNbPair;
@@ -310,6 +310,48 @@ void cTimeMatch::Show()
 
 
 
+/**************************************************/
+/*                                                */
+/*             c2BestCOPC                         */
+/*                                                */
+/**************************************************/
+
+c2BestCOPC::c2BestCOPC()
+{
+   ResetMatch();
+}
+void c2BestCOPC::ResetMatch()
+{
+   
+   mBest       = nullptr;
+   mShitfBest  = -10000;
+   mScore1     = 1e10;
+   mScore2     = 1e10;
+}
+void c2BestCOPC::SetNew(cCompileOPC * aMatch,double aScore,int aShift)
+{
+   if (aScore<mScore1)
+   {
+       mScore2 = mScore1;
+       mScore1 = aScore;
+       mBest   = aMatch;
+       mShitfBest = aShift;
+   }
+   else if (aScore<mScore2)
+   {
+      mScore2 = aScore;
+   }
+}
+
+double  c2BestCOPC::Ratio12() const
+{
+   if (mScore1>=1e9) return 1;
+   if (mScore2>=1e9) return 0;
+   if (mScore2==0) return 1;
+
+   return mScore1 /mScore2;
+
+}
 
 /**************************************************/
 /*                                                */
@@ -476,6 +518,8 @@ int    cCompileOPC::ComputeShiftOneC(const cCompileOPC & aCP,int aChanel) const
 int    cCompileOPC::HeuristikComputeShiftOneC(const cCompileOPC & aCP,int aChanel) const
 {
     int aLev = mVProf.size()-1;
+// std::cout << "FORCELEV0 in HeuristikComputeShiftOneC\n";
+// aLev=0;
     int aShift = mVProf[aLev].ComputeShiftOneChannel(aCP.mVProf[aLev],aChanel);
     aLev--;
 
@@ -485,6 +529,38 @@ int    cCompileOPC::HeuristikComputeShiftOneC(const cCompileOPC & aCP,int aChane
     }
 
     return aShift;
+}
+
+bool cCompileOPC::OkCpleBest(double aRatioCorr,double aRatioGrad) const 
+{
+   cCompileOPC * aBestM = m2BCor.mBest;
+
+   if (!aBestM)
+      return false;
+   if (aBestM->m2BCor.mBest != this)
+      return false;
+
+   // if (m2BCor.Ratio12() > aRatioCorr) return false;
+
+   if (m2BGrad.mBest != aBestM) 
+       return false;
+
+   if (aBestM->m2BGrad.mBest != this)
+      return false;
+
+/*
+   std::cout << "RRrrratio Cor " << m2BCor.Ratio12()   << " " <<  aBestM->m2BCor.Ratio12()
+                      << " Grad " << m2BGrad.Ratio12() << " " <<  aBestM->m2BGrad.Ratio12()
+                      << " Dist " <<  m2BCor.mScore1 << " " << m2BGrad.mScore1
+                      << "\n";
+*/
+    if ( (m2BCor.Ratio12()>aRatioCorr) || (aBestM->m2BCor.Ratio12()>aRatioCorr))
+       return false;
+
+    if ( (m2BGrad.Ratio12()>aRatioGrad) || (aBestM->m2BGrad.Ratio12()>aRatioGrad))
+       return false;
+  
+   return true;
 }
 
 
@@ -497,10 +573,10 @@ cCompileOPC::cCompileOPC(const cOnePCarac & aOPC) :
    mProf       (mOPC.ProfR().ImProfil().data()),
    mSzProf     (mOPC.ProfR().ImProfil().sz()),
    mNbTeta     (mSzProf.x),
-   mOL_FlagIsComp (false),
-   mDec_FlagIsComp (false),
+   mFlagIsComp (false),
    mTmpNbHom   (0)
 {
+    ResetMatch();
     mVProf.push_back(cProfilPC(mOPC.ProfR().ImProfil()));
     for (int aK=0 ; aK<2 ; aK++)
     {
@@ -508,22 +584,32 @@ cCompileOPC::cCompileOPC(const cOnePCarac & aOPC) :
     }
 }
 
-void cCompileOPC::SetFlag(const cFitsOneLabel & aFOL,bool Overlap)
+
+void cCompileOPC::ResetMatch()
 {
-   if (Overlap)
-   {
-       if (mOL_FlagIsComp) return;
-       mOL_ShortFlag = ShortFlag(aFOL.BinIndexed().CCB().Val());
-       mOL_LongFlag  = LongFlag(aFOL.BinDecision().CCB().Val());
-       mOL_FlagIsComp = true;
-   }
-   else
-   {
-       if (mDec_FlagIsComp) return;
-       mDec_ShortFlag = ShortFlag(aFOL.BinIndexed().CCB().Val());
-       mDec_LongFlag  = LongFlag(aFOL.BinDecision().CCB().Val());
-       mDec_FlagIsComp = true;
-   }
+   m2BCor.ResetMatch();
+   m2BGrad.ResetMatch();
+}
+void cCompileOPC::SetMatch(cCompileOPC * aMatch,double aScoreCor,double aScoreCorrGrad,int aShift)
+{
+   m2BCor.SetNew(aMatch,aScoreCor,aShift);
+   m2BGrad.SetNew(aMatch,aScoreCorrGrad,aShift);
+}
+
+// if (aPCM->OkCpleBest(mAppli.SeuilCorrelRatio12(),mAppli.SeuilGradRatio12());
+
+
+
+void cCompileOPC::SetFlag(const cFitsOneLabel & aFOL)
+{
+   if (mFlagIsComp)
+      return;
+   mFlagIsComp = true;
+
+   mIndexFlag     = ShortFlag(aFOL.BinIndexed().CCB().Val());
+   mDecShortFlag  = ShortFlag(aFOL.BinDecisionShort().CCB().Val());
+   mDecLongFlag   = LongFlag(aFOL.BinDecisionLong().CCB().Val());
+        
 }
 
 std::vector<double>  cCompileOPC::Time(cCompileOPC & aCP2,const cFitsParam & aFP)
@@ -535,13 +621,13 @@ std::vector<double>  cCompileOPC::Time(cCompileOPC & aCP2,const cFitsParam & aFP
     {
         ElTimer aChrono;
         for (int aK=0 ; aK<aNb ; aK++)
-            aCP1.DifShortF(aCP2,true);
+            aCP1.DifDecShortFlag(aCP2);
         aRes.push_back(aChrono.uval());
     } 
     {
         ElTimer aChrono;
         for (int aK=0 ; aK<aNb ; aK++)
-            aCP1.DifLongF(aCP2,true);
+            aCP1.DifDecLongFlag(aCP2);
         aRes.push_back(aChrono.uval());
     } 
     double aS=0;
@@ -575,7 +661,6 @@ std::vector<double>  cCompileOPC::Time(cCompileOPC & aCP2,const cFitsParam & aFP
 
 double  cCompileOPC::Match
         (
-            bool          Overlap,
             cCompileOPC & aCP2,
             const cFitsOneLabel & aFOL,
             const cSeuilFitsParam  & aSFP,
@@ -591,20 +676,13 @@ double  cCompileOPC::Match
 
    cCompileOPC & aCP1 = *this;
 
-   if (Overlap)
-   {
-      ELISE_ASSERT(aCP1.mOL_FlagIsComp && aCP2.mOL_FlagIsComp,"mFlagIsComp dans Match");
-   }
-   else
-   {
-      ELISE_ASSERT(aCP1.mDec_FlagIsComp && aCP2.mDec_FlagIsComp,"mFlagIsComp dans Match");
-   }
+   ELISE_ASSERT(aCP1.mFlagIsComp && aCP2.mFlagIsComp,"mFlagIsComp dans Match");
    // aCP1.SetFlag(aFOL);
    // aCP2.SetFlag(aFOL);
 
    
    aLevelFail =0;
-   bool FailBinIndex = (aCP1.DifShortF(aCP2,Overlap) >  aFOL.BinIndexed().CCB().Val().BitThresh());
+   bool FailBinIndex = (aCP1.DifDecShortFlag(aCP2) >  aFOL.BinDecisionShort().CCB().Val().BitThresh());
    if (aTM)
    {
       aTM->mTBinRad += aTimer.uval();
@@ -615,7 +693,7 @@ double  cCompileOPC::Match
 
 
    aLevelFail=1;
-   bool FailBinLong =  (aCP1.DifLongF(aCP2,Overlap) >  aFOL.BinDecision().CCB().Val().BitThresh());
+   bool FailBinLong =  (aCP1.DifDecLongFlag(aCP2) >  aFOL.BinDecisionLong().CCB().Val().BitThresh());
    if (aTM)
    {
       aTM->mTBinLong += aTimer.uval();
@@ -663,21 +741,21 @@ double  cCompileOPC::Match
 }
 
 
-int cCompileOPC::DifShortF(const cCompileOPC & aCP,bool Overlap)
+int cCompileOPC::DifDecShortFlag(const cCompileOPC & aCP)
 {
-  return Overlap                                    ?
-         NbBitDifOfFlag(mOL_ShortFlag  , aCP.mOL_ShortFlag)  :
-         NbBitDifOfFlag(mDec_ShortFlag , aCP.mDec_ShortFlag)  ;
+  return NbBitDifOfFlag(mDecShortFlag  , aCP.mDecShortFlag)  ;
 }
 
-int cCompileOPC::DifLongF(const cCompileOPC & aCP,bool Overlap)
+int cCompileOPC::DifDecLongFlag(const cCompileOPC & aCP)
 {
-  return  Overlap                                           ?
-          NbBitDifOfFlag(mOL_LongFlag  , aCP.mOL_LongFlag)  :
-          NbBitDifOfFlag(mDec_LongFlag , aCP.mDec_LongFlag) ;
+  return NbBitDifOfFlag(mDecLongFlag,aCP.mDecLongFlag);
 }
 
 
+// double        cCompileOPC::Score1() const {return mScore1;}
+// double        cCompileOPC::Score2() const {return mScore2;}
+int  cCompileOPC::CorrShiftBest() const {return m2BCor.mShitfBest;}
+cCompileOPC * cCompileOPC::CorrBest()   const {return m2BCor.mBest;}
 
 
 
@@ -755,29 +833,29 @@ cScoreOPC::cScoreOPC(double aScore,double aHTrue,double aHRand,int aBit) :
 
 cPairOPC::cPairOPC(const cOnePCarac & aP1,const cOnePCarac & aP2) :
    mNbNonEq (0),
-   mP1   (aP1),
-   mP2   (aP2)
+   mP1   (new cCompileOPC(aP1)),
+   mP2   (new cCompileOPC(aP2))
 {
 }
 
 bool cPairOPC::CompAndIsEq(const cCompCBOneBit & aCCOB) const
 {
-   mV1 = mP1.ValCB(aCCOB);
-   mV2 = mP2.ValCB(aCCOB);
+   mV1 = mP1->ValCB(aCCOB);
+   mV2 = mP2->ValCB(aCCOB);
    return  ((mV1>0) == (mV2>0)) ;
 }
 
-const cCompileOPC & cPairOPC::P1() const { return mP1; }
-const cCompileOPC & cPairOPC::P2() const { return mP2; }
-cCompileOPC & cPairOPC::P1() { return mP1; }
-cCompileOPC & cPairOPC::P2() { return mP2; }
+const cCompileOPC & cPairOPC::P1() const { return *mP1; }
+const cCompileOPC & cPairOPC::P2() const { return *mP2; }
+cCompileOPC & cPairOPC::P1() { return *mP1; }
+cCompileOPC & cPairOPC::P2() { return *mP2; }
 const double & cPairOPC::V1() const { return mV1; }
 const double & cPairOPC::V2() const { return mV2; }
 
 void cPairOPC::AddFlag(const cCompCB & aCOB,Im1D_REAL8 aImH) const
 {
-    mP1.AddFlag(aCOB,aImH);
-    mP2.AddFlag(aCOB,aImH);
+    mP1->AddFlag(aCOB,aImH);
+    mP2->AddFlag(aCOB,aImH);
 }
 
 
@@ -928,25 +1006,26 @@ double cSetPairOPC::StatDR
             std::vector<double> & aVinc,
             std::vector<double> & aVIm,
             const cFitsParam & aFP,
-            bool OverLap
+            eTypePtRemark aType
        )
 {
+   const cFitsOneLabel * aFOL  = FOLOfLab(&aFP,aType,false);
+
    double aSeuilDR = 0.7;
    double aSeuilInc= 0.01;
    double aSeuilCorr= 0.93;
    int aNbOk = 0;
    int aNbOkS = 0;
    int aNbOkL = 0;
-   int aSeuilS = aFP.OverLap().BinIndexed().CCB().Val().BitThresh();
-   int aSeuilL = aFP.OverLap().BinDecision().CCB().Val().BitThresh();
+   int aSeuilS = aFOL->BinDecisionShort().CCB().Val().BitThresh();
+   int aSeuilL = aFOL->BinDecisionLong().CCB().Val().BitThresh();
    for (auto & aPair : mVP)
    {
-        ELISE_ASSERT(OverLap,"StatDR only OverLap 4 now");
-        aPair.P1().SetFlag(aFP.OverLap(),OverLap);
-        aPair.P2().SetFlag(aFP.OverLap(),OverLap);
+        aPair.P1().SetFlag(*aFOL);
+        aPair.P2().SetFlag(*aFOL);
 
-        int aNbDifS = aPair.P1().DifShortF(aPair.P2(),OverLap);
-        int aNbDifL = aPair.P1().DifLongF(aPair.P2(),OverLap);
+        int aNbDifS = aPair.P1().DifDecShortFlag(aPair.P2());
+        int aNbDifL = aPair.P1().DifDecLongFlag(aPair.P2());
         bool OkS = aNbDifS <= aSeuilS;
         bool OkL = aNbDifL <= aSeuilL;
         if (OkS) 
@@ -1053,7 +1132,7 @@ class cAppli_NH_ApprentBinaire
             void OptimLocal(const std::string & aIn,const std::string & aOut);
             cCalcOB COB(const  cCompCBOneBit &);
 
-            void StatTruthTRand(bool Overlap);
+            void StatTruthTRand(eTypePtRemark aType);
       private :
             // Si aNumInv<0 => Random
             // aModeRand 0 => rand X, 1=> rand Y , 2 => all
@@ -1284,11 +1363,7 @@ void cAppli_NH_ApprentBinaire::DoOne(eTypePtRemark aType)
     }
     else if (mNumStep==3)
     {
-       StatTruthTRand(true);
-    }
-    else if (mNumStep==4)
-    {
-       StatTruthTRand(false);
+       StatTruthTRand(aType);
     }
 }
 
@@ -1311,17 +1386,17 @@ void CmpStat(const std::vector<double> &  aVTruth,const std::vector<double> &  a
                << "\n";
 }
 
-void   cAppli_NH_ApprentBinaire::StatTruthTRand(bool OverLap)
+void   cAppli_NH_ApprentBinaire::StatTruthTRand(eTypePtRemark aType)
 {
 
    StdInitFitsPm(mFitParam);
    std::vector<double> aVTDr,aVTInc,aVTIm;
-   double aPropT = mVTruthCur->StatDR(aVTDr,aVTInc,aVTIm,mFitParam,OverLap);
+   double aPropT = mVTruthCur->StatDR(aVTDr,aVTInc,aVTIm,mFitParam,aType);
 
    getchar();
 
    std::vector<double> aVRDr,aVRInc,aVRIm;
-   double aPropR = mVRandCur->StatDR(aVRDr,aVRInc,aVRIm,mFitParam,OverLap);
+   double aPropR = mVRandCur->StatDR(aVRDr,aVRInc,aVRIm,mFitParam,aType);
 
    std::cout << "DistInvRad \n";
    std::vector<double> aVDr({0.5,0.6,0.7,0.8,0.9});

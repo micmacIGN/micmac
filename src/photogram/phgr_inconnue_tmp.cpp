@@ -362,12 +362,14 @@ cRapOnZ::cRapOnZ
      double aZ,
      double aIncertCompens,
      double aIncertEstim,
-     const std::string & aLayerIm
+     const std::string & aLayerIm,
+     const std::string & aKeyGrpApply
 ) :
    mZ   (aZ),
    mIC  (aIncertCompens),
    mIE  (aIncertEstim),
-   mLayerIm (aLayerIm)
+   mLayerIm (aLayerIm),
+   mKeyGrpApply (aKeyGrpApply)
 {
 }
 
@@ -377,6 +379,10 @@ const std::string & cRapOnZ::LayerIm() const
    return mLayerIm;
 }
 
+const std::string & cRapOnZ::KeyGrpApply() const
+{
+   return mKeyGrpApply;
+}
 
 
 double cRapOnZ::Z() const {return  mZ;}

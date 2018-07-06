@@ -92,22 +92,22 @@ std::vector<Pt3dr> cCmpTieP_Appli::CalcDev(std::vector<Pt3dr> aVPt3d1, std::vect
 	//calc min
 	std::cout <<  "***** Min ***********" << std::endl;
 	std::cout << "Min X = " << CalcMin(aResX) << std::endl;
-	std::cout << "Min X = " << CalcMin(aResY) << std::endl;
-	std::cout << "Min X = " << CalcMin(aResZ) << std::endl;
+	std::cout << "Min Y = " << CalcMin(aResY) << std::endl;
+	std::cout << "Min Z = " << CalcMin(aResZ) << std::endl;
 	std::cout <<  "*********************" << std::endl;
 	
 	//calc max
 	std::cout <<  "***** Max ***********" << std::endl;
 	std::cout << "Max X = " << CalcMax(aResX) << std::endl;
-	std::cout << "Max X = " << CalcMax(aResY) << std::endl;
-	std::cout << "Max X = " << CalcMax(aResZ) << std::endl;
+	std::cout << "Max Y = " << CalcMax(aResY) << std::endl;
+	std::cout << "Max Z = " << CalcMax(aResZ) << std::endl;
 	std::cout <<  "*********************" << std::endl;
 	
 	//calc std
 	std::cout <<  "***** Std ***********" << std::endl;
 	std::cout << "Std X = " << CalcStd(aResX) << std::endl;
-	std::cout << "Std X = " << CalcStd(aResY) << std::endl;
-	std::cout << "Std X = " << CalcStd(aResZ) << std::endl;
+	std::cout << "Std Y = " << CalcStd(aResY) << std::endl;
+	std::cout << "Std Z = " << CalcStd(aResZ) << std::endl;
 	std::cout <<  "*********************" << std::endl;
 	
 	return aResDev;
