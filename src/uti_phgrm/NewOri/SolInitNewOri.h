@@ -322,6 +322,7 @@ class cAppli_NewSolGolInit : public cCommonMartiniAppli
 
 
         std::string &  InOri() {return mInOri;}
+        std::string &  OriOut() {return mOriOut;}
         bool   HasInOri() {return  mHasInOri;}
 
 

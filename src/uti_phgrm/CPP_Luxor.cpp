@@ -293,7 +293,7 @@ cAppliLuxor::cAppliLuxor(int argc, char** argv) :
 	mInOri(""),
 	mInCal(""),
 	mSH(""),
-	mOut("Out")
+	mOut("Luxor")
 {
 	std::string aPattern;
 
