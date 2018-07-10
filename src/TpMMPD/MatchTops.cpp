@@ -154,23 +154,23 @@ std::vector<Tops> ReadTopsFile(string aTops, const std::string & TimeSys)
                 std::string aCRT = strtok(NULL," \t"); //camera raw time
 
                 // flag send by ublox gps to camligh, written in tops file, 4 situations: have received between 2 epochs 1) 1 rising and 1 falling, 2) One falling 3) One rising 4) more than one rising and one falling
-                 //rf , rf   , f     , r
+                //rf , rf   , f     , r
                 int Hexval(0);
                 std::istringstream(aFlag) >> std::hex >> Hexval;
                 // the value of the 8th bit of this exadecimal flag is true, which means a newRisingEdge is detected
                 // le & simple est une comparaison bit à bit
                 if ((Hexval & 0x80 )!=0){
 
-                Tops aTops;            
-                aTops.TopsGpsWeek = atoi(aWeek.c_str());
-                aTops.TopsTow = atof(aRE.c_str());
-                aTops.TopsCRT = atof(aCRT.c_str());
+                    Tops aTops;
+                    aTops.TopsGpsWeek = atoi(aWeek.c_str());
+                    aTops.TopsTow = atof(aRE.c_str());
+                    aTops.TopsCRT = atof(aCRT.c_str());
 
-                aTops.TopsMJD = towTime2MJD(aTops.TopsGpsWeek, aTops.TopsTow, TimeSys);
+                    aTops.TopsMJD = towTime2MJD(aTops.TopsGpsWeek, aTops.TopsTow, TimeSys);
 
-                aVTops.push_back(aTops);
+                    aVTops.push_back(aTops);
                 } else {
-               count_otherFlag++;
+                    count_otherFlag++;
                 }
 
             }
@@ -214,44 +214,44 @@ int ImgTMTxt2Xml_main (int argc, char ** argv)
 {
     std::string aINTFile, aTops, aExt=".thm.tif", aOut="Img_TM.xml", aTSys="GPS", aPatFile;
     ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  << EAMC(aINTFile, "File of image camera raw time (all_name_rawtime.txt)", eSAM_IsExistFile)
-                    << EAMC(aTops,"Tops file containing ToW and CRT (tops.txt)",eSAM_IsExistFile),
-        LArgMain()  << EAM(aExt,"Ext",true,"Extension of Imgs, Def = .thm.tif")
-                    << EAM(aTSys,"TSys",true,"Time system, Def=GPS")
-                    << EAM(aOut,"Out",true,"Output matched file name, Def=Img_TM.xml")
-                    << EAM(aPatFile,"ImPat",true,"image pattern from which will be extracted camera raw time. If this arguement is provided, the file provided as first compulsory argument is overwritten.")
-    );
+            (
+                argc,argv,
+                LArgMain()  << EAMC(aINTFile, "File of image camera raw time (all_name_rawtime.txt)", eSAM_IsExistFile)
+                << EAMC(aTops,"Tops file containing ToW and CRT (tops.txt)",eSAM_IsExistFile),
+                LArgMain()  << EAM(aExt,"Ext",true,"Extension of Imgs, Def = .thm.tif")
+                << EAM(aTSys,"TSys",true,"Time system, Def=GPS")
+                << EAM(aOut,"Out",true,"Output matched file name, Def=Img_TM.xml")
+                << EAM(aPatFile,"ImPat",true,"image pattern from which will be extracted camera raw time. If this arguement is provided, the file provided as first compulsory argument is overwritten.")
+                );
 
     if (EAMIsInit(&aPatFile)){
-    std::string aTmpFile("Tmp-MTD-CL.txt");
-    cInterfChantierNameManipulateur* aICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
-    std::list<std::string> aVImName = aICNM->StdGetListOfFile(aPatFile);
-    FILE * aFOut = FopenNN(aINTFile.c_str(),"w","out");
-    for (auto & imName : aVImName){
-    // head: read and print the first 1220 bytes of the file (containing the metadata) . grep: option --binary-file=text because otherwise stop functionning
-    std::string aCom="head " + imName + " -c 1220 | grep 'CAMERARAWTIME' --binary-files=text > " + aTmpFile;
-    // ofset 512
-    System(aCom);
-    ifstream aFichier(aTmpFile.c_str());
-    if(aFichier)
-    {
-        std::string aLine;
-        getline(aFichier,aLine,'\n');
-        // recover camera raw time value from the line
-        char *aBuffer = strdup((char*)aLine.c_str());
-        std::string aVal1Str = strtok(aBuffer,"=");
-        std::string aCRT = strtok( NULL, " " );
-        // save the name of the image and its CRT
-        fprintf(aFOut,"%s %s\n",imName.c_str(),aCRT.c_str()); // tab to separate column
-        aFichier.close();
-        // argument aExt set to null because the above code save name of the image with extension, no need to add it afteward
-    } else { std::cout << "Warn, I fail to read file " << aTmpFile << " that should have contains camera raw time from Camlight image " << imName << "\n";}
-    }
-    ElFclose(aFOut);
-    aExt="";
-    std::cout << "Camera raw time value extracted from " << aVImName.size() << " images and save in file " << aINTFile << " \n";
+        std::string aTmpFile("Tmp-MTD-CL.txt");
+        cInterfChantierNameManipulateur* aICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+        std::list<std::string> aVImName = aICNM->StdGetListOfFile(aPatFile);
+        FILE * aFOut = FopenNN(aINTFile.c_str(),"w","out");
+        for (auto & imName : aVImName){
+            // head: read and print the first 1220 bytes of the file (containing the metadata) . grep: option --binary-file=text because otherwise stop functionning
+            std::string aCom="head " + imName + " -c 1220 | grep 'CAMERARAWTIME' --binary-files=text > " + aTmpFile;
+            // ofset 512
+            System(aCom);
+            ifstream aFichier(aTmpFile.c_str());
+            if(aFichier)
+            {
+                std::string aLine;
+                getline(aFichier,aLine,'\n');
+                // recover camera raw time value from the line
+                char *aBuffer = strdup((char*)aLine.c_str());
+                std::string aVal1Str = strtok(aBuffer,"=");
+                std::string aCRT = strtok( NULL, " " );
+                // save the name of the image and its CRT
+                fprintf(aFOut,"%s %s\n",imName.c_str(),aCRT.c_str()); // tab to separate column
+                aFichier.close();
+                // argument aExt set to null because the above code save name of the image with extension, no need to add it afteward
+            } else { std::cout << "Warn, I fail to read file " << aTmpFile << " that should have contains camera raw time from Camlight image " << imName << "\n";}
+        }
+        ElFclose(aFOut);
+        aExt="";
+        std::cout << "Camera raw time value extracted from " << aVImName.size() << " images and save in file " << aINTFile << " \n";
     }
 
     //read aImTimeFile
@@ -285,13 +285,13 @@ int GenImgTM_main (int argc, char ** argv)
 {
     std::string aDir,aGPSFile,aGPSF,aOutINT="all_name_date.xml",aGPS_S="GPS_selected.txt",aGPS_L="GPS_left.xml";
     ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  << EAMC(aGPSFile, "File of GPS position and MJD time", eSAM_IsExistFile),
-        LArgMain()  << EAM(aOutINT,"OutINT",true,"Output Img name/time couple file, Def = all_name_date.xml")
-                    << EAM(aGPS_S,"SGPS",true,"Output selected GPS file, Def = GPS_selected.txt")
-                    << EAM(aGPS_L,"SGPR",true,"Output left GPS file, Def = GPS_left.xml")
-    );
+            (
+                argc,argv,
+                LArgMain()  << EAMC(aGPSFile, "File of GPS position and MJD time", eSAM_IsExistFile),
+                LArgMain()  << EAM(aOutINT,"OutINT",true,"Output Img name/time couple file, Def = all_name_date.xml")
+                << EAM(aGPS_S,"SGPS",true,"Output selected GPS file, Def = GPS_selected.txt")
+                << EAM(aGPS_L,"SGPR",true,"Output left GPS file, Def = GPS_left.xml")
+                );
     SplitDirAndFile(aDir,aGPSF,aGPSFile);
 
     //read .xml file
@@ -336,6 +336,109 @@ int GenImgTM_main (int argc, char ** argv)
     MakeFileXML(aDico_left,aGPS_L);
     ElFclose(aFP);
 
+    return EXIT_SUCCESS;
+}
+
+// extract image name and time mark from txt file generated by Joe's (LOEMI) code fusgpsimg, which put GPS time stamp on camlight images
+
+class cFusGPS2DicoImgTime;
+class cReadImgTM;
+
+class  cReadImgTM : public cReadObject
+{
+public :
+    cReadImgTM(char aComCar,const std::string & aFormat) :
+        cReadObject(aComCar,aFormat,"S"),
+        mImName("toto")
+    {
+        AddString("N",&mImName,true);
+        // gps week
+        AddDouble("W",&mTopsGpsWeek,false);
+        // gps second
+        AddDouble("Sec",&mTopsTow,false);
+    }
+    std::string mImName;
+    double mTopsGpsWeek;
+    double mTopsTow;
+};
+
+class cFusGPS2DicoImgTime{
+public:
+    cFusGPS2DicoImgTime(int argc,char ** argv);
+    cDicoImgsTime mDicoIT;
+private:
+    bool mDebug;
+    std::string mFileIn, mOut;
+    std::string mStrType;
+    eTypeFichierApp mType;
+
+};
+
+cFusGPS2DicoImgTime::cFusGPS2DicoImgTime(int argc,char ** argv):
+    mOut("Img_TM.xml")
+{
+    ElInitArgMain
+            (
+                argc,argv,
+                LArgMain()  << EAMC(mStrType,"Format specification", eSAM_None, ListOfVal(eNbTypeApp))
+                // to do : load several txt file if several flight? could be interresting
+                // arg TimeSys
+                // debug: std;;cout
+                << EAMC(mFileIn, "Txt file with image name and GPS time, as the one generated with fusgpsimg", eSAM_IsExistFile),
+
+                LArgMain()
+                << EAM(mDebug,"Debug",true,"help debbuging by printing messages in terminal")
+                << EAM(mOut,"Out",true,"Output matched file name, Def=Img_TM.xml")
+                );
+
+
+    if (!MMVisualMode)
+    {
+
+        bool Help;
+        StdReadEnum(Help,mType,mStrType,eNbTypeApp,true);
+
+        std::string aFormat;
+        char        aCom;
+
+        if (mType==eAppInFile)
+        {
+            bool Ok = cReadObject::ReadFormat(aCom,aFormat,mFileIn,true);
+            ELISE_ASSERT(Ok,"File do not begin by format specification");
+        }
+        else
+        {
+            bool Ok = cReadObject::ReadFormat(aCom,aFormat,mStrType,false);
+            ELISE_ASSERT(Ok,"Arg0 is not a valid format specif (AppInFile or '#F=N_W_I')");
+        }
+        std::cout << "Comment=[" << aCom<<"]\n";
+        std::cout << "Format=[" << aFormat<<"]\n";
+
+        char * aLine;
+        int i(0);
+
+        cReadImgTM aReadImgTM(aCom,aFormat);
+        ELISE_fp aFIn(mFileIn.c_str(),ELISE_fp::READ);
+        while ((aLine = aFIn.std_fgets()))
+        {
+            if (aReadImgTM.Decode(aLine))
+            {
+                cCpleImgTime aCpleIT;
+                aCpleIT.NameIm() = aReadImgTM.mImName;
+                aCpleIT.TimeIm() = towTime2MJD(aReadImgTM.mTopsGpsWeek, aReadImgTM.mTopsTow,"GPS");
+                mDicoIT.CpleImgTime().push_back(aCpleIT);
+            }
+            i ++;
+        }
+        aFIn.close();
+
+        MakeFileXML(mDicoIT,mOut);
+    }
+}
+
+int main_Txt2CplImageTime(int argc, char ** argv)
+{
+    cFusGPS2DicoImgTime(argc,argv);
     return EXIT_SUCCESS;
 }
 

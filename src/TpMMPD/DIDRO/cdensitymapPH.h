@@ -23,6 +23,7 @@ private:
     void initDensityMap(); // initialise density map
     void loadPH(); // load Tie point 2D
     void populateDensityMap(); // compute 3D position for each TP and modify
+    void populateDensityMap4Tests(); // Test purposes
     Pt2di XY2UV(Pt2dr aVal);
 
     cInterfChantierNameManipulateur * mICNM;
@@ -57,6 +58,7 @@ private:
     bool mDebug;
     bool mSavePly;
     bool mPrintTP_info;
+    bool mWithRadiometry;
     std::string mDir,mOriPat,mOut,mFileSH;
     std::list<std::string> mOriFL;// xml Orientation File List
     cSetTiePMul * mTPM;

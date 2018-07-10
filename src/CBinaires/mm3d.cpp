@@ -660,6 +660,7 @@ extern int  Tapioca_IDR_main(int argc, char ** argv);
 extern int  resizeImg_main(int argc, char ** argv);
 extern int  resizeHomol_main(int argc, char ** argv);
 extern int  VarioCamTo8Bits_main(int argc, char ** argv);
+extern int  main_Txt2CplImageTime(int argc, char ** argv);
 // test de jo
 extern int  main_test(int argc,char ** argv);
 extern int  main_test2(int argc,char ** argv);
@@ -1113,6 +1114,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("IntersectHomol",IntersectHomol_main ,"Pseudo-intersection for tie points"));
         aRes.push_back(cMMCom("ReechMAF",ReechMAF_main ,"Apply map to image measurement file"));
         aRes.push_back(cMMCom("ImgTMTxt2Xml",ImgTMTxt2Xml_main ,"Match tops time with image time to get GPS time"));
+        aRes.push_back(cMMCom("ImgTMTxt2Xml_B",main_Txt2CplImageTime ,"Convert txt file containing camlight image name and GPS week and time into micmac format"));
+
         aRes.push_back(cMMCom("MoyMAF",MoyMAF_main ,"Calculate center of 4 corner points"));
         aRes.push_back(cMMCom("GenImgTM",GenImgTM_main ,"Generate fake Img name/time couple from GPS .xml file"));
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
