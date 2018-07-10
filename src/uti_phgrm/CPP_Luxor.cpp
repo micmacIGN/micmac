@@ -95,6 +95,9 @@ class cAppliLuxor
 		std::string        mSH;
 		std::string        mOut;
 
+        bool DoBASCULE;
+        bool DoLBA; 
+
 		cInterfChantierNameManipulateur 			* mICNM; 
 	    const cInterfChantierNameManipulateur::tSet * mSetIm;	
 		int 										  mNbIm;
@@ -108,12 +111,15 @@ class cAppliLuxor
 		void        CalculFen   ();
 
 
-		void DoBBAGlob();
-		void DoBBA    ();
-		void DoBBA    (const std::string &,bool Init=false);
-		void DoSBBA   ();
-		void DoSBBA   (const std::string &,bool Init=false);
-		void DoSBBAFus();	
+		void DoBBAGlob     ();
+		void DoBBA         ();
+		void DoBBA         (const std::string &,bool Init=false);
+		void DoSBBA        ();
+		void DoSBBA        (const std::string & aNameCur,
+                            const std::string & aNamePrev="");
+		void BasculeMorito (const std::string & aNameCur,
+                            const std::string & aNamePrev);
+		void LBACampari    (const std::list<std::string> );	
 		 
 		
 };
@@ -172,6 +178,26 @@ getchar();
 	
 }
 
+void cAppliLuxor::LBACampari(const std::list<std::string> )
+{
+
+}
+
+void cAppliLuxor::BasculeMorito (const std::string & aNameCur,
+                                 const std::string & aNamePrev)
+{
+	std::string aCom = MMBinFile("mm3d Morito ") +
+                        "Ori-Martini" + StdPrefix(aNamePrev) + "/Ori.*xml " +
+                        "Ori-Martini" + StdPrefix(aNameCur) + "/Ori.*xml " +
+                        "Martini" + StdPrefix(aNameCur) ; 
+    
+    std::cout << "CMD=" << aCom << "\n";                        
+	TopSystem(aCom.c_str());
+     
+
+}
+
+
 void cAppliLuxor::DoBBA(const std::string & aName,bool Init)
 {
 
@@ -218,19 +244,21 @@ void cAppliLuxor::DoBBA()
 	}	
 }
 
-void cAppliLuxor::DoSBBA(const std::string & aName,bool Init)
+void cAppliLuxor::DoSBBA(const std::string & aName,const std::string & aNamePrev)
 {
 
 	std::string aCom = MMBinFile("mm3d Martini ") 
                        + "NKS-Set-OfFile@" + aName;
 
 
-    if (EAMIsInit(&mInOri) && Init)
-        aCom += " InOri=" + mInOri;
-    else if (!Init)
+    if (aNamePrev=="")
+        aCom += " OriOut=Martini" + StdPrefix(aName);
+    else
     {
-        mInOri = "Martini" + mInCal;
-        aCom += " InOri=" + mInOri;
+        mInOri = "Martini" + StdPrefix(aNamePrev);
+       
+        aCom += " InOri=" + mInOri +
+                " OriOut=Martini" + StdPrefix(aName);
 
     }
 
@@ -247,43 +275,50 @@ void cAppliLuxor::DoSBBA(const std::string & aName,bool Init)
 	
 }
 
+/* Two options : 
+   a- DoSBBA DoBASCULE=false - Martini with    InOri from prev sliding window to keep the repere
+   b- DoSBBA DoBASCULE=true  - Martini without InOri but with Morito    
+    then, LBA with Campari if desired */
 void cAppliLuxor::DoSBBA()
 {
-	int i=0;
-
-	for (auto aW : mWName)
-	{
-		if (i==0)
-			DoSBBA(aW,true);
-		else
-			DoSBBA(aW);
-		i++;
-	}	
-}
-
-void cAppliLuxor::DoSBBAFus()
-{
 	int i      =0;
-	int aNbBba =0;
 
-	for (auto aW : mWName)
-	{
+    std::list<std::string>::iterator aW = mWName.begin();
+    for ( ; aW!=mWName.end(); aW++)
+    {
+        if (i==0)
+            DoSBBA(*aW);
+        else if(DoBASCULE)
+        {
+            DoSBBA(*aW);
+            BasculeMorito (*aW,*std::prev(aW,1));
+        }
+        else
+			DoSBBA(*aW,*std::prev(aW,i));
 
-		if (aNbBba==mBBAPas)
-		{
-			DoBBA(aW);
-			aNbBba=-1;
-		}
-
-		if (i==0)
-			DoSBBA(aW,true);
-		else
-			DoSBBA(aW);
-
-		i++;
-		aNbBba++;
-	}	
+        if (DoLBA)
+        {
+            if ( (i+1)%mBBAPas == 0)
+            {
+                std::list<std::string> aLBAWAll;
+                for (int aLBAWTmp=mBBAPas; aLBAWTmp>0; aLBAWTmp--)
+                {
+                    std::cout << "ewwww="<<  i << " " << *aW << " " << "\n";
+                    std::cout << "ewwwwwwww="<< aLBAWTmp << " " << *std::prev(aW,aLBAWTmp) << "\n";
+                    aLBAWAll.push_back( *std::prev(aW,aLBAWTmp) );
+                }
+        getchar();
+                LBACampari(aLBAWAll);
+                
+            }
+        }
+                
+        i++;
+    }
 }
+
+
+
 
 
 cAppliLuxor::cAppliLuxor(int argc, char** argv) :
@@ -293,7 +328,9 @@ cAppliLuxor::cAppliLuxor(int argc, char** argv) :
 	mInOri(""),
 	mInCal(""),
 	mSH(""),
-	mOut("Out")
+	mOut("Luxor"),
+    DoBASCULE(false),
+    DoLBA(false)
 {
 	std::string aPattern;
 
@@ -307,6 +344,8 @@ cAppliLuxor::cAppliLuxor(int argc, char** argv) :
 				   << EAM (mBBAPas,"BbaPas",true,"BBa step; Def=2 every other processing window")  
 				   << EAM (mInOri,"InOri",true,"Input external orientation")  
 				   << EAM (mInCal,"InCal",true,"Input internal orientation")  
+				   << EAM (DoBASCULE,"Basc",true,"Do Bascule with Morito, Def=false")  
+				   << EAM (DoLBA,"LBA",true,"Do LBA with Campari, Def=false")  
 				   << EAM (mSH,"SH",true,"Homol prefix") 
 				   << EAM (mOut,"Out",true,"Output orientation") 
 	);
@@ -343,7 +382,6 @@ cAppliLuxor::cAppliLuxor(int argc, char** argv) :
 			break;
 
 		case eSBBAFus :
-			DoSBBAFus();
 			break;
 
 		case eUndefVal :

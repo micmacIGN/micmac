@@ -101,6 +101,7 @@ class cCommonMartiniAppli
        std::string    mPrefHom;
        std::string    mExtName;
        std::string    mInOri;
+       std::string    mOriOut;
        //  std::string    mBlinis;
        bool           mAcceptUnSym;
        bool           mQuick;
