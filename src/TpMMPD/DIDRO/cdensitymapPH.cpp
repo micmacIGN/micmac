@@ -158,7 +158,7 @@ void cDensityMapPH::populateDensityMap() {
 
     // PAUSE
     //system("PAUSE");
-
+    bool test(1);
     // Loop on every config of TPM of the set of TPM
     for (auto & aCnf : mTPM->VPMul()) {
 
@@ -166,6 +166,13 @@ void cDensityMapPH::populateDensityMap() {
         std::vector<double> aResid;
         // Retrieve 3D position in model geometry with residual
         std::vector<Pt3dr> aPts = aCnf->IntersectBundle(mCams, aResid);
+
+        double maxRes=*max_element(aResid.begin(),aResid.end());
+        if (maxRes>10) {
+
+            std::cout << " resid vector : " << aResid << "\n";
+            test=0;
+        }
 
         // Id of the point
         int i(0);

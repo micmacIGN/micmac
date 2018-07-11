@@ -94,6 +94,7 @@ private :
     bool                         mEcart;
     bool                         mSysGeoC2Rtl;
     std::string                  mNameChSys;
+    bool                         mDiscardImTM;
 };
 
 
@@ -188,7 +189,8 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
     mWithInc    (true),
     mWithIncVitesse    (true),
     mEcart        (false),
-    mSysGeoC2Rtl  (false)
+    mSysGeoC2Rtl  (false),
+    mDiscardImTM(false)
 {
     std::cout.precision(15) ;
     std::string aOut;
@@ -215,6 +217,8 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
                 << EAM(mEcart,"Ecart",false,"Generate difference between the interpolated position and the nearest GPS position, def=false")
                 << EAM(mSysGeoC2Rtl,"SysGeoC2RTL",false,"Make chgs sys from geoc to RTL of first point")
                 << EAM(mNameChSys,"ChSys",false,"To chang coorrdinate system")
+                << EAM(mDiscardImTM,"Discard",false,"Discard images that are taken ouside time range of GPS observation, def false.\n")
+
                 );
 
 
@@ -284,6 +288,36 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
         printf("Img_MJD[0] = %lf LocSec=%lf \n",aT0Im,ConvertLocTime(aT0Im));
         printf("Img_MJD[end] = %lf LocSec=%lf \n",aTNIm,ConvertLocTime(aTNIm));
         printf("****************************************************************\n");
+
+        int ct(0);
+        if (mDiscardImTM){
+
+
+            for( std::vector< cCpleImgTime >::const_iterator iT=mDicoIm.CpleImgTime().begin();
+                 iT!=mDicoIm.CpleImgTime().end();)
+            {
+                if (!(iT->TimeIm()>aT0Gps && iT->TimeIm()<aTNGps)){
+                    std::cout << "Discard image " << iT->NameIm() << " which was shooted outside GPS recording \n";
+                    iT = mDicoIm.CpleImgTime().erase(iT);
+                    ct++;
+                } else {
+                    iT++;}
+            }
+
+        }
+            if (ct>0){
+            aT0Im  = mDicoIm.CpleImgTime().front().TimeIm();
+            aTNIm  = mDicoIm.CpleImgTime().back().TimeIm();
+            std::cout << ct << " image were discarded.\n";
+            printf("****************************************************************\n");
+            printf("Gps_MJD[0] = %lf LocSec=%lf \n",  aT0Gps,ConvertLocTime(aT0Gps));
+            printf("Gps_MJD[end] = %lf LocSec=%lf \n",aTNGps,ConvertLocTime(aTNGps) );
+            printf("****************************************************************\n");
+            printf("****************************************************************\n");
+            printf("Img_MJD[0] = %lf LocSec=%lf \n",aT0Im,ConvertLocTime(aT0Im));
+            printf("Img_MJD[end] = %lf LocSec=%lf \n",aTNIm,ConvertLocTime(aTNIm));
+            printf("****************************************************************\n");
+        }
 
 
         if (! mAcceptExtrapol)
