@@ -60,6 +60,7 @@ fusion
 
 */
 
+
 void BanniereLuxor()
 {
     std::cout <<  "\n";
@@ -85,7 +86,7 @@ class cAppliLuxor
 		int                        mWSz;        //sliding window size
 		int				           mNbWinAll;	//number of all windows
 		int				           mWPas;		//sliding window step (how many frames added at a time)
-		int				           mBBAPas;		//bba step
+		int				           mLBAPas;		//bba step
 		std::list< std::string >   mWName;      //list of all frames
 
 		std::string        mInOri;
@@ -94,9 +95,13 @@ class cAppliLuxor
 		std::string        mIms;
 		std::string        mSH;
 		std::string        mOut;
+        std::string        mWinPrefix;
+        std::string        mWinOriPostfix;
 
         bool DoBASCULE;
         bool DoLBA; 
+
+        bool LBA_ACTIVE;                        //to indicate whether adjustement has been lunched
 
 		cInterfChantierNameManipulateur 			* mICNM; 
 	    const cInterfChantierNameManipulateur::tSet * mSetIm;	
@@ -106,9 +111,13 @@ class cAppliLuxor
 		std::string 			mStrType;	
 		eTypeOriVid 			mType;
 
-		void        ReadType    (const std::string & aType);	
-		std::string MakeFenName (const int aNum);
-		void        CalculFen   ();
+		void        ReadType        (const std::string & aType);	
+		std::string MakeFenName     (const int aNum);
+		std::string MakeFenOriName  (const int aNum);
+		std::string MakeCampOriName (const std::string &);
+		void        CalculFen       ();
+        std::string WinPrefix       () {return mWinPrefix;}
+        std::string WinOriPostfix   () {return mWinOriPostfix;}
 
 
 		void DoBBAGlob     ();
@@ -119,50 +128,75 @@ class cAppliLuxor
                             const std::string & aNamePrev="");
 		void BasculeMorito (const std::string & aNameCur,
                             const std::string & aNamePrev);
-		void LBACampari    (const std::list<std::string> );	
+		void LBACampari    (const std::list<std::string>& );	
 		 
 		
 };
 
 std::string cAppliLuxor::MakeFenName (const int aNum)
 {
-	return "Fen-" + ToString(aNum) + ".xml";
+	return WinPrefix() + ToString(aNum) + ".xml";
 }
+
+std::string cAppliLuxor::MakeFenOriName (const int aNum)
+{
+	return WinPrefix() + ToString(aNum) + WinOriPostfix() + ".xml";
+}
+
+std::string cAppliLuxor::MakeCampOriName (const std::string & aName)
+{
+	return aName + WinOriPostfix() + ".xml";
+}
+
 
 void cAppliLuxor::CalculFen()
 {
+    std::string aKeyOri2ImGen = std::string("NKS-Assoc-Im2Orient@-") + "Fen-";
 
 	//calculate the windows
-	std::vector< std::list< std::string >> aWVTmp;
+	//std::vector< std::list< std::string >> aWVTmp;
 
 	std::cout << "fenetres sous traitement: \n";
 	for (int aW=0; aW<mNbWinAll; aW++)
 	{
+
+        std::string aKeyOri2Im = aKeyOri2ImGen + ToString(aW);
+
 		cListOfName              aXml;
+		cListOfName              aXmlOri;
 		std::list< std::string > aImInWL;
+		std::list< std::string > aImInWLOri;
+
+
 
 		for (int aIm=0; aIm<mWSz; aIm++)
 		{	
 			int aIGlob ;   
 			aIGlob = aW * mWPas + aIm;
-
-		
+		    
 			if (aIGlob<mNbIm)
+            {
 				aImInWL.push_back((*mSetIm)[aIGlob]);
-			
+
+                aImInWLOri.push_back( mICNM->Assoc1To1(aKeyOri2Im,(*mSetIm)[aIGlob],true));
+
+			}
 			std::cout << " Num=" << aIGlob << " " << (*mSetIm)[aIGlob] << " \n" ;
 
 		}
 		std::cout << ".." << aW+1 << "/" << mNbWinAll << "\n" ;
 		
-		aWVTmp.push_back(aImInWL);
+		//aWVTmp.push_back(aImInWL);
 
-		aXml.Name() = aImInWL;
+		aXml.Name()    = aImInWL;
+		aXmlOri.Name() = aImInWLOri;
+
 		MakeFileXML(aXml,MakeFenName(aW));
+		MakeFileXML(aXmlOri,MakeFenOriName(aW));
+
 		mWName.push_back(MakeFenName(aW));
 	}
 
-getchar();
 	//add a "tail" to each window    --- move the xml save outside
 	/*if (mNbWinVois)	
 	{
@@ -178,20 +212,97 @@ getchar();
 	
 }
 
-void cAppliLuxor::LBACampari(const std::list<std::string> )
+void cAppliLuxor::LBACampari(const std::list<std::string>& aStrList)
 {
+    /* Read all files and create a new merged NKS
+       - mmvii EditSet could do it but must be compiled 
+         which shouldn't be taken for granted
+       Copy the calibration files too  */
+ 
+    mInOri = "Camp-"; 
 
+    std::string aKeyOri2ImGen = std::string("NKS-Assoc-Im2Orient@-");
+
+    std::string             aCampOriIn = "Ori-Campari-tmp";
+    ELISE_fp::MkDir(aCampOriIn);
+
+    std::string             aXmlName = "Camp-";
+    cListOfName             aXml;
+    std::list<std::string>  aListName;
+    for (auto itL : aStrList)
+    {
+       std::string aKeyOri2Im = aKeyOri2ImGen + StdPrefix(itL);
+
+       mInOri   += StdPrefix(itL) + "_";
+       aXmlName += StdPrefix(itL) + "_";
+
+       cListOfName aLTmp = StdGetFromPCP(itL,ListOfName); 
+       for (auto itLT : aLTmp.Name())
+       {
+           aListName.push_back(itLT);
+
+           ELISE_fp::CpFile
+           (
+               mICNM->Assoc1To1(aKeyOri2Im,itLT,true),
+               aCampOriIn
+           );
+       }
+       //calibration file
+       ELISE_fp::CpFile
+       (
+           DirOfFile(mICNM->Assoc1To1(aKeyOri2Im,"",true)) + "AutoCal*.xml",
+           aCampOriIn
+       );
+
+    } 
+    aXml.Name() = aListName;
+    MakeFileXML(aXml,aXmlName+".xml");
+
+  
+    /* Create NKS with orientations (to feed in Morito / Martini later on)  */
+    std::string aXmlOriName = MakeCampOriName(aXmlName);
+    cListOfName aXmlOri;
+    std::list<std::string>  aListOriName;
+
+    std::string aKeyOri2Im = aKeyOri2ImGen + aXmlName;
+    for (auto it : aListName) 
+    {
+        aListOriName.push_back(mICNM->Assoc1To1(aKeyOri2Im,it,true));
+    }
+    aXmlOri.Name() = aListOriName;
+    MakeFileXML(aXmlOri,aXmlOriName); 
+
+
+    std::string aCom = MMBinFile("mm3d Campari ") +
+                       "NKS-Set-OfFile@" + aXmlName + ".xml " 
+                       + aCampOriIn + " " 
+                       + mInOri ;
+
+    std::cout << "LBA= " << aCom << "\n";
+
+    TopSystem(aCom.c_str());
+   
+    ELISE_fp::PurgeDirRecursif(aCampOriIn);
+    ELISE_fp::RmDir(aCampOriIn);
+    
+    LBA_ACTIVE = true; 
 }
 
 void cAppliLuxor::BasculeMorito (const std::string & aNameCur,
                                  const std::string & aNamePrev)
 {
+	/*std::string aCom = MMBinFile("mm3d Morito ") +
+                        "Ori-" + StdPrefix(aNameCur) + "/Ori.*xml " +
+                        "Ori-" + StdPrefix(aNamePrev) + "/Ori.*xml " +
+                         StdPrefix(aNameCur) ; */
+    std::cout << "aNamePrev/aNameCur=" << aNamePrev << " " << aNameCur << "\n";                     
 	std::string aCom = MMBinFile("mm3d Morito ") +
-                        "Ori-Martini" + StdPrefix(aNamePrev) + "/Ori.*xml " +
-                        "Ori-Martini" + StdPrefix(aNameCur) + "/Ori.*xml " +
-                        "Martini" + StdPrefix(aNameCur) ; 
+                        "NKS-Set-OfFile@" + StdPrefix(aNamePrev) + "-Ori.xml " + 
+                        "NKS-Set-OfFile@" + StdPrefix(aNameCur)  + "-Ori.xml " +
+                         StdPrefix(aNameCur) ; 
+   
     
-    std::cout << "CMD=" << aCom << "\n";                        
+    std::cout << "CMD=" << aCom << "\n";                     
 	TopSystem(aCom.c_str());
      
 
@@ -246,20 +357,22 @@ void cAppliLuxor::DoBBA()
 
 void cAppliLuxor::DoSBBA(const std::string & aName,const std::string & aNamePrev)
 {
+    std::cout << "er aName/aNamePrev=" << aName << " " << aNamePrev << "\n";
 
-	std::string aCom = MMBinFile("mm3d Martini ") 
+    std::string aInOri = aNamePrev;
+   // (aNamePrev == "") ? aInOri = aNamePrev : aInOri = StdPrefix(aNamePrev); 
+
+	std::string aCom   = MMBinFile("mm3d Martini ") 
                        + "NKS-Set-OfFile@" + aName;
 
 
     if (aNamePrev=="")
-        aCom += " OriOut=Martini" + StdPrefix(aName);
+        aCom += " OriOut=" + StdPrefix(aName);
     else
     {
-        mInOri = "Martini" + StdPrefix(aNamePrev);
        
-        aCom += " InOri=" + mInOri +
-                " OriOut=Martini" + StdPrefix(aName);
-
+        aCom += " InOri=" + aInOri +
+                " OriOut=" + StdPrefix(aName);
     }
 
 
@@ -291,26 +404,42 @@ void cAppliLuxor::DoSBBA()
         else if(DoBASCULE)
         {
             DoSBBA(*aW);
-            BasculeMorito (*aW,*std::prev(aW,1));
+            
+            if (LBA_ACTIVE)
+                BasculeMorito (*aW,mInOri + ".xml");
+            else
+            {
+                BasculeMorito (*aW,*std::prev(aW,1));
+            }
         }
         else
-			DoSBBA(*aW,*std::prev(aW,i));
+        {
+            if (LBA_ACTIVE)
+                DoSBBA(*aW,mInOri + ".xml");
+            else
+			    DoSBBA(*aW,*std::prev(aW,i));
+        }
 
         if (DoLBA)
         {
-            if ( (i+1)%mBBAPas == 0)
+            if ( (i+1)%mLBAPas == 0)
             {
+                LBA_ACTIVE = true;
+
                 std::list<std::string> aLBAWAll;
-                for (int aLBAWTmp=mBBAPas; aLBAWTmp>0; aLBAWTmp--)
+                for (int aLBAWTmp=mLBAPas-1; aLBAWTmp>=0; aLBAWTmp--)
                 {
-                    std::cout << "ewwww="<<  i << " " << *aW << " " << "\n";
-                    std::cout << "ewwwwwwww="<< aLBAWTmp << " " << *std::prev(aW,aLBAWTmp) << "\n";
+                    if (ERupnik_MM())
+                        std::cout << "ewwwwwwww="<< aLBAWTmp << " " << *std::prev(aW,aLBAWTmp) << "\n";
+                    
                     aLBAWAll.push_back( *std::prev(aW,aLBAWTmp) );
                 }
-        getchar();
+
                 LBACampari(aLBAWAll);
                 
             }
+            else
+                LBA_ACTIVE = false;
         }
                 
         i++;
@@ -324,13 +453,16 @@ void cAppliLuxor::DoSBBA()
 cAppliLuxor::cAppliLuxor(int argc, char** argv) :
 	mWSz(5),
 	mWPas(2),
-	mBBAPas(2),
+	mLBAPas(2),
 	mInOri(""),
 	mInCal(""),
 	mSH(""),
 	mOut("Luxor"),
+    mWinPrefix("Fen-"),
+    mWinOriPostfix("-Ori"),
     DoBASCULE(false),
-    DoLBA(false)
+    DoLBA(false),
+    LBA_ACTIVE(false)
 {
 	std::string aPattern;
 
@@ -341,7 +473,7 @@ cAppliLuxor::cAppliLuxor(int argc, char** argv) :
 		           << EAMC(aPattern,"Pattern of images")
 				   << EAMC(mWSz,"Processing window size"),
 		LArgMain() << EAM (mWPas,"M",true,"Motion of the processing window in frames; Def=2")  
-				   << EAM (mBBAPas,"BbaPas",true,"BBa step; Def=2 every other processing window")  
+				   << EAM (mLBAPas,"LBAPas",true,"BBa step; Def=2 every other processing window")  
 				   << EAM (mInOri,"InOri",true,"Input external orientation")  
 				   << EAM (mInCal,"InCal",true,"Input internal orientation")  
 				   << EAM (DoBASCULE,"Basc",true,"Do Bascule with Morito, Def=false")  
@@ -358,7 +490,6 @@ cAppliLuxor::cAppliLuxor(int argc, char** argv) :
     StdCorrecNameOrient(mInOri,mDir);
 
 	ReadType(mStrType);
-
 
 
 	mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
