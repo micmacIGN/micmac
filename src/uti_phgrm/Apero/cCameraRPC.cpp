@@ -1258,6 +1258,7 @@ if(1)
         ISDIR=true;
         
 
+        //a priori pas necessaire
         SetRecGrid();
    
         Show();
