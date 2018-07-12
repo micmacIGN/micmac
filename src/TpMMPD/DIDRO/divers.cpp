@@ -63,14 +63,19 @@ public:
     void SortImBlurred();
 private:
     cInterfChantierNameManipulateur * mICNM;
-    bool mMTD,DoOri,DoMEC,Purge,mF;
+    bool DoOri,DoMEC,Purge,mF;
     std::string mDir,mDirPat,mWD,mOut,mOutSufix;
     std::list<std::string> mImName;
     std::map<int,std::string> mIms;
 };
 //mm3d TestLib jo_test ./ "000." Suf="_MM1" DoMEC=1 DoOri=1 Purge=0 F=0
 
-cLionPaw::cLionPaw(int argc,char ** argv):DoMEC(0),DoOri(1),Purge(1),mOutSufix("_MM"),mF(0)
+cLionPaw::cLionPaw(int argc,char ** argv):
+    DoOri(1),
+    DoMEC(0),
+    Purge(1),
+    mF(0),
+    mOutSufix("_MM")
 {
     mDir="./";
     ElInitArgMain
@@ -101,7 +106,12 @@ cLionPaw::cLionPaw(int argc,char ** argv):DoMEC(0),DoOri(1),Purge(1),mOutSufix("
     }
 }
 
-cOneLionPaw::cOneLionPaw(int argc,char ** argv):DoOri(1),DoMEC(0),Purge(1),mOutSufix("_MM"),mF(0)
+cOneLionPaw::cOneLionPaw(int argc,char ** argv):
+    DoOri(1),
+    DoMEC(0),
+    Purge(1),
+    mF(0),
+    mOutSufix("_MM")
 {
     mDir="./";
     ElInitArgMain
