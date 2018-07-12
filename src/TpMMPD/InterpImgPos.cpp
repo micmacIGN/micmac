@@ -293,7 +293,7 @@ cIIP_Appli::cIIP_Appli(int argc,char ** argv) :
         if (mDiscardImTM){
 
 
-            for( std::vector< cCpleImgTime >::const_iterator iT=mDicoIm.CpleImgTime().begin();
+            for( std::vector< cCpleImgTime >::iterator iT=mDicoIm.CpleImgTime().begin();
                  iT!=mDicoIm.CpleImgTime().end();)
             {
                 if (!(iT->TimeIm()>aT0Gps && iT->TimeIm()<aTNGps)){

@@ -104,6 +104,7 @@ std::string current_program_fullname();   // mm3d's full name (absolute path + e
 std::string current_program_subcommand(); // mm3d's subcommand (Tapioca, Apero, etc.)
 int MMNbProc();
 bool MPD_MM(); // Est ce que c'est ma machine, afin de ne pas polluer les autres en phase de test !!!!
+bool ERupnik_MM();
 
 #if(ELISE_QT_VERSION >= 4)
 	string MMQtLibraryPath();
