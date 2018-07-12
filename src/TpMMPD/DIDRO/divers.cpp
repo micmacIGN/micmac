@@ -40,9 +40,217 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cimgeo.h"
 #include "cero_modelonepaire.h"
 #include "cfeatheringandmosaicking.h"
+#include "../mergehomol.h"
+#include "ascii2tif.cpp"
 
 
 extern int RegTIRVIS_main(int , char **);
+
+
+class cLionPaw{
+public:
+    cLionPaw(int argc,char ** argv);
+private:
+    cInterfChantierNameManipulateur * mICNM;
+    bool DoOri,DoMEC,Purge,mF;
+    std::string mDir,mDirPat,mWD,mOut,mOutSufix;
+};
+
+class cOneLionPaw{
+public:
+    cOneLionPaw(int argc,char ** argv);
+    void testMTD();
+    void SortImBlurred();
+private:
+    cInterfChantierNameManipulateur * mICNM;
+    bool mMTD,DoOri,DoMEC,Purge,mF;
+    std::string mDir,mDirPat,mWD,mOut,mOutSufix;
+    std::list<std::string> mImName;
+    std::map<int,std::string> mIms;
+};
+//mm3d TestLib jo_test ./ "000." Suf="_MM1" DoMEC=1 DoOri=1 Purge=0 F=0
+
+cLionPaw::cLionPaw(int argc,char ** argv):DoMEC(0),DoOri(1),Purge(1),mOutSufix("_MM"),mF(0)
+{
+    mDir="./";
+    ElInitArgMain
+            (
+                argc,argv,
+                LArgMain()  << EAMC(mDir,"Working Directory", eSAM_IsDir)
+                            << EAMC(mDirPat,"Directory Pattern to process", eSAM_IsPatFile)
+                ,
+                LArgMain()  << EAM(mOutSufix,"Suf",true, "resulting ply suffix , default result is Directory+'_MM'.ply .")
+                            << EAM(DoMEC,"DoMEC",true, "Perform dense matching, def false .")
+                            << EAM(DoOri,"DoOri",true, "Perform orientation, def true.")
+                            << EAM(Purge,"Purge",true, "Purge intermediate results, def true.")
+                            << EAM(mF,"F",true, "overwrite results, def false.")
+                );
+    if (!MMVisualMode)
+    {
+        mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+
+        vector<std::string> aVDir = getDirListRegex(mDirPat);
+        list<std::string> aLCom;
+
+        for (auto & WD : aVDir){
+        std::string aCom=MMBinFile(MM3DStr)+" TestLib jo_test2 " + WD + " " + " Suf="+ mOutSufix + " DoMEC="+ToString(DoMEC)+ " DoOri=" + ToString(DoOri) + " Purge="+ToString(Purge) + " F="+ToString(mF);
+        aLCom.push_back(aCom);
+        std::cout << aCom << "\n";
+        }
+     cEl_GPAO::DoComInParal(aLCom);
+    }
+}
+
+cOneLionPaw::cOneLionPaw(int argc,char ** argv):DoOri(1),DoMEC(0),Purge(1),mOutSufix("_MM"),mF(0)
+{
+    mDir="./";
+    ElInitArgMain
+            (
+                argc,argv,
+                LArgMain()  << EAMC(mDir,"Working Directory", eSAM_IsDir)
+
+                ,
+                LArgMain() << EAM(mOutSufix,"Suf",true, "resulting ply suffix , default result is Directory+'_MM'.ply .")
+                << EAM(DoMEC,"DoMEC",true, "Perform dense matching, def false .")
+                << EAM(DoOri,"DoOri",true, "Perform orientation, def true.")
+                << EAM(Purge,"Purge",true, "Purge intermediate results, def true.")
+                << EAM(mF,"F",true, "overwrite results, def false.")
+                );
+    if (!MMVisualMode)
+    {
+
+        mOut=mDir+mOutSufix+".ply";
+
+        std::cout << "I will process data " << mDir << "\n";
+
+        // martini ne fonctionne que si on est dans le directory grrr
+
+        std::string aPat("'.*.(jpg|JPG)'");
+
+        //std::string aPat("'"+mDir+"/.*.(jpg|JPG)'");
+        std::string aCom("");
+
+        // if no MTD, give fake ones
+        testMTD();
+        SortImBlurred();
+        mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+        chdir(mDir.c_str());
+
+        if (DoOri){
+
+            if(ELISE_fp::IsDirectory("Ori-C1") && mF==0){
+               std::cout << "Orientation exist, use F=1 to overwrite it\n" ;
+            }   else {
+
+            aCom=MMBinFile(MM3DStr)+" Tapioca All "+ aPat + " 700 Ratio=0.8 @SFS";
+            std::cout << aCom << "\n";
+            system_call(aCom.c_str());
+            aCom=MMBinFile(MM3DStr)+" Martini "+ aPat ;
+            std::cout << aCom << "\n";
+            system_call(aCom.c_str());
+            aCom=MMBinFile(MM3DStr) +" Ratafia "+ aPat + " DistPMul=50";
+            std::cout << aCom << "\n";
+            system_call(aCom.c_str());
+            aCom=MMBinFile(MM3DStr)+" Tapas RadialBasic "+ aPat + " SH=-Ratafia" ;
+            std::cout << aCom << "\n";
+            system_call(aCom.c_str());
+            //aCom=MMBinFile(MM3DStr)+" Tapas Fraser "+ aPat + " InOri=RadialBasic InCal=RadialBasic SH=-Ratafia ";
+            aCom=MMBinFile(MM3DStr)+" Campari "+ aPat + " RadialBasic C1 SH=-Ratafia GradualRefineCal=Fraser";
+            std::cout << aCom << "\n";
+            system_call(aCom.c_str());
+            aCom=MMBinFile(MM3DStr)+" AperiCloud "+ aPat + " C1 SH=-Ratafia Out=../cloud_" + mOut ;
+            std::cout << aCom << "\n";
+            system_call(aCom.c_str());
+           }
+        }
+
+        if (DoMEC){
+
+        }
+
+        if (Purge) {
+
+            std::list<std::string> aLDir;
+            aLDir.push_back("Tmp-MM-Dir");
+            aLDir.push_back("Pyram");
+            aLDir.push_back("Pastis");
+            aLDir.push_back("NewOriTmpQuick");
+            aLDir.push_back("Tmp-ReducTieP");
+            aLDir.push_back("Ori-RadialBasic");
+            aLDir.push_back("Ori-Martini");
+            aLDir.push_back("Ori-InterneScan");
+
+            for (auto & dir : aLDir){
+            if(ELISE_fp::IsDirectory(dir))
+            {
+               std::cout << "Purge and remove directory " << dir << "\n";
+               ELISE_fp::PurgeDir(dir,1);
+            }
+            }
+
+        }
+        // purge of intermediate results
+    }
+}
+
+void cOneLionPaw::SortImBlurred(){
+
+    vector<Pt2dr> aVPair;
+
+    for (auto & imName : mIms){
+
+    Im2D_REAL4 aIm=Im2D_REAL4::FromFileStd(imName.second);
+
+    double aVar = VarLap(&aIm);
+    Pt2dr aPair(imName.first, aVar);
+    aVPair.push_back(aPair);
+    }
+    // choose the best image
+    sortDescendPt2drY(aVPair);
+
+    int imCt(0);
+    for (auto & pair : aVPair){
+    if (imCt<25) std::cout << imCt << ":  image " << mIms[round(pair.x)] << " i keep it \n";
+    if (imCt>=25) {std::cout << imCt << ":  image " << mIms[round(pair.x)] << " i remove it \n";
+    std::string aCom("mv " + mIms[round(pair.x)] + " " + mIms[round(pair.x)] + "_bu" );
+    std::cout << aCom << "\n";
+    system_call(aCom.c_str());
+    }
+
+    imCt++;
+    }
+}
+
+
+                 void cOneLionPaw::testMTD(){
+
+                 // il ne faut pas qu'il y en aie dans le répertroire "repetition1"
+                 std::cout << "Test Metadata \n";
+
+                 mICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+                 std::string aPat(mDir+"/.*.(jpg|JPG)");
+                 // get first image of im list
+
+                 mImName = mICNM->StdGetListOfFile(aPat);
+
+                 int imCt(0);
+                 for (auto & Name : mImName){
+                 mIms[imCt]=Name;
+                 imCt++;
+
+    }
+
+                 cMetaDataPhoto aMTD =  cMetaDataPhoto::CreateExiv2(mIms[0]);
+    if (aMTD.Foc35(true)<0){
+        std::cout << "No metadata, I give some that are fake \n\n\n";
+        std::string aCall("cp ../MicMac-LocalChantierDescripteur.xml "+mDir+"/");
+        system_call(aCall.c_str());
+    } else {
+        std::cout << "Metadata found for image " << mIms[0]<< "\n\n";
+    }
+
+    }
+
 
 // survey of a concrete wall, orientation very distorded, we export every tie point as GCP with a Z fixed by the user, in order to use them in campari
 class cTPM2GCPwithConstantZ{
@@ -1221,10 +1429,17 @@ int main_test2(int argc,char ** argv)
     //statRadianceVarioCam_main(argc,argv);
     //cTPM2GCPwithConstantZ(argc,argv);
     //cMeasurePalDeg2RGB(argc,argv);
+    cLionPaw(argc,argv);
 
    return EXIT_SUCCESS;
 }
 
+
+int main_OneLionPaw(int argc,char ** argv)
+{
+    cOneLionPaw(argc,argv);
+    return EXIT_SUCCESS;
+}
 
 int main_testold(int argc,char ** argv)
 {

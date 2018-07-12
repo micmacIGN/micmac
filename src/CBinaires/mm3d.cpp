@@ -673,6 +673,7 @@ int main_featheringOrthoBox(int argc,char ** argv);
 int GCP2DMeasureConvert_main(int argc,char ** argv);
 int main_densityMapPH(int argc,char ** argv);
 int main_manipulateNF_PH(int argc,char ** argv);
+int main_OneLionPaw(int argc,char ** argv);
 
 #if (ELISE_UNIX)
 extern int  DocEx_Introanalyse_main(int, char **);
@@ -996,7 +997,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("jo_FFH",FilterFileHom_main,"filtrer un fichier de paire d'image"));
         aRes.push_back(cMMCom("jo_T2V",T2V_main,"appliquer une homographie a un ensemble d'im thermique pour Reg avec images visibles"));
         aRes.push_back(cMMCom("jo_test",main_test2,"test function for didro project"));
-        aRes.push_back(cMMCom("jo_test2",main_manipulateNF_PH,"test function"));
+        aRes.push_back(cMMCom("jo_test2",main_OneLionPaw,"test function"));
         aRes.push_back(cMMCom("GCP2Hom",GCP2Hom_main,"Convert GCP 2D measures in homol file"));
         aRes.push_back(cMMCom("TapiocaIDR",Tapioca_IDR_main,"Utiliser Tapioca avec des Images de Résolution Différente (effectue un resample des images)"));
         aRes.push_back(cMMCom("ResizeImg",resizeImg_main,"Resize image in order to reach a specific image width"));
