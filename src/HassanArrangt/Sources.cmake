@@ -13,7 +13,7 @@ set(HassanArrangt_Src_Files
 	${HASSA_DIR}/cFullSubGrWithP.cpp
 )
 
-SOURCE_GROUP(HassanArrangt FILES ${HassanArrangt_Src_Files})
+source_group(HassanArrangt FILES ${HassanArrangt_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

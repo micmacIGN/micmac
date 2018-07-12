@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#if ELISE_QT_VERSION >=4
+#if ELISE_QT 
 
 	#include "../saisieQT/include_QT/Cloud.h"
 	

@@ -6,7 +6,7 @@ set(Algo_speciaux_Src_Files
 	${ALOG_SPE_DIR}/FiltreDepthMaps.cpp
 )
 
-SOURCE_GROUP(Algo_speciaux FILES ${Algo_speciaux_Src_Files})
+source_group(Algo_speciaux FILES ${Algo_speciaux_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}
