@@ -294,7 +294,9 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
         if (mImNewP=="")
            mImNewP = mNameIm;
         mWithPCarac = true;
-        mSPC =  LoadStdSetCarac(mImNewP,mExtImNewP,mLabel);
+
+        // ELISE_ASSERT(false,"Vino revoir labels");
+        mSPC =  LoadStdSetCarac(mLabel,mImNewP,mExtImNewP);
         mQTPC = new tQtOPC (mArgQt,Box2dr(Pt2dr(-10,-10),Pt2dr(10,10)+Pt2dr(mTifSz)),5,euclid(mTifSz)/50.0);
 
         for (int aKP=0 ; aKP<int(mSPC->OnePCarac().size()) ; aKP++)

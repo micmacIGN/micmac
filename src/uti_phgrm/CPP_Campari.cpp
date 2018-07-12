@@ -147,6 +147,7 @@ cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
             // alias
             << EAM(GlobLibCD,"LibCD",true,"Free distorsion center, Def context dependant. Principal Point should be also free if CD is free", eSAM_IsBool)
             << EAM(GlobLibDec,"LibDec",true,"Free decentric parameter, Def context dependant", eSAM_IsBool)
+            << EAM(mRapOnZ,"RapOnZ",true,"Force Rappel on Z [Z,Sigma,KeyGrp]")
                ;
 }
 
@@ -159,6 +160,16 @@ LArgMain &   cAppli_Tapas_Campari::ArgATP()
 
 void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
 {
+    if (EAMIsInit(&mRapOnZ))
+    {
+	 ELISE_ASSERT(mRapOnZ.size()==3,"Bad size for RapOnZ");
+	 mCom = mCom + " +WithRapOnZ=true" 
+		     + " +ZRapOnZ=" + mRapOnZ[0] 
+		     + " +SigmaRapOnZ=" + mRapOnZ[1] 
+		     + " +KeyGrpRapOnZ=" + mRapOnZ[2] + " "
+		 ;
+    }
+
     AddParamBloc(mCom,mVBlockRel,"TimeRel",true);
     AddParamBloc(mCom,mVBlockGlob,"Glob",true);
     AddParamBloc(mCom,mVBlockDistGlob,"DistGlob",false);
@@ -389,6 +400,8 @@ class cAppli_Campari : public cAppli_Tapas_Campari
        std::vector<std::string>  mVOptGlob;
 */
 
+       std::vector<double>   mPdsErrorGps;
+
 };
 
 
@@ -472,6 +485,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         LArgMain()  << EAM(GCP,"GCP",true,"[GrMes.xml,GrUncertainty,ImMes.xml,ImUnc]", eSAM_NoInit)
                     << EAM(EmGPS,"EmGPS",true,"Embedded GPS [Gps-Dir,GpsUnc, ?GpsAlti?], GpsAlti if != Plani", eSAM_NoInit)
                     << EAM(aGpsLA,"GpsLa",true,"Gps Lever Arm, in combination with EmGPS", eSAM_NoInit)
+                    << EAM(mPdsErrorGps,"PdsResiduGps",true,"Gps weigthing according to error [Mode,MaxPlani,SigmaPlani,MaxAlti,SigmaAlti] Mode=2 (Gauss), 1 (L1 sec)", eSAM_NoInit)
                     << EAM(aVMultiLA,"MultiLA",true,"If multiple LA indicates the patterns of different subsets (first pattern being implicitely first mandatory parameter) ", eSAM_NoInit)
                     << EAM(aIncLA,"IncLA",true,"Inc on initial value of LA (Def not used)")
                     << EAM(aPatGPS,"PatGPS",true,"When EmGPS, filter images where GPS is used")
@@ -479,11 +493,11 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aFactResElimTieP,"FactElimTieP", true, "Fact elimination of tie point (prop to SigmaTieP, Def=5)")
                     << EAM(CPI1,"CPI1",true,"Calib Per Im, Firt time", eSAM_IsBool)
                     << EAM(CPI2,"CPI2",true,"Calib Per Im, After first time, reUsing Calib Per Im As input", eSAM_IsBool)
-                    << EAM(AllFree,"AllFree",true,"Refine all calibration parameters (Def=false, exept for GradualRefineCal option)", eSAM_IsBool)
+                    << EAM(AllFree,"AllFree",true,"Refine all calibration parameters (Def=false)", eSAM_IsBool)
                     << EAM(CalibMod2Refine,"GradualRefineCal",true,"Calibration model to refine gradually",eSAM_None)
                     << EAM(DetailAppuis,"DetGCP",true,"Detail on GCP (Def=false)", eSAM_IsBool)
                     << EAM(Viscos,"Visc",true,"Viscosity on external orientation in Levenberg-Marquardt like resolution (Def=1.0)")
-                    << EAM(AddViscInterne,"AddViscInterne",true,"Add Viscosity on calibration parameter (Def=false)")
+                    << EAM(AddViscInterne,"AddViscInterne",true,"Add Viscosity on calibration parameter (Def=false, exept for GradualRefineCal)")
                     << EAM(ViscosInterne,"ViscInterne",true,"Viscosity on calibration parameter (Def=0.1), use it with AddViscInterne=true")
                     << EAM(ExpTxt,"ExpTxt",true, "Export in text format (Def=false)",eSAM_IsBool)
                     << EAM(aImMinMax,"ImMinMax",true, "Im max and min to avoid tricky pat")
@@ -554,7 +568,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
        if (EAMIsInit(&CalibMod2Refine)){
 
        InitVerifModele(CalibMod2Refine,mICNM);
-       if (!EAMIsInit(&AllFree)) AllFree=1;
+       if (!EAMIsInit(&AddViscInterne)) AddViscInterne=1;
        }
 
        if (!GlobLibPP && GlobLibCD) std::cout << "Warning, distorsion center is set to free but Principal point is set to frozen.\n I will not adjust Distorsion center.\n";
@@ -700,6 +714,25 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                              + " +IncLaY=" + ToString(aIncLA.y)
                              + " +IncLaZ=" + ToString(aIncLA.z) ;
             }
+        }
+
+        if (EAMIsInit(&mPdsErrorGps))
+        {
+            ELISE_ASSERT(mPdsErrorGps.size()==5,"Bad size for PdsResiduGps");
+            std::string aModePond;
+            if (mPdsErrorGps[0]==1)  
+               aModePond="eL1Secured";
+            else if (mPdsErrorGps[0]==2)  
+               aModePond= "ePondGauss";
+            else
+            {
+               ELISE_ASSERT(false,"Bad size for PdsResiduGps");
+            }
+            mCom = mCom + " +ModePondCentre=" + aModePond
+                        + " +EcartMaxPlaniPondCentre=" + ToString(mPdsErrorGps[1])
+                        + " +SigmaPlaniPondCentre=" + ToString(mPdsErrorGps[2])
+                        + " +EcartMaxAltiPondCentre=" + ToString(mPdsErrorGps[3])
+                        + " +SigmaPlaniPondCentre=" + ToString(mPdsErrorGps[4]) ;
         }
 
 

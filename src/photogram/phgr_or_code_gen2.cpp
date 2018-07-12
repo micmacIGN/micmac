@@ -83,6 +83,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CPolyn7.cpp"  // 
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CFishEye_10_5_5.cpp"  // 
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CEquiSolid_FishEye_10_5_5.cpp"  // 
+#include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CStereographique_FishEye_10_5_5.cpp"  // 
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CDRad_PPaEqPPs.cpp"  // 
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CFraser_PPaEqPPs.cpp"  // 
 
@@ -97,6 +98,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CPolyn7.cpp"  // 
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CFishEye_10_5_5.cpp"  // 
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CEquiSolid_FishEye_10_5_5.cpp"  // 
+#include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CStereographique_FishEye_10_5_5.cpp" //
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CDRad_PPaEqPPs.cpp"  // 
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CFraser_PPaEqPPs.cpp"  // 
 
@@ -180,6 +182,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CFishEye_10_5_5.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CEquiSolid_FishEye_10_5_5.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CStereographique_FishEye_10_5_5.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CDRad_PPaEqPPs.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CFraser_PPaEqPPs.cpp"
 
@@ -204,6 +207,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CFishEye_10_5_5.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CEquiSolid_FishEye_10_5_5.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CStereographique_FishEye_10_5_5.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CDRad_PPaEqPPs.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CFraser_PPaEqPPs.cpp"
 

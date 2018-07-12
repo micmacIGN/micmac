@@ -9,8 +9,9 @@ typedef enum
   eTPR_GrayMin,
   eTPR_BifurqMax,
   eTPR_BifurqMin,
+  eTPR_NoLabel,
   eTPR_GraySadl,
-  eTPR_NoLabel
+  eTPR_BifurqSadl
 } eTypePtRemark;
 void xml_init(eTypePtRemark & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypePtRemark & aVal);
@@ -533,12 +534,16 @@ class cFitsOneLabel
         cFitsOneBin & BinIndexed();
         const cFitsOneBin & BinIndexed()const ;
 
-        cFitsOneBin & BinDecision();
-        const cFitsOneBin & BinDecision()const ;
+        cFitsOneBin & BinDecisionShort();
+        const cFitsOneBin & BinDecisionShort()const ;
+
+        cFitsOneBin & BinDecisionLong();
+        const cFitsOneBin & BinDecisionLong()const ;
     private:
         eTypePtRemark mKindOf;
         cFitsOneBin mBinIndexed;
-        cFitsOneBin mBinDecision;
+        cFitsOneBin mBinDecisionShort;
+        cFitsOneBin mBinDecisionLong;
 };
 cElXMLTree * ToXMLTree(const cFitsOneLabel &);
 
@@ -567,10 +572,26 @@ class cSeuilFitsParam
 
         cTplValGesInit< double > & SeuilCorrLP();
         const cTplValGesInit< double > & SeuilCorrLP()const ;
+
+        cTplValGesInit< double > & ExposantPdsDistGrad();
+        const cTplValGesInit< double > & ExposantPdsDistGrad()const ;
+
+        cTplValGesInit< double > & SeuilDistGrad();
+        const cTplValGesInit< double > & SeuilDistGrad()const ;
+
+        cTplValGesInit< double > & SeuilCorrelRatio12();
+        const cTplValGesInit< double > & SeuilCorrelRatio12()const ;
+
+        cTplValGesInit< double > & SeuilGradRatio12();
+        const cTplValGesInit< double > & SeuilGradRatio12()const ;
     private:
         cTplValGesInit< double > mSeuilCorrDR;
         cTplValGesInit< double > mSeuilInc;
         cTplValGesInit< double > mSeuilCorrLP;
+        cTplValGesInit< double > mExposantPdsDistGrad;
+        cTplValGesInit< double > mSeuilDistGrad;
+        cTplValGesInit< double > mSeuilCorrelRatio12;
+        cTplValGesInit< double > mSeuilGradRatio12;
 };
 cElXMLTree * ToXMLTree(const cSeuilFitsParam &);
 
@@ -591,8 +612,8 @@ class cFitsParam
         friend void xml_init(cFitsParam & anObj,cElXMLTree * aTree);
 
 
-        cFitsOneLabel & OverLap();
-        const cFitsOneLabel & OverLap()const ;
+        cFitsOneLabel & DefInit();
+        const cFitsOneLabel & DefInit()const ;
 
         std::list< cFitsOneLabel > & GenLabs();
         const std::list< cFitsOneLabel > & GenLabs()const ;
@@ -603,7 +624,7 @@ class cFitsParam
         cSeuilFitsParam & SeuilGen();
         const cSeuilFitsParam & SeuilGen()const ;
     private:
-        cFitsOneLabel mOverLap;
+        cFitsOneLabel mDefInit;
         std::list< cFitsOneLabel > mGenLabs;
         cSeuilFitsParam mSeuilOL;
         cSeuilFitsParam mSeuilGen;
@@ -615,6 +636,256 @@ void  BinaryDumpInFile(ELISE_fp &,const cFitsParam &);
 void  BinaryUnDumpFromFile(cFitsParam &,ELISE_fp &);
 
 std::string  Mangling( cFitsParam *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXAPA_OneMatch
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXAPA_OneMatch & anObj,cElXMLTree * aTree);
+
+
+        std::string & Master();
+        const std::string & Master()const ;
+
+        std::string & Pattern();
+        const std::string & Pattern()const ;
+
+        std::string & PatternRef();
+        const std::string & PatternRef()const ;
+    private:
+        std::string mMaster;
+        std::string mPattern;
+        std::string mPatternRef;
+};
+cElXMLTree * ToXMLTree(const cXAPA_OneMatch &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXAPA_OneMatch &);
+
+void  BinaryUnDumpFromFile(cXAPA_OneMatch &,ELISE_fp &);
+
+std::string  Mangling( cXAPA_OneMatch *);
+
+class cXAPA_PtCar
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXAPA_PtCar & anObj,cElXMLTree * aTree);
+
+
+        std::string & Pattern();
+        const std::string & Pattern()const ;
+    private:
+        std::string mPattern;
+};
+cElXMLTree * ToXMLTree(const cXAPA_PtCar &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXAPA_PtCar &);
+
+void  BinaryUnDumpFromFile(cXAPA_PtCar &,ELISE_fp &);
+
+std::string  Mangling( cXAPA_PtCar *);
+
+class cXlmAimeOneDir
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXlmAimeOneDir & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< bool > & DoIt();
+        const cTplValGesInit< bool > & DoIt()const ;
+
+        cTplValGesInit< bool > & DoMatch();
+        const cTplValGesInit< bool > & DoMatch()const ;
+
+        cTplValGesInit< bool > & DoPtCar();
+        const cTplValGesInit< bool > & DoPtCar()const ;
+
+        cTplValGesInit< bool > & DoRef();
+        const cTplValGesInit< bool > & DoRef()const ;
+
+        cTplValGesInit< int > & ZoomF();
+        const cTplValGesInit< int > & ZoomF()const ;
+
+        cTplValGesInit< int > & NumMatch();
+        const cTplValGesInit< int > & NumMatch()const ;
+
+        std::string & Dir();
+        const std::string & Dir()const ;
+
+        std::string & Ori();
+        const std::string & Ori()const ;
+
+        std::list< cXAPA_OneMatch > & XAPA_OneMatch();
+        const std::list< cXAPA_OneMatch > & XAPA_OneMatch()const ;
+
+        std::string & Pattern();
+        const std::string & Pattern()const ;
+
+        cXAPA_PtCar & XAPA_PtCar();
+        const cXAPA_PtCar & XAPA_PtCar()const ;
+    private:
+        cTplValGesInit< bool > mDoIt;
+        cTplValGesInit< bool > mDoMatch;
+        cTplValGesInit< bool > mDoPtCar;
+        cTplValGesInit< bool > mDoRef;
+        cTplValGesInit< int > mZoomF;
+        cTplValGesInit< int > mNumMatch;
+        std::string mDir;
+        std::string mOri;
+        std::list< cXAPA_OneMatch > mXAPA_OneMatch;
+        cXAPA_PtCar mXAPA_PtCar;
+};
+cElXMLTree * ToXMLTree(const cXlmAimeOneDir &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXlmAimeOneDir &);
+
+void  BinaryUnDumpFromFile(cXlmAimeOneDir &,ELISE_fp &);
+
+std::string  Mangling( cXlmAimeOneDir *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXlmAimeOneApprent
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXlmAimeOneApprent & anObj,cElXMLTree * aTree);
+
+
+        double & PdsW();
+        const double & PdsW()const ;
+
+        int & NbBB();
+        const int & NbBB()const ;
+
+        cTplValGesInit< int > & BitM();
+        const cTplValGesInit< int > & BitM()const ;
+    private:
+        double mPdsW;
+        int mNbBB;
+        cTplValGesInit< int > mBitM;
+};
+cElXMLTree * ToXMLTree(const cXlmAimeOneApprent &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXlmAimeOneApprent &);
+
+void  BinaryUnDumpFromFile(cXlmAimeOneApprent &,ELISE_fp &);
+
+std::string  Mangling( cXlmAimeOneApprent *);
+
+class cXlmAimeApprent
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXlmAimeApprent & anObj,cElXMLTree * aTree);
+
+
+        int & NbExEt0();
+        const int & NbExEt0()const ;
+
+        int & NbExEt1();
+        const int & NbExEt1()const ;
+
+        cTplValGesInit< double > & TimeOut();
+        const cTplValGesInit< double > & TimeOut()const ;
+
+        std::list< cXlmAimeOneApprent > & XlmAimeOneApprent();
+        const std::list< cXlmAimeOneApprent > & XlmAimeOneApprent()const ;
+    private:
+        int mNbExEt0;
+        int mNbExEt1;
+        cTplValGesInit< double > mTimeOut;
+        std::list< cXlmAimeOneApprent > mXlmAimeOneApprent;
+};
+cElXMLTree * ToXMLTree(const cXlmAimeApprent &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXlmAimeApprent &);
+
+void  BinaryUnDumpFromFile(cXlmAimeApprent &,ELISE_fp &);
+
+std::string  Mangling( cXlmAimeApprent *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXmlAimeParamApprentissage
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXmlAimeParamApprentissage & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< bool > & DefDoIt();
+        const cTplValGesInit< bool > & DefDoIt()const ;
+
+        cTplValGesInit< bool > & DefDoMatch();
+        const cTplValGesInit< bool > & DefDoMatch()const ;
+
+        cTplValGesInit< bool > & DefDoPtCar();
+        const cTplValGesInit< bool > & DefDoPtCar()const ;
+
+        cTplValGesInit< bool > & DefDoRef();
+        const cTplValGesInit< bool > & DefDoRef()const ;
+
+        cTplValGesInit< bool > & DefDoApprComb();
+        const cTplValGesInit< bool > & DefDoApprComb()const ;
+
+        cTplValGesInit< bool > & DefDoApprLocal1();
+        const cTplValGesInit< bool > & DefDoApprLocal1()const ;
+
+        cTplValGesInit< bool > & DefDoApprLocal2();
+        const cTplValGesInit< bool > & DefDoApprLocal2()const ;
+
+        cTplValGesInit< std::string > & DefParamPtCar();
+        const cTplValGesInit< std::string > & DefParamPtCar()const ;
+
+        std::list< cXlmAimeOneDir > & XlmAimeOneDir();
+        const std::list< cXlmAimeOneDir > & XlmAimeOneDir()const ;
+
+        int & NbExEt0();
+        const int & NbExEt0()const ;
+
+        int & NbExEt1();
+        const int & NbExEt1()const ;
+
+        cTplValGesInit< double > & TimeOut();
+        const cTplValGesInit< double > & TimeOut()const ;
+
+        std::list< cXlmAimeOneApprent > & XlmAimeOneApprent();
+        const std::list< cXlmAimeOneApprent > & XlmAimeOneApprent()const ;
+
+        cXlmAimeApprent & XlmAimeApprent();
+        const cXlmAimeApprent & XlmAimeApprent()const ;
+    private:
+        cTplValGesInit< bool > mDefDoIt;
+        cTplValGesInit< bool > mDefDoMatch;
+        cTplValGesInit< bool > mDefDoPtCar;
+        cTplValGesInit< bool > mDefDoRef;
+        cTplValGesInit< bool > mDefDoApprComb;
+        cTplValGesInit< bool > mDefDoApprLocal1;
+        cTplValGesInit< bool > mDefDoApprLocal2;
+        cTplValGesInit< std::string > mDefParamPtCar;
+        std::list< cXlmAimeOneDir > mXlmAimeOneDir;
+        cXlmAimeApprent mXlmAimeApprent;
+};
+cElXMLTree * ToXMLTree(const cXmlAimeParamApprentissage &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXmlAimeParamApprentissage &);
+
+void  BinaryUnDumpFromFile(cXmlAimeParamApprentissage &,ELISE_fp &);
+
+std::string  Mangling( cXmlAimeParamApprentissage *);
 
 /******************************************************/
 /******************************************************/

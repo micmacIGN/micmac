@@ -609,7 +609,8 @@ void  BinaryUnDumpFromFile(eComprTiff &,ELISE_fp &);
 typedef enum
 {
   ePCR_Atgt,
-  ePCR_2SinAtgtS2
+  ePCR_2SinAtgtS2,
+  ePCR_Stereographik
 } eTypePreCondRad;
 void xml_init(eTypePreCondRad & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypePreCondRad & aVal);
@@ -765,7 +766,8 @@ typedef enum
   eModeleRadFour15x2,
   eModeleRadFour19x2,
   eModelePolyDeg0,
-  eModelePolyDeg1
+  eModelePolyDeg1,
+  eModele_Stereographik_FishEye_10_5_5
 } eModelesCalibUnif;
 void xml_init(eModelesCalibUnif & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModelesCalibUnif & aVal);

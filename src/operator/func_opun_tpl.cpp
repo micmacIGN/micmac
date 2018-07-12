@@ -859,6 +859,142 @@ Fonc_Num Der2SAtRxS2SRx  (Fonc_Num f)
             );
 }
 
+/**********************************************************/
+/*                                                        */
+/*           ModeleStereographique                        */
+/*                                                        */
+/**********************************************************/
+
+double PrecStereographique(double x);
+double Der_PrecStereographique(double x);
+
+double SqM2CRx_StereoG(double x);
+double Der_SqM2CRx_StereoG(double x);
+
+// double Inv_PrecStereographique(double x);
+
+Fonc_Num Der_PrecStereographique(Fonc_Num f);
+Fonc_Num Der_SqM2CRx_StereoG(Fonc_Num f);
+
+         // ==========  PrecStereographique ======
+
+void tab_PrecStereographique(REAL * out, const REAL * in,INT nb)
+{
+   ELISE_ASSERT(false,"tab_PrecStereographique");
+/*
+   for (INT i=0 ; i<nb ; i++)
+         out[i] = PrecStereographique(in[i]);
+*/
+}
+static Fonc_Num DPrecStereographique(Fonc_Num f,INT k)
+{
+    return f.deriv(k) * Der_PrecStereographique(f);
+}
+/*
+static double VPrecStereographique(Fonc_Num f,const PtsKD & aPts,INT aK)
+{
+   return   f.ValDeriv(aPts,aK) *  Der_PrecStereographique(f.ValFonc(aPts));
+}
+*/
+
+Fonc_Num PrecStereographique  (Fonc_Num f)
+{
+     return Op_Un_Math::New
+            (
+                f,
+                tab_PrecStereographique,
+                "PrecStereographique",
+                PrecStereographique,
+                DPrecStereographique,
+                NoValDeriv
+            );
+}
+
+
+//=====================  Der_PrecStereographique =======
+
+void tab_Der_PrecStereographique(REAL * out, const REAL * in,INT nb)
+{
+   ELISE_ASSERT(false,"tab_Der_PrecStereographique");
+/*
+   for (INT i=0 ; i<nb ; i++)
+         out[i] = Der_PrecStereographique(in[i]);
+*/
+}
+Fonc_Num Der_PrecStereographique(Fonc_Num f)
+{
+     return Op_Un_Math::New
+            (
+                f,
+                tab_Der_PrecStereographique,
+                "Der_PrecStereographique",
+                Der_PrecStereographique,
+                NoDeriv,
+                NoValDeriv
+            );
+}
+         // ==========  SqM2CRx_StereoG ======
+
+void tab_SqM2CRx_StereoG(REAL * out, const REAL * in,INT nb)
+{
+   ELISE_ASSERT(false,"tab_SqM2CRx_StereoG");
+/*
+   for (INT i=0 ; i<nb ; i++)
+         out[i] = SqM2CRx_StereoG(in[i]);
+*/
+}
+static Fonc_Num DSqM2CRx_StereoG(Fonc_Num f,INT k)
+{
+    return f.deriv(k) * Der_SqM2CRx_StereoG(f);
+}
+/*
+static double VSqM2CRx_StereoG(Fonc_Num f,const PtsKD & aPts,INT aK)
+{
+   return   f.ValDeriv(aPts,aK) *  Der_SqM2CRx_StereoG(f.ValFonc(aPts));
+}
+*/
+
+Fonc_Num SqM2CRx_StereoG  (Fonc_Num f)
+{
+     return Op_Un_Math::New
+            (
+                f,
+                tab_SqM2CRx_StereoG,
+                "SqM2CRx_StereoG",
+                SqM2CRx_StereoG,
+                DSqM2CRx_StereoG,
+                NoValDeriv
+            );
+}
+
+//=====================  Der_SqM2CRx_StereoG =======
+
+void tab_Der_SqM2CRx_StereoG(REAL * out, const REAL * in,INT nb)
+{
+   ELISE_ASSERT(false,"tab_Der_SqM2CRx_StereoG");
+/*
+   for (INT i=0 ; i<nb ; i++)
+         out[i] = Der_SqM2CRx_StereoG(in[i]);
+*/
+}
+Fonc_Num Der_SqM2CRx_StereoG(Fonc_Num f)
+{
+     return Op_Un_Math::New
+            (
+                f,
+                tab_Der_SqM2CRx_StereoG,
+                "Der_SqM2CRx_StereoG",
+                Der_SqM2CRx_StereoG,
+                NoDeriv,
+                NoValDeriv
+            );
+}
+
+
+// double Der_SqM2CRx_StereoG(double x);
+
+
+
           // ==========  SinCardRx ===============
 void  tab_SinCardRx(REAL * out, const REAL * in,INT nb)
 {

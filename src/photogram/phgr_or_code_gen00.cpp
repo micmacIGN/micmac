@@ -258,9 +258,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CFishEye_10_5_5.h"
 
 #include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CEquiSolid_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CStereographique_FishEye_10_5_5.h"
 #include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CDRad_PPaEqPPs.h"
 
 #include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CEquiSolid_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CStereographique_FishEye_10_5_5.h"
 #include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CDRad_PPaEqPPs.h"
 
 
@@ -325,15 +327,19 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CFishEye_10_5_5.h"
 
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CEquiSolid_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CStereographique_FishEye_10_5_5.h"
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CDRad_PPaEqPPs.h"
 
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CEquiSolid_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CStereographique_FishEye_10_5_5.h"
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CDRad_PPaEqPPs.h"
 
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CEquiSolid_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CStereographique_FishEye_10_5_5.h"
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CDRad_PPaEqPPs.h"
 
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CEquiSolid_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CStereographique_FishEye_10_5_5.h"
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CDRad_PPaEqPPs.h"
 
 
@@ -451,6 +457,7 @@ AddEntry("cEqAppui_AFocal_PProjInc_M2C"#aDist,cEqAppui_AFocal_PProjInc_M2C##aDis
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CPolyn7.h"
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CFishEye_10_5_5.h"
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CEquiSolid_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CStereographique_FishEye_10_5_5.h"
 #include "../../CodeGenere/photogram/cEqAppui_PTInc_M2CDRad_PPaEqPPs.h"
 
 
@@ -464,6 +471,8 @@ AddEntry("cEqAppui_AFocal_PProjInc_M2C"#aDist,cEqAppui_AFocal_PProjInc_M2C##aDis
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CPolyn7.h"
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CFishEye_10_5_5.h"
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CEquiSolid_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CStereographique_FishEye_10_5_5.h"
+
 #include "../../CodeGenere/photogram/cEqAppui_PProjInc_M2CDRad_PPaEqPPs.h"
 
 
@@ -630,6 +639,7 @@ AddEntry("cEqAppui_PProjInc_M2C"#aDist,cEqAppui_PProjInc_M2C##aDist::Alloc);
 
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CFishEye_10_5_5.h" 
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CEquiSolid_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CStereographique_FishEye_10_5_5.h"
 #include "../../CodeGenere/photogram/cEqAppui_GL__TerFix_M2CDRad_PPaEqPPs.h"                    
 
 
@@ -654,6 +664,7 @@ AddEntry("cEqAppui_PProjInc_M2C"#aDist,cEqAppui_PProjInc_M2C##aDist::Alloc);
 
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CFishEye_10_5_5.h" 
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CEquiSolid_FishEye_10_5_5.h"
+#include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CStereographique_FishEye_10_5_5.h"
 #include "../../CodeGenere/photogram/cEqAppui_TerFix_M2CDRad_PPaEqPPs.h"                    
 
 
@@ -696,6 +707,7 @@ AddEntry("cEqAppui_PProjInc_M2C"#aDist,cEqAppui_PProjInc_M2C##aDist::Alloc);
 #include "../../CodeGenere/photogram/cREgDistDxx_EquiSolid_FishEye_10_5_5.h"
 #include "../../CodeGenere/photogram/cREgDistDx_EquiSolid_FishEye_10_5_5.h"
 #include "../../CodeGenere/photogram/cREgDistVal_EquiSolid_FishEye_10_5_5.h"
+
 
 #include "../../CodeGenere/photogram/cREgDistDxDy_FishEye_10_5_5.h"
 #include "../../CodeGenere/photogram/cREgDistDxx_FishEye_10_5_5.h"
@@ -931,6 +943,7 @@ void cElCompiledFonc::InitEntries()
      NEW_ADD_ENTRY(DCBrown)
      NEW_ADD_ENTRY(FishEye_10_5_5)
      NEW_ADD_ENTRY(EquiSolid_FishEye_10_5_5)
+     NEW_ADD_ENTRY(Stereographique_FishEye_10_5_5)
      NEW_ADD_ENTRY(DRad_PPaEqPPs)
 
      NEW_ADD_ENTRY(Polyn0)
@@ -1085,6 +1098,7 @@ void cElCompiledFonc::InitEntries()
      AddEntry("cEqAppui_PTInc_M2CPolyn7",cEqAppui_PTInc_M2CPolyn7::Alloc);
      AddEntry("cEqAppui_PTInc_M2CFishEye_10_5_5",cEqAppui_PTInc_M2CFishEye_10_5_5::Alloc);
      AddEntry("cEqAppui_PTInc_M2CEquiSolid_FishEye_10_5_5",cEqAppui_PTInc_M2CEquiSolid_FishEye_10_5_5::Alloc);
+     AddEntry("cEqAppui_PTInc_M2CStereographique_FishEye_10_5_5",cEqAppui_PTInc_M2CStereographique_FishEye_10_5_5::Alloc);
      AddEntry("cEqAppui_PTInc_M2CDRad_PPaEqPPs",cEqAppui_PTInc_M2CDRad_PPaEqPPs::Alloc);
 
 
@@ -1098,6 +1112,7 @@ void cElCompiledFonc::InitEntries()
      AddEntry("cEqAppui_PProjInc_M2CPolyn7",cEqAppui_PProjInc_M2CPolyn7::Alloc);
      AddEntry("cEqAppui_PProjInc_M2CFishEye_10_5_5",cEqAppui_PProjInc_M2CFishEye_10_5_5::Alloc);
      AddEntry("cEqAppui_PProjInc_M2CEquiSolid_FishEye_10_5_5",cEqAppui_PProjInc_M2CEquiSolid_FishEye_10_5_5::Alloc);
+     AddEntry("cEqAppui_PProjInc_M2CStereographique_FishEye_10_5_5",cEqAppui_PProjInc_M2CStereographique_FishEye_10_5_5::Alloc);
      AddEntry("cEqAppui_PProjInc_M2CDRad_PPaEqPPs",cEqAppui_PProjInc_M2CDRad_PPaEqPPs::Alloc);
 
 

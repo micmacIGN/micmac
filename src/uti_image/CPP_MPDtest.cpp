@@ -1329,9 +1329,32 @@ void TestHomogr()
 
 
 extern void TestFilterGauss();
+extern void TestCondStereo();
+
+extern void TestcBiaisedRandGenerator();
+extern void OneTestcPrediCoord();
+
+
+extern void TestcGeneratorEqColLin();
 
 int MPDtest_main (int argc,char** argv)
 {
+    {
+        TestcGeneratorEqColLin();
+        exit(EXIT_SUCCESS);
+    }
+    {
+        OneTestcPrediCoord();
+        exit(EXIT_SUCCESS);
+    }
+    {
+        TestcBiaisedRandGenerator();
+        exit(EXIT_SUCCESS);
+    }
+    {
+        TestCondStereo();
+        exit(EXIT_SUCCESS);
+    }
     {
         TestFilterGauss();
         exit(EXIT_SUCCESS);

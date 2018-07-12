@@ -1344,7 +1344,7 @@ Appli_ImPts2Dir::Appli_ImPts2Dir(int argc,char ** argv) :
         argc, argv,
         LArgMain() << EAMC(aPattern,"Pattern of images")
                    << EAMC(mOri,"Orientation directory"),
-        LArgMain() << EAM (aCircV,"Circ",true,"Vector of circle radii, Def=[100,500] px")
+        LArgMain() << EAM (aCircV,"Circ",true,"3-element vector [start_radius,end_radius,interval] en pix")
                    << EAM (mOut,"Out",true,"Output file name")
 	);
 

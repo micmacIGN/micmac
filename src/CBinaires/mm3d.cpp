@@ -208,6 +208,8 @@ int TestDistortion_main(int argc, char ** argv);
 int Blinis_main(int argc, char ** argv);
 int Contrast_main(int argc, char ** argv);
 int Nikrup_main(int argc, char ** argv);
+int TournIm_main(int argc,char ** argv);
+
 
 int TestCamRPC(int argc, char** argv);
 int TestBundleInter_main(int argc, char ** argv);
@@ -254,6 +256,7 @@ std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC, const std::string & aLib
 	return aVC;
 }
 
+int CPP_AimeApprent(int argc, char ** argv);
 int CPP_StatPHom(int argc, char ** argv);
 int CPP_PHom_RenameRef(int argc, char ** argv);
 int CPP_PHom_ApprentBinaire(int argc, char ** argv);
@@ -283,6 +286,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("Blinis", Blinis_main, "Block Initialisation ", cArgLogCom(2)));
 		aRes.push_back(cMMCom("ContrastFilter", Contrast_main, "Some contrast filtering "));
 		aRes.push_back(cMMCom("Nikrup", Nikrup_main,/*(*/ "Generik image filter, using invert polish like notation ;-) "));
+		aRes.push_back(cMMCom("Turn90Im", TournIm_main, "Turn image of 90 degre"));
 		aRes.push_back(cMMCom("RedTieP", RedTieP_main, "Test tie points filtering "));
 		aRes.push_back(cMMCom("OriRedTieP", OriRedTie_main, "Tie points filtering, using Martini results "));
 		aRes.push_back(cMMCom("Vino", Vino_Main, "Image Viewer"));
@@ -531,6 +535,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 		aRes.push_back(cMMCom("DIV", Devideo_main, "Videos development (require ffmpeg)"));
 		aRes.push_back(cMMCom("Liquor", Liquor_main, "Orientation specialized for linear acquisition"));
+		aRes.push_back(cMMCom("Luxor", Luxor_main, "Orientation specialized for linear acquisition using a sliding window",cArgLogCom(2)));
 		aRes.push_back(cMMCom("Morito", Morito_main, "Merge set of Orientations with common values"));
 		aRes.push_back(cMMCom("Donuts", Donuts_main, "Cyl to Torus (Donuts like)"));
 		aRes.push_back(cMMCom("C3DC", C3DC_main, "Automatic Matching from Culture 3D Cloud project"));
@@ -549,6 +554,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("ProfilIm", CPP_ProfilImage, "Image profiling  2D->1D "));
 		aRes.push_back(cMMCom("EditSet", CPP_EditSet, "Edition creation of a set of images/files"));
 		aRes.push_back(cMMCom("StatPHom", CPP_StatPHom, "Stat on homologous point using orientation of 3D Model"));
+		aRes.push_back(cMMCom("AimeApprent", CPP_AimeApprent, "Stat on homologous point using orientation of 3D Model"));
 		aRes.push_back(cMMCom("PHom_RenameRef", CPP_PHom_RenameRef, "Rename Ref for PHom"));
 		aRes.push_back(cMMCom("PHom_ApBin", CPP_PHom_ApprentBinaire, "Test Binary "));
 		aRes.push_back(cMMCom("FitsMatch", CPP_FitsMatch1Im, "Test Match Images NewPHom "));
@@ -629,7 +635,6 @@ extern int TestER_hom_main(int argc, char ** argv);
 extern int PFM2Tiff_main(int argc, char ** argv);
 extern int ImPts2Dir_main(int argc, char ** argv);
 extern int FictiveObstest_main(int argc, char ** argv);
-extern int OriVideo_main(int argc, char ** argv);
 extern int TestPush(int argc, char ** argv);
 //extern int Cillia_main(int argc,char ** argv);
 extern int Homol2GCP_main(int argc, char ** argv);
@@ -655,6 +660,7 @@ extern int  Tapioca_IDR_main(int argc, char ** argv);
 extern int  resizeImg_main(int argc, char ** argv);
 extern int  resizeHomol_main(int argc, char ** argv);
 extern int  VarioCamTo8Bits_main(int argc, char ** argv);
+extern int  main_Txt2CplImageTime(int argc, char ** argv);
 // test de jo
 extern int  main_test(int argc,char ** argv);
 extern int  main_test2(int argc,char ** argv);
@@ -666,6 +672,7 @@ int main_featheringOrtho(int argc,char ** argv);
 int main_featheringOrthoBox(int argc,char ** argv);
 int GCP2DMeasureConvert_main(int argc,char ** argv);
 int main_densityMapPH(int argc,char ** argv);
+int main_manipulateNF_PH(int argc,char ** argv);
 
 #if (ELISE_UNIX)
 extern int  DocEx_Introanalyse_main(int, char **);
@@ -727,6 +734,7 @@ int CPP_OptimTriplet_main(int argc, char ** argv);
 int CPP_AllOptimTriplet_main(int argc, char ** argv);
 int CPP_NewSolGolInit_main(int argc, char ** argv);
 int CPP_NewOriImage2G2O_main(int argc, char ** argv);
+int CPP_FictiveObsFin_main(int argc, char ** argv);
 int GenOriFromOnePose_main(int argc, char ** argv);
 int CPP_NewGenTriOfCple(int argc, char ** argv);
 int CPP_TestBundleGen(int argc, char ** argv);
@@ -892,11 +900,11 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("TestSI", Matthieu_main, "Test SelectionInfos"));
 		aRes.push_back(cMMCom("TestJB", TestJB_main, "random stuff"));
 		aRes.push_back(cMMCom("TestER", TestER_main2, "ER test workplace"));
+
 		aRes.push_back(cMMCom("TestER2", TestER_hom_main, "ER test hom"));
 		aRes.push_back(cMMCom("Tif2Pfm", PFM2Tiff_main, "Tif to pfm or the other way around"));
 		aRes.push_back(cMMCom("Im2Dir", ImPts2Dir_main, "Extract directions from images"));
 		aRes.push_back(cMMCom("FictObs", FictiveObstest_main, "someee stuff"));
-		aRes.push_back(cMMCom("OriDIV", OriVideo_main, "Orientate a video acquisition"));
 		aRes.push_back(cMMCom("TestAT", TestPush, "AT test workplace"));
 
 		//       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));
@@ -988,7 +996,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("jo_FFH",FilterFileHom_main,"filtrer un fichier de paire d'image"));
         aRes.push_back(cMMCom("jo_T2V",T2V_main,"appliquer une homographie a un ensemble d'im thermique pour Reg avec images visibles"));
         aRes.push_back(cMMCom("jo_test",main_test,"test function for didro project"));
-        aRes.push_back(cMMCom("jo_test2",main_test2,"test function for didro project"));
+        aRes.push_back(cMMCom("jo_test2",main_manipulateNF_PH,"test function"));
         aRes.push_back(cMMCom("GCP2Hom",GCP2Hom_main,"Convert GCP 2D measures in homol file"));
         aRes.push_back(cMMCom("TapiocaIDR",Tapioca_IDR_main,"Utiliser Tapioca avec des Images de Résolution Différente (effectue un resample des images)"));
         aRes.push_back(cMMCom("ResizeImg",resizeImg_main,"Resize image in order to reach a specific image width"));
@@ -1045,6 +1053,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("NO_ExportG2O",CPP_NewOriImage2G2O_main,"New Orientation : export triplets to g2o"));
 
         aRes.push_back(cMMCom("NO_GenTriOfCple",CPP_NewGenTriOfCple,"New Orientation : select triple of one edge"));
+		aRes.push_back(cMMCom("NO_FicObs", CPP_FictiveObsFin_main, "New orientation : ficticious observations"));
 
         aRes.push_back(cMMCom("OriMatis2MM",MatisOri2MM_main,"Convert from Matis to MicMac"));
 
@@ -1101,6 +1110,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("IntersectHomol",IntersectHomol_main ,"Pseudo-intersection for tie points"));
         aRes.push_back(cMMCom("ReechMAF",ReechMAF_main ,"Apply map to image measurement file"));
         aRes.push_back(cMMCom("ImgTMTxt2Xml",ImgTMTxt2Xml_main ,"Match tops time with image time to get GPS time"));
+        aRes.push_back(cMMCom("ImgTMTxt2Xml_B",main_Txt2CplImageTime ,"Convert txt file containing camlight image name and GPS week and time into micmac format"));
+
         aRes.push_back(cMMCom("MoyMAF",MoyMAF_main ,"Calculate center of 4 corner points"));
         aRes.push_back(cMMCom("GenImgTM",GenImgTM_main ,"Generate fake Img name/time couple from GPS .xml file"));
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
@@ -1146,6 +1157,7 @@ extern int SATvalid_main(int argc, char ** argv);
 extern int SATTrajectory_main(int argc, char ** argv);
 extern int SatEmpriseSol_main(int argc, char ** argv);
 extern int CalcBsurH_main(int argc, char ** argv);
+extern int CalcBsurHGrille_main(int argc, char ** argv);
 extern int CPP_SATDef2D_main(int argc, char ** argv);
 extern int CPP_TestRPCDirectGen(int argc, char ** argv);
 extern int CPP_TestRPCBackProj(int argc, char ** argv);
@@ -1179,6 +1191,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 	aRes.push_back(cMMCom("SatFootprint", SatEmpriseSol_main, "Satellite foortprints in ply"));
 	aRes.push_back(cMMCom("SatTrajectory", SATTrajectory_main, "Satellite trajectories in ply"));
 	aRes.push_back(cMMCom("BsurH", CalcBsurH_main, "Calculate the b/h ratio for a pattern of images"));
+	aRes.push_back(cMMCom("BsurHGRI", CalcBsurHGrille_main, "Calculate the b/h ratio for a pattern of images"));
 	aRes.push_back(cMMCom("SATD2D", CPP_SATDef2D_main, "Visualize 2D deformation fields of a pushbroom image"));
 	aRes.push_back(cMMCom("TestRPC", CPP_TestRPCDirectGen, "Test the calculation of direct RPCs"));
 	aRes.push_back(cMMCom("TestRPCBackprj", CPP_TestRPCBackProj, "Backproject a point to images"));

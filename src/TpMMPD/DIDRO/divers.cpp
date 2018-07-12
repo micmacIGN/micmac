@@ -226,6 +226,7 @@ class cVarioCamTo8Bits
     bool mOverwrite;
     Pt2di mRangeT;
     bool mCelcius;
+    bool mOptris;
 };
 
 
@@ -233,7 +234,8 @@ cVarioCamTo8Bits::cVarioCamTo8Bits(int argc,char ** argv) :
       mFullDir	("img.*.tif"),
       mPrefix ("8bits_"),
       mOverwrite (false),
-      mCelcius(1)
+      mCelcius(1),
+      mOptris(0)
 {
     ElInitArgMain
     (
@@ -243,6 +245,7 @@ cVarioCamTo8Bits::cVarioCamTo8Bits(int argc,char ** argv) :
         LArgMain()  << EAM(mOverwrite,"F",true, "Overwrite previous output images, def false")
                     << EAM(mCelcius,"Celcius",true, "Is the temperature range in celcius, default true, if false, Kelvin")
                     << EAM(mPrefix,"Prefix",true, "Prefix for output images")
+                    << EAM(mOptris,"Optris", true, "tiff file are optris tiff file, not variocam tif file")
     );
 
 
@@ -254,13 +257,21 @@ cVarioCamTo8Bits::cVarioCamTo8Bits(int argc,char ** argv) :
     const std::vector<std::string> aSetIm = *(aICNM->Get(mPat));
 
     Pt2di aRangeVario;
+
+    if(!mOptris){
     // convert the range to
     if (mCelcius) {
         aRangeVario.x=100*(273.15+mRangeT.x) ;
         aRangeVario.y=100*(273.15+mRangeT.y) ;
     } else {aRangeVario=mRangeT;};
     std::cout << "Range of radiometric value of variocam images : " << aRangeVario << "\n";
-
+    } else {
+    // for the optris images
+    aRangeVario.x=1000+(10*mRangeT.x) ;
+    aRangeVario.y=1000+(10*mRangeT.y) ;
+    std::cout << "conversion unsigned int Optris PI to degree value.\n";
+    std::cout << "Range of radiometric value of Optris 16 bits images : " << aRangeVario << "\n";
+    }
     for (auto & im : aSetIm)
     {
         std::string NameOut(mDir+mPrefix+im);

@@ -866,6 +866,31 @@ void cAppliOptimTriplet::Execute()
    aXml.BSurH() = aBOnH;
    aXml.PMed() = aPMed;
 
+
+   std::vector<Pt2df> & aVP1 = *(mRedH123[0]);
+   std::vector<Pt2df> & aVP2 = *(mRedH123[1]);
+   std::vector<Pt2df> & aVP3 = *(mRedH123[2]);
+
+   //calcul d'ellipse par triplet
+   cXml_Elips3D anElips3D;
+   RazEllips(anElips3D);
+
+   for (int aK=0; aK<int(aVP1.size()); aK++)
+   {
+       std::vector<Pt3dr> aW1;
+       std::vector<Pt3dr> aW2;
+       AddSegOfRot(aW1,aW2,mIm1->Ori(),aVP1.at(aK));
+       AddSegOfRot(aW1,aW2,mIm2->Ori(),aVP2.at(aK));
+       AddSegOfRot(aW1,aW2,mIm2->Ori(),aVP3.at(aK));
+
+       bool OkI;
+       Pt3dr aI = InterSeg(aW1,aW2,OkI);
+        
+       AddEllips(anElips3D,aI,1.0);
+   }
+   NormEllips(anElips3D);
+   aXml.Elips() = anElips3D; 
+
    MakeFileXML(aXml,aNameSauveXml);
    MakeFileXML(aXml,aNameSauveBin);
 
@@ -935,7 +960,11 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
    cElemAppliSetFile anEASF(aFullPat);
    const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
 
-   cSetName * aSetN= anEASF.mICNM->KeyOrPatSelector(aFullPat);
+{
+   std::cout << "aVImaVIm " << aVIm->size() << "\n";
+}
+
+   /// cSetName * aSet N= anEASF.mICNM->KeyOrPatSelector(aFullPat);
    std::set<std::string> aSetName(aVIm->begin(),aVIm->end());
    std::string aDir = anEASF.mDir;
 
@@ -952,7 +981,8 @@ int CPP_AllOptimTriplet_main(int argc,char ** argv)
        aNb++;
        const std::string & aN1 = itC->N1();
        const std::string & aN2 = itC->N2();
-       if (aSetN->SetBasicIsIn(aN1) && aSetN->SetBasicIsIn(aN2) && (aNb>=(aNb0+1)))
+       // if (aSet N->SetBasicIsIn(aN1) && aSet N->SetBasicIsIn(aN2) && (aNb>=(aNb0+1)))
+       if (DicBoolFind(aSetName,aN1) && DicBoolFind(aSetName,aN2) && (aNb>=(aNb0+1)))
        {
             std::string aCom =   MM3dBinFile("TestLib NO_OneImOptTrip") 
                             + " " + aN1

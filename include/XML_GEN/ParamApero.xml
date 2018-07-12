@@ -108,6 +108,7 @@
     <eCalibAutomFour19x2>                 </eCalibAutomFour19x2>
     <eCalibAutomEbner>                 </eCalibAutomEbner>
     <eCalibAutomBrown>                 </eCalibAutomBrown>
+    <eCalibAutomFishEyeStereographique>     </eCalibAutomFishEyeStereographique>
     <eCalibAutomNone>                 </eCalibAutomNone>
 </enum>
 
@@ -1395,6 +1396,8 @@ normalises en echelle et/ou en translation -->
 			     <PondSurf Nb="?" RefType="PonderationPackMesure"> </PondSurf>
                              <!-- TRI VALEUR Si on le donne : x =Z, y = Poids compens z=seuil -->
                              <RappelOnZ Nb="?">  
+			           <!-- Si KeyGrpApply est init, ne s'applique que quand toutes les cameras sont du meme KeyGrpApply -->
+			           <KeyGrpApply Nb="?" Type="std::string"> </KeyGrpApply>
                                    <Z Nb="1" Type="double"> </Z>
                                    <!-- Incertitude pour l'estimation et la compensation -->
                                    <IncC Nb="1" Type="double"> </IncC>

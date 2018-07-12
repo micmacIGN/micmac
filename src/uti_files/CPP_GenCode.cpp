@@ -192,6 +192,11 @@ static cCamLin_FishEye_10_5_5 * CamLinFishEye_10_5_5(bool C2M,const tParamAFocal
 static cCamEquiSol_FishEye_10_5_5 * CamEquiSolFishEye_10_5_5(bool C2M,const tParamAFocal  & aPAF) { return  new cCamEquiSol_FishEye_10_5_5(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF); }
 
 
+static cCamStereoGraphique_FishEye_10_5_5 * CamStereoGraphique_FishEye_10_5_5(bool C2M,const tParamAFocal  & aPAF) { return  new cCamStereoGraphique_FishEye_10_5_5(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF); }
+
+
+
+
 static cCam_RadFour7x2 * CamRadFour7x2(bool C2M,const tParamAFocal  & aPAF) { return new cCam_RadFour7x2(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF);}
 static cCam_RadFour11x2 * CamRadFour11x2(bool C2M,const tParamAFocal  & aPAF) { return new cCam_RadFour11x2(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF);}
 static cCam_RadFour15x2 * CamRadFour15x2(bool C2M,const tParamAFocal  & aPAF) { return new cCam_RadFour15x2(C2M,1,Pt2dr(0,0),Pt2dr(2000,3000),aPAF);}
@@ -283,6 +288,10 @@ cParamIntrinsequeFormel * PIF_For_GC
     if (aType == "EquiSolFishEye_10_5_5") { return cPIFEquiSol_FishEye_10_5_5::Alloc(C2M,CamEquiSolFishEye_10_5_5(C2M,aPAF),aSet); }
 
 
+    if  (aType =="StereographiqueFishEye_10_5_5") {return cPIFStereoGraphique_FishEye_10_5_5::Alloc(C2M,CamStereoGraphique_FishEye_10_5_5(C2M,aPAF),aSet); }
+
+
+
     if (aType ==  "RadPPaEqPPs") {return cPIF_DRad_PPaEqPPs::Alloc(C2M,CamDrPPaPPs(C2M,aPAF),aSet);}
     if (aType ==  "FraserPPaEqPPs") {return cPIF_Fraser_PPaEqPPs::Alloc(C2M,CamFraPPaPPs(C2M,aPAF),aSet);}
 
@@ -339,6 +348,11 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool wDist,const 
 
 void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool EqDroite,bool TEST_NEW_REGUL_DIST=false )
 {
+
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"StereographiqueFishEye_10_5_5",EqDroite);
+    GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"StereographiqueFishEye_10_5_5",EqDroite);
+
+return;
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Polyn0",EqDroite);
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"Polyn0",EqDroite);
     GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"Polyn1",EqDroite);
@@ -350,7 +364,6 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool EqDroite,boo
         GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"Polyn0",EqDroite,true,true);
         GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"Polyn0",EqDroite,true,false);
     }
-return;
 
     // GenCodeAppui(C2M,isFixe,isGL,isAFocal,false,"NoVar",EqDroite);
      // GenCodeAppui(C2M,isFixe,isGL,isAFocal,true,"NoVar",EqDroite);

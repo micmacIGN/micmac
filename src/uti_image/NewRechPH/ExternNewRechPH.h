@@ -77,9 +77,11 @@ void FilterHistoFlag(Im1D_REAL8 aH,int aNbConvol,double aFactConv,bool DoNorm);
 
 
 
-std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
+std::string NameFileNewPCarac(eTypePtRemark aLab,const std::string & aNameGlob,bool Bin,const std::string & anExt="Std");
 void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW,bool HighLight);
-cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & Ext="Std",eTypePtRemark aLab=eTPR_NoLabel);
+cSetPCarac * LoadStdSetCarac(eTypePtRemark aLab/* NoLab=>All */,const std::string & aNameIm,const std::string & Ext="Std");
+void  SaveStdSetCaracMultiLab(const cSetPCarac aSet,const std::string & aNameIm,const std::string & aExt,int SzHighS);
+
 
 void TestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
 double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
@@ -285,6 +287,25 @@ class cPtFromCOPC
 };
 
 typedef ElQT<cOnePCarac*,Pt2dr,cPtFromCOPC> tQtOPC ;
+
+double ScaleGen(const cOnePCarac & aPC);
+
+cFitsOneLabel * FOLOfLab(cFitsParam *,eTypePtRemark aLab,bool SVP);
+const cFitsOneLabel * FOLOfLab(const cFitsParam *,eTypePtRemark aLab,bool SVP);
+
+class cBiaisedRandGenerator
+{
+     public :
+        cBiaisedRandGenerator(const std::vector<double> & aV);
+        int Generate();
+        int Generate(double aVal);
+     private :
+        int mNb;
+        std::vector<double> mCumul;
+
+};
+
+
 
 
 

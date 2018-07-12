@@ -2,6 +2,8 @@
 #define CDENSITYMAPPH_H
 #include "StdAfx.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
+#include "../imagesimpleprojection.h"
+
 extern int writeTFW(std::string aNameTiffFile, Pt2dr aGSD, Pt2dr aXminYmax);
 extern std::string KeyAssocNameTif2TFW(std::string aOrtName);
 
@@ -21,6 +23,7 @@ private:
     void initDensityMap(); // initialise density map
     void loadPH(); // load Tie point 2D
     void populateDensityMap(); // compute 3D position for each TP and modify
+    void populateDensityMap4Tests(); // Test purposes
     Pt2di XY2UV(Pt2dr aVal);
 
     cInterfChantierNameManipulateur * mICNM;
@@ -41,5 +44,31 @@ private:
     std::map<int, CamStenope*> mCams;
 
 };
+
+
+// manipulate the e format of tie points (cSetTiePMul), ex to export sparce 3D points cloud with custom information like reprojection error or multiplicity
+class cManipulate_NF_TP
+{
+public:
+    cManipulate_NF_TP(int argc,char ** argv);
+
+private:
+
+    cInterfChantierNameManipulateur * mICNM;
+    bool mDebug;
+    bool mSavePly;
+    bool mPrintTP_info;
+    bool mWithRadiometry;
+    std::string mDir,mOriPat,mOut,mFileSH;
+    std::list<std::string> mOriFL;// xml Orientation File List
+    cSetTiePMul * mTPM;
+    // vector of image names
+    std::vector<std::string> mImName;
+    // map indexed by ID of image containing the CamStenope of the image, which is the orientation of the camera (external and calibration)
+    std::map<int, CamStenope*> mCams;
+    // map indexed by ID of image containing 3 canal RGB images
+    std::map<int, cISR_ColorImg*> mIms;
+};
+
 
 #endif // CDENSITYMAPPH_H

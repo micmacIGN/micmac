@@ -204,7 +204,22 @@
            <Symb>  UEIR_GenerateOrtho=-1 </Symb>
            <!-- <eSymb>  LastIterSupl=Or ${DoUseExportImageResidu} ${ExportSensib}  </eSymb> -->
            <eSymb>  LastIterSupl=false  </eSymb>
+
+           <!--      Ponderation pour le "GPS" (observations  sur le centre de PDV) -->
+           <Symb> ModePondCentre=ePondL2 </Symb>
+           <Symb> EcartMaxPlaniPondCentre=1e20 </Symb>
+           <Symb> EcartMaxAltiPondCentre=1e20 </Symb>
+           <Symb> SigmaPlaniPondCentre=1e20 </Symb>
+           <Symb> SigmaAltiPondCentre=1e20 </Symb>
+
+           <Symb> WithRapOnZ=false </Symb>
+           <Symb> ZRapOnZ=0 </Symb>
+           <Symb> SigmaRapOnZ=1.0 </Symb>
+           <Symb> KeyGrpRapOnZ=XXXX </Symb>
        </DicoLoc>
+
+
+
 
        <SectionBDD_Observation>
              <#WHEN  VTEST=${With-ContrCamConseq}>
@@ -821,6 +836,19 @@
 				     <SigmaPond> ${SigmaTieP} </SigmaPond>
 				     <EcartMax>  ${MaxResTieP} </EcartMax>
                                   </Pond>
+
+                                   <#WHEN  VTEST=${WithRapOnZ}>
+				       <RappelOnZ>
+                                             <KeyGrpApply > ${KeyGrpRapOnZ} </KeyGrpApply>
+                                             <Z > ${ZRapOnZ}</Z>
+                                             <IncC > ${SigmaRapOnZ} </IncC>
+                                             <IncE > ${SigmaRapOnZ} </IncE>
+					     <!--
+                                                  <SeuilR Nb="?" Type="double"> </SeuilR> 
+				              -->
+                                       </RappelOnZ>
+                                   </#WHEN>
+
                               </ObsLiaisons>
 		              <TxtRapDetaille>
 		                    <NameFile> ${RapTxt}</NameFile>
@@ -845,17 +873,22 @@
                           </#WHEN>
 
                           <#WHEN  VTEST=${WithCenter}>
+
                                <ObsCentrePDV>
                                    <PatternApply> ${PatternGPS} </PatternApply>
                                    <Pond>
                                           <EcartMesureIndiv>  ${SigmGPS}  </EcartMesureIndiv>
                                           <Show> eNSM_Indiv     </Show>
-                                          <ModePonderation> ePondL2 </ModePonderation>
+                                          <ModePonderation> ${ModePondCentre} </ModePonderation>
+                                          <EcartMax>  ${EcartMaxPlaniPondCentre} </EcartMax>
+                                          <SigmaPond>  ${SigmaPlaniPondCentre}   </SigmaPond>
                                    </Pond>
                                    <PondAlti>
                                           <EcartMesureIndiv>  ${SigmGPSAlti}  </EcartMesureIndiv>
                                           <Show> eNSM_Indiv     </Show>
-                                          <ModePonderation> ePondL2 </ModePonderation>
+                                          <ModePonderation> ${ModePondCentre} </ModePonderation>
+                                          <EcartMax>  ${EcartMaxAltiPondCentre} </EcartMax>
+                                          <SigmaPond>  ${SigmaAltiPondCentre}   </SigmaPond>
                                    </PondAlti>
                               </ObsCentrePDV>
                           </#WHEN>

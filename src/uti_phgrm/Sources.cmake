@@ -164,18 +164,26 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_InitCamFromAppuis.cpp
     ${UTI_PHGRM_DIR}/CPP_Sake.cpp
     ${UTI_PHGRM_DIR}/CPP_Liquor.cpp
+    ${UTI_PHGRM_DIR}/CPP_Luxor.cpp 
     ${UTI_PHGRM_DIR}/CPP_Morito.cpp
     ${UTI_PHGRM_DIR}/CPP_C3DC.cpp
 )
 
-source_group(${SrcGrp_Uti_PHGRM} FILES ${uti_phgrm_Src_Files})
-source_group(${SrcGrp_Uti_PHGRM}\\Applis FILES ${Applis_phgrm_Src_Files})
-source_group(${SrcGrp_Uti_PHGRM}\\Apero FILES ${uti_phgrm_Apero_Src_Files})
-source_group(${SrcGrp_Uti_PHGRM}\\MicMac FILES ${uti_phgrm_MICMAC_Src_Files})
-source_group(${SrcGrp_Graph_Cut}\\MaxFlow FILES ${uti_phgrm_MaxFlow_Src_Files})
-source_group(${SrcGrp_Graph_Cut}\\QPBO FILES ${uti_phgrm_qpbo_Src_Files})
-source_group(${SrcGrp_Uti_PHGRM}\\Porto FILES ${uti_phgrm_Porto_Src_Files})
-source_group(${SrcGrp_Uti_PHGRM}\\ReducHom FILES ${uti_phgrm_Porto_Src_Files})
+
+
+  
+  
+
+
+SOURCE_GROUP(${SrcGrp_Uti_PHGRM} FILES ${uti_phgrm_Src_Files})
+SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\Applis FILES ${Applis_phgrm_Src_Files})
+SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\Apero FILES ${uti_phgrm_Apero_Src_Files})
+SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\MicMac FILES ${uti_phgrm_MICMAC_Src_Files})
+SOURCE_GROUP(${SrcGrp_Graph_Cut}\\MaxFlow FILES ${uti_phgrm_MaxFlow_Src_Files})
+SOURCE_GROUP(${SrcGrp_Graph_Cut}\\QPBO FILES ${uti_phgrm_qpbo_Src_Files})
+SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\Porto FILES ${uti_phgrm_Porto_Src_Files})
+SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\ReducHom FILES ${uti_phgrm_Porto_Src_Files})
+
 
 if(${CUDA_ENABLED})
 	source_group(${SrcGrp_Uti_PHGRM}\\GpGpu FILES ${uti_phgrm_GpGpu_Src_Files})

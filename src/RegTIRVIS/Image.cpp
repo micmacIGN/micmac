@@ -15,7 +15,7 @@ ColorImg::ColorImg(std::string filename) :
     Tiff_Im mTiffImg= Tiff_Im::UnivConvStd(mImgName);
     //GenIm::type_el aType = mTiffImg.type_el();
 
-   // std::cout<<"Image channels "<<mTiffImg.nb_chan()<<endl;
+    std::cout<<"Image channels "<<mTiffImg.nb_chan()<<endl;
 
    /* cout << "Types = "
          << (INT) aType <<  " "
@@ -32,9 +32,9 @@ ColorImg::ColorImg(std::string filename) :
     mImgRT=new TIm2D<U_INT2,INT4>(*mImgR);
     mImgGT=new TIm2D<U_INT2,INT4>(*mImgG);
     mImgBT=new TIm2D<U_INT2,INT4>(*mImgB);
-    ELISE_COPY(mImgR->all_pts(),mTiffImg.in(),mImgR->out());
-    ELISE_COPY(mImgG->all_pts(),mTiffImg.in(),mImgG->out());
-    ELISE_COPY(mImgB->all_pts(),mTiffImg.in(),mImgB->out());
+
+    // bug ici, ce ne devrait pas être comme cela!!
+   ELISE_COPY(mImgR->all_pts(),mTiffImg.in(),Virgule(mImgR->out(),mImgG->out(),mImgB->out()));
 }
 
 
