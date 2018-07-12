@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cero_modelonepaire.h"
 #include "cfeatheringandmosaicking.h"
 
+
 extern int RegTIRVIS_main(int , char **);
 
 // survey of a concrete wall, orientation very distorded, we export every tie point as GCP with a Z fixed by the user, in order to use them in campari
@@ -211,135 +212,6 @@ cCoreg2Ortho::cCoreg2Ortho(int argc,char ** argv)
     }
 }
 
-
-// the VarioCam thermic camera record images at 16 bits, we want to convert them to 8 bits. A range of temperature is provided in order to  stretch the radiometric value on this range
-
-class cVarioCamTo8Bits
-{
-    public:
-    std::string mDir;
-    cVarioCamTo8Bits(int argc,char ** argv);
-    private:
-    std::string mFullDir;
-    std::string mPat;
-    std::string mPrefix;
-    bool mOverwrite;
-    Pt2di mRangeT;
-    bool mCelcius;
-    bool mOptris;
-};
-
-
-cVarioCamTo8Bits::cVarioCamTo8Bits(int argc,char ** argv) :
-      mFullDir	("img.*.tif"),
-      mPrefix ("8bits_"),
-      mOverwrite (false),
-      mCelcius(1),
-      mOptris(0)
-{
-    ElInitArgMain
-    (
-    argc,argv,
-        LArgMain()  << EAMC(mFullDir,"image pattern", eSAM_IsPatFile)
-                    << EAMC(mRangeT,"temperature range"),
-        LArgMain()  << EAM(mOverwrite,"F",true, "Overwrite previous output images, def false")
-                    << EAM(mCelcius,"Celcius",true, "Is the temperature range in celcius, default true, if false, Kelvin")
-                    << EAM(mPrefix,"Prefix",true, "Prefix for output images")
-                    << EAM(mOptris,"Optris", true, "tiff file are optris tiff file, not variocam tif file")
-    );
-
-
-    if (!MMVisualMode)
-    {
-
-    SplitDirAndFile(mDir,mPat,mFullDir);
-    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
-    const std::vector<std::string> aSetIm = *(aICNM->Get(mPat));
-
-    Pt2di aRangeVario;
-
-    if(!mOptris){
-    // convert the range to
-    if (mCelcius) {
-        aRangeVario.x=100*(273.15+mRangeT.x) ;
-        aRangeVario.y=100*(273.15+mRangeT.y) ;
-    } else {aRangeVario=mRangeT;};
-    std::cout << "Range of radiometric value of variocam images : " << aRangeVario << "\n";
-    } else {
-    // for the optris images
-    aRangeVario.x=1000+(10*mRangeT.x) ;
-    aRangeVario.y=1000+(10*mRangeT.y) ;
-    std::cout << "conversion unsigned int Optris PI to degree value.\n";
-    std::cout << "Range of radiometric value of Optris 16 bits images : " << aRangeVario << "\n";
-    }
-    for (auto & im : aSetIm)
-    {
-        std::string NameOut(mDir+mPrefix+im);
-
-        if (ELISE_fp::exist_file(NameOut) & !mOverwrite)
-        {
-            std::cout <<"Image " << NameOut <<" already exist, use F=1 to overwrite.\n";
-        } else {
-
-        int minRad(aRangeVario.x), rangeRad(aRangeVario.y-aRangeVario.x);
-
-        // load input variocam images
-        Tiff_Im mTifIn=Tiff_Im::StdConvGen(mDir+im,1,true);
-        // create empty RAM image for imput image
-        Im2D_REAL4 imIn(mTifIn.sz().x,mTifIn.sz().y);
-        // create empty RAM image for output image
-        Im2D_U_INT1 imOut(mTifIn.sz().x,mTifIn.sz().y);
-        // fill it with tiff image value
-        ELISE_COPY(
-                    mTifIn.all_pts(),
-                    mTifIn.in(),
-                    imIn.out()
-                   );
-        // change radiometry and note min and max value
-        int aMin(255), aMax(0),aSum(0),aNb(0);
-        for (int v(0); v<imIn.sz().y;v++)
-        {
-            for (int u(0); u<imIn.sz().x;u++)
-            {
-                Pt2di pt(u,v);
-                double aVal = imIn.GetR(pt);
-                int val(0);
-
-                if(aVal!=0){
-                    if (aVal>=minRad && aVal <minRad+rangeRad)
-                    {
-                        val=255.0*(aVal-minRad)/rangeRad;
-                    }
-                    if (aVal >=minRad+rangeRad) val=255.0;
-                }
-
-                if (val>aMax) aMax=val;
-                if (val!=0){
-                    if (val<aMin) aMin=val;
-                    aSum+=val;
-                    aNb++;
-                }
-                imOut.SetR(pt,val);
-                //std::cout << "aVal a la position " << pt << " vaut " << aVal << ", transfo en " << v <<"\n";
-            }
-        }
-
-        Tiff_Im aTifOut
-                (
-                    NameOut.c_str(),
-                    imOut.sz(),
-                    GenIm::u_int1,
-                    Tiff_Im::No_Compr,
-                    Tiff_Im::BlackIsZero
-                    );
-        std::cout << "Writing " << NameOut << ", Min " << aMin <<" Max "<< aMax <<" Mean "<< aSum/aNb <<  "\n";
-
-        ELISE_COPY(imOut.all_pts(),imOut.in(),aTifOut.out());
-
-        }
-    }
-    }
-}
 
 // appliquer une translation à une orientation
 
@@ -1345,11 +1217,10 @@ int main_test2(int argc,char ** argv)
     //test_main(argc,argv);
     //MasqTIR_main(argc,argv);
     //cCoreg2Ortho(argc,argv);
-    //cFeatheringAndMosaicOrtho(argc,argv);
-    //cOriTran_Appli(argc,argv);
     //TransfoMesureAppuisVario2TP_main(argc,argv);
     //statRadianceVarioCam_main(argc,argv);
-    cTPM2GCPwithConstantZ(argc,argv);
+    //cTPM2GCPwithConstantZ(argc,argv);
+    //cMeasurePalDeg2RGB(argc,argv);
 
    return EXIT_SUCCESS;
 }
@@ -1391,13 +1262,7 @@ int main_testold(int argc,char ** argv)
    return EXIT_SUCCESS;
 }
 
-int VarioCamTo8Bits_main(int argc,char ** argv)
-{
 
-    cVarioCamTo8Bits(argc,argv);
-
-   return EXIT_SUCCESS;
-}
 
 
 
