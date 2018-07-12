@@ -10,7 +10,7 @@ set(Flux_pts_Src_Files
 	${FLUX_PTS_DIR}/surf_geom_2d.cpp
 )
 
-SOURCE_GROUP(Flux_pts FILES ${Flux_pts_Src_Files})
+source_group(Flux_pts FILES ${Flux_pts_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

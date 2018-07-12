@@ -7,7 +7,7 @@ set(RegTIRVIS_Src_Files ${REGTIRVIS_DIR}/RegTIRVIS.cpp
                         ${REGTIRVIS_DIR}/Arbre.cpp
 )
 
-SOURCE_GROUP(REGTIRVIS FILES ${RegTIRVIS_Src_Files})
+source_group(REGTIRVIS FILES ${RegTIRVIS_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

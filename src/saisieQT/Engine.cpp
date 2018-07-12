@@ -174,7 +174,7 @@ GlCloud* cLoader::loadCloud(string i_ply_file)
 		}
 		else
 		{
-			if(scaleFactor<1.f) // TODO Mask c'est quoi la différence ....
+			if(scaleFactor<1.f) // TODO Mask c'est quoi la diffï¿½rence ....
 			{
 			    QImage tempMask(maskedImg->_m_rescaled_image->size(),QImage::Format_Mono);
 			    maskedImg->_m_rescaled_mask = new QImage(tempMask.size(),QImage::Format_Mono);
@@ -298,15 +298,8 @@ void cEngine::loadCameras(QStringList filenames)
 
 bool cEngine::extGLIsSupported(const char* strExt)
 {
-#if ELISE_QT_VERSION == 5
     QOpenGLContext * contextHGL = QGLContext::currentContext()->contextHandle();
     return contextHGL->hasExtension(strExt);
-#else
-    const GLubyte *str;
-    str = glGetString (GL_EXTENSIONS);
-    //qDebug() << strExt;
-    return (strstr((const char *)str, strExt) != NULL);
-#endif
 }
 cLoader* cEngine::Loader() const
 {
@@ -657,7 +650,6 @@ float cEngine::computeScaleFactor(QStringList& filenames)
 //    bool verbose = false;
     float scaleFactor = 1.f;
 
-#if ELISE_QT_VERSION == 5
 #ifdef COMPUTE_AVAILABLEVRAM
     if (QGLContext::currentContext())
     {
@@ -730,7 +722,6 @@ float cEngine::computeScaleFactor(QStringList& filenames)
         cout << "No GLContext" << endl;
 
 #endif //COMPUTE_AVAILABLEVRAM
-#endif
 
     int widthMax              = 0;
     int heightMax             = 0;

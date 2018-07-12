@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "XML_GEN/all_tpl.h"
 
-#if (ELISE_QT_VERSION >= 4)
+#if ELISE_QT
     #include "general/visual_mainwindow.h"
 #endif
 
@@ -247,7 +247,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mPrgDReInject  (false)
 {
 
-#if(ELISE_QT_VERSION >= 4)
+#if ELISE_QT
 
     if (MMVisualMode)
     {
@@ -294,7 +294,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 #else
     ELISE_ASSERT(argc >= 2,"Not enough arg");
     ReadType(argv[1]);
-#endif
+#endif // ELISE_QT
 
     InitDefValFromType();
 

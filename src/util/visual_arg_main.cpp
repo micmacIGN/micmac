@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "general/CMake_defines.h"
 
-#if(ELISE_QT_VERSION >= 4)
+#if ELISE_QT
 	#include "general/visual_mainwindow.h"
 #else
 	#include "StdAfx.h"
@@ -122,24 +122,17 @@ bool ContinuerReadOneArg(std::vector<cMMSpecArg> & aVAO, bool Prems)
     return true;
 }*/
 
-#if(ELISE_QT_VERSION >= 4)
-
+#if ELISE_QT
 void showErrorMsg(QApplication &app, std::vector <std::string> vStr)
 {
     QString str("In visual mode, possible values are:\n");
 
     QString msg;
     for (int aK=0; aK < (int)vStr.size(); ++aK)
-#if(ELISE_QT_VERSION >= 5)
-         msg += QString("\nv")+ app.applicationDisplayName() + QString(" ") + QString(vStr[aK].c_str());
-#else
-        msg += QString("\nv")+ app.applicationName() + QString(" ") + QString(vStr[aK].c_str());
-#endif
-
+        msg += QString("\nv")+ app.applicationDisplayName() + QString(" ") + QString(vStr[aK].c_str());
     setStyleSheet(app);
     QMessageBox::critical(NULL, "Error", str + msg);
 }
-
 #endif
 
 int MMRunVisualMode
@@ -151,10 +144,7 @@ int MMRunVisualMode
         )
 {
 
-#if(ELISE_QT_VERSION >= 4)
-
-    //cout << "Qt version " << ELISE_QT_VERSION << endl;
-
+#if ELISE_QT
     bool deleteAPp = QApplication::instance() == NULL;
 
     QApplication *app = (QApplication::instance() == NULL)   ? new QApplication(argc, argv) : static_cast<QApplication *>(QApplication::instance());
@@ -185,7 +175,7 @@ int MMRunVisualMode
 
     return appReturn;
 
-#endif //ELISE_QT_VERSION >= 4
+#endif // ELISE_QT
     return EXIT_SUCCESS;
 }
 

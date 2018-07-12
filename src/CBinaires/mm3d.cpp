@@ -487,7 +487,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("AlphaGet27", AlphaGet27_main, " Tool for relative positioning of objects on images"));
 		aRes.push_back(cMMCom("MergeSOMAF", mergeSOMAF_main, " Tool for merging SetOfMesureAppuisFlottants XMLs"));
 
-#if (ELISE_QT_VERSION >= 4)
+#if ELISE_QT
 		aRes.push_back(cMMCom("SaisieAppuisInitQT", SaisieAppuisInitQT_main, " Interactive tool for initial capture of GCP"));
 		aRes.push_back(cMMCom("SaisieAppuisPredicQT", SaisieAppuisPredicQT_main, " Interactive tool for assisted capture of GCP"));
 		aRes.push_back(cMMCom("SaisieBascQT", SaisieBascQT_main, " Interactive tool to capture information on the scene"));
@@ -1010,11 +1010,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("SeamlineFeatheringBox",main_featheringOrthoBox,"Perform mosaiking of orthos with a feathering around the seamline for one tile of the mosaic"));
         aRes.push_back(cMMCom("GCP2DMeasureConvert",GCP2DMeasureConvert_main,"Export or import 2D image marks of GCPs/Manual tie point"));
         aRes.push_back(cMMCom("DensityMapHomol",main_densityMapPH,"Compute a Density map of tie point"));
-
-
-// #if (ELISE_QT_VERSION >= 4)
         aRes.push_back(cMMCom("Masq3Dto2D",Masq3Dto2D_main,"Create a 2D Masq from Nuage and 3D Masq "));
-// #endif
         aRes.push_back(cMMCom("MergeCloud",CPP_AppliMergeCloud,"Tool for merging overlapping depth maps from different view points"));
         aRes.push_back(cMMCom("MMEnvlop",MMEnveloppe_Main,"Compute initial envelope surface for MMEpi "));
         aRes.push_back(cMMCom("PlySphere",PlySphere_main,"Tool to generate a sphere of point, ply format, tuning"));
@@ -1292,7 +1288,7 @@ int GenMain(int argc, char ** argv, const std::vector<cMMCom> & aVComs)
 
 	if ((argc >= 2) && (argv[1][0] == 'v') && (argv[1] != std::string("vic")))
 	{
-		ELISE_ASSERT(ELISE_QT_VERSION > 0, std::string("Qt not installed, " + std::string(argv[1]) + " not available").c_str());
+		ELISE_ASSERT(ELISE_QT > 0, std::string("Qt not installed, " + std::string(argv[1]) + " not available").c_str());
 
 		std::string cmds[] = { std::string("vMICMAC"), std::string("vApero"), std::string("vAnn"), std::string("vCalibFinale"),
 			std::string("vCalibInit"), std::string("vMergeDepthMap"), std::string("vPastis"),
@@ -1317,7 +1313,7 @@ int GenMain(int argc, char ** argv, const std::vector<cMMCom> & aVComs)
 	// bool aValInit_TheExitOnBrkp=TheExitOnBrkp;
 	// TheExitOnBrkp=true;
 	MMD_InitArgcArgv(argc, argv);
-#if(ELISE_QT_VERSION >= 4)
+#if ELISE_QT
 	initQtLibraryPath();
 #endif
 	// TheExitOnBrkp=true;

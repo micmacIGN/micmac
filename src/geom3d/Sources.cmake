@@ -12,7 +12,7 @@ set(Geom3d_Src_Files
 	${GEOM3D_DIR}/PbTopoNuage.cpp
 )
 
-SOURCE_GROUP(Geom3d FILES ${Geom3d_Src_Files})
+source_group(Geom3d FILES ${Geom3d_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}
