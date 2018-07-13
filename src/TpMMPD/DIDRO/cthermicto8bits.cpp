@@ -92,12 +92,13 @@ cMeasurePalDeg2RGB::cMeasurePalDeg2RGB(int argc,char ** argv):mDebug(0),mVario(1
             if (it != mLImJPG.end()){
                 // open thermal image and JPG, read 1 points per tile
                 Im2D_U_INT2 imTh=Im2D_U_INT2::FromFileStd(mDirT+therm);
-                cISR_ColorImg  RGB(mDirJPG+NameJPG);
+                std::string aName(mDirJPG+NameJPG);
+                cISR_ColorImg  imRGB(aName);
                 int Tile(100);
                 for (int u(1); u*Tile<imTh.sz().x; u++){
                     for (int v(1); v*Tile<imTh.sz().y; v++){
                         Pt2di pt(u*Tile,v*Tile);
-                        cISR_Color col=RGB.get(pt);
+                        cISR_Color col=imRGB.get(pt);
                         double deg(0);
                         if (mVario) deg=DN2Deg_Vario(imTh.GetR(pt));
                         if (mOptris) deg=DN2Deg_Optris(imTh.GetR(pt));
@@ -239,7 +240,7 @@ cThermicTo8Bits::cThermicTo8Bits(int argc,char ** argv) :
                 } else {
 
                     // RGB palette export
-                    cISR_ColorImg  RGB(imIn.sz());
+                    cISR_ColorImg  imRGB(imIn.sz());
 
                     for (int v(0); v<imIn.sz().y;v++)
                     {
@@ -252,11 +253,11 @@ cThermicTo8Bits::cThermicTo8Bits(int argc,char ** argv) :
                             if (mVario) aDeg=DN2Deg_Vario(aDN);
 
                             cISR_Color col(Deg2R_pal1(aDeg,mRangeT), Deg2G_pal1(aDeg,mRangeT),Deg2B_pal1(aDeg,mRangeT));
-                            RGB.set(pt,col);
+                            imRGB.set(pt,col);
                         }
                     }
                     std::cout << "Writing " << NameOut << " as an RGB images\n";
-                    RGB.write(NameOut);
+                    imRGB.write(NameOut);
                 }
             }
         }
