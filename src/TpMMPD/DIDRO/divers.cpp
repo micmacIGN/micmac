@@ -128,6 +128,7 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
                 );
     if (!MMVisualMode)
     {
+        #ifdef linux
 
         mOut=mDir+mOutSufix+".ply";
 
@@ -142,8 +143,9 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
 
         // if no MTD, give fake ones
         testMTD();
-        SortImBlurred();
+        if (DoOri) SortImBlurred();
         mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+
         chdir(mDir.c_str());
 
         if (DoOri){
@@ -152,23 +154,28 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
                std::cout << "Orientation exist, use F=1 to overwrite it\n" ;
             }   else {
 
-            aCom=MMBinFile(MM3DStr)+" Tapioca All "+ aPat + " 700 Ratio=0.8 @SFS";
+            ELISE_fp::PurgeDirRecursif("Ori-C1");
+
+            aCom=MMBinFile(MM3DStr)+" Tapioca All "+ aPat + " 700 Ratio=0.4";
             std::cout << aCom << "\n";
             system_call(aCom.c_str());
-            aCom=MMBinFile(MM3DStr)+" Martini "+ aPat ;
-            std::cout << aCom << "\n";
-            system_call(aCom.c_str());
-            aCom=MMBinFile(MM3DStr) +" Ratafia "+ aPat + " DistPMul=50";
-            std::cout << aCom << "\n";
-            system_call(aCom.c_str());
-            aCom=MMBinFile(MM3DStr)+" Tapas RadialBasic "+ aPat + " SH=-Ratafia" ;
+            //aCom=MMBinFile(MM3DStr)+" Martini "+ aPat ;
+            //std::cout << aCom << "\n";
+            //system_call(aCom.c_str());
+            //aCom=MMBinFile(MM3DStr) +" Ratafia "+ aPat + " DistPMul=75";
+            //std::cout << aCom << "\n";
+            //system_call(aCom.c_str());
+            //aCom=MMBinFile(MM3DStr)+" Tapas RadialBasic "+ aPat + " SH=-Ratafia" ;
+
+            aCom=MMBinFile(MM3DStr)+" Tapas RadialBasic "+ aPat + " Out=C1" ;
             std::cout << aCom << "\n";
             system_call(aCom.c_str());
             //aCom=MMBinFile(MM3DStr)+" Tapas Fraser "+ aPat + " InOri=RadialBasic InCal=RadialBasic SH=-Ratafia ";
-            aCom=MMBinFile(MM3DStr)+" Campari "+ aPat + " RadialBasic C1 SH=-Ratafia GradualRefineCal=Fraser";
+            //aCom=MMBinFile(MM3DStr)+" Campari "+ aPat + " RadialBasic C1 SH=-Ratafia GradualRefineCal=Fraser";
             std::cout << aCom << "\n";
-            system_call(aCom.c_str());
-            aCom=MMBinFile(MM3DStr)+" AperiCloud "+ aPat + " C1 SH=-Ratafia Out=../cloud_" + mOut ;
+            //system_call(aCom.c_str());
+            //aCom=MMBinFile(MM3DStr)+" AperiCloud "+ aPat + " C1 SH=-Ratafia Out=../cloud_" + mOut ;
+            aCom=MMBinFile(MM3DStr)+" AperiCloud "+ aPat + " C1 Out=../cloud_" + mOut ;
             std::cout << aCom << "\n";
             system_call(aCom.c_str());
            }
@@ -189,17 +196,19 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
             aLDir.push_back("Ori-RadialBasic");
             aLDir.push_back("Ori-Martini");
             aLDir.push_back("Ori-InterneScan");
+            aLDir.push_back("Homol");
 
             for (auto & dir : aLDir){
             if(ELISE_fp::IsDirectory(dir))
             {
                std::cout << "Purge and remove directory " << dir << "\n";
-               ELISE_fp::PurgeDir(dir,1);
+               ELISE_fp::PurgeDirRecursif(dir);
+               ELISE_fp::RmDir(dir);
             }
             }
 
         }
-        // purge of intermediate results
+        #endif
     }
 }
 
@@ -236,6 +245,7 @@ void cOneLionPaw::SortImBlurred(){
 
                  // il ne faut pas qu'il y en aie dans le répertroire "repetition1"
                  std::cout << "Test Metadata \n";
+                 ELISE_fp::RmFileIfExist(mDir+"/MicMac-LocalChantierDescripteur.xml");
 
                  mICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
                  std::string aPat(mDir+"/.*.(jpg|JPG)");
@@ -284,6 +294,7 @@ cTPM2GCPwithConstantZ::cTPM2GCPwithConstantZ(int argc,char ** argv)
     mOut3D="FakeGCP-3D.xml";
     mDebug=0;
     mDir="./";
+    mZ=0;
     ElInitArgMain
             (
                 argc,argv,
@@ -315,7 +326,7 @@ cTPM2GCPwithConstantZ::cTPM2GCPwithConstantZ(int argc,char ** argv)
             // retrieve IdIm
             cCelImTPM * ImTPM=mTPM->CelFromName(NameIm);
             if (ImTPM) {
-            // map of Camera is idexed by the Id of Image (cSetTiePMul)
+            // map of Camera is indexed by the Id of Image (cSetTiePMul)
             mCams[ImTPM->Id()]=CamOrientGenFromFile(aOri,mICNM);
             } else {
             std::cout << "No tie points found for image " << NameIm << ".\n";
@@ -342,6 +353,7 @@ cTPM2GCPwithConstantZ::cTPM2GCPwithConstantZ(int argc,char ** argv)
                     cOneAppuisDAF GCP;
                     GCP.Pt()=PosXYZ;
                     GCP.NamePt()=std::string(to_string(label));
+                    GCP.Incertitude()=Pt3dr(1.0,1.0,1.0);
                     DAF.OneAppuisDAF().push_back(GCP);
 
                     // position 2D
@@ -1437,9 +1449,9 @@ int main_test2(int argc,char ** argv)
     //cCoreg2Ortho(argc,argv);
     //TransfoMesureAppuisVario2TP_main(argc,argv);
     //statRadianceVarioCam_main(argc,argv);
-    //cTPM2GCPwithConstantZ(argc,argv);
+    cTPM2GCPwithConstantZ(argc,argv);
     //cMeasurePalDeg2RGB(argc,argv);
-    cLionPaw(argc,argv);
+    //cLionPaw(argc,argv);
 
    return EXIT_SUCCESS;
 }
