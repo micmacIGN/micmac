@@ -94,6 +94,8 @@
 
 
                <eSymb>  EcartMaxFin= * 5.0 ${MulEcartFin}   </eSymb>
+               <eSymb>  SigmaPondFin= 2.0   </eSymb>
+               
                <Symb>  DoSauvAutom=true    </Symb>
     
                <Symb>  HasModeleAdd=false  </Symb>
@@ -1082,7 +1084,7 @@
                                  <Show> eNSM_Paquet     </Show>
                                  <NbMax>   100    </NbMax>
 				 <ModePonderation>  eL1Secured </ModePonderation>
-				 <SigmaPond> 2.0 </SigmaPond>
+				 <SigmaPond> ${SigmaPondFin} </SigmaPond>
 				 <EcartMax> ${EcartMaxFin} </EcartMax>
                               </Pond>
                           </ObsLiaisons>

@@ -9,7 +9,7 @@ set(Tiff_Src_Files
 	#${TIFF_DIR}/el_dcraw.c
 )
 
-SOURCE_GROUP(Tiff FILES ${Tiff_Src_Files})
+source_group(Tiff FILES ${Tiff_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

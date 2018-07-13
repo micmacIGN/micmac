@@ -43,7 +43,7 @@ set(SateLib_Src_Files
 )
 
 # JE NE SAIS PAS SI CA SERT ???
-SOURCE_GROUP(SateLib FILES ${SateLib_Src_Files})
+source_group(SateLib FILES ${SateLib_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

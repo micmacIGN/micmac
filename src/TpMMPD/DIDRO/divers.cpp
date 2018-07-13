@@ -40,8 +40,237 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cimgeo.h"
 #include "cero_modelonepaire.h"
 #include "cfeatheringandmosaicking.h"
+#include "../mergehomol.h"
+#include "ascii2tif.cpp"
+
 
 extern int RegTIRVIS_main(int , char **);
+
+
+class cLionPaw{
+public:
+    cLionPaw(int argc,char ** argv);
+private:
+    cInterfChantierNameManipulateur * mICNM;
+    bool DoOri,DoMEC,Purge,mF;
+    std::string mDir,mDirPat,mWD,mOut,mOutSufix;
+};
+
+class cOneLionPaw{
+public:
+    cOneLionPaw(int argc,char ** argv);
+    void testMTD();
+    void SortImBlurred();
+private:
+    cInterfChantierNameManipulateur * mICNM;
+    bool DoOri,DoMEC,Purge,mF;
+    std::string mDir,mDirPat,mWD,mOut,mOutSufix;
+    std::list<std::string> mImName;
+    std::map<int,std::string> mIms;
+};
+//mm3d TestLib jo_test ./ "000." Suf="_MM1" DoMEC=1 DoOri=1 Purge=0 F=0
+
+cLionPaw::cLionPaw(int argc,char ** argv):
+    DoOri(1),
+    DoMEC(0),
+    Purge(1),
+    mF(0),
+    mOutSufix("_MM")
+{
+    mDir="./";
+    ElInitArgMain
+            (
+                argc,argv,
+                LArgMain()  << EAMC(mDir,"Working Directory", eSAM_IsDir)
+                            << EAMC(mDirPat,"Directory Pattern to process", eSAM_IsPatFile)
+                ,
+                LArgMain()  << EAM(mOutSufix,"Suf",true, "resulting ply suffix , default result is Directory+'_MM'.ply .")
+                            << EAM(DoMEC,"DoMEC",true, "Perform dense matching, def false .")
+                            << EAM(DoOri,"DoOri",true, "Perform orientation, def true.")
+                            << EAM(Purge,"Purge",true, "Purge intermediate results, def true.")
+                            << EAM(mF,"F",true, "overwrite results, def false.")
+                );
+    if (!MMVisualMode)
+    {
+        mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+
+        vector<std::string> aVDir = getDirListRegex(mDirPat);
+        list<std::string> aLCom;
+
+        for (auto & WD : aVDir){
+        std::string aCom=MMBinFile(MM3DStr)+" TestLib jo_test2 " + WD + " " + " Suf="+ mOutSufix + " DoMEC="+ToString(DoMEC)+ " DoOri=" + ToString(DoOri) + " Purge="+ToString(Purge) + " F="+ToString(mF);
+        aLCom.push_back(aCom);
+        std::cout << aCom << "\n";
+        }
+     cEl_GPAO::DoComInParal(aLCom);
+    }
+}
+
+cOneLionPaw::cOneLionPaw(int argc,char ** argv):
+    DoOri(1),
+    DoMEC(0),
+    Purge(1),
+    mF(0),
+    mOutSufix("_MM")
+{
+    mDir="./";
+    ElInitArgMain
+            (
+                argc,argv,
+                LArgMain()  << EAMC(mDir,"Working Directory", eSAM_IsDir)
+
+                ,
+                LArgMain() << EAM(mOutSufix,"Suf",true, "resulting ply suffix , default result is Directory+'_MM'.ply .")
+                << EAM(DoMEC,"DoMEC",true, "Perform dense matching, def false .")
+                << EAM(DoOri,"DoOri",true, "Perform orientation, def true.")
+                << EAM(Purge,"Purge",true, "Purge intermediate results, def true.")
+                << EAM(mF,"F",true, "overwrite results, def false.")
+                );
+    if (!MMVisualMode)
+    {
+        #ifdef linux
+
+        mOut=mDir+mOutSufix+".ply";
+
+        std::cout << "I will process data " << mDir << "\n";
+
+        // martini ne fonctionne que si on est dans le directory grrr
+
+        std::string aPat("'.*.(jpg|JPG)'");
+
+        //std::string aPat("'"+mDir+"/.*.(jpg|JPG)'");
+        std::string aCom("");
+
+        // if no MTD, give fake ones
+        testMTD();
+        if (DoOri) SortImBlurred();
+        mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+
+        chdir(mDir.c_str());
+
+        if (DoOri){
+
+            if(ELISE_fp::IsDirectory("Ori-C1") && mF==0){
+               std::cout << "Orientation exist, use F=1 to overwrite it\n" ;
+            }   else {
+
+            ELISE_fp::PurgeDirRecursif("Ori-C1");
+
+            aCom=MMBinFile(MM3DStr)+" Tapioca All "+ aPat + " 700 Ratio=0.4";
+            std::cout << aCom << "\n";
+            system_call(aCom.c_str());
+            //aCom=MMBinFile(MM3DStr)+" Martini "+ aPat ;
+            //std::cout << aCom << "\n";
+            //system_call(aCom.c_str());
+            //aCom=MMBinFile(MM3DStr) +" Ratafia "+ aPat + " DistPMul=75";
+            //std::cout << aCom << "\n";
+            //system_call(aCom.c_str());
+            //aCom=MMBinFile(MM3DStr)+" Tapas RadialBasic "+ aPat + " SH=-Ratafia" ;
+
+            aCom=MMBinFile(MM3DStr)+" Tapas RadialBasic "+ aPat + " Out=C1" ;
+            std::cout << aCom << "\n";
+            system_call(aCom.c_str());
+            //aCom=MMBinFile(MM3DStr)+" Tapas Fraser "+ aPat + " InOri=RadialBasic InCal=RadialBasic SH=-Ratafia ";
+            //aCom=MMBinFile(MM3DStr)+" Campari "+ aPat + " RadialBasic C1 SH=-Ratafia GradualRefineCal=Fraser";
+            std::cout << aCom << "\n";
+            //system_call(aCom.c_str());
+            //aCom=MMBinFile(MM3DStr)+" AperiCloud "+ aPat + " C1 SH=-Ratafia Out=../cloud_" + mOut ;
+            aCom=MMBinFile(MM3DStr)+" AperiCloud "+ aPat + " C1 Out=../cloud_" + mOut ;
+            std::cout << aCom << "\n";
+            system_call(aCom.c_str());
+           }
+        }
+
+        if (DoMEC){
+
+        }
+
+        if (Purge) {
+
+            std::list<std::string> aLDir;
+            aLDir.push_back("Tmp-MM-Dir");
+            aLDir.push_back("Pyram");
+            aLDir.push_back("Pastis");
+            aLDir.push_back("NewOriTmpQuick");
+            aLDir.push_back("Tmp-ReducTieP");
+            aLDir.push_back("Ori-RadialBasic");
+            aLDir.push_back("Ori-Martini");
+            aLDir.push_back("Ori-InterneScan");
+            aLDir.push_back("Homol");
+
+            for (auto & dir : aLDir){
+            if(ELISE_fp::IsDirectory(dir))
+            {
+               std::cout << "Purge and remove directory " << dir << "\n";
+               ELISE_fp::PurgeDirRecursif(dir);
+               ELISE_fp::RmDir(dir);
+            }
+            }
+
+        }
+        #endif
+    }
+}
+
+void cOneLionPaw::SortImBlurred(){
+
+    vector<Pt2dr> aVPair;
+
+    for (auto & imName : mIms){
+
+    Im2D_REAL4 aIm=Im2D_REAL4::FromFileStd(imName.second);
+
+    double aVar = VarLap(&aIm);
+    Pt2dr aPair(imName.first, aVar);
+    aVPair.push_back(aPair);
+    }
+    // choose the best image
+    sortDescendPt2drY(aVPair);
+
+    int imCt(0);
+    for (auto & pair : aVPair){
+    if (imCt<25) std::cout << imCt << ":  image " << mIms[round(pair.x)] << " i keep it \n";
+    if (imCt>=25) {std::cout << imCt << ":  image " << mIms[round(pair.x)] << " i remove it \n";
+    std::string aCom("mv " + mIms[round(pair.x)] + " " + mIms[round(pair.x)] + "_bu" );
+    std::cout << aCom << "\n";
+    system_call(aCom.c_str());
+    }
+
+    imCt++;
+    }
+}
+
+
+                 void cOneLionPaw::testMTD(){
+
+                 // il ne faut pas qu'il y en aie dans le répertroire "repetition1"
+                 std::cout << "Test Metadata \n";
+                 ELISE_fp::RmFileIfExist(mDir+"/MicMac-LocalChantierDescripteur.xml");
+
+                 mICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+                 std::string aPat(mDir+"/.*.(jpg|JPG)");
+                 // get first image of im list
+
+                 mImName = mICNM->StdGetListOfFile(aPat);
+
+                 int imCt(0);
+                 for (auto & Name : mImName){
+                 mIms[imCt]=Name;
+                 imCt++;
+
+    }
+
+                 cMetaDataPhoto aMTD =  cMetaDataPhoto::CreateExiv2(mIms[0]);
+    if (aMTD.Foc35(true)<0){
+        std::cout << "No metadata, I give some that are fake \n\n\n";
+        std::string aCall("cp ../MicMac-LocalChantierDescripteur.xml "+mDir+"/");
+        system_call(aCall.c_str());
+    } else {
+        std::cout << "Metadata found for image " << mIms[0]<< "\n\n";
+    }
+
+    }
+
 
 // survey of a concrete wall, orientation very distorded, we export every tie point as GCP with a Z fixed by the user, in order to use them in campari
 class cTPM2GCPwithConstantZ{
@@ -65,6 +294,7 @@ cTPM2GCPwithConstantZ::cTPM2GCPwithConstantZ(int argc,char ** argv)
     mOut3D="FakeGCP-3D.xml";
     mDebug=0;
     mDir="./";
+    mZ=0;
     ElInitArgMain
             (
                 argc,argv,
@@ -96,7 +326,7 @@ cTPM2GCPwithConstantZ::cTPM2GCPwithConstantZ(int argc,char ** argv)
             // retrieve IdIm
             cCelImTPM * ImTPM=mTPM->CelFromName(NameIm);
             if (ImTPM) {
-            // map of Camera is idexed by the Id of Image (cSetTiePMul)
+            // map of Camera is indexed by the Id of Image (cSetTiePMul)
             mCams[ImTPM->Id()]=CamOrientGenFromFile(aOri,mICNM);
             } else {
             std::cout << "No tie points found for image " << NameIm << ".\n";
@@ -123,6 +353,7 @@ cTPM2GCPwithConstantZ::cTPM2GCPwithConstantZ(int argc,char ** argv)
                     cOneAppuisDAF GCP;
                     GCP.Pt()=PosXYZ;
                     GCP.NamePt()=std::string(to_string(label));
+                    GCP.Incertitude()=Pt3dr(1.0,1.0,1.0);
                     DAF.OneAppuisDAF().push_back(GCP);
 
                     // position 2D
@@ -211,135 +442,6 @@ cCoreg2Ortho::cCoreg2Ortho(int argc,char ** argv)
     }
 }
 
-
-// the VarioCam thermic camera record images at 16 bits, we want to convert them to 8 bits. A range of temperature is provided in order to  stretch the radiometric value on this range
-
-class cVarioCamTo8Bits
-{
-    public:
-    std::string mDir;
-    cVarioCamTo8Bits(int argc,char ** argv);
-    private:
-    std::string mFullDir;
-    std::string mPat;
-    std::string mPrefix;
-    bool mOverwrite;
-    Pt2di mRangeT;
-    bool mCelcius;
-    bool mOptris;
-};
-
-
-cVarioCamTo8Bits::cVarioCamTo8Bits(int argc,char ** argv) :
-      mFullDir	("img.*.tif"),
-      mPrefix ("8bits_"),
-      mOverwrite (false),
-      mCelcius(1),
-      mOptris(0)
-{
-    ElInitArgMain
-    (
-    argc,argv,
-        LArgMain()  << EAMC(mFullDir,"image pattern", eSAM_IsPatFile)
-                    << EAMC(mRangeT,"temperature range"),
-        LArgMain()  << EAM(mOverwrite,"F",true, "Overwrite previous output images, def false")
-                    << EAM(mCelcius,"Celcius",true, "Is the temperature range in celcius, default true, if false, Kelvin")
-                    << EAM(mPrefix,"Prefix",true, "Prefix for output images")
-                    << EAM(mOptris,"Optris", true, "tiff file are optris tiff file, not variocam tif file")
-    );
-
-
-    if (!MMVisualMode)
-    {
-
-    SplitDirAndFile(mDir,mPat,mFullDir);
-    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
-    const std::vector<std::string> aSetIm = *(aICNM->Get(mPat));
-
-    Pt2di aRangeVario;
-
-    if(!mOptris){
-    // convert the range to
-    if (mCelcius) {
-        aRangeVario.x=100*(273.15+mRangeT.x) ;
-        aRangeVario.y=100*(273.15+mRangeT.y) ;
-    } else {aRangeVario=mRangeT;};
-    std::cout << "Range of radiometric value of variocam images : " << aRangeVario << "\n";
-    } else {
-    // for the optris images
-    aRangeVario.x=1000+(10*mRangeT.x) ;
-    aRangeVario.y=1000+(10*mRangeT.y) ;
-    std::cout << "conversion unsigned int Optris PI to degree value.\n";
-    std::cout << "Range of radiometric value of Optris 16 bits images : " << aRangeVario << "\n";
-    }
-    for (auto & im : aSetIm)
-    {
-        std::string NameOut(mDir+mPrefix+im);
-
-        if (ELISE_fp::exist_file(NameOut) & !mOverwrite)
-        {
-            std::cout <<"Image " << NameOut <<" already exist, use F=1 to overwrite.\n";
-        } else {
-
-        int minRad(aRangeVario.x), rangeRad(aRangeVario.y-aRangeVario.x);
-
-        // load input variocam images
-        Tiff_Im mTifIn=Tiff_Im::StdConvGen(mDir+im,1,true);
-        // create empty RAM image for imput image
-        Im2D_REAL4 imIn(mTifIn.sz().x,mTifIn.sz().y);
-        // create empty RAM image for output image
-        Im2D_U_INT1 imOut(mTifIn.sz().x,mTifIn.sz().y);
-        // fill it with tiff image value
-        ELISE_COPY(
-                    mTifIn.all_pts(),
-                    mTifIn.in(),
-                    imIn.out()
-                   );
-        // change radiometry and note min and max value
-        int aMin(255), aMax(0),aSum(0),aNb(0);
-        for (int v(0); v<imIn.sz().y;v++)
-        {
-            for (int u(0); u<imIn.sz().x;u++)
-            {
-                Pt2di pt(u,v);
-                double aVal = imIn.GetR(pt);
-                int val(0);
-
-                if(aVal!=0){
-                    if (aVal>=minRad && aVal <minRad+rangeRad)
-                    {
-                        val=255.0*(aVal-minRad)/rangeRad;
-                    }
-                    if (aVal >=minRad+rangeRad) val=255.0;
-                }
-
-                if (val>aMax) aMax=val;
-                if (val!=0){
-                    if (val<aMin) aMin=val;
-                    aSum+=val;
-                    aNb++;
-                }
-                imOut.SetR(pt,val);
-                //std::cout << "aVal a la position " << pt << " vaut " << aVal << ", transfo en " << v <<"\n";
-            }
-        }
-
-        Tiff_Im aTifOut
-                (
-                    NameOut.c_str(),
-                    imOut.sz(),
-                    GenIm::u_int1,
-                    Tiff_Im::No_Compr,
-                    Tiff_Im::BlackIsZero
-                    );
-        std::cout << "Writing " << NameOut << ", Min " << aMin <<" Max "<< aMax <<" Mean "<< aSum/aNb <<  "\n";
-
-        ELISE_COPY(imOut.all_pts(),imOut.in(),aTifOut.out());
-
-        }
-    }
-    }
-}
 
 // appliquer une translation à une orientation
 
@@ -1345,15 +1447,21 @@ int main_test2(int argc,char ** argv)
     //test_main(argc,argv);
     //MasqTIR_main(argc,argv);
     //cCoreg2Ortho(argc,argv);
-    //cFeatheringAndMosaicOrtho(argc,argv);
-    //cOriTran_Appli(argc,argv);
     //TransfoMesureAppuisVario2TP_main(argc,argv);
     //statRadianceVarioCam_main(argc,argv);
     cTPM2GCPwithConstantZ(argc,argv);
+    //cMeasurePalDeg2RGB(argc,argv);
+    //cLionPaw(argc,argv);
 
    return EXIT_SUCCESS;
 }
 
+
+int main_OneLionPaw(int argc,char ** argv)
+{
+    cOneLionPaw(argc,argv);
+    return EXIT_SUCCESS;
+}
 
 int main_testold(int argc,char ** argv)
 {
@@ -1391,13 +1499,7 @@ int main_testold(int argc,char ** argv)
    return EXIT_SUCCESS;
 }
 
-int VarioCamTo8Bits_main(int argc,char ** argv)
-{
 
-    cVarioCamTo8Bits(argc,argv);
-
-   return EXIT_SUCCESS;
-}
 
 
 

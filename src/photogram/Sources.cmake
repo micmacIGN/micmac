@@ -59,7 +59,7 @@ set(Photogram_Src_Files
 	${PHOTOGR_DIR}/phgr_test_equation_colinear.cpp
 )
 
-SOURCE_GROUP(Photogram FILES ${Photogram_Src_Files})
+source_group(Photogram FILES ${Photogram_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

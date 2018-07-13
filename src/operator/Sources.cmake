@@ -15,7 +15,7 @@ set(Opera_Src_Files
 	operator/users_op.cpp
 )
 
-SOURCE_GROUP(Operator FILES ${Opera_Src_Files})
+source_group(Operator FILES ${Opera_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

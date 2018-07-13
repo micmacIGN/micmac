@@ -34,7 +34,7 @@ int helpMessage(const QApplication &app, QString text)
 #endif
 }
 
-#if ( ( defined WIN32 ) && ( ELISE_QT_VERSION>=4 ) )
+#if ( ( defined WIN32 ) && ( ELISE_QT ) )
 class Win32CommandLineConverter
 {
 private:
@@ -84,7 +84,7 @@ QApplication & getQApplication()
 	return *result;
 }
 
-//~ #if ( ( defined WIN32 ) && ( ELISE_QT_VERSION >= 4 ) )
+//~ #if ( ( defined WIN32 ) && ( ELISE_QT ) )
 //~ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
 //~ {
     //~ Win32CommandLineConverter cmd_line;

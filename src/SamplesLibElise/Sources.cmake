@@ -20,7 +20,7 @@ set(SamplesLibElise_Src_Files
 )
 
 # JE NE SAIS PAS SI CA SERT ???
-SOURCE_GROUP(SamplesLibElise FILES ${SamplesLibElise_Src_Files})
+source_group(SamplesLibElise FILES ${SamplesLibElise_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

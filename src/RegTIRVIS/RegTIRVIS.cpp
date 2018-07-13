@@ -2689,9 +2689,11 @@ else
     }
 }
 
+/*
 int main_test(int argc,char ** argv)
 {
 
    cAppliRegTIRVIS(argc,argv);
    return EXIT_SUCCESS;
 }
+*/

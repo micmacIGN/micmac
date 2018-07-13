@@ -8,22 +8,22 @@ set(UTI_IMAGE_RTI_DIR ${UTI_IMAGE_DIR}/RTI)
 set(UTI_IMAGE_RStats_DIR ${UTI_IMAGE_DIR}/RStats)
 set(SrcGrp_Uti_Image uti_image)
 
-INCLUDE (${UTI_IMAGE_MPDCRAW_DIR}/Sources.cmake)
-INCLUDE (${UTI_IMAGE_DIGEO_DIR}/Sources.cmake)
-INCLUDE (${UTI_IMAGE_NewRechPH_DIR}/Sources.cmake)
-INCLUDE (${UTI_IMAGE_SIFT_DIR}/Sources.cmake)
-INCLUDE (${UTI_IMAGE_ANN_DIR}/Sources.cmake)
-INCLUDE (${UTI_IMAGE_VINO_DIR}/Sources.cmake)
-INCLUDE (${UTI_IMAGE_RTI_DIR}/Sources.cmake)
-INCLUDE (${UTI_IMAGE_RStats_DIR}/Sources.cmake)
+include(${UTI_IMAGE_MPDCRAW_DIR}/Sources.cmake)
+include(${UTI_IMAGE_DIGEO_DIR}/Sources.cmake)
+include(${UTI_IMAGE_NewRechPH_DIR}/Sources.cmake)
+include(${UTI_IMAGE_SIFT_DIR}/Sources.cmake)
+include(${UTI_IMAGE_ANN_DIR}/Sources.cmake)
+include(${UTI_IMAGE_VINO_DIR}/Sources.cmake)
+include(${UTI_IMAGE_RTI_DIR}/Sources.cmake)
+include(${UTI_IMAGE_RStats_DIR}/Sources.cmake)
 
-list( APPEND uti_image_Src_Files ${uti_image_Sift_Src_Files})
-list( APPEND uti_image_Src_Files ${uti_image_Ann_Src_Files})
+list(APPEND uti_image_Src_Files ${uti_image_Sift_Src_Files})
+list(APPEND uti_image_Src_Files ${uti_image_Ann_Src_Files})
 
-list( APPEND uti_image_Src_Files
-        ${UTI_IMAGE_DIR}/CPP_Vignette.cpp
-        ${UTI_IMAGE_DIR}/CPP_Arsenic.cpp
-        ${UTI_IMAGE_DIR}/CPP_LumRas.cpp
+list(APPEND uti_image_Src_Files
+    ${UTI_IMAGE_DIR}/CPP_Vignette.cpp
+    ${UTI_IMAGE_DIR}/CPP_Arsenic.cpp
+    ${UTI_IMAGE_DIR}/CPP_LumRas.cpp
     ${UTI_IMAGE_DIR}/CPP_Undist.cpp
     ${UTI_IMAGE_DIR}/CPP_CoherEpi.cpp
     ${UTI_IMAGE_DIR}/QualDepthMap.cpp
@@ -60,10 +60,10 @@ list( APPEND uti_image_Src_Files
     ${UTI_IMAGE_DIR}/CPP_SimuLib1.cpp
     ${UTI_IMAGE_DIR}/CPP_SimuLib2.cpp
     ${UTI_IMAGE_DIR}/CPP_SimuLib3.cpp
-    ${UTI_IMAGE_DIR}/CPP_SupMntIm.cpp )
+    ${UTI_IMAGE_DIR}/CPP_SupMntIm.cpp)
 
-SOURCE_GROUP(${SrcGrp_Uti_Image}\\outils FILES ${uti_image_Src_Files})
-SOURCE_GROUP(${SrcGrp_Uti_Image}\\outils\\SIFT FILES ${uti_image_Sift_Src_Files})
-SOURCE_GROUP(${SrcGrp_Uti_Image}\\outils\\ANN FILES ${uti_image_Ann_Src_Files})
+source_group(${SrcGrp_Uti_Image}\\outils FILES ${uti_image_Src_Files})
+source_group(${SrcGrp_Uti_Image}\\outils\\SIFT FILES ${uti_image_Sift_Src_Files})
+source_group(${SrcGrp_Uti_Image}\\outils\\ANN FILES ${uti_image_Ann_Src_Files})
 
-list( APPEND Elise_Src_Files ${uti_image_Src_Files} )
+list(APPEND Elise_Src_Files ${uti_image_Src_Files})
