@@ -37,7 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#if (ELISE_QT_VERSION >= 4)
+#if ELISE_QT
     #include "general/visual_mainwindow.h"
 #endif
 
@@ -144,13 +144,13 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 {
 
 
-#if (ELISE_QT_VERSION >= 4)
+#if ELISE_QT
 
     if (MMVisualMode)
     {
 /*
 // MPD : je comprends pas a quoi cela sert, et cela fait planter, sur les tests cela
-// marche  sans
+// marche sans
         QApplication app(argc, argv);
 
         LArgMain LAM;
@@ -192,10 +192,10 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
         ELISE_ASSERT(argc >= 2,"Not enough arg");
         ReadType(argv[1]);
     }
-#else
+#else 
     ELISE_ASSERT(argc >= 2,"Not enough arg");
     ReadType(argv[1]);
-#endif
+#endif // ELISE_QT
 	
 	//C3DC call case : general case
     if(mDoMerge)

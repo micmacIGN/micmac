@@ -17,11 +17,10 @@ set(SamplesLibElise_Src_Files
     ${SAMPLESLIBELISE_DIR}/CPP_CilliaImgt.cpp
     ${SAMPLESLIBELISE_DIR}/CPP_CilliaCol.cpp  
     ${SAMPLESLIBELISE_DIR}/CPP_CilliaMap.cpp 
-	${SAMPLESLIBELISE_DIR}/CPP_OriVideo.cpp
 )
 
 # JE NE SAIS PAS SI CA SERT ???
-SOURCE_GROUP(SamplesLibElise FILES ${SamplesLibElise_Src_Files})
+source_group(SamplesLibElise FILES ${SamplesLibElise_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

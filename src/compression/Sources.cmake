@@ -5,7 +5,7 @@ set(Compression_Src_Files
 	${COMPRE_DIR}/range_code.cpp
 )
 
-SOURCE_GROUP(Compression FILES ${Compression_Src_Files})
+source_group(Compression FILES ${Compression_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

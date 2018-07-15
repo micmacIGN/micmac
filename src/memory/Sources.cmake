@@ -6,7 +6,7 @@ set(Memory_Src_Files
 	${MEMORY_DIR}/tab_prov.cpp
 )
 
-SOURCE_GROUP(Memory FILES ${Memory_Src_Files})
+source_group(Memory FILES ${Memory_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

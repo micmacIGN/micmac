@@ -1,4 +1,4 @@
-include_directories (${PROJECT_SOURCE_DIR}/CodeExterne/ANN/include)
+include_directories(${PROJECT_SOURCE_DIR}/CodeExterne/ANN/include)
 set(Install_Dir_lib ${PROJECT_SOURCE_DIR}/lib)
 
 set(ANN_SRC_DIR ${PROJECT_SOURCE_DIR}/CodeExterne/ANN/src)
@@ -20,6 +20,6 @@ set(ann_source_files ${ANN_SRC_DIR}/ANN.cpp
 
 add_library(ANN ${ann_source_files})
 
-INSTALL(TARGETS ANN ARCHIVE DESTINATION ${Install_Dir_lib})
+install(TARGETS ANN ARCHIVE DESTINATION ${Install_Dir_lib})
 
 set(ann_source_files ${ann_source_files} PARENT_SCOPE)

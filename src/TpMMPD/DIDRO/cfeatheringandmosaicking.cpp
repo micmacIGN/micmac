@@ -137,7 +137,7 @@ void c_Appli_FeatheringAndMosaic::computeRE(){
             ;
     if (ELISE_fp::exist_file(mFileModelsRadiomEgal)) std::cout << "Warn, file " << mFileModelsRadiomEgal << " exist and will be overwrited\n";
     if (mDebug) std::cout << aCom << "\n";
-    int toto = system(aCom.c_str());
+    system_call(aCom.c_str());
 }
 
 void c_Appli_FeatheringAndMosaic::DetermineMosaicFootprint(){

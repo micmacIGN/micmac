@@ -10,7 +10,7 @@ set(uti_image_vino
 )
 
 
-list( APPEND uti_phgrm_Src_Files
+list(APPEND uti_phgrm_Src_Files
         ${uti_image_vino}
 )
 

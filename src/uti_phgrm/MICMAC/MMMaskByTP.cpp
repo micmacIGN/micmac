@@ -1201,7 +1201,6 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBoxLoc,const cMasqueAutoBy
 
    // Filtre avec le masque 3D
    cMasqBin3D * aMasq3D = 0;
-//#if (ELISE_QT_VERSION >= 4)
    if (aMATP.Masq3D().IsInit())
    {
          aMasq3D  = cMasqBin3D::FromSaisieMasq3d(WorkDir()+aMATP.Masq3D().Val());
@@ -1214,18 +1213,16 @@ void  cAppliMICMAC::DoMasqueAutoByTieP(const Box2di& aBoxLoc,const cMasqueAutoBy
          }
          *mTP3d = aNewVec;
    }
-// #endif
 
    std::cout << "== cAppliMICMAC::DoMasqueAutoByTieP " << aBoxLoc._p0 << " " << aBoxLoc._p1 << " Nb=" << mTP3d->size() << "\n"; 
    std::cout << " =NB Im " << mVLI.size() << "\n";
 
-
    cXML_ParamNuage3DMaille aXmlN =  mCurEtape->DoRemplitXML_MTD_Nuage();
 
 
-   // On rentre tous les germe
+   // On rentre tous les germes
    {
-       // On lit le nuage qui permet de faire les conversion geometrique
+       // On lit le nuage qui permet de faire les conversions geometriques
        // pour "rasteriser" les points 3D
        cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromParam(mPDV1->Name(),aXmlN,FullDirMEC());
        if (aMasq3D)

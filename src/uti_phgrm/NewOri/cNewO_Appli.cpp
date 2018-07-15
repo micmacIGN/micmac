@@ -56,6 +56,7 @@ cCommonMartiniAppli::cCommonMartiniAppli() :
     mPrefHom      (""),
     mExtName      (""),
     mInOri        (""),
+    mOriOut       (""),
     mAcceptUnSym  (false),
     mQuick        (true),
     mShow         (false),
@@ -70,6 +71,7 @@ cCommonMartiniAppli::cCommonMartiniAppli() :
               << EAM(mExtName,"ExtName",true,"User's added Prefix , Def=\"\"")  // SH par homogeneite avec autre commandes 
               << EAM(mNameNOMode,"ModeNO",true,"Mode Def=Std (TTK StdNoTTK OnlyHomogr)")  
               << EAM(mInOri,"InOri",true,"Existing orientation if any")  
+              << EAM(mOriOut,"OriOut",true,"Output orientation dir")  
               << EAM(mAcceptUnSym,"AUS",true,"Accept non symetric homologous point;")  
               << EAM(mQuick,"Quick",true,"If true (default) do less test")  
               << EAM(mShow,"Show",true,"If true (non default) print (a lot of) messages")  ;
@@ -87,7 +89,7 @@ void cCommonMartiniAppli::PostInit() const
 cNewO_NameManager *  cCommonMartiniAppli::NM(const std::string & aDir) const
 {
    if (mNM==0) 
-      mNM =  new cNewO_NameManager(mExtName,mPrefHom,mQuick,aDir,mNameOriCalib,"dat");
+      mNM =  new cNewO_NameManager(mExtName,mPrefHom,mQuick,aDir,mNameOriCalib,"dat",mOriOut);
    return mNM;
 }
 
@@ -106,6 +108,7 @@ std::string    cCommonMartiniAppli::ComParam()
    if (EAMIsInit(&mExtName))       aCom += " ExtName="   + mExtName;
    if (EAMIsInit(&mNameNOMode))    aCom += " ModeNO="    + mNameNOMode;
    if (EAMIsInit(&mInOri))         aCom += " InOri="     + mInOri;
+   if (EAMIsInit(&mOriOut))        aCom += " OriOut="    + mOriOut;
    if (EAMIsInit(&mAcceptUnSym))   aCom += " AUS="       + ToString(mAcceptUnSym);
    if (EAMIsInit(&mQuick))         aCom += " Quick="     + ToString(mQuick);
    if (EAMIsInit(&mShow))          aCom += " Show="      + ToString(mShow);
@@ -257,7 +260,7 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
     if (EAMIsInit(&mInOri))
        StdCorrecNameOrient(mInOri,anEASF.mDir);
 
-    cNewO_NameManager aNM(mExtName,mPrefHom,mQuick,anEASF.mDir,mNameOriCalib,"dat");
+    cNewO_NameManager aNM(mExtName,mPrefHom,mQuick,anEASF.mDir,mNameOriCalib,"dat",mOriOut);
     const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
     for (int aK=0 ; aK<int(aVIm->size()) ; aK++)
     {

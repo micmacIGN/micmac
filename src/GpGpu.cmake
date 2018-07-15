@@ -4,52 +4,46 @@ file(GLOB_RECURSE IncuhCudaFiles ${PROJECT_SOURCE_DIR}/include/GpGpu/*.cuh  )
 file(GLOB_RECURSE IncCudaFiles ${PROJECT_SOURCE_DIR}/include/GpGpu/*.h  )
 list(APPEND IncCudaFiles ${IncuhCudaFiles})
 
-
 ##
-if (MSVC12)
-	GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\12.0\\Setup\\VS;ProductDir] REALPATH CACHE)
+if(MSVC12)
+	get_filename_component(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\12.0\\Setup\\VS;ProductDir] REALPATH CACHE)
 elseif (MSVC11)
-	GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\11.0\\Setup\\VS;ProductDir] REALPATH CACHE)
+	get_filename_component(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\11.0\\Setup\\VS;ProductDir] REALPATH CACHE)
 elseif (MSVC10)
-    GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\10.0\\Setup\\VS;ProductDir] REALPATH CACHE)
+    get_filename_component(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\10.0\\Setup\\VS;ProductDir] REALPATH CACHE)
 elseif (MSVC90)
-    GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\9.0\\Setup\\VS;ProductDir] REALPATH CACHE)
+    get_filename_component(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\9.0\\Setup\\VS;ProductDir] REALPATH CACHE)
 elseif (MSVC80)
-    GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\8.0\\Setup\\VS;ProductDir] REALPATH CACHE)
+    get_filename_component(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\8.0\\Setup\\VS;ProductDir] REALPATH CACHE)
 endif()
 
-#
 # FoundCapa bin for found capabilities of video cards
 
 # Define variable global for build FoundCapa on windows
-if (MSVC12 OR MSVC11 OR MSVC10 OR MSVC90 OR MSVC80)
-    set( ENV{PATH} "${VS_DIR}\\VC\\bin;C:\\Windows\\System32;${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}\\CMakeTmp\\" )
+if(MSVC12 OR MSVC11 OR MSVC10 OR MSVC90 OR MSVC80)
+    set(ENV{PATH} "${VS_DIR}\\VC\\bin;C:\\Windows\\System32;${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}\\CMakeTmp\\")
 endif() 
 
 # verif if FoundCapa.exe exists --
-if( EXISTS "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/FoundCapa.exe")
-
-# run FoundCapa.exe windows
-execute_process( COMMAND "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/FoundCapa.exe"
-                 WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
-                 RESULT_VARIABLE _resultNVCC OUTPUT_VARIABLE _outNVCC
-                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-
+if(EXISTS "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/FoundCapa.exe")
+    # run FoundCapa.exe windows
+    execute_process(COMMAND "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/FoundCapa.exe"
+                        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
+                        RESULT_VARIABLE _resultNVCC OUTPUT_VARIABLE _outNVCC
+                        ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 else()
-
 # build and run FoundCapa mac and LINUX
-execute_process( COMMAND "${CUDA_NVCC_EXECUTABLE}" "-o=FoundCapa" "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/tools/FoundCapa.cu"  "--run" 
-                 WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
-                 RESULT_VARIABLE _resultNVCC OUTPUT_VARIABLE _outNVCC
-                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(COMMAND "${CUDA_NVCC_EXECUTABLE}" "-o=FoundCapa" "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/tools/FoundCapa.cu"  "--run" 
+                        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
+                        RESULT_VARIABLE _resultNVCC OUTPUT_VARIABLE _outNVCC
+                        ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
 
 #message(${_outNVCC}) 
 
 if(NOT _resultNVCC EQUAL 0)
-	if (MSVC12 OR MSVC11 OR MSVC10 OR MSVC90 OR MSVC80)    
-		
-		set( ENV{PATH} "${VS_DIR}\\VC\\bin;C:\\Windows\\System32;${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}\\CMakeTmp\\" )
+	if(MSVC12 OR MSVC11 OR MSVC10 OR MSVC90 OR MSVC80)    
+		set(ENV{PATH} "${VS_DIR}\\VC\\bin;C:\\Windows\\System32;${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}\\CMakeTmp\\")
 		
 		message("Visual studio express edition")
 		
@@ -57,17 +51,14 @@ if(NOT _resultNVCC EQUAL 0)
 
 		#message("Start process 32 bit") 
 
-		if( EXISTS "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/FoundCapa32.exe")
-
+		if(EXISTS "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/FoundCapa32.exe")
 			#message("Found 32")
-
 			execute_process( COMMAND "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/FoundCapa32.exe"
 							 WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
 							 RESULT_VARIABLE _resultNVCC OUTPUT_VARIABLE _outNVCC
 							 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 		else()
-
 			execute_process( COMMAND "${CUDA_NVCC_EXECUTABLE}" "-m32" "-o=FoundCapa32" "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/tools/FoundCapa.cu"  "--run"		
 					 WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
 					 RESULT_VARIABLE _resultNVCC OUTPUT_VARIABLE _outNVCC
@@ -75,12 +66,11 @@ if(NOT _resultNVCC EQUAL 0)
 
 		endif()
 		#message(${_outNVCC}) 
-
 	endif()
 
 	if(NOT _resultNVCC EQUAL 0)		
-		if ("${CMAKE_GENERATOR}" MATCHES "Win64")
-			message("Error: 64 bits generation with cuda and visual express edition")
+		if("${CMAKE_GENERATOR}" MATCHES "Win64")
+		    message("Error: 64 bits generation with cuda and visual express edition")
 			message("2 options ")
 			message("create with 32 bits generator")
 			message("or")
@@ -90,7 +80,6 @@ if(NOT _resultNVCC EQUAL 0)
 		endif() 
 		message( FATAL_ERROR "Error Cuda --- build in 32 bits" )
 	endif()  
-
 endif()
 
 set(_cudaArch "${_outNVCC}")
@@ -144,7 +133,6 @@ else()
 
 endif()
 
-
 message("Cuda API Version ${CUDA_VERSION}")
 message("Cuda card compute capabilities SM ${cuda_arch_version_string} (${cuda_generation} generation)")
 
@@ -158,28 +146,27 @@ if(${CUDA_NVTOOLS})
     find_cuda_helper_libs(nvToolsExt)
 endif()
 
- cuda_add_library(${libStatGpGpuTools}  ${GpGpuTools_Src_Files} ${IncCudaFiles} STATIC OPTIONS ${GENCODE_SM})
+cuda_add_library(${libStatGpGpuTools}  ${GpGpuTools_Src_Files} ${IncCudaFiles} STATIC OPTIONS ${GENCODE_SM})
 
 
- if(${CUDA_NVTOOLS})
-	target_link_libraries(${libStatGpGpuTools} ${CUDA_nvToolsExt_LIBRARY})
- endif()
+if(${CUDA_NVTOOLS})
+    target_link_libraries(${libStatGpGpuTools} ${CUDA_nvToolsExt_LIBRARY})
+endif()
 
- cuda_add_library(${libStatGpGpuInterfMicMac}  ${uti_phgrm_GpGpu_Src_Files} STATIC OPTIONS ${GENCODE_SM})
+cuda_add_library(${libStatGpGpuInterfMicMac}  ${uti_phgrm_GpGpu_Src_Files} STATIC OPTIONS ${GENCODE_SM})
 
- cuda_add_library(${libStatGpGpuOpt}  ${uti_phgrm_Opt_GpGpu_Src_Files} ${IncCudaFiles} STATIC OPTIONS ${GENCODE_SM})
+cuda_add_library(${libStatGpGpuOpt}  ${uti_phgrm_Opt_GpGpu_Src_Files} ${IncCudaFiles} STATIC OPTIONS ${GENCODE_SM})
 
-if (Boost_FOUND)
+if(Boost_FOUND)
     target_link_libraries(${libStatGpGpuInterfMicMac} ${libStatGpGpuTools} ${Boost_LIBRARIES} ${Boost_THREADAPI})
 endif()
 
-if (NOT WIN32)
+if(NOT WIN32)
     target_link_libraries(${libStatGpGpuInterfMicMac}  rt pthread )
 endif()
- set(GpGpu_UnitTesting GpGpuUnitTesting)
+set(GpGpu_UnitTesting GpGpuUnitTesting)
 
 cuda_add_executable(${GpGpu_UnitTesting} ${uti_Test_Opt_GpGpu_Src_Files})
-
 
 if(${CUDA_NVTOOLS})
     target_link_libraries(${GpGpu_UnitTesting}  ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${libStatGpGpuTools} ${CUDA_nvToolsExt_LIBRARY}   )
@@ -191,7 +178,7 @@ if (NOT WIN32)
         target_link_libraries(${GpGpu_UnitTesting}  rt pthread )
 endif()
 
-INSTALL(TARGETS ${GpGpu_UnitTesting} RUNTIME DESTINATION ${Install_Dir})
+install(TARGETS ${GpGpu_UnitTesting} RUNTIME DESTINATION ${Install_Dir})
 
 link_directories(${PROJECT_SOURCE_DIR}/lib/) 
 
@@ -204,52 +191,50 @@ endif()
 
 #target_link_libraries(${libElise} ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt} ${CUDA_nvToolsExt_LIBRARY})
 
-INSTALL(TARGETS ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt}
+install(TARGETS ${libStatGpGpuTools} ${libStatGpGpuInterfMicMac} ${libStatGpGpuOpt}
             LIBRARY DESTINATION ${PROJECT_SOURCE_DIR}/lib
             ARCHIVE DESTINATION ${PROJECT_SOURCE_DIR}/lib)
 
 
 #///////// OPENCL
-
 #//////////////////////////////////////////
-
 if(${WITH_OPENCL})
 
     message("OPENCL Doesn't work for the moment")
-    FIND_PATH(OPENCL_INCLUDE_DIR
-            NAMES
-                    CL/cl.h OpenCL/cl.h
-            PATHS
-                    $ENV{AMDAPPSDKROOT}/include
-					$ENV{CUDA_PATH}/include
-                    $ENV{INTELOCLSDKROOT}/include
-                    $ENV{NVSDKCOMPUTE_ROOT}/OpenCL/common/inc
-                    ${CUDA_TOOLKIT_INCLUDE}
-                    # Legacy Stream SDK
-                    $ENV{ATISTREAMSDKROOT}/include)
+    find_path(OPENCL_INCLUDE_DIR
+        NAMES
+                CL/cl.h OpenCL/cl.h
+        PATHS
+                $ENV{AMDAPPSDKROOT}/include
+				$ENV{CUDA_PATH}/include
+                $ENV{INTELOCLSDKROOT}/include
+                $ENV{NVSDKCOMPUTE_ROOT}/OpenCL/common/inc
+                ${CUDA_TOOLKIT_INCLUDE}
+                 # Legacy Stream SDK
+                $ENV{ATISTREAMSDKROOT}/include)
 
-    IF(CMAKE_SIZEOF_VOID_P EQUAL 4)
-            SET(OPENCL_LIB_SEARCH_PATH
-                    ${OPENCL_LIB_SEARCH_PATH}
-                    $ENV{AMDAPPSDKROOT}/lib/x86
-                    $ENV{INTELOCLSDKROOT}/lib/x86
-                    $ENV{NVSDKCOMPUTE_ROOT}/OpenCL/common/lib/Win32
-					$ENV{CUDA_PATH}//lib/Win32
-                    # Legacy Stream SDK
-                    $ENV{ATISTREAMSDKROOT}/lib/x86)
-    ELSEIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-            SET(OPENCL_LIB_SEARCH_PATH
-                    ${CUDA_TOOLKIT_INCLUDE}/lib64
-                    #${OPENCL_LIB_SEARCH_PATH}
-                    $ENV{AMDAPPSDKROOT}/lib/x86_64
-                    $ENV{INTELOCLSDKROOT}/lib/x64
-                    $ENV{NVSDKCOMPUTE_ROOT}/OpenCL/common/lib/x64
-					$ENV{CUDA_PATH}//lib/x64
-                    # Legacy stream SDK
-                    $ENV{ATISTREAMSDKROOT}/lib/x86_64)
-    ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+        set(OPENCL_LIB_SEARCH_PATH
+                ${OPENCL_LIB_SEARCH_PATH}
+                $ENV{AMDAPPSDKROOT}/lib/x86
+                $ENV{INTELOCLSDKROOT}/lib/x86
+                $ENV{NVSDKCOMPUTE_ROOT}/OpenCL/common/lib/Win32
+				$ENV{CUDA_PATH}//lib/Win32
+                # Legacy Stream SDK
+                $ENV{ATISTREAMSDKROOT}/lib/x86)
+    elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(OPENCL_LIB_SEARCH_PATH
+                ${CUDA_TOOLKIT_INCLUDE}/lib64
+                #${OPENCL_LIB_SEARCH_PATH}
+                $ENV{AMDAPPSDKROOT}/lib/x86_64
+                $ENV{INTELOCLSDKROOT}/lib/x64
+                $ENV{NVSDKCOMPUTE_ROOT}/OpenCL/common/lib/x64
+				$ENV{CUDA_PATH}//lib/x64
+                # Legacy stream SDK
+                $ENV{ATISTREAMSDKROOT}/lib/x86_64)
+    endif(CMAKE_SIZEOF_VOID_P EQUAL 4)
 
-    FIND_LIBRARY(
+    find_library(
         OPENCL_LIBRARY
         NAMES OpenCL
         PATHS ${OPENCL_LIB_SEARCH_PATH})
@@ -273,24 +258,21 @@ if(${WITH_OPENCL})
 
 if(NOT CUDA_ENABLED)
     set(filesopencl
-
-                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu"
-                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL.cpp"
-
+            "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu"
+            "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL.cpp"
         )
 
     add_executable(TestOpenCL ${filesopencl})
 
     target_link_libraries(TestOpenCL ${libStatGpGpuTools} ${OPENCL_LIBRARY})
 
-    INSTALL(TARGETS TestOpenCL RUNTIME DESTINATION ${Install_Dir})
+    install(TARGETS TestOpenCL RUNTIME DESTINATION ${Install_Dir})
     message("OPENCL TEST")
 else()
     set(filesCUDA
-
-                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL.cpp"
-                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_CUDA_Define.cu"
-                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu"
+            "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL.cpp"
+            "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_CUDA_Define.cu"
+            "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu"
         )
 
     cuda_add_executable(TestCUDA ${filesCUDA})
@@ -301,16 +283,14 @@ else()
             target_link_libraries(TestCUDA ${libStatGpGpuTools} ${OPENCL_LIBRARY})
      endif()
 
-    INSTALL(TARGETS TestCUDA RUNTIME DESTINATION ${Install_Dir})
-
+    install(TARGETS TestCUDA RUNTIME DESTINATION ${Install_Dir})
 endif()
 
 else()
     set(filesCUDA
-
-                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL.cpp"
-                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_CUDA_Define.cu"
-                    "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu"
+            "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL.cpp"
+            "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_CUDA_Define.cu"
+            "${PROJECT_SOURCE_DIR}/src/uti_phgrm/GpGpu/GpGpu_OpenCL_Kernel.cu"
         )
 
     cuda_add_executable(TestCUDA ${filesCUDA})
@@ -323,8 +303,7 @@ else()
 
     target_link_libraries(TestCUDA ${libStatGpGpuTools} )
 
-    INSTALL(TARGETS TestCUDA RUNTIME DESTINATION ${Install_Dir})
+    install(TARGETS TestCUDA RUNTIME DESTINATION ${Install_Dir})
 endif()
 
 #////////////////////////////
-

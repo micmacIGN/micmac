@@ -717,6 +717,37 @@
 	<SubDirAutoMake> Homol#1 </SubDirAutoMake>
 	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
     </KeyedNamesAssociations>
+    
+     <KeyedSetsOfNames >
+          <IsParametrized>  true </IsParametrized>
+          <Sets> 
+                 <PatternAccepteur> Pastis#3/(.*)\.(#2)  </PatternAccepteur>
+		 <SubDir>   #4/Homol#1/ </SubDir>
+                 <NivSubDir> 2 </NivSubDir>
+	  </Sets>
+          <Key> NKS-Set-HomolOfOneImageWithDir </Key>
+    </KeyedSetsOfNames>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)%(.*) </PatternTransform>
+                <CalcName> #3/Homol#1/Pastis$1/$2.#2  </CalcName>
+                <Separateur > % </Separateur>
+             </Direct>
+	     <Inverse>
+                <PatternTransform> #3/Homol#1/Pastis(.*)/(.*)\.#2 </PatternTransform>
+                <CalcName> $1  </CalcName>
+                <CalcName> $2  </CalcName>
+	     </Inverse>
+        </Calcs>
+        <Key>  NKS-Assoc-CplIm2HomWithDir </Key>
+	<SubDirAutoMake> Homol#1 </SubDirAutoMake>
+	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
 
     <KeyedNamesAssociations>
         <IsParametrized>  true </IsParametrized>

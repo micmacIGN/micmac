@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#if (ELISE_X11||(ELISE_QT_VERSION >= 4))
+#if (ELISE_X11 || ELISE_QT)
 void SaisieAppuisInit(int argc, char ** argv,
                       Pt2di &aSzW,
                       Pt2di &aNbFen,
@@ -124,11 +124,9 @@ void SaisieAppuisInit(int argc, char ** argv,
         }
     }
 }
-#endif
+#endif // (ELISE_X11 || ELISE_QT)
 
-#if (ELISE_X11)
-
-
+#if ELISE_X11
 int SaisieAppuisInit_main(int argc,char ** argv)
 {
   Pt2di aSzW(800,800);
@@ -200,13 +198,7 @@ int SaisieAppuisInit_main(int argc,char ** argv)
   else
       return EXIT_SUCCESS;
 }
-
-
 #endif
-
-
-
-
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant �  la mise en
