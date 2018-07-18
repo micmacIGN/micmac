@@ -42,6 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../uti_phgrm/NewOri/NewOri.h"
 #include "general/ptxd.h"
 #include "../../include/im_tpl/cPtOfCorrel.h"
+#include "../uti_phgrm/TiepTri/MultTieP.h"
 
 void CheckBounds(Pt2dr & aPmin, Pt2dr & aPmax, const Pt2dr & aP, bool & IS_INI);
 
@@ -1268,6 +1269,147 @@ int PFM2Tiff_main(int argc,char ** argv)
 
 }
 
+class cBAL2OriMicMac
+{
+    public :
+        cBAL2OriMicMac(int argc,char ** argv);
+
+        bool DoAll();
+
+
+    private :
+        std::string mBalName;
+        std::string mOri;
+
+        cSetTiePMul         * mMulPts;
+        
+        std::map<int,double*> mPoses;   
+        std::vector<std::vector<Pt2dr>> mPtTracks;
+        std::vector<std::vector<int>>   mCamOfPtTrack;
+
+        bool Read();
+        void Save();
+
+        template <typename T>
+        void FileReadOK(FILE *fptr, const char *format, T *value);
+
+};
+
+template <typename T>
+void cBAL2OriMicMac::FileReadOK(FILE *fptr, const char *format, T *value)
+{
+    int OK = fscanf(fptr, format, value);
+    if (OK != 1)
+        ELISE_ASSERT(false, "cBAL2OriMicMac::Read")
+}
+
+void cBAL2OriMicMac::Save()
+{
+    for (int aK=0; aK<int(mPtTracks.size()); aK++)
+    {
+        std::vector<float> aAttr;
+        mMulPts->AddPts(mCamOfPtTrack.at(aK),mPtTracks.at(aK),aAttr);
+    }
+    
+    ELISE_fp::MkDir("Homol");
+    mMulPts->Save("Homol/PMul.txt");
+        
+}
+
+// Part of the read code that reads BAL problem is taken from ceres exemples 
+bool cBAL2OriMicMac::Read()
+{
+    FILE* fptr = fopen(mBalName.c_str(), "r"); 
+    if (fptr == NULL) {
+      return false;
+    };
+
+    int aNumCam,aNumPts,aNumObs;
+    //int aNumParam;
+
+
+    FileReadOK(fptr, "%d", &aNumCam);
+    FileReadOK(fptr, "%d", &aNumPts);
+    FileReadOK(fptr, "%d", &aNumObs);
+
+    //aNumParam = 9*aNumCam + 3*aNumPts;
+
+    mPtTracks.resize(aNumPts);
+    mCamOfPtTrack.resize(aNumPts);
+
+
+    /* Observations 2D */
+    int aCamIdx,aPtIdx;
+    for (int aK=0; aK<aNumObs; aK++)
+    {
+        FileReadOK(fptr, "%d", &aCamIdx);
+        FileReadOK(fptr, "%d", &aPtIdx);
+
+    
+        double aPt[2];
+        for (int j = 0; j < 2; ++j) 
+        {
+            FileReadOK(fptr, "%lf", aPt + j);
+        }
+
+        mPtTracks.at(aPtIdx).push_back(Pt2dr(aPt[0],aPt[1]));
+        mCamOfPtTrack.at(aPtIdx).push_back(aCamIdx);
+        
+
+    }
+
+    /* Camera parameters */
+    for (int aCam=0; aCam<aNumCam; aCam++)
+    {
+        mPoses[aCam] = new double[9];
+        double * aCal = mPoses[aCam];
+        for (int aParam=0; aParam<9; aParam++)
+        {
+            FileReadOK(fptr, "%lf", aCal + aParam);
+        }
+         
+    }
+
+    /* 3D points en s'en fout pour l'instant ? */
+
+    
+    return true;
+
+}
+
+bool cBAL2OriMicMac::DoAll()
+{
+    if (Read())
+        Save();
+    else
+        return false;
+
+    return true;
+}
+
+cBAL2OriMicMac::cBAL2OriMicMac(int argc,char ** argv) : 
+    mMulPts(new cSetTiePMul(0))
+{
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(mBalName,"File with BAL Problem")
+                   << EAMC(mOri,"Output orientation directory"),
+        LArgMain() 
+                   
+    );
+
+    
+}
+
+int BAL2OriMicMac_main(int argc,char ** argv)
+{
+    cBAL2OriMicMac aBal2MM(argc,argv);
+    aBal2MM.DoAll();
+
+    return 1.0;
+}
+
 //to do - ajouter la masq?
 
 class cImDir
@@ -1296,6 +1438,7 @@ cImDir::cImDir(const std::string &aName) :
     
 ElSeg3D & cImDir::OC()
 { return mOC; }
+
 
 const ElSeg3D & cImDir::OC()const
 { return mOC; }
