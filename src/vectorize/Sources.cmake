@@ -5,7 +5,7 @@ set(Vecto_Src_Files
 	${VECTO_DIR}/sk_vect.cpp
 )
 
-SOURCE_GROUP(Vectorize FILES ${Vecto_Src_Files})
+source_group(Vectorize FILES ${Vecto_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

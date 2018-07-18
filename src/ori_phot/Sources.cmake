@@ -10,7 +10,7 @@ set(OriPhoto_Src_Files
 	${ORIPHO_DIR}/orisol.cpp
 )
 
-SOURCE_GROUP(OriPhoto FILES ${OriPhoto_Src_Files})
+source_group(OriPhoto FILES ${OriPhoto_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

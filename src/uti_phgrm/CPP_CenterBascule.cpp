@@ -37,6 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
+#include "math.h"
 
 #define DEF_OFSET -12349876
 
@@ -126,12 +127,19 @@ class cAppli_CmpOriCam : public cAppliWithSetImage
         std::string mDirOri2;
         std::string mXmlG;
         std::string mCSV = "CSVEachPose.csv";
+        std::string mPly;
         cInterfChantierNameManipulateur * mICNM2;
 };
 
 cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
     cAppliWithSetImage(argc-1,argv+1,0)
 {
+   Pt3di aColXY(255,0,0);
+   Pt3di aColZ(0,0,255);
+   Pt3di aColOri(255,255,0);
+   double aScaleC;
+   double aScaleO;
+   double aF;
 
    ElInitArgMain
    (
@@ -142,6 +150,13 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
         LArgMain()  << EAM(mDirOri2,"DirOri2", true,"Orientation 2")
 					<< EAM(mXmlG,"XmlG",true,"Generate Xml")
                     << EAM(mCSV,"CSV",true,"Generate detail CSV (excel compatible) for each image")
+                    << EAM(mPly,"Ply",true,"Generate .ply File")
+                    << EAM(aColXY,"ColXY", true, "color for XY component of .ply")
+                    << EAM(aColZ,"ColZ", true, "color for Z component of .ply")
+                    << EAM(aColOri,"ColOri",true,"color for orientation component of .ply")
+                    << EAM(aScaleC,"ScaleC",true,"Scale for camera center difference, the center diff is displayed when this option is activated")
+                    << EAM(aScaleO,"ScaleO",true,"Scale for camera orientation difference, the ori diff is displayed when this option is activated")
+                    << EAM(aF,"F",true,"approximate value of focal length in (m), Def=0.03875m for Camlight")
 
    );
 
@@ -168,7 +183,7 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
      isCSV = true;
      mCSVContent<< "Img,X1,Y1,Z1,dX,dY,dZ,dXY,dXYZ\n";
    }
-
+   cPlyCloud aPlyC, aPlyO;
 
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
@@ -176,9 +191,22 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
        CamStenope * aCam1 =  anIm->CamSNN();
        CamStenope * aCam2 = mICNM2->StdCamStenOfNames(anIm->mNameIm,mOri2);
 
-       Pt3dr aC1 = aCam1->PseudoOpticalCenter();
-       Pt3dr aC2 = aCam2->PseudoOpticalCenter();
+       Pt3dr aC1 = aCam1->VraiOpticalCenter();
+       Pt3dr aC2 = aCam2->VraiOpticalCenter();
 
+       if (EAMIsInit(&aScaleO))
+       {
+           ElSeg3D aRay2 = aCam2->Capteur2RayTer(aCam2->PP());
+           double prof = - aCam1->Focale()/5120*32.7/1000;
+
+           Pt2dr aP = aCam1->Ter2Capteur(aRay2.P1()-(aC2-aC1));
+
+           Pt3dr aPP3D = aCam1->ImEtProf2Terrain(aCam1->PP(),prof);
+
+           Pt3dr aP3D = aCam1->ImEtProf2Terrain(aP,prof);
+
+           aPlyO.AddSeg(aColOri,aPP3D,aP3D+(aPP3D-aP3D)*1000*aScaleO,10000);
+       }
        ElRotation3D aR1= aCam1->Orient();
        ElRotation3D aR2= aCam2->Orient();
 
@@ -193,6 +221,12 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
        {
            mCSVContent << anIm->mNameIm <<","<< ToString(aC1.x) << "," << ToString(aC1.y) << "," << ToString(aC1.z) << "," << ToString(abs(aC1.x - aC2.x)) << "," << ToString(abs(aC1.y - aC2.y)) << "," <<ToString(aC1.z - aC2.z) << "," <<  ToString(aDCXY) << "," << ToString(aDC);
            mCSVContent << "\n";
+       }
+
+       if(EAMIsInit(&aScaleC))
+       {
+           aPlyC.AddSeg(aColXY,aC1,Pt3dr(aC2.x+(aC2.x-aC1.x)*100000*aScaleC,aC2.y+(aC2.y-aC1.y)*100000*aScaleC,aC1.z),10000);
+           aPlyC.AddSeg(aColZ,aC1,Pt3dr(aC1.x,aC1.y,aC2.z+(aC2.z-aC1.z)*100000*aScaleC),10000);
        }
    }
 	
@@ -216,6 +250,12 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
    if (isCSV)
    {
        mCSVContent.close();
+   }
+
+   if(EAMIsInit(&mPly))
+   {
+       aPlyC.PutFile(mPly.substr(0,mPly.size()-4)+"_Center.ply");
+       aPlyO.PutFile(mPly.substr(0,mPly.size()-4)+"_Orientation.ply");
    }
 }
 

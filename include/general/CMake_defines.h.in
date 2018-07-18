@@ -1,6 +1,4 @@
-#ifndef ELISE_QT_VERSION
-#define ELISE_QT_VERSION @qt_version@
-#endif
+#define ELISE_QT @QT_ENABLED@ 
 
 #define QT_INSTALL_PLUGINS "@QT_INSTALL_PLUGINS@"
 

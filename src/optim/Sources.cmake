@@ -14,7 +14,7 @@ set(Optim_Src_Files
 	${OPTIM_DIR}/optim_etiq_binaire.cpp
 )
 
-SOURCE_GROUP(Optim FILES ${Optim_Src_Files})
+source_group(Optim FILES ${Optim_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

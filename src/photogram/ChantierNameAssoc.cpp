@@ -38,7 +38,7 @@ See below and http://www.cecill.info.
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "general/CMake_defines.h"
-#if (ELISE_QT_VERSION >= 4)
+#if ELISE_QT
     #ifdef Int
         #undef Int
     #endif
@@ -2557,7 +2557,7 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
 
 bool DebugConvCal() {return false;}
 
-#if(ELISE_QT_VERSION >= 4)
+#if ELISE_QT
     string MMQtLibraryPath()
     {
         #if defined(__APPLE__) || defined(__MACH__)
@@ -2614,7 +2614,7 @@ bool DebugConvCal() {return false;}
 
         cerr << "WARNING: initQtLibraryPath: no valid path found" << endl;
     }
-#endif
+#endif // ELISE_QT
 
     std::string MMBin() { return MMDir()+"bin"+ELISE_CAR_DIR; }
 
