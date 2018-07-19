@@ -98,11 +98,11 @@ cLionPaw::cLionPaw(int argc,char ** argv):
         list<std::string> aLCom;
 
         for (auto & WD : aVDir){
-        std::string aCom=MMBinFile(MM3DStr)+" TestLib jo_test2 " + WD + " " + " Suf="+ mOutSufix + " DoMEC="+ToString(DoMEC)+ " DoOri=" + ToString(DoOri) + " Purge="+ToString(Purge) + " F="+ToString(mF);
+        std::string aCom=MMBinFile(MM3DStr)+" TestLib AllAuto " + WD + " " + " Suf="+ mOutSufix + " DoMEC="+ToString(DoMEC)+ " DoOri=" + ToString(DoOri) + " Purge="+ToString(Purge) + " F="+ToString(mF);
         aLCom.push_back(aCom);
         std::cout << aCom << "\n";
         }
-     cEl_GPAO::DoComInParal(aLCom);
+     cEl_GPAO::DoComInSerie(aLCom);
     }
 }
 
@@ -128,9 +128,12 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
                 );
     if (!MMVisualMode)
     {
-        #ifdef linux
+     #if (ELISE_unix)
 
-        mOut=mDir+mOutSufix+".ply";
+        // apericloud export
+        mOut=mDir+mOutSufix+"_aero.ply";
+        // pims2ply (Dense Cloud) export
+        std::string mDC=mDir+mOutSufix+".ply";
 
         std::cout << "I will process data " << mDir << "\n";
 
@@ -143,7 +146,7 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
 
         // if no MTD, give fake ones
         testMTD();
-        if (DoOri) SortImBlurred();
+        //if (DoOri) SortImBlurred();
         mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
 
         chdir(mDir.c_str());
@@ -156,33 +159,47 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
 
             ELISE_fp::PurgeDirRecursif("Ori-C1");
 
-            aCom=MMBinFile(MM3DStr)+" Tapioca All "+ aPat + " 700 Ratio=0.4";
+            aCom=MMBinFile(MM3DStr)+" Tapioca All "+ aPat + " 300 Detect=Digeo";
             std::cout << aCom << "\n";
             system_call(aCom.c_str());
-            //aCom=MMBinFile(MM3DStr)+" Martini "+ aPat ;
-            //std::cout << aCom << "\n";
-            //system_call(aCom.c_str());
-            //aCom=MMBinFile(MM3DStr) +" Ratafia "+ aPat + " DistPMul=75";
-            //std::cout << aCom << "\n";
-            //system_call(aCom.c_str());
-            //aCom=MMBinFile(MM3DStr)+" Tapas RadialBasic "+ aPat + " SH=-Ratafia" ;
+            aCom=MMBinFile(MM3DStr)+" Schnaps "+ aPat + " NbWin=200 MoveBadImgs=1 minPercentCoverage=70 VeryStrict=0 " ;
+            std::cout << aCom << "\n";
+            // iteratif
+            for (int i(0) ; i<3 ; i++) {system_call(aCom.c_str());}
 
-            aCom=MMBinFile(MM3DStr)+" Tapas RadialBasic "+ aPat + " Out=C1" ;
+            aCom=MMBinFile(MM3DStr)+" Tapioca All "+ aPat + " 600 Detect=Digeo";
             std::cout << aCom << "\n";
             system_call(aCom.c_str());
-            //aCom=MMBinFile(MM3DStr)+" Tapas Fraser "+ aPat + " InOri=RadialBasic InCal=RadialBasic SH=-Ratafia ";
-            //aCom=MMBinFile(MM3DStr)+" Campari "+ aPat + " RadialBasic C1 SH=-Ratafia GradualRefineCal=Fraser";
+
+            aCom=MMBinFile(MM3DStr)+" Schnaps "+ aPat + " NbWin=200 MoveBadImgs=1 minPercentCoverage=70 VeryStrict=1 " ;
+            std::cout << aCom << "\n";
+            // iteratif
+            for (int i(0) ; i<3 ; i++) {system_call(aCom.c_str());}
+
+            aCom=MMBinFile(MM3DStr)+" Tapas RadialBasic "+ aPat + " Out=1 SH=_mini" ;
+            std::cout << aCom << "\n";
+            system_call(aCom.c_str());
+
             std::cout << aCom << "\n";
             //system_call(aCom.c_str());
             //aCom=MMBinFile(MM3DStr)+" AperiCloud "+ aPat + " C1 SH=-Ratafia Out=../cloud_" + mOut ;
-            aCom=MMBinFile(MM3DStr)+" AperiCloud "+ aPat + " C1 Out=../cloud_" + mOut ;
+            aCom=MMBinFile(MM3DStr)+" AperiCloud "+ aPat + " 1 Out=../cloud_" + mOut ;
             std::cout << aCom << "\n";
             system_call(aCom.c_str());
            }
         }
 
         if (DoMEC){
+           if( ELISE_fp::IsDirectory("Ori-1")){
 
+               aCom=MMBinFile(MM3DStr)+" PIMs BigMac " + aPat + " 1 ZoomF=8";
+               std::cout << aCom << "\n";
+               system_call(aCom.c_str());
+               aCom=MMBinFile(MM3DStr)+" PIMs2Ply BigMac Out=" + mDC;
+               std::cout << aCom << "\n";
+               system_call(aCom.c_str());
+
+           }
         }
 
         if (Purge) {
@@ -194,9 +211,9 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
             aLDir.push_back("NewOriTmpQuick");
             aLDir.push_back("Tmp-ReducTieP");
             aLDir.push_back("Ori-RadialBasic");
-            aLDir.push_back("Ori-Martini");
+            //aLDir.push_back("Ori-Martini");
             aLDir.push_back("Ori-InterneScan");
-            aLDir.push_back("Homol");
+            //aLDir.push_back("Homol");
 
             for (auto & dir : aLDir){
             if(ELISE_fp::IsDirectory(dir))
@@ -208,7 +225,7 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
             }
 
         }
-        #endif
+       #endif
     }
 }
 
@@ -1443,20 +1460,21 @@ int main_test2(int argc,char ** argv)
      //cORT_Appli anAppli(argc,argv);
      //CmpOrthosTir_main(argc,argv);
     //ComputeStat_main(argc,argv);
-    //RegTIRVIS_main(argc,argv);
-    //test_main(argc,argv);
-    //MasqTIR_main(argc,argv);
-    //cCoreg2Ortho(argc,argv);
-    //TransfoMesureAppuisVario2TP_main(argc,argv);
+    //RegTIRVIS_main(argc,argv);  
+    //MasqTIR_main(argc,argv);   
     //statRadianceVarioCam_main(argc,argv);
-    cTPM2GCPwithConstantZ(argc,argv);
-    //cMeasurePalDeg2RGB(argc,argv);
-    //cLionPaw(argc,argv);
+    //cTPM2GCPwithConstantZ(argc,argv);
 
    return EXIT_SUCCESS;
 }
 
-
+// launch all photogrammetric pipeline on a list of directory
+int main_AllPipeline(int argc,char ** argv)
+{
+   cLionPaw(argc,argv);
+   return EXIT_SUCCESS;
+}
+// launch a complete workflow on one image block
 int main_OneLionPaw(int argc,char ** argv)
 {
     cOneLionPaw(argc,argv);

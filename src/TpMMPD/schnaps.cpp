@@ -715,7 +715,7 @@ void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
 
 }
 
-void networkExport(std::map<std::string,cPic*> &allPics)
+void networkExport(std::map<std::string,cPic*> &allPics, int aFactPH)
 {
     std::ostringstream oss;
     oss<<"var nodes = [\n";
@@ -734,8 +734,8 @@ void networkExport(std::map<std::string,cPic*> &allPics)
         for (itPic2=aPic1->getNbRawLinks()->begin();itPic2!=aPic1->getNbRawLinks()->end();++itPic2)
         {
             cPic* aPic2=(*itPic2).first;
-            if ((*itPic2).second>=100)
-                oss<<"  {'from': "<<aPic1->getId()<<", 'to': "<<aPic2->getId()<<", value: "<<1+(*itPic2).second/100<<"},\n";
+            if ((*itPic2).second>=10)
+                oss<<"  {'from': "<<aPic1->getId()<<", 'to': "<<aPic2->getId()<<", value: "<<1+(*itPic2).second/aFactPH<<"},\n";
         }
     }
     oss<<"];\n";
@@ -769,6 +769,7 @@ int schnaps_main(int argc,char ** argv)
     int aMinimalMultiplicity=1;
     std::string aNameTrashFolder = "";
     bool aNetworkExport=false;//export html network image
+    int aFactPH(10);
 
     std::cout<<"Schnaps : reduction of homologue points in image geometry\n"
             <<"S trict           \n"
@@ -799,6 +800,7 @@ int schnaps_main(int argc,char ** argv)
                    << EAM(aNameTrashFolder,"OutTrash",true,"Output name of trash folder if moving bad images, Def=Poubelle")
                    << EAM(aMinimalMultiplicity,"MiniMulti",true,"Minimal Multiplicity of selected points, Def=1")
                    << EAM(aNetworkExport,"NetworkExport",true,"Export Network (in js), Def=false")
+                   << EAM(aFactPH,"DivPH",true,"in exported network, denominator to decrease the number of tie point which is used for displaying strength of a relation between 2 images, def 10.")
       );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -853,7 +855,7 @@ int schnaps_main(int argc,char ** argv)
     computeAllHomol(aICNM,aDirImages,aPatIm,aSetIm,allHomolsIn,aCKin,allPics,allPicSizes,veryStrict,aNumWindows);
 
     if (aNetworkExport)
-        networkExport(allPics);
+        networkExport(allPics,aFactPH);
     
     /*cout<<"Cleaning Homol list..."<<std::endl;
     for (std::list<cHomol*>::iterator itHomol=allHomolsIn.begin();itHomol!=allHomolsIn.end();)
