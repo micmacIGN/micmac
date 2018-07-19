@@ -54,6 +54,8 @@ private:
     cInterfChantierNameManipulateur * mICNM;
     bool DoOri,DoMEC,Purge,mF;
     std::string mDir,mDirPat,mWD,mOut,mOutSufix;
+    bool mRestoreTrash;
+    int  mTPImSz1, mTPImSz2;
 };
 
 class cOneLionPaw{
@@ -61,21 +63,27 @@ public:
     cOneLionPaw(int argc,char ** argv);
     void testMTD();
     void SortImBlurred();
+    void Restore();
 private:
     cInterfChantierNameManipulateur * mICNM;
     bool DoOri,DoMEC,Purge,mF;
     std::string mDir,mDirPat,mWD,mOut,mOutSufix;
     std::list<std::string> mImName;
     std::map<int,std::string> mIms;
+    bool mRestoreTrash;
+    int  mTPImSz1, mTPImSz2;
 };
-//mm3d TestLib jo_test ./ "000." Suf="_MM1" DoMEC=1 DoOri=1 Purge=0 F=0
+
 
 cLionPaw::cLionPaw(int argc,char ** argv):
     DoOri(1),
     DoMEC(0),
     Purge(1),
     mF(0),
-    mOutSufix("_MM")
+    mOutSufix("_MM"),
+    mRestoreTrash(1),
+    mTPImSz1(500),
+    mTPImSz2(1000)
 {
     mDir="./";
     ElInitArgMain
@@ -89,6 +97,10 @@ cLionPaw::cLionPaw(int argc,char ** argv):
                             << EAM(DoOri,"DoOri",true, "Perform orientation, def true.")
                             << EAM(Purge,"Purge",true, "Purge intermediate results, def true.")
                             << EAM(mF,"F",true, "overwrite results, def false.")
+                << EAM(mRestoreTrash,"Restore",true, "Restore images that are in the Poubelle folder prior to run the photogrammetric pipeline, def true.")
+                << EAM(mTPImSz1,"TPImSz1",true, "Size of image to compute tie point at first iteration (prior to filter images), def=500")
+                << EAM(mTPImSz2,"TPImSz2",true, "Size of image to compute tie point at second iteration (prior to compute orientation), def=1000")
+
                 );
     if (!MMVisualMode)
     {
@@ -98,7 +110,16 @@ cLionPaw::cLionPaw(int argc,char ** argv):
         list<std::string> aLCom;
 
         for (auto & WD : aVDir){
-        std::string aCom=MMBinFile(MM3DStr)+" TestLib AllAuto " + WD + " " + " Suf="+ mOutSufix + " DoMEC="+ToString(DoMEC)+ " DoOri=" + ToString(DoOri) + " Purge="+ToString(Purge) + " F="+ToString(mF);
+        std::string aCom=MMBinFile(MM3DStr)+" TestLib AllAuto " + WD + " " + " Suf="+ mOutSufix + " DoMEC="+ToString(DoMEC)+ " DoOri=" + ToString(DoOri)
+                + " Purge="+ToString(Purge)
+                + " F="+ToString(mF)
+                + " Restore="+ToString(mRestoreTrash)
+                + " TPImSz1="+ToString(mTPImSz1)
+                + " TPImSz2="+ToString(mTPImSz2)
+                ;
+
+
+
         aLCom.push_back(aCom);
         std::cout << aCom << "\n";
         }
@@ -111,7 +132,11 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
     DoMEC(0),
     Purge(1),
     mF(0),
-    mOutSufix("_MM")
+    mOutSufix("_MM"),
+    mRestoreTrash(1),
+    mTPImSz1(500),
+    mTPImSz2(1000)
+
 {
     mDir="./";
     ElInitArgMain
@@ -125,6 +150,10 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
                 << EAM(DoOri,"DoOri",true, "Perform orientation, def true.")
                 << EAM(Purge,"Purge",true, "Purge intermediate results, def true.")
                 << EAM(mF,"F",true, "overwrite results, def false.")
+                << EAM(mRestoreTrash,"Restore",true, "Restore images that are in the Poubelle folder prior to run the photogrammetric pipeline, def true.")
+                << EAM(mTPImSz1,"TPImSz1",true, "Size of image to compute tie point at first iteration (prior to filter images), def=500")
+                << EAM(mTPImSz2,"TPImSz2",true, "Size of image to compute tie point at second iteration (prior to compute orientation), def=1000")
+
                 );
     if (!MMVisualMode)
     {
@@ -140,10 +169,8 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
         // martini ne fonctionne que si on est dans le directory grrr
 
         std::string aPat("'.*.(jpg|JPG)'");
-
-        //std::string aPat("'"+mDir+"/.*.(jpg|JPG)'");
         std::string aCom("");
-
+        if (mRestoreTrash) Restore();
         // if no MTD, give fake ones
         testMTD();
         //if (DoOri) SortImBlurred();
@@ -159,31 +186,31 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
 
             ELISE_fp::PurgeDirRecursif("Ori-C1");
 
-            aCom=MMBinFile(MM3DStr)+" Tapioca All "+ aPat + " 300 Detect=Digeo";
+            aCom=MMBinFile(MM3DStr)+" Tapioca All "+ aPat + " " + ToString(mTPImSz1) + " Detect=Digeo";
             std::cout << aCom << "\n";
             system_call(aCom.c_str());
-            aCom=MMBinFile(MM3DStr)+" Schnaps "+ aPat + " NbWin=200 MoveBadImgs=1 minPercentCoverage=70 VeryStrict=0 " ;
+            aCom=MMBinFile(MM3DStr)+" Schnaps "+ aPat + " NbWin=200 MoveBadImgs=1 minPercentCoverage=60 VeryStrict=0 " ;
             std::cout << aCom << "\n";
             // iteratif
             for (int i(0) ; i<3 ; i++) {system_call(aCom.c_str());}
 
-            aCom=MMBinFile(MM3DStr)+" Tapioca All "+ aPat + " 600 Detect=Digeo";
+            aCom=MMBinFile(MM3DStr)+" Tapioca All "+ aPat + " " + ToString(mTPImSz2) + " Detect=Digeo";
             std::cout << aCom << "\n";
             system_call(aCom.c_str());
 
-            aCom=MMBinFile(MM3DStr)+" Schnaps "+ aPat + " NbWin=200 MoveBadImgs=1 minPercentCoverage=70 VeryStrict=1 " ;
+            aCom=MMBinFile(MM3DStr)+" Schnaps "+ aPat + " NbWin=200 MoveBadImgs=1 minPercentCoverage=60 VeryStrict=1 " ;
             std::cout << aCom << "\n";
             // iteratif
             for (int i(0) ; i<3 ; i++) {system_call(aCom.c_str());}
 
-            aCom=MMBinFile(MM3DStr)+" Tapas RadialBasic "+ aPat + " Out=1 SH=_mini" ;
+            aCom=MMBinFile(MM3DStr)+" Tapas RadialExtended "+ aPat + " Out=1 SH=_mini" ;
             std::cout << aCom << "\n";
             system_call(aCom.c_str());
 
             std::cout << aCom << "\n";
             //system_call(aCom.c_str());
             //aCom=MMBinFile(MM3DStr)+" AperiCloud "+ aPat + " C1 SH=-Ratafia Out=../cloud_" + mOut ;
-            aCom=MMBinFile(MM3DStr)+" AperiCloud "+ aPat + " 1 Out=../cloud_" + mOut ;
+            aCom=MMBinFile(MM3DStr)+" AperiCloud "+ aPat + " 1 Out=../" + mOut ;
             std::cout << aCom << "\n";
             system_call(aCom.c_str());
            }
@@ -198,7 +225,6 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
                aCom=MMBinFile(MM3DStr)+" PIMs2Ply BigMac Out=" + mDC;
                std::cout << aCom << "\n";
                system_call(aCom.c_str());
-
            }
         }
 
@@ -213,7 +239,7 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
             aLDir.push_back("Ori-RadialBasic");
             //aLDir.push_back("Ori-Martini");
             aLDir.push_back("Ori-InterneScan");
-            //aLDir.push_back("Homol");
+            aLDir.push_back("Homol_mini");
 
             for (auto & dir : aLDir){
             if(ELISE_fp::IsDirectory(dir))
@@ -256,6 +282,14 @@ void cOneLionPaw::SortImBlurred(){
     imCt++;
     }
 }
+
+void cOneLionPaw::Restore(){
+
+    std::string aCom("mv "+ mDir + "/Poubelle/* "+ mDir + "/" );
+    system_call(aCom.c_str());
+
+}
+
 
 
                  void cOneLionPaw::testMTD(){
