@@ -1273,6 +1273,7 @@ class cBAL2OriMicMac
 {
     public :
         cBAL2OriMicMac(int argc,char ** argv);
+        ~cBAL2OriMicMac() { delete mMulPts; };
 
         bool DoAll();
 
@@ -1282,10 +1283,25 @@ class cBAL2OriMicMac
         std::string mOri;
 
         cSetTiePMul         * mMulPts;
-        
+        Pt2dr                 mPP; //will be calculated as perfectly in the middle
+        Pt2di                 mSz;
+    
+        int                   mNumCam;
+        int                   mNumObs;
+        int                   mNumPts;
+
+        double                mAltiSol;//based on 3D pts
+        double                mProf;
+
         std::map<int,double*> mPoses;   
         std::vector<std::vector<Pt2dr>> mPtTracks;
         std::vector<std::vector<int>>   mCamOfPtTrack;
+        std::vector<std::string>        mCamNames;        
+
+        void SetPP(Pt2dr& PP) { mPP=PP; };
+        void SetSz(Pt2di& Sz) { mSz=Sz; };
+        void SetAltiSol(const double& A) { mAltiSol=A; };
+        void SetProf(const double& P) { mProf=P; };
 
         bool Read();
         void Save();
@@ -1293,7 +1309,27 @@ class cBAL2OriMicMac
         template <typename T>
         void FileReadOK(FILE *fptr, const char *format, T *value);
 
+        std::string GenCamName(const int&);
+        void ShiftHomol(const Pt2dr&);
 };
+
+void cBAL2OriMicMac::ShiftHomol(const Pt2dr& aD)
+{
+    for (auto aPIdx : mPtTracks)
+    {
+        for (auto aTrack : aPIdx)
+        {
+            aTrack.x += aD.x;
+            aTrack.y += aD.y;
+        }
+    }
+}
+
+
+std::string cBAL2OriMicMac::GenCamName(const int& aName)
+{
+    return("Img-" + ToString(aName) + ".tif");
+}
 
 template <typename T>
 void cBAL2OriMicMac::FileReadOK(FILE *fptr, const char *format, T *value)
@@ -1305,6 +1341,17 @@ void cBAL2OriMicMac::FileReadOK(FILE *fptr, const char *format, T *value)
 
 void cBAL2OriMicMac::Save()
 {
+
+    /* Save empty images */
+    for (int aCam=0; aCam<mNumCam; aCam++)
+    {
+        ELISE_fp aFPOut(mCamNames.at(aCam).c_str(),ELISE_fp::WRITE);
+        aFPOut.close();
+    }
+    
+
+    /* Homol */
+    mMulPts = new cSetTiePMul(0,&mCamNames);
     for (int aK=0; aK<int(mPtTracks.size()); aK++)
     {
         std::vector<float> aAttr;
@@ -1313,7 +1360,86 @@ void cBAL2OriMicMac::Save()
     
     ELISE_fp::MkDir("Homol");
     mMulPts->Save("Homol/PMul.txt");
+    
+    cInterfChantierNameManipulateur * aICNM  = cInterfChantierNameManipulateur::BasicAlloc("./");    
+    std::string aKeyOri2Im = std::string("NKS-Assoc-Im2Orient@-") + mOri;
+
+    /* Poses */
+    for (int aCam=0; aCam<mNumCam; aCam++)
+    {
+        double * aCal = mPoses[aCam];
+     
+        Pt3dr aC  (aCal[3],aCal[4],aCal[5]);
+        Pt3dr aAng(aCal[0],aCal[1],aCal[2]);
+        ElRotation3D aOri(aC,aCal[0],aCal[1],aCal[2]);
+
+
+        cOrientationConique aOriCon;
+        cOrientationExterneRigide aOriRig;
+
+        /* Le centre */
+        aOriRig.Centre()        = aC;
         
+
+        /* Les rotations */
+        cRotationVect aRot;
+        aRot.CodageAngulaire()  = aAng;
+
+        aOriRig.ParamRotation() = aRot;
+        aOriRig.AltiSol()       = mAltiSol; 
+        aOriRig.Profondeur()    = mProf;
+        aOriRig.KnownConv()     = eConvApero_DistM2C;
+        aOriRig.IncCentre()     = Pt3dr(1,1,1);   
+
+        aOriCon.TypeProj()      = eProjStenope;
+        aOriCon.Externe()       = aOriRig;
+
+        cConvOri aKOri;
+        aKOri.KnownConv()       = eConvApero_DistM2C;
+        aOriCon.ConvOri()       = aKOri;
+
+        /* Autres */
+        
+
+        /* Camera calibration */
+        cCalibrationInternConique aInCal;
+        aInCal.KnownConv() = eConvApero_DistM2C;
+        aInCal.F()    = aCal[6];
+        aInCal.PP()   = mPP;
+        aInCal.SzIm() = mSz;
+        std::vector<double> aR1R3;
+        aR1R3.push_back(aCal[7]);
+        aR1R3.push_back(aCal[8]);
+
+        std::vector< cCalibDistortion > aDistVec;
+        cCalibDistortion                aDist;
+       
+        cCalibrationInterneRadiale aDistRad; 
+/*        cCalibrationInternePghrStd aDistRad;
+        aDistRad.P1() = 
+        aDistRad.P2() = */
+        aDistRad.CoeffDist() = aR1R3; 
+        aDistRad.CDist()= mPP;
+
+        aDist.ModRad() = aDistRad;
+        
+        aDistVec.push_back(aDist);
+        aInCal.CalibDistortion() = aDistVec;
+
+        std::string aCalOri  = aICNM->Assoc1To1(aKeyOri2Im,mCamNames.at(aCam),true);
+        std::string aCalName = DirOfFile(aCalOri) + "/AutoCal_Foc-50000.xml";
+        MakeFileXML(aInCal,aCalName);
+
+        aOriCon.FileInterne() = aCalName;
+        MakeFileXML(aOriCon,aCalOri);
+
+        delete[] aCal;
+    }
+
+    //mCamNames
+    //mPoses 
+
+    
 }
 
 // Part of the read code that reads BAL problem is taken from ceres exemples 
@@ -1324,23 +1450,24 @@ bool cBAL2OriMicMac::Read()
       return false;
     };
 
-    int aNumCam,aNumPts,aNumObs;
     //int aNumParam;
 
 
-    FileReadOK(fptr, "%d", &aNumCam);
-    FileReadOK(fptr, "%d", &aNumPts);
-    FileReadOK(fptr, "%d", &aNumObs);
+    FileReadOK(fptr, "%d", &mNumCam);
+    FileReadOK(fptr, "%d", &mNumPts);
+    FileReadOK(fptr, "%d", &mNumObs);
 
     //aNumParam = 9*aNumCam + 3*aNumPts;
 
-    mPtTracks.resize(aNumPts);
-    mCamOfPtTrack.resize(aNumPts);
+    mPtTracks.resize(mNumPts);
+    mCamOfPtTrack.resize(mNumPts);
 
 
     /* Observations 2D */
     int aCamIdx,aPtIdx;
-    for (int aK=0; aK<aNumObs; aK++)
+    Pt2dr aMinPt(1e10,1e10);
+    Pt2dr aMaxPt(-1e10,-1e10);
+    for (int aK=0; aK<mNumObs; aK++)
     {
         FileReadOK(fptr, "%d", &aCamIdx);
         FileReadOK(fptr, "%d", &aPtIdx);
@@ -1354,12 +1481,26 @@ bool cBAL2OriMicMac::Read()
 
         mPtTracks.at(aPtIdx).push_back(Pt2dr(aPt[0],aPt[1]));
         mCamOfPtTrack.at(aPtIdx).push_back(aCamIdx);
-        
+       
+        aMinPt.x = ElMin(aMinPt.x,aPt[0]); 
+        aMinPt.y = ElMin(aMinPt.y,aPt[1]); 
+
+        aMaxPt.x = ElMax(aMaxPt.x,aPt[0]); 
+        aMaxPt.y = ElMax(aMaxPt.y,aPt[1]); 
 
     }
+    Pt2di aSz (round_ni(aMaxPt.x)-round_ni(aMinPt.x),
+               round_ni(aMaxPt.y)-round_ni(aMinPt.y));
+    SetSz(aSz);
+    Pt2dr aPP(0.5*aSz.x,0.5*aSz.y);
+    SetPP(aPP);
+
+    //observations are shifted to bring them to positive values
+    ShiftHomol(mPP);
+        
 
     /* Camera parameters */
-    for (int aCam=0; aCam<aNumCam; aCam++)
+    for (int aCam=0; aCam<mNumCam; aCam++)
     {
         mPoses[aCam] = new double[9];
         double * aCal = mPoses[aCam];
@@ -1367,11 +1508,37 @@ bool cBAL2OriMicMac::Read()
         {
             FileReadOK(fptr, "%lf", aCal + aParam);
         }
-         
+    
+        /* Create image names */
+        mCamNames.push_back(GenCamName(aCam));     
     }
 
-    /* 3D points en s'en fout pour l'instant ? */
 
+    
+
+    /* 3D points en s'en fout pour l'instant ? */
+    Pt3dr  aSom;
+    double aVal;
+    for (int aP=0; aP<mNumPts; aP++)
+    {
+        //X
+        FileReadOK(fptr, "%lf", &aVal);
+        aSom.x+=aVal;
+        //Y
+        FileReadOK(fptr, "%lf", &aVal);
+        aSom.y+=aVal;
+        //Z
+        FileReadOK(fptr, "%lf", &aVal);
+        aSom.z+=aVal;
+    }
+    aSom.x /= mNumPts;
+    aSom.y /= mNumPts;
+    aSom.z /= mNumPts;
+    SetAltiSol(aSom.z);
+    double * aPose0 = mPoses[0];
+    SetProf(abs(aSom.z - aPose0[5]));
+
+    std::cout << "Centroid = " << aSom << " AltSol=" << mAltiSol << ", Prof=" << mProf << "\n";
     
     return true;
 
@@ -1387,8 +1554,8 @@ bool cBAL2OriMicMac::DoAll()
     return true;
 }
 
-cBAL2OriMicMac::cBAL2OriMicMac(int argc,char ** argv) : 
-    mMulPts(new cSetTiePMul(0))
+cBAL2OriMicMac::cBAL2OriMicMac(int argc,char ** argv) :
+    mPP(Pt2dr(0,0))
 {
     ElInitArgMain
     (
