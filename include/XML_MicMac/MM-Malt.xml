@@ -205,6 +205,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb> UseRatioResolImage=false </Symb>
    <Symb> RatioResolImage=1 </Symb>
 
+   <Symb> UseMNTInit=false </Symb>
+   <Symb> MNTInitXML="XXXXXX" </Symb>
+   <Symb> MNTInitIMG="XXXXXX" </Symb>
 <!--
 
     <Symb>  UseEqui=t=rue </Symb>
@@ -266,7 +269,12 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
              <ZIncCalc>   ${ZIncCalc} </ZIncCalc>
              <ZIncIsProp> ${ZIncIsProp} </ZIncIsProp>
              <IncludeFileLoc>  ${FileZMoy} </IncludeFileLoc>
-
+             <#WHEN VTEST=${UseMNTInit}>
+                 <MNT_Init>  
+                     <MNT_Init_Image> ${MNTInitIMG} </MNT_Init_Image>
+                     <MNT_Init_Xml> ${MNTInitXML} </MNT_Init_Xml>
+                 </MNT_Init>
+             </#WHEN>
       </IntervAltimetrie>
 
       <IntervSpecialZInv>

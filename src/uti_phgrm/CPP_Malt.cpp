@@ -317,6 +317,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     std::vector<double> aParamCensus;
 
     std::vector<std::string> a12PixParam;
+    std::string aMNTInitXML;
+    std::string aMNTInitIMG;
+
 
     ElInitArgMain
     (
@@ -390,6 +393,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mNbDirPrgD,"NbDirPrgD",true,"Nb Dir for prog dyn, (rather for tuning)")
                     << EAM(mPrgDReInject,"PrgDReInject",true,"Reinjection mode for Prg Dyn (experimental)")
                     << EAM(OrthoImSupMNT,"OISM",true,"When true footprint of ortho-image=footprint of DSM")
+                    << EAM(aMNTInitIMG,"MNTInitIMG",true,"img of the MNT used to initialise the depth research", eSAM_NoInit)
+                    << EAM(aMNTInitXML,"MNTInitXML",true,"xml of the MNT used to initialise the depth research", eSAM_NoInit)
                 );
 
     if (!MMVisualMode)
@@ -632,7 +637,6 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               aRSRT = true;
           }
       }
-
 
       bool IsOrthoXCSte = false;
       bool IsAnamXCsteOfCart = false;
@@ -1196,6 +1200,20 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mCom  =    mCom + " +UseResolTerrain=true "
                   +  std::string(" +ResolTerrain=") + ToString(aResolTerrain);
       }
+
+      //Prise en compte d'un MNT initial si celui-ci a été mis en entree
+      bool MNTInitIsInitXML = EAMIsInit(&aMNTInitXML);
+      bool MNTInitIsInitIMG = EAMIsInit(&aMNTInitIMG);
+      ELISE_ASSERT((MNTInitIsInitXML==MNTInitIsInitIMG),"MNT d'initialisation : Mettre un xml ET une image en entree");
+
+      if (MNTInitIsInitXML && MNTInitIsInitIMG)
+      {
+          mCom  =    mCom + " +UseMNTInit=true"
+                  +  std::string(" +MNTInitIMG=") + aMNTInitIMG
+                  +  std::string(" +MNTInitXML=") + aMNTInitXML;
+      }
+
+
       if (EAMIsInit(&aBoxTerrain))
       {
           mCom  =    mCom + " +UseBoxTerrain=true "
