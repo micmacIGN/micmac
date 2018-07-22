@@ -727,9 +727,11 @@ Pt2dr cSetPMul1ConfigTPM::GetPtByImgId(int aKp,int aQueryImgID)
     // call method Pt2dr Pt(aKp, founded_position)
     return Pt(aKp,aPosIm);
 }
-void cSetPMul1ConfigTPM::IntersectBundle(std::map<int, CamStenope *>&                  aCams,
-                                         std::map<int,std::vector<Pt2dr>>&             a2DTracks,
-                                         std::vector<int>& aCamIdx,std::vector<Pt3dr>& aPt3D)
+void cSetPMul1ConfigTPM::IntersectBundle(std::map<int, CamStenope *>&         aCams,
+                                         std::map<int,std::vector<Pt2dr>* >&  aPtIdTr,
+                                         std::map<int,std::vector<int>* >&    aPtIdPId,
+                                         std::vector<Pt3dr>&                  aPt3D,
+                                         int&                                 aPos)
 {
     /* Recoverthe matching orientations */
     std::vector<CamStenope *> aCamVec;
@@ -746,25 +748,26 @@ void cSetPMul1ConfigTPM::IntersectBundle(std::map<int, CamStenope *>&           
         }
     }
 
-    /* Iterate over points, collect them in vectors and pass to intersection */
+    /* Iterate over points, collect them in maps/vectors and pass to intersection */
     for (int aPt=0; aPt<mNbPts; aPt++)
     {
-        std::vector<Pt2dr>  aTrack;
+        std::vector<Pt2dr> * aTr = aPtIdTr[aPt+aPos];
+        std::vector<int> * aTrPId = aPtIdPId[aPt+aPos];
         for (auto aIm : mVIdIm)
         {
             
             Pt2dr aPIm = GetPtByImgId(aPt,aIm);
+            aTr->push_back(aPIm);
+            aTrPId->push_back(aIm);
 
-            aTrack.push_back(aPIm);
-
-            aCamIdx.push_back(aIm);
         }
-        a2DTracks[aPt] = aTrack;
 
-        if (aCamVec.size() == aTrack.size())
+        if (aCamVec.size() == aTr->size())
         {
-            aPt3D.push_back(Intersect_Simple(aCamVec,aTrack));
+            aPt3D.push_back(Intersect_Simple(aCamVec,*aTr));
         }
+        else
+            std::cout << "cSetPMul1ConfigTPM::IntersectBundle  Canét intersect!\n";
     }
 }
 

@@ -112,9 +112,11 @@ class cSetPMul1ConfigTPM
 
        Pt2dr GetPtByImgId(int aKp, int aQueryImgID);
         
-       void IntersectBundle(std::map<int, CamStenope *>&                   aCams,
-                            std::map<int,std::vector<Pt2dr>>&              a2DTracks,
-                            std::vector<int>& aCamIdx,std::vector<Pt3dr>& aPt3D); //return vectors of tracks + ids, corresponding img idx, and 3D 
+       void IntersectBundle(std::map<int, CamStenope *>&        aCams,
+                            std::map<int,std::vector<Pt2dr>* >& a2DTracks,
+                            std::map<int,std::vector<int>* >&   aCamIdx,
+                            std::vector<Pt3dr>&                 aPt3D,
+                            int&                                aPos); //return vectors of tracks + ids, corresponding img idx, and 3D ; fill the structures from the aPos on
        std::vector<Pt3d<double> > IntersectBundle(std::map<int, CamStenope *> aMCams); //aMCams are Camera indexed by the Id fo Image
        std::vector<Pt3d<double> > IntersectBundle(std::map<int, CamStenope *> aMCams, std::vector<double> & aVResid); // return reproj error in aVResod
 
