@@ -714,7 +714,7 @@ std::cout << "DONNNNNNN \n";
 Pt2dr cSetPMul1ConfigTPM::GetPtByImgId(int aKp,int aQueryImgID)
 {
     // search for position of aQueryImgID in mVIdIm
-    int aPosIm;
+    int aPosIm=0;
     auto it = std::find(mVIdIm.begin(), mVIdIm.end(), aQueryImgID);
     if (it != mVIdIm.end())
     {
@@ -727,6 +727,49 @@ Pt2dr cSetPMul1ConfigTPM::GetPtByImgId(int aKp,int aQueryImgID)
     // call method Pt2dr Pt(aKp, founded_position)
     return Pt(aKp,aPosIm);
 }
+void cSetPMul1ConfigTPM::IntersectBundle(std::map<int, CamStenope *>&         aCams,
+                                         std::map<int,std::vector<Pt2dr>* >&  aPtIdTr,
+                                         std::map<int,std::vector<int>* >&    aPtIdPId,
+                                         std::vector<Pt3dr>&                  aPt3D,
+                                         int&                                 aPos)
+{
+    /* Recoverthe matching orientations */
+    std::vector<CamStenope *> aCamVec;
+    std::vector<int> aIms = VIdIm();
+    for (auto aIm : mVIdIm)
+    {
+        for (auto & aCS : aCams)
+        {
+            if(aCS.first == aIm)
+            {
+                aCamVec.push_back(aCS.second);
+                break;
+            }
+        }
+    }
+
+    /* Iterate over points, collect them in maps/vectors and pass to intersection */
+    for (int aPt=0; aPt<mNbPts; aPt++)
+    {
+        std::vector<Pt2dr> * aTr = aPtIdTr[aPt+aPos];
+        std::vector<int> * aTrPId = aPtIdPId[aPt+aPos];
+        for (auto aIm : mVIdIm)
+        {
+            
+            Pt2dr aPIm = GetPtByImgId(aPt,aIm);
+            aTr->push_back(aPIm);
+            aTrPId->push_back(aIm);
+
+        }
+
+        if (aCamVec.size() == aTr->size())
+        {
+            aPt3D.push_back(Intersect_Simple(aCamVec,*aTr));
+        }
+        else
+            std::cout << "cSetPMul1ConfigTPM::IntersectBundle  Canét intersect!\n";
+    }
+}
 
 // return position of every tie point in model geometry
 std::vector<Pt3d<double> > cSetPMul1ConfigTPM::IntersectBundle(std::map<int,CamStenope*> aMCams)
@@ -737,7 +780,7 @@ std::vector<Pt3d<double> > cSetPMul1ConfigTPM::IntersectBundle(std::map<int,CamS
 
     // loop on mVIdIm and determine if the Camera is provided in the Map of Cam
     for (auto & IdIm: mVIdIm){
-        bool found (0);
+       bool found (0); 
 
         for (auto & Cam : aMCams){
             if (Cam.first==IdIm) {
@@ -770,7 +813,7 @@ std::vector<Pt3d<double> > cSetPMul1ConfigTPM::IntersectBundle(std::map<int,CamS
 
     // loop on mVIdIm and determine if the Camera is provided in the Map of Cam
     for (auto & IdIm: mVIdIm){
-        bool found (0);
+        bool found (0); 
 
         for (auto & Cam : aMCams){
             if (Cam.first==IdIm) {
