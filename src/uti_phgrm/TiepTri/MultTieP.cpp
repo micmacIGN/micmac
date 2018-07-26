@@ -477,6 +477,17 @@ const std::vector<std::string> * cSetTiePMul::StdSetName(cInterfChantierNameMani
 }
 
 
+const std::vector<std::string> * cSetTiePMul::StdSetName_BinTxt(cInterfChantierNameManipulateur* aICNM,const std::string aSH)
+{
+    if (aICNM->Get("NKS-Set-PMulHom@"+aSH+"@"+StdExtBinText(true))->size() != 0)
+    {
+        return aICNM->Get("NKS-Set-PMulHom@"+aSH+"@"+StdExtBinText(true));
+    }
+    return aICNM->Get("NKS-Set-PMulHom@"+aSH+"@"+StdExtBinText(false));
+}
+
+
+
 void cSetTiePMul::ResetNbAttr(int aNbAttr)
 {
    if (aNbAttr != mNbAttr)
