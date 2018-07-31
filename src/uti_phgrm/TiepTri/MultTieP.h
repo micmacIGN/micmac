@@ -158,6 +158,9 @@ class cSetTiePMul
 
         static std::string StdName(cInterfChantierNameManipulateur*,const std::string aSH,const std::string & aPost,bool Bin);
         static const std::vector<std::string> * StdSetName(cInterfChantierNameManipulateur*,const std::string aSH,bool Bin);
+        static const std::vector<std::string> * StdSetName_BinTxt(cInterfChantierNameManipulateur*,const std::string aSH);
+
+
 
         cSetPMul1ConfigTPM * OneConfigFromVI(const std::vector<INT> &);
 
