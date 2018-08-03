@@ -344,24 +344,20 @@ vector<Pt3dr> ReadLatticeECEF(string aNameLonFile, string aNameLatFile)
 		return aLatticeECEF;
 	}
 
-	vector<vector<double> > aLongitudes;
-	vector<vector<double> > aLatitudes;
+	vector<double> aLongitudes;
+	vector<double> aLatitudes;
+	double aVal;
 
-	double a, b, c, d, e, f, g, h, i, j, k;
-	while (aLonFile >> a >> b >> c >> d >> e >> f >> g >> h >> i >> j >> k)
+	while (aLonFile >> aVal)
 	{
-		double aLongitudeLvla[11] = { a, b, c, d, e, f, g, h, i, j, k };
-		vector<double> aLongitudeLvl(aLongitudeLvla, aLongitudeLvla + sizeof aLongitudeLvla / sizeof aLongitudeLvla[0]);
-		aLongitudes.push_back(aLongitudeLvl);
+		aLongitudes.push_back(aVal);
 	}
 
 	//cout << "aLongitudes size : " << aLongitudes.size() << endl;
 
-	while (aLatFile >> a >> b >> c >> d >> e >> f >> g >> h >> i >> j >> k)
+	while (aLatFile >> aVal)
 	{
-		double aLatitudeLvla[11] = { a, b, c, d, e, f, g, h, i, j, k };
-		vector<double> aLatitudeLvl(aLatitudeLvla, aLatitudeLvla + sizeof aLatitudeLvla / sizeof aLatitudeLvla[0]);
-		aLatitudes.push_back(aLatitudeLvl);
+		aLatitudes.push_back(aVal);
 	}
 
 
@@ -369,26 +365,21 @@ vector<Pt3dr> ReadLatticeECEF(string aNameLonFile, string aNameLatFile)
 	//cout << aLatitudes[0] << endl;
 
 	// Convert points to ECEF(geocentric euclidian)
-	a = 6378137;
-	b = (1 - 1 / 298.257223563)*a;
+	double a = 6378137;
+	double b = (1 - 1 / 298.257223563)*a;
 	for (u_int i = 0; i < aLatitudes.size(); i++)
 	{
-		//cout << aLatitudes[i] << endl;
-		//cout << aLongitudes[i] << endl;
-		for (u_int j = 0; j < aLatitudes[0].size(); j++)
-		{
-			double aSinLat = sin(aLatitudes[i][j] * M_PI / 180);
-			double aCosLat = cos(aLatitudes[i][j] * M_PI / 180);
-			double aSinLon = sin(aLongitudes[i][j] * M_PI / 180);
-			double aCosLon = cos(aLongitudes[i][j] * M_PI / 180);
-			double r = sqrt(a*a*b*b / (a*a*aSinLat*aSinLat + b*b*aCosLat*aCosLat));
-			double x = r*aCosLat*aCosLon;
-			double y = r*aCosLat*aSinLon;
-			double z = r*aSinLat;
-			Pt3dr aPt(x, y, z);
-			//cout << aPt << endl;
-			aLatticeECEF.push_back(aPt);
-		}
+		double aSinLat = sin(aLatitudes[i] * M_PI / 180);
+		double aCosLat = cos(aLatitudes[i] * M_PI / 180);
+		double aSinLon = sin(aLongitudes[i] * M_PI / 180);
+		double aCosLon = cos(aLongitudes[i] * M_PI / 180);
+		double r = sqrt(a*a*b*b / (a*a*aSinLat*aSinLat + b*b*aCosLat*aCosLat));
+		double x = r*aCosLat*aCosLon;
+		double y = r*aCosLat*aSinLon;
+		double z = r*aSinLat;
+		Pt3dr aPt(x, y, z);
+		//cout << aPt << endl;
+		aLatticeECEF.push_back(aPt);
 
 	}
 
