@@ -4659,6 +4659,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
 
 
 
+
          if (CanUseGr && (! aCS->IsGrid()))
          {
              Pt2dr aStepGr (20,20);
@@ -4795,6 +4796,7 @@ ElCamera * Gen_Cam_Gen_From_XML (bool CanUseGr,const cOrientationConique  & anOC
 */
    cConvExplicite aConv = MakeExplicite(anOC.ConvOri());
 
+
    // inv car les camera elise ont une (putain de) convention M2C
    aRes->SetOrientation(::Std_RAff_C2M(anOC.Externe(),aConv).inv());
 
@@ -4844,7 +4846,6 @@ ElCamera * Gen_Cam_Gen_From_File
                         aNameTag,
                         "OrientationConique"
                  );
-
 
 
        ElCamera * aRes = Gen_Cam_Gen_From_XML(CanUseGr,anOC,anICNM,DirOfFile(aNameFile),aNameFile);

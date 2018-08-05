@@ -45,7 +45,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <stdio.h>
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
+
+class cOneLoop;
 Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<Pt2dr> & aNPts2D);
+void Intersect_Simple(const std::vector<cOneLoop *> &aVOneLoop, std::vector< vector<Pt3dr> > & aResultPt3D, vector<Pt3d<double> > &aResultPt3DAllImg);
+
 // ========== PLYBascule ==========
 int PlyBascule(int argc, char ** argv)
 {
@@ -174,12 +178,14 @@ public:
     int mIdLoop;
     int mIdImg;
     string mNameIm;
+    CamStenope * mCam;
 };
 
 cOneImInLoop::cOneImInLoop(int IdLoop, int IdImg, string aNameIm):
     mIdLoop (IdLoop),
     mIdImg (IdImg),
-    mNameIm (aNameIm)
+    mNameIm (aNameIm),
+    mCam (NULL)
 {
 
 }
@@ -188,6 +194,25 @@ void cOneImInLoop::AddPt(Pt2dr aPt)
 {
     mVPt.push_back(aPt);
 }
+
+class cOneLoop
+{
+    public :
+        cOneLoop();
+        vector<cOneImInLoop *> mVIm;
+        void AddIm(cOneImInLoop  * aIm);
+};
+
+cOneLoop::cOneLoop()
+{}
+
+void cOneLoop::AddIm(cOneImInLoop  * aIm)
+{
+    mVIm.push_back(aIm);
+}
+
+
+
 
 class cOnePtMeasure
 {
@@ -274,6 +299,234 @@ int find_Obj_in_cOnePtMeasure(string & aNamePt, std::vector<cOnePtMeasure*> & aV
         return -1;
     }
 }
+
+int Test_CtrlCloseLoopv2(int argc, char ** argv)
+{
+    string aDir = "./";
+    vector<string> aVPatIn;
+    string aPatIn;
+    string aOriA;
+    string aSH ="";
+    Pt2di DoTapioca(0,-1);
+
+    Pt3di colSeg(0,255,0);
+    string aPlyErrName = "PlyErr.ply";
+    bool aSilent = true;
+    string aXML="";
+
+    string aCSV = "CtrlCloseLoopv2.csv";
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()
+                      << EAMC(aPatIn, "Pat",  eSAM_None)
+                      << EAMC(aOriA, "Ori",  eSAM_IsExistDirOri)
+                      << EAMC(aSH, "SH file homol new format contains all selected im, "" if don't have or not sure to compute homol (set with option DoTapioca)"),
+          LArgMain()
+                      << EAM(aPatIn, "Pat",  true, "[Pat1, Pat2, ...]")
+                      << EAM(aCSV, "CSV",  true, "CSV Filename")
+                );
+
+    std::ifstream file(aPatIn);
+    std::string str;
+    while (std::getline(file, str))
+    {
+      aVPatIn.push_back(str);
+      cout<<str<<endl;
+    }
+    int aNbLoop = aVPatIn.size();
+    cout<<"Nb Loop : "<<aVPatIn.size()<<endl;
+
+     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+     StdCorrecNameOrient(aOriA, aICNM->Dir());
+     std::map<std::string, int> aMap_Name2LoopId;
+
+     vector< vector<string> > aVSetIm;
+
+     std::vector<std::string> aAllIm;
+
+
+     for(uint aK=0; aK<aVPatIn.size(); aK++)
+     {
+        vector<std::string> aSetIm = *(aICNM->Get(aVPatIn[aK]));
+        aVSetIm.push_back(*(aICNM->Get(aVPatIn[aK])));
+        for (uint aK1=0; aK1<aSetIm.size(); aK1++)
+        {
+            aAllIm.push_back(aSetIm[aK1]);
+            aMap_Name2LoopId.insert(std::pair<string, int>(aSetIm[aK1], aK));
+        }
+     }
+     cout<<"Nb Im : "<<aAllIm.size()<<endl;
+
+     // homologue interaction
+     const std::string  aSHInStr = aSH;
+     cSetTiePMul * aSetTiePMul = new cSetTiePMul(0);
+     aSetTiePMul->AddFile(aSHInStr);
+
+        // Look for a config that contains all of these images
+
+     // this map contain all image name in homologue fileœ
+     std::map<std::string,cCelImTPM *> aMap_Name2Im = aSetTiePMul->DicoIm().mName2Im;
+     std::map<std::string,cCelImTPM *>::iterator aIt_Find; // iterator to check if image exist in homol pack
+
+     vector<string> aVAllImPresent;
+     vector<int> aIdAllImg;
+
+     vector<cOneImInLoop*> aVImInLoop;
+
+     vector<CamStenope *> aVCam;
+     for (uint aK=0; aK<aAllIm.size(); aK++)
+     {
+         string aImName = aAllIm[aK];
+         aIt_Find = aMap_Name2Im.find(aImName);
+         if (aIt_Find != aMap_Name2Im.end())
+         {
+             // image found in homol set
+             std::map<std::string,int>::iterator aIt;
+             aIt = aMap_Name2LoopId.find(aImName);
+             aVAllImPresent.push_back(aImName);
+             CamStenope * aCam = aICNM->StdCamStenOfNames(aImName, aOriA);
+             aCam->SetNameIm(aImName);
+             aVCam.push_back(aCam);
+             aIdAllImg.push_back(aIt_Find->second->Id());
+             int aLoopId = aIt->second;
+             int aImId = aIt_Find->second->Id();
+             cOneImInLoop* aImLoop = new cOneImInLoop(aLoopId, aImId, aImName);
+             aVImInLoop.push_back(aImLoop);
+         }
+         else
+         {
+             std::map<std::string,int>::iterator aIt; // iterator to check if image exist in homol pack
+             aIt = aMap_Name2LoopId.find(aImName);
+             cout<<"WARN !! : image "<<aImName<<" - loop "<<aIt->second<<endl;
+         }
+     }
+
+     // intersection : Query pixel in homol point set given (nameIm, vector<string>aVAllIm)
+
+     std::vector<cSetPMul1ConfigTPM *> aVCnf = aSetTiePMul->VPMul();
+
+     vector<cSetPMul1ConfigTPM * > aSelectCnf;  // config contains points from all image
+
+     cout<<"Chercher bon homol multiple... "<<endl;
+     for (uint aKCnf=0; aKCnf<aVCnf.size(); aKCnf++)
+     {
+         cSetPMul1ConfigTPM* aCnf = aVCnf[aKCnf];
+         // Get config that has more than nb of selected images
+         if (aCnf->NbIm() >= (int)aVAllImPresent.size())
+         {
+             // Get config that contains all selected image
+             vector<int> aIDImgInCnf = aCnf->VIdIm();
+             bool isCnfContainAllId = true;
+             for (uint aKId=0; aKId < aIdAllImg.size(); aKId++)
+             {
+                 int aQueryID = aIdAllImg[aKId];
+                 // is this aQueryID exist in this config image list ?
+                 vector<int>::iterator it_Find;
+                 it_Find = find(aIDImgInCnf.begin(), aIDImgInCnf.end(), aQueryID);
+                 if(it_Find == aIDImgInCnf.end())
+                 {
+                     isCnfContainAllId = isCnfContainAllId && false;
+                 }
+             }
+             if (isCnfContainAllId)
+             {
+                 aSelectCnf.push_back(aCnf);
+             }
+         }
+     }
+     cout<<"Nb config Selected : "<<aSelectCnf.size()<<endl;
+     if (!aSilent)
+     {
+         cout<<aSelectCnf.size()<<" cnf selected ! "<<endl;
+     }
+     // For each selected config, get pt 2D on each correspondant control image, intersect and suivi aussi
+     for (uint aKCnf=0; aKCnf<aSelectCnf.size(); aKCnf++)
+     {
+         cSetPMul1ConfigTPM* aCnf = aSelectCnf[aKCnf];
+         for (uint aKIdImg=0; aKIdImg<aIdAllImg.size(); aKIdImg++)
+         {
+             int aQueryId = aIdAllImg[aKIdImg]; // Id of an Image in pts homologue file
+             // get all 2D points of image ID aQueryId in aCnf
+             cOneImInLoop * aImLoop = aVImInLoop[aKIdImg];
+             for (uint aKPt=0; (int)aKPt<aCnf->NbPts(); aKPt++)
+             {
+                 Pt2dr aPt = aCnf->GetPtByImgId(aKPt, aQueryId);
+                 string aNameIm = aVAllImPresent[aKIdImg];
+                 CamStenope * aCam = aVCam[aKIdImg];
+                 std::map<std::string, int>::iterator aIt;
+                 aIt = aMap_Name2LoopId.find(aNameIm);
+                 aImLoop->AddPt(aPt);
+                 aImLoop->mCam = aCam;
+             }
+         }
+     }
+
+     // Arrange Image in loop order
+     vector<cOneLoop*> aVLoop;
+     for (uint aKL=0; (int)aKL<aNbLoop; aKL++)
+     {
+         cOneLoop * aLoop = new cOneLoop();
+         aVLoop.push_back(aLoop);
+     }
+
+     for(uint aKIm =0; aKIm<aVImInLoop.size(); aKIm++)
+     {
+         cOneImInLoop * aImLoop = aVImInLoop[aKIm];
+         int aIDLoop = aImLoop->mIdLoop;
+         aVLoop[aIDLoop]->AddIm(aImLoop);
+     }
+     // Intersection by Loop
+     vector< vector<Pt3dr> >  aResultPt3D;
+     vector<Pt3dr> aPt3dFrmAllIm;
+     Intersect_Simple(aVLoop,  aResultPt3D, aPt3dFrmAllIm);
+
+     for (uint aKL=0; (int)aKL<aNbLoop; aKL++)
+     {
+         vector<Pt3dr> aPts3D = aResultPt3D[aKL];
+         cout<<"+ Loop "<<aKL<<" : "<<endl;
+
+         for (uint aKPt=0; aKPt<aPts3D.size(); aKPt++)
+         {
+             cout<<"  - "<<aPts3D[aKPt]<<endl;
+         }
+     }
+
+     cout<<"+ All Loop All Im : "<<endl;
+     for (uint aKPt=0; aKPt<aPt3dFrmAllIm.size(); aKPt++)
+     {
+         cout<<"  - "<<aPt3dFrmAllIm[aKPt]<<endl;
+     }
+
+     // Export Point for Close Loop Test
+     ofstream csvPt3d;
+     csvPt3d.open(aCSV);
+     for (uint aKL=0; (int)aKL<aNbLoop; aKL++)
+     {
+         vector<Pt3dr> aPts3D = aResultPt3D[aKL];
+         csvPt3d<<aKL;
+         for (uint aKPt=0; aKPt<aPts3D.size(); aKPt++)
+         {
+            csvPt3d<<","<<euclid(aPt3dFrmAllIm[aKPt] - aPts3D[aKPt]);
+         }
+         csvPt3d<<endl;
+     }
+
+     csvPt3d<<"AllIntersect";
+     /*
+     for (uint aKPt=0; aKPt<aPt3dFrmAllIm.size(); aKPt++)
+     {
+         csvPt3d<<","<<aPt3dFrmAllIm[aKPt];
+     }
+     csvPt3d<<endl;
+*/
+     csvPt3d.close();
+
+
+    return EXIT_SUCCESS;
+}
+
 
 
 int Test_CtrlCloseLoop(int argc, char ** argv)
@@ -1696,7 +1949,7 @@ void Test_Xml()
     aTri.NumImSec().push_back(1);
 
     aTriangulation.Tri().push_back(aTri);
-    
+
 
     aTriangulation.NameSec().push_back("toto.tif");
 
@@ -2267,7 +2520,7 @@ Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<
 
     for (int aKR=0 ; aKR < int(aVCS.size()) ; aKR++)
     {
-        CamStenope * aCam = aVCS[aKR];
+        //CamStenope * aCam = aVCS[aKR];
         //cout<<aNPts2D[aKR]<<aCam->NameIm()<<endl;
         ElSeg3D aSeg = aVCS.at(aKR)->F2toRayonR3(aNPts2D.at(aKR));
         //cout<<"done"<<endl;
@@ -2277,6 +2530,87 @@ Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<
 
     Pt3dr aRes =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
     return aRes;
+}
+
+void Intersect_Simple(const std::vector<cOneLoop*> & aVOneLoop, std::vector< vector<Pt3dr> > & aResultPt3D, vector<Pt3dr> & aResultPt3DAllImg)
+{
+    vector<Pt2dr> aVAllPt;
+    vector<CamStenope * > aVAllCam;
+
+
+    cOneLoop * aLoop0 =  aVOneLoop[0];
+    vector<cOneImInLoop*> aVImL0 = aLoop0->mVIm;
+    cOneImInLoop * aIm0Loop0 = aVImL0[0];
+
+
+    for(uint aKL = 0; aKL<aVOneLoop.size(); aKL++)
+    {
+       cOneLoop * aLoop =  aVOneLoop[aKL];
+       vector<cOneImInLoop*> aVIm = aLoop->mVIm;
+
+       vector<Pt3dr> aRes1Loop;
+
+       // Get 1st image in loop
+           cOneImInLoop * aIm = aVIm[0];
+
+           vector<Pt2dr> aVPt = aIm->mVPt;
+
+           vector<Pt2dr> aVPtCorrespontAllIm;
+           vector<CamStenope * > aVCamCorrespontAllIm;
+            // all point in 1st image, get correspondant in another image in loop
+           for (uint aKPt=0; aKPt < aVPt.size(); aKPt++)
+           {
+               Pt2dr aPt1st = aVPt[aKPt];
+               aVPtCorrespontAllIm.push_back(aPt1st);
+               aVCamCorrespontAllIm.push_back(aIm->mCam);
+               // Get correspondant point in another image in loop
+               for (uint aKIm = 1; aKIm < aVIm.size(); aKIm++)
+               {
+                   aVPtCorrespontAllIm.push_back(aVIm[aKIm]->mVPt[aKPt]);
+                   aVCamCorrespontAllIm.push_back(aVIm[aKIm]->mCam);
+               }
+               // Intersection
+               Pt3dr aPt3d = Intersect_Simple(aVCamCorrespontAllIm , aVPtCorrespontAllIm);
+               aRes1Loop.push_back(aPt3d);
+
+               aVPtCorrespontAllIm.clear();
+               aVCamCorrespontAllIm.clear();
+           }
+           aResultPt3D.push_back(aRes1Loop);
+    }
+
+    // Intersect all point from all image
+    vector<Pt2dr> aVPtIm0L0 = aIm0Loop0->mVPt;
+    for (uint aKPt=0; aKPt < aVPtIm0L0.size(); aKPt++)
+    {
+        Pt2dr aPt = aVPtIm0L0[aKPt];
+        CamStenope *aCam = aIm0Loop0->mCam;
+        aVAllPt.push_back(aPt);
+        aVAllCam.push_back(aCam);
+        for(uint aKL = 0; aKL<aVOneLoop.size(); aKL++)
+        {
+            uint aKIm;
+            if (aKL == 0)
+                aKIm = 1;
+            else
+                aKIm = 0;
+            vector<cOneImInLoop*> aVIm = aVOneLoop[aKL]->mVIm;
+            for (; aKIm < aVIm.size(); aKIm++)
+            {
+                cOneImInLoop * aIm = aVIm[aKIm];
+                Pt2dr aPt1 = aIm->mVPt[aKPt];
+                CamStenope * aCam1 = aIm->mCam;
+
+                aVAllPt.push_back(aPt1);
+                aVAllCam.push_back(aCam1);
+
+            }
+        }
+        Pt3dr aPt3d = Intersect_Simple(aVAllCam, aVAllPt);
+        aResultPt3DAllImg.push_back(aPt3d);
+        aVAllPt.clear();
+        aVAllCam.clear();
+    }
 }
 
 
@@ -2468,9 +2802,10 @@ int TestGiangNewHomol_Main(int argc,char ** argv)
         {
             aCPlyRes.AddPt(gen_coul_heat_map(aVResidu[aKPt], resMin,  resMax), aVAllPtInter[aKPt]);
         }
-        //aCPlyEmp.AddPt(gen_coul_emp(aVNbImgOvlap[aKPt]), aVAllPtInter[aKPt]);
+        aCPlyEmp.AddPt(Pt3di(aVNbImgOvlap[aKPt],0,0), aVAllPtInter[aKPt]);
         // faut donner le pourcentage de niveau de gris
-        aCPlyEmp.AddPt(aCPlyEmp.Gray(((double(aVNbImgOvlap[aKPt]) - double(aMinOvLap))/double(aMaxOvLap-aMinOvLap))), aVAllPtInter[aKPt]);
+        //aCPlyEmp.AddPt(aCPlyEmp.Gray(((double(aVNbImgOvlap[aKPt]) - double(aMinOvLap))/double(aMaxOvLap-aMinOvLap))), aVAllPtInter[aKPt]);
+        //aCPlyEmp.AddPt(aCPlyEmp.Gray((double(aVNbImgOvlap[aKPt])), aVAllPtInter[aKPt]);
         //===== stats Multiplicite ========
         int nbImgsVu1Pts = aVNbImgOvlap[aKPt];
         aStats[nbImgsVu1Pts]++;
