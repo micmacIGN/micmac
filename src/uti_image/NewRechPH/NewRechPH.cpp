@@ -263,7 +263,19 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeVisu) :
        }
    }
 
+   // Calcul maintenant de la taille pour regler le NBS
+   {
+      int aSzMin = 10;
+      cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(mName);
+      mSzIm = aMDP.SzImTifOrXif();
+      double aRatio = ElMin(mSzIm.x,mSzIm.y) / aSzMin;
+      double  aNbSMin = mNbByOct * log2(aRatio);
 
+      // std::cout << "SSSSs " << aNbSMin << " " << mNbS << "\n"; getchar();
+      mNbS = ElMin(mNbS,round_ni(aNbSMin));
+   }
+
+// 
    ElTimer  aChrono;
 
     mNbSR2Calc = mRollNorm ?  (mNbSR2Use * 2 - 1) : mNbSR2Use;
