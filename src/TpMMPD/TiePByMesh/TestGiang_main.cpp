@@ -3013,3 +3013,76 @@ int TestGiangDispHomol_Main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+
+
+
+
+int Image_Vide(int argc,char ** argv)
+{
+
+    string aDir="./";
+
+    string aPat;
+    string aImg;
+
+    string aDirOutput = "ImgVide";
+
+    cout<<"Create fake image (zerobyte file with same name) to cheat Tapas"<<endl;
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aPat, "Pattern Image",  eSAM_IsPatFile),
+          LArgMain()
+                      << EAM(aDirOutput,"OutDir",true,"Output Directory")
+
+    );
+    ELISE_fp::MkDirSvp(aDirOutput);
+
+    string mPatIm;
+    SplitDirAndFile(aDir, mPatIm, aPat);
+    cInterfChantierNameManipulateur *mICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+    vector<string>mSetIm = *(mICNM->Get(mPatIm));
+    ELISE_ASSERT(mSetIm.size()>0,"ERROR: No image found!");
+
+    /* Create empty images */
+    for (int aKIm=0; aKIm<mSetIm.size(); aKIm++)
+    {
+
+        // === EWELINA Tricks ====
+
+        string aImPath = aDirOutput + "/" + mSetIm[aKIm];
+        ELISE_fp aFPOut(aImPath.c_str(),ELISE_fp::WRITE);
+        aFPOut.close();
+
+
+        // ==== Giang tricks =====
+        /*
+        // Lire TIFF input
+        //cLazyTiffFile * aTiff = new cLazyTiffFile(mSetIm[aKIm]);
+
+
+       // Tiff_Im * aTiff = new Tiff_Im ( Tiff_Im::StdConvGen(mSetIm[aKIm],1,false));
+
+        Tiff_Im * aTiff = new Tiff_Im
+                            ( Tiff_Im::UnivConvStd(mSetIm[aKIm]));
+
+        cMetaDataPhoto aMTD = cMetaDataPhoto::CreateExiv2(mSetIm[aKIm]);
+
+
+        cout<<"Lire EXIF ... par cMetaDataPhoto : "<<endl;
+        cout<<"Cam : "<<aMTD.Foc35(0)<<endl;
+
+
+
+        // Take meta data & Tiff Info
+
+        // Creat Output with metadata & Info
+
+*/
+    }
+
+    return EXIT_SUCCESS;
+}
+
+
