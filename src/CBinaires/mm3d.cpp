@@ -301,6 +301,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("Apero", Apero_main, " Compute external and internal orientations"));
 		aRes.push_back(cMMCom("Arsenic", Arsenic_main, " IN DEV : Radiometric equalization from tie points"));
 		aRes.push_back(cMMCom("Digeo", Digeo_main, " In development- Will compute tie points "));
+        aRes.push_back(cMMCom("MSD", MSD_main, " In development- Will compute tie points "));
 		aRes.push_back(cMMCom("AperoChImSecMM", AperoChImMM_main, " Select secondary images for MicMac", cArgLogCom(2)));
 		aRes.push_back(cMMCom("Apero2PMVS", Apero2PMVS_main, " Convert Orientation from Apero-Micmac workflow to PMVS format"));
 		aRes.push_back(cMMCom("Apero2Meshlab", Apero2Meshlab_main, "Convert Orientation from Apero-Micmac workflow to a meshlab-compatible format"));
@@ -667,6 +668,7 @@ extern int  main_test(int argc,char ** argv);
 extern int  main_test2(int argc,char ** argv);
 extern int  main_ero(int argc,char ** argv);
 extern int  main_ascii2tif(int argc,char ** argv);
+extern int  main_MSDappli1(int argc,char ** argv);
 int Test_ascii2tif_BlurinessSelect(int argc,char ** argv);
 extern int  GCP2Hom_main(int argc,char ** argv);
 int main_featheringOrtho(int argc,char ** argv);
@@ -676,6 +678,7 @@ int main_densityMapPH(int argc,char ** argv);
 int main_manipulateNF_PH(int argc,char ** argv);
 int main_OneLionPaw(int argc,char ** argv);
 int main_AllPipeline(int argc,char ** argv);
+int MSD_main(int argc,char ** argv);
 
 #if (ELISE_UNIX)
 extern int  DocEx_Introanalyse_main(int, char **);
@@ -1000,6 +1003,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("jo_FFH",FilterFileHom_main,"filtrer un fichier de paire d'image"));
         aRes.push_back(cMMCom("jo_T2V",T2V_main,"appliquer une homographie a un ensemble d'im thermique pour Reg avec images visibles"));
         aRes.push_back(cMMCom("jo_test",main_test2,"test function for didro project"));
+        aRes.push_back(cMMCom("PastisMSD",main_MSDappli1,"compute tie point for a couple of image with MSD detector and Sift descriptor"));
         aRes.push_back(cMMCom("AperiCloudNF",main_manipulateNF_PH,"Generate Sparse 3D point cloud for tie point in new format (TiePMul.dat)"));
         aRes.push_back(cMMCom("AllAutoBash",main_AllPipeline,"complete photogrammetric workflow on many images blocks"));
         aRes.push_back(cMMCom("AllAuto",main_OneLionPaw,"complete photogrammetric workflow on one images blocks"));

@@ -5,9 +5,7 @@
 #include <fstream>
 #include "Image.h"
 #include "msd.h"
-#include "Keypoint.h"
 #include "lab_header.h"
-#include "../../uti_image/Digeo/Digeo.h"
 #include "DescriptorExtractor.h"
 #include "Arbre.h"
 
@@ -24,11 +22,11 @@ public:
  cAppliRegTIRVIS(int argc, char** argv);
 
  void computeHomogWithMSD();
- void EnrichKps(std::vector< KeyPoint > Kpsfrom, ArbreKD * Tree, cElHomographie &Homog, int NbIter, int ImPairKey);
+ void EnrichKps(std::vector< MSDPoint > Kpsfrom, ArbreKD * Tree, cElHomographie &Homog, int NbIter, int ImPairMSD);
  void initMSD();
 
  void mkDirPastis(std::string aSH, std::string aImName, std::string aDir="./");
- //std::vector< KeyPoint> drunkKps(std::vector< KeyPoint>  * Kps,CamStenope * mCalib);
+ //std::vector< MSDPoint> drunkKps(std::vector< MSDPoint>  * Kps,CamStenope * mCalib);
 
 private:
  cInterfChantierNameManipulateur * mICNM;

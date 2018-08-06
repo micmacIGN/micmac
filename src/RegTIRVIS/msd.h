@@ -23,13 +23,13 @@
 //#include <vector>
 //#include "opencv/cv.hpp"
 
-#include "msdImgPyramid.h"
-#include "Keypoint.h"
+#include "MSDpoint.h"
 #include "StdAfx.h"
 //#define BOOST_MULTICORE
 #ifdef BOOST_MULTICORE
 #include "boost\thread.hpp"
 #endif
+#include <assert.h>
 
 class MsdDetector
 {
@@ -37,7 +37,7 @@ public:
 
 	MsdDetector()
 	{
-	
+        mDebug=0;
 		m_patch_radius = 3;
 		m_search_area_radius = 5;
 
@@ -55,7 +55,10 @@ public:
 
     }
 
-    std::vector<KeyPoint> detect(Tiff_Im &img);
+    std::vector<MSDPoint> detect(Tiff_Im &img);
+    std::vector<MSDPoint> detect(Im2D_U_INT2 &img);
+    // write intermediate result and print blabla in debug mode
+    void setDebug(bool aDebug){ mDebug = aDebug; }
 	
     void setPatchRadius(int patchRadius){ m_patch_radius = patchRadius; }
     int getPatchRadius(){ return m_patch_radius; }
@@ -93,6 +96,7 @@ public:
 	
 private: 
 
+    bool mDebug;
 	int m_patch_radius;
 	int m_search_area_radius;
 
@@ -127,7 +131,25 @@ private:
 
     float computeOrientation(Im2D<U_INT2,INT> &img, int x, int y, std::vector<Pt2df> circle);
 
-    void nonMaximaSuppression(std::vector<float *> & saliency, std::vector<KeyPoint> & keypoints);
+    void nonMaximaSuppression(std::vector<float *> & saliency, std::vector<MSDPoint> & keypoints);
+};
+
+template <class Type,class TyBase>
+class ImagePyramid
+{
+public:
+
+
+    ImagePyramid( Im2D <Type,TyBase> &im, const int nLevels, const float scaleFactor = 1.6f);
+    Im2D<Type, TyBase> resize(Im2D<Type,TyBase> & im, Pt2dr Size);
+    ~ImagePyramid();
+
+    const std::vector< Im2D<Type, TyBase> > getImPyr() const { return m_imPyr; }
+private:
+
+    std::vector< Im2D<Type, TyBase> > m_imPyr;
+    int m_nLevels;
+    float m_scaleFactor;
 };
 
 #endif

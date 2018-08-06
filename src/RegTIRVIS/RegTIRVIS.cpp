@@ -50,7 +50,7 @@ void DisplayVector(std::vector<tData> V)
 /*********************************************************/
 //Check if and index is within range
 
-bool WithinLimits(uint index, vector<KeyPoint> Kps)
+bool WithinLimits(uint index, vector<MSDPoint> Kps)
 {
     if (index>0 && index<Kps.size())
     {
@@ -129,7 +129,7 @@ void cAppliRegTIRVIS::mkDirPastis(std::string aSH, std::string aImName, std::str
 //===============================================================================//
 
 
-void cAppliRegTIRVIS::EnrichKps(std::vector< KeyPoint > Kpsfrom, ArbreKD * Tree, cElHomographie &Homog, int NbIter,int ImPairKey)
+void cAppliRegTIRVIS::EnrichKps(std::vector< MSDPoint > Kpsfrom, ArbreKD * Tree, cElHomographie &Homog, int NbIter,int ImPairKey)
 {
     ElSTDNS set< pair<int,Pt2dr> > Voisins ; // where to put nearest neighbours
 
@@ -138,7 +138,7 @@ void cAppliRegTIRVIS::EnrichKps(std::vector< KeyPoint > Kpsfrom, ArbreKD * Tree,
         ElPackHomologue HomologousPts;  // THE good keypoints don't need to be erased they need to be enriched RANSAC should provide a Mask
         // of chosen couples
         //HomologousPts.Cple_Add(ElCplePtsHomologues(P1,P1,1.0);
-        std::vector<KeyPoint>::iterator kp=Kpsfrom.begin();
+        std::vector<MSDPoint>::iterator kp=Kpsfrom.begin();
         for(;kp!=Kpsfrom.end();kp++)
         {
             Pt2dr aPoint(kp->getPoint().x,kp->getPoint().y);
@@ -422,11 +422,11 @@ void Migrate2Lab2wallis(Tiff_Im &image, Im2D<U_INT1,INT> & Output)
 /*===============================================================================*/
 /*               Write Keypoints to file : No need for recomputing them         */
 /*===============================================================================*/
- void StoreKps(std::vector<KeyPoint> KPs, string file)
+ void StoreKps(std::vector<MSDPoint> KPs, string file)
  {
 
      FILE * aFOut = FopenNN(file.c_str(),"w","out");
-     std::vector<KeyPoint>::iterator kp=KPs.begin();
+     std::vector<MSDPoint>::iterator kp=KPs.begin();
      while(kp!=KPs.end())
      {
          fprintf(aFOut,"%f %f %f %f\n",kp->getPoint().x,kp->getPoint().y,kp->getSize(),kp->getAngle());
@@ -478,7 +478,7 @@ void ApplyHomography(std::string fileim1, std::string fileim2 , cElHomographie H
 /*               apply homography to a set of points  KeyPoint                   */
 /*===============================================================================*/
 
-std::vector<Pt2dr> NewSetKpAfterHomog(std::vector<KeyPoint> Kps, cElHomographie H)
+std::vector<Pt2dr> NewSetKpAfterHomog(std::vector<MSDPoint> Kps, cElHomographie H)
 {
     std::vector<Pt2dr> Newkps;
     for (uint i=0;i<Kps.size();i++)
@@ -513,14 +513,14 @@ std::vector<Pt2dr> NewSetKpAfterHomog(vector<SiftPoint> Kps, cElHomographie H)
 /*              Move from SiftPoint to KeyPoint                                  */
 /*===============================================================================*/
 
-std::vector<KeyPoint> FromSiftP2KeyP(std::vector<SiftPoint> Kps)
+std::vector<MSDPoint> FromSiftP2KeyP(std::vector<SiftPoint> Kps)
 {
-    std::vector<KeyPoint> Newkps;
+    std::vector<MSDPoint> Newkps;
     std::vector<SiftPoint>::iterator Kp=Kps.begin();
     for (;Kp!=Kps.end();Kp++)
     {
 
-        KeyPoint Pt(Kp->x,Kp->y,Kp->scale,Kp->angle,0.0);
+        MSDPoint Pt(Kp->x,Kp->y,Kp->scale,Kp->angle,0.0);
         Newkps.push_back(Pt);
     }
     return Newkps;
@@ -547,7 +547,7 @@ bool DoesFileExist( const char * FileName )
 /*                          Format:x y scale orientation                         */
 //===============================================================================//
 
-void Readkeypoints(std::vector<KeyPoint> &Kps, string file)
+void Readkeypoints(std::vector<MSDPoint> &Kps, string file)
 {
     ELISE_fp aFIn(file.c_str(),ELISE_fp::READ);
 
@@ -562,7 +562,7 @@ void Readkeypoints(std::vector<KeyPoint> &Kps, string file)
         //std::cout<<"File has been read\n";
         //std::cout<<aNb<<"\n";
         ELISE_ASSERT(aNb==4,"Could not read: Format:x y scale orientation ");
-        KeyPoint KP(aPIm,scale,angle,0.0); // Orientations given by the MSD detector are ambiguous (angle =0.0)
+        MSDPoint KP(aPIm,scale,angle,0.0); // Orientations given by the MSD detector are ambiguous (angle =0.0)
         Kps.push_back(KP);
     }
 }
@@ -764,7 +764,7 @@ void cAppliRegTIRVIS::computeHomogWithMSD()
 
               /**************************************************************************/
               // Check if MSD keypoints have already been computed: No need to do that again
-              std::vector<KeyPoint> KpsV;
+              std::vector<MSDPoint> KpsV;
               //string directory, file;
              // SplitDirAndFile(directory,file,VisualImages[i]);
               string filenameV=mDirTest +  "KpsTEST/" + VisualImages[i] + ".txt";
@@ -810,7 +810,7 @@ void cAppliRegTIRVIS::computeHomogWithMSD()
               //compute descriptors for visual
               DescriptorExtractor<U_INT1,INT> SIFTV=DescriptorExtractor<U_INT1,INT>(LabWImageV);
               vector<DigeoPoint> ListV;
-              std::vector<KeyPoint>::iterator aKp=KpsV.begin();
+              std::vector<MSDPoint>::iterator aKp=KpsV.begin();
               for (;aKp!=KpsV.end();++aKp)
               {
                   DigeoPoint DP;
@@ -832,7 +832,7 @@ void cAppliRegTIRVIS::computeHomogWithMSD()
 
               // Check if MSD keypoints have already been computed: No need to do that again
               //SplitDirAndFile(directory,file,ThermalImages[i]);
-              std::vector<KeyPoint> KpsTh;
+              std::vector<MSDPoint> KpsTh;
               string filenameTh=mDirTest + "KpsTEST/"+ ThermalImages[i] + ".txt";
 
               if (DoesFileExist(filenameTh.c_str()))
@@ -1248,7 +1248,7 @@ for (uint i=0;i<ThermalImages.size();i++)
         if (!DoesFileExist(FileTh.c_str()))
         {
             Tiff_Im ImTh=Tiff_Im::UnivConvStd(ThermalImages.at(i));
-            std::vector<KeyPoint> KpsTh=msd.detect(ImTh);
+            std::vector<MSDPoint> KpsTh=msd.detect(ImTh);
             std::cout<<"Number of extracted MSD points for image: "<<ThermalImages[i]<<KpsTh.size()<<endl;
             StoreKps(KpsTh,FileTh);
         }
@@ -1258,7 +1258,7 @@ for (uint i=0;i<ThermalImages.size();i++)
         {
 
             Tiff_Im ImV=Tiff_Im::UnivConvStd(VisualImages.at(i));
-            std::vector<KeyPoint> KpsV=msd.detect(ImV);
+            std::vector<MSDPoint> KpsV=msd.detect(ImV);
             std::cout<<"Number of extracted MSD points for image: "<<VisualImages[i]<<KpsV.size()<<endl;
             StoreKps(KpsV,FileV);
         }
@@ -1304,10 +1304,10 @@ cEl_GPAO::DoComInParal(CMD);
 
 // IR/IR registration: Homol folder contains all correspondences
 std::string  Homolfile="./Homol";
-std::vector< KeyPoint > Kps1,Kps2;  // MSD KeyPoints
+std::vector< MSDPoint > Kps1,Kps2;  // MSD KeyPoints
 std::vector< SiftPoint > Kps1S,Kps2S; // SIFT Keypoints
-std::vector<KeyPoint> Kps1Skp; // move SiftPoint to KeyPoint frame
-std::vector<KeyPoint> Kps2Skp; // move SiftPoint to KeyPoint frame
+std::vector<MSDPoint> Kps1Skp; // move SiftPoint to KeyPoint frame
+std::vector<MSDPoint> Kps2Skp; // move SiftPoint to KeyPoint frame
 std::vector<Pt2dr> Kps1H;
 std::vector<Pt2dr> Kps2H;
 std::vector<Pt2dr> Kps1HS;
@@ -1511,12 +1511,12 @@ std::cout<<"********************************************************************
  */
 
 /*std::vector< Im2D<U_INT2,INT>* > *AllMasks= new std::vector<Im2D<U_INT2,INT> *>;*/
-std::vector< std::vector<KeyPoint> > *AllKps= new std::vector< std::vector<KeyPoint> >;
+std::vector< std::vector<MSDPoint> > *AllKps= new std::vector< std::vector<MSDPoint> >;
 std::vector<std::vector<Pt2dr> > *AllKpsThermalHomog= new std::vector<std::vector<Pt2dr> >;
 
 
 std::vector< ArbreKD* >  * AllTrees = new std::vector < ArbreKD* >;
-//std::vector< std::vector<KeyPoint>  > *AllthermalkpsBeforeH= new std::vector< std::vector<KeyPoint> >;
+//std::vector< std::vector<MSDPoint>  > *AllthermalkpsBeforeH= new std::vector< std::vector<MSDPoint> >;
 //Define a class that is compatible to the xml 2D MEASURE file
 
 

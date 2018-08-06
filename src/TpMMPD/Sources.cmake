@@ -114,11 +114,11 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/../RegTIRVIS/Arbre.cpp
 	${TDPPMD_DIR}/../RegTIRVIS/Image.cpp
 	${TDPPMD_DIR}/../RegTIRVIS/DescriptorExtractor.cpp
-	${TDPPMD_DIR}/../RegTIRVIS/Keypoint.cpp
+	${TDPPMD_DIR}/../RegTIRVIS/MSDpoint.cpp
 	${TDPPMD_DIR}/../RegTIRVIS/msd.cpp
-	${TDPPMD_DIR}/../RegTIRVIS/msdImgPyramid.cpp
 	${TDPPMD_DIR}/../RegTIRVIS/RegTIRVIS.cpp
 	${TDPPMD_DIR}/../RegTIRVIS/Resize.cpp
+	${TDPPMD_DIR}/../RegTIRVIS/cmsdappli.cpp
 
     ${TDPPMD_DIR}/RollingBasc/cAppliRollingBasc.cpp
 
