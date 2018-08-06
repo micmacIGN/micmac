@@ -264,6 +264,8 @@ int CPP_StatPHom(int argc, char ** argv);
 int CPP_PHom_RenameRef(int argc, char ** argv);
 int CPP_PHom_ApprentBinaire(int argc, char ** argv);
 int CPP_FitsMatch1Im(int argc, char ** argv);
+int HackToF(int argc,char ** argv);
+
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -512,6 +514,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("MICMACSaisieLiaisons", MICMACSaisieLiaisons_main, " Low level version of SEL, not recommended"));
 
 #ifdef ETA_POLYGON
+		aRes.push_back(cMMCom("HackToF", HackToF,"Hack ToF format "));
 
 		//Etalonnage polygone
 		aRes.push_back(cMMCom("Compens", Compens_main, " Do some stuff"));
