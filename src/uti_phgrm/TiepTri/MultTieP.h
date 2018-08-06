@@ -111,6 +111,12 @@ class cSetPMul1ConfigTPM
        void    ConfTPM_SetVoidData(void *);
 
        Pt2dr GetPtByImgId(int aKp, int aQueryImgID);
+        
+       void IntersectBundle(std::map<int, CamStenope *>&        aCams,
+                            std::map<int,std::vector<Pt2dr>* >& a2DTracks,
+                            std::map<int,std::vector<int>* >&   aCamIdx,
+                            std::vector<Pt3dr>&                 aPt3D,
+                            int&                                aPos); //return vectors of tracks + ids, corresponding img idx, and 3D ; fill the structures from the aPos on
        std::vector<Pt3d<double> > IntersectBundle(std::map<int, CamStenope *> aMCams); //aMCams are Camera indexed by the Id fo Image
        std::vector<Pt3d<double> > IntersectBundle(std::map<int, CamStenope *> aMCams, std::vector<double> & aVResid); // return reproj error in aVResod
 
@@ -152,6 +158,9 @@ class cSetTiePMul
 
         static std::string StdName(cInterfChantierNameManipulateur*,const std::string aSH,const std::string & aPost,bool Bin);
         static const std::vector<std::string> * StdSetName(cInterfChantierNameManipulateur*,const std::string aSH,bool Bin);
+        static const std::vector<std::string> * StdSetName_BinTxt(cInterfChantierNameManipulateur*,const std::string aSH);
+
+
 
         cSetPMul1ConfigTPM * OneConfigFromVI(const std::vector<INT> &);
 
