@@ -249,6 +249,9 @@ int ConvertOriCalib_main(int argc, char ** argv);
 
 int DroneFootPrint(int argc,char ** argv);
 
+int Image_Vide(int argc,char ** argv);
+
+
 std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC, const std::string & aLib)
 {
 	for (int aK = 0; aK<int(aVC.size()); aK++)
@@ -261,6 +264,8 @@ int CPP_StatPHom(int argc, char ** argv);
 int CPP_PHom_RenameRef(int argc, char ** argv);
 int CPP_PHom_ApprentBinaire(int argc, char ** argv);
 int CPP_FitsMatch1Im(int argc, char ** argv);
+int HackToF(int argc,char ** argv);
+
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -340,8 +345,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("Dequant", Dequant_main, " Tool for dequantifying an image"));
 		aRes.push_back(cMMCom("Devlop", Devlop_main, " Do some stuff"));
 		aRes.push_back(cMMCom("TifDev", TiffDev_main, " Develop raw-jpg-tif, in suitable tiff file"));
-
-		aRes.push_back(cMMCom("Drunk", Drunk_main, " Images distortion removing tool"));
+        aRes.push_back(cMMCom("Drunk", Drunk_main, " Images distortion removing tool"));
 		aRes.push_back(cMMCom("ElDcraw", ElDcraw_main, " Do some stuff"));
 		aRes.push_back(cMMCom("GCPBascule", GCPBascule_main, " Relative to absolute using GCP", cArgLogCom(2)));
 		aRes.push_back(cMMCom("GCPCtrl", GCPCtrl_main, " Control accuracy with GCP", cArgLogCom(2)));
@@ -508,6 +512,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("MICMACSaisieLiaisons", MICMACSaisieLiaisons_main, " Low level version of SEL, not recommended"));
 
 #ifdef ETA_POLYGON
+		aRes.push_back(cMMCom("HackToF", HackToF,"Hack ToF format "));
 
 		//Etalonnage polygone
 		aRes.push_back(cMMCom("Compens", Compens_main, " Do some stuff"));
@@ -1099,6 +1104,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TrajectoFromOri",Test_TrajectoFromOri,"Tracer Trajecto d'acquisition a partir de Orientation"));
         aRes.push_back(cMMCom("HomolLSMRefine",HomolLSMRefine_main,"Refine Homol Pack by Least Square Matching"));
         aRes.push_back(cMMCom("PlyBascule",PlyBascule,"Bascule PLY file with bascule XML (estimated by GCPBascule)"));
+        aRes.push_back(cMMCom("ImgVide", Image_Vide, " Create image vide"));
+
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));
@@ -1171,6 +1178,7 @@ extern int CPP_TestSystematicResiduals(int argc, char ** argv);
 extern int DoTile_main(int argc, char ** argv);
 extern int ASTERGT2MM_main(int argc, char ** argv);
 extern int ASTERGT_strip_2_MM_main(int argc, char ** argv);
+extern int ASTERProjAngle_main(int argc, char ** argv);
 
 const std::vector<cMMCom> & SateLibAvailableCommands()
 {
@@ -1187,6 +1195,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 	aRes.push_back(cMMCom("Aster2Grid", Aster2Grid_main, "Creates a Grid file from the meta-data of an Aster Images"));
 	aRes.push_back(cMMCom("ASTERGT2MM", ASTERGT2MM_main, "Convert ASTER geoTiff format to MicMac Xml, also destrip images"));
 	aRes.push_back(cMMCom("ASTERStrip2MM", ASTERGT_strip_2_MM_main, "Convert a strip of ASTER geoTiff format to MicMac Xml, also destrip images"));
+	aRes.push_back(cMMCom("ASTERProjAngle", ASTERProjAngle_main, "Compute the orbit angle for each point in DEM"));
 	aRes.push_back(cMMCom("ApplyParralaxCor", ApplyParralaxCor_main, "Apply parralax correction from MMTestOrient to an image"));
 	aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
 	aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));

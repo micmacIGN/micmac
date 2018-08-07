@@ -9,7 +9,8 @@ set(SateLib_Src_Files
 	${SATELIB_DIR}/Aster2Grid.cpp
 	${SATELIB_DIR}/CPP_SATtoBundle.cpp
 	${SATELIB_DIR}/CPP_SATDef2D.cpp
-	${SATELIB_DIR}/ASTERGT2MM.cpp
+	${SATELIB_DIR}/ASTERGT2MM.cpp		
+	${SATELIB_DIR}/ASTER_PostProc.cpp
 	
 	${SATELIB_DIR}/ALGLIB/alglibinternal.cpp
 	${SATELIB_DIR}/ALGLIB/alglibinternal.h
@@ -38,8 +39,6 @@ set(SateLib_Src_Files
 	${SATELIB_DIR}/ALGLIB/statistics.cpp
 	${SATELIB_DIR}/ALGLIB/statistics.h
 	${SATELIB_DIR}/ALGLIB/stdafx.h
-
-
 )
 
 # JE NE SAIS PAS SI CA SERT ???
