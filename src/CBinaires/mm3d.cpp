@@ -345,8 +345,6 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("Dequant", Dequant_main, " Tool for dequantifying an image"));
 		aRes.push_back(cMMCom("Devlop", Devlop_main, " Do some stuff"));
 		aRes.push_back(cMMCom("TifDev", TiffDev_main, " Develop raw-jpg-tif, in suitable tiff file"));
-
-
         aRes.push_back(cMMCom("Drunk", Drunk_main, " Images distortion removing tool"));
 		aRes.push_back(cMMCom("ElDcraw", ElDcraw_main, " Do some stuff"));
 		aRes.push_back(cMMCom("GCPBascule", GCPBascule_main, " Relative to absolute using GCP", cArgLogCom(2)));
