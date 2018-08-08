@@ -100,6 +100,15 @@ void cDensityMapPH::loadPH(){
     else {
         std::cout << "Warn, right now only new format of multi tie p is supporte, use FileSH argument.\n";
 
+        // again, i need the pattern of image and what a got is the pattern of Orientation
+        std::string aCom =    MMBinFile(MM3DStr) + " TestLib ConvNewFH "
+
+                + " impat '' "
+                + " SH=" + mSH
+                + " ExpTxt=" + ToString(mExpTxt)
+                ;
+        if (mDebug) std::cout << aCom << "\n";
+        //system_call(aCom.c_str());
     }
 }
 
@@ -241,34 +250,30 @@ int main_densityMapPH(int argc,char ** argv)
 }
 
 
-cManipulate_NF_TP::cManipulate_NF_TP(int argc,char ** argv)
+cManipulate_NF_TP::cManipulate_NF_TP():
+     mOut("3DMeasuresHomol.xml"),
+     mDebug(0),
+     mWithRadiometry(0),
+     mDir("./"),
+     mOriPat(""),
+     mFileSH(""),
+     mArgComp            (new LArgMain),
+     mArgOpt             (new LArgMain)
 {
 
-    mOut="pointsWithFeatures.txt";
-    mDebug=0;
-    mDir="./";
-    mPrintTP_info=0;
-    mSavePly=0;
 
-    ElInitArgMain
-            (
-                argc,argv,
-                LArgMain()   << EAMC(mDir,"Working Directory", eSAM_IsDir)
+      (*mArgComp) << EAMC(mDir,"Working Directory", eSAM_IsDir)
                 << EAMC(mOriPat,"Orientation (xml) list of file, ex 'Ori-Rel/Orientation.*.xml'", eSAM_IsPatFile)
                 << EAMC(mFileSH,"File of new set of homol format.", eSAM_IsExistFile )
-                ,
-                LArgMain()
-
-
+                ;
+      (*mArgOpt)
                 << EAM(mOut,"Out",true, "Name of results" )
                 << EAM(mDebug,"Debug",true, "Print message in terminal to help debugging." )
-                << EAM(mPrintTP_info,"PrintTP",true, "Print tie point info in termila." )
-                << EAM(mSavePly, "SavePly", true, "Save the information as ply file.")
+                ;
+}
 
-                );
-
-    if (!MMVisualMode)
-    {
+void cManipulate_NF_TP::init()
+{
         // this object is used for regular expression manipulation and key of association utilisation
         mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
         // load list of orientation files from regular expression
@@ -279,21 +284,15 @@ cManipulate_NF_TP::cManipulate_NF_TP(int argc,char ** argv)
 
         mTPM->Save("PMUl.txt");
 
-        // Now that we have 1) list of orientation file and 2) Tie point with New format, we recover the ID
-        // of each images (used to manipulate tie points) and the name of each image)
-        // the map container mCams will contains the index of the image and the camera stenopee object which
-        // is the one used for photogrammetric computation like "intersect bundle", which compute 3D position
-        // of a tie point from UV coordinates
-
         // an association key that give the name of an image from the name of an orientation.
         std::string aKey= "NKS-Assoc-Ori2ImGen"  ;
         std::string aTmp1, aNameOri;
 
-        std::cout << "List of orientation files:\n";
+        if (mDebug) std::cout << "List of orientation files:\n";
 
         for (auto &aOri : mOriFL){
 
-            std::cout << aOri << "\n";
+            if (mDebug) std::cout << aOri << "\n";
 
             // retrieve name of image from name of orientation xml
             SplitDirAndFile(aTmp1,aNameOri,aOri);
@@ -306,33 +305,53 @@ cManipulate_NF_TP::cManipulate_NF_TP(int argc,char ** argv)
                 // map container of Camera is indexed by the Id of Image (cSetTiePMul)
                 mCams[ImTPM->Id()]=CamOrientGenFromFile(aOri,mICNM);
                 // map container of image RGB indexed by the Id of image
-                mIms[ImTPM->Id()]=new cISR_ColorImg(NameIm);
-                std::string tmp(NameIm+"_col.tif");
-                mIms[ImTPM->Id()]->write(tmp);
+                if (mWithRadiometry) mIms[ImTPM->Id()]=new cISR_ColorImg(NameIm);
             } else {
                 std::cout << "No tie points found for image " << NameIm << ".\n";
             }
         }
 
-        // now we are ready to manipulate the set of tie points
+}
 
+
+cAppli_IntersectBundleHomol::cAppli_IntersectBundleHomol(int argc,char ** argv)
+{
+    mStr0 = MakeStrFromArgcARgv(argc,argv,true);
+    MMD_InitArgcArgv(argc,argv);
+
+    ElInitArgMain
+            (
+                argc,argv,
+                LArgMain()
+                // optionnal argument
+                <<  ArgCMNF()
+                ,
+                LArgMain()
+                // optionnal argument
+                <<  ArgOMNF()
+                );
+
+    if (!MMVisualMode)
+    {
+        mOut="IntersectBundleHomol.txt";
+        init();
         // create a txt output file containing the features on the points
         ofstream aFile;
         aFile.open(mDir + mOut);
 
+        aFile << fixed << setprecision(4) << endl;
         // write file header
-        aFile << "Config Point X Y Z mean_reprojection_error multiplicity UV id_image name_image\n";
-
-        // if SavePly option is requested
-        if (mSavePly) {
-            std::cout << "SavePly option not handled yet: coming soon!\n";
+        aFile << "#F=N X Y Z S S \n";
+        aFile << "#PointName X Y Z mean_reprojection_error multiplicity \n";
+        if (mDebug) {
+            std::cout << "PointName X Y Z mean_reprojection_error multiplicity \n";
+            std::cout << std::setprecision(2) << std::fixed;
         }
 
         // loop on every config of TPM of the set of Tie Point Multiple
-        int count_Cnf(0); // a counter for the number of tie point configuration in the set of TPM
+        int id(0);
         for (auto & aCnf : mTPM->VPMul())
         {
-
             // initialize a vector that will contains all the mean reprojection error for all tie point
             std::vector<double> aResid;
             // do 2 things; compute pseudo intersection of bundle for have 3D position of all tie point of the config and fill the "aResid" vector with mean reprojection error
@@ -340,176 +359,43 @@ cManipulate_NF_TP::cManipulate_NF_TP(int argc,char ** argv)
 
             // Iterate on each point to have X Y Z Residual Reprojection_error information
             int i(0);
-
             for (auto & Pt: aPts){
 
-                // UNCOMMENT THIS PART TO HAVE RGB INFORMATION
-
-                // get the RGB information from UV coordinates
-
-
-                Pt2di image_coords(aCnf->Pt(i, aCnf->VIdIm().at(0)));
-                std::cout << "u = " << image_coords.x << " ; v = " << image_coords.y << "\n";
-                cISR_Color image_colors = mIms[aCnf->VIdIm().at(0)]->get(image_coords);
-
-                // r(), g() and b() return u_int1 which are not properly display in terminal, so first a cast in int
-
-
-
-                std::cout << "r = " << (int)image_colors.r() << " ; g = " << (int)image_colors.g() << " ; b = " << (int)image_colors.b() << "\n";
-
-
                 // Write the features for the point Pt in the output file
-                aFile << count_Cnf << " " << i << " " << Pt.x << " " << Pt.y << " " << Pt.z << " " << aResid.at(i) << " " << aCnf->NbIm() << " " << aCnf->Pt(i, aCnf->VIdIm().at(0)) << " " << aCnf->VIdIm().at(0) << " " << mTPM->NameFromId(aCnf->VIdIm().at(0)) << "\n";
-
-                if (mPrintTP_info) {
-                    std::cout << "Config " << count_Cnf << "Point " << i << "have XYZ position " << Pt << " and mean reprojection error of " << aResid.at(i) << " and multiplicity of " << aCnf->NbIm() << "\n";
-
-                    std::cout << "Radiometry of this point may be extratcted from pixel position UV " << aCnf->Pt(i, aCnf->VIdIm().at(0)) << " of image " << aCnf->VIdIm().at(0) << " which name is " << mTPM->NameFromId(aCnf->VIdIm().at(0)) << "\n";
-                }
-
+                aFile << " " << id << " " << Pt.x << " " << Pt.y << " " << Pt.z << " " << aResid.at(i) << " " << aCnf->NbIm() << "\n";
+                if (mDebug) std::cout << "Point " << id << " " << Pt.x << " " << Pt.y << " " << Pt.z << " " << aResid.at(i) << " " << aCnf->NbIm() << "\n";
                 i++;
+                id++;
+
             }
-
-            if (mDebug) std::cout << "Manipulation of tie point is finished for configuration number " << count_Cnf << "\n\n";
-
-            count_Cnf++;
         }
-
         // Close the output file
-        aFile.close();
+        //aFile.close();
         std::cout << mOut << " has been created sucessfully." << "\n";
-
     }
 }
 
-
-/***
-J'ai ajouté des méthodes afin de pouvoir calculer des angles à partir d'un point 3D et des positions
-des sommets de prises de vues.
-Elles ne servent pas pour le moment, car je n'ai pas encore trouvé le moyen d'accéder à la position
-des sommets de prises de vues.
-***/
-
-double sum(vector<double> vect) {
-
-    double sum_of_elems;
-
-    std::for_each(vect.begin(), vect.end(), [&](double n) {
-        sum_of_elems += n;
-    });
-
-    return sum_of_elems;
-}
-
-vector<double> unitize(vector<double> vect)
-/***
-* Description: Calculates the angle between two 3D vectors.
-*
-* Parameters:
-*   - vect : vector
-*
-* Returns: Unitarized input vector
-*
-***/
+void cManipulate_NF_TP::loadIm()
 {
-    double sum_of_elem = sum(vect);
 
-    if (sum_of_elem > 0) {
-        for (std::vector<double>::iterator it = vect.begin(); it != vect.end(); ++it) {
-            *it = *it / sum_of_elem;
+    mWithRadiometry=1;
+    for (auto & NameIm : mImName){
+
+        cCelImTPM * ImTPM=mTPM->CelFromName(NameIm);
+        if (ImTPM) {
+            // map container of image RGB indexed by the Id of image
+            mIms[ImTPM->Id()]=new cISR_ColorImg(NameIm);
         }
     }
-
-    return vect;
+    std::cout << "Images loaded.\n";
 }
 
-double dotProduct(vector<double> u, vector<double> v)
-/***
-* Description: Calculates the angle between two 3D vectors.
-*
-* Parameters:
-*   - u : vector
-*   - v : vector
-*
-* Returns: The computation needed for angle calculation before acos
-*
-***/
-{
-    double dot = 0;
-    for (int i = 0; i < v.size(); i++) {
-        dot += u[i] * v[i];
-    }
 
-    return dot;
-}
 
-double length(vector<double> v)
-/***
-* Description: Calculates the norm of a vector
-*
-* Parameters:
-*   - v : vector
-*
-* Returns: The norm of the input vector
-*
-***/
-{
-    double norm = sqrt(dotProduct(v, v));
-
-    return norm;
-}
-
-double angle(vector<double> u, vector<double> v)
-/***
-* Description: Calculates the angle between two 3D vectors.
-*
-* Parameters:
-*   - u : vector
-*   - v : vector
-*
-* Returns: The computation needed for angle calculation before acos
-*
-***/
-{
-    double elem = dotProduct(u, v) / (length(u) * length(u));
-
-    return elem;
-}
-
-double VectorAngle(vector<double> v1, vector<double> v2)
-/***
-* Description: Calculates the angle between two 3D vectors.
-*
-* Parameters:
-*   - v0 : vector
-*   - v1 : vector
-*
-* Returns: The angle in radians.
-*
-***/
-{
-    // Unitize the input vectors
-    v1 = unitize(v1);
-    v2 = unitize(v2);
-
-    // (v1.v2)/(|v1|.|v2|)
-    double elem = angle(v1, v2);
-
-    // Force the dot product of the two input vectors to
-    // fall within the domain for inverse cosine, which
-    // is -1 <= x <= 1. This will prevent runtime
-    // "domain error" math exceptions.
-    elem = (elem < -1.0 ? -1.0 : (elem > 1.0 ? 1.0 : elem));
-
-    double angle = acos(elem);
-
-    return angle;
-}
 
 int main_manipulateNF_PH(int argc,char ** argv)
 {
-    cManipulate_NF_TP(argc,argv);
+    cAppli_IntersectBundleHomol(argc,argv);
     return EXIT_SUCCESS;
 }
 

@@ -56,7 +56,10 @@ public:
     }
 
     std::vector<MSDPoint> detect(Tiff_Im &img);
-    std::vector<MSDPoint> detect(Im2D_U_INT2 &img);
+
+    template <class Type, class TyBase>
+    std::vector<MSDPoint> detect(Im2D<Type,TyBase> &img);
+
     // write intermediate result and print blabla in debug mode
     void setDebug(bool aDebug){ mDebug = aDebug; }
 	
@@ -113,7 +116,7 @@ private:
 	bool m_circular_window;
     bool m_RefinedKps;
 
-    std::vector< Im2D<U_INT2,INT> > m_scaleSpace;
+    std::vector< Im2D<U_INT1,INT> > m_scaleSpace;
 	
 	inline float computeAvgDistance(std::vector<float> &minVals, int den)
 	{
@@ -127,9 +130,9 @@ private:
 
     void RefineKP( const Pt2di &i_p, Pt2dr &o_p , float * SaliencyMap, int lvl); // Refine keypoints
 
-    void contextualSelfDissimilarity(Im2D<U_INT2,INT> &img, int xmin, int xmax, float *saliency);
+    void contextualSelfDissimilarity(Im2D<U_INT1,INT> &img, int xmin, int xmax, float *saliency);
 
-    float computeOrientation(Im2D<U_INT2,INT> &img, int x, int y, std::vector<Pt2df> circle);
+    float computeOrientation(Im2D<U_INT1,INT> &img, int x, int y, std::vector<Pt2df> circle);
 
     void nonMaximaSuppression(std::vector<float *> & saliency, std::vector<MSDPoint> & keypoints);
 };

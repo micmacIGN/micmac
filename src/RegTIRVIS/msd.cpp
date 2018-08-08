@@ -222,7 +222,7 @@ Im2D<REAL4,REAL8> RefinedCircularWindow(int radius)
 }
 
 
-void MsdDetector::contextualSelfDissimilarity(Im2D<U_INT2,INT> &img, int xmin, int xmax, float* saliency)
+void MsdDetector::contextualSelfDissimilarity(Im2D<U_INT1,INT> &img, int xmin, int xmax, float* saliency)
 {
     int r_s = m_patch_radius;
     int r_b = m_search_area_radius;
@@ -734,7 +734,7 @@ void MsdDetector::contextualSelfDissimilarity(Im2D<U_INT2,INT> &img, int xmin, i
 
 
 
-float MsdDetector::computeOrientation(Im2D<U_INT2,INT> &img, int x, int y, std::vector<Pt2df> circle)
+float MsdDetector::computeOrientation(Im2D<U_INT1,INT> &img, int x, int y, std::vector<Pt2df> circle)
 {
     int temp;
     int nBins = 36;
@@ -1037,7 +1037,7 @@ std::vector<MSDPoint> MsdDetector::detect(Tiff_Im &img)
         m_cur_n_scales = m_n_scales;
 
     //std::cout<<"m_cur_n_scales "<<m_cur_n_scales<<endl;
-    Im2D<U_INT2,INT> imgG=Im2D<U_INT2,INT>(img.sz().x,img.sz().y);
+    Im2D<U_INT1,INT> imgG=Im2D<U_INT1,INT>(img.sz().x,img.sz().y);
 
     if (img.nb_chan() == 1)
     {
@@ -1049,7 +1049,7 @@ std::vector<MSDPoint> MsdDetector::detect(Tiff_Im &img)
         ELISE_COPY(imgG.all_pts(),(0.21*img.in().v0()+0.72*img.in().v1()+0.07*img.in().v2()),imgG.out());
     }
 
-    ImagePyramid<U_INT2,INT> scaleSpacer=ImagePyramid<U_INT2,INT>(imgG, m_cur_n_scales, m_scale_factor);
+    ImagePyramid<U_INT1,INT> scaleSpacer=ImagePyramid<U_INT1,INT>(imgG, m_cur_n_scales, m_scale_factor);
 
     m_scaleSpace = scaleSpacer.getImPyr();
 
@@ -1104,24 +1104,12 @@ std::vector<MSDPoint> MsdDetector::detect(Tiff_Im &img)
     return keypoints;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-std::vector<MSDPoint> MsdDetector::detect(Im2D_U_INT2 &img)
+// work on u_int2 but no keypoints so useless. I stop implementing a compatibility with 16 bits images, only 8 bits right now
+template <class Type, class TyBase>
+std::vector<MSDPoint> MsdDetector::detect(Im2D<Type,TyBase> &img)
 {
+    std::vector<MSDPoint> keypoints;
+
     if (mDebug) std::cout<<"MSD detector: start\n";
 
     int border = m_search_area_radius + m_patch_radius;
@@ -1134,62 +1122,24 @@ std::vector<MSDPoint> MsdDetector::detect(Im2D_U_INT2 &img)
 
     if (mDebug) std::cout<<"m_cur_n_scales "<<m_cur_n_scales<<endl;
 
-    ImagePyramid<U_INT2,INT> scaleSpacer=ImagePyramid<U_INT2,INT>(img, m_cur_n_scales, m_scale_factor);
-
     // vector of pyram images
+    ImagePyramid<Type,TyBase> scaleSpacer=ImagePyramid<Type,TyBase>(img, m_cur_n_scales, m_scale_factor);
     m_scaleSpace = scaleSpacer.getImPyr();
 
-    /***************************************************************/
-    std::vector<MSDPoint> keypoints;
     std::vector<float *> saliency;
     saliency.resize(m_cur_n_scales);
 
     for (int r = 0; r < m_cur_n_scales; r++)
     {
 
-    /*    if (mDebug) {
-            ELISE_fp::MkDirSvp("Tmp-MM-Dir");
-            std::string aName("Tmp-MM-Dir/MSD_pyram_"+ToString(r)+".tif");
-            ELISE_COPY(
-                       m_scaleSpace.at(r).all_pts(),
-                       m_scaleSpace.at(r).in(),
-                       Tiff_Im(aName.c_str(), m_scaleSpace[r].sz(),
-                                                                GenIm::u_int2,
-                                                                Tiff_Im::No_Compr,
-                                                                Tiff_Im::BlackIsZero).out()
-                       );
-        }*/
-
-
-
-        if (mDebug) std::cout<< " I process the pyram scale " << r << " , image size is" << m_scaleSpace[r].sz()<<endl;
+        if (mDebug) std::cout<< "MSD: I process the pyram scale " << r << " , image size is " << m_scaleSpace[r].sz()<<endl;
         saliency[r] = new float[m_scaleSpace[r].sz().y * m_scaleSpace[r].sz().x];
 
-#ifdef BOOST_MULTICORE
-        unsigned nThreads = boost::thread::hardware_concurrency();
-        unsigned stepThread = (m_scaleSpace[r].cols - 2 * border) / nThreads;
-
-        std::vector<boost::thread*> threads;
-        for (unsigned i = 0; i < nThreads - 1; i++)
-        {
-            threads.push_back(new boost::thread(&MsdDetector::contextualSelfDissimilarity, this, m_scaleSpace[r], border + i*stepThread, border + (i + 1)*stepThread, saliency[r]));
-        }
-        threads.push_back(new boost::thread(&MsdDetector::contextualSelfDissimilarity, this, m_scaleSpace[r], border + (nThreads - 1)*stepThread, m_scaleSpace[r].sz().x - border, saliency[r]));
-
-        for (unsigned i = 0; i < threads.size(); i++)
-        {
-            threads[i]->join();
-            delete threads[i];
-        }
-#else
-
         contextualSelfDissimilarity(m_scaleSpace.at(r), border, m_scaleSpace.at(r).sz().x - border, saliency[r]);
-        //m_scaleSpace.erase(m_scaleSpace.begin());
 
-
-#endif
     }
 
+    // fill the vector of keypoints
     nonMaximaSuppression(saliency, keypoints);
 
     for (int r = 0; r<m_n_scales; r++)
@@ -1202,7 +1152,7 @@ std::vector<MSDPoint> MsdDetector::detect(Im2D_U_INT2 &img)
     return keypoints;
 }
 
-
+template  std::vector<MSDPoint> MsdDetector::detect<U_INT1,INT>(Im2D<U_INT1,INT> &img);
 
 
 template <class Type, class TyBase>
@@ -1216,30 +1166,6 @@ ImagePyramid<Type,TyBase>::ImagePyramid( Im2D<Type,TyBase>  & im, const int nLev
     m_imPyr[0]=Im2D<Type,TyBase>(im.sz().x,im.sz().y);
 
     ELISE_COPY(m_imPyr[0].all_pts(),im.in(),m_imPyr[0].out());
-
-    // Palette Initialization
-   // Elise_Set_Of_Palette SOP=Elise_Set_Of_Palette::TheFullPalette();/*(NewLElPal(Pdisc)+Elise_Palette(Pgr)+Elise_Palette(Prgb)+Elise_Palette(Pcirc));*/
-
-
-   // std::cout<<Elise_Palette(Pgr).<<endl;
-
-    // Creation of video windows
-   /* Video_Display Ecr((char *) NULL);
-    Ecr.load(SOP);
-    Video_Win W (Ecr,SOP,Pt2di(50,50),Pt2di(m_imPyr[0].sz().x, m_imPyr[0].sz().y));
-
-    Im2D_U_INT2 I(m_imPyr[0].sz().x, m_imPyr[0].sz().y);
-    // chargement du fichier dans l’image  et la fenetre
-
-    ELISE_COPY
-    (
-
-    I.all_pts(),
-    m_imPyr[0].in(),
-    I.out()|W.ogray()
-
-    );*/
-
 
     if(m_nLevels > 1)
     {

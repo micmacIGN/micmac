@@ -116,7 +116,7 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/../RegTIRVIS/DescriptorExtractor.cpp
 	${TDPPMD_DIR}/../RegTIRVIS/MSDpoint.cpp
 	${TDPPMD_DIR}/../RegTIRVIS/msd.cpp
-	${TDPPMD_DIR}/../RegTIRVIS/RegTIRVIS.cpp
+	#${TDPPMD_DIR}/../RegTIRVIS/RegTIRVIS.cpp
 	${TDPPMD_DIR}/../RegTIRVIS/Resize.cpp
 	${TDPPMD_DIR}/../RegTIRVIS/cmsdappli.cpp
 
