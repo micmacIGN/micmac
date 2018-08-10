@@ -733,7 +733,7 @@ void MsdDetector::contextualSelfDissimilarity(Im2D<U_INT1,INT> &img, int xmin, i
 }
 
 
-
+// input: the image, x y= pos of the keypoint, circle; a vector containing 36 Pt2df which are positionned on a circle centered on 0,0
 float MsdDetector::computeOrientation(Im2D<U_INT1,INT> &img, int x, int y, std::vector<Pt2df> circle)
 {
     int temp;
@@ -745,6 +745,7 @@ float MsdDetector::computeOrientation(Im2D<U_INT1,INT> &img, int x, int y, std::
     int minDist = std::numeric_limits<int>::max();
     int maxDist = -1;
 
+    // determine min and max distance in radiometry along all diameter of the circle and populate dists[k]
     for (int k = 0; k<(int)circle.size(); k++)
     {
 
@@ -997,10 +998,11 @@ void MsdDetector::nonMaximaSuppression(std::vector<float *> & saliency, std::vec
                             kp_temp.setPointy( Pout.y * std::pow(m_scale_factor, r));
                             kp_temp.setResponse(saliency[r][j*cW + i]);
                             kp_temp.setSize((m_patch_radius*2.0f + 1) * std::pow(m_scale_factor, r));
+                            kp_temp.setScale(std::pow(m_scale_factor, r));
 
                             if (m_compute_orientation)
                             {
-                                kp_temp.setAngle(computeOrientation(m_scaleSpace[r], i, j, orientPoints));
+                                kp_temp.setAngle(computeOrientation(m_scaleSpace[r], i, j, orientPoints),0);
                             }
                             keypoints.push_back(kp_temp);
                         }
@@ -1010,10 +1012,11 @@ void MsdDetector::nonMaximaSuppression(std::vector<float *> & saliency, std::vec
                             kp_temp.setPointy( j * std::pow(m_scale_factor, r));
                             kp_temp.setResponse(saliency[r][j*cW + i]);
                             kp_temp.setSize((m_patch_radius*2.0f + 1) * std::pow(m_scale_factor, r));
+                            kp_temp.setScale(std::pow(m_scale_factor, r));
 
                             if (m_compute_orientation)
                             {
-                                kp_temp.setAngle(computeOrientation(m_scaleSpace[r], i, j, orientPoints));
+                                kp_temp.setAngle(computeOrientation(m_scaleSpace[r], i, j, orientPoints),0);
                             }
 
                             keypoints.push_back(kp_temp);
@@ -1142,6 +1145,27 @@ std::vector<MSDPoint> MsdDetector::detect(Im2D<Type,TyBase> &img)
     // fill the vector of keypoints
     nonMaximaSuppression(saliency, keypoints);
 
+    // test alternative computation of angles
+    Im2D<REAL4,REAL8> i_grad;
+    //REAL8 maxValGrad=2*M_PI;
+    // je sais pas à quoi cela sert... d'autant plus que la magnitude est très faible en valeur
+    REAL8 maxValGrad=100000;
+    gradient(m_scaleSpace[0], maxValGrad, i_grad)  ;
+/*
+    std::string aName("tmpGrad.tif");
+    Tiff_Im  aTF
+             (
+                 aName.c_str(),
+                 i_grad.sz(),
+                 GenIm::real4,
+                 Tiff_Im::No_Compr,
+                 Tiff_Im::BlackIsZero
+             );
+
+    ELISE_COPY(i_grad.all_pts(),i_grad.in(),aTF.out());*/
+
+    orientate(i_grad,keypoints);
+
     for (int r = 0; r<m_n_scales; r++)
     {
         delete[] saliency[r];
@@ -1149,11 +1173,12 @@ std::vector<MSDPoint> MsdDetector::detect(Im2D<Type,TyBase> &img)
 
     m_scaleSpace.clear();
 
+
+
     return keypoints;
 }
 
 template  std::vector<MSDPoint> MsdDetector::detect<U_INT1,INT>(Im2D<U_INT1,INT> &img);
-
 
 template <class Type, class TyBase>
 ImagePyramid<Type,TyBase>::ImagePyramid( Im2D<Type,TyBase>  & im, const int nLevels, const float scaleFactor)
@@ -1217,7 +1242,119 @@ ImagePyramid<Type,TyBase>::~ImagePyramid()
 template class ImagePyramid<U_INT1,INT>;
 template class ImagePyramid<U_INT2,INT>;
 
+// return the number of possible orientations (at most DIGEO_NB_MAX_ANGLES) and the angles (o_angles), providing a gradient (orientation and magnitude) and a point
+int MsdDetector::orientate( const Im2D<REAL4,REAL8> &i_gradient, MSDPoint &i_p, REAL8 o_angles[DIGEO_MAX_NB_ANGLES] )
+{
+    static REAL8 histo[DIGEO_ORIENTATION_NB_BINS];
 
+    int xi = ((int) (i_p.getPoint().x+0.5)) ;
+    int yi = ((int) (i_p.getPoint().y+0.5)) ;
+    //const REAL8 sigmaw = DIGEO_ORIENTATION_WINDOW_FACTOR*i_p.getScale();
+    const REAL8 sigmaw = DIGEO_ORIENTATION_WINDOW_FACTOR*i_p.getScale();
+    const int W = (int)ceil( 3*sigmaw );
+    //std::cout << "kp: size " << i_p.getSize() << " sigmaw " << sigmaw << " W " <<W<< "\n";
+    // fill the SIFT histogram
+    const INT width  = i_gradient.sz().x/2,
+              height = i_gradient.sz().y;
+    REAL8 dx, dy, r2,
+          wgt, mod, ang;
+    int   offset;
+    const REAL4 *p = i_gradient.data_lin()+( xi+yi*width )*2;
+
+    std::fill( histo, histo+DIGEO_ORIENTATION_NB_BINS, 0 );
+    for ( int ys=std::max( -W, 1-yi ); ys<=std::min( W, height-2-yi ); ys++ )
+    {
+        for ( int xs=std::max( -W, 1-xi ); xs<=std::min( W, width-2-xi ); xs++ )
+        {
+            dx = xi+xs-i_p.getPoint().x;
+            dy = yi+ys-i_p.getPoint().y;
+            r2 = dx*dx+dy*dy;
+
+            // limit to a circular window
+            if ( r2>=W*W+0.5 ) continue;
+
+            wgt    = ::exp( -r2/( 2*sigmaw*sigmaw ) );
+            offset = ( xs+ys*width )*2;
+            // gradient magnitude
+            mod    = p[offset];
+            //std::cout << "grad magnitude is " << mod <<"\n";
+            //  gradient orientation, in radians
+            ang    = p[offset+1];
+
+            int bin = (int)floor( DIGEO_ORIENTATION_NB_BINS*ang/( 2*M_PI ) );
+            histo[bin] += mod*wgt;
+        }
+    }
+
+    REAL8 prev;
+    // smooth histogram
+    // mean of a bin and its two neighbour values (x6)
+    REAL8 *itHisto,
+           first, mean;
+    int iHisto,
+        iIter = 6;
+    while ( iIter-- )
+    {
+        itHisto = histo;
+        iHisto  = DIGEO_ORIENTATION_NB_BINS-2;
+        first = prev = *itHisto;
+        *itHisto = ( histo[DIGEO_ORIENTATION_NB_BINS-1]+( *itHisto )+itHisto[1] )/3.; itHisto++;
+        while ( iHisto-- )
+        {
+            mean = ( prev+(*itHisto)+itHisto[1] )/3.;
+            prev = *itHisto;
+            *itHisto++ = mean;
+        }
+        *itHisto = ( prev+( *itHisto )+first )/3.; itHisto++;
+    }
+
+    // find histogram's peaks
+    // peaks are values > 80% of histoMax and > to both its neighbours
+    REAL8 histoMax = 0.8*( *std::max_element( histo, histo+DIGEO_ORIENTATION_NB_BINS ) ),
+          v, next, di;
+    int nbAngles = 0;
+    for ( int i=0; i<DIGEO_ORIENTATION_NB_BINS; i++ )
+    {
+        v = histo[i];
+        prev = histo[ ( i==0 )?DIGEO_ORIENTATION_NB_BINS-1:i-1 ];
+        next = histo[ ( i==( DIGEO_ORIENTATION_NB_BINS-1 ) )?0:i+1 ];
+        if ( ( v>histoMax ) && ( v>prev ) && ( v>next ) )
+        {
+            // we found a peak
+            // compute angle by quadratic interpolation
+            di = -0.5*( next-prev )/( next+prev-2*v );
+            o_angles[nbAngles++] = 2*M_PI*( i+di+0.5 )/DIGEO_ORIENTATION_NB_BINS;
+            if ( nbAngles==DIGEO_MAX_NB_ANGLES ) return DIGEO_MAX_NB_ANGLES;
+        }
+    }
+    return nbAngles;
+}
+
+void MsdDetector::orientate(Im2D<REAL4,REAL8> &img, std::vector<MSDPoint> & aVKp)
+{
+
+    REAL8 angles[DIGEO_MAX_NB_ANGLES];
+    int nbAngles;
+
+    for (auto & kp : aVKp){
+
+        nbAngles = orientate(img, kp, angles);
+        //std::cout << "computed orienation for kp\n";
+        if ( nbAngles!=0 )
+        {
+
+        for (int i(0); i<nbAngles;i++){
+        if ((kp.getAngles().size()-1) >= i) { kp.setAngle(angles[i],i);}
+        else { kp.addAngle(angles[i]);}
+        }
+
+
+        //std::cout << "best digeo angle for MSD point is " << angles[0] << "\n";
+        //std::cout << "according to MSD code,best angle is " <<kp.getAngle() << "\n";
+
+        }
+    }
+}
 
 
 

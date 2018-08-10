@@ -582,6 +582,8 @@ void gradient( const Im2D<tData,tComp> &i_image, REAL8 i_maxValue, Im2D<REAL4,RE
 
 template void gradient<REAL4,REAL8>( const Im2D<REAL4,REAL8> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
 template void gradient<U_INT2,INT>( const Im2D<U_INT2,INT> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
+template void gradient<U_INT1,INT>( const Im2D<U_INT1,INT> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
+
 
 template <class Type>
 const Im2D<REAL4,REAL8> & cTplImInMem<Type>::getGradient() { return mImGlob.getGradient( TIm(), mOct.GetMaxValue() ); }

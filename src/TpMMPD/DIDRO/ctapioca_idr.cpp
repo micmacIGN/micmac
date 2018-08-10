@@ -27,7 +27,7 @@ cTapioca_IDR::cTapioca_IDR(int argc, char** argv):
                 << EAM(mPurge,"Purge",true,"Purge temporary files? def true")
                 << EAM(mTmpDir,"Dir",true,"Directory of temporary files, def Tmp-TapiocaIDR/")
                 << EAM(mMergeHomol,"MergeSH",true,"Merge the resulting TP with current Homol/ set? Default true")
-                << EAM(mSH_post,"PostfixSH",true,"Postfix for resulting Homol directory, default '-IDR' result in Homol-IDR/")
+                << EAM(mSH_post,"PostFix",true,"Postfix for resulting Homol directory, default '-IDR' result in Homol-IDR/")
                 << EAM(mDebug,"Debug",true,"Display terminal message? Default false")
                 << EAM(mDetect,"Detect",true,"Detector tool")
                 << EAM(mRatio,"Ratio",true,"Ann closeness ratio")

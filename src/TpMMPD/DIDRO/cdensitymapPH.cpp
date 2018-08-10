@@ -370,7 +370,7 @@ cAppli_IntersectBundleHomol::cAppli_IntersectBundleHomol(int argc,char ** argv)
             }
         }
         // Close the output file
-        //aFile.close();
+        aFile.close();
         std::cout << mOut << " has been created sucessfully." << "\n";
     }
 }

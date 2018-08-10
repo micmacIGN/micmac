@@ -41,6 +41,7 @@ public:
 		m_patch_radius = 3;
 		m_search_area_radius = 5;
 
+        //Non-Maxima Suppression
 		m_nms_radius = 5;
 		m_nms_scale_radius = 0;
 
@@ -135,6 +136,9 @@ private:
     float computeOrientation(Im2D<U_INT1,INT> &img, int x, int y, std::vector<Pt2df> circle);
 
     void nonMaximaSuppression(std::vector<float *> & saliency, std::vector<MSDPoint> & keypoints);
+    // i test the implementation of method used in Digeo to see if angles computation are compatible between MSD and Digeo
+    int orientate( const Im2D<REAL4,REAL8> &i_gradient, MSDPoint &i_p, REAL8 o_angles[DIGEO_MAX_NB_ANGLES] );
+    void orientate(Im2D<float, double> &img, std::vector<MSDPoint> & aVKp);
 };
 
 template <class Type,class TyBase>
