@@ -66,7 +66,7 @@ int ASTERProjAngle_main(int argc, char ** argv)
 	(
 		argc, argv,
 		LArgMain()
-		<< EAMC(aDEMName, "DEM name without extension (ex : MEC-Malt/Z_Num9_DeZoom1_STD-MALT)", eSAM_IsPatFile)
+		<< EAMC(aDEMName, "DEM name without extension (\".tif\" and \".tfw\" are required. ex : MEC-Malt/Z_Num9_DeZoom1_STD-MALT)", eSAM_IsPatFile)
 		<< EAMC(aMaskName, "DEM mask name (ex : MEC-Malt/AutoMask_STD-MALT_Num_8.tif)", eSAM_IsPatFile)
 		<< EAMC(aSceneNameInit, "Name of 3N band (ex : AST_L1A_XXX_3N)", eSAM_IsPatFile),
 		LArgMain()
