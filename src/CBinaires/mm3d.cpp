@@ -672,7 +672,6 @@ extern int  main_test(int argc,char ** argv);
 extern int  main_test2(int argc,char ** argv);
 extern int  main_ero(int argc,char ** argv);
 extern int  main_ascii2tif(int argc,char ** argv);
-extern int  main_MSDappli1(int argc,char ** argv);
 int Test_ascii2tif_BlurinessSelect(int argc,char ** argv);
 int main_featheringOrtho(int argc,char ** argv);
 int main_featheringOrthoBox(int argc,char ** argv);
@@ -1006,7 +1005,6 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("jo_FFH",FilterFileHom_main,"filtrer un fichier de paire d'image"));
         aRes.push_back(cMMCom("jo_T2V",T2V_main,"appliquer une homographie a un ensemble d'im thermique pour Reg avec images visibles"));
         aRes.push_back(cMMCom("jo_test",main_test2,"test function for didro project"));
-        aRes.push_back(cMMCom("PastisMSD",main_MSDappli1,"compute tie point for a couple of image with MSD detector and Sift descriptor"));
        //aRes.push_back(cMMCom("AperiCloudNF",main_manipulateNF_PH,"Generate Sparse 3D point cloud for tie point in new format (TiePMul.dat)"));
         aRes.push_back(cMMCom("IntersectBundleNF",main_manipulateNF_PH,"Compute Pseudo Intersection for tie point in new format (TiePMul.dat) and export it as 3D measurements"));
         aRes.push_back(cMMCom("AllAutoBash",main_AllPipeline,"complete photogrammetric workflow on many images blocks"));

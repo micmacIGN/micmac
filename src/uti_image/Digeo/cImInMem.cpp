@@ -598,6 +598,9 @@ int orientate( const Im2D<REAL4,REAL8> &i_gradient, const cPtsCaracDigeo &i_p, R
 	const REAL8 sigmaw = DIGEO_ORIENTATION_WINDOW_FACTOR*i_p.mLocalScale;
 	const int W = (int)ceil( 3*sigmaw );
 
+    //std::cout << "kp: scale " << i_p.mScale  << " localscale: " << i_p.mLocalScale <<  ", sigmaw " << sigmaw << " W " <<W<< "\n";
+
+
 	// fill the SIFT histogram
 	const INT width  = i_gradient.sz().x/2,
 	          height = i_gradient.sz().y;

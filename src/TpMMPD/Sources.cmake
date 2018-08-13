@@ -111,15 +111,6 @@ set(Src_TD_PPMD
 	${TDPPMD_DIR}/DIDRO/convertgcpsaisie.cpp
 	${TDPPMD_DIR}/DIDRO/cdensitymapPH.cpp
 	${TDPPMD_DIR}/DIDRO/cthermicto8bits.cpp
-	${TDPPMD_DIR}/../RegTIRVIS/Arbre.cpp
-	${TDPPMD_DIR}/../RegTIRVIS/Image.cpp
-	${TDPPMD_DIR}/../RegTIRVIS/DescriptorExtractor.cpp
-	${TDPPMD_DIR}/../RegTIRVIS/MSDpoint.cpp
-	${TDPPMD_DIR}/../RegTIRVIS/msd.cpp
-	#${TDPPMD_DIR}/../RegTIRVIS/RegTIRVIS.cpp
-	${TDPPMD_DIR}/../RegTIRVIS/Resize.cpp
-	${TDPPMD_DIR}/../RegTIRVIS/cmsdappli.cpp
-
     ${TDPPMD_DIR}/RollingBasc/cAppliRollingBasc.cpp
 
     ${TDPPMD_DIR}/TiePByMesh/TiepTriFar/TiepTriFar.cpp
