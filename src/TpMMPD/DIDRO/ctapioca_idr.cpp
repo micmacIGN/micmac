@@ -34,7 +34,7 @@ cTapioca_IDR::cTapioca_IDR(int argc, char** argv):
                 );
     if (ELISE_fp::IsDirectory(mTmpDir)){
     std::cout << "Purge of temporary directory " << mTmpDir << "\n";
-    ELISE_fp::PurgeDir(mTmpDir,1);
+    ELISE_fp::PurgeDirGen(mTmpDir,1);
     }
 
     bool goOn(1);
