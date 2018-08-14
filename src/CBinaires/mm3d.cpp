@@ -262,7 +262,7 @@ int CPP_PHom_RenameRef(int argc, char ** argv);
 int CPP_PHom_ApprentBinaire(int argc, char ** argv);
 int CPP_FitsMatch1Im(int argc, char ** argv);
 int HackToF(int argc,char ** argv);
-
+int CPP_GenPrime(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -561,6 +561,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("PHom_RenameRef", CPP_PHom_RenameRef, "Rename Ref for PHom"));
 		aRes.push_back(cMMCom("PHom_ApBin", CPP_PHom_ApprentBinaire, "Test Binary "));
 		aRes.push_back(cMMCom("FitsMatch", CPP_FitsMatch1Im, "Test Match Images NewPHom "));
+		aRes.push_back(cMMCom("GenPrime", CPP_GenPrime, "Generate prime "));
 
        aRes.push_back(cMMCom("DroneFootPrint",DroneFootPrint,"Draw footprint from image + orientation (drone) in PLY and QGIS format"));
    }
