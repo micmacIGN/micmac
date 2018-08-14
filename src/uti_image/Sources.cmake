@@ -6,6 +6,7 @@ set(UTI_IMAGE_ANN_DIR ${UTI_IMAGE_DIR}/Ann)
 set(UTI_IMAGE_VINO_DIR ${UTI_IMAGE_DIR}/ImVis)
 set(UTI_IMAGE_RTI_DIR ${UTI_IMAGE_DIR}/RTI)
 set(UTI_IMAGE_RStats_DIR ${UTI_IMAGE_DIR}/RStats)
+set(UTI_IMAGE_MSD_DIR ${UTI_IMAGE_DIR}/MSD)
 set(SrcGrp_Uti_Image uti_image)
 
 include(${UTI_IMAGE_MPDCRAW_DIR}/Sources.cmake)
@@ -16,9 +17,11 @@ include(${UTI_IMAGE_ANN_DIR}/Sources.cmake)
 include(${UTI_IMAGE_VINO_DIR}/Sources.cmake)
 include(${UTI_IMAGE_RTI_DIR}/Sources.cmake)
 include(${UTI_IMAGE_RStats_DIR}/Sources.cmake)
+include(${UTI_IMAGE_MSD_DIR}/Sources.cmake)
 
 list(APPEND uti_image_Src_Files ${uti_image_Sift_Src_Files})
 list(APPEND uti_image_Src_Files ${uti_image_Ann_Src_Files})
+list(APPEND uti_image_Src_Files ${uti_image_MSD_Src_Files})
 
 list(APPEND uti_image_Src_Files
     ${UTI_IMAGE_DIR}/CPP_Vignette.cpp

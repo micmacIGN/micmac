@@ -231,6 +231,7 @@ int ScalePat_main(int argc, char** argv);
 int CPP_MakeMapEvolOfT(int argc, char ** argv);
 int CPP_PolynOfImage(int argc, char ** argv);
 int CPP_PolynOfImageStd(int argc, char ** argv);
+int MSD_main(int argc,char ** argv);
 
 int GCP_Fusion(int argc, char ** argv);
 
@@ -248,6 +249,9 @@ int CPP_MMHelp(int argc, char ** argv);
 int ConvertOriCalib_main(int argc, char ** argv);
 
 int DroneFootPrint(int argc,char ** argv);
+
+int Image_Vide(int argc,char ** argv);
+
 
 std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC, const std::string & aLib)
 {
@@ -303,6 +307,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("Apero", Apero_main, " Compute external and internal orientations"));
 		aRes.push_back(cMMCom("Arsenic", Arsenic_main, " IN DEV : Radiometric equalization from tie points"));
 		aRes.push_back(cMMCom("Digeo", Digeo_main, " In development- Will compute tie points "));
+        aRes.push_back(cMMCom("MSD", MSD_main, " In development- Will compute tie points "));
 		aRes.push_back(cMMCom("AperoChImSecMM", AperoChImMM_main, " Select secondary images for MicMac", cArgLogCom(2)));
 		aRes.push_back(cMMCom("Apero2PMVS", Apero2PMVS_main, " Convert Orientation from Apero-Micmac workflow to PMVS format"));
 		aRes.push_back(cMMCom("Apero2Meshlab", Apero2Meshlab_main, "Convert Orientation from Apero-Micmac workflow to a meshlab-compatible format"));
@@ -342,8 +347,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("Dequant", Dequant_main, " Tool for dequantifying an image"));
 		aRes.push_back(cMMCom("Devlop", Devlop_main, " Do some stuff"));
 		aRes.push_back(cMMCom("TifDev", TiffDev_main, " Develop raw-jpg-tif, in suitable tiff file"));
-
-		aRes.push_back(cMMCom("Drunk", Drunk_main, " Images distortion removing tool"));
+        aRes.push_back(cMMCom("Drunk", Drunk_main, " Images distortion removing tool"));
 		aRes.push_back(cMMCom("ElDcraw", ElDcraw_main, " Do some stuff"));
 		aRes.push_back(cMMCom("GCPBascule", GCPBascule_main, " Relative to absolute using GCP", cArgLogCom(2)));
 		aRes.push_back(cMMCom("GCPCtrl", GCPCtrl_main, " Control accuracy with GCP", cArgLogCom(2)));
@@ -672,7 +676,6 @@ extern int  main_test2(int argc,char ** argv);
 extern int  main_ero(int argc,char ** argv);
 extern int  main_ascii2tif(int argc,char ** argv);
 int Test_ascii2tif_BlurinessSelect(int argc,char ** argv);
-extern int  GCP2Hom_main(int argc,char ** argv);
 int main_featheringOrtho(int argc,char ** argv);
 int main_featheringOrthoBox(int argc,char ** argv);
 int GCP2DMeasureConvert_main(int argc,char ** argv);
@@ -680,6 +683,7 @@ int main_densityMapPH(int argc,char ** argv);
 int main_manipulateNF_PH(int argc,char ** argv);
 int main_OneLionPaw(int argc,char ** argv);
 int main_AllPipeline(int argc,char ** argv);
+
 
 #if (ELISE_UNIX)
 extern int  DocEx_Introanalyse_main(int, char **);
@@ -1004,10 +1008,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("jo_FFH",FilterFileHom_main,"filtrer un fichier de paire d'image"));
         aRes.push_back(cMMCom("jo_T2V",T2V_main,"appliquer une homographie a un ensemble d'im thermique pour Reg avec images visibles"));
         aRes.push_back(cMMCom("jo_test",main_test2,"test function for didro project"));
-        aRes.push_back(cMMCom("AperiCloudNF",main_manipulateNF_PH,"Generate Sparse 3D point cloud for tie point in new format (TiePMul.dat)"));
+       //aRes.push_back(cMMCom("AperiCloudNF",main_manipulateNF_PH,"Generate Sparse 3D point cloud for tie point in new format (TiePMul.dat)"));
+        aRes.push_back(cMMCom("IntersectBundleNF",main_manipulateNF_PH,"Compute Pseudo Intersection for tie point in new format (TiePMul.dat) and export it as 3D measurements"));
         aRes.push_back(cMMCom("AllAutoBash",main_AllPipeline,"complete photogrammetric workflow on many images blocks"));
         aRes.push_back(cMMCom("AllAuto",main_OneLionPaw,"complete photogrammetric workflow on one images blocks"));
-        aRes.push_back(cMMCom("GCP2Hom",GCP2Hom_main,"Convert GCP 2D measures in homol file"));
         aRes.push_back(cMMCom("TapiocaIDR",Tapioca_IDR_main,"Utiliser Tapioca avec des Images de Résolution Différente (effectue un resample des images)"));
         aRes.push_back(cMMCom("ResizeImg",resizeImg_main,"Resize image in order to reach a specific image width"));
         aRes.push_back(cMMCom("ResizeHomol",resizeHomol_main,"Resize Homol pack"));
@@ -1103,6 +1107,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TrajectoFromOri",Test_TrajectoFromOri,"Tracer Trajecto d'acquisition a partir de Orientation"));
         aRes.push_back(cMMCom("HomolLSMRefine",HomolLSMRefine_main,"Refine Homol Pack by Least Square Matching"));
         aRes.push_back(cMMCom("PlyBascule",PlyBascule,"Bascule PLY file with bascule XML (estimated by GCPBascule)"));
+        aRes.push_back(cMMCom("ImgVide", Image_Vide, " Create image vide"));
+
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));
@@ -1175,6 +1181,7 @@ extern int CPP_TestSystematicResiduals(int argc, char ** argv);
 extern int DoTile_main(int argc, char ** argv);
 extern int ASTERGT2MM_main(int argc, char ** argv);
 extern int ASTERGT_strip_2_MM_main(int argc, char ** argv);
+extern int ASTERProjAngle_main(int argc, char ** argv);
 
 const std::vector<cMMCom> & SateLibAvailableCommands()
 {
@@ -1191,6 +1198,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 	aRes.push_back(cMMCom("Aster2Grid", Aster2Grid_main, "Creates a Grid file from the meta-data of an Aster Images"));
 	aRes.push_back(cMMCom("ASTERGT2MM", ASTERGT2MM_main, "Convert ASTER geoTiff format to MicMac Xml, also destrip images"));
 	aRes.push_back(cMMCom("ASTERStrip2MM", ASTERGT_strip_2_MM_main, "Convert a strip of ASTER geoTiff format to MicMac Xml, also destrip images"));
+	aRes.push_back(cMMCom("ASTERProjAngle", ASTERProjAngle_main, "Compute the orbit angle for each point in DEM"));
 	aRes.push_back(cMMCom("ApplyParralaxCor", ApplyParralaxCor_main, "Apply parralax correction from MMTestOrient to an image"));
 	aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
 	aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));

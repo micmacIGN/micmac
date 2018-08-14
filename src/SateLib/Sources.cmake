@@ -10,6 +10,7 @@ set(SateLib_Src_Files
 	${SATELIB_DIR}/CPP_SATtoBundle.cpp
 	${SATELIB_DIR}/CPP_SATDef2D.cpp
 	${SATELIB_DIR}/ASTERGT2MM.cpp
+	${SATELIB_DIR}/ASTER_PostProc.cpp
 )
 
 # JE NE SAIS PAS SI CA SERT ???
