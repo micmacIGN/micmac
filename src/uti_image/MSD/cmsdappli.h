@@ -35,9 +35,9 @@ private:
           //the size of the area from which the patches to be compared are
           msd.setSearchAreaRadius(11);
           //Non-Maxima Suppression: 5x5 (=radius of 2) may be sufficient and keep more point of course.
-          msd.setNMSRadius(2);
+          msd.setNMSRadius(3);
           msd.setNMSScaleRadius(0);
-          msd.setThSaliency(0.1); // lower Threshold Saliency give more MSD point.
+          msd.setThSaliency(0.02); // lower Threshold Saliency give more MSD point.
           msd.setKNN(4); // higher KNN give me more MSD points
           // change of scale between two pyramid layer, 1.25 by default is not enough at my taste
           msd.setScaleFactor(2);
