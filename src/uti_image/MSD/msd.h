@@ -23,13 +23,13 @@
 //#include <vector>
 //#include "opencv/cv.hpp"
 
-#include "msdImgPyramid.h"
-#include "Keypoint.h"
+#include "MSDpoint.h"
 #include "StdAfx.h"
 //#define BOOST_MULTICORE
 #ifdef BOOST_MULTICORE
 #include "boost\thread.hpp"
 #endif
+#include <assert.h>
 
 class MsdDetector
 {
@@ -37,10 +37,12 @@ public:
 
 	MsdDetector()
 	{
-	
+        mDebug=0;
+        mTmpDir="Tmp-MM-Dir";
 		m_patch_radius = 3;
 		m_search_area_radius = 5;
 
+        //Non-Maxima Suppression
 		m_nms_radius = 5;
 		m_nms_scale_radius = 0;
 
@@ -49,13 +51,19 @@ public:
 
 		m_scale_factor = 1.25;
 		m_n_scales = -1;
-		m_compute_orientation = false;
+        //m_compute_orientation = false;
         m_circular_window=false;
         m_RefinedKps=true;
 
     }
 
-    std::vector<KeyPoint> detect(Tiff_Im &img);
+    //std::vector<MSDPoint> detect(Tiff_Im &img);
+    void saliency2Im2D(const std::vector<float *> &  saliency);
+    template <class Type, class TyBase>
+    std::vector<MSDPoint> detect(Im2D<Type,TyBase> &img);
+
+    // write intermediate result and print blabla in debug mode
+    void setDebug(bool aDebug){ mDebug = aDebug; }
 	
     void setPatchRadius(int patchRadius){ m_patch_radius = patchRadius; }
     int getPatchRadius(){ return m_patch_radius; }
@@ -81,8 +89,8 @@ public:
     void setNScales(int nScales){ m_n_scales = nScales; }
     int getNScales(){ return m_n_scales; }
 
-    void setComputeOrientation(bool computeOrientation){ m_compute_orientation = computeOrientation; }
-    bool getComputeOrientation(){ return m_compute_orientation; }
+    //void setComputeOrientation(bool computeOrientation){ m_compute_orientation = computeOrientation; }
+    //bool getComputeOrientation(){ return m_compute_orientation; }
 	//******************************************************************
     void setCircularWindow(bool circularwindow){m_circular_window=circularwindow;}
     bool getCircularWindow() {return m_circular_window;}
@@ -93,6 +101,8 @@ public:
 	
 private: 
 
+    bool mDebug;
+    std::string mTmpDir;
 	int m_patch_radius;
 	int m_search_area_radius;
 
@@ -105,11 +115,12 @@ private:
 	float m_scale_factor;
 	int m_n_scales;
 	int m_cur_n_scales;
-	bool m_compute_orientation;
+    //bool m_compute_orientation;
 	bool m_circular_window;
     bool m_RefinedKps;
 
-    std::vector< Im2D<U_INT2,INT> > m_scaleSpace;
+    std::vector< Im2D<U_INT1,INT> > m_scaleSpace;
+    std::vector< Im2D<REAL4,REAL8> > mSaliencyIm;
 	
 	inline float computeAvgDistance(std::vector<float> &minVals, int den)
 	{
@@ -123,11 +134,32 @@ private:
 
     void RefineKP( const Pt2di &i_p, Pt2dr &o_p , float * SaliencyMap, int lvl); // Refine keypoints
 
-    void contextualSelfDissimilarity(Im2D<U_INT2,INT> &img, int xmin, int xmax, float *saliency);
+    void contextualSelfDissimilarity(Im2D<U_INT1,INT> &img, int xmin, int xmax, float *saliency);
 
-    float computeOrientation(Im2D<U_INT2,INT> &img, int x, int y, std::vector<Pt2df> circle);
+    float computeOrientation(Im2D<U_INT1,INT> &img, int x, int y, std::vector<Pt2df> circle);
 
-    void nonMaximaSuppression(std::vector<float *> & saliency, std::vector<KeyPoint> & keypoints);
+    void nonMaximaSuppression(std::vector<float *> & saliency, std::vector<MSDPoint> & keypoints);
+    // i test the implementation of method used in Digeo to see if angles computation are compatible between MSD and Digeo
+    int orientate( const Im2D<REAL4,REAL8> &i_gradient, MSDPoint &i_p, REAL8 o_angles[DIGEO_MAX_NB_ANGLES] );
+    void orientate(Im2D<float, double> &img, std::vector<MSDPoint> & aVKp);
+};
+
+template <class Type,class TyBase>
+class ImagePyramid
+{
+public:
+
+
+    ImagePyramid( Im2D <Type,TyBase> &im, const int nLevels, const float scaleFactor = 1.6f);
+    Im2D<Type, TyBase> resize(Im2D<Type,TyBase> & im, Pt2dr Size);
+    ~ImagePyramid();
+
+    const std::vector< Im2D<Type, TyBase> > getImPyr() const { return m_imPyr; }
+private:
+
+    std::vector< Im2D<Type, TyBase> > m_imPyr;
+    int m_nLevels;
+    float m_scaleFactor;
 };
 
 #endif

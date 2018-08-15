@@ -82,6 +82,10 @@ double cOneScaleImRechPH::ComputeContrast()
 
 void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR,cSetPCarac & aSPC,bool FromLR)
 {
+   if (DebugNRPH)
+   {
+      std::cout << "cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH::SiftMaxLoc \n";
+   }
    // Ajoute l'image de calcul dans le resultat, pour affinage etc ....
    // ELISE_ASSERT(false,"Finire cOneScaleImRechPH::SiftMaxLoc");
 

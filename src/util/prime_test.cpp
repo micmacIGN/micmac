@@ -38,9 +38,172 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 
-
 #include "StdAfx.h"
 
+
+class cVecPrime
+{
+
+     public :
+         typedef U_INT8 tInt;
+         static cVecPrime  * FromCalc(int aNb,bool Exact,Pt2di & aInt);
+         void Show(const Pt2di &Show) const;
+         U_INT8  NbNombre() {return mV.back();}
+         U_INT8  NbPrime() {return  mV.size();}
+     private :
+         bool  DivideByCur(tInt aVal) const;
+         tInt  PushNext();
+
+
+         cVecPrime();
+         std::vector<tInt> mV;
+         static      std::string  NameBuf();
+};
+
+std::string cVecPrime::NameBuf()
+{
+    return Basic_XML_User_File("BufPrime.dat");
+}
+
+cVecPrime::cVecPrime() 
+{
+}
+
+bool  cVecPrime::DivideByCur(tInt aVal) const
+{
+   for (auto const & aV : mV)
+   {
+       if ((aVal%aV)==0)
+          return true;
+       if (aV*aV > aVal)
+          return false;
+   }
+   ELISE_ASSERT(false,"DivideByCur");
+   return true;
+}
+
+cVecPrime::tInt cVecPrime::PushNext()
+{
+    tInt  aV = mV.back() + 1;
+
+    while (DivideByCur(aV))
+      aV++;
+
+   mV.push_back(aV);
+
+   return aV;
+       
+}
+
+void cVecPrime:: Show(const Pt2di &Show) const
+{
+    for (const auto & aV : mV)
+    {
+       if ((aV>= tInt(Show.x)) && (aV<= tInt(Show.y)))
+          std::cout << "Prime : " << aV << "\n";
+    }
+   std::cout << "===================================\n";
+}
+
+cVecPrime *   cVecPrime::FromCalc(int aNb,bool Exact,Pt2di & aInterv)
+{
+    ElTimer aChrono;
+    cVecPrime * aRes = new cVecPrime;
+    if (ELISE_fp::exist_file(NameBuf()))
+    {
+       ELISE_fp aFp(NameBuf().c_str(),ELISE_fp::READ);
+       int aNbFile = aFp.read_U_INT4();
+       if (Exact)
+       {
+           aNbFile  = ElMin(aNb,aNbFile);
+       }
+          
+       for (int aK=0 ; aK<aNbFile ; aK++)
+       {
+            aRes->mV.push_back(aFp.read_U_INT8());
+       }
+       aFp.close();
+       aNb -= aNbFile;
+    }
+    else
+    {
+       aRes->mV.push_back(2);
+    }
+
+    ElTimer aT;
+
+    for (int aK=1 ; aK< aNb ; aK++)
+    {
+        tInt aV =  aRes->PushNext();
+    }
+    //==================================
+    if (!Exact)
+    {
+       ELISE_fp aFp(NameBuf().c_str(),ELISE_fp::WRITE);
+       aFp.write_U_INT4(aRes->mV.size());
+       for (int aK=0 ; aK<int(aRes->mV.size()) ; aK++)
+       {
+           aFp.write_U_INT8(aRes->mV[aK]);
+       }
+       aFp.close();
+    }
+    else
+    {
+    }
+
+    if (EAMIsInit(&aInterv))
+    {
+         std::vector<tInt> aNewV;
+    }
+    
+
+    std::cout << " Time=" << aChrono.uval() << "\n";
+
+    double aNbP = aRes->NbPrime(); 
+    double aNbN = aRes->NbNombre();
+    std::cout << " NbN= " << aNbN  << " NbP=" << aNbP 
+              << " Ratio=" <<  (aNbN/log(aNbN)) / aNbP
+              << " Ratio=" <<  aNbN / (aNbP * log(aNbP))
+               << "\n";
+
+    return aRes;
+}
+
+int CPP_GenPrime(int argc,char** argv)
+{
+    int aNb;
+    bool Exact=false;
+    Pt2di aTestSeq;
+    Pt2di aInterv;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNb,"Number of test on prime"),
+        LArgMain()  << EAM(Exact,"Exact",true,"Exact number ?")
+                    << EAM(aTestSeq,"Seq",true,"Sequence to test")
+                    << EAM(aInterv,"Show",true,"Sequence to show")
+
+    );
+    cVecPrime *   aVP = cVecPrime::FromCalc(aNb,Exact,aInterv);
+
+/*
+    if (EAMIsInit(&aTestShow))
+    {
+       aVP->Show(aTestShow);
+    }
+*/
+
+
+
+    delete aVP;
+    return EXIT_SUCCESS;
+}
+
+void TestPrime()
+{
+    std::cout << "XXXX [" << Basic_XML_User_File("toto.tif") << "]\n";
+
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
