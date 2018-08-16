@@ -2,6 +2,7 @@
 std::string  TypeTapioca[4] = {"MulScale","All","Line","File"};
 
 cTapioca_IDR::cTapioca_IDR(int argc, char** argv):
+    mRatio(0.6),
     mIsSFS(0),
     mExpTxt(0),
     mPurge(1),
@@ -26,9 +27,15 @@ cTapioca_IDR::cTapioca_IDR(int argc, char** argv):
                 << EAM(mPurge,"Purge",true,"Purge temporary files? def true")
                 << EAM(mTmpDir,"Dir",true,"Directory of temporary files, def Tmp-TapiocaIDR/")
                 << EAM(mMergeHomol,"MergeSH",true,"Merge the resulting TP with current Homol/ set? Default true")
-                << EAM(mSH_post,"PostfixSH",true,"Postfix for resulting Homol directory, default '-IDR' result in Homol-IDR/")
+                << EAM(mSH_post,"PostFix",true,"Postfix for resulting Homol directory, default '-IDR' result in Homol-IDR/")
                 << EAM(mDebug,"Debug",true,"Display terminal message? Default false")
+                << EAM(mDetect,"Detect",true,"Detector tool")
+                << EAM(mRatio,"Ratio",true,"Ann closeness ratio")
                 );
+    if (ELISE_fp::IsDirectory(mTmpDir)){
+    std::cout << "Purge of temporary directory " << mTmpDir << "\n";
+    ELISE_fp::PurgeDirGen(mTmpDir,1);
+    }
 
     bool goOn(1);
 
@@ -81,6 +88,7 @@ cTapioca_IDR::cTapioca_IDR(int argc, char** argv):
 
     if (EAMIsInit(&mSH_post))  mHomolIDR = "Homol" + mSH_post;
     if (EAMIsInit(&mExpTxt) & mExpTxt) mHomolFormat="txt";
+
 
     if (goOn) {
 
@@ -227,6 +235,8 @@ int cTapioca_IDR::runTapioca()
     }
     if (EAMIsInit(&mExpTxt)) aCom+= " ExpTxt=" + ToString(mExpTxt);
     if (EAMIsInit(&mIsSFS) & mIsSFS) aCom+= " @SFS";
+    if (EAMIsInit(&mDetect)) aCom+= " Detect="+mDetect;
+    if (EAMIsInit(&mRatio)) aCom+= " Ratio="+ToString(mRatio);
 
     if (mDebug) std::cout << "Tapioca command: " << aCom << "\n";
 

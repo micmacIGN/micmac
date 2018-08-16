@@ -1,1 +1,0 @@
-# TIR-RGB-reg

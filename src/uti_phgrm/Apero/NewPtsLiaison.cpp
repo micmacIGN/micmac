@@ -232,7 +232,9 @@ void cAppliApero::InitNewBDL(const cBDD_NewPtMul & aBDN)
          std::cout << "For Id = " << aBDN.Id() << "\n";
          ELISE_ASSERT(false,"cAppliApero::InitNewBDL multiple use of id in BDD_NewPtMul");
      }
-     const std::vector<std::string> *  aSTP= cSetTiePMul::StdSetName(mICNM,aBDN.SH(),false);
+     //const std::vector<std::string> *  aSTP= cSetTiePMul::StdSetName(mICNM,aBDN.SH(),false);
+     const std::vector<std::string> *  aSTP= cSetTiePMul::StdSetName_BinTxt(mICNM,aBDN.SH());
+
      if (aSTP->size()==0) return;
 
      // aVNameFilter permet de filtrer les points homologues sur les poses 

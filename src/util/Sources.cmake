@@ -36,6 +36,7 @@ set(Util_Src_Files
         ${UTIL_DIR}/string_dyn.cpp
         ${UTIL_DIR}/stringifie.cpp
         ${UTIL_DIR}/tabul.cpp
+        ${UTIL_DIR}/prime_test.cpp 
         ${UTIL_DIR}/wildmatch.cpp
         ${UTIL_DIR}/xml.cpp
         ${UTIL_DIR}/xml2cpp.cpp

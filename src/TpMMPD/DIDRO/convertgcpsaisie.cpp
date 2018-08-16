@@ -15,9 +15,11 @@ public:
     cAppuis2Homol(int argc, char** argv);
 private:
     cInterfChantierNameManipulateur * mICNM;
-    bool mDebug,mExpTxt;
-    std::string mIm1,mIm2,mHomPackOut, mSH, m2DMesFileName;
+    std::string mImPat;
+    bool mDebug,mExpTxt,mPMul;
+    std::string mHomPackOut, mSH, m2DMesFileName;
 };
+
 
 // markers photoscan
 class cMarquerPS
@@ -90,6 +92,7 @@ int GCP2DMeasureConvert_main(int argc,char ** argv)
         std::cout << "for details : \n";
         std::cout << "\t GCP2DMeasureConvert MM2txt -help\n";
         std::cout << "\t GCP2DMeasureConvert Pix4D2MM -help\n";
+        std::cout << "\t GCP2DMeasureConvert Appui2Homol -help\n";
         std::cout << "\t GCP2DMeasureConvert MM2PS \n";
         std::cout << "\t GCP2DMeasureConvert PS2MM \n";
     }
@@ -247,6 +250,7 @@ int convertGCPSaisie_PS2MM(int argc,char ** argv)
                         // read camera names and id
                         std::string tagCam("<camera id=");
                         if (aLine.find(tagCam) != string::npos){
+                        //if (mDebug) std::cout << "read the tag " << tagCam << "\n";
                         char *aBuffer = strdup((char*)aLine.c_str());
 
                         std::string tmp = strtok(aBuffer,"\"");
@@ -263,6 +267,7 @@ int convertGCPSaisie_PS2MM(int argc,char ** argv)
                         // read marquers names and id
                         std::string tagMarq("<marker id=");
                         if (aLine.find(tagMarq) != string::npos){
+                        //if (mDebug) std::cout << "read the tag " << tagMarq << "\n";
                         char *aBuffer = strdup((char*)aLine.c_str());
 
                         std::string tmp = strtok(aBuffer,"\"");
@@ -276,14 +281,22 @@ int convertGCPSaisie_PS2MM(int argc,char ** argv)
                         if (mDebug) std::cout << "Id: " << id <<  ", GCP name: " << GCPName <<"\n";
                         }
 
+
                         // read marquers 2D positions
                         std::string tagMarqEnd("</marker>");
                         std::string tagMarq2("<marker marker_id=");
-                        if (aLine.find(tagMarq2) != string::npos){
+                        std::string tagNo2DMeas("/>");
+
+                        // double condition: should find the tagMarq2 and not find /> , which means that the GCP exist but that there are no 2D measurements
+                        if ((aLine.find(tagMarq2) != string::npos) && (aLine.find(tagNo2DMeas) == string::npos)){
+
+                        //if (mDebug) std::cout << "read the tag " << tagMarq2 << "\n";
                         char *aBuffer = strdup((char*)aLine.c_str());
 
                         std::string tmp = strtok(aBuffer,"\"");
                         std::string idStr = strtok(NULL,"\"");
+                        //std::string end = strtok(NULL,"");
+
                         int GCPid,imId;
                         std::string imIdStr;
                         FromString(GCPid,idStr);
@@ -292,6 +305,7 @@ int convertGCPSaisie_PS2MM(int argc,char ** argv)
 
                             getline(aFile,aLine,'\n');
                             if (aLine.find(tagMarqEnd) != string::npos){
+                            //if (mDebug) std::cout << "read the tag " << tagMarqEnd << "\n";
                             test=0;
                             } else {
 
@@ -320,6 +334,7 @@ int convertGCPSaisie_PS2MM(int argc,char ** argv)
                             MAF.MesureAppuiFlottant1Im().push_back(aMark);
                             }
                             }
+
                         }
 
                     }
@@ -386,101 +401,95 @@ int exportGCP2DMes2txt(int argc,char ** argv)
     return 0;
 }
 
-
-
 cAppuis2Homol::cAppuis2Homol(int argc, char** argv):
+    mImPat(""),
     mDebug(0),
     mExpTxt(0),
-    mSH("-Appui")
-
+    mSH("-Appui"),
+    mPMul(0)
 {
 
     ElInitArgMain
             (
                 argc,argv,
-                LArgMain()  << EAMC(mIm1, "Image 1 name",eSAM_IsExistFile)
-                << EAMC(mIm2, "Image 2 name",eSAM_IsExistFile)
-                << EAMC(m2DMesFileName, "  2D measures of GCPs, as results of SaisieAppuiInit ",eSAM_IsExistFile),
+                LArgMain()
+                << EAMC(mImPat, "image pattern",eSAM_IsPatFile)
+                << EAMC(m2DMesFileName, "2D measures of GCPs, as results of SaisieAppuiInit ",eSAM_IsExistFile),
                 LArgMain()
                 << EAM(mDebug,"Debug",true,"Print Messages to help debugging process")
                 << EAM(mSH, "SH", true, "Set of Homol postfix, def '-Appui' will write homol to Homol-Appui/ directory")
                 << EAM(mExpTxt,"ExpTxt",true,"Save homol as text? default false, mean binary format")
+                << EAM(mPMul,"ToNF",true,"Perform conversion of homol dataset to new format of homol (PMul.dat)? def false")
                 );
 
     mICNM=cInterfChantierNameManipulateur::BasicAlloc("./");
+    std::vector<std::string> aSetIm = *(mICNM->Get(mImPat));
     std::string aExt("dat");
     if (mExpTxt) aExt="txt";
 
-    // initialiser le pack de points homologues
-    ElPackHomologue  aPackHom;
+    std::string aKeyAsocHom = "NKS-Assoc-CplIm2Hom@"+ mSH +"@" + aExt;
+
     if (mDebug) std::cout << "open 2D mesures\n";
     cSetOfMesureAppuisFlottants aSetOfMesureAppuisFlottants=StdGetFromPCP(m2DMesFileName,SetOfMesureAppuisFlottants);
     if (mDebug) std::cout << "Done\n";
-       int count(0);
+
     if (mDebug) std::cout << "Number of MesureAppuiFlottant1Im: " << aSetOfMesureAppuisFlottants.MesureAppuiFlottant1Im().size() << "\n";
-    int ct(0);
+
     for (auto &aMesAppuisIm1 : aSetOfMesureAppuisFlottants.MesureAppuiFlottant1Im())
     {
-        ct++;
-        if(aMesAppuisIm1.NameIm() == mIm1)
+        for (auto &aMesAppuisIm2 : aSetOfMesureAppuisFlottants.MesureAppuiFlottant1Im())
         {
-            if (mDebug) std::cout << "Found 2D mesures for Image 1, MAF num " << ct << "\n";
-            for (auto &aMesAppuisIm2 : aSetOfMesureAppuisFlottants.MesureAppuiFlottant1Im())
+           std::string Name1(aMesAppuisIm1.NameIm()), Name2(aMesAppuisIm2.NameIm());
+           // check that the image is in the pattern of image given as argument
+           std::vector<std::string>::iterator it1;
+           it1 = find (aSetIm.begin(), aSetIm.end(), Name1);
+           std::vector<std::string>::iterator it2;
+           it2 = find (aSetIm.begin(), aSetIm.end(), Name2);
+
+           // in addition image name have to be different
+           if ((Name1!=Name2) && (it1 != aSetIm.end()) && (it2 != aSetIm.end())){
+
+           // initialiser le pack de points homologues pour cette paire d'image
+            ElPackHomologue  aPackHom;
+            int count(0);
+
+            for (auto & OneAppuiIm1 : aMesAppuisIm1.OneMesureAF1I())
             {
-                if(aMesAppuisIm2.NameIm() == mIm2)
+
+                for (auto & OneAppuiIm2 : aMesAppuisIm2.OneMesureAF1I())
                 {
-                    if (mDebug) std::cout << "Found 2D mesures for Image 2, MAF num " << ct <<"\n";
-
-                    for (auto & OneAppuiIm1 : aMesAppuisIm1.OneMesureAF1I())
+                    if (OneAppuiIm1.NamePt()==OneAppuiIm2.NamePt())
                     {
+                        if (mDebug) std::cout <<"Name point: " << OneAppuiIm1.NamePt() << "\n";
+                        ElCplePtsHomologues Homol(OneAppuiIm1.PtIm(),OneAppuiIm2.PtIm());
 
-                        for (auto & OneAppuiIm2 : aMesAppuisIm2.OneMesureAF1I())
-                        {
-                            if (OneAppuiIm1.NamePt()==OneAppuiIm2.NamePt())
-                            {
-                                if (mDebug) std::cout <<"Name point: " << OneAppuiIm1.NamePt() << "\n";
-                                ElCplePtsHomologues Homol(OneAppuiIm1.PtIm(),OneAppuiIm2.PtIm());
+                        aPackHom.Cple_Add(Homol);
 
-                                aPackHom.Cple_Add(Homol);
-
-                                count++;
-                            }
-                        }
+                        count++;
                     }
                 }
             }
+
+           // save homol points
+           if (count>0){
+           std::string aHomolFile= mICNM->Assoc1To2(aKeyAsocHom, aMesAppuisIm1.NameIm(), aMesAppuisIm2.NameIm(),true);
+           aPackHom.StdAddInFile(aHomolFile);
+           }
+           }
         }
     }
-    if (mDebug) std::cout << "Nb MAF done : " << ct << "\n";
 
-    // save result
-    if (mDebug) std::cout << "Save Results\n";
-
-    if (count!=0)
-    {
-    std::string aKeyAsocHom = "NKS-Assoc-CplIm2Hom@"+ mSH +"@" + aExt;
-    if (mDebug) std::cout << "NKS " << aKeyAsocHom << "\n";
-    std::string aHomolFile= mICNM->Assoc1To2(aKeyAsocHom, mIm1, mIm2,true);
-    if (mDebug) std::cout << "generate " << aHomolFile << "\n";
-
-    aPackHom.StdPutInFile(aHomolFile);
-    aPackHom.SelfSwap();
-    aHomolFile=  mICNM->Assoc1To2(aKeyAsocHom, mIm2, mIm1,true);
-    if (mDebug) std::cout << "generate " << aHomolFile << "\n";
-
-    aPackHom.StdPutInFile(aHomolFile);
-    std::cout << "Finished, " << count << " manual seasing (marks) of GCP have been converted in homol format\n";
-    std::string aKH("NB");
-    if (mExpTxt) aKH="NT";
-
-    std::cout << "Launch SEL for visualisation: SEL ./ " << mIm1 << " " << mIm2 << " KH=" << aKH << " SH=" << mSH << "\n";
-    } else { std::cout << "I haven't found couple of GCP 2D measures for these images pairs, sorry \n";}
-}
-
-int GCP2Hom_main(int argc,char ** argv)
-{
-   cAppuis2Homol(argc,argv);
-   return EXIT_SUCCESS;
+    // convert to new format of homol (alias PMul)
+    if (mPMul){
+        std::string aCom =    MMBinFile(MM3DStr) + " TestLib ConvNewFH "
+                               + mImPat
+                               + "  '' "
+                               + " SH=" + mSH
+                               + " ExpTxt=" + ToString(mExpTxt)
+                               ;
+        if (mDebug) std::cout << aCom << "\n";
+        system_call(aCom.c_str());
+    }
 }
 
 

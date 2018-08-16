@@ -40,6 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewRechPH.h"
 
+bool     DebugNRPH = false;
+
 double TimeAndReset(ElTimer &aChrono )
 {
    double aRes = aChrono.uval();
@@ -244,6 +246,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeVisu) :
                       << EAM(mNbMaxLabBy10MP, "NbMaxLabBy10MP",true,"Def ="+ToString(mNbMaxLabBy10MP))
                       << EAM(mModeTest, "ModeTest",true,"1=only exe new file, 2=only print new file ")
                       << EAM(mNbHighScale, "NbHS",true,"Number of point in High Scale, Def=750 ")
+                      << EAM(DebugNRPH, "Debug",true,"if true activate a lot of messages ")
    );
 
    
@@ -263,7 +266,19 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeVisu) :
        }
    }
 
+   // Calcul maintenant de la taille pour regler le NBS
+   {
+      int aSzMin = 10;
+      cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(mName);
+      mSzIm = aMDP.SzImTifOrXif();
+      double aRatio = ElMin(mSzIm.x,mSzIm.y) / aSzMin;
+      double  aNbSMin = mNbByOct * log2(aRatio);
 
+      // std::cout << "SSSSs " << aNbSMin << " " << mNbS << "\n"; getchar();
+      mNbS = ElMin(mNbS,round_ni(aNbSMin));
+   }
+
+// 
    ElTimer  aChrono;
 
     mNbSR2Calc = mRollNorm ?  (mNbSR2Use * 2 - 1) : mNbSR2Use;

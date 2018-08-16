@@ -47,6 +47,8 @@ class cAppli_NewRechPH;
 class cOneScaleImRechPH;
 class cCompileOPC;
 
+extern bool     DebugNRPH;
+
 #include "cParamNewRechPH.h"
 #include "ExternNewRechPH.h"
 #include "LoccPtOfCorrel.h"

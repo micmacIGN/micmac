@@ -94,7 +94,9 @@ void  SaveStdSetCaracMultiLab(const cSetPCarac aSetGlob,const std::string & aNam
           for (auto & aPC : aSetLab.OnePCarac())
               aVScale.push_back(ScaleGen(aPC));
           int aKSeuil = ElMax(0, int(aVScale.size()-1)-aSeuilHS);
-          double aScaleLim = KthVal(aVScale,aKSeuil);
+// std::cout << "aScaleLimaScaleLim " << aVScale.size() << " " << aKSeuil << "\n";
+          double aScaleLim = (aVScale.empty()) ? 0.0 : KthVal(aVScale,aKSeuil);
+// std::cout << "********** aScaleLimaScaleLim \n";
           cSetPCarac aSetHighS;
           cSetPCarac aSetLowS;
           for (auto & aPC : aSetLab.OnePCarac())

@@ -887,7 +887,18 @@ cCalibrationInternConique   CalibInternAutom
   ELISE_ASSERT(aType!=eCalibAutomNone,"Internal Error eCalibAutomNone");
 
    cCalibrationInternConique aRes;
+/*
+std::cout << "AAAAAAAAAAAAAAAAAAAAAa\n";
+aMDP.SzImTifOrXif();
+std::cout << "aaaaaaaaaaaaaaaaaaaaaaa\n";
+
    Pt2di aSzIm = aMDP.TifSzIm();
+std::cout << "BBBBBBBBBBBBBBBB\n";
+*/
+   // MPD Modif pour que ca passe avec des fichiers vides
+   Pt2di aSzIm = aMDP.SzImTifOrXif();
+
+
    Pt2dr aMil = Pt2dr(aSzIm).mcbyc(aPPRel);
 
 

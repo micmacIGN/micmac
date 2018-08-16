@@ -46,18 +46,22 @@ private:
 };
 
 
-// manipulate the e format of tie points (cSetTiePMul), ex to export sparce 3D points cloud with custom information like reprojection error or multiplicity
+// manipulate the new format of tie points (cSetTiePMul)
 class cManipulate_NF_TP
 {
 public:
-    cManipulate_NF_TP(int argc,char ** argv);
+    cManipulate_NF_TP();
+    // load tie point, orienation, list of images
+    void init();
+    // most of the time, no need to access radiometric value of image. But for versatility purpose, there is the option to load all image in a map
+    const bool WithRadiom(){return mWithRadiometry;}
+    void loadIm();
+    LArgMain &  ArgCMNF()    {return (*mArgComp);}
+    LArgMain &  ArgOMNF()    {return (*mArgOpt);}
 
-private:
-
+    LArgMain                  *mArgComp,*mArgOpt;
     cInterfChantierNameManipulateur * mICNM;
     bool mDebug;
-    bool mSavePly;
-    bool mPrintTP_info;
     bool mWithRadiometry;
     std::string mDir,mOriPat,mOut,mFileSH;
     std::list<std::string> mOriFL;// xml Orientation File List
@@ -70,5 +74,14 @@ private:
     std::map<int, cISR_ColorImg*> mIms;
 };
 
+// aim: return 3D position for each tie point in 3D Appui micmac format
+class cAppli_IntersectBundleHomol : public cManipulate_NF_TP
+{
+public:
+    cAppli_IntersectBundleHomol(int argc,char ** argv);
+private:
+    std::string mStr0;
+
+};
 
 #endif // CDENSITYMAPPH_H
