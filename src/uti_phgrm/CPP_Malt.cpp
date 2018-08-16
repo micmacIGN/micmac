@@ -317,8 +317,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     std::vector<double> aParamCensus;
 
     std::vector<std::string> a12PixParam;
-    std::string aMNTInitXML;
-    std::string aMNTInitIMG;
+    std::string aDEMInitXML;
+    std::string aDEMInitIMG;
 
 
     ElInitArgMain
@@ -393,8 +393,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mNbDirPrgD,"NbDirPrgD",true,"Nb Dir for prog dyn, (rather for tuning)")
                     << EAM(mPrgDReInject,"PrgDReInject",true,"Reinjection mode for Prg Dyn (experimental)")
                     << EAM(OrthoImSupMNT,"OISM",true,"When true footprint of ortho-image=footprint of DSM")
-                    << EAM(aMNTInitIMG,"MNTInitIMG",true,"img of the MNT used to initialise the depth research", eSAM_NoInit)
-                    << EAM(aMNTInitXML,"MNTInitXML",true,"xml of the MNT used to initialise the depth research", eSAM_NoInit)
+                    << EAM(aDEMInitIMG,"DEMInitIMG",true,"img of the DEM used to initialise the depth research", eSAM_NoInit)
+                    << EAM(aDEMInitXML,"DEMInitXML",true,"xml of the DEM used to initialise the depth research", eSAM_NoInit)
                 );
 
     if (!MMVisualMode)
@@ -1201,16 +1201,16 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   +  std::string(" +ResolTerrain=") + ToString(aResolTerrain);
       }
 
-      //Prise en compte d'un MNT initial si celui-ci a été mis en entree
-      bool MNTInitIsInitXML = EAMIsInit(&aMNTInitXML);
-      bool MNTInitIsInitIMG = EAMIsInit(&aMNTInitIMG);
-      ELISE_ASSERT((MNTInitIsInitXML==MNTInitIsInitIMG),"MNT d'initialisation : Mettre un xml ET une image en entree");
+      //Prise en compte d'un DEM initial si celui-ci a ete mis en entree
+      bool DEMInitIsInitXML = EAMIsInit(&aDEMInitXML);
+      bool DEMInitIsInitIMG = EAMIsInit(&aDEMInitIMG);
+      ELISE_ASSERT((DEMInitIsInitXML==DEMInitIsInitIMG),"Initialisation DEM : provide an input xml AND image");
 
-      if (MNTInitIsInitXML && MNTInitIsInitIMG)
+      if (DEMInitIsInitXML && DEMInitIsInitIMG)
       {
-          mCom  =    mCom + " +UseMNTInit=true"
-                  +  std::string(" +MNTInitIMG=") + aMNTInitIMG
-                  +  std::string(" +MNTInitXML=") + aMNTInitXML;
+          mCom  =    mCom + " +UseDEMInit=true"
+                  +  std::string(" +DEMInitIMG=") + aDEMInitIMG
+                  +  std::string(" +DEMInitXML=") + aDEMInitXML;
       }
 
 
