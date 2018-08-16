@@ -317,6 +317,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     std::vector<double> aParamCensus;
 
     std::vector<std::string> a12PixParam;
+    std::string aDEMInitXML;
+    std::string aDEMInitIMG;
+
 
     ElInitArgMain
     (
@@ -390,6 +393,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mNbDirPrgD,"NbDirPrgD",true,"Nb Dir for prog dyn, (rather for tuning)")
                     << EAM(mPrgDReInject,"PrgDReInject",true,"Reinjection mode for Prg Dyn (experimental)")
                     << EAM(OrthoImSupMNT,"OISM",true,"When true footprint of ortho-image=footprint of DSM")
+                    << EAM(aDEMInitIMG,"DEMInitIMG",true,"img of the DEM used to initialise the depth research", eSAM_NoInit)
+                    << EAM(aDEMInitXML,"DEMInitXML",true,"xml of the DEM used to initialise the depth research", eSAM_NoInit)
                 );
 
     if (!MMVisualMode)
@@ -632,7 +637,6 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               aRSRT = true;
           }
       }
-
 
       bool IsOrthoXCSte = false;
       bool IsAnamXCsteOfCart = false;
@@ -1196,6 +1200,20 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mCom  =    mCom + " +UseResolTerrain=true "
                   +  std::string(" +ResolTerrain=") + ToString(aResolTerrain);
       }
+
+      //Prise en compte d'un DEM initial si celui-ci a ete mis en entree
+      bool DEMInitIsInitXML = EAMIsInit(&aDEMInitXML);
+      bool DEMInitIsInitIMG = EAMIsInit(&aDEMInitIMG);
+      ELISE_ASSERT((DEMInitIsInitXML==DEMInitIsInitIMG),"Initialisation DEM : provide an input xml AND image");
+
+      if (DEMInitIsInitXML && DEMInitIsInitIMG)
+      {
+          mCom  =    mCom + " +UseDEMInit=true"
+                  +  std::string(" +DEMInitIMG=") + aDEMInitIMG
+                  +  std::string(" +DEMInitXML=") + aDEMInitXML;
+      }
+
+
       if (EAMIsInit(&aBoxTerrain))
       {
           mCom  =    mCom + " +UseBoxTerrain=true "
