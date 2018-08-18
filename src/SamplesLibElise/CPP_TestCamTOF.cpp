@@ -60,7 +60,8 @@ class cAppliCamTOF
         Pt2dr       mResolPlani;
         double      mResolPlaniMoy;
         Pt2dr       mResolPlaniSig;
-        Pt3dr       mCentre;
+        Pt3dr       mPP;
+        Pt3dr       mCG; //center of gravity
         int         mNumPt; 
         Pt2di       mSz;
         
@@ -69,7 +70,8 @@ class cAppliCamTOF
 };
 
 cAppliCamTOF::cAppliCamTOF(int argc,char** argv) :
-    mCentre(Pt3dr(0,0,0))
+    mPP(Pt3dr(0,0,0)),
+    mCG(Pt3dr(0,0,0))
 {
 
     bool DoPly=false;
@@ -241,6 +243,7 @@ bool cAppliCamTOF::ParsePCDXYZ()
     //iterate to XYZ
     for (int aK=0; aK<11; aK++)
         aFIn.std_fgets();
+
     while ((aLine = aFIn.std_fgets()))
     {
         char * it = aLine;
@@ -257,18 +260,21 @@ bool cAppliCamTOF::ParsePCDXYZ()
 
 
         //center of gravity
-        mCentre.x += std::atof(aPStrVec.at(0).c_str());
-        mCentre.y += std::atof(aPStrVec.at(1).c_str());
-        mCentre.z += std::atof(aPStrVec.at(2).c_str());
+        mCG.x += std::atof(aPStrVec.at(0).c_str());
+        mCG.y += std::atof(aPStrVec.at(1).c_str());
+        mCG.z += std::atof(aPStrVec.at(2).c_str());
 
         //increment K1,K2
         (aK1+1) >= mSz.x ? aK1=0,aK2++ : aK1++;        
 
     }
     aFIn.close();
-    mCentre.x /= mNumPt;
-    mCentre.y /= mNumPt;
-    mCentre.z /= mNumPt;
+    mCG.x /= mNumPt;
+    mCG.y /= mNumPt;
+    mCG.z /= mNumPt;
+
+    //my hypothesis : 1st pt in cloud is 1st pt in sensor geometry 
+    mPP = aNuage.at(0); 
 
     SetResolPlani(aNuage);
 
@@ -383,7 +389,7 @@ bool cAppliCamTOF::WriteNuage()
     
     cPM3D_ParamSpecifs        aParSpec;
     cModeFaisceauxImage       aMFI;
-    aMFI.DirFaisceaux()           = Pt3dr(0,0,-1);
+    aMFI.DirFaisceaux()           = Pt3dr(0,0,1);
     aMFI.ZIsInverse()             = false;
     aParSpec.ModeFaisceauxImage() = aMFI;
     aNuageXML.PM3D_ParamSpecifs() = aParSpec;  
@@ -404,11 +410,12 @@ bool cAppliCamTOF::WriteNuage()
     aRotV.CodageMatr() = aCMat;
  
     aOER.ParamRotation()      = aRotV;
-    aOER.Centre()             = Pt3dr(0,0,-1);
+    //aOER.Centre()             = Pt3dr(0,0,-1);
+    aOER.Centre()             = Pt3dr(mPP.x,mPP.y,-1);
     aOC.Externe()             = aOER;
     aOC.ConvOri().KnownConv() = eConvApero_DistM2C; 
     aOC.TypeProj()            = eProjOrthographique;
-    
+   std::cout << "eeeeee centre=" << mPP << "\n";  
     cAffinitePlane  aAffP;
     aAffP.I00()               = Pt2dr(0,0);
     aAffP.V10()               = Pt2dr(mResolPlaniMoy,0);
@@ -449,7 +456,7 @@ bool cAppliCamTOF::WritePCDToTIF()
 }
 
 
-int TestMH_main(int argc,char** argv)
+int TestCamTOF_main(int argc,char** argv)
 {
     cAppliCamTOF aAppTOF(argc,argv);
 

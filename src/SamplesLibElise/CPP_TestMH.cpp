@@ -39,7 +39,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-
+int TestMH_main(int argc,char** argv)
+{
+    std::cout << "Michael contributing to open-source photogrammetry / computer vision! :D \n WELCOME Michal!" << "\n"; 
+    return 0;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

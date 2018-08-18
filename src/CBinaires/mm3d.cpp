@@ -657,7 +657,8 @@ extern int ImgCol_main(int argc, char ** argv);
 extern int CilliaMap_main(int argc, char ** argv);
 extern int SimilComp_main(int argc, char ** argv);
 extern int AffineComp_main(int argc, char ** argv);
-
+           
+extern int TestCamTOF_main(int argc,char** argv);
 extern int TestMH_main(int argc,char** argv);
 
 extern int  DocEx_Intro0_main(int, char **);
@@ -919,6 +920,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("BAL2MM", BAL2OriMicMac_main, "Convert a BAL problem to MicMac"));
 		aRes.push_back(cMMCom("Im2Dir", ImPts2Dir_main, "Extract directions from images"));
 		aRes.push_back(cMMCom("FictObs", FictiveObstest_main, "someee stuff"));
+		aRes.push_back(cMMCom("CamTOFExp", TestCamTOF_main, "Export TOF camera pcd file to MicMac formats (e.g. tif, xml, ply)"));
 		aRes.push_back(cMMCom("TestMH", TestMH_main, "Test Mike"));
 		aRes.push_back(cMMCom("TestAT", TestPush, "AT test workplace"));
 
