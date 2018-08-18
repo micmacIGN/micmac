@@ -55,8 +55,10 @@ class cAppliCamTOF
         bool        ParsePCDXYZ   ();
         void        GetStr        (char*& aPtr,std::string*);
         void        GetStrVec     (char*& aPtr,std::vector<std::string>&);
+        std::string CreateName    (int);
 
         Pt2dr       mResolPlani;
+        double      mResolPlaniMoy;
         Pt2dr       mResolPlaniSig;
         Pt3dr       mCentre;
         int         mNumPt; 
@@ -77,9 +79,10 @@ cAppliCamTOF::cAppliCamTOF(int argc,char** argv) :
         argc, argv,
         LArgMain() << EAMC(mName,"PCD file"),
         LArgMain() << EAM(mOut,"Out",true, "Name of output file")
-                   << EAM(DoPly,"Ply",true, "Create ply, Def=0")
+                   << EAM(DoPly,"Ply",true, "Create ply, Def=false")
     );
 
+    
     if (!WritePCDToTIF())
         ELISE_ASSERT(false,"cAppliCamTOF::cAppliCamTOF  , cannot read pcd file");
 
@@ -88,41 +91,81 @@ cAppliCamTOF::cAppliCamTOF(int argc,char** argv) :
 
     if (DoPly)
     {
-        if (ELISE_fp::exist_file(mOut+"_NuageProf.xml"))
+        if (ELISE_fp::exist_file(CreateName(3)))
         {
             int DoNrm=0;
             std::list<std::string> aLC;
-            //double aExagZ = 0.5*(double(1)/mResolPlani.x + double(1)/mResolPlani.y);
-            cElNuage3DMaille* aNuage = cElNuage3DMaille::FromFileIm(mOut+"_NuageProf.xml","XML_ParamNuage3DMaille","",1.0);
-            aNuage->PlyPutFile(mOut+"_NuageProf.ply",aLC, true, true, DoNrm, true);
+            cElNuage3DMaille* aNuage = cElNuage3DMaille::FromFileIm(CreateName(3),"XML_ParamNuage3DMaille","",1.0);
+            aNuage->PlyPutFile(CreateName(4),aLC, true, true, DoNrm, true);
         }
         else
             ELISE_ASSERT(false,"cAppliCamTOF::cAppliCamTOF NuageProf.xml file missing");
     }
+
+    std::cout << "Saved files: " << CreateName(0) << ", " << CreateName(1) << ", " << CreateName(2)
+                                 << ", " << CreateName(3) ;
+    if (DoPly)
+        std::cout << ", " << CreateName(4) << "\n";
+    else
+        std::cout << "\n";
+    
 
     BanniereMM3D();
 
 
 }
 
+std::string cAppliCamTOF::CreateName(int aK)
+{
+    std::string aRes;
 
+    switch (aK)
+    {
+        case 0 : 
+            aRes = mOut + ".tif";
+            break;
+        case 1 :
+            aRes = mOut + "_Prof.tif";
+            break;
+        case 2 :
+            aRes = mOut + "_Masq.tif";
+            break;
+        case 3 : 
+            aRes = mOut+"_NuageProf.xml"; 
+            break;
+        case 4 : 
+            aRes = mOut+"_NuageProf.ply"; 
+            break;
+
+    }
+
+    return aRes; 
+}
 
 void cAppliCamTOF::GetStrVec(char*& aPtr,std::vector<std::string>& aStrVec)
 {
+
     while ((*aPtr) != '\0')
     {
         
         std::string * aPStr = new std::string();
+
+
         GetStr(aPtr,aPStr);
         aStrVec.push_back(*aPStr);
         
         aPtr++;
+
+        delete aPStr;
+
     }
+
 
 }
 void cAppliCamTOF::GetStr(char*& aPtr,std::string* aRes)
 {
-    while (((*aPtr)!=' ') )
+
+    while (((*aPtr)!=' ') && ((*aPtr) != '\0') )
     {
         (*aRes) += (*aPtr);
 
@@ -173,6 +216,8 @@ void cAppliCamTOF::SetResolPlani(const std::vector<Pt3dr>& aN)
     
     mResolPlaniSig.x /= mSz.x;    
     mResolPlaniSig.y /= mSz.y;    
+
+    mResolPlaniMoy = 0.5*(double(1)/mResolPlani.x + double(1)/mResolPlani.y);
 
     std::cout << "Moy ResolPlani=" << mResolPlani << ", sigma=" << mResolPlaniSig << "\n";
 
@@ -230,9 +275,9 @@ bool cAppliCamTOF::ParsePCDXYZ()
     if (!EAMIsInit(&mOut))
         mOut = StdPrefix(mName);
 
-    std::string aImName = mOut + ".tif";
-    std::string aImPName = mOut + "_Prof.tif";
-    std::string aImMName = mOut + "_Masq.tif";
+    std::string aImName = CreateName(0);
+    std::string aImPName = CreateName(1);
+    std::string aImMName = CreateName(2);
     
     /* Intensity image */
     ELISE_COPY
@@ -276,6 +321,7 @@ bool cAppliCamTOF::ParsePCDXYZ()
             Tiff_Im::Empty_ARG ).out()
     );
 
+
     return true;    
 }
 
@@ -290,7 +336,9 @@ bool cAppliCamTOF::ParsePCDHeader(std::string& aStr)
     {
         char * it = aLine;
         std::vector<std::string> aPStrVec;
+        
         GetStrVec(it,aPStrVec);
+        
         if (aPStrVec.size() > 1)
             if (aPStrVec.at(0).compare(aStr) == 0)
             {
@@ -299,7 +347,7 @@ bool cAppliCamTOF::ParsePCDHeader(std::string& aStr)
                 {
                     mSz = Pt2di(320,240);
                     aFIn.close();
-                    std::cout << "::ParsePCDHeader DONE" << "\n";        
+
                     return true;
                 }
                 else
@@ -323,10 +371,10 @@ bool cAppliCamTOF::WriteNuage()
  
     cPN3M_Nuage            aPN3M;
     cImage_Profondeur      aImProf;
-    aImProf.Image()          = mOut + "_Prof.tif";
-    aImProf.Masq()           = mOut + "_Masq.tif";
+    aImProf.Image()          = CreateName(1);
+    aImProf.Masq()           = CreateName(2);
     aImProf.OrigineAlti()    = 0;
-    aImProf.ResolutionAlti() = 0.5*(double(1)/mResolPlani.x + double(1)/mResolPlani.y);//1;
+    aImProf.ResolutionAlti() = 1;//0.5*(double(1)/mResolPlani.x + double(1)/mResolPlani.y);//1;
     aImProf.GeomRestit()     = eGeomMNTFaisceauIm1PrCh_Px1D;
     //aImProf.GeomRestit()     = eGeomMNTEuclid;
     aPN3M.Image_Profondeur() = aImProf;
@@ -361,6 +409,13 @@ bool cAppliCamTOF::WriteNuage()
     aOC.ConvOri().KnownConv() = eConvApero_DistM2C; 
     aOC.TypeProj()            = eProjOrthographique;
     
+    cAffinitePlane  aAffP;
+    aAffP.I00()               = Pt2dr(0,0);
+    aAffP.V10()               = Pt2dr(mResolPlaniMoy,0);
+    aAffP.V01()               = Pt2dr(0,mResolPlaniMoy);
+    aOC.OrIntImaM2C()         = aAffP;    
+
+ 
     cCalibrationInternConique aCIC;
     cCalibDistortion  aCD;
     cModNoDist aNoDist;
@@ -373,9 +428,9 @@ bool cAppliCamTOF::WriteNuage()
     
     aNuageXML.Orientation()   = aOC;
     
-    aNuageXML.RatioResolAltiPlani() = 0.5*(double(1)/mResolPlani.x + double(1)/mResolPlani.y);
+    //aNuageXML.RatioResolAltiPlani() = 0.5*(double(1)/mResolPlani.x + double(1)/mResolPlani.y);
 
-    MakeFileXML(aNuageXML,mOut+"_NuageProf.xml"); 
+    MakeFileXML(aNuageXML,CreateName(3)); 
 
     return true;
 }
