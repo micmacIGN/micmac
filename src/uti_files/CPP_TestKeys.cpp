@@ -80,7 +80,7 @@ int TestSet_main(int argc,char ** argv)
 {
    MMD_InitArgcArgv(argc,argv,2);
 
-    std::string  aDir,aPat,aFullDir,aKeyAssoc;
+    std::string  aDir,aPat,aFullDir,aKeyAssoc,aFileCpl;
     int  aNbMax=10;
 
     ElInitArgMain
@@ -89,6 +89,7 @@ int TestSet_main(int argc,char ** argv)
         LArgMain()  << EAMC(aFullDir,"Full Directory (Dir+Pattern)", eSAM_IsPatFile),
         LArgMain()  << EAM(aNbMax,"Nb",true,"Nb Max printed (def=10)")
                     << EAM(aKeyAssoc,"KeyAssoc",true,"Key for association")
+                    << EAM(aFileCpl,"NameCple",true,"Name of XML file to save couples determined with keyAssoc")    
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -120,6 +121,17 @@ int TestSet_main(int argc,char ** argv)
          // std::list<std::string>  aL = RegexListFileMatch(aDir,aPat,1,false);
           std::cout << "NB  BY RFLM " << mSetIm->size() << "\n";
     }
+    
+    if (EAMIsInit(&aFileCpl) && EAMIsInit(&aKeyAssoc))
+    {
+		 std::cout << "Export couples to file  " << aFileCpl << "\n";
+		 cSauvegardeNamedRel aVCpl;
+		 for (auto & im1 : *mSetIm){
+			 
+			    cCpleString aCpl(im1,aICNM->Assoc1To1(aKeyAssoc,im1,true));
+                aVCpl.Cple().push_back(aCpl);
+		 }
+	}
 
 
     return EXIT_SUCCESS;
