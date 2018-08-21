@@ -553,12 +553,12 @@ void cBdAppuisFlottant::ShowError()
 
     for (int aK=0 ; aK < 4 ; aK++)
     {
-       if (aK==0)  std::cout <<  "=============  Point Without GCP  ===========================================\n";
+       if (aK==0)  std::cout <<  "=============  Point Without GCP                                       ======\n";
 	   // Note for case 0 : not sure if this is ever an actual case, as the list of GCPs tested is taken from a list of existing GCPs. This is always empty.
 	   // It would make more sense to list the points with 0 input here and the points with just one input at the second stage.
        if (aK==1)  std::cout <<  "=============  Point With input in less than 2 images (can't be used)  ======\n";
-       if (aK==2)  std::cout <<  "=============  Point With uncertaincy <0 (unused)  ==========================\n";
-       if (aK==3)  std::cout <<  "=============  Point OK (used)          =====================================\n";
+       if (aK==2)  std::cout <<  "=============  Point With uncertaincy <0 (unused)                      ======\n";
+       if (aK==3)  std::cout <<  "=============  Point OK (used, min 3 required)                         ======\n";
        for
        (
             std::map<std::string,cOneAppuisFlottant *>::const_iterator itF= mApps.begin();
@@ -585,14 +585,8 @@ void cBdAppuisFlottant::ShowError()
 
 
        }
-	   if (aVectCounter[aK] == 0) 
-	   {
-		   cout << "NONE" << endl; // To make clear that this is a section and it is empty
-	   }
-	   else
-	   {
-		   cout << "Number of GCPs in that list : " << aVectCounter[aK] << endl;
-	   }
+	   if (aVectCounter[aK] == 0)  cout << "NONE" << endl; // To make clear that this is a section and it is empty
+	   else                        cout << "Number of GCPs in that list : " << aVectCounter[aK] << endl;
     }
     std::cout <<  "=============================================================================\n";
 
