@@ -602,6 +602,7 @@ Fonc_Num cdn(Fonc_Num f);
 Fonc_Num Laplacien(Fonc_Num f);
 Fonc_Num bobs_grad(Fonc_Num f);
 Fonc_Num courb_tgt(Fonc_Num f);
+Fonc_Num courb_tgt(Fonc_Num im,Fonc_Num exp);
 Fonc_Num grad_crois(Fonc_Num f);
 Fonc_Num sec_deriv(Fonc_Num f);
 Fonc_Num flag_pente_crete(Fonc_Num f);

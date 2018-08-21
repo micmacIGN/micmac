@@ -1339,11 +1339,11 @@ extern void TestPrime();
 int MPDtest_main (int argc,char** argv)
 {
     {
-        TestPrime();
+        TestcGeneratorEqColLin();
         exit(EXIT_SUCCESS);
     }
     {
-        TestcGeneratorEqColLin();
+        TestPrime();
         exit(EXIT_SUCCESS);
     }
     {
