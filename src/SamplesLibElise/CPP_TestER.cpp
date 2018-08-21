@@ -1318,18 +1318,27 @@ class cBAL2OriMicMac
         void FileReadOK(FILE *fptr, const char *format, T *value);
 
         std::string GenCamName(const int&);
-        void ShiftHomol(const Pt2dr&);
+        void ShiftHomol(const Pt2dr&,bool toPP);
 };
 
 
-void cBAL2OriMicMac::ShiftHomol(const Pt2dr& aD)
+void cBAL2OriMicMac::ShiftHomol(const Pt2dr& aPP,bool toPP)
 {
     for (auto aPIdx : mPtIdTr)
     {
         for (auto & aTrack : (*aPIdx.second))
         {
-            aTrack.x += aD.x;
-            aTrack.y += aD.y;
+            if (!toPP) //to Micmac image coordinate system
+            {
+                aTrack.x += aPP.x;
+                aTrack.y += aPP.y;
+            }
+            else //PP at (0,0)
+            {
+                aTrack.x -= aPP.x;
+                aTrack.y -= aPP.y;
+                
+            }
         }
     }
 }
@@ -1463,6 +1472,8 @@ bool cBAL2OriMicMac::SaveBAL()
     fprintf(fptr, "%d %d %d\n", mNumCam, mNumPts, mNumObs);
 
     /* Homol */
+    ShiftHomol(mPP,true);
+
     int aNum;
     for (auto aT : mPtIdTr)
     {
@@ -1566,7 +1577,7 @@ bool cBAL2OriMicMac::ReadBAL()
     SetPP(aPP);
 
     //observations are shifted to bring them to positive values
-    ShiftHomol(mPP);
+    ShiftHomol(mPP,false);
         
 
     /* Camera parameters */
