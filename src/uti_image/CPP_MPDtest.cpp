@@ -800,8 +800,6 @@ void PartitionRenato(int argc,char** argv)
        }
        
     }
-    
-
 
     Tiff_Im::Create8BFromFonc(std::string("Bin-")+StdPrefix(aName)+".tif",aTIn.sz(),anIm1.in());
 }
@@ -1336,11 +1334,16 @@ extern void OneTestcPrediCoord();
 
 
 extern void TestcGeneratorEqColLin();
+extern void TestPrime();
 
 int MPDtest_main (int argc,char** argv)
 {
     {
         TestcGeneratorEqColLin();
+        exit(EXIT_SUCCESS);
+    }
+    {
+        TestPrime();
         exit(EXIT_SUCCESS);
     }
     {

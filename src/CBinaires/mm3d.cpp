@@ -266,7 +266,7 @@ int CPP_PHom_RenameRef(int argc, char ** argv);
 int CPP_PHom_ApprentBinaire(int argc, char ** argv);
 int CPP_FitsMatch1Im(int argc, char ** argv);
 int HackToF(int argc,char ** argv);
-
+int CPP_GenPrime(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -565,6 +565,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("PHom_RenameRef", CPP_PHom_RenameRef, "Rename Ref for PHom"));
 		aRes.push_back(cMMCom("PHom_ApBin", CPP_PHom_ApprentBinaire, "Test Binary "));
 		aRes.push_back(cMMCom("FitsMatch", CPP_FitsMatch1Im, "Test Match Images NewPHom "));
+		aRes.push_back(cMMCom("GenPrime", CPP_GenPrime, "Generate prime "));
 
        aRes.push_back(cMMCom("DroneFootPrint",DroneFootPrint,"Draw footprint from image + orientation (drone) in PLY and QGIS format"));
    }
@@ -656,6 +657,9 @@ extern int ImgCol_main(int argc, char ** argv);
 extern int CilliaMap_main(int argc, char ** argv);
 extern int SimilComp_main(int argc, char ** argv);
 extern int AffineComp_main(int argc, char ** argv);
+           
+extern int TestCamTOF_main(int argc,char** argv);
+extern int TestMH_main(int argc,char** argv);
 
 extern int  DocEx_Intro0_main(int, char **);
 extern int  DocEx_Introd2_main(int, char **);
@@ -916,6 +920,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("BAL2MM", BAL2OriMicMac_main, "Convert a BAL problem to MicMac"));
 		aRes.push_back(cMMCom("Im2Dir", ImPts2Dir_main, "Extract directions from images"));
 		aRes.push_back(cMMCom("FictObs", FictiveObstest_main, "someee stuff"));
+		aRes.push_back(cMMCom("CamTOFExp", TestCamTOF_main, "Export TOF camera pcd file to MicMac formats (e.g. tif, xml, ply)"));
+		aRes.push_back(cMMCom("TestMH", TestMH_main, "Test Mike"));
 		aRes.push_back(cMMCom("TestAT", TestPush, "AT test workplace"));
 
 		//       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));
