@@ -3,7 +3,9 @@
 
 #include "msd.h"
 #include "lab_header.h"
-
+extern void self_match_lebris( list<DigeoPoint> &i_list,
+                        double _min_dist,  	// min distance of second best point to avoid abiguity
+                        int i_nbMaxPriPoints = SIFT_ANN_DEFAULT_MAX_PRI_POINTS );
 // call the appli in similar way than Digeo and SIFT: mm3d MSD -i inputname -o output name
 // 08/2018; jo lisein: I implement MSD from work of Chebbi ENSG student, but unfortunately this detector seems to be quite non-efficient.
 // to improve if usefulness : border effet, orientation of pt pbl. for the moment, I keep only pt that have only one orientation
@@ -31,16 +33,17 @@ private:
         // Instantiate the detector MSD
           msd.setDebug(mDebug);
           //the size of the patches under comparison
-          msd.setPatchRadius(7);
+          msd.setPatchRadius(5);
           //the size of the area from which the patches to be compared are
-          msd.setSearchAreaRadius(11);
+          msd.setSearchAreaRadius(7);
           //Non-Maxima Suppression: 5x5 (=radius of 2) may be sufficient and keep more point of course.
           msd.setNMSRadius(3);
+          // if true, cause bug!!
           msd.setNMSScaleRadius(0);
-          msd.setThSaliency(0.02); // lower Threshold Saliency give more MSD point.
-          msd.setKNN(4); // higher KNN give me more MSD points
+          msd.setThSaliency(0.01); // lower Threshold Saliency give more MSD point.
+          msd.setKNN(10); // higher KNN give me more MSD points
           // change of scale between two pyramid layer, 1.25 by default is not enough at my taste
-          msd.setScaleFactor(2);
+          msd.setScaleFactor(1.25);
           msd.setNScales(-1);// -1 means all scale
           // orientation computed in MSD code is based on gray image, not on gradient. I use Digeo method implemented here to compute orientation on gradient
           // msd.setComputeOrientation(false);

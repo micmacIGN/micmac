@@ -3,7 +3,7 @@
 cMSD1Im::cMSD1Im(std::string aInputIm,std::string aOutTP):
     mNameIm1(aInputIm),
     mOut(aOutTP),
-    mDebug(false),
+    mDebug(true),
     msd()
 {
 
@@ -28,7 +28,7 @@ cMSD1Im::cMSD1Im(std::string aInputIm,std::string aOutTP):
      initMSD();
      std::vector<MSDPoint> P1=msd.detect(mIm1);
 
-     std::cout << "For image " << mNameIm1 << ", I have found " << P1.size() << " MSD points \n";
+     if (mDebug) std::cout << "For image " << mNameIm1 << ", I have found " << P1.size() << " MSD points \n";
 
      // prior to use SIFT descriptor, go to Lab and apply wallis filter
      // work only for RGB images or at least for 8bits images.
@@ -38,16 +38,32 @@ cMSD1Im::cMSD1Im(std::string aInputIm,std::string aOutTP):
 
      // in case of RGB images or for camlight images
      if (Im.NbBits()==8){
-         std::cout << "Image " << mNameIm1 << " is 8 bits and has " << Im.nb_chan() << " channel : got to Lab and apply wallis \n" ;
+         if (mDebug) std::cout << "Image " << mNameIm1 << " is 8 bits and has " << Im.nb_chan() << " channel : got to Lab and apply wallis \n" ;
          Migrate2Lab2wallis(Im,mIm_LabWallis);
      } else {
-         std::cout << "Image " << mNameIm1 << " : got to Lab and apply wallis \n" ;
+         if (mDebug) std::cout << "Image " << mNameIm1 << " : got to Lab and apply wallis \n" ;
          Migrate2Lab2wallis(mIm1,mIm_LabWallis);
      }
 
      std::cout << "---- use SIFT descriptor to describe MSD points\n";
      PDigeo1=ToDigeo(P1,mIm_LabWallis);
+     // some kp have been discarded because they have more than 1 orientation
+     std::cout << "For image " << mNameIm1 << ", I keep " << PDigeo1.size() << " points \n";
      DigeoPoint::writeDigeoFile(mOut,PDigeo1);
+
+
+    // bof, pas convaincant
+/*
+     std::list<DigeoPoint> aLDP;
+     std::copy( PDigeo1.begin(), PDigeo1.end(), std::back_inserter( aLDP ) );
+     //std::cout << "cast to list  of " << aLDP.size() << " points \n";
+     self_match_lebris(aLDP,0.02);
+     std::cout << "For image " << mNameIm1 << ", I keep " << aLDP.size() << " points \n";
+     DigeoPoint::writeDigeoFile(mOut,aLDP);
+*/
+
+
+
 }
 
 

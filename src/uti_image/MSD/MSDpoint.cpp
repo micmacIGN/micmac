@@ -46,16 +46,13 @@ DigeoPoint ToDigeo(MSDPoint & aPt,DescriptorExtractor<tData, tComp> & aDesc){
     DigeoPoint DP;
 
     for (auto & angle : aPt.getAngles()){
-      // 0.0 angle is default constructor of MSD pt
-      if (angle!=0.0){
-    REAL8 scale(aPt.getScale());
+    REAL8 scale(aPt.getSize()/2);
     DP.x=aPt.getPoint().x;
     DP.y=aPt.getPoint().y;
     REAL8  descriptor[DIGEO_DESCRIPTOR_SIZE];
     aDesc.describe(DP.x,DP.y,scale,angle,descriptor);
     aDesc.normalize_and_truncate(descriptor);
     DP.addDescriptor(angle,descriptor);
-        }
     }
 
     return DP;
@@ -69,7 +66,10 @@ std::vector<DigeoPoint> ToDigeo(std::vector<MSDPoint> & aVMSD,Im2D<tData, tComp>
     DescriptorExtractor<tData, tComp> Desc=DescriptorExtractor<tData, tComp>(Image);
     for (auto & MSD: aVMSD){
      DigeoPoint DP=ToDigeo(MSD,Desc);
-     aVDigeo.push_back(DP);
+     // 0.0 angle is default constructor of MSD pt
+     //std::cout << "DP.nbAngles() " << DP.nbAngles() << ", first is " << DP.angle(0) << "\n";
+     // remove kp with angle 0 and the one that have more than 2 orientation
+     if (DP.angle(0)!=0.0 && DP.nbAngles()<3) aVDigeo.push_back(DP);
     }
     return aVDigeo;
 }
