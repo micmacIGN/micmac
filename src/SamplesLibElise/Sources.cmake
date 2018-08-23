@@ -17,6 +17,8 @@ set(SamplesLibElise_Src_Files
     ${SAMPLESLIBELISE_DIR}/CPP_CilliaImgt.cpp
     ${SAMPLESLIBELISE_DIR}/CPP_CilliaCol.cpp  
     ${SAMPLESLIBELISE_DIR}/CPP_CilliaMap.cpp 
+    ${SAMPLESLIBELISE_DIR}/CPP_TestCamTOF.cpp 
+    ${SAMPLESLIBELISE_DIR}/CPP_TestMH.cpp 
 )
 
 # JE NE SAIS PAS SI CA SERT ???

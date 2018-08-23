@@ -440,6 +440,8 @@ static Fonc_Num FPolar(cFilterImPolI &,const cArgFilterPolI & anArg)
 
 static cFilterImPolI  OperPolar(FPolar,1,1,0,0,"polar",false,"polar F");
 
+
+
   //----------------------------------------------------------------
 
 static Fonc_Num FExtinc(cFilterImPolI &,const cArgFilterPolI & anArg)
@@ -451,6 +453,21 @@ static Fonc_Num FExtinc(cFilterImPolI &,const cArgFilterPolI & anArg)
 }
 
 static cFilterImPolI  OperExtinc(FExtinc,1,1,1,2,"extinc",true,"extinc F c d ; c=chamfer d=distance");
+
+
+  //----------------------------------------------------------------
+
+static Fonc_Num FCourbTgt(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+    double aExp = (anArg.mVArgs.size() >=1) ? ToDouble(anArg.mVArgs.at(0)) : 0.5;
+
+    return courb_tgt(anArg.mVIn.at(0),aExp);
+}
+
+static cFilterImPolI  OperCourbTgt(FCourbTgt,1,1,0,1,"corner",true,"corner F P? ; F=func P=pow, def=0.5");
+
+
+
 
 
   //----------------------------------------------------------------
@@ -641,6 +658,7 @@ static std::vector<cFilterImPolI *>  VPolI()
          aRes.push_back(&OperDoubleCste);
          aRes.push_back(&OperPolar);
          aRes.push_back(&OperExtinc);
+         aRes.push_back(&OperCourbTgt);
          aRes.push_back(&Opermut);
          aRes.push_back(&OperSetSymb);
          aRes.push_back(&OperUseSymb);
