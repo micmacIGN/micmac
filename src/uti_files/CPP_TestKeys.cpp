@@ -130,6 +130,8 @@ int TestSet_main(int argc,char ** argv)
 			 
 			    cCpleString aCpl(im1,aICNM->Assoc1To1(aKeyAssoc,im1,true));
                 aVCpl.Cple().push_back(aCpl);
+                cCpleString aCpl2(aICNM->Assoc1To1(aKeyAssoc,im1,true),im1);
+                aVCpl.Cple().push_back(aCpl2);
 		 }
 		 MakeFileXML(aVCpl,aFileCpl);
 	}

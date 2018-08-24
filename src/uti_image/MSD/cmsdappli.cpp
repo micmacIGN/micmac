@@ -1,9 +1,11 @@
 #include "cmsdappli.h"
+#include<getopt.h>
 
-cMSD1Im::cMSD1Im(std::string aInputIm,std::string aOutTP):
+cMSD1Im::cMSD1Im(std::string aInputIm, std::string aOutTP, bool aDebug, int aPR, int aSAR, double aTh, int aNMS, int aKNN, double aSc, std::string aDir):
     mNameIm1(aInputIm),
     mOut(aOutTP),
-    mDebug(true),
+    mDebug(aDebug),
+    mTmpDir(aDir),
     msd()
 {
 
@@ -26,6 +28,14 @@ cMSD1Im::cMSD1Im(std::string aInputIm,std::string aOutTP):
      } else { mIm1=Im2D_U_INT1::FromFileStd(mNameIm1);}
 
      initMSD();
+     msd.setPatchRadius(aPR);
+     msd.setSearchAreaRadius(aSAR);
+     msd.setThSaliency(aTh);
+     msd.setKNN(aKNN);
+     msd.setNMSRadius(aNMS);
+     msd.setDir(mTmpDir);
+     msd.setNScales(aSc);
+
      std::vector<MSDPoint> P1=msd.detect(mIm1);
 
      if (mDebug) std::cout << "For image " << mNameIm1 << ", I have found " << P1.size() << " MSD points \n";
@@ -47,10 +57,11 @@ cMSD1Im::cMSD1Im(std::string aInputIm,std::string aOutTP):
 
      std::cout << "---- use SIFT descriptor to describe MSD points\n";
      PDigeo1=ToDigeo(P1,mIm_LabWallis);
+     std::cout << "For image " << mNameIm1 << ", I keep " << PDigeo1.size() << " points \n";
+     DigeoPoint::removeDuplicates(PDigeo1);
      // some kp have been discarded because they have more than 1 orientation
      std::cout << "For image " << mNameIm1 << ", I keep " << PDigeo1.size() << " points \n";
      DigeoPoint::writeDigeoFile(mOut,PDigeo1);
-
 
     // bof, pas convaincant
 /*
@@ -61,8 +72,6 @@ cMSD1Im::cMSD1Im(std::string aInputIm,std::string aOutTP):
      std::cout << "For image " << mNameIm1 << ", I keep " << aLDP.size() << " points \n";
      DigeoPoint::writeDigeoFile(mOut,aLDP);
 */
-
-
 
 }
 
@@ -399,18 +408,29 @@ void Resizeim(Im2D<Type,TyBase> & im, Im2D<Type,TyBase> & Out, Pt2dr Newsize)
 int MSD_main( int argc, char **argv)
 {
 
-    if ( argc<4 )
-    {
-        cerr << "MSD: usage : mm3d MSD input_filename -o output_filename" << endl;
-        return EXIT_FAILURE;
-    }
+    std::string inputName,outputName,aBidon,aTmpDir("Tmp-MM-Dir/");
+    bool aDebug(1);
+    double aTh(0.001);
+    int aPR(5),aSAR(5),aKNN(5),aNMS(10);
+    int aSc(-1);
 
-    argv++;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(inputName,"input",eSAM_IsExistFile)
+                    << EAMC(aBidon,"-o")
+                    << EAMC(outputName,"output"),
+        LArgMain()  << EAM(aDebug,"Debug",true,"Debug mode, def false")
+                    << EAM(aPR,"PR",true,"patch radius, def 3.")
+                    << EAM(aSAR,"SAR",true,"search area radius, def 5.")
+                    << EAM(aTh,"Th",true,"Threshold of saliency, def 0.01, ok with SFS filter")
+                    << EAM(aNMS,"NMS",true,"Non-Maxima Suppression (on saliency map) radius, def 3.")
+                    << EAM(aKNN,"KNN",true,"KNN neighbour, def 5.")
+                    << EAM(aSc,"NbSc",true,"number of scale, def -1.")
+                    << EAM(aTmpDir,"Dir",true,"Directory used in debug mode to store intermediate results, def Tmp-MM-Dir")
+                );
 
-    std::string inputName  = argv[0];
-    std::string outputName = argv[2];
-
-    cMSD1Im appli(inputName,outputName);
+    cMSD1Im appli(inputName,outputName,aDebug,aPR,aSAR,aTh,aNMS,aKNN,aSc,aTmpDir);
     appli.MSDBanniere();
 
     return EXIT_SUCCESS;

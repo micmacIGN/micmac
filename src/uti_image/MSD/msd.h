@@ -63,8 +63,10 @@ public:
     std::vector<MSDPoint> detect(Im2D<Type,TyBase> &img);
 
     // write intermediate result and print blabla in debug mode
-    void setDebug(bool aDebug){ mDebug = aDebug; }
-	
+    void setDebug(bool aDebug){ mDebug = aDebug;}
+    void setDir(std::string aDir){ mTmpDir = aDir; }
+    const std::string Dir(){return mTmpDir; }
+
     void setPatchRadius(int patchRadius){ m_patch_radius = patchRadius; }
     int getPatchRadius(){ return m_patch_radius; }
 

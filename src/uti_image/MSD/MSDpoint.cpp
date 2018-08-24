@@ -36,8 +36,8 @@ void MSDPoint::undist(CamStenope * aCalib)
 
 // cast a MSD point to a Digeo Point
 
-//comparaison scale = aPt.getScale()ou scale = aPt.getSize(): more tiepoint with getSize than getScale but precense of a proportion of outlier.
-// with getScale: less tie point, but no outlier!!
+//comparaison scale = aPt.getScale()ou scale = aPt.getSize(): more tiepoint with getSize than getScale
+// with getScale: almost no tp
 
 // there are generally more than one angle for the orientation of MSD points, which is a bad sign
 // compute one descriptor per angle
@@ -69,7 +69,7 @@ std::vector<DigeoPoint> ToDigeo(std::vector<MSDPoint> & aVMSD,Im2D<tData, tComp>
      // 0.0 angle is default constructor of MSD pt
      //std::cout << "DP.nbAngles() " << DP.nbAngles() << ", first is " << DP.angle(0) << "\n";
      // remove kp with angle 0 and the one that have more than 2 orientation
-     if (DP.angle(0)!=0.0 && DP.nbAngles()<3) aVDigeo.push_back(DP);
+     if (DP.angle(0)!=0.0 && DP.nbAngles()<4) aVDigeo.push_back(DP);
     }
     return aVDigeo;
 }
