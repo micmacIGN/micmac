@@ -1,0 +1,95 @@
+\hypertarget{classMMVII_1_1cSpecOneArg2007}{}\section{M\+M\+V\+II\+:\+:c\+Spec\+One\+Arg2007 Class Reference}
+\label{classMMVII_1_1cSpecOneArg2007}\index{M\+M\+V\+I\+I\+::c\+Spec\+One\+Arg2007@{M\+M\+V\+I\+I\+::c\+Spec\+One\+Arg2007}}
+
+
+Base class to describe one paramater specification.  
+
+
+
+
+{\ttfamily \#include $<$M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h$>$}
+
+Inheritance diagram for M\+M\+V\+II\+:\+:c\+Spec\+One\+Arg2007\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classMMVII_1_1cSpecOneArg2007}
+\end{center}
+\end{figure}
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+typedef std\+::vector$<$ \hyperlink{classMMVII_1_1cSemA2007}{c\+Sem\+A2007} $>$ {\bfseries t\+V\+Sem}\hypertarget{classMMVII_1_1cSpecOneArg2007_a54b27f452eb86d70eccc567bbaf91bf5}{}\label{classMMVII_1_1cSpecOneArg2007_a54b27f452eb86d70eccc567bbaf91bf5}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classMMVII_1_1cSpecOneArg2007_a5325eac85f4f6d50eeb8ec78baf5026f}{c\+Spec\+One\+Arg2007} (const std\+::string \&a\+Name, const std\+::string \&a\+Com, const t\+V\+Sem \&=\hyperlink{classMMVII_1_1cSpecOneArg2007_a1e591f6be45029be7a657fabb4557208}{The\+Empty\+Sem})\hypertarget{classMMVII_1_1cSpecOneArg2007_a5325eac85f4f6d50eeb8ec78baf5026f}{}\label{classMMVII_1_1cSpecOneArg2007_a5325eac85f4f6d50eeb8ec78baf5026f}
+
+\begin{DoxyCompactList}\small\item\em Name + comment + semantic. \end{DoxyCompactList}\item 
+virtual void \hyperlink{classMMVII_1_1cSpecOneArg2007_a04b7f9f4aad6a9565c7bfc9a8041b025}{Init\+Param} (const std\+::string \&a\+Str)=0\hypertarget{classMMVII_1_1cSpecOneArg2007_a04b7f9f4aad6a9565c7bfc9a8041b025}{}\label{classMMVII_1_1cSpecOneArg2007_a04b7f9f4aad6a9565c7bfc9a8041b025}
+
+\begin{DoxyCompactList}\small\item\em This action defined in heriting-\/template class initialize \char`\"{}real\char`\"{} the value from its string value. \end{DoxyCompactList}\item 
+virtual void $\ast$ {\bfseries Adr\+Param} ()=0\hypertarget{classMMVII_1_1cSpecOneArg2007_a25923c98de44820af938c46b977cc534}{}\label{classMMVII_1_1cSpecOneArg2007_a25923c98de44820af938c46b977cc534}
+
+\item 
+virtual const std\+::string \& {\bfseries Name\+Type} () const =0\hypertarget{classMMVII_1_1cSpecOneArg2007_a8d9040c52df90d042bae987ab321f509}{}\label{classMMVII_1_1cSpecOneArg2007_a8d9040c52df90d042bae987ab321f509}
+
+\item 
+bool \hyperlink{classMMVII_1_1cSpecOneArg2007_a83a950c340e24f33fa75da723915110c}{Has\+Type} (const \hyperlink{MMVII__enums_8h_a9d431a971072a6c440012f6325f616ad}{e\+T\+A2007} \&a\+Type, std\+::string $\ast$a\+Value=0) const \hypertarget{classMMVII_1_1cSpecOneArg2007_a83a950c340e24f33fa75da723915110c}{}\label{classMMVII_1_1cSpecOneArg2007_a83a950c340e24f33fa75da723915110c}
+
+\begin{DoxyCompactList}\small\item\em Does any of m\+V\+Sem contains a\+Type. \end{DoxyCompactList}\item 
+const t\+V\+Sem \& \hyperlink{classMMVII_1_1cSpecOneArg2007_a4c67e22ddba5a312ef96af49e43d5260}{V\+Sem} () const \hypertarget{classMMVII_1_1cSpecOneArg2007_a4c67e22ddba5a312ef96af49e43d5260}{}\label{classMMVII_1_1cSpecOneArg2007_a4c67e22ddba5a312ef96af49e43d5260}
+
+\begin{DoxyCompactList}\small\item\em Accessor. \end{DoxyCompactList}\item 
+const std\+::string \& \hyperlink{classMMVII_1_1cSpecOneArg2007_a0c58980479f2783d16c65aa87285840a}{Name} () const \hypertarget{classMMVII_1_1cSpecOneArg2007_a0c58980479f2783d16c65aa87285840a}{}\label{classMMVII_1_1cSpecOneArg2007_a0c58980479f2783d16c65aa87285840a}
+
+\begin{DoxyCompactList}\small\item\em Accessor. \end{DoxyCompactList}\item 
+const std\+::string \& \hyperlink{classMMVII_1_1cSpecOneArg2007_aa898634b28677fafe9a070c6fa3c9594}{Com} () const \hypertarget{classMMVII_1_1cSpecOneArg2007_aa898634b28677fafe9a070c6fa3c9594}{}\label{classMMVII_1_1cSpecOneArg2007_aa898634b28677fafe9a070c6fa3c9594}
+
+\begin{DoxyCompactList}\small\item\em Accessor. \end{DoxyCompactList}\item 
+int \hyperlink{classMMVII_1_1cSpecOneArg2007_aab0aaa1ce11f52f127e6efdb37499490}{Nb\+Match} () const \hypertarget{classMMVII_1_1cSpecOneArg2007_aab0aaa1ce11f52f127e6efdb37499490}{}\label{classMMVII_1_1cSpecOneArg2007_aab0aaa1ce11f52f127e6efdb37499490}
+
+\begin{DoxyCompactList}\small\item\em Accessor. \end{DoxyCompactList}\item 
+void {\bfseries Incr\+Nb\+Match} ()\hypertarget{classMMVII_1_1cSpecOneArg2007_aece45b5481114f3f40042f8ab30d3ad2}{}\label{classMMVII_1_1cSpecOneArg2007_aece45b5481114f3f40042f8ab30d3ad2}
+
+\item 
+std\+::string \hyperlink{classMMVII_1_1cSpecOneArg2007_aa0733d8fb83e77ab6df90280d7df5121}{Name4\+Help} () const \hypertarget{classMMVII_1_1cSpecOneArg2007_aa0733d8fb83e77ab6df90280d7df5121}{}\label{classMMVII_1_1cSpecOneArg2007_aa0733d8fb83e77ab6df90280d7df5121}
+
+\begin{DoxyCompactList}\small\item\em concat and format the different Name4\+Help of t\+V\+Sem \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const t\+V\+Sem \hyperlink{classMMVII_1_1cSpecOneArg2007_a1e591f6be45029be7a657fabb4557208}{The\+Empty\+Sem}\hypertarget{classMMVII_1_1cSpecOneArg2007_a1e591f6be45029be7a657fabb4557208}{}\label{classMMVII_1_1cSpecOneArg2007_a1e591f6be45029be7a657fabb4557208}
+
+\begin{DoxyCompactList}\small\item\em Default empty semantique. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::string \hyperlink{classMMVII_1_1cSpecOneArg2007_a2b13c7d1840d5293448b1770b95804d8}{m\+Name}\hypertarget{classMMVII_1_1cSpecOneArg2007_a2b13c7d1840d5293448b1770b95804d8}{}\label{classMMVII_1_1cSpecOneArg2007_a2b13c7d1840d5293448b1770b95804d8}
+
+\begin{DoxyCompactList}\small\item\em Name for optionnal. \end{DoxyCompactList}\item 
+std\+::string \hyperlink{classMMVII_1_1cSpecOneArg2007_abd52450cd072f111e3c6e24271afc6d0}{m\+Com}\hypertarget{classMMVII_1_1cSpecOneArg2007_abd52450cd072f111e3c6e24271afc6d0}{}\label{classMMVII_1_1cSpecOneArg2007_abd52450cd072f111e3c6e24271afc6d0}
+
+\begin{DoxyCompactList}\small\item\em Comment for all. \end{DoxyCompactList}\item 
+t\+V\+Sem \hyperlink{classMMVII_1_1cSpecOneArg2007_a73fc063733564c6debfdf6a81e8d78d2}{m\+V\+Sem}\hypertarget{classMMVII_1_1cSpecOneArg2007_a73fc063733564c6debfdf6a81e8d78d2}{}\label{classMMVII_1_1cSpecOneArg2007_a73fc063733564c6debfdf6a81e8d78d2}
+
+\begin{DoxyCompactList}\small\item\em Vector of semantic. \end{DoxyCompactList}\item 
+int \hyperlink{classMMVII_1_1cSpecOneArg2007_ad91d8fab50891f5782a8e30ef97a9dc2}{m\+Nb\+Match}\hypertarget{classMMVII_1_1cSpecOneArg2007_ad91d8fab50891f5782a8e30ef97a9dc2}{}\label{classMMVII_1_1cSpecOneArg2007_ad91d8fab50891f5782a8e30ef97a9dc2}
+
+\begin{DoxyCompactList}\small\item\em Number of match, to generate error on multiple names. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Base class to describe one paramater specification. 
+
+The job will be done by template inheriting classes who knows how to use a string for computing a value 
+
+Definition at line 112 of file M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{MMVII__Stringifier_8h}{M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h}\item 
+src/\+Serial/c\+Read\+One\+Arg\+C\+L.\+cpp\end{DoxyCompactItemize}

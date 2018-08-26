@@ -1,0 +1,233 @@
+\hypertarget{MMVII__Bench_8h}{}\section{include/\+M\+M\+V\+I\+I\+\_\+\+Bench.h File Reference}
+\label{MMVII__Bench_8h}\index{include/\+M\+M\+V\+I\+I\+\_\+\+Bench.\+h@{include/\+M\+M\+V\+I\+I\+\_\+\+Bench.\+h}}
+
+
+Declare function that will be called for bench.  
+
+
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void {\bfseries M\+M\+V\+I\+I\+::\+Bench\+\_\+0000\+\_\+\+Ptxd} ()\hypertarget{BenchPtxD_8cpp_a81edf1404f6107dd0f791937ef033f38}{}\label{BenchPtxD_8cpp_a81edf1404f6107dd0f791937ef033f38}
+
+\begin{DoxyCompactList}\small\item\em Basic Ptxd. \end{DoxyCompactList}\item 
+void \hyperlink{BenchGlob_8cpp_aabad2af94495ffbc69caa8c12478503f}{M\+M\+V\+I\+I\+::\+Bench\+\_\+0000\+\_\+\+Sys\+Dep\+String} ()\hypertarget{BenchGlob_8cpp_aabad2af94495ffbc69caa8c12478503f}{}\label{BenchGlob_8cpp_aabad2af94495ffbc69caa8c12478503f}
+
+\begin{DoxyCompactList}\small\item\em String split (dir, path, file ...) \end{DoxyCompactList}\item 
+void \hyperlink{BenchGlob_8cpp_a19408855fc6e945bbaa0effc940ab0c8}{M\+M\+V\+I\+I\+::\+Bench\+\_\+0000\+\_\+\+Memory} ()
+\begin{DoxyCompactList}\small\item\em Bench on memory integrity. \end{DoxyCompactList}\item 
+void \hyperlink{BenchGlob_8cpp_a3572283a4b0560fa97eb349afc225ddc}{M\+M\+V\+I\+I\+::\+Bench\+\_\+0000\+\_\+\+Param} ()
+\begin{DoxyCompactList}\small\item\em Bench on param line processing (elementary) \end{DoxyCompactList}\item 
+void \hyperlink{BenchSerial_8cpp_a59eaa27ec207d8bd256df8ea73810170}{M\+M\+V\+I\+I\+::\+Bench\+Serialization} (const std\+::string \&a\+Dir\+Out, const std\+::string \&a\+Dir\+In)\hypertarget{BenchSerial_8cpp_a59eaa27ec207d8bd256df8ea73810170}{}\label{BenchSerial_8cpp_a59eaa27ec207d8bd256df8ea73810170}
+
+\begin{DoxyCompactList}\small\item\em Bench on seriaization function. \end{DoxyCompactList}\item 
+void \hyperlink{MMVII__Bench_8h_a5d5b2c8f6b22313b6017379c393b7fa1}{M\+M\+V\+I\+I\+::\+Bench\+Glob} ()\hypertarget{MMVII__Bench_8h_a5d5b2c8f6b22313b6017379c393b7fa1}{}\label{MMVII__Bench_8h_a5d5b2c8f6b22313b6017379c393b7fa1}
+
+\begin{DoxyCompactList}\small\item\em All Bench. \end{DoxyCompactList}\item 
+void \hyperlink{uti__set__sel_8cpp_a8ff7825898f80133dc7217abeb716dae}{M\+M\+V\+I\+I\+::\+Bench\+Set} (const std\+::string \&a\+Dir)
+\begin{DoxyCompactList}\small\item\em Bench on \hyperlink{classMMVII_1_1cExtSet}{c\+Ext\+Set} (set \char`\"{}en extension\char`\"{}) \end{DoxyCompactList}\item 
+void \hyperlink{uti__set__sel_8cpp_a46249dcd2cdbef1a8defbb795aa77ade}{M\+M\+V\+I\+I\+::\+Bench\+Selector} (const std\+::string \&a\+Dir)\hypertarget{uti__set__sel_8cpp_a46249dcd2cdbef1a8defbb795aa77ade}{}\label{uti__set__sel_8cpp_a46249dcd2cdbef1a8defbb795aa77ade}
+
+\begin{DoxyCompactList}\small\item\em Bench on selecto, (set \char`\"{}en comprehension\char`\"{}) \end{DoxyCompactList}\item 
+void \hyperlink{cMMVII__CalcSet_8cpp_a6eb56bfbc7cde52ed9b004751cb5ccd9}{M\+M\+V\+I\+I\+::\+Bench\+Edit\+Set} ()\hypertarget{cMMVII__CalcSet_8cpp_a6eb56bfbc7cde52ed9b004751cb5ccd9}{}\label{cMMVII__CalcSet_8cpp_a6eb56bfbc7cde52ed9b004751cb5ccd9}
+
+\begin{DoxyCompactList}\small\item\em Bench on commands \+: Edit\+Set (to come Edit\+Cple) \end{DoxyCompactList}\item 
+void \hyperlink{uti__e2string_8cpp_a3417acec5abd74d0a3afd8f49cc21ce6}{M\+M\+V\+I\+I\+::\+Bench\+Enum} ()
+\begin{DoxyCompactList}\small\item\em Bench enum. \end{DoxyCompactList}\item 
+void {\bfseries M\+M\+V\+I\+I\+::\+Bench\+\_\+\+Nums} ()
+\begin{DoxyCompactList}\small\item\em Bench on rounding, modulo ... basic numeric service. \end{DoxyCompactList}\item 
+void \hyperlink{uti__rand_8cpp_a964ed6715456805ccfe4184923241b2a}{M\+M\+V\+I\+I\+::\+Bench\+\_\+\+Random} ()\hypertarget{uti__rand_8cpp_a964ed6715456805ccfe4184923241b2a}{}\label{uti__rand_8cpp_a964ed6715456805ccfe4184923241b2a}
+
+\begin{DoxyCompactList}\small\item\em Bench on random generator. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Declare function that will be called for bench. 
+
+When M\+M\+V\+II will grow, most bench function will be done in file/folde close to the functionality. So it will be necessary to declare these function. 
+
+\subsection{Function Documentation}
+\index{M\+M\+V\+I\+I\+\_\+\+Bench.\+h@{M\+M\+V\+I\+I\+\_\+\+Bench.\+h}!Bench\+\_\+0000\+\_\+\+Memory@{Bench\+\_\+0000\+\_\+\+Memory}}
+\index{Bench\+\_\+0000\+\_\+\+Memory@{Bench\+\_\+0000\+\_\+\+Memory}!M\+M\+V\+I\+I\+\_\+\+Bench.\+h@{M\+M\+V\+I\+I\+\_\+\+Bench.\+h}}
+\subsubsection[{\texorpdfstring{Bench\+\_\+0000\+\_\+\+Memory()}{Bench_0000_Memory()}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+M\+V\+I\+I\+::\+Bench\+\_\+0000\+\_\+\+Memory (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{BenchGlob_8cpp_file_a19408855fc6e945bbaa0effc940ab0c8}{}\label{BenchGlob_8cpp_file_a19408855fc6e945bbaa0effc940ab0c8}
+
+
+Bench on memory integrity. 
+
+short $\ast$ a\+Ptr = Mem\+Manager\+Alloc$<$short$>$(a\+Nb); 
+
+Definition at line 52 of file Bench\+Glob.\+cpp.
+
+
+\begin{DoxyCode}
+53 \{
+54     cMemState  aSt =   cMemManager::CurState();
+55     \textcolor{keywordtype}{int} aNb=5;
+56     \textcolor{comment}{// short * aPtr = static\_cast<short *> (cMemManager::Calloc(sizeof(short),aNb));}
+58 \textcolor{comment}{}    \textcolor{keywordtype}{short} * aPtr = cMemManager::Alloc<short>(aNb);
+59     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} aK=0; aK<aNb ; aK++)
+60         aPtr[aK] = 10 + 234 * aK;
+61 
+62     \textcolor{comment}{// Plein de test d'alteration }
+63     \textcolor{keywordflow}{if} (0)  aPtr[-1] =9;
+64     \textcolor{keywordflow}{if} (0)  aPtr[aNb+6] =9;
+65     \textcolor{keywordflow}{if} (0)  aPtr[aNb] =9;
+66     \textcolor{keywordflow}{if} (0)  aPtr[aNb+1] =9;
+67     \textcolor{comment}{// Plante si on teste avant liberation}
+68     \textcolor{keywordflow}{if} (0)  cMemManager::CheckRestoration(aSt);
+69     cMemManager::Free(aPtr);
+70     cMemManager::CheckRestoration(aSt);
+71 \}
+\end{DoxyCode}
+\index{M\+M\+V\+I\+I\+\_\+\+Bench.\+h@{M\+M\+V\+I\+I\+\_\+\+Bench.\+h}!Bench\+\_\+0000\+\_\+\+Param@{Bench\+\_\+0000\+\_\+\+Param}}
+\index{Bench\+\_\+0000\+\_\+\+Param@{Bench\+\_\+0000\+\_\+\+Param}!M\+M\+V\+I\+I\+\_\+\+Bench.\+h@{M\+M\+V\+I\+I\+\_\+\+Bench.\+h}}
+\subsubsection[{\texorpdfstring{Bench\+\_\+0000\+\_\+\+Param()}{Bench_0000_Param()}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+M\+V\+I\+I\+::\+Bench\+\_\+0000\+\_\+\+Param (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{BenchGlob_8cpp_file_a3572283a4b0560fa97eb349afc225ddc}{}\label{BenchGlob_8cpp_file_a3572283a4b0560fa97eb349afc225ddc}
+
+
+Bench on param line processing (elementary) 
+
+authorized for bench 
+
+Definition at line 73 of file Bench\+Glob.\+cpp.
+
+
+\begin{DoxyCode}
+74 \{
+75    \textcolor{keywordtype}{int} a,b;
+76    cCollecSpecArg2007 aCol;
+77    aCol << Arg2007(a,\textcolor{stringliteral}{"UnA"}) << AOpt2007(b,\textcolor{stringliteral}{"b"},\textcolor{stringliteral}{"UnB"}) ;
+78    aCol[0]->InitParam(\textcolor{stringliteral}{"111"});
+79    aCol[1]->InitParam(\textcolor{stringliteral}{"222"});
+80 
+81    MMVII\_INTERNAL\_ASSERT\_bench(a==111,\textcolor{stringliteral}{"Bench\_0000\_Param"});
+82    MMVII\_INTERNAL\_ASSERT\_bench(b==222,\textcolor{stringliteral}{"Bench\_0000\_Param"});
+83 \}
+\end{DoxyCode}
+\index{M\+M\+V\+I\+I\+\_\+\+Bench.\+h@{M\+M\+V\+I\+I\+\_\+\+Bench.\+h}!Bench\+\_\+\+Nums@{Bench\+\_\+\+Nums}}
+\index{Bench\+\_\+\+Nums@{Bench\+\_\+\+Nums}!M\+M\+V\+I\+I\+\_\+\+Bench.\+h@{M\+M\+V\+I\+I\+\_\+\+Bench.\+h}}
+\subsubsection[{\texorpdfstring{Bench\+\_\+\+Nums()}{Bench_Nums()}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+M\+V\+I\+I\+::\+Bench\+\_\+\+Nums (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__nums_8cpp_file_aa3b7372db91a32a652b34ee1ad39cd5d}{}\label{uti__nums_8cpp_file_aa3b7372db91a32a652b34ee1ad39cd5d}
+
+
+Bench on rounding, modulo ... basic numeric service. 
+
+Bench modulo 
+
+Definition at line 19 of file uti\+\_\+nums.\+cpp.
+
+
+\begin{DoxyCode}
+20 \{
+21    StdOut() << \textcolor{stringliteral}{"Bench\_NumsBench\_NumsBench\_NumsBench\_Nums\(\backslash\)n"};
+22    MMVII\_INTERNAL\_ASSERT\_bench (\textcolor{keyword}{sizeof}(tREAL8)==8,\textcolor{stringliteral}{"Bench round\_up"});
+23    MMVII\_INTERNAL\_ASSERT\_bench (\textcolor{keyword}{sizeof}(tINT4)==4 ,\textcolor{stringliteral}{"Bench round\_up"});
+24    MMVII\_INTERNAL\_ASSERT\_bench (\textcolor{keyword}{sizeof}(tINT8)==8 ,\textcolor{stringliteral}{"Bench round\_up"});
+26 
+27    \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} A=-20 ; A<=20 ; A++)
+28    \{
+29       \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} B=-20 ; B<=20 ; B++)
+30       \{
+31          \textcolor{keywordflow}{if} (B!=0)
+32          \{
+33             \textcolor{comment}{// BenchMod(A,B,mod(A,B));}
+34             \textcolor{comment}{// BenchMod(A,B,mod\_gen(A,B));}
+35             \textcolor{keywordtype}{double} aRatio = double(A) / double(B);
+36 
+37             \textcolor{keywordtype}{int} rup = round\_up(aRatio);
+38             MMVII\_INTERNAL\_ASSERT\_bench ((rup>=aRatio) &&((rup-1)<aRatio),\textcolor{stringliteral}{"Bench round\_up"});
+39             \textcolor{keywordtype}{int} ruup = round\_Uup(aRatio);
+40             MMVII\_INTERNAL\_ASSERT\_bench ((ruup>aRatio) &&((ruup-1)<=aRatio),\textcolor{stringliteral}{"Bench round\_up"});
+41             
+42             \textcolor{keywordtype}{int} rd = round\_down(aRatio);
+43             MMVII\_INTERNAL\_ASSERT\_bench ((rd<=aRatio) &&((rd+1)>aRatio),\textcolor{stringliteral}{"Bench round\_up"});
+44             \textcolor{keywordtype}{int} rdd = round\_Ddown(aRatio);
+45             MMVII\_INTERNAL\_ASSERT\_bench ((rdd<aRatio) &&((rd+1)>=aRatio),\textcolor{stringliteral}{"Bench round\_up"});
+46 
+47             \textcolor{keywordtype}{int} ri = round\_ni(aRatio);
+48             MMVII\_INTERNAL\_ASSERT\_bench ((ri<=aRatio+0.5) &&(ri>aRatio-0.5),\textcolor{stringliteral}{"Bench round\_up"});
+49 
+50             BenchMod(A,B,\hyperlink{MMVII__nums_8h_ab85f9cf0d9cf07fb18b0be3d1f25066c}{mod\_gen}(A,B));
+51             \textcolor{keywordflow}{if} (B>0)
+52                BenchMod(A,B,\hyperlink{MMVII__nums_8h_afb5654e295ea01379ea114aa8f92fe28}{mod}(A,B));
+53          \}
+54       \}
+55    \}
+56 \}
+\end{DoxyCode}
+\index{M\+M\+V\+I\+I\+\_\+\+Bench.\+h@{M\+M\+V\+I\+I\+\_\+\+Bench.\+h}!Bench\+Enum@{Bench\+Enum}}
+\index{Bench\+Enum@{Bench\+Enum}!M\+M\+V\+I\+I\+\_\+\+Bench.\+h@{M\+M\+V\+I\+I\+\_\+\+Bench.\+h}}
+\subsubsection[{\texorpdfstring{Bench\+Enum()}{BenchEnum()}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+M\+V\+I\+I\+::\+Bench\+Enum (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__e2string_8cpp_file_a3417acec5abd74d0a3afd8f49cc21ce6}{}\label{uti__e2string_8cpp_file_a3417acec5abd74d0a3afd8f49cc21ce6}
+
+
+Bench enum. 
+
+Bench on Str2E / E2\+Str. 
+
+Definition at line 161 of file uti\+\_\+e2string.\+cpp.
+
+
+\begin{DoxyCode}
+162 \{
+163    TplBenchEnum<eOpAff>();
+164    TplBenchEnum<eTySC>();
+165    TplBenchEnum<eTA2007>();
+166 \}
+\end{DoxyCode}
+\index{M\+M\+V\+I\+I\+\_\+\+Bench.\+h@{M\+M\+V\+I\+I\+\_\+\+Bench.\+h}!Bench\+Set@{Bench\+Set}}
+\index{Bench\+Set@{Bench\+Set}!M\+M\+V\+I\+I\+\_\+\+Bench.\+h@{M\+M\+V\+I\+I\+\_\+\+Bench.\+h}}
+\subsubsection[{\texorpdfstring{Bench\+Set(const std\+::string \&a\+Dir)}{BenchSet(const std::string &aDir)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+M\+V\+I\+I\+::\+Bench\+Set (
+\begin{DoxyParamCaption}
+\item[{const std\+::string \&}]{a\+Dir}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__set__sel_8cpp_file_a8ff7825898f80133dc7217abeb716dae}{}\label{uti__set__sel_8cpp_file_a8ff7825898f80133dc7217abeb716dae}
+
+
+Bench on \hyperlink{classMMVII_1_1cExtSet}{c\+Ext\+Set} (set \char`\"{}en extension\char`\"{}) 
+
+Bench some sets functionnalities. 
+
+Definition at line 1083 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+
+\begin{DoxyCode}
+1084 \{
+1085     cMMVII\_Appli &  anAp = cMMVII\_Appli::TheAppli();
+1086 
+1087     TplBenchSet<int>        (aDir);
+1088     TplBenchSet<std::string> (aDir);
+1089     TplBenchSet<void *> (aDir);
+1090 
+1091     \textcolor{comment}{// Basic bench of set of cple of name}
+1092     \{
+1093        tNameRel aTest;
+1094        tNameRel aT2;
+1095 
+1096        aTest.Add(\hyperlink{MMVII__AllClassDeclare_8h_a7b6dc8a09571e6038f08b8f7fa07b8b9}{tNamePair}(\textcolor{stringliteral}{"b"},\textcolor{stringliteral}{"a"}));
+1097        aTest.Add(\hyperlink{MMVII__AllClassDeclare_8h_a7b6dc8a09571e6038f08b8f7fa07b8b9}{tNamePair}(\textcolor{stringliteral}{"c"},\textcolor{stringliteral}{"d"}));
+1098        aTest.Add(\hyperlink{MMVII__AllClassDeclare_8h_a7b6dc8a09571e6038f08b8f7fa07b8b9}{tNamePair}(\textcolor{stringliteral}{"d"},\textcolor{stringliteral}{"c"}));
+1099        
+1100        MMVII\_INTERNAL\_ASSERT\_bench(aTest.size()==2,\textcolor{stringliteral}{"BenchSet"});
+1101        std::string aNameFile = anAp.TmpDirTestMMVII() + \textcolor{stringliteral}{"TestRel.xml"};
+1102        SaveInFile(aTest,aNameFile);
+1103        ReadFromFileWithDef(aT2,aNameFile);
+1104 
+1105        MMVII\_INTERNAL\_ASSERT\_bench(aT2.size()==2,\textcolor{stringliteral}{"BenchSet"});
+1106        MMVII\_INTERNAL\_ASSERT\_bench(aT2.Equal(aTest),\textcolor{stringliteral}{"BenchSet"});
+1107     \}
+1108 \}
+\end{DoxyCode}

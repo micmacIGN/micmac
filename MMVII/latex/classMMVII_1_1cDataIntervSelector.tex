@@ -1,0 +1,69 @@
+\hypertarget{classMMVII_1_1cDataIntervSelector}{}\section{M\+M\+V\+II\+:\+:c\+Data\+Interv\+Selector$<$ Type $>$ Class Template Reference}
+\label{classMMVII_1_1cDataIntervSelector}\index{M\+M\+V\+I\+I\+::c\+Data\+Interv\+Selector$<$ Type $>$@{M\+M\+V\+I\+I\+::c\+Data\+Interv\+Selector$<$ Type $>$}}
+
+
+Implemantation of Intervall type.  
+
+
+Inheritance diagram for M\+M\+V\+II\+:\+:c\+Data\+Interv\+Selector$<$ Type $>$\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classMMVII_1_1cDataIntervSelector}
+\end{center}
+\end{figure}
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+typedef boost\+::optional$<$ Type $>$ {\bfseries t\+O\+Obj}\hypertarget{classMMVII_1_1cDataIntervSelector_a88648567b60f951477298817db7cca65}{}\label{classMMVII_1_1cDataIntervSelector_a88648567b60f951477298817db7cca65}
+
+\item 
+typedef const t\+O\+Obj $\ast$ {\bfseries t\+C\+O\+O\+Ptr}\hypertarget{classMMVII_1_1cDataIntervSelector_af19d3c4d2a6f49c777d88b595e7ca181}{}\label{classMMVII_1_1cDataIntervSelector_af19d3c4d2a6f49c777d88b595e7ca181}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries c\+Data\+Interv\+Selector} (t\+C\+O\+O\+Ptr a\+V1, t\+C\+O\+O\+Ptr a\+V2, bool a\+Incl\+Low, bool Incl\+Up)\hypertarget{classMMVII_1_1cDataIntervSelector_ae5e658d8414e0834bfe511fa8dfd9d68}{}\label{classMMVII_1_1cDataIntervSelector_ae5e658d8414e0834bfe511fa8dfd9d68}
+
+\item 
+bool \hyperlink{classMMVII_1_1cDataIntervSelector_a4c75e50e2291ce26d44a5d121204a2fc}{Match} (const Type \&aV) const override\hypertarget{classMMVII_1_1cDataIntervSelector_a4c75e50e2291ce26d44a5d121204a2fc}{}\label{classMMVII_1_1cDataIntervSelector_a4c75e50e2291ce26d44a5d121204a2fc}
+
+\begin{DoxyCompactList}\small\item\em fundamuntal function \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static t\+C\+O\+O\+Ptr {\bfseries Reorder} (t\+C\+O\+O\+Ptr \&a\+V1, t\+C\+O\+O\+Ptr \&a\+V2, bool \&Incl\+Low, bool \&Incl\+Up)\hypertarget{classMMVII_1_1cDataIntervSelector_acff4d14438b64edefff2049acf135c62}{}\label{classMMVII_1_1cDataIntervSelector_acff4d14438b64edefff2049acf135c62}
+
+\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+t\+O\+Obj \hyperlink{classMMVII_1_1cDataIntervSelector_ad397cd46405e1ec34a9072cbbf852d56}{m\+V1}\hypertarget{classMMVII_1_1cDataIntervSelector_ad397cd46405e1ec34a9072cbbf852d56}{}\label{classMMVII_1_1cDataIntervSelector_ad397cd46405e1ec34a9072cbbf852d56}
+
+\begin{DoxyCompactList}\small\item\em lower bound , optionnal no value-\/no use \end{DoxyCompactList}\item 
+t\+O\+Obj \hyperlink{classMMVII_1_1cDataIntervSelector_afda609e115e1998ff1c9c2ff08c1f5a9}{m\+V2}\hypertarget{classMMVII_1_1cDataIntervSelector_afda609e115e1998ff1c9c2ff08c1f5a9}{}\label{classMMVII_1_1cDataIntervSelector_afda609e115e1998ff1c9c2ff08c1f5a9}
+
+\begin{DoxyCompactList}\small\item\em upper bound \end{DoxyCompactList}\item 
+bool \hyperlink{classMMVII_1_1cDataIntervSelector_a936e68401ff6975187126a39491c1be1}{m\+Incl\+Low}\hypertarget{classMMVII_1_1cDataIntervSelector_a936e68401ff6975187126a39491c1be1}{}\label{classMMVII_1_1cDataIntervSelector_a936e68401ff6975187126a39491c1be1}
+
+\begin{DoxyCompactList}\small\item\em Is it open lower bound (Open $<$=$>$ bound excluded) \end{DoxyCompactList}\item 
+bool \hyperlink{classMMVII_1_1cDataIntervSelector_a9209e590782c07ab1586956edfba737a}{m\+Incl\+Up}\hypertarget{classMMVII_1_1cDataIntervSelector_a9209e590782c07ab1586956edfba737a}{}\label{classMMVII_1_1cDataIntervSelector_a9209e590782c07ab1586956edfba737a}
+
+\begin{DoxyCompactList}\small\item\em Is it open upper bound. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class Type$>$\\*
+class M\+M\+V\+I\+I\+::c\+Data\+Interv\+Selector$<$ Type $>$}
+
+Implemantation of Intervall type. 
+
+Interval \mbox{[}V1,V2\mbox{]} , \mbox{]}V1,V2\mbox{]} etc ... optional with no value mean \char`\"{}infinite\char`\"{} bound 
+
+Definition at line 129 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/\+Utils/\hyperlink{uti__set__sel_8cpp}{uti\+\_\+set\+\_\+sel.\+cpp}\end{DoxyCompactItemize}

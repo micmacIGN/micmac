@@ -1,0 +1,176 @@
+\hypertarget{MMVII__util_8h}{}\section{include/\+M\+M\+V\+I\+I\+\_\+util.h File Reference}
+\label{MMVII__util_8h}\index{include/\+M\+M\+V\+I\+I\+\_\+util.\+h@{include/\+M\+M\+V\+I\+I\+\_\+util.\+h}}
+
+
+Utilitaries for non image related services.  
+
+
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classMMVII_1_1cCarLookUpTable}{M\+M\+V\+I\+I\+::c\+Car\+Look\+Up\+Table}
+\item 
+class \hyperlink{classMMVII_1_1cMMVII__Ofs}{M\+M\+V\+I\+I\+::c\+M\+M\+V\+I\+I\+\_\+\+Ofs}
+\begin{DoxyCompactList}\small\item\em Secured ofstream. \end{DoxyCompactList}\item 
+class \hyperlink{classMMVII_1_1cMMVII__Ifs}{M\+M\+V\+I\+I\+::c\+M\+M\+V\+I\+I\+\_\+\+Ifs}
+\begin{DoxyCompactList}\small\item\em Secured ifstream. \end{DoxyCompactList}\item 
+class \hyperlink{classMMVII_1_1cMultipleOfs}{M\+M\+V\+I\+I\+::c\+Multiple\+Ofs}
+\end{DoxyCompactItemize}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{MMVII__util_8h_a90dc3f3ee970394e0080300526390a84}{E\+N\+DL}~\char`\"{}\textbackslash{}n\char`\"{}\hypertarget{MMVII__util_8h_a90dc3f3ee970394e0080300526390a84}{}\label{MMVII__util_8h_a90dc3f3ee970394e0080300526390a84}
+
+\begin{DoxyCompactList}\small\item\em For now I have problem with c\+Multiple\+Ofs $<$$<$ std\+::endl , tag end of line to come back on it later. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool {\bfseries M\+M\+V\+I\+I\+::\+Is\+Char} (int aV)\hypertarget{MMVII__util_8h_a77b884fa7f15381c229ed322f5472ab3}{}\label{MMVII__util_8h_a77b884fa7f15381c229ed322f5472ab3}
+
+\item 
+bool {\bfseries M\+M\+V\+I\+I\+::\+Check\+Intersect} (const std\+::string \&a\+Mes, const std\+::string \&a\+Key\+List, const std\+::string \&a\+List, const std\+::string \&a\+Space)\hypertarget{cSpecMMVII__Appli_8cpp_a269716c1f843fe84fb8c521c8252ff27}{}\label{cSpecMMVII__Appli_8cpp_a269716c1f843fe84fb8c521c8252ff27}
+
+\item 
+std\+::string {\bfseries M\+M\+V\+I\+I\+::\+Quote} (const std\+::string \&a\+Str)\hypertarget{uti__string_8cpp_aa10ade853ae9361c218e05a8b47caf26}{}\label{uti__string_8cpp_aa10ade853ae9361c218e05a8b47caf26}
+
+\item 
+std\+::vector$<$ std\+::string $>$ {\bfseries M\+M\+V\+I\+I\+::\+Split\+String} (const std\+::string \&a\+Str, const std\+::string \&a\+Space)\hypertarget{uti__string_8cpp_aae5aa76107e8f08cea55941b18ca133f}{}\label{uti__string_8cpp_aae5aa76107e8f08cea55941b18ca133f}
+
+\item 
+void {\bfseries M\+M\+V\+I\+I\+::\+Split\+String\+Arround} (std\+::string \&a\+Before, std\+::string \&a\+After, const std\+::string \&a\+Str, char a\+Char\+Sep, bool S\+VP, bool Priv\+Pref)\hypertarget{uti__string_8cpp_ab7742f39437847057d3dea3f78b60e31}{}\label{uti__string_8cpp_ab7742f39437847057d3dea3f78b60e31}
+
+\item 
+std\+::string {\bfseries M\+M\+V\+I\+I\+::\+Prefix} (const std\+::string \&a\+Str, char a\+Sep, bool S\+VP, bool Priv\+Pref)\hypertarget{uti__string_8cpp_a7160ce494601ecaa483f1af831da496c}{}\label{uti__string_8cpp_a7160ce494601ecaa483f1af831da496c}
+
+\item 
+std\+::string {\bfseries M\+M\+V\+I\+I\+::\+Postfix} (const std\+::string \&a\+Str, char a\+Sep, bool S\+VP, bool Priv\+Pref)\hypertarget{uti__string_8cpp_a49854787e11e3fa6e698b903ef85cf9c}{}\label{uti__string_8cpp_a49854787e11e3fa6e698b903ef85cf9c}
+
+\item 
+void \hyperlink{uti__string_8cpp_a2ba1810dc4ff3d1e00bede52d97a5f6b}{M\+M\+V\+I\+I\+::\+Make\+Name\+Dir} (std\+::string \&a\+Dir)\hypertarget{uti__string_8cpp_a2ba1810dc4ff3d1e00bede52d97a5f6b}{}\label{uti__string_8cpp_a2ba1810dc4ff3d1e00bede52d97a5f6b}
+
+\begin{DoxyCompactList}\small\item\em Add a \textquotesingle{}/\textquotesingle{}, or equiv, to make a name of directory. \end{DoxyCompactList}\item 
+bool {\bfseries M\+M\+V\+I\+I\+::\+Exist\+File} (const std\+::string \&a\+Name)\hypertarget{uti__string_8cpp_a5b407586defbe6405d9a6b215dc6975f}{}\label{uti__string_8cpp_a5b407586defbe6405d9a6b215dc6975f}
+
+\item 
+uintmax\+\_\+t {\bfseries M\+M\+V\+I\+I\+::\+Size\+File} (const std\+::string \&a\+Name)\hypertarget{uti__string_8cpp_a9f64e52896b965a133f7f09f4fb74dbb}{}\label{uti__string_8cpp_a9f64e52896b965a133f7f09f4fb74dbb}
+
+\item 
+bool {\bfseries M\+M\+V\+I\+I\+::\+Split\+Dir\+And\+File} (std\+::string \&a\+Dir, std\+::string \&a\+File, const std\+::string \&a\+Dir\+And\+File, bool Error\+Non\+Exist)\hypertarget{uti__string_8cpp_a4bb39f902f5891b03ac020124eed016d}{}\label{uti__string_8cpp_a4bb39f902f5891b03ac020124eed016d}
+
+\item 
+std\+::string {\bfseries M\+M\+V\+I\+I\+::\+Dir\+Cur} ()\hypertarget{uti__string_8cpp_a656506c1620e2ceeb427cf31122a7e6c}{}\label{uti__string_8cpp_a656506c1620e2ceeb427cf31122a7e6c}
+
+\item 
+std\+::string {\bfseries M\+M\+V\+I\+I\+::\+Dir\+Of\+Path} (const std\+::string \&a\+Path, bool Error\+Non\+Exist)\hypertarget{uti__string_8cpp_aa6e2d9d2ff7a5a832dae6a4d458aca3e}{}\label{uti__string_8cpp_aa6e2d9d2ff7a5a832dae6a4d458aca3e}
+
+\item 
+std\+::string {\bfseries M\+M\+V\+I\+I\+::\+File\+Of\+Path} (const std\+::string \&a\+Path, bool Error\+Non\+Exist)\hypertarget{uti__string_8cpp_a3fbc1f0cce9bc8eef800b6e39721cf00}{}\label{uti__string_8cpp_a3fbc1f0cce9bc8eef800b6e39721cf00}
+
+\item 
+std\+::string \hyperlink{uti__string_8cpp_a3956cc5ae1ef75f96301d8a64bfd2bc7}{M\+M\+V\+I\+I\+::\+Up\+Dir} (const std\+::string \&a\+Dir, int a\+Nb)
+\item 
+bool \hyperlink{uti__string_8cpp_adff43fe7f0f569171eefb1aeafe2d0a3}{M\+M\+V\+I\+I\+::\+U\+Case\+Equal} (const std\+::string \&,const std\+::string \&)\hypertarget{uti__string_8cpp_adff43fe7f0f569171eefb1aeafe2d0a3}{}\label{uti__string_8cpp_adff43fe7f0f569171eefb1aeafe2d0a3}
+
+\begin{DoxyCompactList}\small\item\em Case unsensitive equality. \end{DoxyCompactList}\item 
+bool \hyperlink{uti__string_8cpp_a595e0d03ab829fd9baf58e036de11e57}{M\+M\+V\+I\+I\+::\+U\+Case\+Begin} (const char $\ast$a\+Begin, const char $\ast$a\+Str)\hypertarget{uti__string_8cpp_a595e0d03ab829fd9baf58e036de11e57}{}\label{uti__string_8cpp_a595e0d03ab829fd9baf58e036de11e57}
+
+\begin{DoxyCompactList}\small\item\em Is a\+Begin the case U\+N-\/sensitive premisse of a\+Str ? \end{DoxyCompactList}\item 
+bool \hyperlink{uti__string_8cpp_a8b6c1e2096b970c7eb0ed7657c581eb6}{M\+M\+V\+I\+I\+::\+Create\+Directories} (const std\+::string \&a\+Dir, bool S\+VP)\hypertarget{uti__string_8cpp_a8b6c1e2096b970c7eb0ed7657c581eb6}{}\label{uti__string_8cpp_a8b6c1e2096b970c7eb0ed7657c581eb6}
+
+\begin{DoxyCompactList}\small\item\em Create dir, recurs ? \end{DoxyCompactList}\item 
+bool \hyperlink{uti__string_8cpp_a51891f9891c24ffe48b30644d81550ce}{M\+M\+V\+I\+I\+::\+Remove\+Recurs} (const std\+::string \&a\+Dir, bool Re\+Mk\+Dir, bool S\+VP)\hypertarget{uti__string_8cpp_a51891f9891c24ffe48b30644d81550ce}{}\label{uti__string_8cpp_a51891f9891c24ffe48b30644d81550ce}
+
+\begin{DoxyCompactList}\small\item\em Purge recursively the directory. \end{DoxyCompactList}\item 
+bool \hyperlink{uti__string_8cpp_a6a23803c828e575819807209a80d4ac6}{M\+M\+V\+I\+I\+::\+Remove\+File} (const std\+::string \&a\+Dir, bool S\+VP)\hypertarget{uti__string_8cpp_a6a23803c828e575819807209a80d4ac6}{}\label{uti__string_8cpp_a6a23803c828e575819807209a80d4ac6}
+
+\begin{DoxyCompactList}\small\item\em Remove file. \end{DoxyCompactList}\item 
+void \hyperlink{uti__string_8cpp_a3abbe13fdec94d3e01a4c1d153b00fbb}{M\+M\+V\+I\+I\+::\+Rename\+Files} (const std\+::string \&an\+Old\+Name, const std\+::string \&a\+New\+Name)\hypertarget{uti__string_8cpp_a3abbe13fdec94d3e01a4c1d153b00fbb}{}\label{uti__string_8cpp_a3abbe13fdec94d3e01a4c1d153b00fbb}
+
+\begin{DoxyCompactList}\small\item\em Move/\+Rename. \end{DoxyCompactList}\item 
+void {\bfseries M\+M\+V\+I\+I\+::\+Copy\+File} (const std\+::string \&a\+Name, const std\+::string \&a\+Dest)\hypertarget{uti__string_8cpp_ad69d559f2e7747122c8e2078adb02ecb}{}\label{uti__string_8cpp_ad69d559f2e7747122c8e2078adb02ecb}
+
+\item 
+bool \hyperlink{uti__string_8cpp_ad4ca07dc17a92d125e3b11c77f9b44f4}{M\+M\+V\+I\+I\+::\+Case\+S\+Begin} (const char $\ast$a\+Begin, const char $\ast$a\+Str)\hypertarget{uti__string_8cpp_ad4ca07dc17a92d125e3b11c77f9b44f4}{}\label{uti__string_8cpp_ad4ca07dc17a92d125e3b11c77f9b44f4}
+
+\begin{DoxyCompactList}\small\item\em Is a\+Begin the case S\+E\+N\+S-\/itive premisse of a\+Str ? \end{DoxyCompactList}\item 
+void {\bfseries M\+M\+V\+I\+I\+::\+Skeep\+White} (const char $\ast$\&aC)\hypertarget{uti__string_8cpp_a327fa1c92984bf94dfbfe340415efeae}{}\label{uti__string_8cpp_a327fa1c92984bf94dfbfe340415efeae}
+
+\item 
+char {\bfseries M\+M\+V\+I\+I\+::\+Dir\+Separator} ()\hypertarget{uti__string_8cpp_ababa512e57e43eeb25aa03f85b067266}{}\label{uti__string_8cpp_ababa512e57e43eeb25aa03f85b067266}
+
+\item 
+t\+Name\+Selector \hyperlink{uti__set__sel_8cpp_a12f1e1593b56a9a9beb0a3b706ec2c40}{M\+M\+V\+I\+I\+::\+Boost\+Alloc\+Regex} (const std\+::string \&a\+Reg\+Ex)\hypertarget{uti__set__sel_8cpp_a12f1e1593b56a9a9beb0a3b706ec2c40}{}\label{uti__set__sel_8cpp_a12f1e1593b56a9a9beb0a3b706ec2c40}
+
+\begin{DoxyCompactList}\small\item\em Create a selector associated to a regular expression, by convention return Cste-\/true selector if string=\char`\"{}\char`\"{}. \end{DoxyCompactList}\item 
+std\+::vector$<$ std\+::string $>$ \hyperlink{uti__string_8cpp_a85250835e932182fba5b643b409e9cbd}{M\+M\+V\+I\+I\+::\+Get\+Files\+From\+Dir} (const std\+::string \&a\+Dir, const t\+Name\+Selector \&)\hypertarget{uti__string_8cpp_a85250835e932182fba5b643b409e9cbd}{}\label{uti__string_8cpp_a85250835e932182fba5b643b409e9cbd}
+
+\begin{DoxyCompactList}\small\item\em Exract name of files located in the directory, by return value. \end{DoxyCompactList}\item 
+void \hyperlink{uti__string_8cpp_a7ec0c625ee8f6f78f77acb1a4c83cf4c}{M\+M\+V\+I\+I\+::\+Get\+Files\+From\+Dir} (std\+::vector$<$ std\+::string $>$ \&, const std\+::string \&a\+Dir, const t\+Name\+Selector \&)
+\begin{DoxyCompactList}\small\item\em Exract name of files, by ref. \end{DoxyCompactList}\item 
+void \hyperlink{uti__string_8cpp_a7d92ec2c18cebcbfc42dd452d96f523e}{M\+M\+V\+I\+I\+::\+Rec\+Get\+Files\+From\+Dir} (std\+::vector$<$ std\+::string $>$ \&a\+Res, const std\+::string \&a\+Dir, t\+Name\+Selector a\+NS, int a\+Lev\+Min, int a\+Lev\+Max)\hypertarget{uti__string_8cpp_a7d92ec2c18cebcbfc42dd452d96f523e}{}\label{uti__string_8cpp_a7d92ec2c18cebcbfc42dd452d96f523e}
+
+\begin{DoxyCompactList}\small\item\em Recursively exract name of files located in the directory, by return value. \end{DoxyCompactList}\item 
+std\+::vector$<$ std\+::string $>$ \hyperlink{uti__string_8cpp_adf073e7bd0eeec2c260c5cd065693f31}{M\+M\+V\+I\+I\+::\+Rec\+Get\+Files\+From\+Dir} (const std\+::string \&a\+Dir, t\+Name\+Selector a\+NS, int a\+Lev\+Min, int a\+Lev\+Max)\hypertarget{uti__string_8cpp_adf073e7bd0eeec2c260c5cd065693f31}{}\label{uti__string_8cpp_adf073e7bd0eeec2c260c5cd065693f31}
+
+\begin{DoxyCompactList}\small\item\em Recursively exract name of files, by return value. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Utilitaries for non image related services. 
+
+Utilitarries for \+: string manipulation directory parsing safe file services 
+
+\subsection{Function Documentation}
+\index{M\+M\+V\+I\+I\+\_\+util.\+h@{M\+M\+V\+I\+I\+\_\+util.\+h}!Get\+Files\+From\+Dir@{Get\+Files\+From\+Dir}}
+\index{Get\+Files\+From\+Dir@{Get\+Files\+From\+Dir}!M\+M\+V\+I\+I\+\_\+util.\+h@{M\+M\+V\+I\+I\+\_\+util.\+h}}
+\subsubsection[{\texorpdfstring{Get\+Files\+From\+Dir(std\+::vector$<$ std\+::string $>$ \&, const std\+::string \&a\+Dir, const t\+Name\+Selector \&)}{GetFilesFromDir(std::vector< std::string > &, const std::string &aDir, const tNameSelector &)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+M\+V\+I\+I\+::\+Get\+Files\+From\+Dir (
+\begin{DoxyParamCaption}
+\item[{std\+::vector$<$ std\+::string $>$ \&}]{a\+Res, }
+\item[{const std\+::string \&}]{a\+Dir, }
+\item[{const {\bf t\+Name\+Selector} \&}]{a\+NS}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__string_8cpp_file_a7ec0c625ee8f6f78f77acb1a4c83cf4c}{}\label{uti__string_8cpp_file_a7ec0c625ee8f6f78f77acb1a4c83cf4c}
+
+
+Exract name of files, by ref. 
+
+Implementation of Get\+Files\+From\+Dir, use boost 
+
+Definition at line 384 of file uti\+\_\+string.\+cpp.
+
+
+\begin{DoxyCode}
+385 \{
+386    \textcolor{keywordflow}{for} (directory\_iterator itr(aDir); itr!=directory\_iterator(); ++itr)
+387    \{
+388       std::string aName ( itr->path().filename().c\_str());
+389       \textcolor{keywordflow}{if} ( is\_regular\_file(itr->status()) &&  aNS.Match(aName))
+390          aRes.push\_back(aName);
+391    \}
+392 \}
+\end{DoxyCode}
+\index{M\+M\+V\+I\+I\+\_\+util.\+h@{M\+M\+V\+I\+I\+\_\+util.\+h}!Up\+Dir@{Up\+Dir}}
+\index{Up\+Dir@{Up\+Dir}!M\+M\+V\+I\+I\+\_\+util.\+h@{M\+M\+V\+I\+I\+\_\+util.\+h}}
+\subsubsection[{\texorpdfstring{Up\+Dir(const std\+::string \&a\+Dir, int a\+Nb)}{UpDir(const std::string &aDir, int aNb)}}]{\setlength{\rightskip}{0pt plus 5cm}std\+::string M\+M\+V\+I\+I\+::\+Up\+Dir (
+\begin{DoxyParamCaption}
+\item[{const std\+::string \&}]{a\+Dir, }
+\item[{int}]{a\+Nb}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__string_8cpp_file_a3956cc5ae1ef75f96301d8a64bfd2bc7}{}\label{uti__string_8cpp_file_a3956cc5ae1ef75f96301d8a64bfd2bc7}
+Basic but seems to work untill now 
+
+Definition at line 224 of file uti\+\_\+string.\+cpp.
+
+
+\begin{DoxyCode}
+225 \{
+226    std::string aRes = aDir;
+227    \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} aK=0 ; aK<aNb ; aK++)
+228    \{
+229       \textcolor{comment}{// aRes += std::string("..") +  path::preferred\_separator;}
+230       \textcolor{comment}{// aRes += ".." +  path::preferred\_separator;}
+231       aRes = aRes + std::string(\textcolor{stringliteral}{".."}) +  path::preferred\_separator;
+232    \}
+233    \textcolor{keywordflow}{return} aRes;
+234 \}
+\end{DoxyCode}

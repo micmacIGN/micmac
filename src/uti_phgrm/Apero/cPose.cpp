@@ -586,6 +586,9 @@ void cAccumResidu::AccumInImage(const cInfoAccumRes & anInfo)
                 double aMonXY = aVMx[aDx] * aVMy[aDy]; // X ^ Dx * Y ^ Dy
                 anEq.push_back(aMonXY* aN.x);
                 anEq.push_back(aMonXY* aN.y);
+
+//    std::cout << " eq " << aDx << " " << aDx << " " << aVMx[aDx] << " " << aVMy[aDy] << " " << aN.x << " " << aN.y << " " << anInfo.mDir <<"\n";
+  //  std::cout << " eq " << aMonXY* aN.x << " " << aMonXY* aN.y << "\n";
            }
         }
         mSys->AddEquation(anInfo.mPds,VData(anEq),anInfo.mResidu);

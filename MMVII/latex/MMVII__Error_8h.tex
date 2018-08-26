@@ -1,0 +1,165 @@
+\hypertarget{MMVII__Error_8h}{}\section{include/\+M\+M\+V\+I\+I\+\_\+\+Error.h File Reference}
+\label{MMVII__Error_8h}\index{include/\+M\+M\+V\+I\+I\+\_\+\+Error.\+h@{include/\+M\+M\+V\+I\+I\+\_\+\+Error.\+h}}
+
+
+Error handling, basic for now.  
+
+
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define {\bfseries The\+\_\+\+M\+M\+V\+I\+I\+\_\+\+Debug\+Level\+\_\+\+Internal\+Error\+\_\+tiny}~5\hypertarget{MMVII__Error_8h_a53174d596c2061a5909384cd0ca7d645}{}\label{MMVII__Error_8h_a53174d596c2061a5909384cd0ca7d645}
+
+\item 
+\#define {\bfseries The\+\_\+\+M\+M\+V\+I\+I\+\_\+\+Debug\+Level\+\_\+\+Internal\+Error\+\_\+medium}~4\hypertarget{MMVII__Error_8h_a8290cd0774a1949f25d205d0bf7ae3e1}{}\label{MMVII__Error_8h_a8290cd0774a1949f25d205d0bf7ae3e1}
+
+\item 
+\#define {\bfseries The\+\_\+\+M\+M\+V\+I\+I\+\_\+\+Debug\+Level\+\_\+\+Internal\+Error\+\_\+strong}~3\hypertarget{MMVII__Error_8h_a8706e84109423e68ce413d015b5f91b9}{}\label{MMVII__Error_8h_a8706e84109423e68ce413d015b5f91b9}
+
+\item 
+\#define {\bfseries The\+\_\+\+M\+M\+V\+I\+I\+\_\+\+Debug\+Level\+\_\+\+User\+Error}~2\hypertarget{MMVII__Error_8h_a69e496225a98f7f76ef0a945c77a4364}{}\label{MMVII__Error_8h_a69e496225a98f7f76ef0a945c77a4364}
+
+\item 
+\#define {\bfseries The\+\_\+\+M\+M\+V\+I\+I\+\_\+\+Debug\+Level\+\_\+\+Bench\+Error}~1\hypertarget{MMVII__Error_8h_aca7c2ec5f78f70fdd7e5aa25b39bc3ac}{}\label{MMVII__Error_8h_aca7c2ec5f78f70fdd7e5aa25b39bc3ac}
+
+\item 
+\#define {\bfseries The\+\_\+\+M\+M\+V\+I\+I\+\_\+\+Debug\+Level\+\_\+\+No\+Error}~0\hypertarget{MMVII__Error_8h_a895e3e5dabdd187d5e6361585dbcc00e}{}\label{MMVII__Error_8h_a895e3e5dabdd187d5e6361585dbcc00e}
+
+\item 
+\#define {\bfseries The\+\_\+\+M\+M\+V\+I\+I\+\_\+\+Debug\+Level}~The\+\_\+\+M\+M\+V\+I\+I\+\_\+\+Debug\+Level\+\_\+\+Internal\+Error\+\_\+tiny\hypertarget{MMVII__Error_8h_a8218527e94d1d5b4d9b32fb217fe0424}{}\label{MMVII__Error_8h_a8218527e94d1d5b4d9b32fb217fe0424}
+
+\item 
+\#define {\bfseries M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+tiny}(a\+Test,  a\+Mes)
+\item 
+\#define {\bfseries M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+medium}(a\+Test,  a\+Mes)
+\item 
+\#define {\bfseries M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+strong}(a\+Test,  a\+Mes)
+\item 
+\#define {\bfseries M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+bench}(a\+Test,  a\+Mes)
+\item 
+\#define {\bfseries M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+user}(a\+Ref,  a\+Mes)
+\item 
+\#define {\bfseries M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+always}(a\+Test,  a\+Mes)
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void {\bfseries M\+M\+V\+I\+I\+::\+M\+M\+V\+V\+I\+\_\+\+Error} (const std\+::string \&a\+Type, const std\+::string \&a\+Mes, const char $\ast$a\+File, int a\+Line)\hypertarget{MMVI__Errors_8cpp_a7678155912011a3043f0da1746dbe887}{}\label{MMVI__Errors_8cpp_a7678155912011a3043f0da1746dbe887}
+
+\item 
+void {\bfseries M\+M\+V\+I\+I\+::\+M\+M\+V\+I\+I\+\_\+\+Users\+Errror} (const e\+Ty\+U\+Er \&a\+Ref, const std\+::string \&a\+Mes)\hypertarget{MMVI__Errors_8cpp_a7d25588f7995247d85af51d5fe459a20}{}\label{MMVI__Errors_8cpp_a7d25588f7995247d85af51d5fe459a20}
+
+\item 
+{\footnotesize template$<$class T $>$ }\\void {\bfseries M\+M\+V\+I\+I\+::\+Ignore\+Unused} (const T \&)\hypertarget{MMVII__Error_8h_a54913bd8e41061316d9cc9c604942f1a}{}\label{MMVII__Error_8h_a54913bd8e41061316d9cc9c604942f1a}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Error handling, basic for now. 
+
+Probably, sooner or later, I will have to change completely the error handling. However, waiting for that, we need to do something, and keep track in the file of the location of error detection. 
+
+\subsection{Macro Definition Documentation}
+\index{M\+M\+V\+I\+I\+\_\+\+Error.\+h@{M\+M\+V\+I\+I\+\_\+\+Error.\+h}!M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+always@{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+always}}
+\index{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+always@{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+always}!M\+M\+V\+I\+I\+\_\+\+Error.\+h@{M\+M\+V\+I\+I\+\_\+\+Error.\+h}}
+\subsubsection[{\texorpdfstring{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+always}{MMVII_INTERNAL_ASSERT_always}}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+always(
+\begin{DoxyParamCaption}
+\item[{}]{a\+Test, }
+\item[{}]{a\+Mes}
+\end{DoxyParamCaption}
+)}\hypertarget{MMVII__Error_8h_a4e3d1d2161048c6e95e21240a0615955}{}\label{MMVII__Error_8h_a4e3d1d2161048c6e95e21240a0615955}
+{\bfseries Value\+:}
+\begin{DoxyCode}
+\textcolor{keywordflow}{if}  (!(aTest))\(\backslash\)
+\{ MMVVI\_Error(\textcolor{stringliteral}{"Internal Error"},aMes,\_\_FILE\_\_,\_\_LINE\_\_);\}
+\end{DoxyCode}
+
+
+Definition at line 58 of file M\+M\+V\+I\+I\+\_\+\+Error.\+h.
+
+\index{M\+M\+V\+I\+I\+\_\+\+Error.\+h@{M\+M\+V\+I\+I\+\_\+\+Error.\+h}!M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+bench@{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+bench}}
+\index{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+bench@{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+bench}!M\+M\+V\+I\+I\+\_\+\+Error.\+h@{M\+M\+V\+I\+I\+\_\+\+Error.\+h}}
+\subsubsection[{\texorpdfstring{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+bench}{MMVII_INTERNAL_ASSERT_bench}}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+bench(
+\begin{DoxyParamCaption}
+\item[{}]{a\+Test, }
+\item[{}]{a\+Mes}
+\end{DoxyParamCaption}
+)}\hypertarget{MMVII__Error_8h_a1197311e2285e386d2f713de19691345}{}\label{MMVII__Error_8h_a1197311e2285e386d2f713de19691345}
+{\bfseries Value\+:}
+\begin{DoxyCode}
+\textcolor{keywordflow}{if} ((The\_MMVII\_DebugLevel>=The\_MMVII\_DebugLevel\_BenchError ) && (!(aTest)))\(\backslash\)
+\{ MMVVI\_Error(\textcolor{stringliteral}{"Internal Error"},aMes,\_\_FILE\_\_,\_\_LINE\_\_);\}
+\end{DoxyCode}
+
+
+Definition at line 47 of file M\+M\+V\+I\+I\+\_\+\+Error.\+h.
+
+\index{M\+M\+V\+I\+I\+\_\+\+Error.\+h@{M\+M\+V\+I\+I\+\_\+\+Error.\+h}!M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+medium@{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+medium}}
+\index{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+medium@{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+medium}!M\+M\+V\+I\+I\+\_\+\+Error.\+h@{M\+M\+V\+I\+I\+\_\+\+Error.\+h}}
+\subsubsection[{\texorpdfstring{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+medium}{MMVII_INTERNAL_ASSERT_medium}}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+medium(
+\begin{DoxyParamCaption}
+\item[{}]{a\+Test, }
+\item[{}]{a\+Mes}
+\end{DoxyParamCaption}
+)}\hypertarget{MMVII__Error_8h_adde518a097724926d04e7a7f78598280}{}\label{MMVII__Error_8h_adde518a097724926d04e7a7f78598280}
+{\bfseries Value\+:}
+\begin{DoxyCode}
+\textcolor{keywordflow}{if} ((The\_MMVII\_DebugLevel>=The\_MMVII\_DebugLevel\_InternalError\_medium ) && (!(aTest)))\(\backslash\)
+\{ MMVVI\_Error(\textcolor{stringliteral}{"Internal Error"},aMes,\_\_FILE\_\_,\_\_LINE\_\_);\}
+\end{DoxyCode}
+
+
+Definition at line 38 of file M\+M\+V\+I\+I\+\_\+\+Error.\+h.
+
+\index{M\+M\+V\+I\+I\+\_\+\+Error.\+h@{M\+M\+V\+I\+I\+\_\+\+Error.\+h}!M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+strong@{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+strong}}
+\index{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+strong@{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+strong}!M\+M\+V\+I\+I\+\_\+\+Error.\+h@{M\+M\+V\+I\+I\+\_\+\+Error.\+h}}
+\subsubsection[{\texorpdfstring{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+strong}{MMVII_INTERNAL_ASSERT_strong}}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+strong(
+\begin{DoxyParamCaption}
+\item[{}]{a\+Test, }
+\item[{}]{a\+Mes}
+\end{DoxyParamCaption}
+)}\hypertarget{MMVII__Error_8h_ab46c4c817f890f2a8fc058c8ea13cd74}{}\label{MMVII__Error_8h_ab46c4c817f890f2a8fc058c8ea13cd74}
+{\bfseries Value\+:}
+\begin{DoxyCode}
+\textcolor{keywordflow}{if} ((The\_MMVII\_DebugLevel>=The\_MMVII\_DebugLevel\_InternalError\_strong ) && (!(aTest)))\(\backslash\)
+\{ MMVVI\_Error(\textcolor{stringliteral}{"Internal Error"},aMes,\_\_FILE\_\_,\_\_LINE\_\_);\}
+\end{DoxyCode}
+
+
+Definition at line 42 of file M\+M\+V\+I\+I\+\_\+\+Error.\+h.
+
+\index{M\+M\+V\+I\+I\+\_\+\+Error.\+h@{M\+M\+V\+I\+I\+\_\+\+Error.\+h}!M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+tiny@{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+tiny}}
+\index{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+tiny@{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+tiny}!M\+M\+V\+I\+I\+\_\+\+Error.\+h@{M\+M\+V\+I\+I\+\_\+\+Error.\+h}}
+\subsubsection[{\texorpdfstring{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+tiny}{MMVII_INTERNAL_ASSERT_tiny}}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+tiny(
+\begin{DoxyParamCaption}
+\item[{}]{a\+Test, }
+\item[{}]{a\+Mes}
+\end{DoxyParamCaption}
+)}\hypertarget{MMVII__Error_8h_ab4b852844c93f8e17ee11df75f7f97c2}{}\label{MMVII__Error_8h_ab4b852844c93f8e17ee11df75f7f97c2}
+{\bfseries Value\+:}
+\begin{DoxyCode}
+\textcolor{keywordflow}{if} ((The\_MMVII\_DebugLevel>=The\_MMVII\_DebugLevel\_InternalError\_tiny ) && (!(aTest)))\(\backslash\)
+\{ MMVVI\_Error(\textcolor{stringliteral}{"Internal Error"},aMes,\_\_FILE\_\_,\_\_LINE\_\_);\}
+\end{DoxyCode}
+
+
+Definition at line 34 of file M\+M\+V\+I\+I\+\_\+\+Error.\+h.
+
+\index{M\+M\+V\+I\+I\+\_\+\+Error.\+h@{M\+M\+V\+I\+I\+\_\+\+Error.\+h}!M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+user@{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+user}}
+\index{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+user@{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+user}!M\+M\+V\+I\+I\+\_\+\+Error.\+h@{M\+M\+V\+I\+I\+\_\+\+Error.\+h}}
+\subsubsection[{\texorpdfstring{M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+user}{MMVII_INTERNAL_ASSERT_user}}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+user(
+\begin{DoxyParamCaption}
+\item[{}]{a\+Ref, }
+\item[{}]{a\+Mes}
+\end{DoxyParamCaption}
+)}\hypertarget{MMVII__Error_8h_a495eaeda2b835272719f988f5e023f8c}{}\label{MMVII__Error_8h_a495eaeda2b835272719f988f5e023f8c}
+{\bfseries Value\+:}
+\begin{DoxyCode}
+\textcolor{keywordflow}{if} (The\_MMVII\_DebugLevel>=The\_MMVII\_DebugLevel\_UserError ) \(\backslash\)
+\{  MMVII\_UsersErrror(aRef,aMes);\}
+\end{DoxyCode}
+
+
+Definition at line 52 of file M\+M\+V\+I\+I\+\_\+\+Error.\+h.
+

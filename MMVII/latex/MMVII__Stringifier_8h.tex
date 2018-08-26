@@ -1,0 +1,213 @@
+\hypertarget{MMVII__Stringifier_8h}{}\section{include/\+M\+M\+V\+I\+I\+\_\+\+Stringifier.h File Reference}
+\label{MMVII__Stringifier_8h}\index{include/\+M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h@{include/\+M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h}}
+
+
+Interface for services related to read/write values.  
+
+
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classMMVII_1_1cStrIO}{M\+M\+V\+I\+I\+::c\+Str\+I\+O$<$ Type $>$}
+\begin{DoxyCompactList}\small\item\em string$<$--$>$Value conversion \end{DoxyCompactList}\item 
+class \hyperlink{classMMVII_1_1cSemA2007}{M\+M\+V\+I\+I\+::c\+Sem\+A2007}
+\begin{DoxyCompactList}\small\item\em Semantic of \hyperlink{classMMVII_1_1cSpecOneArg2007}{c\+Spec\+One\+Arg2007}. \end{DoxyCompactList}\item 
+class \hyperlink{classMMVII_1_1cSpecOneArg2007}{M\+M\+V\+I\+I\+::c\+Spec\+One\+Arg2007}
+\begin{DoxyCompactList}\small\item\em Base class to describe one paramater specification. \end{DoxyCompactList}\item 
+class \hyperlink{classMMVII_1_1cCollecSpecArg2007}{M\+M\+V\+I\+I\+::c\+Collec\+Spec\+Arg2007}
+\begin{DoxyCompactList}\small\item\em Collection of arg spec. \end{DoxyCompactList}\item 
+class \hyperlink{classMMVII_1_1cAuxAr2007}{M\+M\+V\+I\+I\+::c\+Aux\+Ar2007}
+\begin{DoxyCompactList}\small\item\em Auxiliary class for Archive manipulation. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef std\+::shared\+\_\+ptr$<$ c\+Spec\+One\+Arg2007 $>$ {\bfseries M\+M\+V\+I\+I\+::t\+Ptr\+Arg2007}\hypertarget{MMVII__Stringifier_8h_a3c49a3533cabb4f8987bfc12b53c7076}{}\label{MMVII__Stringifier_8h_a3c49a3533cabb4f8987bfc12b53c7076}
+
+\item 
+typedef std\+::vector$<$ t\+Ptr\+Arg2007 $>$ {\bfseries M\+M\+V\+I\+I\+::t\+Vec\+Arg2007}\hypertarget{MMVII__Stringifier_8h_ac32e3c49aa24e3621b57e74cc65b90e9}{}\label{MMVII__Stringifier_8h_ac32e3c49aa24e3621b57e74cc65b90e9}
+
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$class Type $>$ }\\std\+::string \hyperlink{MMVII__Stringifier_8h_a2bbf78a5a3bc3646c1270243097b15b8}{M\+M\+V\+I\+I\+::\+To\+Str} (const Type \&aV)\hypertarget{MMVII__Stringifier_8h_a2bbf78a5a3bc3646c1270243097b15b8}{}\label{MMVII__Stringifier_8h_a2bbf78a5a3bc3646c1270243097b15b8}
+
+\begin{DoxyCompactList}\small\item\em Facilities when the type is well defined. \end{DoxyCompactList}\item 
+std\+::string {\bfseries M\+M\+V\+I\+I\+::\+To\+Str} (int a\+Val, int a\+Sz\+Min)\hypertarget{cStrIO_8cpp_af6b8b1a00e60166a4dbd623944c30611}{}\label{cStrIO_8cpp_af6b8b1a00e60166a4dbd623944c30611}
+
+\item 
+{\footnotesize template$<$class Type $>$ }\\std\+::string \hyperlink{MMVII__Stringifier_8h_a64a1308bcc78f0e43e7fc6ff36934e9f}{M\+M\+V\+I\+I\+::\+ToS} (const Type \&aV)
+\item 
+{\footnotesize template$<$class Type $>$ }\\void {\bfseries M\+M\+V\+I\+I\+::\+FromS} (const std\+::string \&a\+Str, Type \&aV)\hypertarget{MMVII__Stringifier_8h_aa83a420099f0ee8d6ef1e6c7850464e4}{}\label{MMVII__Stringifier_8h_aa83a420099f0ee8d6ef1e6c7850464e4}
+
+\item 
+{\footnotesize template$<$class Type $>$ }\\t\+Ptr\+Arg2007 \hyperlink{MMVII__Stringifier_8h_a9177f4329717341a254177fd0ebde7a6}{M\+M\+V\+I\+I\+::\+Arg2007} (Type \&, const std\+::string \&a\+Com, const std\+::vector$<$ c\+Sem\+A2007 $>$ \&=c\+Spec\+One\+Arg2007\+::\+The\+Empty\+Sem)\hypertarget{MMVII__Stringifier_8h_a9177f4329717341a254177fd0ebde7a6}{}\label{MMVII__Stringifier_8h_a9177f4329717341a254177fd0ebde7a6}
+
+\begin{DoxyCompactList}\small\item\em Two auxilary fonction to create easily \hyperlink{classMMVII_1_1cSpecOneArg2007}{c\+Spec\+One\+Arg2007} , one for mandatory. \end{DoxyCompactList}\item 
+{\footnotesize template$<$class Type $>$ }\\t\+Ptr\+Arg2007 \hyperlink{MMVII__Stringifier_8h_a66594bcdd0b973efdcdea3edad2d86ec}{M\+M\+V\+I\+I\+::\+A\+Opt2007} (Type \&, const std\+::string \&a\+Name, const std\+::string \&a\+Com, const std\+::vector$<$ c\+Sem\+A2007 $>$ \&=c\+Spec\+One\+Arg2007\+::\+The\+Empty\+Sem)\hypertarget{MMVII__Stringifier_8h_a66594bcdd0b973efdcdea3edad2d86ec}{}\label{MMVII__Stringifier_8h_a66594bcdd0b973efdcdea3edad2d86ec}
+
+\begin{DoxyCompactList}\small\item\em One for optional args. \end{DoxyCompactList}\item 
+c\+Ar2007 $\ast$ \hyperlink{Serial_8cpp_ad5a8ee3ebd0b0c4fe5d6ca6e18410bd2}{M\+M\+V\+I\+I\+::\+Alloc\+Ar\+From\+File} (const std\+::string \&a\+Name, bool Input)
+\begin{DoxyCompactList}\small\item\em Create an archive structure, its type (xml, binary, text) is determined by extension. \end{DoxyCompactList}\item 
+void \hyperlink{Serial_8cpp_adde69c2a8c2c7ab9f0d4a04d8a8928e8}{M\+M\+V\+I\+I\+::\+Add\+Data} (const c\+Aux\+Ar2007 \&an\+Aux, int \&a\+Val)
+\begin{DoxyCompactList}\small\item\em for int \end{DoxyCompactList}\item 
+void \hyperlink{Serial_8cpp_a0ffdebec93d46fafe52b030bfa49a920}{M\+M\+V\+I\+I\+::\+Add\+Data} (const c\+Aux\+Ar2007 \&an\+Aux, double \&a\+Val)\hypertarget{Serial_8cpp_a0ffdebec93d46fafe52b030bfa49a920}{}\label{Serial_8cpp_a0ffdebec93d46fafe52b030bfa49a920}
+
+\begin{DoxyCompactList}\small\item\em for double \end{DoxyCompactList}\item 
+void \hyperlink{Serial_8cpp_a31e8d68f0461dcacabfaf14ed8828d9c}{M\+M\+V\+I\+I\+::\+Add\+Data} (const c\+Aux\+Ar2007 \&an\+Aux, std\+::string \&a\+Val)\hypertarget{Serial_8cpp_a31e8d68f0461dcacabfaf14ed8828d9c}{}\label{Serial_8cpp_a31e8d68f0461dcacabfaf14ed8828d9c}
+
+\begin{DoxyCompactList}\small\item\em for string \end{DoxyCompactList}\item 
+void \hyperlink{Serial_8cpp_ab48041671dff37b74a9451d7433935fe}{M\+M\+V\+I\+I\+::\+Add\+Data} (const c\+Aux\+Ar2007 \&an\+Aux, c\+Pt2dr \&a\+Val)\hypertarget{Serial_8cpp_ab48041671dff37b74a9451d7433935fe}{}\label{Serial_8cpp_ab48041671dff37b74a9451d7433935fe}
+
+\begin{DoxyCompactList}\small\item\em for c\+Pt2dr \end{DoxyCompactList}\item 
+void \hyperlink{Serial_8cpp_a3a0b33f7f6aa45023be936610cf5f3bd}{M\+M\+V\+I\+I\+::\+Add\+Data} (const c\+Aux\+Ar2007 \&an\+Aux, t\+Name\+Pair \&a\+Val)\hypertarget{Serial_8cpp_a3a0b33f7f6aa45023be936610cf5f3bd}{}\label{Serial_8cpp_a3a0b33f7f6aa45023be936610cf5f3bd}
+
+\begin{DoxyCompactList}\small\item\em for Pair of string \end{DoxyCompactList}\item 
+void \hyperlink{MMVII__Stringifier_8h_aa85b6d0fc2a9398616cfb73042f98084}{M\+M\+V\+I\+I\+::\+Add\+Data} (const c\+Aux\+Ar2007 \&an\+Aux, t\+Name\+O\+Cple \&a\+Val)\hypertarget{MMVII__Stringifier_8h_aa85b6d0fc2a9398616cfb73042f98084}{}\label{MMVII__Stringifier_8h_aa85b6d0fc2a9398616cfb73042f98084}
+
+\begin{DoxyCompactList}\small\item\em for Ordered Cple of string \end{DoxyCompactList}\item 
+void \hyperlink{Serial_8cpp_a4e471bcc9503d98767ace8543068737b}{M\+M\+V\+I\+I\+::\+Delete\+Ar} (c\+Ar2007 $\ast$)\hypertarget{Serial_8cpp_a4e471bcc9503d98767ace8543068737b}{}\label{Serial_8cpp_a4e471bcc9503d98767ace8543068737b}
+
+\begin{DoxyCompactList}\small\item\em Serialization for optional. \end{DoxyCompactList}\item 
+{\footnotesize template$<$class Type $>$ }\\void \hyperlink{MMVII__Stringifier_8h_a288c51f6f01b073a6da119c45b0469af}{M\+M\+V\+I\+I\+::\+M\+Mv1\+\_\+\+Save\+In\+File} (const Type \&a\+Val, const std\+::string \&a\+Name)
+\begin{DoxyCompactList}\small\item\em call delete, don\textquotesingle{}t want to export a type only to delete it! \end{DoxyCompactList}\item 
+{\footnotesize template$<$$>$ }\\void \hyperlink{MMVII__Stringifier_8h_aa1fce6d1979281e05aadb50069dc4a9e}{M\+M\+V\+I\+I\+::\+M\+Mv1\+\_\+\+Save\+In\+File} (const c\+Set\+Name \&a\+Val, const std\+::string \&a\+Name)\hypertarget{MMVII__Stringifier_8h_aa1fce6d1979281e05aadb50069dc4a9e}{}\label{MMVII__Stringifier_8h_aa1fce6d1979281e05aadb50069dc4a9e}
+
+\begin{DoxyCompactList}\small\item\em Exist one for c\+Set\+Name. \end{DoxyCompactList}\item 
+{\footnotesize template$<$$>$ }\\void {\bfseries M\+M\+V\+I\+I\+::\+M\+Mv1\+\_\+\+Save\+In\+File} (const t\+Name\+Rel \&a\+Set, const std\+::string \&a\+Name)\hypertarget{XmlMMV1_8cpp_acf52a1c4aaa6d0bc47dd5ee677d3fa7e}{}\label{XmlMMV1_8cpp_acf52a1c4aaa6d0bc47dd5ee677d3fa7e}
+
+\begin{DoxyCompactList}\small\item\em Write a rel in M\+M\+V1 format. \end{DoxyCompactList}\item 
+bool {\bfseries M\+M\+V\+I\+I\+::\+Glob\+Out\+V2\+Format} ()\hypertarget{cMMVII__Appli_8cpp_a6f8b0725827a4786e29d1f15abf8d361}{}\label{cMMVII__Appli_8cpp_a6f8b0725827a4786e29d1f15abf8d361}
+
+\begin{DoxyCompactList}\small\item\em call static function of \hyperlink{classMMVII_1_1cMMVII__Appli}{c\+M\+M\+V\+I\+I\+\_\+\+Appli}, cannot make forward declaration of static function \end{DoxyCompactList}\item 
+bool \hyperlink{Serial_8cpp_a95646e7f223361a1c1a4ed1ee0808c06}{M\+M\+V\+I\+I\+::\+Is\+File\+Xml\+Of\+Given\+Tag} (bool Is2007, const std\+::string \&a\+Name, const std\+::string \&a\+Tag)\hypertarget{Serial_8cpp_a95646e7f223361a1c1a4ed1ee0808c06}{}\label{Serial_8cpp_a95646e7f223361a1c1a4ed1ee0808c06}
+
+\begin{DoxyCompactList}\small\item\em Indicate if a file is really X\+ML, created by M\+M\+V\+II and containing the expected Tag. \end{DoxyCompactList}\item 
+{\footnotesize template$<$class Type $>$ }\\const std\+::string \& {\bfseries M\+M\+V\+I\+I\+::\+X\+M\+L\+Tag\+Set} ()\hypertarget{MMVII__Stringifier_8h_ab09f5ba17fce656d3c0d5f1b557dc2de}{}\label{MMVII__Stringifier_8h_ab09f5ba17fce656d3c0d5f1b557dc2de}
+
+\item 
+{\footnotesize template$<$$>$ }\\const std\+::string \& {\bfseries M\+M\+V\+I\+I\+::\+X\+M\+L\+Tag\+Set$<$ std\+::string $>$} ()\hypertarget{MMVII__Cste_8cpp_a96e67299167c7148e1fd3dbdf4841ec6}{}\label{MMVII__Cste_8cpp_a96e67299167c7148e1fd3dbdf4841ec6}
+
+\item 
+{\footnotesize template$<$$>$ }\\const std\+::string \& {\bfseries M\+M\+V\+I\+I\+::\+X\+M\+L\+Tag\+Set$<$ t\+Name\+Pair $>$} ()\hypertarget{MMVII__Cste_8cpp_a6a4b8270769e570b6bc6f509ff882e69}{}\label{MMVII__Cste_8cpp_a6a4b8270769e570b6bc6f509ff882e69}
+
+\item 
+{\footnotesize template$<$class Type $>$ }\\const std\+::string \& {\bfseries M\+M\+V\+I\+I\+::\+M\+Mv1\+\_\+\+X\+M\+L\+Tag\+Set} ()\hypertarget{MMVII__Stringifier_8h_a32e5787fbb3ae872e12c19d0febbc889}{}\label{MMVII__Stringifier_8h_a32e5787fbb3ae872e12c19d0febbc889}
+
+\item 
+{\footnotesize template$<$$>$ }\\const std\+::string \& {\bfseries M\+M\+V\+I\+I\+::\+M\+Mv1\+\_\+\+X\+M\+L\+Tag\+Set$<$ std\+::string $>$} ()\hypertarget{MMVII__Cste_8cpp_a00dffb9bc6cc15dea39d1ce118a53f21}{}\label{MMVII__Cste_8cpp_a00dffb9bc6cc15dea39d1ce118a53f21}
+
+\item 
+{\footnotesize template$<$$>$ }\\const std\+::string \& {\bfseries M\+M\+V\+I\+I\+::\+M\+Mv1\+\_\+\+X\+M\+L\+Tag\+Set$<$ t\+Name\+Pair $>$} ()\hypertarget{MMVII__Cste_8cpp_a443e200058f807e41176074e4dbac514}{}\label{MMVII__Cste_8cpp_a443e200058f807e41176074e4dbac514}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Interface for services related to read/write values. 
+
+It contains \+: (1) basic \char`\"{}\+Value $<$-\/$>$ string\char`\"{} read write for atomic type (2) service for arg reading in M\+M\+V\+II applications (3) services for serialization 
+
+\subsection{Function Documentation}
+\index{M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h@{M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h}!Add\+Data@{Add\+Data}}
+\index{Add\+Data@{Add\+Data}!M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h@{M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h}}
+\subsubsection[{\texorpdfstring{Add\+Data(const c\+Aux\+Ar2007 \&an\+Aux, int \&a\+Val)}{AddData(const cAuxAr2007 &anAux, int &aVal)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+M\+V\+I\+I\+::\+Add\+Data (
+\begin{DoxyParamCaption}
+\item[{const {\bf c\+Aux\+Ar2007} \&}]{an\+Aux, }
+\item[{int \&}]{a\+Val}
+\end{DoxyParamCaption}
+)}\hypertarget{Serial_8cpp_file_adde69c2a8c2c7ab9f0d4a04d8a8928e8}{}\label{Serial_8cpp_file_adde69c2a8c2c7ab9f0d4a04d8a8928e8}
+
+
+for int 
+
+Here are the atomic serialization function 
+
+Definition at line 116 of file Serial.\+cpp.
+
+
+\begin{DoxyCode}
+116 \{anAux.Ar().TplAddDataTerm(anAux,aVal); \}
+\end{DoxyCode}
+\index{M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h@{M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h}!Alloc\+Ar\+From\+File@{Alloc\+Ar\+From\+File}}
+\index{Alloc\+Ar\+From\+File@{Alloc\+Ar\+From\+File}!M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h@{M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h}}
+\subsubsection[{\texorpdfstring{Alloc\+Ar\+From\+File(const std\+::string \&a\+Name, bool Input)}{AllocArFromFile(const std::string &aName, bool Input)}}]{\setlength{\rightskip}{0pt plus 5cm}c\+Ar2007 $\ast$ M\+M\+V\+I\+I\+::\+Alloc\+Ar\+From\+File (
+\begin{DoxyParamCaption}
+\item[{const std\+::string \&}]{a\+Name, }
+\item[{bool}]{Input}
+\end{DoxyParamCaption}
+)}\hypertarget{Serial_8cpp_file_ad5a8ee3ebd0b0c4fe5d6ca6e18410bd2}{}\label{Serial_8cpp_file_ad5a8ee3ebd0b0c4fe5d6ca6e18410bd2}
+
+
+Create an archive structure, its type (xml, binary, text) is determined by extension. 
+
+Implementation of Alloc\+Ar\+From\+File. The type is fixed by string postfix , but we need to know if its for input or for output
+
+Return a unique\+\_\+ptr as it used in Save\+In\+File/\+Read\+In\+File and destroy after 
+
+Definition at line 608 of file Serial.\+cpp.
+
+
+\begin{DoxyCode}
+609 \{
+610    std::string aPost = Postfix(aName,\textcolor{charliteral}{'.'},\textcolor{keyword}{true});
+611 \textcolor{comment}{// StdOut() << "AllocArFromFile, " << aName << " => " << aPost << "\(\backslash\)n";}
+612    cAr2007 * aRes = \textcolor{keyword}{nullptr};
+613 
+614    \textcolor{keywordflow}{if} (aPost==\textcolor{stringliteral}{"xml"})
+615    \{
+616        \textcolor{keywordflow}{if} (Input)
+617           aRes =  \textcolor{keyword}{new} cIXml\_Ar2007(aName);
+618        \textcolor{keywordflow}{else}
+619           aRes =  \textcolor{keyword}{new} cOXml\_Ar2007(aName);
+620    \}
+621    \textcolor{keywordflow}{else} \textcolor{keywordflow}{if} ((aPost==\textcolor{stringliteral}{"dmp"}) || (aPost==\textcolor{stringliteral}{"dat"}))
+622    \{
+623        \textcolor{keywordflow}{if} (Input)
+624           aRes =  \textcolor{keyword}{new} cIBin\_Ar2007(aName);
+625        \textcolor{keywordflow}{else}
+626           aRes =  \textcolor{keyword}{new} cOBin\_Ar2007(aName);
+627    \}
+628 
+629    MMVII\_INTERNAL\_ASSERT\_always(aRes!=0,\textcolor{stringliteral}{"Do not handle postfix for "}+ aName);
+630    \textcolor{keywordflow}{return} aRes;
+631 \}
+\end{DoxyCode}
+\index{M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h@{M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h}!M\+Mv1\+\_\+\+Save\+In\+File@{M\+Mv1\+\_\+\+Save\+In\+File}}
+\index{M\+Mv1\+\_\+\+Save\+In\+File@{M\+Mv1\+\_\+\+Save\+In\+File}!M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h@{M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h}}
+\subsubsection[{\texorpdfstring{M\+Mv1\+\_\+\+Save\+In\+File(const Type \&a\+Val, const std\+::string \&a\+Name)}{MMv1_SaveInFile(const Type &aVal, const std::string &aName)}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class Type $>$ void M\+M\+V\+I\+I\+::\+M\+Mv1\+\_\+\+Save\+In\+File (
+\begin{DoxyParamCaption}
+\item[{const Type \&}]{a\+Val, }
+\item[{const std\+::string \&}]{a\+Name}
+\end{DoxyParamCaption}
+)}\hypertarget{MMVII__Stringifier_8h_file_a288c51f6f01b073a6da119c45b0469af}{}\label{MMVII__Stringifier_8h_file_a288c51f6f01b073a6da119c45b0469af}
+
+
+call delete, don\textquotesingle{}t want to export a type only to delete it! 
+
+By default no M\+M\+V1 save 
+
+Definition at line 246 of file M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h.
+
+
+\begin{DoxyCode}
+247 \{
+248      \textcolor{comment}{// MMVII\_INTERNAL\_ASSERT\_always(false,"No MMV1 save for " + std::string(typeid(Type).name()));}
+249      MMVII\_INTERNAL\_ASSERT\_always(\textcolor{keyword}{false},\textcolor{stringliteral}{"No MMV1 save for type"} );
+250 \}
+\end{DoxyCode}
+\index{M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h@{M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h}!ToS@{ToS}}
+\index{ToS@{ToS}!M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h@{M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h}}
+\subsubsection[{\texorpdfstring{To\+S(const Type \&a\+V)}{ToS(const Type &aV)}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class Type $>$ std\+::string M\+M\+V\+I\+I\+::\+ToS (
+\begin{DoxyParamCaption}
+\item[{const Type \&}]{aV}
+\end{DoxyParamCaption}
+)}\hypertarget{MMVII__Stringifier_8h_file_a64a1308bcc78f0e43e7fc6ff36934e9f}{}\label{MMVII__Stringifier_8h_file_a64a1308bcc78f0e43e7fc6ff36934e9f}
+These functions offer an\char`\"{}easy\char`\"{} interface to \hyperlink{classMMVII_1_1cStrIO}{c\+Str\+IO}, however I think \hyperlink{classMMVII_1_1cStrIO}{c\+Str\+IO} is still usefull when type inference becomes too compliicated 
+
+Definition at line 69 of file M\+M\+V\+I\+I\+\_\+\+Stringifier.\+h.
+
+
+\begin{DoxyCode}
+69 \{\textcolor{keywordflow}{return} cStrIO<Type>::ToStr(aV);\}
+\end{DoxyCode}

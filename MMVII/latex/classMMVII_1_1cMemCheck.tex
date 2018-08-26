@@ -1,0 +1,43 @@
+\hypertarget{classMMVII_1_1cMemCheck}{}\section{M\+M\+V\+II\+:\+:c\+Mem\+Check Class Reference}
+\label{classMMVII_1_1cMemCheck}\index{M\+M\+V\+I\+I\+::c\+Mem\+Check@{M\+M\+V\+I\+I\+::c\+Mem\+Check}}
+
+
+{\ttfamily \#include $<$M\+M\+V\+I\+I\+\_\+memory.\+h$>$}
+
+Inheritance diagram for M\+M\+V\+II\+:\+:c\+Mem\+Check\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=11.000000cm]{classMMVII_1_1cMemCheck}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void $\ast$ {\bfseries operator new} (size\+\_\+t sz)\hypertarget{classMMVII_1_1cMemCheck_ae28b81493cdb9d282ee78e5734996add}{}\label{classMMVII_1_1cMemCheck_ae28b81493cdb9d282ee78e5734996add}
+
+\item 
+void {\bfseries operator delete} (void $\ast$ptr)\hypertarget{classMMVII_1_1cMemCheck_af2f86b9d9cb9993c90254776b0105ec6}{}\label{classMMVII_1_1cMemCheck_af2f86b9d9cb9993c90254776b0105ec6}
+
+\end{DoxyCompactItemize}
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void $\ast$ {\bfseries operator new\mbox{[}$\,$\mbox{]}} (size\+\_\+t sz)\hypertarget{classMMVII_1_1cMemCheck_abfc6032c5cd505f5298a0c8d81e36675}{}\label{classMMVII_1_1cMemCheck_abfc6032c5cd505f5298a0c8d81e36675}
+
+\item 
+void {\bfseries operator delete\mbox{[}$\,$\mbox{]}} (void $\ast$ptr)\hypertarget{classMMVII_1_1cMemCheck_abc27bca4311947391e78686888298882}{}\label{classMMVII_1_1cMemCheck_abc27bca4311947391e78686888298882}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This classe redefine l\textquotesingle{}operetor new and delate to checker alloc / desalloc and (some) bad access. Allocation and desallocation is delegated to \hyperlink{classMMVII_1_1cMemManager}{c\+Mem\+Manager} 
+
+Definition at line 103 of file M\+M\+V\+I\+I\+\_\+memory.\+h.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{MMVII__memory_8h}{M\+M\+V\+I\+I\+\_\+memory.\+h}\item 
+src/\+Utils/uti\+\_\+memory.\+cpp\end{DoxyCompactItemize}

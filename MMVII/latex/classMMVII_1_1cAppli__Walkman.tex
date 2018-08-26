@@ -1,0 +1,62 @@
+\hypertarget{classMMVII_1_1cAppli__Walkman}{}\section{M\+M\+V\+II\+:\+:c\+Appli\+\_\+\+Walkman Class Reference}
+\label{classMMVII_1_1cAppli__Walkman}\index{M\+M\+V\+I\+I\+::c\+Appli\+\_\+\+Walkman@{M\+M\+V\+I\+I\+::c\+Appli\+\_\+\+Walkman}}
+
+
+An application for random selection of music.  
+
+
+Inheritance diagram for M\+M\+V\+II\+:\+:c\+Appli\+\_\+\+Walkman\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classMMVII_1_1cAppli__Walkman}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries c\+Appli\+\_\+\+Walkman} (int argc, char $\ast$$\ast$argv, const \hyperlink{classMMVII_1_1cSpecMMVII__Appli}{c\+Spec\+M\+M\+V\+I\+I\+\_\+\+Appli} \&)\hypertarget{classMMVII_1_1cAppli__Walkman_a7ddf4604dc9656d9df889c71b5937ca9}{}\label{classMMVII_1_1cAppli__Walkman_a7ddf4604dc9656d9df889c71b5937ca9}
+
+\item 
+int \hyperlink{classMMVII_1_1cAppli__Walkman_ac9bf1d94dc0c7ddc341084b7fc9a81f2}{Exe} () override\hypertarget{classMMVII_1_1cAppli__Walkman_ac9bf1d94dc0c7ddc341084b7fc9a81f2}{}\label{classMMVII_1_1cAppli__Walkman_ac9bf1d94dc0c7ddc341084b7fc9a81f2}
+
+\begin{DoxyCompactList}\small\item\em Do the \char`\"{}real\char`\"{} job. \end{DoxyCompactList}\item 
+\hyperlink{classMMVII_1_1cCollecSpecArg2007}{c\+Collec\+Spec\+Arg2007} \& \hyperlink{classMMVII_1_1cAppli__Walkman_aeef9557003bc7f12d4e0b97b2d9884dd}{Arg\+Obl} (\hyperlink{classMMVII_1_1cCollecSpecArg2007}{c\+Collec\+Spec\+Arg2007} \&an\+Arg\+Obl) override\hypertarget{classMMVII_1_1cAppli__Walkman_aeef9557003bc7f12d4e0b97b2d9884dd}{}\label{classMMVII_1_1cAppli__Walkman_aeef9557003bc7f12d4e0b97b2d9884dd}
+
+\begin{DoxyCompactList}\small\item\em A command specifies its mandatory args. \end{DoxyCompactList}\item 
+\hyperlink{classMMVII_1_1cCollecSpecArg2007}{c\+Collec\+Spec\+Arg2007} \& \hyperlink{classMMVII_1_1cAppli__Walkman_af4278f60ef5bf12bd4c81890c175f11d}{Arg\+Opt} (\hyperlink{classMMVII_1_1cCollecSpecArg2007}{c\+Collec\+Spec\+Arg2007} \&an\+Arg\+Opt) override\hypertarget{classMMVII_1_1cAppli__Walkman_af4278f60ef5bf12bd4c81890c175f11d}{}\label{classMMVII_1_1cAppli__Walkman_af4278f60ef5bf12bd4c81890c175f11d}
+
+\begin{DoxyCompactList}\small\item\em A command specifies its optional args. \end{DoxyCompactList}\item 
+int \hyperlink{classMMVII_1_1cAppli__Walkman_a1b997885d1d205177830096b60543e7e}{Def\+Seed\+Rand} () override\hypertarget{classMMVII_1_1cAppli__Walkman_a1b997885d1d205177830096b60543e7e}{}\label{classMMVII_1_1cAppli__Walkman_a1b997885d1d205177830096b60543e7e}
+
+\begin{DoxyCompactList}\small\item\em Clas can redefine instead of ms\+Def\+Seed\+Rand, value $<$=0 mean init from time\+:w. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std\+::string \hyperlink{classMMVII_1_1cAppli__Walkman_aad4ef985e08e4efc7c346876acef3720}{m\+Dest}\hypertarget{classMMVII_1_1cAppli__Walkman_aad4ef985e08e4efc7c346876acef3720}{}\label{classMMVII_1_1cAppli__Walkman_aad4ef985e08e4efc7c346876acef3720}
+
+\begin{DoxyCompactList}\small\item\em Destination folder. \end{DoxyCompactList}\item 
+double \hyperlink{classMMVII_1_1cAppli__Walkman_afec6deef33313e1ce3eef4ae54d7c806}{m\+Targ\+Size}\hypertarget{classMMVII_1_1cAppli__Walkman_afec6deef33313e1ce3eef4ae54d7c806}{}\label{classMMVII_1_1cAppli__Walkman_afec6deef33313e1ce3eef4ae54d7c806}
+
+\begin{DoxyCompactList}\small\item\em Target size for total. \end{DoxyCompactList}\item 
+std\+::string \hyperlink{classMMVII_1_1cAppli__Walkman_a69112e0805ed3186de8f1841ab77f234}{m\+Pat}\hypertarget{classMMVII_1_1cAppli__Walkman_a69112e0805ed3186de8f1841ab77f234}{}\label{classMMVII_1_1cAppli__Walkman_a69112e0805ed3186de8f1841ab77f234}
+
+\begin{DoxyCompactList}\small\item\em Pattern of file. \end{DoxyCompactList}\item 
+std\+::map$<$ std\+::string, \hyperlink{classMMVII_1_1cOneEntryWalkMan}{c\+One\+Entry\+Walk\+Man} $>$ {\bfseries m\+MapE}\hypertarget{classMMVII_1_1cAppli__Walkman_a2ed6a195dd01ece15da0ca4c40a8c70e}{}\label{classMMVII_1_1cAppli__Walkman_a2ed6a195dd01ece15da0ca4c40a8c70e}
+
+\item 
+std\+::string {\bfseries m\+Name\+Sauv}\hypertarget{classMMVII_1_1cAppli__Walkman_a1fc52cd5a5b8077073ae6574fbb1e464}{}\label{classMMVII_1_1cAppli__Walkman_a1fc52cd5a5b8077073ae6574fbb1e464}
+
+\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Detailed Description}
+An application for random selection of music. 
+
+Definition at line 102 of file c\+M\+M\+V\+I\+I\+\_\+\+Walkman.\+cpp.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/\+Perso/\hyperlink{cMMVII__Walkman_8cpp}{c\+M\+M\+V\+I\+I\+\_\+\+Walkman.\+cpp}\end{DoxyCompactItemize}

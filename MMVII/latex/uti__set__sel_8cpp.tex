@@ -1,0 +1,556 @@
+\hypertarget{uti__set__sel_8cpp}{}\section{src/\+Utils/uti\+\_\+set\+\_\+sel.cpp File Reference}
+\label{uti__set__sel_8cpp}\index{src/\+Utils/uti\+\_\+set\+\_\+sel.\+cpp@{src/\+Utils/uti\+\_\+set\+\_\+sel.\+cpp}}
+
+
+Implementation of selector \& sets.  
+
+
+{\ttfamily \#include \char`\"{}include/\+M\+M\+V\+I\+I\+\_\+all.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}include/\+M\+M\+V\+I\+I\+\_\+2\+Include\+\_\+\+Serial\+\_\+\+Tpl.\+h\char`\"{}}\\*
+{\ttfamily \#include $<$boost/optional/optional\+\_\+io.\+hpp$>$}\\*
+{\ttfamily \#include $<$boost/regex.\+hpp$>$}\\*
+{\ttfamily \#include $<$unordered\+\_\+set$>$}\\*
+{\ttfamily \#include $<$unordered\+\_\+map$>$}\\*
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classstd_1_1hash_3_01MMVII_1_1tNamePair_01_4}{std\+::hash$<$ M\+M\+V\+I\+I\+::t\+Name\+Pair $>$}
+\item 
+class \hyperlink{classMMVII_1_1cDataSelector}{M\+M\+V\+I\+I\+::c\+Data\+Selector$<$ Type $>$}
+\item 
+class \hyperlink{classMMVII_1_1cDataIntervSelector}{M\+M\+V\+I\+I\+::c\+Data\+Interv\+Selector$<$ Type $>$}
+\begin{DoxyCompactList}\small\item\em Implemantation of Intervall type. \end{DoxyCompactList}\item 
+class \hyperlink{classMMVII_1_1cDataNegSelector}{M\+M\+V\+I\+I\+::c\+Data\+Neg\+Selector$<$ Type $>$}
+\begin{DoxyCompactList}\small\item\em Implemantation of Negation. \end{DoxyCompactList}\item 
+class \hyperlink{classMMVII_1_1cDataAndSelector}{M\+M\+V\+I\+I\+::c\+Data\+And\+Selector$<$ Type $>$}
+\begin{DoxyCompactList}\small\item\em Implemantation of And on selectors. \end{DoxyCompactList}\item 
+class \hyperlink{classMMVII_1_1cDataOrSelector}{M\+M\+V\+I\+I\+::c\+Data\+Or\+Selector$<$ Type $>$}
+\begin{DoxyCompactList}\small\item\em Implemantation of Or on selectors. \end{DoxyCompactList}\item 
+class \hyperlink{classMMVII_1_1cDataCsteSelector}{M\+M\+V\+I\+I\+::c\+Data\+Cste\+Selector$<$ Type $>$}
+\begin{DoxyCompactList}\small\item\em Implemantation of Cste selectors. \end{DoxyCompactList}\item 
+class \hyperlink{classMMVII_1_1cDataBoostRegex}{M\+M\+V\+I\+I\+::c\+Data\+Boost\+Regex}
+\begin{DoxyCompactList}\small\item\em Boost implementation of Regex expression. \end{DoxyCompactList}\item 
+class \hyperlink{classMMVII_1_1cDataExtSet}{M\+M\+V\+I\+I\+::c\+Data\+Ext\+Set$<$ Type $>$}
+\item 
+class \hyperlink{classMMVII_1_1cUnorderedSet}{M\+M\+V\+I\+I\+::c\+Unordered\+Set$<$ Type $>$}
+\begin{DoxyCompactList}\small\item\em unordered\+\_\+set implementation of \hyperlink{classMMVII_1_1cDataExtSet}{c\+Data\+Ext\+Set} \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+ \hyperlink{namespacestd}{std}
+\begin{DoxyCompactList}\small\item\em Cle de hashage pour pouvoir faire des unordered set. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define {\bfseries M\+A\+C\+R\+O\+\_\+\+I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+E\+\_\+\+S\+E\+L\+E\+C\+T\+OR}(Type)
+\item 
+\#define {\bfseries A\+S\+S\+E\+R\+T\+\_\+\+S\+E\+T\+\_\+\+I\+S\+I\+N\+IT}()~M\+M\+V\+I\+I\+\_\+\+I\+N\+T\+E\+R\+N\+A\+L\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+tiny(m\+D\+E\+S!=0,\char`\"{}Operation on null set\char`\"{})\hypertarget{uti__set__sel_8cpp_a932648f223da18ed7b327415bdc5ea11}{}\label{uti__set__sel_8cpp_a932648f223da18ed7b327415bdc5ea11}
+
+\item 
+\#define \hyperlink{uti__set__sel_8cpp_a8cdd7ade42f503048ea04e9c2319f64f}{I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+E\+\_\+\+S\+ET}(Type)
+\begin{DoxyCompactList}\small\item\em M\+A\+C\+RO I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+I\+ON. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef std\+::pair$<$ std\+::string, bool $>$ {\bfseries M\+M\+V\+I\+I\+::t\+Elem\+Str\+Interv}\hypertarget{uti__set__sel_8cpp_af325b380192edfb2ccc82383689f5fb9}{}\label{uti__set__sel_8cpp_af325b380192edfb2ccc82383689f5fb9}
+
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$class Type $>$ }\\c\+Selector$<$ Type $>$ \hyperlink{uti__set__sel_8cpp_a6244af913431bd42b48124ebfb00e244}{M\+M\+V\+I\+I\+::\+Gen\+Interval\+Selector} (const boost\+::optional$<$ Type $>$ \&a\+V1, const boost\+::optional$<$ Type $>$ \&a\+V2, bool a\+Incl\+Low, bool Incl\+Up)
+\item 
+{\footnotesize template$<$class Type $>$ }\\c\+Selector$<$ Type $>$ \hyperlink{uti__set__sel_8cpp_a52f295081cbe621b66991bec69a2eb1e}{M\+M\+V\+I\+I\+::\+Left\+Half\+Interval\+Selector} (const Type \&aV, bool a\+Incl)
+\begin{DoxyCompactList}\small\item\em \mbox{]}$<$-\/ ,V\mbox{]} or \mbox{]}$<$-\/,V\mbox{[} \end{DoxyCompactList}\item 
+{\footnotesize template$<$class Type $>$ }\\c\+Selector$<$ Type $>$ \hyperlink{uti__set__sel_8cpp_a661d4243f42fcabc1249cdef53e012d1}{M\+M\+V\+I\+I\+::\+Right\+Half\+Interval\+Selector} (const Type \&aV, bool a\+Incl)
+\begin{DoxyCompactList}\small\item\em \mbox{]}V,-\/$>$\mbox{[} or \mbox{[}V,-\/$>$\mbox{[} \end{DoxyCompactList}\item 
+{\footnotesize template$<$class Type $>$ }\\c\+Selector$<$ Type $>$ \hyperlink{uti__set__sel_8cpp_a418efb18df13b621f93ab7da906b7787}{M\+M\+V\+I\+I\+::\+Interval\+Selector} (const Type \&a\+V1, const Type \&a\+V2, bool a\+Incl\+Low, bool Incl\+Up)\hypertarget{uti__set__sel_8cpp_a418efb18df13b621f93ab7da906b7787}{}\label{uti__set__sel_8cpp_a418efb18df13b621f93ab7da906b7787}
+
+\begin{DoxyCompactList}\small\item\em Facilty to Gen\+Interval\+Selector \+: interval with no infinity. \end{DoxyCompactList}\item 
+{\footnotesize template$<$class Type $>$ }\\c\+Selector$<$ Type $>$ \hyperlink{uti__set__sel_8cpp_a38156d42143629da9e0137d1330a6e4b}{M\+M\+V\+I\+I\+::operator!} (const c\+Selector$<$ Type $>$ \&)\hypertarget{uti__set__sel_8cpp_a38156d42143629da9e0137d1330a6e4b}{}\label{uti__set__sel_8cpp_a38156d42143629da9e0137d1330a6e4b}
+
+\begin{DoxyCompactList}\small\item\em Negation of selector. \end{DoxyCompactList}\item 
+{\footnotesize template$<$class Type $>$ }\\c\+Selector$<$ Type $>$ \hyperlink{uti__set__sel_8cpp_ac2956ce514e10e5f9ca7e48c98473a50}{M\+M\+V\+I\+I\+::operator\&\&} (const c\+Selector$<$ Type $>$ \&, const c\+Selector$<$ Type $>$ \&)\hypertarget{uti__set__sel_8cpp_ac2956ce514e10e5f9ca7e48c98473a50}{}\label{uti__set__sel_8cpp_ac2956ce514e10e5f9ca7e48c98473a50}
+
+\begin{DoxyCompactList}\small\item\em And/\+Inter of selector. \end{DoxyCompactList}\item 
+{\footnotesize template$<$class Type $>$ }\\c\+Selector$<$ Type $>$ \hyperlink{uti__set__sel_8cpp_afa0cd208e24c4de7bf4d72d9c15a1d37}{M\+M\+V\+I\+I\+::operator$\vert$$\vert$} (const c\+Selector$<$ Type $>$ \&, const c\+Selector$<$ Type $>$ \&)\hypertarget{uti__set__sel_8cpp_afa0cd208e24c4de7bf4d72d9c15a1d37}{}\label{uti__set__sel_8cpp_afa0cd208e24c4de7bf4d72d9c15a1d37}
+
+\begin{DoxyCompactList}\small\item\em Or/\+Union of selector. \end{DoxyCompactList}\item 
+{\footnotesize template$<$class Type $>$ }\\c\+Selector$<$ Type $>$ \hyperlink{uti__set__sel_8cpp_a288a1a262f6e9e4c9a3ad020231585be}{M\+M\+V\+I\+I\+::\+Cste\+Selector} (bool a\+Val)\hypertarget{uti__set__sel_8cpp_a288a1a262f6e9e4c9a3ad020231585be}{}\label{uti__set__sel_8cpp_a288a1a262f6e9e4c9a3ad020231585be}
+
+\begin{DoxyCompactList}\small\item\em Constant selector, always true or false. \end{DoxyCompactList}\item 
+bool \hyperlink{uti__set__sel_8cpp_ab746743cffe7e8c67f406ef98a756339}{M\+M\+V\+I\+I\+::\+Get\+Inclus} (bool \&a\+Incl, int a\+Char, bool begin)\hypertarget{uti__set__sel_8cpp_ab746743cffe7e8c67f406ef98a756339}{}\label{uti__set__sel_8cpp_ab746743cffe7e8c67f406ef98a756339}
+
+\begin{DoxyCompactList}\small\item\em Is next caracter an interval delimitor? If yes is iit inclusive (set in \textquotesingle{}a\+Incl\textquotesingle{}) \end{DoxyCompactList}\item 
+std\+::vector$<$ t\+Elem\+Str\+Interv $>$ \hyperlink{uti__set__sel_8cpp_a751bca5e0dcb93549833fe21bcb9cf26}{M\+M\+V\+I\+I\+::\+Lire\+Interv} (const std\+::string \&a\+Str)
+\begin{DoxyCompactList}\small\item\em Prepare processing string 2 interval. \end{DoxyCompactList}\item 
+{\footnotesize template$<$class Type $>$ }\\c\+Selector$<$ Type $>$ \hyperlink{uti__set__sel_8cpp_a0c9cf4a3e281a7579227a25581bf2ef1}{M\+M\+V\+I\+I\+::\+Str2\+Interv} (const std\+::string \&a\+Str)
+\begin{DoxyCompactList}\small\item\em Compute union of intervals from a string. \end{DoxyCompactList}\item 
+t\+Name\+Selector \hyperlink{uti__set__sel_8cpp_a12f1e1593b56a9a9beb0a3b706ec2c40}{M\+M\+V\+I\+I\+::\+Boost\+Alloc\+Regex} (const std\+::string \&a\+Reg\+Ex)\hypertarget{uti__set__sel_8cpp_a12f1e1593b56a9a9beb0a3b706ec2c40}{}\label{uti__set__sel_8cpp_a12f1e1593b56a9a9beb0a3b706ec2c40}
+
+\begin{DoxyCompactList}\small\item\em Create a selector associated to a regular expression, by convention return Cste-\/true selector if string=\char`\"{}\char`\"{}. \end{DoxyCompactList}\item 
+void \hyperlink{uti__set__sel_8cpp_a46249dcd2cdbef1a8defbb795aa77ade}{M\+M\+V\+I\+I\+::\+Bench\+Selector} (const std\+::string \&a\+Dir)\hypertarget{uti__set__sel_8cpp_a46249dcd2cdbef1a8defbb795aa77ade}{}\label{uti__set__sel_8cpp_a46249dcd2cdbef1a8defbb795aa77ade}
+
+\begin{DoxyCompactList}\small\item\em Bench on selecto, (set \char`\"{}en comprehension\char`\"{}) \end{DoxyCompactList}\item 
+{\footnotesize template$<$class Type $>$ }\\void \hyperlink{uti__set__sel_8cpp_ac644d06ec1a0e25a9bb65926e55c9d5d}{M\+M\+V\+I\+I\+::operator$\ast$=} (c\+Ext\+Set$<$ Type $>$ \&a\+Res, const c\+Ext\+Set$<$ Type $>$ \&a\+Filter)
+\item 
+{\footnotesize template$<$class Type $>$ }\\c\+Ext\+Set$<$ Type $>$ \hyperlink{uti__set__sel_8cpp_acfe1fff63370a64d200fbec40d487f0a}{M\+M\+V\+I\+I\+::operator$\ast$} (const c\+Ext\+Set$<$ Type $>$ \&a\+S1, const c\+Ext\+Set$<$ Type $>$ \&a\+S2)
+\item 
+{\footnotesize template$<$class Type $>$ }\\void \hyperlink{uti__set__sel_8cpp_a05d9fca84a6d286e061417184cc13c3a}{M\+M\+V\+I\+I\+::operator+=} (c\+Ext\+Set$<$ Type $>$ \&a\+Res, const c\+Ext\+Set$<$ Type $>$ \&to\+Add)
+\item 
+{\footnotesize template$<$class Type $>$ }\\c\+Ext\+Set$<$ Type $>$ \hyperlink{uti__set__sel_8cpp_ada8719bc172c3a2dcf543088c2d9654d}{M\+M\+V\+I\+I\+::operator+} (const c\+Ext\+Set$<$ Type $>$ \&a\+S1, const c\+Ext\+Set$<$ Type $>$ \&a\+S2)
+\item 
+{\footnotesize template$<$class Type $>$ }\\void \hyperlink{uti__set__sel_8cpp_a0554cad8dbd71bc0cd2623575676bb23}{M\+M\+V\+I\+I\+::operator-\/=} (c\+Ext\+Set$<$ Type $>$ \&a\+Res, const c\+Ext\+Set$<$ Type $>$ \&a\+Filter)
+\item 
+{\footnotesize template$<$class Type $>$ }\\c\+Ext\+Set$<$ Type $>$ \hyperlink{uti__set__sel_8cpp_aeccf325599c2e46c8efffe4da1d0bebb}{M\+M\+V\+I\+I\+::operator-\/} (const c\+Ext\+Set$<$ Type $>$ \&a\+S1, const c\+Ext\+Set$<$ Type $>$ \&a\+S2)\hypertarget{uti__set__sel_8cpp_aeccf325599c2e46c8efffe4da1d0bebb}{}\label{uti__set__sel_8cpp_aeccf325599c2e46c8efffe4da1d0bebb}
+
+\begin{DoxyCompactList}\small\item\em Difference , functionnal. \end{DoxyCompactList}\item 
+{\footnotesize template$<$class Type $>$ }\\bool \hyperlink{uti__set__sel_8cpp_af0a5eb1f4649ecd956d31406a9ea4a12}{M\+M\+V\+I\+I\+::\+Cmp\+On\+Ptr\+Value} (const Type $\ast$\&a\+V1, const Type $\ast$\&a\+V2)\hypertarget{uti__set__sel_8cpp_af0a5eb1f4649ecd956d31406a9ea4a12}{}\label{uti__set__sel_8cpp_af0a5eb1f4649ecd956d31406a9ea4a12}
+
+\begin{DoxyCompactList}\small\item\em Comparison on pointed value. \end{DoxyCompactList}\item 
+{\footnotesize template$<$class Type $>$ }\\void \hyperlink{uti__set__sel_8cpp_ac3bb357190919786847d9c8464b9fb1d}{M\+M\+V\+I\+I\+::\+Sort\+Ptr\+Value} (std\+::vector$<$ Type $\ast$ $>$ \&aV)\hypertarget{uti__set__sel_8cpp_ac3bb357190919786847d9c8464b9fb1d}{}\label{uti__set__sel_8cpp_ac3bb357190919786847d9c8464b9fb1d}
+
+\begin{DoxyCompactList}\small\item\em Sort on pointed value and not adress. \end{DoxyCompactList}\item 
+{\footnotesize template$<$$>$ }\\void \hyperlink{uti__set__sel_8cpp_a0a493759f78fb79c697e9df403cc5eaf}{M\+M\+V\+I\+I\+::\+Sort\+Ptr\+Value} (std\+::vector$<$ const void $\ast$ $>$ \&)\hypertarget{uti__set__sel_8cpp_a0a493759f78fb79c697e9df403cc5eaf}{}\label{uti__set__sel_8cpp_a0a493759f78fb79c697e9df403cc5eaf}
+
+\begin{DoxyCompactList}\small\item\em Specialization 4 void who would not compile. \end{DoxyCompactList}\item 
+t\+Name\+Set \hyperlink{uti__set__sel_8cpp_a4a786409a561151ea971dfcc03825307}{M\+M\+V\+I\+I\+::\+Set\+Name\+From\+File} (const std\+::string \&, int a\+NumV)\hypertarget{uti__set__sel_8cpp_a4a786409a561151ea971dfcc03825307}{}\label{uti__set__sel_8cpp_a4a786409a561151ea971dfcc03825307}
+
+\begin{DoxyCompactList}\small\item\em create from a file xml, V1 or V2 \end{DoxyCompactList}\item 
+t\+Name\+Set \hyperlink{uti__set__sel_8cpp_abf9e50e7d577e50f5c31fe2953305f0e}{M\+M\+V\+I\+I\+::\+Set\+Name\+From\+String} (const std\+::string \&, bool Allow\+Pat)\hypertarget{uti__set__sel_8cpp_abf9e50e7d577e50f5c31fe2953305f0e}{}\label{uti__set__sel_8cpp_abf9e50e7d577e50f5c31fe2953305f0e}
+
+\begin{DoxyCompactList}\small\item\em general case, try to recognize automatically V1, V2 or pattern \end{DoxyCompactList}\item 
+t\+Name\+Set \hyperlink{uti__set__sel_8cpp_ac25b33972e71dae053df41b49e55540f}{M\+M\+V\+I\+I\+::\+Set\+Name\+From\+Pat} (const std\+::string \&)\hypertarget{uti__set__sel_8cpp_ac25b33972e71dae053df41b49e55540f}{}\label{uti__set__sel_8cpp_ac25b33972e71dae053df41b49e55540f}
+
+\begin{DoxyCompactList}\small\item\em create a set of file from a pattern \end{DoxyCompactList}\item 
+t\+Name\+Rel \hyperlink{uti__set__sel_8cpp_a5900a2a1b083bdb0b2908d276046a7ab}{M\+M\+V\+I\+I\+::\+Rel\+Name\+From\+File} (const std\+::string \&)\hypertarget{uti__set__sel_8cpp_a5900a2a1b083bdb0b2908d276046a7ab}{}\label{uti__set__sel_8cpp_a5900a2a1b083bdb0b2908d276046a7ab}
+
+\begin{DoxyCompactList}\small\item\em read from file, select version, accept empty \end{DoxyCompactList}\item 
+{\footnotesize template$<$class Type $>$ }\\Type {\bfseries M\+M\+V\+I\+I\+::\+From\+Int} (int)\hypertarget{uti__set__sel_8cpp_a4ed517ea792a84be028e07ef7b948655}{}\label{uti__set__sel_8cpp_a4ed517ea792a84be028e07ef7b948655}
+
+\item 
+{\footnotesize template$<$$>$ }\\int {\bfseries M\+M\+V\+I\+I\+::\+From\+Int$<$ int $>$} (int i)\hypertarget{uti__set__sel_8cpp_aec8e1b5492b0b6d041fedcf173dfec32}{}\label{uti__set__sel_8cpp_aec8e1b5492b0b6d041fedcf173dfec32}
+
+\item 
+{\footnotesize template$<$$>$ }\\std\+::string {\bfseries M\+M\+V\+I\+I\+::\+From\+Int$<$ std\+::string $>$} (int i)\hypertarget{uti__set__sel_8cpp_a422f7737fd12328441488ac2b8fb7d16}{}\label{uti__set__sel_8cpp_a422f7737fd12328441488ac2b8fb7d16}
+
+\item 
+{\footnotesize template$<$$>$ }\\void $\ast$ {\bfseries M\+M\+V\+I\+I\+::\+From\+Int$<$ void $\ast$ $>$} (int i)\hypertarget{uti__set__sel_8cpp_a83571b0ac739d6f18bae05e0ce8b7ad9}{}\label{uti__set__sel_8cpp_a83571b0ac739d6f18bae05e0ce8b7ad9}
+
+\item 
+{\footnotesize template$<$class Type $>$ }\\void \hyperlink{uti__set__sel_8cpp_a4aee18db35d79bb9e7c7b914155948aa}{M\+M\+V\+I\+I\+::\+Tpl\+Bench\+Set} (const std\+::string \&a\+Dir)\hypertarget{uti__set__sel_8cpp_a4aee18db35d79bb9e7c7b914155948aa}{}\label{uti__set__sel_8cpp_a4aee18db35d79bb9e7c7b914155948aa}
+
+\begin{DoxyCompactList}\small\item\em ========================= Basic Bench ============= \end{DoxyCompactList}\item 
+void \hyperlink{uti__set__sel_8cpp_a8ff7825898f80133dc7217abeb716dae}{M\+M\+V\+I\+I\+::\+Bench\+Set} (const std\+::string \&a\+Dir)
+\begin{DoxyCompactList}\small\item\em Bench on \hyperlink{classMMVII_1_1cExtSet}{c\+Ext\+Set} (set \char`\"{}en extension\char`\"{}) \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+static bool {\bfseries M\+M\+V\+I\+I\+::\+The\+Cmp4\+Op} =false\hypertarget{uti__set__sel_8cpp_a7550af2972627da3d188fc5807e1450c}{}\label{uti__set__sel_8cpp_a7550af2972627da3d188fc5807e1450c}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Implementation of selector \& sets. 
+
+This file contains implementation of a set of class that allow to construct selectors, elemenatary one, or by boolean construction 
+
+\subsection{Macro Definition Documentation}
+\index{uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}!I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+E\+\_\+\+S\+ET@{I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+E\+\_\+\+S\+ET}}
+\index{I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+E\+\_\+\+S\+ET@{I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+E\+\_\+\+S\+ET}!uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}}
+\subsubsection[{\texorpdfstring{I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+E\+\_\+\+S\+ET}{INSTANTIATE_SET}}]{\setlength{\rightskip}{0pt plus 5cm}\#define I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+E\+\_\+\+S\+ET(
+\begin{DoxyParamCaption}
+\item[{}]{Type}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__set__sel_8cpp_a8cdd7ade42f503048ea04e9c2319f64f}{}\label{uti__set__sel_8cpp_a8cdd7ade42f503048ea04e9c2319f64f}
+{\bfseries Value\+:}
+\begin{DoxyCode}
+\textcolor{keyword}{template}  \textcolor{keyword}{class }cDataExtSet<Type>;\(\backslash\)
+template  \textcolor{keyword}{class }cExtSet<Type>;\(\backslash\)
+template  \textcolor{keyword}{class }cUnorderedSet<Type>;\(\backslash\)
+template  \textcolor{keywordtype}{void}   operator *= (cExtSet<Type> & aRes,\textcolor{keyword}{const} cExtSet<Type> & aFilter); \(\backslash\)
+template  cExtSet<Type>   operator *  (\textcolor{keyword}{const} cExtSet<Type> & aRes,\textcolor{keyword}{const} cExtSet<Type> & aFilter); \(\backslash\)
+template  \textcolor{keywordtype}{void}   operator += (cExtSet<Type> & aRes,\textcolor{keyword}{const} cExtSet<Type> & aFilter); \(\backslash\)
+template  cExtSet<Type>   operator +  (\textcolor{keyword}{const} cExtSet<Type> & aRes,\textcolor{keyword}{const} cExtSet<Type> & aFilter); \(\backslash\)
+template  \textcolor{keywordtype}{void}   operator -= (cExtSet<Type> & aRes,\textcolor{keyword}{const} cExtSet<Type> & aFilter); \(\backslash\)
+template  cExtSet<Type>   operator -  (\textcolor{keyword}{const} cExtSet<Type> & aRes,\textcolor{keyword}{const} cExtSet<Type> & aFilter);
+\end{DoxyCode}
+
+
+M\+A\+C\+RO I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+I\+ON. 
+
+
+
+Definition at line 907 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+\index{uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}!M\+A\+C\+R\+O\+\_\+\+I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+E\+\_\+\+S\+E\+L\+E\+C\+T\+OR@{M\+A\+C\+R\+O\+\_\+\+I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+E\+\_\+\+S\+E\+L\+E\+C\+T\+OR}}
+\index{M\+A\+C\+R\+O\+\_\+\+I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+E\+\_\+\+S\+E\+L\+E\+C\+T\+OR@{M\+A\+C\+R\+O\+\_\+\+I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+E\+\_\+\+S\+E\+L\+E\+C\+T\+OR}!uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}}
+\subsubsection[{\texorpdfstring{M\+A\+C\+R\+O\+\_\+\+I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+E\+\_\+\+S\+E\+L\+E\+C\+T\+OR}{MACRO_INSTANTIATE_SELECTOR}}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\+A\+C\+R\+O\+\_\+\+I\+N\+S\+T\+A\+N\+T\+I\+A\+T\+E\+\_\+\+S\+E\+L\+E\+C\+T\+OR(
+\begin{DoxyParamCaption}
+\item[{}]{Type}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__set__sel_8cpp_af8ad0a63f3253c41176f8a1253db9d67}{}\label{uti__set__sel_8cpp_af8ad0a63f3253c41176f8a1253db9d67}
+{\bfseries Value\+:}
+\begin{DoxyCode}
+\textcolor{keyword}{template} cSelector<Type> \hyperlink{uti__set__sel_8cpp_a6244af913431bd42b48124ebfb00e244}{GenIntervalSelector}(\textcolor{keyword}{const} boost::optional<Type> & aV1, \textcolor{keyword}{const} 
+      boost::optional<Type> & aV2, \textcolor{keywordtype}{bool} aInclLow,\textcolor{keywordtype}{bool} InclUp);\(\backslash\)
+template cSelector<Type> \hyperlink{uti__set__sel_8cpp_a52f295081cbe621b66991bec69a2eb1e}{LeftHalfIntervalSelector}(\textcolor{keyword}{const} Type & aV, \textcolor{keywordtype}{bool} aIncl);\(\backslash\)
+template cSelector<Type> \hyperlink{uti__set__sel_8cpp_a661d4243f42fcabc1249cdef53e012d1}{RightHalfIntervalSelector}(\textcolor{keyword}{const} Type & aV, \textcolor{keywordtype}{bool} aIncl);\(\backslash\)
+template cSelector<Type> \hyperlink{uti__set__sel_8cpp_a418efb18df13b621f93ab7da906b7787}{IntervalSelector}(\textcolor{keyword}{const} Type&aV1,\textcolor{keyword}{const} Type&aV2,\textcolor{keywordtype}{bool} aInclLow,\textcolor{keywordtype}{bool} 
+      InclUp);\(\backslash\)
+template cSelector<Type> operator ! (\textcolor{keyword}{const} cSelector<Type> & aSel); \(\backslash\)
+template cSelector<Type> operator &&  (\textcolor{keyword}{const} cSelector<Type> & aSel1,\textcolor{keyword}{const} cSelector<Type> & aSel2);\(\backslash\)
+template cSelector<Type> operator ||  (\textcolor{keyword}{const} cSelector<Type> & aSel1,\textcolor{keyword}{const} cSelector<Type> & aSel2);\(\backslash\)
+template cSelector<Type> \hyperlink{uti__set__sel_8cpp_a288a1a262f6e9e4c9a3ad020231585be}{CsteSelector}  (\textcolor{keywordtype}{bool} aVal);\(\backslash\)
+template cSelector<Type> \hyperlink{uti__set__sel_8cpp_a0c9cf4a3e281a7579227a25581bf2ef1}{Str2Interv}(\textcolor{keyword}{const} std::string & aStr);\(\backslash\)
+template \textcolor{keyword}{class }cSelector<Type>;\(\backslash\)
+template \textcolor{keyword}{class }cDataSelector<Type>;\(\backslash\)
+template \textcolor{keyword}{class }cDataIntervSelector<Type>;\(\backslash\)
+template \textcolor{keyword}{class }cDataNegSelector<Type>;\(\backslash\)
+template \textcolor{keyword}{class }cDataAndSelector<Type>;\(\backslash\)
+template \textcolor{keyword}{class }cDataOrSelector<Type>;\(\backslash\)
+template \textcolor{keyword}{class }cDataCsteSelector<Type>;\(\backslash\)
+\end{DoxyCode}
+
+
+Definition at line 421 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+
+
+\subsection{Function Documentation}
+\index{uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}!Bench\+Set@{Bench\+Set}}
+\index{Bench\+Set@{Bench\+Set}!uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}}
+\subsubsection[{\texorpdfstring{Bench\+Set(const std\+::string \&a\+Dir)}{BenchSet(const std::string &aDir)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+M\+V\+I\+I\+::\+Bench\+Set (
+\begin{DoxyParamCaption}
+\item[{const std\+::string \&}]{a\+Dir}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__set__sel_8cpp_file_a8ff7825898f80133dc7217abeb716dae}{}\label{uti__set__sel_8cpp_file_a8ff7825898f80133dc7217abeb716dae}
+
+
+Bench on \hyperlink{classMMVII_1_1cExtSet}{c\+Ext\+Set} (set \char`\"{}en extension\char`\"{}) 
+
+Bench some sets functionnalities. 
+
+Definition at line 1083 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+
+\begin{DoxyCode}
+1084 \{
+1085     cMMVII\_Appli &  anAp = cMMVII\_Appli::TheAppli();
+1086 
+1087     TplBenchSet<int>        (aDir);
+1088     TplBenchSet<std::string> (aDir);
+1089     TplBenchSet<void *> (aDir);
+1090 
+1091     \textcolor{comment}{// Basic bench of set of cple of name}
+1092     \{
+1093        tNameRel aTest;
+1094        tNameRel aT2;
+1095 
+1096        aTest.Add(\hyperlink{MMVII__AllClassDeclare_8h_a7b6dc8a09571e6038f08b8f7fa07b8b9}{tNamePair}(\textcolor{stringliteral}{"b"},\textcolor{stringliteral}{"a"}));
+1097        aTest.Add(\hyperlink{MMVII__AllClassDeclare_8h_a7b6dc8a09571e6038f08b8f7fa07b8b9}{tNamePair}(\textcolor{stringliteral}{"c"},\textcolor{stringliteral}{"d"}));
+1098        aTest.Add(\hyperlink{MMVII__AllClassDeclare_8h_a7b6dc8a09571e6038f08b8f7fa07b8b9}{tNamePair}(\textcolor{stringliteral}{"d"},\textcolor{stringliteral}{"c"}));
+1099        
+1100        MMVII\_INTERNAL\_ASSERT\_bench(aTest.size()==2,\textcolor{stringliteral}{"BenchSet"});
+1101        std::string aNameFile = anAp.TmpDirTestMMVII() + \textcolor{stringliteral}{"TestRel.xml"};
+1102        SaveInFile(aTest,aNameFile);
+1103        ReadFromFileWithDef(aT2,aNameFile);
+1104 
+1105        MMVII\_INTERNAL\_ASSERT\_bench(aT2.size()==2,\textcolor{stringliteral}{"BenchSet"});
+1106        MMVII\_INTERNAL\_ASSERT\_bench(aT2.Equal(aTest),\textcolor{stringliteral}{"BenchSet"});
+1107     \}
+1108 \}
+\end{DoxyCode}
+\index{uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}!Gen\+Interval\+Selector@{Gen\+Interval\+Selector}}
+\index{Gen\+Interval\+Selector@{Gen\+Interval\+Selector}!uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}}
+\subsubsection[{\texorpdfstring{Gen\+Interval\+Selector(const boost\+::optional$<$ Type $>$ \&a\+V1, const boost\+::optional$<$ Type $>$ \&a\+V2, bool a\+Incl\+Low, bool Incl\+Up)}{GenIntervalSelector(const boost::optional< Type > &aV1, const boost::optional< Type > &aV2, bool aInclLow, bool InclUp)}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class Type $>$ c\+Selector$<$ Type $>$ M\+M\+V\+I\+I\+::\+Gen\+Interval\+Selector (
+\begin{DoxyParamCaption}
+\item[{const boost\+::optional$<$ Type $>$ \&}]{a\+V1, }
+\item[{const boost\+::optional$<$ Type $>$ \&}]{a\+V2, }
+\item[{bool}]{a\+Incl\+Low, }
+\item[{bool}]{Incl\+Up}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__set__sel_8cpp_file_a6244af913431bd42b48124ebfb00e244}{}\label{uti__set__sel_8cpp_file_a6244af913431bd42b48124ebfb00e244}
+Selector corresponding to interval V1..V2, boost\+::none mean no bound a\+Incl\+Low,Incl\+Up indicate if bounds are included.
+
+(V1,V2,true,true) =$>$ \mbox{[}V1,V2\mbox{]}
+
+(none,V2,true,false) =$>$ \mbox{]}-\/infinity,V2\mbox{[} 
+
+Definition at line 193 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+
+\begin{DoxyCode}
+196 \{
+197    \textcolor{keywordflow}{return} cSelector<Type>(\textcolor{keyword}{new} cDataIntervSelector<Type>(&aV1,&aV2,aInclLow,InclUp));
+198 \}
+\end{DoxyCode}
+\index{uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}!Left\+Half\+Interval\+Selector@{Left\+Half\+Interval\+Selector}}
+\index{Left\+Half\+Interval\+Selector@{Left\+Half\+Interval\+Selector}!uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}}
+\subsubsection[{\texorpdfstring{Left\+Half\+Interval\+Selector(const Type \&a\+V, bool a\+Incl)}{LeftHalfIntervalSelector(const Type &aV, bool aIncl)}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class Type $>$ c\+Selector$<$ Type $>$ M\+M\+V\+I\+I\+::\+Left\+Half\+Interval\+Selector (
+\begin{DoxyParamCaption}
+\item[{const Type \&}]{aV, }
+\item[{bool}]{a\+Incl}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__set__sel_8cpp_file_a52f295081cbe621b66991bec69a2eb1e}{}\label{uti__set__sel_8cpp_file_a52f295081cbe621b66991bec69a2eb1e}
+
+
+\mbox{]}$<$-\/ ,V\mbox{]} or \mbox{]}$<$-\/,V\mbox{[} 
+
+Facilty to Gen\+Interval\+Selector \+: left interval \mbox{]}-\/infinity,... 
+
+Definition at line 201 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+
+\begin{DoxyCode}
+202 \{
+203    boost::optional<Type> aOptV(aV);
+204    boost::optional<Type> aNone = boost::none;
+205    \textcolor{keywordflow}{return} cSelector<Type>(\textcolor{keyword}{new} cDataIntervSelector<Type>(&aNone,&aOptV,aIncl,aIncl));
+206 \}
+\end{DoxyCode}
+\index{uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}!Lire\+Interv@{Lire\+Interv}}
+\index{Lire\+Interv@{Lire\+Interv}!uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}}
+\subsubsection[{\texorpdfstring{Lire\+Interv(const std\+::string \&a\+Str)}{LireInterv(const std::string &aStr)}}]{\setlength{\rightskip}{0pt plus 5cm}std\+::vector$<$t\+Elem\+Str\+Interv$>$ M\+M\+V\+I\+I\+::\+Lire\+Interv (
+\begin{DoxyParamCaption}
+\item[{const std\+::string \&}]{a\+Str}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__set__sel_8cpp_file_a751bca5e0dcb93549833fe21bcb9cf26}{}\label{uti__set__sel_8cpp_file_a751bca5e0dcb93549833fe21bcb9cf26}
+
+
+Prepare processing string 2 interval. 
+
+Make the low level job, pair of string an bool indicating inclusion \char`\"{}\mbox{]}ab,cd\mbox{]}\mbox{[},uu\mbox{]}\char`\"{} =$>$ \{\{ab,false\},\{cd,true\}\{,true\}\{uu,true\}\} 
+
+Definition at line 349 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+
+\begin{DoxyCode}
+350 \{
+351    std::vector<tElemStrInterv>  aRes;
+352    \textcolor{keyword}{const} \textcolor{keywordtype}{char} * aC = aStr.c\_str();
+353    \textcolor{keywordflow}{while} (*aC)
+354    \{
+355       SkeepWhite(aC);
+356       \textcolor{comment}{// Get [ or ]}
+357       \textcolor{keywordtype}{bool} aLowIncl,anUpIncl;
+358       \textcolor{keywordflow}{if} (!\hyperlink{uti__set__sel_8cpp_ab746743cffe7e8c67f406ef98a756339}{GetInclus}(aLowIncl,*aC,\textcolor{keyword}{true}))
+359       \{
+360          MMVII\_INTERNAL\_ASSERT\_always(\textcolor{keyword}{false},\textcolor{stringliteral}{"Expected ] ou [ in read interv"});
+361       \}
+362       aC++;
+363       \textcolor{keyword}{const} \textcolor{keywordtype}{char} * aC0 = aC;  \textcolor{comment}{//memorize position a string begining}
+364       \textcolor{comment}{// Skip to next  [ or ]}
+365       \textcolor{keywordflow}{while} (! \hyperlink{uti__set__sel_8cpp_ab746743cffe7e8c67f406ef98a756339}{GetInclus}(anUpIncl,*aC,\textcolor{keyword}{false}))
+366       \{
+367          MMVII\_INTERNAL\_ASSERT\_always(*aC,\textcolor{stringliteral}{"No closing ] ou [ in read interv"});
+368          aC++;
+369       \}
+370 
+371       \textcolor{comment}{// Split string arround ','}
+372       std::string a2Str(aC0,aC);
+373       std::string aStrLow,aStrUp;
+374       SplitStringArround(aStrLow,aStrUp,a2Str,\textcolor{charliteral}{','});
+375 
+376       aRes.push\_back(tElemStrInterv(aStrLow,aLowIncl));
+377       aRes.push\_back(tElemStrInterv(aStrUp,anUpIncl));
+378 
+379       aC++;
+380       SkeepWhite(aC);
+381    \}
+382 
+383 \textcolor{comment}{/*}
+384 \textcolor{comment}{   if (0)}
+385 \textcolor{comment}{   \{}
+386 \textcolor{comment}{      for (size\_t aK=0  ; aK<aRes.size() ; aK+=2)}
+387 \textcolor{comment}{      \{}
+388 \textcolor{comment}{         std:: cout << (aRes[aK].second ? "[" : "]");}
+389 \textcolor{comment}{         std:: cout << aRes[aK].first << "," << aRes[aK+1].first ;}
+390 \textcolor{comment}{         std:: cout << (aRes[aK+1].second ? "]" : "[");}
+391 \textcolor{comment}{         std:: cout << "\(\backslash\)n";}
+392 \textcolor{comment}{      \}}
+393 \textcolor{comment}{   \}}
+394 \textcolor{comment}{*/}
+395    \textcolor{keywordflow}{return} aRes;
+396 \}
+\end{DoxyCode}
+\index{uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}!operator$\ast$@{operator$\ast$}}
+\index{operator$\ast$@{operator$\ast$}!uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}}
+\subsubsection[{\texorpdfstring{operator$\ast$(const c\+Ext\+Set$<$ Type $>$ \&a\+S1, const c\+Ext\+Set$<$ Type $>$ \&a\+S2)}{operator*(const cExtSet< Type > &aS1, const cExtSet< Type > &aS2)}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class Type $>$ c\+Ext\+Set$<$ Type $>$ M\+M\+V\+I\+I\+::operator$\ast$ (
+\begin{DoxyParamCaption}
+\item[{const {\bf c\+Ext\+Set}$<$ Type $>$ \&}]{a\+S1, }
+\item[{const {\bf c\+Ext\+Set}$<$ Type $>$ \&}]{a\+S2}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__set__sel_8cpp_file_acfe1fff63370a64d200fbec40d487f0a}{}\label{uti__set__sel_8cpp_file_acfe1fff63370a64d200fbec40d487f0a}
+Intersection, fonctionnal algo \+: Parse S1 and add in a\+Res those who are in S2 
+
+Definition at line 738 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+
+\begin{DoxyCode}
+739 \{
+740    cExtSet<Type>  aRes = aS1.EmptySet();
+741 
+742    std::vector<const Type *>  aV1;
+743    aS1.PutInVect(aV1,\textcolor{keyword}{false});
+744 
+745    \textcolor{keywordflow}{for} (\textcolor{keyword}{const} \textcolor{keyword}{auto} & el : aV1)
+746         \textcolor{keywordflow}{if} (aS2.In(*el))
+747            aRes.Add(*el);
+748    \textcolor{keywordflow}{return}  aRes;
+749 \}
+\end{DoxyCode}
+\index{uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}!operator$\ast$=@{operator$\ast$=}}
+\index{operator$\ast$=@{operator$\ast$=}!uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}}
+\subsubsection[{\texorpdfstring{operator$\ast$=(c\+Ext\+Set$<$ Type $>$ \&a\+Res, const c\+Ext\+Set$<$ Type $>$ \&a\+Filter)}{operator*=(cExtSet< Type > &aRes, const cExtSet< Type > &aFilter)}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class Type $>$ void M\+M\+V\+I\+I\+::operator$\ast$= (
+\begin{DoxyParamCaption}
+\item[{{\bf c\+Ext\+Set}$<$ Type $>$ \&}]{a\+Res, }
+\item[{const {\bf c\+Ext\+Set}$<$ Type $>$ \&}]{a\+Filter}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__set__sel_8cpp_file_ac644d06ec1a0e25a9bb65926e55c9d5d}{}\label{uti__set__sel_8cpp_file_ac644d06ec1a0e25a9bb65926e55c9d5d}
+Intersection, in -\/ situ Algo \+: Parse a\+Res and suppress those who are not in a\+Filter 
+
+Definition at line 725 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+
+\begin{DoxyCode}
+726 \{
+727    std::vector<const Type *>  aV;
+728    aRes.PutInVect(aV,\textcolor{keyword}{false});
+729    \textcolor{keywordflow}{for} (\textcolor{keyword}{const} \textcolor{keyword}{auto} & el : aV)
+730    \{
+731        \textcolor{keywordflow}{if} ( ! aFilter.In(*el))
+732           aRes.Suppress(*el);
+733    \}
+734 \}
+\end{DoxyCode}
+\index{uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}!operator+@{operator+}}
+\index{operator+@{operator+}!uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}}
+\subsubsection[{\texorpdfstring{operator+(const c\+Ext\+Set$<$ Type $>$ \&a\+S1, const c\+Ext\+Set$<$ Type $>$ \&a\+S2)}{operator+(const cExtSet< Type > &aS1, const cExtSet< Type > &aS2)}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class Type $>$ c\+Ext\+Set$<$ Type $>$ M\+M\+V\+I\+I\+::operator+ (
+\begin{DoxyParamCaption}
+\item[{const {\bf c\+Ext\+Set}$<$ Type $>$ \&}]{a\+S1, }
+\item[{const {\bf c\+Ext\+Set}$<$ Type $>$ \&}]{a\+S2}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__set__sel_8cpp_file_ada8719bc172c3a2dcf543088c2d9654d}{}\label{uti__set__sel_8cpp_file_ada8719bc172c3a2dcf543088c2d9654d}
+Union, functionnal Algo \+: dupl S1, then += S2 
+
+Definition at line 769 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+
+\begin{DoxyCode}
+770 \{
+771    cExtSet<Type>  aRes = aS1.Dupl();
+772    aRes += aS2;
+773    \textcolor{keywordflow}{return}  aRes;
+774 \}
+\end{DoxyCode}
+\index{uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}!operator+=@{operator+=}}
+\index{operator+=@{operator+=}!uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}}
+\subsubsection[{\texorpdfstring{operator+=(c\+Ext\+Set$<$ Type $>$ \&a\+Res, const c\+Ext\+Set$<$ Type $>$ \&to\+Add)}{operator+=(cExtSet< Type > &aRes, const cExtSet< Type > &toAdd)}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class Type $>$ void M\+M\+V\+I\+I\+::operator+= (
+\begin{DoxyParamCaption}
+\item[{{\bf c\+Ext\+Set}$<$ Type $>$ \&}]{a\+Res, }
+\item[{const {\bf c\+Ext\+Set}$<$ Type $>$ \&}]{to\+Add}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__set__sel_8cpp_file_a05d9fca84a6d286e061417184cc13c3a}{}\label{uti__set__sel_8cpp_file_a05d9fca84a6d286e061417184cc13c3a}
+Union, in -\/ situ Algo \+: parse to\+Add and add in a\+Res 
+
+Definition at line 757 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+
+\begin{DoxyCode}
+758 \{
+759    std::vector<const Type *>  aV;
+760    toAdd.PutInVect(aV,\textcolor{keyword}{false});
+761    \textcolor{keywordflow}{for} (\textcolor{keyword}{const} \textcolor{keyword}{auto} & el : aV)
+762    \{
+763         aRes.Add(*el);
+764    \}
+765 \}
+\end{DoxyCode}
+\index{uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}!operator-\/=@{operator-\/=}}
+\index{operator-\/=@{operator-\/=}!uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}}
+\subsubsection[{\texorpdfstring{operator-\/=(c\+Ext\+Set$<$ Type $>$ \&a\+Res, const c\+Ext\+Set$<$ Type $>$ \&a\+Filter)}{operator-=(cExtSet< Type > &aRes, const cExtSet< Type > &aFilter)}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class Type $>$ void M\+M\+V\+I\+I\+::operator-\/= (
+\begin{DoxyParamCaption}
+\item[{{\bf c\+Ext\+Set}$<$ Type $>$ \&}]{a\+Res, }
+\item[{const {\bf c\+Ext\+Set}$<$ Type $>$ \&}]{a\+Filter}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__set__sel_8cpp_file_a0554cad8dbd71bc0cd2623575676bb23}{}\label{uti__set__sel_8cpp_file_a0554cad8dbd71bc0cd2623575676bb23}
+Difference , in -\/ situ Algo \+: Parse a filter and supress from res 
+
+Definition at line 781 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+
+\begin{DoxyCode}
+782 \{
+783    std::vector<const Type *>  aV;
+784    aFilter.PutInVect(aV,\textcolor{keyword}{false});
+785    \textcolor{keywordflow}{for} (\textcolor{keyword}{const} \textcolor{keyword}{auto} & el : aV)
+786    \{
+787        aRes.Suppress(*el);
+788    \}
+789 \}
+\end{DoxyCode}
+\index{uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}!Right\+Half\+Interval\+Selector@{Right\+Half\+Interval\+Selector}}
+\index{Right\+Half\+Interval\+Selector@{Right\+Half\+Interval\+Selector}!uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}}
+\subsubsection[{\texorpdfstring{Right\+Half\+Interval\+Selector(const Type \&a\+V, bool a\+Incl)}{RightHalfIntervalSelector(const Type &aV, bool aIncl)}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class Type $>$ c\+Selector$<$ Type $>$ M\+M\+V\+I\+I\+::\+Right\+Half\+Interval\+Selector (
+\begin{DoxyParamCaption}
+\item[{const Type \&}]{aV, }
+\item[{bool}]{a\+Incl}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__set__sel_8cpp_file_a661d4243f42fcabc1249cdef53e012d1}{}\label{uti__set__sel_8cpp_file_a661d4243f42fcabc1249cdef53e012d1}
+
+
+\mbox{]}V,-\/$>$\mbox{[} or \mbox{[}V,-\/$>$\mbox{[} 
+
+Facilty to Gen\+Interval\+Selector \+: right interval ..+infinity\mbox{[}. 
+
+Definition at line 209 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+
+\begin{DoxyCode}
+210 \{
+211    boost::optional<Type> aOptV(aV);
+212    boost::optional<Type> aNone = boost::none;
+213    \textcolor{keywordflow}{return} cSelector<Type>(\textcolor{keyword}{new} cDataIntervSelector<Type>(&aOptV,&aNone,aIncl,aIncl));
+214 \}
+\end{DoxyCode}
+\index{uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}!Str2\+Interv@{Str2\+Interv}}
+\index{Str2\+Interv@{Str2\+Interv}!uti\+\_\+set\+\_\+sel.\+cpp@{uti\+\_\+set\+\_\+sel.\+cpp}}
+\subsubsection[{\texorpdfstring{Str2\+Interv(const std\+::string \&a\+Str)}{Str2Interv(const std::string &aStr)}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class Type $>$ c\+Selector$<$ Type $>$ M\+M\+V\+I\+I\+::\+Str2\+Interv (
+\begin{DoxyParamCaption}
+\item[{const std\+::string \&}]{a\+Str}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__set__sel_8cpp_file_a0c9cf4a3e281a7579227a25581bf2ef1}{}\label{uti__set__sel_8cpp_file_a0c9cf4a3e281a7579227a25581bf2ef1}
+
+
+Compute union of intervals from a string. 
+
+convert a string into an union of interval. For example \+:
+
+\char`\"{}\mbox{]},5\mbox{]} \mbox{[}8,9\mbox{[} \mbox{]}12,15\mbox{]} \mbox{]}17,\mbox{]}\char`\"{} =$>$ (x$<$=5) $\vert$$\vert$ (x$>$=8 \&\& x$<$9) $\vert$$\vert$ ... 
+
+Definition at line 399 of file uti\+\_\+set\+\_\+sel.\+cpp.
+
+
+\begin{DoxyCode}
+400 \{
+401     std::vector<tElemStrInterv>  aVI = \hyperlink{uti__set__sel_8cpp_a751bca5e0dcb93549833fe21bcb9cf26}{LireInterv}(aStr);
+402     cSelector<Type> aRes =  CsteSelector<Type>(\textcolor{keyword}{false});
+403 
+404 
+405     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{size\_t} aK=0  ; aK<aVI.size() ; aK+=2)
+406     \{
+407          boost::optional<Type> aV1 = boost::none;
+408          boost::optional<Type> aV2 = boost::none;
+409          \textcolor{keywordflow}{if} (aVI[aK].first!=\textcolor{stringliteral}{""})
+410             aV1 = cStrIO<Type>::FromStr(aVI[aK].first);
+411          \textcolor{keywordflow}{if} (aVI[aK+1].first!=\textcolor{stringliteral}{""})
+412             aV2 = cStrIO<Type>::FromStr(aVI[aK+1].first);
+413          aRes = aRes || \hyperlink{uti__set__sel_8cpp_a6244af913431bd42b48124ebfb00e244}{GenIntervalSelector}(aV1,aV2,aVI[aK].second,aVI[aK+1].second);
+414     \}
+415      
+416 
+417     \textcolor{keywordflow}{return} aRes;
+418 \}
+\end{DoxyCode}

@@ -1,0 +1,163 @@
+\hypertarget{uti__string_8cpp}{}\section{src/\+Utils/uti\+\_\+string.cpp File Reference}
+\label{uti__string_8cpp}\index{src/\+Utils/uti\+\_\+string.\+cpp@{src/\+Utils/uti\+\_\+string.\+cpp}}
+
+
+Implementation of utilitary services.  
+
+
+{\ttfamily \#include \char`\"{}include/\+M\+M\+V\+I\+I\+\_\+all.\+h\char`\"{}}\\*
+{\ttfamily \#include $<$boost/filesystem.\+hpp$>$}\\*
+{\ttfamily \#include $<$boost/algorithm/string.\+hpp$>$}\\*
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+std\+::vector$<$ std\+::string $>$ {\bfseries M\+M\+V\+I\+I\+::\+Split\+String} (const std\+::string \&a\+Str, const std\+::string \&a\+Space)\hypertarget{uti__string_8cpp_aae5aa76107e8f08cea55941b18ca133f}{}\label{uti__string_8cpp_aae5aa76107e8f08cea55941b18ca133f}
+
+\item 
+void {\bfseries M\+M\+V\+I\+I\+::\+Split\+String\+Arround} (std\+::string \&a\+Before, std\+::string \&a\+After, const std\+::string \&a\+Str, char a\+Char\+Sep, bool S\+VP, bool Priv\+Pref)\hypertarget{uti__string_8cpp_ab7742f39437847057d3dea3f78b60e31}{}\label{uti__string_8cpp_ab7742f39437847057d3dea3f78b60e31}
+
+\item 
+std\+::string {\bfseries M\+M\+V\+I\+I\+::\+Prefix} (const std\+::string \&a\+Str, char a\+Sep, bool S\+VP, bool Priv\+Pref)\hypertarget{uti__string_8cpp_a7160ce494601ecaa483f1af831da496c}{}\label{uti__string_8cpp_a7160ce494601ecaa483f1af831da496c}
+
+\item 
+std\+::string {\bfseries M\+M\+V\+I\+I\+::\+Postfix} (const std\+::string \&a\+Str, char a\+Sep, bool S\+VP, bool Priv\+Pref)\hypertarget{uti__string_8cpp_a49854787e11e3fa6e698b903ef85cf9c}{}\label{uti__string_8cpp_a49854787e11e3fa6e698b903ef85cf9c}
+
+\item 
+bool \hyperlink{uti__string_8cpp_adff43fe7f0f569171eefb1aeafe2d0a3}{M\+M\+V\+I\+I\+::\+U\+Case\+Equal} (const std\+::string \&,const std\+::string \&)\hypertarget{uti__string_8cpp_adff43fe7f0f569171eefb1aeafe2d0a3}{}\label{uti__string_8cpp_adff43fe7f0f569171eefb1aeafe2d0a3}
+
+\begin{DoxyCompactList}\small\item\em Case unsensitive equality. \end{DoxyCompactList}\item 
+bool \hyperlink{uti__string_8cpp_a595e0d03ab829fd9baf58e036de11e57}{M\+M\+V\+I\+I\+::\+U\+Case\+Begin} (const char $\ast$a\+Begin, const char $\ast$a\+Str)\hypertarget{uti__string_8cpp_a595e0d03ab829fd9baf58e036de11e57}{}\label{uti__string_8cpp_a595e0d03ab829fd9baf58e036de11e57}
+
+\begin{DoxyCompactList}\small\item\em Is a\+Begin the case U\+N-\/sensitive premisse of a\+Str ? \end{DoxyCompactList}\item 
+bool \hyperlink{uti__string_8cpp_ad4ca07dc17a92d125e3b11c77f9b44f4}{M\+M\+V\+I\+I\+::\+Case\+S\+Begin} (const char $\ast$a\+Begin, const char $\ast$a\+Str)\hypertarget{uti__string_8cpp_ad4ca07dc17a92d125e3b11c77f9b44f4}{}\label{uti__string_8cpp_ad4ca07dc17a92d125e3b11c77f9b44f4}
+
+\begin{DoxyCompactList}\small\item\em Is a\+Begin the case S\+E\+N\+S-\/itive premisse of a\+Str ? \end{DoxyCompactList}\item 
+char {\bfseries M\+M\+V\+I\+I\+::\+Dir\+Separator} ()\hypertarget{uti__string_8cpp_ababa512e57e43eeb25aa03f85b067266}{}\label{uti__string_8cpp_ababa512e57e43eeb25aa03f85b067266}
+
+\item 
+std\+::string {\bfseries M\+M\+V\+I\+I\+::\+Dir\+Cur} ()\hypertarget{uti__string_8cpp_a656506c1620e2ceeb427cf31122a7e6c}{}\label{uti__string_8cpp_a656506c1620e2ceeb427cf31122a7e6c}
+
+\item 
+std\+::string {\bfseries M\+M\+V\+I\+I\+::\+Dir\+Of\+Path} (const std\+::string \&a\+Path, bool Error\+Non\+Exist)\hypertarget{uti__string_8cpp_aa6e2d9d2ff7a5a832dae6a4d458aca3e}{}\label{uti__string_8cpp_aa6e2d9d2ff7a5a832dae6a4d458aca3e}
+
+\item 
+std\+::string {\bfseries M\+M\+V\+I\+I\+::\+File\+Of\+Path} (const std\+::string \&a\+Path, bool Error\+Non\+Exist)\hypertarget{uti__string_8cpp_a3fbc1f0cce9bc8eef800b6e39721cf00}{}\label{uti__string_8cpp_a3fbc1f0cce9bc8eef800b6e39721cf00}
+
+\item 
+std\+::string {\bfseries M\+M\+V\+I\+I\+::\+Absolute\+Name} (const std\+::string \&a\+Name)\hypertarget{uti__string_8cpp_a1881fb2704581ba9d9738a5abbbad185}{}\label{uti__string_8cpp_a1881fb2704581ba9d9738a5abbbad185}
+
+\item 
+std\+::string \hyperlink{uti__string_8cpp_a3956cc5ae1ef75f96301d8a64bfd2bc7}{M\+M\+V\+I\+I\+::\+Up\+Dir} (const std\+::string \&a\+Dir, int a\+Nb)
+\item 
+bool {\bfseries M\+M\+V\+I\+I\+::\+Exist\+File} (const std\+::string \&a\+Name)\hypertarget{uti__string_8cpp_a5b407586defbe6405d9a6b215dc6975f}{}\label{uti__string_8cpp_a5b407586defbe6405d9a6b215dc6975f}
+
+\item 
+uintmax\+\_\+t {\bfseries M\+M\+V\+I\+I\+::\+Size\+File} (const std\+::string \&a\+Name)\hypertarget{uti__string_8cpp_a9f64e52896b965a133f7f09f4fb74dbb}{}\label{uti__string_8cpp_a9f64e52896b965a133f7f09f4fb74dbb}
+
+\item 
+void \hyperlink{uti__string_8cpp_a2ba1810dc4ff3d1e00bede52d97a5f6b}{M\+M\+V\+I\+I\+::\+Make\+Name\+Dir} (std\+::string \&a\+Dir)\hypertarget{uti__string_8cpp_a2ba1810dc4ff3d1e00bede52d97a5f6b}{}\label{uti__string_8cpp_a2ba1810dc4ff3d1e00bede52d97a5f6b}
+
+\begin{DoxyCompactList}\small\item\em Add a \textquotesingle{}/\textquotesingle{}, or equiv, to make a name of directory. \end{DoxyCompactList}\item 
+bool {\bfseries M\+M\+V\+I\+I\+::\+Split\+Dir\+And\+File} (std\+::string \&a\+Dir, std\+::string \&a\+File, const std\+::string \&a\+Dir\+And\+File, bool Error\+Non\+Exist)\hypertarget{uti__string_8cpp_a4bb39f902f5891b03ac020124eed016d}{}\label{uti__string_8cpp_a4bb39f902f5891b03ac020124eed016d}
+
+\item 
+std\+::string {\bfseries M\+M\+V\+I\+I\+::\+Quote} (const std\+::string \&a\+Str)\hypertarget{uti__string_8cpp_aa10ade853ae9361c218e05a8b47caf26}{}\label{uti__string_8cpp_aa10ade853ae9361c218e05a8b47caf26}
+
+\item 
+void {\bfseries M\+M\+V\+I\+I\+::\+Skeep\+White} (const char $\ast$\&aC)\hypertarget{uti__string_8cpp_a327fa1c92984bf94dfbfe340415efeae}{}\label{uti__string_8cpp_a327fa1c92984bf94dfbfe340415efeae}
+
+\item 
+bool \hyperlink{uti__string_8cpp_a8b6c1e2096b970c7eb0ed7657c581eb6}{M\+M\+V\+I\+I\+::\+Create\+Directories} (const std\+::string \&a\+Dir, bool S\+VP)\hypertarget{uti__string_8cpp_a8b6c1e2096b970c7eb0ed7657c581eb6}{}\label{uti__string_8cpp_a8b6c1e2096b970c7eb0ed7657c581eb6}
+
+\begin{DoxyCompactList}\small\item\em Create dir, recurs ? \end{DoxyCompactList}\item 
+bool \hyperlink{uti__string_8cpp_a51891f9891c24ffe48b30644d81550ce}{M\+M\+V\+I\+I\+::\+Remove\+Recurs} (const std\+::string \&a\+Dir, bool Re\+Mk\+Dir, bool S\+VP)\hypertarget{uti__string_8cpp_a51891f9891c24ffe48b30644d81550ce}{}\label{uti__string_8cpp_a51891f9891c24ffe48b30644d81550ce}
+
+\begin{DoxyCompactList}\small\item\em Purge recursively the directory. \end{DoxyCompactList}\item 
+bool \hyperlink{uti__string_8cpp_a6a23803c828e575819807209a80d4ac6}{M\+M\+V\+I\+I\+::\+Remove\+File} (const std\+::string \&a\+Dir, bool S\+VP)\hypertarget{uti__string_8cpp_a6a23803c828e575819807209a80d4ac6}{}\label{uti__string_8cpp_a6a23803c828e575819807209a80d4ac6}
+
+\begin{DoxyCompactList}\small\item\em Remove file. \end{DoxyCompactList}\item 
+void \hyperlink{uti__string_8cpp_a3abbe13fdec94d3e01a4c1d153b00fbb}{M\+M\+V\+I\+I\+::\+Rename\+Files} (const std\+::string \&an\+Old\+Name, const std\+::string \&a\+New\+Name)\hypertarget{uti__string_8cpp_a3abbe13fdec94d3e01a4c1d153b00fbb}{}\label{uti__string_8cpp_a3abbe13fdec94d3e01a4c1d153b00fbb}
+
+\begin{DoxyCompactList}\small\item\em Move/\+Rename. \end{DoxyCompactList}\item 
+void {\bfseries M\+M\+V\+I\+I\+::\+Copy\+File} (const std\+::string \&a\+Name, const std\+::string \&a\+Dest)\hypertarget{uti__string_8cpp_ad69d559f2e7747122c8e2078adb02ecb}{}\label{uti__string_8cpp_ad69d559f2e7747122c8e2078adb02ecb}
+
+\item 
+void \hyperlink{uti__string_8cpp_a7ec0c625ee8f6f78f77acb1a4c83cf4c}{M\+M\+V\+I\+I\+::\+Get\+Files\+From\+Dir} (std\+::vector$<$ std\+::string $>$ \&, const std\+::string \&a\+Dir, const t\+Name\+Selector \&)
+\begin{DoxyCompactList}\small\item\em Exract name of files, by ref. \end{DoxyCompactList}\item 
+std\+::vector$<$ std\+::string $>$ \hyperlink{uti__string_8cpp_a85250835e932182fba5b643b409e9cbd}{M\+M\+V\+I\+I\+::\+Get\+Files\+From\+Dir} (const std\+::string \&a\+Dir, const t\+Name\+Selector \&)\hypertarget{uti__string_8cpp_a85250835e932182fba5b643b409e9cbd}{}\label{uti__string_8cpp_a85250835e932182fba5b643b409e9cbd}
+
+\begin{DoxyCompactList}\small\item\em Exract name of files located in the directory, by return value. \end{DoxyCompactList}\item 
+void \hyperlink{uti__string_8cpp_a7d92ec2c18cebcbfc42dd452d96f523e}{M\+M\+V\+I\+I\+::\+Rec\+Get\+Files\+From\+Dir} (std\+::vector$<$ std\+::string $>$ \&a\+Res, const std\+::string \&a\+Dir, t\+Name\+Selector a\+NS, int a\+Lev\+Min, int a\+Lev\+Max)\hypertarget{uti__string_8cpp_a7d92ec2c18cebcbfc42dd452d96f523e}{}\label{uti__string_8cpp_a7d92ec2c18cebcbfc42dd452d96f523e}
+
+\begin{DoxyCompactList}\small\item\em Recursively exract name of files located in the directory, by return value. \end{DoxyCompactList}\item 
+std\+::vector$<$ std\+::string $>$ \hyperlink{uti__string_8cpp_adf073e7bd0eeec2c260c5cd065693f31}{M\+M\+V\+I\+I\+::\+Rec\+Get\+Files\+From\+Dir} (const std\+::string \&a\+Dir, t\+Name\+Selector a\+NS, int a\+Lev\+Min, int a\+Lev\+Max)\hypertarget{uti__string_8cpp_adf073e7bd0eeec2c260c5cd065693f31}{}\label{uti__string_8cpp_adf073e7bd0eeec2c260c5cd065693f31}
+
+\begin{DoxyCompactList}\small\item\em Recursively exract name of files, by return value. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Implementation of utilitary services. 
+
+Use boost and home made stuff for \+:
+
+
+\begin{DoxyItemize}
+\item split names
+\item separate directories from files
+\item parse directories 
+\end{DoxyItemize}
+
+\subsection{Function Documentation}
+\index{uti\+\_\+string.\+cpp@{uti\+\_\+string.\+cpp}!Get\+Files\+From\+Dir@{Get\+Files\+From\+Dir}}
+\index{Get\+Files\+From\+Dir@{Get\+Files\+From\+Dir}!uti\+\_\+string.\+cpp@{uti\+\_\+string.\+cpp}}
+\subsubsection[{\texorpdfstring{Get\+Files\+From\+Dir(std\+::vector$<$ std\+::string $>$ \&, const std\+::string \&a\+Dir, const t\+Name\+Selector \&)}{GetFilesFromDir(std::vector< std::string > &, const std::string &aDir, const tNameSelector &)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+M\+V\+I\+I\+::\+Get\+Files\+From\+Dir (
+\begin{DoxyParamCaption}
+\item[{std\+::vector$<$ std\+::string $>$ \&}]{a\+Res, }
+\item[{const std\+::string \&}]{a\+Dir, }
+\item[{const {\bf t\+Name\+Selector} \&}]{a\+NS}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__string_8cpp_file_a7ec0c625ee8f6f78f77acb1a4c83cf4c}{}\label{uti__string_8cpp_file_a7ec0c625ee8f6f78f77acb1a4c83cf4c}
+
+
+Exract name of files, by ref. 
+
+Implementation of Get\+Files\+From\+Dir, use boost 
+
+Definition at line 384 of file uti\+\_\+string.\+cpp.
+
+
+\begin{DoxyCode}
+385 \{
+386    \textcolor{keywordflow}{for} (directory\_iterator itr(aDir); itr!=directory\_iterator(); ++itr)
+387    \{
+388       std::string aName ( itr->path().filename().c\_str());
+389       \textcolor{keywordflow}{if} ( is\_regular\_file(itr->status()) &&  aNS.Match(aName))
+390          aRes.push\_back(aName);
+391    \}
+392 \}
+\end{DoxyCode}
+\index{uti\+\_\+string.\+cpp@{uti\+\_\+string.\+cpp}!Up\+Dir@{Up\+Dir}}
+\index{Up\+Dir@{Up\+Dir}!uti\+\_\+string.\+cpp@{uti\+\_\+string.\+cpp}}
+\subsubsection[{\texorpdfstring{Up\+Dir(const std\+::string \&a\+Dir, int a\+Nb)}{UpDir(const std::string &aDir, int aNb)}}]{\setlength{\rightskip}{0pt plus 5cm}std\+::string M\+M\+V\+I\+I\+::\+Up\+Dir (
+\begin{DoxyParamCaption}
+\item[{const std\+::string \&}]{a\+Dir, }
+\item[{int}]{a\+Nb}
+\end{DoxyParamCaption}
+)}\hypertarget{uti__string_8cpp_file_a3956cc5ae1ef75f96301d8a64bfd2bc7}{}\label{uti__string_8cpp_file_a3956cc5ae1ef75f96301d8a64bfd2bc7}
+Basic but seems to work untill now 
+
+Definition at line 224 of file uti\+\_\+string.\+cpp.
+
+
+\begin{DoxyCode}
+225 \{
+226    std::string aRes = aDir;
+227    \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} aK=0 ; aK<aNb ; aK++)
+228    \{
+229       \textcolor{comment}{// aRes += std::string("..") +  path::preferred\_separator;}
+230       \textcolor{comment}{// aRes += ".." +  path::preferred\_separator;}
+231       aRes = aRes + std::string(\textcolor{stringliteral}{".."}) +  path::preferred\_separator;
+232    \}
+233    \textcolor{keywordflow}{return} aRes;
+234 \}
+\end{DoxyCode}
