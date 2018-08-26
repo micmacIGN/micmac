@@ -1,15 +1,0 @@
-ply
-format binary_little_endian 1.0
-element vertex 21
-property float x
-property float y
-property float z
-property uchar red
-property uchar green
-property uchar blue
-element face 0
-property list uchar int vertex_indices
-end_header
-E]'Á€ˆÁý—ÌÀÿÿÿÓú>@aêÀâ©#?ÿÿÿ¨t@ÿÓWÁ=
-Áÿÿÿ")Ç@«’`@ŸñFÁÿÿÿíO&Á’Ý‘Ádè˜Àÿÿÿ¨Ù¿º±<Á{Ž,¿ÿÿÿ´BÉ@o@Ï¦Áÿÿÿ´;4AÈ¿²]ÁÿÿÿoýeÀˆhÁ)ƒ@ÿÿÿ×½@Cã—?Ú¦1Áÿÿÿ2ÌÀ"k^Á°ý‹Àÿÿÿö²¿#ÐbÁ3–ƒÀÿÿÿ”ýUA©)@Ò4Áÿÿÿ½ª˜@ý}¾À‰EWÁÿÿÿ›—ÁÜªBÁxø·Àÿÿÿ¡øA
-™’@ÚæÁÿÿÿ±ßkÀë¦ÔÀß]8ÁÿÿÿÄo@b9ÁöfŸ¿ÿÿÿX-A…ÍÁäÑŒÁÿÿÿÌÿ@$‚€À•€ùÀÿÿÿ¨1(AzèE@ìŸxÀÿÿÿ

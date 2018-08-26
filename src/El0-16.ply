@@ -1,14 +1,0 @@
-ply
-format binary_little_endian 1.0
-element vertex 16
-property float x
-property float y
-property float z
-property uchar red
-property uchar green
-property uchar blue
-element face 0
-property list uchar int vertex_indices
-end_header
-édÀ4¼@*Ø§@ÿÿÿã§ËÀÈAûÕAÿÿÿ7BÁ¼T9ACtô@ÿÿÿÔÁ53Á@ıœ@ÿÿÿ…-AMÑÅ@®[ø@ÿÿÿ»ùˆÁx”¼@oÈ@ÿÿÿ
-Á¯‘®@ÅB~=ÿÿÿŞó<|Ü>ÏJˆ?ÿÿÿ­´¹@Ä[×@3ñ@ÿÿÿw-=Ák,AJE`@ÿÿÿÁ¸ù@5”3A‘#Aÿÿÿ²°V@³d“@É-ç@ÿÿÿ&W½¿fÏİ@"@ÿÿÿP10ÁÊ’AAY±°@ÿÿÿ‹B@OÏÿ?Êî?ÿÿÿw¨VÁı«@Æï@ÿÿÿ
