@@ -796,6 +796,7 @@ std::vector<Pt3d<double> > cSetPMul1ConfigTPM::IntersectBundle(std::map<int,CamS
         for (auto & Cam : aMCams){
             if (Cam.first==IdIm) {
                 found=1;
+std::cout << "yes " ;
                 aVCam.push_back(Cam.second);
                 aVIdIm.push_back(IdIm);
                 break;
