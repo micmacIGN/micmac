@@ -1,20 +1,52 @@
 #include "cmsdappli.h"
-#include<getopt.h>
 
-cMSD1Im::cMSD1Im(std::string aInputIm, std::string aOutTP, bool aDebug, int aPR, int aSAR, double aTh, int aNMS, int aKNN, double aSc, std::string aDir):
-    mNameIm1(aInputIm),
-    mOut(aOutTP),
-    mDebug(aDebug),
-    mTmpDir(aDir),
-    msd()
+
+
+
+cMSD1Im::cMSD1Im(int argc,char ** argv):
+    mDebug(1),
+    mTmpDir("Tmp-MM-Dir/"),
+    msd(),
+    mTh(0.001),// a posteriori filter: low value
+    mSAR(3),
+    mPR(5),
+    mKNN(5),
+    mNMS(3),// a posteriori filter: low value
+    mSc(-1)
 {
+    // warn, when PA 3 SAR 3 and NMS 5, bug --> should add warnings
 
-     mICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+    std::string aBidon;
+    // provide me some pt with descriptor on saliency and Ratio=0.8, orientation size mSize/2 on row im and descriptor mSize/2, on saliency DZ0 map. mainly DZ0 pt. Still lot of outliers. I try other localscale param for orientate and describe, nothing betters than that
+
+    //double aTh(0.001);
+    //int aPR(3),aSAR(5),aKNN(5),aNMS(3);
+
+    // PR 5 SAR 3 NMS 3 KNN 5 Ratio=0.8, orientation size mSize/2 on row im and descriptor mSize/2, on saliency DZ0 map. mainly NOT DZ0 pt. not that many outlier
+    // PR 5 SAR 3 NMS 3 KNN 5 Ratio=0.8, orientation size m_patch_radisu on row im DZx and descriptor m_patch_radius, on saliency DZx map--> do not work! should be equivalent than line up!! wtf?? but right that saliency map change rapidly with the scale
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(mNameIm,"input",eSAM_IsExistFile)
+                    << EAMC(aBidon,"-o")
+                    << EAMC(mOut,"output"),
+        LArgMain()  << EAM(mDebug,"Debug",true,"Debug mode, def false")
+                    << EAM(mPR,"PR",true,"patch radius, def 3.")
+                    << EAM(mSAR,"SAR",true,"search area radius, def 5.")
+                    << EAM(mTh,"Th",true,"Threshold of saliency, def 0.01, ok with SFS filter")
+                    << EAM(mNMS,"NMS",true,"Non-Maxima Suppression (on saliency map) radius, def 3.")
+                    << EAM(mKNN,"KNN",true,"KNN neighbour, def 5.")
+                    << EAM(mSc,"NbSc",true,"number of scale, def -1.")
+                    << EAM(mTmpDir,"Dir",true,"Directory used in debug mode to store intermediate results, def Tmp-MM-Dir")
+                );
+
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
 
      // handling of both thermic optris image (1 cannal, 16 bits) and camlight images (1 cannal, 8 bits)
-     Tiff_Im Im=Tiff_Im::UnivConvStd(mNameIm1);
+     Tiff_Im Im=Tiff_Im::UnivConvStd(mNameIm);
      if (Im.type_el()==GenIm::u_int2) {
-         mIm1=Im2D_U_INT1(Im.sz().x,Im.sz().y,0);
+         mIm=Im2D_U_INT1(Im.sz().x,Im.sz().y,0);
          double aZMin,aZMax;
          ELISE_COPY
          (
@@ -23,26 +55,20 @@ cMSD1Im::cMSD1Im(std::string aInputIm, std::string aOutTP, bool aDebug, int aPR,
              VMax(aZMax)|VMin(aZMin)
          );
 
-         ELISE_COPY(Im.all_pts(),255.0*(Im.in()-aZMin)/(aZMax-aZMin),mIm1.out());
+         ELISE_COPY(Im.all_pts(),255.0*(Im.in()-aZMin)/(aZMax-aZMin),mIm.out());
 
-     } else { mIm1=Im2D_U_INT1::FromFileStd(mNameIm1);}
+     } else { mIm=Im2D_U_INT1::FromFileStd(mNameIm);}
+
 
      initMSD();
-     msd.setPatchRadius(aPR);
-     msd.setSearchAreaRadius(aSAR);
-     msd.setThSaliency(aTh);
-     msd.setKNN(aKNN);
-     msd.setNMSRadius(aNMS);
-     msd.setDir(mTmpDir);
-     msd.setNScales(aSc);
+     msd.detect(mIm);
+     msd.writeKp(mOut);
+     if (mDebug) std::cout << "For image " << mNameIm << ", I have found " << msd.Kps().size() << " MSD points \n";
 
-     std::vector<MSDPoint> P1=msd.detect(mIm1);
-
-     if (mDebug) std::cout << "For image " << mNameIm1 << ", I have found " << P1.size() << " MSD points \n";
-
-     // prior to use SIFT descriptor, go to Lab and apply wallis filter
+     // OLD: descriptor was computed on raw im in lab with wallis filtre, now i compute descriptor on Saliency map
+     // prior to use SIFT descriptor on raw, go to Lab and apply wallis filter
      // work only for RGB images or at least for 8bits images.
-
+    /*
      std::vector<DigeoPoint> PDigeo1;
      Im2D<U_INT1,INT> mIm_LabWallis=Im2D<U_INT1,INT>(Im.sz().x,Im.sz().y);
 
@@ -52,27 +78,9 @@ cMSD1Im::cMSD1Im(std::string aInputIm, std::string aOutTP, bool aDebug, int aPR,
          Migrate2Lab2wallis(Im,mIm_LabWallis);
      } else {
          if (mDebug) std::cout << "Image " << mNameIm1 << " : got to Lab and apply wallis \n" ;
-         Migrate2Lab2wallis(mIm1,mIm_LabWallis);
+         Migrate2Lab2wallis(mIm,mIm_LabWallis);
      }
-
-     std::cout << "---- use SIFT descriptor to describe MSD points\n";
-     PDigeo1=ToDigeo(P1,mIm_LabWallis);
-     std::cout << "For image " << mNameIm1 << ", I keep " << PDigeo1.size() << " points \n";
-     DigeoPoint::removeDuplicates(PDigeo1);
-     // some kp have been discarded because they have more than 1 orientation
-     std::cout << "For image " << mNameIm1 << ", I keep " << PDigeo1.size() << " points \n";
-     DigeoPoint::writeDigeoFile(mOut,PDigeo1);
-
-    // bof, pas convaincant
-/*
-     std::list<DigeoPoint> aLDP;
-     std::copy( PDigeo1.begin(), PDigeo1.end(), std::back_inserter( aLDP ) );
-     //std::cout << "cast to list  of " << aLDP.size() << " points \n";
-     self_match_lebris(aLDP,0.02);
-     std::cout << "For image " << mNameIm1 << ", I keep " << aLDP.size() << " points \n";
-     DigeoPoint::writeDigeoFile(mOut,aLDP);
-*/
-
+    */
 }
 
 
@@ -406,36 +414,9 @@ void Resizeim(Im2D<Type,TyBase> & im, Im2D<Type,TyBase> & Out, Pt2dr Newsize)
 }
 
 int MSD_main( int argc, char **argv)
-{
-
-    std::string inputName,outputName,aBidon,aTmpDir("Tmp-MM-Dir/");
-    bool aDebug(1);
-    double aTh(0.001);
-    int aPR(5),aSAR(5),aKNN(5),aNMS(10);
-    int aSc(-1);
-
-    ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  << EAMC(inputName,"input",eSAM_IsExistFile)
-                    << EAMC(aBidon,"-o")
-                    << EAMC(outputName,"output"),
-        LArgMain()  << EAM(aDebug,"Debug",true,"Debug mode, def false")
-                    << EAM(aPR,"PR",true,"patch radius, def 3.")
-                    << EAM(aSAR,"SAR",true,"search area radius, def 5.")
-                    << EAM(aTh,"Th",true,"Threshold of saliency, def 0.01, ok with SFS filter")
-                    << EAM(aNMS,"NMS",true,"Non-Maxima Suppression (on saliency map) radius, def 3.")
-                    << EAM(aKNN,"KNN",true,"KNN neighbour, def 5.")
-                    << EAM(aSc,"NbSc",true,"number of scale, def -1.")
-                    << EAM(aTmpDir,"Dir",true,"Directory used in debug mode to store intermediate results, def Tmp-MM-Dir")
-                );
-
-    cMSD1Im appli(inputName,outputName,aDebug,aPR,aSAR,aTh,aNMS,aKNN,aSc,aTmpDir);
+{ 
+    cMSD1Im appli(argc,argv);
     appli.MSDBanniere();
 
     return EXIT_SUCCESS;
 }
-
-
-
-
