@@ -1996,6 +1996,14 @@ int ImPts2Dir_main(int argc,char ** argv)
 void TestEllips_3D();
 int  FictiveObstest_main(int argc,char ** argv)
 {
+    /*  (0) add all points to an ellipse classe cXml_Elips3D 
+        (1) normalise the ellipse
+        (2) initalize the cGenGaus3D with the ellipse (+calcul valp/vecp)
+        (3) generate artif points (aVP vec) that follow the distribution 
+            of the ellipse (eigenvalues) 
+        (4) add the aVP points again the the ellipse (after reset) + norm
+        (5) initialize a new cGenGaus3D with the new ellipse 
+        (6) check the ratio of VP for three dimensions */
     while (1)
     {
         cPlyCloud aPlyEl0, aPlyEl1;
@@ -2019,6 +2027,7 @@ int  FictiveObstest_main(int argc,char ** argv)
                 aPlyEl0.AddPt(Pt3di(255,255,255),aP);
         }
         NormEllips(anEl);
+
 
         cGenGaus3D aGG1(anEl);
         std::vector<Pt3dr> aVP;

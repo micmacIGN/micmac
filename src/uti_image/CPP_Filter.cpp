@@ -467,6 +467,37 @@ static Fonc_Num FCourbTgt(cFilterImPolI &,const cArgFilterPolI & anArg)
 static cFilterImPolI  OperCourbTgt(FCourbTgt,1,1,0,1,"corner",true,"corner F P? ; F=func P=pow, def=0.5");
 
 
+  //----------------------------------------------------------------
+
+static Fonc_Num FMinSelfDiSym(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+    int aNbWin = ToInt(anArg.mVArgs.at(0)) ;
+    double aNbVois = ToDouble(anArg.mVArgs.at(1)) ;
+    double aD2Max = ElSquare(aNbVois);
+    int aNbVI = round_up(aNbVois);
+    double aExp=2; // Par defaut prop au carre de la dist
+ 
+    Fonc_Num aFonc = anArg.mVIn.at(0);
+    Fonc_Num aFoncRes = Fonc_Num(1e10);
+
+    for (int aDx=-aNbVI ; aDx<=aNbVI ; aDx++)
+    {
+        for (int aDy=-aNbVI ; aDy<=aNbVI ; aDy++)
+        {
+            int aD2 = ElSquare(aDx) + ElSquare(aDy);
+            if ((aD2!=0 ) && (aD2 <= aD2Max))
+            {
+               Fonc_Num aFDif = rect_som(Abs(aFonc-trans(aFonc,Pt2di(aDx,aDy))),aNbWin);
+               aFDif = aFDif / pow(sqrt(aD2),aExp);
+               aFoncRes = Min(aFoncRes,aFDif);
+            }
+        }
+    }
+
+    return aFoncRes;
+}
+
+static cFilterImPolI  OperMinSelfDiSym(FMinSelfDiSym,1,1,2,2,"msd",true,"Self dissymilarity  : MinSelfDiSym Fonc Vois SzW");
 
 
 
@@ -659,6 +690,7 @@ static std::vector<cFilterImPolI *>  VPolI()
          aRes.push_back(&OperPolar);
          aRes.push_back(&OperExtinc);
          aRes.push_back(&OperCourbTgt);
+         aRes.push_back(&OperMinSelfDiSym);
          aRes.push_back(&Opermut);
          aRes.push_back(&OperSetSymb);
          aRes.push_back(&OperUseSymb);
@@ -765,6 +797,7 @@ cResFilterPolI RecParseStrFNPolI(tCPtr & aStr,cCtxtFoncPolI * aCtx)
     for (int aK=0 ; aK<int(aVPol.size()) ; aK++)
     {
         cFilterImPolI & aPolI = *(aVPol[aK]);
+// std::cout << "HHHHH " << aPolI.mAutom.NameExpr() << " " << aIdSymb << "\n";
         if (aPolI.mAutom.Match(aIdSymb))
         {
             if (aPolI.mChgCtx)
