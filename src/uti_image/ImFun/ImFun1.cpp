@@ -49,6 +49,7 @@ class cRVBImFun
 };
 
 
+/*
 class cImFun
 {
     public :
@@ -56,6 +57,7 @@ class cImFun
         cRVBImFun mTarg;
         cRVBImFun mCur;
 };
+*/
 
 /************************************************/
 /*                                              */
@@ -77,9 +79,12 @@ cRVBImFun::cRVBImFun(const Pt2di & aSz) :
 /*                                              */
 /************************************************/
 
+
+/*
 cImFun::cImFun()
 {
 }
+*/
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

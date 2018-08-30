@@ -103,6 +103,10 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
    int aSSCstr = 0;
    bool DoMin = mAppli.DoMin();
    bool DoMax = mAppli.DoMax();
+
+int aNbDebugHR =0;
+int aNbDebugLR =0;
+
    for (aP.x = 1 ; aP.x <mSz.x-1 ; aP.x++)
    {
 // static int aCpt=0; aCpt++; std::cout << "XXXX CPTTTTT= " << aCpt << "\n";
@@ -122,6 +126,11 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
                    aLab = eTPR_LaplMax;
                    aSS_NbExtr ++;
                }
+if (DebugNRPH)
+{
+   if (ScaleSelectVois(aHR,aP,aVoisMinMax,1)) aNbDebugHR++;
+   if (ScaleSelectVois(aLR,aP,aVoisMinMax,1)) aNbDebugLR++;
+}
            }
            if (DoMin &&  (aFlag == 255) && SelectVois(aP,aVoisMinMax,-1))
            {
@@ -150,6 +159,11 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
     }
 
     std::cout << "    LAPL TIFF Scccc= " << mScaleAbs  << " SpaceE=" <<  aSpaceNbExtr << " Scale=" << aSS_NbExtr  << " Ctsr=" << aSSCstr<< "\n";
+   if (DebugNRPH)
+   {
+       int aNb = mImMod.sz().x  * mImMod.sz().y;
+       std::cout << "  DEBU " << aNbDebugHR << " " << aNbDebugLR << " "  << (aSpaceNbExtr *1000.0) / aNb << " " << (aSS_NbExtr *50000.0) / aNb << "\n";
+   }
 }
 
 void cOneScaleImRechPH::SiftMakeDif(cOneScaleImRechPH* aLR)

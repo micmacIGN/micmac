@@ -243,9 +243,12 @@ bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & a
 
     if (aV0== aV2)
     {
+// if (! DebugNRPH) ca ne change rien ?
+{
        int aCmp = (mScaleAbs<aI2->mScaleAbs) ? -1 : 1;
        if (aCmp != aValCmp)
           return false;
+}
     }
     else
     {
