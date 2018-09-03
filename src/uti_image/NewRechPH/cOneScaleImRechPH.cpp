@@ -229,7 +229,7 @@ bool   cOneScaleImRechPH::SelectVois(const Pt2di & aP,const std::vector<Pt2di> &
 
 // Appele par Sift-Like
 
-bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp)
+bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp,double aFactMul)
 {
      if (! mTImMod.inside(aP)) 
         return false;
@@ -237,15 +237,18 @@ bool   cOneScaleImRechPH::ScaleSelectVois(cOneScaleImRechPH *aI2,const Pt2di & a
         return false;
 
     static Pt2di aP00(0,0);
-    tElNewRechPH aV0 =  mTImMod.get(aP);
+    tElNewRechPH aV0 =  round_ni(mTImMod.get(aP)*aFactMul);
     tElNewRechPH aV2 =  aI2->mTImMod.get(aP);
 
 
     if (aV0== aV2)
     {
+// if (! DebugNRPH) ca ne change rien ?
+{
        int aCmp = (mScaleAbs<aI2->mScaleAbs) ? -1 : 1;
        if (aCmp != aValCmp)
           return false;
+}
     }
     else
     {
