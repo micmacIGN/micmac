@@ -386,6 +386,7 @@ class cAccumResidu
 
        void Export(const std::string & aDir,const std::string & aName,const cUseExportImageResidu &,FILE * );
        void ExportResXY(TIm2D<REAL4,REAL8>* aTResX,TIm2D<REAL4,REAL8>* aTResY);
+       void ExportResXY(const Pt2di&,Pt2dr& aRes);
     private :
        void AccumInImage(const cInfoAccumRes &);
 
@@ -548,6 +549,52 @@ void cAccumResidu::Export(const std::string & aDir,const std::string & aName,con
         }
     }
 }
+
+void cAccumResidu::ExportResXY(const Pt2di& aPt,Pt2dr& aRes)
+{
+    if (mSys)
+    {
+        bool aOk;
+        Im1D_REAL8  aSol = mSys->Solve(&aOk);
+        if (aOk)
+        {
+            double * aDS = aSol.data();
+
+            std::vector<double> aVMx;
+            std::vector<double> aVMy;
+            aVMx.push_back(1.0);
+            aVMy.push_back(1.0);
+
+            Pt2dr aPFulRes = Pt2dr(aPt) * mResol;
+            Pt2dr aSzN = mSz/2.0;
+            double  aX = (aPFulRes.x-aSzN.x) / aSzN.x;
+            double  aY = (aPFulRes.y-aSzN.y) / aSzN.y;
+
+            for (int aD=0 ; aD< mDegPol ; aD++)
+            {
+              aVMx.push_back(aVMx.back() * aX);
+              aVMy.push_back(aVMy.back() * aY);
+            }
+
+            int anIndEq = 0;
+            double aSX=0 ;
+            double aSY=0 ;
+            for (int aDx=0 ; aDx<= mDegPol ; aDx++)
+            {
+               for (int aDy=0 ; aDy<= mDegPol - aDx ; aDy++)
+               {
+                    double aMonXY = aVMx[aDx] * aVMy[aDy];
+                    aSX += aDS[anIndEq++] * aMonXY;
+                    aSY += aDS[anIndEq++] * aMonXY;
+               }
+            }
+
+            aRes.x = aSX;
+            aRes.y = aSY;
+        }
+    }
+}
+
 
 void cAccumResidu::ExportResXY(TIm2D<REAL4,REAL8>* aTRx,TIm2D<REAL4,REAL8>* aTRy)
 {

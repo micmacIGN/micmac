@@ -221,44 +221,26 @@ void cAppliFictObs::GenerateFicticiousObs()
                 (aPImV.at(2).y > 0) && (aPImV.at(2).y < mSz.y))
             {
                 
-              /*  std::cout << "P " << aPImV.at(0) << " " 
-                                  << aPImV.at(1) << " " 
-                                  << aPImV.at(2) << " \n" << 
-                                     ApplyRedFac(aPImV.at(0)) << " " <<
-                                     ApplyRedFac(aPImV.at(1)) << " " <<
-                                     ApplyRedFac(aPImV.at(2)) << " " <<
-                                     mAR[mTriMap[aTriNum]->mId1]->SzRed() << "\n" ; */
 
-                TIm2D<REAL4,REAL8> aTRx(mAR[mTriMap[aTriNum]->mId1]->SzRed());
-                TIm2D<REAL4,REAL8> aTRy(mAR[mTriMap[aTriNum]->mId1]->SzRed());
+/*                TIm2D<REAL4,REAL8> aTRx(mAR[mTriMap[aTriNum]->mId1]->SzRed());
+                TIm2D<REAL4,REAL8> aTRy(mAR[mTriMap[aTriNum]->mId1]->SzRed());*/
                
-                mAR[mTriMap[aTriNum]->mId1]->ExportResXY(&aTRx,&aTRy);
-                //std::cout << "dxy " <<  ApplyRedFac(aPImV.at(0)) ;
-                //std::cout << "\n " << aTRx.get(ApplyRedFac(aPImV.at(0))) << " " << aTRy.get(ApplyRedFac(aPImV.at(0))) <<"\n" ;
-                
+                /*mAR[mTriMap[aTriNum]->mId1]->ExportResXY(&aTRx,&aTRy);
                 Pt2dr aP1Cor; 
                 aP1Cor.x = aTRx.get(ApplyRedFac(aPImV.at(0)));           
-                aP1Cor.y = aTRy.get(ApplyRedFac(aPImV.at(0)));
-
+                aP1Cor.y = aTRy.get(ApplyRedFac(aPImV.at(0)));*/
+                Pt2dr aP1Cor; 
+                mAR[mTriMap[aTriNum]->mId1]->ExportResXY(ApplyRedFac(aPImV.at(0)),aP1Cor);
                 aPImV.at(0) += aP1Cor;                
 
              
-                mAR[mTriMap[aTriNum]->mId2]->ExportResXY(&aTRx,&aTRy);
-
                 Pt2dr aP2Cor; 
-                aP2Cor.x = aTRx.get(ApplyRedFac(aPImV.at(1)));           
-                aP2Cor.y = aTRy.get(ApplyRedFac(aPImV.at(1)));           
+                mAR[mTriMap[aTriNum]->mId2]->ExportResXY(ApplyRedFac(aPImV.at(1)),aP2Cor);
                 aPImV.at(1) += aP2Cor;
-
-
              
-                mAR[mTriMap[aTriNum]->mId3]->ExportResXY(&aTRx,&aTRy);
-
-                Pt2dr aP3Cor; 
-                aP3Cor.x = aTRx.get(ApplyRedFac(aPImV.at(2)));           
-                aP3Cor.y = aTRy.get(ApplyRedFac(aPImV.at(2)));           
+                Pt2dr aP3Cor;
+                mAR[mTriMap[aTriNum]->mId3]->ExportResXY(ApplyRedFac(aPImV.at(2)),aP3Cor);
                 aPImV.at(2) += aP3Cor;
-
              
                 std::vector<float> aAttr;
                 SaveHomolOne(aTriIds,aPImV,aAttr);
