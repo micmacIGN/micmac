@@ -247,6 +247,12 @@ std::cout << "CCcccccccccccc\n";
       aNivMin=eQC_GradFaibleC1;
    }
    // aNivMin = eQC_GradFaibleC2;
+   if (aNivMin>mGlobMaxNivH) {
+       // jo 2018 09; tentative de faire foncitonne pims2ply sur image go pro
+       std::cout << "Warning : NivMin = " << aNivMin << ", Niv Gob max is "<< mGlobMaxNivH << "\n";
+       aNivMin=mGlobMaxNivH-1;
+       std::cout << "I change value of NivMin to " << aNivMin <<"\n";
+   }
    for (mCurNivSelSom=mGlobMaxNivH ; mCurNivSelSom>=aNivMin ; mCurNivSelSom--)
    {
        std::cout << "BEGIN NIV " <<  mCurNivSelSom << " " << eToString(eQualCloud(mCurNivSelSom)) << "\n"; 

@@ -37,8 +37,54 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-
 #include "ImFun.h"
+
+class cRVBImFun
+{
+    public :
+        cRVBImFun(const Pt2di & aSz);
+        Im2D_U_INT1 mR;
+        Im2D_U_INT1 mV;
+        Im2D_U_INT1 mB;
+};
+
+
+/*
+class cImFun
+{
+    public :
+    private :
+        cRVBImFun mTarg;
+        cRVBImFun mCur;
+};
+*/
+
+/************************************************/
+/*                                              */
+/*                  cRVBImFun                   */
+/*                                              */
+/************************************************/
+
+cRVBImFun::cRVBImFun(const Pt2di & aSz) :
+    mR (aSz.x,aSz.y),
+    mV (aSz.x,aSz.y),
+    mB (aSz.x,aSz.y)
+{
+}
+
+
+/************************************************/
+/*                                              */
+/*                  cImFun                      */
+/*                                              */
+/************************************************/
+
+
+/*
+cImFun::cImFun()
+{
+}
+*/
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

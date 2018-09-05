@@ -118,6 +118,7 @@ class cAppli_C3DC : public cAppliWithSetImage
          Pt3dr       mOffsetPly;
          int         mSzW;
          bool        mNormByC;
+         double      mTetaOpt;
 
 };
 
@@ -140,7 +141,8 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
    mBin                (true),
    mExpImSec           (true),
    mSzW                (1),
-   mNormByC            (false)
+   mNormByC            (false),
+   mTetaOpt             (0.17)
 {
 
 
@@ -226,6 +228,7 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 						<< EAM(mOffsetPly,"OffsetPly",true,"Ply offset to overcome 32 bits problem")
 						<< EAM(mSetHom,"SH",true,"Set of Hom, Def=\"\"")
                         << EAM(mNormByC,"NormByC",true,"Replace normal with camera position in ply (Def=false)")
+                        << EAM(mTetaOpt,"TetaOpt",true,"For the choice of secondary images: Optimal angle of stereoscopy, in radian, def=0.17 (+or- 10 degree)")
 
 		);
 	}
@@ -252,8 +255,10 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
 						<< EAM(mExpImSec,"ExpImSec",true,"Export Images Secondair, def=true")
 						<< EAM(mOffsetPly,"OffsetPly",true,"Ply offset to overcome 32 bits problem")
                         << EAM(mSzW,"SzW",true,"Correlation Window Size (Def=1 means 3x3)")
-						<< EAM(mSetHom,"SH",true,"Set of Hom, Def=\"\"")
-		);
+                        << EAM(mSetHom,"SH",true,"Set of Hom, Def=\"\"")
+                        << EAM(mTetaOpt,"TetaOpt",true,"For the choice of secondary images: Optimal angle of stereoscopy, in radian, def=0.17 (+or- 10 degree)")
+                    );
+
 	}
 	
 
@@ -277,9 +282,9 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
        if (mType==eForest)   mZoomF = 4;
    }
 
-   if (EAMIsInit(&mDefCor)) mArgSupEpip +=  " DefCor=" + ToString(mDefCor);
-   if (EAMIsInit(&mZReg)) mArgSupEpip +=  " ZReg=" + ToString(mZReg);
-   if (EAMIsInit(&mExpTxt)) mArgSupEpip +=  " ExpTxt=" + ToString(mExpTxt);
+   //if (EAMIsInit(&mDefCor)) mArgSupEpip +=  " DefCor=" + ToString(mDefCor);
+   //if (EAMIsInit(&mZReg)) mArgSupEpip +=  " ZReg=" + ToString(mZReg);
+   //if (EAMIsInit(&mExpTxt)) mArgSupEpip +=  " ExpTxt=" + ToString(mExpTxt);
    if (! EAMIsInit(&mMergeOut)) mMergeOut = mEASF.mDir+"C3DC_"+ mStrType + ".ply";
 
    mStrImOri0  =  BLANK + QUOTE(mEASF.mFullName) +  BLANK + Ori() + BLANK;
@@ -298,7 +303,11 @@ cAppli_C3DC::cAppli_C3DC(int argc,char ** argv,bool DoMerge) :
            +  " UseGpu=" + ToString(mUseGpu)
            +  " ExpImSec=" + ToString(mExpImSec)
            +  " SH=" + mSetHom;
-   
+
+   if (EAMIsInit(&mTetaOpt)) mBaseComMMByP+=" TetaOpt=" + ToString(mTetaOpt) + " ";
+   if (EAMIsInit(&mDefCor)) mBaseComMMByP +=  " DefCor=" + ToString(mDefCor);
+   if (EAMIsInit(&mZReg)) mBaseComMMByP +=  " ZReg=" + ToString(mZReg);
+   if (EAMIsInit(&mExpTxt)) mBaseComMMByP +=  " ExpTxt=" + ToString(mExpTxt);
 
    if (mDebugMMByP)
       mBaseComMMByP = mBaseComMMByP + " DebugMMByP=true";
@@ -530,12 +539,14 @@ class cAppli_MPI2Ply
          bool 		 mBin;
          Pt3dr       mOffsetPly;
 	 bool DoublePrec = false;
+         bool        mDebug;
 
 };
 
 
 cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
-    mDS (1.0)
+    mDS (1.0),
+    mDebug(0)
 {
    ElInitArgMain
    (
@@ -546,7 +557,8 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
                     << EAM(mMergeOut,"Out",true,"Ply File Results")
                     << EAM(mPat,"Pat",true,"Pattern for selecting images (Def=All image in files)",eSAM_IsPatFile)
                     << EAM(mOffsetPly,"OffsetPly",true,"Ply offset to overcome 32 bits problem")
-		    << EAM(DoublePrec,"64B",true,"To generate 64 Bits ply, Def=false, WARN = do not work properly with meshlab or cloud compare")
+                    << EAM(DoublePrec,"64B",true,"To generate 64 Bits ply, Def=false, WARN = do not work properly with meshlab or cloud compare")
+                    << EAM(mDebug,"Debug",true,"debug mode, def false")
     );
 
     if(MMVisualMode) return;
@@ -584,12 +596,14 @@ cAppli_MPI2Ply::cAppli_MPI2Ply(int argc,char ** argv):
 
 void cAppli_MPI2Ply::DoAll()
 {
-if (0)
+if (mDebug)
 {
+   std::cout <<  "-----DEBUG MODE-----";
    std::cout <<    mCFPI-> mCFPIStrImOri0 << "\n";
    std::cout <<  "cAppli_MPI2Ply::DoAllcAppli_MPI2Ply::DoAll \n\n";
    std::cout <<  mComNuageMerge << "\n\n";
    std::cout <<  mComCatPly << "\n";
+   std::cout <<  "Type something to restart processing..";
    getchar();
 }
    System(mComNuageMerge);
@@ -684,10 +698,12 @@ void cAppli_MPI2Mnt::DoAll()
        std::cout  << "NUAGE MERGE " << mDirApp+mDirBasc +mNameMerge << "\n";
     }
     cFileOriMnt  aFOM = ToFOM(aN,true);
+    if (mDebug) std::cout  << "toto\n";
     MakeFileXML(aFOM,mDirApp+mDirBasc +mNameOriMasq);
 
     double aSR = aN.SsResolRef().Val();
     int aISR = round_ni(aSR);
+
     ELISE_ASSERT(ElAbs(aSR-aISR)<1e-7,"cAppli_MPI2Mnt::DoAll => ToFOM");
     aFOM.NombrePixels() =  aFOM.NombrePixels()* aISR;
     aFOM.ResolutionPlani() = aFOM.ResolutionPlani() / aISR;
@@ -866,6 +882,7 @@ cAppli_MPI2Mnt::cAppli_MPI2Mnt(int argc,char ** argv) :
                     << EAM(mDirOrtho, "DirOrtho", true, "Subdirectory for ortho images, Def=PIMs-ORTHO/")
                     << EAM(mDirBasc, "DirBasc", true, "Subdirectory for surface model, Def=PIMs-TmpBasc/")
                     << EAM(mNameMerge, "NameMerge", true, "BaseName of the surface model (*.xml), Def=PIMs-Merged.xml")
+                    << EAM(mDebug, "Debug", true, "Debug mode, def false")
    );
 
    mResolIm  /= mDeZoom;
