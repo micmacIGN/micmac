@@ -466,6 +466,34 @@ static Fonc_Num FCourbTgt(cFilterImPolI &,const cArgFilterPolI & anArg)
 
 static cFilterImPolI  OperCourbTgt(FCourbTgt,1,1,0,1,"corner",true,"corner F P? ; F=func P=pow, def=0.5");
 
+  //----------------------------------------------------------------
+
+static Fonc_Num FNoise(cFilterImPolI &,const cArgFilterPolI & anArg,bool Gauss)
+{
+    int aNbArgTot = anArg.mVArgs.size() ;
+    ELISE_ASSERT(aNbArgTot && (aNbArgTot%2==0),"Bad Nb Arg in FNoise");
+    int aNbV = aNbArgTot / 2;
+
+    std::vector<double> aVPds;
+    std::vector<int> aVSz;
+    for (int aK=0 ; aK < aNbV ; aK++)
+    {
+         aVPds.push_back(ToDouble(anArg.mVArgs.at(2*aK)));
+         aVSz.push_back(ToInt(anArg.mVArgs.at(2*aK+1)));
+    }
+
+
+    return   Gauss ? gauss_noise_4(aVPds.data(),aVSz.data(),aNbV) : unif_noise_4(aVPds.data(),aVSz.data(),aNbV);
+}
+
+static Fonc_Num FGaussNoise(cFilterImPolI &aFP,const cArgFilterPolI & anArg)
+{
+   return FNoise(aFP,anArg,true);
+}
+
+static cFilterImPolI  OperGaussNoise(FGaussNoise,0,0,2,10000,"gauss_noise",true,"gauss_noise p1 s1 p2 s2 ....");
+
+
 
   //----------------------------------------------------------------
 
@@ -690,6 +718,7 @@ static std::vector<cFilterImPolI *>  VPolI()
          aRes.push_back(&OperPolar);
          aRes.push_back(&OperExtinc);
          aRes.push_back(&OperCourbTgt);
+         aRes.push_back(&OperGaussNoise);
          aRes.push_back(&OperMinSelfDiSym);
          aRes.push_back(&Opermut);
          aRes.push_back(&OperSetSymb);
