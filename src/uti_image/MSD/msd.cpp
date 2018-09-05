@@ -23,23 +23,227 @@
 #include "msd.h"
 
 
+bool isConsecutive(vector<int> &pxlValidIndx);
+bool isCorner(Pt2di pxlCenter, Im2D<unsigned char, int> &pic, double & threshold);
+
+// compute an image's gradient
+// result image is twice as wide as the source image because there is two REAL4 value for each pixel, the magnitude and the angle
+
+
 Fonc_Num sobel_1(Fonc_Num f)
 {
     Im2D_REAL8 Fx
-               (  3,3,
-                  " -1 0 1 "
-                  " -2 0 2 "
-                  " -1 0 1 "
-                );
+            (  3,3,
+               " -1 0 1 "
+               " -2 0 2 "
+               " -1 0 1 "
+               );
     Im2D_REAL8 Fy
-               (  3,3,
-                  " -1 -2 -1 "
-                  "  0  0  0 "
-                  "  1  2  1 "
-                );
-   return
-       Abs(som_masq(f,Fx,Pt2di(-1,-1)))
-     + Abs(som_masq(f,Fy));
+            (  3,3,
+               " -1 -2 -1 "
+               "  0  0  0 "
+               "  1  2  1 "
+               );
+    return
+            Abs(som_masq(f,Fx,Pt2di(-1,-1)))
+            + Abs(som_masq(f,Fy));
+}
+
+Fonc_Num sobel_y(Fonc_Num f)
+{
+
+    Im2D_REAL8 Fy
+            (  3,3,
+               " -1 -2 -1 "
+               "  0  0  0 "
+               "  1  2  1 "
+               );
+    return som_masq(f,Fy);
+}
+
+Fonc_Num sobel_x(Fonc_Num f)
+{
+    Im2D_REAL8 Fx
+            (  3,3,
+               " -1 0 1 "
+               " -2 0 2 "
+               " -1 0 1 "
+               );
+    return
+            som_masq(f,Fx,Pt2di(-1,-1));
+}
+
+
+Fonc_Num Moy(Fonc_Num aRes,const int aNbV,const int aNbIter){
+
+    for (int  aK=0 ; aK<aNbIter ; aK++)
+    {
+        aRes = rect_som(aRes,aNbV) / ElSquare(1.0+2.0*aNbV);
+    }
+    return aRes;
+}
+
+Fonc_Num FMinSelfDiSym(Fonc_Num aFonc,const int aNbWin,const double aNbVois)
+{
+    //int aNbWin = ToInt(anArg.mVArgs.at(0)) ;
+    //double aNbVois = ToDouble(anArg.mVArgs.at(1)) ;
+    // NbVoisin; patch radius
+    // NbWin: search area radius
+    double aD2Max = ElSquare(aNbVois);
+    int aNbVI = round_up(aNbVois);
+    double aExp=2; // Par defaut prop au carre de la dist
+
+    //Fonc_Num aFonc = anArg.mVIn.at(0);
+    Fonc_Num aFoncRes = Fonc_Num(1e10);
+
+    for (int aDx=-aNbVI ; aDx<=aNbVI ; aDx++)
+    {
+        for (int aDy=-aNbVI ; aDy<=aNbVI ; aDy++)
+        {
+            int aD2 = ElSquare(aDx) + ElSquare(aDy);
+            if ((aD2!=0 ) && (aD2 <= aD2Max))
+            {
+                Fonc_Num aFDif = rect_som(Abs(aFonc-trans(aFonc,Pt2di(aDx,aDy))),aNbWin);
+                aFDif = aFDif / pow(sqrt(aD2),aExp);
+                aFoncRes = Min(aFoncRes,aFDif);
+            }
+        }
+    }
+
+    return aFoncRes;
+}
+
+
+const static Pt2di pxlPosition[17]=
+{
+    /*
+                   11  12 13
+                 10 -  -  - 14
+                9 - -  -  - - 15
+                8 - -  16 - - 0
+                7 - -  -  - - 1
+                  6 -  -  - 2
+                    5  4  3
+            */
+    Pt2di(0,3),	//0
+    Pt2di(1,3),
+    Pt2di(2,2),
+    Pt2di(3,1),
+    Pt2di(3,0),
+    Pt2di(3,-1),
+    Pt2di(2,-2),
+    Pt2di(1,-3),
+    Pt2di(0,-3),
+    Pt2di(-1,-3),
+    Pt2di(-2,-2),
+    Pt2di(-3,-1),
+    Pt2di(-3,0),
+    Pt2di(-3,1),
+    Pt2di(-2,2),
+    Pt2di(-1,3),
+    Pt2di(0,0)	//16
+};
+
+
+
+bool isCorner(Pt2di pxlCenter, Im2D<unsigned char, int> &pic, double & threshold)
+{
+    bool valid;
+    int nbpxlValid = 0;
+    vector <int> pxlValidIndx;
+    double valPxlCenter =   pic.GetI(pxlCenter);
+    for (uint i=0; i<16; i++)
+    {
+        Pt2di pxlAutourCurrent = pxlCenter.operator +(pxlPosition[i]);
+        if ( abs(pic.GetI(pxlAutourCurrent)-valPxlCenter) > threshold)
+        {
+            nbpxlValid++;
+            pxlValidIndx.push_back(i);
+        }
+    }
+    if (nbpxlValid > 12 && isConsecutive(pxlValidIndx))
+        valid = true;
+    else
+    {
+        valid = false;
+    }
+    return valid;
+}
+
+bool isConsecutive(vector<int> &pxlValidIndx)
+{
+    bool validCW = true;
+    //check if all pixel is consecutive, sens CW
+    for (uint i=0; i<pxlValidIndx.size(); i++)
+    {
+        if ((pxlValidIndx[i] - pxlValidIndx[i+1]) != 1)
+        {
+            validCW = false;
+            break;
+        }
+    }
+    bool validCCW = true;
+    //check if all pixel is consecutive, sens CW
+    for (uint i=pxlValidIndx.size()-1; i>0; i--)
+    {
+        if ((pxlValidIndx[i] - pxlValidIndx[i-1]) != 1)
+        {
+            validCCW = false;
+            break;
+        }
+    }
+    return (validCW || validCCW);
+}
+
+double Consecutive(vector<int> &pxlValidIndx)
+{
+    int aRes;
+    //compute consecutivity for each neighbour position
+    for (uint i=0; i<pxlValidIndx.size(); i++)
+    {
+        int consecScore(0);
+        for (uint j=0; j<pxlValidIndx.size(); j++)
+        {
+        if ((pxlValidIndx[i+j] - pxlValidIndx[i+j+1]) != 1)
+        {
+            break;
+        } else {
+        consecScore++;
+        }
+        }
+    if (consecScore>aRes) aRes=consecScore;
+    }
+    return aRes;
+}
+
+double Corner(Pt2di pxlCenter, Im2D<unsigned char, int> &pic, double & threshold)
+{
+
+    bool valid;
+    int nbpxlValid = 0;
+    vector <int> pxlValidIndx;
+    double valPxlCenter =   pic.GetI(pxlCenter);
+    double sumDiff(0);
+    for (uint i=0; i<16; i++)
+    {
+        Pt2di pxlAutourCurrent = pxlCenter.operator +(pxlPosition[i]);
+
+        double subVal=pic.GetI(pxlAutourCurrent)-valPxlCenter;
+        if ( abs(subVal) > threshold)
+        {
+            nbpxlValid++;
+            pxlValidIndx.push_back(i);
+            sumDiff+=abs(subVal);
+        }
+    }
+    if (nbpxlValid > 8 && 8<Consecutive(pxlValidIndx))
+        valid = true;
+    else
+    {
+        valid = false;
+    }
+
+     if (valid) return sumDiff ;else return 0.0;
 }
 
 
@@ -202,7 +406,6 @@ void MsdDetector::contextualSelfDissimilarity(Im2D<U_INT1,INT> &img, int xmin, i
 
     saliency[y*w + x] = computeAvgDistance(minVals, den);
     if (mDebug) std::cout << " ...done\n";
-
 
     if (mDebug) std::cout << "Compute saliency for first row only ";
     for (x = xmin + 1; x<xmax; x++)
@@ -410,97 +613,64 @@ void MsdDetector::contextualSelfDissimilarity(Im2D<U_INT1,INT> &img, int xmin, i
 
 
 
-void MsdDetector::nonMaximaSuppression(std::vector<float *> & saliency)
+void MsdDetector::nonMaximaSuppression()
 {
 
-    //int side = m_search_area_radius * 2 + 1;
-    //int border = m_search_area_radius + m_patch_radius;
-    // saliency map has already a border of m_search_area_radius + m_patch_radius, so i double it otherwise there are a lot of kp on the edge (because there are local maximum)
-
     int border = 2*(m_search_area_radius + m_patch_radius);
-
+    int aNbtot(0);
     for (int r = 0; r<m_cur_n_scales; r++)
     {
-
         mVVKP.push_back(new std::vector<cPtsCaracMSD>);
-        int cW = m_scaleSpace[r].sz().x;
-        int cH = m_scaleSpace[r].sz().y;
 
-        for (int j = border; j< cH - border; j++)
-        {
-            for (int i = border; i< cW - border; i++)
-            {
+        Pt2di aSz=m_scaleSpace.at(r).sz();
 
-                if (saliency[r][j * cW + i] > m_th_saliency)
-                {
-                    bool is_max = true;
+        Im2D<REAL4,REAL8> aMaxSal(aSz.x,aSz.y,0.0);
 
-                    for (int k = fmax(0, r - m_nms_scale_radius); k <= fmin(m_cur_n_scales - 1, r + m_nms_scale_radius); k++)
-                    {
-                        if (k != r)
-                        {
-                            int j_sc = (INT)round(j * std::pow(m_scale_factor, r - k));
-                            int i_sc = (INT)round(i * std::pow(m_scale_factor, r - k));
+        ELISE_COPY(aMaxSal.all_pts(),
+                   rect_max(mSaliencyIm.at(r).in_proj(),m_nms_radius),
+                   aMaxSal.out());
 
-
-                            if (saliency[r][j*cW + i] < saliency[k][j_sc*cW + i_sc])
-                            {
-                                is_max = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    for (int v = fmax(border, j - m_nms_radius); v <= fmin(cH - border - 1, j + m_nms_radius); v++)
-                    {
-                        for (int u = fmax(border, i - m_nms_radius); u <= fmin(cW - border - 1, i + m_nms_radius); u++)
-                        {
-
-                            if (saliency[r][j*cW + i] < saliency[r][v*cW + u])
-                            {
-                                is_max = false;
-                                break;
-                            }
-                        }
-
-                        if (!is_max)
-                            break;
-                    }
-
-                    if (is_max)
-                    {
-                        cPtsCaracMSD kp_temp;
-                        double x= i * std::pow(m_scale_factor, r);
-                        double y= j * std::pow(m_scale_factor, r);
-                        kp_temp.mPt=Pt2dr(x,y);
-                        kp_temp.mPtSc=Pt2dr(i,j);
-                        kp_temp.mSize=(m_patch_radius*2.0f + 1) * std::pow(m_scale_factor, r);
-                        kp_temp.mScale=std::pow(m_scale_factor, r);
-                        mVVKP.at(r)->push_back(kp_temp);
-                    }
+        for (int x(border); x < aSz.x-border ; x++ ){
+            for (int y(border); y < aSz.y-border ; y++ ){
+                Pt2di pos(x,y);
+                double aVal=mSaliencyIm.at(r).GetI(pos);
+                if (aVal!=0 && aVal==aMaxSal.GetI(pos)){
+                        cPtsCaracMSD kp;
+                        double i= x * std::pow(m_scale_factor, r);
+                        double j= y * std::pow(m_scale_factor, r);
+                        kp.mPt=Pt2dr(i,j);
+                        kp.mPtSc=Pt2dr(x,y);
+                        kp.mSize=(m_patch_radius*2.0f + 1) * std::pow(m_scale_factor, r);
+                        kp.mScale=std::pow(m_scale_factor, r);
+                        mVVKP.at(r)->push_back(kp);
                 }
             }
         }
-        if (mDebug) std::cout << "For scale " << r << ", MSD have found " << mVVKP.at(r)->size() << " caract points\n";
+    aNbtot+=mVVKP.at(r)->size();
+    std::cout << "Scale " << r << " Nb Loc Max Saliency : " << mVVKP.at(r)->size() << " pts  \n";
     }
+
+    std::cout << "Nb Loc Max Saliency tot : " << aNbtot << " pts  \n";
 }
 
 // create the pyramid of saliency Im2D for export and visualisation purpose
 void MsdDetector::saliency2Im2D(const std::vector<float *> &saliency){
 
     if (mDebug) std::cout << "Export saliency to ram Image ";
+    int border = m_search_area_radius + m_patch_radius;
     for (int r = 0; r<m_cur_n_scales; r++)
     {
 
         Pt2di Sz(m_scaleSpace[r].sz());
 
         Im2D<REAL4,REAL8> saliencyIm2D(Sz.x,Sz.y,0.0);
-        for (int row  (0) ; row <Sz.y;row++){
-            for (int col (0) ; col <Sz.x;col++){
+
+        for (int row  (border) ; row <Sz.y-border;row++){
+            for (int col (border) ; col <Sz.x-border;col++){
                 Pt2di pt(col,row);
                 double aVal=saliency[r][(Sz.x*(row)+col)];
-                if (aVal>0.5) aVal=0.5;
-                if (aVal<0.0) aVal=0.0;
+                //if (aVal>0.5) aVal=0.5;
+                //if (aVal<0.0) aVal=0.0;
                 saliencyIm2D.SetR(pt,aVal);
             }
         }
@@ -511,6 +681,7 @@ void MsdDetector::saliency2Im2D(const std::vector<float *> &saliency){
 
 
 template void MsdDetector::detect<U_INT1,INT>(Im2D<U_INT1,INT> &img);
+template void MsdDetector::detect2<U_INT1,INT>(Im2D<U_INT1,INT> &img);
 
 template <class Type, class TyBase>
 ImagePyramid<Type,TyBase>::ImagePyramid( Im2D<Type,TyBase>  & im, const int nLevels, const float scaleFactor)
@@ -581,10 +752,13 @@ int MsdDetector::orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracMSD &i
     int xi = ((int) (i_p.mPt.x+0.5)) ;
     int yi = ((int) (i_p.mPt.y+0.5)) ;
     // MSD inner method: compute ori on image of the pyram where pt is detected with Search area Radius as size
-    //const REAL8 sigmaw = DIGEO_ORIENTATION_WINDOW_FACTOR*i_p.getScale();
+    //const REAL8 sigmaw = DIGEO_ORIENTATION_WINDOW_FACTOR*i_p.mSize;
     const REAL8 sigmaw = DIGEO_ORIENTATION_WINDOW_FACTOR*i_p.mSize/2;
 
     int W = (int)ceil( 3*sigmaw );
+    //W=sigmaw;
+
+    //int W = (m_search_area_radius+m_patch_radius);
     // the "orientation collection region", is equal to the size of the kernel for Gaussian Blur of amount 1.5*sigma.
     //W=(int)ceil(1.5*(m_patch_radius+m_search_area_radius));
     // fill the SIFT histogram
@@ -607,7 +781,11 @@ int MsdDetector::orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracMSD &i
             // limit to a circular window
             if ( r2>=W*W+0.5 ) continue;
             // weigthing proportionnal to distance from center
-            wgt    = ::exp( -r2/( 2*sigmaw*sigmaw ) );
+            //wgt    = ::exp( -r2/( 2*sigmaw*sigmaw ) );
+
+            wgt=1;
+            //std::cout << "weight  is" << wgt <<" for a dist of " << sqrt(r2) <<"\n";
+
             offset = ( xs+ys*width )*2;
             // gradient magnitude
             mod    = p[offset];
@@ -696,6 +874,7 @@ void MsdDetector::detect(Im2D<Type,TyBase> &img)
         m_cur_n_scales = m_n_scales;
     if (mDebug) std::cout<<"m_cur_n_scales "<<m_cur_n_scales<<endl;
 
+    
     // vector of pyram images
     ImagePyramid<Type,TyBase> scaleSpacer=ImagePyramid<Type,TyBase>(img, m_cur_n_scales, m_scale_factor);
     // not well implemented, do a copy of the pyram
@@ -715,9 +894,66 @@ void MsdDetector::detect(Im2D<Type,TyBase> &img)
     }
     // create Im2D pyram from saliency vector
     saliency2Im2D(saliency);
+    writeSaliency();
     // fill the vector of Caract point for each scale by selecting local maximum, remove carct point too closed from edge (edge effect)
     if (mDebug){ std::cout << "detect local maximum on saliency map \n";}
-    nonMaximaSuppression(saliency);
+    nonMaximaSuppression();
+
+    for (int r = 0; r<m_cur_n_scales; r++)
+    {
+        delete[] saliency[r];
+    }
+
+    //m_scaleSpace.clear();
+
+}
+
+template <class Type, class TyBase>
+void MsdDetector::detect2(Im2D<Type,TyBase> &img)
+{
+    //computation of the number of scales
+    if (m_n_scales == -1){
+        int min_NbPix(50);
+        m_cur_n_scales = std::floor(log(fmin(img.sz().x, img.sz().y) / ((m_patch_radius + m_search_area_radius + m_nms_radius)*2.0 + min_NbPix)) / log(m_scale_factor));
+    }else
+        m_cur_n_scales = m_n_scales;
+    if (mDebug) std::cout<<"m_cur_n_scales "<<m_cur_n_scales<<endl;
+
+    // vector of pyram images
+    ImagePyramid<Type,TyBase> scaleSpacer=ImagePyramid<Type,TyBase>(img, m_cur_n_scales, m_scale_factor);
+    // not well implemented, do a copy of the pyram
+    m_scaleSpace = scaleSpacer.getImPyr();
+
+    // create Im2D pyram from saliency vector
+    //computeMSDPyram();
+
+    if (mDebug){ std::cout << "detect corners pt with Fast algo \n";}
+
+    // select corners which has proper saliency value, good candidate for keypoints
+    selectCorners();
+
+}
+
+void MsdDetector::computeMSDPyram(){
+
+    if (mDebug) std::cout << "compute MSD with micmac filter ";
+    for (int r = 0; r<m_cur_n_scales; r++)
+    {
+        Pt2di Sz(m_scaleSpace[r].sz());
+        Im2D<REAL4,REAL8> saliencyIm2D(Sz.x,Sz.y,0.0);
+
+        ELISE_COPY(m_scaleSpace[r].all_pts(),
+                   FMinSelfDiSym(m_scaleSpace[r].in_proj(),m_search_area_radius,m_patch_radius),
+                   saliencyIm2D.out());
+
+        mSaliencyIm.push_back(saliencyIm2D);
+    }
+    if (mDebug) std::cout << " done \n";
+
+    writeSaliency();
+}
+
+void MsdDetector::writeSaliency(){
 
     if (mDebug){
         for (int r = 0; r<m_cur_n_scales; r++)
@@ -725,7 +961,7 @@ void MsdDetector::detect(Im2D<Type,TyBase> &img)
             std::string saliencyName(mTmpDir + "/MSD_Saliency_DZ"+ ToString(r) +"_"+mNameIm+".tif");
             ELISE_fp::RmFileIfExist(saliencyName);
 
-            Im2D_REAL4 aImgSalResized(img.sz().x,img.sz().y,0.0);
+            Im2D_REAL4 aImgSalResized(m_scaleSpace.at(0).sz().x,m_scaleSpace.at(0).sz().y,0.0);
             Tiff_Im  aTifOut
                     (
                         saliencyName.c_str(),
@@ -746,51 +982,82 @@ void MsdDetector::detect(Im2D<Type,TyBase> &img)
             std::cout << "I write Saliency map to " << saliencyName << "\n";
         }
     }
-
-    // now that caract points has been computed,
-    // optionnal : filtering
-    // compute orientations
-    // compute descriptor and convert to digeo pt
-
-    /* test : tag pt that are detected at two scale
-    for (int r = 1; r<m_cur_n_scales; r++)
-    {
-        for (auto & aPt1: *mVVKP.at(r)){
-            // loop on previous scales
-            for (int r2 = 0; r2<r; r2++)
-            {
-                 for (auto & aPt2: *mVVKP.at(r2)){
-                  double dist=euclid(aPt1.mPt,aPt2.mPt);
-                  if (dist<m_nms_radius+0.5){
-                      aPt1.mMulSc=1;
-                      aPt2.mMulSc=1;
-                  }
-                }
-            }
-        }
-    }*/
-
-    orientationAndDescriptor();
-
-    // display all kp on the input image with orientation and scale
-    if (mDebug) doIllu(img);
-
-    for (int r = 0; r<m_cur_n_scales; r++)
-    {
-        delete[] saliency[r];
-    }
-
-    m_scaleSpace.clear();
-
 }
 
+
+void MsdDetector::selectCorners(){
+
+    if (mDebug) std::cout << "Select Corners keypoint";
+    double thresh(50.0);
+    int aNbtot(0),aNbFilter(0);
+    for (int r = 0; r<m_cur_n_scales; r++)
+    {
+        int aNbCurSc(0);
+        mVVKP.push_back(new std::vector<cPtsCaracMSD>);
+
+        Pt2di aSz=m_scaleSpace.at(r).sz();
+        Im2D_REAL4 aCornerScore(aSz.x,aSz.y,0.0);
+        Im2D_REAL4 aMaxScore(aSz.x,aSz.y,0.0);
+        /*
+        // select Local Max on MSD
+        Im2D_REAL4 aMaxMSD(aSz.x,aSz.y,0.0);
+        ELISE_COPY(aMaxMSD.all_pts(),
+                   rect_som(mSaliencyIm.at(r).in_proj(),m_nms_radius),
+                   aMaxMSD.out());
+        */
+
+        for (int x(3); x < aSz.x-3 ; x++ ){
+            for (int y(3); y < aSz.y-3 ; y++ ){
+
+                Pt2di pos(x,y);
+                // renvoi la som des diff d'intensité avec les voisins "FAST" 0 si pas un corners
+                double aVal=Corner(pos,m_scaleSpace.at(r),thresh);
+
+                if (aVal>0) {
+                aNbtot++;
+                aNbCurSc++;
+                aCornerScore.SetI(pos,aVal);
+
+                }
+            }
+           }
+        // maintenant il faut garder uniquement les meilleurs coins
+        ELISE_COPY(aMaxScore.all_pts(),
+                   rect_max(aCornerScore.in_proj(),m_nms_radius),
+                   aMaxScore.out());
+
+        for (int x(3); x < aSz.x-3 ; x++ ){
+            for (int y(3); y < aSz.y-3 ; y++ ){
+
+                Pt2di pos(x,y);
+                //
+                double aVal=aCornerScore.GetI(pos);
+                if (aVal!=0 && aVal==aMaxScore.GetI(pos)){
+                        cPtsCaracMSD kp;
+                        double i= x * std::pow(m_scale_factor, r);
+                        double j= y * std::pow(m_scale_factor, r);
+                        kp.mPt=Pt2dr(i,j);
+                        kp.mPtSc=Pt2dr(x,y);
+                        kp.mSize=(m_patch_radius*2.0f + 1) * std::pow(m_scale_factor, r);
+                        kp.mScale=std::pow(m_scale_factor, r);
+                        mVVKP.at(r)->push_back(kp);
+                }
+
+            }
+        }
+    aNbFilter+=mVVKP.at(r)->size();
+    std::cout << "Scale " << r << " Nb Corners : " << aNbCurSc << ", I keep only the best " <<mVVKP.at(r)->size() << " corners pt  \n";
+    }
+
+    std::cout << "Nb Corners : " << aNbtot << ", I keep only the best " <<aNbFilter << " corners pt  \n";
+}
 
 template <class Type, class TyBase>
 void MsdDetector::doIllu(Im2D<Type, TyBase> &img){
 
     std::string Name(mTmpDir + "/MSD_kp_"+mNameIm+".tif");
     ELISE_fp::RmFileIfExist(Name);
-    Im2D<Type, TyBase> img2(img.sz().x,img.sz().y,0);
+    Im2D<Type, TyBase> img2(img.sz().x,img.sz().y,0.0);
     ELISE_COPY(img.all_pts(),img.in(),img2.out());
 
     for (int r = 0; r<m_cur_n_scales; r++){
@@ -798,16 +1065,16 @@ void MsdDetector::doIllu(Im2D<Type, TyBase> &img){
             // draw the circle around pt
             ELISE_COPY(ellipse(kp.mPt,kp.mSize/2,kp.mSize/2,1),
                        200.0,
-                       img2.out());
+                       img2.oclip());
             // draw the point
             ELISE_COPY(ellipse(kp.mPt,1,1,1),
                        250.0,
-                       img2.out());
+                       img2.oclip());
             // draw segment for orientation
             for (auto & angle : kp.getAngles()){
                 ELISE_COPY(line(Pt2di(kp.mPt),Pt2di(kp.mPt.x+kp.mSize*0.5*cos(angle),kp.mPt.y+kp.mSize*0.5*sin(angle))),
                            250.0,
-                           img2.out());
+                           img2.oclip());
             }
         }
     }
@@ -817,7 +1084,7 @@ void MsdDetector::doIllu(Im2D<Type, TyBase> &img){
             (
                 Name.c_str(),
                 img2.sz(),
-                GenIm::u_int1,
+                GenIm::real4,
                 Tiff_Im::No_Compr,
                 Tiff_Im::BlackIsZero
                 );
@@ -826,19 +1093,84 @@ void MsdDetector::doIllu(Im2D<Type, TyBase> &img){
 }
 
 template void MsdDetector::doIllu<INT1, INT>(Im2D<INT1, INT> &img);
-
+template void MsdDetector::doIllu<REAL4, REAL8>(Im2D<REAL4, REAL8> &img);
 
 void MsdDetector::orientationAndDescriptor(){
 
     if (mDebug) { std::cout << "compute orientation and descriptor ";}
     REAL8 maxValGrad=1;
     //orientation on the raw image
+    // WARN WARN ; actually, the critical part in multimodal registration is the orientation computation.
+    // this is why chebbi has successed with MSD; this is not cause of the MSD approach, but because he has kept an orientation of 0.0 because the 2 camera rig has the same orientation
     // compute gradient of image
     Im2D<REAL4,REAL8> i_grad;
-    gradient(m_scaleSpace.at(0), maxValGrad, i_grad)  ;
+    Im2D<U_INT1,INT> mIm_LabWallis=Im2D<U_INT1,INT>(m_scaleSpace.at(0).sz().x,m_scaleSpace.at(0).sz().y);
+    Migrate2Lab2wallis(m_scaleSpace.at(0),mIm_LabWallis);
+    gradient(mIm_LabWallis, maxValGrad, i_grad)  ;
+
+    // gradient ; very sensitive to noise, thus better to smooth it
+    // separate magnitude from orientation
+    /*
+    Im2D<REAL4,REAL8> i_grad_Mag(int(i_grad.sz().x/2),i_grad.sz().y,0.0 );
+    Im2D<REAL4,REAL8> i_grad_Ori(int(i_grad.sz().x/2),i_grad.sz().y,0.0 );
+
+    std::cout << "convert grad mag+ori to mag only \n";
+    for (int y(0); y<i_grad.sz().y;y++){
+        for (int x(0); x<i_grad.sz().x;x+=2){
+            //std::cout << "igradMag value at " << Pt2di(x,y) << " is " << i_grad.GetR(Pt2di(x,y)) <<" \n";
+            i_grad_Mag.SetR(Pt2di(x/2,y),i_grad.GetR(Pt2di(x,y)));
+            i_grad_Ori.SetR(Pt2di(x/2,y),i_grad.GetR(Pt2di(x+1,y)));
+        }
+    }
+    std::cout << "done \n";
+    std::string aName("Tmp_MSD_gradMag.tif");
+    ELISE_COPY(i_grad_Mag.all_pts()
+               ,i_grad_Mag.in(),
+                Tiff_Im(
+                aName.c_str(),
+                i_grad_Mag.sz(),
+                GenIm::real4,
+                Tiff_Im::No_Compr,
+                Tiff_Im::BlackIsZero
+                ).out());
+
+    aName="Tmp_MSD_gradOri.tif";
+    ELISE_COPY(i_grad_Ori.all_pts()
+               ,i_grad_Ori.in(),
+                Tiff_Im(
+                aName.c_str(),
+                i_grad_Ori.sz(),
+                GenIm::real4,
+                Tiff_Im::No_Compr,
+                Tiff_Im::BlackIsZero
+                ).out());
+
+
+
+    ELISE_COPY(i_grad_Mag.all_pts(),Moy(i_grad_Mag.in_proj(),3,1), i_grad_Mag.out());
+
+    aName="Tmp_MSD_gradMag_Moy.tif";
+    ELISE_COPY(i_grad_Mag.all_pts()
+               ,i_grad_Mag.in(),
+                Tiff_Im(
+                aName.c_str(),
+                i_grad_Mag.sz(),
+                GenIm::real4,
+                Tiff_Im::No_Compr,
+                Tiff_Im::BlackIsZero
+                ).out());
+
+
+
+    // try gradient of sobel image to check if orientation is better
+    Im2D<REAL4,REAL8> sobel(m_scaleSpace.at(0).sz().x,m_scaleSpace.at(0).sz().y,0.0);
+    ELISE_COPY(m_scaleSpace.at(0).all_pts(),sobel_1(m_scaleSpace.at(0).in_proj()), sobel.out());
+    //gradient(sobel, maxValGrad, i_grad)  ;
+    */
+
     // compute descriptor
-    //DescriptorExtractor<REAL4,REAL8> aDesc=DescriptorExtractor<REAL4,REAL8>(mSaliencyIm.at(0));
-    DescriptorExtractor<U_INT1,INT> aDesc=DescriptorExtractor<U_INT1,INT>(m_scaleSpace.at(0));
+    //DescriptorExtractor<REAL4,REAL8> aDesc=DescriptorExtractor<REAL4,REAL8>(mIm_LabWallis);
+    DescriptorExtractor<U_INT1,INT> aDesc=DescriptorExtractor<U_INT1,INT>(mIm_LabWallis);
 
 
     for (int r = 0; r<m_cur_n_scales; r++)
@@ -847,14 +1179,15 @@ void MsdDetector::orientationAndDescriptor(){
 
 
         //compute orientation for Caract Pt
-        orientate(i_grad, *mVVKP.at(r));
+        //orientate(i_grad, *mVVKP.at(r));
 
         for (auto & aPt: *mVVKP.at(r)){
 
             DigeoPoint DP;
             DP.x=aPt.mPt.x;
             DP.y=aPt.mPt.y;
-            REAL8 scale(aPt.mSize/2);// local scale in lowe convention, what is it?
+            //REAL8 scale(aPt.mSize/2);// local scale in lowe convention
+            REAL8 scale(aPt.mSize/2);
 
             //REAL8 scale((m_patch_radius+m_search_area_radius)*aPt.mScale);
             //std::cout << "scale : " << scale << ",pt scale " << aPt.mScale << " , Size/2 " << aPt.mSize/2 << "\n";
@@ -866,10 +1199,12 @@ void MsdDetector::orientationAndDescriptor(){
                 DP.addDescriptor(angle,descriptor);
             }
             // def constructor of cPtsCaract set angle to 0
-            if (DP.angle(0)!=0.0 && DP.nbAngles()<4) mVDP.push_back(DP);
+            //if (DP.angle(0)!=0.0 && DP.nbAngles()<3) mVDP.push_back(DP);
+            mVDP.push_back(DP);
         }
     }
 
+    if (mDebug) doIllu(m_scaleSpace.at(0));
     if (mDebug){ std::cout << " done \n " ;}
 }
 
@@ -1206,3 +1541,39 @@ Im2D<REAL4,REAL8> RefinedCircularWindow(int radius)
     return circular;
 }
 */
+
+
+template <class tData, class tComp>
+void gradient_sob(Im2D<tData,tComp> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient )
+{
+    o_gradient.Resize( Pt2di( i_image.tx()*2, i_image.ty() ) );
+
+    Im2D<REAL4,REAL8> i_grad_Mag(i_image.sz().x,i_image.sz().y,0.0);
+    Im2D<REAL4,REAL8> i_grad_x(i_image.sz().x,i_image.sz().y,0.0);
+    Im2D<REAL4,REAL8> i_grad_y(i_image.sz().x,i_image.sz().y,0.0);
+    ELISE_COPY(i_image.all_pts(),sobel_1(Moy(i_image.in_proj(),3,1)),i_grad_Mag.out());
+    ELISE_COPY(i_image.all_pts(),sobel_x(Moy(i_image.in_proj(),3,1)),i_grad_x.out());
+    ELISE_COPY(i_image.all_pts(),sobel_y(Moy(i_image.in_proj(),3,1)),i_grad_y.out());
+    //smoothing of gradient prior to compute orientation
+    ELISE_COPY(i_grad_x.all_pts(),Moy(i_grad_x.in_proj(),4,2),i_grad_x.out());
+    ELISE_COPY(i_grad_y.all_pts(),Moy(i_grad_y.in_proj(),4,2),i_grad_y.out());
+    ELISE_COPY(i_grad_Mag.all_pts(),Moy(i_grad_Mag.in_proj(),4,2),i_grad_Mag.out());
+
+    std::cout << "compute grad with sobel\n";
+    for (int y(0); y<o_gradient.sz().y;y++){
+        for (int x(0); x<o_gradient.sz().x;x+=2){
+            //std::cout << "igradMag value at " << Pt2di(x,y) << " is " << i_grad.GetR(Pt2di(x,y)) <<" \n";
+
+            o_gradient.SetR(Pt2di(x,y),i_grad_Mag.GetR(Pt2di(x/2,y)));
+            double theta;
+            //std::cout << " atan2 dy/dx is " << REAL8(std::atan2( i_grad_y.GetR(Pt2di(x/2,y)),  i_grad_x.GetR(Pt2di(x/2,y)) )) << "\n";
+            theta=std::fmod( REAL8(std::atan2( i_grad_y.GetR(Pt2di(x/2,y)),i_grad_x.GetR(Pt2di(x/2,y)) )+2*M_PI), REAL8( 2*M_PI )  );
+            o_gradient.SetR(Pt2di(x+1,y), theta);
+        }
+    }
+}
+
+template void gradient_sob<REAL4,REAL8>(Im2D<REAL4,REAL8> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
+template void gradient_sob<U_INT2,INT>( Im2D<U_INT2,INT> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
+template void gradient_sob<U_INT1,INT>( Im2D<U_INT1,INT> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
+

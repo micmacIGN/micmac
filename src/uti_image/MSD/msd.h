@@ -33,6 +33,16 @@
 
 class cPtsCaracMSD;
 
+template <class tData, class tComp>
+
+extern void gradient_sob(Im2D<tData,tComp> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
+
+extern void Migrate2Lab2wallis(Tiff_Im &image, Im2D<U_INT1,INT> &Output);
+extern void Migrate2Lab2wallis(Im2D<U_INT1,INT> &image, Im2D<U_INT1,INT> &Output);
+extern void wallis(Im2D<U_INT1,INT> &image, Im2D<U_INT1,INT> &WallEqIm);
+template <class Type, class TyBase>
+extern void Resizeim(Im2D<Type,TyBase> & im, Im2D<Type,TyBase> & Out, Pt2dr Newsize);
+
 class MsdDetector
 {
 public:
@@ -60,6 +70,9 @@ public:
 
     template <class Type, class TyBase>
     void detect(Im2D<Type,TyBase> &img);
+
+    template <class Type, class TyBase>
+    void detect2(Im2D<Type,TyBase> &img);
 
     void writeKp(std::string aOut){
         DigeoPoint::writeDigeoFile(aOut,mVDP);
@@ -94,6 +107,9 @@ public:
     void setRefinedKP(bool REFINED){m_RefinedKps=REFINED;}
     bool getRefinedKP() {return m_RefinedKps;}
     */
+
+    void orientate(Im2D<float, double> &img, std::vector<cPtsCaracMSD> &aVPCar);
+    void orientationAndDescriptor();
 	
 private: 
 
@@ -134,14 +150,17 @@ private:
     //float computeOrientation(Im2D<U_INT1,INT> &img, int x, int y, std::vector<Pt2df> circle);
 
     void contextualSelfDissimilarity(Im2D<U_INT1,INT> &img, int xmin, int xmax, float *saliency);
-    void nonMaximaSuppression(std::vector<float *> & saliency);
+    void nonMaximaSuppression();
     // this is an implementation of method used in Digeo
     int orientate( const Im2D<REAL4,REAL8> &i_gradient, cPtsCaracMSD &i_p, REAL8 o_angles[DIGEO_MAX_NB_ANGLES] );
-    void orientate(Im2D<float, double> &img, std::vector<cPtsCaracMSD> &aVPCar);
 
-    void orientationAndDescriptor();
+
     template <class Type, class TyBase>
     void doIllu(Im2D<Type, TyBase> &img);
+
+    void computeMSDPyram();
+    void selectCorners();
+    void writeSaliency();
 
     //template <class tData, class tComp>
     //DigeoPoint ToDigeo(cPtsCaracMSD & aPt,DescriptorExtractor<REAL4,REAL8> & aDesc);

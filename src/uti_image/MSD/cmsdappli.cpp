@@ -1,27 +1,23 @@
 #include "cmsdappli.h"
 
 
-
-
 cMSD1Im::cMSD1Im(int argc,char ** argv):
     mDebug(1),
     mTmpDir("Tmp-MM-Dir/"),
     msd(),
-    mTh(0.001),// a posteriori filter: low value
-    mSAR(3),
-    mPR(5),
+    mTh(0.02),// a posteriori filter: low value
+    mSAR(5),
+    mPR(3),
     mKNN(5),
-    mNMS(3),// a posteriori filter: low value
+    mNMS(5),// a posteriori filter: low value
     mSc(-1)
 {
     // warn, when PA 3 SAR 3 and NMS 5, bug --> should add warnings
 
     std::string aBidon;
     // provide me some pt with descriptor on saliency and Ratio=0.8, orientation size mSize/2 on row im and descriptor mSize/2, on saliency DZ0 map. mainly DZ0 pt. Still lot of outliers. I try other localscale param for orientate and describe, nothing betters than that
-
     //double aTh(0.001);
     //int aPR(3),aSAR(5),aKNN(5),aNMS(3);
-
     // PR 5 SAR 3 NMS 3 KNN 5 Ratio=0.8, orientation size mSize/2 on row im and descriptor mSize/2, on saliency DZ0 map. mainly NOT DZ0 pt. not that many outlier
     // PR 5 SAR 3 NMS 3 KNN 5 Ratio=0.8, orientation size m_patch_radisu on row im DZx and descriptor m_patch_radius, on saliency DZx map--> do not work! should be equivalent than line up!! wtf?? but right that saliency map change rapidly with the scale
 
@@ -43,6 +39,7 @@ cMSD1Im::cMSD1Im(int argc,char ** argv):
 
     mICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
 
+
      // handling of both thermic optris image (1 cannal, 16 bits) and camlight images (1 cannal, 8 bits)
      Tiff_Im Im=Tiff_Im::UnivConvStd(mNameIm);
      if (Im.type_el()==GenIm::u_int2) {
@@ -62,25 +59,10 @@ cMSD1Im::cMSD1Im(int argc,char ** argv):
 
      initMSD();
      msd.detect(mIm);
+     msd.orientationAndDescriptor();
      msd.writeKp(mOut);
      if (mDebug) std::cout << "For image " << mNameIm << ", I have found " << msd.Kps().size() << " MSD points \n";
 
-     // OLD: descriptor was computed on raw im in lab with wallis filtre, now i compute descriptor on Saliency map
-     // prior to use SIFT descriptor on raw, go to Lab and apply wallis filter
-     // work only for RGB images or at least for 8bits images.
-    /*
-     std::vector<DigeoPoint> PDigeo1;
-     Im2D<U_INT1,INT> mIm_LabWallis=Im2D<U_INT1,INT>(Im.sz().x,Im.sz().y);
-
-     // in case of RGB images or for camlight images
-     if (Im.NbBits()==8){
-         if (mDebug) std::cout << "Image " << mNameIm1 << " is 8 bits and has " << Im.nb_chan() << " channel : got to Lab and apply wallis \n" ;
-         Migrate2Lab2wallis(Im,mIm_LabWallis);
-     } else {
-         if (mDebug) std::cout << "Image " << mNameIm1 << " : got to Lab and apply wallis \n" ;
-         Migrate2Lab2wallis(mIm,mIm_LabWallis);
-     }
-    */
 }
 
 

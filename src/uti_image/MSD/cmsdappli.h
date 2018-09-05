@@ -3,9 +3,9 @@
 
 #include "msd.h"
 #include "lab_header.h"
-extern void self_match_lebris( list<DigeoPoint> &i_list,
-                        double _min_dist,  	// min distance of second best point to avoid abiguity
-                        int i_nbMaxPriPoints = SIFT_ANN_DEFAULT_MAX_PRI_POINTS );
+#include "../../TpMMPD/TiePByMesh/Detector.h"
+
+
 // call the appli in similar way than Digeo and SIFT: mm3d MSD -i inputname -o output name
 // 08/2018; jo lisein: I implement MSD from work of Chebbi ENSG student, but unfortunately this detector seems to be quite non-efficient.
 // to improve if usefulness : border effet, orientation of pt pbl. for the moment, I keep only pt that have only one orientation
