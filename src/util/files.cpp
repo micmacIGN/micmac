@@ -1237,6 +1237,7 @@ void ELISE_fp::read(void *ptr,tFileOffset size, tFileOffset nmemb,const char* fo
 			        std::cout <<  "Error while file reading |\n"
 					<<  "    FILE = " <<  mNameFile.c_str() << "  pos = " << tell().BasicLLO()  << "|\n"
 					<<  " reading " <<   nmemb.BasicLLO() << " , got " << nb_read.BasicLLO() << "|";
+// getchar();
                                  ELISE_ASSERT(false,"Error while file reading");
 
 			}

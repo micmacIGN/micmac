@@ -131,9 +131,61 @@ cGeneratorEqColLin::cGeneratorEqColLin() :
     
 }
 
+/*
 void TestcGeneratorEqColLin()
 {
     cGeneratorEqColLin aGen;
+}
+*/
+
+// #include "../../CodeGenere/photogram/TestCeresColinearity.h"
+#include "../../CodeGenere/photogram/TestCeresColinearity.cpp"
+
+
+class cTestTestCeresColinearity  : public TestCeresColinearity
+{
+    public :
+       cTestTestCeresColinearity()
+       {
+            for (int aK=0 ; aK<14 ; aK++)
+            {
+                mCompCoord[aK] = aK;
+            }
+       }
+
+       void Test(int aNb)
+       {
+           {
+                ElTimer aChrono;
+                for (int aK=0 ; aK<aNb ; aK++)
+                {
+                     ComputeVal();
+                }
+                std::cout << "Time Val " << aChrono.uval() << "\n";
+           }
+           {
+                ElTimer aChrono;
+                for (int aK=0 ; aK<aNb ; aK++)
+                {
+                     ComputeValDeriv();
+                }
+                std::cout << "Time Derive " << aChrono.uval() << "\n";
+           }
+       }
+};
+
+void TestcGeneratorEqColLin()
+{
+    cTestTestCeresColinearity aTTCC;
+    aTTCC.Test(347000*25);
+     
+/*
+    TestCeresColinearity aTC;
+    for (int aK=0 ; aK<14 ; aK++)
+    {
+        aTC.mCompCoord[aK] = aK;
+    }
+*/
 }
 
 

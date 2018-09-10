@@ -47,6 +47,8 @@ class cAppli_NewRechPH;
 class cOneScaleImRechPH;
 class cCompileOPC;
 
+extern bool     DebugNRPH;
+
 #include "cParamNewRechPH.h"
 #include "ExternNewRechPH.h"
 #include "LoccPtOfCorrel.h"
@@ -146,6 +148,8 @@ class cOneScaleImRechPH
          cOneScaleImRechPH * GetSameDecimSiftMade(cOneScaleImRechPH*,cOneScaleImRechPH*);
 
       private :
+          std::vector<double> ShowStatLapl(const std::string & aMes);
+
           void InitImMod();
           Pt3dr PtPly(const cPtRemark & aP,int aNiv);
 
@@ -158,7 +162,7 @@ class cOneScaleImRechPH
           // Selectionne les maxima locaux a cette echelle
           bool  SelectVois(const Pt2di & aP,const std::vector<Pt2di> & aVVois,int aValCmp);
           // Selectionne les maxima locaux a avec une echelle differente
-          bool  ScaleSelectVois(cOneScaleImRechPH*, const Pt2di&, const std::vector<Pt2d<int> >&, int);
+          bool  ScaleSelectVois(cOneScaleImRechPH*, const Pt2di&, const std::vector<Pt2d<int> >&, int,double);
           std::list<cPtRemark *>  mLIPM;
    
           cAppli_NewRechPH & mAppli;

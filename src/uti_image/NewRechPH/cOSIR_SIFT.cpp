@@ -80,8 +80,65 @@ double cOneScaleImRechPH::ComputeContrast()
 }
 */
 
+
+std::vector<double> cOneScaleImRechPH::ShowStatLapl(const std::string & aMes)
+{
+    std::vector<double>  aVD;
+    Pt2di aP;
+    double aSomAbs=0;
+    for (aP.x=0 ; aP.x<mSz.x ; aP.x++)
+    {
+        for (aP.y=0 ; aP.y<mSz.y ; aP.y++)
+        {
+           int aVal = mTImMod.get(aP);
+           aVD.push_back(aVal);
+           aSomAbs +=  ElAbs(aVal);
+        }
+    }
+
+    aSomAbs /= aVD.size();
+
+    std::cout   <<  aMes 
+                << " 0.1 : "<< KthValProp(aVD,0.1)
+                << " 0.2 : "<< KthValProp(aVD,0.2)
+                << " 0.5 : "<< KthValProp(aVD,0.5)
+                << " 0.8 : "<< KthValProp(aVD,0.8)
+                << " 0.9 : "<< KthValProp(aVD,0.9)
+                << " MA : " << aSomAbs 
+                << "\n";
+    return aVD;
+}
+
 void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR,cSetPCarac & aSPC,bool FromLR)
 {
+   double aPowCorrec = 1.0;
+
+
+   double aCorHR = pow(mScaleAbs/aHR->mScaleAbs,aPowCorrec);
+   double aCorLR = pow(mScaleAbs/aLR->mScaleAbs,aPowCorrec);
+   std::vector<double> aVMaxH,aVMaxL;
+   std::vector<double> aVMinH,aVMinL;
+
+
+   std::vector<Pt2di> aVoisMinMax0   = SortedVoisinDisk(0.5,2,true);
+   std::vector<Pt2di> aVoisMinMaxLHR  = SortedVoisinDisk(-0.1,0.1,true);
+   if (DebugNRPH)
+   {
+      std::cout << "cOneScaleImRechPH::SiftMaxLoc "
+                << " HS " << aHR->mScaleAbs
+                << "  S " << mScaleAbs
+                << " LS " << aLR->mScaleAbs
+                << " CH " << aCorHR << " CL " << aCorLR
+                << "\n";
+
+      std::vector<double> aVH = aHR->ShowStatLapl("HR");
+      std::vector<double> aV0 = ShowStatLapl("S0");
+      std::vector<double> aVL = aLR->ShowStatLapl("LR");
+      std::cout << "SZmm " << aVoisMinMax0.size() << " " << aVoisMinMax0[0] << aVoisMinMax0.back() << "\n";
+      std::cout << "SZmm " << aVoisMinMaxLHR.size() << " " << aVoisMinMaxLHR[0] << aVoisMinMaxLHR.back() << "\n";
+      
+      // std::vector<double
+   }
    // Ajoute l'image de calcul dans le resultat, pour affinage etc ....
    // ELISE_ASSERT(false,"Finire cOneScaleImRechPH::SiftMaxLoc");
 
@@ -90,7 +147,6 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
 
    ELISE_ASSERT(mSifDifMade && aLR->mSifDifMade,"Sift dif pb in cOneScaleImRechPH::SiftMaxLoc");
    // std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,mScale+2,true);
-   std::vector<Pt2di> aVoisMinMax  = SortedVoisinDisk(0.5,2,true);
    Im2D_U_INT1 aIFlag = MakeFlagMontant(mImMod);
    TIm2D<U_INT1,INT> aTF(aIFlag);
    Pt2di aP ;
@@ -99,6 +155,12 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
    int aSSCstr = 0;
    bool DoMin = mAppli.DoMin();
    bool DoMax = mAppli.DoMax();
+
+int aNbDebugHRMax =0;
+int aNbDebugLRMax =0;
+int aNbDebugHRMin =0;
+int aNbDebugLRMin =0;
+
    for (aP.x = 1 ; aP.x <mSz.x-1 ; aP.x++)
    {
 // static int aCpt=0; aCpt++; std::cout << "XXXX CPTTTTT= " << aCpt << "\n";
@@ -109,25 +171,47 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
 
 // std::cout << "DDDDDDDDd " << mAppli.DistMinMax(Basic) << "\n";
 
-           if (DoMax &&  (aFlag == 0)  && SelectVois(aP,aVoisMinMax,1))
+           if (DoMax &&  (aFlag == 0)  && SelectVois(aP,aVoisMinMax0,1))
            {
               // std::cout << "DAxx "<< DoMax << " " << aFlag << "\n";
                aSpaceNbExtr++;
-               if (ScaleSelectVois(aHR,aP,aVoisMinMax,1) && ScaleSelectVois(aLR,aP,aVoisMinMax,1))
+               if (ScaleSelectVois(aHR,aP,aVoisMinMaxLHR,1,aCorHR) && ScaleSelectVois(aLR,aP,aVoisMinMaxLHR,1,aCorLR))
                {
                    aLab = eTPR_LaplMax;
                    aSS_NbExtr ++;
                }
+if (DebugNRPH)
+{
+   if (ScaleSelectVois(aHR,aP,aVoisMinMaxLHR,1,aCorHR)) aNbDebugHRMax++;
+   if (ScaleSelectVois(aLR,aP,aVoisMinMaxLHR,1,aCorLR)) aNbDebugLRMax++;
+   int aV0 = mTImMod.get(aP);
+   if (aV0)
+   {
+      aVMaxH.push_back(aHR->mTImMod.get(aP) / double(aV0));
+      aVMaxL.push_back(aLR->mTImMod.get(aP) / double(aV0));
+   }
+}
            }
-           if (DoMin &&  (aFlag == 255) && SelectVois(aP,aVoisMinMax,-1))
+           if (DoMin &&  (aFlag == 255) && SelectVois(aP,aVoisMinMax0,-1))
            {
                // std::cout << "DInnn "<< DoMin << " " << aFlag << "\n";
                aSpaceNbExtr++;
-               if (ScaleSelectVois(aHR,aP,aVoisMinMax,-1) && ScaleSelectVois(aLR,aP,aVoisMinMax,-1))
+               if (ScaleSelectVois(aHR,aP,aVoisMinMaxLHR,-1,aCorHR) && ScaleSelectVois(aLR,aP,aVoisMinMaxLHR,-1,aCorLR))
                {
                   aLab = eTPR_LaplMin;
                   aSS_NbExtr ++;
                }
+if (DebugNRPH)
+{
+   if (ScaleSelectVois(aHR,aP,aVoisMinMaxLHR,-1,aCorHR)) aNbDebugHRMin++;
+   if (ScaleSelectVois(aLR,aP,aVoisMinMaxLHR,-1,aCorLR)) aNbDebugLRMin++;
+   int aV0 = mTImMod.get(aP);
+   if (aV0)
+   {
+      aVMinH.push_back(aHR->mTImMod.get(aP) / double(aV0));
+      aVMinL.push_back(aLR->mTImMod.get(aP) / double(aV0));
+   }
+}
            }
           if (aLab != eTPR_NoLabel)
           {
@@ -146,6 +230,23 @@ void cOneScaleImRechPH::SiftMaxLoc(cOneScaleImRechPH* aHR,cOneScaleImRechPH* aLR
     }
 
     std::cout << "    LAPL TIFF Scccc= " << mScaleAbs  << " SpaceE=" <<  aSpaceNbExtr << " Scale=" << aSS_NbExtr  << " Ctsr=" << aSSCstr<< "\n";
+   if (DebugNRPH)
+   {
+       int aNb = mImMod.sz().x  * mImMod.sz().y;
+       std::cout << "  NbMax ; " 
+                 << " Max" << ", H " << aNbDebugHRMax << ", L " << aNbDebugLRMax 
+                 << " Min" << ", H " << aNbDebugHRMin << ", L " << aNbDebugLRMin 
+                 << "\n";
+
+        std::cout << " Ratio "
+                 << " Max" << ", H " << KthValProp(aVMaxH,0.5) << ", L " << KthValProp(aVMaxL,0.5)  
+                 << " Min" << ", H " << KthValProp(aVMinH,0.5) << ", L " << KthValProp(aVMinL,0.5)  
+                 << "\n";
+
+       // std::cout << " "  << (aSpaceNbExtr *1000.0) / aNb << " " << (aSS_NbExtr *50000.0) / aNb << "\n";
+       
+       getchar();
+   }
 }
 
 void cOneScaleImRechPH::SiftMakeDif(cOneScaleImRechPH* aLR)

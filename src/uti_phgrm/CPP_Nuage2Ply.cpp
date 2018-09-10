@@ -41,6 +41,20 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define DEF_OFSET -12349876
 
 
+void Nuage2Ply_Banniere(string aNameOut)
+{
+	std::cout << " *********************************\n\n";
+	std::cout << aNameOut << " exported \n\n";
+	std::cout << " *********************************\n";
+	std::cout << " *     Nuage (Cloud)             *\n";
+	std::cout << " *     2 (to)                    *\n";
+	std::cout << " *     Ply (.ply file)           *\n";
+	std::cout << " *              Export DEM       *\n";
+	std::cout << " *              (with texture)   *\n";
+	std::cout << " *              as point cloud   *\n"; 
+	std::cout << " *********************************\n\n";
+}
+
 int Ratio(double aV1,double aV2)
 {
 
@@ -85,8 +99,8 @@ int Nuage2Ply_main(int argc,char ** argv)
     LArgMain()  << EAMC(aNameNuage,"Name of XML file", eSAM_IsExistFile),
     LArgMain()  << EAM(aSz,"Sz",true,"Sz (to crop)")
                     << EAM(aP0,"P0",true,"Origin (to crop)")
-                    << EAM(aNameOut,"Out",true,"Name of result (default toto.xml => toto.ply)")
-                    << EAM(aSc,"Scale",true,"Do change the scale of result (def=1, 2 mean smaller)")
+                    << EAM(aNameOut,"Out",true,"Name of output (default toto.xml => toto.ply)")
+                    << EAM(aSc,"Scale",true,"Change the scale of result (def=1, 2 mean smaller)")
                     << EAM(anAttr1,"Attr",true,"Image to colour the point, or [R,G,B] when constant colour", eSAM_IsExistFile)
                     << EAM(aVCom,"Comments",true,"Commentary to add in the ply file (Def=None)", eSAM_NoInit )
                     << EAM(aBin,"Bin",true,"Generate Binary or Ascii (Def=1, Binary)")
@@ -251,7 +265,8 @@ int Nuage2Ply_main(int argc,char ** argv)
         // std::cout << "RRRRRRRrmmmmmmmmm Tmp Coul \n"; getchar();
         ELISE_fp::RmFile(aNameCoulTmp);
     }
-    BanniereMM3D();
+
+	Nuage2Ply_Banniere(aNameOut);
 
     return EXIT_SUCCESS;
 

@@ -483,7 +483,7 @@ int Tapas_main_new(int argc,char ** argv)
         cTplValGesInit<std::string> aTplN;
         cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::StdAlloc(0,0,aDir,aTplN);
 
-                MakeXmlXifInfo(aFullDir,aICNM);
+              MakeXmlXifInfo(aFullDir,aICNM);
 
 
          if (EAMIsInit(&ImInit)  && (ImInit=="MIDLE"))

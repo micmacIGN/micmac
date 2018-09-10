@@ -280,11 +280,12 @@ void  calc_courb_tgt ( REAL ** out, REAL *** in, const Simple_OPBuf_Gen & arg)
 {
     Tjs_El_User.ElAssert
     (
-          arg.dim_in() == 1,
+          arg.dim_in() == 2,
           EEM0 << "courb tgt requires dim out = 1 for func"
     );
 
-    REAL** i0 = in[0];
+    REAL** i0 = in[0]; // Image
+    REAL** p0 = in[1]; // power
     REAL*  o0 = out[0];
 
     for (INT x=arg.x0() ;  x<arg.x1() ; x++)
@@ -299,6 +300,9 @@ void  calc_courb_tgt ( REAL ** out, REAL *** in, const Simple_OPBuf_Gen & arg)
        }
        else
        {
+          double p = p0[0][x];
+          if (p !=1)
+             g2 = pow(g2,p);
           REAL c_xx = (i0[0][x+1] + i0[0][x-1]  - 2 * i0[0][x]);
           REAL c_yy = (i0[1][x]   + i0[-1][x]   - 2 * i0[0][x]);
           REAL c_xy = (i0[1][x+1] + i0[-1][x-1] - i0[1][x-1] - i0[-1][x+1]) / 4;
@@ -308,16 +312,22 @@ void  calc_courb_tgt ( REAL ** out, REAL *** in, const Simple_OPBuf_Gen & arg)
    }
 }
 
-Fonc_Num courb_tgt(Fonc_Num f)
+Fonc_Num courb_tgt(Fonc_Num FCourb,Fonc_Num FExpos)
 {
      return create_op_buf_simple_tpl
             (
                 0,  // Nouvelle syntaxe
                 calc_courb_tgt,
-                f,
+                Virgule(FCourb,FExpos),
                 1,
                 Box2di(Pt2di(-1,-1),Pt2di(1,1))
             );
+}
+
+
+Fonc_Num courb_tgt(Fonc_Num f)
+{
+     return courb_tgt(f,1);
 }
 
 /*********************************************************************/

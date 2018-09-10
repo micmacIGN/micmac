@@ -582,6 +582,8 @@ void gradient( const Im2D<tData,tComp> &i_image, REAL8 i_maxValue, Im2D<REAL4,RE
 
 template void gradient<REAL4,REAL8>( const Im2D<REAL4,REAL8> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
 template void gradient<U_INT2,INT>( const Im2D<U_INT2,INT> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
+template void gradient<U_INT1,INT>( const Im2D<U_INT1,INT> &i_image, REAL8 i_maxValue, Im2D<REAL4,REAL8> &o_gradient );
+
 
 template <class Type>
 const Im2D<REAL4,REAL8> & cTplImInMem<Type>::getGradient() { return mImGlob.getGradient( TIm(), mOct.GetMaxValue() ); }
@@ -595,6 +597,9 @@ int orientate( const Im2D<REAL4,REAL8> &i_gradient, const cPtsCaracDigeo &i_p, R
 	int yi = ((int) (i_p.mPt.y+0.5)) ;
 	const REAL8 sigmaw = DIGEO_ORIENTATION_WINDOW_FACTOR*i_p.mLocalScale;
 	const int W = (int)ceil( 3*sigmaw );
+
+    //std::cout << "kp: scale " << i_p.mScale  << " localscale: " << i_p.mLocalScale <<  ", sigmaw " << sigmaw << " W " <<W<< "\n";
+
 
 	// fill the SIFT histogram
 	const INT width  = i_gradient.sz().x/2,

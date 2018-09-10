@@ -440,6 +440,8 @@ static Fonc_Num FPolar(cFilterImPolI &,const cArgFilterPolI & anArg)
 
 static cFilterImPolI  OperPolar(FPolar,1,1,0,0,"polar",false,"polar F");
 
+
+
   //----------------------------------------------------------------
 
 static Fonc_Num FExtinc(cFilterImPolI &,const cArgFilterPolI & anArg)
@@ -451,6 +453,80 @@ static Fonc_Num FExtinc(cFilterImPolI &,const cArgFilterPolI & anArg)
 }
 
 static cFilterImPolI  OperExtinc(FExtinc,1,1,1,2,"extinc",true,"extinc F c d ; c=chamfer d=distance");
+
+
+  //----------------------------------------------------------------
+
+static Fonc_Num FCourbTgt(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+    double aExp = (anArg.mVArgs.size() >=1) ? ToDouble(anArg.mVArgs.at(0)) : 0.5;
+
+    return courb_tgt(anArg.mVIn.at(0),aExp);
+}
+
+static cFilterImPolI  OperCourbTgt(FCourbTgt,1,1,0,1,"corner",true,"corner F P? ; F=func P=pow, def=0.5");
+
+  //----------------------------------------------------------------
+
+static Fonc_Num FNoise(cFilterImPolI &,const cArgFilterPolI & anArg,bool Gauss)
+{
+    int aNbArgTot = anArg.mVArgs.size() ;
+    ELISE_ASSERT(aNbArgTot && (aNbArgTot%2==0),"Bad Nb Arg in FNoise");
+    int aNbV = aNbArgTot / 2;
+
+    std::vector<double> aVPds;
+    std::vector<int> aVSz;
+    for (int aK=0 ; aK < aNbV ; aK++)
+    {
+         aVPds.push_back(ToDouble(anArg.mVArgs.at(2*aK)));
+         aVSz.push_back(ToInt(anArg.mVArgs.at(2*aK+1)));
+    }
+
+
+    return   Gauss ? gauss_noise_4(aVPds.data(),aVSz.data(),aNbV) : unif_noise_4(aVPds.data(),aVSz.data(),aNbV);
+}
+
+static Fonc_Num FGaussNoise(cFilterImPolI &aFP,const cArgFilterPolI & anArg)
+{
+   return FNoise(aFP,anArg,true);
+}
+
+static cFilterImPolI  OperGaussNoise(FGaussNoise,0,0,2,10000,"gauss_noise",true,"gauss_noise p1 s1 p2 s2 ....");
+
+
+
+  //----------------------------------------------------------------
+
+static Fonc_Num FMinSelfDiSym(cFilterImPolI &,const cArgFilterPolI & anArg)
+{
+    int aNbWin = ToInt(anArg.mVArgs.at(0)) ;
+    double aNbVois = ToDouble(anArg.mVArgs.at(1)) ;
+    double aD2Max = ElSquare(aNbVois);
+    int aNbVI = round_up(aNbVois);
+    double aExp=2; // Par defaut prop au carre de la dist
+ 
+    Fonc_Num aFonc = anArg.mVIn.at(0);
+    Fonc_Num aFoncRes = Fonc_Num(1e10);
+
+    for (int aDx=-aNbVI ; aDx<=aNbVI ; aDx++)
+    {
+        for (int aDy=-aNbVI ; aDy<=aNbVI ; aDy++)
+        {
+            int aD2 = ElSquare(aDx) + ElSquare(aDy);
+            if ((aD2!=0 ) && (aD2 <= aD2Max))
+            {
+               Fonc_Num aFDif = rect_som(Abs(aFonc-trans(aFonc,Pt2di(aDx,aDy))),aNbWin);
+               aFDif = aFDif / pow(sqrt(aD2),aExp);
+               aFoncRes = Min(aFoncRes,aFDif);
+            }
+        }
+    }
+
+    return aFoncRes;
+}
+
+static cFilterImPolI  OperMinSelfDiSym(FMinSelfDiSym,1,1,2,2,"msd",true,"Self dissymilarity  : MinSelfDiSym Fonc Vois SzW");
+
 
 
   //----------------------------------------------------------------
@@ -641,6 +717,9 @@ static std::vector<cFilterImPolI *>  VPolI()
          aRes.push_back(&OperDoubleCste);
          aRes.push_back(&OperPolar);
          aRes.push_back(&OperExtinc);
+         aRes.push_back(&OperCourbTgt);
+         aRes.push_back(&OperGaussNoise);
+         aRes.push_back(&OperMinSelfDiSym);
          aRes.push_back(&Opermut);
          aRes.push_back(&OperSetSymb);
          aRes.push_back(&OperUseSymb);
@@ -747,6 +826,7 @@ cResFilterPolI RecParseStrFNPolI(tCPtr & aStr,cCtxtFoncPolI * aCtx)
     for (int aK=0 ; aK<int(aVPol.size()) ; aK++)
     {
         cFilterImPolI & aPolI = *(aVPol[aK]);
+// std::cout << "HHHHH " << aPolI.mAutom.NameExpr() << " " << aIdSymb << "\n";
         if (aPolI.mAutom.Match(aIdSymb))
         {
             if (aPolI.mChgCtx)
