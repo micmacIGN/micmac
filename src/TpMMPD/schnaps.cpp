@@ -740,6 +740,8 @@ void networkExport(std::map<std::string,cPic*> &allPics)
     }
     oss<<"];\n";
 
+    std::cout<<"To display network, use micmac_Documentation/NEW-DATA/schnaps_disp_graph/disp_graph.html\n";
+
     std::ofstream aNetworkfile;
     aNetworkfile.open("data.js");
     if (!aNetworkfile.is_open())
