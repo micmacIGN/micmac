@@ -55,7 +55,7 @@ enum class eApDT
               None,     ///< Nothing 
               Console,  ///< Console 
               Xml,      ///< Xml-files
-              FileSys,      ///< Inpu is the file system (list of file)
+              FileSys,      ///< Input is the file system (list of file)
               eNbVals
            };
 
@@ -102,8 +102,21 @@ enum class eTyUEr
               eMulOptParam,
               eBadOptParam,
               eInsufNbParam,
-              eIntervWithoutSet
+              eIntervWithoutSet,
+              eTooBig4NbDigit
            };
+
+/// 
+enum class eTyUnitTime
+           {
+              eUT_Sec,
+              eUT_Min,
+              eUT_Hour,
+              eUT_Day,
+              eNbVals
+           };
+
+
 
 
 const std::string & E2Str(const eTySC &);         

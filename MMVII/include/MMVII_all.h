@@ -35,8 +35,8 @@
 #include "MMVII_Sys.h"
 #include "MMVII_memory.h"
 #include "MMVII_util_tpl.h"
-#include "MMVII_util.h"
 #include "MMVII_nums.h"
+#include "MMVII_util.h"
 
 
 
