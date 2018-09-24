@@ -333,7 +333,16 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
 
     if ((! Ok) && (!SVP))
     {
-        MMVII_INTERNAL_ASSERT_user(eTyUEr::eCreateDir,"Cannot create directory for arg " + aDir);
+        // There is something I dont understand with boost on error with create_directories,
+        // for me it works but it return false, to solve later ....
+        if (ExistFile(aDir))
+        {
+            MMVII_INTERNAL_ASSERT_Unresolved(false,"Cannot create directory for arg " + aDir);
+        }
+        else
+        {
+            MMVII_INTERNAL_ASSERT_user(eTyUEr::eCreateDir,"Cannot create directory for arg " + aDir);
+        }
     }
     return Ok;
 }
@@ -342,7 +351,10 @@ bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP)
 {
     boost::filesystem::remove_all(aDir);
     if (ReMkDir)
-        return CreateDirectories(aDir,SVP);
+    {
+        bool aRes = CreateDirectories(aDir,SVP);
+        return aRes;
+    }
     return true;
 }
 
