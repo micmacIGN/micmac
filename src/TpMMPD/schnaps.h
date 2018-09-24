@@ -79,16 +79,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 class cPicSize
 {
   public:
-    cPicSize
-    (
-        Pt2di aSz,int aNumWindows
-    );
+    cPicSize(Pt2di aSz);
     cPicSize(const cPicSize &other);
     Pt2di getPicSz(){return mPicSz;}
     Pt2di getWinSz(){return mWinSz;}
     Pt2di getNbWin(){return mNbWin;}
     int getUsageBuffer(){return mUsageBuffer;}
 
+    static int mTargetNumWindows;//the actual number of windows will depend on the picture ratio
   protected:
     Pt2di mPicSz;
     Pt2di mWinSz;
@@ -132,13 +130,14 @@ class cHomol
     int getId(){return mId;}
     bool alreadyIn(cPic * aPic, Pt2dr aPt);
     bool add(cPic * aPic, Pt2dr aPt);//return true if not already in
-    void add(cHomol *aHomol);
+    void add(cHomol *aHomol);//merge with an other homol
     void print();
     bool isBad(){return mBad;}
     void setBad(){mBad=true;}
     cPointOnPic* getPointOnPic(cPic * aPic);
     cPointOnPic* getPointOnPic(unsigned int i){return (mPointOnPics.at(i));}
     unsigned int getPointOnPicsSize(){return mPointOnPics.size();}
+    //part for strict filtering
     void addAppearsOnCouple(cPic * aPicA,cPic * aPicB);
     bool appearsOnCouple(cPic * aPicA,cPic * aPicB);//exactly this order
     bool appearsOnCouple2way(cPic * aPicA,cPic * aPicB);//both ways
@@ -162,7 +161,7 @@ class cHomol
 class cPic
 {
   public:
-    cPic(std::string aDir, std::string aName, std::vector<cPicSize *> &allSizes, int aNumWindows);
+    cPic(std::string aDir, std::string aName);
     cPic(cPic* aPic);
     std::string getName(){return mName;}
     cPicSize * getPicSize(){return mPicSize;}
@@ -170,7 +169,6 @@ class cPic
     void printHomols();
     bool addSelectedPointOnPicUnique(cPointOnPic* aPointOnPic);
     float getPercentWinUsed(int nbWin);
-    //void incNbWinUsed(){mNbWinUsed++;}
     void setWinUsed(int _x,int _y);
     cPointOnPic * findPointOnPic(Pt2dr & aPt);
     void addPointOnPic(cPointOnPic* aPointOnPic);
@@ -183,6 +181,7 @@ class cPic
     void fillPackHomol(cPic* aPic2,string & aDirImages,cInterfChantierNameManipulateur * aICNM,std::string & aKHOut);
     std::vector<int> getStats(bool before=true);//computes repartition in homol-2, homol-3, homol-4 etc... export it as vector indexed by multiplicity
     long getId(){return mId;}
+    static std::vector<cPicSize>* getAllSizes(){return &mAllSizes;}
   protected:
     std::string mName;
     cPicSize * mPicSize;
@@ -190,10 +189,10 @@ class cPic
     std::map<double,cPointOnPic*> mAllSelectedPointsOnPic;//key: x+mPicSize->getPicSz().x*y
     std::map<cPic*, long> nbRawLinks;//number of common points with other pictures
     std::vector<bool> mWinUsed;//to check repartition of homol points (with buffer)
-    //int mNbWinUsed;
     double makePOPKey(Pt2dr & aPt){return aPt.x*100+mPicSize->getPicSz().x*100*aPt.y*100;}
     long mId;
     static long mNbIm;
+    static std::vector<cPicSize> mAllSizes;
 };
 
 //----------------------------------------------------------------------------
@@ -214,14 +213,12 @@ class CompiledKey2
 
 
 
-void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
-                     std::string aDirImages,
+void computeAllHomol(std::string aDirImages,
                      std::string aPatIm,
                      const std::vector<std::string> &aSetIm,
                      std::list<cHomol> &allHomolsIn,
                      CompiledKey2 &aCKin,
                      std::map<std::string,cPic*> &allPics,
-                     std::vector<cPicSize *> &allPicSizes,
                      bool veryStrict,
                      int aNumWindows);
 

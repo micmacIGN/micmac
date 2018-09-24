@@ -44,13 +44,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <algorithm>
 #include <iterator>
 
+int cPicSize::mTargetNumWindows=-1;//make an error if not initialized
+std::vector<cPicSize> cPic::mAllSizes;
 
-cPicSize::cPicSize(Pt2di aSz,int aNumWindows) :
+
+cPicSize::cPicSize(Pt2di aSz) :
     mPicSz(aSz)
 {
     float aXYratio=((float)aSz.x)/aSz.y;
-    mNbWin.x=sqrt((double)aNumWindows)*sqrt(aXYratio)+1;
-    mNbWin.y=sqrt((double)aNumWindows)/sqrt(aXYratio)+1;
+    mNbWin.x=sqrt((double)mTargetNumWindows)*sqrt(aXYratio)+1;
+    mNbWin.y=sqrt((double)mTargetNumWindows)/sqrt(aXYratio)+1;
     mWinSz.x=((float)mPicSz.x)/mNbWin.x+0.5;
     mWinSz.y=((float)mPicSz.y)/mNbWin.y+0.5;
     mUsageBuffer=mNbWin.x/10;//where the arbitrary buffer size is calculated
@@ -275,23 +278,23 @@ bool cHomol::checkMerge(cHomol* aHomol)
 
 long cPic::mNbIm=0;
 
-cPic::cPic(std::string aDir,std::string aName,std::vector<cPicSize*> & allSizes,int aNumWindows) :
+cPic::cPic(std::string aDir, std::string aName) :
     mName(aName),mPicSize(0),mId(mNbIm++)//,mNbWinUsed(0)
 {
     Tiff_Im aPic( Tiff_Im::StdConvGen(aDir+"/"+aName,1,false)); //to read file in Tmp-MM-Dir if needed
     Pt2di aPicSize=aPic.sz();
     bool found=false;
-    for (unsigned int i=0;i<allSizes.size();i++)
-      if (allSizes[i]->getPicSz()==aPicSize)
+    for (unsigned int i=0;i<mAllSizes.size();i++)
+      if (mAllSizes[i].getPicSz()==aPicSize)
       {
         found=true;
-        mPicSize=allSizes[i];
+        mPicSize=&(mAllSizes[i]);
         break;
       }
     if (!found)
     {
-      allSizes.push_back(new cPicSize(aPicSize,aNumWindows));
-      mPicSize=allSizes.back();
+      mAllSizes.push_back(cPicSize(aPicSize));
+      mPicSize=&(mAllSizes.back());
     }
     //cout<<"Pic windows: "<<mPicSize->getNbWin().x<<" "<<mPicSize->getNbWin().y<<endl;
     mWinUsed.resize(mPicSize->getNbWin().x*mPicSize->getNbWin().y,false);
@@ -556,26 +559,27 @@ std::string CompiledKey2::getFile(std::string param1,std::string param2)
 }
 
 
-void computeAllHomol(cInterfChantierNameManipulateur * aICNM,
-                     std::string aDirImages,
+void computeAllHomol(std::string aDirImages,
                      std::string aPatIm,
                      const std::vector<std::string> &aSetIm,
                      std::list<cHomol> &allHomolsIn,
                      CompiledKey2 &aCKin,
                      std::map<std::string,cPic*> &allPics,
-                     std::vector<cPicSize*> &allPicSizes,
                      bool veryStrict,
                      int aNumWindows)
 {
+    cPicSize::mTargetNumWindows=aNumWindows;
     for (unsigned int i=0;i<aSetIm.size();i++)
-        allPics.insert(std::make_pair<std::string,cPic*>(aSetIm[i]+aCKin.getSuffix(),new cPic(aDirImages,aSetIm[i],allPicSizes,aNumWindows)));
+        allPics.insert(std::make_pair<std::string,cPic*>(aSetIm[i]+aCKin.getSuffix(),new cPic(aDirImages,aSetIm[i])));
 
     ELISE_ASSERT(aSetIm.size()>0,"ERROR: No image found!");
 
     std::cout<<"All sizes: \n";
-    for (unsigned int i=0;i<allPicSizes.size();i++)
+    for (unsigned int i=0;i<cPic::getAllSizes()->size();i++)
     {
-        std::cout<<"  * "<<allPicSizes[i]->getPicSz()<<" => "<<allPicSizes[i]->getNbWin()<<" windows of "<<allPicSizes[i]->getWinSz()<<" pixels"<<endl;
+        std::cout<<"  * "<<cPic::getAllSizes()->at(i).getPicSz()
+                 <<" => "<<cPic::getAllSizes()->at(i).getNbWin()
+                 <<" windows of "<<cPic::getAllSizes()->at(i).getWinSz()<<" pixels"<<endl;
     }
 
     //read all homol points --------------------------------------------
@@ -848,13 +852,10 @@ int schnaps_main(int argc,char ** argv)
     //create pictures list, and pictures size list ---------------------
     //std::vector<cPic*> allPics;
     std::map<std::string,cPic*> allPics;
-    
-    std::vector<cPicSize*> allPicSizes;
 
     std::cout<<"Found "<<aSetIm.size()<<" pictures."<<endl;
 
-
-    computeAllHomol(aICNM,aDirImages,aPatIm,aSetIm,allHomolsIn,aCKin,allPics,allPicSizes,veryStrict,aNumWindows);
+    computeAllHomol(aDirImages,aPatIm,aSetIm,allHomolsIn,aCKin,allPics,veryStrict,aNumWindows);
 
     if (aNetworkExport)
         networkExport(allPics,aFactPH);
@@ -1097,9 +1098,6 @@ int schnaps_main(int argc,char ** argv)
     for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
         delete itPic1->second;
     allPics.clear();
-    for (unsigned int i=0;i<allPicSizes.size();i++)
-        delete allPicSizes[i];
-    allPicSizes.clear();
    
     std::cout<<"Quit"<<std::endl;
 
