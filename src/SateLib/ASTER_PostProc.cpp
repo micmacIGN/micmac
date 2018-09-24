@@ -68,16 +68,16 @@ int ASTERProjAngle_main(int argc, char ** argv)
 		LArgMain()
 		<< EAMC(aDEMName, "DEM name without extension (\".tif\" and \".tfw\" are required. ex : MEC-Malt/Z_Num9_DeZoom1_STD-MALT)", eSAM_IsPatFile)
 		<< EAMC(aMaskName, "DEM mask name (ex : MEC-Malt/AutoMask_STD-MALT_Num_8.tif)", eSAM_IsPatFile)
-		<< EAMC(aSceneNameInit, "Name of 3N band (ex : AST_L1A_XXX_3N)", eSAM_IsPatFile),
+		<< EAMC(aSceneNameInit, "Name of 3N or 3B band (ex : AST_L1A_XXX_3N)", eSAM_IsPatFile),
 		LArgMain()
 	);
-	
+
 	std::string aDir, aSceneName;
 	SplitDirAndFile(aDir, aSceneName, aSceneNameInit);
 
 	//Reading the image
-	Tiff_Im aTF_3N = Tiff_Im::StdConvGen(aDir + aSceneName + ".tif", 1, false);
-	Pt2di aSz_3N = aTF_3N.sz(); cout << "size of image 3N = " << aSz_3N << endl;
+	Tiff_Im aTF_3 = Tiff_Im::StdConvGen(aDir + aSceneName + ".tif", 1, false);
+	Pt2di aSz_3 = aTF_3.sz(); cout << "size of image = " << aSz_3 << endl;
 
 	// Loading the GRID file
 	std::string aGRIBinname = aDir + aSceneName + ".GRIBin";
@@ -88,16 +88,16 @@ int ASTERProjAngle_main(int argc, char ** argv)
 
 	vector<double> aVectAngles;
 
-	for (size_t row = 0; row < aSz_3N.y; row++)
+	for (size_t row = 0; row < aSz_3.y; row++)
 	{
 
 		// define points in image
-		Pt2dr aPtIm1(aSz_3N.y / 4, row), aPtIm2(3 * aSz_3N.y / 4, row);
+		Pt2dr aPtIm1(aSz_3.y / 4, row), aPtIm2(3 * aSz_3.y / 4, row);
 
 		//Compute ground coordinate of points with GRIBin
-		Pt3dr aPtGr1 = mCamera->ImEtZ2Terrain(aPtIm1,0);
+		Pt3dr aPtGr1 = mCamera->ImEtZ2Terrain(aPtIm1, 0);
 		Pt3dr aPtGr2 = mCamera->ImEtZ2Terrain(aPtIm2, 0);
-		
+
 		// Computing angles
 		// Track NE-SW
 		if (aPtGr1.x < aPtGr2.x && aPtGr1.y > aPtGr2.y)
@@ -176,7 +176,7 @@ int ASTERProjAngle_main(int argc, char ** argv)
 			}
 			else
 			{
-				Pt3dr aPtGr(aCorner_East+i*aRes_xEast+j*aRes_yEast, aCorner_North + i*aRes_xNorth + j*aRes_yNorth, aData_DEM[j][i]);
+				Pt3dr aPtGr(aCorner_East + i*aRes_xEast + j*aRes_yEast, aCorner_North + i*aRes_xNorth + j*aRes_yNorth, aData_DEM[j][i]);
 				Pt2dr aPtIm = mCamera->Ter2Capteur(aPtGr);
 				//No need to check if in camera since if not, then it wouldn't be in the DEM
 
@@ -210,8 +210,8 @@ int ASTERProjAngle_main(int argc, char ** argv)
 		aAngleMap.in(),
 		aOut.out()
 	);
-	
-	
+
+
 
 	ASTER_Banniere();
 	return 0;
