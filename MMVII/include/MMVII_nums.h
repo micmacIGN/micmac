@@ -81,6 +81,7 @@ inline tINT4  round_ni(tREAL8 r) { return Tpl_round_ni<tINT4>(r); }
 inline tINT8 lround_ni(tREAL8 r) { return Tpl_round_ni<tINT8>(r); }
 
 
+inline tREAL8 FracPart(tREAL8 r) {return r - round_down(r);}
 
 
 

@@ -217,6 +217,7 @@ int  cAppli_MMVII_Bench::Exe()
 
    BenchEnum();
    Bench_Random();
+   Bench_Duration();
 
 
    // We clean the temporary files created

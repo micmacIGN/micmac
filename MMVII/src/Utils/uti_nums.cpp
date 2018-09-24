@@ -50,6 +50,13 @@ void Bench_Nums()
             BenchMod(A,B,mod_gen(A,B));
             if (B>0)
                BenchMod(A,B,mod(A,B));
+
+            {
+                double aFrac = FracPart(aRatio);
+                MMVII_INTERNAL_ASSERT_bench ((aFrac>=0) &&( aFrac<1),"Bench Frac");
+                double I  = aRatio - aFrac;
+                MMVII_INTERNAL_ASSERT_bench(round_ni(I)==I,"Bench Frac");
+            }
          }
       }
    }

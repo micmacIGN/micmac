@@ -188,6 +188,32 @@ class cMultipleOfs  : public  std::ostream
 #define ENDL "\n"
 
 
+/** Probably job could be done with boost, but I am not sure I could handle
+    precisely output format
+*/
+
+class cMMVII_Duration
+{
+     public :
+
+        cMMVII_Duration();  // Null
+        static cMMVII_Duration FromSecond(double aNbSec,eTyUnitTime=eTyUnitTime::eNbVals);
+        void Normalise(eTyUnitTime);
+
+        std::string ToDaisyStr(std::string * aFormat=0,bool Full=false) const;
+
+     public :
+        std::string  ToString(char aSep,int aNbDigFrac,std::string * aFormat,bool Full) const;
+
+        tINT8 mNbDay;
+        tINT8 mNbHour;
+        tINT8 mNbMin;
+        tINT8 mNbSec;
+        tREAL8 mFrac;   // in second
+};
+void Bench_Duration();
+
+
 };
 
 #endif  //  _MMVII_Util_H_
