@@ -637,7 +637,7 @@ void cSetTiePMul::Save(const std::string & aName)
 void cSetTiePMul::AddFile(const std::string & aName)
 {
 
-std::cout << " cSetTiePMul::AddFil " << aName << "\n";
+std::cout << "cSetTiePMul::AddFile " << aName << "\n";
     ELISE_fp aFp(aName.c_str(),ELISE_fp::READ,false, FileModeBin(aName) ? ELISE_fp::eBinTjs : ELISE_fp::eTxtTjs);
 
 
@@ -715,7 +715,7 @@ std::cout << "NB CONFIG=" <<  aNbConfig << "\n";
             // getchar();
         }
     }
-std::cout << "DONNNNNNN \n";
+std::cout << "DONE \n";
 
     aFp.close();
 
