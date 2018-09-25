@@ -317,10 +317,10 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	Pt2dr aTopLeftCornerOf3Nin3B = mCameraOut->Ter2Capteur(mCameraIn->ImEtZ2Terrain(aTopLeftCornerOf3N, 0));
 	Pt2dr aBottomRightCornerOf3Nin3B = mCameraOut->Ter2Capteur(mCameraIn->ImEtZ2Terrain(aBottomRightCornerOf3N, 0));
 
-	size_t aXmin = max(0, (int)(aTopLeftCornerOf3Nin3B.x - 100));
-	size_t aXmax = min(aSz_Out.x, (int)(aBottomRightCornerOf3Nin3B.x + 100));
-	size_t aYmin = max(0, (int)(aVectPointsWithRow[0].y - 100));
-	size_t aYmax = min(aSz_Out.y, (int)(aVectPointsWithRow[aVectPointsWithRow.size()-1].y + 100));
+	size_t aXmin = max(0, (int)(aTopLeftCornerOf3Nin3B.x));
+	size_t aXmax = min(aSz_Out.x, (int)(aBottomRightCornerOf3Nin3B.x));
+	size_t aYmin = max(0, (int)(aVectPointsWithRow[0].y));
+	size_t aYmax = min(aSz_Out.y, (int)(aVectPointsWithRow[aVectPointsWithRow.size()-1].y));
 	cout << "Area of interest for interpolation of projected row value : " << aXmin << " " << aXmax << " " << aYmin << " " << aYmax << " " << endl;
 
 	// Find projected row value for area of interest
