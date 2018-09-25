@@ -48,6 +48,7 @@ void function_sunof8sins_func(const real_1d_array &c, const real_1d_array &x, do
 {
 	// this callback calculates sum of 8 sins
 	// where x is a position on X-axis and c is adjustable parameters
+	// the *100 is for weight reasons?
 	func = c[0] * sin(2 * M_PI*c[1] * x[0] + c[2] * 100) + c[3] * sin(2 * M_PI*c[4] * x[0] + c[5] * 100) + c[6] * sin(2 * M_PI*c[7] * x[0] + c[8] * 100) + c[9] * sin(2 * M_PI*c[10] * x[0] + c[11] * 100) +
 		c[12] * sin(2 * M_PI*c[13] * x[0] + c[14] * 100) + c[15] * sin(2 * M_PI*c[16] * x[0] + c[17] * 100) + c[18] * sin(2 * M_PI*c[19] * x[0] + c[20] * 100) + c[21] * sin(2 * M_PI*c[22] * x[0] + c[23] * 100);
 }
@@ -237,7 +238,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 
 	//Output the Fitted paralax file (polynomials)
 	if (writeFit) {
-		std::cout << "Writing file for polynomial fit" << endl;
+		std::cout << "Writing file for 'polynomial' fit......";
 		string aNameOut = "GeoI-Px/Px2_Num16_DeZoom1_Geom-Im_adjMM1.tif";
 		Tiff_Im  aTparralaxFitOut
 		(
@@ -254,6 +255,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 			aParFit.in(),
 			aTparralaxFitOut.out()
 		);
+		std::cout << "Done" << endl;
 	}
 
 	////////////////////////////////////////////////////// 
@@ -278,7 +280,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	ElCamera* mCameraIn = new cCameraModuleOrientation(new OrientationGrille(aGRIBinInName), Sz, oriIntImaM2C_In);
 	ElCamera* mCameraOut = new cCameraModuleOrientation(new OrientationGrille(aGRIBinOutName), Sz, oriIntImaM2C_Out);
 
-	//Create output
+	//Create linear output
 	std::ofstream fic("GeoI-Px/AngleFrom_" + aSceneInName + "_to_" + aSceneOutName + ".txt");
 	fic << std::setprecision(15);
 	fic << "X Y Row_in_Input" << std::endl;
@@ -302,22 +304,31 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 		fic << aPtOut.x << " " << aPtOut.y << " " << aRow << std::endl;
 	}
 
-	//Output map
+	// Output map
 	Im2D_INT4  aRowMap(aSz_Out.x, aSz_Out.y);
 	INT4 ** aData_RowMap = aRowMap.data();
 
 	std::cout << "Starting interpolation of rows in Out band geometry" << endl;
 
 	double aRowInterpolated;
-	size_t aXmin = max(0, (int)(aVectPointsWithRow[0].x - 100));
-	size_t aXmax = min(aSz_Out.x, (int)(aVectPointsWithRow[aVectPointsWithRow.size()].x + 100));
+	// Define area of interest
+	Pt2dr aTopLeftCornerOf3N(0, 0);
+	Pt2dr aBottomRightCornerOf3N(4100, 4200);
+	Pt2dr aTopLeftCornerOf3Nin3B = mCameraOut->Ter2Capteur(mCameraIn->ImEtZ2Terrain(aTopLeftCornerOf3N, 0));
+	Pt2dr aBottomRightCornerOf3Nin3B = mCameraOut->Ter2Capteur(mCameraIn->ImEtZ2Terrain(aBottomRightCornerOf3N, 0));
+
+	size_t aXmin = max(0, (int)(aTopLeftCornerOf3Nin3B.x - 100));
+	size_t aXmax = min(aSz_Out.x, (int)(aBottomRightCornerOf3Nin3B.x + 100));
 	size_t aYmin = max(0, (int)(aVectPointsWithRow[0].y - 100));
-	size_t aYmax = min(aSz_Out.y, (int)(aVectPointsWithRow[aVectPointsWithRow.size()].y + 100));
+	size_t aYmax = min(aSz_Out.y, (int)(aVectPointsWithRow[aVectPointsWithRow.size()-1].y + 100));
+	cout << "Area of interest for interpolation of projected row value : " << aXmin << " " << aXmax << " " << aYmin << " " << aYmax << " " << endl;
+
+	// Find projected row value for area of interest
 	for (size_t aX = aXmin; aX < aXmax; aX++)
 	{
 		for (size_t aY = aYmin; aY < aYmax; aY++)
 		{
-			//find point with min distance from points in aVectPointsWithAnglesLeft vectors (could work with aVectPointsWithAnglesRight) 
+			// Find point with min distance from points in aVectPointsWithRow vector 
 			double minDist = 99999999;
 			double aDist;
 			for (size_t k = 0; k < aVectPointsWithRow.size(); k++)
@@ -329,7 +340,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 					minDist = aDist;
 					aRowInterpolated = aVectPointsWithRow[k].z;
 				}
-				// if we have passed the min
+				// if we have passed the min and Dist is increasing (for speedup)
 				if (aDist > minDist)
 				{
 					break;
@@ -344,7 +355,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 
 	// Export data
 	string aNameOut = aDir + "GeoI-Px/RowFrom_" + aSceneInName + "_to_" + aSceneOutName + ".tif";
-	std::cout << "Exporting data to : " << aNameOut << endl;
+	std::cout << "Exporting data to : " << aNameOut << "......" ;
 
 	Tiff_Im  aOut
 	(
@@ -362,6 +373,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 		aOut.out()
 	);
 
+	std::cout << "Done" << endl;
 
 
 
@@ -379,7 +391,6 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	// 2D->1D
 	vector<double> a1DSignal(4200, 0);
 	vector<LONG64> a1DSignalCpt(4200, 0);
-	u_int aRow;
 	// Go through image 3B
 	for (u_int aY = 0; aY < aSz.y; aY++)
 	{
@@ -388,12 +399,10 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 			// If in quality mask
 			if (aDatCorrel_dilat[aY][aX] != -9999)
 			{
-				// Find which projected row this point corresponds to
-				aRow = aData_RowMap[aY][aX];
-				// Increment the number of data points for that row
-				a1DSignalCpt[aRow]++;
+				// Increment the number of data points for the projected row this point corresponds to
+				a1DSignalCpt[aData_RowMap[aY][aX]]++;
 				// Add data to the signal for that row
-				a1DSignal[aRow] += aParOrig[aY][aX] - aDatParFit[aY][aX];
+				a1DSignal[aData_RowMap[aY][aX]] += aParOrig[aY][aX] - aDatParFit[aY][aX];
 			}
 		}
 	}
@@ -402,7 +411,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	u_int firstValid = 0;
 	u_int lastValid = 0;
 
-	for (aRow = 0; aRow < a1DSignal.size(); aRow++)
+	for (u_int aRow = 0; aRow < a1DSignal.size(); aRow++)
 	{
 		// If enough data to be reliable
 		if (a1DSignalCpt[aRow] > aNbQualityThreshold)
@@ -425,30 +434,31 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	vector< double > a1DSignalX;
 	vector< double > a1DSignalY;
 
-	for (u_int i = firstValid; i <= lastValid; i++)
+	for (u_int aRow = firstValid; aRow <= lastValid; aRow++)
 	{
-		if (a1DSignal[i] == -9999)
+		if (a1DSignal[aRow] == -9999)
 		{
 			//closest non -9999 value is just before (i-1)
-			double aBefore = a1DSignal[i - 1];
+			double aBefore = a1DSignal[aRow - 1];
 			double aAfter = 0;
 			int aDist;
-			for (u_int j = i + 1; j < lastValid; j++)
+			for (u_int j = aRow + 1; j < lastValid; j++)
 			{
 				if (a1DSignal[j] != -9999)
 				{
 					double aAfter = a1DSignal[j];
-					aDist = j - i;
+					aDist = j - aRow;
 				}
 			}
 			//interpolate
-			a1DSignal[i] = (aBefore + aAfter / double(aDist)) / (1 + 1 / double(aDist));
+			a1DSignal[aRow] = (aBefore + aAfter / double(aDist)) / (1 + 1 / double(aDist));
 		}
 		//Convert to complex type
-		a1DSignalX.push_back(i);
-		a1DSignalY.push_back(a1DSignal[i]);
+		a1DSignalX.push_back(aRow);
+		a1DSignalY.push_back(a1DSignal[aRow]);
 	}
-
+	cout << "Size of vector for sin fit " << a1DSignalY.size() << endl;
+	//cout << "Vector for sin fit " << a1DSignalY << endl;
 
 
 	///Sloving using ALGLIB
@@ -488,23 +498,24 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 
 	///END Solve with ALGLIB
 
-
+	// Computing value for each row
+	vector<double> aValuesOfSinFunction;
+	for (size_t aRow = 0; aRow < aSz_In.y; aRow++)
+	{
+		double aVal = 0;
+		for (u_int i = 0; i < 8; i++)
+		{
+			aVal += c[3 * i] * sin(2 * M_PI * c[3 * i + 1] * aRow + c[3 * i + 2]*100);
+		}
+		aValuesOfSinFunction.push_back(aVal);
+	}
 
 	//Filling out container
-
 	for (u_int aX = 0; aX < aSz.x; aX++)
 	{
 		for (u_int aY = 0; aY < aSz.y; aY++)
 		{
-			double aVal = 0;
-			aRow = aData_RowMap[aY][aX];
-			//Compute value of wave at that point
-			for (u_int i = 0; i < 8; i++)
-			{
-				aVal += c[3 * i] * sin(2 * M_PI * c[3 * i + 1] * aRow + c[3 * i + 2] * 100);
-			}
-
-			aDatParFit2[aY][aX] = aDatParFit[aY][aX] + aVal;
+			aDatParFit2[aY][aX] = aDatParFit[aY][aX] + aValuesOfSinFunction[aData_RowMap[aY][aX]];
 
 		}
 	}
@@ -514,7 +525,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 
 	//Output the Fitted paralax file (polynomials + sin)
 	if (writeFit) {
-		cout << "Writing file for polynomial and sum of sins fit" << endl;
+		cout << "Writing file for 'polynomial and sum of sins' fit......";
 		string aNameOut2 = "GeoI-Px/Px2_Num16_DeZoom1_Geom-Im_adjMM2.tif";
 		Tiff_Im  aTparralaxFit2Out
 		(
@@ -531,6 +542,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 			aParFit2.in(),
 			aTparralaxFit2Out.out()
 		);
+		cout << "Done" << endl;
 	}
 	return aParFit2;
 }
@@ -982,6 +994,8 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 				a1DSignalX.push_back(i);
 				a1DSignalY.push_back(a1DSignal[i]);
 			}
+			cout << "Size of vector for sin fit " << a1DSignalY.size() << endl;
+			cout << "Vector for sin fit " << a1DSignalY << endl;
 
 
 
@@ -1204,7 +1218,7 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 		LArgMain()
 		<< EAM(aNameOut, "Out", true, "Name of output image (Def=ImName_corrected.tif)")
 		<< EAM(aFitASTER, "FitASTER", true, "Fit functions appropriate for ASTER L1A processing (input '1' or '2' : version number)")
-		<< EAM(exportFitASTER, "ExportFitASTER", true, "Export grid from fitASTER (Def=false)")
+		<< EAM(exportFitASTER, "ExportFitASTER", true, "Export grid from FitASTER (Def=false)")
 		<< EAM(aASTERSceneName, "ASTERSceneName", true, "ASTER L1A Scene name (Only for and MANDATORY for FitASTERv2)")
 	);
 
