@@ -1184,12 +1184,9 @@ int HomolLSMRefine_main(int argc,char ** argv)
        //std::vector<cPic*> allPics;
        std::map<std::string,cPic*> allPics;
 
-       std::vector<cPicSize*> allPicSizes;
-
        std::cout<<"Found "<<aSetIm.size()<<" pictures."<<endl;
 
-
-       computeAllHomol( aICNM, aDirImages, aPatIm, aSetIm, allHomolsIn, aCKin, allPics, allPicSizes, false, 10000);
+       computeAllHomol(aDirImages, aPatIm, aSetIm, allHomolsIn, aCKin, allPics, false, 10000);
 
        int aNumBadHomol=0;
 
