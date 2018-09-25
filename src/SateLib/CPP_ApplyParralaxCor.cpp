@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "hassan/reechantillonnage.h"
 #include "RPC.h"
 #include "ALGLIB/interpolation.h"
+#include "../uti_phgrm/MICMAC/cCameraModuleOrientation.h"
 
 using namespace alglib;
 void function_sunof8sins_func(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr)
@@ -78,7 +79,7 @@ vector< complex<double> > DFT(vector< complex<double> >& theData)
 */
 
 
-Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
+Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, string aSceneName)
 {
 	//Reading the correlation file
 	Tiff_Im aTFCorrel = Tiff_Im::StdConvGen(aDir + "GeoI-Px/Correl_Geom-Im_Num_15.tif", 1, false);
@@ -168,23 +169,12 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 
 	aMeanParErr = aMeanParErr / double(countAccept);
 
-	cout << "Rejected : " << countTot - countAccept << " points" << endl;
-	cout << "Accepted : " << countAccept << " points" << endl;
-	cout << "Total    : " << countTot << " points" << endl;
-	cout << "Mean Val : " << aMeanParErr << endl;
+	std::cout << "Rejected : " << countTot - countAccept << " points" << endl;
+	std::cout << "Accepted : " << countAccept << " points" << endl;
+	std::cout << "Total    : " << countTot << " points" << endl;
+	std::cout << "Mean Val : " << aMeanParErr << endl;
 
-	/*
-	//deg4*4
-	L2SysSurResol aSysPar44(14);
-	//deg4*5
-	L2SysSurResol aSysPar45(19);
-	//deg5*4
-	L2SysSurResol aSysPar54(19);
-	//deg5*5
-	L2SysSurResol aSysPar55(20);
-	//deg6*6
-	L2SysSurResol aSysPar66(27);
-	*/
+
 	//deg7*7
 	L2SysSurResol aSysPar77(35);
 	//For all points that are not nullified by bad correlation (value=9999) add equation to fit 6th degree polynomials in x and y to measured paralax
@@ -209,20 +199,20 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	int aCase;
 	bool Ok;
 	int nbCoef;
-	
+
 	Im1D_REAL8 aSolPar77 = aSysPar77.GSSR_Solve(&Ok);
 	double aRes77 = aSysPar77.ResiduOfSol(aSolPar77.data());
-	cout << "Residual for Poly77 : " << aRes77 << endl;
+	std::cout << "Residual for Poly77 : " << aRes77 << endl;
 	double* aPolyPar = aSolPar77.data(); aCase = 77; nbCoef = 35;
-	
-	cout << "Polynomial fit" << endl
+
+	std::cout << "Polynomial fit" << endl
 		<< "Cst   = " << aMeanParErr << endl
 		<< "Coef = ";
 	for (u_int i = 0; i < nbCoef; i++)
 	{
-		cout << aPolyPar[i] << " ";
+		std::cout << aPolyPar[i] << " ";
 	}
-	cout << endl;
+	std::cout << endl;
 
 
 	//Creating out container
@@ -234,7 +224,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 		for (u_int aY = 0; aY < aSz.y; aY++) {
 			double X = double(aX);
 			double Y = double(aY);
-			
+
 			aDatParFit[aY][aX] = aMeanParErr + aPolyPar[0] * X + aPolyPar[1] * Y + aPolyPar[2] * X*X + aPolyPar[3] * X*Y + aPolyPar[4] * Y*Y
 				+ aPolyPar[5] * X*X*X + aPolyPar[6] * X*X*Y + aPolyPar[7] * X*Y*Y + aPolyPar[8] * Y*Y*Y
 				+ aPolyPar[9] * X*X*X*X + aPolyPar[10] * X*X*X*Y + aPolyPar[11] * X*X*Y*Y + aPolyPar[12] * X*Y*Y*Y + aPolyPar[13] * Y*Y*Y*Y
@@ -247,7 +237,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 
 	//Output the Fitted paralax file (polynomials)
 	if (writeFit) {
-		cout << "Writing file for polynomial fit" << endl;
+		std::cout << "Writing file for polynomial fit" << endl;
 		string aNameOut = "GeoI-Px/Px2_Num16_DeZoom1_Geom-Im_adjMM1.tif";
 		Tiff_Im  aTparralaxFitOut
 		(
@@ -266,144 +256,261 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 		);
 	}
 
+	////////////////////////////////////////////////////// 
+	//             Compute dist in orbit                //
+	//////////////////////////////////////////////////////
+
+	string aSceneInName = aSceneName + "_3N";
+	string aSceneOutName = aSceneName + "_3B";
+
+	//Reading the image
+	Tiff_Im aTF_In = Tiff_Im::StdConvGen(aDir + aSceneInName + ".tif", 1, false);
+	Pt2di aSz_In = aTF_In.sz(); std::cout << "size of image In = " << aSz_In << endl;
+
+	Tiff_Im aTF_Out = Tiff_Im::StdConvGen(aDir + aSceneOutName + ".tif", 1, false);
+	Pt2di aSz_Out = aTF_Out.sz(); std::cout << "size of image Out = " << aSz_Out << endl;
+
+	// Loading the GRID files
+	std::string aGRIBinInName = aDir + aSceneInName + ".GRIBin";
+	std::string aGRIBinOutName = aDir + aSceneOutName + ".GRIBin";
+	ElAffin2D oriIntImaM2C_In, oriIntImaM2C_Out;
+	Pt2di Sz(100000, 100000);
+	ElCamera* mCameraIn = new cCameraModuleOrientation(new OrientationGrille(aGRIBinInName), Sz, oriIntImaM2C_In);
+	ElCamera* mCameraOut = new cCameraModuleOrientation(new OrientationGrille(aGRIBinOutName), Sz, oriIntImaM2C_Out);
+
+	//Create output
+	std::ofstream fic("GeoI-Px/AngleFrom_" + aSceneInName + "_to_" + aSceneOutName + ".txt");
+	fic << std::setprecision(15);
+	fic << "X Y Row_in_Input" << std::endl;
+
+	// Compute values
+	vector<Pt3dr> aVectPointsWithRow;
+	Pt3dr aPt;
+	for (size_t aRow = 0; aRow < aSz_In.y; aRow++)
+	{
+
+		// define points in image
+		Pt2dr aPtIm1(aSz_In.y / 2, aRow);
+
+		//Compute ground coordinate of points with GRIBin
+		Pt2dr aPtOut = mCameraOut->Ter2Capteur(mCameraIn->ImEtZ2Terrain(aPtIm1, 0));
+
+		//Record points for interpolation
+		aPt.x = aPtOut.x; aPt.y = aPtOut.y; aPt.z = aRow;
+		aVectPointsWithRow.push_back(aPt);
+
+		fic << aPtOut.x << " " << aPtOut.y << " " << aRow << std::endl;
+	}
+
+	//Output map
+	Im2D_INT4  aRowMap(aSz_Out.x, aSz_Out.y);
+	INT4 ** aData_RowMap = aRowMap.data();
+
+	std::cout << "Starting interpolation of rows in Out band geometry" << endl;
+
+	double aRowInterpolated;
+	size_t aXmin = max(0, (int)(aVectPointsWithRow[0].x - 100));
+	size_t aXmax = min(aSz_Out.x, (int)(aVectPointsWithRow[aVectPointsWithRow.size()].x + 100));
+	size_t aYmin = max(0, (int)(aVectPointsWithRow[0].y - 100));
+	size_t aYmax = min(aSz_Out.y, (int)(aVectPointsWithRow[aVectPointsWithRow.size()].y + 100));
+	for (size_t aX = aXmin; aX < aXmax; aX++)
+	{
+		for (size_t aY = aYmin; aY < aYmax; aY++)
+		{
+			//find point with min distance from points in aVectPointsWithAnglesLeft vectors (could work with aVectPointsWithAnglesRight) 
+			double minDist = 99999999;
+			double aDist;
+			for (size_t k = 0; k < aVectPointsWithRow.size(); k++)
+			{
+				aDist = sqrt(pow(aVectPointsWithRow[k].x - (double)aX, 2) + pow(aVectPointsWithRow[k].y - (double)aY, 2));
+				//cout << aX << " " << aY << " " << aVectPointsWithRow[k].x << " " << aVectPointsWithRow[k].y << " " << aDist << " " << aVectPointsWithRow[k].z << endl;
+				if (aDist < minDist)
+				{
+					minDist = aDist;
+					aRowInterpolated = aVectPointsWithRow[k].z;
+				}
+				// if we have passed the min
+				if (aDist > minDist)
+				{
+					break;
+				}
+			}
+
+			// Record value
+			//cout << aX << " " << aY << " " << aRowInterpolated << endl;
+			aData_RowMap[aY][aX] = aRowInterpolated;
+		}
+	}
+
+	// Export data
+	string aNameOut = aDir + "GeoI-Px/RowFrom_" + aSceneInName + "_to_" + aSceneOutName + ".tif";
+	std::cout << "Exporting data to : " << aNameOut << endl;
+
+	Tiff_Im  aOut
+	(
+		aNameOut.c_str(),
+		aSz_Out,
+		GenIm::int4,
+		Tiff_Im::No_Compr,
+		Tiff_Im::BlackIsZero
+	);
+
+	ELISE_COPY
+	(
+		aOut.all_pts(),
+		aRowMap.in(),
+		aOut.out()
+	);
 
 
 
-	///START OF SIN FITTING
+
+	////////////////////////////////////////////////////// 
+	//             SIN FITTING                          //
+	//////////////////////////////////////////////////////
+
 	//Creating out container
 	Im2D_REAL8  aParFit2(aSz.x, aSz.y);
 	REAL8 ** aDatParFit2 = aParFit2.data();
-	
+
 
 	int aNbQualityThreshold = 32;
 
-		//TODO : compute this at an angle!!!!
-		// 2D->1D
-		int firstValid = 0;
-		int lastValid = 0;
-		vector<double> a1DSignal;
-		for (u_int aY = 0; aY < aSz.y; aY++) 
+	// 2D->1D
+	vector<double> a1DSignal(4200, 0);
+	vector<LONG64> a1DSignalCpt(4200, 0);
+	u_int aRow;
+	// Go through image 3B
+	for (u_int aY = 0; aY < aSz.y; aY++)
+	{
+		for (u_int aX = 0; aX < aSz.x; aX++)
 		{
-			double aSum = 0;
-			int aCpt = 0;
-			for (u_int aX = 0; aX < aSz.x; aX++) 
+			// If in quality mask
+			if (aDatCorrel_dilat[aY][aX] != -9999)
 			{
-				if (aDatCorrel_dilat[aY][aX] != -9999)
-				{
-					aCpt++;
-					aSum += aParOrig[aY][aX] - aDatParFit[aY][aX];
-				}
-			}
-			// If enough data to be reliable
-			if (aCpt > aNbQualityThreshold) 
-			{
-				if (firstValid == 0) { firstValid = aY; }
-				aSum = aSum / double(aCpt);
-				a1DSignal.push_back(aSum);
-				lastValid = aY;
-			}
-			else 
-			{
-				a1DSignal.push_back(-9999);
+				// Find which projected row this point corresponds to
+				aRow = aData_RowMap[aY][aX];
+				// Increment the number of data points for that row
+				a1DSignalCpt[aRow]++;
+				// Add data to the signal for that row
+				a1DSignal[aRow] += aParOrig[aY][aX] - aDatParFit[aY][aX];
 			}
 		}
-
-		if (lastValid == 0)
-		{
-			cout << "Not enough data to fit sinusoidal model, keeping polynomial solution" << endl;
-			aDatParFit2=aDatParFit;
-			
-		}
-		else 
-		{
-			vector< double > a1DSignalX;
-			vector< double > a1DSignalY;
-
-			for (u_int i = firstValid; i <= lastValid; i++)
-			{
-				if (a1DSignal[i] == -9999) 
-				{
-					//closest non -9999 value is just before (i-1)
-					double aBefore = a1DSignal[i - 1];
-					double aAfter = 0;
-					int aDist;
-					for (u_int j = i + 1; j < lastValid; j++)
-					{
-						if (a1DSignal[j] != -9999)
-						{
-							double aAfter = a1DSignal[j];
-							aDist = j - i;
-						}
-					}
-					//interpolate
-					a1DSignal[i] = (aBefore + aAfter / double(aDist)) / (1 + 1 / double(aDist));
-				}
-				//Convert to complex type
-				//a1DSignalC.push_back(a1DSignal[i]);
-				a1DSignalX.push_back(i);
-				a1DSignalY.push_back(a1DSignal[i]);
-			}
-
-
-
-			///Sloving using ALGLIB
-			alglib::real_2d_array AX;
-			alglib::real_1d_array AY;
-			AX.setcontent(a1DSignalX.size(), 1, &(a1DSignalX[0]));
-			AY.setcontent(a1DSignalY.size(), &(a1DSignalY[0]));
-
-			//initialization of parameters
-			//c=[Amp1,Freq1,Phase1,Amp2,.....,Phase8]
-			//real_1d_array c = "[0.05,0.0033,0,  0.05,0.0033,0.3,  0.05,0.0033,0.6,  0.05,0.002,1,  0.05,0.001,0,  0.05,0.00077,0.3,  0.05,0.00077,0.6,  0.05,0.00077,1]";
-			real_1d_array c = "[0.05,0.0033,0,  0.05,0.0033,0.003,  0.05,0.0033,0.006,  0.05,0.002,0.01,  0.05,0.001,0,  0.05,0.00077,0.003,  0.05,0.00077,0.006,  0.05,0.00077,0.01]";
-			//real_1d_array c = "[2.5,1.65,0, 2.5,1.65,0.3, 2.5,1.65,0.6, 2.5,1,1, 2.5,0.5,0, 2.5,0.385,0.3, 2.5,0.385,0.6, 2.5,0.385,1]";
-			//"[0.05,0.002,0,  0.05,0.0033,0.3,  0.05,0.004,0.6,  0.05,0.006,1,  0.005,0.02,0,  0.05,0.0033,0.3,  0.05,0.0033,0.6,  0.05,0.00077,1]";
-			real_1d_array s = "[50, 500, 1]";//scale to have all variables in same approximate range mean(Amp)~0.02, mean(Freq)~0.005, mean(Phase)~pi/2
-			real_1d_array bndl = "[0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0]";
-			real_1d_array bndu = "[0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415]";
-			double epsf = 0;
-			double epsx = 0.0000001;
-			ae_int_t maxits = 0;
-			ae_int_t info;
-			lsfitstate state;
-			lsfitreport rep;
-			double diffstep = 0.00001;
-
-			//
-			// Fitting without weights
-			//
-			lsfitcreatef(AX, AY, c, diffstep, state);
-			lsfitsetcond(state, epsf, epsx, maxits);
-			lsfitsetbc(state, bndl, bndu);
-			//lsfitsetscale(state, s);
-			alglib::lsfitfit(state, function_sunof8sins_func);
-			lsfitresults(state, info, c, rep);
-			printf("%s\n", c.tostring(5).c_str());
-
-
-			///END Solve with ALGLIB
-
-
-
-			//Filling out container
-
-			for (u_int aX = 0; aX < aSz.x; aX++)
-			{
-				for (u_int aY = 0; aY < aSz.y; aY++)
-				{
-					double aVal = 0;
-
-					//Compute value of wave at that point
-					for (u_int i = 0; i < 8; i++)
-					{
-						aVal += c[3 * i] * sin(2 * M_PI * c[3 * i + 1] * aY + c[3 * i + 2] * 100);
-					}
-
-					aDatParFit2[aY][aX] = aDatParFit[aY][aX] + aVal;
-					
-				}
-			}
 	}
+
+
+	u_int firstValid = 0;
+	u_int lastValid = 0;
+
+	for (aRow = 0; aRow < a1DSignal.size(); aRow++)
+	{
+		// If enough data to be reliable
+		if (a1DSignalCpt[aRow] > aNbQualityThreshold)
+		{
+			// Record the first row where there is data
+			if (firstValid == 0) { firstValid = aRow; }
+			// Normalise value
+			a1DSignal[aRow] = a1DSignal[aRow] / (double)a1DSignalCpt[aRow];
+			// Record the last row where there is data
+			lastValid = aRow;
+		}
+		else
+		{
+			a1DSignal[aRow] = -9999;
+		}
+	}
+
+	//Format data for ALGLIB
+
+	vector< double > a1DSignalX;
+	vector< double > a1DSignalY;
+
+	for (u_int i = firstValid; i <= lastValid; i++)
+	{
+		if (a1DSignal[i] == -9999)
+		{
+			//closest non -9999 value is just before (i-1)
+			double aBefore = a1DSignal[i - 1];
+			double aAfter = 0;
+			int aDist;
+			for (u_int j = i + 1; j < lastValid; j++)
+			{
+				if (a1DSignal[j] != -9999)
+				{
+					double aAfter = a1DSignal[j];
+					aDist = j - i;
+				}
+			}
+			//interpolate
+			a1DSignal[i] = (aBefore + aAfter / double(aDist)) / (1 + 1 / double(aDist));
+		}
+		//Convert to complex type
+		a1DSignalX.push_back(i);
+		a1DSignalY.push_back(a1DSignal[i]);
+	}
+
+
+
+	///Sloving using ALGLIB
+	alglib::real_2d_array AX;
+	alglib::real_1d_array AY;
+	AX.setcontent(a1DSignalX.size(), 1, &(a1DSignalX[0]));
+	AY.setcontent(a1DSignalY.size(), &(a1DSignalY[0]));
+
+	//initialization of parameters
+	//c=[Amp1,Freq1,Phase1,Amp2,.....,Phase8]
+	//real_1d_array c = "[0.05,0.0033,0,  0.05,0.0033,0.3,  0.05,0.0033,0.6,  0.05,0.002,1,  0.05,0.001,0,  0.05,0.00077,0.3,  0.05,0.00077,0.6,  0.05,0.00077,1]";
+	real_1d_array c = "[0.05,0.0033,0,  0.05,0.0033,0.003,  0.05,0.0033,0.006,  0.05,0.002,0.01,  0.05,0.001,0,  0.05,0.00077,0.003,  0.05,0.00077,0.006,  0.05,0.00077,0.01]";
+	//real_1d_array c = "[2.5,1.65,0, 2.5,1.65,0.3, 2.5,1.65,0.6, 2.5,1,1, 2.5,0.5,0, 2.5,0.385,0.3, 2.5,0.385,0.6, 2.5,0.385,1]";
+	//"[0.05,0.002,0,  0.05,0.0033,0.3,  0.05,0.004,0.6,  0.05,0.006,1,  0.005,0.02,0,  0.05,0.0033,0.3,  0.05,0.0033,0.6,  0.05,0.00077,1]";
+	real_1d_array s = "[50, 500, 1]";//scale to have all variables in same approximate range mean(Amp)~0.02, mean(Freq)~0.005, mean(Phase)~pi/2
+	real_1d_array bndl = "[0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0]";
+	real_1d_array bndu = "[0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415]";
+	double epsf = 0;
+	double epsx = 0.0000001;
+	ae_int_t maxits = 0;
+	ae_int_t info;
+	lsfitstate state;
+	lsfitreport rep;
+	double diffstep = 0.00001;
+
+	//
+	// Fitting without weights
+	//
+	lsfitcreatef(AX, AY, c, diffstep, state);
+	lsfitsetcond(state, epsf, epsx, maxits);
+	lsfitsetbc(state, bndl, bndu);
+	//lsfitsetscale(state, s);
+	alglib::lsfitfit(state, function_sunof8sins_func);
+	lsfitresults(state, info, c, rep);
+	printf("%s\n", c.tostring(5).c_str());
+
+
+	///END Solve with ALGLIB
+
+
+
+	//Filling out container
+
+	for (u_int aX = 0; aX < aSz.x; aX++)
+	{
+		for (u_int aY = 0; aY < aSz.y; aY++)
+		{
+			double aVal = 0;
+			aRow = aData_RowMap[aY][aX];
+			//Compute value of wave at that point
+			for (u_int i = 0; i < 8; i++)
+			{
+				aVal += c[3 * i] * sin(2 * M_PI * c[3 * i + 1] * aRow + c[3 * i + 2] * 100);
+			}
+
+			aDatParFit2[aY][aX] = aDatParFit[aY][aX] + aVal;
+
+		}
+	}
+
+
+
 
 	//Output the Fitted paralax file (polynomials + sin)
 	if (writeFit) {
@@ -430,7 +537,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 
 
 
-Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
+Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 {
 	//Reading the correlation file
 	Tiff_Im aTFCorrel = Tiff_Im::StdConvGen(aDir + "GeoI-Px/Correl_Geom-Im_Num_15.tif", 1, false);
@@ -568,7 +675,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 					X*X*X*X*X, X*X*X*X*Y, X*X*X*Y*Y, X*X*Y*Y*Y,  X*Y*Y*Y*Y, Y*Y*Y*Y*Y,
 					X*X*X*X*X*X, X*X*X*X*X*Y, X*X*X*X*Y*Y, X*X*X*Y*Y*Y,  X*X*Y*Y*Y*Y, X*Y*Y*Y*Y*Y, Y*Y*Y*Y*Y*Y };
 					*/
-				//deg77
+					//deg77
 				double aEq77[35] = { X, Y, X*X, X*Y, Y*Y, X*X*X, X*X*Y, X*Y*Y, Y*Y*Y,
 					X*X*X*X,  X*X*X*Y, X*X*Y*Y, X*Y*Y*Y, Y*Y*Y*Y,
 					X*X*X*X*X, X*X*X*X*Y, X*X*X*Y*Y, X*X*Y*Y*Y,  X*Y*Y*Y*Y, Y*Y*Y*Y*Y,
@@ -619,7 +726,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	if (aRes55 < aRes45 && aRes55 < aRes54 && aRes55 < aRes44 && aRes55 < aRes66 && aRes55 < aRes77) { aPolyPar = aSolPar55.data(); aCase = 55; nbCoef = 20; };
 	if (aRes66 < aRes45 && aRes66 < aRes54 && aRes66 < aRes55 && aRes66 < aRes44 && aRes66 < aRes77) { aPolyPar = aSolPar66.data(); aCase = 66; nbCoef = 27; };
 	if (aRes77 < aRes45 && aRes77 < aRes54 && aRes77 < aRes55 && aRes77 < aRes66 && aRes77 < aRes44) { aPolyPar = aSolPar77.data(); aCase = 77; nbCoef = 35; };
-	*/ 
+	*/
 	cout << "Polynomial fit (Poly" << aCase << ")" << endl
 		<< "Cst   = " << aMeanParErr << endl
 		<< "Coef = ";
@@ -742,7 +849,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	REAL8 ** aDatParFit2_9 = aParFit2_9.data();
 	REAL8 ** aDatParFit2_X = aParFit2_X.data();
 
-	
+
 	//500pix, overlap (5) 400pix
 	//vector<u_int> bands = { 0,0,0,0,0,100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000,3100,3200,3300,
 	//	3400,3500,3600,3700,3800,3900,4000,4100,4200,4300,4400,4500,4600,4700,4800,4900,5000,5000,5000,5000,5000 };
@@ -751,7 +858,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	//1000pix overlap (10) 900pix	
 	u_int bandsa[] = { 0,0,0,0,0,0,0,0,0,0,100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000,3100,3200,3300,
 		3400,3500,3600,3700,3800,3900,4000,4100,4200,4300,4400,4500,4600,4700,4800,4900,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000 };
-	vector<u_int> bands(bandsa,bandsa+69);
+	vector<u_int> bands(bandsa, bandsa + 69);
 	int aNbQualityThreshold = 32;
 	int nbOverlap = 10;
 	//For each band of 500pix with 80% overlap
@@ -794,7 +901,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 		{
 			cout << "Not enough data to fit this slice, keeping polynomial solution" << endl;
 
-			#pragma omp parallel for
+#pragma omp parallel for
 			for (u_int aX = aXmin; aX < aXmax; aX++) {
 				for (u_int aY = 0; aY < aSz.y; aY++) {
 					if ((mod(k, nbOverlap)) == 0)
@@ -851,7 +958,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 //			vector< complex<double> > a1DSignalC;
 			vector< double > a1DSignalX;
 			vector< double > a1DSignalY;
-			
+
 			for (u_int i = firstValid; i <= lastValid; i++)
 			{
 				if (a1DSignal[i] == -9999) {
@@ -917,7 +1024,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 
 
 			//Filling out container
-			#pragma omp parallel for
+#pragma omp parallel for
 			for (u_int aX = aXmin; aX < aXmax; aX++)
 			{
 				for (u_int aY = 0; aY < aSz.y; aY++)
@@ -925,7 +1032,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 					double aVal = 0;
 					for (u_int i = 0; i < 8; i++)
 					{
-						aVal += c[3*i] * sin(2 * M_PI * c[3*i+1] * aY + c[3*i+2]*100);
+						aVal += c[3 * i] * sin(2 * M_PI * c[3 * i + 1] * aY + c[3 * i + 2] * 100);
 					}
 
 					if ((mod(k, nbOverlap)) == 0)
@@ -1030,7 +1137,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	//Finding median in stack
 	if (nbOverlap == 10)
 	{
-        #pragma omp parallel for
+#pragma omp parallel for
 		for (u_int aX = 0; aX < aSz.x; aX++) {
 			for (u_int aY = 0; aY < aSz.y; aY++) {
 
@@ -1083,22 +1190,23 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 int ApplyParralaxCor_main(int argc, char ** argv)
 {
 	//std::string aNameIm, aNameIm2, aNameParallax, aNameDEM;
-	std::string aNameIm, aNameParallax;
+	std::string aNameIm, aNameParallax, aASTERSceneName;
 	std::string aNameOut = "";
-	bool aFitASTER = false;
-	bool exportFitASTER = false;
+	int aFitASTER = 0;
+	bool  exportFitASTER = false;
 	//Reading the arguments
 	ElInitArgMain
-		(
+	(
 		argc, argv,
 		LArgMain()
-			<< EAMC(aNameIm, "Image to be corrected", eSAM_IsPatFile)
-			<< EAMC(aNameParallax, "Paralax correction file", eSAM_IsPatFile),
+		<< EAMC(aNameIm, "Image to be corrected", eSAM_IsPatFile)
+		<< EAMC(aNameParallax, "Paralax correction file", eSAM_IsPatFile),
 		LArgMain()
-			<< EAM(aNameOut, "Out", true, "Name of output image (Def=ImName_corrected.tif)")
-			<< EAM(aFitASTER, "FitASTER", true, "EXPERIMENTAL Fit functions appropriate for ASTER L1A processing (Def=false)")
-			<< EAM(exportFitASTER, "ExportFitASTER", true, "EXPERIMENTAL export grid from  fitASTER (Def=false)")
-		);
+		<< EAM(aNameOut, "Out", true, "Name of output image (Def=ImName_corrected.tif)")
+		<< EAM(aFitASTER, "FitASTER", true, "Fit functions appropriate for ASTER L1A processing (input '1' or '2' : version number)")
+		<< EAM(exportFitASTER, "ExportFitASTER", true, "Export grid from fitASTER (Def=false)")
+		<< EAM(aASTERSceneName, "ASTERSceneName", true, "ASTER L1A Scene name (Only for and MANDATORY for FitASTERv2)")
+	);
 
 	std::string aDir, aPatIm;
 	SplitDirAndFile(aDir, aPatIm, aNameIm);
@@ -1114,11 +1222,11 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 	Im2D_U_INT1  aIm(aSz.x, aSz.y);
 
 	ELISE_COPY
-		(
+	(
 		aTF.all_pts(),
 		aTF.in(),
 		aIm.out()//Virgule(aImR.out(),aImG.out(),aImB.out())
-		);
+	);
 
 	U_INT1 ** aData = aIm.data();
 
@@ -1126,16 +1234,28 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 	Tiff_Im aTFPar = Tiff_Im::StdConvGen(aDir + aNameParallax, 1, false);
 	Im2D_REAL8  aPar(aSz.x, aSz.y);
 	ELISE_COPY
-		(
+	(
 		aTFPar.all_pts(),
 		aTFPar.in(),
 		aPar.out()//Virgule(aImR.out(),aImG.out(),aImB.out())
-		);
+	);
 	REAL8 ** aDatPar = aPar.data();
-	
-	if(aFitASTER)
+
+	if (aFitASTER == 1)
 	{
-		Im2D_REAL8 aParFit = FitASTER(aDatPar,aDir, aSz, exportFitASTER);
+		Im2D_REAL8 aParFit = FitASTERv1(aDatPar, aDir, aSz, exportFitASTER);
+		ELISE_COPY
+		(
+			aTFPar.all_pts(),
+			aParFit.in(),
+			aPar.out()//Virgule(aImR.out(),aImG.out(),aImB.out())
+		);
+		REAL8 ** aDatPar = aPar.data();
+		cout << "Data fitted" << endl;
+	}
+	else if (aFitASTER == 2)
+	{
+		Im2D_REAL8 aParFit = FitASTERv2(aDatPar, aDir, aSz, exportFitASTER, aASTERSceneName);
 		ELISE_COPY
 		(
 			aTFPar.all_pts(),
@@ -1158,7 +1278,7 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 	aRPC.ReadDimap(aNameRPC1);
 	cout << "Dimap File " << aNameRPC1 << " read" << endl;
 
-	
+
 	//Output angle container 1 (B image)
 	Im2D_REAL8  aAngleBOut(aSz.x, aSz.y);
 	REAL8 ** aDataAngleBOut = aAngleBOut.data();
@@ -1243,21 +1363,21 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 
 
 	Tiff_Im  aTOut
-		(
+	(
 		aNameOut.c_str(),
 		aSz,
 		GenIm::u_int1,
 		Tiff_Im::No_Compr,
 		Tiff_Im::BlackIsZero
-		);
+	);
 
 
 	ELISE_COPY
-		(
+	(
 		aTOut.all_pts(),
 		aImOut.in(),
 		aTOut.out()
-		);
+	);
 	/*
 	Tiff_Im  aTAngleBOut
 		(
