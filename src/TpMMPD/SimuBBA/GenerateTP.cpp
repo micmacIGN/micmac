@@ -42,28 +42,31 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
 #include "../schnaps.h"
 
+struct StructHomol {
+    int IdIm;
+    CamStenope * Cam;
+    vector<int> VIdIm2;
+    vector<ElPackHomologue> VElPackHomol;
+};
+
 int GenerateTP_main(int argc,char ** argv)
 {
-    string aPatImg,aDir,aImg,aSH,aOri;
-    Pt2di aImgSz (5120,3840);
+    string aDir,aSH,aOri,aSHOut="_Gen";
+
     ElInitArgMain
      (
           argc, argv,
-          LArgMain() << EAMC(aPatImg,"Image pattern", eSAM_IsExistFile)
+          LArgMain() << EAMC(aDir,"Directory", eSAM_IsExistFile)
                      << EAMC(aSH, "PMul File",  eSAM_IsExistFile)
                      << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
-          LArgMain() << EAM(aImgSz,"ImgSz",false,"Image Size, Def=[5120,3840]")
+          LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, Def=Homol_Gen")
      );
 
-    SplitDirAndFile(aDir, aImg, aPatImg);
+    // get directory
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
-    //1. lecture of image pattern
 
-    std::list<std::string> aLImg = aICNM->StdGetListOfFile(aImg);
-    std::cout << "Nb of Imgs: " << aLImg.size() << endl;
-
-    //2. lecture of tie points and orientation
+    //1. lecture of tie points and orientation
 
     StdCorrecNameOrient(aOri, aDir);
     const std::string  aSHInStr = aSH;
@@ -72,127 +75,143 @@ int GenerateTP_main(int argc,char ** argv)
 
     cout<<"Total : "<<aSHIn->DicoIm().mName2Im.size()<<" imgs"<<endl;
     std::map<std::string,cCelImTPM *> VName2Im = aSHIn->DicoIm().mName2Im;
+
     // load cam for all Img
     // Iterate through all elements in std::map
     std::map<std::string,cCelImTPM *>::iterator it = VName2Im.begin();
     vector<CamStenope*> aVCam (VName2Im.size());
-    vector<cPic*> allPics;
+
+
     while(it != VName2Im.end())
     {
         //std::cout<<it->first<<" :: "<<it->second->Id()<<std::endl;
         string aNameIm = it->first;
         int aIdIm = it->second->Id();
         CamStenope * aCam = aICNM->StdCamStenOfNames(aNameIm, aOri);
+        aCam->SetNameIm(aNameIm);
         aVCam[aIdIm] = aCam;
-        allPics.push_back(new cPic(aDir,aNameIm));
         it++;
     }
 
-    cout<<"VPMul - Nb Config: "<<aSHIn->VPMul().size()<<endl;
+    std::cout << "Finished loading tie points! \n";
+    std::cout<<"VPMul - Nb Config: "<<aSHIn->VPMul().size()<<endl;
+
+
+    // declare aVCH to stock generated tie points
+    vector<ElPackHomologue> aVPack (VName2Im.size());
+    vector<int> aVIdIm2 (VName2Im.size(),-1);
+    StructHomol aStructH;
+    aStructH.VElPackHomol = aVPack;
+    aStructH.VIdIm2 = aVIdIm2;
+    vector<StructHomol> aVStructH (VName2Im.size(),aStructH);
+
+
+    //2. get 3D position of tie points
+
+    // parse Configs aVCnf
+
     std::vector<cSetPMul1ConfigTPM *> aVCnf = aSHIn->VPMul();
-
-
-    //3. get 3D position of tie points
-    vector<Pt3dr> aVAllPtInter;         // Coordonne 3D de tout les points dans pack
-
-//    vector<int> aStats(aSHIn->NbIm());  // Vector contient multiplicite de pack, index d'element du vector <=> multiplicite, valeur d'element <=> nb point
-//    vector<int> aStatsInRange(aSHIn->NbIm()); // Vector contient multiplicite de pack dans 1 gamme de residue defini, index d'element du vector <=> multiplicite, valeur d'element <=> nb point
-//    vector<int> aStatsValid;            // Vector contient multiplicite existe de pack, valeur d'element <=> multiplicité
-
-//    int nbPtsInRange = 0;
-//    double resMax = 0.0;
-//    double resMin = DBL_MAX;    
-
     for (uint aKCnf=1; aKCnf<aVCnf.size(); aKCnf++)
     {
         cSetPMul1ConfigTPM * aCnf = aVCnf[aKCnf];
-        //cout<<"Cnf : "<<aKCnf<<" - Nb Imgs : "<<aCnf->NbIm()<<" - Nb Pts : "<<aCnf->NbPts()<<endl;
+
         std::vector<int> aVIdIm =  aCnf->VIdIm();
 
         for (uint aKPtCnf=0; aKPtCnf<uint(aCnf->NbPts()); aKPtCnf++)
         {
             vector<Pt2dr> aVPtInter;
-            vector<CamStenope*> aVCamInter;
-
+            vector<CamStenope*> aVCamInter; 
+            vector<int> aVIdImInter;
 
             for (uint aKImCnf=0; aKImCnf<aVIdIm.size(); aKImCnf++)
             {
-                //cout<<aCnf->Pt(aKPtCnf, aKImCnf)<<" ";
+
                 aVPtInter.push_back(aCnf->Pt(aKPtCnf, aKImCnf));
                 aVCamInter.push_back(aVCam[aVIdIm[aKImCnf]]);
+                aVIdImInter.push_back(aVIdIm[aKImCnf]);
             }
-            //cout<<endl;
+
             //Intersect aVPtInter:
+
             ELISE_ASSERT(aVPtInter.size() == aVCamInter.size(), "Size not coherent");
             ELISE_ASSERT(aVPtInter.size() > 1 && aVCamInter.size() > 1, "Nb faiseaux < 2");
             Pt3dr aPInter3D = Intersect_Simple(aVCamInter , aVPtInter);
-            aVAllPtInter.push_back(aPInter3D);
-         }
-    }
-    std::cout << "Nb of intersected pts: " << aVAllPtInter.size() << endl;
-    std::cout << "aVCnf size : " << aVCnf.size() << endl;
 
-
-    //4. regenerate tie points in 2D
-
-
-    //read one TP in 3D
-    for (uint iTP=0; iTP < aVAllPtInter.size(); iTP++)
-    {
-        Pt3dr aPt3d = aVAllPtInter[iTP];
-        cHomol aHomol();
-
-        //read one image
-        std::map<std::string,cCelImTPM *>::iterator it = VName2Im.begin();
-        //vector<CamStenope*> aVCam (VName2Im.size());
-        while(it != VName2Im.end())
-        {
-            //std::cout<<it->first<<" :: "<<it->second->Id()<<std::endl;
-            string aNameIm = it->first;
-            //int aIdIm = it->second->Id();
-            CamStenope * aCam = aICNM->StdCamStenOfNames(aNameIm, aOri);
-
-
-            //calculate 2D position
-
-            double aProf = aCam->ProfondeurDeChamps(aPt3d);
-            Pt2dr aPt2d = aCam->NormC2M(aCam->Ter2Capteur(aPt3d));
-            if (aPt2d.x >=0 && aPt2d.y >=0 && aPt2d.x <= aImgSz.x-1 && aPt2d.y <= aImgSz.y-1 && aCam->Devant(aPt3d))
+            // reproject aPInter3D sur tout les images dans aVCamInter
+            vector<Pt2dr> aVP2d;
+            vector<CamStenope *> aVCamInterVu;
+            vector<int> aVIdImInterVu;
+            for (uint itVCI=0; itVCI < aVCamInter.size(); itVCI++)
             {
-                std::cout << "prof: "<< aProf << "\n";
-                std::cout << "R3 "<< aPt3d << " ---> F2 "<< aCam->Ter2Capteur(aPt3d);
-                std::cout << " ---> M2 "<< aPt2d << "\n";
+                CamStenope * aCam = aVCamInter[itVCI];
+                Pt2dr aPt2d = aCam->R3toF2(aPInter3D);
+                Pt2di aImgSz = aCam->Sz();
+
+                //check if the point is in the camera view
+                if ((aPt2d.x >=0) && (aPt2d.y >=0) && (aPt2d.x <= aImgSz.x-1) && (aPt2d.y <= aImgSz.y-1) && (aCam->Devant(aPInter3D)))
+                {
+                    aVP2d.push_back(aPt2d);
+                    aVCamInterVu.push_back(aCam);
+                    aVIdImInterVu.push_back(aVIdImInter[itVCI]);
+                }
 
             }
 
+            // parse images to fill ElPackHomologue
+            for (uint it1=0; it1 < aVCamInterVu.size(); it1++)
+            {
+                int aIdIm1=aVIdImInterVu.at(it1);
+                aVStructH.at(aIdIm1).IdIm=aIdIm1;
+                for (uint it2=0; it2 < aVCamInterVu.size(); it2++)
+                {
+                    if (it1==it2) continue;
 
-            it++;
-        }
+                    int aIdIm2=aVIdImInterVu.at(it2);
+
+                    ElCplePtsHomologues aCPH (aVP2d[it1],aVP2d[it2]);
+                    aVStructH.at(aIdIm1).VElPackHomol.at(aIdIm2).Cple_Add(aCPH);
+                    aVStructH.at(aIdIm1).VIdIm2.at(aIdIm2)=aIdIm2;
+                    //std::cout << "Add pt to IdIm1: " << aIdIm1 << "  IdIm2 : " << aIdIm2 << endl;
+                }
+            }
+
+
+         }
 
     }
 
+    std::cout << "ElPackHomologue filled !\n";
+
+    //writing of new tie points
+
+    //key for tie points
+    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+            +  std::string(aSHOut)
+            +  std::string("@")
+            +  std::string("dat");
 
 
-//    std::string aDirHomolOut = "_Gen";
-//    std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
-//            +  std::string(aDirHomolOut)
-//            +  std::string("@")
-//            +  std::string("dat");
-//    cout << "aKHOut" << aKHOut << endl;
+    for (uint itVSH=0; itVSH < aVStructH.size(); itVSH++)
+    {
+        int aIdIm1 = aVStructH.at(itVSH).IdIm;
+        CamStenope * aCam1 = aVCam.at(aIdIm1);
+        std::string aNameIm1 = aCam1->NameIm();
+        std::cout << "Master Im: " << aNameIm1 << "    IdIm1 : " << aIdIm1 << endl;
+        for (uint itVElPH=0; itVElPH < aVStructH.at(itVSH).VElPackHomol.size(); itVElPH++)
+        {
+            int aIdIm2 = aVStructH.at(itVSH).VIdIm2.at(itVElPH);
+            if (aIdIm2 == -1) continue;
+            CamStenope * aCam2 = aVCam.at(aIdIm2);
+            std::string aNameIm2 = aCam2->NameIm();
+            //std::cout << "Second Im: " << aNameIm2  << "    IdIm2 : " << aIdIm2<< endl;
+            std::string aHmOut= aICNM->Assoc1To2(aKHOut, aNameIm1, aNameIm2, true);
+            ElPackHomologue aPck = aVStructH.at(aIdIm1).VElPackHomol.at(aIdIm2);
+            aPck.StdPutInFile(aHmOut);
+        }
 
-//    // write tie points
-//    for(ElPackHomologue::iterator iTH = aPckIn.begin(); iTH != aPckIn.end(); iTH++)
-//    {
-//        Pt2dr aP1 = iTH->P1();
-//        Pt2dr aP2 = iTH->P2();
-//        ElCplePtsHomologues aPH (aP1,aP2);
-//        aPckOut.Cple_Add(aPH);
-//    }
+    }
+    std::cout << "Finished writing Homol files ! \n";
 
-//    std::string aIm1Out = aPrefix + aIm1;
-//    std::string aIm2Out = aPrefix + aIm2;
-//    std::string aHmOut= aICNM->Assoc1To2(aKHOut, aIm1Out, aIm2Out, true);
-//    aPckOut.StdPutInFile(aHmOut);
 
 	return EXIT_SUCCESS;
 }
