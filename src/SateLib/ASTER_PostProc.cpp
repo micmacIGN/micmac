@@ -60,15 +60,13 @@ void ASTER_Banniere()
 int ASTERProjAngle2OtherBand_main(int argc, char ** argv)
 {
 	//std::string aNameIm, aNameIm2, aNameParallax, aNameDEM;
-	std::string aDEMName, aMaskName, aBandIn, aBandOut, aTargetSyst;
+	std::string aBandIn, aBandOut;
 	std::string aOutDir = "../";
 	//Reading the arguments
 	ElInitArgMain
 	(
-		argc, argv,
+		argc, argv, 
 		LArgMain()
-		<< EAMC(aDEMName, "DEM name without extension (\".tif\" and \".tfw\" are required. ex : MEC-Malt/Z_Num9_DeZoom1_STD-MALT)", eSAM_IsPatFile)
-		<< EAMC(aMaskName, "DEM mask name (ex : MEC-Malt/AutoMask_STD-MALT_Num_8.tif)", eSAM_IsPatFile)
 		<< EAMC(aBandIn, "Name of 3N or 3B band where points are taken from (ex : AST_L1A_XXX_3N)", eSAM_IsPatFile)
 		<< EAMC(aBandOut, "Name of 3N or 3B band where points are projected to (ex : AST_L1A_XXX_3N)", eSAM_IsPatFile),
 		LArgMain()
@@ -86,15 +84,22 @@ int ASTERProjAngle2OtherBand_main(int argc, char ** argv)
 	Pt2di aSz_Out = aTF_Out.sz(); cout << "size of image Out = " << aSz_Out << endl;
 
 	// Loading the GRID files
-	std::string aGRIBinInname = aDir + aSceneInName + ".GRIBin";
-	std::string aGRIBiOutname = aDir + aSceneOutName + ".GRIBin";
+	std::string aGRIBinInName = aDir + aSceneInName + ".GRIBin";
+	std::string aGRIBinOutName = aDir + aSceneOutName + ".GRIBin";
 	ElAffin2D oriIntImaM2C_In, oriIntImaM2C_Out;
 	Pt2di Sz(100000, 100000);
-	ElCamera* mCameraIn = new cCameraModuleOrientation(new OrientationGrille(aGRIBinInname), Sz, oriIntImaM2C_In);
-	ElCamera* mCameraOut = new cCameraModuleOrientation(new OrientationGrille(aGRIBinInname), Sz, oriIntImaM2C_Out);
+	ElCamera* mCameraIn = new cCameraModuleOrientation(new OrientationGrille(aGRIBinInName), Sz, oriIntImaM2C_In);
+	ElCamera* mCameraOut = new cCameraModuleOrientation(new OrientationGrille(aGRIBinOutName), Sz, oriIntImaM2C_Out);
 
-
+	//Create output
+	std::ofstream fic("GeoI-Px/AngleFrom_" + aSceneInName + "_to_" + aSceneOutName + ".txt");
+	fic << std::setprecision(15);
+	fic << "X1 Y1 X2 Y2 Angle" << std::endl;
+	
+	// Compute values
 	vector<double> aVectAngles;
+	vector<Pt3dr> aVectPointsWithAnglesLeft, aVectPointsWithAnglesRight;
+	Pt3dr aPt;
 	for (size_t row = 0; row < aSz_In.y; row++)
 	{
 
@@ -119,9 +124,83 @@ int ASTERProjAngle2OtherBand_main(int argc, char ** argv)
 		}
 
 		aVectAngles.push_back(aAngle);
-		cout << "Angle for row " << row << " : " << aAngle << endl;
 
+		//Record points for interpolation
+		aPt.x = aPtOut1.x; aPt.y = aPtOut1.y; aPt.z = aAngle;
+		aVectPointsWithAnglesLeft.push_back(aPt);
+		aPt.x = aPtOut2.x; aPt.y = aPtOut2.y; aPt.z = aAngle;
+		aVectPointsWithAnglesRight.push_back(aPt);
+
+		//cout << "Angle for row " << row << " : " << aAngle << endl;
+		fic << aPtOut1.x << " " << aPtOut1.y << " " << aPtOut2.x << " " << aPtOut2.y << " " <<  aAngle << std::endl;
 	}
+
+	//Output map
+	Im2D_REAL8  aAngleMap(aSz_Out.x, aSz_Out.y);
+	REAL ** aData_AngleMap = aAngleMap.data();
+
+	cout << "Starting interpolation of angles in Out band geometry" << endl;
+	double aAngleInterpolated;
+	for (size_t i = 0; i < aSz_Out.x; i++)
+	{
+		for (size_t j = 0; j < aSz_Out.y; j++)
+		{
+			// if points before the projection of the first points
+			if (j < min(aVectPointsWithAnglesLeft[0].y,aVectPointsWithAnglesRight[0].y))
+			{
+				aAngleInterpolated = aVectPointsWithAnglesLeft[0].z;
+			}
+			// if points after the projection of the last points
+			else if (j > max(aVectPointsWithAnglesLeft[aVectPointsWithAnglesLeft.size()-1].y,aVectPointsWithAnglesRight[aVectPointsWithAnglesRight.size()-1].y))
+			{
+				aAngleInterpolated = aVectPointsWithAnglesLeft[aVectPointsWithAnglesLeft.size() - 1].z;
+			}
+			else
+			{
+				//find point with min distance from points in aVectPointsWithAnglesLeft vectors (could work with aVectPointsWithAnglesRight) 
+				double minDist = 99999999;
+				double aDist;
+				for (size_t k = 0; k < aVectPointsWithAnglesLeft.size(); k++)
+				{
+					aDist = sqrt(pow((aVectPointsWithAnglesLeft[k].x - (double)i), 2) + pow((aVectPointsWithAnglesLeft[k].y - (double)j), 2));
+					if (aDist < minDist)
+					{
+						aDist = minDist;
+						aAngleInterpolated = aVectPointsWithAnglesLeft[k].z;
+					}
+
+				}
+				
+			}
+			// Record value
+			aData_AngleMap[j][i] = aAngleInterpolated;
+		}
+	}
+
+	// Export data
+	string aNameOut = aDir + "GeoI-Px/AngleFrom_" + aSceneInName + "_to_" + aSceneOutName + ".tif";
+	cout << "Exporting data to : " << aNameOut << endl;
+
+	Tiff_Im  aOut
+	(
+		aNameOut.c_str(),
+		aSz_Out,
+		GenIm::real8,
+		Tiff_Im::No_Compr,
+		Tiff_Im::BlackIsZero
+	);
+
+	ELISE_COPY
+	(
+		aOut.all_pts(),
+		aAngleMap.in(),
+		aOut.out()
+	);
+
+
+
+	ASTER_Banniere();
+
 	return 0;
 }
 
