@@ -38,6 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
+#include "string.h"
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
 #include "../schnaps.h"
@@ -49,10 +50,11 @@ struct StructHomol {
     vector<ElPackHomologue> VElPackHomol;
 };
 
+
 int GenerateTP_main(int argc,char ** argv)
 {
     string aDir,aSH,aOri,aSHOut="_Gen";
-
+    int aNoise(0);
     ElInitArgMain
      (
           argc, argv,
@@ -60,6 +62,7 @@ int GenerateTP_main(int argc,char ** argv)
                      << EAMC(aSH, "PMul File",  eSAM_IsExistFile)
                      << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
           LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, Def=Homol_Gen")
+                     << EAM(aNoise,"Noise",false,"Noise type, 0=None, 1=Gaussian. Def=0")
      );
 
     // get directory
@@ -148,7 +151,7 @@ int GenerateTP_main(int argc,char ** argv)
                 Pt2di aImgSz = aCam->Sz();
 
                 //check if the point is in the camera view
-                if ((aPt2d.x >=0) && (aPt2d.y >=0) && (aPt2d.x <= aImgSz.x-1) && (aPt2d.y <= aImgSz.y-1) && (aCam->Devant(aPInter3D)))
+                if (aCam->PIsVisibleInImage(aPInter3D))
                 {
                     aVP2d.push_back(aPt2d);
                     aVCamInterVu.push_back(aCam);
@@ -168,7 +171,20 @@ int GenerateTP_main(int argc,char ** argv)
 
                     int aIdIm2=aVIdImInterVu.at(it2);
 
-                    ElCplePtsHomologues aCPH (aVP2d[it1],aVP2d[it2]);
+                    Pt2dr aN(0.0,0.0);
+
+                    //generation of noise on X
+                    std::default_random_engine generator;
+                    std::normal_distribution<double> distribution(0,10.0);
+
+                    if (aNoise==1)
+                    {
+                        double aNN = distribution(generator);
+                        Pt2dr aN;
+                        aN.x=aNN;aN.y=aNN;
+                    }
+
+                    ElCplePtsHomologues aCPH (aVP2d[it1]+aN,aVP2d[it2]+aN);
                     aVStructH.at(aIdIm1).VElPackHomol.at(aIdIm2).Cple_Add(aCPH);
                     aVStructH.at(aIdIm1).VIdIm2.at(aIdIm2)=aIdIm2;
                     //std::cout << "Add pt to IdIm1: " << aIdIm1 << "  IdIm2 : " << aIdIm2 << endl;
@@ -214,6 +230,140 @@ int GenerateTP_main(int argc,char ** argv)
 
 
 	return EXIT_SUCCESS;
+}
+
+int GenerateMAF_main(int argc,char ** argv)
+{
+    string aDir,aOri,aImgs,aGCPFile,aMAFOut;
+
+    ElInitArgMain
+     (
+          argc, argv,
+          LArgMain() << EAMC(aDir,"Directory", eSAM_IsExistFile)
+                     << EAMC(aImgs,"Image pattern", eSAM_IsExistFile)
+                     << EAMC(aOri, "Ori",  eSAM_IsExistDirOri)
+                     << EAMC(aGCPFile, "File containning GCP coordinates",eSAM_IsExistFile),
+          LArgMain() << EAM(aMAFOut,"Out",false,"Output name of the generated MAF file, Def=Gen_MAF_Ori.xml")
+     );
+
+    // get directory
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+    const vector<string> aVImg = *(aICNM->Get(aImgs));
+
+    StdCorrecNameOrient(aOri, aDir);
+    std::cout << "Ori: Ori-" << aOri << "/" << endl;
+
+    std::cout << "GCP file : " << aGCPFile << endl;
+
+    if (!EAMIsInit(&aMAFOut))
+        aMAFOut =  "Gen_MAF_" + aOri + ".xml";
+
+    std::cout << "Output File : " << aMAFOut << endl;
+
+
+    //read GCP coordinates
+    cDicoAppuisFlottant aDicoAF = StdGetObjFromFile<cDicoAppuisFlottant>
+                         (
+                              aGCPFile,
+                              StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                              "DicoAppuisFlottant",
+                              "DicoAppuisFlottant"
+                         );
+
+    //output MAF file
+    cSetOfMesureAppuisFlottants aDicoOut;
+    std::list<cMesureAppuiFlottant1Im> aLMAFOut;
+    std::list<cOneMesureAF1I> aMesOut;
+
+    for (uint itVImg=0; itVImg < aVImg.size(); itVImg++)
+    {
+        std::string aOriName = "Ori-"+aOri+"/Orientation-"+aVImg.at(itVImg)+".xml";
+        std::cout << aOriName << endl;
+        if (!ELISE_fp::exist_file(aOriName)) continue;
+        CamStenope * aCam = CamOrientGenFromFile(aOriName,aICNM);
+
+        for
+                (
+                 std::list<cOneAppuisDAF>::iterator itDAF=aDicoAF.OneAppuisDAF().begin();
+                 itDAF!=aDicoAF.OneAppuisDAF().end();
+                 itDAF++
+                 )
+        {
+            if (aCam->PIsVisibleInImage(itDAF->Pt()))
+            {
+                Pt2dr aPt2d = aCam->R3toF2(itDAF->Pt());
+                cOneMesureAF1I aOMAF1I;
+                aOMAF1I.NamePt() = itDAF->NamePt();
+                aOMAF1I.PtIm() = aPt2d;
+                aMesOut.push_back(aOMAF1I);
+            }
+        }
+        cMesureAppuiFlottant1Im   aMAF1Im;
+        aMAF1Im.NameIm() = aVImg.at(itVImg);
+        aMAF1Im.OneMesureAF1I() = aMesOut;
+        aLMAFOut.push_back(aMAF1Im);
+        aMesOut.clear();
+
+    }
+
+    aDicoOut.MesureAppuiFlottant1Im() = aLMAFOut;
+    MakeFileXML(aDicoOut,aMAFOut);
+    return EXIT_SUCCESS;
+}
+
+int CompMAF_main(int argc,char ** argv)
+{
+    string aDir,aImgs,aMAF1,aMAF2;
+    string aOut="CmpMAF.xml";
+
+    ElInitArgMain
+     (
+          argc, argv,
+          LArgMain() << EAMC(aDir,"Directory", eSAM_IsExistFile)
+                     << EAMC(aImgs,"Image pattern", eSAM_IsExistFile)
+                     << EAMC(aMAF1, "MAF File 1",  eSAM_IsExistFile)
+                     << EAMC(aMAF2, "MAF File 2",eSAM_IsExistFile),
+          LArgMain() << EAM(aOut,"Out",false,"Output name of the generated CmpMAF file, Def=CmpMAF.xml")
+     );
+
+
+    cSetOfMesureAppuisFlottants aDico1 = StdGetFromPCP(aMAF1,SetOfMesureAppuisFlottants);
+    cSetOfMesureAppuisFlottants aDico2 = StdGetFromPCP(aMAF2,SetOfMesureAppuisFlottants);
+
+
+    std::list<cMesureAppuiFlottant1Im> & aLMAF1 = aDico1.MesureAppuiFlottant1Im();
+    std::list<cMesureAppuiFlottant1Im> & aLMAF2 = aDico2.MesureAppuiFlottant1Im();
+
+
+    for (std::list<cMesureAppuiFlottant1Im>::iterator iT1=aLMAF1.begin();iT1 != aLMAF1.end(); iT1++)
+    {
+        if (iT1->OneMesureAF1I().size()==0)continue;
+        string aNameIm1=iT1->NameIm();
+        std::list<cOneMesureAF1I> & aMes1 = iT1->OneMesureAF1I();
+        //find iT2
+        for(auto iT2=aLMAF2.begin();iT2!=aLMAF2.end();iT2++)
+        {
+            string aNameIm2=iT2->NameIm();
+            if (aNameIm1.compare(aNameIm2)) continue;
+            std::list<cOneMesureAF1I> & aMes2 = iT2->OneMesureAF1I();
+            for (std::list<cOneMesureAF1I>::iterator itMes1 = aMes1.begin() ; itMes1 != aMes1.end() ; itMes1 ++)
+            {
+                std::string aNamePt1 = itMes1->NamePt();
+                for(auto itMes2=aMes2.begin();itMes2!=aMes2.end();itMes2++)
+                {
+                    string aNamePt2 = itMes2->NamePt();
+                    if (aNamePt1.compare(aNamePt2)!=0) continue;
+                    itMes1->NamePt()+="A";
+                    itMes1->PtIm().x-= itMes2->PtIm().x;
+                    itMes1->PtIm().y-= itMes2->PtIm().y;
+                }
+            }
+        }
+    }
+    MakeFileXML(aDico1,aOut);
+
+    return EXIT_SUCCESS;
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

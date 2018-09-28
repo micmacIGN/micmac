@@ -844,6 +844,8 @@ extern int ReechMAF_main(int argc, char ** argv);
 extern int ImgTMTxt2Xml_main(int argc, char ** argv);
 extern int MoyMAF_main(int argc, char ** argv);
 extern int GenerateTP_main(int argc, char ** argv);
+extern int CompMAF_main(int argc, char ** argv);
+extern int GenerateMAF_main(int argc, char ** argv);
 extern int GenImgTM_main(int argc, char ** argv);
 extern int EsSim_main(int argc, char ** argv);
 int ProcessThmImgs_main(int argc, char ** argv);
@@ -1136,6 +1138,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("MoyMAF",MoyMAF_main ,"Calculate center of 4 corner points"));
         aRes.push_back(cMMCom("GenerateTP",GenerateTP_main ,"Generate simulated tie points"));
+        aRes.push_back(cMMCom("CompMAF",CompMAF_main ,"Compare MAF files"));
+        aRes.push_back(cMMCom("GenerateMAF",GenerateMAF_main ,"Generate simulated MAF"));
         aRes.push_back(cMMCom("GenImgTM",GenImgTM_main ,"Generate fake Img name/time couple from GPS .xml file"));
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
         aRes.push_back(cMMCom("ProcessThmImgs",ProcessThmImgs_main,"Tool to process Thermique acquisition of IGN"));
