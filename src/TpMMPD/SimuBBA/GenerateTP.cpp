@@ -148,7 +148,7 @@ int GenerateTP_main(int argc,char ** argv)
             {
                 CamStenope * aCam = aVCamInter[itVCI];
                 Pt2dr aPt2d = aCam->R3toF2(aPInter3D);
-                Pt2di aImgSz = aCam->Sz();
+                //Pt2di aImgSz = aCam->Sz();
 
                 //check if the point is in the camera view
                 if (aCam->PIsVisibleInImage(aPInter3D))
