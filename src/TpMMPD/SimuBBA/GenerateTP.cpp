@@ -42,6 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
 #include "../schnaps.h"
+#include <random>
 
 struct StructHomol {
     int IdIm;
