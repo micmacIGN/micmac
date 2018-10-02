@@ -54,16 +54,16 @@ struct StructHomol {
 
 int GenerateTP_main(int argc,char ** argv)
 {
-    string aDir,aSH,aOri,aSHOut="_Gen";
-    int aNoise(0);
+    string aDir,aSH,aOri,aSHOut="Gen";
+    vector<double> aNoiseGaussian;
     ElInitArgMain
      (
           argc, argv,
           LArgMain() << EAMC(aDir,"Directory", eSAM_IsExistFile)
                      << EAMC(aSH, "PMul File",  eSAM_IsExistFile)
                      << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
-          LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, Def=Homol_Gen")
-                     << EAM(aNoise,"Noise",false,"Noise type, 0=None, 1=Gaussian. Def=0")
+          LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, Def=Gen")
+                     << EAM(aNoiseGaussian,"NoiseGaussian",false,"[meanX,stdX,meanY,stdY]")
      );
 
     // get directory
@@ -77,7 +77,7 @@ int GenerateTP_main(int argc,char ** argv)
     cSetTiePMul * aSHIn = new cSetTiePMul(0);
     aSHIn->AddFile(aSHInStr);
 
-    cout<<"Total : "<<aSHIn->DicoIm().mName2Im.size()<<" imgs"<<endl;
+    std::cout<<"Total : "<<aSHIn->DicoIm().mName2Im.size()<<" imgs"<<endl;
     std::map<std::string,cCelImTPM *> VName2Im = aSHIn->DicoIm().mName2Im;
 
     // load cam for all Img
@@ -85,7 +85,7 @@ int GenerateTP_main(int argc,char ** argv)
     std::map<std::string,cCelImTPM *>::iterator it = VName2Im.begin();
     vector<CamStenope*> aVCam (VName2Im.size());
 
-
+    std::cout << "Loading tie points... \n";
     while(it != VName2Im.end())
     {
         //std::cout<<it->first<<" :: "<<it->second->Id()<<std::endl;
@@ -111,9 +111,9 @@ int GenerateTP_main(int argc,char ** argv)
 
 
     //2. get 3D position of tie points
-
+    std::cout << "Filling ElPackHomologue... !\n";
     // parse Configs aVCnf
-
+    std::cout << "Gaussian Noise: " << aNoiseGaussian << endl;
     std::vector<cSetPMul1ConfigTPM *> aVCnf = aSHIn->VPMul();
     for (uint aKCnf=1; aKCnf<aVCnf.size(); aKCnf++)
     {
@@ -174,15 +174,17 @@ int GenerateTP_main(int argc,char ** argv)
 
                     Pt2dr aN(0.0,0.0);
 
-                    //generation of noise on X
-                    std::default_random_engine generator;
-                    std::normal_distribution<double> distribution(0,10.0);
-
-                    if (aNoise==1)
+                    if (EAMIsInit(&aNoiseGaussian))
                     {
-                        double aNN = distribution(generator);
-                        Pt2dr aN;
-                        aN.x=aNN;aN.y=aNN;
+
+                        //generation of noise on X & Y
+                        std::default_random_engine generator;
+                        std::normal_distribution<double> distributionX(aNoiseGaussian[1],aNoiseGaussian[2]);
+                        std::normal_distribution<double> distributionY(aNoiseGaussian[3],aNoiseGaussian[4]);
+
+
+                        aN.x = distributionX(generator);
+                        aN.y = distributionY(generator);
                     }
 
                     ElCplePtsHomologues aCPH (aVP2d[it1]+aN,aVP2d[it2]+aN);
@@ -200,9 +202,10 @@ int GenerateTP_main(int argc,char ** argv)
     std::cout << "ElPackHomologue filled !\n";
 
     //writing of new tie points
-
+    std::cout << "Writing Homol files... \n";
     //key for tie points
     std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
+            + "_"
             +  std::string(aSHOut)
             +  std::string("@")
             +  std::string("dat");
@@ -213,7 +216,7 @@ int GenerateTP_main(int argc,char ** argv)
         int aIdIm1 = aVStructH.at(itVSH).IdIm;
         CamStenope * aCam1 = aVCam.at(aIdIm1);
         std::string aNameIm1 = aCam1->NameIm();
-        std::cout << "Master Im: " << aNameIm1 << "    IdIm1 : " << aIdIm1 << endl;
+        //std::cout << "Master Im: " << aNameIm1 << "    IdIm1 : " << aIdIm1 << endl;
         for (uint itVElPH=0; itVElPH < aVStructH.at(itVSH).VElPackHomol.size(); itVElPH++)
         {
             int aIdIm2 = aVStructH.at(itVSH).VIdIm2.at(itVElPH);
@@ -355,7 +358,7 @@ int CompMAF_main(int argc,char ** argv)
                 {
                     string aNamePt2 = itMes2->NamePt();
                     if (aNamePt1.compare(aNamePt2)!=0) continue;
-                    itMes1->NamePt()+="A";
+                    itMes1->NamePt()+="*";
                     itMes1->PtIm().x-= itMes2->PtIm().x;
                     itMes1->PtIm().y-= itMes2->PtIm().y;
                 }
