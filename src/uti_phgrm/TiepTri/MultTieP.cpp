@@ -205,6 +205,7 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
       mBin      (true),
       mExpTxt   (false)
 {
+   bool aExportBoth (false);
     
    ElInitArgMain
    (
@@ -215,6 +216,7 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
                      << EAM(mBin,"Bin",true,"Binary, def=true (postix dat/txt)")
                      << EAM(mDoNewOri,"DoNewOri",true,"Tuning")
                      << EAM(mExpTxt,"ExpTxt",true,"input homol in txt format? def false, dat format")
+                     << EAM(aExportBoth,"ExportBoth",true,"Export both format")
    );
 
    mEASF.Init(mPatImage);
@@ -252,6 +254,13 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
    std::string aNameSave = cSetTiePMul::StdName(mEASF.mICNM,mSH,mDest,mBin);
 
    aSetOutPM->Save(aNameSave);
+
+   if(aExportBoth)
+   {
+        std::string aNameSave2 = cSetTiePMul::StdName(mEASF.mICNM,mSH,mDest,!mBin);
+        aSetOutPM->Save(aNameSave2);
+   }
+
 }
 
 
@@ -791,7 +800,7 @@ std::vector<Pt3d<double> > cSetPMul1ConfigTPM::IntersectBundle(std::map<int,CamS
 
     // loop on mVIdIm and determine if the Camera is provided in the Map of Cam
     for (auto & IdIm: mVIdIm){
-       bool found (0); 
+       bool found (0);
 
         for (auto & Cam : aMCams){
             if (Cam.first==IdIm) {
