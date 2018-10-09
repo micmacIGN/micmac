@@ -710,7 +710,6 @@ template <class Type,class cParam> class   cTplFiltrageSpatial
   // === For case filter spatial in TiepTri : aVType is vector of interest point, aParam is a comparator by FastQuality ===
   cTplFiltrageSpatial(std::vector<Type> & aVType,cParam  & aParam,double aSeuilDist)
   {
-     cout<<"In Filter Spatial ..... "<<endl;
      if (aVType.size() <=1 )
         return;
 
@@ -744,9 +743,7 @@ template <class Type,class cParam> class   cTplFiltrageSpatial
      double aRab = aLong / 1e4;
      Pt2dr aPRab(aRab,aRab);
      double aSurfElem = (aLong * ElMax(aLarg,aLong/20.0)) / aVType.size()  ;
-     cout<<" + aSurfElem = "<<aSurfElem<<endl;
 
-     cin.ignore().get(); //Pause Command for Linux Terminal
 
 // === Create a QuadTri structure : 10 is NbObjectMax, sqrt(aSurfElem) *2 is SzMin ===
      ElQT<Type *,Pt2dr,cParam>  aQt(aParam,Box2dr(aP0-aPRab,aP1+aPRab),10, sqrt(aSurfElem) *2 );
