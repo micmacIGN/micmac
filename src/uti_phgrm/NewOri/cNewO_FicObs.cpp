@@ -98,12 +98,12 @@ class cAppliFictObs : public cCommonMartiniAppli
         std::map<std::string,ElPackHomologue *>                 mHomRed; //hom name, hom
         std::map<std::string,std::map<std::string,std::string>> mHomMap; //cam name, cam name, hom name
         std::string                                             mHomExp;
-        std::map<int,cAccumResidu *>        mAR;
+        
+        cXml_TopoTriplet               mLT;
 
-        cXml_TopoTriplet            mLT;
-
-        std::map<std::string,int>   mNameMap;
-        std::map<int, TripleStr*>   mTriMap;
+        std::map<std::string,int>      mNameMap;
+        std::map<int, TripleStr*>      mTriMap;
+        std::map<int,cAccumResidu *>   mAR;
 
         Pt2di                       mSz;
         int                         mResPoly;
@@ -439,7 +439,7 @@ void cAppliFictObs::Initialize()
     else
         InitNFHom();
 
-    //update orientations in mCamMap
+    //update orientations in mTriMap
     int aTriNb=0;
     for (auto a3 : mLT.Triplets())
     {
