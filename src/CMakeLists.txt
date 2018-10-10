@@ -188,5 +188,12 @@ if(WITH_INTERFACE)
 	add_subdirectory(interface)
 endif()
 
+if (QT_ENABLED AND ${WITH_GIMMI})
+	set(GIMMI_DIR ${PROJECT_SOURCE_DIR}/src/GIMMI)
+    add_subdirectory(GIMMI)
+endif()
+
 set(Elise_Src_Files ${Elise_Src_Files} PARENT_SCOPE)
 set(saisieqt_files ${saisieqt_files} PARENT_SCOPE)
+
+
