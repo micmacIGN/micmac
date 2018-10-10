@@ -76,26 +76,24 @@ bool IsInImage(Pt2dr aPt, Pt2dr aImgSz)
 
 int GenerateTP_main(int argc,char ** argv)
 {
-    string aDir,aImgs,aSH,aOri,aSHOut="Gen";
-    vector<double> aNoiseGaussian;
+    string aPatImgs,aDir,aImgs,aSH,aOri,aSHOut="Gen";
+    vector<double> aNoiseGaussian(4,0.0);
     ElInitArgMain
      (
           argc, argv,
-          LArgMain() << EAMC(aDir,"Directory", eSAM_IsExistFile)
-                     << EAMC(aImgs,"Image Pattern",eSAM_IsExistFile)
+          LArgMain() << EAMC(aPatImgs,"Image Pattern",eSAM_IsExistFile)
                      << EAMC(aSH, "PMul File",  eSAM_IsExistFile)
                      << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
           LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, Def=Gen")
                      << EAM(aNoiseGaussian,"NoiseGaussian",false,"[meanX,stdX,meanY,stdY]")
      );
 
+    SplitDirAndFile(aDir,aImgs,aPatImgs);
+
     // get directory
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
     const std::vector<std::string> aVImgs = *(aICNM->Get(aImgs));
-//    if(IsInList(aVImgs,aIm))
-//        std::cout << "Img exists in list!" << endl;
-
 
     //generation of noise on X & Y
     std::default_random_engine generator(time(0)); //seed
@@ -104,9 +102,9 @@ int GenerateTP_main(int argc,char ** argv)
 
 
     //1. lecture of tie points and orientation
-
     StdCorrecNameOrient(aOri, aDir);
     const std::string  aSHInStr = aSH;
+    std::cout << aSH << endl;
     cSetTiePMul * aSHIn = new cSetTiePMul(0);
     aSHIn->AddFile(aSHInStr);
 
@@ -272,17 +270,18 @@ int GenerateTP_main(int argc,char ** argv)
 
 int GenerateMAF_main(int argc,char ** argv)
 {
-    string aDir,aOri,aImgs,aGCPFile,aMAFOut;
+    string aPatImgs,aDir,aOri,aImgs,aGCPFile,aMAFOut;
 
     ElInitArgMain
      (
           argc, argv,
-          LArgMain() << EAMC(aDir,"Directory", eSAM_IsExistFile)
-                     << EAMC(aImgs,"Image pattern", eSAM_IsExistFile)
+          LArgMain() << EAMC(aPatImgs,"Image pattern", eSAM_IsExistFile)
                      << EAMC(aOri, "Ori",  eSAM_IsExistDirOri)
                      << EAMC(aGCPFile, "File containning GCP coordinates",eSAM_IsExistFile),
           LArgMain() << EAM(aMAFOut,"Out",false,"Output name of the generated MAF file, Def=Gen_MAF_Ori.xml")
      );
+
+    SplitDirAndFile(aDir,aImgs,aPatImgs);
 
     // get directory
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -353,19 +352,18 @@ int GenerateMAF_main(int argc,char ** argv)
 
 int CompMAF_main(int argc,char ** argv)
 {
-    string aDir,aImgs,aMAF1,aMAF2;
+    string aPatImgs,aDir,aImgs,aMAF1,aMAF2;
     string aOut="CmpMAF.xml";
 
     ElInitArgMain
      (
           argc, argv,
-          LArgMain() << EAMC(aDir,"Directory", eSAM_IsExistFile)
-                     << EAMC(aImgs,"Image pattern", eSAM_IsExistFile)
+          LArgMain() << EAMC(aPatImgs,"Image pattern", eSAM_IsExistFile)
                      << EAMC(aMAF1, "MAF File 1",  eSAM_IsExistFile)
                      << EAMC(aMAF2, "MAF File 2",eSAM_IsExistFile),
           LArgMain() << EAM(aOut,"Out",false,"Output name of the generated CmpMAF file, Def=CmpMAF.xml")
      );
-
+    SplitDirAndFile(aDir,aImgs,aPatImgs);
 
     cSetOfMesureAppuisFlottants aDico1 = StdGetFromPCP(aMAF1,SetOfMesureAppuisFlottants);
     cSetOfMesureAppuisFlottants aDico2 = StdGetFromPCP(aMAF2,SetOfMesureAppuisFlottants);
@@ -408,19 +406,20 @@ int CompMAF_main(int argc,char ** argv)
 
 int GenerateOriGPS_main(int argc,char ** argv)
 {
-    string aDir,aOri,aOut="GPS_Gen";
+    string aDir,aImg,aOri,aOut="GPS_Gen";
     std::vector<std::string> aVImgPattern;
     std::string aFileGpsLa;
 
     ElInitArgMain
      (
           argc, argv,
-          LArgMain() << EAMC(aDir,"Directory", eSAM_IsExistFile)
-                     << EAMC(aVImgPattern,"Image pattern, grouped by lever-arm", eSAM_IsExistFile)
+          LArgMain() << EAMC(aVImgPattern,"Image pattern, grouped by lever-arm", eSAM_IsExistFile)
                      << EAMC(aOri,"Orientation file",eSAM_IsExistDirOri)
                      << EAMC(aFileGpsLa,"CSV file containing GPS Lever-arms for every image pattern",eSAM_IsExistFile),
           LArgMain() << EAM(aOut,"Out",false,"Output name of the generated Ori file, Def=Ori-GPS_Gen/")
      );
+
+    SplitDirAndFile(aDir,aImg,aVImgPattern[0]);
 
     // get directory
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -469,15 +468,17 @@ int GenerateOriGPS_main(int argc,char ** argv)
         for (uint iV=0; iV < aVImg.size(); iV++)
         {
             CamStenope * aCam = aICNM->StdCamStenOfNames(aVImg[iV], aOri);
-            Pt3dr aCenter = aCam->VraiOpticalCenter();
-            aCenter.x -= aGpsLa.x;
-            aCenter.y -= aGpsLa.y;
-            aCenter.z -= aGpsLa.z;
-            ElRotation3D anOriC(-aCenter,0,0,0);
-            aCam->SetOrientation(anOriC);
+            //Pt3dr aCenterR3 = aCam->VraiOpticalCenter();
+            //std::cout << aCenterR3 << "---------------";
+            Pt3dr aGpsLaR3 = aCam->L3toR3(aGpsLa);
+            //std::cout << aGpsLaR3 << endl;
+
+            ElRotation3D anOriGpsLa(-aGpsLaR3,0,0,0);
+            aCam->SetOrientation(anOriGpsLa);
             cOrientationConique  anOC = aCam->StdExportCalibGlob();
             std::string aOriOut = aICNM->Assoc1To1(aKey,aVImg[iV],true);
             MakeFileXML(anOC,aOriOut);
+
         }
     }
 
