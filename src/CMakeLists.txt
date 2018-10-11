@@ -191,6 +191,7 @@ endif()
 if (QT_ENABLED AND ${WITH_GIMMI})
 	set(GIMMI_DIR ${PROJECT_SOURCE_DIR}/src/GIMMI)
     add_subdirectory(GIMMI)
+    set(GIMMI_ENABLED 1)
 endif()
 
 set(Elise_Src_Files ${Elise_Src_Files} PARENT_SCOPE)
