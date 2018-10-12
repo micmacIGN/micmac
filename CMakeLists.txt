@@ -125,6 +125,9 @@ option(WITH_QT5 "compile Qt interfaces" OFF)
 # Compilateur C++11
 option(WITH_CPP11 "Compilateur C++11" ON)
 
+# Graphical Interface GIMMI
+OPTION(WITH_GIMMI "Graphical Interface GIMMI" OFF)
+
 option(DEPLOY "compile for end-user" OFF)
 
 # Utiliser Doxygen
@@ -170,6 +173,7 @@ set(UnixBinPath
 set(DEPLOY 0)
 set(PROJECT_SRC_DIR \"${PROJECT_SOURCE_DIR}\") #TODO: why???
 set(QT_ENABLED 0) #TODO: not sure we should keep running if WITH_QT5=1 and OpenGL or QT is not found
+set(GIMMI_ENABLED 0)
 
 if(${WITH_QT5})
 	find_package(OpenGL REQUIRED)

@@ -267,6 +267,7 @@ int CPP_PHom_ApprentBinaire(int argc, char ** argv);
 int CPP_FitsMatch1Im(int argc, char ** argv);
 int HackToF(int argc,char ** argv);
 int CPP_GenPrime(int argc,char ** argv);
+int CPP_GIMMI_main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -500,6 +501,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("SaisieCylQT", SaisieCylQT_main, " Interactive tool to capture information on the scene for cylinders"));
 		aRes.push_back(cMMCom("SaisieMasqQT", SaisieMasqQT_main, " Interactive tool to capture masq"));
 		aRes.push_back(cMMCom("SaisieBoxQT", SaisieBoxQT_main, " Interactive tool to capture 2D box"));
+		aRes.push_back(cMMCom("GIMMI", CPP_GIMMI_main, "Graphical Interface MMI"));
 #endif
 
 #if (ELISE_X11)
@@ -1338,7 +1340,7 @@ int GenMain(int argc, char ** argv, const std::vector<cMMCom> & aVComs)
 		MMVisualMode = true;
 		argv[1]++;
 	}
-
+    
 	// MPD : deplace sinon core dump qd argc==1
 	// Pour l'analyse de la ligne de commande, on ne peut pas desactiver le bloquage de l'exe via l'option ExitOnBrkp
 	// puisqu le XML n'a pas encore ete analyse, on change donc provisoirement le comportement par defaut
