@@ -53,40 +53,6 @@ struct StructHomol {
     vector<ElPackHomologue> VElPackHomol;
 };
 
-struct TPConfig
-{
-    uint NbIm;
-    std::vector<string> VNameIm;
-    std::vector<Pt3dr> VPt3D;
-    std::vector<std::vector<Pt2dr>> VVPt2dr;
-};
-
-// Function for comparing two students according
-// to given rules
-bool compareTwoConfig(TPConfig a, TPConfig b)
-{
-    if (a.NbIm != b.NbIm )
-        return a.NbIm > b.NbIm;
-    return a.VPt3D.at(0).x > b.VPt3D.at(0).x;
-}
-/*
-// Fills total marks and ranks of all Students
-void computeRanks(Student a[], int n)
-{
-    // To calculate total marks for all Students
-    for (int i=0; i<n; i++)
-        a[i].total = a[i].math + a[i].phy + a[i].che;
-
-    // Sort structure array using user defined
-    // function compareTwoStudents()
-    sort(a, a+5, compareTwoStudents);
-
-    // Assigning ranks after sorting
-    for (int i=0; i<n; i++)
-        a[i].rank = i+1;
-}
-*/
-
 // check if one image is in the image list
 bool IsInList(const std::vector<std::string> aVImgs, std::string aNameIm)
 {
@@ -100,14 +66,6 @@ bool IsInList(const std::vector<std::string> aVImgs, std::string aNameIm)
     else return true;
 }
 
-bool IsInImage(Pt2dr aPt, Pt2dr aImgSz)
-{
-    if ((aPt.x >=0) && (aPt.x < aImgSz.x) && (aPt.y >=0) && (aPt.y < aImgSz.y))
-        return true;
-    else
-        return false;
-}
-
 int GenerateTP_main(int argc,char ** argv)
 {
     string aPatImgs,aDir,aImgs,aSH,aOri,aSHOut="Gen";
@@ -116,10 +74,10 @@ int GenerateTP_main(int argc,char ** argv)
             (
                 argc, argv,
                 LArgMain() << EAMC(aPatImgs,"Image Pattern",eSAM_IsExistFile)
-                << EAMC(aSH, "PMul File",  eSAM_IsExistFile)
-                << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
+                           << EAMC(aSH, "PMul File",  eSAM_IsExistFile)
+                           << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
                 LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, Def=Gen")
-                << EAM(aNoiseGaussian,"NoiseGaussian",false,"[meanX,stdX,meanY,stdY]")
+                           << EAM(aNoiseGaussian,"NoiseGaussian",false,"[meanX,stdX,meanY,stdY]")
                 );
 
     SplitDirAndFile(aDir,aImgs,aPatImgs);
@@ -310,8 +268,8 @@ int GenerateMAF_main(int argc,char ** argv)
             (
                 argc, argv,
                 LArgMain() << EAMC(aPatImgs,"Image pattern", eSAM_IsExistFile)
-                << EAMC(aOri, "Ori",  eSAM_IsExistDirOri)
-                << EAMC(aGCPFile, "File containning GCP coordinates",eSAM_IsExistFile),
+                           << EAMC(aOri, "Ori",  eSAM_IsExistDirOri)
+                           << EAMC(aGCPFile, "File containning GCP coordinates",eSAM_IsExistFile),
                 LArgMain() << EAM(aMAFOut,"Out",false,"Output name of the generated MAF file, Def=Gen_MAF_Ori.xml")
                 );
 
@@ -393,8 +351,8 @@ int CompMAF_main(int argc,char ** argv)
             (
                 argc, argv,
                 LArgMain() << EAMC(aPatImgs,"Image pattern", eSAM_IsExistFile)
-                << EAMC(aMAF1, "MAF File 1",  eSAM_IsExistFile)
-                << EAMC(aMAF2, "MAF File 2",eSAM_IsExistFile),
+                           << EAMC(aMAF1, "MAF File 1",  eSAM_IsExistFile)
+                           << EAMC(aMAF2, "MAF File 2",eSAM_IsExistFile),
                 LArgMain() << EAM(aOut,"Out",false,"Output name of the generated CmpMAF file, Def=CmpMAF.xml")
                 );
     SplitDirAndFile(aDir,aImgs,aPatImgs);
@@ -448,8 +406,8 @@ int GenerateOriGPS_main(int argc,char ** argv)
             (
                 argc, argv,
                 LArgMain() << EAMC(aVImgPattern,"Image pattern, grouped by lever-arm", eSAM_IsExistFile)
-                << EAMC(aOri,"Orientation file",eSAM_IsExistDirOri)
-                << EAMC(aFileGpsLa,"CSV file containing GPS Lever-arms for every image pattern",eSAM_IsExistFile),
+                           << EAMC(aOri,"Orientation file",eSAM_IsExistDirOri)
+                           << EAMC(aFileGpsLa,"CSV file containing GPS Lever-arms for every image pattern",eSAM_IsExistFile),
                 LArgMain() << EAM(aOut,"Out",false,"Output name of the generated Ori file, Def=Ori-GPS_Gen/")
                 );
 
