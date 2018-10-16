@@ -834,6 +834,8 @@ int Test_TrajectoFromOri(int argc, char ** argv);
 int PlyBascule(int argc, char ** argv);
 
 int ConvertToNewFormatHom_Main(int argc, char ** argv);
+int ConvertToOldFormatHom_Main(int argc,char ** argv);
+
 int UnionFiltragePHom_Main(int argc, char ** argv);
 
 int TestYZ_main(int argc, char ** argv);
@@ -1129,6 +1131,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("ZBufferRaster",ZBufferRaster_main ,"Z Buffer Raster"));
 
         aRes.push_back(cMMCom("ConvNewFH",ConvertToNewFormatHom_Main ,"Convert Std Tie Points to new Formats for Multiple Point"));
+        aRes.push_back(cMMCom("ConvOldFH",ConvertToOldFormatHom_Main ,"Convert Multiple Tie Points to new Std Tie Points"));
+
         aRes.push_back(cMMCom("MergeFilterNewFH",UnionFiltragePHom_Main ,"Merge & Filter New Multiple Points"));
         aRes.push_back(cMMCom("TestYZ",TestYZ_main ,"TestYZ"));
         aRes.push_back(cMMCom("ReechHomol",ReechHomol_main ,"Apply map to homol folders to correct thermal deformation"));

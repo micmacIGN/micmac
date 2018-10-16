@@ -314,6 +314,7 @@ int UnionFiltragePHom_Main(int argc,char ** argv)
 
 
 
+
 /*********************************************************************/
 /*                                                                   */
 /*                  cCelImTPM                                        */
@@ -734,6 +735,7 @@ std::cout << "DONE \n";
 Pt2dr cSetPMul1ConfigTPM::GetPtByImgId(int aKp,int aQueryImgID)
 {
     // search for position of aQueryImgID in mVIdIm
+    //cout<<"SEARCH akp : "<<aKp<<" - aImInd : "<<aQueryImgID<<endl;
     int aPosIm=0;
     auto it = std::find(mVIdIm.begin(), mVIdIm.end(), aQueryImgID);
     if (it != mVIdIm.end())
@@ -745,6 +747,7 @@ Pt2dr cSetPMul1ConfigTPM::GetPtByImgId(int aKp,int aQueryImgID)
     ELISE_ASSERT(it != mVIdIm.end(), "Query Image ID not existed in this point Multp Config");
     ELISE_ASSERT(aKp < mNbPts, "Point not exist in this config");
     // call method Pt2dr Pt(aKp, founded_position)
+    //cout<<"FOUND : "<<aPosIm<<endl;
     return Pt(aKp,aPosIm);
 }
 void cSetPMul1ConfigTPM::IntersectBundle(std::map<int, CamStenope *>&         aCams,
@@ -857,6 +860,248 @@ std::vector<Pt3d<double> > cSetPMul1ConfigTPM::IntersectBundle(std::map<int,CamS
     } else { std::cout <<"Warn, for this TiePointMul config, not enough camera to perform bundle pseudo-intersection.\n";}
     return aRes;
 }
+
+
+/*******************************************************************/
+/*                                                                 */
+/*                Conversion NEW format to OLD format              */
+/*                                                                 */
+/*******************************************************************/
+class cPackHomol;
+class cGetionStdPackHomol;
+
+class cAppliConvertToOldFormatHom
+{
+    public :
+        cAppliConvertToOldFormatHom(int argc,char ** argv);
+    private :
+        void DoAll(cSetTiePMul * aSetPM,  cGetionStdPackHomol * aGes, cInterfChantierNameManipulateur *aICNM);
+        std::string         mPatImage;  // Pattern image d'entree
+        std::string         mSH;
+        std::string         mOut;
+        bool                mBin;
+        cElemAppliSetFile   mEASF;      // Gestion de fichier
+        const std::vector<std::string> * mFilesIm;  // vecteur nom d'image
+        bool                             mExpTxt;   // Bin ou Txt export
+        bool                             mIs2Way;
+};
+
+class cPackHomol
+{
+public :
+    cPackHomol(string aIm1, string aIm2, int aId1, int aId2);
+    cPackHomol(cCelImTPM * aIm1, cCelImTPM * aIm2);
+    ElPackHomologue mPackDirect;
+    ElPackHomologue mPackInverse;
+    string mIm1;
+    string mIm2;
+    int    mId1;
+    int    mId2;
+    std::pair<int, int> mPairId;
+    string CompileKey(string aHomolOut, bool isExpTxt, cInterfChantierNameManipulateur * aICNM, bool isDirect);
+};
+
+cPackHomol::cPackHomol(string aIm1, string aIm2, int aId1, int aId2) :
+    mPackDirect (ElPackHomologue()),
+    mPackInverse (ElPackHomologue()),
+    mIm1  (aIm1),
+    mIm2  (aIm2),
+    mId1  (aId1),
+    mId2  (aId2)
+{
+    mPairId.first = mId1;
+    mPairId.second = mId2;
+}
+
+cPackHomol::cPackHomol(cCelImTPM * aIm1, cCelImTPM * aIm2) :
+    mPackDirect (ElPackHomologue()),
+    mPackInverse (ElPackHomologue()),
+    mIm1 (aIm1->Name()),
+    mIm2 (aIm2->Name()),
+    mId1 (aIm1->Id()),
+    mId2 (aIm2->Id())
+{}
+
+
+string cPackHomol::CompileKey(string aHomolOut, bool isExpTxt, cInterfChantierNameManipulateur * aICNM, bool isDirect)
+{
+    std::string mKhOut =   std::string("NKS-Assoc-CplIm2Hom@")
+            +  aHomolOut
+            +  std::string("@")
+            +  std::string(isExpTxt ? "txt" : "dat");
+    if (isDirect)
+    {
+        return aICNM->Assoc1To2(mKhOut, mIm1, mIm2, true);
+    }
+    return aICNM->Assoc1To2(mKhOut, mIm2, mIm1, true);
+}
+
+class cGetionStdPackHomol
+{
+    public :
+        cGetionStdPackHomol(cSetTiePMul * aSetPM);
+        cPackHomol * GetPackHomolFromPairId(int aId1, int aId2);
+        void FillPMulConfigToHomolPack(cSetPMul1ConfigTPM * aPMConfig, bool is2Way);
+        void WriteToDisk(string aSH, bool isExpTxt, cInterfChantierNameManipulateur * aICNM, bool is2Way);
+    private :
+        cSetTiePMul * mSetPM;
+        vector<string> * mVSetIm;
+        vector<int> * mVSetId;
+        vector<cPackHomol*> mVPackHomol;
+        string mSH;
+        vector<std::pair<int, int> > mVPairId;
+        std::map<std::pair<int, int>  , cPackHomol*> mMap_PairId_PackHomol;
+};
+
+cGetionStdPackHomol::cGetionStdPackHomol(cSetTiePMul * aSetPM) :
+    mSetPM (aSetPM)
+{
+    cout<<"Init Homol Struct...";
+    cout<<"NbIm = "<<mSetPM->DicoIm().mNum2Im.size()<<endl;
+    
+    std::vector<cCelImTPM *>  aSetIm = mSetPM->DicoIm().mNum2Im;
+    
+    for (uint aK1=0 ; aK1 < aSetIm.size()-1; aK1++)
+    {
+        for (uint aK2=0; aK2 < aSetIm.size(); aK2++)
+        {
+            cCelImTPM * aIm1 = aSetIm[aK1];
+            cCelImTPM * aIm2 = aSetIm[aK2];
+            cPackHomol * aPack= new cPackHomol(aIm1, aIm2);
+            mVPackHomol.push_back(aPack);
+            //std::pair<int, int> * aPairId = new std::pair<int, int>(aIm1->Id(), aIm2->Id());
+            mVPairId.push_back(std::pair<int, int>(aIm1->Id(), aIm2->Id()));
+            mMap_PairId_PackHomol.insert(std::pair< std::pair<int, int> , cPackHomol*>
+                                                  (
+                                                    std::pair<int, int>(aIm1->Id(), aIm2->Id()),
+                                                    mVPackHomol.back()
+                                                  )
+                                         );
+        }
+    }
+    cout<<"DONE"<<endl;
+    
+}
+
+cPackHomol * cGetionStdPackHomol::GetPackHomolFromPairId(int aId1, int aId2)
+{    
+    auto it = mMap_PairId_PackHomol.find(std::pair<int,int>(aId1, aId2));
+    if (it != mMap_PairId_PackHomol.end())
+    {
+        return it->second;
+    }
+    else
+        return NULL;
+}
+
+void cGetionStdPackHomol::FillPMulConfigToHomolPack(cSetPMul1ConfigTPM * aPMConfig, bool is2Way)
+{
+    vector<int> aVImId = aPMConfig->VIdIm();
+    int aNbPtInConfig = aPMConfig->NbPts();
+    for (int aKPt=0; aKPt<aNbPtInConfig; aKPt++)
+    {
+        for (uint aKIm1=0; aKIm1<aVImId.size()-1; aKIm1++)
+        {
+            // pour chaque couple de point, remplir le pack
+            int aImId1 = aVImId[aKIm1];
+            Pt2dr aPt1 = aPMConfig->GetPtByImgId(aKPt, aImId1);
+            for (uint aKIm2=aKIm1+1; aKIm2<aVImId.size(); aKIm2++)
+            {
+                int aImId2 = aVImId[aKIm2];
+                Pt2dr aPt2 = aPMConfig->GetPtByImgId(aKPt, aImId2);
+                cPackHomol * aPack = this->GetPackHomolFromPairId(aImId1, aImId2);
+                if (aPack != NULL)
+                {
+                    aPack->mPackDirect.Cple_Add(ElCplePtsHomologues(aPt1, aPt2));
+                    if (is2Way)
+                    {
+                        aPack->mPackInverse.Cple_Add(ElCplePtsHomologues(aPt2, aPt1));
+                    }
+                }
+            }
+        }
+    }
+}
+
+void cGetionStdPackHomol::WriteToDisk(string aSH, bool isExpTxt, cInterfChantierNameManipulateur * aICNM, bool is2Way)
+{
+    cout<<"WRITE TO DISK : "<<aSH<<" Txt : "<<isExpTxt<<" ... ";
+    for (uint aK=0; aK<mVPackHomol.size(); aK++)
+    {
+        cPackHomol * aPack = mVPackHomol[aK];
+        if (aPack->mPackDirect.size() != 0)
+        {
+            aPack->mPackDirect.StdPutInFile(
+                                                aPack->CompileKey(aSH, isExpTxt, aICNM, 1)
+                                            );
+        }
+        if (is2Way && aPack->mPackInverse.size() != 0)
+        {
+            aPack->mPackInverse.StdPutInFile(
+                                                aPack->CompileKey(aSH, isExpTxt, aICNM, 0)
+                                            );
+        }
+    }
+    cout<<"DONE"<<endl;
+}
+
+
+void cAppliConvertToOldFormatHom::DoAll(cSetTiePMul * aSetPM, cGetionStdPackHomol * aGes,  cInterfChantierNameManipulateur * aICNM)
+{
+    // process each tie-points configuration
+    std::vector<cSetPMul1ConfigTPM *> aVSetPM = aSetPM->VPMul();
+    for (uint aK=0; aK<aVSetPM.size(); aK++)
+    {
+        cSetPMul1ConfigTPM * aPMConfig = aVSetPM[aK];
+        aGes->FillPMulConfigToHomolPack(aPMConfig, mIs2Way);
+    }
+    aGes->WriteToDisk(mOut, mExpTxt, aICNM, mIs2Way);
+}
+
+cAppliConvertToOldFormatHom::cAppliConvertToOldFormatHom(int argc,char ** argv) :
+    mSH (""),
+    mOut("_ConvOLDFormat"),
+    mBin(true),
+    mExpTxt(false),
+    mIs2Way(false)
+
+{
+    string aDir = "./";
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(mPatImage, "Pattern of images",  eSAM_IsPatFile),
+          LArgMain()  << EAM(mSH,"SH",true,"Suffix of homol file new format (PMul) folder, def= ")
+                      << EAM(mOut ,"Out",true,"Suffix for output homol folder, def=_ConvOLDFormat")
+                      << EAM(mBin,"Bin",true,"File type (of PMul), def=true (Binary)")
+                      << EAM(mExpTxt,"ExpTxt",true,"output homol in txt format? def false, dat format")
+                      << EAM(mIs2Way,"2Way",true,"Export homol in 2 direction, def=false")
+    );
+    cInterfChantierNameManipulateur*  aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    cSetTiePMul * aSetOutPM = new cSetTiePMul(0);
+
+
+         cElemAppliSetFile   anEASF_Im(mPatImage);
+         aSetOutPM->SetFilter(*(anEASF_Im.SetIm()));
+
+
+    const std::vector<std::string> * aVFileH = cSetTiePMul::StdSetName(aICNM,mSH,mBin);
+
+    for (int aKH=0 ; aKH<int(aVFileH->size())  ; aKH++)
+    {
+        aSetOutPM->AddFile(aDir+(*aVFileH)[aKH]);
+    }
+    cGetionStdPackHomol * aGes = new cGetionStdPackHomol(aSetOutPM);
+    this->DoAll(aSetOutPM, aGes, anEASF_Im.mICNM);
+}
+
+
+int ConvertToOldFormatHom_Main(int argc,char ** argv)
+{
+    cAppliConvertToOldFormatHom(argc,argv);
+    return EXIT_SUCCESS;
+}
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
