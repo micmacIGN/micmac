@@ -80,7 +80,6 @@ class cPicSize
 {
   public:
     cPicSize(Pt2di aSz);
-    cPicSize(const cPicSize &other);
     Pt2di getPicSz(){return mPicSz;}
     Pt2di getWinSz(){return mWinSz;}
     Pt2di getNbWin(){return mNbWin;}
