@@ -44,6 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../schnaps.h"
 #include <random>
 #include <ctime>
+#include <algorithm>
 
 struct StructHomol {
     int IdIm;
@@ -51,7 +52,6 @@ struct StructHomol {
     vector<int> VIdIm2;
     vector<ElPackHomologue> VElPackHomol;
 };
-
 
 // check if one image is in the image list
 bool IsInList(const std::vector<std::string> aVImgs, std::string aNameIm)
@@ -66,27 +66,19 @@ bool IsInList(const std::vector<std::string> aVImgs, std::string aNameIm)
     else return true;
 }
 
-bool IsInImage(Pt2dr aPt, Pt2dr aImgSz)
-{
-    if ((aPt.x >=0) && (aPt.x < aImgSz.x) && (aPt.y >=0) && (aPt.y < aImgSz.y))
-        return true;
-    else
-        return false;
-}
-
 int GenerateTP_main(int argc,char ** argv)
 {
     string aPatImgs,aDir,aImgs,aSH,aOri,aSHOut="Gen";
     vector<double> aNoiseGaussian(4,0.0);
     ElInitArgMain
-     (
-          argc, argv,
-          LArgMain() << EAMC(aPatImgs,"Image Pattern",eSAM_IsExistFile)
-                     << EAMC(aSH, "PMul File",  eSAM_IsExistFile)
-                     << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
-          LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, Def=Gen")
-                     << EAM(aNoiseGaussian,"NoiseGaussian",false,"[meanX,stdX,meanY,stdY]")
-     );
+            (
+                argc, argv,
+                LArgMain() << EAMC(aPatImgs,"Image Pattern",eSAM_IsExistFile)
+                           << EAMC(aSH, "PMul File",  eSAM_IsExistFile)
+                           << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
+                LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, Def=Gen")
+                           << EAM(aNoiseGaussian,"NoiseGaussian",false,"[meanX,stdX,meanY,stdY]")
+                );
 
     SplitDirAndFile(aDir,aImgs,aPatImgs);
 
@@ -140,7 +132,6 @@ int GenerateTP_main(int argc,char ** argv)
     aStructH.VIdIm2 = aVIdIm2;
     vector<StructHomol> aVStructH (VName2Im.size(),aStructH);
 
-
     //2. get 3D position of tie points
     std::cout << "Filling ElPackHomologue... !\n";
 
@@ -150,14 +141,13 @@ int GenerateTP_main(int argc,char ** argv)
     for (uint aKCnf=1; aKCnf<aVCnf.size(); aKCnf++)
     {
         cSetPMul1ConfigTPM * aCnf = aVCnf[aKCnf];
-
         std::vector<int> aVIdIm =  aCnf->VIdIm();
 
         // Parse all images in one Config
         for (uint aKPtCnf=0; aKPtCnf<uint(aCnf->NbPts()); aKPtCnf++)
         {
             vector<Pt2dr> aVPtInter;
-            vector<CamStenope*> aVCamInter; 
+            vector<CamStenope*> aVCamInter;
             vector<int> aVIdImInter;
 
             for (uint aKImCnf=0; aKImCnf<aVIdIm.size(); aKImCnf++)
@@ -198,10 +188,12 @@ int GenerateTP_main(int argc,char ** argv)
                     aVP2d.push_back(aPt2d);
                     aVCamInterVu.push_back(aCam);
                     aVIdImInterVu.push_back(aVIdImInter[itVCI]);
+                    cout.precision(17);
+                    std::cout << aPInter3D << endl;
                 }
 
-            }
 
+            }
             // parse images to fill ElPackHomologue
 
 
@@ -223,9 +215,9 @@ int GenerateTP_main(int argc,char ** argv)
             }
 
 
-         }
-
+        }
     }
+
 
     std::cout << "ElPackHomologue filled !\n";
 
@@ -265,7 +257,7 @@ int GenerateTP_main(int argc,char ** argv)
     }
     std::cout << "Finished writing Homol files ! \n";
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
 int GenerateMAF_main(int argc,char ** argv)
@@ -273,13 +265,13 @@ int GenerateMAF_main(int argc,char ** argv)
     string aPatImgs,aDir,aOri,aImgs,aGCPFile,aMAFOut;
 
     ElInitArgMain
-     (
-          argc, argv,
-          LArgMain() << EAMC(aPatImgs,"Image pattern", eSAM_IsExistFile)
-                     << EAMC(aOri, "Ori",  eSAM_IsExistDirOri)
-                     << EAMC(aGCPFile, "File containning GCP coordinates",eSAM_IsExistFile),
-          LArgMain() << EAM(aMAFOut,"Out",false,"Output name of the generated MAF file, Def=Gen_MAF_Ori.xml")
-     );
+            (
+                argc, argv,
+                LArgMain() << EAMC(aPatImgs,"Image pattern", eSAM_IsExistFile)
+                           << EAMC(aOri, "Ori",  eSAM_IsExistDirOri)
+                           << EAMC(aGCPFile, "File containning GCP coordinates",eSAM_IsExistFile),
+                LArgMain() << EAM(aMAFOut,"Out",false,"Output name of the generated MAF file, Def=Gen_MAF_Ori.xml")
+                );
 
     SplitDirAndFile(aDir,aImgs,aPatImgs);
 
@@ -301,12 +293,12 @@ int GenerateMAF_main(int argc,char ** argv)
 
     //read GCP coordinates
     cDicoAppuisFlottant aDicoAF = StdGetObjFromFile<cDicoAppuisFlottant>
-                         (
-                              aGCPFile,
-                              StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
-                              "DicoAppuisFlottant",
-                              "DicoAppuisFlottant"
-                         );
+            (
+                aGCPFile,
+                StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                "DicoAppuisFlottant",
+                "DicoAppuisFlottant"
+                );
 
     //output MAF file
     cSetOfMesureAppuisFlottants aDicoOut;
@@ -356,13 +348,13 @@ int CompMAF_main(int argc,char ** argv)
     string aOut="CmpMAF.xml";
 
     ElInitArgMain
-     (
-          argc, argv,
-          LArgMain() << EAMC(aPatImgs,"Image pattern", eSAM_IsExistFile)
-                     << EAMC(aMAF1, "MAF File 1",  eSAM_IsExistFile)
-                     << EAMC(aMAF2, "MAF File 2",eSAM_IsExistFile),
-          LArgMain() << EAM(aOut,"Out",false,"Output name of the generated CmpMAF file, Def=CmpMAF.xml")
-     );
+            (
+                argc, argv,
+                LArgMain() << EAMC(aPatImgs,"Image pattern", eSAM_IsExistFile)
+                           << EAMC(aMAF1, "MAF File 1",  eSAM_IsExistFile)
+                           << EAMC(aMAF2, "MAF File 2",eSAM_IsExistFile),
+                LArgMain() << EAM(aOut,"Out",false,"Output name of the generated CmpMAF file, Def=CmpMAF.xml")
+                );
     SplitDirAndFile(aDir,aImgs,aPatImgs);
 
     cSetOfMesureAppuisFlottants aDico1 = StdGetFromPCP(aMAF1,SetOfMesureAppuisFlottants);
@@ -411,13 +403,13 @@ int GenerateOriGPS_main(int argc,char ** argv)
     std::string aFileGpsLa;
 
     ElInitArgMain
-     (
-          argc, argv,
-          LArgMain() << EAMC(aVImgPattern,"Image pattern, grouped by lever-arm", eSAM_IsExistFile)
-                     << EAMC(aOri,"Orientation file",eSAM_IsExistDirOri)
-                     << EAMC(aFileGpsLa,"CSV file containing GPS Lever-arms for every image pattern",eSAM_IsExistFile),
-          LArgMain() << EAM(aOut,"Out",false,"Output name of the generated Ori file, Def=Ori-GPS_Gen/")
-     );
+            (
+                argc, argv,
+                LArgMain() << EAMC(aVImgPattern,"Image pattern, grouped by lever-arm", eSAM_IsExistFile)
+                           << EAMC(aOri,"Orientation file",eSAM_IsExistDirOri)
+                           << EAMC(aFileGpsLa,"CSV file containing GPS Lever-arms for every image pattern",eSAM_IsExistFile),
+                LArgMain() << EAM(aOut,"Out",false,"Output name of the generated Ori file, Def=Ori-GPS_Gen/")
+                );
 
     SplitDirAndFile(aDir,aImg,aVImgPattern[0]);
 
@@ -468,13 +460,9 @@ int GenerateOriGPS_main(int argc,char ** argv)
         for (uint iV=0; iV < aVImg.size(); iV++)
         {
             CamStenope * aCam = aICNM->StdCamStenOfNames(aVImg[iV], aOri);
-            //Pt3dr aCenterR3 = aCam->VraiOpticalCenter();
-            //std::cout << aCenterR3 << "---------------";
             Pt3dr aGpsLaR3 = aCam->L3toR3(aGpsLa);
-            //std::cout << aGpsLaR3 << endl;
-
-            ElRotation3D anOriGpsLa(-aGpsLaR3,0,0,0);
-            aCam->SetOrientation(anOriGpsLa);
+            ElRotation3D anOriGpsLa(aGpsLaR3,aCam->Orient().Mat().transpose(),false);
+            aCam->SetOrientation(anOriGpsLa.inv());
             cOrientationConique  anOC = aCam->StdExportCalibGlob();
             std::string aOriOut = aICNM->Assoc1To1(aKey,aVImg[iV],true);
             MakeFileXML(anOC,aOriOut);
