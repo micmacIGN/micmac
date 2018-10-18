@@ -38,6 +38,7 @@ See below and http://www.cecill.info.
 Header-MicMac-eLiSe-25/06/2007*/
 
 
+
 #include "StdAfx.h"
 #include <algorithm>
 #include "hassan/reechantillonnage.h"
@@ -56,6 +57,154 @@ void ASTER_Banniere()
 	std::cout << " *********************************\n\n";
 }
 
+int ASTERProjAngle2OtherBand_main(int argc, char ** argv)
+{
+	//std::string aNameIm, aNameIm2, aNameParallax, aNameDEM;
+	std::string aBandIn, aBandOut;
+	std::string aOutDir = "../";
+	//Reading the arguments
+	ElInitArgMain
+	(
+		argc, argv, 
+		LArgMain()
+		<< EAMC(aBandIn, "Name of 3N or 3B band where points are taken from (ex : AST_L1A_XXX_3N)", eSAM_IsPatFile)
+		<< EAMC(aBandOut, "Name of 3N or 3B band where points are projected to (ex : AST_L1A_XXX_3N)", eSAM_IsPatFile),
+		LArgMain()
+	);
+
+	std::string aDir, aSceneInName, aSceneOutName;
+	SplitDirAndFile(aDir, aSceneInName, aBandIn);
+	SplitDirAndFile(aDir, aSceneOutName, aBandOut);
+
+	//Reading the image
+	Tiff_Im aTF_In = Tiff_Im::StdConvGen(aDir + aSceneInName + ".tif", 1, false);
+	Pt2di aSz_In = aTF_In.sz(); cout << "size of image In = " << aSz_In << endl;
+
+	Tiff_Im aTF_Out = Tiff_Im::StdConvGen(aDir + aSceneOutName + ".tif", 1, false);
+	Pt2di aSz_Out = aTF_Out.sz(); cout << "size of image Out = " << aSz_Out << endl;
+
+	// Loading the GRID files
+	std::string aGRIBinInName = aDir + aSceneInName + ".GRIBin";
+	std::string aGRIBinOutName = aDir + aSceneOutName + ".GRIBin";
+	ElAffin2D oriIntImaM2C_In, oriIntImaM2C_Out;
+	Pt2di Sz(100000, 100000);
+	ElCamera* mCameraIn = new cCameraModuleOrientation(new OrientationGrille(aGRIBinInName), Sz, oriIntImaM2C_In);
+	ElCamera* mCameraOut = new cCameraModuleOrientation(new OrientationGrille(aGRIBinOutName), Sz, oriIntImaM2C_Out);
+
+	//Create output
+	std::ofstream fic("GeoI-Px/AngleFrom_" + aSceneInName + "_to_" + aSceneOutName + ".txt");
+	fic << std::setprecision(15);
+	fic << "X1 Y1 X2 Y2 Angle" << std::endl;
+	
+	// Compute values
+	vector<double> aVectAngles;
+	vector<Pt3dr> aVectPointsWithAnglesLeft, aVectPointsWithAnglesRight;
+	Pt3dr aPt;
+	for (size_t row = 0; row < aSz_In.y; row++)
+	{
+
+		// define points in image
+		Pt2dr aPtIm1(aSz_In.y / 4, row), aPtIm2(3 * aSz_In.y / 4, row);
+
+		//Compute ground coordinate of points with GRIBin
+		Pt2dr aPtOut1 = mCameraOut->Ter2Capteur(mCameraIn->ImEtZ2Terrain(aPtIm1, 0));
+		Pt2dr aPtOut2 = mCameraOut->Ter2Capteur(mCameraIn->ImEtZ2Terrain(aPtIm2, 0));
+
+		// Computing angles from horizontal
+		double aAngle;
+		// if left point is bellow right point
+		if (aPtOut1.y < aPtOut2.y)
+		{
+			aAngle = -180 / M_PI * atan(abs((aPtOut2.y - aPtOut1.y) / (aPtOut2.x - aPtOut1.x)));
+		}
+		// if left point is above right point
+		else
+		{
+			aAngle = 180 / M_PI * atan(abs((aPtOut2.y - aPtOut1.y) / (aPtOut2.x - aPtOut1.x)));
+		}
+
+		aVectAngles.push_back(aAngle);
+
+		//Record points for interpolation
+		aPt.x = aPtOut1.x; aPt.y = aPtOut1.y; aPt.z = aAngle;
+		aVectPointsWithAnglesLeft.push_back(aPt);
+		aPt.x = aPtOut2.x; aPt.y = aPtOut2.y; aPt.z = aAngle;
+		aVectPointsWithAnglesRight.push_back(aPt);
+
+		//cout << "Angle for row " << row << " : " << aAngle << endl;
+		fic << aPtOut1.x << " " << aPtOut1.y << " " << aPtOut2.x << " " << aPtOut2.y << " " <<  aAngle << std::endl;
+	}
+
+	//Output map
+	Im2D_REAL8  aAngleMap(aSz_Out.x, aSz_Out.y);
+	REAL ** aData_AngleMap = aAngleMap.data();
+
+	cout << "Starting interpolation of angles in Out band geometry" << endl;
+	double aAngleInterpolated;
+	for (size_t i = 0; i < aSz_Out.x; i++)
+	{
+		for (size_t j = 0; j < aSz_Out.y; j++)
+		{
+			// if points before the projection of the first points
+			if (j < min(aVectPointsWithAnglesLeft[0].y,aVectPointsWithAnglesRight[0].y))
+			{
+				aAngleInterpolated = aVectPointsWithAnglesLeft[0].z;
+			}
+			// if points after the projection of the last points
+			else if (j > max(aVectPointsWithAnglesLeft[aVectPointsWithAnglesLeft.size()-1].y,aVectPointsWithAnglesRight[aVectPointsWithAnglesRight.size()-1].y))
+			{
+				aAngleInterpolated = aVectPointsWithAnglesLeft[aVectPointsWithAnglesLeft.size() - 1].z;
+			}
+			else
+			{
+				//find point with min distance from points in aVectPointsWithAnglesLeft vectors (could work with aVectPointsWithAnglesRight) 
+				double minDist = 99999999;
+				double aDist;
+				for (size_t k = 0; k < aVectPointsWithAnglesLeft.size(); k++)
+				{
+					aDist = sqrt(pow((aVectPointsWithAnglesLeft[k].x - (double)i), 2) + pow((aVectPointsWithAnglesLeft[k].y - (double)j), 2));
+					if (aDist < minDist)
+					{
+						aDist = minDist;
+						aAngleInterpolated = aVectPointsWithAnglesLeft[k].z;
+					}
+
+				}
+				
+			}
+			// Record value
+			aData_AngleMap[j][i] = aAngleInterpolated;
+		}
+	}
+
+	// Export data
+	string aNameOut = aDir + "GeoI-Px/AngleFrom_" + aSceneInName + "_to_" + aSceneOutName + ".tif";
+	cout << "Exporting data to : " << aNameOut << endl;
+
+	Tiff_Im  aOut
+	(
+		aNameOut.c_str(),
+		aSz_Out,
+		GenIm::real8,
+		Tiff_Im::No_Compr,
+		Tiff_Im::BlackIsZero
+	);
+
+	ELISE_COPY
+	(
+		aOut.all_pts(),
+		aAngleMap.in(),
+		aOut.out()
+	);
+
+
+
+	ASTER_Banniere();
+
+	return 0;
+}
+
+
 int ASTERProjAngle_main(int argc, char ** argv)
 {
 	//std::string aNameIm, aNameIm2, aNameParallax, aNameDEM;
@@ -68,16 +217,16 @@ int ASTERProjAngle_main(int argc, char ** argv)
 		LArgMain()
 		<< EAMC(aDEMName, "DEM name without extension (\".tif\" and \".tfw\" are required. ex : MEC-Malt/Z_Num9_DeZoom1_STD-MALT)", eSAM_IsPatFile)
 		<< EAMC(aMaskName, "DEM mask name (ex : MEC-Malt/AutoMask_STD-MALT_Num_8.tif)", eSAM_IsPatFile)
-		<< EAMC(aSceneNameInit, "Name of 3N band (ex : AST_L1A_XXX_3N)", eSAM_IsPatFile),
+		<< EAMC(aSceneNameInit, "Name of 3N or 3B band (ex : AST_L1A_XXX_3N)", eSAM_IsPatFile),
 		LArgMain()
 	);
-	
+
 	std::string aDir, aSceneName;
 	SplitDirAndFile(aDir, aSceneName, aSceneNameInit);
 
 	//Reading the image
-	Tiff_Im aTF_3N = Tiff_Im::StdConvGen(aDir + aSceneName + ".tif", 1, false);
-	Pt2di aSz_3N = aTF_3N.sz(); cout << "size of image 3N = " << aSz_3N << endl;
+	Tiff_Im aTF_3 = Tiff_Im::StdConvGen(aDir + aSceneName + ".tif", 1, false);
+	Pt2di aSz_3 = aTF_3.sz(); cout << "size of image = " << aSz_3 << endl;
 
 	// Loading the GRID file
 	std::string aGRIBinname = aDir + aSceneName + ".GRIBin";
@@ -88,16 +237,16 @@ int ASTERProjAngle_main(int argc, char ** argv)
 
 	vector<double> aVectAngles;
 
-	for (size_t row = 0; row < aSz_3N.y; row++)
+	for (size_t row = 0; row < aSz_3.y; row++)
 	{
 
 		// define points in image
-		Pt2dr aPtIm1(aSz_3N.y / 4, row), aPtIm2(3 * aSz_3N.y / 4, row);
+		Pt2dr aPtIm1(aSz_3.y / 4, row), aPtIm2(3 * aSz_3.y / 4, row);
 
 		//Compute ground coordinate of points with GRIBin
-		Pt3dr aPtGr1 = mCamera->ImEtZ2Terrain(aPtIm1,0);
+		Pt3dr aPtGr1 = mCamera->ImEtZ2Terrain(aPtIm1, 0);
 		Pt3dr aPtGr2 = mCamera->ImEtZ2Terrain(aPtIm2, 0);
-		
+
 		// Computing angles
 		// Track NE-SW
 		if (aPtGr1.x < aPtGr2.x && aPtGr1.y > aPtGr2.y)
@@ -176,7 +325,7 @@ int ASTERProjAngle_main(int argc, char ** argv)
 			}
 			else
 			{
-				Pt3dr aPtGr(aCorner_East+i*aRes_xEast+j*aRes_yEast, aCorner_North + i*aRes_xNorth + j*aRes_yNorth, aData_DEM[j][i]);
+				Pt3dr aPtGr(aCorner_East + i*aRes_xEast + j*aRes_yEast, aCorner_North + i*aRes_xNorth + j*aRes_yNorth, aData_DEM[j][i]);
 				Pt2dr aPtIm = mCamera->Ter2Capteur(aPtGr);
 				//No need to check if in camera since if not, then it wouldn't be in the DEM
 
@@ -210,8 +359,8 @@ int ASTERProjAngle_main(int argc, char ** argv)
 		aAngleMap.in(),
 		aOut.out()
 	);
-	
-	
+
+
 
 	ASTER_Banniere();
 	return 0;
@@ -268,7 +417,7 @@ std::cout << "Number of points in direct grid : " << vPtCarto.size() << std::end
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant ?  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -284,17 +433,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  ?  l'utilisation,  ?  la modification et/ou au
+développement et ?  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe ?
+manipuler et qui le réserve donc ?  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités ?  charger  et  tester  l'adéquation  du
+logiciel ?  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+?  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder ?  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

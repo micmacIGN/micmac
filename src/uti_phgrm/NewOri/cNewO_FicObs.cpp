@@ -42,11 +42,16 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../Apero/cPose.cpp"
 //extern bool ERupnik_MM();
 
+
+/* contains both triplets and couples;
+   if couples then aC3=0 */
 struct TripleStr
 {
     public :
-        TripleStr(const CamStenope *aC1,CamStenope *aC2,CamStenope *aC3,
-                  const int aId1,const int aId2,const int aId3) :
+        
+        TripleStr(const CamStenope *aC1,const int aId1,
+                  const CamStenope *aC2,const int aId2,
+                  const CamStenope *aC3=0,const int aId3=0) :
                   mC1(aC1),
                   mC2(aC2),
                   mC3(aC3),
@@ -75,6 +80,7 @@ class cAppliFictObs : public cCommonMartiniAppli
         void InitNFHomOne(std::string&,std::string&);
         void CalcResidPoly();
         void GenerateFicticiousObs();
+        bool IsInSz(Pt2dr&) const;
 
         void UpdateAR(const ElPackHomologue*,const ElPackHomologue*,const ElPackHomologue*,
                       const int); 
@@ -98,19 +104,20 @@ class cAppliFictObs : public cCommonMartiniAppli
         std::map<std::string,ElPackHomologue *>                 mHomRed; //hom name, hom
         std::map<std::string,std::map<std::string,std::string>> mHomMap; //cam name, cam name, hom name
         std::string                                             mHomExp;
-        std::map<int,cAccumResidu *>        mAR;
+        
+        cXml_TopoTriplet               mLT;
+        cSauvegardeNamedRel            mLCpl;
 
-        cXml_TopoTriplet            mLT;
-
-        std::map<std::string,int>   mNameMap;
-        std::map<int, TripleStr*>   mTriMap;
+        std::map<std::string,int>      mNameMap;
+        std::map<int, TripleStr*>      mTriMap;
+        std::map<int,cAccumResidu *>   mAR;
 
         Pt2di                       mSz;
         int                         mResPoly;
         int                         mRedFacSup;
         double                      mResMax;
 
-        const std::vector<std::string> * mSetName;
+        const std::vector<std::string> * mSetName;//redundant with mNameMap; best to remove and be coherent
         std::string                      mDir;
         std::string                      mPattern;
         std::string                      mOut;
@@ -168,106 +175,148 @@ Pt2di cAppliFictObs::ApplyRedFac(Pt2dr& aP)
     return aRes;
 }
 
+bool cAppliFictObs::IsInSz(Pt2dr& aP) const
+{
+    if ((aP.x > 0) && (aP.x < mSz.x) &&
+        (aP.y > 0) && (aP.y < mSz.y))
+        return true;
+    else
+        return false;
+
+}
 
 void cAppliFictObs::GenerateFicticiousObs()
 {
 
     int aNPtNum=0;
-    int aTriNum=0;
 
-    /* pour chaque triplet recouper son elipse3d et genere les obs fict,
-       alternatively recalculate the ellipse - to do
-    */
-    for (auto a3 : mLT.Triplets())
+
+    /* pour chaque triplet/cple recouper son elipse3d et genere les obs fict */
+    for (auto aT : mTriMap)
     {
-        std::string  aName3R = mNM->NameOriOptimTriplet(true,a3.Name1(),a3.Name2(),a3.Name3());
-        cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
-    
-        cXml_Elips3D anEl = aXml3Ori.Elips();
         
+        cXml_Elips3D anEl;
+
+        //triplets
+        if (aT.second->mC3)
+        {
+            /*std::cout << "tri " << mSetName->at(aT.second->mId1) << " " 
+                                << mSetName->at(aT.second->mId2) << " " 
+                                << mSetName->at(aT.second->mId3) << "\n";*/
+
+            std::string  aName3R = mNM->NameOriOptimTriplet(true,mSetName->at(aT.second->mId1),
+                                                                 mSetName->at(aT.second->mId2),
+                                                                 mSetName->at(aT.second->mId3));
+            cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
+            anEl = aXml3Ori.Elips();
+        }
+        else//cple
+        {
+            std::cout << "cple" << "\n";
+            std::string aNamOri = mNM->NameXmlOri2Im(mSetName->at(aT.second->mId1),
+                                                     mSetName->at(aT.second->mId2),true);
+            cXml_Ori2Im aXml2Ori = StdGetFromSI(aNamOri,Xml_Ori2Im);
+            anEl = aXml2Ori.Geom().Val().Elips();
+        } 
+   
         cGenGaus3D aGG1(anEl);
         std::vector<Pt3dr> aVP;
-
+    
         //generate the obs fict
         aGG1.GetDistribGaus(aVP,mNumFPts,mNumFPts,mNumFPts);
         aNPtNum += (int)aVP.size();
-        
 
-        //get cams
-        const CamStenope * aC1 = mTriMap[aTriNum]->mC1;
-        const CamStenope * aC2 = mTriMap[aTriNum]->mC2;
-        const CamStenope * aC3 = mTriMap[aTriNum]->mC3;
+        //print the pts
+        if (0)
+        {
+            cPlyCloud aPlyEl;
+            for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+            {
+                aPlyEl.AddPt(Pt3di(255,255,255),aVP[aK]);
+            }
+            aPlyEl.PutFile("El-" + mSetName->at(aT.second->mId1) + "-" + 
+                                   mSetName->at(aT.second->mId2) + "-" +
+                                   mSetName->at(aT.second->mId3) + ".ply");
+        }
 
-        //cam ids
-        std::vector<int> aTriIds{mTriMap[aTriNum]->mId1,
-                                 mTriMap[aTriNum]->mId2,
-                                 mTriMap[aTriNum]->mId3};
-        
 
-        //back-proj the fict points to the triplet
+        //get all cams
+        std::vector<const CamStenope * > aVC;
+        if (aT.second->mC3)
+            aVC = {aT.second->mC1,
+                   aT.second->mC2,
+                   aT.second->mC3};
+        else
+            aVC = {aT.second->mC1,
+                   aT.second->mC2};
+
+        //all cam ids
+        std::vector<int> aTriIds;
+        if (aT.second->mC3)
+            aTriIds = {aT.second->mId1,
+                       aT.second->mId2,
+                       aT.second->mId3};
+        else
+            aTriIds = {aT.second->mId1,
+                       aT.second->mId2};
+
+        //back-proj the fict points to the triplet/cple
         for (int aK=0; aK<(int)aVP.size(); aK++)
         {
-
+            //backrproj
             std::vector<Pt2dr> aPImV;
-            aPImV.push_back(aC1->Ter2Capteur(aVP.at(aK)));
-            aPImV.push_back(aC2->Ter2Capteur(aVP.at(aK)));
-            aPImV.push_back(aC3->Ter2Capteur(aVP.at(aK)));
-
-            if ((aPImV.at(0).x > 0) && (aPImV.at(0).x < mSz.x) &&
-                (aPImV.at(0).y > 0) && (aPImV.at(0).y < mSz.y) &&
-                (aPImV.at(1).x > 0) && (aPImV.at(1).x < mSz.x) &&
-                (aPImV.at(1).y > 0) && (aPImV.at(1).y < mSz.y) &&
-                (aPImV.at(2).x > 0) && (aPImV.at(2).x < mSz.x) &&
-                (aPImV.at(2).y > 0) && (aPImV.at(2).y < mSz.y))
+            for (int aC=0; aC<int(aVC.size()); aC++) 
             {
-                
+                Pt2dr aPt = aVC.at(aC)->Ter2Capteur(aVP.at(aK));
+                aPImV.push_back(aPt);
+            }
+            
+            //add residual
+            for (int aC=0; aC<int(aVC.size()); aC++)
+            {
+                Pt2dr aPCor;
+                mAR[aT.second->mId1]->ExportResXY(ApplyRedFac(aPImV.at(aC)),aPCor);
 
-/*                TIm2D<REAL4,REAL8> aTRx(mAR[mTriMap[aTriNum]->mId1]->SzRed());
-                TIm2D<REAL4,REAL8> aTRy(mAR[mTriMap[aTriNum]->mId1]->SzRed());*/
-               
-                /*mAR[mTriMap[aTriNum]->mId1]->ExportResXY(&aTRx,&aTRy);
-                Pt2dr aP1Cor; 
-                aP1Cor.x = aTRx.get(ApplyRedFac(aPImV.at(0)));           
-                aP1Cor.y = aTRy.get(ApplyRedFac(aPImV.at(0)));*/
-                Pt2dr aP1Cor; 
-                mAR[mTriMap[aTriNum]->mId1]->ExportResXY(ApplyRedFac(aPImV.at(0)),aP1Cor);
-                aPImV.at(0) += aP1Cor;                
-
-             
-                Pt2dr aP2Cor; 
-                mAR[mTriMap[aTriNum]->mId2]->ExportResXY(ApplyRedFac(aPImV.at(1)),aP2Cor);
-                aPImV.at(1) += aP2Cor;
-             
-                Pt2dr aP3Cor;
-                mAR[mTriMap[aTriNum]->mId3]->ExportResXY(ApplyRedFac(aPImV.at(2)),aP3Cor);
-                aPImV.at(2) += aP3Cor;
-             
+                aPImV.at(aC) += aPCor;
+                    
+            }
+            
+            //trash points that project out of image
+            int aInSz=0;
+            for (int aC=0; aC<int(aVC.size()); aC++)
+                if (IsInSz(aPImV.at(aC)))
+                    aInSz++;
+            if (aInSz==int(aVC.size()))
+            {
                 std::vector<float> aAttr;
                 SaveHomolOne(aTriIds,aPImV,aAttr);
-             
-                if (0)
+            }
+
+            if (0)
+            {
+                std::vector<ElSeg3D> aSegV;
+                std::vector<double> aVPds;
+           
+                for (int aC=0; aC<int(aVC.size()); aC++)
                 {
-                    std::vector<ElSeg3D> aSegV;
-                    std::vector<double> aVPds;
-             
-                    aSegV.push_back(aC1->Capteur2RayTer(aPImV.at(0)));
-                    aSegV.push_back(aC2->Capteur2RayTer(aPImV.at(1)));
-                    aSegV.push_back(aC3->Capteur2RayTer(aPImV.at(2)));
-             
+                    aSegV.push_back(aVC.at(aC)->Capteur2RayTer(aPImV.at(aC))); 
                     aVPds.push_back(1.0);
-                    aVPds.push_back(1.0);
-                    aVPds.push_back(1.0);
-             
-                    bool ISOK=false;
-                    Pt3dr aPVerif = ElSeg3D::L2InterFaisceaux(&aVPds,aSegV,&ISOK);
-                    std::cout << "P=" << aVP.at(aK) << ", p=" << aPImV.at(0) << " " << aPImV.at(1) << " " << aPImV.at(2) << 
-                              " \nPVerif=" << aPVerif  << " ISOK? " << ISOK << "\n";
-                    getchar();
                 }
+            
+            
+                bool ISOK=false;
+                Pt3dr aPVerif = ElSeg3D::L2InterFaisceaux(&aVPds,aSegV,&ISOK);
+                std::cout << "P=" << aVP.at(aK) << ", p=" << aPImV.at(0) << " " << aPImV.at(1) << " " << aPImV.at(2) <<
+                          " \nPVerif=" << aPVerif  << " ISOK? " << ISOK << "\n";
+                getchar();
+
             }
         }
-        aTriNum++;
+        
+
     }
+
+
     
     std::string aSaveTo = "Homol" + mOut + "/PMul-" + mOut + ".txt";
     SaveHomol(aSaveTo);
@@ -328,28 +377,32 @@ void cAppliFictObs::UpdateAROne(const ElPackHomologue* aPack,
                                 const CamStenope* aC1,const CamStenope* aC2,
                                 const int aC1Id,const int aC2Id)
 {
-    for (ElPackHomologue::const_iterator itP=aPack->begin(); itP!=aPack->end(); itP++)
+    
+    if (aC1 && aC2)
     {
-        Pt2dr aDir1,aDir2;
-
-        double aRes1 = aC1->EpipolarEcart(itP->P1(),*aC2,itP->P2(),&aDir1);
-        double aRes2 = aC2->EpipolarEcart(itP->P2(),*aC1,itP->P1(),&aDir2);
-
-        if ((aRes1<mResMax) && (aRes1>-mResMax) && (aRes2>-mResMax) && (aRes2<mResMax)) 
+        for (ElPackHomologue::const_iterator itP=aPack->begin(); itP!=aPack->end(); itP++)
         {
-            cInfoAccumRes aInf1(itP->P1(),1.0,aRes1,aDir1);
-            mAR[aC1Id]->Accum(aInf1);
-
-            cInfoAccumRes aInf2(itP->P2(),1.0,aRes2,aDir2);
-            mAR[aC2Id]->Accum(aInf2);
+            Pt2dr aDir1,aDir2;
+ 
+            double aRes1 = aC1->EpipolarEcart(itP->P1(),*aC2,itP->P2(),&aDir1);
+            double aRes2 = aC2->EpipolarEcart(itP->P2(),*aC1,itP->P1(),&aDir2);
+ 
+            if ((aRes1<mResMax) && (aRes1>-mResMax) && (aRes2>-mResMax) && (aRes2<mResMax)) 
+            {
+                cInfoAccumRes aInf1(itP->P1(),1.0,aRes1,aDir1);
+                mAR[aC1Id]->Accum(aInf1);
+ 
+                cInfoAccumRes aInf2(itP->P2(),1.0,aRes2,aDir2);
+                mAR[aC2Id]->Accum(aInf2);
+            }
+            /* else   //it still somewhat strange there are pts with this large spread
+            {
+                std::cout << "P1=" << itP->P1() << ", P2=" << itP->P2() << " ";
+                std::cout << "Res1=" << aRes1 << ", Res2=" << aRes2 << "\n";
+ 
+            } */
+ 
         }
-        /* else   //it still somewhat strange there are pts with this large spread
-        {
-            std::cout << "P1=" << itP->P1() << ", P2=" << itP->P2() << " ";
-            std::cout << "Res1=" << aRes1 << ", Res2=" << aRes2 << "\n";
-
-        } */
-
     }
 }
 
@@ -381,25 +434,22 @@ void cAppliFictObs::CalcResidPoly()
 
 
     int aTriNum=0;
-    for (auto a3 : mLT.Triplets())
+    for (auto aT : mTriMap)
     {
-  
         /* Cam1 - Cam2 Homol */
-        //mNM->LoadHomFloats(a3.Name1(),a3.Name2(),&aVP12,&aVP21);
-        const ElPackHomologue aElHom12 = mNM->PackOfName(a3.Name1(),a3.Name2());
-    
+        const ElPackHomologue aElHom12 = mNM->PackOfName(mSetName->at(aT.second->mId1),mSetName->at(aT.second->mId2));
+
         /* Cam1 - Cam3 Homol */
-        //mNM->LoadHomFloats(a3.Name1(),a3.Name3(),&aVP13,&aVP31);
-        const ElPackHomologue aElHom13 = mNM->PackOfName(a3.Name1(),a3.Name3());
-
+        const ElPackHomologue aElHom13 = mNM->PackOfName(mSetName->at(aT.second->mId1),mSetName->at(aT.second->mId3));
+    
         /* Cam2 - Cam3 Homol */
-        //mNM->LoadHomFloats(a3.Name2(),a3.Name3(),&aVP23,&aVP32);
-        const ElPackHomologue aElHom23 = mNM->PackOfName(a3.Name2(),a3.Name3());
+        const ElPackHomologue aElHom23 = mNM->PackOfName(mSetName->at(aT.second->mId2),mSetName->at(aT.second->mId3));
 
- 
         UpdateAR(&aElHom12,&aElHom13,&aElHom23,aTriNum);
         aTriNum++;
+
     }
+
 
     FILE* aFileExpImRes = FopenNN("StatRes.txt","w","cAppliFictObs::CalcResidPoly");
     cUseExportImageResidu aUEIR;
@@ -409,7 +459,9 @@ void cAppliFictObs::CalcResidPoly()
     aUEIR.NbMesByCase() = 10;
     aUEIR.GeneratePly() = true;
 
-    mAR[0]->Export("./","TestRes",aUEIR,aFileExpImRes);
+    if (0)
+        mAR[0]->Export("./","TestRes",aUEIR,aFileExpImRes);
+    
     fclose(aFileExpImRes); 
 
     std::cout << "cAppliFictObs::CalcResidPoly()" << "\n";    
@@ -432,14 +484,21 @@ void cAppliFictObs::Initialize()
     //triplets
     std::string aNameLTriplets = mNM->NameTopoTriplet(true);
     mLT = StdGetFromSI(aNameLTriplets,Xml_TopoTriplet);
-    
+   
+    //couples 
+    std::string aNameLCple = mNM->NameListeCpleOriented(true);
+    mLCpl = StdGetFromSI(aNameLCple,SauvegardeNamedRel); 
+ 
     //initialize reduced tie-points
     if (NFHom)
         mPMulRed = new cSetTiePMul(0,mSetName);
     else
         InitNFHom();
 
-    //update orientations in mCamMap
+    //variable to avoid couple repetitions in mTriMap
+    std::map<std::string,int> aDoneCples;
+
+    //update triplet orientations in mTriMap
     int aTriNb=0;
     for (auto a3 : mLT.Triplets())
     {
@@ -468,12 +527,56 @@ void cAppliFictObs::Initialize()
         aC2->SetOrientation(aP2.inv());
         aC3->SetOrientation(aP3.inv());
 
-        mTriMap[aTriNb] = new TripleStr(aC1,aC2,aC3,
-                                        mNameMap[a3.Name1()],
-                                        mNameMap[a3.Name2()],
-                                        mNameMap[a3.Name3()]);
+        aDoneCples[a3.Name1()+a3.Name2()] = aTriNb;
+        aDoneCples[a3.Name2()+a3.Name1()] = aTriNb; 
+        aDoneCples[a3.Name1()+a3.Name3()] = aTriNb; 
+        aDoneCples[a3.Name3()+a3.Name1()] = aTriNb; 
+        aDoneCples[a3.Name2()+a3.Name3()] = aTriNb; 
+        aDoneCples[a3.Name3()+a3.Name2()] = aTriNb; 
+
+
+        mTriMap[aTriNb] = new TripleStr(aC1,mNameMap[a3.Name1()],
+                                        aC2,mNameMap[a3.Name2()],
+                                        aC3,mNameMap[a3.Name3()]);
+
+
+        if (0)        
+            std::cout << "Triplet " << aTriNb << " " << a3.Name1() << " " << a3.Name2() << " " << a3.Name3() << "\n";
 
         aTriNb++;
+
+    }
+    //update couples orientations in mTriMap
+    for (auto a2 : mLCpl.Cple())
+    {
+        
+        //poses
+        bool OK;
+        ElRotation3D aP1 = ElRotation3D::Id;
+        ElRotation3D aP2 = mNM->OriCam2On1 (a2.N1(),a2.N2(),OK);
+        if(!OK)
+            std::cout << "cAppliFictObs::Initialize() warning - no elipse3D for couple " 
+                      << a2.N1() << " " << a2.N2() << "\n";
+
+        CamStenope *aC1 = mNM->CamOfName(a2.N1()); 
+        CamStenope *aC2 = mNM->CamOfName(a2.N2());
+
+        //should handle camera-variant calibration
+        if (aC1==aC2)
+            aC2 = aC1->Dupl();
+
+        //update poses
+        aC1->SetOrientation(aP1.inv()); 
+        aC2->SetOrientation(aP2.inv()); 
+
+        //avoid repetitions
+        if (! DicBoolFind(aDoneCples,a2.N1()+a2.N2()))
+        {
+            mTriMap[aTriNb] = new TripleStr(aC1,mNameMap[a2.N1()],
+                                            aC2,mNameMap[a2.N2()]);
+            std::cout << "Pair outside triplets:" << aTriNb << " " << a2.N1() << " " << a2.N2() << "\n";
+            aTriNb++;
+        }
 
     }
     
@@ -482,7 +585,7 @@ void cAppliFictObs::Initialize()
         mSz = mTriMap[0]->mC1->Sz();
     }
     else
-        ELISE_ASSERT(false,"cAppliFictObs::Initialize no triplets found");
+        ELISE_ASSERT(false,"cAppliFictObs::Initialize no couples or triplets found");
 }   
 
 
@@ -503,6 +606,7 @@ void cAppliFictObs::InitNFHomOne(std::string& N1,std::string& N2)
 void cAppliFictObs::InitNFHom()
 {
 
+    //triplets
     for (auto a3 : mLT.Triplets())
     {
         //symmetrique points
@@ -516,8 +620,16 @@ void cAppliFictObs::InitNFHom()
         InitNFHomOne(a3.Name3(),a3.Name2());
 
 
-            //StdPutInFile
     } 
+
+    //couples
+    for (auto a2 : mLCpl.Cple())
+    {
+        std::string aN1 = a2.N1();
+        std::string aN2 = a2.N2();
+        InitNFHomOne(aN1,aN2);
+        InitNFHomOne(aN2,aN1);
+    }
 }
 
 

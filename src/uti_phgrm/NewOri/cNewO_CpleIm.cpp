@@ -537,6 +537,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
         anErr = aBundle->ErrInitRobuste(mBestSol,0.75);
    }
 
+    //elipse 2d
     cXml_Elips2D anElips2D;
     RazEllips(anElips2D);
     for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
@@ -546,6 +547,30 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     }
     NormEllips(anElips2D);
     aXCmp.Elips2().SetVal(anElips2D);
+
+    //elipse 3d
+    cXml_Elips3D anElips3D;
+    RazEllips(anElips3D);
+
+    for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
+    {
+       std::vector<Pt3dr> aW1;
+       std::vector<Pt3dr> aW2;
+    
+       Pt2df aP1(itP->P1());
+       Pt2df aP2(itP->P2());
+
+       AddSegOfRot(aW1,aW2,ElRotation3D::Id,aP1);
+       AddSegOfRot(aW1,aW2,mBestSol,aP2);
+
+       bool OkI;
+       Pt3dr aI = InterSeg(aW1,aW2,OkI);
+
+       AddEllips(anElips3D,aI,1.0);
+    }
+    NormEllips(anElips3D);
+    aXCmp.Elips() = anElips3D;
+    
 
     double anErr90 =  mFullPvIBI->ErrInitRobuste(mBestSol,0.90);
     mIA =  MedianNuage(mPackStdRed,mBestSol);

@@ -881,7 +881,7 @@ void cAppliOptimTriplet::Execute()
        std::vector<Pt3dr> aW2;
        AddSegOfRot(aW1,aW2,mIm1->Ori(),aVP1.at(aK));
        AddSegOfRot(aW1,aW2,mIm2->Ori(),aVP2.at(aK));
-       AddSegOfRot(aW1,aW2,mIm2->Ori(),aVP3.at(aK));
+       AddSegOfRot(aW1,aW2,mIm3->Ori(),aVP3.at(aK));
 
        bool OkI;
        Pt3dr aI = InterSeg(aW1,aW2,OkI);
