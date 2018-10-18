@@ -803,11 +803,11 @@ std::vector<Pt3d<double> > cSetPMul1ConfigTPM::IntersectBundle(std::map<int,CamS
 
     // loop on mVIdIm and determine if the Camera is provided in the Map of Cam
     for (auto & IdIm: mVIdIm){
-       bool found (0);
+       //bool found (0); ER removed warnning
 
         for (auto & Cam : aMCams){
             if (Cam.first==IdIm) {
-                found=1;
+                //found=1; ER removed warning variable unused
 std::cout << "yes " ;
                 aVCam.push_back(Cam.second);
                 aVIdIm.push_back(IdIm);
@@ -837,11 +837,11 @@ std::vector<Pt3d<double> > cSetPMul1ConfigTPM::IntersectBundle(std::map<int,CamS
 
     // loop on mVIdIm and determine if the Camera is provided in the Map of Cam
     for (auto & IdIm: mVIdIm){
-        bool found (0); 
+        //bool found (0); ER removed warning 
 
         for (auto & Cam : aMCams){
             if (Cam.first==IdIm) {
-                found=1;
+                //found=1; ER removed warning variable unused
                 aVCam.push_back(Cam.second);
                 aVIdIm.push_back(IdIm);
                 break;

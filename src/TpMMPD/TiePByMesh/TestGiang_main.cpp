@@ -3022,7 +3022,7 @@ int Image_Vide(int argc,char ** argv)
     ELISE_ASSERT(mSetIm.size()>0,"ERROR: No image found!");
 
     /* Create empty images */
-    for (int aKIm=0; aKIm<mSetIm.size(); aKIm++)
+    for (int aKIm=0; aKIm<int(mSetIm.size()); aKIm++)
     {
 
         // === EWELINA Tricks ====
