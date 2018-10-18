@@ -45,6 +45,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <random>
 #include <ctime>
 #include <algorithm>
+#include "../TpPPMD.h"
+#include<iostream>
+#include<fstream>
+
 
 struct StructHomol {
     int IdIm;
@@ -66,10 +70,19 @@ bool IsInList(const std::vector<std::string> aVImgs, std::string aNameIm)
     else return true;
 }
 
+// check if one point is in the image
+bool IsInImage(Pt2di aSz, Pt2dr aPt)
+{
+    if ((aPt.x>=0) && (aPt.x<double(aSz.x)) && (aPt.y>=0) && (aPt.y < double(aSz.y)))
+        return true;
+    return false;
+}
+
 int GenerateTP_main(int argc,char ** argv)
 {
-    string aPatImgs,aDir,aImgs,aSH,aOri,aSHOut="Gen";
+    string aPatImgs,aDir,aImgs,aSH,aOri,aSHOut="Gen",aNameImNX,aNameImNY;
     vector<double> aNoiseGaussian(4,0.0);
+    int aSeed;
     ElInitArgMain
             (
                 argc, argv,
@@ -77,7 +90,10 @@ int GenerateTP_main(int argc,char ** argv)
                            << EAMC(aSH, "PMul File",  eSAM_IsExistFile)
                            << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
                 LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, Def=Gen")
+                           << EAM(aSeed,"Seed",false,"Seed for generating random noise")
                            << EAM(aNoiseGaussian,"NoiseGaussian",false,"[meanX,stdX,meanY,stdY]")
+                           << EAM(aNameImNX,"ImNX",false,"image containing noise on X-axis")
+                           << EAM(aNameImNY,"ImNY",false,"image containing noise on Y-axis")
                 );
 
     SplitDirAndFile(aDir,aImgs,aPatImgs);
@@ -87,8 +103,40 @@ int GenerateTP_main(int argc,char ** argv)
 
     const std::vector<std::string> aVImgs = *(aICNM->Get(aImgs));
 
+
+    // read images containing noise
+    Im2D<double,double>  aImNX, aImNY;
+
+    if(EAMIsInit(&aNameImNX))
+    {
+        //read ImNX
+
+        aImNX = Im2D<double,double>::FromFileStd(aDir + aNameImNX);
+        Pt2di aSzImNX = aImNX.sz();
+        std::cout << "NX" << aNameImNX << " : " << aSzImNX << endl;
+//        double ** aImNXData=aImNX.data();
+//        std::cout << aImNXData[5][5] << endl;
+
+    }
+
+    if(EAMIsInit(&aNameImNY))
+    {
+        //read ImNY
+
+        aImNY = Im2D<double,double>::FromFileStd(aDir + aNameImNY);
+        Pt2di aSzImNY = aImNY.sz();
+        std::cout << "NY" << aNameImNY << " : " << aSzImNY << endl;
+//        double ** aImNXData=aImNX.data();
+//        std::cout << aImNXData[5][5] << endl;
+
+    }
+
+
     //generation of noise on X & Y
-    std::default_random_engine generator(time(0)); //seed
+    if(!EAMIsInit(&aSeed))  aSeed=time(0);
+
+    std::default_random_engine generator(aSeed);
+
     std::normal_distribution<double> distributionX(aNoiseGaussian[0],aNoiseGaussian[1]);
     std::normal_distribution<double> distributionY(aNoiseGaussian[2],aNoiseGaussian[3]);
 
@@ -136,7 +184,10 @@ int GenerateTP_main(int argc,char ** argv)
     std::cout << "Filling ElPackHomologue... !\n";
 
     // parse Configs aVCnf
-    std::cout << "Gaussian Noise: " << aNoiseGaussian << endl;
+    if (EAMIsInit(&aNoiseGaussian))
+    {
+        std::cout << "Gaussian Noise: " << aNoiseGaussian << endl;
+    }
     std::vector<cSetPMul1ConfigTPM *> aVCnf = aSHIn->VPMul();
     for (uint aKCnf=1; aKCnf<aVCnf.size(); aKCnf++)
     {
@@ -175,6 +226,14 @@ int GenerateTP_main(int argc,char ** argv)
                 //std::cout << aPt2d << "----------------";
 
                 // add noise
+                if (EAMIsInit(&aNameImNX))
+                {
+                    aPt2d.x += aImNX.data()[int(round(aPt2d.y))][int(round(aPt2d.x))];
+                }
+                if (EAMIsInit(&aNameImNY))
+                {
+                    aPt2d.y += aImNY.data()[int(round(aPt2d.y))][int(round(aPt2d.x))];
+                }
                 if (EAMIsInit(&aNoiseGaussian))
                 {
                     aPt2d.x += distributionX(generator);
@@ -183,13 +242,13 @@ int GenerateTP_main(int argc,char ** argv)
                 //std::cout << aPt2d << endl;
 
                 //check if the point is in the camera view
-                if (aCam->PIsVisibleInImage(aPInter3D))
+                if (aCam->PIsVisibleInImage(aPInter3D) && IsInImage(aCam->Sz(),aPt2d))
                 {
                     aVP2d.push_back(aPt2d);
                     aVCamInterVu.push_back(aCam);
                     aVIdImInterVu.push_back(aVIdImInter[itVCI]);
                     cout.precision(17);
-                    std::cout << aPInter3D << endl;
+                    //std::cout << aPInter3D << endl;
                 }
 
 
@@ -255,6 +314,13 @@ int GenerateTP_main(int argc,char ** argv)
         }
 
     }
+
+    // write seed file
+    ofstream aSeedfile;
+    aSeedfile.open ("Homol_"+aSHOut+"/Seed.txt");
+    std::cout << "Homol_"+aSHOut+"/Seed.txt" << endl;
+    aSeedfile << aSeed << endl;
+    aSeedfile.close();
     std::cout << "Finished writing Homol files ! \n";
 
     return EXIT_SUCCESS;
