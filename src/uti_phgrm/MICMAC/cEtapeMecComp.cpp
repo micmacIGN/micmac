@@ -40,6 +40,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 extern void  t(Im2DGen I,int,int);
 
+#include "./cLoadedImage.inl"
 
 static const std::string PrefAutoM = "AutoMask_";
 static const std::string PrefMasq3d2d = "Mask3d2d_";
