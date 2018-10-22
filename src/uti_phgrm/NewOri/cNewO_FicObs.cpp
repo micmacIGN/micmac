@@ -120,6 +120,7 @@ class cAppliFictObs : public cCommonMartiniAppli
         const std::vector<std::string> * mSetName;//redundant with mNameMap; best to remove and be coherent
         std::string                      mDir;
         std::string                      mPattern;
+        std::string                      mPrefHom;
         std::string                      mOut;
 };
 
@@ -132,6 +133,7 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
     mResPoly(2),
     mRedFacSup(20),
     mResMax(5),
+    mPrefHom(""),
     mOut("ElRed")
 {
 
@@ -147,6 +149,7 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
                    << EAM (mResMax,"RMax",true,"Maximum residual, everything above will be filtered out, Def=5")
                    << EAM (NFHom,"NF",true,"Save homol to new format?, Def=true")
                    << EAM (aExpTxt,"ExpTxt",true,"ASCII homol?, Def=true")
+                   << EAM (mPrefHom,"SH",true,"Homol post-fix, Def=\"\"")
                    << EAM (mOut,"Out",true,"Output file name")
     );
    #if (ELISE_windows)
@@ -478,8 +481,8 @@ void cAppliFictObs::Initialize()
     for (int aK=1; aK<mNbIm; aK++)
         mNameMap[mSetName->at(aK)] = aK;
 
-    mNM = NM(mDir);
-
+    //mNM = NM(mDir);
+    mNM = new cNewO_NameManager("",mPrefHom,true,mDir,"","dat");
 
     //triplets
     std::string aNameLTriplets = mNM->NameTopoTriplet(true);
