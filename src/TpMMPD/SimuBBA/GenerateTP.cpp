@@ -80,7 +80,7 @@ bool IsInImage(Pt2di aSz, Pt2dr aPt)
 
 int GenerateTP_main(int argc,char ** argv)
 {
-    string aPatImgs,aDir,aImgs,aSH,aOri,aSHOut="Gen",aNameImNX,aNameImNY;
+    string aPatImgs,aDir,aImgs,aSH,aOri,aSHOut="Gen",aNameImNX,aNameImNY,aTPOut;
     vector<double> aNoiseGaussian(4,0.0);
     int aSeed;
     ElInitArgMain
@@ -94,6 +94,7 @@ int GenerateTP_main(int argc,char ** argv)
                            << EAM(aNoiseGaussian,"NoiseGaussian",false,"[meanX,stdX,meanY,stdY]")
                            << EAM(aNameImNX,"ImNX",false,"image containing noise on X-axis")
                            << EAM(aNameImNY,"ImNY",false,"image containing noise on Y-axis")
+                           << EAM(aTPOut,"TPOut",false,"Output 3D positions of tie points in file. ")
                 );
 
     SplitDirAndFile(aDir,aImgs,aPatImgs);
@@ -102,7 +103,6 @@ int GenerateTP_main(int argc,char ** argv)
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
     const std::vector<std::string> aVImgs = *(aICNM->Get(aImgs));
-
 
     // read images containing noise
     Im2D<double,double>  aImNX, aImNY;
@@ -139,6 +139,13 @@ int GenerateTP_main(int argc,char ** argv)
 
     std::normal_distribution<double> distributionX(aNoiseGaussian[0],aNoiseGaussian[1]);
     std::normal_distribution<double> distributionY(aNoiseGaussian[2],aNoiseGaussian[3]);
+
+    // output 3D position of tie points
+    ofstream aTP3D;
+    if (EAMIsInit(&aTPOut))
+    {
+        aTP3D.open (aTPOut);
+    }
 
 
     //1. lecture of tie points and orientation
@@ -188,6 +195,7 @@ int GenerateTP_main(int argc,char ** argv)
     {
         std::cout << "Gaussian Noise: " << aNoiseGaussian << endl;
     }
+
     std::vector<cSetPMul1ConfigTPM *> aVCnf = aSHIn->VPMul();
     for (uint aKCnf=1; aKCnf<aVCnf.size(); aKCnf++)
     {
@@ -248,7 +256,11 @@ int GenerateTP_main(int argc,char ** argv)
                     aVCamInterVu.push_back(aCam);
                     aVIdImInterVu.push_back(aVIdImInter[itVCI]);
                     cout.precision(17);
-                    //std::cout << aPInter3D << endl;
+
+                    if(EAMIsInit(&aTPOut))
+                    {
+                        aTP3D << aPInter3D.x << " " << aPInter3D.y << " " << aPInter3D.z << endl;
+                    }
                 }
 
 
@@ -275,6 +287,10 @@ int GenerateTP_main(int argc,char ** argv)
 
 
         }
+    }
+    if(EAMIsInit(&aTPOut))
+    {
+        aTP3D.close();
     }
 
 
