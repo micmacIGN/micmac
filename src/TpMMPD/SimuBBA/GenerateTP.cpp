@@ -256,16 +256,10 @@ int GenerateTP_main(int argc,char ** argv)
                     aVP2d.push_back(aPt2d);
                     aVCamInterVu.push_back(aCam);
                     aVIdImInterVu.push_back(aVIdImInter[itVCI]);
-                    cout.precision(17);
-
-                    if(EAMIsInit(&aTPOut))
-                    {
-                        aTP3D << aPInter3D.x << " " << aPInter3D.y << " " << aPInter3D.z << endl;
-                    }
                 }
-
-
             }
+
+
             // parse images to fill ElPackHomologue
 
 
@@ -289,11 +283,6 @@ int GenerateTP_main(int argc,char ** argv)
 
         }
     }
-    if(EAMIsInit(&aTPOut))
-    {
-        aTP3D.close();
-    }
-
 
     std::cout << "ElPackHomologue filled !\n";
 
