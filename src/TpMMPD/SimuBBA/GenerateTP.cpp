@@ -80,7 +80,7 @@ bool IsInImage(Pt2di aSz, Pt2dr aPt)
 
 int GenerateTP_main(int argc,char ** argv)
 {
-    string aPatImgs,aDir,aImgs,aSH,aOri,aSHOut="Gen",aNameImNX,aNameImNY,aTPOut;
+    string aPatImgs,aDir,aImgs,aSH,aOri,aSHOut="Gen",aNameImNX,aNameImNY,aOutputTP3D;
     vector<double> aNoiseGaussian(4,0.0);
     int aSeed;
     ElInitArgMain
@@ -94,7 +94,7 @@ int GenerateTP_main(int argc,char ** argv)
                            << EAM(aNoiseGaussian,"NoiseGaussian",false,"[meanX,stdX,meanY,stdY]")
                            << EAM(aNameImNX,"ImNX",false,"image containing noise on X-axis")
                            << EAM(aNameImNY,"ImNY",false,"image containing noise on Y-axis")
-                           << EAM(aTPOut,"TPOut",false,"Output 3D positions of tie points in file. ")
+                           << EAM(aOutputTP3D,"TP3D",false,"Output 3D positions of tie points without distortion.")
                 );
 
     SplitDirAndFile(aDir,aImgs,aPatImgs);
@@ -114,8 +114,6 @@ int GenerateTP_main(int argc,char ** argv)
         aImNX = Im2D<double,double>::FromFileStd(aDir + aNameImNX);
         Pt2di aSzImNX = aImNX.sz();
         std::cout << "NX" << aNameImNX << " : " << aSzImNX << endl;
-//        double ** aImNXData=aImNX.data();
-//        std::cout << aImNXData[5][5] << endl;
 
     }
 
@@ -126,8 +124,6 @@ int GenerateTP_main(int argc,char ** argv)
         aImNY = Im2D<double,double>::FromFileStd(aDir + aNameImNY);
         Pt2di aSzImNY = aImNY.sz();
         std::cout << "NY" << aNameImNY << " : " << aSzImNY << endl;
-//        double ** aImNXData=aImNX.data();
-//        std::cout << aImNXData[5][5] << endl;
 
     }
 
@@ -140,13 +136,13 @@ int GenerateTP_main(int argc,char ** argv)
     std::normal_distribution<double> distributionX(aNoiseGaussian[0],aNoiseGaussian[1]);
     std::normal_distribution<double> distributionY(aNoiseGaussian[2],aNoiseGaussian[3]);
 
-    // output 3D position of tie points
-    ofstream aTP3D;
-    if (EAMIsInit(&aTPOut))
+    // output 3D positions of tie points
+    ofstream aTP3Dfile;
+    if(EAMIsInit(&aOutputTP3D))
     {
-        aTP3D.open (aTPOut);
+        std::cout << "Output 3D positions of tie points! \n";
+        aTP3Dfile.open (aOutputTP3D);
     }
-
 
     //1. lecture of tie points and orientation
     StdCorrecNameOrient(aOri, aDir);
@@ -222,6 +218,11 @@ int GenerateTP_main(int argc,char ** argv)
             ELISE_ASSERT(aVPtInter.size() == aVCamInter.size(), "Size not coherent");
             ELISE_ASSERT(aVPtInter.size() > 1 && aVCamInter.size() > 1, "Nb faiseaux < 2");
             Pt3dr aPInter3D = Intersect_Simple(aVCamInter , aVPtInter);
+            if(EAMIsInit(&aOutputTP3D))
+            {
+                aTP3Dfile << setprecision(17) << aPInter3D.x << " " << aPInter3D.y << " " << aPInter3D.z << endl;
+            }
+
 
             // reproject aPInter3D sur tout les images dans aVCamInter
             vector<Pt2dr> aVP2d;
@@ -295,6 +296,13 @@ int GenerateTP_main(int argc,char ** argv)
 
 
     std::cout << "ElPackHomologue filled !\n";
+
+    if(EAMIsInit(&aOutputTP3D))
+    {
+        aTP3Dfile.close();
+        std::cout << "Finish outputing 3D positions of tie points ! \n";
+    }
+
 
     //writing of new tie points
     std::cout << "Writing Homol files... \n";
