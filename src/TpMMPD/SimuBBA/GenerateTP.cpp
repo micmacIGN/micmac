@@ -302,14 +302,6 @@ int GenerateTP_main(int argc,char ** argv)
         std::cout << "Finish outputing 3D positions of tie points ! \n";
     }
 
-    if(EAMIsInit(&aOutMAF))
-    {
-        for (int iMAF=0; iMAF < aVMAF.size(); iMAF++)
-        {
-
-        }
-    }
-
 
     //writing of new tie points
     std::cout << "Writing Homol files... \n";
