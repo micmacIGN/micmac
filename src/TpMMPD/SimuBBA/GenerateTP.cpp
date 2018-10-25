@@ -72,7 +72,7 @@ bool IsInList(const std::vector<std::string> aVImgs, std::string aNameIm)
 // check if one point is in the image
 bool IsInImage(Pt2di aSz, Pt2dr aPt)
 {
-    if ((aPt.x>=0) && (aPt.x<double(aSz.x)) && (aPt.y>=0) && (aPt.y < double(aSz.y)))
+    if ((aPt.x >= 0) && (aPt.x < double(aSz.x)-0.5) && (aPt.y >= 0) && (aPt.y < double(aSz.y)-0.5))
         return true;
     return false;
 }
@@ -266,12 +266,7 @@ int GenerateTP_main(int argc,char ** argv)
                 }             
             }
 
-
-
-
             // parse images to fill ElPackHomologue
-
-
             for (uint it1=0; it1 < aVCamInterVu.size(); it1++)
             {
                 int aIdIm1=aVIdImInterVu.at(it1);
@@ -351,7 +346,7 @@ int GenerateTP_main(int argc,char ** argv)
 
 int GenerateMAF_main(int argc,char ** argv)
 {
-    string aPatImgs,aDir,aOri,aImgs,aGCPFile,aMAFOut;
+    string aPatImgs,aDir,aOri,aImgs,aGCPFile,aMAFOut,aNameImNX,aNameImNY;
 
     ElInitArgMain
             (
@@ -360,13 +355,15 @@ int GenerateMAF_main(int argc,char ** argv)
                            << EAMC(aOri, "Ori",  eSAM_IsExistDirOri)
                            << EAMC(aGCPFile, "File containning GCP coordinates",eSAM_IsExistFile),
                 LArgMain() << EAM(aMAFOut,"Out",false,"Output name of the generated MAF file, Def=Gen_MAF_Ori.xml")
+                           << EAM(aNameImNX,"ImNX",false,"image containing noise on X-axis")
+                           << EAM(aNameImNY,"ImNY",false,"image containing noise on Y-axis")
                 );
 
     SplitDirAndFile(aDir,aImgs,aPatImgs);
 
     // get directory
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-
+    // get image pattern
     const vector<string> aVImg = *(aICNM->Get(aImgs));
 
     StdCorrecNameOrient(aOri, aDir);
@@ -378,6 +375,29 @@ int GenerateMAF_main(int argc,char ** argv)
         aMAFOut =  "Gen_MAF_" + aOri + ".xml";
 
     std::cout << "Output File : " << aMAFOut << endl;
+
+    // read images containing noise
+    Im2D<double,double>  aImNX, aImNY;
+
+    if(EAMIsInit(&aNameImNX))
+    {
+        //read ImNX
+
+        aImNX = Im2D<double,double>::FromFileStd(aDir + aNameImNX);
+        Pt2di aSzImNX = aImNX.sz();
+        std::cout << "NX" << aNameImNX << " : " << aSzImNX << endl;
+
+    }
+
+    if(EAMIsInit(&aNameImNY))
+    {
+        //read ImNY
+
+        aImNY = Im2D<double,double>::FromFileStd(aDir + aNameImNY);
+        Pt2di aSzImNY = aImNY.sz();
+        std::cout << "NY" << aNameImNY << " : " << aSzImNY << endl;
+
+    }
 
 
     //read GCP coordinates
@@ -394,6 +414,8 @@ int GenerateMAF_main(int argc,char ** argv)
     std::list<cMesureAppuiFlottant1Im> aLMAFOut; // list of (NameIm + aLMesOut)
     std::list<cOneMesureAF1I> aLMesOut; //list of (NPt + Pt2D) for 1 image
 
+
+    // Parse images
     for (uint itVImg=0; itVImg < aVImg.size(); itVImg++)
     {
         std::string aOriName = "Ori-"+aOri+"/Orientation-"+aVImg.at(itVImg)+".xml";
@@ -401,6 +423,8 @@ int GenerateMAF_main(int argc,char ** argv)
         if (!ELISE_fp::exist_file(aOriName)) continue;
         CamStenope * aCam = CamOrientGenFromFile(aOriName,aICNM);
 
+
+        // Parse GCP list
         for
                 (
                  std::list<cOneAppuisDAF>::iterator itDAF=aDicoAF.OneAppuisDAF().begin();
@@ -411,10 +435,26 @@ int GenerateMAF_main(int argc,char ** argv)
             if (aCam->PIsVisibleInImage(itDAF->Pt()))
             {
                 Pt2dr aPt2d = aCam->R3toF2(itDAF->Pt());
-                cOneMesureAF1I aOMAF1I;
-                aOMAF1I.NamePt() = itDAF->NamePt();
-                aOMAF1I.PtIm() = aPt2d;
-                aLMesOut.push_back(aOMAF1I);
+                if (IsInImage(aCam->Sz(),aPt2d))
+                {
+                    // add noise
+                    if (EAMIsInit(&aNameImNX))
+                    {
+                        aPt2d.x += aImNX.data()[int(round(aPt2d.y))][int(round(aPt2d.x))];
+                    }
+                    if (EAMIsInit(&aNameImNY))
+                    {
+                        aPt2d.y += aImNY.data()[int(round(aPt2d.y))][int(round(aPt2d.x))];
+                    }
+
+                    if (IsInImage(aCam->Sz(),aPt2d))
+                    {
+                        cOneMesureAF1I aOMAF1I;
+                        aOMAF1I.NamePt() = itDAF->NamePt();
+                        aOMAF1I.PtIm() = aPt2d;
+                        aLMesOut.push_back(aOMAF1I);
+                    }
+                }
             }
         }
         cMesureAppuiFlottant1Im   aMAF1Im;
