@@ -389,6 +389,7 @@ class cAppliTiepRed
           std::string  mDir;
           std::string  mPatImage;
           std::string  mCalib;
+          std::string  mSH;
 
           std::map<std::string,cCameraTiepRed *> mMapCam;
           std::vector<cCameraTiepRed *>          mVecCam;
@@ -566,6 +567,7 @@ class cAppliGrRedTieP : public cElemAppliSetFile
            bool                               mQuick;
            std::string                        mCalib;
            std::string                        mPatImage;
+           std::string                        mSH;
            tGrGRTP                            mGr;
            tSubGrGRTP                         mSubAll;
            tEmptySubGrGRTP                    mSubNone;
