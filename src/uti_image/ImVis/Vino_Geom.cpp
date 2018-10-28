@@ -572,8 +572,10 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
           }
 
           ShowImCA(  aSz.y*mZoomCA + 10,0, aNearest->RIAC().IGT());
+/*
           ShowImCA(2*aSz.y*mZoomCA + 20,0,aNearest->RIAC().IGR());
           ShowImCA(3*aSz.y*mZoomCA + 30,0,aNearest->RIAC().IR0);
+*/
 /*
           cCalcAimeImAutoCorr aCAIAC(aImLogT,true);
           // Im2D_INT1 aImAC = aCAIAC.mImVis;
