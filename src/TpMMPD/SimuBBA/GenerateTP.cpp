@@ -45,6 +45,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <random>
 #include <ctime>
 #include <algorithm>
+#include "../TpPPMD.h"
+#include<iostream>
+#include<fstream>
 
 struct StructHomol {
     int IdIm;
@@ -66,10 +69,19 @@ bool IsInList(const std::vector<std::string> aVImgs, std::string aNameIm)
     else return true;
 }
 
+// check if one point is in the image
+bool IsInImage(Pt2di aSz, Pt2dr aPt)
+{
+    if ((aPt.x >= 0) && (aPt.x < double(aSz.x)-0.5) && (aPt.y >= 0) && (aPt.y < double(aSz.y)-0.5))
+        return true;
+    return false;
+}
+
 int GenerateTP_main(int argc,char ** argv)
 {
-    string aPatImgs,aDir,aImgs,aSH,aOri,aSHOut="Gen";
+    string aPatImgs,aDir,aImgs,aSH,aOri,aSHOut="Gen",aNameImNX,aNameImNY,aOutputTP3D;
     vector<double> aNoiseGaussian(4,0.0);
+    int aSeed;
     ElInitArgMain
             (
                 argc, argv,
@@ -77,7 +89,11 @@ int GenerateTP_main(int argc,char ** argv)
                            << EAMC(aSH, "PMul File",  eSAM_IsExistFile)
                            << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
                 LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, Def=Gen")
+                           << EAM(aSeed,"Seed",false,"Seed for generating random noise")
                            << EAM(aNoiseGaussian,"NoiseGaussian",false,"[meanX,stdX,meanY,stdY]")
+                           << EAM(aNameImNX,"ImNX",false,"image containing noise on X-axis")
+                           << EAM(aNameImNY,"ImNY",false,"image containing noise on Y-axis")
+                           << EAM(aOutputTP3D,"TP3D",false,"Output 3D positions of tie points without distortion.")
                 );
 
     SplitDirAndFile(aDir,aImgs,aPatImgs);
@@ -87,10 +103,45 @@ int GenerateTP_main(int argc,char ** argv)
 
     const std::vector<std::string> aVImgs = *(aICNM->Get(aImgs));
 
+    // read images containing noise
+    Im2D<double,double>  aImNX, aImNY;
+
+    if(EAMIsInit(&aNameImNX))
+    {
+        //read ImNX
+
+        aImNX = Im2D<double,double>::FromFileStd(aDir + aNameImNX);
+        Pt2di aSzImNX = aImNX.sz();
+        std::cout << "NX" << aNameImNX << " : " << aSzImNX << endl;
+
+    }
+
+    if(EAMIsInit(&aNameImNY))
+    {
+        //read ImNY
+
+        aImNY = Im2D<double,double>::FromFileStd(aDir + aNameImNY);
+        Pt2di aSzImNY = aImNY.sz();
+        std::cout << "NY" << aNameImNY << " : " << aSzImNY << endl;
+
+    }
+
+
     //generation of noise on X & Y
-    std::default_random_engine generator(time(0)); //seed
+    if(!EAMIsInit(&aSeed))  aSeed=time(0);
+
+    std::default_random_engine generator(aSeed);
+
     std::normal_distribution<double> distributionX(aNoiseGaussian[0],aNoiseGaussian[1]);
     std::normal_distribution<double> distributionY(aNoiseGaussian[2],aNoiseGaussian[3]);
+
+    // output 3D positions of tie points
+    ofstream aTP3Dfile;
+    if(EAMIsInit(&aOutputTP3D))
+    {
+        std::cout << "Output 3D positions of tie points! \n";
+        aTP3Dfile.open (aOutputTP3D);
+    }
 
 
     //1. lecture of tie points and orientation
@@ -132,24 +183,31 @@ int GenerateTP_main(int argc,char ** argv)
     aStructH.VIdIm2 = aVIdIm2;
     vector<StructHomol> aVStructH (VName2Im.size(),aStructH);
 
-    //2. get 3D position of tie points
+    //2. get 2D/3D position of tie points
     std::cout << "Filling ElPackHomologue... !\n";
 
+
+    if (EAMIsInit(&aNoiseGaussian))
+    {
+        std::cout << "Gaussian Noise: " << aNoiseGaussian << endl;
+    }    
+
+
     // parse Configs aVCnf
-    std::cout << "Gaussian Noise: " << aNoiseGaussian << endl;
     std::vector<cSetPMul1ConfigTPM *> aVCnf = aSHIn->VPMul();
     for (uint aKCnf=1; aKCnf<aVCnf.size(); aKCnf++)
     {
         cSetPMul1ConfigTPM * aCnf = aVCnf[aKCnf];
         std::vector<int> aVIdIm =  aCnf->VIdIm();
 
-        // Parse all images in one Config
+        // Parse all pts in one Config
         for (uint aKPtCnf=0; aKPtCnf<uint(aCnf->NbPts()); aKPtCnf++)
         {
             vector<Pt2dr> aVPtInter;
             vector<CamStenope*> aVCamInter;
             vector<int> aVIdImInter;
 
+            // Parse all imgs for one pts
             for (uint aKImCnf=0; aKImCnf<aVIdIm.size(); aKImCnf++)
             {
 
@@ -164,10 +222,18 @@ int GenerateTP_main(int argc,char ** argv)
             ELISE_ASSERT(aVPtInter.size() > 1 && aVCamInter.size() > 1, "Nb faiseaux < 2");
             Pt3dr aPInter3D = Intersect_Simple(aVCamInter , aVPtInter);
 
+
+            if(EAMIsInit(&aOutputTP3D))
+            {
+                aTP3Dfile << setprecision(17) << aPInter3D.x << " " << aPInter3D.y << " " << aPInter3D.z << endl;
+            }
+
+
             // reproject aPInter3D sur tout les images dans aVCamInter
-            vector<Pt2dr> aVP2d;
-            vector<CamStenope *> aVCamInterVu;
-            vector<int> aVIdImInterVu;
+            std::vector<Pt2dr> aVP2d;
+            std::vector<CamStenope *> aVCamInterVu;
+            std::vector<int> aVIdImInterVu;
+
             for (uint itVCI=0; itVCI < aVCamInter.size(); itVCI++)
             {
                 CamStenope * aCam = aVCamInter[itVCI];
@@ -175,6 +241,14 @@ int GenerateTP_main(int argc,char ** argv)
                 //std::cout << aPt2d << "----------------";
 
                 // add noise
+                if (EAMIsInit(&aNameImNX))
+                {
+                    aPt2d.x += aImNX.data()[int(round(aPt2d.y))][int(round(aPt2d.x))];
+                }
+                if (EAMIsInit(&aNameImNY))
+                {
+                    aPt2d.y += aImNY.data()[int(round(aPt2d.y))][int(round(aPt2d.x))];
+                }
                 if (EAMIsInit(&aNoiseGaussian))
                 {
                     aPt2d.x += distributionX(generator);
@@ -183,20 +257,15 @@ int GenerateTP_main(int argc,char ** argv)
                 //std::cout << aPt2d << endl;
 
                 //check if the point is in the camera view
-                if (aCam->PIsVisibleInImage(aPInter3D))
+                if (aCam->PIsVisibleInImage(aPInter3D) && IsInImage(aCam->Sz(),aPt2d))
                 {
                     aVP2d.push_back(aPt2d);
                     aVCamInterVu.push_back(aCam);
                     aVIdImInterVu.push_back(aVIdImInter[itVCI]);
-                    cout.precision(17);
-                    std::cout << aPInter3D << endl;
-                }
-
-
+                }             
             }
+
             // parse images to fill ElPackHomologue
-
-
             for (uint it1=0; it1 < aVCamInterVu.size(); it1++)
             {
                 int aIdIm1=aVIdImInterVu.at(it1);
@@ -218,8 +287,14 @@ int GenerateTP_main(int argc,char ** argv)
         }
     }
 
-
     std::cout << "ElPackHomologue filled !\n";
+
+    if(EAMIsInit(&aOutputTP3D))
+    {
+        aTP3Dfile.close();
+        std::cout << "Finish outputing 3D positions of tie points ! \n";
+    }
+
 
     //writing of new tie points
     std::cout << "Writing Homol files... \n";
@@ -255,6 +330,13 @@ int GenerateTP_main(int argc,char ** argv)
         }
 
     }
+
+    // write seed file
+    ofstream aSeedfile;
+    aSeedfile.open ("Homol_"+aSHOut+"/Seed.txt");
+    std::cout << "Homol_"+aSHOut+"/Seed.txt" << endl;
+    aSeedfile << aSeed << endl;
+    aSeedfile.close();
     std::cout << "Finished writing Homol files ! \n";
 
     return EXIT_SUCCESS;
@@ -262,7 +344,7 @@ int GenerateTP_main(int argc,char ** argv)
 
 int GenerateMAF_main(int argc,char ** argv)
 {
-    string aPatImgs,aDir,aOri,aImgs,aGCPFile,aMAFOut;
+    string aPatImgs,aDir,aOri,aImgs,aGCPFile,aMAFOut,aNameImNX,aNameImNY;
 
     ElInitArgMain
             (
@@ -271,13 +353,15 @@ int GenerateMAF_main(int argc,char ** argv)
                            << EAMC(aOri, "Ori",  eSAM_IsExistDirOri)
                            << EAMC(aGCPFile, "File containning GCP coordinates",eSAM_IsExistFile),
                 LArgMain() << EAM(aMAFOut,"Out",false,"Output name of the generated MAF file, Def=Gen_MAF_Ori.xml")
+                           << EAM(aNameImNX,"ImNX",false,"image containing noise on X-axis")
+                           << EAM(aNameImNY,"ImNY",false,"image containing noise on Y-axis")
                 );
 
     SplitDirAndFile(aDir,aImgs,aPatImgs);
 
     // get directory
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-
+    // get image pattern
     const vector<string> aVImg = *(aICNM->Get(aImgs));
 
     StdCorrecNameOrient(aOri, aDir);
@@ -290,6 +374,29 @@ int GenerateMAF_main(int argc,char ** argv)
 
     std::cout << "Output File : " << aMAFOut << endl;
 
+    // read images containing noise
+    Im2D<double,double>  aImNX, aImNY;
+
+    if(EAMIsInit(&aNameImNX))
+    {
+        //read ImNX
+
+        aImNX = Im2D<double,double>::FromFileStd(aDir + aNameImNX);
+        Pt2di aSzImNX = aImNX.sz();
+        std::cout << "NX" << aNameImNX << " : " << aSzImNX << endl;
+
+    }
+
+    if(EAMIsInit(&aNameImNY))
+    {
+        //read ImNY
+
+        aImNY = Im2D<double,double>::FromFileStd(aDir + aNameImNY);
+        Pt2di aSzImNY = aImNY.sz();
+        std::cout << "NY" << aNameImNY << " : " << aSzImNY << endl;
+
+    }
+
 
     //read GCP coordinates
     cDicoAppuisFlottant aDicoAF = StdGetObjFromFile<cDicoAppuisFlottant>
@@ -301,10 +408,12 @@ int GenerateMAF_main(int argc,char ** argv)
                 );
 
     //output MAF file
-    cSetOfMesureAppuisFlottants aDicoOut;
-    std::list<cMesureAppuiFlottant1Im> aLMAFOut;
-    std::list<cOneMesureAF1I> aMesOut;
+    cSetOfMesureAppuisFlottants aDicoOut; // image measurement file
+    std::list<cMesureAppuiFlottant1Im> aLMAFOut; // list of (NameIm + aLMesOut)
+    std::list<cOneMesureAF1I> aLMesOut; //list of (NPt + Pt2D) for 1 image
 
+
+    // Parse images
     for (uint itVImg=0; itVImg < aVImg.size(); itVImg++)
     {
         std::string aOriName = "Ori-"+aOri+"/Orientation-"+aVImg.at(itVImg)+".xml";
@@ -312,6 +421,8 @@ int GenerateMAF_main(int argc,char ** argv)
         if (!ELISE_fp::exist_file(aOriName)) continue;
         CamStenope * aCam = CamOrientGenFromFile(aOriName,aICNM);
 
+
+        // Parse GCP list
         for
                 (
                  std::list<cOneAppuisDAF>::iterator itDAF=aDicoAF.OneAppuisDAF().begin();
@@ -322,17 +433,33 @@ int GenerateMAF_main(int argc,char ** argv)
             if (aCam->PIsVisibleInImage(itDAF->Pt()))
             {
                 Pt2dr aPt2d = aCam->R3toF2(itDAF->Pt());
-                cOneMesureAF1I aOMAF1I;
-                aOMAF1I.NamePt() = itDAF->NamePt();
-                aOMAF1I.PtIm() = aPt2d;
-                aMesOut.push_back(aOMAF1I);
+                if (IsInImage(aCam->Sz(),aPt2d))
+                {
+                    // add noise
+                    if (EAMIsInit(&aNameImNX))
+                    {
+                        aPt2d.x += aImNX.data()[int(round(aPt2d.y))][int(round(aPt2d.x))];
+                    }
+                    if (EAMIsInit(&aNameImNY))
+                    {
+                        aPt2d.y += aImNY.data()[int(round(aPt2d.y))][int(round(aPt2d.x))];
+                    }
+
+                    if (IsInImage(aCam->Sz(),aPt2d))
+                    {
+                        cOneMesureAF1I aOMAF1I;
+                        aOMAF1I.NamePt() = itDAF->NamePt();
+                        aOMAF1I.PtIm() = aPt2d;
+                        aLMesOut.push_back(aOMAF1I);
+                    }
+                }
             }
         }
         cMesureAppuiFlottant1Im   aMAF1Im;
         aMAF1Im.NameIm() = aVImg.at(itVImg);
-        aMAF1Im.OneMesureAF1I() = aMesOut;
+        aMAF1Im.OneMesureAF1I() = aLMesOut;
         aLMAFOut.push_back(aMAF1Im);
-        aMesOut.clear();
+        aLMesOut.clear();
 
     }
 

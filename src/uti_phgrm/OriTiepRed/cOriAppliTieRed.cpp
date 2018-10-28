@@ -58,6 +58,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
      mSzTile                  (2000),
      mDistPMul                (200.0),
      mMulVonGruber            (1.5),
+     mSH                      (""),
      mCallBack                (false),
      mMulBoxRab               (0.15),
      mParal                   (true),
@@ -71,6 +72,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
      mDefResidual             (10.0),
      mDoCompleteArc           (false),
      mUsePrec                 (true)
+
 {
    // Read parameters 
    if (! CalledFromInside)
@@ -95,6 +97,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
                      << EAM(mDebug,"Debug",true,"Debug, tunging purpose")
                      << EAM(mDoCompleteArc,"DCA",true,"Do Complete Arc (Def=ModeIm)")
                      << EAM(mUsePrec,"UseP",true,"Use precdente point to avoir redondance, Def=true, only for tuning")
+                     << EAM(mSH,"SH",true,"Homol Postfix, def=\"\"")
    );
 
 
@@ -151,7 +154,7 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
    // std::cout << "## Get Nb Images " <<  mFilesIm->size() << "\n";
 
 
-   mNM = cVirtInterf_NewO_NameManager::StdAlloc(mDir,mCalib);
+   mNM = cVirtInterf_NewO_NameManager::StdAlloc(mSH,mDir,mCalib);
 
    std::vector<double> aVResol;
    Pt2dr aPInf( 1E50, 1E50);
