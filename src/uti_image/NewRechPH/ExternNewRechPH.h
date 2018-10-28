@@ -43,6 +43,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../../include/StdAfx.h"
 
+Im2D_INT1  MakeImI1(bool isRobust,Im2D_REAL4 aImIn);
+
 typedef Im2D_U_INT2 tCodBin;
 
 template <const int TheNbUI2> class tTplCodBin
@@ -293,6 +295,8 @@ double ScaleGen(const cOnePCarac & aPC);
 cFitsOneLabel * FOLOfLab(cFitsParam *,eTypePtRemark aLab,bool SVP);
 const cFitsOneLabel * FOLOfLab(const cFitsParam *,eTypePtRemark aLab,bool SVP);
 
+
+//  Generate a random with a given proba
 class cBiaisedRandGenerator
 {
      public :
@@ -304,6 +308,51 @@ class cBiaisedRandGenerator
         std::vector<double> mCumul;
 
 };
+
+/*    For storing and computing rotation invariant auto correlations */
+class cAimeImAutoCorr
+{
+    public :
+       cAimeImAutoCorr(Im2D_INT1 anIm);
+       Pt2di mSz;
+       int   mNbR  ;
+       int   mNbT0  ;  // Nb Teta Init
+};
+
+
+class cOneICAA
+{
+   public :
+       cOneICAA(int aTx,int aTy);
+
+       int                 mTx;
+       int                 mTy;
+       Im2D_REAL4          mImCor;
+       TIm2D<REAL4,REAL8>  mTImCor;
+       Im2D_INT1           mImVis;
+
+       void MakeImVis(bool isRobust);
+       void MakeTiff(const std::string & aName);
+};
+
+class cCalcAimeImAutoCorr : public cAimeImAutoCorr
+{
+   public :
+       cCalcAimeImAutoCorr(Im2D_INT1,bool L1Mode);
+       double AutoCorrelGT(int aRho,int aDTeta);
+       double AutoCorrelGR(int aRho,int aDTeta);
+       double AutoCorrelR0(int aRho,int aDTeta);
+
+       Im2D_INT1           mImInit;
+       TIm2D<INT1,INT>     mTImInit;
+       bool                mL1Mode;
+
+       cOneICAA            mIR0; // Image Rad
+       cOneICAA            mIGR;  // Im Gra Rad
+       cOneICAA            mIGT;  // Im Gra Tan
+
+};
+
 
 
 

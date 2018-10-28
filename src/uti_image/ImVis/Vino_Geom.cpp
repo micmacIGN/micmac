@@ -306,6 +306,186 @@ void ShowCurve(Im2D_INT1 aIm,int aY,const Pt2di & aP0,const Pt2di & aP1,Video_Wi
    }
 }
 
+/***********************************************************/
+/*                                                         */
+/*      Auto Correl                                        */
+/*                                                         */
+/***********************************************************/
+
+
+     // =============== cOneICAA  ====   
+
+cOneICAA::cOneICAA(int aTx,int aTy) :
+     mTx     (aTx),
+     mTy     (aTy),
+     mImCor  (mTx,mTy),
+     mTImCor (mImCor),
+     mImVis  (mTx,mTy)
+{
+}
+
+void cOneICAA::MakeImVis(bool isRobust) 
+{
+   mImVis = MakeImI1(isRobust,mImCor);
+};
+void cOneICAA::MakeTiff(const std::string & aName)
+{
+     Tiff_Im::Create8BFromFonc(aName,mImVis.sz(),mImVis.in()+128);
+}
+
+
+     // =============== cAimeImAutoCorr  ====   
+cAimeImAutoCorr::cAimeImAutoCorr(Im2D_INT1 anIm) :
+    mSz      (anIm.sz()),
+    mNbR     (mSz.x),
+    mNbT0    (mSz.y)
+{
+}
+
+
+
+     // cCalcAimeImAutoCorr
+
+double cCalcAimeImAutoCorr::AutoCorrelR0(int aRho,int aDTeta)
+{
+    ELISE_ASSERT(aDTeta>=0,"cCalcAimeImAutoCorr::AutoCorrel");
+    double aRes = 0;
+
+    for (int aKT=0 ; aKT<mNbT0 ; aKT++)
+    {
+        double aV0 =  mTImInit.get(Pt2di(aRho,aKT));
+        double aVD =  mTImInit.get(Pt2di(aRho,(aKT+aDTeta)%mNbT0));
+
+        aRes +=  aV0 * aVD;
+    }
+    return aRes;
+}
+
+double cCalcAimeImAutoCorr::AutoCorrelGT(int aRho,int aDTeta)
+{
+    ELISE_ASSERT(aDTeta>=0,"cCalcAimeImAutoCorr::AutoCorrel");
+    double aRes = 0;
+
+    for (int aKT=0 ; aKT<mNbT0 ; aKT++)
+    {
+        double aV0 =  mTImInit.get(Pt2di(aRho,aKT));
+        double aV1 =  mTImInit.get(Pt2di(aRho,(aKT+1)%mNbT0));
+        double aVD =  mTImInit.get(Pt2di(aRho,(aKT+aDTeta)%mNbT0));
+
+        aRes +=  (aV1-aV0) * aVD;
+    }
+    return aRes;
+}
+
+double cCalcAimeImAutoCorr::AutoCorrelGR(int aRho,int aDTeta)
+{
+    ELISE_ASSERT(aDTeta>=0,"cCalcAimeImAutoCorr::AutoCorrel");
+    double aRes = 0;
+
+    for (int aKT=0 ; aKT<mNbT0 ; aKT++)
+    {
+        double aV0 =  mTImInit.get(Pt2di(aRho,aKT));
+        double aV1 =  mTImInit.get(Pt2di(aRho-1,aKT));
+        double aVD =  mTImInit.get(Pt2di(aRho,(aKT+aDTeta)%mNbT0));
+
+        aRes +=  (aV1-aV0) * aVD;
+    }
+    return aRes;
+}
+
+
+
+
+cCalcAimeImAutoCorr::cCalcAimeImAutoCorr(Im2D_INT1 anIm,bool L1Mode) :
+    cAimeImAutoCorr (anIm),
+    mImInit         (anIm),
+    mTImInit        (anIm),
+    mL1Mode         (L1Mode),
+    mIR0            (mNbR,mNbT0/2),
+    mIGR            (mNbR-1,mNbT0),
+    mIGT            (mNbR,mNbT0)
+/*
+    mTImCor         (mImCor),
+    mImVis          (1,1)
+*/
+{
+    int aSzTetaR0 =  mIR0.mImCor.sz().y;
+    for (int aKT=0 ; aKT<mNbT0 ; aKT++)
+    {
+        double aS0=0;
+        double aS1=0;
+        double aS2=0;
+        bool DoR0 = aKT <aSzTetaR0;
+        for (int aKR=0 ; aKR<mNbR ; aKR++)
+        {
+           
+            if (DoR0)
+            {
+                double aC = AutoCorrelR0(aKR,aKT+1);
+                aS0 += 1;
+                aS1 += aC;
+                aS2 += ElSquare(aC);
+                mIR0.mTImCor.oset(Pt2di(aKR,aKT),aC);
+            }
+
+            // double  aC = AutoCorrelGR(aKR,aKT+1); 
+            mIGT.mTImCor.oset(Pt2di(aKR,aKT),AutoCorrelGT(aKR,aKT));
+            if (aKR>=1)
+               mIGR.mTImCor.oset(Pt2di(aKR-1,aKT),AutoCorrelGR(aKR,aKT));
+        }
+        if (DoR0)
+        {
+            aS1 /= aS0;
+            aS2 /= aS0;
+            aS2 -= ElSquare(aS1);
+            double aSig = sqrt(ElMax(1e-10,aS2));
+            for (int aKR=0 ; aKR<mNbR ; aKR++)
+            {
+                double  aC =  mIR0.mTImCor.get(Pt2di(aKR,aKT));
+                mIR0.mTImCor.oset(Pt2di(aKR,aKT),(aC-aS1)/aSig);
+            }
+        }
+    }
+    mIR0.MakeImVis(mL1Mode);
+    mIGT.MakeImVis(mL1Mode);
+    mIGR.MakeImVis(mL1Mode);
+/*
+    CalcImVis(mImCor,mImVis);
+    double aVMax,aVMin;
+    ELISE_COPY(mImCor.all_pts(),mImCor.in(),VMax(aVMax)|VMin(aVMin));
+    double aDyn = 127.0/ ElMax(1e-10,ElMax(-aVMin,aVMax));
+    ELISE_COPY(mImCor.all_pts(),round_ni(mImCor.in()*aDyn),mImVis.out());
+*/
+}
+
+
+//======================================================================
+//======================================================================
+
+/*
+    double aVMax,aVMin;
+    ELISE_COPY(aImCor.all_pts(),aImCor.in(),VMax(aVMax)|VMin(aVMin));
+    double aDyn = 127.0/ ElMax(1e-10,ElMax(-aVMin,aVMax));
+    ELISE_COPY(aImCor.all_pts(),round_ni(aImCor.in()*aDyn),aImVis.out());
+*/
+
+void cAppli_Vino::ShowImCA(int aDx,int aDy,Im2D_INT1 aIm)
+{
+    double aVMax,aVMin;
+    ELISE_COPY(aIm.all_pts(),aIm.in(),VMax(aVMax)|VMin(aVMin));
+    double aDyn = 127.0/ ElMax(1e-10,ElMax(-aVMin,aVMax));
+
+
+    Pt2di aSz = aIm.sz();
+    ELISE_COPY
+    (
+        rectangle(Pt2di(aDx,aDy),Pt2di(aDx+aSz.y*mZoomCA,aDy+aSz.x*mZoomCA)),
+        Max(0,Min(255,128+aDyn*aIm.in()[Virgule(FY-aDy,FX-aDx)/mZoomCA])),
+        mW->ogray()
+    );
+}
+
+
 void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
 {
    ElSimilitude aU2W = mScr->to_win();
@@ -340,15 +520,18 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
 
        {
           Im2D_INT1 aImLogT = aNearest->ImLogPol();
-          int aZoom=10;
           Pt2di aSz = aImLogT.sz();
+
 
           ELISE_COPY
           (
-              rectangle(Pt2di(0,0),Pt2di(aSz.y*aZoom,aSz.x*aZoom)),
-              Max(0,Min(255,128 + 2 * aImLogT.in()[Virgule(FY,FX)/aZoom])),
+              rectangle(Pt2di(0,0),Pt2di(aSz.y*mZoomCA,aSz.x*mZoomCA)),
+              Max(0,Min(255,128 + 2 * aImLogT.in()[Virgule(FY,FX)/mZoomCA])),
               mW->ogray()
           );
+
+
+
 
           int aMarge = 5;
           int aSzW    = 45;
@@ -374,7 +557,7 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
                      int aX0 =  aMarge+(aCpt%aPer) * (aMarge+aSzW);
                      int aX1 =  aX0 + aSzW;
 
-                     int aY0 =  aSz.x*aZoom + aMarge+(aCpt/aPer) * (aMarge+aSzW);
+                     int aY0 =  aSz.x*mZoomCA + aMarge+(aCpt/aPer) * (aMarge+aSzW);
                      int aY1 = aY0 + aSzW;
                      ShowCurve
                      (
@@ -387,6 +570,26 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
                      aCpt++;
                }
           }
+
+          ShowImCA(  aSz.y*mZoomCA + 10,0, aNearest->RIAC().IGT());
+          ShowImCA(2*aSz.y*mZoomCA + 20,0,aNearest->RIAC().IGR());
+          ShowImCA(3*aSz.y*mZoomCA + 30,0,aNearest->RIAC().IR0);
+/*
+          cCalcAimeImAutoCorr aCAIAC(aImLogT,true);
+          // Im2D_INT1 aImAC = aCAIAC.mImVis;
+
+          ShowImCA(aSz.y*mZoomCA + 10,0,aCAIAC.mIGT.mImVis);
+          ShowImCA(2*aSz.y*mZoomCA + 20,0,aCAIAC.mIGR.mImVis);
+          ShowImCA(3*aSz.y*mZoomCA + 30,0,aCAIAC.mIR0.mImVis);
+
+          if (0)
+          {
+                Tiff_Im::Create8BFromFonc("Patch-8B-LogT.tif",aImLogT.sz(),aImLogT.in()+128);
+                aCAIAC.mIR0.MakeTiff("Patch-IR0.tif");
+                aCAIAC.mIGR.MakeTiff("Patch-IGR.tif");
+                aCAIAC.mIGT.MakeTiff("Patch-IGT.tif");
+          }
+*/
        }
 
        if (! mVptHom.empty())

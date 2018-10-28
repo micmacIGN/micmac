@@ -106,6 +106,13 @@
          <!-- Code Binaire : devrait etre 1D, mais flemme modifier xml_init et autres ...  -->
    </ProfilRad>
 
+   <!-- Les invariants rotationnels obtenu par auto-correlation -->
+   <RotInvarAutoCor Nb="1" Class="true" ToReference="true">
+         <IR0 Nb="1" Type="Im2D_INT1"> </IR0>
+         <IGT Nb="1" Type="Im2D_INT1"> </IGT>
+         <IGR Nb="1" Type="Im2D_INT1"> </IGR>
+   </RotInvarAutoCor>
+
 
    <OnePCarac   Nb="1" Class="true" ToReference="true">
          <Kind Nb="1" Type="eTypePtRemark">        </Kind>
@@ -128,6 +135,7 @@
          <ImLogPol Nb="1" Type="Im2D_INT1"> </ImLogPol>
          <VectRho   Nb="1" Type="std::vector<double>">  </VectRho>
          <ProfR Nb="1" RefType="ProfilRad">  </ProfR>
+         <RIAC  Nb="1" RefType="RotInvarAutoCor">  </RIAC>
          <Id   Nb="1" Type="int">  </Id>  <!-- Tuning -->
          <HeapInd   Nb="1" Type="int">  </HeapInd>  <!-- Tuning -->
          <Prio   Nb="1" Type="double">  </Prio>  <!-- Tuning -->

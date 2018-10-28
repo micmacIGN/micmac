@@ -64,7 +64,6 @@ void NormaliseSigma(double & aMoySom,double & aVarSig,const double & aPds)
 */
 
 static constexpr float DefInvRad = -1e20;
-// constexpr int DynU1 = 32;
 
 template <class Type,class TypeBuf> double  NormalizeVect(Im2D_INT1  aIout ,Im2D<Type,TypeBuf> aIin,int aK)
 {
@@ -189,7 +188,7 @@ class cComputeProfRad
 };
 
    // return Pt2di(mNbSR2Use, mNbTetaInv);
-double Normalise(Im2D_REAL4 aImBuf,Im2D_REAL4 aImOut,int aX0In,int aX1In,int aSzXOut)
+double Normalise2D(Im2D_REAL4 aImBuf,Im2D_REAL4 aImOut,int aX0In,int aX1In,int aSzXOut)
 {
     int aSzY = aImBuf.sz().y;
     double aS0,aS1,aS2;
@@ -203,11 +202,70 @@ double Normalise(Im2D_REAL4 aImBuf,Im2D_REAL4 aImOut,int aX0In,int aX1In,int aSz
     aS2 /= aS0;
     aS2 -= ElSquare(aS1);
     aS2 = sqrt(ElMax(1e-10,aS2));
-    ELISE_COPY(rectangle(Pt2di(aX0In,0),Pt2di(aX0In+aSzXOut,aSzY)),(aImBuf.in()-aS1)/aS2, aImBuf.out());
+    ELISE_COPY(rectangle(Pt2di(aX0In,0),Pt2di(aX0In+aSzXOut,aSzY)),(aImBuf.in()-aS1)/aS2, aImOut.out());
 
     return aS1;
 }
 
+
+void RobustNormalise(Im2D_REAL4 aImBuf,Im2D_REAL4 aImOut,double aProp,double  aMul)
+{
+   Pt2di aSz = aImBuf.sz();
+   std::vector<REAL4> aVV;
+   TIm2D<REAL4,REAL8>   aTImBuf(aImBuf);
+
+   Pt2di aP;
+   for (aP.x=0 ; aP.x<aSz.x;  aP.x++)
+   {
+       for (aP.y=0 ; aP.y<aSz.y;  aP.y++)
+       {
+            aVV.push_back(aTImBuf.get(aP));
+       }
+   }
+   double aV0 =  KthValProp(aVV,aProp);
+   double aV1 =  KthValProp(aVV,1-aProp);
+   double aMoy = (aV0 + aV1) / 2.0;
+   double anEcart = ((aV1-aV0)  / (1-2*aProp)) * aMul;
+
+    
+   ELISE_COPY
+   (
+       aImBuf.all_pts(),
+       (aImBuf.in()-aMoy) / anEcart,
+       aImOut.out()
+   );
+
+}
+
+
+
+Im2D_INT1  MakeImI1(bool isRobust,Im2D_REAL4 aImIn, int aDyn)  
+{
+   Pt2di aSz = aImIn.sz();
+   Im2D_REAL4 aImCor(aSz.x,aSz.y);
+   if (isRobust)
+       RobustNormalise(aImIn,aImCor,0.8,1.0); // Im2D_REAL4 aImBuf,Im2D_REAL4 aImOut,double aProp,double  aMul)
+   else
+      Normalise2D(aImIn,aImCor,0,aSz.x,aSz.x);
+   // aMoy = Normalise(aImBuf,aImBuf,0,mNbSR2Use,mNbSR2Use);
+   Im2D_INT1 aRes(aSz.x,aSz.y);
+   ELISE_COPY
+   (
+        aRes.all_pts(),
+        El_CTypeTraits<INT1>::TronqueF(round_ni(aImCor.in()*aDyn)),
+        aRes.out()
+   );
+
+   return aRes;
+}
+
+Im2D_INT1  MakeImI1(bool isRobust,Im2D_REAL4 aImIn)
+{
+   return MakeImI1(isRobust,aImIn,DynU1);
+}
+
+/*
+*/
 
 bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt,bool aModeTest)
 {
@@ -301,12 +359,12 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt,bool aModeTest)
    {
        for (int aX= 0 ; aX<mNbSR2Use ; aX++)
        {
-            Normalise(aImBuf,aImBuf,aX,aX+mNbSR2Use,1);
+            Normalise2D(aImBuf,aImBuf,aX,aX+mNbSR2Use,1);
        }
    }
    else
    {
-      aMoy = Normalise(aImBuf,aImBuf,0,mNbSR2Use,mNbSR2Use);
+      aMoy = Normalise2D(aImBuf,aImBuf,0,mNbSR2Use,mNbSR2Use);
    }
    aPt.MoyLP() = aMoy;
 
@@ -477,10 +535,29 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt,bool aModeTest)
       }
 
       aPt.ImLogPol() =  Im2D_INT1(SzInvRadUse().x,SzInvRadUse().y);
-      // ELISE_COPY(aPt.ImLogPol().all_pts(),Max(-128,Min(127,round_ni(aImBuf.in()*DynU1))),aPt.ImLogPol().out());
       ELISE_COPY(aPt.ImLogPol().all_pts(),El_CTypeTraits<INT1>::TronqueF(round_ni(aImBuf.in()*DynU1)),aPt.ImLogPol().out());
       aPt.VectRho() = aVRhoAbs;
       aPt.ProfR().ImProfil() = aProfR.Normalize();
+
+      if (1)
+      {
+           static int aCpt = 0; aCpt++;
+           cCalcAimeImAutoCorr aCAIAC(aPt.ImLogPol(),true);
+
+           aPt.RIAC().IR0() = aCAIAC.mIR0.mImVis;
+           aPt.RIAC().IGT() = aCAIAC.mIGT.mImVis;
+           aPt.RIAC().IGR() = aCAIAC.mIGR.mImVis;
+
+/*
+           aCAIAC.mIR0.MakeTiff("Patch-IR0_Num_"+ToString(aCpt)+".tif");
+           aCAIAC.mIGR.MakeTiff("Patch-IGR_Num_"+ToString(aCpt)+".tif");
+           aCAIAC.mIGT.MakeTiff("Patch-IGT_Num_"+ToString(aCpt)+".tif");
+
+           if ((aCpt%1000)==0)
+              std::cout << "AAAAAAAAAAAAAAaaa " << aCpt  << " : \n";
+           // getchar();
+*/
+      }
 
       if (BUG)
       {
