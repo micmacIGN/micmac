@@ -17,7 +17,7 @@ before_install:
 script:
 - mkdir build
 - cd build
-- cmake .. -DWITH_QT5=Off
+- cmake .. -DWITH_QT5=On
 - make -j2
 - make install
 after_success:
