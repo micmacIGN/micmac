@@ -128,11 +128,6 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb>  PCCroise=1.0  </Symb>
    <Symb>  PdsAttPix=1.0  </Symb>
 
-   <!-- In 12Pix the slope will be increased, otherwise smoothed results -->
-   <eSymb> Px1PenteMax0=? ${CorPonc} 3 2 </eSymb>
-   <eSymb> Px1PenteMax1=? ${CorPonc} ${Px1PenteMax0} * 0.5 ${Px1PenteMax0} </eSymb>
-    
-
    <Symb>  ModeAgrCor=eAggregSymetrique </Symb>
 
 
@@ -461,7 +456,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                       <ModeAgreg> ${ModeAgregPrgDyn} </ModeAgreg>
                       <NbDir>   ${NbDirPrgDyn}               </NbDir>
                   </EtapeProgDyn>
-                  <Px1PenteMax>   ${Px1PenteMax0}    </Px1PenteMax>
+                  <Px1PenteMax>   2.0    </Px1PenteMax>
 		  <#WHEN VTEST=${UseArgMaskAuto}>
                   	<ArgMaskAuto > 
                       		<ValDefCorrel >  ${DefCor} </ValDefCorrel>
@@ -599,7 +594,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                               <ModeAgreg> ${ModeAgregPrgDyn} </ModeAgreg>
                               <NbDir>   ${NbDirPrgDyn}              </NbDir>
                          </EtapeProgDyn>
-                         <Px1PenteMax>   ${Px1PenteMax1}    </Px1PenteMax>
+                         <Px1PenteMax>   1.0    </Px1PenteMax>
 			             <#WHEN VTEST=${UseArgMaskAuto}>
                          <ArgMaskAuto >
                                 <ValDefCorrel >  ${DefCor} </ValDefCorrel>

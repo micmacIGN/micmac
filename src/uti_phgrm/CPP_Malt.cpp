@@ -451,7 +451,6 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mDirOrthoF = "Ortho-" + mDirMEC;
       MakeFileDirCompl(mDirOrthoF);
 
-      if (mMCorPonc) mForceZFaisc=true;
       if (mMCorPonc && EAMIsInit(&mDoOrtho) && mDoOrtho) mZoomFinal=4;
       if (mMCorPonc && !EAMIsInit(&mDoOrtho)) mDoOrtho=false;
 
