@@ -253,18 +253,12 @@ void cMMVII_Appli::InitParam()
                         MMVII_INTERNAL_ASSERT_always(false,"\""+ aName +"\" is multiple in specification");
                     }
                     // Same name was used several time
-                    if (aSpec->NbMatch() !=0)
-                    {
-                        MMVII_INTERNAL_ASSERT_user(eTyUEr::eMulOptParam,"\""+aName +"\" was used multiple time");
-                    }
+                    MMVII_ASSERT_user(aSpec->NbMatch()==0,eTyUEr::eMulOptParam,"\""+aName +"\" was used multiple time");
                     aSpec->IncrNbMatch();
                  }
              }
              // Name does not correspond to spec
-             if (aNbSpecGot==0)
-             {
-                MMVII_INTERNAL_ASSERT_user(eTyUEr::eBadOptParam,"\""+aName +"\" is not a valide optionnal value");
-             }
+             MMVII_ASSERT_user(aNbSpecGot!=0,eTyUEr::eBadOptParam,"\""+aName +"\" is not a valide optionnal value");
              aVValues.push_back(aValue);
           }
           else
@@ -287,7 +281,7 @@ void cMMVII_Appli::InitParam()
          GenerateHelp();
          return;
       }
-      MMVII_INTERNAL_ASSERT_user
+      MMVII_UsersErrror
       (
           eTyUEr::eInsufNbParam,
           "Not enough Arg, expecting " + ToS(aNbObl)  + " , Got only " +  ToS(aNbArgGot)
@@ -419,7 +413,7 @@ void cMMVII_Appli::InitParam()
       // Why should user init interval if there no set ?
       if (IsInit(&mIntervFilterMS[aNum]) && (!  mVMainSets.at(aNum).IsInit()))
       {
-         MMVII_INTERNAL_ASSERT_user(eTyUEr::eIntervWithoutSet,"Interval without filter for num:"+ToStr(aNum));
+         MMVII_UsersErrror(eTyUEr::eIntervWithoutSet,"Interval without filter for num:"+ToStr(aNum));
       }
       if (aNum>0)
       {

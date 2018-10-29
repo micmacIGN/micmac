@@ -40,6 +40,7 @@ class cDaisyFOneMp3
        cDaisyFOneMp3() : cDaisyFOneMp3("",0.0) {}
 
        std::string mFile;  ///< Name mp3 file
+       std::string mName;  ///< Name to show
        double      mTime;  ///< time in second
       // Calculated parted, not saved
        int         mNum;   ///< nul for generate smil file
@@ -52,6 +53,7 @@ class cDaisyFOneMp3
 void AddData(const  cAuxAr2007 & anAux,cDaisyFOneMp3 & aFMp3)
 {
     AddData(cAuxAr2007("File",anAux),aFMp3.mFile);
+    AddData(cAuxAr2007("Name",anAux),aFMp3.mName);
     AddData(cAuxAr2007("Time",anAux),aFMp3.mTime);
 }
 
@@ -135,32 +137,6 @@ void AddData(const  cAuxAr2007 & anAux,cDaisyFOneBook & aBook)
 
 // ====   cOneEntrySaveWalkman =======================
 
-/*
-<?xml version="1.0" encoding="utf-8"?>
-
-<!DOCTYPE smil PUBLIC "-//W3C//DTD SMIL 1.0//EN" "SMIL10.dtd">
-<smil>
-	<head>
-		<meta name="dc:format" content="Daisy 2.02"/>
-		<meta name="ncc:timeInThisSmil" content="00:10:32"/>  <!-- TTTT -->
-		<meta name="ncc:totalElapsedTime" content="00:00:00.000"/>  <!-- TTTT -->
-		<layout> <region id="txt-view"/> </layout>
-		<meta name="ncc:generator" content="EasePublisher 2.13 Build 163 # 044FS2212172434"/>
-        </head>
-	<body>
-           <seq dur="632.0s"> <!-- TTTT -->
-                <par endsync="last">
-                     <text src="ncc.html#icth0001" id="icth0001"/>
-                     <seq>
-                         <audio src="Chine-Marc-01.MP3" clip-begin="npt=0.0s" clip-end="npt=100.0s" id="audio_0002"/> 
-                     </seq>
-                </par>
-....
-           </seq>
-	</body>
-</smil>
-*/
-
 
 /* ==================================================== */
 /*                                                      */
@@ -194,6 +170,8 @@ class cAppli_Daisy : public cMMVII_Appli
          bool mTest;        ///< Not used for now
          double mTimeSlot;
          std::ofstream * mPtrOfs;
+         bool  mShowRatio;
+         int   mNbShowDetail;
 };
 
 
@@ -207,9 +185,11 @@ cCollecSpecArg2007 & cAppli_Daisy::ArgObl(cCollecSpecArg2007 & anArgObl)
 
 cCollecSpecArg2007 & cAppli_Daisy::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
-   return 
+   return
       anArgOpt
          << AOpt2007(mTest,"Test","Test, if true generate a file to see format",{})
+         << AOpt2007(mPrefOut,"Out","Name for result, def=ncc",{})
+         << AOpt2007(mShowRatio,"ShowRatio","Show ratio time/size",{})
    ;
 }
 
@@ -272,10 +252,12 @@ void cAppli_Daisy::GenerateOneFile(cDaisyFOneMp3 & aFile,const double &aElapsTim
 }
 
 cAppli_Daisy::cAppli_Daisy(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc,argv,aSpec),
-  mPrefOut     ("ncc"),
-  mTest        (false),
-  mTimeSlot    (100.0)
+  cMMVII_Appli  (argc,argv,aSpec),
+  mPrefOut      ("ncc"),
+  mTest         (false),
+  mTimeSlot     (100.0),
+  mShowRatio    (false),
+  mNbShowDetail (0)
 {
 }
 
@@ -299,6 +281,7 @@ void cAppli_Daisy::PutNcc(const std::string & aField,const std::string & aValue,
 
 int cAppli_Daisy::Exe()
 {
+   mNbShowDetail = mShowRatio + 0;
    if (mTest)
    {
       cDaisyFOneMp3 aF1("F1.mp3",10.0);
@@ -328,8 +311,18 @@ int cAppli_Daisy::Exe()
    int    aNbFile=0;
    for (auto & aChap : aXmlSpec.mChaps)
    {
+      if (mNbShowDetail)
+         StdOut() << "=================================== CHAP : " <<  aChap.mNameChap << "\n";
       for (auto & aFile : aChap.mFiles)
       {
+          if (!ExistFile(aFile.mFile))
+          {
+              MMVII_UsersErrror(eTyUEr::eOpenFile,"For file " + aFile.mFile);
+          }
+          if (mNbShowDetail)
+             StdOut() << "   -------  file : " <<  aFile.mFile << "\n";
+          if (mShowRatio)
+             StdOut() << "        Ratio= : " <<  1E6 * (aFile.mTime /SizeFile(aFile.mFile)) << "\n";
           aFile.mNum = aNum++;
           GenerateOneFile(aFile,aElapsTime);
           aElapsTime += aFile.mTime;
@@ -353,8 +346,8 @@ int cAppli_Daisy::Exe()
    PutDc("title",aXmlSpec.mNameBook);
    PutDcUnk("identifier");
    PutDcUnk("publisher");
-   PutDc("date","2000-01-01","scheme=\"yyyy-mm-dd\"/");
-   PutDc("language","fr","scheme=\"ISO 639\"/");
+   PutDc("date","2000-01-01","scheme=\"yyyy-mm-dd\"");
+   PutDc("language","fr","scheme=\"ISO 639\"");
    PutDc("creator",aXmlSpec.mAuthor);
    PutDcUnk("subject");
    PutDcUnk("source");
@@ -395,7 +388,11 @@ int cAppli_Daisy::Exe()
    {
       for (auto & aFile : aChap.mFiles)
       {
+   aOfstr<< "      <h1 class=\"title\" id=\"" << aFile.mPrefSmil << "\"><a href=\"" 
+           << aFile.mNameFileSmil << "#" << aFile.mPrefSmil <<  "\">" << aFile.mName << "</a></h1>\n";   
+                // <h1 class="title" id="icth0001"><a href="icth0001.smil#icth0001">La chine 1</a></h1>
 /*
+         std::cout << aFile.mNum << "\n";
           aOfstr<< "      <h1 class="\"title>" << << "</h1>\n";
           aFile.mNum = aNum++;
           GenerateOneFile(aFile,aElapsTime);

@@ -341,7 +341,7 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
         }
         else
         {
-            MMVII_INTERNAL_ASSERT_user(eTyUEr::eCreateDir,"Cannot create directory for arg " + aDir);
+            MMVII_UsersErrror(eTyUEr::eCreateDir,"Cannot create directory for arg " + aDir);
         }
     }
     return Ok;
@@ -363,7 +363,7 @@ bool RemoveFile(const  std::string & aFile,bool SVP)
    bool Ok = boost::filesystem::remove(aFile);
    if ((! Ok) && (!SVP))
    {
-      MMVII_INTERNAL_ASSERT_user(eTyUEr::eRemoveFile,"Cannot remove file for arg " + aFile);
+      MMVII_UsersErrror(eTyUEr::eRemoveFile,"Cannot remove file for arg " + aFile);
    }
    return Ok;
 }
