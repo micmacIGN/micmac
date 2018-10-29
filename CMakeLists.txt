@@ -126,7 +126,7 @@ option(WITH_QT5 "compile Qt interfaces" OFF)
 option(WITH_CPP11 "Compilateur C++11" ON)
 
 # Graphical Interface GIMMI
-OPTION(WITH_GIMMI "Graphical Interface GIMMI" ON)
+OPTION(WITH_GIMMI "Graphical Interface GIMMI" OFF)
 
 option(DEPLOY "compile for end-user" OFF)
 

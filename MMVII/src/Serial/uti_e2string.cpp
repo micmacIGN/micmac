@@ -44,7 +44,7 @@ template <class TypeEnum> class cE2Str
          typename tMapStr2E::iterator anIt = mS2E->find(aStr);
          if (anIt == mS2E->end())
          {
-            MMVII_UsersErrror(eTyUEr::eBadEnum,"Str2E for : " + aStr + " ; valid are : " + StrAllVal() );
+            MMVII_INTERNAL_ASSERT_user(eTyUEr::eBadEnum,"Str2E for : " + aStr + " ; valid are : " + StrAllVal() );
          }
          return anIt->second;
      }

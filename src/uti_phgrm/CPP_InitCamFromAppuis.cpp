@@ -254,7 +254,6 @@ int Init11Param_Main(int argc,char ** argv)
          aNbMaxP = 6 + aNbTirage/20;
     }
     
-    // On parcourt car il peut eventuellement y avoir plusieurs images
     for
     (
         std::list<cMesureAppuiFlottant1Im>::const_iterator itMAF = aICA.mSMAF.MesureAppuiFlottant1Im().begin();
@@ -278,7 +277,7 @@ int Init11Param_Main(int argc,char ** argv)
              {
                  cOrientationConique anEC = aCS->ExportCalibGlob(aSzCam,Alti,Prof ,false,true,(char*)0);
                  MakeFileXML(anEC,aICA.NameOri(aNameIm));
-
+             }
 
              std::string aBlk = " ";
              std::string aVirg = ",";
@@ -292,11 +291,6 @@ int Init11Param_Main(int argc,char ** argv)
                                 +  aICA.aNameFile2D + aVirg + ToString(1e3) + "]";
               System(aCom);
                               
-             }
-             else
-             {
-                 std::cout << "Could not initiate 11 Param for " <<  itMAF->NameIm() << "\n";
-             }
         }
         else
         {

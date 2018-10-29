@@ -156,38 +156,6 @@ std::string  Mangling( cProfilRad *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-class cRotInvarAutoCor
-{
-    public:
-        cGlobXmlGen mGXml;
-
-        friend void xml_init(cRotInvarAutoCor & anObj,cElXMLTree * aTree);
-
-
-        Im2D_INT1 & IR0();
-        const Im2D_INT1 & IR0()const ;
-
-        Im2D_INT1 & IGT();
-        const Im2D_INT1 & IGT()const ;
-
-        Im2D_INT1 & IGR();
-        const Im2D_INT1 & IGR()const ;
-    private:
-        Im2D_INT1 mIR0;
-        Im2D_INT1 mIGT;
-        Im2D_INT1 mIGR;
-};
-cElXMLTree * ToXMLTree(const cRotInvarAutoCor &);
-
-void  BinaryDumpInFile(ELISE_fp &,const cRotInvarAutoCor &);
-
-void  BinaryUnDumpFromFile(cRotInvarAutoCor &,ELISE_fp &);
-
-std::string  Mangling( cRotInvarAutoCor *);
-
-/******************************************************/
-/******************************************************/
-/******************************************************/
 class cOnePCarac
 {
     public:
@@ -250,9 +218,6 @@ class cOnePCarac
         cProfilRad & ProfR();
         const cProfilRad & ProfR()const ;
 
-        cRotInvarAutoCor & RIAC();
-        const cRotInvarAutoCor & RIAC()const ;
-
         int & Id();
         const int & Id()const ;
 
@@ -280,7 +245,6 @@ class cOnePCarac
         Im2D_INT1 mImLogPol;
         std::vector<double> mVectRho;
         cProfilRad mProfR;
-        cRotInvarAutoCor mRIAC;
         int mId;
         int mHeapInd;
         double mPrio;

@@ -91,8 +91,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
     mSeuilContRel      (0.6),
     mCheckNuage        (nullptr),
     mCheckOri          (nullptr),
-    mNameLab           ("eTPR_NoLabel"),
-    mZoomCA            (10)
+    mNameLab           ("eTPR_NoLabel")
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)

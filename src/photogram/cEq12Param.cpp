@@ -108,8 +108,6 @@ std::pair<ElMatrix<double>,ElRotation3D > cEq12Parametre::ComputeOrtho(bool *Ok)
 
    if (aNbBadSide > aNbGoodSide)
    {
-
-//  std::cout << "SIDEEEE " << aNbBadSide << " " << aNbGoodSide << "\n";
      
 /*
        Pt3dr aI = aRotC2M.ImVect(Pt3dr(1,0,0));

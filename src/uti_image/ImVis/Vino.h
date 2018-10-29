@@ -278,8 +278,6 @@ class cAppli_Vino : public cXml_EnvVino,
         void ShowVect();
         void ShowVectPCarac();
         void ShowSPC(const Pt2dr & aP);
-        void ShowImCA(int aDx,int aDy,Im2D_INT1 aIm);
-
         Pt2dr ToCoordAsc(const Pt2dr & aP);
 
         std::string               mNameXmlOut;
@@ -398,8 +396,6 @@ class cAppli_Vino : public cXml_EnvVino,
         std::vector<const cOnePCarac*>   mVptHom;
         std::string                      mNameLab;
         eTypePtRemark                    mLabel;
-        int                              mZoomCA;  // Zoom Carac Aime
-
         
 };
 
