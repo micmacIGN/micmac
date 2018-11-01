@@ -582,25 +582,6 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
 
     if (EAMIsInit(&aXML))
     {
-        // for each image in XML
-            // get imName
-            // get CamStenope
-            // check if image on loop1 or loop 2
-            // if (CamStenope existed)
-                // parcourir all measure
-                    // Get NamePt & CoorPt
-                    // Create object cOnePtMeasure
-                    // Check if object inside vector aVPtMeasure
-                    // If yes : get object and add PtCoor & imName & CamStenope
-                    // If no : stock object in aVPtMeasure, add PtCoor & imName & CamStenope to object
-
-        // for each cOnePtMeasure in aVPtMeasure
-            // Get NamePt
-            // Intersect all loop 1
-                // store in Vector<cPtCtrl>(Pt3d, NamePt)
-            // Intersect all loop 2
-                // store in Vector<cPtCtrl>(Pt3d, NamePt)
-
         cSetOfMesureAppuisFlottants aXMLSaisie = StdGetFromPCP(aXML,SetOfMesureAppuisFlottants);
         std::list<cMesureAppuiFlottant1Im> & aList_Im = aXMLSaisie.MesureAppuiFlottant1Im();
         std::vector<cOnePtMeasure*> aVPtMeasure;
@@ -666,12 +647,7 @@ int Test_CtrlCloseLoop(int argc, char ** argv)
             }
         }
 
-        // for each cOnePtMeasure in aVPtMeasure
-            // Get NamePt
-            // Intersect all loop 1
-                // store in Vector<cPtCtrl>(Pt3d, NamePt)
-            // Intersect all loop 2
-                // store in Vector<cPtCtrl>(Pt3d, NamePt)
+
 
         for (uint aKPt=0; aKPt<aVPtMeasure.size(); aKPt++)
         {
@@ -3046,7 +3022,7 @@ int Image_Vide(int argc,char ** argv)
     ELISE_ASSERT(mSetIm.size()>0,"ERROR: No image found!");
 
     /* Create empty images */
-    for (int aKIm=0; aKIm<mSetIm.size(); aKIm++)
+    for (int aKIm=0; aKIm<int(mSetIm.size()); aKIm++)
     {
 
         // === EWELINA Tricks ====

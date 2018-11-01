@@ -484,6 +484,7 @@ std::string cAppliGrRedTieP::ComOfKBox(int aKBox)
              + " MVG=" + ToString(mMulVonGruber)
              + " DCA=" + ToString(mDoCompleteArc)
              + " UseP=" + ToString(mUsePrec)
+             + " SH=" + mSH
           ;
 }
 
@@ -767,6 +768,7 @@ cVirtInterf_NewO_NameManager * cAppliGrRedTieP::NoNM()
 cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
     mIntOrLevel      (eLevO_ByCple),
     mQuick           (true),
+    mSH              (""),
     mNbP             (-1),
     mFlagSel         (mGr.alloc_flag_som()),
     mFlagCur         (mGr.alloc_flag_som()),
@@ -806,6 +808,7 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
                      << EAM(mDoCompleteArc,"DCA",true,"Do Complete Arc (Def=false)")
                      << EAM(mUsePrec,"UseP",true,"Use prec to avoid redundancy (Def=true), tuning only")
                      << EAM(mProbaSel,"ProbaSel",true,"tuning only, generate a random selection at the end")
+                     << EAM(mSH,"SH",true,"Homol Prefix , Def=\"\"")
 
    );
 
@@ -826,7 +829,8 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
 
 
     cElemAppliSetFile::Init(mPatImage);
-    mNoNM = cVirtInterf_NewO_NameManager::StdAlloc(mDir,mCalib,mQuick);
+    //mNoNM = cVirtInterf_NewO_NameManager::StdAlloc(mDir,mCalib,mQuick);
+    mNoNM = cVirtInterf_NewO_NameManager::StdAlloc(mSH,mDir,mCalib,mQuick);
 
     if (!EAMIsInit(&mNbP))
     {

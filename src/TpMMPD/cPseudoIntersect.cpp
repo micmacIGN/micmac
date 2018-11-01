@@ -145,16 +145,16 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
     std::vector<string> vNamePts;		
     
     std::cout<<"Reading points..."<<std::flush;
-    for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end() ; iT1++)
+    for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end(); iT1++)
     {
-		
-		std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
-		
-		for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2++)
-		{
-			std::string aNamePt = iT2->NamePt();
-			vNamePts.push_back(aNamePt);
-		}
+        std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
+
+
+        for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2 ++)
+        {
+            std::string aNamePt = iT2->NamePt();
+            vNamePts.push_back(aNamePt);
+        }
 	}
     std::cout<<"done!"<<std::endl;
 
@@ -168,7 +168,7 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 
     std::cout<<"Making bundles groups..."<<std::flush;
 	//boucle sur le nombre de points à projeter en 3D
-	for (unsigned int aKNP=0; aKNP<vNamePts.size(); aKNP++)
+    for (unsigned int aKNP=0; aKNP<vNamePts.size(); aKNP++)
 	{
 		PtAllInfos aPtsAL;
 		
@@ -230,9 +230,11 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 			vCSPt.push_back(aCSPtC);
 			Pt2dr aCoordPtC = vPtsAI.at(aHG).CAC.at(aHF).coord2d;
 			vC2d.push_back(aCoordPtC);
-		} 
-			Pt3dr aPt3d = IntersectionFaisceaux(vCSPt,vC2d);
-			Pts3d.push_back(aPt3d);
+        }
+
+        if (vC2d.size()<3) continue;
+        Pt3dr aPt3d = IntersectionFaisceaux(vCSPt,vC2d);
+        Pts3d.push_back(aPt3d);
 	}
 	
 	//export en .txt

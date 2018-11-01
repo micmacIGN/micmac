@@ -698,14 +698,14 @@ class cLSMHomol
 
 cLSMHomol::cLSMHomol(string imgName1, string imgName2, cParamLSQMatch & aParamMatch,
                      cInterfChantierNameManipulateur * aICNM):
+    mNbRef   (0),
     mICNM  (aICNM),
     mTif1  (Tiff_Im::UnivConvStd(mICNM->Dir() + imgName1)),
     mTif2  (Tiff_Im::UnivConvStd(mICNM->Dir() + imgName2)),
     mIm2D_1  (1,1),
     mTIm2D_1 (mIm2D_1),
     mIm2D_2  (1,1),
-    mTIm2D_2 (mIm2D_2),
-    mNbRef   (0)
+    mTIm2D_2 (mIm2D_2)
 {
 
     cout<<"Read Im "<<imgName1<<" "<<imgName2;
@@ -1232,7 +1232,7 @@ int HomolLSMRefine_main(int argc,char ** argv)
                 vector<Tiff_Im> aVTifIm;
                 vector<Pt2dr>  aVPt;
                 vector<int>   aVInd;
-                for(unsigned int aKPt=0; aKPt<aNbPic; aKPt++)
+                for(uint aKPt=0; aKPt<uint(aNbPic); aKPt++)
                 {
                     cPointOnPic * aPt = aHPt.getPointOnPic(aKPt);
                     string aName = aPt->getPic()->getName();
