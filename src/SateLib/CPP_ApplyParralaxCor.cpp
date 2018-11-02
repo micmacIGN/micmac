@@ -303,41 +303,16 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	ElCamera* mCameraIn = new cCameraModuleOrientation(new OrientationGrille(aGRIBinInName), Sz, oriIntImaM2C_In);
 	ElCamera* mCameraOut = new cCameraModuleOrientation(new OrientationGrille(aGRIBinOutName), Sz, oriIntImaM2C_Out);
 
-	//Create linear output
-	std::ofstream fic("GeoI-Px/AngleFrom_" + aSceneInName + "_to_" + aSceneOutName + ".txt");
-	fic << std::setprecision(15);
-	fic << "X Y Row_in_Input" << std::endl;
+	// Output map of angles of 3N orbit in 3B
+	//Im2D_REAL8  aRowMap(aSz_Out.x, aSz_Out.y);
+	//REAL8 ** aData_RowMap = aRowMap.data();
+	// in integers to limit number of possible different values, hopefully not damaging precision of fit
+	Im2D_INT4  aRowMap(aSz_Out.x, aSz_Out.y);
+	INT4 ** aData_RowMap = aRowMap.data();
 
-	// Compute row in nadir image that corresponds to points in backlooking image
-	vector<Pt3dr> aVectPointsWithRow;
-	Pt3dr aPt;
-	for (size_t aRow = 0; aRow < aSz_Out.y; aRow++)
-	{
-
-		// define points in image
-		Pt2dr aPtImOut(aSz_Out.y / 2, aRow);
-		// if that point has data
-//		if (aDatCorrel_dilat[(uint)aPtImOut.y][(uint)aPtImOut.x] != -9999)
-//		{
-			//Compute ground coordinate of points with GRIBin
-			Pt2dr aPtImIn = mCameraIn->Ter2Capteur(mCameraOut->ImEtZ2Terrain(aPtImOut, 0));
-
-			//Record points for interpolation
-			aPt.x = aPtImOut.x; aPt.y = aPtImOut.y; aPt.z = aPtImIn.y;
-			aVectPointsWithRow.push_back(aPt);
-
-			fic << aPtImOut.x << " " << aPtImOut.y << " " << aPtImIn.y << std::endl;
-//		}
-	}
-
-	// Output map
-	Im2D_REAL8  aRowMap(aSz_Out.x, aSz_Out.y);
-	REAL8 ** aData_RowMap = aRowMap.data();
-
-	std::cout << "Starting interpolation of rows in Out band geometry" << endl;
+	std::cout << "Starting computations of rows of 3N in 3B band geometry" << endl;
 	beginTimer = clock();
 
-	double aRowInterpolated;
 	// Define area of interest
 	Pt2dr aTopLeftCornerOf3N(0, 0);
 	Pt2dr aBottomRightCornerOf3N(4100, 4200);
@@ -348,40 +323,27 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	size_t aXmax = min(aSz_Out.x, (int)(aBottomRightCornerOf3Nin3B.x));
 	size_t aYmin = max(0, (int)(aTopLeftCornerOf3Nin3B.y));
 	size_t aYmax = min(aSz_Out.y, (int)(aBottomRightCornerOf3Nin3B.y));
-	std::cout << "Area of interest for interpolation of projected row value : " << aXmin << " " << aXmax << " " << aYmin << " " << aYmax << " " << endl;
+	std::cout << "Area of interest for computations of rows of 3N in 3B band geometry: " << aXmin << " " << aXmax << " " << aYmin << " " << aYmax << " " << endl;
 
 	// Find projected row value for area of interest
 	for (size_t aX = aXmin; aX < aXmax; aX++)
 	{
 		for (size_t aY = aYmin; aY < aYmax; aY++)
 		{
-			// Find point with min distance from points in aVectPointsWithRow vector 
-			double minDist = 99999999;
-			double aDist;
-			for (size_t k = 0; k < aVectPointsWithRow.size(); k++)
-			{
-				aDist = sqrt(pow(aVectPointsWithRow[k].x - (double)aX, 2) + pow(aVectPointsWithRow[k].y - (double)aY, 2));
-				//cout << aX << " " << aY << " " << aVectPointsWithRow[k].x << " " << aVectPointsWithRow[k].y << " " << aDist << " " << aVectPointsWithRow[k].z << endl;
-				if (aDist < minDist)
-				{
-					minDist = aDist;
-					aRowInterpolated = aVectPointsWithRow[k].z;
-				}
-				// if we have passed the min and Dist is increasing (for speedup)
-				if (aDist > minDist)
-				{
-					break;
-				}
-			}
+			// define points in image 3B
+			Pt2dr aPtImOut(aX, aY);
 
-			// Record value
-			//cout << aX << " " << aY << " " << aRowInterpolated << endl;
-			aData_RowMap[aY][aX] = aRowInterpolated;
+			//Compute image coordinate of points in 3N with GRIBin
+			Pt2dr aPtImIn = mCameraIn->Ter2Capteur(mCameraOut->ImEtZ2Terrain(aPtImOut, 0));
+
+			// Record value of row
+			aData_RowMap[aY][aX] = aPtImIn.y;
 		}
 	}
 	endTimer = clock();
 	elapsed_secs = double(endTimer - beginTimer) / CLOCKS_PER_SEC;
 	std::cout << "Done in " << elapsed_secs << "s" << endl;
+
 
 	// Export data
 	string aNameOut = aDir + "GeoI-Px/RowFrom_" + aSceneInName + "_to_" + aSceneOutName + ".tif";
@@ -392,7 +354,8 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	(
 		aNameOut.c_str(),
 		aSz_Out,
-		GenIm::real8,
+		GenIm::int4,
+		//GenIm::real8,
 		Tiff_Im::No_Compr,
 		Tiff_Im::BlackIsZero
 	);
@@ -423,12 +386,15 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	std::cout << "Making the problem 1D for ALGLIB......";
 	beginTimer = clock();
 
-	// 2D->1D
+	// 2D->1D signal
 	vector< double > a1DSignalX;
 	vector< double > a1DSignalY;
+	vector< LONG64 > a1DSignalCounter;
 
-	// TODO : reduce nb of points. Maybe by merging points with same aData_RowMap[aY][aX] values
 	// Go through image 3B
+	std::vector<double>::iterator foundValue;
+	int indexOfValue;
+
 	for (u_int aY = 0; aY < aSz.y; aY++)
 	{
 		for (u_int aX = 0; aX < aSz.x; aX++)
@@ -436,8 +402,23 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 			// If in quality mask
 			if (aDatCorrel_dilat[aY][aX] != -9999)
 			{
-				a1DSignalX.push_back(aData_RowMap[aY][aX]);
-				a1DSignalY.push_back(aParOrig[aY][aX] - aDatParFit[aY][aX]);
+				foundValue = find(a1DSignalX.begin(), a1DSignalX.end(), aData_RowMap[aY][aX]);
+				indexOfValue = std::distance(a1DSignalX.begin(), foundValue);
+				if (foundValue == a1DSignalX.end()) // row value is not in a1DSignalX already
+				{
+					// Add new value to signal vectors (row value in X, signal value in Y)
+					a1DSignalX.push_back(aData_RowMap[aY][aX]);
+					a1DSignalY.push_back(aParOrig[aY][aX] - aDatParFit[aY][aX]);
+					// Add counter for number of 2D points included in this 1D datapoint
+					a1DSignalCounter.push_back(1);
+				}
+				else //row value already in a1DSignalX, at index indexOfValue
+				{
+					// Add new value to average of existing element of signal vectors with same row (X) value
+					a1DSignalY[indexOfValue] = (a1DSignalY[indexOfValue] * a1DSignalCounter[indexOfValue] + (aParOrig[aY][aX] - aDatParFit[aY][aX])) / (a1DSignalCounter[indexOfValue] + 1);
+					// Increment counter for number of 2D points included in this 1D datapoint
+					a1DSignalCounter[indexOfValue]++;
+				}
 			}
 		}
 	}
@@ -558,33 +539,31 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	std::cout << "Done in " << elapsed_secs << "s" << endl;
 	///END Solve with ALGLIB
 
-	// Computing value for each row
-	cout << "Computing value of sum of sins for each row......";
+	// Computing value for each point in 3B
+	cout << "Computing value of sum of sins for each point in 3B......";
 	beginTimer = clock();
 
-	/*
+	// Computing Sum of Sins value for each different row value
 	vector<double> aValuesOfSinFunction;
-	for (size_t aRow = 0; aRow < aSz_In.y; aRow++)
+	for (size_t anIndex=0 ; anIndex < a1DSignalX.size(); anIndex++)
 	{
 		double aVal = 0;
 		for (u_int i = 0; i < 8; i++)
 		{
-			aVal += c[3 * i] * sin(2 * M_PI * c[3 * i + 1] * aRow + c[3 * i + 2]*100);
+			aVal += c[3 * i] * sin(2 * M_PI * c[3 * i + 1] * a1DSignalX[anIndex] + c[3 * i + 2] * 100);
 		}
 		aValuesOfSinFunction.push_back(aVal);
 	}
-	*/
+		
 	//Filling out container
 	for (u_int aX = 0; aX < aSz.x; aX++)
 	{
 		for (u_int aY = 0; aY < aSz.y; aY++)
 		{
-			double aVal = 0;
-			for (u_int i = 0; i < 8; i++)
-			{
-				aVal += c[3 * i] * sin(2 * M_PI * c[3 * i + 1] * aData_RowMap[aY][aX] + c[3 * i + 2] * 100);
-			}
-			aDatParFit2[aY][aX] = aDatParFit[aY][aX] + aVal;// uesOfSinFunction[aData_RowMap[aY][aX]];
+			foundValue = find(a1DSignalX.begin(), a1DSignalX.end(), aData_RowMap[aY][aX]);
+			indexOfValue = std::distance(a1DSignalX.begin(), foundValue);
+
+			aDatParFit2[aY][aX] = aDatParFit[aY][aX] + aValuesOfSinFunction[indexOfValue];
 
 		}
 	}
@@ -1072,7 +1051,7 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 				a1DSignalY.push_back(a1DSignal[i]);
 			}
 			cout << "Size of vector for sin fit " << a1DSignalY.size() << endl;
-			cout << "Vector for sin fit " << a1DSignalY << endl;
+			//cout << "Vector for sin fit " << a1DSignalY << endl;
 
 
 
