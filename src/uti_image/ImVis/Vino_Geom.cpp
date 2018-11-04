@@ -571,27 +571,9 @@ void  cAppli_Vino::ShowSPC(const Pt2dr & aPClW)
                }
           }
 
-          ShowImCA(  aSz.y*mZoomCA + 10,0, aNearest->RIAC().IGT());
-/*
+          ShowImCA(  aSz.y*mZoomCA + 10,0,aNearest->RIAC().IGT());
           ShowImCA(2*aSz.y*mZoomCA + 20,0,aNearest->RIAC().IGR());
-          ShowImCA(3*aSz.y*mZoomCA + 30,0,aNearest->RIAC().IR0);
-*/
-/*
-          cCalcAimeImAutoCorr aCAIAC(aImLogT,true);
-          // Im2D_INT1 aImAC = aCAIAC.mImVis;
-
-          ShowImCA(aSz.y*mZoomCA + 10,0,aCAIAC.mIGT.mImVis);
-          ShowImCA(2*aSz.y*mZoomCA + 20,0,aCAIAC.mIGR.mImVis);
-          ShowImCA(3*aSz.y*mZoomCA + 30,0,aCAIAC.mIR0.mImVis);
-
-          if (0)
-          {
-                Tiff_Im::Create8BFromFonc("Patch-8B-LogT.tif",aImLogT.sz(),aImLogT.in()+128);
-                aCAIAC.mIR0.MakeTiff("Patch-IR0.tif");
-                aCAIAC.mIGR.MakeTiff("Patch-IGR.tif");
-                aCAIAC.mIGT.MakeTiff("Patch-IGT.tif");
-          }
-*/
+          ShowImCA(3*aSz.y*mZoomCA + 30,0,aNearest->RIAC().IR0());
        }
 
        if (! mVptHom.empty())

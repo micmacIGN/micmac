@@ -65,6 +65,85 @@ std::vector<int> VectScal(const cOnePCarac * aP1,const cOnePCarac * aP2)
     return aRes;
 }
 
+Im2D_INT1 Get_IR0(const cRotInvarAutoCor & aRIAC){return aRIAC.IR0();}
+Im2D_INT1 Get_IGT(const cRotInvarAutoCor & aRIAC){return aRIAC.IGT();}
+Im2D_INT1 Get_IGR(const cRotInvarAutoCor & aRIAC){return aRIAC.IGR();}
+typedef Im2D_INT1 (*tGet_I1FromRIAC)(const cRotInvarAutoCor & aRIAC);
+
+
+double ScoreI1(tGet_I1FromRIAC aFonc,const cRotInvarAutoCor & aRIAC1,const cRotInvarAutoCor & aRIAC2)
+{
+    Im2D_INT1 aI1 = aFonc(aRIAC1);
+    Im2D_INT1 aI2 = aFonc(aRIAC2);
+    int aSDif,aSom;
+    ELISE_COPY
+    (
+        aI1.all_pts(),
+        Virgule(1,Abs(aI1.in()-aI2.in())),
+        Virgule(sigma(aSom),sigma(aSDif))
+    );
+
+    return (aSDif / double(aSom)) / DynU1;
+}
+
+std::vector<double> GetVSI1(const cRotInvarAutoCor & aRIAC1,const cRotInvarAutoCor & aRIAC2)
+{
+    std::vector<tGet_I1FromRIAC> aVF={Get_IR0,Get_IGT,Get_IGR};
+    std::vector<double> aRes;
+    double aSom=0;
+    for (const auto & aFonc : aVF)
+    {
+        double aSc = ScoreI1(aFonc,aRIAC1,aRIAC2);
+        aRes.push_back(aSc);
+        aSom += aSc;
+    }
+    aRes.push_back(aSom/aRes.size());
+    return aRes;
+}
+
+
+void TestOneInvR
+     (
+         const std::vector<cOnePCarac> & aVH,
+         const cOnePCarac * aHom1,
+         const cOnePCarac * aHom2
+     )
+{
+    std::vector<double>  aVD0 = GetVSI1(aHom1->RIAC(),aHom2->RIAC());
+    int aNbLab = aVD0.size();
+    std::vector<int>     aVNb(aNbLab,0);
+    std::vector<int>     aVOk(aNbLab,0);
+    std::vector<double>  aVDMoy(aNbLab,0.0);
+
+
+    for (int aK=0 ; aK<int(aVH.size()) ; aK++)
+    {
+         const cOnePCarac * aHomTest = & aVH[aK];
+         if (aHomTest->Kind() == aHom2->Kind())
+         {
+             
+             std::vector<double>  aVDist  = GetVSI1(aHomTest->RIAC(),aHom2->RIAC());
+             for (int aK=0 ; aK<aNbLab ; aK++)
+             {
+                  aVNb[aK] ++;
+                  aVDMoy[aK] += aVDist[aK];
+                  if (aVD0[aK] <= aVDist[aK])
+                     aVOk[aK] ++;
+             }
+         }
+    }
+
+    std::cout <<  "========= AUTO CORREL ==========\n";
+    for (int aK=0 ; aK<aNbLab ; aK++)
+    {
+         std::cout << " Prop " << (aVOk[aK]/double(aVNb[aK])) 
+                   << " DRef " << aVD0[aK] 
+                   << " DMoy " << aVDMoy[aK] / aVNb[aK]
+                   << " A " << aVOk[aK] << " " << aVNb[aK]
+                   << "\n";
+    }
+}
+
 
 double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2,bool Show)
 {
@@ -87,8 +166,10 @@ double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac
      if (Show)
      {
         for (int aK=0 ; aK<int(aVNbOk.size()) ; aK++)
-           std::cout << "For " <<  eToString(eTypeInvRad(aK))  << " " << aVNbOk[aK] / double(aNbOkLab) << "\n";
+           std::cout << "fFor " <<  eToString(eTypeInvRad(aK))  << " " << aVNbOk[aK] / double(aNbOkLab) << "\n";
      }
+     TestOneInvR(aVH,aHom1,aHom2);
+
      return aVNbOk.back() / double(aNbOkLab);
 }
 

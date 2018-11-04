@@ -231,7 +231,7 @@ void RobustNormalise(Im2D_REAL4 aImBuf,Im2D_REAL4 aImOut,double aProp,double  aM
    ELISE_COPY
    (
        aImBuf.all_pts(),
-       (aImBuf.in()-aMoy) / anEcart,
+       (aImBuf.in()-aMoy) / ElMax(anEcart,1e-10),
        aImOut.out()
    );
 
