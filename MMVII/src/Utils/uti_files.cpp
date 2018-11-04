@@ -9,7 +9,7 @@ template<class Type> std::unique_ptr<Type>  NNfs(const std::string & aNameFile,c
 
     if (!aRes->good())
     {
-       MMVII_UsersErrror(eTyUEr::eOpenFile,"Cannot open file : "  + aNameFile + " ,Mode=" + aMode+  " ,context=" + aMes);
+       MMVII_INTERNAL_ASSERT_user(eTyUEr::eOpenFile,"Cannot open file : "  + aNameFile + " ,Mode=" + aMode+  " ,context=" + aMes);
     }
 
     return aRes;
@@ -38,7 +38,7 @@ cMMVII_Ofs::cMMVII_Ofs(const std::string & aName,bool ModeAppend) :
 {
     if (!mOfs.good())
     {
-       MMVII_UsersErrror(eTyUEr::eOpenFile,"Cannot open file : "  + mName + " in mode write");
+       MMVII_INTERNAL_ASSERT_user(eTyUEr::eOpenFile,"Cannot open file : "  + mName + " in mode write");
     }
 }
 
@@ -52,7 +52,7 @@ std::ofstream & cMMVII_Ofs::Ofs()
 #if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny)
    if (!mOfs.good())
    {
-       MMVII_UsersErrror(eTyUEr::eWriteFile,"Bad file for "+mName);
+       MMVII_INTERNAL_ASSERT_user(eTyUEr::eWriteFile,"Bad file for "+mName);
    }
 #endif
    return mOfs;
@@ -103,7 +103,7 @@ cMMVII_Ifs::cMMVII_Ifs(const std::string & aName) :
 {
     if (!mIfs.good())
     {
-       MMVII_UsersErrror(eTyUEr::eOpenFile,"Cannot open file : "  + mName + " in mode read");
+       MMVII_INTERNAL_ASSERT_user(eTyUEr::eOpenFile,"Cannot open file : "  + mName + " in mode read");
     }
 }
 
@@ -117,7 +117,7 @@ std::ifstream & cMMVII_Ifs::Ifs()
 #if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny)
    if (!mIfs.good())
    {
-       MMVII_UsersErrror(eTyUEr::eReadFile,"Bad file for "+mName);
+       MMVII_INTERNAL_ASSERT_user(eTyUEr::eReadFile,"Bad file for "+mName);
    }
 #endif
    return mIfs;
