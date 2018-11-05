@@ -552,7 +552,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	// 2D->1D signal
 	vector< double > a1DSignalX;
 	vector< double > a1DSignalY;
-	vector< LONG64 > a1DSignalCounter;
+	vector< int > a1DSignalCounter;
 
 	// Go through image 3B
 	std::vector<double>::iterator foundValue;
