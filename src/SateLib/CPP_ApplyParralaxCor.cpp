@@ -237,7 +237,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 
 	// Define area of interest
 	Pt2dr aTopLeftCornerOf3N(0, 0);
-	Pt2dr aBottomRightCornerOf3N(4100, 4200);
+	Pt2dr aBottomRightCornerOf3N(aSz_In.x, aSz_In.y);
 	Pt2dr aTopLeftCornerOf3Nin3B = mCameraOut->Ter2Capteur(mCameraIn->ImEtZ2Terrain(aTopLeftCornerOf3N, 0));
 	Pt2dr aBottomRightCornerOf3Nin3B = mCameraOut->Ter2Capteur(mCameraIn->ImEtZ2Terrain(aBottomRightCornerOf3N, 0));
 
