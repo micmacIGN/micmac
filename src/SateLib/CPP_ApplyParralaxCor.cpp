@@ -352,7 +352,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	//          Polynomial fit (5th deg in X)           //
 	//////////////////////////////////////////////////////
 
-	std::cout << "Solving polynomial fit (5deg)......";
+	std::cout << "Solving polynomial fit (6deg)......";
 	beginTimer = clock();
 	//degX6
 	L2SysSurResol aSysPar6(6);
