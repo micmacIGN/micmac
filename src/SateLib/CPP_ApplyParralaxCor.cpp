@@ -237,14 +237,18 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 
 	// Define area of interest
 	Pt2dr aTopLeftCornerOf3N(0, 0);
+	Pt2dr aTopRightCornerOf3N(aSz_In.x, 0);
 	Pt2dr aBottomRightCornerOf3N(aSz_In.x, aSz_In.y);
+	Pt2dr aBottomLeftCornerOf3N(0, aSz_In.y);
 	Pt2dr aTopLeftCornerOf3Nin3B = mCameraOut->Ter2Capteur(mCameraIn->ImEtZ2Terrain(aTopLeftCornerOf3N, 0));
+	Pt2dr aTopRightCornerOf3Nin3B = mCameraOut->Ter2Capteur(mCameraIn->ImEtZ2Terrain(aTopRightCornerOf3N, 0));
 	Pt2dr aBottomRightCornerOf3Nin3B = mCameraOut->Ter2Capteur(mCameraIn->ImEtZ2Terrain(aBottomRightCornerOf3N, 0));
+	Pt2dr aBottomLeftCornerOf3Nin3B = mCameraOut->Ter2Capteur(mCameraIn->ImEtZ2Terrain(aBottomLeftCornerOf3N, 0));
 
-	size_t aXminAOI = max(0, (int)(aTopLeftCornerOf3Nin3B.x));
-	size_t aXmaxAOI = min(aSz_Out.x, (int)(aBottomRightCornerOf3Nin3B.x));
-	size_t aYminAOI = max(0, (int)(aTopLeftCornerOf3Nin3B.y));
-	size_t aYmaxAOI = min(aSz_Out.y, (int)(aBottomRightCornerOf3Nin3B.y));
+	size_t aXminAOI = max(0, min((int)(aTopLeftCornerOf3Nin3B.x), (int)(aBottomLeftCornerOf3Nin3B.x)));
+	size_t aXmaxAOI = min(aSz_Out.x, max((int)(aBottomRightCornerOf3Nin3B.x), (int)(aTopRightCornerOf3Nin3B.x)));
+	size_t aYminAOI = max(0, min((int)(aTopLeftCornerOf3Nin3B.y), (int)(aTopRightCornerOf3Nin3B.y)));
+	size_t aYmaxAOI = min(aSz_Out.y, max((int)(aBottomRightCornerOf3Nin3B.y), (int)(aBottomLeftCornerOf3Nin3B.y)));
 	std::cout << "Area of interest for computations of columns and rows of 3N in 3B band geometry: " << aXminAOI << " " << aXmaxAOI << " " << aYminAOI << " " << aYmaxAOI << " " << endl;
 
 	////////////////////////////////////////////////////// 
