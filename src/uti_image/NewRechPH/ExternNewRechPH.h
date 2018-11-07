@@ -309,6 +309,8 @@ class cBiaisedRandGenerator
 
 };
 
+namespace  AimeImageAutoCorrel
+{
 /*    For storing and computing rotation invariant auto correlations */
 class cAimeImAutoCorr
 {
@@ -320,10 +322,10 @@ class cAimeImAutoCorr
 };
 
 
-class cOneICAA
+class cOneICAIAC
 {
    public :
-       cOneICAA(int aTx,int aTy);
+       cOneICAIAC(int aTx,int aTy);
 
        int                 mTx;
        int                 mTy;
@@ -347,14 +349,16 @@ class cCalcAimeImAutoCorr : public cAimeImAutoCorr
        TIm2D<INT1,INT>     mTImInit;
        bool                mL1Mode;
 
-       cOneICAA            mIR0; // Image Rad
-       cOneICAA            mIGR;  // Im Gra Rad
-       cOneICAA            mIGT;  // Im Gra Tan
+       cOneICAIAC            mIR0; // Image Rad
+       cOneICAIAC            mIGR;  // Im Gra Rad
+       cOneICAIAC            mIGT;  // Im Gra Tan
+
+};
 
 };
 
 
-
+using namespace  AimeImageAutoCorrel;
 
 
 
