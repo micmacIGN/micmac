@@ -1460,6 +1460,8 @@ double EcartNormalise(double aI1,double aI2)
     return 1-aI2/aI1;  // 1 -1/X
 }
 
+const double MCPMulCorel = 10.0;
+
 
 void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel * aCMP,int aNbScaleIm,bool VireExtre,double aPdsAttPix)
 {
@@ -1517,7 +1519,8 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
                   {
                        double aVk = mVLI[aK]->ImOrtho(anX,anY);
                        double aVal = EcartNormalise(aV0,aVk);
-                       aVNorm.push_back(AdaptCostPonct(round_ni(aVal*TheDynMCP)));
+
+                       aVNorm.push_back(AdaptCostPonct(round_ni(aVal*TheDynMCP*MCPMulCorel)));
                        if (aPdsAttPix)
                        {
                            aNbCostPix++;
@@ -2055,7 +2058,7 @@ void cAppliMICMAC::DoCorrelAdHoc
             double aPdsPix= 0 ;
             if (aAP)
             {
-               aPdsPix=  aAP->Pds();
+               aPdsPix=  aAP->Pds() * MCPMulCorel;
                for (int aKIm= 0 ; aKIm<int(mVLI.size()) ; aKIm++)
                {
                     std::string aName = mVLI[aKIm]->PDV()->Name();
