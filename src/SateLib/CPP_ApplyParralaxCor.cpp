@@ -376,13 +376,13 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	}
 
 	//Computing the result
-	int aCase;
 	bool Ok;
 	int nbCoef;
 
 	Im1D_REAL8 aSolPar6 = aSysPar6.GSSR_Solve(&Ok);
 	double aRes6 = aSysPar6.ResiduOfSol(aSolPar6.data());
-	double* aPolyPar = aSolPar6.data(); nbCoef = 6;
+	double* aPolyPar = aSolPar6.data(); 
+	nbCoef = 6;
 
 	endTimer = clock();
 	elapsed_secs = double(endTimer - beginTimer) / CLOCKS_PER_SEC;
@@ -1157,12 +1157,12 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 					//closest non -9999 value is just before (i-1)
 					double aBefore = a1DSignal[i - 1];
 					double aAfter = 0;
-					int aDist;
+					int aDist=1;
 					for (u_int j = i + 1; j < lastValid; j++)
 					{
 						if (a1DSignal[j] != -9999)
 						{
-							double aAfter = a1DSignal[j];
+							aAfter = a1DSignal[j];
 							aDist = j - i;
 						}
 					}
