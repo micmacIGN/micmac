@@ -1444,7 +1444,7 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 			aParFit.in(),
 			aPar.out()//Virgule(aImR.out(),aImG.out(),aImB.out())
 		);
-		REAL8 ** aDatPar = aPar.data();
+		aDatPar = aPar.data();
 		cout << "Data fitted" << endl;
 	}
 	else if (aFitASTER == 2)
@@ -1456,7 +1456,7 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 			aParFit.in(),
 			aPar.out()//Virgule(aImR.out(),aImG.out(),aImB.out())
 		);
-		REAL8 ** aDatPar = aPar.data();
+		aDatPar = aPar.data();
 		cout << "Data fitted" << endl;
 	}
 
