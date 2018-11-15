@@ -1460,7 +1460,7 @@ double EcartNormalise(double aI1,double aI2)
     return 1-aI2/aI1;  // 1 -1/X
 }
 
-const double MCPMulCorel = 10.0;
+const double MCPMulCorel = 1.0;
 
 
 void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctuel * aCMP,int aNbScaleIm,bool VireExtre,double aPdsAttPix)
