@@ -28,6 +28,27 @@ void  BinaryUnDumpFromFile(eTypePtRemark &,ELISE_fp &);
 
 typedef enum
 {
+  eTVIR_Curve,
+  eTVIR_ACR0,
+  eTVIR_ACGT,
+  eTVIR_ACGR,
+  eTVIR_NoLabel
+} eTypeVecInvarR;
+void xml_init(eTypeVecInvarR & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeVecInvarR & aVal);
+
+eTypeVecInvarR  Str2eTypeVecInvarR(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeVecInvarR & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeVecInvarR &);
+
+std::string  Mangling( eTypeVecInvarR *);
+
+void  BinaryUnDumpFromFile(eTypeVecInvarR &,ELISE_fp &);
+
+typedef enum
+{
   eTIR_Radiom,
   eTIR_GradRad,
   eTIR_GradCroise,
@@ -862,6 +883,9 @@ class cXmlAimeParamApprentissage
         friend void xml_init(cXmlAimeParamApprentissage & anObj,cElXMLTree * aTree);
 
 
+        std::string & AbsDir();
+        const std::string & AbsDir()const ;
+
         cTplValGesInit< bool > & DefDoIt();
         const cTplValGesInit< bool > & DefDoIt()const ;
 
@@ -904,6 +928,7 @@ class cXmlAimeParamApprentissage
         cXlmAimeApprent & XlmAimeApprent();
         const cXlmAimeApprent & XlmAimeApprent()const ;
     private:
+        std::string mAbsDir;
         cTplValGesInit< bool > mDefDoIt;
         cTplValGesInit< bool > mDefDoMatch;
         cTplValGesInit< bool > mDefDoPtCar;

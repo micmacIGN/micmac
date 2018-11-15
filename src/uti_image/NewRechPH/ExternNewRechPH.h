@@ -354,6 +354,9 @@ class cCalcAimeImAutoCorr : public cAimeImAutoCorr
 };
 
 
+const std::string  DirApprentIR(const std::string & aDirGlob,eTypePtRemark aTypeP,eTypeVecInvarR  aTypeInv);
+
+Im2D_INT1   ImOfCarac(const cOnePCarac &,eTypeVecInvarR);
 
 
 

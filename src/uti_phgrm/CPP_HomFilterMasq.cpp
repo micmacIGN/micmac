@@ -335,7 +335,8 @@ std::cout << aNameIm1  << " # " << aNameIm2 << "\n";
                   aPackOut.StdPutInFile(aNameOut);
                   if (SymThisFile)
                   {
-                      aPackOut.StdPutInFile(aNameInSym);
+                      std::string aNameInSymOut = aDir + anICNM->Assoc1To2(aKHOut,aNameIm2,aNameIm1,true);
+                      aPackSymOut.StdPutInFile(aNameInSymOut);
                   }
                   // std::cout << "IN " << aNameIn << " " << aNameOut  << " UseM " << UseMasq  << " Nb=" <<  aPackOut.size() << "\n";
              }

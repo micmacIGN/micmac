@@ -269,6 +269,10 @@ Im2D_INT1  MakeImI1(bool isRobust,Im2D_REAL4 aImIn)
 
 bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt,bool aModeTest)
 {
+   if (!mTImMasq.get(round_ni(aPt.Pt()),0))
+   {
+      return aPt.OK() = false;
+   }
    bool BUG= false &&  (euclid(aPt.Pt()+Pt2dr(mP0Calc)-aPTBUG) < 0.02);
    static int aCpt=0;
    aCpt++;

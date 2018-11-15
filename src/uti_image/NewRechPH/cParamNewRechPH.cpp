@@ -76,6 +76,65 @@ void  BinaryUnDumpFromFile(eTypePtRemark & anObj,ELISE_fp & aFp)
 
 std::string  Mangling( eTypePtRemark *) {return "26AA66D133691995FF3F";};
 
+eTypeVecInvarR  Str2eTypeVecInvarR(const std::string & aName)
+{
+   if (aName=="eTVIR_Curve")
+      return eTVIR_Curve;
+   else if (aName=="eTVIR_ACR0")
+      return eTVIR_ACR0;
+   else if (aName=="eTVIR_ACGT")
+      return eTVIR_ACGT;
+   else if (aName=="eTVIR_ACGR")
+      return eTVIR_ACGR;
+   else if (aName=="eTVIR_NoLabel")
+      return eTVIR_NoLabel;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeVecInvarR\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeVecInvarR) 0;
+}
+void xml_init(eTypeVecInvarR & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeVecInvarR(aTree->Contenu());
+}
+std::string  eToString(const eTypeVecInvarR & anObj)
+{
+   if (anObj==eTVIR_Curve)
+      return  "eTVIR_Curve";
+   if (anObj==eTVIR_ACR0)
+      return  "eTVIR_ACR0";
+   if (anObj==eTVIR_ACGT)
+      return  "eTVIR_ACGT";
+   if (anObj==eTVIR_ACGR)
+      return  "eTVIR_ACGR";
+   if (anObj==eTVIR_NoLabel)
+      return  "eTVIR_NoLabel";
+ std::cout << "Enum = eTypeVecInvarR\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeVecInvarR & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeVecInvarR & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeVecInvarR & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeVecInvarR) aIVal;
+}
+
+std::string  Mangling( eTypeVecInvarR *) {return "D894C8294C4DD8F1FE3F";};
+
 eTypeInvRad  Str2eTypeInvRad(const std::string & aName)
 {
    if (aName=="eTIR_Radiom")
@@ -2504,6 +2563,17 @@ void xml_init(cXlmAimeApprent & anObj,cElXMLTree * aTree)
 std::string  Mangling( cXlmAimeApprent *) {return "448F2106F3DE94B2FCBF";};
 
 
+std::string & cXmlAimeParamApprentissage::AbsDir()
+{
+   return mAbsDir;
+}
+
+const std::string & cXmlAimeParamApprentissage::AbsDir()const 
+{
+   return mAbsDir;
+}
+
+
 cTplValGesInit< bool > & cXmlAimeParamApprentissage::DefDoIt()
 {
    return mDefDoIt;
@@ -2659,7 +2729,8 @@ const cXlmAimeApprent & cXmlAimeParamApprentissage::XlmAimeApprent()const
 
 void  BinaryUnDumpFromFile(cXmlAimeParamApprentissage & anObj,ELISE_fp & aFp)
 {
-   { bool IsInit;
+     BinaryUnDumpFromFile(anObj.AbsDir(),aFp);
+  { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
              anObj.DefDoIt().SetInitForUnUmp();
@@ -2737,6 +2808,7 @@ void  BinaryUnDumpFromFile(cXmlAimeParamApprentissage & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXmlAimeParamApprentissage & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.AbsDir());
     BinaryDumpInFile(aFp,anObj.DefDoIt().IsInit());
     if (anObj.DefDoIt().IsInit()) BinaryDumpInFile(aFp,anObj.DefDoIt().Val());
     BinaryDumpInFile(aFp,anObj.DefDoMatch().IsInit());
@@ -2766,6 +2838,7 @@ cElXMLTree * ToXMLTree(const cXmlAimeParamApprentissage & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"XmlAimeParamApprentissage",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("AbsDir"),anObj.AbsDir())->ReTagThis("AbsDir"));
    if (anObj.DefDoIt().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("DefDoIt"),anObj.DefDoIt().Val())->ReTagThis("DefDoIt"));
    if (anObj.DefDoMatch().IsInit())
@@ -2799,6 +2872,8 @@ void xml_init(cXmlAimeParamApprentissage & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
+   xml_init(anObj.AbsDir(),aTree->Get("AbsDir",1)); //tototo 
+
    xml_init(anObj.DefDoIt(),aTree->Get("DefDoIt",1),bool(true)); //tototo 
 
    xml_init(anObj.DefDoMatch(),aTree->Get("DefDoMatch",1),bool(true)); //tototo 
@@ -2820,6 +2895,6 @@ void xml_init(cXmlAimeParamApprentissage & anObj,cElXMLTree * aTree)
    xml_init(anObj.XlmAimeApprent(),aTree->Get("XlmAimeApprent",1)); //tototo 
 }
 
-std::string  Mangling( cXmlAimeParamApprentissage *) {return "CA2FB12AD1C8A0FFFE3F";};
+std::string  Mangling( cXmlAimeParamApprentissage *) {return "E9703653668F268FFE3F";};
 
 // };

@@ -110,6 +110,8 @@ cMMVII_Appli::cMMVII_Appli
    mStdCout       (std::cout),
    mSeedRand      (msDefSeedRand) // In constructor, don't use virtual, wait ...
 {
+   /// Minimal consistency test for installation, does the MicMac binary exist ?
+   MMVII_INTERNAL_ASSERT_always(ExistFile(mFullBin),"Could not find MMVII binary (tried with " +  mFullBin + ")");
 }
 
 /// This one is always std:: cout, to be used by StdOut and cMMVII_Appli::StdOut ONLY
@@ -151,6 +153,8 @@ void cMMVII_Appli::InitParam()
   cCollecSpecArg2007 & anArgObl = ArgObl(mArgObl);
   cCollecSpecArg2007 & anArgFac = ArgOpt(mArgFac);
 
+  // std::cout << "ApppliInitParammmm L="  << __LINE__ << " " << mColStrAObl.V().size() << " " << mColStrAOpt.V().size() << "\n";
+
   mInitParamDone = true;
   MMVII_INTERNAL_ASSERT_always(msTheAppli==0,"cMMVII_Appli only one by process");
   msTheAppli = this;
@@ -165,6 +169,13 @@ void cMMVII_Appli::InitParam()
   // Add common optional parameters
   cSpecOneArg2007::tVSem aInternal{eTA2007::Internal,eTA2007::Common}; // just to make shorter lines
   cSpecOneArg2007::tVSem aCom{eTA2007::Common}; // just to make shorter lines
+
+
+  /*  Decoding AOpt2007(mIntervFilterMS[0],GOP_Int0,"File Filter Interval, Main Set"  ,{eTA2007::Common,{eTA2007::FFI,"0"}})
+        mIntervFilterMS[0]  => string member, will store the value
+        GOP_Int0 => const name, Global Optionnal Interval , num 0, declared in MMVII_DeclareCste.h
+        {eTA2007::Common,{eTA2007::FFI,"0"}}  attibute, it's common, it's intervall with attribute "0"
+  */
   mArgFac
       <<  AOpt2007(mIntervFilterMS[0],GOP_Int0,"File Filter Interval, Main Set"  ,{eTA2007::Common,{eTA2007::FFI,"0"}})
       <<  AOpt2007(mIntervFilterMS[1],GOP_Int1,"File Filter Interval, Second Set",{eTA2007::Common,{eTA2007::FFI,"1"}})

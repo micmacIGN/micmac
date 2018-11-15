@@ -167,8 +167,8 @@ double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac
      {
         for (int aK=0 ; aK<int(aVNbOk.size()) ; aK++)
            std::cout << "fFor " <<  eToString(eTypeInvRad(aK))  << " " << aVNbOk[aK] / double(aNbOkLab) << "\n";
+        TestOneInvR(aVH,aHom1,aHom2);
      }
-     TestOneInvR(aVH,aHom1,aHom2);
 
      return aVNbOk.back() / double(aNbOkLab);
 }

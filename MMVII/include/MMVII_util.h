@@ -21,11 +21,16 @@ class cCarLookUpTable;
 
 // ===============================================
 
+/// Indicate if an int is a regular caracter
 inline bool IsChar(int aV)
 {
    return (aV>=std::numeric_limits<char>::min())&&(aV<std::numeric_limits<char>::max());
 }
 
+/**
+     Class to tabulate a fonction on char
+     For now, due to limited accassor, can only be used in binary mode, done to be reusable.
+*/
 class cCarLookUpTable
 {
      public : 
@@ -41,16 +46,16 @@ class cCarLookUpTable
      private :
          // static cGestObjetEmpruntable<cCarLookUpTable>   msGOE;
 
-         char          mDTable[256]; ///< 
-         char *        mUTable;    ///<
-         std::string   mIns;
-         bool          mInit;
+         char          mDTable[256]; ///< Reserve RAM for the LUT 
+         char *        mUTable;      ///< To handle that sometimes char are signed
+         std::string   mIns;         ///< Memorize char !=0 to  reset
+         bool          mInit;        ///< Is it initialize
 };
 
 // Indicate if all "word" of list are in KeyList, use aSpace to separate word
 // Si aMes=="SVP"=> No Error just return false, else aMes is error message
 bool  CheckIntersect(const std::string & aMes,const std::string & aKeyList,const std::string & aList,const std::string & aSpace);
-std::string  Quote(const std::string &);  // Assure a string is between quote, do nothing is begins by "
+std::string  Quote(const std::string &);  ///<  Assure a string is between quote, do nothing when begins by "
 
 
 //  String spliting, post fix, prefix etc ...

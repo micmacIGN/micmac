@@ -360,6 +360,10 @@ class cAppli_NewRechPH
         bool          mCallBackMulI; // Est on en call back pour cause d'image multiple
         int          mModeTest;
         int          mNbHighScale;
+
+        std::string     mKeyNameMasq;
+        Im2D_Bits<1>    mImMasq;
+        TIm2DBits<1>    mTImMasq;
 };
 
 class cProfilPC

@@ -97,6 +97,11 @@ class cSpecMMVII_Appli
     When MMVII calls MMVII, we try to it as structured as possible (not
     only a string). So  that eventually we can parse & analyze
     parameters.
+
+    Not to confuse  with cCollecSpecArg2007 ;
+           cCollecSpecArg2007 => used for init , memorize
+           cColStrAObl => reset as soon as they are used by ExeCallMMVII
+     operator <<  ares defined on both classes ...
 */
 
 class cColStrAObl
@@ -115,6 +120,7 @@ class cColStrAObl
 /// Class to store Optionnal args for recursive call
 /**
     Equivalent of cColStrAObl, Use pair of strings Name/Value
+    idem not to conduse with cCollecSpecArg2007
 */
 class cColStrAOpt
 {
@@ -135,6 +141,10 @@ class cColStrAOpt
 // risque de devenir la classe mamouth ...
  
      // ========================== cMMVII_Ap_NameManip  ==================
+
+/**
+       Contain string manipulation, for now lowe level of split string
+*/
 class cMMVII_Ap_NameManip
 {
     public  :
@@ -147,8 +157,8 @@ class cMMVII_Ap_NameManip
 
     protected :
       
-        cCarLookUpTable *                       mCurLut;
-        cGestObjetEmpruntable<cCarLookUpTable>  mGoClut;
+        cCarLookUpTable *                       mCurLut; /// Lut use for Split , recycled each time
+        cGestObjetEmpruntable<cCarLookUpTable>  mGoClut; /// Memry ressource to allocate cCarLookUpTable
     private :
         // Avance jusqu'au premier char !=0 et Lut[cahr] !=0
         const char * SkipLut(const char *,int aVal);
@@ -158,6 +168,10 @@ class cMMVII_Ap_NameManip
 
 
      // ========================== cMMVII_Ap_NameManip  ==================
+
+/**
+    Manage CPU related information on Applis
+*/
 class cMMVII_Ap_CPU
 {
     public  :
@@ -225,7 +239,6 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         static int  SeedRandom();  ///< SeedRand if Appli init, else default
 
-        // cCollecSpecArg2007 & anArgObl, cCollecSpecArg2007 & anArgFac);
 
     protected :
         /// Constructor, essenntially memorize command line and specifs

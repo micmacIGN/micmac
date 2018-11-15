@@ -34,6 +34,15 @@
       <eTPR_BifurqSadl>    </eTPR_BifurqSadl>
    </enum>
 
+   <!-- Sotcke les noms des differentes options de calcul d'invariants -->
+   <enum Name="eTypeVecInvarR">
+         <eTVIR_Curve>     </eTVIR_Curve>
+         <eTVIR_ACR0>      </eTVIR_ACR0>  <!-- Auto correl radiom basiques -->
+         <eTVIR_ACGT>      </eTVIR_ACGT>  <!-- Auto correl gradient tangentiel-->
+         <eTVIR_ACGR>      </eTVIR_ACGR>  <!-- Auto correl gradient radial-->
+         <eTVIR_NoLabel>   </eTVIR_NoLabel>  <!-- Auto correl gradient radial-->
+   </enum>
+
 <!--
          <CoeffRadiom   Nb="1" Type="std::vector<double>">           </CoeffRadiom>
          <CoeffRadiom2  Nb="1" Type="std::vector<double>">           </CoeffRadiom2>
@@ -217,6 +226,7 @@ mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
 -->
 
    <XmlAimeParamApprentissage Nb="1" Class="true" ToReference="true">
+       <AbsDir Nb="1" Type="std::string"> </AbsDir>  <!-- pour connaitre le nom absolu a passer aux sous prog-->
        <DefDoIt Nb="?" Type="bool" Def="true"> </DefDoIt>
        <DefDoMatch Nb="?" Type="bool" Def="true"> </DefDoMatch>
        <DefDoPtCar Nb="?" Type="bool" Def="true"> </DefDoPtCar>

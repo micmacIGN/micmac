@@ -198,7 +198,9 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeVisu) :
     mIdPts             (0),
     mCallBackMulI      (false),
     mModeTest          (0),
-    mNbHighScale       (750)
+    mNbHighScale       (750),
+    mImMasq            (1,1),
+    mTImMasq           (mImMasq)
 {
    cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
    mInterp = new cTabIM2D_FromIm2D<tElNewRechPH>(aSinC,1000,false);
@@ -247,6 +249,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeVisu) :
                       << EAM(mModeTest, "ModeTest",true,"1=only exe new file, 2=only print new file ")
                       << EAM(mNbHighScale, "NbHS",true,"Number of point in High Scale, Def=750 ")
                       << EAM(DebugNRPH, "Debug",true,"if true activate a lot of messages ")
+                      << EAM(mKeyNameMasq, "KeyNameMasq",true,"Masq =>4 now an image (later a key if necessary)")
    );
 
    
@@ -331,6 +334,17 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeVisu) :
    mIm0         = mVILowR.back()->Im();
    mTIm0        = tTImNRPH(mIm0);
    mSzIm = mIm0.sz();
+
+   // Gestion du masque
+   {
+       mImMasq  = Im2D_Bits<1>(mSzIm.x,mSzIm.y,1);
+       mTImMasq = TIm2DBits<1>(mImMasq); 
+       if (EAMIsInit(&mKeyNameMasq))
+       {
+           Tiff_Im aFileIm(mKeyNameMasq.c_str());
+           ELISE_COPY(mImMasq.all_pts(),trans(aFileIm.in(0),mP0Calc),mImMasq.out());
+       }
+   }
 
    mNbMaxLabInBox = ElMin(mNbMaxLabByIm,round_ni((mSzIm.x/1e7)*mSzIm.y*mNbMaxLabBy10MP));
    mNbMaxLabInBox = ElMax(mNbMaxLabInBox,mNbMinLabByIm);
@@ -524,6 +538,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeVisu) :
        }
        if (aPt.OK())
        {
+          // Mode test
           CalvInvariantRot(aPt,true);
        }
        ImCalc(aPt)->NbPOfLab(int(aPt.Kind())) ++;
@@ -921,6 +936,8 @@ class cAimeApprentissage
         cXmlAimeParamApprentissage mParam;
         bool mExe;
         bool mForShowPerf;
+        bool mForMkDir;
+        std::string mAbsDir;
 };
 
 void cAimeApprentissage::CD(const std::string & aDir)
@@ -952,7 +969,8 @@ void cAimeApprentissage::DoOneRef()
                                  + aMatch.Master() +  " "
                                  + aName           +  " "
                                  + mCurDir->Ori()  + " "
-                                 + "NC= ";
+                                 + " NC= "
+                                 + " DSI=" + mAbsDir;
                aLCom.push_back(aCom);
                // std::cout << "   NAMME= " << aName << "\n";
             }
@@ -1079,10 +1097,19 @@ void cAimeApprentissage::DoOneAppr(const cXlmAimeOneApprent & anAOP,int aCpt)
 }
 
 
+const std::string  DirApprentIR(const std::string & aDirGlob,eTypePtRemark aTypeP,eTypeVecInvarR  aTypeInv)
+{
+    return aDirGlob +  "DirAppr/" +  eToString(aTypeP) + "/" + eToString(aTypeInv) + "/";
+}
+  
+/*
+*/
+
 
 cAimeApprentissage::cAimeApprentissage(int argc,char ** argv) :
     mExe          (true),
-    mForShowPerf  (false)
+    mForShowPerf  (false),
+    mForMkDir    (false)
 {
    MMD_InitArgcArgv(argc,argv);
    ElInitArgMain
@@ -1091,9 +1118,28 @@ cAimeApprentissage::cAimeApprentissage(int argc,char ** argv) :
          LArgMain()  << EAMC(mNameParam, "Name Parameter",  eSAM_IsPatFile),
          LArgMain()  << EAM(mExe, "Exe",true,"Execute commands")
                      << EAM(mForShowPerf,"ForShowPerf",true,"Dont compute, only show performance")
+                     << EAM(mForMkDir,"4MkD",true,"Only to create dir")
    );
 
    mParam = StdGetFromNRPH(mNameParam,XmlAimeParamApprentissage);
+   mAbsDir = mParam.AbsDir();
+
+
+   if (mForMkDir)
+   {
+       mExe=false;
+       for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
+       {
+           for (int aKI=0 ; aKI<int(eTVIR_NoLabel) ; aKI++)
+           {
+               std::string aDir = DirApprentIR(mAbsDir,eTypePtRemark(aKL),eTypeVecInvarR(aKI));
+               ELISE_fp::MkDirRec(aDir);
+           }
+       }
+       return;
+   }
+
+
    if (mForShowPerf) 
       mExe=false;
 
