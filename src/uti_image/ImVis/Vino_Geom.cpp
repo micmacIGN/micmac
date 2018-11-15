@@ -312,10 +312,12 @@ void ShowCurve(Im2D_INT1 aIm,int aY,const Pt2di & aP0,const Pt2di & aP1,Video_Wi
 /*                                                         */
 /***********************************************************/
 
+namespace AimeImageAutoCorrel
+{
 
-     // =============== cOneICAA  ====   
+     // =============== cOneICAIAC  ====   
 
-cOneICAA::cOneICAA(int aTx,int aTy) :
+cOneICAIAC::cOneICAIAC(int aTx,int aTy) :
      mTx     (aTx),
      mTy     (aTy),
      mImCor  (mTx,mTy),
@@ -324,11 +326,11 @@ cOneICAA::cOneICAA(int aTx,int aTy) :
 {
 }
 
-void cOneICAA::MakeImVis(bool isRobust) 
+void cOneICAIAC::MakeImVis(bool isRobust) 
 {
    mImVis = MakeImI1(isRobust,mImCor);
 };
-void cOneICAA::MakeTiff(const std::string & aName)
+void cOneICAIAC::MakeTiff(const std::string & aName)
 {
      Tiff_Im::Create8BFromFonc(aName,mImVis.sz(),mImVis.in()+128);
 }
@@ -395,6 +397,9 @@ double cCalcAimeImAutoCorr::AutoCorrelGR(int aRho,int aDTeta)
 
 
 
+#if ELISE_QT // PB LINK INCOMPREHENSIBLE  Ann + Micmac + Qt => ?@&#!!!
+#else
+
 
 cCalcAimeImAutoCorr::cCalcAimeImAutoCorr(Im2D_INT1 anIm,bool L1Mode) :
     cAimeImAutoCorr (anIm),
@@ -457,6 +462,9 @@ cCalcAimeImAutoCorr::cCalcAimeImAutoCorr(Im2D_INT1 anIm,bool L1Mode) :
     ELISE_COPY(mImCor.all_pts(),round_ni(mImCor.in()*aDyn),mImVis.out());
 */
 }
+#endif 
+
+};
 
 
 //======================================================================

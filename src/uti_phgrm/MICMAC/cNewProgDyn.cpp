@@ -204,7 +204,7 @@ class cTabValArgGlob
      public :
 
           cTabValArgGlob(const cMultiCorrelPonctuel & aMCP, const int & aValOut,double aDefRes) :
-                mPdsCrois (aMCP.PdsCorrelCroise() / TheDynMCP),
+                mPdsCrois ((aMCP.PdsCorrelCroise() ) / TheDynMCP),
                 mDefRes   (aMCP.PdsCorrelCroise() * aDefRes),
                 mValOut   (aValOut)
           {
@@ -243,7 +243,7 @@ template <class Type,const int NbV> class cTabValI1Prg2DTmp
 // std::cout << "V1V2 " << int(aV1) << " " << int(aV2) << "\n";
                if ((aV1!=anArg.mValOut) && (aV2!=anArg.mValOut)) 
                {
-                  aRes += ElAbs(aV1-aV2);
+                  aRes += ElAbs(aV1-aV2) * MCPMulCorel;
                   aNbNN++;
                }
            }

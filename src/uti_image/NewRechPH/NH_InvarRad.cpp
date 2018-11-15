@@ -546,7 +546,13 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt,bool aModeTest)
       if (1)
       {
            static int aCpt = 0; aCpt++;
+#if ELISE_QT
+           ELISE_ASSERT(false,"MPD TRICK TO COMPILE : Horrriiiblllleee !!!!!!!");
+           cCalcAimeImAutoCorr * aPtraCAIAC=0;
+           cCalcAimeImAutoCorr & aCAIAC = *aPtraCAIAC;
+#else
            cCalcAimeImAutoCorr aCAIAC(aPt.ImLogPol(),true);
+#endif
 
            aPt.RIAC().IR0() = aCAIAC.mIR0.mImVis;
            aPt.RIAC().IGT() = aCAIAC.mIGT.mImVis;

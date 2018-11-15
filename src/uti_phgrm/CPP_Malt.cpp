@@ -451,6 +451,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mDirOrthoF = "Ortho-" + mDirMEC;
       MakeFileDirCompl(mDirOrthoF);
 
+      if (mMCorPonc) mForceZFaisc=true;
+      //if (mMCorPonc && !EAMIsInit(&mCostTrans)) mCostTrans=0.5;
       if (mMCorPonc && EAMIsInit(&mDoOrtho) && mDoOrtho) mZoomFinal=4;
       if (mMCorPonc && !EAMIsInit(&mDoOrtho)) mDoOrtho=false;
 
@@ -965,6 +967,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
          double aPCCroise  = 1.0;
          double aPCStd     = 0.0;          
          std::string aMCorPoncCal = "xml";
+
 
          if (EAMIsInit(&a12PixParam))
          {

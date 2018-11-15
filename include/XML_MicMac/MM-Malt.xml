@@ -26,10 +26,21 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb> ResolRelOrhto=0.5     </Symb>
    <Symb> ZoomInit=32     </Symb>
 
+<!-- One-Two Pixel Matching -->
+   <Symb>  CorPonc=false  </Symb>
+   <Symb>  MCorPoncCal="xml"  </Symb>
+  
+   <Symb>  PCStd=0.0  </Symb>
+   <Symb>  PCCroise=1.0  </Symb>
+   <Symb>  PdsAttPix=1.0  </Symb>
+
+   <eSymb> Px1PenteMax0=? ${CorPonc} 3 2 </eSymb>
+   <eSymb> Px1PenteMax1=? ${CorPonc} ${Px1PenteMax0} * 0.5 ${Px1PenteMax0} </eSymb>
+
 
 <!-- Parametre Algo ayant une valeur par defaut -->
    <Symb>   DefCor=0.2      </Symb>
-   <Symb>   CostTrans=2.0      </Symb>
+   <eSymb>  CostTrans=? ${CorPonc} 0.5 2.0 </eSymb> <!-- value set in the CPP -->
    <Symb>   NbMinIV=3       </Symb>
    <Symb>   Repere="NO-REPERE"  </Symb>
    <Symb>   FileAnam=EmptyXML.xml  </Symb>
@@ -111,10 +122,6 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb> MS_Sig3=2 </Symb>
    <Symb> MS_Pds3=0.25 </Symb>
 
-   <!-- One-two pixel matching -->
-   <Symb>  CorPonc=false  </Symb>
-   <Symb>  MCorPoncCal="xml"  </Symb>
-  
 
  
    <Symb>  ZoomInitMCorPonc=8  </Symb>
@@ -124,9 +131,6 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <eSymb> AddZoom4MCorPonc=SupEq ${ZoomInitMCorPonc} 4 </eSymb>
    <eSymb> AddZoom2MCorPonc=SupEq ${ZoomInitMCorPonc} 2 </eSymb>
    
-   <Symb>  PCStd=0.0  </Symb>
-   <Symb>  PCCroise=1.0  </Symb>
-   <Symb>  PdsAttPix=1.0  </Symb>
 
    <Symb>  ModeAgrCor=eAggregSymetrique </Symb>
 
@@ -456,7 +460,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                       <ModeAgreg> ${ModeAgregPrgDyn} </ModeAgreg>
                       <NbDir>   ${NbDirPrgDyn}               </NbDir>
                   </EtapeProgDyn>
-                  <Px1PenteMax>   2.0    </Px1PenteMax>
+                  <Px1PenteMax>   ${Px1PenteMax0}    </Px1PenteMax>
 		  <#WHEN VTEST=${UseArgMaskAuto}>
                   	<ArgMaskAuto > 
                       		<ValDefCorrel >  ${DefCor} </ValDefCorrel>
@@ -594,7 +598,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                               <ModeAgreg> ${ModeAgregPrgDyn} </ModeAgreg>
                               <NbDir>   ${NbDirPrgDyn}              </NbDir>
                          </EtapeProgDyn>
-                         <Px1PenteMax>   1.0    </Px1PenteMax>
+                         <Px1PenteMax>  ${Px1PenteMax1}    </Px1PenteMax>
 			             <#WHEN VTEST=${UseArgMaskAuto}>
                          <ArgMaskAuto >
                                 <ValDefCorrel >  ${DefCor} </ValDefCorrel>
