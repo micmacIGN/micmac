@@ -955,12 +955,20 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 
 
                 <!-- Plus union car peut avoir CensusCost + MultiCorrelPonctuel-->
+
                 <TypeCAH Nb="1" >
                         <CensusCost Nb="?" AccessorFils="false">
+                              <!-- Utilisable pour rehausser la dynamique tres basse des points census-->
+                              <Dyn    Type="double" Def="1.0" Nb="?">  </Dyn>
+
+                              <!-- Unused
                               <PdsCrown  Type="double" Def="0.5" Nb="?"> </PdsCrown>
+                              -->
                               <TypeCost Type="eModeCensusCost" Nb="1">   </TypeCost>
                               <Verif Type="bool" Nb="?" Def="false">   </Verif>
+                              <!-- Dans Census basic -->
                               <AttenDist  Type="double" Def="0.0" Nb="?"> </AttenDist>
+                              <!-- Uniquement si on mixte avec correl standard -->
                               <SeuilHautCorMixte Type="double" Def="0.8" Nb="?"> </SeuilHautCorMixte>
                               <SeuilBasCorMixte Type="double" Def="0.6" Nb="?">  </SeuilBasCorMixte>
                         </CensusCost>

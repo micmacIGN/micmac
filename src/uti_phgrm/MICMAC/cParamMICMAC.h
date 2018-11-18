@@ -2235,8 +2235,8 @@ class cCensusCost
         friend void xml_init(cCensusCost & anObj,cElXMLTree * aTree);
 
 
-        cTplValGesInit< double > & PdsCrown();
-        const cTplValGesInit< double > & PdsCrown()const ;
+        cTplValGesInit< double > & Dyn();
+        const cTplValGesInit< double > & Dyn()const ;
 
         eModeCensusCost & TypeCost();
         const eModeCensusCost & TypeCost()const ;
@@ -2253,7 +2253,7 @@ class cCensusCost
         cTplValGesInit< double > & SeuilBasCorMixte();
         const cTplValGesInit< double > & SeuilBasCorMixte()const ;
     private:
-        cTplValGesInit< double > mPdsCrown;
+        cTplValGesInit< double > mDyn;
         eModeCensusCost mTypeCost;
         cTplValGesInit< bool > mVerif;
         cTplValGesInit< double > mAttenDist;

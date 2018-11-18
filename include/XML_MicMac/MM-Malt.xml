@@ -254,6 +254,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
      <Symb>  UseCensusCost=false </Symb>
      <Symb>  ModeCensusCost=eMCC_CensusQuantitatif </Symb>
+     <Symb>  DynCensusCost=1.0 </Symb>
 
 
 <!--
@@ -667,6 +668,7 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                                <TypeCAH>
                                    <#IF VTEST=${UseCensusCost}>
                                        <CensusCost>
+                                            <Dyn> ${DynCensusCost}  </Dyn>
                                             <TypeCost> ${ModeCensusCost}  </TypeCost>
                                       </CensusCost>
                                       <GPU_Correl> </GPU_Correl>

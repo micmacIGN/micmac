@@ -1424,6 +1424,7 @@ double CensusGraphe_ImInt(float ** Im1,Pt2di aP1,float ** Im2,Pt2di aP2,Pt2di aS
 double TolNbByPix=1e-5;
 void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 {
+
    
   bool Verif = aCC.Verif().Val();
   bool DoMixte =  (aCC.TypeCost() == eMCC_CensusMixCorrelBasic);
@@ -1431,6 +1432,10 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
   bool DoCensusBasic = (aCC.TypeCost() ==eMCC_CensusBasic) || DoMixte;
   bool DoCorrel = (aCC.TypeCost() == eMCC_CensusCorrel) || DoMixte;
   bool DoCensQuant = (aCC.TypeCost() == eMCC_CensusQuantitatif );
+
+  double aDynCensusCost = aCC.Dyn().Val();
+
+
   // return Quick_MS_CensusQuant(aVBOI1,aVBOI2,aPx2,aVV,aVPds);
 
   if (MPD_MM())
@@ -1871,7 +1876,7 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
                                 }
                                 if (DoCensQuant)
                                 {
-                                    aCost = Quick_MS_CensusQuant(aVBOI0,aVBOIC,anOffset,aVKImS,aVPds);
+                                    aCost =  Quick_MS_CensusQuant(aVBOI0,aVBOIC,anOffset,aVKImS,aVPds);
                                     aGlobCostCorrel = aCost; // ?? Pas sur utilite
   // return Quick_MS_CensusQuant(aVBOI1,aVBOI2,aPx2,aVV,aVPds);
                                 }
@@ -1942,6 +1947,8 @@ void cAppliMICMAC::DoCensusCorrel(const Box2di & aBox,const cCensusCost & aCC)
 
 */
                                 aCost = mStatGlob->CorrelToCout(aCost);
+
+                                aCost =  aDynCensusCost * aCost;
                             }
                         }
                         mSurfOpt->SetCout(Pt2di(anX,anY),&aZI,aCost);

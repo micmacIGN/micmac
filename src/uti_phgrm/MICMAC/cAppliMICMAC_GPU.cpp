@@ -577,7 +577,8 @@ double Cov(const cGPU_LoadedImGeom & aGeoJ) const;
 
 bool   cGPU_LoadedImGeom::CorreCensus(double & aCorrel,int anX,int anY,const  cGPU_LoadedImGeom & aGeoJ,int aNbScaleIm) const
 {
-   static int aCpt = 0;
+
+   static int aCptCC = 0;
 
    if (! mDOK_Ortho[anY][anX])
       return false;
@@ -585,6 +586,8 @@ bool   cGPU_LoadedImGeom::CorreCensus(double & aCorrel,int anX,int anY,const  cG
    bool ModeQuant = (mAppli.CC()->TypeCost()==eMCC_CensusQuantitatif);
 
    double anEcGlob=0;
+   double aSomPds = 0;
+   bool isDense = false;
 
    for (int aKS=0 ; aKS<aNbScaleIm ; aKS++)
    {
@@ -595,38 +598,46 @@ bool   cGPU_LoadedImGeom::CorreCensus(double & aCorrel,int anX,int anY,const  cG
       float aVCJ = aDJ[anY][anX];
 
       double aScSomEc = 0;
+      Pt2di aSzW =  mMSGLI[aKS]->mOPCms->SzW();
 
-      for (int aDY=-mSzV0.y ; aDY<=mSzV0.y ;aDY++)
+      int IncrX = isDense ? 1 : aSzW.x;
+      int IncrY = isDense ? 1 : aSzW.y;
+      int aNbX =  isDense ? 1+2* aSzW.x  : 3;
+
+      for (int aDY=-aSzW.y ; aDY<=aSzW.y ;aDY+=IncrY)
       {
-          float * aLI = aDI[anY+aDY] + anX - mSzV0.x;
-          float * aLJ = aDJ[anY+aDY] + anX - mSzV0.x;
+          float * aLI = aDI[anY+aDY] + anX - aSzW.x;
+          float * aLJ = aDJ[anY+aDY] + anX - aSzW.x;
           if (ModeQuant)
           {
-              for (int aCpt =1+2*mSzV0.x ; aCpt ; aCpt--)
+              for (int aCpt = aNbX ; aCpt ; aCpt--)
               {
                   aScSomEc += ElAbs(EcartNormalise(aVCI,*aLI)-EcartNormalise(aVCJ,*aLJ));
-                  aLI++;
-                  aLJ++;
+                  aLI+=IncrX;
+                  aLJ+=IncrX;
               }
           }
       }
-      anEcGlob += aScSomEc * mMSGLI[aKS]->mPdsMS;
+      double aPds = isDense ? mMSGLI[aKS]->mPdsMS : mMSGLI[aKS]->mOPCms->Pds() ;
+      anEcGlob += aScSomEc * aPds;
+      aSomPds += aPds;
    }
-   anEcGlob /= mCumSomPdsMS;
+   // Min pour meme interv que correl
+   anEcGlob =  ElMin(2.0,(anEcGlob/aSomPds) * mAppli.CC()->Dyn().Val());
    aCorrel =  1-anEcGlob;
+{
+// std::cout << " cGPU_LoadedImGeom::Correl " << mAppli.CC()->Dyn().Val() << " " << mCumSomPdsMS  << "\n"; getchar();
+}
 
-   if (0)
-   {
-      std::cout << "GPU_Lxxxxnsus CMS=" << mAppli.CMS() << " SZ=" <<  mMSGLI.size() << mSzV0 << mSzVMax <<  "\n";
-      getchar();
-   }
-   aCpt++;
+   aCptCC++;
 
    return true;
 }
 
 bool   cGPU_LoadedImGeom::Correl(double & aCorrel,int anX,int anY,const  cGPU_LoadedImGeom & aGeoJ,int aNbScaleIm) const
 {
+// if (MPD_MM())
+
         if (! mDOK_Ortho[anY][anX])
             return false;
         if (mAppli.CC())
