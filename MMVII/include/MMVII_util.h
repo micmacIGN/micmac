@@ -85,6 +85,8 @@ bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP); ///< Purge r
 bool RemoveFile(const  std::string & aDir,bool SVP); ///< Remove file
 void RenameFiles(const std::string & anOldName, const std::string & aNewName); ///< Move/Rename
 void CopyFile(const std::string & aName,const std::string & aDest);
+bool  RemovePatternFile(const  std::string & aPat,bool SVP); ///< Remove all file corresponding to pattern
+
 
 
 

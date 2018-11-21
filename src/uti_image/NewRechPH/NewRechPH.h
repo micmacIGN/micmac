@@ -364,6 +364,7 @@ class cAppli_NewRechPH
         std::string     mKeyNameMasq;
         Im2D_Bits<1>    mImMasq;
         TIm2DBits<1>    mTImMasq;
+        bool            mDoInvarIm;
 };
 
 class cProfilPC

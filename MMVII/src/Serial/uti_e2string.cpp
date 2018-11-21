@@ -118,6 +118,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::MPatIm,"MPI"},
                 {eTA2007::Internal,"##Intern"},
                 {eTA2007::Common,"##Com"},
+                {eTA2007::HDV,"##HDV"},
                 {eTA2007::FFI,"FFI"}
            };
 TPL_ENUM_2_STRING(eTA2007);
@@ -140,7 +141,8 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eInsufNbParam,"InsufP"},
                 {eTyUEr::eIntervWithoutSet,"IntWithoutS"},
                 {eTyUEr::eNoModeInEditRel,"NoModeInEditRel"},
-                {eTyUEr::eMultiModeInEditRel,"MultiModeInEditRel"}
+                {eTyUEr::eMultiModeInEditRel,"MultiModeInEditRel"},
+                {eTyUEr::e2PatInModeLineEditRel,"2PatInModeLineEditRel"}
            };
 TPL_ENUM_2_STRING(eTyUEr);
 

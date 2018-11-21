@@ -368,6 +368,23 @@ bool RemoveFile(const  std::string & aFile,bool SVP)
    return Ok;
 }
 
+/** remove a pattern of file */
+
+bool  RemovePatternFile(const  std::string & aPat,bool SVP)
+{
+    tNameSet aSet = SetNameFromString(aPat,true);
+    std::vector<const std::string *> aVS;
+    aSet.PutInVect(aVS,false);
+
+    for (const auto & aS : aVS)
+    {
+        if (!RemoveFile(*aS,SVP))
+           return false;
+    }
+    return true;
+}
+
+
 void RenameFiles(const std::string & anOldName, const std::string & aNewName)
 {
     boost::filesystem::rename(anOldName,aNewName);

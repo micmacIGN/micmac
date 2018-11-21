@@ -31,6 +31,7 @@ enum class eTA2007
             // !!!!! Common must be first UNPRINTED  !!!
                 Common,        ///< Parameter  Common to all commands
                 Internal,      ///< Reserved to internall use by MMVII
+                HDV,           ///< Has Def Value
                 eNbVals        ///< Tag for number of value
            };
 
@@ -105,7 +106,8 @@ enum class eTyUEr
               eIntervWithoutSet,
               eTooBig4NbDigit,
               eNoModeInEditRel,
-              eMultiModeInEditRel
+              eMultiModeInEditRel,
+              e2SetInModeLineEditRel
            };
 
 /// 

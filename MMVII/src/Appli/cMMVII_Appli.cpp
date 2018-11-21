@@ -519,6 +519,12 @@ void cMMVII_Appli::GenerateHelp()
              if ((!isGlobHelp) || mDoGlobHelp)
              {
                 HelpOut() << "  * [Name=" <<  Arg->Name()   << "] " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com() ;
+                bool HasDefVal = Arg->HasType(eTA2007::HDV);
+                if (HasDefVal)
+                {
+                   HelpOut() << " ,[Default="  << Arg->NameValue() << "]"; 
+                }
+
                 if (IsIinternal) 
                    HelpOut() << "   ### INTERNAL " ; 
                 else if (isGlobHelp) 

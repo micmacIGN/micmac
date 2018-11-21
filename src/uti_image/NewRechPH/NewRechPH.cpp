@@ -200,7 +200,8 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeVisu) :
     mModeTest          (0),
     mNbHighScale       (750),
     mImMasq            (1,1),
-    mTImMasq           (mImMasq)
+    mTImMasq           (mImMasq),
+    mDoInvarIm         (MPD_MM())
 {
    cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
    mInterp = new cTabIM2D_FromIm2D<tElNewRechPH>(aSinC,1000,false);
@@ -250,6 +251,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeVisu) :
                       << EAM(mNbHighScale, "NbHS",true,"Number of point in High Scale, Def=750 ")
                       << EAM(DebugNRPH, "Debug",true,"if true activate a lot of messages ")
                       << EAM(mKeyNameMasq, "KeyNameMasq",true,"Masq =>4 now an image (later a key if necessary)")
+                      << EAM(mDoInvarIm, "DOI",true,"Do Invariant Image, def=MPD_MM")
    );
 
    

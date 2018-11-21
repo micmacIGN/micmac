@@ -134,213 +134,9 @@ cSpecMMVII_Appli  TheSpecEditSet
       __FILE__
 );
 
-
-
-/* ==================================================== */
-/*                                                      */
-/*          cAppli_EditRel                              */
-/*                                                      */
-/* ==================================================== */
-
-/// An application for editing set of cple of file
-/**
-    Given an XML memorizing a set of Cple, it is possible to :
-
-      - add a new set (+=)
-      - substract a new set (-=)
-      - intersect a new set (*=)
-      - overwrite with a new set (=)
-*/
-class cAppli_EditRel : public cMMVII_Appli
-{
-     public :
-        cAppli_EditRel(int argc,char** argv,const cSpecMMVII_Appli &);
-        int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
-     private :
-         void AddMode(const std::string & aMode);
-         bool        ValideCple(const std::string & aN1,const std::string &aN2) const;
-         void        AddCple(const std::string & aN1,const std::string &aN2) ;
-
-         std::string mNameXmlIn;
-         std::string mNameXmlOut;
-         std::string mPat;
-         std::string mPat2;   ///< is pattern 2 different from pattern 1
-         bool        m2Set;   ///< Is there 2 different set, true if mPat2 is init
-         bool        mAllPair;
-         std::string mOp;
-         int         mShow;
-         int         mLine;
-         bool        mCirc;
-         bool        mReflexif;
-         tNameRel    mNewRel;
-         int         mNbMode; ///< To check that there is only on mode use
-         std::string mModeUsed;
-};
-
-cAppli_EditRel::cAppli_EditRel(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc,argv,aSpec),
-  mAllPair     (false),
-  mShow        (0),
-  mLine        (0),
-  mCirc        (true),
-  mReflexif    (false),
-  mNbMode      (1),
-  mModeUsed    ()
-{
-}
-
-void cAppli_EditRel::AddMode(const std::string & aMode)
-{
-   mNbMode ++;
-   mModeUsed = mModeUsed + "[" + aMode + "] ";
-}
-
-cCollecSpecArg2007 & cAppli_EditRel::ArgObl(cCollecSpecArg2007 & anArgObl)
-{
-   return 
-      anArgObl 
-         << Arg2007(mNameXmlIn,"Full Name of Xml in/out",{eTA2007::FileDirProj})
-         << Arg2007(mOp,"Operator in ("+StrAllVall<eOpAff>()+")" )
-         << Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatIm,"0"}})
-      ;
-}
-
-cCollecSpecArg2007 & cAppli_EditRel::ArgOpt(cCollecSpecArg2007 & anArgOpt)
-{
-   return 
-      anArgOpt
-         << AOpt2007(mPat2,"Pat2","Second Pattern or Xml for modifying, def=first",{{eTA2007::MPatIm,"1"}})
-         << AOpt2007(mAllPair,"AllP","Put all pair, def false ",{})
-         << AOpt2007(mLine,"Line","\"Linear graph\" : for k, add [k-l,k+l]")
-         << AOpt2007(mCirc,"Circ","\"Circular\" in line mode")
-         << AOpt2007(mReflexif,"Reflexif","Accept pair with identicall names, def=false")
-
-      ;
-/*
-         // << AOpt2007(mShow,"Show","Show detail of set before/after , (def) 0->none, (1) modif, (2) all",{})
-         << AOpt2007(mNameXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{});
-*/
-}
-
-bool cAppli_EditRel::ValideCple(const std::string & aN1,const std::string &aN2) const
-{
-   if ((aN1==aN2) && (!mReflexif))
-      return false;
-
-   return true;
-}
-
-void cAppli_EditRel::AddCple(const std::string & aN1,const std::string &aN2)
-{
-   if (ValideCple(aN1,aN2))
-      mNewRel.Add(tNamePair(aN1,aN2));
-}
-
-
-int cAppli_EditRel::Exe() 
-{
-   InitOutFromIn(mNameXmlOut,mNameXmlIn);
-   m2Set = IsInit(&mPat2);
-
-   const tNameSet & aSet1 =  MainSet0();
-   const tNameSet & aSet2 =  m2Set ?  MainSet1() : MainSet0() ;
-
-
-   bool aPatIsFileRel; 
-   tNameRel  aXmlRel = RelNameFromXmlFileIfExist (mPat,aPatIsFileRel);
-   if (aPatIsFileRel)
-   {
-      std::vector<const tNamePair *> aVP;
-      aXmlRel.PutInVect(aVP,true);
-      
-      for (const auto & aP:  aVP)
-          AddCple(aP->V1(),aP->V2());
-      AddMode("XmlFile");
-   }
-   if (mAllPair)
-   {
-      std::vector<const std::string *> aV1;
-      aSet1.PutInVect(aV1,true);
-      std::vector<const std::string *> aV2;
-      aSet2.PutInVect(aV2,true);
-
-      for (const auto & aPtr1 : aV1)
-      {
-         for (const auto & aPtr2 : aV2)
-         {
-             AddCple(*aPtr1,*aPtr2);
-         }
-      }
-      AddMode("All");
-   }
-
-   if (mLine>0)
-   {
-       if (m2Set)
-          Warning("Mode Line with 2 sets in EditRel",eTyW::eWLineAndCart,__LINE__,__FILE__);
-
-      std::vector<const std::string *> aV1;
-      aSet1.PutInVect(aV1,true);
-      int aNb = aV1.size();
-      for (int aKa=0 ; aKa < aNb ; aKa++)
-      {
-           int aKb0 = aKa-mLine;
-           int aKb1 = aKa+mLine;
-           if (!mCirc)
-           {
-                aKb0 = std::max(aKb0,0);
-                aKb1 = std::min(aKb0,aNb-1);
-           }
-           for (int aKb = aKb0; aKb <= aKb1 ; aKb++)
-           {
-               AddCple(*aV1.at(aKa),*aV1.at(mod(aKb,aNb)));
-           }
-      }
-      AddMode("Line");
-   }
-
-   // There must exist 1 and only one mode
-   {
-       if (mNbMode==0)
-       {
-           MMVII_UsersErrror(eTyUEr::eNoModeInEditRel,"No edit mode selected");
-       }
-       if (mNbMode>1)
-       {
-           MMVII_UsersErrror(eTyUEr::eMultiModeInEditRel,"Multi edit mode :"+mModeUsed);
-       }
-   }
-
-   tNameRel aRelInOut =  RelNameFromFile (mNameXmlIn);
-   aRelInOut.OpAff(Str2E<eOpAff>(mOp),mNewRel);
-
-   if (FileOfPath(mNameXmlOut,false) != MMVII_NONE)
-      SaveInFile(aRelInOut,mNameXmlOut);
-
-   return EXIT_SUCCESS;
-}
-
-
-tMMVII_UnikPApli Alloc_EditRel(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
-{
-   return tMMVII_UnikPApli(new cAppli_EditRel(argc,argv,aSpec));
-}
-
-cSpecMMVII_Appli  TheSpecEditRel
-(
-     "EditRel",
-      Alloc_EditRel,
-      "This command is used to edit set of pairs of files",
-      {eApF::Project},
-      {eApDT::Console,eApDT::Xml},
-      {eApDT::Xml},
-      __FILE__
-);
 /* ==================================================================== */
 /*                                                                      */
-/*                     BENCH PART                                       */
+/*                     BENCH EDIT SET                                   */
 /*                                                                      */
 /* ==================================================================== */
 
@@ -363,6 +159,7 @@ void OneBenchEditSet
     std::string Input = "Input.xml";
     std::string Ouput = "Ouput.xml";
 
+    // if true uses GOP_DirProj else fix it via mandatory arg
     bool UseDirP = (aNumTest==1);
 
     if (InitInput)
@@ -463,6 +260,264 @@ void BenchEditSet()
        OneBenchEditSet(aK,"=0",true ,"F.*.txt",0,1,0,"",""); // 
     }
 }
+
+
+/* ==================================================== */
+/*                                                      */
+/*          cAppli_EditRel                              */
+/*                                                      */
+/* ==================================================== */
+
+/// An application for editing set of cple of file
+/**
+    Given an XML memorizing a set of Cple, it is possible to :
+
+      - add a new set (+=)
+      - substract a new set (-=)
+      - intersect a new set (*=)
+      - overwrite with a new set (=)
+*/
+class cAppli_EditRel : public cMMVII_Appli
+{
+     public :
+        cAppli_EditRel(int argc,char** argv,const cSpecMMVII_Appli &);
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+     private :
+         void AddMode(const std::string & aMode);
+         bool        ValideCple(const std::string & aN1,const std::string &aN2) const;
+         void        AddCple(const std::string & aN1,const std::string &aN2) ;
+
+         std::string mNameXmlIn;
+         std::string mNameXmlOut;
+         std::string mPat;
+         std::string mPat2;   ///< is pattern 2 different from pattern 1
+         bool        m2Set;   ///< Is there 2 different set, true if mPat2 is init
+         bool        mAllPair;
+         std::string mOp;
+         int         mShow;
+         int         mLine;
+         bool        mCirc;
+         bool        mReflexif;
+         tNameRel    mNewRel;
+         int         mNbMode; ///< To check that there is only on mode use
+         std::string mModeUsed;
+};
+
+cAppli_EditRel::cAppli_EditRel(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (argc,argv,aSpec),
+  mAllPair     (false),
+  mShow        (0),
+  mLine        (0),
+  mCirc        (false),
+  mReflexif    (false),
+  mNbMode      (0),
+  mModeUsed    ()
+{
+}
+
+void cAppli_EditRel::AddMode(const std::string & aMode)
+{
+   mNbMode ++;
+   mModeUsed = mModeUsed + "[" + aMode + "] ";
+}
+
+cCollecSpecArg2007 & cAppli_EditRel::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+   return 
+      anArgObl 
+         << Arg2007(mNameXmlIn,"Full Name of Xml in/out",{eTA2007::FileDirProj})
+         << Arg2007(mOp,"Operator in ("+StrAllVall<eOpAff>()+")" )
+         << Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatIm,"0"}})
+      ;
+}
+
+
+cCollecSpecArg2007 & cAppli_EditRel::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return 
+      anArgOpt
+         << AOpt2007(mPat2,"Pat2","Second Pattern or Xml for modifying, def=first",{{eTA2007::MPatIm,"1"}})
+         << AOpt2007(mAllPair,"AllP","Put all pair",{{eTA2007::HDV}})
+         << AOpt2007(mLine,"Line","\"Linear graph\" : for k, add [k-l,k+l]")
+         << AOpt2007(mCirc,"Circ","\"Circular\" in line mode",{{eTA2007::HDV}} )
+         << AOpt2007(mReflexif,"Reflexif","Accept pair with identicall names",{{eTA2007::HDV}})
+
+      ;
+/*
+         // << AOpt2007(mShow,"Show","Show detail of set before/after , (def) 0->none, (1) modif, (2) all",{})
+         << AOpt2007(mNameXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{});
+*/
+}
+
+bool cAppli_EditRel::ValideCple(const std::string & aN1,const std::string &aN2) const
+{
+   if ((aN1==aN2) && (!mReflexif))
+      return false;
+
+   return true;
+}
+
+void cAppli_EditRel::AddCple(const std::string & aN1,const std::string &aN2)
+{
+   if (ValideCple(aN1,aN2))
+      mNewRel.Add(tNamePair(aN1,aN2));
+}
+
+
+int cAppli_EditRel::Exe() 
+{
+   InitOutFromIn(mNameXmlOut,mNameXmlIn);
+   m2Set = IsInit(&mPat2);
+
+   const tNameSet & aSet1 =  MainSet0();
+   const tNameSet & aSet2 =  m2Set ?  MainSet1() : MainSet0() ;
+
+
+   bool aPatIsFileRel; 
+   tNameRel  aXmlRel = RelNameFromXmlFileIfExist (mPat,aPatIsFileRel);
+   if (aPatIsFileRel)
+   {
+      std::vector<const tNamePair *> aVP;
+      aXmlRel.PutInVect(aVP,true);
+      
+      for (const auto & aP:  aVP)
+          AddCple(aP->V1(),aP->V2());
+      AddMode("XmlFile");
+   }
+   if (mAllPair)
+   {
+      std::vector<const std::string *> aV1;
+      aSet1.PutInVect(aV1,true);
+      std::vector<const std::string *> aV2;
+      aSet2.PutInVect(aV2,true);
+
+      for (const auto & aPtr1 : aV1)
+      {
+         for (const auto & aPtr2 : aV2)
+         {
+             AddCple(*aPtr1,*aPtr2);
+         }
+      }
+      AddMode("All");
+   }
+
+   if (mLine>0)
+   {
+      if (m2Set)
+      {
+         MMVII_UsersErrror(eTyUEr::e2PatInModeLineEditRel,"In mode Line, cannot use multiple pattern in edit rel");
+      }
+
+      std::vector<const std::string *> aV1;
+      aSet1.PutInVect(aV1,true);
+      int aNb = aV1.size();
+      for (int aKa=0 ; aKa < aNb ; aKa++)
+      {
+           int aKb0 = aKa-mLine;
+           int aKb1 = aKa+mLine;
+
+           if (!mCirc)
+           {
+                aKb0 = std::max(aKb0,0);
+                aKb1 = std::min(aKb1,aNb-1);
+           }
+           for (int aKb = aKb0; aKb <= aKb1 ; aKb++)
+           {
+               AddCple(*aV1.at(aKa),*aV1.at(mod(aKb,aNb)));
+           }
+      }
+      AddMode("Line");
+   }
+
+   // There must exist 1 and only one mode
+   {
+       if (mNbMode==0)
+       {
+           MMVII_UsersErrror(eTyUEr::eNoModeInEditRel,"No edit mode selected");
+       }
+       if (mNbMode>1)
+       {
+           MMVII_UsersErrror(eTyUEr::eMultiModeInEditRel,"Multi edit mode :"+mModeUsed);
+       }
+   }
+
+   tNameRel aRelInOut =  RelNameFromFile (mNameXmlIn);
+   aRelInOut.OpAff(Str2E<eOpAff>(mOp),mNewRel);
+
+   if (FileOfPath(mNameXmlOut,false) != MMVII_NONE)
+      SaveInFile(aRelInOut,mNameXmlOut);
+
+   return EXIT_SUCCESS;
+}
+
+
+tMMVII_UnikPApli Alloc_EditRel(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_EditRel(argc,argv,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpecEditRel
+(
+     "EditRel",
+      Alloc_EditRel,
+      "This command is used to edit set of pairs of files",
+      {eApF::Project},
+      {eApDT::Console,eApDT::Xml},
+      {eApDT::Xml},
+      __FILE__
+);
+
+
+/********************************************************************/
+/*                                                                  */
+/*             BENCH EDIT REL                                       */
+/*                                                                  */
+/********************************************************************/
+
+void OneBenchEditRel
+    (
+        const std::string & aNameFile,
+        const std::string & anOp,
+        const std::string & aPat,
+        int                 aCard,
+        cColStrAOpt&        anArgOpt
+    )
+{
+    cMMVII_Appli &  anAp = cMMVII_Appli::TheAppli();
+    std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
+/*
+    std::string aDirT = anAp.TmpDirTestMMVII()  ;
+*/
+    std::string aNameFullFime = aDirI + aNameFile ;
+    anAp.ExeCallMMVII
+    (
+        TheSpecEditRel,
+        anAp.StrObl() <<   aDirI + aNameFile  << anOp << aPat,
+        anArgOpt
+    );
+
+    tNameRel aRelInOut =  RelNameFromFile (aNameFullFime);
+    std::vector<const tNamePair *> aVP;
+    aRelInOut.PutInVect(aVP,true);
+    std::cout << "TH= " << aCard << " Got=" << aVP.size() << "\n";
+
+}
+
+void BenchEditRel ()
+{
+   cMMVII_Appli &  anAp = cMMVII_Appli::TheAppli();
+   std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
+
+   RemovePatternFile(aDirI+"RelTest-.*.xml",true);
+
+   OneBenchEditRel("RelTest-0.xml","=","F.*.txt",45,anAp.StrOpt() << t2S("AllP","true"));
+   OneBenchEditRel("RelTest-0.xml","=","F.*.txt",17,anAp.StrOpt() << t2S("Line","2"));
+
+   getchar();
+}
+
 
 };
 

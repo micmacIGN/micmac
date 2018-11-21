@@ -221,6 +221,7 @@ int  cAppli_MMVII_Bench::Exe()
    BenchSet(mDirTestMMVII);
    BenchSelector(mDirTestMMVII);
    BenchEditSet();
+   BenchEditRel();
 
    BenchEnum();
    Bench_Random();

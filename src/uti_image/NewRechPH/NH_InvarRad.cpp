@@ -543,7 +543,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt,bool aModeTest)
       aPt.VectRho() = aVRhoAbs;
       aPt.ProfR().ImProfil() = aProfR.Normalize();
 
-      if (1)
+      if (mDoInvarIm)
       {
            static int aCpt = 0; aCpt++;
 #if ELISE_QT

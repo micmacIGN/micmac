@@ -128,6 +128,7 @@ class  cSpecOneArg2007 : public cMemCheck
         virtual void InitParam(const std::string & aStr) = 0;
         virtual void * AdrParam() = 0;
         virtual const std::string & NameType() const = 0;
+        virtual std::string  NameValue() const = 0;
         /// Does any of  mVSem contains aType
         bool HasType(const eTA2007 & aType,std::string * aValue=0)            const;
 
