@@ -107,8 +107,15 @@ class cAppli_MMVII_Bench : public cMMVII_Appli
         void Bench_0000_String();
         void BenchFiles(); ///< A Bench on creation/deletion/existence of files
         int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override 
+        {
+            return anArgObl
+                      << Arg2007(mTest,"Unused, to check reentrance" )
+
+            ;
+        }
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override {return anArgOpt;}
+        std::string mTest;
 };
 
 
@@ -214,6 +221,7 @@ int  cAppli_MMVII_Bench::Exe()
    BenchSet(mDirTestMMVII);
    BenchSelector(mDirTestMMVII);
    BenchEditSet();
+   BenchEditRel();
 
    BenchEnum();
    Bench_Random();

@@ -368,11 +368,31 @@ bool RemoveFile(const  std::string & aFile,bool SVP)
    return Ok;
 }
 
+/** remove a pattern of file */
+
+bool  RemovePatternFile(const  std::string & aPat,bool SVP)
+{
+    tNameSet aSet = SetNameFromString(aPat,true);
+    std::vector<const std::string *> aVS;
+    aSet.PutInVect(aVS,false);
+
+    for (const auto & aS : aVS)
+    {
+        if (!RemoveFile(*aS,SVP))
+           return false;
+    }
+    return true;
+}
+
+
 void RenameFiles(const std::string & anOldName, const std::string & aNewName)
 {
     boost::filesystem::rename(anOldName,aNewName);
 }
 
+
+/** copy a file on another , use boost
+*/
 
 void CopyFile(const std::string & aName,const std::string & aDest)
 {
@@ -389,7 +409,7 @@ void CopyFile(const std::string & aName,const std::string & aDest)
 
 
 /**
-   Implementation of GetFilesFromDir, use boost
+   Implementation of GetFilesFromDir, by adresse use boost
 */
 
 
@@ -403,6 +423,9 @@ void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,co
    }
 }
 
+/**
+   Implementation of GetFilesFromDir, by value , use GetFilesFromDir by adress
+*/
 std::vector<std::string> GetFilesFromDir(const std::string & aDir,const tNameSelector &  aNS)
 {
     std::vector<std::string> aRes;
@@ -411,6 +434,9 @@ std::vector<std::string> GetFilesFromDir(const std::string & aDir,const tNameSel
     return aRes;
 }
 
+/**
+   Implementation of RecGetFilesFromDir, by adress, use boost
+*/
 void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir,tNameSelector  aNS,int aLevMin, int aLevMax)
 {
     for (recursive_directory_iterator itr(aDir); itr!=        recursive_directory_iterator(); ++itr)
@@ -424,6 +450,11 @@ void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aD
         }
     }
 }
+
+/**
+   Implementation of RecGetFilesFromDir, by value , use RecGetFilesFromDir by adress
+*/
+
 std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,tNameSelector aNS,int aLevMin, int aLevMax)
 {
     std::vector<std::string> aRes;

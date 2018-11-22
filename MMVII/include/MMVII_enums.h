@@ -31,7 +31,8 @@ enum class eTA2007
             // !!!!! Common must be first UNPRINTED  !!!
                 Common,        ///< Parameter  Common to all commands
                 Internal,      ///< Reserved to internall use by MMVII
-                eNbVals
+                HDV,           ///< Has Def Value
+                eNbVals        ///< Tag for number of value
            };
 
 /// Appli Features
@@ -56,7 +57,7 @@ enum class eApDT
               Console,  ///< Console 
               Xml,      ///< Xml-files
               FileSys,      ///< Input is the file system (list of file)
-              eNbVals
+              eNbVals       ///< Tag for number of value
            };
 
 
@@ -65,7 +66,7 @@ enum class eTySC
            {
               NonInit,   ///< With Ptr Null
               US,        ///< With unordered set
-              eNbVals
+              eNbVals    ///< Tag for number of value
            };
 
 /// Type of operator
@@ -77,7 +78,7 @@ enum class eOpAff
                eMinusEq,  ///< *=
                eEq,       ///< =
                eReset,    ///< =0
-               eNbVals
+               eNbVals    ///< Tag for number of value
            };
 
 /// Type of Warning
@@ -103,7 +104,10 @@ enum class eTyUEr
               eBadOptParam,
               eInsufNbParam,
               eIntervWithoutSet,
-              eTooBig4NbDigit
+              eTooBig4NbDigit,
+              eNoModeInEditRel,
+              eMultiModeInEditRel,
+              e2SetInModeLineEditRel
            };
 
 /// 

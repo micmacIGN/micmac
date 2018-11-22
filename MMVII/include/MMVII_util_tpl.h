@@ -144,7 +144,17 @@ tNameSet SetNameFromPat    (const std::string&); ///< create a set of file from 
 tNameSet SetNameFromFile   (const std::string&, int aNumV); ///< create from a file xml, V1 or V2
 tNameSet SetNameFromString (const std::string&, bool AllowPat); ///< general case, try to recognize automatically V1, V2 or pattern
 
-tNameRel  RelNameFromFile (const std::string&); ///< read from file, select version, accept empty
+/** read from file, select version, accept empty, error if file exist bud in bad format */
+tNameRel  RelNameFromFile (const std::string&);
+
+
+/** indicate when file to good format exist, if not no error return emty */
+tNameRel  RelNameFromXmlFileIfExist 
+          (
+              const std::string& aNameFile, ///< Name of file
+              bool &Exist  ///< indicate if file exist, used by RelNameFromFile
+          ); 
+
 
 /* ================================================ */
 /*                                                  */
