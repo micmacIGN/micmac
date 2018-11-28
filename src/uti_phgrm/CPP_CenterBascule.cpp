@@ -82,7 +82,7 @@ int CentreBascule_main(int argc,char ** argv)
 
 
 
-        std::string aCom =   MMDir() + std::string("bin/Apero ")
+        std::string aCom =   MMDir() + std::string("bin/mm3d Apero ")
                 + XML_MM_File("Apero-Center-Bascule.xml")
                 + std::string(" DirectoryChantier=") +aDir +  std::string(" ")
                 + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
