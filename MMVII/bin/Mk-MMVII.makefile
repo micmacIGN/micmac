@@ -52,6 +52,11 @@ SrcMMV1=$(wildcard ${MMV2DirMMV1}*.cpp)
 ObjMMV1=$(SrcMMV1:.cpp=.o) 
 #
 #
+MMV2DirRamImages=${MMV2DirSrc}RamImages/
+SrcRamImages=$(wildcard ${MMV2DiRamImages}*.cpp)
+ObjRamImages=$(SrcRamImages:.cpp=.o) 
+#
+#
 MMV2DirPerso=${MMV2DirSrc}Perso/
 SrcPerso=$(wildcard ${MMV2DirPerso}*.cpp)
 ObjPerso=$(SrcPerso:.cpp=.o) 
