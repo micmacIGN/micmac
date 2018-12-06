@@ -43,6 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+
 //  =======   Pour visualiser les points carac new
 #include "../NewRechPH/cParamNewRechPH.h"
 #include "../NewRechPH/ExternNewRechPH.h"

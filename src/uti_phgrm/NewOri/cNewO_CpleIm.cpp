@@ -170,6 +170,14 @@ double cNewO_OrInit2Im::RecouvrtHom(const cElHomographie & aHom)
 }
 
 
+void CalculMapFromHom(eTypeMap2D aType)
+{
+    cElMap2D * anIdent = cElMap2D::IdentFromType(int(aType),nullptr);
+
+
+    delete anIdent;
+}
+
 cNewO_OrInit2Im::cNewO_OrInit2Im
 (
       bool          aGenereOri,  // False en frontal a Ratafia etc ....
@@ -364,6 +372,13 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     aXCmp.HomWithR().ResiduHom() = aDist ;
     double aRecHom = RecouvrtHom(aHom);
     aXCmp.RecHom() = aRecHom;
+
+
+    // Calcul d'une similitude
+    if (1)
+    {
+        // IdentFromType cElMap2D::IdentFromType(int,const std::vector<std::string>* =0)
+    }
 
 
     /*******************************************************/

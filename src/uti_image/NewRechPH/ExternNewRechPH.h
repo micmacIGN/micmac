@@ -43,6 +43,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../../include/StdAfx.h"
 
+#define PB_LINK_AUTOCOR ELISE_QT 
+// #define PB_LINK_AUTOCOR (ELISE_QT || (! ELISE_unix))
+
+
 Im2D_INT1  MakeImI1(bool isRobust,Im2D_REAL4 aImIn);
 
 typedef Im2D_U_INT2 tCodBin;

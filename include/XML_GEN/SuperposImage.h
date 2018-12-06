@@ -6511,6 +6511,34 @@ std::string  Mangling( cXml_O2IHom *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_SimWithR
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_SimWithR & anObj,cElXMLTree * aTree);
+
+
+        cSimilitudePlane & Sim();
+        const cSimilitudePlane & Sim()const ;
+
+        double & ResiduHom();
+        const double & ResiduHom()const ;
+    private:
+        cSimilitudePlane mSim;
+        double mResiduHom;
+};
+cElXMLTree * ToXMLTree(const cXml_SimWithR &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_SimWithR &);
+
+void  BinaryUnDumpFromFile(cXml_SimWithR &,ELISE_fp &);
+
+std::string  Mangling( cXml_SimWithR *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_O2IComputed
 {
     public:
@@ -6531,6 +6559,9 @@ class cXml_O2IComputed
         cXml_O2IHom & HomWithR();
         const cXml_O2IHom & HomWithR()const ;
 
+        cTplValGesInit< cXml_SimWithR > & SimWithR();
+        const cTplValGesInit< cXml_SimWithR > & SimWithR()const ;
+
         double & BSurH();
         const double & BSurH()const ;
 
@@ -6547,6 +6578,7 @@ class cXml_O2IComputed
         cXml_O2IRotation mOrientAff;
         cXml_O2IRotPure mRPure;
         cXml_O2IHom mHomWithR;
+        cTplValGesInit< cXml_SimWithR > mSimWithR;
         double mBSurH;
         double mRecHom;
         cXml_Elips3D mElips;

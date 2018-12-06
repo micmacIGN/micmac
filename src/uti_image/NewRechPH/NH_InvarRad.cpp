@@ -546,7 +546,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt,bool aModeTest)
       if (mDoInvarIm)
       {
            static int aCpt = 0; aCpt++;
-#if ELISE_QT
+#if PB_LINK_AUTOCOR
            ELISE_ASSERT(false,"MPD TRICK TO COMPILE : Horrriiiblllleee !!!!!!!");
            cCalcAimeImAutoCorr * aPtraCAIAC=0;
            cCalcAimeImAutoCorr & aCAIAC = *aPtraCAIAC;
