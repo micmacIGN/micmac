@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1994]) = {
+const char * (theNameVar_SuperposImage[1999]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1439,12 +1439,17 @@ const char * (theNameVar_SuperposImage[1994]) = {
 "     <ForMepHom Nb=\"?\" RefType=\"Xml_MepHom\">  </ForMepHom>\n",
 "</Xml_O2IHom>\n",
 "\n",
+"<Xml_SimWithR Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"     <Sim RefType=\"SimilitudePlane\"  Nb=\"1\"> </Sim>\n",
+"     <ResiduHom Nb=\"1\" Type=\"double\" > </ResiduHom>\n",
+"</Xml_SimWithR>\n",
 "\n",
 "<Xml_O2IComputed Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "    <Timing Nb=\"1\"  RefType=\"Xml_O2ITiming\">     </Timing>\n",
 "    <OrientAff Nb=\"1\"  RefType=\"Xml_O2IRotation\">      </OrientAff>\n",
 "    <RPure Nb=\"1\"  RefType=\"Xml_O2IRotPure\" >    </RPure>\n",
 "    <HomWithR Nb=\"1\" RefType=\"Xml_O2IHom\">            </HomWithR>\n",
+"    <SimWithR Nb=\"?\" RefType=\"Xml_SimWithR\">          </SimWithR>\n",
 "    <BSurH Nb=\"1\" Type=\"double\">   </BSurH>\n",
 "    <RecHom Nb=\"1\" Type=\"double\">   </RecHom>  <!-- Recouvrement en faisant l'hypothese homographique -->\n",
 "    <Elips Nb=\"1\" RefType=\"Xml_Elips3D\"> </Elips>\n",

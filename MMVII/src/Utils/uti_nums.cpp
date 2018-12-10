@@ -4,6 +4,27 @@ namespace MMVII
 {
 
 
+template <class Type> void TplBenchTraits()
+{
+    typename tNumTrait<Type>::tBase aVal=0;
+    std::cout << tNumTrait<Type>::Name() 
+              << " Max=" << tNumTrait<Type>::MaxValue() 
+              << " Min=" <<  tNumTrait<Type>::MinValue() 
+              << " IsInt=" <<  tNumTrait<Type>::IsInt() 
+              << "\n";
+}
+
+void BenchTraits()
+{
+   TplBenchTraits<tU_INT1>();
+   TplBenchTraits<tU_INT2>();
+   TplBenchTraits<tREAL4>();
+   getchar();
+}
+
+
+
+
 
 /// Bench that aModb is the mathematicall definition
 void BenchMod(int A,int B,int aModb)
@@ -18,10 +39,16 @@ void BenchMod(int A,int B,int aModb)
 
 void Bench_Nums()
 {
+   BenchTraits(); 
+
    StdOut() << "Bench_NumsBench_NumsBench_NumsBench_Nums\n";
-   MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL8)==8,"Bench round_up");
-   MMVII_INTERNAL_ASSERT_bench (sizeof(tINT4)==4 ,"Bench round_up");
-   MMVII_INTERNAL_ASSERT_bench (sizeof(tINT8)==8 ,"Bench round_up");
+   MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL4)==4,"Bench size tREAL4");
+   MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL8)==8,"Bench size tREAL8");
+
+   MMVII_INTERNAL_ASSERT_bench (sizeof( tINT1)==1,"Bench size tINT1");
+   MMVII_INTERNAL_ASSERT_bench (sizeof( tINT2)==2,"Bench size tINT2");
+   MMVII_INTERNAL_ASSERT_bench (sizeof( tINT4)==4,"Bench size tINT4");
+   // MMVII_INTERNAL_ASSERT_bench (sizeof( tINT8)==8,"Bench round_up");
    /// Bench modulo
 
    for (int A=-20 ; A<=20 ; A++)

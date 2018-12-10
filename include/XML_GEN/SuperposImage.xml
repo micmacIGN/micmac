@@ -1437,12 +1437,17 @@
      <ForMepHom Nb="?" RefType="Xml_MepHom">  </ForMepHom>
 </Xml_O2IHom>
 
+<Xml_SimWithR Nb="1" Class="true" ToReference="true">
+     <Sim RefType="SimilitudePlane"  Nb="1"> </Sim>
+     <ResiduHom Nb="1" Type="double" > </ResiduHom>
+</Xml_SimWithR>
 
 <Xml_O2IComputed Nb="1" Class="true" ToReference="true">
     <Timing Nb="1"  RefType="Xml_O2ITiming">     </Timing>
     <OrientAff Nb="1"  RefType="Xml_O2IRotation">      </OrientAff>
     <RPure Nb="1"  RefType="Xml_O2IRotPure" >    </RPure>
     <HomWithR Nb="1" RefType="Xml_O2IHom">            </HomWithR>
+    <SimWithR Nb="?" RefType="Xml_SimWithR">          </SimWithR>
     <BSurH Nb="1" Type="double">   </BSurH>
     <RecHom Nb="1" Type="double">   </RecHom>  <!-- Recouvrement en faisant l'hypothese homographique -->
     <Elips Nb="1" RefType="Xml_Elips3D"> </Elips>

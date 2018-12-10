@@ -60,11 +60,6 @@ cPicSize::cPicSize(Pt2di aSz) :
     //std::cout<<"Size constr: "<<this<<"   "<<aSz<<" => "<<mNbWin<<std::endl;
 }
 
-cPicSize::cPicSize(const cPicSize &other) : mPicSz(other.mPicSz),mWinSz(other.mWinSz),mNbWin(other.mNbWin)
-{
-   //std::cout<<"Size copy constr: "<<&other<<"->"<<this<<"   "<<mPicSz<<" => "<<mNbWin<<std::endl;
-}
-
 int cPointOnPic::mPointOnPicCounter=0;
 
 int cHomol::mHomolCounter=0;

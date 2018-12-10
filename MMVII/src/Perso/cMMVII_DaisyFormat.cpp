@@ -135,31 +135,6 @@ void AddData(const  cAuxAr2007 & anAux,cDaisyFOneBook & aBook)
 
 // ====   cOneEntrySaveWalkman =======================
 
-/*
-<?xml version="1.0" encoding="utf-8"?>
-
-<!DOCTYPE smil PUBLIC "-//W3C//DTD SMIL 1.0//EN" "SMIL10.dtd">
-<smil>
-	<head>
-		<meta name="dc:format" content="Daisy 2.02"/>
-		<meta name="ncc:timeInThisSmil" content="00:10:32"/>  <!-- TTTT -->
-		<meta name="ncc:totalElapsedTime" content="00:00:00.000"/>  <!-- TTTT -->
-		<layout> <region id="txt-view"/> </layout>
-		<meta name="ncc:generator" content="EasePublisher 2.13 Build 163 # 044FS2212172434"/>
-        </head>
-	<body>
-           <seq dur="632.0s"> <!-- TTTT -->
-                <par endsync="last">
-                     <text src="ncc.html#icth0001" id="icth0001"/>
-                     <seq>
-                         <audio src="Chine-Marc-01.MP3" clip-begin="npt=0.0s" clip-end="npt=100.0s" id="audio_0002"/> 
-                     </seq>
-                </par>
-....
-           </seq>
-	</body>
-</smil>
-*/
 
 
 /* ==================================================== */
@@ -188,12 +163,12 @@ class cAppli_Daisy : public cMMVII_Appli
          void PutDcUnk(const std::string &aField);
          void PutNcc(const std::string &aField,const std::string & aValue,const std::string & aStrAdd="");
 
-         std::string  mInput;  ///< xml  file containing a cDaisyFOneBook
-         std::string  mPrefOut;
-         std::string  mOutFile;
-         bool mTest;        ///< Not used for now
-         double mTimeSlot;
-         std::ofstream * mPtrOfs;
+         std::string  mInput;      ///< xml  file containing a cDaisyFOneBook
+         std::string  mPrefOut;    ///< Prefix for Outpt file, def=ncc
+         std::string  mOutFile;    ///< Name used for output main file
+         bool mTest;               ///< Not used for now
+         double mTimeSlot;         ///< Duration to cut mp3 file , def =100.0 sec
+         std::ofstream * mPtrOfs;  ///< 
 };
 
 
@@ -391,20 +366,20 @@ int cAppli_Daisy::Exe()
    aOfstr<< "   </head>\n";
 
    aOfstr<< "   <body>\n";
+/*
    for (auto & aChap : aXmlSpec.mChaps)
    {
       for (auto & aFile : aChap.mFiles)
       {
-/*
           aOfstr<< "      <h1 class="\"title>" << << "</h1>\n";
           aFile.mNum = aNum++;
           GenerateOneFile(aFile,aElapsTime);
           aElapsTime += aFile.mTime;
           aSizeTot += SizeFile(aFile.mFile);
           aNbFile++;
-*/
       }
    }
+*/
 
    aOfstr<< "   </body>\n";
 
