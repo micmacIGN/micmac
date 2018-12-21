@@ -395,6 +395,7 @@ int cAppli_Daisy::Exe()
    {
       for (auto & aFile : aChap.mFiles)
       {
+          std::cout << "FFFF " << aFile.mNum << "\n";
 /*
           aOfstr<< "      <h1 class="\"title>" << << "</h1>\n";
           aFile.mNum = aNum++;
