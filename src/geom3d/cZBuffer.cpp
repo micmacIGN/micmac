@@ -158,6 +158,16 @@ bool ERupnik_MM();
 
 static Pt2di ORIG_BoxBug(735,484);
 
+/*
+Im2D_REAL4 cZBuffer::BasculerAndInterpoleInverse
+           (
+               Pt2di & aOffset_Out_00,
+               Pt2di aP0In,
+               Pt2di aP1In,
+               float aDef
+           )
+*/
+
 Im2D_REAL4 cZBuffer::Basculer
            (
                Pt2di & aOffset_Out_00,
@@ -167,6 +177,13 @@ Im2D_REAL4 cZBuffer::Basculer
                bool * isOk
            )
 {
+/*
+{
+    std::cout << "cZBuffer::Basculer \n";
+    getchar();
+
+}
+*/
 
     if (isOk) 
     {

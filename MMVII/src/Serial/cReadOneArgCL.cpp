@@ -172,6 +172,7 @@ template <class Type> class cInstReadOneArgCL2007 : public cSpecOneArg2007
             return  cStrIO<Type>::msNameType;
         }
         void * AdrParam() override {return &mVal;}
+        std::string NameValue() const override {return ToStr(mVal);}
 
     private :
         Type &          mVal;

@@ -249,13 +249,10 @@ cCmpTieP_Appli::cCmpTieP_Appli(int argc,char ** argv)
     
     //create pictures list, and pictures size list
     std::map<std::string,cPic*> allPics;
-    
-    std::vector<cPicSize*> allPicSizes;
 
     std::cout<<"Found "<<aSetIm.size()<<" pictures."<<endl;
 
-
-    computeAllHomol(aICNM,aDirImages,aPatIm,aSetIm,allHomols,aCK,allPics,allPicSizes,false,0);
+    computeAllHomol(aDirImages,aPatIm,aSetIm,allHomols,aCK,allPics,false,0);
     
     std::vector<Pt3dr> aVPt3DO1;
     std::vector<Pt3dr> aVPt3DO2;
@@ -326,9 +323,6 @@ cCmpTieP_Appli::cCmpTieP_Appli(int argc,char ** argv)
     for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
         delete itPic1->second;
     allPics.clear();
-    for (unsigned int i=0;i<allPicSizes.size();i++)
-        delete allPicSizes[i];
-    allPicSizes.clear();
 }
 
 int CompareOriTieP_main(int argc,char ** argv)

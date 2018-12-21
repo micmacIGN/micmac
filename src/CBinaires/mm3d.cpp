@@ -267,6 +267,7 @@ int CPP_PHom_ApprentBinaire(int argc, char ** argv);
 int CPP_FitsMatch1Im(int argc, char ** argv);
 int HackToF(int argc,char ** argv);
 int CPP_GenPrime(int argc,char ** argv);
+int CPP_GIMMI_main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & getAvailableCommands()
@@ -500,6 +501,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("SaisieCylQT", SaisieCylQT_main, " Interactive tool to capture information on the scene for cylinders"));
 		aRes.push_back(cMMCom("SaisieMasqQT", SaisieMasqQT_main, " Interactive tool to capture masq"));
 		aRes.push_back(cMMCom("SaisieBoxQT", SaisieBoxQT_main, " Interactive tool to capture 2D box"));
+		aRes.push_back(cMMCom("GIMMI", CPP_GIMMI_main, "Graphical Interface MMI"));
 #endif
 
 #if (ELISE_X11)
@@ -832,6 +834,8 @@ int Test_TrajectoFromOri(int argc, char ** argv);
 int PlyBascule(int argc, char ** argv);
 
 int ConvertToNewFormatHom_Main(int argc, char ** argv);
+int ConvertToOldFormatHom_Main(int argc,char ** argv);
+
 int UnionFiltragePHom_Main(int argc, char ** argv);
 
 int TestYZ_main(int argc, char ** argv);
@@ -843,6 +847,10 @@ extern int IntersectHomol_main(int argc, char ** argv);
 extern int ReechMAF_main(int argc, char ** argv);
 extern int ImgTMTxt2Xml_main(int argc, char ** argv);
 extern int MoyMAF_main(int argc, char ** argv);
+extern int GenerateTP_main(int argc, char ** argv);
+extern int CompMAF_main(int argc, char ** argv);
+extern int GenerateOriGPS_main(int argc, char ** argv);
+extern int GenerateMAF_main(int argc, char ** argv);
 extern int GenImgTM_main(int argc, char ** argv);
 extern int EsSim_main(int argc, char ** argv);
 int ProcessThmImgs_main(int argc, char ** argv);
@@ -1123,6 +1131,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("ZBufferRaster",ZBufferRaster_main ,"Z Buffer Raster"));
 
         aRes.push_back(cMMCom("ConvNewFH",ConvertToNewFormatHom_Main ,"Convert Std Tie Points to new Formats for Multiple Point"));
+        aRes.push_back(cMMCom("ConvOldFH",ConvertToOldFormatHom_Main ,"Convert Multiple Tie Points to new Std Tie Points"));
+
         aRes.push_back(cMMCom("MergeFilterNewFH",UnionFiltragePHom_Main ,"Merge & Filter New Multiple Points"));
         aRes.push_back(cMMCom("TestYZ",TestYZ_main ,"TestYZ"));
         aRes.push_back(cMMCom("ReechHomol",ReechHomol_main ,"Apply map to homol folders to correct thermal deformation"));
@@ -1134,6 +1144,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("ImgTMTxt2Xml_B",main_Txt2CplImageTime ,"Convert txt file containing camlight image name and GPS week and time into micmac format"));
 
         aRes.push_back(cMMCom("MoyMAF",MoyMAF_main ,"Calculate center of 4 corner points"));
+        aRes.push_back(cMMCom("GenerateTP",GenerateTP_main ,"Generate simulated tie points"));
+        aRes.push_back(cMMCom("CompMAF",CompMAF_main ,"Compare MAF files"));
+        aRes.push_back(cMMCom("GenerateOriGPS",GenerateOriGPS_main ,"Compare MAF files"));
+        aRes.push_back(cMMCom("GenerateMAF",GenerateMAF_main ,"Generate simulated MAF"));
         aRes.push_back(cMMCom("GenImgTM",GenImgTM_main ,"Generate fake Img name/time couple from GPS .xml file"));
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
         aRes.push_back(cMMCom("ProcessThmImgs",ProcessThmImgs_main,"Tool to process Thermique acquisition of IGN"));
@@ -1187,6 +1201,7 @@ extern int DoTile_main(int argc, char ** argv);
 extern int ASTERGT2MM_main(int argc, char ** argv);
 extern int ASTERGT_strip_2_MM_main(int argc, char ** argv);
 extern int ASTERProjAngle_main(int argc, char ** argv);
+extern int ASTERProjAngle2OtherBand_main(int argc, char ** argv);
 
 const std::vector<cMMCom> & SateLibAvailableCommands()
 {
@@ -1204,6 +1219,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 	aRes.push_back(cMMCom("ASTERGT2MM", ASTERGT2MM_main, "Convert ASTER geoTiff format to MicMac Xml, also destrip images"));
 	aRes.push_back(cMMCom("ASTERStrip2MM", ASTERGT_strip_2_MM_main, "Convert a strip of ASTER geoTiff format to MicMac Xml, also destrip images"));
 	aRes.push_back(cMMCom("ASTERProjAngle", ASTERProjAngle_main, "Compute the orbit angle for each point in DEM"));
+	aRes.push_back(cMMCom("ASTERProjAngle2OtherBand", ASTERProjAngle2OtherBand_main, "Compute the orbit angle for each point in another band"));
 	aRes.push_back(cMMCom("ApplyParralaxCor", ApplyParralaxCor_main, "Apply parralax correction from MMTestOrient to an image"));
 	aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
 	aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
@@ -1328,7 +1344,7 @@ int GenMain(int argc, char ** argv, const std::vector<cMMCom> & aVComs)
 		MMVisualMode = true;
 		argv[1]++;
 	}
-
+    
 	// MPD : deplace sinon core dump qd argc==1
 	// Pour l'analyse de la ligne de commande, on ne peut pas desactiver le bloquage de l'exe via l'option ExitOnBrkp
 	// puisqu le XML n'a pas encore ete analyse, on change donc provisoirement le comportement par defaut

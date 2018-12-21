@@ -7512,14 +7512,14 @@ void xml_init(cCorrelMultiScale & anObj,cElXMLTree * aTree)
 std::string  Mangling( cCorrelMultiScale *) {return "6C14BAD3172CC7F4FD3F";};
 
 
-cTplValGesInit< double > & cCensusCost::PdsCrown()
+cTplValGesInit< double > & cCensusCost::Dyn()
 {
-   return mPdsCrown;
+   return mDyn;
 }
 
-const cTplValGesInit< double > & cCensusCost::PdsCrown()const 
+const cTplValGesInit< double > & cCensusCost::Dyn()const 
 {
-   return mPdsCrown;
+   return mDyn;
 }
 
 
@@ -7582,10 +7582,10 @@ void  BinaryUnDumpFromFile(cCensusCost & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
-             anObj.PdsCrown().SetInitForUnUmp();
-             BinaryUnDumpFromFile(anObj.PdsCrown().ValForcedForUnUmp(),aFp);
+             anObj.Dyn().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Dyn().ValForcedForUnUmp(),aFp);
         }
-        else  anObj.PdsCrown().SetNoInit();
+        else  anObj.Dyn().SetNoInit();
   } ;
     BinaryUnDumpFromFile(anObj.TypeCost(),aFp);
   { bool IsInit;
@@ -7624,8 +7624,8 @@ void  BinaryUnDumpFromFile(cCensusCost & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cCensusCost & anObj)
 {
-    BinaryDumpInFile(aFp,anObj.PdsCrown().IsInit());
-    if (anObj.PdsCrown().IsInit()) BinaryDumpInFile(aFp,anObj.PdsCrown().Val());
+    BinaryDumpInFile(aFp,anObj.Dyn().IsInit());
+    if (anObj.Dyn().IsInit()) BinaryDumpInFile(aFp,anObj.Dyn().Val());
     BinaryDumpInFile(aFp,anObj.TypeCost());
     BinaryDumpInFile(aFp,anObj.Verif().IsInit());
     if (anObj.Verif().IsInit()) BinaryDumpInFile(aFp,anObj.Verif().Val());
@@ -7641,8 +7641,8 @@ cElXMLTree * ToXMLTree(const cCensusCost & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"CensusCost",eXMLBranche);
-   if (anObj.PdsCrown().IsInit())
-      aRes->AddFils(::ToXMLTree(std::string("PdsCrown"),anObj.PdsCrown().Val())->ReTagThis("PdsCrown"));
+   if (anObj.Dyn().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Dyn"),anObj.Dyn().Val())->ReTagThis("Dyn"));
    aRes->AddFils(ToXMLTree(std::string("TypeCost"),anObj.TypeCost())->ReTagThis("TypeCost"));
    if (anObj.Verif().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Verif"),anObj.Verif().Val())->ReTagThis("Verif"));
@@ -7662,7 +7662,7 @@ void xml_init(cCensusCost & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
-   xml_init(anObj.PdsCrown(),aTree->Get("PdsCrown",1),double(0.5)); //tototo 
+   xml_init(anObj.Dyn(),aTree->Get("Dyn",1),double(1.0)); //tototo 
 
    xml_init(anObj.TypeCost(),aTree->Get("TypeCost",1)); //tototo 
 
@@ -7675,7 +7675,7 @@ void xml_init(cCensusCost & anObj,cElXMLTree * aTree)
    xml_init(anObj.SeuilBasCorMixte(),aTree->Get("SeuilBasCorMixte",1),double(0.6)); //tototo 
 }
 
-std::string  Mangling( cCensusCost *) {return "0812A605C8DAF5D2FE3F";};
+std::string  Mangling( cCensusCost *) {return "4A6290B0D5407AD0FD3F";};
 
 
 int & cCorrel2DLeastSquare::SzW()
@@ -9742,7 +9742,7 @@ void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
    xml_init(anObj.MasqueAutoByTieP(),aTree->Get("MasqueAutoByTieP",1)); //tototo 
 }
 
-std::string  Mangling( cTypeCAH *) {return "70ABEEF11EC9B289FA3F";};
+std::string  Mangling( cTypeCAH *) {return "5853D24975B823D5FC3F";};
 
 
 cTplValGesInit< double > & cCorrelAdHoc::EpsilonAddMoyenne()
@@ -10059,7 +10059,7 @@ void xml_init(cCorrelAdHoc & anObj,cElXMLTree * aTree)
    xml_init(anObj.TypeCAH(),aTree->Get("TypeCAH",1)); //tototo 
 }
 
-std::string  Mangling( cCorrelAdHoc *) {return "06BCD1C246CB0F85FC3F";};
+std::string  Mangling( cCorrelAdHoc *) {return "6E14933A50ECE897FE3F";};
 
 
 cTplValGesInit< double > & cDoImageBSurH::Dyn()
@@ -19344,7 +19344,7 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePredicteur(),aTree->Get("NuagePredicteur",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeMEC *) {return "DD337D36C13AC6C7FD3F";};
+std::string  Mangling( cEtapeMEC *) {return "CFECB046330A4888FF3F";};
 
 
 int & cTypePyramImage::Resol()
@@ -20509,7 +20509,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
 
-std::string  Mangling( cSection_MEC *) {return "90DD720B3958E481FE3F";};
+std::string  Mangling( cSection_MEC *) {return "D8245B35627976B9FD3F";};
 
 
 cTplValGesInit< bool > & cDoNothingBut::ButDoPyram()
@@ -29539,6 +29539,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "26A800050F69FE81FD3F";};
+std::string  Mangling( cParamMICMAC *) {return "203BEDA19CB3AC9EF9BF";};
 
 // Quelque chose

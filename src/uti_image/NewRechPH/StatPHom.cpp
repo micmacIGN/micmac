@@ -74,7 +74,12 @@ class cAppliStatPHom
        friend class cOneImSPH;
        cAppliStatPHom(int argc,char ** argv);
 
-       bool I1HasHom(const Pt2dr & aP1) {return mNuage1->CaptHasData(mNuage1->Plani2Index(aP1));}
+       bool I1HasHom(const Pt2dr & aP1) 
+       {
+            ELISE_ASSERT(mNuage1!=0,"I1HasHom without Nuage");
+            bool aRes = mNuage1->CaptHasData(mNuage1->Plani2Index(aP1));
+            return aRes;
+       }
        Pt2dr Hom(const Pt2dr & aP1);
        std::vector<cStatOneLabel>  & VLabs() {return mVLabs;}
        const cFitsParam & FP() const {return  mFP;}
@@ -85,6 +90,7 @@ class cAppliStatPHom
        double &  ScaleLim() {return mScaleLim;}
        tQtOPC * Qt2() {return  mQt2;}
 
+       std::string & DirSaveIm() {return mDirSaveIm;}
 
     private :
        void ShowStat(const std::string & aMes,int aNb,std::vector<double>  aVR,double aPropMax=1.0);
@@ -119,6 +125,7 @@ class cAppliStatPHom
        double                      mSeuilBigRes;
        cPtFromCOPC                 mArgQt;
        tQtOPC *                    mQt2;
+       std::string                 mDirSaveIm;
 };
 
 class cOneImSPH
@@ -246,6 +253,22 @@ void AddRand(cSetRefPCarac & aSRef,const std::vector<cOnePCarac*> aVP, int aNb)
        if (aRNpQ.GetNext())
           aSRef.SRPC_Rand().push_back(*aPtr);
 }
+
+Im2D_INT1   ImOfCarac(const cOnePCarac & aPC,eTypeVecInvarR aType)
+{
+    switch(aType)
+    {
+        case eTVIR_Curve : return aPC.ProfR().ImProfil();
+        case eTVIR_ACR0  : return aPC.RIAC().IR0();
+        case eTVIR_ACGT  : return aPC.RIAC().IGT();
+        case eTVIR_ACGR  : return aPC.RIAC().IGR();
+
+        default: ;
+    }
+    ELISE_ASSERT(false,"ImOfCarac");
+    return Im2D_INT1(1,1);
+}
+
 
 
 void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
@@ -420,6 +443,57 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
             std::string aKey = NH_KeyAssoc_PC + "@"+aExt;
             std::string aName =  mAppli.mICNM->Assoc1To2(aKey,mN,aI2.mN,true);
             MakeFileXML(aSetRef,aName);
+
+            // Export en forme d'imagette
+            if (EAMIsInit(&(mAppli.DirSaveIm())))
+            {
+                for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
+                {
+                    eTypePtRemark   aLabTPR = eTypePtRemark(aKL);
+                    for (int aKI=0 ; aKI<int(eTVIR_NoLabel) ; aKI++)
+                    {
+                        eTypeVecInvarR  aLabTVI = eTypeVecInvarR(aKI);
+                        const std::vector<cSRPC_Truth> & aVT = aSetRef.SRPC_Truth(); 
+                        int aNbSample = aVT.size(); 
+                        if (aNbSample != 0)
+                        {
+                            Im2D_INT1 aI0 = ImOfCarac(aVT.at(0).P1(),aLabTVI);
+                            Pt2di aSz0 = aI0.sz();
+                            Pt2di aSzGlob (aSz0.x,aSz0.y*aNbSample);
+                            Im2D_U_INT1 aImGlob(2*aSzGlob.x,aSzGlob.y);
+
+                            for (int aKS=0 ; aKS <aNbSample ; aKS++)
+                            {
+                                int aDy = aKS * aSz0.y;
+                                Im2D_INT1 aIm1 =  ImOfCarac(aVT.at(aKS).P1(),aLabTVI);
+                                Im2D_INT1 aIm2 =  ImOfCarac(aVT.at(aKS).P2(),aLabTVI);
+                                ELISE_COPY
+                                (
+                                     rectangle(Pt2di(0,aDy),Pt2di(aSz0.x,aDy+aSz0.y)),
+                                     128+ trans(aIm1.in(),Pt2di(0,-aDy)),
+                                     aImGlob.out()
+                                );
+                                ELISE_COPY
+                                (
+                                     rectangle(Pt2di(aSz0.x,aDy),Pt2di(2*aSz0.x,aDy+aSz0.y)),
+                                     128+ trans(aIm2.in(),Pt2di(-aSz0.x,-aDy)),
+                                     aImGlob.out()
+                                );
+                            }
+                            std::string aDir = DirApprentIR(mAppli.DirSaveIm(),aLabTPR,aLabTVI);
+                            std::string aName = aDir + "Cple-"+ StdPrefix(mAppli.mN1) + "-" + StdPrefix(mAppli.mN2) + + ".tif";
+                            Tiff_Im::CreateFromIm(aImGlob,aName);
+
+
+
+                            // Im2D_INT1   ImOfCarac(const cOnePCarac & aPC,eTypeVecInvarR aType)
+                            //std::string aDir = DirApprentIR(mAppli.DirSaveIm(),aLabTPR,aLabTVI);
+                        }
+                        
+                        //ELISE_fp::MkDirRec(aDir);
+                    }
+                }
+            }
         }
 
         mAppli.VLabs().push_back(aSOL);
@@ -547,8 +621,9 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
                      << EAM(mExtOut,"ExtOut",true,"Extentsion for output")
                      << EAM(mNbMaxHighScale,"NbMaxHS",true,"Nb Max of high scale , def=infinity")
                      << EAM(mNbMaxValid,"NbMaxTot",true,"Nb Max for valid, def=1000")
-                     << EAM(mNbMaxTested,"NbMaxTot",true,"Nb Max Testesd def=30000")
+                     << EAM(mNbMaxTested,"NbMaxTested",true,"Nb Max Testesd def=30000")
                      << EAM(mScaleLim,"ScaleLim",true,"Scale minimal, def=0")
+                     << EAM(mDirSaveIm,"DSI",true,"DIR SAVE IMAGE (to create truth for learning)")
    );
 
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);

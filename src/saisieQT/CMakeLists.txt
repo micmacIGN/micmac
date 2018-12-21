@@ -47,7 +47,7 @@ else()
     add_executable(SaisieQT ${saisieQT_SRCS} ${QM_FILES})
 endif()
 
-target_link_libraries(SaisieQT elise ${X11_LIBRARIES} ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ${KAKADU_LIBRARIES})
+target_link_libraries(SaisieQT elise ${X11_LIBRARIES} ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ${KAKADU_LIBRARIES} ANN)
 if (UNIX)
 	target_link_libraries(SaisieQT dl pthread)
 endif()

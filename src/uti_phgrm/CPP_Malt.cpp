@@ -333,7 +333,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, available in image geometry")
                     << EAM(mParamMS,"ParamMS",true,"Param MS [SzW1,Sig1,Pds1,SzW2...]")
                     << EAM(mMCorPonc,"CorPonc",true,"New One-Two Pixel Matching option, def=false, available in image geometry")
-                    << EAM(aParamCensus,"Census",true,"Parameter 4 Census, as for now used as bool", eSAM_NoInit)
+                    << EAM(aParamCensus,"Census",true,"Parameter 4 Census,  [Dynamic]", eSAM_NoInit)
                     << EAM(a12PixParam,"12PixMP",true,"One-Two Pixel Matching parameters [ZoomInit,PdsAttPix,PCCroise,?PCStd?,?\"tif\"?], \"tif\" or else \"xml\"; ; Def=[4,1,1,0,xml]", eSAM_NoInit)
                     << EAM(mForDeform,"ForDeform",true,"Set paramaters when ortho are used for deformation")
                     << EAM(mUseGpu,"UseGpu",true,"Use Cuda acceleration, def=false", eSAM_IsBool)
@@ -451,6 +451,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mDirOrthoF = "Ortho-" + mDirMEC;
       MakeFileDirCompl(mDirOrthoF);
 
+      if (mMCorPonc) mForceZFaisc=true;
+      //if (mMCorPonc && !EAMIsInit(&mCostTrans)) mCostTrans=0.5;
       if (mMCorPonc && EAMIsInit(&mDoOrtho) && mDoOrtho) mZoomFinal=4;
       if (mMCorPonc && !EAMIsInit(&mDoOrtho)) mDoOrtho=false;
 
@@ -966,6 +968,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
          double aPCStd     = 0.0;          
          std::string aMCorPoncCal = "xml";
 
+
          if (EAMIsInit(&a12PixParam))
          {
                //  Je pensei pas de pb  pour admettre de de 0 a 5 arg, puisque  tous ont une val def raisonnable ?
@@ -1168,6 +1171,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
            mCom =     mCom 
                    +  " +UseCensusCost=true"
                    ;
+           if (aParamCensus.size() >= 1)
+               mCom =  mCom +  " +DynCensusCost=" + ToString(aParamCensus[0]);
       }
 
       if (mGenCubeCorrel)

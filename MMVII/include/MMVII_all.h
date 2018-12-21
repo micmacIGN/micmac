@@ -51,6 +51,11 @@
 #include "cMMVII_Appli.h"
 
 
+//  Classes for images manipulation
+
+#include "MMVII_Images.h"
+
+
 #include "MMVII_DeclareAllCmd.h"
 // communication MMVII/MMv1
 

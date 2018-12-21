@@ -984,24 +984,36 @@ tNameSet SetNameFromPat(const std::string& aFullPat)
      return aRes;
 }
 
-/*
-    For Rel, it's the versionning  who is handled
-  by this function.
+/** Return Rel from xml file, noting if do not exist, result in &Exist
 */
 
-tNameRel  RelNameFromFile (const std::string& aNameFile)
+tNameRel  RelNameFromXmlFileIfExist (const std::string& aNameFile,bool &Exist)
 {
+   Exist = true;
    if (IsFileXmlOfGivenTag(true,aNameFile,TagSetOfCpleName)) // MMVII
    {
        tNameRel aSet(eTySC::US);
        ReadFromFileWithDef(aSet,aNameFile);
 
-      return aSet;
+       return aSet;
    }
    else if (IsFileXmlOfGivenTag(false,aNameFile,MMv1XmlTag_RelName))  // MMv1
    {
-      return MMV1InitRel(aNameFile);
+       return MMV1InitRel(aNameFile);
    }
+   Exist = false;
+
+   return  tNameRel(); // emty set mode US
+}
+
+/**  Return Rel from xml file, error if file exist but not to good format */
+
+tNameRel  RelNameFromFile (const std::string& aNameFile)
+{
+   bool Exist;
+   tNameRel  aRes= RelNameFromXmlFileIfExist(aNameFile,Exist);
+   if (Exist)
+      return aRes;
 
    if (ExistFile(aNameFile))
    {

@@ -28,6 +28,27 @@ void  BinaryUnDumpFromFile(eTypePtRemark &,ELISE_fp &);
 
 typedef enum
 {
+  eTVIR_Curve,
+  eTVIR_ACR0,
+  eTVIR_ACGT,
+  eTVIR_ACGR,
+  eTVIR_NoLabel
+} eTypeVecInvarR;
+void xml_init(eTypeVecInvarR & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeVecInvarR & aVal);
+
+eTypeVecInvarR  Str2eTypeVecInvarR(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeVecInvarR & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeVecInvarR &);
+
+std::string  Mangling( eTypeVecInvarR *);
+
+void  BinaryUnDumpFromFile(eTypeVecInvarR &,ELISE_fp &);
+
+typedef enum
+{
   eTIR_Radiom,
   eTIR_GradRad,
   eTIR_GradCroise,
@@ -156,6 +177,38 @@ std::string  Mangling( cProfilRad *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cRotInvarAutoCor
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cRotInvarAutoCor & anObj,cElXMLTree * aTree);
+
+
+        Im2D_INT1 & IR0();
+        const Im2D_INT1 & IR0()const ;
+
+        Im2D_INT1 & IGT();
+        const Im2D_INT1 & IGT()const ;
+
+        Im2D_INT1 & IGR();
+        const Im2D_INT1 & IGR()const ;
+    private:
+        Im2D_INT1 mIR0;
+        Im2D_INT1 mIGT;
+        Im2D_INT1 mIGR;
+};
+cElXMLTree * ToXMLTree(const cRotInvarAutoCor &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cRotInvarAutoCor &);
+
+void  BinaryUnDumpFromFile(cRotInvarAutoCor &,ELISE_fp &);
+
+std::string  Mangling( cRotInvarAutoCor *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cOnePCarac
 {
     public:
@@ -218,6 +271,9 @@ class cOnePCarac
         cProfilRad & ProfR();
         const cProfilRad & ProfR()const ;
 
+        cRotInvarAutoCor & RIAC();
+        const cRotInvarAutoCor & RIAC()const ;
+
         int & Id();
         const int & Id()const ;
 
@@ -245,6 +301,7 @@ class cOnePCarac
         Im2D_INT1 mImLogPol;
         std::vector<double> mVectRho;
         cProfilRad mProfR;
+        cRotInvarAutoCor mRIAC;
         int mId;
         int mHeapInd;
         double mPrio;
@@ -826,6 +883,9 @@ class cXmlAimeParamApprentissage
         friend void xml_init(cXmlAimeParamApprentissage & anObj,cElXMLTree * aTree);
 
 
+        std::string & AbsDir();
+        const std::string & AbsDir()const ;
+
         cTplValGesInit< bool > & DefDoIt();
         const cTplValGesInit< bool > & DefDoIt()const ;
 
@@ -868,6 +928,7 @@ class cXmlAimeParamApprentissage
         cXlmAimeApprent & XlmAimeApprent();
         const cXlmAimeApprent & XlmAimeApprent()const ;
     private:
+        std::string mAbsDir;
         cTplValGesInit< bool > mDefDoIt;
         cTplValGesInit< bool > mDefDoMatch;
         cTplValGesInit< bool > mDefDoPtCar;

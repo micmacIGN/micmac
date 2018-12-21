@@ -1517,9 +1517,31 @@ class cBasculeNuage : public cZBuffer
 
         Pt3dr ProjTerrain(const Pt3dr & aP) const
         {
-
            return mDest->Euclid2ProfAndIndex(mInput->IndexAndProf2Euclid(Pt2dr(aP.x,aP.y),aP.z));
         }
+
+
+        Pt3dr InvProjTerrain(const Pt3dr & aP) const
+        {
+           Pt3dr aQ = mInput->Euclid2ProfAndIndex(mDest->IndexAndProf2Euclid(Pt2dr(aP.x,aP.y),aP.z));
+           return aQ;
+           // return mDest->Euclid2ProfAndIndex(mInput->IndexAndProf2Euclid(Pt2dr(aP.x,aP.y),aP.z));
+        }
+
+        double ZInterpofXY(const Pt2dr & aP,bool & Ok) const
+        {
+             Ok = mInput->CaptHasData(aP);
+             if (Ok)
+                return mInput->ProfOfIndexInterpol(aP);
+             return 0.0;
+            // §§ Pt3dr aPEucl = mInput->IndexAndProf2Euclid(Pt2dr(aP.x,aP.y),0);
+            // return  mInput->ProfOfIndex(aP);
+        }
+
+
+
+
+
         double ZofXY(const Pt2di & aP)   const
         {
               return  mInput->ProfOfIndex(aP);
@@ -1579,7 +1601,12 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
         aBasc.InitDynEtirement(aCoeffEtire);
     Pt2di anOfOut;
     bool Ok;
-    Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef,&Ok);
+    // Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef,&Ok);
+
+for (int aK=0 ; aK<100 ; aK++) std::cout << "WAAArrrn BasculerAndInterpoleInverse\n";
+
+Ok=true;
+Im2D_REAL4  aMntBasc = aBasc.BasculerAndInterpoleInverse(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef);
 
 
     if (!Ok)
@@ -1905,16 +1932,6 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
           aRes->ImDef().out()
        );
 
-/*
-       aGeomOutOri,
-       Im2D_Bits<1> aImGlog(aSz.x,aSz.y,1);
-       ComplKLipsParLBas
-       (
-           aImGlog,
-           aRes->ImDef(),
-           aRes
-       );
-*/
        delete anOLB;
     }
     if (HasCor)
