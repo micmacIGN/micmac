@@ -873,6 +873,7 @@ extern int Generate_ImagePer(int argc, char** argv);
 extern int  CPP_DistHistoBinaire(int argc, char ** argv);
 
 extern int CPP_AutoCorr_CensusQuant(int argc, char ** argv);
+int MosaicTFW(int argc, char** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -1121,7 +1122,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("HomolLSMRefine",HomolLSMRefine_main,"Refine Homol Pack by Least Square Matching"));
         aRes.push_back(cMMCom("PlyBascule",PlyBascule,"Bascule PLY file with bascule XML (estimated by GCPBascule)"));
         aRes.push_back(cMMCom("ImgVide", Image_Vide, " Create image vide"));
-
+        aRes.push_back(cMMCom("MosaicTFW", MosaicTFW, " MosaicTFW"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));
