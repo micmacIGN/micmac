@@ -244,7 +244,7 @@ cAppli_BasculeRobuste::cAppli_BasculeRobuste(int argc,char ** argv)  :
                      << EAM(mExpos,"Expos",true,"Exposure for dist, 1->L1, 2->L2 , def=1")
                      << EAM(mOut,"Out",true,"Export computed orientation, Def=BAR+${-Orientation}")
                      << EAM(mRatioAlertB,"RatioAlertB",true,"Ratio of alert for bundle reproj (Def=3)")
-                     << EAM(mMaxEr,"MaxEr",true,"Typical max error image reprojecstion,Def=10")
+                     << EAM(mMaxEr,"MaxEr",true,"Typical max error image reprojection,Def=10")
     );
 
 

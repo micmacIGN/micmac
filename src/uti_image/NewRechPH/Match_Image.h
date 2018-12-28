@@ -241,6 +241,8 @@ class cAppli_FitsMatch1Im
           void SetCurMapping(cElMap2D * aMap);
           cElMap2D & CurMapping();
 
+          bool HasFileCple() const;
+          bool InSetCple(const std::string & aStr) const;
      private :
           cFitsParam         mFitsPm;
           std::string        mNameMaster;
@@ -264,6 +266,10 @@ class cAppli_FitsMatch1Im
           bool               mDoFiltrageSpatial;
           int                mFlagLabsInit;
           cElMap2D *         mCurMap;
+          std::string        mFileCple;
+          bool               mHasFileCple;
+          std::set<std::string>   mSetCple;
+          std::vector<double>     mVSeuils;
 };
 
 

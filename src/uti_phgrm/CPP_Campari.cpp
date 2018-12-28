@@ -516,7 +516,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aPdsGBRot,"PdsGBRot",true,"Weighting of the global rotation constraint (Generic bundle Def=0.002)")
                     << EAM(aPdsGBId,"PdsGBId",true,"Weighting of the global deformation constraint (Generic bundle Def=0.0)")
                     << EAM(aPdsGBIter,"PdsGBIter",true,"Weighting of the change of the global rotation constraint between iterations (Generic bundle Def=1e-6)")
-                    << EAM(aExportSensib,"ExportSensib",true,"Export sensiblity (accuracy) estimator : correlation , varaiance, inverse matrix variance ... ")
+                    << EAM(aExportSensib,"ExportSensib",true,"Export sensiblity (accuracy) estimator : correlation , variance, inverse matrix variance ... ")
                     << EAM(aUseGaussJ,"UseGaussJ",true,"Use GaussJ instead of Cholesky (Def depend of others) ")
                     << EAM(NormaliseEq,"NormEq",true,"Flag for Norm Eq, 1->Sc, 2-Tr, Def=3 (All), tuning purpose ")
                     << EAM(aParamCCCC,"ContrCalCamCons",true,"Constraint on calibration for conseq camera [Key,Simga] ")
