@@ -195,6 +195,46 @@ class cSetTiePMul
         int                     mNbAttr;
 };
 
+/*******************************************************************/
+/*                                                                 */
+/*                Conversion NEW format to OLD format              */
+/*                                                                 */
+/*******************************************************************/
+class cPackHomol;
+class cGetionStdPackHomol;
+
+class cAppliConvertToOldFormatHom
+{
+    public :
+        cAppliConvertToOldFormatHom(int argc,char ** argv);
+        cAppliConvertToOldFormatHom(string aDir, string aPMulFile, string aOut, bool aBin, bool aIs2Way);
+    private :
+        void DoAll(cSetTiePMul * aSetPM,  cGetionStdPackHomol * aGes, cInterfChantierNameManipulateur *aICNM);
+        std::string         mPatImage;  // Pattern image d'entree
+        std::string         mSH;
+        std::string         mOut;
+        bool                mBin;
+        cElemAppliSetFile   mEASF;      // Gestion de fichier
+        const std::vector<std::string> * mFilesIm;  // vecteur nom d'image
+        bool                             mExpTxt;   // Bin ou Txt export
+        bool                             mIs2Way;
+};
+
+class cPackHomol
+{
+public :
+    cPackHomol(string aIm1, string aIm2, int aId1, int aId2);
+    cPackHomol(cCelImTPM * aIm1, cCelImTPM * aIm2);
+    ElPackHomologue mPackDirect;
+    ElPackHomologue mPackInverse;
+    string mIm1;
+    string mIm2;
+    int    mId1;
+    int    mId2;
+    std::pair<int, int> mPairId;
+    string CompileKey(string aHomolOut, bool isExpTxt, cInterfChantierNameManipulateur * aICNM, bool isDirect);
+};
+
 
 #endif //  __MultTieP_
 
