@@ -1082,7 +1082,7 @@ double MoyHarmonik(const double & aV1,const double & aV2,const double & aV3)
 
 bool CmpPtsX(const Pt2df & aP1,const Pt2df & aP2) {return aP1.x < aP2.x;}
 
-double MedianPond(std::vector<Pt2df> &  aV,int * aKMed)
+double PropPond(std::vector<Pt2df> &  aV,double aProp,int * aKMed)
 {
 /*
 if (MPD_MM())
@@ -1097,7 +1097,7 @@ std::cout << "MedianPondMedianPond " << aV.size() << " " << aKMed << "\n";
      {
           aSomP += aV[aK].y;
      }
-     aSomP /= 2.0;
+     aSomP *= aProp;
 
      int aK=0;
      for ( ; (aK<int(aV.size()-1)) && (aSomP>0)  ; aK++)
@@ -1114,6 +1114,10 @@ std::cout << "MedianPondMedianPond " << aV.size() << " " << aKMed << "\n";
 }
 
 
+double MedianPond(std::vector<Pt2df> &  aV,int * aKMed)
+{
+    return PropPond(aV,0.5,aKMed);
+}
 
 
 

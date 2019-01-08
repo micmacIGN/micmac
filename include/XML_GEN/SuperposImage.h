@@ -6511,30 +6511,30 @@ std::string  Mangling( cXml_O2IHom *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-class cXml_SimWithR
+class cXml_OriCple
 {
     public:
         cGlobXmlGen mGXml;
 
-        friend void xml_init(cXml_SimWithR & anObj,cElXMLTree * aTree);
+        friend void xml_init(cXml_OriCple & anObj,cElXMLTree * aTree);
 
 
-        cSimilitudePlane & Sim();
-        const cSimilitudePlane & Sim()const ;
+        cXml_Rotation & Ori1();
+        const cXml_Rotation & Ori1()const ;
 
-        double & ResiduHom();
-        const double & ResiduHom()const ;
+        cXml_Rotation & Ori2();
+        const cXml_Rotation & Ori2()const ;
     private:
-        cSimilitudePlane mSim;
-        double mResiduHom;
+        cXml_Rotation mOri1;
+        cXml_Rotation mOri2;
 };
-cElXMLTree * ToXMLTree(const cXml_SimWithR &);
+cElXMLTree * ToXMLTree(const cXml_OriCple &);
 
-void  BinaryDumpInFile(ELISE_fp &,const cXml_SimWithR &);
+void  BinaryDumpInFile(ELISE_fp &,const cXml_OriCple &);
 
-void  BinaryUnDumpFromFile(cXml_SimWithR &,ELISE_fp &);
+void  BinaryUnDumpFromFile(cXml_OriCple &,ELISE_fp &);
 
-std::string  Mangling( cXml_SimWithR *);
+std::string  Mangling( cXml_OriCple *);
 
 /******************************************************/
 /******************************************************/
@@ -6559,9 +6559,6 @@ class cXml_O2IComputed
         cXml_O2IHom & HomWithR();
         const cXml_O2IHom & HomWithR()const ;
 
-        cTplValGesInit< cXml_SimWithR > & SimWithR();
-        const cTplValGesInit< cXml_SimWithR > & SimWithR()const ;
-
         double & BSurH();
         const double & BSurH()const ;
 
@@ -6573,16 +6570,19 @@ class cXml_O2IComputed
 
         cTplValGesInit< cXml_Elips2D > & Elips2();
         const cTplValGesInit< cXml_Elips2D > & Elips2()const ;
+
+        cTplValGesInit< cXml_OriCple > & OriCpleGps();
+        const cTplValGesInit< cXml_OriCple > & OriCpleGps()const ;
     private:
         cXml_O2ITiming mTiming;
         cXml_O2IRotation mOrientAff;
         cXml_O2IRotPure mRPure;
         cXml_O2IHom mHomWithR;
-        cTplValGesInit< cXml_SimWithR > mSimWithR;
         double mBSurH;
         double mRecHom;
         cXml_Elips3D mElips;
         cTplValGesInit< cXml_Elips2D > mElips2;
+        cTplValGesInit< cXml_OriCple > mOriCpleGps;
 };
 cElXMLTree * ToXMLTree(const cXml_O2IComputed &);
 
