@@ -200,7 +200,7 @@ void cISR_Ima::ApplyImProj()
     }
 
     // write the rectified image in the working directory
-    this->WriteImage(ImColRect);
+    this->WriteImage(ImColRect, "ProR3F2");
     // write the tfw file
     this->GenTFW();
     std::cout << "End of rectification for oblique image " << this->mName  << "  ------------------- \n \n";
@@ -232,14 +232,16 @@ void cISR_Ima::ApplyImHomography()
             //std::cout << " point 2D image  :: " << aPIm0 <<"    \n";
             //std::cout << " point 3D terrain :: " << aPTerPlani <<"    \n";
 
-            // get the radiometric value at this position
-            cISR_Color aCol=ImCol.getr(aPIm0);
-            // write the value on the rectified image
-            ImColRect.set(aP,aCol);
+                // get the radiometric value at this position
+                cISR_Color aCol=ImCol.getr(aPIm0);
+                // write the value on the rectified image
+                //cout<<aPTerPlani<<aPIm0<<endl;
+                ImColRect.set(aP,aCol);
+
         }
     }
 
-    this->WriteImage(ImColRect);
+    this->WriteImage(ImColRect, "Rectified");
     // write the tfw file
     this->GenTFW();
     
@@ -251,10 +253,21 @@ void cISR_Ima::GenTFW()
 {
     std::string aNameTFW = mPrefix+"-"+this->mName + ".tfw";
     std::ofstream aFtfw(aNameTFW.c_str());
-    aFtfw.precision(10);
+    aFtfw.precision(0);
     aFtfw << mFGSD << "\n" << 0 << "\n";
     aFtfw << 0 << "\n" << -mFGSD << "\n";
     aFtfw << mBorder[0] << "\n" << mBorder[3] << "\n";
+    aFtfw.close();
+}
+
+void cISR_Ima::GenTFW(double mGSD, Pt2dr offset, string aPrefix)
+{
+    std::string aNameTFW = aPrefix+"-"+this->mName + ".tfw";
+    std::ofstream aFtfw(aNameTFW.c_str());
+    aFtfw.precision(0);
+    aFtfw << mGSD << "\n" << 0 << "\n";
+    aFtfw << 0 << "\n" << mGSD << "\n";
+    aFtfw << offset.x << "\n" << offset.y << "\n";
     aFtfw.close();
 }
 
@@ -263,6 +276,21 @@ void cISR_Ima::WriteImage(cISR_ColorImg & aImage)
     // write the rectified image in the working directory
     std::string aNameImProj= mPrefix+"-"+this->mName+".tif";
     
+    // performed a resample of the rectified image.
+    if ((mDeZoom!=1) & (mQuickResampling!=1))
+    {
+        cISR_ColorImg ImResampled = aImage.ResampleColorImg(mDeZoom);
+        ImResampled.write(aNameImProj);
+        std::cout << "Resampling of rectified image (dezoom factor of " << mDeZoom << ") \n";
+    }
+    else aImage.write(aNameImProj);
+}
+
+void cISR_Ima::WriteImage(cISR_ColorImg & aImage, string aPrefix)
+{
+    // write the rectified image in the working directory
+    std::string aNameImProj= aPrefix+"-"+this->mName+".tif";
+
     // performed a resample of the rectified image.
     if ((mDeZoom!=1) & (mQuickResampling!=1))
     {
@@ -314,29 +342,258 @@ void cISR_Ima::InitGeomTerrain()
     int SzX=(mBorder[1]-mBorder[0])/mLoopGSD;
     int SzY=(mBorder[3]-mBorder[2])/mLoopGSD;
 
+    cout<<"Foot Print Size in pixel = "<<SzX<<" , "<<SzY<<endl;
+
     mSzImRect = Pt2di(SzX,SzY);
 
 
 }
 
+void cISR_Ima::Estime4PtsProjectiveTransformation()
+{
+    //   R3 : coordonné terrain absolue
+    //   L3 : coordonné terrain dans repere camera
+    //   C2 : coordonné 2D caméra
+    //   F2 : coordonné 2D image
+    //
+    //       Orientation      Projection      Distortion
+    //   R3 -------------> L3------------>C2------------->F2
+
+    // determine 4 correspondant 2D-3D from 4 image corner
+    cout<<"Estime Projective Transf..."<<endl;
+    Pt3dr P1;
+    Pt3dr P2;
+    Pt3dr P3;
+    Pt3dr P4;
+    mZTerrain = mCam->PseudoOpticalCenter().z - mCam->GetProfondeur();
+    cout<<" + Z = "<<mZTerrain<<endl;
+    mCam->CoinsProjZ(P1, P2, P3, P4, mZTerrain);
+    vector<Pt3dr> aVP;
+    aVP.push_back(P1);
+    aVP.push_back(P2);
+    aVP.push_back(P3);
+    aVP.push_back(P4);
+
+    // determine correspondant 2D, en prenent en compte la distorsion
+    vector<Pt2dr> aVp;
+    Pt2dr p1 = mCam->R3toF2(P1);
+    Pt2dr p2 = mCam->R3toF2(P2);
+    Pt2dr p3 = mCam->R3toF2(P3);
+    Pt2dr p4 = mCam->R3toF2(P4);
+    aVp.push_back(p1);
+    aVp.push_back(p2);
+    aVp.push_back(p3);
+    aVp.push_back(p4);
+
+    cout<<"Correspondant : p_backproj,P_3D,p_theorie "<<endl;
+    cout<<p1<<P1<<endl;
+    cout<<p2<<P2<<endl;
+    cout<<p3<<P3<<endl;
+    cout<<p4<<P4<<endl;
+    // estimer 8 params de perspective projection (e0 e1 e2 f0 f1 f2 g1 g2)
+    L2SysSurResol aSys(8);
+    for (uint i=0; i<4; i++)
+    {
+        Pt2dr ap = aVp[i];
+        Pt3dr aP = aVP[i];
+        double coeffEQ1[8] = {aP.x*ap.x, -ap.x, 0, aP.x*ap.y, -ap.y, 0, -1, 0};
+        double coeffEQ2[8] = {aP.y*ap.x, 0, -ap.x, aP.y*ap.y, 0, -ap.y, 0, -1};
+        double obs1 = -aP.x;
+        double obs2 = -aP.y;
+        aSys.AddEquation(1.0, coeffEQ1, obs1);
+        aSys.AddEquation(1.0, coeffEQ2, obs2);
+    }
+    bool OK = false;
+    Im1D_REAL8 aSol(8);
+    double * aData;
+    aSol = aSys.Solve(&OK);
+    vector<double> aParamProj;
+    if(OK)
+    {
+        aData = aSol.data();
+        cout<<"Coeff (e0,e1,e2,f0,f1,f2,g1,g2): ";
+        for (int i=0; i<8; i++)
+        {
+            cout<<aData[i]<<" ";
+            aParamProj.push_back(aData[i]);
+        }
+        cout<<endl;
+    }
+    this->RectifyByProjectiveTransformation(aVp, aVP, aParamProj);
+}
+
+void cISR_Ima::RectifyByProjectiveTransformation(vector<Pt2dr> aVp, vector<Pt3dr> aVP, vector<double> aParamProj)
+{
+    cout<<"Rectify : "<<endl;
+    double e0 = aParamProj[0];
+    double e1 = aParamProj[1];
+    double e2 = aParamProj[2];
+    double f0 = aParamProj[3];
+    double f1 = aParamProj[4];
+    double f2 = aParamProj[5];
+    double g1 = aParamProj[6];
+    double g2 = aParamProj[7];
+
+        // convertir coins image metrique aux coins image pixel
+            // calcul GSD :
+            double aGSDInit = mCam->ResolutionAngulaire() * mCam->GetProfondeur(); // (tan(resolAngulaire) = ResolSol/H = reslAngulaire : parce que reslAngulaire est petit)
+            cout<<" + GSD : "<<aGSDInit<<endl; // metre/pixel
+            // Box sol :
+            Pt2dr aBoxSolMin(ElMin4(aVP[0].x,aVP[1].x,aVP[2].x,aVP[3].x), ElMin4(aVP[0].y,aVP[1].y,aVP[2].y,aVP[3].y));
+            Pt2dr aBoxSolMax(ElMax4(aVP[0].x,aVP[1].x,aVP[2].x,aVP[3].x), ElMax4(aVP[0].y,aVP[1].y,aVP[2].y,aVP[3].y));
+            cout<<"Box sol : "<<aBoxSolMin<<aBoxSolMax<<aBoxSolMax-aBoxSolMin<<endl;
+            // Determiner offset georef et taille d'image rectifié :
+            Pt2dr offset(aBoxSolMin.x, -aBoxSolMax.y);
+            Pt2dr sZImRecMetric(aBoxSolMax-aBoxSolMin);
+            Pt2di sZImRecPxl((aBoxSolMax-aBoxSolMin)/aGSDInit);
+            cout<<"offset : "<<offset<<" , sZRec : "<<sZImRecPxl<<" , sZOrg : "<<mCam->SzPixel()<<endl;
+
+        // parcourir espace terrain, puis chercher point sur terrain par la projective
+        Pt2di apImg(0,0);
+        Pt2di aSz(mCam->SzPixel());
+        cISR_ColorImg ImCol(mNameTiff.c_str());
+        cISR_ColorImg ImColRectInv(aSz);
+        Pt3dr offset3D(offset.x, offset.y, 0);
+        for (apImg.x=0; apImg.x<aSz.x; apImg.x++)
+        {
+            for (apImg.y=0; apImg.y<aSz.y; apImg.y++)
+            {
+                Pt2dr apImgInit;
+                Pt3dr aPTer(0,0,mZTerrain);
+                aPTer.x = apImg.x*aGSDInit + aBoxSolMin.x;
+                aPTer.y = apImg.y*aGSDInit + aBoxSolMin.y;
+                apImgInit.x = ((f2-f0*g2)*aPTer.x + (f0*g1-f1)*aPTer.y + (g2*f1-g1*f2)) / ((e2*f0-e0*f2)*aPTer.x + (e0*f1-e1*f0)*aPTer.y + (e1*f2-e2*f1));
+                apImgInit.y = ((e0*g2-e2)*aPTer.x + (e1-e0*g1)*aPTer.y + (e2*g1-e1*g2)) / ((e2*f0-e0*f2)*aPTer.x + (e0*f1-e1*f0)*aPTer.y + (e1*f2-e2*f1));
+                //cout<<apImg<<aP<<endl;
+                if (apImgInit.x>0 && apImgInit.y>0 && apImgInit.x<aSz.x && apImgInit.y<aSz.y)
+                {
+                    cISR_Color aCol=ImCol.getr(apImgInit);
+                    ImColRectInv.set(apImg,aCol);
+                }
+            }
+        }
+        this->WriteImage(ImColRectInv, "Proj4Pts");
+        // write the tfw file
+        this->GenTFW(aGSDInit, offset, "Proj4Pts");
+        cout<<"Done"<<endl;
+}
+
+
+void cISR_Ima::RectifyByHomography()
+{
+    // compute homography between 2 plan
+    cout<<"Estime Homography..."<<endl;
+    Pt3dr P1;    Pt3dr P2;    Pt3dr P3;    Pt3dr P4;
+    mZTerrain = mCam->PseudoOpticalCenter().z - mCam->GetProfondeur();
+    cout<<" + Z = "<<mZTerrain<<endl;
+    mCam->CoinsProjZ(P1, P2, P3, P4, mZTerrain);
+    vector<Pt3dr> aVP;
+    aVP.push_back(P1);    aVP.push_back(P2);    aVP.push_back(P3);    aVP.push_back(P4);
+
+    // determine correspondant 2D, en prenent en compte la distorsion
+    vector<Pt2dr> aVp;
+    Pt2dr p1 = mCam->R3toF2(P1);
+    Pt2dr p2 = mCam->R3toF2(P2);
+    Pt2dr p3 = mCam->R3toF2(P3);
+    Pt2dr p4 = mCam->R3toF2(P4);
+    aVp.push_back(p1);    aVp.push_back(p2);    aVp.push_back(p3);    aVp.push_back(p4);
+
+    cout<<" + Correspondant : p_backproj,P_3D "<<endl;
+    cout<<p1<<P1<<endl;
+    cout<<p2<<P2<<endl;
+    cout<<p3<<P3<<endl;
+    cout<<p4<<P4<<endl;
+
+    ElPackHomologue  aPackHomImTer;
+    aPackHomImTer.Cple_Add(ElCplePtsHomologues(p1, Pt2dr(P1.x,P1.y)));
+    aPackHomImTer.Cple_Add(ElCplePtsHomologues(p2, Pt2dr(P2.x,P2.y)));
+    aPackHomImTer.Cple_Add(ElCplePtsHomologues(p3, Pt2dr(P3.x,P3.y)));
+    aPackHomImTer.Cple_Add(ElCplePtsHomologues(p4, Pt2dr(P4.x,P4.y)));
+
+    // define the homography
+    cElHomographie H(aPackHomImTer,true);
+    //H = cElHomographie::RobustInit(qual,aPackHomImTer,bool Ok(1),1, 1.0,4);
+    // keep the inverse of the homography, as it this used to transform terrain coordinates to image coordinates
+    cElHomographie aHInv=H.Inverse();
+
+    cout<<" + Homography by 4 coins images : "<<endl;
+    H.Show();
+    cout<<endl;
+
+    Pt2di aSz(mCam->SzPixel());
+    double aGSDInit = mCam->ResolutionAngulaire() * mCam->GetProfondeur();
+    cout<<" + GSD : "<<aGSDInit<<endl; // metre/pixel
+    // Box sol :
+    Pt2dr aBoxSolMin(ElMin4(aVP[0].x,aVP[1].x,aVP[2].x,aVP[3].x), ElMin4(aVP[0].y,aVP[1].y,aVP[2].y,aVP[3].y));
+    Pt2dr aBoxSolMax(ElMax4(aVP[0].x,aVP[1].x,aVP[2].x,aVP[3].x), ElMax4(aVP[0].y,aVP[1].y,aVP[2].y,aVP[3].y));
+    //cout<<"Box sol : "<<aBoxSolMin<<aBoxSolMax<<aBoxSolMax-aBoxSolMin<<endl;
+    // Determiner offset georef et taille d'image rectifié :
+    Pt2dr offset(aBoxSolMin.x, -aBoxSolMax.y);
+    Pt2di aPImg;
+    // compute homographie by 100 points
+//    for (aPImg.x=0; aPImg.x<aSz.x; aPImg.x=aPImg.x+200)
+//    {
+//        for (aPImg.y=0; aPImg.y<aSz.y; aPImg.y=aPImg.y+200)
+//        {
+//            Pt3dr aPTer (aPImg.x*aGSDInit + aBoxSolMin.x,  aPImg.y*aGSDInit + aBoxSolMin.y, mZTerrain);
+//            Pt2dr aPImgProj = mCam->R3toF2(aPTer);
+//            aPackHomImTer.Cple_Add(ElCplePtsHomologues(aPImgProj, Pt2dr(aPTer.x,aPTer.y)));
+//        }
+//    }
+//    H = cElHomographie(aPackHomImTer,true);
+//    aHInv=H.Inverse();
+//    cout<<" + Homography by more pts : "<<endl;
+//    H.Show();
+//    cout<<endl;
+
+    // rectify image
+    cISR_ColorImg ImCol(mNameTiff.c_str());
+    cISR_ColorImg ImColRect(aSz);
+    for (aPImg.x=0; aPImg.x<aSz.x; aPImg.x++)
+    {
+        for (aPImg.y=0; aPImg.y<aSz.y; aPImg.y++)
+        {
+            Pt2dr aPTerPlani(aPImg.x*aGSDInit + aBoxSolMin.x,  aPImg.y*aGSDInit + aBoxSolMin.y);
+            Pt2dr aPImHomoGr = aHInv.Direct(aPTerPlani);
+            if (aPImHomoGr.x > 0 && aPImHomoGr.y > 0 && aPImHomoGr.x < aSz.x && aPImHomoGr.y < aSz.y)
+            {
+                cISR_Color aCol=ImCol.getr(aPImHomoGr);
+                // write the value on the rectified image
+                //cout<<aPTerPlani<<aPImHomoGr<<endl;
+                ImColRect.set(aPImg,aCol);
+            }
+        }
+    }
+    this->WriteImage(ImColRect, "HomoGr4Pts");
+    // write the tfw file
+    this->GenTFW(aGSDInit, offset, "Proj4Pts");
+}
+
+
+
 void cISR_Ima::InitHomography()
 {
+    cout<<"Init Homography..."<<endl;
 
     // generate 100 homol couples linking image geometry and planimetric (terrain) geometry, distributed accros the image, used for determing the homography
     ElPackHomologue  aPackHomImTer;
     Pt2di aP;
     // Loop through the terrain space, 10 times (x) x 10 times (y)
+
+    cout<<"mBorder : "<<mBorder[0]<<" "<<mBorder[1]<<" "<<mBorder[2]<<" "<<mBorder[3]<<endl;
+    cout<<"mIGSD : "<<mIGSD<<endl;
+    cout<<"Pt Terrain compute.."<<endl;
     for (aP.x=0 ; aP.x<mCam->Sz().x; aP.x += (mCam->Sz().x/10))
     {
         // compute X coordinate in ground/object geometry
-        double aX=mBorder[0]+mIGSD * aP.x;
+        double aX=mBorder[0]+mIGSD * aP.x;  // X_img*GSD = X_metric; X_metric + Origin(mBorder[0]) = X_ter
 
         for (aP.y=0 ; aP.y<mCam->Sz().y; aP.y += (mCam->Sz().y/10))
         {
             // compute Y coordinate in ground/object geometry
-            double aY=mBorder[3]-mIGSD * aP.y;
+            double aY=mBorder[3]-mIGSD * aP.y;  // Y_img*GSD = Y_metric; Y_metric + Origin(mBorder[3]) = Y_ter
             // define the point position in ground geometry
-            Pt3dr aPTer(aX,aY,mZTerrain);
+            Pt3dr aPTer(aX,aY,mZTerrain);   // combine (X_ter, Y_ter , Z) = P_Ter (Z is vol altitude)
             // project this point in the initial image
             Pt2dr aPIm0 = mCam->R3toF2(aPTer);
             //std::cout << " point 2D image  :: " << aPIm0 <<"    \n";
@@ -345,6 +602,8 @@ void cISR_Ima::InitHomography()
             ElCplePtsHomologues Homol(aPIm0,Pt2dr (aX,aY));
             // add the homol cple in the homol pack
             aPackHomImTer.Cple_Add(Homol);
+
+            //cout<<"Pt2D : "<<aP<<" -- Pt3D : "<<aPTer<<endl;
         }
     }
     
@@ -353,6 +612,9 @@ void cISR_Ima::InitHomography()
     //H = cElHomographie::RobustInit(qual,aPackHomImTer,bool Ok(1),1, 1.0,4);
     // keep the inverse of the homography, as it this used to transform terrain coordinates to image coordinates
     mH=H.Inverse();
+    cout<<" + Homography by 100 pts : "<<endl;
+    H.Show();
+    cout<<endl;
 }
 
 void cISR_Ima::ChangeGeomTerrain()
@@ -377,6 +639,7 @@ cISR_Appli::cISR_Appli(int argc, char** argv){
     std::string mPrefixOut="Rectified";
     bool mByHomography=true;
     bool mQuickResampling=true;
+    bool mDoMosaic = false;
     ElInitArgMain
             (
                 argc,argv,
@@ -388,6 +651,7 @@ cISR_Appli::cISR_Appli(int argc, char** argv){
                 << EAM(mByHomography,"ByHomography",true,"Perform the image rectification by homography? Default true, quicker but less accurate")
                 << EAM(mQuickResampling,"QuickResampling",true,"Handle the resampling with a quick but non-adequate resample technique (default=true)")
                 << EAM(mShowArgs,"Show",true,"Print details during the processing")
+                << EAM(mDoMosaic, "Mosaic",true,"Do mosaic")
                    );
     // Initialize name manipulator & files
     SplitDirAndFile(mDir,mPat,mFullName);
@@ -418,23 +682,116 @@ cISR_Appli::cISR_Appli(int argc, char** argv){
 
     long start=time(NULL);
 
-    // Define the ground footprint (image swath) of every rectified images
-    Appli_InitGeomTerrain();
-    if (mQuickResampling) Appli_ChangeGeomTerrain();
+    if (! mDoMosaic)
+    {
+//        for (int aKIm=0 ; aKIm<int(mIms.size()) ; aKIm++)
+//        {
+//            cISR_Ima * anIm = mIms[aKIm];
+//            //anIm->Estime4PtsProjectiveTransformation();
+//            anIm->RectifyByHomography();
+//        }
+        // Define the ground footprint (image swath) of every rectified images
+        Appli_InitGeomTerrain();
+        if (mQuickResampling) Appli_ChangeGeomTerrain();
 
-    if (mByHomography){
-        // compute the homography relation
-        Appli_InitHomography();
-        // Compute all rectified images
-        Appli_ApplyImHomography(mShowArgs);
+        if (mByHomography){
+            // compute the homography relation
+            Appli_InitHomography();
+            // Compute all rectified images
+            Appli_ApplyImHomography(mShowArgs);
 
-    } else {
-        // Compute all rectified images
-        Appli_ApplyImProj(mShowArgs);
+        } else {
+            // Compute all rectified images
+            Appli_ApplyImProj(mShowArgs);
+        }
+
+        long end = time(NULL);
+        if (mShowArgs) cout<<"Rectification computed in "<<end-start<<" sec"<<endl;
+
+    }
+    else
+    {
+        cout.precision(10);
+        double aMinX, aMinY, aMaxX, aMaxY;
+        double aMinGSDX, aMinGSDY, aMaxGSDX, aMaxGSDY;
+        for (uint aKIm = 0; aKIm<int(mIms.size()) ; aKIm++)
+        {
+            cISR_Ima * anIm = mIms[aKIm];
+            std::string aNameTFW = "Rectified-"+ anIm->Name() + ".tfw";
+            std::ifstream aFp(aNameTFW);
+            double a;
+            int cnt = 0;
+            double aGSDx, aGSDy, aOffsetX, aOffsetY;
+            while (aFp >> a)
+            {
+                cnt++;
+                if (cnt == 1)
+                    aGSDx = a;
+                if (cnt == 4)
+                    aGSDy = a;
+                if (cnt == 5)
+                    aOffsetX = a;
+                if (cnt == 6)
+                    aOffsetY = a;
+            }
+            aFp.close();
+            if (aKIm == 0)
+            {
+                aMinX = aOffsetX;
+                aMaxX = aOffsetX;
+                aMaxY = aOffsetY;
+                aMinY = aOffsetY;
+                aMinGSDX = aGSDx;
+                aMaxGSDX = aGSDx;
+                aMaxGSDY = aGSDy;
+                aMinGSDY = aGSDy;
+            }
+            else
+            {
+                if (aOffsetX < aMinX)
+                    aMinX = aOffsetX;
+                if (aOffsetY < aMinY)
+                    aMinY = aOffsetY;
+                if (aOffsetX > aMaxX)
+                    aMaxX = aOffsetX;
+                if (aOffsetY > aMaxY)
+                    aMaxY = aOffsetY;
+                if (aGSDx < aMinGSDX)
+                    aMinGSDX = aGSDx;
+                if (aGSDy < aMinGSDY)
+                    aMinGSDY = aGSDy;
+                if (aGSDx > aMaxGSDX)
+                    aMaxGSDX = aGSDx;
+                if (aMaxGSDY > aGSDy)
+                    aMaxGSDY = aGSDy;
+            }
+        }
+        cout<<"Off Min "<<aMinX<<" "<<aMinY<<endl;
+        cout<<"Off Max "<<aMaxX<<" "<<aMaxY<<endl;
+        cout<<"GSD Min "<<aMinGSDX<<" "<<aMinGSDY<<endl;
+        cout<<"GSD Max "<<aMaxGSDX<<" "<<aMaxGSDY<<endl;
     }
 
-    long end = time(NULL);
-    if (mShowArgs) cout<<"Rectification computed in "<<end-start<<" sec"<<endl;
+
+    // Define the ground footprint (image swath) of every rectified images
+//    Appli_InitGeomTerrain();
+//    if (mQuickResampling) Appli_ChangeGeomTerrain();
+
+//    if (mByHomography){
+//        // compute the homography relation
+//        Appli_InitHomography();
+//        // Compute all rectified images
+//        Appli_ApplyImHomography(mShowArgs);
+
+//    } else {
+//        // Compute all rectified images
+//        Appli_ApplyImProj(mShowArgs);
+//    }
+
+//    long end = time(NULL);
+//    if (mShowArgs) cout<<"Rectification computed in "<<end-start<<" sec"<<endl;
+
+
 }
 
 void cISR_Appli::Appli_InitGeomTerrain()

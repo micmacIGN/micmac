@@ -94,10 +94,11 @@ set(Src_TD_PPMD
 
     ${TDPPMD_DIR}/SimuBBA/GenerateTP.cpp
 	
-    ${TDPPMD_DIR}/ConvertTiePPS2MM/cAppliConvertTiePPs2MM.cpp
-    ${TDPPMD_DIR}/ConvertTiePPS2MM/ConvertTiePPs2MM.cpp
-
-    ${TDPPMD_DIR}/CPP_ConvHomolVSFM2MM.cpp
+    ${TDPPMD_DIR}/ExchangeLib/PhotoScan/ConvTiePointPSMM/cAppliConvertTiePPs2MM.cpp
+    ${TDPPMD_DIR}/ExchangeLib/PhotoScan/ConvTiePointPSMM/ConvertTiePPs2MM.cpp
+    ${TDPPMD_DIR}/ExchangeLib/VSfM/CPP_ConvHomolVSFM2MM.cpp
+    ${TDPPMD_DIR}/ExchangeLib/Pix4D/ConvTiePointPix4DMM/cAppliConvTiePointPix4DMM.cpp
+    ${TDPPMD_DIR}/ExchangeLib/Pix4D/ConvTiePointPix4DMM/ConvTiePointPix4DMM.cpp
 
     ${TDPPMD_DIR}/Ex_Match/cImgMatch.cpp
     ${TDPPMD_DIR}/Ex_Match/cLSQTemplate.cpp
@@ -118,6 +119,8 @@ set(Src_TD_PPMD
 
     ${TDPPMD_DIR}/TiePByMesh/TiepTriFar/TiepTriFar.cpp
     ${TDPPMD_DIR}/TiePByMesh/TiepTriFar/TiepTriFar_method.cpp
+
+    ${TDPPMD_DIR}/MosaicTFWImg/mosaictfwimg.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})
