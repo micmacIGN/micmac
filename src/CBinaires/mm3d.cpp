@@ -874,6 +874,10 @@ extern int Generate_ImagePer(int argc, char** argv);
 extern int  CPP_DistHistoBinaire(int argc, char ** argv);
 
 extern int CPP_AutoCorr_CensusQuant(int argc, char ** argv);
+int MosaicTFW(int argc, char** argv);
+
+extern int ConvTiePointPix4DMM_main(int argc,char ** argv);
+
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -1123,7 +1127,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("HomolLSMRefine",HomolLSMRefine_main,"Refine Homol Pack by Least Square Matching"));
         aRes.push_back(cMMCom("PlyBascule",PlyBascule,"Bascule PLY file with bascule XML (estimated by GCPBascule)"));
         aRes.push_back(cMMCom("ImgVide", Image_Vide, " Create image vide"));
-
+        aRes.push_back(cMMCom("MosaicTFW", MosaicTFW, " MosaicTFW"));
 
         aRes.push_back(cMMCom("TestNewRechPH",Test_NewRechPH ," Test New PH"));
         aRes.push_back(cMMCom("GenTestSift",Generate_ImagSift ," Generate image with various blob"));
@@ -1131,6 +1135,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("MakePly_CamOrthoC",MakePly_CamOrthoC ,"Generate Ply to illustrate the long foc pb"));
         aRes.push_back(cMMCom("XMLDiffSeries",XMLDiffSeries_main ,"Generate pair images for tapioca in part c"));
         aRes.push_back(cMMCom("ZBufferRaster",ZBufferRaster_main ,"Z Buffer Raster"));
+
 
         aRes.push_back(cMMCom("ConvNewFH",ConvertToNewFormatHom_Main ,"Convert Std Tie Points to new Formats for Multiple Point"));
         aRes.push_back(cMMCom("ConvOldFH",ConvertToOldFormatHom_Main ,"Convert Multiple Tie Points to new Std Tie Points"));
@@ -1157,6 +1162,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("DistHB",CPP_DistHistoBinaire,"Dist Binarie Code Histo of Images"));
 
         aRes.push_back(cMMCom("ConvHomolVSFM2MM",ConvHomolVSFM2MM_main,"Convert Tie Points from Visual SFM format (.sift & .mat) to MicMac format"));
+        aRes.push_back(cMMCom("ConvTiePointPix4DMM",ConvTiePointPix4DMM_main ,"Convert tie point Pix4D Bingo to MicMac"));
 
         aRes.push_back(cMMCom("AC_CQ",CPP_AutoCorr_CensusQuant,"Auto correl for Census Quant"));
 

@@ -867,40 +867,6 @@ std::vector<Pt3d<double> > cSetPMul1ConfigTPM::IntersectBundle(std::map<int,CamS
 /*                Conversion NEW format to OLD format              */
 /*                                                                 */
 /*******************************************************************/
-class cPackHomol;
-class cGetionStdPackHomol;
-
-class cAppliConvertToOldFormatHom
-{
-    public :
-        cAppliConvertToOldFormatHom(int argc,char ** argv);
-    private :
-        void DoAll(cSetTiePMul * aSetPM,  cGetionStdPackHomol * aGes, cInterfChantierNameManipulateur *aICNM);
-        std::string         mPatImage;  // Pattern image d'entree
-        std::string         mSH;
-        std::string         mOut;
-        bool                mBin;
-        cElemAppliSetFile   mEASF;      // Gestion de fichier
-        const std::vector<std::string> * mFilesIm;  // vecteur nom d'image
-        bool                             mExpTxt;   // Bin ou Txt export
-        bool                             mIs2Way;
-};
-
-class cPackHomol
-{
-public :
-    cPackHomol(string aIm1, string aIm2, int aId1, int aId2);
-    cPackHomol(cCelImTPM * aIm1, cCelImTPM * aIm2);
-    ElPackHomologue mPackDirect;
-    ElPackHomologue mPackInverse;
-    string mIm1;
-    string mIm2;
-    int    mId1;
-    int    mId2;
-    std::pair<int, int> mPairId;
-    string CompileKey(string aHomolOut, bool isExpTxt, cInterfChantierNameManipulateur * aICNM, bool isDirect);
-};
-
 cPackHomol::cPackHomol(string aIm1, string aIm2, int aId1, int aId2) :
     mPackDirect (ElPackHomologue()),
     mPackInverse (ElPackHomologue()),
@@ -1056,6 +1022,22 @@ void cAppliConvertToOldFormatHom::DoAll(cSetTiePMul * aSetPM, cGetionStdPackHomo
         aGes->FillPMulConfigToHomolPack(aPMConfig, mIs2Way);
     }
     aGes->WriteToDisk(mOut, mExpTxt, aICNM, mIs2Way);
+}
+
+cAppliConvertToOldFormatHom::cAppliConvertToOldFormatHom(string aDir, string aPMulFile, string aOut, bool aBin, bool aIs2Way) :
+    mOut(aOut),
+    mBin(aBin),
+    mIs2Way(aIs2Way)
+{
+    cInterfChantierNameManipulateur*  aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    cSetTiePMul * aSetOutPM = new cSetTiePMul(0);
+    cElemAppliSetFile * anEASF_Im = new cElemAppliSetFile();
+    anEASF_Im->mICNM = aICNM;
+    anEASF_Im->mDir = aICNM->Dir();
+    aSetOutPM->AddFile(aPMulFile);
+    cGetionStdPackHomol * aGes = new cGetionStdPackHomol(aSetOutPM);
+    this->mExpTxt = !aBin;
+    DoAll(aSetOutPM, aGes, anEASF_Im->mICNM);
 }
 
 cAppliConvertToOldFormatHom::cAppliConvertToOldFormatHom(int argc,char ** argv) :
