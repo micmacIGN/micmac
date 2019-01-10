@@ -37,17 +37,19 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include <random>
+#include <ctime>
+#include<iostream>
+#include<fstream>
+#include <algorithm>
+
 #include "StdAfx.h"
 #include "string.h"
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
 #include "../schnaps.h"
-#include <random>
-#include <ctime>
-#include <algorithm>
 #include "../TpPPMD.h"
-#include<iostream>
-#include<fstream>
+
 
 struct StructHomol {
     int IdIm;
@@ -59,14 +61,11 @@ struct StructHomol {
 // check if one image is in the image list
 bool IsInList(const std::vector<std::string> aVImgs, std::string aNameIm)
 {
-    int aFind = 0;
     for (uint i=0; i<aVImgs.size();i++)
     {
-        if (aVImgs.at(i).compare(aNameIm)!=0) continue;
-        else aFind=1;
+        if (aVImgs.at(i)==aNameIm) return true;
     }
-    if (aFind==0) return false;
-    else return true;
+    return false;
 }
 
 // check if one point is in the image
@@ -79,7 +78,7 @@ bool IsInImage(Pt2di aSz, Pt2dr aPt)
 
 int GenerateTP_main(int argc,char ** argv)
 {
-    string aPatImgs,aDir,aImgs,aSH,aOri,aSHOut="Gen",aNameImNX,aNameImNY,aOutputTP3D;
+    string aPatImgs,aDir,aImgs,aSH,aOri,aSHOut="simulated",aNameImNX,aNameImNY,aExportP3D;
     vector<double> aNoiseGaussian(4,0.0);
     int aSeed;
     ElInitArgMain
@@ -88,19 +87,19 @@ int GenerateTP_main(int argc,char ** argv)
                 LArgMain() << EAMC(aPatImgs,"Image Pattern",eSAM_IsExistFile)
                            << EAMC(aSH, "PMul File",  eSAM_IsExistFile)
                            << EAMC(aOri, "Ori",  eSAM_IsExistDirOri),
-                LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, Def=Gen")
+                LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, Def=simulated")
                            << EAM(aSeed,"Seed",false,"Seed for generating random noise")
                            << EAM(aNoiseGaussian,"NoiseGaussian",false,"[meanX,stdX,meanY,stdY]")
                            << EAM(aNameImNX,"ImNX",false,"image containing noise on X-axis")
                            << EAM(aNameImNY,"ImNY",false,"image containing noise on Y-axis")
-                           << EAM(aOutputTP3D,"TP3D",false,"Output 3D positions of tie points without distortion.")
+                           << EAM(aExportP3D,"TP3D",false,"Output 3D positions of tie points without distortion.")
                 );
 
-    SplitDirAndFile(aDir,aImgs,aPatImgs);
 
     // get directory
+    SplitDirAndFile(aDir,aImgs,aPatImgs);
+    StdCorrecNameOrient(aOri, aDir);
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-
     const std::vector<std::string> aVImgs = *(aICNM->Get(aImgs));
 
     // read images containing noise
@@ -137,45 +136,32 @@ int GenerateTP_main(int argc,char ** argv)
 
     // output 3D positions of tie points
     ofstream aTP3Dfile;
-    if(EAMIsInit(&aOutputTP3D))
+    if(EAMIsInit(&aExportP3D))
     {
         std::cout << "Output 3D positions of tie points! \n";
-        aTP3Dfile.open (aOutputTP3D);
+        aTP3Dfile.open (aExportP3D);
     }
 
 
     //1. lecture of tie points and orientation
-    StdCorrecNameOrient(aOri, aDir);
-    const std::string  aSHInStr = aSH;
-    std::cout << aSH << endl;
-    cSetTiePMul * aSHIn = new cSetTiePMul(0);
-    aSHIn->AddFile(aSHInStr);
-
-    std::cout<<"Total : "<<aSHIn->DicoIm().mName2Im.size()<<" imgs"<<endl;
-    std::map<std::string,cCelImTPM *> VName2Im = aSHIn->DicoIm().mName2Im;
+    std::cout << "Loading tie points + orientation...   ";
+    cSetTiePMul * pSH = new cSetTiePMul(0);
+    pSH->AddFile(aSH);
+    std::map<std::string,cCelImTPM *> VName2Im = pSH->DicoIm().mName2Im;
 
     // load cam for all Img
     // Iterate through all elements in std::map
-    std::map<std::string,cCelImTPM *>::iterator it = VName2Im.begin();
     vector<CamStenope*> aVCam (VName2Im.size());
-
-    std::cout << "Loading tie points... \n";
-    while(it != VName2Im.end())
+    for(auto &aName2Im:VName2Im)
     {
-        //std::cout<<it->first<<" :: "<<it->second->Id()<<std::endl;
-        string aNameIm = it->first;
-        int aIdIm = it->second->Id();
-        CamStenope * aCam = aICNM->StdCamStenOfNames(aNameIm, aOri);
-        aCam->SetNameIm(aNameIm);
-        aVCam[aIdIm] = aCam;
-        it++;
+        CamStenope * aCam = aICNM->StdCamStenOfNames(aName2Im.first,aOri);
+        aCam->SetNameIm(aName2Im.first);
+        aVCam[aName2Im.second->Id()] = aCam;
     }
 
-    std::cout << "Finished loading tie points! \n";
-    std::cout<<"VPMul - Nb Config: "<<aSHIn->VPMul().size()<<endl;
+    std::cout << "Finish loading " << pSH->VPMul().size() << " CONFIG\n";
 
-
-    // declare aVCH to stock generated tie points
+    // declare aVStructH to stock generated tie points
     vector<ElPackHomologue> aVPack (VName2Im.size());
     vector<int> aVIdIm2 (VName2Im.size(),-1);
     StructHomol aStructH;
@@ -184,7 +170,7 @@ int GenerateTP_main(int argc,char ** argv)
     vector<StructHomol> aVStructH (VName2Im.size(),aStructH);
 
     //2. get 2D/3D position of tie points
-    std::cout << "Filling ElPackHomologue... !\n";
+    std::cout << "Filling ElPackHomologue...   ";
 
 
     if (EAMIsInit(&aNoiseGaussian))
@@ -194,10 +180,9 @@ int GenerateTP_main(int argc,char ** argv)
 
 
     // parse Configs aVCnf
-    std::vector<cSetPMul1ConfigTPM *> aVCnf = aSHIn->VPMul();
-    for (uint aKCnf=1; aKCnf<aVCnf.size(); aKCnf++)
+    std::vector<cSetPMul1ConfigTPM *> aVCnf = pSH->VPMul();
+    for (auto &aCnf:aVCnf)
     {
-        cSetPMul1ConfigTPM * aCnf = aVCnf[aKCnf];
         std::vector<int> aVIdIm =  aCnf->VIdIm();
 
         // Parse all pts in one Config
@@ -223,7 +208,7 @@ int GenerateTP_main(int argc,char ** argv)
             Pt3dr aPInter3D = Intersect_Simple(aVCamInter , aVPtInter);
 
 
-            if(EAMIsInit(&aOutputTP3D))
+            if(EAMIsInit(&aExportP3D))
             {
                 aTP3Dfile << setprecision(17) << aPInter3D.x << " " << aPInter3D.y << " " << aPInter3D.z << endl;
             }
@@ -289,7 +274,7 @@ int GenerateTP_main(int argc,char ** argv)
 
     std::cout << "ElPackHomologue filled !\n";
 
-    if(EAMIsInit(&aOutputTP3D))
+    if(EAMIsInit(&aExportP3D))
     {
         aTP3Dfile.close();
         std::cout << "Finish outputing 3D positions of tie points ! \n";
@@ -297,7 +282,7 @@ int GenerateTP_main(int argc,char ** argv)
 
 
     //writing of new tie points
-    std::cout << "Writing Homol files... \n";
+    std::cout << "Writing Homol files...   ";
     //key for tie points
     std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
             + "_"
@@ -313,14 +298,13 @@ int GenerateTP_main(int argc,char ** argv)
         std::string aNameIm1 = aCam1->NameIm();
         if (IsInList(aVImgs,aNameIm1))
         {
-            //std::cout << "Master Im: " << aNameIm1 << "    IdIm1 : " << aIdIm1 << endl;
             for (uint itVElPH=0; itVElPH < aVStructH.at(itVSH).VElPackHomol.size(); itVElPH++)
             {
                 int aIdIm2 = aVStructH.at(itVSH).VIdIm2.at(itVElPH);
                 if (aIdIm2 == -1) continue;
                 CamStenope * aCam2 = aVCam.at(aIdIm2);
                 std::string aNameIm2 = aCam2->NameIm();
-                if (IsInList(aVImgs,aNameIm1))
+                if (IsInList(aVImgs,aNameIm2))
                 {
                     std::string aHmOut= aICNM->Assoc1To2(aKHOut, aNameIm1, aNameIm2, true);
                     ElPackHomologue aPck = aVStructH.at(aIdIm1).VElPackHomol.at(aIdIm2);
@@ -339,6 +323,14 @@ int GenerateTP_main(int argc,char ** argv)
     aSeedfile.close();
     std::cout << "Finished writing Homol files ! \n";
 
+    // convert Homol folder into new format
+    std::string aComConvFH = MM3dBinFile("TestLib ConvNewFH")
+                           + aImgs
+                           + " All SH=_"
+                           + aSHOut
+                           + " ExportBoth=1";
+    system_call(aComConvFH.c_str());
+
     return EXIT_SUCCESS;
 }
 
@@ -356,11 +348,10 @@ int GenerateMAF_main(int argc,char ** argv)
                            << EAM(aNameImNX,"ImNX",false,"image containing noise on X-axis")
                            << EAM(aNameImNY,"ImNY",false,"image containing noise on Y-axis")
                 );
-
-    SplitDirAndFile(aDir,aImgs,aPatImgs);
-
     // get directory
+    SplitDirAndFile(aDir,aImgs,aPatImgs);
     cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
     // get image pattern
     const vector<string> aVImg = *(aICNM->Get(aImgs));
 

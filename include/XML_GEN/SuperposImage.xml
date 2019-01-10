@@ -1438,6 +1438,11 @@
 </Xml_O2IHom>
 
 
+<Xml_OriCple Nb="1" Class="true" ToReference="true">
+    <Ori1 Nb="1"  RefType="Xml_Rotation"> </Ori1>
+    <Ori2 Nb="1"  RefType="Xml_Rotation"> </Ori2>
+</Xml_OriCple>
+
 <Xml_O2IComputed Nb="1" Class="true" ToReference="true">
     <Timing Nb="1"  RefType="Xml_O2ITiming">     </Timing>
     <OrientAff Nb="1"  RefType="Xml_O2IRotation">      </OrientAff>
@@ -1447,6 +1452,7 @@
     <RecHom Nb="1" Type="double">   </RecHom>  <!-- Recouvrement en faisant l'hypothese homographique -->
     <Elips Nb="1" RefType="Xml_Elips3D"> </Elips>
     <Elips2  Nb="?" RefType="Xml_Elips2D">  </Elips2>
+    <OriCpleGps Nb="?"  RefType="Xml_OriCple"> </OriCpleGps>
 </Xml_O2IComputed>
 
 

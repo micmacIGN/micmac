@@ -15,11 +15,8 @@ namespace MMVII
 
 class  cSpecOneArg2007 ;
 class cCollecSpecArg2007;
-
-/// Mother class of archive, do not need to export
-class cAr2007; 
-/// Auxilary class, only neccessry
-class cAuxAr2007;
+class cAr2007;             ///< Mother class of archive, do not need to export
+class cAuxAr2007;          ///< Auxilary class, only neccessry
 
 ///  string<-->Value conversion
 /**
@@ -126,9 +123,9 @@ class  cSpecOneArg2007 : public cMemCheck
 
         ///  This action defined in heriting-template class initialize "real" the value from its string value 
         virtual void InitParam(const std::string & aStr) = 0;
-        virtual void * AdrParam() = 0;
-        virtual const std::string & NameType() const = 0;
-        virtual std::string  NameValue() const = 0;
+        virtual void * AdrParam() = 0;    ///< cast to void * of typed adress, used by Application know if init 
+        virtual const std::string & NameType() const = 0;  ///< as int, bool, ....
+        virtual std::string  NameValue() const = 0;  ///< Used to print def value
         /// Does any of  mVSem contains aType
         bool HasType(const eTA2007 & aType,std::string * aValue=0)            const;
 
@@ -248,15 +245,17 @@ void AddData(const  cAuxAr2007 & anAux, tNameOCple  &  aVal) ;  ///< for Ordered
 
 void DeleteAr(cAr2007 *); /// call delete, don't want to export a type only to delete it!
 
-/// By default no MMV1 save
+/// By default no MMV1 save, def value is required for general template SaveInFile
 template<class Type> void  MMv1_SaveInFile(const Type & aVal,const std::string & aName)
 {
      // MMVII_INTERNAL_ASSERT_always(false,"No MMV1 save for " + std::string(typeid(Type).name()));
      MMVII_INTERNAL_ASSERT_always(false,"No MMV1 save for type" );
 }
-/// Exist one for cSetName
-template<> void  MMv1_SaveInFile(const cSetName & aVal,const std::string & aName);
+
+/// Specialisation for existing value : tNameRel
 template<> void  MMv1_SaveInFile(const tNameRel & aVal,const std::string & aName);
+/// Specialisation for existing value : tNameSet
+template<> void  MMv1_SaveInFile(const tNameSet & aVal,const std::string & aName);
 
 /// call static function of cMMVII_Appli, cannot make forward declaration of static function
 bool GlobOutV2Format();

@@ -76,26 +76,17 @@ std::vector<ImgNameTime> ReadImgNameTimeFile(string aINTFile, std::string aExt)
 {
     std::cout << "Read file " << aINTFile << ", 2 columns; image name and camera raw time. column delimiter; space or tabulation\n";
     std::vector<ImgNameTime> aVINT;
-    ifstream aFichier(aINTFile.c_str());
+    std::ifstream aFichier(aINTFile.c_str());
     if(aFichier)
     {
-        std::string aLine;
-        while(!aFichier.eof())
+        std::string aImgName;
+        double aImgCRT;
+        while(aFichier >> aImgName >> aImgCRT)
         {
-            getline(aFichier,aLine,'\n');
-            if(aLine.size() != 0)
-            {
-                char *aBuffer = strdup((char*)aLine.c_str());
-                std::string aImgName = strtok(aBuffer,"     \t"); // delimiter: spacer OR tab!
-                std::string aCRT = strtok(NULL," ");
-                ImgNameTime aImgNT;
-                if(aExt != "")
-                    aImgNT.ImgName = aImgName + aExt;
-                else
-                    aImgNT.ImgName = aImgName;
-                aImgNT.ImgCRT = atof(aCRT.c_str());
-                aVINT.push_back(aImgNT);
-            }
+            ImgNameTime aImgNT;
+            aImgNT.ImgName=aImgName;
+            aImgNT.ImgCRT=aImgCRT;
+            aVINT.push_back(aImgNT);
         }
         aFichier.close();
     }
@@ -139,40 +130,31 @@ std::vector<Tops> ReadTopsFile(string aTops, const std::string & TimeSys)
         getline(aFichier,aLine,'\n');
         getline(aFichier,aLine,'\n');
 
-        while(!aFichier.eof())
+        double aUT, aRE, aFE, aCRT;
+        int aWeek, aSeq;
+        std::string aFlag;
+
+        while(aFichier>>aUT>>aWeek>>aRE>>aFE>>aFlag>>aSeq>>aCRT)
         {
-            getline(aFichier,aLine,'\n');
-            if(aLine.size() != 0)
-            {
-                char *aBuffer = strdup((char*)aLine.c_str());
-                std::string aUT = strtok(aBuffer," \t"); // Unix Time
-                std::string aWeek = strtok(NULL," \t"); //GPS week
-                std::string aRE = strtok(NULL," \t"); //Rising Edge
-                std::string aFE = strtok(NULL," \t"); //Falling Edge
-                std::string aFlag = strtok(NULL," \t"); //Flag
-                std::string aSeq = strtok(NULL," \t"); //Seq
-                std::string aCRT = strtok(NULL," \t"); //camera raw time
+            // flag send by ublox gps to camlight, written in tops file, 4 situations: have received between 2 epochs 1) 1 rising and 1 falling, 2) One falling 3) One rising 4) more than one rising and one falling
+            //rf , rf   , f     , r
+            int Hexval(0);
+            std::istringstream(aFlag) >> std::hex >> Hexval;
+            // the value of the 8th bit of this exadecimal flag is true, which means a newRisingEdge is detected
+            // le & simple est une comparaison bit à bit
+            if ((Hexval & 0x80 )!=0){
 
-                // flag send by ublox gps to camligh, written in tops file, 4 situations: have received between 2 epochs 1) 1 rising and 1 falling, 2) One falling 3) One rising 4) more than one rising and one falling
-                //rf , rf   , f     , r
-                int Hexval(0);
-                std::istringstream(aFlag) >> std::hex >> Hexval;
-                // the value of the 8th bit of this exadecimal flag is true, which means a newRisingEdge is detected
-                // le & simple est une comparaison bit à bit
-                if ((Hexval & 0x80 )!=0){
+                Tops aTops;
+                aTops.TopsGpsWeek = aWeek;
+                aTops.TopsTow = aRE;
+                aTops.TopsCRT = aCRT;
 
-                    Tops aTops;
-                    aTops.TopsGpsWeek = atoi(aWeek.c_str());
-                    aTops.TopsTow = atof(aRE.c_str());
-                    aTops.TopsCRT = atof(aCRT.c_str());
+                aTops.TopsMJD = towTime2MJD(aTops.TopsGpsWeek, aTops.TopsTow, TimeSys);
 
-                    aTops.TopsMJD = towTime2MJD(aTops.TopsGpsWeek, aTops.TopsTow, TimeSys);
-
-                    aVTops.push_back(aTops);
-                } else {
-                    count_otherFlag++;
-                }
-
+                aVTops.push_back(aTops);
+            }
+            else {
+                count_otherFlag++;
             }
         }
         aFichier.close();
@@ -441,306 +423,6 @@ int main_Txt2CplImageTime(int argc, char ** argv)
     cFusGPS2DicoImgTime(argc,argv);
     return EXIT_SUCCESS;
 }
-
-//struct Tops
-//{
-//    double TopsT; // system unix time
-//    int TopsWeek; // GPS week
-//    double TopsSec; // GPS second of week
-//    double TopsMJD; // GPS MJD time
-//};
-
-//struct GPSOut
-//{
-//    double Year;
-//    double Month;
-//    double Day;
-//    double Hour;
-//    double Minute;
-//    double Second;
-//    Pt3dr Pos;
-//    Pt3dr Incert;
-//    double GPST;
-//    double GPSMJD;
-//};
-
-
-//std::vector<Tops> ReadTopsFile(string & aDir, string aTopsFile, const bool & aUTC)
-//{
-//    std::vector<Tops> aVTops;
-//    ifstream aTopsFichier((aDir + aTopsFile).c_str());
-//    if(aTopsFichier)
-//    {
-//        std::string aTopsLine;
-//        getline(aTopsFichier,aTopsLine,'\n');
-//        getline(aTopsFichier,aTopsLine,'\n');
-
-//        while(!aTopsFichier.eof())
-//        {
-//            getline(aTopsFichier,aTopsLine,'\n');
-//            if(aTopsLine.size() != 0)
-//            {
-//                char *aTopsBuffer = strdup((char*)aTopsLine.c_str());
-//                std::string aUT = strtok(aTopsBuffer,"  ");
-//                aUT += "L";
-//                std::string aWeek = strtok(NULL,"  ");
-//                aWeek += "L";
-//                std::string aSec = strtok(NULL,"  ");
-//                aSec += "L";
-
-//                Tops aTops;
-//                aTops.TopsT = atof(aUT.c_str());
-//                aTops.TopsWeek = atof(aWeek.c_str());
-//                aTops.TopsSec = atof(aSec.c_str());
-
-//                if(aUTC)
-//                    aTops.TopsSec -= LeapSecond;
-
-//                double aS1970 = aTops.TopsWeek * 7 * 86400 + aTops.TopsSec + GPS0;
-
-//                double aMJD = (aS1970 - J2000) / 86400 + MJD2000;
-
-//                aTops.TopsMJD=aMJD;
-
-//                aVTops.push_back(aTops);
-//            }
-//        }
-//        aTopsFichier.close();
-//    }
-//    else
-//    {
-//        std::cout<< "Error While opening file" << '\n';
-//    }
-//    return aVTops;
-//}
-
-
-//std::vector<GPSOut> ReadGPSFile(string & aDir, string aGPSFile, const bool & aUTC)
-//{
-//    std::vector<GPSOut> aVGPS;
-
-//    //read GPS input file
-//    ifstream aFichier(aGPSFile.c_str());
-
-//    if(aFichier)
-//    {
-//        std::string aLine;
-
-//        while(!aFichier.eof())
-//        {
-//            // print out header
-//            getline(aFichier,aLine);
-//            while (aLine.compare(0,1,"%") == 0)
-//            {
-//                //std::cout << "% Comment = " << aLine << std::endl;
-//                getline(aFichier,aLine);
-//            }
-
-//            // put GPS data in GPSOut
-//            if(!aLine.empty() && aLine.compare(0,1,"#") != 0)
-//            {
-
-//                char *aBuffer = strdup((char*)aLine.c_str());
-//                std::string year = strtok(aBuffer,"/");
-//                std::string month = strtok(NULL,"/");
-//                std::string day = strtok(NULL," ");
-//                std::string hour = strtok(NULL,":");
-//                std::string minute = strtok(NULL,":");
-//                std::string second = strtok(NULL,"   ");
-//                std::string Px = strtok(NULL,"    ");
-//                std::string Py = strtok(NULL,"   ");
-//                std::string Pz = strtok(NULL,"   ");
-//                strtok(NULL,"   ");
-//                strtok(NULL,"   ");
-//                std::string ictn = strtok(NULL,"   ");
-//                std::string icte = strtok(NULL,"   ");
-//                std::string ictu = strtok(NULL,"   ");
-
-
-
-//                GPSOut aGPS;
-//                aGPS.Year= atof(year.c_str());
-//                aGPS.Month = atof(month.c_str());
-//                aGPS.Day = atof(day.c_str());
-//                aGPS.Hour = atof(hour.c_str());
-//                aGPS.Minute = atof(minute.c_str());
-//                aGPS.Second = atof(second.c_str());
-//                aGPS.Pos.x = atof(lat.c_str());
-//                aGPS.Pos.y = atof(lon.c_str());
-//                aGPS.Pos.z = atof(height.c_str());
-//                aGPS.Incert.x = atof(ictn.c_str());
-//                aGPS.Incert.y = atof(icte.c_str());
-//                aGPS.Incert.z = atof(ictu.c_str());
-
-//                double aYear;
-//                double aMonth;
-//                double aSec = aGPS.Second;
-
-//                if(aUTC)
-//                {
-//                    aSec -= LeapSecond;
-//                }
-
-//                //2 or 4 digits year management
-//                if(aGPS.Year < 80)
-//                {
-//                    aYear = aGPS.Year + 2000;
-//                }
-//                else if(aGPS.Year < 100)
-//                {
-//                    aYear = aGPS.Year + 1900;
-//                }
-//                else
-//                {
-//                    aYear = aGPS.Year;
-//                }
-
-//                //months
-//                if(aGPS.Month <= 2)
-//                {
-//                    aMonth = aGPS.Month + 12;
-//                    aYear = aGPS.Year - 1;
-//                }
-//                else
-//                {
-//                    aMonth = aGPS.Month;
-//                }
-
-//                double aC = floor(aYear / 100);
-
-//                double aB = 2 - aC + floor(aC / 4);
-
-//                double aT = (aGPS.Hour/24) + (aGPS.Minute/1440) + (aSec/86400);
-
-//                double aJD = floor(365.25 * (aYear+4716)) + floor(30.6001 * (aMonth+1)) + aGPS.Day + aT + aB - 1524.5;
-
-//                aGPS.GPST = (aJD - JD2000) * 86400 + J2000; // seconds starting from 1970-01-01T00:00:00
-
-//                double aMJD = (aGPS.GPST - J2000) / 86400 + MJD2000;
-
-//                aGPS.GPSMJD = aMJD;
-
-//                //cout << aGPS.Year << "/" << aGPS.Month << "/" << aGPS.Day << " " << aGPS.Hour << ":" << aGPS.Minute << ":" << setprecision(15) << aGPS.Second << " " << aGPS.GPSMJD << " " << aGPS.Lat << " " << aGPS.Lon << " " << aGPS.Heigth << endl;
-
-//                aVGPS.push_back(aGPS);
-//            }
-//        }
-
-//        aFichier.close();
-//    }
-
-//    return aVGPS;
-//}
-
-//uint FindIdx(double aUT, std::vector<Tops> aVTops)
-//{
-//    uint aI(0);
-//    for (uint iV=0; iV < aVTops.size(); iV++)
-//    {
-//        double aRef = abs (aVTops.at(aI).TopsT-aUT);
-//        double aDif = abs (aVTops.at(iV).TopsT-aUT);
-//        if (aRef > aDif)
-//            aI = iV;
-//    }
-//    return aI;
-//}
-
-//int MatchTops_main (int argc, char ** argv)
-//{
-//    std::string aDir, aNameTF, aTimeFile, aTopsFile, aGPSFile, aExt=".thm.tif", aOutFile="ImgTM.xml";
-//    bool aMJD=1, aUTC=0;
-
-//    ElInitArgMain
-//    (
-//        argc,argv,
-//        LArgMain()  << EAMC(aTimeFile, "File of image system unix time (all_name_time.txt)", eSAM_IsExistFile)
-//                    << EAMC(aTopsFile, "Tops file", eSAM_IsExistFile)
-//                    << EAMC(aGPSFile, "GPS file", eSAM_IsExistFile),
-//        LArgMain()  << EAM(aExt,"Ext",true,"Extension of Imgs, Def = .thm.tif")
-//                    << EAM(aOutFile,"Out",true, "Output file, Def = ImgTM.xml")
-//                    << EAM(aMJD,"MJD",true,"If using MJD time, def=true")
-//                    << EAM(aUTC,"UTC",true,"If using UTC time, def=false, only useful when MJD=true")
-//    );
-
-//    SplitDirAndFile(aDir,aNameTF,aTimeFile);
-
-//    // read temperature file
-//    std::vector<ImgTimes> aVSIT = ReadImgTimesFile(aDir, aTimeFile, aExt);
-
-//    // read Tops file
-//    std::vector<Tops> aVTops = ReadTopsFile(aDir, aTopsFile, aUTC);
-
-//    // read GPS file
-//    ReadGPSFile(aDir, aGPSFile, aUTC);
-
-//    uint aIdx = FindIdx(aVSIT.at(0).ImgT,aVTops);
-
-//    cDicoImgsTime aDicoIT;
-//    for (uint iV=0; iV < aVSIT.size(); iV++)
-//    {
-//        cCpleImgTime aCpleIT;
-//        aCpleIT.NameIm() = aVSIT.at(iV).ImgName;
-//        if(aMJD)
-//            aCpleIT.TimeIm() = aVTops.at(iV+aIdx).TopsMJD;
-//        else
-//            aCpleIT.TimeIm() = aVTops.at(iV+aIdx).TopsSec;
-
-//        aDicoIT.CpleImgTime().push_back(aCpleIT);
-//    }
-
-//    MakeFileXML(aDicoIT,aOutFile);
-
-//    return EXIT_SUCCESS;
-//}
-
-//int ImgTMTxt2Xml_main (int argc, char ** argv)
-//{
-//    std::string aDir, aITF, aITFile, aExt=".thm.tif";
-//    bool aUTC(1);
-//    ElInitArgMain
-//    (
-//        argc,argv,
-//        LArgMain()  << EAMC(aITFile, "File of image system unix time (all_name_time.txt)", eSAM_IsExistFile),
-//        LArgMain()  << EAM(aExt,"Ext",true,"Extension of Imgs, Def = .thm.tif")
-
-//    );
-//    SplitDirAndFile(aDir,aITF,aITFile);
-
-//    //read aImTimeFile and convert to xml
-//    std::vector<ImgTimes> aVSIT = ReadImgTimesFile(aDir, aITFile, aExt);
-//    cDicoImgsTime aDicoIT;
-//    for(uint iV=0;iV < aVSIT.size();iV++)
-//    {
-//        cCpleImgTime aCpleIT;
-//        aCpleIT.NameIm()=aVSIT.at(iV).ImgName;
-//        aCpleIT.TimeIm()=aVSIT.at(iV).ImgT;
-//        aDicoIT.CpleImgTime().push_back(aCpleIT);
-//    }
-//    std::string aOutIT=StdPrefix(aITF)+".xml";
-//    MakeFileXML(aDicoIT,aOutIT);
-
-
-//    //read GPSFile and convert to xml
-//    std::vector<GPSOut> aVGPS = ReadGPSFile(aDir, aGPSFile, aUTC);
-//    cDicoGps aDicoGps;
-//    for(uint iV=0;iV < aVGPS.size();iV++)
-//    {
-//        cOneGPS aOneGPS;
-//        aOneGPS.Time()=aVGPS.at(iV).GPST;
-//        aOneGPS.llh().x=aVGPS.at(iV).Lat;
-//        aOneGPS.llh().y=aVGPS.at(iV).Lon;
-//        aOneGPS.llh().z=aVGPS.at(iV).Heigth;
-//        aOneGPS.Incert().x=aVGPS.at(iV).Incert.x;
-//        aOneGPS.Incert().y=aVGPS.at(iV).Incert.y;
-//        aOneGPS.Incert().z=aVGPS.at(iV).Incert.z;
-
-//        aDicoGps.OneGPS().push_back(aOneGPS);
-//    }
-//    std::string aOutGPS = "GPS_output.xml";
-//    MakeFileXML(aDicoGps,aOutGPS);
-
-//    return EXIT_SUCCESS;
-//}
 
 
 

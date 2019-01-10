@@ -1932,16 +1932,6 @@ cElNuage3DMaille *  BasculeNuageAutoReSize
           aRes->ImDef().out()
        );
 
-/*
-       aGeomOutOri,
-       Im2D_Bits<1> aImGlog(aSz.x,aSz.y,1);
-       ComplKLipsParLBas
-       (
-           aImGlog,
-           aRes->ImDef(),
-           aRes
-       );
-*/
        delete anOLB;
     }
     if (HasCor)

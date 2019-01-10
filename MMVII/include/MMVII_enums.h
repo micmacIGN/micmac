@@ -107,7 +107,7 @@ enum class eTyUEr
               eTooBig4NbDigit,
               eNoModeInEditRel,
               eMultiModeInEditRel,
-              e2SetInModeLineEditRel
+              e2PatInModeLineEditRel
            };
 
 /// 

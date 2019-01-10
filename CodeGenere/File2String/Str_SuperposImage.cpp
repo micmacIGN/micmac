@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_SuperposImage[1994]) = {
+const char * (theNameVar_SuperposImage[2000]) = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1440,6 +1440,11 @@ const char * (theNameVar_SuperposImage[1994]) = {
 "</Xml_O2IHom>\n",
 "\n",
 "\n",
+"<Xml_OriCple Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"    <Ori1 Nb=\"1\"  RefType=\"Xml_Rotation\"> </Ori1>\n",
+"    <Ori2 Nb=\"1\"  RefType=\"Xml_Rotation\"> </Ori2>\n",
+"</Xml_OriCple>\n",
+"\n",
 "<Xml_O2IComputed Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "    <Timing Nb=\"1\"  RefType=\"Xml_O2ITiming\">     </Timing>\n",
 "    <OrientAff Nb=\"1\"  RefType=\"Xml_O2IRotation\">      </OrientAff>\n",
@@ -1449,6 +1454,7 @@ const char * (theNameVar_SuperposImage[1994]) = {
 "    <RecHom Nb=\"1\" Type=\"double\">   </RecHom>  <!-- Recouvrement en faisant l'hypothese homographique -->\n",
 "    <Elips Nb=\"1\" RefType=\"Xml_Elips3D\"> </Elips>\n",
 "    <Elips2  Nb=\"?\" RefType=\"Xml_Elips2D\">  </Elips2>\n",
+"    <OriCpleGps Nb=\"?\"  RefType=\"Xml_OriCple\"> </OriCpleGps>\n",
 "</Xml_O2IComputed>\n",
 "\n",
 "\n",

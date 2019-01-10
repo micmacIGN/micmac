@@ -170,6 +170,260 @@ double cNewO_OrInit2Im::RecouvrtHom(const cElHomographie & aHom)
 }
 
 
+ElSimilitude RotationRobustInit(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir);
+ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir);
+cElHomographie HomogrRobustInit(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir);
+
+
+// ElRotation3D 
+ElRotation3D  RepereOfBase(Pt3dr aP1,Pt3dr aP2,Pt3dr aK)
+{
+    Pt3dr aV12  = aP2 - aP1;
+    Pt3dr aI = vunit(aV12);
+    Pt3dr aJ = vunit(aK ^ aI);
+    aK = vunit(aI ^ aJ);
+    
+
+    //  aMatN2O (1,0,0) => I donc New to Old
+    ElMatrix<double> aMatN2O= ElMatrix<double>::Rotation(aI,aJ,aK).transpose();
+
+    // std::cout  << aMatN2O.transpose() * aP1 << " " << aMatN2O * aP2  << aMatN2O * (aP1-aP2) << "\n";
+
+
+    ElRotation3D aRBase2Monde(-(aMatN2O*aP1), aMatN2O,true);
+
+    {
+       double aLongBase = euclid(aV12);
+       double aD1 = euclid(aRBase2Monde.ImAff(aP1)-Pt3dr(0,0,0));
+       double aD2 = euclid(aRBase2Monde.ImAff(aP2)-Pt3dr(aLongBase,0,0));
+
+
+       ELISE_ASSERT((aD1<1e-4) && (aD2<1e-4),"RepereOfBase");
+
+       // std::cout  << "Iaaa " << aRBase2Monde.ImAff(aP1) <<  aRBase2Monde.ImAff(aP2) << " " << aD1 << " " << aD2 << "\n";
+    }
+    return aRBase2Monde;
+}
+
+
+const cElemMepRelCoplan * StdSolutionPlane(ElPackHomologue  & aPack,bool Debug, double aLong,double & aErPlani,bool ModeSimil)
+{
+    cResMepRelCoplan  aRMC = aPack.MepRelCoplan(aLong,true);
+    double aErMax= 1e20;
+    aErPlani= 1e20;
+    const cElemMepRelCoplan * aBestSol = nullptr;
+    for (const auto & aSol  : aRMC. VElOk()) 
+    {
+       Pt3dr aK = aSol.Rot().ImVect(Pt3dr(0,0,1.0));
+       Pt3dr aTr = aSol.Rot().ImAff(Pt3dr(0,0,0));
+       Pt3dr aPErr =  ModeSimil ? Pt3dr(aK.x,aK.y,aTr.z) : Pt3dr(0,0,aTr.z) ; // Ideal aK=(0,0,1) aTr(A,B,0) pour homol K ne compte pas
+       double aErr = euclid(aPErr);
+       if (Debug)
+          std::cout << "Sol Plane , K=" << aK << " Tr= " << vunit(aTr) << "\n";
+       if (aErr<aErMax)
+       {
+           aErMax = aErr;
+           aBestSol = & aSol;
+           aErPlani = euclid(Pt2dr(aPErr.x,aPErr.y));
+       }
+       // std::cout << "UUU " << aK << aTr << " " <<  euclid(aPErr) << " " << aPErr<< "\n";
+    }
+    ELISE_ASSERT(aBestSol!=nullptr,"OriRelBase no sol");
+    // ELISE_ASSERT(aErPlani<1e-2,"OriRelBase no good sol");
+    return new cElemMepRelCoplan (*aBestSol);
+}
+
+
+void OriRelBase(bool ModeSimil,ElPackHomologue & aPack,Pt3dr aGps1,Pt3dr  aGps2,cXml_O2IComputed & aXml,bool Debug,CamStenope * aCamCheck1,CamStenope * aCamCheck2)
+{
+    if (ModeSimil)
+    {
+       // On egalise les Z
+       double aZ = (aGps1.z + aGps2.z) / 2.0;
+       aGps1.z = aGps2.z = aZ;
+    }
+    double aLongBaseGPS = euclid(aGps1-aGps2);
+
+    if (Debug)
+    {
+         Pt2dr aB2(aGps2.x-aGps1.x,aGps2.y-aGps1.y);
+         std::cout << "TETA BASE " << Pt2dr::polar(aB2,0).y << "\n";
+    }
+
+    if (aLongBaseGPS < 1e-5)
+       return;
+
+    ElSimilitude  aSimil = RotationRobustInit(aPack,0.666,100);
+    cElHomographie  aHomogr = HomogrRobustInit(aPack,0.666,100);
+    cElMap2D * aMap =  ModeSimil ? static_cast<cElMap2D*>(&aSimil) : static_cast<cElMap2D*>(& aHomogr);
+    // ElSimilitude  aSimSS = SimilRobustInit(aPack,0.666,100);
+
+
+    ElPackHomologue aPackSim;
+
+    // Compte Pack Hom corresponding to simil
+    double aSomCorDP = 0;
+    double aSomDP = 0;
+    double aSomP = 0;
+    for (ElPackHomologue::const_iterator itP=aPack.begin() ; itP!=aPack.end() ; itP++)
+    {
+        Pt2dr aP1 = itP->P1();
+        Pt2dr aP2 = itP->P2();
+        Pt2dr aP2Corr = (*aMap)(aP1);
+        // std::cout << "Pds " << itP->Pds() << "\n";
+        aPackSim.Cple_Add(ElCplePtsHomologues(aP1,aP2Corr));
+
+        aSomP += itP->Pds();
+        aSomCorDP += itP->Pds() * euclid(aP2-aP2Corr);
+        aSomDP += itP->Pds() * euclid(aP2-aP1);
+    }
+    if (Debug)
+    {
+           std::cout << "DISTMOY " << aSomCorDP /aSomP  
+                     << " Sans Map2d " << aSomDP  / aSomP  
+                     << " Sim SCal " << euclid(aSimil.sc()) << "\n";
+    }
+    
+    double aErPlani= 1e20;
+    const cElemMepRelCoplan *  aBestSol = StdSolutionPlane(aPackSim,Debug,aLongBaseGPS,aErPlani,ModeSimil);
+    ELISE_ASSERT(aErPlani<1e-2,"OriRelBase no good sol");
+
+    std::vector<double> aPAF;
+
+    CamStenopeIdeale aCamInit1(true,1.0,Pt2dr(0,0),aPAF);
+    CamStenopeIdeale aCamInit2(true,1.0,Pt2dr(0,0),aPAF);
+    aCamInit2.SetOrientation(aBestSol->Rot());
+    // aCamInit2.SetOrientation(aBestSol->Rot().inv()); => verifie que c'est pas la bonne convention
+
+     
+    double aSeuilBundle = ModeSimil ? 1e-4 : 1e12; // Aucune base rationnelle a ce seuil adaptatif !!
+    // Verifie que les camera init orientent bien vs les points homol
+    for (ElPackHomologue::const_iterator itP=aPackSim.begin() ; itP!=aPackSim.end() ; itP++)
+    {
+         double aDist;
+         aCamInit1.PseudoInter(itP->P1(),aCamInit2,itP->P2(),&aDist);
+         if (aDist>aSeuilBundle)
+         {
+             std::cout << " " << aDist* 1e5  << "\n";
+             // Assez tol car ajout eventuell de "grosse" coord qui font perdre en precision
+             ELISE_ASSERT(aDist<1e-4,"aC1.PseudoInter ");
+         }
+    }
+    ElRotation3D aRInit1_C2M = aCamInit1.Orient().inv();
+    ElRotation3D aRInit2_C2M = aCamInit2.Orient().inv();
+
+    if (Debug)
+    {
+         Pt3dr aI = aRInit2_C2M.ImVect(Pt3dr(1,0,0));
+         Pt3dr aJ = aRInit2_C2M.ImVect(Pt3dr(0,1,0));
+         std::cout << "CamInit2, " << " I=" <<  aI  <<   " J=" << aJ << " Teta " << Pt2dr::polar(Pt2dr(aI.x,aI.y),0).y << "\n";
+    }
+
+
+
+
+    // Verifie convention pour centre optique
+    ELISE_ASSERT( euclid(aRInit1_C2M.ImAff(Pt3dr(0,0,0)) - aCamInit1.VraiOpticalCenter()) <1e-5,"OriRelBase Copt");
+    ELISE_ASSERT( euclid(aRInit2_C2M.ImAff(Pt3dr(0,0,0)) - aCamInit2.VraiOpticalCenter()) <1e-5,"OriRelBase Copt");
+    Pt3dr aCOI1 = aCamInit1.VraiOpticalCenter();
+    Pt3dr aCOI2 = aCamInit2.VraiOpticalCenter();
+
+    ELISE_ASSERT(ElAbs(euclid(aCOI1-aCOI2)-aLongBaseGPS)<1e-4,"OriRelBase  long base");
+
+    Pt3dr aVecKInit(0,0,1);
+    if (! ModeSimil)
+    {
+        aVecKInit = vunit( (aCamInit1.DirK() + aCamInit2.DirK())/2.0);
+    }
+    ElRotation3D aRInit2Base = RepereOfBase(aCOI1,aCOI2,aVecKInit);
+
+    int SIGN = -1;
+    ElRotation3D aGps2Base   = RepereOfBase(aGps1,aGps2,Pt3dr(0,0,SIGN));
+
+
+    ElRotation3D  aRInit2Gps = aGps2Base.inv() * aRInit2Base;
+
+    ELISE_ASSERT(euclid(aRInit2Gps.ImAff(aCOI1) - aGps1)<1e-4,"OriRelBase aRInit2Gps");
+    ELISE_ASSERT(euclid(aRInit2Gps.ImAff(aCOI2) - aGps2)<1e-4,"OriRelBase aRInit2Gps");
+
+    //  std::cout << "IIii2Ggg "  << aRInit2Gps.ImAff(aCOI1) - aGps1 << aRInit2Gps.ImAff(aCOI2) - aGps2 << "\n";
+
+    //  std::cout << "COI2 " << aCOI2 << "\n";
+
+    ElRotation3D aRGps1_C2M =  aRInit2Gps * aRInit1_C2M;
+    ElRotation3D aRGps2_C2M =  aRInit2Gps * aRInit2_C2M;
+
+
+    CamStenopeIdeale aCamGps1(true,1.0,Pt2dr(0,0),aPAF);
+    CamStenopeIdeale aCamGps2(true,1.0,Pt2dr(0,0),aPAF);
+    aCamGps1.SetOrientation(aRGps1_C2M.inv());
+    aCamGps2.SetOrientation(aRGps2_C2M.inv());
+
+    // On verifie que aCamGps1 et aCamGps2 ont toujours une bonne intersection
+    for (ElPackHomologue::const_iterator itP=aPackSim.begin() ; itP!=aPackSim.end() ; itP++)
+    {
+         double aDist;
+         aCamGps1.PseudoInter(itP->P1(),aCamGps2,itP->P2(),&aDist);
+         if (aDist>aSeuilBundle)
+         {
+             double aDistInit;
+             aCamInit1.PseudoInter(itP->P1(),aCamInit2,itP->P2(),&aDistInit);
+             std::cout << " Dist " << aDist* 1e5  << " DistInit=" << aDistInit << " NbPts=" << aPackSim.size() << " P2=" << itP->P2() << "\n";
+             // Assez tol car ajout eventuell de "grosse" coord qui font perdre en precision
+             ELISE_ASSERT(aDist<1e-4,"aC1.PseudoInter ");
+         }
+    }
+
+    ELISE_ASSERT(euclid(aCamGps1.VraiOpticalCenter() - aGps1)<1e-4,"OriRelBase check pos gps");
+    ELISE_ASSERT(euclid(aCamGps2.VraiOpticalCenter() - aGps2)<1e-4,"OriRelBase check pos gps");
+
+    if (ModeSimil)
+    { 
+        ELISE_ASSERT(euclid(aCamGps1.DirK() - aVecKInit)<1e-4,"OriRelBase check dir gps");
+        ELISE_ASSERT(euclid(aCamGps2.DirK() - Pt3dr(0,0,SIGN))<1e-4,"OriRelBase check dir gps");
+    }
+
+
+    ElRotation3D aRRelInit1To2 = aCamInit2.Orient() * aCamInit1.Orient().inv(); // aRInit2_C2M .inv() * aRInit1_C2M  =  1 to 2
+    ElRotation3D aRRelGps1To2  = aCamGps2.Orient() * aCamGps1.Orient().inv(); // aRInit2_C2M .inv() * aRInit1_C2M  =  1 to 2
+
+    ELISE_ASSERT(euclid( aRRelInit1To2.tr() - aRRelGps1To2.tr()) < 1e-4,"OriRelBase chek tr rel");
+    ELISE_ASSERT((aRRelInit1To2.Mat() - aRRelGps1To2.Mat()).L2() < 1e-4,"OriRelBase chek tr rel");
+
+    if (aCamCheck1)
+    {
+         ElRotation3D aRRelCheck1To2 = aCamCheck2->Orient() * aCamCheck1->Orient().inv(); // aRInit2_C2M .inv() * aRInit1_C2M  =  1 to 2
+         Pt3dr aTr =  aRRelInit1To2.tr() - vunit(aRRelCheck1To2.tr()) * aLongBaseGPS;
+         ElMatrix<double> aMat =  aRRelInit1To2.Mat() - aRRelCheck1To2.Mat();
+
+         std::cout << "Dist Rel 2 Check,  Tr=" << euclid(aTr) << " Mat=" << aMat.L2()  << " LBASE=" <<  aLongBaseGPS<< "\n";
+         std::cout <<   vunit(aRRelInit1To2.tr()) <<   vunit(aRRelCheck1To2.tr())  << "\n";
+
+
+
+         std::cout << "----- Test with initial points \n";
+         const cElemMepRelCoplan *  aBestSolNS  = StdSolutionPlane(aPack,Debug,1.0,aErPlani,ModeSimil);
+         CamStenopeIdeale aCamNS(true,1.0,Pt2dr(0,0),aPAF);
+         aCamNS.SetOrientation(aBestSolNS->Rot());
+         
+         std::cout << "Non Simil " << vunit(aCamNS.Orient().tr() )
+                   << " Check " <<  vunit(aRRelCheck1To2.tr() )
+                   << " Simil " << vunit(aRRelGps1To2.tr())
+                   << "\n";
+    }
+
+
+    cXml_OriCple aXC;
+    aXC.Ori1() = El2Xml(aCamGps1.Orient().inv());
+    aXC.Ori2() = El2Xml(aCamGps2.Orient().inv());
+    aXml.OriCpleGps().SetVal(aXC);
+
+}
+
+
+
+
+
 cNewO_OrInit2Im::cNewO_OrInit2Im
 (
       bool          aGenereOri,  // False en frontal a Ratafia etc ....
@@ -182,7 +436,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
       bool                aShow,
       bool                aHPP,
       bool                aSelAllIm,
-      const cCommonMartiniAppli & aCMA
+      cCommonMartiniAppli & aCMA
 )  :
    mPdsSingle   (aCMA.mAcceptUnSym ? 0.1 : 0),
    mQuick       (aQuick),
@@ -219,6 +473,8 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    mW             (0),
    mSelAllIm      (aSelAllIm)
 {
+
+
     bool DoOriByHom = (aCMA.ModeNO() == eModeNO_OnlyHomogr);
     bool DoOri3D    = (aCMA.ModeNO() != eModeNO_OnlyHomogr);
 
@@ -269,7 +525,26 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    mXml.Foc2()  = mI2->CS()->Focale();
    mXml.FocMoy() = FocMoy();
 
+   cXml_O2IComputed aXCmp;
    mXml.Geom().SetNoInit();
+   if (aCMA.GpsIsInit())
+   {
+       bool ModeSimil = false;
+       int aSeuil = ModeSimil  ? 2 : 4;
+       if ( int(mPackPStd.size())>= aSeuil)
+       {
+           CamStenope * aCamCheck1=0;
+           CamStenope * aCamCheck2=0;
+           if (aCMA.CheckIsInit())
+           {
+              aCamCheck1 = aCMA.CamCheck(aI1);
+              aCamCheck2 = aCMA.CamCheck(aI2);
+           }
+
+           OriRelBase(ModeSimil,mPackPStd,aCMA.GpsVal(aI1),aCMA.GpsVal(aI2),aXCmp,aCMA.mDebug,aCamCheck1,aCamCheck2);
+       }
+   }
+
 
    // std::cout << "SIIZZZ " << mXml.NbPts() << "\n";
 
@@ -277,12 +552,13 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    {
       std::cout << "NbPts " << mPackPStd.size() << " RED " << mPackStdRed.size() << "\n";
    }
-   if (mXml.NbPts()<(mSelAllIm ? NbMinPts2Im_AllSel : NbMinPts2Im) )
+   if (mXml.NbPts()<5) // => Strict Min pour homographie
    {
+        mXml.Geom().SetVal(aXCmp);
         return;
    }
-   cXml_O2IComputed aXCmp;
    RazEllips(aXCmp.Elips());
+
    cXml_O2ITiming & aTiming = aXCmp.Timing();
         
 
@@ -364,6 +640,34 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     aXCmp.HomWithR().ResiduHom() = aDist ;
     double aRecHom = RecouvrtHom(aHom);
     aXCmp.RecHom() = aRecHom;
+
+    //elipse 2d
+    {
+        cXml_Elips2D anElips2D;
+        RazEllips(anElips2D);
+        for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
+        {
+            AddEllips(anElips2D,itP->P1(),itP->Pds());
+            //std::cout << "ewlinaaaa " << itP->P1() << "\n";
+        }
+        NormEllips(anElips2D);
+        aXCmp.Elips2().SetVal(anElips2D);
+    }
+
+
+   if (mXml.NbPts()<(mSelAllIm ? NbMinPts2Im_AllSel : NbMinPts2Im) )
+   {
+        mXml.Geom().SetVal(aXCmp);
+        return;
+   }
+
+
+
+    // Calcul d'une similitude
+    if (1)
+    {
+        // IdentFromType cElMap2D::IdentFromType(int,const std::vector<std::string>* =0)
+    }
 
 
     /*******************************************************/
@@ -510,6 +814,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
 
           if (! mBestSolIsInit)
           {
+                mXml.Geom().SetVal(aXCmp);
                 return;
           }
   
@@ -537,16 +842,6 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
         anErr = aBundle->ErrInitRobuste(mBestSol,0.75);
    }
 
-    //elipse 2d
-    cXml_Elips2D anElips2D;
-    RazEllips(anElips2D);
-    for (ElPackHomologue::const_iterator itP=mPackPStd.begin() ; itP!=mPackPStd.end() ; itP++)
-    {
-        AddEllips(anElips2D,itP->P1(),itP->Pds());
-        //std::cout << "ewlinaaaa " << itP->P1() << "\n";
-    }
-    NormEllips(anElips2D);
-    aXCmp.Elips2().SetVal(anElips2D);
 
     //elipse 3d
     cXml_Elips3D anElips3D;
@@ -605,7 +900,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
     }
     // CalcAmbig();
 
-    mXml.Geom().SetVal(aXCmp);
+   mXml.Geom().SetVal(aXCmp);
 
 }
 

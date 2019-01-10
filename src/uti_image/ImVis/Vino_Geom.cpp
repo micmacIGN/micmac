@@ -397,7 +397,7 @@ double cCalcAimeImAutoCorr::AutoCorrelGR(int aRho,int aDTeta)
 
 
 
-#if ELISE_QT // PB LINK INCOMPREHENSIBLE  Ann + Micmac + Qt => ?@&#!!!
+#if  PB_LINK_AUTOCOR // PB LINK INCOMPREHENSIBLE  Ann + Micmac + Qt => ?@&#!!!
 #else
 
 

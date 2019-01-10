@@ -9,9 +9,96 @@ namespace MMVII
 
 */
 
+
+/* ============ Definition of numerical type ================*/
+
+typedef float    tREAL4;
 typedef double   tREAL8;
-typedef int      tINT4;
-typedef long int tINT8;
+
+typedef signed char  tINT1;
+typedef signed short tINT2;
+typedef signed int   tINT4;
+typedef long int     tINT8;
+
+
+
+typedef unsigned char  tU_INT1;
+typedef unsigned short tU_INT2;
+
+
+typedef int    tStdInt;  ///< "natural" int
+typedef double tStdDouble;  ///< "natural" int
+
+
+/*  ==============  Traits on numerical type, usable in template function ===================   */
+/*   tNumTrait => class to be used                                                              */
+/*  tBaseNumTrait, tElemNumTrait   : accessory classes                                          */
+
+    // =========================================================
+    //  tBaseNumTrait : Base trait, separate int and float
+    // =========================================================
+
+template <class Type> class tBaseNumTrait
+{
+    public :
+        typedef tStdInt  tBase;
+};
+template <> class tBaseNumTrait<tStdInt>
+{
+    public :
+        static bool IsInt() {return true;}
+        typedef tStdInt  tBase;
+};
+template <> class tBaseNumTrait<tStdDouble>
+{
+    public :
+        static bool IsInt() {return false;}
+        typedef tStdDouble  tBase;
+};
+
+    // ========================================================================
+    //  tElemNumTrait : declare what must be specialized for each type
+    // ========================================================================
+
+template <class Type> class tElemNumTrait
+{
+    public :
+};
+template <> class tElemNumTrait<tU_INT1> : public tBaseNumTrait<tStdInt>
+{
+    public :
+        static const  std::string  Name() {return "tU_INT1";}
+};
+template <> class tElemNumTrait<tU_INT2> : public tBaseNumTrait<tStdInt>
+{
+    public :
+        static const  std::string  Name() {return "tU_INT2";}
+};
+template <> class tElemNumTrait<tREAL4> : public tBaseNumTrait<tStdDouble>
+{
+    public :
+        static const  std::string  Name() {return "tREAL4";}
+};
+
+    // ========================================================================
+    //  tNumTrait class to be used
+    // ========================================================================
+
+template <class Type> class tNumTrait : public tElemNumTrait<Type>
+{
+    public :
+         typedef Type  tVal;
+         typedef typename tElemNumTrait<Type>::tBase tBase;
+         static const tBase MaxValue() {return  std::numeric_limits<tVal>::max();}
+         static const tBase MinValue() {return  std::numeric_limits<tVal>::min();}
+};
+
+
+
+
+
+// typedef unsigned char tU_INT1;
+// typedef unsigned char tU_INT1;
 
 /* ================= Modulo ======================= */
 

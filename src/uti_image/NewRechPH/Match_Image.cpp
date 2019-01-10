@@ -452,7 +452,9 @@ void cAFM_Im::LoadLab(bool DoIndex,bool aGlob, eTypePtRemark aLab,bool MaintainI
     }
 
     const cSeuilFitsParam & aSeuil =  aGlob ?  mAppli.FitsPm().SeuilGen()   : mAppli.FitsPm().SeuilOL();
+    // cSeuilFitsParam * aSeuil =  new cSeuilFitsParam(aGlob ?  mAppli.FitsPm().SeuilGen()   : mAppli.FitsPm().SeuilOL());
     aSet->InitLabel(*aFOL,aSeuil,DoIndex);
+
 
     delete aSetPC;
 }
@@ -560,7 +562,7 @@ void cAFM_Im_Master::FilterVoisCplCt(std::vector<cCdtCplHom> & aV0)
     mQt.clear(); 
     ElPackHomologue aPack = PackFromVCC(aV0); 
 
-    ElSimilitude  aSim = SimilRobustInit(aPack,0.666);
+    ElSimilitude  aSim = SimilRobustInit(aPack,0.666,100);
 
     aSim = aS0;
     mAppli.SetCurMapping(new ElSimilitude(aSim));
@@ -788,8 +790,10 @@ void cAFM_Im_Master::MatchOne
 
 bool  cAFM_Im_Master::MatchLow(cAFM_Im_Sec & anISec,std::vector<cCdtCplHom> & aVCpl)
 {
+    if (mAppli.HasFileCple() &&  (! mAppli.InSetCple(anISec.NameIm())))
+       return false;
     // int aNbBeforeDir=0;
-    int aNbMin0 = 6;
+    int aNbMin0 = mAppli.HasFileCple() ? 6 : 3;
 
     // eTypePtRemark aLab = mAppli.LabInit();
     // int aKL = int(aLab);
@@ -844,8 +848,6 @@ bool  cAFM_Im_Master::MatchGlob(cAFM_Im_Sec & anISec)
        if ( ! MatchLow(anISec,aVCpl))
           return false;
     }
-    // bool  cAFM_Im_Master::MatchLow(cAFM_Im_Sec & anISec,std::vector<cCdtCplHom> & aVCpl)
-
     
     ElPackHomologue aPack = PackFromVCC(aVCpl);
     aPack.StdPutInFile(mAppli.NameCple(mNameIm,anISec.mNameIm));
@@ -966,7 +968,8 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
    mNbMaxS0     (1000,200),
    mDoFiltrageSpatial  (true),
    mFlagLabsInit (1 << int(eTPR_GrayMax)),
-   mCurMap       (0)
+   mCurMap       (0),
+   mHasFileCple  (false)
 {
    MemoArg(argc,argv);
    ElInitArgMain
@@ -984,7 +987,14 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
                      <<  EAM(mDoFiltrageSpatial,"DoFS",true,"Do spatial filtering")
                      <<  EAM(mSelf,"Self",true,"Accept self match (tuning)")
                      <<  EAM(mFlagLabsInit,"FLI",true,"Flag Labs Init, def=>GrayMax, -1=> all")
+                     <<  EAM(mFileCple,"FileCple",true,"Flag for cple")
+                     <<  EAM(mVSeuils,"Seuils",true,"Seuils [CorrelLogPol,CorrelInvRad]")
    );
+
+   if ((! EAMIsInit(&mFlagLabsInit)) && EAMIsInit(&mFileCple))
+   {
+     mFlagLabsInit = -1;
+   }
 
    if (mFlagLabsInit<0)
      mFlagLabsInit = ((1<<int(eTPR_NoLabel)) - 1);
@@ -1007,6 +1017,23 @@ cAppli_FitsMatch1Im::cAppli_FitsMatch1Im(int argc,char ** argv) :
            exit(EXIT_SUCCESS);
        }
    }
+   mHasFileCple = EAMIsInit(&mFileCple);
+   if (mHasFileCple)
+   {
+       cSauvegardeNamedRel aLCple =  StdGetFromPCP(mFileCple,SauvegardeNamedRel);
+       for (auto & aCpl : aLCple.Cple())
+       {
+           // Verifie hypothese
+           std::string aN1 = aCpl.N1();
+           std::string aN2 = aCpl.N2();
+           set_min_max(aN1,aN2);
+           ELISE_ASSERT(aN1<aN2,"Non orderes cpl");
+           if ((aN1== mNameMaster) && (aN1<aN2))
+           {
+                mSetCple.insert(aN2);
+           }
+       }
+   }
 
    if (!EAMIsInit(&mSH) )
    {
@@ -1023,6 +1050,20 @@ eTypePtRemark  cAppli_FitsMatch1Im::LabInit() const {return eTPR_GrayMax;}
    mNbBIndex =  aFOL.BinIndexed().CCB().Val().CompCBOneBit().size();
    mThreshBIndex =  aFOL.BinIndexed().CCB().Val().BitThresh();
 */
+
+   if (EAMIsInit(&mVSeuils))
+   {
+      if (mVSeuils.size() >=1)
+      {
+          mFitsPm.SeuilGen().SeuilCorrLP() = mVSeuils[0];
+          mFitsPm.SeuilOL().SeuilCorrLP()  = mVSeuils[0];
+      }
+      if (mVSeuils.size() >=2)
+      {
+          mFitsPm.SeuilGen().SeuilCorrDR() = mVSeuils[1];
+          mFitsPm.SeuilOL().SeuilCorrDR()  = mVSeuils[1];
+      }
+   }
 
    mEASF.Init(mPatIm);
    if (! EAMIsInit(&mShowDet))
@@ -1079,6 +1120,19 @@ eTypePtRemark  cAppli_FitsMatch1Im::LabInit() const {return eTPR_GrayMax;}
    }
    ELISE_fp::RmFileIfExist(aNameFileTest);
 }
+
+bool cAppli_FitsMatch1Im::HasFileCple() const
+{
+   return mHasFileCple;
+}
+
+
+bool cAppli_FitsMatch1Im::InSetCple(const std::string & aStr) const
+{
+   ELISE_ASSERT(mHasFileCple,"cAppli_FitsMatch1Im::InSetCple");
+   return BoolFind(mSetCple,aStr);
+}
+
 
 bool cAppli_FitsMatch1Im::LabInInit(eTypePtRemark aLab) const
 {

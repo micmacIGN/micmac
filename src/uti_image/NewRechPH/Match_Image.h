@@ -44,7 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // AFM :  Appli Fits Match
 
-ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan);
+ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir);
 
 class cIndexCodeBinaire; // Permet de retrouver rapidement les element ayant peu de bits differents avec un pt car donne
 class cCdtCplHom; // Stocke une hypothese de deux pts car apparie le Master(M) et le secondaire
@@ -241,6 +241,8 @@ class cAppli_FitsMatch1Im
           void SetCurMapping(cElMap2D * aMap);
           cElMap2D & CurMapping();
 
+          bool HasFileCple() const;
+          bool InSetCple(const std::string & aStr) const;
      private :
           cFitsParam         mFitsPm;
           std::string        mNameMaster;
@@ -264,6 +266,10 @@ class cAppli_FitsMatch1Im
           bool               mDoFiltrageSpatial;
           int                mFlagLabsInit;
           cElMap2D *         mCurMap;
+          std::string        mFileCple;
+          bool               mHasFileCple;
+          std::set<std::string>   mSetCple;
+          std::vector<double>     mVSeuils;
 };
 
 

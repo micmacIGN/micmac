@@ -21257,6 +21257,63 @@ void xml_init(cXml_O2IHom & anObj,cElXMLTree * aTree)
 std::string  Mangling( cXml_O2IHom *) {return "631E4F8A0D2FAAE1FE3F";};
 
 
+cXml_Rotation & cXml_OriCple::Ori1()
+{
+   return mOri1;
+}
+
+const cXml_Rotation & cXml_OriCple::Ori1()const 
+{
+   return mOri1;
+}
+
+
+cXml_Rotation & cXml_OriCple::Ori2()
+{
+   return mOri2;
+}
+
+const cXml_Rotation & cXml_OriCple::Ori2()const 
+{
+   return mOri2;
+}
+
+void  BinaryUnDumpFromFile(cXml_OriCple & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Ori1(),aFp);
+    BinaryUnDumpFromFile(anObj.Ori2(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_OriCple & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Ori1());
+    BinaryDumpInFile(aFp,anObj.Ori2());
+}
+
+cElXMLTree * ToXMLTree(const cXml_OriCple & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_OriCple",eXMLBranche);
+   aRes->AddFils(ToXMLTree(anObj.Ori1())->ReTagThis("Ori1"));
+   aRes->AddFils(ToXMLTree(anObj.Ori2())->ReTagThis("Ori2"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_OriCple & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Ori1(),aTree->Get("Ori1",1)); //tototo 
+
+   xml_init(anObj.Ori2(),aTree->Get("Ori2",1)); //tototo 
+}
+
+std::string  Mangling( cXml_OriCple *) {return "486631BEC36F6DA1FE3F";};
+
+
 cXml_O2ITiming & cXml_O2IComputed::Timing()
 {
    return mTiming;
@@ -21344,6 +21401,17 @@ const cTplValGesInit< cXml_Elips2D > & cXml_O2IComputed::Elips2()const
    return mElips2;
 }
 
+
+cTplValGesInit< cXml_OriCple > & cXml_O2IComputed::OriCpleGps()
+{
+   return mOriCpleGps;
+}
+
+const cTplValGesInit< cXml_OriCple > & cXml_O2IComputed::OriCpleGps()const 
+{
+   return mOriCpleGps;
+}
+
 void  BinaryUnDumpFromFile(cXml_O2IComputed & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Timing(),aFp);
@@ -21361,6 +21429,14 @@ void  BinaryUnDumpFromFile(cXml_O2IComputed & anObj,ELISE_fp & aFp)
         }
         else  anObj.Elips2().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.OriCpleGps().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.OriCpleGps().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.OriCpleGps().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_O2IComputed & anObj)
@@ -21374,6 +21450,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_O2IComputed & anObj)
     BinaryDumpInFile(aFp,anObj.Elips());
     BinaryDumpInFile(aFp,anObj.Elips2().IsInit());
     if (anObj.Elips2().IsInit()) BinaryDumpInFile(aFp,anObj.Elips2().Val());
+    BinaryDumpInFile(aFp,anObj.OriCpleGps().IsInit());
+    if (anObj.OriCpleGps().IsInit()) BinaryDumpInFile(aFp,anObj.OriCpleGps().Val());
 }
 
 cElXMLTree * ToXMLTree(const cXml_O2IComputed & anObj)
@@ -21389,6 +21467,8 @@ cElXMLTree * ToXMLTree(const cXml_O2IComputed & anObj)
    aRes->AddFils(ToXMLTree(anObj.Elips())->ReTagThis("Elips"));
    if (anObj.Elips2().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Elips2().Val())->ReTagThis("Elips2"));
+   if (anObj.OriCpleGps().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.OriCpleGps().Val())->ReTagThis("OriCpleGps"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -21414,9 +21494,11 @@ void xml_init(cXml_O2IComputed & anObj,cElXMLTree * aTree)
    xml_init(anObj.Elips(),aTree->Get("Elips",1)); //tototo 
 
    xml_init(anObj.Elips2(),aTree->Get("Elips2",1)); //tototo 
+
+   xml_init(anObj.OriCpleGps(),aTree->Get("OriCpleGps",1)); //tototo 
 }
 
-std::string  Mangling( cXml_O2IComputed *) {return "8C279578B12A69F0FB3F";};
+std::string  Mangling( cXml_O2IComputed *) {return "544A220029DB3AF8FE3F";};
 
 
 std::string & cXml_Ori2Im::Im1()
@@ -21610,7 +21692,7 @@ void xml_init(cXml_Ori2Im & anObj,cElXMLTree * aTree)
    xml_init(anObj.Box2(),aTree->Get("Box2",1)); //tototo 
 }
 
-std::string  Mangling( cXml_Ori2Im *) {return "B6FF58341450A5CAFD3F";};
+std::string  Mangling( cXml_Ori2Im *) {return "739A4EA29D672AA4FE3F";};
 
 
 cXml_Rotation & cXml_Ori3ImInit::Ori2On1()

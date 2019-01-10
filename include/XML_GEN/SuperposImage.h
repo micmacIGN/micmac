@@ -6511,6 +6511,34 @@ std::string  Mangling( cXml_O2IHom *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_OriCple
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_OriCple & anObj,cElXMLTree * aTree);
+
+
+        cXml_Rotation & Ori1();
+        const cXml_Rotation & Ori1()const ;
+
+        cXml_Rotation & Ori2();
+        const cXml_Rotation & Ori2()const ;
+    private:
+        cXml_Rotation mOri1;
+        cXml_Rotation mOri2;
+};
+cElXMLTree * ToXMLTree(const cXml_OriCple &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_OriCple &);
+
+void  BinaryUnDumpFromFile(cXml_OriCple &,ELISE_fp &);
+
+std::string  Mangling( cXml_OriCple *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cXml_O2IComputed
 {
     public:
@@ -6542,6 +6570,9 @@ class cXml_O2IComputed
 
         cTplValGesInit< cXml_Elips2D > & Elips2();
         const cTplValGesInit< cXml_Elips2D > & Elips2()const ;
+
+        cTplValGesInit< cXml_OriCple > & OriCpleGps();
+        const cTplValGesInit< cXml_OriCple > & OriCpleGps()const ;
     private:
         cXml_O2ITiming mTiming;
         cXml_O2IRotation mOrientAff;
@@ -6551,6 +6582,7 @@ class cXml_O2IComputed
         double mRecHom;
         cXml_Elips3D mElips;
         cTplValGesInit< cXml_Elips2D > mElips2;
+        cTplValGesInit< cXml_OriCple > mOriCpleGps;
 };
 cElXMLTree * ToXMLTree(const cXml_O2IComputed &);
 
