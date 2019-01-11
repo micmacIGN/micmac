@@ -876,7 +876,8 @@ extern int CPP_AutoCorr_CensusQuant(int argc, char ** argv);
 int MosaicTFW(int argc, char** argv);
 
 extern int ConvTiePointPix4DMM_main(int argc,char ** argv);
-
+extern int OrthoDirectFromDenseCloud_main(int argc,char ** argv);
+extern int TiepGraphByCamDist_main(int argc,char ** argv);
 
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
@@ -1161,6 +1162,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("ConvHomolVSFM2MM",ConvHomolVSFM2MM_main,"Convert Tie Points from Visual SFM format (.sift & .mat) to MicMac format"));
         aRes.push_back(cMMCom("ConvTiePointPix4DMM",ConvTiePointPix4DMM_main ,"Convert tie point Pix4D Bingo to MicMac"));
+
+        aRes.push_back(cMMCom("OrthoDirectFromDenseCloud",OrthoDirectFromDenseCloud_main ,"Ortho rectification directly from ply point cloud"));
+        aRes.push_back(cMMCom("TiepGraphByCamDist",TiepGraphByCamDist_main ,"Generate Image pairs for tie points search by distant constraint"));
+
 
         aRes.push_back(cMMCom("AC_CQ",CPP_AutoCorr_CensusQuant,"Auto correl for Census Quant"));
 

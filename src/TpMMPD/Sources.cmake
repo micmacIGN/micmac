@@ -100,6 +100,11 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/ExchangeLib/Pix4D/ConvTiePointPix4DMM/cAppliConvTiePointPix4DMM.cpp
     ${TDPPMD_DIR}/ExchangeLib/Pix4D/ConvTiePointPix4DMM/ConvTiePointPix4DMM.cpp
 
+
+    ${TDPPMD_DIR}/OrthoDirectFromDenseCloud/cappliorthodirectfromdensecloud.cpp
+    ${TDPPMD_DIR}/TiePointsGraphByCameraDistance/tiepgraphbycamdist.cpp
+
+
     ${TDPPMD_DIR}/Ex_Match/cImgMatch.cpp
     ${TDPPMD_DIR}/Ex_Match/cLSQTemplate.cpp
 
