@@ -863,6 +863,7 @@ int LSQMatch_Main(int argc, char ** argv);
 
 
 extern int  TestNewOriHom1Im_main(int argc, char ** argv);
+extern int  TestNewOriGpsSim_main(int argc, char ** argv);
 
 extern int  CPP_NOGpsLoc(int argc, char ** argv);
 
@@ -1070,6 +1071,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("BasculeCamsInRepCam",BasculeCamsInRepCam_main,"Compute GCP in cam repair"));
 
         aRes.push_back(cMMCom("NO_OriHom1Im",TestNewOriHom1Im_main,"Test New Homgr Orientation-Case 1 central Im"));
+        aRes.push_back(cMMCom("NO_OriGpsSim",TestNewOriGpsSim_main,"Test New Homgr Orientation with Gps, Horizontal"));
         aRes.push_back(cMMCom("NO_GpsLoc",CPP_NOGpsLoc,"Use Gps for absolute orientation of Martini"));
         aRes.push_back(cMMCom("NO_Ori2Im",TestNewOriImage_main,"Test New Orientation"));
         aRes.push_back(cMMCom("NO_AllOri2Im",TestAllNewOriImage_main,"Test New Orientation"));

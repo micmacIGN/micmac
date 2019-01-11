@@ -57,7 +57,10 @@ cCommonMartiniAppli::cCommonMartiniAppli() :
     mExtName      (""),
     mInOri        (""),
     mOriOut       (""),
-    mAcceptUnSym  (false),
+    mOriGPS       (""),
+    mOriCheck     (""),
+    mDebug        (false),
+    mAcceptUnSym  (true),
     mQuick        (true),
     mShow         (false),
     mArg          (new LArgMain),
@@ -72,6 +75,9 @@ cCommonMartiniAppli::cCommonMartiniAppli() :
               << EAM(mNameNOMode,"ModeNO",true,"Mode Def=Std (TTK StdNoTTK OnlyHomogr)")  
               << EAM(mInOri,"InOri",true,"Existing orientation if any")  
               << EAM(mOriOut,"OriOut",true,"Output orientation dir")  
+              << EAM(mOriGPS,"OriGPS",true,"Orientation where find gps data when exists")  
+              << EAM(mOriCheck,"OriCheck",true,"Reference Orientation  to check results")
+              << EAM(mDebug,"Debug",true,"Debug ....")  
               << EAM(mAcceptUnSym,"AUS",true,"Accept non symetric homologous point;")  
               << EAM(mQuick,"Quick",true,"If true (default) do less test")  
               << EAM(mShow,"Show",true,"If true (non default) print (a lot of) messages")  ;
@@ -99,6 +105,26 @@ eTypeModeNO  cCommonMartiniAppli::ModeNO() const
    return mModeNO;
 }
 
+bool  cCommonMartiniAppli::GpsIsInit()
+{
+   return EAMIsInit(&mOriGPS);
+}
+
+bool  cCommonMartiniAppli::CheckIsInit()
+{
+   return EAMIsInit(&mOriCheck);
+}
+
+Pt3dr cCommonMartiniAppli::GpsVal(cNewO_OneIm * anIm)
+{
+   return anIm->NM().ICNM()->StdCamStenOfNames(anIm->Name(),mOriGPS)->VraiOpticalCenter();
+}
+
+CamStenope * cCommonMartiniAppli::CamCheck(cNewO_OneIm * anIm)
+{
+   return anIm->NM().ICNM()->StdCamStenOfNames(anIm->Name(),mOriCheck);
+}
+
 
 std::string    cCommonMartiniAppli::ComParam()
 {
@@ -112,6 +138,9 @@ std::string    cCommonMartiniAppli::ComParam()
    if (EAMIsInit(&mAcceptUnSym))   aCom += " AUS="       + ToString(mAcceptUnSym);
    if (EAMIsInit(&mQuick))         aCom += " Quick="     + ToString(mQuick);
    if (EAMIsInit(&mShow))          aCom += " Show="      + ToString(mShow);
+   if (EAMIsInit(&mOriGPS))        aCom += " OriGPS="    + mOriGPS;
+   if (EAMIsInit(&mOriCheck))      aCom += " OriCheck="    + mOriCheck;
+   if (EAMIsInit(&mDebug))         aCom += " Debug="     + ToString(mDebug);
 
    return aCom;
 }
@@ -259,6 +288,13 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
     StdCorrecNameOrient(mNameOriCalib,anEASF.mDir);
     if (EAMIsInit(&mInOri))
        StdCorrecNameOrient(mInOri,anEASF.mDir);
+
+    if (EAMIsInit(&mOriGPS))
+       StdCorrecNameOrient(mOriGPS,anEASF.mDir);
+
+    if (EAMIsInit(&mOriCheck))
+       StdCorrecNameOrient(mOriCheck,anEASF.mDir);
+
 
     cNewO_NameManager aNM(mExtName,mPrefHom,mQuick,anEASF.mDir,mNameOriCalib,"dat",mOriOut);
     const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();

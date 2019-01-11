@@ -562,7 +562,7 @@ void cAFM_Im_Master::FilterVoisCplCt(std::vector<cCdtCplHom> & aV0)
     mQt.clear(); 
     ElPackHomologue aPack = PackFromVCC(aV0); 
 
-    ElSimilitude  aSim = SimilRobustInit(aPack,0.666);
+    ElSimilitude  aSim = SimilRobustInit(aPack,0.666,100);
 
     aSim = aS0;
     mAppli.SetCurMapping(new ElSimilitude(aSim));

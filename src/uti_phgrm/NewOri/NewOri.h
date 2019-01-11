@@ -102,6 +102,9 @@ class cCommonMartiniAppli
        std::string    mExtName;
        std::string    mInOri;
        std::string    mOriOut;
+       std::string    mOriGPS;
+       std::string    mOriCheck;
+       bool           mDebug;
        //  std::string    mBlinis;
        bool           mAcceptUnSym;
        bool           mQuick;
@@ -113,6 +116,11 @@ class cCommonMartiniAppli
        LArgMain &     ArgCMA();
        std::string    ComParam();
        cCommonMartiniAppli();
+       
+       bool GpsIsInit();
+       bool CheckIsInit();
+       Pt3dr GpsVal(cNewO_OneIm *);
+       CamStenope * CamCheck(cNewO_OneIm *);
       
     private :
        LArgMain * mArg;
@@ -180,7 +188,7 @@ class cNewO_OrInit2Im
                 bool                Show,
                 bool                aHPP,
                 bool                aSelAllIm,
-                const               cCommonMartiniAppli &
+                cCommonMartiniAppli &
           );
 
           double ExactCost(const ElRotation3D & aRot,double aTetaMax) const;
