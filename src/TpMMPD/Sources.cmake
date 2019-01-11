@@ -93,6 +93,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/EsSim/EsSimilitude.cpp
 
     ${TDPPMD_DIR}/SimuBBA/GenerateTP.cpp
+    ${TDPPMD_DIR}/SimuBBA/SimuRolShut.cpp
 	
     ${TDPPMD_DIR}/ConvertTiePPS2MM/cAppliConvertTiePPs2MM.cpp
     ${TDPPMD_DIR}/ConvertTiePPS2MM/ConvertTiePPs2MM.cpp
