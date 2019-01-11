@@ -109,6 +109,8 @@ int SimuRolShut_main(int argc, char ** argv)
         std::string aNameCamOut = aVImgs.at(i).substr(0,aVImgs.at(i).size()-8)+"_bis.xml";
         std::string aOriOut = aICNM->Assoc1To1(aKeyOut,aNameCamOut,true);
         cOrientationConique  anOC = aCam->StdExportCalibGlob();
+        anOC.Interne().SetNoInit();
+        anOC.FileInterne().SetVal(aICNM->StdNameCalib(aOri,aVImgs[i]));
 
         std::cout << "Generate " << aNameCamOut << endl;
         MakeFileXML(anOC,aOriOut);
