@@ -2863,6 +2863,20 @@ void ElCamera::SetOrientation(const ElRotation3D &ORIENT)
      _orient = ORIENT;
 }
 
+void ElCamera::AddToCenterOptical(const Pt3dr & aOffsetC)
+{
+    Pt3dr aC = _orient.inv().ImAff(Pt3dr(0,0,0)) + aOffsetC;
+    ElRotation3D aOrient(aC,_orient.inv().Mat(),true);
+    _orient = aOrient.inv();
+}
+
+void ElCamera::MultiToRotation(const ElMatrix<double> & aOffsetR)
+{
+    Pt3dr aC = _orient.inv().ImAff(Pt3dr(0,0,0));
+    ElRotation3D aOrient(aC,_orient.inv().Mat()*aOffsetR,true);
+    _orient = aOrient.inv();
+}
+
 Pt2dr ElCamera::R3toC2(Pt3dr p) const
 {
     return Proj().Proj(R3toL3(p));
