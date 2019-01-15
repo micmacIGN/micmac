@@ -49,32 +49,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
 #include "../schnaps.h"
 #include "../TpPPMD.h"
+#include "SimuBBA.h"
 
-
-struct StructHomol {
-    int IdIm;
-    CamStenope * Cam;
-    vector<int> VIdIm2;
-    vector<ElPackHomologue> VElPackHomol;
-};
-
-// check if one image is in the image list
-bool IsInList(const std::vector<std::string> aVImgs, std::string aNameIm)
-{
-    for (uint i=0; i<aVImgs.size();i++)
-    {
-        if (aVImgs.at(i)==aNameIm) return true;
-    }
-    return false;
-}
-
-// check if one point is in the image
-bool IsInImage(Pt2di aSz, Pt2dr aPt)
-{
-    if ((aPt.x >= 0) && (aPt.x < double(aSz.x)-0.5) && (aPt.y >= 0) && (aPt.y < double(aSz.y)-0.5))
-        return true;
-    return false;
-}
 
 int GenerateTP_main(int argc,char ** argv)
 {
@@ -147,12 +123,12 @@ int GenerateTP_main(int argc,char ** argv)
     std::cout << "Loading tie points + orientation...   ";
     cSetTiePMul * pSH = new cSetTiePMul(0);
     pSH->AddFile(aSH);
-    std::map<std::string,cCelImTPM *> VName2Im = pSH->DicoIm().mName2Im;
+    std::map<std::string,cCelImTPM *> aVName2Im = pSH->DicoIm().mName2Im;
 
     // load cam for all Img
     // Iterate through all elements in std::map
-    vector<CamStenope*> aVCam (VName2Im.size());
-    for(auto &aName2Im:VName2Im)
+    vector<CamStenope*> aVCam (aVName2Im.size());
+    for(auto &aName2Im:aVName2Im)
     {
         CamStenope * aCam = aICNM->StdCamStenOfNames(aName2Im.first,aOri);
         aCam->SetNameIm(aName2Im.first);
@@ -162,12 +138,12 @@ int GenerateTP_main(int argc,char ** argv)
     std::cout << "Finish loading " << pSH->VPMul().size() << " CONFIG\n";
 
     // declare aVStructH to stock generated tie points
-    vector<ElPackHomologue> aVPack (VName2Im.size());
-    vector<int> aVIdIm2 (VName2Im.size(),-1);
+    vector<ElPackHomologue> aVPack (aVName2Im.size());
+    vector<int> aVIdImS (aVName2Im.size(),-1);
     StructHomol aStructH;
     aStructH.VElPackHomol = aVPack;
-    aStructH.VIdIm2 = aVIdIm2;
-    vector<StructHomol> aVStructH (VName2Im.size(),aStructH);
+    aStructH.VIdImSecond = aVIdImS;
+    vector<StructHomol> aVStructH (aVName2Im.size(),aStructH);
 
     //2. get 2D/3D position of tie points
     std::cout << "Filling ElPackHomologue...   ";
@@ -264,7 +240,7 @@ int GenerateTP_main(int argc,char ** argv)
 
                     ElCplePtsHomologues aCPH (aVP2d[it1],aVP2d[it2]);
                     aVStructH.at(aIdIm1).VElPackHomol.at(aIdIm2).Cple_Add(aCPH);
-                    aVStructH.at(aIdIm1).VIdIm2.at(aIdIm2)=aIdIm2;
+                    aVStructH.at(aIdIm1).VIdImSecond.at(aIdIm2)=aIdIm2;
                 }
             }
 
@@ -300,7 +276,7 @@ int GenerateTP_main(int argc,char ** argv)
         {
             for (uint itVElPH=0; itVElPH < aVStructH.at(itVSH).VElPackHomol.size(); itVElPH++)
             {
-                int aIdIm2 = aVStructH.at(itVSH).VIdIm2.at(itVElPH);
+                int aIdIm2 = aVStructH.at(itVSH).VIdImSecond.at(itVElPH);
                 if (aIdIm2 == -1) continue;
                 CamStenope * aCam2 = aVCam.at(aIdIm2);
                 std::string aNameIm2 = aCam2->NameIm();
