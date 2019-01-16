@@ -43,7 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../../include/StdAfx.h"
 
-#define PB_LINK_AUTOCOR ELISE_QT 
+#define PB_LINK_AUTOCOR false 
 // #define PB_LINK_AUTOCOR (ELISE_QT || (! ELISE_unix))
 
 

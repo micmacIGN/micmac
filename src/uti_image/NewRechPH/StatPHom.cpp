@@ -126,6 +126,8 @@ class cAppliStatPHom
        cPtFromCOPC                 mArgQt;
        tQtOPC *                    mQt2;
        std::string                 mDirSaveIm;
+       std::string                 mPatLabels;
+       cElRegex *                  mAutoLabels;
 };
 
 class cOneImSPH
@@ -327,7 +329,7 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
             std::cout << "*************===========================================================*************\n";
             std::cout << "*************===========================================================*************\n";
             std::cout << "*************===========================================================*************\n";
-            std::cout << "For " << eToString(aLab) << " sz=" << aV1.size() << " " << aV2.size() << "\n";
+            std::cout << "NbInit For " << eToString(aLab) << " sz=" << aV1.size() << " " << aV2.size() << "\n";
 
             std::vector<double> aVD22;
             for (int aK2=0 ; aK2< int(aV2.size()); aK2++)
@@ -447,9 +449,10 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
             // Export en forme d'imagette
             if (EAMIsInit(&(mAppli.DirSaveIm())))
             {
-                for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
+                // for (int aKL=0 ; aKL<int(eTPR_NoLabel) ; aKL++)
                 {
-                    eTypePtRemark   aLabTPR = eTypePtRemark(aKL);
+                    // eTypePtRemark   aLabTPR = eTypePtRemark(aKL);
+                    eTypePtRemark   aLabTPR = aLab;
                     for (int aKI=0 ; aKI<int(eTVIR_NoLabel) ; aKI++)
                     {
                         eTypeVecInvarR  aLabTVI = eTypeVecInvarR(aKI);
@@ -482,10 +485,22 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
                             }
                             std::string aDir = DirApprentIR(mAppli.DirSaveIm(),aLabTPR,aLabTVI);
                             std::string aName = aDir + "Cple-"+ StdPrefix(mAppli.mN1) + "-" + StdPrefix(mAppli.mN2) + + ".tif";
-                            Tiff_Im::CreateFromIm(aImGlob,aName);
 
 
+                            // Tiff_Im::CreateFromIm(aImGlob,aName);
 
+                            L_Arg_Opt_Tiff        aLArg = Tiff_Im::Empty_ARG;
+                            aLArg = aLArg + Arg_Tiff(Tiff_Im::ANoStrip());
+                            Tiff_Im aFileSave
+                                    (
+                                        aName.c_str(),
+                                        aImGlob.sz(),
+                                        GenIm::u_int1,
+                                        Tiff_Im::No_Compr,
+                                        Tiff_Im::BlackIsZero,
+                                        aLArg
+                                    );
+                            ELISE_COPY(aImGlob.all_pts(),aImGlob.in(),aFileSave.out());
                             // Im2D_INT1   ImOfCarac(const cOnePCarac & aPC,eTypeVecInvarR aType)
                             //std::string aDir = DirApprentIR(mAppli.DirSaveIm(),aLabTPR,aLabTVI);
                         }
@@ -606,7 +621,8 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
     mNbMaxTested  (30000),
     mNbMaxValid   (1000),
     mScaleLim     (0.0),
-    mSeuilBigRes  (100.0)
+    mSeuilBigRes  (100.0),
+    mPatLabels    (".*")
 {
    ElInitArgMain
    (
@@ -624,12 +640,15 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
                      << EAM(mNbMaxTested,"NbMaxTested",true,"Nb Max Testesd def=30000")
                      << EAM(mScaleLim,"ScaleLim",true,"Scale minimal, def=0")
                      << EAM(mDirSaveIm,"DSI",true,"DIR SAVE IMAGE (to create truth for learning)")
+                     << EAM(mPatLabels,"PatLabs",true,"Pattern for labels (essentially tuning)")
    );
 
    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
    StdCorrecNameOrient(mOri,mDir);
    StdCorrecNameHomol(mSH,mDir);
    mI1 = new cOneImSPH(mN1,*this);
+
+   mAutoLabels = new cElRegex(mPatLabels,10);
 
 
    StdInitFitsPm(mFP);
@@ -665,7 +684,12 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
 
    for (int aKLab = 0 ; aKLab < int(eTPR_NoLabel) ; aKLab++)
    {
-      mI1->TestMatch(*mI2,eTypePtRemark(aKLab));
+      eTypePtRemark aLab = eTypePtRemark(aKLab);
+
+      if (mAutoLabels->Match(eToString(aLab)))
+      {
+         mI1->TestMatch(*mI2,aLab);
+      }
    }
 
    
@@ -678,16 +702,22 @@ cAppliStatPHom::cAppliStatPHom(int argc,char ** argv) :
    std::cout << "   NB Pts Tapioca : " <<   mPack.size()  << "\n";
    int aNbSeuilD = 0;
 
-   for (int aK=0 ; aK<int(eTPR_NoLabel) ; aK++)
+   int aKStat=0;
+   for (int aKLab=0 ; aKLab<int(eTPR_NoLabel) ; aKLab++)
    {
-       const cStatOneLabel & aSOL = mVLabs.at(aK);
-       eTypePtRemark aLab = (eTypePtRemark) aK;
-       std::cout << "  Lab=" <<  eToString(aLab);
-       std::cout << " NbSeuilD=" << aSOL.mNbPtsSeuilDist ;
-       std::cout << " NbTot=" << aSOL.mNbPtsIn ;
-       std::cout << "\n";
-       aNbSeuilD +=  aSOL.mNbPtsSeuilDist;
+       eTypePtRemark aLab = eTypePtRemark(aKLab);
+       if (mAutoLabels->Match(eToString(aLab)))
+       {
+          const cStatOneLabel & aSOL = mVLabs.at(aKStat);
+          // eTypePtRemark aLab = (eTypePtRemark) aK;
+          std::cout << "  Lab=" <<  eToString(aLab);
+          std::cout << " NbSeuilD=" << aSOL.mNbPtsSeuilDist ;
+          std::cout << " NbTot=" << aSOL.mNbPtsIn ;
+          std::cout << "\n";
+          aNbSeuilD +=  aSOL.mNbPtsSeuilDist;
+          aKStat++;
        // std::vector<cStatOneLabel>  mVLabs;
+       }
    }
    std::cout << " NbSeuilDist " << aNbSeuilD ;
    std::cout << "\n";
