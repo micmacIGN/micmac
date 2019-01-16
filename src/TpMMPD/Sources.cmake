@@ -93,12 +93,18 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/EsSim/EsSimilitude.cpp
 
     ${TDPPMD_DIR}/SimuBBA/GenerateTP.cpp
+    ${TDPPMD_DIR}/SimuBBA/SimuRolShut.cpp
 	
     ${TDPPMD_DIR}/ExchangeLib/PhotoScan/ConvTiePointPSMM/cAppliConvertTiePPs2MM.cpp
     ${TDPPMD_DIR}/ExchangeLib/PhotoScan/ConvTiePointPSMM/ConvertTiePPs2MM.cpp
     ${TDPPMD_DIR}/ExchangeLib/VSfM/CPP_ConvHomolVSFM2MM.cpp
     ${TDPPMD_DIR}/ExchangeLib/Pix4D/ConvTiePointPix4DMM/cAppliConvTiePointPix4DMM.cpp
     ${TDPPMD_DIR}/ExchangeLib/Pix4D/ConvTiePointPix4DMM/ConvTiePointPix4DMM.cpp
+
+
+    ${TDPPMD_DIR}/OrthoDirectFromDenseCloud/cappliorthodirectfromdensecloud.cpp
+    ${TDPPMD_DIR}/TiePointsGraphByCameraDistance/tiepgraphbycamdist.cpp
+
 
     ${TDPPMD_DIR}/Ex_Match/cImgMatch.cpp
     ${TDPPMD_DIR}/Ex_Match/cLSQTemplate.cpp
