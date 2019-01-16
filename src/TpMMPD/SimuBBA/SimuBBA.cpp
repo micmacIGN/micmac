@@ -36,25 +36,10 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
-#include <random>
-#include <ctime>
-#include <iostream>
-#include <fstream>
-#include <algorithm>
 
-#include "StdAfx.h"
-#include "string.h"
-#include "../../uti_phgrm/TiepTri/TiepTri.h"
-#include "../../uti_phgrm/TiepTri/MultTieP.h"
-#include "../schnaps.h"
+#include "SimuBBA.h"
 
-struct Orientation
-{
-    Pt3dr Translation;
-    ElMatrix<double> Rotation;
-};
-
-void ReadModif(std::vector<Orientation> & aVOrient, const std::string & aModifP)
+std::vector<Orientation> & ReadModif(std::vector<Orientation> & aVOrient, const std::string & aModifP)
 {
     std::ifstream aFile(aModifP.c_str());
     if(aFile)
@@ -73,57 +58,27 @@ void ReadModif(std::vector<Orientation> & aVOrient, const std::string & aModifP)
     std::cout << "ModifP size: " << aVOrient.size() << endl;
 }
 
-int SimuRolShut_main(int argc, char ** argv)
+// check if one image is in the image list
+bool IsInList(const std::vector<std::string> aVImgs, std::string aNameIm)
 {
-    std::string aPatImgs, aSH, aOri, aSHOut{"SimuRolShut"}, aDir, aImgs,aModifP;
-    //int aSeed;
-    ElInitArgMain
-            (
-                argc, argv,
-                LArgMain() << EAMC(aPatImgs,"Image Pattern",eSAM_IsExistFile)
-                           << EAMC(aSH, "PMul File",  eSAM_IsExistFile)
-                           << EAMC(aOri, "Ori",  eSAM_IsExistDirOri)
-                           << EAMC(aModifP,"File containing pose modification for each image, file size = 1 or # of images"),
-                LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, Def=simulated")
-                );
-
-    // get directory
-    SplitDirAndFile(aDir,aImgs,aPatImgs);
-    StdCorrecNameOrient(aOri, aDir);
-    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    const std::vector<std::string> aVImgs = *(aICNM->Get(aImgs));
-
-    std::cout << aVImgs.size() << " image files.\n";
-
-    std::vector<Orientation> aVOrient;
-    ReadModif(aVOrient,aModifP);
-
-    for(uint i=0; i<aVImgs.size();i++)
+    for (uint i=0; i<aVImgs.size();i++)
     {
-        CamStenope * aCam = aICNM->StdCamStenOfNames(aVImgs[i],aOri);
-        uint j = (aVOrient.size()==1)? 0 : i;
-        aCam->AddToCenterOptical(aVOrient.at(j).Translation);
-        aCam->MultiToRotation(aVOrient.at(j).Rotation);
-
-        std::string aKeyOut = "NKS-Assoc-Im2Orient@-" + aOri;
-        std::string aNameCamOut = aVImgs.at(i).substr(0,aVImgs.at(i).size()-8)+"_bis.xml";
-        std::string aOriOut = aICNM->Assoc1To1(aKeyOut,aNameCamOut,true);
-        cOrientationConique  anOC = aCam->StdExportCalibGlob();
-        anOC.Interne().SetNoInit();
-        anOC.FileInterne().SetVal(aICNM->StdNameCalib(aOri,aVImgs[i]));
-
-        std::cout << "Generate " << aNameCamOut << endl;
-        MakeFileXML(anOC,aOriOut);
+        if (aVImgs.at(i)==aNameIm) return true;
     }
+    return false;
+}
 
-
-
-    return EXIT_SUCCESS;
+// check if one point is in the image
+bool IsInImage(Pt2di aSz, Pt2dr aPt)
+{
+    if ((aPt.x >= 0) && (aPt.x < double(aSz.x)-0.5) && (aPt.y >= 0) && (aPt.y < double(aSz.y)-0.5))
+        return true;
+    return false;
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant a  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -139,17 +94,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  a  l'utilisation,  a  la modification et/ou au
-développement et a  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe a
-manipuler et qui le réserve donc a  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités a  charger  et  tester  l'adéquation  du
-logiciel a  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-a  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder a cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
