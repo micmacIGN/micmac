@@ -221,6 +221,7 @@ int GenerateTP_main(int argc,char ** argv)
                 if (aCam->PIsVisibleInImage(aPInter3D) && IsInImage(aCam->Sz(),aPt2d))
                 {
                     aVP2d.push_back(aPt2d);
+                    //std::cout << aPt2d << endl;
                     aVCamInterVu.push_back(aCam);
                     aVIdImInterVu.push_back(aVIdImInter[itVCI]);
                 }             
@@ -306,6 +307,7 @@ int GenerateTP_main(int argc,char ** argv)
                            + aSHOut
                            + " ExportBoth=1";
     system_call(aComConvFH.c_str());
+    std::cout << aComConvFH << endl;
 
     return EXIT_SUCCESS;
 }

@@ -89,61 +89,70 @@ int SimuRolShut_main(int argc, char ** argv)
         std::string aNameCamOut = aVImgs.at(i).substr(0,aVImgs.at(i).size()-aSzPF)+"_bis"+aPostfix;
         std::string aOriOut = aICNM->Assoc1To1(aKeyOut,aNameCamOut,true);
         cOrientationConique  anOC = aCam->StdExportCalibGlob();
+        anOC.Interne().SetNoInit();
+        anOC.FileInterne().SetVal(aICNM->StdNameCalib(aOri,aVImgs[i]));
 
         std::cout << "Generate " << aNameCamOut << endl;
         MakeFileXML(anOC,aOriOut);
     }
 
-
-    // lecture of tie points and orientation
+    //1. lecture of tie points and orientation
+    std::cout << "Loading tie points + orientation...   ";
     cSetTiePMul * pSH = new cSetTiePMul(0);
     pSH->AddFile(aSH);
     std::map<std::string,cCelImTPM *> aVName2Im = pSH->DicoIm().mName2Im;
 
-    // declare 2D vector for storage of cam orientation
-    std::vector<std::vector<CamStenope*>> aVCam (2, std::vector<CamStenope *> (aVName2Im.size())); // real poses + simulated poses;
-    for (auto &aName2Im:aVName2Im)
+    // load cam for all Img
+    // Iterate through all elements in std::map
+    vector<CamStenope*> aVCam (aVName2Im.size());//real poses
+    vector<CamStenope*> aVCambis (aVName2Im.size());//generated poses
+    for(auto &aName2Im:aVName2Im)
     {
-        CamStenope * aCam0 = aICNM->StdCamStenOfNames(aName2Im.first,aOri);
-        aCam0->SetNameIm(aName2Im.first);
-        aVCam[0][aName2Im.second->Id()] = aCam0;
+        CamStenope * aCam = aICNM->StdCamStenOfNames(aName2Im.first,aOri);
+        aCam->SetNameIm(aName2Im.first);
+        aVCam[aName2Im.second->Id()] = aCam;
 
-        std::string aNameCamBis = aName2Im.first.substr(0,aName2Im.first.size()-aSzPF)+"_bis"+aPostfix;
-        CamStenope * aCam1 = aICNM->StdCamStenOfNames(aNameCamBis,aOri);
-        aCam1->SetNameIm(aNameCamBis);
-        aVCam[1][aName2Im.second->Id()] = aCam1;
+        std::string aNamebis = aName2Im.first.substr(0,aName2Im.first.size()-aSzPF)+"_bis"+aPostfix;
+        CamStenope * aCambis = aICNM->StdCamStenOfNames(aNamebis,aOri);
+        aCambis->SetNameIm(aNamebis);
+        aVCambis[aName2Im.second->Id()] = aCambis;
     }
 
+    std::cout << "Finish loading " << pSH->VPMul().size() << " CONFIG\n";
+
     // declare aVStructH to stock generated tie points
-    std::vector<ElPackHomologue> aVPack (aVName2Im.size());
-    std::vector<int> aVIdImS (aVName2Im.size(),-1);
+    vector<ElPackHomologue> aVPack (aVName2Im.size());
+    vector<int> aVIdImS (aVName2Im.size(),-1);
     StructHomol aStructH;
     aStructH.VElPackHomol = aVPack;
     aStructH.VIdImSecond = aVIdImS;
-    std::vector<StructHomol> aVStructH (aVName2Im.size(),aStructH);
+    vector<StructHomol> aVStructH (aVName2Im.size(),aStructH);
 
-    // get 2D/3D position of tie points
+    //2. get 2D/3D position of tie points
+    std::cout << "Filling ElPackHomologue...   ";
+
 
     // parse Configs aVCnf
     std::vector<cSetPMul1ConfigTPM *> aVCnf = pSH->VPMul();
-    for(auto &aCnf:aVCnf)
+    for (auto &aCnf:aVCnf)
     {
-        std::vector<int> aVIdIm = aCnf->VIdIm();
+        std::vector<int> aVIdIm =  aCnf->VIdIm();
 
-        // parse all pts in one Config
-        for(uint aKPtCnf=0; aKPtCnf<uint(aCnf->NbPts()); aKPtCnf++)
+        // Parse all pts in one Config
+        for (uint aKPtCnf=0; aKPtCnf<uint(aCnf->NbPts()); aKPtCnf++)
         {
-            std::vector<Pt2dr> aVPtInter;
-            std::vector<CamStenope*> aVCamInter; // real poses to intersect
-            std::vector<CamStenope*> aVCamSimu; // simulated poses
-            std::vector<int> aVIdImInter;
+            vector<Pt2dr> aVPtInter;
+            vector<CamStenope*> aVCamInter;
+            vector<CamStenope*> aVCamInterbis;
+            vector<int> aVIdImInter;
 
-            // parse all imgs for one pt
-            for(uint aKImCnf=0; aKImCnf<aVIdIm.size();aKImCnf++)
+            // Parse all imgs for one pts
+            for (uint aKImCnf=0; aKImCnf<aVIdIm.size(); aKImCnf++)
             {
-                aVPtInter.push_back(aCnf->Pt(aKPtCnf,aKImCnf));
-                aVCamInter.push_back(aVCam[0][aVIdIm[aKImCnf]]);
-                aVCamSimu.push_back(aVCam[1][aVIdIm[aKImCnf]]);
+
+                aVPtInter.push_back(aCnf->Pt(aKPtCnf, aKImCnf));
+                aVCamInter.push_back(aVCam[aVIdIm[aKImCnf]]);
+                aVCamInterbis.push_back(aVCambis[aVIdIm[aKImCnf]]);
                 aVIdImInter.push_back(aVIdIm[aKImCnf]);
             }
 
@@ -152,30 +161,37 @@ int SimuRolShut_main(int argc, char ** argv)
             ELISE_ASSERT(aVPtInter.size() == aVCamInter.size(), "Size not coherent");
             ELISE_ASSERT(aVPtInter.size() > 1 && aVCamInter.size() > 1, "Nb faiseaux < 2");
             Pt3dr aPInter3D = Intersect_Simple(aVCamInter , aVPtInter);
+            //std::cout << aPInter3D << endl;
+
 
             // reproject aPInter3D sur tout les images dans aVCamInter
             std::vector<Pt2dr> aVP2d;
             std::vector<CamStenope *> aVCamInterVu;
             std::vector<int> aVIdImInterVu;
 
-            for(uint itVCI=0; itVCI < aVCamInter.size(); itVCI++)
+            for (uint itVCI=0; itVCI < aVCamInter.size(); itVCI++)
             {
-                CamStenope * aCam0 = aVCamInter[itVCI];
-                Pt2dr aPt2d0 = aCam0->R3toF2(aPInter3D);// reprojection via real pose P0
-                CamStenope * aCam1 = aVCamSimu[itVCI];
-                Pt2dr aPt2d1 = aCam1->R3toF2(aPInter3D); // reprojection via simulated pose P1
+                CamStenope * aCam = aVCamInter[itVCI];
+                Pt2dr aPt2d0 = aCam->R3toF2(aPInter3D);//P0
 
-                // Pl (xl,yl) = xl/X * P1 + (1-xl/X) * P0
-                double aXl = aCam0->Sz().x * aPt2d0.x / (aCam0->Sz().x - aPt2d1.x + aPt2d0.x);
-                double aRatio = aXl/aCam0->Sz().x;
-                double aYl = aRatio * aPt2d1.y + (1-aRatio) * aPt2d0.y;
-                Pt2dr aPt2d = Pt2dr (aXl, aYl);
-                //std::cout << "Sz = " << aCam0->Sz() << " P0 = " << aPt2d0 << " P1 = " << aPt2d1 << " Pl = " << aPt2d << endl;
+                CamStenope * aCambis = aVCamInterbis[itVCI];
+                Pt2dr aPt2d1 = aCambis->R3toF2(aPInter3D);//P1
 
-                if(aCam0->PIsVisibleInImage(aPInter3D) && aCam1->PIsVisibleInImage(aPInter3D) && IsInImage(aCam0->Sz(),aPt2d))
+                // Pl = l*P1 + (1-l)P0
+                double aX = aCam->Sz().x * aPt2d0.x / (aCam->Sz().x - aPt2d1.x + aPt2d0.x); // Pl.x
+                double aRatio = aX / aCam->Sz().x; // Pl.x / X
+                double aY = aRatio * aPt2d1.y + (1-aRatio) * aPt2d0.y;
+                Pt2dr aPt2d = Pt2dr(aX,aY);
+
+                //std::cout << "P0 " << aPt2d0 << " Pl " << aPt2d << " P1 " << aPt2d1 << endl;
+
+
+                //check if the point is in the camera view
+                if (aCam->PIsVisibleInImage(aPInter3D) && IsInImage(aCam->Sz(),aPt2d))
                 {
                     aVP2d.push_back(aPt2d);
-                    aVCamInterVu.push_back(aCam0);
+                    //std::cout << aPt2d << endl;
+                    aVCamInterVu.push_back(aCam);
                     aVIdImInterVu.push_back(aVIdImInter[itVCI]);
                 }
             }
@@ -183,27 +199,29 @@ int SimuRolShut_main(int argc, char ** argv)
             // parse images to fill ElPackHomologue
             for (uint it1=0; it1 < aVCamInterVu.size(); it1++)
             {
-                int aIdIm1 = aVIdImInterVu[it1];
-                aVStructH[aIdIm1].IdIm=aIdIm1;
+                int aIdIm1=aVIdImInterVu.at(it1);
+                aVStructH.at(aIdIm1).IdIm=aIdIm1;
 
-                for(uint it2=0; it2 < aVCamInterVu.size(); it2++)
+                for (uint it2=0; it2 < aVCamInterVu.size(); it2++)
                 {
-                    if(it1!=it2)
-                    {
-                        int aIdIm2 = aVIdImInterVu[it2];
+                    if (it1==it2) continue;
 
-                        ElCplePtsHomologues aCPH (aVP2d[it1],aVP2d[it2]);
-                        aVStructH[aIdIm1].VElPackHomol[aIdIm2].Cple_Add(aCPH);
-                        aVStructH[aIdIm1].VIdImSecond[aIdIm2]=aIdIm2;
-                    }
+                    int aIdIm2=aVIdImInterVu.at(it2);
+
+                    ElCplePtsHomologues aCPH (aVP2d[it1],aVP2d[it2]);
+                    aVStructH.at(aIdIm1).VElPackHomol.at(aIdIm2).Cple_Add(aCPH);
+                    aVStructH.at(aIdIm1).VIdImSecond.at(aIdIm2)=aIdIm2;
                 }
             }
+
+
         }
     }
 
+    std::cout << "ElPackHomologue filled !\n";
 
     //writing of new tie points
-
+    std::cout << "Writing Homol files...   ";
     //key for tie points
     std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
             + "_"
@@ -215,7 +233,7 @@ int SimuRolShut_main(int argc, char ** argv)
     for (uint itVSH=0; itVSH < aVStructH.size(); itVSH++)
     {
         int aIdIm1 = aVStructH.at(itVSH).IdIm;
-        CamStenope * aCam1 = aVCam[0].at(aIdIm1);
+        CamStenope * aCam1 = aVCam.at(aIdIm1);
         std::string aNameIm1 = aCam1->NameIm();
         if (IsInList(aVImgs,aNameIm1))
         {
@@ -223,7 +241,7 @@ int SimuRolShut_main(int argc, char ** argv)
             {
                 int aIdIm2 = aVStructH.at(itVSH).VIdImSecond.at(itVElPH);
                 if (aIdIm2 == -1) continue;
-                CamStenope * aCam2 = aVCam[0].at(aIdIm2);
+                CamStenope * aCam2 = aVCam.at(aIdIm2);
                 std::string aNameIm2 = aCam2->NameIm();
                 if (IsInList(aVImgs,aNameIm2))
                 {
@@ -236,6 +254,8 @@ int SimuRolShut_main(int argc, char ** argv)
 
     }
 
+    std::cout << "Finished writing Homol files ! \n";
+
     // convert Homol folder into new format
     std::string aComConvFH = MM3dBinFile("TestLib ConvNewFH")
                            + aImgs
@@ -243,6 +263,7 @@ int SimuRolShut_main(int argc, char ** argv)
                            + aSHOut
                            + " ExportBoth=1";
     system_call(aComConvFH.c_str());
+    std::cout << aComConvFH << endl;
 
     return EXIT_SUCCESS;
 }
