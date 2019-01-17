@@ -712,16 +712,17 @@ cISR_Appli::cISR_Appli(int argc, char** argv){
     else
     {
         cout.precision(10);
-        double aMinX, aMinY, aMaxX, aMaxY;
-        double aMinGSDX, aMinGSDY, aMaxGSDX, aMaxGSDY;
-        for (uint aKIm = 0; aKIm<int(mIms.size()) ; aKIm++)
+        double aMinX=1e30, aMinY=1e30, aMaxX=1e30, aMaxY=1e30; // Warn un init => put 1e30
+        double aMinGSDX=1e30, aMinGSDY=1e30, aMaxGSDX=1e30, aMaxGSDY=1e30; // Warn un init => put 1e30
+        for (uint aKIm = 0; aKIm<(mIms.size()) ; aKIm++)
         {
             cISR_Ima * anIm = mIms[aKIm];
             std::string aNameTFW = "Rectified-"+ anIm->Name() + ".tfw";
             std::ifstream aFp(aNameTFW);
             double a;
             int cnt = 0;
-            double aGSDx, aGSDy, aOffsetX, aOffsetY;
+
+            double aGSDx = 1e30, aGSDy = 1e30, aOffsetX = 1e30, aOffsetY = 1e30; // Warn un init => put 1e30
             while (aFp >> a)
             {
                 cnt++;

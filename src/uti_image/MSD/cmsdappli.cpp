@@ -1,13 +1,16 @@
 #include "cmsdappli.h"
 
+/*
+
+*/
 
 cMSD1Im::cMSD1Im(int argc,char ** argv):
-    mDebug(1),
     mTmpDir("Tmp-MM-Dir/"),
+    mDebug(1),
     msd(),
     mTh(0.02),// a posteriori filter: low value
-    mSAR(5),
     mPR(3),
+    mSAR(5),
     mKNN(5),
     mNMS(5),// a posteriori filter: low value
     mSc(-1)

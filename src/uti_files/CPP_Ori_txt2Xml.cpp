@@ -510,7 +510,7 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
     }
 
 
-    for (int aKS =0 ; aKS<int(aVSom.size()-4) ; aKS+=4)
+    for (int aKS =0 ; aKS+4<int(aVSom.size()) ; aKS+=4)  // aKS < VS-4 => donne un warn
     {
          for (int aKS1 = aKS ; aKS1<(aKS+4) ; aKS1++)
          {

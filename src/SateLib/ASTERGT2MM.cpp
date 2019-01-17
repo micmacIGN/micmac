@@ -517,7 +517,7 @@ void ConcatenateASTERImages(string aDir, string aOutDir, vector<int> aVectDistan
 	U_INT1 ** aData_2 = aIm_2.data();
 
 	//for each image
-	for (u_int i = 0; i < nbScenes; i++)
+	for (u_int i = 0; int(i) < nbScenes; i++)
 	{
 
 		aNameFile = ListScenes.front();
@@ -725,7 +725,7 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 	//Concatenanted data from other images of band (in image and ground geometry, and associated sattellite positions)
 	int aDistanceBetweenImages;
 
-	for (u_int i = 0; i < nbScenes - 1; i++)
+	for (u_int i = 0; int(i) < nbScenes - 1; i++)
 	{
 		//Getting image name
 		aNameFile = ListScenes.front();

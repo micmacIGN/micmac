@@ -359,6 +359,7 @@ cAppliGpsLoc::cAppliGpsLoc(int argc,char ** argv) :
    }
    else
    {   // calcul pour chaque triplet
+/* Commente car warning unused
        for (auto a3 : mV3)
        {
             //a faire:
@@ -366,6 +367,7 @@ cAppliGpsLoc::cAppliGpsLoc(int argc,char ** argv) :
             //  (alors on dispose de plusiers poses abs pour chaque sommet)
             //- estimer la transformation de similitude (7param) la plus robuste en prennant en compte toutes les resultat 
        }
+*/
 
    }
 }

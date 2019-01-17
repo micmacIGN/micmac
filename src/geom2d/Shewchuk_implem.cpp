@@ -6985,6 +6985,8 @@ void deletesite( struct triedge *deltri)
 /*                                                                           */
 /*****************************************************************************/
 
+extern void DoNothing(int &);
+
 /* void pointsort(sortarray, arraysize) */
 void pointsort (point *sortarray, int arraysize)
 {
@@ -7035,11 +7037,13 @@ void pointsort (point *sortarray, int arraysize)
     /* Recursively sort the left subset. */
     pointsort(sortarray, left);
   }
-  if (right < arraysize - 2) {
+  DoNothing(right); // Evite warning incomprehenseible
+  if (right < (arraysize - 2)) {
     /* Recursively sort the right subset. */
     pointsort(&sortarray[right + 1], arraysize - right - 1);
   }
 }
+void DoNothing(int &) {}
 
 /*****************************************************************************/
 /*                                                                           */

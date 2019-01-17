@@ -141,7 +141,8 @@ int ReechHomol_main(int argc, char **argv)
             if (aVSIT.at(aV).ImgName.compare(aIm1) == 0)
             {
                 aNameMap1 = "PolOfTXY-" + ToString(aVSIT.at(aV).ImgTemp) + ".xml";
-                * aMapIm1->FromFile(aNameMap1);
+                aMapIm1->FromFile(aNameMap1);
+                // * aMapIm1->FromFile(aNameMap1);  Warn unused
                 //cout << "Im : " << aVSIT.at(aV).ImgName << " Temp : " << aVSIT.at(aV).ImgTemp << endl;
             }
         }
@@ -169,7 +170,8 @@ int ReechHomol_main(int argc, char **argv)
                     if (aVSIT.at(aT).ImgName.compare(aIm2) == 0)
                     {
                         aNameMap2 = "PolOfTXY-" + ToString(aVSIT.at(aT).ImgTemp) + ".xml";
-                        * aMapIm2->FromFile(aNameMap2);
+                        aMapIm2->FromFile(aNameMap2);  
+                        // * aMapIm2->FromFile(aNameMap2);  Warn unused
                         //cout << "Im : " << aVSIT.at(aT).ImgName << " Temp : " << aVSIT.at(aT).ImgTemp << endl;
                     }
                 }
@@ -583,7 +585,8 @@ int ReechMAF_main (int argc, char ** argv)
             if(aVSIT.at(iV).ImgName.compare(iT1->NameIm()) == 0)
             {
                 std::string aNameMap = "PolOfTXY-" + ToString(aVSIT.at(iV).ImgTemp) + ".xml";
-                * aMap->FromFile(aNameMap);
+                aMap->FromFile(aNameMap);
+                // * aMap->FromFile(aNameMap); Warn unused
             }
         }
 

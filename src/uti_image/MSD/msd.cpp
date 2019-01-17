@@ -197,7 +197,7 @@ bool isConsecutive(vector<int> &pxlValidIndx)
 
 double Consecutive(vector<int> &pxlValidIndx)
 {
-    int aRes;
+    int aRes=-1000000; // Warn no init
     //compute consecutivity for each neighbour position
     for (uint i=0; i<pxlValidIndx.size(); i++)
     {

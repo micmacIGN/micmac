@@ -593,7 +593,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # DEFINITION : des preprocesseurs G++
 if(CMAKE_COMPILER_IS_GNUCC)
 	#~ add_compile_options(-O2 -Wall) // pas gere par le cmake de la forge
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -Werror")
 endif()
 
 # DEFINITION : Windows : le projet debug est genere directement sous bin pour avoir les informations de Debug

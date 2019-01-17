@@ -100,7 +100,7 @@ int ASTERProjAngle2OtherBand_main(int argc, char ** argv)
 	vector<double> aVectAngles;
 	vector<Pt3dr> aVectPointsWithAnglesLeft, aVectPointsWithAnglesRight;
 	Pt3dr aPt;
-	for (size_t row = 0; row < aSz_In.y; row++)
+	for (size_t row = 0; int(row) < aSz_In.y; row++)
 	{
 
 		// define points in image
@@ -140,10 +140,10 @@ int ASTERProjAngle2OtherBand_main(int argc, char ** argv)
 	REAL ** aData_AngleMap = aAngleMap.data();
 
 	cout << "Starting interpolation of angles in Out band geometry" << endl;
-	double aAngleInterpolated;
-	for (size_t i = 0; i < aSz_Out.x; i++)
+	double aAngleInterpolated = 1e30; // Warn no init
+	for (size_t i = 0;  int(i) < aSz_Out.x; i++)
 	{
-		for (size_t j = 0; j < aSz_Out.y; j++)
+		for (size_t j = 0; int(j) < aSz_Out.y; j++)
 		{
 			// if points before the projection of the first points
 			if (j < min(aVectPointsWithAnglesLeft[0].y,aVectPointsWithAnglesRight[0].y))
@@ -176,6 +176,8 @@ int ASTERProjAngle2OtherBand_main(int argc, char ** argv)
 			aData_AngleMap[j][i] = aAngleInterpolated;
 		}
 	}
+        // Test init
+        ELISE_ASSERT(aAngleInterpolated!=1e30,"aAngleInterpolated not init");
 
 	// Export data
 	string aNameOut = aDir + "GeoI-Px/AngleFrom_" + aSceneInName + "_to_" + aSceneOutName + ".tif";
@@ -237,7 +239,7 @@ int ASTERProjAngle_main(int argc, char ** argv)
 
 	vector<double> aVectAngles;
 
-	for (size_t row = 0; row < aSz_3.y; row++)
+	for (size_t row = 0; int(row) < aSz_3.y; row++)
 	{
 
 		// define points in image
@@ -315,9 +317,9 @@ int ASTERProjAngle_main(int argc, char ** argv)
 
 	cout << "Starting interpolation of angle in DEM geometry" << endl;
 
-	for (size_t i = 0; i < aSz_DEM.x; i++)
+	for (size_t i = 0; int(i) < aSz_DEM.x; i++)
 	{
-		for (size_t j = 0; j < aSz_DEM.y; j++)
+		for (size_t j = 0; int(j) < aSz_DEM.y; j++)
 		{
 			if (aData_Mask[j][i] == 0)
 			{

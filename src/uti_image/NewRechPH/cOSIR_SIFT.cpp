@@ -232,7 +232,7 @@ if (DebugNRPH)
     std::cout << "    LAPL TIFF Scccc= " << mScaleAbs  << " SpaceE=" <<  aSpaceNbExtr << " Scale=" << aSS_NbExtr  << " Ctsr=" << aSSCstr<< "\n";
    if (DebugNRPH)
    {
-       int aNb = mImMod.sz().x  * mImMod.sz().y;
+       // int aNb = mImMod.sz().x  * mImMod.sz().y; Warn unused
        std::cout << "  NbMax ; " 
                  << " Max" << ", H " << aNbDebugHRMax << ", L " << aNbDebugLRMax 
                  << " Min" << ", H " << aNbDebugHRMin << ", L " << aNbDebugLRMin 
