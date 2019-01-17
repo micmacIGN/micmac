@@ -94,6 +94,9 @@ int ConvTiePointPix4DMM::parseLine(string & aL, vector<string> & aVWord)
         }
         //Pt2dr aC(atof(aI),atof(aJ));
     }
+    // Warning no return
+    ELISE_ASSERT(false,"Should not be here");
+    return 123456789;
 }
 
 bool ConvTiePointPix4DMM::ImportTiePointFile(string aFile, int & file_type)

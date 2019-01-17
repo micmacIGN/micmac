@@ -605,7 +605,7 @@ void cAppliOrthoDirectFromDenseCloud::Rectify()
         double Z = aVertex->P().z;
         Pt2dr aP2DImg = mTransTerImg(aP2DTer);
         //cout<<aP2DTer<<aP2DImg<<endl;
-        bool isUpdateZ = UpdateOrtho(aP2DImg, aVertex->Color(), Z);
+        /*bool isUpdateZ = */ UpdateOrtho(aP2DImg, aVertex->Color(), Z); // Warn 
     }
     cout<<"Write ortho direct image : "<<mNameOrthoOut<<endl;
     WriteIm2D3chan(mImOrthoR, mImOrthoG, mImOrthoB, mNameOrthoOut);

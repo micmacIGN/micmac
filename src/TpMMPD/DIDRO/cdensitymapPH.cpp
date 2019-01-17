@@ -167,7 +167,7 @@ void cDensityMapPH::populateDensityMap() {
 
     // PAUSE
     //system("PAUSE");
-    bool test(1);
+     // bool test(1); //  => unsuded warnin
     // Loop on every config of TPM of the set of TPM
     for (auto & aCnf : mTPM->VPMul()) {
 
@@ -180,7 +180,7 @@ void cDensityMapPH::populateDensityMap() {
         if (maxRes>10) {
 
             std::cout << " resid vector : " << aResid << "\n";
-            test=0;
+            // test=0;   //  => unsuded warning
         }
 
         // Id of the point
@@ -249,7 +249,8 @@ int main_densityMapPH(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
-
+/*
+Waring reorder => MPD
 cManipulate_NF_TP::cManipulate_NF_TP():
      mOut("3DMeasuresHomol.xml"),
      mDebug(0),
@@ -259,6 +260,17 @@ cManipulate_NF_TP::cManipulate_NF_TP():
      mFileSH(""),
      mArgComp            (new LArgMain),
      mArgOpt             (new LArgMain)
+*/
+
+cManipulate_NF_TP::cManipulate_NF_TP():
+     mArgComp            (new LArgMain),
+     mArgOpt             (new LArgMain),
+     mDebug(0),
+     mWithRadiometry(0),
+     mDir("./"),
+     mOriPat(""),
+     mOut("3DMeasuresHomol.xml"),
+     mFileSH("")
 {
 
 

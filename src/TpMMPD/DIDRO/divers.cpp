@@ -176,7 +176,7 @@ cOneLionPaw::cOneLionPaw(int argc,char ** argv):
         //if (DoOri) SortImBlurred();
         mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
 
-        chdir(mDir.c_str());
+        if ( chdir(mDir.c_str())) {} // Warning retunr value
 
         if (DoOri){
 
@@ -1017,7 +1017,7 @@ int ComputeStat_main(int argc,char ** argv)
     // je calcule la moyenne du ratio
     int nbVal(0);
     bool firstVal=1;
-    double somme(0),min,max(0);
+    double somme(0),min(1e30) /* MPD Warn uninit*/ ,max(0);
     for(int aI=0; aI<aImRAM.sz().x; aI++)
     {
         for(int aJ=0; aJ<aImRAM.sz().y; aJ++)

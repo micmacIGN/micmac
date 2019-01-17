@@ -91,6 +91,7 @@ bool cAppliTiepGraphByCamDist::ImportOri(string & aFName)
             }
         }
     }
+    return true; // MPD :Warnig no return value
 }
 
 void cAppliTiepGraphByCamDist::ImportMicMacOriFolder(string & aFolderName)

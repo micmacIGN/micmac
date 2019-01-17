@@ -54,8 +54,15 @@ void cMeasurePalDeg2RGB::saveMes(string aFileName){
     }
 }
 
-cMeasurePalDeg2RGB::cMeasurePalDeg2RGB(int argc,char ** argv):mDebug(0),mVario(1),mOptris(0),
-    mSu(""),mPre(""),mExt("jpg"),mNbCarToRemove(4)
+
+cMeasurePalDeg2RGB::cMeasurePalDeg2RGB(int argc,char ** argv):
+    mDebug(0),
+    mVario(1),
+    mOptris(0),
+    mNbCarToRemove(4), // MPD reorder , warning ...
+    mPre(""),   // MPD reorder , warning ...
+    mSu(""),
+    mExt("jpg")
 {
 
     std::string aImThermPat,aImJPGPat;
