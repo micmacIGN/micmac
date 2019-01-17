@@ -44,7 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // AFM :  Appli Fits Match
 
-ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan);
+ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir);
 
 class cIndexCodeBinaire; // Permet de retrouver rapidement les element ayant peu de bits differents avec un pt car donne
 class cCdtCplHom; // Stocke une hypothese de deux pts car apparie le Master(M) et le secondaire

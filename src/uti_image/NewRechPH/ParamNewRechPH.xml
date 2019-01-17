@@ -249,10 +249,13 @@ mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
 
             <XAPA_OneMatch Nb="*">
                 <Master Nb="1" Type="std::string">        </Master>
-                <Pattern Nb="1" Type="std::string">       </Pattern>
+                <!-- Pattern pour le match dense, plutot des B/H faibles -->
+                <Pattern Nb="1" Type="std::string">       </Pattern> 
+                <!-- Pattern pour les appariements de points caracteristiques -->
                 <PatternRef Nb="1" Type="std::string">    </PatternRef>
             </XAPA_OneMatch>
 
+            <!-- Ceux sur lesquel il faut lancer le calcul de pts car TestNewRechPH, union des pattern ...-->
             <XAPA_PtCar Nb="1">
                 <Pattern  Nb="1" Type="std::string" AccessorFils="false"> </Pattern>
             </XAPA_PtCar>

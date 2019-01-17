@@ -116,10 +116,11 @@ class cParamMap2DRobustInit
          int                 mNbTirRans;
          int                 mNbMaxPtsRansac;
          int                 mNbTestFor1P;
-         double              mPropRan;
+         double              mPropRan;  // Percentile (entre 0 et 1) pour estimer l'erreur lors du Ransac
          int                 mNbIterL2;
          cElMap2D*           mRes;
          std::vector<std::string>  mVAux;
+         std::vector<double>       mVPdsSol;
 };
 
 
@@ -136,23 +137,89 @@ cParamMap2DRobustInit::cParamMap2DRobustInit(eTypeMap2D aType,int aNbTirRans,con
 }
 
 
-
-
 void  Map2DRobustInit(const ElPackHomologue & aPackFull,cParamMap2DRobustInit & aParam);
+template <class Type> Type TplMap2DRobustInit(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir,eTypeMap2D anIdType,std::vector<double> * aVPds)
+{
+    cParamMap2DRobustInit aParam(anIdType,aNbTir,nullptr);
+    aParam.mPropRan = aPropRan;
+    Map2DRobustInit(aPackFull,aParam);
+    if (! aParam.mRes)
+    {
+        std::cout << "NBPOINT= " << aPackFull.size() << "\n";
+        ELISE_ASSERT( false,"TplMap2DRobustInit no result");
+    }
+    ELISE_ASSERT(aParam.mRes->Type()==anIdType,"TplMap2DRobustInit");
+
+    if (aVPds)
+       *aVPds = aParam.mVPdsSol;
+    Type * aPtrRes = static_cast<Type *>(aParam.mRes);
+
+    Type aRes = * aPtrRes;
+    delete aPtrRes;
+    return aRes;
+
+}
+
+
 cElMap2D *  L2EstimMapHom(cElMap2D * aRes,const ElPackHomologue & aPack);
 cElMap2D * L2EstimMapHom(eTypeMap2D aType,const ElPackHomologue & aPack,const std::vector<std::string> * aVAux=0);
 
-ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan)
+
+cElHomographie HomogrRobustInit(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir)
 {
-    cParamMap2DRobustInit aParam(eTM2_Simil,100,nullptr);
+    return TplMap2DRobustInit<cElHomographie>(aPackFull,aPropRan,aNbTir,eTM2_Homogr,nullptr);
+}
+
+ElSimilitude SimilRobustInitGen(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir,bool IsRot)
+{
+/*
+    ELISE_ASSERT(  aPackFull.size()>=2,"SimilRobustInit not enough pint");
+    cParamMap2DRobustInit aParam(eTM2_Simil,aNbTir,nullptr);
     aParam.mPropRan = aPropRan;
     Map2DRobustInit(aPackFull,aParam);
+    ELISE_ASSERT( aParam.mRes!=0,"SimilRobustInit no result");
     // cXml_Map2D    aParam. ToXmlGen();
 
     ELISE_ASSERT(aParam.mRes->Type()==eTM2_Simil,"SimilRobustInit");
     ElSimilitude * aResSim = static_cast<ElSimilitude *>(aParam.mRes);
 
-    return *aResSim;
+    ElSimilitude aSim = * aResSim;
+*/
+    std::vector<double> aVPds;
+    ElSimilitude aSim = TplMap2DRobustInit<ElSimilitude>(aPackFull,aPropRan,aNbTir,eTM2_Simil,&aVPds);
+
+    if (IsRot)
+    {
+        Pt2dr aSc1 = vunit(aSim.sc());
+        int aK=0;
+        double aSomP=0;
+        Pt2dr aCdg1(0,0);
+        Pt2dr aCdg2(0,0);
+        for (ElPackHomologue::const_iterator it=aPackFull.begin(); it!=aPackFull.end(); it++)
+        {
+            double aPds = aVPds[aK++];
+            aSomP += aPds;
+            aCdg1 = aCdg1 + it->P1() * aPds;
+            aCdg2 = aCdg2 + it->P2() * aPds;
+        }
+        aCdg1 = aCdg1 / aSomP;
+        aCdg2 = aCdg2 / aSomP;
+        Pt2dr aTr = aCdg2 - aCdg1*aSc1;
+
+        aSim = ElSimilitude(aTr,aSc1);
+    }
+
+    return aSim;
+}
+
+ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir)
+{
+    return SimilRobustInitGen( aPackFull,aPropRan,aNbTir,false);
+}
+
+ElSimilitude RotationRobustInit(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir)
+{
+    return SimilRobustInitGen( aPackFull,aPropRan,aNbTir,true);
 }
 
 //=====================================================================================
@@ -2325,8 +2392,9 @@ void  Map2DRobustInit(const ElPackHomologue & aPackFull,cParamMap2DRobustInit & 
    
    for (int aKItL2=0 ; aKItL2<aParam.mNbIterL2; aKItL2++)
    {
+       aParam.mVPdsSol.clear();
        ElPackHomologue aPackEstim;
-       std::vector<double> aVD2;
+       // std::vector<double> aVD2;
        for (ElPackHomologue::tCstIter itH=aPackFull.begin() ; itH!=aPackFull.end() ; itH++)
        {
             Pt2dr aP1 = itH->P1();
@@ -2334,9 +2402,9 @@ void  Map2DRobustInit(const ElPackHomologue & aPackFull,cParamMap2DRobustInit & 
             double aD2 = square_euclid((*aBestSol)(aP1)-aP2);
             double aPds   = 1/ (1+ (4.0*aD2)/aD2Std);
             aPackEstim.Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
-            aVD2.push_back(aD2);
+            aParam.mVPdsSol.push_back(aD2);
        }
-       aD2Std  = KthValProp(aVD2,aParam.mPropRan);
+       aD2Std  = KthValProp(aParam.mVPdsSol,aParam.mPropRan);
        L2EstimMapHom(aBestSol,aPackEstim);
    }
    delete aTestMap;

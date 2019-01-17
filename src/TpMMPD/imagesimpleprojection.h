@@ -75,7 +75,9 @@ public:
     void InitGeom();
     void ApplyImProj();
     void GenTFW();
+    void GenTFW(double mGSD, Pt2dr offset, string aPrefix);
     void WriteImage(cISR_ColorImg & aImage);
+    void WriteImage(cISR_ColorImg & aImage, string aPrefix);
     //void InitMemImProjHomography();
     void InitHomography();
     void ApplyImHomography();
@@ -84,6 +86,11 @@ public:
     Pt2di SzXY(){return mSzImRect;}
     std::string Name(){return mName;}
     bool  DepthIsDefined(){return mCam->ProfIsDef();}
+    void Estime4PtsProjectiveTransformation();
+    void RectifyByProjectiveTransformation(vector<Pt2dr> aVp, vector<Pt3dr> aVP, vector<double> aParamProj);
+    void RectifyByHomography();
+
+
     int 			   mAlti;
     int			   mZTerrain;
     int			   mDeZoom;

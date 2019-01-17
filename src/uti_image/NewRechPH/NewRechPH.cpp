@@ -960,7 +960,6 @@ void cAimeApprentissage::DoOneRef()
     std::list<std::string>  aLCom;
     for (const auto & aMatch : mCurDir->XAPA_OneMatch())
     {
-        //                 <PatternRef Nb="1" Type="std::string">    </PatternRef>
         std::list<std::string>  aLN =  RegexListFileMatch("./",aMatch.PatternRef(),1,false);
         std::cout << "=============================  " <<  aMatch.Master()  << "\n";
         for (const auto & aName : aLN)
