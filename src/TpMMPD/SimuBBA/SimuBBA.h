@@ -61,7 +61,7 @@ bool IsInList(const std::vector<std::string> aVImgs, std::string aNameIm);
 // check if one point is in the image
 bool IsInImage(Pt2di aSz, Pt2dr aPt);
 
-std::vector<Orientation> & ReadModif(std::vector<Orientation> & aVOrient, const std::string & aModifP);
+void ReadModif(std::vector<Orientation> & aVOrient, const std::string & aModifP);
 
 #endif  //_SIMUBBA_
 

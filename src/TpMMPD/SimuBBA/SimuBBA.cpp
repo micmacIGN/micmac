@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "SimuBBA.h"
 
-std::vector<Orientation> & ReadModif(std::vector<Orientation> & aVOrient, const std::string & aModifP)
+void ReadModif(std::vector<Orientation> & aVOrient, const std::string & aModifP)
 {
     std::ifstream aFile(aModifP.c_str());
     if(aFile)

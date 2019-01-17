@@ -52,7 +52,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 int SimuRolShut_main(int argc, char ** argv)
 {
     std::string aPatImgs, aSH, aOri, aSHOut{"SimuRolShut"}, aDir, aImgs,aModifP,aPostfix{".thm.tif"};
-    //int aSeed;
     ElInitArgMain
             (
                 argc, argv,
