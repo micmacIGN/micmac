@@ -2873,7 +2873,7 @@ void ElCamera::AddToCenterOptical(const Pt3dr & aOffsetC)
 void ElCamera::MultiToRotation(const ElMatrix<double> & aOffsetR)
 {
     Pt3dr aC = _orient.inv().ImAff(Pt3dr(0,0,0));
-    ElRotation3D aOrient(aC,_orient.inv().Mat()*aOffsetR,true);
+    ElRotation3D aOrient(aC,aOffsetR.transpose()*_orient.inv().Mat(),true);
     _orient = aOrient.inv();
 }
 
