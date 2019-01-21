@@ -38,18 +38,28 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "SimuBBA.h"
+#include <stdio.h>
+#include <StdAfx.h>
 
-void ReadModif(std::vector<Orientation> & aVOrient, const std::string & aModifP)
+void ReadModif(std::vector<Orientation> & aVOrient, const std::string & aModifP, int aLine)
 {
     std::ifstream aFile(aModifP.c_str());
     if(aFile)
     {
-        double aTX,aTY,aTZ,aRX,aRY,aRZ;
+        std::string aOneLine;
 
-        while(aFile >> aTX >> aTY >> aTZ >> aRX >> aRY >> aRZ)
+        while(--aLine)
+        {
+            getline(aFile,aOneLine);
+            std::cout << aOneLine << endl;
+        }// get file header
+
+        double aTX,aTY,aTZ,aR00,aR01,aR02,aR10,aR11,aR12,aR20,aR21,aR22;
+
+        while(aFile >> aTX >> aTY >> aTZ >> aR00 >> aR01 >> aR02 >> aR10 >> aR11 >> aR12 >> aR20 >> aR21 >> aR22)
         {
             Pt3dr aTrans = Pt3dr(aTX,aTY,aTZ);
-            ElMatrix<double> aRot = ElMatrix<double>::Rotation(aRX,aRY,aRZ);
+            ElMatrix<double> aRot = MatFromCol(Pt3dr(aR00,aR10,aR20),Pt3dr(aR01,aR11,aR12),Pt3dr(aR02,aR12,aR22));
             Orientation aOrient{aTrans,aRot};
             aVOrient.push_back(aOrient);
         }
