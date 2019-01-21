@@ -52,6 +52,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 int SimuRolShut_main(int argc, char ** argv)
 {
     std::string aPatImgs, aSH, aOri, aSHOut{"SimuRolShut"}, aDir, aImgs,aModifP,aPostfix{".thm.tif"};
+    int aLine{3};
     ElInitArgMain
             (
                 argc, argv,
@@ -61,6 +62,7 @@ int SimuRolShut_main(int argc, char ** argv)
                            << EAMC(aModifP,"File containing pose modification for each image, file size = 1 or # of images"),
                 LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, default=simulated")
                            << EAM(aPostfix,"Postfix",true,"Postfix of images, default=.thm.tif")
+                           << EAM(aLine,"Line",true,"Read file containing pose modification from a certain line, def=3 (two lines for file header)")
                 );
 
     // get directory
@@ -73,7 +75,7 @@ int SimuRolShut_main(int argc, char ** argv)
 
     // Generate poses corresponding to the end of exposure
     std::vector<Orientation> aVOrient;
-    ReadModif(aVOrient,aModifP);
+    ReadModif(aVOrient,aModifP,aLine);
 
     int aSzPF = aPostfix.size();
 
@@ -263,6 +265,137 @@ int SimuRolShut_main(int argc, char ** argv)
                            + " ExportBoth=1";
     system_call(aComConvFH.c_str());
     std::cout << aComConvFH << endl;
+
+    return EXIT_SUCCESS;
+}
+
+int GenerateOrient_main (int argc, char ** argv)
+{
+    std::string aPatImgs, aOri, aSHOut{"Modif_orient.txt"}, aDir, aImgs,aOut{"Modif_orient.txt"};
+    Pt2dr aTInterv, aGauss;
+    int aSeed;
+    double aSeuil{0.01};
+    ElInitArgMain
+            (
+                argc, argv,
+                LArgMain() << EAMC(aPatImgs,"Image Pattern, make sure images are listed in the right order",eSAM_IsExistFile)
+                           << EAMC(aOri, "Ori",  eSAM_IsExistDirOri)
+                           << EAMC(aTInterv, "Time Interval, interpolate to generate translation, [cadence (s), exposure time (ms)]")
+                           << EAMC(aGauss,"Gaussian distribution parameters for rotation angle generation (radian), [mean,std]"),
+                LArgMain() << EAM(aOut,"Out",true,"Output file name for genarated orientation, def=Modif_orient.txt")
+                           << EAM(aSeed,"Seed",false,"Random engine, if not give, computer unix time is used.")
+                           << EAM(aSeuil,"Threshold",true,"Threshold of the cross product T(i)^T(i-1) to omit the generated translation and use the precedent value,def=0.01")
+                );
+
+    // get directory
+    SplitDirAndFile(aDir,aImgs,aPatImgs);
+    StdCorrecNameOrient(aOri, aDir);
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    const std::vector<std::string> aVImgs = *(aICNM->Get(aImgs));
+
+
+    int aNbIm = aVImgs.size();
+    double aRatio = aTInterv.y/1000/aTInterv.x;
+    std::cout << aSeuil << endl;
+
+    std::vector<Pt3dr> aVTrans;
+    // generation of translation, interpolation
+    for(int i=0; i<aNbIm-1; i++)
+    {
+        CamStenope * aCam0 = aICNM->StdCamStenOfNames(aVImgs[i],aOri);
+        Pt3dr aP0 = aCam0->PseudoOpticalCenter();
+
+        CamStenope * aCam1 = aICNM->StdCamStenOfNames(aVImgs[i+1],aOri);
+        Pt3dr aP1 = aCam1->PseudoOpticalCenter();
+
+        Pt3dr aP = (aP1-aP0) * aRatio;
+        //Pt3dr aP_Last = i==0 ? aP : aVTrans.back();
+
+        if(i)
+        {
+            Pt3dr aPb = aVTrans.back();
+            Pt3dr aProdVect = Pt3dr(
+                        aP.y*aPb.z-aP.z*aPb.y,
+                        aP.z*aPb.x-aP.x*aPb.z,
+                        aP.x*aPb.y-aP.y*aPb.x
+                        );
+            double aNormPV = euclid(aProdVect);
+
+            if(aNormPV > aSeuil)
+            {
+                aP = aPb;
+                std::cout << "Reset Translation for " << aVImgs[i] << " : T(i)^T(i-1) = " << aNormPV << " > " << aSeuil << endl;
+            }
+
+        }
+
+        aVTrans.push_back(aP);
+        if(i==(aNbIm-2)) aVTrans.push_back((aP));
+    }
+    //std::cout << aVTrans.size() << endl;
+
+    // generation of rotation, axis: uniform distribution, angle: gaussian distribution
+    if(!EAMIsInit(&aSeed))  aSeed=time(0);
+    std::default_random_engine generator(aSeed);
+    std::normal_distribution<double> angle(aGauss.x,aGauss.y);
+    std::uniform_real_distribution<double> axis(-1.0,1.0);
+
+    std::vector<ElMatrix<double>> aVRot;
+    for(int i=0; i<aNbIm;i++)
+    {
+        Pt3dr aU = Pt3dr(axis(generator),axis(generator),axis(generator)); // axis of rotation
+        double aNorm = euclid(aU);
+        aU = aU / aNorm;
+
+        double aTeta = angle(generator);
+
+        Pt3dr aCol1 = Pt3dr(
+                            cos(aTeta) + aU.x*aU.x*(1-cos(aTeta)),
+                            aU.y*aU.x*(1-cos(aTeta)) + aU.z*sin(aTeta),
+                            aU.z*aU.x*(1-cos(aTeta)) - aU.y*sin(aTeta)
+                           );
+        Pt3dr aCol2 = Pt3dr(
+                            aU.x*aU.y*(1-cos(aTeta)) - aU.z*sin(aTeta),
+                            cos(aTeta) + aU.y*aU.y*(1-cos(aTeta)),
+                            aU.z*aU.y*(1-cos(aTeta)) + aU.x*sin(aTeta)
+                           );
+        Pt3dr aCol3 = Pt3dr(
+                            aU.x*aU.z*(1-cos(aTeta)) + aU.y*sin(aTeta),
+                            aU.y*aU.z*(1-cos(aTeta)) + aU.x*sin(aTeta),
+                            cos(aTeta) + aU.z*aU.z*(1-cos(aTeta))
+                           );
+
+        ElMatrix<double> aRot = MatFromCol(aCol1,aCol2,aCol3);
+        aVRot.push_back(aRot);
+    }
+    //std::cout << aVRot.size() << endl;
+
+    ELISE_ASSERT(aVTrans.size()==aVRot.size(),"Different size for translation and rotation!");
+    ofstream aFile;
+    aFile.open (aOut);
+
+    aFile << "Random engine :" << aSeed << endl;
+    aFile << "#F=Tx_Ty_Tz_R00_R01_R02_R10_R11_R12_R20_R21_R22" << endl;
+
+    for(int i=0; i<aNbIm; i++)
+    {
+        aFile << aVTrans.at(i).x << " "
+              << aVTrans.at(i).y << " "
+              << aVTrans.at(i).z << " "
+              << aVRot[i](0,0) << " "
+              << aVRot[i](0,1) << " "
+              << aVRot[i](0,2) << " "
+              << aVRot[i](1,0) << " "
+              << aVRot[i](1,1) << " "
+              << aVRot[i](1,2) << " "
+              << aVRot[i](2,0) << " "
+              << aVRot[i](2,1) << " "
+              << aVRot[i](2,2) << endl;
+    }
+
+    aFile.close();
+
+    std::cout << aOut << endl;
 
     return EXIT_SUCCESS;
 }
