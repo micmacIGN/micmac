@@ -314,8 +314,7 @@ int GenerateTP_main(int argc,char ** argv)
 
 int GenerateMAF_main(int argc,char ** argv)
 {
-    string aPatImgs,aDir,aOri,aImgs,aGCPFile,aMAFOut,aNameImNX,aNameImNY;
-
+    string aPatImgs,aDir,aOri,aImgs,aGCPFile,aMAFOut,aNameImNX,aNameImNY,aOriRS;
     ElInitArgMain
             (
                 argc, argv,
@@ -325,6 +324,7 @@ int GenerateMAF_main(int argc,char ** argv)
                 LArgMain() << EAM(aMAFOut,"Out",false,"Output name of the generated MAF file, Def=Gen_MAF_Ori.xml")
                            << EAM(aNameImNX,"ImNX",false,"image containing noise on X-axis")
                            << EAM(aNameImNY,"ImNY",false,"image containing noise on Y-axis")
+                           << EAM(aOriRS,"OriRS",false,"If generate image measurement file for rolling shutter, give generated Ori name")
                 );
     // get directory
     SplitDirAndFile(aDir,aImgs,aPatImgs);
@@ -335,6 +335,13 @@ int GenerateMAF_main(int argc,char ** argv)
 
     StdCorrecNameOrient(aOri, aDir);
     std::cout << "Ori: Ori-" << aOri << "/" << endl;
+
+    if(EAMIsInit(&aOriRS))
+    {
+        StdCorrecNameOrient(aOriRS, aDir);
+        std::cout << "Ori: Ori-" << aOriRS << "/" << endl;
+    }
+
 
     std::cout << "GCP file : " << aGCPFile << endl;
 
@@ -385,10 +392,13 @@ int GenerateMAF_main(int argc,char ** argv)
     // Parse images
     for (uint itVImg=0; itVImg < aVImg.size(); itVImg++)
     {
-        std::string aOriName = "Ori-"+aOri+"/Orientation-"+aVImg.at(itVImg)+".xml";
-        std::cout << aOriName << endl;
-        if (!ELISE_fp::exist_file(aOriName)) continue;
-        CamStenope * aCam = CamOrientGenFromFile(aOriName,aICNM);
+        CamStenope * aCam = aICNM->StdCamStenOfNames(aVImg[itVImg],aOri);
+        CamStenope * aCambis = aICNM->StdCamStenOfNames(aVImg[itVImg],aOri); //P0
+
+        if(EAMIsInit(&aOriRS))
+        {
+            aCambis = aICNM->StdCamStenOfNames(aVImg[itVImg],aOriRS);
+        }
 
 
         // Parse GCP list
@@ -401,7 +411,17 @@ int GenerateMAF_main(int argc,char ** argv)
         {
             if (aCam->PIsVisibleInImage(itDAF->Pt()))
             {
-                Pt2dr aPt2d = aCam->R3toF2(itDAF->Pt());
+                Pt2dr aPt2d = aCam->R3toF2(itDAF->Pt());//P0
+                if(EAMIsInit(&aOriRS))
+                {
+                    Pt2dr aPt2d1 = aCambis->R3toF2(itDAF->Pt());//P1
+
+                    // Pl = l*P1 + (1-l)P0
+                    double aX = aCam->Sz().x * aPt2d.x / (aCam->Sz().x - aPt2d1.x + aPt2d.x); // Pl.x
+                    double aRatio = aX / aCam->Sz().x; // Pl.x / X
+                    double aY = aRatio * aPt2d1.y + (1-aRatio) * aPt2d.y;
+                    aPt2d = Pt2dr(aX,aY);
+                }
                 if (IsInImage(aCam->Sz(),aPt2d))
                 {
                     // add noise

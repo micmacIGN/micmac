@@ -51,7 +51,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 int SimuRolShut_main(int argc, char ** argv)
 {
-    std::string aPatImgs, aSH, aOri, aSHOut{"SimuRolShut"}, aDir, aImgs,aModifP,aPostfix{".thm.tif"};
+    std::string aPatImgs, aSH, aOri, aOriRS, aSHOut{"SimuRolShut"}, aDir, aImgs,aModifP;
     int aLine{3};
     ElInitArgMain
             (
@@ -59,9 +59,9 @@ int SimuRolShut_main(int argc, char ** argv)
                 LArgMain() << EAMC(aPatImgs,"Image Pattern",eSAM_IsExistFile)
                            << EAMC(aSH, "PMul File",  eSAM_IsExistFile)
                            << EAMC(aOri, "Ori",  eSAM_IsExistDirOri)
+                           << EAMC(aOriRS,"Ori for modified ori files")
                            << EAMC(aModifP,"File containing pose modification for each image, file size = 1 or # of images"),
                 LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, default=simulated")
-                           << EAM(aPostfix,"Postfix",true,"Postfix of images, default=.thm.tif")
                            << EAM(aLine,"Line",true,"Read file containing pose modification from a certain line, def=3 (two lines for file header)")
                 );
 
@@ -77,7 +77,12 @@ int SimuRolShut_main(int argc, char ** argv)
     std::vector<Orientation> aVOrient;
     ReadModif(aVOrient,aModifP,aLine);
 
-    int aSzPF = aPostfix.size();
+    // Copy Calib file
+    cElFilename aCal = cElFilename(aDir,aICNM->StdNameCalib(aOri,aVImgs[0]));
+    std::string aDirCalib, aCalib;
+    SplitDirAndFile(aDirCalib,aCalib,aCal.m_basename);
+    std::string aNewCalib = aDir+"Ori-"+aOriRS+"/"+aCalib;
+    cElFilename aCalRS = cElFilename(aNewCalib);
 
     for(uint i=0; i<aVImgs.size();i++)
     {
@@ -86,16 +91,17 @@ int SimuRolShut_main(int argc, char ** argv)
         aCam->AddToCenterOptical(aVOrient.at(j).Translation);
         aCam->MultiToRotation(aVOrient.at(j).Rotation);
 
-        std::string aKeyOut = "NKS-Assoc-Im2Orient@-" + aOri;
-        std::string aNameCamOut = aVImgs.at(i).substr(0,aVImgs.at(i).size()-aSzPF)+"_bis"+aPostfix;
-        std::string aOriOut = aICNM->Assoc1To1(aKeyOut,aNameCamOut,true);
+        std::string aKeyOut = "NKS-Assoc-Im2Orient@-" + aOriRS;
+        std::string aOriOut = aICNM->Assoc1To1(aKeyOut,aVImgs[i],true);
         cOrientationConique  anOC = aCam->StdExportCalibGlob();
         anOC.Interne().SetNoInit();
-        anOC.FileInterne().SetVal(aICNM->StdNameCalib(aOri,aVImgs[i]));
+        anOC.FileInterne().SetVal(aNewCalib);
 
-        std::cout << "Generate " << aNameCamOut << endl;
-        MakeFileXML(anOC,aOriOut);
+        std::cout << "Generate " << aOriRS << "/" << aVImgs[i] << ".xml" << endl;
+        MakeFileXML(anOC,aOriOut); 
     }
+    if(aCal.copy(aCalRS,true))
+        std::cout << "Create Calibration file "+aNewCalib << endl;
 
     //1. lecture of tie points and orientation
     std::cout << "Loading tie points + orientation...   ";
@@ -113,9 +119,9 @@ int SimuRolShut_main(int argc, char ** argv)
         aCam->SetNameIm(aName2Im.first);
         aVCam[aName2Im.second->Id()] = aCam;
 
-        std::string aNamebis = aName2Im.first.substr(0,aName2Im.first.size()-aSzPF)+"_bis"+aPostfix;
-        CamStenope * aCambis = aICNM->StdCamStenOfNames(aNamebis,aOri);
-        aCambis->SetNameIm(aNamebis);
+        //std::string aNamebis = aName2Im.first.substr(0,aName2Im.first.size()-aSzPF)+"_bis"+aPostfix;
+        CamStenope * aCambis = aICNM->StdCamStenOfNames(aName2Im.first,aOriRS);
+        aCambis->SetNameIm(aName2Im.first);
         aVCambis[aName2Im.second->Id()] = aCambis;
     }
 
@@ -274,7 +280,7 @@ int GenerateOrient_main (int argc, char ** argv)
     std::string aPatImgs, aOri, aSHOut{"Modif_orient.txt"}, aDir, aImgs,aOut{"Modif_orient.txt"};
     Pt2dr aTInterv, aGauss;
     int aSeed;
-    double aSeuil{0.01};
+    double aSeuil{0.5};
     ElInitArgMain
             (
                 argc, argv,
@@ -284,7 +290,7 @@ int GenerateOrient_main (int argc, char ** argv)
                            << EAMC(aGauss,"Gaussian distribution parameters for rotation angle generation (radian), [mean,std]"),
                 LArgMain() << EAM(aOut,"Out",true,"Output file name for genarated orientation, def=Modif_orient.txt")
                            << EAM(aSeed,"Seed",false,"Random engine, if not give, computer unix time is used.")
-                           << EAM(aSeuil,"Threshold",true,"Threshold of the cross product T(i)^T(i-1) to omit the generated translation and use the precedent value,def=0.01")
+                           << EAM(aSeuil,"Threshold",true,"Threshold of the cross product T(i)^T(i-1) to omit the generated translation and use the precedent value,def=0.5")
                 );
 
     // get directory
@@ -319,7 +325,7 @@ int GenerateOrient_main (int argc, char ** argv)
                         aP.z*aPb.x-aP.x*aPb.z,
                         aP.x*aPb.y-aP.y*aPb.x
                         );
-            double aNormPV = euclid(aProdVect);
+            double aNormPV = euclid(aProdVect)/euclid(aP)/euclid(aPb);
 
             if(aNormPV > aSeuil)
             {
