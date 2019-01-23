@@ -417,9 +417,9 @@ int GenerateMAF_main(int argc,char ** argv)
                     Pt2dr aPt2d1 = aCambis->R3toF2(itDAF->Pt());//P1
 
                     // Pl = l*P1 + (1-l)P0
-                    double aX = aCam->Sz().x * aPt2d.x / (aCam->Sz().x - aPt2d1.x + aPt2d.x); // Pl.x
-                    double aRatio = aX / aCam->Sz().x; // Pl.x / X
-                    double aY = aRatio * aPt2d1.y + (1-aRatio) * aPt2d.y;
+                    double aY = aCam->Sz().y * aPt2d.y /( aCam->Sz().y - aPt2d1.y + aPt2d.y );
+                    double aRatio = aY / aCam->Sz().y;
+                    double aX = aRatio * (aPt2d1.x-aPt2d.x) + aPt2d.x;
                     aPt2d = Pt2dr(aX,aY);
                 }
                 if (IsInImage(aCam->Sz(),aPt2d))
