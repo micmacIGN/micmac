@@ -185,12 +185,12 @@ int SimuRolShut_main(int argc, char ** argv)
                 Pt2dr aPt2d1 = aCambis->R3toF2(aPInter3D);//P1
 
                 // Pl = l*P1 + (1-l)P0
-                double aX = aCam->Sz().x * aPt2d0.x / (aCam->Sz().x - aPt2d1.x + aPt2d0.x); // Pl.x
-                double aRatio = aX / aCam->Sz().x; // Pl.x / X
-                double aY = aRatio * aPt2d1.y + (1-aRatio) * aPt2d0.y;
+                double aY = aCam->Sz().y * aPt2d0.y /( aCam->Sz().y - aPt2d1.y + aPt2d0.y );
+                double aRatio = aY / aCam->Sz().y;
+                double aX = aRatio * (aPt2d1.x-aPt2d0.x) + aPt2d0.x;
                 Pt2dr aPt2d = Pt2dr(aX,aY);
 
-                //std::cout << "P0 " << aPt2d0 << " Pl " << aPt2d << " P1 " << aPt2d1 << endl;
+                //std::cout << aPt2d0.x << " " << aPt2d0.y << " " << aPt2d.x << " " << aPt2d.y << " " << aPt2d1.x << " " << aPt2d1.y << " " << endl;
 
 
                 //check if the point is in the camera view
@@ -287,10 +287,10 @@ int GenerateOrient_main (int argc, char ** argv)
                 LArgMain() << EAMC(aPatImgs,"Image Pattern, make sure images are listed in the right order",eSAM_IsExistFile)
                            << EAMC(aOri, "Ori",  eSAM_IsExistDirOri)
                            << EAMC(aTInterv, "Time Interval, interpolate to generate translation, [cadence (s), exposure time (ms)]")
-                           << EAMC(aGauss,"Gaussian distribution parameters for rotation angle generation (radian), [mean,std]"),
+                           << EAMC(aGauss,"Gaussian distribution parameters of angular velocity for rotation generation (radian), [mean,std]"),
                 LArgMain() << EAM(aOut,"Out",true,"Output file name for genarated orientation, def=Modif_orient.txt")
                            << EAM(aSeed,"Seed",false,"Random engine, if not give, computer unix time is used.")
-                           << EAM(aSeuil,"Threshold",true,"Threshold of the cross product T(i)^T(i-1) to omit the generated translation and use the precedent value,def=0.5")
+                           << EAM(aSeuil,"Threshold",true,"Threshold of the angle between T(i) & T(i-1) to omit the generated translation and use the precedent value, def=0.5, sin(pi/6)")
                 );
 
     // get directory
@@ -343,15 +343,14 @@ int GenerateOrient_main (int argc, char ** argv)
     // generation of rotation, axis: uniform distribution, angle: gaussian distribution
     if(!EAMIsInit(&aSeed))  aSeed=time(0);
     std::default_random_engine generator(aSeed);
-    std::normal_distribution<double> angle(aGauss.x,aGauss.y);
+    std::normal_distribution<double> angle(aGauss.x*aTInterv.y/1000,aGauss.y*aTInterv.y/1000);
     std::uniform_real_distribution<double> axis(-1.0,1.0);
 
     std::vector<ElMatrix<double>> aVRot;
     for(int i=0; i<aNbIm;i++)
     {
         Pt3dr aU = Pt3dr(axis(generator),axis(generator),axis(generator)); // axis of rotation
-        double aNorm = euclid(aU);
-        aU = aU / aNorm;
+        aU = aU / euclid(aU); // normalize
 
         double aTeta = angle(generator);
 
