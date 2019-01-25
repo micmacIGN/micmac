@@ -63,7 +63,9 @@ int RPC::RPC2Grid(int nbLayers, double altiMin, double altiMax, std::string refi
 
     std::vector<double> vAltitude;
     for (int i = 0; i<nbLayers; ++i)
-        vAltitude.push_back(altiMin + double(i)*(altiMax - altiMin) / (double(nbLayers) - 1));
+    {
+		vAltitude.push_back(altiMin + double(i)*(altiMax - altiMin) / (double(nbLayers) - 1));
+	}
 
 	if (refineCoef == "")
 	{

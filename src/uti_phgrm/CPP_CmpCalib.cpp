@@ -283,22 +283,23 @@ void cAppliCmpCal::OneItere(bool First,bool Last,const std::string Out)
        fprintf(aFP,"Im.X Im.Y  PhG.X Phg.Y Ec\n");
     }
     for (int aKX=0 ; aKX<=mNBP ; aKX++)
-       for (int aKY=0 ; aKY<=mNBP ; aKY++)
-       {
-           double aPdsX = K2Pds(aKX);
-           double aPdsY = K2Pds(aKY);
-
-           Pt2dr  aPIm (
-                      mP0.x * aPdsX+mP1.x * (1-aPdsX),
-                      mP0.y * aPdsY+mP1.y * (1-aPdsY)
-                 );
-
-           InitNormales (aPIm);
-
-           mEqORV->AddObservation(mN1,mN2);
-           Pt2dr U = EcartNormaleCorr();
-           aS1++;
-           aSD += euclid(U);
+		for (int aKY=0 ; aKY<=mNBP ; aKY++)
+		{
+			double aPdsX = K2Pds(aKX);
+			double aPdsY = K2Pds(aKY);
+			
+			Pt2dr  aPIm(
+						mP0.x * aPdsX+mP1.x * (1-aPdsX),
+						mP0.y * aPdsY+mP1.y * (1-aPdsY)
+						);
+			InitNormales (aPIm);
+			
+			mEqORV->AddObservation(mN1,mN2);
+			
+			Pt2dr U = EcartNormaleCorr();
+			aS1++;
+			
+			aSD += euclid(U);
 
             if ((mW!=0) && (First || Last ))
             {
@@ -380,7 +381,9 @@ void cAppliCmpCal::OneItere2(bool First,bool Last,const std::string Out,const st
        fprintf(aFP,"--------------  Ecart plani  -----------\n");
        fprintf(aFP,"Im.X Im.Y  PhG.X Phg.Y Ec\n");
     }
+    
     for (int aKX=0 ; aKX<=mNBP ; aKX++)
+	{
        for (int aKY=0 ; aKY<=mNBP ; aKY++)
        {
            double aPdsX = K2Pds(aKX);
@@ -428,6 +431,7 @@ void cAppliCmpCal::OneItere2(bool First,bool Last,const std::string Out,const st
             aCalib.EcartsPlani().push_back(aEP);
             
        }
+	}
 
        std::cout << (aSD/aS1) << " "  << (aSD/aS1) * (1e6/mFocale) << " MicroRadians " << "\n";
        mSetEq.SolveResetUpdate();

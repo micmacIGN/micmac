@@ -117,6 +117,8 @@ Header-MicMac-eLiSe-25/06/2007*/
         int Cptr = 0;
 
         int type = 0;
+	if (type) {} // Warning setbutnotused
+
         bool wNormales = false;
 
         PlyFile * thePlyFile;
