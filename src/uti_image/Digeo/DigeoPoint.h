@@ -104,7 +104,7 @@ std::string DetectType_to_string( DigeoPoint::DetectType i_type );
 //----
 
 
-inline DigeoPoint::DigeoPoint():type( DETECT_UNKNOWN ){}
+inline DigeoPoint::DigeoPoint(): x(0), y(0), scale(0), type( DETECT_UNKNOWN ){}
 
 inline size_t DigeoPoint::nbAngles() const { return entries.size(); }
 

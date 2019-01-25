@@ -103,7 +103,8 @@ class cAttrVoisSom
 {
     public :
        cAttrVoisSom(cTxtCam * aCam) :
-              mCam (aCam)
+              mCam (aCam),
+              mFC (0)
        {
        }
 
