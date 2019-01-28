@@ -6985,12 +6985,11 @@ void deletesite( struct triedge *deltri)
 /*                                                                           */
 /*****************************************************************************/
 
-extern void DoNothing(int &);
-
 /* void pointsort(sortarray, arraysize) */
 void pointsort (point *sortarray, int arraysize)
 {
-  int left, right;
+  int left;
+  volatile int right;//forbid optimizations with this variable to avoid warining on (right < (arraysize - 2))
   int pivot;
   REAL pivotx, pivoty;
   point temp;
@@ -7037,13 +7036,11 @@ void pointsort (point *sortarray, int arraysize)
     /* Recursively sort the left subset. */
     pointsort(sortarray, left);
   }
-  DoNothing(right); // Evite warning incomprehenseible
   if (right < (arraysize - 2)) {
     /* Recursively sort the right subset. */
     pointsort(&sortarray[right + 1], arraysize - right - 1);
   }
 }
-void DoNothing(int &) {}
 
 /*****************************************************************************/
 /*                                                                           */
