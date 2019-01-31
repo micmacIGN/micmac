@@ -1535,7 +1535,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
          OKInter = false;
          if (aMesPb)
          {
-              *aMesPb= std::string("BSurH Insuf : ") + ToString(aParam.mBsH);
+              *aMesPb= std::string("BSurH-Insuf : ") + ToString(aParam.mBsH);
          }
          return Pt3dr(0,0,0);
       }
@@ -1623,7 +1623,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
          OKInter = false;
          if (aMesPb)
          {
-             *aMesPb = std::string("Mes Out of Im, for Im num : ") + ToString(aKPb);
+             *aMesPb = std::string("MesNotVisIm, for Im num : ") + ToString(aKPb);
          }
 
          return Pt3dr(0,0,0);
@@ -1634,7 +1634,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
          OKInter = false;
          if (aMesPb)
          {
-             *aMesPb = std::string("Intersection faisceau non definie ???");
+             *aMesPb = std::string("Intersectionfaisceaunondefinie ???");
          }
 
          return Pt3dr(0,0,0);

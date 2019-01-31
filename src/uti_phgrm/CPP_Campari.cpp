@@ -131,6 +131,7 @@ cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
    ModeleAddPoly(false),
    TheModelAdd(""),
    mNamesBlockInit  (false),
+   mDSElimB         (false),
    mArg             (new LArgMain)
 {
     (*mArg) << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
@@ -148,6 +149,7 @@ cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
             << EAM(GlobLibCD,"LibCD",true,"Free distorsion center, Def context dependant. Principal Point should be also free if CD is free", eSAM_IsBool)
             << EAM(GlobLibDec,"LibDec",true,"Free decentric parameter, Def context dependant", eSAM_IsBool)
             << EAM(mRapOnZ,"RapOnZ",true,"Force Rappel on Z [Z,Sigma,KeyGrp]")
+            << EAM(mDSElimB,"SElimB",true,"Print stat on reason for bundle elimination")
                ;
 }
 
@@ -160,6 +162,12 @@ LArgMain &   cAppli_Tapas_Campari::ArgATP()
 
 void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
 {
+    if (EAMIsInit(&mDSElimB))
+    {
+       mCom = mCom + " +DSElimB=" + ToString(mDSElimB) + " ";
+    }
+
+
     if (EAMIsInit(&mRapOnZ))
     {
 	 ELISE_ASSERT(mRapOnZ.size()==3,"Bad size for RapOnZ");

@@ -1113,6 +1113,38 @@ void cGlobStatDet::Show()
 }
 
 
+/*
+typedef enum
+{
+  eTRPB_Ok,
+  eTRPB_PdNull,
+  eTRPB_BSurH,
+  eTRPB_Visib,
+  eTRPB_NoInterBundle,
+  eTRPB_NbVal
+} eTypeResulPtsBundle;
+*/
+
+void HandleBundleErr(const cResiduP3Inc & aRes ,eTypeResulPtsBundle & aTRBP,bool ErrOnStat)
+{
+     const char * aMPB = aRes.mMesPb.c_str();
+     if (IsPrefix("BSurH-Insuf",aMPB))
+        aTRBP= eTRPB_BSurH;
+     else if (IsPrefix("MesNotVisIm",aMPB))
+        aTRBP= eTRPB_VisibIm;
+     else if (IsPrefix("Intersectionfaisceaunondefinie",aMPB))
+        aTRBP= eTRPB_PbInterBundle;
+     else
+     {
+        if (ErrOnStat)
+        {
+           std::cout << "ERR=[" << aMPB << "]\n";
+           ELISE_ASSERT(false,"Unkown erreur in bundle stat");
+        }
+     }
+}
+
+
 
 double cObsLiaisonMultiple::AddObsLM
        (
@@ -1125,6 +1157,12 @@ double cObsLiaisonMultiple::AddObsLM
        )
 {
 
+  bool ErrOnStat = MPD_MM() ||  ERupnik_MM();
+  bool AffichStat = mAppli.Param().SectionChantier().DoStatElimBundle().ValWithDef(false);
+;
+  int aStatRes[(int)eTRPB_NbVals] ;
+  for (int aK=0 ; aK<(int)eTRPB_NbVals ; aK++)
+      aStatRes[aK] = 0;
 
 /*
   static int aCpt = 0 ; aCpt ++;
@@ -1202,6 +1240,7 @@ double cObsLiaisonMultiple::AddObsLM
    for (int aKPm=0 ; aKPm<int(mVPMul.size()) ; aKPm++)
    {
         cOnePtsMult * aPM = mVPMul[aKPm];
+        eTypeResulPtsBundle aTRBP = eTRPB_Ok;
         aPM->MemPds() = 0;
 
         bool aOldMemPtOk = aPM->MemPtOk();
@@ -1244,7 +1283,7 @@ double cObsLiaisonMultiple::AddObsLM
 
 
                 double aDistPtC0 = euclid(aRes.mPTer-aVP[0]->CurCentreOfPt(aNupl.PK(0)));
-                if (aDistPtC0 >aMaxDistW)
+                if (aDistPtC0 >aMaxDistW) // Def 1e30 => etait du a une erreur
                 {
                     static bool first = true;
                     if (first)
@@ -1467,6 +1506,31 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                             ElSetMax(aMaxEvolPt,aVarPt);
                         }
                      }
+                     else
+                     {
+                         HandleBundleErr(aRes2,aTRBP,ErrOnStat);
+                     }
+                }
+                else
+                {
+                   if ( aPdsIm <=0)
+                   {
+                      aTRBP =  eTRPB_PdsResNull;
+                   }
+                   else if ( !isInF3D)
+                   {
+                      aTRBP =  eTRPB_NotInMasq3D;
+                   }
+                   else if ( !Add2C)
+                   {
+                   }
+                   else
+                   {
+                      if (ErrOnStat)
+                      {
+                          ELISE_ASSERT(false,"Unkown erreur in bundle stat");
+                      }
+                   }
                 }
  
 
@@ -1492,12 +1556,15 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
              }
              else
              {
+                   HandleBundleErr(aRes,aTRBP,ErrOnStat);
              }
         }
         else
         {
+            aTRBP = eTRPB_InsufPoseInit;
         }
         BugUPL = false;
+        aStatRes[(int) aTRBP] ++;
    }
    if (aSomPdsEvol)
    {
@@ -1594,6 +1661,21 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
            {
               std::cout << "Pas assez de valeurs pour percentile\n";
            }
+       }
+       if (AffichStat)
+       {
+             std::cout << "----- Stat on type of point (ok/elim) ----\n";
+             for (int aK=0 ; aK<(int)eTRPB_NbVals ; aK++)
+             {
+                 if ( aStatRes[aK] !=0)
+                 {
+                    eTypeResulPtsBundle aTRPB =  eTypeResulPtsBundle (aK);
+                    std::cout <<  " *  " 
+                              <<  (100.0 * aStatRes[aK]) / int(mVPMul.size()) 
+                              <<  " for " << eToString(aTRPB)
+                              <<  "\n";
+                 }
+             }
        }
        if ((int(aImPPM.Show().Val()) >= int(eNSM_CpleIm)) && aMatchIm0)
        {

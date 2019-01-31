@@ -137,6 +137,30 @@ void  BinaryUnDumpFromFile(eTypeVerif &,ELISE_fp &);
 
 typedef enum
 {
+  eTRPB_Ok,
+  eTRPB_InsufPoseInit,
+  eTRPB_PdsResNull,
+  eTRPB_NotInMasq3D,
+  eTRPB_BSurH,
+  eTRPB_VisibIm,
+  eTRPB_PbInterBundle,
+  eTRPB_NbVals
+} eTypeResulPtsBundle;
+void xml_init(eTypeResulPtsBundle & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeResulPtsBundle & aVal);
+
+eTypeResulPtsBundle  Str2eTypeResulPtsBundle(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeResulPtsBundle & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeResulPtsBundle &);
+
+std::string  Mangling( eTypeResulPtsBundle *);
+
+void  BinaryUnDumpFromFile(eTypeResulPtsBundle &,ELISE_fp &);
+
+typedef enum
+{
   eMST_PondCard
 } eTypePondMST_MEP;
 void xml_init(eTypePondMST_MEP & aVal,cElXMLTree * aTree);
@@ -3066,6 +3090,9 @@ class cSectionChantier
         friend void xml_init(cSectionChantier & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< bool > & DoStatElimBundle();
+        const cTplValGesInit< bool > & DoStatElimBundle()const ;
+
         cTplValGesInit< double > & SzByPair();
         const cTplValGesInit< double > & SzByPair()const ;
 
@@ -3159,6 +3186,7 @@ class cSectionChantier
         cTplValGesInit< double > & ThresholdWarnPointsBehind();
         const cTplValGesInit< double > & ThresholdWarnPointsBehind()const ;
     private:
+        cTplValGesInit< bool > mDoStatElimBundle;
         cTplValGesInit< cUseExportImageResidu > mUseExportImageResidu;
         cTplValGesInit< bool > mUseRegulDist;
         cTplValGesInit< bool > mGBCamSupresStenCam;
@@ -7069,6 +7097,9 @@ class cParamApero
 
         cSectionInconnues & SectionInconnues();
         const cSectionInconnues & SectionInconnues()const ;
+
+        cTplValGesInit< bool > & DoStatElimBundle();
+        const cTplValGesInit< bool > & DoStatElimBundle()const ;
 
         cTplValGesInit< double > & SzByPair();
         const cTplValGesInit< double > & SzByPair()const ;

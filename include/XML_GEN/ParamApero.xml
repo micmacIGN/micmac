@@ -132,6 +132,18 @@
 </enum>
 
 
+<enum Name="eTypeResulPtsBundle">
+    <eTRPB_Ok>      </eTRPB_Ok>
+    <eTRPB_InsufPoseInit>      </eTRPB_InsufPoseInit>
+    <eTRPB_PdsResNull> </eTRPB_PdsResNull>
+    <eTRPB_NotInMasq3D> </eTRPB_NotInMasq3D>
+    <eTRPB_BSurH>   </eTRPB_BSurH>
+    <eTRPB_VisibIm> </eTRPB_VisibIm>
+    <eTRPB_PbInterBundle> </eTRPB_PbInterBundle>
+    <eTRPB_NbVals> </eTRPB_NbVals>
+</enum>
+
+
 
      <!-- Type de ponderation pour le Minimum Spaning Tree de mise en place-->
 <enum Name="eTypePondMST_MEP">
@@ -958,6 +970,7 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
 
         <SectionChantier Nb="1">
 
+              <DoStatElimBundle Nb="?" Type="bool"> </DoStatElimBundle>
               <UseExportImageResidu  Nb="?"> 
                    <SzByPair Nb="?" Type="double" Def="30"> </SzByPair> 
                    <SzByPose Nb="?" Type="double" Def="50"> </SzByPose> 

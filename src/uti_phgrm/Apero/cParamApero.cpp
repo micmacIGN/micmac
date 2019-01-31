@@ -429,6 +429,77 @@ void  BinaryUnDumpFromFile(eTypeVerif & anObj,ELISE_fp & aFp)
 
 std::string  Mangling( eTypeVerif *) {return "A4761FEAD4F4298EFF3F";};
 
+eTypeResulPtsBundle  Str2eTypeResulPtsBundle(const std::string & aName)
+{
+   if (aName=="eTRPB_Ok")
+      return eTRPB_Ok;
+   else if (aName=="eTRPB_InsufPoseInit")
+      return eTRPB_InsufPoseInit;
+   else if (aName=="eTRPB_PdsResNull")
+      return eTRPB_PdsResNull;
+   else if (aName=="eTRPB_NotInMasq3D")
+      return eTRPB_NotInMasq3D;
+   else if (aName=="eTRPB_BSurH")
+      return eTRPB_BSurH;
+   else if (aName=="eTRPB_VisibIm")
+      return eTRPB_VisibIm;
+   else if (aName=="eTRPB_PbInterBundle")
+      return eTRPB_PbInterBundle;
+   else if (aName=="eTRPB_NbVals")
+      return eTRPB_NbVals;
+  else
+  {
+      cout << aName << " is not a correct value for enum eTypeResulPtsBundle\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eTypeResulPtsBundle) 0;
+}
+void xml_init(eTypeResulPtsBundle & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eTypeResulPtsBundle(aTree->Contenu());
+}
+std::string  eToString(const eTypeResulPtsBundle & anObj)
+{
+   if (anObj==eTRPB_Ok)
+      return  "eTRPB_Ok";
+   if (anObj==eTRPB_InsufPoseInit)
+      return  "eTRPB_InsufPoseInit";
+   if (anObj==eTRPB_PdsResNull)
+      return  "eTRPB_PdsResNull";
+   if (anObj==eTRPB_NotInMasq3D)
+      return  "eTRPB_NotInMasq3D";
+   if (anObj==eTRPB_BSurH)
+      return  "eTRPB_BSurH";
+   if (anObj==eTRPB_VisibIm)
+      return  "eTRPB_VisibIm";
+   if (anObj==eTRPB_PbInterBundle)
+      return  "eTRPB_PbInterBundle";
+   if (anObj==eTRPB_NbVals)
+      return  "eTRPB_NbVals";
+ std::cout << "Enum = eTypeResulPtsBundle\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeResulPtsBundle & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeResulPtsBundle & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eTypeResulPtsBundle & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeResulPtsBundle) aIVal;
+}
+
+std::string  Mangling( eTypeResulPtsBundle *) {return "8CFAEF1DC751618EFF3F";};
+
 eTypePondMST_MEP  Str2eTypePondMST_MEP(const std::string & aName)
 {
    if (aName=="eMST_PondCard")
@@ -10738,6 +10809,17 @@ void xml_init(cTimeLinkage & anObj,cElXMLTree * aTree)
 std::string  Mangling( cTimeLinkage *) {return "BEB337D7A41F8CD1FD3F";};
 
 
+cTplValGesInit< bool > & cSectionChantier::DoStatElimBundle()
+{
+   return mDoStatElimBundle;
+}
+
+const cTplValGesInit< bool > & cSectionChantier::DoStatElimBundle()const 
+{
+   return mDoStatElimBundle;
+}
+
+
 cTplValGesInit< double > & cSectionChantier::SzByPair()
 {
    return UseExportImageResidu().Val().SzByPair();
@@ -11083,6 +11165,14 @@ void  BinaryUnDumpFromFile(cSectionChantier & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.DoStatElimBundle().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.DoStatElimBundle().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.DoStatElimBundle().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.UseExportImageResidu().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.UseExportImageResidu().ValForcedForUnUmp(),aFp);
         }
@@ -11268,6 +11358,8 @@ void  BinaryUnDumpFromFile(cSectionChantier & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionChantier & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.DoStatElimBundle().IsInit());
+    if (anObj.DoStatElimBundle().IsInit()) BinaryDumpInFile(aFp,anObj.DoStatElimBundle().Val());
     BinaryDumpInFile(aFp,anObj.UseExportImageResidu().IsInit());
     if (anObj.UseExportImageResidu().IsInit()) BinaryDumpInFile(aFp,anObj.UseExportImageResidu().Val());
     BinaryDumpInFile(aFp,anObj.UseRegulDist().IsInit());
@@ -11320,6 +11412,8 @@ cElXMLTree * ToXMLTree(const cSectionChantier & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionChantier",eXMLBranche);
+   if (anObj.DoStatElimBundle().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DoStatElimBundle"),anObj.DoStatElimBundle().Val())->ReTagThis("DoStatElimBundle"));
    if (anObj.UseExportImageResidu().IsInit())
       aRes->AddFils(ToXMLTree(anObj.UseExportImageResidu().Val())->ReTagThis("UseExportImageResidu"));
    if (anObj.UseRegulDist().IsInit())
@@ -11376,6 +11470,8 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
+   xml_init(anObj.DoStatElimBundle(),aTree->Get("DoStatElimBundle",1)); //tototo 
+
    xml_init(anObj.UseExportImageResidu(),aTree->Get("UseExportImageResidu",1)); //tototo 
 
    xml_init(anObj.UseRegulDist(),aTree->Get("UseRegulDist",1),bool(false)); //tototo 
@@ -11423,7 +11519,7 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    xml_init(anObj.ThresholdWarnPointsBehind(),aTree->Get("ThresholdWarnPointsBehind",1),double(0.01)); //tototo 
 }
 
-std::string  Mangling( cSectionChantier *) {return "0082B4C0329C6580FCBF";};
+std::string  Mangling( cSectionChantier *) {return "0C44C96E719A398BFF3F";};
 
 
 cTplValGesInit< bool > & cSectionSolveur::AllMatSym()
@@ -26249,6 +26345,17 @@ const cSectionInconnues & cParamApero::SectionInconnues()const
 }
 
 
+cTplValGesInit< bool > & cParamApero::DoStatElimBundle()
+{
+   return SectionChantier().DoStatElimBundle();
+}
+
+const cTplValGesInit< bool > & cParamApero::DoStatElimBundle()const 
+{
+   return SectionChantier().DoStatElimBundle();
+}
+
+
 cTplValGesInit< double > & cParamApero::SzByPair()
 {
    return SectionChantier().UseExportImageResidu().Val().SzByPair();
@@ -26982,7 +27089,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "4DFDCC287A99B4ABFE3F";};
+std::string  Mangling( cParamApero *) {return "3AFE597272A238F9FD3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()
