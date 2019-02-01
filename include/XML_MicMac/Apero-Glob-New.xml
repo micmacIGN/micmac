@@ -173,7 +173,7 @@
                 <Symb> WBG_Center=xxxxx  </Symb>
                 <Symb> InitBlocCam=false </Symb>
                 <eSymb> With_BlockGlobalBundle=Or ${WithBloc_Glob} ${WithBloc_DistGlob}  </eSymb>
-                <Symb> DSElimB=false </Symb>
+                <Symb> DSElimB=0 </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>

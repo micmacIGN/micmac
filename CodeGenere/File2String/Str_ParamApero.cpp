@@ -972,7 +972,7 @@ const char * (theNameVar_ParamApero[1832]) = {
 "\n",
 "        <SectionChantier Nb=\"1\">\n",
 "\n",
-"              <DoStatElimBundle Nb=\"?\" Type=\"bool\"> </DoStatElimBundle>\n",
+"              <DoStatElimBundle Nb=\"?\" Type=\"int\"> </DoStatElimBundle>\n",
 "              <UseExportImageResidu  Nb=\"?\"> \n",
 "                   <SzByPair Nb=\"?\" Type=\"double\" Def=\"30\"> </SzByPair> \n",
 "                   <SzByPose Nb=\"?\" Type=\"double\" Def=\"50\"> </SzByPose> \n",

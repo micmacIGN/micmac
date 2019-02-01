@@ -970,7 +970,7 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
 
         <SectionChantier Nb="1">
 
-              <DoStatElimBundle Nb="?" Type="bool"> </DoStatElimBundle>
+              <DoStatElimBundle Nb="?" Type="int"> </DoStatElimBundle>
               <UseExportImageResidu  Nb="?"> 
                    <SzByPair Nb="?" Type="double" Def="30"> </SzByPair> 
                    <SzByPose Nb="?" Type="double" Def="50"> </SzByPose> 

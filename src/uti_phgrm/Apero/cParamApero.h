@@ -3090,8 +3090,8 @@ class cSectionChantier
         friend void xml_init(cSectionChantier & anObj,cElXMLTree * aTree);
 
 
-        cTplValGesInit< bool > & DoStatElimBundle();
-        const cTplValGesInit< bool > & DoStatElimBundle()const ;
+        cTplValGesInit< int > & DoStatElimBundle();
+        const cTplValGesInit< int > & DoStatElimBundle()const ;
 
         cTplValGesInit< double > & SzByPair();
         const cTplValGesInit< double > & SzByPair()const ;
@@ -3186,7 +3186,7 @@ class cSectionChantier
         cTplValGesInit< double > & ThresholdWarnPointsBehind();
         const cTplValGesInit< double > & ThresholdWarnPointsBehind()const ;
     private:
-        cTplValGesInit< bool > mDoStatElimBundle;
+        cTplValGesInit< int > mDoStatElimBundle;
         cTplValGesInit< cUseExportImageResidu > mUseExportImageResidu;
         cTplValGesInit< bool > mUseRegulDist;
         cTplValGesInit< bool > mGBCamSupresStenCam;
@@ -7098,8 +7098,8 @@ class cParamApero
         cSectionInconnues & SectionInconnues();
         const cSectionInconnues & SectionInconnues()const ;
 
-        cTplValGesInit< bool > & DoStatElimBundle();
-        const cTplValGesInit< bool > & DoStatElimBundle()const ;
+        cTplValGesInit< int > & DoStatElimBundle();
+        const cTplValGesInit< int > & DoStatElimBundle()const ;
 
         cTplValGesInit< double > & SzByPair();
         const cTplValGesInit< double > & SzByPair()const ;

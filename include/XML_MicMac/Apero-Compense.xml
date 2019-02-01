@@ -216,7 +216,7 @@
            <Symb> ZRapOnZ=0 </Symb>
            <Symb> SigmaRapOnZ=1.0 </Symb>
            <Symb> KeyGrpRapOnZ=XXXX </Symb>
-           <Symb> DSElimB=false </Symb>
+           <Symb> DSElimB=0 </Symb>
 
        </DicoLoc>
 

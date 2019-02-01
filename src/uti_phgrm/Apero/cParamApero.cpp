@@ -10809,12 +10809,12 @@ void xml_init(cTimeLinkage & anObj,cElXMLTree * aTree)
 std::string  Mangling( cTimeLinkage *) {return "BEB337D7A41F8CD1FD3F";};
 
 
-cTplValGesInit< bool > & cSectionChantier::DoStatElimBundle()
+cTplValGesInit< int > & cSectionChantier::DoStatElimBundle()
 {
    return mDoStatElimBundle;
 }
 
-const cTplValGesInit< bool > & cSectionChantier::DoStatElimBundle()const 
+const cTplValGesInit< int > & cSectionChantier::DoStatElimBundle()const 
 {
    return mDoStatElimBundle;
 }
@@ -11519,7 +11519,7 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    xml_init(anObj.ThresholdWarnPointsBehind(),aTree->Get("ThresholdWarnPointsBehind",1),double(0.01)); //tototo 
 }
 
-std::string  Mangling( cSectionChantier *) {return "0C44C96E719A398BFF3F";};
+std::string  Mangling( cSectionChantier *) {return "E2B20DCE879715AAFF3F";};
 
 
 cTplValGesInit< bool > & cSectionSolveur::AllMatSym()
@@ -26345,12 +26345,12 @@ const cSectionInconnues & cParamApero::SectionInconnues()const
 }
 
 
-cTplValGesInit< bool > & cParamApero::DoStatElimBundle()
+cTplValGesInit< int > & cParamApero::DoStatElimBundle()
 {
    return SectionChantier().DoStatElimBundle();
 }
 
-const cTplValGesInit< bool > & cParamApero::DoStatElimBundle()const 
+const cTplValGesInit< int > & cParamApero::DoStatElimBundle()const 
 {
    return SectionChantier().DoStatElimBundle();
 }
@@ -27089,7 +27089,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "3AFE597272A238F9FD3F";};
+std::string  Mangling( cParamApero *) {return "C032818D6DA7B7D7F83F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

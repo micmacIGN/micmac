@@ -1126,6 +1126,20 @@ class cOneElemLiaisonMultiple
 	 cGenPoseCam *   mGenPose;
 };
 
+class cStatErB
+{
+   public :
+      cStatErB();
+
+      void AddLab(eTypeResulPtsBundle,double aPds=1 );
+      void AddLab(const cStatErB & aS2);
+      void Show();
+   private : 
+      double mStatRes[(int)eTRPB_NbVals] ;
+      double mNbTot;
+};
+
+
 class cStatObs
 {
     public :
@@ -1138,6 +1152,7 @@ class cStatObs
          double PdsEvol() const;
          double MaxEvol() const;
          double MoyEvol() const;
+         cStatErB & StatErB();
     private :
          void AssertPdsEvolNN() const;
 
@@ -1146,6 +1161,7 @@ class cStatObs
          double mMaxEvol;
          double mPdsEvol;
          double mSomEvol;
+         cStatErB mStatErB;
 };
 
 /*

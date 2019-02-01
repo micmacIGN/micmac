@@ -82,7 +82,7 @@ class cAppli_Tapas_Campari
     private :
       // ModePose = ! ModeDist
        void AddParamBloc(std::string & mCom,std::vector<std::string> & aVBL,const std::string & aPref,bool ModePose);
-       bool mDSElimB;
+       int      mDSElimB;
        LArgMain                  *mArg;
 };
 

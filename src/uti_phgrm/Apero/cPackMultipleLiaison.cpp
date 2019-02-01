@@ -106,6 +106,11 @@ bool   cStatObs::AddEq() const
    return ( mAddEq!=0 );
 }
 
+cStatErB &  cStatObs::StatErB()
+{
+   return mStatErB;
+}
+
 
 /**************************************************/
 /*                                                */
@@ -1113,17 +1118,9 @@ void cGlobStatDet::Show()
 }
 
 
-/*
-typedef enum
-{
-  eTRPB_Ok,
-  eTRPB_PdNull,
-  eTRPB_BSurH,
-  eTRPB_Visib,
-  eTRPB_NoInterBundle,
-  eTRPB_NbVal
-} eTypeResulPtsBundle;
-*/
+/*******************************/
+/*      cStatErB               */
+/*******************************/
 
 void HandleBundleErr(const cResiduP3Inc & aRes ,eTypeResulPtsBundle & aTRBP,bool ErrOnStat)
 {
@@ -1145,6 +1142,45 @@ void HandleBundleErr(const cResiduP3Inc & aRes ,eTypeResulPtsBundle & aTRBP,bool
 }
 
 
+cStatErB::cStatErB() :
+   mNbTot (0)
+{
+  
+  for (int aK=0 ; aK<(int)eTRPB_NbVals ; aK++)
+      mStatRes[aK] = 0;
+}
+
+void cStatErB::AddLab(eTypeResulPtsBundle aTRPB,double aPds)
+{
+    mStatRes[(int) aTRPB] += aPds;
+    mNbTot += aPds;
+}
+
+void cStatErB::AddLab(const cStatErB & aS2)
+{
+  for (int aK=0 ; aK<(int)eTRPB_NbVals ; aK++)
+      AddLab((eTypeResulPtsBundle) aK, aS2.mStatRes[aK] );
+}
+
+void cStatErB::Show()
+{
+     std::cout << "----- Stat on type of point (ok/elim) ----\n";
+     for (int aK=0 ; aK<(int)eTRPB_NbVals ; aK++)
+     {
+         if (mStatRes[aK] !=0)
+         {
+             eTypeResulPtsBundle aTRPB =  eTypeResulPtsBundle (aK);
+             std::cout <<  "     *  " 
+                       <<  " Perc=" <<   (100.0 * mStatRes[aK]) / mNbTot  << "%"
+                       <<   " ;  Nb="  << mStatRes[aK]
+                       <<  " for " << eToString(aTRPB).substr(6)
+                       <<  "\n";
+         }
+     }
+     std::cout << "---------------------------------------\n";
+}
+
+ /***************************************************/
 
 double cObsLiaisonMultiple::AddObsLM
        (
@@ -1156,25 +1192,9 @@ double cObsLiaisonMultiple::AddObsLM
            const cRapOnZ *      aRAZGlob
        )
 {
-
   bool ErrOnStat = MPD_MM() ||  ERupnik_MM();
-  bool AffichStat = mAppli.Param().SectionChantier().DoStatElimBundle().ValWithDef(false);
-;
-  int aStatRes[(int)eTRPB_NbVals] ;
-  for (int aK=0 ; aK<(int)eTRPB_NbVals ; aK++)
-      aStatRes[aK] = 0;
-
-/*
-  static int aCpt = 0 ; aCpt ++;
-  bool aBug = false;
-  if ( mAppli.NumSauvAuto()==6)
-  {
-      aBug = ((aCpt%4) == 0);
-  }
-  if (aBug) return 0;
-*/
-  
-
+  bool AffichStat = (mAppli.Param().SectionChantier().DoStatElimBundle().ValWithDef(0) >=2);
+  cStatErB aStatRes;
 
   FILE * aFpRT = mAppli.FpRT() ;
 
@@ -1564,7 +1584,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
             aTRBP = eTRPB_InsufPoseInit;
         }
         BugUPL = false;
-        aStatRes[(int) aTRBP] ++;
+        aStatRes.AddLab(aTRBP);
    }
    if (aSomPdsEvol)
    {
@@ -1664,19 +1684,10 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
        }
        if (AffichStat)
        {
-             std::cout << "----- Stat on type of point (ok/elim) ----\n";
-             for (int aK=0 ; aK<(int)eTRPB_NbVals ; aK++)
-             {
-                 if ( aStatRes[aK] !=0)
-                 {
-                    eTypeResulPtsBundle aTRPB =  eTypeResulPtsBundle (aK);
-                    std::cout <<  " *  " 
-                              <<  (100.0 * aStatRes[aK]) / int(mVPMul.size()) 
-                              <<  " for " << eToString(aTRPB)
-                              <<  "\n";
-                 }
-             }
+           aStatRes.Show();
        }
+       aSO.StatErB().AddLab(aStatRes);
+
        if ((int(aImPPM.Show().Val()) >= int(eNSM_CpleIm)) && aMatchIm0)
        {
           for (int aKP=0 ;  aKP<int(mVPoses.size()) ; aKP++)
