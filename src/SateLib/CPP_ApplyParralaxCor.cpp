@@ -392,7 +392,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	std::cout << "Polynomial fit parameters :" << endl
 		<< "Cst   = " << aMeanParErr << endl
 		<< "Coef = ";
-	for (u_int i = 0; i < nbCoef; i++)
+	for (int i = 0; i < nbCoef; i++)
 	{
 		std::cout << aPolyPar[i] << " ";
 	}
@@ -406,8 +406,8 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	REAL8 ** aDatParFit = aParFit.data();
 
 	//Filling out container
-	for (u_int aX = 0; aX < aSz.x; aX++) {
-		for (u_int aY = 0; aY < aSz.y; aY++) {
+	for (int aX = 0; aX < aSz.x; aX++) {
+		for (int aY = 0; aY < aSz.y; aY++) {
 			double X = aData_ColMap[aY][aX]; // Columns of 3N in 3B
 			aDatParFit[aY][aX] = aMeanParErr + aPolyPar[0] * X + aPolyPar[1] * X*X + aPolyPar[2] * X*X*X + aPolyPar[3] * X*X*X*X + aPolyPar[4] * X*X*X*X*X + aPolyPar[5] * X*X*X*X*X*X;
 
@@ -450,8 +450,8 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	//deg7*7
 	L2SysSurResol aSysPar77(35);
 	//For all points that are not nullified by bad correlation (value=9999) add equation to fit 6th degree polynomials in x and y to measured paralax
-	for (u_int aX = 0; aX < aSz.x; aX++) {
-		for (u_int aY = 0; aY < aSz.y; aY++) {
+	for (int aX = 0; aX < aSz.x; aX++) {
+		for (int aY = 0; aY < aSz.y; aY++) {
 			double X = double(aX);
 			double Y = double(aY);
 			if (aDatCorrel_dilat[aY][aX] != -9999)
@@ -484,7 +484,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	std::cout << "Polynomial fit parameters :" << endl
 		<< "Cst   = " << aMeanParErr << endl
 		<< "Coef = ";
-	for (u_int i = 0; i < nbCoef; i++)
+	for (int i = 0; i < nbCoef; i++)
 	{
 		std::cout << aPolyPar[i] << " ";
 	}
@@ -498,8 +498,8 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	REAL8 ** aDatParFit = aParFit.data();
 
 	//Filling out container
-	for (u_int aX = 0; aX < aSz.x; aX++) {
-		for (u_int aY = 0; aY < aSz.y; aY++) {
+	for (int aX = 0; aX < aSz.x; aX++) {
+		for (int aY = 0; aY < aSz.y; aY++) {
 			double X = double(aX);
 			double Y = double(aY);
 
@@ -679,9 +679,9 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	}
 		
 	//Filling out container
-	for (u_int aX = 0; aX < aSz.x; aX++)
+	for (int aX = 0; aX < aSz.x; aX++)
 	{
-		for (u_int aY = 0; aY < aSz.y; aY++)
+		for (int aY = 0; aY < aSz.y; aY++)
 		{
 			foundValue = find(a1DSignalX.begin(), a1DSignalX.end(), aData_RowMap[aY][aX]);
 			indexOfValue = std::distance(a1DSignalX.begin(), foundValue);
@@ -838,8 +838,8 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	//deg7*7
 	L2SysSurResol aSysPar77(35);
 	//For all points that are not nullified by bad correlation (value=9999) add equation to fit 6th degree polynomials in x and y to measured paralax
-	for (u_int aX = 0; aX < aSz.x; aX++) {
-		for (u_int aY = 0; aY < aSz.y; aY++) {
+	for (int aX = 0; aX < aSz.x; aX++) {
+		for (int aY = 0; aY < aSz.y; aY++) {
 			double X = double(aX);
 			double Y = double(aY);
 			if (aDatCorrel_dilat[aY][aX] != -9999)
@@ -921,7 +921,7 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	cout << "Polynomial fit (Poly" << aCase << ")" << endl
 		<< "Cst   = " << aMeanParErr << endl
 		<< "Coef = ";
-	for (u_int i = 0; i < nbCoef; i++)
+	for (int i = 0; i < nbCoef; i++)
 	{
 		cout << aPolyPar[i] << " ";
 	}
@@ -933,8 +933,8 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	REAL8 ** aDatParFit = aParFit.data();
 
 	//Filling out container
-	for (u_int aX = 0; aX < aSz.x; aX++) {
-		for (u_int aY = 0; aY < aSz.y; aY++) {
+	for (int aX = 0; aX < aSz.x; aX++) {
+		for (int aY = 0; aY < aSz.y; aY++) {
 			double X = double(aX);
 			double Y = double(aY);
 			double aVal;
@@ -1054,7 +1054,7 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	int aNbQualityThreshold = 32;
 	int nbOverlap = 10;
 	//For each band of 500pix with 80% overlap
-	for (u_int k = 0; k < bands.size() - nbOverlap; k++) {
+	for (int k = 0; k < bands.size() - nbOverlap; k++) {
 		u_int aXmin = bands[k];
 		u_int aXmax = bands[k + nbOverlap];
 		cout << endl << "Sin fit pass " << k << endl;
@@ -1067,10 +1067,10 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 		int firstValid = 0;
 		int lastValid = 0;
 		vector<double> a1DSignal;
-		for (u_int aY = 0; aY < aSz.y; aY++) {
+		for (int aY = 0; aY < aSz.y; aY++) {
 			double aSum = 0;
 			int aCpt = 0;
-			for (u_int aX = aXmin; aX < aXmax; aX++) {
+			for (int aX = aXmin; aX < aXmax; aX++) {
 				if (aDatCorrel_dilat[aY][aX] != -9999)
 				{
 					aCpt++;
@@ -1094,8 +1094,8 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 			cout << "Not enough data to fit this slice, keeping polynomial solution" << endl;
 
 #pragma omp parallel for
-			for (u_int aX = aXmin; aX < aXmax; aX++) {
-				for (u_int aY = 0; aY < aSz.y; aY++) {
+			for (int aX = aXmin; aX < aXmax; aX++) {
+				for (int aY = 0; aY < aSz.y; aY++) {
 					if ((mod(k, nbOverlap)) == 0)
 					{
 						aDatParFit2_1[aY][aX] = aDatParFit[aY][aX];
@@ -1151,14 +1151,14 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 			vector< double > a1DSignalX;
 			vector< double > a1DSignalY;
 
-			for (u_int i = firstValid; i <= lastValid; i++)
+			for (int i = firstValid; i <= lastValid; i++)
 			{
 				if (a1DSignal[i] == -9999) {
 					//closest non -9999 value is just before (i-1)
 					double aBefore = a1DSignal[i - 1];
 					double aAfter = 0;
 					int aDist=1;
-					for (u_int j = i + 1; j < lastValid; j++)
+					for (int j = i + 1; j < lastValid; j++)
 					{
 						if (a1DSignal[j] != -9999)
 						{
@@ -1219,9 +1219,9 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 
 			//Filling out container
 #pragma omp parallel for
-			for (u_int aX = aXmin; aX < aXmax; aX++)
+			for (int aX = aXmin; aX < aXmax; aX++)
 			{
-				for (u_int aY = 0; aY < aSz.y; aY++)
+				for (int aY = 0; aY < aSz.y; aY++)
 				{
 					double aVal = 0;
 					for (u_int i = 0; i < 9; i++)
@@ -1280,8 +1280,8 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 
 	if (nbOverlap == 2)
 	{
-		for (u_int aX = 0; aX < aSz.x; aX++) {
-			for (u_int aY = 0; aY < aSz.y; aY++) {
+		for (int aX = 0; aX < aSz.x; aX++) {
+			for (int aY = 0; aY < aSz.y; aY++) {
 				//filter crazy values
 				if (abs(aDatParFit2_1[aY][aX] - aMeanParErr) > 0.5 && abs(aDatParFit2_2[aY][aX] - aMeanParErr) > 0.5)
 				{
@@ -1306,8 +1306,8 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	//Finding median in stack
 	if (nbOverlap == 5)
 	{
-		for (u_int aX = 0; aX < aSz.x; aX++) {
-			for (u_int aY = 0; aY < aSz.y; aY++) {
+		for (int aX = 0; aX < aSz.x; aX++) {
+			for (int aY = 0; aY < aSz.y; aY++) {
 
 				double aStacka[] = { aDatParFit2_1[aY][aX],  aDatParFit2_2[aY][aX],  aDatParFit2_3[aY][aX],  aDatParFit2_4[aY][aX],  aDatParFit2_5[aY][aX] };
 				vector<double> aStack(aStacka, aStacka + 5);
@@ -1332,8 +1332,8 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	if (nbOverlap == 10)
 	{
 #pragma omp parallel for
-		for (u_int aX = 0; aX < aSz.x; aX++) {
-			for (u_int aY = 0; aY < aSz.y; aY++) {
+		for (int aX = 0; aX < aSz.x; aX++) {
+			for (int aY = 0; aY < aSz.y; aY++) {
 
 				double aStacka[] = { aDatParFit2_1[aY][aX],  aDatParFit2_2[aY][aX],  aDatParFit2_3[aY][aX],  aDatParFit2_4[aY][aX],  aDatParFit2_5[aY][aX],
 										aDatParFit2_6[aY][aX],  aDatParFit2_7[aY][aX],  aDatParFit2_8[aY][aX],  aDatParFit2_9[aY][aX],  aDatParFit2_X[aY][aX] };
