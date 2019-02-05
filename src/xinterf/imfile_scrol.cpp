@@ -845,9 +845,9 @@ template <class Type> Type * ImFileLoader<Type>::get_line_user(INT x0,INT x1,INT
 	}
 
     if (! mByteOrdered)
-        byte_inv_tab(_uline+x0,sizeof(Type),x1-x0);
+		byte_inv_tab(_uline+x0,sizeof(Type),x1-x0);
 
-	return _uline;
+return _uline;
 }
 
 

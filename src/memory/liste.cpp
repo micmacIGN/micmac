@@ -106,7 +106,7 @@ template <class Type>  INT ElList<Type>::card() const
 {
     INT n = 0;
 
-     ElList<Type>  l = *this;
+     auto l = *this;
      while (l._ptr)
      {
            l = ((liste_phys<Type> *) l._ptr)->_next;
@@ -129,7 +129,7 @@ template <class Type>  Type ElList<Type>::last() const
     ASSERT_TJS_USER(_ptr!= 0," attempt to take car of empty list");
      Type res = ((liste_phys<Type> *) _ptr)->_el;
 
-     ElList<Type>  l = *this;
+     auto l = *this;
      while (l._ptr)
      {
            res = ((liste_phys<Type> *) l._ptr)->_el;

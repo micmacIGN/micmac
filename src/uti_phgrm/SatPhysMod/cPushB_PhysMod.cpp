@@ -305,7 +305,8 @@ void cPushB_PhysMod::ShowLinesPB(bool Det)
                 std::cout << " DRay=" << euclid(aLPB->Center()) -  euclid(mLinesPB[aK-1]->Center()) ;
                 ElMatrix<double>  aMat = mLinesPB[aK-1]->MatC1ToC2(*(mLinesPB[aK]));
                 Pt3dr anAxe =  AxeRot (aMat);
- if (anAxe.z<0) anAxe = -anAxe;
+				if (anAxe.z<0)
+					anAxe = -anAxe;
                 double aTeta = TetaOfAxeRot(aMat,anAxe);
                 std::cout << " Axe " << anAxe   << " AcAx " << euclid(anAxe-aMat*anAxe) << " Teta " << (aTeta ) * 1000 ;
 

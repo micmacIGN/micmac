@@ -134,7 +134,7 @@ cVecPrime *   cVecPrime::FromCalc(int aNb,bool Exact,Pt2di & aInterv)
 
     for (int aK=1 ; aK< aNb ; aK++)
     {
-        tInt aV =  aRes->PushNext();
+        /*tInt aV =*/  aRes->PushNext();
     }
     //==================================
     if (!Exact)

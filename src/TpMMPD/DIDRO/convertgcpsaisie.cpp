@@ -388,7 +388,7 @@ int exportGCP2DMes2txt(int argc,char ** argv)
                 {
                     cOneMesureAF1I gcp=*iT;
 
-                    fprintf(aFOut,"%s %s %f %f %f\n",MAF1im.NameIm().c_str(),gcp.NamePt().c_str(), gcp.PtIm().x, gcp.PtIm().y, gcp.PrecPointe());
+                    fprintf(aFOut,"%s %s %f %f %f\n",MAF1im.NameIm().c_str(),gcp.NamePt().c_str(), gcp.PtIm().x, gcp.PtIm().y, gcp.PrecPointe().Val());
                 }
             }
 
@@ -400,13 +400,22 @@ int exportGCP2DMes2txt(int argc,char ** argv)
     }
     return 0;
 }
-
+/*
 cAppuis2Homol::cAppuis2Homol(int argc, char** argv):
     mImPat(""),
     mDebug(0),
     mExpTxt(0),
     mSH("-Appui"),
     mPMul(0)
+
+*/
+
+cAppuis2Homol::cAppuis2Homol(int argc, char** argv):
+    mImPat(""),
+    mDebug(0),
+    mExpTxt(0),
+    mPMul(0),
+    mSH("-Appui")
 {
 
     ElInitArgMain

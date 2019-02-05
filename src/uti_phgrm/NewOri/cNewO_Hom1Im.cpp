@@ -99,8 +99,10 @@ class cOrHom_AttrSom
 
         // Zone Homographie
 
+        void AddObsLin2Var(int aKV1,double aCoef1,int aKV2,double aCoef2,double aVal,double aPds,bool CoordLoc);
         void AddObsGround(double aPds,bool CoordLoc);
-        void AddObsFixAffinite();
+        void AddObsFixAffinite(bool CoordLoc);
+        void AddObsFixSimil(bool CoordLoc);
 
         void AddEqH12(tArcGT & anArc, double aPds,bool ModeAff,bool CoordLoc);
         L2SysSurResol &  Sys();
@@ -108,6 +110,7 @@ class cOrHom_AttrSom
         Pt3dr & GPS() {return    mGPS;}
         const cElHomographie  & CurHom() {return mCurHom;}
 
+        // Homographie courante avec une variation Epsilon du parametre K
         cElHomographie HomogPerturb(int aKParam,double aEpsil);
 
         Pt3dr TestSol(tArcGT & anArc);
@@ -225,11 +228,14 @@ class cAppli_Hom1Im : public cCommonMartiniAppli
         Pt2dr                          mGpsMax;
         double                         mScaleW;
         Pt2dr                          mSzW;
-        double                         mMulRab;
+        double                         mMulRab;  // Pour mode visuel uniquement
         int                            mNbEtape;
+        bool                           mModeVert;
 #if (ELISE_X11)
         Video_Win *                    mW;
 #endif
+        Pt3dr                          mCdgGPS;
+        double                         mMulGps;
 };
 
 
@@ -468,6 +474,24 @@ void   cOrHom_AttrSom::AddObsFix(int aKVal,double aVal,double aPds,bool CoordLoc
     Sys().GSSR_AddNewEquation_Indexe(0,0,0,aVInd,aPds,&aCoeff,aVal,NullPCVU);
 }
 
+void cOrHom_AttrSom::AddObsLin2Var(int aKV1,double aCoef1,int aKV2,double aCoef2,double aVal,double aPds,bool CoordLoc)
+{
+    std::vector<int> aVInd;
+    std::vector<double> aVCoeff;
+
+    aVInd.push_back(mN0Hom+aKV1);
+    aVCoeff.push_back(aCoef1);
+
+    aVCoeff.push_back(aCoef2);
+    aVInd.push_back(mN0Hom+aKV2);
+
+    if (CoordLoc)
+    {
+       aVal -= mCurParH[aKV1] *aCoef1 + mCurParH[aKV2] *aCoef2 ;
+    }
+    Sys().GSSR_AddNewEquation_Indexe(0,0,0,aVInd,aPds,&(aVCoeff[0]),aVal,NullPCVU);
+}
+
 void cOrHom_AttrSom::AddObsGround(double aPds,bool CoordLoc)
 {
      /*  
@@ -479,11 +503,23 @@ void cOrHom_AttrSom::AddObsGround(double aPds,bool CoordLoc)
      AddObsFix(5,mGPS.y,aPds,CoordLoc);
 }
 
-void cOrHom_AttrSom::AddObsFixAffinite()
+void cOrHom_AttrSom::AddObsFixAffinite(bool CoordLoc)
 {
-     AddObsFix(6,0,1.0,false);
-     AddObsFix(7,0,1.0,false);
+     AddObsFix(6,0,1.0,CoordLoc);
+     AddObsFix(7,0,1.0,CoordLoc);
 }
+
+
+void cOrHom_AttrSom::AddObsFixSimil(bool CoordLoc)
+{
+   //   X =    a0 I + a1 J + a2       Y=  a3 I + a4 J + a5 
+   //  ==>    a0-a4=0      a1+ a3 = 0
+   AddObsLin2Var(0,1.0,4,-1.0,0.0,1e4,CoordLoc);
+   AddObsLin2Var(1,1.0,3,+1.0,0.0,1e4,CoordLoc);
+}
+
+
+
 
 
 Pt3dr cOrHom_AttrSom::TestSol(tArcGT & anArc)
@@ -518,6 +554,7 @@ Pt3dr cOrHom_AttrSom::TestSol(tArcGT & anArc)
      return Pt3dr(aS,aSI1,aSI2) / aNbPts;
 }
 
+// PB
 
 
 void cOrHom_AttrSom::AddEqH12(tArcGT & anArc, double aPdsGlob,bool ModeAff,bool CoordLoc)
@@ -543,17 +580,22 @@ void cOrHom_AttrSom::AddEqH12(tArcGT & anArc, double aPdsGlob,bool ModeAff,bool 
          return;
      }
 
+     // Si ce n'est pas un mode lineaire, on aborde une linearisation par 
+     // differences finies
+
      ELISE_ASSERT(CoordLoc,"No Coord loc in homogr mod");
      
      double aEpsil = 1e-4;
-
+     
      cElHomographie aH1To2Init =  aS2.CurHom().Inverse() *  aS1.CurHom();
      cElHomographie aH2To1Init =  aS1.CurHom().Inverse() *  aS2.CurHom();
      std::vector<int> aVInd;
      std::vector<cElHomographie> aVH1To2;  // H1 to 2 en fonction des 16 perturbation possibles de parametre
      std::vector<cElHomographie> aVH2To1;
+     // 16 parametres : 8 pour chaque homographie
      for (int aKPTot=0 ; aKPTot<16 ; aKPTot++)
      {
+         //   H1_0 H1_1 ... H1_7   H2_0 H2_1 ... H2_7
          int aKPLoc = aKPTot % 8;
          cElHomographie aH1 = aS1.CurHom();
          cElHomographie aH2 = aS2.CurHom();
@@ -816,7 +858,8 @@ cAppli_Hom1Im::cAppli_Hom1Im(int argc,char ** argv,bool aModePrelim,bool aModeGp
    mNbInc      (0),
    mSys        (nullptr),
    mMulRab     (0.2),
-   mNbEtape    (50)
+   mNbEtape    (50),
+   mCdgGPS     (0,0,0)
 {
 #if (ELISE_X11)
     mW = 0;
@@ -828,7 +871,13 @@ cAppli_Hom1Im::cAppli_Hom1Im(int argc,char ** argv,bool aModePrelim,bool aModeGp
         LArgMain() << ArgCMA()
                    << EAM(mMulRab,"MulRab",true," Rab multiplier in visusal mode, def= 0.2")
                    << EAM(mNbEtape,"NbIter",true," Number of steps")
+                   << EAM(mModeVert,"Vert",true,"Compute vertical orientation")
    );
+
+   if (!EAMIsInit(&mNbEtape) && (mModeVert))
+   {
+      mNbEtape = 1;
+   }
 
    if (aModeGps)
    {
@@ -925,18 +974,19 @@ std::cout << "BBbbb\n";
        {
            aSomGPS = aSomGPS + mVecS[aKS]->attr().GPS();
        }
-       Pt3dr aCdgGPS = aSomGPS / mVecS.size();
+       mCdgGPS = aSomGPS / mVecS.size();
 
        aSomGPS = Pt3dr(0,0,0);
        double aSomD2 = 0.0;
        for (int aKS=0 ; aKS<int(mVecS.size()) ; aKS++)
        {
             Pt3dr & aGPSK = mVecS[aKS]->attr().GPS();
-            aGPSK  = aGPSK  - aCdgGPS;
+            aGPSK  = aGPSK  - mCdgGPS;
             aSomD2 += euclid(aGPSK);
             aSomGPS = aSomGPS + aGPSK;
        }
        double aMoyD =  (aSomD2/mVecS.size()) ;
+       mMulGps = (1/aMoyD) * sqrt(mVecS.size());
 
        aSomD2 = 0.0;
        mGpsMin = Pt2dr( 1e5, 1e5);
@@ -944,7 +994,7 @@ std::cout << "BBbbb\n";
        for (int aKS=0 ; aKS<int(mVecS.size()) ; aKS++)
        {
             Pt3dr & aGPSK = mVecS[aKS]->attr().GPS();
-            aGPSK  = (aGPSK  / aMoyD)  * sqrt(mVecS.size());
+            aGPSK  = aGPSK * mMulGps;
             aSomD2 += euclid(aGPSK);
             mGpsMin = Inf(mGpsMin,Pt2dr(aGPSK.x,aGPSK.y));
             mGpsMax = Sup(mGpsMax,Pt2dr(aGPSK.x,aGPSK.y));
@@ -975,7 +1025,7 @@ std::cout << "BBbbb\n";
 
 
            double aPdsAffin = 1.0;
-           bool   ModeAffine = (aKEtape==0);
+           bool   ModeAffine = (aKEtape==0) || mModeVert;
            bool   CoordLoc = (aKEtape!=0);
 
 
@@ -988,7 +1038,11 @@ std::cout << "BBbbb\n";
                if (ModeAffine)
                {
                    ELISE_ASSERT(!CoordLoc,"No affine cst in loc coord");
-                   aSom.attr().AddObsFixAffinite();
+                   aSom.attr().AddObsFixAffinite(CoordLoc);
+               }
+               if (mModeVert)
+               {
+                   aSom.attr().AddObsFixSimil(CoordLoc);
                }
            }
            for (int aKS=0 ; aKS<int(mVecS.size()) ; aKS++)

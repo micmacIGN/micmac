@@ -42,7 +42,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
-
    /*************************************************************************/
    /*                                                                       */
    /*         Linear_Order_Comp                                             */
@@ -84,9 +83,11 @@ class Linear_Order_Comp : public  Fonc_Num_Comp_TPL<INT>
 
 		  inline INT v(INT x)
           {
-			 if (x<0)      return _v[0];
-             if (x>= _nb)  return _v[_nb-1];
-                           return _v[x];
+			if (x<0)
+				return _v[0];
+			if (x>= _nb)
+				return _v[_nb-1];
+			return _v[x];
           }
           const Pack_Of_Pts * 	values(const Pack_Of_Pts * pts);
 

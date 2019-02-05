@@ -474,6 +474,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    mSelAllIm      (aSelAllIm)
 {
 
+    bool mForHom = false;
 
     bool DoOriByHom = (aCMA.ModeNO() == eModeNO_OnlyHomogr);
     bool DoOri3D    = (aCMA.ModeNO() != eModeNO_OnlyHomogr);
@@ -554,7 +555,8 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    }
    if (mXml.NbPts()<5) // => Strict Min pour homographie
    {
-        mXml.Geom().SetVal(aXCmp);
+        if (mForHom)
+            mXml.Geom().SetVal(aXCmp);
         return;
    }
    RazEllips(aXCmp.Elips());
@@ -657,7 +659,8 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
 
    if (mXml.NbPts()<(mSelAllIm ? NbMinPts2Im_AllSel : NbMinPts2Im) )
    {
-        mXml.Geom().SetVal(aXCmp);
+        if (mForHom)
+            mXml.Geom().SetVal(aXCmp);
         return;
    }
 
@@ -814,7 +817,8 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
 
           if (! mBestSolIsInit)
           {
-                mXml.Geom().SetVal(aXCmp);
+                if (mForHom)
+                   mXml.Geom().SetVal(aXCmp);
                 return;
           }
   

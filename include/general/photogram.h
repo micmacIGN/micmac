@@ -1744,6 +1744,8 @@ class ElCamera : public cCapture3D
           const ElRotation3D & Orient() const;
 
           void SetOrientation(const ElRotation3D &);
+          void AddToCenterOptical(const Pt3dr & aOffsetC);
+          void MultiToRotation(const ElMatrix<double> & aOffsetR);
 
           Pt3dr  PseudoInter(Pt2dr aPF2A,const ElCamera & CamB,Pt2dr aPF2B,double * aD=0) const;
           // Idem PseudoInter mais la precision est celle de reprojection

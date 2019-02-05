@@ -162,8 +162,8 @@ int Export2Ply_main(int argc,char ** argv)
 
         if (aType==eAppXML)
         {
-            if (Out==NameFile)
-                Out = "GCPOut_"+NameFile;
+				if (Out==NameFile)
+					Out = "GCPOut_"+NameFile;
                 if(aGpsFile)
                 {
 					cDicoGpsFlottant aDico =  StdGetFromPCP(NameFile,DicoGpsFlottant);

@@ -1421,29 +1421,28 @@ Im1D_REAL8  L2SysSurResol::Solve(bool * aResOk)
 
         for (INT ky=0;ky <NbVarTot ; ky++)
         {
-       if (ky < mNbVar)
-               b(0,ky) = mbi_Li.data()[ky];
-       else
-           b(0,ky) = mE(0,mLineCC+ky-mNbVar);
+		   if (ky < mNbVar)
+			b(0,ky) = mbi_Li.data()[ky];
+		   else
+			b(0,ky) = mE(0,mLineCC+ky-mNbVar);
 
-
-           for (INT kx=0;kx <NbVarTot ; kx++)
-           {
-           if ((kx<mNbVar) && (ky<mNbVar))
-           {
-                   M(kx,ky) = mtLi_Li.data()[kx][ky];
-           }
-           else if ((kx>=mNbVar) && (ky>=mNbVar))
-           {
-                   M(kx,ky) = 0;
-           }
-           else
-           {
-           INT X = ElMin(kx,ky);
-           INT Y = ElMax(kx,ky);
-           M(kx,ky) =  mC(X,mLineCC+Y-mNbVar);
-           }
-           }
+			   for (INT kx=0;kx <NbVarTot ; kx++)
+			   {
+				   if ((kx<mNbVar) && (ky<mNbVar))
+				   {
+					   M(kx,ky) = mtLi_Li.data()[kx][ky];
+				   }
+				   else if ((kx>=mNbVar) && (ky>=mNbVar))
+				   {
+					   M(kx,ky) = 0;
+				   }
+				   else
+				   {
+					   INT X = ElMin(kx,ky);
+					   INT Y = ElMax(kx,ky);
+					   M(kx,ky) =  mC(X,mLineCC+Y-mNbVar);
+				   }
+			   }
         }
         bool Ok = aGP.init_rec();
     if ( aResOk)

@@ -47,7 +47,8 @@ class cOneEqCalcVarUnkEl
      public :
          cOneEqCalcVarUnkEl(double anO,double aPds) :
             mO   (anO*aPds),
-            mPds (aPds)
+            mPds (aPds),
+            mRes (0)
          {
          }
 

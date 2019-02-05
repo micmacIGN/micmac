@@ -240,7 +240,7 @@ void cAppliTaskCorrel::ZBuffer()
 
     ELISE_ASSERT(mVTriValid.size() == mVImgs.size(), "Sz VTriValid uncoherent Nb Img");
 
-    int cnt=0;
+    // int cnt=0;  Warn unused
     for (uint aKIm=0; aKIm<mVImgs.size(); aKIm++)
     {
         cImgForTiepTri * aImg = mVImgs[aKIm];

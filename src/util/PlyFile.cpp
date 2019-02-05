@@ -1464,19 +1464,16 @@ Open a polygon file for reading.
   /******************************************************************************
   Compare two strings.  Returns 1 if they are the same, 0 if not.
   ******************************************************************************/
-
-  int equal_strings(const char *s1, const char *s2)
-  {
-
-      while (*s1 && *s2)
-          if (*s1++ != *s2++)
-              return (0);
-
-          if (*s1 != *s2)
-              return (0);
-          else
-              return (1);
-  }
+int equal_strings(const char *s1, const char *s2)
+{
+	while (*s1 && *s2)
+		if (*s1++ != *s2++)
+			return (0);
+	if (*s1 != *s2)
+		return (0);
+	else
+			return (1);
+}
 
 
   /******************************************************************************
@@ -1490,15 +1487,12 @@ Open a polygon file for reading.
     returns the element, or NULL if not found
   ******************************************************************************/
 
-  PlyElement *find_element(PlyFile *plyfile, const char *element)
-  {
-      int i;
-
-      for (i = 0; i < plyfile->nelems; i++)
-          if (equal_strings (element, plyfile->elems[i]->name))
-              return (plyfile->elems[i]);
-
-          return (NULL);
+PlyElement *find_element(PlyFile *plyfile, const char *element)
+{
+	for (int i = 0; i < plyfile->nelems; i++)
+		if (equal_strings (element, plyfile->elems[i]->name))
+			return (plyfile->elems[i]);
+	return (NULL);
   }
 
 
@@ -1514,19 +1508,17 @@ Open a polygon file for reading.
     returns a pointer to the property, or NULL if not found
   ******************************************************************************/
 
-  PlyProperty *find_property(PlyElement *elem, const string &prop_name, int *index)
-  {
-      int i;
-
-      for (i = 0; i < elem->nprops; i++)
-          if (prop_name == elem->props[i]->name) {
-              *index = i;
-              return (elem->props[i]);
-          }
-
-          *index = -1;
-          return (NULL);
-  }
+PlyProperty *find_property(PlyElement *elem, const string &prop_name, int *index)
+{
+	for (int i = 0; i < elem->nprops; i++)
+		if (prop_name == elem->props[i]->name)
+		{
+			*index = i;
+			return (elem->props[i]);
+		}
+	*index = -1;
+	return (NULL);
+}
 
 
   /******************************************************************************
@@ -2600,17 +2592,14 @@ Read an element from a binary file.
     returns integer code for property, or 0 if not found
   ******************************************************************************/
 
-  int get_prop_type(char *type_name)
-  {
-      int i;
-
-      for (i = PLY_START_TYPE + 1; i < PLY_END_TYPE; i++)
-          if (equal_strings (type_name, type_names[i]))
-              return (i);
-
-          /* if we get here, we didn't find the type */
-          return (0);
-  }
+int get_prop_type(char *type_name)
+{
+	for (int i = PLY_START_TYPE + 1; i < PLY_END_TYPE; i++)
+		if (equal_strings (type_name, type_names[i]))
+			return (i);
+	/* if we get here, we didn't find the type */
+	return (0);
+}
 
 
   /******************************************************************************
