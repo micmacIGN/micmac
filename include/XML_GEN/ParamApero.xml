@@ -138,7 +138,9 @@
     <eTRPB_PdsResNull> </eTRPB_PdsResNull>
     <eTRPB_NotInMasq3D> </eTRPB_NotInMasq3D>
     <eTRPB_BSurH>   </eTRPB_BSurH>
+    <eTRPB_Behind>   </eTRPB_Behind>
     <eTRPB_VisibIm> </eTRPB_VisibIm>
+    <eTRPB_OutIm> </eTRPB_OutIm>
     <eTRPB_PbInterBundle> </eTRPB_PbInterBundle>
     <eTRPB_NbVals> </eTRPB_NbVals>
 </enum>

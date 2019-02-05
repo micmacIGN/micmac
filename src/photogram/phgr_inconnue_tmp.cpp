@@ -1376,7 +1376,8 @@ bool OkReproj
           const std::vector<double> &  aVPds,
           const Pt3dr &                aPTer,
           int & aKP,
-          bool  OkBehind
+          bool  OkBehind,
+          std::string & Why
     )
 {
 
@@ -1401,6 +1402,7 @@ bool OkReproj
  // Semble + robuste de se baser sur la visibilite car reprojection peut etre degeneree
            if (! aCam.PIsVisibleInImage(aPTer,&anArg))
            {
+              Why = anArg.mWhy;
               aKP = aK;
 
               return false;
@@ -1618,12 +1620,32 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
 
 
       int aKPb=-1;
-      if (! OkReproj(aVCC,aVPds,aRes,aKPb,(aParam.mBsH<aParam.mSeuilOkBehind)))
+      std::string aWhy;
+      if (! OkReproj(aVCC,aVPds,aRes,aKPb,(aParam.mBsH<aParam.mSeuilOkBehind),aWhy))
       {
          OKInter = false;
          if (aMesPb)
          {
-             *aMesPb = std::string("MesNotVisIm, for Im num : ") + ToString(aKPb);
+             // std::cout << "Whhhhyyyy " << aWhy << "\n";
+             if (aWhy=="Behind")
+             {
+                *aMesPb = std::string("BehindCam, for Im num : ") + ToString(aKPb);
+             }
+             else
+             {
+                if (MPD_MM())
+                {
+                    if (     (aWhy!= "PreCondOut")
+                          && (aWhy!= "ScanedOut")
+                          && (aWhy!= "NotInImage")
+                          && (aWhy!= "DistCheck")
+                       )
+                    {
+                       ELISE_ASSERT(false,"Why NotVisible not handled");
+                    }
+                }
+                *aMesPb = std::string("MesNotVisIm, for Im num : ") + ToString(aKPb);
+             }
          }
 
          return Pt3dr(0,0,0);

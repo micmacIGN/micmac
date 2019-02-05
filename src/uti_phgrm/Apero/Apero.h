@@ -1060,7 +1060,9 @@ class cOnePtsMult
         cOneCombinMult * OCM();
         const  cNupletPtsHomologues & NPts() const;
 
-        int  InitPdsPMul(double aPds,std::vector<double> &) const;
+        //  NbRealRotIsInit Nombre de rot reellement init, peut etre > si pts elim because ZU
+
+        int  InitPdsPMul(double aPds,std::vector<double> &,int * NbRealRotIsInit=0) const;
 
         const cResiduP3Inc * ComputeInter
                      (

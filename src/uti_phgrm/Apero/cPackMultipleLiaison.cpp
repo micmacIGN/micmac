@@ -452,18 +452,27 @@ int cOnePtsMult::NbPoseOK(bool aFullInitRequired,bool UseZU) const
 int   cOnePtsMult::InitPdsPMul
       (
            double aPds,
-	   std::vector<double> & aVpds
+	   std::vector<double> & aVpds,
+           int *               NbRRII  // Nombre de rot reellement init, peut etre > si pts elim because ZU
       ) const
 {
      aVpds.clear();
      const std::vector<cGenPoseCam *> & aVP =  mOCM->GenVP();
      int aNbRInit=0;
-
+     if (NbRRII) 
+     {
+        *NbRRII =0;
+     }
 
      for (int aKPose=0 ; aKPose<int(aVP.size()) ; aKPose++)
      {
+          bool RII = aVP[aKPose]->RotIsInit();
+          if (NbRRII && RII)
+          {
+             (*NbRRII)++;
+          }
           if ( 
-                      aVP[aKPose]->RotIsInit()  
+                      RII
                   && aVP[0]->IsInZoneU(PK(0))
                   && aVP[aKPose]->IsInZoneU(PK(aKPose))
              )
@@ -473,8 +482,10 @@ int   cOnePtsMult::InitPdsPMul
          }
          else
          {
-               aVpds.push_back(0);
+             aVpds.push_back(0);
+             // if (RII) std::cout << "UUuuuuuuuu " << PK(0)  << PK(aKPose) << "\n";
          }
+  
     }
     return aNbRInit;
 }
@@ -1129,6 +1140,8 @@ void HandleBundleErr(const cResiduP3Inc & aRes ,eTypeResulPtsBundle & aTRBP,bool
         aTRBP= eTRPB_BSurH;
      else if (IsPrefix("MesNotVisIm",aMPB))
         aTRBP= eTRPB_VisibIm;
+     else if (IsPrefix("BehindCam",aMPB))
+        aTRBP= eTRPB_Behind;
      else if (IsPrefix("Intersectionfaisceaunondefinie",aMPB))
         aTRBP= eTRPB_PbInterBundle;
      else
@@ -1277,7 +1290,8 @@ double cObsLiaisonMultiple::AddObsLM
 	std::vector<double> aVpds;
 
         double aPds = aNupl.Pds() * mMultPds;
-        int aNbRInit= aPM->InitPdsPMul(aPds,aVpds);
+        int  NbRRI;
+        int aNbRInit= aPM->InitPdsPMul(aPds,aVpds,&NbRRI);
         if (aNbRInit>=2)
         {
              
@@ -1581,7 +1595,11 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
         }
         else
         {
-            aTRBP = eTRPB_InsufPoseInit;
+            // std::cout << "i######################## NBRRI " << NbRRI << "\n";
+            if (NbRRI<2)
+               aTRBP = eTRPB_InsufPoseInit;
+            else
+               aTRBP = eTRPB_OutIm;
         }
         BugUPL = false;
         aStatRes.AddLab(aTRBP);

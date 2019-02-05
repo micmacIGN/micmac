@@ -142,7 +142,9 @@ typedef enum
   eTRPB_PdsResNull,
   eTRPB_NotInMasq3D,
   eTRPB_BSurH,
+  eTRPB_Behind,
   eTRPB_VisibIm,
+  eTRPB_OutIm,
   eTRPB_PbInterBundle,
   eTRPB_NbVals
 } eTypeResulPtsBundle;

@@ -441,8 +441,12 @@ eTypeResulPtsBundle  Str2eTypeResulPtsBundle(const std::string & aName)
       return eTRPB_NotInMasq3D;
    else if (aName=="eTRPB_BSurH")
       return eTRPB_BSurH;
+   else if (aName=="eTRPB_Behind")
+      return eTRPB_Behind;
    else if (aName=="eTRPB_VisibIm")
       return eTRPB_VisibIm;
+   else if (aName=="eTRPB_OutIm")
+      return eTRPB_OutIm;
    else if (aName=="eTRPB_PbInterBundle")
       return eTRPB_PbInterBundle;
    else if (aName=="eTRPB_NbVals")
@@ -470,8 +474,12 @@ std::string  eToString(const eTypeResulPtsBundle & anObj)
       return  "eTRPB_NotInMasq3D";
    if (anObj==eTRPB_BSurH)
       return  "eTRPB_BSurH";
+   if (anObj==eTRPB_Behind)
+      return  "eTRPB_Behind";
    if (anObj==eTRPB_VisibIm)
       return  "eTRPB_VisibIm";
+   if (anObj==eTRPB_OutIm)
+      return  "eTRPB_OutIm";
    if (anObj==eTRPB_PbInterBundle)
       return  "eTRPB_PbInterBundle";
    if (anObj==eTRPB_NbVals)
@@ -498,7 +506,7 @@ void  BinaryUnDumpFromFile(eTypeResulPtsBundle & anObj,ELISE_fp & aFp)
    anObj=(eTypeResulPtsBundle) aIVal;
 }
 
-std::string  Mangling( eTypeResulPtsBundle *) {return "8CFAEF1DC751618EFF3F";};
+std::string  Mangling( eTypeResulPtsBundle *) {return "D0269442012DC7D8FB3F";};
 
 eTypePondMST_MEP  Str2eTypePondMST_MEP(const std::string & aName)
 {

@@ -306,7 +306,7 @@ Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
     return (mRPC->InverseRPC(aP));
 }
 
-bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage *) const
+bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInImage *) const
 {
     // (1) Check if aP is within the RPC validity zone
 	if((aP.z < mRPC->GetGrC31()) || (aP.z > mRPC->GetGrC32()))
@@ -963,7 +963,7 @@ bool CameraAffine::CaptHasData(const Pt2dr &) const
     return(true);
 }
 
-bool CameraAffine::PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage *) const
+bool CameraAffine::PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInImage *) const
 {
     return(true);
 }
