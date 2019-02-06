@@ -2109,9 +2109,9 @@ cArgOptionalPIsVisibleInImage::cArgOptionalPIsVisibleInImage() :
 }
 
 
-bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,const cArgOptionalPIsVisibleInImage * anArg) const
+bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,cArgOptionalPIsVisibleInImage * anArg) const
 {
-
+   if (anArg) anArg->mWhy ="";
 
    Pt3dr aPCam = R3toL3(aPTer);
 
@@ -2122,7 +2122,10 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,const cArgOptionalPIs
         if (aPCam.z <= aSeuil)
         {
              if ( (anArg==0) || (! anArg->mOkBehind)  || (aPCam.z>-aSeuil))
+             {
+                if (anArg) anArg->mWhy = "Behind";
                 return false;
+             }
         }
    }
 
@@ -2153,6 +2156,7 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,const cArgOptionalPIs
        aPQ =  aMil+ (aPQ-aMil) * aRab;
        if ((aPQ.x <0)  || (aPQ.y<0) || (aPQ.x>aSz.x) || (aPQ.y>aSz.y))
        {
+            if (anArg) anArg->mWhy ="PreCondOut";
             return false;
        }
     }
@@ -2165,20 +2169,36 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,const cArgOptionalPIs
    // Si "vraie" camera et scannee il est necessaire de faire le test maintenant
    // car IsZoneUtil est en mm
 
-   if ( (!GetZoneUtilInPixel()) && ( ! IsInZoneUtile(aPF0))) return false;
+   if ( (!GetZoneUtilInPixel()) && ( ! IsInZoneUtile(aPF0)))
+   {
+       if (anArg) anArg->mWhy ="ScanedOut";
+       return false;
+   }
 
 
    Pt2dr aPF1 = DComplM2C(aPF0);
 
    // MPD le 17/06/2014 : je ne comprend plus le [1], qui fait planter les camera ortho
    // a priori la zone utile se juge a la fin
-   if (GetZoneUtilInPixel() && ( ! IsInZoneUtile(aPF1,true))) return false;
+   if (GetZoneUtilInPixel() && ( ! IsInZoneUtile(aPF1,true))) 
+   {
+       if (anArg) anArg->mWhy ="NotInImage";
+       return false;
+   }
 
 
    Pt2dr aI0Again = DistInverse(aPF1);
 
 
-    return euclid(aPI0-aI0Again) < 1.0/ mScaleAfnt;
+   bool aResult = (euclid(aPI0-aI0Again) < 1.0/ mScaleAfnt);
+
+   if (! aResult)
+   {
+       if (anArg) anArg->mWhy ="DistCheck";
+       return false;
+   }
+
+   return aResult;
 }
 
 

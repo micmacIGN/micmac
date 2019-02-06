@@ -902,6 +902,8 @@ double cPackObsLiaison::AddObs
    {
       for (int aK= 0 ; aK< 2; aK++)
       {
+          bool StatDone = false;
+          aSO.StatErB() = cStatErB();
           for
           (
                std::map<std::string,cObsLiaisonMultiple *>::iterator itOML=mDicoMul.begin();
@@ -920,6 +922,7 @@ double cPackObsLiaison::AddObs
                  {
                     aS1++;
 	            aSEr +=  anOLM->AddObsLM(aPond,aPondSurf,0,(cArgVerifAero*)0,aSO,aRAZ);
+                     StatDone = true;
                  }
                  else
                  {
@@ -927,6 +930,12 @@ double cPackObsLiaison::AddObs
                  }
              }
 
+         }
+         if (StatDone)
+         {
+             int aLev = mAppli.Param().SectionChantier().DoStatElimBundle().ValWithDef(0);
+             if (aLev>=1)
+                aSO.StatErB().Show();
          }
       }
    }

@@ -1060,7 +1060,9 @@ class cOnePtsMult
         cOneCombinMult * OCM();
         const  cNupletPtsHomologues & NPts() const;
 
-        int  InitPdsPMul(double aPds,std::vector<double> &) const;
+        //  NbRealRotIsInit Nombre de rot reellement init, peut etre > si pts elim because ZU
+
+        int  InitPdsPMul(double aPds,std::vector<double> &,int * NbRealRotIsInit=0) const;
 
         const cResiduP3Inc * ComputeInter
                      (
@@ -1126,6 +1128,20 @@ class cOneElemLiaisonMultiple
 	 cGenPoseCam *   mGenPose;
 };
 
+class cStatErB
+{
+   public :
+      cStatErB();
+
+      void AddLab(eTypeResulPtsBundle,double aPds=1 );
+      void AddLab(const cStatErB & aS2);
+      void Show();
+   private : 
+      double mStatRes[(int)eTRPB_NbVals] ;
+      double mNbTot;
+};
+
+
 class cStatObs
 {
     public :
@@ -1138,6 +1154,7 @@ class cStatObs
          double PdsEvol() const;
          double MaxEvol() const;
          double MoyEvol() const;
+         cStatErB & StatErB();
     private :
          void AssertPdsEvolNN() const;
 
@@ -1146,6 +1163,7 @@ class cStatObs
          double mMaxEvol;
          double mPdsEvol;
          double mSomEvol;
+         cStatErB mStatErB;
 };
 
 /*

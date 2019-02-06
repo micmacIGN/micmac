@@ -216,6 +216,8 @@
            <Symb> ZRapOnZ=0 </Symb>
            <Symb> SigmaRapOnZ=1.0 </Symb>
            <Symb> KeyGrpRapOnZ=XXXX </Symb>
+           <Symb> DSElimB=0 </Symb>
+
        </DicoLoc>
 
 
@@ -461,6 +463,7 @@
 
 
         <SectionChantier>
+             <DoStatElimBundle> ${DSElimB} </DoStatElimBundle>
              <#WHEN VTEST=${DoUseExportImageResidu}>
                    <UseExportImageResidu>
                         <SzByPair> ${UEIR_ByPair} </SzByPair>

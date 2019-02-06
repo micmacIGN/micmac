@@ -978,7 +978,7 @@ bool  cBGC3_Modif2D::CaptHasData(const Pt2dr &aP) const
     return  mCam0->CaptHasData(CurIm2CamInit(aP));
 }
 
-bool      cBGC3_Modif2D::PIsVisibleInImage(const Pt3dr & aP,const cArgOptionalPIsVisibleInImage  * anArg) const
+bool      cBGC3_Modif2D::PIsVisibleInImage(const Pt3dr & aP,cArgOptionalPIsVisibleInImage  * anArg) const
 {
     return mCam0->PIsVisibleInImage(aP,anArg);
 }
