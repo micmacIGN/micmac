@@ -1,5 +1,5 @@
 /*************************************************************************
-ALGLIB 3.10.0 (source code generated 2015-08-19)
+ALGLIB 3.15.0 (source code generated 2019-02-20)
 Copyright (c) Sergey Bochkanov (ALGLIB project).
 
 >>> SOURCE LICENSE >>>
@@ -17,17 +17,20 @@ A copy of the GNU General Public License is available at
 http://www.fsf.org/licensing/licenses
 >>> END OF LICENSE >>>
 *************************************************************************/
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #include "stdafx.h"
 #include "statistics.h"
 
 // disable some irrelevant warnings
-#if (AE_COMPILER==AE_MSVC)
+#if (AE_COMPILER==AE_MSVC) && !defined(AE_ALL_WARNINGS)
 #pragma warning(disable:4100)
 #pragma warning(disable:4127)
+#pragma warning(disable:4611)
 #pragma warning(disable:4702)
 #pragma warning(disable:4996)
 #endif
-using namespace std;
 
 /////////////////////////////////////////////////////////////////////////
 //
@@ -37,6 +40,80 @@ using namespace std;
 namespace alglib
 {
 
+#if defined(AE_COMPILE_BASESTAT) || !defined(AE_PARTIAL_BUILD)
+
+#endif
+
+#if defined(AE_COMPILE_WSR) || !defined(AE_PARTIAL_BUILD)
+
+#endif
+
+#if defined(AE_COMPILE_STEST) || !defined(AE_PARTIAL_BUILD)
+
+#endif
+
+#if defined(AE_COMPILE_CORRELATIONTESTS) || !defined(AE_PARTIAL_BUILD)
+
+#endif
+
+#if defined(AE_COMPILE_STUDENTTTESTS) || !defined(AE_PARTIAL_BUILD)
+
+#endif
+
+#if defined(AE_COMPILE_MANNWHITNEYU) || !defined(AE_PARTIAL_BUILD)
+
+#endif
+
+#if defined(AE_COMPILE_JARQUEBERA) || !defined(AE_PARTIAL_BUILD)
+
+#endif
+
+#if defined(AE_COMPILE_VARIANCETESTS) || !defined(AE_PARTIAL_BUILD)
+
+#endif
+
+#if defined(AE_COMPILE_BASESTAT) || !defined(AE_PARTIAL_BUILD)
+/*************************************************************************
+Calculation of the distribution moments: mean, variance, skewness, kurtosis.
+
+INPUT PARAMETERS:
+    X       -   sample
+    N       -   N>=0, sample size:
+                * if given, only leading N elements of X are processed
+                * if not given, automatically determined from size of X
+
+OUTPUT PARAMETERS
+    Mean    -   mean.
+    Variance-   variance.
+    Skewness-   skewness (if variance<>0; zero otherwise).
+    Kurtosis-   kurtosis (if variance<>0; zero otherwise).
+
+NOTE: variance is calculated by dividing sum of squares by N-1, not N.
+
+  -- ALGLIB --
+     Copyright 06.09.2006 by Bochkanov Sergey
+*************************************************************************/
+void samplemoments(const real_1d_array &x, const ae_int_t n, double &mean, double &variance, double &skewness, double &kurtosis, const xparams _xparams)
+{
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
+    alglib_impl::ae_state_init(&_alglib_env_state);
+    if( setjmp(_break_jump) )
+    {
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return;
+#endif
+    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::samplemoments(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &mean, &variance, &skewness, &kurtosis, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
+}
 
 /*************************************************************************
 Calculation of the distribution moments: mean, variance, skewness, kurtosis.
@@ -58,24 +135,29 @@ NOTE: variance is calculated by dividing sum of squares by N-1, not N.
   -- ALGLIB --
      Copyright 06.09.2006 by Bochkanov Sergey
 *************************************************************************/
-void samplemoments(const real_1d_array &x, const ae_int_t n, double &mean, double &variance, double &skewness, double &kurtosis)
+#if !defined(AE_NO_EXCEPTIONS)
+void samplemoments(const real_1d_array &x, double &mean, double &variance, double &skewness, double &kurtosis, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;    
+    ae_int_t n;
+
+    n = x.length();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::samplemoments(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &mean, &variance, &skewness, &kurtosis, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::samplemoments(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &mean, &variance, &skewness, &kurtosis, &_alglib_env_state);
+
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
+#endif
 
 /*************************************************************************
-Calculation of the distribution moments: mean, variance, skewness, kurtosis.
+Calculation of the mean.
 
 INPUT PARAMETERS:
     X       -   sample
@@ -83,35 +165,35 @@ INPUT PARAMETERS:
                 * if given, only leading N elements of X are processed
                 * if not given, automatically determined from size of X
 
-OUTPUT PARAMETERS
-    Mean    -   mean.
-    Variance-   variance.
-    Skewness-   skewness (if variance<>0; zero otherwise).
-    Kurtosis-   kurtosis (if variance<>0; zero otherwise).
+NOTE:
 
-NOTE: variance is calculated by dividing sum of squares by N-1, not N.
+This function return result  which calculated by 'SampleMoments' function
+and stored at 'Mean' variable.
+
 
   -- ALGLIB --
      Copyright 06.09.2006 by Bochkanov Sergey
 *************************************************************************/
-void samplemoments(const real_1d_array &x, double &mean, double &variance, double &skewness, double &kurtosis)
+double samplemean(const real_1d_array &x, const ae_int_t n, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-
-    n = x.length();
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::samplemoments(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &mean, &variance, &skewness, &kurtosis, &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return 0;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::samplemean(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
 }
 
 /*************************************************************************
@@ -132,24 +214,29 @@ and stored at 'Mean' variable.
   -- ALGLIB --
      Copyright 06.09.2006 by Bochkanov Sergey
 *************************************************************************/
-double samplemean(const real_1d_array &x, const ae_int_t n)
+#if !defined(AE_NO_EXCEPTIONS)
+double samplemean(const real_1d_array &x, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;    
+    ae_int_t n;
+
+    n = x.length();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        double result = alglib_impl::samplemean(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::samplemean(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
+
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
 }
+#endif
 
 /*************************************************************************
-Calculation of the mean.
+Calculation of the variance.
 
 INPUT PARAMETERS:
     X       -   sample
@@ -160,30 +247,32 @@ INPUT PARAMETERS:
 NOTE:
 
 This function return result  which calculated by 'SampleMoments' function
-and stored at 'Mean' variable.
+and stored at 'Variance' variable.
 
 
   -- ALGLIB --
      Copyright 06.09.2006 by Bochkanov Sergey
 *************************************************************************/
-double samplemean(const real_1d_array &x)
+double samplevariance(const real_1d_array &x, const ae_int_t n, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-
-    n = x.length();
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        double result = alglib_impl::samplemean(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return 0;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::samplevariance(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
 }
 
 /*************************************************************************
@@ -204,24 +293,29 @@ and stored at 'Variance' variable.
   -- ALGLIB --
      Copyright 06.09.2006 by Bochkanov Sergey
 *************************************************************************/
-double samplevariance(const real_1d_array &x, const ae_int_t n)
+#if !defined(AE_NO_EXCEPTIONS)
+double samplevariance(const real_1d_array &x, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;    
+    ae_int_t n;
+
+    n = x.length();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        double result = alglib_impl::samplevariance(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::samplevariance(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
+
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
 }
+#endif
 
 /*************************************************************************
-Calculation of the variance.
+Calculation of the skewness.
 
 INPUT PARAMETERS:
     X       -   sample
@@ -232,30 +326,32 @@ INPUT PARAMETERS:
 NOTE:
 
 This function return result  which calculated by 'SampleMoments' function
-and stored at 'Variance' variable.
+and stored at 'Skewness' variable.
 
 
   -- ALGLIB --
      Copyright 06.09.2006 by Bochkanov Sergey
 *************************************************************************/
-double samplevariance(const real_1d_array &x)
+double sampleskewness(const real_1d_array &x, const ae_int_t n, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-
-    n = x.length();
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        double result = alglib_impl::samplevariance(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return 0;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::sampleskewness(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
 }
 
 /*************************************************************************
@@ -276,24 +372,29 @@ and stored at 'Skewness' variable.
   -- ALGLIB --
      Copyright 06.09.2006 by Bochkanov Sergey
 *************************************************************************/
-double sampleskewness(const real_1d_array &x, const ae_int_t n)
+#if !defined(AE_NO_EXCEPTIONS)
+double sampleskewness(const real_1d_array &x, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;    
+    ae_int_t n;
+
+    n = x.length();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        double result = alglib_impl::sampleskewness(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::sampleskewness(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
+
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
 }
+#endif
 
 /*************************************************************************
-Calculation of the skewness.
+Calculation of the kurtosis.
 
 INPUT PARAMETERS:
     X       -   sample
@@ -304,30 +405,32 @@ INPUT PARAMETERS:
 NOTE:
 
 This function return result  which calculated by 'SampleMoments' function
-and stored at 'Skewness' variable.
+and stored at 'Kurtosis' variable.
 
 
   -- ALGLIB --
      Copyright 06.09.2006 by Bochkanov Sergey
 *************************************************************************/
-double sampleskewness(const real_1d_array &x)
+double samplekurtosis(const real_1d_array &x, const ae_int_t n, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-
-    n = x.length();
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        double result = alglib_impl::sampleskewness(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return 0;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::samplekurtosis(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
 }
 
 /*************************************************************************
@@ -348,58 +451,62 @@ and stored at 'Kurtosis' variable.
   -- ALGLIB --
      Copyright 06.09.2006 by Bochkanov Sergey
 *************************************************************************/
-double samplekurtosis(const real_1d_array &x, const ae_int_t n)
+#if !defined(AE_NO_EXCEPTIONS)
+double samplekurtosis(const real_1d_array &x, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        double result = alglib_impl::samplekurtosis(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-/*************************************************************************
-Calculation of the kurtosis.
-
-INPUT PARAMETERS:
-    X       -   sample
-    N       -   N>=0, sample size:
-                * if given, only leading N elements of X are processed
-                * if not given, automatically determined from size of X
-
-NOTE:
-
-This function return result  which calculated by 'SampleMoments' function
-and stored at 'Kurtosis' variable.
-
-
-  -- ALGLIB --
-     Copyright 06.09.2006 by Bochkanov Sergey
-*************************************************************************/
-double samplekurtosis(const real_1d_array &x)
-{
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;    
     ae_int_t n;
 
     n = x.length();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        double result = alglib_impl::samplekurtosis(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::samplekurtosis(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &_alglib_env_state);
 
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
-    }
-    catch(alglib_impl::ae_error_type)
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
+}
+#endif
+
+/*************************************************************************
+ADev
+
+Input parameters:
+    X   -   sample
+    N   -   N>=0, sample size:
+            * if given, only leading N elements of X are processed
+            * if not given, automatically determined from size of X
+
+Output parameters:
+    ADev-   ADev
+
+  -- ALGLIB --
+     Copyright 06.09.2006 by Bochkanov Sergey
+*************************************************************************/
+void sampleadev(const real_1d_array &x, const ae_int_t n, double &adev, const xparams _xparams)
+{
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
+    alglib_impl::ae_state_init(&_alglib_env_state);
+    if( setjmp(_break_jump) )
     {
-        throw ap_error(_alglib_env_state.error_msg);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return;
+#endif
     }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::sampleadev(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &adev, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -417,55 +524,62 @@ Output parameters:
   -- ALGLIB --
      Copyright 06.09.2006 by Bochkanov Sergey
 *************************************************************************/
-void sampleadev(const real_1d_array &x, const ae_int_t n, double &adev)
+#if !defined(AE_NO_EXCEPTIONS)
+void sampleadev(const real_1d_array &x, double &adev, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::sampleadev(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &adev, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-/*************************************************************************
-ADev
-
-Input parameters:
-    X   -   sample
-    N   -   N>=0, sample size:
-            * if given, only leading N elements of X are processed
-            * if not given, automatically determined from size of X
-
-Output parameters:
-    ADev-   ADev
-
-  -- ALGLIB --
-     Copyright 06.09.2006 by Bochkanov Sergey
-*************************************************************************/
-void sampleadev(const real_1d_array &x, double &adev)
-{
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;    
     ae_int_t n;
 
     n = x.length();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::sampleadev(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &adev, &_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::sampleadev(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &adev, &_alglib_env_state);
 
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
+}
+#endif
+
+/*************************************************************************
+Median calculation.
+
+Input parameters:
+    X   -   sample (array indexes: [0..N-1])
+    N   -   N>=0, sample size:
+            * if given, only leading N elements of X are processed
+            * if not given, automatically determined from size of X
+
+Output parameters:
+    Median
+
+  -- ALGLIB --
+     Copyright 06.09.2006 by Bochkanov Sergey
+*************************************************************************/
+void samplemedian(const real_1d_array &x, const ae_int_t n, double &median, const xparams _xparams)
+{
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
+    alglib_impl::ae_state_init(&_alglib_env_state);
+    if( setjmp(_break_jump) )
     {
-        throw ap_error(_alglib_env_state.error_msg);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return;
+#endif
     }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::samplemedian(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &median, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -483,55 +597,63 @@ Output parameters:
   -- ALGLIB --
      Copyright 06.09.2006 by Bochkanov Sergey
 *************************************************************************/
-void samplemedian(const real_1d_array &x, const ae_int_t n, double &median)
+#if !defined(AE_NO_EXCEPTIONS)
+void samplemedian(const real_1d_array &x, double &median, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;    
+    ae_int_t n;
+
+    n = x.length();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::samplemedian(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &median, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::samplemedian(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &median, &_alglib_env_state);
+
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
+#endif
 
 /*************************************************************************
-Median calculation.
+Percentile calculation.
 
 Input parameters:
     X   -   sample (array indexes: [0..N-1])
     N   -   N>=0, sample size:
             * if given, only leading N elements of X are processed
             * if not given, automatically determined from size of X
+    P   -   percentile (0<=P<=1)
 
 Output parameters:
-    Median
+    V   -   percentile
 
   -- ALGLIB --
-     Copyright 06.09.2006 by Bochkanov Sergey
+     Copyright 01.03.2008 by Bochkanov Sergey
 *************************************************************************/
-void samplemedian(const real_1d_array &x, double &median)
+void samplepercentile(const real_1d_array &x, const ae_int_t n, const double p, double &v, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-
-    n = x.length();
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::samplemedian(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &median, &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::samplepercentile(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, p, &v, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -550,57 +672,26 @@ Output parameters:
   -- ALGLIB --
      Copyright 01.03.2008 by Bochkanov Sergey
 *************************************************************************/
-void samplepercentile(const real_1d_array &x, const ae_int_t n, const double p, double &v)
+#if !defined(AE_NO_EXCEPTIONS)
+void samplepercentile(const real_1d_array &x, const double p, double &v, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::samplepercentile(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, p, &v, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-/*************************************************************************
-Percentile calculation.
-
-Input parameters:
-    X   -   sample (array indexes: [0..N-1])
-    N   -   N>=0, sample size:
-            * if given, only leading N elements of X are processed
-            * if not given, automatically determined from size of X
-    P   -   percentile (0<=P<=1)
-
-Output parameters:
-    V   -   percentile
-
-  -- ALGLIB --
-     Copyright 01.03.2008 by Bochkanov Sergey
-*************************************************************************/
-void samplepercentile(const real_1d_array &x, const double p, double &v)
-{
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;    
     ae_int_t n;
 
     n = x.length();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::samplepercentile(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, p, &v, &_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::samplepercentile(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, p, &v, &_alglib_env_state);
 
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
+#endif
 
 /*************************************************************************
 2-sample covariance
@@ -618,20 +709,26 @@ Result:
   -- ALGLIB --
      Copyright 28.10.2010 by Bochkanov Sergey
 *************************************************************************/
-double cov2(const real_1d_array &x, const real_1d_array &y, const ae_int_t n)
+double cov2(const real_1d_array &x, const real_1d_array &y, const ae_int_t n, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        double result = alglib_impl::cov2(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return 0;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::cov2(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
 }
 
 /*************************************************************************
@@ -650,25 +747,65 @@ Result:
   -- ALGLIB --
      Copyright 28.10.2010 by Bochkanov Sergey
 *************************************************************************/
-double cov2(const real_1d_array &x, const real_1d_array &y)
+#if !defined(AE_NO_EXCEPTIONS)
+double cov2(const real_1d_array &x, const real_1d_array &y, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;    
     ae_int_t n;
     if( (x.length()!=y.length()))
-        throw ap_error("Error while calling 'cov2': looks like one of arguments has wrong size");
+        _ALGLIB_CPP_EXCEPTION("Error while calling 'cov2': looks like one of arguments has wrong size");
     n = x.length();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        double result = alglib_impl::cov2(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::cov2(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
 
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
-    }
-    catch(alglib_impl::ae_error_type)
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
+}
+#endif
+
+/*************************************************************************
+Pearson product-moment correlation coefficient
+
+Input parameters:
+    X       -   sample 1 (array indexes: [0..N-1])
+    Y       -   sample 2 (array indexes: [0..N-1])
+    N       -   N>=0, sample size:
+                * if given, only N leading elements of X/Y are processed
+                * if not given, automatically determined from input sizes
+
+Result:
+    Pearson product-moment correlation coefficient
+    (zero for N=0 or N=1)
+
+  -- ALGLIB --
+     Copyright 28.10.2010 by Bochkanov Sergey
+*************************************************************************/
+double pearsoncorr2(const real_1d_array &x, const real_1d_array &y, const ae_int_t n, const xparams _xparams)
+{
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
+    alglib_impl::ae_state_init(&_alglib_env_state);
+    if( setjmp(_break_jump) )
     {
-        throw ap_error(_alglib_env_state.error_msg);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return 0;
+#endif
     }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::pearsoncorr2(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
 }
 
 /*************************************************************************
@@ -688,24 +825,30 @@ Result:
   -- ALGLIB --
      Copyright 28.10.2010 by Bochkanov Sergey
 *************************************************************************/
-double pearsoncorr2(const real_1d_array &x, const real_1d_array &y, const ae_int_t n)
+#if !defined(AE_NO_EXCEPTIONS)
+double pearsoncorr2(const real_1d_array &x, const real_1d_array &y, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;    
+    ae_int_t n;
+    if( (x.length()!=y.length()))
+        _ALGLIB_CPP_EXCEPTION("Error while calling 'pearsoncorr2': looks like one of arguments has wrong size");
+    n = x.length();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        double result = alglib_impl::pearsoncorr2(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::pearsoncorr2(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
+
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
 }
+#endif
 
 /*************************************************************************
-Pearson product-moment correlation coefficient
+Spearman's rank correlation coefficient
 
 Input parameters:
     X       -   sample 1 (array indexes: [0..N-1])
@@ -715,31 +858,32 @@ Input parameters:
                 * if not given, automatically determined from input sizes
 
 Result:
-    Pearson product-moment correlation coefficient
+    Spearman's rank correlation coefficient
     (zero for N=0 or N=1)
 
   -- ALGLIB --
-     Copyright 28.10.2010 by Bochkanov Sergey
+     Copyright 09.04.2007 by Bochkanov Sergey
 *************************************************************************/
-double pearsoncorr2(const real_1d_array &x, const real_1d_array &y)
+double spearmancorr2(const real_1d_array &x, const real_1d_array &y, const ae_int_t n, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-    if( (x.length()!=y.length()))
-        throw ap_error("Error while calling 'pearsoncorr2': looks like one of arguments has wrong size");
-    n = x.length();
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        double result = alglib_impl::pearsoncorr2(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return 0;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::spearmancorr2(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
 }
 
 /*************************************************************************
@@ -759,81 +903,43 @@ Result:
   -- ALGLIB --
      Copyright 09.04.2007 by Bochkanov Sergey
 *************************************************************************/
-double spearmancorr2(const real_1d_array &x, const real_1d_array &y, const ae_int_t n)
+#if !defined(AE_NO_EXCEPTIONS)
+double spearmancorr2(const real_1d_array &x, const real_1d_array &y, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        double result = alglib_impl::spearmancorr2(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-/*************************************************************************
-Spearman's rank correlation coefficient
-
-Input parameters:
-    X       -   sample 1 (array indexes: [0..N-1])
-    Y       -   sample 2 (array indexes: [0..N-1])
-    N       -   N>=0, sample size:
-                * if given, only N leading elements of X/Y are processed
-                * if not given, automatically determined from input sizes
-
-Result:
-    Spearman's rank correlation coefficient
-    (zero for N=0 or N=1)
-
-  -- ALGLIB --
-     Copyright 09.04.2007 by Bochkanov Sergey
-*************************************************************************/
-double spearmancorr2(const real_1d_array &x, const real_1d_array &y)
-{
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;    
     ae_int_t n;
     if( (x.length()!=y.length()))
-        throw ap_error("Error while calling 'spearmancorr2': looks like one of arguments has wrong size");
+        _ALGLIB_CPP_EXCEPTION("Error while calling 'spearmancorr2': looks like one of arguments has wrong size");
     n = x.length();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        double result = alglib_impl::spearmancorr2(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::spearmancorr2(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
 
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
 }
+#endif
 
 /*************************************************************************
 Covariance matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
   !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with covariance matrices smaller than 128*128.
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M], sample matrix:
@@ -852,60 +958,43 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 28.10.2010 by Bochkanov Sergey
 *************************************************************************/
-void covm(const real_2d_array &x, const ae_int_t n, const ae_int_t m, real_2d_array &c)
+void covm(const real_2d_array &x, const ae_int_t n, const ae_int_t m, real_2d_array &c, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::covm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-
-void smp_covm(const real_2d_array &x, const ae_int_t n, const ae_int_t m, real_2d_array &c)
-{
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::_pexec_covm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::covm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
 Covariance matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
   !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with covariance matrices smaller than 128*128.
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M], sample matrix:
@@ -924,8 +1013,10 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 28.10.2010 by Bochkanov Sergey
 *************************************************************************/
-void covm(const real_2d_array &x, real_2d_array &c)
+#if !defined(AE_NO_EXCEPTIONS)
+void covm(const real_2d_array &x, real_2d_array &c, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;    
     ae_int_t n;
     ae_int_t m;
@@ -933,63 +1024,88 @@ void covm(const real_2d_array &x, real_2d_array &c)
     n = x.rows();
     m = x.cols();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::covm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::covm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
 
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
+#endif
 
+/*************************************************************************
+Pearson product-moment correlation matrix
 
-void smp_covm(const real_2d_array &x, real_2d_array &c)
+  ! COMMERCIAL EDITION OF ALGLIB:
+  !
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
+  !
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
+
+INPUT PARAMETERS:
+    X   -   array[N,M], sample matrix:
+            * J-th column corresponds to J-th variable
+            * I-th row corresponds to I-th observation
+    N   -   N>=0, number of observations:
+            * if given, only leading N rows of X are used
+            * if not given, automatically determined from input size
+    M   -   M>0, number of variables:
+            * if given, only leading M columns of X are used
+            * if not given, automatically determined from input size
+
+OUTPUT PARAMETERS:
+    C   -   array[M,M], correlation matrix (zero if N=0 or N=1)
+
+  -- ALGLIB --
+     Copyright 28.10.2010 by Bochkanov Sergey
+*************************************************************************/
+void pearsoncorrm(const real_2d_array &x, const ae_int_t n, const ae_int_t m, real_2d_array &c, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-    ae_int_t m;
-
-    n = x.rows();
-    m = x.cols();
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::_pexec_covm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::pearsoncorrm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
 Pearson product-moment correlation matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
   !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with correlation matrices smaller than 128*128.
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M], sample matrix:
@@ -1008,60 +1124,44 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 28.10.2010 by Bochkanov Sergey
 *************************************************************************/
-void pearsoncorrm(const real_2d_array &x, const ae_int_t n, const ae_int_t m, real_2d_array &c)
+#if !defined(AE_NO_EXCEPTIONS)
+void pearsoncorrm(const real_2d_array &x, real_2d_array &c, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::pearsoncorrm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;    
+    ae_int_t n;
+    ae_int_t m;
 
-
-void smp_pearsoncorrm(const real_2d_array &x, const ae_int_t n, const ae_int_t m, real_2d_array &c)
-{
-    alglib_impl::ae_state _alglib_env_state;
+    n = x.rows();
+    m = x.cols();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::_pexec_pearsoncorrm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::pearsoncorrm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
+
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
+#endif
 
 /*************************************************************************
-Pearson product-moment correlation matrix
+Spearman's rank correlation matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
   !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with correlation matrices smaller than 128*128.
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M], sample matrix:
@@ -1080,72 +1180,43 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 28.10.2010 by Bochkanov Sergey
 *************************************************************************/
-void pearsoncorrm(const real_2d_array &x, real_2d_array &c)
+void spearmancorrm(const real_2d_array &x, const ae_int_t n, const ae_int_t m, real_2d_array &c, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-    ae_int_t m;
-
-    n = x.rows();
-    m = x.cols();
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::pearsoncorrm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-
-void smp_pearsoncorrm(const real_2d_array &x, real_2d_array &c)
-{
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-    ae_int_t m;
-
-    n = x.rows();
-    m = x.cols();
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::_pexec_pearsoncorrm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::spearmancorrm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
 Spearman's rank correlation matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
   !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with correlation matrices smaller than 128*128.
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M], sample matrix:
@@ -1164,80 +1235,10 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 28.10.2010 by Bochkanov Sergey
 *************************************************************************/
-void spearmancorrm(const real_2d_array &x, const ae_int_t n, const ae_int_t m, real_2d_array &c)
+#if !defined(AE_NO_EXCEPTIONS)
+void spearmancorrm(const real_2d_array &x, real_2d_array &c, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::spearmancorrm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-
-void smp_spearmancorrm(const real_2d_array &x, const ae_int_t n, const ae_int_t m, real_2d_array &c)
-{
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::_pexec_spearmancorrm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-/*************************************************************************
-Spearman's rank correlation matrix
-
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
-  !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
-  !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with correlation matrices smaller than 128*128.
-
-INPUT PARAMETERS:
-    X   -   array[N,M], sample matrix:
-            * J-th column corresponds to J-th variable
-            * I-th row corresponds to I-th observation
-    N   -   N>=0, number of observations:
-            * if given, only leading N rows of X are used
-            * if not given, automatically determined from input size
-    M   -   M>0, number of variables:
-            * if given, only leading M columns of X are used
-            * if not given, automatically determined from input size
-
-OUTPUT PARAMETERS:
-    C   -   array[M,M], correlation matrix (zero if N=0 or N=1)
-
-  -- ALGLIB --
-     Copyright 28.10.2010 by Bochkanov Sergey
-*************************************************************************/
-void spearmancorrm(const real_2d_array &x, real_2d_array &c)
-{
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;    
     ae_int_t n;
     ae_int_t m;
@@ -1245,63 +1246,33 @@ void spearmancorrm(const real_2d_array &x, real_2d_array &c)
     n = x.rows();
     m = x.cols();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::spearmancorrm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::spearmancorrm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
 
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
-
-
-void smp_spearmancorrm(const real_2d_array &x, real_2d_array &c)
-{
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-    ae_int_t m;
-
-    n = x.rows();
-    m = x.cols();
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::_pexec_spearmancorrm(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), n, m, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
+#endif
 
 /*************************************************************************
 Cross-covariance matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
   !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with covariance matrices smaller than 128*128.
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M1], sample matrix:
@@ -1326,60 +1297,43 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 28.10.2010 by Bochkanov Sergey
 *************************************************************************/
-void covm2(const real_2d_array &x, const real_2d_array &y, const ae_int_t n, const ae_int_t m1, const ae_int_t m2, real_2d_array &c)
+void covm2(const real_2d_array &x, const real_2d_array &y, const ae_int_t n, const ae_int_t m1, const ae_int_t m2, real_2d_array &c, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::covm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-
-void smp_covm2(const real_2d_array &x, const real_2d_array &y, const ae_int_t n, const ae_int_t m1, const ae_int_t m2, real_2d_array &c)
-{
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::_pexec_covm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::covm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
 Cross-covariance matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
   !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with covariance matrices smaller than 128*128.
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M1], sample matrix:
@@ -1404,78 +1358,108 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 28.10.2010 by Bochkanov Sergey
 *************************************************************************/
-void covm2(const real_2d_array &x, const real_2d_array &y, real_2d_array &c)
+#if !defined(AE_NO_EXCEPTIONS)
+void covm2(const real_2d_array &x, const real_2d_array &y, real_2d_array &c, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;    
     ae_int_t n;
     ae_int_t m1;
     ae_int_t m2;
     if( (x.rows()!=y.rows()))
-        throw ap_error("Error while calling 'covm2': looks like one of arguments has wrong size");
+        _ALGLIB_CPP_EXCEPTION("Error while calling 'covm2': looks like one of arguments has wrong size");
     n = x.rows();
     m1 = x.cols();
     m2 = y.cols();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::covm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::covm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
 
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
+#endif
 
+/*************************************************************************
+Pearson product-moment cross-correlation matrix
 
-void smp_covm2(const real_2d_array &x, const real_2d_array &y, real_2d_array &c)
+  ! COMMERCIAL EDITION OF ALGLIB:
+  !
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
+  !
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
+
+INPUT PARAMETERS:
+    X   -   array[N,M1], sample matrix:
+            * J-th column corresponds to J-th variable
+            * I-th row corresponds to I-th observation
+    Y   -   array[N,M2], sample matrix:
+            * J-th column corresponds to J-th variable
+            * I-th row corresponds to I-th observation
+    N   -   N>=0, number of observations:
+            * if given, only leading N rows of X/Y are used
+            * if not given, automatically determined from input sizes
+    M1  -   M1>0, number of variables in X:
+            * if given, only leading M1 columns of X are used
+            * if not given, automatically determined from input size
+    M2  -   M2>0, number of variables in Y:
+            * if given, only leading M1 columns of X are used
+            * if not given, automatically determined from input size
+
+OUTPUT PARAMETERS:
+    C   -   array[M1,M2], cross-correlation matrix (zero if N=0 or N=1)
+
+  -- ALGLIB --
+     Copyright 28.10.2010 by Bochkanov Sergey
+*************************************************************************/
+void pearsoncorrm2(const real_2d_array &x, const real_2d_array &y, const ae_int_t n, const ae_int_t m1, const ae_int_t m2, real_2d_array &c, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-    ae_int_t m1;
-    ae_int_t m2;
-    if( (x.rows()!=y.rows()))
-        throw ap_error("Error while calling 'covm2': looks like one of arguments has wrong size");
-    n = x.rows();
-    m1 = x.cols();
-    m2 = y.cols();
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::_pexec_covm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::pearsoncorrm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
 Pearson product-moment cross-correlation matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
   !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with correlation matrices smaller than 128*128.
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M1], sample matrix:
@@ -1500,60 +1484,47 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 28.10.2010 by Bochkanov Sergey
 *************************************************************************/
-void pearsoncorrm2(const real_2d_array &x, const real_2d_array &y, const ae_int_t n, const ae_int_t m1, const ae_int_t m2, real_2d_array &c)
+#if !defined(AE_NO_EXCEPTIONS)
+void pearsoncorrm2(const real_2d_array &x, const real_2d_array &y, real_2d_array &c, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;    
+    ae_int_t n;
+    ae_int_t m1;
+    ae_int_t m2;
+    if( (x.rows()!=y.rows()))
+        _ALGLIB_CPP_EXCEPTION("Error while calling 'pearsoncorrm2': looks like one of arguments has wrong size");
+    n = x.rows();
+    m1 = x.cols();
+    m2 = y.cols();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::pearsoncorrm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::pearsoncorrm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
 
-
-void smp_pearsoncorrm2(const real_2d_array &x, const real_2d_array &y, const ae_int_t n, const ae_int_t m1, const ae_int_t m2, real_2d_array &c)
-{
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::_pexec_pearsoncorrm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
+#endif
 
 /*************************************************************************
-Pearson product-moment cross-correlation matrix
+Spearman's rank cross-correlation matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
   !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with correlation matrices smaller than 128*128.
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M1], sample matrix:
@@ -1578,78 +1549,43 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 28.10.2010 by Bochkanov Sergey
 *************************************************************************/
-void pearsoncorrm2(const real_2d_array &x, const real_2d_array &y, real_2d_array &c)
+void spearmancorrm2(const real_2d_array &x, const real_2d_array &y, const ae_int_t n, const ae_int_t m1, const ae_int_t m2, real_2d_array &c, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-    ae_int_t m1;
-    ae_int_t m2;
-    if( (x.rows()!=y.rows()))
-        throw ap_error("Error while calling 'pearsoncorrm2': looks like one of arguments has wrong size");
-    n = x.rows();
-    m1 = x.cols();
-    m2 = y.cols();
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::pearsoncorrm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-
-void smp_pearsoncorrm2(const real_2d_array &x, const real_2d_array &y, real_2d_array &c)
-{
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-    ae_int_t m1;
-    ae_int_t m2;
-    if( (x.rows()!=y.rows()))
-        throw ap_error("Error while calling 'pearsoncorrm2': looks like one of arguments has wrong size");
-    n = x.rows();
-    m1 = x.cols();
-    m2 = y.cols();
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::_pexec_pearsoncorrm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::spearmancorrm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
 Spearman's rank cross-correlation matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
   !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with correlation matrices smaller than 128*128.
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M1], sample matrix:
@@ -1674,134 +1610,31 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 28.10.2010 by Bochkanov Sergey
 *************************************************************************/
-void spearmancorrm2(const real_2d_array &x, const real_2d_array &y, const ae_int_t n, const ae_int_t m1, const ae_int_t m2, real_2d_array &c)
+#if !defined(AE_NO_EXCEPTIONS)
+void spearmancorrm2(const real_2d_array &x, const real_2d_array &y, real_2d_array &c, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::spearmancorrm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-
-void smp_spearmancorrm2(const real_2d_array &x, const real_2d_array &y, const ae_int_t n, const ae_int_t m1, const ae_int_t m2, real_2d_array &c)
-{
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::_pexec_spearmancorrm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-/*************************************************************************
-Spearman's rank cross-correlation matrix
-
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
-  !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
-  !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with correlation matrices smaller than 128*128.
-
-INPUT PARAMETERS:
-    X   -   array[N,M1], sample matrix:
-            * J-th column corresponds to J-th variable
-            * I-th row corresponds to I-th observation
-    Y   -   array[N,M2], sample matrix:
-            * J-th column corresponds to J-th variable
-            * I-th row corresponds to I-th observation
-    N   -   N>=0, number of observations:
-            * if given, only leading N rows of X/Y are used
-            * if not given, automatically determined from input sizes
-    M1  -   M1>0, number of variables in X:
-            * if given, only leading M1 columns of X are used
-            * if not given, automatically determined from input size
-    M2  -   M2>0, number of variables in Y:
-            * if given, only leading M1 columns of X are used
-            * if not given, automatically determined from input size
-
-OUTPUT PARAMETERS:
-    C   -   array[M1,M2], cross-correlation matrix (zero if N=0 or N=1)
-
-  -- ALGLIB --
-     Copyright 28.10.2010 by Bochkanov Sergey
-*************************************************************************/
-void spearmancorrm2(const real_2d_array &x, const real_2d_array &y, real_2d_array &c)
-{
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;    
     ae_int_t n;
     ae_int_t m1;
     ae_int_t m2;
     if( (x.rows()!=y.rows()))
-        throw ap_error("Error while calling 'spearmancorrm2': looks like one of arguments has wrong size");
+        _ALGLIB_CPP_EXCEPTION("Error while calling 'spearmancorrm2': looks like one of arguments has wrong size");
     n = x.rows();
     m1 = x.cols();
     m2 = y.cols();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::spearmancorrm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::spearmancorrm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
 
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
-
-
-void smp_spearmancorrm2(const real_2d_array &x, const real_2d_array &y, real_2d_array &c)
-{
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-    ae_int_t m1;
-    ae_int_t m2;
-    if( (x.rows()!=y.rows()))
-        throw ap_error("Error while calling 'spearmancorrm2': looks like one of arguments has wrong size");
-    n = x.rows();
-    m1 = x.cols();
-    m2 = y.cols();
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::_pexec_spearmancorrm2(const_cast<alglib_impl::ae_matrix*>(x.c_ptr()), const_cast<alglib_impl::ae_matrix*>(y.c_ptr()), n, m1, m2, const_cast<alglib_impl::ae_matrix*>(c.c_ptr()), &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
+#endif
 
 /*************************************************************************
 This function replaces data in XY by their ranks:
@@ -1811,24 +1644,16 @@ This function replaces data in XY by their ranks:
 * ranking starts from 0, ends at NFeatures-1
 * sum of within-row values is equal to (NFeatures-1)*NFeatures/2
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
   !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! ones where expected operations count is less than 100.000
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     XY      -   array[NPoints,NFeatures], dataset
@@ -1842,37 +1667,26 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 18.04.2013 by Bochkanov Sergey
 *************************************************************************/
-void rankdata(const real_2d_array &xy, const ae_int_t npoints, const ae_int_t nfeatures)
+void rankdata(const real_2d_array &xy, const ae_int_t npoints, const ae_int_t nfeatures, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::rankdata(const_cast<alglib_impl::ae_matrix*>(xy.c_ptr()), npoints, nfeatures, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-
-void smp_rankdata(const real_2d_array &xy, const ae_int_t npoints, const ae_int_t nfeatures)
-{
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::_pexec_rankdata(const_cast<alglib_impl::ae_matrix*>(xy.c_ptr()), npoints, nfeatures, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::rankdata(const_cast<alglib_impl::ae_matrix*>(xy.c_ptr()), npoints, nfeatures, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -1883,24 +1697,16 @@ This function replaces data in XY by their ranks:
 * ranking starts from 0, ends at NFeatures-1
 * sum of within-row values is equal to (NFeatures-1)*NFeatures/2
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
   !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! ones where expected operations count is less than 100.000
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     XY      -   array[NPoints,NFeatures], dataset
@@ -1914,8 +1720,10 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 18.04.2013 by Bochkanov Sergey
 *************************************************************************/
-void rankdata(real_2d_array &xy)
+#if !defined(AE_NO_EXCEPTIONS)
+void rankdata(real_2d_array &xy, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;    
     ae_int_t npoints;
     ae_int_t nfeatures;
@@ -1923,40 +1731,71 @@ void rankdata(real_2d_array &xy)
     npoints = xy.rows();
     nfeatures = xy.cols();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::rankdata(const_cast<alglib_impl::ae_matrix*>(xy.c_ptr()), npoints, nfeatures, &_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::rankdata(const_cast<alglib_impl::ae_matrix*>(xy.c_ptr()), npoints, nfeatures, &_alglib_env_state);
 
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
+#endif
 
+/*************************************************************************
+This function replaces data in XY by their CENTERED ranks:
+* XY is processed row-by-row
+* rows are processed separately
+* tied data are correctly handled (tied ranks are calculated)
+* centered ranks are just usual ranks, but centered in such way  that  sum
+  of within-row values is equal to 0.0.
+* centering is performed by subtracting mean from each row, i.e it changes
+  mean value, but does NOT change higher moments
 
-void smp_rankdata(real_2d_array &xy)
+  ! COMMERCIAL EDITION OF ALGLIB:
+  !
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  !
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
+
+INPUT PARAMETERS:
+    XY      -   array[NPoints,NFeatures], dataset
+    NPoints -   number of points
+    NFeatures-  number of features
+
+OUTPUT PARAMETERS:
+    XY      -   data are replaced by their within-row ranks;
+                ranking starts from 0, ends at NFeatures-1
+
+  -- ALGLIB --
+     Copyright 18.04.2013 by Bochkanov Sergey
+*************************************************************************/
+void rankdatacentered(const real_2d_array &xy, const ae_int_t npoints, const ae_int_t nfeatures, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t npoints;
-    ae_int_t nfeatures;
-
-    npoints = xy.rows();
-    nfeatures = xy.cols();
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::_pexec_rankdata(const_cast<alglib_impl::ae_matrix*>(xy.c_ptr()), npoints, nfeatures, &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::rankdatacentered(const_cast<alglib_impl::ae_matrix*>(xy.c_ptr()), npoints, nfeatures, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -1969,24 +1808,16 @@ This function replaces data in XY by their CENTERED ranks:
 * centering is performed by subtracting mean from each row, i.e it changes
   mean value, but does NOT change higher moments
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
   !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! ones where expected operations count is less than 100.000
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     XY      -   array[NPoints,NFeatures], dataset
@@ -2000,82 +1831,10 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 18.04.2013 by Bochkanov Sergey
 *************************************************************************/
-void rankdatacentered(const real_2d_array &xy, const ae_int_t npoints, const ae_int_t nfeatures)
+#if !defined(AE_NO_EXCEPTIONS)
+void rankdatacentered(real_2d_array &xy, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::rankdatacentered(const_cast<alglib_impl::ae_matrix*>(xy.c_ptr()), npoints, nfeatures, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-
-void smp_rankdatacentered(const real_2d_array &xy, const ae_int_t npoints, const ae_int_t nfeatures)
-{
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::_pexec_rankdatacentered(const_cast<alglib_impl::ae_matrix*>(xy.c_ptr()), npoints, nfeatures, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-/*************************************************************************
-This function replaces data in XY by their CENTERED ranks:
-* XY is processed row-by-row
-* rows are processed separately
-* tied data are correctly handled (tied ranks are calculated)
-* centered ranks are just usual ranks, but centered in such way  that  sum
-  of within-row values is equal to 0.0.
-* centering is performed by subtracting mean from each row, i.e it changes
-  mean value, but does NOT change higher moments
-
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
-  !
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
-  !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! ones where expected operations count is less than 100.000
-
-INPUT PARAMETERS:
-    XY      -   array[NPoints,NFeatures], dataset
-    NPoints -   number of points
-    NFeatures-  number of features
-
-OUTPUT PARAMETERS:
-    XY      -   data are replaced by their within-row ranks;
-                ranking starts from 0, ends at NFeatures-1
-
-  -- ALGLIB --
-     Copyright 18.04.2013 by Bochkanov Sergey
-*************************************************************************/
-void rankdatacentered(real_2d_array &xy)
-{
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;    
     ae_int_t npoints;
     ae_int_t nfeatures;
@@ -2083,41 +1842,17 @@ void rankdatacentered(real_2d_array &xy)
     npoints = xy.rows();
     nfeatures = xy.cols();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::rankdatacentered(const_cast<alglib_impl::ae_matrix*>(xy.c_ptr()), npoints, nfeatures, &_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::rankdatacentered(const_cast<alglib_impl::ae_matrix*>(xy.c_ptr()), npoints, nfeatures, &_alglib_env_state);
 
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
-
-
-void smp_rankdatacentered(real_2d_array &xy)
-{
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t npoints;
-    ae_int_t nfeatures;
-
-    npoints = xy.rows();
-    nfeatures = xy.cols();
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::_pexec_rankdatacentered(const_cast<alglib_impl::ae_matrix*>(xy.c_ptr()), npoints, nfeatures, &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
+#endif
 
 /*************************************************************************
 Obsolete function, we recommend to use PearsonCorr2().
@@ -2125,20 +1860,26 @@ Obsolete function, we recommend to use PearsonCorr2().
   -- ALGLIB --
      Copyright 09.04.2007 by Bochkanov Sergey
 *************************************************************************/
-double pearsoncorrelation(const real_1d_array &x, const real_1d_array &y, const ae_int_t n)
+double pearsoncorrelation(const real_1d_array &x, const real_1d_array &y, const ae_int_t n, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        double result = alglib_impl::pearsoncorrelation(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return 0;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::pearsoncorrelation(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
 }
 
 /*************************************************************************
@@ -2147,22 +1888,167 @@ Obsolete function, we recommend to use SpearmanCorr2().
     -- ALGLIB --
     Copyright 09.04.2007 by Bochkanov Sergey
 *************************************************************************/
-double spearmanrankcorrelation(const real_1d_array &x, const real_1d_array &y, const ae_int_t n)
+double spearmanrankcorrelation(const real_1d_array &x, const real_1d_array &y, const ae_int_t n, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        double result = alglib_impl::spearmanrankcorrelation(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<double*>(&result));
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return 0;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    double result = alglib_impl::spearmanrankcorrelation(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(y.c_ptr()), n, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<double*>(&result));
 }
+#endif
 
+#if defined(AE_COMPILE_WSR) || !defined(AE_PARTIAL_BUILD)
+/*************************************************************************
+Wilcoxon signed-rank test
+
+This test checks three hypotheses about the median  of  the  given sample.
+The following tests are performed:
+    * two-tailed test (null hypothesis - the median is equal to the  given
+      value)
+    * left-tailed test (null hypothesis - the median is  greater  than  or
+      equal to the given value)
+    * right-tailed test (null hypothesis  -  the  median  is  less than or
+      equal to the given value)
+
+Requirements:
+    * the scale of measurement should be ordinal, interval or  ratio (i.e.
+      the test could not be applied to nominal variables).
+    * the distribution should be continuous and symmetric relative to  its
+      median.
+    * number of distinct values in the X array should be greater than 4
+
+The test is non-parametric and doesn't require distribution X to be normal
+
+Input parameters:
+    X       -   sample. Array whose index goes from 0 to N-1.
+    N       -   size of the sample.
+    Median  -   assumed median value.
+
+Output parameters:
+    BothTails   -   p-value for two-tailed test.
+                    If BothTails is less than the given significance level
+                    the null hypothesis is rejected.
+    LeftTail    -   p-value for left-tailed test.
+                    If LeftTail is less than the given significance level,
+                    the null hypothesis is rejected.
+    RightTail   -   p-value for right-tailed test.
+                    If RightTail is less than the given significance level
+                    the null hypothesis is rejected.
+
+To calculate p-values, special approximation is used. This method lets  us
+calculate p-values with two decimal places in interval [0.0001, 1].
+
+"Two decimal places" does not sound very impressive, but in  practice  the
+relative error of less than 1% is enough to make a decision.
+
+There is no approximation outside the [0.0001, 1] interval. Therefore,  if
+the significance level outlies this interval, the test returns 0.0001.
+
+  -- ALGLIB --
+     Copyright 08.09.2006 by Bochkanov Sergey
+*************************************************************************/
+void wilcoxonsignedranktest(const real_1d_array &x, const ae_int_t n, const double e, double &bothtails, double &lefttail, double &righttail, const xparams _xparams)
+{
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
+    alglib_impl::ae_state_init(&_alglib_env_state);
+    if( setjmp(_break_jump) )
+    {
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return;
+#endif
+    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::wilcoxonsignedranktest(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, e, &bothtails, &lefttail, &righttail, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
+}
+#endif
+
+#if defined(AE_COMPILE_STEST) || !defined(AE_PARTIAL_BUILD)
+/*************************************************************************
+Sign test
+
+This test checks three hypotheses about the median of  the  given  sample.
+The following tests are performed:
+    * two-tailed test (null hypothesis - the median is equal to the  given
+      value)
+    * left-tailed test (null hypothesis - the median is  greater  than  or
+      equal to the given value)
+    * right-tailed test (null hypothesis - the  median  is  less  than  or
+      equal to the given value)
+
+Requirements:
+    * the scale of measurement should be ordinal, interval or ratio  (i.e.
+      the test could not be applied to nominal variables).
+
+The test is non-parametric and doesn't require distribution X to be normal
+
+Input parameters:
+    X       -   sample. Array whose index goes from 0 to N-1.
+    N       -   size of the sample.
+    Median  -   assumed median value.
+
+Output parameters:
+    BothTails   -   p-value for two-tailed test.
+                    If BothTails is less than the given significance level
+                    the null hypothesis is rejected.
+    LeftTail    -   p-value for left-tailed test.
+                    If LeftTail is less than the given significance level,
+                    the null hypothesis is rejected.
+    RightTail   -   p-value for right-tailed test.
+                    If RightTail is less than the given significance level
+                    the null hypothesis is rejected.
+
+While   calculating   p-values   high-precision   binomial    distribution
+approximation is used, so significance levels have about 15 exact digits.
+
+  -- ALGLIB --
+     Copyright 08.09.2006 by Bochkanov Sergey
+*************************************************************************/
+void onesamplesigntest(const real_1d_array &x, const ae_int_t n, const double median, double &bothtails, double &lefttail, double &righttail, const xparams _xparams)
+{
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
+    alglib_impl::ae_state_init(&_alglib_env_state);
+    if( setjmp(_break_jump) )
+    {
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return;
+#endif
+    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::onesamplesigntest(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, median, &bothtails, &lefttail, &righttail, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
+}
+#endif
+
+#if defined(AE_COMPILE_CORRELATIONTESTS) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
 Pearson's correlation coefficient significance test
 
@@ -2199,20 +2085,26 @@ Output parameters:
   -- ALGLIB --
      Copyright 09.04.2007 by Bochkanov Sergey
 *************************************************************************/
-void pearsoncorrelationsignificance(const double r, const ae_int_t n, double &bothtails, double &lefttail, double &righttail)
+void pearsoncorrelationsignificance(const double r, const ae_int_t n, double &bothtails, double &lefttail, double &righttail, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::pearsoncorrelationsignificance(r, n, &bothtails, &lefttail, &righttail, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::pearsoncorrelationsignificance(r, n, &bothtails, &lefttail, &righttail, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -2253,68 +2145,224 @@ Output parameters:
   -- ALGLIB --
      Copyright 09.04.2007 by Bochkanov Sergey
 *************************************************************************/
-void spearmanrankcorrelationsignificance(const double r, const ae_int_t n, double &bothtails, double &lefttail, double &righttail)
+void spearmanrankcorrelationsignificance(const double r, const ae_int_t n, double &bothtails, double &lefttail, double &righttail, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::spearmanrankcorrelationsignificance(r, n, &bothtails, &lefttail, &righttail, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::spearmanrankcorrelationsignificance(r, n, &bothtails, &lefttail, &righttail, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
+}
+#endif
+
+#if defined(AE_COMPILE_STUDENTTTESTS) || !defined(AE_PARTIAL_BUILD)
+/*************************************************************************
+One-sample t-test
+
+This test checks three hypotheses about the mean of the given sample.  The
+following tests are performed:
+    * two-tailed test (null hypothesis - the mean is equal  to  the  given
+      value)
+    * left-tailed test (null hypothesis - the  mean  is  greater  than  or
+      equal to the given value)
+    * right-tailed test (null hypothesis - the mean is less than or  equal
+      to the given value).
+
+The test is based on the assumption that  a  given  sample  has  a  normal
+distribution and  an  unknown  dispersion.  If  the  distribution  sharply
+differs from normal, the test will work incorrectly.
+
+INPUT PARAMETERS:
+    X       -   sample. Array whose index goes from 0 to N-1.
+    N       -   size of sample, N>=0
+    Mean    -   assumed value of the mean.
+
+OUTPUT PARAMETERS:
+    BothTails   -   p-value for two-tailed test.
+                    If BothTails is less than the given significance level
+                    the null hypothesis is rejected.
+    LeftTail    -   p-value for left-tailed test.
+                    If LeftTail is less than the given significance level,
+                    the null hypothesis is rejected.
+    RightTail   -   p-value for right-tailed test.
+                    If RightTail is less than the given significance level
+                    the null hypothesis is rejected.
+
+NOTE: this function correctly handles degenerate cases:
+      * when N=0, all p-values are set to 1.0
+      * when variance of X[] is exactly zero, p-values are set
+        to 1.0 or 0.0, depending on difference between sample mean and
+        value of mean being tested.
+
+
+  -- ALGLIB --
+     Copyright 08.09.2006 by Bochkanov Sergey
+*************************************************************************/
+void studentttest1(const real_1d_array &x, const ae_int_t n, const double mean, double &bothtails, double &lefttail, double &righttail, const xparams _xparams)
+{
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
+    alglib_impl::ae_state_init(&_alglib_env_state);
+    if( setjmp(_break_jump) )
     {
-        throw ap_error(_alglib_env_state.error_msg);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return;
+#endif
     }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::studentttest1(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, mean, &bothtails, &lefttail, &righttail, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
-Jarque-Bera test
+Two-sample pooled test
 
-This test checks hypotheses about the fact that a  given  sample  X  is  a
-sample of normal random variable.
+This test checks three hypotheses about the mean of the given samples. The
+following tests are performed:
+    * two-tailed test (null hypothesis - the means are equal)
+    * left-tailed test (null hypothesis - the mean of the first sample  is
+      greater than or equal to the mean of the second sample)
+    * right-tailed test (null hypothesis - the mean of the first sample is
+      less than or equal to the mean of the second sample).
 
-Requirements:
-    * the number of elements in the sample is not less than 5.
+Test is based on the following assumptions:
+    * given samples have normal distributions
+    * dispersions are equal
+    * samples are independent.
 
 Input parameters:
-    X   -   sample. Array whose index goes from 0 to N-1.
-    N   -   size of the sample. N>=5
+    X       -   sample 1. Array whose index goes from 0 to N-1.
+    N       -   size of sample.
+    Y       -   sample 2. Array whose index goes from 0 to M-1.
+    M       -   size of sample.
 
 Output parameters:
-    P           -   p-value for the test
+    BothTails   -   p-value for two-tailed test.
+                    If BothTails is less than the given significance level
+                    the null hypothesis is rejected.
+    LeftTail    -   p-value for left-tailed test.
+                    If LeftTail is less than the given significance level,
+                    the null hypothesis is rejected.
+    RightTail   -   p-value for right-tailed test.
+                    If RightTail is less than the given significance level
+                    the null hypothesis is rejected.
 
-Accuracy of the approximation used (5<=N<=1951):
-
-p-value  	    relative error (5<=N<=1951)
-[1, 0.1]            < 1%
-[0.1, 0.01]         < 2%
-[0.01, 0.001]       < 6%
-[0.001, 0]          wasn't measured
-
-For N>1951 accuracy wasn't measured but it shouldn't be sharply  different
-from table values.
+NOTE: this function correctly handles degenerate cases:
+      * when N=0 or M=0, all p-values are set to 1.0
+      * when both samples has exactly zero variance, p-values are set
+        to 1.0 or 0.0, depending on difference between means.
 
   -- ALGLIB --
-     Copyright 09.04.2007 by Bochkanov Sergey
+     Copyright 18.09.2006 by Bochkanov Sergey
 *************************************************************************/
-void jarqueberatest(const real_1d_array &x, const ae_int_t n, double &p)
+void studentttest2(const real_1d_array &x, const ae_int_t n, const real_1d_array &y, const ae_int_t m, double &bothtails, double &lefttail, double &righttail, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::jarqueberatest(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &p, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::studentttest2(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(y.c_ptr()), m, &bothtails, &lefttail, &righttail, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
+/*************************************************************************
+Two-sample unpooled test
+
+This test checks three hypotheses about the mean of the given samples. The
+following tests are performed:
+    * two-tailed test (null hypothesis - the means are equal)
+    * left-tailed test (null hypothesis - the mean of the first sample  is
+      greater than or equal to the mean of the second sample)
+    * right-tailed test (null hypothesis - the mean of the first sample is
+      less than or equal to the mean of the second sample).
+
+Test is based on the following assumptions:
+    * given samples have normal distributions
+    * samples are independent.
+Equality of variances is NOT required.
+
+Input parameters:
+    X - sample 1. Array whose index goes from 0 to N-1.
+    N - size of the sample.
+    Y - sample 2. Array whose index goes from 0 to M-1.
+    M - size of the sample.
+
+Output parameters:
+    BothTails   -   p-value for two-tailed test.
+                    If BothTails is less than the given significance level
+                    the null hypothesis is rejected.
+    LeftTail    -   p-value for left-tailed test.
+                    If LeftTail is less than the given significance level,
+                    the null hypothesis is rejected.
+    RightTail   -   p-value for right-tailed test.
+                    If RightTail is less than the given significance level
+                    the null hypothesis is rejected.
+
+NOTE: this function correctly handles degenerate cases:
+      * when N=0 or M=0, all p-values are set to 1.0
+      * when both samples has zero variance, p-values are set
+        to 1.0 or 0.0, depending on difference between means.
+      * when only one sample has zero variance, test reduces to 1-sample
+        version.
+
+  -- ALGLIB --
+     Copyright 18.09.2006 by Bochkanov Sergey
+*************************************************************************/
+void unequalvariancettest(const real_1d_array &x, const ae_int_t n, const real_1d_array &y, const ae_int_t m, double &bothtails, double &lefttail, double &righttail, const xparams _xparams)
+{
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
+    alglib_impl::ae_state_init(&_alglib_env_state);
+    if( setjmp(_break_jump) )
+    {
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return;
+#endif
+    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::unequalvariancettest(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(y.c_ptr()), m, &bothtails, &lefttail, &righttail, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
+}
+#endif
+
+#if defined(AE_COMPILE_MANNWHITNEYU) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
 Mann-Whitney U-test
 
@@ -2383,252 +2431,84 @@ NOTE: P-value approximation was  optimized  for  0.0001<=p<=0.2500.  Thus,
   -- ALGLIB --
      Copyright 09.04.2007 by Bochkanov Sergey
 *************************************************************************/
-void mannwhitneyutest(const real_1d_array &x, const ae_int_t n, const real_1d_array &y, const ae_int_t m, double &bothtails, double &lefttail, double &righttail)
+void mannwhitneyutest(const real_1d_array &x, const ae_int_t n, const real_1d_array &y, const ae_int_t m, double &bothtails, double &lefttail, double &righttail, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::mannwhitneyutest(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(y.c_ptr()), m, &bothtails, &lefttail, &righttail, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::mannwhitneyutest(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(y.c_ptr()), m, &bothtails, &lefttail, &righttail, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
+#endif
 
+#if defined(AE_COMPILE_JARQUEBERA) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
-Sign test
+Jarque-Bera test
 
-This test checks three hypotheses about the median of  the  given  sample.
-The following tests are performed:
-    * two-tailed test (null hypothesis - the median is equal to the  given
-      value)
-    * left-tailed test (null hypothesis - the median is  greater  than  or
-      equal to the given value)
-    * right-tailed test (null hypothesis - the  median  is  less  than  or
-      equal to the given value)
+This test checks hypotheses about the fact that a  given  sample  X  is  a
+sample of normal random variable.
 
 Requirements:
-    * the scale of measurement should be ordinal, interval or ratio  (i.e.
-      the test could not be applied to nominal variables).
-
-The test is non-parametric and doesn't require distribution X to be normal
+    * the number of elements in the sample is not less than 5.
 
 Input parameters:
-    X       -   sample. Array whose index goes from 0 to N-1.
-    N       -   size of the sample.
-    Median  -   assumed median value.
+    X   -   sample. Array whose index goes from 0 to N-1.
+    N   -   size of the sample. N>=5
 
 Output parameters:
-    BothTails   -   p-value for two-tailed test.
-                    If BothTails is less than the given significance level
-                    the null hypothesis is rejected.
-    LeftTail    -   p-value for left-tailed test.
-                    If LeftTail is less than the given significance level,
-                    the null hypothesis is rejected.
-    RightTail   -   p-value for right-tailed test.
-                    If RightTail is less than the given significance level
-                    the null hypothesis is rejected.
+    P           -   p-value for the test
 
-While   calculating   p-values   high-precision   binomial    distribution
-approximation is used, so significance levels have about 15 exact digits.
+Accuracy of the approximation used (5<=N<=1951):
 
-  -- ALGLIB --
-     Copyright 08.09.2006 by Bochkanov Sergey
-*************************************************************************/
-void onesamplesigntest(const real_1d_array &x, const ae_int_t n, const double median, double &bothtails, double &lefttail, double &righttail)
-{
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::onesamplesigntest(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, median, &bothtails, &lefttail, &righttail, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
+p-value  	    relative error (5<=N<=1951)
+[1, 0.1]            < 1%
+[0.1, 0.01]         < 2%
+[0.01, 0.001]       < 6%
+[0.001, 0]          wasn't measured
 
-/*************************************************************************
-One-sample t-test
-
-This test checks three hypotheses about the mean of the given sample.  The
-following tests are performed:
-    * two-tailed test (null hypothesis - the mean is equal  to  the  given
-      value)
-    * left-tailed test (null hypothesis - the  mean  is  greater  than  or
-      equal to the given value)
-    * right-tailed test (null hypothesis - the mean is less than or  equal
-      to the given value).
-
-The test is based on the assumption that  a  given  sample  has  a  normal
-distribution and  an  unknown  dispersion.  If  the  distribution  sharply
-differs from normal, the test will work incorrectly.
-
-INPUT PARAMETERS:
-    X       -   sample. Array whose index goes from 0 to N-1.
-    N       -   size of sample, N>=0
-    Mean    -   assumed value of the mean.
-
-OUTPUT PARAMETERS:
-    BothTails   -   p-value for two-tailed test.
-                    If BothTails is less than the given significance level
-                    the null hypothesis is rejected.
-    LeftTail    -   p-value for left-tailed test.
-                    If LeftTail is less than the given significance level,
-                    the null hypothesis is rejected.
-    RightTail   -   p-value for right-tailed test.
-                    If RightTail is less than the given significance level
-                    the null hypothesis is rejected.
-
-NOTE: this function correctly handles degenerate cases:
-      * when N=0, all p-values are set to 1.0
-      * when variance of X[] is exactly zero, p-values are set
-        to 1.0 or 0.0, depending on difference between sample mean and
-        value of mean being tested.
-
+For N>1951 accuracy wasn't measured but it shouldn't be sharply  different
+from table values.
 
   -- ALGLIB --
-     Copyright 08.09.2006 by Bochkanov Sergey
+     Copyright 09.04.2007 by Bochkanov Sergey
 *************************************************************************/
-void studentttest1(const real_1d_array &x, const ae_int_t n, const double mean, double &bothtails, double &lefttail, double &righttail)
+void jarqueberatest(const real_1d_array &x, const ae_int_t n, double &p, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::studentttest1(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, mean, &bothtails, &lefttail, &righttail, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::jarqueberatest(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, &p, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
+#endif
 
-/*************************************************************************
-Two-sample pooled test
-
-This test checks three hypotheses about the mean of the given samples. The
-following tests are performed:
-    * two-tailed test (null hypothesis - the means are equal)
-    * left-tailed test (null hypothesis - the mean of the first sample  is
-      greater than or equal to the mean of the second sample)
-    * right-tailed test (null hypothesis - the mean of the first sample is
-      less than or equal to the mean of the second sample).
-
-Test is based on the following assumptions:
-    * given samples have normal distributions
-    * dispersions are equal
-    * samples are independent.
-
-Input parameters:
-    X       -   sample 1. Array whose index goes from 0 to N-1.
-    N       -   size of sample.
-    Y       -   sample 2. Array whose index goes from 0 to M-1.
-    M       -   size of sample.
-
-Output parameters:
-    BothTails   -   p-value for two-tailed test.
-                    If BothTails is less than the given significance level
-                    the null hypothesis is rejected.
-    LeftTail    -   p-value for left-tailed test.
-                    If LeftTail is less than the given significance level,
-                    the null hypothesis is rejected.
-    RightTail   -   p-value for right-tailed test.
-                    If RightTail is less than the given significance level
-                    the null hypothesis is rejected.
-
-NOTE: this function correctly handles degenerate cases:
-      * when N=0 or M=0, all p-values are set to 1.0
-      * when both samples has exactly zero variance, p-values are set
-        to 1.0 or 0.0, depending on difference between means.
-
-  -- ALGLIB --
-     Copyright 18.09.2006 by Bochkanov Sergey
-*************************************************************************/
-void studentttest2(const real_1d_array &x, const ae_int_t n, const real_1d_array &y, const ae_int_t m, double &bothtails, double &lefttail, double &righttail)
-{
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::studentttest2(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(y.c_ptr()), m, &bothtails, &lefttail, &righttail, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-/*************************************************************************
-Two-sample unpooled test
-
-This test checks three hypotheses about the mean of the given samples. The
-following tests are performed:
-    * two-tailed test (null hypothesis - the means are equal)
-    * left-tailed test (null hypothesis - the mean of the first sample  is
-      greater than or equal to the mean of the second sample)
-    * right-tailed test (null hypothesis - the mean of the first sample is
-      less than or equal to the mean of the second sample).
-
-Test is based on the following assumptions:
-    * given samples have normal distributions
-    * samples are independent.
-Equality of variances is NOT required.
-
-Input parameters:
-    X - sample 1. Array whose index goes from 0 to N-1.
-    N - size of the sample.
-    Y - sample 2. Array whose index goes from 0 to M-1.
-    M - size of the sample.
-
-Output parameters:
-    BothTails   -   p-value for two-tailed test.
-                    If BothTails is less than the given significance level
-                    the null hypothesis is rejected.
-    LeftTail    -   p-value for left-tailed test.
-                    If LeftTail is less than the given significance level,
-                    the null hypothesis is rejected.
-    RightTail   -   p-value for right-tailed test.
-                    If RightTail is less than the given significance level
-                    the null hypothesis is rejected.
-
-NOTE: this function correctly handles degenerate cases:
-      * when N=0 or M=0, all p-values are set to 1.0
-      * when both samples has zero variance, p-values are set
-        to 1.0 or 0.0, depending on difference between means.
-      * when only one sample has zero variance, test reduces to 1-sample
-        version.
-
-  -- ALGLIB --
-     Copyright 18.09.2006 by Bochkanov Sergey
-*************************************************************************/
-void unequalvariancettest(const real_1d_array &x, const ae_int_t n, const real_1d_array &y, const ae_int_t m, double &bothtails, double &lefttail, double &righttail)
-{
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::unequalvariancettest(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(y.c_ptr()), m, &bothtails, &lefttail, &righttail, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
+#if defined(AE_COMPILE_VARIANCETESTS) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
 Two-sample F-test
 
@@ -2665,20 +2545,26 @@ Output parameters:
   -- ALGLIB --
      Copyright 19.09.2006 by Bochkanov Sergey
 *************************************************************************/
-void ftest(const real_1d_array &x, const ae_int_t n, const real_1d_array &y, const ae_int_t m, double &bothtails, double &lefttail, double &righttail)
+void ftest(const real_1d_array &x, const ae_int_t n, const real_1d_array &y, const ae_int_t m, double &bothtails, double &lefttail, double &righttail, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::ftest(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(y.c_ptr()), m, &bothtails, &lefttail, &righttail, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::ftest(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(y.c_ptr()), m, &bothtails, &lefttail, &righttail, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -2715,86 +2601,28 @@ Output parameters:
   -- ALGLIB --
      Copyright 19.09.2006 by Bochkanov Sergey
 *************************************************************************/
-void onesamplevariancetest(const real_1d_array &x, const ae_int_t n, const double variance, double &bothtails, double &lefttail, double &righttail)
+void onesamplevariancetest(const real_1d_array &x, const ae_int_t n, const double variance, double &bothtails, double &lefttail, double &righttail, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::onesamplevariancetest(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, variance, &bothtails, &lefttail, &righttail, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::onesamplevariancetest(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, variance, &bothtails, &lefttail, &righttail, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
-
-/*************************************************************************
-Wilcoxon signed-rank test
-
-This test checks three hypotheses about the median  of  the  given sample.
-The following tests are performed:
-    * two-tailed test (null hypothesis - the median is equal to the  given
-      value)
-    * left-tailed test (null hypothesis - the median is  greater  than  or
-      equal to the given value)
-    * right-tailed test (null hypothesis  -  the  median  is  less than or
-      equal to the given value)
-
-Requirements:
-    * the scale of measurement should be ordinal, interval or  ratio (i.e.
-      the test could not be applied to nominal variables).
-    * the distribution should be continuous and symmetric relative to  its
-      median.
-    * number of distinct values in the X array should be greater than 4
-
-The test is non-parametric and doesn't require distribution X to be normal
-
-Input parameters:
-    X       -   sample. Array whose index goes from 0 to N-1.
-    N       -   size of the sample.
-    Median  -   assumed median value.
-
-Output parameters:
-    BothTails   -   p-value for two-tailed test.
-                    If BothTails is less than the given significance level
-                    the null hypothesis is rejected.
-    LeftTail    -   p-value for left-tailed test.
-                    If LeftTail is less than the given significance level,
-                    the null hypothesis is rejected.
-    RightTail   -   p-value for right-tailed test.
-                    If RightTail is less than the given significance level
-                    the null hypothesis is rejected.
-
-To calculate p-values, special approximation is used. This method lets  us
-calculate p-values with two decimal places in interval [0.0001, 1].
-
-"Two decimal places" does not sound very impressive, but in  practice  the
-relative error of less than 1% is enough to make a decision.
-
-There is no approximation outside the [0.0001, 1] interval. Therefore,  if
-the significance level outlies this interval, the test returns 0.0001.
-
-  -- ALGLIB --
-     Copyright 08.09.2006 by Bochkanov Sergey
-*************************************************************************/
-void wilcoxonsignedranktest(const real_1d_array &x, const ae_int_t n, const double e, double &bothtails, double &lefttail, double &righttail)
-{
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::wilcoxonsignedranktest(const_cast<alglib_impl::ae_vector*>(x.c_ptr()), n, e, &bothtails, &lefttail, &righttail, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -2804,6 +2632,7 @@ void wilcoxonsignedranktest(const real_1d_array &x, const ae_int_t n, const doub
 /////////////////////////////////////////////////////////////////////////
 namespace alglib_impl
 {
+#if defined(AE_COMPILE_BASESTAT) || !defined(AE_PARTIAL_BUILD)
 static void basestat_rankdatarec(/* Real    */ ae_matrix* xy,
      ae_int_t i0,
      ae_int_t i1,
@@ -2812,6 +2641,13 @@ static void basestat_rankdatarec(/* Real    */ ae_matrix* xy,
      ae_shared_pool* pool,
      ae_int_t basecasecost,
      ae_state *_state);
+ae_bool _trypexec_basestat_rankdatarec(/* Real    */ ae_matrix* xy,
+    ae_int_t i0,
+    ae_int_t i1,
+    ae_int_t nfeatures,
+    ae_bool iscentered,
+    ae_shared_pool* pool,
+    ae_int_t basecasecost, ae_state *_state);
 static void basestat_rankdatabasecase(/* Real    */ ae_matrix* xy,
      ae_int_t i0,
      ae_int_t i1,
@@ -2820,8 +2656,62 @@ static void basestat_rankdatabasecase(/* Real    */ ae_matrix* xy,
      apbuffers* buf0,
      apbuffers* buf1,
      ae_state *_state);
+ae_bool _trypexec_basestat_rankdatabasecase(/* Real    */ ae_matrix* xy,
+    ae_int_t i0,
+    ae_int_t i1,
+    ae_int_t nfeatures,
+    ae_bool iscentered,
+    apbuffers* buf0,
+    apbuffers* buf1, ae_state *_state);
 
 
+#endif
+#if defined(AE_COMPILE_WSR) || !defined(AE_PARTIAL_BUILD)
+static void wsr_wcheb(double x,
+     double c,
+     double* tj,
+     double* tj1,
+     double* r,
+     ae_state *_state);
+static double wsr_w5(double s, ae_state *_state);
+static double wsr_w6(double s, ae_state *_state);
+static double wsr_w7(double s, ae_state *_state);
+static double wsr_w8(double s, ae_state *_state);
+static double wsr_w9(double s, ae_state *_state);
+static double wsr_w10(double s, ae_state *_state);
+static double wsr_w11(double s, ae_state *_state);
+static double wsr_w12(double s, ae_state *_state);
+static double wsr_w13(double s, ae_state *_state);
+static double wsr_w14(double s, ae_state *_state);
+static double wsr_w15(double s, ae_state *_state);
+static double wsr_w16(double s, ae_state *_state);
+static double wsr_w17(double s, ae_state *_state);
+static double wsr_w18(double s, ae_state *_state);
+static double wsr_w19(double s, ae_state *_state);
+static double wsr_w20(double s, ae_state *_state);
+static double wsr_w21(double s, ae_state *_state);
+static double wsr_w22(double s, ae_state *_state);
+static double wsr_w23(double s, ae_state *_state);
+static double wsr_w24(double s, ae_state *_state);
+static double wsr_w25(double s, ae_state *_state);
+static double wsr_w26(double s, ae_state *_state);
+static double wsr_w27(double s, ae_state *_state);
+static double wsr_w28(double s, ae_state *_state);
+static double wsr_w29(double s, ae_state *_state);
+static double wsr_w30(double s, ae_state *_state);
+static double wsr_w40(double s, ae_state *_state);
+static double wsr_w60(double s, ae_state *_state);
+static double wsr_w120(double s, ae_state *_state);
+static double wsr_w200(double s, ae_state *_state);
+static double wsr_wsigma(double s, ae_int_t n, ae_state *_state);
+
+
+#endif
+#if defined(AE_COMPILE_STEST) || !defined(AE_PARTIAL_BUILD)
+
+
+#endif
+#if defined(AE_COMPILE_CORRELATIONTESTS) || !defined(AE_PARTIAL_BUILD)
 static double correlationtests_spearmantail5(double s, ae_state *_state);
 static double correlationtests_spearmantail6(double s, ae_state *_state);
 static double correlationtests_spearmantail7(double s, ae_state *_state);
@@ -2832,47 +2722,12 @@ static double correlationtests_spearmantail(double t,
      ae_state *_state);
 
 
-static void jarquebera_jarqueberastatistic(/* Real    */ ae_vector* x,
-     ae_int_t n,
-     double* s,
-     ae_state *_state);
-static double jarquebera_jarqueberaapprox(ae_int_t n,
-     double s,
-     ae_state *_state);
-static double jarquebera_jbtbl5(double s, ae_state *_state);
-static double jarquebera_jbtbl6(double s, ae_state *_state);
-static double jarquebera_jbtbl7(double s, ae_state *_state);
-static double jarquebera_jbtbl8(double s, ae_state *_state);
-static double jarquebera_jbtbl9(double s, ae_state *_state);
-static double jarquebera_jbtbl10(double s, ae_state *_state);
-static double jarquebera_jbtbl11(double s, ae_state *_state);
-static double jarquebera_jbtbl12(double s, ae_state *_state);
-static double jarquebera_jbtbl13(double s, ae_state *_state);
-static double jarquebera_jbtbl14(double s, ae_state *_state);
-static double jarquebera_jbtbl15(double s, ae_state *_state);
-static double jarquebera_jbtbl16(double s, ae_state *_state);
-static double jarquebera_jbtbl17(double s, ae_state *_state);
-static double jarquebera_jbtbl18(double s, ae_state *_state);
-static double jarquebera_jbtbl19(double s, ae_state *_state);
-static double jarquebera_jbtbl20(double s, ae_state *_state);
-static double jarquebera_jbtbl30(double s, ae_state *_state);
-static double jarquebera_jbtbl50(double s, ae_state *_state);
-static double jarquebera_jbtbl65(double s, ae_state *_state);
-static double jarquebera_jbtbl100(double s, ae_state *_state);
-static double jarquebera_jbtbl130(double s, ae_state *_state);
-static double jarquebera_jbtbl200(double s, ae_state *_state);
-static double jarquebera_jbtbl301(double s, ae_state *_state);
-static double jarquebera_jbtbl501(double s, ae_state *_state);
-static double jarquebera_jbtbl701(double s, ae_state *_state);
-static double jarquebera_jbtbl1401(double s, ae_state *_state);
-static void jarquebera_jbcheb(double x,
-     double c,
-     double* tj,
-     double* tj1,
-     double* r,
-     ae_state *_state);
+#endif
+#if defined(AE_COMPILE_STUDENTTTESTS) || !defined(AE_PARTIAL_BUILD)
 
 
+#endif
+#if defined(AE_COMPILE_MANNWHITNEYU) || !defined(AE_PARTIAL_BUILD)
 static void mannwhitneyu_ucheb(double x,
      double c,
      double* tj,
@@ -3013,52 +2868,56 @@ static double mannwhitneyu_usigma(double s,
      ae_state *_state);
 
 
-
-
-
-
-
-
-static void wsr_wcheb(double x,
+#endif
+#if defined(AE_COMPILE_JARQUEBERA) || !defined(AE_PARTIAL_BUILD)
+static void jarquebera_jarqueberastatistic(/* Real    */ ae_vector* x,
+     ae_int_t n,
+     double* s,
+     ae_state *_state);
+static double jarquebera_jarqueberaapprox(ae_int_t n,
+     double s,
+     ae_state *_state);
+static double jarquebera_jbtbl5(double s, ae_state *_state);
+static double jarquebera_jbtbl6(double s, ae_state *_state);
+static double jarquebera_jbtbl7(double s, ae_state *_state);
+static double jarquebera_jbtbl8(double s, ae_state *_state);
+static double jarquebera_jbtbl9(double s, ae_state *_state);
+static double jarquebera_jbtbl10(double s, ae_state *_state);
+static double jarquebera_jbtbl11(double s, ae_state *_state);
+static double jarquebera_jbtbl12(double s, ae_state *_state);
+static double jarquebera_jbtbl13(double s, ae_state *_state);
+static double jarquebera_jbtbl14(double s, ae_state *_state);
+static double jarquebera_jbtbl15(double s, ae_state *_state);
+static double jarquebera_jbtbl16(double s, ae_state *_state);
+static double jarquebera_jbtbl17(double s, ae_state *_state);
+static double jarquebera_jbtbl18(double s, ae_state *_state);
+static double jarquebera_jbtbl19(double s, ae_state *_state);
+static double jarquebera_jbtbl20(double s, ae_state *_state);
+static double jarquebera_jbtbl30(double s, ae_state *_state);
+static double jarquebera_jbtbl50(double s, ae_state *_state);
+static double jarquebera_jbtbl65(double s, ae_state *_state);
+static double jarquebera_jbtbl100(double s, ae_state *_state);
+static double jarquebera_jbtbl130(double s, ae_state *_state);
+static double jarquebera_jbtbl200(double s, ae_state *_state);
+static double jarquebera_jbtbl301(double s, ae_state *_state);
+static double jarquebera_jbtbl501(double s, ae_state *_state);
+static double jarquebera_jbtbl701(double s, ae_state *_state);
+static double jarquebera_jbtbl1401(double s, ae_state *_state);
+static void jarquebera_jbcheb(double x,
      double c,
      double* tj,
      double* tj1,
      double* r,
      ae_state *_state);
-static double wsr_w5(double s, ae_state *_state);
-static double wsr_w6(double s, ae_state *_state);
-static double wsr_w7(double s, ae_state *_state);
-static double wsr_w8(double s, ae_state *_state);
-static double wsr_w9(double s, ae_state *_state);
-static double wsr_w10(double s, ae_state *_state);
-static double wsr_w11(double s, ae_state *_state);
-static double wsr_w12(double s, ae_state *_state);
-static double wsr_w13(double s, ae_state *_state);
-static double wsr_w14(double s, ae_state *_state);
-static double wsr_w15(double s, ae_state *_state);
-static double wsr_w16(double s, ae_state *_state);
-static double wsr_w17(double s, ae_state *_state);
-static double wsr_w18(double s, ae_state *_state);
-static double wsr_w19(double s, ae_state *_state);
-static double wsr_w20(double s, ae_state *_state);
-static double wsr_w21(double s, ae_state *_state);
-static double wsr_w22(double s, ae_state *_state);
-static double wsr_w23(double s, ae_state *_state);
-static double wsr_w24(double s, ae_state *_state);
-static double wsr_w25(double s, ae_state *_state);
-static double wsr_w26(double s, ae_state *_state);
-static double wsr_w27(double s, ae_state *_state);
-static double wsr_w28(double s, ae_state *_state);
-static double wsr_w29(double s, ae_state *_state);
-static double wsr_w30(double s, ae_state *_state);
-static double wsr_w40(double s, ae_state *_state);
-static double wsr_w60(double s, ae_state *_state);
-static double wsr_w120(double s, ae_state *_state);
-static double wsr_w200(double s, ae_state *_state);
-static double wsr_wsigma(double s, ae_int_t n, ae_state *_state);
 
 
+#endif
+#if defined(AE_COMPILE_VARIANCETESTS) || !defined(AE_PARTIAL_BUILD)
 
+
+#endif
+
+#if defined(AE_COMPILE_BASESTAT) || !defined(AE_PARTIAL_BUILD)
 
 
 /*************************************************************************
@@ -3399,7 +3258,8 @@ void samplemedian(/* Real    */ ae_vector* x,
     double tval;
 
     ae_frame_make(_state, &_frame_block);
-    ae_vector_init_copy(&_x, x, _state);
+    memset(&_x, 0, sizeof(_x));
+    ae_vector_init_copy(&_x, x, _state, ae_true);
     x = &_x;
     *median = 0;
 
@@ -3563,10 +3423,12 @@ void samplepercentile(/* Real    */ ae_vector* x,
     ae_vector rbuf;
 
     ae_frame_make(_state, &_frame_block);
-    ae_vector_init_copy(&_x, x, _state);
+    memset(&_x, 0, sizeof(_x));
+    memset(&rbuf, 0, sizeof(rbuf));
+    ae_vector_init_copy(&_x, x, _state, ae_true);
     x = &_x;
     *v = 0;
-    ae_vector_init(&rbuf, 0, DT_REAL, _state);
+    ae_vector_init(&rbuf, 0, DT_REAL, _state, ae_true);
 
     ae_assert(n>=0, "SamplePercentile: N<0", _state);
     ae_assert(x->cnt>=n, "SamplePercentile: Length(X)<N!", _state);
@@ -3831,11 +3693,14 @@ double spearmancorr2(/* Real    */ ae_vector* x,
     double result;
 
     ae_frame_make(_state, &_frame_block);
-    ae_vector_init_copy(&_x, x, _state);
+    memset(&_x, 0, sizeof(_x));
+    memset(&_y, 0, sizeof(_y));
+    memset(&buf, 0, sizeof(buf));
+    ae_vector_init_copy(&_x, x, _state, ae_true);
     x = &_x;
-    ae_vector_init_copy(&_y, y, _state);
+    ae_vector_init_copy(&_y, y, _state, ae_true);
     y = &_y;
-    _apbuffers_init(&buf, _state);
+    _apbuffers_init(&buf, _state, ae_true);
 
     ae_assert(n>=0, "SpearmanCorr2: N<0", _state);
     ae_assert(x->cnt>=n, "SpearmanCorr2: Length(X)<N!", _state);
@@ -3863,24 +3728,18 @@ double spearmancorr2(/* Real    */ ae_vector* x,
 /*************************************************************************
 Covariance matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   ! 
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
-  !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with covariance matrices smaller than 128*128.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
+  ! 
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M], sample matrix:
@@ -3915,12 +3774,16 @@ void covm(/* Real    */ ae_matrix* x,
     ae_vector same;
 
     ae_frame_make(_state, &_frame_block);
-    ae_matrix_init_copy(&_x, x, _state);
+    memset(&_x, 0, sizeof(_x));
+    memset(&t, 0, sizeof(t));
+    memset(&x0, 0, sizeof(x0));
+    memset(&same, 0, sizeof(same));
+    ae_matrix_init_copy(&_x, x, _state, ae_true);
     x = &_x;
     ae_matrix_clear(c);
-    ae_vector_init(&t, 0, DT_REAL, _state);
-    ae_vector_init(&x0, 0, DT_REAL, _state);
-    ae_vector_init(&same, 0, DT_BOOL, _state);
+    ae_vector_init(&t, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&x0, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&same, 0, DT_BOOL, _state, ae_true);
 
     ae_assert(n>=0, "CovM: N<0", _state);
     ae_assert(m>=1, "CovM: M<1", _state);
@@ -3994,38 +3857,20 @@ void covm(/* Real    */ ae_matrix* x,
 
 
 /*************************************************************************
-Single-threaded stub. HPC ALGLIB replaces it by multithreaded code.
-*************************************************************************/
-void _pexec_covm(/* Real    */ ae_matrix* x,
-    ae_int_t n,
-    ae_int_t m,
-    /* Real    */ ae_matrix* c, ae_state *_state)
-{
-    covm(x,n,m,c, _state);
-}
-
-
-/*************************************************************************
 Pearson product-moment correlation matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   ! 
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
-  !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with correlation matrices smaller than 128*128.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
+  ! 
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M], sample matrix:
@@ -4057,8 +3902,9 @@ void pearsoncorrm(/* Real    */ ae_matrix* x,
     double v;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&t, 0, sizeof(t));
     ae_matrix_clear(c);
-    ae_vector_init(&t, 0, DT_REAL, _state);
+    ae_vector_init(&t, 0, DT_REAL, _state, ae_true);
 
     ae_assert(n>=0, "PearsonCorrM: N<0", _state);
     ae_assert(m>=1, "PearsonCorrM: M<1", _state);
@@ -4091,38 +3937,20 @@ void pearsoncorrm(/* Real    */ ae_matrix* x,
 
 
 /*************************************************************************
-Single-threaded stub. HPC ALGLIB replaces it by multithreaded code.
-*************************************************************************/
-void _pexec_pearsoncorrm(/* Real    */ ae_matrix* x,
-    ae_int_t n,
-    ae_int_t m,
-    /* Real    */ ae_matrix* c, ae_state *_state)
-{
-    pearsoncorrm(x,n,m,c, _state);
-}
-
-
-/*************************************************************************
 Spearman's rank correlation matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   ! 
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
-  !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with correlation matrices smaller than 128*128.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
+  ! 
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M], sample matrix:
@@ -4159,10 +3987,13 @@ void spearmancorrm(/* Real    */ ae_matrix* x,
     ae_bool b;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&buf, 0, sizeof(buf));
+    memset(&xc, 0, sizeof(xc));
+    memset(&t, 0, sizeof(t));
     ae_matrix_clear(c);
-    _apbuffers_init(&buf, _state);
-    ae_matrix_init(&xc, 0, 0, DT_REAL, _state);
-    ae_vector_init(&t, 0, DT_REAL, _state);
+    _apbuffers_init(&buf, _state, ae_true);
+    ae_matrix_init(&xc, 0, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&t, 0, DT_REAL, _state, ae_true);
 
     ae_assert(n>=0, "SpearmanCorrM: N<0", _state);
     ae_assert(m>=1, "SpearmanCorrM: M<1", _state);
@@ -4289,38 +4120,20 @@ void spearmancorrm(/* Real    */ ae_matrix* x,
 
 
 /*************************************************************************
-Single-threaded stub. HPC ALGLIB replaces it by multithreaded code.
-*************************************************************************/
-void _pexec_spearmancorrm(/* Real    */ ae_matrix* x,
-    ae_int_t n,
-    ae_int_t m,
-    /* Real    */ ae_matrix* c, ae_state *_state)
-{
-    spearmancorrm(x,n,m,c, _state);
-}
-
-
-/*************************************************************************
 Cross-covariance matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   ! 
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
-  !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with covariance matrices smaller than 128*128.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
+  ! 
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M1], sample matrix:
@@ -4366,16 +4179,23 @@ void covm2(/* Real    */ ae_matrix* x,
     ae_vector samey;
 
     ae_frame_make(_state, &_frame_block);
-    ae_matrix_init_copy(&_x, x, _state);
+    memset(&_x, 0, sizeof(_x));
+    memset(&_y, 0, sizeof(_y));
+    memset(&t, 0, sizeof(t));
+    memset(&x0, 0, sizeof(x0));
+    memset(&y0, 0, sizeof(y0));
+    memset(&samex, 0, sizeof(samex));
+    memset(&samey, 0, sizeof(samey));
+    ae_matrix_init_copy(&_x, x, _state, ae_true);
     x = &_x;
-    ae_matrix_init_copy(&_y, y, _state);
+    ae_matrix_init_copy(&_y, y, _state, ae_true);
     y = &_y;
     ae_matrix_clear(c);
-    ae_vector_init(&t, 0, DT_REAL, _state);
-    ae_vector_init(&x0, 0, DT_REAL, _state);
-    ae_vector_init(&y0, 0, DT_REAL, _state);
-    ae_vector_init(&samex, 0, DT_BOOL, _state);
-    ae_vector_init(&samey, 0, DT_BOOL, _state);
+    ae_vector_init(&t, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&x0, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&y0, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&samex, 0, DT_BOOL, _state, ae_true);
+    ae_vector_init(&samey, 0, DT_BOOL, _state, ae_true);
 
     ae_assert(n>=0, "CovM2: N<0", _state);
     ae_assert(m1>=1, "CovM2: M1<1", _state);
@@ -4487,40 +4307,20 @@ void covm2(/* Real    */ ae_matrix* x,
 
 
 /*************************************************************************
-Single-threaded stub. HPC ALGLIB replaces it by multithreaded code.
-*************************************************************************/
-void _pexec_covm2(/* Real    */ ae_matrix* x,
-    /* Real    */ ae_matrix* y,
-    ae_int_t n,
-    ae_int_t m1,
-    ae_int_t m2,
-    /* Real    */ ae_matrix* c, ae_state *_state)
-{
-    covm2(x,y,n,m1,m2,c, _state);
-}
-
-
-/*************************************************************************
 Pearson product-moment cross-correlation matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   ! 
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
-  !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with correlation matrices smaller than 128*128.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
+  ! 
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M1], sample matrix:
@@ -4568,18 +4368,27 @@ void pearsoncorrm2(/* Real    */ ae_matrix* x,
     ae_vector samey;
 
     ae_frame_make(_state, &_frame_block);
-    ae_matrix_init_copy(&_x, x, _state);
+    memset(&_x, 0, sizeof(_x));
+    memset(&_y, 0, sizeof(_y));
+    memset(&t, 0, sizeof(t));
+    memset(&x0, 0, sizeof(x0));
+    memset(&y0, 0, sizeof(y0));
+    memset(&sx, 0, sizeof(sx));
+    memset(&sy, 0, sizeof(sy));
+    memset(&samex, 0, sizeof(samex));
+    memset(&samey, 0, sizeof(samey));
+    ae_matrix_init_copy(&_x, x, _state, ae_true);
     x = &_x;
-    ae_matrix_init_copy(&_y, y, _state);
+    ae_matrix_init_copy(&_y, y, _state, ae_true);
     y = &_y;
     ae_matrix_clear(c);
-    ae_vector_init(&t, 0, DT_REAL, _state);
-    ae_vector_init(&x0, 0, DT_REAL, _state);
-    ae_vector_init(&y0, 0, DT_REAL, _state);
-    ae_vector_init(&sx, 0, DT_REAL, _state);
-    ae_vector_init(&sy, 0, DT_REAL, _state);
-    ae_vector_init(&samex, 0, DT_BOOL, _state);
-    ae_vector_init(&samey, 0, DT_BOOL, _state);
+    ae_vector_init(&t, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&x0, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&y0, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&sx, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&sy, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&samex, 0, DT_BOOL, _state, ae_true);
+    ae_vector_init(&samey, 0, DT_BOOL, _state, ae_true);
 
     ae_assert(n>=0, "PearsonCorrM2: N<0", _state);
     ae_assert(m1>=1, "PearsonCorrM2: M1<1", _state);
@@ -4740,40 +4549,20 @@ void pearsoncorrm2(/* Real    */ ae_matrix* x,
 
 
 /*************************************************************************
-Single-threaded stub. HPC ALGLIB replaces it by multithreaded code.
-*************************************************************************/
-void _pexec_pearsoncorrm2(/* Real    */ ae_matrix* x,
-    /* Real    */ ae_matrix* y,
-    ae_int_t n,
-    ae_int_t m1,
-    ae_int_t m2,
-    /* Real    */ ae_matrix* c, ae_state *_state)
-{
-    pearsoncorrm2(x,y,n,m1,m2,c, _state);
-}
-
-
-/*************************************************************************
 Spearman's rank cross-correlation matrix
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   ! 
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
-  !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! with correlation matrices smaller than 128*128.
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! * hardware vendor (Intel) implementations of linear algebra primitives
+  !   (C++ and C# versions, x86/x64 platform)
+  ! 
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     X   -   array[N,M1], sample matrix:
@@ -4823,13 +4612,19 @@ void spearmancorrm2(/* Real    */ ae_matrix* x,
     apbuffers buf;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&t, 0, sizeof(t));
+    memset(&sx, 0, sizeof(sx));
+    memset(&sy, 0, sizeof(sy));
+    memset(&xc, 0, sizeof(xc));
+    memset(&yc, 0, sizeof(yc));
+    memset(&buf, 0, sizeof(buf));
     ae_matrix_clear(c);
-    ae_vector_init(&t, 0, DT_REAL, _state);
-    ae_vector_init(&sx, 0, DT_REAL, _state);
-    ae_vector_init(&sy, 0, DT_REAL, _state);
-    ae_matrix_init(&xc, 0, 0, DT_REAL, _state);
-    ae_matrix_init(&yc, 0, 0, DT_REAL, _state);
-    _apbuffers_init(&buf, _state);
+    ae_vector_init(&t, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&sx, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&sy, 0, DT_REAL, _state, ae_true);
+    ae_matrix_init(&xc, 0, 0, DT_REAL, _state, ae_true);
+    ae_matrix_init(&yc, 0, 0, DT_REAL, _state, ae_true);
+    _apbuffers_init(&buf, _state, ae_true);
 
     ae_assert(n>=0, "SpearmanCorrM2: N<0", _state);
     ae_assert(m1>=1, "SpearmanCorrM2: M1<1", _state);
@@ -4994,20 +4789,6 @@ void spearmancorrm2(/* Real    */ ae_matrix* x,
 
 
 /*************************************************************************
-Single-threaded stub. HPC ALGLIB replaces it by multithreaded code.
-*************************************************************************/
-void _pexec_spearmancorrm2(/* Real    */ ae_matrix* x,
-    /* Real    */ ae_matrix* y,
-    ae_int_t n,
-    ae_int_t m1,
-    ae_int_t m2,
-    /* Real    */ ae_matrix* c, ae_state *_state)
-{
-    spearmancorrm2(x,y,n,m1,m2,c, _state);
-}
-
-
-/*************************************************************************
 This function replaces data in XY by their ranks:
 * XY is processed row-by-row
 * rows are processed separately
@@ -5015,24 +4796,16 @@ This function replaces data in XY by their ranks:
 * ranking starts from 0, ends at NFeatures-1
 * sum of within-row values is equal to (NFeatures-1)*NFeatures/2
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   ! 
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
-  !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! ones where expected operations count is less than 100.000
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! 
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     XY      -   array[NPoints,NFeatures], dataset
@@ -5058,9 +4831,12 @@ void rankdata(/* Real    */ ae_matrix* xy,
     ae_shared_pool pool;
 
     ae_frame_make(_state, &_frame_block);
-    _apbuffers_init(&buf0, _state);
-    _apbuffers_init(&buf1, _state);
-    ae_shared_pool_init(&pool, _state);
+    memset(&buf0, 0, sizeof(buf0));
+    memset(&buf1, 0, sizeof(buf1));
+    memset(&pool, 0, sizeof(pool));
+    _apbuffers_init(&buf0, _state, ae_true);
+    _apbuffers_init(&buf1, _state, ae_true);
+    ae_shared_pool_init(&pool, _state, ae_true);
 
     ae_assert(npoints>=0, "RankData: NPoints<0", _state);
     ae_assert(nfeatures>=1, "RankData: NFeatures<1", _state);
@@ -5075,13 +4851,11 @@ void rankdata(/* Real    */ ae_matrix* xy,
      * Problem cost is assumed to be NPoints*NFeatures*log2(NFeatures),
      * which is proportional, but NOT equal to number of FLOPs required
      * to solve problem.
+     *
+     * Try to use serial code for basecase problems, no SMP functionality, no shared pools.
      */
     basecasecost = 10000;
-    
-    /*
-     * Try to use serial code, no SMP functionality, no shared pools.
-     */
-    if( ae_fp_less(inttoreal(npoints, _state)*inttoreal(nfeatures, _state)*logbase2((double)(nfeatures), _state),(double)(basecasecost)) )
+    if( ae_fp_less(rmul3((double)(npoints), (double)(nfeatures), logbase2((double)(nfeatures), _state), _state),(double)(basecasecost)) )
     {
         basestat_rankdatabasecase(xy, 0, npoints, nfeatures, ae_false, &buf0, &buf1, _state);
         ae_frame_leave(_state);
@@ -5098,13 +4872,14 @@ void rankdata(/* Real    */ ae_matrix* xy,
 
 
 /*************************************************************************
-Single-threaded stub. HPC ALGLIB replaces it by multithreaded code.
+Serial stub for GPL edition.
 *************************************************************************/
-void _pexec_rankdata(/* Real    */ ae_matrix* xy,
+ae_bool _trypexec_rankdata(/* Real    */ ae_matrix* xy,
     ae_int_t npoints,
-    ae_int_t nfeatures, ae_state *_state)
+    ae_int_t nfeatures,
+    ae_state *_state)
 {
-    rankdata(xy,npoints,nfeatures, _state);
+    return ae_false;
 }
 
 
@@ -5118,24 +4893,16 @@ This function replaces data in XY by their CENTERED ranks:
 * centering is performed by subtracting mean from each row, i.e it changes
   mean value, but does NOT change higher moments
 
-SMP EDITION OF ALGLIB:
-
-  ! This function can utilize multicore capabilities of  your system.  In
-  ! order to do this you have to call version with "smp_" prefix,   which
-  ! indicates that multicore code will be used.
+  ! COMMERCIAL EDITION OF ALGLIB:
   ! 
-  ! This note is given for users of SMP edition; if you use GPL  edition,
-  ! or commercial edition of ALGLIB without SMP support, you  still  will
-  ! be able to call smp-version of this function,  but  all  computations
-  ! will be done serially.
-  !
-  ! We recommend you to carefully read ALGLIB Reference  Manual,  section
-  ! called 'SMP support', before using parallel version of this function.
-  !
-  ! You should remember that starting/stopping worker thread always  have
-  ! non-zero cost. Although  multicore  version  is  pretty  efficient on
-  ! large problems, we do not recommend you to use it on small problems -
-  ! ones where expected operations count is less than 100.000
+  ! Commercial Edition of ALGLIB includes following important improvements
+  ! of this function:
+  ! * high-performance native backend with same C# interface (C# version)
+  ! * multithreading support (C++ and C# versions)
+  ! 
+  ! We recommend you to read 'Working with commercial version' section  of
+  ! ALGLIB Reference Manual in order to find out how to  use  performance-
+  ! related features provided by commercial edition of ALGLIB.
 
 INPUT PARAMETERS:
     XY      -   array[NPoints,NFeatures], dataset
@@ -5161,9 +4928,12 @@ void rankdatacentered(/* Real    */ ae_matrix* xy,
     ae_shared_pool pool;
 
     ae_frame_make(_state, &_frame_block);
-    _apbuffers_init(&buf0, _state);
-    _apbuffers_init(&buf1, _state);
-    ae_shared_pool_init(&pool, _state);
+    memset(&buf0, 0, sizeof(buf0));
+    memset(&buf1, 0, sizeof(buf1));
+    memset(&pool, 0, sizeof(pool));
+    _apbuffers_init(&buf0, _state, ae_true);
+    _apbuffers_init(&buf1, _state, ae_true);
+    ae_shared_pool_init(&pool, _state, ae_true);
 
     ae_assert(npoints>=0, "RankData: NPoints<0", _state);
     ae_assert(nfeatures>=1, "RankData: NFeatures<1", _state);
@@ -5178,13 +4948,11 @@ void rankdatacentered(/* Real    */ ae_matrix* xy,
      * Problem cost is assumed to be NPoints*NFeatures*log2(NFeatures),
      * which is proportional, but NOT equal to number of FLOPs required
      * to solve problem.
-     */
-    basecasecost = 10000;
-    
-    /*
+     *
      * Try to use serial code, no SMP functionality, no shared pools.
      */
-    if( ae_fp_less(inttoreal(npoints, _state)*inttoreal(nfeatures, _state)*logbase2((double)(nfeatures), _state),(double)(basecasecost)) )
+    basecasecost = 10000;
+    if( ae_fp_less(rmul3((double)(npoints), (double)(nfeatures), logbase2((double)(nfeatures), _state), _state),(double)(basecasecost)) )
     {
         basestat_rankdatabasecase(xy, 0, npoints, nfeatures, ae_true, &buf0, &buf1, _state);
         ae_frame_leave(_state);
@@ -5201,13 +4969,14 @@ void rankdatacentered(/* Real    */ ae_matrix* xy,
 
 
 /*************************************************************************
-Single-threaded stub. HPC ALGLIB replaces it by multithreaded code.
+Serial stub for GPL edition.
 *************************************************************************/
-void _pexec_rankdatacentered(/* Real    */ ae_matrix* xy,
+ae_bool _trypexec_rankdatacentered(/* Real    */ ae_matrix* xy,
     ae_int_t npoints,
-    ae_int_t nfeatures, ae_state *_state)
+    ae_int_t nfeatures,
+    ae_state *_state)
 {
-    rankdatacentered(xy,npoints,nfeatures, _state);
+    return ae_false;
 }
 
 
@@ -5292,16 +5061,30 @@ static void basestat_rankdatarec(/* Real    */ ae_matrix* xy,
     ae_int_t im;
 
     ae_frame_make(_state, &_frame_block);
-    ae_smart_ptr_init(&_buf0, (void**)&buf0, _state);
-    ae_smart_ptr_init(&_buf1, (void**)&buf1, _state);
+    memset(&_buf0, 0, sizeof(_buf0));
+    memset(&_buf1, 0, sizeof(_buf1));
+    ae_smart_ptr_init(&_buf0, (void**)&buf0, _state, ae_true);
+    ae_smart_ptr_init(&_buf1, (void**)&buf1, _state, ae_true);
 
     ae_assert(i1>=i0, "RankDataRec: internal error", _state);
     
     /*
+     * Try to activate parallelism
+     */
+    if( i1-i0>=4&&ae_fp_greater_eq(rmul3((double)(i1-i0), (double)(nfeatures), logbase2((double)(nfeatures), _state), _state),smpactivationlevel(_state)) )
+    {
+        if( _trypexec_basestat_rankdatarec(xy,i0,i1,nfeatures,iscentered,pool,basecasecost, _state) )
+        {
+            ae_frame_leave(_state);
+            return;
+        }
+    }
+    
+    /*
      * Recursively split problem, if it is too large
      */
-    problemcost = inttoreal(i1-i0, _state)*inttoreal(nfeatures, _state)*logbase2((double)(nfeatures), _state);
-    if( i1-i0>=2&&ae_fp_greater(problemcost,(double)(basecasecost)) )
+    problemcost = rmul3((double)(i1-i0), (double)(nfeatures), logbase2((double)(nfeatures), _state), _state);
+    if( i1-i0>=2&&ae_fp_greater(problemcost,spawnlevel(_state)) )
     {
         im = (i1+i0)/2;
         basestat_rankdatarec(xy, i0, im, nfeatures, iscentered, pool, basecasecost, _state);
@@ -5319,6 +5102,22 @@ static void basestat_rankdatarec(/* Real    */ ae_matrix* xy,
     ae_shared_pool_recycle(pool, &_buf0, _state);
     ae_shared_pool_recycle(pool, &_buf1, _state);
     ae_frame_leave(_state);
+}
+
+
+/*************************************************************************
+Serial stub for GPL edition.
+*************************************************************************/
+ae_bool _trypexec_basestat_rankdatarec(/* Real    */ ae_matrix* xy,
+    ae_int_t i0,
+    ae_int_t i1,
+    ae_int_t nfeatures,
+    ae_bool iscentered,
+    ae_shared_pool* pool,
+    ae_int_t basecasecost,
+    ae_state *_state)
+{
+    return ae_false;
 }
 
 
@@ -5374,8329 +5173,24 @@ static void basestat_rankdatabasecase(/* Real    */ ae_matrix* xy,
 }
 
 
-
-
-/*************************************************************************
-Pearson's correlation coefficient significance test
-
-This test checks hypotheses about whether X  and  Y  are  samples  of  two
-continuous  distributions  having  zero  correlation  or   whether   their
-correlation is non-zero.
-
-The following tests are performed:
-    * two-tailed test (null hypothesis - X and Y have zero correlation)
-    * left-tailed test (null hypothesis - the correlation  coefficient  is
-      greater than or equal to 0)
-    * right-tailed test (null hypothesis - the correlation coefficient  is
-      less than or equal to 0).
-
-Requirements:
-    * the number of elements in each sample is not less than 5
-    * normality of distributions of X and Y.
-
-Input parameters:
-    R   -   Pearson's correlation coefficient for X and Y
-    N   -   number of elements in samples, N>=5.
-
-Output parameters:
-    BothTails   -   p-value for two-tailed test.
-                    If BothTails is less than the given significance level
-                    the null hypothesis is rejected.
-    LeftTail    -   p-value for left-tailed test.
-                    If LeftTail is less than the given significance level,
-                    the null hypothesis is rejected.
-    RightTail   -   p-value for right-tailed test.
-                    If RightTail is less than the given significance level
-                    the null hypothesis is rejected.
-
-  -- ALGLIB --
-     Copyright 09.04.2007 by Bochkanov Sergey
-*************************************************************************/
-void pearsoncorrelationsignificance(double r,
-     ae_int_t n,
-     double* bothtails,
-     double* lefttail,
-     double* righttail,
-     ae_state *_state)
-{
-    double t;
-    double p;
-
-    *bothtails = 0;
-    *lefttail = 0;
-    *righttail = 0;
-
-    
-    /*
-     * Some special cases
-     */
-    if( ae_fp_greater_eq(r,(double)(1)) )
-    {
-        *bothtails = 0.0;
-        *lefttail = 1.0;
-        *righttail = 0.0;
-        return;
-    }
-    if( ae_fp_less_eq(r,(double)(-1)) )
-    {
-        *bothtails = 0.0;
-        *lefttail = 0.0;
-        *righttail = 1.0;
-        return;
-    }
-    if( n<5 )
-    {
-        *bothtails = 1.0;
-        *lefttail = 1.0;
-        *righttail = 1.0;
-        return;
-    }
-    
-    /*
-     * General case
-     */
-    t = r*ae_sqrt((n-2)/(1-ae_sqr(r, _state)), _state);
-    p = studenttdistribution(n-2, t, _state);
-    *bothtails = 2*ae_minreal(p, 1-p, _state);
-    *lefttail = p;
-    *righttail = 1-p;
-}
-
-
-/*************************************************************************
-Spearman's rank correlation coefficient significance test
-
-This test checks hypotheses about whether X  and  Y  are  samples  of  two
-continuous  distributions  having  zero  correlation  or   whether   their
-correlation is non-zero.
-
-The following tests are performed:
-    * two-tailed test (null hypothesis - X and Y have zero correlation)
-    * left-tailed test (null hypothesis - the correlation  coefficient  is
-      greater than or equal to 0)
-    * right-tailed test (null hypothesis - the correlation coefficient  is
-      less than or equal to 0).
-
-Requirements:
-    * the number of elements in each sample is not less than 5.
-
-The test is non-parametric and doesn't require distributions X and Y to be
-normal.
-
-Input parameters:
-    R   -   Spearman's rank correlation coefficient for X and Y
-    N   -   number of elements in samples, N>=5.
-
-Output parameters:
-    BothTails   -   p-value for two-tailed test.
-                    If BothTails is less than the given significance level
-                    the null hypothesis is rejected.
-    LeftTail    -   p-value for left-tailed test.
-                    If LeftTail is less than the given significance level,
-                    the null hypothesis is rejected.
-    RightTail   -   p-value for right-tailed test.
-                    If RightTail is less than the given significance level
-                    the null hypothesis is rejected.
-
-  -- ALGLIB --
-     Copyright 09.04.2007 by Bochkanov Sergey
-*************************************************************************/
-void spearmanrankcorrelationsignificance(double r,
-     ae_int_t n,
-     double* bothtails,
-     double* lefttail,
-     double* righttail,
-     ae_state *_state)
-{
-    double t;
-    double p;
-
-    *bothtails = 0;
-    *lefttail = 0;
-    *righttail = 0;
-
-    
-    /*
-     * Special case
-     */
-    if( n<5 )
-    {
-        *bothtails = 1.0;
-        *lefttail = 1.0;
-        *righttail = 1.0;
-        return;
-    }
-    
-    /*
-     * General case
-     */
-    if( ae_fp_greater_eq(r,(double)(1)) )
-    {
-        t = 1.0E10;
-    }
-    else
-    {
-        if( ae_fp_less_eq(r,(double)(-1)) )
-        {
-            t = -1.0E10;
-        }
-        else
-        {
-            t = r*ae_sqrt((n-2)/(1-ae_sqr(r, _state)), _state);
-        }
-    }
-    if( ae_fp_less(t,(double)(0)) )
-    {
-        p = correlationtests_spearmantail(t, n, _state);
-        *bothtails = 2*p;
-        *lefttail = p;
-        *righttail = 1-p;
-    }
-    else
-    {
-        p = correlationtests_spearmantail(-t, n, _state);
-        *bothtails = 2*p;
-        *lefttail = 1-p;
-        *righttail = p;
-    }
-}
-
-
-/*************************************************************************
-Tail(S, 5)
-*************************************************************************/
-static double correlationtests_spearmantail5(double s, ae_state *_state)
-{
-    double result;
-
-
-    if( ae_fp_less(s,0.000e+00) )
-    {
-        result = studenttdistribution(3, -s, _state);
-        return result;
-    }
-    if( ae_fp_greater_eq(s,3.580e+00) )
-    {
-        result = 8.304e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.322e+00) )
-    {
-        result = 4.163e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.704e+00) )
-    {
-        result = 6.641e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.303e+00) )
-    {
-        result = 1.164e-01;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.003e+00) )
-    {
-        result = 1.748e-01;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,7.584e-01) )
-    {
-        result = 2.249e-01;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,5.468e-01) )
-    {
-        result = 2.581e-01;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,3.555e-01) )
-    {
-        result = 3.413e-01;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.759e-01) )
-    {
-        result = 3.911e-01;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.741e-03) )
-    {
-        result = 4.747e-01;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,0.000e+00) )
-    {
-        result = 5.248e-01;
-        return result;
-    }
-    result = (double)(0);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 6)
-*************************************************************************/
-static double correlationtests_spearmantail6(double s, ae_state *_state)
-{
-    double result;
-
-
-    if( ae_fp_less(s,1.001e+00) )
-    {
-        result = studenttdistribution(4, -s, _state);
-        return result;
-    }
-    if( ae_fp_greater_eq(s,5.663e+00) )
-    {
-        result = 1.366e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,3.834e+00) )
-    {
-        result = 8.350e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.968e+00) )
-    {
-        result = 1.668e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.430e+00) )
-    {
-        result = 2.921e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.045e+00) )
-    {
-        result = 5.144e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.747e+00) )
-    {
-        result = 6.797e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.502e+00) )
-    {
-        result = 8.752e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.295e+00) )
-    {
-        result = 1.210e-01;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.113e+00) )
-    {
-        result = 1.487e-01;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.001e+00) )
-    {
-        result = 1.780e-01;
-        return result;
-    }
-    result = (double)(0);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 7)
-*************************************************************************/
-static double correlationtests_spearmantail7(double s, ae_state *_state)
-{
-    double result;
-
-
-    if( ae_fp_less(s,1.001e+00) )
-    {
-        result = studenttdistribution(5, -s, _state);
-        return result;
-    }
-    if( ae_fp_greater_eq(s,8.159e+00) )
-    {
-        result = 2.081e-04;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,5.620e+00) )
-    {
-        result = 1.393e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,4.445e+00) )
-    {
-        result = 3.398e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,3.728e+00) )
-    {
-        result = 6.187e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,3.226e+00) )
-    {
-        result = 1.200e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.844e+00) )
-    {
-        result = 1.712e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.539e+00) )
-    {
-        result = 2.408e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.285e+00) )
-    {
-        result = 3.320e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.068e+00) )
-    {
-        result = 4.406e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.879e+00) )
-    {
-        result = 5.478e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.710e+00) )
-    {
-        result = 6.946e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.559e+00) )
-    {
-        result = 8.331e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.420e+00) )
-    {
-        result = 1.001e-01;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.292e+00) )
-    {
-        result = 1.180e-01;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.173e+00) )
-    {
-        result = 1.335e-01;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.062e+00) )
-    {
-        result = 1.513e-01;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.001e+00) )
-    {
-        result = 1.770e-01;
-        return result;
-    }
-    result = (double)(0);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 8)
-*************************************************************************/
-static double correlationtests_spearmantail8(double s, ae_state *_state)
-{
-    double result;
-
-
-    if( ae_fp_less(s,2.001e+00) )
-    {
-        result = studenttdistribution(6, -s, _state);
-        return result;
-    }
-    if( ae_fp_greater_eq(s,1.103e+01) )
-    {
-        result = 2.194e-05;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,7.685e+00) )
-    {
-        result = 2.008e-04;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,6.143e+00) )
-    {
-        result = 5.686e-04;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,5.213e+00) )
-    {
-        result = 1.138e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,4.567e+00) )
-    {
-        result = 2.310e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,4.081e+00) )
-    {
-        result = 3.634e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,3.697e+00) )
-    {
-        result = 5.369e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,3.381e+00) )
-    {
-        result = 7.708e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,3.114e+00) )
-    {
-        result = 1.087e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.884e+00) )
-    {
-        result = 1.397e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.682e+00) )
-    {
-        result = 1.838e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.502e+00) )
-    {
-        result = 2.288e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.340e+00) )
-    {
-        result = 2.883e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.192e+00) )
-    {
-        result = 3.469e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.057e+00) )
-    {
-        result = 4.144e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.001e+00) )
-    {
-        result = 4.804e-02;
-        return result;
-    }
-    result = (double)(0);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 9)
-*************************************************************************/
-static double correlationtests_spearmantail9(double s, ae_state *_state)
-{
-    double result;
-
-
-    if( ae_fp_less(s,2.001e+00) )
-    {
-        result = studenttdistribution(7, -s, _state);
-        return result;
-    }
-    if( ae_fp_greater_eq(s,9.989e+00) )
-    {
-        result = 2.306e-05;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,8.069e+00) )
-    {
-        result = 8.167e-05;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,6.890e+00) )
-    {
-        result = 1.744e-04;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,6.077e+00) )
-    {
-        result = 3.625e-04;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,5.469e+00) )
-    {
-        result = 6.450e-04;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,4.991e+00) )
-    {
-        result = 1.001e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,4.600e+00) )
-    {
-        result = 1.514e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,4.272e+00) )
-    {
-        result = 2.213e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,3.991e+00) )
-    {
-        result = 2.990e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,3.746e+00) )
-    {
-        result = 4.101e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,3.530e+00) )
-    {
-        result = 5.355e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,3.336e+00) )
-    {
-        result = 6.887e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,3.161e+00) )
-    {
-        result = 8.598e-03;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,3.002e+00) )
-    {
-        result = 1.065e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.855e+00) )
-    {
-        result = 1.268e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.720e+00) )
-    {
-        result = 1.552e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.595e+00) )
-    {
-        result = 1.836e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.477e+00) )
-    {
-        result = 2.158e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.368e+00) )
-    {
-        result = 2.512e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.264e+00) )
-    {
-        result = 2.942e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.166e+00) )
-    {
-        result = 3.325e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.073e+00) )
-    {
-        result = 3.800e-02;
-        return result;
-    }
-    if( ae_fp_greater_eq(s,2.001e+00) )
-    {
-        result = 4.285e-02;
-        return result;
-    }
-    result = (double)(0);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(T,N), accepts T<0
-*************************************************************************/
-static double correlationtests_spearmantail(double t,
-     ae_int_t n,
-     ae_state *_state)
-{
-    double result;
-
-
-    if( n==5 )
-    {
-        result = correlationtests_spearmantail5(-t, _state);
-        return result;
-    }
-    if( n==6 )
-    {
-        result = correlationtests_spearmantail6(-t, _state);
-        return result;
-    }
-    if( n==7 )
-    {
-        result = correlationtests_spearmantail7(-t, _state);
-        return result;
-    }
-    if( n==8 )
-    {
-        result = correlationtests_spearmantail8(-t, _state);
-        return result;
-    }
-    if( n==9 )
-    {
-        result = correlationtests_spearmantail9(-t, _state);
-        return result;
-    }
-    result = studenttdistribution(n-2, t, _state);
-    return result;
-}
-
-
-
-
-/*************************************************************************
-Jarque-Bera test
-
-This test checks hypotheses about the fact that a  given  sample  X  is  a
-sample of normal random variable.
-
-Requirements:
-    * the number of elements in the sample is not less than 5.
-
-Input parameters:
-    X   -   sample. Array whose index goes from 0 to N-1.
-    N   -   size of the sample. N>=5
-
-Output parameters:
-    P           -   p-value for the test
-
-Accuracy of the approximation used (5<=N<=1951):
-
-p-value  	    relative error (5<=N<=1951)
-[1, 0.1]            < 1%
-[0.1, 0.01]         < 2%
-[0.01, 0.001]       < 6%
-[0.001, 0]          wasn't measured
-
-For N>1951 accuracy wasn't measured but it shouldn't be sharply  different
-from table values.
-
-  -- ALGLIB --
-     Copyright 09.04.2007 by Bochkanov Sergey
-*************************************************************************/
-void jarqueberatest(/* Real    */ ae_vector* x,
-     ae_int_t n,
-     double* p,
-     ae_state *_state)
-{
-    double s;
-
-    *p = 0;
-
-    
-    /*
-     * N is too small
-     */
-    if( n<5 )
-    {
-        *p = 1.0;
-        return;
-    }
-    
-    /*
-     * N is large enough
-     */
-    jarquebera_jarqueberastatistic(x, n, &s, _state);
-    *p = jarquebera_jarqueberaapprox(n, s, _state);
-}
-
-
-static void jarquebera_jarqueberastatistic(/* Real    */ ae_vector* x,
-     ae_int_t n,
-     double* s,
-     ae_state *_state)
-{
-    ae_int_t i;
-    double v;
-    double v1;
-    double v2;
-    double stddev;
-    double mean;
-    double variance;
-    double skewness;
-    double kurtosis;
-
-    *s = 0;
-
-    mean = (double)(0);
-    variance = (double)(0);
-    skewness = (double)(0);
-    kurtosis = (double)(0);
-    stddev = (double)(0);
-    ae_assert(n>1, "Assertion failed", _state);
-    
-    /*
-     * Mean
-     */
-    for(i=0; i<=n-1; i++)
-    {
-        mean = mean+x->ptr.p_double[i];
-    }
-    mean = mean/n;
-    
-    /*
-     * Variance (using corrected two-pass algorithm)
-     */
-    if( n!=1 )
-    {
-        v1 = (double)(0);
-        for(i=0; i<=n-1; i++)
-        {
-            v1 = v1+ae_sqr(x->ptr.p_double[i]-mean, _state);
-        }
-        v2 = (double)(0);
-        for(i=0; i<=n-1; i++)
-        {
-            v2 = v2+(x->ptr.p_double[i]-mean);
-        }
-        v2 = ae_sqr(v2, _state)/n;
-        variance = (v1-v2)/(n-1);
-        if( ae_fp_less(variance,(double)(0)) )
-        {
-            variance = (double)(0);
-        }
-        stddev = ae_sqrt(variance, _state);
-    }
-    
-    /*
-     * Skewness and kurtosis
-     */
-    if( ae_fp_neq(stddev,(double)(0)) )
-    {
-        for(i=0; i<=n-1; i++)
-        {
-            v = (x->ptr.p_double[i]-mean)/stddev;
-            v2 = ae_sqr(v, _state);
-            skewness = skewness+v2*v;
-            kurtosis = kurtosis+ae_sqr(v2, _state);
-        }
-        skewness = skewness/n;
-        kurtosis = kurtosis/n-3;
-    }
-    
-    /*
-     * Statistic
-     */
-    *s = (double)n/(double)6*(ae_sqr(skewness, _state)+ae_sqr(kurtosis, _state)/4);
-}
-
-
-static double jarquebera_jarqueberaapprox(ae_int_t n,
-     double s,
-     ae_state *_state)
-{
-    ae_frame _frame_block;
-    ae_vector vx;
-    ae_vector vy;
-    ae_matrix ctbl;
-    double t1;
-    double t2;
-    double t3;
-    double t;
-    double f1;
-    double f2;
-    double f3;
-    double f12;
-    double f23;
-    double x;
-    double result;
-
-    ae_frame_make(_state, &_frame_block);
-    ae_vector_init(&vx, 0, DT_REAL, _state);
-    ae_vector_init(&vy, 0, DT_REAL, _state);
-    ae_matrix_init(&ctbl, 0, 0, DT_REAL, _state);
-
-    result = (double)(1);
-    x = s;
-    if( n<5 )
-    {
-        ae_frame_leave(_state);
-        return result;
-    }
-    
-    /*
-     * N = 5..20 are tabulated
-     */
-    if( n>=5&&n<=20 )
-    {
-        if( n==5 )
-        {
-            result = ae_exp(jarquebera_jbtbl5(x, _state), _state);
-        }
-        if( n==6 )
-        {
-            result = ae_exp(jarquebera_jbtbl6(x, _state), _state);
-        }
-        if( n==7 )
-        {
-            result = ae_exp(jarquebera_jbtbl7(x, _state), _state);
-        }
-        if( n==8 )
-        {
-            result = ae_exp(jarquebera_jbtbl8(x, _state), _state);
-        }
-        if( n==9 )
-        {
-            result = ae_exp(jarquebera_jbtbl9(x, _state), _state);
-        }
-        if( n==10 )
-        {
-            result = ae_exp(jarquebera_jbtbl10(x, _state), _state);
-        }
-        if( n==11 )
-        {
-            result = ae_exp(jarquebera_jbtbl11(x, _state), _state);
-        }
-        if( n==12 )
-        {
-            result = ae_exp(jarquebera_jbtbl12(x, _state), _state);
-        }
-        if( n==13 )
-        {
-            result = ae_exp(jarquebera_jbtbl13(x, _state), _state);
-        }
-        if( n==14 )
-        {
-            result = ae_exp(jarquebera_jbtbl14(x, _state), _state);
-        }
-        if( n==15 )
-        {
-            result = ae_exp(jarquebera_jbtbl15(x, _state), _state);
-        }
-        if( n==16 )
-        {
-            result = ae_exp(jarquebera_jbtbl16(x, _state), _state);
-        }
-        if( n==17 )
-        {
-            result = ae_exp(jarquebera_jbtbl17(x, _state), _state);
-        }
-        if( n==18 )
-        {
-            result = ae_exp(jarquebera_jbtbl18(x, _state), _state);
-        }
-        if( n==19 )
-        {
-            result = ae_exp(jarquebera_jbtbl19(x, _state), _state);
-        }
-        if( n==20 )
-        {
-            result = ae_exp(jarquebera_jbtbl20(x, _state), _state);
-        }
-        ae_frame_leave(_state);
-        return result;
-    }
-    
-    /*
-     * N = 20, 30, 50 are tabulated.
-     * In-between values are interpolated
-     * using interpolating polynomial of the second degree.
-     */
-    if( n>20&&n<=50 )
-    {
-        t1 = -1.0/20.0;
-        t2 = -1.0/30.0;
-        t3 = -1.0/50.0;
-        t = -1.0/n;
-        f1 = jarquebera_jbtbl20(x, _state);
-        f2 = jarquebera_jbtbl30(x, _state);
-        f3 = jarquebera_jbtbl50(x, _state);
-        f12 = ((t-t2)*f1+(t1-t)*f2)/(t1-t2);
-        f23 = ((t-t3)*f2+(t2-t)*f3)/(t2-t3);
-        result = ((t-t3)*f12+(t1-t)*f23)/(t1-t3);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        result = ae_exp(result, _state);
-        ae_frame_leave(_state);
-        return result;
-    }
-    
-    /*
-     * N = 50, 65, 100 are tabulated.
-     * In-between values are interpolated
-     * using interpolating polynomial of the second degree.
-     */
-    if( n>50&&n<=100 )
-    {
-        t1 = -1.0/50.0;
-        t2 = -1.0/65.0;
-        t3 = -1.0/100.0;
-        t = -1.0/n;
-        f1 = jarquebera_jbtbl50(x, _state);
-        f2 = jarquebera_jbtbl65(x, _state);
-        f3 = jarquebera_jbtbl100(x, _state);
-        f12 = ((t-t2)*f1+(t1-t)*f2)/(t1-t2);
-        f23 = ((t-t3)*f2+(t2-t)*f3)/(t2-t3);
-        result = ((t-t3)*f12+(t1-t)*f23)/(t1-t3);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        result = ae_exp(result, _state);
-        ae_frame_leave(_state);
-        return result;
-    }
-    
-    /*
-     * N = 100, 130, 200 are tabulated.
-     * In-between values are interpolated
-     * using interpolating polynomial of the second degree.
-     */
-    if( n>100&&n<=200 )
-    {
-        t1 = -1.0/100.0;
-        t2 = -1.0/130.0;
-        t3 = -1.0/200.0;
-        t = -1.0/n;
-        f1 = jarquebera_jbtbl100(x, _state);
-        f2 = jarquebera_jbtbl130(x, _state);
-        f3 = jarquebera_jbtbl200(x, _state);
-        f12 = ((t-t2)*f1+(t1-t)*f2)/(t1-t2);
-        f23 = ((t-t3)*f2+(t2-t)*f3)/(t2-t3);
-        result = ((t-t3)*f12+(t1-t)*f23)/(t1-t3);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        result = ae_exp(result, _state);
-        ae_frame_leave(_state);
-        return result;
-    }
-    
-    /*
-     * N = 200, 301, 501 are tabulated.
-     * In-between values are interpolated
-     * using interpolating polynomial of the second degree.
-     */
-    if( n>200&&n<=501 )
-    {
-        t1 = -1.0/200.0;
-        t2 = -1.0/301.0;
-        t3 = -1.0/501.0;
-        t = -1.0/n;
-        f1 = jarquebera_jbtbl200(x, _state);
-        f2 = jarquebera_jbtbl301(x, _state);
-        f3 = jarquebera_jbtbl501(x, _state);
-        f12 = ((t-t2)*f1+(t1-t)*f2)/(t1-t2);
-        f23 = ((t-t3)*f2+(t2-t)*f3)/(t2-t3);
-        result = ((t-t3)*f12+(t1-t)*f23)/(t1-t3);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        result = ae_exp(result, _state);
-        ae_frame_leave(_state);
-        return result;
-    }
-    
-    /*
-     * N = 501, 701, 1401 are tabulated.
-     * In-between values are interpolated
-     * using interpolating polynomial of the second degree.
-     */
-    if( n>501&&n<=1401 )
-    {
-        t1 = -1.0/501.0;
-        t2 = -1.0/701.0;
-        t3 = -1.0/1401.0;
-        t = -1.0/n;
-        f1 = jarquebera_jbtbl501(x, _state);
-        f2 = jarquebera_jbtbl701(x, _state);
-        f3 = jarquebera_jbtbl1401(x, _state);
-        f12 = ((t-t2)*f1+(t1-t)*f2)/(t1-t2);
-        f23 = ((t-t3)*f2+(t2-t)*f3)/(t2-t3);
-        result = ((t-t3)*f12+(t1-t)*f23)/(t1-t3);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        result = ae_exp(result, _state);
-        ae_frame_leave(_state);
-        return result;
-    }
-    
-    /*
-     * Asymptotic expansion
-     */
-    if( n>1401 )
-    {
-        result = -0.5*x+(jarquebera_jbtbl1401(x, _state)+0.5*x)*ae_sqrt((double)1401/(double)n, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        result = ae_exp(result, _state);
-        ae_frame_leave(_state);
-        return result;
-    }
-    ae_frame_leave(_state);
-    return result;
-}
-
-
-static double jarquebera_jbtbl5(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,0.4000) )
-    {
-        x = 2*(s-0.000000)/0.400000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.097885e-20, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.854501e-20, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.756616e-20, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,1.1000) )
-    {
-        x = 2*(s-0.400000)/0.700000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.324545e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.075941e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -9.772272e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.175686e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.576162e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.126861e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.434425e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.790359e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.809178e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.479704e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.717040e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.294170e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.880632e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.023344e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.601531e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.920403e-02, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -5.188419e+02*(s-1.100000e+00)-4.767297e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl6(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,0.2500) )
-    {
-        x = 2*(s-0.000000)/0.250000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -2.274707e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.700471e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.425764e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,1.3000) )
-    {
-        x = 2*(s-0.250000)/1.050000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.339000e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.011104e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.168177e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.085666e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 7.738606e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 7.022876e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.462402e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.908270e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.230772e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.006996e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.410222e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.893768e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 8.114564e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,1.8500) )
-    {
-        x = 2*(s-1.300000)/0.550000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -6.794311e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.578700e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.394664e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.928290e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.813273e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.076063e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.835380e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.013013e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.058903e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.856915e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.710887e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -1.770029e+02*(s-1.850000e+00)-1.371015e+01;
-    return result;
-}
-
-
-static double jarquebera_jbtbl7(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,1.4000) )
-    {
-        x = 2*(s-0.000000)/1.400000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.093681e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.695911e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.473192e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.203236e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.590379e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.291876e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.132007e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 9.411147e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.180067e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.487610e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.436561e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,3.0000) )
-    {
-        x = 2*(s-1.400000)/1.600000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -5.947854e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.772675e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.707912e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.691171e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.132795e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.481310e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.867536e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 8.772327e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.033387e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.378277e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.497964e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.636814e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -9.581640e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,3.2000) )
-    {
-        x = 2*(s-3.000000)/0.200000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -7.511008e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.140472e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.682053e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.568561e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.933930e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.140472e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.895025e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.140472e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.933930e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.568561e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.682053e+00, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -1.824116e+03*(s-3.200000e+00)-1.440330e+01;
-    return result;
-}
-
-
-static double jarquebera_jbtbl8(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,1.3000) )
-    {
-        x = 2*(s-0.000000)/1.300000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -7.199015e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.095921e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.736828e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.047438e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.484320e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 7.937923e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.810470e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.139780e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.708443e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,2.0000) )
-    {
-        x = 2*(s-1.300000)/0.700000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -3.378966e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.802461e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.547593e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.241042e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.203274e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.201990e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.125597e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.584426e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.546069e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,5.0000) )
-    {
-        x = 2*(s-2.000000)/3.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -6.828366e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.137533e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.016671e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.745637e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.189801e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.621610e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.741122e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.516368e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.552085e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.787029e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.359774e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -5.087028e+00*(s-5.000000e+00)-1.071300e+01;
-    return result;
-}
-
-
-static double jarquebera_jbtbl9(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,1.3000) )
-    {
-        x = 2*(s-0.000000)/1.300000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -6.279320e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -9.277151e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.669339e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.086149e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.333816e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.871249e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.007048e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 7.482245e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.355615e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,2.0000) )
-    {
-        x = 2*(s-1.300000)/0.700000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -2.981430e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.972248e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.747737e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.808530e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.888305e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 9.001302e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.378767e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.108510e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.915372e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,7.0000) )
-    {
-        x = 2*(s-2.000000)/5.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -6.387463e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.845231e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.809956e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.543461e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.880397e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.160074e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.356527e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.394428e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 9.619892e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.758763e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.790977e-05, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -2.020952e+00*(s-7.000000e+00)-9.516623e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl10(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,1.2000) )
-    {
-        x = 2*(s-0.000000)/1.200000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -4.590993e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.562730e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.353934e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.069933e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.849151e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 8.931406e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.636295e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.178340e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.917749e-05, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,2.0000) )
-    {
-        x = 2*(s-1.200000)/0.800000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -2.537658e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -9.962401e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.838715e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.055792e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.580316e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.781701e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.770362e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.838983e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.999052e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,7.0000) )
-    {
-        x = 2*(s-2.000000)/5.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -5.337524e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.877029e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.734650e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.249254e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.320250e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.432266e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -8.711035e-01*(s-7.000000e+00)-7.212811e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl11(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,1.2000) )
-    {
-        x = 2*(s-0.000000)/1.200000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -4.339517e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.051558e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.000992e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.022547e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -9.808401e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.592870e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.575081e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.086173e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.089011e-05, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,2.2500) )
-    {
-        x = 2*(s-1.200000)/1.050000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -2.523221e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.068388e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.179661e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.555524e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.238964e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 7.364320e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.895771e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.762774e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.201340e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,8.0000) )
-    {
-        x = 2*(s-2.250000)/5.750000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -5.212179e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.684579e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 8.299519e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.606261e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 7.310869e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.320115e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -5.715445e-01*(s-8.000000e+00)-6.845834e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl12(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,1.0000) )
-    {
-        x = 2*(s-0.000000)/1.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -2.736742e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.657836e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.047209e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.319599e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.545631e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 9.280445e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.815679e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.213519e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.256838e-05, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,3.0000) )
-    {
-        x = 2*(s-1.000000)/2.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -2.573947e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.515287e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.611880e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.271311e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.495815e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.141186e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 7.180886e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.388211e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.890761e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.233175e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.946156e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,12.0000) )
-    {
-        x = 2*(s-3.000000)/9.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -5.947819e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.034157e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.878986e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.078603e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.990977e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.866215e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.897866e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.512252e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.073743e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.022621e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.501343e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -2.877243e-01*(s-1.200000e+01)-7.936839e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl13(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,1.0000) )
-    {
-        x = 2*(s-0.000000)/1.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -2.713276e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.557541e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -9.459092e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.044145e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.546132e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.002374e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.349456e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.025669e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.590242e-05, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,3.0000) )
-    {
-        x = 2*(s-1.000000)/2.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -2.454383e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.467539e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.270774e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.075763e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.611647e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.990785e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 8.109212e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.135031e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.915919e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.522390e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.144701e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,13.0000) )
-    {
-        x = 2*(s-3.000000)/10.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -5.736127e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.920809e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.175858e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.002049e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.158966e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.157781e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.762172e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.780347e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.193310e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.442421e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.547756e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -2.799944e-01*(s-1.300000e+01)-7.566269e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl14(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,1.0000) )
-    {
-        x = 2*(s-0.000000)/1.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -2.698527e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.479081e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.640733e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.466899e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.469485e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.150009e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.965975e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.710210e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.327808e-05, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,3.0000) )
-    {
-        x = 2*(s-1.000000)/2.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -2.350359e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.421365e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.960468e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.149167e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.361109e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.976022e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.082700e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.563328e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.453123e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.917559e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.151067e-05, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,15.0000) )
-    {
-        x = 2*(s-3.000000)/12.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -5.746892e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.010441e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.566146e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.129690e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.929724e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.524227e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.192933e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.254730e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.620685e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 7.289618e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.112350e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -2.590621e-01*(s-1.500000e+01)-7.632238e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl15(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,2.0000) )
-    {
-        x = 2*(s-0.000000)/2.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.043660e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.361653e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.009497e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.951784e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.377903e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.003253e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.271309e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,5.0000) )
-    {
-        x = 2*(s-2.000000)/3.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -3.582778e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.349578e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 9.476514e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.717385e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.222591e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.635124e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.815993e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,17.0000) )
-    {
-        x = 2*(s-5.000000)/12.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -6.115476e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.655936e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 8.404310e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.663794e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 8.868618e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.381447e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 9.444801e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.581503e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -9.468696e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.728509e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.206470e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -1.927937e-01*(s-1.700000e+01)-7.700983e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl16(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,2.0000) )
-    {
-        x = 2*(s-0.000000)/2.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.002570e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.298141e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.832803e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.877026e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.539436e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 8.439658e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.756911e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,5.0000) )
-    {
-        x = 2*(s-2.000000)/3.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -3.486198e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.242944e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.020002e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.130531e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.512373e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.054876e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.556839e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,20.0000) )
-    {
-        x = 2*(s-5.000000)/15.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -6.241608e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.832655e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.340545e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.361143e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.283219e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.484549e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.805968e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.057243e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.454439e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.177513e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.819209e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -2.391580e-01*(s-2.000000e+01)-7.963205e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl17(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,3.0000) )
-    {
-        x = 2*(s-0.000000)/3.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.566973e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.810330e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.840039e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.337294e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.383549e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.556515e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.656965e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.404569e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.447867e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,6.0000) )
-    {
-        x = 2*(s-3.000000)/3.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -3.905684e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.222920e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.146667e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.809176e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.057028e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.211838e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.099683e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.161105e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.225465e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,24.0000) )
-    {
-        x = 2*(s-6.000000)/18.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -6.594282e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.917838e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.455980e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.999589e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.604263e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.484445e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.819937e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.930390e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.771761e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.232581e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.029083e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -2.127771e-01*(s-2.400000e+01)-8.400197e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl18(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,3.0000) )
-    {
-        x = 2*(s-0.000000)/3.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.526802e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.762373e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.598890e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.189437e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.971721e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.823067e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.064501e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.014932e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.953513e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,6.0000) )
-    {
-        x = 2*(s-3.000000)/3.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -3.818669e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.070918e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.277196e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.879817e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.887357e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.638451e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.502800e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.165796e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.034960e-05, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,20.0000) )
-    {
-        x = 2*(s-6.000000)/14.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -6.010656e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.496296e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.002227e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.338250e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.137036e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.586202e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -9.736384e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.332251e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.877982e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.160963e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.547247e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -1.684623e-01*(s-2.000000e+01)-7.428883e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl19(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,3.0000) )
-    {
-        x = 2*(s-0.000000)/3.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.490213e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.719633e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.459123e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.034878e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.113868e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.030922e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.054022e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 7.525623e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.277360e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,6.0000) )
-    {
-        x = 2*(s-3.000000)/3.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -3.744750e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.977749e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.223716e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.363889e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.711774e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.557257e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.254794e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 9.034207e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.498107e-05, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,20.0000) )
-    {
-        x = 2*(s-6.000000)/14.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -5.872768e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.430689e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.136575e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.726627e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.421110e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.581510e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.559520e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.838208e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 8.428839e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.170682e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.006647e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -1.539373e-01*(s-2.000000e+01)-7.206941e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl20(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,4.0000) )
-    {
-        x = 2*(s-0.000000)/4.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.854794e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.948947e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.632184e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.139397e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.006237e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.810031e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.573620e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 9.951242e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.274092e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.464196e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.882139e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.575144e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.822804e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.061348e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.908404e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.978353e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,15.0000) )
-    {
-        x = 2*(s-4.000000)/11.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -5.030989e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.327151e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.346404e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.840051e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 7.578551e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -9.813886e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.905973e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.358489e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.450795e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.941157e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.432418e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.070537e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 9.375654e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.367378e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 9.890859e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.679782e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,25.0000) )
-    {
-        x = 2*(s-15.000000)/10.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -7.015854e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.487737e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.244254e-02, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -1.318007e-01*(s-2.500000e+01)-7.742185e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl30(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,4.0000) )
-    {
-        x = 2*(s-0.000000)/4.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.630822e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.724298e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 7.872756e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.658268e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.573597e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.994157e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.994825e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 7.394303e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.785029e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.990264e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.037838e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.755546e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.774473e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.821395e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.392603e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.353313e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,15.0000) )
-    {
-        x = 2*(s-4.000000)/11.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -4.539322e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.197018e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.396848e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.804293e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.867928e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.768758e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.211792e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.925799e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.046235e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -9.536469e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.489642e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,25.0000) )
-    {
-        x = 2*(s-15.000000)/10.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -6.263462e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.177316e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.590637e-02, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -1.028212e-01*(s-2.500000e+01)-6.855288e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl50(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,4.0000) )
-    {
-        x = 2*(s-0.000000)/4.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.436279e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.519711e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.148699e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.001204e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.207620e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.034778e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.220322e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.033260e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.588280e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.851653e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.287733e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,15.0000) )
-    {
-        x = 2*(s-4.000000)/11.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -4.234645e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.189127e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.429738e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.058822e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 9.086776e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.445783e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.311671e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.261298e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.496987e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.605249e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 8.162282e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,25.0000) )
-    {
-        x = 2*(s-15.000000)/10.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -5.921095e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.888603e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.080113e-02, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -9.313116e-02*(s-2.500000e+01)-6.479154e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl65(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,4.0000) )
-    {
-        x = 2*(s-0.000000)/4.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.360024e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.434631e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.514580e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 7.332038e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.158197e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.121233e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.051056e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,15.0000) )
-    {
-        x = 2*(s-4.000000)/11.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -4.148601e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.214233e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.487977e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.424720e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.116715e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.043152e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.718149e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.313701e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.097305e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.181031e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.256975e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,25.0000) )
-    {
-        x = 2*(s-15.000000)/10.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -5.858951e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.895179e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.933237e-02, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -9.443768e-02*(s-2.500000e+01)-6.419137e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl100(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,4.0000) )
-    {
-        x = 2*(s-0.000000)/4.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.257021e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.313418e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.628931e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.264287e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.518487e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.499826e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.836044e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,15.0000) )
-    {
-        x = 2*(s-4.000000)/11.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -4.056508e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.279690e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.665746e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.290012e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.487632e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.704465e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.211669e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,25.0000) )
-    {
-        x = 2*(s-15.000000)/10.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -5.866099e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.399767e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.498208e-02, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -1.080097e-01*(s-2.500000e+01)-6.481094e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl130(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,4.0000) )
-    {
-        x = 2*(s-0.000000)/4.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.207999e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.253864e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.618032e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.112729e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.210546e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.732602e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.410527e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,15.0000) )
-    {
-        x = 2*(s-4.000000)/11.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -4.026324e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.331990e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.779129e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.674749e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.669077e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.679136e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 8.833221e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,25.0000) )
-    {
-        x = 2*(s-15.000000)/10.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -5.893951e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.475304e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.116734e-02, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -1.045722e-01*(s-2.500000e+01)-6.510314e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl200(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,4.0000) )
-    {
-        x = 2*(s-0.000000)/4.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.146155e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.177398e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.297970e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.869745e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.717288e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.982108e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.427636e-05, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,15.0000) )
-    {
-        x = 2*(s-4.000000)/11.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -4.034235e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.455006e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.942996e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.973795e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.418812e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.156778e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.896705e-05, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,25.0000) )
-    {
-        x = 2*(s-15.000000)/10.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -6.086071e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.152176e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.725393e-02, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -1.132404e-01*(s-2.500000e+01)-6.764034e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl301(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,4.0000) )
-    {
-        x = 2*(s-0.000000)/4.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.104290e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.125800e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -9.595847e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.219666e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.502210e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.414543e-05, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.754115e-05, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,15.0000) )
-    {
-        x = 2*(s-4.000000)/11.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -4.065955e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.582060e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.004472e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -4.709092e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.105779e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.197391e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.386780e-04, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,25.0000) )
-    {
-        x = 2*(s-15.000000)/10.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -6.311384e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.918763e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.626584e-02, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -1.293626e-01*(s-2.500000e+01)-7.066995e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl501(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,4.0000) )
-    {
-        x = 2*(s-0.000000)/4.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.067426e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.079765e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -5.463005e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 6.875659e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,15.0000) )
-    {
-        x = 2*(s-4.000000)/11.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -4.127574e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.740694e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.044502e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.746714e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 3.810594e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.197111e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,25.0000) )
-    {
-        x = 2*(s-15.000000)/10.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -6.628194e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -8.846221e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.386405e-02, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -1.418332e-01*(s-2.500000e+01)-7.468952e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl701(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,4.0000) )
-    {
-        x = 2*(s-0.000000)/4.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.050999e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.059769e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -3.922680e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 4.847054e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,15.0000) )
-    {
-        x = 2*(s-4.000000)/11.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -4.192182e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.860007e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.963942e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.838711e-02, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.893112e-04, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.159788e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,25.0000) )
-    {
-        x = 2*(s-15.000000)/10.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -6.917851e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -9.817020e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.383727e-02, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -1.532706e-01*(s-2.500000e+01)-7.845715e+00;
-    return result;
-}
-
-
-static double jarquebera_jbtbl1401(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    if( ae_fp_less_eq(s,4.0000) )
-    {
-        x = 2*(s-0.000000)/4.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -1.026266e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.030061e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.259222e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 2.536254e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,15.0000) )
-    {
-        x = 2*(s-4.000000)/11.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -4.329849e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -2.095443e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 1.759363e-01, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -7.751359e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -6.124368e-03, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.793114e-03, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    if( ae_fp_less_eq(s,25.0000) )
-    {
-        x = 2*(s-15.000000)/10.000000-1;
-        tj = (double)(1);
-        tj1 = x;
-        jarquebera_jbcheb(x, -7.544330e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, -1.225382e+00, &tj, &tj1, &result, _state);
-        jarquebera_jbcheb(x, 5.392349e-02, &tj, &tj1, &result, _state);
-        if( ae_fp_greater(result,(double)(0)) )
-        {
-            result = (double)(0);
-        }
-        return result;
-    }
-    result = -2.019375e-01*(s-2.500000e+01)-8.715788e+00;
-    return result;
-}
-
-
-static void jarquebera_jbcheb(double x,
-     double c,
-     double* tj,
-     double* tj1,
-     double* r,
-     ae_state *_state)
-{
-    double t;
-
-
-    *r = *r+c*(*tj);
-    t = 2*x*(*tj1)-(*tj);
-    *tj = *tj1;
-    *tj1 = t;
-}
-
-
-
-
-/*************************************************************************
-Mann-Whitney U-test
-
-This test checks hypotheses about whether X  and  Y  are  samples  of  two
-continuous distributions of the same shape  and  same  median  or  whether
-their medians are different.
-
-The following tests are performed:
-    * two-tailed test (null hypothesis - the medians are equal)
-    * left-tailed test (null hypothesis - the median of the  first  sample
-      is greater than or equal to the median of the second sample)
-    * right-tailed test (null hypothesis - the median of the first  sample
-      is less than or equal to the median of the second sample).
-
-Requirements:
-    * the samples are independent
-    * X and Y are continuous distributions (or discrete distributions well-
-      approximating continuous distributions)
-    * distributions of X and Y have the  same  shape.  The  only  possible
-      difference is their position (i.e. the value of the median)
-    * the number of elements in each sample is not less than 5
-    * the scale of measurement should be ordinal, interval or ratio  (i.e.
-      the test could not be applied to nominal variables).
-
-The test is non-parametric and doesn't require distributions to be normal.
-
-Input parameters:
-    X   -   sample 1. Array whose index goes from 0 to N-1.
-    N   -   size of the sample. N>=5
-    Y   -   sample 2. Array whose index goes from 0 to M-1.
-    M   -   size of the sample. M>=5
-
-Output parameters:
-    BothTails   -   p-value for two-tailed test.
-                    If BothTails is less than the given significance level
-                    the null hypothesis is rejected.
-    LeftTail    -   p-value for left-tailed test.
-                    If LeftTail is less than the given significance level,
-                    the null hypothesis is rejected.
-    RightTail   -   p-value for right-tailed test.
-                    If RightTail is less than the given significance level
-                    the null hypothesis is rejected.
-
-To calculate p-values, special approximation is used. This method lets  us
-calculate p-values with satisfactory  accuracy  in  interval  [0.0001, 1].
-There is no approximation outside the [0.0001, 1] interval. Therefore,  if
-the significance level outlies this interval, the test returns 0.0001.
-
-Relative precision of approximation of p-value:
-
-N          M          Max.err.   Rms.err.
-5..10      N..10      1.4e-02    6.0e-04
-5..10      N..100     2.2e-02    5.3e-06
-10..15     N..15      1.0e-02    3.2e-04
-10..15     N..100     1.0e-02    2.2e-05
-15..100    N..100     6.1e-03    2.7e-06
-
-For N,M>100 accuracy checks weren't put into  practice,  but  taking  into
-account characteristics of asymptotic approximation used, precision should
-not be sharply different from the values for interval [5, 100].
-
-NOTE: P-value approximation was  optimized  for  0.0001<=p<=0.2500.  Thus,
-      P's outside of this interval are enforced to these bounds. Say,  you
-      may quite often get P equal to exactly 0.25 or 0.0001.
-
-  -- ALGLIB --
-     Copyright 09.04.2007 by Bochkanov Sergey
-*************************************************************************/
-void mannwhitneyutest(/* Real    */ ae_vector* x,
-     ae_int_t n,
-     /* Real    */ ae_vector* y,
-     ae_int_t m,
-     double* bothtails,
-     double* lefttail,
-     double* righttail,
-     ae_state *_state)
-{
-    ae_frame _frame_block;
-    ae_int_t i;
-    ae_int_t j;
-    ae_int_t k;
-    ae_int_t t;
-    double tmp;
-    ae_int_t tmpi;
-    ae_int_t ns;
-    ae_vector r;
-    ae_vector c;
-    double u;
-    double p;
-    double mp;
-    double s;
-    double sigma;
-    double mu;
-    ae_int_t tiecount;
-    ae_vector tiesize;
-
-    ae_frame_make(_state, &_frame_block);
-    *bothtails = 0;
-    *lefttail = 0;
-    *righttail = 0;
-    ae_vector_init(&r, 0, DT_REAL, _state);
-    ae_vector_init(&c, 0, DT_INT, _state);
-    ae_vector_init(&tiesize, 0, DT_INT, _state);
-
-    
-    /*
-     * Prepare
-     */
-    if( n<=4||m<=4 )
-    {
-        *bothtails = 1.0;
-        *lefttail = 1.0;
-        *righttail = 1.0;
-        ae_frame_leave(_state);
-        return;
-    }
-    ns = n+m;
-    ae_vector_set_length(&r, ns-1+1, _state);
-    ae_vector_set_length(&c, ns-1+1, _state);
-    for(i=0; i<=n-1; i++)
-    {
-        r.ptr.p_double[i] = x->ptr.p_double[i];
-        c.ptr.p_int[i] = 0;
-    }
-    for(i=0; i<=m-1; i++)
-    {
-        r.ptr.p_double[n+i] = y->ptr.p_double[i];
-        c.ptr.p_int[n+i] = 1;
-    }
-    
-    /*
-     * sort {R, C}
-     */
-    if( ns!=1 )
-    {
-        i = 2;
-        do
-        {
-            t = i;
-            while(t!=1)
-            {
-                k = t/2;
-                if( ae_fp_greater_eq(r.ptr.p_double[k-1],r.ptr.p_double[t-1]) )
-                {
-                    t = 1;
-                }
-                else
-                {
-                    tmp = r.ptr.p_double[k-1];
-                    r.ptr.p_double[k-1] = r.ptr.p_double[t-1];
-                    r.ptr.p_double[t-1] = tmp;
-                    tmpi = c.ptr.p_int[k-1];
-                    c.ptr.p_int[k-1] = c.ptr.p_int[t-1];
-                    c.ptr.p_int[t-1] = tmpi;
-                    t = k;
-                }
-            }
-            i = i+1;
-        }
-        while(i<=ns);
-        i = ns-1;
-        do
-        {
-            tmp = r.ptr.p_double[i];
-            r.ptr.p_double[i] = r.ptr.p_double[0];
-            r.ptr.p_double[0] = tmp;
-            tmpi = c.ptr.p_int[i];
-            c.ptr.p_int[i] = c.ptr.p_int[0];
-            c.ptr.p_int[0] = tmpi;
-            t = 1;
-            while(t!=0)
-            {
-                k = 2*t;
-                if( k>i )
-                {
-                    t = 0;
-                }
-                else
-                {
-                    if( k<i )
-                    {
-                        if( ae_fp_greater(r.ptr.p_double[k],r.ptr.p_double[k-1]) )
-                        {
-                            k = k+1;
-                        }
-                    }
-                    if( ae_fp_greater_eq(r.ptr.p_double[t-1],r.ptr.p_double[k-1]) )
-                    {
-                        t = 0;
-                    }
-                    else
-                    {
-                        tmp = r.ptr.p_double[k-1];
-                        r.ptr.p_double[k-1] = r.ptr.p_double[t-1];
-                        r.ptr.p_double[t-1] = tmp;
-                        tmpi = c.ptr.p_int[k-1];
-                        c.ptr.p_int[k-1] = c.ptr.p_int[t-1];
-                        c.ptr.p_int[t-1] = tmpi;
-                        t = k;
-                    }
-                }
-            }
-            i = i-1;
-        }
-        while(i>=1);
-    }
-    
-    /*
-     * compute tied ranks
-     */
-    i = 0;
-    tiecount = 0;
-    ae_vector_set_length(&tiesize, ns-1+1, _state);
-    while(i<=ns-1)
-    {
-        j = i+1;
-        while(j<=ns-1)
-        {
-            if( ae_fp_neq(r.ptr.p_double[j],r.ptr.p_double[i]) )
-            {
-                break;
-            }
-            j = j+1;
-        }
-        for(k=i; k<=j-1; k++)
-        {
-            r.ptr.p_double[k] = 1+(double)(i+j-1)/(double)2;
-        }
-        tiesize.ptr.p_int[tiecount] = j-i;
-        tiecount = tiecount+1;
-        i = j;
-    }
-    
-    /*
-     * Compute U
-     */
-    u = (double)(0);
-    for(i=0; i<=ns-1; i++)
-    {
-        if( c.ptr.p_int[i]==0 )
-        {
-            u = u+r.ptr.p_double[i];
-        }
-    }
-    u = n*m+n*(n+1)/2-u;
-    
-    /*
-     * Result
-     */
-    mu = (double)(n*m)/(double)2;
-    tmp = ns*(ae_sqr((double)(ns), _state)-1)/12;
-    for(i=0; i<=tiecount-1; i++)
-    {
-        tmp = tmp-tiesize.ptr.p_int[i]*(ae_sqr((double)(tiesize.ptr.p_int[i]), _state)-1)/12;
-    }
-    sigma = ae_sqrt((double)(m*n)/(double)ns/(ns-1)*tmp, _state);
-    s = (u-mu)/sigma;
-    if( ae_fp_less_eq(s,(double)(0)) )
-    {
-        p = ae_exp(mannwhitneyu_usigma(-(u-mu)/sigma, n, m, _state), _state);
-        mp = 1-ae_exp(mannwhitneyu_usigma(-(u-1-mu)/sigma, n, m, _state), _state);
-    }
-    else
-    {
-        mp = ae_exp(mannwhitneyu_usigma((u-mu)/sigma, n, m, _state), _state);
-        p = 1-ae_exp(mannwhitneyu_usigma((u+1-mu)/sigma, n, m, _state), _state);
-    }
-    *bothtails = boundval(ae_maxreal(2*ae_minreal(p, mp, _state), 1.0E-4, _state), 0.0001, 0.2500, _state);
-    *lefttail = boundval(ae_maxreal(mp, 1.0E-4, _state), 0.0001, 0.2500, _state);
-    *righttail = boundval(ae_maxreal(p, 1.0E-4, _state), 0.0001, 0.2500, _state);
-    ae_frame_leave(_state);
-}
-
-
-/*************************************************************************
-Sequential Chebyshev interpolation.
-*************************************************************************/
-static void mannwhitneyu_ucheb(double x,
-     double c,
-     double* tj,
-     double* tj1,
-     double* r,
-     ae_state *_state)
-{
-    double t;
-
-
-    *r = *r+c*(*tj);
-    t = 2*x*(*tj1)-(*tj);
-    *tj = *tj1;
-    *tj1 = t;
-}
-
-
-/*************************************************************************
-Three-point polynomial interpolation.
-*************************************************************************/
-static double mannwhitneyu_uninterpolate(double p1,
-     double p2,
-     double p3,
-     ae_int_t n,
-     ae_state *_state)
-{
-    double t1;
-    double t2;
-    double t3;
-    double t;
-    double p12;
-    double p23;
-    double result;
-
-
-    t1 = 1.0/15.0;
-    t2 = 1.0/30.0;
-    t3 = 1.0/100.0;
-    t = 1.0/n;
-    p12 = ((t-t2)*p1+(t1-t)*p2)/(t1-t2);
-    p23 = ((t-t3)*p2+(t2-t)*p3)/(t2-t3);
-    result = ((t-t3)*p12+(t1-t)*p23)/(t1-t3);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(0, N1, N2)
-*************************************************************************/
-static double mannwhitneyu_usigma000(ae_int_t n1,
-     ae_int_t n2,
-     ae_state *_state)
-{
-    double p1;
-    double p2;
-    double p3;
-    double result;
-
-
-    p1 = mannwhitneyu_uninterpolate(-6.76984e-01, -6.83700e-01, -6.89873e-01, n2, _state);
-    p2 = mannwhitneyu_uninterpolate(-6.83700e-01, -6.87311e-01, -6.90957e-01, n2, _state);
-    p3 = mannwhitneyu_uninterpolate(-6.89873e-01, -6.90957e-01, -6.92175e-01, n2, _state);
-    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(0.75, N1, N2)
-*************************************************************************/
-static double mannwhitneyu_usigma075(ae_int_t n1,
-     ae_int_t n2,
-     ae_state *_state)
-{
-    double p1;
-    double p2;
-    double p3;
-    double result;
-
-
-    p1 = mannwhitneyu_uninterpolate(-1.44500e+00, -1.45906e+00, -1.47063e+00, n2, _state);
-    p2 = mannwhitneyu_uninterpolate(-1.45906e+00, -1.46856e+00, -1.47644e+00, n2, _state);
-    p3 = mannwhitneyu_uninterpolate(-1.47063e+00, -1.47644e+00, -1.48100e+00, n2, _state);
-    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(1.5, N1, N2)
-*************************************************************************/
-static double mannwhitneyu_usigma150(ae_int_t n1,
-     ae_int_t n2,
-     ae_state *_state)
-{
-    double p1;
-    double p2;
-    double p3;
-    double result;
-
-
-    p1 = mannwhitneyu_uninterpolate(-2.65380e+00, -2.67352e+00, -2.69011e+00, n2, _state);
-    p2 = mannwhitneyu_uninterpolate(-2.67352e+00, -2.68591e+00, -2.69659e+00, n2, _state);
-    p3 = mannwhitneyu_uninterpolate(-2.69011e+00, -2.69659e+00, -2.70192e+00, n2, _state);
-    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(2.25, N1, N2)
-*************************************************************************/
-static double mannwhitneyu_usigma225(ae_int_t n1,
-     ae_int_t n2,
-     ae_state *_state)
-{
-    double p1;
-    double p2;
-    double p3;
-    double result;
-
-
-    p1 = mannwhitneyu_uninterpolate(-4.41465e+00, -4.42260e+00, -4.43702e+00, n2, _state);
-    p2 = mannwhitneyu_uninterpolate(-4.42260e+00, -4.41639e+00, -4.41928e+00, n2, _state);
-    p3 = mannwhitneyu_uninterpolate(-4.43702e+00, -4.41928e+00, -4.41030e+00, n2, _state);
-    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(3.0, N1, N2)
-*************************************************************************/
-static double mannwhitneyu_usigma300(ae_int_t n1,
-     ae_int_t n2,
-     ae_state *_state)
-{
-    double p1;
-    double p2;
-    double p3;
-    double result;
-
-
-    p1 = mannwhitneyu_uninterpolate(-6.89839e+00, -6.83477e+00, -6.82340e+00, n2, _state);
-    p2 = mannwhitneyu_uninterpolate(-6.83477e+00, -6.74559e+00, -6.71117e+00, n2, _state);
-    p3 = mannwhitneyu_uninterpolate(-6.82340e+00, -6.71117e+00, -6.64929e+00, n2, _state);
-    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(3.33, N1, N2)
-*************************************************************************/
-static double mannwhitneyu_usigma333(ae_int_t n1,
-     ae_int_t n2,
-     ae_state *_state)
-{
-    double p1;
-    double p2;
-    double p3;
-    double result;
-
-
-    p1 = mannwhitneyu_uninterpolate(-8.31272e+00, -8.17096e+00, -8.13125e+00, n2, _state);
-    p2 = mannwhitneyu_uninterpolate(-8.17096e+00, -8.00156e+00, -7.93245e+00, n2, _state);
-    p3 = mannwhitneyu_uninterpolate(-8.13125e+00, -7.93245e+00, -7.82502e+00, n2, _state);
-    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(3.66, N1, N2)
-*************************************************************************/
-static double mannwhitneyu_usigma367(ae_int_t n1,
-     ae_int_t n2,
-     ae_state *_state)
-{
-    double p1;
-    double p2;
-    double p3;
-    double result;
-
-
-    p1 = mannwhitneyu_uninterpolate(-9.98837e+00, -9.70844e+00, -9.62087e+00, n2, _state);
-    p2 = mannwhitneyu_uninterpolate(-9.70844e+00, -9.41156e+00, -9.28998e+00, n2, _state);
-    p3 = mannwhitneyu_uninterpolate(-9.62087e+00, -9.28998e+00, -9.11686e+00, n2, _state);
-    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(4.0, N1, N2)
-*************************************************************************/
-static double mannwhitneyu_usigma400(ae_int_t n1,
-     ae_int_t n2,
-     ae_state *_state)
-{
-    double p1;
-    double p2;
-    double p3;
-    double result;
-
-
-    p1 = mannwhitneyu_uninterpolate(-1.20250e+01, -1.14911e+01, -1.13231e+01, n2, _state);
-    p2 = mannwhitneyu_uninterpolate(-1.14911e+01, -1.09927e+01, -1.07937e+01, n2, _state);
-    p3 = mannwhitneyu_uninterpolate(-1.13231e+01, -1.07937e+01, -1.05285e+01, n2, _state);
-    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 5)
-*************************************************************************/
-static double mannwhitneyu_utbln5n5(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/2.611165e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -2.596264e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.412086e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.858542e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.614282e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.372686e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.524731e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.435331e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.284665e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.184141e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.298360e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 7.447272e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.938769e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.276205e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.138481e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.684625e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.558104e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 6)
-*************************************************************************/
-static double mannwhitneyu_utbln5n6(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/2.738613e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -2.810459e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.684429e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.712858e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.009324e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.644391e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 6.034173e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.953498e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.279293e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.563485e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.971952e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.506309e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.541406e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.283205e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.016347e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.221626e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.286752e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 7)
-*************************************************************************/
-static double mannwhitneyu_utbln5n7(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/2.841993e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -2.994677e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.923264e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.506190e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.054280e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.794587e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.726290e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.534180e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.517845e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.904428e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.882443e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.482988e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.114875e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.515082e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.996056e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.293581e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.349444e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 8)
-*************************************************************************/
-static double mannwhitneyu_utbln5n8(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/2.927700e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.155727e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.135078e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.247203e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.309697e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.993725e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.567219e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.383704e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.002188e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.487322e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.443899e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.688270e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.600339e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.874948e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.811593e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.072353e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.659457e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 9)
-*************************************************************************/
-static double mannwhitneyu_utbln5n9(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.000000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.298162e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.325016e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.939852e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.563029e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.222652e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.195200e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.445665e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.204792e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.775217e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.527781e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.221948e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.242968e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.607959e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.771285e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 6.694026e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.481190e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 10)
-*************************************************************************/
-static double mannwhitneyu_utbln5n10(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.061862e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.425360e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.496710e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.587658e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.812005e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.427637e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.515702e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.406867e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.796295e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.237591e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.654249e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.181165e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.011665e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.417927e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.534880e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.791255e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.871512e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 11)
-*************************************************************************/
-static double mannwhitneyu_utbln5n11(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.115427e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.539959e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.652998e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.196503e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.054363e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.618848e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.109411e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.786668e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.215648e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.484220e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.935991e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.396191e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.894177e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.206979e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.519055e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.210326e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.189679e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 12)
-*************************************************************************/
-static double mannwhitneyu_utbln5n12(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.162278e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.644007e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.796173e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.771177e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.290043e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.794686e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.702110e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.185959e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.416259e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.592056e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.201530e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.754365e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.978945e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.012032e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.304579e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.100378e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.728269e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 13)
-*************************************************************************/
-static double mannwhitneyu_utbln5n13(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.203616e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.739120e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.928117e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.031605e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.519403e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.962648e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.292183e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.809293e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.465156e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.456278e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.446055e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.109490e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.218256e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.941479e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.058603e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.824402e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.830947e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 14)
-*************************************************************************/
-static double mannwhitneyu_utbln5n14(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.240370e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.826559e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.050370e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.083408e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.743164e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.012030e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.884686e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.059656e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.327521e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.134026e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.584201e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.440618e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.524133e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.990007e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.887334e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.534977e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.705395e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 15)
-*************************************************************************/
-static double mannwhitneyu_utbln5n15(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.851572e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.082033e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.095983e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.814595e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.073148e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.420213e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.517175e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.344180e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.371393e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.711443e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.228569e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.683483e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.267112e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.156044e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 9.131316e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.301023e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 16)
-*************************************************************************/
-static double mannwhitneyu_utbln5n16(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.852210e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.077482e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.091186e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.797282e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.084994e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.667054e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.843909e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.456732e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.039830e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.723508e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.940608e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.478285e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.649144e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.237703e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.707410e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.874293e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 17)
-*************************************************************************/
-static double mannwhitneyu_utbln5n17(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.851752e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.071259e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.084700e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.758898e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.073846e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.684838e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.964936e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.782442e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.956362e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.984727e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.196936e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.558262e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.690746e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.364855e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.401006e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.546748e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 18)
-*************************************************************************/
-static double mannwhitneyu_utbln5n18(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.850840e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.064799e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.077651e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.712659e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.049217e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.571333e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.929809e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.752044e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.949464e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.896101e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.614460e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.384357e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.489113e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.445725e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.945636e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.424653e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 19)
-*************************************************************************/
-static double mannwhitneyu_utbln5n19(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.850027e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.059159e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.071106e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.669960e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.022780e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.442555e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.851335e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.433865e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.514465e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.332989e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.606099e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.341945e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.402164e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.039761e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.512831e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.284427e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 20)
-*************************************************************************/
-static double mannwhitneyu_utbln5n20(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.849651e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.054729e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.065747e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.636243e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.003234e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.372789e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.831551e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.763090e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.830626e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.122384e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.108328e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.557983e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.945666e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.965696e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.493236e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.162591e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 21)
-*************************************************************************/
-static double mannwhitneyu_utbln5n21(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.849649e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.051155e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.061430e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.608869e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.902788e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.346562e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.874709e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.682887e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.026206e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.534551e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.990575e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.713334e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 9.737011e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.304571e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.133110e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.123457e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 22)
-*************************************************************************/
-static double mannwhitneyu_utbln5n22(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.849598e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.047605e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.057264e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.579513e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.749602e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.275137e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.881768e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.177374e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.981056e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.696290e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.886803e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.085378e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.675242e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.426367e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.039613e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.662378e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 23)
-*************************************************************************/
-static double mannwhitneyu_utbln5n23(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.849269e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.043761e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.052735e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.544683e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.517503e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.112082e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.782070e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.549483e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.747329e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.694263e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.147141e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.526209e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.039173e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.235615e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.656546e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.014423e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 24)
-*************************************************************************/
-static double mannwhitneyu_utbln5n24(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.848925e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.040178e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.048355e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.510198e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.261134e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.915864e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.627423e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.307345e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.732992e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.869652e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.494176e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.047533e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.178439e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.424171e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.829195e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.840810e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 25)
-*************************************************************************/
-static double mannwhitneyu_utbln5n25(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.848937e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.037512e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.044866e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.483269e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.063682e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.767778e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.508540e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.332756e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.881511e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.124041e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.368456e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.930499e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.779630e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.029528e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.658678e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.289695e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 26)
-*************************************************************************/
-static double mannwhitneyu_utbln5n26(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.849416e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.035915e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.042493e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.466021e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.956432e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.698914e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.465689e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.035254e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.674614e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.492734e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.014021e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.944953e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.255750e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.075841e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.989330e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.134862e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 27)
-*************************************************************************/
-static double mannwhitneyu_utbln5n27(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.850070e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.034815e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.040650e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.453117e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.886426e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.661702e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.452346e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.002476e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.720126e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.001400e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.729826e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.740640e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.206333e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.366093e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.193471e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.804091e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 28)
-*************************************************************************/
-static double mannwhitneyu_utbln5n28(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.850668e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.033786e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.038853e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.440281e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.806020e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.612883e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.420436e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.787982e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.535230e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.263121e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.849609e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.863967e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.391610e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.720294e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.952273e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.901413e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 29)
-*************************************************************************/
-static double mannwhitneyu_utbln5n29(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.851217e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.032834e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.037113e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.427762e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.719146e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.557172e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.375498e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.452033e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.187516e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.916936e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.065533e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.067301e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.615824e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.432244e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.417795e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.710038e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 30)
-*************************************************************************/
-static double mannwhitneyu_utbln5n30(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.851845e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.032148e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.035679e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.417758e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.655330e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.522132e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.352106e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.326911e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.064969e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.813321e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.683881e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.813346e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.627085e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.832107e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.519336e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.888530e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 5, 100)
-*************************************************************************/
-static double mannwhitneyu_utbln5n100(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.877940e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.039324e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.022243e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.305825e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.960119e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.112000e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.138868e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.418164e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.174520e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.489617e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.878301e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.302233e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.054113e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.458862e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.186591e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.623412e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 6, 6)
-*************************************************************************/
-static double mannwhitneyu_utbln6n6(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/2.882307e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.054075e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.998804e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.681518e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.067578e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.709435e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 9.952661e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.641700e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.304572e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.336275e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.770385e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.401891e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.246148e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.442663e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.502866e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.105855e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.739371e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 6, 7)
-*************************************************************************/
-static double mannwhitneyu_utbln6n7(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.000000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.265287e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.274613e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.582352e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.334293e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.915502e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.108091e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.546701e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.298827e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.891501e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.313717e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.989501e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.914594e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.062372e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.158841e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.596443e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.185662e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 6, 8)
-*************************************************************************/
-static double mannwhitneyu_utbln6n8(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.098387e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.450954e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.520462e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.420299e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.604853e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.165840e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.008756e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.723402e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.843521e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.883405e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.720980e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.301709e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.948034e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.776243e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.623736e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.742068e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.796927e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 6, 9)
-*************************************************************************/
-static double mannwhitneyu_utbln6n9(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.181981e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.616113e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.741650e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.204487e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.873068e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.446794e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.632286e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.266481e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.280067e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.780687e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.480242e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.592200e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.581019e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.264231e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.347174e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.167535e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.092185e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 6, 10)
-*************************************************************************/
-static double mannwhitneyu_utbln6n10(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.253957e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.764382e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.942366e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.939896e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.137812e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.720270e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.281070e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.901060e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.824937e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.802812e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.258132e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.233536e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.085530e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.212151e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.001329e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.226048e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.035298e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 6, 11)
-*************************************************************************/
-static double mannwhitneyu_utbln6n11(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.316625e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.898597e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.125710e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.063297e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.396852e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.990126e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.927977e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.726500e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.858745e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.654590e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.217736e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.989770e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.768493e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.924364e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.140215e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.647914e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.924802e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 6, 12)
-*************************************************************************/
-static double mannwhitneyu_utbln6n12(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.371709e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.020941e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.294250e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.128842e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.650389e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.248611e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.578510e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.162852e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.746982e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.454209e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.128042e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.936650e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.530794e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.665192e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.994144e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.662249e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.368541e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 6, 13)
-*************************************************************************/
-static double mannwhitneyu_utbln6n13(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.420526e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.133167e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.450016e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.191088e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.898220e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.050249e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.226901e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.471113e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.007470e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.049420e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.059074e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.881249e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.452780e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.441805e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.787493e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.483957e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.481590e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 6, 14)
-*************************************************************************/
-static double mannwhitneyu_utbln6n14(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.450000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.201268e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.542568e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.226965e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.046029e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.136657e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.786757e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.843748e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.588022e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.253029e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.667188e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.788330e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.474545e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.540494e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.951188e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.863323e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.220904e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 6, 15)
-*************************************************************************/
-static double mannwhitneyu_utbln6n15(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.450000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.195689e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.526567e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.213617e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.975035e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.118480e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.859142e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.083312e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.298720e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.766708e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.026356e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.093113e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.135168e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.136376e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.190870e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.435972e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.413129e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 6, 30)
-*************************************************************************/
-static double mannwhitneyu_utbln6n30(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.450000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.166269e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.427399e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.118239e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.360847e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.745885e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.025041e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.187179e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.432089e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.408451e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.388774e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.795560e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.304136e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.258516e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.180236e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.388679e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.836027e-06, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 6, 100)
-*************************************************************************/
-static double mannwhitneyu_utbln6n100(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.450000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.181350e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.417919e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.094201e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.195883e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.818937e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.514202e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.125047e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.022148e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.284181e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.157766e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.023752e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.127985e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.221690e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.516179e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 9.501398e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 9.380220e-06, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 7, 7)
-*************************************************************************/
-static double mannwhitneyu_utbln7n7(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.130495e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.501264e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.584790e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.577311e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.617002e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.145186e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.023462e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.408251e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.626515e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.072492e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.722926e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.095445e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.842602e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.751427e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.008927e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.892431e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.772386e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 7, 8)
-*************************************************************************/
-static double mannwhitneyu_utbln7n8(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.240370e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.709965e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.862154e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.504541e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.900195e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.439995e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.678028e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.485540e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.437047e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.440092e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.114227e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.516569e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.829457e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.787550e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.761866e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.991911e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.533481e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 7, 9)
-*************************************************************************/
-static double mannwhitneyu_utbln7n9(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.334314e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.896550e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.112671e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.037277e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.181695e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.765190e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.360116e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.695960e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.780578e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.963843e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.616148e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.852104e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.390744e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.014041e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.888101e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.467474e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.004611e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 7, 10)
-*************************************************************************/
-static double mannwhitneyu_utbln7n10(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.415650e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.064844e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.340749e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.118888e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.459730e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.097781e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.057688e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.097406e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.209262e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.065641e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.196677e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.313994e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.827157e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.822284e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.389090e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.340850e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.395172e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 7, 11)
-*************************************************************************/
-static double mannwhitneyu_utbln7n11(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.486817e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.217795e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.549783e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.195905e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.733093e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.428447e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.760093e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.431676e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.717152e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.032199e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.832423e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.905979e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.302799e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.464371e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.456211e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.736244e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.140712e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 7, 12)
-*************************************************************************/
-static double mannwhitneyu_utbln7n12(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.500000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.235822e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.564100e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.190813e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.686546e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.395083e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.967359e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.747096e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.304144e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.903198e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.134906e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.175035e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.266224e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.892931e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.604706e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 9.070459e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.427010e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 7, 13)
-*************************************************************************/
-static double mannwhitneyu_utbln7n13(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.500000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.222204e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.532300e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.164642e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.523768e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.531984e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.467857e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.483804e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.524136e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.077740e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.745218e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.602085e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.828831e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.994070e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.873879e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.341937e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.706444e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 7, 14)
-*************************************************************************/
-static double mannwhitneyu_utbln7n14(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.500000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.211763e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.507542e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.143640e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.395755e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.808020e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.044259e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.182308e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.057325e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.724255e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.303900e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.113148e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.102514e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.559442e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.634986e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.776476e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.054489e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 7, 15)
-*************************************************************************/
-static double mannwhitneyu_utbln7n15(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.500000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.204898e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.489960e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.129172e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.316741e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.506107e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.983676e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.258013e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.262515e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.984156e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.912108e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.974023e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 6.056195e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.090842e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.232620e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.816339e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.020421e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 7, 30)
-*************************************************************************/
-static double mannwhitneyu_utbln7n30(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.500000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.176536e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.398705e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.045481e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.821982e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.962304e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.698132e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.062667e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.282353e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.014836e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.035683e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.004137e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.801453e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.920705e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.518735e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.821501e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.801008e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 7, 100)
-*************************************************************************/
-static double mannwhitneyu_utbln7n100(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.500000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.188337e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.386949e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.022834e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.686517e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.323516e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.399392e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.644333e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.617044e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.031396e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.792066e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.675457e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.673416e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.258552e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.174214e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.073644e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.349958e-06, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 8, 8)
-*************************************************************************/
-static double mannwhitneyu_utbln8n8(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.360672e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -3.940217e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.168913e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.051485e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.195325e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.775196e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.385506e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.244902e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.525632e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.771275e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.332874e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.079599e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.882551e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.407944e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.769844e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.062433e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.872535e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 8, 9)
-*************************************************************************/
-static double mannwhitneyu_utbln8n9(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.464102e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.147004e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.446939e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.146155e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.488561e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.144561e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.116917e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.205667e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.515661e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.618616e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.599011e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.457324e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.482917e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.488267e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.469823e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.957591e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.058326e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 8, 10)
-*************************************************************************/
-static double mannwhitneyu_utbln8n10(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.554093e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.334282e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.700860e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.235253e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.778489e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.527324e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.862885e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.589781e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.507355e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.717526e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 9.215726e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.848696e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.918854e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.219614e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.753761e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.573688e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.602177e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 8, 11)
-*************************************************************************/
-static double mannwhitneyu_utbln8n11(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.600000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.421882e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.812457e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.266153e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.849344e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.971527e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.258944e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.944820e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.894685e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.031836e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.514330e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.351660e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 6.206748e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.492600e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.005338e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.780099e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.673599e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 8, 12)
-*************************************************************************/
-static double mannwhitneyu_utbln8n12(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.600000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.398211e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.762214e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.226296e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.603837e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.643223e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.502438e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.544574e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.647734e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.442259e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.011484e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.384758e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.998259e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.659985e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.331046e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.638478e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.056785e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 8, 13)
-*************************************************************************/
-static double mannwhitneyu_utbln8n13(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.600000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.380670e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.724511e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.195851e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.420511e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.609928e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.893999e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.115919e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.291410e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.339664e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.801548e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.534710e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.793250e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.806718e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.384624e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.120582e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.936453e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 8, 14)
-*************************************************************************/
-static double mannwhitneyu_utbln8n14(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.600000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.368494e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.697171e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.174440e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.300621e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.087393e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.685826e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.085254e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.525658e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.966647e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.453388e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.826066e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.501958e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.336297e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.251972e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.118456e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.415959e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 8, 15)
-*************************************************************************/
-static double mannwhitneyu_utbln8n15(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.600000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.358397e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.674485e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.155941e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.195780e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.544830e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.426183e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.309902e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.650956e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.068874e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.538544e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.192525e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.073905e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.079673e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 9.423572e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 6.579647e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.765904e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 8, 30)
-*************************************************************************/
-static double mannwhitneyu_utbln8n30(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.600000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.318823e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.567159e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.064864e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.688413e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.153712e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.309389e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.226861e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.523815e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.780987e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.166866e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.922431e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.466397e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.690036e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.008185e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.271903e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.534751e-06, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 8, 100)
-*************************************************************************/
-static double mannwhitneyu_utbln8n100(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.600000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.324531e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.547071e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.038129e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.541549e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.525605e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.044992e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.085713e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.017871e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.459226e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.092064e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.024349e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 7.366347e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 6.385637e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.321722e-08, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.439286e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.058079e-07, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 9, 9)
-*************************************************************************/
-static double mannwhitneyu_utbln9n9(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.576237e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.372857e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.750859e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.248233e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.792868e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.559372e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.894941e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.643256e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.091370e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.285034e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 6.112997e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.806229e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.150741e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.509825e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.891051e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.485013e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.343653e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 9, 10)
-*************************************************************************/
-static double mannwhitneyu_utbln9n10(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.516726e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.939333e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.305046e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.935326e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.029141e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.420592e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.053140e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.065930e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.523581e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.544888e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.813741e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.510631e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.536057e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.833815e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.189692e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.615050e-03, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 9, 11)
-*************************************************************************/
-static double mannwhitneyu_utbln9n11(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.481308e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.867483e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.249072e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.591790e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.400128e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.341992e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.463680e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.487211e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.671196e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.343472e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.544146e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.802335e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.117084e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.217443e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.858766e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.193687e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 9, 12)
-*************************************************************************/
-static double mannwhitneyu_utbln9n12(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.456776e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.817037e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.209788e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.362108e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.171356e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.661557e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.026141e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.361908e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.093885e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.298389e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.663603e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.768522e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.579015e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.868677e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.440652e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.523037e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 9, 13)
-*************************************************************************/
-static double mannwhitneyu_utbln9n13(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.438840e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.779308e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.180614e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.196489e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.346621e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.234857e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.796211e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.575715e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.525647e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.964651e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.275235e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.299124e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.397416e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.295781e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.237619e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 7.269692e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 9, 14)
-*************************************************************************/
-static double mannwhitneyu_utbln9n14(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.425981e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.751545e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.159543e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.086570e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.917446e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.120112e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.175519e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.515473e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.727772e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.070629e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.677569e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.876953e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.233502e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.508182e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.120389e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.847212e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 9, 15)
-*************************************************************************/
-static double mannwhitneyu_utbln9n15(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.414952e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.727612e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.140634e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.981231e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.382635e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.853575e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.571051e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.567625e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.214197e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.448700e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.712669e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.015050e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.438610e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 6.301363e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.309386e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.164772e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 9, 30)
-*************************************************************************/
-static double mannwhitneyu_utbln9n30(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.370720e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.615712e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.050023e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.504775e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.318265e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.646826e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.741492e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.735360e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.966911e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.100738e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.348991e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.527687e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.917286e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.397466e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.360175e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.892252e-07, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 9, 100)
-*************************************************************************/
-static double mannwhitneyu_utbln9n100(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.372506e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.590966e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.021758e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.359849e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.755519e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.533166e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.936659e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.634913e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.730053e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.791845e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.030682e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.228663e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.631175e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.636749e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.404599e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.789872e-07, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 10, 10)
-*************************************************************************/
-static double mannwhitneyu_utbln10n10(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.468831e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.844398e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.231728e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.486073e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.781321e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.971425e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.215371e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.828451e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.419872e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.430165e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.740363e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.049211e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.269371e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.211393e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.232314e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.016081e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 10, 11)
-*************************************************************************/
-static double mannwhitneyu_utbln10n11(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.437998e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.782296e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.184732e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.219585e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.457012e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.296008e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.481501e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.527940e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.953426e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.563840e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.574403e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.535775e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.338037e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.002654e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.852676e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.318132e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 10, 12)
-*************************************************************************/
-static double mannwhitneyu_utbln10n12(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.416082e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.737458e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.150952e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.036884e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.609030e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.908684e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.439666e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.162647e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.451601e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.148757e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.803981e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.731621e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.346903e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.013151e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.956148e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.438381e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 10, 13)
-*************************************************************************/
-static double mannwhitneyu_utbln10n13(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.399480e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.702863e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.124829e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.897428e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.979802e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.634368e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.180461e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.484926e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.864376e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.186576e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.886925e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.836828e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.074756e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.209547e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.883266e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.380143e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 10, 14)
-*************************************************************************/
-static double mannwhitneyu_utbln10n14(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.386924e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.676124e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.104740e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.793826e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.558886e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.492462e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.052903e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.917782e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.878696e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.576046e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.764551e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.288778e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.757658e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.299101e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.265197e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.384503e-07, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 10, 15)
-*************************************************************************/
-static double mannwhitneyu_utbln10n15(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.376846e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.654247e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.088083e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.705945e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.169677e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.317213e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.264836e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.548024e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.633910e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.505621e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.658588e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.320254e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.175277e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.122317e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.675688e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.661363e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 10, 30)
-*************************************************************************/
-static double mannwhitneyu_utbln10n30(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.333977e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.548099e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.004444e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.291014e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.523674e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.828211e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.716917e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.894256e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.433371e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.522675e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.764192e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.140235e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.629230e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.541895e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.944946e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.726360e-06, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 10, 100)
-*************************************************************************/
-static double mannwhitneyu_utbln10n100(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.334008e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.522316e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.769627e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.158110e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.053650e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.242235e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.173571e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.033661e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.824732e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.084420e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.610036e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.728155e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.217130e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.340966e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.001235e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.694052e-07, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 11, 11)
-*************************************************************************/
-static double mannwhitneyu_utbln11n11(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.519760e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.880694e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.200698e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.174092e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.072304e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.054773e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.506613e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.813942e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.223644e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.417416e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.499166e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.194332e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 7.369096e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.968590e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.630532e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.061000e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 11, 12)
-*************************************************************************/
-static double mannwhitneyu_utbln11n12(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.495790e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.832622e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.165420e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.987306e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.265621e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.723537e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.347406e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.353464e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 6.613369e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.102522e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.237709e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.665652e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.626903e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.167518e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.564455e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.047320e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 11, 13)
-*************************************************************************/
-static double mannwhitneyu_utbln11n13(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.477880e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.796242e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.138769e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.851739e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.722104e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.548304e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.176683e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.817895e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.842451e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.935870e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.421777e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.238831e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.867026e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.458255e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.306259e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.961487e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 11, 14)
-*************************************************************************/
-static double mannwhitneyu_utbln11n14(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.463683e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.766969e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.117082e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.739574e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.238865e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.350306e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.425871e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.640172e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.660633e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.879883e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.349658e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.271795e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.304544e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.024201e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.816867e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.596787e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 11, 15)
-*************************************************************************/
-static double mannwhitneyu_utbln11n15(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.452526e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.743570e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.099705e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.650612e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.858285e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.187036e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.689241e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.294360e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.072623e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.278008e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.322382e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.131558e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.305669e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.825627e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.332689e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.120973e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 11, 30)
-*************************************************************************/
-static double mannwhitneyu_utbln11n30(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.402621e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.627440e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.011333e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.224126e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.232856e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.859347e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.377381e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.756709e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.033230e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.875472e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.608399e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.102943e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.740693e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.343139e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.196878e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.658062e-07, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 11, 100)
-*************************************************************************/
-static double mannwhitneyu_utbln11n100(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.398795e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.596486e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.814761e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.085187e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.766529e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.379425e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.986351e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.214705e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.360075e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.260869e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.033307e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.727087e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.393883e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.242989e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.111928e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.898823e-09, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 12, 12)
-*************************************************************************/
-static double mannwhitneyu_utbln12n12(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.472616e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.786627e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.132099e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.817523e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.570179e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.479511e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.799492e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.565350e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.530139e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.380132e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.242761e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.576269e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.018771e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.933911e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 9.002799e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.022048e-06, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 12, 13)
-*************************************************************************/
-static double mannwhitneyu_utbln12n13(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.454800e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.750794e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.105988e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.684754e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.011826e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.262579e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.044492e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.478741e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.322165e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.621104e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.068753e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.468396e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.056235e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.327375e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.914877e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.784191e-04, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 12, 14)
-*************************************************************************/
-static double mannwhitneyu_utbln12n14(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.440910e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.722404e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.085254e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.579439e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.563738e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.066730e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.129346e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.014531e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.129679e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.000909e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.996174e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 6.377924e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.936304e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.051098e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 9.025820e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 8.730585e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 12, 15)
-*************************************************************************/
-static double mannwhitneyu_utbln12n15(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.430123e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.700008e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.068971e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.499725e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.250897e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.473145e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.680008e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.483350e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.766992e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.891081e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.015140e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.977756e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.707414e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.114786e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 6.238865e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.381445e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 12, 30)
-*************************************************************************/
-static double mannwhitneyu_utbln12n30(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.380023e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.585782e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.838583e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.103394e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.834015e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.635212e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.948212e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.574169e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.747980e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.833672e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.722433e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.181038e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.206473e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.716003e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.476434e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.217700e-07, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 12, 100)
-*************************************************************************/
-static double mannwhitneyu_utbln12n100(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.374567e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.553481e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.541334e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.701907e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.414757e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.404103e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.234388e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.453762e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.311060e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.317501e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.713888e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.309583e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.019804e-08, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.224829e-09, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.349019e-08, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.893302e-08, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 13, 13)
-*************************************************************************/
-static double mannwhitneyu_utbln13n13(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.541046e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.859047e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.130164e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.689719e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.950693e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.231455e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.976550e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.538455e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.245603e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.142647e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.831434e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.032483e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.488405e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.156927e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.949279e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.532700e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 13, 14)
-*************************************************************************/
-static double mannwhitneyu_utbln13n14(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.525655e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.828341e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.108110e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.579552e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.488307e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.032328e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.988741e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.766394e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.388950e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.338179e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.133440e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.023518e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.110570e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.202332e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.056132e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.536323e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 13, 15)
-*************************************************************************/
-static double mannwhitneyu_utbln13n15(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.513585e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.803952e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.090686e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.495310e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.160314e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.073124e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.480313e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.478239e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.140914e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.311541e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.677105e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.115464e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.578563e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.044604e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.888939e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 2.395644e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 13, 30)
-*************************************************************************/
-static double mannwhitneyu_utbln13n30(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.455999e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.678434e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.995491e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.078100e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.705220e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.258739e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.671526e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.185458e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.507764e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.411446e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.044355e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.285765e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.345282e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.066940e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.962037e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.723644e-07, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 13, 100)
-*************************************************************************/
-static double mannwhitneyu_utbln13n100(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.446787e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.640804e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.671552e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.364990e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.274444e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.047440e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.161439e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.171729e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.562171e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.359762e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.275494e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.747635e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.700292e-08, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.565559e-09, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 5.005396e-09, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 3.335794e-09, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 14, 14)
-*************************************************************************/
-static double mannwhitneyu_utbln14n14(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.510624e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.798584e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.087107e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.478532e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.098050e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.855986e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.409083e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.299536e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.176177e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.479417e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.812761e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -5.225872e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 4.516521e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 6.730551e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 9.237563e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.611820e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 14, 15)
-*************************************************************************/
-static double mannwhitneyu_utbln14n15(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.498681e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.774668e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.070267e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.399348e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.807239e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.845763e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.071773e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.261698e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.011695e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.305946e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.879295e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.999439e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.904438e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.944986e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.373908e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.140794e-05, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 14, 30)
-*************************************************************************/
-static double mannwhitneyu_utbln14n30(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.440378e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.649587e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.807829e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.989753e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.463646e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.586580e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -6.745917e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.635398e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.923172e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.446699e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.613892e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.214073e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.651683e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.272777e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.464988e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.109803e-07, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, 14, 100)
-*************************************************************************/
-static double mannwhitneyu_utbln14n100(double s, ae_state *_state)
-{
-    double x;
-    double tj;
-    double tj1;
-    double result;
-
-
-    result = (double)(0);
-    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
-    tj = (double)(1);
-    tj1 = x;
-    mannwhitneyu_ucheb(x, -4.429701e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -4.610577e+00, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -9.482675e-01, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.605550e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.062151e-02, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.525154e-03, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.835983e-04, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -8.411440e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.744901e-05, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.318850e-06, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.692100e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -1.536270e-07, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -3.705888e-08, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -7.999599e-09, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, -2.908395e-09, &tj, &tj1, &result, _state);
-    mannwhitneyu_ucheb(x, 1.546923e-09, &tj, &tj1, &result, _state);
-    return result;
-}
-
-
-/*************************************************************************
-Tail(S, N1, N2)
-*************************************************************************/
-static double mannwhitneyu_usigma(double s,
-     ae_int_t n1,
-     ae_int_t n2,
-     ae_state *_state)
-{
-    double f0;
-    double f1;
-    double f2;
-    double f3;
-    double f4;
-    double s0;
-    double s1;
-    double s2;
-    double s3;
-    double s4;
-    double result;
-
-
-    result = (double)(0);
-    
-    /*
-     * N1=5, N2 = 5, 6, 7, ...
-     */
-    if( ae_minint(n1, n2, _state)==5 )
-    {
-        if( ae_maxint(n1, n2, _state)==5 )
-        {
-            result = mannwhitneyu_utbln5n5(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==6 )
-        {
-            result = mannwhitneyu_utbln5n6(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==7 )
-        {
-            result = mannwhitneyu_utbln5n7(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==8 )
-        {
-            result = mannwhitneyu_utbln5n8(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==9 )
-        {
-            result = mannwhitneyu_utbln5n9(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==10 )
-        {
-            result = mannwhitneyu_utbln5n10(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==11 )
-        {
-            result = mannwhitneyu_utbln5n11(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==12 )
-        {
-            result = mannwhitneyu_utbln5n12(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==13 )
-        {
-            result = mannwhitneyu_utbln5n13(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==14 )
-        {
-            result = mannwhitneyu_utbln5n14(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==15 )
-        {
-            result = mannwhitneyu_utbln5n15(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==16 )
-        {
-            result = mannwhitneyu_utbln5n16(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==17 )
-        {
-            result = mannwhitneyu_utbln5n17(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==18 )
-        {
-            result = mannwhitneyu_utbln5n18(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==19 )
-        {
-            result = mannwhitneyu_utbln5n19(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==20 )
-        {
-            result = mannwhitneyu_utbln5n20(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==21 )
-        {
-            result = mannwhitneyu_utbln5n21(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==22 )
-        {
-            result = mannwhitneyu_utbln5n22(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==23 )
-        {
-            result = mannwhitneyu_utbln5n23(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==24 )
-        {
-            result = mannwhitneyu_utbln5n24(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==25 )
-        {
-            result = mannwhitneyu_utbln5n25(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==26 )
-        {
-            result = mannwhitneyu_utbln5n26(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==27 )
-        {
-            result = mannwhitneyu_utbln5n27(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==28 )
-        {
-            result = mannwhitneyu_utbln5n28(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==29 )
-        {
-            result = mannwhitneyu_utbln5n29(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)>29 )
-        {
-            f0 = mannwhitneyu_utbln5n15(s, _state);
-            f1 = mannwhitneyu_utbln5n30(s, _state);
-            f2 = mannwhitneyu_utbln5n100(s, _state);
-            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
-        }
-        return result;
-    }
-    
-    /*
-     * N1=6, N2 = 6, 7, 8, ...
-     */
-    if( ae_minint(n1, n2, _state)==6 )
-    {
-        if( ae_maxint(n1, n2, _state)==6 )
-        {
-            result = mannwhitneyu_utbln6n6(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==7 )
-        {
-            result = mannwhitneyu_utbln6n7(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==8 )
-        {
-            result = mannwhitneyu_utbln6n8(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==9 )
-        {
-            result = mannwhitneyu_utbln6n9(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==10 )
-        {
-            result = mannwhitneyu_utbln6n10(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==11 )
-        {
-            result = mannwhitneyu_utbln6n11(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==12 )
-        {
-            result = mannwhitneyu_utbln6n12(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==13 )
-        {
-            result = mannwhitneyu_utbln6n13(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==14 )
-        {
-            result = mannwhitneyu_utbln6n14(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==15 )
-        {
-            result = mannwhitneyu_utbln6n15(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)>15 )
-        {
-            f0 = mannwhitneyu_utbln6n15(s, _state);
-            f1 = mannwhitneyu_utbln6n30(s, _state);
-            f2 = mannwhitneyu_utbln6n100(s, _state);
-            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
-        }
-        return result;
-    }
-    
-    /*
-     * N1=7, N2 = 7, 8, ...
-     */
-    if( ae_minint(n1, n2, _state)==7 )
-    {
-        if( ae_maxint(n1, n2, _state)==7 )
-        {
-            result = mannwhitneyu_utbln7n7(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==8 )
-        {
-            result = mannwhitneyu_utbln7n8(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==9 )
-        {
-            result = mannwhitneyu_utbln7n9(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==10 )
-        {
-            result = mannwhitneyu_utbln7n10(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==11 )
-        {
-            result = mannwhitneyu_utbln7n11(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==12 )
-        {
-            result = mannwhitneyu_utbln7n12(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==13 )
-        {
-            result = mannwhitneyu_utbln7n13(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==14 )
-        {
-            result = mannwhitneyu_utbln7n14(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==15 )
-        {
-            result = mannwhitneyu_utbln7n15(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)>15 )
-        {
-            f0 = mannwhitneyu_utbln7n15(s, _state);
-            f1 = mannwhitneyu_utbln7n30(s, _state);
-            f2 = mannwhitneyu_utbln7n100(s, _state);
-            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
-        }
-        return result;
-    }
-    
-    /*
-     * N1=8, N2 = 8, 9, 10, ...
-     */
-    if( ae_minint(n1, n2, _state)==8 )
-    {
-        if( ae_maxint(n1, n2, _state)==8 )
-        {
-            result = mannwhitneyu_utbln8n8(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==9 )
-        {
-            result = mannwhitneyu_utbln8n9(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==10 )
-        {
-            result = mannwhitneyu_utbln8n10(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==11 )
-        {
-            result = mannwhitneyu_utbln8n11(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==12 )
-        {
-            result = mannwhitneyu_utbln8n12(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==13 )
-        {
-            result = mannwhitneyu_utbln8n13(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==14 )
-        {
-            result = mannwhitneyu_utbln8n14(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==15 )
-        {
-            result = mannwhitneyu_utbln8n15(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)>15 )
-        {
-            f0 = mannwhitneyu_utbln8n15(s, _state);
-            f1 = mannwhitneyu_utbln8n30(s, _state);
-            f2 = mannwhitneyu_utbln8n100(s, _state);
-            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
-        }
-        return result;
-    }
-    
-    /*
-     * N1=9, N2 = 9, 10, ...
-     */
-    if( ae_minint(n1, n2, _state)==9 )
-    {
-        if( ae_maxint(n1, n2, _state)==9 )
-        {
-            result = mannwhitneyu_utbln9n9(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==10 )
-        {
-            result = mannwhitneyu_utbln9n10(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==11 )
-        {
-            result = mannwhitneyu_utbln9n11(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==12 )
-        {
-            result = mannwhitneyu_utbln9n12(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==13 )
-        {
-            result = mannwhitneyu_utbln9n13(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==14 )
-        {
-            result = mannwhitneyu_utbln9n14(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==15 )
-        {
-            result = mannwhitneyu_utbln9n15(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)>15 )
-        {
-            f0 = mannwhitneyu_utbln9n15(s, _state);
-            f1 = mannwhitneyu_utbln9n30(s, _state);
-            f2 = mannwhitneyu_utbln9n100(s, _state);
-            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
-        }
-        return result;
-    }
-    
-    /*
-     * N1=10, N2 = 10, 11, ...
-     */
-    if( ae_minint(n1, n2, _state)==10 )
-    {
-        if( ae_maxint(n1, n2, _state)==10 )
-        {
-            result = mannwhitneyu_utbln10n10(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==11 )
-        {
-            result = mannwhitneyu_utbln10n11(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==12 )
-        {
-            result = mannwhitneyu_utbln10n12(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==13 )
-        {
-            result = mannwhitneyu_utbln10n13(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==14 )
-        {
-            result = mannwhitneyu_utbln10n14(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==15 )
-        {
-            result = mannwhitneyu_utbln10n15(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)>15 )
-        {
-            f0 = mannwhitneyu_utbln10n15(s, _state);
-            f1 = mannwhitneyu_utbln10n30(s, _state);
-            f2 = mannwhitneyu_utbln10n100(s, _state);
-            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
-        }
-        return result;
-    }
-    
-    /*
-     * N1=11, N2 = 11, 12, ...
-     */
-    if( ae_minint(n1, n2, _state)==11 )
-    {
-        if( ae_maxint(n1, n2, _state)==11 )
-        {
-            result = mannwhitneyu_utbln11n11(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==12 )
-        {
-            result = mannwhitneyu_utbln11n12(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==13 )
-        {
-            result = mannwhitneyu_utbln11n13(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==14 )
-        {
-            result = mannwhitneyu_utbln11n14(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==15 )
-        {
-            result = mannwhitneyu_utbln11n15(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)>15 )
-        {
-            f0 = mannwhitneyu_utbln11n15(s, _state);
-            f1 = mannwhitneyu_utbln11n30(s, _state);
-            f2 = mannwhitneyu_utbln11n100(s, _state);
-            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
-        }
-        return result;
-    }
-    
-    /*
-     * N1=12, N2 = 12, 13, ...
-     */
-    if( ae_minint(n1, n2, _state)==12 )
-    {
-        if( ae_maxint(n1, n2, _state)==12 )
-        {
-            result = mannwhitneyu_utbln12n12(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==13 )
-        {
-            result = mannwhitneyu_utbln12n13(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==14 )
-        {
-            result = mannwhitneyu_utbln12n14(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==15 )
-        {
-            result = mannwhitneyu_utbln12n15(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)>15 )
-        {
-            f0 = mannwhitneyu_utbln12n15(s, _state);
-            f1 = mannwhitneyu_utbln12n30(s, _state);
-            f2 = mannwhitneyu_utbln12n100(s, _state);
-            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
-        }
-        return result;
-    }
-    
-    /*
-     * N1=13, N2 = 13, 14, ...
-     */
-    if( ae_minint(n1, n2, _state)==13 )
-    {
-        if( ae_maxint(n1, n2, _state)==13 )
-        {
-            result = mannwhitneyu_utbln13n13(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==14 )
-        {
-            result = mannwhitneyu_utbln13n14(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==15 )
-        {
-            result = mannwhitneyu_utbln13n15(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)>15 )
-        {
-            f0 = mannwhitneyu_utbln13n15(s, _state);
-            f1 = mannwhitneyu_utbln13n30(s, _state);
-            f2 = mannwhitneyu_utbln13n100(s, _state);
-            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
-        }
-        return result;
-    }
-    
-    /*
-     * N1=14, N2 = 14, 15, ...
-     */
-    if( ae_minint(n1, n2, _state)==14 )
-    {
-        if( ae_maxint(n1, n2, _state)==14 )
-        {
-            result = mannwhitneyu_utbln14n14(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)==15 )
-        {
-            result = mannwhitneyu_utbln14n15(s, _state);
-        }
-        if( ae_maxint(n1, n2, _state)>15 )
-        {
-            f0 = mannwhitneyu_utbln14n15(s, _state);
-            f1 = mannwhitneyu_utbln14n30(s, _state);
-            f2 = mannwhitneyu_utbln14n100(s, _state);
-            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
-        }
-        return result;
-    }
-    
-    /*
-     * N1 >= 15, N2 >= 15
-     */
-    if( ae_fp_greater(s,(double)(4)) )
-    {
-        s = (double)(4);
-    }
-    if( ae_fp_less(s,(double)(3)) )
-    {
-        s0 = 0.000000e+00;
-        f0 = mannwhitneyu_usigma000(n1, n2, _state);
-        s1 = 7.500000e-01;
-        f1 = mannwhitneyu_usigma075(n1, n2, _state);
-        s2 = 1.500000e+00;
-        f2 = mannwhitneyu_usigma150(n1, n2, _state);
-        s3 = 2.250000e+00;
-        f3 = mannwhitneyu_usigma225(n1, n2, _state);
-        s4 = 3.000000e+00;
-        f4 = mannwhitneyu_usigma300(n1, n2, _state);
-        f1 = ((s-s0)*f1-(s-s1)*f0)/(s1-s0);
-        f2 = ((s-s0)*f2-(s-s2)*f0)/(s2-s0);
-        f3 = ((s-s0)*f3-(s-s3)*f0)/(s3-s0);
-        f4 = ((s-s0)*f4-(s-s4)*f0)/(s4-s0);
-        f2 = ((s-s1)*f2-(s-s2)*f1)/(s2-s1);
-        f3 = ((s-s1)*f3-(s-s3)*f1)/(s3-s1);
-        f4 = ((s-s1)*f4-(s-s4)*f1)/(s4-s1);
-        f3 = ((s-s2)*f3-(s-s3)*f2)/(s3-s2);
-        f4 = ((s-s2)*f4-(s-s4)*f2)/(s4-s2);
-        f4 = ((s-s3)*f4-(s-s4)*f3)/(s4-s3);
-        result = f4;
-    }
-    else
-    {
-        s0 = 3.000000e+00;
-        f0 = mannwhitneyu_usigma300(n1, n2, _state);
-        s1 = 3.333333e+00;
-        f1 = mannwhitneyu_usigma333(n1, n2, _state);
-        s2 = 3.666667e+00;
-        f2 = mannwhitneyu_usigma367(n1, n2, _state);
-        s3 = 4.000000e+00;
-        f3 = mannwhitneyu_usigma400(n1, n2, _state);
-        f1 = ((s-s0)*f1-(s-s1)*f0)/(s1-s0);
-        f2 = ((s-s0)*f2-(s-s2)*f0)/(s2-s0);
-        f3 = ((s-s0)*f3-(s-s3)*f0)/(s3-s0);
-        f2 = ((s-s1)*f2-(s-s2)*f1)/(s2-s1);
-        f3 = ((s-s1)*f3-(s-s3)*f1)/(s3-s1);
-        f3 = ((s-s2)*f3-(s-s3)*f2)/(s3-s2);
-        result = f3;
-    }
-    return result;
-}
-
-
-
-
-/*************************************************************************
-Sign test
-
-This test checks three hypotheses about the median of  the  given  sample.
-The following tests are performed:
-    * two-tailed test (null hypothesis - the median is equal to the  given
-      value)
-    * left-tailed test (null hypothesis - the median is  greater  than  or
-      equal to the given value)
-    * right-tailed test (null hypothesis - the  median  is  less  than  or
-      equal to the given value)
-
-Requirements:
-    * the scale of measurement should be ordinal, interval or ratio  (i.e.
-      the test could not be applied to nominal variables).
-
-The test is non-parametric and doesn't require distribution X to be normal
-
-Input parameters:
-    X       -   sample. Array whose index goes from 0 to N-1.
-    N       -   size of the sample.
-    Median  -   assumed median value.
-
-Output parameters:
-    BothTails   -   p-value for two-tailed test.
-                    If BothTails is less than the given significance level
-                    the null hypothesis is rejected.
-    LeftTail    -   p-value for left-tailed test.
-                    If LeftTail is less than the given significance level,
-                    the null hypothesis is rejected.
-    RightTail   -   p-value for right-tailed test.
-                    If RightTail is less than the given significance level
-                    the null hypothesis is rejected.
-
-While   calculating   p-values   high-precision   binomial    distribution
-approximation is used, so significance levels have about 15 exact digits.
-
-  -- ALGLIB --
-     Copyright 08.09.2006 by Bochkanov Sergey
-*************************************************************************/
-void onesamplesigntest(/* Real    */ ae_vector* x,
-     ae_int_t n,
-     double median,
-     double* bothtails,
-     double* lefttail,
-     double* righttail,
-     ae_state *_state)
-{
-    ae_int_t i;
-    ae_int_t gtcnt;
-    ae_int_t necnt;
-
-    *bothtails = 0;
-    *lefttail = 0;
-    *righttail = 0;
-
-    if( n<=1 )
-    {
-        *bothtails = 1.0;
-        *lefttail = 1.0;
-        *righttail = 1.0;
-        return;
-    }
-    
-    /*
-     * Calculate:
-     * GTCnt - count of x[i]>Median
-     * NECnt - count of x[i]<>Median
-     */
-    gtcnt = 0;
-    necnt = 0;
-    for(i=0; i<=n-1; i++)
-    {
-        if( ae_fp_greater(x->ptr.p_double[i],median) )
-        {
-            gtcnt = gtcnt+1;
-        }
-        if( ae_fp_neq(x->ptr.p_double[i],median) )
-        {
-            necnt = necnt+1;
-        }
-    }
-    if( necnt==0 )
-    {
-        
-        /*
-         * all x[i] are equal to Median.
-         * So we can conclude that Median is a true median :)
-         */
-        *bothtails = 1.0;
-        *lefttail = 1.0;
-        *righttail = 1.0;
-        return;
-    }
-    *bothtails = ae_minreal(2*binomialdistribution(ae_minint(gtcnt, necnt-gtcnt, _state), necnt, 0.5, _state), 1.0, _state);
-    *lefttail = binomialdistribution(gtcnt, necnt, 0.5, _state);
-    *righttail = binomialcdistribution(gtcnt-1, necnt, 0.5, _state);
-}
-
-
-
-
 /*************************************************************************
-One-sample t-test
-
-This test checks three hypotheses about the mean of the given sample.  The
-following tests are performed:
-    * two-tailed test (null hypothesis - the mean is equal  to  the  given
-      value)
-    * left-tailed test (null hypothesis - the  mean  is  greater  than  or
-      equal to the given value)
-    * right-tailed test (null hypothesis - the mean is less than or  equal
-      to the given value).
-
-The test is based on the assumption that  a  given  sample  has  a  normal
-distribution and  an  unknown  dispersion.  If  the  distribution  sharply
-differs from normal, the test will work incorrectly.
-
-INPUT PARAMETERS:
-    X       -   sample. Array whose index goes from 0 to N-1.
-    N       -   size of sample, N>=0
-    Mean    -   assumed value of the mean.
-
-OUTPUT PARAMETERS:
-    BothTails   -   p-value for two-tailed test.
-                    If BothTails is less than the given significance level
-                    the null hypothesis is rejected.
-    LeftTail    -   p-value for left-tailed test.
-                    If LeftTail is less than the given significance level,
-                    the null hypothesis is rejected.
-    RightTail   -   p-value for right-tailed test.
-                    If RightTail is less than the given significance level
-                    the null hypothesis is rejected.
-
-NOTE: this function correctly handles degenerate cases:
-      * when N=0, all p-values are set to 1.0
-      * when variance of X[] is exactly zero, p-values are set
-        to 1.0 or 0.0, depending on difference between sample mean and
-        value of mean being tested.
-
-
-  -- ALGLIB --
-     Copyright 08.09.2006 by Bochkanov Sergey
-*************************************************************************/
-void studentttest1(/* Real    */ ae_vector* x,
-     ae_int_t n,
-     double mean,
-     double* bothtails,
-     double* lefttail,
-     double* righttail,
-     ae_state *_state)
-{
-    ae_int_t i;
-    double xmean;
-    double x0;
-    double v;
-    ae_bool samex;
-    double xvariance;
-    double xstddev;
-    double v1;
-    double v2;
-    double stat;
-    double s;
-
-    *bothtails = 0;
-    *lefttail = 0;
-    *righttail = 0;
-
-    if( n<=0 )
-    {
-        *bothtails = 1.0;
-        *lefttail = 1.0;
-        *righttail = 1.0;
-        return;
-    }
-    
-    /*
-     * Mean
-     */
-    xmean = (double)(0);
-    x0 = x->ptr.p_double[0];
-    samex = ae_true;
-    for(i=0; i<=n-1; i++)
-    {
-        v = x->ptr.p_double[i];
-        xmean = xmean+v;
-        samex = samex&&ae_fp_eq(v,x0);
-    }
-    if( samex )
-    {
-        xmean = x0;
-    }
-    else
-    {
-        xmean = xmean/n;
-    }
-    
-    /*
-     * Variance (using corrected two-pass algorithm)
-     */
-    xvariance = (double)(0);
-    xstddev = (double)(0);
-    if( n!=1&&!samex )
-    {
-        v1 = (double)(0);
-        for(i=0; i<=n-1; i++)
-        {
-            v1 = v1+ae_sqr(x->ptr.p_double[i]-xmean, _state);
-        }
-        v2 = (double)(0);
-        for(i=0; i<=n-1; i++)
-        {
-            v2 = v2+(x->ptr.p_double[i]-xmean);
-        }
-        v2 = ae_sqr(v2, _state)/n;
-        xvariance = (v1-v2)/(n-1);
-        if( ae_fp_less(xvariance,(double)(0)) )
-        {
-            xvariance = (double)(0);
-        }
-        xstddev = ae_sqrt(xvariance, _state);
-    }
-    if( ae_fp_eq(xstddev,(double)(0)) )
-    {
-        if( ae_fp_eq(xmean,mean) )
-        {
-            *bothtails = 1.0;
-        }
-        else
-        {
-            *bothtails = 0.0;
-        }
-        if( ae_fp_greater_eq(xmean,mean) )
-        {
-            *lefttail = 1.0;
-        }
-        else
-        {
-            *lefttail = 0.0;
-        }
-        if( ae_fp_less_eq(xmean,mean) )
-        {
-            *righttail = 1.0;
-        }
-        else
-        {
-            *righttail = 0.0;
-        }
-        return;
-    }
-    
-    /*
-     * Statistic
-     */
-    stat = (xmean-mean)/(xstddev/ae_sqrt((double)(n), _state));
-    s = studenttdistribution(n-1, stat, _state);
-    *bothtails = 2*ae_minreal(s, 1-s, _state);
-    *lefttail = s;
-    *righttail = 1-s;
-}
-
-
-/*************************************************************************
-Two-sample pooled test
-
-This test checks three hypotheses about the mean of the given samples. The
-following tests are performed:
-    * two-tailed test (null hypothesis - the means are equal)
-    * left-tailed test (null hypothesis - the mean of the first sample  is
-      greater than or equal to the mean of the second sample)
-    * right-tailed test (null hypothesis - the mean of the first sample is
-      less than or equal to the mean of the second sample).
-
-Test is based on the following assumptions:
-    * given samples have normal distributions
-    * dispersions are equal
-    * samples are independent.
-
-Input parameters:
-    X       -   sample 1. Array whose index goes from 0 to N-1.
-    N       -   size of sample.
-    Y       -   sample 2. Array whose index goes from 0 to M-1.
-    M       -   size of sample.
-
-Output parameters:
-    BothTails   -   p-value for two-tailed test.
-                    If BothTails is less than the given significance level
-                    the null hypothesis is rejected.
-    LeftTail    -   p-value for left-tailed test.
-                    If LeftTail is less than the given significance level,
-                    the null hypothesis is rejected.
-    RightTail   -   p-value for right-tailed test.
-                    If RightTail is less than the given significance level
-                    the null hypothesis is rejected.
-
-NOTE: this function correctly handles degenerate cases:
-      * when N=0 or M=0, all p-values are set to 1.0
-      * when both samples has exactly zero variance, p-values are set
-        to 1.0 or 0.0, depending on difference between means.
-
-  -- ALGLIB --
-     Copyright 18.09.2006 by Bochkanov Sergey
-*************************************************************************/
-void studentttest2(/* Real    */ ae_vector* x,
-     ae_int_t n,
-     /* Real    */ ae_vector* y,
-     ae_int_t m,
-     double* bothtails,
-     double* lefttail,
-     double* righttail,
-     ae_state *_state)
-{
-    ae_int_t i;
-    ae_bool samex;
-    ae_bool samey;
-    double x0;
-    double y0;
-    double xmean;
-    double ymean;
-    double v;
-    double stat;
-    double s;
-    double p;
-
-    *bothtails = 0;
-    *lefttail = 0;
-    *righttail = 0;
-
-    if( n<=0||m<=0 )
-    {
-        *bothtails = 1.0;
-        *lefttail = 1.0;
-        *righttail = 1.0;
-        return;
-    }
-    
-    /*
-     * Mean
-     */
-    xmean = (double)(0);
-    x0 = x->ptr.p_double[0];
-    samex = ae_true;
-    for(i=0; i<=n-1; i++)
-    {
-        v = x->ptr.p_double[i];
-        xmean = xmean+v;
-        samex = samex&&ae_fp_eq(v,x0);
-    }
-    if( samex )
-    {
-        xmean = x0;
-    }
-    else
-    {
-        xmean = xmean/n;
-    }
-    ymean = (double)(0);
-    y0 = y->ptr.p_double[0];
-    samey = ae_true;
-    for(i=0; i<=m-1; i++)
-    {
-        v = y->ptr.p_double[i];
-        ymean = ymean+v;
-        samey = samey&&ae_fp_eq(v,y0);
-    }
-    if( samey )
-    {
-        ymean = y0;
-    }
-    else
-    {
-        ymean = ymean/m;
-    }
-    
-    /*
-     * S
-     */
-    s = (double)(0);
-    if( n+m>2 )
-    {
-        for(i=0; i<=n-1; i++)
-        {
-            s = s+ae_sqr(x->ptr.p_double[i]-xmean, _state);
-        }
-        for(i=0; i<=m-1; i++)
-        {
-            s = s+ae_sqr(y->ptr.p_double[i]-ymean, _state);
-        }
-        s = ae_sqrt(s*((double)1/(double)n+(double)1/(double)m)/(n+m-2), _state);
-    }
-    if( ae_fp_eq(s,(double)(0)) )
-    {
-        if( ae_fp_eq(xmean,ymean) )
-        {
-            *bothtails = 1.0;
-        }
-        else
-        {
-            *bothtails = 0.0;
-        }
-        if( ae_fp_greater_eq(xmean,ymean) )
-        {
-            *lefttail = 1.0;
-        }
-        else
-        {
-            *lefttail = 0.0;
-        }
-        if( ae_fp_less_eq(xmean,ymean) )
-        {
-            *righttail = 1.0;
-        }
-        else
-        {
-            *righttail = 0.0;
-        }
-        return;
-    }
-    
-    /*
-     * Statistic
-     */
-    stat = (xmean-ymean)/s;
-    p = studenttdistribution(n+m-2, stat, _state);
-    *bothtails = 2*ae_minreal(p, 1-p, _state);
-    *lefttail = p;
-    *righttail = 1-p;
-}
-
-
-/*************************************************************************
-Two-sample unpooled test
-
-This test checks three hypotheses about the mean of the given samples. The
-following tests are performed:
-    * two-tailed test (null hypothesis - the means are equal)
-    * left-tailed test (null hypothesis - the mean of the first sample  is
-      greater than or equal to the mean of the second sample)
-    * right-tailed test (null hypothesis - the mean of the first sample is
-      less than or equal to the mean of the second sample).
-
-Test is based on the following assumptions:
-    * given samples have normal distributions
-    * samples are independent.
-Equality of variances is NOT required.
-
-Input parameters:
-    X - sample 1. Array whose index goes from 0 to N-1.
-    N - size of the sample.
-    Y - sample 2. Array whose index goes from 0 to M-1.
-    M - size of the sample.
-
-Output parameters:
-    BothTails   -   p-value for two-tailed test.
-                    If BothTails is less than the given significance level
-                    the null hypothesis is rejected.
-    LeftTail    -   p-value for left-tailed test.
-                    If LeftTail is less than the given significance level,
-                    the null hypothesis is rejected.
-    RightTail   -   p-value for right-tailed test.
-                    If RightTail is less than the given significance level
-                    the null hypothesis is rejected.
-
-NOTE: this function correctly handles degenerate cases:
-      * when N=0 or M=0, all p-values are set to 1.0
-      * when both samples has zero variance, p-values are set
-        to 1.0 or 0.0, depending on difference between means.
-      * when only one sample has zero variance, test reduces to 1-sample
-        version.
-
-  -- ALGLIB --
-     Copyright 18.09.2006 by Bochkanov Sergey
-*************************************************************************/
-void unequalvariancettest(/* Real    */ ae_vector* x,
-     ae_int_t n,
-     /* Real    */ ae_vector* y,
-     ae_int_t m,
-     double* bothtails,
-     double* lefttail,
-     double* righttail,
-     ae_state *_state)
-{
-    ae_int_t i;
-    ae_bool samex;
-    ae_bool samey;
-    double x0;
-    double y0;
-    double xmean;
-    double ymean;
-    double xvar;
-    double yvar;
-    double v;
-    double df;
-    double p;
-    double stat;
-    double c;
-
-    *bothtails = 0;
-    *lefttail = 0;
-    *righttail = 0;
-
-    if( n<=0||m<=0 )
-    {
-        *bothtails = 1.0;
-        *lefttail = 1.0;
-        *righttail = 1.0;
-        return;
-    }
-    
-    /*
-     * Mean
-     */
-    xmean = (double)(0);
-    x0 = x->ptr.p_double[0];
-    samex = ae_true;
-    for(i=0; i<=n-1; i++)
-    {
-        v = x->ptr.p_double[i];
-        xmean = xmean+v;
-        samex = samex&&ae_fp_eq(v,x0);
-    }
-    if( samex )
-    {
-        xmean = x0;
-    }
-    else
-    {
-        xmean = xmean/n;
-    }
-    ymean = (double)(0);
-    y0 = y->ptr.p_double[0];
-    samey = ae_true;
-    for(i=0; i<=m-1; i++)
-    {
-        v = y->ptr.p_double[i];
-        ymean = ymean+v;
-        samey = samey&&ae_fp_eq(v,y0);
-    }
-    if( samey )
-    {
-        ymean = y0;
-    }
-    else
-    {
-        ymean = ymean/m;
-    }
-    
-    /*
-     * Variance (using corrected two-pass algorithm)
-     */
-    xvar = (double)(0);
-    if( n>=2&&!samex )
-    {
-        for(i=0; i<=n-1; i++)
-        {
-            xvar = xvar+ae_sqr(x->ptr.p_double[i]-xmean, _state);
-        }
-        xvar = xvar/(n-1);
-    }
-    yvar = (double)(0);
-    if( m>=2&&!samey )
-    {
-        for(i=0; i<=m-1; i++)
-        {
-            yvar = yvar+ae_sqr(y->ptr.p_double[i]-ymean, _state);
-        }
-        yvar = yvar/(m-1);
-    }
-    
-    /*
-     * Handle different special cases
-     * (one or both variances are zero).
-     */
-    if( ae_fp_eq(xvar,(double)(0))&&ae_fp_eq(yvar,(double)(0)) )
-    {
-        if( ae_fp_eq(xmean,ymean) )
-        {
-            *bothtails = 1.0;
-        }
-        else
-        {
-            *bothtails = 0.0;
-        }
-        if( ae_fp_greater_eq(xmean,ymean) )
-        {
-            *lefttail = 1.0;
-        }
-        else
-        {
-            *lefttail = 0.0;
-        }
-        if( ae_fp_less_eq(xmean,ymean) )
-        {
-            *righttail = 1.0;
-        }
-        else
-        {
-            *righttail = 0.0;
-        }
-        return;
-    }
-    if( ae_fp_eq(xvar,(double)(0)) )
-    {
-        
-        /*
-         * X is constant, unpooled 2-sample test reduces to 1-sample test.
-         *
-         * NOTE: right-tail and left-tail must be passed to 1-sample
-         *       t-test in reverse order because we reverse order of
-         *       of samples.
-         */
-        studentttest1(y, m, xmean, bothtails, righttail, lefttail, _state);
-        return;
-    }
-    if( ae_fp_eq(yvar,(double)(0)) )
-    {
-        
-        /*
-         * Y is constant, unpooled 2-sample test reduces to 1-sample test.
-         */
-        studentttest1(x, n, ymean, bothtails, lefttail, righttail, _state);
-        return;
-    }
-    
-    /*
-     * Statistic
-     */
-    stat = (xmean-ymean)/ae_sqrt(xvar/n+yvar/m, _state);
-    c = xvar/n/(xvar/n+yvar/m);
-    df = (n-1)*(m-1)/((m-1)*ae_sqr(c, _state)+(n-1)*ae_sqr(1-c, _state));
-    if( ae_fp_greater(stat,(double)(0)) )
-    {
-        p = 1-0.5*incompletebeta(df/2, 0.5, df/(df+ae_sqr(stat, _state)), _state);
-    }
-    else
-    {
-        p = 0.5*incompletebeta(df/2, 0.5, df/(df+ae_sqr(stat, _state)), _state);
-    }
-    *bothtails = 2*ae_minreal(p, 1-p, _state);
-    *lefttail = p;
-    *righttail = 1-p;
-}
-
-
-
-
-/*************************************************************************
-Two-sample F-test
-
-This test checks three hypotheses about dispersions of the given  samples.
-The following tests are performed:
-    * two-tailed test (null hypothesis - the dispersions are equal)
-    * left-tailed test (null hypothesis  -  the  dispersion  of  the first
-      sample is greater than or equal to  the  dispersion  of  the  second
-      sample).
-    * right-tailed test (null hypothesis - the  dispersion  of  the  first
-      sample is less than or equal to the dispersion of the second sample)
-
-The test is based on the following assumptions:
-    * the given samples have normal distributions
-    * the samples are independent.
-
-Input parameters:
-    X   -   sample 1. Array whose index goes from 0 to N-1.
-    N   -   sample size.
-    Y   -   sample 2. Array whose index goes from 0 to M-1.
-    M   -   sample size.
-
-Output parameters:
-    BothTails   -   p-value for two-tailed test.
-                    If BothTails is less than the given significance level
-                    the null hypothesis is rejected.
-    LeftTail    -   p-value for left-tailed test.
-                    If LeftTail is less than the given significance level,
-                    the null hypothesis is rejected.
-    RightTail   -   p-value for right-tailed test.
-                    If RightTail is less than the given significance level
-                    the null hypothesis is rejected.
-
-  -- ALGLIB --
-     Copyright 19.09.2006 by Bochkanov Sergey
-*************************************************************************/
-void ftest(/* Real    */ ae_vector* x,
-     ae_int_t n,
-     /* Real    */ ae_vector* y,
-     ae_int_t m,
-     double* bothtails,
-     double* lefttail,
-     double* righttail,
-     ae_state *_state)
-{
-    ae_int_t i;
-    double xmean;
-    double ymean;
-    double xvar;
-    double yvar;
-    ae_int_t df1;
-    ae_int_t df2;
-    double stat;
-
-    *bothtails = 0;
-    *lefttail = 0;
-    *righttail = 0;
-
-    if( n<=2||m<=2 )
-    {
-        *bothtails = 1.0;
-        *lefttail = 1.0;
-        *righttail = 1.0;
-        return;
-    }
-    
-    /*
-     * Mean
-     */
-    xmean = (double)(0);
-    for(i=0; i<=n-1; i++)
-    {
-        xmean = xmean+x->ptr.p_double[i];
-    }
-    xmean = xmean/n;
-    ymean = (double)(0);
-    for(i=0; i<=m-1; i++)
-    {
-        ymean = ymean+y->ptr.p_double[i];
-    }
-    ymean = ymean/m;
-    
-    /*
-     * Variance (using corrected two-pass algorithm)
-     */
-    xvar = (double)(0);
-    for(i=0; i<=n-1; i++)
-    {
-        xvar = xvar+ae_sqr(x->ptr.p_double[i]-xmean, _state);
-    }
-    xvar = xvar/(n-1);
-    yvar = (double)(0);
-    for(i=0; i<=m-1; i++)
-    {
-        yvar = yvar+ae_sqr(y->ptr.p_double[i]-ymean, _state);
-    }
-    yvar = yvar/(m-1);
-    if( ae_fp_eq(xvar,(double)(0))||ae_fp_eq(yvar,(double)(0)) )
-    {
-        *bothtails = 1.0;
-        *lefttail = 1.0;
-        *righttail = 1.0;
-        return;
-    }
-    
-    /*
-     * Statistic
-     */
-    df1 = n-1;
-    df2 = m-1;
-    stat = ae_minreal(xvar/yvar, yvar/xvar, _state);
-    *bothtails = 1-(fdistribution(df1, df2, 1/stat, _state)-fdistribution(df1, df2, stat, _state));
-    *lefttail = fdistribution(df1, df2, xvar/yvar, _state);
-    *righttail = 1-(*lefttail);
-}
-
-
-/*************************************************************************
-One-sample chi-square test
-
-This test checks three hypotheses about the dispersion of the given sample
-The following tests are performed:
-    * two-tailed test (null hypothesis - the dispersion equals  the  given
-      number)
-    * left-tailed test (null hypothesis - the dispersion is  greater  than
-      or equal to the given number)
-    * right-tailed test (null hypothesis  -  dispersion is  less  than  or
-      equal to the given number).
-
-Test is based on the following assumptions:
-    * the given sample has a normal distribution.
-
-Input parameters:
-    X           -   sample 1. Array whose index goes from 0 to N-1.
-    N           -   size of the sample.
-    Variance    -   dispersion value to compare with.
-
-Output parameters:
-    BothTails   -   p-value for two-tailed test.
-                    If BothTails is less than the given significance level
-                    the null hypothesis is rejected.
-    LeftTail    -   p-value for left-tailed test.
-                    If LeftTail is less than the given significance level,
-                    the null hypothesis is rejected.
-    RightTail   -   p-value for right-tailed test.
-                    If RightTail is less than the given significance level
-                    the null hypothesis is rejected.
-
-  -- ALGLIB --
-     Copyright 19.09.2006 by Bochkanov Sergey
+Serial stub for GPL edition.
 *************************************************************************/
-void onesamplevariancetest(/* Real    */ ae_vector* x,
-     ae_int_t n,
-     double variance,
-     double* bothtails,
-     double* lefttail,
-     double* righttail,
-     ae_state *_state)
+ae_bool _trypexec_basestat_rankdatabasecase(/* Real    */ ae_matrix* xy,
+    ae_int_t i0,
+    ae_int_t i1,
+    ae_int_t nfeatures,
+    ae_bool iscentered,
+    apbuffers* buf0,
+    apbuffers* buf1,
+    ae_state *_state)
 {
-    ae_int_t i;
-    double xmean;
-    double xvar;
-    double s;
-    double stat;
-
-    *bothtails = 0;
-    *lefttail = 0;
-    *righttail = 0;
-
-    if( n<=1 )
-    {
-        *bothtails = 1.0;
-        *lefttail = 1.0;
-        *righttail = 1.0;
-        return;
-    }
-    
-    /*
-     * Mean
-     */
-    xmean = (double)(0);
-    for(i=0; i<=n-1; i++)
-    {
-        xmean = xmean+x->ptr.p_double[i];
-    }
-    xmean = xmean/n;
-    
-    /*
-     * Variance
-     */
-    xvar = (double)(0);
-    for(i=0; i<=n-1; i++)
-    {
-        xvar = xvar+ae_sqr(x->ptr.p_double[i]-xmean, _state);
-    }
-    xvar = xvar/(n-1);
-    if( ae_fp_eq(xvar,(double)(0)) )
-    {
-        *bothtails = 1.0;
-        *lefttail = 1.0;
-        *righttail = 1.0;
-        return;
-    }
-    
-    /*
-     * Statistic
-     */
-    stat = (n-1)*xvar/variance;
-    s = chisquaredistribution((double)(n-1), stat, _state);
-    *bothtails = 2*ae_minreal(s, 1-s, _state);
-    *lefttail = s;
-    *righttail = 1-(*lefttail);
+    return ae_false;
 }
 
 
+#endif
+#if defined(AE_COMPILE_WSR) || !defined(AE_PARTIAL_BUILD)
 
 
 /*************************************************************************
@@ -13775,13 +5269,16 @@ void wilcoxonsignedranktest(/* Real    */ ae_vector* x,
     double mu;
 
     ae_frame_make(_state, &_frame_block);
-    ae_vector_init_copy(&_x, x, _state);
+    memset(&_x, 0, sizeof(_x));
+    memset(&r, 0, sizeof(r));
+    memset(&c, 0, sizeof(c));
+    ae_vector_init_copy(&_x, x, _state, ae_true);
     x = &_x;
     *bothtails = 0;
     *lefttail = 0;
     *righttail = 0;
-    ae_vector_init(&r, 0, DT_REAL, _state);
-    ae_vector_init(&c, 0, DT_INT, _state);
+    ae_vector_init(&r, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&c, 0, DT_INT, _state, ae_true);
 
     
     /*
@@ -13935,8 +5432,8 @@ void wilcoxonsignedranktest(/* Real    */ ae_vector* x,
     /*
      * Result
      */
-    mu = (double)(ns*(ns+1))/(double)4;
-    sigma = ae_sqrt((double)(ns*(ns+1)*(2*ns+1))/(double)24, _state);
+    mu = rmul2((double)(ns), (double)(ns+1), _state)/4;
+    sigma = ae_sqrt(mu*(2*ns+1)/6, _state);
     s = (w-mu)/sigma;
     if( ae_fp_less_eq(s,(double)(0)) )
     {
@@ -13948,9 +5445,9 @@ void wilcoxonsignedranktest(/* Real    */ ae_vector* x,
         mp = ae_exp(wsr_wsigma((w-mu)/sigma, ns, _state), _state);
         p = 1-ae_exp(wsr_wsigma((w+1-mu)/sigma, ns, _state), _state);
     }
-    *bothtails = ae_maxreal(2*ae_minreal(p, mp, _state), 1.0E-4, _state);
     *lefttail = ae_maxreal(p, 1.0E-4, _state);
     *righttail = ae_maxreal(mp, 1.0E-4, _state);
+    *bothtails = 2*ae_minreal(*lefttail, *righttail, _state);
     ae_frame_leave(_state);
 }
 
@@ -19988,6 +11485,8348 @@ static double wsr_wsigma(double s, ae_int_t n, ae_state *_state)
 }
 
 
+#endif
+#if defined(AE_COMPILE_STEST) || !defined(AE_PARTIAL_BUILD)
+
+
+/*************************************************************************
+Sign test
+
+This test checks three hypotheses about the median of  the  given  sample.
+The following tests are performed:
+    * two-tailed test (null hypothesis - the median is equal to the  given
+      value)
+    * left-tailed test (null hypothesis - the median is  greater  than  or
+      equal to the given value)
+    * right-tailed test (null hypothesis - the  median  is  less  than  or
+      equal to the given value)
+
+Requirements:
+    * the scale of measurement should be ordinal, interval or ratio  (i.e.
+      the test could not be applied to nominal variables).
+
+The test is non-parametric and doesn't require distribution X to be normal
+
+Input parameters:
+    X       -   sample. Array whose index goes from 0 to N-1.
+    N       -   size of the sample.
+    Median  -   assumed median value.
+
+Output parameters:
+    BothTails   -   p-value for two-tailed test.
+                    If BothTails is less than the given significance level
+                    the null hypothesis is rejected.
+    LeftTail    -   p-value for left-tailed test.
+                    If LeftTail is less than the given significance level,
+                    the null hypothesis is rejected.
+    RightTail   -   p-value for right-tailed test.
+                    If RightTail is less than the given significance level
+                    the null hypothesis is rejected.
+
+While   calculating   p-values   high-precision   binomial    distribution
+approximation is used, so significance levels have about 15 exact digits.
+
+  -- ALGLIB --
+     Copyright 08.09.2006 by Bochkanov Sergey
+*************************************************************************/
+void onesamplesigntest(/* Real    */ ae_vector* x,
+     ae_int_t n,
+     double median,
+     double* bothtails,
+     double* lefttail,
+     double* righttail,
+     ae_state *_state)
+{
+    ae_int_t i;
+    ae_int_t gtcnt;
+    ae_int_t necnt;
+
+    *bothtails = 0;
+    *lefttail = 0;
+    *righttail = 0;
+
+    if( n<=1 )
+    {
+        *bothtails = 1.0;
+        *lefttail = 1.0;
+        *righttail = 1.0;
+        return;
+    }
+    
+    /*
+     * Calculate:
+     * GTCnt - count of x[i]>Median
+     * NECnt - count of x[i]<>Median
+     */
+    gtcnt = 0;
+    necnt = 0;
+    for(i=0; i<=n-1; i++)
+    {
+        if( ae_fp_greater(x->ptr.p_double[i],median) )
+        {
+            gtcnt = gtcnt+1;
+        }
+        if( ae_fp_neq(x->ptr.p_double[i],median) )
+        {
+            necnt = necnt+1;
+        }
+    }
+    if( necnt==0 )
+    {
+        
+        /*
+         * all x[i] are equal to Median.
+         * So we can conclude that Median is a true median :)
+         */
+        *bothtails = 1.0;
+        *lefttail = 1.0;
+        *righttail = 1.0;
+        return;
+    }
+    *bothtails = ae_minreal(2*binomialdistribution(ae_minint(gtcnt, necnt-gtcnt, _state), necnt, 0.5, _state), 1.0, _state);
+    *lefttail = binomialdistribution(gtcnt, necnt, 0.5, _state);
+    *righttail = binomialcdistribution(gtcnt-1, necnt, 0.5, _state);
+}
+
+
+#endif
+#if defined(AE_COMPILE_CORRELATIONTESTS) || !defined(AE_PARTIAL_BUILD)
+
+
+/*************************************************************************
+Pearson's correlation coefficient significance test
+
+This test checks hypotheses about whether X  and  Y  are  samples  of  two
+continuous  distributions  having  zero  correlation  or   whether   their
+correlation is non-zero.
+
+The following tests are performed:
+    * two-tailed test (null hypothesis - X and Y have zero correlation)
+    * left-tailed test (null hypothesis - the correlation  coefficient  is
+      greater than or equal to 0)
+    * right-tailed test (null hypothesis - the correlation coefficient  is
+      less than or equal to 0).
+
+Requirements:
+    * the number of elements in each sample is not less than 5
+    * normality of distributions of X and Y.
+
+Input parameters:
+    R   -   Pearson's correlation coefficient for X and Y
+    N   -   number of elements in samples, N>=5.
+
+Output parameters:
+    BothTails   -   p-value for two-tailed test.
+                    If BothTails is less than the given significance level
+                    the null hypothesis is rejected.
+    LeftTail    -   p-value for left-tailed test.
+                    If LeftTail is less than the given significance level,
+                    the null hypothesis is rejected.
+    RightTail   -   p-value for right-tailed test.
+                    If RightTail is less than the given significance level
+                    the null hypothesis is rejected.
+
+  -- ALGLIB --
+     Copyright 09.04.2007 by Bochkanov Sergey
+*************************************************************************/
+void pearsoncorrelationsignificance(double r,
+     ae_int_t n,
+     double* bothtails,
+     double* lefttail,
+     double* righttail,
+     ae_state *_state)
+{
+    double t;
+    double p;
+
+    *bothtails = 0;
+    *lefttail = 0;
+    *righttail = 0;
+
+    
+    /*
+     * Some special cases
+     */
+    if( ae_fp_greater_eq(r,(double)(1)) )
+    {
+        *bothtails = 0.0;
+        *lefttail = 1.0;
+        *righttail = 0.0;
+        return;
+    }
+    if( ae_fp_less_eq(r,(double)(-1)) )
+    {
+        *bothtails = 0.0;
+        *lefttail = 0.0;
+        *righttail = 1.0;
+        return;
+    }
+    if( n<5 )
+    {
+        *bothtails = 1.0;
+        *lefttail = 1.0;
+        *righttail = 1.0;
+        return;
+    }
+    
+    /*
+     * General case
+     */
+    t = r*ae_sqrt((n-2)/(1-ae_sqr(r, _state)), _state);
+    p = studenttdistribution(n-2, t, _state);
+    *bothtails = 2*ae_minreal(p, 1-p, _state);
+    *lefttail = p;
+    *righttail = 1-p;
+}
+
+
+/*************************************************************************
+Spearman's rank correlation coefficient significance test
+
+This test checks hypotheses about whether X  and  Y  are  samples  of  two
+continuous  distributions  having  zero  correlation  or   whether   their
+correlation is non-zero.
+
+The following tests are performed:
+    * two-tailed test (null hypothesis - X and Y have zero correlation)
+    * left-tailed test (null hypothesis - the correlation  coefficient  is
+      greater than or equal to 0)
+    * right-tailed test (null hypothesis - the correlation coefficient  is
+      less than or equal to 0).
+
+Requirements:
+    * the number of elements in each sample is not less than 5.
+
+The test is non-parametric and doesn't require distributions X and Y to be
+normal.
+
+Input parameters:
+    R   -   Spearman's rank correlation coefficient for X and Y
+    N   -   number of elements in samples, N>=5.
+
+Output parameters:
+    BothTails   -   p-value for two-tailed test.
+                    If BothTails is less than the given significance level
+                    the null hypothesis is rejected.
+    LeftTail    -   p-value for left-tailed test.
+                    If LeftTail is less than the given significance level,
+                    the null hypothesis is rejected.
+    RightTail   -   p-value for right-tailed test.
+                    If RightTail is less than the given significance level
+                    the null hypothesis is rejected.
+
+  -- ALGLIB --
+     Copyright 09.04.2007 by Bochkanov Sergey
+*************************************************************************/
+void spearmanrankcorrelationsignificance(double r,
+     ae_int_t n,
+     double* bothtails,
+     double* lefttail,
+     double* righttail,
+     ae_state *_state)
+{
+    double t;
+    double p;
+
+    *bothtails = 0;
+    *lefttail = 0;
+    *righttail = 0;
+
+    
+    /*
+     * Special case
+     */
+    if( n<5 )
+    {
+        *bothtails = 1.0;
+        *lefttail = 1.0;
+        *righttail = 1.0;
+        return;
+    }
+    
+    /*
+     * General case
+     */
+    if( ae_fp_greater_eq(r,(double)(1)) )
+    {
+        t = 1.0E10;
+    }
+    else
+    {
+        if( ae_fp_less_eq(r,(double)(-1)) )
+        {
+            t = -1.0E10;
+        }
+        else
+        {
+            t = r*ae_sqrt((n-2)/(1-ae_sqr(r, _state)), _state);
+        }
+    }
+    if( ae_fp_less(t,(double)(0)) )
+    {
+        p = correlationtests_spearmantail(t, n, _state);
+        *bothtails = 2*p;
+        *lefttail = p;
+        *righttail = 1-p;
+    }
+    else
+    {
+        p = correlationtests_spearmantail(-t, n, _state);
+        *bothtails = 2*p;
+        *lefttail = 1-p;
+        *righttail = p;
+    }
+}
+
+
+/*************************************************************************
+Tail(S, 5)
+*************************************************************************/
+static double correlationtests_spearmantail5(double s, ae_state *_state)
+{
+    double result;
+
+
+    if( ae_fp_less(s,0.000e+00) )
+    {
+        result = studenttdistribution(3, -s, _state);
+        return result;
+    }
+    if( ae_fp_greater_eq(s,3.580e+00) )
+    {
+        result = 8.304e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.322e+00) )
+    {
+        result = 4.163e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.704e+00) )
+    {
+        result = 6.641e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.303e+00) )
+    {
+        result = 1.164e-01;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.003e+00) )
+    {
+        result = 1.748e-01;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,7.584e-01) )
+    {
+        result = 2.249e-01;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,5.468e-01) )
+    {
+        result = 2.581e-01;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,3.555e-01) )
+    {
+        result = 3.413e-01;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.759e-01) )
+    {
+        result = 3.911e-01;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.741e-03) )
+    {
+        result = 4.747e-01;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,0.000e+00) )
+    {
+        result = 5.248e-01;
+        return result;
+    }
+    result = (double)(0);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 6)
+*************************************************************************/
+static double correlationtests_spearmantail6(double s, ae_state *_state)
+{
+    double result;
+
+
+    if( ae_fp_less(s,1.001e+00) )
+    {
+        result = studenttdistribution(4, -s, _state);
+        return result;
+    }
+    if( ae_fp_greater_eq(s,5.663e+00) )
+    {
+        result = 1.366e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,3.834e+00) )
+    {
+        result = 8.350e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.968e+00) )
+    {
+        result = 1.668e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.430e+00) )
+    {
+        result = 2.921e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.045e+00) )
+    {
+        result = 5.144e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.747e+00) )
+    {
+        result = 6.797e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.502e+00) )
+    {
+        result = 8.752e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.295e+00) )
+    {
+        result = 1.210e-01;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.113e+00) )
+    {
+        result = 1.487e-01;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.001e+00) )
+    {
+        result = 1.780e-01;
+        return result;
+    }
+    result = (double)(0);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 7)
+*************************************************************************/
+static double correlationtests_spearmantail7(double s, ae_state *_state)
+{
+    double result;
+
+
+    if( ae_fp_less(s,1.001e+00) )
+    {
+        result = studenttdistribution(5, -s, _state);
+        return result;
+    }
+    if( ae_fp_greater_eq(s,8.159e+00) )
+    {
+        result = 2.081e-04;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,5.620e+00) )
+    {
+        result = 1.393e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,4.445e+00) )
+    {
+        result = 3.398e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,3.728e+00) )
+    {
+        result = 6.187e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,3.226e+00) )
+    {
+        result = 1.200e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.844e+00) )
+    {
+        result = 1.712e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.539e+00) )
+    {
+        result = 2.408e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.285e+00) )
+    {
+        result = 3.320e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.068e+00) )
+    {
+        result = 4.406e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.879e+00) )
+    {
+        result = 5.478e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.710e+00) )
+    {
+        result = 6.946e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.559e+00) )
+    {
+        result = 8.331e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.420e+00) )
+    {
+        result = 1.001e-01;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.292e+00) )
+    {
+        result = 1.180e-01;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.173e+00) )
+    {
+        result = 1.335e-01;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.062e+00) )
+    {
+        result = 1.513e-01;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.001e+00) )
+    {
+        result = 1.770e-01;
+        return result;
+    }
+    result = (double)(0);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 8)
+*************************************************************************/
+static double correlationtests_spearmantail8(double s, ae_state *_state)
+{
+    double result;
+
+
+    if( ae_fp_less(s,2.001e+00) )
+    {
+        result = studenttdistribution(6, -s, _state);
+        return result;
+    }
+    if( ae_fp_greater_eq(s,1.103e+01) )
+    {
+        result = 2.194e-05;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,7.685e+00) )
+    {
+        result = 2.008e-04;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,6.143e+00) )
+    {
+        result = 5.686e-04;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,5.213e+00) )
+    {
+        result = 1.138e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,4.567e+00) )
+    {
+        result = 2.310e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,4.081e+00) )
+    {
+        result = 3.634e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,3.697e+00) )
+    {
+        result = 5.369e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,3.381e+00) )
+    {
+        result = 7.708e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,3.114e+00) )
+    {
+        result = 1.087e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.884e+00) )
+    {
+        result = 1.397e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.682e+00) )
+    {
+        result = 1.838e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.502e+00) )
+    {
+        result = 2.288e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.340e+00) )
+    {
+        result = 2.883e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.192e+00) )
+    {
+        result = 3.469e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.057e+00) )
+    {
+        result = 4.144e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.001e+00) )
+    {
+        result = 4.804e-02;
+        return result;
+    }
+    result = (double)(0);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 9)
+*************************************************************************/
+static double correlationtests_spearmantail9(double s, ae_state *_state)
+{
+    double result;
+
+
+    if( ae_fp_less(s,2.001e+00) )
+    {
+        result = studenttdistribution(7, -s, _state);
+        return result;
+    }
+    if( ae_fp_greater_eq(s,9.989e+00) )
+    {
+        result = 2.306e-05;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,8.069e+00) )
+    {
+        result = 8.167e-05;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,6.890e+00) )
+    {
+        result = 1.744e-04;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,6.077e+00) )
+    {
+        result = 3.625e-04;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,5.469e+00) )
+    {
+        result = 6.450e-04;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,4.991e+00) )
+    {
+        result = 1.001e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,4.600e+00) )
+    {
+        result = 1.514e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,4.272e+00) )
+    {
+        result = 2.213e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,3.991e+00) )
+    {
+        result = 2.990e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,3.746e+00) )
+    {
+        result = 4.101e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,3.530e+00) )
+    {
+        result = 5.355e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,3.336e+00) )
+    {
+        result = 6.887e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,3.161e+00) )
+    {
+        result = 8.598e-03;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,3.002e+00) )
+    {
+        result = 1.065e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.855e+00) )
+    {
+        result = 1.268e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.720e+00) )
+    {
+        result = 1.552e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.595e+00) )
+    {
+        result = 1.836e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.477e+00) )
+    {
+        result = 2.158e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.368e+00) )
+    {
+        result = 2.512e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.264e+00) )
+    {
+        result = 2.942e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.166e+00) )
+    {
+        result = 3.325e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.073e+00) )
+    {
+        result = 3.800e-02;
+        return result;
+    }
+    if( ae_fp_greater_eq(s,2.001e+00) )
+    {
+        result = 4.285e-02;
+        return result;
+    }
+    result = (double)(0);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(T,N), accepts T<0
+*************************************************************************/
+static double correlationtests_spearmantail(double t,
+     ae_int_t n,
+     ae_state *_state)
+{
+    double result;
+
+
+    if( n==5 )
+    {
+        result = correlationtests_spearmantail5(-t, _state);
+        return result;
+    }
+    if( n==6 )
+    {
+        result = correlationtests_spearmantail6(-t, _state);
+        return result;
+    }
+    if( n==7 )
+    {
+        result = correlationtests_spearmantail7(-t, _state);
+        return result;
+    }
+    if( n==8 )
+    {
+        result = correlationtests_spearmantail8(-t, _state);
+        return result;
+    }
+    if( n==9 )
+    {
+        result = correlationtests_spearmantail9(-t, _state);
+        return result;
+    }
+    result = studenttdistribution(n-2, t, _state);
+    return result;
+}
+
+
+#endif
+#if defined(AE_COMPILE_STUDENTTTESTS) || !defined(AE_PARTIAL_BUILD)
+
+
+/*************************************************************************
+One-sample t-test
+
+This test checks three hypotheses about the mean of the given sample.  The
+following tests are performed:
+    * two-tailed test (null hypothesis - the mean is equal  to  the  given
+      value)
+    * left-tailed test (null hypothesis - the  mean  is  greater  than  or
+      equal to the given value)
+    * right-tailed test (null hypothesis - the mean is less than or  equal
+      to the given value).
+
+The test is based on the assumption that  a  given  sample  has  a  normal
+distribution and  an  unknown  dispersion.  If  the  distribution  sharply
+differs from normal, the test will work incorrectly.
+
+INPUT PARAMETERS:
+    X       -   sample. Array whose index goes from 0 to N-1.
+    N       -   size of sample, N>=0
+    Mean    -   assumed value of the mean.
+
+OUTPUT PARAMETERS:
+    BothTails   -   p-value for two-tailed test.
+                    If BothTails is less than the given significance level
+                    the null hypothesis is rejected.
+    LeftTail    -   p-value for left-tailed test.
+                    If LeftTail is less than the given significance level,
+                    the null hypothesis is rejected.
+    RightTail   -   p-value for right-tailed test.
+                    If RightTail is less than the given significance level
+                    the null hypothesis is rejected.
+
+NOTE: this function correctly handles degenerate cases:
+      * when N=0, all p-values are set to 1.0
+      * when variance of X[] is exactly zero, p-values are set
+        to 1.0 or 0.0, depending on difference between sample mean and
+        value of mean being tested.
+
+
+  -- ALGLIB --
+     Copyright 08.09.2006 by Bochkanov Sergey
+*************************************************************************/
+void studentttest1(/* Real    */ ae_vector* x,
+     ae_int_t n,
+     double mean,
+     double* bothtails,
+     double* lefttail,
+     double* righttail,
+     ae_state *_state)
+{
+    ae_int_t i;
+    double xmean;
+    double x0;
+    double v;
+    ae_bool samex;
+    double xvariance;
+    double xstddev;
+    double v1;
+    double v2;
+    double stat;
+    double s;
+
+    *bothtails = 0;
+    *lefttail = 0;
+    *righttail = 0;
+
+    if( n<=0 )
+    {
+        *bothtails = 1.0;
+        *lefttail = 1.0;
+        *righttail = 1.0;
+        return;
+    }
+    
+    /*
+     * Mean
+     */
+    xmean = (double)(0);
+    x0 = x->ptr.p_double[0];
+    samex = ae_true;
+    for(i=0; i<=n-1; i++)
+    {
+        v = x->ptr.p_double[i];
+        xmean = xmean+v;
+        samex = samex&&ae_fp_eq(v,x0);
+    }
+    if( samex )
+    {
+        xmean = x0;
+    }
+    else
+    {
+        xmean = xmean/n;
+    }
+    
+    /*
+     * Variance (using corrected two-pass algorithm)
+     */
+    xvariance = (double)(0);
+    xstddev = (double)(0);
+    if( n!=1&&!samex )
+    {
+        v1 = (double)(0);
+        for(i=0; i<=n-1; i++)
+        {
+            v1 = v1+ae_sqr(x->ptr.p_double[i]-xmean, _state);
+        }
+        v2 = (double)(0);
+        for(i=0; i<=n-1; i++)
+        {
+            v2 = v2+(x->ptr.p_double[i]-xmean);
+        }
+        v2 = ae_sqr(v2, _state)/n;
+        xvariance = (v1-v2)/(n-1);
+        if( ae_fp_less(xvariance,(double)(0)) )
+        {
+            xvariance = (double)(0);
+        }
+        xstddev = ae_sqrt(xvariance, _state);
+    }
+    if( ae_fp_eq(xstddev,(double)(0)) )
+    {
+        if( ae_fp_eq(xmean,mean) )
+        {
+            *bothtails = 1.0;
+        }
+        else
+        {
+            *bothtails = 0.0;
+        }
+        if( ae_fp_greater_eq(xmean,mean) )
+        {
+            *lefttail = 1.0;
+        }
+        else
+        {
+            *lefttail = 0.0;
+        }
+        if( ae_fp_less_eq(xmean,mean) )
+        {
+            *righttail = 1.0;
+        }
+        else
+        {
+            *righttail = 0.0;
+        }
+        return;
+    }
+    
+    /*
+     * Statistic
+     */
+    stat = (xmean-mean)/(xstddev/ae_sqrt((double)(n), _state));
+    s = studenttdistribution(n-1, stat, _state);
+    *bothtails = 2*ae_minreal(s, 1-s, _state);
+    *lefttail = s;
+    *righttail = 1-s;
+}
+
+
+/*************************************************************************
+Two-sample pooled test
+
+This test checks three hypotheses about the mean of the given samples. The
+following tests are performed:
+    * two-tailed test (null hypothesis - the means are equal)
+    * left-tailed test (null hypothesis - the mean of the first sample  is
+      greater than or equal to the mean of the second sample)
+    * right-tailed test (null hypothesis - the mean of the first sample is
+      less than or equal to the mean of the second sample).
+
+Test is based on the following assumptions:
+    * given samples have normal distributions
+    * dispersions are equal
+    * samples are independent.
+
+Input parameters:
+    X       -   sample 1. Array whose index goes from 0 to N-1.
+    N       -   size of sample.
+    Y       -   sample 2. Array whose index goes from 0 to M-1.
+    M       -   size of sample.
+
+Output parameters:
+    BothTails   -   p-value for two-tailed test.
+                    If BothTails is less than the given significance level
+                    the null hypothesis is rejected.
+    LeftTail    -   p-value for left-tailed test.
+                    If LeftTail is less than the given significance level,
+                    the null hypothesis is rejected.
+    RightTail   -   p-value for right-tailed test.
+                    If RightTail is less than the given significance level
+                    the null hypothesis is rejected.
+
+NOTE: this function correctly handles degenerate cases:
+      * when N=0 or M=0, all p-values are set to 1.0
+      * when both samples has exactly zero variance, p-values are set
+        to 1.0 or 0.0, depending on difference between means.
+
+  -- ALGLIB --
+     Copyright 18.09.2006 by Bochkanov Sergey
+*************************************************************************/
+void studentttest2(/* Real    */ ae_vector* x,
+     ae_int_t n,
+     /* Real    */ ae_vector* y,
+     ae_int_t m,
+     double* bothtails,
+     double* lefttail,
+     double* righttail,
+     ae_state *_state)
+{
+    ae_int_t i;
+    ae_bool samex;
+    ae_bool samey;
+    double x0;
+    double y0;
+    double xmean;
+    double ymean;
+    double v;
+    double stat;
+    double s;
+    double p;
+
+    *bothtails = 0;
+    *lefttail = 0;
+    *righttail = 0;
+
+    if( n<=0||m<=0 )
+    {
+        *bothtails = 1.0;
+        *lefttail = 1.0;
+        *righttail = 1.0;
+        return;
+    }
+    
+    /*
+     * Mean
+     */
+    xmean = (double)(0);
+    x0 = x->ptr.p_double[0];
+    samex = ae_true;
+    for(i=0; i<=n-1; i++)
+    {
+        v = x->ptr.p_double[i];
+        xmean = xmean+v;
+        samex = samex&&ae_fp_eq(v,x0);
+    }
+    if( samex )
+    {
+        xmean = x0;
+    }
+    else
+    {
+        xmean = xmean/n;
+    }
+    ymean = (double)(0);
+    y0 = y->ptr.p_double[0];
+    samey = ae_true;
+    for(i=0; i<=m-1; i++)
+    {
+        v = y->ptr.p_double[i];
+        ymean = ymean+v;
+        samey = samey&&ae_fp_eq(v,y0);
+    }
+    if( samey )
+    {
+        ymean = y0;
+    }
+    else
+    {
+        ymean = ymean/m;
+    }
+    
+    /*
+     * S
+     */
+    s = (double)(0);
+    if( n+m>2 )
+    {
+        for(i=0; i<=n-1; i++)
+        {
+            s = s+ae_sqr(x->ptr.p_double[i]-xmean, _state);
+        }
+        for(i=0; i<=m-1; i++)
+        {
+            s = s+ae_sqr(y->ptr.p_double[i]-ymean, _state);
+        }
+        s = ae_sqrt(s*((double)1/(double)n+(double)1/(double)m)/(n+m-2), _state);
+    }
+    if( ae_fp_eq(s,(double)(0)) )
+    {
+        if( ae_fp_eq(xmean,ymean) )
+        {
+            *bothtails = 1.0;
+        }
+        else
+        {
+            *bothtails = 0.0;
+        }
+        if( ae_fp_greater_eq(xmean,ymean) )
+        {
+            *lefttail = 1.0;
+        }
+        else
+        {
+            *lefttail = 0.0;
+        }
+        if( ae_fp_less_eq(xmean,ymean) )
+        {
+            *righttail = 1.0;
+        }
+        else
+        {
+            *righttail = 0.0;
+        }
+        return;
+    }
+    
+    /*
+     * Statistic
+     */
+    stat = (xmean-ymean)/s;
+    p = studenttdistribution(n+m-2, stat, _state);
+    *bothtails = 2*ae_minreal(p, 1-p, _state);
+    *lefttail = p;
+    *righttail = 1-p;
+}
+
+
+/*************************************************************************
+Two-sample unpooled test
+
+This test checks three hypotheses about the mean of the given samples. The
+following tests are performed:
+    * two-tailed test (null hypothesis - the means are equal)
+    * left-tailed test (null hypothesis - the mean of the first sample  is
+      greater than or equal to the mean of the second sample)
+    * right-tailed test (null hypothesis - the mean of the first sample is
+      less than or equal to the mean of the second sample).
+
+Test is based on the following assumptions:
+    * given samples have normal distributions
+    * samples are independent.
+Equality of variances is NOT required.
+
+Input parameters:
+    X - sample 1. Array whose index goes from 0 to N-1.
+    N - size of the sample.
+    Y - sample 2. Array whose index goes from 0 to M-1.
+    M - size of the sample.
+
+Output parameters:
+    BothTails   -   p-value for two-tailed test.
+                    If BothTails is less than the given significance level
+                    the null hypothesis is rejected.
+    LeftTail    -   p-value for left-tailed test.
+                    If LeftTail is less than the given significance level,
+                    the null hypothesis is rejected.
+    RightTail   -   p-value for right-tailed test.
+                    If RightTail is less than the given significance level
+                    the null hypothesis is rejected.
+
+NOTE: this function correctly handles degenerate cases:
+      * when N=0 or M=0, all p-values are set to 1.0
+      * when both samples has zero variance, p-values are set
+        to 1.0 or 0.0, depending on difference between means.
+      * when only one sample has zero variance, test reduces to 1-sample
+        version.
+
+  -- ALGLIB --
+     Copyright 18.09.2006 by Bochkanov Sergey
+*************************************************************************/
+void unequalvariancettest(/* Real    */ ae_vector* x,
+     ae_int_t n,
+     /* Real    */ ae_vector* y,
+     ae_int_t m,
+     double* bothtails,
+     double* lefttail,
+     double* righttail,
+     ae_state *_state)
+{
+    ae_int_t i;
+    ae_bool samex;
+    ae_bool samey;
+    double x0;
+    double y0;
+    double xmean;
+    double ymean;
+    double xvar;
+    double yvar;
+    double v;
+    double df;
+    double p;
+    double stat;
+    double c;
+
+    *bothtails = 0;
+    *lefttail = 0;
+    *righttail = 0;
+
+    if( n<=0||m<=0 )
+    {
+        *bothtails = 1.0;
+        *lefttail = 1.0;
+        *righttail = 1.0;
+        return;
+    }
+    
+    /*
+     * Mean
+     */
+    xmean = (double)(0);
+    x0 = x->ptr.p_double[0];
+    samex = ae_true;
+    for(i=0; i<=n-1; i++)
+    {
+        v = x->ptr.p_double[i];
+        xmean = xmean+v;
+        samex = samex&&ae_fp_eq(v,x0);
+    }
+    if( samex )
+    {
+        xmean = x0;
+    }
+    else
+    {
+        xmean = xmean/n;
+    }
+    ymean = (double)(0);
+    y0 = y->ptr.p_double[0];
+    samey = ae_true;
+    for(i=0; i<=m-1; i++)
+    {
+        v = y->ptr.p_double[i];
+        ymean = ymean+v;
+        samey = samey&&ae_fp_eq(v,y0);
+    }
+    if( samey )
+    {
+        ymean = y0;
+    }
+    else
+    {
+        ymean = ymean/m;
+    }
+    
+    /*
+     * Variance (using corrected two-pass algorithm)
+     */
+    xvar = (double)(0);
+    if( n>=2&&!samex )
+    {
+        for(i=0; i<=n-1; i++)
+        {
+            xvar = xvar+ae_sqr(x->ptr.p_double[i]-xmean, _state);
+        }
+        xvar = xvar/(n-1);
+    }
+    yvar = (double)(0);
+    if( m>=2&&!samey )
+    {
+        for(i=0; i<=m-1; i++)
+        {
+            yvar = yvar+ae_sqr(y->ptr.p_double[i]-ymean, _state);
+        }
+        yvar = yvar/(m-1);
+    }
+    
+    /*
+     * Handle different special cases
+     * (one or both variances are zero).
+     */
+    if( ae_fp_eq(xvar,(double)(0))&&ae_fp_eq(yvar,(double)(0)) )
+    {
+        if( ae_fp_eq(xmean,ymean) )
+        {
+            *bothtails = 1.0;
+        }
+        else
+        {
+            *bothtails = 0.0;
+        }
+        if( ae_fp_greater_eq(xmean,ymean) )
+        {
+            *lefttail = 1.0;
+        }
+        else
+        {
+            *lefttail = 0.0;
+        }
+        if( ae_fp_less_eq(xmean,ymean) )
+        {
+            *righttail = 1.0;
+        }
+        else
+        {
+            *righttail = 0.0;
+        }
+        return;
+    }
+    if( ae_fp_eq(xvar,(double)(0)) )
+    {
+        
+        /*
+         * X is constant, unpooled 2-sample test reduces to 1-sample test.
+         *
+         * NOTE: right-tail and left-tail must be passed to 1-sample
+         *       t-test in reverse order because we reverse order of
+         *       of samples.
+         */
+        studentttest1(y, m, xmean, bothtails, righttail, lefttail, _state);
+        return;
+    }
+    if( ae_fp_eq(yvar,(double)(0)) )
+    {
+        
+        /*
+         * Y is constant, unpooled 2-sample test reduces to 1-sample test.
+         */
+        studentttest1(x, n, ymean, bothtails, lefttail, righttail, _state);
+        return;
+    }
+    
+    /*
+     * Statistic
+     */
+    stat = (xmean-ymean)/ae_sqrt(xvar/n+yvar/m, _state);
+    c = xvar/n/(xvar/n+yvar/m);
+    df = rmul2((double)(n-1), (double)(m-1), _state)/((m-1)*ae_sqr(c, _state)+(n-1)*ae_sqr(1-c, _state));
+    if( ae_fp_greater(stat,(double)(0)) )
+    {
+        p = 1-0.5*incompletebeta(df/2, 0.5, df/(df+ae_sqr(stat, _state)), _state);
+    }
+    else
+    {
+        p = 0.5*incompletebeta(df/2, 0.5, df/(df+ae_sqr(stat, _state)), _state);
+    }
+    *bothtails = 2*ae_minreal(p, 1-p, _state);
+    *lefttail = p;
+    *righttail = 1-p;
+}
+
+
+#endif
+#if defined(AE_COMPILE_MANNWHITNEYU) || !defined(AE_PARTIAL_BUILD)
+
+
+/*************************************************************************
+Mann-Whitney U-test
+
+This test checks hypotheses about whether X  and  Y  are  samples  of  two
+continuous distributions of the same shape  and  same  median  or  whether
+their medians are different.
+
+The following tests are performed:
+    * two-tailed test (null hypothesis - the medians are equal)
+    * left-tailed test (null hypothesis - the median of the  first  sample
+      is greater than or equal to the median of the second sample)
+    * right-tailed test (null hypothesis - the median of the first  sample
+      is less than or equal to the median of the second sample).
+
+Requirements:
+    * the samples are independent
+    * X and Y are continuous distributions (or discrete distributions well-
+      approximating continuous distributions)
+    * distributions of X and Y have the  same  shape.  The  only  possible
+      difference is their position (i.e. the value of the median)
+    * the number of elements in each sample is not less than 5
+    * the scale of measurement should be ordinal, interval or ratio  (i.e.
+      the test could not be applied to nominal variables).
+
+The test is non-parametric and doesn't require distributions to be normal.
+
+Input parameters:
+    X   -   sample 1. Array whose index goes from 0 to N-1.
+    N   -   size of the sample. N>=5
+    Y   -   sample 2. Array whose index goes from 0 to M-1.
+    M   -   size of the sample. M>=5
+
+Output parameters:
+    BothTails   -   p-value for two-tailed test.
+                    If BothTails is less than the given significance level
+                    the null hypothesis is rejected.
+    LeftTail    -   p-value for left-tailed test.
+                    If LeftTail is less than the given significance level,
+                    the null hypothesis is rejected.
+    RightTail   -   p-value for right-tailed test.
+                    If RightTail is less than the given significance level
+                    the null hypothesis is rejected.
+
+To calculate p-values, special approximation is used. This method lets  us
+calculate p-values with satisfactory  accuracy  in  interval  [0.0001, 1].
+There is no approximation outside the [0.0001, 1] interval. Therefore,  if
+the significance level outlies this interval, the test returns 0.0001.
+
+Relative precision of approximation of p-value:
+
+N          M          Max.err.   Rms.err.
+5..10      N..10      1.4e-02    6.0e-04
+5..10      N..100     2.2e-02    5.3e-06
+10..15     N..15      1.0e-02    3.2e-04
+10..15     N..100     1.0e-02    2.2e-05
+15..100    N..100     6.1e-03    2.7e-06
+
+For N,M>100 accuracy checks weren't put into  practice,  but  taking  into
+account characteristics of asymptotic approximation used, precision should
+not be sharply different from the values for interval [5, 100].
+
+NOTE: P-value approximation was  optimized  for  0.0001<=p<=0.2500.  Thus,
+      P's outside of this interval are enforced to these bounds. Say,  you
+      may quite often get P equal to exactly 0.25 or 0.0001.
+
+  -- ALGLIB --
+     Copyright 09.04.2007 by Bochkanov Sergey
+*************************************************************************/
+void mannwhitneyutest(/* Real    */ ae_vector* x,
+     ae_int_t n,
+     /* Real    */ ae_vector* y,
+     ae_int_t m,
+     double* bothtails,
+     double* lefttail,
+     double* righttail,
+     ae_state *_state)
+{
+    ae_frame _frame_block;
+    ae_int_t i;
+    ae_int_t j;
+    ae_int_t k;
+    ae_int_t t;
+    double tmp;
+    ae_int_t tmpi;
+    ae_int_t ns;
+    ae_vector r;
+    ae_vector c;
+    double u;
+    double p;
+    double mp;
+    double s;
+    double sigma;
+    double mu;
+    ae_int_t tiecount;
+    ae_vector tiesize;
+
+    ae_frame_make(_state, &_frame_block);
+    memset(&r, 0, sizeof(r));
+    memset(&c, 0, sizeof(c));
+    memset(&tiesize, 0, sizeof(tiesize));
+    *bothtails = 0;
+    *lefttail = 0;
+    *righttail = 0;
+    ae_vector_init(&r, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&c, 0, DT_INT, _state, ae_true);
+    ae_vector_init(&tiesize, 0, DT_INT, _state, ae_true);
+
+    
+    /*
+     * Prepare
+     */
+    if( n<=4||m<=4 )
+    {
+        *bothtails = 1.0;
+        *lefttail = 1.0;
+        *righttail = 1.0;
+        ae_frame_leave(_state);
+        return;
+    }
+    ns = n+m;
+    ae_vector_set_length(&r, ns-1+1, _state);
+    ae_vector_set_length(&c, ns-1+1, _state);
+    for(i=0; i<=n-1; i++)
+    {
+        r.ptr.p_double[i] = x->ptr.p_double[i];
+        c.ptr.p_int[i] = 0;
+    }
+    for(i=0; i<=m-1; i++)
+    {
+        r.ptr.p_double[n+i] = y->ptr.p_double[i];
+        c.ptr.p_int[n+i] = 1;
+    }
+    
+    /*
+     * sort {R, C}
+     */
+    if( ns!=1 )
+    {
+        i = 2;
+        do
+        {
+            t = i;
+            while(t!=1)
+            {
+                k = t/2;
+                if( ae_fp_greater_eq(r.ptr.p_double[k-1],r.ptr.p_double[t-1]) )
+                {
+                    t = 1;
+                }
+                else
+                {
+                    tmp = r.ptr.p_double[k-1];
+                    r.ptr.p_double[k-1] = r.ptr.p_double[t-1];
+                    r.ptr.p_double[t-1] = tmp;
+                    tmpi = c.ptr.p_int[k-1];
+                    c.ptr.p_int[k-1] = c.ptr.p_int[t-1];
+                    c.ptr.p_int[t-1] = tmpi;
+                    t = k;
+                }
+            }
+            i = i+1;
+        }
+        while(i<=ns);
+        i = ns-1;
+        do
+        {
+            tmp = r.ptr.p_double[i];
+            r.ptr.p_double[i] = r.ptr.p_double[0];
+            r.ptr.p_double[0] = tmp;
+            tmpi = c.ptr.p_int[i];
+            c.ptr.p_int[i] = c.ptr.p_int[0];
+            c.ptr.p_int[0] = tmpi;
+            t = 1;
+            while(t!=0)
+            {
+                k = 2*t;
+                if( k>i )
+                {
+                    t = 0;
+                }
+                else
+                {
+                    if( k<i )
+                    {
+                        if( ae_fp_greater(r.ptr.p_double[k],r.ptr.p_double[k-1]) )
+                        {
+                            k = k+1;
+                        }
+                    }
+                    if( ae_fp_greater_eq(r.ptr.p_double[t-1],r.ptr.p_double[k-1]) )
+                    {
+                        t = 0;
+                    }
+                    else
+                    {
+                        tmp = r.ptr.p_double[k-1];
+                        r.ptr.p_double[k-1] = r.ptr.p_double[t-1];
+                        r.ptr.p_double[t-1] = tmp;
+                        tmpi = c.ptr.p_int[k-1];
+                        c.ptr.p_int[k-1] = c.ptr.p_int[t-1];
+                        c.ptr.p_int[t-1] = tmpi;
+                        t = k;
+                    }
+                }
+            }
+            i = i-1;
+        }
+        while(i>=1);
+    }
+    
+    /*
+     * compute tied ranks
+     */
+    i = 0;
+    tiecount = 0;
+    ae_vector_set_length(&tiesize, ns-1+1, _state);
+    while(i<=ns-1)
+    {
+        j = i+1;
+        while(j<=ns-1)
+        {
+            if( ae_fp_neq(r.ptr.p_double[j],r.ptr.p_double[i]) )
+            {
+                break;
+            }
+            j = j+1;
+        }
+        for(k=i; k<=j-1; k++)
+        {
+            r.ptr.p_double[k] = 1+(double)(i+j-1)/(double)2;
+        }
+        tiesize.ptr.p_int[tiecount] = j-i;
+        tiecount = tiecount+1;
+        i = j;
+    }
+    
+    /*
+     * Compute U
+     */
+    u = (double)(0);
+    for(i=0; i<=ns-1; i++)
+    {
+        if( c.ptr.p_int[i]==0 )
+        {
+            u = u+r.ptr.p_double[i];
+        }
+    }
+    u = rmul2((double)(n), (double)(m), _state)+rmul2((double)(n), (double)(n+1), _state)*0.5-u;
+    
+    /*
+     * Result
+     */
+    mu = rmul2((double)(n), (double)(m), _state)/2;
+    tmp = ns*(ae_sqr((double)(ns), _state)-1)/12;
+    for(i=0; i<=tiecount-1; i++)
+    {
+        tmp = tmp-tiesize.ptr.p_int[i]*(ae_sqr((double)(tiesize.ptr.p_int[i]), _state)-1)/12;
+    }
+    sigma = ae_sqrt(rmul2((double)(n), (double)(m), _state)/ns/(ns-1)*tmp, _state);
+    s = (u-mu)/sigma;
+    if( ae_fp_less_eq(s,(double)(0)) )
+    {
+        p = ae_exp(mannwhitneyu_usigma(-(u-mu)/sigma, n, m, _state), _state);
+        mp = 1-ae_exp(mannwhitneyu_usigma(-(u-1-mu)/sigma, n, m, _state), _state);
+    }
+    else
+    {
+        mp = ae_exp(mannwhitneyu_usigma((u-mu)/sigma, n, m, _state), _state);
+        p = 1-ae_exp(mannwhitneyu_usigma((u+1-mu)/sigma, n, m, _state), _state);
+    }
+    *lefttail = boundval(ae_maxreal(mp, 1.0E-4, _state), 0.0001, 0.2500, _state);
+    *righttail = boundval(ae_maxreal(p, 1.0E-4, _state), 0.0001, 0.2500, _state);
+    *bothtails = 2*ae_minreal(*lefttail, *righttail, _state);
+    ae_frame_leave(_state);
+}
+
+
+/*************************************************************************
+Sequential Chebyshev interpolation.
+*************************************************************************/
+static void mannwhitneyu_ucheb(double x,
+     double c,
+     double* tj,
+     double* tj1,
+     double* r,
+     ae_state *_state)
+{
+    double t;
+
+
+    *r = *r+c*(*tj);
+    t = 2*x*(*tj1)-(*tj);
+    *tj = *tj1;
+    *tj1 = t;
+}
+
+
+/*************************************************************************
+Three-point polynomial interpolation.
+*************************************************************************/
+static double mannwhitneyu_uninterpolate(double p1,
+     double p2,
+     double p3,
+     ae_int_t n,
+     ae_state *_state)
+{
+    double t1;
+    double t2;
+    double t3;
+    double t;
+    double p12;
+    double p23;
+    double result;
+
+
+    t1 = 1.0/15.0;
+    t2 = 1.0/30.0;
+    t3 = 1.0/100.0;
+    t = 1.0/n;
+    p12 = ((t-t2)*p1+(t1-t)*p2)/(t1-t2);
+    p23 = ((t-t3)*p2+(t2-t)*p3)/(t2-t3);
+    result = ((t-t3)*p12+(t1-t)*p23)/(t1-t3);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(0, N1, N2)
+*************************************************************************/
+static double mannwhitneyu_usigma000(ae_int_t n1,
+     ae_int_t n2,
+     ae_state *_state)
+{
+    double p1;
+    double p2;
+    double p3;
+    double result;
+
+
+    p1 = mannwhitneyu_uninterpolate(-6.76984e-01, -6.83700e-01, -6.89873e-01, n2, _state);
+    p2 = mannwhitneyu_uninterpolate(-6.83700e-01, -6.87311e-01, -6.90957e-01, n2, _state);
+    p3 = mannwhitneyu_uninterpolate(-6.89873e-01, -6.90957e-01, -6.92175e-01, n2, _state);
+    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(0.75, N1, N2)
+*************************************************************************/
+static double mannwhitneyu_usigma075(ae_int_t n1,
+     ae_int_t n2,
+     ae_state *_state)
+{
+    double p1;
+    double p2;
+    double p3;
+    double result;
+
+
+    p1 = mannwhitneyu_uninterpolate(-1.44500e+00, -1.45906e+00, -1.47063e+00, n2, _state);
+    p2 = mannwhitneyu_uninterpolate(-1.45906e+00, -1.46856e+00, -1.47644e+00, n2, _state);
+    p3 = mannwhitneyu_uninterpolate(-1.47063e+00, -1.47644e+00, -1.48100e+00, n2, _state);
+    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(1.5, N1, N2)
+*************************************************************************/
+static double mannwhitneyu_usigma150(ae_int_t n1,
+     ae_int_t n2,
+     ae_state *_state)
+{
+    double p1;
+    double p2;
+    double p3;
+    double result;
+
+
+    p1 = mannwhitneyu_uninterpolate(-2.65380e+00, -2.67352e+00, -2.69011e+00, n2, _state);
+    p2 = mannwhitneyu_uninterpolate(-2.67352e+00, -2.68591e+00, -2.69659e+00, n2, _state);
+    p3 = mannwhitneyu_uninterpolate(-2.69011e+00, -2.69659e+00, -2.70192e+00, n2, _state);
+    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(2.25, N1, N2)
+*************************************************************************/
+static double mannwhitneyu_usigma225(ae_int_t n1,
+     ae_int_t n2,
+     ae_state *_state)
+{
+    double p1;
+    double p2;
+    double p3;
+    double result;
+
+
+    p1 = mannwhitneyu_uninterpolate(-4.41465e+00, -4.42260e+00, -4.43702e+00, n2, _state);
+    p2 = mannwhitneyu_uninterpolate(-4.42260e+00, -4.41639e+00, -4.41928e+00, n2, _state);
+    p3 = mannwhitneyu_uninterpolate(-4.43702e+00, -4.41928e+00, -4.41030e+00, n2, _state);
+    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(3.0, N1, N2)
+*************************************************************************/
+static double mannwhitneyu_usigma300(ae_int_t n1,
+     ae_int_t n2,
+     ae_state *_state)
+{
+    double p1;
+    double p2;
+    double p3;
+    double result;
+
+
+    p1 = mannwhitneyu_uninterpolate(-6.89839e+00, -6.83477e+00, -6.82340e+00, n2, _state);
+    p2 = mannwhitneyu_uninterpolate(-6.83477e+00, -6.74559e+00, -6.71117e+00, n2, _state);
+    p3 = mannwhitneyu_uninterpolate(-6.82340e+00, -6.71117e+00, -6.64929e+00, n2, _state);
+    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(3.33, N1, N2)
+*************************************************************************/
+static double mannwhitneyu_usigma333(ae_int_t n1,
+     ae_int_t n2,
+     ae_state *_state)
+{
+    double p1;
+    double p2;
+    double p3;
+    double result;
+
+
+    p1 = mannwhitneyu_uninterpolate(-8.31272e+00, -8.17096e+00, -8.13125e+00, n2, _state);
+    p2 = mannwhitneyu_uninterpolate(-8.17096e+00, -8.00156e+00, -7.93245e+00, n2, _state);
+    p3 = mannwhitneyu_uninterpolate(-8.13125e+00, -7.93245e+00, -7.82502e+00, n2, _state);
+    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(3.66, N1, N2)
+*************************************************************************/
+static double mannwhitneyu_usigma367(ae_int_t n1,
+     ae_int_t n2,
+     ae_state *_state)
+{
+    double p1;
+    double p2;
+    double p3;
+    double result;
+
+
+    p1 = mannwhitneyu_uninterpolate(-9.98837e+00, -9.70844e+00, -9.62087e+00, n2, _state);
+    p2 = mannwhitneyu_uninterpolate(-9.70844e+00, -9.41156e+00, -9.28998e+00, n2, _state);
+    p3 = mannwhitneyu_uninterpolate(-9.62087e+00, -9.28998e+00, -9.11686e+00, n2, _state);
+    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(4.0, N1, N2)
+*************************************************************************/
+static double mannwhitneyu_usigma400(ae_int_t n1,
+     ae_int_t n2,
+     ae_state *_state)
+{
+    double p1;
+    double p2;
+    double p3;
+    double result;
+
+
+    p1 = mannwhitneyu_uninterpolate(-1.20250e+01, -1.14911e+01, -1.13231e+01, n2, _state);
+    p2 = mannwhitneyu_uninterpolate(-1.14911e+01, -1.09927e+01, -1.07937e+01, n2, _state);
+    p3 = mannwhitneyu_uninterpolate(-1.13231e+01, -1.07937e+01, -1.05285e+01, n2, _state);
+    result = mannwhitneyu_uninterpolate(p1, p2, p3, n1, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 5)
+*************************************************************************/
+static double mannwhitneyu_utbln5n5(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/2.611165e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -2.596264e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.412086e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.858542e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.614282e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.372686e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.524731e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.435331e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.284665e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.184141e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.298360e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 7.447272e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.938769e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.276205e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.138481e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.684625e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.558104e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 6)
+*************************************************************************/
+static double mannwhitneyu_utbln5n6(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/2.738613e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -2.810459e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.684429e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.712858e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.009324e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.644391e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 6.034173e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.953498e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.279293e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.563485e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.971952e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.506309e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.541406e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.283205e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.016347e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.221626e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.286752e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 7)
+*************************************************************************/
+static double mannwhitneyu_utbln5n7(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/2.841993e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -2.994677e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.923264e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.506190e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.054280e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.794587e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.726290e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.534180e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.517845e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.904428e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.882443e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.482988e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.114875e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.515082e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.996056e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.293581e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.349444e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 8)
+*************************************************************************/
+static double mannwhitneyu_utbln5n8(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/2.927700e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.155727e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.135078e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.247203e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.309697e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.993725e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.567219e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.383704e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.002188e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.487322e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.443899e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.688270e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.600339e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.874948e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.811593e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.072353e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.659457e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 9)
+*************************************************************************/
+static double mannwhitneyu_utbln5n9(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.000000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.298162e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.325016e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.939852e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.563029e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.222652e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.195200e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.445665e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.204792e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.775217e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.527781e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.221948e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.242968e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.607959e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.771285e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 6.694026e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.481190e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 10)
+*************************************************************************/
+static double mannwhitneyu_utbln5n10(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.061862e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.425360e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.496710e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.587658e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.812005e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.427637e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.515702e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.406867e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.796295e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.237591e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.654249e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.181165e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.011665e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.417927e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.534880e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.791255e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.871512e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 11)
+*************************************************************************/
+static double mannwhitneyu_utbln5n11(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.115427e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.539959e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.652998e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.196503e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.054363e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.618848e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.109411e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.786668e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.215648e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.484220e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.935991e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.396191e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.894177e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.206979e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.519055e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.210326e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.189679e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 12)
+*************************************************************************/
+static double mannwhitneyu_utbln5n12(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.162278e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.644007e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.796173e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.771177e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.290043e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.794686e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.702110e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.185959e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.416259e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.592056e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.201530e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.754365e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.978945e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.012032e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.304579e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.100378e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.728269e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 13)
+*************************************************************************/
+static double mannwhitneyu_utbln5n13(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.203616e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.739120e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.928117e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.031605e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.519403e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.962648e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.292183e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.809293e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.465156e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.456278e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.446055e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.109490e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.218256e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.941479e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.058603e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.824402e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.830947e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 14)
+*************************************************************************/
+static double mannwhitneyu_utbln5n14(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.240370e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.826559e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.050370e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.083408e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.743164e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.012030e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.884686e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.059656e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.327521e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.134026e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.584201e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.440618e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.524133e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.990007e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.887334e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.534977e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.705395e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 15)
+*************************************************************************/
+static double mannwhitneyu_utbln5n15(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.851572e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.082033e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.095983e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.814595e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.073148e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.420213e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.517175e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.344180e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.371393e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.711443e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.228569e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.683483e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.267112e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.156044e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 9.131316e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.301023e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 16)
+*************************************************************************/
+static double mannwhitneyu_utbln5n16(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.852210e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.077482e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.091186e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.797282e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.084994e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.667054e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.843909e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.456732e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.039830e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.723508e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.940608e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.478285e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.649144e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.237703e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.707410e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.874293e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 17)
+*************************************************************************/
+static double mannwhitneyu_utbln5n17(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.851752e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.071259e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.084700e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.758898e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.073846e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.684838e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.964936e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.782442e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.956362e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.984727e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.196936e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.558262e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.690746e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.364855e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.401006e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.546748e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 18)
+*************************************************************************/
+static double mannwhitneyu_utbln5n18(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.850840e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.064799e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.077651e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.712659e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.049217e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.571333e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.929809e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.752044e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.949464e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.896101e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.614460e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.384357e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.489113e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.445725e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.945636e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.424653e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 19)
+*************************************************************************/
+static double mannwhitneyu_utbln5n19(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.850027e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.059159e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.071106e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.669960e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.022780e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.442555e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.851335e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.433865e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.514465e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.332989e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.606099e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.341945e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.402164e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.039761e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.512831e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.284427e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 20)
+*************************************************************************/
+static double mannwhitneyu_utbln5n20(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.849651e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.054729e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.065747e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.636243e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.003234e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.372789e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.831551e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.763090e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.830626e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.122384e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.108328e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.557983e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.945666e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.965696e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.493236e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.162591e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 21)
+*************************************************************************/
+static double mannwhitneyu_utbln5n21(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.849649e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.051155e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.061430e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.608869e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.902788e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.346562e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.874709e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.682887e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.026206e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.534551e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.990575e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.713334e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 9.737011e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.304571e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.133110e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.123457e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 22)
+*************************************************************************/
+static double mannwhitneyu_utbln5n22(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.849598e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.047605e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.057264e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.579513e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.749602e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.275137e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.881768e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.177374e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.981056e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.696290e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.886803e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.085378e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.675242e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.426367e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.039613e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.662378e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 23)
+*************************************************************************/
+static double mannwhitneyu_utbln5n23(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.849269e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.043761e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.052735e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.544683e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.517503e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.112082e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.782070e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.549483e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.747329e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.694263e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.147141e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.526209e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.039173e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.235615e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.656546e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.014423e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 24)
+*************************************************************************/
+static double mannwhitneyu_utbln5n24(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.848925e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.040178e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.048355e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.510198e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.261134e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.915864e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.627423e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.307345e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.732992e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.869652e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.494176e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.047533e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.178439e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.424171e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.829195e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.840810e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 25)
+*************************************************************************/
+static double mannwhitneyu_utbln5n25(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.848937e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.037512e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.044866e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.483269e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.063682e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.767778e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.508540e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.332756e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.881511e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.124041e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.368456e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.930499e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.779630e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.029528e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.658678e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.289695e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 26)
+*************************************************************************/
+static double mannwhitneyu_utbln5n26(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.849416e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.035915e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.042493e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.466021e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.956432e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.698914e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.465689e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.035254e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.674614e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.492734e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.014021e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.944953e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.255750e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.075841e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.989330e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.134862e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 27)
+*************************************************************************/
+static double mannwhitneyu_utbln5n27(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.850070e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.034815e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.040650e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.453117e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.886426e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.661702e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.452346e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.002476e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.720126e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.001400e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.729826e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.740640e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.206333e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.366093e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.193471e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.804091e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 28)
+*************************************************************************/
+static double mannwhitneyu_utbln5n28(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.850668e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.033786e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.038853e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.440281e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.806020e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.612883e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.420436e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.787982e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.535230e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.263121e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.849609e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.863967e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.391610e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.720294e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.952273e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.901413e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 29)
+*************************************************************************/
+static double mannwhitneyu_utbln5n29(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.851217e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.032834e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.037113e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.427762e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.719146e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.557172e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.375498e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.452033e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.187516e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.916936e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.065533e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.067301e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.615824e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.432244e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.417795e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.710038e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 30)
+*************************************************************************/
+static double mannwhitneyu_utbln5n30(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.851845e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.032148e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.035679e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.417758e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.655330e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.522132e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.352106e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.326911e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.064969e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.813321e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.683881e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.813346e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.627085e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.832107e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.519336e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.888530e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 5, 100)
+*************************************************************************/
+static double mannwhitneyu_utbln5n100(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.250000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.877940e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.039324e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.022243e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.305825e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.960119e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.112000e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.138868e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.418164e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.174520e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.489617e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.878301e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.302233e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.054113e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.458862e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.186591e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.623412e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 6, 6)
+*************************************************************************/
+static double mannwhitneyu_utbln6n6(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/2.882307e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.054075e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.998804e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.681518e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.067578e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.709435e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 9.952661e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.641700e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.304572e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.336275e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.770385e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.401891e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.246148e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.442663e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.502866e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.105855e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.739371e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 6, 7)
+*************************************************************************/
+static double mannwhitneyu_utbln6n7(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.000000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.265287e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.274613e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.582352e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.334293e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.915502e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.108091e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.546701e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.298827e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.891501e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.313717e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.989501e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.914594e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.062372e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.158841e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.596443e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.185662e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 6, 8)
+*************************************************************************/
+static double mannwhitneyu_utbln6n8(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.098387e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.450954e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.520462e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.420299e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.604853e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.165840e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.008756e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.723402e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.843521e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.883405e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.720980e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.301709e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.948034e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.776243e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.623736e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.742068e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.796927e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 6, 9)
+*************************************************************************/
+static double mannwhitneyu_utbln6n9(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.181981e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.616113e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.741650e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.204487e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.873068e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.446794e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.632286e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.266481e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.280067e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.780687e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.480242e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.592200e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.581019e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.264231e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.347174e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.167535e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.092185e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 6, 10)
+*************************************************************************/
+static double mannwhitneyu_utbln6n10(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.253957e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.764382e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.942366e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.939896e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.137812e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.720270e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.281070e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.901060e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.824937e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.802812e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.258132e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.233536e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.085530e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.212151e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.001329e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.226048e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.035298e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 6, 11)
+*************************************************************************/
+static double mannwhitneyu_utbln6n11(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.316625e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.898597e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.125710e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.063297e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.396852e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.990126e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.927977e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.726500e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.858745e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.654590e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.217736e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.989770e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.768493e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.924364e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.140215e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.647914e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.924802e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 6, 12)
+*************************************************************************/
+static double mannwhitneyu_utbln6n12(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.371709e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.020941e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.294250e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.128842e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.650389e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.248611e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.578510e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.162852e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.746982e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.454209e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.128042e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.936650e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.530794e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.665192e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.994144e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.662249e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.368541e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 6, 13)
+*************************************************************************/
+static double mannwhitneyu_utbln6n13(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.420526e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.133167e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.450016e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.191088e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.898220e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.050249e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.226901e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.471113e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.007470e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.049420e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.059074e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.881249e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.452780e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.441805e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.787493e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.483957e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.481590e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 6, 14)
+*************************************************************************/
+static double mannwhitneyu_utbln6n14(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.450000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.201268e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.542568e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.226965e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.046029e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.136657e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.786757e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.843748e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.588022e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.253029e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.667188e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.788330e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.474545e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.540494e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.951188e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.863323e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.220904e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 6, 15)
+*************************************************************************/
+static double mannwhitneyu_utbln6n15(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.450000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.195689e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.526567e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.213617e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.975035e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.118480e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.859142e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.083312e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.298720e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.766708e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.026356e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.093113e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.135168e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.136376e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.190870e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.435972e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.413129e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 6, 30)
+*************************************************************************/
+static double mannwhitneyu_utbln6n30(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.450000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.166269e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.427399e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.118239e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.360847e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.745885e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.025041e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.187179e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.432089e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.408451e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.388774e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.795560e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.304136e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.258516e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.180236e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.388679e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.836027e-06, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 6, 100)
+*************************************************************************/
+static double mannwhitneyu_utbln6n100(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.450000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.181350e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.417919e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.094201e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.195883e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.818937e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.514202e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.125047e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.022148e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.284181e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.157766e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.023752e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.127985e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.221690e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.516179e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 9.501398e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 9.380220e-06, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 7, 7)
+*************************************************************************/
+static double mannwhitneyu_utbln7n7(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.130495e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.501264e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.584790e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.577311e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.617002e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.145186e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.023462e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.408251e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.626515e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.072492e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.722926e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.095445e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.842602e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.751427e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.008927e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.892431e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.772386e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 7, 8)
+*************************************************************************/
+static double mannwhitneyu_utbln7n8(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.240370e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.709965e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.862154e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.504541e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.900195e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.439995e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.678028e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.485540e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.437047e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.440092e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.114227e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.516569e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.829457e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.787550e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.761866e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.991911e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.533481e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 7, 9)
+*************************************************************************/
+static double mannwhitneyu_utbln7n9(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.334314e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.896550e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.112671e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.037277e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.181695e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.765190e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.360116e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.695960e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.780578e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.963843e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.616148e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.852104e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.390744e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.014041e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.888101e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.467474e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.004611e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 7, 10)
+*************************************************************************/
+static double mannwhitneyu_utbln7n10(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.415650e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.064844e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.340749e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.118888e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.459730e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.097781e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.057688e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.097406e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.209262e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.065641e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.196677e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.313994e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.827157e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.822284e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.389090e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.340850e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.395172e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 7, 11)
+*************************************************************************/
+static double mannwhitneyu_utbln7n11(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.486817e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.217795e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.549783e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.195905e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.733093e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.428447e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.760093e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.431676e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.717152e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.032199e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.832423e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.905979e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.302799e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.464371e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.456211e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.736244e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.140712e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 7, 12)
+*************************************************************************/
+static double mannwhitneyu_utbln7n12(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.500000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.235822e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.564100e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.190813e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.686546e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.395083e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.967359e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.747096e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.304144e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.903198e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.134906e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.175035e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.266224e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.892931e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.604706e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 9.070459e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.427010e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 7, 13)
+*************************************************************************/
+static double mannwhitneyu_utbln7n13(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.500000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.222204e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.532300e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.164642e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.523768e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.531984e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.467857e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.483804e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.524136e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.077740e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.745218e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.602085e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.828831e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.994070e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.873879e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.341937e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.706444e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 7, 14)
+*************************************************************************/
+static double mannwhitneyu_utbln7n14(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.500000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.211763e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.507542e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.143640e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.395755e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.808020e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.044259e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.182308e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.057325e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.724255e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.303900e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.113148e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.102514e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.559442e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.634986e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.776476e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.054489e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 7, 15)
+*************************************************************************/
+static double mannwhitneyu_utbln7n15(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.500000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.204898e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.489960e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.129172e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.316741e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.506107e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.983676e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.258013e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.262515e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.984156e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.912108e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.974023e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 6.056195e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.090842e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.232620e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.816339e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.020421e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 7, 30)
+*************************************************************************/
+static double mannwhitneyu_utbln7n30(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.500000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.176536e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.398705e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.045481e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.821982e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.962304e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.698132e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.062667e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.282353e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.014836e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.035683e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.004137e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.801453e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.920705e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.518735e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.821501e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.801008e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 7, 100)
+*************************************************************************/
+static double mannwhitneyu_utbln7n100(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.500000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.188337e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.386949e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.022834e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.686517e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.323516e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.399392e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.644333e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.617044e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.031396e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.792066e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.675457e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.673416e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.258552e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.174214e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.073644e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.349958e-06, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 8, 8)
+*************************************************************************/
+static double mannwhitneyu_utbln8n8(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.360672e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -3.940217e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.168913e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.051485e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.195325e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.775196e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.385506e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.244902e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.525632e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.771275e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.332874e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.079599e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.882551e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.407944e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.769844e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.062433e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.872535e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 8, 9)
+*************************************************************************/
+static double mannwhitneyu_utbln8n9(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.464102e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.147004e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.446939e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.146155e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.488561e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.144561e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.116917e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.205667e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.515661e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.618616e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.599011e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.457324e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.482917e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.488267e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.469823e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.957591e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.058326e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 8, 10)
+*************************************************************************/
+static double mannwhitneyu_utbln8n10(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.554093e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.334282e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.700860e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.235253e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.778489e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.527324e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.862885e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.589781e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.507355e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.717526e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 9.215726e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.848696e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.918854e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.219614e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.753761e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.573688e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.602177e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 8, 11)
+*************************************************************************/
+static double mannwhitneyu_utbln8n11(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.600000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.421882e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.812457e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.266153e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.849344e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.971527e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.258944e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.944820e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.894685e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.031836e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.514330e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.351660e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 6.206748e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.492600e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.005338e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.780099e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.673599e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 8, 12)
+*************************************************************************/
+static double mannwhitneyu_utbln8n12(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.600000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.398211e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.762214e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.226296e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.603837e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.643223e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.502438e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.544574e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.647734e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.442259e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.011484e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.384758e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.998259e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.659985e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.331046e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.638478e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.056785e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 8, 13)
+*************************************************************************/
+static double mannwhitneyu_utbln8n13(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.600000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.380670e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.724511e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.195851e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.420511e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.609928e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.893999e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.115919e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.291410e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.339664e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.801548e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.534710e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.793250e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.806718e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.384624e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.120582e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.936453e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 8, 14)
+*************************************************************************/
+static double mannwhitneyu_utbln8n14(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.600000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.368494e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.697171e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.174440e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.300621e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.087393e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.685826e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.085254e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.525658e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.966647e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.453388e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.826066e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.501958e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.336297e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.251972e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.118456e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.415959e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 8, 15)
+*************************************************************************/
+static double mannwhitneyu_utbln8n15(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.600000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.358397e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.674485e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.155941e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.195780e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.544830e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.426183e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.309902e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.650956e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.068874e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.538544e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.192525e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.073905e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.079673e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 9.423572e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 6.579647e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.765904e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 8, 30)
+*************************************************************************/
+static double mannwhitneyu_utbln8n30(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.600000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.318823e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.567159e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.064864e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.688413e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.153712e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.309389e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.226861e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.523815e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.780987e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.166866e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.922431e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.466397e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.690036e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.008185e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.271903e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.534751e-06, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 8, 100)
+*************************************************************************/
+static double mannwhitneyu_utbln8n100(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.600000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.324531e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.547071e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.038129e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.541549e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.525605e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.044992e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.085713e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.017871e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.459226e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.092064e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.024349e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 7.366347e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 6.385637e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.321722e-08, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.439286e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.058079e-07, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 9, 9)
+*************************************************************************/
+static double mannwhitneyu_utbln9n9(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.576237e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.372857e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.750859e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.248233e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.792868e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.559372e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.894941e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.643256e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.091370e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.285034e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 6.112997e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.806229e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.150741e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.509825e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.891051e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.485013e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.343653e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 9, 10)
+*************************************************************************/
+static double mannwhitneyu_utbln9n10(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.516726e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.939333e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.305046e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.935326e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.029141e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.420592e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.053140e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.065930e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.523581e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.544888e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.813741e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.510631e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.536057e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.833815e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.189692e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.615050e-03, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 9, 11)
+*************************************************************************/
+static double mannwhitneyu_utbln9n11(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.481308e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.867483e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.249072e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.591790e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.400128e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.341992e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.463680e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.487211e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.671196e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.343472e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.544146e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.802335e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.117084e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.217443e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.858766e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.193687e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 9, 12)
+*************************************************************************/
+static double mannwhitneyu_utbln9n12(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.456776e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.817037e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.209788e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.362108e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.171356e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.661557e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.026141e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.361908e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.093885e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.298389e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.663603e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.768522e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.579015e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.868677e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.440652e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.523037e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 9, 13)
+*************************************************************************/
+static double mannwhitneyu_utbln9n13(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.438840e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.779308e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.180614e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.196489e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.346621e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.234857e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.796211e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.575715e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.525647e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.964651e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.275235e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.299124e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.397416e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.295781e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.237619e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 7.269692e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 9, 14)
+*************************************************************************/
+static double mannwhitneyu_utbln9n14(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.425981e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.751545e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.159543e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.086570e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.917446e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.120112e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.175519e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.515473e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.727772e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.070629e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.677569e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.876953e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.233502e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.508182e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.120389e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.847212e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 9, 15)
+*************************************************************************/
+static double mannwhitneyu_utbln9n15(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.414952e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.727612e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.140634e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.981231e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.382635e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.853575e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.571051e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.567625e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.214197e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.448700e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.712669e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.015050e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.438610e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 6.301363e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.309386e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.164772e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 9, 30)
+*************************************************************************/
+static double mannwhitneyu_utbln9n30(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.370720e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.615712e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.050023e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.504775e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.318265e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.646826e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.741492e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.735360e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.966911e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.100738e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.348991e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.527687e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.917286e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.397466e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.360175e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.892252e-07, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 9, 100)
+*************************************************************************/
+static double mannwhitneyu_utbln9n100(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.372506e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.590966e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.021758e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.359849e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.755519e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.533166e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.936659e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.634913e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.730053e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.791845e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.030682e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.228663e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.631175e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.636749e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.404599e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.789872e-07, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 10, 10)
+*************************************************************************/
+static double mannwhitneyu_utbln10n10(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.468831e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.844398e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.231728e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.486073e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.781321e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.971425e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.215371e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.828451e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.419872e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.430165e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.740363e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.049211e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.269371e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.211393e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.232314e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.016081e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 10, 11)
+*************************************************************************/
+static double mannwhitneyu_utbln10n11(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.437998e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.782296e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.184732e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.219585e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.457012e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.296008e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.481501e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.527940e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.953426e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.563840e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.574403e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.535775e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.338037e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.002654e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.852676e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.318132e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 10, 12)
+*************************************************************************/
+static double mannwhitneyu_utbln10n12(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.416082e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.737458e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.150952e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.036884e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.609030e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.908684e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.439666e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.162647e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.451601e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.148757e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.803981e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.731621e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.346903e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.013151e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.956148e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.438381e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 10, 13)
+*************************************************************************/
+static double mannwhitneyu_utbln10n13(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.399480e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.702863e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.124829e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.897428e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.979802e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.634368e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.180461e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.484926e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.864376e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.186576e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.886925e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.836828e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.074756e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.209547e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.883266e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.380143e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 10, 14)
+*************************************************************************/
+static double mannwhitneyu_utbln10n14(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.386924e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.676124e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.104740e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.793826e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.558886e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.492462e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.052903e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.917782e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.878696e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.576046e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.764551e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.288778e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.757658e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.299101e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.265197e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.384503e-07, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 10, 15)
+*************************************************************************/
+static double mannwhitneyu_utbln10n15(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.376846e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.654247e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.088083e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.705945e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.169677e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.317213e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.264836e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.548024e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.633910e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.505621e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.658588e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.320254e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.175277e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.122317e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.675688e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.661363e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 10, 30)
+*************************************************************************/
+static double mannwhitneyu_utbln10n30(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.333977e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.548099e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.004444e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.291014e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.523674e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.828211e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.716917e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.894256e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.433371e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.522675e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.764192e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.140235e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.629230e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.541895e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.944946e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.726360e-06, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 10, 100)
+*************************************************************************/
+static double mannwhitneyu_utbln10n100(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.650000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.334008e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.522316e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.769627e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.158110e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.053650e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.242235e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.173571e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.033661e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.824732e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.084420e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.610036e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.728155e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.217130e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.340966e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.001235e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.694052e-07, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 11, 11)
+*************************************************************************/
+static double mannwhitneyu_utbln11n11(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.519760e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.880694e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.200698e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.174092e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.072304e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.054773e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.506613e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.813942e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.223644e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.417416e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.499166e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.194332e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 7.369096e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.968590e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.630532e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.061000e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 11, 12)
+*************************************************************************/
+static double mannwhitneyu_utbln11n12(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.495790e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.832622e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.165420e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.987306e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.265621e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.723537e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.347406e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.353464e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 6.613369e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.102522e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.237709e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.665652e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.626903e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.167518e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.564455e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.047320e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 11, 13)
+*************************************************************************/
+static double mannwhitneyu_utbln11n13(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.477880e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.796242e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.138769e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.851739e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.722104e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.548304e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.176683e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.817895e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.842451e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.935870e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.421777e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.238831e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.867026e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.458255e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.306259e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.961487e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 11, 14)
+*************************************************************************/
+static double mannwhitneyu_utbln11n14(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.463683e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.766969e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.117082e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.739574e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.238865e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.350306e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.425871e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.640172e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.660633e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.879883e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.349658e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.271795e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.304544e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.024201e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.816867e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.596787e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 11, 15)
+*************************************************************************/
+static double mannwhitneyu_utbln11n15(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.452526e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.743570e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.099705e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.650612e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.858285e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.187036e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.689241e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.294360e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.072623e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.278008e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.322382e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.131558e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.305669e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.825627e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.332689e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.120973e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 11, 30)
+*************************************************************************/
+static double mannwhitneyu_utbln11n30(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.402621e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.627440e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.011333e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.224126e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.232856e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.859347e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.377381e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.756709e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.033230e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.875472e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.608399e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.102943e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.740693e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.343139e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.196878e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.658062e-07, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 11, 100)
+*************************************************************************/
+static double mannwhitneyu_utbln11n100(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.398795e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.596486e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.814761e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.085187e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.766529e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.379425e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.986351e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.214705e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.360075e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.260869e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.033307e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.727087e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.393883e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.242989e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.111928e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.898823e-09, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 12, 12)
+*************************************************************************/
+static double mannwhitneyu_utbln12n12(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.472616e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.786627e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.132099e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.817523e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.570179e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.479511e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.799492e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.565350e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.530139e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.380132e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.242761e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.576269e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.018771e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.933911e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 9.002799e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.022048e-06, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 12, 13)
+*************************************************************************/
+static double mannwhitneyu_utbln12n13(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.454800e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.750794e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.105988e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.684754e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.011826e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.262579e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.044492e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.478741e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.322165e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.621104e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.068753e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.468396e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.056235e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.327375e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.914877e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.784191e-04, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 12, 14)
+*************************************************************************/
+static double mannwhitneyu_utbln12n14(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.440910e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.722404e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.085254e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.579439e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.563738e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.066730e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.129346e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.014531e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.129679e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.000909e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.996174e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 6.377924e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.936304e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.051098e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 9.025820e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 8.730585e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 12, 15)
+*************************************************************************/
+static double mannwhitneyu_utbln12n15(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.430123e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.700008e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.068971e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.499725e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.250897e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.473145e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.680008e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.483350e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.766992e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.891081e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.015140e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.977756e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.707414e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.114786e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 6.238865e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.381445e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 12, 30)
+*************************************************************************/
+static double mannwhitneyu_utbln12n30(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.380023e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.585782e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.838583e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.103394e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.834015e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.635212e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.948212e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.574169e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.747980e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.833672e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.722433e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.181038e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.206473e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.716003e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.476434e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.217700e-07, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 12, 100)
+*************************************************************************/
+static double mannwhitneyu_utbln12n100(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.700000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.374567e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.553481e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.541334e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.701907e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.414757e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.404103e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.234388e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.453762e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.311060e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.317501e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.713888e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.309583e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.019804e-08, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.224829e-09, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.349019e-08, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.893302e-08, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 13, 13)
+*************************************************************************/
+static double mannwhitneyu_utbln13n13(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.541046e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.859047e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.130164e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.689719e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.950693e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.231455e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.976550e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.538455e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.245603e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.142647e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.831434e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.032483e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.488405e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.156927e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.949279e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.532700e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 13, 14)
+*************************************************************************/
+static double mannwhitneyu_utbln13n14(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.525655e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.828341e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.108110e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.579552e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.488307e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.032328e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.988741e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.766394e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.388950e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.338179e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.133440e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.023518e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.110570e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.202332e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.056132e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.536323e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 13, 15)
+*************************************************************************/
+static double mannwhitneyu_utbln13n15(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.513585e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.803952e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.090686e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.495310e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.160314e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.073124e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.480313e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.478239e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.140914e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.311541e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.677105e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.115464e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.578563e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.044604e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.888939e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 2.395644e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 13, 30)
+*************************************************************************/
+static double mannwhitneyu_utbln13n30(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.455999e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.678434e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.995491e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.078100e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.705220e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.258739e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.671526e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.185458e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.507764e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.411446e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.044355e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.285765e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.345282e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.066940e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.962037e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.723644e-07, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 13, 100)
+*************************************************************************/
+static double mannwhitneyu_utbln13n100(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.446787e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.640804e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.671552e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.364990e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.274444e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.047440e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.161439e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.171729e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.562171e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.359762e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.275494e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.747635e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.700292e-08, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.565559e-09, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 5.005396e-09, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 3.335794e-09, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 14, 14)
+*************************************************************************/
+static double mannwhitneyu_utbln14n14(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.510624e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.798584e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.087107e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.478532e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.098050e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.855986e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.409083e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.299536e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.176177e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.479417e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.812761e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -5.225872e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 4.516521e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 6.730551e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 9.237563e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.611820e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 14, 15)
+*************************************************************************/
+static double mannwhitneyu_utbln14n15(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.498681e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.774668e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.070267e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.399348e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.807239e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.845763e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.071773e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.261698e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.011695e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.305946e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.879295e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.999439e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.904438e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.944986e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.373908e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.140794e-05, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 14, 30)
+*************************************************************************/
+static double mannwhitneyu_utbln14n30(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.440378e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.649587e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.807829e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.989753e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.463646e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.586580e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -6.745917e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.635398e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.923172e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.446699e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.613892e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.214073e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.651683e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.272777e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.464988e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.109803e-07, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, 14, 100)
+*************************************************************************/
+static double mannwhitneyu_utbln14n100(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    x = ae_minreal(2*(s-0.000000e+00)/3.750000e+00-1, 1.0, _state);
+    tj = (double)(1);
+    tj1 = x;
+    mannwhitneyu_ucheb(x, -4.429701e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -4.610577e+00, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -9.482675e-01, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.605550e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.062151e-02, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.525154e-03, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.835983e-04, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -8.411440e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.744901e-05, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.318850e-06, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.692100e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -1.536270e-07, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -3.705888e-08, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -7.999599e-09, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, -2.908395e-09, &tj, &tj1, &result, _state);
+    mannwhitneyu_ucheb(x, 1.546923e-09, &tj, &tj1, &result, _state);
+    return result;
+}
+
+
+/*************************************************************************
+Tail(S, N1, N2)
+*************************************************************************/
+static double mannwhitneyu_usigma(double s,
+     ae_int_t n1,
+     ae_int_t n2,
+     ae_state *_state)
+{
+    double f0;
+    double f1;
+    double f2;
+    double f3;
+    double f4;
+    double s0;
+    double s1;
+    double s2;
+    double s3;
+    double s4;
+    double result;
+
+
+    result = (double)(0);
+    
+    /*
+     * N1=5, N2 = 5, 6, 7, ...
+     */
+    if( ae_minint(n1, n2, _state)==5 )
+    {
+        if( ae_maxint(n1, n2, _state)==5 )
+        {
+            result = mannwhitneyu_utbln5n5(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==6 )
+        {
+            result = mannwhitneyu_utbln5n6(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==7 )
+        {
+            result = mannwhitneyu_utbln5n7(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==8 )
+        {
+            result = mannwhitneyu_utbln5n8(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==9 )
+        {
+            result = mannwhitneyu_utbln5n9(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==10 )
+        {
+            result = mannwhitneyu_utbln5n10(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==11 )
+        {
+            result = mannwhitneyu_utbln5n11(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==12 )
+        {
+            result = mannwhitneyu_utbln5n12(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==13 )
+        {
+            result = mannwhitneyu_utbln5n13(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==14 )
+        {
+            result = mannwhitneyu_utbln5n14(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==15 )
+        {
+            result = mannwhitneyu_utbln5n15(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==16 )
+        {
+            result = mannwhitneyu_utbln5n16(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==17 )
+        {
+            result = mannwhitneyu_utbln5n17(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==18 )
+        {
+            result = mannwhitneyu_utbln5n18(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==19 )
+        {
+            result = mannwhitneyu_utbln5n19(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==20 )
+        {
+            result = mannwhitneyu_utbln5n20(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==21 )
+        {
+            result = mannwhitneyu_utbln5n21(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==22 )
+        {
+            result = mannwhitneyu_utbln5n22(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==23 )
+        {
+            result = mannwhitneyu_utbln5n23(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==24 )
+        {
+            result = mannwhitneyu_utbln5n24(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==25 )
+        {
+            result = mannwhitneyu_utbln5n25(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==26 )
+        {
+            result = mannwhitneyu_utbln5n26(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==27 )
+        {
+            result = mannwhitneyu_utbln5n27(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==28 )
+        {
+            result = mannwhitneyu_utbln5n28(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==29 )
+        {
+            result = mannwhitneyu_utbln5n29(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)>29 )
+        {
+            f0 = mannwhitneyu_utbln5n15(s, _state);
+            f1 = mannwhitneyu_utbln5n30(s, _state);
+            f2 = mannwhitneyu_utbln5n100(s, _state);
+            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
+        }
+        return result;
+    }
+    
+    /*
+     * N1=6, N2 = 6, 7, 8, ...
+     */
+    if( ae_minint(n1, n2, _state)==6 )
+    {
+        if( ae_maxint(n1, n2, _state)==6 )
+        {
+            result = mannwhitneyu_utbln6n6(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==7 )
+        {
+            result = mannwhitneyu_utbln6n7(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==8 )
+        {
+            result = mannwhitneyu_utbln6n8(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==9 )
+        {
+            result = mannwhitneyu_utbln6n9(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==10 )
+        {
+            result = mannwhitneyu_utbln6n10(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==11 )
+        {
+            result = mannwhitneyu_utbln6n11(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==12 )
+        {
+            result = mannwhitneyu_utbln6n12(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==13 )
+        {
+            result = mannwhitneyu_utbln6n13(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==14 )
+        {
+            result = mannwhitneyu_utbln6n14(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==15 )
+        {
+            result = mannwhitneyu_utbln6n15(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)>15 )
+        {
+            f0 = mannwhitneyu_utbln6n15(s, _state);
+            f1 = mannwhitneyu_utbln6n30(s, _state);
+            f2 = mannwhitneyu_utbln6n100(s, _state);
+            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
+        }
+        return result;
+    }
+    
+    /*
+     * N1=7, N2 = 7, 8, ...
+     */
+    if( ae_minint(n1, n2, _state)==7 )
+    {
+        if( ae_maxint(n1, n2, _state)==7 )
+        {
+            result = mannwhitneyu_utbln7n7(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==8 )
+        {
+            result = mannwhitneyu_utbln7n8(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==9 )
+        {
+            result = mannwhitneyu_utbln7n9(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==10 )
+        {
+            result = mannwhitneyu_utbln7n10(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==11 )
+        {
+            result = mannwhitneyu_utbln7n11(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==12 )
+        {
+            result = mannwhitneyu_utbln7n12(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==13 )
+        {
+            result = mannwhitneyu_utbln7n13(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==14 )
+        {
+            result = mannwhitneyu_utbln7n14(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==15 )
+        {
+            result = mannwhitneyu_utbln7n15(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)>15 )
+        {
+            f0 = mannwhitneyu_utbln7n15(s, _state);
+            f1 = mannwhitneyu_utbln7n30(s, _state);
+            f2 = mannwhitneyu_utbln7n100(s, _state);
+            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
+        }
+        return result;
+    }
+    
+    /*
+     * N1=8, N2 = 8, 9, 10, ...
+     */
+    if( ae_minint(n1, n2, _state)==8 )
+    {
+        if( ae_maxint(n1, n2, _state)==8 )
+        {
+            result = mannwhitneyu_utbln8n8(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==9 )
+        {
+            result = mannwhitneyu_utbln8n9(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==10 )
+        {
+            result = mannwhitneyu_utbln8n10(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==11 )
+        {
+            result = mannwhitneyu_utbln8n11(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==12 )
+        {
+            result = mannwhitneyu_utbln8n12(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==13 )
+        {
+            result = mannwhitneyu_utbln8n13(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==14 )
+        {
+            result = mannwhitneyu_utbln8n14(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==15 )
+        {
+            result = mannwhitneyu_utbln8n15(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)>15 )
+        {
+            f0 = mannwhitneyu_utbln8n15(s, _state);
+            f1 = mannwhitneyu_utbln8n30(s, _state);
+            f2 = mannwhitneyu_utbln8n100(s, _state);
+            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
+        }
+        return result;
+    }
+    
+    /*
+     * N1=9, N2 = 9, 10, ...
+     */
+    if( ae_minint(n1, n2, _state)==9 )
+    {
+        if( ae_maxint(n1, n2, _state)==9 )
+        {
+            result = mannwhitneyu_utbln9n9(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==10 )
+        {
+            result = mannwhitneyu_utbln9n10(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==11 )
+        {
+            result = mannwhitneyu_utbln9n11(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==12 )
+        {
+            result = mannwhitneyu_utbln9n12(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==13 )
+        {
+            result = mannwhitneyu_utbln9n13(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==14 )
+        {
+            result = mannwhitneyu_utbln9n14(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==15 )
+        {
+            result = mannwhitneyu_utbln9n15(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)>15 )
+        {
+            f0 = mannwhitneyu_utbln9n15(s, _state);
+            f1 = mannwhitneyu_utbln9n30(s, _state);
+            f2 = mannwhitneyu_utbln9n100(s, _state);
+            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
+        }
+        return result;
+    }
+    
+    /*
+     * N1=10, N2 = 10, 11, ...
+     */
+    if( ae_minint(n1, n2, _state)==10 )
+    {
+        if( ae_maxint(n1, n2, _state)==10 )
+        {
+            result = mannwhitneyu_utbln10n10(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==11 )
+        {
+            result = mannwhitneyu_utbln10n11(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==12 )
+        {
+            result = mannwhitneyu_utbln10n12(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==13 )
+        {
+            result = mannwhitneyu_utbln10n13(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==14 )
+        {
+            result = mannwhitneyu_utbln10n14(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==15 )
+        {
+            result = mannwhitneyu_utbln10n15(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)>15 )
+        {
+            f0 = mannwhitneyu_utbln10n15(s, _state);
+            f1 = mannwhitneyu_utbln10n30(s, _state);
+            f2 = mannwhitneyu_utbln10n100(s, _state);
+            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
+        }
+        return result;
+    }
+    
+    /*
+     * N1=11, N2 = 11, 12, ...
+     */
+    if( ae_minint(n1, n2, _state)==11 )
+    {
+        if( ae_maxint(n1, n2, _state)==11 )
+        {
+            result = mannwhitneyu_utbln11n11(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==12 )
+        {
+            result = mannwhitneyu_utbln11n12(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==13 )
+        {
+            result = mannwhitneyu_utbln11n13(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==14 )
+        {
+            result = mannwhitneyu_utbln11n14(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==15 )
+        {
+            result = mannwhitneyu_utbln11n15(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)>15 )
+        {
+            f0 = mannwhitneyu_utbln11n15(s, _state);
+            f1 = mannwhitneyu_utbln11n30(s, _state);
+            f2 = mannwhitneyu_utbln11n100(s, _state);
+            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
+        }
+        return result;
+    }
+    
+    /*
+     * N1=12, N2 = 12, 13, ...
+     */
+    if( ae_minint(n1, n2, _state)==12 )
+    {
+        if( ae_maxint(n1, n2, _state)==12 )
+        {
+            result = mannwhitneyu_utbln12n12(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==13 )
+        {
+            result = mannwhitneyu_utbln12n13(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==14 )
+        {
+            result = mannwhitneyu_utbln12n14(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==15 )
+        {
+            result = mannwhitneyu_utbln12n15(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)>15 )
+        {
+            f0 = mannwhitneyu_utbln12n15(s, _state);
+            f1 = mannwhitneyu_utbln12n30(s, _state);
+            f2 = mannwhitneyu_utbln12n100(s, _state);
+            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
+        }
+        return result;
+    }
+    
+    /*
+     * N1=13, N2 = 13, 14, ...
+     */
+    if( ae_minint(n1, n2, _state)==13 )
+    {
+        if( ae_maxint(n1, n2, _state)==13 )
+        {
+            result = mannwhitneyu_utbln13n13(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==14 )
+        {
+            result = mannwhitneyu_utbln13n14(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==15 )
+        {
+            result = mannwhitneyu_utbln13n15(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)>15 )
+        {
+            f0 = mannwhitneyu_utbln13n15(s, _state);
+            f1 = mannwhitneyu_utbln13n30(s, _state);
+            f2 = mannwhitneyu_utbln13n100(s, _state);
+            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
+        }
+        return result;
+    }
+    
+    /*
+     * N1=14, N2 = 14, 15, ...
+     */
+    if( ae_minint(n1, n2, _state)==14 )
+    {
+        if( ae_maxint(n1, n2, _state)==14 )
+        {
+            result = mannwhitneyu_utbln14n14(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)==15 )
+        {
+            result = mannwhitneyu_utbln14n15(s, _state);
+        }
+        if( ae_maxint(n1, n2, _state)>15 )
+        {
+            f0 = mannwhitneyu_utbln14n15(s, _state);
+            f1 = mannwhitneyu_utbln14n30(s, _state);
+            f2 = mannwhitneyu_utbln14n100(s, _state);
+            result = mannwhitneyu_uninterpolate(f0, f1, f2, ae_maxint(n1, n2, _state), _state);
+        }
+        return result;
+    }
+    
+    /*
+     * N1 >= 15, N2 >= 15
+     */
+    if( ae_fp_greater(s,(double)(4)) )
+    {
+        s = (double)(4);
+    }
+    if( ae_fp_less(s,(double)(3)) )
+    {
+        s0 = 0.000000e+00;
+        f0 = mannwhitneyu_usigma000(n1, n2, _state);
+        s1 = 7.500000e-01;
+        f1 = mannwhitneyu_usigma075(n1, n2, _state);
+        s2 = 1.500000e+00;
+        f2 = mannwhitneyu_usigma150(n1, n2, _state);
+        s3 = 2.250000e+00;
+        f3 = mannwhitneyu_usigma225(n1, n2, _state);
+        s4 = 3.000000e+00;
+        f4 = mannwhitneyu_usigma300(n1, n2, _state);
+        f1 = ((s-s0)*f1-(s-s1)*f0)/(s1-s0);
+        f2 = ((s-s0)*f2-(s-s2)*f0)/(s2-s0);
+        f3 = ((s-s0)*f3-(s-s3)*f0)/(s3-s0);
+        f4 = ((s-s0)*f4-(s-s4)*f0)/(s4-s0);
+        f2 = ((s-s1)*f2-(s-s2)*f1)/(s2-s1);
+        f3 = ((s-s1)*f3-(s-s3)*f1)/(s3-s1);
+        f4 = ((s-s1)*f4-(s-s4)*f1)/(s4-s1);
+        f3 = ((s-s2)*f3-(s-s3)*f2)/(s3-s2);
+        f4 = ((s-s2)*f4-(s-s4)*f2)/(s4-s2);
+        f4 = ((s-s3)*f4-(s-s4)*f3)/(s4-s3);
+        result = f4;
+    }
+    else
+    {
+        s0 = 3.000000e+00;
+        f0 = mannwhitneyu_usigma300(n1, n2, _state);
+        s1 = 3.333333e+00;
+        f1 = mannwhitneyu_usigma333(n1, n2, _state);
+        s2 = 3.666667e+00;
+        f2 = mannwhitneyu_usigma367(n1, n2, _state);
+        s3 = 4.000000e+00;
+        f3 = mannwhitneyu_usigma400(n1, n2, _state);
+        f1 = ((s-s0)*f1-(s-s1)*f0)/(s1-s0);
+        f2 = ((s-s0)*f2-(s-s2)*f0)/(s2-s0);
+        f3 = ((s-s0)*f3-(s-s3)*f0)/(s3-s0);
+        f2 = ((s-s1)*f2-(s-s2)*f1)/(s2-s1);
+        f3 = ((s-s1)*f3-(s-s3)*f1)/(s3-s1);
+        f3 = ((s-s2)*f3-(s-s3)*f2)/(s3-s2);
+        result = f3;
+    }
+    return result;
+}
+
+
+#endif
+#if defined(AE_COMPILE_JARQUEBERA) || !defined(AE_PARTIAL_BUILD)
+
+
+/*************************************************************************
+Jarque-Bera test
+
+This test checks hypotheses about the fact that a  given  sample  X  is  a
+sample of normal random variable.
+
+Requirements:
+    * the number of elements in the sample is not less than 5.
+
+Input parameters:
+    X   -   sample. Array whose index goes from 0 to N-1.
+    N   -   size of the sample. N>=5
+
+Output parameters:
+    P           -   p-value for the test
+
+Accuracy of the approximation used (5<=N<=1951):
+
+p-value  	    relative error (5<=N<=1951)
+[1, 0.1]            < 1%
+[0.1, 0.01]         < 2%
+[0.01, 0.001]       < 6%
+[0.001, 0]          wasn't measured
+
+For N>1951 accuracy wasn't measured but it shouldn't be sharply  different
+from table values.
+
+  -- ALGLIB --
+     Copyright 09.04.2007 by Bochkanov Sergey
+*************************************************************************/
+void jarqueberatest(/* Real    */ ae_vector* x,
+     ae_int_t n,
+     double* p,
+     ae_state *_state)
+{
+    double s;
+
+    *p = 0;
+
+    
+    /*
+     * N is too small
+     */
+    if( n<5 )
+    {
+        *p = 1.0;
+        return;
+    }
+    
+    /*
+     * N is large enough
+     */
+    jarquebera_jarqueberastatistic(x, n, &s, _state);
+    *p = jarquebera_jarqueberaapprox(n, s, _state);
+}
+
+
+static void jarquebera_jarqueberastatistic(/* Real    */ ae_vector* x,
+     ae_int_t n,
+     double* s,
+     ae_state *_state)
+{
+    ae_int_t i;
+    double v;
+    double v1;
+    double v2;
+    double stddev;
+    double mean;
+    double variance;
+    double skewness;
+    double kurtosis;
+
+    *s = 0;
+
+    mean = (double)(0);
+    variance = (double)(0);
+    skewness = (double)(0);
+    kurtosis = (double)(0);
+    stddev = (double)(0);
+    ae_assert(n>1, "Assertion failed", _state);
+    
+    /*
+     * Mean
+     */
+    for(i=0; i<=n-1; i++)
+    {
+        mean = mean+x->ptr.p_double[i];
+    }
+    mean = mean/n;
+    
+    /*
+     * Variance (using corrected two-pass algorithm)
+     */
+    if( n!=1 )
+    {
+        v1 = (double)(0);
+        for(i=0; i<=n-1; i++)
+        {
+            v1 = v1+ae_sqr(x->ptr.p_double[i]-mean, _state);
+        }
+        v2 = (double)(0);
+        for(i=0; i<=n-1; i++)
+        {
+            v2 = v2+(x->ptr.p_double[i]-mean);
+        }
+        v2 = ae_sqr(v2, _state)/n;
+        variance = (v1-v2)/(n-1);
+        if( ae_fp_less(variance,(double)(0)) )
+        {
+            variance = (double)(0);
+        }
+        stddev = ae_sqrt(variance, _state);
+    }
+    
+    /*
+     * Skewness and kurtosis
+     */
+    if( ae_fp_neq(stddev,(double)(0)) )
+    {
+        for(i=0; i<=n-1; i++)
+        {
+            v = (x->ptr.p_double[i]-mean)/stddev;
+            v2 = ae_sqr(v, _state);
+            skewness = skewness+v2*v;
+            kurtosis = kurtosis+ae_sqr(v2, _state);
+        }
+        skewness = skewness/n;
+        kurtosis = kurtosis/n-3;
+    }
+    
+    /*
+     * Statistic
+     */
+    *s = (double)n/(double)6*(ae_sqr(skewness, _state)+ae_sqr(kurtosis, _state)/4);
+}
+
+
+static double jarquebera_jarqueberaapprox(ae_int_t n,
+     double s,
+     ae_state *_state)
+{
+    ae_frame _frame_block;
+    ae_vector vx;
+    ae_vector vy;
+    ae_matrix ctbl;
+    double t1;
+    double t2;
+    double t3;
+    double t;
+    double f1;
+    double f2;
+    double f3;
+    double f12;
+    double f23;
+    double x;
+    double result;
+
+    ae_frame_make(_state, &_frame_block);
+    memset(&vx, 0, sizeof(vx));
+    memset(&vy, 0, sizeof(vy));
+    memset(&ctbl, 0, sizeof(ctbl));
+    ae_vector_init(&vx, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&vy, 0, DT_REAL, _state, ae_true);
+    ae_matrix_init(&ctbl, 0, 0, DT_REAL, _state, ae_true);
+
+    result = (double)(1);
+    x = s;
+    if( n<5 )
+    {
+        ae_frame_leave(_state);
+        return result;
+    }
+    
+    /*
+     * N = 5..20 are tabulated
+     */
+    if( n>=5&&n<=20 )
+    {
+        if( n==5 )
+        {
+            result = ae_exp(jarquebera_jbtbl5(x, _state), _state);
+        }
+        if( n==6 )
+        {
+            result = ae_exp(jarquebera_jbtbl6(x, _state), _state);
+        }
+        if( n==7 )
+        {
+            result = ae_exp(jarquebera_jbtbl7(x, _state), _state);
+        }
+        if( n==8 )
+        {
+            result = ae_exp(jarquebera_jbtbl8(x, _state), _state);
+        }
+        if( n==9 )
+        {
+            result = ae_exp(jarquebera_jbtbl9(x, _state), _state);
+        }
+        if( n==10 )
+        {
+            result = ae_exp(jarquebera_jbtbl10(x, _state), _state);
+        }
+        if( n==11 )
+        {
+            result = ae_exp(jarquebera_jbtbl11(x, _state), _state);
+        }
+        if( n==12 )
+        {
+            result = ae_exp(jarquebera_jbtbl12(x, _state), _state);
+        }
+        if( n==13 )
+        {
+            result = ae_exp(jarquebera_jbtbl13(x, _state), _state);
+        }
+        if( n==14 )
+        {
+            result = ae_exp(jarquebera_jbtbl14(x, _state), _state);
+        }
+        if( n==15 )
+        {
+            result = ae_exp(jarquebera_jbtbl15(x, _state), _state);
+        }
+        if( n==16 )
+        {
+            result = ae_exp(jarquebera_jbtbl16(x, _state), _state);
+        }
+        if( n==17 )
+        {
+            result = ae_exp(jarquebera_jbtbl17(x, _state), _state);
+        }
+        if( n==18 )
+        {
+            result = ae_exp(jarquebera_jbtbl18(x, _state), _state);
+        }
+        if( n==19 )
+        {
+            result = ae_exp(jarquebera_jbtbl19(x, _state), _state);
+        }
+        if( n==20 )
+        {
+            result = ae_exp(jarquebera_jbtbl20(x, _state), _state);
+        }
+        ae_frame_leave(_state);
+        return result;
+    }
+    
+    /*
+     * N = 20, 30, 50 are tabulated.
+     * In-between values are interpolated
+     * using interpolating polynomial of the second degree.
+     */
+    if( n>20&&n<=50 )
+    {
+        t1 = -1.0/20.0;
+        t2 = -1.0/30.0;
+        t3 = -1.0/50.0;
+        t = -1.0/n;
+        f1 = jarquebera_jbtbl20(x, _state);
+        f2 = jarquebera_jbtbl30(x, _state);
+        f3 = jarquebera_jbtbl50(x, _state);
+        f12 = ((t-t2)*f1+(t1-t)*f2)/(t1-t2);
+        f23 = ((t-t3)*f2+(t2-t)*f3)/(t2-t3);
+        result = ((t-t3)*f12+(t1-t)*f23)/(t1-t3);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        result = ae_exp(result, _state);
+        ae_frame_leave(_state);
+        return result;
+    }
+    
+    /*
+     * N = 50, 65, 100 are tabulated.
+     * In-between values are interpolated
+     * using interpolating polynomial of the second degree.
+     */
+    if( n>50&&n<=100 )
+    {
+        t1 = -1.0/50.0;
+        t2 = -1.0/65.0;
+        t3 = -1.0/100.0;
+        t = -1.0/n;
+        f1 = jarquebera_jbtbl50(x, _state);
+        f2 = jarquebera_jbtbl65(x, _state);
+        f3 = jarquebera_jbtbl100(x, _state);
+        f12 = ((t-t2)*f1+(t1-t)*f2)/(t1-t2);
+        f23 = ((t-t3)*f2+(t2-t)*f3)/(t2-t3);
+        result = ((t-t3)*f12+(t1-t)*f23)/(t1-t3);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        result = ae_exp(result, _state);
+        ae_frame_leave(_state);
+        return result;
+    }
+    
+    /*
+     * N = 100, 130, 200 are tabulated.
+     * In-between values are interpolated
+     * using interpolating polynomial of the second degree.
+     */
+    if( n>100&&n<=200 )
+    {
+        t1 = -1.0/100.0;
+        t2 = -1.0/130.0;
+        t3 = -1.0/200.0;
+        t = -1.0/n;
+        f1 = jarquebera_jbtbl100(x, _state);
+        f2 = jarquebera_jbtbl130(x, _state);
+        f3 = jarquebera_jbtbl200(x, _state);
+        f12 = ((t-t2)*f1+(t1-t)*f2)/(t1-t2);
+        f23 = ((t-t3)*f2+(t2-t)*f3)/(t2-t3);
+        result = ((t-t3)*f12+(t1-t)*f23)/(t1-t3);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        result = ae_exp(result, _state);
+        ae_frame_leave(_state);
+        return result;
+    }
+    
+    /*
+     * N = 200, 301, 501 are tabulated.
+     * In-between values are interpolated
+     * using interpolating polynomial of the second degree.
+     */
+    if( n>200&&n<=501 )
+    {
+        t1 = -1.0/200.0;
+        t2 = -1.0/301.0;
+        t3 = -1.0/501.0;
+        t = -1.0/n;
+        f1 = jarquebera_jbtbl200(x, _state);
+        f2 = jarquebera_jbtbl301(x, _state);
+        f3 = jarquebera_jbtbl501(x, _state);
+        f12 = ((t-t2)*f1+(t1-t)*f2)/(t1-t2);
+        f23 = ((t-t3)*f2+(t2-t)*f3)/(t2-t3);
+        result = ((t-t3)*f12+(t1-t)*f23)/(t1-t3);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        result = ae_exp(result, _state);
+        ae_frame_leave(_state);
+        return result;
+    }
+    
+    /*
+     * N = 501, 701, 1401 are tabulated.
+     * In-between values are interpolated
+     * using interpolating polynomial of the second degree.
+     */
+    if( n>501&&n<=1401 )
+    {
+        t1 = -1.0/501.0;
+        t2 = -1.0/701.0;
+        t3 = -1.0/1401.0;
+        t = -1.0/n;
+        f1 = jarquebera_jbtbl501(x, _state);
+        f2 = jarquebera_jbtbl701(x, _state);
+        f3 = jarquebera_jbtbl1401(x, _state);
+        f12 = ((t-t2)*f1+(t1-t)*f2)/(t1-t2);
+        f23 = ((t-t3)*f2+(t2-t)*f3)/(t2-t3);
+        result = ((t-t3)*f12+(t1-t)*f23)/(t1-t3);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        result = ae_exp(result, _state);
+        ae_frame_leave(_state);
+        return result;
+    }
+    
+    /*
+     * Asymptotic expansion
+     */
+    if( n>1401 )
+    {
+        result = -0.5*x+(jarquebera_jbtbl1401(x, _state)+0.5*x)*ae_sqrt((double)1401/(double)n, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        result = ae_exp(result, _state);
+        ae_frame_leave(_state);
+        return result;
+    }
+    ae_frame_leave(_state);
+    return result;
+}
+
+
+static double jarquebera_jbtbl5(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,0.4000) )
+    {
+        x = 2*(s-0.000000)/0.400000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.097885e-20, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.854501e-20, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.756616e-20, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,1.1000) )
+    {
+        x = 2*(s-0.400000)/0.700000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.324545e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.075941e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -9.772272e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.175686e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.576162e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.126861e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.434425e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.790359e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.809178e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.479704e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.717040e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.294170e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.880632e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.023344e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.601531e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.920403e-02, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -5.188419e+02*(s-1.100000e+00)-4.767297e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl6(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,0.2500) )
+    {
+        x = 2*(s-0.000000)/0.250000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -2.274707e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.700471e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.425764e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,1.3000) )
+    {
+        x = 2*(s-0.250000)/1.050000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.339000e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.011104e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.168177e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.085666e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 7.738606e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 7.022876e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.462402e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.908270e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.230772e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.006996e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.410222e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.893768e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 8.114564e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,1.8500) )
+    {
+        x = 2*(s-1.300000)/0.550000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -6.794311e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.578700e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.394664e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.928290e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.813273e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.076063e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.835380e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.013013e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.058903e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.856915e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.710887e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -1.770029e+02*(s-1.850000e+00)-1.371015e+01;
+    return result;
+}
+
+
+static double jarquebera_jbtbl7(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,1.4000) )
+    {
+        x = 2*(s-0.000000)/1.400000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.093681e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.695911e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.473192e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.203236e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.590379e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.291876e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.132007e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 9.411147e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.180067e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.487610e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.436561e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,3.0000) )
+    {
+        x = 2*(s-1.400000)/1.600000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -5.947854e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.772675e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.707912e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.691171e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.132795e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.481310e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.867536e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 8.772327e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.033387e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.378277e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.497964e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.636814e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -9.581640e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,3.2000) )
+    {
+        x = 2*(s-3.000000)/0.200000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -7.511008e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.140472e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.682053e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.568561e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.933930e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.140472e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.895025e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.140472e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.933930e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.568561e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.682053e+00, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -1.824116e+03*(s-3.200000e+00)-1.440330e+01;
+    return result;
+}
+
+
+static double jarquebera_jbtbl8(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,1.3000) )
+    {
+        x = 2*(s-0.000000)/1.300000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -7.199015e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.095921e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.736828e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.047438e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.484320e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 7.937923e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.810470e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.139780e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.708443e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,2.0000) )
+    {
+        x = 2*(s-1.300000)/0.700000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -3.378966e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.802461e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.547593e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.241042e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.203274e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.201990e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.125597e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.584426e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.546069e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,5.0000) )
+    {
+        x = 2*(s-2.000000)/3.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -6.828366e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.137533e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.016671e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.745637e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.189801e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.621610e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.741122e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.516368e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.552085e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.787029e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.359774e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -5.087028e+00*(s-5.000000e+00)-1.071300e+01;
+    return result;
+}
+
+
+static double jarquebera_jbtbl9(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,1.3000) )
+    {
+        x = 2*(s-0.000000)/1.300000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -6.279320e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -9.277151e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.669339e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.086149e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.333816e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.871249e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.007048e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 7.482245e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.355615e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,2.0000) )
+    {
+        x = 2*(s-1.300000)/0.700000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -2.981430e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.972248e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.747737e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.808530e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.888305e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 9.001302e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.378767e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.108510e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.915372e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,7.0000) )
+    {
+        x = 2*(s-2.000000)/5.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -6.387463e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.845231e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.809956e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.543461e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.880397e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.160074e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.356527e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.394428e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 9.619892e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.758763e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.790977e-05, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -2.020952e+00*(s-7.000000e+00)-9.516623e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl10(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,1.2000) )
+    {
+        x = 2*(s-0.000000)/1.200000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -4.590993e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.562730e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.353934e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.069933e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.849151e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 8.931406e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.636295e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.178340e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.917749e-05, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,2.0000) )
+    {
+        x = 2*(s-1.200000)/0.800000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -2.537658e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -9.962401e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.838715e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.055792e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.580316e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.781701e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.770362e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.838983e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.999052e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,7.0000) )
+    {
+        x = 2*(s-2.000000)/5.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -5.337524e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.877029e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.734650e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.249254e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.320250e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.432266e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -8.711035e-01*(s-7.000000e+00)-7.212811e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl11(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,1.2000) )
+    {
+        x = 2*(s-0.000000)/1.200000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -4.339517e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.051558e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.000992e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.022547e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -9.808401e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.592870e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.575081e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.086173e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.089011e-05, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,2.2500) )
+    {
+        x = 2*(s-1.200000)/1.050000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -2.523221e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.068388e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.179661e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.555524e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.238964e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 7.364320e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.895771e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.762774e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.201340e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,8.0000) )
+    {
+        x = 2*(s-2.250000)/5.750000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -5.212179e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.684579e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 8.299519e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.606261e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 7.310869e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.320115e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -5.715445e-01*(s-8.000000e+00)-6.845834e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl12(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,1.0000) )
+    {
+        x = 2*(s-0.000000)/1.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -2.736742e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.657836e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.047209e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.319599e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.545631e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 9.280445e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.815679e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.213519e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.256838e-05, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,3.0000) )
+    {
+        x = 2*(s-1.000000)/2.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -2.573947e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.515287e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.611880e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.271311e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.495815e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.141186e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 7.180886e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.388211e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.890761e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.233175e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.946156e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,12.0000) )
+    {
+        x = 2*(s-3.000000)/9.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -5.947819e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.034157e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.878986e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.078603e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.990977e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.866215e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.897866e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.512252e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.073743e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.022621e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.501343e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -2.877243e-01*(s-1.200000e+01)-7.936839e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl13(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,1.0000) )
+    {
+        x = 2*(s-0.000000)/1.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -2.713276e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.557541e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -9.459092e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.044145e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.546132e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.002374e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.349456e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.025669e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.590242e-05, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,3.0000) )
+    {
+        x = 2*(s-1.000000)/2.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -2.454383e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.467539e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.270774e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.075763e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.611647e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.990785e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 8.109212e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.135031e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.915919e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.522390e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.144701e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,13.0000) )
+    {
+        x = 2*(s-3.000000)/10.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -5.736127e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.920809e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.175858e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.002049e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.158966e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.157781e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.762172e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.780347e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.193310e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.442421e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.547756e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -2.799944e-01*(s-1.300000e+01)-7.566269e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl14(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,1.0000) )
+    {
+        x = 2*(s-0.000000)/1.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -2.698527e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.479081e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.640733e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.466899e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.469485e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.150009e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.965975e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.710210e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.327808e-05, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,3.0000) )
+    {
+        x = 2*(s-1.000000)/2.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -2.350359e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.421365e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.960468e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.149167e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.361109e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.976022e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.082700e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.563328e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.453123e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.917559e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.151067e-05, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,15.0000) )
+    {
+        x = 2*(s-3.000000)/12.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -5.746892e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.010441e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.566146e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.129690e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.929724e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.524227e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.192933e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.254730e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.620685e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 7.289618e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.112350e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -2.590621e-01*(s-1.500000e+01)-7.632238e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl15(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,2.0000) )
+    {
+        x = 2*(s-0.000000)/2.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.043660e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.361653e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.009497e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.951784e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.377903e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.003253e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.271309e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,5.0000) )
+    {
+        x = 2*(s-2.000000)/3.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -3.582778e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.349578e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 9.476514e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.717385e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.222591e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.635124e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.815993e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,17.0000) )
+    {
+        x = 2*(s-5.000000)/12.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -6.115476e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.655936e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 8.404310e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.663794e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 8.868618e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.381447e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 9.444801e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.581503e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -9.468696e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.728509e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.206470e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -1.927937e-01*(s-1.700000e+01)-7.700983e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl16(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,2.0000) )
+    {
+        x = 2*(s-0.000000)/2.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.002570e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.298141e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.832803e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.877026e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.539436e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 8.439658e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.756911e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,5.0000) )
+    {
+        x = 2*(s-2.000000)/3.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -3.486198e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.242944e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.020002e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.130531e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.512373e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.054876e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.556839e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,20.0000) )
+    {
+        x = 2*(s-5.000000)/15.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -6.241608e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.832655e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.340545e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.361143e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.283219e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.484549e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.805968e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.057243e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.454439e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.177513e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.819209e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -2.391580e-01*(s-2.000000e+01)-7.963205e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl17(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,3.0000) )
+    {
+        x = 2*(s-0.000000)/3.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.566973e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.810330e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.840039e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.337294e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.383549e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.556515e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.656965e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.404569e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.447867e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,6.0000) )
+    {
+        x = 2*(s-3.000000)/3.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -3.905684e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.222920e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.146667e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.809176e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.057028e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.211838e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.099683e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.161105e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.225465e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,24.0000) )
+    {
+        x = 2*(s-6.000000)/18.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -6.594282e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.917838e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.455980e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.999589e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.604263e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.484445e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.819937e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.930390e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.771761e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.232581e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.029083e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -2.127771e-01*(s-2.400000e+01)-8.400197e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl18(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,3.0000) )
+    {
+        x = 2*(s-0.000000)/3.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.526802e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.762373e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.598890e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.189437e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.971721e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.823067e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.064501e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.014932e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.953513e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,6.0000) )
+    {
+        x = 2*(s-3.000000)/3.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -3.818669e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.070918e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.277196e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.879817e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.887357e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.638451e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.502800e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.165796e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.034960e-05, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,20.0000) )
+    {
+        x = 2*(s-6.000000)/14.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -6.010656e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.496296e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.002227e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.338250e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.137036e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.586202e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -9.736384e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.332251e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.877982e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.160963e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.547247e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -1.684623e-01*(s-2.000000e+01)-7.428883e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl19(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,3.0000) )
+    {
+        x = 2*(s-0.000000)/3.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.490213e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.719633e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.459123e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.034878e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.113868e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.030922e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.054022e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 7.525623e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.277360e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,6.0000) )
+    {
+        x = 2*(s-3.000000)/3.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -3.744750e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.977749e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.223716e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.363889e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.711774e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.557257e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.254794e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 9.034207e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.498107e-05, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,20.0000) )
+    {
+        x = 2*(s-6.000000)/14.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -5.872768e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.430689e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.136575e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.726627e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.421110e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.581510e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.559520e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.838208e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 8.428839e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.170682e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.006647e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -1.539373e-01*(s-2.000000e+01)-7.206941e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl20(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,4.0000) )
+    {
+        x = 2*(s-0.000000)/4.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.854794e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.948947e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.632184e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.139397e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.006237e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.810031e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.573620e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 9.951242e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.274092e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.464196e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.882139e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.575144e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.822804e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.061348e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.908404e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.978353e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,15.0000) )
+    {
+        x = 2*(s-4.000000)/11.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -5.030989e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.327151e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.346404e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.840051e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 7.578551e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -9.813886e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.905973e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.358489e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.450795e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.941157e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.432418e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.070537e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 9.375654e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.367378e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 9.890859e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.679782e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,25.0000) )
+    {
+        x = 2*(s-15.000000)/10.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -7.015854e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.487737e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.244254e-02, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -1.318007e-01*(s-2.500000e+01)-7.742185e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl30(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,4.0000) )
+    {
+        x = 2*(s-0.000000)/4.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.630822e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.724298e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 7.872756e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.658268e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.573597e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.994157e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.994825e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 7.394303e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.785029e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.990264e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.037838e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.755546e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.774473e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.821395e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.392603e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.353313e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,15.0000) )
+    {
+        x = 2*(s-4.000000)/11.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -4.539322e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.197018e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.396848e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.804293e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.867928e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.768758e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.211792e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.925799e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.046235e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -9.536469e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.489642e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,25.0000) )
+    {
+        x = 2*(s-15.000000)/10.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -6.263462e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.177316e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.590637e-02, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -1.028212e-01*(s-2.500000e+01)-6.855288e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl50(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,4.0000) )
+    {
+        x = 2*(s-0.000000)/4.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.436279e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.519711e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.148699e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.001204e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.207620e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.034778e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.220322e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.033260e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.588280e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.851653e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.287733e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,15.0000) )
+    {
+        x = 2*(s-4.000000)/11.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -4.234645e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.189127e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.429738e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.058822e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 9.086776e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.445783e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.311671e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.261298e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.496987e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.605249e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 8.162282e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,25.0000) )
+    {
+        x = 2*(s-15.000000)/10.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -5.921095e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.888603e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.080113e-02, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -9.313116e-02*(s-2.500000e+01)-6.479154e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl65(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,4.0000) )
+    {
+        x = 2*(s-0.000000)/4.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.360024e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.434631e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.514580e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 7.332038e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.158197e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.121233e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.051056e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,15.0000) )
+    {
+        x = 2*(s-4.000000)/11.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -4.148601e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.214233e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.487977e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.424720e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.116715e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.043152e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.718149e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.313701e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.097305e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.181031e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.256975e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,25.0000) )
+    {
+        x = 2*(s-15.000000)/10.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -5.858951e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.895179e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.933237e-02, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -9.443768e-02*(s-2.500000e+01)-6.419137e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl100(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,4.0000) )
+    {
+        x = 2*(s-0.000000)/4.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.257021e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.313418e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.628931e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.264287e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.518487e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.499826e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.836044e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,15.0000) )
+    {
+        x = 2*(s-4.000000)/11.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -4.056508e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.279690e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.665746e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.290012e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.487632e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.704465e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.211669e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,25.0000) )
+    {
+        x = 2*(s-15.000000)/10.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -5.866099e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.399767e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.498208e-02, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -1.080097e-01*(s-2.500000e+01)-6.481094e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl130(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,4.0000) )
+    {
+        x = 2*(s-0.000000)/4.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.207999e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.253864e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.618032e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.112729e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.210546e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.732602e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.410527e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,15.0000) )
+    {
+        x = 2*(s-4.000000)/11.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -4.026324e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.331990e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.779129e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.674749e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.669077e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.679136e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 8.833221e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,25.0000) )
+    {
+        x = 2*(s-15.000000)/10.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -5.893951e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.475304e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.116734e-02, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -1.045722e-01*(s-2.500000e+01)-6.510314e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl200(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,4.0000) )
+    {
+        x = 2*(s-0.000000)/4.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.146155e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.177398e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.297970e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.869745e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.717288e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.982108e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.427636e-05, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,15.0000) )
+    {
+        x = 2*(s-4.000000)/11.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -4.034235e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.455006e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.942996e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.973795e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.418812e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.156778e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.896705e-05, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,25.0000) )
+    {
+        x = 2*(s-15.000000)/10.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -6.086071e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.152176e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.725393e-02, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -1.132404e-01*(s-2.500000e+01)-6.764034e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl301(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,4.0000) )
+    {
+        x = 2*(s-0.000000)/4.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.104290e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.125800e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -9.595847e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.219666e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.502210e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.414543e-05, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.754115e-05, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,15.0000) )
+    {
+        x = 2*(s-4.000000)/11.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -4.065955e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.582060e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.004472e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -4.709092e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.105779e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.197391e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.386780e-04, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,25.0000) )
+    {
+        x = 2*(s-15.000000)/10.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -6.311384e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.918763e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.626584e-02, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -1.293626e-01*(s-2.500000e+01)-7.066995e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl501(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,4.0000) )
+    {
+        x = 2*(s-0.000000)/4.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.067426e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.079765e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -5.463005e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 6.875659e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,15.0000) )
+    {
+        x = 2*(s-4.000000)/11.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -4.127574e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.740694e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.044502e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.746714e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 3.810594e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.197111e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,25.0000) )
+    {
+        x = 2*(s-15.000000)/10.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -6.628194e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -8.846221e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.386405e-02, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -1.418332e-01*(s-2.500000e+01)-7.468952e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl701(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,4.0000) )
+    {
+        x = 2*(s-0.000000)/4.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.050999e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.059769e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -3.922680e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 4.847054e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,15.0000) )
+    {
+        x = 2*(s-4.000000)/11.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -4.192182e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.860007e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.963942e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.838711e-02, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.893112e-04, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.159788e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,25.0000) )
+    {
+        x = 2*(s-15.000000)/10.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -6.917851e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -9.817020e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.383727e-02, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -1.532706e-01*(s-2.500000e+01)-7.845715e+00;
+    return result;
+}
+
+
+static double jarquebera_jbtbl1401(double s, ae_state *_state)
+{
+    double x;
+    double tj;
+    double tj1;
+    double result;
+
+
+    result = (double)(0);
+    if( ae_fp_less_eq(s,4.0000) )
+    {
+        x = 2*(s-0.000000)/4.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -1.026266e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.030061e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.259222e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 2.536254e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,15.0000) )
+    {
+        x = 2*(s-4.000000)/11.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -4.329849e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -2.095443e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 1.759363e-01, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -7.751359e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -6.124368e-03, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.793114e-03, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    if( ae_fp_less_eq(s,25.0000) )
+    {
+        x = 2*(s-15.000000)/10.000000-1;
+        tj = (double)(1);
+        tj1 = x;
+        jarquebera_jbcheb(x, -7.544330e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, -1.225382e+00, &tj, &tj1, &result, _state);
+        jarquebera_jbcheb(x, 5.392349e-02, &tj, &tj1, &result, _state);
+        if( ae_fp_greater(result,(double)(0)) )
+        {
+            result = (double)(0);
+        }
+        return result;
+    }
+    result = -2.019375e-01*(s-2.500000e+01)-8.715788e+00;
+    return result;
+}
+
+
+static void jarquebera_jbcheb(double x,
+     double c,
+     double* tj,
+     double* tj1,
+     double* r,
+     ae_state *_state)
+{
+    double t;
+
+
+    *r = *r+c*(*tj);
+    t = 2*x*(*tj1)-(*tj);
+    *tj = *tj1;
+    *tj1 = t;
+}
+
+
+#endif
+#if defined(AE_COMPILE_VARIANCETESTS) || !defined(AE_PARTIAL_BUILD)
+
+
+/*************************************************************************
+Two-sample F-test
+
+This test checks three hypotheses about dispersions of the given  samples.
+The following tests are performed:
+    * two-tailed test (null hypothesis - the dispersions are equal)
+    * left-tailed test (null hypothesis  -  the  dispersion  of  the first
+      sample is greater than or equal to  the  dispersion  of  the  second
+      sample).
+    * right-tailed test (null hypothesis - the  dispersion  of  the  first
+      sample is less than or equal to the dispersion of the second sample)
+
+The test is based on the following assumptions:
+    * the given samples have normal distributions
+    * the samples are independent.
+
+Input parameters:
+    X   -   sample 1. Array whose index goes from 0 to N-1.
+    N   -   sample size.
+    Y   -   sample 2. Array whose index goes from 0 to M-1.
+    M   -   sample size.
+
+Output parameters:
+    BothTails   -   p-value for two-tailed test.
+                    If BothTails is less than the given significance level
+                    the null hypothesis is rejected.
+    LeftTail    -   p-value for left-tailed test.
+                    If LeftTail is less than the given significance level,
+                    the null hypothesis is rejected.
+    RightTail   -   p-value for right-tailed test.
+                    If RightTail is less than the given significance level
+                    the null hypothesis is rejected.
+
+  -- ALGLIB --
+     Copyright 19.09.2006 by Bochkanov Sergey
+*************************************************************************/
+void ftest(/* Real    */ ae_vector* x,
+     ae_int_t n,
+     /* Real    */ ae_vector* y,
+     ae_int_t m,
+     double* bothtails,
+     double* lefttail,
+     double* righttail,
+     ae_state *_state)
+{
+    ae_int_t i;
+    double xmean;
+    double ymean;
+    double xvar;
+    double yvar;
+    ae_int_t df1;
+    ae_int_t df2;
+    double stat;
+
+    *bothtails = 0;
+    *lefttail = 0;
+    *righttail = 0;
+
+    if( n<=2||m<=2 )
+    {
+        *bothtails = 1.0;
+        *lefttail = 1.0;
+        *righttail = 1.0;
+        return;
+    }
+    
+    /*
+     * Mean
+     */
+    xmean = (double)(0);
+    for(i=0; i<=n-1; i++)
+    {
+        xmean = xmean+x->ptr.p_double[i];
+    }
+    xmean = xmean/n;
+    ymean = (double)(0);
+    for(i=0; i<=m-1; i++)
+    {
+        ymean = ymean+y->ptr.p_double[i];
+    }
+    ymean = ymean/m;
+    
+    /*
+     * Variance (using corrected two-pass algorithm)
+     */
+    xvar = (double)(0);
+    for(i=0; i<=n-1; i++)
+    {
+        xvar = xvar+ae_sqr(x->ptr.p_double[i]-xmean, _state);
+    }
+    xvar = xvar/(n-1);
+    yvar = (double)(0);
+    for(i=0; i<=m-1; i++)
+    {
+        yvar = yvar+ae_sqr(y->ptr.p_double[i]-ymean, _state);
+    }
+    yvar = yvar/(m-1);
+    if( ae_fp_eq(xvar,(double)(0))||ae_fp_eq(yvar,(double)(0)) )
+    {
+        *bothtails = 1.0;
+        *lefttail = 1.0;
+        *righttail = 1.0;
+        return;
+    }
+    
+    /*
+     * Statistic
+     */
+    df1 = n-1;
+    df2 = m-1;
+    stat = ae_minreal(xvar/yvar, yvar/xvar, _state);
+    *bothtails = 1-(fdistribution(df1, df2, 1/stat, _state)-fdistribution(df1, df2, stat, _state));
+    *lefttail = fdistribution(df1, df2, xvar/yvar, _state);
+    *righttail = 1-(*lefttail);
+}
+
+
+/*************************************************************************
+One-sample chi-square test
+
+This test checks three hypotheses about the dispersion of the given sample
+The following tests are performed:
+    * two-tailed test (null hypothesis - the dispersion equals  the  given
+      number)
+    * left-tailed test (null hypothesis - the dispersion is  greater  than
+      or equal to the given number)
+    * right-tailed test (null hypothesis  -  dispersion is  less  than  or
+      equal to the given number).
+
+Test is based on the following assumptions:
+    * the given sample has a normal distribution.
+
+Input parameters:
+    X           -   sample 1. Array whose index goes from 0 to N-1.
+    N           -   size of the sample.
+    Variance    -   dispersion value to compare with.
+
+Output parameters:
+    BothTails   -   p-value for two-tailed test.
+                    If BothTails is less than the given significance level
+                    the null hypothesis is rejected.
+    LeftTail    -   p-value for left-tailed test.
+                    If LeftTail is less than the given significance level,
+                    the null hypothesis is rejected.
+    RightTail   -   p-value for right-tailed test.
+                    If RightTail is less than the given significance level
+                    the null hypothesis is rejected.
+
+  -- ALGLIB --
+     Copyright 19.09.2006 by Bochkanov Sergey
+*************************************************************************/
+void onesamplevariancetest(/* Real    */ ae_vector* x,
+     ae_int_t n,
+     double variance,
+     double* bothtails,
+     double* lefttail,
+     double* righttail,
+     ae_state *_state)
+{
+    ae_int_t i;
+    double xmean;
+    double xvar;
+    double s;
+    double stat;
+
+    *bothtails = 0;
+    *lefttail = 0;
+    *righttail = 0;
+
+    if( n<=1 )
+    {
+        *bothtails = 1.0;
+        *lefttail = 1.0;
+        *righttail = 1.0;
+        return;
+    }
+    
+    /*
+     * Mean
+     */
+    xmean = (double)(0);
+    for(i=0; i<=n-1; i++)
+    {
+        xmean = xmean+x->ptr.p_double[i];
+    }
+    xmean = xmean/n;
+    
+    /*
+     * Variance
+     */
+    xvar = (double)(0);
+    for(i=0; i<=n-1; i++)
+    {
+        xvar = xvar+ae_sqr(x->ptr.p_double[i]-xmean, _state);
+    }
+    xvar = xvar/(n-1);
+    if( ae_fp_eq(xvar,(double)(0)) )
+    {
+        *bothtails = 1.0;
+        *lefttail = 1.0;
+        *righttail = 1.0;
+        return;
+    }
+    
+    /*
+     * Statistic
+     */
+    stat = (n-1)*xvar/variance;
+    s = chisquaredistribution((double)(n-1), stat, _state);
+    *bothtails = 2*ae_minreal(s, 1-s, _state);
+    *lefttail = s;
+    *righttail = 1-(*lefttail);
+}
+
+
+#endif
 
 }
 

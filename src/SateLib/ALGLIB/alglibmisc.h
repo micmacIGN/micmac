@@ -1,5 +1,5 @@
 /*************************************************************************
-ALGLIB 3.10.0 (source code generated 2015-08-19)
+ALGLIB 3.15.0 (source code generated 2019-02-20)
 Copyright (c) Sergey Bochkanov (ALGLIB project).
 
 >>> SOURCE LICENSE >>>
@@ -29,12 +29,24 @@ http://www.fsf.org/licensing/licenses
 /////////////////////////////////////////////////////////////////////////
 namespace alglib_impl
 {
+#if defined(AE_COMPILE_NEARESTNEIGHBOR) || !defined(AE_PARTIAL_BUILD)
 typedef struct
 {
-    ae_int_t s1;
-    ae_int_t s2;
-    ae_int_t magicv;
-} hqrndstate;
+    ae_vector x;
+    ae_vector boxmin;
+    ae_vector boxmax;
+    ae_int_t kneeded;
+    double rneeded;
+    ae_bool selfmatch;
+    double approxf;
+    ae_int_t kcur;
+    ae_vector idx;
+    ae_vector r;
+    ae_vector buf;
+    ae_vector curboxmin;
+    ae_vector curboxmax;
+    double curdist;
+} kdtreerequestbuffer;
 typedef struct
 {
     ae_int_t n;
@@ -47,26 +59,26 @@ typedef struct
     ae_vector boxmax;
     ae_vector nodes;
     ae_vector splits;
-    ae_vector x;
-    ae_int_t kneeded;
-    double rneeded;
-    ae_bool selfmatch;
-    double approxf;
-    ae_int_t kcur;
-    ae_vector idx;
-    ae_vector r;
-    ae_vector buf;
-    ae_vector curboxmin;
-    ae_vector curboxmax;
-    double curdist;
+    kdtreerequestbuffer innerbuf;
     ae_int_t debugcounter;
 } kdtree;
+#endif
+#if defined(AE_COMPILE_HQRND) || !defined(AE_PARTIAL_BUILD)
+typedef struct
+{
+    ae_int_t s1;
+    ae_int_t s2;
+    ae_int_t magicv;
+} hqrndstate;
+#endif
+#if defined(AE_COMPILE_XDEBUG) || !defined(AE_PARTIAL_BUILD)
 typedef struct
 {
     ae_int_t i;
     ae_complex c;
     ae_vector a;
 } xdebugrecord1;
+#endif
 
 }
 
@@ -78,6 +90,63 @@ typedef struct
 namespace alglib
 {
 
+#if defined(AE_COMPILE_NEARESTNEIGHBOR) || !defined(AE_PARTIAL_BUILD)
+/*************************************************************************
+Buffer object which is used to perform nearest neighbor  requests  in  the
+multithreaded mode (multiple threads working with same KD-tree object).
+
+This object should be created with KDTreeCreateRequestBuffer().
+*************************************************************************/
+class _kdtreerequestbuffer_owner
+{
+public:
+    _kdtreerequestbuffer_owner();
+    _kdtreerequestbuffer_owner(const _kdtreerequestbuffer_owner &rhs);
+    _kdtreerequestbuffer_owner& operator=(const _kdtreerequestbuffer_owner &rhs);
+    virtual ~_kdtreerequestbuffer_owner();
+    alglib_impl::kdtreerequestbuffer* c_ptr();
+    alglib_impl::kdtreerequestbuffer* c_ptr() const;
+protected:
+    alglib_impl::kdtreerequestbuffer *p_struct;
+};
+class kdtreerequestbuffer : public _kdtreerequestbuffer_owner
+{
+public:
+    kdtreerequestbuffer();
+    kdtreerequestbuffer(const kdtreerequestbuffer &rhs);
+    kdtreerequestbuffer& operator=(const kdtreerequestbuffer &rhs);
+    virtual ~kdtreerequestbuffer();
+
+};
+
+
+/*************************************************************************
+KD-tree object.
+*************************************************************************/
+class _kdtree_owner
+{
+public:
+    _kdtree_owner();
+    _kdtree_owner(const _kdtree_owner &rhs);
+    _kdtree_owner& operator=(const _kdtree_owner &rhs);
+    virtual ~_kdtree_owner();
+    alglib_impl::kdtree* c_ptr();
+    alglib_impl::kdtree* c_ptr() const;
+protected:
+    alglib_impl::kdtree *p_struct;
+};
+class kdtree : public _kdtree_owner
+{
+public:
+    kdtree();
+    kdtree(const kdtree &rhs);
+    kdtree& operator=(const kdtree &rhs);
+    virtual ~kdtree();
+
+};
+#endif
+
+#if defined(AE_COMPILE_HQRND) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
 Portable high quality random number generator state.
 Initialized with HQRNDRandomize() or HQRNDSeed().
@@ -109,32 +178,9 @@ public:
     virtual ~hqrndstate();
 
 };
+#endif
 
-/*************************************************************************
-
-*************************************************************************/
-class _kdtree_owner
-{
-public:
-    _kdtree_owner();
-    _kdtree_owner(const _kdtree_owner &rhs);
-    _kdtree_owner& operator=(const _kdtree_owner &rhs);
-    virtual ~_kdtree_owner();
-    alglib_impl::kdtree* c_ptr();
-    alglib_impl::kdtree* c_ptr() const;
-protected:
-    alglib_impl::kdtree *p_struct;
-};
-class kdtree : public _kdtree_owner
-{
-public:
-    kdtree();
-    kdtree(const kdtree &rhs);
-    kdtree& operator=(const kdtree &rhs);
-    virtual ~kdtree();
-
-};
-
+#if defined(AE_COMPILE_XDEBUG) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
 
 *************************************************************************/
@@ -162,143 +208,9 @@ public:
     real_1d_array a;
 
 };
+#endif
 
-/*************************************************************************
-HQRNDState  initialization  with  random  values  which come from standard
-RNG.
-
-  -- ALGLIB --
-     Copyright 02.12.2009 by Bochkanov Sergey
-*************************************************************************/
-void hqrndrandomize(hqrndstate &state);
-
-
-/*************************************************************************
-HQRNDState initialization with seed values
-
-  -- ALGLIB --
-     Copyright 02.12.2009 by Bochkanov Sergey
-*************************************************************************/
-void hqrndseed(const ae_int_t s1, const ae_int_t s2, hqrndstate &state);
-
-
-/*************************************************************************
-This function generates random real number in (0,1),
-not including interval boundaries
-
-State structure must be initialized with HQRNDRandomize() or HQRNDSeed().
-
-  -- ALGLIB --
-     Copyright 02.12.2009 by Bochkanov Sergey
-*************************************************************************/
-double hqrnduniformr(const hqrndstate &state);
-
-
-/*************************************************************************
-This function generates random integer number in [0, N)
-
-1. State structure must be initialized with HQRNDRandomize() or HQRNDSeed()
-2. N can be any positive number except for very large numbers:
-   * close to 2^31 on 32-bit systems
-   * close to 2^62 on 64-bit systems
-   An exception will be generated if N is too large.
-
-  -- ALGLIB --
-     Copyright 02.12.2009 by Bochkanov Sergey
-*************************************************************************/
-ae_int_t hqrnduniformi(const hqrndstate &state, const ae_int_t n);
-
-
-/*************************************************************************
-Random number generator: normal numbers
-
-This function generates one random number from normal distribution.
-Its performance is equal to that of HQRNDNormal2()
-
-State structure must be initialized with HQRNDRandomize() or HQRNDSeed().
-
-  -- ALGLIB --
-     Copyright 02.12.2009 by Bochkanov Sergey
-*************************************************************************/
-double hqrndnormal(const hqrndstate &state);
-
-
-/*************************************************************************
-Random number generator: random X and Y such that X^2+Y^2=1
-
-State structure must be initialized with HQRNDRandomize() or HQRNDSeed().
-
-  -- ALGLIB --
-     Copyright 02.12.2009 by Bochkanov Sergey
-*************************************************************************/
-void hqrndunit2(const hqrndstate &state, double &x, double &y);
-
-
-/*************************************************************************
-Random number generator: normal numbers
-
-This function generates two independent random numbers from normal
-distribution. Its performance is equal to that of HQRNDNormal()
-
-State structure must be initialized with HQRNDRandomize() or HQRNDSeed().
-
-  -- ALGLIB --
-     Copyright 02.12.2009 by Bochkanov Sergey
-*************************************************************************/
-void hqrndnormal2(const hqrndstate &state, double &x1, double &x2);
-
-
-/*************************************************************************
-Random number generator: exponential distribution
-
-State structure must be initialized with HQRNDRandomize() or HQRNDSeed().
-
-  -- ALGLIB --
-     Copyright 11.08.2007 by Bochkanov Sergey
-*************************************************************************/
-double hqrndexponential(const hqrndstate &state, const double lambdav);
-
-
-/*************************************************************************
-This function generates  random number from discrete distribution given by
-finite sample X.
-
-INPUT PARAMETERS
-    State   -   high quality random number generator, must be
-                initialized with HQRNDRandomize() or HQRNDSeed().
-        X   -   finite sample
-        N   -   number of elements to use, N>=1
-
-RESULT
-    this function returns one of the X[i] for random i=0..N-1
-
-  -- ALGLIB --
-     Copyright 08.11.2011 by Bochkanov Sergey
-*************************************************************************/
-double hqrnddiscrete(const hqrndstate &state, const real_1d_array &x, const ae_int_t n);
-
-
-/*************************************************************************
-This function generates random number from continuous  distribution  given
-by finite sample X.
-
-INPUT PARAMETERS
-    State   -   high quality random number generator, must be
-                initialized with HQRNDRandomize() or HQRNDSeed().
-        X   -   finite sample, array[N] (can be larger, in this  case only
-                leading N elements are used). THIS ARRAY MUST BE SORTED BY
-                ASCENDING.
-        N   -   number of elements to use, N>=1
-
-RESULT
-    this function returns random number from continuous distribution which
-    tries to approximate X as mush as possible. min(X)<=Result<=max(X).
-
-  -- ALGLIB --
-     Copyright 08.11.2011 by Bochkanov Sergey
-*************************************************************************/
-double hqrndcontinuous(const hqrndstate &state, const real_1d_array &x, const ae_int_t n);
-
+#if defined(AE_COMPILE_NEARESTNEIGHBOR) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
 This function serializes data structure to string.
 
@@ -325,7 +237,29 @@ void kdtreeserialize(kdtree &obj, std::string &s_out);
 /*************************************************************************
 This function unserializes data structure from string.
 *************************************************************************/
-void kdtreeunserialize(std::string &s_in, kdtree &obj);
+void kdtreeunserialize(const std::string &s_in, kdtree &obj);
+
+
+
+
+/*************************************************************************
+This function serializes data structure to C++ stream.
+
+Data stream generated by this function is same as  string  representation
+generated  by  string  version  of  serializer - alphanumeric characters,
+dots, underscores, minus signs, which are grouped into words separated by
+spaces and CR+LF.
+
+We recommend you to read comments on string version of serializer to find
+out more about serialization of AlGLIB objects.
+*************************************************************************/
+void kdtreeserialize(kdtree &obj, std::ostream &s_out);
+
+
+/*************************************************************************
+This function unserializes data structure from stream.
+*************************************************************************/
+void kdtreeunserialize(const std::istream &s_in, kdtree &obj);
 
 
 /*************************************************************************
@@ -363,8 +297,8 @@ NOTES
   -- ALGLIB --
      Copyright 28.02.2010 by Bochkanov Sergey
 *************************************************************************/
-void kdtreebuild(const real_2d_array &xy, const ae_int_t n, const ae_int_t nx, const ae_int_t ny, const ae_int_t normtype, kdtree &kdt);
-void kdtreebuild(const real_2d_array &xy, const ae_int_t nx, const ae_int_t ny, const ae_int_t normtype, kdtree &kdt);
+void kdtreebuild(const real_2d_array &xy, const ae_int_t n, const ae_int_t nx, const ae_int_t ny, const ae_int_t normtype, kdtree &kdt, const xparams _xparams = alglib::xdefault);
+void kdtreebuild(const real_2d_array &xy, const ae_int_t nx, const ae_int_t ny, const ae_int_t normtype, kdtree &kdt, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -404,12 +338,48 @@ NOTES
   -- ALGLIB --
      Copyright 28.02.2010 by Bochkanov Sergey
 *************************************************************************/
-void kdtreebuildtagged(const real_2d_array &xy, const integer_1d_array &tags, const ae_int_t n, const ae_int_t nx, const ae_int_t ny, const ae_int_t normtype, kdtree &kdt);
-void kdtreebuildtagged(const real_2d_array &xy, const integer_1d_array &tags, const ae_int_t nx, const ae_int_t ny, const ae_int_t normtype, kdtree &kdt);
+void kdtreebuildtagged(const real_2d_array &xy, const integer_1d_array &tags, const ae_int_t n, const ae_int_t nx, const ae_int_t ny, const ae_int_t normtype, kdtree &kdt, const xparams _xparams = alglib::xdefault);
+void kdtreebuildtagged(const real_2d_array &xy, const integer_1d_array &tags, const ae_int_t nx, const ae_int_t ny, const ae_int_t normtype, kdtree &kdt, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+This function creates buffer  structure  which  can  be  used  to  perform
+parallel KD-tree requests.
+
+KD-tree subpackage provides two sets of request functions - ones which use
+internal buffer of KD-tree object  (these  functions  are  single-threaded
+because they use same buffer, which can not shared between  threads),  and
+ones which use external buffer.
+
+This function is used to initialize external buffer.
+
+INPUT PARAMETERS
+    KDT         -   KD-tree which is associated with newly created buffer
+
+OUTPUT PARAMETERS
+    Buf         -   external buffer.
+
+
+IMPORTANT: KD-tree buffer should be used only with  KD-tree  object  which
+           was used to initialize buffer. Any attempt to use buffer   with
+           different object is dangerous - you  may  get  integrity  check
+           failure (exception) because sizes of internal arrays do not fit
+           to dimensions of KD-tree structure.
+
+  -- ALGLIB --
+     Copyright 18.03.2016 by Bochkanov Sergey
+*************************************************************************/
+void kdtreecreaterequestbuffer(const kdtree &kdt, kdtreerequestbuffer &buf, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
 K-NN query: K nearest neighbors
+
+IMPORTANT: this function can not be used in multithreaded code because  it
+           uses internal temporary buffer of kd-tree object, which can not
+           be shared between multiple threads.  If  you  want  to  perform
+           parallel requests, use function  which  uses  external  request
+           buffer: KDTreeTsQueryKNN() ("Ts" stands for "thread-safe").
 
 INPUT PARAMETERS
     KDT         -   KD-tree
@@ -436,12 +406,68 @@ these results:
   -- ALGLIB --
      Copyright 28.02.2010 by Bochkanov Sergey
 *************************************************************************/
-ae_int_t kdtreequeryknn(const kdtree &kdt, const real_1d_array &x, const ae_int_t k, const bool selfmatch);
-ae_int_t kdtreequeryknn(const kdtree &kdt, const real_1d_array &x, const ae_int_t k);
+ae_int_t kdtreequeryknn(const kdtree &kdt, const real_1d_array &x, const ae_int_t k, const bool selfmatch, const xparams _xparams = alglib::xdefault);
+ae_int_t kdtreequeryknn(const kdtree &kdt, const real_1d_array &x, const ae_int_t k, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
-R-NN query: all points within R-sphere centered at X
+K-NN query: K nearest neighbors, using external thread-local buffer.
+
+You can call this function from multiple threads for same kd-tree instance,
+assuming that different instances of buffer object are passed to different
+threads.
+
+INPUT PARAMETERS
+    KDT         -   kd-tree
+    Buf         -   request buffer  object  created  for  this  particular
+                    instance of kd-tree structure with kdtreecreaterequestbuffer()
+                    function.
+    X           -   point, array[0..NX-1].
+    K           -   number of neighbors to return, K>=1
+    SelfMatch   -   whether self-matches are allowed:
+                    * if True, nearest neighbor may be the point itself
+                      (if it exists in original dataset)
+                    * if False, then only points with non-zero distance
+                      are returned
+                    * if not given, considered True
+
+RESULT
+    number of actual neighbors found (either K or N, if K>N).
+
+This  subroutine  performs  query  and  stores  its result in the internal
+structures  of  the  buffer object. You can use following  subroutines  to
+obtain these results (pay attention to "buf" in their names):
+* KDTreeTsQueryResultsX() to get X-values
+* KDTreeTsQueryResultsXY() to get X- and Y-values
+* KDTreeTsQueryResultsTags() to get tag values
+* KDTreeTsQueryResultsDistances() to get distances
+
+IMPORTANT: kd-tree buffer should be used only with  KD-tree  object  which
+           was used to initialize buffer. Any attempt to use biffer   with
+           different object is dangerous - you  may  get  integrity  check
+           failure (exception) because sizes of internal arrays do not fit
+           to dimensions of KD-tree structure.
+
+  -- ALGLIB --
+     Copyright 18.03.2016 by Bochkanov Sergey
+*************************************************************************/
+ae_int_t kdtreetsqueryknn(const kdtree &kdt, const kdtreerequestbuffer &buf, const real_1d_array &x, const ae_int_t k, const bool selfmatch, const xparams _xparams = alglib::xdefault);
+ae_int_t kdtreetsqueryknn(const kdtree &kdt, const kdtreerequestbuffer &buf, const real_1d_array &x, const ae_int_t k, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+R-NN query: all points within R-sphere centered at X, ordered by  distance
+between point and X (by ascending).
+
+NOTE: it is also possible to perform undordered queries performed by means
+      of kdtreequeryrnnu() and kdtreetsqueryrnnu() functions. Such queries
+      are faster because we do not have to use heap structure for sorting.
+
+IMPORTANT: this function can not be used in multithreaded code because  it
+           uses internal temporary buffer of kd-tree object, which can not
+           be shared between multiple threads.  If  you  want  to  perform
+           parallel requests, use function  which  uses  external  request
+           buffer: kdtreetsqueryrnn() ("Ts" stands for "thread-safe").
 
 INPUT PARAMETERS
     KDT         -   KD-tree
@@ -468,12 +494,159 @@ actual results:
   -- ALGLIB --
      Copyright 28.02.2010 by Bochkanov Sergey
 *************************************************************************/
-ae_int_t kdtreequeryrnn(const kdtree &kdt, const real_1d_array &x, const double r, const bool selfmatch);
-ae_int_t kdtreequeryrnn(const kdtree &kdt, const real_1d_array &x, const double r);
+ae_int_t kdtreequeryrnn(const kdtree &kdt, const real_1d_array &x, const double r, const bool selfmatch, const xparams _xparams = alglib::xdefault);
+ae_int_t kdtreequeryrnn(const kdtree &kdt, const real_1d_array &x, const double r, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+R-NN query: all points within R-sphere  centered  at  X,  no  ordering  by
+distance as undicated by "U" suffix (faster that ordered query, for  large
+queries - significantly faster).
+
+IMPORTANT: this function can not be used in multithreaded code because  it
+           uses internal temporary buffer of kd-tree object, which can not
+           be shared between multiple threads.  If  you  want  to  perform
+           parallel requests, use function  which  uses  external  request
+           buffer: kdtreetsqueryrnn() ("Ts" stands for "thread-safe").
+
+INPUT PARAMETERS
+    KDT         -   KD-tree
+    X           -   point, array[0..NX-1].
+    R           -   radius of sphere (in corresponding norm), R>0
+    SelfMatch   -   whether self-matches are allowed:
+                    * if True, nearest neighbor may be the point itself
+                      (if it exists in original dataset)
+                    * if False, then only points with non-zero distance
+                      are returned
+                    * if not given, considered True
+
+RESULT
+    number of neighbors found, >=0
+
+This  subroutine  performs  query  and  stores  its result in the internal
+structures of the KD-tree. You can use  following  subroutines  to  obtain
+actual results:
+* KDTreeQueryResultsX() to get X-values
+* KDTreeQueryResultsXY() to get X- and Y-values
+* KDTreeQueryResultsTags() to get tag values
+* KDTreeQueryResultsDistances() to get distances
+
+As indicated by "U" suffix, this function returns unordered results.
+
+  -- ALGLIB --
+     Copyright 01.11.2018 by Bochkanov Sergey
+*************************************************************************/
+ae_int_t kdtreequeryrnnu(const kdtree &kdt, const real_1d_array &x, const double r, const bool selfmatch, const xparams _xparams = alglib::xdefault);
+ae_int_t kdtreequeryrnnu(const kdtree &kdt, const real_1d_array &x, const double r, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+R-NN query: all points within  R-sphere  centered  at  X,  using  external
+thread-local buffer, sorted by distance between point and X (by ascending)
+
+You can call this function from multiple threads for same kd-tree instance,
+assuming that different instances of buffer object are passed to different
+threads.
+
+NOTE: it is also possible to perform undordered queries performed by means
+      of kdtreequeryrnnu() and kdtreetsqueryrnnu() functions. Such queries
+      are faster because we do not have to use heap structure for sorting.
+
+INPUT PARAMETERS
+    KDT         -   KD-tree
+    Buf         -   request buffer  object  created  for  this  particular
+                    instance of kd-tree structure with kdtreecreaterequestbuffer()
+                    function.
+    X           -   point, array[0..NX-1].
+    R           -   radius of sphere (in corresponding norm), R>0
+    SelfMatch   -   whether self-matches are allowed:
+                    * if True, nearest neighbor may be the point itself
+                      (if it exists in original dataset)
+                    * if False, then only points with non-zero distance
+                      are returned
+                    * if not given, considered True
+
+RESULT
+    number of neighbors found, >=0
+
+This  subroutine  performs  query  and  stores  its result in the internal
+structures  of  the  buffer object. You can use following  subroutines  to
+obtain these results (pay attention to "buf" in their names):
+* KDTreeTsQueryResultsX() to get X-values
+* KDTreeTsQueryResultsXY() to get X- and Y-values
+* KDTreeTsQueryResultsTags() to get tag values
+* KDTreeTsQueryResultsDistances() to get distances
+
+IMPORTANT: kd-tree buffer should be used only with  KD-tree  object  which
+           was used to initialize buffer. Any attempt to use biffer   with
+           different object is dangerous - you  may  get  integrity  check
+           failure (exception) because sizes of internal arrays do not fit
+           to dimensions of KD-tree structure.
+
+  -- ALGLIB --
+     Copyright 18.03.2016 by Bochkanov Sergey
+*************************************************************************/
+ae_int_t kdtreetsqueryrnn(const kdtree &kdt, const kdtreerequestbuffer &buf, const real_1d_array &x, const double r, const bool selfmatch, const xparams _xparams = alglib::xdefault);
+ae_int_t kdtreetsqueryrnn(const kdtree &kdt, const kdtreerequestbuffer &buf, const real_1d_array &x, const double r, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+R-NN query: all points within  R-sphere  centered  at  X,  using  external
+thread-local buffer, no ordering by distance as undicated  by  "U"  suffix
+(faster that ordered query, for large queries - significantly faster).
+
+You can call this function from multiple threads for same kd-tree instance,
+assuming that different instances of buffer object are passed to different
+threads.
+
+INPUT PARAMETERS
+    KDT         -   KD-tree
+    Buf         -   request buffer  object  created  for  this  particular
+                    instance of kd-tree structure with kdtreecreaterequestbuffer()
+                    function.
+    X           -   point, array[0..NX-1].
+    R           -   radius of sphere (in corresponding norm), R>0
+    SelfMatch   -   whether self-matches are allowed:
+                    * if True, nearest neighbor may be the point itself
+                      (if it exists in original dataset)
+                    * if False, then only points with non-zero distance
+                      are returned
+                    * if not given, considered True
+
+RESULT
+    number of neighbors found, >=0
+
+This  subroutine  performs  query  and  stores  its result in the internal
+structures  of  the  buffer object. You can use following  subroutines  to
+obtain these results (pay attention to "buf" in their names):
+* KDTreeTsQueryResultsX() to get X-values
+* KDTreeTsQueryResultsXY() to get X- and Y-values
+* KDTreeTsQueryResultsTags() to get tag values
+* KDTreeTsQueryResultsDistances() to get distances
+
+As indicated by "U" suffix, this function returns unordered results.
+
+IMPORTANT: kd-tree buffer should be used only with  KD-tree  object  which
+           was used to initialize buffer. Any attempt to use biffer   with
+           different object is dangerous - you  may  get  integrity  check
+           failure (exception) because sizes of internal arrays do not fit
+           to dimensions of KD-tree structure.
+
+  -- ALGLIB --
+     Copyright 18.03.2016 by Bochkanov Sergey
+*************************************************************************/
+ae_int_t kdtreetsqueryrnnu(const kdtree &kdt, const kdtreerequestbuffer &buf, const real_1d_array &x, const double r, const bool selfmatch, const xparams _xparams = alglib::xdefault);
+ae_int_t kdtreetsqueryrnnu(const kdtree &kdt, const kdtreerequestbuffer &buf, const real_1d_array &x, const double r, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
 K-NN query: approximate K nearest neighbors
+
+IMPORTANT: this function can not be used in multithreaded code because  it
+           uses internal temporary buffer of kd-tree object, which can not
+           be shared between multiple threads.  If  you  want  to  perform
+           parallel requests, use function  which  uses  external  request
+           buffer: KDTreeTsQueryAKNN() ("Ts" stands for "thread-safe").
 
 INPUT PARAMETERS
     KDT         -   KD-tree
@@ -507,12 +680,149 @@ these results:
   -- ALGLIB --
      Copyright 28.02.2010 by Bochkanov Sergey
 *************************************************************************/
-ae_int_t kdtreequeryaknn(const kdtree &kdt, const real_1d_array &x, const ae_int_t k, const bool selfmatch, const double eps);
-ae_int_t kdtreequeryaknn(const kdtree &kdt, const real_1d_array &x, const ae_int_t k, const double eps);
+ae_int_t kdtreequeryaknn(const kdtree &kdt, const real_1d_array &x, const ae_int_t k, const bool selfmatch, const double eps, const xparams _xparams = alglib::xdefault);
+ae_int_t kdtreequeryaknn(const kdtree &kdt, const real_1d_array &x, const ae_int_t k, const double eps, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
-X-values from last query
+K-NN query: approximate K nearest neighbors, using thread-local buffer.
+
+You can call this function from multiple threads for same kd-tree instance,
+assuming that different instances of buffer object are passed to different
+threads.
+
+INPUT PARAMETERS
+    KDT         -   KD-tree
+    Buf         -   request buffer  object  created  for  this  particular
+                    instance of kd-tree structure with kdtreecreaterequestbuffer()
+                    function.
+    X           -   point, array[0..NX-1].
+    K           -   number of neighbors to return, K>=1
+    SelfMatch   -   whether self-matches are allowed:
+                    * if True, nearest neighbor may be the point itself
+                      (if it exists in original dataset)
+                    * if False, then only points with non-zero distance
+                      are returned
+                    * if not given, considered True
+    Eps         -   approximation factor, Eps>=0. eps-approximate  nearest
+                    neighbor  is  a  neighbor  whose distance from X is at
+                    most (1+eps) times distance of true nearest neighbor.
+
+RESULT
+    number of actual neighbors found (either K or N, if K>N).
+
+NOTES
+    significant performance gain may be achieved only when Eps  is  is  on
+    the order of magnitude of 1 or larger.
+
+This  subroutine  performs  query  and  stores  its result in the internal
+structures  of  the  buffer object. You can use following  subroutines  to
+obtain these results (pay attention to "buf" in their names):
+* KDTreeTsQueryResultsX() to get X-values
+* KDTreeTsQueryResultsXY() to get X- and Y-values
+* KDTreeTsQueryResultsTags() to get tag values
+* KDTreeTsQueryResultsDistances() to get distances
+
+IMPORTANT: kd-tree buffer should be used only with  KD-tree  object  which
+           was used to initialize buffer. Any attempt to use biffer   with
+           different object is dangerous - you  may  get  integrity  check
+           failure (exception) because sizes of internal arrays do not fit
+           to dimensions of KD-tree structure.
+
+  -- ALGLIB --
+     Copyright 18.03.2016 by Bochkanov Sergey
+*************************************************************************/
+ae_int_t kdtreetsqueryaknn(const kdtree &kdt, const kdtreerequestbuffer &buf, const real_1d_array &x, const ae_int_t k, const bool selfmatch, const double eps, const xparams _xparams = alglib::xdefault);
+ae_int_t kdtreetsqueryaknn(const kdtree &kdt, const kdtreerequestbuffer &buf, const real_1d_array &x, const ae_int_t k, const double eps, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+Box query: all points within user-specified box.
+
+IMPORTANT: this function can not be used in multithreaded code because  it
+           uses internal temporary buffer of kd-tree object, which can not
+           be shared between multiple threads.  If  you  want  to  perform
+           parallel requests, use function  which  uses  external  request
+           buffer: KDTreeTsQueryBox() ("Ts" stands for "thread-safe").
+
+INPUT PARAMETERS
+    KDT         -   KD-tree
+    BoxMin      -   lower bounds, array[0..NX-1].
+    BoxMax      -   upper bounds, array[0..NX-1].
+
+
+RESULT
+    number of actual neighbors found (in [0,N]).
+
+This  subroutine  performs  query  and  stores  its result in the internal
+structures of the KD-tree. You can use  following  subroutines  to  obtain
+these results:
+* KDTreeQueryResultsX() to get X-values
+* KDTreeQueryResultsXY() to get X- and Y-values
+* KDTreeQueryResultsTags() to get tag values
+* KDTreeQueryResultsDistances() returns zeros for this request
+
+NOTE: this particular query returns unordered results, because there is no
+      meaningful way of  ordering  points.  Furthermore,  no 'distance' is
+      associated with points - it is either INSIDE  or OUTSIDE (so request
+      for distances will return zeros).
+
+  -- ALGLIB --
+     Copyright 14.05.2016 by Bochkanov Sergey
+*************************************************************************/
+ae_int_t kdtreequerybox(const kdtree &kdt, const real_1d_array &boxmin, const real_1d_array &boxmax, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+Box query: all points within user-specified box, using thread-local buffer.
+
+You can call this function from multiple threads for same kd-tree instance,
+assuming that different instances of buffer object are passed to different
+threads.
+
+INPUT PARAMETERS
+    KDT         -   KD-tree
+    Buf         -   request buffer  object  created  for  this  particular
+                    instance of kd-tree structure with kdtreecreaterequestbuffer()
+                    function.
+    BoxMin      -   lower bounds, array[0..NX-1].
+    BoxMax      -   upper bounds, array[0..NX-1].
+
+RESULT
+    number of actual neighbors found (in [0,N]).
+
+This  subroutine  performs  query  and  stores  its result in the internal
+structures  of  the  buffer object. You can use following  subroutines  to
+obtain these results (pay attention to "ts" in their names):
+* KDTreeTsQueryResultsX() to get X-values
+* KDTreeTsQueryResultsXY() to get X- and Y-values
+* KDTreeTsQueryResultsTags() to get tag values
+* KDTreeTsQueryResultsDistances() returns zeros for this query
+
+NOTE: this particular query returns unordered results, because there is no
+      meaningful way of  ordering  points.  Furthermore,  no 'distance' is
+      associated with points - it is either INSIDE  or OUTSIDE (so request
+      for distances will return zeros).
+
+IMPORTANT: kd-tree buffer should be used only with  KD-tree  object  which
+           was used to initialize buffer. Any attempt to use biffer   with
+           different object is dangerous - you  may  get  integrity  check
+           failure (exception) because sizes of internal arrays do not fit
+           to dimensions of KD-tree structure.
+
+  -- ALGLIB --
+     Copyright 14.05.2016 by Bochkanov Sergey
+*************************************************************************/
+ae_int_t kdtreetsquerybox(const kdtree &kdt, const kdtreerequestbuffer &buf, const real_1d_array &boxmin, const real_1d_array &boxmax, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+X-values from last query.
+
+This function retuns results stored in  the  internal  buffer  of  kd-tree
+object. If you performed buffered requests (ones which  use  instances  of
+kdtreerequestbuffer class), you  should  call  buffered  version  of  this
+function - kdtreetsqueryresultsx().
 
 INPUT PARAMETERS
     KDT     -   KD-tree
@@ -540,11 +850,16 @@ SEE ALSO
   -- ALGLIB --
      Copyright 28.02.2010 by Bochkanov Sergey
 *************************************************************************/
-void kdtreequeryresultsx(const kdtree &kdt, real_2d_array &x);
+void kdtreequeryresultsx(const kdtree &kdt, real_2d_array &x, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
 X- and Y-values from last query
+
+This function retuns results stored in  the  internal  buffer  of  kd-tree
+object. If you performed buffered requests (ones which  use  instances  of
+kdtreerequestbuffer class), you  should  call  buffered  version  of  this
+function - kdtreetsqueryresultsxy().
 
 INPUT PARAMETERS
     KDT     -   KD-tree
@@ -573,11 +888,16 @@ SEE ALSO
   -- ALGLIB --
      Copyright 28.02.2010 by Bochkanov Sergey
 *************************************************************************/
-void kdtreequeryresultsxy(const kdtree &kdt, real_2d_array &xy);
+void kdtreequeryresultsxy(const kdtree &kdt, real_2d_array &xy, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
 Tags from last query
+
+This function retuns results stored in  the  internal  buffer  of  kd-tree
+object. If you performed buffered requests (ones which  use  instances  of
+kdtreerequestbuffer class), you  should  call  buffered  version  of  this
+function - kdtreetsqueryresultstags().
 
 INPUT PARAMETERS
     KDT     -   KD-tree
@@ -606,11 +926,16 @@ SEE ALSO
   -- ALGLIB --
      Copyright 28.02.2010 by Bochkanov Sergey
 *************************************************************************/
-void kdtreequeryresultstags(const kdtree &kdt, integer_1d_array &tags);
+void kdtreequeryresultstags(const kdtree &kdt, integer_1d_array &tags, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
 Distances from last query
+
+This function retuns results stored in  the  internal  buffer  of  kd-tree
+object. If you performed buffered requests (ones which  use  instances  of
+kdtreerequestbuffer class), you  should  call  buffered  version  of  this
+function - kdtreetsqueryresultsdistances().
 
 INPUT PARAMETERS
     KDT     -   KD-tree
@@ -638,7 +963,155 @@ SEE ALSO
   -- ALGLIB --
      Copyright 28.02.2010 by Bochkanov Sergey
 *************************************************************************/
-void kdtreequeryresultsdistances(const kdtree &kdt, real_1d_array &r);
+void kdtreequeryresultsdistances(const kdtree &kdt, real_1d_array &r, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+X-values from last query associated with kdtreerequestbuffer object.
+
+INPUT PARAMETERS
+    KDT     -   KD-tree
+    Buf     -   request  buffer  object  created   for   this   particular
+                instance of kd-tree structure.
+    X       -   possibly pre-allocated buffer. If X is too small to store
+                result, it is resized. If size(X) is enough to store
+                result, it is left unchanged.
+
+OUTPUT PARAMETERS
+    X       -   rows are filled with X-values
+
+NOTES
+1. points are ordered by distance from the query point (first = closest)
+2. if  XY is larger than required to store result, only leading part  will
+   be overwritten; trailing part will be left unchanged. So  if  on  input
+   XY = [[A,B],[C,D]], and result is [1,2],  then  on  exit  we  will  get
+   XY = [[1,2],[C,D]]. This is done purposely to increase performance;  if
+   you want function  to  resize  array  according  to  result  size,  use
+   function with same name and suffix 'I'.
+
+SEE ALSO
+* KDTreeQueryResultsXY()            X- and Y-values
+* KDTreeQueryResultsTags()          tag values
+* KDTreeQueryResultsDistances()     distances
+
+  -- ALGLIB --
+     Copyright 28.02.2010 by Bochkanov Sergey
+*************************************************************************/
+void kdtreetsqueryresultsx(const kdtree &kdt, const kdtreerequestbuffer &buf, real_2d_array &x, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+X- and Y-values from last query associated with kdtreerequestbuffer object.
+
+INPUT PARAMETERS
+    KDT     -   KD-tree
+    Buf     -   request  buffer  object  created   for   this   particular
+                instance of kd-tree structure.
+    XY      -   possibly pre-allocated buffer. If XY is too small to store
+                result, it is resized. If size(XY) is enough to store
+                result, it is left unchanged.
+
+OUTPUT PARAMETERS
+    XY      -   rows are filled with points: first NX columns with
+                X-values, next NY columns - with Y-values.
+
+NOTES
+1. points are ordered by distance from the query point (first = closest)
+2. if  XY is larger than required to store result, only leading part  will
+   be overwritten; trailing part will be left unchanged. So  if  on  input
+   XY = [[A,B],[C,D]], and result is [1,2],  then  on  exit  we  will  get
+   XY = [[1,2],[C,D]]. This is done purposely to increase performance;  if
+   you want function  to  resize  array  according  to  result  size,  use
+   function with same name and suffix 'I'.
+
+SEE ALSO
+* KDTreeQueryResultsX()             X-values
+* KDTreeQueryResultsTags()          tag values
+* KDTreeQueryResultsDistances()     distances
+
+  -- ALGLIB --
+     Copyright 28.02.2010 by Bochkanov Sergey
+*************************************************************************/
+void kdtreetsqueryresultsxy(const kdtree &kdt, const kdtreerequestbuffer &buf, real_2d_array &xy, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+Tags from last query associated with kdtreerequestbuffer object.
+
+This function retuns results stored in  the  internal  buffer  of  kd-tree
+object. If you performed buffered requests (ones which  use  instances  of
+kdtreerequestbuffer class), you  should  call  buffered  version  of  this
+function - KDTreeTsqueryresultstags().
+
+INPUT PARAMETERS
+    KDT     -   KD-tree
+    Buf     -   request  buffer  object  created   for   this   particular
+                instance of kd-tree structure.
+    Tags    -   possibly pre-allocated buffer. If X is too small to store
+                result, it is resized. If size(X) is enough to store
+                result, it is left unchanged.
+
+OUTPUT PARAMETERS
+    Tags    -   filled with tags associated with points,
+                or, when no tags were supplied, with zeros
+
+NOTES
+1. points are ordered by distance from the query point (first = closest)
+2. if  XY is larger than required to store result, only leading part  will
+   be overwritten; trailing part will be left unchanged. So  if  on  input
+   XY = [[A,B],[C,D]], and result is [1,2],  then  on  exit  we  will  get
+   XY = [[1,2],[C,D]]. This is done purposely to increase performance;  if
+   you want function  to  resize  array  according  to  result  size,  use
+   function with same name and suffix 'I'.
+
+SEE ALSO
+* KDTreeQueryResultsX()             X-values
+* KDTreeQueryResultsXY()            X- and Y-values
+* KDTreeQueryResultsDistances()     distances
+
+  -- ALGLIB --
+     Copyright 28.02.2010 by Bochkanov Sergey
+*************************************************************************/
+void kdtreetsqueryresultstags(const kdtree &kdt, const kdtreerequestbuffer &buf, integer_1d_array &tags, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+Distances from last query associated with kdtreerequestbuffer object.
+
+This function retuns results stored in  the  internal  buffer  of  kd-tree
+object. If you performed buffered requests (ones which  use  instances  of
+kdtreerequestbuffer class), you  should  call  buffered  version  of  this
+function - KDTreeTsqueryresultsdistances().
+
+INPUT PARAMETERS
+    KDT     -   KD-tree
+    Buf     -   request  buffer  object  created   for   this   particular
+                instance of kd-tree structure.
+    R       -   possibly pre-allocated buffer. If X is too small to store
+                result, it is resized. If size(X) is enough to store
+                result, it is left unchanged.
+
+OUTPUT PARAMETERS
+    R       -   filled with distances (in corresponding norm)
+
+NOTES
+1. points are ordered by distance from the query point (first = closest)
+2. if  XY is larger than required to store result, only leading part  will
+   be overwritten; trailing part will be left unchanged. So  if  on  input
+   XY = [[A,B],[C,D]], and result is [1,2],  then  on  exit  we  will  get
+   XY = [[1,2],[C,D]]. This is done purposely to increase performance;  if
+   you want function  to  resize  array  according  to  result  size,  use
+   function with same name and suffix 'I'.
+
+SEE ALSO
+* KDTreeQueryResultsX()             X-values
+* KDTreeQueryResultsXY()            X- and Y-values
+* KDTreeQueryResultsTags()          tag values
+
+  -- ALGLIB --
+     Copyright 28.02.2010 by Bochkanov Sergey
+*************************************************************************/
+void kdtreetsqueryresultsdistances(const kdtree &kdt, const kdtreerequestbuffer &buf, real_1d_array &r, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -653,7 +1126,7 @@ when you call it from command line.
   -- ALGLIB --
      Copyright 28.02.2010 by Bochkanov Sergey
 *************************************************************************/
-void kdtreequeryresultsxi(const kdtree &kdt, real_2d_array &x);
+void kdtreequeryresultsxi(const kdtree &kdt, real_2d_array &x, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -668,7 +1141,7 @@ when you call it from command line.
   -- ALGLIB --
      Copyright 28.02.2010 by Bochkanov Sergey
 *************************************************************************/
-void kdtreequeryresultsxyi(const kdtree &kdt, real_2d_array &xy);
+void kdtreequeryresultsxyi(const kdtree &kdt, real_2d_array &xy, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -683,7 +1156,7 @@ when you call it from command line.
   -- ALGLIB --
      Copyright 28.02.2010 by Bochkanov Sergey
 *************************************************************************/
-void kdtreequeryresultstagsi(const kdtree &kdt, integer_1d_array &tags);
+void kdtreequeryresultstagsi(const kdtree &kdt, integer_1d_array &tags, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -698,8 +1171,148 @@ when you call it from command line.
   -- ALGLIB --
      Copyright 28.02.2010 by Bochkanov Sergey
 *************************************************************************/
-void kdtreequeryresultsdistancesi(const kdtree &kdt, real_1d_array &r);
+void kdtreequeryresultsdistancesi(const kdtree &kdt, real_1d_array &r, const xparams _xparams = alglib::xdefault);
+#endif
 
+#if defined(AE_COMPILE_HQRND) || !defined(AE_PARTIAL_BUILD)
+/*************************************************************************
+HQRNDState  initialization  with  random  values  which come from standard
+RNG.
+
+  -- ALGLIB --
+     Copyright 02.12.2009 by Bochkanov Sergey
+*************************************************************************/
+void hqrndrandomize(hqrndstate &state, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+HQRNDState initialization with seed values
+
+  -- ALGLIB --
+     Copyright 02.12.2009 by Bochkanov Sergey
+*************************************************************************/
+void hqrndseed(const ae_int_t s1, const ae_int_t s2, hqrndstate &state, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+This function generates random real number in (0,1),
+not including interval boundaries
+
+State structure must be initialized with HQRNDRandomize() or HQRNDSeed().
+
+  -- ALGLIB --
+     Copyright 02.12.2009 by Bochkanov Sergey
+*************************************************************************/
+double hqrnduniformr(const hqrndstate &state, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+This function generates random integer number in [0, N)
+
+1. State structure must be initialized with HQRNDRandomize() or HQRNDSeed()
+2. N can be any positive number except for very large numbers:
+   * close to 2^31 on 32-bit systems
+   * close to 2^62 on 64-bit systems
+   An exception will be generated if N is too large.
+
+  -- ALGLIB --
+     Copyright 02.12.2009 by Bochkanov Sergey
+*************************************************************************/
+ae_int_t hqrnduniformi(const hqrndstate &state, const ae_int_t n, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+Random number generator: normal numbers
+
+This function generates one random number from normal distribution.
+Its performance is equal to that of HQRNDNormal2()
+
+State structure must be initialized with HQRNDRandomize() or HQRNDSeed().
+
+  -- ALGLIB --
+     Copyright 02.12.2009 by Bochkanov Sergey
+*************************************************************************/
+double hqrndnormal(const hqrndstate &state, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+Random number generator: random X and Y such that X^2+Y^2=1
+
+State structure must be initialized with HQRNDRandomize() or HQRNDSeed().
+
+  -- ALGLIB --
+     Copyright 02.12.2009 by Bochkanov Sergey
+*************************************************************************/
+void hqrndunit2(const hqrndstate &state, double &x, double &y, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+Random number generator: normal numbers
+
+This function generates two independent random numbers from normal
+distribution. Its performance is equal to that of HQRNDNormal()
+
+State structure must be initialized with HQRNDRandomize() or HQRNDSeed().
+
+  -- ALGLIB --
+     Copyright 02.12.2009 by Bochkanov Sergey
+*************************************************************************/
+void hqrndnormal2(const hqrndstate &state, double &x1, double &x2, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+Random number generator: exponential distribution
+
+State structure must be initialized with HQRNDRandomize() or HQRNDSeed().
+
+  -- ALGLIB --
+     Copyright 11.08.2007 by Bochkanov Sergey
+*************************************************************************/
+double hqrndexponential(const hqrndstate &state, const double lambdav, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+This function generates  random number from discrete distribution given by
+finite sample X.
+
+INPUT PARAMETERS
+    State   -   high quality random number generator, must be
+                initialized with HQRNDRandomize() or HQRNDSeed().
+        X   -   finite sample
+        N   -   number of elements to use, N>=1
+
+RESULT
+    this function returns one of the X[i] for random i=0..N-1
+
+  -- ALGLIB --
+     Copyright 08.11.2011 by Bochkanov Sergey
+*************************************************************************/
+double hqrnddiscrete(const hqrndstate &state, const real_1d_array &x, const ae_int_t n, const xparams _xparams = alglib::xdefault);
+
+
+/*************************************************************************
+This function generates random number from continuous  distribution  given
+by finite sample X.
+
+INPUT PARAMETERS
+    State   -   high quality random number generator, must be
+                initialized with HQRNDRandomize() or HQRNDSeed().
+        X   -   finite sample, array[N] (can be larger, in this  case only
+                leading N elements are used). THIS ARRAY MUST BE SORTED BY
+                ASCENDING.
+        N   -   number of elements to use, N>=1
+
+RESULT
+    this function returns random number from continuous distribution which
+    tries to approximate X as mush as possible. min(X)<=Result<=max(X).
+
+  -- ALGLIB --
+     Copyright 08.11.2011 by Bochkanov Sergey
+*************************************************************************/
+double hqrndcontinuous(const hqrndstate &state, const real_1d_array &x, const ae_int_t n, const xparams _xparams = alglib::xdefault);
+#endif
+
+#if defined(AE_COMPILE_XDEBUG) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
 This is debug function intended for testing ALGLIB interface generator.
 Never use it in any real life project.
@@ -711,7 +1324,7 @@ Creates and returns XDebugRecord1 structure:
   -- ALGLIB --
      Copyright 27.05.2014 by Bochkanov Sergey
 *************************************************************************/
-void xdebuginitrecord1(xdebugrecord1 &rec1);
+void xdebuginitrecord1(xdebugrecord1 &rec1, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -723,7 +1336,7 @@ Counts number of True values in the boolean 1D array.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-ae_int_t xdebugb1count(const boolean_1d_array &a);
+ae_int_t xdebugb1count(const boolean_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -736,7 +1349,7 @@ Array is passed using "shared" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugb1not(const boolean_1d_array &a);
+void xdebugb1not(const boolean_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -749,7 +1362,7 @@ Array is passed using "var" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugb1appendcopy(boolean_1d_array &a);
+void xdebugb1appendcopy(boolean_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -762,7 +1375,7 @@ Array is passed using "out" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugb1outeven(const ae_int_t n, boolean_1d_array &a);
+void xdebugb1outeven(const ae_int_t n, boolean_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -774,7 +1387,7 @@ Returns sum of elements in the array.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-ae_int_t xdebugi1sum(const integer_1d_array &a);
+ae_int_t xdebugi1sum(const integer_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -787,7 +1400,7 @@ Array is passed using "shared" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugi1neg(const integer_1d_array &a);
+void xdebugi1neg(const integer_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -800,7 +1413,7 @@ Array is passed using "var" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugi1appendcopy(integer_1d_array &a);
+void xdebugi1appendcopy(integer_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -815,7 +1428,7 @@ Array is passed using "out" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugi1outeven(const ae_int_t n, integer_1d_array &a);
+void xdebugi1outeven(const ae_int_t n, integer_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -827,7 +1440,7 @@ Returns sum of elements in the array.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-double xdebugr1sum(const real_1d_array &a);
+double xdebugr1sum(const real_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -840,7 +1453,7 @@ Array is passed using "shared" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugr1neg(const real_1d_array &a);
+void xdebugr1neg(const real_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -853,7 +1466,7 @@ Array is passed using "var" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugr1appendcopy(real_1d_array &a);
+void xdebugr1appendcopy(real_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -868,7 +1481,7 @@ Array is passed using "out" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugr1outeven(const ae_int_t n, real_1d_array &a);
+void xdebugr1outeven(const ae_int_t n, real_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -880,7 +1493,7 @@ Returns sum of elements in the array.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-alglib::complex xdebugc1sum(const complex_1d_array &a);
+alglib::complex xdebugc1sum(const complex_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -893,7 +1506,7 @@ Array is passed using "shared" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugc1neg(const complex_1d_array &a);
+void xdebugc1neg(const complex_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -906,7 +1519,7 @@ Array is passed using "var" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugc1appendcopy(complex_1d_array &a);
+void xdebugc1appendcopy(complex_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -921,7 +1534,7 @@ Array is passed using "out" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugc1outeven(const ae_int_t n, complex_1d_array &a);
+void xdebugc1outeven(const ae_int_t n, complex_1d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -933,7 +1546,7 @@ Counts number of True values in the boolean 2D array.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-ae_int_t xdebugb2count(const boolean_2d_array &a);
+ae_int_t xdebugb2count(const boolean_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -946,7 +1559,7 @@ Array is passed using "shared" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugb2not(const boolean_2d_array &a);
+void xdebugb2not(const boolean_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -959,7 +1572,7 @@ Array is passed using "var" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugb2transpose(boolean_2d_array &a);
+void xdebugb2transpose(boolean_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -972,7 +1585,7 @@ Array is passed using "out" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugb2outsin(const ae_int_t m, const ae_int_t n, boolean_2d_array &a);
+void xdebugb2outsin(const ae_int_t m, const ae_int_t n, boolean_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -984,7 +1597,7 @@ Returns sum of elements in the array.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-ae_int_t xdebugi2sum(const integer_2d_array &a);
+ae_int_t xdebugi2sum(const integer_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -997,7 +1610,7 @@ Array is passed using "shared" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugi2neg(const integer_2d_array &a);
+void xdebugi2neg(const integer_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -1010,7 +1623,7 @@ Array is passed using "var" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugi2transpose(integer_2d_array &a);
+void xdebugi2transpose(integer_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -1023,7 +1636,7 @@ Array is passed using "out" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugi2outsin(const ae_int_t m, const ae_int_t n, integer_2d_array &a);
+void xdebugi2outsin(const ae_int_t m, const ae_int_t n, integer_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -1035,7 +1648,7 @@ Returns sum of elements in the array.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-double xdebugr2sum(const real_2d_array &a);
+double xdebugr2sum(const real_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -1048,7 +1661,7 @@ Array is passed using "shared" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugr2neg(const real_2d_array &a);
+void xdebugr2neg(const real_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -1061,7 +1674,7 @@ Array is passed using "var" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugr2transpose(real_2d_array &a);
+void xdebugr2transpose(real_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -1074,7 +1687,7 @@ Array is passed using "out" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugr2outsin(const ae_int_t m, const ae_int_t n, real_2d_array &a);
+void xdebugr2outsin(const ae_int_t m, const ae_int_t n, real_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -1086,7 +1699,7 @@ Returns sum of elements in the array.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-alglib::complex xdebugc2sum(const complex_2d_array &a);
+alglib::complex xdebugc2sum(const complex_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -1099,7 +1712,7 @@ Array is passed using "shared" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugc2neg(const complex_2d_array &a);
+void xdebugc2neg(const complex_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -1112,7 +1725,7 @@ Array is passed using "var" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugc2transpose(complex_2d_array &a);
+void xdebugc2transpose(complex_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -1125,7 +1738,7 @@ Array is passed using "out" convention.
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-void xdebugc2outsincos(const ae_int_t m, const ae_int_t n, complex_2d_array &a);
+void xdebugc2outsincos(const ae_int_t m, const ae_int_t n, complex_2d_array &a, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -1137,7 +1750,8 @@ Returns sum of a[i,j]*(1+b[i,j]) such that c[i,j] is True
   -- ALGLIB --
      Copyright 11.10.2013 by Bochkanov Sergey
 *************************************************************************/
-double xdebugmaskedbiasedproductsum(const ae_int_t m, const ae_int_t n, const real_2d_array &a, const real_2d_array &b, const boolean_2d_array &c);
+double xdebugmaskedbiasedproductsum(const ae_int_t m, const ae_int_t n, const real_2d_array &a, const real_2d_array &b, const boolean_2d_array &c, const xparams _xparams = alglib::xdefault);
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -1147,6 +1761,153 @@ double xdebugmaskedbiasedproductsum(const ae_int_t m, const ae_int_t n, const re
 /////////////////////////////////////////////////////////////////////////
 namespace alglib_impl
 {
+#if defined(AE_COMPILE_NEARESTNEIGHBOR) || !defined(AE_PARTIAL_BUILD)
+void kdtreebuild(/* Real    */ ae_matrix* xy,
+     ae_int_t n,
+     ae_int_t nx,
+     ae_int_t ny,
+     ae_int_t normtype,
+     kdtree* kdt,
+     ae_state *_state);
+void kdtreebuildtagged(/* Real    */ ae_matrix* xy,
+     /* Integer */ ae_vector* tags,
+     ae_int_t n,
+     ae_int_t nx,
+     ae_int_t ny,
+     ae_int_t normtype,
+     kdtree* kdt,
+     ae_state *_state);
+void kdtreecreaterequestbuffer(kdtree* kdt,
+     kdtreerequestbuffer* buf,
+     ae_state *_state);
+ae_int_t kdtreequeryknn(kdtree* kdt,
+     /* Real    */ ae_vector* x,
+     ae_int_t k,
+     ae_bool selfmatch,
+     ae_state *_state);
+ae_int_t kdtreetsqueryknn(kdtree* kdt,
+     kdtreerequestbuffer* buf,
+     /* Real    */ ae_vector* x,
+     ae_int_t k,
+     ae_bool selfmatch,
+     ae_state *_state);
+ae_int_t kdtreequeryrnn(kdtree* kdt,
+     /* Real    */ ae_vector* x,
+     double r,
+     ae_bool selfmatch,
+     ae_state *_state);
+ae_int_t kdtreequeryrnnu(kdtree* kdt,
+     /* Real    */ ae_vector* x,
+     double r,
+     ae_bool selfmatch,
+     ae_state *_state);
+ae_int_t kdtreetsqueryrnn(kdtree* kdt,
+     kdtreerequestbuffer* buf,
+     /* Real    */ ae_vector* x,
+     double r,
+     ae_bool selfmatch,
+     ae_state *_state);
+ae_int_t kdtreetsqueryrnnu(kdtree* kdt,
+     kdtreerequestbuffer* buf,
+     /* Real    */ ae_vector* x,
+     double r,
+     ae_bool selfmatch,
+     ae_state *_state);
+ae_int_t kdtreequeryaknn(kdtree* kdt,
+     /* Real    */ ae_vector* x,
+     ae_int_t k,
+     ae_bool selfmatch,
+     double eps,
+     ae_state *_state);
+ae_int_t kdtreetsqueryaknn(kdtree* kdt,
+     kdtreerequestbuffer* buf,
+     /* Real    */ ae_vector* x,
+     ae_int_t k,
+     ae_bool selfmatch,
+     double eps,
+     ae_state *_state);
+ae_int_t kdtreequerybox(kdtree* kdt,
+     /* Real    */ ae_vector* boxmin,
+     /* Real    */ ae_vector* boxmax,
+     ae_state *_state);
+ae_int_t kdtreetsquerybox(kdtree* kdt,
+     kdtreerequestbuffer* buf,
+     /* Real    */ ae_vector* boxmin,
+     /* Real    */ ae_vector* boxmax,
+     ae_state *_state);
+void kdtreequeryresultsx(kdtree* kdt,
+     /* Real    */ ae_matrix* x,
+     ae_state *_state);
+void kdtreequeryresultsxy(kdtree* kdt,
+     /* Real    */ ae_matrix* xy,
+     ae_state *_state);
+void kdtreequeryresultstags(kdtree* kdt,
+     /* Integer */ ae_vector* tags,
+     ae_state *_state);
+void kdtreequeryresultsdistances(kdtree* kdt,
+     /* Real    */ ae_vector* r,
+     ae_state *_state);
+void kdtreetsqueryresultsx(kdtree* kdt,
+     kdtreerequestbuffer* buf,
+     /* Real    */ ae_matrix* x,
+     ae_state *_state);
+void kdtreetsqueryresultsxy(kdtree* kdt,
+     kdtreerequestbuffer* buf,
+     /* Real    */ ae_matrix* xy,
+     ae_state *_state);
+void kdtreetsqueryresultstags(kdtree* kdt,
+     kdtreerequestbuffer* buf,
+     /* Integer */ ae_vector* tags,
+     ae_state *_state);
+void kdtreetsqueryresultsdistances(kdtree* kdt,
+     kdtreerequestbuffer* buf,
+     /* Real    */ ae_vector* r,
+     ae_state *_state);
+void kdtreequeryresultsxi(kdtree* kdt,
+     /* Real    */ ae_matrix* x,
+     ae_state *_state);
+void kdtreequeryresultsxyi(kdtree* kdt,
+     /* Real    */ ae_matrix* xy,
+     ae_state *_state);
+void kdtreequeryresultstagsi(kdtree* kdt,
+     /* Integer */ ae_vector* tags,
+     ae_state *_state);
+void kdtreequeryresultsdistancesi(kdtree* kdt,
+     /* Real    */ ae_vector* r,
+     ae_state *_state);
+void kdtreeexplorebox(kdtree* kdt,
+     /* Real    */ ae_vector* boxmin,
+     /* Real    */ ae_vector* boxmax,
+     ae_state *_state);
+void kdtreeexplorenodetype(kdtree* kdt,
+     ae_int_t node,
+     ae_int_t* nodetype,
+     ae_state *_state);
+void kdtreeexploreleaf(kdtree* kdt,
+     ae_int_t node,
+     /* Real    */ ae_matrix* xy,
+     ae_int_t* k,
+     ae_state *_state);
+void kdtreeexploresplit(kdtree* kdt,
+     ae_int_t node,
+     ae_int_t* d,
+     double* s,
+     ae_int_t* nodele,
+     ae_int_t* nodege,
+     ae_state *_state);
+void kdtreealloc(ae_serializer* s, kdtree* tree, ae_state *_state);
+void kdtreeserialize(ae_serializer* s, kdtree* tree, ae_state *_state);
+void kdtreeunserialize(ae_serializer* s, kdtree* tree, ae_state *_state);
+void _kdtreerequestbuffer_init(void* _p, ae_state *_state, ae_bool make_automatic);
+void _kdtreerequestbuffer_init_copy(void* _dst, void* _src, ae_state *_state, ae_bool make_automatic);
+void _kdtreerequestbuffer_clear(void* _p);
+void _kdtreerequestbuffer_destroy(void* _p);
+void _kdtree_init(void* _p, ae_state *_state, ae_bool make_automatic);
+void _kdtree_init_copy(void* _dst, void* _src, ae_state *_state, ae_bool make_automatic);
+void _kdtree_clear(void* _p);
+void _kdtree_destroy(void* _p);
+#endif
+#if defined(AE_COMPILE_HQRND) || !defined(AE_PARTIAL_BUILD)
 void hqrndrandomize(hqrndstate* state, ae_state *_state);
 void hqrndseed(ae_int_t s1,
      ae_int_t s2,
@@ -1171,72 +1932,12 @@ double hqrndcontinuous(hqrndstate* state,
      /* Real    */ ae_vector* x,
      ae_int_t n,
      ae_state *_state);
-void _hqrndstate_init(void* _p, ae_state *_state);
-void _hqrndstate_init_copy(void* _dst, void* _src, ae_state *_state);
+void _hqrndstate_init(void* _p, ae_state *_state, ae_bool make_automatic);
+void _hqrndstate_init_copy(void* _dst, void* _src, ae_state *_state, ae_bool make_automatic);
 void _hqrndstate_clear(void* _p);
 void _hqrndstate_destroy(void* _p);
-void kdtreebuild(/* Real    */ ae_matrix* xy,
-     ae_int_t n,
-     ae_int_t nx,
-     ae_int_t ny,
-     ae_int_t normtype,
-     kdtree* kdt,
-     ae_state *_state);
-void kdtreebuildtagged(/* Real    */ ae_matrix* xy,
-     /* Integer */ ae_vector* tags,
-     ae_int_t n,
-     ae_int_t nx,
-     ae_int_t ny,
-     ae_int_t normtype,
-     kdtree* kdt,
-     ae_state *_state);
-ae_int_t kdtreequeryknn(kdtree* kdt,
-     /* Real    */ ae_vector* x,
-     ae_int_t k,
-     ae_bool selfmatch,
-     ae_state *_state);
-ae_int_t kdtreequeryrnn(kdtree* kdt,
-     /* Real    */ ae_vector* x,
-     double r,
-     ae_bool selfmatch,
-     ae_state *_state);
-ae_int_t kdtreequeryaknn(kdtree* kdt,
-     /* Real    */ ae_vector* x,
-     ae_int_t k,
-     ae_bool selfmatch,
-     double eps,
-     ae_state *_state);
-void kdtreequeryresultsx(kdtree* kdt,
-     /* Real    */ ae_matrix* x,
-     ae_state *_state);
-void kdtreequeryresultsxy(kdtree* kdt,
-     /* Real    */ ae_matrix* xy,
-     ae_state *_state);
-void kdtreequeryresultstags(kdtree* kdt,
-     /* Integer */ ae_vector* tags,
-     ae_state *_state);
-void kdtreequeryresultsdistances(kdtree* kdt,
-     /* Real    */ ae_vector* r,
-     ae_state *_state);
-void kdtreequeryresultsxi(kdtree* kdt,
-     /* Real    */ ae_matrix* x,
-     ae_state *_state);
-void kdtreequeryresultsxyi(kdtree* kdt,
-     /* Real    */ ae_matrix* xy,
-     ae_state *_state);
-void kdtreequeryresultstagsi(kdtree* kdt,
-     /* Integer */ ae_vector* tags,
-     ae_state *_state);
-void kdtreequeryresultsdistancesi(kdtree* kdt,
-     /* Real    */ ae_vector* r,
-     ae_state *_state);
-void kdtreealloc(ae_serializer* s, kdtree* tree, ae_state *_state);
-void kdtreeserialize(ae_serializer* s, kdtree* tree, ae_state *_state);
-void kdtreeunserialize(ae_serializer* s, kdtree* tree, ae_state *_state);
-void _kdtree_init(void* _p, ae_state *_state);
-void _kdtree_init_copy(void* _dst, void* _src, ae_state *_state);
-void _kdtree_clear(void* _p);
-void _kdtree_destroy(void* _p);
+#endif
+#if defined(AE_COMPILE_XDEBUG) || !defined(AE_PARTIAL_BUILD)
 void xdebuginitrecord1(xdebugrecord1* rec1, ae_state *_state);
 ae_int_t xdebugb1count(/* Boolean */ ae_vector* a, ae_state *_state);
 void xdebugb1not(/* Boolean */ ae_vector* a, ae_state *_state);
@@ -1296,10 +1997,11 @@ double xdebugmaskedbiasedproductsum(ae_int_t m,
      /* Real    */ ae_matrix* b,
      /* Boolean */ ae_matrix* c,
      ae_state *_state);
-void _xdebugrecord1_init(void* _p, ae_state *_state);
-void _xdebugrecord1_init_copy(void* _dst, void* _src, ae_state *_state);
+void _xdebugrecord1_init(void* _p, ae_state *_state, ae_bool make_automatic);
+void _xdebugrecord1_init_copy(void* _dst, void* _src, ae_state *_state, ae_bool make_automatic);
 void _xdebugrecord1_clear(void* _p);
 void _xdebugrecord1_destroy(void* _p);
+#endif
 
 }
 #endif

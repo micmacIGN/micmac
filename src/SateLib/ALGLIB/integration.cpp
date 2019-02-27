@@ -1,5 +1,5 @@
 /*************************************************************************
-ALGLIB 3.10.0 (source code generated 2015-08-19)
+ALGLIB 3.15.0 (source code generated 2019-02-20)
 Copyright (c) Sergey Bochkanov (ALGLIB project).
 
 >>> SOURCE LICENSE >>>
@@ -17,17 +17,20 @@ A copy of the GNU General Public License is available at
 http://www.fsf.org/licensing/licenses
 >>> END OF LICENSE >>>
 *************************************************************************/
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #include "stdafx.h"
 #include "integration.h"
 
 // disable some irrelevant warnings
-#if (AE_COMPILER==AE_MSVC)
+#if (AE_COMPILER==AE_MSVC) && !defined(AE_ALL_WARNINGS)
 #pragma warning(disable:4100)
 #pragma warning(disable:4127)
+#pragma warning(disable:4611)
 #pragma warning(disable:4702)
 #pragma warning(disable:4996)
 #endif
-using namespace std;
 
 /////////////////////////////////////////////////////////////////////////
 //
@@ -37,7 +40,19 @@ using namespace std;
 namespace alglib
 {
 
+#if defined(AE_COMPILE_GQ) || !defined(AE_PARTIAL_BUILD)
 
+#endif
+
+#if defined(AE_COMPILE_GKQ) || !defined(AE_PARTIAL_BUILD)
+
+#endif
+
+#if defined(AE_COMPILE_AUTOGK) || !defined(AE_PARTIAL_BUILD)
+
+#endif
+
+#if defined(AE_COMPILE_GQ) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
 Computation of nodes and weights for a Gauss quadrature formula
 
@@ -54,12 +69,12 @@ and zeroth moment Mu0
 Mu0 = integral(W(x)dx,a,b)
 
 INPUT PARAMETERS:
-    Alpha   –   array[0..N-1], alpha coefficients
-    Beta    –   array[0..N-1], beta coefficients
+    Alpha   -   array[0..N-1], alpha coefficients
+    Beta    -   array[0..N-1], beta coefficients
                 Zero-indexed element is not used and may be arbitrary.
                 Beta[I]>0.
-    Mu0     –   zeroth moment of the weight function.
-    N       –   number of nodes of the quadrature formula, N>=1
+    Mu0     -   zeroth moment of the weight function.
+    N       -   number of nodes of the quadrature formula, N>=1
 
 OUTPUT PARAMETERS:
     Info    -   error code:
@@ -74,20 +89,26 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 2005-2009 by Bochkanov Sergey
 *************************************************************************/
-void gqgeneraterec(const real_1d_array &alpha, const real_1d_array &beta, const double mu0, const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &w)
+void gqgeneraterec(const real_1d_array &alpha, const real_1d_array &beta, const double mu0, const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &w, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::gqgeneraterec(const_cast<alglib_impl::ae_vector*>(alpha.c_ptr()), const_cast<alglib_impl::ae_vector*>(beta.c_ptr()), mu0, n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(w.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::gqgeneraterec(const_cast<alglib_impl::ae_vector*>(alpha.c_ptr()), const_cast<alglib_impl::ae_vector*>(beta.c_ptr()), mu0, n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(w.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -106,14 +127,14 @@ and zeroth moment Mu0
 Mu0 = integral(W(x)dx,a,b)
 
 INPUT PARAMETERS:
-    Alpha   –   array[0..N-2], alpha coefficients
-    Beta    –   array[0..N-2], beta coefficients.
+    Alpha   -   array[0..N-2], alpha coefficients
+    Beta    -   array[0..N-2], beta coefficients.
                 Zero-indexed element is not used, may be arbitrary.
                 Beta[I]>0
-    Mu0     –   zeroth moment of the weighting function.
-    A       –   left boundary of the integration interval.
-    B       –   right boundary of the integration interval.
-    N       –   number of nodes of the quadrature formula, N>=3
+    Mu0     -   zeroth moment of the weighting function.
+    A       -   left boundary of the integration interval.
+    B       -   right boundary of the integration interval.
+    N       -   number of nodes of the quadrature formula, N>=3
                 (including the left and right boundary nodes).
 
 OUTPUT PARAMETERS:
@@ -129,20 +150,26 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 2005-2009 by Bochkanov Sergey
 *************************************************************************/
-void gqgenerategausslobattorec(const real_1d_array &alpha, const real_1d_array &beta, const double mu0, const double a, const double b, const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &w)
+void gqgenerategausslobattorec(const real_1d_array &alpha, const real_1d_array &beta, const double mu0, const double a, const double b, const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &w, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::gqgenerategausslobattorec(const_cast<alglib_impl::ae_vector*>(alpha.c_ptr()), const_cast<alglib_impl::ae_vector*>(beta.c_ptr()), mu0, a, b, n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(w.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::gqgenerategausslobattorec(const_cast<alglib_impl::ae_vector*>(alpha.c_ptr()), const_cast<alglib_impl::ae_vector*>(beta.c_ptr()), mu0, a, b, n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(w.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -161,13 +188,13 @@ and zeroth moment Mu0
 Mu0 = integral(W(x)dx,a,b)
 
 INPUT PARAMETERS:
-    Alpha   –   array[0..N-2], alpha coefficients.
-    Beta    –   array[0..N-1], beta coefficients
+    Alpha   -   array[0..N-2], alpha coefficients.
+    Beta    -   array[0..N-1], beta coefficients
                 Zero-indexed element is not used.
                 Beta[I]>0
-    Mu0     –   zeroth moment of the weighting function.
-    A       –   left boundary of the integration interval.
-    N       –   number of nodes of the quadrature formula, N>=2
+    Mu0     -   zeroth moment of the weighting function.
+    A       -   left boundary of the integration interval.
+    N       -   number of nodes of the quadrature formula, N>=2
                 (including the left boundary node).
 
 OUTPUT PARAMETERS:
@@ -184,20 +211,26 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 2005-2009 by Bochkanov Sergey
 *************************************************************************/
-void gqgenerategaussradaurec(const real_1d_array &alpha, const real_1d_array &beta, const double mu0, const double a, const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &w)
+void gqgenerategaussradaurec(const real_1d_array &alpha, const real_1d_array &beta, const double mu0, const double a, const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &w, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::gqgenerategaussradaurec(const_cast<alglib_impl::ae_vector*>(alpha.c_ptr()), const_cast<alglib_impl::ae_vector*>(beta.c_ptr()), mu0, a, n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(w.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::gqgenerategaussradaurec(const_cast<alglib_impl::ae_vector*>(alpha.c_ptr()), const_cast<alglib_impl::ae_vector*>(beta.c_ptr()), mu0, a, n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(w.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -224,20 +257,26 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 12.05.2009 by Bochkanov Sergey
 *************************************************************************/
-void gqgenerategausslegendre(const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &w)
+void gqgenerategausslegendre(const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &w, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::gqgenerategausslegendre(n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(w.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::gqgenerategausslegendre(n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(w.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -267,20 +306,26 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 12.05.2009 by Bochkanov Sergey
 *************************************************************************/
-void gqgenerategaussjacobi(const ae_int_t n, const double alpha, const double beta, ae_int_t &info, real_1d_array &x, real_1d_array &w)
+void gqgenerategaussjacobi(const ae_int_t n, const double alpha, const double beta, ae_int_t &info, real_1d_array &x, real_1d_array &w, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::gqgenerategaussjacobi(n, alpha, beta, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(w.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::gqgenerategaussjacobi(n, alpha, beta, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(w.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -309,20 +354,26 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 12.05.2009 by Bochkanov Sergey
 *************************************************************************/
-void gqgenerategausslaguerre(const ae_int_t n, const double alpha, ae_int_t &info, real_1d_array &x, real_1d_array &w)
+void gqgenerategausslaguerre(const ae_int_t n, const double alpha, ae_int_t &info, real_1d_array &x, real_1d_array &w, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::gqgenerategausslaguerre(n, alpha, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(w.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::gqgenerategausslaguerre(n, alpha, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(w.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -348,22 +399,30 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 12.05.2009 by Bochkanov Sergey
 *************************************************************************/
-void gqgenerategausshermite(const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &w)
+void gqgenerategausshermite(const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &w, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::gqgenerategausshermite(n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(w.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::gqgenerategausshermite(n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(w.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
+#endif
 
+#if defined(AE_COMPILE_GKQ) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
 Computation of nodes and weights of a Gauss-Kronrod quadrature formula
 
@@ -381,12 +440,12 @@ and zero moment Mu0
 
 
 INPUT PARAMETERS:
-    Alpha       –   alpha coefficients, array[0..floor(3*K/2)].
-    Beta        –   beta coefficients,  array[0..ceil(3*K/2)].
+    Alpha       -   alpha coefficients, array[0..floor(3*K/2)].
+    Beta        -   beta coefficients,  array[0..ceil(3*K/2)].
                     Beta[0] is not used and may be arbitrary.
                     Beta[I]>0.
-    Mu0         –   zeroth moment of the weight function.
-    N           –   number of nodes of the Gauss-Kronrod quadrature formula,
+    Mu0         -   zeroth moment of the weight function.
+    N           -   number of nodes of the Gauss-Kronrod quadrature formula,
                     N >= 3,
                     N =  2*K+1.
 
@@ -410,20 +469,26 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 08.05.2009 by Bochkanov Sergey
 *************************************************************************/
-void gkqgeneraterec(const real_1d_array &alpha, const real_1d_array &beta, const double mu0, const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &wkronrod, real_1d_array &wgauss)
+void gkqgeneraterec(const real_1d_array &alpha, const real_1d_array &beta, const double mu0, const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &wkronrod, real_1d_array &wgauss, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::gkqgeneraterec(const_cast<alglib_impl::ae_vector*>(alpha.c_ptr()), const_cast<alglib_impl::ae_vector*>(beta.c_ptr()), mu0, n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(wkronrod.c_ptr()), const_cast<alglib_impl::ae_vector*>(wgauss.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::gkqgeneraterec(const_cast<alglib_impl::ae_vector*>(alpha.c_ptr()), const_cast<alglib_impl::ae_vector*>(beta.c_ptr()), mu0, n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(wkronrod.c_ptr()), const_cast<alglib_impl::ae_vector*>(wgauss.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -455,20 +520,26 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 12.05.2009 by Bochkanov Sergey
 *************************************************************************/
-void gkqgenerategausslegendre(const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &wkronrod, real_1d_array &wgauss)
+void gkqgenerategausslegendre(const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &wkronrod, real_1d_array &wgauss, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::gkqgenerategausslegendre(n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(wkronrod.c_ptr()), const_cast<alglib_impl::ae_vector*>(wgauss.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::gkqgenerategausslegendre(n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(wkronrod.c_ptr()), const_cast<alglib_impl::ae_vector*>(wgauss.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -507,20 +578,26 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 12.05.2009 by Bochkanov Sergey
 *************************************************************************/
-void gkqgenerategaussjacobi(const ae_int_t n, const double alpha, const double beta, ae_int_t &info, real_1d_array &x, real_1d_array &wkronrod, real_1d_array &wgauss)
+void gkqgenerategaussjacobi(const ae_int_t n, const double alpha, const double beta, ae_int_t &info, real_1d_array &x, real_1d_array &wkronrod, real_1d_array &wgauss, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::gkqgenerategaussjacobi(n, alpha, beta, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(wkronrod.c_ptr()), const_cast<alglib_impl::ae_vector*>(wgauss.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::gkqgenerategaussjacobi(n, alpha, beta, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(wkronrod.c_ptr()), const_cast<alglib_impl::ae_vector*>(wgauss.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -549,20 +626,26 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 12.05.2009 by Bochkanov Sergey
 *************************************************************************/
-void gkqlegendrecalc(const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &wkronrod, real_1d_array &wgauss)
+void gkqlegendrecalc(const ae_int_t n, ae_int_t &info, real_1d_array &x, real_1d_array &wkronrod, real_1d_array &wgauss, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::gkqlegendrecalc(n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(wkronrod.c_ptr()), const_cast<alglib_impl::ae_vector*>(wgauss.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::gkqlegendrecalc(n, &info, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(wkronrod.c_ptr()), const_cast<alglib_impl::ae_vector*>(wgauss.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -587,22 +670,30 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 12.05.2009 by Bochkanov Sergey
 *************************************************************************/
-void gkqlegendretbl(const ae_int_t n, real_1d_array &x, real_1d_array &wkronrod, real_1d_array &wgauss, double &eps)
+void gkqlegendretbl(const ae_int_t n, real_1d_array &x, real_1d_array &wkronrod, real_1d_array &wgauss, double &eps, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::gkqlegendretbl(n, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(wkronrod.c_ptr()), const_cast<alglib_impl::ae_vector*>(wgauss.c_ptr()), &eps, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::gkqlegendretbl(n, const_cast<alglib_impl::ae_vector*>(x.c_ptr()), const_cast<alglib_impl::ae_vector*>(wkronrod.c_ptr()), const_cast<alglib_impl::ae_vector*>(wgauss.c_ptr()), &eps, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
+#endif
 
+#if defined(AE_COMPILE_AUTOGK) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
 Integration report:
 * TerminationType = completetion code:
@@ -616,33 +707,97 @@ Integration report:
 *************************************************************************/
 _autogkreport_owner::_autogkreport_owner()
 {
-    p_struct = (alglib_impl::autogkreport*)alglib_impl::ae_malloc(sizeof(alglib_impl::autogkreport), NULL);
-    if( p_struct==NULL )
-        throw ap_error("ALGLIB: malloc error");
-    alglib_impl::_autogkreport_init(p_struct, NULL);
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _state;
+    
+    alglib_impl::ae_state_init(&_state);
+    if( setjmp(_break_jump) )
+    {
+        if( p_struct!=NULL )
+        {
+            alglib_impl::_autogkreport_destroy(p_struct);
+            alglib_impl::ae_free(p_struct);
+        }
+        p_struct = NULL;
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_state.error_msg);
+        return;
+#endif
+    }
+    alglib_impl::ae_state_set_break_jump(&_state, &_break_jump);
+    p_struct = NULL;
+    p_struct = (alglib_impl::autogkreport*)alglib_impl::ae_malloc(sizeof(alglib_impl::autogkreport), &_state);
+    memset(p_struct, 0, sizeof(alglib_impl::autogkreport));
+    alglib_impl::_autogkreport_init(p_struct, &_state, ae_false);
+    ae_state_clear(&_state);
 }
 
 _autogkreport_owner::_autogkreport_owner(const _autogkreport_owner &rhs)
 {
-    p_struct = (alglib_impl::autogkreport*)alglib_impl::ae_malloc(sizeof(alglib_impl::autogkreport), NULL);
-    if( p_struct==NULL )
-        throw ap_error("ALGLIB: malloc error");
-    alglib_impl::_autogkreport_init_copy(p_struct, const_cast<alglib_impl::autogkreport*>(rhs.p_struct), NULL);
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _state;
+    
+    alglib_impl::ae_state_init(&_state);
+    if( setjmp(_break_jump) )
+    {
+        if( p_struct!=NULL )
+        {
+            alglib_impl::_autogkreport_destroy(p_struct);
+            alglib_impl::ae_free(p_struct);
+        }
+        p_struct = NULL;
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_state.error_msg);
+        return;
+#endif
+    }
+    alglib_impl::ae_state_set_break_jump(&_state, &_break_jump);
+    p_struct = NULL;
+    alglib_impl::ae_assert(rhs.p_struct!=NULL, "ALGLIB: autogkreport copy constructor failure (source is not initialized)", &_state);
+    p_struct = (alglib_impl::autogkreport*)alglib_impl::ae_malloc(sizeof(alglib_impl::autogkreport), &_state);
+    memset(p_struct, 0, sizeof(alglib_impl::autogkreport));
+    alglib_impl::_autogkreport_init_copy(p_struct, const_cast<alglib_impl::autogkreport*>(rhs.p_struct), &_state, ae_false);
+    ae_state_clear(&_state);
 }
 
 _autogkreport_owner& _autogkreport_owner::operator=(const _autogkreport_owner &rhs)
 {
     if( this==&rhs )
         return *this;
-    alglib_impl::_autogkreport_clear(p_struct);
-    alglib_impl::_autogkreport_init_copy(p_struct, const_cast<alglib_impl::autogkreport*>(rhs.p_struct), NULL);
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _state;
+    
+    alglib_impl::ae_state_init(&_state);
+    if( setjmp(_break_jump) )
+    {
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_state.error_msg);
+        return *this;
+#endif
+    }
+    alglib_impl::ae_state_set_break_jump(&_state, &_break_jump);
+    alglib_impl::ae_assert(p_struct!=NULL, "ALGLIB: autogkreport assignment constructor failure (destination is not initialized)", &_state);
+    alglib_impl::ae_assert(rhs.p_struct!=NULL, "ALGLIB: autogkreport assignment constructor failure (source is not initialized)", &_state);
+    alglib_impl::_autogkreport_destroy(p_struct);
+    memset(p_struct, 0, sizeof(alglib_impl::autogkreport));
+    alglib_impl::_autogkreport_init_copy(p_struct, const_cast<alglib_impl::autogkreport*>(rhs.p_struct), &_state, ae_false);
+    ae_state_clear(&_state);
     return *this;
 }
 
 _autogkreport_owner::~_autogkreport_owner()
 {
-    alglib_impl::_autogkreport_clear(p_struct);
-    ae_free(p_struct);
+    if( p_struct!=NULL )
+    {
+        alglib_impl::_autogkreport_destroy(p_struct);
+        ae_free(p_struct);
+    }
 }
 
 alglib_impl::autogkreport* _autogkreport_owner::c_ptr()
@@ -686,33 +841,97 @@ use. You should use ALGLIB functions to work with this class:
 *************************************************************************/
 _autogkstate_owner::_autogkstate_owner()
 {
-    p_struct = (alglib_impl::autogkstate*)alglib_impl::ae_malloc(sizeof(alglib_impl::autogkstate), NULL);
-    if( p_struct==NULL )
-        throw ap_error("ALGLIB: malloc error");
-    alglib_impl::_autogkstate_init(p_struct, NULL);
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _state;
+    
+    alglib_impl::ae_state_init(&_state);
+    if( setjmp(_break_jump) )
+    {
+        if( p_struct!=NULL )
+        {
+            alglib_impl::_autogkstate_destroy(p_struct);
+            alglib_impl::ae_free(p_struct);
+        }
+        p_struct = NULL;
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_state.error_msg);
+        return;
+#endif
+    }
+    alglib_impl::ae_state_set_break_jump(&_state, &_break_jump);
+    p_struct = NULL;
+    p_struct = (alglib_impl::autogkstate*)alglib_impl::ae_malloc(sizeof(alglib_impl::autogkstate), &_state);
+    memset(p_struct, 0, sizeof(alglib_impl::autogkstate));
+    alglib_impl::_autogkstate_init(p_struct, &_state, ae_false);
+    ae_state_clear(&_state);
 }
 
 _autogkstate_owner::_autogkstate_owner(const _autogkstate_owner &rhs)
 {
-    p_struct = (alglib_impl::autogkstate*)alglib_impl::ae_malloc(sizeof(alglib_impl::autogkstate), NULL);
-    if( p_struct==NULL )
-        throw ap_error("ALGLIB: malloc error");
-    alglib_impl::_autogkstate_init_copy(p_struct, const_cast<alglib_impl::autogkstate*>(rhs.p_struct), NULL);
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _state;
+    
+    alglib_impl::ae_state_init(&_state);
+    if( setjmp(_break_jump) )
+    {
+        if( p_struct!=NULL )
+        {
+            alglib_impl::_autogkstate_destroy(p_struct);
+            alglib_impl::ae_free(p_struct);
+        }
+        p_struct = NULL;
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_state.error_msg);
+        return;
+#endif
+    }
+    alglib_impl::ae_state_set_break_jump(&_state, &_break_jump);
+    p_struct = NULL;
+    alglib_impl::ae_assert(rhs.p_struct!=NULL, "ALGLIB: autogkstate copy constructor failure (source is not initialized)", &_state);
+    p_struct = (alglib_impl::autogkstate*)alglib_impl::ae_malloc(sizeof(alglib_impl::autogkstate), &_state);
+    memset(p_struct, 0, sizeof(alglib_impl::autogkstate));
+    alglib_impl::_autogkstate_init_copy(p_struct, const_cast<alglib_impl::autogkstate*>(rhs.p_struct), &_state, ae_false);
+    ae_state_clear(&_state);
 }
 
 _autogkstate_owner& _autogkstate_owner::operator=(const _autogkstate_owner &rhs)
 {
     if( this==&rhs )
         return *this;
-    alglib_impl::_autogkstate_clear(p_struct);
-    alglib_impl::_autogkstate_init_copy(p_struct, const_cast<alglib_impl::autogkstate*>(rhs.p_struct), NULL);
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _state;
+    
+    alglib_impl::ae_state_init(&_state);
+    if( setjmp(_break_jump) )
+    {
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_state.error_msg);
+        return *this;
+#endif
+    }
+    alglib_impl::ae_state_set_break_jump(&_state, &_break_jump);
+    alglib_impl::ae_assert(p_struct!=NULL, "ALGLIB: autogkstate assignment constructor failure (destination is not initialized)", &_state);
+    alglib_impl::ae_assert(rhs.p_struct!=NULL, "ALGLIB: autogkstate assignment constructor failure (source is not initialized)", &_state);
+    alglib_impl::_autogkstate_destroy(p_struct);
+    memset(p_struct, 0, sizeof(alglib_impl::autogkstate));
+    alglib_impl::_autogkstate_init_copy(p_struct, const_cast<alglib_impl::autogkstate*>(rhs.p_struct), &_state, ae_false);
+    ae_state_clear(&_state);
     return *this;
 }
 
 _autogkstate_owner::~_autogkstate_owner()
 {
-    alglib_impl::_autogkstate_clear(p_struct);
-    ae_free(p_struct);
+    if( p_struct!=NULL )
+    {
+        alglib_impl::_autogkstate_destroy(p_struct);
+        ae_free(p_struct);
+    }
 }
 
 alglib_impl::autogkstate* _autogkstate_owner::c_ptr()
@@ -770,20 +989,26 @@ SEE ALSO
   -- ALGLIB --
      Copyright 06.05.2009 by Bochkanov Sergey
 *************************************************************************/
-void autogksmooth(const double a, const double b, autogkstate &state)
+void autogksmooth(const double a, const double b, autogkstate &state, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::autogksmooth(a, b, const_cast<alglib_impl::autogkstate*>(state.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::autogksmooth(a, b, const_cast<alglib_impl::autogkstate*>(state.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -809,20 +1034,26 @@ SEE ALSO
   -- ALGLIB --
      Copyright 06.05.2009 by Bochkanov Sergey
 *************************************************************************/
-void autogksmoothw(const double a, const double b, const double xwidth, autogkstate &state)
+void autogksmoothw(const double a, const double b, const double xwidth, autogkstate &state, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::autogksmoothw(a, b, xwidth, const_cast<alglib_impl::autogkstate*>(state.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::autogksmoothw(a, b, xwidth, const_cast<alglib_impl::autogkstate*>(state.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -857,20 +1088,26 @@ SEE ALSO
   -- ALGLIB --
      Copyright 06.05.2009 by Bochkanov Sergey
 *************************************************************************/
-void autogksingular(const double a, const double b, const double alpha, const double beta, autogkstate &state)
+void autogksingular(const double a, const double b, const double alpha, const double beta, autogkstate &state, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::autogksingular(a, b, alpha, beta, const_cast<alglib_impl::autogkstate*>(state.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::autogksingular(a, b, alpha, beta, const_cast<alglib_impl::autogkstate*>(state.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -878,47 +1115,64 @@ This function provides reverse communication interface
 Reverse communication interface is not documented or recommended to use.
 See below for functions which provide better documented API
 *************************************************************************/
-bool autogkiteration(const autogkstate &state)
+bool autogkiteration(const autogkstate &state, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        ae_bool result = alglib_impl::autogkiteration(const_cast<alglib_impl::autogkstate*>(state.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return *(reinterpret_cast<bool*>(&result));
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return 0;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    ae_bool result = alglib_impl::autogkiteration(const_cast<alglib_impl::autogkstate*>(state.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return *(reinterpret_cast<bool*>(&result));
 }
 
 
 void autogkintegrate(autogkstate &state,
     void (*func)(double x, double xminusa, double bminusx, double &y, void *ptr),
-    void *ptr){
+    void *ptr, const xparams _xparams){
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
-    if( func==NULL )
-        throw ap_error("ALGLIB: error in 'autogkintegrate()' (func is NULL)");
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        while( alglib_impl::autogkiteration(state.c_ptr(), &_alglib_env_state) )
-        {
-            if( state.needf )
-            {
-                func(state.x, state.xminusa, state.bminusx, state.f, ptr);
-                continue;
-            }
-            throw ap_error("ALGLIB: unexpected error in 'autogkintegrate()'");
-        }
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::ae_assert(func!=NULL, "ALGLIB: error in 'autogkintegrate()' (func is NULL)", &_alglib_env_state);
+    while( alglib_impl::autogkiteration(state.c_ptr(), &_alglib_env_state) )
     {
-        throw ap_error(_alglib_env_state.error_msg);
+        _ALGLIB_CALLBACK_EXCEPTION_GUARD_BEGIN
+                if( state.needf )
+                {
+                    func(state.x, state.xminusa, state.bminusx, state.f, ptr);
+                    continue;
+                }
+        goto lbl_no_callback;
+        _ALGLIB_CALLBACK_EXCEPTION_GUARD_END
+    lbl_no_callback:
+        alglib_impl::ae_assert(ae_false, "ALGLIB: unexpected error in 'autogkintegrate()'", &_alglib_env_state);
+    lbl_user_exception:
+        alglib_impl::ae_assert(ae_false, "ALGLIB: exception generated in user callback", &_alglib_env_state);
     }
+    alglib_impl::ae_state_clear(&_alglib_env_state);
 }
 
 
@@ -938,21 +1192,28 @@ Output parameters:
   -- ALGLIB --
      Copyright 14.11.2007 by Bochkanov Sergey
 *************************************************************************/
-void autogkresults(const autogkstate &state, double &v, autogkreport &rep)
+void autogkresults(const autogkstate &state, double &v, autogkreport &rep, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::autogkresults(const_cast<alglib_impl::autogkstate*>(state.c_ptr()), &v, const_cast<alglib_impl::autogkreport*>(rep.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::autogkresults(const_cast<alglib_impl::autogkstate*>(state.c_ptr()), &v, const_cast<alglib_impl::autogkreport*>(rep.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -962,10 +1223,15 @@ void autogkresults(const autogkstate &state, double &v, autogkreport &rep)
 /////////////////////////////////////////////////////////////////////////
 namespace alglib_impl
 {
+#if defined(AE_COMPILE_GQ) || !defined(AE_PARTIAL_BUILD)
 
 
+#endif
+#if defined(AE_COMPILE_GKQ) || !defined(AE_PARTIAL_BUILD)
 
 
+#endif
+#if defined(AE_COMPILE_AUTOGK) || !defined(AE_PARTIAL_BUILD)
 static ae_int_t autogk_maxsubintervals = 10000;
 static void autogk_autogkinternalprepare(double a,
      double b,
@@ -990,7 +1256,9 @@ static void autogk_mheapresize(/* Real    */ ae_matrix* heap,
      ae_state *_state);
 
 
+#endif
 
+#if defined(AE_COMPILE_GQ) || !defined(AE_PARTIAL_BUILD)
 
 
 /*************************************************************************
@@ -1009,12 +1277,12 @@ and zeroth moment Mu0
 Mu0 = integral(W(x)dx,a,b)
 
 INPUT PARAMETERS:
-    Alpha   –   array[0..N-1], alpha coefficients
-    Beta    –   array[0..N-1], beta coefficients
+    Alpha   -   array[0..N-1], alpha coefficients
+    Beta    -   array[0..N-1], beta coefficients
                 Zero-indexed element is not used and may be arbitrary.
                 Beta[I]>0.
-    Mu0     –   zeroth moment of the weight function.
-    N       –   number of nodes of the quadrature formula, N>=1
+    Mu0     -   zeroth moment of the weight function.
+    N       -   number of nodes of the quadrature formula, N>=1
 
 OUTPUT PARAMETERS:
     Info    -   error code:
@@ -1045,12 +1313,15 @@ void gqgeneraterec(/* Real    */ ae_vector* alpha,
     ae_matrix z;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&d, 0, sizeof(d));
+    memset(&e, 0, sizeof(e));
+    memset(&z, 0, sizeof(z));
     *info = 0;
     ae_vector_clear(x);
     ae_vector_clear(w);
-    ae_vector_init(&d, 0, DT_REAL, _state);
-    ae_vector_init(&e, 0, DT_REAL, _state);
-    ae_matrix_init(&z, 0, 0, DT_REAL, _state);
+    ae_vector_init(&d, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&e, 0, DT_REAL, _state, ae_true);
+    ae_matrix_init(&z, 0, 0, DT_REAL, _state, ae_true);
 
     if( n<1 )
     {
@@ -1118,14 +1389,14 @@ and zeroth moment Mu0
 Mu0 = integral(W(x)dx,a,b)
 
 INPUT PARAMETERS:
-    Alpha   –   array[0..N-2], alpha coefficients
-    Beta    –   array[0..N-2], beta coefficients.
+    Alpha   -   array[0..N-2], alpha coefficients
+    Beta    -   array[0..N-2], beta coefficients.
                 Zero-indexed element is not used, may be arbitrary.
                 Beta[I]>0
-    Mu0     –   zeroth moment of the weighting function.
-    A       –   left boundary of the integration interval.
-    B       –   right boundary of the integration interval.
-    N       –   number of nodes of the quadrature formula, N>=3
+    Mu0     -   zeroth moment of the weighting function.
+    A       -   left boundary of the integration interval.
+    B       -   right boundary of the integration interval.
+    N       -   number of nodes of the quadrature formula, N>=3
                 (including the left and right boundary nodes).
 
 OUTPUT PARAMETERS:
@@ -1174,16 +1445,21 @@ void gqgenerategausslobattorec(/* Real    */ ae_vector* alpha,
     double bet;
 
     ae_frame_make(_state, &_frame_block);
-    ae_vector_init_copy(&_alpha, alpha, _state);
+    memset(&_alpha, 0, sizeof(_alpha));
+    memset(&_beta, 0, sizeof(_beta));
+    memset(&d, 0, sizeof(d));
+    memset(&e, 0, sizeof(e));
+    memset(&z, 0, sizeof(z));
+    ae_vector_init_copy(&_alpha, alpha, _state, ae_true);
     alpha = &_alpha;
-    ae_vector_init_copy(&_beta, beta, _state);
+    ae_vector_init_copy(&_beta, beta, _state, ae_true);
     beta = &_beta;
     *info = 0;
     ae_vector_clear(x);
     ae_vector_clear(w);
-    ae_vector_init(&d, 0, DT_REAL, _state);
-    ae_vector_init(&e, 0, DT_REAL, _state);
-    ae_matrix_init(&z, 0, 0, DT_REAL, _state);
+    ae_vector_init(&d, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&e, 0, DT_REAL, _state, ae_true);
+    ae_matrix_init(&z, 0, 0, DT_REAL, _state, ae_true);
 
     if( n<=2 )
     {
@@ -1312,13 +1588,13 @@ and zeroth moment Mu0
 Mu0 = integral(W(x)dx,a,b)
 
 INPUT PARAMETERS:
-    Alpha   –   array[0..N-2], alpha coefficients.
-    Beta    –   array[0..N-1], beta coefficients
+    Alpha   -   array[0..N-2], alpha coefficients.
+    Beta    -   array[0..N-1], beta coefficients
                 Zero-indexed element is not used.
                 Beta[I]>0
-    Mu0     –   zeroth moment of the weighting function.
-    A       –   left boundary of the integration interval.
-    N       –   number of nodes of the quadrature formula, N>=2
+    Mu0     -   zeroth moment of the weighting function.
+    A       -   left boundary of the integration interval.
+    N       -   number of nodes of the quadrature formula, N>=2
                 (including the left boundary node).
 
 OUTPUT PARAMETERS:
@@ -1357,16 +1633,21 @@ void gqgenerategaussradaurec(/* Real    */ ae_vector* alpha,
     double t;
 
     ae_frame_make(_state, &_frame_block);
-    ae_vector_init_copy(&_alpha, alpha, _state);
+    memset(&_alpha, 0, sizeof(_alpha));
+    memset(&_beta, 0, sizeof(_beta));
+    memset(&d, 0, sizeof(d));
+    memset(&e, 0, sizeof(e));
+    memset(&z, 0, sizeof(z));
+    ae_vector_init_copy(&_alpha, alpha, _state, ae_true);
     alpha = &_alpha;
-    ae_vector_init_copy(&_beta, beta, _state);
+    ae_vector_init_copy(&_beta, beta, _state, ae_true);
     beta = &_beta;
     *info = 0;
     ae_vector_clear(x);
     ae_vector_clear(w);
-    ae_vector_init(&d, 0, DT_REAL, _state);
-    ae_vector_init(&e, 0, DT_REAL, _state);
-    ae_matrix_init(&z, 0, 0, DT_REAL, _state);
+    ae_vector_init(&d, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&e, 0, DT_REAL, _state, ae_true);
+    ae_matrix_init(&z, 0, 0, DT_REAL, _state, ae_true);
 
     if( n<2 )
     {
@@ -1468,11 +1749,13 @@ void gqgenerategausslegendre(ae_int_t n,
     ae_int_t i;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&alpha, 0, sizeof(alpha));
+    memset(&beta, 0, sizeof(beta));
     *info = 0;
     ae_vector_clear(x);
     ae_vector_clear(w);
-    ae_vector_init(&alpha, 0, DT_REAL, _state);
-    ae_vector_init(&beta, 0, DT_REAL, _state);
+    ae_vector_init(&alpha, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&beta, 0, DT_REAL, _state, ae_true);
 
     if( n<1 )
     {
@@ -1560,11 +1843,13 @@ void gqgenerategaussjacobi(ae_int_t n,
     double s;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&a, 0, sizeof(a));
+    memset(&b, 0, sizeof(b));
     *info = 0;
     ae_vector_clear(x);
     ae_vector_clear(w);
-    ae_vector_init(&a, 0, DT_REAL, _state);
-    ae_vector_init(&b, 0, DT_REAL, _state);
+    ae_vector_init(&a, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&b, 0, DT_REAL, _state, ae_true);
 
     if( (n<1||ae_fp_less_eq(alpha,(double)(-1)))||ae_fp_less_eq(beta,(double)(-1)) )
     {
@@ -1660,11 +1945,13 @@ void gqgenerategausslaguerre(ae_int_t n,
     double s;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&a, 0, sizeof(a));
+    memset(&b, 0, sizeof(b));
     *info = 0;
     ae_vector_clear(x);
     ae_vector_clear(w);
-    ae_vector_init(&a, 0, DT_REAL, _state);
-    ae_vector_init(&b, 0, DT_REAL, _state);
+    ae_vector_init(&a, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&b, 0, DT_REAL, _state, ae_true);
 
     if( n<1||ae_fp_less_eq(alpha,(double)(-1)) )
     {
@@ -1749,11 +2036,13 @@ void gqgenerategausshermite(ae_int_t n,
     ae_int_t i;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&a, 0, sizeof(a));
+    memset(&b, 0, sizeof(b));
     *info = 0;
     ae_vector_clear(x);
     ae_vector_clear(w);
-    ae_vector_init(&a, 0, DT_REAL, _state);
-    ae_vector_init(&b, 0, DT_REAL, _state);
+    ae_vector_init(&a, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&b, 0, DT_REAL, _state, ae_true);
 
     if( n<1 )
     {
@@ -1794,6 +2083,8 @@ void gqgenerategausshermite(ae_int_t n,
 }
 
 
+#endif
+#if defined(AE_COMPILE_GKQ) || !defined(AE_PARTIAL_BUILD)
 
 
 /*************************************************************************
@@ -1813,12 +2104,12 @@ and zero moment Mu0
 
 
 INPUT PARAMETERS:
-    Alpha       –   alpha coefficients, array[0..floor(3*K/2)].
-    Beta        –   beta coefficients,  array[0..ceil(3*K/2)].
+    Alpha       -   alpha coefficients, array[0..floor(3*K/2)].
+    Beta        -   beta coefficients,  array[0..ceil(3*K/2)].
                     Beta[0] is not used and may be arbitrary.
                     Beta[I]>0.
-    Mu0         –   zeroth moment of the weight function.
-    N           –   number of nodes of the Gauss-Kronrod quadrature formula,
+    Mu0         -   zeroth moment of the weight function.
+    N           -   number of nodes of the Gauss-Kronrod quadrature formula,
                     N >= 3,
                     N =  2*K+1.
 
@@ -1870,19 +2161,26 @@ void gkqgeneraterec(/* Real    */ ae_vector* alpha,
     ae_vector wgtmp;
 
     ae_frame_make(_state, &_frame_block);
-    ae_vector_init_copy(&_alpha, alpha, _state);
+    memset(&_alpha, 0, sizeof(_alpha));
+    memset(&_beta, 0, sizeof(_beta));
+    memset(&ta, 0, sizeof(ta));
+    memset(&t, 0, sizeof(t));
+    memset(&s, 0, sizeof(s));
+    memset(&xgtmp, 0, sizeof(xgtmp));
+    memset(&wgtmp, 0, sizeof(wgtmp));
+    ae_vector_init_copy(&_alpha, alpha, _state, ae_true);
     alpha = &_alpha;
-    ae_vector_init_copy(&_beta, beta, _state);
+    ae_vector_init_copy(&_beta, beta, _state, ae_true);
     beta = &_beta;
     *info = 0;
     ae_vector_clear(x);
     ae_vector_clear(wkronrod);
     ae_vector_clear(wgauss);
-    ae_vector_init(&ta, 0, DT_REAL, _state);
-    ae_vector_init(&t, 0, DT_REAL, _state);
-    ae_vector_init(&s, 0, DT_REAL, _state);
-    ae_vector_init(&xgtmp, 0, DT_REAL, _state);
-    ae_vector_init(&wgtmp, 0, DT_REAL, _state);
+    ae_vector_init(&ta, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&t, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&s, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&xgtmp, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&wgtmp, 0, DT_REAL, _state, ae_true);
 
     if( n%2!=1||n<3 )
     {
@@ -2150,12 +2448,14 @@ void gkqgenerategaussjacobi(ae_int_t n,
     double s;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&a, 0, sizeof(a));
+    memset(&b, 0, sizeof(b));
     *info = 0;
     ae_vector_clear(x);
     ae_vector_clear(wkronrod);
     ae_vector_clear(wgauss);
-    ae_vector_init(&a, 0, DT_REAL, _state);
-    ae_vector_init(&b, 0, DT_REAL, _state);
+    ae_vector_init(&a, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&b, 0, DT_REAL, _state, ae_true);
 
     if( n%2!=1||n<3 )
     {
@@ -2264,12 +2564,14 @@ void gkqlegendrecalc(ae_int_t n,
     ae_int_t i;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&alpha, 0, sizeof(alpha));
+    memset(&beta, 0, sizeof(beta));
     *info = 0;
     ae_vector_clear(x);
     ae_vector_clear(wkronrod);
     ae_vector_clear(wgauss);
-    ae_vector_init(&alpha, 0, DT_REAL, _state);
-    ae_vector_init(&beta, 0, DT_REAL, _state);
+    ae_vector_init(&alpha, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&beta, 0, DT_REAL, _state, ae_true);
 
     if( n%2!=1||n<3 )
     {
@@ -2351,12 +2653,14 @@ void gkqlegendretbl(ae_int_t n,
     double tmp;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&p1, 0, sizeof(p1));
+    memset(&p2, 0, sizeof(p2));
     ae_vector_clear(x);
     ae_vector_clear(wkronrod);
     ae_vector_clear(wgauss);
     *eps = 0;
-    ae_vector_init(&p1, 0, DT_INT, _state);
-    ae_vector_init(&p2, 0, DT_INT, _state);
+    ae_vector_init(&p1, 0, DT_INT, _state, ae_true);
+    ae_vector_init(&p2, 0, DT_INT, _state, ae_true);
 
     
     /*
@@ -2731,6 +3035,8 @@ void gkqlegendretbl(ae_int_t n,
 }
 
 
+#endif
+#if defined(AE_COMPILE_AUTOGK) || !defined(AE_PARTIAL_BUILD)
 
 
 /*************************************************************************
@@ -2924,17 +3230,17 @@ ae_bool autogkiteration(autogkstate* state, ae_state *_state)
     }
     else
     {
-        s = -983;
-        tmp = -989;
-        eps = -834;
-        a = 900;
-        b = -287;
-        x = 364;
-        t = 214;
-        alpha = -338;
-        beta = -686;
-        v1 = 912;
-        v2 = 585;
+        s = 359;
+        tmp = -58;
+        eps = -919;
+        a = -909;
+        b = 81;
+        x = 255;
+        t = 74;
+        alpha = -788;
+        beta = 809;
+        v1 = 205;
+        v2 = -838;
     }
     if( state->rstate.stage==0 )
     {
@@ -3303,19 +3609,19 @@ static ae_bool autogk_autogkinternaliteration(autogkinternalstate* state,
     }
     else
     {
-        i = 497;
-        j = -271;
-        ns = -581;
-        info = 745;
-        c1 = -533;
-        c2 = -77;
-        intg = 678;
-        intk = -293;
-        inta = 316;
-        v = 647;
-        ta = -756;
-        tb = 830;
-        qeps = -871;
+        i = 939;
+        j = -526;
+        ns = 763;
+        info = -541;
+        c1 = -698;
+        c2 = -900;
+        intg = -318;
+        intk = -940;
+        inta = 1016;
+        v = -229;
+        ta = -536;
+        tb = 487;
+        qeps = -115;
     }
     if( state->rstate.stage==0 )
     {
@@ -3764,7 +4070,8 @@ static void autogk_mheapresize(/* Real    */ ae_matrix* heap,
     ae_int_t i;
 
     ae_frame_make(_state, &_frame_block);
-    ae_matrix_init(&tmp, 0, 0, DT_REAL, _state);
+    memset(&tmp, 0, sizeof(tmp));
+    ae_matrix_init(&tmp, 0, 0, DT_REAL, _state, ae_true);
 
     ae_matrix_set_length(&tmp, *heapsize, heapwidth, _state);
     for(i=0; i<=*heapsize-1; i++)
@@ -3781,14 +4088,14 @@ static void autogk_mheapresize(/* Real    */ ae_matrix* heap,
 }
 
 
-void _autogkreport_init(void* _p, ae_state *_state)
+void _autogkreport_init(void* _p, ae_state *_state, ae_bool make_automatic)
 {
     autogkreport *p = (autogkreport*)_p;
     ae_touch_ptr((void*)p);
 }
 
 
-void _autogkreport_init_copy(void* _dst, void* _src, ae_state *_state)
+void _autogkreport_init_copy(void* _dst, void* _src, ae_state *_state, ae_bool make_automatic)
 {
     autogkreport *dst = (autogkreport*)_dst;
     autogkreport *src = (autogkreport*)_src;
@@ -3812,20 +4119,20 @@ void _autogkreport_destroy(void* _p)
 }
 
 
-void _autogkinternalstate_init(void* _p, ae_state *_state)
+void _autogkinternalstate_init(void* _p, ae_state *_state, ae_bool make_automatic)
 {
     autogkinternalstate *p = (autogkinternalstate*)_p;
     ae_touch_ptr((void*)p);
-    ae_matrix_init(&p->heap, 0, 0, DT_REAL, _state);
-    ae_vector_init(&p->qn, 0, DT_REAL, _state);
-    ae_vector_init(&p->wg, 0, DT_REAL, _state);
-    ae_vector_init(&p->wk, 0, DT_REAL, _state);
-    ae_vector_init(&p->wr, 0, DT_REAL, _state);
-    _rcommstate_init(&p->rstate, _state);
+    ae_matrix_init(&p->heap, 0, 0, DT_REAL, _state, make_automatic);
+    ae_vector_init(&p->qn, 0, DT_REAL, _state, make_automatic);
+    ae_vector_init(&p->wg, 0, DT_REAL, _state, make_automatic);
+    ae_vector_init(&p->wk, 0, DT_REAL, _state, make_automatic);
+    ae_vector_init(&p->wr, 0, DT_REAL, _state, make_automatic);
+    _rcommstate_init(&p->rstate, _state, make_automatic);
 }
 
 
-void _autogkinternalstate_init_copy(void* _dst, void* _src, ae_state *_state)
+void _autogkinternalstate_init_copy(void* _dst, void* _src, ae_state *_state, ae_bool make_automatic)
 {
     autogkinternalstate *dst = (autogkinternalstate*)_dst;
     autogkinternalstate *src = (autogkinternalstate*)_src;
@@ -3837,18 +4144,18 @@ void _autogkinternalstate_init_copy(void* _dst, void* _src, ae_state *_state)
     dst->f = src->f;
     dst->info = src->info;
     dst->r = src->r;
-    ae_matrix_init_copy(&dst->heap, &src->heap, _state);
+    ae_matrix_init_copy(&dst->heap, &src->heap, _state, make_automatic);
     dst->heapsize = src->heapsize;
     dst->heapwidth = src->heapwidth;
     dst->heapused = src->heapused;
     dst->sumerr = src->sumerr;
     dst->sumabs = src->sumabs;
-    ae_vector_init_copy(&dst->qn, &src->qn, _state);
-    ae_vector_init_copy(&dst->wg, &src->wg, _state);
-    ae_vector_init_copy(&dst->wk, &src->wk, _state);
-    ae_vector_init_copy(&dst->wr, &src->wr, _state);
+    ae_vector_init_copy(&dst->qn, &src->qn, _state, make_automatic);
+    ae_vector_init_copy(&dst->wg, &src->wg, _state, make_automatic);
+    ae_vector_init_copy(&dst->wk, &src->wk, _state, make_automatic);
+    ae_vector_init_copy(&dst->wr, &src->wr, _state, make_automatic);
     dst->n = src->n;
-    _rcommstate_init_copy(&dst->rstate, &src->rstate, _state);
+    _rcommstate_init_copy(&dst->rstate, &src->rstate, _state, make_automatic);
 }
 
 
@@ -3878,16 +4185,16 @@ void _autogkinternalstate_destroy(void* _p)
 }
 
 
-void _autogkstate_init(void* _p, ae_state *_state)
+void _autogkstate_init(void* _p, ae_state *_state, ae_bool make_automatic)
 {
     autogkstate *p = (autogkstate*)_p;
     ae_touch_ptr((void*)p);
-    _autogkinternalstate_init(&p->internalstate, _state);
-    _rcommstate_init(&p->rstate, _state);
+    _autogkinternalstate_init(&p->internalstate, _state, make_automatic);
+    _rcommstate_init(&p->rstate, _state, make_automatic);
 }
 
 
-void _autogkstate_init_copy(void* _dst, void* _src, ae_state *_state)
+void _autogkstate_init_copy(void* _dst, void* _src, ae_state *_state, ae_bool make_automatic)
 {
     autogkstate *dst = (autogkstate*)_dst;
     autogkstate *src = (autogkstate*)_src;
@@ -3902,8 +4209,8 @@ void _autogkstate_init_copy(void* _dst, void* _src, ae_state *_state)
     dst->needf = src->needf;
     dst->f = src->f;
     dst->wrappermode = src->wrappermode;
-    _autogkinternalstate_init_copy(&dst->internalstate, &src->internalstate, _state);
-    _rcommstate_init_copy(&dst->rstate, &src->rstate, _state);
+    _autogkinternalstate_init_copy(&dst->internalstate, &src->internalstate, _state, make_automatic);
+    _rcommstate_init_copy(&dst->rstate, &src->rstate, _state, make_automatic);
     dst->v = src->v;
     dst->terminationtype = src->terminationtype;
     dst->nfev = src->nfev;
@@ -3929,6 +4236,7 @@ void _autogkstate_destroy(void* _p)
 }
 
 
+#endif
 
 }
 

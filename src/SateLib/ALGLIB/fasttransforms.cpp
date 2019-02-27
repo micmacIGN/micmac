@@ -1,5 +1,5 @@
 /*************************************************************************
-ALGLIB 3.10.0 (source code generated 2015-08-19)
+ALGLIB 3.15.0 (source code generated 2019-02-20)
 Copyright (c) Sergey Bochkanov (ALGLIB project).
 
 >>> SOURCE LICENSE >>>
@@ -17,17 +17,20 @@ A copy of the GNU General Public License is available at
 http://www.fsf.org/licensing/licenses
 >>> END OF LICENSE >>>
 *************************************************************************/
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #include "stdafx.h"
 #include "fasttransforms.h"
 
 // disable some irrelevant warnings
-#if (AE_COMPILER==AE_MSVC)
+#if (AE_COMPILER==AE_MSVC) && !defined(AE_ALL_WARNINGS)
 #pragma warning(disable:4100)
 #pragma warning(disable:4127)
+#pragma warning(disable:4611)
 #pragma warning(disable:4702)
 #pragma warning(disable:4996)
 #endif
-using namespace std;
 
 /////////////////////////////////////////////////////////////////////////
 //
@@ -37,6 +40,73 @@ using namespace std;
 namespace alglib
 {
 
+#if defined(AE_COMPILE_FFT) || !defined(AE_PARTIAL_BUILD)
+
+#endif
+
+#if defined(AE_COMPILE_FHT) || !defined(AE_PARTIAL_BUILD)
+
+#endif
+
+#if defined(AE_COMPILE_CONV) || !defined(AE_PARTIAL_BUILD)
+
+#endif
+
+#if defined(AE_COMPILE_CORR) || !defined(AE_PARTIAL_BUILD)
+
+#endif
+
+#if defined(AE_COMPILE_FFT) || !defined(AE_PARTIAL_BUILD)
+/*************************************************************************
+1-dimensional complex FFT.
+
+Array size N may be arbitrary number (composite or prime).  Composite  N's
+are handled with cache-oblivious variation of  a  Cooley-Tukey  algorithm.
+Small prime-factors are transformed using hard coded  codelets (similar to
+FFTW codelets, but without low-level  optimization),  large  prime-factors
+are handled with Bluestein's algorithm.
+
+Fastests transforms are for smooth N's (prime factors are 2, 3,  5  only),
+most fast for powers of 2. When N have prime factors  larger  than  these,
+but orders of magnitude smaller than N, computations will be about 4 times
+slower than for nearby highly composite N's. When N itself is prime, speed
+will be 6 times lower.
+
+Algorithm has O(N*logN) complexity for any N (composite or prime).
+
+INPUT PARAMETERS
+    A   -   array[0..N-1] - complex function to be transformed
+    N   -   problem size
+
+OUTPUT PARAMETERS
+    A   -   DFT of a input array, array[0..N-1]
+            A_out[j] = SUM(A_in[k]*exp(-2*pi*sqrt(-1)*j*k/N), k = 0..N-1)
+
+
+  -- ALGLIB --
+     Copyright 29.05.2009 by Bochkanov Sergey
+*************************************************************************/
+void fftc1d(complex_1d_array &a, const ae_int_t n, const xparams _xparams)
+{
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
+    alglib_impl::ae_state_init(&_alglib_env_state);
+    if( setjmp(_break_jump) )
+    {
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return;
+#endif
+    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::fftc1d(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
+}
 
 /*************************************************************************
 1-dimensional complex FFT.
@@ -67,145 +137,153 @@ OUTPUT PARAMETERS
   -- ALGLIB --
      Copyright 29.05.2009 by Bochkanov Sergey
 *************************************************************************/
-void fftc1d(complex_1d_array &a, const ae_int_t n)
+#if !defined(AE_NO_EXCEPTIONS)
+void fftc1d(complex_1d_array &a, const xparams _xparams)
 {
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;    
+    ae_int_t n;
+
+    n = a.length();
+    alglib_impl::ae_state_init(&_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::fftc1d(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, &_alglib_env_state);
+
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
+}
+#endif
+
+/*************************************************************************
+1-dimensional complex inverse FFT.
+
+Array size N may be arbitrary number (composite or prime).  Algorithm  has
+O(N*logN) complexity for any N (composite or prime).
+
+See FFTC1D() description for more information about algorithm performance.
+
+INPUT PARAMETERS
+    A   -   array[0..N-1] - complex array to be transformed
+    N   -   problem size
+
+OUTPUT PARAMETERS
+    A   -   inverse DFT of a input array, array[0..N-1]
+            A_out[j] = SUM(A_in[k]/N*exp(+2*pi*sqrt(-1)*j*k/N), k = 0..N-1)
+
+
+  -- ALGLIB --
+     Copyright 29.05.2009 by Bochkanov Sergey
+*************************************************************************/
+void fftc1dinv(complex_1d_array &a, const ae_int_t n, const xparams _xparams)
+{
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::fftc1d(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::fftc1dinv(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
-1-dimensional complex FFT.
+1-dimensional complex inverse FFT.
 
-Array size N may be arbitrary number (composite or prime).  Composite  N's
-are handled with cache-oblivious variation of  a  Cooley-Tukey  algorithm.
-Small prime-factors are transformed using hard coded  codelets (similar to
-FFTW codelets, but without low-level  optimization),  large  prime-factors
-are handled with Bluestein's algorithm.
+Array size N may be arbitrary number (composite or prime).  Algorithm  has
+O(N*logN) complexity for any N (composite or prime).
 
-Fastests transforms are for smooth N's (prime factors are 2, 3,  5  only),
-most fast for powers of 2. When N have prime factors  larger  than  these,
-but orders of magnitude smaller than N, computations will be about 4 times
-slower than for nearby highly composite N's. When N itself is prime, speed
-will be 6 times lower.
+See FFTC1D() description for more information about algorithm performance.
+
+INPUT PARAMETERS
+    A   -   array[0..N-1] - complex array to be transformed
+    N   -   problem size
+
+OUTPUT PARAMETERS
+    A   -   inverse DFT of a input array, array[0..N-1]
+            A_out[j] = SUM(A_in[k]/N*exp(+2*pi*sqrt(-1)*j*k/N), k = 0..N-1)
+
+
+  -- ALGLIB --
+     Copyright 29.05.2009 by Bochkanov Sergey
+*************************************************************************/
+#if !defined(AE_NO_EXCEPTIONS)
+void fftc1dinv(complex_1d_array &a, const xparams _xparams)
+{
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;    
+    ae_int_t n;
+
+    n = a.length();
+    alglib_impl::ae_state_init(&_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::fftc1dinv(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, &_alglib_env_state);
+
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
+}
+#endif
+
+/*************************************************************************
+1-dimensional real FFT.
 
 Algorithm has O(N*logN) complexity for any N (composite or prime).
 
 INPUT PARAMETERS
-    A   -   array[0..N-1] - complex function to be transformed
+    A   -   array[0..N-1] - real function to be transformed
     N   -   problem size
 
 OUTPUT PARAMETERS
-    A   -   DFT of a input array, array[0..N-1]
-            A_out[j] = SUM(A_in[k]*exp(-2*pi*sqrt(-1)*j*k/N), k = 0..N-1)
+    F   -   DFT of a input array, array[0..N-1]
+            F[j] = SUM(A[k]*exp(-2*pi*sqrt(-1)*j*k/N), k = 0..N-1)
+
+NOTE:
+    F[] satisfies symmetry property F[k] = conj(F[N-k]),  so just one half
+of  array  is  usually needed. But for convinience subroutine returns full
+complex array (with frequencies above N/2), so its result may be  used  by
+other FFT-related subroutines.
 
 
   -- ALGLIB --
-     Copyright 29.05.2009 by Bochkanov Sergey
+     Copyright 01.06.2009 by Bochkanov Sergey
 *************************************************************************/
-void fftc1d(complex_1d_array &a)
+void fftr1d(const real_1d_array &a, const ae_int_t n, complex_1d_array &f, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-
-    n = a.length();
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::fftc1d(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-/*************************************************************************
-1-dimensional complex inverse FFT.
-
-Array size N may be arbitrary number (composite or prime).  Algorithm  has
-O(N*logN) complexity for any N (composite or prime).
-
-See FFTC1D() description for more information about algorithm performance.
-
-INPUT PARAMETERS
-    A   -   array[0..N-1] - complex array to be transformed
-    N   -   problem size
-
-OUTPUT PARAMETERS
-    A   -   inverse DFT of a input array, array[0..N-1]
-            A_out[j] = SUM(A_in[k]/N*exp(+2*pi*sqrt(-1)*j*k/N), k = 0..N-1)
-
-
-  -- ALGLIB --
-     Copyright 29.05.2009 by Bochkanov Sergey
-*************************************************************************/
-void fftc1dinv(complex_1d_array &a, const ae_int_t n)
-{
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::fftc1dinv(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-/*************************************************************************
-1-dimensional complex inverse FFT.
-
-Array size N may be arbitrary number (composite or prime).  Algorithm  has
-O(N*logN) complexity for any N (composite or prime).
-
-See FFTC1D() description for more information about algorithm performance.
-
-INPUT PARAMETERS
-    A   -   array[0..N-1] - complex array to be transformed
-    N   -   problem size
-
-OUTPUT PARAMETERS
-    A   -   inverse DFT of a input array, array[0..N-1]
-            A_out[j] = SUM(A_in[k]/N*exp(+2*pi*sqrt(-1)*j*k/N), k = 0..N-1)
-
-
-  -- ALGLIB --
-     Copyright 29.05.2009 by Bochkanov Sergey
-*************************************************************************/
-void fftc1dinv(complex_1d_array &a)
-{
-    alglib_impl::ae_state _alglib_env_state;    
-    ae_int_t n;
-
-    n = a.length();
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::fftc1dinv(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, &_alglib_env_state);
-
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::fftr1d(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(f.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -231,63 +309,82 @@ other FFT-related subroutines.
   -- ALGLIB --
      Copyright 01.06.2009 by Bochkanov Sergey
 *************************************************************************/
-void fftr1d(const real_1d_array &a, const ae_int_t n, complex_1d_array &f)
+#if !defined(AE_NO_EXCEPTIONS)
+void fftr1d(const real_1d_array &a, complex_1d_array &f, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::fftr1d(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(f.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-/*************************************************************************
-1-dimensional real FFT.
-
-Algorithm has O(N*logN) complexity for any N (composite or prime).
-
-INPUT PARAMETERS
-    A   -   array[0..N-1] - real function to be transformed
-    N   -   problem size
-
-OUTPUT PARAMETERS
-    F   -   DFT of a input array, array[0..N-1]
-            F[j] = SUM(A[k]*exp(-2*pi*sqrt(-1)*j*k/N), k = 0..N-1)
-
-NOTE:
-    F[] satisfies symmetry property F[k] = conj(F[N-k]),  so just one half
-of  array  is  usually needed. But for convinience subroutine returns full
-complex array (with frequencies above N/2), so its result may be  used  by
-other FFT-related subroutines.
-
-
-  -- ALGLIB --
-     Copyright 01.06.2009 by Bochkanov Sergey
-*************************************************************************/
-void fftr1d(const real_1d_array &a, complex_1d_array &f)
-{
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;    
     ae_int_t n;
 
     n = a.length();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::fftr1d(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(f.c_ptr()), &_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::fftr1d(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(f.c_ptr()), &_alglib_env_state);
 
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
+}
+#endif
+
+/*************************************************************************
+1-dimensional real inverse FFT.
+
+Algorithm has O(N*logN) complexity for any N (composite or prime).
+
+INPUT PARAMETERS
+    F   -   array[0..floor(N/2)] - frequencies from forward real FFT
+    N   -   problem size
+
+OUTPUT PARAMETERS
+    A   -   inverse DFT of a input array, array[0..N-1]
+
+NOTE:
+    F[] should satisfy symmetry property F[k] = conj(F[N-k]), so just  one
+half of frequencies array is needed - elements from 0 to floor(N/2).  F[0]
+is ALWAYS real. If N is even F[floor(N/2)] is real too. If N is odd,  then
+F[floor(N/2)] has no special properties.
+
+Relying on properties noted above, FFTR1DInv subroutine uses only elements
+from 0th to floor(N/2)-th. It ignores imaginary part of F[0],  and in case
+N is even it ignores imaginary part of F[floor(N/2)] too.
+
+When you call this function using full arguments list - "FFTR1DInv(F,N,A)"
+- you can pass either either frequencies array with N elements or  reduced
+array with roughly N/2 elements - subroutine will  successfully  transform
+both.
+
+If you call this function using reduced arguments list -  "FFTR1DInv(F,A)"
+- you must pass FULL array with N elements (although higher  N/2 are still
+not used) because array size is used to automatically determine FFT length
+
+
+  -- ALGLIB --
+     Copyright 01.06.2009 by Bochkanov Sergey
+*************************************************************************/
+void fftr1dinv(const complex_1d_array &f, const ae_int_t n, real_1d_array &a, const xparams _xparams)
+{
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
+    alglib_impl::ae_state_init(&_alglib_env_state);
+    if( setjmp(_break_jump) )
     {
-        throw ap_error(_alglib_env_state.error_msg);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return;
+#endif
     }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::fftr1dinv(const_cast<alglib_impl::ae_vector*>(f.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(a.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -325,77 +422,108 @@ not used) because array size is used to automatically determine FFT length
   -- ALGLIB --
      Copyright 01.06.2009 by Bochkanov Sergey
 *************************************************************************/
-void fftr1dinv(const complex_1d_array &f, const ae_int_t n, real_1d_array &a)
+#if !defined(AE_NO_EXCEPTIONS)
+void fftr1dinv(const complex_1d_array &f, real_1d_array &a, const xparams _xparams)
 {
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::fftr1dinv(const_cast<alglib_impl::ae_vector*>(f.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(a.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-/*************************************************************************
-1-dimensional real inverse FFT.
-
-Algorithm has O(N*logN) complexity for any N (composite or prime).
-
-INPUT PARAMETERS
-    F   -   array[0..floor(N/2)] - frequencies from forward real FFT
-    N   -   problem size
-
-OUTPUT PARAMETERS
-    A   -   inverse DFT of a input array, array[0..N-1]
-
-NOTE:
-    F[] should satisfy symmetry property F[k] = conj(F[N-k]), so just  one
-half of frequencies array is needed - elements from 0 to floor(N/2).  F[0]
-is ALWAYS real. If N is even F[floor(N/2)] is real too. If N is odd,  then
-F[floor(N/2)] has no special properties.
-
-Relying on properties noted above, FFTR1DInv subroutine uses only elements
-from 0th to floor(N/2)-th. It ignores imaginary part of F[0],  and in case
-N is even it ignores imaginary part of F[floor(N/2)] too.
-
-When you call this function using full arguments list - "FFTR1DInv(F,N,A)"
-- you can pass either either frequencies array with N elements or  reduced
-array with roughly N/2 elements - subroutine will  successfully  transform
-both.
-
-If you call this function using reduced arguments list -  "FFTR1DInv(F,A)"
-- you must pass FULL array with N elements (although higher  N/2 are still
-not used) because array size is used to automatically determine FFT length
-
-
-  -- ALGLIB --
-     Copyright 01.06.2009 by Bochkanov Sergey
-*************************************************************************/
-void fftr1dinv(const complex_1d_array &f, real_1d_array &a)
-{
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;    
     ae_int_t n;
 
     n = f.length();
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::fftr1dinv(const_cast<alglib_impl::ae_vector*>(f.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(a.c_ptr()), &_alglib_env_state);
+    if( setjmp(_break_jump) )
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::fftr1dinv(const_cast<alglib_impl::ae_vector*>(f.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(a.c_ptr()), &_alglib_env_state);
 
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
+}
+#endif
+#endif
+
+#if defined(AE_COMPILE_FHT) || !defined(AE_PARTIAL_BUILD)
+/*************************************************************************
+1-dimensional Fast Hartley Transform.
+
+Algorithm has O(N*logN) complexity for any N (composite or prime).
+
+INPUT PARAMETERS
+    A   -   array[0..N-1] - real function to be transformed
+    N   -   problem size
+
+OUTPUT PARAMETERS
+    A   -   FHT of a input array, array[0..N-1],
+            A_out[k] = sum(A_in[j]*(cos(2*pi*j*k/N)+sin(2*pi*j*k/N)), j=0..N-1)
+
+
+  -- ALGLIB --
+     Copyright 04.06.2009 by Bochkanov Sergey
+*************************************************************************/
+void fhtr1d(real_1d_array &a, const ae_int_t n, const xparams _xparams)
+{
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
+    alglib_impl::ae_state_init(&_alglib_env_state);
+    if( setjmp(_break_jump) )
     {
-        throw ap_error(_alglib_env_state.error_msg);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return;
+#endif
     }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::fhtr1d(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
+/*************************************************************************
+1-dimensional inverse FHT.
+
+Algorithm has O(N*logN) complexity for any N (composite or prime).
+
+INPUT PARAMETERS
+    A   -   array[0..N-1] - complex array to be transformed
+    N   -   problem size
+
+OUTPUT PARAMETERS
+    A   -   inverse FHT of a input array, array[0..N-1]
+
+
+  -- ALGLIB --
+     Copyright 29.05.2009 by Bochkanov Sergey
+*************************************************************************/
+void fhtr1dinv(real_1d_array &a, const ae_int_t n, const xparams _xparams)
+{
+    jmp_buf _break_jump;
+    alglib_impl::ae_state _alglib_env_state;
+    alglib_impl::ae_state_init(&_alglib_env_state);
+    if( setjmp(_break_jump) )
+    {
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
+        return;
+#endif
+    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::fhtr1dinv(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
+}
+#endif
+
+#if defined(AE_COMPILE_CONV) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
 1-dimensional complex convolution.
 
@@ -425,20 +553,26 @@ subroutine - just shift its result correspondingly.
   -- ALGLIB --
      Copyright 21.07.2009 by Bochkanov Sergey
 *************************************************************************/
-void convc1d(const complex_1d_array &a, const ae_int_t m, const complex_1d_array &b, const ae_int_t n, complex_1d_array &r)
+void convc1d(const complex_1d_array &a, const ae_int_t m, const complex_1d_array &b, const ae_int_t n, complex_1d_array &r, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::convc1d(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(b.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::convc1d(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(b.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -467,20 +601,26 @@ subroutine - just shift its result correspondingly.
   -- ALGLIB --
      Copyright 21.07.2009 by Bochkanov Sergey
 *************************************************************************/
-void convc1dinv(const complex_1d_array &a, const ae_int_t m, const complex_1d_array &b, const ae_int_t n, complex_1d_array &r)
+void convc1dinv(const complex_1d_array &a, const ae_int_t m, const complex_1d_array &b, const ae_int_t n, complex_1d_array &r, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::convc1dinv(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(b.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::convc1dinv(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(b.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -511,20 +651,26 @@ correspondingly.
   -- ALGLIB --
      Copyright 21.07.2009 by Bochkanov Sergey
 *************************************************************************/
-void convc1dcircular(const complex_1d_array &s, const ae_int_t m, const complex_1d_array &r, const ae_int_t n, complex_1d_array &c)
+void convc1dcircular(const complex_1d_array &s, const ae_int_t m, const complex_1d_array &r, const ae_int_t n, complex_1d_array &c, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::convc1dcircular(const_cast<alglib_impl::ae_vector*>(s.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::convc1dcircular(const_cast<alglib_impl::ae_vector*>(s.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(c.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -553,20 +699,26 @@ correspondingly.
   -- ALGLIB --
      Copyright 21.07.2009 by Bochkanov Sergey
 *************************************************************************/
-void convc1dcircularinv(const complex_1d_array &a, const ae_int_t m, const complex_1d_array &b, const ae_int_t n, complex_1d_array &r)
+void convc1dcircularinv(const complex_1d_array &a, const ae_int_t m, const complex_1d_array &b, const ae_int_t n, complex_1d_array &r, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::convc1dcircularinv(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(b.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::convc1dcircularinv(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(b.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -591,20 +743,26 @@ subroutine - just shift its result correspondingly.
   -- ALGLIB --
      Copyright 21.07.2009 by Bochkanov Sergey
 *************************************************************************/
-void convr1d(const real_1d_array &a, const ae_int_t m, const real_1d_array &b, const ae_int_t n, real_1d_array &r)
+void convr1d(const real_1d_array &a, const ae_int_t m, const real_1d_array &b, const ae_int_t n, real_1d_array &r, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::convr1d(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(b.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::convr1d(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(b.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -633,20 +791,26 @@ subroutine - just shift its result correspondingly.
   -- ALGLIB --
      Copyright 21.07.2009 by Bochkanov Sergey
 *************************************************************************/
-void convr1dinv(const real_1d_array &a, const ae_int_t m, const real_1d_array &b, const ae_int_t n, real_1d_array &r)
+void convr1dinv(const real_1d_array &a, const ae_int_t m, const real_1d_array &b, const ae_int_t n, real_1d_array &r, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::convr1dinv(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(b.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::convr1dinv(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(b.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -671,20 +835,26 @@ correspondingly.
   -- ALGLIB --
      Copyright 21.07.2009 by Bochkanov Sergey
 *************************************************************************/
-void convr1dcircular(const real_1d_array &s, const ae_int_t m, const real_1d_array &r, const ae_int_t n, real_1d_array &c)
+void convr1dcircular(const real_1d_array &s, const ae_int_t m, const real_1d_array &r, const ae_int_t n, real_1d_array &c, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::convr1dcircular(const_cast<alglib_impl::ae_vector*>(s.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::convr1dcircular(const_cast<alglib_impl::ae_vector*>(s.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(c.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -713,22 +883,30 @@ correspondingly.
   -- ALGLIB --
      Copyright 21.07.2009 by Bochkanov Sergey
 *************************************************************************/
-void convr1dcircularinv(const real_1d_array &a, const ae_int_t m, const real_1d_array &b, const ae_int_t n, real_1d_array &r)
+void convr1dcircularinv(const real_1d_array &a, const ae_int_t m, const real_1d_array &b, const ae_int_t n, real_1d_array &r, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::convr1dcircularinv(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(b.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::convr1dcircularinv(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(b.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
+#endif
 
+#if defined(AE_COMPILE_CORR) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
 1-dimensional complex cross-correlation.
 
@@ -765,20 +943,26 @@ on [-K..M-1],  you can still use this subroutine, just shift result by K.
   -- ALGLIB --
      Copyright 21.07.2009 by Bochkanov Sergey
 *************************************************************************/
-void corrc1d(const complex_1d_array &signal, const ae_int_t n, const complex_1d_array &pattern, const ae_int_t m, complex_1d_array &r)
+void corrc1d(const complex_1d_array &signal, const ae_int_t n, const complex_1d_array &pattern, const ae_int_t m, complex_1d_array &r, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::corrc1d(const_cast<alglib_impl::ae_vector*>(signal.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(pattern.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::corrc1d(const_cast<alglib_impl::ae_vector*>(signal.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(pattern.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -808,20 +992,26 @@ OUTPUT PARAMETERS
   -- ALGLIB --
      Copyright 21.07.2009 by Bochkanov Sergey
 *************************************************************************/
-void corrc1dcircular(const complex_1d_array &signal, const ae_int_t m, const complex_1d_array &pattern, const ae_int_t n, complex_1d_array &c)
+void corrc1dcircular(const complex_1d_array &signal, const ae_int_t m, const complex_1d_array &pattern, const ae_int_t n, complex_1d_array &c, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::corrc1dcircular(const_cast<alglib_impl::ae_vector*>(signal.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(pattern.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::corrc1dcircular(const_cast<alglib_impl::ae_vector*>(signal.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(pattern.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(c.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -860,20 +1050,26 @@ on [-K..M-1],  you can still use this subroutine, just shift result by K.
   -- ALGLIB --
      Copyright 21.07.2009 by Bochkanov Sergey
 *************************************************************************/
-void corrr1d(const real_1d_array &signal, const ae_int_t n, const real_1d_array &pattern, const ae_int_t m, real_1d_array &r)
+void corrr1d(const real_1d_array &signal, const ae_int_t n, const real_1d_array &pattern, const ae_int_t m, real_1d_array &r, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::corrr1d(const_cast<alglib_impl::ae_vector*>(signal.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(pattern.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::corrr1d(const_cast<alglib_impl::ae_vector*>(signal.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(pattern.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(r.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
 
 /*************************************************************************
@@ -903,86 +1099,28 @@ OUTPUT PARAMETERS
   -- ALGLIB --
      Copyright 21.07.2009 by Bochkanov Sergey
 *************************************************************************/
-void corrr1dcircular(const real_1d_array &signal, const ae_int_t m, const real_1d_array &pattern, const ae_int_t n, real_1d_array &c)
+void corrr1dcircular(const real_1d_array &signal, const ae_int_t m, const real_1d_array &pattern, const ae_int_t n, real_1d_array &c, const xparams _xparams)
 {
+    jmp_buf _break_jump;
     alglib_impl::ae_state _alglib_env_state;
     alglib_impl::ae_state_init(&_alglib_env_state);
-    try
+    if( setjmp(_break_jump) )
     {
-        alglib_impl::corrr1dcircular(const_cast<alglib_impl::ae_vector*>(signal.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(pattern.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(c.c_ptr()), &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
+#if !defined(AE_NO_EXCEPTIONS)
+        _ALGLIB_CPP_EXCEPTION(_alglib_env_state.error_msg);
+#else
+        _ALGLIB_SET_ERROR_FLAG(_alglib_env_state.error_msg);
         return;
+#endif
     }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
+    ae_state_set_break_jump(&_alglib_env_state, &_break_jump);
+    if( _xparams.flags!=0x0 )
+        ae_state_set_flags(&_alglib_env_state, _xparams.flags);
+    alglib_impl::corrr1dcircular(const_cast<alglib_impl::ae_vector*>(signal.c_ptr()), m, const_cast<alglib_impl::ae_vector*>(pattern.c_ptr()), n, const_cast<alglib_impl::ae_vector*>(c.c_ptr()), &_alglib_env_state);
+    alglib_impl::ae_state_clear(&_alglib_env_state);
+    return;
 }
-
-/*************************************************************************
-1-dimensional Fast Hartley Transform.
-
-Algorithm has O(N*logN) complexity for any N (composite or prime).
-
-INPUT PARAMETERS
-    A   -   array[0..N-1] - real function to be transformed
-    N   -   problem size
-
-OUTPUT PARAMETERS
-    A   -   FHT of a input array, array[0..N-1],
-            A_out[k] = sum(A_in[j]*(cos(2*pi*j*k/N)+sin(2*pi*j*k/N)), j=0..N-1)
-
-
-  -- ALGLIB --
-     Copyright 04.06.2009 by Bochkanov Sergey
-*************************************************************************/
-void fhtr1d(real_1d_array &a, const ae_int_t n)
-{
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::fhtr1d(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
-
-/*************************************************************************
-1-dimensional inverse FHT.
-
-Algorithm has O(N*logN) complexity for any N (composite or prime).
-
-INPUT PARAMETERS
-    A   -   array[0..N-1] - complex array to be transformed
-    N   -   problem size
-
-OUTPUT PARAMETERS
-    A   -   inverse FHT of a input array, array[0..N-1]
-
-
-  -- ALGLIB --
-     Copyright 29.05.2009 by Bochkanov Sergey
-*************************************************************************/
-void fhtr1dinv(real_1d_array &a, const ae_int_t n)
-{
-    alglib_impl::ae_state _alglib_env_state;
-    alglib_impl::ae_state_init(&_alglib_env_state);
-    try
-    {
-        alglib_impl::fhtr1dinv(const_cast<alglib_impl::ae_vector*>(a.c_ptr()), n, &_alglib_env_state);
-        alglib_impl::ae_state_clear(&_alglib_env_state);
-        return;
-    }
-    catch(alglib_impl::ae_error_type)
-    {
-        throw ap_error(_alglib_env_state.error_msg);
-    }
-}
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -992,15 +1130,24 @@ void fhtr1dinv(real_1d_array &a, const ae_int_t n)
 /////////////////////////////////////////////////////////////////////////
 namespace alglib_impl
 {
+#if defined(AE_COMPILE_FFT) || !defined(AE_PARTIAL_BUILD)
 
 
+#endif
+#if defined(AE_COMPILE_FHT) || !defined(AE_PARTIAL_BUILD)
 
 
+#endif
+#if defined(AE_COMPILE_CONV) || !defined(AE_PARTIAL_BUILD)
 
 
+#endif
+#if defined(AE_COMPILE_CORR) || !defined(AE_PARTIAL_BUILD)
 
 
+#endif
 
+#if defined(AE_COMPILE_FFT) || !defined(AE_PARTIAL_BUILD)
 
 
 /*************************************************************************
@@ -1040,8 +1187,10 @@ void fftc1d(/* Complex */ ae_vector* a, ae_int_t n, ae_state *_state)
     ae_vector buf;
 
     ae_frame_make(_state, &_frame_block);
-    _fasttransformplan_init(&plan, _state);
-    ae_vector_init(&buf, 0, DT_REAL, _state);
+    memset(&plan, 0, sizeof(plan));
+    memset(&buf, 0, sizeof(buf));
+    _fasttransformplan_init(&plan, _state, ae_true);
+    ae_vector_init(&buf, 0, DT_REAL, _state, ae_true);
 
     ae_assert(n>0, "FFTC1D: incorrect N!", _state);
     ae_assert(a->cnt>=n, "FFTC1D: Length(A)<N!", _state);
@@ -1177,9 +1326,11 @@ void fftr1d(/* Real    */ ae_vector* a,
     fasttransformplan plan;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&buf, 0, sizeof(buf));
+    memset(&plan, 0, sizeof(plan));
     ae_vector_clear(f);
-    ae_vector_init(&buf, 0, DT_REAL, _state);
-    _fasttransformplan_init(&plan, _state);
+    ae_vector_init(&buf, 0, DT_REAL, _state, ae_true);
+    _fasttransformplan_init(&plan, _state, ae_true);
 
     ae_assert(n>0, "FFTR1D: incorrect N!", _state);
     ae_assert(a->cnt>=n, "FFTR1D: Length(A)<N!", _state);
@@ -1307,9 +1458,11 @@ void fftr1dinv(/* Complex */ ae_vector* f,
     ae_vector fh;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&h, 0, sizeof(h));
+    memset(&fh, 0, sizeof(fh));
     ae_vector_clear(a);
-    ae_vector_init(&h, 0, DT_REAL, _state);
-    ae_vector_init(&fh, 0, DT_COMPLEX, _state);
+    ae_vector_init(&h, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&fh, 0, DT_COMPLEX, _state, ae_true);
 
     ae_assert(n>0, "FFTR1DInv: incorrect N!", _state);
     ae_assert(f->cnt>=ae_ifloor((double)n/(double)2, _state)+1, "FFTR1DInv: Length(F)<Floor(N/2)+1!", _state);
@@ -1502,6 +1655,108 @@ void fftr1dinvinternaleven(/* Real    */ ae_vector* a,
 }
 
 
+#endif
+#if defined(AE_COMPILE_FHT) || !defined(AE_PARTIAL_BUILD)
+
+
+/*************************************************************************
+1-dimensional Fast Hartley Transform.
+
+Algorithm has O(N*logN) complexity for any N (composite or prime).
+
+INPUT PARAMETERS
+    A   -   array[0..N-1] - real function to be transformed
+    N   -   problem size
+    
+OUTPUT PARAMETERS
+    A   -   FHT of a input array, array[0..N-1],
+            A_out[k] = sum(A_in[j]*(cos(2*pi*j*k/N)+sin(2*pi*j*k/N)), j=0..N-1)
+
+
+  -- ALGLIB --
+     Copyright 04.06.2009 by Bochkanov Sergey
+*************************************************************************/
+void fhtr1d(/* Real    */ ae_vector* a, ae_int_t n, ae_state *_state)
+{
+    ae_frame _frame_block;
+    ae_int_t i;
+    ae_vector fa;
+
+    ae_frame_make(_state, &_frame_block);
+    memset(&fa, 0, sizeof(fa));
+    ae_vector_init(&fa, 0, DT_COMPLEX, _state, ae_true);
+
+    ae_assert(n>0, "FHTR1D: incorrect N!", _state);
+    
+    /*
+     * Special case: N=1, FHT is just identity transform.
+     * After this block we assume that N is strictly greater than 1.
+     */
+    if( n==1 )
+    {
+        ae_frame_leave(_state);
+        return;
+    }
+    
+    /*
+     * Reduce FHt to real FFT
+     */
+    fftr1d(a, n, &fa, _state);
+    for(i=0; i<=n-1; i++)
+    {
+        a->ptr.p_double[i] = fa.ptr.p_complex[i].x-fa.ptr.p_complex[i].y;
+    }
+    ae_frame_leave(_state);
+}
+
+
+/*************************************************************************
+1-dimensional inverse FHT.
+
+Algorithm has O(N*logN) complexity for any N (composite or prime).
+
+INPUT PARAMETERS
+    A   -   array[0..N-1] - complex array to be transformed
+    N   -   problem size
+
+OUTPUT PARAMETERS
+    A   -   inverse FHT of a input array, array[0..N-1]
+
+
+  -- ALGLIB --
+     Copyright 29.05.2009 by Bochkanov Sergey
+*************************************************************************/
+void fhtr1dinv(/* Real    */ ae_vector* a, ae_int_t n, ae_state *_state)
+{
+    ae_int_t i;
+
+
+    ae_assert(n>0, "FHTR1DInv: incorrect N!", _state);
+    
+    /*
+     * Special case: N=1, iFHT is just identity transform.
+     * After this block we assume that N is strictly greater than 1.
+     */
+    if( n==1 )
+    {
+        return;
+    }
+    
+    /*
+     * Inverse FHT can be expressed in terms of the FHT as
+     *
+     *     invfht(x) = fht(x)/N
+     */
+    fhtr1d(a, n, _state);
+    for(i=0; i<=n-1; i++)
+    {
+        a->ptr.p_double[i] = a->ptr.p_double[i]/n;
+    }
+}
+
+
+#endif
+#if defined(AE_COMPILE_CONV) || !defined(AE_PARTIAL_BUILD)
 
 
 /*************************************************************************
@@ -1603,10 +1858,13 @@ void convc1dinv(/* Complex */ ae_vector* a,
     double t;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&buf, 0, sizeof(buf));
+    memset(&buf2, 0, sizeof(buf2));
+    memset(&plan, 0, sizeof(plan));
     ae_vector_clear(r);
-    ae_vector_init(&buf, 0, DT_REAL, _state);
-    ae_vector_init(&buf2, 0, DT_REAL, _state);
-    _fasttransformplan_init(&plan, _state);
+    ae_vector_init(&buf, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&buf2, 0, DT_REAL, _state, ae_true);
+    _fasttransformplan_init(&plan, _state, ae_true);
 
     ae_assert((n>0&&m>0)&&n<=m, "ConvC1DInv: incorrect N or M!", _state);
     p = ftbasefindsmooth(m, _state);
@@ -1699,8 +1957,9 @@ void convc1dcircular(/* Complex */ ae_vector* s,
     ae_int_t j2;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&buf, 0, sizeof(buf));
     ae_vector_clear(c);
-    ae_vector_init(&buf, 0, DT_COMPLEX, _state);
+    ae_vector_init(&buf, 0, DT_COMPLEX, _state, ae_true);
 
     ae_assert(n>0&&m>0, "ConvC1DCircular: incorrect N or M!", _state);
     
@@ -1780,11 +2039,15 @@ void convc1dcircularinv(/* Complex */ ae_vector* a,
     double t;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&buf, 0, sizeof(buf));
+    memset(&buf2, 0, sizeof(buf2));
+    memset(&cbuf, 0, sizeof(cbuf));
+    memset(&plan, 0, sizeof(plan));
     ae_vector_clear(r);
-    ae_vector_init(&buf, 0, DT_REAL, _state);
-    ae_vector_init(&buf2, 0, DT_REAL, _state);
-    ae_vector_init(&cbuf, 0, DT_COMPLEX, _state);
-    _fasttransformplan_init(&plan, _state);
+    ae_vector_init(&buf, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&buf2, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&cbuf, 0, DT_COMPLEX, _state, ae_true);
+    _fasttransformplan_init(&plan, _state, ae_true);
 
     ae_assert(n>0&&m>0, "ConvC1DCircularInv: incorrect N or M!", _state);
     
@@ -1949,11 +2212,15 @@ void convr1dinv(/* Real    */ ae_vector* a,
     ae_complex c3;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&buf, 0, sizeof(buf));
+    memset(&buf2, 0, sizeof(buf2));
+    memset(&buf3, 0, sizeof(buf3));
+    memset(&plan, 0, sizeof(plan));
     ae_vector_clear(r);
-    ae_vector_init(&buf, 0, DT_REAL, _state);
-    ae_vector_init(&buf2, 0, DT_REAL, _state);
-    ae_vector_init(&buf3, 0, DT_REAL, _state);
-    _fasttransformplan_init(&plan, _state);
+    ae_vector_init(&buf, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&buf2, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&buf3, 0, DT_REAL, _state, ae_true);
+    _fasttransformplan_init(&plan, _state, ae_true);
 
     ae_assert((n>0&&m>0)&&n<=m, "ConvR1DInv: incorrect N or M!", _state);
     p = ftbasefindsmootheven(m, _state);
@@ -2028,8 +2295,9 @@ void convr1dcircular(/* Real    */ ae_vector* s,
     ae_int_t j2;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&buf, 0, sizeof(buf));
     ae_vector_clear(c);
-    ae_vector_init(&buf, 0, DT_REAL, _state);
+    ae_vector_init(&buf, 0, DT_REAL, _state, ae_true);
 
     ae_assert(n>0&&m>0, "ConvC1DCircular: incorrect N or M!", _state);
     
@@ -2114,13 +2382,19 @@ void convr1dcircularinv(/* Real    */ ae_vector* a,
     ae_complex c3;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&buf, 0, sizeof(buf));
+    memset(&buf2, 0, sizeof(buf2));
+    memset(&buf3, 0, sizeof(buf3));
+    memset(&cbuf, 0, sizeof(cbuf));
+    memset(&cbuf2, 0, sizeof(cbuf2));
+    memset(&plan, 0, sizeof(plan));
     ae_vector_clear(r);
-    ae_vector_init(&buf, 0, DT_REAL, _state);
-    ae_vector_init(&buf2, 0, DT_REAL, _state);
-    ae_vector_init(&buf3, 0, DT_REAL, _state);
-    ae_vector_init(&cbuf, 0, DT_COMPLEX, _state);
-    ae_vector_init(&cbuf2, 0, DT_COMPLEX, _state);
-    _fasttransformplan_init(&plan, _state);
+    ae_vector_init(&buf, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&buf2, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&buf3, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&cbuf, 0, DT_COMPLEX, _state, ae_true);
+    ae_vector_init(&cbuf2, 0, DT_COMPLEX, _state, ae_true);
+    _fasttransformplan_init(&plan, _state, ae_true);
 
     ae_assert(n>0&&m>0, "ConvR1DCircularInv: incorrect N or M!", _state);
     
@@ -2270,11 +2544,15 @@ void convc1dx(/* Complex */ ae_vector* a,
     ae_vector buf2;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&bbuf, 0, sizeof(bbuf));
+    memset(&plan, 0, sizeof(plan));
+    memset(&buf, 0, sizeof(buf));
+    memset(&buf2, 0, sizeof(buf2));
     ae_vector_clear(r);
-    ae_vector_init(&bbuf, 0, DT_COMPLEX, _state);
-    _fasttransformplan_init(&plan, _state);
-    ae_vector_init(&buf, 0, DT_REAL, _state);
-    ae_vector_init(&buf2, 0, DT_REAL, _state);
+    ae_vector_init(&bbuf, 0, DT_COMPLEX, _state, ae_true);
+    _fasttransformplan_init(&plan, _state, ae_true);
+    ae_vector_init(&buf, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&buf2, 0, DT_REAL, _state, ae_true);
 
     ae_assert(n>0&&m>0, "ConvC1DX: incorrect N or M!", _state);
     ae_assert(n<=m, "ConvC1DX: N<M assumption is false!", _state);
@@ -2746,11 +3024,15 @@ void convr1dx(/* Real    */ ae_vector* a,
     ae_vector buf3;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&plan, 0, sizeof(plan));
+    memset(&buf, 0, sizeof(buf));
+    memset(&buf2, 0, sizeof(buf2));
+    memset(&buf3, 0, sizeof(buf3));
     ae_vector_clear(r);
-    _fasttransformplan_init(&plan, _state);
-    ae_vector_init(&buf, 0, DT_REAL, _state);
-    ae_vector_init(&buf2, 0, DT_REAL, _state);
-    ae_vector_init(&buf3, 0, DT_REAL, _state);
+    _fasttransformplan_init(&plan, _state, ae_true);
+    ae_vector_init(&buf, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&buf2, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&buf3, 0, DT_REAL, _state, ae_true);
 
     ae_assert(n>0&&m>0, "ConvC1DX: incorrect N or M!", _state);
     ae_assert(n<=m, "ConvC1DX: N<M assumption is false!", _state);
@@ -3127,6 +3409,8 @@ void convr1dx(/* Real    */ ae_vector* a,
 }
 
 
+#endif
+#if defined(AE_COMPILE_CORR) || !defined(AE_PARTIAL_BUILD)
 
 
 /*************************************************************************
@@ -3178,9 +3462,11 @@ void corrc1d(/* Complex */ ae_vector* signal,
     ae_int_t i;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&p, 0, sizeof(p));
+    memset(&b, 0, sizeof(b));
     ae_vector_clear(r);
-    ae_vector_init(&p, 0, DT_COMPLEX, _state);
-    ae_vector_init(&b, 0, DT_COMPLEX, _state);
+    ae_vector_init(&p, 0, DT_COMPLEX, _state, ae_true);
+    ae_vector_init(&b, 0, DT_COMPLEX, _state, ae_true);
 
     ae_assert(n>0&&m>0, "CorrC1D: incorrect N or M!", _state);
     ae_vector_set_length(&p, m, _state);
@@ -3242,9 +3528,11 @@ void corrc1dcircular(/* Complex */ ae_vector* signal,
     ae_int_t j2;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&p, 0, sizeof(p));
+    memset(&b, 0, sizeof(b));
     ae_vector_clear(c);
-    ae_vector_init(&p, 0, DT_COMPLEX, _state);
-    ae_vector_init(&b, 0, DT_COMPLEX, _state);
+    ae_vector_init(&p, 0, DT_COMPLEX, _state, ae_true);
+    ae_vector_init(&b, 0, DT_COMPLEX, _state, ae_true);
 
     ae_assert(n>0&&m>0, "ConvC1DCircular: incorrect N or M!", _state);
     
@@ -3340,9 +3628,11 @@ void corrr1d(/* Real    */ ae_vector* signal,
     ae_int_t i;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&p, 0, sizeof(p));
+    memset(&b, 0, sizeof(b));
     ae_vector_clear(r);
-    ae_vector_init(&p, 0, DT_REAL, _state);
-    ae_vector_init(&b, 0, DT_REAL, _state);
+    ae_vector_init(&p, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&b, 0, DT_REAL, _state, ae_true);
 
     ae_assert(n>0&&m>0, "CorrR1D: incorrect N or M!", _state);
     ae_vector_set_length(&p, m, _state);
@@ -3404,9 +3694,11 @@ void corrr1dcircular(/* Real    */ ae_vector* signal,
     ae_int_t j2;
 
     ae_frame_make(_state, &_frame_block);
+    memset(&p, 0, sizeof(p));
+    memset(&b, 0, sizeof(b));
     ae_vector_clear(c);
-    ae_vector_init(&p, 0, DT_REAL, _state);
-    ae_vector_init(&b, 0, DT_REAL, _state);
+    ae_vector_init(&p, 0, DT_REAL, _state, ae_true);
+    ae_vector_init(&b, 0, DT_REAL, _state, ae_true);
 
     ae_assert(n>0&&m>0, "ConvC1DCircular: incorrect N or M!", _state);
     
@@ -3453,103 +3745,7 @@ void corrr1dcircular(/* Real    */ ae_vector* signal,
 }
 
 
-
-
-/*************************************************************************
-1-dimensional Fast Hartley Transform.
-
-Algorithm has O(N*logN) complexity for any N (composite or prime).
-
-INPUT PARAMETERS
-    A   -   array[0..N-1] - real function to be transformed
-    N   -   problem size
-    
-OUTPUT PARAMETERS
-    A   -   FHT of a input array, array[0..N-1],
-            A_out[k] = sum(A_in[j]*(cos(2*pi*j*k/N)+sin(2*pi*j*k/N)), j=0..N-1)
-
-
-  -- ALGLIB --
-     Copyright 04.06.2009 by Bochkanov Sergey
-*************************************************************************/
-void fhtr1d(/* Real    */ ae_vector* a, ae_int_t n, ae_state *_state)
-{
-    ae_frame _frame_block;
-    ae_int_t i;
-    ae_vector fa;
-
-    ae_frame_make(_state, &_frame_block);
-    ae_vector_init(&fa, 0, DT_COMPLEX, _state);
-
-    ae_assert(n>0, "FHTR1D: incorrect N!", _state);
-    
-    /*
-     * Special case: N=1, FHT is just identity transform.
-     * After this block we assume that N is strictly greater than 1.
-     */
-    if( n==1 )
-    {
-        ae_frame_leave(_state);
-        return;
-    }
-    
-    /*
-     * Reduce FHt to real FFT
-     */
-    fftr1d(a, n, &fa, _state);
-    for(i=0; i<=n-1; i++)
-    {
-        a->ptr.p_double[i] = fa.ptr.p_complex[i].x-fa.ptr.p_complex[i].y;
-    }
-    ae_frame_leave(_state);
-}
-
-
-/*************************************************************************
-1-dimensional inverse FHT.
-
-Algorithm has O(N*logN) complexity for any N (composite or prime).
-
-INPUT PARAMETERS
-    A   -   array[0..N-1] - complex array to be transformed
-    N   -   problem size
-
-OUTPUT PARAMETERS
-    A   -   inverse FHT of a input array, array[0..N-1]
-
-
-  -- ALGLIB --
-     Copyright 29.05.2009 by Bochkanov Sergey
-*************************************************************************/
-void fhtr1dinv(/* Real    */ ae_vector* a, ae_int_t n, ae_state *_state)
-{
-    ae_int_t i;
-
-
-    ae_assert(n>0, "FHTR1DInv: incorrect N!", _state);
-    
-    /*
-     * Special case: N=1, iFHT is just identity transform.
-     * After this block we assume that N is strictly greater than 1.
-     */
-    if( n==1 )
-    {
-        return;
-    }
-    
-    /*
-     * Inverse FHT can be expressed in terms of the FHT as
-     *
-     *     invfht(x) = fht(x)/N
-     */
-    fhtr1d(a, n, _state);
-    for(i=0; i<=n-1; i++)
-    {
-        a->ptr.p_double[i] = a->ptr.p_double[i]/n;
-    }
-}
-
-
+#endif
 
 }
 

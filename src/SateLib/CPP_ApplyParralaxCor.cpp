@@ -642,7 +642,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	// Fitting without weights
 	//
 	lsfitcreatef(AX, AY, c, diffstep, state);
-	lsfitsetcond(state, epsf, epsx, maxits);
+	lsfitsetcond(state, epsx, maxits);
 	lsfitsetbc(state, bndl, bndu);
 	lsfitsetscale(state, s);
 	alglib::lsfitfit(state, function_sumof9sins_func);
@@ -1206,7 +1206,7 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 			// Fitting without weights
 			//
 			lsfitcreatef(AX, AY, c, diffstep, state);
-			lsfitsetcond(state, epsf, epsx, maxits);
+			lsfitsetcond(state, epsx, maxits);
 			lsfitsetbc(state, bndl, bndu);
 			//lsfitsetscale(state, s);
 			alglib::lsfitfit(state, function_sumof8sins_func);

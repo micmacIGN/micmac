@@ -1,5 +1,5 @@
 /*************************************************************************
-ALGLIB 3.10.0 (source code generated 2015-08-19)
+ALGLIB 3.15.0 (source code generated 2019-02-20)
 Copyright (c) Sergey Bochkanov (ALGLIB project).
 
 >>> SOURCE LICENSE >>>
@@ -29,6 +29,7 @@ http://www.fsf.org/licensing/licenses
 /////////////////////////////////////////////////////////////////////////
 namespace alglib_impl
 {
+#if defined(AE_COMPILE_ODESOLVER) || !defined(AE_PARTIAL_BUILD)
 typedef struct
 {
     ae_int_t n;
@@ -62,6 +63,7 @@ typedef struct
     ae_int_t nfev;
     ae_int_t terminationtype;
 } odesolverreport;
+#endif
 
 }
 
@@ -73,6 +75,7 @@ typedef struct
 namespace alglib
 {
 
+#if defined(AE_COMPILE_ODESOLVER) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
 
 *************************************************************************/
@@ -129,7 +132,9 @@ public:
     ae_int_t &terminationtype;
 
 };
+#endif
 
+#if defined(AE_COMPILE_ODESOLVER) || !defined(AE_PARTIAL_BUILD)
 /*************************************************************************
 Cash-Karp adaptive ODE solver.
 
@@ -177,8 +182,8 @@ SEE ALSO
   -- ALGLIB --
      Copyright 01.09.2009 by Bochkanov Sergey
 *************************************************************************/
-void odesolverrkck(const real_1d_array &y, const ae_int_t n, const real_1d_array &x, const ae_int_t m, const double eps, const double h, odesolverstate &state);
-void odesolverrkck(const real_1d_array &y, const real_1d_array &x, const double eps, const double h, odesolverstate &state);
+void odesolverrkck(const real_1d_array &y, const ae_int_t n, const real_1d_array &x, const ae_int_t m, const double eps, const double h, odesolverstate &state, const xparams _xparams = alglib::xdefault);
+void odesolverrkck(const real_1d_array &y, const real_1d_array &x, const double eps, const double h, odesolverstate &state, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -186,7 +191,7 @@ This function provides reverse communication interface
 Reverse communication interface is not documented or recommended to use.
 See below for functions which provide better documented API
 *************************************************************************/
-bool odesolveriteration(const odesolverstate &state);
+bool odesolveriteration(const odesolverstate &state, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -203,7 +208,7 @@ It accepts following parameters:
 *************************************************************************/
 void odesolversolve(odesolverstate &state,
     void (*diff)(const real_1d_array &y, double x, real_1d_array &dy, void *ptr),
-    void *ptr = NULL);
+    void *ptr = NULL, const xparams _xparams = alglib::xdefault);
 
 
 /*************************************************************************
@@ -229,7 +234,8 @@ OUTPUT PARAMETERS:
   -- ALGLIB --
      Copyright 01.09.2009 by Bochkanov Sergey
 *************************************************************************/
-void odesolverresults(const odesolverstate &state, ae_int_t &m, real_1d_array &xtbl, real_2d_array &ytbl, odesolverreport &rep);
+void odesolverresults(const odesolverstate &state, ae_int_t &m, real_1d_array &xtbl, real_2d_array &ytbl, odesolverreport &rep, const xparams _xparams = alglib::xdefault);
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -239,6 +245,7 @@ void odesolverresults(const odesolverstate &state, ae_int_t &m, real_1d_array &x
 /////////////////////////////////////////////////////////////////////////
 namespace alglib_impl
 {
+#if defined(AE_COMPILE_ODESOLVER) || !defined(AE_PARTIAL_BUILD)
 void odesolverrkck(/* Real    */ ae_vector* y,
      ae_int_t n,
      /* Real    */ ae_vector* x,
@@ -254,14 +261,15 @@ void odesolverresults(odesolverstate* state,
      /* Real    */ ae_matrix* ytbl,
      odesolverreport* rep,
      ae_state *_state);
-void _odesolverstate_init(void* _p, ae_state *_state);
-void _odesolverstate_init_copy(void* _dst, void* _src, ae_state *_state);
+void _odesolverstate_init(void* _p, ae_state *_state, ae_bool make_automatic);
+void _odesolverstate_init_copy(void* _dst, void* _src, ae_state *_state, ae_bool make_automatic);
 void _odesolverstate_clear(void* _p);
 void _odesolverstate_destroy(void* _p);
-void _odesolverreport_init(void* _p, ae_state *_state);
-void _odesolverreport_init_copy(void* _dst, void* _src, ae_state *_state);
+void _odesolverreport_init(void* _p, ae_state *_state, ae_bool make_automatic);
+void _odesolverreport_init_copy(void* _dst, void* _src, ae_state *_state, ae_bool make_automatic);
 void _odesolverreport_clear(void* _p);
 void _odesolverreport_destroy(void* _p);
+#endif
 
 }
 #endif
