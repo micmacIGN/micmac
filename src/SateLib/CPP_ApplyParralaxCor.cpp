@@ -139,9 +139,9 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	//cout << "Max correl = " << aMaxCorrel << endl;
 
 	// Filter correlation
-	for (int aX = 0; aX < aSz.x; aX++)
+	for (int aX = 0; aX < int(aSz.x); aX++)
 	{
-		for (int aY = 0; aY < aSz.y; aY++)
+		for (int aY = 0; aY < int(aSz.y); aY++)
 		{
 			if (aDatCorrel[aY][aX] / 255 < 0.80)
 			{
@@ -154,12 +154,12 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	//Dilate mask
 
 	int pad = 10;
-	for (int aX = 0; aX < aSz.x; aX++)
+	for (int aX = 0; aX < int(aSz.x); aX++)
 	{
-		for (int aY = 0; aY < aSz.y; aY++)
+		for (int aY = 0; aY < int(aSz.y); aY++)
 		{
 			//if on the edge of the image
-			if (aX<pad || aX>aSz.x - pad || aY<pad || aY>aSz.y - pad)
+			if (aX<pad || aX>int(aSz.x) - pad || aY<pad || aY>int(aSz.y) - pad)
 			{
 				aDatCorrel_dilat[aY][aX] = -9999;
 			}
@@ -188,9 +188,9 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	int countTot = 0;
 	int countAccept = 0;
 	double aMeanParErr = 0;
-	for (int aX = 0; aX < aSz.x; aX++)
+	for (int aX = 0; aX < int(aSz.x); aX++)
 	{
-		for (int aY = 0; aY < aSz.y; aY++)
+		for (int aY = 0; aY < int(aSz.y); aY++)
 		{
 			countTot++;
 			if (aDatCorrel_dilat[aY][aX] != -9999)
