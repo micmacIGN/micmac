@@ -630,7 +630,6 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 	//real_1d_array bndl = "[0,0.002,0, 0,0.002,0, 0,0.002,0, 0,0.0002,0, 0,0.0002,0, 0,0.0002,0]";
 	//real_1d_array bndu = "[0.2,0.0045,6.29, 0.2,0.0045,6.29, 0.2,0.0045,6.29, 0.3,0.001,6.29, 0.3,0.001,6.29, 0.3,0.001,6.29]";
 
-	double epsf = 0;
 	double epsx = 0.0000001;
 	ae_int_t maxits = 0;
 	ae_int_t info;
@@ -1054,7 +1053,7 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	int aNbQualityThreshold = 32;
 	int nbOverlap = 10;
 	//For each band of 500pix with 80% overlap
-	for (int k = 0; k < bands.size() - nbOverlap; k++) {
+	for (int k = 0; k < int(bands.size() - nbOverlap); k++) {
 		u_int aXmin = bands[k];
 		u_int aXmax = bands[k + nbOverlap];
 		cout << endl << "Sin fit pass " << k << endl;
@@ -1067,10 +1066,10 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 		int firstValid = 0;
 		int lastValid = 0;
 		vector<double> a1DSignal;
-		for (int aY = 0; aY < aSz.y; aY++) {
+		for (int aY = 0; aY < int(aSz.y); aY++) {
 			double aSum = 0;
 			int aCpt = 0;
-			for (int aX = aXmin; aX < aXmax; aX++) {
+			for (int aX = aXmin; aX < int(aXmax); aX++) {
 				if (aDatCorrel_dilat[aY][aX] != -9999)
 				{
 					aCpt++;
@@ -1093,9 +1092,8 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 		{
 			cout << "Not enough data to fit this slice, keeping polynomial solution" << endl;
 
-#pragma omp parallel for
-			for (int aX = aXmin; aX < aXmax; aX++) {
-				for (int aY = 0; aY < aSz.y; aY++) {
+			for (int aX = aXmin; aX < int(aXmax); aX++) {
+				for (int aY = 0; aY < int(aSz.y); aY++) {
 					if ((mod(k, nbOverlap)) == 0)
 					{
 						aDatParFit2_1[aY][aX] = aDatParFit[aY][aX];
@@ -1194,7 +1192,7 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 			real_1d_array s = "[50, 500, 1]";//scale to have all variables in same approximate range mean(Amp)~0.02, mean(Freq)~0.005, mean(Phase)~pi/2
 			real_1d_array bndl = "[0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0,0, 0.0005, 0]";
 			real_1d_array bndu = "[0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415,0.1, 0.02, 0.031415]";
-			double epsf = 0;
+
 			double epsx = 0.0000001;
 			ae_int_t maxits = 0;
 			ae_int_t info;
@@ -1218,10 +1216,9 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 
 
 			//Filling out container
-#pragma omp parallel for
-			for (int aX = aXmin; aX < aXmax; aX++)
+			for (int aX = aXmin; aX < int(aXmax); aX++)
 			{
-				for (int aY = 0; aY < aSz.y; aY++)
+				for (int aY = 0; aY < int(aSz.y); aY++)
 				{
 					double aVal = 0;
 					for (u_int i = 0; i < 9; i++)
@@ -1332,8 +1329,8 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	if (nbOverlap == 10)
 	{
 #pragma omp parallel for
-		for (int aX = 0; aX < aSz.x; aX++) {
-			for (int aY = 0; aY < aSz.y; aY++) {
+		for (int aX = 0; aX < int(aSz.x); aX++) {
+			for (int aY = 0; aY < int(aSz.y); aY++) {
 
 				double aStacka[] = { aDatParFit2_1[aY][aX],  aDatParFit2_2[aY][aX],  aDatParFit2_3[aY][aX],  aDatParFit2_4[aY][aX],  aDatParFit2_5[aY][aX],
 										aDatParFit2_6[aY][aX],  aDatParFit2_7[aY][aX],  aDatParFit2_8[aY][aX],  aDatParFit2_9[aY][aX],  aDatParFit2_X[aY][aX] };
