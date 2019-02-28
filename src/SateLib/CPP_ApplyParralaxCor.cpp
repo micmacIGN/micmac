@@ -1328,7 +1328,6 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	//Finding median in stack
 	if (nbOverlap == 10)
 	{
-#pragma omp parallel for
 		for (int aX = 0; aX < int(aSz.x); aX++) {
 			for (int aY = 0; aY < int(aSz.y); aY++) {
 
