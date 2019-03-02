@@ -4,7 +4,11 @@
 	#include <windows.h> 
 #endif
 
-#include "GL/gl.h"
+#ifdef ELISE_Darwin
+	#include "OpenGL/gl.h"
+#else
+	#include "GL/gl.h"
+#endif
 
 #include <list>
 #include <algorithm>
