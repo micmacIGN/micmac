@@ -676,18 +676,20 @@ class cParamPtProj
 class cRapOnZ
 {
     public :
-       cRapOnZ(double aZ,double aIncertCompens,double aIncertEstim,const std::string & aLayerIm);
+       cRapOnZ(double aZ,double aIncertCompens,double aIncertEstim,const std::string & aLayerIm,const std::string & aKeyGrpApply);
 
         Pt3dr PZ() const ; // X ET Y ARBRITRAIREMENT A 0
         double Z() const;
         double IncEstim() const;
         double IncComp() const;
         const std::string & LayerIm() const;
+        const std::string & KeyGrpApply() const;
     private :
        double mZ;
        double mIC;
        double mIE;
        std::string mLayerIm;
+       std::string mKeyGrpApply;
 };
 
 class cXmlSLM_RappelOnPt;

@@ -21,11 +21,16 @@ class cCarLookUpTable;
 
 // ===============================================
 
+/// Indicate if an int is a regular caracter
 inline bool IsChar(int aV)
 {
    return (aV>=std::numeric_limits<char>::min())&&(aV<std::numeric_limits<char>::max());
 }
 
+/**
+     Class to tabulate a fonction on char
+     For now, due to limited accassor, can only be used in binary mode, done to be reusable.
+*/
 class cCarLookUpTable
 {
      public : 
@@ -41,16 +46,16 @@ class cCarLookUpTable
      private :
          // static cGestObjetEmpruntable<cCarLookUpTable>   msGOE;
 
-         char          mDTable[256]; ///< 
-         char *        mUTable;    ///<
-         std::string   mIns;
-         bool          mInit;
+         char          mDTable[256]; ///< Reserve RAM for the LUT 
+         char *        mUTable;      ///< To handle that sometimes char are signed
+         std::string   mIns;         ///< Memorize char !=0 to  reset
+         bool          mInit;        ///< Is it initialize
 };
 
 // Indicate if all "word" of list are in KeyList, use aSpace to separate word
 // Si aMes=="SVP"=> No Error just return false, else aMes is error message
 bool  CheckIntersect(const std::string & aMes,const std::string & aKeyList,const std::string & aList,const std::string & aSpace);
-std::string  Quote(const std::string &);  // Assure a string is between quote, do nothing is begins by "
+std::string  Quote(const std::string &);  ///<  Assure a string is between quote, do nothing when begins by "
 
 
 //  String spliting, post fix, prefix etc ...
@@ -80,6 +85,8 @@ bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP); ///< Purge r
 bool RemoveFile(const  std::string & aDir,bool SVP); ///< Remove file
 void RenameFiles(const std::string & anOldName, const std::string & aNewName); ///< Move/Rename
 void CopyFile(const std::string & aName,const std::string & aDest);
+bool  RemovePatternFile(const  std::string & aPat,bool SVP); ///< Remove all file corresponding to pattern
+
 
 
 
@@ -186,6 +193,32 @@ class cMultipleOfs  : public  std::ostream
 
 /// For now I have problem with cMultipleOfs << std::endl , tag end of line to come back on it later
 #define ENDL "\n"
+
+
+/** Probably job could be done with boost, but I am not sure I could handle
+    precisely output format
+*/
+
+class cMMVII_Duration
+{
+     public :
+
+        cMMVII_Duration();  // Null
+        static cMMVII_Duration FromSecond(double aNbSec,eTyUnitTime=eTyUnitTime::eNbVals);
+        void Normalise(eTyUnitTime);
+
+        std::string ToDaisyStr(std::string * aFormat=0,bool Full=false) const;
+
+     public :
+        std::string  ToString(char aSep,int aNbDigFrac,std::string * aFormat,bool Full) const;
+
+        tINT8 mNbDay;
+        tINT8 mNbHour;
+        tINT8 mNbMin;
+        tINT8 mNbSec;
+        tREAL8 mFrac;   // in second
+};
+void Bench_Duration();
 
 
 };

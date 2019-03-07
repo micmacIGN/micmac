@@ -55,7 +55,7 @@ int AperiCloud_main(int argc,char ** argv)
     int ExpTxt=0;
     int PlyBin=1;
     bool CalPerIm=false;
-    std::string Out="";
+    std::string aNameOut="";
 
     int RGB = -1;
     double aSeuilEc = 10.0;
@@ -83,22 +83,22 @@ int AperiCloud_main(int argc,char ** argv)
                LArgMain()  << EAMC(aFullDir,"Full name (Dir+Pattern)", eSAM_IsPatFile)
                     << EAMC(AeroIn,"Orientation directory", eSAM_IsExistDirOri),
                LArgMain()
-                    << EAM(ExpTxt,"ExpTxt",true,"Point in txt format ? (Def=false)", eSAM_IsBool)
-                    << EAM(Out,"Out",true,"Result (Def=AperiCloud.ply)", eSAM_IsOutputFile)
+                    << EAM(ExpTxt,"ExpTxt",true,"Tie Point in txt format ? (Def=false)", eSAM_IsBool)
+                    << EAM(aNameOut,"Out",true,"Output name (Def=AperiCloud_NameOri.ply)", eSAM_IsOutputFile)
                     << EAM(PlyBin,"Bin",true,"Ply in binary mode (Def=true)", eSAM_IsBool)
-                    << EAM(RGB,"RGB",true,"Use RGB image to texturate points (Def=true)")
+                    << EAM(RGB,"RGB",true,"Use RGB image to color points (Def=true)")
                     << EAM(aSeuilEc,"SeuilEc",true,"Max residual (Def=10)")
                     << EAM(aLimBsH,"LimBsH",true,"Limit ratio base to height (Def=1e-2)", eSAM_NoInit)
                     << EAM(WithPoints,"WithPoints",true,"Do we add point cloud? (Def=true) ",eSAM_IsBool)
                     << EAM(CalPerIm,"CalPerIm",true,"If a calibration per image was used (Def=false)",eSAM_IsBool)
-                    << EAM(aFocs,"Focs",true,"Interval of Focal")
-                    << EAM(WithCam,"WithCam",true,"With Camera (Def=true)")
+                    << EAM(aFocs,"Focs",true,"Filter input images by an interval of Focal ( =[FocMin,FocMax] Def=[0,1000000])")
+                    << EAM(WithCam,"WithCam",true,"With Camera representation (Def=true)")
                     << EAM(aStepIm,"StepIm",true,"If image in camera are wanted, indicate reduction factor")
-                    << EAM(aColCadre,"ColCadre",true,"Col of camera rect Def= 255 0 0 (Red), R<0  if none")
-                    << EAM(aColRay,"ColRay",true,"Col of camera rect Def=  0 255 0 (Green), R<0 if none")
+                    << EAM(aColCadre,"ColCadre",true,"Col of camera rectangle (Def= 255 0 0 (Red), R<0  if none)")
+                    << EAM(aColRay,"ColRay",true,"Col of camera ray (Def= 0 255 0 (Green), R<0 if none)")
                     << EAM(aSetHom,"SH",true,"Set of Hom, Def=\"\", give MasqFiltered for result of HomolFilterMasq")
                     << EAM(aKeyCalcName,"KeyName",true,"Key to compute printed string (Def contain only digit, NONE if unused)")
-                    << EAM(aProfCam,"ProfCam",true,"Depth of pyramid representing camera (Def=0.3)")
+                    << EAM(aProfCam,"ProfCam",true,"Size of focal exageration factor for pyramid representing camera (Def=0.3)")
                     << EAM(aNameBundle,"NameBundle",true,"Name of input GCP to add bundle intersection schema")
                     << EAM(RabDrBundle,"RabDrBundle",true,"Lenght to add in budle drawing (Def=0.0)")
                     << EAM(aNameGCP,"GCPCtrl",true,"[GCPTerr.xml,GCPIm.xml,Scale]-> true 3D coordinates+image observations+residual vector scaling factor", eSAM_NoInit)
@@ -128,9 +128,9 @@ int AperiCloud_main(int argc,char ** argv)
 
         StdCorrecNameHomol(aSetHom,aDir);
         StdCorrecNameOrient(AeroIn,aDir);
-        if (Out=="")
+        if (aNameOut=="")
         {
-            Out="AperiCloud_" + AeroIn + std::string((aSetHom=="")?"":std::string("_")+aSetHom)+".ply";
+			aNameOut ="AperiCloud_" + AeroIn + std::string((aSetHom=="")?"":std::string("_")+aSetHom)+".ply";
         }
 
 
@@ -142,7 +142,7 @@ int AperiCloud_main(int argc,char ** argv)
                 + std::string(" +PatternAllIm=") + QUOTE(aPat) + std::string(" ")
                 + std::string(" +Ext=") + (ExpTxt?"txt":"dat")
                 + std::string(" +AeroIn=-") + AeroIn
-                + std::string(" +Out=") + Out
+                + std::string(" +Out=") + aNameOut
                 + std::string(" +PlyBin=") + (PlyBin?"true":"false")
                 + std::string(" +NbChan=") +  ToString(RGB)
                 + std::string(" +SeuilEc=") +  ToString(aSeuilEc)

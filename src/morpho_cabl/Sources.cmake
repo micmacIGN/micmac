@@ -8,7 +8,7 @@ set(Morpho_cabl_Src_Files
 	${MORPHO_DIR}/class_morpho.cpp
 )
 
-SOURCE_GROUP(Morpho FILES ${Morpho_cabl_Src_Files})
+source_group(Morpho FILES ${Morpho_cabl_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

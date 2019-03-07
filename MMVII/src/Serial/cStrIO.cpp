@@ -55,6 +55,22 @@ std::string ToStr(int aVal,int aSzMin)
        aRes = "-" + aRes;
    return aRes;
 }
+/*
+std::string  ToS_NbDigit(int aNb,int aNbDig,bool AcceptOverFlow)
+{
+   std::string aRes = ToS(aNb);
+   int aSz = (int)aRes.size();
+   if ((!AcceptOverFlow) && (aSz>aNbDig))
+   {
+       MMVII_INTERNAL_ASSERT_user(eTyUEr::eTooBig4NbDigit,"Pas assez de digit dans ToStringNBD")
+   }
+   for (;aSz<aNbDig ; aSz++)
+   {
+       aRes = "0" + aRes;
+   }
+   return aRes;
+}
+*/
 
 
    // ================  double ==============================================
@@ -71,6 +87,25 @@ template <>  double cStrIO<double>::FromStr(const std::string & aStr)
     return anI;
 }
 template <>  const std::string cStrIO<double>::msNameType = "double";
+
+std::string FixDigToStr(double aSignedVal,int aNbDig)
+{
+   std::string aFormat = "%."+ToS(aNbDig) + "f";
+   char aBuf[100];
+   sprintf(aBuf,aFormat.c_str(),aSignedVal);
+   return aBuf;
+/*
+   printf("%3.2f\n",d);
+   double aAbsV = std::abs(aSignedVal);
+   double aFrac = FracPart(aAbsV);
+   int aIVal = aVal - aFrac;
+
+   std::string aRes = ToStr(aIVal) + "." + ToStr(round_ni(aFrac*pow(10.0,aNdDig)),aNbDig);
+
+   return ToStr(aIVal)
+*/
+}
+
 
    // ================  std::string ==============================================
 

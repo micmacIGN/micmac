@@ -53,10 +53,10 @@ vector< complex<double> > DFT(vector< complex<double> >& theData)
 
 	// Initalise new vector with size of S
 	vector< complex<double> > out(S, 0);
-	for (unsigned i = 0; (i < S); i++)
+	for (unsigned i = 0; (int(i) < S); i++)
 	{
 		out[i] = complex<double>(0.0, 0.0);
-		for (unsigned j = 0; (j < S); j++)
+		for (unsigned j = 0; (int(j) < S); j++)
 		{
 			out[i] += theData[j] * polar<double>(1.0, -2 * PI * i * j / S);
 		}
@@ -114,8 +114,8 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz)
 
 	L2SysSurResol aSysPar(12);
 	//For all points that are not nullified by bad correlation (value=9999) add equation to fit 6th degree polynomials in x and y to measured paralax
-	for (u_int aX = 0; aX < aSz.x; aX++) {
-		for (u_int aY = 0; aY < aSz.y; aY++) {
+	for (u_int aX = 0; int(aX) < aSz.x; aX++) {
+		for (u_int aY = 0; int(aY) < aSz.y; aY++) {
 			double X = double(aX);
 			double Y = double(aY);
 			if (aParOrig[aY][aX] != -9999)
@@ -141,8 +141,8 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz)
 	REAL8 ** aDatParFit = aParFit.data();
 
 	//Filling out container
-	for (u_int aX = 0; aX < aSz.x; aX++) {
-		for (u_int aY = 0; aY < aSz.y; aY++) {
+	for (u_int aX = 0; int(aX) < aSz.x; aX++) {
+		for (u_int aY = 0; int(aY) < aSz.y; aY++) {
 			double X = double(aX);
 			double Y = double(aY);
 				aDatParFit[aY][aX] = aMeanParErr + aPolyPar[0] * X + aPolyPar[1] * X*X + aPolyPar[2] * X*X*X + aPolyPar[3] * X*X*X*X + aPolyPar[4] * X*X*X*X*X + aPolyPar[5] * X*X*X*X*X*X
@@ -182,10 +182,10 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz)
 	int firstValid=0;
 	int lastValid=0;
 	vector<double> a1DSignal;
-	for (u_int aY = 0; aY < aSz.y; aY++) {
+	for (u_int aY = 0; int(aY) < aSz.y; aY++) {
 		double aSum = 0;
 		int aCpt = 0;
-		for (u_int aX = 0; aX < aSz.x; aX++) {
+		for (u_int aX = 0; int(aX) < aSz.x; aX++) {
 			if (aParOrig[aY][aX] != -9999)
 			{
 				aCpt++;
@@ -209,7 +209,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz)
 
 	//Converting to complex type
 	vector< complex<double> > a1DSignalC;
-	for (u_int i = firstValid; i < lastValid; ++i)
+	for (u_int i = firstValid; int(i) < lastValid; ++i)
 	{
 		a1DSignalC.push_back(a1DSignal[i]);
 	}
@@ -248,7 +248,7 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz)
 		}
 	}
 	*/
-	for (u_int aY = 0; aY < aSz.y; aY++) {
+	for (u_int aY = 0; int(aY) < aSz.y; aY++) {
 			double COSY = cos(2 * M_PI * aFreq * double(aY));
 			double SINY = sin(2 * M_PI * aFreq * double(aY));
 			if (a1DSignal[aY] != -9999)
@@ -278,10 +278,10 @@ Im2D_REAL8 FitASTER(REAL8 ** aParOrig, string aDir, Pt2di aSz)
 	REAL8 ** aDatParFit2 = aParFit2.data();
 
 	//Filling out container
-	for (u_int aX = 0; aX < aSz.x; aX++) {
-		for (u_int aY = 0; aY < aSz.y; aY++) {
-			double X = aX;
-			double Y = aY;
+	for (u_int aX = 0; int(aX) < aSz.x; aX++) {
+		for (u_int aY = 0; int(aY) < aSz.y; aY++) {
+			// double X = aX;
+			// double Y = aY;
 			aDatParFit2[aY][aX] = aDatParFit[aY][aX] + aAmplitude*sin(2 * M_PI * aFreq * aY + aPhase);
 		}
 	}
@@ -373,7 +373,7 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 			aParFit.in(),
 			aPar.out()//Virgule(aImR.out(),aImG.out(),aImB.out())
 		);
-		REAL8 ** aDatPar = aPar.data();
+		/*REAL8 ** aDatPar = */  aPar.data();
 		cout << "Data fitted" << endl;
 	}
 

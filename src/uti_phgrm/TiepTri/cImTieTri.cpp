@@ -341,14 +341,14 @@ void  cImTieTri::MakeInterestPoint
                 int aCmp0 =  IsExtrema(anIm,aP);
 
                 if (aCmp0)
-                {
+                {  // Point is an extrema
                    eTypeTieTri aType = (aCmp0==1)  ? eTTTMax : eTTTMin;
                    Pt2dr aFastQual =  FastQuality(anIm,aP,*mFastCC,aType==eTTTMax,Pt2dr(TT_PropFastStd,TT_PropFastConsec));
 
-                   bool OkFast = (aFastQual.x > TT_SeuilFastStd) && ( aFastQual.y> TT_SeuilFastCons);
+                   bool OkFast = (aFastQual.x > TT_SeuilFastStd) && ( aFastQual.y> TT_SeuilFastCons); // Check Contrast FAST
                    if (!mAppli.mFilFAST)
                        OkFast = true;
-                   bool OkAcIndependent = !AutoCorrel(aP);
+                   bool OkAcIndependent = !AutoCorrel(aP); // check AutoCorrel fil AC
                    if (!mAppli.mFilAC)
                        OkAcIndependent = true;
                    bool OkAc =    OkFast && OkAcIndependent;
@@ -368,7 +368,7 @@ void  cImTieTri::MakeInterestPoint
                    }
 
                    if (OkAc)
-                   {
+                   {  // Point valid through 2 filter FAST & AC
                       if  (aImLabel) 
                            aImLabel->oset(aP,aType);
                       if (aListPI)
@@ -386,8 +386,9 @@ void  cImTieTri::MakeInterestPoint
     if (IsMaster())
     {
         std::vector<cIntTieTriInterest> aVPI(aListPI->begin(),aListPI->end());
-        cParamFSITTI aParam;
+        cParamFSITTI aParam;    // comparator by fast quality
         double aDist = mAppli.mDistFiltr/TT_RatioFastFiltrSpatial;
+        // === Filter spatial by priority of FastQuality. For each point, delete all voisin in seuilDist ===
         cTplFiltrageSpatial<cIntTieTriInterest,cParamFSITTI>  aFS(aVPI,aParam,aDist);
         aListPI->clear();
         for (int aK=0 ; aK<int(aVPI.size()) ; aK++)
@@ -396,8 +397,8 @@ void  cImTieTri::MakeInterestPoint
              aListPI->push_back(aPI);
              if (mW)
              {
-                 mW->draw_circle_loc(Pt2dr(aPI.mPt),0.75,ColOfType(aPI.mType));
-                 mW->draw_circle_loc(Pt2dr(aPI.mPt),aDist,mW->pdisc()(P8COL::magenta));
+                 mW->draw_circle_loc(Pt2dr(aPI.mPt),0.75,ColOfType(aPI.mType)); // draw point selected after spatial filter
+                 mW->draw_circle_loc(Pt2dr(aPI.mPt),aDist,mW->pdisc()(P8COL::magenta)); // draw filter space
              }
         }
     }

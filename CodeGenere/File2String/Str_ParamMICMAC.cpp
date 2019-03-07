@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamMICMAC[2161]) = {
+const char * (theNameVar_ParamMICMAC[2169]) = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -957,12 +957,20 @@ const char * (theNameVar_ParamMICMAC[2161]) = {
 "\n",
 "\n",
 "                <!-- Plus union car peut avoir CensusCost + MultiCorrelPonctuel-->\n",
+"\n",
 "                <TypeCAH Nb=\"1\" >\n",
 "                        <CensusCost Nb=\"?\" AccessorFils=\"false\">\n",
+"                              <!-- Utilisable pour rehausser la dynamique tres basse des points census-->\n",
+"                              <Dyn    Type=\"double\" Def=\"1.0\" Nb=\"?\">  </Dyn>\n",
+"\n",
+"                              <!-- Unused\n",
 "                              <PdsCrown  Type=\"double\" Def=\"0.5\" Nb=\"?\"> </PdsCrown>\n",
+"                              -->\n",
 "                              <TypeCost Type=\"eModeCensusCost\" Nb=\"1\">   </TypeCost>\n",
 "                              <Verif Type=\"bool\" Nb=\"?\" Def=\"false\">   </Verif>\n",
+"                              <!-- Dans Census basic -->\n",
 "                              <AttenDist  Type=\"double\" Def=\"0.0\" Nb=\"?\"> </AttenDist>\n",
+"                              <!-- Uniquement si on mixte avec correl standard -->\n",
 "                              <SeuilHautCorMixte Type=\"double\" Def=\"0.8\" Nb=\"?\"> </SeuilHautCorMixte>\n",
 "                              <SeuilBasCorMixte Type=\"double\" Def=\"0.6\" Nb=\"?\">  </SeuilBasCorMixte>\n",
 "                        </CensusCost>\n",

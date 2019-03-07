@@ -43,6 +43,12 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "../../../include/StdAfx.h"
 
+#define PB_LINK_AUTOCOR (! ELISE_unix)
+// #define PB_LINK_AUTOCOR (ELISE_QT || (! ELISE_unix))
+
+
+Im2D_INT1  MakeImI1(bool isRobust,Im2D_REAL4 aImIn);
+
 typedef Im2D_U_INT2 tCodBin;
 
 template <const int TheNbUI2> class tTplCodBin
@@ -77,9 +83,11 @@ void FilterHistoFlag(Im1D_REAL8 aH,int aNbConvol,double aFactConv,bool DoNorm);
 
 
 
-std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
+std::string NameFileNewPCarac(eTypePtRemark aLab,const std::string & aNameGlob,bool Bin,const std::string & anExt="Std");
 void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW,bool HighLight);
-cSetPCarac * LoadStdSetCarac(const std::string & aNameIm,const std::string & Ext="Std");
+cSetPCarac * LoadStdSetCarac(eTypePtRemark aLab/* NoLab=>All */,const std::string & aNameIm,const std::string & Ext="Std");
+void  SaveStdSetCaracMultiLab(const cSetPCarac aSet,const std::string & aNameIm,const std::string & aExt,int SzHighS);
+
 
 void TestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
 double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac * aHom1,const cOnePCarac * aHom2);
@@ -112,8 +120,8 @@ cFullParamCB  Optimize
 class cAppli_NewRechPH;
 
 
-typedef float   tElNewRechPH ;
-typedef double  tElBufNRPH ;
+typedef INT2   tElNewRechPH ;
+typedef int    tElBufNRPH ;
 typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
 typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
 typedef cInterpolateurIm2D<tElNewRechPH>  tInterpolNRPH;
@@ -200,22 +208,23 @@ class cPtRemark
     public :
        cPtRemark(const Pt2dr & aPt,eTypePtRemark aType,int aNiv) ;
 
-       const Pt2dr & Pt() const          {return mPtR;}
+       const Pt2dr & RPt() const          {return mRPt;}
+       Pt2dr RPtAbs(cAppli_NewRechPH &) const;
        const eTypePtRemark & Type() const {return mType;}
        
        void MakeLink(cPtRemark * aHR /*Higher Resol */);
-       tContHRPR &  HRs()  {return mHRs;}
-       cPtRemark * LR()    {return mLR;}
+       tContHRPR &  HighRs()  {return mHighRs;}
+       cPtRemark * LowR()    {return mLowR;}
        int   Niv() const   {return mNiv;}
 
        void  RecGetAllPt(std::vector<cPtRemark *> &);
     private :
 
        cPtRemark(const cPtRemark &); // N.I.
-       Pt2dr           mPtR;
+       Pt2dr           mRPt;
        eTypePtRemark   mType;
-       tContHRPR         mHRs; // Higher Resol
-       cPtRemark     *   mLR; // Lower Resol
+       tContHRPR         mHighRs; // Higher Resol
+       cPtRemark     *   mLowR; // Lower Resol
        int               mNiv;
 };
 
@@ -237,9 +246,10 @@ class cBrinPtRemark
         bool    Ok() const {return mOk;}
         double  Scale() const {return  mScale;}
         double  ScaleNature() const {return  mScaleNature;}
-        double  ScaleStab() const {return  mScaleStab;}
+        double  BrScaleStab() const {return  mBrScaleStab;}
         int     NivScal() const {return mNivScal;}
         double  LaplMax() const {return mLaplMax;}
+        cPtRemark * Bifurk() const {return mBifurk;}
     private :
         cPtRemark * mLR;
         int         mNiv0;
@@ -247,9 +257,10 @@ class cBrinPtRemark
         int         mNivScal;
         double      mScale;
         double      mScaleNature;
-        double      mScaleStab;
+        double      mBrScaleStab;
         double      mLaplMax;
         double      mLaplMaxNature;
+        cPtRemark * mBifurk;
 };
 
 typedef cPtRemark * tPtrPtRemark;
@@ -274,6 +285,87 @@ class cFHistoInt
        std::vector<double> mHist;
        int mSom;
 };
+
+class cPtFromCOPC
+{
+   public :
+       Pt2dr operator() (cOnePCarac * aOPC) { return aOPC->Pt(); }
+};
+
+typedef ElQT<cOnePCarac*,Pt2dr,cPtFromCOPC> tQtOPC ;
+
+double ScaleGen(const cOnePCarac & aPC);
+
+cFitsOneLabel * FOLOfLab(cFitsParam *,eTypePtRemark aLab,bool SVP);
+const cFitsOneLabel * FOLOfLab(const cFitsParam *,eTypePtRemark aLab,bool SVP);
+
+
+//  Generate a random with a given proba
+class cBiaisedRandGenerator
+{
+     public :
+        cBiaisedRandGenerator(const std::vector<double> & aV);
+        int Generate();
+        int Generate(double aVal);
+     private :
+        int mNb;
+        std::vector<double> mCumul;
+
+};
+
+namespace  AimeImageAutoCorrel
+{
+/*    For storing and computing rotation invariant auto correlations */
+class cAimeImAutoCorr
+{
+    public :
+       cAimeImAutoCorr(Im2D_INT1 anIm);
+       Pt2di mSz;
+       int   mNbR  ;
+       int   mNbT0  ;  // Nb Teta Init
+};
+
+
+class cOneICAIAC
+{
+   public :
+       cOneICAIAC(int aTx,int aTy);
+
+       int                 mTx;
+       int                 mTy;
+       Im2D_REAL4          mImCor;
+       TIm2D<REAL4,REAL8>  mTImCor;
+       Im2D_INT1           mImVis;
+
+       void MakeImVis(bool isRobust);
+       void MakeTiff(const std::string & aName);
+};
+
+class cCalcAimeImAutoCorr : public cAimeImAutoCorr
+{
+   public :
+       cCalcAimeImAutoCorr(Im2D_INT1,bool L1Mode);
+       double AutoCorrelGT(int aRho,int aDTeta);
+       double AutoCorrelGR(int aRho,int aDTeta);
+       double AutoCorrelR0(int aRho,int aDTeta);
+
+       Im2D_INT1           mImInit;
+       TIm2D<INT1,INT>     mTImInit;
+       bool                mL1Mode;
+
+       cOneICAIAC            mIR0; // Image Rad
+       cOneICAIAC            mIGR;  // Im Gra Rad
+       cOneICAIAC            mIGT;  // Im Gra Tan
+
+};
+
+};
+
+const std::string  DirApprentIR(const std::string & aDirGlob,eTypePtRemark aTypeP,eTypeVecInvarR  aTypeInv);
+
+Im2D_INT1   ImOfCarac(const cOnePCarac &,eTypeVecInvarR);
+
+using namespace  AimeImageAutoCorrel;
 
 
 

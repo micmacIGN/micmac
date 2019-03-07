@@ -584,6 +584,17 @@ template <class Type> class cFEEquiSolid_Precond : public cFE_Precond<Type>
         static ElDistortion22_Gen   *  DistPreCond(const double &   aVar,const Pt2dr & ) ;
 };
 
+template <class Type> class cFEStereoGraphique_Precond : public cFE_Precond<Type>
+{
+    public :
+        static Fonc_Num  NormGradC2M(Pt2d<Fonc_Num> ,Fonc_Num *);
+        static Type  M2CRxSRx(const Type  &);
+        static Type  C2MRxSRx(const Type & );  // M2C(sqrt(V)) / sqrt(V)
+        static Type  SqM2CRx(const Type & );  // M2C(srqt(V)) ^2 
+        static ElDistortion22_Gen   *  DistPreCond(const double &   aVar,const Pt2dr & ) ;
+};
+
+
 
 
 
@@ -654,6 +665,12 @@ typedef  cDist_Param_Unif<cDistGen_FishEye_Generator<cFEEquiSolid_Precond<double
 typedef  cCamera_Param_Unif<cDistGen_FishEye_Generator<cFEEquiSolid_Precond<double>,10,5,5,50>,cDistGen_FishEye_Generator<cFEEquiSolid_Precond<Fonc_Num>,10,5,5,50>,50,1> cCamEquiSol_FishEye_10_5_5;
 typedef  cPIF_Unif<cDistGen_FishEye_Generator<cFEEquiSolid_Precond<double>,10,5,5,50>,cDistGen_FishEye_Generator<cFEEquiSolid_Precond<Fonc_Num>,10,5,5,50>,50,1> cPIFEquiSol_FishEye_10_5_5;
 
+
+typedef  cDist_Param_Unif<cDistGen_FishEye_Generator<cFEStereoGraphique_Precond<double>,10,5,5,50>,cDistGen_FishEye_Generator<cFEStereoGraphique_Precond<Fonc_Num>,10,5,5,50>,50,1> cDistStereoGraphique_FishEye_10_5_5;
+typedef  cCamera_Param_Unif<cDistGen_FishEye_Generator<cFEStereoGraphique_Precond<double>,10,5,5,50>,cDistGen_FishEye_Generator<cFEStereoGraphique_Precond<Fonc_Num>,10,5,5,50>,50,1> cCamStereoGraphique_FishEye_10_5_5;
+typedef  cPIF_Unif<cDistGen_FishEye_Generator<cFEStereoGraphique_Precond<double>,10,5,5,50>,cDistGen_FishEye_Generator<cFEStereoGraphique_Precond<Fonc_Num>,10,5,5,50>,50,1> cPIFStereoGraphique_FishEye_10_5_5;
+
+// cFEStereoGraphique_Precond
 
 
 

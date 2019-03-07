@@ -970,8 +970,8 @@ cAppliOneReechMarqFid::cAppliOneReechMarqFid(int argc,char ** argv) :
     (
           argc,argv,
           LArgMain()  << EAMC(mNamePat,"Pattern image", eSAM_IsExistFile)
-                      << EAMC(mResol,"Resolution"),
-          LArgMain()   <<  EAM(mBoxChambreMm,"BoxCh",true,"Box in Chambre (generally in mm)")
+                      << EAMC(mResol,"Resolution of scan, mm/pix"),
+          LArgMain()   <<  EAM(mBoxChambreMm,"BoxCh",true,"Box in Chambre (generally in mm, [xmin,ymin,xmax,ymax])")
                        << EAM(mNumKer,"Kern",true,"Kernel of interpol,0 Bilin, 1 Bicub, other SinC (fix size of apodisation window), Def=5")
                        << EAM(mPostMasq,"AttrMasq",true,"Atribut for masq toto-> toto_AttrMasq.tif, NONE if unused, Def=NONE")
     );

@@ -600,24 +600,18 @@ void cHelpDlg::populateTableView(const QStringList &shortcuts, const QStringList
 
     _ui->tableView->horizontalHeader()->setStretchLastSection(true);
 
-    #if ELISE_QT_VERSION >=5
-        _ui->tableView->resizeColumnsToContents();
-        _ui->tableView->resizeRowsToContents();
-    #endif
+    _ui->tableView->resizeColumnsToContents();
+    _ui->tableView->resizeRowsToContents();
 
     int height = 0;
     for(int row = 0; row < model->rowCount(); row++)
         height += _ui->tableView->rowHeight(row);
 
-    #if ELISE_QT_VERSION >=5
-        int width = 0;
-        for(int column = 0; column < model->columnCount(); column++)
-            width += _ui->tableView->columnWidth(column);
+    int width = 0;
+    for(int column = 0; column < model->columnCount(); column++)
+        width += _ui->tableView->columnWidth(column);
 
-        _ui->tableView->resize(width, height);
-    #else
-        _ui->tableView->resize(400, height);
-    #endif
+     _ui->tableView->resize(width, height);
 
     resize(_ui->tableView->width()+50,_ui->tableView->height() + _ui->okButton->height()+50);
 }

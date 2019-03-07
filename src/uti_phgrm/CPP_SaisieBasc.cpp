@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
-#if (ELISE_X11||(ELISE_QT_VERSION >= 4))
+#if (ELISE_X11 || ELISE_QT)
 
 void SaisieBasc(int argc, char ** argv,
                 std::string &aFullName,
@@ -98,14 +98,9 @@ void SaisieBasc(int argc, char ** argv,
         aCINM->MakeStdOrient(anOri,true);
     }
 }
-
-#endif
+#endif // (ELISE_X11 || ELISE_QT)
 
 #if (ELISE_X11)
-
-
-
-
 /*
 Antipasti ~/micmac/include/XML_MicMac/SaisieLine.xml DirectoryChantier="/home/marc/TMP/ExempleDoc/Boudha/"
 
@@ -115,7 +110,6 @@ Antipasti xml DirectoryChantier="/home/marc/TMP/ExempleDoc/Boudha/"
 
 //   aMode =0 => SaisieLin
 //   aMode =1 => SaisieCyl
-//
 
 int SaisieBasc_main_Gen(int argc,char ** argv,int aMode)
 {
@@ -167,12 +161,9 @@ int SaisieCyl_main(int argc,char ** argv)
 
 #endif
 
-
-
-
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -188,17 +179,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

@@ -17,10 +17,30 @@
    <enum Name="eTypePtRemark">
       <eTPR_LaplMax>      </eTPR_LaplMax>
       <eTPR_LaplMin>      </eTPR_LaplMin>
+
       <eTPR_GrayMax>      </eTPR_GrayMax>
       <eTPR_GrayMin>      </eTPR_GrayMin>
-      <eTPR_GraySadl>      </eTPR_GraySadl>
+
+      <eTPR_BifurqMax>    </eTPR_BifurqMax>
+      <eTPR_BifurqMin>    </eTPR_BifurqMin>
+
       <eTPR_NoLabel>  </eTPR_NoLabel>
+      <!-- Apparement les sadl points sont peu fiables, en plus il
+          semblent (???) couter cher en temps, donc on les met pas ,
+          mais on laisse dans le code si on reprend + tard
+      -->
+
+      <eTPR_GraySadl>      </eTPR_GraySadl>
+      <eTPR_BifurqSadl>    </eTPR_BifurqSadl>
+   </enum>
+
+   <!-- Sotcke les noms des differentes options de calcul d'invariants -->
+   <enum Name="eTypeVecInvarR">
+         <eTVIR_Curve>     </eTVIR_Curve>
+         <eTVIR_ACR0>      </eTVIR_ACR0>  <!-- Auto correl radiom basiques -->
+         <eTVIR_ACGT>      </eTVIR_ACGT>  <!-- Auto correl gradient tangentiel-->
+         <eTVIR_ACGR>      </eTVIR_ACGR>  <!-- Auto correl gradient radial-->
+         <eTVIR_NoLabel>   </eTVIR_NoLabel>  <!-- Auto correl gradient radial-->
    </enum>
 
 <!--
@@ -95,6 +115,13 @@
          <!-- Code Binaire : devrait etre 1D, mais flemme modifier xml_init et autres ...  -->
    </ProfilRad>
 
+   <!-- Les invariants rotationnels obtenu par auto-correlation -->
+   <RotInvarAutoCor Nb="1" Class="true" ToReference="true">
+         <IR0 Nb="1" Type="Im2D_INT1"> </IR0>
+         <IGT Nb="1" Type="Im2D_INT1"> </IGT>
+         <IGR Nb="1" Type="Im2D_INT1"> </IGR>
+   </RotInvarAutoCor>
+
 
    <OnePCarac   Nb="1" Class="true" ToReference="true">
          <Kind Nb="1" Type="eTypePtRemark">        </Kind>
@@ -117,6 +144,10 @@
          <ImLogPol Nb="1" Type="Im2D_INT1"> </ImLogPol>
          <VectRho   Nb="1" Type="std::vector<double>">  </VectRho>
          <ProfR Nb="1" RefType="ProfilRad">  </ProfR>
+         <RIAC  Nb="1" RefType="RotInvarAutoCor">  </RIAC>
+         <Id   Nb="1" Type="int">  </Id>  <!-- Tuning -->
+         <HeapInd   Nb="1" Type="int">  </HeapInd>  <!-- Tuning -->
+         <Prio   Nb="1" Type="double">  </Prio>  <!-- Tuning -->
    </OnePCarac>
 
    <SetPCarac  Nb="1" Class="true">
@@ -167,22 +198,81 @@
    <FitsOneLabel Nb="1" Class="true" ToReference="true">
        <KindOf Nb="1" Type="eTypePtRemark">     </KindOf> 
        <BinIndexed Nb="1" RefType="FitsOneBin">  </BinIndexed>  <!-- Quick one, for indexation -->
-       <BinDecision Nb="1" RefType="FitsOneBin"> </BinDecision>  <!-- Longer one making the decision -->
+       <BinDecisionShort Nb="1" RefType="FitsOneBin"> </BinDecisionShort>  <!-- Quick with lowe error -->
+       <BinDecisionLong  Nb="1" RefType="FitsOneBin"> </BinDecisionLong>  <!-- Long with low error -->
    </FitsOneLabel>
 
    <SeuilFitsParam  Nb="1" Class="true" ToReference="true">
           <SeuilCorrDR Nb="?" Type="double" Def="0.7"> </SeuilCorrDR>  <!--  Seuil corr sur inv rad -->
           <SeuilInc    Nb="?" Type="double" Def="0.01"> </SeuilInc>    <!-- Seuil Inco entre les div estim de shift -->
           <SeuilCorrLP Nb="?" Type="double" Def="0.93"> </SeuilCorrLP> <!-- Seuil correl Log Polar-->
+          <ExposantPdsDistGrad Nb="?" Type="double" Def="0.5"> </ExposantPdsDistGrad> <!-- Seuil correl Log Polar-->
+          <SeuilDistGrad Nb="?" Type="double" Def="0.5"> </SeuilDistGrad> <!-- Seuil correl Log Polar-->
+          <SeuilCorrelRatio12 Nb="?" Type="double" Def="0.6"> </SeuilCorrelRatio12>
+          <SeuilGradRatio12 Nb="?" Type="double" Def="0.6">   </SeuilGradRatio12>
    </SeuilFitsParam>
    
    
    <FitsParam Nb="1" Class="true" ToReference="true">
-       <OverLap  Nb="1" RefType="FitsOneLabel"> </OverLap> <!-- Quick for overlap dec -->
+       <DefInit  Nb="1" RefType="FitsOneLabel"> </DefInit>  <!-- 0 ou 1, sera complete autom -->
        <GenLabs  Nb="*" RefType="FitsOneLabel"> </GenLabs>  <!-- 0 ou 1, sera complete autom -->
        <SeuilOL Nb="1" RefType="SeuilFitsParam">  </SeuilOL>
        <SeuilGen Nb="1" RefType="SeuilFitsParam"> </SeuilGen>
    </FitsParam>
+
+<!--
+mm3d Malt GeomImage "Soldat-Hue-IMGP703[0-2].JPG" AllRel Master=Soldat-Hue-IMGP7031.JPG ZoomF=4
+mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
+-->
+
+   <XmlAimeParamApprentissage Nb="1" Class="true" ToReference="true">
+       <AbsDir Nb="1" Type="std::string"> </AbsDir>  <!-- pour connaitre le nom absolu a passer aux sous prog-->
+       <DefDoIt Nb="?" Type="bool" Def="true"> </DefDoIt>
+       <DefDoMatch Nb="?" Type="bool" Def="true"> </DefDoMatch>
+       <DefDoPtCar Nb="?" Type="bool" Def="true"> </DefDoPtCar>
+       <DefDoRef   Nb="?" Type="bool" Def="true"> </DefDoRef>
+       <DefDoApprComb   Nb="?" Type="bool" Def="true"> </DefDoApprComb>
+       <DefDoApprLocal1   Nb="?" Type="bool" Def="true"> </DefDoApprLocal1>
+       <DefDoApprLocal2   Nb="?" Type="bool" Def="true"> </DefDoApprLocal2>
+       <DefParamPtCar Nb="?" Type="std::string" Def=""> </DefParamPtCar>
+
+       <XlmAimeOneDir Nb="*">
+            <DoIt Nb="?" Type="bool"> </DoIt>
+            <DoMatch Nb="?" Type="bool"> </DoMatch>
+            <DoPtCar Nb="?" Type="bool"> </DoPtCar>
+            <DoRef   Nb="?" Type="bool"> </DoRef>
+            <ZoomF Nb="?" Type="int" Def="4"> </ZoomF>
+            <NumMatch Nb="?" Type="int"> </NumMatch>
+
+            <Dir Nb="1" Type="std::string"> </Dir>
+            <Ori Nb="1" Type="std::string"> </Ori>
+
+            <XAPA_OneMatch Nb="*">
+                <Master Nb="1" Type="std::string">        </Master>
+                <!-- Pattern pour le match dense, plutot des B/H faibles -->
+                <Pattern Nb="1" Type="std::string">       </Pattern> 
+                <!-- Pattern pour les appariements de points caracteristiques -->
+                <PatternRef Nb="1" Type="std::string">    </PatternRef>
+            </XAPA_OneMatch>
+
+            <!-- Ceux sur lesquel il faut lancer le calcul de pts car TestNewRechPH, union des pattern ...-->
+            <XAPA_PtCar Nb="1">
+                <Pattern  Nb="1" Type="std::string" AccessorFils="false"> </Pattern>
+            </XAPA_PtCar>
+       </XlmAimeOneDir>
+
+       <XlmAimeApprent Nb="1">
+             <NbExEt0 Nb="1" Type="int">       </NbExEt0>
+             <NbExEt1 Nb="1" Type="int">       </NbExEt1>
+             <TimeOut Nb="?" Type="double" Def="300.0">       </TimeOut>
+             <XlmAimeOneApprent  Nb="*">
+                  <PdsW Nb="1" Type="double">  </PdsW>
+                  <NbBB Nb="1" Type="int">     </NbBB>
+                  <BitM Nb="?" Type="int">     </BitM>
+             </XlmAimeOneApprent>
+       </XlmAimeApprent>
+
+   </XmlAimeParamApprentissage>
 
 
 <Verbatim File=".h.cpp">

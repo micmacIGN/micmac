@@ -357,33 +357,25 @@ public:
 
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
                           const QModelIndex &index) const
-#if ELISE_QT_VERSION == 5
     Q_DECL_OVERRIDE
-#endif
+
     ;
 
     void setEditorData(QWidget *editor, const QModelIndex &index) const
-#if ELISE_QT_VERSION == 5
     Q_DECL_OVERRIDE
-#endif
     ;
     void setModelData(QWidget *editor, QAbstractItemModel *model,
                       const QModelIndex &index) const
-#if ELISE_QT_VERSION == 5
     Q_DECL_OVERRIDE
-#endif
     ;
 
     void updateEditorGeometry(QWidget *editor,
         const QStyleOptionViewItem &option, const QModelIndex &index) const
-#if ELISE_QT_VERSION == 5
     Q_DECL_OVERRIDE
-#endif
     ;
 private:
     int             _size;
     QStringList		_enumString;
 };
-
 
 #endif // MAINWINDOW_H

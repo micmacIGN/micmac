@@ -202,6 +202,7 @@ int Homol2WayNEW_main(int argc,char ** argv)
         aAppli->DoFusion2Way(ExpTxt, aSHIn);
         aAppli->ExportHom(ExpTxt, aSHOut);
 
+   return EXIT_SUCCESS; // Warn no return
 }
 
 

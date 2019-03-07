@@ -307,14 +307,19 @@ int TestDistM2C_main(int argc,char ** argv)
 int TestDistortion_main(int argc,char ** argv)
 {
     std::string aNameCalib;
-    Pt2dr aP0;
+    Pt2dr aPt2d;
+    Pt3dr aPt3d;
+    REAL prof=10;
+    bool showAngles=false;
 
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  <<  EAMC(aNameCalib,"Calibration Name")
-                    <<  EAMC(aP0,"Point on picture coordinates"),
-        LArgMain()
+        LArgMain()  <<  EAMC(aNameCalib,"Calibration Name"),
+        LArgMain()  <<  EAM(aPt2d, "p2d", true, "Point in picture coordinates")
+                    <<  EAM(aPt3d, "p3d", true, "Point in world coordinates")
+                    <<  EAM(prof, "prof", true, "prof for p2d (default=10)")
+                    <<  EAM(showAngles, "showAngles", true, "show angles in/out (default=false)")
     );
 
     cElemAppliSetFile anEASF(aNameCalib);
@@ -322,24 +327,55 @@ int TestDistortion_main(int argc,char ** argv)
 
     CamStenope * aCam =  CamOrientGenFromFile(aNameCalib,anEASF.mICNM);
 
-
     std::cout << "//   R3 : \"reel\" coordonnee initiale\n";
     std::cout << "//   L3 : \"Locale\", apres rotation\n";
     std::cout << "//   C2 :  camera, avant distortion\n";
     std::cout << "//   F2 : finale apres Distortion\n";
+    std::cout << "//   M2 : coordonnees scannees \n";
     std::cout << "//\n";
-    std::cout << "//       Orientation      Projection      Distortion\n";
-    std::cout << "//   R3 -------------> L3------------>C2------------->F2\n";
+    std::cout << "//       Orientation      Projection      Distortion      Interne mm\n";
+    std::cout << "//   R3 -------------> L3------------>C2------------->F2------------>M2\n";
     std::cout << "//\n";
 
     std::cout << "Focale " << aCam->Focale() << "\n";
 
-    std::cout << "F2 " << aP0 << " ---> C2 " << aCam->F2toC2(aP0) << " ---> L3 "<< aCam->ImEtProf2Terrain(aP0,aCam->Focale()) << "\n";
+    if (EAMIsInit(&aPt2d))
+    {
+        std::cout << "M2 " << aPt2d << " ---> F2 " << aCam->NormM2C(aPt2d) << " ---> R3 "<< aCam->ImEtProf2Terrain(aCam->NormM2C(aPt2d),prof) << "\n";
+    }
 
-    std::cout << "L3 "<< aCam->ImEtProf2Terrain(aP0,aCam->Focale()) << " ---> C2 "<< aCam->R3toC2(aCam->ImEtProf2Terrain(aP0,aCam->Focale())) << "\n";
-    std::cout << "L3 "<< aCam->ImEtProf2Terrain(aP0,aCam->Focale()) << " ---> F2 "<< aCam->R3toF2(aCam->ImEtProf2Terrain(aP0,aCam->Focale())) << "\n";
+    if (EAMIsInit(&aPt3d))
+    {
+        std::cout << "prof: "<< aCam->ProfondeurDeChamps(aPt3d) << "\n";
+        std::cout << "R3 "<< aPt3d << " ---> F2 "<< aCam->Ter2Capteur(aPt3d);
+        std::cout << " ---> M2 "<< aCam->NormC2M(aCam->Ter2Capteur(aPt3d)) << "\n";
+    }
 
-   return EXIT_SUCCESS;
+    /*std::cout << "NormM2C "<< aCam->NormM2C(aP0) <<"\n";
+    Pt3dr aPtTer(0.976092906909062696, -0.797308401978953252, -8.10257300823790594);
+    std::cout << "Ter2Capteur "<< aCam->Ter2Capteur(aPtTer) << " " << aCam->NormC2M(aCam->Ter2Capteur(aPtTer)) << "\n";*/
+
+    if (showAngles)
+    {
+        //table of input angles VS ouput angles
+        std::cout<<"\ninAngle outAngle outX/f\n";
+        double inAngle,outAngle;
+        Pt3dr inPt3d;
+        Pt2dr outPt2d;
+        for (int i=-90;i<=90;i++)
+        {
+            inAngle=i*PI/180;
+            inPt3d=Pt3dr(sin(inAngle),0,cos(inAngle));
+            outPt2d=aCam->L3toF2(inPt3d);
+            if ((outPt2d.x>0)&&(outPt2d.x<aCam->Sz().x))
+            {
+                outAngle=atan((outPt2d.x-aCam->PP().x)/aCam->Focale());
+                std::cout<<inAngle<<" "<<outAngle<<" "<<(outPt2d.x-aCam->PP().x)/aCam->Focale()<<"\n";
+            }
+        }
+    }
+
+    return EXIT_SUCCESS;
 }
 
 

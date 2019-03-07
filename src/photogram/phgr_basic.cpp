@@ -1814,6 +1814,14 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
                     aType = eTIGB_MMDGlobe;
                     return;
                 }
+                
+                //Xml_ScanLineSensor
+                if (aTree->Get("Xml_ScanLineSensor") !=0)
+                {
+                    aType = eTIGB_MMScanLineSensor;
+                    return;
+                }
+
            }
            else
            {
@@ -1889,7 +1897,8 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
              aType==eTIGB_MMDGlobe || 
              aType==eTIGB_MMEuclid || 
              aType==eTIGB_MMIkonos || 
-             aType==eTIGB_MMOriGrille )
+             aType==eTIGB_MMOriGrille ||
+             aType==eTIGB_MMScanLineSensor )
     {
 	
 	return CameraRPC::CamRPCOrientGenFromFile(aName, aType, aChSys);
@@ -1915,6 +1924,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
                 case eTIGB_MMEuclid :
                 case eTIGB_MMIkonos :
                 case eTIGB_MMOriGrille :
+                case eTIGB_MMScanLineSensor :
                       return  CameraRPC::CamRPCOrientGenFromFile(aName,aTrueType,aChSys);
 
                 default : ;
@@ -2099,9 +2109,9 @@ cArgOptionalPIsVisibleInImage::cArgOptionalPIsVisibleInImage() :
 }
 
 
-bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,const cArgOptionalPIsVisibleInImage * anArg) const
+bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,cArgOptionalPIsVisibleInImage * anArg) const
 {
-
+   if (anArg) anArg->mWhy ="";
 
    Pt3dr aPCam = R3toL3(aPTer);
 
@@ -2112,7 +2122,10 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,const cArgOptionalPIs
         if (aPCam.z <= aSeuil)
         {
              if ( (anArg==0) || (! anArg->mOkBehind)  || (aPCam.z>-aSeuil))
+             {
+                if (anArg) anArg->mWhy = "Behind";
                 return false;
+             }
         }
    }
 
@@ -2143,6 +2156,7 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,const cArgOptionalPIs
        aPQ =  aMil+ (aPQ-aMil) * aRab;
        if ((aPQ.x <0)  || (aPQ.y<0) || (aPQ.x>aSz.x) || (aPQ.y>aSz.y))
        {
+            if (anArg) anArg->mWhy ="PreCondOut";
             return false;
        }
     }
@@ -2155,20 +2169,36 @@ bool    ElCamera::PIsVisibleInImage   (const Pt3dr & aPTer,const cArgOptionalPIs
    // Si "vraie" camera et scannee il est necessaire de faire le test maintenant
    // car IsZoneUtil est en mm
 
-   if ( (!GetZoneUtilInPixel()) && ( ! IsInZoneUtile(aPF0))) return false;
+   if ( (!GetZoneUtilInPixel()) && ( ! IsInZoneUtile(aPF0)))
+   {
+       if (anArg) anArg->mWhy ="ScanedOut";
+       return false;
+   }
 
 
    Pt2dr aPF1 = DComplM2C(aPF0);
 
    // MPD le 17/06/2014 : je ne comprend plus le [1], qui fait planter les camera ortho
    // a priori la zone utile se juge a la fin
-   if (GetZoneUtilInPixel() && ( ! IsInZoneUtile(aPF1,true))) return false;
+   if (GetZoneUtilInPixel() && ( ! IsInZoneUtile(aPF1,true))) 
+   {
+       if (anArg) anArg->mWhy ="NotInImage";
+       return false;
+   }
 
 
    Pt2dr aI0Again = DistInverse(aPF1);
 
 
-    return euclid(aPI0-aI0Again) < 1.0/ mScaleAfnt;
+   bool aResult = (euclid(aPI0-aI0Again) < 1.0/ mScaleAfnt);
+
+   if (! aResult)
+   {
+       if (anArg) anArg->mWhy ="DistCheck";
+       return false;
+   }
+
+   return aResult;
 }
 
 
@@ -2851,6 +2881,20 @@ void ElCamera::SetOrientation(const ElRotation3D &ORIENT)
 {
 
      _orient = ORIENT;
+}
+
+void ElCamera::AddToCenterOptical(const Pt3dr & aOffsetC)
+{
+    Pt3dr aC = _orient.inv().ImAff(Pt3dr(0,0,0)) + aOffsetC;
+    ElRotation3D aOrient(aC,_orient.inv().Mat(),true);
+    _orient = aOrient.inv();
+}
+
+void ElCamera::MultiToRotation(const ElMatrix<double> & aOffsetR)
+{
+    Pt3dr aC = _orient.inv().ImAff(Pt3dr(0,0,0));
+    ElRotation3D aOrient(aC,aOffsetR.transpose()*_orient.inv().Mat(),true);
+    _orient = aOrient.inv();
 }
 
 Pt2dr ElCamera::R3toC2(Pt3dr p) const
@@ -3952,6 +3996,15 @@ void CamStenope::CoinsProjZ(Pt3dr &aP1,Pt3dr &aP2,Pt3dr &aP3,Pt3dr &aP4, double 
     aP2 = ImEtZ2Terrain(Pt2dr(Sz().x,0.f),aZ);    // HAUT DROIT
     aP3 = ImEtZ2Terrain(Pt2dr(0.f,Sz().y),aZ);    // BAS GAUCHE
     aP4 = ImEtZ2Terrain(Pt2dr(Sz().x,Sz().y),aZ); // BAS DROIT
+}
+// return ground box
+Box2dr CamStenope::BoxTer(double aZ) const
+{
+    Pt3dr aP1,aP2,aP3,aP4;
+    CoinsProjZ(aP1,aP2,aP3,aP4,aZ);
+    Pt2dr aPMin = Pt2dr(ElMin(aP1.x,ElMin(aP2.x,ElMin(aP3.x,aP4.x))),ElMin(aP1.y,ElMin(aP2.y,ElMin(aP3.y,aP4.y))));
+    Pt2dr aPMax = Pt2dr(ElMax(aP1.x,ElMax(aP2.x,ElMax(aP3.x,aP4.x))),ElMax(aP1.y,ElMax(aP2.y,ElMax(aP3.y,aP4.y))));
+    return Box2dr(aPMin,aPMax);
 }
 
 void ElCamera::SetSzPixel(const Pt2dr & aSzP)

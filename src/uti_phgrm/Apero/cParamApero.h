@@ -79,6 +79,7 @@ typedef enum
   eCalibAutomFour19x2,
   eCalibAutomEbner,
   eCalibAutomBrown,
+  eCalibAutomFishEyeStereographique,
   eCalibAutomNone
 } eTypeCalibAutom;
 void xml_init(eTypeCalibAutom & aVal,cElXMLTree * aTree);
@@ -133,6 +134,32 @@ void  BinaryDumpInFile(ELISE_fp &,const eTypeVerif &);
 std::string  Mangling( eTypeVerif *);
 
 void  BinaryUnDumpFromFile(eTypeVerif &,ELISE_fp &);
+
+typedef enum
+{
+  eTRPB_Ok,
+  eTRPB_InsufPoseInit,
+  eTRPB_PdsResNull,
+  eTRPB_NotInMasq3D,
+  eTRPB_BSurH,
+  eTRPB_Behind,
+  eTRPB_VisibIm,
+  eTRPB_OutIm,
+  eTRPB_PbInterBundle,
+  eTRPB_NbVals
+} eTypeResulPtsBundle;
+void xml_init(eTypeResulPtsBundle & aVal,cElXMLTree * aTree);
+std::string  eToString(const eTypeResulPtsBundle & aVal);
+
+eTypeResulPtsBundle  Str2eTypeResulPtsBundle(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeResulPtsBundle & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eTypeResulPtsBundle &);
+
+std::string  Mangling( eTypeResulPtsBundle *);
+
+void  BinaryUnDumpFromFile(eTypeResulPtsBundle &,ELISE_fp &);
 
 typedef enum
 {
@@ -3065,6 +3092,9 @@ class cSectionChantier
         friend void xml_init(cSectionChantier & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< int > & DoStatElimBundle();
+        const cTplValGesInit< int > & DoStatElimBundle()const ;
+
         cTplValGesInit< double > & SzByPair();
         const cTplValGesInit< double > & SzByPair()const ;
 
@@ -3158,6 +3188,7 @@ class cSectionChantier
         cTplValGesInit< double > & ThresholdWarnPointsBehind();
         const cTplValGesInit< double > & ThresholdWarnPointsBehind()const ;
     private:
+        cTplValGesInit< int > mDoStatElimBundle;
         cTplValGesInit< cUseExportImageResidu > mUseExportImageResidu;
         cTplValGesInit< bool > mUseRegulDist;
         cTplValGesInit< bool > mGBCamSupresStenCam;
@@ -5114,6 +5145,9 @@ class cRappelOnZ
         friend void xml_init(cRappelOnZ & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< std::string > & KeyGrpApply();
+        const cTplValGesInit< std::string > & KeyGrpApply()const ;
+
         double & Z();
         const double & Z()const ;
 
@@ -5129,6 +5163,7 @@ class cRappelOnZ
         cTplValGesInit< std::string > & LayerMasq();
         const cTplValGesInit< std::string > & LayerMasq()const ;
     private:
+        cTplValGesInit< std::string > mKeyGrpApply;
         double mZ;
         double mIncC;
         cTplValGesInit< double > mIncE;
@@ -5159,6 +5194,9 @@ class cObsLiaisons
 
         cTplValGesInit< cPonderationPackMesure > & PondSurf();
         const cTplValGesInit< cPonderationPackMesure > & PondSurf()const ;
+
+        cTplValGesInit< std::string > & KeyGrpApply();
+        const cTplValGesInit< std::string > & KeyGrpApply()const ;
 
         double & Z();
         const double & Z()const ;
@@ -7061,6 +7099,9 @@ class cParamApero
 
         cSectionInconnues & SectionInconnues();
         const cSectionInconnues & SectionInconnues()const ;
+
+        cTplValGesInit< int > & DoStatElimBundle();
+        const cTplValGesInit< int > & DoStatElimBundle()const ;
 
         cTplValGesInit< double > & SzByPair();
         const cTplValGesInit< double > & SzByPair()const ;

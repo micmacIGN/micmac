@@ -4,7 +4,7 @@ set(Api_Src_Files
 
 )
 
-SOURCE_GROUP(Api FILES ${Api_Src_Files})
+source_group(Api FILES ${Api_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

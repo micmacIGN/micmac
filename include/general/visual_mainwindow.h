@@ -3,7 +3,7 @@
 
 #include "general/CMake_defines.h"
 
-//#if(ELISE_QT_VERSION >= 4)
+#if ELISE_QT
 
 #include "StdAfx.h"
 #include "saisieQT_window.h"
@@ -148,6 +148,6 @@ list<string> listPossibleValues(const cMMSpecArg & anArg);
 void ShowEnum(const cMMSpecArg & anArg);
 void showErrorMsg(QApplication &app, std::vector <std::string> vStr);
 
-//#endif //ELISE_QT_VERSION >= 4
+#endif // ELISE_QT
 
 #endif // MAINWINDOW_H

@@ -68,7 +68,7 @@ class CameraRPC : public cBasicGeomCap3D
 
 		Pt2dr Ter2Capteur   (const Pt3dr & aP) const;
 		ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const;
-		bool     PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage * =0) const;
+		bool     PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInImage * =0) const;
 
 		bool  HasRoughCapteur2Terrain() const;
 		Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const;
@@ -171,7 +171,7 @@ class CameraAffine : public cBasicGeomCap3D
         Pt2di    SzBasicCapt3D() const;
 	    double ResolSolOfPt(const Pt3dr &) const;
 	    bool  CaptHasData(const Pt2dr &) const;
-	    bool     PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage * =0) const;
+	    bool     PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInImage * =0) const;
 
 	    Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const;
 
@@ -281,6 +281,14 @@ class cRPC
         void ReadASCII(const std::string &aFile);
         int  ReadASCIIMeta(const std::string &aMeta, const std::string &aFile);
         void ReadEUCLIDIUM(const std::string &aFile);
+        void ReadScanLineSensor(const std::string &,
+                                std::vector<Pt3dr> &,
+                                std::vector<Pt3dr> &);
+        void ReadScanLineSensor(const std::string &,
+                                std::vector<Pt3dr> &,
+                                std::vector<Pt3dr> &,
+                                std::vector<Pt3dr> &,
+                                std::vector<Pt3dr> &);
 
         
         /* Change coordinate system */
@@ -335,7 +343,10 @@ class cRPC
         void ReconstructValidityxy();
         void ReconstructValidityXY();
         void ReconstructValidityH();
-
+        void FillAndVerifyBord(double &aL, double &aC,
+                               const Pt3dr &aP1, const Pt3dr &aP2,
+                               const std::list< Pt3dr > &aP3,
+                               std::vector<Pt3dr> & aG3d, std::vector<Pt3dr> & aG2d);
 
         /* Update scales, offsets */
         void NewImOffScal(const std::vector<Pt3dr> & aGrid);

@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-#if (ELISE_QT_VERSION >= 4)
+#if ELISE_QT
 #include "general/visual_mainwindow.h"
 #endif
 
@@ -963,8 +963,7 @@ void Del_MkTapioca(string MkFT)
 
 int Tapioca_main(int argc,char ** argv)
 {
-#if(ELISE_QT_VERSION >= 4)
-
+#if ELISE_QT
     if (MMVisualMode)
     {
         QApplication app(argc, argv);
@@ -1014,7 +1013,7 @@ int Tapioca_main(int argc,char ** argv)
     {
         aFullDir = argv[1];
 
-#if(ELISE_windows)
+#if (ELISE_windows)
         replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
 #endif
         SplitDirAndFile(aDir,aPat,aFullDir);
@@ -1023,7 +1022,7 @@ int Tapioca_main(int argc,char ** argv)
         if ( isUsingSeparateDirectories() )
             ELISE_fp::MkDirSvp( MMTemporaryDirectory() );
         else
-            ELISE_fp::MkDirSvp( aDir+"Tmp-MM-Dir/");
+            ELISE_fp::MkDirSvp( aDir + "Tmp-MM-Dir/");
 
 
     aPatOri = aPat;
@@ -1120,7 +1119,7 @@ int Tapioca_main(int argc,char ** argv)
 
 /************************************************************************/
 /*                                                                      */
-/*             Nouvelle commnde, compatible vTools                      */
+/*             Nouvelle commande, compatible vTools                      */
 /*                                                                      */
 /************************************************************************/
 
@@ -1342,7 +1341,7 @@ class cAppliMakeFileHom
 
    En contrepartie de l'accessibilite au code source et des droits de copie,
    de modification et de redistribution accordes par cette licence, il n'est
-   offert aux utilisateurs qu'une garantie limitee.  Pour les mêmes raisons,
+   offert aux utilisateurs qu'une garantie limitee.  Pour les mï¿½mes raisons,
    seule une responsabilite restreinte pese sur l'auteur du programme,  le
    titulaire des droits patrimoniaux et les concedants successifs.
 

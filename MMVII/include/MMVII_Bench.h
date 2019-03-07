@@ -28,7 +28,8 @@ void BenchGlob();      ///< All Bench
 
 void BenchSet(const std::string & aDir); ///< Bench on cExtSet (set "en extension")
 void BenchSelector(const std::string & aDir); ///< Bench on selecto, (set "en comprehension")
-void BenchEditSet(); ///< Bench on commands : EditSet  (to come EditCple)
+void BenchEditSet(); ///< Bench on commands : EditSet  
+void BenchEditRel(); ///< Bench on commands : EditRel
 
 void BenchEnum(); ///< Bench on Str2E / E2Str
 

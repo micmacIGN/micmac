@@ -224,10 +224,7 @@ void SaisieQtWindow::runProgressDialog(QFuture<void> aFuture, int aMin, int aMax
     on_actionShow_messages_toggled(false);
 
     //~ _FutureWatcher.setFuture(aFuture);
-	#if ELISE_QT_VERSION == 5
-		activateLoadImageProgressDialog(aMin, aMax);
-	#endif
-
+	activateLoadImageProgressDialog(aMin, aMax);
     aFuture.waitForFinished();
     on_actionShow_messages_toggled(bShowMsgs);
 }
@@ -741,19 +738,11 @@ void SaisieQtWindow::on_actionHelpShortcuts_triggered()
             actions.push_back(tr("move polygon"));
 
     #ifdef ELISE_Darwin
-        #if ELISE_QT_VERSION >= 5
-                shortcuts.push_back(tr("Fn+Space bar"));
-                shortcuts.push_back("Fn+D");
-                shortcuts.push_back("Fn+U");
-                shortcuts.push_back("Fn+Y");
-                fillStringList(actions, _appMode);
-        #else
-                shortcuts.push_back(tr("Space bar"));
-                shortcuts.push_back(tr("Del"));
-                shortcuts.push_back(tr("Ctrl+Space bar"));
-                shortcuts.push_back(tr("Ctrl+Del"));
-                fillStringList(actions, _appMode);
-        #endif
+            shortcuts.push_back(tr("Fn+Space bar"));
+            shortcuts.push_back("Fn+D");
+            shortcuts.push_back("Fn+U");
+            shortcuts.push_back("Fn+Y");
+            fillStringList(actions, _appMode);
     #else
             shortcuts.push_back(tr("Space bar"));
             shortcuts.push_back(tr("Del"));
@@ -1386,11 +1375,9 @@ void SaisieQtWindow::updateUI()
     _ui->actionRemove_outside->setShortcut(QKeySequence(Qt::ControlModifier +Qt::Key_Delete));
 
     #ifdef ELISE_Darwin
-    #if(ELISE_QT_VERSION >= 5)
         _ui->actionRemove_inside->setShortcut(Qt::Key_D);
         _ui->actionRemove_outside->setShortcut(Qt::Key_Y);
         _ui->actionAdd_outside->setShortcut(Qt::Key_U);
-    #endif
     #endif
 }
 
@@ -1752,7 +1739,7 @@ void SaisieQtWindow::changeCurrentWidget(void *cuWid)
 
 void SaisieQtWindow::updateMask(bool reloadMask)
 {
-    // TODO seg fault dans le undo à cause de la destruction des images...
+    // TODO seg fault dans le undo ï¿½ cause de la destruction des images...
 
     if (currentWidget()->getHistoryManager()->size())
     {

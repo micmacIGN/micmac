@@ -843,6 +843,15 @@ double Std_Der2SAtRxS2SRx(double x);
 double Der2SAtRxS2SRx(double x);   // Der f2SAtRxS2SRx
 
 
+double PrecStereographique(double x);
+double Der_PrecStereographique(double x);
+double SqM2CRx_StereoG(double x);
+double Der_SqM2CRx_StereoG(double x);
+double Inv_PrecStereographique(double x);
+Fonc_Num Der_PrecStereographique(Fonc_Num f);
+Fonc_Num Der_SqM2CRx_StereoG(Fonc_Num f);
+
+
     // Operateur utile a la fonction de conversion des Fish Eye Linear
 
 double AtRxSRx(double x);      // Atan(sqrt(x)) / sqrt(x)

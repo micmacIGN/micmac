@@ -1549,6 +1549,10 @@ ElDistortion22_Gen * ElDistortion22_Gen::AllocPreC
           case ePCR_2SinAtgtS2 :
              return new cDistPrecond2SinAtgtS2(aPCGR.F(),aPCGR.C());
           break;
+          case  ePCR_Stereographik :
+             return new  cDistPrecondSterographique(aPCGR.F(),aPCGR.C());
+          break;
+          default : break;
      }
      ELISE_ASSERT
      (

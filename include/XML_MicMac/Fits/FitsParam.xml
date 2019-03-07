@@ -1,57 +1,36 @@
 <FitsParam>
    <!-- Quick for overlap dec -->
-   <OverLap> 
+   <DefInit> 
          <KindOf> eTPR_GrayMax    </KindOf>
+<!--
+         <KindOf> eTPR_LaplMax    </KindOf>
+         <KindOf> eTPR_BifurqMax    </KindOf>
+-->
          <BinIndexed>  <!-- Quick one, for indexation -->
-            <PrefName>  Save_CompCB_BM2_NBB16_PdsW3000_   </PrefName>
+               <PrefName>  Save_CompCB_BM2_NBB16_PdsW10000_   </PrefName>
          </BinIndexed>  
-         <BinDecision>  <!-- Longer one making the decision -->
-            <PrefName>  Save_CompCB_NBB80_PdsW100000_   </PrefName>
-         </BinDecision>  
-   </OverLap> 
-   <SeuilOL>  
-   </SeuilOL>
+         <BinDecisionShort>  <!-- Longer one making the decision   True : 0.867232 Rand : 0.0914911  -->
+               <PrefName>  Save_CompCB_BM2_NBB16_PdsW1000_   </PrefName>
+         </BinDecisionShort>  
+         <BinDecisionLong>  <!-- Longer one making the decision   True : 0.922 Rand : 0.0175 -->
+               <PrefName>  Save_CompCB_NBB80_PdsW3000_   </PrefName>
+         </BinDecisionLong>  
+   </DefInit> 
 
    <SeuilGen>  
         <SeuilCorrDR > 0.6 </SeuilCorrDR> 
-        <SeuilInc    > 0.03  </SeuilInc> 
-        <SeuilCorrLP > 0.9 </SeuilCorrLP>
+        <SeuilInc    > 0.13  </SeuilInc> 
+        <SeuilCorrLP > 0.93 </SeuilCorrLP>
+        <SeuilDistGrad> 0.5 </SeuilDistGrad>
+        <ExposantPdsDistGrad> 1.0 </ExposantPdsDistGrad>
+        <SeuilCorrelRatio12 > 0.7 </SeuilCorrelRatio12>
+        <SeuilGradRatio12 >   0.7 </SeuilGradRatio12>
+
    </SeuilGen>
-   <GenLabs> 
-         <KindOf> eTPR_GrayMax    </KindOf>
-         <BinIndexed>  <!-- Quick one, for indexation -->
-              <PrefName>  Save_CompCB_BM2_NBB16_PdsW300_   </PrefName>
-         </BinIndexed>  
-         <BinDecision>  <!-- Longer one making the decision -->
-              <PrefName>  Save_CompCB_NBB80_PdsW300_  </PrefName>
-         </BinDecision>  
-   </GenLabs> 
-   <GenLabs> 
-         <KindOf> eTPR_GrayMin    </KindOf>
-         <BinIndexed>  <!-- Quick one, for indexation -->
-              <PrefName>  Save_CompCB_BM2_NBB16_PdsW300_   </PrefName>
-         </BinIndexed>  
-         <BinDecision>  <!-- Longer one making the decision -->
-              <PrefName>  Save_CompCB_NBB80_PdsW300_  </PrefName>
-         </BinDecision>  
-   </GenLabs> 
-   <GenLabs> 
-         <KindOf> eTPR_LaplMax    </KindOf>
-         <BinIndexed>  <!-- Quick one, for indexation -->
-              <PrefName>  Save_CompCB_BM2_NBB16_PdsW300_   </PrefName>
-         </BinIndexed>  
-         <BinDecision>  <!-- Longer one making the decision -->
-              <PrefName>  Save_CompCB_NBB80_PdsW300_  </PrefName>
-         </BinDecision>  
-   </GenLabs> 
-   <GenLabs> 
-         <KindOf> eTPR_LaplMin    </KindOf>
-         <BinIndexed>  <!-- Quick one, for indexation -->
-              <PrefName>  Save_CompCB_BM2_NBB16_PdsW300_   </PrefName>
-         </BinIndexed>  
-         <BinDecision>  <!-- Longer one making the decision -->
-              <PrefName>  Save_CompCB_NBB80_PdsW300_  </PrefName>
-         </BinDecision>  
-   </GenLabs> 
+   <SeuilOL>  
+        <SeuilCorrDR > 0.6 </SeuilCorrDR> 
+        <SeuilInc    > 0.13  </SeuilInc> 
+        <SeuilCorrLP > 0.93 </SeuilCorrLP>
+   </SeuilOL>
 </FitsParam>
 

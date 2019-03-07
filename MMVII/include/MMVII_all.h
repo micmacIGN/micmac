@@ -35,8 +35,8 @@
 #include "MMVII_Sys.h"
 #include "MMVII_memory.h"
 #include "MMVII_util_tpl.h"
-#include "MMVII_util.h"
 #include "MMVII_nums.h"
+#include "MMVII_util.h"
 
 
 
@@ -49,6 +49,11 @@
 #include "MMVII_Stringifier.h"
 #include "MMVII_Bench.h"
 #include "cMMVII_Appli.h"
+
+
+//  Classes for images manipulation
+
+#include "MMVII_Images.h"
 
 
 #include "MMVII_DeclareAllCmd.h"

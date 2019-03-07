@@ -1,14 +1,19 @@
 #include "GlExtensions.h"
+#include "general/CMake_defines.h"
+
+#include <list>
+#include <algorithm>
+#include <iomanip>
 
 #if ELISE_windows
 	#include <windows.h> 
 #endif
 
-#include "GL/gl.h"
-
-#include <list>
-#include <algorithm>
-#include <iomanip>
+#if ELISE_Darwin
+    #include <OpenGL/gl.h>
+#else
+    #include <GL/gl.h>
+#endif
 
 using namespace std;
 

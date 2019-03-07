@@ -1,7 +1,7 @@
 #ifndef CERO_MODELONEPAIRE_H
 #define CERO_MODELONEPAIRE_H
 #include "cimgeo.h"
-
+#include "../../uti_phgrm/TiepTri/TiepTri.h"
 
 /*Egalisation radiométrique d'Orthoimages (générées par Malt)
  * calcul du modele de correction radiométrique entre Im1 et Im2 tels que I1xy = a1 + b1 * I2xy
@@ -40,13 +40,15 @@ private:
     c2DLineModel mModelER1,mModelER2;
     int mPoid1,mPoid2;
     std::string mTmpDirEROS,mTmpDirERO;// un directory global pour tout les modèles de chaques paires d'images, un local pour la paire d'ortho
-    bool mPondIncid;
-
+    bool mPondIncid, mAutoDZ;
+    int mDeZoom;
 
     void ransacOnEachTiles();
     void ransacOn2Orthos();
     void L1On2Orthos();
     void saveModels();
+    void chgResol();
+    void autoDZ(); // determine appropriate level of dezoom
 
     void boxTer2Tfw(); // sauver une geom terrain comme tfw
 

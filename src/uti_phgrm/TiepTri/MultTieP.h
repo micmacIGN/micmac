@@ -37,6 +37,8 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+extern Pt3dr Intersect_Simple(const std::vector<CamStenope *> & aVCS,const std::vector<Pt2dr> & aNPts2D);
+extern double cal_Residu( Pt3dr aPInter3D , vector<CamStenope*> & aVCamInter, vector<Pt2dr> & aVPtInter);
 
 #ifndef _MultTieP_
 #define _MultTieP_
@@ -66,6 +68,7 @@ class cCelImTPM
          void *  ImTPM_GetVoidData() const;
          void    ImTPM_SetVoidData(void *);
          int     & Id() {return mId;}
+         std::string  & Name() {return mNameIm;}
     private :
          std::string mNameIm;
          int         mId;
@@ -108,7 +111,14 @@ class cSetPMul1ConfigTPM
        void    ConfTPM_SetVoidData(void *);
 
        Pt2dr GetPtByImgId(int aKp, int aQueryImgID);
-
+        
+       void IntersectBundle(std::map<int, CamStenope *>&        aCams,
+                            std::map<int,std::vector<Pt2dr>* >& aPtIdTr,
+                            std::map<int,std::vector<int>* >&   aPtIdPId,
+                            std::vector<Pt3dr>&                 aPt3D,
+                            int&                                aPos); //return vectors of tracks + ids, corresponding img idx, and 3D ; fill the structures from the aPos on
+       std::vector<Pt3d<double> > IntersectBundle(std::map<int, CamStenope *> aMCams); //aMCams are Camera indexed by the Id fo Image
+       std::vector<Pt3d<double> > IntersectBundle(std::map<int, CamStenope *> aMCams, std::vector<double> & aVResid); // return reproj error in aVResod
 
     private :
        int  AddrPtIm(int aKp,int aKIm) {return 2*(aKp*mNbIm  +aKIm) ;}
@@ -148,6 +158,9 @@ class cSetTiePMul
 
         static std::string StdName(cInterfChantierNameManipulateur*,const std::string aSH,const std::string & aPost,bool Bin);
         static const std::vector<std::string> * StdSetName(cInterfChantierNameManipulateur*,const std::string aSH,bool Bin);
+        static const std::vector<std::string> * StdSetName_BinTxt(cInterfChantierNameManipulateur*,const std::string aSH);
+
+
 
         cSetPMul1ConfigTPM * OneConfigFromVI(const std::vector<INT> &);
 
@@ -163,6 +176,7 @@ class cSetTiePMul
         cDicoImTPM & DicoIm();
         cCelImTPM * CelFromName(const std::string & aName);
         cCelImTPM * CelFromInt(const int & anId);
+        std::string NameFromId(const int & anId);
 
         const std::vector<cSetPMul1ConfigTPM *> & VPMul();
         int NbIm() const;
@@ -179,6 +193,46 @@ class cSetTiePMul
         std::vector<int>        mNumConvCur;
         std::set<std::string>*  mSetFilter;   
         int                     mNbAttr;
+};
+
+/*******************************************************************/
+/*                                                                 */
+/*                Conversion NEW format to OLD format              */
+/*                                                                 */
+/*******************************************************************/
+class cPackHomol;
+class cGetionStdPackHomol;
+
+class cAppliConvertToOldFormatHom
+{
+    public :
+        cAppliConvertToOldFormatHom(int argc,char ** argv);
+        cAppliConvertToOldFormatHom(string aDir, string aPMulFile, string aOut, bool aBin, bool aIs2Way);
+    private :
+        void DoAll(cSetTiePMul * aSetPM,  cGetionStdPackHomol * aGes, cInterfChantierNameManipulateur *aICNM);
+        std::string         mPatImage;  // Pattern image d'entree
+        std::string         mSH;
+        std::string         mOut;
+        bool                mBin;
+        cElemAppliSetFile   mEASF;      // Gestion de fichier
+        const std::vector<std::string> * mFilesIm;  // vecteur nom d'image
+        bool                             mExpTxt;   // Bin ou Txt export
+        bool                             mIs2Way;
+};
+
+class cPackHomol
+{
+public :
+    cPackHomol(string aIm1, string aIm2, int aId1, int aId2);
+    cPackHomol(cCelImTPM * aIm1, cCelImTPM * aIm2);
+    ElPackHomologue mPackDirect;
+    ElPackHomologue mPackInverse;
+    string mIm1;
+    string mIm2;
+    int    mId1;
+    int    mId2;
+    std::pair<int, int> mPairId;
+    string CompileKey(string aHomolOut, bool isExpTxt, cInterfChantierNameManipulateur * aICNM, bool isDirect);
 };
 
 

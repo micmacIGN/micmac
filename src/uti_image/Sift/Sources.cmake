@@ -4,4 +4,4 @@ set(uti_image_Sift_Src_Files
 	${UTI_IMAGE_SIFT_DIR}/Sift.cpp
 )
 
-INCLUDE_DIRECTORIES(${UTI_IMAGE_SIFT_DIR})
+include_directories(${UTI_IMAGE_SIFT_DIR})

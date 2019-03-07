@@ -45,6 +45,9 @@ bool DEBUG_EWELINA=false;
 bool DEBUG_MPD_ONLY_NUM = false;
 bool DEBUG_MPD_ONLY_DEN = false;
 
+Pt3dr  NODATA_TITAN(-1.000000,-1.000000,-1.000000);
+double NEWPARAM_REGUL = 0.00001; 
+
 /* Image coordinates order: [Line, Sample] = [row, col] =  [y, x]*/
 /******************************************************/
 /*                                                    */
@@ -303,7 +306,7 @@ Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
     return (mRPC->InverseRPC(aP));
 }
 
-bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage *) const
+bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInImage *) const
 {
     // (1) Check if aP is within the RPC validity zone
 	if((aP.z < mRPC->GetGrC31()) || (aP.z > mRPC->GetGrC32()))
@@ -960,7 +963,7 @@ bool CameraAffine::CaptHasData(const Pt2dr &) const
     return(true);
 }
 
-bool CameraAffine::PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage *) const
+bool CameraAffine::PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInImage *) const
 {
     return(true);
 }
@@ -1216,9 +1219,54 @@ void cRPC::Initialize(const std::string &aName,
         ISINV=true;
 
     }
-    else if(aType==eTIGB_MMSpice)
+    else if(aType==eTIGB_MMScanLineSensor)
     {
-    
+        ISMETER=true;
+        NEWPARAM_REGUL = 0.00005; //problems with RPC estimation for TITAN
+
+        /* Grid in 3D */
+        std::vector<Pt3dr> aGrid3D,aGrid3DTest;
+        /* Grid in 2D */
+        std::vector<Pt3dr> aGrid2D,aGrid2DTest;
+
+
+        //ReadScanLineSensor(aNameRPC,aGrid3D,aGrid2D);
+        ReadScanLineSensor(aNameRPC,aGrid3D,aGrid2D,aGrid3DTest,aGrid2DTest);
+        ISINV=true;
+
+if(1)
+{
+        std::cout << "size grid to grid verif: " << aGrid3D.size() << "," << aGrid3DTest.size() << "\n";
+
+        cPlyCloud aPly3d, aPly2d;
+        for (auto aP : aGrid3D)
+            aPly3d.AddPt(Pt3di(255,255,255),aP); 
+        aPly3d.PutFile(StdPrefix(aNameRPC) +"-Err3d.ply"); 
+
+        for (auto aP : aGrid2D)
+            aPly2d.AddPt(Pt3di(255,255,255),aP); 
+        aPly2d.PutFile(StdPrefix(aNameRPC) +"-Err2d.ply"); 
+
+}
+
+
+
+        CalculRPC(aGrid3D, aGrid2D,
+                  aGrid3DTest, aGrid2DTest,
+                  mDirSNum, mDirLNum, mDirSDen, mDirLDen,
+                  mInvSNum, mInvLNum, mInvSDen, mInvLDen, 1);
+        ISDIR=true;
+        
+
+        //a priori pas necessaire
+        SetRecGrid();
+   
+        Show();
+ 
+
+
+
+
     }
     /*else if (aType == eTIGB_MMASTER)
     {
@@ -2043,9 +2091,17 @@ if(0)
 {
     std::cout << "ewelina learn" << "\n";
     Pt3dr aPMin, aPMax, aPSum;
+    
+    
+    GetGridExt(aGridImg, aPMin, aPMax, aPSum);
+    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
+    
     GetGridExt(aGridImgN, aPMin, aPMax, aPSum);
     std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
 
+    GetGridExt(aGridGround, aPMin, aPMax, aPSum);
+    std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
+    
     GetGridExt(aGridGroundN, aPMin, aPMax, aPSum);
     std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
 }
@@ -2086,7 +2142,7 @@ if(0)
             aPDifMoy.y += aPDif.y;
         }
 
-
+ 
         if( (double(aPDifMoy.x)/(aGridGroundTest.size())) > 1 || (double(aPDifMoy.y)/(aGridGroundTest.size())) > 1 )
             std::cout << "RPC recalculation"
                 <<  " precision: " << double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
@@ -2287,7 +2343,8 @@ void cRPC::LearnParamNEW(std::vector<Pt3dr> &aGridIn,
 
     int    aK, aNPts = int(aGridIn.size()), iter=0;
     double aSeuil=1e-8;
-    double aReg=0.00001;
+    //double aReg=0.00001;//replaced by a global variable
+    //double aReg=0.0001;//TITAN RADAR
     double aV1=1, aV0=2;
     
     //initialized to 0
@@ -2342,9 +2399,11 @@ void cRPC::LearnParamNEW(std::vector<Pt3dr> &aGridIn,
         
         /* Add regularizer */
         for(aK=0; aK<39; aK++)
-        {    
-            aSys1.AddTermQuad(aK,aK,aReg);
-            aSys2.AddTermQuad(aK,aK,aReg);
+        {  
+            //aSys1.AddTermQuad(aK,aK,aReg);
+            //aSys2.AddTermQuad(aK,aK,aReg);
+            aSys1.AddTermQuad(aK,aK,NEWPARAM_REGUL);
+            aSys2.AddTermQuad(aK,aK,NEWPARAM_REGUL);
         }
 
         bool ok;
@@ -3669,6 +3728,227 @@ void cRPC::ReadDimap(const std::string &aFile)
     
 }
 
+//obsolete; this read function doesnt create a verification grid
+void cRPC::ReadScanLineSensor(const std::string &aFile,std::vector<Pt3dr> & aG3d,std::vector<Pt3dr> & aG2d)
+{
+
+    cXml_ScanLineSensor aXml = StdGetFromSI(aFile,Xml_ScanLineSensor);
+
+    std::vector< cXml_OneLineSLS > aLines = aXml.Lines();
+
+    /* Initialise the min/max ground coords */
+    mGrC1[0] = 1e9;
+    mGrC1[1] = -1e9;
+    mGrC2[0] = mGrC1[0];
+    mGrC2[1] = mGrC1[1];
+    mGrC3[0] = mGrC1[0];
+    mGrC3[1] = mGrC1[1];
+
+
+    /* Fill the grids */
+
+    //for all lines
+    for (auto aL : aLines)
+    {
+        std::vector< cXml_SLSRay > aSample = aL.Rays();
+
+        //for all samples
+        for (auto aS : aSample)
+        {
+            if (!(aS.P1() == NODATA_TITAN))
+            {
+                aG3d.push_back (aS.P1());
+                aG3d.push_back (aS.P2());
+
+                aG2d.push_back (Pt3dr(aS.IndCol(), aL.IndLine(),aS.P1().z));
+                aG2d.push_back (Pt3dr(aS.IndCol(), aL.IndLine(),aS.P2().z));
+
+                mGrC1[0] = (mGrC1[0] > aS.P1().x) ? aS.P1().x : mGrC1[0];
+                mGrC1[0] = (mGrC1[0] > aS.P2().x) ? aS.P2().x : mGrC1[0];
+                mGrC1[1] = (mGrC1[1] < aS.P1().x) ? aS.P1().x : mGrC1[1];
+                mGrC1[1] = (mGrC1[1] < aS.P2().x) ? aS.P2().x : mGrC1[1];
+           
+                mGrC2[0] = (mGrC2[0] > aS.P1().y) ? aS.P1().y : mGrC2[0];
+                mGrC2[0] = (mGrC2[0] > aS.P2().y) ? aS.P2().y : mGrC2[0];
+                mGrC2[1] = (mGrC2[1] < aS.P1().y) ? aS.P1().y : mGrC2[1];
+                mGrC2[1] = (mGrC2[1] < aS.P2().y) ? aS.P2().y : mGrC2[1];
+
+                mGrC3[0] = (mGrC3[0] > aS.P1().z) ? aS.P1().z : mGrC3[0];
+                mGrC3[0] = (mGrC3[0] > aS.P2().z) ? aS.P2().z : mGrC3[0];
+                mGrC3[1] = (mGrC3[1] < aS.P1().z) ? aS.P1().z : mGrC3[1];
+                mGrC3[1] = (mGrC3[1] < aS.P2().z) ? aS.P2().z : mGrC3[1];
+
+                //if more than two points 
+                for (auto aAdd : aS.P3())
+                {
+                    aG3d.push_back (aAdd);
+                    aG2d.push_back (Pt3dr(aS.IndCol(), aL.IndLine(),aAdd.z));
+                    
+                    mGrC1[0] = (mGrC1[0] > aAdd.x) ? aAdd.x : mGrC1[0];
+                    mGrC1[1] = (mGrC1[1] < aAdd.x) ? aAdd.x : mGrC1[1];
+                    mGrC2[0] = (mGrC2[0] > aAdd.y) ? aAdd.y : mGrC2[0];
+                    mGrC2[1] = (mGrC2[1] < aAdd.y) ? aAdd.y : mGrC2[1];
+                    mGrC3[0] = (mGrC3[0] > aAdd.z) ? aAdd.z : mGrC3[0];
+                    mGrC3[1] = (mGrC3[1] < aAdd.z) ? aAdd.z : mGrC3[1];
+                
+                    //std::cout << "eeewwwwee min xgr: " << mGrC1[0] << ", Add: " << aAdd.x 
+                    //          << ", line/col: " << aL.IndLine() << " " << aS.IndCol() << "\n";
+                }
+
+
+
+            }
+        }
+    }
+    std::cout << "min/max: " << mGrC1[0] << ", " << mGrC1[1] << "\n" 
+                             << mGrC2[0] << ", " << mGrC2[1] << "\n"
+                             << mGrC3[0] << ", " << mGrC3[1] << "\n"; 
+
+    /* Fill the min/max rows/cols */
+
+    mImRows[0] = 0;
+    mImRows[1] = aXml.ImSz().y-1;
+    mImCols[0] = 0;
+    mImCols[1] = aXml.ImSz().x-1;
+
+
+
+}
+
+void cRPC::FillAndVerifyBord(double &aL, double &aC,
+                             const Pt3dr &aP1, const Pt3dr &aP2,
+                             const std::list< Pt3dr > &aP3,
+                             std::vector<Pt3dr> & aG3d, std::vector<Pt3dr> & aG2d)
+{
+    aG3d.push_back (aP1);
+    aG3d.push_back (aP2);
+    aG2d.push_back (Pt3dr(aC, aL,aP1.z));
+    aG2d.push_back (Pt3dr(aC, aL,aP2.z));
+   
+    //update min/max image validity
+    mImRows[0] = (mImRows[0] > aL) ? aL : mImRows[0];
+    mImRows[1] = (mImRows[1] < aL) ? aL : mImRows[1];
+    mImCols[0] = (mImCols[0] > aC) ? aC : mImCols[0];
+    mImCols[1] = (mImCols[1] < aC) ? aC : mImCols[1];
+ 
+    //update min/max ground validity
+    mGrC1[0] = (mGrC1[0] > aP1.x) ? aP1.x : mGrC1[0];
+    mGrC1[0] = (mGrC1[0] > aP2.x) ? aP2.x : mGrC1[0];
+    mGrC1[1] = (mGrC1[1] < aP1.x) ? aP1.x : mGrC1[1];
+    mGrC1[1] = (mGrC1[1] < aP2.x) ? aP2.x : mGrC1[1];
+    
+    mGrC2[0] = (mGrC2[0] > aP1.y) ? aP1.y : mGrC2[0];
+    mGrC2[0] = (mGrC2[0] > aP2.y) ? aP2.y : mGrC2[0];
+    mGrC2[1] = (mGrC2[1] < aP1.y) ? aP1.y : mGrC2[1];
+    mGrC2[1] = (mGrC2[1] < aP2.y) ? aP2.y : mGrC2[1];
+
+    mGrC3[0] = (mGrC3[0] > aP1.z) ? aP1.z : mGrC3[0];
+    mGrC3[0] = (mGrC3[0] > aP2.z) ? aP2.z : mGrC3[0];
+    mGrC3[1] = (mGrC3[1] < aP1.z) ? aP1.z : mGrC3[1];
+    mGrC3[1] = (mGrC3[1] < aP2.z) ? aP2.z : mGrC3[1];
+   
+     //if more than two points 
+    for (auto aAdd : aP3)
+    {
+        aG3d.push_back (aAdd);
+        aG2d.push_back (Pt3dr(aC, aL,aAdd.z));
+        
+        //update min/max ground validity
+        mGrC1[0] = (mGrC1[0] > aAdd.x) ? aAdd.x : mGrC1[0];
+        mGrC1[1] = (mGrC1[1] < aAdd.x) ? aAdd.x : mGrC1[1];
+        mGrC2[0] = (mGrC2[0] > aAdd.y) ? aAdd.y : mGrC2[0];
+        mGrC2[1] = (mGrC2[1] < aAdd.y) ? aAdd.y : mGrC2[1];
+        mGrC3[0] = (mGrC3[0] > aAdd.z) ? aAdd.z : mGrC3[0];
+        mGrC3[1] = (mGrC3[1] < aAdd.z) ? aAdd.z : mGrC3[1];
+    
+        //std::cout << "eeewwwwee min xgr: " << mGrC1[0] << ", Add: " << aAdd.x 
+    }
+}
+
+void cRPC::ReadScanLineSensor(const std::string &aFile,
+                              std::vector<Pt3dr> & aG3d,    std::vector<Pt3dr> & aG2d,
+                              std::vector<Pt3dr> & aG3dTest,std::vector<Pt3dr> & aG2dTest)
+{
+
+    cXml_ScanLineSensor aXml = StdGetFromSI(aFile,Xml_ScanLineSensor);
+
+    std::vector< cXml_OneLineSLS > aLines = aXml.Lines();
+    int aSzLin = aLines.size();
+
+    /* Initialise the min/max ground coords */
+    mGrC1[0] = 1e9;
+    mGrC1[1] = -1e9;
+    mGrC2[0] = mGrC1[0];
+    mGrC2[1] = mGrC1[1];
+    mGrC3[0] = mGrC1[0];
+    mGrC3[1] = mGrC1[1];
+
+    /* Initialise the min/max img coords */
+    mImRows[0] = 1e9;
+    mImRows[1] = -1e9;
+    mImCols[0] = mImRows[0];
+    mImCols[1] = mImRows[1];
+
+    /* Fill the grids */
+    int i=0;
+    int aSzColTmp;
+    //int aSkipPt=0;
+
+    //for all lines
+    for (auto aL : aLines)
+    {
+        std::vector< cXml_SLSRay > aSample = aL.Rays();
+        aSzColTmp =aSample.size();
+
+        //for all samples
+        for (auto aS : aSample)
+        {
+
+            //point skipping
+            //if (! (aSkipPt==5) )
+            {
+                if (!(aS.P1() == NODATA_TITAN))
+                {
+             
+                    //even points and points on the border go to the estim phase                
+                    if ((i % 2 == 0) || 
+                        (aS.IndCol()  == aSample.at(aSzColTmp-1).IndCol()) || (aS.IndCol() == aSample.at(0).IndCol()) || 
+                        (aL.IndLine() == aLines.at(aSzLin-1).IndLine())    || (aL.IndLine() == aLines.at(0).IndLine()))
+                    {
+                        FillAndVerifyBord(aL.IndLine(),aS.IndCol(),aS.P1(),aS.P2(),aS.P3(),aG3d,aG2d);
+             
+             
+                    }//the rest used for verification
+                    else
+                    {   
+             
+                        FillAndVerifyBord(aL.IndLine(),aS.IndCol(),aS.P1(),aS.P2(),aS.P3(),aG3dTest,aG2dTest);
+                        
+             
+                    }
+                }
+            }
+            //else
+            //    aSkipPt=0;
+
+            i++;
+            //aSkipPt++;
+        }
+    }
+    std::cout << "min/max: " << mGrC1[0] << ", " << mGrC1[1] << "\n" 
+                             << mGrC2[0] << ", " << mGrC2[1] << "\n"
+                             << mGrC3[0] << ", " << mGrC3[1] << "\n"; 
+
+    /* Fill the min/max rows/cols */
+
+    /*mImRows[0] = 0;
+    mImRows[1] = aXml.ImSz().y-1;
+    mImCols[0] = 0;
+    mImCols[1] = aXml.ImSz().x-1;*/
+
+
+}
+
 void cRPC::ReconstructValidityxy()
 {
     ELISE_ASSERT(ISINV, "cRPC::ReconstructValidityxy() RPCs need to be initialised" );
@@ -3971,6 +4251,85 @@ int RecalRPC_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
+
+
+bool CalcCentreOptiqueGrille(const OrientationGrille & aOri, Pt3dr & aCentre)
+{
+    /* Intersectioin of two segs to get the satellite height */
+    Pt2dr aDZ = aOri.GetRangeZ();
+
+    Pt2dr aDC = aOri.GetRangeCol();
+    Pt2dr aDR = aOri.GetRangeRow();
+
+    Pt2dr aP0(aDC.x,aDR.x+0.5*(aDR.y-aDR.x));
+    Pt2dr aP1(aDC.y,aDR.x+0.5*(aDR.y-aDR.x));
+
+    Pt2dr aP0GrZ0,aP0GrZ1,aP1GrZ0,aP1GrZ1;
+
+    aOri.ImageAndPx2Obj(aP0.x,aP0.y,&aDZ.x,aP0GrZ0.x,aP0GrZ0.y);
+    aOri.ImageAndPx2Obj(aP0.x,aP0.y,&aDZ.y,aP0GrZ1.x,aP0GrZ1.y);
+
+    aOri.ImageAndPx2Obj(aP1.x,aP1.y,&aDZ.x,aP1GrZ0.x,aP1GrZ0.y);
+    aOri.ImageAndPx2Obj(aP1.x,aP1.y,&aDZ.y,aP1GrZ1.x,aP1GrZ1.y);
+
+
+    std::vector<double> aVPds;
+    std::vector<ElSeg3D> aVS;
+
+    aVS.push_back(ElSeg3D(Pt3dr(aP0GrZ0.x,aP0GrZ0.y,aDZ.x),Pt3dr(aP0GrZ1.x,aP0GrZ1.y,aDZ.y)));
+    aVS.push_back(ElSeg3D(Pt3dr(aP1GrZ0.x,aP1GrZ0.y,aDZ.x),Pt3dr(aP1GrZ1.x,aP1GrZ1.y,aDZ.y)));
+    aVPds.push_back(1.0);
+    aVPds.push_back(1.0);
+
+    bool aIsOK;
+    aCentre = ElSeg3D::L2InterFaisceaux(&aVPds, aVS, &aIsOK);
+
+    if (aIsOK==false)  
+        return EXIT_SUCCESS;
+    else
+        return EXIT_FAILURE;
+
+
+}
+
+int CalcBsurHGrille_main(int argc,char ** argv)
+{
+    std::string aGRIName1,aGRIName2;
+    std::string aDir;
+    std::string aName;
+
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aGRIName1,"First image")
+                   << EAMC(aGRIName2,"Second image"),
+        LArgMain()
+     );
+
+
+    OrientationGrille aGRI1(aGRIName1);
+    OrientationGrille aGRI2(aGRIName2);
+
+
+    Pt3dr aCentre1,aCentre2;
+    
+    if (! CalcCentreOptiqueGrille(aGRI1,aCentre1))
+        return EXIT_FAILURE;
+
+    if (! CalcCentreOptiqueGrille(aGRI2,aCentre2))
+        return EXIT_FAILURE;
+
+
+    double aB = euclid(aCentre2-aCentre1);
+
+    std::cout << "B=" << aB << ", H=" << aCentre1.z << ", B/H=" << aB/aCentre1.z << "\n";
+
+    return(1);    
+
+    
+}
+
 int CalcBsurH_main(int argc,char ** argv)
 {
     
@@ -4191,6 +4550,7 @@ cAppli_TestCamRPC::cAppli_TestCamRPC(int argc,char** argv) :
                double anX = (aKX * aSzIm.x) / double (mNbXY);
                for (int  aKY=0 ; aKY<=mNbXY ; aKY++)
                {
+
                    double anY = (aKY * aSzIm.y) / double (mNbXY);
 
                    Pt3dr aPTer,aGImX,aGImY,aGImZ;
@@ -4248,6 +4608,9 @@ cAppli_TestCamRPC::cAppli_TestCamRPC(int argc,char** argv) :
 
                         aDenPosXIm += (aTestPIm.x) > 0;
                         aDenPosYIm += (aTestPIm.y) > 0;
+
+    if(aTestPIm.y<=0)
+        std::cout << "less than zero? " << aTestPIm.y << "\n";
 
                         ElSetMax(MaxDenXIm,aTestPIm.x);
                         ElSetMin(MinDenXIm,aTestPIm.x);

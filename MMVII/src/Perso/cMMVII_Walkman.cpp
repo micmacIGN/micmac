@@ -50,12 +50,12 @@ class cSaveWalkman
        {
        }
        std::vector<cOneEntrySaveWalkman> mVE;
-       int                               mNbTot;
+       int                               mNbTot; /// Number of music file from the beging, used for id
 };
 
 void AddData(const  cAuxAr2007 & anAux,cSaveWalkman & aSW)
 {
-    AddData(cAuxAr2007("NbTot",anAux),aSW.mNbTot);
+    AddData(cAuxAr2007("NbTot",anAux),aSW.mNbTot); /// != sz of list
     AddData(anAux,aSW.mVE);
 }
 

@@ -200,7 +200,6 @@ if (0) // (MPD__MM())
         *   .) SzMin = 20.0 => ?
 
        */
-
    }
 
    cTpP_HeapCompare aCmp; // if aR1 > aR2
@@ -217,7 +216,7 @@ if (0) // (MPD__MM())
        // 1 pt Mas correl sur plsr pt 2nd
        //     => calcul 1 score glob, mis a jour le score glob dans cResulMultiImRechCorrel aussi
        aVIn[aK]->CalculScoreAgreg(EpsilAggr,PowAggreg,aSign);  // Epsilon, power
-       aHeap.push(aVIn[aK]);    // mets l'objet dans heap
+       aHeap.push(aVIn[aK]);    // mets l'objet dans heap <=> push_back
        aQdt->insert(aVIn[aK]);  // mets l'objet dans le Quad-Tri
    }
 
@@ -227,7 +226,7 @@ if (0) // (MPD__MM())
    Video_Win *  aW = mMasIm->W();
    while (aHeap.pop(aRM_1))
    {
-       // pop à partir un heap => recuper la "meuilleur" point et l'enleve dans heap
+       // pop à partir un heap => recuper la "meuilleur" correlé point et l'enleve dans heap
        // aRM_1 contient le point avec Score() meuilleur
        if (aW)
        {
@@ -279,7 +278,7 @@ if (0) // (MPD__MM())
               int aNbS0 = aRM_2->NbSel();
               for (int aK=0 ; aK<aNbI_2 ; aK++)
               {
-                  int aKIm = aVI_2[aK];
+                  int aKIm = aVI_2[aK]; // index of secondary image
                   if (aVC_2[aK].mCorrel < (aVCorrel[aKIm]+aRabCorrel))
                   /*
                    * Consider 2 point master aRM_1 & aRM_2

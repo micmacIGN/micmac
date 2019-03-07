@@ -23,6 +23,7 @@ public:
     double Ymax() {return mYmax;}
     double Ymin() {return mYmin;}
     Pt2dr center() {return mCentre;}
+    Box2dr boxTer() {return mBoxTer;}
     double GSD() {return mGSD;}
     std::string Name(){return mName;}
     Tiff_Im Im() {return  mIm;}
@@ -37,7 +38,6 @@ public:
     void applyTrans(Pt2di aTr);
     //Pt2di overlapBox(cImGeo * aIm2);
     Tiff_Im clip(Pt2di aBox);
-    std::vector<double> loadTFW(std::string aNameTFW);
     void Save(const std::string & aName);
     int transTFW(Pt2di aTrPix);
     int writeTFW();
@@ -61,14 +61,15 @@ public:
     Im2D_REAL4 applyRE(c2DLineModel aMod);
     Box2dr boxEnglob(cImGeo * aIm2);
     void loadIncid();
-
-private:
-    Pt2di X2U(Pt2dr X); // je passe un point contenant xmin et xmax et il me retourne u min u max
-    Pt2di Y2V(Pt2dr Y);
-
     Pt2di XY2UV(Pt2dr XY);
-    Pt2dr mCentre;
+    Pt2dr UV2XY(Pt2di UV);
+private:
+    //Pt2di X2U(Pt2dr X); // je passe un point contenant xmin et xmax et il me retourne u min u max
+    //Pt2di Y2V(Pt2dr Y);
 
+
+    Pt2dr mCentre;
+    Box2dr mBoxTer;
     std::string mName,mDir;
     double mGSD;
     Tiff_Im mIm;
@@ -77,8 +78,9 @@ private:
     double mXmin, mXmax, mYmin, mYmax;
     Pt2dr mSzImTer,mOrigine;
     Pt2di mSzImPix;
-
 };
 
+std::vector<double> loadTFW(std::string aNameTFW);
+cFileOriMnt TFW2FileOriMnt(std::string aTFWName);
 
 #endif // CIMGEO_H

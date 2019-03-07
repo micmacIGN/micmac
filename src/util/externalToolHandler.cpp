@@ -5,10 +5,10 @@
 #endif
 
 #ifdef CUDA_ENABLED
-#include "GpGpu/GpGpu_Tools.h"
+    #include "GpGpu/GpGpu_Tools.h"
 #endif
 
-#if (ELISE_QT_VERSION >= 4)
+#if ELISE_QT
 	#include "Elise_QT.h"
 #endif
 
@@ -319,7 +319,7 @@ int CheckDependencies_main(int argc,char ** argv)
         cout << "--- OpenMP enabled\n" << endl;
     #endif
 
-    #if ELISE_QT_VERSION != 0
+    #if ELISE_QT
 		cout << "--- Qt enabled : " << qVersion() << endl;
 
 		cout << "\tlibrary path: ";

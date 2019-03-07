@@ -92,22 +92,22 @@ std::vector<Pt3dr> cCmpTieP_Appli::CalcDev(std::vector<Pt3dr> aVPt3d1, std::vect
 	//calc min
 	std::cout <<  "***** Min ***********" << std::endl;
 	std::cout << "Min X = " << CalcMin(aResX) << std::endl;
-	std::cout << "Min X = " << CalcMin(aResY) << std::endl;
-	std::cout << "Min X = " << CalcMin(aResZ) << std::endl;
+	std::cout << "Min Y = " << CalcMin(aResY) << std::endl;
+	std::cout << "Min Z = " << CalcMin(aResZ) << std::endl;
 	std::cout <<  "*********************" << std::endl;
 	
 	//calc max
 	std::cout <<  "***** Max ***********" << std::endl;
 	std::cout << "Max X = " << CalcMax(aResX) << std::endl;
-	std::cout << "Max X = " << CalcMax(aResY) << std::endl;
-	std::cout << "Max X = " << CalcMax(aResZ) << std::endl;
+	std::cout << "Max Y = " << CalcMax(aResY) << std::endl;
+	std::cout << "Max Z = " << CalcMax(aResZ) << std::endl;
 	std::cout <<  "*********************" << std::endl;
 	
 	//calc std
 	std::cout <<  "***** Std ***********" << std::endl;
 	std::cout << "Std X = " << CalcStd(aResX) << std::endl;
-	std::cout << "Std X = " << CalcStd(aResY) << std::endl;
-	std::cout << "Std X = " << CalcStd(aResZ) << std::endl;
+	std::cout << "Std Y = " << CalcStd(aResY) << std::endl;
+	std::cout << "Std Z = " << CalcStd(aResZ) << std::endl;
 	std::cout <<  "*********************" << std::endl;
 	
 	return aResDev;
@@ -249,13 +249,10 @@ cCmpTieP_Appli::cCmpTieP_Appli(int argc,char ** argv)
     
     //create pictures list, and pictures size list
     std::map<std::string,cPic*> allPics;
-    
-    std::vector<cPicSize*> allPicSizes;
 
     std::cout<<"Found "<<aSetIm.size()<<" pictures."<<endl;
 
-
-    computeAllHomol(aICNM,aDirImages,aPatIm,aSetIm,allHomols,aCK,allPics,allPicSizes,false,0);
+    computeAllHomol(aDirImages,aPatIm,aSetIm,allHomols,aCK,allPics,false,0);
     
     std::vector<Pt3dr> aVPt3DO1;
     std::vector<Pt3dr> aVPt3DO2;
@@ -326,9 +323,6 @@ cCmpTieP_Appli::cCmpTieP_Appli(int argc,char ** argv)
     for (itPic1=allPics.begin();itPic1!=allPics.end();++itPic1)
         delete itPic1->second;
     allPics.clear();
-    for (unsigned int i=0;i<allPicSizes.size();i++)
-        delete allPicSizes[i];
-    allPicSizes.clear();
 }
 
 int CompareOriTieP_main(int argc,char ** argv)

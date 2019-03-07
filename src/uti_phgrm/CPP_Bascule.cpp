@@ -131,6 +131,7 @@ int Bascule_main(int argc,char ** argv)
             replace( aFullDir.begin(), aFullDir.end(), '\\', '/' );
         #endif
         SplitDirAndFile(aDir,aPat,aFullDir);
+		StdCorrecNameOrient(AeroIn, aDir);
 
         bool ModeRepere = IsPostfixed(AeroOut) && (StdPostfix(AeroOut) == "xml");
 

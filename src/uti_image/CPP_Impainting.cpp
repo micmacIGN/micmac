@@ -60,7 +60,7 @@ int Impainting_main(int argc,char ** argv)
     (
     argc,argv,
     LArgMain()  << EAMC(aNameIn,"Name of Input image", eSAM_IsExistFile)
-                    << EAMC(aNameMasqOK,"Name Of Ok Masq (0 value means OK)", eSAM_IsExistFile),
+                    << EAMC(aNameMasqOK,"Name Of Ok Masq (0 value means OK), can be label of no value in Input"),
     LArgMain()  << EAM(aNameOut,"Out",true,"Name of Result", eSAM_NoInit)
                     << EAM(aNameMasq2FIll,"2Fill", true, "Masq of point 2 fill, def = all", eSAM_NoInit)
                     << EAM(OkIs1,"OkIs1", true, "If true set standard convention for masq 1=true !!! Def= false ..", eSAM_NoInit)
@@ -86,8 +86,28 @@ int Impainting_main(int argc,char ** argv)
         }
         ELISE_COPY(aFileIm.all_pts(),aFileIm.in(),anOut);
 
+        if (! ELISE_fp::exist_file(aNameMasqOK))
+        {
+            int aLabDef;
+            bool OkLab =  FromString(aLabDef,aNameMasqOK);
+            aNameMasqOK = DirOfFile(aNameIn) + "Mask-"+ NameWithoutDir(aNameIn);
+
+            std::cout << "Label " << aLabDef << " OkRead=" << OkLab << " " << aNameMasqOK << "\n";
+            Tiff_Im aFMOk
+                    (
+                        aNameMasqOK.c_str(),
+                        aSzIm,
+                        GenIm::bits1_msbf,
+                        Tiff_Im::Group_4FAX_Compr,
+                        Tiff_Im::BlackIsZero
+                    );
+            ELISE_COPY(aFMOk.all_pts(),aFileIm.in()==aLabDef,aFMOk.out());
+        }
 
         Tiff_Im aFileMasq(aNameMasqOK.c_str());
+
+
+
         Im2D_Bits<1> aMasq(aSzIm.x,aSzIm.y,1);
         Fonc_Num aFMasq = aFileMasq.in_bool();
         if (!OkIs1)

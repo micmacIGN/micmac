@@ -5,7 +5,7 @@ set(Mullgesuhlig_Src_Files
 	${MULLGES_DIR}/muvmblock.cpp
 )
 
-SOURCE_GROUP(Mullgesuhlig FILES ${Mullgesuhlig_Src_Files})
+source_group(Mullgesuhlig FILES ${Mullgesuhlig_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

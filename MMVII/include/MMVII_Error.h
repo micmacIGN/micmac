@@ -15,6 +15,9 @@ namespace MMVII
 */
 
 
+// It generates error that, to my best knowledge, should not. Waiting for better time where
+// I will understand and solve them, they are tagged unresolved
+#define  The_MMVII_DebugLevel_Unresoved     6  
 // Ce ne sont pas de petite erreurs, mais des erruer couteuse a checker
 #define  The_MMVII_DebugLevel_InternalError_tiny     5  
 #define  The_MMVII_DebugLevel_InternalError_medium   4
@@ -30,6 +33,10 @@ namespace MMVII
 
 
 void MMVVI_Error(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine);
+
+#define MMVII_INTERNAL_ASSERT_Unresolved(aTest,aMes)\
+ if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_Unresoved ) && (!(aTest)))\
+{ MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
 
 #define MMVII_INTERNAL_ASSERT_tiny(aTest,aMes)\
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny ) && (!(aTest)))\

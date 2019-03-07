@@ -106,11 +106,9 @@ int Homol2GND_main(int argc,char ** argv)
     //create pictures list, and pictures size list
     std::map<std::string,cPic*> allPics;
 
-    std::vector<cPicSize*> allPicSizes;
-
     std::cout<<"Found "<<aSetIm.size()<<" pictures."<<endl;
 
-    computeAllHomol(aICNM,aDirImages,aPatIm,aSetIm,allHomols,aCKin,allPics,allPicSizes,false,nbCells);
+    computeAllHomol(aDirImages,aPatIm,aSetIm,allHomols,aCKin,allPics,false,nbCells);
 
     std::cout<<"Found "<<allHomols.size()<<" homols."<<endl;
 

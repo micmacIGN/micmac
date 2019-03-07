@@ -268,12 +268,12 @@ int Test_ascii2tif_BlurinessSelect(int argc,char ** argv)
 
     int aOffset(0);
     std::cout << "Selection of the " << round_down(aSetIm.size()/aSampling) << " sharpest images \n";
-    for (uint aKSelImg=0; aKSelImg< round_down(aSetIm.size()/aSampling); aKSelImg++)
+    for (int aKSelImg=0; aKSelImg< round_down(aSetIm.size()/aSampling); aKSelImg++)
     {
 
        vector<Pt2dr> aVPair;
        // for each images in this image group, compute variance of laplacian as indicator of sharpness
-       for (uint aKImg=aKSelImg*aSampling+aOffset; aKImg<(aKSelImg+1)*aSampling; aKImg++)
+       for (int aKImg=aKSelImg*aSampling+aOffset; aKImg<(aKSelImg+1)*aSampling; aKImg++)
        {
         string aImTxtName = aSetIm[aKImg];
 

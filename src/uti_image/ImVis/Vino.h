@@ -43,6 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
 
+
 //  =======   Pour visualiser les points carac new
 #include "../NewRechPH/cParamNewRechPH.h"
 #include "../NewRechPH/ExternNewRechPH.h"
@@ -223,8 +224,8 @@ class cAppli_Vino : public cXml_EnvVino,
         void PostInitVirtual();
         void  Boucle();
         cXml_EnvVino & EnvXml() {return static_cast<cXml_EnvVino &> (*this);}
-        const cOnePCarac * Nearest(const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
-        int  IndexNearest(const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
+        const cOnePCarac * Nearest(double aDistSeuil,const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
+        int  IndexNearest(double aDistSeuil,const Pt2dr & aPClU,double * aDist=nullptr,eTypePtRemark aType=eTPR_NoLabel);
 
      private :
         void  ExeOneClik(Clik &);
@@ -278,6 +279,8 @@ class cAppli_Vino : public cXml_EnvVino,
         void ShowVect();
         void ShowVectPCarac();
         void ShowSPC(const Pt2dr & aP);
+        void ShowImCA(int aDx,int aDy,Im2D_INT1 aIm);
+
         Pt2dr ToCoordAsc(const Pt2dr & aP);
 
         std::string               mNameXmlOut;
@@ -384,6 +387,8 @@ class cAppli_Vino : public cXml_EnvVino,
         std::string    mNameSift;
         int            mWithPCarac;
         cSetPCarac *   mSPC;
+        cPtFromCOPC    mArgQt;
+        tQtOPC     *   mQTPC;
         std::vector<Siftator::SiftPoint> mVSift;
         double         mSeuilAC;
         double         mSeuilContRel;
@@ -392,6 +397,10 @@ class cAppli_Vino : public cXml_EnvVino,
         cElNuage3DMaille *         mCheckNuage;
         cBasicGeomCap3D  *         mCheckOri;
         std::vector<const cOnePCarac*>   mVptHom;
+        std::string                      mNameLab;
+        eTypePtRemark                    mLabel;
+        int                              mZoomCA;  // Zoom Carac Aime
+
         
 };
 

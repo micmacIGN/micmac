@@ -78,6 +78,8 @@ FAIT :
 
 #define USE_INT1_4_MCP false
 
+extern const double MCPMulCorel;
+
 #if (USE_INT1_4_MCP)
 typedef U_INT2 tCRVal;
 const tCRVal ValUndefCple = 0 ;  // Valeur pour coder une valeur inexistante en correl "a un pixel" multi image

@@ -39,7 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "XML_GEN/all_tpl.h"
 
-#if (ELISE_QT_VERSION >= 4)
+#if ELISE_QT
     #include "general/visual_mainwindow.h"
 #endif
 
@@ -247,7 +247,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mPrgDReInject  (false)
 {
 
-#if(ELISE_QT_VERSION >= 4)
+#if ELISE_QT
 
     if (MMVisualMode)
     {
@@ -294,7 +294,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 #else
     ELISE_ASSERT(argc >= 2,"Not enough arg");
     ReadType(argv[1]);
-#endif
+#endif // ELISE_QT
 
     InitDefValFromType();
 
@@ -317,6 +317,9 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     std::vector<double> aParamCensus;
 
     std::vector<std::string> a12PixParam;
+    std::string aDEMInitXML;
+    std::string aDEMInitIMG;
+
 
     ElInitArgMain
     (
@@ -330,7 +333,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mCorMS,"CorMS",true,"New Multi Scale correlation option, def=false, available in image geometry")
                     << EAM(mParamMS,"ParamMS",true,"Param MS [SzW1,Sig1,Pds1,SzW2...]")
                     << EAM(mMCorPonc,"CorPonc",true,"New One-Two Pixel Matching option, def=false, available in image geometry")
-                    << EAM(aParamCensus,"Census",true,"Parameter 4 Census, as for now used as bool", eSAM_NoInit)
+                    << EAM(aParamCensus,"Census",true,"Parameter 4 Census,  [Dynamic]", eSAM_NoInit)
                     << EAM(a12PixParam,"12PixMP",true,"One-Two Pixel Matching parameters [ZoomInit,PdsAttPix,PCCroise,?PCStd?,?\"tif\"?], \"tif\" or else \"xml\"; ; Def=[4,1,1,0,xml]", eSAM_NoInit)
                     << EAM(mForDeform,"ForDeform",true,"Set paramaters when ortho are used for deformation")
                     << EAM(mUseGpu,"UseGpu",true,"Use Cuda acceleration, def=false", eSAM_IsBool)
@@ -390,6 +393,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mNbDirPrgD,"NbDirPrgD",true,"Nb Dir for prog dyn, (rather for tuning)")
                     << EAM(mPrgDReInject,"PrgDReInject",true,"Reinjection mode for Prg Dyn (experimental)")
                     << EAM(OrthoImSupMNT,"OISM",true,"When true footprint of ortho-image=footprint of DSM")
+                    << EAM(aDEMInitIMG,"DEMInitIMG",true,"img of the DEM used to initialise the depth research", eSAM_NoInit)
+                    << EAM(aDEMInitXML,"DEMInitXML",true,"xml of the DEM used to initialise the depth research", eSAM_NoInit)
                 );
 
     if (!MMVisualMode)
@@ -446,6 +451,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mDirOrthoF = "Ortho-" + mDirMEC;
       MakeFileDirCompl(mDirOrthoF);
 
+      if (mMCorPonc) mForceZFaisc=true;
+      //if (mMCorPonc && !EAMIsInit(&mCostTrans)) mCostTrans=0.5;
       if (mMCorPonc && EAMIsInit(&mDoOrtho) && mDoOrtho) mZoomFinal=4;
       if (mMCorPonc && !EAMIsInit(&mDoOrtho)) mDoOrtho=false;
 
@@ -632,7 +639,6 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               aRSRT = true;
           }
       }
-
 
       bool IsOrthoXCSte = false;
       bool IsAnamXCsteOfCart = false;
@@ -962,6 +968,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
          double aPCStd     = 0.0;          
          std::string aMCorPoncCal = "xml";
 
+
          if (EAMIsInit(&a12PixParam))
          {
                //  Je pensei pas de pb  pour admettre de de 0 a 5 arg, puisque  tous ont une val def raisonnable ?
@@ -1164,6 +1171,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
            mCom =     mCom 
                    +  " +UseCensusCost=true"
                    ;
+           if (aParamCensus.size() >= 1)
+               mCom =  mCom +  " +DynCensusCost=" + ToString(aParamCensus[0]);
       }
 
       if (mGenCubeCorrel)
@@ -1196,6 +1205,20 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
           mCom  =    mCom + " +UseResolTerrain=true "
                   +  std::string(" +ResolTerrain=") + ToString(aResolTerrain);
       }
+
+      //Prise en compte d'un DEM initial si celui-ci a ete mis en entree
+      bool DEMInitIsInitXML = EAMIsInit(&aDEMInitXML);
+      bool DEMInitIsInitIMG = EAMIsInit(&aDEMInitIMG);
+      ELISE_ASSERT((DEMInitIsInitXML==DEMInitIsInitIMG),"Initialisation DEM : provide an input xml AND image");
+
+      if (DEMInitIsInitXML && DEMInitIsInitIMG)
+      {
+          mCom  =    mCom + " +UseDEMInit=true"
+                  +  std::string(" +DEMInitIMG=") + aDEMInitIMG
+                  +  std::string(" +DEMInitXML=") + aDEMInitXML;
+      }
+
+
       if (EAMIsInit(&aBoxTerrain))
       {
           mCom  =    mCom + " +UseBoxTerrain=true "

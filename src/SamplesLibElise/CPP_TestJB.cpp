@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "../src/uti_image/Digeo/MultiChannel.h"
+#include "../include/general/CMake_defines.h"
 
 //~ #define PRINT_EL_SYSTEM
 #define EXECUTE_EL_SYSTEM
@@ -109,10 +110,6 @@ void writePolygons( const cPolyg3D &aPolygons, const string &aFilename )
 	delete xmlTree;
 }
 
-//~ #if ELISE_QT_VERSION >=4
-//~ #include "../saisieQT/include_QT/Cloud.h"
-//~ #endif
-
 int command_correctPlanarPolygons( int argc, char **argv )
 {
 	if (argc < 1) ELISE_ERROR_EXIT("an XML filename is needed");
@@ -129,14 +126,13 @@ int command_correctPlanarPolygons( int argc, char **argv )
 //------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------
 
-#if ELISE_QT_VERSION >=4
-//~ #if 0
+#if ELISE_QT
 	#include "../saisieQT/include_QT/Cloud.h"
 #endif
 
 void getPlyBoundingBox( const string &aFilename, Pt3dr &oP0, Pt3dr &oP1 )
 {
-	#if ELISE_QT_VERSION >=4
+	#if ELISE_QT
 	//~ #if 0
 		GlCloud *ply = GlCloud::loadPly(aFilename);
 		if ( !ply) ELISE_ERROR_EXIT("cannot load ply file [" << aFilename << ']');
@@ -168,7 +164,7 @@ void getPlyBoundingBox( const string &aFilename, Pt3dr &oP0, Pt3dr &oP1 )
 		oP1 = Pt3dr((REAL)max[0], (REAL)max[1], (REAL)max[2]);
 	#else
 		ELISE_ERROR_EXIT("getPlyBoundingBox: no Qt");
-	#endif
+	#endif // ELISE_QT
 }
 
 void makeGrid( const Pt3dr &aP0, const Pt3dr &aSize, unsigned int aPointsPerAxis, const cMasqBin3D &aMask, list<Pt3dr> &oPoints )

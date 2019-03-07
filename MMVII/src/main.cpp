@@ -29,6 +29,7 @@ int main(int argc, char ** argv)
             tMMVII_UnikPApli anAppli = aSpec->Alloc()(argc,argv,*aSpec);
             // Execute
             anAppli->InitParam();
+// std::cout << "IIInnparammm " <<   anAppli->StrOpt().V().size() << " " << anAppli->StrObl().V().size() << "\n"; getchar();
             if (anAppli->ModeHelp())
                aRes = EXIT_SUCCESS;
             else

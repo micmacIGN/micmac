@@ -346,7 +346,7 @@ template <class Type> INT Box2d<Type>::freeman_pos(const Pt2dr & pt) const
    if (pt.x >= _p0.x)
       return ( (pt.y > _p1.y) ? 2 : ( (pt.y >= _p0.y) ? 8 : 6 ));
 
-      return ( (pt.y > _p1.y) ? 3 : ( (pt.y >= _p0.y) ? 4 : 5 ));         
+   return ( (pt.y > _p1.y) ? 3 : ( (pt.y >= _p0.y) ? 4 : 5 ));         
 }
 
 

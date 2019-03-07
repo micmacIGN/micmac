@@ -97,7 +97,9 @@ Moy4Pts CalMoy(int aPt, std::list<cOneMesureAF1I> aLOneMAF1I)
         aMoy4Pts.All4Pts = 0;
     if ((Pt1&&Pt2&&Pt3&&Pt4)||(Pt5&&Pt6&&Pt7&&Pt8))
         aMoy4Pts.All4Pts = 1;
+    std::cout << "All4Pts=" << aMoy4Pts.All4Pts << endl;
     if(aMoy4Pts.All4Pts) aMoy4Pts.MoyPt = MoyPt/4;
+    std::cout << "MoyPt=" << aMoy4Pts.MoyPt << endl;
 
     return aMoy4Pts;
 }

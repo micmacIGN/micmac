@@ -1717,6 +1717,8 @@ eTypePreCondRad  Str2eTypePreCondRad(const std::string & aName)
       return ePCR_Atgt;
    else if (aName=="ePCR_2SinAtgtS2")
       return ePCR_2SinAtgtS2;
+   else if (aName=="ePCR_Stereographik")
+      return ePCR_Stereographik;
   else
   {
       cout << aName << " is not a correct value for enum eTypePreCondRad\n" ;
@@ -1734,6 +1736,8 @@ std::string  eToString(const eTypePreCondRad & anObj)
       return  "ePCR_Atgt";
    if (anObj==ePCR_2SinAtgtS2)
       return  "ePCR_2SinAtgtS2";
+   if (anObj==ePCR_Stereographik)
+      return  "ePCR_Stereographik";
  std::cout << "Enum = eTypePreCondRad\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -1756,7 +1760,7 @@ void  BinaryUnDumpFromFile(eTypePreCondRad & anObj,ELISE_fp & aFp)
    anObj=(eTypePreCondRad) aIVal;
 }
 
-std::string  Mangling( eTypePreCondRad *) {return "F35D0134295568AAFE3F";};
+std::string  Mangling( eTypePreCondRad *) {return "F8E94F7337FE19D7FBBF";};
 
 eTypeSake  Str2eTypeSake(const std::string & aName)
 {
@@ -2134,6 +2138,8 @@ eModelesCalibUnif  Str2eModelesCalibUnif(const std::string & aName)
       return eModelePolyDeg0;
    else if (aName=="eModelePolyDeg1")
       return eModelePolyDeg1;
+   else if (aName=="eModele_Stereographik_FishEye_10_5_5")
+      return eModele_Stereographik_FishEye_10_5_5;
   else
   {
       cout << aName << " is not a correct value for enum eModelesCalibUnif\n" ;
@@ -2183,6 +2189,8 @@ std::string  eToString(const eModelesCalibUnif & anObj)
       return  "eModelePolyDeg0";
    if (anObj==eModelePolyDeg1)
       return  "eModelePolyDeg1";
+   if (anObj==eModele_Stereographik_FishEye_10_5_5)
+      return  "eModele_Stereographik_FishEye_10_5_5";
  std::cout << "Enum = eModelesCalibUnif\n";
    ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
    return "";
@@ -2205,7 +2213,7 @@ void  BinaryUnDumpFromFile(eModelesCalibUnif & anObj,ELISE_fp & aFp)
    anObj=(eModelesCalibUnif) aIVal;
 }
 
-std::string  Mangling( eModelesCalibUnif *) {return "F4A702E71FA52B8AFD3F";};
+std::string  Mangling( eModelesCalibUnif *) {return "C0E377046EC977C6F8BF";};
 
 eTypeProjectionCam  Str2eTypeProjectionCam(const std::string & aName)
 {
@@ -8470,7 +8478,7 @@ void xml_init(cCalibrationInterneUnif & anObj,cElXMLTree * aTree)
    xml_init(anObj.Etats(),aTree->GetAll("Etats",false,1));
 }
 
-std::string  Mangling( cCalibrationInterneUnif *) {return "80938A7A80B18CB0FBBF";};
+std::string  Mangling( cCalibrationInterneUnif *) {return "006F5F61C105AAEBFC3F";};
 
 
 std::string & cTestNewGrid::A()
@@ -8778,7 +8786,7 @@ void xml_init(cPreCondRadial & anObj,cElXMLTree * aTree)
    xml_init(anObj.Mode(),aTree->Get("Mode",1)); //tototo 
 }
 
-std::string  Mangling( cPreCondRadial *) {return "EB69821946F891BCFE3F";};
+std::string  Mangling( cPreCondRadial *) {return "A15C642AC9E36291FF3F";};
 
 
 Pt2dr & cPreCondGrid::C()
@@ -8861,7 +8869,7 @@ void xml_init(cPreCondGrid & anObj,cElXMLTree * aTree)
    xml_init(anObj.PreCondRadial(),aTree->Get("PreCondRadial",1)); //tototo 
 }
 
-std::string  Mangling( cPreCondGrid *) {return "60C2E923469BB1A5FE3F";};
+std::string  Mangling( cPreCondGrid *) {return "CA13F33022DB27C5FD3F";};
 
 
 Pt2dr & cCalibrationInterneGrid::C()
@@ -8971,7 +8979,7 @@ void xml_init(cCalibrationInterneGrid & anObj,cElXMLTree * aTree)
    xml_init(anObj.Grid(),aTree->Get("Grid",1)); //tototo 
 }
 
-std::string  Mangling( cCalibrationInterneGrid *) {return "B38A18591DC29CCAFE3F";};
+std::string  Mangling( cCalibrationInterneGrid *) {return "303E4FE31BAE86BFFD3F";};
 
 
 Pt2dr & cSimilitudePlane::Scale()
@@ -9451,7 +9459,7 @@ void xml_init(cCalibDistortion & anObj,cElXMLTree * aTree)
    xml_init(anObj.ModGridDef(),aTree->Get("ModGridDef",1)); //tototo 
 }
 
-std::string  Mangling( cCalibDistortion *) {return "E97E1E79B94196D2FF3F";};
+std::string  Mangling( cCalibDistortion *) {return "7AD625D61A273488FF3F";};
 
 
 std::string & cCorrectionRefractionAPosteriori::FileEstimCam()
@@ -9996,7 +10004,7 @@ void xml_init(cCalibrationInternConique & anObj,cElXMLTree * aTree)
    xml_init(anObj.CorrectionRefractionAPosteriori(),aTree->Get("CorrectionRefractionAPosteriori",1)); //tototo 
 }
 
-std::string  Mangling( cCalibrationInternConique *) {return "7258E9A3E5A7ACC8FD3F";};
+std::string  Mangling( cCalibrationInternConique *) {return "58E66CB1E6695BD1FE3F";};
 
 
 Pt3dr & cRepereCartesien::Ori()
@@ -11702,7 +11710,7 @@ void xml_init(cOrientationConique & anObj,cElXMLTree * aTree)
    xml_init(anObj.ConvOri(),aTree->Get("ConvOri",1)); //tototo 
 }
 
-std::string  Mangling( cOrientationConique *) {return "6A2490FB331ACEEAFE3F";};
+std::string  Mangling( cOrientationConique *) {return "44FAF4A00D0ECEFEFC3F";};
 
 
 std::string & cMNT2Cmp::NameIm()
@@ -13911,6 +13919,138 @@ void xml_init(cListOfName & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cListOfName *) {return "989865F5644C6DB3FCBF";};
+
+
+std::string & cModLin::NameIm()
+{
+   return mNameIm;
+}
+
+const std::string & cModLin::NameIm()const 
+{
+   return mNameIm;
+}
+
+
+double & cModLin::a()
+{
+   return ma;
+}
+
+const double & cModLin::a()const 
+{
+   return ma;
+}
+
+
+double & cModLin::b()
+{
+   return mb;
+}
+
+const double & cModLin::b()const 
+{
+   return mb;
+}
+
+void  BinaryUnDumpFromFile(cModLin & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameIm(),aFp);
+    BinaryUnDumpFromFile(anObj.a(),aFp);
+    BinaryUnDumpFromFile(anObj.b(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cModLin & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameIm());
+    BinaryDumpInFile(aFp,anObj.a());
+    BinaryDumpInFile(aFp,anObj.b());
+}
+
+cElXMLTree * ToXMLTree(const cModLin & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ModLin",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameIm"),anObj.NameIm())->ReTagThis("NameIm"));
+   aRes->AddFils(::ToXMLTree(std::string("a"),anObj.a())->ReTagThis("a"));
+   aRes->AddFils(::ToXMLTree(std::string("b"),anObj.b())->ReTagThis("b"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cModLin & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NameIm(),aTree->Get("NameIm",1)); //tototo 
+
+   xml_init(anObj.a(),aTree->Get("a",1)); //tototo 
+
+   xml_init(anObj.b(),aTree->Get("b",1)); //tototo 
+}
+
+std::string  Mangling( cModLin *) {return "882BD284E3B151FCFDBF";};
+
+
+std::list< cModLin > & cListOfRadiomEgalModel::ModLin()
+{
+   return mModLin;
+}
+
+const std::list< cModLin > & cListOfRadiomEgalModel::ModLin()const 
+{
+   return mModLin;
+}
+
+void  BinaryUnDumpFromFile(cListOfRadiomEgalModel & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cModLin aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.ModLin().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cListOfRadiomEgalModel & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.ModLin().size());
+    for(  std::list< cModLin >::const_iterator iT=anObj.ModLin().begin();
+         iT!=anObj.ModLin().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cListOfRadiomEgalModel & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ListOfRadiomEgalModel",eXMLBranche);
+  for
+  (       std::list< cModLin >::const_iterator it=anObj.ModLin().begin();
+      it !=anObj.ModLin().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("ModLin"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cListOfRadiomEgalModel & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.ModLin(),aTree->GetAll("ModLin",false,1));
+}
+
+std::string  Mangling( cListOfRadiomEgalModel *) {return "9823CB9929CC8097FF3F";};
 
 
 cTplValGesInit< bool > & cSetNameDescriptor::AddDirCur()

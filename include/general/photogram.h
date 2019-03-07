@@ -1492,6 +1492,7 @@ class cArgOptionalPIsVisibleInImage
        cArgOptionalPIsVisibleInImage();
 
        bool   mOkBehind;
+       std::string  mWhy;
 };
 
 class cBasicGeomCap3D
@@ -1509,7 +1510,7 @@ class cBasicGeomCap3D
       virtual bool  CaptHasData(const Pt2dr &) const = 0;
       //  Def return true, mean that the geometry is ok independently of the image data
       virtual bool  CaptHasDataGeom(const Pt2dr &) const ;
-      virtual bool     PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage * =0) const =0;
+      virtual bool     PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInImage * =0) const =0;
       // Can be very approximate, using average depth or Z
       virtual Pt3dr RoughCapteur2Terrain   (const Pt2dr & aP) const =0;
 
@@ -1653,7 +1654,7 @@ class ElCamera : public cCapture3D
          double GetVeryRoughInterProf() const;
          bool  CaptHasData(const Pt2dr &) const ;
          Pt2dr    Ter2Capteur   (const Pt3dr & aP) const;
-         bool     PIsVisibleInImage   (const Pt3dr & aP,const cArgOptionalPIsVisibleInImage * =0) const ;
+         bool     PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInImage * =0) const ;
          ElSeg3D  Capteur2RayTer(const Pt2dr & aP) const;
          double ResolImRefFromCapteur() const ;
          bool  HasRoughCapteur2Terrain() const ;
@@ -1744,6 +1745,8 @@ class ElCamera : public cCapture3D
           const ElRotation3D & Orient() const;
 
           void SetOrientation(const ElRotation3D &);
+          void AddToCenterOptical(const Pt3dr & aOffsetC);
+          void MultiToRotation(const ElMatrix<double> & aOffsetR);
 
           Pt3dr  PseudoInter(Pt2dr aPF2A,const ElCamera & CamB,Pt2dr aPF2B,double * aD=0) const;
           // Idem PseudoInter mais la precision est celle de reprojection
@@ -2086,6 +2089,18 @@ class cDistPrecond2SinAtgtS2 : public cDistPrecondRadial
         int     Mode() const ;
 };
 
+class cDistPrecondSterographique : public cDistPrecondRadial
+{
+      public :
+         cDistPrecondSterographique(double aFocApriori,const Pt2dr & aCentre);
+      private :
+        double  DerMultDirect(const double & ) const ;
+        double  MultDirect(const double & ) const ;
+        double  MultInverse(const double & ) const ;
+        int     Mode() const ;
+};
+
+
 
 class cElDistFromCam : public ElDistortion22_Gen
 {
@@ -2279,6 +2294,7 @@ class CamStenope : public ElCamera
      Pt3dr ImEtZ2Terrain(const Pt2dr & aP,double aZ) const;
      void  Coins(Pt3dr &aP1, Pt3dr &aP2, Pt3dr &aP3, Pt3dr &aP4, double aZ) const;
      void  CoinsProjZ(Pt3dr &aP1, Pt3dr &aP2, Pt3dr &aP3, Pt3dr &aP4, double aZ) const;
+     Box2dr BoxTer(double aZ) const;
 
          Pt3dr  ImEtProfSpherik2Terrain(const Pt2dr & aPIm,const REAL & aProf) const; //OO
          Pt3dr  ImDirEtProf2Terrain(const Pt2dr & aPIm,const REAL & aProf,const Pt3dr & aNormPl) const; //OO

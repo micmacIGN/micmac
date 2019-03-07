@@ -129,6 +129,201 @@ void TestEcartTypeStd()
 }
 
 
+/*******************************************************************************************/
+/*                                                                                         */
+/*   classes optimisees pour faire du filtrage gaussien par exp recurs sur image entiere   */
+/*                                                                                         */
+/*******************************************************************************************/
+
+class cFGGBEBufLigne
+{
+    public :
+      friend class cFilterGaussByExpOpt;
+      cFGGBEBufLigne(int aSz,double aFact);
+    private :
+      // Replace aDataIn by it convulotion with exponential filter .. F^2 F 1 F F^2 ... 
+     // with F = mDynF / ( 2^mNBDynF)
+      void OneFiterLine(INT4 * aData);
+
+      // Due to side effect, need to normalise sides answers
+      void OneFiterLineAndNormalize(INT4 * aData);
+
+      int           mSz;
+      double        mFact;
+      int           mNBBDynFE;
+      int           mDynFE;  // Dyn du facteur exp
+      int           mDemiDynFE;  // Dyn du facteur exp
+      int           mFactInt;
+      Im1D_INT4     mBuf1;  // Filtrage de l'image constante
+      INT4 *        mData1; // Data mBuf1
+      Im1D_INT4     mBufIm;
+      INT4 *        mDataIm;
+      Im1D_INT4     mBufForw;
+      INT4 *        mDataForw;
+      Im1D_INT4     mBufBackw;
+      INT4 *        mDataBackw;
+};
+
+cFGGBEBufLigne::cFGGBEBufLigne(int aSz,double aFact) :
+   mSz        (aSz),
+   mFact      (aFact),
+   mNBBDynFE  (14),  
+   mDynFE     (1<<mNBBDynFE), // +ou 16000
+   mDemiDynFE (mDynFE/2),
+   mFactInt (round_ni(mDynFE*aFact)),
+   mBuf1   (mSz),           // To know how a constant function is modified
+   mData1  (mBuf1.data()),  // 
+   mBufIm  (mSz),
+   mDataIm (mBufIm.data()),
+   mBufForw   (mSz),
+   mDataForw  (mBufForw.data()),
+   mBufBackw  (mSz),
+   mDataBackw (mBufBackw.data())
+{
+   // Compute normalization on constant signal
+    for (int aX=0 ; aX < mSz ; aX++) 
+        mData1[aX] = mDynFE;
+    OneFiterLine(mData1);
+}
+
+void cFGGBEBufLigne::OneFiterLineAndNormalize(INT4 * aData)
+{
+    OneFiterLine(aData);
+    for (int aX=0 ; aX < mSz ; aX++) 
+    {
+        // La formule correspond a (aData[aX] / (mData1[aX] /mDynFE))
+        // On divise  donc par la reponse sur un signal constant 1, en tenant compte du
+        // fait que mData1 a une dynamique de mDynFE
+        aData[aX] = (aData[aX] << mNBBDynFE) /  mData1[aX];
+    }
+}
+
+void cFGGBEBufLigne::OneFiterLine(INT4 * aDataIn)
+{
+    //  Forw[4] = I[3] * F + I[2] * F^2 + ..
+    //  Forw[5] = I[4] * F + I[3] * F^2 + ..
+    //  Forw[5] = F* (I[4] + Forw[4])
+    mDataForw[0] = 0;
+    for (int aX=1 ; aX < mSz ; aX++) 
+    {
+        mDataForw[aX] =  ((mDataForw[aX-1] +aDataIn[aX-1]) *mFactInt + mDemiDynFE) >> mNBBDynFE;
+    }
+
+    //  BackW [6] =   aDataIn[7] * F + aDataIn[8] * F^2 ..
+    //  BackW [5] =   aDataIn[6] * F + aDataIn[7] * F^2 ..
+    //  BackW[5]  =  F * (aDataIn[6] +  BackW [6])
+    
+    mDataBackw[mSz-1] = 0;
+    for (int aX=mSz-2 ; aX>=0 ; aX--) 
+    {
+        mDataBackw[aX] =  ((mDataBackw[aX+1] +aDataIn[aX+1]) *mFactInt + mDemiDynFE) >> mNBBDynFE;
+    }
+
+    for (int aX=0 ; aX < mSz ; aX++) 
+    {
+       aDataIn[aX] += mDataForw[aX] + mDataBackw[aX];
+    }
+}
+
+class cFilterGaussByExpOpt
+{
+    public :
+        friend class cFGGBEBufLigne;
+        cFilterGaussByExpOpt(tImNRPH anIm,double aSigmaN, int aNb);
+    public :
+
+        tImNRPH mIm;
+        INT2**  mData;
+        Pt2di   mSz;
+        double  mSigma1;
+        double  mFact;
+        cFGGBEBufLigne mBufX;
+        cFGGBEBufLigne mBufY;
+};
+
+
+cFilterGaussByExpOpt::cFilterGaussByExpOpt(tImNRPH anIm,double aSigmaN, int aNb) :
+   mIm      (anIm),
+   mData    (mIm.data()),
+   mSz      (mIm.sz()),
+   mSigma1  (aSigmaN/sqrt(aNb)),
+   mFact    (FactExpFromSigma2(ElSquare(mSigma1))),
+   mBufX    (mSz.x,mFact),
+   mBufY    (mSz.y,mFact)
+{
+    // Filtrage X
+    {
+        for (int aY=0 ; aY<mSz.y ;aY++)
+        {
+           INT2 * aLineI2 = mData[aY];
+           INT*   aLineI = mBufX.mDataIm;
+           for (int aX=0 ; aX<mSz.x ;aX++)
+           {
+               aLineI[aX] = aLineI2[aX];
+           }
+           for (int aK=0 ; aK<aNb ;aK++)
+           {
+                mBufX.OneFiterLineAndNormalize(aLineI);
+           }
+           for (int aX=0 ; aX<mSz.x ;aX++)
+           {
+               aLineI2[aX] = aLineI[aX] ;
+           }
+        }
+    }
+    // Filtrage Y
+    {
+        for (int aX=0 ; aX<mSz.x ;aX++)
+        {
+           INT*   aLineI = mBufY.mDataIm;
+           for (int aY=0 ; aY<mSz.y ;aY++)
+           {
+               aLineI[aY] = mData[aY][aX];
+           }
+           for (int aK=0 ; aK<aNb ;aK++)
+           {
+                mBufY.OneFiterLineAndNormalize(aLineI);
+           }
+           for (int aY=0 ; aY<mSz.y ;aY++)
+           {
+               mData[aY][aX] = aLineI[aY];
+           }
+        }
+    }
+}
+
+void TestFilterGauss(Pt2di aSz,Flux_Pts aFlux,const std::string & aName,double aSigma,int aNb)
+{
+    double aSAv,aSApr;
+    tImNRPH aIm(aSz.x,aSz.y,0);
+    ELISE_COPY(aFlux,30000,aIm.out());
+    ELISE_COPY(aIm.all_pts(),aIm.in(),sigma(aSAv));
+
+    cFilterGaussByExpOpt aFG(aIm,aSigma,aNb);
+    Tiff_Im::CreateFromIm(aIm,aName);
+
+    ELISE_COPY(aIm.all_pts(),aIm.in(),sigma(aSApr));
+
+    std::cout << "SOM , Av " << aSAv << " " << aSApr/aSAv << "\n";
+}
+
+void TestFilterGauss(const std::string & aNameIn,double aSigma,int aNb)
+{
+    Tiff_Im aTif(aNameIn.c_str());
+    
+    
+}
+
+void TestFilterGauss()
+{
+     TestFilterGauss(Pt2di(1000,1000),rectangle(Pt2di(500,500),Pt2di(501,501)),"Dirac_20_4.tif",2.0,4);
+     TestFilterGauss(Pt2di(1000,1000),rectangle(Pt2di(500,500),Pt2di(501,501)),"Dirac_20_8.tif",2.0,8);
+     TestFilterGauss(Pt2di(1000,1000),rectangle(Pt2di(500,500),Pt2di(501,501)),"Dirac_20_1.tif",2.0,1);
+     TestFilterGauss(Pt2di(1000,1000),rectangle(Pt2di(500,500),Pt2di(550,550)),"Rect50_20_8.tif",2.0,8);
+}
+ 
+
+//========================================================
 
 
 template <class T1> void  LocFilterGauss(T1 & anIm, double aSigmaN,int aNbIter)
@@ -154,7 +349,8 @@ void FilterGaussProgr(tImNRPH anIm,double  aSTarget,double  aSInit,int aNbIter)
     aSInit = ElSquare(aSInit);
     if (aSTarget > aSInit)
     {
-        LocFilterGauss(anIm,sqrt(aSTarget-aSInit),aNbIter);
+        // LocFilterGauss(anIm,sqrt(aSTarget-aSInit),aNbIter);
+        cFilterGaussByExpOpt aFG(anIm,sqrt(aSTarget-aSInit),aNbIter);
     }
     else if (aSTarget==aSInit)
     {
@@ -225,6 +421,50 @@ int Generate_ImagSift(int argc,char ** argv)
      return EXIT_SUCCESS;
 }
 
+int Generate_ImagePer(int argc,char ** argv)
+{
+   std::string aNameIm;
+   std::string aNameOut;
+   int aSz = 512;
+   int aBord = 64;
+   int aNb=4;
+
+   MMD_InitArgcArgv(argc,argv);
+   ElInitArgMain
+   (
+         argc,argv,
+         LArgMain()   << EAMC(aNameIm, "Name Image",  eSAM_IsPatFile),
+         LArgMain()   << EAM(aNb, "Nb",true,"Nb repetition")
+   );
+
+   aNameOut = "Per-" + aNameIm;
+
+
+   Im2D_U_INT1 aImIn(aSz,aSz);
+   Tiff_Im aFile(aNameIm.c_str());
+
+   ELISE_COPY(aImIn.all_pts(),aFile.in(),aImIn.out());
+   ELISE_COPY(aImIn.border(aBord),0,aImIn.out());
+
+   //Im2D_U_INT1 aImOut(aTx,aTy);
+   Tiff_Im aTifOut
+           (
+                aNameOut.c_str(),
+                Pt2di(aSz*aNb,aSz*aNb),
+                GenIm::u_int1,
+                Tiff_Im::No_Compr,
+                Tiff_Im::BlackIsZero
+           );
+
+   ELISE_COPY
+   (
+       aTifOut.all_pts(),
+       aImIn.in()[Virgule(FX%aSz,FY%aSz)],
+       aTifOut.out()
+   );
+
+   return EXIT_SUCCESS;
+}
 
 
 

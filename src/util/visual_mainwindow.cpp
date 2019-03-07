@@ -1,5 +1,5 @@
-#if (ELISE_QT_VERSION >= 4)
-
+//TODO: ELISE HEADER?
+#if ELISE_QT
 #include "general/visual_mainwindow.h"
 
 #include "QT_interface_Elise.h"
@@ -820,7 +820,7 @@ QSpinBox * visual_MainWindow::create_1i_SpinBox(QGridLayout *layout, QWidget *pa
     layout->addWidget(aSpinBox,aK, bK);
 
     //aSpinBox->setRange(std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
-    // a ne pas utiliser car ça crée des spinbox immenses...
+    // a ne pas utiliser car ï¿½a crï¿½e des spinbox immenses...
     aSpinBox->setRange(IntMin, IntMax);
 
     return aSpinBox;
@@ -1018,10 +1018,10 @@ cInputs::cInputs(cMMSpecArg aArg, vector<pair<int, QWidget *> > aWid):
 
 int cInputs::Type()
 {
-    if (vWidgets.size()) return vWidgets[0].first;  //todo: verifier que les arguments multiples sont tous du même type....
+    if (vWidgets.size()) return vWidgets[0].first;  //todo: verifier que les arguments multiples sont tous du mï¿½me type....
     else return eIT_None;
 }
 
-#endif //ELISE_QT_VERSION >= 4
+#endif // ELISE_QT
 
 

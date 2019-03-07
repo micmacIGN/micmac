@@ -94,6 +94,8 @@
 
 
                <eSymb>  EcartMaxFin= * 5.0 ${MulEcartFin}   </eSymb>
+               <eSymb>  SigmaPondFin= 2.0   </eSymb>
+               
                <Symb>  DoSauvAutom=true    </Symb>
     
                <Symb>  HasModeleAdd=false  </Symb>
@@ -169,10 +171,9 @@
                 <Symb> WBG_Stricte=false  </Symb>
                 <Symb> WBG_Ang=xxxxx  </Symb>
                 <Symb> WBG_Center=xxxxx  </Symb>
-               <Symb>  InitBlocCam=false </Symb>
-
+                <Symb> InitBlocCam=false </Symb>
                 <eSymb> With_BlockGlobalBundle=Or ${WithBloc_Glob} ${WithBloc_DistGlob}  </eSymb>
-
+                <Symb> DSElimB=0 </Symb>
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -335,6 +336,7 @@
 
 
         <SectionChantier>
+             <DoStatElimBundle> ${DSElimB} </DoStatElimBundle>
              <UseRegulDist> ${UseRegulDist} </UseRegulDist>
 	     <DirectoryChantier> XXXX </DirectoryChantier>
              <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
@@ -1082,7 +1084,7 @@
                                  <Show> eNSM_Paquet     </Show>
                                  <NbMax>   100    </NbMax>
 				 <ModePonderation>  eL1Secured </ModePonderation>
-				 <SigmaPond> 2.0 </SigmaPond>
+				 <SigmaPond> ${SigmaPondFin} </SigmaPond>
 				 <EcartMax> ${EcartMaxFin} </EcartMax>
                               </Pond>
                           </ObsLiaisons>

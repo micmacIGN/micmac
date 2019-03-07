@@ -26,7 +26,8 @@ private:
     std::string imCple2HomolFileName();
 
     cInterfChantierNameManipulateur * mICNM;
-    std::string mImPat,mMode,mPatOrFile;
+    std::string mImPat,mMode,mPatOrFile,mDetect;
+    double mRatio;
     std::map<std::string,double> mImRatio; // for each images, the changing scale ratio
     std::list<std::string> mLFile;
 

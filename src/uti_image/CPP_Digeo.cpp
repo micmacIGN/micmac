@@ -181,7 +181,7 @@ int Digeo_main( int argc, char **argv )
     }
 
 	appli.mergeOutputs();
-
+	
 	if ( appli.isVerbose() )
 	{
 		unsigned int nbSlowConvolutions = appli.nbSlowConvolutionsUsed<U_INT2>()+appli.nbSlowConvolutionsUsed<REAL4>();

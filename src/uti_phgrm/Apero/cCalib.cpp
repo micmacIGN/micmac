@@ -887,7 +887,18 @@ cCalibrationInternConique   CalibInternAutom
   ELISE_ASSERT(aType!=eCalibAutomNone,"Internal Error eCalibAutomNone");
 
    cCalibrationInternConique aRes;
+/*
+std::cout << "AAAAAAAAAAAAAAAAAAAAAa\n";
+aMDP.SzImTifOrXif();
+std::cout << "aaaaaaaaaaaaaaaaaaaaaaa\n";
+
    Pt2di aSzIm = aMDP.TifSzIm();
+std::cout << "BBBBBBBBBBBBBBBB\n";
+*/
+   // MPD Modif pour que ca passe avec des fichiers vides
+   Pt2di aSzIm = aMDP.SzImTifOrXif();
+
+
    Pt2dr aMil = Pt2dr(aSzIm).mcbyc(aPPRel);
 
 
@@ -958,6 +969,7 @@ if (1)
    else if(
                   (aType==eCalibAutomFishEyeLineaire)
               ||  (aType==eCalibAutomFishEyeEquiSolid)
+              ||  (aType==eCalibAutomFishEyeStereographique)
           )
    {
        cCalibrationInterneUnif aCIU;
@@ -966,6 +978,8 @@ if (1)
            aCIU.TypeModele() = eModele_FishEye_10_5_5 ;
        else if  (aType==eCalibAutomFishEyeEquiSolid)
            aCIU.TypeModele() = eModele_EquiSolid_FishEye_10_5_5 ;
+       else if  (aType==eCalibAutomFishEyeStereographique)
+           aCIU.TypeModele() = eModele_Stereographik_FishEye_10_5_5 ;
 
        aCIU.Etats().push_back(aF);
        aCIU.Params().push_back(aMil.x);

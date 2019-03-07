@@ -4,7 +4,7 @@ set(Correl_Src_Files
 	${CORREL_DIR}/correl_special.cpp
 )
 
-SOURCE_GROUP(Correl FILES ${Correl_Src_Files})
+source_group(Correl FILES ${Correl_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

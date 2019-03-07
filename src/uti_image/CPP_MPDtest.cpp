@@ -540,13 +540,11 @@ void FiltreRemoveFlou(const std::string & aNameIm,const std::string & aNameMasq)
 
 
 extern void TestFiltreRegul();
-#if (ELISE_QT_VERSION >= 4)
+#if ELISE_QT
 extern void Test3dQT();
 #endif
 
-
 extern Fonc_Num sobel(Fonc_Num f);
-
 
 void SobelTestNtt(const std::string &aName)
 {
@@ -802,8 +800,6 @@ void PartitionRenato(int argc,char** argv)
        }
        
     }
-    
-
 
     Tiff_Im::Create8BFromFonc(std::string("Bin-")+StdPrefix(aName)+".tif",aTIn.sz(),anIm1.in());
 }
@@ -1330,8 +1326,47 @@ void TestHomogr()
 }
 
 
+extern void TestFilterGauss();
+extern void TestCondStereo();
+
+extern void TestcBiaisedRandGenerator();
+extern void OneTestcPrediCoord();
+
+
+extern void TestcGeneratorEqColLin();
+extern void TestPrime();
+
 int MPDtest_main (int argc,char** argv)
 {
+    {
+        TestcGeneratorEqColLin();
+        exit(EXIT_SUCCESS);
+    }
+    {
+        TestPrime();
+        exit(EXIT_SUCCESS);
+    }
+    {
+        OneTestcPrediCoord();
+        exit(EXIT_SUCCESS);
+    }
+    {
+        TestcBiaisedRandGenerator();
+        exit(EXIT_SUCCESS);
+    }
+    {
+        TestCondStereo();
+        exit(EXIT_SUCCESS);
+    }
+    {
+        TestFilterGauss();
+        exit(EXIT_SUCCESS);
+    }
+    {
+        Pt2di aP(101.999999,101.000001);
+        std::cout <<  "ppppppppppp "  << aP << "\n";
+        getchar();
+    }
     std::cout << "MPDtest_main in " << __FILE__ << "\n";
     {
        TestHomogr();
@@ -1581,9 +1616,6 @@ cXml_Ori2Im  aXmlOri = StdGetFromSI(aName,Xml_Ori2Im);
     FiltreRemoveFlou(argv[1],argv[2]);
 */
     // std::cout << "ARC " << argv[1] << " " << argv[2] << "\n";
-#if (ELISE_QT_VERSION >= 4)
-
-#endif
     cElWarning::ShowWarns("MPDTest.txt");
   
    return 0;
@@ -1633,7 +1665,7 @@ int SysCall_main (int argc,char** argv)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -1649,17 +1681,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

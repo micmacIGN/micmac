@@ -872,7 +872,7 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
    mHasInOri = (EAMIsInit(&mInOri) && (mInOri!=""));
 
    mEASF.Init(mFullPat);
-   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mEASF.mDir,mNameOriCalib,"dat");
+   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mEASF.mDir,mNameOriCalib,"dat",OriOut());
    const cInterfChantierNameManipulateur::tSet * aVIm = mEASF.SetIm();
 
    if (EAMIsInit(&mOriTest))

@@ -55,7 +55,7 @@ void Drunk_Banniere()
     std::cout <<  " *********************************\n\n";
 }
 
-void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk)
+void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB)
 {
     string aPattern,aNameDir;
     SplitDirAndFile(aNameDir,aPattern,aFullPattern);
@@ -135,24 +135,46 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk)
 
         }
     }
-
-    Tiff_Im  aTOut
-             (
-                  aNameOut.c_str(),
-                  aSz,
-                  GenIm::u_int1,
-                  Tiff_Im::No_Compr,
-                  Tiff_Im::RGB
-             );
-
-
-     ELISE_COPY
-     (
-         aTOut.all_pts(),
-         Virgule(aImROut.in(),aImGOut.in(),aImBOut.in()),
-         aTOut.out()
-     );
+	
+	if(RGB)
+	{
+			Tiff_Im  aTOut
+		    (
+		        aNameOut.c_str(),
+		        aSz,
+		        GenIm::u_int1,
+		        Tiff_Im::No_Compr,
+		        Tiff_Im::RGB
+		    );
+			
+			ELISE_COPY
+			(
+				aTOut.all_pts(),
+				Virgule(aImROut.in(),aImGOut.in(),aImBOut.in()),
+				aTOut.out()
+			);
+	}
+	else
+	{
+			Tiff_Im  aTOut
+		    (
+		        aNameOut.c_str(),
+		        aSz,
+		        GenIm::u_int1,
+		        Tiff_Im::No_Compr,
+		        Tiff_Im::BlackIsZero
+		    );
+			
+			ELISE_COPY
+			(
+				aTOut.all_pts(),
+				aImROut.in(),
+				aTOut.out()
+			);
     }
+    
+    
+	}
 }
 
 int Drunk_main(int argc,char ** argv)
@@ -173,7 +195,7 @@ int Drunk_main(int argc,char ** argv)
 
         string aFullPattern,aOri;
         string DirOut="DRUNK/";
-        bool Talk=true;
+        bool Talk=true, RGB=true;
 
         //Reading the arguments
         ElInitArgMain
@@ -183,13 +205,14 @@ int Drunk_main(int argc,char ** argv)
                         << EAMC(aOri,"Orientation name", eSAM_IsExistDirOri),
             LArgMain()  << EAM(DirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
                         << EAM(Talk,"Talk",true,"Turn on-off commentaries")
+                        << EAM(RGB,"RGB",true,"Output file with RGB channels,Def=true,set to 0 for grayscale")
                     );
 
         //Processing the files
 		string aPattern, aDir;
 		SplitDirAndFile(aDir, aPattern, aFullPattern);
 		StdCorrecNameOrient(aOri, aDir);
-        Drunk(aPattern,aOri,DirOut,Talk);
+        Drunk(aPattern,aOri,DirOut,Talk,RGB);
     }
 
     return EXIT_SUCCESS;

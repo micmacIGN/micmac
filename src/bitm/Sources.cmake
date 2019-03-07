@@ -20,7 +20,7 @@ set(Bitm_Src_Files
 	${BITM_DIR}/scale_im_compr.cpp
 )
 
-SOURCE_GROUP(Amd FILES ${Bitm_Src_Files})
+source_group(Amd FILES ${Bitm_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

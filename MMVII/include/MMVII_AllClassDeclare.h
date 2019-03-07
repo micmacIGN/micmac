@@ -52,7 +52,7 @@ template <class Type> class cPt2d ;
 // MMVII_Bench.h
 
 // cMMVII_Appli.h
-class cSetName;
+// class cSetName;
 class cArgMMVII_Appli;
 class cSpecMMVII_Appli;
 class cMMVII_Ap_NameManip;

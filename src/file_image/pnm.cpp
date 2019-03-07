@@ -831,6 +831,65 @@ void ThomCorrigeCourrantObscur(Im2D_U_INT2 anIm,const Box2di& aBox)
 }
 
 
+int HackToF(int argc,char ** argv)
+{
+   Pt2di aSz(320,240);
+   std::string aName("Test4MPD.bin");
+   int aNbByte = 4;
+   int aOffset = 0;
+
+
+   INT aSzFile = sizeofile (aName.c_str());
+   INT aSzFrame = (aNbByte * aSz.x * aSz.y);
+   int aNbFrame = (aSzFile-aOffset) / aSzFrame;
+
+   ELISE_fp aFP(aName.c_str(),ELISE_fp::READ);
+   for (int aKF=0 ; aKF<aNbFrame ; aKF++)
+   {
+      aFP.seek(aKF*aSzFrame,ELISE_fp::sbegin);
+      Im2D_U_INT1 aI1(aSz.x,aSz.y);
+      Im2D_U_INT1 aI2(aSz.x,aSz.y);
+      Im2D_U_INT1 aI3(aSz.x,aSz.y);
+      Im2D_U_INT1 aI4(aSz.x,aSz.y);
+
+      if ((aKF%10==0))
+      {
+          for (int aY=0 ; aY< aSz.y ; aY++)
+          {
+              for (int aX=0 ; aX< aSz.x ; aX++)
+              {
+                  Pt2di aP(aX,aY);
+                  aI1.SetI(aP,aFP.fgetc());
+                  aI2.SetI(aP,aFP.fgetc());
+                  aI3.SetI(aP,aFP.fgetc());
+                  aI4.SetI(aP,aFP.fgetc());
+              }
+          }
+      }
+      Tiff_Im::CreateFromIm(aI1,"I1-F"+ToString(aKF)+".tif");
+      Tiff_Im::CreateFromIm(aI2,"I2-F"+ToString(aKF)+".tif");
+      Tiff_Im::CreateFromIm(aI3,"I3-F"+ToString(aKF)+".tif");
+      Tiff_Im::CreateFromIm(aI4,"I4-F"+ToString(aKF)+".tif");
+
+      Tiff_Im::CreateFromFonc("I43-F"+ToString(aKF)+".tif",aSz,256*aI4.in()+aI3.in(),GenIm::u_int2);
+
+
+
+      // Tiff_Im::CreateFromIm(aI1,"I1-F"+ToString(aKF));
+
+/*
+      for (int aK=0 ; aK<8 ; aK++)
+      {
+          int aC = aFP.fgetc();
+          printf("%4d " ,aC);
+      }
+      printf("\n");
+*/
+   }
+
+   return EXIT_SUCCESS;
+}
+
 
 
 

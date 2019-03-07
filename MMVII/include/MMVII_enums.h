@@ -31,7 +31,8 @@ enum class eTA2007
             // !!!!! Common must be first UNPRINTED  !!!
                 Common,        ///< Parameter  Common to all commands
                 Internal,      ///< Reserved to internall use by MMVII
-                eNbVals
+                HDV,           ///< Has Def Value
+                eNbVals        ///< Tag for number of value
            };
 
 /// Appli Features
@@ -55,8 +56,8 @@ enum class eApDT
               None,     ///< Nothing 
               Console,  ///< Console 
               Xml,      ///< Xml-files
-              FileSys,      ///< Inpu is the file system (list of file)
-              eNbVals
+              FileSys,      ///< Input is the file system (list of file)
+              eNbVals       ///< Tag for number of value
            };
 
 
@@ -65,7 +66,7 @@ enum class eTySC
            {
               NonInit,   ///< With Ptr Null
               US,        ///< With unordered set
-              eNbVals
+              eNbVals    ///< Tag for number of value
            };
 
 /// Type of operator
@@ -77,7 +78,7 @@ enum class eOpAff
                eMinusEq,  ///< *=
                eEq,       ///< =
                eReset,    ///< =0
-               eNbVals
+               eNbVals    ///< Tag for number of value
            };
 
 /// Type of Warning
@@ -102,8 +103,24 @@ enum class eTyUEr
               eMulOptParam,
               eBadOptParam,
               eInsufNbParam,
-              eIntervWithoutSet
+              eIntervWithoutSet,
+              eTooBig4NbDigit,
+              eNoModeInEditRel,
+              eMultiModeInEditRel,
+              e2PatInModeLineEditRel
            };
+
+/// 
+enum class eTyUnitTime
+           {
+              eUT_Sec,
+              eUT_Min,
+              eUT_Hour,
+              eUT_Day,
+              eNbVals
+           };
+
+
 
 
 const std::string & E2Str(const eTySC &);         

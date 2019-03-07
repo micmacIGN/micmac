@@ -1,11 +1,6 @@
 #ifndef VISUAL_BUTTONS_H
 #define VISUAL_BUTTONS_H
 
-#include "general/CMake_defines.h"
-
-// Qt moc tool preprossing doesn't work for this test on Appveyor VM (why?)
-//#if(ELISE_QT_VERSION >= 4)
-
 #include "Elise_QT.h"
 #include <cmath>
 
@@ -44,6 +39,4 @@ private:
         int           _m_index;
 
 };
-//#endif //ELISE_QT_VERSION >= 4
-
-#endif /* VISUAL_BUTTONS_H */
+#endif // VISUAL_BUTTONS_H

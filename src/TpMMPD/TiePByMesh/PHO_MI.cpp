@@ -929,7 +929,7 @@ vector<bool> CplImg::CalVectorSurface(string m3emeImg, string ModeSurf)
     //=======================================================//
     for (ElPackHomologue::const_iterator itP=aPackIn1_2.begin(); itP!=aPackIn1_2.end() ; itP++)
     {
-        bool decide;
+        bool decide = false;
         Pt2dr aP1 = itP->P1();
         Pt2dr aP2 = itP->P2();
         //======Profondeur a partir de cam 1 et cam 2======

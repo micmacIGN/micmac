@@ -170,6 +170,7 @@ int FAST_main(int argc,char ** argv)
                 }
                 if (mW)
                 {
+                    std::cout << "draw pt on Windows \n";
                     mW->set_title(aPic->getNameImgInStr().c_str());
                     ELISE_COPY(aPic->mPic_Im2D->all_pts(), aPic->mPic_Im2D->in(), mW->ogray());
                     for (uint aK=0; aK<lstPt.size(); aK++)

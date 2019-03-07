@@ -132,6 +132,7 @@ cOriMorito::cOriMorito() :
 void cAppliMorito::InitOneDir(const std::string & aPat,bool aD1)
 {
    cElemAppliSetFile anEASF(aPat);
+   std::string aDirNKS = "";//si NKS-Set-OfFile contient le nom absolut 
 
    const std::vector<std::string> * aVN = anEASF.SetIm();
    std::cout<<"For pattern \""<<aPat;
@@ -142,9 +143,12 @@ void cAppliMorito::InitOneDir(const std::string & aPat,bool aD1)
         std::cout<<"  - "<<aNameOri<<"\n";
         CamStenope * aCS = CamOrientGenFromFile(aNameOri,anEASF.mICNM);
 
+
+        SplitDirAndFile(aDirNKS,aNameOri,aNameOri);
         cOriMorito & anOri = mOrients[aNameOri];
+
         anOri.mName = aNameOri;
-        anOri.mNameFull =  anEASF.mDir + aNameOri;
+        anOri.mNameFull =  anEASF.mDir + aDirNKS + aNameOri;
         if (aD1)
            anOri.mCam1 = aCS;
         else
@@ -548,11 +552,29 @@ void cSolBasculeRig::QualitySol
 
 void cAppliMorito::SauvCalib(const std::string & anOri)
 {
+    std::string anOriTmp = anOri;
+    
+    /* Afin de gerer NKS-Set-OfFile */
+    cElRegex anAutom("NKS-Set-OfFile.*",10);
+    bool ISNKS = anAutom.Match(anOri);
+    if (ISNKS)
+    {
+        std::string aDirNKS, aNameOri;
+
+        cElemAppliSetFile anEASF(anOri);
+        aNameOri = (*anEASF.SetIm())[0]; 
+        SplitDirAndFile(aDirNKS,aNameOri,aNameOri);
+        anOriTmp = anEASF.mDir + aDirNKS + aNameOri;
+
+    }
+
     ELISE_fp::CpFile
     (
-          DirOfFile(anOri) + "AutoCal*.xml",
+          DirOfFile(anOriTmp) + "AutoCal*.xml",
           mDirOutGlob
     );
+
+
 }
 
 
@@ -581,6 +603,7 @@ void cAppliMorito::Sauv()
       }
 
       std::string  aName = mDirOutGlob+anOM.mName;
+
       MakeFileXML(anOCInit,aName);
    }
 

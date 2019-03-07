@@ -1,4 +1,5 @@
-#if (ELISE_QT_VERSION >= 4)
+//TODO: ELISE HEADER
+#if ELISE_QT
 
 #include "general/visual_buttons.h"
 
@@ -39,7 +40,7 @@ void cSpinBox::stepBy(int steps)
     setValue(_m_values.at(_m_index));
 }
 
-#endif // ELISE_QT_VERSION >= 4
+#endif // ELISE_QT
 
 
 

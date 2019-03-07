@@ -14,7 +14,7 @@ set(Geom2d_Src_Files
 	${GEOM2D_DIR}/triangle_comp.cpp
 )
 
-SOURCE_GROUP(Geom2d FILES ${Geom2d_Src_Files})
+source_group(Geom2d FILES ${Geom2d_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

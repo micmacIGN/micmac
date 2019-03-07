@@ -107,7 +107,7 @@ int NbBitOfShortFlag(int aFlag)
             if (aF & (1<<aB))
                aTab[aF] ++;
 {
-   std::cout << "FFf" << aF << " " << NbBitsOfFlag16(aF) << " " << aTab[aF] << "\n";
+   // std::cout << "FFf" << aF << " " << NbBitsOfFlag16(aF) << " " << aTab[aF] << "\n";
 }
       }
       first = false;

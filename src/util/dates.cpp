@@ -135,14 +135,18 @@ int MakeOneXmlXifInfo_main(int argc,char ** argv)
         LArgMain()  << EAM(toto,"toto",true)
     );
 
+
     ELISE_fp::MkDirSvp(DirOfFile(aNameXml));
+
     cMetaDataPhoto aMTD = cMetaDataPhoto::CreateExiv2(aNameIm);
-    
 
-    cXmlXifInfo aXML =  MDT2Xml(aMTD);
 
-    MakeFileXML(aXML,aNameXml);
-    MakeFileXML(aXML,StdPrefix(aNameXml)+".dmp");
+        cXmlXifInfo aXML =  MDT2Xml(aMTD);
+
+        MakeFileXML(aXML,aNameXml);
+        MakeFileXML(aXML,StdPrefix(aNameXml)+".dmp");
+
+
 
     return EXIT_SUCCESS;
 }

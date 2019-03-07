@@ -333,6 +333,16 @@ CamStenope *  cInterfChantierNameManipulateur::StdCamStenOfNames(const std::stri
      return CamOrientGenFromFile(aNameCam,this);
 }
 
+CamStenope *  cInterfChantierNameManipulateur::StdCamStenOfNamesSVP(const std::string & aNameIm,const std::string & anOri)
+{
+
+     std::string aKey = "NKS-Assoc-Im2Orient@-"+ anOri ;
+     std::string aNameCam =  Assoc1To1(aKey,aNameIm,true);
+     if (! ELISE_fp::exist_file(aNameCam))
+        return 0;
+     return CamOrientGenFromFile(aNameCam,this);
+}
+
 CamStenope * cNewO_NameManager::CamOriOfName(const std::string & aNameIm,const std::string & anOri)
 {
     return mICNM->StdCamStenOfNames(aNameIm,anOri);

@@ -609,7 +609,8 @@ void  BinaryUnDumpFromFile(eComprTiff &,ELISE_fp &);
 typedef enum
 {
   ePCR_Atgt,
-  ePCR_2SinAtgtS2
+  ePCR_2SinAtgtS2,
+  ePCR_Stereographik
 } eTypePreCondRad;
 void xml_init(eTypePreCondRad & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypePreCondRad & aVal);
@@ -765,7 +766,8 @@ typedef enum
   eModeleRadFour15x2,
   eModeleRadFour19x2,
   eModelePolyDeg0,
-  eModelePolyDeg1
+  eModelePolyDeg1,
+  eModele_Stereographik_FishEye_10_5_5
 } eModelesCalibUnif;
 void xml_init(eModelesCalibUnif & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModelesCalibUnif & aVal);
@@ -4620,6 +4622,62 @@ void  BinaryDumpInFile(ELISE_fp &,const cListOfName &);
 void  BinaryUnDumpFromFile(cListOfName &,ELISE_fp &);
 
 std::string  Mangling( cListOfName *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cModLin
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cModLin & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameIm();
+        const std::string & NameIm()const ;
+
+        double & a();
+        const double & a()const ;
+
+        double & b();
+        const double & b()const ;
+    private:
+        std::string mNameIm;
+        double ma;
+        double mb;
+};
+cElXMLTree * ToXMLTree(const cModLin &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cModLin &);
+
+void  BinaryUnDumpFromFile(cModLin &,ELISE_fp &);
+
+std::string  Mangling( cModLin *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cListOfRadiomEgalModel
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cListOfRadiomEgalModel & anObj,cElXMLTree * aTree);
+
+
+        std::list< cModLin > & ModLin();
+        const std::list< cModLin > & ModLin()const ;
+    private:
+        std::list< cModLin > mModLin;
+};
+cElXMLTree * ToXMLTree(const cListOfRadiomEgalModel &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cListOfRadiomEgalModel &);
+
+void  BinaryUnDumpFromFile(cListOfRadiomEgalModel &,ELISE_fp &);
+
+std::string  Mangling( cListOfRadiomEgalModel *);
 
 /******************************************************/
 /******************************************************/

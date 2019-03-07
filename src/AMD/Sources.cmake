@@ -15,7 +15,7 @@ set(Amd_Src_Files
 	${AMD_DIR}/amd_valid.cpp
 )
 
-SOURCE_GROUP(Amd FILES ${Amd_Src_Files})
+source_group(Amd FILES ${Amd_Src_Files})
 
 set(Elise_Src_Files
 	${Elise_Src_Files}

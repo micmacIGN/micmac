@@ -86,6 +86,17 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CEquiSolid_FishEye_10_5_5.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CEquiSolid_FishEye_10_5_5.cpp"
 
+
+
+
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CStereographique_FishEye_10_5_5.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CStereographique_FishEye_10_5_5.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CStereographique_FishEye_10_5_5.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_NoDist__PTInc_M2CStereographique_FishEye_10_5_5.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_GL__PTInc_M2CStereographique_FishEye_10_5_5.cpp"
+#include "../../CodeGenere/photogram/cEqAppui_GL__PProjInc_M2CStereographique_FishEye_10_5_5.cpp"
+
+
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PProjInc_M2CDRad_PPaEqPPs.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__GL__PTInc_M2CDRad_PPaEqPPs.cpp"
 #include "../../CodeGenere/photogram/cEqAppui_NoDist__PProjInc_M2CDRad_PPaEqPPs.cpp"

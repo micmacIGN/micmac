@@ -22,11 +22,9 @@
 		case QImage::Format_RGB888: return "RGB888";
 		case QImage::Format_RGB444: return "RGB444";
 		case QImage::Format_ARGB4444_Premultiplied: return "ARGB4444_Premultiplied";
-#if ELISE_QT_VERSION == 5
 		case QImage::Format_RGBX8888: return "RGBX8888";
 		case QImage::Format_RGBA8888: return "RGBA8888";
 		case QImage::Format_RGBA8888_Premultiplied: return "RGBA8888_Premultiplied";
-#endif
 		//~ case QImage::Format_BGR30: return "BGR30";
 		//~ case QImage::Format_A2BGR30_Premultiplied: return "A2BGR30_Premultiplied";
 		//~ case QImage::Format_RGB30: return "RGB30";
@@ -791,7 +789,7 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
 		if (mode == INVERT) qimage.invertPixels();
 		rgb888_to_red8(qimage.bits(), mask.mWidth, mask.mHeight, padding, mask.mData);
 
-		_glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
+		_glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilitï¿½ de supprimer la texture...
 		_glMaskedImage._m_mask->createTexture(getMask());
 	}
 #else
@@ -866,7 +864,7 @@ bool cGLData::position2DClouds(MatrixManager &mm, QPointF pos)
 		if (mode == INVERT)
 		    getMask()->invertPixels(QImage::InvertRgb);
 
-		_glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilité de supprimer la texture...
+		_glMaskedImage._m_mask->deleteTexture(); // TODO verifier l'utilitï¿½ de supprimer la texture...
 		_glMaskedImage._m_mask->createTexture(getMask());
 
 	//    if ( getDrawTiles() )

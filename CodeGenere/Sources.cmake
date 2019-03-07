@@ -11,7 +11,7 @@ list( APPEND code_genere_file2string_Src_Files
     ${code_genere_file2string_dir}/cParamXMLNew0.cpp
 )
 
-SOURCE_GROUP(CodeGenere FILES ${code_genere_file2string_Src_Files})
+source_group(CodeGenere FILES ${code_genere_file2string_Src_Files})
 
 list( APPEND Elise_Src_Files
 	${code_genere_file2string_Src_Files}

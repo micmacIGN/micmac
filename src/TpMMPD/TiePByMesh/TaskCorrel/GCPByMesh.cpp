@@ -28,7 +28,7 @@ void ReadXMLMesurePts(string aPath, vector<cOneImgMesure*> & aVImgMesure)
            if (aMes.size() != 0)
            {
                std::vector<string>::iterator it;
-               size_t index;
+               //size_t index;
                bool found = true;
                if (aVNameImg.size() == 0)
                {
@@ -41,7 +41,7 @@ void ReadXMLMesurePts(string aPath, vector<cOneImgMesure*> & aVImgMesure)
                     if (it != aVNameImg.end())
                     {
                         //recuperer position of it
-                        index = std::distance(aVNameImg.begin(), it);
+                        //index = std::distance(aVNameImg.begin(), it);
                         found = false;
                     }
                }

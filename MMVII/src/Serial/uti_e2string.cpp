@@ -26,7 +26,9 @@ template <class TypeEnum> class cE2Str
    public :
      static const std::string & E2Str(const TypeEnum & anE)
      {
+         /// In this direction no need to create
          typename tMapE2Str::iterator anIt = mE2S.find(anE);
+         // Enum to string is not user error (user do not create enum)
          if (anIt == mE2S.end())
             MMVII_INTERNAL_ASSERT_always(false,"E2Str for enum : " + ToStr(int(anE)));
          return anIt->second;
@@ -34,6 +36,7 @@ template <class TypeEnum> class cE2Str
 
      static const TypeEnum &  Str2E(const std::string & aStr)
      {
+         /// If first time we create mS2E by inverting the  mE2S
          if (mS2E==0)
          {
             // mS2E = new tMapStr2E;
@@ -42,6 +45,7 @@ template <class TypeEnum> class cE2Str
                 (*mS2E)[it.second] = it.first;
          }
          typename tMapStr2E::iterator anIt = mS2E->find(aStr);
+         // String to enum is probably a user error (programm create enum)
          if (anIt == mS2E->end())
          {
             MMVII_INTERNAL_ASSERT_user(eTyUEr::eBadEnum,"Str2E for : " + aStr + " ; valid are : " + StrAllVal() );
@@ -114,6 +118,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::MPatIm,"MPI"},
                 {eTA2007::Internal,"##Intern"},
                 {eTA2007::Common,"##Com"},
+                {eTA2007::HDV,"##HDV"},
                 {eTA2007::FFI,"FFI"}
            };
 TPL_ENUM_2_STRING(eTA2007);
@@ -134,7 +139,10 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eMulOptParam,"MultOptP"},
                 {eTyUEr::eBadOptParam,"BadOptP"},
                 {eTyUEr::eInsufNbParam,"InsufP"},
-                {eTyUEr::eIntervWithoutSet,"IntWithoutS"}
+                {eTyUEr::eIntervWithoutSet,"IntWithoutS"},
+                {eTyUEr::eNoModeInEditRel,"NoModeInEditRel"},
+                {eTyUEr::eMultiModeInEditRel,"MultiModeInEditRel"},
+                {eTyUEr::e2PatInModeLineEditRel,"2PatInModeLineEditRel"}
            };
 TPL_ENUM_2_STRING(eTyUEr);
 

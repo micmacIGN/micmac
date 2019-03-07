@@ -106,6 +106,11 @@ bool   cStatObs::AddEq() const
    return ( mAddEq!=0 );
 }
 
+cStatErB &  cStatObs::StatErB()
+{
+   return mStatErB;
+}
+
 
 /**************************************************/
 /*                                                */
@@ -174,7 +179,9 @@ cOneCombinMult::cOneCombinMult
 )   :
    mPLiaisTer (new cManipPt3TerInc(aVCF[0]->Set(),anEqS,aVCF)),
    // mCSVP  (aVP),
-   mGenVP (aVP)
+   mGenVP (aVP),
+   mRapOnZ (0),
+   mRappelOnZApply (true)
 {
 
 
@@ -185,8 +192,56 @@ cOneCombinMult::cOneCombinMult
           mNumCams.push_back(aK);
        }
    }
-   // std::cout << "JJJJJJJJ : " << aVCF.size()  << " " << mNumCams.size() << "\n"; getchar();
+
 }
+
+
+void cOneCombinMult::InitRapOnZ(const cRapOnZ * aRAZ,cAppliApero & anAppli)
+{
+   if (mRapOnZ== aRAZ) 
+      return;
+
+   mRapOnZ= aRAZ;
+   if (mRapOnZ==nullptr)
+   {
+      mRappelOnZApply = false;
+      return;
+   }
+
+   std::string  aKGA = aRAZ->KeyGrpApply();
+
+   if ((aKGA=="") || (aKGA=="NONE"))
+   {
+      mRappelOnZApply = true;
+      return;
+   }
+
+   mRappelOnZApply = true;
+   std::string aN0 = anAppli.ICNM()->Assoc1To1(aKGA,mGenVP[0]->Name(),true);
+   for (int aK=1 ; (aK<int(mGenVP.size())) && mRappelOnZApply  ; aK++)
+   {
+	   if (anAppli.ICNM()->Assoc1To1(aKGA,mGenVP[aK]->Name(),true) != aN0)
+           mRappelOnZApply = false;
+   }
+
+   if (0 && mRappelOnZApply)
+   {
+       std::cout << "NNNN " << aN0 << "\n";
+       std::cout << "RRRRR " << mRappelOnZApply << "\n";
+       for (const auto & aGPC : mGenVP)
+       {
+	       std::cout << "   * " << aGPC->Name() << "\n";
+       }
+       std::cout << "###############\n";
+   }
+}
+
+
+bool cOneCombinMult::RappelOnZApply() const
+{
+  return mRappelOnZApply;
+}
+
 
 cManipPt3TerInc * cOneCombinMult::LiaisTer()
 {
@@ -397,18 +452,27 @@ int cOnePtsMult::NbPoseOK(bool aFullInitRequired,bool UseZU) const
 int   cOnePtsMult::InitPdsPMul
       (
            double aPds,
-	   std::vector<double> & aVpds
+	   std::vector<double> & aVpds,
+           int *               NbRRII  // Nombre de rot reellement init, peut etre > si pts elim because ZU
       ) const
 {
      aVpds.clear();
      const std::vector<cGenPoseCam *> & aVP =  mOCM->GenVP();
      int aNbRInit=0;
-
+     if (NbRRII) 
+     {
+        *NbRRII =0;
+     }
 
      for (int aKPose=0 ; aKPose<int(aVP.size()) ; aKPose++)
      {
+          bool RII = aVP[aKPose]->RotIsInit();
+          if (NbRRII && RII)
+          {
+             (*NbRRII)++;
+          }
           if ( 
-                      aVP[aKPose]->RotIsInit()  
+                      RII
                   && aVP[0]->IsInZoneU(PK(0))
                   && aVP[aKPose]->IsInZoneU(PK(aKPose))
              )
@@ -418,8 +482,10 @@ int   cOnePtsMult::InitPdsPMul
          }
          else
          {
-               aVpds.push_back(0);
+             aVpds.push_back(0);
+             // if (RII) std::cout << "UUuuuuuuuu " << PK(0)  << PK(aKPose) << "\n";
          }
+  
     }
     return aNbRInit;
 }
@@ -1063,6 +1129,71 @@ void cGlobStatDet::Show()
 }
 
 
+/*******************************/
+/*      cStatErB               */
+/*******************************/
+
+void HandleBundleErr(const cResiduP3Inc & aRes ,eTypeResulPtsBundle & aTRBP,bool ErrOnStat)
+{
+     const char * aMPB = aRes.mMesPb.c_str();
+     if (IsPrefix("BSurH-Insuf",aMPB))
+        aTRBP= eTRPB_BSurH;
+     else if (IsPrefix("MesNotVisIm",aMPB))
+        aTRBP= eTRPB_VisibIm;
+     else if (IsPrefix("BehindCam",aMPB))
+        aTRBP= eTRPB_Behind;
+     else if (IsPrefix("Intersectionfaisceaunondefinie",aMPB))
+        aTRBP= eTRPB_PbInterBundle;
+     else
+     {
+        if (ErrOnStat)
+        {
+           std::cout << "ERR=[" << aMPB << "]\n";
+           ELISE_ASSERT(false,"Unkown erreur in bundle stat");
+        }
+     }
+}
+
+
+cStatErB::cStatErB() :
+   mNbTot (0)
+{
+  
+  for (int aK=0 ; aK<(int)eTRPB_NbVals ; aK++)
+      mStatRes[aK] = 0;
+}
+
+void cStatErB::AddLab(eTypeResulPtsBundle aTRPB,double aPds)
+{
+    mStatRes[(int) aTRPB] += aPds;
+    mNbTot += aPds;
+}
+
+void cStatErB::AddLab(const cStatErB & aS2)
+{
+  for (int aK=0 ; aK<(int)eTRPB_NbVals ; aK++)
+      AddLab((eTypeResulPtsBundle) aK, aS2.mStatRes[aK] );
+}
+
+void cStatErB::Show()
+{
+     std::cout << "----- Stat on type of point (ok/elim) ----\n";
+     for (int aK=0 ; aK<(int)eTRPB_NbVals ; aK++)
+     {
+         if (mStatRes[aK] !=0)
+         {
+             eTypeResulPtsBundle aTRPB =  eTypeResulPtsBundle (aK);
+             std::cout <<  "     *  " 
+                       <<  " Perc=" <<   (100.0 * mStatRes[aK]) / mNbTot  << "%"
+                       <<   " ;  Nb="  << mStatRes[aK]
+                       <<  " for " << eToString(aTRPB).substr(6)
+                       <<  "\n";
+         }
+     }
+     std::cout << "---------------------------------------\n";
+}
+
+ /***************************************************/
 
 double cObsLiaisonMultiple::AddObsLM
        (
@@ -1074,19 +1205,9 @@ double cObsLiaisonMultiple::AddObsLM
            const cRapOnZ *      aRAZGlob
        )
 {
-
-
-/*
-  static int aCpt = 0 ; aCpt ++;
-  bool aBug = false;
-  if ( mAppli.NumSauvAuto()==6)
-  {
-      aBug = ((aCpt%4) == 0);
-  }
-  if (aBug) return 0;
-*/
-  
-
+  bool ErrOnStat = MPD_MM() ||  ERupnik_MM();
+  bool AffichStat = (mAppli.Param().SectionChantier().DoStatElimBundle().ValWithDef(0) >=2);
+  cStatErB aStatRes;
 
   FILE * aFpRT = mAppli.FpRT() ;
 
@@ -1152,6 +1273,7 @@ double cObsLiaisonMultiple::AddObsLM
    for (int aKPm=0 ; aKPm<int(mVPMul.size()) ; aKPm++)
    {
         cOnePtsMult * aPM = mVPMul[aKPm];
+        eTypeResulPtsBundle aTRBP = eTRPB_Ok;
         aPM->MemPds() = 0;
 
         bool aOldMemPtOk = aPM->MemPtOk();
@@ -1168,7 +1290,8 @@ double cObsLiaisonMultiple::AddObsLM
 	std::vector<double> aVpds;
 
         double aPds = aNupl.Pds() * mMultPds;
-        int aNbRInit= aPM->InitPdsPMul(aPds,aVpds);
+        int  NbRRI;
+        int aNbRInit= aPM->InitPdsPMul(aPds,aVpds,&NbRRI);
         if (aNbRInit>=2)
         {
              
@@ -1176,6 +1299,10 @@ double cObsLiaisonMultiple::AddObsLM
              static int aCpt=0; aCpt++;
              aNbMult += (aNbRInit>=3);
              const cRapOnZ * aRAZ = aPM->OnPRaz()? aRAZGlob : 0;
+             aCOM->InitRapOnZ(aRAZ,mAppli);
+             if (! aCOM->RappelOnZApply())
+                aRAZ = 0;
+
              const cResiduP3Inc & aRes = aCOM->LiaisTer()->UsePointLiaison(mAppli.ArgUPL(),aLimBsHP,aLimBsHRefut,0.0,aNupl,aVpds,false,aRAZ);
 
 
@@ -1190,7 +1317,7 @@ double cObsLiaisonMultiple::AddObsLM
 
 
                 double aDistPtC0 = euclid(aRes.mPTer-aVP[0]->CurCentreOfPt(aNupl.PK(0)));
-                if (aDistPtC0 >aMaxDistW)
+                if (aDistPtC0 >aMaxDistW) // Def 1e30 => etait du a une erreur
                 {
                     static bool first = true;
                     if (first)
@@ -1413,6 +1540,31 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                             ElSetMax(aMaxEvolPt,aVarPt);
                         }
                      }
+                     else
+                     {
+                         HandleBundleErr(aRes2,aTRBP,ErrOnStat);
+                     }
+                }
+                else
+                {
+                   if ( aPdsIm <=0)
+                   {
+                      aTRBP =  eTRPB_PdsResNull;
+                   }
+                   else if ( !isInF3D)
+                   {
+                      aTRBP =  eTRPB_NotInMasq3D;
+                   }
+                   else if ( !Add2C)
+                   {
+                   }
+                   else
+                   {
+                      if (ErrOnStat)
+                      {
+                          ELISE_ASSERT(false,"Unkown erreur in bundle stat");
+                      }
+                   }
                 }
  
 
@@ -1438,12 +1590,19 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
              }
              else
              {
+                   HandleBundleErr(aRes,aTRBP,ErrOnStat);
              }
         }
         else
         {
+            // std::cout << "i######################## NBRRI " << NbRRI << "\n";
+            if (NbRRI<2)
+               aTRBP = eTRPB_InsufPoseInit;
+            else
+               aTRBP = eTRPB_OutIm;
         }
         BugUPL = false;
+        aStatRes.AddLab(aTRBP);
    }
    if (aSomPdsEvol)
    {
@@ -1541,6 +1700,12 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
               std::cout << "Pas assez de valeurs pour percentile\n";
            }
        }
+       if (AffichStat)
+       {
+           aStatRes.Show();
+       }
+       aSO.StatErB().AddLab(aStatRes);
+
        if ((int(aImPPM.Show().Val()) >= int(eNSM_CpleIm)) && aMatchIm0)
        {
           for (int aKP=0 ;  aKP<int(mVPoses.size()) ; aKP++)

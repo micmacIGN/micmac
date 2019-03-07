@@ -217,8 +217,6 @@ private:
 
   stringstream stream_;
 
-
-
 };
 
 void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
@@ -235,8 +233,8 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
   int nbIm = (int)ListIm.size();
   cout<<"Images to process: "<<nbIm<<endl;
 
-  string cmdDRUNK,cmdConv, cmdCopyMeta;
-  list<string> ListDrunk,ListConvert, ListCopyMeta, ListSimpleCopy;
+  string cmdDRUNK, cmdConv, cmdRM, cmdCopyMeta;
+  list<string> ListDrunk, ListConvert, ListRM, ListCopyMeta;
 
   string meshlabProjectFileName=aNameDir + "/meshlabRast-"+ aOri + "/meshlabProj.mlp";
 
@@ -247,7 +245,7 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
   writer.writeHeaderStuff();
 
   //prepare the list of command if undistortion is required. If not just write out the right things in the mlp file
-  for(int i=0;i<nbIm;i++)
+  for(int i=0;i<nbIm;++i)
     {
       //Reading the images list
       string aFullName=ListIm.front();
@@ -257,41 +255,34 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
 
       cout<<aFullName<<" ("<<i+1<<" of "<<nbIm<<")"<<endl;
       ListIm.pop_front();
-
-      if (aUnDist)
+      string aMeshLabImageFullName = aNameDir + "meshlabRast-" + aOri + ELISE_STR_DIR + aFullName;
+      string aMeshLabImageRawName = aNameDir + "meshlabRast-" + aOri + ELISE_STR_DIR + aRawName;
+      if (aUnDist) //!!!!JM
         {
           //Creating the numerical format for the output files names
-          char nb[9];
+          char nb[12];
           sprintf(nb, "%08d", i);
 
           //Creating the lists of DRUNK and Convert commands
-          cmdDRUNK=MMDir() + "bin/Drunk " + aNameDir + aFullName + " " + aOri + " Out=" + "meshlabRast-" + aOri + "/ Talk=0";
+      cmdDRUNK = MM3dBinFile("Drunk") + " " + aNameDir + aFullName + " " + aOri + " Out=" + "meshlabRast-" + aOri + ELISE_STR_DIR + " Talk=0";
           ListDrunk.push_back(cmdDRUNK);
 
-
-#if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
-          cmdConv="convert ephemeral:" + aNameDir + "meshlabRast-" + aOri + "/" + aFullName + ".tif " + aNameDir + "meshlabRast-"+ aOri +"/"+ aRawName + ".jpg";
-#endif
-#if (ELISE_windows)
-          cmdConv=MMDir() + "binaire-aux/convert ephemeral:" + aNameDir + "meshlabRast-" + aOri + "/" + aFullName + ".tif " + aNameDir + "meshlabRast-"+ aOri +"/"+ aRawName + ".jpg";
-#endif
+      cmdConv = g_externalToolHandler.get("convert").callName() + " " + aMeshLabImageFullName + ".tif " + aMeshLabImageRawName  + ".jpg";
           ListConvert.push_back(cmdConv);
 
+      //Remove temporary tiffs created by Drunk
+      cmdRM = string(SYS_RM)+ " " + aMeshLabImageFullName + ".tif";
+      ListRM.push_back(cmdRM);
+
           //also copy the metadata from the original
-#if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
-          cmdCopyMeta = "exiftool -overwrite_original -TagsFromFile " + aNameDir + aFullName + " " + aNameDir + "meshlabRast-"+ aOri +"/"+ aRawName + ".jpg";
-#endif
-#if (ELISE_windows)
-          cmdCopyMeta =MMDir() + "binaire-aux/exiftool -overwrite_original -TagsFromFile " + aNameDir + aFullName + " " + aNameDir + "meshlabRast-"+ aOri +"/"+ aRawName + ".jpg";
-#endif
-
+      cmdCopyMeta = g_externalToolHandler.get("exiftool").callName() + " -overwrite_original -TagsFromFile " + aNameDir
+          + aFullName + " " + aMeshLabImageRawName + ".jpg";
           ListCopyMeta.push_back(cmdCopyMeta);
-
         }
 
 
       //Formating the camera name
-      string aNameCam="Ori-" + aOri + "/Orientation-" + aFullName + ".xml";
+      string aNameCam="Ori-" + aOri + ELISE_STR_DIR + "Orientation-" + aFullName + ".xml";
 
       //Loading the camera
       cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
@@ -339,13 +330,7 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
         }
       else
         {
-
-#if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
-          cmdConv="convert " +  aNameDir + aFullName  + " " + aNameDir + "meshlabRast-"+ aOri +"/"+ aRawName + ".jpg";
-#endif
-#if (ELISE_windows)
-          cmdConv=MMDir() + "binaire-aux/convert "  +  aNameDir + aFullName  + " " + aNameDir + "meshlabRast-"+ aOri +"/"+ aRawName + ".jpg";
-#endif
+          cmdConv = g_externalToolHandler.get("convert").callName() + " " + aNameDir + aFullName  + " " + aMeshLabImageRawName + ".jpg";
           ListConvert.push_back(cmdConv);
 
           NS_ParamChantierPhotogram::cCalibrationInternConique cal_xml = aCam->ExportCalibInterne2XmlStruct(aCam->Sz());
@@ -367,11 +352,7 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
           //BUT it seems that is causing problems when importing in meshlab.
 
           principal_point = viewport / 2.0;
-
-
         }
-
-
 
       writer.writeMLRasterStart(aRawName + ".jpg");
       writer.writeVCGCamera(Trans,  NRot, distortions, viewport, pixelsize, principal_point, focal);
@@ -381,15 +362,11 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
         writer.writePlaneSemantic(aRawName + ".jpg");
 
       writer.writeMLRasterEnd();
-
-
-
     }//end of "for each image"
 
   writer.writeFooterStuff();
 
   writer.writeAllToFile();
-
 
   if (aUnDist)
     {
@@ -401,6 +378,8 @@ void Apero2Meshlab(string aFullPattern, string aOri, int aUnDist)
       cout<<"Converting into .jpg"<<endl;
       cEl_GPAO::DoComInParal(ListConvert,aNameDir + "MkConvert");
 
+    //Remove tiffs from drunk
+    cEl_GPAO::DoComInSerie(ListRM);
 
       //Copy the metadata - it is better to keep metadatas sync
       cout<<"Copying metadata"<<endl;
@@ -439,6 +418,18 @@ int Apero2Meshlab_main(int argc,char ** argv)
       SplitDirAndFile(aDir, aPat, aFullPattern);
       StdCorrecNameOrient(aOri, aDir);
 
+    //if aUnDist == true, we need to run convert and exiftool
+    if(aUnDist)
+    {
+      if(!g_externalToolHandler.get("convert").isCallable())
+      {
+        ELISE_ERROR_RETURN("convert command unavailable")
+      }
+      if(!g_externalToolHandler.get("exiftool").isCallable())
+      {
+        ELISE_ERROR_RETURN("exiftool command unavailable")
+      }
+    }
       Apero2Meshlab(aFullPattern, aOri, aUnDist);
 
       return EXIT_SUCCESS;
@@ -447,39 +438,35 @@ int Apero2Meshlab_main(int argc,char ** argv)
       return EXIT_SUCCESS;
 }
 
+/* Footer-MicMac-eLiSe-25/06/2007
 
+   Ce logiciel est un programme informatique servant a  la mise en
+   correspondances d'images pour la reconstruction du relief.
 
+   Ce logiciel est regi par la licence CeCILL-B soumise au droit francais et
+   respectant les principes de diffusion des logiciels libres. Vous pouvez
+   utiliser, modifier et/ou redistribuer ce programme sous les conditions
+   de la licence CeCILL-B telle que diffusee par le CEA, le CNRS et l'INRIA
+   sur le site "http://www.cecill.info".
 
+   En contrepartie de l'accessibilite au code source et des droits de copie,
+   de modification et de redistribution accordes par cette licence, il n'est
+   offert aux utilisateurs qu'une garantie limitee.  Pour les memes raisons,
+   seule une responsabilite restreinte pese sur l'auteur du programme,  le
+   titulaire des droits patrimoniaux et les concedants successifs.
 
-/*Footer-MicMac-eLiSe-25/06/2007
+   A cet egard  l'attention de l'utilisateur est attiree sur les risques
+   associes au chargement, a l'utilisation, a la modification et/ou au
+   developpement et a la reproduction du logiciel par l'utilisateur etant
+   donne sa specificite de logiciel libre, qui peut le rendre complexe a
+   manipuler et qui le reserve donc a des developpeurs et des professionnels
+   avertis possedant  des  connaissances  informatiques approfondies.  Les
+   utilisateurs sont donc invites a charger  et  tester  l'adequation  du
+   logiciel a leurs besoins dans des conditions permettant d'assurer la
+   securite de leurs systemes et ou de leurs donnees et, plus generalement,
+   a l'utiliser et l'exploiter dans les memes conditions de securite.
 
-Ce logiciel est un programme informatique servant �  la mise en
-correspondances d'images pour la reconstruction du relief.
-
-Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
-respectant les principes de diffusion des logiciels libres. Vous pouvez
-utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
-sur le site "http://www.cecill.info".
-
-En contrepartie de l'accessibilité au code source et des droits de copie,
-de modification et de redistribution accordés par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-seule une responsabilité restreinte pèse sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concédants successifs.
-
-A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
-avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
-
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
-pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
-termes.
-Footer-MicMac-eLiSe-25/06/2007*/
+   Le fait que vous puissiez acceder a cet en-tete signifie que vous avez
+   pris connaissance de la licence CeCILL-B, et que vous en avez accepte les
+   termes.
+   Footer-MicMac-eLiSe-25/06/2007/*/

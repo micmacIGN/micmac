@@ -2047,7 +2047,7 @@ void cMaskedImageGL::draw()
     if(glMask() != NULL && glMask()->isVisible())
     {
 
-#if (ELISE_QT_VERSION == 5)
+#if ELISE_QT
         QOpenGLContext* context = QOpenGLContext::currentContext();
         QOpenGLFunctions* glFunctions = context->functions();
         glFunctions->glBlendColor(1.f, 0.1f, 1.f, 1.0f);
@@ -2058,16 +2058,6 @@ void cMaskedImageGL::draw()
         glFunctions->glBlendEquation(GL_FUNC_ADD);
         glFunctions->glBlendColor(0.f, 0.2f, 0.f, 1.0f);
         glBlendFunc(GL_CONSTANT_COLOR,GL_ONE);
-        glMask()->draw();
-#elif (ELISE_QT_VERSION == 4)
-
-        glBlendColor(1.f, 0.1f, 1.f, 1.0f);
-        glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
-        glBlendFunc(GL_CONSTANT_COLOR, GL_ONE);
-        glMask()->draw();
-        glBlendEquation(GL_FUNC_ADD);
-        glBlendColor(0.f, 0.2f, 0.f, 1.0f);
-        glBlendFunc(GL_CONSTANT_COLOR, GL_ONE);
         glMask()->draw();
 #endif
     }
