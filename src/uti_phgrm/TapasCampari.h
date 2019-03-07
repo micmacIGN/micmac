@@ -61,6 +61,7 @@ class cAppli_Tapas_Campari
        bool UseRappOnZ();
 
 
+       const int  & DSElimB () const {return  mDSElimB;}
     private :
       
        std::string               mStrParamBloc;

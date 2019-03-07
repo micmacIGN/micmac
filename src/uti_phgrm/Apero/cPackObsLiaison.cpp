@@ -933,9 +933,15 @@ double cPackObsLiaison::AddObs
          }
          if (StatDone)
          {
-             int aLev = mAppli.Param().SectionChantier().DoStatElimBundle().ValWithDef(0);
+             int aLev = mAppli.LevStaB();
              if (aLev>=1)
-                aSO.StatErB().Show();
+             {
+                if (aLev>=2)
+                {
+                   std::cout << "#######################   Global Stats #################\n";
+                }
+                aSO.StatErB().ShowStatErB();
+             }
          }
       }
    }
