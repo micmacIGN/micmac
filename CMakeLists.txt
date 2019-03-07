@@ -257,7 +257,7 @@ if(${WITH_CPP11})
 	if(NOT MSVC)
 		message(STATUS "-----> Compile with c++11 support")
 		# support c++11
-		if(NOT DARWIN) #TODO: if(NOT clang), the "precomopiled header bug" it tries to fix, is clang related, not osx related   
+		if(NOT DARWIN) #TODO: if(NOT clang) => the "precompiled header bug" it tries to fix is clang related, not osx related   
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 		ELSE()
 		# MODIF MPD, reverse Gregoire, car gnu++11 mulitplie par 6 le temps de compilation
