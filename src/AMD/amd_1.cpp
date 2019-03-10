@@ -43,6 +43,7 @@ GLOBAL void AMD_1
     double Info [ ]	/* output array of size AMD_INFO */
 )
 {
+
     Int i, j, k, p, pfree, iwlen, pj, p1, p2, pj2, *Iw, *Pe, *Nv, *Head,
 	*Elen, *Degree, *s, *W, *Sp, *Tp ;
 
