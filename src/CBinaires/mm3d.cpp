@@ -720,6 +720,9 @@ int main_manipulateNF_PH(int argc,char ** argv);
 int main_OneLionPaw(int argc,char ** argv);
 int main_AllPipeline(int argc,char ** argv);
 
+//test Tristan
+extern int  CreateMasq_main(int argc, char ** argv);
+
 
 #if (ELISE_UNIX)
 extern int  DocEx_Introanalyse_main(int, char **);
@@ -1083,6 +1086,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("AllAuto",main_OneLionPaw,"complete photogrammetric workflow on one images blocks"));
         aRes.push_back(cMMCom("TapiocaIDR",Tapioca_IDR_main,"Utiliser Tapioca avec des Images de Résolution Différente (effectue un resample des images)"));
         aRes.push_back(cMMCom("ResizeImg",resizeImg_main,"Resize image in order to reach a specific image width"));
+        aRes.push_back(cMMCom("CreateMasq",CreateMasq_main,"Create a masq for Malt Pyram"));
         aRes.push_back(cMMCom("ResizeHomol",resizeHomol_main,"Resize Homol pack"));
         aRes.push_back(cMMCom("Ero",main_ero,"Egalisation Radiometrique pour une paire d'ortho"));
         aRes.push_back(cMMCom("Eros",EgalRadioOrto_main,"Egalisation Radiometrique d'OrthoS"));

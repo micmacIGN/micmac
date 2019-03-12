@@ -55,6 +55,8 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/MPLF.cpp
     ${TDPPMD_DIR}/spline.cpp
     ${TDPPMD_DIR}/ArboArch.cpp
+    ${TDPPMD_DIR}/CreateMasq.cpp
+
     ${TDPPMD_DIR}/TiePByMesh/PHO_MI.cpp
     ${TDPPMD_DIR}/TiePByMesh/InitOutil.cpp
     ${TDPPMD_DIR}/TiePByMesh/TiePByMesh_main.cpp
