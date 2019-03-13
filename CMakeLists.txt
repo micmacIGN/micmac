@@ -73,6 +73,7 @@ set(VERBOSE 0)
 
 set(MICMAC_VERSION_MAJOR 1)
 set(MICMAC_VERSION_MINOR 0)
+option(WERROR "Do warning generate error with gcc"  ON)
 
 ##############################
 ## 			OPTIONS			##
@@ -257,7 +258,7 @@ if(${WITH_CPP11})
 	if(NOT MSVC)
 		message(STATUS "-----> Compile with c++11 support")
 		# support c++11
-		if(NOT DARWIN) #TODO: if(NOT clang), the "precomopiled header bug" it tries to fix, is clang related, not osx related   
+		if(NOT DARWIN) #TODO: if(NOT clang) => the "precompiled header bug" it tries to fix is clang related, not osx related   
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 		ELSE()
 		# MODIF MPD, reverse Gregoire, car gnu++11 mulitplie par 6 le temps de compilation
@@ -591,9 +592,14 @@ endif()
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # DEFINITION : des preprocesseurs G++
+
 if(CMAKE_COMPILER_IS_GNUCC)
 	#~ add_compile_options(-O2 -Wall) // pas gere par le cmake de la forge
+if (${WERROR})
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -Werror")
+else ()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall")
+endif()
 endif()
 
 # DEFINITION : Windows : le projet debug est genere directement sous bin pour avoir les informations de Debug

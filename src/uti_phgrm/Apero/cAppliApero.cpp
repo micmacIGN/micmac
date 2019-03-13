@@ -100,7 +100,8 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mXmlSMLRop         (0),
    mESPA              (0),
    mNumCalib          (0),
-   mNumImage          (0)
+   mNumImage          (0),
+   mLevStaB           (mParam.SectionChantier().DoStatElimBundle().ValWithDef(0))
    // mGlobManiP3TI      (0)
 {
 
@@ -1115,6 +1116,28 @@ std::string cAppliApero::IdOfIma(const int & aNum) const   {return "Ima"+ToStrin
 
 bool cAppliApero::IsLastEtapeOfLastIter() const {return mIsLastEtapeOfLastIter;}
 
+int cAppliApero::LevStaB() const
+{
+    return  mLevStaB;
+}
+
+bool  cAppliApero::MemoSingleTieP() const
+{
+    return (mLevStaB>=3);
+}
+
+bool cAppliApero::ExportTiePEliminated() const
+{
+   return (mLevStaB>=3) && IsLastEtapeOfLastIter();
+}
+
+/*
+int  LevStaB() const;
+bool MemoSingleTieP() const;
+bool ExportTiePEliminated() const;
+*/
+
+   //  mLevStaB           (mParam.SectionChantier().DoStatElimBundle().ValWithDef(0))
  
 
 

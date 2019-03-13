@@ -175,7 +175,11 @@ endif()
 install(TARGETS ${libElise} ARCHIVE DESTINATION ${BUILD_PATH_LIB})
 
 if(${WITH_HEADER_PRECOMP} AND (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_IS_CLANG))
-	enable_precompiled_headers_GCC(StdAfx.h ${libElise} "-fPIC -std=gnu++11")
+	if(CMAKE_OSX_SYSROOT) # for macOS > 10.14, it contains the path to the SDK/headers. checking this fixes issue #113
+		enable_precompiled_headers_GCC(StdAfx.h ${libElise} "-fPIC -std=gnu++11 -isysroot ${CMAKE_OSX_SYSROOT}")
+	else()
+		enable_precompiled_headers_GCC(StdAfx.h ${libElise} "-fPIC -std=gnu++11")
+	endif()
 	set(precompiled_header ${precompiled_header} PARENT_SCOPE)
 endif()
 

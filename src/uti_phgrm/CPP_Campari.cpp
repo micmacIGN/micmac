@@ -572,11 +572,16 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                aNbIterFin = 0;
             }
        }
+       if ( (!EAMIsInit(&aNbIterFin)) && (DSElimB()>=3))
+       {
+          aNbIterFin = 0;
+       }
 
-       if (EAMIsInit(&CalibMod2Refine)){
+       if (EAMIsInit(&CalibMod2Refine))
+       {
 
-       InitVerifModele(CalibMod2Refine,mICNM);
-       if (!EAMIsInit(&AddViscInterne)) AddViscInterne=1;
+           InitVerifModele(CalibMod2Refine,mICNM);
+           if (!EAMIsInit(&AddViscInterne)) AddViscInterne=1;
        }
 
        if (!GlobLibPP && GlobLibCD) std::cout << "Warning, distorsion center is set to free but Principal point is set to frozen.\n I will not adjust Distorsion center.\n";
