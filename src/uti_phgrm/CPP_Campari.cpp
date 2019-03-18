@@ -130,6 +130,7 @@ cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
    ModeleAddFour(false),
    ModeleAddPoly(false),
    TheModelAdd(""),
+   mSauvAutom       (""),
    mNamesBlockInit  (false),
    mDSElimB         (1),
    mArg             (new LArgMain)
@@ -150,6 +151,7 @@ cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
             << EAM(GlobLibDec,"LibDec",true,"Free decentric parameter, Def context dependant", eSAM_IsBool)
             << EAM(mRapOnZ,"RapOnZ",true,"Force Rappel on Z [Z,Sigma,KeyGrp]")
             << EAM(mDSElimB,"SElimB",true,"Print stat on reason for bundle elimination (0,1,2)")
+            << EAM(mSauvAutom,"SauvAutom",true, "Save intermediary results to, Set NONE if dont want any", eSAM_IsOutputFile)
                ;
 }
 
@@ -167,6 +169,14 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
        mCom = mCom + " +DSElimB=" + ToString(mDSElimB) + " ";
     }
 
+    if (mSauvAutom!="")
+    {
+        if (mSauvAutom=="NONE")
+           mCom =   mCom + " +DoSauvAutom=false";
+        else
+           mCom =   mCom + " +SauvAutom="+mSauvAutom;
+    }
+
 
     if (EAMIsInit(&mRapOnZ))
     {
@@ -181,6 +191,7 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
     AddParamBloc(mCom,mVBlockRel,"TimeRel",true);
     AddParamBloc(mCom,mVBlockGlob,"Glob",true);
     AddParamBloc(mCom,mVBlockDistGlob,"DistGlob",false);
+
 
     if (EAMIsInit(&mVOptGlob))
     {
@@ -207,6 +218,19 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
           mCom += std::string(" +WBG_Stricte=true ");
        }
     }
+
+
+    if (1)
+    {
+       mStrParamBloc = mStrParamBloc + BlQUOTE(StrInitOfEAM(&mVOptGlob));
+        
+/*
+       std::cout << "00:" << mCom << "\n";
+       std::cout << "11:" << mStrParamBloc << "\n";
+       getchar();
+*/
+    }
+
 }
 
 void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom,std::vector<std::string> & aVBL,const std::string & aPref,bool ModeRot)
@@ -927,8 +951,6 @@ int cAppli_Campari::RTA()
               aResGlobRTA.BestMult() =  aMul;
          }
          MakeFileXML(aResGlobRTA,mNameRTA);
-
-         // std::cout << "GPPPPP " << aBuf << "\n";
     }
     MakeFileXML(aResGlobRTA,mNameRTA);
 

@@ -57,6 +57,7 @@ class cAppli_Tapas_Campari
        bool ModeleAddFour;
        bool ModeleAddPoly;
        std::string TheModelAdd;
+       std::string mSauvAutom;
 
        bool UseRappOnZ();
 

@@ -449,6 +449,8 @@ eTypeResulPtsBundle  Str2eTypeResulPtsBundle(const std::string & aName)
       return eTRPB_OutIm;
    else if (aName=="eTRPB_PbInterBundle")
       return eTRPB_PbInterBundle;
+   else if (aName=="eTRPB_Unknown")
+      return eTRPB_Unknown;
    else if (aName=="eTRPB_NbVals")
       return eTRPB_NbVals;
   else
@@ -482,6 +484,8 @@ std::string  eToString(const eTypeResulPtsBundle & anObj)
       return  "eTRPB_OutIm";
    if (anObj==eTRPB_PbInterBundle)
       return  "eTRPB_PbInterBundle";
+   if (anObj==eTRPB_Unknown)
+      return  "eTRPB_Unknown";
    if (anObj==eTRPB_NbVals)
       return  "eTRPB_NbVals";
  std::cout << "Enum = eTypeResulPtsBundle\n";
@@ -506,7 +510,7 @@ void  BinaryUnDumpFromFile(eTypeResulPtsBundle & anObj,ELISE_fp & aFp)
    anObj=(eTypeResulPtsBundle) aIVal;
 }
 
-std::string  Mangling( eTypeResulPtsBundle *) {return "D0269442012DC7D8FB3F";};
+std::string  Mangling( eTypeResulPtsBundle *) {return "348B3BFDB4E420A4FD3F";};
 
 eTypePondMST_MEP  Str2eTypePondMST_MEP(const std::string & aName)
 {

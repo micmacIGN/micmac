@@ -81,7 +81,14 @@ int Prep4masq_main(int argc,char ** argv)
         for(int i=0;i<int(aVectIm.size());i++){
             //to make the file to manualy modify
             string aNameMasq=StdPrefix(aVectIm[i]) + "_Masq.tif";
-            string cmdconv=MMDir() + "binaire-aux/convert -colorspace gray +compress " + aVectIm[i] + " " + aNameMasq;
+			string cmdconv;
+			#if (ELISE_unix || ELISE_Cygwin || ELISE_MacOs)
+				cmdconv="convert -colorspace gray +compress " + aVectIm[i] + " " + aNameMasq;
+			#endif
+			#if (ELISE_windows)
+				cmdconv=MMDir() + "binaire-aux/windows/convert -colorspace gray +compress " + aVectIm[i] + " " + aNameMasq;
+			#endif
+		            
             ListConvert.push_back(cmdconv);
 
             //to read Size

@@ -1415,6 +1415,13 @@ bool OkReproj
 
 bool ResidualStepByStep = false;
 
+#define TEST_RETURN_0() 
+/*
+if (aMesPb && (*aMesPb=="NoPb") && (!OKInter))\
+{ std::cout << "TEST_RETURN_0 " << __LINE__ << "\n"; getchar();}
+*/
+
+
 Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
        (
            const cRapOnZ *      aRAZ,
@@ -1539,6 +1546,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
          {
               *aMesPb= std::string("BSurH-Insuf : ") + ToString(aParam.mBsH);
          }
+TEST_RETURN_0();
          return Pt3dr(0,0,0);
       }
    
@@ -1562,6 +1570,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
    if (mEqSurf)
    {
       OKInter = true;
+TEST_RETURN_0();
       return aSomIntPl / aSomPds;
    }
    else 
@@ -1648,6 +1657,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
              }
          }
 
+TEST_RETURN_0();
          return Pt3dr(0,0,0);
       }
 
@@ -1659,6 +1669,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
              *aMesPb = std::string("Intersectionfaisceaunondefinie ???");
          }
 
+TEST_RETURN_0();
          return Pt3dr(0,0,0);
          ELISE_ASSERT(OK,"Pb ElSeg3D::L2InterFaisceaux in cManipPt3TerInc::CalcPTerInterFaisceauCams ");
       }
@@ -1670,6 +1681,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
           if (aROIF.mVal1 <=0)
           {
               OKInter = false;
+TEST_RETURN_0();
               return aRes;
           }
           aParam.mK = aROIF.mVec1 / sqrt(aROIF.mVal1);
@@ -1703,6 +1715,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
       aParam.mSomPds = aSP;
       
       OKInter = true;
+TEST_RETURN_0();
       return aRes;
    }
 }
@@ -1732,6 +1745,14 @@ void ShowDebugFaisceau(double aCond,double aBH,int aCpt)
 }
 
 bool UPL_DCC() {return false;}
+
+#define TEST_RETURN_1()
+
+/* \
+if ((mResidus.mMesPb=="NoPb") && (!mResidus.mOKRP3I))\
+{ std::cout << "TEST_RETURN_1 " << __LINE__ << "\n"; getchar();}
+*/
+
 
 const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
                            (
@@ -1864,6 +1885,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
 
           if (!mResidus.mOKRP3I) 
           {
+TEST_RETURN_1();
                return mResidus;
           }
        }
@@ -1900,6 +1922,8 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
            )
         {
             mResidus.mOKRP3I = false;
+            mResidus.mMesPb = "Unknown";
+TEST_RETURN_1();
             return mResidus;
         }
     }
@@ -1972,6 +1996,7 @@ const cResiduP3Inc& cManipPt3TerInc::UsePointLiaisonGen
        mSubst.DoSubstBloc(aPCVUPtr,true,(mPPP.mProjIsInit?aCondMax:-1));
     }
 
+TEST_RETURN_1();
     return mResidus;
 }
 

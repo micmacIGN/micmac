@@ -1130,7 +1130,6 @@ bool cElMatCreuseBlocSym::DirectInverse(const tSysCho * aDIn,tSysCho * aDOut)
         mMChol->SolveLowerSys(aDTmp,aDEr,1.0);
         mMChol->SolveUperSys(aDMInvEr,aDTmp,1.0);
 
-// getchar();
 /*
    a 0 0   a b d      a*a 
    b c 0 * 0 c e          b2+c2
@@ -1566,7 +1565,6 @@ cBlocMCBS * cElMatCreuseBlocSym::BlocOfKbxKby(int aKBx,int aKBy) const
                       << " SOLVE: x ["  << mStrBlocs[aKBx]->I0Solve()  <<" " << mStrBlocs[aKBx]->I1Solve() << "]"
                       << " y ["  << mStrBlocs[aKBy]->I0Solve() << " " << mStrBlocs[aKBy]->I1Solve() << "]"
                       << "\n";
-            getchar();
        }
 */
        aRes = new cBlocMCBS
@@ -1813,7 +1811,7 @@ void cElMatCreuseBlocSym::CalculCholesky()
                                if (First)
                                {
                                      std::cout << " Warn tape enter to continue" << std::endl;
-                                     if (TheExitOnWarn)
+                                     if (TheExitOnWarn || MPD_MM())
                                          ElEXIT(1,"aScal<=0 in Cholesky");
                                      else
                                      {
@@ -1822,7 +1820,9 @@ void cElMatCreuseBlocSym::CalculCholesky()
                                               cElWarning::EigenValueInCholeski.AddWarn("Choleski",__LINE__,__FILE__);
                                          }
                                          else
+                                         {
                                             getchar();
+                                         }
                                      }
                                }
                                First = false;

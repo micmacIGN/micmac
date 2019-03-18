@@ -1174,6 +1174,8 @@ void HandleBundleErr(const cResiduP3Inc & aRes ,eTypeResulPtsBundle & aTRBP,bool
         aTRBP= eTRPB_Behind;
      else if (IsPrefix("Intersectionfaisceaunondefinie",aMPB))
         aTRBP= eTRPB_PbInterBundle;
+     else if (IsPrefix("Unknown",aMPB))
+        aTRBP= eTRPB_Unknown;
      else
      {
         if (ErrOnStat)
