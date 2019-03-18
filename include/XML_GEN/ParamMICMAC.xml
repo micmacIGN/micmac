@@ -473,13 +473,13 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
              <!-- Si Vrai, le ZIncCalc est une prop / a la distance sol -->
              <ZIncIsProp Nb="?" Type="bool"> </ZIncIsProp>
              <ZIncZonage Nb="?" Type="double">   </ZIncZonage>
-             <MNT_Init Nb="?"> 
-                  <MNT_Init_Image Nb="1" Type="std::string"> </MNT_Init_Image>
-                  <MNT_Init_Xml Nb="1" Type="std::string">   </MNT_Init_Xml>
+             <DEM_Init Nb="?"> 
+                  <DEM_Init_Image Nb="1" Type="std::string"> </DEM_Init_Image>
+                  <DEM_Init_Xml Nb="1" Type="std::string">   </DEM_Init_Xml>
                   <!-- Se rajoute a MNT_Init_Image, permet de gerer de maniere
                        assymetrique le ZIncCalc -->
-                  <MNT_Offset Nb="?"  Type="double" Def="0.0"> </MNT_Offset>
-             </MNT_Init>
+                  <DEM_Offset Nb="?"  Type="double" Def="0.0"> </DEM_Offset>
+             </DEM_Init>
 
              <EnveloppeMNT_INIT Nb="?">
                   <ZInf Nb="1" Type="std::string"> </ZInf>
