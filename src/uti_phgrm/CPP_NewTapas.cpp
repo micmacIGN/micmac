@@ -366,7 +366,6 @@ int Tapas_main_new(int argc,char ** argv)
     int   aDecentre = -1;
     Pt2dr Focales(0,100000);
     Pt2dr aPPDec(-1,-1);
-    std::string SauvAutom="";
     std::string aSetHom="";
     double  TolLPPCD;
 
@@ -426,7 +425,6 @@ int Tapas_main_new(int argc,char ** argv)
                     << EAM(aPPDec,"PPRel",true, "Principal point shift")
                     << EAM(aDecentre,"Decentre",true, "Principal point is shifted (Def=false)")
                     << EAM(anATP.PropDiag,"PropDiag",true, "Hemi-spherik fisheye diameter to diagonal ratio")
-                    << EAM(SauvAutom,"SauvAutom",true, "Save intermediary results to, Set NONE if dont want any", eSAM_IsOutputFile)
                     << EAM(ImInit,"ImInit",true, "Force first image", eSAM_IsExistFile)
                     << EAM(MOI,"MOI",true,"MOI", eSAM_IsBool)
                     << EAM(DBF,"DBF",true,"Debug (internal use : DebugPbCondFaisceau=true) ",eSAM_InternalUse)
@@ -630,17 +628,16 @@ int Tapas_main_new(int argc,char ** argv)
        if (DBF)
          aCom  = aCom + " DebugPbCondFaisceau=true";
 
+/* => Dans Common
 
-
-
-
-       if (SauvAutom!="")
+       if (mSauvAutom!="")
        {
-         if (SauvAutom=="NONE")
+         if (mSauvAutom=="NONE")
             aCom =   aCom + " +DoSauvAutom=false";
          else
             aCom =   aCom + " +SauvAutom="+SauvAutom;
        }
+*/
 
        if (AeroIn!= NoInit)
        {

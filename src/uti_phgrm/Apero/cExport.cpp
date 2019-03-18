@@ -202,6 +202,13 @@ void cAppliApero::ExportSauvAutom()
    std::string aPref = "";
 
 
+/*
+if (MPD_MM())
+{
+   std::cout << "ExportSauvAutom [" << aStrS << "]\n";
+   getchar();
+}
+*/
    
    if (aStrS=="") 
    {

@@ -20,6 +20,8 @@
            <eSymb>  MaxResTieP=* ${SigmaTieP} ${FactMaxRes}  </eSymb>
 
            <Symb>  SauvAutom="" </Symb>
+           <Symb>  DoSauvAutom=true    </Symb>
+
            <Symb>  PropDiagU=1.0  </Symb>
 
 
@@ -479,7 +481,7 @@
 	     <DirectoryChantier> XXXX </DirectoryChantier>
              <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
              <SauvAutom>  ${SauvAutom} </SauvAutom>
-             <SauvAutomBasic>  true </SauvAutomBasic>
+             <SauvAutomBasic>  ${DoSauvAutom} </SauvAutomBasic>
         </SectionChantier>
 
         <SectionSolveur>

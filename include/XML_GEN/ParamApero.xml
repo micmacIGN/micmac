@@ -142,6 +142,7 @@
     <eTRPB_VisibIm> </eTRPB_VisibIm>
     <eTRPB_OutIm> </eTRPB_OutIm>
     <eTRPB_PbInterBundle> </eTRPB_PbInterBundle>
+    <eTRPB_Unknown> </eTRPB_Unknown>
     <eTRPB_NbVals> </eTRPB_NbVals>
 </enum>
 

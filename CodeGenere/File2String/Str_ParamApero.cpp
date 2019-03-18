@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1834]) = {
+const char * (theNameVar_ParamApero[1835]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -144,6 +144,7 @@ const char * (theNameVar_ParamApero[1834]) = {
 "    <eTRPB_VisibIm> </eTRPB_VisibIm>\n",
 "    <eTRPB_OutIm> </eTRPB_OutIm>\n",
 "    <eTRPB_PbInterBundle> </eTRPB_PbInterBundle>\n",
+"    <eTRPB_Unknown> </eTRPB_Unknown>\n",
 "    <eTRPB_NbVals> </eTRPB_NbVals>\n",
 "</enum>\n",
 "\n",

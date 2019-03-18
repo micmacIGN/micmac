@@ -848,6 +848,20 @@ mNameFile (name)
 	d(name);
 	init(ModeBinTxt);
 	open(name,mode,svp);
+
+/*
+if (MPD_MM())
+{
+    std::string aN2 = "./Tmp-MM-Dir/Ori--Sauv-Autom-0/Densite_AutoCal_Foc-4400_Cam-TheHeadHEAD3.tif";
+    // std::cout << "DDDddd " << mNameFile  << " " << DirOfFile(aN2)  << " " << NameWithoutDir(aN2) << "\n";
+// getchar();
+    if ((mode==READ) && (mNameFile=="./Tmp-MM-Dir/Ori--Sauv-Autom-0/Densite_AutoCal_Foc-4400_Cam-TheHeadHEAD3.tif"))
+    {
+        std::cout <<  "GGGgggggg\n";
+        getchar();
+    }
+}
+*/
 }
 
 

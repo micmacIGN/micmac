@@ -146,6 +146,7 @@ typedef enum
   eTRPB_VisibIm,
   eTRPB_OutIm,
   eTRPB_PbInterBundle,
+  eTRPB_Unknown,
   eTRPB_NbVals
 } eTypeResulPtsBundle;
 void xml_init(eTypeResulPtsBundle & aVal,cElXMLTree * aTree);
