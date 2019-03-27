@@ -146,6 +146,7 @@ typedef enum
   eTRPB_VisibIm,
   eTRPB_OutIm,
   eTRPB_PbInterBundle,
+  eTRPB_RatioDistP2Cam,
   eTRPB_Unknown,
   eTRPB_NbVals
 } eTypeResulPtsBundle;
@@ -3093,6 +3094,12 @@ class cSectionChantier
         friend void xml_init(cSectionChantier & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< double > & RatioMaxDistCS();
+        const cTplValGesInit< double > & RatioMaxDistCS()const ;
+
+        cTplValGesInit< std::string > & DebugVecElimTieP();
+        const cTplValGesInit< std::string > & DebugVecElimTieP()const ;
+
         cTplValGesInit< int > & DoStatElimBundle();
         const cTplValGesInit< int > & DoStatElimBundle()const ;
 
@@ -3189,6 +3196,8 @@ class cSectionChantier
         cTplValGesInit< double > & ThresholdWarnPointsBehind();
         const cTplValGesInit< double > & ThresholdWarnPointsBehind()const ;
     private:
+        cTplValGesInit< double > mRatioMaxDistCS;
+        cTplValGesInit< std::string > mDebugVecElimTieP;
         cTplValGesInit< int > mDoStatElimBundle;
         cTplValGesInit< cUseExportImageResidu > mUseExportImageResidu;
         cTplValGesInit< bool > mUseRegulDist;
@@ -7100,6 +7109,12 @@ class cParamApero
 
         cSectionInconnues & SectionInconnues();
         const cSectionInconnues & SectionInconnues()const ;
+
+        cTplValGesInit< double > & RatioMaxDistCS();
+        const cTplValGesInit< double > & RatioMaxDistCS()const ;
+
+        cTplValGesInit< std::string > & DebugVecElimTieP();
+        const cTplValGesInit< std::string > & DebugVecElimTieP()const ;
 
         cTplValGesInit< int > & DoStatElimBundle();
         const cTplValGesInit< int > & DoStatElimBundle()const ;

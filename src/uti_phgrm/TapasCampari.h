@@ -58,6 +58,7 @@ class cAppli_Tapas_Campari
        bool ModeleAddPoly;
        std::string TheModelAdd;
        std::string mSauvAutom;
+       double      mRatioMaxDistCS;
 
        bool UseRappOnZ();
 

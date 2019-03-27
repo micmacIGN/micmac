@@ -219,6 +219,8 @@
            <Symb> SigmaRapOnZ=1.0 </Symb>
            <Symb> KeyGrpRapOnZ=XXXX </Symb>
            <Symb> DSElimB=0 </Symb>
+           <Symb> StrDebugVecElimTieP="" </Symb>
+           <Symb> RatioMaxDistCS=30.0 </Symb>
 
        </DicoLoc>
 
@@ -465,6 +467,8 @@
 
 
         <SectionChantier>
+             <RatioMaxDistCS> ${RatioMaxDistCS} </RatioMaxDistCS>
+             <DebugVecElimTieP> ${StrDebugVecElimTieP} </DebugVecElimTieP>
              <DoStatElimBundle> ${DSElimB} </DoStatElimBundle>
              <#WHEN VTEST=${DoUseExportImageResidu}>
                    <UseExportImageResidu>

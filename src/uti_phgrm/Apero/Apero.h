@@ -2311,10 +2311,17 @@ class cAppliApero : public NROptF1vND
         int  LevStaB() const;
         bool MemoSingleTieP() const;
         bool ExportTiePEliminated() const;
+        bool DebugEliminateNumTieP(int aNum) const
+        {
+            if (! mUseVDETp)
+               return false;
+            return CalcDebugEliminateNumTieP(aNum);
+        }
 
 
 
     private :
+       bool CalcDebugEliminateNumTieP(int aNum) const;
 
        void SetPdsRegDist(const cXmlPondRegDist *);
 
@@ -2793,6 +2800,11 @@ class cAppliApero : public NROptF1vND
          std::string mDirExportImRes;
          FILE *      mFileExpImRes;
          int         mLevStaB;
+
+         // DebugVecElimTieP
+         bool  mUseVDETp;
+         std::vector<int>  mNumsVDETp;
+         int               mDebugNumPts;
 };
 
 #define ADDALLMAJ(aMes) AddAllMajick(__LINE__,__FILE__,aMes)

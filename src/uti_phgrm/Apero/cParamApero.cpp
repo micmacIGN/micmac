@@ -449,6 +449,8 @@ eTypeResulPtsBundle  Str2eTypeResulPtsBundle(const std::string & aName)
       return eTRPB_OutIm;
    else if (aName=="eTRPB_PbInterBundle")
       return eTRPB_PbInterBundle;
+   else if (aName=="eTRPB_RatioDistP2Cam")
+      return eTRPB_RatioDistP2Cam;
    else if (aName=="eTRPB_Unknown")
       return eTRPB_Unknown;
    else if (aName=="eTRPB_NbVals")
@@ -484,6 +486,8 @@ std::string  eToString(const eTypeResulPtsBundle & anObj)
       return  "eTRPB_OutIm";
    if (anObj==eTRPB_PbInterBundle)
       return  "eTRPB_PbInterBundle";
+   if (anObj==eTRPB_RatioDistP2Cam)
+      return  "eTRPB_RatioDistP2Cam";
    if (anObj==eTRPB_Unknown)
       return  "eTRPB_Unknown";
    if (anObj==eTRPB_NbVals)
@@ -510,7 +514,7 @@ void  BinaryUnDumpFromFile(eTypeResulPtsBundle & anObj,ELISE_fp & aFp)
    anObj=(eTypeResulPtsBundle) aIVal;
 }
 
-std::string  Mangling( eTypeResulPtsBundle *) {return "348B3BFDB4E420A4FD3F";};
+std::string  Mangling( eTypeResulPtsBundle *) {return "054E6ACDF2582EDCFD3F";};
 
 eTypePondMST_MEP  Str2eTypePondMST_MEP(const std::string & aName)
 {
@@ -10821,6 +10825,28 @@ void xml_init(cTimeLinkage & anObj,cElXMLTree * aTree)
 std::string  Mangling( cTimeLinkage *) {return "BEB337D7A41F8CD1FD3F";};
 
 
+cTplValGesInit< double > & cSectionChantier::RatioMaxDistCS()
+{
+   return mRatioMaxDistCS;
+}
+
+const cTplValGesInit< double > & cSectionChantier::RatioMaxDistCS()const 
+{
+   return mRatioMaxDistCS;
+}
+
+
+cTplValGesInit< std::string > & cSectionChantier::DebugVecElimTieP()
+{
+   return mDebugVecElimTieP;
+}
+
+const cTplValGesInit< std::string > & cSectionChantier::DebugVecElimTieP()const 
+{
+   return mDebugVecElimTieP;
+}
+
+
 cTplValGesInit< int > & cSectionChantier::DoStatElimBundle()
 {
    return mDoStatElimBundle;
@@ -11177,6 +11203,22 @@ void  BinaryUnDumpFromFile(cSectionChantier & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.RatioMaxDistCS().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.RatioMaxDistCS().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.RatioMaxDistCS().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.DebugVecElimTieP().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.DebugVecElimTieP().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.DebugVecElimTieP().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.DoStatElimBundle().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.DoStatElimBundle().ValForcedForUnUmp(),aFp);
         }
@@ -11370,6 +11412,10 @@ void  BinaryUnDumpFromFile(cSectionChantier & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionChantier & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.RatioMaxDistCS().IsInit());
+    if (anObj.RatioMaxDistCS().IsInit()) BinaryDumpInFile(aFp,anObj.RatioMaxDistCS().Val());
+    BinaryDumpInFile(aFp,anObj.DebugVecElimTieP().IsInit());
+    if (anObj.DebugVecElimTieP().IsInit()) BinaryDumpInFile(aFp,anObj.DebugVecElimTieP().Val());
     BinaryDumpInFile(aFp,anObj.DoStatElimBundle().IsInit());
     if (anObj.DoStatElimBundle().IsInit()) BinaryDumpInFile(aFp,anObj.DoStatElimBundle().Val());
     BinaryDumpInFile(aFp,anObj.UseExportImageResidu().IsInit());
@@ -11424,6 +11470,10 @@ cElXMLTree * ToXMLTree(const cSectionChantier & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionChantier",eXMLBranche);
+   if (anObj.RatioMaxDistCS().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("RatioMaxDistCS"),anObj.RatioMaxDistCS().Val())->ReTagThis("RatioMaxDistCS"));
+   if (anObj.DebugVecElimTieP().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DebugVecElimTieP"),anObj.DebugVecElimTieP().Val())->ReTagThis("DebugVecElimTieP"));
    if (anObj.DoStatElimBundle().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("DoStatElimBundle"),anObj.DoStatElimBundle().Val())->ReTagThis("DoStatElimBundle"));
    if (anObj.UseExportImageResidu().IsInit())
@@ -11482,6 +11532,10 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
+   xml_init(anObj.RatioMaxDistCS(),aTree->Get("RatioMaxDistCS",1),double(30.0)); //tototo 
+
+   xml_init(anObj.DebugVecElimTieP(),aTree->Get("DebugVecElimTieP",1)); //tototo 
+
    xml_init(anObj.DoStatElimBundle(),aTree->Get("DoStatElimBundle",1)); //tototo 
 
    xml_init(anObj.UseExportImageResidu(),aTree->Get("UseExportImageResidu",1)); //tototo 
@@ -11531,7 +11585,7 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    xml_init(anObj.ThresholdWarnPointsBehind(),aTree->Get("ThresholdWarnPointsBehind",1),double(0.01)); //tototo 
 }
 
-std::string  Mangling( cSectionChantier *) {return "E2B20DCE879715AAFF3F";};
+std::string  Mangling( cSectionChantier *) {return "1260F114BEDDBEA0FF3F";};
 
 
 cTplValGesInit< bool > & cSectionSolveur::AllMatSym()
@@ -26357,6 +26411,28 @@ const cSectionInconnues & cParamApero::SectionInconnues()const
 }
 
 
+cTplValGesInit< double > & cParamApero::RatioMaxDistCS()
+{
+   return SectionChantier().RatioMaxDistCS();
+}
+
+const cTplValGesInit< double > & cParamApero::RatioMaxDistCS()const 
+{
+   return SectionChantier().RatioMaxDistCS();
+}
+
+
+cTplValGesInit< std::string > & cParamApero::DebugVecElimTieP()
+{
+   return SectionChantier().DebugVecElimTieP();
+}
+
+const cTplValGesInit< std::string > & cParamApero::DebugVecElimTieP()const 
+{
+   return SectionChantier().DebugVecElimTieP();
+}
+
+
 cTplValGesInit< int > & cParamApero::DoStatElimBundle()
 {
    return SectionChantier().DoStatElimBundle();
@@ -27101,7 +27177,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "C032818D6DA7B7D7F83F";};
+std::string  Mangling( cParamApero *) {return "945FEC32A50471C6FE3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

@@ -42,6 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define BDDL_FIRST 0
 
 bool GlobUseRegulDist = false;
+extern double GlobExternRatioMaxDistCS;
 
 
 // Pt2dr BugIM(2591.0926,483.7226);
@@ -101,7 +102,8 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mESPA              (0),
    mNumCalib          (0),
    mNumImage          (0),
-   mLevStaB           (mParam.SectionChantier().DoStatElimBundle().ValWithDef(0))
+   mLevStaB           (mParam.SectionChantier().DoStatElimBundle().ValWithDef(0)),
+   mUseVDETp          (false)
    // mGlobManiP3TI      (0)
 {
 
@@ -196,7 +198,36 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
 
 
     std::cout << "APPLI APERO, NbUnknown = " << mSetEq.Sys()->NbVar() << "\n";
+
+    if (mParam.DebugVecElimTieP().IsInit())
+    {
+        std::string aStrDVEP = mParam.DebugVecElimTieP().Val();
+        if (aStrDVEP!="")
+        {
+           mUseVDETp = true;
+           FromString(mNumsVDETp,aStrDVEP);
+           ELISE_ASSERT(mNumsVDETp.size()%2==0,"Bad size in DebugVecElimTieP");
+        }
+    }
+
+    if (mParam.RatioMaxDistCS().IsInit())
+    {
+       GlobExternRatioMaxDistCS = mParam.RatioMaxDistCS().Val();
+    }
 }
+
+bool cAppliApero::CalcDebugEliminateNumTieP(int aNum) const
+{
+   for (int aK=0 ; aK<int(mNumsVDETp.size()) ; aK+=2)
+   {
+      if ((aNum%mNumsVDETp[aK])!=mNumsVDETp[aK+1])
+      {
+         return false;
+      }
+   }
+   return true;
+}
+
 
 
 

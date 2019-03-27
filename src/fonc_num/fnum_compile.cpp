@@ -65,9 +65,6 @@ cSsBloc::cSsBloc (int aI0,int aI1) :
 void cSsBloc::BlocSetInt(cIncIntervale & anInt) 
 {
    mInt = &anInt;
-/*
-getchar();
-*/
 }
 
 /*
@@ -698,6 +695,7 @@ const cIncListInterv &  cElCompiledFonc::MapRef() const
 }
 
 
+
 void cElCompiledFonc::SetMappingCur
      (
            const cIncListInterv & aList,
@@ -776,7 +774,6 @@ void cElCompiledFonc::SetMappingCur
              // NO::BlocSetInt
              mBlocs.push_back(cSsBloc(itCur.I0Alloc(),itCur.I1Alloc()));
          }
-         // getchar();
      }
      isCurMappingSet = true;
 
@@ -944,6 +941,43 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
 }
 
 
+class cBufOneSetEq
+{
+    public :
+       cBufOneSetEq
+       (
+            // cGenSysSurResol * aSys,
+            const std::vector<cSsBloc> *aVSB,
+            double *  FullCoeff,
+            int aNbTot,
+            const std::vector<INT> & aVIndNN ,
+            REAL aPds,REAL * aCoeffNN,REAL aB,
+            cParamCalcVarUnkEl *
+       );
+               // aSys.GSSR_AddNewEquation_Indexe
+
+    private :
+       cGenSysSurResol *      mSys;
+       std::vector<cSsBloc>   mVSB;
+       std::vector<double>    mFullCoeff;
+       int                    mNbTot;
+       std::vector<INT>       mVInd;
+       double                 mPds;
+       std::vector<double>    mCoeff;
+       double                 mB;
+       cParamCalcVarUnkEl *   mPCVU;
+};
+
+
+
+/*
+  int aK0AllocSC = -1;
+  int aNbBS = 1;
+*/
+cSsBloc * mSsBlocSpecCond=0;
+
+
+
 void cElCompiledFonc::SVD_And_AddEqSysSurResol
      (
          bool isCstr,
@@ -956,8 +990,6 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
          cParamCalcVarUnkEl * aPCVU
      )
 {
-
-
 
   int aSzPds = (int)aVPds.size();
   ELISE_ASSERT((aSzPds==1) || (aSzPds==mDimOut),"Taille Pds incohe in cElCompiledFonc::SVD_And_AddEqSysSurResol");
@@ -972,9 +1004,32 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
      );
   }
 
-   for (INT aK=0 ; aK< mNbCompVar ; aK++)
+
+  for (INT aK=0 ; aK< mNbCompVar ; aK++)
        mCompCoord[aK] = Pts[aVIndInit[aK]];
 
+  int aK0AllocSC = -1;
+  int aNbBS = 1;
+  if (mSsBlocSpecCond)
+  {
+      aNbBS = mSsBlocSpecCond->Nb();
+      ELISE_ASSERT(aNbBS == 3,"Assert Nb in mSsBlocSpecCond");
+      for (INT aK=0 ; aK< mNbCompVar ; aK++)
+      {
+          if (aVIndInit[aK]==mSsBlocSpecCond->I0AbsAlloc())
+          {
+            // std::cout << " GGgGggg " << mSsBlocSpecCond->I0AbsAlloc() << " " << mSsBlocSpecCond->I0AbsSolve() << "\n";
+            ELISE_ASSERT(aK0AllocSC==-1,"Multiple K in mSsBlocSpecCond");
+            aK0AllocSC = aK;
+          }
+      }
+      ELISE_ASSERT(aK0AllocSC!=-1,"No K in mSsBlocSpecCond");
+      ELISE_ASSERT(aK0AllocSC+aNbBS <= mNbCompVar ,"High K in mSsBlocSpecCond");
+
+      for (int aD=1 ; aD<aNbBS ; aD++)
+          ELISE_ASSERT(aVIndInit[aK0AllocSC+aD]==aVIndInit[aK0AllocSC]+aD,"Non continous in mSsBlocSpecCond");
+
+  }
 
    static bool first = false;
    ElTimer aChrono;
@@ -988,7 +1043,8 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
    bool UseMat = aSys.GSSR_UseEqMatIndexee() && false;
 
    static std::vector<INT> aVInd; 
-   static std::vector<double> 	aDer;
+   static std::vector<std::vector<double> > 	aVDer;
+   static std::vector<double > 	                aVB;
 
    if (UseMat)
    {
@@ -998,10 +1054,18 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
    {
        for (INT aD= 0 ; aD < mDimOut ; aD++)
        {
-            double aPdsCur = aVPds[ElMin(aD,aSzPds-1)]; 
+            if (aD >= int(aVDer.size()))
+            {
+               aVDer.push_back(std::vector<double>());
+               aVB.push_back(0);
+            }
+            std::vector<double> & aDer = aVDer[aD];
+            REAL & aB = aVB[aD];
+             
+            // double aPdsCur = aVPds[ElMin(aD,aSzPds-1)]; 
             aVInd.clear();
             aDer.clear();
-            REAL aB = -mVal[aD];
+            aB = -mVal[aD];
 
             bool GotCstr=false; GccUse(GotCstr);
             for (INT aK=0 ; aK< mNbCompVar ; aK++)
@@ -1037,6 +1101,59 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
             }
             // if (GotCstr && isCstr && (aVInd.size() 
 
+/*
+            if (isCstr)
+            {
+               aSys.GSSR_AddContrainteIndexee(aVInd,&(aDer[0]),aB);
+            }
+            else
+            {
+               aSys.GSSR_AddNewEquation_Indexe
+               ( 
+                       &mBlocs,
+		       &(mCompDer[aD][0]),
+                       (int)aVIndInit.size(),
+                       aVInd,
+                       aPdsCur,
+                       ( ( aDer.size()==0 )?NULL:&(aDer[0]) ),
+                       aB ,
+                       aPCVU
+                );
+            }
+*/
+       }
+       if (0) // (mSsBlocSpecCond)
+       {
+          std::cout << "DDD " << mDimOut << "\n";
+          ElMatrix<double> aMCond(aNbBS,aNbBS,0.0);
+          for (INT aD= 0 ; aD < mDimOut ; aD++)
+          {
+             std::cout  << "D1111 "  << "\n";
+             for (int aK1=0 ; aK1<aNbBS; aK1++)
+             {
+                 double aD1 = mCompDer[aD][aK0AllocSC+aK1];
+                 std::cout  << aD1 << " ";
+                 for (int aK2=0 ; aK2<aNbBS; aK2++)
+                 {
+                    double aD2 = mCompDer[aD][aK0AllocSC+aK2];
+                    aMCond(aK1,aK2) +=  aD1 * aD2;
+                 }
+             }
+             std::cout <<  "\n";
+          }
+/*
+          double aL = aMCond.L2();
+          aMCond = gaussj(aMCond);
+          aL *=  aMCond.L2();
+          aL = sqrt(aL) / ElSquare(aNbBS);
+          std::cout << "cccCOND=" << aL << "\n";
+*/
+       }
+       for (INT aD= 0 ; aD < mDimOut ; aD++)
+       {
+            double aPdsCur = aVPds[ElMin(aD,aSzPds-1)]; 
+            std::vector<double> & aDer = aVDer[aD];
+            REAL & aB = aVB[aD];
             if (isCstr)
             {
                aSys.GSSR_AddContrainteIndexee(aVInd,&(aDer[0]),aB);
@@ -1057,6 +1174,7 @@ void cElCompiledFonc::SVD_And_AddEqSysSurResol
             }
        }
    }
+
 }
 
 void cElCompiledFonc::Std_AddEqSysSurResol
@@ -1071,6 +1189,8 @@ void cElCompiledFonc::Std_AddEqSysSurResol
      )
 
 {
+
+
     SVD_And_AddEqSysSurResol(isCstr,mMapComp2Real,aVPds,Pts,aSys,aSet,EnPtsCur,aPCVU);
 }
 

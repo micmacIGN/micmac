@@ -290,6 +290,8 @@ cCompile_BDD_NewPtMul * cAppliApero::CDNP_FromName(const std::string & aName)
      //               COMPENSATION
      //-----------------------------------------------------------------
 
+bool DEBUG_LSQ=false;
+
     // Compensation par configuration
 
 void  cAppliApero::CDNP_Compense
@@ -358,17 +360,23 @@ void  cAppliApero::CDNP_Compense
       double aPdsIm = 1.0;
       double aResidu = 0;
       int aNbEtape = 2;
+
+      mDebugNumPts++;
+      bool ToEliminate = DebugEliminateNumTieP(mDebugNumPts);
+      DEBUG_LSQ= ToEliminate;
       for (int aKEtape=0 ; aKEtape<aNbEtape ; aKEtape++)
       {
-          bool WithEq = (aKEtape!=0);
-          std::vector<double>   aVpds;
-          for (int aKIm=0 ; aKIm <aNbIm ; aKIm++)
+          if (true)
           {
-              double aPds = aVCam[aKIm]->RotIsInit()  ? aPdsIm : 0.0;
-              aVpds.push_back(aPds);
-          }
+             bool WithEq = (aKEtape!=0);
+             std::vector<double>   aVpds;
+             for (int aKIm=0 ; aKIm <aNbIm ; aKIm++)
+             {
+                 double aPds = aVCam[aKIm]->RotIsInit()  ? aPdsIm : 0.0;
+                 aVpds.push_back(aPds);
+             }
 
-          const cResiduP3Inc & aRes    =  aMP3->UsePointLiaison
+             const cResiduP3Inc & aRes    =  aMP3->UsePointLiaison
                                           (
                                                 anArgUPL,
                                                 aLimBsHP,
@@ -379,61 +387,62 @@ void  cAppliApero::CDNP_Compense
                                                 WithEq,
                                                 0
                                           );       
-           if (aRes.mOKRP3I)
-           {
-                ELISE_ASSERT(int(aRes.mEcIm.size()) == aNbIm,"Incoh to check in cAppliApero::CDNP_Compense");
-                for (int aKIm=0 ; aKIm<int(aRes.mEcIm.size()) ; aKIm++)
-                {
-                   if (aVpds[aKIm] >0)
+              if (aRes.mOKRP3I)
+              {
+                   ELISE_ASSERT(int(aRes.mEcIm.size()) == aNbIm,"Incoh to check in cAppliApero::CDNP_Compense");
+                   for (int aKIm=0 ; aKIm<int(aRes.mEcIm.size()) ; aKIm++)
                    {
-                      aResidu += square_euclid(aRes.mEcIm[aKIm]);//  *ElSquare(aScN);
-                      if (std_isnan(aResidu))
+                      if (aVpds[aKIm] >0)
                       {
-                          std::cout <<  aRes.mEcIm[aKIm] << " " << aKIm << " " << aVCam[aKIm]->Name() << "\n";
-                          // std::cout << "CPT= " << aCpt << "\n";
-                          ELISE_ASSERT(false,"Nan residu\n");
+                         aResidu += square_euclid(aRes.mEcIm[aKIm]);//  *ElSquare(aScN);
+                         if (std_isnan(aResidu))
+                         {
+                             std::cout <<  aRes.mEcIm[aKIm] << " " << aKIm << " " << aVCam[aKIm]->Name() << "\n";
+                             // std::cout << "CPT= " << aCpt << "\n";
+                             ELISE_ASSERT(false,"Nan residu\n");
+                         }
                       }
-                   }
-               }
-               aResidu /= aNbCamOk;
-               aResidu = sqrt(aResidu);
-               aPdsIm = aPdtrIm.PdsOfError(aResidu);
-               aPdsIm *= pow(aNbCamOk-1,anObsOl.Pond().ExposantPoidsMult().Val());
+                  }
+                  aResidu /= aNbCamOk;
+                  aResidu = sqrt(aResidu);
+                  aPdsIm = aPdtrIm.PdsOfError(aResidu);
+                  aPdsIm *= pow(aNbCamOk-1,anObsOl.Pond().ExposantPoidsMult().Val());
 
-               if (aFiltre3D && (!aFiltre3D->InFiltre(aRes.mPTer)))
-               {
-                  aPdsIm = 0.0;
-               }
+                  if (aFiltre3D && (!aFiltre3D->InFiltre(aRes.mPTer)))
+                  {
+                     aPdsIm = 0.0;
+                  }
 
-               if (aPdsIm>0)
-               {
-               }
-               else
-               {
-                  aNbEtape = 0;
-               }
+                  if (aPdsIm>0)
+                  {
+                  }
+                  else
+                  {
+                     aNbEtape = 0;
+                  }
 
-               // On est forcement en aPdsIm>0, sinon on 
-               if (WithEq)
-               {
-                   AddInfoImageResidu(aRes.mPTer,aNUpl,aVCam,aVpds);
-                   for (int aKPose=0 ; aKPose < aNbIm ; aKPose++)
-                   {
-                       aVCam[aKPose]->AddPMoy
-                       (
-                           aNUpl.PK(aKPose),
-                           aRes.mPTer,
-                           aRes.mBSurH,
-                           aKPose,
-                           &aVpds,
-                           &aVCam
-                       );
-                   }
-               }
-           }
-           else
-           {
-              aNbEtape = 0;
+                  // On est forcement en aPdsIm>0, sinon on 
+                  if (WithEq)
+                  {
+                      AddInfoImageResidu(aRes.mPTer,aNUpl,aVCam,aVpds);
+                      for (int aKPose=0 ; aKPose < aNbIm ; aKPose++)
+                      {
+                          aVCam[aKPose]->AddPMoy
+                          (
+                              aNUpl.PK(aKPose),
+                              aRes.mPTer,
+                              aRes.mBSurH,
+                              aKPose,
+                              &aVpds,
+                              &aVCam
+                          );
+                      }
+                  }
+              }
+              else
+              {
+                 aNbEtape = 0;
+              }
            }
       }
 
@@ -446,6 +455,7 @@ void  cAppliApero::CDNP_Compense
       aVStat.at(aNbCamOk).AddStat(aResidu,aPdsIm,aNbCamOk);
    }
 
+   DEBUG_LSQ= false;
    // std::cout << "-----------------------------\n";
 }
 
@@ -453,6 +463,8 @@ void  cAppliApero::CDNP_Compense
 
 void cAppliApero::CDNP_Compense(const std::string & anId,const cObsLiaisons & anObsOl)
 {
+    mDebugNumPts = 0;
+
     cCompile_BDD_NewPtMul * aCDN = CDNP_FromName(anId);
 
      if (aCDN==0)
