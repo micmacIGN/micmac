@@ -2442,6 +2442,8 @@ class cOneMesureAF1I
 
         Pt2dr & PtIm();
         const Pt2dr & PtIm()const ;
+
+        void SetPtIm(Pt2dr & aPt);
     private:
         cTplValGesInit< double > mPrecPointe;
         std::string mNamePt;

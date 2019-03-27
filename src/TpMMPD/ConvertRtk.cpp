@@ -37,8 +37,10 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "StdAfx.h"
+//#include "StdAfx.h"
+#include "ConvertRtk.h"
 
+/*
 const double JD2000 = 2451545.0; 	// J2000 in jd
 const double J2000 = 946728000.0; 	// J2000 in seconds starting from 1970-01-01T00:00:00
 const double MJD2000 = 51544.5; 	// J2000 en mjd
@@ -51,7 +53,7 @@ class cRPG_Appli;
 //struct
 struct PosGPS{
 	
-	//Positions
+    //Positions
     Pt3dr Pos;
     
     //Name or Number
@@ -81,18 +83,18 @@ struct PosGPS{
 
 //struct
 struct hmsTime{
-	double Year;
-	double Month;
-	double Day;
-	double Hour;
-	double Minute;
-	double Second;
+    double Year;
+    double Month;
+    double Day;
+    double Hour;
+    double Minute;
+    double Second;
 };
 
 //struct
 struct towTime{
-	double GpsWeek;
-	double Tow; //or wsec
+    double GpsWeek;
+    double Tow; //or wsec
 };
 
 class cRPG_Appli
@@ -104,26 +106,27 @@ class cRPG_Appli
           void ShowHmsTime(const hmsTime & Time);
           void ShowTowTime(const towTime & Time);
      private :
-		std::string mDir; 			
-		std::string mFile;
-		std::string mOut;
-		std::string mStrChSys;
+        std::string mDir;
+        std::string mFile;
+        std::string mOut;
+        std::string mStrChSys;
 };
 
 template <typename T> string NumberToString(T Number)
 {
-	ostringstream ss;
+    ostringstream ss;
     ss << Number;
     return ss.str();
 }
+*/
 
-void cRPG_Appli::ShowTowTime(const towTime & Time)
+void ShowTowTime(const towTime & Time)
 {
 	std::cout << "Time.GpsWeek ==> " << Time.GpsWeek << std::endl;
 	std::cout << "Time.Tow     ==> " << Time.Tow  << std::endl;
 }
 
-void cRPG_Appli::ShowHmsTime(const hmsTime & Time)
+void ShowHmsTime(const hmsTime & Time)
 {
 	std::cout << "Time.Year   ==> " << Time.Year << std::endl;
 	std::cout << "Time.Month  ==> " << Time.Month << std::endl;
@@ -133,7 +136,7 @@ void cRPG_Appli::ShowHmsTime(const hmsTime & Time)
 	std::cout << "Time.Second ==> " << Time.Second << std::endl;
 }
 
-double cRPG_Appli::hmsTime2MJD(const hmsTime & Time, const std::string & TimeSys)
+double hmsTime2MJD(const hmsTime & Time, const std::string & TimeSys)
 {
 	
 	double aYear;
@@ -199,7 +202,7 @@ double cRPG_Appli::hmsTime2MJD(const hmsTime & Time, const std::string & TimeSys
 	
 }
 
-double cRPG_Appli::towTime2MJD(const towTime & Time, const std::string & TimeSys)
+double towTime2MJD(const towTime & Time, const std::string & TimeSys)
 {
 	double aSec = Time.Tow;
 	
@@ -213,6 +216,19 @@ double cRPG_Appli::towTime2MJD(const towTime & Time, const std::string & TimeSys
 	double aMJD = (aS1970 - J2000) / 86400 + MJD2000;
 	
 	return aMJD;
+}
+
+hmsTime ElDate2hmsTime(const cElDate & aDate)
+{
+    hmsTime ahmsTime;
+    ahmsTime.Year = aDate.Y();
+    ahmsTime.Month = aDate.M();
+    ahmsTime.Day = aDate.D();
+    cElHour aHour = aDate.H();
+    ahmsTime.Hour = aHour.H();
+    ahmsTime.Minute = aHour.M();
+    ahmsTime.Second = aHour.S();
+    return ahmsTime;
 }
 
 cRPG_Appli::cRPG_Appli(int argc,char ** argv)
