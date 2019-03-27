@@ -41,8 +41,40 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 // #include "XML_GEN/all_tpl.h"
 
+#include "../TpMMPD/ConvertRtk.h"
+
 class cAppli_XifGps2Xml ;
+class cAppli_XifDate;
+class cAppli_VByDate; // Calculate Im Velocity with Exif Date data
 class cIm_XifGp;
+class cIm_XifDate;
+
+
+
+class cIm_XifDate
+{
+    public:
+        cIm_XifDate(const std::string & aName,cAppli_XifDate &);
+
+        cAppli_XifDate * mAppli;
+        std::string      mName;
+        cMetaDataPhoto   mMDP;
+        cElDate          mDate;
+        int              mDiffSecond; // time lap w.r.t the first image in (s)
+//        hmsTime          mhmsTime;
+//        double           mMJD;
+};
+
+
+class cAppli_XifDate : public cAppliListIm
+{
+    public:
+        cAppli_XifDate(const std::string & aFullName);
+        void Export(const std::string & aOut);
+
+
+        std::vector<cIm_XifDate> mVIm;
+};
 
 
 class cIm_XifGp
@@ -74,6 +106,67 @@ class cAppli_XifGps2Xml : public cAppliListIm
       cSystemeCoord           mSysRTL;
       cOrientationConique     mOC0;
 };
+
+
+
+
+class cAppli_VByDate : public cAppli_XifDate
+{
+    public:
+        cAppli_VByDate(const std::string & aFullName, const std::string & aOri);
+        void CalcV(const std::string & aOut);
+
+        std::vector<CamStenope*>          mVCam;
+};
+
+cAppli_VByDate::cAppli_VByDate(const std::string & aFullName, const std::string & aOri):
+    cAppli_XifDate(aFullName)
+{
+    for(auto & aIm : mVIm)
+    {
+        mVCam.push_back(mICNM->StdCamStenOfNames(aIm.mName,aOri));
+    }
+}
+
+void cAppli_VByDate::CalcV(const std::string & aOut)
+{
+    ELISE_ASSERT(mVCam.size()>1,"Cam Nb not enough for calculating velocity, at least 2")
+    ofstream aFile;
+    aFile.open(mDir+aOut);
+    for(uint aK=0; aK<mVCam.size();aK++)
+    {
+        int aHead, aTail;
+        if(aK==mVCam.size()-1)
+        {
+            aHead = aK-1;
+            aTail=aK;
+        }
+        else if(aK==0)
+        {
+            aHead = aK;
+            aTail = aK+1;
+        }
+        else
+        {
+            aHead = aK-1;
+            aTail = aK+1;
+        }
+        CamStenope * aCam0 = mVCam.at(aHead);
+        CamStenope * aCam1 = mVCam.at(aTail);
+        int aDifSecond = mVIm.at(aTail).mDiffSecond - mVIm.at(aHead).mDiffSecond;
+        double aDifPos = sqrt(
+                              ElSquare(aCam0->PseudoOpticalCenter().x-aCam1->PseudoOpticalCenter().x)
+                             +ElSquare(aCam0->PseudoOpticalCenter().y-aCam1->PseudoOpticalCenter().y)
+                    );
+        //int aDifSecond = aK==0 ? mVIm.at(aK+1).mDiffSecond - mVIm.at(aK).mDiffSecond : mVIm.at(aK+1).mDiffSecond - mVIm.at(aK-1).mDiffSecond;
+        aFile << mVIm.at(aK).mName << " " << aDifPos << " " << aDifSecond << " " << double(aDifPos/aDifSecond) << " " << mVCam.at(aK)->GetRoughProfondeur() << endl;
+    }
+    aFile.close();
+}
+
+
+
+
 
 
 /*******************************************************************/
@@ -184,6 +277,31 @@ void cAppli_XifGps2Xml::ExportCoordTxtFile(std::string aOut, std::string aOutFor
 
 /*******************************************************************/
 /*                                                                 */
+/*               cAppli_XifDate                                    */
+/*                                                                 */
+/*******************************************************************/
+cAppli_XifDate::cAppli_XifDate(const std::string & aFullName):
+    cAppliListIm (aFullName)
+{
+    for (int aKI=0;aKI<int(mSetIm->size()); aKI++)
+    {
+        mVIm.push_back(cIm_XifDate((*mSetIm)[aKI],*this));
+    }
+}
+
+void cAppli_XifDate::Export(const std::string & aOut)
+{
+    ofstream aFile;
+    aFile.open (this->mDir+aOut);
+    for(auto & aIm : mVIm)
+    {
+        aFile << aIm.mName << " " << aIm.mDate << endl;
+    }
+    aFile.close();
+}
+
+/*******************************************************************/
+/*                                                                 */
 /*                  cIm_XifGp                                      */
 /*                                                                 */
 /*******************************************************************/
@@ -207,6 +325,34 @@ cIm_XifGp::cIm_XifGp(const std::string & aName,cAppli_XifGps2Xml & anAppli) :
    }
 }
 
+/*******************************************************************/
+/*                                                                 */
+/*                  cIm_XifDate                                    */
+/*                                                                 */
+/*******************************************************************/
+cIm_XifDate::cIm_XifDate(const std::string & aName, cAppli_XifDate & anAppli):
+    mAppli(&anAppli),
+    mName(aName),
+    mMDP(cMetaDataPhoto::CreateExiv2(mAppli->mDir+aName)),
+    mDate(mMDP.Date(true))
+{
+    std::cerr << "Read Exif Date data of : " << aName << endl;
+    if(mAppli->mVIm.empty())
+        mDiffSecond = 0;
+    else
+    {
+        cElHour aBegin = mAppli->mVIm.at(0).mDate.H();
+        // consider all pics are acquired in the same day
+        mDiffSecond = (mDate.H().H()-aBegin.H())*3600
+                    + (mDate.H().M()-aBegin.M())*60
+                    + (mDate.H().S()-aBegin.S());
+    }
+    std::cout << mName << " " << mDiffSecond << endl;
+    //ShowHmsTime(mhmsTime);
+}
+
+
+
 
 /*******************************************************************/
 /*                                                                 */
@@ -214,7 +360,31 @@ cIm_XifGp::cIm_XifGp(const std::string & aName,cAppli_XifGps2Xml & anAppli) :
 /*                                                                 */
 /*******************************************************************/
 
+int XifDate2Txt_main(int argc, char ** argv)
+{
+    std::string aFullName,aSysT{"UTC"},aOut{"XifDate.txt"},aCalVOri,aOutCalcV{"CalcV.txt"};
+    ElInitArgMain
+    (
+           argc,argv,
+           LArgMain() << EAMC(aFullName,"Full Name", eSAM_IsPatFile),
+           LArgMain() << EAM(aOut,"Out",true,"Output file name, Def=XifDate.txt")
+                      << EAM(aCalVOri,"CalVOri",true,"Calculate planitary velocity when an Ori is available")
+                      << EAM(aOutCalcV,"OutCalcV",true,"Output file name for calculated velocity")
+    );
 
+    if(!EAMIsInit(&aCalVOri))
+    {
+        cAppli_XifDate anAppli(aFullName);
+        anAppli.Export(aOut);
+    }
+    else
+    {
+        cAppli_VByDate anAppli(aFullName,aCalVOri);
+        anAppli.Export(aOut);
+        anAppli.CalcV(aOutCalcV);
+    }
+    return EXIT_SUCCESS;
+}
 
 
 int XifGps2Xml_main(int argc,char ** argv)
