@@ -1267,7 +1267,7 @@ private  :
 	        mStrExe             (aStrExe + " "),
 		mStrLangE           (STRLANG+ mStrExe),
 		mStrTmp             (aStrTmp),
-		mAutomDate          (new cElRegex(aStrDate,15)),
+        mAutomDate          (new cElRegex(aStrDate,15)),
 		mOrderDate          (aOrderDate),
 		mAutomFoc           (new cElRegex(aStrFocal,15)),
 		mAutomF35           (new cElRegex(aStrF35,15)),
@@ -1473,10 +1473,10 @@ cMetaDataPhoto cXifDecoder::GetMTDIm(const std::string & aNameIm)
 				GetValsNumFromLineExprReg(aXifDec.mAutomDate,aXifDec.mFileTxt, "",aXifDec.mOrderDate, &aNbMatch);
 
 			if (aNbMatch==1)
-			{
+            {
 				aDate = cElDate
 					(
-					round_ni(aVDate[2]),round_ni(aVDate[1]),round_ni(aVDate[0]),
+                    round_ni(aVDate[2]),round_ni(aVDate[1]),round_ni(aVDate[0]),
 					cElHour(round_ni(aVDate[3]),round_ni(aVDate[4]),round_ni(aVDate[5]))
 					);
 				GotDate = true;

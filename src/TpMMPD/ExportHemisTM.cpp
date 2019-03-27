@@ -37,12 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
-
-const double JD2000 = 2451545.0; 	// J2000 in jd
-const double J2000 = 946728000.0; 	// J2000 in seconds starting from 1970-01-01T00:00:00
-const double MJD2000 = 51544.5; 	// J2000 en mjd
-const double GPS0 = 315964800.0; 	// 1980-01-06T00:00:00 in seconds starting from 1970-01-01T00:00:00
-const int LeapSecond = 17;			// GPST-UTC=17s
+#include "ConvertRtk.h"
 
 //-------------Structure of a binary message from Hemisphere---------------------------------------------//
 typedef struct
@@ -96,10 +91,10 @@ typedef struct
 TimeMark;
 
 //struct
-struct towTime{
-	double GpsWeek;
-	double Tow; //or wsec
-};
+//struct towTime{
+//	double GpsWeek;
+//	double Tow; //or wsec
+//};
 
 //class
 class cEHTM_Appli
@@ -108,28 +103,28 @@ class cEHTM_Appli
 			cEHTM_Appli(int argc,char ** argv);
 			std::vector<TimeMark> GetTMFromVBin01(std::vector<Msg1> & aVMsgBin01);
 			void WriteTMInFile(std::vector<TimeMark> & aVTM, std::string & aOutputNameFile, bool aFormat);
-			double towTime2MJD(const towTime & Time, const std::string & TimeSys);
+//			double towTime2MJD(const towTime & Time, const std::string & TimeSys);
 		
 		private :
 			std::string mDir;
 			std::string mFile;
 };
 
-double cEHTM_Appli::towTime2MJD(const towTime & Time, const std::string & TimeSys)
-{
-	double aSec = Time.Tow;
+//double cEHTM_Appli::towTime2MJD(const towTime & Time, const std::string & TimeSys)
+//{
+//	double aSec = Time.Tow;
 	
-	if(TimeSys == "UTC")
-	{
-		aSec -= LeapSecond;
-	}
+//	if(TimeSys == "UTC")
+//	{
+//		aSec -= LeapSecond;
+//	}
 	
-	double aS1970 = Time.GpsWeek * 7 * 86400 + aSec + GPS0;
+//	double aS1970 = Time.GpsWeek * 7 * 86400 + aSec + GPS0;
 	
-	double aMJD = (aS1970 - J2000) / 86400 + MJD2000;
+//	double aMJD = (aS1970 - J2000) / 86400 + MJD2000;
 	
-	return aMJD;
-}
+//	return aMJD;
+//}
 
 //get TimeMark vector form a vector of Bin01 Hemisphere 
 std::vector<TimeMark> cEHTM_Appli::GetTMFromVBin01(std::vector<Msg1> & aVMsgBin01)

@@ -198,6 +198,8 @@ int TNR_main(int argc, char ** argv);
 int Apero2NVM_main(int argc, char ** argv);
 
 int Vino_Main(int argc, char ** argv);
+int XifDate2Txt_main(int argc, char ** argv);
+int XifGps2Xml_main(int argc, char ** argv);
 int XifGps2Txt_main(int argc, char ** argv);
 int RedTieP_main(int argc, char **argv);
 int OriRedTie_main(int argc, char **argv);
@@ -362,6 +364,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("OriConvert", Ori_Txt2Xml_main, "Convert Orientation from Txt 2 XML", cArgLogCom(3)));
 		aRes.push_back(cMMCom("OriExport", OriExport_main, "Export orientation from XML to XML or TXT with specified convention", cArgLogCom(3)));
 		aRes.push_back(cMMCom("Apero2NVM", Apero2NVM_main, "Matthieu Moneyrond's convertor to VSfM, MVE, SURE, MeshRecon ", cArgLogCom(3)));
+        aRes.push_back(cMMCom("XifDate2Txt", XifDate2Txt_main, "Export embedded EXIF Date data 2 Txt", cArgLogCom(1)));
 		aRes.push_back(cMMCom("XifGps2Xml", XifGps2Xml_main, "Create MicMac-Xml struct from GPS embedded in EXIF", cArgLogCom(2)));
 		aRes.push_back(cMMCom("XifGps2Txt", XifGps2Txt_main, "Export embedded EXIF GPS data 2 Txt", cArgLogCom(2)));
 		aRes.push_back(cMMCom("GenXML2Cpp", GenXML2Cpp_main, " Do some stuff"));
@@ -850,6 +853,7 @@ extern int MoyMAF_main(int argc, char ** argv);
 extern int GenerateTP_main(int argc, char ** argv);
 extern int SimuRolShut_main(int argc, char ** argv);
 extern int GenerateOrient_main(int argc, char ** argv);
+extern int ReechRolShut_main(int argc, char ** argv);
 extern int CompMAF_main(int argc, char ** argv);
 extern int GenerateOriGPS_main(int argc, char ** argv);
 extern int GenerateMAF_main(int argc, char ** argv);
@@ -1157,6 +1161,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("GenerateTP",GenerateTP_main ,"Generate simulated tie points"));
         aRes.push_back(cMMCom("SimuRolShut",SimuRolShut_main ,"Generate simulated tie points"));
         aRes.push_back(cMMCom("GenerateOrient",GenerateOrient_main,"Generate modification of orientation"));
+        aRes.push_back(cMMCom("ReechRolShut",ReechRolShut_main ,"Resampling for rolling shutter effect correction"));
         aRes.push_back(cMMCom("CompMAF",CompMAF_main ,"Compare MAF files"));
         aRes.push_back(cMMCom("GenerateOriGPS",GenerateOriGPS_main ,"Compare MAF files"));
         aRes.push_back(cMMCom("GenerateMAF",GenerateMAF_main ,"Generate simulated MAF"));

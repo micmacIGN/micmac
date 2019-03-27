@@ -101,6 +101,14 @@ class cSetPMul1ConfigTPM
             int Adr = AddrPtIm(aKp,aKIm);
             return Pt2dr(Int2Double(mVXY[Adr]),Int2Double(mVXY[Adr+1]));
        }
+
+       void SetPt(int aKp,int aKIm, Pt2dr & aPt)
+       {
+           int Adr = AddrPtIm(aKp,aKIm);
+           mVXY[Adr] = Double2Int(aPt.x);
+           mVXY[Adr+1] = Double2Int(aPt.y);
+       }
+
        float Attr(int aKP,int aKAttr) const;
        const std::vector<int> & VIdIm() const;
 

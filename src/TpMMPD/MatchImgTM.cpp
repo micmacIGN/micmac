@@ -38,6 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
+#include "ConvertRtk.h"
 
 //lire le fichier de TimeMark
 //lire le pattern
@@ -50,21 +51,21 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 const std::string aTMPDir = "Tmp-MM-Dir";
 
-const double JD2000 = 2451545.0; 	// J2000 in jd
-const double J2000 = 946728000.0; 	// J2000 in seconds starting from 1970-01-01T00:00:00
-const double MJD2000 = 51544.5; 	// J2000 en mjd
-const double GPS0 = 315964800.0; 	// 1980-01-06T00:00:00 in seconds starting from 1970-01-01T00:00:00
-const int LeapSecond = 18;			// GPST-UTC=18s
+//const double JD2000 = 2451545.0; 	// J2000 in jd
+//const double J2000 = 946728000.0; 	// J2000 in seconds starting from 1970-01-01T00:00:00
+//const double MJD2000 = 51544.5; 	// J2000 en mjd
+//const double GPS0 = 315964800.0; 	// 1980-01-06T00:00:00 in seconds starting from 1970-01-01T00:00:00
+//const int LeapSecond = 18;			// GPST-UTC=18s
 
-//struct
-struct hmsTime{
-	double Year;
-	double Month;
-	double Day;
-	double Hour;
-	double Minute;
-	double Second;
-};
+////struct
+//struct hmsTime{
+//	double Year;
+//	double Month;
+//	double Day;
+//	double Hour;
+//	double Minute;
+//	double Second;
+//};
 
 //struct TimeMark file
 struct TM{
@@ -92,8 +93,8 @@ class cMITM_Appli
 {
 	public :
 		cMITM_Appli(int argc,char ** argv);
-		void ShowHmsTime(const hmsTime & Time);
-		double hmsTime2MJD(const hmsTime & Time, const std::string & TimeSys);
+//		void ShowHmsTime(const hmsTime & Time);
+//		double hmsTime2MJD(const hmsTime & Time, const std::string & TimeSys);
 		std::vector<TM> ReadTMFile(std::string & aInputTMFile);
 		void CheckTmpMMDir();
 		std::vector<cXmlDate> ReadExifData();
@@ -115,17 +116,18 @@ class cMITM_Appli
 };
 
 //display time
-void cMITM_Appli::ShowHmsTime(const hmsTime & Time)
-{
-	std::cout << "Time.Year   ==> " << Time.Year << std::endl;
-	std::cout << "Time.Month  ==> " << Time.Month << std::endl;
-	std::cout << "Time.Day    ==> " << Time.Day << std::endl;
-	std::cout << "Time.Hour   ==> " << Time.Hour << std::endl;
-	std::cout << "Time.Minute ==> " << Time.Minute << std::endl;
-	std::cout << "Time.Second ==> " << Time.Second << std::endl;
-}
+//void cMITM_Appli::ShowHmsTime(const hmsTime & Time)
+//{
+//	std::cout << "Time.Year   ==> " << Time.Year << std::endl;
+//	std::cout << "Time.Month  ==> " << Time.Month << std::endl;
+//	std::cout << "Time.Day    ==> " << Time.Day << std::endl;
+//	std::cout << "Time.Hour   ==> " << Time.Hour << std::endl;
+//	std::cout << "Time.Minute ==> " << Time.Minute << std::endl;
+//	std::cout << "Time.Second ==> " << Time.Second << std::endl;
+//}
 
 //convert HMS format to MJD (Exif data are given in HMS format)
+/*
 double cMITM_Appli::hmsTime2MJD(const hmsTime & Time, const std::string & TimeSys)
 {
 	
@@ -191,6 +193,7 @@ double cMITM_Appli::hmsTime2MJD(const hmsTime & Time, const std::string & TimeSy
 	return aMJD;
 	
 }
+*/
 
 //read TimeMark File
 std::vector<TM> cMITM_Appli::ReadTMFile(std::string & aInputTMFile)
