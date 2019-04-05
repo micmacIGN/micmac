@@ -33,16 +33,15 @@ class cAppli_CamXifDate : public cAppli_XifDate
         tk::spline mS_z;
 };
 
-class cSetPMul_Cam
+class cSetTiePMul_Cam
 {
     public:
-        cSetPMul_Cam(cSetTiePMul * pSH,cSetPMul1ConfigTPM & aCnf,cAppli_CamXifDate & anAppli);
-        void Reproj(); // pseudo_intersect + reproj on cam with rolshut correction
-
+        cSetTiePMul_Cam(const std::string &aSH,const cAppli_CamXifDate & anAppli);
+        void Reech_RS(const double & aRSSpeed, const std::string &aSHOut);
     private:
-        std::vector<CamStenope *> mVCam;
-        cSetPMul1ConfigTPM        mCnf;
+        cSetTiePMul               m_SetTiePMul;
         cSetTiePMul *             m_pSH;
+        const cAppli_CamXifDate   m_Appli;
 };
 
 #endif // SIMUROLSHUT_H

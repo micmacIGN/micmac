@@ -132,47 +132,78 @@ CamStenope * cAppli_CamXifDate::Cam(const string &aName)
 //    std::cout << "Time gap: " << aTime << " Old C: " << aCam->PseudoOpticalCenter() << " New C: " << aNewC << endl;
 //}
 
+
+
 /*******************************************************************/
 /*                                                                 */
-/*                          cPMulCam                               */
+/*                      cSetTiePMul_Cam                            */
 /*                                                                 */
 /*******************************************************************/
-cSetPMul_Cam::cSetPMul_Cam(cSetTiePMul * pSH, cSetPMul1ConfigTPM &aCnf, cAppli_CamXifDate & anAppli):
-    mCnf(aCnf),
-    m_pSH(pSH)
+cSetTiePMul_Cam::cSetTiePMul_Cam(const std::string &aSH, const cAppli_CamXifDate &anAppli):
+    m_SetTiePMul(cSetTiePMul(0)),
+    m_pSH(&m_SetTiePMul),
+    m_Appli(anAppli)
 {
-    std::vector<int> aVIdIm = mCnf.VIdIm();
-    for(int &aIdIm : aVIdIm)
-    {
-        std::string aNameIm = m_pSH->NameFromId(aIdIm);
-        mVCam.push_back(anAppli.mVIm.at(aNameIm).mCam);
-    }
+    m_pSH->AddFile(aSH);
 }
 
-void cSetPMul_Cam::Reproj()
+void cSetTiePMul_Cam::Reech_RS(const double &aRSSpeed, const string &aSHOut)
 {
-    for(int aKPt=0; aKPt<mCnf.NbPts(); aKPt++)
+    std::vector<cSetPMul1ConfigTPM *> aVCnf = m_pSH->VPMul();
+    for(uint itCnf=0; itCnf<aVCnf.size(); itCnf++)
     {
-        std::vector<Pt2dr> aVP2D;
-        for(int aKIm=0; aKIm<mCnf.NbIm(); aKIm++)
+        std::cout << "Done " << itCnf << " out of " << aVCnf.size() << endl;
+        auto aCnf = aVCnf.at(itCnf);
+        std::vector<int> aVIdIm = aCnf->VIdIm();
+        std::vector<CamStenope*> aVCam;
+        for(int &aIdIm : aVIdIm)
         {
-            aVP2D.push_back(mCnf.Pt(aKPt,aKIm));
+            std::string aNameIm = m_pSH->NameFromId(aIdIm);
+            aVCam.push_back(m_Appli.mVIm.at(aNameIm).mCam);
         }
-        ELISE_ASSERT(aVP2D.size() == mVCam.size(), "Size not coherent");
-        ELISE_ASSERT(aVP2D.size() > 1 && mVCam.size() > 1, "Nb faiseaux < 2");
-        Pt3dr aP3D = Intersect_Simple(mVCam , aVP2D);
-        std::cout << aP3D << endl;
-        for(int aKIm=0; aKIm<mCnf.NbIm(); aKIm++)
+        std::cout << "Old     OldReproj      NewReproj     New" << endl;
+        for(int aKPt=0; aKPt<aCnf->NbPts(); aKPt++)
         {
-            CamStenope * aCam = mVCam.at(aKIm);
-            Pt2dr aNewP2D = aCam->R3toF2(aP3D);
-            std::cout << aNewP2D << " ";
+            std::vector<Pt2dr> aVOldP2D;
+            for(int aKIm=0; aKIm<aCnf->NbIm(); aKIm++)
+            {
+                aVOldP2D.push_back(aCnf->Pt(aKPt,aKIm));
+            }
+            ELISE_ASSERT(aVOldP2D.size() == aVCam.size(), "Size not coherent");
+            ELISE_ASSERT(aVOldP2D.size() > 1 && aVCam.size() > 1, "Nb faiseaux < 2");
+            Pt3dr aP3D = Intersect_Simple(aVCam , aVOldP2D);
+
+            for(int aKIm=0; aKIm<aCnf->NbIm(); aKIm++)
+            {
+                CamStenope * aCam = aVCam.at(aKIm);
+                Pt2dr aOldP2D = aVOldP2D.at(aKIm);
+                Pt2dr aReprojP2D = aCam->R3toF2(aP3D);
+                Pt2dr aP2DEcart = aReprojP2D - aOldP2D;
+
+                double aEcartTime = (aReprojP2D.y-1824) * aRSSpeed/1000/1000;
+                Pt3dr aOldCenter = aCam->PseudoOpticalCenter();
+                std::string aNameIm = m_pSH->NameFromId(aCnf->VIdIm().at(aKIm));
+                double aOldTime = m_Appli.mVIm.at(aNameIm).mDiffSecond;
+                double aNewTime = aOldTime + aEcartTime;
+                Pt3dr aNewCenter = Pt3dr(m_Appli.mS_x(aNewTime),m_Appli.mS_y(aNewTime),m_Appli.mS_z(aNewTime));
+                //double aVitesse = euclid((aNewCenter-aOldCenter)/aEcartTime);
+                aCam->AddToCenterOptical(aNewCenter-aOldCenter);
+                Pt2dr aNewReprojP2D = aCam->R3toF2(aP3D);
+                Pt2dr aNewP2D = aNewReprojP2D - aP2DEcart;
+                std::cout << aOldP2D << " " << aReprojP2D << " " << aNewReprojP2D << " " << aNewP2D << endl;
+
+                //aCnf->SetPt(aKPt,aKIm,aNewP2D);
+            }
         }
-        std::cout << endl;
+
+        // output modified tie points
+        std::string aNameOut0 = cSetTiePMul::StdName(m_Appli.mICNM,"Homol_"+aSHOut,"Reech",0);
+        std::string aNameOut1 = cSetTiePMul::StdName(m_Appli.mICNM,"Homol_"+aSHOut,"Reech",1);
+
+//        m_pSH->Save(aNameOut0);
+//        m_pSH->Save(aNameOut1);
     }
-
 }
-
 
 
 /*******************************************************************/
@@ -558,7 +589,7 @@ int GenerateOrient_main (int argc, char ** argv)
 int ReechRolShut_main(int argc, char ** argv)
 {
     std::string aPatIm,aSH,aOri,aSHOut{"_Reech"};
-    int aRSSpeed;
+    double aRSSpeed;
     ElInitArgMain
             (
                 argc,argv,
@@ -571,13 +602,8 @@ int ReechRolShut_main(int argc, char ** argv)
 
     cAppli_CamXifDate anAppli_CamXifDate(aPatIm,aOri);
 
-    // load tie points
-    cSetTiePMul * pSH = new cSetTiePMul(0);
-    pSH->AddFile(aSH);
-    std::vector<cSetPMul1ConfigTPM *> aVCnf = pSH->VPMul();
-
-    cSetPMul_Cam aSetPMul_Cam(pSH,*(aVCnf.front()),anAppli_CamXifDate);
-    aSetPMul_Cam.Reproj();
+    cSetTiePMul_Cam aSetTiePMul_Cam(aSH,anAppli_CamXifDate);
+    aSetTiePMul_Cam.Reech_RS(aRSSpeed,aSHOut);
 
 
 
