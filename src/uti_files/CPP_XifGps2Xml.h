@@ -24,7 +24,7 @@ class cIm_XifDate
         std::string      mName;
         cMetaDataPhoto   mMDP;
         cElDate          mDate;
-        double              mDiffSecond; // time lap w.r.t the first image in (s)
+        double           mDiffSecond; // time lap w.r.t the first image in (s)
 };
 
 

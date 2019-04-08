@@ -25,23 +25,46 @@ class cAppli_CamXifDate : public cAppli_XifDate
         std::vector<Pt3dr> GetCamCenter();
         std::vector<double> GetCamCenterComponent(int a);
         CamStenope * Cam(const std::string & aName);
+        const Pt2di CamSz() const;
 //        CamStenope * GetNewCam(const std::string &aName,double aTime);
 
         std::map<std::string,cIm_CamXifDate> mVIm;
-        tk::spline mS_x;
-        tk::spline mS_y;
-        tk::spline mS_z;
+        std::string                          mOri;
+        tk::spline                           mS_x;
+        tk::spline                           mS_y;
+        tk::spline                           mS_z;
 };
 
 class cSetTiePMul_Cam
 {
     public:
         cSetTiePMul_Cam(const std::string &aSH,const cAppli_CamXifDate & anAppli);
-        void Reech_RS(const double & aRSSpeed, const std::string &aSHOut);
+        void ReechRS_SH(const double & aRSSpeed, const std::string &aSHOut);
+        void TestOri(double aTimeEcart);
     private:
-        cSetTiePMul               m_SetTiePMul;
         cSetTiePMul *             m_pSH;
+        std::string               mSH;
         const cAppli_CamXifDate   m_Appli;
+};
+
+class cPtIm_CamXifDate
+{
+    public:
+        cPtIm_CamXifDate(Pt2dr &aPtIm, cIm_CamXifDate &aIm_CamXifDate);
+
+        const Pt2dr mPtIm;
+        const cIm_CamXifDate mIm_CamXifDate;
+};
+
+class cSetOfMesureAppuisFlottants_Cam
+{
+    public:
+        cSetOfMesureAppuisFlottants_Cam(const std::string &aMAFIn,const cAppli_CamXifDate & anAppli);
+        std::map<std::string,std::list<cOneMesureAF1I>> ReechRS_MAF(const double aRSSpeed);
+    private:
+        const cAppli_CamXifDate   m_Appli;
+        std::map<std::string,std::vector<cPtIm_CamXifDate>> mVPtIm; //<PtName,std::vector<cPtIm_CamXifDate>>
+
 };
 
 #endif // SIMUROLSHUT_H
