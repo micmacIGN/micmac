@@ -52,7 +52,7 @@ class cPtIm_CamXifDate
     public:
         cPtIm_CamXifDate(Pt2dr &aPtIm, cIm_CamXifDate &aIm_CamXifDate);
 
-        const Pt2dr mPtIm;
+        Pt2dr mPtIm;
         const cIm_CamXifDate mIm_CamXifDate;
 };
 
@@ -60,12 +60,14 @@ class cSetOfMesureAppuisFlottants_Cam
 {
     public:
         cSetOfMesureAppuisFlottants_Cam(const std::string &aMAFIn,const cAppli_CamXifDate & anAppli);
-        std::map<std::string,std::list<cOneMesureAF1I>> ReechRS_MAF(const double aRSSpeed);
+        void ReechRS_MAF(const double aRSSpeed,const std::string aMAFOut);
     private:
         const cAppli_CamXifDate   m_Appli;
+        cSetOfMesureAppuisFlottants mDico;
         std::map<std::string,std::vector<cPtIm_CamXifDate>> mVPtIm; //<PtName,std::vector<cPtIm_CamXifDate>>
 
 };
+
 
 #endif // SIMUROLSHUT_H
 

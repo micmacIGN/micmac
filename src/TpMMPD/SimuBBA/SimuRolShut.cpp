@@ -174,7 +174,6 @@ void cSetTiePMul_Cam::ReechRS_SH(const double &aRSSpeed, const string &aSHOut)
                 CamStenope * aCam = aVCam.at(aKIm);
                 Pt2dr aOldP2D = aVOldP2D.at(aKIm);
                 Pt2dr aReprojP2D = aCam->R3toF2(aP3D);
-                Pt2dr aP2DEcart = aReprojP2D - aOldP2D;
 
                 double aEcartTime = aOldP2D.y * aRSSpeed/1000/1000;
                 Pt3dr aOldCenter = aCam->PseudoOpticalCenter();
@@ -185,7 +184,7 @@ void cSetTiePMul_Cam::ReechRS_SH(const double &aRSSpeed, const string &aSHOut)
                 aCam->AddToCenterOptical(aNewCenter-aOldCenter);
 
                 Pt2dr aNewReprojP2D = aCam->R3toF2(aP3D);
-                Pt2dr aNewP2D = aNewReprojP2D - aP2DEcart;
+                Pt2dr aNewP2D = aOldP2D + aNewReprojP2D - aReprojP2D;
                 if(0 < aNewP2D.x && aNewP2D.x < double(aCam->Sz().x) && 0 < aNewP2D.y && aNewP2D.y < double(aCam->Sz().y))
                     aCnf->SetPt(aKPt,aKIm,aNewP2D);
             }
@@ -239,10 +238,10 @@ cPtIm_CamXifDate::cPtIm_CamXifDate(Pt2dr &aPtIm, cIm_CamXifDate &aIm_CamXifDate)
 /*                                                                 */
 /*******************************************************************/
 cSetOfMesureAppuisFlottants_Cam::cSetOfMesureAppuisFlottants_Cam(const std::string &aMAFIn,const cAppli_CamXifDate & anAppli):
-    m_Appli(anAppli)
+    m_Appli(anAppli),
+    mDico(StdGetFromPCP(aMAFIn,SetOfMesureAppuisFlottants))
 {
-    cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aMAFIn,SetOfMesureAppuisFlottants);
-    std::list<cMesureAppuiFlottant1Im> & aLMAF = aDico.MesureAppuiFlottant1Im();
+    std::list<cMesureAppuiFlottant1Im> aLMAF = mDico.MesureAppuiFlottant1Im();
     for(auto &aMAF : aLMAF)
     {
         const std::string aNameIm = aMAF.NameIm();
@@ -266,17 +265,16 @@ cSetOfMesureAppuisFlottants_Cam::cSetOfMesureAppuisFlottants_Cam(const std::stri
             }
         }
     }
-    std::cout << mVPtIm.size() << endl;
 }
 
-std::map<std::string,std::list<cOneMesureAF1I>> cSetOfMesureAppuisFlottants_Cam::ReechRS_MAF(const double aRSSpeed)
+void cSetOfMesureAppuisFlottants_Cam::ReechRS_MAF(const double aRSSpeed,const std::string aMAFOut)
 {
-    std::map<std::string,std::list<cOneMesureAF1I>> aMap;
+    std::map<pair<std::string,std::string>,Pt2dr> aNewPtMap;//<<NameIm,NamePt>,PtIm>
     for(auto &aPtIm:mVPtIm)
     {
         std::vector<Pt2dr> aVOldP2D;
         std::vector<CamStenope*> aVCam;
-        std::string aPtName = aPtIm.first;
+        std::string aNamePt = aPtIm.first;
         std::vector<cPtIm_CamXifDate> aVPtIm_CamXifDate = aPtIm.second;
         for(auto &aPtIm_CamXifDate:aVPtIm_CamXifDate)
         {
@@ -290,16 +288,31 @@ std::map<std::string,std::list<cOneMesureAF1I>> cSetOfMesureAppuisFlottants_Cam:
         for(auto &aPtIm_CamXifDate:aVPtIm_CamXifDate)
         {
             CamStenope * aCam = aPtIm_CamXifDate.mIm_CamXifDate.mCam;
+            Pt2dr aOldP2D = aPtIm_CamXifDate.mPtIm;
             Pt2dr aReprojP2D = aCam->R3toF2(aP3D);
-            std::cout << aReprojP2D << endl;
-            std::string aNameIm = aPtIm_CamXifDate.mIm_CamXifDate.mName;
-            if(aMap.find(aNameIm)==aMap.end())
-            {
-
-            }
+            double aNewTime = aPtIm_CamXifDate.mIm_CamXifDate.mDiffSecond-aOldP2D.y * aRSSpeed/1000/1000;
+            Pt3dr aNewCenter = Pt3dr(m_Appli.mS_x(aNewTime),m_Appli.mS_y(aNewTime),m_Appli.mS_z(aNewTime));
+            aCam->AddToCenterOptical(aNewCenter-aCam->PseudoOpticalCenter());
+            Pt2dr aNewReprojP2D = aCam->R3toF2(aP3D);
+            Pt2dr aNewP2D = aOldP2D + aNewReprojP2D - aReprojP2D;
+            pair<std::string,std::string> aNameKey = pair<std::string,std::string>(aPtIm_CamXifDate.mIm_CamXifDate.mName,aNamePt);
+            aNewPtMap.insert(pair<pair<std::string,std::string>,Pt2dr>(aNameKey,aNewP2D));
         }
     }
-    return aMap;
+
+    // modify mDico with aNewPtMap
+    for(auto & aMAF:mDico.MesureAppuiFlottant1Im())
+    {
+        std::string aNameIm = aMAF.NameIm();
+        for(auto & aMes:aMAF.OneMesureAF1I())
+        {
+            std::string aNamePt = aMes.NamePt();
+            pair<std::string,std::string> aNameKey = pair<std::string,std::string>(aNameIm,aNamePt);
+            aMes.PtIm() = aNewPtMap.at(aNameKey);
+        }
+    }
+
+    MakeFileXML(mDico,aMAFOut);
 }
 
 
@@ -702,16 +715,16 @@ int ReechRolShut_main(int argc, char ** argv)
 
     if(EAMIsInit(&aSH))
     {
+        std::cout << "Reech " << aSH << endl;
         cSetTiePMul_Cam aSetTiePMul_Cam(aSH,anAppli_CamXifDate);
         aSetTiePMul_Cam.ReechRS_SH(aRSSpeed,aSHOut);
     }
     if(EAMIsInit(&aMAFIn))
     {
+        std::cout << "Reech " << aMAFIn << endl;
         cSetOfMesureAppuisFlottants_Cam aSetOfMesureAppuisFlottants_Cam(aMAFIn,anAppli_CamXifDate);
-
+        aSetOfMesureAppuisFlottants_Cam.ReechRS_MAF(aRSSpeed,aMAFOut);
     }
-
-
 
     return EXIT_SUCCESS;
 
