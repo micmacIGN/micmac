@@ -43,12 +43,284 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <algorithm>
 #include <map>
 
-#include "StdAfx.h"
+
 #include "string.h"
-#include "../../uti_phgrm/TiepTri/TiepTri.h"
-#include "../../uti_phgrm/TiepTri/MultTieP.h"
+
 #include "../schnaps.h"
 #include "SimuBBA.h"
+#include "SimuRolShut.h"
+
+
+
+
+/*******************************************************************/
+/*                                                                 */
+/*                  cIm_CamXifDate                                 */
+/*                                                                 */
+/*******************************************************************/
+
+cIm_CamXifDate::cIm_CamXifDate(cInterfChantierNameManipulateur * aICNM, const string &aName, const string &aOri,cElHour & aBeginTime):
+    cIm_XifDate(aName,aBeginTime),
+    mCam(aICNM->StdCamStenOfNames(aName,aOri))
+{}
+
+
+/*******************************************************************/
+/*                                                                 */
+/*                  cAppli_CamXifDate                              */
+/*                                                                 */
+/*******************************************************************/
+
+cAppli_CamXifDate::cAppli_CamXifDate(const string &aFullName, string &aOri):
+    cAppli_XifDate(aFullName)
+{
+    StdCorrecNameOrient(aOri,mDir,true);
+    mOri = aOri;
+    for(int i=0; i<int(mSetIm->size());i++)
+    {
+//        std::pair<char,int>('a',100);
+        mVIm.insert(std::pair<std::string,cIm_CamXifDate>(mSetIm->at(i),cIm_CamXifDate(mICNM,mSetIm->at(i),aOri,mBegin)));
+//        mVIm.push_back(cIm_CamXifDate(mICNM,mSetIm->at(i),aOri,mBegin));
+    }
+    mS_x.set_points(this->GetVDiffSecond(),this->GetCamCenterComponent(1));
+    mS_y.set_points(this->GetVDiffSecond(),this->GetCamCenterComponent(2));
+    mS_z.set_points(this->GetVDiffSecond(),this->GetCamCenterComponent(3));
+}
+
+std::vector<Pt3dr> cAppli_CamXifDate::GetCamCenter()
+{
+    std::vector<Pt3dr> aVCenter;
+    for(auto &aIm : mVIm)
+    {
+        aVCenter.push_back(aIm.second.mCam->PseudoOpticalCenter());
+    }
+    return aVCenter;
+}
+
+std::vector<double> cAppli_CamXifDate::GetCamCenterComponent(int a)
+{
+    std::vector<double> aVCenterComponent;
+    for(auto &aIm : mVIm)
+    {
+        switch (a)
+        {
+        case 1:
+            aVCenterComponent.push_back(aIm.second.mCam->PseudoOpticalCenter().x);
+            break;
+        case 2:
+            aVCenterComponent.push_back(aIm.second.mCam->PseudoOpticalCenter().y);
+            break;
+        case 3:
+            aVCenterComponent.push_back(aIm.second.mCam->PseudoOpticalCenter().z);
+            break;
+        }
+    }
+    return aVCenterComponent;
+}
+
+CamStenope * cAppli_CamXifDate::Cam(const string &aName)
+{
+    cIm_CamXifDate aIm = mVIm.at(aName);
+    return aIm.mCam;
+}
+
+const Pt2di cAppli_CamXifDate::CamSz() const
+{
+    return mVIm.at(0).mCam->Sz();
+}
+
+
+/*******************************************************************/
+/*                                                                 */
+/*                      cSetTiePMul_Cam                            */
+/*                                                                 */
+/*******************************************************************/
+cSetTiePMul_Cam::cSetTiePMul_Cam(const std::string &aSH, const cAppli_CamXifDate &anAppli):
+    m_pSH(new cSetTiePMul(0)),
+    mSH(aSH),
+    m_Appli(anAppli)
+{
+    m_pSH->AddFile(mSH);
+}
+
+void cSetTiePMul_Cam::ReechRS_SH(const double &aRSSpeed, const string &aSHOut)
+{
+    std::vector<cSetPMul1ConfigTPM *> aVCnf = m_pSH->VPMul();
+    for(uint itCnf=0; itCnf<aVCnf.size(); itCnf++)
+    {
+        std::cout << "Done " << itCnf << " out of " << aVCnf.size() << endl;
+        auto aCnf = aVCnf.at(itCnf);
+        std::vector<int> aVIdIm = aCnf->VIdIm();
+        std::vector<CamStenope*> aVCam;
+        for(int &aIdIm : aVIdIm)
+        {
+            std::string aNameIm = m_pSH->NameFromId(aIdIm);
+            aVCam.push_back(m_Appli.mVIm.at(aNameIm).mCam);
+        }
+        //std::cout << "Old     OldReproj      NewReproj     New" << endl;
+        for(int aKPt=0; aKPt<aCnf->NbPts(); aKPt++)
+        {
+            std::vector<Pt2dr> aVOldP2D;
+            for(int aKIm=0; aKIm<aCnf->NbIm(); aKIm++)
+            {
+                aVOldP2D.push_back(aCnf->Pt(aKPt,aKIm));
+            }
+            ELISE_ASSERT(aVOldP2D.size() == aVCam.size(), "Size not coherent");
+            ELISE_ASSERT(aVOldP2D.size() > 1 && aVCam.size() > 1, "Nb faiseaux < 2");
+            Pt3dr aP3D = Intersect_Simple(aVCam , aVOldP2D);
+
+            for(int aKIm=0; aKIm<aCnf->NbIm(); aKIm++)
+            {
+                CamStenope * aCam = aVCam.at(aKIm);
+                Pt2dr aOldP2D = aVOldP2D.at(aKIm);
+                Pt2dr aReprojP2D = aCam->R3toF2(aP3D);
+
+                double aEcartTime = aOldP2D.y * aRSSpeed/1000/1000;
+                Pt3dr aOldCenter = aCam->PseudoOpticalCenter();
+                std::string aNameIm = m_pSH->NameFromId(aCnf->VIdIm().at(aKIm));
+                double aNewTime = m_Appli.mVIm.at(aNameIm).mDiffSecond - aEcartTime;
+                Pt3dr aNewCenter = Pt3dr(m_Appli.mS_x(aNewTime),m_Appli.mS_y(aNewTime),m_Appli.mS_z(aNewTime));
+
+                aCam->AddToCenterOptical(aNewCenter-aOldCenter);
+
+                Pt2dr aNewReprojP2D = aCam->R3toF2(aP3D);
+                Pt2dr aNewP2D = aOldP2D + aNewReprojP2D - aReprojP2D;
+                if(0 < aNewP2D.x && aNewP2D.x < double(aCam->Sz().x) && 0 < aNewP2D.y && aNewP2D.y < double(aCam->Sz().y))
+                    aCnf->SetPt(aKPt,aKIm,aNewP2D);
+            }
+        }
+
+        // output modified tie points
+        std::string aNameOut0 = cSetTiePMul::StdName(m_Appli.mICNM,aSHOut,"Reech",0);
+        std::string aNameOut1 = cSetTiePMul::StdName(m_Appli.mICNM,aSHOut,"Reech",1);
+
+        m_pSH->Save(aNameOut0);
+        m_pSH->Save(aNameOut1);
+
+    }
+}
+
+void cSetTiePMul_Cam::TestOri(double aTimeEcart)
+{
+    auto aVIm = m_Appli.mVIm;
+    auto aListIm = *(m_Appli.mSetIm);
+    cElFilename aCal = cElFilename(m_Appli.mDir,m_Appli.mICNM->StdNameCalib(m_Appli.mOri,aListIm.at(0)));
+    std::string aDirCalib,aCalib;
+    SplitDirAndFile(aDirCalib,aCalib,aCal.m_basename);
+    std::string aNewCalib = m_Appli.mDir + "Ori-" + m_Appli.mOri + "-Reech/" + aCalib;
+    std::string aOriKeyOut = "NKS-Assoc-Im2Orient@-" + m_Appli.mOri + "-Reech";
+    for(auto &aIm:aListIm)
+    {
+        CamStenope * aCam = aVIm.at(aIm).mCam;
+        double aNewTime = aVIm.at(aIm).mDiffSecond + aTimeEcart;
+        Pt3dr aNewCenter = Pt3dr(m_Appli.mS_x(aNewTime),m_Appli.mS_y(aNewTime),m_Appli.mS_z(aNewTime));
+        aCam->AddToCenterOptical(aNewCenter-aCam->PseudoOpticalCenter());
+        std::string aOriOut = m_Appli.mICNM->Assoc1To1(aOriKeyOut,aIm,true);
+        cOrientationConique anOC = aCam->StdExportCalibGlob();
+        anOC.Interne().SetNoInit();
+        anOC.FileInterne().SetVal(aNewCalib);
+        MakeFileXML(anOC,aOriOut);
+    }
+}
+/*******************************************************************/
+/*                                                                 */
+/*                      cPtIm_CamXifDate                           */
+/*                                                                 */
+/*******************************************************************/
+cPtIm_CamXifDate::cPtIm_CamXifDate(Pt2dr &aPtIm, cIm_CamXifDate &aIm_CamXifDate):
+    mPtIm(aPtIm),
+    mIm_CamXifDate(aIm_CamXifDate)
+{}
+
+/*******************************************************************/
+/*                                                                 */
+/*                cSetOfMesureAppuisFlottants_Cam                  */
+/*                                                                 */
+/*******************************************************************/
+cSetOfMesureAppuisFlottants_Cam::cSetOfMesureAppuisFlottants_Cam(const std::string &aMAFIn,const cAppli_CamXifDate & anAppli):
+    m_Appli(anAppli),
+    mDico(StdGetFromPCP(aMAFIn,SetOfMesureAppuisFlottants))
+{
+    std::list<cMesureAppuiFlottant1Im> aLMAF = mDico.MesureAppuiFlottant1Im();
+    for(auto &aMAF : aLMAF)
+    {
+        const std::string aNameIm = aMAF.NameIm();
+        std::list<cOneMesureAF1I> & aLMes = aMAF.OneMesureAF1I();
+        for(auto & aMes:aLMes)
+        {
+            const std::string aNamePt = aMes.NamePt();
+            Pt2dr aPtIm = aMes.PtIm();
+            auto search = mVPtIm.find(aNamePt);
+            cIm_CamXifDate aIm_XifDate = m_Appli.mVIm.at(aNameIm);
+            cPtIm_CamXifDate aPtIm_CamXifDate(aPtIm,aIm_XifDate);
+            if(search == mVPtIm.end())
+            {
+                std::vector<cPtIm_CamXifDate> aVPtIm_CamXifDate;
+                aVPtIm_CamXifDate.push_back(aPtIm_CamXifDate);
+                mVPtIm.insert(pair<std::string,std::vector<cPtIm_CamXifDate>>(aNamePt,aVPtIm_CamXifDate));
+            }
+            else
+            {
+                mVPtIm.at(aNamePt).push_back(aPtIm_CamXifDate);
+            }
+        }
+    }
+}
+
+void cSetOfMesureAppuisFlottants_Cam::ReechRS_MAF(const double aRSSpeed,const std::string aMAFOut)
+{
+    std::map<pair<std::string,std::string>,Pt2dr> aNewPtMap;//<<NameIm,NamePt>,PtIm>
+    for(auto &aPtIm:mVPtIm)
+    {
+        std::vector<Pt2dr> aVOldP2D;
+        std::vector<CamStenope*> aVCam;
+        std::string aNamePt = aPtIm.first;
+        std::vector<cPtIm_CamXifDate> aVPtIm_CamXifDate = aPtIm.second;
+        for(auto &aPtIm_CamXifDate:aVPtIm_CamXifDate)
+        {
+            aVOldP2D.push_back(aPtIm_CamXifDate.mPtIm);
+            aVCam.push_back(aPtIm_CamXifDate.mIm_CamXifDate.mCam);
+        }
+        ELISE_ASSERT(aVOldP2D.size() == aVCam.size(), "Size not coherent");
+        ELISE_ASSERT(aVOldP2D.size() > 1 && aVCam.size() > 1, "Nb faiseaux < 2");
+
+        Pt3dr aP3D = Intersect_Simple(aVCam , aVOldP2D);
+        for(auto &aPtIm_CamXifDate:aVPtIm_CamXifDate)
+        {
+            CamStenope * aCam = aPtIm_CamXifDate.mIm_CamXifDate.mCam;
+            Pt2dr aOldP2D = aPtIm_CamXifDate.mPtIm;
+            Pt2dr aReprojP2D = aCam->R3toF2(aP3D);
+            double aNewTime = aPtIm_CamXifDate.mIm_CamXifDate.mDiffSecond-aOldP2D.y * aRSSpeed/1000/1000;
+            Pt3dr aNewCenter = Pt3dr(m_Appli.mS_x(aNewTime),m_Appli.mS_y(aNewTime),m_Appli.mS_z(aNewTime));
+            aCam->AddToCenterOptical(aNewCenter-aCam->PseudoOpticalCenter());
+            Pt2dr aNewReprojP2D = aCam->R3toF2(aP3D);
+            Pt2dr aNewP2D = aOldP2D + aNewReprojP2D - aReprojP2D;
+            pair<std::string,std::string> aNameKey = pair<std::string,std::string>(aPtIm_CamXifDate.mIm_CamXifDate.mName,aNamePt);
+            aNewPtMap.insert(pair<pair<std::string,std::string>,Pt2dr>(aNameKey,aNewP2D));
+        }
+    }
+
+    // modify mDico with aNewPtMap
+    for(auto & aMAF:mDico.MesureAppuiFlottant1Im())
+    {
+        std::string aNameIm = aMAF.NameIm();
+        for(auto & aMes:aMAF.OneMesureAF1I())
+        {
+            std::string aNamePt = aMes.NamePt();
+            pair<std::string,std::string> aNameKey = pair<std::string,std::string>(aNameIm,aNamePt);
+            aMes.PtIm() = aNewPtMap.at(aNameKey);
+        }
+    }
+
+    MakeFileXML(mDico,aMAFOut);
+}
+
+
+/*******************************************************************/
+/*                                                                 */
+/*                                                                 */
+/*                                                                 */
+/*******************************************************************/
 
 int SimuRolShut_main(int argc, char ** argv)
 {
@@ -425,106 +697,152 @@ int GenerateOrient_main (int argc, char ** argv)
 
 int ReechRolShut_main(int argc, char ** argv)
 {
-    std::string aSH,aSHOut{"_Reech"},aCamVFile,aMAFIn,aMAFOut,aDir,aSHIn;
-    std::vector<double> aData;
+    std::string aPatIm,aSH,aOri,aSHOut{"-Reech"},aMAFIn,aMAFOut{"Mesure_Finale-Reech.xml"};
+    double aRSSpeed;
     ElInitArgMain
             (
-                argc, argv,
-                LArgMain() << EAMC(aCamVFile,"File containg image velocity and image depth",eSAM_IsExistFile)
-                           << EAMC(aData,"[image pixel height (um), focal length (mm), rolling shutter speed (us)]"),
+                argc,argv,
+                LArgMain() << EAMC(aPatIm,"Image pattern",eSAM_IsExistFile)
+                           << EAMC(aOri,"Input orientation folder",eSAM_IsExistDirOri)
+                           << EAMC(aRSSpeed,"Rolling shutter speed (us/line)"),
                 LArgMain() << EAM(aSH,"SHIn",true,"Input tie point file (new format)")
-                           << EAM(aSHOut,"SHOut",true,"File postfix of the output tie point file (new format), def=_Reech")
+                           << EAM(aSHOut,"SHOut",true,"Folder postfix for tie point output folder, def=_Reech")
                            << EAM(aMAFIn,"MAFIn",true,"Input image measurement file")
-                           << EAM(aMAFOut,"MAFOut",true,"Output image measurement file")
+                           << EAM(aMAFOut,"MAFOut",true,"Output image measurement file, def=Mesure_Finale-Reech.xml")
                 );
-    // get directory
-    SplitDirAndFile(aDir,aSHIn,aSH);
-    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 
-    double h = aData.at(0)/1000/1000; // um
-    double f = aData.at(1)/1000; // mm
-    double T = aData.at(2)/1000000; // us
-
-    // read file containing image velocity and depth
-    std::ifstream aFile(aCamVFile.c_str());
-
-    std::map<std::string, double> aMapReechScale;
-    if(aFile)
-    {
-        std::cout << "Read File : " << aCamVFile << endl;
-        std::string aName;
-        double aDiffPos,aDiffSecond,aV,aH;
-
-        while(aFile >> aName >> aDiffPos >> aDiffSecond >> aV >> aH)
-        {
-            double lambda = 1 - f*aV*T/h/aH;
-            std::cout << std::setprecision(10) << aName << " " << lambda << endl;
-            aMapReechScale.insert(pair<std::string, double>(aName, lambda));
-        }
-        aFile.close();
-    }
+    cAppli_CamXifDate anAppli_CamXifDate(aPatIm,aOri);
 
     if(EAMIsInit(&aSH))
     {
-        // load tie points
-        cSetTiePMul * pSH = new cSetTiePMul(0);
-        pSH->AddFile(aSH);
-        //std::map<std::string,cCelImTPM *> aVName2Im = pSH->DicoIm().mName2Im;
-
-        // modification of tie points
-        std::vector<cSetPMul1ConfigTPM *> aVCnf = pSH->VPMul();
-        for(auto & aCnf:aVCnf)
-        {
-            std::vector<int> aVIdIm =  aCnf->VIdIm();
-            // Parse all pts in one Config
-            for(uint aKPt=0; aKPt<uint(aCnf->NbPts());aKPt++)
-            {
-                // Parse all imgs for one pt
-                for(uint aKIm=0;aKIm<aVIdIm.size();aKIm++)
-                {
-                    std::string aNameIm = pSH->NameFromId(aVIdIm.at(aKIm));
-                    Pt2dr aPt = aCnf->Pt(aKPt, aKIm);
-                    Pt2dr aNewPt = Pt2dr(aPt.x,aPt.y*aMapReechScale[aNameIm]);
-                    //std::cout << "Name:" << aNameIm << " Pt: " << aPt << " Scale:" << aMapReechScale[aNameIm] << endl;
-
-                    aCnf->SetPt(aKPt,aKIm,aNewPt);
-                }
-            }
-        }
-
-
-        // output modifeied tie points
-        std::string aNameOut0 = cSetTiePMul::StdName(aICNM,aSHOut,"Reech",0);
-        std::string aNameOut1 = cSetTiePMul::StdName(aICNM,aSHOut,"Reech",1);
-
-        pSH->Save(aNameOut0);
-        pSH->Save(aNameOut1);
+        std::cout << "Reech " << aSH << endl;
+        cSetTiePMul_Cam aSetTiePMul_Cam(aSH,anAppli_CamXifDate);
+        aSetTiePMul_Cam.ReechRS_SH(aRSSpeed,aSHOut);
     }
-
     if(EAMIsInit(&aMAFIn))
     {
-        cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aMAFIn,SetOfMesureAppuisFlottants);
-        std::list<cMesureAppuiFlottant1Im> & aLMAF = aDico.MesureAppuiFlottant1Im();
-
-        for(auto & aMAF : aLMAF)
-        {
-            std::string aNameIm = aMAF.NameIm();
-            std::list<cOneMesureAF1I> & aMes = aMAF.OneMesureAF1I();
-            std::cout << aNameIm << endl;
-
-            for(auto & aOneMes : aMes)
-            {
-                Pt2dr aPt = aOneMes.PtIm();
-                std::cout << aOneMes.NamePt() << " before:" << aOneMes.PtIm();
-                Pt2dr aNewPt = Pt2dr(aPt.x,aPt.y*aMapReechScale[aNameIm]);
-                aOneMes.SetPtIm(aNewPt);
-                std::cout << " after:" << aOneMes.PtIm() << endl;
-            }
-        }
-        MakeFileXML(aDico,aMAFOut);
+        std::cout << "Reech " << aMAFIn << endl;
+        cSetOfMesureAppuisFlottants_Cam aSetOfMesureAppuisFlottants_Cam(aMAFIn,anAppli_CamXifDate);
+        aSetOfMesureAppuisFlottants_Cam.ReechRS_MAF(aRSSpeed,aMAFOut);
     }
 
     return EXIT_SUCCESS;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//    std::string aSH,aSHOut{"_Reech"},aCamVFile,aMAFIn,aMAFOut,aDir,aSHIn;
+//    std::vector<double> aData;
+//    ElInitArgMain
+//            (
+//                argc, argv,
+//                LArgMain() << EAMC(aCamVFile,"File containg image velocity and image depth",eSAM_IsExistFile)
+//                           << EAMC(aData,"[image pixel height (um), focal length (mm), rolling shutter speed (us)]"),
+//                LArgMain() << EAM(aSH,"SHIn",true,"Input tie point file (new format)")
+//                           << EAM(aSHOut,"SHOut",true,"File postfix of the output tie point file (new format), def=_Reech")
+//                           << EAM(aMAFIn,"MAFIn",true,"Input image measurement file")
+//                           << EAM(aMAFOut,"MAFOut",true,"Output image measurement file")
+//                );
+//    // get directory
+//    SplitDirAndFile(aDir,aSHIn,aSH);
+//    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+//    double h = aData.at(0)/1000/1000; // um
+//    double f = aData.at(1)/1000; // mm
+//    double T = aData.at(2)/1000000; // us
+
+//    // read file containing image velocity and depth
+//    std::ifstream aFile(aCamVFile.c_str());
+
+//    std::map<std::string, double> aMapReechScale;
+//    if(aFile)
+//    {
+//        std::cout << "Read File : " << aCamVFile << endl;
+//        std::string aName;
+//        double aDiffPos,aDiffSecond,aV,aH;
+
+//        while(aFile >> aName >> aDiffPos >> aDiffSecond >> aV >> aH)
+//        {
+//            double lambda = 1 - f*aV*T/h/aH;
+//            std::cout << std::setprecision(10) << aName << " " << lambda << endl;
+//            aMapReechScale.insert(pair<std::string, double>(aName, lambda));
+//        }
+//        aFile.close();
+//    }
+
+//    if(EAMIsInit(&aSH))
+//    {
+//        // load tie points
+//        cSetTiePMul * pSH = new cSetTiePMul(0);
+//        pSH->AddFile(aSH);
+//        //std::map<std::string,cCelImTPM *> aVName2Im = pSH->DicoIm().mName2Im;
+
+//        // modification of tie points
+//        std::vector<cSetPMul1ConfigTPM *> aVCnf = pSH->VPMul();
+//        for(auto & aCnf:aVCnf)
+//        {
+//            std::vector<int> aVIdIm =  aCnf->VIdIm();
+//            // Parse all pts in one Config
+//            for(uint aKPt=0; aKPt<uint(aCnf->NbPts());aKPt++)
+//            {
+//                // Parse all imgs for one pt
+//                for(uint aKIm=0;aKIm<aVIdIm.size();aKIm++)
+//                {
+//                    std::string aNameIm = pSH->NameFromId(aVIdIm.at(aKIm));
+//                    Pt2dr aPt = aCnf->Pt(aKPt, aKIm);
+//                    Pt2dr aNewPt = Pt2dr(aPt.x,aPt.y*aMapReechScale[aNameIm]);
+//                    //std::cout << "Name:" << aNameIm << " Pt: " << aPt << " Scale:" << aMapReechScale[aNameIm] << endl;
+
+//                    aCnf->SetPt(aKPt,aKIm,aNewPt);
+//                }
+//            }
+//        }
+
+
+//        // output modifeied tie points
+//        std::string aNameOut0 = cSetTiePMul::StdName(aICNM,aSHOut,"Reech",0);
+//        std::string aNameOut1 = cSetTiePMul::StdName(aICNM,aSHOut,"Reech",1);
+
+//        pSH->Save(aNameOut0);
+//        pSH->Save(aNameOut1);
+//    }
+
+//    if(EAMIsInit(&aMAFIn))
+//    {
+//        cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aMAFIn,SetOfMesureAppuisFlottants);
+//        std::list<cMesureAppuiFlottant1Im> & aLMAF = aDico.MesureAppuiFlottant1Im();
+
+//        for(auto & aMAF : aLMAF)
+//        {
+//            std::string aNameIm = aMAF.NameIm();
+//            std::list<cOneMesureAF1I> & aMes = aMAF.OneMesureAF1I();
+//            std::cout << aNameIm << endl;
+
+//            for(auto & aOneMes : aMes)
+//            {
+//                Pt2dr aPt = aOneMes.PtIm();
+//                std::cout << aOneMes.NamePt() << " before:" << aOneMes.PtIm();
+//                Pt2dr aNewPt = Pt2dr(aPt.x,aPt.y*aMapReechScale[aNameIm]);
+//                aOneMes.SetPtIm(aNewPt);
+//                std::cout << " after:" << aOneMes.PtIm() << endl;
+//            }
+//        }
+//        MakeFileXML(aDico,aMAFOut);
+//    }
+
+
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

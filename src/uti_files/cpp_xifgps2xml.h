@@ -1,0 +1,5 @@
+#ifndef CPP_XIFGPS2XML_H
+#define CPP_XIFGPS2XML_H
+
+#endif // CPP_XIFGPS2XML_H
+

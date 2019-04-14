@@ -53,6 +53,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/Hugin.cpp
     ${TDPPMD_DIR}/ThermikProcessing.cpp
     ${TDPPMD_DIR}/MPLF.cpp
+    ${TDPPMD_DIR}/spline.cpp
     ${TDPPMD_DIR}/ArboArch.cpp
     ${TDPPMD_DIR}/TiePByMesh/PHO_MI.cpp
     ${TDPPMD_DIR}/TiePByMesh/InitOutil.cpp

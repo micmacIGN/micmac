@@ -2932,7 +2932,7 @@ cInterfChantierNameManipulateur* cInterfChantierNameManipulateur::BasicAlloc(con
     {
 
         tNuplet aRes= isDirect ? Direct(aKey,aVNames)  : Inverse(aKey,aVNames);
-        ELISE_ASSERT(aRes.size()==1,"Multiple res in Assoc1To1");
+        ELISE_ASSERT(aRes.size()==1,"Multiple res in Assoc1ToN");
 
         return aRes[0];
     }
@@ -2981,7 +2981,7 @@ cInterfChantierNameManipulateur* cInterfChantierNameManipulateur::BasicAlloc(con
 
         tNuplet aRes= isDirect ? Direct(aKey,aInput)  : Inverse(aKey,aInput);
 
-        ELISE_ASSERT(aRes.size()==1,"Multiple res in Assoc1To2");
+        ELISE_ASSERT(aRes.size()==1,"Multiple res in Assoc1To3");
 
         return aRes[0];
     }
@@ -3002,7 +3002,7 @@ cInterfChantierNameManipulateur* cInterfChantierNameManipulateur::BasicAlloc(con
 
         tNuplet aRes= isDirect ? Direct(aKey,aInput)  : Inverse(aKey,aInput);
 
-        ELISE_ASSERT(aRes.size()==2,"Multiple res in Assoc1To1");
+        ELISE_ASSERT(aRes.size()==2,"Wrong res number in Assoc2To1");
 
         return std::pair<std::string,std::string>(aRes[0],aRes[1]);
 
