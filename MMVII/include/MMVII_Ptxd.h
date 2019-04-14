@@ -42,7 +42,19 @@ template <class Type,const int Dim> class cPtxd
 {
     public :
        /// Maybe some function will require generic access to data
-       Type * Data() {return mCoords;}
+       Type * PtRawData() {return mCoords;}
+       const Type * PtRawData() const {return mCoords;}
+
+       Type & operator[] (int aK) 
+       {
+          MMVII_INTERNAL_ASSERT_tiny((aK>=0) && (aK<Dim),"Bad point access");
+          return mCoords[aK];
+       }
+       const Type & operator[] (int aK)  const
+       {
+          MMVII_INTERNAL_ASSERT_tiny((aK>=0) && (aK<Dim),"Bad point access");
+          return mCoords[aK];
+       }
 
        // cPtxd(const cPt1d<Type>);
        // cPtxd(const cPt2d<Type>);
@@ -51,6 +63,14 @@ template <class Type,const int Dim> class cPtxd
        /// Some function requires default constructor (serialization ?)
        cPtxd() {}
 
+       /// Some function requires default constructor (serialization ?)
+       static cPtxd<Type,Dim>  PCste(const Type & aVal) 
+       { 
+           cPtxd<Type,Dim> aRes;
+           for (int aK=0 ; aK<Dim; aK++) 
+               aRes.mCoords[aK]= aVal;
+           return aRes;
+       }
        /// Contructor for 1 dim point, statically checked
        cPtxd(const Type & x) :  mCoords{x} {static_assert(Dim==1,"bad dim in cPtxd initializer");}
        /// Contructor for 2 dim point, statically checked
@@ -58,33 +78,19 @@ template <class Type,const int Dim> class cPtxd
        /// Contructor for 3 dim point, statically checked
        cPtxd(const Type & x,const Type &y,const Type &z) :  mCoords{x,y,z} {static_assert(Dim==3,"bad dim in cPtxd initializer");}
 
+        inline Type & x()             {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
+        inline const Type & x() const {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
+
+        inline Type & y()             {static_assert(Dim>=2,"bad dim in cPtxd initializer");return mCoords[1];}
+        inline const Type & y() const {static_assert(Dim>=2,"bad dim in cPtxd initializer");return mCoords[1];}
+
+        inline Type & z()             {static_assert(Dim>=2,"bad dim in cPtxd initializer");return mCoords[2];}
+        inline const Type & z() const {static_assert(Dim>=2,"bad dim in cPtxd initializer");return mCoords[2];}
 
     protected :
        Type mCoords[Dim];
 };
-
-    ///  1 dimension specializatio,
-
-template <class Type> class cPt1d : public cPtxd<Type,1>
-{
-     public :
-        // typedef typename cPtxd<Type,1> tBase;
-        typedef cPtxd<Type,1> tBase;
-
-     // Constructeur
-        // inline cPt1d(const Type& anX) {tBase::mCoords[0] = anX;}
-        inline cPt1d(const Type& anX) : tBase(anX) {}
-        inline cPt1d(const tBase & aP) {static_cast<tBase&>(*this) = aP;}
-
-     // Accesseurs
-        inline Type & x()             {return tBase::mCoords[0];}
-        inline const Type & x() const {return tBase::mCoords[0];}
-};
-
-template <class Type> inline cPt1d<Type> operator + (const cPt1d<Type> & aP1,const cPt1d<Type> & aP2) 
-{return  cPt1d<Type>(aP1.x()+aP2.x());}
-template <class Type> inline cPt1d<Type> operator - (const cPt1d<Type> & aP1,const cPt1d<Type> & aP2) 
-{return  cPt1d<Type>(aP1.x()-aP2.x());}
+/*
 template <class Type> inline cPt1d<Type> operator * (const Type & aVal ,const cPt1d<Type> & aP) 
 {return  cPt1d<Type>(aP.x()*aVal);}
 template <class Type> inline cPt1d<Type> operator * (const cPt1d<Type> & aP,const Type & aVal) 
@@ -93,104 +99,111 @@ template <class Type> inline cPt1d<Type> operator / (const cPt1d<Type> & aP,cons
 {return  cPt1d<Type>(aP.x()/aVal);}
 template <class Type> inline bool operator == (const cPt1d<Type> & aP1,const cPt1d<Type> & aP2) {return  (aP1.x()==aP2.x());}
 template <class Type> inline bool operator != (const cPt1d<Type> & aP1,const cPt1d<Type> & aP2) {return !(aP1==aP2);}
+*/
+
+//  operator +
+template <class Type> inline cPtxd<Type,1> operator + (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
+{ return cPtxd<Type,1>(aP1.x() + aP2.x()); }
+template <class Type> inline cPtxd<Type,2> operator + (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
+{ return cPtxd<Type,2>(aP1.x() + aP2.x(),aP1.y() + aP2.y()); }
+template <class Type> inline cPtxd<Type,3> operator + (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
+{ return cPtxd<Type,3>(aP1.x() + aP2.x(),aP1.y() + aP2.y(),aP1.z()+aP2.z()); }
+
+//  operator -
+template <class Type> inline cPtxd<Type,1> operator - (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
+{ return cPtxd<Type,1>(aP1.x() - aP2.x()); }
+template <class Type> inline cPtxd<Type,2> operator - (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
+{ return cPtxd<Type,2>(aP1.x() - aP2.x(),aP1.y() - aP2.y()); }
+template <class Type> inline cPtxd<Type,3> operator - (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
+{ return cPtxd<Type,3>(aP1.x() - aP2.x(),aP1.y() - aP2.y(),aP1.z()-aP2.z()); }
 
 
-typedef cPt1d<double>  cPt1dr ;
-typedef cPt1d<int>     cPt1di ;
-typedef cPt1d<float>   cPt1df ;
+
+// operator *
+template <class Type> inline cPtxd<Type,1> operator * (const Type & aVal ,const cPtxd<Type,1> & aP) 
+{return  cPtxd<Type,1>(aP.x()*aVal);}
+template <class Type> inline cPtxd<Type,1> operator * (const cPtxd<Type,1> & aP,const Type & aVal) 
+{return  cPtxd<Type,1>(aP.x()*aVal);}
+template <class Type> inline cPtxd<Type,2> operator * (const Type & aVal ,const cPtxd<Type,2> & aP) 
+{return  cPtxd<Type,2>(aP.x()*aVal,aP.y()*aVal);}
+template <class Type> inline cPtxd<Type,2> operator * (const cPtxd<Type,2> & aP,const Type & aVal) 
+{return  cPtxd<Type,2>(aP.x()*aVal,aP.y()*aVal);}
+template <class Type> inline cPtxd<Type,3> operator * (const Type & aVal ,const cPtxd<Type,3> & aP) 
+{return  cPtxd<Type,3>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
+template <class Type> inline cPtxd<Type,3> operator * (const cPtxd<Type,3> & aP,const Type & aVal) 
+{return  cPtxd<Type,3>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
 
 
-    ///  2 dimension specializatio,
+//  operator ==
+template <class Type> inline bool operator == (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
+{return  (aP1.x()==aP2.x());}
+template <class Type> inline bool operator == (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
+{return  (aP1.x()==aP2.x()) && (aP1.y()==aP2.y());}
+template <class Type> inline bool operator == (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
+{return  (aP1.x()==aP2.x()) && (aP1.y()==aP2.y()) && (aP1.z()==aP2.z());}
 
-template <class Type> class cPt2d : public cPtxd<Type,2>
+//  operator !=
+template <class Type> inline bool operator != (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
+{return  (aP1.x()!=aP2.x());}
+template <class Type> inline bool operator != (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
+{return  (aP1.x()!=aP2.x()) || (aP1.y()!=aP2.y());}
+template <class Type> inline bool operator != (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
+{return  (aP1.x()!=aP2.x()) || (aP1.y()!=aP2.y()) ||  (aP1.z()!=aP2.z());}
+
+// Operator SupEq  :  P1.k() >= P2.k() for all coordinates
+template <class Type> inline bool SupEq  (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
+{return  (aP1.x()>=aP2.x());}
+template <class Type> inline bool SupEq  (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
+{return  (aP1.x()>=aP2.x()) && (aP1.y()>=aP2.y());}
+template <class Type> inline bool SupEq  (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
+{return  (aP1.x()>=aP2.x()) && (aP1.y()>=aP2.y()) && (aP1.z()>=aP2.z());}
+
+// Operator InfStr  :  P1.k() < P2.k() for all coordinates
+template <class Type> inline bool InfStr  (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
+{return  (aP1.x()<aP2.x());}
+template <class Type> inline bool InfStr  (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
+{return  (aP1.x()<aP2.x()) && (aP1.y()<aP2.y());}
+template <class Type> inline bool InfStr  (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
+{return  (aP1.x()<aP2.x()) && (aP1.y()<aP2.y()) && (aP1.z()<aP2.z());}
+
+
+
+
+//  operator << 
+template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,1> &aP)
+{ return  OS << "[" << aP.x() << "]"; }
+template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,2> &aP)
+{ return  OS << "[" << aP.x() << "," << aP.y() << "]"; }
+template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,3> &aP)
+{ return  OS << "[" << aP.x() << "," << aP.y() << "," << aP.z()<< "]"; }
+
+/* Possible generik version, usefull ? I doubt ....
+template <class Type,const int aDim>
+    inline cPtxd<Type,aDim> operator +
+          (const cPtxd<Type,aDim> & aP1,const cPtxd<Type,aDim> & aP2)
 {
-     public :
-        typedef cPtxd<Type,2> tBase;
+    cPtxd<Type,aDim> aRes;
+    for (int aK=0 ; aK<aDim ; aK++)
+        aRes.Data()[aK] = aP1.Data()[aK] + aP2.Data()[aK];
 
-   // Constructeur
-//         cPt2d(const Type& anX,const Type& anY) {tBase::mCoords[0] = anX;tBase::mCoords[1] = anY;}
-
-        inline cPt2d(const Type& anX,const Type& anY) : tBase(anX,anY) {}
-        inline cPt2d() : cPt2d(0,0) {}
-        inline cPt2d(const tBase & aP) {static_cast<tBase&>(*this) = aP;}
-
-   // Accesseurs
-        Type & x()             {return tBase::mCoords[0];}
-        const Type & x() const {return tBase::mCoords[0];}
-        Type & y()             {return tBase::mCoords[1];}
-        const Type & y() const {return tBase::mCoords[1];}
-};
-
-
-template <class Type> inline cPt2d<Type> operator + (const cPt2d<Type> & aP1,const cPt2d<Type> & aP2) 
-{return  cPt2d<Type>(aP1.x()+aP2.x(),aP1.y()+aP2.y());}
-template <class Type> inline cPt2d<Type> operator - (const cPt2d<Type> & aP1,const cPt2d<Type> & aP2) 
-{return  cPt2d<Type>(aP1.x()-aP2.x(),aP1.y()-aP2.y());}
-template <class Type> inline cPt2d<Type> operator * (const Type & aVal ,const cPt2d<Type> & aP) 
-{return  cPt2d<Type>(aP.x()*aVal,aP.y()*aVal);}
-template <class Type> inline cPt2d<Type> operator * (const cPt2d<Type> & aP,const Type & aVal ) 
-{return  cPt2d<Type>(aP.x()*aVal,aP.y()*aVal);}
-template <class Type> inline cPt2d<Type> operator / (const cPt2d<Type> & aP,const Type & aVal ) 
-{return  cPt2d<Type>(aP.x()/aVal,aP.y()/aVal);}
-
-template <class Type> inline bool operator == (const cPt2d<Type> & aP1,const cPt2d<Type> & aP2) 
-{return  (aP1.x()==aP2.x())&&(aP1.y()==aP2.y());}
-template <class Type> inline bool operator != (const cPt2d<Type> & aP1,const cPt2d<Type> & aP2)  {return !(aP1==aP2);}
-
-typedef cPt2d<double>  cPt2dr ;
-typedef cPt2d<int>     cPt2di ;
-typedef cPt2d<float>   cPt2df ;
-
-template <class Type> std::ostream & operator << (std::ostream & OS,const cPt2d<Type> &aP)
-{
-   return  OS << "[" << aP.x() << "," << aP.y() << "]";
+    return aRes;
 }
+*/
 
+    ///  1 dimension specializatio,
+typedef cPtxd<double,1>  cPt1dr ;
+typedef cPtxd<int,1>     cPt1di ;
+typedef cPtxd<float,1>   cPt1df ;
 
-template <class Type> class cPt3d : public cPtxd<Type,3>
-{
-     public :
-        typedef cPtxd<Type,3> tBase;
+    ///  2 dimension specialization
+typedef cPtxd<double,2>  cPt2dr ;
+typedef cPtxd<int,2>     cPt2di ;
+typedef cPtxd<float,2>   cPt2df ;
 
-   // Constructeur
-
-        inline cPt3d(const Type& anX,const Type& anY,const Type& aZ) : tBase(anX,anY,aZ) {}
-        inline cPt3d() : cPt3d(0,0,0) {}
-        inline cPt3d(const tBase & aP) {static_cast<tBase&>(*this) = aP;}
-
-   // Accesseurs
-        Type & x()             {return tBase::mCoords[0];}
-        const Type & x() const {return tBase::mCoords[0];}
-        Type & y()             {return tBase::mCoords[1];}
-        const Type & y() const {return tBase::mCoords[1];}
-        Type & z()             {return tBase::mCoords[2];}
-        const Type & z() const {return tBase::mCoords[2];}
-
-};
-
-template <class Type> inline cPt3d<Type> operator + (const cPt3d<Type> & aP1,const cPt3d<Type> & aP2) 
-{return  cPt3d<Type>(aP1.x()+aP2.x(),aP1.y()+aP2.y(),aP1.z()+aP2.z());}
-template <class Type> inline cPt3d<Type> operator - (const cPt3d<Type> & aP1,const cPt3d<Type> & aP2) 
-{return  cPt3d<Type>(aP1.x()-aP2.x(),aP1.y()-aP2.y(),aP1.z()-aP2.z());}
-template <class Type> inline cPt3d<Type> operator * (const Type & aVal ,const cPt3d<Type> & aP) 
-{return  cPt3d<Type>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
-template <class Type> inline cPt3d<Type> operator * (const cPt3d<Type> & aP,const Type & aVal ) 
-{return  cPt3d<Type>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
-template <class Type> inline cPt3d<Type> operator / (const cPt3d<Type> & aP,const Type & aVal ) 
-{return  cPt3d<Type>(aP.x()/aVal,aP.y()/aVal,aP.z()/aVal);}
-
-template <class Type> inline bool operator == (const cPt3d<Type> & aP1,const cPt3d<Type> & aP2) 
-{return  (aP1.x()==aP2.x())&&(aP1.y()==aP2.y())&&(aP1.z()==aP2.z());}
-template <class Type> inline bool operator != (const cPt3d<Type> & aP1,const cPt3d<Type> & aP2)  {return !(aP1==aP2);}
-
-typedef cPt3d<double>  cPt3dr ;
-typedef cPt3d<int>     cPt3di ;
-typedef cPt3d<float>   cPt3df ;
-
-template <class Type> std::ostream & operator << (std::ostream & OS,const cPt3d<Type> &aP)
-{
-   return  OS << "[" << aP.x() << "," << aP.y() << "," << aP.z()<< "]";
-}
+    ///  3 dimension specialization
+typedef cPtxd<double,3>  cPt3dr ;
+typedef cPtxd<int,3>     cPt3di ;
+typedef cPtxd<float,3>   cPt3df ;
 
 
 };

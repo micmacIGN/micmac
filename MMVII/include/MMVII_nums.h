@@ -24,6 +24,7 @@ typedef long int     tINT8;
 
 typedef unsigned char  tU_INT1;
 typedef unsigned short tU_INT2;
+typedef unsigned int   tU_INT4;
 
 
 typedef int    tStdInt;  ///< "natural" int
@@ -64,20 +65,66 @@ template <class Type> class tElemNumTrait
 {
     public :
 };
+
+      // Unsigned int 
+
 template <> class tElemNumTrait<tU_INT1> : public tBaseNumTrait<tStdInt>
 {
     public :
         static const  std::string  Name() {return "tU_INT1";}
+        static bool   Signed() {return false;}
 };
 template <> class tElemNumTrait<tU_INT2> : public tBaseNumTrait<tStdInt>
 {
     public :
         static const  std::string  Name() {return "tU_INT2";}
+        static bool   Signed() {return false;}
 };
+template <> class tElemNumTrait<tU_INT4> : public tBaseNumTrait<tStdInt>
+{
+    public :
+        static const  std::string  Name() {return "tU_INT4";}
+        static bool   Signed() {return false;}
+};
+
+      // Signed int 
+
+template <> class tElemNumTrait<tINT1> : public tBaseNumTrait<tStdInt>
+{
+    public :
+        static const  std::string  Name() {return "tINT1";}
+        static bool   Signed() {return true;}
+};
+template <> class tElemNumTrait<tINT2> : public tBaseNumTrait<tStdInt>
+{
+    public :
+        static const  std::string  Name() {return "tINT2";}
+        static bool   Signed() {return true;}
+};
+template <> class tElemNumTrait<tINT4> : public tBaseNumTrait<tStdInt>
+{
+    public :
+        static const  std::string  Name() {return "tINT4";}
+        static bool   Signed() {return true;}
+};
+template <> class tElemNumTrait<tINT8> : public tBaseNumTrait<tStdInt>
+{
+    public :
+        static const  std::string  Name() {return "tINT8";}
+        static bool   Signed() {return true;}
+};
+
+      // Floating type
+
 template <> class tElemNumTrait<tREAL4> : public tBaseNumTrait<tStdDouble>
 {
     public :
         static const  std::string  Name() {return "tREAL4";}
+};
+template <> class tElemNumTrait<tREAL8> : public tBaseNumTrait<tStdDouble>
+{
+    public :
+        static const  std::string  Name() {return "tREAL8";}
 };
 
     // ========================================================================
@@ -88,9 +135,26 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type>
 {
     public :
          typedef Type  tVal;
-         typedef typename tElemNumTrait<Type>::tBase tBase;
+         typedef tElemNumTrait<Type>  tETrait;
+         typedef typename  tETrait::tBase tBase;
          static const tBase MaxValue() {return  std::numeric_limits<tVal>::max();}
          static const tBase MinValue() {return  std::numeric_limits<tVal>::min();}
+
+         static bool OkOverFlow(const tBase & aV)
+         {
+               if (tETrait::IsInt())
+                  return (aV>=MinValue()) && (aV<=MaxValue());
+               return true;
+         }
+         static Type Trunc(const tBase & aV)
+         {
+               if (tETrait::IsInt())
+               {
+                  if  (aV<MinValue()) return MinValue();
+                  if  (aV>MaxValue()) return MaxValue();
+               }
+               return Type(aV);
+         }
 };
 
 

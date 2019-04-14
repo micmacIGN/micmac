@@ -206,6 +206,9 @@ int  cAppli_MMVII_Bench::Exe()
    // La on a verifie que ca marchait pas
    // MMVII_INTERNAL_ASSERT_all((1+1)==3,"Theoreme  pas tres fondamental de l'arithmetique");
 
+
+   BenchGlobImage();
+
    Bench_Nums();
 
    BenchFiles();

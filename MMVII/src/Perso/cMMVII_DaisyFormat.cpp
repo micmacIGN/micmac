@@ -25,6 +25,7 @@ class cAppli_Daisy;
 
 // ====   cDaisyFOneMp3  =======================
 
+
 /**
     Class for storing info on one mp3 file of the daisy format
 */
@@ -143,8 +144,11 @@ void AddData(const  cAuxAr2007 & anAux,cDaisyFOneBook & aBook)
 /*                                                      */
 /* ==================================================== */
 
+///  Class for converting mp3 files to the daisy format (audio book)
 /**
     Application for daisy file
+    This class has been made for answering to on precise personnal application.
+  Not sure it will be usefull to others. BTW, it was the opportunity to check MMVII facilities.
 */
 
 

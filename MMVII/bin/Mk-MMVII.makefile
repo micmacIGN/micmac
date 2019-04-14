@@ -54,7 +54,7 @@ ObjMMV1=$(SrcMMV1:.cpp=.o)
 #
 #
 MMV2DirRamImages=${MMV2DirSrc}RamImages/
-SrcRamImages=$(wildcard ${MMV2DiRamImages}*.cpp)
+SrcRamImages=$(wildcard ${MMV2DirRamImages}*.cpp)
 ObjRamImages=$(SrcRamImages:.cpp=.o) 
 #
 #
@@ -67,7 +67,7 @@ ObjPerso=$(SrcPerso:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso}
+OBJ= ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} ${ObjRamImages}
 #
 #=========  Header ========
 #
@@ -114,6 +114,8 @@ ${MMV2DirUtils}%.o :  ${MMV2DirUtils}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirSerial}%.o :  ${MMV2DirSerial}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirRamImages}%.o :  ${MMV2DirRamImages}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
 #
 #       ===== TEST ========================================
 #
@@ -122,6 +124,9 @@ all : ${MMV2DirBin}${MMV2Exe} ${OBJ}
 Show:
 	echo ${SrcUtils}
 	echo DU=${MMV2DirUtils}
+	echo ObjRamImages: ${ObjRamImages}
+	echo SrcRamImages: ${SrcRamImages}
+	echo MMV2DiRamImages: ${MMV2DiRamImages}
 clean :
 	rm -f ${OBJ}
 #

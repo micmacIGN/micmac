@@ -18,8 +18,11 @@ void BenchTraits()
 {
    TplBenchTraits<tU_INT1>();
    TplBenchTraits<tU_INT2>();
+   TplBenchTraits<tINT1>();
+   TplBenchTraits<tINT2>();
+   TplBenchTraits<tINT4>();
    TplBenchTraits<tREAL4>();
-   getchar();
+   // getchar();
 }
 
 

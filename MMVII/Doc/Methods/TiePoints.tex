@@ -10,17 +10,54 @@
 %---------------------------------------------
 %---------------------------------------------
 
-\section{Indexing problem}
+\section{Fast recognitation}
 
 %---------------------------------------------
 
 \subsection{Motivation}
 For each image, we have computed tie points. A tie points is made
 of a vector $V \in \RR^n)$ . Typically $V$ is invariant
-to the main geometric deformation .  We want to compute 
-a function $\Psi $ that indicate if two vector $V_1$ and $V_2$
-correspond to the same tie points.
+to the main geometric deformation .  Le  $V_1$ and $V_2$
+be two tie points, we note :
 
+\begin{itemize}
+   \item  $H_{om}(V_1,V_2) $ the fact that two tie points are homologous;
+\end{itemize}
+
+Given $V_1,V_2$, there is of course no no oracle that can indicate if  $H_{om}(V_1,V_2)$,
+and classically we want to compute  a fast mathematicall function $\Psi $ that indicate if two vector $V_1$ and $V_2$
+correspond to the same tie points .  The ideal function would be such :
+
+\begin{itemize}
+   \item  $\Psi(V_1,V_2)  \iff H_{om}(V_1,V_2)$
+\end{itemize}
+
+
+Of course this impossible, and we introduce the miss rate  and fall out:
+
+\begin{itemize}
+   \item   miss rate , probability of $\Psi=0$ knowing $H_{om}=1$ , we note $p_m$;
+   \item   fall out , probability of $\Psi=1$ knowing $H_{om}=0$, we note $p_f$;
+\end{itemize}
+
+As we cannot have the ideal function $\Psi $ such as $p_m=0$ and $p_f=0$,
+we have to compromise, and depending on the circunstances, the price of the
+two error, will not be the same. Typically, in indexation step,  we are especially
+interested to have a low $p_f$; converselly in recognition step we are
+especially interested to have a low  $p_m$.
+
+
+\subsection{Bits vector}
+
+
+
+
+
+
+%----------------------------------------
+%  A conserver : equations TIPE Lolo
+%-----------------------------------------
+\COM{
 \begin{equation}
    \delta R = \frac{1}{\sigma} \frac{L}{S} = \frac{1}{\sigma}  \frac{2 \pi a }{ e \; dz} 
 \end{equation}
@@ -79,6 +116,7 @@ correspond to the same tie points.
 \begin{equation}
   T_{\infty} - T_a = \frac{(B_M \omega a)^2 e \sigma}{8g}
 \end{equation}
+}
 
 
 

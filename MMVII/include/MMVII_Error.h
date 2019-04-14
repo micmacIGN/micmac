@@ -28,11 +28,26 @@ namespace MMVII
 #define  The_MMVII_DebugLevel_NoError                0
 
 
-// e xtern int  The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_medium;
+// extern int  The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_medium;
 #define The_MMVII_DebugLevel The_MMVII_DebugLevel_InternalError_tiny
 
+/**  The error handler can be change , so its a function Ptr of type PtrMMVII_Error_Handler
+*/
 
-void MMVVI_Error(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine);
+typedef void (* PtrMMVII_Error_Handler) (const std::string & aType,const std::string &  aMes,const char * aFile,int aLine);
+
+
+/**  The current handler */
+extern PtrMMVII_Error_Handler MMVVI_Error;
+/** Set a new handler */
+void MMVII_SetErrorHandler(PtrMMVII_Error_Handler);
+/** Restore default error handler */
+void MMVII_RestoreDefaultHandle();
+
+
+
+
+// void MMVVI_Error(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine);
 
 #define MMVII_INTERNAL_ASSERT_Unresolved(aTest,aMes)\
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_Unresoved ) && (!(aTest)))\
