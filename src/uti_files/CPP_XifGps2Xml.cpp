@@ -39,9 +39,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "CPP_XifGps2Xml.h"
 
-cAppli_VByDate::cAppli_VByDate(const std::string & aFullName, const std::string & aOri):
+cAppli_VByDate::cAppli_VByDate(const std::string & aFullName, std::string & aOri):
     cAppli_XifDate(aFullName)
 {
+    StdCorrecNameOrient(aOri,mDir);
     for(auto & aIm : mVIm)
     {
         mVCam.push_back(mICNM->StdCamStenOfNames(aIm.mName,aOri));
@@ -301,6 +302,7 @@ int XifDate2Txt_main(int argc, char ** argv)
                       << EAM(aCalVOri,"CalVOri",true,"Calculate planitary velocity when an Ori is available")
                       << EAM(aOutCalcV,"OutCalcV",true,"Output file name for calculated velocity")
     );
+
 
     if(!EAMIsInit(&aCalVOri))
     {
