@@ -59,9 +59,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*                                                                 */
 /*******************************************************************/
 
-cIm_CamXifDate::cIm_CamXifDate(cInterfChantierNameManipulateur * aICNM, const string &aName, const string &aOri,cElHour & aBeginTime):
+cIm_CamXifDate::cIm_CamXifDate(cInterfChantierNameManipulateur * aICNM, const string &aName, const string &aOri,cElHour & aBeginTime, const Pt3dr & aVitesse):
     cIm_XifDate(aName,aBeginTime),
-    mCam(aICNM->StdCamStenOfNames(aName,aOri))
+    mCam(aICNM->StdCamStenOfNames(aName,aOri)),
+    mVitesse(aVitesse)
 {}
 
 
@@ -71,15 +72,36 @@ cIm_CamXifDate::cIm_CamXifDate(cInterfChantierNameManipulateur * aICNM, const st
 /*                                                                 */
 /*******************************************************************/
 
-cAppli_CamXifDate::cAppli_CamXifDate(const string &aFullName, string &aOri):
+cAppli_CamXifDate::cAppli_CamXifDate(const string &aFullName, string &aOri, const std::string & aCalcV):
     cAppli_XifDate(aFullName)
 {
     StdCorrecNameOrient(aOri,mDir,true);
     mOri = aOri;
+
+    // read velocity file
+    std::ifstream aFile((mDir+aCalcV).c_str());
+
+    std::map<string,Pt3dr> aMapVitesse;
+
+    if(aFile)
+    {
+        //#F=Im_xy_t_Vxy_h_X_Y_Z_Vx_Vy_Vz
+        std::string aNameIm;
+        double xy,t,Vxy,h,X,Y,Z,aVX,aVY,aVZ;
+
+        while(aFile >> aNameIm >> xy >> t >> Vxy >> h >> X >> Y >> Z >> aVX >> aVY >> aVZ)
+        {
+            aMapVitesse.insert(pair<string,Pt3dr>(aNameIm,Pt3dr(aVX,aVY,aVZ)));
+        }
+        aFile.close();
+    }
+    std::cout << "aCalcV : " << aMapVitesse.size() << " files" << endl;
+    ELISE_ASSERT(aMapVitesse.size()==mVIm.size(),"Nb of Im != Nb of Im velocity");
+
     for(int i=0; i<int(mSetIm->size());i++)
     {
 //        std::pair<char,int>('a',100);
-        mVIm.insert(std::pair<std::string,cIm_CamXifDate>(mSetIm->at(i),cIm_CamXifDate(mICNM,mSetIm->at(i),aOri,mBegin)));
+        mVIm.insert(std::pair<std::string,cIm_CamXifDate>(mSetIm->at(i),cIm_CamXifDate(mICNM,mSetIm->at(i),aOri,mBegin,aMapVitesse.at(mSetIm->at(i)))));
 //        mVIm.push_back(cIm_CamXifDate(mICNM,mSetIm->at(i),aOri,mBegin));
     }
     mS_x.set_points(this->GetVDiffSecond(),this->GetCamCenterComponent(1));
@@ -176,13 +198,11 @@ void cSetTiePMul_Cam::ReechRS_SH(const double &aRSSpeed, const string &aSHOut)
                 Pt2dr aReprojP2D = aCam->R3toF2(aP3D);
                 Pt2dr aP2DEcart = aReprojP2D - aOldP2D;
 
-                double aEcartTime = aOldP2D.y * aRSSpeed/1000/1000;
-                Pt3dr aOldCenter = aCam->PseudoOpticalCenter();
+                double aEcartTime = (aOldP2D.y-aCam->Sz().y/2) * aRSSpeed/1000/1000;
                 std::string aNameIm = m_pSH->NameFromId(aCnf->VIdIm().at(aKIm));
-                double aNewTime = m_Appli.mVIm.at(aNameIm).mDiffSecond - aEcartTime;
-                Pt3dr aNewCenter = Pt3dr(m_Appli.mS_x(aNewTime),m_Appli.mS_y(aNewTime),m_Appli.mS_z(aNewTime));
-
-                aCam->AddToCenterOptical(aNewCenter-aOldCenter);
+                //double aNewTime = m_Appli.mVIm.at(aNameIm).mDiffSecond - aEcartTime;
+                Pt3dr aEcartCenter = m_Appli.mVIm.at(aNameIm).mVitesse * aEcartTime;
+                aCam->AddToCenterOptical(-aEcartCenter);
 
                 Pt2dr aNewReprojP2D = aCam->R3toF2(aP3D);
                 Pt2dr aNewP2D = aNewReprojP2D - aP2DEcart;
@@ -239,10 +259,10 @@ cPtIm_CamXifDate::cPtIm_CamXifDate(Pt2dr &aPtIm, cIm_CamXifDate &aIm_CamXifDate)
 /*                                                                 */
 /*******************************************************************/
 cSetOfMesureAppuisFlottants_Cam::cSetOfMesureAppuisFlottants_Cam(const std::string &aMAFIn,const cAppli_CamXifDate & anAppli):
-    m_Appli(anAppli)
+    m_Appli(anAppli),
+    mDico(StdGetFromPCP(aMAFIn,SetOfMesureAppuisFlottants))
 {
-    cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aMAFIn,SetOfMesureAppuisFlottants);
-    std::list<cMesureAppuiFlottant1Im> & aLMAF = aDico.MesureAppuiFlottant1Im();
+    std::list<cMesureAppuiFlottant1Im> & aLMAF = mDico.MesureAppuiFlottant1Im();
     for(auto &aMAF : aLMAF)
     {
         const std::string aNameIm = aMAF.NameIm();
@@ -254,6 +274,7 @@ cSetOfMesureAppuisFlottants_Cam::cSetOfMesureAppuisFlottants_Cam(const std::stri
             auto search = mVPtIm.find(aNamePt);
             cIm_CamXifDate aIm_XifDate = m_Appli.mVIm.at(aNameIm);
             cPtIm_CamXifDate aPtIm_CamXifDate(aPtIm,aIm_XifDate);
+
             if(search == mVPtIm.end())
             {
                 std::vector<cPtIm_CamXifDate> aVPtIm_CamXifDate;
@@ -269,9 +290,9 @@ cSetOfMesureAppuisFlottants_Cam::cSetOfMesureAppuisFlottants_Cam(const std::stri
     std::cout << mVPtIm.size() << endl;
 }
 
-std::map<std::string,std::list<cOneMesureAF1I>> cSetOfMesureAppuisFlottants_Cam::ReechRS_MAF(const double aRSSpeed)
+std::map<Key,Pt2dr> cSetOfMesureAppuisFlottants_Cam::ReechRS_MAF(const double aRSSpeed)
 {
-    std::map<std::string,std::list<cOneMesureAF1I>> aMap;
+    std::map<Key,Pt2dr> aMap;
     for(auto &aPtIm:mVPtIm)
     {
         std::vector<Pt2dr> aVOldP2D;
@@ -289,17 +310,38 @@ std::map<std::string,std::list<cOneMesureAF1I>> cSetOfMesureAppuisFlottants_Cam:
         Pt3dr aP3D = Intersect_Simple(aVCam , aVOldP2D);
         for(auto &aPtIm_CamXifDate:aVPtIm_CamXifDate)
         {
+            std::string aImName = aPtIm_CamXifDate.mIm_CamXifDate.mName;
             CamStenope * aCam = aPtIm_CamXifDate.mIm_CamXifDate.mCam;
             Pt2dr aReprojP2D = aCam->R3toF2(aP3D);
-            std::cout << aReprojP2D << endl;
-            std::string aNameIm = aPtIm_CamXifDate.mIm_CamXifDate.mName;
-            if(aMap.find(aNameIm)==aMap.end())
-            {
-
-            }
+            double aEcartTime = (aPtIm_CamXifDate.mPtIm.y-aCam->Sz().y/2) * aRSSpeed/1000/1000;
+            //double aTime = aPtIm_CamXifDate.mIm_CamXifDate.mDiffSecond-aPtIm_CamXifDate.mPtIm.y * aRSSpeed/1000/1000;
+            //Pt3dr aNewCenter = Pt3dr(m_Appli.mS_x(aTime),m_Appli.mS_y(aTime),m_Appli.mS_z(aTime));
+            Pt3dr aEcartCenter = m_Appli.mVIm.at(aImName).mVitesse * aEcartTime;
+            aCam->AddToCenterOptical(-aEcartCenter);
+            Pt2dr aNewReprojP2D = aCam->R3toF2(aP3D);
+            Pt2dr aNewP2D = aNewReprojP2D + aPtIm_CamXifDate.mPtIm - aReprojP2D;
+            Key aKey = pair<string,string>(aImName,aPtName);
+            aMap.insert(pair<Key,Pt2dr>(aKey,aNewP2D));
         }
     }
     return aMap;
+}
+
+void cSetOfMesureAppuisFlottants_Cam::Export_MAF(const std::string & aMAFOut, const std::map<Key,Pt2dr> & aMap)
+{
+    std::list<cMesureAppuiFlottant1Im> & aLMAF = mDico.MesureAppuiFlottant1Im();
+    for(auto &aMAF:aLMAF)
+    {
+        const std::string aNameIm = aMAF.NameIm();
+        std::list<cOneMesureAF1I> & aLMes = aMAF.OneMesureAF1I();
+        for(auto & aMes:aLMes)
+        {
+            const std::string aNamePt = aMes.NamePt();
+            Key aKey = pair<string,string>(aNameIm,aNamePt);
+            aMes.PtIm() = aMap.at(aKey);
+        }
+    }
+    MakeFileXML(mDico,aMAFOut);
 }
 
 
@@ -684,30 +726,38 @@ int GenerateOrient_main (int argc, char ** argv)
 
 int ReechRolShut_main(int argc, char ** argv)
 {
-    std::string aPatIm,aSH,aOri,aSHOut{"-Reech"},aMAFIn,aMAFOut{"Mesure_Finale-Reech.xml"};
-    double aRSSpeed;
+    std::string aPatIm,aSH,aOri,aSHOut{"-Reech"},aMAFIn,aMAFOut{"Mesure_Finale-Reech.xml"},aCalcV;
+    double aRSSpeed, aGenOri;
     ElInitArgMain
             (
                 argc,argv,
                 LArgMain() << EAMC(aPatIm,"Image pattern",eSAM_IsExistFile)
                            << EAMC(aOri,"Input orientation folder",eSAM_IsExistDirOri)
-                           << EAMC(aRSSpeed,"Rolling shutter speed (us/line)"),
+                           << EAMC(aRSSpeed,"Rolling shutter speed (us/line)")
+                           << EAMC(aCalcV,"File containing camera velocity"),
                 LArgMain() << EAM(aSH,"SHIn",true,"Input tie point file (new format)")
                            << EAM(aSHOut,"SHOut",true,"Folder postfix for tie point output folder, def=_Reech")
                            << EAM(aMAFIn,"MAFIn",true,"Input image measurement file")
                            << EAM(aMAFOut,"MAFOut",true,"Output image measurement file, def=Mesure_Finale-Reech.xml")
+                           << EAM(aGenOri,"GenOri",true,"Generate New Ori with given time gap")
                 );
 
-    cAppli_CamXifDate anAppli_CamXifDate(aPatIm,aOri);
+    cAppli_CamXifDate anAppli_CamXifDate(aPatIm,aOri,aCalcV);
 
     if(EAMIsInit(&aSH))
     {
         cSetTiePMul_Cam aSetTiePMul_Cam(aSH,anAppli_CamXifDate);
         aSetTiePMul_Cam.ReechRS_SH(aRSSpeed,aSHOut);
+        if(EAMIsInit((&aGenOri)))
+        {
+                aSetTiePMul_Cam.TestOri(aGenOri);
+        }
     }
     if(EAMIsInit(&aMAFIn))
     {
         cSetOfMesureAppuisFlottants_Cam aSetOfMesureAppuisFlottants_Cam(aMAFIn,anAppli_CamXifDate);
+        std::map<Key,Pt2dr> aMap = aSetOfMesureAppuisFlottants_Cam.ReechRS_MAF(aRSSpeed);
+        aSetOfMesureAppuisFlottants_Cam.Export_MAF(aMAFOut,aMap);
 
     }
 
