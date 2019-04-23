@@ -9,6 +9,18 @@ namespace MMVII
 
 */
 
+/* ================= Random generator  ======================= */
+
+    // === Basic interface, global function but use C++11 modern
+    // === generator. By default will be deterministic, 
+
+
+///  Uniform distribution in 0-1
+double RandUnif_0_1();
+/// Uniform disrtibution in [0,N[ 
+double RandUnif_N(int aN);
+/// Eventualy free memory allocated for random generation
+void FreeRandom();
 
 /* ============ Definition of numerical type ================*/
 
@@ -50,6 +62,12 @@ template <> class tBaseNumTrait<tStdInt>
         static bool IsInt() {return true;}
         typedef tStdInt  tBase;
 };
+template <> class tBaseNumTrait<tINT8>
+{
+    public :
+        static bool IsInt() {return true;}
+        typedef tINT8  tBase;
+};
 template <> class tBaseNumTrait<tStdDouble>
 {
     public :
@@ -71,20 +89,20 @@ template <class Type> class tElemNumTrait
 template <> class tElemNumTrait<tU_INT1> : public tBaseNumTrait<tStdInt>
 {
     public :
-        static const  std::string  Name() {return "tU_INT1";}
         static bool   Signed() {return false;}
+        static eTyNums   TyNum() {return eTyNums::eTN_U_INT1;}
 };
 template <> class tElemNumTrait<tU_INT2> : public tBaseNumTrait<tStdInt>
 {
     public :
-        static const  std::string  Name() {return "tU_INT2";}
         static bool   Signed() {return false;}
+        static eTyNums   TyNum() {return eTyNums::eTN_U_INT2;}
 };
-template <> class tElemNumTrait<tU_INT4> : public tBaseNumTrait<tStdInt>
+template <> class tElemNumTrait<tU_INT4> : public tBaseNumTrait<tINT8>
 {
     public :
-        static const  std::string  Name() {return "tU_INT4";}
         static bool   Signed() {return false;}
+        static eTyNums   TyNum() {return eTyNums::eTN_U_INT4;}
 };
 
       // Signed int 
@@ -92,26 +110,26 @@ template <> class tElemNumTrait<tU_INT4> : public tBaseNumTrait<tStdInt>
 template <> class tElemNumTrait<tINT1> : public tBaseNumTrait<tStdInt>
 {
     public :
-        static const  std::string  Name() {return "tINT1";}
         static bool   Signed() {return true;}
+        static eTyNums   TyNum() {return eTyNums::eTN_INT1;}
 };
 template <> class tElemNumTrait<tINT2> : public tBaseNumTrait<tStdInt>
 {
     public :
-        static const  std::string  Name() {return "tINT2";}
         static bool   Signed() {return true;}
+        static eTyNums   TyNum() {return eTyNums::eTN_INT2;}
 };
 template <> class tElemNumTrait<tINT4> : public tBaseNumTrait<tStdInt>
 {
     public :
-        static const  std::string  Name() {return "tINT4";}
         static bool   Signed() {return true;}
+        static eTyNums   TyNum() {return eTyNums::eTN_INT4;}
 };
 template <> class tElemNumTrait<tINT8> : public tBaseNumTrait<tStdInt>
 {
     public :
-        static const  std::string  Name() {return "tINT8";}
         static bool   Signed() {return true;}
+        static eTyNums   TyNum() {return eTyNums::eTN_INT8;}
 };
 
       // Floating type
@@ -119,12 +137,12 @@ template <> class tElemNumTrait<tINT8> : public tBaseNumTrait<tStdInt>
 template <> class tElemNumTrait<tREAL4> : public tBaseNumTrait<tStdDouble>
 {
     public :
-        static const  std::string  Name() {return "tREAL4";}
+        static eTyNums   TyNum() {return eTyNums::eTN_REAL4;}
 };
 template <> class tElemNumTrait<tREAL8> : public tBaseNumTrait<tStdDouble>
 {
     public :
-        static const  std::string  Name() {return "tREAL8";}
+        static eTyNums   TyNum() {return eTyNums::eTN_REAL8;}
 };
 
     // ========================================================================
@@ -154,6 +172,12 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type>
                   if  (aV>MaxValue()) return MaxValue();
                }
                return Type(aV);
+         }
+         static Type RandomValue()
+         {
+              if (tETrait::IsInt())
+                 return MinValue() + RandUnif_0_1() * (int(MaxValue())-int(MinValue())) ;
+              return RandUnif_0_1();
          }
 };
 
@@ -236,18 +260,7 @@ inline tREAL8 FracPart(tREAL8 r) {return r - round_down(r);}
 
 
 
-/* ================= Random generator  ======================= */
 
-    // === Basic interface, global function but use C++11 modern
-    // === generator. By default will be deterministic, 
-
-
-///  Uniform distribution in 0-1
-double RandUnif_0_1();
-/// Uniform disrtibution in [0,N[ 
-double RandUnif_N(int aN);
-/// Eventualy free memory allocated for random generation
-void FreeRandom();
 
 };
 

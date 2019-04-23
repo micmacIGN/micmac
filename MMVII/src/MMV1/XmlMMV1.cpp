@@ -1,5 +1,4 @@
-#include "StdAfx.h"
-#include "include/MMVII_all.h"
+#include "include/V1VII.h"
 
 
 namespace MMVII

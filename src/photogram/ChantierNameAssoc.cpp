@@ -968,7 +968,6 @@ std::string XML_MM_File(const std::string & aFile)
         mSubDirRec (aSubDirRec)
     {
         // std::cout << "mSubDirRec " << mSubDirRec <<  " " << this<<  "\n";
-        // getchar();
     }
 
     cInterfChantierNameManipulateur * cMultiNC::ICNM()
@@ -1289,7 +1288,6 @@ const cInterfChantierSetNC::tSet  * cSetName::Get()
         std::map<tKey,cSetName *>::iterator anIt = mDico.find(aKeySsArb);
         if (anIt==mDico.end())
         {
-// std::cout << "NO fOUND " << aKeySsArb<<"\n"; getchar();
             return 0;
         }
 
@@ -1871,10 +1869,8 @@ const cInterfChantierSetNC::tSet  * cSetName::Get()
             cNameRelDescriptor & aNRD = *(new cNameRelDescriptor(aSCR->NRD()));
 
             // std::cout << aKey  << "+++" << aVParams[0] << " " << aVParams[1]<< " " << aVParams.size() << "\n";
-            // getchar();
             TransFormArgKey(aNRD,false,aVParams);
             // std::cout << "lllllllllllll\n";
-            // getchar();
             cStdChantierRel * aNewSCR =  new cStdChantierRel(*mGlob,aNRD);
             mRels[aKey] = aNewSCR;
             return true;
@@ -2545,12 +2541,12 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
 
     bool MPD_MM()
     {
-        static bool aRes = MMUserEnv().UserName().Val() == "MPD";
+        static bool aRes = MMUserEnv().UserName().ValWithDef("") == "MPD";
         return aRes;
     }
     bool ERupnik_MM()
     {
-        static bool aRes = MMUserEnv().UserName().Val() == "ERupnik";
+        static bool aRes = MMUserEnv().UserName().ValWithDef("") == "ERupnik";
         return aRes;
     }
 
@@ -3434,7 +3430,6 @@ void cStdChantierRel::AddAllCpleKeySet
                 {
 
                     const std::vector<std::string> & aVS = itO->Soms();
-                    // std::cout << "SIZ " << aVS.size() << "\n"; getchar();
                     const std::vector<int> & aVI = itO->Delta();
                     for (int aKS=0 ; aKS<int(aVS.size()) ; aKS++)
                     {

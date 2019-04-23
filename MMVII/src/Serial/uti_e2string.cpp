@@ -125,6 +125,21 @@ TPL_ENUM_2_STRING(eTA2007);
 
 
 
+template<> cE2Str<eTyNums>::tMapE2Str cE2Str<eTyNums>::mE2S
+           {
+                {eTyNums::eTN_INT1,"INT1"},
+                {eTyNums::eTN_U_INT1,"U_INT1"},
+                {eTyNums::eTN_INT2,"INT2"},
+                {eTyNums::eTN_U_INT2,"U_INT2"},
+                {eTyNums::eTN_INT4,"INT4"},
+                {eTyNums::eTN_U_INT4,"U_INT4"},
+                {eTyNums::eTN_INT8,"INT8"},
+                {eTyNums::eTN_REAL4,"REAL4"},
+                {eTyNums::eTN_REAL8,"REAL8"}
+           };
+TPL_ENUM_2_STRING(eTyNums);
+
+
 template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
            {
                 {eTyUEr::eCreateDir,"MkDir"},
@@ -140,6 +155,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eBadOptParam,"BadOptP"},
                 {eTyUEr::eInsufNbParam,"InsufP"},
                 {eTyUEr::eIntervWithoutSet,"IntWithoutS"},
+                {eTyUEr::eTooBig4NbDigit,"TooBig4NbDigit"},
                 {eTyUEr::eNoModeInEditRel,"NoModeInEditRel"},
                 {eTyUEr::eMultiModeInEditRel,"MultiModeInEditRel"},
                 {eTyUEr::e2PatInModeLineEditRel,"2PatInModeLineEditRel"}
@@ -168,9 +184,11 @@ template<class TypeEnum> void TplBenchEnum()
 /// Bench enum
 void BenchEnum()
 {
-   TplBenchEnum<eOpAff>();
-   TplBenchEnum<eTySC>();
-   TplBenchEnum<eTA2007>();
+    TplBenchEnum<eOpAff>();
+    TplBenchEnum<eTySC>();
+    TplBenchEnum<eTA2007>();
+    TplBenchEnum<eTyUEr>();
+    TplBenchEnum<eTyNums>();
 }
 
 

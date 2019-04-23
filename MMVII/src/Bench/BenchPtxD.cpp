@@ -44,6 +44,14 @@ void  Bench_0000_Ptxd()
 
     std::cout << cPt1dr(3) << "\n";
 
+
+    cRect2 aR(cPt2di(10,20),cPt2di(50,40));
+    MMVII_INTERNAL_ASSERT_bench(aR.Proj(cPt2di(11,22)) == cPt2di(11,22),"Bench_0000_Ptxd");
+    MMVII_INTERNAL_ASSERT_bench(aR.Proj(cPt2di(1,2)) == cPt2di(10,20),"Bench_0000_Ptxd");
+    MMVII_INTERNAL_ASSERT_bench(aR.Proj(cPt2di(1,22)) == cPt2di(10,22),"Bench_0000_Ptxd");
+    MMVII_INTERNAL_ASSERT_bench(aR.Proj(cPt2di(11,19)) == cPt2di(11,20),"Bench_0000_Ptxd");
+    MMVII_INTERNAL_ASSERT_bench(aR.Proj(cPt2di(100,100)) == cPt2di(49,39),"Bench_0000_Ptxd");
+
     StdOut() << "done Bench_0000_Ptxd \n";
 }
 

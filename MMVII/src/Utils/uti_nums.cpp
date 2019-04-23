@@ -7,7 +7,7 @@ namespace MMVII
 template <class Type> void TplBenchTraits()
 {
     typename tNumTrait<Type>::tBase aVal=0;
-    std::cout << tNumTrait<Type>::Name() 
+    std::cout << E2Str(tNumTrait<Type>::TyNum() )
               << " Max=" << tNumTrait<Type>::MaxValue() 
               << " Min=" <<  tNumTrait<Type>::MinValue() 
               << " IsInt=" <<  tNumTrait<Type>::IsInt() 

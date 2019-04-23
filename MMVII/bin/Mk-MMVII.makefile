@@ -84,7 +84,7 @@ QTAnnLibs= -lXext /usr/lib/x86_64-linux-gnu/libQt5Core.so.5.5.1 /usr/lib/x86_64-
 LibsFlags= ${MMV2ElisePath} -lX11  ${BOOST_LIBS}  ${QTAnnLibs}
 MMV2Exe=MMVII
 #
-${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ResultInstal}
+${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ResultInstal} ${MMV2ElisePath}
 	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe} 
 	ar rvs P2007.a    ${OBJ}  
 #

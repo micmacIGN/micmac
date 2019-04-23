@@ -46,8 +46,6 @@ typedef cExtSet<tNamePair>          tNameRel;
 
 // MMVII_Ptxd.h
 template <class Type,const int Dim> class cPtxd;
-template <class Type> class cPt1d ;
-template <class Type> class cPt2d ;
 
 // MMVII_Bench.h
 

@@ -107,7 +107,8 @@ enum class eTyUEr
               eTooBig4NbDigit,
               eNoModeInEditRel,
               eMultiModeInEditRel,
-              e2PatInModeLineEditRel
+              e2PatInModeLineEditRel,
+              eNbVals
            };
 
 /// 
@@ -120,6 +121,19 @@ enum class eTyUnitTime
               eNbVals
            };
 
+enum class eTyNums
+           {
+              eTN_INT1,
+              eTN_U_INT1,
+              eTN_INT2,
+              eTN_U_INT2,
+              eTN_INT4,
+              eTN_U_INT4,
+              eTN_INT8,
+              eTN_REAL4,
+              eTN_REAL8,
+              eNbVals
+           };
 
 
 
@@ -127,6 +141,7 @@ const std::string & E2Str(const eTySC &);
 const std::string & E2Str(const eOpAff &);         
 const std::string & E2Str(const eTA2007 &);         
 const std::string & E2Str(const eTyUEr &);         
+const std::string & E2Str(const eTyNums &);         
 
 template <class Type> const Type & Str2E(const std::string &); 
 template <class Type> std::string   StrAllVall();

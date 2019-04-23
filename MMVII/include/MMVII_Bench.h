@@ -40,6 +40,7 @@ void BenchGlobImage(); ///< Global bench on image
 void BenchRectObj(); ///< Global bench on image
 void BenchBaseImage(); ///< Global bench on image
 void BenchGlobImage2d(); ///< Global bench on image
+void BenchFileImage(); ///< Global bench on image
 
 
 

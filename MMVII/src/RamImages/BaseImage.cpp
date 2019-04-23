@@ -36,26 +36,96 @@ template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,co
     for (int aK=Dim-1 ; aK>=0 ; aK--)
     {
        mSz[aK] = mP1[aK] - mP0[aK];
-       MMVII_INTERNAL_ASSERT_strong(mSz[aK]>0,MesNegSz);
+       MMVII_INTERNAL_ASSERT_strong(mSz[aK]>=0,MesNegSz);
        mNbElem *= mSz[aK];
        mSzCum[aK] = mNbElem;
     }
     // std::cout << mNbElem << "\n";
 }
 
+template <const int Dim> bool cRectObj<Dim>::operator == (const cRectObj<Dim> aR2) const 
+{
+    return (mP0==aR2.mP0) && (mP1==aR2.mP1);
+}
+
+template <const int Dim> bool cRectObj<Dim>::IncludedIn(const cRectObj<Dim> & aR2) const
+{
+    return SupEq(mP0,aR2.mP0) && InfEq(mP1,aR2.mP1) ;
+}
+
+template <const int Dim> cRectObj<Dim> cRectObj<Dim>::Translate(const cPtxd<int,Dim> & aTr) const
+{
+   return cRectObj<Dim>(mP0+aTr,mP1+aTr);
+}
+
+
+template <const int Dim> cPtxd<int,Dim>  cRectObj<Dim>::FromNormaliseCoord(const cPtxd<double,Dim> & aPN) const 
+{
+    cPtxd<int,Dim> aRes;
+    for (int aK=0 ; aK<Dim ; aK++)
+    {
+        aRes[aK] = mP0[aK] + round_down(mSz[aK]*aPN[aK]);
+    }
+    return Proj(aRes);
+}
+
+template <const int Dim>  cPtxd<double,Dim>  cRectObj<Dim>::RandomNormalised() 
+{
+   cPtxd<double,Dim>  aRes;
+   for (int aK=0 ; aK<Dim ; aK++)
+   {
+        aRes[aK] = RandUnif_0_1();
+   }
+   return aRes;
+}
+
+template <const int Dim> cPtxd<int,Dim>   cRectObj<Dim>::GeneratePointInside() const
+{
+   return FromNormaliseCoord(RandomNormalised());
+}
+
+template <const int Dim> cRectObj<Dim>  cRectObj<Dim>::GenerateRectInside(double aPowSize) const
+{
+    cPtxd<int,Dim> aP0;
+    cPtxd<int,Dim> aP1;
+    for (int aK=0 ; aK<Dim ; aK++)
+    {
+        double aSzRed = pow(RandUnif_0_1(),aPowSize);
+        double aX0 = (1-aSzRed) * RandUnif_0_1();
+        double aX1 = aX0 + aSzRed;
+        int aI0 = round_down(aX0*mSz[aK]);
+        int aI1 = round_down(aX1*mSz[aK]);
+        aI1 = std::min(mP1[aK]-1,std::max(aI1,aI0+1));
+        aI0  = std::max(mP0[aK],std::min(aI0,aI1-1));
+        aP0[aK] = aI0;
+        aP1[aK] = aI1;
+
+    }
+    return cRectObj<Dim>(aP0,aP1);
+}
+
+
+
+
+// (const cPtxd<int,Dim> & aP) const 
+
 
 template class cRectObj<1>;
 template class cRectObj<2>;
 template class cRectObj<3>;
 
+template <> const cRectObj<1> cRectObj<1>::Empty00(cPt1di(0),cPt1di(0));
+template <> const cRectObj<2> cRectObj<2>::Empty00(cPt2di(0,0),cPt2di(0,0));
+template <> const cRectObj<3> cRectObj<3>::Empty00(cPt3di(0,0,0),cPt3di(0,0,0));
+
 
 /* ========================== */
-/*          cBaseImage        */
+/*          cDataImGen        */
 /* ========================== */
 
 
 template <class Type,const int Dim> 
-    cBaseImage<Type,Dim>::cBaseImage(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,Type *aDataLin) :
+    cDataImGen<Type,Dim>::cDataImGen(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,Type *aDataLin) :
         cRectObj<Dim>(aP0,aP1),
         mDoAlloc (aDataLin==0),
         mDataLin (mDoAlloc ? cMemManager::Alloc<Type>(NbElem())  : aDataLin)
@@ -63,36 +133,41 @@ template <class Type,const int Dim>
 }
 
 
-
 template <class Type,const int Dim> 
-    cBaseImage<Type,Dim>::~cBaseImage()
+    cDataImGen<Type,Dim>::~cDataImGen()
 {
    if (mDoAlloc)
       cMemManager::Free(mDataLin);
 }
 
+template <class Type,const int Dim> void  cDataImGen<Type,Dim>::InitRandom()
+{
+   for (tINT8 aK=0 ; aK< NbElem() ; aK++)
+       mDataLin[aK] = tTraits::RandomValue();
+}
+
 /*
-template class cBaseImage<tREAL4,1>;
-template class cBaseImage<tREAL4,2>;
-template class cBaseImage<tREAL4,3>;
+template class cDataImGen<tREAL4,1>;
+template class cDataImGen<tREAL4,2>;
+template class cDataImGen<tREAL4,3>;
 */
 
-#define MACRO_INSTANTIATE_cBaseImage(aType)\
-template class cBaseImage<aType,1>;\
-template class cBaseImage<aType,2>;\
-template class cBaseImage<aType,3>;
+#define MACRO_INSTANTIATE_cDataImGen(aType)\
+template class cDataImGen<aType,1>;\
+template class cDataImGen<aType,2>;\
+template class cDataImGen<aType,3>;
 
 
-MACRO_INSTANTIATE_cBaseImage(tINT1)
-MACRO_INSTANTIATE_cBaseImage(tINT2)
-MACRO_INSTANTIATE_cBaseImage(tINT4)
+MACRO_INSTANTIATE_cDataImGen(tINT1)
+MACRO_INSTANTIATE_cDataImGen(tINT2)
+MACRO_INSTANTIATE_cDataImGen(tINT4)
 
-MACRO_INSTANTIATE_cBaseImage(tU_INT1)
-MACRO_INSTANTIATE_cBaseImage(tU_INT2)
-MACRO_INSTANTIATE_cBaseImage(tU_INT4)
+MACRO_INSTANTIATE_cDataImGen(tU_INT1)
+MACRO_INSTANTIATE_cDataImGen(tU_INT2)
+MACRO_INSTANTIATE_cDataImGen(tU_INT4)
 
-MACRO_INSTANTIATE_cBaseImage(tREAL4)
-MACRO_INSTANTIATE_cBaseImage(tREAL8)
+MACRO_INSTANTIATE_cDataImGen(tREAL4)
+MACRO_INSTANTIATE_cDataImGen(tREAL8)
 /*
 */
 
@@ -115,7 +190,7 @@ void cBenchBaseImage::DoBenchBI()
     cMemState  aState = cMemManager::CurState() ;
     {
         
-        // cBaseImage<tREAL4,2> aBI(cPt2di(2,3),cPt2di(10,9));
+        // cDataImGen<tREAL4,2> aBI(cPt2di(2,3),cPt2di(10,9));
     }
     cMemManager::CheckRestoration(aState);
 }

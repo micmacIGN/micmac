@@ -11,6 +11,7 @@ namespace MMVII
 
 void BenchGlobImage()
 {
+    BenchFileImage();
     BenchRectObj();
     BenchBaseImage();
     BenchGlobImage2d();
