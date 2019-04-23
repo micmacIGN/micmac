@@ -76,7 +76,7 @@ class cAppli_XifGps2Xml : public cAppliListIm
 class cAppli_VByDate : public cAppli_XifDate
 {
     public:
-        cAppli_VByDate(const std::string & aFullName, const std::string & aOri);
+        cAppli_VByDate(const std::string & aFullName, std::string & aOri);
         void CalcV(const std::string & aOut);
 
         std::vector<CamStenope*>          mVCam;

@@ -39,9 +39,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "CPP_XifGps2Xml.h"
 
-cAppli_VByDate::cAppli_VByDate(const std::string & aFullName, const std::string & aOri):
+cAppli_VByDate::cAppli_VByDate(const std::string & aFullName, std::string & aOri):
     cAppli_XifDate(aFullName)
 {
+    StdCorrecNameOrient(aOri,mDir);
     for(auto & aIm : mVIm)
     {
         mVCam.push_back(mICNM->StdCamStenOfNames(aIm.mName,aOri));
@@ -53,6 +54,7 @@ void cAppli_VByDate::CalcV(const std::string & aOut)
     ELISE_ASSERT(mVCam.size()>1,"Cam Nb not enough for calculating velocity, at least 2")
     ofstream aFile;
     aFile.open(mDir+aOut);
+    aFile << "#F=Im_xy_t_Vxy_h_X_Y_Z_Vx_Vy_Vz" << endl;
     for(uint aK=0; aK<mVCam.size();aK++)
     {
         int aHead, aTail;
@@ -74,12 +76,25 @@ void cAppli_VByDate::CalcV(const std::string & aOut)
         CamStenope * aCam0 = mVCam.at(aHead);
         CamStenope * aCam1 = mVCam.at(aTail);
         int aDifSecond = mVIm.at(aTail).mDiffSecond - mVIm.at(aHead).mDiffSecond;
-        double aDifPos = sqrt(
+        double aDif = sqrt(
                               ElSquare(aCam0->PseudoOpticalCenter().x-aCam1->PseudoOpticalCenter().x)
                              +ElSquare(aCam0->PseudoOpticalCenter().y-aCam1->PseudoOpticalCenter().y)
                     );
+        Pt3dr aDifPos = aCam1->PseudoOpticalCenter() - aCam0->PseudoOpticalCenter();
         //int aDifSecond = aK==0 ? mVIm.at(aK+1).mDiffSecond - mVIm.at(aK).mDiffSecond : mVIm.at(aK+1).mDiffSecond - mVIm.at(aK-1).mDiffSecond;
-        aFile << mVIm.at(aK).mName << " " << aDifPos << " " << aDifSecond << " " << double(aDifPos/aDifSecond) << " " << mVCam.at(aK)->GetRoughProfondeur() << endl;
+
+        aFile << mVIm.at(aK).mName << " "
+              << aDif << " "
+              << aDifSecond << " "
+              << double(aDif/aDifSecond) << " "
+              << mVCam.at(aK)->GetRoughProfondeur() << " "
+              << aDifPos.x << " "
+              << aDifPos.y << " "
+              << aDifPos.z << " "
+              << aDifPos.x/aDifSecond << " "
+              << aDifPos.y/aDifSecond << " "
+              << aDifPos.z/aDifSecond << " "
+              << endl;
     }
     aFile.close();
 }
@@ -301,6 +316,7 @@ int XifDate2Txt_main(int argc, char ** argv)
                       << EAM(aCalVOri,"CalVOri",true,"Calculate planitary velocity when an Ori is available")
                       << EAM(aOutCalcV,"OutCalcV",true,"Output file name for calculated velocity")
     );
+
 
     if(!EAMIsInit(&aCalVOri))
     {

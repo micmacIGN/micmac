@@ -7,21 +7,23 @@
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
 
+typedef pair<std::string,std::string> Key;
 
 class cAppli_CamXifDate;
 
 class cIm_CamXifDate : public cIm_XifDate
 {
     public:
-        cIm_CamXifDate(cInterfChantierNameManipulateur* aICNM,const std::string & aName, const std::string & aOri, cElHour & aBeginTime);
+        cIm_CamXifDate(cInterfChantierNameManipulateur* aICNM, const std::string & aName, const std::string & aOri, cElHour & aBeginTime, const Pt3d<double> &aVitesse);
 
         CamStenope * mCam;
+        Pt3dr        mVitesse;
 };
 
 class cAppli_CamXifDate : public cAppli_XifDate
 {
     public:
-        cAppli_CamXifDate(const std::string & aFullName, std::string & aOri);
+        cAppli_CamXifDate(const std::string & aFullName, std::string & aOri, const std::string &aCalcV);
         std::vector<Pt3dr> GetCamCenter();
         std::vector<double> GetCamCenterComponent(int a);
         CamStenope * Cam(const std::string & aName);
@@ -60,12 +62,12 @@ class cSetOfMesureAppuisFlottants_Cam
 {
     public:
         cSetOfMesureAppuisFlottants_Cam(const std::string &aMAFIn,const cAppli_CamXifDate & anAppli);
-        void ReechRS_MAF(const double aRSSpeed,const std::string aMAFOut);
+        std::map<Key, Pt2dr> ReechRS_MAF(const double aRSSpeed); //<pair<ImName,PtName>,Pt2dr>
+        void Export_MAF(const std::string & aMAFOut, const std::map<Key,Pt2dr> &aMap);
     private:
         const cAppli_CamXifDate   m_Appli;
         cSetOfMesureAppuisFlottants mDico;
         std::map<std::string,std::vector<cPtIm_CamXifDate>> mVPtIm; //<PtName,std::vector<cPtIm_CamXifDate>>
-
 };
 
 
