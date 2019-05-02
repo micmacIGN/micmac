@@ -96,60 +96,19 @@ cAppli_CamXifDate::cAppli_CamXifDate(const string &aFullName, string &aOri, cons
         aFile.close();
     }
     std::cout << "aCalcV : " << aMapVitesse.size() << " files" << endl;
-    ELISE_ASSERT(aMapVitesse.size()==mVIm.size(),"Nb of Im != Nb of Im velocity");
+
 
     for(int i=0; i<int(mSetIm->size());i++)
     {
-//        std::pair<char,int>('a',100);
         mVIm.insert(std::pair<std::string,cIm_CamXifDate>(mSetIm->at(i),cIm_CamXifDate(mICNM,mSetIm->at(i),aOri,mBegin,aMapVitesse.at(mSetIm->at(i)))));
-//        mVIm.push_back(cIm_CamXifDate(mICNM,mSetIm->at(i),aOri,mBegin));
     }
-    mS_x.set_points(this->GetVDiffSecond(),this->GetCamCenterComponent(1));
-    mS_y.set_points(this->GetVDiffSecond(),this->GetCamCenterComponent(2));
-    mS_z.set_points(this->GetVDiffSecond(),this->GetCamCenterComponent(3));
+
+    std::cout << "Nb of files:" << mVIm.size() << endl;
+
+    ELISE_ASSERT(aMapVitesse.size()==mVIm.size(),"Nb of Im != Nb of Im velocity");
 }
 
-std::vector<Pt3dr> cAppli_CamXifDate::GetCamCenter()
-{
-    std::vector<Pt3dr> aVCenter;
-    for(auto &aIm : mVIm)
-    {
-        aVCenter.push_back(aIm.second.mCam->PseudoOpticalCenter());
-    }
-    return aVCenter;
-}
 
-std::vector<double> cAppli_CamXifDate::GetCamCenterComponent(int a)
-{
-    std::vector<double> aVCenterComponent;
-    for(auto &aIm : mVIm)
-    {
-        switch (a)
-        {
-        case 1:
-            aVCenterComponent.push_back(aIm.second.mCam->PseudoOpticalCenter().x);
-            break;
-        case 2:
-            aVCenterComponent.push_back(aIm.second.mCam->PseudoOpticalCenter().y);
-            break;
-        case 3:
-            aVCenterComponent.push_back(aIm.second.mCam->PseudoOpticalCenter().z);
-            break;
-        }
-    }
-    return aVCenterComponent;
-}
-
-CamStenope * cAppli_CamXifDate::Cam(const string &aName)
-{
-    cIm_CamXifDate aIm = mVIm.at(aName);
-    return aIm.mCam;
-}
-
-const Pt2di cAppli_CamXifDate::CamSz() const
-{
-    return mVIm.at(0).mCam->Sz();
-}
 
 
 /*******************************************************************/
@@ -179,7 +138,7 @@ void cSetTiePMul_Cam::ReechRS_SH(const double &aRSSpeed, const string &aSHOut)
             std::string aNameIm = m_pSH->NameFromId(aIdIm);
             aVCam.push_back(m_Appli.mVIm.at(aNameIm).mCam);
         }
-        //std::cout << "Old     OldReproj      NewReproj     New" << endl;
+
         for(int aKPt=0; aKPt<aCnf->NbPts(); aKPt++)
         {
             std::vector<Pt2dr> aVOldP2D;
@@ -200,7 +159,6 @@ void cSetTiePMul_Cam::ReechRS_SH(const double &aRSSpeed, const string &aSHOut)
 
                 double aEcartTime = (aOldP2D.y-aCam->Sz().y/2) * aRSSpeed/1000/1000;
                 std::string aNameIm = m_pSH->NameFromId(aCnf->VIdIm().at(aKIm));
-                //double aNewTime = m_Appli.mVIm.at(aNameIm).mDiffSecond - aEcartTime;
                 Pt3dr aEcartCenter = m_Appli.mVIm.at(aNameIm).mVitesse * aEcartTime;
                 aCam->AddToCenterOptical(-aEcartCenter);
 
@@ -221,28 +179,7 @@ void cSetTiePMul_Cam::ReechRS_SH(const double &aRSSpeed, const string &aSHOut)
     }
 }
 
-void cSetTiePMul_Cam::TestOri(double aTimeEcart)
-{
-    auto aVIm = m_Appli.mVIm;
-    auto aListIm = *(m_Appli.mSetIm);
-    cElFilename aCal = cElFilename(m_Appli.mDir,m_Appli.mICNM->StdNameCalib(m_Appli.mOri,aListIm.at(0)));
-    std::string aDirCalib,aCalib;
-    SplitDirAndFile(aDirCalib,aCalib,aCal.m_basename);
-    std::string aNewCalib = m_Appli.mDir + "Ori-" + m_Appli.mOri + "-Reech/" + aCalib;
-    std::string aOriKeyOut = "NKS-Assoc-Im2Orient@-" + m_Appli.mOri + "-Reech";
-    for(auto &aIm:aListIm)
-    {
-        CamStenope * aCam = aVIm.at(aIm).mCam;
-        double aNewTime = aVIm.at(aIm).mDiffSecond + aTimeEcart;
-        Pt3dr aNewCenter = Pt3dr(m_Appli.mS_x(aNewTime),m_Appli.mS_y(aNewTime),m_Appli.mS_z(aNewTime));
-        aCam->AddToCenterOptical(aNewCenter-aCam->PseudoOpticalCenter());
-        std::string aOriOut = m_Appli.mICNM->Assoc1To1(aOriKeyOut,aIm,true);
-        cOrientationConique anOC = aCam->StdExportCalibGlob();
-        anOC.Interne().SetNoInit();
-        anOC.FileInterne().SetVal(aNewCalib);
-        MakeFileXML(anOC,aOriOut);
-    }
-}
+
 /*******************************************************************/
 /*                                                                 */
 /*                      cPtIm_CamXifDate                           */
@@ -314,8 +251,6 @@ std::map<Key,Pt2dr> cSetOfMesureAppuisFlottants_Cam::ReechRS_MAF(const double aR
             CamStenope * aCam = aPtIm_CamXifDate.mIm_CamXifDate.mCam;
             Pt2dr aReprojP2D = aCam->R3toF2(aP3D);
             double aEcartTime = (aPtIm_CamXifDate.mPtIm.y-aCam->Sz().y/2) * aRSSpeed/1000/1000;
-            //double aTime = aPtIm_CamXifDate.mIm_CamXifDate.mDiffSecond-aPtIm_CamXifDate.mPtIm.y * aRSSpeed/1000/1000;
-            //Pt3dr aNewCenter = Pt3dr(m_Appli.mS_x(aTime),m_Appli.mS_y(aTime),m_Appli.mS_z(aTime));
             Pt3dr aEcartCenter = m_Appli.mVIm.at(aImName).mVitesse * aEcartTime;
             aCam->AddToCenterOptical(-aEcartCenter);
             Pt2dr aNewReprojP2D = aCam->R3toF2(aP3D);
@@ -727,7 +662,7 @@ int GenerateOrient_main (int argc, char ** argv)
 int ReechRolShut_main(int argc, char ** argv)
 {
     std::string aPatIm,aSH,aOri,aSHOut{"-Reech"},aMAFIn,aMAFOut{"Mesure_Finale-Reech.xml"},aCalcV;
-    double aRSSpeed, aGenOri;
+    double aRSSpeed;
     ElInitArgMain
             (
                 argc,argv,
@@ -739,7 +674,6 @@ int ReechRolShut_main(int argc, char ** argv)
                            << EAM(aSHOut,"SHOut",true,"Folder postfix for tie point output folder, def=_Reech")
                            << EAM(aMAFIn,"MAFIn",true,"Input image measurement file")
                            << EAM(aMAFOut,"MAFOut",true,"Output image measurement file, def=Mesure_Finale-Reech.xml")
-                           << EAM(aGenOri,"GenOri",true,"Generate New Ori with given time gap")
                 );
 
     cAppli_CamXifDate anAppli_CamXifDate(aPatIm,aOri,aCalcV);
@@ -748,10 +682,6 @@ int ReechRolShut_main(int argc, char ** argv)
     {
         cSetTiePMul_Cam aSetTiePMul_Cam(aSH,anAppli_CamXifDate);
         aSetTiePMul_Cam.ReechRS_SH(aRSSpeed,aSHOut);
-        if(EAMIsInit((&aGenOri)))
-        {
-                aSetTiePMul_Cam.TestOri(aGenOri);
-        }
     }
     if(EAMIsInit(&aMAFIn))
     {
