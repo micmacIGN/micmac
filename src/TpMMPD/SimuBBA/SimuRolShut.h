@@ -2,16 +2,15 @@
 #define SIMUROLSHUT_H
 
 #include "StdAfx.h"
-#include "../spline.h"
 #include "../../uti_files/CPP_XifGps2Xml.h"
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
 
-typedef pair<std::string,std::string> Key;
+typedef pair<std::string,std::string> Key; // map key <ImName,PtName> -> PtIm
 
 class cAppli_CamXifDate;
 
-class cIm_CamXifDate : public cIm_XifDate
+class cIm_CamXifDate : public cIm_XifDate // Cam + exif time info of one image
 {
     public:
         cIm_CamXifDate(cInterfChantierNameManipulateur* aICNM, const std::string & aName, const std::string & aOri, cElHour & aBeginTime, const Pt3d<double> &aVitesse);
@@ -20,21 +19,13 @@ class cIm_CamXifDate : public cIm_XifDate
         Pt3dr        mVitesse;
 };
 
-class cAppli_CamXifDate : public cAppli_XifDate
+class cAppli_CamXifDate : public cAppli_XifDate // Cam + exif time info for a set of cIm_CamXifDate
 {
     public:
         cAppli_CamXifDate(const std::string & aFullName, std::string & aOri, const std::string &aCalcV);
-        std::vector<Pt3dr> GetCamCenter();
-        std::vector<double> GetCamCenterComponent(int a);
-        CamStenope * Cam(const std::string & aName);
-        const Pt2di CamSz() const;
-//        CamStenope * GetNewCam(const std::string &aName,double aTime);
 
         std::map<std::string,cIm_CamXifDate> mVIm;
         std::string                          mOri;
-        tk::spline                           mS_x;
-        tk::spline                           mS_y;
-        tk::spline                           mS_z;
 };
 
 class cSetTiePMul_Cam
@@ -42,7 +33,7 @@ class cSetTiePMul_Cam
     public:
         cSetTiePMul_Cam(const std::string &aSH,const cAppli_CamXifDate & anAppli);
         void ReechRS_SH(const double & aRSSpeed, const std::string &aSHOut);
-        void TestOri(double aTimeEcart);
+
     private:
         cSetTiePMul *             m_pSH;
         std::string               mSH;
