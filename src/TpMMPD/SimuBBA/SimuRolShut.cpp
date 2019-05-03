@@ -51,6 +51,14 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "SimuRolShut.h"
 
 
+Pt2dr Reproj (CamStenope * aCam, const Pt3dr & aP3D, const Pt2dr & aP2D, const Pt3dr & aEcartCamCenter)
+{
+    Pt2dr aReprojP2D = aCam->R3toF2(aP3D);
+    aCam->AddToCenterOptical(-aEcartCamCenter);
+    Pt2dr aNewReprojP2D = aCam->R3toF2(aP3D);
+    Pt2dr aNewP2D = aP2D + aNewReprojP2D - aReprojP2D;
+    return aNewP2D;
+}
 
 
 /*******************************************************************/
@@ -152,17 +160,15 @@ void cSetTiePMul_Cam::ReechRS_SH(const double &aRSSpeed, const string &aSHOut)
 
             for(int aKIm=0; aKIm<aCnf->NbIm(); aKIm++)
             {
+                std::string aNameIm = m_pSH->NameFromId(aCnf->VIdIm().at(aKIm));
                 CamStenope * aCam = aVCam.at(aKIm);
                 Pt2dr aOldP2D = aVOldP2D.at(aKIm);
-                Pt2dr aReprojP2D = aCam->R3toF2(aP3D);
 
                 double aEcartTime = (aOldP2D.y-aCam->Sz().y/2) * aRSSpeed/1000/1000;
-                std::string aNameIm = m_pSH->NameFromId(aCnf->VIdIm().at(aKIm));
                 Pt3dr aEcartCenter = m_Appli.mVIm.at(aNameIm).mVitesse * aEcartTime;
-                aCam->AddToCenterOptical(-aEcartCenter);
 
-                Pt2dr aNewReprojP2D = aCam->R3toF2(aP3D);
-                Pt2dr aNewP2D = aOldP2D + aNewReprojP2D - aReprojP2D;
+                Pt2dr aNewP2D = Reproj(aCam, aP3D, aOldP2D, aEcartCenter);
+
                 if(0 < aNewP2D.x && aNewP2D.x < double(aCam->Sz().x) && 0 < aNewP2D.y && aNewP2D.y < double(aCam->Sz().y))
                     aCnf->SetPt(aKPt,aKIm,aNewP2D);
             }
@@ -248,13 +254,12 @@ std::map<Key,Pt2dr> cSetOfMesureAppuisFlottants_Cam::ReechRS_MAF(const double aR
         {
             std::string aImName = aPtIm_CamXifDate.mIm_CamXifDate.mName;
             CamStenope * aCam = aPtIm_CamXifDate.mIm_CamXifDate.mCam;
-            Pt2dr aReprojP2D = aCam->R3toF2(aP3D);
 
             double aEcartTime = (aPtIm_CamXifDate.mPtIm.y-aCam->Sz().y/2) * aRSSpeed/1000/1000;
             Pt3dr aEcartCenter = m_Appli.mVIm.at(aImName).mVitesse * aEcartTime;
-            aCam->AddToCenterOptical(-aEcartCenter);
-            Pt2dr aNewReprojP2D = aCam->R3toF2(aP3D);
-            Pt2dr aNewP2D = aNewReprojP2D + aPtIm_CamXifDate.mPtIm - aReprojP2D;
+
+            Pt2dr aNewP2D = Reproj(aCam, aP3D, aPtIm_CamXifDate.mPtIm, aEcartCenter);
+
             Key aKey = pair<string,string>(aImName,aPtName);
             aMap.insert(pair<Key,Pt2dr>(aKey,aNewP2D));
 
