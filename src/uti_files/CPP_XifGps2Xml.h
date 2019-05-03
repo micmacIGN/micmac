@@ -15,7 +15,7 @@ class cIm_XifDate;
 
 
 
-class cIm_XifDate
+class cIm_XifDate // get exif time info for one image
 {
     public:
         cIm_XifDate(const string &aName);
@@ -28,7 +28,7 @@ class cIm_XifDate
 };
 
 
-class cAppli_XifDate : public cAppliListIm
+class cAppli_XifDate : public cAppliListIm // get exif time info for a set of cIm_XifDate
 {
     public:
         cAppli_XifDate(const std::string & aFullName);
@@ -73,11 +73,11 @@ class cAppli_XifGps2Xml : public cAppliListIm
 
 
 
-class cAppli_VByDate : public cAppli_XifDate
+class cAppli_VByDate : public cAppli_XifDate // Calculate velocity from cam position and cam time
 {
     public:
         cAppli_VByDate(const std::string & aFullName, std::string & aOri);
-        void CalcV(const std::string & aOut);
+        void CalcV(const std::string & aOut, const bool aHeader);
 
         std::vector<CamStenope*>          mVCam;
 };
