@@ -132,9 +132,16 @@ enum class eTyNums
               eTN_INT8,
               eTN_REAL4,
               eTN_REAL8,
+              eTN_REAL16,
               eNbVals
            };
 
+enum class eTyMatrix
+           {
+               eTM_Dens4,
+               eTM_Dens8,
+               eTM_Dens16
+           };
 
 
 const std::string & E2Str(const eTySC &);         

@@ -3195,6 +3195,9 @@ class cSectionChantier
 
         cTplValGesInit< double > & ThresholdWarnPointsBehind();
         const cTplValGesInit< double > & ThresholdWarnPointsBehind()const ;
+
+        cTplValGesInit< bool > & ExportMatrixMarket();
+        const cTplValGesInit< bool > & ExportMatrixMarket()const ;
     private:
         cTplValGesInit< double > mRatioMaxDistCS;
         cTplValGesInit< std::string > mDebugVecElimTieP;
@@ -3222,6 +3225,7 @@ class cSectionChantier
         cTplValGesInit< std::string > mSauvAutom;
         cTplValGesInit< bool > mSauvAutomBasic;
         cTplValGesInit< double > mThresholdWarnPointsBehind;
+        cTplValGesInit< bool > mExportMatrixMarket;
 };
 cElXMLTree * ToXMLTree(const cSectionChantier &);
 
@@ -7211,6 +7215,9 @@ class cParamApero
 
         cTplValGesInit< double > & ThresholdWarnPointsBehind();
         const cTplValGesInit< double > & ThresholdWarnPointsBehind()const ;
+
+        cTplValGesInit< bool > & ExportMatrixMarket();
+        const cTplValGesInit< bool > & ExportMatrixMarket()const ;
 
         cSectionChantier & SectionChantier();
         const cSectionChantier & SectionChantier()const ;

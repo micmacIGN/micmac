@@ -135,7 +135,8 @@ template<> cE2Str<eTyNums>::tMapE2Str cE2Str<eTyNums>::mE2S
                 {eTyNums::eTN_U_INT4,"U_INT4"},
                 {eTyNums::eTN_INT8,"INT8"},
                 {eTyNums::eTN_REAL4,"REAL4"},
-                {eTyNums::eTN_REAL8,"REAL8"}
+                {eTyNums::eTN_REAL8,"REAL8"},
+                {eTyNums::eTN_REAL16,"REAL16"}
            };
 TPL_ENUM_2_STRING(eTyNums);
 

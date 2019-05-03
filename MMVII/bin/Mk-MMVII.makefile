@@ -58,6 +58,11 @@ SrcRamImages=$(wildcard ${MMV2DirRamImages}*.cpp)
 ObjRamImages=$(SrcRamImages:.cpp=.o) 
 #
 #
+MMV2DirMatrix=${MMV2DirSrc}Matrix/
+SrcMatrix=$(wildcard ${MMV2DirMatrix}*.cpp)
+ObjMatrix=$(SrcMatrix:.cpp=.o) 
+#
+#
 MMV2DirPerso=${MMV2DirSrc}Perso/
 SrcPerso=$(wildcard ${MMV2DirPerso}*.cpp)
 ObjPerso=$(SrcPerso:.cpp=.o) 
@@ -67,7 +72,7 @@ ObjPerso=$(SrcPerso:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} ${ObjRamImages}
+OBJ= ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} ${ObjRamImages} ${ObjMatrix}
 #
 #=========  Header ========
 #
@@ -78,7 +83,7 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #== CFLAGS etc...
 #
 CXX=g++
-CFlags="-std=c++14" "-Wall" "-Werror" -I${MMV2Dir} -I${MMDir}/include/
+CFlags="-std=c++14" "-Wall" "-Werror" "-O4" "-march=native" -I${MMV2Dir} -I${MMDir}/include/
 BOOST_LIBS= -lboost_system -lboost_serialization -lboost_regex -lboost_filesystem
 QTAnnLibs= -lXext /usr/lib/x86_64-linux-gnu/libQt5Core.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5Gui.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5Xml.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so.5.5.1 -lGLU -lGL  -ldl -lpthread /usr/lib/x86_64-linux-gnu/libQt5Xml.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5Concurrent.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5Widgets.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5Gui.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5Core.so.5.5.1 ../../lib/libANN.a
 LibsFlags= ${MMV2ElisePath} -lX11  ${BOOST_LIBS}  ${QTAnnLibs}
@@ -115,6 +120,8 @@ ${MMV2DirUtils}%.o :  ${MMV2DirUtils}%.cpp ${HEADER}
 ${MMV2DirSerial}%.o :  ${MMV2DirSerial}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirRamImages}%.o :  ${MMV2DirRamImages}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirMatrix}%.o :  ${MMV2DirMatrix}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 #
 #       ===== TEST ========================================

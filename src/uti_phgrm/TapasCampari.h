@@ -64,6 +64,7 @@ class cAppli_Tapas_Campari
 
 
        const int  & DSElimB () const {return  mDSElimB;}
+       bool ExportMatrixMarket()  const {return mExportMatrixMarket;}
     private :
       
        std::string               mStrParamBloc;
@@ -86,6 +87,7 @@ class cAppli_Tapas_Campari
       // ModePose = ! ModeDist
        void AddParamBloc(std::string & mCom,std::vector<std::string> & aVBL,const std::string & aPref,bool ModePose);
        int      mDSElimB;
+       bool     mExportMatrixMarket;
        LArgMain                  *mArg;
 };
 

@@ -221,6 +221,7 @@
            <Symb> DSElimB=0 </Symb>
            <Symb> StrDebugVecElimTieP="" </Symb>
            <Symb> RatioMaxDistCS=30.0 </Symb>
+           <Symb> ExportMatrixMarket=false </Symb>
 
        </DicoLoc>
 
@@ -467,6 +468,7 @@
 
 
         <SectionChantier>
+             <ExportMatrixMarket> ${ExportMatrixMarket} </ExportMatrixMarket>
              <RatioMaxDistCS> ${RatioMaxDistCS} </RatioMaxDistCS>
              <DebugVecElimTieP> ${StrDebugVecElimTieP} </DebugVecElimTieP>
              <DoStatElimBundle> ${DSElimB} </DoStatElimBundle>

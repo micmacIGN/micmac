@@ -1,8 +1,44 @@
 #include "include/MMVII_all.h"
 
+// #include <Eigen/Dense>
+
 namespace MMVII
 {
 
+/* ========================== */
+/*     cDataGenUnTypedIm      */
+/* ========================== */
+
+
+template <const int Dim> cDataGenUnTypedIm<Dim>::cDataGenUnTypedIm
+                         (
+                             const cPtxd<int,Dim> & aP0,
+                             const cPtxd<int,Dim> & aP1
+                         )  :
+                            cRectObj<Dim>(aP0,aP1)
+{
+}
+
+
+/* ========================== */
+/*          cPtxd             */
+/* ========================== */
+
+
+/*
+template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PCste(const Type & aVal)
+{
+    cPtxd<Type,Dim> aRes;
+    for (int aK=0 ; aK<Dim; aK++)
+        aRes.mCoords[aK]= aVal;
+    return aRes;
+}
+*/
+
+
+/* ========================== */
+/*          ::                */
+/* ========================== */
     //  To test Error_Handler mecanism
 
 static std::string MesNegSz="Negative size in rect object";
@@ -25,7 +61,7 @@ template <const int Dim> cPtxd<int,Dim> CalPEnd(const cPtxd<int,Dim> & aP0,const
 }
 
 
-template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1) :
+template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,bool AllowEmpty) :
      mP0  (aP0),
      mP1  (aP1),
      mSz  (aP0),
@@ -36,11 +72,23 @@ template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,co
     for (int aK=Dim-1 ; aK>=0 ; aK--)
     {
        mSz[aK] = mP1[aK] - mP0[aK];
-       MMVII_INTERNAL_ASSERT_strong(mSz[aK]>=0,MesNegSz);
+       if (AllowEmpty)
+       {
+          MMVII_INTERNAL_ASSERT_strong(mSz[aK]>=0,MesNegSz);
+       }
+       else
+       {
+          MMVII_INTERNAL_ASSERT_strong(mSz[aK]>0,MesNegSz);
+       }
        mNbElem *= mSz[aK];
        mSzCum[aK] = mNbElem;
     }
     // std::cout << mNbElem << "\n";
+}
+
+template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1) :
+   cRectObj<Dim>(aP0,aP1,false)
+{
 }
 
 template <const int Dim> bool cRectObj<Dim>::operator == (const cRectObj<Dim> aR2) const 
@@ -106,68 +154,71 @@ template <const int Dim> cRectObj<Dim>  cRectObj<Dim>::GenerateRectInside(double
 
 
 
+#define MACRO_INSTATIATE_PRECT_DIM(DIM)\
+template class cRectObj<DIM>;\
+template class cDataGenUnTypedIm<DIM>;\
+template <> const cRectObj<DIM> cRectObj<DIM>::Empty00(cPtxd<int,DIM>::PCste(0),cPtxd<int,DIM>::PCste(0),true);
 
-// (const cPtxd<int,Dim> & aP) const 
 
 
-template class cRectObj<1>;
-template class cRectObj<2>;
-template class cRectObj<3>;
+MACRO_INSTATIATE_PRECT_DIM(1)
+MACRO_INSTATIATE_PRECT_DIM(2)
+MACRO_INSTATIATE_PRECT_DIM(3)
+/*
 
-template <> const cRectObj<1> cRectObj<1>::Empty00(cPt1di(0),cPt1di(0));
-template <> const cRectObj<2> cRectObj<2>::Empty00(cPt2di(0,0),cPt2di(0,0));
-template <> const cRectObj<3> cRectObj<3>::Empty00(cPt3di(0,0,0),cPt3di(0,0,0));
+*/
 
 
 /* ========================== */
-/*          cDataImGen        */
+/*          cDataTypedIm      */
 /* ========================== */
 
 
 template <class Type,const int Dim> 
-    cDataImGen<Type,Dim>::cDataImGen(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,Type *aDataLin) :
-        cRectObj<Dim>(aP0,aP1),
-        mDoAlloc (aDataLin==0),
-        mDataLin (mDoAlloc ? cMemManager::Alloc<Type>(NbElem())  : aDataLin)
+    cDataTypedIm<Type,Dim>::cDataTypedIm(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,Type *aRawDataLin) :
+        cDataGenUnTypedIm<Dim>(aP0,aP1),
+        mDoAlloc (aRawDataLin==0),
+        mRawDataLin (mDoAlloc ? cMemManager::Alloc<Type>(NbElem())  : aRawDataLin)
 {
 }
 
 
 template <class Type,const int Dim> 
-    cDataImGen<Type,Dim>::~cDataImGen()
+    cDataTypedIm<Type,Dim>::~cDataTypedIm()
 {
    if (mDoAlloc)
-      cMemManager::Free(mDataLin);
+      cMemManager::Free(mRawDataLin);
 }
 
-template <class Type,const int Dim> void  cDataImGen<Type,Dim>::InitRandom()
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitRandom()
 {
    for (tINT8 aK=0 ; aK< NbElem() ; aK++)
-       mDataLin[aK] = tTraits::RandomValue();
+       mRawDataLin[aK] = tTraits::RandomValue();
 }
 
 /*
-template class cDataImGen<tREAL4,1>;
-template class cDataImGen<tREAL4,2>;
-template class cDataImGen<tREAL4,3>;
+template class cDataTypedIm<tREAL4,1>;
+template class cDataTypedIm<tREAL4,2>;
+template class cDataTypedIm<tREAL4,3>;
 */
 
-#define MACRO_INSTANTIATE_cDataImGen(aType)\
-template class cDataImGen<aType,1>;\
-template class cDataImGen<aType,2>;\
-template class cDataImGen<aType,3>;
+#define MACRO_INSTANTIATE_cDataTypedIm(aType)\
+template class cDataTypedIm<aType,1>;\
+template class cDataTypedIm<aType,2>;\
+template class cDataTypedIm<aType,3>;
 
 
-MACRO_INSTANTIATE_cDataImGen(tINT1)
-MACRO_INSTANTIATE_cDataImGen(tINT2)
-MACRO_INSTANTIATE_cDataImGen(tINT4)
+MACRO_INSTANTIATE_cDataTypedIm(tINT1)
+MACRO_INSTANTIATE_cDataTypedIm(tINT2)
+MACRO_INSTANTIATE_cDataTypedIm(tINT4)
 
-MACRO_INSTANTIATE_cDataImGen(tU_INT1)
-MACRO_INSTANTIATE_cDataImGen(tU_INT2)
-MACRO_INSTANTIATE_cDataImGen(tU_INT4)
+MACRO_INSTANTIATE_cDataTypedIm(tU_INT1)
+MACRO_INSTANTIATE_cDataTypedIm(tU_INT2)
+MACRO_INSTANTIATE_cDataTypedIm(tU_INT4)
 
-MACRO_INSTANTIATE_cDataImGen(tREAL4)
-MACRO_INSTANTIATE_cDataImGen(tREAL8)
+MACRO_INSTANTIATE_cDataTypedIm(tREAL4)
+MACRO_INSTANTIATE_cDataTypedIm(tREAL8)
+MACRO_INSTANTIATE_cDataTypedIm(tREAL16)
 /*
 */
 
@@ -190,7 +241,7 @@ void cBenchBaseImage::DoBenchBI()
     cMemState  aState = cMemManager::CurState() ;
     {
         
-        // cDataImGen<tREAL4,2> aBI(cPt2di(2,3),cPt2di(10,9));
+        // cDataTypedIm<tREAL4,2> aBI(cPt2di(2,3),cPt2di(10,9));
     }
     cMemManager::CheckRestoration(aState);
 }

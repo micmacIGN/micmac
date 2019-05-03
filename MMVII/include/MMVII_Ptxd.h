@@ -20,21 +20,8 @@ namespace MMVII
 template <class Type,const int Dim> class cPtxd;
 
 
-/*   Relation/Bijection entre cPtxd et cPt1d,cPt2d etc ....
-   La conversion de fait dans les deux sens
-
-      cPtxd<Type,1> => cPt1d via le constructeur
-      cPt1d =>  cPtxd<Type,1>  implicite via l'heritage
-
-      Les deux sont donc plus ou moins synomymes 
-*/
-
 
 ///  template class for Points
-/**
-   This class allow to manipulate points indepently of their dimension,
-   with no or few, waste of performance
-*/
 
 template <class Type,const int Dim> class cPtxd
 {
@@ -43,25 +30,23 @@ template <class Type,const int Dim> class cPtxd
        Type * PtRawData() {return mCoords;}
        const Type * PtRawData() const {return mCoords;}
 
+       /// Safe acces to generik data
        Type & operator[] (int aK) 
        {
           MMVII_INTERNAL_ASSERT_tiny((aK>=0) && (aK<Dim),"Bad point access");
           return mCoords[aK];
        }
+       /// (const variant) Safe acces to generik data
        const Type & operator[] (int aK)  const
        {
           MMVII_INTERNAL_ASSERT_tiny((aK>=0) && (aK<Dim),"Bad point access");
           return mCoords[aK];
        }
 
-       // cPtxd(const cPt1d<Type>);
-       // cPtxd(const cPt2d<Type>);
-         // MMVII_INTERNAL_ASSERT(Dim==1);
-
        /// Some function requires default constructor (serialization ?)
        cPtxd() {}
 
-       /// Some function requires default constructor (serialization ?)
+       /// Initialisation with constants
        static cPtxd<Type,Dim>  PCste(const Type & aVal) 
        { 
            cPtxd<Type,Dim> aRes;
@@ -88,18 +73,8 @@ template <class Type,const int Dim> class cPtxd
     protected :
        Type mCoords[Dim];
 };
-/*
-template <class Type> inline cPt1d<Type> operator * (const Type & aVal ,const cPt1d<Type> & aP) 
-{return  cPt1d<Type>(aP.x()*aVal);}
-template <class Type> inline cPt1d<Type> operator * (const cPt1d<Type> & aP,const Type & aVal) 
-{return  cPt1d<Type>(aP.x()*aVal);}
-template <class Type> inline cPt1d<Type> operator / (const cPt1d<Type> & aP,const Type & aVal) 
-{return  cPt1d<Type>(aP.x()/aVal);}
-template <class Type> inline bool operator == (const cPt1d<Type> & aP1,const cPt1d<Type> & aP2) {return  (aP1.x()==aP2.x());}
-template <class Type> inline bool operator != (const cPt1d<Type> & aP1,const cPt1d<Type> & aP2) {return !(aP1==aP2);}
-*/
 
-//  operator +
+///  operator + on points
 template <class Type> inline cPtxd<Type,1> operator + (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
 { return cPtxd<Type,1>(aP1.x() + aP2.x()); }
 template <class Type> inline cPtxd<Type,2> operator + (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
@@ -107,7 +82,7 @@ template <class Type> inline cPtxd<Type,2> operator + (const cPtxd<Type,2> & aP1
 template <class Type> inline cPtxd<Type,3> operator + (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 { return cPtxd<Type,3>(aP1.x() + aP2.x(),aP1.y() + aP2.y(),aP1.z()+aP2.z()); }
 
-//  operator -
+///  binary operator - on points
 template <class Type> inline cPtxd<Type,1> operator - (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
 { return cPtxd<Type,1>(aP1.x() - aP2.x()); }
 template <class Type> inline cPtxd<Type,2> operator - (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
@@ -115,12 +90,13 @@ template <class Type> inline cPtxd<Type,2> operator - (const cPtxd<Type,2> & aP1
 template <class Type> inline cPtxd<Type,3> operator - (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 { return cPtxd<Type,3>(aP1.x() - aP2.x(),aP1.y() - aP2.y(),aP1.z()-aP2.z()); }
 
+///  unary operator - on points
 template <class Type> inline cPtxd<Type,1> operator - (const cPtxd<Type,1> & aP) {return  cPtxd<Type,1>(-aP.x());}
 template <class Type> inline cPtxd<Type,2> operator - (const cPtxd<Type,2> & aP) {return  cPtxd<Type,2>(-aP.x(),-aP.y());}
 template <class Type> inline cPtxd<Type,3> operator - (const cPtxd<Type,3> & aP) {return  cPtxd<Type,3>(-aP.x(),-aP.y(),-aP.z());}
 
 
-// operator *
+///  operator * scalar / points
 template <class Type> inline cPtxd<Type,1> operator * (const Type & aVal ,const cPtxd<Type,1> & aP) 
 {return  cPtxd<Type,1>(aP.x()*aVal);}
 template <class Type> inline cPtxd<Type,1> operator * (const cPtxd<Type,1> & aP,const Type & aVal) 
@@ -135,7 +111,7 @@ template <class Type> inline cPtxd<Type,3> operator * (const cPtxd<Type,3> & aP,
 {return  cPtxd<Type,3>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
 
 
-//  operator ==
+///  operator == on points
 template <class Type> inline bool operator == (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
 {return  (aP1.x()==aP2.x());}
 template <class Type> inline bool operator == (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
@@ -143,7 +119,7 @@ template <class Type> inline bool operator == (const cPtxd<Type,2> & aP1,const c
 template <class Type> inline bool operator == (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 {return  (aP1.x()==aP2.x()) && (aP1.y()==aP2.y()) && (aP1.z()==aP2.z());}
 
-//  operator !=
+///  operator != on points
 template <class Type> inline bool operator != (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
 {return  (aP1.x()!=aP2.x());}
 template <class Type> inline bool operator != (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
@@ -151,7 +127,7 @@ template <class Type> inline bool operator != (const cPtxd<Type,2> & aP1,const c
 template <class Type> inline bool operator != (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 {return  (aP1.x()!=aP2.x()) || (aP1.y()!=aP2.y()) ||  (aP1.z()!=aP2.z());}
 
-// Operator SupEq  :  P1.k() >= P2.k() for all coordinates
+///  SupEq  :  P1.k() >= P2.k() for all coordinates
 template <class Type> inline bool SupEq  (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
 {return  (aP1.x()>=aP2.x());}
 template <class Type> inline bool SupEq  (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
@@ -160,6 +136,7 @@ template <class Type> inline bool SupEq  (const cPtxd<Type,3> & aP1,const cPtxd<
 {return  (aP1.x()>=aP2.x()) && (aP1.y()>=aP2.y()) && (aP1.z()>=aP2.z());}
 
 
+/// PtSupEq   : smallest point being SupEq to
 template <class Type> inline cPtxd<Type,1> PtSupEq  (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
 { return cPtxd<Type,1> (std::max(aP1.x(),aP2.x())); }
 template <class Type> inline cPtxd<Type,2> PtSupEq  (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
@@ -168,7 +145,7 @@ template <class Type> inline cPtxd<Type,3> PtSupEq  (const cPtxd<Type,3> & aP1,c
 { return cPtxd<Type,3> (std::max(aP1.x(),aP2.x()),std::max(aP1.y(),aP2.y()),std::max(aP1.z(),aP2.z())); }
 
 
-// Operator InfStr  :  P1.k() < P2.k() for all coordinates
+///  InfStr  :  P1.k() < P2.k() for all coordinates
 template <class Type> inline bool InfStr  (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
 {return  (aP1.x()<aP2.x());}
 template <class Type> inline bool InfStr  (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
@@ -176,6 +153,7 @@ template <class Type> inline bool InfStr  (const cPtxd<Type,2> & aP1,const cPtxd
 template <class Type> inline bool InfStr  (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 {return  (aP1.x()<aP2.x()) && (aP1.y()<aP2.y()) && (aP1.z()<aP2.z());}
 
+///  PtInfSTr : bigets point beg=ing InfStr (definition valide for integer types)
 template <class Type> inline cPtxd<Type,1> PtInfStr  (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
 { return cPtxd<Type,1> (std::min(aP1.x(),aP2.x()-1)); }
 template <class Type> inline cPtxd<Type,2> PtInfStr  (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
@@ -184,7 +162,7 @@ template <class Type> inline cPtxd<Type,3> PtInfStr  (const cPtxd<Type,3> & aP1,
 { return cPtxd<Type,3> (std::min(aP1.x(),aP2.x()-1),std::min(aP1.y(),aP2.y()-1),std::min(aP1.z(),aP2.z()-1)); }
 
 
-// Operator InfEq  :  P1.k() <= P2.k() for all coordinates
+/// InfEq  :  P1.k() <= P2.k() for all coordinates
 template <class Type> inline bool InfEq  (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
 {return  (aP1.x()<=aP2.x());}
 template <class Type> inline bool InfEq  (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
@@ -193,9 +171,7 @@ template <class Type> inline bool InfEq  (const cPtxd<Type,3> & aP1,const cPtxd<
 {return  (aP1.x()<=aP2.x()) && (aP1.y()<=aP2.y()) && (aP1.z()<=aP2.z());}
 
 
-
-
-//  operator << 
+///  operator << 
 template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,1> &aP)
 { return  OS << "[" << aP.x() << "]"; }
 template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,2> &aP)
@@ -203,18 +179,6 @@ template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<
 template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,3> &aP)
 { return  OS << "[" << aP.x() << "," << aP.y() << "," << aP.z()<< "]"; }
 
-/* Possible generik version, usefull ? I doubt ....
-template <class Type,const int aDim>
-    inline cPtxd<Type,aDim> operator +
-          (const cPtxd<Type,aDim> & aP1,const cPtxd<Type,aDim> & aP2)
-{
-    cPtxd<Type,aDim> aRes;
-    for (int aK=0 ; aK<aDim ; aK++)
-        aRes.Data()[aK] = aP1.Data()[aK] + aP2.Data()[aK];
-
-    return aRes;
-}
-*/
 
     ///  1 dimension specializatio,
 typedef cPtxd<double,1>  cPt1dr ;

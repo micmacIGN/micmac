@@ -1,47 +1,48 @@
 #ifndef  _MMVII_Serial_Tpl2Inc_H_
 #define  _MMVII_Serial_Tpl2Inc_H_
 
-/** 
+/** \file MMVII_2Include_Serial_Tpl.h
+    \brief Contains template definition  for serialisation
+
+   This file must be include when instatiation serialization
+ on Type constructed on other like "Pointeur on Type", "Vector of Type" ...
+
 */
 
 
 namespace MMVII
 {
 
-// Pointeur
+/// Pointer serialisation
 template <class Type> void AddData(const cAuxAr2007 & anAux,Type * aL)
 {
      AddData(anAux,*aL);
 }
+/// Const Pointer serialisation
 template <class Type> void AddData(const cAuxAr2007 & anAux,const Type * aL)
 {
      AddData(anAux,const_cast<Type&>(*aL));
 }
 
 
-
-// ExtSet
-
+/// cExtSet  serialisation
 template <class Type> void AddData(const cAuxAr2007 & anAux,cExtSet<Type> & aSet)
 {
     cAuxAr2007 aTagSet(XMLTagSet<Type>(),anAux);
-    if (anAux.Input())
+    if (anAux.Input())  // If we are reading the "file"
     {
-        std::vector<Type> aV;
+        std::vector<Type> aV; // read data in a vect
         AddData(aTagSet,aV);
-        for (const auto el: aV)
+        for (const auto el: aV)  // put the vect in the set
             aSet.Add(el);
     }
     else
     {
-        std::vector<const Type *> aV;
+        std::vector<const Type *> aV;  // put the set in a vect
         aSet.PutInVect(aV,true);
-        AddData(aTagSet,aV);
+        AddData(aTagSet,aV);  // "write" the vect
     }
 }
-
-
-// Optionnal
 
 
 /// Serialization for optional
@@ -101,6 +102,9 @@ template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string
     }
 }
 
+/// Serialization for stl container
+/** Thi should work both for stl containers (require size + iterator auto)
+*/
 template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont & aL)
 {
     int aNb=aL.size();
@@ -109,8 +113,9 @@ template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont 
     // In input, nb is now intialized, we must set the size of list
     if (aNb!=int(aL.size()))
     {  
-       typename TypeCont::value_type aV0;
-       aL = TypeCont(aNb,aV0);
+       //typename TypeCont::value_type aV0 ;
+       //aL = TypeCont(aNb,aV0);
+       aL = TypeCont(aNb);
     }
     // now read the elements
     for (auto & el : aL)
@@ -119,16 +124,25 @@ template <class TypeCont> void StdContAddData(const cAuxAr2007 & anAux,TypeCont 
     }
 }
 
+/// std::list interface  AddData -> StdContAddData
 template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type>   & aL) { StdContAddData(anAux,aL); }
+/// std::vector interface  AddData -> StdContAddData
 template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & aL) { StdContAddData(anAux,aL); }
 
 
 
 /// Save the value in an archive, not proud of the const_cast ;-)
+/**  SaveInFile :
+     Handle the V1/V2 choice
+     Allocate the archive from name (Xml, binary, ...)
+     Write using AddData
+*/
 template<class Type> void  SaveInFile(const Type & aVal,const std::string & aName)
 {
-   if (GlobOutV2Format())  // Do we save by serialization
+   if (GlobOutV2Format())  // Do we save using MMV2 format by serialization
    {
+       // Unique Ptr  , second type indicate the type of deleting unction
+       // DeleteAr -> function that will be called for deleting
        std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,false),DeleteAr);
        {
            cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
@@ -144,6 +158,8 @@ template<class Type> void  SaveInFile(const Type & aVal,const std::string & aNam
 
 
 /// Read  the value in an archive
+/** Same as write, but simpler as V1/V2 choice is guided by file */
+
 template<class Type> void  ReadFromFile(Type & aVal,const std::string & aName)
 {
     std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArFromFile(aName,true),DeleteAr);

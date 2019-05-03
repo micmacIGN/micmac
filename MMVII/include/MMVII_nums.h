@@ -24,8 +24,9 @@ void FreeRandom();
 
 /* ============ Definition of numerical type ================*/
 
-typedef float    tREAL4;
-typedef double   tREAL8;
+typedef float       tREAL4;
+typedef double      tREAL8;
+typedef long double tREAL16;
 
 typedef signed char  tINT1;
 typedef signed short tINT2;
@@ -73,6 +74,12 @@ template <> class tBaseNumTrait<tStdDouble>
     public :
         static bool IsInt() {return false;}
         typedef tStdDouble  tBase;
+};
+template <> class tBaseNumTrait<tREAL16>
+{
+    public :
+        static bool IsInt() {return false;}
+        typedef tREAL16  tBase;
 };
 
     // ========================================================================
@@ -143,6 +150,11 @@ template <> class tElemNumTrait<tREAL8> : public tBaseNumTrait<tStdDouble>
 {
     public :
         static eTyNums   TyNum() {return eTyNums::eTN_REAL8;}
+};
+template <> class tElemNumTrait<tREAL16> : public tBaseNumTrait<tREAL16>
+{
+    public :
+        static eTyNums   TyNum() {return eTyNums::eTN_REAL16;}
 };
 
     // ========================================================================

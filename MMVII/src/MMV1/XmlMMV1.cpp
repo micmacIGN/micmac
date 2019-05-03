@@ -1,8 +1,36 @@
 #include "include/V1VII.h"
 
 
+
 namespace MMVII
 {
+
+//=============  tNameRel ====================
+
+void TestTimeV1V2()
+{
+    for (int aK= 1 ; aK<1000000 ; aK++)
+    {
+         int aSom=0;
+         ElTimer aChronoV1;
+         double aT1 = cMMVII_Appli::TheAppli().SecFromT0();
+         for (int aI=0 ; aI<10000; aI++)
+         {
+              for (int aJ=0 ; aJ<10000; aJ++)
+              {
+                  aSom += 1/(1+aI+aJ);
+              }
+         }
+         if (aSom==-1)
+            return;
+         double aT2 = cMMVII_Appli::TheAppli().SecFromT0();
+
+         double aDV1 = aChronoV1.uval();
+         double aDV2 = aT2-aT1;
+
+         std::cout  << "Ratio " << aDV1 / aDV2  << " TimeV1: " << aDV1 << "\n";
+    }
+}
 
 //=============  tNameRel ====================
 

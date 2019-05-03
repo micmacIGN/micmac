@@ -42,7 +42,9 @@ void BenchBaseImage(); ///< Global bench on image
 void BenchGlobImage2d(); ///< Global bench on image
 void BenchFileImage(); ///< Global bench on image
 
+void BenchDenseMatrix0(); ///< Basic Vector *
 
+void TestTimeV1V2(); ///< Not a formal Bench, require visual inspection
 
 };
 

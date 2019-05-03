@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1842]) = {
+const char * (theNameVar_ParamApero[1844]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1038,6 +1038,8 @@ const char * (theNameVar_ParamApero[1842]) = {
 "              -->\n",
 "             <ThresholdWarnPointsBehind Nb=\"?\" Type=\"double\" Def=\"0.01\"></ThresholdWarnPointsBehind>\n",
 "\n",
+"             <!-- Used to test alternative solution to linear solution of least square -->\n",
+"             <ExportMatrixMarket Nb=\"?\" Type=\"bool\" Def=\"false\"> </ExportMatrixMarket>\n",
 "        </SectionChantier>\n",
 "\n",
 "\n",

@@ -207,6 +207,7 @@ int  cAppli_MMVII_Bench::Exe()
    // MMVII_INTERNAL_ASSERT_all((1+1)==3,"Theoreme  pas tres fondamental de l'arithmetique");
 
 
+   BenchDenseMatrix0();
    BenchGlobImage();
 
    Bench_Nums();
@@ -233,6 +234,8 @@ int  cAppli_MMVII_Bench::Exe()
 
    // We clean the temporary files created
    RemoveRecurs(TmpDirTestMMVII(),true,false);
+
+   //  TestTimeV1V2(); => Valide ratio ~=  1
 
    return EXIT_SUCCESS;
 }

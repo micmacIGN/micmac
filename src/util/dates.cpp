@@ -1025,8 +1025,16 @@ Pt2di  cMetaDataPhoto::TifSzIm(bool Svp) const
 	// ELISE_ASSERT(Svp || (mXifSzIm.x>0) ,"cMetaDataPhoto::Date UnInit");
 	if (mTifSzIm.x<0)
 	{
-		Tiff_Im aTF = Tiff_Im::StdConvGen(mNameIm,1,true,true);
-		mTifSzIm = aTF.sz();
+            if (Tiff_Im::IsTiff(mNameIm.c_str(),true) )
+            {
+	        Tiff_Im aTF(mNameIm.c_str());
+	        mTifSzIm = aTF.sz();
+            }
+            else
+            {
+	        Tiff_Im aTF = Tiff_Im::StdConvGen(mNameIm,1,true,true);
+	        mTifSzIm = aTF.sz();
+            }
 	}
 	return mTifSzIm; 
 }

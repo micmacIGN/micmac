@@ -1036,6 +1036,8 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
               -->
              <ThresholdWarnPointsBehind Nb="?" Type="double" Def="0.01"></ThresholdWarnPointsBehind>
 
+             <!-- Used to test alternative solution to linear solution of least square -->
+             <ExportMatrixMarket Nb="?" Type="bool" Def="false"> </ExportMatrixMarket>
         </SectionChantier>
 
 

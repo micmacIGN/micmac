@@ -134,6 +134,7 @@ cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
    mRatioMaxDistCS  (30.0),
    mNamesBlockInit  (false),
    mDSElimB         (1),
+   mExportMatrixMarket        (false),
    mArg             (new LArgMain)
 {
     (*mArg) << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
@@ -152,6 +153,7 @@ cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
             << EAM(GlobLibDec,"LibDec",true,"Free decentric parameter, Def context dependant", eSAM_IsBool)
             << EAM(mRapOnZ,"RapOnZ",true,"Force Rappel on Z [Z,Sigma,KeyGrp]")
             << EAM(mDSElimB,"SElimB",true,"Print stat on reason for bundle elimination (0,1,2)")
+            << EAM(mExportMatrixMarket,"ExpMatMark",true,"Export Cov Matrix to Matrix Market Format+Eigen/cmp")
             << EAM(mSauvAutom,"SauvAutom",true, "Save intermediary results to, Set NONE if dont want any", eSAM_IsOutputFile)
             << EAM(mRatioMaxDistCS,"RatioMaxDistCS",true, "Ratio max of distance P-Center ", eSAM_IsOutputFile)
                ;
@@ -169,6 +171,10 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
     // if (EAMIsInit(&mDSElimB))
     {
        mCom = mCom + " +DSElimB=" + ToString(mDSElimB) + " ";
+    }
+    if (ExportMatrixMarket())
+    {
+       mCom = mCom + " +ExportMatrixMarket=true ";
     }
 
     if (mSauvAutom!="")

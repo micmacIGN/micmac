@@ -76,61 +76,76 @@ template <class Type> class cMMV1_Conv
 
      static tImMMV1 ImToMMV1(tImMMVII &  aImV2)  // To avoid conflict with global MMV1
      {
-        return   tImMMV1(aImV2.DataLin(),nullptr,aImV2.Sz().x(),aImV2.Sz().y());
+        return   tImMMV1(aImV2.RawDataLin(),nullptr,aImV2.Sz().x(),aImV2.Sz().y());
      };
 
       
-     static void ReadWrite(bool ReadMode,tImMMVII &aImV2,const cDataFileIm2D & aDF,const cPt2di & aP0File,double aDyn,const cRect2& aR2Init)
-     {
-          // C'est une image en originie (0,0) necessairement en MMV1
-          tImMMV1 aImV1 = ImToMMV1(aImV2);
-          cRect2 aRectFullIm (cPt2di(0,0),aImV2.Sz());
+     static void ReadWrite(bool ReadMode,tImMMVII &aImV2,const cDataFileIm2D & aDF,const cPt2di & aP0File,double aDyn,const cRect2& aR2Init);
+};
 
-          // Rectangle image / a un origine (0,0)
-          cRect2 aRectIm =  (aR2Init== cRect2::Empty00)           ?  // Val par def
-                            aRectFullIm                           :  // Rectangle en 00
-                            aR2Init.Translate(-aImV2.P0())   ;  // Convention aR2Init tient compte de P0
 
-          // It's a bit strange but in fact P0File en aImV2.P0() are redundant, so if both are used
-          // it seems normal to add them
+template <class Type> void cMMV1_Conv<Type>::ReadWrite
+                           (
+                               bool ReadMode,
+                               tImMMVII &aImV2,
+                               const cDataFileIm2D & aDF,
+                               const cPt2di & aP0File,
+                               double aDyn,
+                               const cRect2& aR2Init
+                           )
+{
+   // C'est une image en originie (0,0) necessairement en MMV1
+   tImMMV1 aImV1 = ImToMMV1(aImV2);
+   cRect2 aRectFullIm (cPt2di(0,0),aImV2.Sz());
+
+   // Rectangle image / a un origine (0,0)
+   cRect2 aRectIm =  (aR2Init== cRect2::Empty00)           ?  // Val par def
+                     aRectFullIm                           :  // Rectangle en 00
+                     aR2Init.Translate(-aImV2.P0())   ;  // Convention aR2Init tient compte de P0
+
+   // It's a bit strange but in fact P0File en aImV2.P0() are redundant, so if both are used
+   // it seems normal to add them
           
-          Pt2di aTrans  = ToMMV1(aImV2.P0() + aP0File);
-          Pt2di aP0Im = ToMMV1(aRectIm.P0());
-          Pt2di aP1Im = ToMMV1(aRectIm.P1());
+   Pt2di aTrans  = ToMMV1(aImV2.P0() + aP0File);
+   Pt2di aP0Im = ToMMV1(aRectIm.P0());
+   Pt2di aP1Im = ToMMV1(aRectIm.P1());
 
-          cRect2 aRUsed(ToMMVII(aP0Im+aTrans),ToMMVII(aP1Im+aTrans));
-          if (true)
-          {
-              MMVII_INTERNAL_ASSERT_strong(aRUsed.IncludedIn(aDF), "Read/write out of file");
-              MMVII_INTERNAL_ASSERT_strong(aRectIm.IncludedIn(aRectFullIm), "Read/write out of Im");
-          }
+   cRect2 aRUsed(ToMMVII(aP0Im+aTrans),ToMMVII(aP1Im+aTrans));
+   if (true)
+   {
+       MMVII_INTERNAL_ASSERT_strong(aRUsed.IncludedIn(aDF), "Read/write out of file");
+       MMVII_INTERNAL_ASSERT_strong(aRectIm.IncludedIn(aRectFullIm), "Read/write out of Im");
+   }
 
-          Tiff_Im aTF=Tiff_Im::StdConvGen(aDF.Name(),-1,true);
+   Tiff_Im aTF=Tiff_Im::StdConvGen(aDF.Name(),-1,true);
 
 // std::cout << "GGGGGG " << aP0Im << " " << aP1Im << " " << aTrans << "\n";
 
-          if (ReadMode)
-          {
-             ELISE_COPY
-             (
-                  rectangle(aP0Im,aP1Im),
-                  trans(El_CTypeTraits<Type>::TronqueF(aTF.in()*aDyn),aTrans),
-                  aImV1.out()
-             );
-          }
-          else
-          {
-             ELISE_COPY
-             (
-                  rectangle(aP0Im+aTrans,aP1Im+aTrans),
-                  trans(Tronque(aTF.type_el(),aImV1.in()*aDyn),-aTrans),
-                  aTF.out()
-             );
-/*
-*/
-          }
-     }
-};
+   if (ReadMode)
+   {
+      ELISE_COPY
+      (
+           rectangle(aP0Im,aP1Im),
+           trans(El_CTypeTraits<Type>::TronqueF(aTF.in()*aDyn),aTrans),
+           aImV1.out()
+      );
+   }
+   else
+   {
+      ELISE_COPY
+      (
+           rectangle(aP0Im+aTrans,aP1Im+aTrans),
+           trans(Tronque(aTF.type_el(),aImV1.in()*aDyn),-aTrans),
+           aTF.out()
+      );
+   }
+}
+
+template <> void cMMV1_Conv<tREAL16>::ReadWrite
+                 (bool,tImMMVII &,const cDataFileIm2D &,const cPt2di &,double,const cRect2& )
+{
+   MMVII_INTERNAL_ASSERT_strong(false,"No ReadWrite of 16-Byte float");
+}
 
 
 template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cRectObj<2>& aR2)
@@ -155,11 +170,11 @@ template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const c
 
 template <class Type>  void  cIm2D<Type>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cRectObj<2>& aR2)
 {
-      Im().Read(aFile,aP0,aDyn,aR2);
+      DIm().Read(aFile,aP0,aDyn,aR2);
 }
 template <class Type>  void  cIm2D<Type>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cRectObj<2>& aR2)
 {
-     Im().Write(aFile,aP0,aDyn,aR2);
+     DIm().Write(aFile,aP0,aDyn,aR2);
 }
 
 
@@ -222,4 +237,5 @@ MACRO_INSTANTIATE_READ_FILE(tU_INT2)
 MACRO_INSTANTIATE_READ_FILE(tU_INT4)
 MACRO_INSTANTIATE_READ_FILE(tREAL4)
 MACRO_INSTANTIATE_READ_FILE(tREAL8)
+MACRO_INSTANTIATE_READ_FILE(tREAL16)
 };

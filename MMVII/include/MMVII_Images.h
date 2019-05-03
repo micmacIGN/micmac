@@ -5,7 +5,7 @@ namespace MMVII
 
 
 /** \file MMVII_Images.h
-    \brief Application for storing
+    \brief Classes for storing images in RAM, possibly N dimention
 */
 
 /** The purpose of this  class is to make some elementary test on image class,
@@ -17,12 +17,6 @@ class cBenchBaseImage;
 /// Idem cBenchBaseImage
 class cBenchImage;
 
-
-template <const int Dim>  class cRectObjIterator;
-template <const int Dim>  class cRectObj;
-template <class Type,const int Dim> class cDataImGen ;
-template <class Type>  class cDataIm2D  ;
-template <class Type>  class cIm2D  ;
 
 /**  Class allow to iterate the pixel of an image (in fact a rectangular object) using the
 same syntax than stl iterator => for (auto aP : anIma) ....
@@ -45,12 +39,21 @@ template <const int Dim>  class cRectObjIterator
         cRectObjIterator<Dim> &  operator ++(int) {return ++(*this);} 
      private :
         cRectObjIterator(cRectObj<Dim> & aRO,const  cPtxd<int,Dim> & aP0) : mRO (&aRO),mPCur (aP0) {}
+
         cRectObj<Dim> * mRO;  ///< The rectangular object
         cPtxd<int,Dim> mPCur; ///< The current point 
 };
 
 
 
+/**  Class representing N-dim rectangle in pixel,
+     Many basic services to test and visit the rectangle.
+     Image (RAM), image (file), windows ... will inherit/contain
+
+     Basically defined by integer point limits P0 and P1, and contain all the pixel Pix
+     such that :
+           P0[aK] <= Pix [aK] < P1[aK]  for K in [0,Dim[
+*/
 
 template <const int Dim>  class cRectObj
 {
@@ -70,13 +73,19 @@ template <const int Dim>  class cRectObj
         // Boolean operators
            /// Is this point/pixel/voxel  inside
         bool Inside(const cPtxd<int,Dim> & aP) const  {return SupEq(aP,mP0) && InfStr(aP,mP1);}
+           /// Specialistion 1D
+        bool Inside(const int & aX) const  
+        {
+           // static_assert(Dim==1,"Bas dim for integer access");
+           return (aX>=mP0.x()) && (aX<mP1.x());
+        }
         cPtxd<int,Dim> Proj(const cPtxd<int,Dim> & aP) const {return PtInfStr(PtSupEq(aP,mP0),mP1);}
         bool operator == (const cRectObj<Dim> aR2) const ;
         bool  IncludedIn(const cRectObj<Dim> &)const;
         cRectObj<Dim> Translate(const cPtxd<int,Dim> & aPt)const;
 
         /// Assert that it is inside
-        void AssertInside(const cPtxd<int,Dim> & aP) const
+        template <class TypeIndex> void AssertInside(const TypeIndex & aP) const
         {
              MMVII_INTERNAL_ASSERT_tiny(Inside(aP),"Point out of image");
         }
@@ -95,13 +104,15 @@ template <const int Dim>  class cRectObj
         cRectObj<Dim>  GenerateRectInside(double aPowSize=1.0) const;
 
     protected :
-        cPtxd<int,Dim> mP0;
-        cPtxd<int,Dim> mP1;
-        cPtxd<int,Dim> mSz;
-        cRectObjIterator<Dim> mBegin;
-        cRectObjIterator<Dim> mEnd;
-        cPtxd<tINT8,Dim> mSzCum;
-        tINT8            mNbElem;
+        cPtxd<int,Dim> mP0;           ///< "smallest"
+        cPtxd<int,Dim> mP1;           ///< "highest"
+        cPtxd<int,Dim> mSz;           ///<  Size
+        cRectObjIterator<Dim> mBegin; ///< Beging iterator
+        cRectObjIterator<Dim> mEnd;   ///< Ending iterator
+        cPtxd<tINT8,Dim> mSzCum;      ///< Cumlated size : Cum[aK] = Cum[aK-1] * Sz[aK]
+        tINT8            mNbElem;     ///< Number of pixel = Cum[Dim-1]
+    private :
+        cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,bool AllowEmpty);
 };
 
 typedef  cRectObj<1> cRect1;
@@ -109,23 +120,14 @@ typedef  cRectObj<2> cRect2;
 typedef  cRectObj<3> cRect3;
 
 
-/*
-template <> inline tINT8  cRectObj<1>::NumInBloc(const cPtxd<int,1> & aP)
-{
-    return (aP.x() - mP0.x());
-}
-template <> inline tINT8  cRectObj<2>::NumInBloc(const cPtxd<int,2> & aP)
-{
-    return (aP.x() - mP0.x()) + (aP.y()-mP0.y()) * mSzCum.x();
-}
-template <> inline tINT8  cRectObj<3>::NumInBloc(const cPtxd<int,3> & aP)
-{
-    return (aP.x() - mP0.x()) + (aP.y()-mP0.y()) * mSzCum.x() + (aP.z()-mP0.z()) * mSzCum.y() ;
-}
-*/
 
+/* Iterator allowing to visit rectangles */
 
-template <> inline cRectObjIterator<1> &  cRectObjIterator<1>::operator ++() { mPCur.x()++; return *this;}
+template <> inline cRectObjIterator<1> &  cRectObjIterator<1>::operator ++() 
+{ 
+   mPCur.x()++; 
+   return *this;
+}
 template <> inline cRectObjIterator<2> &  cRectObjIterator<2>::operator ++() 
 {
     mPCur.x()++; 
@@ -155,9 +157,36 @@ template <> inline cRectObjIterator<3> &  cRectObjIterator<3>::operator ++()
 }
 
 
+/**  Abstract class allowing to manipulate images independanlty of their type
+*/
 
-template <class Type,const int Dim> class cDataImGen : public cRectObj<Dim>,
-                                                       public cMemCheck
+
+template <const int Dim> class cDataGenUnTypedIm : public cRectObj<Dim>,
+                                                   public cMemCheck
+{
+      public :
+        typedef cRectObj<Dim>            tRO;
+        const  cRectObj<Dim> & RO() {return *this;}
+
+        cDataGenUnTypedIm(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1);
+
+         
+           // Get Value, integer coordinates
+                /// Pixel -> Integrer Value
+        virtual int VI_GetV(const cPtxd<int,Dim> & aP)  const =0;
+                /// Pixel -> float Value
+        virtual double VD_GetV(const cPtxd<int,Dim> & aP)  const =0;
+           // Set Value, integer coordinates
+                /// Set Pixel Integrer Value
+        virtual void VI_SetV(const  cPtxd<int,Dim> & aP,const int & aV) =0;
+                /// Set Pixel Float Value
+        virtual void VD_SetV(const  cPtxd<int,Dim> & aP,const double & aV)=0 ;
+};
+
+/**  Classes for   ram-image containg a given type of pixel
+*/
+
+template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedIm<Dim>
 {
     public :
         friend class cBenchImage;
@@ -173,32 +202,39 @@ template <class Type,const int Dim> class cDataImGen : public cRectObj<Dim>,
         const cPtxd<int,Dim> & P1() const {return tRO::P1();}
         const cPtxd<int,Dim> & Sz() const {return tRO::Sz();}
 
-        Type * DataLin() {return  mDataLin;}
+        Type * RawDataLin() {return  mRawDataLin;}
         void InitRandom();
-
-        //========= fundamental access to values ============
-
-           /// Get Value, integer coordinates
-        virtual const Type & V_GetV(const cPtxd<int,Dim> & aP)  const = 0;
-           /// Set Value, integer coordinates
-        virtual void V_SetV(const  cPtxd<int,Dim> & aP,const tBase & aV) = 0;
 
         //========= Test access ============
 
         inline bool Inside(const cPtxd<int,Dim> & aP) const {return tRO::Inside(aP);}
         inline bool OkOverFlow(const tBase & aV) const {return tTraits::OkOverFlow(aV);}
 
-        cDataImGen (const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,Type * DataLin=0);
-        virtual ~cDataImGen();
+        cDataTypedIm (const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,Type * DataLin=0);
+        virtual ~cDataTypedIm();
     protected :
         void AssertNonOverFlow(const tBase & aV) const
         {
              MMVII_INTERNAL_ASSERT_tiny(OkOverFlow(aV),"Value out of image");
         }
+        void DupIn(cDataTypedIm<Type,Dim> &) const;
 
-        bool   mDoAlloc;
-        Type *   mDataLin;
+        bool   mDoAlloc;  ///< was data allocated by the image (must know 4 free)
+        Type *   mRawDataLin; ///< raw data containing pixel values
 };
+
+
+/** Class for file image, basic now, will evolve but with (hopefully)
+    a same/similar interface.
+ 
+    What the user must know if the image exist  :
+        * size, channel, type of value
+        * read write an area (rectangle at least) from this file, method are
+          in the template class for specialization to a given type
+
+    Create a file with given spec (size ....)
+*/
+
 
 class cDataFileIm2D : public cRect2
 {
@@ -217,13 +253,18 @@ class cDataFileIm2D : public cRect2
      private :
         cDataFileIm2D(const std::string &,eTyNums,const cPt2di & aSz,int aNbChannel) ;
 
-        std::string  mName;
-        eTyNums      mType;
-        int          mNbChannel;
+        std::string  mName;      ///< Name on the disk
+        eTyNums      mType;      ///< Type of value for pixel
+        int          mNbChannel; ///< Number of channels
 };
 
+/**  Class for 2D image in Ram of a given type :
+        * there is no copy constructor, and only shared pointer can be allocated
+        * algorithm will work on these images (pointers, ref)
+        * all acces are cheked (in non optimized versions)
+*/
 
-template <class Type>  class cDataIm2D  : public cDataImGen<Type,2>
+template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
 {
     public :
         friend class cBenchImage;
@@ -231,8 +272,8 @@ template <class Type>  class cDataIm2D  : public cDataImGen<Type,2>
         friend class cIm2D<Type>;
 
         typedef Type  tVal;
-        typedef cDataImGen<Type,2>   tBI;
-        typedef cRect2               tRO;
+        typedef cDataTypedIm<Type,2>   tBI;
+        typedef cRectObj<2>               tRO;
         typedef typename tBI::tBase  tBase;
 
         //========= fundamental access to values ============
@@ -243,8 +284,8 @@ template <class Type>  class cDataIm2D  : public cDataImGen<Type,2>
             tRO::AssertInside(aP);
             return  Value(aP);
         }
-        const Type & V_GetV(const cPtxd<int,2> & aP)  const override {return GetV(aP);}
 
+          /// Set Value
         void SetV(const cPt2di & aP,const tBase & aV)
         { 
             tRO::AssertInside(aP);
@@ -252,14 +293,19 @@ template <class Type>  class cDataIm2D  : public cDataImGen<Type,2>
             Value(aP) = aV;
         }
 
+          /// Trunc then set value
         void SetVTrunc(const cPt2di & aP,const tBase & aV)
         { 
             tRO::AssertInside(aP);
             Value(aP) = tNumTrait<Type>::Trunc(aV);
         }
 
+          // Interface as generic image
 
-        void V_SetV(const  cPtxd<int,2> & aP,const tBase & aV) override {SetV(aP,aV);}
+        int     VI_GetV(const cPt2di& aP)  const override;
+        double  VD_GetV(const cPt2di& aP)  const override;
+        void VI_SetV(const  cPt2di & aP,const int & aV)    override ;
+        void VD_SetV(const  cPt2di & aP,const double & aV) override ;
 
         //========= Access to sizes, only alias/facilities ============
         const cPt2di &  Sz()  const {return tRO::Sz();}
@@ -277,22 +323,28 @@ template <class Type>  class cDataIm2D  : public cDataImGen<Type,2>
         // const cPt2di &  Sz()  const {return cRectObj<2>::Sz();}
 
 
-        // typedef Type* tPtrVal;
-        // typedef typename  cDataImGen<Type,2>::tBase  tBase;
 
-        void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::Empty00);  // 1 to 1
+        ///  Read file image 1 to 1
+        void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::Empty00);  
+        ///  Write file image 1 to 1
         void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::Empty00);  // 1 to 1
         virtual ~cDataIm2D();
     protected :
     private :
-        cDataIm2D(const cDataIm2D<Type> &) = delete;
-        cDataIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * DataLin=0);
+        cDataIm2D(const cDataIm2D<Type> &) = delete;  ///< No copy constructor for big obj, will add a dup()
+        cDataIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * DataLin=0); ///< Called by shared ptr (cIm2D)
 
 
-        Type & Value(const cPt2di & aP)   {return mData[aP.y()][aP.x()];}
-        const Type & Value(const cPt2di & aP) const   {return mData[aP.y()][aP.x()];}
-        Type ** mData;
+        
+        Type & Value(const cPt2di & aP)   {return mRawData2D[aP.y()][aP.x()];} ///< Data Access
+        const Type & Value(const cPt2di & aP) const   {return mRawData2D[aP.y()][aP.x()];} /// Cont Data Access
+
+
+        Type ** mRawData2D;  ///< Pointers on DataLin
 };
+
+/**  Class for allocating and storing 2D images
+*/
 
 template <class Type>  class cIm2D  
 {
@@ -302,7 +354,9 @@ template <class Type>  class cIm2D
        cIm2D(const cPt2di & aSz,Type * DataLin=0);
 
 
-       tDIM & Im() {return *(mSPtr.get());}
+       // tDIM & Im() {return *(mSPtr.get());}
+       tDIM & DIm() {return *(mPIm);}
+       const tDIM & DIm() const {return *(mPIm);}
       
        void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::Empty00);  // 1 to 1
        void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::Empty00);  // 1 to 1
@@ -310,10 +364,108 @@ template <class Type>  class cIm2D
 
        // void Read(const cDataFileIm2D &,cPt2di & aP0,cPt3dr Dyn /* RGB*/);  // 3 to 1
        // void Read(const cDataFileIm2D &,cPt2di & aP0,cIm2D<Type> aI2,cIm2D<Type> aI3);  // 3 to 3
+       cIm2D<Type>  Dup() const;
     private :
-       std::shared_ptr<tDIM> mSPtr;
+       std::shared_ptr<tDIM> mSPtr;  ///< shared pointer to real image
+       tDIM *                mPIm;
 };
 
+/**  Class for 1D image in Ram of a given type :
+*/
+
+template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
+{
+    public :
+        friend class cIm1D<Type>;
+        friend class cDenseVect<Type>;
+
+
+        typedef Type  tVal;
+        typedef cDataTypedIm<Type,1>   tBI;
+        typedef cRectObj<1>               tRO;
+        typedef typename tBI::tBase  tBase;
+
+        //========= fundamental access to values ============
+
+           /// Get Value
+        const Type & GetV(const int & aP)  const
+        {
+            tRO::AssertInside(aP);
+            return  Value(aP);
+        }
+        const Type & GetV(const cPt1di & aP)  const {return GetV(aP.x());}
+        /// Used by matrix/vector interface 
+        Type & GetV(const int & aP) { tRO::AssertInside(aP); return  Value(aP); }
+
+          /// Set Value
+        void SetV(const int & aP,const tBase & aV)
+        { 
+            tRO::AssertInside(aP);
+            tBI::AssertNonOverFlow(aV);
+            Value(aP) = aV;
+        }
+        void SetV(const  cPt1di & aP,const tBase & aV) {SetV(aP.x(),aV);}
+
+          /// Trunc then set value
+        void SetVTrunc(const int & aP,const tBase & aV)
+        { 
+            tRO::AssertInside(aP);
+            Value(aP) = tNumTrait<Type>::Trunc(aV);
+        }
+        void SetVTrunc(const  cPt1di & aP,const tBase & aV) {SetVTrunc(aP.x(),aV);}
+        const int    &  Sz() const  {return tRO::Sz().x();}
+        const int    &  X0()  const {return tRO::P0().x();}
+        const int    &  X1()  const {return tRO::P1().x();}
+
+          // Interface as generic image
+
+        int     VI_GetV(const cPt1di& aP)  const override;
+        double  VD_GetV(const cPt1di& aP)  const override;
+        void VI_SetV(const  cPt1di & aP,const int & aV)    override ;
+        void VD_SetV(const  cPt1di & aP,const double & aV) override ;
+
+        //========= Access to sizes, only alias/facilities ============
+        virtual ~cDataIm1D();
+    protected :
+    private :
+        Type * RawData1D() {return mRawData1D;}  ///< Used by matrix/vector interface
+
+        cDataIm1D(const cDataIm1D<Type> &) = delete;  ///< No copy constructor for big obj, will add a dup()
+        cDataIm1D(const cPt1di & aP0,const cPt1di & aP1,Type * DataLin=0); ///< Called by shared ptr (cIm2D)
+
+        
+        Type & Value(const int & aX)   {return mRawData1D[aX];} ///< Data Access
+        const Type & Value(const int & aX) const   {return mRawData1D[aX];} /// Cont Data Access
+
+        Type * mRawData1D;  ///< Offset vs DataLin
+};
+
+/**  Class for allocating and storing 1D images
+*/
+
+template <class Type>  class cIm1D  
+{
+    public :
+       friend class cDenseVect<Type>;
+       typedef cDataIm1D<Type>  tDIM;
+       cIm1D(const int & aP0,const int & aP1,Type * DataLin=0);
+       cIm1D(const int & aSz,Type * DataLin=0);
+
+       // tDIM & Im() {return *(mSPtr.get());}
+       tDIM & DIm() {return *(mPIm);}
+       const tDIM & DIm() const {return *(mPIm);}
+       cIm1D<Type>  Dup() const;
+      
+       // void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::Empty00);  // 1 to 1
+       // void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::Empty00);  // 1 to 1
+       // static cIm2D<Type> FromFile(const std::string& aName);
+
+       // void Read(const cDataFileIm2D &,cPt2di & aP0,cPt3dr Dyn /* RGB*/);  // 3 to 1
+       // void Read(const cDataFileIm2D &,cPt2di & aP0,cIm2D<Type> aI2,cIm2D<Type> aI3);  // 3 to 3
+    private :
+       std::shared_ptr<tDIM> mSPtr;  ///< shared pointer to real image
+       tDIM *                mPIm;
+};
 
 
 };

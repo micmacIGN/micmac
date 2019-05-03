@@ -172,11 +172,12 @@ class cMMVII_Ap_NameManip
 /**
     Manage CPU related information on Applis
 */
+typedef std::chrono::system_clock::time_point tTime;
 class cMMVII_Ap_CPU
 {
     public  :
         cMMVII_Ap_CPU ();
-        typedef std::chrono::system_clock::time_point tTime;
+        double SecFromT0() const;
     protected :
          tTime       mT0 ;       ///< More or less creation time
          int         mPid;       ///< Processus id

@@ -175,6 +175,8 @@
                 <eSymb> With_BlockGlobalBundle=Or ${WithBloc_Glob} ${WithBloc_DistGlob}  </eSymb>
                 <Symb> DSElimB=0 </Symb>
                 <Symb> RatioMaxDistCS=30.0 </Symb>
+                <Symb> ExportMatrixMarket=false </Symb>
+
        </DicoLoc>
 
        <SectionBDD_Observation>
@@ -337,6 +339,7 @@
 
 
         <SectionChantier>
+             <ExportMatrixMarket> ${ExportMatrixMarket} </ExportMatrixMarket>
              <RatioMaxDistCS> ${RatioMaxDistCS} </RatioMaxDistCS>
              <DoStatElimBundle> ${DSElimB} </DoStatElimBundle>
              <UseRegulDist> ${UseRegulDist} </UseRegulDist>

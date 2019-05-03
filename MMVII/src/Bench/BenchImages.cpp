@@ -3,6 +3,8 @@
 namespace MMVII
 {
 
+
+
 static int SomI(int i) {return (i * (i+1)) / 2;}
 static int SomIntI(int i0,int i1) {return SomI(i1-1) - SomI(i0-1);}
 
@@ -22,7 +24,7 @@ static double FoncTestIm(const cPt2di & aP)
 template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
 {
     cIm2D<Type> aPIm(aP0,aP1);
-    cDataIm2D<Type>  & aIm = aPIm.Im();
+    cDataIm2D<Type>  & aIm = aPIm.DIm();
 
     // Check the rectangle (number of point ....)
     int aNb = 0;
@@ -153,18 +155,18 @@ void BenchGlobImage2d()
 template <class TypeFile>  void TplBenchReadGlobIm(const std::string & aNameTiff,const cDataIm2D<TypeFile> & aDImDup)
 {
    cIm2D<TypeFile> aICheck =  cIm2D<TypeFile>::FromFile(aNameTiff);
-   MMVII_INTERNAL_ASSERT_bench(aICheck.Im().Sz()==aDImDup.Sz(),"Bench image error");
+   MMVII_INTERNAL_ASSERT_bench(aICheck.DIm().Sz()==aDImDup.Sz(),"Bench image error");
    // for (const auto & aP : aFileIm)
    for (const auto & aP : aDImDup)
    {
        TypeFile aV1 = aDImDup.GetV(aP);
-       TypeFile aV2 = aICheck.Im().GetV(aP);
+       TypeFile aV2 = aICheck.DIm().GetV(aP);
        MMVII_INTERNAL_ASSERT_bench(aV1==aV2,"Bench image error");
    }
 }
 
 
-template <class TypeImage,class tBase,class TypeFile>  void TplBenchFileImage(const cPt2di& aSz)
+template <class TypeImage,class tBase,class TypeFile>  void TplBenchFileImage(const cPt2di& aSz,double aDyn0)
 {
     std::string aNameTiff = cMMVII_Appli::TheAppli().TmpDirTestMMVII() + "Test.tif";
     eTyNums aTypeF2 = tElemNumTrait<TypeFile>::TyNum();
@@ -173,7 +175,7 @@ template <class TypeImage,class tBase,class TypeFile>  void TplBenchFileImage(co
     cIm2D<TypeFile> aIDup(aSz);
 
     
-    cDataIm2D<TypeFile> & aDImDup = aIDup.Im();
+    cDataIm2D<TypeFile> & aDImDup = aIDup.DIm();
     for (const auto & aP : aFileIm)
     {
         aDImDup.SetVTrunc(aP,FoncTestIm(aP));
@@ -181,27 +183,78 @@ template <class TypeImage,class tBase,class TypeFile>  void TplBenchFileImage(co
     aIDup.Write(aFileIm,cPt2di(0,0));  // Now File & Im contain the same data
 
 
-    // Check read image
+    // Check write image
     TplBenchReadGlobIm(aNameTiff,aDImDup);
-
+ 
+    // Ecriture avec des images origine en (0,0)
     for (int aK=0 ; aK<3 ; aK++)
     {
+         double aDyn = aDyn0 * 2.0 * RandUnif_0_1();
          cRect2 aR = aFileIm.GenerateRectInside(3.0);
          cPt2di aP0 = aR.P0();
          cIm2D<TypeImage> aIW(aR.Sz());
-         aIW.Im().InitRandom();
-         for (const auto & aP : aIW.Im())
+         aIW.DIm().InitRandom();
+         for (const auto & aP : aIW.DIm())
          {
-            aDImDup.SetVTrunc(aP+aP0,aIW.Im().GetV(aP));
+            aDImDup.SetVTrunc(aP+aP0,aDyn*aIW.DIm().GetV(aP));
          }
-         aIW.Write(aFileIm,aP0);
+         aIW.Write(aFileIm,aP0,aDyn);
         
     }
     TplBenchReadGlobIm(aNameTiff,aDImDup);
-    
+
+    // Ecriture avec des images origine variable
+    for (int aK=0 ; aK<3 ; aK++)
+    {
+         double aDyn = aDyn0 * 2.0 * RandUnif_0_1();
+         cRect2 aR = aFileIm.GenerateRectInside(3.0);
+         cIm2D<TypeImage> aIW(aR.P0(),aR.P1());
+         aIW.DIm().InitRandom();
+         for (const auto & aP : aIW.DIm())
+         {
+            aDImDup.SetVTrunc(aP,aDyn*aIW.DIm().GetV(aP));
+         }
+         aIW.Write(aFileIm,cPt2di(0,0),aDyn);
+        
+    }
+    TplBenchReadGlobIm(aNameTiff,aDImDup);
+
+    // Lecture avec des image en (0,0)
+    for (int aK=0 ; aK<20 ; aK++)
+    {
+         double aDyn = (1/aDyn0) * 2.0 * RandUnif_0_1();
+         cRect2 aR = aFileIm.GenerateRectInside(3.0);
+         cPt2di aP0 = aR.P0();
+         cIm2D<TypeImage> aIW(aR.Sz());
+         aIW.Read(aFileIm,aP0,aDyn);
+         for (const auto & aP : aIW.DIm())
+         {
+             TypeImage aV1= aIW.DIm().GetV(aP) ;
+             TypeImage aV2= tNumTrait<TypeImage>::Trunc( aDImDup.GetV(aP+aP0) *aDyn);
+             MMVII_INTERNAL_ASSERT_bench(aV1==aV2,"Bench image error");
+         }
+        
+    }
+/*
+    for (int aK=0 ; aK<3 ; aK++)
+    {
+         double aDyn = (1/ aDyn0) * 2.0 * RandUnif_0_1();
+         cRect2 aR = aFileIm.GenerateRectInside(3.0);
+         cPt2di aP0 = aR.P0();
+
+         cIm2D<TypeImage> aIW(aR.P0(),aR.P1());
+         for (const auto & aP : aIW.Im())
+         {
+            aDImDup.SetVTrunc(aP+aP0,aDyn*aIW.Im().GetV(aP));
+         }
+         aIW.Write(aFileIm,aP0,aDyn);
+        
+    }
+*/
+
 
     std::cout << "Tiiiiiiiiiffff " << aNameTiff << "\n";
-    getchar();
+    // getchar();
 /*
     GenIm::type_el aTypeF1 = ToMMV1(aTypeF2);
     Tiff_Im aTif(aNameTiff.c_str(),ToMMV1(aSz),aTypeF1,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
@@ -218,13 +271,70 @@ template <class TypeImage,class tBase,class TypeFile>  void TplBenchFileImage(co
 template <class TypeFile,class TypeImage>  void TplBenchFileImage()
 {
     // TplBenchFileImage<tU_INT1,tINT4,tREAL4>(cPt2di(500,1000));
-    TplBenchFileImage<tU_INT1,tINT4,tINT4>(cPt2di(1000,500));
-    TplBenchFileImage<tINT4,tINT4,tINT2>(cPt2di(1000,500));
+    TplBenchFileImage<tU_INT1,tINT4,tINT4>(cPt2di(1000,500),100.0);
+    TplBenchFileImage<tINT4,tINT4,tINT2>(cPt2di(1000,500),1e-2);
 }
 
 void BenchFileImage()
 {
     TplBenchFileImage<tU_INT1,tINT4>();
+}
+
+/* ========================== */
+/*          BenchIm1D         */
+/* ========================== */
+
+static double FoncTestIm(const double & aP)  {return aP + 1/(1+aP*aP);}
+void TestInitIm1D(int aX0, int aX1)
+{
+  cIm1D<double> aI(aX0,aX1);
+  cDataIm1D<double> & aDI = aI.DIm();
+  for (int aX=aX0 ; aX<aX1 ; aX++)
+  {
+     aDI.SetV(aX,FoncTestIm(aX));
+  }
+  if (0)
+     aDI.SetV(aX1,0);  // detected in AssertInside
+  if (0)
+     aDI.SetV(aX0-1,0);  // detected in AssertInside
+  if (0)
+     aDI.RawDataLin()[-1] = 0; // detected in Free
+
+  for (int aX=aX0 ; aX<aX1 ; aX++)
+  {
+     double aV0 = aDI.GetV(aX);
+     double aV1 = FoncTestIm(aX);
+     double aDif = std::abs(aV0-aV1);
+     MMVII_INTERNAL_ASSERT_bench(aDif<1e-15,"Bench image-1D error");
+  }
+}
+
+void BenchIm1D()
+{
+    if (0)  // Not freed
+    {
+       new cIm1D<double>(10);
+    }
+    if (1)
+    {
+        TestInitIm1D(0,10);
+        TestInitIm1D(10,100);
+        TestInitIm1D(-110,100);
+    }
+}
+
+/* ========================== */
+/*          BenchGlobImage    */
+/* ========================== */
+
+
+void BenchGlobImage()
+{
+    BenchIm1D();
+    BenchFileImage();
+    BenchRectObj();
+    BenchBaseImage();
+    BenchGlobImage2d();
 }
 
 
