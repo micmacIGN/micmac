@@ -96,7 +96,8 @@ class cAppliFictObs : public cCommonMartiniAppli
 
         cNewO_NameManager *  mNM;
         
-        int         mNumFPts;
+        Pt3dr       mNumFPts;
+        bool        mNSym;
         int         mNbIm;
 
         bool                                                    NFHom;    //new format homol
@@ -122,11 +123,13 @@ class cAppliFictObs : public cCommonMartiniAppli
         std::string                      mPattern;
         std::string                      mPrefHom;
         std::string                      mOut;
+        bool                             mPly;
 };
 
 
 cAppliFictObs::cAppliFictObs(int argc,char **argv) :
-    mNumFPts(1.0),
+    mNumFPts(Pt3dr(1,1,1)),
+    mNSym(false),
     NFHom(true),
     mPMulRed(0),
     mHomExp("dat"),
@@ -134,7 +137,8 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
     mRedFacSup(20),
     mResMax(5),
     mPrefHom(""),
-    mOut("ElRed")
+    mOut("ElRed"),
+    mPly(false)
 {
 
     bool aExpTxt=false;
@@ -144,6 +148,7 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
         argc, argv,
         LArgMain() << EAMC(mPattern,"Pattern of images"),
         LArgMain() << EAM (mNumFPts,"NPt",true,"Number of ficticious pts, Def=1 (1:27pts, 2:175pts)")
+                   << EAM (mNSym,"NSym",true,", Non-symetric point generation, Def=false")
                    << EAM (mRedFacSup,"RedFac",true,"Residual image reduction factor, Def=20")
                    << EAM (mResPoly,"Deg",true,"Degree of polyn to smooth residual images, Def=2")
                    << EAM (mResMax,"RMax",true,"Maximum residual, everything above will be filtered out, Def=5")
@@ -151,6 +156,7 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
                    << EAM (aExpTxt,"ExpTxt",true,"ASCII homol?, Def=true")
                    << EAM (mPrefHom,"SH",true,"Homol post-fix, Def=\"\"")
                    << EAM (mOut,"Out",true,"Output file name")
+                   << EAM (mPly,"Ply",true,"Output ply file?, def=false")
     );
    #if (ELISE_windows)
         replace( mPattern.begin(), mPattern.end(), '\\', '/' );
@@ -203,9 +209,6 @@ void cAppliFictObs::GenerateFicticiousObs()
         //triplets
         if (aT.second->mC3)
         {
-            /*std::cout << "tri " << mSetName->at(aT.second->mId1) << " " 
-                                << mSetName->at(aT.second->mId2) << " " 
-                                << mSetName->at(aT.second->mId3) << "\n";*/
 
             std::string  aName3R = mNM->NameOriOptimTriplet(true,mSetName->at(aT.second->mId1),
                                                                  mSetName->at(aT.second->mId2),
@@ -226,20 +229,35 @@ void cAppliFictObs::GenerateFicticiousObs()
         std::vector<Pt3dr> aVP;
     
         //generate the obs fict
-        aGG1.GetDistribGaus(aVP,mNumFPts,mNumFPts,mNumFPts);
+        if (mNSym)
+            aGG1.GetDistribGausNSym(aVP,mNumFPts.x,mNumFPts.y,mNumFPts.z);
+        else
+            aGG1.GetDistribGaus(aVP,mNumFPts.x,mNumFPts.y,mNumFPts.z);
+        
         aNPtNum += (int)aVP.size();
 
         //print the pts
-        if (0)
+        if (mPly)
         {
+            std::string Ply0Dos = "PLY-El/";
+            std::string Ply1Dos = Ply0Dos + "NSym" + ToString(mNSym) + "_Pts-" + ToString(mNumFPts.x) + 
+                                                     ToString(mNumFPts.y) + 
+                                                     ToString(mNumFPts.z) + "/" ;
+            
+            ELISE_fp::MkDirSvp( Ply0Dos );
+            ELISE_fp::MkDirSvp( Ply1Dos );
+
             cPlyCloud aPlyEl;
             for (int aK=0 ; aK<int(aVP.size()) ; aK++)
             {
                 aPlyEl.AddPt(Pt3di(255,255,255),aVP[aK]);
             }
-            aPlyEl.PutFile("El-" + mSetName->at(aT.second->mId1) + "-" + 
+            aPlyEl.PutFile(Ply1Dos + "El-" + mSetName->at(aT.second->mId1) + "-" + 
                                    mSetName->at(aT.second->mId2) + "-" +
-                                   mSetName->at(aT.second->mId3) + ".ply");
+                                   mSetName->at(aT.second->mId3) + "-" +
+                                   "_Pts-" + ToString(mNumFPts.x) + 
+                                             ToString(mNumFPts.y) + 
+                                             ToString(mNumFPts.z) + ".ply");
         }
 
 
@@ -506,81 +524,90 @@ void cAppliFictObs::Initialize()
     for (auto a3 : mLT.Triplets())
     {
 
-        std::string  aName3R = mNM->NameOriOptimTriplet(true,a3.Name1(),a3.Name2(),a3.Name3());
-        cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
-    
+        //verify that the triplet images are in the pattern
+        if ( DicBoolFind(mNameMap,a3.Name1()) && 
+             DicBoolFind(mNameMap,a3.Name2()) && 
+             DicBoolFind(mNameMap,a3.Name3()) )
+        {
+            std::string  aName3R = mNM->NameOriOptimTriplet(true,a3.Name1(),a3.Name2(),a3.Name3());
+            cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
      
-        //get the poses 
-        ElRotation3D aP1 = ElRotation3D::Id ;
-        ElRotation3D aP2 = Xml2El(aXml3Ori.Ori2On1());
-        ElRotation3D aP3 = Xml2El(aXml3Ori.Ori3On1());
-        
-        CamStenope * aC1 = mNM->CamOfName(a3.Name1());
-        CamStenope * aC2 = mNM->CamOfName(a3.Name2());
-        CamStenope * aC3 = mNM->CamOfName(a3.Name3());
+      
+            //get the poses 
+            ElRotation3D aP1 = ElRotation3D::Id ;
+            ElRotation3D aP2 = Xml2El(aXml3Ori.Ori2On1());
+            ElRotation3D aP3 = Xml2El(aXml3Ori.Ori3On1());
+            
+            CamStenope * aC1 = mNM->CamOfName(a3.Name1());
+            CamStenope * aC2 = mNM->CamOfName(a3.Name2());
+            CamStenope * aC3 = mNM->CamOfName(a3.Name3());
+         
+            //should handle camera variant calibration
+            if (aC1==aC2)
+                aC2 = aC1->Dupl();
+            if (aC1==aC3)
+                aC3 = aC1->Dupl();
+         
+            //update poses 
+            aC1->SetOrientation(aP1.inv());
+            aC2->SetOrientation(aP2.inv());
+            aC3->SetOrientation(aP3.inv());
+         
+            aDoneCples[a3.Name1()+a3.Name2()] = aTriNb;
+            aDoneCples[a3.Name2()+a3.Name1()] = aTriNb; 
+            aDoneCples[a3.Name1()+a3.Name3()] = aTriNb; 
+            aDoneCples[a3.Name3()+a3.Name1()] = aTriNb; 
+            aDoneCples[a3.Name2()+a3.Name3()] = aTriNb; 
+            aDoneCples[a3.Name3()+a3.Name2()] = aTriNb; 
+         
+            mTriMap[aTriNb] = new TripleStr(aC1,mNameMap[a3.Name1()],
+                                            aC2,mNameMap[a3.Name2()],
+                                            aC3,mNameMap[a3.Name3()]);
+         
+         
+            if (0)        
+                std::cout << "Triplet " << aTriNb << " " << a3.Name1() << " " << a3.Name2() << " " << a3.Name3() << "\n";
+         
+            aTriNb++;
 
-        //should handle camera variant calibration
-        if (aC1==aC2)
-            aC2 = aC1->Dupl();
-        if (aC1==aC3)
-            aC3 = aC1->Dupl();
-
-        //update poses 
-        aC1->SetOrientation(aP1.inv());
-        aC2->SetOrientation(aP2.inv());
-        aC3->SetOrientation(aP3.inv());
-
-        aDoneCples[a3.Name1()+a3.Name2()] = aTriNb;
-        aDoneCples[a3.Name2()+a3.Name1()] = aTriNb; 
-        aDoneCples[a3.Name1()+a3.Name3()] = aTriNb; 
-        aDoneCples[a3.Name3()+a3.Name1()] = aTriNb; 
-        aDoneCples[a3.Name2()+a3.Name3()] = aTriNb; 
-        aDoneCples[a3.Name3()+a3.Name2()] = aTriNb; 
-
-
-        mTriMap[aTriNb] = new TripleStr(aC1,mNameMap[a3.Name1()],
-                                        aC2,mNameMap[a3.Name2()],
-                                        aC3,mNameMap[a3.Name3()]);
-
-
-        if (0)        
-            std::cout << "Triplet " << aTriNb << " " << a3.Name1() << " " << a3.Name2() << " " << a3.Name3() << "\n";
-
-        aTriNb++;
+        }
 
     }
     //update couples orientations in mTriMap
     for (auto a2 : mLCpl.Cple())
     {
-        
-        //poses
-        bool OK;
-        ElRotation3D aP1 = ElRotation3D::Id;
-        ElRotation3D aP2 = mNM->OriCam2On1 (a2.N1(),a2.N2(),OK);
-        if(!OK)
-            std::cout << "cAppliFictObs::Initialize() warning - no elipse3D for couple " 
-                      << a2.N1() << " " << a2.N2() << "\n";
-
-        CamStenope *aC1 = mNM->CamOfName(a2.N1()); 
-        CamStenope *aC2 = mNM->CamOfName(a2.N2());
-
-        //should handle camera-variant calibration
-        if (aC1==aC2)
-            aC2 = aC1->Dupl();
-
-        //update poses
-        aC1->SetOrientation(aP1.inv()); 
-        aC2->SetOrientation(aP2.inv()); 
-
-        //avoid repetitions
-        if (! DicBoolFind(aDoneCples,a2.N1()+a2.N2()))
+        //verify that the pair images are in the pattern
+        if ( DicBoolFind(mNameMap,a2.N1()) &&
+             DicBoolFind(mNameMap,a2.N2()) )
         {
-            mTriMap[aTriNb] = new TripleStr(aC1,mNameMap[a2.N1()],
-                                            aC2,mNameMap[a2.N2()]);
-            std::cout << "Pair outside triplets:" << aTriNb << " " << a2.N1() << " " << a2.N2() << "\n";
-            aTriNb++;
+            //poses
+            bool OK;
+            ElRotation3D aP1 = ElRotation3D::Id;
+            ElRotation3D aP2 = mNM->OriCam2On1 (a2.N1(),a2.N2(),OK);
+            if(!OK)
+                std::cout << "cAppliFictObs::Initialize() warning - no elipse3D for couple " 
+                          << a2.N1() << " " << a2.N2() << "\n";
+         
+            CamStenope *aC1 = mNM->CamOfName(a2.N1()); 
+            CamStenope *aC2 = mNM->CamOfName(a2.N2());
+         
+            //should handle camera-variant calibration
+            if (aC1==aC2)
+                aC2 = aC1->Dupl();
+         
+            //update poses
+            aC1->SetOrientation(aP1.inv()); 
+            aC2->SetOrientation(aP2.inv()); 
+         
+            //avoid repetitions
+            if (! DicBoolFind(aDoneCples,a2.N1()+a2.N2()))
+            {
+                mTriMap[aTriNb] = new TripleStr(aC1,mNameMap[a2.N1()],
+                                                aC2,mNameMap[a2.N2()]);
+                std::cout << "Pair outside triplets:" << aTriNb << " " << a2.N1() << " " << a2.N2() << "\n";
+                aTriNb++;
+            }
         }
-
     }
     
     if (aTriNb!=0)

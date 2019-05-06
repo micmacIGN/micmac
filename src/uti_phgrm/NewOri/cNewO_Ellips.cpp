@@ -149,6 +149,63 @@ void cGenGaus3D::GetDistribGaus(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int a
    }
 }
 
+
+void cGenGaus3D::GetDistribGausNSym(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int aN3)
+{
+
+    ELISE_ASSERT( (aN1>1) && (aN2>1) && (aN3>1) ,"cGenGaus3D::GetDistribGausConf the N parameters must be bigger than 1");
+
+    aVPts.clear();
+
+//    std::cout << 1/double(aN1) << " " <<  mVecP[0] * 1/double(aN1) * (FactCorrectif(aN1) * mVP[0])  <<
+//                                  " " <<  mVecP[0] * (FactCorrectif(aN1) * mVP[0]) << "\n"; 
+//getchar();
+
+    Pt3dr aFact1 = mVecP[0] * (FactCorrectif(aN1) * mVP[0]);
+    Pt3dr aFact2 = mVecP[1] * (FactCorrectif(aN2) * mVP[1]);
+    Pt3dr aFact3 = mVecP[2] * (FactCorrectif(aN3) * mVP[2]);
+
+    //variables indicating beggining and end step of the discretized space
+    //the space is discretised such that N1,N2,N3 indicate the number of steps in a unit cube
+    int aBEN1 = floor(double(aN1)/2);
+    int aBEN2 = floor(double(aN2)/2);
+    int aBEN3 = floor(double(aN3)/2);
+   
+    //if even add 1
+    int N1EAdd = (aN1 % 2) ? 0 : 1;
+    int N2EAdd = (aN2 % 2) ? 0 : 1;
+    int N3EAdd = (aN3 % 2) ? 0 : 1;
+
+    for (int aK1=-aBEN1; aK1<=aBEN1; aK1++)
+    {
+        //for odd N take also the middle point
+        if (((aN1 % 2) && aK1==0) || (aK1!=0))
+        {
+            for (int aK2=-aBEN2; aK2<=aBEN2; aK2++)
+            {
+                if (((aN2 % 2) && aK2==0) || (aK2!=0))
+                {
+                    for (int aK3=-aBEN3; aK3<=aBEN3; aK3++)
+                    {
+                        if (((aN3 % 2) && aK3==0) || (aK3!=0))
+                        {
+                            Pt3dr aP    = mCDG 
+                                        + aFact1 * InvErrFoncRationel(2*aK1,aN1 + N1EAdd) 
+                                        + aFact2 * InvErrFoncRationel(2*aK2,aN2 + N2EAdd) 
+                                        + aFact3 * InvErrFoncRationel(2*aK3,aN3 + N3EAdd);
+      
+                            aVPts.push_back(aP);
+                            //std::cout << aP << " " ;           
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
+}
+
 void cGenGaus2D::GetDistribGaus(std::vector<Pt2dr> & aVPts,int aN1,int aN2)
 {
    aVPts.clear();
@@ -190,9 +247,12 @@ cGenGaus3D::cGenGaus3D(const cXml_Elips3D & anEl)  :
     aMCov(0,2) = aMCov(2,0) =  anEl.Sxz();
     aMCov(1,2) = aMCov(2,1) =  anEl.Syz();
 
-
+    //decomposition en vecteurs et valeurs propres +
+    // renvoie la liste des indices croissantes de valeurs propres
     std::vector<int>  aIVP = jacobi_diag(aMCov,aValP,aVecP);
 
+    //mise à jours de vecteurs/valeurs propres dans mVecP/mVP
+    //les trois valeurs correspondent aux vecteurs ex, ey, ez
     for (int aK=0 ; aK<3 ; aK++)
     {
         mVP[aK] =  sqrt(aValP(aIVP[aK],aIVP[aK]));

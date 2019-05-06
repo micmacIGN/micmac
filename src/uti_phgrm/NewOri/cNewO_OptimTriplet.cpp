@@ -894,7 +894,8 @@ void cAppliOptimTriplet::Execute()
    MakeFileXML(aXml,aNameSauveXml);
    MakeFileXML(aXml,aNameSauveBin);
 
-
+   if (0)
+       std::cout << anElips3D.CDG() << " " << anElips3D.Sxx() << " " << anElips3D.Syy() << " " << anElips3D.Szz() << "\n";
 
    if (mAotShow)
    {

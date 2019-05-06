@@ -174,8 +174,15 @@ class cGenGaus3D
         cGenGaus3D(const cXml_Elips3D & anEl );
         const double & ValP(int aK) const;
         const Pt3dr  & VecP(int aK) const;
-
+        
+        //distribution de points selon e1,e2,e3 
+        //indiqué par (2*aN1+1),(2*aN2+1),(2*aN3+1) et Gauss
         void GetDistribGaus(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int aN3);
+        
+        //distribution de points selon e1,e2,e3 
+        //indiqué par aN1,aN2,aN3
+        void GetDistribGausNSym(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int aN3);
+
     private :
         Pt3dr mCDG;
         double mVP[3];
