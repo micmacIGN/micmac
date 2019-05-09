@@ -1,7 +1,3 @@
-Forked from @micmacIGN/micmac on 05/08/2019 for [NodeMICMAC](https://github.com/dronemapper-io/NodeMICMAC) 
-and [ODM](https://github.com/OpenDroneMap/ODM) (OpenDroneMap). Modifications and contributions to this 
-MICMAC fork are sponsored and developed by [DroneMapper](https://dronemapper.com).
-
 [Version française](LISEZMOI.md)
 
 # Prerequisites
