@@ -169,7 +169,7 @@ void cSetTiePMul_Cam::ReechRS_SH(const double &aRSSpeed, const string &aSHOut)
 
                 Pt2dr aNewP2D = Reproj(aCam, aP3D, aOldP2D, aEcartCenter);
 
-                if(0 < aNewP2D.x && aNewP2D.x < double(aCam->Sz().x) && 0 < aNewP2D.y && aNewP2D.y < double(aCam->Sz().y))
+                if(IsInImage(aCam->Sz(),aNewP2D))
                     aCnf->SetPt(aKPt,aKIm,aNewP2D);
             }
         }
@@ -259,8 +259,11 @@ std::map<Key,Pt2dr> cSetOfMesureAppuisFlottants_Cam::ReechRS_MAF(const double aR
 
             Pt2dr aNewP2D = Reproj(aCam, aP3D, aPtIm_CamXifDate.mPtIm, aEcartCenter);
 
-            Key aKey = pair<string,string>(aImName,aPtName);
-            aMap.insert(pair<Key,Pt2dr>(aKey,aNewP2D));
+            if(IsInImage(aCam->Sz(),aNewP2D))
+            {
+                Key aKey = pair<string,string>(aImName,aPtName);
+                aMap.insert(pair<Key,Pt2dr>(aKey,aNewP2D));
+            }
         }
     }
     return aMap;
@@ -692,10 +695,7 @@ int ReechRolShut_main(int argc, char ** argv)
         cSetOfMesureAppuisFlottants_Cam aSetOfMesureAppuisFlottants_Cam(aMAFIn,anAppli_CamXifDate);
         std::map<Key,Pt2dr> aMap = aSetOfMesureAppuisFlottants_Cam.ReechRS_MAF(aRSSpeed);
         aSetOfMesureAppuisFlottants_Cam.Export_MAF(aMAFOut,aMap);
-
     }
-
-
 
     return EXIT_SUCCESS;
 }

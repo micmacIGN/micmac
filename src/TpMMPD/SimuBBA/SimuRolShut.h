@@ -2,6 +2,7 @@
 #define SIMUROLSHUT_H
 
 #include "StdAfx.h"
+#include <unordered_map>
 #include "../../uti_files/CPP_XifGps2Xml.h"
 #include "../../uti_phgrm/TiepTri/TiepTri.h"
 #include "../../uti_phgrm/TiepTri/MultTieP.h"
@@ -24,7 +25,7 @@ class cAppli_CamXifDate : public cAppli_XifDate // Cam + exif time info for a se
     public:
         cAppli_CamXifDate(const std::string & aFullName, std::string & aOri, const std::string &aCalcV);
 
-        std::map<std::string,cIm_CamXifDate> mVIm;
+        std::unordered_map<std::string,cIm_CamXifDate> mVIm;
         std::string                          mOri;
 };
 
