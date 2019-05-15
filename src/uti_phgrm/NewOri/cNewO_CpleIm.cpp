@@ -1009,7 +1009,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
 
    // Class cNewO_NameManager classe qui permet d'acceder a tous les nom de fichier
    // crees dans Martini
-   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,DirOfFile(mNameIm1),mNameOriCalib,"dat");
+   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,DirOfFile(mNameIm1),mNameOriCalib,mExpTxt ? "txt" : "dat");
 
 
    // Structure d'image specialisee martini

@@ -44,6 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*              cGenGaus3D                             */
 /*                                                     */
 /*******************************************************/
+// valeur correctif du fait que la fonction erf est une approximation
 static const double A = 0.147;
 
 //              -  x
