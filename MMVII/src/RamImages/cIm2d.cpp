@@ -9,8 +9,8 @@ namespace MMVII
 /* ========================== */
 
 
-template <class Type>  cDataIm2D<Type>::cDataIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * aRawDataLin) : 
-    cDataTypedIm<Type,2> (aP0,aP1,aRawDataLin)
+template <class Type>  cDataIm2D<Type>::cDataIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * aRawDataLin,eModeInitImage aModeInit) : 
+    cDataTypedIm<Type,2> (aP0,aP1,aRawDataLin,aModeInit)
 {
     mRawData2D = cMemManager::Alloc<tVal*>(cRectObj<2>::Sz().y()) -Y0();
     for (int aY=Y0() ; aY<Y1() ; aY++)
@@ -45,14 +45,14 @@ template <class Type> void  cDataIm2D<Type>::VD_SetV(const cPt2di& aP,const doub
 /*          cIm2D         */
 /* ========================== */
 
-template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * aRawDataLin) :
-   mSPtr(new cDataIm2D<Type>(aP0,aP1,aRawDataLin)),
+template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * aRawDataLin,eModeInitImage aModeInit) :
+   mSPtr(new cDataIm2D<Type>(aP0,aP1,aRawDataLin,aModeInit)),
    mPIm (mSPtr.get())
 {
 }
 
-template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aSz,Type * aRawDataLin) :
-   cIm2D<Type> (cPt2di(0,0),aSz,aRawDataLin)
+template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aSz,Type * aRawDataLin,eModeInitImage aModeInit) :
+   cIm2D<Type> (cPt2di(0,0),aSz,aRawDataLin,aModeInit)
 {
 }
 
@@ -64,6 +64,14 @@ template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aNa
 
    return aRes;
 }
+
+template <class Type>  cIm2D<Type>  cIm2D<Type>::Dup() const
+{
+   cIm2D<Type> aRes(DIm().P0(),DIm().P1());
+   DIm().DupIn(aRes.DIm());
+   return aRes;
+}
+
 
 
 #define INSTANTIATE_IM2D(Type)\

@@ -4,6 +4,13 @@
 namespace MMVII
 {
 
+template <class Type> bool ValidFloatValue(const Type & aV)
+{
+   // return ! (   ((boost::math::isnan)(aV)) ||   ((boost::math::isinf)(aV)));
+   return (boost::math::isfinite)(aV) ;
+}
+
+
 /** \file MMVII_nums.h
     \brief some numerical function
 
@@ -144,16 +151,19 @@ template <> class tElemNumTrait<tINT8> : public tBaseNumTrait<tStdInt>
 template <> class tElemNumTrait<tREAL4> : public tBaseNumTrait<tStdDouble>
 {
     public :
+        static bool   Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL4;}
 };
 template <> class tElemNumTrait<tREAL8> : public tBaseNumTrait<tStdDouble>
 {
     public :
+        static bool   Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL8;}
 };
 template <> class tElemNumTrait<tREAL16> : public tBaseNumTrait<tREAL16>
 {
     public :
+        static bool   Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL16;}
 };
 
@@ -161,20 +171,46 @@ template <> class tElemNumTrait<tREAL16> : public tBaseNumTrait<tREAL16>
     //  tNumTrait class to be used
     // ========================================================================
 
-template <class Type> class tNumTrait : public tElemNumTrait<Type>
+/** Sometime it may be usefull to manipulate the caracteristic (size, int/float ...)  of an unknown
+  numerical type (for example read in a tiff file spec), this can be done using cVirtualTypeNum */
+
+
+class cVirtualTypeNum
 {
     public :
+       virtual bool V_IsInt()  const = 0;
+       virtual bool V_Signed() const = 0;
+       virtual int  V_Size()   const = 0;
+       virtual eTyNums  V_TyNum() const = 0; ///< Used to check FromEnum, else ??
+  
+
+       static const cVirtualTypeNum & FromEnum(eTyNums);
+};
+
+template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
+                                        public cVirtualTypeNum
+{
+    public :
+ 
+      // ===========================
          typedef Type  tVal;
          typedef tElemNumTrait<Type>  tETrait;
          typedef typename  tETrait::tBase tBase;
+      // ===========================
+         bool V_IsInt()  const override {return  tBaseNumTrait<tBase>::IsInt();}
+         bool V_Signed() const override {return  tETrait::Signed();}
+         int  V_Size()   const override {return  sizeof(Type);}
+         eTyNums  V_TyNum() const override {return  tETrait::TyNum();}
+
+      //==============
          static const tBase MaxValue() {return  std::numeric_limits<tVal>::max();}
          static const tBase MinValue() {return  std::numeric_limits<tVal>::min();}
 
-         static bool OkOverFlow(const tBase & aV)
+         static bool ValueOk(const tBase & aV)
          {
                if (tETrait::IsInt())
                   return (aV>=MinValue()) && (aV<=MaxValue());
-               return true;
+               return ValidFloatValue(aV);
          }
          static Type Trunc(const tBase & aV)
          {
@@ -191,8 +227,19 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type>
                  return MinValue() + RandUnif_0_1() * (int(MaxValue())-int(MinValue())) ;
               return RandUnif_0_1();
          }
+
+         static const tNumTrait<Type>  TheOnlyOne;
 };
 
+
+// This traits type allow to comppute a temporary variable having the max
+// precision between 2 floating types
+
+template <class T1,class T2> class tMergeF { public : typedef tREAL16  tMax; };
+template <> class tMergeF<tREAL4,tREAL4> { public : typedef tREAL4  tMax; };
+template <> class tMergeF<tREAL8,tREAL4> { public : typedef tREAL8  tMax; };
+template <> class tMergeF<tREAL4,tREAL8> { public : typedef tREAL8  tMax; };
+template <> class tMergeF<tREAL8,tREAL8> { public : typedef tREAL8  tMax; };
 
 
 
@@ -271,6 +318,9 @@ inline tINT8 lround_ni(tREAL8 r) { return Tpl_round_ni<tINT8>(r); }
 inline tREAL8 FracPart(tREAL8 r) {return r - round_down(r);}
 
 
+template <class Type> Type Square(const Type & aV) {return aV*aV;}
+template <class Type,class TCast> TCast TSquare(const Type & aV) {return aV* TCast(aV);}
+template <class Type> tREAL8  R8Square(const Type & aV) {return TSquare<Type,tREAL8>(aV);} ///< To avoid oveflow with int type
 
 
 

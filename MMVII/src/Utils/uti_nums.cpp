@@ -1,7 +1,62 @@
 #include "include/MMVII_all.h"
+#include <boost/math/special_functions/fpclassify.hpp>
 
 namespace MMVII
 {
+
+template <class Type> const tNumTrait<Type>   tNumTrait<Type>::TheOnlyOne;
+// const tNumTrait<tINT1>   tNumTrait<tINT1>::TheOnlyOne;
+/*
+template <> const tNumTrait<tINT2>   tNumTrait<tINT2>::TheOnlyOne;
+template <> const tNumTrait<tINT4>   tNumTrait<tINT4>::TheOnlyOne;
+template <> const tNumTrait<tINT8>   tNumTrait<tINT8>::TheOnlyOne;
+
+template <> const tNumTrait<tU_INT1>   tNumTrait<tU_INT1>::TheOnlyOne;
+template <> const tNumTrait<tU_INT2>   tNumTrait<tU_INT2>::TheOnlyOne;
+template <> const tNumTrait<tU_INT4>   tNumTrait<tU_INT4>::TheOnlyOne;
+
+template <> const tNumTrait<tREAL4>   tNumTrait<tREAL4>::TheOnlyOne;
+template <> const tNumTrait<tREAL8>   tNumTrait<tREAL8>::TheOnlyOne;
+template <> const tNumTrait<tREAL16>  tNumTrait<tREAL16>::TheOnlyOne;
+*/
+
+
+static const cVirtualTypeNum & SwitchFromEnum(eTyNums aTy)
+{
+   switch (aTy)
+   {
+      case eTyNums::eTN_INT1 : return tNumTrait<tINT1>::TheOnlyOne;
+      case eTyNums::eTN_INT2 : return tNumTrait<tINT2>::TheOnlyOne;
+      case eTyNums::eTN_INT4 : return tNumTrait<tINT4>::TheOnlyOne;
+      case eTyNums::eTN_INT8 : return tNumTrait<tINT8>::TheOnlyOne;
+
+      case eTyNums::eTN_U_INT1 : return tNumTrait<tU_INT1>::TheOnlyOne;
+      case eTyNums::eTN_U_INT2 : return tNumTrait<tU_INT2>::TheOnlyOne;
+      case eTyNums::eTN_U_INT4 : return tNumTrait<tU_INT4>::TheOnlyOne;
+
+      case eTyNums::eTN_REAL4 :  return tNumTrait<tREAL4>::TheOnlyOne;
+      case eTyNums::eTN_REAL8 :  return tNumTrait<tREAL8>::TheOnlyOne;
+      case eTyNums::eTN_REAL16 : return tNumTrait<tREAL16>::TheOnlyOne;
+
+      default : ;
+   }
+   MMVII_INTERNAL_ASSERT_strong(false,"Uknown value in cVirtualTypeNum::FromEnum");
+   return tNumTrait<tINT1>::TheOnlyOne;
+}
+
+const cVirtualTypeNum & cVirtualTypeNum::FromEnum(eTyNums aTy)
+{
+    static std::vector<const cVirtualTypeNum *> aV;
+    if (aV.empty())
+    {
+        for (int aK=0 ; aK<int(eTyNums::eNbVals) ; aK++)
+        {
+            aV.push_back(&SwitchFromEnum(eTyNums(aK)));
+        }
+    }
+    return *(M_VectorAt(aV,int(aTy)));
+}
+
 
 
 template <class Type> void TplBenchTraits()
@@ -12,6 +67,7 @@ template <class Type> void TplBenchTraits()
               << " Min=" <<  tNumTrait<Type>::MinValue() 
               << " IsInt=" <<  tNumTrait<Type>::IsInt() 
               << "\n";
+
 }
 
 void BenchTraits()
@@ -22,6 +78,12 @@ void BenchTraits()
    TplBenchTraits<tINT2>();
    TplBenchTraits<tINT4>();
    TplBenchTraits<tREAL4>();
+   for (int aK=0 ; aK<int(eTyNums::eNbVals) ; aK++)
+   {
+       const cVirtualTypeNum & aVTN =  cVirtualTypeNum::FromEnum(eTyNums(aK));
+       // std::cout << " EEeeee " << E2Str(aVTN.V_TyNum()) << "\n";
+       MMVII_INTERNAL_ASSERT_bench (int(aVTN.V_TyNum())==aK,"Bench cVirtualTypeNum::FromEnum");
+   }
    // getchar();
 }
 

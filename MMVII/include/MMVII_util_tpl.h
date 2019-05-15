@@ -190,6 +190,12 @@ template <class Type> class cOrderedPair
 };
 
 
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny)
+#define  M_VectorAt(V,aK) (V.at(aK))
+#else
+#define  M_VectorAt(V,aK) (V[aK])
+#endif 
+
 
 
 };

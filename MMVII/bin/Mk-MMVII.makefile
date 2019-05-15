@@ -72,7 +72,7 @@ ObjPerso=$(SrcPerso:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} ${ObjRamImages} ${ObjMatrix}
+OBJ= ${ObjMatrix} ${ObjRamImages} ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} 
 #
 #=========  Header ========
 #

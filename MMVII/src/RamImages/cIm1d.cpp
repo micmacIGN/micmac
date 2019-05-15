@@ -9,8 +9,14 @@ namespace MMVII
 /* ========================== */
 
 
-template <class Type>  cDataIm1D<Type>::cDataIm1D(const cPt1di & aP0,const cPt1di & aP1,Type * aRawDataLin) : 
-    cDataTypedIm<Type,1> (aP0,aP1,aRawDataLin)
+template <class Type>  cDataIm1D<Type>::cDataIm1D
+                       (
+                            const cPt1di & aP0,
+                            const cPt1di & aP1,
+                            Type * aRawDataLin,
+                            eModeInitImage aModeInit
+                       ) : 
+    cDataTypedIm<Type,1> (aP0,aP1,aRawDataLin,aModeInit)
 {
     mRawData1D = tBI::mRawDataLin - X0();
 }
@@ -42,15 +48,22 @@ template <class Type> void  cDataIm1D<Type>::VD_SetV(const cPt1di& aP,const doub
 /*          cIm1D         */
 /* ========================== */
 
-template <class Type>  cIm1D<Type>::cIm1D(const int & aP0,const int & aP1,Type * aRawDataLin) :
-   mSPtr(new cDataIm1D<Type>(cPt1di(aP0),cPt1di(aP1),aRawDataLin)),
+template <class Type>  cIm1D<Type>::cIm1D(const int & aP0,const int & aP1,Type * aRawDataLin,eModeInitImage aModeInit) :
+   mSPtr(new cDataIm1D<Type>(cPt1di(aP0),cPt1di(aP1),aRawDataLin,aModeInit)),
    mPIm (mSPtr.get())
 {
 }
 
-template <class Type>  cIm1D<Type>::cIm1D(const int & aSz,Type * aRawDataLin) :
-   cIm1D<Type> (0,aSz,aRawDataLin)
+template <class Type>  cIm1D<Type>::cIm1D(const int & aSz,Type * aRawDataLin,eModeInitImage aModeInit) :
+   cIm1D<Type> (0,aSz,aRawDataLin,aModeInit)
 {
+}
+
+template <class Type>  cIm1D<Type>  cIm1D<Type>::Dup() const
+{
+   cIm1D<Type> aRes(DIm().P0().x(),DIm().P1().x());
+   DIm().DupIn(aRes.DIm());
+   return aRes;
 }
 
 #define INSTANTIATE_IM1D(Type)\
