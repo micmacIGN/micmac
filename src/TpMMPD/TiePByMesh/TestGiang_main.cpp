@@ -1990,11 +1990,10 @@ void JSON_WritePoly(vector<Pt3dr> aPoly, ofstream & aJSONOut, Pt3dr aOffSet = Pt
 
         aPt = aPt + aOffSet;
         aJSONOut<<"     ["<<std::fixed<<aPt.x<<", "<<aPt.y<<", "<<aPt.z<<"]";
-        if (aKP == aPoly.size()-1)
-            aJSONOut<<endl;
-        else
-            aJSONOut<<","<<endl;
+        aJSONOut<<","<<endl;
     }
+    aJSONOut<<"     ["<<std::fixed<<aPoly[0].x<<", "<<aPoly[0].y<<", "<<aPoly[0].z<<"]";
+    aJSONOut<<endl;
     aJSONOut<<"    ]"<<endl;
     aJSONOut<<" ]"<<endl;
     aJSONOut<<" }"<<endl;
@@ -2112,7 +2111,7 @@ int DroneFootPrint(int argc,char ** argv)
 
     aJSONOut<<"\"crs\": {"<<endl;
     aJSONOut<<" \"type\": \"EPSG\","<<endl;
-    aJSONOut<<" \"properties\": {\"code\": 2154}"<<endl;
+    aJSONOut<<" \"properties\": {\"code\": "<<aCodeProj<<"}"<<endl;
     aJSONOut<<"},"<<endl;
 
     aJSONOut<<" \"features\": ["<<endl;
