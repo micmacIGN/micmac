@@ -298,7 +298,7 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
        StdCorrecNameOrient(mOriCheck,anEASF.mDir);
 
 
-    cNewO_NameManager aNM(mExtName,mPrefHom,mQuick,anEASF.mDir,mNameOriCalib,"dat",mOriOut);
+    cNewO_NameManager aNM(mExtName,mPrefHom,mQuick,anEASF.mDir,mNameOriCalib,mExpTxt ? "txt" : "dat",mOriOut);
     const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
     for (int aK=0 ; aK<int(aVIm->size()) ; aK++)
     {

@@ -754,6 +754,7 @@ int CPP_AllOptimTriplet_main(int argc, char ** argv);
 int CPP_NewSolGolInit_main(int argc, char ** argv);
 int CPP_NewOriImage2G2O_main(int argc, char ** argv);
 int CPP_FictiveObsFin_main(int argc, char ** argv);
+int CPP_XmlOriRel2OriAbs_main(int argc, char ** argv);
 int GenOriFromOnePose_main(int argc, char ** argv);
 int CPP_NewGenTriOfCple(int argc, char ** argv);
 int CPP_TestBundleGen(int argc, char ** argv);
@@ -1095,6 +1096,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("NO_GenTriOfCple",CPP_NewGenTriOfCple,"New Orientation : select triple of one edge"));
 		aRes.push_back(cMMCom("NO_FicObs", CPP_FictiveObsFin_main, "New orientation : ficticious observations"));
+		aRes.push_back(cMMCom("NO_XmlRel2Coniq", CPP_XmlOriRel2OriAbs_main, "New orientation : convert xml relative to conique"));
 
         aRes.push_back(cMMCom("OriMatis2MM",MatisOri2MM_main,"Convert from Matis to MicMac"));
 
