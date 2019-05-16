@@ -10,7 +10,7 @@ static int SomIntI(int i0,int i1) {return SomI(i1-1) - SomI(i0-1);}
 
 static double FoncTestIm(const cPt2di & aP)
 {
-   return aP.x() - 1.234 * aP.y() + 1.0 * (1 +std::abs(aP.x()) + std::pow(std::abs(aP.y()),1.4));
+   return aP.x() - 1.234 * aP.y() + 1.0 * (1 +pow(std::abs(aP.x()),0.9) + std::pow(std::abs(aP.y()),1.4));
 }
 
 /*====================== IMAGE BENCH ===========================================*/
@@ -23,6 +23,29 @@ static double FoncTestIm(const cPt2di & aP)
 
 template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
 {
+    {
+       cPt2di aSzR = aP1-aP0;
+       cPt2di aSz(aSzR.x(),aSzR.x());
+
+       cIm2D<Type> aPIm(aSz,nullptr,eModeInitImage::eMIA_MatrixId);
+       cDataIm2D<Type>  & aIm = aPIm.DIm();
+       for (const auto & aP : aIm)
+       {
+           Type aV1 = (aP.x()==aP.y());
+           Type aV2 = aIm.GetV(aP);
+           MMVII_INTERNAL_ASSERT_bench(aV1==aV2,"Bench image error");
+       }
+    }
+    {
+       cIm2D<Type> aPIm(aP0,aP1);
+       cDataIm2D<Type>  & aIm = aPIm.DIm();
+       aIm.InitRandom();
+       aIm.InitNull();
+       for (const auto & aP : aIm)
+       {
+           MMVII_INTERNAL_ASSERT_bench(aIm.GetV(aP)==0,"Bench image error");
+       }
+    }
     cIm2D<Type> aPIm(aP0,aP1);
     cDataIm2D<Type>  & aIm = aPIm.DIm();
 
@@ -44,6 +67,7 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
             aSomY += aP.y();
         }
     }
+    cIm2D<Type> aIDup = aPIm.Dup();
     // Test sur le flux itere
     MMVII_INTERNAL_ASSERT_bench(aNbX==(aP1.x()-aP0.x()),"Bench image error");
     MMVII_INTERNAL_ASSERT_bench(aNb==(aP1.x()-aP0.x())*(aP1.y()-aP0.y()),"Bench image error");
@@ -62,7 +86,8 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
             aSomFonc += aV0;
             Type aVTrunc = tNumTrait<Type>::Trunc(aV0);
             Type aVIm = aIm.GetV(aP);
-            aDif0 += std::abs(aV0-aVIm);
+            Type aVDupIm = aIDup.DIm().GetV(aP);
+            aDif0 += std::abs(aV0-aVIm) + std::abs(aVIm-aVDupIm);
             aDifTr += std::abs(aVTrunc-aVIm);
         }
     }
@@ -118,6 +143,7 @@ void BenchGlobImage2d()
 
         TestOneImage2D<tREAL4>(cPt2di(0,0),cPt2di(10,10));
         TestOneImage2D<tREAL8>(cPt2di(0,0),cPt2di(10,10));
+        TestOneImage2D<tREAL16>(cPt2di(0,0),cPt2di(10,10));
 
 
 /*
@@ -300,12 +326,15 @@ void TestInitIm1D(int aX0, int aX1)
   if (0)
      aDI.RawDataLin()[-1] = 0; // detected in Free
 
+  cIm1D<double> aDup = aI.Dup();
   for (int aX=aX0 ; aX<aX1 ; aX++)
   {
      double aV0 = aDI.GetV(aX);
      double aV1 = FoncTestIm(aX);
+     double aV2 = aDup.DIm().GetV(aX);
      double aDif = std::abs(aV0-aV1);
      MMVII_INTERNAL_ASSERT_bench(aDif<1e-15,"Bench image-1D error");
+     MMVII_INTERNAL_ASSERT_bench(std::abs(aV0-aV2)<1e-15,"Bench image-1D error");
   }
 }
 
@@ -330,6 +359,16 @@ void BenchIm1D()
 
 void BenchGlobImage()
 {
+    cIm2D<double> aI(cPt2di(1,1));
+    if (1)
+    {
+        aI.DIm().SetV(cPt2di(0,0),1);
+        // Test the validity test on values
+        // aI.DIm().SetV(cPt2di(0,0),acos(2.0));
+        // std::cout << "Innnf " << 1.0/0.0 << "\n";
+        // aI.DIm().SetV(cPt2di(0,0),1.0/0.0);
+    }
+ 
     BenchIm1D();
     BenchFileImage();
     BenchRectObj();
