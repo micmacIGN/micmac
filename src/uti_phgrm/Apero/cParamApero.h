@@ -5960,12 +5960,16 @@ class cExportPtsFlottant
         cTplValGesInit< std::string > & NameFileTxt();
         const cTplValGesInit< std::string > & NameFileTxt()const ;
 
+        cTplValGesInit< std::string > & NameFileJSON();
+        const cTplValGesInit< std::string > & NameFileJSON()const ;
+
         cTplValGesInit< std::string > & TextComplTxt();
         const cTplValGesInit< std::string > & TextComplTxt()const ;
     private:
         cTplValGesInit< std::string > mPatternSel;
         cTplValGesInit< std::string > mNameFileXml;
         cTplValGesInit< std::string > mNameFileTxt;
+        cTplValGesInit< std::string > mNameFileJSON;
         cTplValGesInit< std::string > mTextComplTxt;
 };
 cElXMLTree * ToXMLTree(const cExportPtsFlottant &);
