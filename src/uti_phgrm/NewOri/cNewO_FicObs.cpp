@@ -693,17 +693,17 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
 {
     std::string aPattern;
     std::string aOut="Test/";
-    std::string aNameOriCalib="";
     std::string aDir;
     const std::vector<std::string> * aSetName;
-    cNewO_NameManager        * aNM;       
+    cNewO_NameManager              * aNM;   
+    cCommonMartiniAppli              aCMA;
 
     ElInitArgMain
     (
         argc, argv,
         LArgMain() << EAMC(aPattern,"Pattern of images"),
         LArgMain() << EAM (aOut,"Out",true,"Output directory, Def=Test")
-                   << EAM (aNameOriCalib,"OriCalib",true,"Calibration folder if exists, Def=\"\"")
+                   << aCMA.ArgCMA()
     );
     #if (ELISE_windows)
         replace( aPattern.begin(), aPattern.end(), '\\', '/' );
@@ -711,6 +711,13 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
 
     SplitDirAndFile(aDir,aPattern,aPattern);    
     StdCorrecNameOrient(aOut,aDir,true);
+
+
+    //update the lists of couples and triplets
+    std::string aCom =   MM3dBinFile("TestLib NO_AllOri2Im ") + "\"" + aPattern + "\"" + " ExpTxt=" + ToString(aCMA.mExpTxt);
+    std::cout << "COM " << aCom << "\n";
+    System(aCom);
+
 
     //file managers
     cElemAppliSetFile anEASF(aPattern);
@@ -721,17 +728,28 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
     for (int aK=0; aK<aNbIm; aK++)
         aNameMap[aSetName->at(aK)] = aK;
 
-    aNM = new cNewO_NameManager("","",true,aDir,aNameOriCalib,"dat");
+    aNM = new cNewO_NameManager("","",true,aDir,aCMA.mNameOriCalib,aCMA.mExpTxt ? "txt" : "dat");
 
     //triplets
     std::string aNameLTriplets = aNM->NameTopoTriplet(true);
-    cXml_TopoTriplet aLT = StdGetFromSI(aNameLTriplets,Xml_TopoTriplet);
-    std::cout << "Triplet no: " << aLT.Triplets().size() << "\n";
+
+    cXml_TopoTriplet aLT;
+    if (ELISE_fp::exist_file(aNameLTriplets))
+    {
+        aLT = StdGetFromSI(aNameLTriplets,Xml_TopoTriplet);
+        std::cout << "Triplet no: " << aLT.Triplets().size() << "\n";
+    }   
+    
 
     //couples 
     std::string aNameLCple = aNM->NameListeCpleOriented(true);
-    cSauvegardeNamedRel aLCpl = StdGetFromSI(aNameLCple,SauvegardeNamedRel);
-    std::cout << "Pairs no: " << aLCpl.Cple().size() << "\n";
+    
+    cSauvegardeNamedRel aLCpl;
+    if (ELISE_fp::exist_file(aNameLCple))
+    {
+        aLCpl = StdGetFromSI(aNameLCple,SauvegardeNamedRel);
+        std::cout << "Pairs no: " << aLCpl.Cple().size() << "\n";
+    }
 
     for (auto a3 : aLT.Triplets())
     {
@@ -806,6 +824,7 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
             MakeFileXML(aOri2,"Ori-"+aOut+"/Orientation-"+StdPrefix(a2.N2())+"."+StdPostfix(a2.N2())+".xml");
         }
     }
+
 
     return EXIT_SUCCESS;
 }
