@@ -772,8 +772,38 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
             MakeFileXML(aOri1,"Ori-"+aOut+"/Orientation-"+StdPrefix(a3.Name1())+"."+StdPostfix(a3.Name1())+".xml");
             MakeFileXML(aOri2,"Ori-"+aOut+"/Orientation-"+StdPrefix(a3.Name2())+"."+StdPostfix(a3.Name2())+".xml");
             MakeFileXML(aOri3,"Ori-"+aOut+"/Orientation-"+StdPrefix(a3.Name3())+"."+StdPostfix(a3.Name3())+".xml");
-//cOrientationConique aOriEx = aCam.mCam->StdExportCalibGlob();
-//MakeFileXML(aOriEx,NameOrientation(mReexpMatr,aCam));
+        
+        }
+    }
+
+    for (auto a2 : aLCpl.Cple())
+    {
+        //verify that the pair images are in the pattern
+        if ( DicBoolFind(aNameMap,a2.N1()) &&
+             DicBoolFind(aNameMap,a2.N2()) )
+        {
+            //poses
+            bool OK;
+            ElRotation3D aP1 = ElRotation3D::Id;
+            ElRotation3D aP2 = aNM->OriCam2On1 (a2.N1(),a2.N2(),OK);
+
+            CamStenope *aC1 = aNM->CamOfName(a2.N1());
+            CamStenope *aC2 = aNM->CamOfName(a2.N2());
+
+            //should handle camera-variant calibration
+            if (aC1==aC2)
+                aC2 = aC1->Dupl();
+
+            //update poses
+            aC1->SetOrientation(aP1.inv());
+            aC2->SetOrientation(aP2.inv());
+
+            cOrientationConique aOri1 = aC1->StdExportCalibGlob();
+            cOrientationConique aOri2 = aC2->StdExportCalibGlob();
+
+            ELISE_fp::MkDirSvp("Ori-"+aOut+"/");
+            MakeFileXML(aOri1,"Ori-"+aOut+"/Orientation-"+StdPrefix(a2.N1())+"."+StdPostfix(a2.N1())+".xml");
+            MakeFileXML(aOri2,"Ori-"+aOut+"/Orientation-"+StdPrefix(a2.N2())+"."+StdPostfix(a2.N2())+".xml");
         }
     }
 
