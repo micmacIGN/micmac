@@ -15,6 +15,8 @@ class  	Eigen::SimplicialLLT< _Matri
 #include "ExternalInclude/Eigen/SparseCholesky"
 
 #include "Externall/eigen-git-mirror-master/unsupported/Eigen/src/SparseExtra/MarketIO.h"
+#include "ExternalInclude/Eigen/LU"
+
 
 using Eigen::MatrixXd;
 using Eigen::Map;
@@ -37,12 +39,14 @@ class cAppli_MMVII_TestEigen : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt);// override {return anArgOpt;}
 
         void T1(); ///< Un test de la doc
-        void T2(); ///< Test sur l'import des raw data
+        void TestRawData(); ///< Test sur l'import des raw data
         void TCho();
         void BenchCho();
+        void TestInv();
     private :
 
-        int mNbCho;
+        bool mTestRawD;
+        int  mNbCho;
         std::string mNameMatMark;
 };
 
@@ -51,20 +55,25 @@ cCollecSpecArg2007 & cAppli_MMVII_TestEigen::ArgOpt(cCollecSpecArg2007 & anArgOp
    return anArgOpt
           <<   AOpt2007(mNbCho,"NbCho","Size Mat in choleski",{})
           <<   AOpt2007(mNameMatMark,"NMM","Name of Matrix Market for Bench",{})
+          <<   AOpt2007(mTestRawD,"TIRD","Test Import Raw Data",{})
    ;
 
 }
 
 
 cAppli_MMVII_TestEigen::cAppli_MMVII_TestEigen (int argc,char **argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc, argv,aSpec),
+  cMMVII_Appli  (argc, argv,aSpec),
+  mTestRawD     (false),
   mNbCho        (-1)
 {
 }
 
 int cAppli_MMVII_TestEigen::Exe()
 {
-  // T2(); getchar();
+  if (mTestRawD)
+  {
+     TestRawData(); 
+  }
   while (mNbCho>0)
   {
      TCho();
@@ -87,7 +96,14 @@ void cAppli_MMVII_TestEigen::T1()
 
 }
 
-void cAppli_MMVII_TestEigen::T2()
+void cAppli_MMVII_TestEigen::TestInv()
+{
+   // for (int aK=0 ; aK 
+}
+
+
+
+void cAppli_MMVII_TestEigen::TestRawData()
 {
     cPt2di aSz(3,2);
 
@@ -179,7 +195,6 @@ void cAppli_MMVII_TestEigen::TCho()
     std::cout << "Check Sol " << (aSolCho - aSol).norm() << "\n";
 }
     
-
 
 
 

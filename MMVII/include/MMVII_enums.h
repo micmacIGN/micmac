@@ -136,12 +136,21 @@ enum class eTyNums
               eNbVals
            };
 
+enum class eModeInitImage
+           {
+               eMIA_Rand,
+               eMIA_Null,
+               eMIA_MatrixId,    ///<  Only for square  Matrix  : Identite, 
+               eMIA_NoInit
+           };
+/*
 enum class eTyMatrix
            {
                eTM_Dens4,
                eTM_Dens8,
                eTM_Dens16
            };
+*/
 
 
 const std::string & E2Str(const eTySC &);         
