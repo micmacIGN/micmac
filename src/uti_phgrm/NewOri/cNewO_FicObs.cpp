@@ -778,9 +778,9 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
                 aC3 = aC1->Dupl();
 
             //update poses 
-            aC1->SetOrientation(aP1.inv());
-            aC2->SetOrientation(aP2.inv());
-            aC3->SetOrientation(aP3.inv());
+            aC1->SetOrientation(aP1);//.inv()
+            aC2->SetOrientation(aP2);//.inv()
+            aC3->SetOrientation(aP3);//.inv()
 
             cOrientationConique aOri1 = aC1->StdExportCalibGlob();
             cOrientationConique aOri2 = aC2->StdExportCalibGlob();
@@ -813,8 +813,8 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
                 aC2 = aC1->Dupl();
 
             //update poses
-            aC1->SetOrientation(aP1.inv());
-            aC2->SetOrientation(aP2.inv());
+            aC1->SetOrientation(aP1);//.inv()
+            aC2->SetOrientation(aP2);//.inv()
 
             cOrientationConique aOri1 = aC1->StdExportCalibGlob();
             cOrientationConique aOri2 = aC2->StdExportCalibGlob();
@@ -830,6 +830,146 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
 }
 
 
+int CPP_Rot2MatEss_main(int argc,char ** argv)
+{
+    std::string aDir,aPattern;
+    std::string aOut="MatEss";
+    bool ROT2F=false;
+    bool VERIF=false;
+    const std::vector<std::string> * aSetName;
+    cNewO_NameManager              * aNM;   
+    cCommonMartiniAppli              aCMA;
 
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aPattern,"Pattern of images"),
+        LArgMain() << EAM (aOut,"Out",true,"Output directory, Def=MatEss.xml")
+                   << EAM (ROT2F,"F",true,"developpers use")
+                   << EAM (VERIF,"Verif",true,"developpers use")
+                   << aCMA.ArgCMA()
+    );
+    #if (ELISE_windows)
+        replace( aPattern.begin(), aPattern.end(), '\\', '/' );
+    #endif
+
+    SplitDirAndFile(aDir,aPattern,aPattern);
+    StdCorrecNameOrient(aOut,aDir,true);
+
+    //update the lists of couples and triplets
+    std::string aCom =   MM3dBinFile("TestLib NO_AllOri2Im ") + "\"" + aPattern + "\"" + " ExpTxt=" + ToString(aCMA.mExpTxt);
+    std::cout << "COM " << aCom << "\n";
+    System(aCom);
+
+
+    //file managers
+    cElemAppliSetFile anEASF(aPattern);
+    aSetName = anEASF.SetIm();
+    int aNbIm = (int)aSetName->size();
+
+    std::map<std::string,int> aNameMap;
+    for (int aK=0; aK<aNbIm; aK++)
+        aNameMap[aSetName->at(aK)] = aK;
+
+    aNM = new cNewO_NameManager("","",true,aDir,aCMA.mNameOriCalib,aCMA.mExpTxt ? "txt" : "dat");
+
+    //couples 
+    std::string aNameLCple = aNM->NameListeCpleOriented(true);
+
+    cSauvegardeNamedRel aLCpl;
+    if (ELISE_fp::exist_file(aNameLCple))
+    {
+        aLCpl = StdGetFromSI(aNameLCple,SauvegardeNamedRel);
+        std::cout << "Pairs no: " << aLCpl.Cple().size() << "\n";
+    }
+    else
+    {
+        ELISE_ASSERT(false,"CPP_Rot2MatEss_main no computed relative orientation in the defined pattern!")
+        return EXIT_FAILURE;
+    }
+
+    for (auto a2 : aLCpl.Cple())
+    {
+        //verify that the pair images are in the pattern
+        if ( DicBoolFind(aNameMap,a2.N1()) &&
+             DicBoolFind(aNameMap,a2.N2()) )
+        {
+            //poses
+            bool OK;
+            ElRotation3D aP1 = ElRotation3D::Id;
+            ElRotation3D aP2 = aNM->OriCam2On1 (a2.N1(),a2.N2(),OK);
+            
+            ElMatrix<double> aR  = aP2.Mat();
+            Pt3dr            aTr = aP2.inv().tr();
+            ElMatrix<double> aT(1,3);
+            aT(0,0) = aTr.x;
+            aT(0,1) = aTr.y;
+            aT(0,2) = aTr.z;
+
+            //R * [R^t t]x  , où x c'est skew matrix
+            ElMatrix<double> aRtT = aR.transpose() * aT; 
+
+            
+            ElMatrix<double> aRtTx(3,3);
+            aRtTx(0,1) = -aRtT(0,2);
+            aRtTx(1,0) =  aRtT(0,2);
+            aRtTx(0,2) =  aRtT(0,1);
+            aRtTx(2,0) = -aRtT(0,1);
+            aRtTx(1,2) = -aRtT(0,0);
+            aRtTx(2,1) =  aRtT(0,0);
+
+            ElMatrix<double> aMatEss = aR * aRtTx;
+            std::cout << "size MatEss=" << aMatEss.Sz() << "\n";
+
+
+            cTypeCodageMatr  aMatEssTCM = ExportMatr(aMatEss);
+ 
+            std::string aNameOut = aDir + aOut + "-" + StdPrefix(a2.N1()) + "_" + StdPrefix(a2.N2()) + ".xml";
+            MakeFileXML(aMatEssTCM,aNameOut);
+            std::cout << "Saved to: " << aNameOut << "\n";
+
+            //verify
+            if (VERIF)
+            {
+                 
+                cNewO_OneIm * aIm1 = new cNewO_OneIm(*aNM,a2.N1());
+                cNewO_OneIm * aIm2 = new cNewO_OneIm(*aNM,a2.N2());
+                
+                std::vector<cNewO_OneIm *> aVI;
+                aVI.push_back(aIm1);
+                aVI.push_back(aIm2);
+               
+                tMergeLPackH aMergeStr(2,false); 
+                NOMerge_AddAllCams(aMergeStr,aVI);
+                aMergeStr.DoExport();               
+
+
+                ElPackHomologue aPackPStd = ToStdPack(&aMergeStr,false,0);
+                ElPackHomologue aPackStdRed = PackReduit(aPackPStd,1500,500);
+                //ElPackHomologue aPack150 = PackReduit(aPackStdRed,100);
+                //ElPackHomologue aPack30 =  PackReduit(aPack150,30);
+ 
+
+
+                //ElRotation3D aRotVerif  = NEW_MatEss2Rot(aMatEss,(aQuick?aPack30:aPack150));
+                ElRotation3D aRotVerif  = NEW_MatEss2Rot(aMatEss,aPackStdRed);
+                std::cout << "aRotVerif \n" << aRotVerif.Mat()(0,0) << " " << aRotVerif.Mat()(0,1) << " " << aRotVerif.Mat()(0,2) << "\n"
+                                          << aRotVerif.Mat()(1,0) << " " << aRotVerif.Mat()(1,1) << " " << aRotVerif.Mat()(1,2) << "\n"
+                                          << aRotVerif.Mat()(2,0) << " " << aRotVerif.Mat()(2,1) << " " << aRotVerif.Mat()(2,2) << "\n" 
+                          << "aTrVerif"    << aRotVerif.tr() << "\n";
+
+                std::cout << "aR\n"      << aR(0,0) << " " << aR(0,1) << " " << aR(0,2) << "\n"
+                                         << aR(1,0) << " " << aR(1,1) << " " << aR(1,2) << "\n"
+                                         << aR(2,0) << " " << aR(2,1) << " " << aR(2,2) << "\n" 
+                          << "aTr"       << aTr << "\n";
+
+            }
+
+        }
+    }
+
+
+    return EXIT_SUCCESS;
+}
 
 
