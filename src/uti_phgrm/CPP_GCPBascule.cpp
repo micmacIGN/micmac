@@ -216,6 +216,9 @@ int GCPCtrl_main(int argc,char ** argv)
     std::string OutTxt {"ResRoll.txt"};
     bool BoolOutTxt =false;
 
+    std::string OutJSON {"Res.geojson"};
+    bool BoolOutJSON =false;
+
 
     ElInitArgMain
     (
@@ -228,6 +231,7 @@ int GCPCtrl_main(int argc,char ** argv)
                     <<  EAM(CPI,"CPI",true,"when Calib Per Image has to be used", eSAM_IsBool)
                     <<  EAM(ShowUnused,"ShowU",true,"Show unused point (def=true)", eSAM_IsBool)
                     <<  EAM(OutTxt,"OutTxt",true,"Name TXT file for Ctrl result (def=false)")
+                    <<  EAM(OutJSON,"OutJSON",true,"Name .geojson file for Ctrl result (def=false)")
                 );
 
     if (!MMVisualMode)
@@ -254,6 +258,8 @@ int GCPCtrl_main(int argc,char ** argv)
     if (EAMIsInit(&OutTxt)) BoolOutTxt=true;
     aCom += " +BoolOutTxt=" + ToString(BoolOutTxt) + " +OutTxt=" +OutTxt;
 
+    if (EAMIsInit(&OutJSON)) BoolOutJSON=true;
+    aCom += " +BoolOutJSON=" + ToString(BoolOutJSON) + " +OutJSON=" +OutJSON;
 
     std::cout << "Com = " << aCom << "\n";
     int aRes = System(aCom.c_str(),false,true,true);
