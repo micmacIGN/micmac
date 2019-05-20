@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamApero[1835]) = {
+const char * (theNameVar_ParamApero[1844]) = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -144,6 +144,7 @@ const char * (theNameVar_ParamApero[1835]) = {
 "    <eTRPB_VisibIm> </eTRPB_VisibIm>\n",
 "    <eTRPB_OutIm> </eTRPB_OutIm>\n",
 "    <eTRPB_PbInterBundle> </eTRPB_PbInterBundle>\n",
+"    <eTRPB_RatioDistP2Cam> </eTRPB_RatioDistP2Cam>\n",
 "    <eTRPB_Unknown> </eTRPB_Unknown>\n",
 "    <eTRPB_NbVals> </eTRPB_NbVals>\n",
 "</enum>\n",
@@ -975,6 +976,12 @@ const char * (theNameVar_ParamApero[1835]) = {
 "\n",
 "        <SectionChantier Nb=\"1\">\n",
 "\n",
+"              <RatioMaxDistCS  Type=\"double\" Nb=\"?\" Def=\"30.0\" > </RatioMaxDistCS>\n",
+"              <!-- Permet d'eliminer les tie points de maniere reproductible\n",
+"                   [7,1,13,4]  => elimine ceux dont le numero est egal a 1%7 et a 4 % 13\n",
+"              -->\n",
+"              <DebugVecElimTieP  Type=\"std::string\" Nb=\"?\" > </DebugVecElimTieP>\n",
+"\n",
 "              <DoStatElimBundle Nb=\"?\" Type=\"int\"> </DoStatElimBundle>\n",
 "              <UseExportImageResidu  Nb=\"?\"> \n",
 "                   <SzByPair Nb=\"?\" Type=\"double\" Def=\"30\"> </SzByPair> \n",
@@ -1031,6 +1038,8 @@ const char * (theNameVar_ParamApero[1835]) = {
 "              -->\n",
 "             <ThresholdWarnPointsBehind Nb=\"?\" Type=\"double\" Def=\"0.01\"></ThresholdWarnPointsBehind>\n",
 "\n",
+"             <!-- Used to test alternative solution to linear solution of least square -->\n",
+"             <ExportMatrixMarket Nb=\"?\" Type=\"bool\" Def=\"false\"> </ExportMatrixMarket>\n",
 "        </SectionChantier>\n",
 "\n",
 "\n",

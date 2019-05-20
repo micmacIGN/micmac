@@ -141,6 +141,14 @@ cAppliTiepRed::cAppliTiepRed(int argc,char **argv,bool CalledFromInside)  :
        cElemAppliSetFile anEASF(mPatImage);
        // anEASF.Init(mPatImage);
        mFilesIm = anEASF.SetIm();
+
+       // Precaution anti developpement en paral des tif dans les sous process
+       for (const auto & aN : *mFilesIm)
+       {
+           // std::cout << aN << "\n";
+           cMetaDataPhoto  aMDP = cMetaDataPhoto::CreateExiv2(aN);
+           aMDP.TifSzIm();
+       }
    }
    if (! EAMIsInit(&mDoCompleteArc))
    {

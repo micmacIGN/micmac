@@ -7,7 +7,7 @@ namespace MMVII
 template <class Type> void TplBenchTraits()
 {
     typename tNumTrait<Type>::tBase aVal=0;
-    std::cout << tNumTrait<Type>::Name() 
+    std::cout << E2Str(tNumTrait<Type>::TyNum() )
               << " Max=" << tNumTrait<Type>::MaxValue() 
               << " Min=" <<  tNumTrait<Type>::MinValue() 
               << " IsInt=" <<  tNumTrait<Type>::IsInt() 
@@ -18,8 +18,11 @@ void BenchTraits()
 {
    TplBenchTraits<tU_INT1>();
    TplBenchTraits<tU_INT2>();
+   TplBenchTraits<tINT1>();
+   TplBenchTraits<tINT2>();
+   TplBenchTraits<tINT4>();
    TplBenchTraits<tREAL4>();
-   getchar();
+   // getchar();
 }
 
 
@@ -44,6 +47,8 @@ void Bench_Nums()
    StdOut() << "Bench_NumsBench_NumsBench_NumsBench_Nums\n";
    MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL4)==4,"Bench size tREAL4");
    MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL8)==8,"Bench size tREAL8");
+
+   MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL16)==16,"Bench size tREAL16");
 
    MMVII_INTERNAL_ASSERT_bench (sizeof( tINT1)==1,"Bench size tINT1");
    MMVII_INTERNAL_ASSERT_bench (sizeof( tINT2)==2,"Bench size tINT2");

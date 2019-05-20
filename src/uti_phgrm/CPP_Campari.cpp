@@ -131,8 +131,10 @@ cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
    ModeleAddPoly(false),
    TheModelAdd(""),
    mSauvAutom       (""),
+   mRatioMaxDistCS  (30.0),
    mNamesBlockInit  (false),
    mDSElimB         (1),
+   mExportMatrixMarket        (false),
    mArg             (new LArgMain)
 {
     (*mArg) << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
@@ -151,7 +153,9 @@ cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
             << EAM(GlobLibDec,"LibDec",true,"Free decentric parameter, Def context dependant", eSAM_IsBool)
             << EAM(mRapOnZ,"RapOnZ",true,"Force Rappel on Z [Z,Sigma,KeyGrp]")
             << EAM(mDSElimB,"SElimB",true,"Print stat on reason for bundle elimination (0,1,2)")
+            << EAM(mExportMatrixMarket,"ExpMatMark",true,"Export Cov Matrix to Matrix Market Format+Eigen/cmp")
             << EAM(mSauvAutom,"SauvAutom",true, "Save intermediary results to, Set NONE if dont want any", eSAM_IsOutputFile)
+            << EAM(mRatioMaxDistCS,"RatioMaxDistCS",true, "Ratio max of distance P-Center ", eSAM_IsOutputFile)
                ;
 }
 
@@ -168,6 +172,10 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
     {
        mCom = mCom + " +DSElimB=" + ToString(mDSElimB) + " ";
     }
+    if (ExportMatrixMarket())
+    {
+       mCom = mCom + " +ExportMatrixMarket=true ";
+    }
 
     if (mSauvAutom!="")
     {
@@ -175,6 +183,10 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
            mCom =   mCom + " +DoSauvAutom=false";
         else
            mCom =   mCom + " +SauvAutom="+mSauvAutom;
+    }
+    if (EAMIsInit(&mRatioMaxDistCS))
+    {
+        mCom = mCom + " +RatioMaxDistCS=" + ToString(mRatioMaxDistCS) + " ";
     }
 
 
@@ -433,6 +445,7 @@ class cAppli_Campari : public cAppli_Tapas_Campari
 */
 
        std::vector<double>   mPdsErrorGps;
+       std::string  mStrDebugVTP;  // Debug sur les tie points
 
 };
 
@@ -555,6 +568,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aVRegulDist,"RegulDist",true,"Parameter fo RegulDist [Val,Grad,Hessian,NbCase,SeuilNb]")
                     << EAM(RapTxt,"RapTxt",true,"Output report of residual for each point")
                     << EAM(aVExpImRes,"ExpImRes",true,"Sz of Im Res=[Cam,Pose,Pair]")
+                    << EAM(mStrDebugVTP,"StrDebugVTP",true,"String of debug for tie points")
 
     );
 
@@ -799,6 +813,10 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         if (aUseGaussJ)
         {
            mCom +=   std::string(" +ModeResolSysLin=eSysPlein");
+        }
+        if (EAMIsInit(&mStrDebugVTP))
+        {
+           mCom += " +StrDebugVecElimTieP=" + mStrDebugVTP + " ";
         }
 
         if (aExportSensib) 

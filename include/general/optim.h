@@ -42,6 +42,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #ifndef _ELISE_GENERAL_OPTIM_H
 #define _ELISE_GENERAL_OPTIM_H
 
+extern bool DEBUG_LSQ;
+
 class cOneEqCalcVarUnkEl
 {
      public :

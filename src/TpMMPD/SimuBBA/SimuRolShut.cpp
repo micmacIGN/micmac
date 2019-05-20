@@ -41,18 +41,263 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <map>
 
-#include "StdAfx.h"
+
 #include "string.h"
-#include "../../uti_phgrm/TiepTri/TiepTri.h"
-#include "../../uti_phgrm/TiepTri/MultTieP.h"
+
 #include "../schnaps.h"
 #include "SimuBBA.h"
+#include "SimuRolShut.h"
+
+
+Pt2dr Reproj (CamStenope * aCam, const Pt3dr & aP3D, const Pt2dr & aP2D, const Pt3dr & aEcartCamCenter)
+{
+    Pt2dr aReprojP2D = aCam->R3toF2(aP3D);
+    aCam->AddToCenterOptical(-aEcartCamCenter);
+    Pt2dr aNewReprojP2D = aCam->R3toF2(aP3D);
+    Pt2dr aNewP2D = aP2D + aNewReprojP2D - aReprojP2D;
+    return aNewP2D;
+}
+
+
+/*******************************************************************/
+/*                                                                 */
+/*                  cIm_CamXifDate                                 */
+/*                                                                 */
+/*******************************************************************/
+
+cIm_CamXifDate::cIm_CamXifDate(cInterfChantierNameManipulateur * aICNM, const string &aName, const string &aOri,cElHour & aBeginTime, const Pt3dr & aVitesse):
+    cIm_XifDate(aName,aBeginTime),
+    mCam(aICNM->StdCamStenOfNames(aName,aOri)),
+    mVitesse(aVitesse)
+{}
+
+
+/*******************************************************************/
+/*                                                                 */
+/*                  cAppli_CamXifDate                              */
+/*                                                                 */
+/*******************************************************************/
+
+cAppli_CamXifDate::cAppli_CamXifDate(const string &aFullName, string &aOri, const std::string & aCalcV):
+    cAppli_XifDate(aFullName)
+{
+    StdCorrecNameOrient(aOri,mDir,true);
+    mOri = aOri;
+
+    // read velocity file
+    std::ifstream aFile((mDir+aCalcV).c_str());
+
+    std::map<string,Pt3dr> aMapVitesse;
+
+    if(aFile)
+    {
+        //#F=Im_xy_t_Vxy_h_X_Y_Z_Vx_Vy_Vz
+        std::string aNameIm;
+        double xy,t,Vxy,h,X,Y,Z,aVX,aVY,aVZ;
+
+        while(aFile >> aNameIm >> xy >> t >> Vxy >> h >> X >> Y >> Z >> aVX >> aVY >> aVZ)
+        {
+            aMapVitesse.insert(pair<string,Pt3dr>(aNameIm,Pt3dr(aVX,aVY,aVZ)));
+        }
+        aFile.close();
+    }
+    std::cout << "aCalcV : " << aMapVitesse.size() << " files" << endl;
+
+
+    for(int i=0; i<int(mSetIm->size());i++)
+    {
+        mVIm.insert(std::pair<std::string,cIm_CamXifDate>(mSetIm->at(i),cIm_CamXifDate(mICNM,mSetIm->at(i),aOri,mBegin,aMapVitesse.at(mSetIm->at(i)))));
+    }
+
+    std::cout << "Nb of files:" << mVIm.size() << endl;
+
+    ELISE_ASSERT(aMapVitesse.size()==mVIm.size(),"Nb of Im != Nb of Im velocity");
+}
+
+
+
+
+/*******************************************************************/
+/*                                                                 */
+/*                      cSetTiePMul_Cam                            */
+/*                                                                 */
+/*******************************************************************/
+cSetTiePMul_Cam::cSetTiePMul_Cam(const std::string &aSH, const cAppli_CamXifDate &anAppli):
+    m_pSH(new cSetTiePMul(0)),
+    mSH(aSH),
+    m_Appli(anAppli)
+{
+    m_pSH->AddFile(mSH);
+}
+
+void cSetTiePMul_Cam::ReechRS_SH(const double &aRSSpeed, const string &aSHOut)
+{
+    std::vector<cSetPMul1ConfigTPM *> aVCnf = m_pSH->VPMul();
+    for(uint itCnf=0; itCnf<aVCnf.size(); itCnf++)
+    {
+        std::cout << "Done " << itCnf << " out of " << aVCnf.size() << endl;
+        auto aCnf = aVCnf.at(itCnf);
+        std::vector<int> aVIdIm = aCnf->VIdIm();
+        std::vector<CamStenope*> aVCam;
+        for(int &aIdIm : aVIdIm)
+        {
+            std::string aNameIm = m_pSH->NameFromId(aIdIm);
+            aVCam.push_back(m_Appli.mVIm.at(aNameIm).mCam);
+        }
+
+        for(int aKPt=0; aKPt<aCnf->NbPts(); aKPt++)
+        {
+            std::vector<Pt2dr> aVOldP2D;
+            for(int aKIm=0; aKIm<aCnf->NbIm(); aKIm++)
+            {
+                aVOldP2D.push_back(aCnf->Pt(aKPt,aKIm));
+            }
+            ELISE_ASSERT(aVOldP2D.size() == aVCam.size(), "Size not coherent");
+            ELISE_ASSERT(aVOldP2D.size() > 1 && aVCam.size() > 1, "Nb faiseaux < 2");
+            Pt3dr aP3D = Intersect_Simple(aVCam , aVOldP2D);
+
+            for(int aKIm=0; aKIm<aCnf->NbIm(); aKIm++)
+            {
+                std::string aNameIm = m_pSH->NameFromId(aCnf->VIdIm().at(aKIm));
+                CamStenope * aCam = aVCam.at(aKIm);
+                Pt2dr aOldP2D = aVOldP2D.at(aKIm);
+
+                double aEcartTime = (aOldP2D.y-aCam->Sz().y/2) * aRSSpeed/1000/1000;
+                Pt3dr aEcartCenter = m_Appli.mVIm.at(aNameIm).mVitesse * aEcartTime;
+
+                Pt2dr aNewP2D = Reproj(aCam, aP3D, aOldP2D, aEcartCenter);
+
+                if(0 < aNewP2D.x && aNewP2D.x < double(aCam->Sz().x) && 0 < aNewP2D.y && aNewP2D.y < double(aCam->Sz().y))
+                    aCnf->SetPt(aKPt,aKIm,aNewP2D);
+            }
+        }
+
+        // output modified tie points
+        std::string aNameOut0 = cSetTiePMul::StdName(m_Appli.mICNM,aSHOut,"Reech",0);
+        std::string aNameOut1 = cSetTiePMul::StdName(m_Appli.mICNM,aSHOut,"Reech",1);
+
+        m_pSH->Save(aNameOut0);
+        m_pSH->Save(aNameOut1);
+
+    }
+}
+
+
+/*******************************************************************/
+/*                                                                 */
+/*                      cPtIm_CamXifDate                           */
+/*                                                                 */
+/*******************************************************************/
+cPtIm_CamXifDate::cPtIm_CamXifDate(Pt2dr &aPtIm, cIm_CamXifDate &aIm_CamXifDate):
+    mPtIm(aPtIm),
+    mIm_CamXifDate(aIm_CamXifDate)
+{}
+
+/*******************************************************************/
+/*                                                                 */
+/*                cSetOfMesureAppuisFlottants_Cam                  */
+/*                                                                 */
+/*******************************************************************/
+cSetOfMesureAppuisFlottants_Cam::cSetOfMesureAppuisFlottants_Cam(const std::string &aMAFIn,const cAppli_CamXifDate & anAppli):
+    m_Appli(anAppli),
+    mDico(StdGetFromPCP(aMAFIn,SetOfMesureAppuisFlottants))
+{
+
+    std::list<cMesureAppuiFlottant1Im> & aLMAF = mDico.MesureAppuiFlottant1Im();
+    for(auto &aMAF : aLMAF)
+    {
+        const std::string aNameIm = aMAF.NameIm();
+        std::list<cOneMesureAF1I> & aLMes = aMAF.OneMesureAF1I();
+        for(auto & aMes:aLMes)
+        {
+            const std::string aNamePt = aMes.NamePt();
+            Pt2dr aPtIm = aMes.PtIm();
+            auto search = mVPtIm.find(aNamePt);
+            cIm_CamXifDate aIm_XifDate = m_Appli.mVIm.at(aNameIm);
+            cPtIm_CamXifDate aPtIm_CamXifDate(aPtIm,aIm_XifDate);
+
+            if(search == mVPtIm.end())
+            {
+                std::vector<cPtIm_CamXifDate> aVPtIm_CamXifDate;
+                aVPtIm_CamXifDate.push_back(aPtIm_CamXifDate);
+                mVPtIm.insert(pair<std::string,std::vector<cPtIm_CamXifDate>>(aNamePt,aVPtIm_CamXifDate));
+            }
+            else
+            {
+                mVPtIm.at(aNamePt).push_back(aPtIm_CamXifDate);
+            }
+        }
+    }
+}
+
+std::map<Key,Pt2dr> cSetOfMesureAppuisFlottants_Cam::ReechRS_MAF(const double aRSSpeed)
+{
+    std::map<Key,Pt2dr> aMap;
+    for(auto &aPtIm:mVPtIm)
+    {
+        std::vector<Pt2dr> aVOldP2D;
+        std::vector<CamStenope*> aVCam;
+        std::string aPtName = aPtIm.first;
+        std::vector<cPtIm_CamXifDate> aVPtIm_CamXifDate = aPtIm.second;
+        for(auto &aPtIm_CamXifDate:aVPtIm_CamXifDate)
+        {
+            aVOldP2D.push_back(aPtIm_CamXifDate.mPtIm);
+            aVCam.push_back(aPtIm_CamXifDate.mIm_CamXifDate.mCam);
+        }
+        ELISE_ASSERT(aVOldP2D.size() == aVCam.size(), "Size not coherent");
+        ELISE_ASSERT(aVOldP2D.size() > 1 && aVCam.size() > 1, "Nb faiseaux < 2");
+
+        Pt3dr aP3D = Intersect_Simple(aVCam , aVOldP2D);
+        for(auto &aPtIm_CamXifDate:aVPtIm_CamXifDate)
+        {
+            std::string aImName = aPtIm_CamXifDate.mIm_CamXifDate.mName;
+            CamStenope * aCam = aPtIm_CamXifDate.mIm_CamXifDate.mCam;
+
+            double aEcartTime = (aPtIm_CamXifDate.mPtIm.y-aCam->Sz().y/2) * aRSSpeed/1000/1000;
+            Pt3dr aEcartCenter = m_Appli.mVIm.at(aImName).mVitesse * aEcartTime;
+
+            Pt2dr aNewP2D = Reproj(aCam, aP3D, aPtIm_CamXifDate.mPtIm, aEcartCenter);
+
+            Key aKey = pair<string,string>(aImName,aPtName);
+            aMap.insert(pair<Key,Pt2dr>(aKey,aNewP2D));
+
+        }
+    }
+
+    return aMap;
+}
+
+void cSetOfMesureAppuisFlottants_Cam::Export_MAF(const std::string & aMAFOut, const std::map<Key,Pt2dr> & aMap)
+{
+    std::list<cMesureAppuiFlottant1Im> & aLMAF = mDico.MesureAppuiFlottant1Im();
+    for(auto &aMAF:aLMAF)
+    {
+        const std::string aNameIm = aMAF.NameIm();
+        std::list<cOneMesureAF1I> & aLMes = aMAF.OneMesureAF1I();
+        for(auto & aMes:aLMes)
+        {
+            const std::string aNamePt = aMes.NamePt();
+            Key aKey = pair<string,string>(aNameIm,aNamePt);
+            aMes.PtIm() = aMap.at(aKey);
+        }
+    }
+    MakeFileXML(mDico,aMAFOut);
+}
+
+
+/*******************************************************************/
+/*                                                                 */
+/*                                                                 */
+/*                                                                 */
+/*******************************************************************/
 
 int SimuRolShut_main(int argc, char ** argv)
 {
     std::string aPatImgs, aSH, aOri, aOriRS, aSHOut{"SimuRolShut"}, aDir, aImgs,aModifP;
-    int aLine{3};
+    int aLine{3}, aSeed;
+    std::vector<double> aNoiseGaussian(4,0.0);
     ElInitArgMain
             (
                 argc, argv,
@@ -63,6 +308,8 @@ int SimuRolShut_main(int argc, char ** argv)
                            << EAMC(aModifP,"File containing pose modification for each image, file size = 1 or # of images"),
                 LArgMain() << EAM(aSHOut,"Out",false,"Output name of generated tie points, default=simulated")
                            << EAM(aLine,"Line",true,"Read file containing pose modification from a certain line, def=3 (two lines for file header)")
+                           << EAM(aSeed,"Seed",false,"Seed for generating gaussian noise")
+                           << EAM(aNoiseGaussian,"NoiseGaussian",false,"[meanX,stdX,meanY,stdY]")
                 );
 
     // get directory
@@ -103,6 +350,15 @@ int SimuRolShut_main(int argc, char ** argv)
     if(aCal.copy(aCalRS,true))
         std::cout << "Create Calibration file "+aNewCalib << endl;
 
+
+    // gaussian noise
+    if(!EAMIsInit(&aSeed))  aSeed=time(0);
+
+    std::default_random_engine generator(aSeed);
+
+    std::normal_distribution<double> distributionX(aNoiseGaussian[0],aNoiseGaussian[1]);
+    std::normal_distribution<double> distributionY(aNoiseGaussian[2],aNoiseGaussian[3]);
+
     //1. lecture of tie points and orientation
     std::cout << "Loading tie points + orientation...   ";
     cSetTiePMul * pSH = new cSetTiePMul(0);
@@ -137,6 +393,11 @@ int SimuRolShut_main(int argc, char ** argv)
 
     //2. get 2D/3D position of tie points
     std::cout << "Filling ElPackHomologue...   ";
+
+    if (EAMIsInit(&aNoiseGaussian))
+    {
+        std::cout << "Gaussian Noise: " << aNoiseGaussian << endl;
+    }
 
 
     // parse Configs aVCnf
@@ -189,6 +450,12 @@ int SimuRolShut_main(int argc, char ** argv)
                 double aRatio = aY / aCam->Sz().y;
                 double aX = aRatio * (aPt2d1.x-aPt2d0.x) + aPt2d0.x;
                 Pt2dr aPt2d = Pt2dr(aX,aY);
+
+                if (EAMIsInit(&aNoiseGaussian))
+                {
+                    aPt2d.x += distributionX(generator);
+                    aPt2d.y += distributionY(generator);
+                }
 
                 //std::cout << aPt2d0.x << " " << aPt2d0.y << " " << aPt2d.x << " " << aPt2d.y << " " << aPt2d1.x << " " << aPt2d1.y << " " << endl;
 
@@ -261,6 +528,13 @@ int SimuRolShut_main(int argc, char ** argv)
 
     }
 
+    // write seed file
+    ofstream aSeedfile;
+    aSeedfile.open ("Homol_"+aSHOut+"/Seed.txt");
+    std::cout << "Homol_"+aSHOut+"/Seed.txt" << endl;
+    aSeedfile << aSeed << endl;
+    aSeedfile.close();
+
     std::cout << "Finished writing Homol files ! \n";
 
     // convert Homol folder into new format
@@ -280,17 +554,17 @@ int GenerateOrient_main (int argc, char ** argv)
     std::string aPatImgs, aOri, aSHOut{"Modif_orient.txt"}, aDir, aImgs,aOut{"Modif_orient.txt"};
     Pt2dr aTInterv, aGauss;
     int aSeed;
-    double aSeuil{0.5};
+    std::vector<std::string> aVTurn;
     ElInitArgMain
             (
                 argc, argv,
                 LArgMain() << EAMC(aPatImgs,"Image Pattern, make sure images are listed in the right order",eSAM_IsExistFile)
                            << EAMC(aOri, "Ori",  eSAM_IsExistDirOri)
                            << EAMC(aTInterv, "Time Interval, interpolate to generate translation, [cadence (s), exposure time (ms)]")
-                           << EAMC(aGauss,"Gaussian distribution parameters of angular velocity for rotation generation (radian), [mean,std]"),
+                           << EAMC(aGauss,"Gaussian distribution parameters of angular velocity for rotation generation (radian/s), [mean,std]"),
                 LArgMain() << EAM(aOut,"Out",true,"Output file name for genarated orientation, def=Modif_orient.txt")
                            << EAM(aSeed,"Seed",false,"Random engine, if not give, computer unix time is used.")
-                           << EAM(aSeuil,"Threshold",true,"Threshold of the angle between T(i) & T(i-1) to omit the generated translation and use the precedent value, def=0.5, sin(pi/6)")
+                           << EAM(aVTurn,"Turn",false,"List of image names representing flight turns (set the translation T(i) as T(i-1))")
                 );
 
     // get directory
@@ -302,7 +576,6 @@ int GenerateOrient_main (int argc, char ** argv)
 
     int aNbIm = aVImgs.size();
     double aRatio = aTInterv.y/1000/aTInterv.x;
-    std::cout << aSeuil << endl;
 
     std::vector<Pt3dr> aVTrans;
     // generation of translation, interpolation
@@ -317,22 +590,10 @@ int GenerateOrient_main (int argc, char ** argv)
         Pt3dr aP = (aP1-aP0) * aRatio;
         //Pt3dr aP_Last = i==0 ? aP : aVTrans.back();
 
-        if(i)
+        if(IsInList(aVTurn,aVImgs[i]))
         {
-            Pt3dr aPb = aVTrans.back();
-            Pt3dr aProdVect = Pt3dr(
-                        aP.y*aPb.z-aP.z*aPb.y,
-                        aP.z*aPb.x-aP.x*aPb.z,
-                        aP.x*aPb.y-aP.y*aPb.x
-                        );
-            double aNormPV = euclid(aProdVect)/euclid(aP)/euclid(aPb);
-
-            if(aNormPV > aSeuil)
-            {
-                aP = aPb;
-                std::cout << "Reset Translation for " << aVImgs[i] << " : T(i)^T(i-1) = " << aNormPV << " > " << aSeuil << endl;
-            }
-
+            aP = aVTrans.back();
+            std::cout << "Reset Translation for " << aVImgs[i] << endl;
         }
 
         aVTrans.push_back(aP);
@@ -343,7 +604,7 @@ int GenerateOrient_main (int argc, char ** argv)
     // generation of rotation, axis: uniform distribution, angle: gaussian distribution
     if(!EAMIsInit(&aSeed))  aSeed=time(0);
     std::default_random_engine generator(aSeed);
-    std::normal_distribution<double> angle(aGauss.x*aTInterv.y/1000,aGauss.y*aTInterv.y/1000);
+    std::normal_distribution<double> angle(aGauss.x,aGauss.y);
     std::uniform_real_distribution<double> axis(-1.0,1.0);
 
     std::vector<ElMatrix<double>> aVRot;
@@ -352,7 +613,7 @@ int GenerateOrient_main (int argc, char ** argv)
         Pt3dr aU = Pt3dr(axis(generator),axis(generator),axis(generator)); // axis of rotation
         aU = aU / euclid(aU); // normalize
 
-        double aTeta = angle(generator);
+        double aTeta = angle(generator)*aTInterv.y/1000;
 
         Pt3dr aCol1 = Pt3dr(
                             cos(aTeta) + aU.x*aU.x*(1-cos(aTeta)),
@@ -403,6 +664,147 @@ int GenerateOrient_main (int argc, char ** argv)
     std::cout << aOut << endl;
 
     return EXIT_SUCCESS;
+}
+
+int ReechRolShut_main(int argc, char ** argv)
+{
+    std::string aPatIm,aSH,aOri,aSHOut{"-Reech"},aMAFIn,aMAFOut{"Mesure_Finale-Reech.xml"},aCalcV;
+    double aRSSpeed;
+    ElInitArgMain
+            (
+                argc,argv,
+                LArgMain() << EAMC(aPatIm,"Image pattern",eSAM_IsExistFile)
+                           << EAMC(aOri,"Input orientation folder",eSAM_IsExistDirOri)
+                           << EAMC(aRSSpeed,"Rolling shutter speed (us/line)")
+                           << EAMC(aCalcV,"File containing camera velocity"),
+                LArgMain() << EAM(aSH,"SHIn",true,"Input tie point file (new format)")
+                           << EAM(aSHOut,"SHOut",true,"Folder postfix for tie point output folder, def=_Reech")
+                           << EAM(aMAFIn,"MAFIn",true,"Input image measurement file")
+                           << EAM(aMAFOut,"MAFOut",true,"Output image measurement file, def=Mesure_Finale-Reech.xml")
+                );
+
+    cAppli_CamXifDate anAppli_CamXifDate(aPatIm,aOri,aCalcV);
+
+    if(EAMIsInit(&aSH))
+    {
+        cSetTiePMul_Cam aSetTiePMul_Cam(aSH,anAppli_CamXifDate);
+        aSetTiePMul_Cam.ReechRS_SH(aRSSpeed,aSHOut);
+    }
+    if(EAMIsInit(&aMAFIn))
+    {
+        cSetOfMesureAppuisFlottants_Cam aSetOfMesureAppuisFlottants_Cam(aMAFIn,anAppli_CamXifDate);
+        std::map<Key,Pt2dr> aMap = aSetOfMesureAppuisFlottants_Cam.ReechRS_MAF(aRSSpeed);
+        aSetOfMesureAppuisFlottants_Cam.Export_MAF(aMAFOut,aMap);
+    }
+
+    return EXIT_SUCCESS;
+}
+
+
+
+int ReechRolShutV1_main(int argc, char ** argv)
+{
+    std::string aSH,aSHOut{"_Reech"},aCamVFile,aMAFIn,aMAFOut,aDir,aSHIn;
+    std::vector<double> aData;
+    ElInitArgMain
+            (
+                argc, argv,
+                LArgMain() << EAMC(aCamVFile,"File containg image velocity and image depth",eSAM_IsExistFile)
+                           << EAMC(aData,"[image pixel height (um), focal length (mm), rolling shutter speed (us)]"),
+                LArgMain() << EAM(aSH,"SHIn",true,"Input tie point file (new format)")
+                           << EAM(aSHOut,"SHOut",true,"File postfix of the output tie point file (new format), def=_Reech")
+                           << EAM(aMAFIn,"MAFIn",true,"Input image measurement file")
+                           << EAM(aMAFOut,"MAFOut",true,"Output image measurement file")
+                );
+    // get directory
+    SplitDirAndFile(aDir,aSHIn,aSH);
+    cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+    double h = aData.at(0)/1000/1000; // um
+    double f = aData.at(1)/1000; // mm
+    double T = aData.at(2)/1000000; // us
+
+    // read file containing image velocity and depth
+    std::ifstream aFile(aCamVFile.c_str());
+
+    std::map<std::string, double> aMapReechScale;
+    if(aFile)
+    {
+        std::cout << "Read File : " << aCamVFile << endl;
+        std::string aName;
+        double aDiffPos,aDiffSecond,aV,aH;
+
+        while(aFile >> aName >> aDiffPos >> aDiffSecond >> aV >> aH)
+        {
+            double lambda = 1 - f*aV*T/h/aH;
+            std::cout << std::setprecision(10) << aName << " " << lambda << endl;
+            aMapReechScale.insert(pair<std::string, double>(aName, lambda));
+        }
+        aFile.close();
+    }
+
+    if(EAMIsInit(&aSH))
+    {
+        // load tie points
+        cSetTiePMul * pSH = new cSetTiePMul(0);
+        pSH->AddFile(aSH);
+        //std::map<std::string,cCelImTPM *> aVName2Im = pSH->DicoIm().mName2Im;
+
+        // modification of tie points
+        std::vector<cSetPMul1ConfigTPM *> aVCnf = pSH->VPMul();
+        for(auto & aCnf:aVCnf)
+        {
+            std::vector<int> aVIdIm =  aCnf->VIdIm();
+            // Parse all pts in one Config
+            for(uint aKPt=0; aKPt<uint(aCnf->NbPts());aKPt++)
+            {
+                // Parse all imgs for one pt
+                for(uint aKIm=0;aKIm<aVIdIm.size();aKIm++)
+                {
+                    std::string aNameIm = pSH->NameFromId(aVIdIm.at(aKIm));
+                    Pt2dr aPt = aCnf->Pt(aKPt, aKIm);
+                    Pt2dr aNewPt = Pt2dr(aPt.x,aPt.y*aMapReechScale[aNameIm]);
+                    //std::cout << "Name:" << aNameIm << " Pt: " << aPt << " Scale:" << aMapReechScale[aNameIm] << endl;
+
+                    aCnf->SetPt(aKPt,aKIm,aNewPt);
+                }
+            }
+        }
+
+
+        // output modifeied tie points
+        std::string aNameOut0 = cSetTiePMul::StdName(aICNM,aSHOut,"Reech",0);
+        std::string aNameOut1 = cSetTiePMul::StdName(aICNM,aSHOut,"Reech",1);
+
+        pSH->Save(aNameOut0);
+        pSH->Save(aNameOut1);
+    }
+
+    if(EAMIsInit(&aMAFIn))
+    {
+        cSetOfMesureAppuisFlottants aDico = StdGetFromPCP(aMAFIn,SetOfMesureAppuisFlottants);
+        std::list<cMesureAppuiFlottant1Im> & aLMAF = aDico.MesureAppuiFlottant1Im();
+
+        for(auto & aMAF : aLMAF)
+        {
+            std::string aNameIm = aMAF.NameIm();
+            std::list<cOneMesureAF1I> & aMes = aMAF.OneMesureAF1I();
+            std::cout << aNameIm << endl;
+
+            for(auto & aOneMes : aMes)
+            {
+                Pt2dr aPt = aOneMes.PtIm();
+                std::cout << aOneMes.NamePt() << " before:" << aOneMes.PtIm();
+                Pt2dr aNewPt = Pt2dr(aPt.x,aPt.y*aMapReechScale[aNameIm]);
+                aOneMes.SetPtIm(aNewPt);
+                std::cout << " after:" << aOneMes.PtIm() << endl;
+            }
+        }
+    MakeFileXML(aDico,aMAFOut);
+    }
+
+    return EXIT_SUCCESS;
+
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

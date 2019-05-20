@@ -10,16 +10,113 @@
 %---------------------------------------------
 %---------------------------------------------
 
-\section{Indexing problem}
+\section{Fast recognitation}
 
 %---------------------------------------------
 
 \subsection{Motivation}
 For each image, we have computed tie points. A tie points is made
 of a vector $V \in \RR^n)$ . Typically $V$ is invariant
-to the main geometric deformation .  We want to compute 
-a function $\Psi $ that indicate if two vector $V_1$ and $V_2$
-correspond to the same tie points.
+to the main geometric deformation .  Le  $V_1$ and $V_2$
+be two tie points, we note :
+
+\begin{itemize}
+   \item  $H_{om}(V_1,V_2) $ the fact that two tie points are homologous;
+\end{itemize}
+
+Given $V_1,V_2$, there is of course no no oracle that can indicate if  $H_{om}(V_1,V_2)$,
+and classically we want to compute  a fast mathematicall function $\Psi $ that indicate if two vector $V_1$ and $V_2$
+correspond to the same tie points .  The ideal function would be such :
+
+\begin{itemize}
+   \item  $\Psi(V_1,V_2)  \iff H_{om}(V_1,V_2)$
+\end{itemize}
+
+
+Of course this impossible, and we introduce the miss rate  and fall out:
+
+\begin{itemize}
+   \item   miss rate , probability of $\Psi=0$ knowing $H_{om}=1$ , we note $p_m$;
+   \item   fall out , probability of $\Psi=1$ knowing $H_{om}=0$, we note $p_f$;
+\end{itemize}
+
+As we cannot have the ideal function $\Psi $ such as $p_m=0$ and $p_f=0$,
+we have to compromise, and depending on the circunstances, the price of the
+two error, will not be the same. Typically, in indexation step,  we are especially
+interested to have a low $p_f$; converselly in recognition step we are
+especially interested to have a low  $p_m$.
+
+
+\subsection{Bits vector}
+
+
+
+
+
+
+%----------------------------------------
+%  A conserver : equations TIPE Lolo
+%-----------------------------------------
+\COM{
+\begin{equation}
+   \delta R = \frac{1}{\sigma} \frac{L}{S} = \frac{1}{\sigma}  \frac{2 \pi a }{ e \; dz} 
+\end{equation}
+
+\begin{equation}
+   \phi  = \iint \overrightarrow{B} \overrightarrow{dS} 
+         = B_M \cos(\omega t) \pi a^2
+\end{equation}
+
+\begin{equation}
+   e = -\frac{d\phi}{dt}= B_M \omega  \sin(\omega t)  \pi a^2
+\end{equation}
+
+
+\begin{equation}
+   d P_J = \frac{e^2}{\delta R}  
+         = \frac{ (B_M \omega \pi a^2  \sin(\omega t))^2 \sigma_e dz }{2 \pi a}
+\end{equation}
+
+
+\begin{equation}
+   <d P_J> = \frac{B_M^2 \; \omega ^2 \; \pi \; a^3 \; e \; \sigma \; dz}{4}
+\end{equation}
+
+\begin{equation}
+  <P_J> =  \int_{z=0}^H <d P_J> = \frac{B_M^2 \; \omega ^2  \; \pi \;  a^3  \; e  \; \sigma  \; H}{4}
+\end{equation}
+
+\begin{equation}
+  dU = \delta ^2 Q_{creee} +  \delta ^2 Q_{recue de l'air}
+\end{equation}
+
+\begin{equation}
+  C dT = <P_J> dt - g 2\pi aH(T-T_a)
+\end{equation}
+
+\begin{equation}
+  C = \mu c 2 \pi a e H
+\end{equation}
+
+
+\begin{equation}
+  \mu c 2 \pi a e H \frac{dT}{dt} = \frac{B_M \omega^2 \pi a^3 e \sigma H}{4} - g 2 \pi a H (T-T_a)
+\end{equation}
+
+
+\begin{equation}
+  \tau  \frac{dT}{dt} + T = T_{\infty}
+\end{equation}
+
+
+\begin{equation}
+  \tau  = \frac{\mu  c e}{g}
+\end{equation}
+
+\begin{equation}
+  T_{\infty} - T_a = \frac{(B_M \omega a)^2 e \sigma}{8g}
+\end{equation}
+}
 
 
 

@@ -926,6 +926,7 @@ Pt2dr cCameraFormelle::cEqAppui::ResiduPInc(Pt2dr aPIm,REAL aPds,const cParamPtP
     *pAdrScN = mCam.PIF().StdScaleN();
     PrepareEqFForPointIm(aPIm);
 
+    // DEBUG_LSQ
     const std::vector<REAL> & aVals = 
                   (aPds > 0)                                             ?
                   mCam.mSet.VAddEqFonctToSys(mFoncEqResidu,aPds,false,aPCVU)   :

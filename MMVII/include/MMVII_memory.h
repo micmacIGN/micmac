@@ -89,6 +89,13 @@ class cMemManager
         {
            return  static_cast<Type *> (cMemManager::Calloc(nmemb,sizeof(Type)));
         }
+        // Pour des raison inexpliquee Alloc<char *> ne semble pas fonctionner => contournement
+/*
+        template <class Type> static inline Type ** AllocP(size_t nmemb)
+        {
+           return  static_cast<Type **> (cMemManager::Calloc(nmemb,sizeof(Type *)));
+        }
+*/
     private :
 
         static cMemState mState;

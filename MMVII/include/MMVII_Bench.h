@@ -36,8 +36,15 @@ void BenchEnum(); ///< Bench on Str2E / E2Str
 void Bench_Nums(); ///< Bench on rounding, modulo ... basic numeric service
 void Bench_Random(); ///< Bench on random generator
 
+void BenchGlobImage(); ///< Global bench on image
+void BenchRectObj(); ///< Global bench on image
+void BenchBaseImage(); ///< Global bench on image
+void BenchGlobImage2d(); ///< Global bench on image
+void BenchFileImage(); ///< Global bench on image
 
+void BenchDenseMatrix0(); ///< Basic Vector *
 
+void TestTimeV1V2(); ///< Not a formal Bench, require visual inspection
 
 };
 

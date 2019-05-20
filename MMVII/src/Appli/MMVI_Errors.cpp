@@ -3,7 +3,10 @@
 namespace MMVII
 {
 
-void MMVVI_Error(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
+/**
+     Default Error Function
+*/
+void Default_MMVVI_Error(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
 {
     ErrOut() << "\n\n ######################################""\n\n";
     ErrOut() << "Level=[" << aType << "]\n";
@@ -19,6 +22,26 @@ void MMVVI_Error(const std::string & aType,const std::string &  aMes,const char 
     getchar();
     exit(-1);
 }
+
+
+/// Initialize Error Handler
+PtrMMVII_Error_Handler MMVVI_Error = Default_MMVVI_Error;
+
+
+/// Change Error Handler
+void MMVII_SetErrorHandler(PtrMMVII_Error_Handler aHandler)
+{
+    MMVVI_Error = aHandler;
+}
+
+/// Restore to default error handler
+void MMVII_RestoreDefaultHandle()
+{
+    MMVVI_Error = Default_MMVVI_Error;
+}
+
+
+
 
 void MMVII_UsersErrror(const eTyUEr & aRef,const std::string & aMes)
 {

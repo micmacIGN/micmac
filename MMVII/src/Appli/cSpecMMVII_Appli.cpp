@@ -83,6 +83,7 @@ const std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
         TheRes.push_back(&TheSpecEditRel);
         TheRes.push_back(&TheSpecWalkman);
         TheRes.push_back(&TheSpecDaisy);
+        TheRes.push_back(&TheSpec_TestEigen);
    }
    
    return TheRes;

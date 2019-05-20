@@ -713,8 +713,59 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
        aStdConvTxt.close();
     }
 
+    bool  ExportMMF = mParam.SectionChantier().ExportMatrixMarket().Val() ;
+    FILE * aFileEMMF=nullptr;
+    // Export to Matrix Market format
+    if (ExportMMF)
+    {
+        cGenSysSurResol * aSys = mSetEq.Sys();   
+        int aNbV = aSys->NbVar();
+        int aNbNN = 0;
+        int aNbTot = 0;
+        bool DoSym = true; // If true export 2 way else only for J>=I
+        for (int aIter=0 ; aIter<2 ; aIter++)
+        {
+            if (aIter==1)
+            {
+                aFileEMMF = FopenNN("Test_SPD.mtx","w","Export Matrix MarketFormat");
+                fprintf(aFileEMMF,"%d %d %d\n",aNbV,aNbV,aNbNN);
+            }
+            for (int aI=0 ; aI<aNbV ; aI++)
+            {
+                 int aJ0 = (DoSym ? 0 : aI);
+                 for (int aJ=aJ0 ; aJ<aNbV ; aJ++)
+                 {
+                     double aV  = aSys->GetElemQuad(aI,aJ);
+                     bool IsNull = (aV==0);
+                     if (aIter==0)
+                     {
+                         aNbTot++;
+                         if (! IsNull)
+                            aNbNN++;
+                     }
+                     else
+                     {
+                         if (! IsNull)
+                         {
+                             fprintf(aFileEMMF,"%d %d %10.10E\n",aI+1,aJ+1,aV);  // !!! => Fuck Fortran index convention  !!!
+                             // fprintf(aFP,"%d %d %lf\n",aI,aJ,aV);
+                          }
+                     }
+                 }
+            }
+        }
+        std::cout << "===========  EXPORT MATRIX MARKET FORMAT =========\n";
+        std::cout << "  Densite NN=" << (double(aNbNN) / double(aNbTot)) << " NbVar=" << aNbV << "\n";
+    }
+
+    ElTimer aChronoSolve;
     mSetEq.Solve(aSO.SomErPond(),(bool *)0);
 
+    if (ExportMMF)
+    {
+       fprintf(aFileEMMF,"%% MicMac Cholesky time = %lf\n",aChronoSolve.uval());
+       fclose(aFileEMMF);
+    }
 
     if (mESPA)
     {
