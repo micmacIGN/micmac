@@ -55,6 +55,7 @@ cCommonMartiniAppli::cCommonMartiniAppli() :
     mNameOriCalib (""),
     mPrefHom      (""),
     mExtName      (""),
+    mExpTxt       (false),
     mInOri        (""),
     mOriOut       (""),
     mOriGPS       (""),
@@ -72,6 +73,7 @@ cCommonMartiniAppli::cCommonMartiniAppli() :
               << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
               << EAM(mPrefHom,"SH",true,"Prefix Homologue , Def=\"\"")  // SH par homogeneite avec autre commandes 
               << EAM(mExtName,"ExtName",true,"User's added Prefix , Def=\"\"")  // SH par homogeneite avec autre commandes 
+              << EAM(mExpTxt,"ExpTxt",true,"Homol in text format? , Def=\"false\"")  
               << EAM(mNameNOMode,"ModeNO",true,"Mode Def=Std (TTK StdNoTTK OnlyHomogr)")  
               << EAM(mInOri,"InOri",true,"Existing orientation if any")  
               << EAM(mOriOut,"OriOut",true,"Output orientation dir")  
@@ -95,7 +97,7 @@ void cCommonMartiniAppli::PostInit() const
 cNewO_NameManager *  cCommonMartiniAppli::NM(const std::string & aDir) const
 {
    if (mNM==0) 
-      mNM =  new cNewO_NameManager(mExtName,mPrefHom,mQuick,aDir,mNameOriCalib,"dat",mOriOut);
+      mNM =  new cNewO_NameManager(mExtName,mPrefHom,mQuick,aDir,mNameOriCalib,mExpTxt ? "txt" : "dat" ,mOriOut);
    return mNM;
 }
 
@@ -296,7 +298,7 @@ cAppli_Martini::cAppli_Martini(int argc,char ** argv,bool Quick) :
        StdCorrecNameOrient(mOriCheck,anEASF.mDir);
 
 
-    cNewO_NameManager aNM(mExtName,mPrefHom,mQuick,anEASF.mDir,mNameOriCalib,"dat",mOriOut);
+    cNewO_NameManager aNM(mExtName,mPrefHom,mQuick,anEASF.mDir,mNameOriCalib,mExpTxt ? "txt" : "dat",mOriOut);
     const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
     for (int aK=0 ; aK<int(aVIm->size()) ; aK++)
     {

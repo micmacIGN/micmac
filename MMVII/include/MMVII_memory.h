@@ -19,6 +19,7 @@ namespace MMVII
 
 void mem_raz(void * adr,int64_t nb);
 #define MEM_RAZ(x,nb) mem_raz((void *)(x),(nb)*sizeof(*(x)))
+template <class Type> void  MemCopy(Type * aDest,const Type * aSrce,size_t aNum) {memcpy(aDest,aSrce,sizeof(Type)*aNum);}
 
 
 /*

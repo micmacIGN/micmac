@@ -100,6 +100,7 @@ class cCommonMartiniAppli
        std::string    mNameOriCalib;
        std::string    mPrefHom;
        std::string    mExtName;
+       bool           mExpTxt;
        std::string    mInOri;
        std::string    mOriOut;
        std::string    mOriGPS;

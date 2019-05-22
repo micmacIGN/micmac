@@ -91,6 +91,16 @@ template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,co
 {
 }
 
+template <const int Dim> void cRectObj<Dim>::AssertSameArea(const cRectObj<Dim> & aR2) const
+{
+    MMVII_INTERNAL_ASSERT_strong((*this)==aR2,"Rect obj were expected to have identic area");
+}
+template <const int Dim> void cRectObj<Dim>::AssertSameSz(const cRectObj<Dim> & aR2) const
+{
+    MMVII_INTERNAL_ASSERT_strong(Sz()==aR2.Sz(),"Rect obj were expected to have identic size");
+}
+
+
 template <const int Dim> bool cRectObj<Dim>::operator == (const cRectObj<Dim> aR2) const 
 {
     return (mP0==aR2.mP0) && (mP1==aR2.mP1);
@@ -175,11 +185,12 @@ MACRO_INSTATIATE_PRECT_DIM(3)
 
 
 template <class Type,const int Dim> 
-    cDataTypedIm<Type,Dim>::cDataTypedIm(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,Type *aRawDataLin) :
+    cDataTypedIm<Type,Dim>::cDataTypedIm(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,Type *aRawDataLin,eModeInitImage aModeInit) :
         cDataGenUnTypedIm<Dim>(aP0,aP1),
         mDoAlloc (aRawDataLin==0),
         mRawDataLin (mDoAlloc ? cMemManager::Alloc<Type>(NbElem())  : aRawDataLin)
 {
+   Init(aModeInit);
 }
 
 
@@ -190,11 +201,131 @@ template <class Type,const int Dim>
       cMemManager::Free(mRawDataLin);
 }
 
+
+template <class Type,const int Dim>  
+        double cDataTypedIm<Type,Dim>::L1Dist(const cDataTypedIm<Type,Dim> & aI2) const
+{
+    tRO::AssertSameArea(aI2);
+    double aRes = 0.0;
+    for (int aK=0 ; aK<NbElem() ; aK++)
+       aRes += std::abs(mRawDataLin[aK]-aI2.mRawDataLin[aK]);
+
+   return aRes/NbElem();
+}
+template <class Type,const int Dim>  
+        double cDataTypedIm<Type,Dim>::L2Dist(const cDataTypedIm<Type,Dim> & aI2) const
+{
+    tRO::AssertSameArea(aI2);
+    double aRes = 0.0;
+    for (int aK=0 ; aK<NbElem() ; aK++)
+       aRes += R8Square(mRawDataLin[aK]-aI2.mRawDataLin[aK]);
+
+   return sqrt(aRes/NbElem());
+}
+template <class Type,const int Dim>  
+        double cDataTypedIm<Type,Dim>::LInfDist(const cDataTypedIm<Type,Dim> & aI2) const
+{
+    tRO::AssertSameArea(aI2);
+    double aRes = 0.0;
+    for (int aK=0 ; aK<NbElem() ; aK++)
+       aRes = std::max(aRes,(double)std::abs(mRawDataLin[aK]-aI2.mRawDataLin[aK]));
+
+   return aRes;
+}
+
+
+
+template <class Type,const int Dim>  
+        double cDataTypedIm<Type,Dim>::L1Norm() const
+{
+    double aRes = 0.0;
+    for (int aK=0 ; aK<NbElem() ; aK++)
+       aRes += std::abs(mRawDataLin[aK]);
+
+   return aRes/NbElem();
+}
+template <class Type,const int Dim>  
+        double cDataTypedIm<Type,Dim>::L2Norm() const
+{
+    double aRes = 0.0;
+    for (int aK=0 ; aK<NbElem() ; aK++)
+       aRes += R8Square(mRawDataLin[aK]);
+
+   return sqrt(aRes/NbElem());
+}
+template <class Type,const int Dim>  
+        double cDataTypedIm<Type,Dim>::LInfNorm() const
+{
+    double aRes = 0.0;
+    for (int aK=0 ; aK<NbElem() ; aK++)
+       aRes = std::max(aRes,(double) std::abs(mRawDataLin[aK]));
+
+   return aRes;
+}
+
+
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::DupIn(cDataTypedIm<Type,Dim> & aIm) const
+{
+    tRO::AssertSameSz(aIm);
+    MemCopy(aIm.RawDataLin(),RawDataLin(),NbElem());
+    // MMVII_INTERNAL_ASSERT_strong(mSz[aK]>=0,"");
+}
+
+
+
+
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitCste(const Type & aVal)
+{
+   if (aVal==0)
+   {
+      InitNull();
+   }
+   else
+   {
+      for (tINT8 aK=0 ; aK< NbElem() ; aK++)
+           mRawDataLin[aK] = aVal;
+   }
+}
+
 template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitRandom()
 {
    for (tINT8 aK=0 ; aK< NbElem() ; aK++)
        mRawDataLin[aK] = tTraits::RandomValue();
 }
+
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitNull()
+{
+    MEM_RAZ(mRawDataLin,NbElem());
+}
+
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitId()
+{
+   // Check it is a square matrix
+   MMVII_INTERNAL_ASSERT_bench((Dim==2)  ,"Init Id : dim !=2");
+   for (int aK=0 ; aK<Dim ; aK++)
+   {
+       MMVII_INTERNAL_ASSERT_bench((P0()[aK]==0)  ,"Init Id P0!= (0,0)");
+   }
+   MMVII_INTERNAL_ASSERT_bench((P1()[0]==P1()[1])  ,"Init Id, non square image");
+   
+   InitNull();
+   for (int aK=0 ;  aK<NbElem()  ; aK += P1()[0]+1)
+   {
+       mRawDataLin[aK] = 1;
+   }
+}
+
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::Init(eModeInitImage aMode)
+{
+    switch(aMode)
+    {
+       case eModeInitImage::eMIA_Rand     : InitRandom(); return;
+       case eModeInitImage::eMIA_Null     : InitNull(); return;
+       case eModeInitImage::eMIA_MatrixId : InitId(); return;
+       case eModeInitImage::eMIA_NoInit   : ;
+    }
+}
+
 
 /*
 template class cDataTypedIm<tREAL4,1>;

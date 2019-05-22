@@ -20,6 +20,8 @@
 #include <chrono>
 // #include <algorithm> => put it in file requiring it as it seem to slow down compilation
 #include<boost/optional.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
+
 
 
 //========== LIB EXTEN==============
@@ -56,6 +58,7 @@
 #include "MMVII_Images.h"
 #include "MMVII_Matrix.h"
 
+// #include "MMVII_Tpl_Images.h"
 
 #include "MMVII_DeclareAllCmd.h"
 // communication MMVII/MMv1

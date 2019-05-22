@@ -21799,6 +21799,17 @@ const cTplValGesInit< std::string > & cExportPtsFlottant::NameFileTxt()const
 }
 
 
+cTplValGesInit< std::string > & cExportPtsFlottant::NameFileJSON()
+{
+   return mNameFileJSON;
+}
+
+const cTplValGesInit< std::string > & cExportPtsFlottant::NameFileJSON()const 
+{
+   return mNameFileJSON;
+}
+
+
 cTplValGesInit< std::string > & cExportPtsFlottant::TextComplTxt()
 {
    return mTextComplTxt;
@@ -21838,6 +21849,14 @@ void  BinaryUnDumpFromFile(cExportPtsFlottant & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.NameFileJSON().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NameFileJSON().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NameFileJSON().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.TextComplTxt().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.TextComplTxt().ValForcedForUnUmp(),aFp);
         }
@@ -21853,6 +21872,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cExportPtsFlottant & anObj)
     if (anObj.NameFileXml().IsInit()) BinaryDumpInFile(aFp,anObj.NameFileXml().Val());
     BinaryDumpInFile(aFp,anObj.NameFileTxt().IsInit());
     if (anObj.NameFileTxt().IsInit()) BinaryDumpInFile(aFp,anObj.NameFileTxt().Val());
+    BinaryDumpInFile(aFp,anObj.NameFileJSON().IsInit());
+    if (anObj.NameFileJSON().IsInit()) BinaryDumpInFile(aFp,anObj.NameFileJSON().Val());
     BinaryDumpInFile(aFp,anObj.TextComplTxt().IsInit());
     if (anObj.TextComplTxt().IsInit()) BinaryDumpInFile(aFp,anObj.TextComplTxt().Val());
 }
@@ -21867,6 +21888,8 @@ cElXMLTree * ToXMLTree(const cExportPtsFlottant & anObj)
       aRes->AddFils(::ToXMLTree(std::string("NameFileXml"),anObj.NameFileXml().Val())->ReTagThis("NameFileXml"));
    if (anObj.NameFileTxt().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("NameFileTxt"),anObj.NameFileTxt().Val())->ReTagThis("NameFileTxt"));
+   if (anObj.NameFileJSON().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NameFileJSON"),anObj.NameFileJSON().Val())->ReTagThis("NameFileJSON"));
    if (anObj.TextComplTxt().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("TextComplTxt"),anObj.TextComplTxt().Val())->ReTagThis("TextComplTxt"));
   aRes->mGXml = anObj.mGXml;
@@ -21885,10 +21908,12 @@ void xml_init(cExportPtsFlottant & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.NameFileTxt(),aTree->Get("NameFileTxt",1)); //tototo 
 
+   xml_init(anObj.NameFileJSON(),aTree->Get("NameFileJSON",1)); //tototo 
+
    xml_init(anObj.TextComplTxt(),aTree->Get("TextComplTxt",1)); //tototo 
 }
 
-std::string  Mangling( cExportPtsFlottant *) {return "20B23EB403DF44C7F83F";};
+std::string  Mangling( cExportPtsFlottant *) {return "70608FBC0A37809FFE3F";};
 
 
 std::string & cResidusIndiv::Pattern()
@@ -25148,7 +25173,7 @@ void xml_init(cSectionExport & anObj,cElXMLTree * aTree)
    xml_init(anObj.ExportSensibParamAero(),aTree->Get("ExportSensibParamAero",1)); //tototo 
 }
 
-std::string  Mangling( cSectionExport *) {return "28629CD11C5D16FCFE3F";};
+std::string  Mangling( cSectionExport *) {return "1EA1E65FF8E0C2B8FF3F";};
 
 
 std::vector< cIterationsCompensation > & cEtapeCompensation::IterationsCompensation()
@@ -25945,7 +25970,7 @@ void xml_init(cEtapeCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionExport(),aTree->Get("SectionExport",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeCompensation *) {return "32810426875AE4ECFE3F";};
+std::string  Mangling( cEtapeCompensation *) {return "F294EFD93DDD6092FE3F";};
 
 
 std::list< cEtapeCompensation > & cSectionCompensation::EtapeCompensation()
@@ -26004,7 +26029,7 @@ void xml_init(cSectionCompensation & anObj,cElXMLTree * aTree)
    xml_init(anObj.EtapeCompensation(),aTree->GetAll("EtapeCompensation",false,1));
 }
 
-std::string  Mangling( cSectionCompensation *) {return "484984F91BC41A94FC3F";};
+std::string  Mangling( cSectionCompensation *) {return "78E2263A7C94D2E1FD3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamApero::DicoLoc()
@@ -27213,7 +27238,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "CC2D277C68695CA1FD3F";};
+std::string  Mangling( cParamApero *) {return "769625359E0142E3FE3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

@@ -1009,7 +1009,7 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
 
    // Class cNewO_NameManager classe qui permet d'acceder a tous les nom de fichier
    // crees dans Martini
-   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,DirOfFile(mNameIm1),mNameOriCalib,"dat");
+   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,DirOfFile(mNameIm1),mNameOriCalib,mExpTxt ? "txt" : "dat");
 
 
    // Structure d'image specialisee martini
@@ -1163,7 +1163,6 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    cCommonMartiniAppli aCMA;
    std::string aNameIm1;
    std::string aPatGlob;
-   bool aExpTxt=0;
 
 
    ElInitArgMain
@@ -1174,20 +1173,19 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                    << aCMA.ArgCMA()
                    << EAM(aNameIm1,"NameIm1",true,"Name of Image1, internal purpose")
                    << EAM(aPatGlob,"PatGlob",true,"Name of Image1, internal purpose")
-                   << EAM(aExpTxt,"ExpTxt",true,"input homol format is txt? def false, binary format")
    );
 
    bool aModeIm1 = EAMIsInit(&aNameIm1);
 	
 	std::string aInHomol="dat";
-   if (aExpTxt) aInHomol="txt";
+   if (aCMA.mExpTxt) aInHomol="txt";
    if (aModeIm1) 
       aPat = aNameIm1;
-   
+
    cElemAppliSetFile anEASF(aPat);
    const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
    std::string aDir = anEASF.mDir;
-   cNewO_NameManager * aNM =  new cNewO_NameManager(aCMA.mExtName,aCMA.mPrefHom,aCMA.mQuick,aDir,aCMA.mNameOriCalib,"dat");
+   cNewO_NameManager * aNM =  new cNewO_NameManager(aCMA.mExtName,aCMA.mPrefHom,aCMA.mQuick,aDir,aCMA.mNameOriCalib,aInHomol);
    cInterfChantierNameManipulateur* anICNM = anEASF.mICNM;
 
    if (!aModeIm1)
@@ -1205,7 +1203,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
        {
            std::string aName = (*aVIm)[aK];
            aNM->NameXmlOri2Im(aName,aName,true);
-           std::string aCom =  GlobArcArgv  + " NameIm1=" + aName + " PatGlob="+ QUOTE(anEASF.mPat) + " ExpTxt=" + ToString(aExpTxt);
+           std::string aCom =  GlobArcArgv  + " NameIm1=" + aName + " PatGlob="+ QUOTE(anEASF.mPat) + " ExpTxt=" + ToString(aCMA.mExpTxt);
 
           if (aCMA.mShow) 
              std::cout << "Com= " << aCom << "\n";
@@ -1277,6 +1275,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                   aLON.Name().push_back(aNameIm2);
            }
        }
+
        MakeFileXML(aLON,aDir + aNM->NameListeImOrientedWith(aNameIm1,true));
        MakeFileXML(aLON,aDir + aNM->NameListeImOrientedWith(aNameIm1,false));
        exit(EXIT_SUCCESS);
