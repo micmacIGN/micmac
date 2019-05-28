@@ -40,6 +40,18 @@ template <class Type> void  cDataIm2D<Type>::VD_SetV(const cPt2di& aP,const doub
    SetVTrunc(aP,aV);
 }
 
+template <class Type> const Type * cDataIm2D<Type>::GetLine(int aY)  const
+{
+   AssertYInside(aY);
+   return mRawData2D[aY];
+}
+template <class Type> Type * cDataIm2D<Type>::GetLine(int aY) 
+{
+   AssertYInside(aY);
+   return mRawData2D[aY];
+}
+
+
 
 /* ========================== */
 /*          cIm2D         */

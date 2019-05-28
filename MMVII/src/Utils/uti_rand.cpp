@@ -17,7 +17,7 @@ namespace MMVII
 
 void Bench_Random()
 {
-   std::cout << "Begin Bench_Random\n";
+   StdOut() << "Begin Bench_Random\n";
    {
       int aNb = 1e6;
       std::vector<double> aVR;
@@ -48,13 +48,8 @@ void Bench_Random()
       MMVII_INTERNAL_ASSERT_bench(aDistMax<4.0/sqrt(aNb),"Random Moy Test");
 
       // => Apparently correlation is very high : 0.08 !! maybe change the generator ?
-      // std::cout << "Correl Rand " << aCorrel  << " " << aCorrel10 << "\n";
       
    }
-
-
-
-   std::cout << "Bench_Random " << RandUnif_0_1() << " " << RandUnif_0_1() << "\n";
 }
 
 

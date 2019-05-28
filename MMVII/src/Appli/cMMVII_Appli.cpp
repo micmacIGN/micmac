@@ -29,6 +29,29 @@ cColStrAOpt &  cColStrAOpt::operator << (const t2S & aVal) {mV.push_back(aVal); 
 void cColStrAOpt::clear() {mV.clear();}
 cColStrAOpt::cColStrAOpt() {}
 
+const cColStrAOpt cColStrAOpt::Empty;
+
+cColStrAOpt::cColStrAOpt(cExplicitCopy,const cColStrAOpt& aCSAO)  :
+  mV (aCSAO.mV)
+{
+}
+
+/*  ============================================== */
+/*                                                 */
+/*                cColStrAOpt                      */
+/*                                                 */
+/*  ============================================== */
+
+cParamCallSys::cParamCallSys(const std::string & aCom) :
+   mCom (aCom)
+{
+}
+
+const std::string &  cParamCallSys::Com() const 
+{
+   return mCom;
+}
+
 
 /*  ============================================== */
 /*                                                 */
@@ -64,7 +87,6 @@ cMMVII_Appli::~cMMVII_Appli()
 
 
    mStdCout.Clear();
-   // mStdCout.Add(std::cout);
    // Verifie que tout ce qui a ete alloue a ete desalloue 
    // cMemManager::CheckRestoration(mMemStateBegin);
    mMemStateBegin.SetCheckAtDestroy();
@@ -153,7 +175,6 @@ void cMMVII_Appli::InitParam()
   cCollecSpecArg2007 & anArgObl = ArgObl(mArgObl);
   cCollecSpecArg2007 & anArgFac = ArgOpt(mArgFac);
 
-  // std::cout << "ApppliInitParammmm L="  << __LINE__ << " " << mColStrAObl.V().size() << " " << mColStrAOpt.V().size() << "\n";
 
   mInitParamDone = true;
   MMVII_INTERNAL_ASSERT_always(msTheAppli==0,"cMMVII_Appli only one by process");
@@ -637,53 +658,17 @@ bool  cMMVII_Appli::IsInit(void * aPtr)
 {
     return  mSetInit.In(aPtr);
 }
+
+void cMMVII_Appli::MMVII_WARNING(const std::string & aMes)
+{
+   StdOut() << "===================================================================\n";
+   StdOut() <<  aMes << "\n";
+   StdOut() << "===================================================================\n";
+}
               // Accessors
 const std::string & cMMVII_Appli::TmpDirTestMMVII()   const {return mTmpDirTestMMVII;}
 const std::string & cMMVII_Appli::InputDirTestMMVII() const {return mInputDirTestMMVII;}
 
-
-    // ==========  MMVII  Call MMVII =================
-
-cColStrAObl& cMMVII_Appli::StrObl() {return mColStrAObl;}
-cColStrAOpt& cMMVII_Appli::StrOpt() {return mColStrAOpt;}
-
-
-std::string  cMMVII_Appli::StrCallMMVII(const cSpecMMVII_Appli & aCom2007,const cColStrAObl& anAObl,const cColStrAOpt& anAOpt)
-{
-  MMVII_INTERNAL_ASSERT_always(&anAObl==&mColStrAObl,"StrCallMMVII use StrObl() !!");
-  MMVII_INTERNAL_ASSERT_always(&anAOpt==&mColStrAOpt,"StrCallMMVII use StrOpt() !!");
-
-   std::string aComGlob = mFullBin + " ";
-/*
-   cSpecMMVII_Appli*  aSpec = cSpecMMVII_Appli::SpecOfName(aCom2007,false); // false => dont accept no match
-   if (! aSpec)  // Will see if we can di better, however SpecOfNam has generated error
-      return "";
-*/
-
-   // Theoretically we can create the command  (dealing with unik msTheAppli before !) and check
-   // the parameters, but it will be done in the call so maybe it's not worth the price ?
-  
-   aComGlob += aCom2007.Name() + " ";
-
-   // Add mandatory args
-   for (const auto & aStr : anAObl.V())
-   {
-       aComGlob +=  Quote(aStr) + " ";
-   }
-
-   // Add optionnal args
-   for (const auto & aP : anAOpt.V())
-   {
-       aComGlob +=  aP.first + "=" + Quote(aP.second) + " ";
-   }
-
-   // Take into account the call level which must increase
-   aComGlob += GIP_LevCall + "=" + ToStr(mLevelCall+1);
-
-   mColStrAObl.clear();
-   mColStrAOpt.clear();
-   return aComGlob;
-}
 
 void cMMVII_Appli::InitOutFromIn(std::string &aFileOut,const std::string& aFileIn)
 {
@@ -696,12 +681,127 @@ void cMMVII_Appli::InitOutFromIn(std::string &aFileOut,const std::string& aFileI
       aFileOut = mDirProject + aFileOut;
    } 
 }
+
+    // ==========  MMVII  Call MMVII =================
+
+cColStrAObl& cMMVII_Appli::StrObl() {return mColStrAObl;}
+cColStrAOpt& cMMVII_Appli::StrOpt() {return mColStrAOpt;}
+
+
+cParamCallSys  cMMVII_Appli::StrCallMMVII
+               (
+                  const cSpecMMVII_Appli & aCom2007,
+                  const cColStrAObl& anAObl,
+                  const cColStrAOpt& anAOpt,
+                  const cColStrAOpt&  aSubst
+               )
+{
+  MMVII_INTERNAL_ASSERT_always(&anAObl==&mColStrAObl,"StrCallMMVII use StrObl() !!");
+  MMVII_INTERNAL_ASSERT_always(&anAOpt==&mColStrAOpt,"StrCallMMVII use StrOpt() !!");
+
+   std::string aComGlob = mFullBin + " ";
+   int aNbSubst=0;
+   std::vector<bool>  aVUsedSubst(aSubst.V().size(),false);
+/*
+   cSpecMMVII_Appli*  aSpec = cSpecMMVII_Appli::SpecOfName(aCom2007,false); // false => dont accept no match
+   if (! aSpec)  // Will see if we can di better, however SpecOfNam has generated error
+      return "";
+*/
+
+   // Theoretically we can create the command  (dealing with unik msTheAppli before !) and check
+   // the parameters, but it will be done in the call so maybe it's not worth the price ?
+  
+   aComGlob += aCom2007.Name() + " ";
+
    
+   // Add mandatory args
+   int aK=0;
+   for (const auto & aStr : anAObl.V())
+   {
+       std::string aStrK = ToStr(aK);
+       std::string aVal = aStr;
+       // See if there is a subst for arg K
+       int aKSubst=0;
+       for (const auto & aPSubst :  aSubst.V())
+       {
+           if (aPSubst.first==aStrK)
+           {
+              MMVII_INTERNAL_ASSERT_always(aVal==aStr,"Multiple KSubst in StrCallMMVII ");
+              aVal = aPSubst.second;
+              aNbSubst++; 
+              aVUsedSubst[aKSubst] = true;
+           }
+           aKSubst++;
+       }
+       aComGlob +=  Quote(aVal) + " ";
+       aK++;
+   }
+
+   // Add optionnal args
+   for (const auto & aPOpt : anAOpt.V())
+   {
+       // Special case, it may have be add by the auto recal process , but it will be handled separately
+       if (aPOpt.first != GIP_LevCall)
+       {
+          std::string aVal = aPOpt.second;
+          int aKSubst=0;
+          for (const auto & aPSubst :  aSubst.V())
+          {
+              if (aPSubst.first==aPOpt.first)
+              {
+                 MMVII_INTERNAL_ASSERT_always(aVal==aPOpt.second,"Multiple Opt-Subst in StrCallMMVII ");
+                 aVal = aPSubst.second;
+                 aNbSubst++; 
+                 aVUsedSubst[aKSubst] = true;
+              }
+              aKSubst++;
+          }
+          aComGlob +=  aPOpt.first + "=" + Quote(aVal) + " ";
+       }
+   }
+   // MMVII_INTERNAL_ASSERT_always(aNbSubst==(int)aSubst.V().size(),"Impossible Subst in StrCallMMVII ");
+
+   // Take into account the call level which must increase
+   aComGlob += GIP_LevCall + "=" + ToStr(mLevelCall+1);
+
+   int aKSubst=0;
+   for (const auto & aPSubst :  aSubst.V())
+   {
+      if (!aVUsedSubst[aKSubst])
+      {
+         aComGlob +=  aPSubst.first + "=" + Quote(aPSubst.second) + " ";
+      }
+      aKSubst++;
+   }
+
+   mColStrAObl.clear();
+   mColStrAOpt.clear();
+   return cParamCallSys(aComGlob);
+}
+
+std::list<cParamCallSys>  cMMVII_Appli::ListStrCallMMVII
+                        ( 
+                              const cSpecMMVII_Appli & aCom2007,const cColStrAObl& anAObl,const cColStrAOpt& anAOpt,
+                              const std::string & aNameOpt  , const std::vector<std::string> &  aLVals
+                        )
+{
+    std::list<cParamCallSys> aRes;
+     
+    for (const auto & aVal : aLVals)
+    {
+       cColStrAOpt  aNewSubst; 
+       aNewSubst << t2S(aNameOpt,aVal);
+       aRes.push_back(StrCallMMVII(aCom2007,anAObl,anAOpt,aNewSubst));
+    }
+
+    return aRes;
+}
+
 
 
 int  cMMVII_Appli::ExeCallMMVII(const  cSpecMMVII_Appli&  aCom2007,const cColStrAObl& anAObl,const cColStrAOpt& anAOpt)
 {
-    std::string   aComGlob = StrCallMMVII(aCom2007,anAObl,anAOpt);
+     cParamCallSys aComGlob = StrCallMMVII(aCom2007,anAObl,anAOpt);
 /*
 if (0)
 {
@@ -710,8 +810,83 @@ if (0)
     getchar();
 }
 */
-    return  SysCall(aComGlob,false);
+    return  SysCall(aComGlob.Com(),false);
 }
+
+int cMMVII_Appli::ExeComSerial(const std::list<cParamCallSys> & aL)
+{
+    for (const auto & aPCS : aL)
+    {
+        int aRes = SysCall(aPCS.Com(),false);
+        if (aRes != EXIT_SUCCESS)
+        {
+            MMVII_INTERNAL_ASSERT_always(false,"Error in serial com");
+            return aRes;
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
+int cMMVII_Appli::ExeComParal(const std::list<cParamCallSys> & aL)
+{
+    MMVII_WARNING("No Parallisation for now in MMVII, run serially");
+    return ExeComSerial(aL);
+}
+
+void cMMVII_Appli::InitColFromVInit()
+{
+   mColStrAObl.clear();
+   mColStrAOpt.clear();
+   for (int aK=0; aK< (int)mArgObl.size() ; aK++)
+   {
+       mColStrAObl << mArgObl[aK]->Value();
+   }
+
+   for (int aK=0; aK< (int)mArgFac.size() ; aK++)
+   {
+      if ( mArgFac[aK]->NbMatch())
+      {
+          mColStrAOpt << t2S(mArgFac[aK]->Name(),mArgFac[aK]->Value());
+      }
+   }
+}
+
+std::list<cParamCallSys>  cMMVII_Appli::ListStrAutoRecallMMVII
+                          ( 
+                                const std::string & aNameOpt  , 
+                                const std::vector<std::string> &  aLVals,
+                                const cColStrAOpt &  aLSubstInit
+                          )
+{
+    std::list<cParamCallSys> aRes;
+
+    for (const auto & aVal : aLVals) // For each value to substitute/add
+    {
+         InitColFromVInit(); // mColStrAObl and mColStrAOpt contains copy  command line
+
+         cColStrAOpt  aNewSubst(cExplicitCopy(),aLSubstInit);  // make copy of aLSubstInit as it is const
+         aNewSubst << t2S(aNameOpt,aVal); // subsitute/add  aVal with "named" arg aVal
+         aRes.push_back(StrCallMMVII(mSpecs,mColStrAObl,mColStrAOpt,aNewSubst));
+    }
+    return aRes;
+}
+
+void   cMMVII_Appli::ExeMultiAutoRecallMMVII
+       ( 
+           const std::string & aNameOpt  , 
+           const std::vector<std::string> &  aLVals,
+           const cColStrAOpt &  aLSubstInit,
+           bool InParal
+       )
+{
+    std::list<cParamCallSys>  aLPCS = ListStrAutoRecallMMVII(aNameOpt,aLVals,aLSubstInit);
+    if (InParal)
+       ExeComParal(aLPCS);
+    else
+       ExeComSerial(aLPCS);
+}
+
+int   cMMVII_Appli::LevelCall() const { return mLevelCall; }
 
 
 };

@@ -59,6 +59,23 @@ template <class Type> void cDenseMatrix<Type>::SelfSymetrize()
        }
    }
 }
+
+template <class Type> void cDenseMatrix<Type>::SelfSymetrizeBottom()
+{
+   cMatrix::CheckSquare(*this);
+   int aNb = Sz().x();
+   for (int aX=0 ; aX<aNb ; aX++)
+   {
+       for (int aY=aX+1 ; aY<aNb ; aY++)
+       {
+            SetElem(aX,aY,GetElem(aY,aX));
+       }
+   }
+}
+
+
+
+
 template <class Type> void cDenseMatrix<Type>::SelfAntiSymetrize()
 {
    cMatrix::CheckSquare(*this);
@@ -119,6 +136,36 @@ template <class Type>  cDenseMatrix<Type> cDenseMatrix<Type>::Transpose() const
    TransposeIn(aRes);
    return aRes;
 }
+
+     // ========= Triangular =============
+
+template <class Type>  void cDenseMatrix<Type>::SelfTriangSup()
+{
+     for (const auto & aP : *this)
+     {
+         if (aP.x() < aP.y())
+         {
+            SetElem(aP.x(),aP.y(),0.0);
+         }
+     }
+}
+
+template <class Type>  double cDenseMatrix<Type>::TriangSupicity() const   ///< How close to triangular sup
+{
+     double aNb=0;
+     double aSom =0.0;
+     for (const auto & aP : *this)
+     {
+         if (aP.x() < aP.y())
+         {
+            aNb++;
+            aSom += Square(GetElem(aP.x(),aP.y()));
+         }
+     }
+     aSom /= std::max(1.0,aNb);
+     return std::sqrt(aSom);
+}
+
 
 
 /* ===================================================== */

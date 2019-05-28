@@ -40,6 +40,7 @@
          <eTVIR_ACR0>      </eTVIR_ACR0>  <!-- Auto correl radiom basiques -->
          <eTVIR_ACGT>      </eTVIR_ACGT>  <!-- Auto correl gradient tangentiel-->
          <eTVIR_ACGR>      </eTVIR_ACGR>  <!-- Auto correl gradient radial-->
+         <eTVIR_LogPol>      </eTVIR_LogPol>  <!-- NOT an invariant, BUT usefull for exporting -->
          <eTVIR_NoLabel>   </eTVIR_NoLabel>  <!-- Auto correl gradient radial-->
    </enum>
 

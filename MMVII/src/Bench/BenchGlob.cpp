@@ -230,6 +230,10 @@ int  cAppli_MMVII_Bench::Exe()
    BenchEnum();
    Bench_Random();
    Bench_Duration();
+   BenchRecall();
+
+   BenchStrIO();
+
 
 
    // We clean the temporary files created
@@ -257,6 +261,147 @@ cSpecMMVII_Appli  TheSpecBench
       {eApDT::Console},
       __FILE__
 );
+
+/* ========================================================= */
+/*                                                           */
+/*            cAppli_MMRecall                                */
+/*                                                           */
+/* ========================================================= */
+
+/** A class to test mecanism of MMVII recall itself */
+
+class cAppli_MMRecall : public cMMVII_Appli
+{
+     public :
+        static const int NbMaxArg=4;
+
+        cAppli_MMRecall(int argc,char** argv,const cSpecMMVII_Appli & aSpec);
+
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+
+        int          mNum;  ///< kind of idea of the call
+        int          mLev0; ///< to have the right depth we must know level of
+        std::string  mAM[NbMaxArg];
+        std::string  mAO[NbMaxArg];
+};
+
+cAppli_MMRecall::cAppli_MMRecall(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (argc,argv,aSpec),
+  mLev0        (0)
+{
+}
+
+int cAppli_MMRecall::Exe() 
+{
+
+    std::string aDirT =  TmpDirTestMMVII() ;
+    // Purge TMP
+    if (mLevelCall == mLev0)
+    {
+        RemovePatternFile(aDirT+".*",true);
+    }
+
+    // to create a file with Num in name
+    { 
+       std::string aNameF = aDirT + ToStr(mNum) + ".txt";
+       cMMVII_Ofs (aNameF,false);
+    }
+
+    // Break recursion
+    if (mLevelCall-mLev0 >= NbMaxArg)
+       return EXIT_SUCCESS;
+
+    // Recursive call to two son  N-> 2N, 2N+1, it's the standard binary tree like in heap, this make it bijective
+    {
+        std::vector<std::string> aLVal;
+        aLVal.push_back(ToStr(2*mNum));
+        aLVal.push_back(ToStr(2*mNum+1));
+
+        cColStrAOpt  aSub;
+
+        std::list<cParamCallSys>  aLCall =  ListStrAutoRecallMMVII ("0" ,aLVal , aSub);
+
+        ExeComSerial(aLCall);
+    }
+
+    // Test that we have exactly the expected file (e.g. 1,2, ... 31 )  and purge
+    if (mLevelCall == mLev0)
+    {
+        tNameSet  aSet1 = SetNameFromPat(aDirT+".*");
+        MMVII_INTERNAL_ASSERT_bench(aSet1.size()== ((2<<NbMaxArg) -1),"Sz set in  cAppli_MMRecall");
+
+        tNameSet  aSet2 ;
+        for (int aK=1 ; aK<(2<<NbMaxArg) ; aK++)
+            aSet2.Add( ToStr(aK) + ".txt");
+
+        MMVII_INTERNAL_ASSERT_bench(aSet1.Equal(aSet2),"Sz set in  cAppli_MMRecall");
+        RemovePatternFile(aDirT+".*",true);
+    }
+
+    return EXIT_SUCCESS;
+}
+
+
+cCollecSpecArg2007 & cAppli_MMRecall::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+   return anArgObl
+          << Arg2007(mNum,"Num" )
+          << Arg2007(mAM[0],"Mandatory arg0" )
+          << Arg2007(mAM[1],"Mandatory arg1" )
+          << Arg2007(mAM[2],"Mandatory arg2" )
+          << Arg2007(mAM[3],"Mandatory arg3" )
+   ;
+
+}
+
+cCollecSpecArg2007 & cAppli_MMRecall::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+  return
+      anArgOpt
+         << AOpt2007(mAO[0],"A0","Optional Arg 0")
+         << AOpt2007(mAO[1],"A1","Optional Arg 1")
+         << AOpt2007(mAO[2],"A2","Optional Arg 2")
+         << AOpt2007(mAO[3],"A3","Optional Arg 3")
+         << AOpt2007(mLev0,"Lev0","Level of first call")
+   ;
+}
+
+tMMVII_UnikPApli Alloc_TestRecall(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_MMRecall(argc,argv,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpecTestRecall
+(
+     "TestRecall",
+      Alloc_TestRecall,
+      "Use in Bench to Test Recall of MMVII by itself ",
+      {eApF::Test},
+      {eApDT::None},
+      {eApDT::Console},
+      __FILE__
+);
+
+void BenchRecall()
+{
+    cMMVII_Appli &  anAp = cMMVII_Appli::TheAppli();
+
+    anAp.StrObl() << "1";
+
+    for (int aK=0 ; aK< cAppli_MMRecall::NbMaxArg; aK++)
+        anAp.StrObl() << ToStr(10*aK);
+
+    anAp.ExeCallMMVII
+    (
+        TheSpecTestRecall,
+        anAp.StrObl() ,
+        anAp.StrOpt() << t2S("Lev0",ToStr(1+anAp.LevelCall()))
+    );
+
+
+}
 
 
 /* ========================================================= */

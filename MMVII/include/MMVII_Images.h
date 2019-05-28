@@ -297,6 +297,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
 
         //========= fundamental access to values ============
 
+
            /// Get Value, check access in non release mode
         const Type & GetV(const cPt2di & aP)  const
         {
@@ -329,6 +330,9 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         void VI_SetV(const  cPt2di & aP,const int & aV)    override ; ///< call SetV
         void VD_SetV(const  cPt2di & aP,const double & aV) override ; ///< call SetV
 
+        // ==  raw pointer on origin of line
+        const Type * GetLine(int aY)  const;
+        Type * GetLine(int aY) ;
         //========= Access to sizes, only alias/facilities ============
 
         const cPt2di &  Sz()  const {return tRO::Sz();}  ///< Std Accessor
@@ -363,6 +367,11 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         Type & Value(const cPt2di & aP)   {return mRawData2D[aP.y()][aP.x()];} ///< Data Access
         const Type & Value(const cPt2di & aP) const   {return mRawData2D[aP.y()][aP.x()];} /// Const Data Access
 
+
+        void AssertYInside(int Y) const
+        {
+             MMVII_INTERNAL_ASSERT_tiny((Y>=Y0())&&(Y<Y1()),"Point out of image");
+        }
 
         Type ** mRawData2D;  ///< Pointers on DataLin
 };

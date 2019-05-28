@@ -263,6 +263,7 @@ inline tINT4 mod_gen(tINT4 a,tINT4 b)
     return (r <0) ? (r+ ((b>0) ? b : -b)) : r;
 }
 
+tINT4 HCF(tINT4 a,tINT4 b); // = PGCD = Highest Common Factor
 
 /* ================= rounding  ======================= */
 
@@ -323,6 +324,11 @@ template <class Type,class TCast> TCast TSquare(const Type & aV) {return aV* TCa
 template <class Type> tREAL8  R8Square(const Type & aV) {return TSquare<Type,tREAL8>(aV);} ///< To avoid oveflow with int type
 
 
+template <class Type> void OrderMinMax(Type & aV1,Type & aV2)
+{
+   if (aV1>aV2)
+      std::swap(aV1,aV2);
+}
 
 };
 

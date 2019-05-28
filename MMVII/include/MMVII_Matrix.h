@@ -73,13 +73,24 @@ class cMatrix  : public cRect2
          const cPt2di & Sz() const {return cRect2::Sz();}
          tMatrElem operator() (int aX,int  aY) const {return V_GetElem(aX,aY);} ///< Syntactic sugar
 
-         // In place multiplication of Line/Col vector , furnish the result
+
+         //==== Put here to make bench easier, but else not very usefull
+         virtual double TriangSupicity() const ; ///< How much is  it triangular sup
+         virtual void SelfSymetrizeBottom() ;    ///< Symetrize by setting copying up in Bottom
+
+                     //  ============= tREAL4 ===============
+         virtual void  Add_tAB(const cDenseVect<tREAL4> & aCol,const cDenseVect<tREAL4> & aLine) ;
+         virtual void  Add_tAA(const cDenseVect<tREAL4> & aColLine,bool OnlySup=true) ;
+         virtual void  Sub_tAA(const cDenseVect<tREAL4> & aColLine,bool OnlySup=true) ;
          virtual void  MulColInPlace(cDenseVect<tREAL4> &,const cDenseVect<tREAL4> &) const;
          virtual tMatrElem MulColElem(int  aY,const cDenseVect<tREAL4> &)const;
          cDenseVect<tREAL4>  MulCol(const cDenseVect<tREAL4> &) const; ///< Create a new vector
          virtual void ReadColInPlace(int aX,cDenseVect<tREAL4>&) const;
          virtual void WriteCol(int aX,const cDenseVect<tREAL4>&) ;
 
+         virtual void  Add_tAB(const cDenseVect<tREAL8> & aCol,const cDenseVect<tREAL8> & aLine) ;
+         virtual void  Add_tAA(const cDenseVect<tREAL8> & aColLine,bool OnlySup=true) ;
+         virtual void  Sub_tAA(const cDenseVect<tREAL8> & aColLine,bool OnlySup=true) ;
          virtual void  MulLineInPlace(cDenseVect<tREAL4> &,const cDenseVect<tREAL4> &) const;
          virtual tMatrElem MulLineElem(int  aX,const cDenseVect<tREAL4> &)const;
          cDenseVect<tREAL4>  MulLine(const cDenseVect<tREAL4> &) const;
@@ -102,6 +113,9 @@ class cMatrix  : public cRect2
 
                      //  ============= tREAL16 ===============
 
+         virtual void  Add_tAB(const cDenseVect<tREAL16> & aCol,const cDenseVect<tREAL16> & aLine) ;
+         virtual void  Add_tAA(const cDenseVect<tREAL16> & aColLine,bool OnlySup=true) ;
+         virtual void  Sub_tAA(const cDenseVect<tREAL16> & aColLine,bool OnlySup=true) ;
          virtual void  MulColInPlace(cDenseVect<tREAL16> &,const cDenseVect<tREAL16> &) const;
          virtual tMatrElem MulColElem(int  aY,const cDenseVect<tREAL16> &)const;
          cDenseVect<tREAL16> MulLine(const cDenseVect<tREAL16> &) const;
@@ -218,6 +232,7 @@ template <class Type> class cUnOptDenseMatrix : public cMatrix
 template <class Type> class cResulSymEigenValue;
 template <class Type> class cConst_EigenMatWrap;
 template <class Type> class cNC_EigenMatWrap;
+template <class Type> class cResulQR_Decomp;
 
 /**  Dense Matrix, probably one single class. 
      Targeted to be instantiated with 4-8-16 byte floating point
@@ -275,7 +290,9 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         double Unitarity() const; ///< test the fact that M is unatiry, basic : distance of Id to tM M
         cResulSymEigenValue<Type> SymEigenValue() const;
 
-        //  ====  Symetricity/Transpose manipulation
+        cResulQR_Decomp<Type>  QR_Decomposition() const;
+
+        //  ====  Symetricity/Transpose/Triangularise manipulation
 
         double Symetricity() const; ///< how much close to a symetrix matrix, square only , 
         void SelfSymetrize() ; ///< replace by closest  symetrix matrix, square only
@@ -284,6 +301,10 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         double AntiSymetricity() const; ///< how much close to a symetrix matrix, square only
         void SelfAntiSymetrize() ; ///< closest  symetrix matrix, square only
         tDM    AntiSymetrize() const ; ///< closest  symetrix matrix, square only
+
+        void   SelfTriangSup();         ///< Make the image triangular
+        double TriangSupicity() const override;        ///< How much is  it triangular sup
+        void SelfSymetrizeBottom() override ; ///< Symetrize by setting copying up in Bottom
 
         void TransposeIn(tDM & M2) const;  ///< Put transposate in M2
         void SelfTransposeIn() ;  ///< transposate in this, square only
@@ -295,26 +316,63 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         tMatrElem MulColElem(int  aY,const cDenseVect<tREAL4> &)const override;
         void  MulLineInPlace(cDenseVect<tREAL4> &,const cDenseVect<tREAL4> &) const override;
         tMatrElem MulLineElem(int  aX,const cDenseVect<tREAL4> &)const override;
+        void  Add_tAB(const cDenseVect<tREAL4> & aCol,const cDenseVect<tREAL4> & aLine) override;
+        void  Add_tAA(const cDenseVect<tREAL4> & aColLine,bool OnlySup=true) override;
+        void  Sub_tAA(const cDenseVect<tREAL4> & aColLine,bool OnlySup=true) override;
 
         void  MulColInPlace(cDenseVect<tREAL8> &,const cDenseVect<tREAL8> &) const override;
         tMatrElem MulColElem(int  aY,const cDenseVect<tREAL8> &)const override;
         void  MulLineInPlace(cDenseVect<tREAL8> &,const cDenseVect<tREAL8> &) const override;
         tMatrElem MulLineElem(int  aX,const cDenseVect<tREAL8> &)const override;
+        void  Add_tAB(const cDenseVect<tREAL8> & aCol,const cDenseVect<tREAL8> & aLine) override;
+        void  Add_tAA(const cDenseVect<tREAL8> & aColLine,bool OnlySup=true) override;
+        void  Sub_tAA(const cDenseVect<tREAL8> & aColLine,bool OnlySup=true) override;
 
         void  MulColInPlace(cDenseVect<tREAL16> &,const cDenseVect<tREAL16> &) const override;
         tMatrElem MulColElem(int  aY,const cDenseVect<tREAL16> &)const override;
         void  MulLineInPlace(cDenseVect<tREAL16> &,const cDenseVect<tREAL16> &) const override;
         tMatrElem MulLineElem(int  aX,const cDenseVect<tREAL16> &)const override;
+        void  Add_tAB(const cDenseVect<tREAL16> & aCol,const cDenseVect<tREAL16> & aLine) override;
+        void  Add_tAA(const cDenseVect<tREAL16> & aColLine,bool OnlySup=true) override;
+        void  Sub_tAA(const cDenseVect<tREAL16> & aColLine,bool OnlySup=true) override;
 
 };
 
 template <class Type> class cResulSymEigenValue
 {
     public :
+        friend class cDenseMatrix<Type>;
+
         cResulSymEigenValue(int aNb);
-        cDenseVect<Type>    mEVal;
-        cDenseMatrix<Type>  mEVect;
+        cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix
+
+        const cDenseVect<Type>   &  EigenValues() const ;  ///< Eigen values
+        const cDenseMatrix<Type> &  EigenVectors()const ; ///< Eigen vector
+
+    private :
+        cDenseVect<Type>    mEigenValues;  ///< Eigen values
+        cDenseMatrix<Type>  mEigenVectors; ///< Eigen vector
 };
+
+template <class Type> class cResulQR_Decomp
+{
+    public :
+        friend class cDenseMatrix<Type>;
+
+        cResulQR_Decomp(int aSzX,int aSzY);
+        cDenseMatrix<Type>  OriMatr() const;
+
+        const cDenseMatrix<Type> &  Q_Matrix() const; ///< Unitary
+        const cDenseMatrix<Type> &  R_Matrix() const; ///< Triang
+
+    private :
+        cDenseMatrix<Type>  mQ_Matrix; ///< Unitary Matrix
+        cDenseMatrix<Type>  mR_Matrix; ///< Triangular superior
+
+};
+
+
+
 
 template <class Type> cDenseMatrix<Type> operator * (const cDenseMatrix<Type> &,const cDenseMatrix<Type>&);
 template <class T1,class T2> cDenseVect<T1> operator * (const cDenseVect<T1> &,const cDenseMatrix<T2>&);

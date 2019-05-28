@@ -103,8 +103,32 @@ template<class T2,class T3>   cDenseMatrix<T2> operator * (const  T3 & aV3,const
     return cDenseMatrix<T2>(aI2.Im()*aV3);
 }
 
+       //===========   Copy, +=  ===========
 
+template<class T1,class T2,int Dim>  
+   void CopyIn(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2)
+{
+    aI1.AssertSameArea(aI2); 
+
+    for (int aK=0 ; aK<aI1.NbElem() ; aK++)
+        aI1.GetRDL(aK) = aI2.GetRDL(aK) ;
+}
+
+template<class T1,class T2,int Dim>  
+   void AddIn(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2)
+{
+    aI1.AssertSameArea(aI2); 
+
+    for (int aK=0 ; aK<aI1.NbElem() ; aK++)
+        aI1.GetRDL(aK) += aI2.GetRDL(aK) ;
+}
  
+template<class T1,class T2,int Dim>  
+   void DivCsteIn(cDataTypedIm<T1,Dim> & aI1,const T2 & aV2)
+{
+    for (int aK=0 ; aK<aI1.NbElem() ; aK++)
+        aI1.GetRDL(aK) /= aV2;
+}
 
 // cIm2D
 

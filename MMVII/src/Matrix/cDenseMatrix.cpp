@@ -48,7 +48,7 @@ template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::Diag(const cDenseVe
 template <class Type>  void  cDenseMatrix<Type>::Show() const
 {
     cConst_EigenMatWrap<Type> aMapThis(*this);
-    std::cout << aMapThis.EW() << "\n";
+    StdOut() << aMapThis.EW() << "\n";
 }
 
 
@@ -94,7 +94,7 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse(double Eps
 
    {
       cDenseMatrix<Type> AAp = A * Ap;
-      std::cout << "D000 " << AAp.DIm().L2Dist(cDenseMatrix<Type>(aNb,eModeInitImage::eMIA_MatrixId).DIm()) << "\n";
+      StdOut() << "D000 " << AAp.DIm().L2Dist(cDenseMatrix<Type>(aNb,eModeInitImage::eMIA_MatrixId).DIm()) << "\n";
 
    // Test that pertubate the inverse, it's only for bench purpose, to be sure that
    // iterative algoritm work.
@@ -127,7 +127,7 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse(double Eps
           }
        }
        aSomEr = std::sqrt(aSomEr/R8Square(aNb));
-       std::cout << "SOMM EE " << aSomEr << "\n";
+       StdOut() << "SOMM EE " << aSomEr << "\n";
        Ap = Ap * ImE;
        aK++;
    }
@@ -220,7 +220,7 @@ template <class T1,class T2> static
 {
    aMat.TplCheckSizeYandX(aVRes,aVIn);
    /*  A conserver, verif Merge Type
-       std::cout << "Txxxxxx "  
+       StdOut() << "Txxxxxx "  
                  << " " << E2Str(tNumTrait<T1>::TyNum())  
                  << " " << E2Str(tNumTrait<T2>::TyNum())  
                  << " => " << E2Str(tNumTrait<typename tMergeF<T1,T2>::tMax>::TyNum())  
@@ -302,6 +302,100 @@ template <class Type> cDenseMatrix<Type> operator * (const cDenseMatrix<Type> & 
    cDenseMatrix<Type> aRes(aM2.Sz().x(),aM1.Sz().y());
    aRes.MatMulInPlace(aM1,aM2);
    return aRes;
+}
+
+// ===============  Add tAB tAA  ================
+
+template <class TM,class TV> 
+   static void TplAdd_tAB(cDenseMatrix<TM> & aMat,const cDenseVect<TV> & aCol,const cDenseVect<TV> & aLine)
+{
+    aMat.TplCheckSizeY(aCol);
+    aMat.TplCheckSizeX(aLine);
+    for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
+    {
+        TV  aVY = aCol(aY);
+        const TV * aVX =   aLine.DIm().RawDataLin();
+        TM * aLineMatrix = aMat.DIm().GetLine(aY);
+        for (int aNbX=aMat.Sz().x() ; aNbX ;  aNbX--)
+        {
+           *(aLineMatrix++)  +=   aVY *  *(aVX++);
+        }
+    }
+}
+template <class TM,class TV> 
+   static void TplAdd_tAA(cDenseMatrix<TM> & aMat,const cDenseVect<TV> & aV,bool OnlySup)
+{
+    aMat.TplCheckSizeY(aV);
+    aMat.TplCheckSizeX(aV);
+    for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
+    {
+        TV  aVY = aV(aY);
+        int aX0 = OnlySup ? aY : 0;
+        const TV * aVX =   aV.DIm().RawDataLin() + aX0;
+        TM * aLineMatrix = aMat.DIm().GetLine(aY) + aX0;
+        for (int aNbX=aMat.Sz().x() -aX0 ; aNbX ;  aNbX--)
+        {
+           *(aLineMatrix++)  +=   aVY *  *(aVX++);
+        }
+    }
+}
+
+template <class TM,class TV> 
+   static void TplSub_tAA(cDenseMatrix<TM> & aMat,const cDenseVect<TV> & aV,bool OnlySup)
+{
+    aMat.TplCheckSizeY(aV);
+    aMat.TplCheckSizeX(aV);
+    for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
+    {
+        TV  aVY = aV(aY);
+        int aX0 = OnlySup ? aY : 0;
+        const TV * aVX =   aV.DIm().RawDataLin() + aX0;
+        TM * aLineMatrix = aMat.DIm().GetLine(aY) + aX0;
+        for (int aNbX=aMat.Sz().x() -aX0 ; aNbX ;  aNbX--)
+        {
+           *(aLineMatrix++)  -=   aVY *  *(aVX++);
+        }
+    }
+}
+
+
+template <class Type> void cDenseMatrix<Type>::Add_tAB(const cDenseVect<tREAL4> & aCol,const cDenseVect<tREAL4> & aLine) 
+{
+   TplAdd_tAB(*this,aCol,aLine);
+}
+template <class Type> void cDenseMatrix<Type>::Add_tAA(const cDenseVect<tREAL4> & aCol,bool OnlySup)
+{
+   TplAdd_tAA(*this,aCol,OnlySup);
+}
+template <class Type> void cDenseMatrix<Type>::Sub_tAA(const cDenseVect<tREAL4> & aCol,bool OnlySup)
+{
+   TplSub_tAA(*this,aCol,OnlySup);
+}
+
+template <class Type> void cDenseMatrix<Type>::Add_tAB(const cDenseVect<tREAL8> & aCol,const cDenseVect<tREAL8> & aLine) 
+{
+   TplAdd_tAB(*this,aCol,aLine);
+}
+template <class Type> void cDenseMatrix<Type>::Add_tAA(const cDenseVect<tREAL8> & aCol,bool OnlySup)
+{
+   TplAdd_tAA(*this,aCol,OnlySup);
+}
+template <class Type> void cDenseMatrix<Type>::Sub_tAA(const cDenseVect<tREAL8> & aCol,bool OnlySup)
+{
+   TplSub_tAA(*this,aCol,OnlySup);
+}
+
+template <class Type> void cDenseMatrix<Type>::Add_tAB(const cDenseVect<tREAL16> & aCol,const cDenseVect<tREAL16> & aLine) 
+{
+   TplAdd_tAB(*this,aCol,aLine);
+}
+template <class Type> void cDenseMatrix<Type>::Add_tAA(const cDenseVect<tREAL16> & aCol,bool OnlySup)
+{
+   TplAdd_tAA(*this,aCol,OnlySup);
+}
+template <class Type> void cDenseMatrix<Type>::Sub_tAA(const cDenseVect<tREAL16> & aCol,bool OnlySup)
+{
+   TplSub_tAA(*this,aCol,OnlySup);
 }
 
 

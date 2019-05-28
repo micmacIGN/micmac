@@ -56,6 +56,8 @@ class cSpecMMVII_Appli;
 class cMMVII_Ap_NameManip;
 class cMMVII_Ap_CPU;
 class cMMVII_Appli ;
+class cExplicitCopy; ///<  Fake class use for add X(const X&) explicit with  X(cExplicitCopy,const X&)
+
 
 // MMVII_Stringifier.h
 
@@ -78,6 +80,7 @@ template <class Type>  class cIm1D  ;
 
 // MMVII_Matrix.h
 template <class Type> class  cDenseVect;
+
 
 
 

@@ -105,11 +105,21 @@ const std::string  & cSpecOneArg2007::Name() const
    return mName;
 }
 
+const std::string  & cSpecOneArg2007::Value() const
+{
+   return mValue;
+}
+
 const std::string  & cSpecOneArg2007::Com() const
 {
    return mCom;
 }
 
+void  cSpecOneArg2007::InitParam(const std::string & aStr) 
+{
+   mValue = aStr;
+   V_InitParam(aStr);
+}
 
 
 /* ============================ */
@@ -149,6 +159,7 @@ tVecArg2007 & cCollecSpecArg2007::Vec()
 
 
 
+
 /* ============================================== */
 /*                                                */
 /*       cInstReadOneArgCL2007                    */
@@ -158,7 +169,7 @@ tVecArg2007 & cCollecSpecArg2007::Vec()
 template <class Type> class cInstReadOneArgCL2007 : public cSpecOneArg2007
 {
     public :
-        void InitParam(const std::string & aStr) override
+        void V_InitParam(const std::string & aStr) override
         {
             mVal = cStrIO<Type>::FromStr(aStr);
         }
@@ -200,7 +211,7 @@ MACRO_INSTANTIATE_ARG2007(int)
 MACRO_INSTANTIATE_ARG2007(double)
 MACRO_INSTANTIATE_ARG2007(bool)
 MACRO_INSTANTIATE_ARG2007(std::string)
-
+MACRO_INSTANTIATE_ARG2007(std::vector<std::string>)
 
 /*
 template <> tPtrArg2007 AOpt2007<int>(int &,const std::string & aName, const std::string & aCom);

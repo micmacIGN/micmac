@@ -41,6 +41,37 @@ cMatrix::cMatrix(int aX,int aY) :
 cMatrix::~cMatrix() 
 {
 }
+
+
+double cMatrix::TriangSupicity() const   ///< How close to triangular sup
+{
+     double aNb=0;
+     double aSom =0.0;
+     for (const auto & aP : *this)
+     {
+         if (aP.x() < aP.y())
+         {
+            aNb++;
+            aSom += Square(V_GetElem(aP.x(),aP.y()));
+         }
+     }
+     aSom /= std::max(1.0,aNb);
+     return std::sqrt(aSom);
+}
+void cMatrix::SelfSymetrizeBottom()
+{
+   cMatrix::CheckSquare(*this);
+   int aNb = Sz().x();
+   for (int aX=0 ; aX<aNb ; aX++)
+   {
+       for (int aY=aX+1 ; aY<aNb ; aY++)
+       {
+            V_SetElem(aX,aY,V_GetElem(aY,aX));
+       }
+   }
+}
+
+
          // ============  Mul Col ========================
 
 template <class Type> static tMatrElem TplMulColElem(int aY,const cMatrix & aMat,const cDenseVect<Type> & aVIn)
@@ -93,10 +124,43 @@ template <class Type> static void TplWriteCol(cMatrix & aMat,int aX,const cDense
 }
 
 
+template <class Type> static void TplAdd_tAB(cMatrix & aMat,const cDenseVect<Type> & aCol,const cDenseVect<Type> & aLine)
+{
+    aMat.TplCheckSizeY(aCol);
+    aMat.TplCheckSizeX(aLine);
+    for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
+    {
+        for (int aX=0 ; aX<aMat.Sz().x() ; aX++)
+        {
+           aMat.V_SetElem(aX,aY,aMat.V_GetElem(aX,aY) + aCol(aY) * aLine(aX));
+        }
+    }
+}
 
-
-
-// virtual void WriteCol(int aY,const cDenseVect<tREAL4>&) ;
+template <class Type> static void TplAdd_tAA(cMatrix & aMat,const cDenseVect<Type> & aV,bool OnlySup)
+{
+    aMat.TplCheckSizeY(aV);
+    aMat.TplCheckSizeX(aV);
+    for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
+    {
+        for (int aX= OnlySup ? aY : 0 ; aX<aMat.Sz().x() ; aX++)
+        {
+           aMat.V_SetElem(aX,aY,aMat.V_GetElem(aX,aY) + aV(aY) * aV(aX));
+        }
+    }
+}
+template <class Type> static void TplSub_tAA(cMatrix & aMat,const cDenseVect<Type> & aV,bool OnlySup)
+{
+    aMat.TplCheckSizeY(aV);
+    aMat.TplCheckSizeX(aV);
+    for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
+    {
+        for (int aX= OnlySup ? aY : 0 ; aX<aMat.Sz().x() ; aX++)
+        {
+           aMat.V_SetElem(aX,aY,aMat.V_GetElem(aX,aY) - aV(aY) * aV(aX));
+        }
+    }
+}
 
 
          // ============  Mul Line ========================
@@ -153,6 +217,10 @@ template <class Type> static void TplWriteLine(cMatrix & aMat,int aY,const cDens
 
      // Virtuals tREAL4
 
+void  cMatrix::Add_tAB(const cDenseVect<tREAL4> & aCol,const cDenseVect<tREAL4> & aLine) { TplAdd_tAB(*this,aCol,aLine); }
+void  cMatrix::Add_tAA(const cDenseVect<tREAL4> & aV,bool OnlySup) {TplAdd_tAA(*this,aV,OnlySup);}
+void  cMatrix::Sub_tAA(const cDenseVect<tREAL4> & aV,bool OnlySup) {TplSub_tAA(*this,aV,OnlySup);}
+
 void cMatrix::MulColInPlace(cDenseVect<tREAL4> & aOut,const cDenseVect<tREAL4> & aIn) const
 {
     TplMulCol(aOut,*this,aIn);
@@ -185,6 +253,10 @@ void cMatrix::WriteLine(int aY,const cDenseVect<tREAL4>& aV)       {TplWriteLine
 
 
      // Virtuals tREAL8
+void  cMatrix::Add_tAB(const cDenseVect<tREAL8> & aCol,const cDenseVect<tREAL8> & aLine) { TplAdd_tAB(*this,aCol,aLine); }
+void  cMatrix::Add_tAA(const cDenseVect<tREAL8> & aV,bool OnlySup) {TplAdd_tAA(*this,aV,OnlySup);}
+void  cMatrix::Sub_tAA(const cDenseVect<tREAL8> & aV,bool OnlySup) {TplSub_tAA(*this,aV,OnlySup);}
+
 void cMatrix::MulColInPlace(cDenseVect<tREAL8> & aOut,const cDenseVect<tREAL8> & aIn) const
 {
     TplMulCol(aOut,*this,aIn);
@@ -216,6 +288,10 @@ void cMatrix::ReadLineInPlace(int aY,cDenseVect<tREAL8>& aV) const {TplReadLineI
 void cMatrix::WriteLine(int aY,const cDenseVect<tREAL8>& aV)       {TplWriteLine(*this,aY,aV);}
 
      // Virtuals tREAL16
+void  cMatrix::Add_tAB(const cDenseVect<tREAL16> & aCol,const cDenseVect<tREAL16> & aLine) { TplAdd_tAB(*this,aCol,aLine); }
+void  cMatrix::Add_tAA(const cDenseVect<tREAL16> & aV,bool OnlySup) {TplAdd_tAA(*this,aV,OnlySup);}
+void  cMatrix::Sub_tAA(const cDenseVect<tREAL16> & aV,bool OnlySup) {TplSub_tAA(*this,aV,OnlySup);}
+
 void cMatrix::MulColInPlace(cDenseVect<tREAL16> & aOut,const cDenseVect<tREAL16> & aIn) const
 {
     TplMulCol(aOut,*this,aIn);

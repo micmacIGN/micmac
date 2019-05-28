@@ -3,6 +3,7 @@
 
 #include "MMVII_EigenWrap.h"
 #include "ExternalInclude/Eigen/Eigenvalues" 
+#include "ExternalInclude/Eigen/Householder"  // HouseholderQR.h"
 
 using namespace Eigen;
 
@@ -15,15 +16,80 @@ namespace MMVII
 
 template <class Type> 
    cResulSymEigenValue<Type>::cResulSymEigenValue(int aNb) :
-        mEVal(aNb),
-        mEVect(aNb,aNb)
+        mEigenValues(aNb),
+        mEigenVectors(aNb,aNb)
 {
+}
+
+
+template <class Type> const cDenseVect<Type>   &  cResulSymEigenValue<Type>::EigenValues() const
+{
+  return mEigenValues;
+}
+
+template <class Type> const cDenseMatrix<Type>   &  cResulSymEigenValue<Type>::EigenVectors() const
+{
+  return mEigenVectors;
+}
+
+template <class Type> cDenseMatrix<Type>  cResulSymEigenValue<Type>::OriMatr() const
+{
+  return mEigenVectors * cDenseMatrix<Type>::Diag(mEigenValues) * mEigenVectors.Transpose();
+}
+
+/* ============================================= */
+/*      cResulQR_Decomp<Type>                    */
+/* ============================================= */
+
+
+template <class Type> 
+   cResulQR_Decomp<Type>::cResulQR_Decomp(int aSzX,int aSzY) :
+        mQ_Matrix(aSzY,aSzY),
+        mR_Matrix(aSzX,aSzY)
+{
+}
+
+template <class Type> 
+       const cDenseMatrix<Type> &  cResulQR_Decomp<Type>::Q_Matrix() const
+{
+   return mQ_Matrix;
+}
+
+template <class Type> 
+        const cDenseMatrix<Type> &  cResulQR_Decomp<Type>::R_Matrix() const
+{
+   return mR_Matrix;
+}
+
+template <class Type> 
+    cDenseMatrix<Type>  cResulQR_Decomp<Type>::OriMatr() const
+{
+    return mQ_Matrix * mR_Matrix;
 }
 
 
 /* ============================================= */
 /*      cDenseMatrix<Type>                       */
 /* ============================================= */
+
+template <class Type> cResulQR_Decomp<Type>  cDenseMatrix<Type>::QR_Decomposition() const
+{
+    cResulQR_Decomp<Type> aRes(Sz().x(),Sz().y());
+    tConst_EW aWrap(*this);
+    // cDenseMatrix<Type> aM(2,2);
+    HouseholderQR<typename tNC_EW::tEigenMat > qr(aWrap.EW());
+
+    tNC_EW aWrapQ(aRes.mQ_Matrix);
+    aWrapQ.EW() = qr.householderQ();
+
+    tNC_EW aWrapR(aRes.mR_Matrix);
+    aWrapR.EW() = qr.matrixQR();
+
+    aRes.mR_Matrix.SelfTriangSup();
+
+   return aRes;
+}
+
 
 
 template <class Type> cResulSymEigenValue<Type>  cDenseMatrix<Type>::SymEigenValue() const
@@ -35,10 +101,10 @@ template <class Type> cResulSymEigenValue<Type>  cDenseMatrix<Type>::SymEigenVal
     tConst_EW aWrap(*this);
     SelfAdjointEigenSolver<typename tConst_EW::tEigenMat > es(aWrap.EW());
 
-    tNC_EW  aWrapEVect(aRes.mEVect);
+    tNC_EW  aWrapEVect(aRes.mEigenVectors);
     aWrapEVect.EW() =  es.eigenvectors();
     
-    cNC_EigenColVectWrap<Type>  aWrapEVal(aRes.mEVal);
+    cNC_EigenColVectWrap<Type>  aWrapEVal(aRes.mEigenValues);
     aWrapEVal.EW() =  es.eigenvalues();
 
     return aRes;
@@ -53,6 +119,7 @@ template <class Type> double  cDenseMatrix<Type>::Unitarity() const
    
 }
 
+/*
 void TestSSS()
 {
    cDenseMatrix<double> aM(2,2);
@@ -64,7 +131,8 @@ void TestSSS()
    aWrap.EW() =  es.eigenvalues();
    aWrap.EW() =  es.eigenvectors();
    // SelfAdjointEigenSolver<cNC_EigenMatWrap<double>::tEigenWrap> es(aWrap.EW());
-}
+}mEVal
+*/
 
 
 /*
@@ -86,6 +154,7 @@ cout << "The eigenvalues of A+I are: " << es.eigenvalues().transpose() << endl;
 #define INSTANTIATE_ORTHOG_DENSE_MATRICES(Type)\
 template  class  cDenseMatrix<Type>;\
 template  class  cResulSymEigenValue<Type>;\
+template  class  cResulQR_Decomp<Type>;\
 
 INSTANTIATE_ORTHOG_DENSE_MATRICES(tREAL4)
 INSTANTIATE_ORTHOG_DENSE_MATRICES(tREAL8)

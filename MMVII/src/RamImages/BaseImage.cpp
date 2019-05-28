@@ -83,7 +83,6 @@ template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,co
        mNbElem *= mSz[aK];
        mSzCum[aK] = mNbElem;
     }
-    // std::cout << mNbElem << "\n";
 }
 
 template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1) :

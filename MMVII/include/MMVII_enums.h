@@ -43,6 +43,7 @@ enum class eApF
                Ori,     ///< Orientation
                Match,   ///< Dense Matching
                TieP,    ///< Tie-Point processing
+               TiePLearn,    ///< Tie-Point processing  - Learning step
                Perso,   ///< Personnal
                eNbVals  ///< Tag for number of value
            };
@@ -93,6 +94,7 @@ enum class eTyUEr
            {
               eCreateDir,
               eRemoveFile,
+              eEmptyPattern,
               eBadFileSetName,
               eBadFileRelName,
               eOpenFile,
@@ -108,6 +110,8 @@ enum class eTyUEr
               eNoModeInEditRel,
               eMultiModeInEditRel,
               e2PatInModeLineEditRel,
+              eParseError,
+              eUnClassedError,
               eNbVals
            };
 
@@ -143,14 +147,15 @@ enum class eModeInitImage
                eMIA_MatrixId,    ///<  Only for square  Matrix  : Identite, 
                eMIA_NoInit
            };
-/*
-enum class eTyMatrix
+
+enum class eTyInvRad
            {
-               eTM_Dens4,
-               eTM_Dens8,
-               eTM_Dens16
+               eTVIR_ACGR,
+               eTVIR_ACGT,
+               eTVIR_ACR0,
+               eTVIR_Curve,
+               eNbVals
            };
-*/
 
 
 const std::string & E2Str(const eTySC &);         
@@ -158,9 +163,12 @@ const std::string & E2Str(const eOpAff &);
 const std::string & E2Str(const eTA2007 &);         
 const std::string & E2Str(const eTyUEr &);         
 const std::string & E2Str(const eTyNums &);         
+const std::string & E2Str(const eTyInvRad &);         
 
 template <class Type> const Type & Str2E(const std::string &); 
 template <class Type> std::string   StrAllVall();
+template <class Type> std::vector<Type> SubOfPat(const std::string & aPat,bool AcceptEmpty=false);
+
 
 
 };

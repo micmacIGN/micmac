@@ -186,7 +186,6 @@ void OneBenchEditSet
     // reutiliser à chaque fois
 
     // Line bottom was used to chekc emptyness of StrOpt / StrObl
-    //  std::cout << "FFFFFFf  " << anAp.StrOpt().V().size() << " " << anAp.StrObl().V().size() << "\n";
     cColStrAOpt & anArgOpt = anAp.StrOpt() << t2S("Out",Ouput);
 
 
@@ -491,9 +490,6 @@ void OneBenchEditRel
 {
     cMMVII_Appli &  anAp = cMMVII_Appli::TheAppli();
     std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
-/*
-    std::string aDirT = anAp.TmpDirTestMMVII()  ;
-*/
     std::string aNameFullFime = aDirI + aNameFile ;
     anAp.ExeCallMMVII
     (
