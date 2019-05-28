@@ -1,5 +1,0 @@
-#ifndef SIMUROLSHUT_H
-#define SIMUROLSHUT_H
-
-#endif // SIMUROLSHUT_H
-
