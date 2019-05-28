@@ -5,6 +5,10 @@ matrix:
     dist: trusty
     sudo: required
     compiler: gcc
+  - os: linux
+    dist: xenial
+    sudo: required
+    compiler: gcc
   - os: osx
     osx_image: xcode9.3
     compiler: clang
