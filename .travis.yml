@@ -30,7 +30,7 @@ matrix:
       - MATRIX_EVAL="CC=cc && CXX=cxx"
 
 before_install:
-- eval MATRIX_EVAL
+- eval "${MATRIX_EVAL}"
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get update -qq && sudo apt-get
   install -qq qtbase5-dev  libqt5opengl5-dev; fi
 - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then brew update && brew install qt && export PATH="/usr/local/opt/qt/bin:$PATH"; fi
