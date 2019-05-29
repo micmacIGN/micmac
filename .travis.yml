@@ -2,21 +2,35 @@ language: cpp
 matrix:
   include:
   - os: linux
-    dist: trusty
-    sudo: required
-    compiler: gcc
-  - os: linux
     dist: xenial
     sudo: required
     compiler: gcc
+    env:
+      - MATRIX_EVAL="CC=gcc && CXX=g++"
+  - os: linux
+    dist: xenial
+    sudo: required
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-7
+    env:
+      - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
   - os: osx
     osx_image: xcode9.3
     compiler: clang
+    env:
+      - MATRIX_EVAL="CC=cc && CXX=cxx"
   - os: osx
     osx_image: xcode10.2
     compiler: clang
+    env:
+      - MATRIX_EVAL="CC=cc && CXX=cxx"
 
 before_install:
+- eval MATRIX_EVAL
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get update -qq && sudo apt-get
   install -qq qtbase5-dev  libqt5opengl5-dev; fi
 - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then brew update && brew install qt && export PATH="/usr/local/opt/qt/bin:$PATH"; fi
