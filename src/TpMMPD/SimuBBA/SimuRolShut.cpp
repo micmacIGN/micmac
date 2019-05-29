@@ -134,18 +134,28 @@ cSetTiePMul_Cam::cSetTiePMul_Cam(const std::string &aSH, const cAppli_CamXifDate
 
 void cSetTiePMul_Cam::ReechRS_SH(const double &aRSSpeed, const string &aSHOut)
 {
+    double aT0=0.0,aT1=0.0, aT2=0.0;
+
     std::vector<cSetPMul1ConfigTPM *> aVCnf = m_pSH->VPMul();
     for(uint itCnf=0; itCnf<aVCnf.size(); itCnf++)
     {
-        std::cout << "Done " << itCnf << " out of " << aVCnf.size() << endl;
+        ElTimer aC0;
+        std::cout << "Done " << itCnf << " out of " << aVCnf.size()
+                  << "T0 " << aT0
+                  << "T1 " << aT1
+                  << "T2 " << aT2
+                  << endl;
         auto aCnf = aVCnf.at(itCnf);
-        std::vector<int> aVIdIm = aCnf->VIdIm();
+        const std::vector<int> & aVIdIm = aCnf->VIdIm();
         std::vector<CamStenope*> aVCam;
-        for(int &aIdIm : aVIdIm)
+        for(const int &aIdIm : aVIdIm)
         {
             std::string aNameIm = m_pSH->NameFromId(aIdIm);
             aVCam.push_back(m_Appli.mVIm.at(aNameIm).mCam);
         }
+        aT0+=aC0.uval();
+
+        ElTimer aC1;
 
         for(int aKPt=0; aKPt<aCnf->NbPts(); aKPt++)
         {
@@ -173,15 +183,20 @@ void cSetTiePMul_Cam::ReechRS_SH(const double &aRSSpeed, const string &aSHOut)
                     aCnf->SetPt(aKPt,aKIm,aNewP2D);
             }
         }
+        aT1 +=aC1.uval();
 
-        // output modified tie points
-        std::string aNameOut0 = cSetTiePMul::StdName(m_Appli.mICNM,aSHOut,"Reech",0);
-        std::string aNameOut1 = cSetTiePMul::StdName(m_Appli.mICNM,aSHOut,"Reech",1);
 
-        m_pSH->Save(aNameOut0);
-        m_pSH->Save(aNameOut1);
+
 
     }
+    ElTimer aC2;
+    // output modified tie points
+    std::string aNameOut0 = cSetTiePMul::StdName(m_Appli.mICNM,aSHOut,"Reech",0);
+    std::string aNameOut1 = cSetTiePMul::StdName(m_Appli.mICNM,aSHOut,"Reech",1);
+
+    m_pSH->Save(aNameOut0);
+    m_pSH->Save(aNameOut1);
+    aT2+= aC2.uval();
 }
 
 
