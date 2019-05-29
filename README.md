@@ -1,3 +1,7 @@
+MICMAC
+======
+[![Build Status](https://travis-ci.org/micmacIGN/micmac.svg?branch=master)](https://travis-ci.org/micmacIGN/micmac)
+
 [Version française](LISEZMOI.md)
 
 # Prerequisites
