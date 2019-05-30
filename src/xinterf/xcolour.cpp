@@ -191,7 +191,7 @@ Elise_colour operator + (Elise_colour c1,Elise_colour c2)
 }
 
 
-Elise_colour operator * REAL f ,Elise_colour c2
+Elise_colour operator * (REAL f ,Elise_colour c2)
 {
     return Elise_colour::rgb(f*c2.r(),f*c2.g(),f*c2.b());
 }
