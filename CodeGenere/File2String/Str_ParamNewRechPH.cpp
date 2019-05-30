@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamNewRechPH[284]) = {
+const char * theNameVar_ParamNewRechPH[284] = {
 "\n",
 "<GenCpp  Difndef=\"Define_NotRechNewPH\">\n",
 "\n",

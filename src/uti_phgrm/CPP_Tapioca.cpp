@@ -773,7 +773,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
         if ( nbPoints==0 ) continue;
 
         pSrc = &( ( *itSrc )[0] );
-        memcpy( pDst, pSrc, nbPoints*sizeof( DigeoPoint ) );
+        memcpy( static_cast<void*>(pDst), pSrc, nbPoints*sizeof( DigeoPoint ) );
         pDst += nbPoints;
         while (nbPoints--) *itIndex++ = i;
     }

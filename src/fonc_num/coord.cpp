@@ -549,7 +549,7 @@ template <class Type> class CatCoord_Fonc_Compute
              }
 
           private :
-             Fonc_Num_Computed * (_tf[2]);
+             Fonc_Num_Computed * _tf[2];
 };
 
 

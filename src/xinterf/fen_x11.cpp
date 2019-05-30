@@ -838,7 +838,7 @@ void DataElXim::fill_with_el_image
 {
    static const INT NbChMax  = 10;
    INT NbCh = dep->dim_pal();
-   INT * (Im[NbChMax]);  
+   INT * Im[NbChMax];  
    ELISE_ASSERT
    (
        (NbCh<=NbChMax) && (NbCh<=(INT)Images.size()),

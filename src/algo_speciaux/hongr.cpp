@@ -139,7 +139,7 @@ static int * AffMach;                  /* contient eventuellement la tache   */
                                        /* a laquelle est affectee la machine; */
                                        /* =0 si aucune affectation           */
 
-static int  *(GrInjMax[2]);           /* graphe injectif maximal issu de */     
+static int  *GrInjMax[2];           /* graphe injectif maximal issu de */     
                                     /*            l'affectation simple */ 
 
 static int * RecLigne;           /* contient les colonnes qui participent */

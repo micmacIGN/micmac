@@ -191,7 +191,7 @@ Elise_colour operator + (Elise_colour c1,Elise_colour c2)
 }
 
 
-Elise_colour operator * (REAL f ,Elise_colour c2)
+Elise_colour operator * REAL f ,Elise_colour c2
 {
     return Elise_colour::rgb(f*c2.r(),f*c2.g(),f*c2.b());
 }
@@ -334,7 +334,7 @@ INT  Data_Elise_Palette::ilutage
         const INT * col
      )
 {
-   const INT *(pc[3]) = {col,col+1,col+2};
+   const INT *pc[3] = {col,col+1,col+2};
 
    U_INT2 icoul[2];
    U_INT1 * u1ic = (U_INT1 *) icoul;
@@ -363,7 +363,7 @@ INT  Data_Elise_Palette::ilutage
 
 void Data_Elise_Palette::verif_value_out(const INT * col)
 {
-   const INT *(pc[3]) = {col,col+1,col+2};
+   const INT *pc[3] = {col,col+1,col+2};
    verif_values_out(pc,1);
 }
 

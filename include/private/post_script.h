@@ -305,7 +305,7 @@ class Data_Elise_PS_Disp : public Data_Elise_Gra_Disp
            defF                     _StrC0;
            defF                     _StrC1;
            defF                     _StrC2;
-           defF                   *(_StrC[3]);
+           defF                   * _StrC[3];
            defF                     _LStr85;
 
            defF                     _LptsImCste;
@@ -443,7 +443,7 @@ class Ps_Multi_Filter : public Mcheck
       private :
          Data_Elise_PS_Disp *    _psd;
          INT                     _nb_filter;
-         class Ps_Filter *       (_filter[3]);
+         class Ps_Filter *       _filter[3];
 
          bool put
               (
