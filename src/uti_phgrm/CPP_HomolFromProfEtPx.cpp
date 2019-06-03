@@ -110,7 +110,7 @@ cAppliHomProfPx::cAppliHomProfPx(int argc,char ** argv) :
     );
 
     #if (ELISE_windows)
-         replace( aImName2.begin(), aImName2.end(), '\\', '/' );
+         replace( mNameIm2.begin(), mNameIm2.end(), '\\', '/' );
     #endif
     mDir = DirOfFile(mNameIm2);
     mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
