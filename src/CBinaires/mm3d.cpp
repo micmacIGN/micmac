@@ -270,7 +270,7 @@ int CPP_FitsMatch1Im(int argc, char ** argv);
 int HackToF(int argc,char ** argv);
 int CPP_GenPrime(int argc,char ** argv);
 int CPP_GIMMI_main(int argc,char ** argv);
-
+int HomolFromProfEtPx_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -537,6 +537,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 #endif
 		aRes.push_back(cMMCom("TestLib", SampleLibElise_main, " To call the program illustrating the library"));
 		aRes.push_back(cMMCom("FieldDep3d", ChamVec3D_main, " To export results of matching as 3D shifting"));
+		aRes.push_back(cMMCom("HomProfPx", HomolFromProfEtPx_main, " Export pixel correspondences from Px1 et Px2"));
 		aRes.push_back(cMMCom("SupMntIm", SupMntIm_main, " Tool for superposition of Mnt Im & level curve"));
 
 		aRes.push_back(cMMCom("MMXmlXif", MakeMultipleXmlXifInfo_main, " Generate Xml from Xif (internal use mainly)"));

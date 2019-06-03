@@ -981,8 +981,14 @@ class cAppliMinim  : public cCommonMartiniAppli
     public:
         cAppliMinim(int argc,char **argv);
 
-        void DoCalc();
+        void            DoCalc();
+        void            Update(ElMatrix<double>& aMtr,ElRotation3D& aRAbs,ElRotation3D& aRQIm,
+                               ElMatrix<double>& aMTrDir,ElMatrix<double>& aMTr,
+                               std::vector<ElMatrix<double>>& aVRQIm,std::vector<ElSeg3D>& aVSeg,
+                               std::vector<double>& aVPds);
 
+        ElRotation3D    OptimalSol(std::vector<ElMatrix<double>>& aMat, std::vector<ElSeg3D>& aDirs);
+        
     private:
 
         const std::vector<std::string>    * mSetName;
@@ -1127,6 +1133,8 @@ void cAppliMinim::DoCalc()
             SetLig(aMtr,0,aP2.inv().tr());
             SetLig(aMTr,0, aRAbs.tr());            
 
+            Update(aMtr,aRAbs,aRQIm,aMTrDir,aMTr,aVRQIm,aVSeg,aVPds);
+
             
             if (0)
                 std::cout << " atrQIm=" <<  aP2.tr() << " " << aP2.inv().tr() << "\n"; 
@@ -1143,12 +1151,15 @@ void cAppliMinim::DoCalc()
             SetLig(aMtr,0,aP2.tr());
             SetLig(aMTr,0, aRAbs.tr());            
 
+            Update(aMtr,aRAbs,aRQIm,aMTrDir,aMTr,aVRQIm,aVSeg,aVPds);
         
             if (0)
                 std::cout << " atrQIm=" <<  aP2.tr() << " " << aP2.inv().tr() << "\n"; 
         } 
         else
+        {
             std::cout << "No relative orientation for " << a2.first << "-" << mQIm << "\n";
+        }
 
         if (0)
             std::cout << "P2 Rot\n"  << aP2.Mat()(0,0) << " " << aP2.Mat()(0,1) << " " << aP2.Mat()(0,2) << "\n"
@@ -1156,9 +1167,7 @@ void cAppliMinim::DoCalc()
                                      << aP2.Mat()(2,0) << " " << aP2.Mat()(2,1) << " " << aP2.Mat()(2,2) << "\n";
 
 
-        /* compute translation dir: 
-            + rotate (aRAbs.Mat()) and translate (aMTr) the relative translation to the absolute frame */
-        aMTrDir = aMtr * aRAbs.Mat() + aMTr; 
+        /*aMTrDir = aMtr * aRAbs.Mat() + aMTr; 
 
         //collect rotation 
         aVRQIm.push_back(aRQIm.Mat());     
@@ -1166,7 +1175,7 @@ void cAppliMinim::DoCalc()
         //collect 3d segments
         aVSeg.push_back(ElSeg3D(aRAbs.tr(),Pt3dr(aMTrDir(0,0),aMTrDir(1,0),aMTrDir(2,0))));
         aVPds.push_back(1.0);
-
+*/
 
         if (0)        
             std::cout << "MTrDir="  <<  aMTrDir(0,0) << " " << 
@@ -1199,11 +1208,14 @@ void cAppliMinim::DoCalc()
 
     if (int(aVSeg.size()) >= 2)
     {
+
+        ElRotation3D aTest = OptimalSol(aVRQIm,aVSeg);
+
         bool aIsOK;
         Pt3dr aTr = ElSeg3D::L2InterFaisceaux(&aVPds, aVSeg, &aIsOK);
 
         std::cout << "Tr of the query image\n" << aTr << "\n"; 
-    
+     
 
         //update \& save poses
         ElRotation3D aRes = ElRotation3D(aTr,aRMoy,true);
@@ -1223,6 +1235,82 @@ void cAppliMinim::DoCalc()
 
 }
 
+void cAppliMinim::Update(ElMatrix<double>& aMtr,ElRotation3D& aRAbs,ElRotation3D& aRQIm,
+                         ElMatrix<double>& aMTrDir,ElMatrix<double>& aMTr,
+                         std::vector<ElMatrix<double>>& aVRQIm,std::vector<ElSeg3D>& aVSeg,
+                         std::vector<double>& aVPds)
+{
+
+    /* compute translation dir: 
+        + rotate (aRAbs.Mat()) and translate (aMTr) the relative translation to the absolute frame */
+    aMTrDir = aMtr * aRAbs.Mat() + aMTr;
+
+    //collect rotation 
+    aVRQIm.push_back(aRQIm.Mat());
+
+    //collect 3d segments
+    aVSeg.push_back(ElSeg3D(aRAbs.tr(),Pt3dr(aMTrDir(0,0),aMTrDir(1,0),aMTrDir(2,0))));
+    aVPds.push_back(1.0);
+
+
+    if (0)
+        std::cout << "MTrDir="  <<  aMTrDir(0,0) << " " <<
+                                    aMTrDir(1,0) << " " <<
+                                    aMTrDir(2,0) << " " << "\n";
+
+    if (0)
+        std::cout << "=======\n" << "Tr1 " << aRAbs.tr() <<
+                           " \n" << "tr " << aRQIm.tr() << "\n";
+}
+
+ElRotation3D cAppliMinim::OptimalSol(std::vector<ElMatrix<double>>& aMat, std::vector<ElSeg3D>& aDirs)
+{
+    ElRotation3D aRes = ElRotation3D::Id;
+    
+    //do intersection of all possible pairs
+    //take median with Kth
+    //calculte std dev
+    //sc1: remove everything over 1sigma and intersect the rest
+    //sc2: take the solution that gives lowest residual
+
+//Pt3dr aU = OneDirOrtho(aDirDroite);
+
+
+    std::vector<Pt3dr> aVInter;
+    for (int aK1=0; aK1<(int(aDirs.size())-1); aK1++)
+    {
+
+        for (int aK2=1; aK2<int(aDirs.size()); aK2++)
+        {
+
+            std::vector<ElSeg3D> aVSeg;
+            std::vector<double>  aVPds;
+            aVSeg.push_back(aDirs.at(aK1));
+            aVSeg.push_back(aDirs.at(aK2));
+            aVPds.push_back(1.0);
+            aVPds.push_back(1.0);
+
+            //std::cout << ",,,,,,,,,,,," << aDirs.at(aK1).P1() << " " << aDirs.at(aK2).P1() << "\n";
+
+            bool aIsOK;
+            Pt3dr aInter = ElSeg3D::L2InterFaisceaux(&aVPds, aVSeg, &aIsOK);
+           
+            if (aIsOK) 
+            {
+                std::cout << "Inter= " << aInter << "\n"; 
+                aVInter.push_back(aInter);
+            }
+            //else
+              //  aVInter.push_back(aInter);
+        }
+
+
+    }
+
+
+    return aRes;
+    
+}
 
 int CPP_Rel2AbsTest_main(int argc,char ** argv)
 {
