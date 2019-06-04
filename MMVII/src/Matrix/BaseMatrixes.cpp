@@ -144,8 +144,24 @@ template <class Type> static void TplAdd_tAB(cMatrix<Type> & aMat,const cDenseVe
     }
 }
 
+template <class Type> static void Weighted_TplAdd_tAA(Type aW,cMatrix<Type> & aMat,const cDenseVect<Type> & aV,bool OnlySup)
+{
+    aMat.TplCheckSizeY(aV);
+    aMat.TplCheckSizeX(aV);
+    for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
+    {
+        Type aVy = aV(aY) * aW;
+        for (int aX= OnlySup ? aY : 0 ; aX<aMat.Sz().x() ; aX++)
+        {
+           aMat.V_SetElem(aX,aY,aMat.V_GetElem(aX,aY) + aVy * aV(aX));
+        }
+    }
+}
+
 template <class Type> static void TplAdd_tAA(cMatrix<Type> & aMat,const cDenseVect<Type> & aV,bool OnlySup)
 {
+     Weighted_TplAdd_tAA(Type(1.0),aMat,aV,OnlySup);
+/*
     aMat.TplCheckSizeY(aV);
     aMat.TplCheckSizeX(aV);
     for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
@@ -155,9 +171,12 @@ template <class Type> static void TplAdd_tAA(cMatrix<Type> & aMat,const cDenseVe
            aMat.V_SetElem(aX,aY,aMat.V_GetElem(aX,aY) + aV(aY) * aV(aX));
         }
     }
+*/
 }
 template <class Type> static void TplSub_tAA(cMatrix<Type> & aMat,const cDenseVect<Type> & aV,bool OnlySup)
 {
+    Weighted_TplAdd_tAA(Type(-1.0),aMat,aV,OnlySup);
+/*
     aMat.TplCheckSizeY(aV);
     aMat.TplCheckSizeX(aV);
     for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
@@ -167,6 +186,7 @@ template <class Type> static void TplSub_tAA(cMatrix<Type> & aMat,const cDenseVe
            aMat.V_SetElem(aX,aY,aMat.V_GetElem(aX,aY) - aV(aY) * aV(aX));
         }
     }
+*/
 }
 
 
@@ -227,6 +247,13 @@ template <class Type> static void TplWriteLine(cMatrix<Type> & aMat,int aY,const
 template <class Type> void  cMatrix<Type>::Add_tAB(const tDV & aCol,const tDV & aLine) { TplAdd_tAB(*this,aCol,aLine); }
 template <class Type> void  cMatrix<Type>::Add_tAA(const tDV & aV,bool OnlySup) {TplAdd_tAA(*this,aV,OnlySup);}
 template <class Type> void  cMatrix<Type>::Sub_tAA(const tDV & aV,bool OnlySup) {TplSub_tAA(*this,aV,OnlySup);}
+
+template <class Type> void  cMatrix<Type>::Weighted_Add_tAA(Type aW,const tDV & aV,bool OnlySup) 
+{
+   Weighted_TplAdd_tAA(aW,*this,aV,OnlySup);
+}
+
+
 
 template <class Type> void cMatrix<Type>::MulColInPlace(tDV & aOut,const tDV & aIn) const
 {
