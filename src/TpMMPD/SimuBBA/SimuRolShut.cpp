@@ -139,9 +139,9 @@ void cSetTiePMul_Cam::ReechRS_SH(const double &aRSSpeed, const string &aSHOut)
     {
         std::cout << "Done " << itCnf << " out of " << aVCnf.size() << endl;
         auto aCnf = aVCnf.at(itCnf);
-        std::vector<int> aVIdIm = aCnf->VIdIm();
+        const std::vector<int> & aVIdIm = aCnf->VIdIm();
         std::vector<CamStenope*> aVCam;
-        for(int &aIdIm : aVIdIm)
+        for(const int &aIdIm : aVIdIm)
         {
             std::string aNameIm = m_pSH->NameFromId(aIdIm);
             aVCam.push_back(m_Appli.mVIm.at(aNameIm).mCam);
@@ -173,15 +173,13 @@ void cSetTiePMul_Cam::ReechRS_SH(const double &aRSSpeed, const string &aSHOut)
                     aCnf->SetPt(aKPt,aKIm,aNewP2D);
             }
         }
-
-        // output modified tie points
-        std::string aNameOut0 = cSetTiePMul::StdName(m_Appli.mICNM,aSHOut,"Reech",0);
-        std::string aNameOut1 = cSetTiePMul::StdName(m_Appli.mICNM,aSHOut,"Reech",1);
-
-        m_pSH->Save(aNameOut0);
-        m_pSH->Save(aNameOut1);
-
     }
+    // output modified tie points
+    std::string aNameOut0 = cSetTiePMul::StdName(m_Appli.mICNM,aSHOut,"Reech",0);
+    std::string aNameOut1 = cSetTiePMul::StdName(m_Appli.mICNM,aSHOut,"Reech",1);
+
+    m_pSH->Save(aNameOut0);
+    m_pSH->Save(aNameOut1);
 }
 
 
@@ -208,11 +206,12 @@ cSetOfMesureAppuisFlottants_Cam::cSetOfMesureAppuisFlottants_Cam(const std::stri
     std::list<cMesureAppuiFlottant1Im> & aLMAF = mDico.MesureAppuiFlottant1Im();
     for(auto &aMAF : aLMAF)
     {
-        const std::string aNameIm = aMAF.NameIm();
+        const std::string & aNameIm = aMAF.NameIm();
+        std::cout << aNameIm << endl;
         std::list<cOneMesureAF1I> & aLMes = aMAF.OneMesureAF1I();
         for(auto & aMes:aLMes)
         {
-            const std::string aNamePt = aMes.NamePt();
+            const std::string & aNamePt = aMes.NamePt();
             Pt2dr aPtIm = aMes.PtIm();
             auto search = mVPtIm.find(aNamePt);
             cIm_CamXifDate aIm_XifDate = m_Appli.mVIm.at(aNameIm);

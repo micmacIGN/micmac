@@ -1584,6 +1584,7 @@ normalises en echelle et/ou en translation -->
 		          <PatternSel Nb="?" Type="std::string" Def=".*" > </PatternSel>
 			  <NameFileXml    Nb="?" Type="std::string"  > </NameFileXml>
 			  <NameFileTxt    Nb="?" Type="std::string"  > </NameFileTxt>
+			  <NameFileJSON    Nb="?" Type="std::string"  > </NameFileJSON>
 			  <TextComplTxt Nb="?" Type="std::string">  </TextComplTxt>
 		     </ExportPtsFlottant>
 

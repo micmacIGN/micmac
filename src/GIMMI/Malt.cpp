@@ -477,7 +477,7 @@ void Malt::mm3d(){
             //       cons.show();
             p.setWorkingDirectory(path_s.c_str());
             p.waitForFinished(-1);
-            qDebug() <<  get_current_dir_name();
+            qDebug() <<  QDir::currentPath();
             qDebug() <<  cmd.c_str() ;
             p.start(cmd.c_str());
             p.setReadChannel(QProcess::StandardOutput);

@@ -270,7 +270,7 @@ int CPP_FitsMatch1Im(int argc, char ** argv);
 int HackToF(int argc,char ** argv);
 int CPP_GenPrime(int argc,char ** argv);
 int CPP_GIMMI_main(int argc,char ** argv);
-
+int HomolFromProfEtPx_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -537,6 +537,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 #endif
 		aRes.push_back(cMMCom("TestLib", SampleLibElise_main, " To call the program illustrating the library"));
 		aRes.push_back(cMMCom("FieldDep3d", ChamVec3D_main, " To export results of matching as 3D shifting"));
+		aRes.push_back(cMMCom("HomProfPx", HomolFromProfEtPx_main, " Export pixel correspondences from Px1 et Px2"));
 		aRes.push_back(cMMCom("SupMntIm", SupMntIm_main, " Tool for superposition of Mnt Im & level curve"));
 
 		aRes.push_back(cMMCom("MMXmlXif", MakeMultipleXmlXifInfo_main, " Generate Xml from Xif (internal use mainly)"));
@@ -754,6 +755,9 @@ int CPP_AllOptimTriplet_main(int argc, char ** argv);
 int CPP_NewSolGolInit_main(int argc, char ** argv);
 int CPP_NewOriImage2G2O_main(int argc, char ** argv);
 int CPP_FictiveObsFin_main(int argc, char ** argv);
+int CPP_XmlOriRel2OriAbs_main(int argc, char ** argv);
+int CPP_Rel2AbsTest_main(int argc, char ** argv);
+int CPP_Rot2MatEss_main(int argc, char ** argv);
 int GenOriFromOnePose_main(int argc, char ** argv);
 int CPP_NewGenTriOfCple(int argc, char ** argv);
 int CPP_TestBundleGen(int argc, char ** argv);
@@ -1095,6 +1099,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("NO_GenTriOfCple",CPP_NewGenTriOfCple,"New Orientation : select triple of one edge"));
 		aRes.push_back(cMMCom("NO_FicObs", CPP_FictiveObsFin_main, "New orientation : ficticious observations"));
+		aRes.push_back(cMMCom("NO_XmlRel2Coniq", CPP_XmlOriRel2OriAbs_main, "New orientation : convert xml relative to conique"));
+		aRes.push_back(cMMCom("NO_R2A",CPP_Rel2AbsTest_main, "New orientation : calculate the absolute orientation of a query image"));
+		aRes.push_back(cMMCom("NO_Ori2MatEss", CPP_Rot2MatEss_main, "New orientation : convert Ori to essential matrix"));
 
         aRes.push_back(cMMCom("OriMatis2MM",MatisOri2MM_main,"Convert from Matis to MicMac"));
 
