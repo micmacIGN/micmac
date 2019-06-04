@@ -18,11 +18,9 @@ namespace MMVII
 /** Matrix can store their data in 4,8,16 ... byte,  however for having unique virtual communication
     we fixe  the interface with the "highest" precision
 */
-typedef tREAL16 tMatrElem;
-
 
 template <class Type> class  cDenseVect ;
-class cMatrix  ;
+template <class Type> class cMatrix  ;
 template <class Type> class cUnOptDenseMatrix ;
 template <class Type> class cDenseMatrix ;
 
@@ -62,16 +60,19 @@ template <class Type> class  cDenseVect
        - dense matrix
        - various sparse matrix
 */
-class cMatrix  : public cRect2
+template <class Type> class cMatrix  : public cRect2
 {
      public :
+         typedef Type              tVal;
+         typedef cDenseVect<Type>  tDV;
+         typedef cMatrix<Type>     tMat;
 
-         virtual tMatrElem V_GetElem(int aX,int  aY) const = 0;
-         virtual void  V_SetElem(int  aX,int  aY,const tMatrElem &) = 0;
+         virtual Type V_GetElem(int aX,int  aY) const = 0;
+         virtual void  V_SetElem(int  aX,int  aY,const Type &) = 0;
          virtual eTyNums  TypeNum() const = 0;
 
          const cPt2di & Sz() const {return cRect2::Sz();}
-         tMatrElem operator() (int aX,int  aY) const {return V_GetElem(aX,aY);} ///< Syntactic sugar
+         Type operator() (int aX,int  aY) const {return V_GetElem(aX,aY);} ///< Syntactic sugar
 
 
          //==== Put here to make bench easier, but else not very usefull
@@ -79,60 +80,26 @@ class cMatrix  : public cRect2
          virtual void SelfSymetrizeBottom() ;    ///< Symetrize by setting copying up in Bottom
 
                      //  ============= tREAL4 ===============
-         virtual void  Add_tAB(const cDenseVect<tREAL4> & aCol,const cDenseVect<tREAL4> & aLine) ;
-         virtual void  Add_tAA(const cDenseVect<tREAL4> & aColLine,bool OnlySup=true) ;
-         virtual void  Sub_tAA(const cDenseVect<tREAL4> & aColLine,bool OnlySup=true) ;
-         virtual void  MulColInPlace(cDenseVect<tREAL4> &,const cDenseVect<tREAL4> &) const;
-         virtual tMatrElem MulColElem(int  aY,const cDenseVect<tREAL4> &)const;
-         cDenseVect<tREAL4>  MulCol(const cDenseVect<tREAL4> &) const; ///< Create a new vector
-         virtual void ReadColInPlace(int aX,cDenseVect<tREAL4>&) const;
-         virtual void WriteCol(int aX,const cDenseVect<tREAL4>&) ;
+         virtual void  Add_tAB(const tDV & aCol,const tDV & aLine) ;
+         virtual void  Add_tAA(const tDV & aColLine,bool OnlySup=true) ;
+         virtual void  Sub_tAA(const tDV & aColLine,bool OnlySup=true) ;
+         virtual void  Weighted_Add_tAA(Type aWeight,const tDV & aColLine,bool OnlySup=true) ;
+         virtual void  MulColInPlace(tDV &,const tDV &) const;
+         virtual Type MulColElem(int  aY,const tDV &)const;
+         tDV  MulCol(const tDV &) const; ///< Create a new vector
+         virtual void ReadColInPlace(int aX,tDV &) const;
+         virtual void WriteCol(int aX,const tDV &) ;
 
-         virtual void  Add_tAB(const cDenseVect<tREAL8> & aCol,const cDenseVect<tREAL8> & aLine) ;
-         virtual void  Add_tAA(const cDenseVect<tREAL8> & aColLine,bool OnlySup=true) ;
-         virtual void  Sub_tAA(const cDenseVect<tREAL8> & aColLine,bool OnlySup=true) ;
-         virtual void  MulLineInPlace(cDenseVect<tREAL4> &,const cDenseVect<tREAL4> &) const;
-         virtual tMatrElem MulLineElem(int  aX,const cDenseVect<tREAL4> &)const;
-         cDenseVect<tREAL4>  MulLine(const cDenseVect<tREAL4> &) const;
-         virtual void ReadLineInPlace(int aY,cDenseVect<tREAL4>&) const;
-         virtual void WriteLine(int aY,const cDenseVect<tREAL4>&) ;
-                    
-                     //  ============= tREAL8 ===============
-
-         virtual void  MulColInPlace(cDenseVect<tREAL8> &,const cDenseVect<tREAL8> &) const;
-         virtual tMatrElem MulColElem(int  aY,const cDenseVect<tREAL8> &)const;
-         cDenseVect<tREAL8>  MulCol(const cDenseVect<tREAL8> &) const;
-         virtual void ReadColInPlace(int aX,cDenseVect<tREAL8>&) const;
-         virtual void WriteCol(int aX,const cDenseVect<tREAL8>&) ;
-
-         virtual void  MulLineInPlace(cDenseVect<tREAL8> &,const cDenseVect<tREAL8> &) const;
-         virtual tMatrElem MulLineElem(int  aX,const cDenseVect<tREAL8> &)const;
-         cDenseVect<tREAL8>  MulLine(const cDenseVect<tREAL8> &) const;
-         virtual void ReadLineInPlace(int aY,cDenseVect<tREAL8>&) const;
-         virtual void WriteLine(int aY,const cDenseVect<tREAL8>&) ;
-
-                     //  ============= tREAL16 ===============
-
-         virtual void  Add_tAB(const cDenseVect<tREAL16> & aCol,const cDenseVect<tREAL16> & aLine) ;
-         virtual void  Add_tAA(const cDenseVect<tREAL16> & aColLine,bool OnlySup=true) ;
-         virtual void  Sub_tAA(const cDenseVect<tREAL16> & aColLine,bool OnlySup=true) ;
-         virtual void  MulColInPlace(cDenseVect<tREAL16> &,const cDenseVect<tREAL16> &) const;
-         virtual tMatrElem MulColElem(int  aY,const cDenseVect<tREAL16> &)const;
-         cDenseVect<tREAL16> MulLine(const cDenseVect<tREAL16> &) const;
-         virtual void ReadColInPlace(int aX,cDenseVect<tREAL16>&) const;
-         virtual void WriteCol(int aX,const cDenseVect<tREAL16>&) ;
-
-         virtual void  MulLineInPlace(cDenseVect<tREAL16> &,const cDenseVect<tREAL16> &) const;
-         virtual tMatrElem MulLineElem(int  aX,const cDenseVect<tREAL16> &)const;
-         cDenseVect<tREAL16> MulCol(const cDenseVect<tREAL16> &) const;
-         virtual void ReadLineInPlace(int aY,cDenseVect<tREAL16>&) const;
-         virtual void WriteLine(int aY,const cDenseVect<tREAL16>&) ;
+         virtual void  MulLineInPlace(tDV &,const tDV &) const;
+         virtual Type MulLineElem(int  aX,const tDV &)const;
+         tDV  MulLine(const tDV &) const;
+         virtual void ReadLineInPlace(int aY,tDV &) const;
+         virtual void WriteLine(int aY,const tDV &) ;
 
 
 
          //  Matrix multiplication
-         void MatMulInPlace(const cMatrix & aM1,const cMatrix & aM2);
-         // cMatrix  Mul(const cMatrix & aM2) const;
+         void MatMulInPlace(const tMat & aM1,const tMat & aM2);
 
 
          // Multiplication of points, works for square matrix so that result is also a point,
@@ -146,35 +113,35 @@ class cMatrix  : public cRect2
 
               // Check size  inline so that they can be skipped in optimized mode
          /// Check that aVY * this  is valide
-         template <class Type> void TplCheckSizeY(const cDenseVect<Type> & aV) const
+         void TplCheckSizeY(const tDV & aV) const
          {
             MMVII_INTERNAL_ASSERT_medium(Sz().y()== aV.Sz(),"Bad size for vect column multiplication")
          }
          /// Check that this * aVx  is valide
-         template <class Type> void TplCheckSizeX(const cDenseVect<Type> & aV) const
+         void TplCheckSizeX(const tDV & aV) const
          {
             MMVII_INTERNAL_ASSERT_medium(Sz().x()== aV.Sz(),"Bad size for vect line multiplication")
          }
          /// Check that aVY * this * aVX  is valide, VY line vector of size SzY, VX Col vector
-         template <class Type> void TplCheckSizeYandX(const cDenseVect<Type> & aVY,const cDenseVect<Type> & aVX) const
+         void TplCheckSizeYandX(const tDV & aVY,const tDV & aVX) const
          {
               TplCheckSizeY(aVY);
               TplCheckSizeX(aVX);
          }
 
          ///  Check that aM1 * aM2 is valide
-         static void CheckSizeMul(const cMatrix & aM1,const cMatrix & aM2)
+         static void CheckSizeMul(const tMat & aM1,const tMat & aM2)
          {
             MMVII_INTERNAL_ASSERT_medium(aM1.Sz().x()== aM2.Sz().y() ,"Bad size for mat multiplication")
          }
          ///  Check that this = aM1 * aM2 is valide
-         void CheckSizeMulInPlace(const cMatrix & aM1,const cMatrix & aM2) const
+         void CheckSizeMulInPlace(const tMat & aM1,const tMat & aM2) const
          {
             CheckSizeMul(aM1,aM2);
             MMVII_INTERNAL_ASSERT_medium(aM1.Sz().y()== Sz().y() ,"Bad size for in place mat multiplication")
             MMVII_INTERNAL_ASSERT_medium(aM2.Sz().x()== Sz().x() ,"Bad size for in place mat multiplication")
          }
-         static void CheckSquare(const cMatrix & aM1)
+         static void CheckSquare(const tMat & aM1)
          {
             MMVII_INTERNAL_ASSERT_medium(aM1.Sz().x()== aM1.Sz().y() ,"Expected Square Matrix")
          }
@@ -187,8 +154,8 @@ class cMatrix  : public cRect2
      private :
 };
 
-template <class Type> cDenseVect<Type> operator * (const cDenseVect<Type> &,const cMatrix&);
-template <class Type> cDenseVect<Type> operator * (const cMatrix&,const cDenseVect<Type> &);
+template <class Type> cDenseVect<Type> operator * (const cDenseVect<Type> &,const cMatrix<Type>&);
+template <class Type> cDenseVect<Type> operator * (const cMatrix<Type>&,const cDenseVect<Type> &);
 
 /** Unopt dense Matrix are not very Usefull in "final" version
 of  MMVII, but it's the opportunity to test the default method
@@ -196,7 +163,7 @@ implemanted in cMatrix,   It contains all the data of cDenseMatrix
  */
 
 
-template <class Type> class cUnOptDenseMatrix : public cMatrix
+template <class Type> class cUnOptDenseMatrix : public cMatrix<Type>
 {
     public :
         typedef cIm2D<Type> tIm;
@@ -216,8 +183,8 @@ template <class Type> class cUnOptDenseMatrix : public cMatrix
         /// Non virtual for inline without specifying scope cUnOptDenseMatrix::
         void  SetElem(int  aX,int  aY,const Type & aV) { DIm().SetV(cPt2di(aX,aY),aV);}
 
-        tMatrElem V_GetElem(int aX,int  aY) const override ;
-        void  V_SetElem(int  aX,int  aY,const tMatrElem &) override;
+        Type V_GetElem(int aX,int  aY) const override ;
+        void  V_SetElem(int  aX,int  aY,const Type &) override;
         virtual eTyNums  TypeNum() const override;
 
        tDIm & DIm() {return mIm.DIm();}
@@ -244,10 +211,11 @@ template <class Type> class cResulQR_Decomp;
 template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 {
    public :
+        typedef Type            tVal;
+        typedef cDenseVect<Type> tDV;
         typedef cDataIm2D<Type> tDIm;
         typedef cIm2D<Type> tIm;
 
-        typedef  cMatrix    tMat;
         typedef  cUnOptDenseMatrix<Type> tUO_DM;
         typedef  cDenseMatrix<Type>    tDM;
 
@@ -260,7 +228,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         cDenseMatrix(int aX,eModeInitImage=eModeInitImage::eMIA_NoInit);
         cDenseMatrix(tIm);
         cDenseMatrix Dup() const;
-        static cDenseMatrix Diag(const cDenseVect<Type> &);
+        static cDenseMatrix Diag(const tDV &);
 
         // To contourn borring new template scope ....
         const tDIm & DIm() const {return tUO_DM::DIm();}
@@ -310,32 +278,18 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         void SelfTransposeIn() ;  ///< transposate in this, square only
         tDM  Transpose() const;  ///< Put transposate in M2
          
+        double Diagonalicity() const; ///< how much close to a diagonal matrix, square only , 
 
         //  =====   Overridng of cMatrix classe  ==== 
-        void  MulColInPlace(cDenseVect<tREAL4> &,const cDenseVect<tREAL4> &) const override;
-        tMatrElem MulColElem(int  aY,const cDenseVect<tREAL4> &)const override;
-        void  MulLineInPlace(cDenseVect<tREAL4> &,const cDenseVect<tREAL4> &) const override;
-        tMatrElem MulLineElem(int  aX,const cDenseVect<tREAL4> &)const override;
-        void  Add_tAB(const cDenseVect<tREAL4> & aCol,const cDenseVect<tREAL4> & aLine) override;
-        void  Add_tAA(const cDenseVect<tREAL4> & aColLine,bool OnlySup=true) override;
-        void  Sub_tAA(const cDenseVect<tREAL4> & aColLine,bool OnlySup=true) override;
+        void  MulColInPlace(tDV &,const tDV &) const override;
+        Type MulColElem(int  aY,const tDV &)const override;
+        void  MulLineInPlace(tDV &,const tDV &) const override;
+        Type MulLineElem(int  aX,const tDV &)const override;
+        void  Add_tAB(const tDV & aCol,const tDV & aLine) override;
+        void  Add_tAA(const tDV & aColLine,bool OnlySup=true) override;
+        void  Sub_tAA(const tDV & aColLine,bool OnlySup=true) override;
 
-        void  MulColInPlace(cDenseVect<tREAL8> &,const cDenseVect<tREAL8> &) const override;
-        tMatrElem MulColElem(int  aY,const cDenseVect<tREAL8> &)const override;
-        void  MulLineInPlace(cDenseVect<tREAL8> &,const cDenseVect<tREAL8> &) const override;
-        tMatrElem MulLineElem(int  aX,const cDenseVect<tREAL8> &)const override;
-        void  Add_tAB(const cDenseVect<tREAL8> & aCol,const cDenseVect<tREAL8> & aLine) override;
-        void  Add_tAA(const cDenseVect<tREAL8> & aColLine,bool OnlySup=true) override;
-        void  Sub_tAA(const cDenseVect<tREAL8> & aColLine,bool OnlySup=true) override;
-
-        void  MulColInPlace(cDenseVect<tREAL16> &,const cDenseVect<tREAL16> &) const override;
-        tMatrElem MulColElem(int  aY,const cDenseVect<tREAL16> &)const override;
-        void  MulLineInPlace(cDenseVect<tREAL16> &,const cDenseVect<tREAL16> &) const override;
-        tMatrElem MulLineElem(int  aX,const cDenseVect<tREAL16> &)const override;
-        void  Add_tAB(const cDenseVect<tREAL16> & aCol,const cDenseVect<tREAL16> & aLine) override;
-        void  Add_tAA(const cDenseVect<tREAL16> & aColLine,bool OnlySup=true) override;
-        void  Sub_tAA(const cDenseVect<tREAL16> & aColLine,bool OnlySup=true) override;
-
+        void  Weighted_Add_tAA(Type aWeight,const tDV & aColLine,bool OnlySup=true) override;
 };
 
 template <class Type> class cResulSymEigenValue
@@ -386,6 +340,38 @@ template <class T1,class T2> cDenseVect<T1> operator * (const cUnOptDenseMatrix<
 
 #if(0)
 #endif
+
+/**  Class to calculate/manipulate 1-2 moment : aver/var/cov
+*/
+template <class Type> class cStrStat2
+{
+    public :
+       cStrStat2(int aSz);
+       /// Add a vectors to stats
+       void Add(const cDenseVect<Type> & );
+       /// Make average (instead of sums) and centered (for cov)
+       void Normalise(bool CenteredAlso=true);
+       ///  Compute eigen values
+       const cResulSymEigenValue<Type> & DoEigen();
+       /// Coordinate in the orthognal system were aver=0 and variables are uncorralted
+       void ToNormalizedCoord(cDenseVect<Type>  & aV1,const cDenseVect<Type>  & aV2) const;
+       /// Kth Coordinate of previous
+       double KthNormalizedCoord(int,const cDenseVect<Type>  & aV2) const;
+       // Accessors
+       cDenseMatrix<Type>& Cov() ;
+       const double              Pds() const;
+       const cDenseVect<Type>  & Moy() const;
+       const cDenseMatrix<Type>& Cov() const;
+    private :
+       int                       mSz;  ///<  Size
+       double                    mPds; ///< Sum of weight (later we will have possibility to add weight)
+       cDenseVect<Type>          mMoy; ///< Som/average
+       cDenseVect<Type>          mMoyMulVE; ///< Moy * EigenVect
+       mutable cDenseVect<Type>  mTmp; ///< Use as temporary for some computation
+       cDenseMatrix<Type>        mCov;  ///< Cov Matrix
+       cResulSymEigenValue<Type> mEigen;  ///< Eigen/Value vectors stored here after DoEigen
+};
+
 
 
 };

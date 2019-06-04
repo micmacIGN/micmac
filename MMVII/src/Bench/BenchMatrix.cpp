@@ -165,15 +165,18 @@ template <class TypeMatr,class TypeVect>  void TplBenchMatrix(int aSzX,int aSzY,
              MMVII_INTERNAL_ASSERT_bench(std::abs(aV1-aV2)<1e-5,"Bench add tAA");
         }
 
+        aMyySym.Weighted_Add_tAA(-2,aCol,false);
+
         aMyySym.Add_tAA(aCol,false);
         aMyySym.Add_tAA(aCol3,false);
         for (const auto & aP : aMyySym)
         {
              double aV1 =  aMyySym.V_GetElem(aP.x(),aP.y());
-             double aV2 = 10 * FTestVect(aP.x()) * FTestVect(aP.y());
+             double aV2 = 8 * FTestVect(aP.x()) * FTestVect(aP.y());
              MMVII_INTERNAL_ASSERT_bench(std::abs(aV1-aV2)<1e-5,"Bench add tAA");
         }
        
+        aMyyUp.Weighted_Add_tAA(-2,aCol);
         aMyyUp.Add_tAA(aCol);
         aMyyUp.Add_tAA(aCol3);
         MMVII_INTERNAL_ASSERT_bench(aMyyUp.TriangSupicity()<1e-5,"Bench add tAA");
@@ -293,7 +296,7 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
   
         if (aD>aDTest)
         {
-            std::cout << "D=" << aD << " DTest=" << aDTest << " Cpt=" << aCpt << "\n";
+            StdOut() << "D=" << aD << " DTest=" << aDTest << " Cpt=" << aCpt << "\n";
             MMVII_INTERNAL_ASSERT_bench(aD<aDTest,"Bench inverse  Matrixes");
         }
 
@@ -310,42 +313,79 @@ void TQR(int aX,int aY)
     aM.QR_Decomposition();
 }
 
-template <class Type> class cStrStat2
+void BenchStatCov(int aSz,int aNb)
 {
-    public :
-       cStrStat2(int aSz);
-       void Add(const cDenseVect<Type> & );
-       void Normalise();
-       const double              Pds() const;
-       const cDenseVect<Type>  & Moy() const;
-       const cDenseMatrix<Type>& Cov() const;
-       const cResulSymEigenValue<Type> & DoEigen();
-    private :
-       double                    mPds;
-       cDenseVect<Type>          mMoy;
-       cDenseMatrix<Type>        mCov;
-       cResulSymEigenValue<Type> mEigen;
-};
-
-
-
-void BenchStatCov()
-{
-    int aSz=3;
-    int aNb = 6;
-    cDenseVect<double> aMoyV(aSz);
+    cStrStat2<double> aSt2Init(aSz);
     std::list<cDenseVect<double> >  aLV;
-    cDenseMatrix<double> aCov1(aSz,aSz,eModeInitImage::eMIA_Null);
     for (int aK=0 ; aK<aNb ; aK++)
     {
         cDenseVect<double> aV(aSz,eModeInitImage::eMIA_Rand);
         aLV.push_back(aV);
-        aCov1.Add_tAA(aV);
+        aSt2Init.Add(aV);
     }
+    // aSt2Init.Cov().SelfSymetrizeBottom();
+    cResulSymEigenValue<double>  aVpInit = aSt2Init.DoEigen();
+    {
+       double aV0 = aVpInit.EigenValues()(0);
+       if (aNb<aSz)
+       {
+          MMVII_INTERNAL_ASSERT_bench(std::abs(aV0)<1e-8,"cStrStat2");
+       }
+       else // In fact in could be by "chance" close to 0 ...
+       {
+          MMVII_INTERNAL_ASSERT_bench(std::abs(aV0)>1e-6,"Test cStrStat2");
+       }
+    }
+    aSt2Init.Normalise();
+    aVpInit = aSt2Init.DoEigen();
+    {
+       double aV0 = aVpInit.EigenValues()(0);
+       if (aNb<=aSz)
+       {
+          MMVII_INTERNAL_ASSERT_bench(std::abs(aV0)<1e-10,"cStrStat2");
+       }
+       else // In fact in could be by "chance" close to 0 ...
+       {
+          MMVII_INTERNAL_ASSERT_bench(std::abs(aV0)>1e-7,"Test cStrStat2");
+       }
+    }
+
+    cStrStat2<double> aSt2Orthog(aSz);
+    cDenseVect<double> aTmp(aSz);
+    for (const auto & aV : aLV)
+    {
+        aSt2Init.ToNormalizedCoord(aTmp,aV);
+        aSt2Orthog.Add(aTmp);
+        for (int aX=0 ; aX < aSz ; aX++)
+        {
+            double aDif= std::abs(aTmp(aX)-aSt2Init.KthNormalizedCoord(aX,aV));
+            MMVII_INTERNAL_ASSERT_bench(aDif<1e-5,"Test cStrStat2 ");
+        }
+    }
+    aSt2Orthog.Cov().SelfSymetrizeBottom();
+
+    // Variable should be uncorrelated
+    MMVII_INTERNAL_ASSERT_bench(aSt2Orthog.Cov().Diagonalicity()<1e-5,"Test cStrStat2 ");
+    // coordinate  should be centered
+    MMVII_INTERNAL_ASSERT_bench(aSt2Orthog.Moy().DIm().L2Norm()<1e-5,"Test cStrStat2 ");
+
+    aSt2Orthog.Normalise(false);
+    const cResulSymEigenValue<double> & aVpOrt = aSt2Orthog.DoEigen();
+    // Eigen value should be the same as init
+    MMVII_INTERNAL_ASSERT_bench(aVpInit.EigenValues().L2Dist(aVpOrt.EigenValues())<1e-5,"Test cStrStat2 ");
+
+}
+void BenchStatCov()
+{
+    BenchStatCov(3,2);
+    BenchStatCov(3,3);
+    BenchStatCov(3,4);
+    BenchStatCov(3,300);
 }
 
 void BenchDenseMatrix0()
 {
+    BenchStatCov();
     {
       cPt2di aSz(3,8);
       cIm2D<double> aI1(aSz,nullptr,eModeInitImage::eMIA_Rand);
@@ -360,8 +400,6 @@ void BenchDenseMatrix0()
       {
           double aDif= std::abs(aI3.DIm().GetV(aP)-(aI3B.DIm().GetV(aP) + aI1.DIm().GetV(aP)) / 3.14); 
           MMVII_INTERNAL_ASSERT_bench(aDif<1e-5,"Bench Op Im");
-          // std::cout << aI3.DIm().GetV(aP) << " " << (aI3B.DIm().GetV(aP) + aI1.DIm().GetV(aP)) / 3.14 << "\n";
-          // std::cout << aDif << "\n";
       }
       
     }
@@ -379,31 +417,35 @@ void BenchDenseMatrix0()
    
 
 
+    TplBenchMatrix<cUnOptDenseMatrix<tREAL8>,tREAL8 > (2,3,10);
+    TplBenchMatrix<cUnOptDenseMatrix<tREAL4>,tREAL4 > (2,3,2);
+    TplBenchMatrix<cUnOptDenseMatrix<tREAL16>,tREAL16 > (2,3,2);
+/*
     TplBenchMatrix<cUnOptDenseMatrix<tREAL8>,tREAL4 > (3,2,4);
     TplBenchMatrix<cUnOptDenseMatrix<tREAL8>,tREAL16 > (3,2,1);
     TplBenchMatrix<cUnOptDenseMatrix<tREAL8>,tREAL16 > (3,2,2);
-    TplBenchMatrix<cUnOptDenseMatrix<tREAL8>,tREAL8 > (2,3,10);
-    TplBenchMatrix<cUnOptDenseMatrix<tREAL4>,tREAL4 > (2,3,2);
     TplBenchMatrix<cUnOptDenseMatrix<tREAL4>,tREAL8 > (2,3,2);
     TplBenchMatrix<cUnOptDenseMatrix<tREAL4>,tREAL16 > (2,3,2);
     TplBenchMatrix<cUnOptDenseMatrix<tREAL16>,tREAL4 > (2,3,2);
     TplBenchMatrix<cUnOptDenseMatrix<tREAL16>,tREAL8 > (2,3,2);
-    TplBenchMatrix<cUnOptDenseMatrix<tREAL16>,tREAL16 > (2,3,2);
+*/
 
 
     TplBenchMatrix<cDenseMatrix<tREAL4>,tREAL4 > (7,2,7);
+    TplBenchMatrix<cDenseMatrix<tREAL8>,tREAL8 > (7,2,3);
+    TplBenchMatrix<cDenseMatrix<tREAL16>,tREAL16> (7,2,3);
+    TplBenchMatrix<cDenseMatrix<tREAL4>,tREAL4 > (2,5,1);
+/*
+    TplBenchMatrix<cDenseMatrix<tREAL8>,tREAL4 > (2,5,2);
+    TplBenchMatrix<cDenseMatrix<tREAL16>,tREAL4 > (2,5,9);
     TplBenchMatrix<cDenseMatrix<tREAL4>,tREAL8 > (7,2,3);
     TplBenchMatrix<cDenseMatrix<tREAL4>,tREAL16> (7,2,3);
     TplBenchMatrix<cDenseMatrix<tREAL8>,tREAL4 > (7,2,7);
-    TplBenchMatrix<cDenseMatrix<tREAL8>,tREAL8 > (7,2,3);
     TplBenchMatrix<cDenseMatrix<tREAL8>,tREAL16> (7,2,3);
     TplBenchMatrix<cDenseMatrix<tREAL16>,tREAL4 > (7,2,7);
     TplBenchMatrix<cDenseMatrix<tREAL16>,tREAL8 > (7,2,3);
-    TplBenchMatrix<cDenseMatrix<tREAL16>,tREAL16> (7,2,3);
 
-    TplBenchMatrix<cDenseMatrix<tREAL4>,tREAL4 > (2,5,1);
-    TplBenchMatrix<cDenseMatrix<tREAL8>,tREAL4 > (2,5,2);
-    TplBenchMatrix<cDenseMatrix<tREAL16>,tREAL4 > (2,5,9);
+*/
 
 
     for (int aK=0 ; aK<8 ; aK++)

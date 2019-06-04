@@ -71,14 +71,14 @@ void OneBenchStrIO(std::string aStr,const  std::vector<std::string> & aV)
    std::vector<std::string> aV2 =  cStrIO<std::vector<std::string> >::FromStr(aStr);
    if(aV!=aV2)
    {
-      std::cout << "STR=" << aStr << "\n";
-      std::cout << "VEC=[";
+      StdOut() << "STR=" << aStr << "\n";
+      StdOut() << "VEC=[";
       for (int aK=0 ; aK<int(aV2.size()) ; aK++)
       {
-         if (aK!=0) std::cout << ",";
-         std::cout << "{" << aV2[aK] << "}";
+         if (aK!=0) StdOut() << ",";
+         StdOut() << "{" << aV2[aK] << "}";
       }
-      std::cout << "]\n";
+      StdOut() << "]\n";
       MMVII_INTERNAL_ASSERT_bench((aV==aV2),"OneBenchStrIO");
    }
 }

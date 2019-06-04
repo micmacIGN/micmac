@@ -496,11 +496,31 @@ class cMultipleOfs  : public  std::ostream
 };
 */
 
+void TestVectBool()
+{
+    StdOut() << "BEGIN TBOOL \n"; getchar();
+
+    for (int aK=0 ; aK<5000 ; aK++)
+    {
+        std::vector<bool> * aV = new std::vector<bool>;
+        for (int aK=0 ; aK<1000000 ; aK++)
+           aV->push_back(true);
+    }
+    StdOut() << "END TBOOL \n"; getchar();
+    for (int aK=0 ; aK<5000 ; aK++)
+    {
+        std::vector<tU_INT1> * aV = new std::vector<tU_INT1>;
+        for (int aK=0 ; aK<1000000 ; aK++)
+           aV->push_back(1);
+    }
+    StdOut() << "END TBYTE \n"; getchar();
+}
 
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
    
+    TestVectBool();
 /*
    cMMVII_Ofs aOs1("toto1.txt");
    cMMVII_Ofs aOs2("toto2.txt");

@@ -4,6 +4,8 @@
 namespace MMVII
 {
 
+typedef bool tVBool;
+
 // Global Application class, in one process deal with only one type of carac points
 class cAppli_ComputeParamIndexBinaire ;
 // Class for representing information on all file on one invariant
@@ -12,9 +14,20 @@ class cDataOneInvRad;
 class cMetaDataOneFileInvRad ;
 // Class for storing info/vector on one Pts Carac
 class  cVecInvRad ;
+// Virtual Class for computing on bit
+class cIB_FoncBool ;
+// Virtual Class for computing on bit
+class cIB_LineFoncBool;
+//  Class to store computed values of given bit computer
+class cVecBool;
+//  Class to store the stat on number of bits equal
+class cStatDifBits;
 
 
+typedef std::shared_ptr<cVecInvRad> tPtVIR;
+typedef std::vector<tPtVIR>            tVPtVIR;
 
+typedef std::unique_ptr<cVecBool> tPtVBool;
 
 /**
      Global class to process computation of binary index, will be used probably for
@@ -35,8 +48,20 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
         const std::string & DirCurPC() const ;
         cVecInvRad*  IR(int aK);
         double PropFile() const;
-     public :
+        const cStrStat2<tREAL8> & Stat2();
+        cDenseVect<tREAL8> &    TmpVect();
+        const cResulSymEigenValue<tREAL8> &  Eigen() const;
+        void   SaveFileData();
+     private :
          void ProcessOneDir(const std::string &);
+         void TestNewSol(const std::vector<int> &,const std::vector<const cVecBool*> &);
+
+         void ComputeIndexBinaire();
+         std::vector<const cVecBool*> IndexToVB(const std::vector<int>&) const;
+         std::vector<const cVecBool*> GenereVB(std::vector<int>&,int aK,int aNb) const;
+         void  TestRandom(int aNbTest,int aNb); 
+         void TestNbBit() const;
+         void TestNbBit(int aNb) const;
 
          std::string    mDirGlob;   ///< Directory 4 data
          std::string    mPatPCar;   ///< Pattern for carac to process, if several run indepently in paral
@@ -50,11 +75,20 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
          std::vector<std::unique_ptr<cDataOneInvRad> > mVecDIR;  ///< List of class to organize of radial inv
          int  mNbPts;   ///< Number of PCar 
          int                    mNbValByP;  ///< Number of value by point, for dimensionning
-         std::vector<std::unique_ptr<cVecInvRad> > mVIR;
+         tVPtVIR                mVIR;
 
-         cDenseVect<tREAL4>    mTmpVect;
-         cDenseVect<tREAL8>    mMoyVect;
-         cDenseMatrix<tREAL8>  mCovVect;
+         cDenseVect<tREAL8>    mTmpVect;
+
+         cStrStat2<tREAL8>     mStat2;
+         const cResulSymEigenValue<tREAL8>  *mEigen;
+         std::vector<tPtVBool>              mVVBool;  ///< Memorized vector of bool
+
+         std::vector<cPt2di>  mVecTrueP;  ///< True pairs
+         std::vector<cPt2di>  mVecFalseP; ///< Pairs of non hom, random but memorized to have always same
+         std::string          mSaveFileSelVectIR;  ///< To Save file of selected IR, usefull if we rerun from previous comp
+         double                       mBestSc;
+         std::vector<const cVecBool*> mBestVB;
+         std::vector<int>             mBestIndex;
 };
 
 class  cVecInvRad : public cMemCheck
@@ -63,9 +97,7 @@ class  cVecInvRad : public cMemCheck
          cVecInvRad(int aNbVal);
       
          cIm1D<tU_INT1>  mVec;
-         void  Add2Stat(cDenseVect<tREAL4>& aTmp,cDenseVect<tREAL8>& aMoy,cDenseMatrix<tREAL8> & aCov) const;
-         ///  Normalise by pds
-         static void PostStat(cDenseVect<tREAL8>& aMoy,cDenseMatrix<tREAL8> & aCov,double aPdsTot);
+         bool            mSelected;
 };
 
 
@@ -122,6 +154,66 @@ class cDataOneInvRad : public cMemCheck
        int                                  mPosInVect; ///< Cumul of previous NbPixByP() to know where pack in Vect
        int                                  mKFill; ///< Current number of PCar being filled by  files
 };
+
+
+
+class cIB_FoncBool : public cMemCheck
+{
+     public :
+        virtual bool   Calc(const cVecInvRad &) const =0; ///< Compute one bit
+        virtual double RCalc(const cVecInvRad &) const;   ///< Continuous version def -0.5 / 0.5
+        virtual ~cIB_FoncBool();
+        cIB_FoncBool(cAppli_ComputeParamIndexBinaire & anAppli);
+     protected :
+        cAppli_ComputeParamIndexBinaire & mAppli;
+     private :
+        cIB_FoncBool (const cIB_FoncBool &) = delete;
+};
+
+class cIB_LinearFoncBool : public cIB_FoncBool
+{
+     public :
+        bool Calc(const cVecInvRad &) const override;
+        double RCalc(const cVecInvRad &) const override;
+        cIB_LinearFoncBool
+        (
+             cAppli_ComputeParamIndexBinaire & anAppli,
+             int aK,
+             double aTreshold
+        );
+     private :
+        cIB_LinearFoncBool (const cIB_LinearFoncBool &) = delete;
+        int                   mK;
+        double                mThresh;
+};
+
+
+class cVecBool : public cMemCheck
+{
+     public :
+         cVecBool(cIB_FoncBool * aFB,const tVPtVIR &);
+         bool  KBit(int aK) const {return mVB.at(aK);}
+     private :
+         cVecBool(const cVecBool &) = delete;
+         std::shared_ptr<cIB_FoncBool>  mFB;
+         std::vector<tU_INT1> mVB;
+};
+
+int NbbBitDif(const std::vector<const cVecBool*> & aVVB,const cPt2di & aPair);
+
+class cStatDifBits
+{
+     public :
+        cStatDifBits(const std::vector<cPt2di> & aVPair,const std::vector<const cVecBool*> & aVB);
+        std::vector<int>     mHNbBitDif;
+        std::vector<double>  mStatR;
+        std::vector<double>  mStatRCum;
+        double Score(const cStatDifBits & aStatFalse,double aPdsFalse,int &aKMax) const;
+        void  Show(const cStatDifBits & aStatFalse,int aK1,int K2) const;
+};
+
+
+
 
 };
 

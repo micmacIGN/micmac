@@ -170,5 +170,13 @@ void Bench_Nums()
    }
 }
 
+template <class Type> Type  Mediane(std::vector<Type> & aV)
+{
+   std::sort(aV.begin(),aV.end());
+   return aV.at(aV.size()/2);
+}
+
+template  double Mediane(std::vector<double> &);
+
 };
 

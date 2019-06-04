@@ -196,18 +196,19 @@ int& cDataOneInvRad::KFill() {return mKFill;}
 /* ==================================================== */
 
 cVecInvRad::cVecInvRad(int aNbVal) :
-   mVec (aNbVal)
+   mVec       (aNbVal),
+   mSelected  (true)
 {
 }
 
 
-void cVecInvRad::Add2Stat(cDenseVect<tREAL4>& aTmp,cDenseVect<tREAL8>& aMoy,cDenseMatrix<tREAL8> & aCov) const
+/*
+void cVecInvRad::Add2Stat(cDenseVect<tREAL8>& aTmp,cDenseVect<tREAL8>& aMoy,cDenseMatrix<tREAL8> & aCov) const
 {
    CopyIn(aTmp.DIm(),mVec.DIm());
    AddIn(aMoy.DIm(),aTmp.DIm());
    aCov.Add_tAA(aTmp);
 }
-
 void cVecInvRad::PostStat(cDenseVect<tREAL8>& aMoy,cDenseMatrix<tREAL8> & aCov,double aPdsTot)
 {
     DivCsteIn(aMoy.DIm(),aPdsTot);
@@ -215,6 +216,7 @@ void cVecInvRad::PostStat(cDenseVect<tREAL8>& aMoy,cDenseMatrix<tREAL8> & aCov,d
     aCov.Sub_tAA(aMoy);
     aCov.SelfSymetrizeBottom();
 }
+*/
 
 
 /*

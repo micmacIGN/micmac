@@ -1048,7 +1048,6 @@ int Tapioca_main(int argc,char ** argv)
     cTplValGesInit<std::string>  aTplFCND;
     anICNM = cInterfChantierNameManipulateur::StdAlloc(argc,argv,aDir,aTplFCND);
 
-
     MakeXmlXifInfo(aFullDir,anICNM);
 
     }

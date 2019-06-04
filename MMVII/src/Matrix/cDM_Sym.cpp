@@ -12,9 +12,26 @@ namespace MMVII
 /*      cDenseMatrix<Type>                       */
 /* ============================================= */
 
+template <class Type> double cDenseMatrix<Type>::Diagonalicity() const
+{
+   cMatrix<Type>::CheckSquare(*this);
+   int aNb = Sz().x();
+   double aRes = 0;
+   for (int aX=0 ; aX<aNb ; aX++)
+   {
+       for (int aY=0 ; aY<aNb ; aY++)
+       {
+            if (aX!=aY)
+               aRes += Square(GetElem(aX,aY));
+       }
+   }
+   return sqrt(aRes/std::max(1,aNb*aNb-aNb));
+}
+
+
 template <class Type> double cDenseMatrix<Type>::Symetricity() const
 {
-   cMatrix::CheckSquare(*this);
+   cMatrix<Type>::CheckSquare(*this);
    int aNb = Sz().x();
    double aRes = 0;
    for (int aX=0 ; aX<aNb ; aX++)
@@ -29,7 +46,7 @@ template <class Type> double cDenseMatrix<Type>::Symetricity() const
 
 template <class Type> double cDenseMatrix<Type>::AntiSymetricity() const
 {
-   cMatrix::CheckSquare(*this);
+   cMatrix<Type>::CheckSquare(*this);
    int aNb = Sz().x();
    double aRes = 0;
    for (int aX=0 ; aX<aNb ; aX++)
@@ -47,7 +64,7 @@ template <class Type> double cDenseMatrix<Type>::AntiSymetricity() const
 
 template <class Type> void cDenseMatrix<Type>::SelfSymetrize()
 {
-   cMatrix::CheckSquare(*this);
+   cMatrix<Type>::CheckSquare(*this);
    int aNb = Sz().x();
    for (int aX=0 ; aX<aNb ; aX++)
    {
@@ -62,7 +79,7 @@ template <class Type> void cDenseMatrix<Type>::SelfSymetrize()
 
 template <class Type> void cDenseMatrix<Type>::SelfSymetrizeBottom()
 {
-   cMatrix::CheckSquare(*this);
+   cMatrix<Type>::CheckSquare(*this);
    int aNb = Sz().x();
    for (int aX=0 ; aX<aNb ; aX++)
    {
@@ -78,7 +95,7 @@ template <class Type> void cDenseMatrix<Type>::SelfSymetrizeBottom()
 
 template <class Type> void cDenseMatrix<Type>::SelfAntiSymetrize()
 {
-   cMatrix::CheckSquare(*this);
+   cMatrix<Type>::CheckSquare(*this);
    int aNb = Sz().x();
    for (int aX=0 ; aX<aNb ; aX++)
    {
@@ -117,7 +134,7 @@ template <class Type>  void cDenseMatrix<Type>::TransposeIn(tDM & aM2) const
 
 template <class Type>  void cDenseMatrix<Type>::SelfTransposeIn()
 {
-    cMatrix::CheckSquare(*this);
+    cMatrix<Type>::CheckSquare(*this);
     for (int aX=0 ; aX<Sz().x() ; aX++)
     {
         for (int aY=aX+1 ; aY<Sz().x() ; aY++)

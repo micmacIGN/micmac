@@ -26,6 +26,25 @@ template <class Type> bool ValidFloatValue(const Type & aV)
 double RandUnif_0_1();
 /// Uniform disrtibution in [0,N[ 
 double RandUnif_N(int aN);
+
+class cFctrRR
+{  
+   public :
+      virtual  double F (double) const;
+      static cFctrRR  TheOne;
+};
+/// Random permutation , Higer Bias => Higer average rank
+std::vector<int> RandPerm(int aN,cFctrRR & aBias =cFctrRR::TheOne);
+/// Random subset K among  N  !! Higher bias => lower proba of selection
+std::vector<int> RandSet(int aK,int aN,cFctrRR & aBias =cFctrRR::TheOne);
+///  Random modification of K Value in a set of N elem
+std::vector<int> RandNeighSet(int aK,int aN,const std::vector<int> & aSet);
+/// Complement of aSet in [0,1...., N[    ;  ]]
+std::vector<int> ComplemSet(int aN,const std::vector<int> & aSet);
+
+
+
+
 /// Eventualy free memory allocated for random generation
 void FreeRandom();
 
@@ -329,6 +348,9 @@ template <class Type> void OrderMinMax(Type & aV1,Type & aV2)
    if (aV1>aV2)
       std::swap(aV1,aV2);
 }
+
+// 4 now use sort, will enhance with boost or home made
+template <class Type> Type Mediane(std::vector<Type> & aV);
 
 };
 

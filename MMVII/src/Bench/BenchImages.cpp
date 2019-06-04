@@ -37,16 +37,25 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
        }
     }
     {
+       cRectObj<2> aRect(aP0,aP1);
        cIm2D<Type> aPIm(aP0,aP1);
+       aPIm.DIm().Resize(aP0,aP1);
+       aPIm.DIm().Resize(aP0-cPt2di(1,3),aP1+cPt2di(1,10));
+       aPIm.DIm().Resize(aP0,aP1);
+
        cDataIm2D<Type>  & aIm = aPIm.DIm();
        aIm.InitRandom();
        aIm.InitNull();
-       for (const auto & aP : aIm)
+       for (const auto & aP : aRect)
        {
            MMVII_INTERNAL_ASSERT_bench(aIm.GetV(aP)==0,"Bench image error");
        }
     }
-    cIm2D<Type> aPIm(aP0,aP1);
+    cPt2di aP0Pert = cPt2di(RandUnif_N(3), RandUnif_N(3));
+    cPt2di aP1Pert = aP0Pert + cPt2di(1+RandUnif_N(3),1+RandUnif_N(3));
+    cIm2D<Type> aPIm(aP0Pert,aP1Pert);
+    aPIm.DIm().Resize(aP0,aP1);
+
     cDataIm2D<Type>  & aIm = aPIm.DIm();
 
     // Check the rectangle (number of point ....)
@@ -278,7 +287,16 @@ void BenchFileImage()
 static double FoncTestIm(const double & aP)  {return aP + 1/(1+aP*aP);}
 void TestInitIm1D(int aX0, int aX1)
 {
-  cIm1D<double> aI(aX0,aX1);
+  static int aCpt=0; aCpt++;
+  cIm1D<double> aI(aX0+1,aX1-1);
+  aI.DIm().Resize(aX0,aX1);
+  if (aCpt%2)
+  {
+     aI.DIm().Resize(aX0-10,aX1+10);
+     aI.DIm().Resize(aX0,aX1);
+  }
+  // cIm1D<double> aI(aX0,aX1);
+
   cDataIm1D<double> & aDI = aI.DIm();
   for (int aX=aX0 ; aX<aX1 ; aX++)
   {

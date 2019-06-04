@@ -9,18 +9,38 @@ namespace MMVII
 /* ========================== */
 
 
+
 template <class Type>  cDataIm2D<Type>::cDataIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * aRawDataLin,eModeInitImage aModeInit) : 
-    cDataTypedIm<Type,2> (aP0,aP1,aRawDataLin,aModeInit)
+    cDataTypedIm<Type,2> (aP0,aP1,aRawDataLin,aModeInit),
+    mSzYMax (cRectObj<2>::Sz().y())
 {
-    mRawData2D = cMemManager::Alloc<tVal*>(cRectObj<2>::Sz().y()) -Y0();
+    mRawData2D = cMemManager::Alloc<tVal*>(mSzYMax) -Y0();
+    PostInit();
+}
+
+template <class Type> void  cDataIm2D<Type>::PostInit()
+{
     for (int aY=Y0() ; aY<Y1() ; aY++)
         mRawData2D[aY] = tBI::mRawDataLin + (aY-Y0()) * SzX() - X0();
 }
+
+
+template <class T> void  cDataIm2D<T>::Resize(const cPt2di& aP0,const cPt2di & aP1,eModeInitImage aMode) 
+{
+    int aPrevY0 = Y0();
+    cDataTypedIm<T,2>::Resize(aP0,aP1,aMode);
+    cMemManager::Resize(mRawData2D,aPrevY0,mSzYMax,Y0(),Sz().y());
+    PostInit();
+}
+
+
 
 template <class Type>  cDataIm2D<Type>::~cDataIm2D()
 {
    cMemManager::Free(mRawData2D+Y0());
 }
+
+// template <class Type>  cDataIm2D<Type>::
 
 template <class Type> int     cDataIm2D<Type>::VI_GetV(const cPt2di& aP)  const
 {

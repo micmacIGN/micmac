@@ -8,6 +8,10 @@ namespace MMVII
 /*          cDataIm2D         */
 /* ========================== */
 
+template <class Type>  void cDataIm1D<Type>::PostInit()
+{
+    mRawData1D = tBI::mRawDataLin - X0();
+}
 
 template <class Type>  cDataIm1D<Type>::cDataIm1D
                        (
@@ -18,7 +22,13 @@ template <class Type>  cDataIm1D<Type>::cDataIm1D
                        ) : 
     cDataTypedIm<Type,1> (aP0,aP1,aRawDataLin,aModeInit)
 {
-    mRawData1D = tBI::mRawDataLin - X0();
+    PostInit();
+}
+
+template <class Type>  void cDataIm1D<Type>::Resize ( const cPt1di & aP0, const cPt1di & aP1, eModeInitImage aModeInit)  
+{
+   cDataTypedIm<Type,1>::Resize(aP0,aP1,aModeInit);
+   PostInit();
 }
 
 template <class Type>  cDataIm1D<Type>::~cDataIm1D()

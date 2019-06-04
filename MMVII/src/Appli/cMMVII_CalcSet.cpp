@@ -501,7 +501,6 @@ void OneBenchEditRel
     tNameRel aRelInOut =  RelNameFromFile (aNameFullFime);
     std::vector<const tNamePair *> aVP;
     aRelInOut.PutInVect(aVP,true);
-    // std::cout << "TH= " << aCardTh << " Got=" << aVP.size() << "\n";
     
     if (aCardTh>=0)
     {
@@ -511,7 +510,6 @@ void OneBenchEditRel
              "OneBenchEditRel, bad card assertion"
         );
     }
-
 }
 
 void BenchEditRel ()

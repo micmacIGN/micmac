@@ -85,8 +85,14 @@ template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,co
     }
 }
 
+
 template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1) :
    cRectObj<Dim>(aP0,aP1,false)
+{
+}
+
+template <const int Dim>   cRectObj<Dim>::cRectObj(const cRectObj<Dim> & aR) :
+   cRectObj<Dim>(aR.mP0,aR.mP1,true)
 {
 }
 
@@ -187,10 +193,30 @@ template <class Type,const int Dim>
     cDataTypedIm<Type,Dim>::cDataTypedIm(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,Type *aRawDataLin,eModeInitImage aModeInit) :
         cDataGenUnTypedIm<Dim>(aP0,aP1),
         mDoAlloc (aRawDataLin==0),
-        mRawDataLin (mDoAlloc ? cMemManager::Alloc<Type>(NbElem())  : aRawDataLin)
+        mRawDataLin (mDoAlloc ? cMemManager::Alloc<Type>(NbElem())  : aRawDataLin),
+        mNbElemMax  (NbElem())
 {
    Init(aModeInit);
 }
+
+template <class Type,const int Dim>
+    void cDataTypedIm<Type,Dim>::Resize(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,eModeInitImage aModeInit) 
+{
+    //  WARNING : this work because cDataGenUnTypedIm only calls cRectObj
+    //     DO NOT WORK all stuff like :  this->cDataGenUnTypedIm<Dim>::cDataGenUnTypedIm(aP0,aP1);
+    // static_cast<cRectObj<Dim>&>(*this) = cRectObj<Dim>(aP0,aP1);
+
+    // this-> cRectObj<Dim>::cRectObj(aP0,aP1);
+
+    new (static_cast<cRectObj<Dim>*>(this)) cRectObj<Dim>(aP0,aP1);
+
+    if (cMemManager::Resize(mRawDataLin,0,mNbElemMax,0,NbElem()))
+    {
+        mDoAlloc = true;
+    }
+    Init(aModeInit);
+}
+
 
 
 template <class Type,const int Dim> 
