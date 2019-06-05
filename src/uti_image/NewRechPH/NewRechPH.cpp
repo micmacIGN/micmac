@@ -973,7 +973,7 @@ void cAimeApprentissage::DoOneRef()
                                  + " NC= "
                                  + " DSI=" + mAbsDir;
                aLCom.push_back(aCom);
-               // std::cout << "   NAMME= " << aName << "\n";
+               //std::cout << "   COM= " << aCom << "\n";
             }
         }
 

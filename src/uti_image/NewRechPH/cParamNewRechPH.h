@@ -32,6 +32,7 @@ typedef enum
   eTVIR_ACR0,
   eTVIR_ACGT,
   eTVIR_ACGR,
+  eTVIR_LogPol,
   eTVIR_NoLabel
 } eTypeVecInvarR;
 void xml_init(eTypeVecInvarR & aVal,cElXMLTree * aTree);

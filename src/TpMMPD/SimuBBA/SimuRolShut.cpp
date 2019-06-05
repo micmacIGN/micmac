@@ -206,11 +206,12 @@ cSetOfMesureAppuisFlottants_Cam::cSetOfMesureAppuisFlottants_Cam(const std::stri
     std::list<cMesureAppuiFlottant1Im> & aLMAF = mDico.MesureAppuiFlottant1Im();
     for(auto &aMAF : aLMAF)
     {
-        const std::string aNameIm = aMAF.NameIm();
+        const std::string & aNameIm = aMAF.NameIm();
+        std::cout << aNameIm << endl;
         std::list<cOneMesureAF1I> & aLMes = aMAF.OneMesureAF1I();
         for(auto & aMes:aLMes)
         {
-            const std::string aNamePt = aMes.NamePt();
+            const std::string & aNamePt = aMes.NamePt();
             Pt2dr aPtIm = aMes.PtIm();
             auto search = mVPtIm.find(aNamePt);
             cIm_CamXifDate aIm_XifDate = m_Appli.mVIm.at(aNameIm);

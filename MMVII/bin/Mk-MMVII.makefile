@@ -63,6 +63,11 @@ SrcMatrix=$(wildcard ${MMV2DirMatrix}*.cpp)
 ObjMatrix=$(SrcMatrix:.cpp=.o) 
 #
 #
+MMV2DirDIB=${MMV2DirSrc}DescIndexBinaire/
+SrcDIB=$(wildcard ${MMV2DirDIB}*.cpp)
+ObjDIB=$(SrcDIB:.cpp=.o) 
+#
+#
 MMV2DirPerso=${MMV2DirSrc}Perso/
 SrcPerso=$(wildcard ${MMV2DirPerso}*.cpp)
 ObjPerso=$(SrcPerso:.cpp=.o) 
@@ -72,7 +77,7 @@ ObjPerso=$(SrcPerso:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjMatrix} ${ObjRamImages} ${ObjTLE} ${ObjMkf} ${ObjBench} ${ObjAppli} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} 
+OBJ= ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB} ${ObjRamImages} ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} 
 #
 #=========  Header ========
 #
@@ -122,6 +127,8 @@ ${MMV2DirSerial}%.o :  ${MMV2DirSerial}%.cpp ${HEADER}
 ${MMV2DirRamImages}%.o :  ${MMV2DirRamImages}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirMatrix}%.o :  ${MMV2DirMatrix}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirDIB}%.o :  ${MMV2DirDIB}%.cpp   ${HEADER} ${MMV2DirDIB}*.h
 	${CXX} -c  $< ${CFlags} -o $@
 #
 #       ===== TEST ========================================

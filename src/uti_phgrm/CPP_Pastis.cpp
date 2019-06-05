@@ -672,6 +672,8 @@ std::list<cCple>  cAppliPastis::FiltrageRot(std::list<cCple>  aLC,double aSeuil)
 
 void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
 {
+
+
    if (ByMKf() && (!mOnlyXML))
    {
       std::string aCom = ComForRelance() + " OnlyXML=1";
@@ -817,6 +819,16 @@ void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
 }
 
 
+void AdaptSzXif(Pt2di & aSz,const std::string & aFileName)
+{
+    cMetaDataPhoto aMtD  = cMetaDataPhoto::CreateExiv2(aFileName);
+
+    const Pt2di aSzXif = aMtD.XifSzIm(true);
+    if  (aSzXif.x >0)
+    {
+       aSz = Inf(aSz,aSzXif);
+    }
+}
 
 
 void cAppliPastis::Exec()
@@ -831,6 +843,16 @@ void cAppliPastis::Exec()
 
     mSzIm1 = Tiff_Im::StdConvGen(filename1,1,false).sz();
     mSzIm2 = Tiff_Im::StdConvGen(filename2,1,false).sz();
+    AdaptSzXif(mSzIm1,filename1);
+    AdaptSzXif(mSzIm2,filename2);
+/*
+if (MPD_MM())
+{
+    // cMetaDataPhoto aMtD1  = cMetaDataPhoto::CreateExiv2(const std::string &);
+    std::cout << "zzzHHhhhhhhhhhhhhhhhhhhhhh " << mSzIm1   << " " << CurF1() << "  " << mSzIm2 << "\n";
+    getchar();
+}
+*/
 
     ExecSz(mSzPastis,false);
 }

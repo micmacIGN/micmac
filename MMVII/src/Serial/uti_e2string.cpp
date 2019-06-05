@@ -64,6 +64,30 @@ template <class TypeEnum> class cE2Str
          return aRes;
      }
 
+     static std::vector<TypeEnum> VecOfPat(const std::string & aPat,bool AcceptEmpy)
+     {
+          std::vector<TypeEnum> aRes;
+          tNameSelector  aSel =  BoostAllocRegex(aPat);
+          for (const auto & it : mE2S)
+          {
+              if (aSel.Match(it.second))
+              {
+                 aRes.push_back(it.first);
+              }
+          }
+          if ((!AcceptEmpy) && aRes.empty())
+          {
+             MMVII_UsersErrror
+             (
+                eTyUEr::eEmptyPattern,
+                "No value for enum, allowed are :"+StrAllVall<eTyInvRad>()
+             );
+
+          }
+
+          return aRes;
+     }
+
    private :
      typedef std::map<TypeEnum,std::string> tMapE2Str;
      typedef std::map<std::string,TypeEnum> tMapStr2E;
@@ -87,9 +111,11 @@ template <> const TypeEnum & Str2E<TypeEnum>(const std::string & aName)\
 template <> std::string   StrAllVall<TypeEnum>()\
 {\
    return cE2Str<TypeEnum>::StrAllVal();\
-}
-
-
+}\
+template <> std::vector<TypeEnum> SubOfPat<TypeEnum>(const std::string & aPat,bool AcceptEmpty)\
+{\
+   return cE2Str<TypeEnum>::VecOfPat(aPat,AcceptEmpty);\
+}\
 
 
 // This part must be redefined for each
@@ -145,6 +171,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
            {
                 {eTyUEr::eCreateDir,"MkDir"},
                 {eTyUEr::eRemoveFile,"RmFile"},
+                {eTyUEr::eEmptyPattern,"EmptyPattern"},
                 {eTyUEr::eBadFileSetName,"FileSetN"},
                 {eTyUEr::eBadFileRelName,"FileRelN"},
                 {eTyUEr::eOpenFile,"OpenFile"},
@@ -159,10 +186,20 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eTooBig4NbDigit,"TooBig4NbDigit"},
                 {eTyUEr::eNoModeInEditRel,"NoModeInEditRel"},
                 {eTyUEr::eMultiModeInEditRel,"MultiModeInEditRel"},
-                {eTyUEr::e2PatInModeLineEditRel,"2PatInModeLineEditRel"}
+                {eTyUEr::e2PatInModeLineEditRel,"2PatInModeLineEditRel"},
+                {eTyUEr::eParseError,"ParseError"},
+                {eTyUEr::eUnClassedError,"UnClassedError"}
            };
 TPL_ENUM_2_STRING(eTyUEr);
 
+template<> cE2Str<eTyInvRad>::tMapE2Str cE2Str<eTyInvRad>::mE2S
+           {
+                {eTyInvRad::eTVIR_ACGR,"eTVIR_ACGR"},
+                {eTyInvRad::eTVIR_ACGT,"eTVIR_ACGT"},
+                {eTyInvRad::eTVIR_ACR0,"eTVIR_ACR0"},
+                {eTyInvRad::eTVIR_Curve,"eTVIR_Curve"}
+           };
+TPL_ENUM_2_STRING(eTyInvRad);
 
 
 
@@ -190,6 +227,7 @@ void BenchEnum()
     TplBenchEnum<eTA2007>();
     TplBenchEnum<eTyUEr>();
     TplBenchEnum<eTyNums>();
+    TplBenchEnum<eTyInvRad>();
 }
 
 

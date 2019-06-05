@@ -37,16 +37,25 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
        }
     }
     {
+       cRectObj<2> aRect(aP0,aP1);
        cIm2D<Type> aPIm(aP0,aP1);
+       aPIm.DIm().Resize(aP0,aP1);
+       aPIm.DIm().Resize(aP0-cPt2di(1,3),aP1+cPt2di(1,10));
+       aPIm.DIm().Resize(aP0,aP1);
+
        cDataIm2D<Type>  & aIm = aPIm.DIm();
        aIm.InitRandom();
        aIm.InitNull();
-       for (const auto & aP : aIm)
+       for (const auto & aP : aRect)
        {
            MMVII_INTERNAL_ASSERT_bench(aIm.GetV(aP)==0,"Bench image error");
        }
     }
-    cIm2D<Type> aPIm(aP0,aP1);
+    cPt2di aP0Pert = cPt2di(RandUnif_N(3), RandUnif_N(3));
+    cPt2di aP1Pert = aP0Pert + cPt2di(1+RandUnif_N(3),1+RandUnif_N(3));
+    cIm2D<Type> aPIm(aP0Pert,aP1Pert);
+    aPIm.DIm().Resize(aP0,aP1);
+
     cDataIm2D<Type>  & aIm = aPIm.DIm();
 
     // Check the rectangle (number of point ....)
@@ -73,7 +82,6 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
     MMVII_INTERNAL_ASSERT_bench(aNb==(aP1.x()-aP0.x())*(aP1.y()-aP0.y()),"Bench image error");
     MMVII_INTERNAL_ASSERT_bench(aSomX==SomIntI(aP0.x(),aP1.x()),"Bench image error");
     MMVII_INTERNAL_ASSERT_bench(aSomY==(SomIntI(aP0.y(),aP1.y())*aNbX),"Bench image error");
-    // std::cout << aSomY << " " << SomIntI(aP0.y(),aP1.y())*aNbX << "\n";
 
     double aDif0 = 0.0; // Som of dif on raw function
     double aDifTr = 0.0; // Som on truncated function
@@ -123,8 +131,6 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
 
 template <class Type> void TestOneImage2D()
 {
-
-
    TestOneImage2D<Type>(cPt2di(2,3),cPt2di(8,5));
    TestOneImage2D<Type>(cPt2di(5,3),cPt2di(8,5));
 
@@ -261,42 +267,10 @@ template <class TypeImage,class tBase,class TypeFile>  void TplBenchFileImage(co
          }
         
     }
-/*
-    for (int aK=0 ; aK<3 ; aK++)
-    {
-         double aDyn = (1/ aDyn0) * 2.0 * RandUnif_0_1();
-         cRect2 aR = aFileIm.GenerateRectInside(3.0);
-         cPt2di aP0 = aR.P0();
-
-         cIm2D<TypeImage> aIW(aR.P0(),aR.P1());
-         for (const auto & aP : aIW.Im())
-         {
-            aDImDup.SetVTrunc(aP+aP0,aDyn*aIW.Im().GetV(aP));
-         }
-         aIW.Write(aFileIm,aP0,aDyn);
-        
-    }
-*/
-
-
-    std::cout << "Tiiiiiiiiiffff " << aNameTiff << "\n";
-    // getchar();
-/*
-    GenIm::type_el aTypeF1 = ToMMV1(aTypeF2);
-    Tiff_Im aTif(aNameTiff.c_str(),ToMMV1(aSz),aTypeF1,Tiff_Im::No_Compr,Tiff_Im::BlackIsZero);
-
-*/
-/*
-
-     cIm2D<TypeFile> aImV2(cPt2di(0,0),aSz);
-     aImV2.Read(cDataFileIm2D::Create(aNameTiff),cPt2di(0,0));
-*/
-    // Im2D<TypeImage,tBase > aImV1(aSz.x(),aSz.y());
 }
 
 template <class TypeFile,class TypeImage>  void TplBenchFileImage()
 {
-    // TplBenchFileImage<tU_INT1,tINT4,tREAL4>(cPt2di(500,1000));
     TplBenchFileImage<tU_INT1,tINT4,tINT4>(cPt2di(1000,500),100.0);
     TplBenchFileImage<tINT4,tINT4,tINT2>(cPt2di(1000,500),1e-2);
 }
@@ -313,7 +287,16 @@ void BenchFileImage()
 static double FoncTestIm(const double & aP)  {return aP + 1/(1+aP*aP);}
 void TestInitIm1D(int aX0, int aX1)
 {
-  cIm1D<double> aI(aX0,aX1);
+  static int aCpt=0; aCpt++;
+  cIm1D<double> aI(aX0+1,aX1-1);
+  aI.DIm().Resize(aX0,aX1);
+  if (aCpt%2)
+  {
+     aI.DIm().Resize(aX0-10,aX1+10);
+     aI.DIm().Resize(aX0,aX1);
+  }
+  // cIm1D<double> aI(aX0,aX1);
+
   cDataIm1D<double> & aDI = aI.DIm();
   for (int aX=aX0 ; aX<aX1 ; aX++)
   {
@@ -363,10 +346,6 @@ void BenchGlobImage()
     if (1)
     {
         aI.DIm().SetV(cPt2di(0,0),1);
-        // Test the validity test on values
-        // aI.DIm().SetV(cPt2di(0,0),acos(2.0));
-        // std::cout << "Innnf " << 1.0/0.0 << "\n";
-        // aI.DIm().SetV(cPt2di(0,0),1.0/0.0);
     }
  
     BenchIm1D();

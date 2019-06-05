@@ -12,9 +12,26 @@ namespace MMVII
 /*      cDenseMatrix<Type>                       */
 /* ============================================= */
 
+template <class Type> double cDenseMatrix<Type>::Diagonalicity() const
+{
+   cMatrix<Type>::CheckSquare(*this);
+   int aNb = Sz().x();
+   double aRes = 0;
+   for (int aX=0 ; aX<aNb ; aX++)
+   {
+       for (int aY=0 ; aY<aNb ; aY++)
+       {
+            if (aX!=aY)
+               aRes += Square(GetElem(aX,aY));
+       }
+   }
+   return sqrt(aRes/std::max(1,aNb*aNb-aNb));
+}
+
+
 template <class Type> double cDenseMatrix<Type>::Symetricity() const
 {
-   cMatrix::CheckSquare(*this);
+   cMatrix<Type>::CheckSquare(*this);
    int aNb = Sz().x();
    double aRes = 0;
    for (int aX=0 ; aX<aNb ; aX++)
@@ -29,7 +46,7 @@ template <class Type> double cDenseMatrix<Type>::Symetricity() const
 
 template <class Type> double cDenseMatrix<Type>::AntiSymetricity() const
 {
-   cMatrix::CheckSquare(*this);
+   cMatrix<Type>::CheckSquare(*this);
    int aNb = Sz().x();
    double aRes = 0;
    for (int aX=0 ; aX<aNb ; aX++)
@@ -47,7 +64,7 @@ template <class Type> double cDenseMatrix<Type>::AntiSymetricity() const
 
 template <class Type> void cDenseMatrix<Type>::SelfSymetrize()
 {
-   cMatrix::CheckSquare(*this);
+   cMatrix<Type>::CheckSquare(*this);
    int aNb = Sz().x();
    for (int aX=0 ; aX<aNb ; aX++)
    {
@@ -59,9 +76,26 @@ template <class Type> void cDenseMatrix<Type>::SelfSymetrize()
        }
    }
 }
+
+template <class Type> void cDenseMatrix<Type>::SelfSymetrizeBottom()
+{
+   cMatrix<Type>::CheckSquare(*this);
+   int aNb = Sz().x();
+   for (int aX=0 ; aX<aNb ; aX++)
+   {
+       for (int aY=aX+1 ; aY<aNb ; aY++)
+       {
+            SetElem(aX,aY,GetElem(aY,aX));
+       }
+   }
+}
+
+
+
+
 template <class Type> void cDenseMatrix<Type>::SelfAntiSymetrize()
 {
-   cMatrix::CheckSquare(*this);
+   cMatrix<Type>::CheckSquare(*this);
    int aNb = Sz().x();
    for (int aX=0 ; aX<aNb ; aX++)
    {
@@ -100,7 +134,7 @@ template <class Type>  void cDenseMatrix<Type>::TransposeIn(tDM & aM2) const
 
 template <class Type>  void cDenseMatrix<Type>::SelfTransposeIn()
 {
-    cMatrix::CheckSquare(*this);
+    cMatrix<Type>::CheckSquare(*this);
     for (int aX=0 ; aX<Sz().x() ; aX++)
     {
         for (int aY=aX+1 ; aY<Sz().x() ; aY++)
@@ -119,6 +153,36 @@ template <class Type>  cDenseMatrix<Type> cDenseMatrix<Type>::Transpose() const
    TransposeIn(aRes);
    return aRes;
 }
+
+     // ========= Triangular =============
+
+template <class Type>  void cDenseMatrix<Type>::SelfTriangSup()
+{
+     for (const auto & aP : *this)
+     {
+         if (aP.x() < aP.y())
+         {
+            SetElem(aP.x(),aP.y(),0.0);
+         }
+     }
+}
+
+template <class Type>  double cDenseMatrix<Type>::TriangSupicity() const   ///< How close to triangular sup
+{
+     double aNb=0;
+     double aSom =0.0;
+     for (const auto & aP : *this)
+     {
+         if (aP.x() < aP.y())
+         {
+            aNb++;
+            aSom += Square(GetElem(aP.x(),aP.y()));
+         }
+     }
+     aSom /= std::max(1.0,aNb);
+     return std::sqrt(aSom);
+}
+
 
 
 /* ===================================================== */

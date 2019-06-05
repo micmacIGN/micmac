@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamNewRechPH[284] = {
+const char * theNameVar_ParamNewRechPH[285] = {
 "\n",
 "<GenCpp  Difndef=\"Define_NotRechNewPH\">\n",
 "\n",
@@ -42,6 +42,7 @@ const char * theNameVar_ParamNewRechPH[284] = {
 "         <eTVIR_ACR0>      </eTVIR_ACR0>  <!-- Auto correl radiom basiques -->\n",
 "         <eTVIR_ACGT>      </eTVIR_ACGT>  <!-- Auto correl gradient tangentiel-->\n",
 "         <eTVIR_ACGR>      </eTVIR_ACGR>  <!-- Auto correl gradient radial-->\n",
+"         <eTVIR_LogPol>      </eTVIR_LogPol>  <!-- NOT an invariant, BUT usefull for exporting -->\n",
 "         <eTVIR_NoLabel>   </eTVIR_NoLabel>  <!-- Auto correl gradient radial-->\n",
 "   </enum>\n",
 "\n",

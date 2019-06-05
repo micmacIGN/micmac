@@ -832,7 +832,6 @@ void cElNuage3DMaille::NuageXZGCOL(const std::string & aName,bool B64)
 {
    AssertNoEmptyData();
    std::string aNameXYZ = aName+"_XYZ.tif";
-
    L_Arg_Opt_Tiff aL;
    aL = aL+Arg_Tiff(Tiff_Im::ANoStrip());
 

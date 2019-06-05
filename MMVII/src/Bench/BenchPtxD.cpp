@@ -42,9 +42,6 @@ void  Bench_0000_Ptxd()
     MMVII_INTERNAL_ASSERT_bench(cPt2dr(1,1) != cPt2dr(1,2),"Bench_0000_Ptxd");
     MMVII_INTERNAL_ASSERT_bench(cPt2dr(1,1) != cPt2dr(2,1),"Bench_0000_Ptxd");
 
-    std::cout << cPt1dr(3) << "\n";
-
-
     cRect2 aR(cPt2di(10,20),cPt2di(50,40));
     MMVII_INTERNAL_ASSERT_bench(aR.Proj(cPt2di(11,22)) == cPt2di(11,22),"Bench_0000_Ptxd");
     MMVII_INTERNAL_ASSERT_bench(aR.Proj(cPt2di(1,2)) == cPt2di(10,20),"Bench_0000_Ptxd");

@@ -258,13 +258,20 @@ void AddRand(cSetRefPCarac & aSRef,const std::vector<cOnePCarac*> aVP, int aNb)
 
 Im2D_INT1   ImOfCarac(const cOnePCarac & aPC,eTypeVecInvarR aType)
 {
+    // std::cout << "ImOfCarac " << aPC.ProfR().ImProfil().sz() << "\n";
     switch(aType)
     {
-        case eTVIR_Curve : return aPC.ProfR().ImProfil();
+        // case eTVIR_Curve : return aPC.ProfR().ImProfil();
+        case eTVIR_Curve : return aPC.InvR().ImRad();
         case eTVIR_ACR0  : return aPC.RIAC().IR0();
         case eTVIR_ACGT  : return aPC.RIAC().IGT();
         case eTVIR_ACGR  : return aPC.RIAC().IGR();
-
+        case eTVIR_LogPol : 
+        {
+             Im2D_INT1  aILP =  aPC.ImLogPol();
+             // Im2D_INT1 aRes(aILP.sz().x,aILP.sz.y);
+             return aILP;
+        }
         default: ;
     }
     ELISE_ASSERT(false,"ImOfCarac");
@@ -461,6 +468,7 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
                         if (aNbSample != 0)
                         {
                             Im2D_INT1 aI0 = ImOfCarac(aVT.at(0).P1(),aLabTVI);
+std::cout << "SZZZZ " << aI0.sz() << "\n";
                             Pt2di aSz0 = aI0.sz();
                             Pt2di aSzGlob (aSz0.x,aSz0.y*aNbSample);
                             Im2D_U_INT1 aImGlob(2*aSzGlob.x,aSzGlob.y);
