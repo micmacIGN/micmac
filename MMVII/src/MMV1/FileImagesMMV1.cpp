@@ -119,8 +119,6 @@ template <class Type> void cMMV1_Conv<Type>::ReadWrite
 
    Tiff_Im aTF=Tiff_Im::StdConvGen(aDF.Name(),-1,true);
 
-// std::cout << "GGGGGG " << aP0Im << " " << aP1Im << " " << aTrans << "\n";
-
    if (ReadMode)
    {
       ELISE_COPY

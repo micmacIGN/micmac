@@ -61,7 +61,8 @@ template <const int Dim>  class cRectObj
         typedef cRectObjIterator<Dim> iterator; ///< For auto ...
         static const cRectObj Empty00;
 
-        cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1);
+        cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1); ///< Required as iterators do not copy well becaus of ptr
+        cRectObj(const cRectObj<Dim> &) ;
 
 
         const cPtxd<int,Dim> & P0() const {return mP0;} ///< Origin of object
@@ -231,6 +232,7 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         double L2Norm() const;   ///< Norm square
         double LInfNorm() const; ///< Nomr max
     protected :
+        void Resize(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,eModeInitImage=eModeInitImage::eMIA_NoInit);
 
         ///< Test 4 writing
         void AssertValueOk(const tBase & aV) const
@@ -241,6 +243,7 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
 
         bool   mDoAlloc;  ///< was data allocated by the image (must know 4 free)
         Type *   mRawDataLin; ///< raw data containing pixel values
+        int      mNbElemMax;
 };
 
 
@@ -290,12 +293,15 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
     public :
         friend class cIm2D<Type>;
 
+
         typedef Type  tVal;
+        typedef tVal* tPVal;
         typedef cDataTypedIm<Type,2>   tBI;
         typedef cRectObj<2>               tRO;
         typedef typename tBI::tBase  tBase;
 
         //========= fundamental access to values ============
+
 
            /// Get Value, check access in non release mode
         const Type & GetV(const cPt2di & aP)  const
@@ -329,6 +335,9 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         void VI_SetV(const  cPt2di & aP,const int & aV)    override ; ///< call SetV
         void VD_SetV(const  cPt2di & aP,const double & aV) override ; ///< call SetV
 
+        // ==  raw pointer on origin of line
+        const Type * GetLine(int aY)  const;
+        Type * GetLine(int aY) ;
         //========= Access to sizes, only alias/facilities ============
 
         const cPt2di &  Sz()  const {return tRO::Sz();}  ///< Std Accessor
@@ -345,6 +354,8 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
 
         // const cPt2di &  Sz()  const {return cRectObj<2>::Sz();}
 
+        void Resize(const cPt2di& aP0,const cPt2di & aP1,eModeInitImage=eModeInitImage::eMIA_NoInit);
+        void Resize(const cPt2di& aSz,eModeInitImage=eModeInitImage::eMIA_NoInit);
 
 
         ///  Read file image 1 channel to 1 channel
@@ -354,6 +365,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         virtual ~cDataIm2D();  ///< will delete mRawData2D
     protected :
     private :
+        void PostInit();
         cDataIm2D(const cDataIm2D<Type> &) = delete;  ///< No copy constructor for big obj, will add a dup()
         cDataIm2D(const cPt2di & aP0,const cPt2di & aP1,
                  Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit); ///< Called by shared ptr (cIm2D)
@@ -364,7 +376,13 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         const Type & Value(const cPt2di & aP) const   {return mRawData2D[aP.y()][aP.x()];} /// Const Data Access
 
 
-        Type ** mRawData2D;  ///< Pointers on DataLin
+        void AssertYInside(int Y) const
+        {
+             MMVII_INTERNAL_ASSERT_tiny((Y>=Y0())&&(Y<Y1()),"Point out of image");
+        }
+
+        int     mSzYMax;
+        tPVal * mRawData2D;  ///< Pointers on DataLin
 };
 
 
@@ -457,10 +475,13 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         void VI_SetV(const  cPt1di & aP,const int & aV)    override ;
         void VD_SetV(const  cPt1di & aP,const double & aV) override ;
 
+        void Resize(const cPt1di& aP0,const cPt1di & aP1,eModeInitImage=eModeInitImage::eMIA_NoInit);
+        void Resize(int aSz,eModeInitImage=eModeInitImage::eMIA_NoInit);
         //========= Access to sizes, only alias/facilities ============
         virtual ~cDataIm1D();
     protected :
     private :
+        void PostInit();
         Type * RawData1D() {return mRawData1D;}  ///< Used by matrix/vector interface
 
         cDataIm1D(const cDataIm1D<Type> &) = delete;  ///< No copy constructor for big obj, will add a dup()

@@ -90,13 +90,20 @@ class cMemManager
         {
            return  static_cast<Type *> (cMemManager::Calloc(nmemb,sizeof(Type)));
         }
-        // Pour des raison inexpliquee Alloc<char *> ne semble pas fonctionner => contournement
-/*
-        template <class Type> static inline Type ** AllocP(size_t nmemb)
+
+        template <class Type> static bool Resize (Type *& aPtr,int aX0Prec,int & aSzMax,int aX0New,int aSzNew)
         {
-           return  static_cast<Type **> (cMemManager::Calloc(nmemb,sizeof(Type *)));
+           if (aSzNew > aSzMax)
+           {
+                Free(aPtr+aX0Prec); 
+                aPtr = Alloc<Type> (aSzNew)-aX0New;
+                aSzMax = aSzNew;
+                return true;
+           }
+           else
+               aPtr = aPtr + aX0Prec-aX0New;
+           return false;
         }
-*/
     private :
 
         static cMemState mState;

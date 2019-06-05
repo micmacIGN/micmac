@@ -195,6 +195,14 @@ typedef cPtxd<double,3>  cPt3dr ;
 typedef cPtxd<int,3>     cPt3di ;
 typedef cPtxd<float,3>   cPt3df ;
 
+template <class Type,int Dim,int aKth> bool  CmpCoord(const cPtxd<Type,Dim> & aP1,const cPtxd<Type,Dim> & aP2)
+{
+   static_assert((aKth>=0) && (aKth<Dim),"CmpCoord");
+   return aP1[aKth] < aP2[aKth];
+}
+
+
+
 
 };
 

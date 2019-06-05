@@ -1,3 +1,6 @@
+#ifndef _V1V2_H_
+#define _V1V2_H_
+
 #include "StdAfx.h"
 #include "include/MMVII_all.h"
 
@@ -13,3 +16,4 @@ eTyNums ToMMVII( GenIm::type_el );
 
 };
 
+#endif // _V1V2_H_

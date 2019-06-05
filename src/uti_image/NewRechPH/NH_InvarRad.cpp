@@ -137,7 +137,7 @@ class cRadInvStat
             mS2 += ElSquare(aVal);
             mS3 += ElSquare(aVal) * aVal;
          }
-         void Comp()
+         void CompStat()
          {
             mS1 /= mS0;
             mS2 /= mS0;
@@ -168,7 +168,7 @@ class cComputeProfRad
          {
          }
 
-         void Add(int aKPr,int aKTeta,const cRadInvStat & aRIS )
+         void AddCPR(int aKPr,int aKTeta,const cRadInvStat & aRIS )
          {
              mTImProf.add(Pt2di(aKTeta,aKPr),aRIS.mLast);
          }
@@ -438,21 +438,21 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt,bool aModeTest)
           double aVTm1 = aTBuf.get(Pt2di(aKRho,aKTetaMoins1));
 
           aRadiom.Add(aVal);
-          aProfR.Add(0,aKTeta,aRadiom);
+          aProfR.AddCPR(0,aKTeta,aRadiom);
 
           aGradTan.Add(ElAbs(aVal-aVTp1));
-          aProfR.Add(1,aKTeta,aGradTan);
+          aProfR.AddCPR(1,aKTeta,aGradTan);
 
           aGradTanPiS2.Add(ElAbs(aVal-aTBuf.get(Pt2di(aKRho,aKTetaPiS2))));
-          aProfR.Add(2,aKTeta,aGradTanPiS2);
+          aProfR.AddCPR(2,aKTeta,aGradTanPiS2);
 
           aGradTanPi.Add(ElAbs(aVal-aTBuf.get(Pt2di(aKRho,aKTetaPi)))); // Pas de profil, ambigu a Pi
           aLaplTan.Add(ElAbs(2*aVal-aVTp1-aVTm1));
-          aProfR.Add(3,aKTeta,aLaplTan);
+          aProfR.AddCPR(3,aKTeta,aLaplTan);
 
           aDiffOpposePi.Add  (ElAbs(aVal -aTBuf.get(Pt2di(aKROp,aKTetaPi)))); // Pas de profil, ambigu
           aDiffOpposePiS2.Add(ElAbs(aVal -aTBuf.get(Pt2di(aKROp,aKTetaPiS2))));
-          aProfR.Add(4,aKTeta,aDiffOpposePiS2);
+          aProfR.AddCPR(4,aKTeta,aDiffOpposePiS2);
 
           if (WithRD1)
           {
@@ -477,7 +477,7 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt,bool aModeTest)
          cRadInvStat & aRIS = aVRIS[aK];  // 0
          if (aRIS.mS0)
          {
-            aRIS.Comp();
+            aRIS.CompStat();
             aDataBR[aK][aKRho] = aRIS.mS1;
             aDataBR[aK+aNbGrand][aKRho] = aRIS.mS2;
             aDataBR[aK+2*aNbGrand][aKRho] = aRIS.mS3;
@@ -489,6 +489,8 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt,bool aModeTest)
    {
        NormalizeVect(aPt.InvR().ImRad(),aBufRad,aK);
    }
+
+   // std::cout << "IMRRRRR " << aPt.InvR().ImRad().sz() << "\n";
    
 
    // Sauvegarde
@@ -542,6 +544,8 @@ bool  cAppli_NewRechPH::CalvInvariantRot(cOnePCarac & aPt,bool aModeTest)
       ELISE_COPY(aPt.ImLogPol().all_pts(),El_CTypeTraits<INT1>::TronqueF(round_ni(aImBuf.in()*DynU1)),aPt.ImLogPol().out());
       aPt.VectRho() = aVRhoAbs;
       aPt.ProfR().ImProfil() = aProfR.Normalize();
+
+      // std::cout << "HHHHHHHiiii " << aPt.ProfR().ImProfil().sz() << "\n";
 
       if (mDoInvarIm)
       {

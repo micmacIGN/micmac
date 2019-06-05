@@ -112,7 +112,7 @@ void Bench_Duration_Daisy(double aT,const std::string & aStr)
     std::string aDS = cMMVII_Duration::FromSecond(aT).ToDaisyStr();
     if (aDS != aStr)
     {
-        std::cout << aT << " " << aDS << " " << aStr << "\n";
+        StdOut() << aT << " " << aDS << " " << aStr << "\n";
         MMVII_INTERNAL_ASSERT_bench(false,"Bench_Duration_Daisy");
     }
 }

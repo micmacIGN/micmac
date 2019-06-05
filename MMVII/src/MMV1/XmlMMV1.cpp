@@ -28,7 +28,7 @@ void TestTimeV1V2()
          double aDV1 = aChronoV1.uval();
          double aDV2 = aT2-aT1;
 
-         std::cout  << "Ratio " << aDV1 / aDV2  << " TimeV1: " << aDV1 << "\n";
+         StdOut()  << "Ratio " << aDV1 / aDV2  << " TimeV1: " << aDV1 << "\n";
     }
 }
 

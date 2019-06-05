@@ -121,8 +121,8 @@ class  cSpecOneArg2007 : public cMemCheck
         ///  Name + comment  + semantic
         cSpecOneArg2007(const std::string & aName,const std::string & aCom,const tVSem & = TheEmptySem);
 
-        ///  This action defined in heriting-template class initialize "real" the value from its string value 
-        virtual void InitParam(const std::string & aStr) = 0;
+        /// Memoize then call type specific V_InitParam
+        void InitParam(const std::string & aStr) ;
         virtual void * AdrParam() = 0;    ///< cast to void * of typed adress, used by Application know if init 
         virtual const std::string & NameType() const = 0;  ///< as int, bool, ....
         virtual std::string  NameValue() const = 0;  ///< Used to print def value
@@ -131,6 +131,7 @@ class  cSpecOneArg2007 : public cMemCheck
 
         const tVSem & VSem() const;         ///< Accessor
         const std::string  & Name() const;  ///< Accessor
+        const std::string  & Value() const;  ///< Accessor
         const std::string  & Com() const;   ///< Accessor
         int NbMatch () const;         ///< Accessor
         void IncrNbMatch() ;
@@ -138,7 +139,10 @@ class  cSpecOneArg2007 : public cMemCheck
         std::string  Name4Help() const;   ///< concat and format the different Name4Help of tVSem
 
      private :
+        ///  This action defined in heriting-template class initialize "real" the value from its string value 
+         virtual void V_InitParam(const std::string & aStr) = 0;
 
+         std::string     mValue;  ///< memorize Value used in init (command parameter)
          std::string     mName; ///< Name for optionnal
          std::string     mCom;  ///< Comment for all
          tVSem           mVSem;    ///< Vector of semantic

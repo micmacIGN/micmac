@@ -93,15 +93,18 @@ bool  RemovePatternFile(const  std::string & aPat,bool SVP); ///< Remove all fil
 bool CaseSBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case SENS-itive premisse of aStr ?
 void SkeepWhite(const char * & aC);
 char DirSeparator();
+bool IsDirectory(const std::string & aName);
+
 
 
 /// Create a selector associated to a regular expression, by convention return Cste-true selector if string=""
 tNameSelector  BoostAllocRegex(const std::string& aRegEx);
 
 /// Exract name of files located in the directory, by return value
-std::vector<std::string>  GetFilesFromDir(const std::string & aDir,const tNameSelector& );
+std::vector<std::string>  GetFilesFromDir(const std::string & aDir,const tNameSelector& ,bool OnlyRegular=true);
+std::vector<std::string>  GetSubDirFromDir(const std::string & aDir,const tNameSelector&);
 /// Exract name of files, by ref
-void GetFilesFromDir(std::vector<std::string>&,const std::string & aDir,const tNameSelector &);
+void GetFilesFromDir(std::vector<std::string>&,const std::string & aDir,const tNameSelector &,bool OnlyRegular=true);
 /// Recursively exract name of files located in the directory, by return value
 void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir, tNameSelector  aNS,int aLevMin, int aLevMax);
 /// Recursively exract name of files, by return value
@@ -181,6 +184,7 @@ class cMultipleOfs  : public  std::ostream
         void Add(std::ostream & aOfs) {mVOfs.push_back(&aOfs);}
         void Clear() {mVOfs.clear();}
 
+        // template <class Type> cMultipleOfs & operator << (Type & aVal);
         template <class Type> cMultipleOfs & operator << (const Type & aVal)
         {
              for (const auto & Ofs :  mVOfs)

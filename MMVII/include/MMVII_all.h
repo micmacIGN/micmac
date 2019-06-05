@@ -57,6 +57,7 @@
 
 #include "MMVII_Images.h"
 #include "MMVII_Matrix.h"
+#include "MMVII_SysSurR.h"
 
 // #include "MMVII_Tpl_Images.h"
 
