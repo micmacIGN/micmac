@@ -1215,14 +1215,23 @@ void cAppliMinim::DoCalc()
         Pt3dr aTr = ElSeg3D::L2InterFaisceaux(&aVPds, aVSeg, &aIsOK);
 
         std::cout << "Tr of the query image\n" << aTr << "\n"; 
-     
+    
+        std::cout << "Distance between the segments:" << "\n";
+        for (int aK=0; aK<int(aVSeg.size()); aK++)
+        {
+            std::cout << "+ " << aVSeg.at(aK).DistDoite(aTr) << "\n";
+        }
+ 
 
         //update \& save poses
         ElRotation3D aRes = ElRotation3D(aTr,aRMoy,true);
+
         CamStenope *aCQIm = mNM->CamOfName(mQIm);
-        aCQIm->SetOrientation (ElRotation3D(aRes.inv().tr(),aRes.Mat(),true));
+        aCQIm->SetOrientation (ElRotation3D(aRes.inv().tr(),aRes.inv().Mat(),true));
         cOrientationConique aOriQIm = aCQIm->StdExportCalibGlob();
 
+        aOriQIm.Externe().Centre() = aTr;
+        
         ELISE_fp::MkDirSvp(DirOfFile(mNM->NameOriOut(mQIm)));
         MakeFileXML(aOriQIm,mNM->NameOriOut(mQIm));
         std::cout << "Saved to: " << mNM->NameOriOut(mQIm) << "\n";
