@@ -1819,10 +1819,6 @@ void cElMatCreuseBlocSym::CalculCholesky()
                                          {
                                               cElWarning::EigenValueInCholeski.AddWarn("Choleski",__LINE__,__FILE__);
                                          }
-                                         else
-                                         {
-                                            getchar();
-                                         }
                                      }
                                }
                                First = false;

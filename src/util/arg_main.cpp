@@ -1070,7 +1070,7 @@ int cAppliBatch::System(const char * aFile,const std::string & aCom,bool aSVP)
         mGPAO.GetOrCreate(aFile,aCom);
         return 0;
     }
-    std::cout << aCom << "\n";
+    //std::cout << aCom << "\n";
 
     if (mModeExe== eExeDoNothing)
     {
@@ -1193,7 +1193,7 @@ void cAppliBatch::DoAll()
 
     if (mByNameFile)
     {
-        std::cout << "BY FILE \n";
+        //std::cout << "BY FILE \n";
         mCurF1 = mPatF1;
         if (mNbFile>=2)
             mCurF2 = mPatF2;
@@ -1203,7 +1203,7 @@ void cAppliBatch::DoAll()
 
     if (mFileByPat)
     {
-        std::cout << "BY PATTERN \n";
+        //std::cout << "BY PATTERN \n";
         if (mNbFile==2)
         {
             UseLFile(mListFile1ByPat);
@@ -1223,7 +1223,7 @@ void cAppliBatch::DoAll()
         return;
     }
 
-    std::cout << "BY DICO \n";
+    //std::cout << "BY DICO \n";
     if (mNbFile==1)
     {
         UseLFile(mICNM->StdGetListOfFile(mPatF1));
@@ -1312,12 +1312,12 @@ void cAppliBatch::DoOne()
     Exec();
     DoPurge();
 
-    if (! ByMKf())
-    {
-        std::cout << "\n";
-        std::cout << "       -----------------------------\n";
-        std::cout << "\n";
-    }
+//    if (! ByMKf())
+//    {
+//        std::cout << "\n";
+//        std::cout << "       -----------------------------\n";
+//        std::cout << "\n";
+//    }
 }
 
 cEl_GPAO &  cAppliBatch::GPAO ()
