@@ -49,12 +49,12 @@ void cAppli_Ortho::OrthoRedr()
 {
    DoIndexNadir();
 
-   if (mCO.BoucheTrou().IsInit())
-   {
-      const cBoucheTrou  & aBT = mCO.BoucheTrou().Val();
-      InitInvisibilite(aBT);
-      InitBoucheTrou(aBT);
-   }
+   //if (mCO.BoucheTrou().IsInit())
+   //{
+   //   const cBoucheTrou  & aBT = mCO.BoucheTrou().Val();
+   //   InitInvisibilite(aBT);
+   //   InitBoucheTrou(aBT);
+   //}
 
    MakeOrthoOfIndex();
    VisuLabel();
