@@ -36,6 +36,7 @@ int main(int argc, char ** argv)
                aRes = anAppli->Exe();
          }
          cMemManager::CheckRestoration(aMemoState);
+         MMVII_INTERNAL_ASSERT_always(cMemCheck::NbObjLive()==0,"Mem check obj not killed");
          return aRes;
       }
    }

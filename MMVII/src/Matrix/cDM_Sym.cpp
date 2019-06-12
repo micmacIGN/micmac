@@ -1,9 +1,6 @@
 #include "include/MMVII_all.h"
 
 
-#include "MMVII_EigenWrap.h"
-using namespace Eigen;
-
 namespace MMVII
 {
 
@@ -11,6 +8,16 @@ namespace MMVII
 /* ============================================= */
 /*      cDenseMatrix<Type>                       */
 /* ============================================= */
+
+
+template <class Type> double  cDenseMatrix<Type>::Unitarity() const
+{
+     cDenseMatrix<Type> atMM = Transpose() * (*this);
+     cDenseMatrix<Type> aId(atMM.Sz().x(),eModeInitImage::eMIA_MatrixId);
+     return aId.DIm().L2Dist(atMM.DIm());
+
+}
+
 
 template <class Type> double cDenseMatrix<Type>::Diagonalicity() const
 {
@@ -124,7 +131,7 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::AntiSymetrize() co
 
 template <class Type>  void cDenseMatrix<Type>::TransposeIn(tDM & aM2) const
 {
-     MMVII_INTERNAL_ASSERT_medium(aM2.Sz() == cPt2di(Sz().y(),Sz().x()) ,"Bad size for in place mat multiplication")
+     MMVII_INTERNAL_ASSERT_medium(aM2.Sz() == cPt2di(Sz().y(),Sz().x()) ,"Bad size for in place transposition")
      MMVII_INTERNAL_ASSERT_medium(&aM2 != this ,"Use TransposeIn with same matrix");
      for (const auto & aP : *this)
      {

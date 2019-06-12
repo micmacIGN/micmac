@@ -516,12 +516,43 @@ void TestVectBool()
     StdOut() << "END TBYTE \n"; getchar();
 }
 
+bool F(const std::string & aMes) {std::cout <<"FFFFF=" << aMes << "\n"; return true;}
+#define UN 1
+#define DEUX 2 
+
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+    if ((UN>DEUX) && F("aaaa"))
+    {
+       F("bbbb");
+    }
+    F("ccccc");
    
-    TestVectBool();
 /*
+   cSparseVect<float>  aSV;
+   for (const auto & aP : aSV)
+   {
+        std::cout << aP.mI << "\n";
+   }
+*/
+
+/*
+   cIm2D<tU_INT1> aIm(cPt2di(3,3));
+   aIm.DIm().SetV(cPt2di(0,0),13);
+   // aIm.DIm().SetV(cPt2di(0,0),1000);
+   // aIm.DIm().SetV(cPt2di(-1,0),1);
+   // new cIm2D<tU_INT1>(cPt2di(3,3));
+   cDataIm2D<tU_INT1> & aDIm = aIm.DIm();
+   tU_INT1*  aPtr = aDIm.RawDataLin();
+   StdOut() << "aIm=" << int(aPtr[0]) <<  "\n";
+   aPtr[0] = 14;
+   StdOut() << "aIm=" << (int)aDIm.GetV(cPt2di(0,0)) <<  "\n";
+   // aPtr[-1] = 0;
+*/
+
+/*
+    TestVectBool();
    cMMVII_Ofs aOs1("toto1.txt");
    cMMVII_Ofs aOs2("toto2.txt");
 

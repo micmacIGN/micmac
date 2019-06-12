@@ -122,6 +122,16 @@ template<class T1,class T2,int Dim>
     for (int aK=0 ; aK<aI1.NbElem() ; aK++)
         aI1.GetRDL(aK) += aI2.GetRDL(aK) ;
 }
+
+template<class T1,class T2,int Dim>  
+   void WeightedAddIn(cDataTypedIm<T1,Dim> & aI1,const T2 & aV,const cDataTypedIm<T2,Dim> & aI2)
+{
+    aI1.AssertSameArea(aI2); 
+
+    for (int aK=0 ; aK<aI1.NbElem() ; aK++)
+        aI1.GetRDL(aK) += aV*aI2.GetRDL(aK) ;
+}
+
  
 template<class T1,class T2,int Dim>  
    void DivCsteIn(cDataTypedIm<T1,Dim> & aI1,const T2 & aV2)
@@ -130,8 +140,22 @@ template<class T1,class T2,int Dim>
         aI1.GetRDL(aK) /= aV2;
 }
 
-// cIm2D
+/*****************************************************/
+/*                                                   */
+/*          AGREGATION                               */
+/*                                                   */
+/*****************************************************/
 
+template<class T1,class T2,int Dim>  
+   double DotProduct(const cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2)
+{
+    aI1.AssertSameArea(aI2); 
+    double aSom = 0.0;
+    for (int aK=0 ; aK<aI1.NbElem() ; aK++)
+        aSom += aI1.GetRDL(aK) * aI2.GetRDL(aK) ;
+
+    return aSom;
+}
 
 
 

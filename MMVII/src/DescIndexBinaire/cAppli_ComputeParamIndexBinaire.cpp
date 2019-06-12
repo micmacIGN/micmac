@@ -40,13 +40,21 @@ cCollecSpecArg2007 & cAppli_ComputeParamIndexBinaire::ArgOpt(cCollecSpecArg2007 
    return 
       anArgOpt
          << AOpt2007(mPatPCar,"PatPCar","Pattern for P Carac for ex \"eLap.*\"",{})
-         << AOpt2007(mPatInvRad,"PatIR","Pattern of radial invariants",{})
+         << AOpt2007(mPatInvRad,"PatIR","Pattern of radial invariants",{eTA2007::HDV})
          << AOpt2007(mPropFile,"PropF","Prop of File selected (tuning, faster in test)",{})
+         << AOpt2007(mNbIterBits,"NIBC","Number of iteration for bits computation",{eTA2007::HDV})
+         << AOpt2007(mNbEigenVal,"NbEiV","Number of Eigen Val",{eTA2007::HDV})
+         << AOpt2007(mNbTestCombInit,"NbComb0","Number of test on initial combinaison",{eTA2007::HDV})
+         << AOpt2007(mNbOptCombLoc,"NbCombLoc","Number of test for local combinatory opt",{eTA2007::HDV})
+         << AOpt2007(mQuickBits,"QB","Set all parameter of opt to low def value (for fast tuning)",{eTA2007::HDV})
          << AOpt2007(mSaveFileSelVectIR,"SaveFSVIR","File to save selected radial inv",{})
    ;
 }
 
 
+cAppli_ComputeParamIndexBinaire::~cAppli_ComputeParamIndexBinaire()
+{
+}
 
 cAppli_ComputeParamIndexBinaire::cAppli_ComputeParamIndexBinaire(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
   cMMVII_Appli (argc,argv,aSpec),
@@ -54,9 +62,15 @@ cAppli_ComputeParamIndexBinaire::cAppli_ComputeParamIndexBinaire(int argc,char**
   mPatInvRad   ("eTVIR_ACG."),
   mNbPixTot    (0.0),
   mPropFile    (1.0),
+  mNbIterBits  (3),
+  mNbEigenVal  (100),
+  mNbTestCombInit (500),
+  mNbOptCombLoc  (800),
+  mQuickBits     (false),
   mNbValByP    (0),
   mTmpVect     (1),    // need to initialize, but do not know the size
   mStat2       (1),     // idem
+  mLSQOpt      (1),     // and again 
   mEigen       (nullptr),
   mSaveFileSelVectIR    ("")
 {
@@ -77,9 +91,17 @@ const cResulSymEigenValue<tREAL8> &  cAppli_ComputeParamIndexBinaire::Eigen() co
 
 int cAppli_ComputeParamIndexBinaire::Exe()
 {
-   // Transform pattern in of enum radial  invariant
+   if (mQuickBits)
+   {
+       if (! IsInit(&mPropFile)) mPropFile = 0.1;
+       if (! IsInit(&mNbIterBits)) mNbIterBits = 1;
+       if (! IsInit(&mNbEigenVal)) mNbEigenVal = 50;
+       if (! IsInit(&mNbTestCombInit)) mNbTestCombInit = 100;
+       if (! IsInit(&mNbOptCombLoc)) mNbOptCombLoc = 200;
+   }
+   // Transform inout pattern into a vector  of enum radial  invariant
    mVecTyIR = SubOfPat<eTyInvRad>(mPatInvRad,false);
-  // Extract Pts carac corresponding to pattern
+  // Extract list of folder of  Pts carac corresponding to input pattern
    mLDirPC = GetSubDirFromDir(mDirGlob,BoostAllocRegex(mPatPCar));
 
 
@@ -88,7 +110,7 @@ int cAppli_ComputeParamIndexBinaire::Exe()
    {
        ProcessOneDir(mLDirPC[0]);
    }
-   // If only one p carac process it
+   // If multiple p carac, exec each one in parallel
    else if (mLDirPC.size() > 1)
    {
        ExeMultiAutoRecallMMVII ("PatPCar",mLDirPC,cColStrAOpt(),true);
@@ -102,8 +124,6 @@ int cAppli_ComputeParamIndexBinaire::Exe()
 }
 
 
-
-
 void  cAppli_ComputeParamIndexBinaire::ProcessOneDir(const std::string & aDir)
 {
     StdOut() << "================== " << mPatPCar << " ===========\n";
@@ -113,7 +133,7 @@ void  cAppli_ComputeParamIndexBinaire::ProcessOneDir(const std::string & aDir)
     // For all type of invariant create a structure from the folder
     for (int aK=0 ; aK<int(mVecTyIR.size()) ; aK++)
     {
-       // Creation will reas the fils
+       // Creation will read all the files contained in the folder
        cDataOneInvRad * aNew = new cDataOneInvRad (*this,aLast,mVecTyIR[aK]);
        // mVecDIR.push_back(std::unique_ptr<cDataOneInvRad> (new cDataOneInvRad (*this,mVecTyIR[aK])));
        mVecDIR.push_back(std::unique_ptr<cDataOneInvRad> (aNew));
@@ -121,6 +141,8 @@ void  cAppli_ComputeParamIndexBinaire::ProcessOneDir(const std::string & aDir)
        mNbValByP += mVecDIR.back()->NbValByP();
        aLast = aNew;
     }
+    // Number of selected eigen val cannot be over nuber of value in one patch
+    mNbEigenVal = std::min(mNbValByP,mNbEigenVal);
 
     // Check coher of any relatively to the first one
     for (int aK=1 ; aK<int(mVecDIR.size()) ; aK++)
@@ -149,30 +171,42 @@ void  cAppli_ComputeParamIndexBinaire::ProcessOneDir(const std::string & aDir)
        aDIR->AddPCar();
    }
 
-   for (int aKIter=0 ; aKIter<3; aKIter++)
-       ComputeIndexBinaire();
+   // In index binaire mode
+   ComputeIndexBinaire();
 }
 
 void  cAppli_ComputeParamIndexBinaire::ComputeIndexBinaire()
 {
-    mVecTrueP.clear();
-    mVecFalseP.clear();
-    mVVBool.clear();
+   for (int aKIter=0 ; aKIter<mNbIterBits; aKIter++)
+       OneIterComputeIndexBinaire();
+}
 
-    for (int aK=0 ; aK<mNbPts ; aK++)
+void  cAppli_ComputeParamIndexBinaire::OneIterComputeIndexBinaire()
+{
+    // Compute pairs of true and false tieP
     {
-        if (     ((aK%2)==0) 
-              && (mVIR[aK]->mSelected)
-           )
-           mVecTrueP.push_back(cPt2di(aK,aK+1));
+        mVecTrueP.clear();
+        mVecFalseP.clear();
 
-        mVecFalseP.push_back(cPt2di(aK,RandUnif_N(mNbPts)));
-        mVecFalseP.push_back(cPt2di(aK,RandUnif_N(mNbPts)));
+        for (int aK=0 ; aK<mNbPts ; aK++)
+        {
+            // corresponding samples are store 2N, 2N+1 , they are true pair
+            if (     ((aK%2)==0) 
+                  && (mVIR[aK]->mSelected)
+               )
+               mVecTrueP.push_back(cPt2di(aK,aK+1));
+
+            mVecFalseP.push_back(cPt2di(aK,RandUnif_N(mNbPts)));
+            mVecFalseP.push_back(cPt2di(aK,RandUnif_N(mNbPts)));
+        }
     }
+
+    mVVBool.clear();
 
     // Allocate data for stats
     mTmpVect = cDenseVect<tREAL8>(mNbValByP);
     mStat2 = cStrStat2<tREAL8>(mNbValByP);
+    mLSQOpt =  cLeasSqtAA<tREAL8>(mNbValByP);
 
     // Fill the stats
     int aPerAff = 10000;
@@ -192,14 +226,14 @@ void  cAppli_ComputeParamIndexBinaire::ComputeIndexBinaire()
     mEigen = &mStat2.DoEigen();
 
 
-    int aNbVal = 100;
-    for (int aK=mNbValByP-1 ; aK>=std::max(0,mNbValByP-aNbVal); aK--)
+    // Create bit vector corresponding to mNbEigenVal highest eigen value (they are sorted)
+    for (int aK=mNbValByP-1 ; aK>=mNbValByP-mNbEigenVal; aK--)
     {
         StdOut() << "EV["<< aK<< "]=" <<  mEigen->EigenValues()(aK) << "\n";
         mVVBool.push_back(tPtVBool ( new cVecBool (new cIB_LinearFoncBool(*this,aK,0), mVIR)));
     }
 
-    TestRandom(500,80);
+    TestRandom();
 
     int mTestSelBit = 3;
     int aNbOk =0;
@@ -231,11 +265,29 @@ std::vector<const cVecBool*> cAppli_ComputeParamIndexBinaire::IndexToVB(const st
    return aRes;
 }
 
+double  cAppli_ComputeParamIndexBinaire::ScoreAPrioiri(const std::vector<int>& aSet) const
+{
+    double aSom = 0;
+    for (const auto & aI  : aSet)
+        aSom += 1/(2.0 - mVVBool.at(aI)->Score()); // Formula due the fact that 2 is the best exepcable score
+    return aSom;
+}
+
 
 std::vector<const cVecBool*> 
-    cAppli_ComputeParamIndexBinaire::GenereVB(std::vector<int> & aSet,int aK,int aNb) const
+    cAppli_ComputeParamIndexBinaire::GenereVB(int aNbTest,std::vector<int> & aSet,int aK,int aNb) const
 {
-   aSet = RandSet(aK,aNb);
+   double aBestSc = -1;
+   for (int aKTest=0 ; aKTest<aNbTest ; aKTest++)
+   {
+      std::vector<int>  aTestSet = RandSet(aK,aNb);
+      double aScore = ScoreAPrioiri(aTestSet);
+      if (aScore > aBestSc)
+      {
+          aBestSc = aScore;
+          aSet = aTestSet;
+      }
+   }
    return IndexToVB(aSet);
 }
 
@@ -262,19 +314,31 @@ void cAppli_ComputeParamIndexBinaire::TestNewSol
 }
 
 
-void cAppli_ComputeParamIndexBinaire::TestRandom(int aNbTest,int aNb) 
+void cAppli_ComputeParamIndexBinaire::TestRandom()
 {
    mBestSc=-1e10;
-   aNb = std::min(aNb,int(mVVBool.size()));
+   int aNbTot  = int(mVVBool.size());
    int aCpt=0;
-   int aKB=24;
-   int aNb0 = aNb;
+   int aNbVecBit=24;
    double aT0= SecFromT0();
-   while (aCpt < aNbTest)
+   while (aCpt < mNbTestCombInit)
    {
-        aNb0 = aKB + aCpt% (aNb-aKB);
         std::vector<int> aNewIndex;
-        std::vector<const cVecBool*> aNewVB = GenereVB(aNewIndex,aKB,aNb0);
+        std::vector<const cVecBool*> aNewVB = GenereVB(1<< (aCpt%8) ,aNewIndex,aNbVecBit,mVVBool.size());
+        // First test, just select  the K Best
+        if (aCpt==0)
+        {
+           std::vector<cPt2dr> aVP;
+           for (int aK=0 ; aK<aNbTot ; aK++)
+               aVP.push_back(cPt2dr(aK,-mVVBool.at(aK)->Score()));
+           std::sort(aVP.begin(),aVP.end(),CmpCoord<double,2,1>);
+           aNewIndex.clear();
+           for (int aK=0 ; aK<aNbVecBit ; aK++)
+           {
+               aNewIndex.push_back(round_ni(aVP[aK].x()));
+           }
+           aNewVB = IndexToVB(aNewIndex);
+        }
 
         TestNewSol(aNewIndex,aNewVB);
         aCpt++;
@@ -286,18 +350,32 @@ void cAppli_ComputeParamIndexBinaire::TestRandom(int aNbTest,int aNb)
         }
    }
 
-   int aNbIter = 800;
-   for (int aKC=0 ; aKC< aNbIter ; aKC++)
+   for (int aKC=0 ; aKC< mNbOptCombLoc ; aKC++)
    {
-        StdOut() << "Chnage cphase " << aNbIter - aKC  << "\n";
+        if ((aKC%10)==0) 
+            StdOut() << "Chnage cphase " << mNbOptCombLoc - aKC  << "\n";
 
-        int aPer = 7;
-        int aDelta = mVVBool.size() -aKB;
-        int aNbMax = aKB + (aDelta * Square(2+aKC%aPer)) / Square(aPer+1);
+        // int aPer = 7;
+        // int aDelta = mVVBool.size() -aNbVecBit;
+        // int aNbMax = aNbVecBit + (aDelta * Square(2+aKC%aPer)) / Square(aPer+1);
         
         for (int aNbC=1 ; aNbC<=4 ; aNbC++)
         {
-             std::vector<int>  aNewIndex = RandNeighSet(aNbC,aNbMax,mBestIndex);
+             int aNbIterLoc = 1 << (aNbC + (aKC%4));
+             std::vector<int>  aNewIndex = RandNeighSet(aNbC,mVVBool.size(),mBestIndex);
+             double aBestSc =  ScoreAPrioiri(aNewIndex);
+
+             for (int aKIter=0 ; aKIter<aNbIterLoc ; aKIter++)
+             {
+                  std::vector<int>  aTestIndex = RandNeighSet(aNbC,mVVBool.size(),mBestIndex);
+                  double aScore =  ScoreAPrioiri(aTestIndex);
+                  if (aScore>aBestSc)
+                  {
+                     aBestSc = aScore;
+                     aNewIndex = aTestIndex;
+                  }
+             }
+
              std::vector<const cVecBool*>  aNewVB = IndexToVB(aNewIndex);
              TestNewSol(aNewIndex,aNewVB);
         }
@@ -319,7 +397,7 @@ void cAppli_ComputeParamIndexBinaire::TestNbBit() const
 void cAppli_ComputeParamIndexBinaire::TestNbBit(int aNb) const
 {
     std::vector<int>             aIndexRes;
-    std::vector<const cVecBool*> aVVB = GenereVB(aIndexRes,aNb,aNb);
+    std::vector<const cVecBool*> aVVB = GenereVB(1,aIndexRes,aNb,aNb);
 /*
     std::vector<const cVecBool*> aVVB ;
     for (int aK=0 ; aK<aNb ; aK++)

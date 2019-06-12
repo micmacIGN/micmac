@@ -318,6 +318,17 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitRandom()
        mRawDataLin[aK] = tTraits::RandomValue();
 }
 
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitRandomCenter()
+{
+   for (tINT8 aK=0 ; aK< NbElem() ; aK++)
+       mRawDataLin[aK] = tTraits::RandomValueCenter();
+}
+
+
+
+
+
+
 template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitNull()
 {
     MEM_RAZ(mRawDataLin,NbElem());
@@ -344,10 +355,11 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::Init(eModeInit
 {
     switch(aMode)
     {
-       case eModeInitImage::eMIA_Rand     : InitRandom(); return;
-       case eModeInitImage::eMIA_Null     : InitNull(); return;
-       case eModeInitImage::eMIA_MatrixId : InitId(); return;
-       case eModeInitImage::eMIA_NoInit   : ;
+       case eModeInitImage::eMIA_Rand        : InitRandom(); return;
+       case eModeInitImage::eMIA_RandCenter  : InitRandomCenter(); return;
+       case eModeInitImage::eMIA_Null        : InitNull(); return;
+       case eModeInitImage::eMIA_MatrixId    : InitId(); return;
+       case eModeInitImage::eMIA_NoInit      : ;
     }
 }
 

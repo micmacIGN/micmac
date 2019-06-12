@@ -24,6 +24,10 @@ template <class Type> bool ValidFloatValue(const Type & aV)
 
 ///  Uniform distribution in 0-1
 double RandUnif_0_1();
+///  Uniform distribution in  -1 1
+double RandUnif_C();
+/// 1/2 , french "Pile ou Face"
+bool   HeadOrTail(); 
 /// Uniform disrtibution in [0,N[ 
 double RandUnif_N(int aN);
 
@@ -245,6 +249,12 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
               if (tETrait::IsInt())
                  return MinValue() + RandUnif_0_1() * (int(MaxValue())-int(MinValue())) ;
               return RandUnif_0_1();
+         }
+         static Type RandomValueCenter()
+         {
+              if (tETrait::IsInt())
+                 return MinValue() + RandUnif_0_1() * (int(MaxValue())-int(MinValue())) ;
+              return RandUnif_C();
          }
 
          static const tNumTrait<Type>  TheOnlyOne;

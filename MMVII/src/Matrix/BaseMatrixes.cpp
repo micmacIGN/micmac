@@ -1,4 +1,5 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -12,13 +13,51 @@ namespace MMVII
 */
 
 /* ========================== */
+/*          cSParseVect        */
+/* ========================== */
+
+template <class Type> cSparseVect<Type>::cSparseVect(int aSzReserve,int aSzInit) :
+   mIV (new tCont)
+{
+  if (aSzReserve>0) 
+     IV().reserve(aSzReserve);
+  if (aSzInit>0)
+  {
+      for (int aK=0 ; aK<aSzInit ; aK++)
+          AddIV(aK,1.0);      // arbitrary values
+  }
+}
+
+template <class Type>  bool cSparseVect<Type>::IsInside(int aNb) const
+{
+    for (const auto & aP : *(mIV.get()))
+    {
+        if ((aP.mInd<0) || (aP.mInd>= aNb))
+           return false;
+    }
+    return true;
+}
+
+/* ========================== */
 /*          cDenseVect        */
 /* ========================== */
 
+template <class Type> cDenseVect<Type>::cDenseVect(tIM anIm) :
+   mIm  (anIm) 
+{
+}
+
+template <class Type> cDenseVect<Type>::cDenseVect(int aSz,eModeInitImage aModeInit) :
+   cDenseVect<Type> (tIM  (aSz,nullptr,aModeInit))
+{
+}
+
+/*
 template <class Type> cDenseVect<Type>::cDenseVect(int aSz,eModeInitImage aModeInit) :
    mIm  (aSz,nullptr,aModeInit)
 {
 }
+*/
 
 template <class Type> double cDenseVect<Type>::L1Dist(const cDenseVect<Type> & aV) const
 {
@@ -28,12 +67,25 @@ template <class Type> double cDenseVect<Type>::L2Dist(const cDenseVect<Type> & a
 {
    return mIm.DIm().L2Dist(aV.mIm.DIm());
 }
+template <class Type> double cDenseVect<Type>::DotProduct(const cDenseVect<Type> & aV) const
+{
+   return MMVII::DotProduct(DIm(),aV.DIm());
+}
 // double L2Dist(const cDenseVect<Type> & aV) const;
 
 template <class Type> Type*       cDenseVect<Type>::RawData()       {return DIm().RawDataLin();}
 template <class Type> const Type* cDenseVect<Type>::RawData() const {return DIm().RawDataLin();}
 
 // const Type * RawData() const;
+
+template <class Type> void  cDenseVect<Type>::WeightedAddIn(Type aW,const tSpV & aVect)
+{
+    Type * aD =  RawData();
+
+    for (const auto & aP : aVect)
+       aD[aP.mInd] += aW * aP.mVal;
+}
+
 
 
 
@@ -247,7 +299,6 @@ template <class Type> static void TplWriteLine(cMatrix<Type> & aMat,int aY,const
 template <class Type> void  cMatrix<Type>::Add_tAB(const tDV & aCol,const tDV & aLine) { TplAdd_tAB(*this,aCol,aLine); }
 template <class Type> void  cMatrix<Type>::Add_tAA(const tDV & aV,bool OnlySup) {TplAdd_tAA(*this,aV,OnlySup);}
 template <class Type> void  cMatrix<Type>::Sub_tAA(const tDV & aV,bool OnlySup) {TplSub_tAA(*this,aV,OnlySup);}
-
 template <class Type> void  cMatrix<Type>::Weighted_Add_tAA(Type aW,const tDV & aV,bool OnlySup) 
 {
    Weighted_TplAdd_tAA(aW,*this,aV,OnlySup);
@@ -309,6 +360,49 @@ template <class Type> void cMatrix<Type>::MatMulInPlace(const tMat & aM1,const t
 #if (0)
 #endif
 
+     /* ========== Methods with sparse vectors ============ */
+
+
+template <class Type>  void  cMatrix<Type>::Weighted_Add_tAA(Type aWeight,const tSpV & aSparseV,bool OnlySup)
+{
+   CheckSquare(*this);
+   TplCheckX(aSparseV);
+   const typename cSparseVect<Type>::tCont & aIV =  aSparseV.IV();
+   int aNb  = aIV.size();
+
+   if (OnlySup)
+   {
+       for (int aKY=0 ; aKY<aNb ; aKY++)
+       {
+          Type aVy = aIV[aKY].mVal * aWeight;
+          int  aY = aIV[aKY].mInd;
+          for (int aKX=  0 ; aKX<aNb ; aKX++)
+          {
+              int aX = aIV[aKX].mInd;
+              if (aX>=aY)
+                 V_SetElem(aX,aY,V_GetElem(aX,aY) + aVy * aIV[aKX].mVal);
+          }
+       }
+   }
+   else
+   {
+       for (int aKY=0 ; aKY<aNb ; aKY++)
+       {
+          Type aVy = aIV[aKY].mVal * aWeight;
+          int  aY = aIV[aKY].mInd;
+          for (int aKX= 0 ; aKX<aNb ; aKX++)
+          {
+              int aX = aIV[aKX].mInd;
+              V_SetElem(aX,aY,V_GetElem(aX,aY) + aVy * aIV[aKX].mVal);
+          }
+       }
+   }
+}
+
+
+
+     /* ========== operator  ============ */
+
 template <class Type> cDenseVect<Type> operator * (const cDenseVect<Type> & aLine,const cMatrix<Type>& aMat)
 {
    return aMat.MulLine(aLine);
@@ -319,13 +413,12 @@ template <class Type> cDenseVect<Type> operator * (const cMatrix<Type> & aMat,co
    return aMat.MulCol(aCol);
 }
 
-
-
 /* ===================================================== */
 /* ===================================================== */
 /* ===================================================== */
 
 #define INSTANTIATE_BASE_MATRICES(Type)\
+template  class  cSparseVect<Type>;\
 template  class  cDenseVect<Type>;\
 template  class  cMatrix<Type>;\
 template  cDenseVect<Type> operator * (const cDenseVect<Type> & aLine,const cMatrix<Type> & aMat);\

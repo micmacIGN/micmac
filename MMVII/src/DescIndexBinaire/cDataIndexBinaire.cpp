@@ -41,6 +41,8 @@ void cMetaDataOneFileInvRad::SetNbPair()
 
 void cMetaDataOneFileInvRad::CheckCoherence(const cMetaDataOneFileInvRad& aMD2) const
 {
+   //  As folder must have the same structure, and selection must be identic,
+   // at the end we must have same name.  Also number of pair must be identic
    if ((mName != aMD2.mName) ||  (mNbPair!=aMD2.mNbPair))
    {
        StdOut() << "\n\n";
@@ -51,31 +53,33 @@ void cMetaDataOneFileInvRad::CheckCoherence(const cMetaDataOneFileInvRad& aMD2) 
    }
 }
 
+
 void  cMetaDataOneFileInvRad::AddPCar()
 {
-    cIm2D<tU_INT1> aImGlob(mDFIm.Sz());
-    aImGlob.Read(mDFIm,cPt2di(0,0));
-    cPt2di aSzP0 = mDOIR->SzP0();
+    cIm2D<tU_INT1> aImGlob(mDFIm.Sz());  //! Contain global image
+    aImGlob.Read(mDFIm,cPt2di(0,0));     // read file
+    cPt2di aSzP0 = mDOIR->SzP0();  //! Size of a Patch
 
     for (int aKPatch=0 ; aKPatch<2*mNbPair ; aKPatch++)
     {
-        int aX0 = (aKPatch%2) *  aSzP0.x();
-        int aY0 = (aKPatch/2) *  aSzP0.y();
-        cPt2di aP0(aX0,aY0);
+        int aX0 = (aKPatch%2) *  aSzP0.x();  //! contains begin.x of current pair in global image
+        int aY0 = (aKPatch/2) *  aSzP0.y();  //! contains begin.y of current pair  in global image
+        cPt2di aP0(aX0,aY0); //! begin of current pair  in global image
 
         //  Put in a small image, safer in we want to reduce ...
         cIm2D<tU_INT1> aImLoc(aSzP0);
-        for (const auto & aPix : aImLoc.DIm())
-            aImLoc.DIm().SetV(aPix,aImGlob.DIm().GetV(aPix+aP0));
+        for (const auto & aPix : aImLoc.DIm()) // for each pixel of aImLoc 
+            aImLoc.DIm().SetV(aPix,aImGlob.DIm().GetV(aPix+aP0)); //  copy Big in Small using offset
 
+        // Now put the small image at the end of current vect
         int aKVect =  mDOIR->PosInVect();
         cVecInvRad*  aIR = mDOIR->Appli().IR(mDOIR->KFill());
         for (const auto & aPix : aImLoc.DIm())
         {
             aIR->mVec.DIm().SetV(aKVect,aImLoc.DIm().GetV(aPix));
-            aKVect++;
+            aKVect++; // increment position in current vector
         }
-        mDOIR->KFill() ++;
+        mDOIR->KFill() ++; // increment position of current vector
     }
 }
 
@@ -92,16 +96,20 @@ cDataOneInvRad::cDataOneInvRad(cAppli_ComputeParamIndexBinaire & anAppli,cDataOn
     mNbPixTot (0.0),
     mNbPatch  (0)
 {
-    std::vector<std::string>  aVS;
+    std::vector<std::string>  aVS; //! list of files in the folder that will be selected
     {
-       std::vector<std::string>  aVS0;
+       std::vector<std::string>  aVS0;  //! Get all file corresponding to regular expression
        GetFilesFromDir(aVS0,mAppli.DirCurPC() +  E2Str(mTIR)  ,BoostAllocRegex("Cple.*tif"));
 
+       //  Select a subset with a given proportion (parametre PropF of command)
        double aProp = mAppli.PropFile();
        for (int aK=0 ; aK<(int)aVS0.size() ; aK++)
-           if (round_ni((aK-1)*aProp) != round_ni(aK*aProp))
+           if (round_ni((aK-1)*aProp) != round_ni(aK*aProp))  //! Mathematicall formula to select a proportion of aProp
               aVS.push_back(aVS0[aK]);
     }
+
+    // read the information on each file, compute an check coherence of size
+    // Sz.x must be equal for all file, Sz.y is computed by Highest Common Factor
 
     for (int aK=0 ; aK<int(aVS.size()) ; aK++)
     {
@@ -130,9 +138,9 @@ cDataOneInvRad::cDataOneInvRad(cAppli_ComputeParamIndexBinaire & anAppli,cDataOn
     }
     for (auto &  aMD : mMDOFIR)
     {
-       aMD.SetNbPair();
-       mNbPixTot +=   aMD.mDFIm.NbElem();
-       mNbPatch += 2 * aMD.mNbPair;
+       aMD.SetNbPair();  //  Check and fix nb of pair by division
+       mNbPixTot +=   aMD.mDFIm.NbElem();  // for static
+       mNbPatch += 2 * aMD.mNbPair;  // Number of sub images total
     }
 
     mPosInVect =  (aPrev==nullptr) ? 0 :  (aPrev->mPosInVect + aPrev->NbValByP()) ;
@@ -151,6 +159,7 @@ cDataOneInvRad::cDataOneInvRad(cAppli_ComputeParamIndexBinaire & anAppli,cDataOn
 
 void cDataOneInvRad::CheckCoherence(const cDataOneInvRad& aD2) const
 {
+    // Numbet of file must be equal in all folder
     if(mMDOFIR.size()!=aD2.mMDOFIR.size() || (mNbPatch!=aD2.mNbPatch))
     {
        StdOut() << "\n\n";
@@ -158,6 +167,7 @@ void cDataOneInvRad::CheckCoherence(const cDataOneInvRad& aD2) const
        StdOut() << "TYPES = " << E2Str(mTIR) << " " << E2Str(aD2.mTIR) << "\n";
        MMVII_UsersErrror(eTyUEr::eUnClassedError,"Variable number of file in Invar");
     }
+    // Check coherence between corresponding files
     for (int aK=0 ; aK<int(mMDOFIR.size()) ; aK++)
         mMDOFIR[aK].CheckCoherence(aD2.mMDOFIR[aK]);
 }
@@ -171,6 +181,7 @@ int  cDataOneInvRad::NbValByP() const
 void  cDataOneInvRad::AddPCar()
 {
     mKFill = 0;
+    // Parse all files
     for (auto &  aMD : mMDOFIR)
     {
          aMD.AddPCar();

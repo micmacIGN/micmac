@@ -6,6 +6,34 @@
 namespace MMVII
 {
 
+template <class Type> std::ostream & operator << (std::ostream & OS,const cDenseVect<Type> &aV)
+{
+   OS << "[";
+   for (int aK=0 ; aK<aV.DIm().Sz() ; aK++)
+   {
+         if (aK!=0) OS << " ";
+         OS << aV(aK);
+   }
+   OS << "]";
+   return OS;
+}
+template <class Type> std::ostream & operator << (std::ostream & OS,const cMatrix<Type> &aMat)
+{
+   OS << "[\n";
+   for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
+   {
+      cDenseVect<Type> aV(aMat.Sz().x());
+      aMat.ReadLineInPlace(aY,aV);
+      OS << " " << aV << "\n";
+         // if (aK!=0) OS << " ";
+         // OS << aV(aK);
+   }
+   OS << "]\n";
+   return OS;
+}
+
+
+
 
 /* ===================================================== */
 /* ===================================================== */
@@ -189,6 +217,40 @@ template <class TypeMatr,class TypeVect>  void TplBenchMatrix(int aSzX,int aSzY,
         aMyySym.Sub_tAA(aCol,false);
         MMVII_INTERNAL_ASSERT_bench(aMyySym.DIm().L2Dist(aMyyUp.DIm())<1e-5,"Bench add tAA");
     }
+    {  // Bench sparse
+       int aNb = aSzX+aSzY;
+       TypeMatr aM1(aNb,aNb,eModeInitImage::eMIA_Null);
+       TypeMatr aM2(aNb,aNb,eModeInitImage::eMIA_Null);
+       cDenseVect<typename TypeMatr::tVal> aDV1(aNb,eModeInitImage::eMIA_Null);
+       cDenseVect<typename TypeMatr::tVal> aDV2(aNb,eModeInitImage::eMIA_Null);
+ 
+       for (int aK=0 ; aK<4 ; aK++)
+       {
+           cSparseVect<typename TypeMatr::tVal> aSV;
+           cDenseVect<typename TypeMatr::tVal> aDV(aNb,eModeInitImage::eMIA_Null);
+           for (int aX=0 ; aX<aNb ;aX++)
+           {
+               if (HeadOrTail())
+               {
+                   int anInd = (aX+1) % aNb;
+                   typename TypeMatr::tVal aVal = RandUnif_0_1();
+                   aSV.AddIV(anInd,aVal);
+                   aDV(anInd) = aVal;
+               }
+           }
+           typename TypeMatr::tVal aW = RandUnif_0_1();
+           aM1.Weighted_Add_tAA(aW,aDV,(aK%2));
+           WeightedAddIn(aDV1.DIm(),aW,aDV.DIm());
+
+           aM2.Weighted_Add_tAA(aW,aSV,(aK%2));
+           aDV2.WeightedAddIn(aW,aSV);
+       }
+       double aDistM = aM1.DIm().L2Dist(aM2.DIm());
+       double aDistV = aDV1.DIm().L2Dist(aDV2.DIm());
+       
+       MMVII_INTERNAL_ASSERT_bench(aDistM<1e-5,"Bench SparseVect");
+       MMVII_INTERNAL_ASSERT_bench(aDistV<1e-5,"Bench SparseVect");
+    }
 }
 
 template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
@@ -284,22 +346,44 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
            MMVII_INTERNAL_ASSERT_bench(aCheckEV.DIm().L2Dist(aSim.DIm())<1e-5,"Bench unitarity EigenValue");
 
         }
-    
 
+        double aDTest = 1e-4 * pow(10,-(4-sizeof(Type))/2.0) * pow(aNb,1.0) ;  // Accuracy expectbale vary with tREAL4, tREAL8 ...
+    
+        
         cDenseMatrix<Type> aId(aNb,eModeInitImage::eMIA_MatrixId);
         cDenseMatrix<Type> aMInv = aM.Inverse();
         cDenseMatrix<Type> aCheck = aM*aMInv;
 
-        double aD = aId.DIm().L2Dist(aCheck.DIm());
-        double aDTest = 1e-4 * pow(10,-(4-sizeof(Type))/2.0) * pow(aNb,1.0) ;  // Accuracy expectbale vary with tREAL4, tREAL8 ...
+        cDenseMatrix<Type> aMInv2 = aM.Solve(aId);
+        cDenseMatrix<Type> aCheck2 = aM*aMInv2;
 
+        double aD = aId.DIm().L2Dist(aCheck.DIm());
+        double aD2 = aId.DIm().L2Dist(aCheck2.DIm());
   
         if (aD>aDTest)
         {
             StdOut() << "D=" << aD << " DTest=" << aDTest << " Cpt=" << aCpt << "\n";
-            MMVII_INTERNAL_ASSERT_bench(aD<aDTest,"Bench inverse  Matrixes");
+            MMVII_INTERNAL_ASSERT_bench(false,"Bench inverse  Matrixes");
+        }
+        if (aD2>aDTest)
+        {
+            StdOut() << "D=" << aD2 << " DTest=" << aDTest << " Cpt=" << aCpt << "\n";
+            MMVII_INTERNAL_ASSERT_bench(false,"Bench inverse  Matrixes");
         }
 
+        {  // Bench Solve Vect
+           cDenseVect<Type> aV(aNb,eModeInitImage::eMIA_Rand);
+           cDenseVect<Type> aVSol = aM.Solve(aV);
+           cDenseVect<Type> aVCheck = aM * aVSol;
+           MMVII_INTERNAL_ASSERT_bench( aVCheck.L2Dist(aV) < aDTest ,"Bench Solve Vect  Matrixes");
+        }
+        {  // Bench Solve Mat
+           cDenseMatrix<Type> aMTest(3,aNb,eModeInitImage::eMIA_Rand);
+           cDenseMatrix<Type> aMSol = aM.Solve(aMTest);
+           cDenseMatrix<Type> aMCheck = aM * aMSol;
+           double aD =  aMCheck.DIm().L2Dist(aMTest.DIm());
+           MMVII_INTERNAL_ASSERT_bench(aD < aDTest ,"Bench Solve Vect  Matrixes");
+        }
 
         //  aM.Inverse(1e-19,25);
 
@@ -323,7 +407,7 @@ void BenchStatCov(int aSz,int aNb)
         aLV.push_back(aV);
         aSt2Init.Add(aV);
     }
-    // aSt2Init.Cov().SelfSymetrizeBottom();
+    // Test with uncentered moment
     cResulSymEigenValue<double>  aVpInit = aSt2Init.DoEigen();
     {
        double aV0 = aVpInit.EigenValues()(0);
@@ -336,6 +420,7 @@ void BenchStatCov(int aSz,int aNb)
           MMVII_INTERNAL_ASSERT_bench(std::abs(aV0)>1e-6,"Test cStrStat2");
        }
     }
+    // Test with centered moment
     aSt2Init.Normalise();
     aVpInit = aSt2Init.DoEigen();
     {
@@ -383,8 +468,168 @@ void BenchStatCov()
     BenchStatCov(3,300);
 }
 
+template <class Type> static Type Residual
+                                  (
+                                     const cSysSurResolu<Type>& aSys,
+                                     const cDenseVect<Type> & aSol,
+                                     const std::vector<Type>               aLWeight,
+                                     const std::vector<cDenseVect<Type> >  aLVec,
+                                     const std::vector<Type>               aLVal
+                                  )
+{
+    Type aRes = 0.0;
+    for (int aK=0 ; aK<int(aLVec.size()) ; aK++)
+    {
+        aRes += aSys.Residual(aSol,aLWeight[aK],aLVec[aK],aLVal[aK]);
+    }
+    return aRes;
+}
+
+template <class Type> void BenchSysSur(cSysSurResolu<Type>& aSys,bool Exact)
+{
+   int  aNbVar = aSys.NbVar();
+   // cSysSurResolu<Type>& aSys = aSysLsq;
+
+   for (int aNbIter=0 ; aNbIter<2; aNbIter++)
+   {
+      cLeasSqtAA<Type>  aSpSys(aNbVar);
+      aSys.Reset();
+      std::vector<Type>               aLWeight;
+      std::vector<cDenseVect<Type> >  aLVec;
+      std::vector<Type>               aLVal;
+
+      int aNbEq = Exact ? aNbVar : 6 * aNbVar;
+  
+      for (int aK=0 ; aK<aNbEq ; aK++)
+      {
+          Type aWeight = 1+aK;
+          cDenseVect<Type> aDV(aNbVar,eModeInitImage::eMIA_Rand);
+          cSparseVect<Type> aSV(aNbVar);
+          for (int aK=0 ; aK<aNbVar ; aK++)
+          {
+              int aI = (aK+1) % aNbVar;
+              aSV.AddIV(aI,aDV(aI));
+          }
+          
+          Type aVal = RandUnif_0_1();
+          aLVec.push_back(aDV);
+          aLVal.push_back(aVal);
+          aLWeight.push_back(aWeight);
+          aSys.AddObservation(aWeight,aDV,aVal);
+          aSpSys.AddObservation(aWeight,aSV,aVal);
+      }
+      cDenseVect<Type> aSol = aSys.Solve();
+      cDenseVect<Type> aSpSol = aSpSys.Solve();
+      double aDist= aSol.DIm().L2Dist(aSpSol.DIm());
+      MMVII_INTERNAL_ASSERT_bench(aDist<1e-5,"Bench Op Im");
+
+      Type aR0 = Residual(aSys,aSol,aLWeight,aLVec,aLVal);
+      Type aDTest = sqrt(std::numeric_limits<Type>::epsilon()) * 100;
+      // StdOut() << "aR0aR0aR0aR0aR0 " << aR0 << "\n";
+
+      if (Exact)
+      {
+         MMVII_INTERNAL_ASSERT_bench(aR0<(aDTest*aNbVar),"Bench Op Im");
+         for (int aK=0 ; aK<aNbVar ; aK++)
+         {
+             Type aDif = std::abs( aLVal[aK] - aSol.DotProduct(aLVec[aK]));
+             /* StdOut() << "ddDddDDDD " << aDif << " " << E2Str(tElemNumTrait<Type>::TyNum()) 
+                   << " Eps: " << std::numeric_limits<Type>::epsilon() << " " <<  aDTest << "\n"; */
+             MMVII_INTERNAL_ASSERT_bench(aDif<aDTest,"Bench Op Im");
+             // StdOut() << "ScaAal " <<  aLVal[aK] - aSol.DotProduct(aLVec[aK]) << "\n";
+         }
+      }
+      else
+      {
+          // Check that solution is really the minimum
+          for (int aK=0 ; aK<100 ; aK++)
+          {
+             double aEps = 1e-2;
+             cDenseVect<Type> aNewV(aNbVar);
+             for (int aK=0 ; aK<aNbVar ; aK++)
+                aNewV(aK) = aSol(aK) + aEps * RandUnif_C();
+
+             Type aRN = Residual(aSys,aNewV,aLWeight,aLVec,aLVal);
+
+             MMVII_INTERNAL_ASSERT_bench(aRN>aR0,"Bench residual ");
+
+             // double aD = aSol.DIm().L2Dist(aNewV.DIm());
+             // StdOut() << " D=" << aD << "Dif " << (aRN-aR0) /Square(aD) << "\n";
+          }
+      }
+   }
+}
+
+template <class Type> void BenchObsFixVar
+                           (
+                              cSysSurResolu<Type>& aSys1, // 1 by 1
+                              cSysSurResolu<Type>& aSys2, // By Sparse
+                              cSysSurResolu<Type>& aSys3  // By dense
+                           )
+{
+   int  aNbVar = aSys1.NbVar();
+   cSparseVect<Type> aSV2A(aNbVar);
+   cSparseVect<Type> aSV2B(aNbVar);
+   cDenseVect<Type>  aDV3(aNbVar);
+   for (int aK=0 ; aK<aNbVar; aK++)
+   {
+      Type aVal = RandUnif_0_1();
+      aSys1.AddObsFixVar(1.0,aK,aVal);
+      if (aK%2)
+         aSV2A.AddIV(aK,aVal);
+      else
+         aSV2B.AddIV(aK,aVal);
+      aDV3(aK) = aVal;
+   }
+   aSys2.AddObsFixVar(1.0,aSV2A);
+   aSys2.AddObsFixVar(1.0,aSV2B);
+   aSys3.AddObsFixVar(1.0,aDV3);
+
+   cDenseVect<Type>  aV1 = aSys1.Solve();
+   // cDenseVect<Type>  aV2 = aSys2.Solve().DIm();
+   // cDenseVect<Type>  aV3 = aSys3.Solve().DIm();
+   double aD1 = aDV3.DIm().L2Dist(aV1.DIm());
+   double aD2 = aDV3.DIm().L2Dist(aSys2.Solve().DIm());
+   double aD3 = aDV3.DIm().L2Dist(aSys3.Solve().DIm());
+
+   MMVII_INTERNAL_ASSERT_bench((aD1+aD2+aD3)<1e-5,"Bench Add Obs Fix Var");
+}
+
+template <class Type,class TypeSys> void OneTplBenchLsq(int aNbVar)
+{
+   {
+      TypeSys  aSysLsq(aNbVar);
+      BenchSysSur(aSysLsq,true);
+      BenchSysSur(aSysLsq,false);
+   }
+
+   {
+       TypeSys  aSysLsq1(aNbVar);  // 1 by 1
+       TypeSys  aSysLsq2(aNbVar);  // By Sparse
+       TypeSys  aSysLsq3(aNbVar);  // By dense
+       BenchObsFixVar(aSysLsq1,aSysLsq2,aSysLsq3);
+   }
+
+}
+
+
+template <class Type,class TypeSys> void TplBenchLsq()
+{
+     OneTplBenchLsq<Type,TypeSys>(1);
+     OneTplBenchLsq<Type,TypeSys>(2);
+     OneTplBenchLsq<Type,TypeSys>(4);
+}
+
+void BenchLsq()
+{
+     TplBenchLsq<tREAL4 ,cLeasSqtAA<tREAL4> >();
+     TplBenchLsq<tREAL8 ,cLeasSqtAA<tREAL8> >();
+     TplBenchLsq<tREAL16,cLeasSqtAA<tREAL16> >();
+}
+
 void BenchDenseMatrix0()
 {
+    BenchLsq();
     BenchStatCov();
     {
       cPt2di aSz(3,8);

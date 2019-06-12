@@ -15,15 +15,43 @@ namespace MMVII
 */
 
 
-/** Matrix can store their data in 4,8,16 ... byte,  however for having unique virtual communication
-    we fixe  the interface with the "highest" precision
-*/
 
-template <class Type> class  cDenseVect ;
+template <class Type> class cSparseVect ;
+template <class Type> class cDenseVect ;
 template <class Type> class cMatrix  ;
 template <class Type> class cUnOptDenseMatrix ;
 template <class Type> class cDenseMatrix ;
 
+template <class Type> struct  cCplIV 
+{
+    public :
+       cCplIV(const  int & aI,const Type & aV) : mInd(aI), mVal(aV) {}
+       int   mInd;
+       Type  mVal;
+};
+
+template <class Type> class  cSparseVect  : public cMemCheck
+{
+    public :
+        typedef cCplIV<Type>            tCplIV;
+        typedef std::vector<tCplIV>     tCont;
+        typedef typename tCont::const_iterator   const_iterator;
+        typedef typename tCont::iterator         iterator;
+
+        const_iterator  end()   const {return  mIV.get()->end();}
+        const_iterator  begin() const {return  mIV.get()->begin();}
+        int  size() const {return mIV.get()->size();}
+        const tCont & IV() const {return *(mIV.get());}
+        tCont & IV() {return *(mIV.get());}
+
+        void AddIV(const int & anInd,const Type & aV) {IV().push_back(tCplIV(anInd,aV));}
+
+        /// SzInit fill with arbitray value, only to reserve space
+        cSparseVect(int aSzReserve=-1,int aSzInit=-1) ;  
+        bool IsInside(int aNb) const;
+    private :
+         std::shared_ptr<tCont>         mIV;
+};
 
 
 /** A dense vector is no more than a 1D Image, but with a different interface */
@@ -33,8 +61,11 @@ template <class Type> class  cDenseVect
     public :
         typedef cIm1D<Type>  tIM;
         typedef cDataIm1D<Type>      tDIM;
+        typedef cSparseVect<Type> tSpV;
 
         cDenseVect(int aSz, eModeInitImage=eModeInitImage::eMIA_NoInit);
+        cDenseVect(tIM anIm);
+
         const Type & operator() (int aK) const {return DIm().GetV(aK);}
         Type & operator() (int aK) {return DIm().GetV(aK);}
         const int & Sz() const {return DIm().Sz();}
@@ -49,6 +80,12 @@ template <class Type> class  cDenseVect
         tDIM & DIm(){return mIm.DIm();}
         const tDIM & DIm() const {return mIm.DIm();}
         // operator -= 
+        double DotProduct(const cDenseVect &) const;
+        void TplCheck(const tSpV & aV)  const
+        {
+            MMVII_INTERNAL_ASSERT_medium(aV.IsInside(Sz()) ,"Sparse Vector out dense vect");
+        }
+        void  WeightedAddIn(Type aWeight,const tSpV & aColLine);
     private :
 
         tIM mIm;
@@ -63,6 +100,7 @@ template <class Type> class  cDenseVect
 template <class Type> class cMatrix  : public cRect2
 {
      public :
+         typedef cSparseVect<Type> tSpV;
          typedef Type              tVal;
          typedef cDenseVect<Type>  tDV;
          typedef cMatrix<Type>     tMat;
@@ -129,7 +167,18 @@ template <class Type> class cMatrix  : public cRect2
               TplCheckSizeX(aVX);
          }
 
+        // void TplCheckX(const cSparseVect & V) {}; template <class Type> class  cSparseVect 
          ///  Check that aM1 * aM2 is valide
+      
+         void TplCheckX(const cSparseVect<Type> & aV)  const
+         {
+            MMVII_INTERNAL_ASSERT_medium(aV.IsInside(Sz().x()) ,"Sparse Vector X-out matrix");
+         }
+         void TplCheckY(const cSparseVect<Type> & aV)  const
+         {
+            MMVII_INTERNAL_ASSERT_medium(aV.IsInside(Sz().y()) ,"Sparse Vector Y-out matrix");
+         }
+
          static void CheckSizeMul(const tMat & aM1,const tMat & aM2)
          {
             MMVII_INTERNAL_ASSERT_medium(aM1.Sz().x()== aM2.Sz().y() ,"Bad size for mat multiplication")
@@ -145,6 +194,10 @@ template <class Type> class cMatrix  : public cRect2
          {
             MMVII_INTERNAL_ASSERT_medium(aM1.Sz().x()== aM1.Sz().y() ,"Expected Square Matrix")
          }
+
+
+      //  Sparse vector
+        virtual void  Weighted_Add_tAA(Type aWeight,const tSpV & aColLine,bool OnlySup=true);
 
       //  Constructor && destr
          virtual ~cMatrix();  ///< Public because called by shared ptr 
@@ -212,12 +265,14 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 {
    public :
         typedef Type            tVal;
+        typedef cSparseVect<Type> tSpV;
         typedef cDenseVect<Type> tDV;
         typedef cDataIm2D<Type> tDIm;
         typedef cIm2D<Type> tIm;
 
+        typedef  cMatrix<Type>           tMat;
         typedef  cUnOptDenseMatrix<Type> tUO_DM;
-        typedef  cDenseMatrix<Type>    tDM;
+        typedef  cDenseMatrix<Type>      tDM;
 
         typedef cConst_EigenMatWrap<Type> tConst_EW;
         typedef cNC_EigenMatWrap<Type> tNC_EW;
@@ -225,7 +280,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
         const cPt2di & Sz() const {return cRect2::Sz();}
         cDenseMatrix(int aX,int aY,eModeInitImage=eModeInitImage::eMIA_NoInit);
-        cDenseMatrix(int aX,eModeInitImage=eModeInitImage::eMIA_NoInit);
+        cDenseMatrix(int aX,eModeInitImage=eModeInitImage::eMIA_NoInit);  ///< Square
         cDenseMatrix(tIm);
         cDenseMatrix Dup() const;
         static cDenseMatrix Diag(const tDV &);
@@ -251,7 +306,11 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
        
         tDM  Inverse() const;  ///< Basic inverse
-        tDM  Inverse(double Eps,int aNbIter) const;  ///< N'amene rien, eigen fonctionne deja tres bien
+        tDM  Inverse(double Eps,int aNbIter) const;  ///< N'amene rien, eigen fonctionne deja tres bien en general 
+
+        tDM  Solve(const tDM &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
+        tDV  Solve(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
+
 
         //  ====  Orthognal matrix
 
@@ -290,6 +349,9 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         void  Sub_tAA(const tDV & aColLine,bool OnlySup=true) override;
 
         void  Weighted_Add_tAA(Type aWeight,const tDV & aColLine,bool OnlySup=true) override;
+
+        // ====  Sparse vector 
+        void  Weighted_Add_tAA(Type aWeight,const tSpV & aColLine,bool OnlySup=true) override;
 };
 
 template <class Type> class cResulSymEigenValue

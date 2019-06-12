@@ -58,8 +58,8 @@ class cMemState
         int64_t  mCheckNb;
         int64_t  mCheckSize;
         int64_t  mCheckPtr;
-        int64_t  mNbObjCreated;
-        bool     mDoCheckAtDestroy; ///< Sometime we need to do the check at the very end of the existence
+        int64_t  mNbObjCreated;   ///< Number of allocation/desalloc
+        bool     mDoCheckAtDestroy; ///< Sometime we need to do the check at the very end of the existence, this is 4 last object
 };
 
 /**
@@ -120,11 +120,15 @@ class  cMemCheck
       public :
          void * operator new    (size_t sz);
          void operator delete   (void * ptr) ;
+#if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny)
+         cMemCheck()  {TheNbObjLive++;}
+         cMemCheck(const cMemCheck &)  {TheNbObjLive++;}
+         ~cMemCheck() {TheNbObjLive--;  }
+#endif
+         static int    NbObjLive();
       private :
-
+         static int    TheNbObjLive;
        // to avoid use 
-         void * operator new []  (size_t sz);
-         void operator delete [] (void * ptr) ;
 };
 
 

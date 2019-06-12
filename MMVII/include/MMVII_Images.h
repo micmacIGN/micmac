@@ -211,6 +211,7 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         const Type & GetRDL(int aK) const {return  mRawDataLin[aK];} ///<  Kth val
 
         void InitRandom();    ///< uniform, float in [0,1], integer in [Min,Max] of Type
+        void InitRandomCenter();    ///< uniform, float in [-1,1], integer in [Min,Max] of Type
         void InitCste(const Type & aV); ///< Constant value
         void InitId();                  ///< Identity, only avalaible for 2D-squares images
         void InitNull();                ///< Null, faster than InitCste(0)

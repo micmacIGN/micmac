@@ -30,6 +30,7 @@ namespace MMVII
 
 // extern int  The_MMVII_DebugLevel = The_MMVII_DebugLevel_InternalError_medium;
 #define The_MMVII_DebugLevel The_MMVII_DebugLevel_InternalError_tiny
+// #define The_MMVII_DebugLevel The_MMVII_DebugLevel_UserError
 
 /**  The error handler can be change , so its a function Ptr of type PtrMMVII_Error_Handler
 */
@@ -53,9 +54,20 @@ void MMVII_RestoreDefaultHandle();
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_Unresoved ) && (!(aTest)))\
 { MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
 
+/*
 #define MMVII_INTERNAL_ASSERT_tiny(aTest,aMes)\
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny ) && (!(aTest)))\
 { MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
+*/
+// Version less friendly but sure at 100% that has no impact on performance
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+#define MMVII_INTERNAL_ASSERT_tiny(aTest,aMes)\
+ if (!(aTest)) { MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
+#else
+#define MMVII_INTERNAL_ASSERT_tiny(aTest,aMes) {}
+#endif
+
+
 
 #define MMVII_INTERNAL_ASSERT_medium(aTest,aMes)\
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_medium ) && (!(aTest)))\

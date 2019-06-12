@@ -4,6 +4,7 @@
 #include "MMVII_EigenWrap.h"
 #include "ExternalInclude/Eigen/Eigenvalues" 
 #include "ExternalInclude/Eigen/Householder"  // HouseholderQR.h"
+// #include "ExternalInclude/Eigen/Cholesky"  // HouseholderQR.h"
 
 using namespace Eigen;
 
@@ -110,16 +111,84 @@ template <class Type> cResulSymEigenValue<Type>  cDenseMatrix<Type>::SymEigenVal
     return aRes;
 }
 
-
-template <class Type> double  cDenseMatrix<Type>::Unitarity() const
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Solve(const tDM & aMat,eTyEigenDec aTED) const
 {
-     cDenseMatrix<Type> atMM = Transpose() * (*this);
-     cDenseMatrix<Type> aId(atMM.Sz().x(),eModeInitImage::eMIA_MatrixId);
-     return aId.DIm().L2Dist(atMM.DIm());
-   
+    tMat::CheckSquare(*this);
+    tMat::CheckSizeMul(*this,aMat);
+
+    tDM aRes(aMat.Sz().x(),aMat.Sz().y());
+
+    tConst_EW aWThis(*this);
+    tConst_EW aWMat(aMat);
+    tNC_EW aWRes(aRes);
+
+    // aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWMat.EW());
+    if (aTED == eTyEigenDec::eTED_PHQR)
+    {
+       aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWMat.EW());
+    }
+    else if (aTED == eTyEigenDec::eTED_LLDT)
+    {
+       aWRes.EW() = aWThis.EW().ldlt().solve(aWMat.EW());
+    }
+    else
+    {
+        MMVII_INTERNAL_ASSERT_always(false,"Unkown type eigen decomposition");
+    }
+
+    return aRes;
 }
 
+template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::Solve(const tDV & aVect,eTyEigenDec aTED) const
+{
+    tMat::CheckSquare(*this);
+    tMat::TplCheckSizeX(aVect.Sz());
+
+    tDV aRes(aVect.Sz());
+
+    tConst_EW aWThis(*this);
+    cConst_EigenColVectWrap<Type> aWVect(aVect);
+    cNC_EigenColVectWrap<Type> aWRes(aRes);
+
+    if (aTED == eTyEigenDec::eTED_PHQR)
+    {
+       aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWVect.EW());
+    }
+    else if (aTED == eTyEigenDec::eTED_LLDT)
+    {
+       aWRes.EW() = aWThis.EW().ldlt().solve(aWVect.EW());
+    }
+    else
+    {
+        MMVII_INTERNAL_ASSERT_always(false,"Unkown type eigen decomposition");
+    }
+
+    return aRes;
+}
+
+
+
 /*
+*/
+/*
+   tDM  Solve(const tDM &) const;
+        tDV  Solve(const tDV &) const;
+
+
+
+   Matrix3f A;
+   Vector3f b;
+   A << 1,2,3,  4,5,6,  7,8,10;
+   b << 3, 3, 4;
+   cout << "Here is the matrix A:\n" << A << endl;
+   cout << "Here is the vector b:\n" << b << endl;
+   Vector3f x = A.colPivHouseholderQr().solve(b);
+   cout << "The solution is:\n" << x << endl;
+*/
+
+
+/*
+
 void TestSSS()
 {
    cDenseMatrix<double> aM(2,2);

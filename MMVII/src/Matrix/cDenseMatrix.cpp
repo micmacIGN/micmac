@@ -60,6 +60,7 @@ template <class Type>  void  cDenseMatrix<Type>::Show() const
 
 template <class Type> void cDenseMatrix<Type>::MatMulInPlace(const tDM & aM1,const tDM & aM2)
 {
+    tMat::CheckSizeMulInPlace(aM1,aM2);
     cNC_EigenMatWrap<Type> aMapThis(*this);
     cConst_EigenMatWrap<Type> aMap1(aM1);
     cConst_EigenMatWrap<Type> aMap2(aM2);
@@ -69,7 +70,7 @@ template <class Type> void cDenseMatrix<Type>::MatMulInPlace(const tDM & aM1,con
 
 template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse() const
 {
-   cMatrix<Type>::CheckSquare(*this);
+   tMat::CheckSquare(*this);
    cDenseMatrix<Type> aRes(Sz().x(),Sz().y());
 
    cConst_EigenMatWrap<Type> aMapThis(*this);
@@ -373,6 +374,46 @@ template <class Type> void cDenseMatrix<Type>::Weighted_Add_tAA(Type aWeight,con
 /*
         void  Weighted_Add_tAA(const tDV & aColLine,bool OnlySup=true) override;
 */
+
+
+template <class Type>  void  cDenseMatrix<Type>::Weighted_Add_tAA(Type aWeight,const tSpV & aSparseV,bool OnlySup)
+{  
+   tMat::CheckSquare(*this);
+   tMat::TplCheckX(aSparseV);
+   const typename cSparseVect<Type>::tCont & aIV =  aSparseV.IV();
+   int aNb  = aIV.size();
+
+   if (OnlySup)
+   {
+      for (int aKY=0 ; aKY<aNb ; aKY++)
+      {
+         Type aVy = aIV[aKY].mVal * aWeight;
+         int aY = aIV[aKY].mInd;
+         Type  * aLineMatrix = DIm().GetLine(aY);
+    
+         for (int aKX=  0 ; aKX<aNb ; aKX++)
+         {
+             int aX = aIV[aKX].mInd;
+             if (aX>=aY)
+                aLineMatrix[aX] +=  aVy * aIV[aKX].mVal;
+         }
+      }
+   }
+   else
+   {
+      for (int aKY=0 ; aKY<aNb ; aKY++)
+      {
+         Type aVy = aIV[aKY].mVal * aWeight;
+         Type  * aLineMatrix = DIm().GetLine(aIV[aKY].mInd);
+    
+         for (int aKX=  0 ; aKX<aNb ; aKX++)
+         {
+             aLineMatrix[aIV[aKX].mInd] +=  aVy * aIV[aKX].mVal;
+         }
+      }
+   }
+
+}
 
 
 /* ================================================= */
