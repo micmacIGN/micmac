@@ -22,6 +22,9 @@ template <class Type> class cMatrix  ;
 template <class Type> class cUnOptDenseMatrix ;
 template <class Type> class cDenseMatrix ;
 
+template <class Type> std::ostream & operator << (std::ostream & OS,const cDenseVect<Type> &aV);
+template <class Type> std::ostream & operator << (std::ostream & OS,const cMatrix<Type> &aMat);
+
 template <class Type> struct  cCplIV 
 {
     public :
@@ -122,16 +125,21 @@ template <class Type> class cMatrix  : public cRect2
          virtual void  Add_tAA(const tDV & aColLine,bool OnlySup=true) ;
          virtual void  Sub_tAA(const tDV & aColLine,bool OnlySup=true) ;
          virtual void  Weighted_Add_tAA(Type aWeight,const tDV & aColLine,bool OnlySup=true) ;
+
+         // Column operation
          virtual void  MulColInPlace(tDV &,const tDV &) const;
          virtual Type MulColElem(int  aY,const tDV &)const;
          tDV  MulCol(const tDV &) const; ///< Create a new vector
          virtual void ReadColInPlace(int aX,tDV &) const;
+         virtual tDV  ReadCol(int aX) const;
          virtual void WriteCol(int aX,const tDV &) ;
 
+         // Line operation
          virtual void  MulLineInPlace(tDV &,const tDV &) const;
          virtual Type MulLineElem(int  aX,const tDV &)const;
          tDV  MulLine(const tDV &) const;
          virtual void ReadLineInPlace(int aY,tDV &) const;
+         virtual tDV ReadLine(int aY) const;
          virtual void WriteLine(int aY,const tDV &) ;
 
 
@@ -433,6 +441,35 @@ template <class Type> class cStrStat2
        cDenseMatrix<Type>        mCov;  ///< Cov Matrix
        cResulSymEigenValue<Type> mEigen;  ///< Eigen/Value vectors stored here after DoEigen
 };
+
+
+/** More a less special case to  cStrStat2 for case 2 variable, very current and
+probably much more efficient */
+
+template <class Type> class cMatIner2Var
+{
+    public :
+       cMatIner2Var ();
+       void Add(const double & aPds,const Type & aV1,const Type & aV2);
+       const Type & S0()  const {return mS0;}
+       const Type & S1()  const {return mS1;}
+       const Type & S11() const {return mS11;}
+       const Type & S2()  const {return mS2;}
+       const Type & S12() const {return mS12;}
+       const Type & S22() const {return mS22;}
+       void Normalize();
+    private :
+        Type  mS0;
+        Type  mS1;
+        Type  mS11;
+        Type  mS2;
+        Type  mS12;
+        Type  mS22;
+};
+
+///  A function rather specific to bench, assimilate image to a distribution and compute it 0,1,2 moments
+template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm);
+
 
 
 

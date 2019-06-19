@@ -86,6 +86,7 @@ const std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
         TheRes.push_back(&TheSpec_TestEigen);
         TheRes.push_back(&TheSpec_ComputeParamIndexBinaire);
         TheRes.push_back(&TheSpecTestRecall);
+        TheRes.push_back(&TheSpecScaleImage);
    }
    
    return TheRes;

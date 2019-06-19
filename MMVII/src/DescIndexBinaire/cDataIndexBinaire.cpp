@@ -26,16 +26,16 @@ cMetaDataOneFileInvRad::cMetaDataOneFileInvRad
 )  :
    mDOIR (&aDOIR),
    mName (aName),
-   mDFIm (cDataFileIm2D::Create(aDOIR.Dir() + DirSeparator() + mName))
+   mDFIm (cDataFileIm2D::Create(aDOIR.Dir() + DirSeparator() + mName,true))
 {
 }
 
 void cMetaDataOneFileInvRad::SetNbPair()
 {
    // Check szP divide sz glob, shouldbe always true due to computation by HCF
-   MMVII_INTERNAL_ASSERT_strong(mDFIm.Sz().y()%mDOIR->SzP0().y()==0,"Size of Patch do not divide size image");
+   MMVII_INTERNAL_ASSERT_strong(mDFIm.Sz().y()%mDOIR->SzP0Init().y()==0,"Size of Patch do not divide size image");
 
-   mNbPair = mDFIm.Sz().y()/mDOIR->SzP0().y();
+   mNbPair = mDFIm.Sz().y()/mDOIR->SzP0Init().y();
 }
 
 
@@ -58,18 +58,21 @@ void  cMetaDataOneFileInvRad::AddPCar()
 {
     cIm2D<tU_INT1> aImGlob(mDFIm.Sz());  //! Contain global image
     aImGlob.Read(mDFIm,cPt2di(0,0));     // read file
-    cPt2di aSzP0 = mDOIR->SzP0();  //! Size of a Patch
+    cPt2di aSzP0Init = mDOIR->SzP0Init();  //! Size of a Patch before reduce
 
     for (int aKPatch=0 ; aKPatch<2*mNbPair ; aKPatch++)
     {
-        int aX0 = (aKPatch%2) *  aSzP0.x();  //! contains begin.x of current pair in global image
-        int aY0 = (aKPatch/2) *  aSzP0.y();  //! contains begin.y of current pair  in global image
+        int aX0 = (aKPatch%2) *  aSzP0Init.x();  //! contains begin.x of current pair in global image
+        int aY0 = (aKPatch/2) *  aSzP0Init.y();  //! contains begin.y of current pair  in global image
         cPt2di aP0(aX0,aY0); //! begin of current pair  in global image
 
         //  Put in a small image, safer in we want to reduce ...
-        cIm2D<tU_INT1> aImLoc(aSzP0);
+        cIm2D<tU_INT1> aImLoc(aSzP0Init);
         for (const auto & aPix : aImLoc.DIm()) // for each pixel of aImLoc 
             aImLoc.DIm().SetV(aPix,aImGlob.DIm().GetV(aPix+aP0)); //  copy Big in Small using offset
+
+        aImLoc = mDOIR->Appli().MakeImSz(aImLoc);
+        
 
         // Now put the small image at the end of current vect
         int aKVect =  mDOIR->PosInVect();
@@ -81,6 +84,7 @@ void  cMetaDataOneFileInvRad::AddPCar()
         }
         mDOIR->KFill() ++; // increment position of current vector
     }
+    
 }
 
 /* ==================================================== */
@@ -93,6 +97,8 @@ cDataOneInvRad::cDataOneInvRad(cAppli_ComputeParamIndexBinaire & anAppli,cDataOn
     mAppli (anAppli),
     mTIR   (aTIR),
     mDir   (anAppli.DirCurPC() + E2Str(aTIR) + DirSeparator()),
+    mSzP0Init(-1,-1),
+    mSzP0Final(-1,-1),
     mNbPixTot (0.0),
     mNbPatch  (0)
 {
@@ -117,23 +123,23 @@ cDataOneInvRad::cDataOneInvRad(cAppli_ComputeParamIndexBinaire & anAppli,cDataOn
         // If first file, initialize to size of file
         if (aK==0)
         {
-           mSzP0.x() = mMDOFIR.back().mDFIm.Sz().x();
-           if (mSzP0.x()%2!=0)
+           mSzP0Init.x() = mMDOFIR.back().mDFIm.Sz().x();
+           if (mSzP0Init.x()%2!=0)
            {
               MMVII_UsersErrror(eTyUEr::eUnClassedError,"exptected even witdh");
            }
-           mSzP0.x() /= 2;
-           mSzP0.y() = mMDOFIR.back().mDFIm.Sz().y();
+           mSzP0Init.x() /= 2;
+           mSzP0Init.y() = mMDOFIR.back().mDFIm.Sz().y();
         }
         else
         {
             // Sz.x of patch must be equal for all Image in one invariant
-            if ((2*mSzP0.x())!= mMDOFIR.back().mDFIm.Sz().x())
+            if ((2*mSzP0Init.x())!= mMDOFIR.back().mDFIm.Sz().x())
             {
                  MMVII_UsersErrror(eTyUEr::eUnClassedError,"Variable size in Invariant rad");
             } 
             // compute Sz.y as HCF (PGCD) 
-            mSzP0.y() = HCF(mSzP0.y(),mMDOFIR.back().mDFIm.Sz().y());
+            mSzP0Init.y() = HCF(mSzP0Init.y(),mMDOFIR.back().mDFIm.Sz().y());
         }
     }
     for (auto &  aMD : mMDOFIR)
@@ -143,12 +149,18 @@ cDataOneInvRad::cDataOneInvRad(cAppli_ComputeParamIndexBinaire & anAppli,cDataOn
        mNbPatch += 2 * aMD.mNbPair;  // Number of sub images total
     }
 
+    {
+       cIm2D<tU_INT1> aImgTmp(mSzP0Init);
+       aImgTmp = mAppli.MakeImSz(aImgTmp);
+       SetSzP0Final(aImgTmp.DIm().Sz());
+    }
+
     mPosInVect =  (aPrev==nullptr) ? 0 :  (aPrev->mPosInVect + aPrev->NbValByP()) ;
     // aPrev->mPosInVect + aPrev->NbValByP() ;
     
     StdOut()  <<  E2Str(mTIR)  
               << ", VS :" << aVS.size() 
-              << " SZ=" << mSzP0 
+              << " SZ=" << mSzP0Init
               << " Pos=" << mPosInVect 
               // << " NbPatch " << mNbPatch 
               << " Pix=" << mNbPixTot 
@@ -174,7 +186,8 @@ void cDataOneInvRad::CheckCoherence(const cDataOneInvRad& aD2) const
 
 int  cDataOneInvRad::NbValByP() const
 {
-    return mSzP0.x() * mSzP0.y();
+// StdOut() << "mSzP0Final.xmSzP0Final.x " << mSzP0Final << "\n";
+    return SzP0Final().x() * SzP0Final().y();
 }
 
 
@@ -192,13 +205,25 @@ void  cDataOneInvRad::AddPCar()
 
 cAppli_ComputeParamIndexBinaire& cDataOneInvRad::Appli()  {return mAppli;}
 const std::string & cDataOneInvRad::Dir() const {return mDir;}
-const cPt2di &  cDataOneInvRad::SzP0() const {return mSzP0;}
+const cPt2di &  cDataOneInvRad::SzP0Init() const {return mSzP0Init;}
 eTyInvRad  cDataOneInvRad::TIR() const {return mTIR;}
 tREAL8  cDataOneInvRad::NbPixTot() const {return mNbPixTot;}
 int  cDataOneInvRad::NbPatch() const {return mNbPatch;}
 int  cDataOneInvRad::PosInVect() const {return mPosInVect;}
 
 int& cDataOneInvRad::KFill() {return mKFill;}
+
+void  cDataOneInvRad::SetSzP0Final(const cPt2di & aP0F)
+{
+   MMVII_INTERNAL_ASSERT_strong(mSzP0Final.x()<0,"Multiple Init in SetSzP0Final");
+   mSzP0Final = aP0F;
+}
+const cPt2di &  cDataOneInvRad::SzP0Final() const 
+{
+   MMVII_INTERNAL_ASSERT_strong(mSzP0Final.x()>0,"SetSzP0Final non initialized");
+   return mSzP0Final;
+}
+
 
 /* ==================================================== */
 /*                                                      */

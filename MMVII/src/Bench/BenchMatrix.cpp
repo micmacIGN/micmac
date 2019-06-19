@@ -6,33 +6,6 @@
 namespace MMVII
 {
 
-template <class Type> std::ostream & operator << (std::ostream & OS,const cDenseVect<Type> &aV)
-{
-   OS << "[";
-   for (int aK=0 ; aK<aV.DIm().Sz() ; aK++)
-   {
-         if (aK!=0) OS << " ";
-         OS << aV(aK);
-   }
-   OS << "]";
-   return OS;
-}
-template <class Type> std::ostream & operator << (std::ostream & OS,const cMatrix<Type> &aMat)
-{
-   OS << "[\n";
-   for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
-   {
-      cDenseVect<Type> aV(aMat.Sz().x());
-      aMat.ReadLineInPlace(aY,aV);
-      OS << " " << aV << "\n";
-         // if (aK!=0) OS << " ";
-         // OS << aV(aK);
-   }
-   OS << "]\n";
-   return OS;
-}
-
-
 
 
 /* ===================================================== */

@@ -55,7 +55,7 @@ template <class Type,const int Dim> class cPtxd
            return aRes;
        }
        /// Contructor for 1 dim point, statically checked
-       cPtxd(const Type & x) :  mCoords{x} {static_assert(Dim==1,"bad dim in cPtxd initializer");}
+       explicit cPtxd(const Type & x) :  mCoords{x} {static_assert(Dim==1,"bad dim in cPtxd initializer");}
        /// Contructor for 2 dim point, statically checked
        cPtxd(const Type & x,const Type &y) :  mCoords{x,y} {static_assert(Dim==2,"bad dim in cPtxd initializer");}
        /// Contructor for 3 dim point, statically checked
@@ -90,13 +90,23 @@ template <class Type> inline cPtxd<Type,2> operator - (const cPtxd<Type,2> & aP1
 template <class Type> inline cPtxd<Type,3> operator - (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 { return cPtxd<Type,3>(aP1.x() - aP2.x(),aP1.y() - aP2.y(),aP1.z()-aP2.z()); }
 
+///  MulCByC multiplication coordinates by coordinates
+template <class Type> inline cPtxd<Type,1>  MulCByC (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
+{ return cPtxd<Type,1>(aP1.x() * aP2.x()); }
+template <class Type> inline cPtxd<Type,2>  MulCByC (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
+{ return cPtxd<Type,2>(aP1.x() * aP2.x(),aP1.y() * aP2.y()); }
+template <class Type> inline cPtxd<Type,3> MulCByC (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
+{ return cPtxd<Type,3>(aP1.x() * aP2.x(),aP1.y() * aP2.y(),aP1.z()*aP2.z()); }
+
+
+
 ///  unary operator - on points
 template <class Type> inline cPtxd<Type,1> operator - (const cPtxd<Type,1> & aP) {return  cPtxd<Type,1>(-aP.x());}
 template <class Type> inline cPtxd<Type,2> operator - (const cPtxd<Type,2> & aP) {return  cPtxd<Type,2>(-aP.x(),-aP.y());}
 template <class Type> inline cPtxd<Type,3> operator - (const cPtxd<Type,3> & aP) {return  cPtxd<Type,3>(-aP.x(),-aP.y(),-aP.z());}
 
 
-///  operator * scalar / points
+///  operator * scalar - points
 template <class Type> inline cPtxd<Type,1> operator * (const Type & aVal ,const cPtxd<Type,1> & aP) 
 {return  cPtxd<Type,1>(aP.x()*aVal);}
 template <class Type> inline cPtxd<Type,1> operator * (const cPtxd<Type,1> & aP,const Type & aVal) 
@@ -109,6 +119,21 @@ template <class Type> inline cPtxd<Type,3> operator * (const Type & aVal ,const 
 {return  cPtxd<Type,3>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
 template <class Type> inline cPtxd<Type,3> operator * (const cPtxd<Type,3> & aP,const Type & aVal) 
 {return  cPtxd<Type,3>(aP.x()*aVal,aP.y()*aVal,aP.z()*aVal);}
+
+///  operator /  points-scalar
+template <class Type> inline cPtxd<Type,1> operator / (const cPtxd<Type,1> & aP,const Type & aVal) 
+{return  cPtxd<Type,1>(aP.x()/aVal);}
+template <class Type> inline cPtxd<Type,2> operator / (const cPtxd<Type,2> & aP,const Type & aVal) 
+{return  cPtxd<Type,2>(aP.x()/aVal,aP.y()/aVal);}
+template <class Type> inline cPtxd<Type,3> operator / (const cPtxd<Type,3> & aP,const Type & aVal) 
+{return  cPtxd<Type,3>(aP.x()/aVal,aP.y()/aVal,aP.z()/aVal);}
+
+
+///  operator == on points
+template <class T> inline T Norm1(const cPtxd<T,1> & aP) {return std::abs(aP.x());}
+template <class T> inline T Norm1(const cPtxd<T,2> & aP) {return std::abs(aP.x())+std::abs(aP.y());}
+template <class T> inline T NormInf(const cPtxd<T,1> & aP) {return std::abs(aP.x());}
+template <class T> inline T NormInf(const cPtxd<T,2> & aP) {return std::max(std::abs(aP.x()),std::abs(aP.y()));}
 
 
 ///  operator == on points

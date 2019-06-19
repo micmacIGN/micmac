@@ -194,6 +194,8 @@ int ScaleIm_main(int argc,char ** argv)
           Tiff_Im::CreateFromFonc(aNameDepl+"-DepY.tif",aSzG,(FY-aP0.y)/aScY-FY,GenIm::real4);
        }
     }
+
+// std::cout << "isUsingSeparateDirectories" << isUsingSeparateDirectories() << "\n";
     return EXIT_SUCCESS;
 }
 

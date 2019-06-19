@@ -47,6 +47,7 @@ cCollecSpecArg2007 & cAppli_ComputeParamIndexBinaire::ArgOpt(cCollecSpecArg2007 
          << AOpt2007(mNbTestCombInit,"NbComb0","Number of test on initial combinaison",{eTA2007::HDV})
          << AOpt2007(mNbOptCombLoc,"NbCombLoc","Number of test for local combinatory opt",{eTA2007::HDV})
          << AOpt2007(mQuickBits,"QB","Set all parameter of opt to low def value (for fast tuning)",{eTA2007::HDV})
+         << AOpt2007(mZoomImg,"ZoomImg","Zoom of decimation of images",{eTA2007::HDV})
          << AOpt2007(mSaveFileSelVectIR,"SaveFSVIR","File to save selected radial inv",{})
    ;
 }
@@ -67,6 +68,7 @@ cAppli_ComputeParamIndexBinaire::cAppli_ComputeParamIndexBinaire(int argc,char**
   mNbTestCombInit (500),
   mNbOptCombLoc  (800),
   mQuickBits     (false),
+  mZoomImg       (1),
   mNbValByP    (0),
   mTmpVect     (1),    // need to initialize, but do not know the size
   mStat2       (1),     // idem
@@ -81,6 +83,7 @@ double  cAppli_ComputeParamIndexBinaire::PropFile() const {return mPropFile;}
 cVecInvRad*  cAppli_ComputeParamIndexBinaire::IR(int aK) { return  mVIR.at(aK).get(); }
 cDenseVect<tREAL8> &    cAppli_ComputeParamIndexBinaire::TmpVect() {return mTmpVect;}
 const cStrStat2<tREAL8> & cAppli_ComputeParamIndexBinaire::Stat2() { return mStat2;}
+int cAppli_ComputeParamIndexBinaire::ZoomImg() const {return mZoomImg;}
 
 const cResulSymEigenValue<tREAL8> &  cAppli_ComputeParamIndexBinaire::Eigen() const
 {
@@ -98,6 +101,7 @@ int cAppli_ComputeParamIndexBinaire::Exe()
        if (! IsInit(&mNbEigenVal)) mNbEigenVal = 50;
        if (! IsInit(&mNbTestCombInit)) mNbTestCombInit = 100;
        if (! IsInit(&mNbOptCombLoc)) mNbOptCombLoc = 200;
+       if (! IsInit(&mZoomImg)) mZoomImg = 2;
    }
    // Transform inout pattern into a vector  of enum radial  invariant
    mVecTyIR = SubOfPat<eTyInvRad>(mPatInvRad,false);
@@ -174,6 +178,14 @@ void  cAppli_ComputeParamIndexBinaire::ProcessOneDir(const std::string & aDir)
    // In index binaire mode
    ComputeIndexBinaire();
 }
+
+cIm2D<tU_INT1> cAppli_ComputeParamIndexBinaire::MakeImSz(cIm2D<tU_INT1> aImg)
+{
+   if (mZoomImg != 1)
+      return aImg.GaussDeZoom(mZoomImg);
+   return aImg;
+}
+
 
 void  cAppli_ComputeParamIndexBinaire::ComputeIndexBinaire()
 {
@@ -253,9 +265,11 @@ void  cAppli_ComputeParamIndexBinaire::OneIterComputeIndexBinaire()
     // SaveFileData();
 }
 
+/*
 void cAppli_ComputeParamIndexBinaire::SaveFileData()
 {
 }
+*/
 
 std::vector<const cVecBool*> cAppli_ComputeParamIndexBinaire::IndexToVB(const std::vector<int>& aSet) const
 {

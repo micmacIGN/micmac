@@ -40,6 +40,7 @@ enum class eApF
            {
                Project, ///< Project Managenent
                Test,    ///< Test
+               ImProc,  ///< Image processing
                Ori,     ///< Orientation
                Match,   ///< Dense Matching
                TieP,    ///< Tie-Point processing
@@ -53,6 +54,7 @@ enum class eApDT
            {
               Ori,    ///< Orientation
               TieP,   ///< Tie Points
+              Image,   ///< Tie Points
               Ply,    ///< Ply file
               None,     ///< Nothing 
               Console,  ///< Console 

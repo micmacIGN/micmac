@@ -53,9 +53,14 @@ SrcMMV1=$(wildcard ${MMV2DirMMV1}*.cpp)
 ObjMMV1=$(SrcMMV1:.cpp=.o) 
 #
 #
-MMV2DirRamImages=${MMV2DirSrc}RamImages/
-SrcRamImages=$(wildcard ${MMV2DirRamImages}*.cpp)
-ObjRamImages=$(SrcRamImages:.cpp=.o) 
+MMV2DirImagesBase=${MMV2DirSrc}ImagesBase/
+SrcImagesBase=$(wildcard ${MMV2DirImagesBase}*.cpp)
+ObjImagesBase=$(SrcImagesBase:.cpp=.o) 
+#
+#
+MMV2DirImagesFiltrLinear=${MMV2DirSrc}ImagesFiltrLinear/
+SrcImagesFiltrLinear=$(wildcard ${MMV2DirImagesFiltrLinear}*.cpp)
+ObjImagesFiltrLinear=$(SrcImagesFiltrLinear:.cpp=.o) 
 #
 #
 MMV2DirMatrix=${MMV2DirSrc}Matrix/
@@ -77,7 +82,7 @@ ObjPerso=$(SrcPerso:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB} ${ObjRamImages} ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} 
+OBJ=   ${ObjImagesFiltrLinear} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB} ${ObjImagesBase}  ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} 
 #
 #=========  Header ========
 #
@@ -124,7 +129,9 @@ ${MMV2DirUtils}%.o :  ${MMV2DirUtils}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirSerial}%.o :  ${MMV2DirSerial}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
-${MMV2DirRamImages}%.o :  ${MMV2DirRamImages}%.cpp   ${HEADER}
+${MMV2DirImagesBase}%.o :  ${MMV2DirImagesBase}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirImagesFiltrLinear}%.o :  ${MMV2DirImagesFiltrLinear}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirMatrix}%.o :  ${MMV2DirMatrix}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
@@ -138,9 +145,9 @@ all : ${MMV2DirBin}${MMV2Exe} ${OBJ}
 Show:
 	echo ${SrcUtils}
 	echo DU=${MMV2DirUtils}
-	echo ObjRamImages: ${ObjRamImages}
-	echo SrcRamImages: ${SrcRamImages}
-	echo MMV2DiRamImages: ${MMV2DiRamImages}
+	echo ObjImagesBase: ${ObjImagesBase}
+	echo SrcImagesBase: ${SrcImagesBase}
+	echo MMV2DiImagesBase: ${MMV2DiImagesBase}
 clean :
 	rm -f ${OBJ}
 #

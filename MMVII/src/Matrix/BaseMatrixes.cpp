@@ -4,6 +4,7 @@
 namespace MMVII
 {
 
+
 /*
    General note on this file :
 
@@ -87,6 +88,17 @@ template <class Type> void  cDenseVect<Type>::WeightedAddIn(Type aW,const tSpV &
 }
 
 
+template <class Type> std::ostream & operator << (std::ostream & OS,const cDenseVect<Type> &aV)
+{
+   OS << "[";
+   for (int aK=0 ; aK<aV.DIm().Sz() ; aK++)
+   {
+         if (aK!=0) OS << " ";
+         OS << aV(aK);
+   }
+   OS << "]";
+   return OS;
+}
 
 
 /* ========================== */
@@ -337,6 +349,21 @@ template <class Type> void cMatrix<Type>::WriteCol(int aX,const tDV  &aV)       
 template <class Type> void cMatrix<Type>::ReadLineInPlace(int aY,tDV & aV) const {TplReadLineInPlace(*this,aY,aV);}
 template <class Type> void cMatrix<Type>::WriteLine(int aY,const tDV  &aV)       {TplWriteLine(*this,aY,aV);}
 
+template <class Type> cDenseVect<Type>  cMatrix<Type>::ReadCol(int aX) const
+{
+     cDenseVect<Type> aRes(Sz().y());
+     ReadColInPlace(aX,aRes);
+
+     return aRes;
+}
+
+template <class Type> cDenseVect<Type>  cMatrix<Type>::ReadLine(int aX) const
+{
+     cDenseVect<Type> aRes(Sz().x());
+     ReadLineInPlace(aX,aRes);
+
+     return aRes;
+}
 
      //    ===   MulMat ====
 
@@ -413,6 +440,22 @@ template <class Type> cDenseVect<Type> operator * (const cMatrix<Type> & aMat,co
    return aMat.MulCol(aCol);
 }
 
+template <class Type> std::ostream & operator << (std::ostream & OS,const cMatrix<Type> &aMat)
+{
+   OS << "[\n";
+   for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
+   {
+      cDenseVect<Type> aV(aMat.Sz().x());
+      aMat.ReadLineInPlace(aY,aV);
+      OS << " " << aV << "\n";
+         // if (aK!=0) OS << " ";
+         // OS << aV(aK);
+   }
+   OS << "]\n";
+   return OS;
+}
+
+
 /* ===================================================== */
 /* ===================================================== */
 /* ===================================================== */
@@ -423,6 +466,9 @@ template  class  cDenseVect<Type>;\
 template  class  cMatrix<Type>;\
 template  cDenseVect<Type> operator * (const cDenseVect<Type> & aLine,const cMatrix<Type> & aMat);\
 template  cDenseVect<Type> operator * (const cMatrix<Type> & aMat ,const cDenseVect<Type> & aCol);\
+template  std::ostream & operator << (std::ostream & OS,const cMatrix<Type> &aMat);\
+template  std::ostream & operator << (std::ostream & OS,const cDenseVect<Type> &aV);\
+
 
 
 

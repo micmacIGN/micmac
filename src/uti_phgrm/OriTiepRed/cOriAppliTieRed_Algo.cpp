@@ -77,9 +77,9 @@ void cAppliTiepRed::DoLoadTiePoints(bool DoMaster)
                    if (aCam1.IsMaster() || aCam2.IsMaster())
                    {
                        if (anI1 < anI2)
-                          aCam1.LoadHom(aCam2);
+                          aCam1.LoadHomCam(aCam2);
                         else
-                          aCam2.LoadHom(aCam1);
+                          aCam2.LoadHomCam(aCam1);
                    }
                }
                else  
@@ -87,7 +87,7 @@ void cAppliTiepRed::DoLoadTiePoints(bool DoMaster)
                    if ( (! aCam1.IsMaster()) && (!aCam2.IsMaster()))
                    {
                        ELISE_ASSERT(anI1<anI2,"Name Sort incAppliTiepRed::DoLoadTiePoints ");
-                       aCam1.LoadHom(aCam2);
+                       aCam1.LoadHomCam(aCam2);
                    }
                }
             }

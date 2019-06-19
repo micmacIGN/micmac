@@ -194,6 +194,9 @@ void cAppli_MMVII_Bench::BenchFiles()
 }
 
 
+void BenchFilterLinear();
+
+
 int  cAppli_MMVII_Bench::Exe()
 {
    // Begin with purging directory
@@ -235,6 +238,7 @@ int  cAppli_MMVII_Bench::Exe()
    BenchStrIO();
 
 
+   BenchFilterLinear();
 
    // We clean the temporary files created
    RemoveRecurs(TmpDirTestMMVII(),true,false);

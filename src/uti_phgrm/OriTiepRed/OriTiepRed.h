@@ -154,7 +154,7 @@ class cCameraTiepRed
         const int &   NbPtsHom2Im() const;
 
         // Load the tie point between this and Cam2
-        void LoadHom(cCameraTiepRed & aCam2);
+        void LoadHomCam(cCameraTiepRed & aCam2);
 
         //  handle numeration of camera (associate a unique integer to each camera), because in topological merging ,
         // images are referenced by numbers

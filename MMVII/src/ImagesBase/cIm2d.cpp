@@ -1,4 +1,5 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -90,7 +91,7 @@ template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aSz,Type * aRawDataLin,
 
 template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aName)
 {
-   cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName);
+   cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,true);
    cIm2D<Type> aRes(aFileIm.Sz());
    aRes.Read(aFileIm,cPt2di(0,0));
 
@@ -103,6 +104,39 @@ template <class Type>  cIm2D<Type>  cIm2D<Type>::Dup() const
    DIm().DupIn(aRes.DIm());
    return aRes;
 }
+
+
+template <class Type>  cIm2D<Type>  cIm2D<Type>::GaussFilter(double aStdDev,int aNbIter) const
+{
+    cIm2D<typename tElemNumTrait<Type>::tFloatAssoc> aImFloat(DIm().P0(),DIm().P1());
+    CopyIn(aImFloat.DIm(),DIm());
+    ExpFilterOfStdDev(aImFloat.DIm(),aNbIter,aStdDev);
+
+    cIm2D<Type> aRes(DIm().P0(),DIm().P1()); //  (DIm().P0(),DIm.P1());
+    CopyIn(aRes.DIm(),aImFloat.DIm());
+
+    return aRes;
+}
+
+template <class Type>  cIm2D<Type>  cIm2D<Type>::Decimate(int aFact) const
+{
+   // Not sure wat would be the meaning of origini != (0,0) 4 decimate
+   MMVII_INTERNAL_ASSERT_strong(DIm().P0()==cPt2di(0,0),"Decimate require (0,0) origin");
+   cIm2D<Type> aRes(mPIm->Sz()/aFact);
+   cDataIm2D<Type> & aDRes = aRes.DIm();
+
+   for (const auto & aP : aDRes)
+      aDRes.SetV(aP,mPIm->GetV(aP*aFact));
+
+   return aRes;
+}
+
+
+template <class Type>  cIm2D<Type>  cIm2D<Type>::GaussDeZoom(int aFact, int aNbIterExp,double dilate) const
+{
+    return GaussFilter(aFact*dilate,aNbIterExp).Decimate(aFact);
+}
+
 
 
 

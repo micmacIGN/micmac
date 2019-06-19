@@ -471,6 +471,8 @@ bool ElGetStrSys( const std::string & i_base_cmd, std::string &o_result )
 static std::string ArgvMMDir;
 static std::string CurrentProgramFullName;
 static std::string CurrentProgramSubcommand = "unknown";
+std::string MM3DFixeByMMVII ="";
+
 void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 {
     static bool First=true;
@@ -540,6 +542,10 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 
             // if which failed then we're doomed
             ELISE_ASSERT( whichSucceed, "MMD_InitArgcArgv : unable to retrieve binaries directory" );
+        }
+        if (MM3DFixeByMMVII !="")
+        {
+           aFullArg0 = MM3DFixeByMMVII ;
         }
 
         std::string aPatProg = "([0-9]|[a-z]|[A-Z]|_)+";

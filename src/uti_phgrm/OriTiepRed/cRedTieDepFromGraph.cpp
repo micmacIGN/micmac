@@ -472,7 +472,6 @@ double  cAppliGrRedTieP::SzPixDec() const
 
 
         // ------------------ Box creation ------------
-// mm3d OriRedTieP IMGP70.*JPG OriCalib=Ori-AllRel/ KBox=102
 
 std::string cAppliGrRedTieP::ComOfKBox(int aKBox)
 {
@@ -508,7 +507,11 @@ void cAppliGrRedTieP::CreateBoxOfSom(tSomGRTP *aSom)
     double aRab = aSzD / 50.0;
     Pt2dr aPRab(aRab,aRab);
 
+
+
     cRealDecoupageInterv2D aRDec(aBox,Pt2dr(aSzD,aSzD),Box2dr(-aPRab,aPRab));
+
+
     for (int aKI=0 ; aKI< aRDec.NbInterv() ; aKI++)
     {
          cXml_ParamBoxReducTieP aXPB;
@@ -867,6 +870,7 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
              cXml_Ori2Im anOri = mNoNM->GetOri2Im(itCp->N1(),itCp->N2());
              cAttArcSymGrRedTP * aAASym = new cAttArcSymGrRedTP(anOri);
              mGr.add_arc(*aS1,*aS2,new cAttArcASymGrRedTP(aAASym,true),new cAttArcASymGrRedTP(aAASym,false));
+
         }
     }
      

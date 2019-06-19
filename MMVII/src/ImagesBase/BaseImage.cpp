@@ -69,7 +69,8 @@ template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,co
      mEnd    (*this,CalPEnd(aP0,aP1)),
      mNbElem (1)
 {
-    for (int aK=Dim-1 ; aK>=0 ; aK--)
+    //for (int aK=Dim-1 ; aK>=0 ; aK--)
+    for (int aK=0 ; aK<Dim ; aK++)
     {
        mSz[aK] = mP1[aK] - mP0[aK];
        if (AllowEmpty)
@@ -80,10 +81,19 @@ template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,co
        {
           MMVII_INTERNAL_ASSERT_strong(mSz[aK]>0,MesNegSz);
        }
-       mNbElem *= mSz[aK];
        mSzCum[aK] = mNbElem;
+       mNbElem *= mSz[aK];
     }
 }
+
+template <const int Dim> tINT8  cRectObj<Dim>::IndexeLinear(const tPt & aP) const
+{
+   tINT8 aRes = 0;
+   for (int aK=0 ; aK<Dim ; aK++)
+      aRes += tINT8(aP[aK]-mP0[aK]) * tINT8(mSzCum[aK]);
+   return aRes;
+}
+
 
 
 template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1) :
@@ -318,14 +328,35 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitRandom()
        mRawDataLin[aK] = tTraits::RandomValue();
 }
 
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitRandom(const Type & aV0,const Type &aV1)
+{
+   for (tINT8 aK=0 ; aK< NbElem() ; aK++)
+   {
+       mRawDataLin[aK] = Type(aV0 + (aV1-aV0) *RandUnif_0_1());
+       if (mRawDataLin[aK]==aV1) 
+           mRawDataLin[aK]--;
+   }
+}
+
+
+
+
 template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitRandomCenter()
 {
    for (tINT8 aK=0 ; aK< NbElem() ; aK++)
        mRawDataLin[aK] = tTraits::RandomValueCenter();
 }
 
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitDirac(const cPtxd<int,Dim> & aP,const Type &  aVal)
+{
+    InitNull();
+    mRawDataLin[tRO::IndexeLinear(aP)] = aVal;
+}
 
-
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitDirac(const Type &  aVal)
+{
+    InitDirac((tRO::mP0+tRO::mP1)/2,aVal);
+}
 
 
 

@@ -28,6 +28,8 @@ const std::string TmpMMVIIDir    = "Tmp-2007-Dir/";
 const std::string MMVIITestDir    = "MMVII-TestDir/";
 
 // Name of common parameters
+      // -- Current
+const std::string CurOP_Out = "Out";  ///< Many command have an Output file 
       // -- External
 const std::string GOP_DirProj  = "DirProj";
 const std::string GOP_NumVO    = "NumVOut";

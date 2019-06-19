@@ -18,29 +18,15 @@ namespace MMVII
 /*              cIB_FoncBool            */
 /* ==================================== */
 
-cIB_FoncBool::cIB_FoncBool(cAppli_ComputeParamIndexBinaire & anAppli) :
-   mAppli (anAppli)
-{
-}
-
-
-double cIB_FoncBool::RCalc(const cVecInvRad & aVIR) const
-{
-   return Calc(aVIR) ? 0.5 : -0.5;
-}
-
-cIB_FoncBool::~cIB_FoncBool()
-{
-}
 
 /* ==================================== */
 /*         cIB_LinearFoncBool           */
 /* ==================================== */
 
 cIB_LinearFoncBool::cIB_LinearFoncBool(cAppli_ComputeParamIndexBinaire & anAppli,int aK,double aTreshold) :
-   cIB_FoncBool (anAppli),
-   mK           (aK),
-   mThresh      (aTreshold)
+   mAppli    (anAppli),
+   mK        (aK),
+   mThresh   (aTreshold)
 {
 }
 
@@ -62,7 +48,7 @@ double cIB_LinearFoncBool::RCalc(const cVecInvRad & aVIR) const
 /* ==================================== */
 
 
-cVecBool::cVecBool(cIB_FoncBool * aFB,const tVPtVIR & aVIR)  :
+cVecBool::cVecBool(cIB_LinearFoncBool * aFB,const tVPtVIR & aVIR)  :
     mFB (aFB),
     mCdg0 (aVIR.at(0)->mVec.DIm().Sz(),eModeInitImage::eMIA_Rand),
     mNb0  (0),

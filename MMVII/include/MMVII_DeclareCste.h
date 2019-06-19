@@ -22,6 +22,9 @@ extern const std::string TagSetOfCpleName;  ///< Xml (sub) top tag for  Set of C
 // ------
 extern const std::string TheMMVII_SysName ; ///< Name of Operating system
 
+// Name of current optionnal parameters, to facilitate sharings ...
+extern const std::string CurOP_Out;  ///< Many command have an Output file 
+
 // Name of global optionnal parameters
 extern const std::string GOP_DirProj;  ///< Directory of Proj
 extern const std::string GOP_NumVO;    ///< NumVOut 
@@ -52,6 +55,14 @@ extern const   std::string Bin2007; ///< MMVII 4 now
 // Users Value
 
 extern const   std::string MMVII_NONE;  ///< For command, each time a "no value" can be used
+
+ /*=====================================================*/
+ /*                                                     */
+ /*    Numerical value                                  */
+ /*                                                     */
+ /*=====================================================*/
+
+#define  DefStdDevRessample  0.5 // 
 
 };
 

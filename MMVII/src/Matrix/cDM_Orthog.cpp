@@ -270,6 +270,52 @@ template <class Type>  double cStrStat2<Type>::KthNormalizedCoord(int aX,const c
   return mEigen.EigenVectors().MulLineElem(aX,aV2) -mMoyMulVE(aX);
 }
 
+/* ============================================= */
+/*      cMatIner2Var<Type>                       */
+/* ============================================= */
+
+template <class Type> cMatIner2Var<Type>::cMatIner2Var() :
+   mS0  (0.0),
+   mS1  (0.0),
+   mS11 (0.0),
+   mS2  (0.0),
+   mS12 (0.0),
+   mS22 (0.0)
+{
+}
+template <class Type> void cMatIner2Var<Type>::Add(const double & aPds,const Type & aV1,const Type & aV2)
+{
+    mS0  += aPds;
+    mS1  += aPds * aV1;
+    mS11 += aPds * aV1 * aV1 ;
+    mS2  += aPds * aV2;
+    mS12 += aPds * aV1 * aV2 ;
+    mS22 += aPds * aV2 * aV2 ;
+}
+
+template <class Type> void cMatIner2Var<Type>::Normalize()
+{
+     mS1 /= mS0;
+     mS2 /= mS0;
+     mS11 /= mS0;
+     mS12 /= mS0;
+     mS22 /= mS0;
+     mS11 -= Square(mS1);
+     mS12 -= mS1 * mS2;
+     mS22 -= mS2 * mS2;
+}
+
+template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm)
+{
+    cMatIner2Var<double> aRes;
+    for (const auto & aP : aIm)
+    {
+         aRes.Add(aIm.GetV(aP),aP.x(),aP.y());
+    }
+    aRes.Normalize();
+    return aRes;
+}
+
 
 /* ===================================================== */
 /* =====              INSTANTIATION                ===== */
@@ -281,6 +327,8 @@ template  class  cStrStat2<Type>;\
 template  class  cDenseMatrix<Type>;\
 template  class  cResulSymEigenValue<Type>;\
 template  class  cResulQR_Decomp<Type>;\
+template  class  cMatIner2Var<Type>;\
+template  cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm);
 
 INSTANTIATE_ORTHOG_DENSE_MATRICES(tREAL4)
 INSTANTIATE_ORTHOG_DENSE_MATRICES(tREAL8)
