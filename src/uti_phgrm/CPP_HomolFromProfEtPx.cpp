@@ -51,12 +51,13 @@ class cAppliHomProfPx
 
     private:
         std::string mDir;
+        std::string mNameIm1;
         std::string mNameIm2;
         std::string mNameCoordIm1;
         std::string mOri;
         std::string mNuageName;
         std::string mPxName;
-        std::string mOut;
+        std::string mSH;
         cInterfChantierNameManipulateur* mICNM;
 
         cElNuage3DMaille * mNuage;
@@ -77,11 +78,13 @@ class cAppliHomProfPx
         int                 mZoomFinal;
         int                 mNumFinal;
 
+        int                 mZoomRatio;//zoom ratio between mNameCoordIm1 and mTProf and mTPx
+
 };
 
 cAppliHomProfPx::cAppliHomProfPx(int argc,char ** argv) :
     mDir("./"),
-    mOut("HomProfPx.txt"),
+    mSH(""),
     mNuage     (0),
     mImCorrel  (1,1),
     mImProf    (1,1),
@@ -91,19 +94,22 @@ cAppliHomProfPx::cAppliHomProfPx(int argc,char ** argv) :
     mMasq      (1,1),
     mTMasq     (mMasq),
     mZoomFinal (2),
-    mNumFinal  (11)
+    mNumFinal  (11),
+    mZoomRatio (1)
 {
 
     
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(mNameIm2,"Name of the \"second\" image of the pair", eSAM_IsPatFile)
+        LArgMain()  << EAMC(mNameIm1,"Name of the \"first\" image of the pair", eSAM_IsPatFile)
+                    << EAMC(mNameIm2,"Name of the \"second\" image of the pair", eSAM_IsPatFile)
                     << EAMC(mOri,"Input orientation directory", eSAM_IsExistFile)
                     << EAMC(mNuageName,"Path to the NuageImProf file", eSAM_IsExistFile)
                     << EAMC(mPxName,"Path to the Px2 file", eSAM_IsExistFile)
                     << EAMC(mNameCoordIm1,"Input file with pixel positions in the \"first\" image pair (DicoAppuisFlottant format)", eSAM_NoInit),
-        LArgMain()  << EAM(mOut,"Out",true,"Output file with correspondences in the image pair", eSAM_NoInit)
+        LArgMain()  << EAM(mSH,"SH",true,"Output homol post-fix", eSAM_NoInit)
+                    << EAM(mZoomRatio,"ZoomR", true, "Zoom Ratio",eSAM_IsPowerOf2)
                     << EAM(mZoomFinal,"ZoomF", true, "Zoom Final",eSAM_IsPowerOf2)
                     << EAM(mNumFinal,"NumF", true, "Num Final",eSAM_IsPowerOf2)
                     << EAM(mNumCorrel,"NumCor","true","Num Correl", eSAM_NoInit)
@@ -177,28 +183,57 @@ void cAppliHomProfPx::ExportHom()
 {
 
     ElPackHomologue aPHom;
+    ElPackHomologue aPHomSym;
 
     std::list<cOneAppuisDAF>::iterator itA=aD.OneAppuisDAF().begin();
     for( ; itA!=aD.OneAppuisDAF().end(); itA++ )
     {
         Pt2dr aPtIm1(itA->Pt().x,itA->Pt().y);
-        
+        Pt2dr aPtIm1Full(double(aPtIm1.x)*mZoomRatio,double(aPtIm1.y)*mZoomRatio);
+       
+
         Pt3dr aPtTer = mNuage->PtOfIndexInterpol(aPtIm1);
         
-        Pt2dr aPtIm2 = mCS2->R3toF2(aPtTer);
 
-        Pt2dr aPtIm2Cor = aPtIm2 + mVPxT * mTPx.getr(aPtIm1);
-        
-        std::cout << "im1=" << aPtIm1 << "  ,im2=" << aPtIm2Cor << "\n";
-
-        ElCplePtsHomologues aCple(aPtIm1,aPtIm2Cor);
-        aPHom.Cple_Add(aCple);
+        if (mCS2->PIsVisibleInImage(aPtTer))
+        {
+            Pt2dr aPtIm2 = mCS2->R3toF2(aPtTer);
+            Pt2dr aPtIm2Cor = aPtIm2 + mVPxT * mTPx.getr(aPtIm1) * mZoomRatio;//a verifier le ratio
+           
+            //std::cout << "PtTer=" << aPtTer << " " << "\n";
+            //std::cout << "im1=" << aPtIm1 << "  ,im2=" << aPtIm2 << " / " << aPtIm2Cor <<  " : " <<   mVPxT * mTPx.getr(aPtIm1) * mZoomRatio << "\n";
+         
+            ElCplePtsHomologues aCple(aPtIm1Full,aPtIm2Cor);
+            aPHom.Cple_Add(aCple);
+            aPHomSym.Cple_Add(ElCplePtsHomologues(aPtIm2Cor,aPtIm1Full));
+        }
+        else
+            std::cout << "not visible : " << aPtIm1Full << "\n"; 
 
     }
    
-    aPHom.StdPutInFile(mOut); 
+    std::string aHomFile = mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+ mSH+"@txt",mNameIm1,mNameIm2,true);
+    std::string aHomSymFile = mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+ mSH+"@txt",mNameIm2,mNameIm1,true);
 
-    std::cout << "Saved to: " << mOut << "\n";
+    std::cout << "Saved to: \n";
+    if (! ELISE_fp::exist_file(aHomFile))
+    {
+        aPHom.StdPutInFile(aHomFile);
+        std::cout << aHomFile << " \n";
+    }
+    else
+        std::cout << aHomFile << " already exists; nothing has been saved." << "\n";
+
+    if (! ELISE_fp::exist_file(aHomSymFile))
+    {
+        aPHomSym.StdPutInFile(aHomSymFile);
+        std::cout << aHomSymFile << "\n";
+    }
+    else
+        std::cout << aHomSymFile << " already exists; nothing has been saved." << "\n";
+
+
+
 
 
 }
