@@ -42,6 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../Apero/cPose.cpp"
 //extern bool ERupnik_MM();
 
+ElRotation3D TestOriConvention(std::string & aNameOri, const std::string & mNameIm1, const std::string & mNameIm2);
 
 /* contains both triplets and couples;
    if couples then aC3=0 */
@@ -269,6 +270,7 @@ void cAppliFictObs::GenerateFicticiousObs()
 
 
         //variable to keep track of retained points
+        int a1Rec=0, a2Rec=0;
         std::vector<Pt3dr> aVPSel; 
         //back-proj the fict points to the triplet/cple
         for (int aK=0; aK<(int)aVP.size(); aK++)
@@ -286,7 +288,7 @@ void cAppliFictObs::GenerateFicticiousObs()
                 if (IsInSz(aPt))
                 {
                     //get residual 
-                    Pt2dr aCor;
+                    Pt2dr aCor(0.0,0.0);
                     mAR[aT.second->mId1]->ExportResXY(ApplyRedFac(aPt),aCor);
 
                     //check whether still inside the image
@@ -295,8 +297,8 @@ void cAppliFictObs::GenerateFicticiousObs()
                     {
                         aPImV.push_back(aPtCor);
                         aTriIdsCpy.push_back(aTriIds.at(aC));
-                    }
-                }
+                    } else a2Rec++;
+                } else a1Rec++;
                
                 //save points if visible in at leasst 2 images 
                 if (aTriIdsCpy.size() >1) 
@@ -331,8 +333,8 @@ void cAppliFictObs::GenerateFicticiousObs()
 
             }
         }
-        std::cout << "Pts out of image: " << int(aVPSel.size()) 
-                                  << " ~" << double(aVPSel.size())/ (double)aVP.size() *100.0 << ", images:";
+        std::cout << "Pts out of image: " << a1Rec << " " << a2Rec << " " << int(aVPSel.size()) 
+                                  << " ~" << (1-double(aVPSel.size())/ (double)aVP.size()) *100.0 << ", images:";
         for (int aC=0; aC<int(aTriIds.size()); aC++)
             std::cout << mSetName->at(aTriIds.at(aC)) << ", " ;
         std::cout << "\n";
@@ -578,10 +580,10 @@ void cAppliFictObs::Initialize()
                 aC3 = aC1->Dupl();
          
             //update poses 
-            aC1->SetOrientation(aP1.inv());
-            aC2->SetOrientation(aP2.inv());
-            aC3->SetOrientation(aP3.inv());
-         
+            aC1->SetOrientation(aP1);//.inv()
+            aC2->SetOrientation(aP2);
+            aC3->SetOrientation(aP3);
+
          
             mTriMap[aTriNb] = new TripleStr(aC1,mNameMap[a3.Name1()],
                                             aC2,mNameMap[a3.Name2()],
@@ -619,8 +621,8 @@ void cAppliFictObs::Initialize()
                 aC2 = aC1->Dupl();
          
             //update poses
-            aC1->SetOrientation(aP1.inv()); 
-            aC2->SetOrientation(aP2.inv()); 
+            aC1->SetOrientation(aP1);//.inv() 
+            aC2->SetOrientation(aP2);//.inv); 
          
             mTriMap[aTriNb] = new TripleStr(aC1,mNameMap[a2.N1()],
                                             aC2,mNameMap[a2.N2()]);
@@ -689,6 +691,8 @@ int CPP_FictiveObsFin_main(int argc,char ** argv)
  
 }
 
+
+ 
 int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
 {
     std::string aPattern;
@@ -778,9 +782,9 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
                 aC3 = aC1->Dupl();
 
             //update poses 
-            aC1->SetOrientation(aP1.inv());
-            aC2->SetOrientation(aP2.inv());
-            aC3->SetOrientation(aP3.inv());
+            aC1->SetOrientation(aP1);//.inv()
+            aC2->SetOrientation(aP2);//.inv()
+            aC3->SetOrientation(aP3);//.inv()
 
             cOrientationConique aOri1 = aC1->StdExportCalibGlob();
             cOrientationConique aOri2 = aC2->StdExportCalibGlob();
@@ -813,8 +817,8 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
                 aC2 = aC1->Dupl();
 
             //update poses
-            aC1->SetOrientation(aP1.inv());
-            aC2->SetOrientation(aP2.inv());
+            aC1->SetOrientation(aP1);//.inv()
+            aC2->SetOrientation(aP2);//.inv()
 
             cOrientationConique aOri1 = aC1->StdExportCalibGlob();
             cOrientationConique aOri2 = aC2->StdExportCalibGlob();
@@ -830,6 +834,550 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
 }
 
 
+int CPP_Rot2MatEss_main(int argc,char ** argv)
+{
+    std::string aDir,aPattern;
+    std::string aOut="MatEss";
+    bool ROT2F=false;
+    bool VERIF=false;
+    const std::vector<std::string> * aSetName;
+    cNewO_NameManager              * aNM;   
+    cCommonMartiniAppli              aCMA;
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aPattern,"Pattern of images"),
+        LArgMain() << EAM (aOut,"Out",true,"Output directory, Def=MatEss.xml")
+                   << EAM (ROT2F,"F",true,"developpers use")
+                   << EAM (VERIF,"Verif",true,"developpers use")
+                   << aCMA.ArgCMA()
+    );
+    #if (ELISE_windows)
+        replace( aPattern.begin(), aPattern.end(), '\\', '/' );
+    #endif
+
+    SplitDirAndFile(aDir,aPattern,aPattern);
+    StdCorrecNameOrient(aOut,aDir,true);
+
+    //update the lists of couples and triplets
+    std::string aCom =   MM3dBinFile("TestLib NO_AllOri2Im ") + "\"" + aPattern + "\"" + " ExpTxt=" + ToString(aCMA.mExpTxt);
+    std::cout << "COM " << aCom << "\n";
+    System(aCom);
+
+
+    //file managers
+    cElemAppliSetFile anEASF(aPattern);
+    aSetName = anEASF.SetIm();
+    int aNbIm = (int)aSetName->size();
+
+    std::map<std::string,int> aNameMap;
+    for (int aK=0; aK<aNbIm; aK++)
+        aNameMap[aSetName->at(aK)] = aK;
+
+    aNM = new cNewO_NameManager("","",true,aDir,aCMA.mNameOriCalib,aCMA.mExpTxt ? "txt" : "dat");
+
+    //couples 
+    std::string aNameLCple = aNM->NameListeCpleOriented(true);
+
+    cSauvegardeNamedRel aLCpl;
+    if (ELISE_fp::exist_file(aNameLCple))
+    {
+        aLCpl = StdGetFromSI(aNameLCple,SauvegardeNamedRel);
+        std::cout << "Pairs no: " << aLCpl.Cple().size() << "\n";
+    }
+    else
+    {
+        ELISE_ASSERT(false,"CPP_Rot2MatEss_main no computed relative orientation in the defined pattern!")
+        return EXIT_FAILURE;
+    }
+
+    for (auto a2 : aLCpl.Cple())
+    {
+        //verify that the pair images are in the pattern
+        if ( DicBoolFind(aNameMap,a2.N1()) &&
+             DicBoolFind(aNameMap,a2.N2()) )
+        {
+            //poses
+            bool OK;
+            ElRotation3D aP1 = ElRotation3D::Id;
+            ElRotation3D aP2 = aNM->OriCam2On1 (a2.N1(),a2.N2(),OK);
+            
+            ElMatrix<double> aR  = aP2.Mat();
+            Pt3dr            aTr = aP2.inv().tr();
+            ElMatrix<double> aT(1,3);
+            aT(0,0) = aTr.x;
+            aT(0,1) = aTr.y;
+            aT(0,2) = aTr.z;
+
+            //R * [R^t t]x  , où x c'est skew matrix
+            ElMatrix<double> aRtT = aR.transpose() * aT; 
+
+            
+            ElMatrix<double> aRtTx(3,3);
+            aRtTx(0,1) = -aRtT(0,2);
+            aRtTx(1,0) =  aRtT(0,2);
+            aRtTx(0,2) =  aRtT(0,1);
+            aRtTx(2,0) = -aRtT(0,1);
+            aRtTx(1,2) = -aRtT(0,0);
+            aRtTx(2,1) =  aRtT(0,0);
+
+            ElMatrix<double> aMatEss = aR * aRtTx;
+            std::cout << "size MatEss=" << aMatEss.Sz() << "\n";
+
+
+            cTypeCodageMatr  aMatEssTCM = ExportMatr(aMatEss);
+ 
+            std::string aNameOut = aDir + aOut + "-" + StdPrefix(a2.N1()) + "_" + StdPrefix(a2.N2()) + ".xml";
+            MakeFileXML(aMatEssTCM,aNameOut);
+            std::cout << "Saved to: " << aNameOut << "\n";
+
+            //verify
+            if (VERIF)
+            {
+                 
+                cNewO_OneIm * aIm1 = new cNewO_OneIm(*aNM,a2.N1());
+                cNewO_OneIm * aIm2 = new cNewO_OneIm(*aNM,a2.N2());
+                
+                std::vector<cNewO_OneIm *> aVI;
+                aVI.push_back(aIm1);
+                aVI.push_back(aIm2);
+               
+                tMergeLPackH aMergeStr(2,false); 
+                NOMerge_AddAllCams(aMergeStr,aVI);
+                aMergeStr.DoExport();               
+
+
+                ElPackHomologue aPackPStd = ToStdPack(&aMergeStr,false,0);
+                ElPackHomologue aPackStdRed = PackReduit(aPackPStd,1500,500);
+                //ElPackHomologue aPack150 = PackReduit(aPackStdRed,100);
+                //ElPackHomologue aPack30 =  PackReduit(aPack150,30);
+ 
+
+
+                //ElRotation3D aRotVerif  = NEW_MatEss2Rot(aMatEss,(aQuick?aPack30:aPack150));
+                ElRotation3D aRotVerif  = NEW_MatEss2Rot(aMatEss,aPackStdRed);
+                std::cout << "aRotVerif \n" << aRotVerif.Mat()(0,0) << " " << aRotVerif.Mat()(0,1) << " " << aRotVerif.Mat()(0,2) << "\n"
+                                          << aRotVerif.Mat()(1,0) << " " << aRotVerif.Mat()(1,1) << " " << aRotVerif.Mat()(1,2) << "\n"
+                                          << aRotVerif.Mat()(2,0) << " " << aRotVerif.Mat()(2,1) << " " << aRotVerif.Mat()(2,2) << "\n" 
+                          << "aTrVerif"    << aRotVerif.tr() << "\n";
+
+                std::cout << "aR\n"      << aR(0,0) << " " << aR(0,1) << " " << aR(0,2) << "\n"
+                                         << aR(1,0) << " " << aR(1,1) << " " << aR(1,2) << "\n"
+                                         << aR(2,0) << " " << aR(2,1) << " " << aR(2,2) << "\n" 
+                          << "aTr"       << aTr << "\n";
+
+            }
+
+        }
+    }
+
+
+    return EXIT_SUCCESS;
+}
+
+
+class cAppliMinim  : public cCommonMartiniAppli
+{
+    public:
+        cAppliMinim(int argc,char **argv);
+
+        void            DoCalc();
+
+        ElRotation3D    OptimalSol(std::vector<ElMatrix<double>>& aMat, std::vector<ElSeg3D>& aDirs);
+        
+    private:
+        ElRotation3D TestOriConvention(std::string & aNameOri, const std::string & aNameIm1, const std::string & aNameIm2) const;
+        //re-written from cNewO_NameManager to avoid aN1InfN2
+        ElRotation3D OriCam2On1(const std::string & aNOri1,const std::string & aNOri2,bool & OK) const;
+
+        const std::vector<std::string>    * mSetName;
+        std::map<std::string,int>           mNameMap;
+        std::map<std::string,ElRotation3D*> mCplMap;
+        std::map<std::string,CamStenope*>   mMapInOri;
+        cNewO_NameManager                 * mNM;
+        cCommonMartiniAppli                 mCMA;
+
+        std::string                    mQIm;
+        std::string                    mInOri;
+        std::string                    mOut;
+        cXml_TopoTriplet               mLT;
+        cSauvegardeNamedRel            mLCpl;
+
+
+};
+
+cAppliMinim::cAppliMinim(int argc,char ** argv) : 
+    mOut("AbsPose")
+{
+
+    std::string aDir;
+    std::string aPatInOri;
+    cCommonMartiniAppli aCMA;
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(mQIm,"The query image")
+                   << EAMC(aPatInOri,"Pattern of image with known (absolute) orientation)")
+                   << EAMC(mInOri,"(Absolute) orientation directory"),
+        LArgMain() << EAM (mOut,"Out",true,"Output directory, Def=Test") // ???????????????????????????????????????????
+                   << aCMA.ArgCMA()
+    );
+    #if (ELISE_windows)
+        replace( aPatInOri.begin(), aPatInOri.end(), '\\', '/' );
+    #endif
+
+    SplitDirAndFile(aDir,aPatInOri,aPatInOri);
+    StdCorrecNameOrient(mOut,aDir,true);
+    StdCorrecNameOrient(mInOri,aDir);
+
+    //update the lists of couples and triplets
+    std::string aCom =   MM3dBinFile("TestLib NO_AllOri2Im ") + "\"" + aPatInOri + "|" + mQIm+ "\"" + " ExpTxt=" + ToString(aCMA.mExpTxt);
+    if (EAMIsInit(&aCMA.mNameOriCalib))
+        aCom += " OriCalib=" + aCMA.mNameOriCalib;
+
+    std::cout << "COM " << aCom << "\n";
+    System(aCom);
+
+    //file managers
+    cElemAppliSetFile anEASF(aPatInOri + "|" + mQIm);
+    mSetName = anEASF.SetIm();
+    int aNbIm = (int)mSetName->size();
+
+
+    for (int aK=0; aK<aNbIm; aK++)
+        mNameMap[mSetName->at(aK)] = aK;
+
+    mNM = new cNewO_NameManager("","",true,aDir,aCMA.mNameOriCalib,aCMA.mExpTxt ? "txt" : "dat",mOut);
+
+    std::cout << "======================\n" ;
+    std::cout << "Query image: " << mQIm << "\n";
+
+    //couples 
+    std::string aNameLCple = mNM->NameListeCpleOriented(true);
+
+
+    if (ELISE_fp::exist_file(aNameLCple))
+    {
+        mLCpl = StdGetFromSI(aNameLCple,SauvegardeNamedRel);
+    }
+
+
+    std::cout << "Known relative poses:\n" ;
+    for (auto a2 : mLCpl.Cple())
+    {
+        if ( (DicBoolFind(mNameMap,a2.N1()) &&
+             DicBoolFind(mNameMap,a2.N2()) ))
+        {
+            std::cout << "+ " << a2.N1() << " " << a2.N2() << "\n";
+            bool OK;
+            mCplMap[a2.N1() + a2.N2()] = new ElRotation3D(OriCam2On1 (a2.N1(),a2.N2(),OK));
+            //mCplMap[a2.N1() + a2.N2()] = new ElRotation3D(TestOriConvention(mInOri,a2.N1(),a2.N2()));
+
+        }
+    }
+
+    //triplets to be implemented (maybe)
+    /*std::string aNameLTriplets = mNM->NameTopoTriplet(true);
+
+    if (ELISE_fp::exist_file(aNameLTriplets))
+    {
+        mLT = StdGetFromSI(aNameLTriplets,Xml_TopoTriplet);
+        std::cout << "Triplet no: " << mLT.Triplets().size() << "\n";
+    }*/
+
+    //absolute orientations
+    std::cout << "Known absolute poses in " << mInOri << " :\n" ;
+    for (auto a1 : *mSetName)
+    {
+        if (a1 != mQIm)//no InOri for the query image
+        {
+            mMapInOri[a1] = mNM->CamOriOfNameSVP(a1,mInOri);
+            std::cout << "+ " << a1 << " " << mMapInOri[a1]->Orient().inv().tr() << "\n"; 
+
+        }
+    }
+
+    if (0)
+    {
+        std::string aNameIm1 = "image_002_00112.tif";
+        std::string aNameIm2 = "image_002_00119.tif";
+        ElRotation3D alk = TestOriConvention(mInOri, aNameIm1, aNameIm2);        
+        
+        aNameIm1 = "image_002_00095.tif";
+        aNameIm2 = "image_002_00119.tif";
+        ElRotation3D aklm = TestOriConvention(mInOri, aNameIm1, aNameIm2);        
+    } 
+
+}
+
+ElRotation3D cAppliMinim::OriCam2On1(const std::string & aNOri1,const std::string & aNOri2,bool & OK) const
+{
+    OK = false;
+
+    std::string aN1 =  aNOri1;
+    std::string aN2 =  aNOri2;
+
+    if (!  ELISE_fp::exist_file(mNM->NameXmlOri2Im(aN1,aN2,true)))
+       return ElRotation3D::Id;
+
+
+    cXml_Ori2Im  aXmlO = mNM->GetOri2Im(aN1,aN2);
+    OK = aXmlO.Geom().IsInit();
+    if (!OK)
+       return ElRotation3D::Id;
+    const cXml_O2IRotation & aXO = aXmlO.Geom().Val().OrientAff();
+    ElRotation3D aR12 =    ElRotation3D (aXO.Centre(),ImportMat(aXO.Ori()),true);
+
+    OK = true;
+    return aR12;
+
+}
+
+/*
+    Calculate the absolute pose of a query image given at least two connected absolute poses (i.e. reference images)    
+*/
+
+void cAppliMinim::DoCalc()
+{
+
+    std::vector<ElMatrix<double>>  aVRQIm;
+    std::vector<ElSeg3D>           aVSeg;
+    std::vector<double>            aVPds;
+
+    for (auto a2 : mMapInOri)
+    {
+        //absolut
+        ElRotation3D aRAbs = a2.second->Orient().inv();  
+
+        //relative
+        ElRotation3D aP1 = ElRotation3D::Id;
+        ElRotation3D aP2 = ElRotation3D::Id;
+        ElRotation3D aRQIm = ElRotation3D::Id;
+
+
+        if (DicBoolFind(mCplMap,a2.first+mQIm))
+        {
+            std::cout << "Pair: " << a2.first << " " << mQIm << "\n";
+            aP2 = (*(mCplMap[a2.first+mQIm]));
+
+            aRQIm = aRAbs * aP2; //
+
+            
+            if (0)
+                std::cout << " atrQIm=" <<  aP2.tr() << " " << aP2.inv().tr() << "\n"; 
+
+
+        }
+        else if ((DicBoolFind(mCplMap,mQIm+a2.first)))
+        {
+            //std::cout << "Pair: " << mQIm << " " << a2.first << "\n";
+            aP2 = (*(mCplMap[mQIm+a2.first]));
+
+            aRQIm = aP2.inv() * aRAbs; // = aP2^-1 * R1abs
+        
+            if (0)
+                std::cout << " atrQIm=" <<  aP2.tr() << " " << aP2.inv().tr() << "\n"; 
+        } 
+        else
+        {
+            std::cout << "No relative orientation for " << a2.first << "-" << mQIm << "\n";
+        }
+
+
+       aVRQIm.push_back(aRQIm.Mat());
+
+       //collect 3d segments
+       aVSeg.push_back(ElSeg3D(aRAbs.tr(),aRQIm.tr()));
+       aVPds.push_back(1.0);
+
+        if (0)
+            std::cout << "P2 Rot\n"  << aP2.Mat()(0,0) << " " << aP2.Mat()(0,1) << " " << aP2.Mat()(0,2) << "\n"
+                                     << aP2.Mat()(1,0) << " " << aP2.Mat()(1,1) << " " << aP2.Mat()(1,2) << "\n"
+                                     << aP2.Mat()(2,0) << " " << aP2.Mat()(2,1) << " " << aP2.Mat()(2,2) << "\n";
 
 
 
+        if (0)
+            std::cout << "=======\n" << "Tr1 " << aRAbs.tr() << 
+                           " \n" << "tr " << aRQIm.tr() << 
+                           " \n" << "tr " << aP2.inv().tr() <<
+                           " \n" << "Tr2 " << aRQIm.ImAff(aP2.tr()) << 
+                           " \n" << "Tr2 " << aRQIm.ImAff(aP2.inv().tr()) << 
+                           " \n" << "delta " << (aRAbs.tr() - aP2.tr()) <<  
+                           " \n" << "tr+delta " << aP2.tr() + (aRAbs.tr() - aP2.tr()) << "\n"; 
+    
+    }
+
+    ElMatrix<double> aRMoy(3,3);
+    for (int aR=0; aR<int(aVRQIm.size()); aR++)
+    {
+        aRMoy = aRMoy + aVRQIm.at(aR);
+        
+        if (0)
+            std::cout << "Rot of the query image\n" << aVRQIm.at(aR)(0,0) << " " << aVRQIm.at(aR)(0,1) << " " << aVRQIm.at(aR)(0,2) << "\n"
+                                                << aVRQIm.at(aR)(1,0) << " " << aVRQIm.at(aR)(1,1) << " " << aVRQIm.at(aR)(1,2) << "\n"
+                                                << aVRQIm.at(aR)(2,0) << " " << aVRQIm.at(aR)(2,1) << " " << aVRQIm.at(aR)(2,2) << "\n";
+
+    }    
+    aRMoy = NearestRotation(aRMoy * (1/double(aVRQIm.size())));
+    
+    std::cout << "======================\n" ;
+    std::cout << "Rot-Moy of the query image\n" << aRMoy(0,0) << " " << aRMoy(0,1) << " " << aRMoy(0,2) << "\n"
+                         << aRMoy(1,0) << " " << aRMoy(1,1) << " " << aRMoy(1,2) << "\n"
+                         << aRMoy(2,0) << " " << aRMoy(2,1) << " " << aRMoy(2,2) << "\n";
+
+    std::cout.precision(17);
+    if (int(aVSeg.size()) >= 2)
+    {
+
+        ElRotation3D aTest = OptimalSol(aVRQIm,aVSeg);
+
+        bool aIsOK;
+        Pt3dr aTr = ElSeg3D::L2InterFaisceaux(&aVPds, aVSeg, &aIsOK);
+
+        std::cout << "Tr of the query image\n" << aTr << "\n"; 
+    
+        std::cout << "Distance between the segments:" << "\n";
+        for (int aK=0; aK<int(aVSeg.size()); aK++)
+        {
+            std::cout << "+ " << aVSeg.at(aK).DistDoite(aTr) << "\n";
+        }
+
+
+        //update \& save poses
+        ElRotation3D aRes = ElRotation3D(aTr,aRMoy,true);
+
+        CamStenope *aCQIm = mNM->CamOfName(mQIm);
+        aCQIm->SetOrientation (ElRotation3D(aRes.inv().tr(),aRes.inv().Mat(),true));
+        cOrientationConique aOriQIm = aCQIm->StdExportCalibGlob();
+
+        aOriQIm.Externe().Centre() = aTr;
+        
+        ELISE_fp::MkDirSvp(DirOfFile(mNM->NameOriOut(mQIm)));
+        MakeFileXML(aOriQIm,mNM->NameOriOut(mQIm));
+        std::cout << "Saved to: " << mNM->NameOriOut(mQIm) << "\n";
+
+        //TODO or NOT TODO: weight rotation 
+        //       test on rel ori calculated from InOri, pass by Martini
+        if (0)
+        {
+            //get min difference
+            double aDifInf = 1e9;
+            for (int aK=0; aK<int(aVSeg.size()); aK++)
+            {
+                double aDiff = euclid(aTr - aVSeg.at(aK).P1());
+                if (aDiff<aDifInf)
+                    aDifInf=aDiff;
+            }
+            //new weights
+            std::vector<double> aPds2;
+            for (int aK=0; aK<int(aVSeg.size()); aK++)
+            {
+                double aDiff = euclid(aTr - aVSeg.at(aK).P1());
+                if (aDifInf == aDiff)
+                    aPds2.push_back(1.0);
+                else
+                    aPds2.push_back( 1 / (1+ ElSquare(aDiff)) );
+                
+            }
+
+            Pt3dr aTr2 = ElSeg3D::L2InterFaisceaux(&aPds2, aVSeg, &aIsOK);
+
+            std::cout << "Tr2 of the query image\n" << aTr2 << "\n"; 
+            for (int aK=0; aK<int(aVSeg.size()); aK++)
+            {
+                std::cout << "+ " << aVSeg.at(aK).DistDoite(aTr2) << "\n";
+            }
+        }
+
+    }
+    else 
+        std::cout << "Not enough 3D lines to rocover the pose of the query image" << "\n";
+
+
+}
+
+
+ElRotation3D cAppliMinim::OptimalSol(std::vector<ElMatrix<double>>& aMat, std::vector<ElSeg3D>& aDirs)
+{
+    ElRotation3D aRes = ElRotation3D::Id;
+    
+    //do intersection of all possible pairs
+    //take median with Kth
+    //calculte std dev
+    //sc1: remove everything over 1sigma and intersect the rest
+    //sc2: take the solution that gives lowest residual
+
+//Pt3dr aU = OneDirOrtho(aDirDroite);
+
+
+    std::vector<Pt3dr> aVInter;
+    for (int aK1=0; aK1<(int(aDirs.size())-1); aK1++)
+    {
+
+        for (int aK2=1; aK2<int(aDirs.size()); aK2++)
+        {
+
+            std::vector<ElSeg3D> aVSeg;
+            std::vector<double>  aVPds;
+            aVSeg.push_back(aDirs.at(aK1));
+            aVSeg.push_back(aDirs.at(aK2));
+            aVPds.push_back(1.0);
+            aVPds.push_back(1.0);
+
+            //std::cout << ",,,,,,,,,,,," << aDirs.at(aK1).P1() << " " << aDirs.at(aK2).P1() << "\n";
+
+            bool aIsOK;
+            Pt3dr aInter = ElSeg3D::L2InterFaisceaux(&aVPds, aVSeg, &aIsOK);
+           
+            if (aIsOK) 
+            {
+                //std::cout << "Inter= " << aInter << "\n"; 
+                aVInter.push_back(aInter);
+            }
+            //else
+              //  aVInter.push_back(aInter);
+        }
+
+
+    }
+
+
+    return aRes;
+    
+}
+
+ElRotation3D cAppliMinim::TestOriConvention(std::string & aNameOri, const std::string & aNameIm1, const std::string & aNameIm2) const
+{
+    std::cout << "InOri=" << aNameOri << ", Im1: " << aNameIm1 << ", Im2: " << aNameIm2 << "\n";
+
+    CamStenope * aCam1 = mNM->CamOriOfNameSVP(aNameIm1,aNameOri);
+    CamStenope * aCam2 = mNM->CamOriOfNameSVP(aNameIm2,aNameOri);
+
+    // aCam2->Orient() : M =>C2  ;  aCam1->Orient().inv() :  C1=>M
+    // Donc la aRot = C1=>C2
+    ElRotation3D aRot = (aCam2->Orient() *aCam1->Orient().inv());
+    //   Maintenat Rot C2 =>C1; donc Rot( P(0,0,0)) donne le vecteur de Base
+    aRot = aRot.inv();
+    aRot.tr() = vunit(aRot.tr());
+
+    std::cout << "  +ElRot rel \n" << aRot.Mat()(0,0) << " " << aRot.Mat()(0,1) << " " << aRot.Mat()(0,2) << "\n"
+                                   << aRot.Mat()(1,0) << " " << aRot.Mat()(1,1) << " " << aRot.Mat()(1,2) << "\n"
+                                   << aRot.Mat()(2,0) << " " << aRot.Mat()(2,1) << " " << aRot.Mat()(2,2) << "\n";
+    std::cout << "  +ElTr rel : "  << aRot.tr().x << " " << aRot.tr().y << " " << aRot.tr().z << "\n";
+
+    return aRot;
+    
+}
+
+int CPP_Rel2AbsTest_main(int argc,char ** argv)
+{
+
+    cAppliMinim aApp(argc,argv);
+    aApp.DoCalc();
+
+    return EXIT_SUCCESS;
+
+}

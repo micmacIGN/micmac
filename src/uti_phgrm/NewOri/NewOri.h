@@ -141,7 +141,8 @@ class cNewO_OneIm
             cNewO_OneIm
             (
                  cNewO_NameManager & aNM,
-                 const std::string  & aName
+                 const std::string  & aName,
+                 bool  WithOri = true
             );
 
             CamStenope * CS();

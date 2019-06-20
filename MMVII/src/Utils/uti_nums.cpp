@@ -4,6 +4,21 @@
 namespace MMVII
 {
 
+tINT4 HCF(tINT4 a,tINT4 b)
+{
+   a = std::abs(a);
+   b = std::abs(b);
+
+   OrderMinMax(a,b);
+   while (a!=0)
+   {
+      tINT4 aInit = a;
+      a = b%a;
+      b = aInit;
+   }
+   return b;
+}
+
 template <class Type> const tNumTrait<Type>   tNumTrait<Type>::TheOnlyOne;
 // const tNumTrait<tINT1>   tNumTrait<tINT1>::TheOnlyOne;
 /*
@@ -62,7 +77,7 @@ const cVirtualTypeNum & cVirtualTypeNum::FromEnum(eTyNums aTy)
 template <class Type> void TplBenchTraits()
 {
     typename tNumTrait<Type>::tBase aVal=0;
-    std::cout << E2Str(tNumTrait<Type>::TyNum() )
+    StdOut()  << E2Str(tNumTrait<Type>::TyNum() )
               << " Max=" << tNumTrait<Type>::MaxValue() 
               << " Min=" <<  tNumTrait<Type>::MinValue() 
               << " IsInt=" <<  tNumTrait<Type>::IsInt() 
@@ -81,7 +96,6 @@ void BenchTraits()
    for (int aK=0 ; aK<int(eTyNums::eNbVals) ; aK++)
    {
        const cVirtualTypeNum & aVTN =  cVirtualTypeNum::FromEnum(eTyNums(aK));
-       // std::cout << " EEeeee " << E2Str(aVTN.V_TyNum()) << "\n";
        MMVII_INTERNAL_ASSERT_bench (int(aVTN.V_TyNum())==aK,"Bench cVirtualTypeNum::FromEnum");
    }
    // getchar();
@@ -155,6 +169,14 @@ void Bench_Nums()
       }
    }
 }
+
+template <class Type> Type  Mediane(std::vector<Type> & aV)
+{
+   std::sort(aV.begin(),aV.end());
+   return aV.at(aV.size()/2);
+}
+
+template  double Mediane(std::vector<double> &);
 
 };
 

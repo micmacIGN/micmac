@@ -86,6 +86,8 @@ eTypeVecInvarR  Str2eTypeVecInvarR(const std::string & aName)
       return eTVIR_ACGT;
    else if (aName=="eTVIR_ACGR")
       return eTVIR_ACGR;
+   else if (aName=="eTVIR_LogPol")
+      return eTVIR_LogPol;
    else if (aName=="eTVIR_NoLabel")
       return eTVIR_NoLabel;
   else
@@ -109,6 +111,8 @@ std::string  eToString(const eTypeVecInvarR & anObj)
       return  "eTVIR_ACGT";
    if (anObj==eTVIR_ACGR)
       return  "eTVIR_ACGR";
+   if (anObj==eTVIR_LogPol)
+      return  "eTVIR_LogPol";
    if (anObj==eTVIR_NoLabel)
       return  "eTVIR_NoLabel";
  std::cout << "Enum = eTypeVecInvarR\n";
@@ -133,7 +137,7 @@ void  BinaryUnDumpFromFile(eTypeVecInvarR & anObj,ELISE_fp & aFp)
    anObj=(eTypeVecInvarR) aIVal;
 }
 
-std::string  Mangling( eTypeVecInvarR *) {return "D894C8294C4DD8F1FE3F";};
+std::string  Mangling( eTypeVecInvarR *) {return "76F9B402C27F2998FF3F";};
 
 eTypeInvRad  Str2eTypeInvRad(const std::string & aName)
 {

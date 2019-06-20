@@ -164,8 +164,9 @@ Pt3dr cCameraTiepRed::BundleIntersection(const Pt2df & aPH1,const cCameraTiepRed
 
 
 
-void cCameraTiepRed::LoadHom(cCameraTiepRed & aCam2)
+void cCameraTiepRed::LoadHomCam(cCameraTiepRed & aCam2)
 {
+
     ELISE_ASSERT(mNameIm < aCam2.mNameIm,"cCameraTiepRed::LoadHom order name");
     cCameraTiepRed * aMaster = 0;
     cCameraTiepRed * aSlave = 0;

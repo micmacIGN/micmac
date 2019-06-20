@@ -2605,7 +2605,7 @@ void MainWindow::doSomething2(QListWidgetItem *item)
     qDebug() <<  pathProject ;
     p.setWorkingDirectory(pathProject);
     p.waitForFinished(-1);
-    qDebug() <<  get_current_dir_name();
+    qDebug() <<  QDir::currentPath();
     qDebug()<< item->text();
     
     QString cmd = "mm3d Vino "+ pathProject +"/"+ item->text();

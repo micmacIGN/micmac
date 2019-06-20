@@ -8,6 +8,8 @@ using namespace Eigen;
 
 namespace MMVII
 {
+/*  Static => see note on BaseMatrixes.cpp
+*/
 
 
 /* ============================================= */
@@ -48,7 +50,7 @@ template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::Diag(const cDenseVe
 template <class Type>  void  cDenseMatrix<Type>::Show() const
 {
     cConst_EigenMatWrap<Type> aMapThis(*this);
-    std::cout << aMapThis.EW() << "\n";
+    StdOut() << aMapThis.EW() << "\n";
 }
 
 
@@ -58,6 +60,7 @@ template <class Type>  void  cDenseMatrix<Type>::Show() const
 
 template <class Type> void cDenseMatrix<Type>::MatMulInPlace(const tDM & aM1,const tDM & aM2)
 {
+    tMat::CheckSizeMulInPlace(aM1,aM2);
     cNC_EigenMatWrap<Type> aMapThis(*this);
     cConst_EigenMatWrap<Type> aMap1(aM1);
     cConst_EigenMatWrap<Type> aMap2(aM2);
@@ -67,7 +70,7 @@ template <class Type> void cDenseMatrix<Type>::MatMulInPlace(const tDM & aM1,con
 
 template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse() const
 {
-   cMatrix::CheckSquare(*this);
+   tMat::CheckSquare(*this);
    cDenseMatrix<Type> aRes(Sz().x(),Sz().y());
 
    cConst_EigenMatWrap<Type> aMapThis(*this);
@@ -94,7 +97,7 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse(double Eps
 
    {
       cDenseMatrix<Type> AAp = A * Ap;
-      std::cout << "D000 " << AAp.DIm().L2Dist(cDenseMatrix<Type>(aNb,eModeInitImage::eMIA_MatrixId).DIm()) << "\n";
+      StdOut() << "D000 " << AAp.DIm().L2Dist(cDenseMatrix<Type>(aNb,eModeInitImage::eMIA_MatrixId).DIm()) << "\n";
 
    // Test that pertubate the inverse, it's only for bench purpose, to be sure that
    // iterative algoritm work.
@@ -127,7 +130,7 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse(double Eps
           }
        }
        aSomEr = std::sqrt(aSomEr/R8Square(aNb));
-       std::cout << "SOMM EE " << aSomEr << "\n";
+       StdOut() << "SOMM EE " << aSomEr << "\n";
        Ap = Ap * ImE;
        aK++;
    }
@@ -169,7 +172,7 @@ template <class T> static
 
 /** Mul Col X with line vector VIn */
 
-template <class T1,class T2> static tMatrElem TplMulLineElem(int aX,const cDenseMatrix<T1> & aMat, const cDenseVect<T2> & aVIn)
+template <class T1,class T2> static  typename tMergeF<T1,T2>::tMax TplMulLineElem(int aX,const cDenseMatrix<T1> & aMat, const cDenseVect<T2> & aVIn)
 {
    aMat.TplCheckSizeY(aVIn);
    typename tMergeF<T1,T2>::tMax aRes = 0.0;
@@ -181,31 +184,15 @@ template <class T1,class T2> static tMatrElem TplMulLineElem(int aX,const cDense
 
 /*  MulLineInPlace / MulLineElem for REAL4, REAL8, REAL16 : call template functions */
 
-template <class Type> void  cDenseMatrix<Type>::MulLineInPlace(cDenseVect<tREAL4> &aVRes,const cDenseVect<tREAL4> &aVIn) const 
+template <class Type> void  cDenseMatrix<Type>::MulLineInPlace(tDV &aVRes,const tDV &aVIn) const 
 {
    TplMulLine(aVRes,*this,aVIn);
 }
-template <class Type> tMatrElem  cDenseMatrix<Type>::MulLineElem(int  aX,const cDenseVect<tREAL4> & aVIn) const 
+template <class Type> Type  cDenseMatrix<Type>::MulLineElem(int  aX,const tDV & aVIn) const 
 {
    return TplMulLineElem(aX,*this,aVIn);
 }
 
-template <class Type> void  cDenseMatrix<Type>::MulLineInPlace(cDenseVect<tREAL8> &aVRes,const cDenseVect<tREAL8> &aVIn) const 
-{
-   TplMulLine(aVRes,*this,aVIn);
-}
-template <class Type> tMatrElem  cDenseMatrix<Type>::MulLineElem(int  aX,const cDenseVect<tREAL8> & aVIn) const 
-{
-   return TplMulLineElem(aX,*this,aVIn);
-}
-template <class Type> void  cDenseMatrix<Type>::MulLineInPlace(cDenseVect<tREAL16> &aVRes,const cDenseVect<tREAL16> &aVIn) const 
-{
-   TplMulLine(aVRes,*this,aVIn);
-}
-template <class Type> tMatrElem  cDenseMatrix<Type>::MulLineElem(int  aX,const cDenseVect<tREAL16> & aVIn) const 
-{
-   return TplMulLineElem(aX,*this,aVIn);
-}
 
 // ===============  Column ================
 
@@ -220,7 +207,7 @@ template <class T1,class T2> static
 {
    aMat.TplCheckSizeYandX(aVRes,aVIn);
    /*  A conserver, verif Merge Type
-       std::cout << "Txxxxxx "  
+       StdOut() << "Txxxxxx "  
                  << " " << E2Str(tNumTrait<T1>::TyNum())  
                  << " " << E2Str(tNumTrait<T2>::TyNum())  
                  << " => " << E2Str(tNumTrait<typename tMergeF<T1,T2>::tMax>::TyNum())  
@@ -250,7 +237,7 @@ template <class T> static
 }
 
    /** Mul Line aY with col vector VIn */
-template <class T1,class T2> static tMatrElem TplMulColElem(int aY,const cDenseMatrix<T1> & aMat, const cDenseVect<T2> & aVIn)
+template <class T1,class T2> static typename tMergeF<T1,T2>::tMax TplMulColElem(int aY,const cDenseMatrix<T1> & aMat, const cDenseVect<T2> & aVIn)
 {
    aMat.TplCheckSizeX(aVIn);
    typename tMergeF<T1,T2>::tMax aRes = 0.0;
@@ -260,33 +247,15 @@ template <class T1,class T2> static tMatrElem TplMulColElem(int aY,const cDenseM
 }
 
 
-template <class Type> void  cDenseMatrix<Type>::MulColInPlace(cDenseVect<tREAL4> &aVRes,const cDenseVect<tREAL4> &aVIn) const 
+template <class Type> void  cDenseMatrix<Type>::MulColInPlace(tDV &aVRes,const tDV &aVIn) const 
 {
    TplMulCol(aVRes,*this,aVIn);
 }
-template <class Type> tMatrElem  cDenseMatrix<Type>::MulColElem(int  aY,const cDenseVect<tREAL4> & aVIn) const 
+template <class Type> Type  cDenseMatrix<Type>::MulColElem(int  aY,const tDV & aVIn) const 
 {
    return TplMulColElem(aY,*this,aVIn);
 }
 
-template <class Type> void  cDenseMatrix<Type>::MulColInPlace(cDenseVect<tREAL8> &aVRes,const cDenseVect<tREAL8> &aVIn) const 
-{
-   TplMulCol(aVRes,*this,aVIn);
-}
-template <class Type> tMatrElem  cDenseMatrix<Type>::MulColElem(int  aY,const cDenseVect<tREAL8> & aVIn) const 
-{
-   return TplMulColElem(aY,*this,aVIn);
-}
-
-
-template <class Type> void  cDenseMatrix<Type>::MulColInPlace(cDenseVect<tREAL16> &aVRes,const cDenseVect<tREAL16> &aVIn) const 
-{
-   TplMulCol(aVRes,*this,aVIn);
-}
-template <class Type> tMatrElem  cDenseMatrix<Type>::MulColElem(int  aY,const cDenseVect<tREAL16> & aVIn) const 
-{
-   return TplMulColElem(aY,*this,aVIn);
-}
 
 template <class T1,class T2> cDenseVect<T1> operator * (const cDenseVect<T1> & aVL,const cDenseMatrix<T2>& aMat)
 {
@@ -304,13 +273,155 @@ template <class Type> cDenseMatrix<Type> operator * (const cDenseMatrix<Type> & 
    return aRes;
 }
 
+// ===============  Add tAB tAA  ================
+
+template <class TM,class TV> 
+   static void TplAdd_tAB(cDenseMatrix<TM> & aMat,const cDenseVect<TV> & aCol,const cDenseVect<TV> & aLine)
+{
+    aMat.TplCheckSizeY(aCol);
+    aMat.TplCheckSizeX(aLine);
+    for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
+    {
+        TV  aVY = aCol(aY);
+        const TV * aVX =   aLine.DIm().RawDataLin();
+        TM * aLineMatrix = aMat.DIm().GetLine(aY);
+        for (int aNbX=aMat.Sz().x() ; aNbX ;  aNbX--)
+        {
+           *(aLineMatrix++)  +=   aVY *  *(aVX++);
+        }
+    }
+}
+
+template <class TM,class TV> 
+   static void TplWeightedAdd_tAA(cDenseMatrix<TM> & aMat,const TM &aWeight,const cDenseVect<TV> & aV,bool OnlySup)
+{
+    aMat.TplCheckSizeY(aV);
+    aMat.TplCheckSizeX(aV);
+    for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
+    {
+        TV  aVY = aV(aY) * aWeight;
+        int aX0 = OnlySup ? aY : 0;
+        const TV * aVX =   aV.DIm().RawDataLin() + aX0;
+        TM * aLineMatrix = aMat.DIm().GetLine(aY) + aX0;
+        for (int aNbX=aMat.Sz().x() -aX0 ; aNbX ;  aNbX--)
+        {
+           *(aLineMatrix++)  +=   aVY *  *(aVX++);
+        }
+    }
+}
+template <class TM,class TV> 
+   static void TplAdd_tAA(cDenseMatrix<TM> & aMat,const cDenseVect<TV> & aV,bool OnlySup)
+{
+   TplWeightedAdd_tAA(aMat,TM(1.0),aV,OnlySup);
+/*
+    aMat.TplCheckSizeY(aV);
+    aMat.TplCheckSizeX(aV);
+    for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
+    {
+        TV  aVY = aV(aY);
+        int aX0 = OnlySup ? aY : 0;
+        const TV * aVX =   aV.DIm().RawDataLin() + aX0;
+        TM * aLineMatrix = aMat.DIm().GetLine(aY) + aX0;
+        for (int aNbX=aMat.Sz().x() -aX0 ; aNbX ;  aNbX--)
+        {
+           *(aLineMatrix++)  +=   aVY *  *(aVX++);
+        }
+    }
+*/
+}
+
+template <class TM,class TV> 
+   static void TplSub_tAA(cDenseMatrix<TM> & aMat,const cDenseVect<TV> & aV,bool OnlySup)
+{
+   TplWeightedAdd_tAA(aMat,TM(-1.0),aV,OnlySup);
+/*
+    aMat.TplCheckSizeY(aV);
+    aMat.TplCheckSizeX(aV);
+    for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
+    {
+        TV  aVY = aV(aY);
+        int aX0 = OnlySup ? aY : 0;
+        const TV * aVX =   aV.DIm().RawDataLin() + aX0;
+        TM * aLineMatrix = aMat.DIm().GetLine(aY) + aX0;
+        for (int aNbX=aMat.Sz().x() -aX0 ; aNbX ;  aNbX--)
+        {
+           *(aLineMatrix++)  -=   aVY *  *(aVX++);
+        }
+    }
+*/
+}
+
+
+
+template <class Type> void cDenseMatrix<Type>::Add_tAB(const tDV & aCol,const tDV & aLine) 
+{
+   TplAdd_tAB(*this,aCol,aLine);
+}
+template <class Type> void cDenseMatrix<Type>::Add_tAA(const tDV & aCol,bool OnlySup)
+{
+   TplAdd_tAA(*this,aCol,OnlySup);
+}
+template <class Type> void cDenseMatrix<Type>::Sub_tAA(const tDV & aCol,bool OnlySup)
+{
+   TplSub_tAA(*this,aCol,OnlySup);
+}
+
+
+template <class Type> void cDenseMatrix<Type>::Weighted_Add_tAA(Type aWeight,const tDV & aColLine,bool OnlySup)
+{
+   TplWeightedAdd_tAA(*this,aWeight,aColLine,OnlySup);
+}
+/*
+        void  Weighted_Add_tAA(const tDV & aColLine,bool OnlySup=true) override;
+*/
+
+
+template <class Type>  void  cDenseMatrix<Type>::Weighted_Add_tAA(Type aWeight,const tSpV & aSparseV,bool OnlySup)
+{  
+   tMat::CheckSquare(*this);
+   tMat::TplCheckX(aSparseV);
+   const typename cSparseVect<Type>::tCont & aIV =  aSparseV.IV();
+   int aNb  = aIV.size();
+
+   if (OnlySup)
+   {
+      for (int aKY=0 ; aKY<aNb ; aKY++)
+      {
+         Type aVy = aIV[aKY].mVal * aWeight;
+         int aY = aIV[aKY].mInd;
+         Type  * aLineMatrix = DIm().GetLine(aY);
+    
+         for (int aKX=  0 ; aKX<aNb ; aKX++)
+         {
+             int aX = aIV[aKX].mInd;
+             if (aX>=aY)
+                aLineMatrix[aX] +=  aVy * aIV[aKX].mVal;
+         }
+      }
+   }
+   else
+   {
+      for (int aKY=0 ; aKY<aNb ; aKY++)
+      {
+         Type aVy = aIV[aKY].mVal * aWeight;
+         Type  * aLineMatrix = DIm().GetLine(aIV[aKY].mInd);
+    
+         for (int aKX=  0 ; aKX<aNb ; aKX++)
+         {
+             aLineMatrix[aIV[aKX].mInd] +=  aVy * aIV[aKX].mVal;
+         }
+      }
+   }
+
+}
+
 
 /* ================================================= */
 /*        cUnOptDenseMatrix                          */
 /* ================================================= */
 
 template <class Type> cUnOptDenseMatrix<Type>::cUnOptDenseMatrix(tIm anIm) :
-                           cMatrix(anIm.DIm().Sz().x(),anIm.DIm().Sz().y()),
+                           cMatrix<Type>(anIm.DIm().Sz().x(),anIm.DIm().Sz().y()),
                            mIm(anIm)
 {
    MMVII_INTERNAL_ASSERT_strong(anIm.DIm().P0()==cPt2di(0,0),"Init Matrix P0!= 0,0");
@@ -321,12 +432,12 @@ template <class Type> cUnOptDenseMatrix<Type>::cUnOptDenseMatrix(int aX,int aY,e
 {
 }
 
-template <class Type> tMatrElem cUnOptDenseMatrix<Type>::V_GetElem(int aX,int  aY) const 
+template <class Type> Type cUnOptDenseMatrix<Type>::V_GetElem(int aX,int  aY) const 
 {
     return GetElem(aX,aY);
 }
 
-template <class Type> void cUnOptDenseMatrix<Type>::V_SetElem(int aX,int  aY,const tMatrElem & aV) 
+template <class Type> void cUnOptDenseMatrix<Type>::V_SetElem(int aX,int  aY,const Type & aV) 
 {
     SetElem(aX,aY,aV);
 }
@@ -371,9 +482,7 @@ template  class  cUnOptDenseMatrix<Type>;\
 template  class  cDenseMatrix<Type>;\
 template  cDenseMatrix<Type> operator * (const cDenseMatrix<Type> &,const cDenseMatrix<Type>&);\
 template  cUnOptDenseMatrix<Type> operator * (const cUnOptDenseMatrix<Type> &,const cUnOptDenseMatrix<Type>&);\
-INSTANTIATE_OPMulMatVect(Type,tREAL4)\
-INSTANTIATE_OPMulMatVect(Type,tREAL8)\
-INSTANTIATE_OPMulMatVect(Type,tREAL16)\
+INSTANTIATE_OPMulMatVect(Type,Type)\
 
 
 INSTANTIATE_DENSE_MATRICES(tREAL4)

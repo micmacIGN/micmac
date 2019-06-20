@@ -69,7 +69,8 @@ template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,co
      mEnd    (*this,CalPEnd(aP0,aP1)),
      mNbElem (1)
 {
-    for (int aK=Dim-1 ; aK>=0 ; aK--)
+    //for (int aK=Dim-1 ; aK>=0 ; aK--)
+    for (int aK=0 ; aK<Dim ; aK++)
     {
        mSz[aK] = mP1[aK] - mP0[aK];
        if (AllowEmpty)
@@ -80,14 +81,28 @@ template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,co
        {
           MMVII_INTERNAL_ASSERT_strong(mSz[aK]>0,MesNegSz);
        }
-       mNbElem *= mSz[aK];
        mSzCum[aK] = mNbElem;
+       mNbElem *= mSz[aK];
     }
-    // std::cout << mNbElem << "\n";
 }
+
+template <const int Dim> tINT8  cRectObj<Dim>::IndexeLinear(const tPt & aP) const
+{
+   tINT8 aRes = 0;
+   for (int aK=0 ; aK<Dim ; aK++)
+      aRes += tINT8(aP[aK]-mP0[aK]) * tINT8(mSzCum[aK]);
+   return aRes;
+}
+
+
 
 template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1) :
    cRectObj<Dim>(aP0,aP1,false)
+{
+}
+
+template <const int Dim>   cRectObj<Dim>::cRectObj(const cRectObj<Dim> & aR) :
+   cRectObj<Dim>(aR.mP0,aR.mP1,true)
 {
 }
 
@@ -188,10 +203,30 @@ template <class Type,const int Dim>
     cDataTypedIm<Type,Dim>::cDataTypedIm(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,Type *aRawDataLin,eModeInitImage aModeInit) :
         cDataGenUnTypedIm<Dim>(aP0,aP1),
         mDoAlloc (aRawDataLin==0),
-        mRawDataLin (mDoAlloc ? cMemManager::Alloc<Type>(NbElem())  : aRawDataLin)
+        mRawDataLin (mDoAlloc ? cMemManager::Alloc<Type>(NbElem())  : aRawDataLin),
+        mNbElemMax  (NbElem())
 {
    Init(aModeInit);
 }
+
+template <class Type,const int Dim>
+    void cDataTypedIm<Type,Dim>::Resize(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,eModeInitImage aModeInit) 
+{
+    //  WARNING : this work because cDataGenUnTypedIm only calls cRectObj
+    //     DO NOT WORK all stuff like :  this->cDataGenUnTypedIm<Dim>::cDataGenUnTypedIm(aP0,aP1);
+    // static_cast<cRectObj<Dim>&>(*this) = cRectObj<Dim>(aP0,aP1);
+
+    // this-> cRectObj<Dim>::cRectObj(aP0,aP1);
+
+    new (static_cast<cRectObj<Dim>*>(this)) cRectObj<Dim>(aP0,aP1);
+
+    if (cMemManager::Resize(mRawDataLin,0,mNbElemMax,0,NbElem()))
+    {
+        mDoAlloc = true;
+    }
+    Init(aModeInit);
+}
+
 
 
 template <class Type,const int Dim> 
@@ -293,6 +328,38 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitRandom()
        mRawDataLin[aK] = tTraits::RandomValue();
 }
 
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitRandom(const Type & aV0,const Type &aV1)
+{
+   for (tINT8 aK=0 ; aK< NbElem() ; aK++)
+   {
+       mRawDataLin[aK] = Type(aV0 + (aV1-aV0) *RandUnif_0_1());
+       if (mRawDataLin[aK]==aV1) 
+           mRawDataLin[aK]--;
+   }
+}
+
+
+
+
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitRandomCenter()
+{
+   for (tINT8 aK=0 ; aK< NbElem() ; aK++)
+       mRawDataLin[aK] = tTraits::RandomValueCenter();
+}
+
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitDirac(const cPtxd<int,Dim> & aP,const Type &  aVal)
+{
+    InitNull();
+    mRawDataLin[tRO::IndexeLinear(aP)] = aVal;
+}
+
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitDirac(const Type &  aVal)
+{
+    InitDirac((tRO::mP0+tRO::mP1)/2,aVal);
+}
+
+
+
 template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitNull()
 {
     MEM_RAZ(mRawDataLin,NbElem());
@@ -319,10 +386,11 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::Init(eModeInit
 {
     switch(aMode)
     {
-       case eModeInitImage::eMIA_Rand     : InitRandom(); return;
-       case eModeInitImage::eMIA_Null     : InitNull(); return;
-       case eModeInitImage::eMIA_MatrixId : InitId(); return;
-       case eModeInitImage::eMIA_NoInit   : ;
+       case eModeInitImage::eMIA_Rand        : InitRandom(); return;
+       case eModeInitImage::eMIA_RandCenter  : InitRandomCenter(); return;
+       case eModeInitImage::eMIA_Null        : InitNull(); return;
+       case eModeInitImage::eMIA_MatrixId    : InitId(); return;
+       case eModeInitImage::eMIA_NoInit      : ;
     }
 }
 

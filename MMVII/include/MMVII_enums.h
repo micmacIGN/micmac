@@ -31,7 +31,7 @@ enum class eTA2007
             // !!!!! Common must be first UNPRINTED  !!!
                 Common,        ///< Parameter  Common to all commands
                 Internal,      ///< Reserved to internall use by MMVII
-                HDV,           ///< Has Def Value
+                HDV,           ///< Has Default Value, will be printed on help
                 eNbVals        ///< Tag for number of value
            };
 
@@ -40,9 +40,11 @@ enum class eApF
            {
                Project, ///< Project Managenent
                Test,    ///< Test
+               ImProc,  ///< Image processing
                Ori,     ///< Orientation
                Match,   ///< Dense Matching
                TieP,    ///< Tie-Point processing
+               TiePLearn,    ///< Tie-Point processing  - Learning step
                Perso,   ///< Personnal
                eNbVals  ///< Tag for number of value
            };
@@ -52,6 +54,7 @@ enum class eApDT
            {
               Ori,    ///< Orientation
               TieP,   ///< Tie Points
+              Image,   ///< Tie Points
               Ply,    ///< Ply file
               None,     ///< Nothing 
               Console,  ///< Console 
@@ -93,6 +96,7 @@ enum class eTyUEr
            {
               eCreateDir,
               eRemoveFile,
+              eEmptyPattern,
               eBadFileSetName,
               eBadFileRelName,
               eOpenFile,
@@ -108,6 +112,8 @@ enum class eTyUEr
               eNoModeInEditRel,
               eMultiModeInEditRel,
               e2PatInModeLineEditRel,
+              eParseError,
+              eUnClassedError,
               eNbVals
            };
 
@@ -138,19 +144,29 @@ enum class eTyNums
 
 enum class eModeInitImage
            {
-               eMIA_Rand,
+               eMIA_Rand,        ///< Rand  in [0..1]
+               eMIA_RandCenter,        ///< Rand  in [-1 1]
                eMIA_Null,
                eMIA_MatrixId,    ///<  Only for square  Matrix  : Identite, 
                eMIA_NoInit
            };
-/*
-enum class eTyMatrix
+
+enum class eTyInvRad
            {
-               eTM_Dens4,
-               eTM_Dens8,
-               eTM_Dens16
+               eTVIR_ACGR,
+               eTVIR_ACGT,
+               eTVIR_ACR0,
+               eTVIR_Curve,
+               eNbVals
            };
-*/
+
+/**  Type of eigen decomposition in matrix algebra */
+enum class eTyEigenDec
+           {
+               eTED_PHQR, // Pivot Householder QR
+               eTED_LLDT, // Cholesky with robust pivoting
+               eNbVals
+           };
 
 
 const std::string & E2Str(const eTySC &);         
@@ -158,9 +174,12 @@ const std::string & E2Str(const eOpAff &);
 const std::string & E2Str(const eTA2007 &);         
 const std::string & E2Str(const eTyUEr &);         
 const std::string & E2Str(const eTyNums &);         
+const std::string & E2Str(const eTyInvRad &);         
 
 template <class Type> const Type & Str2E(const std::string &); 
 template <class Type> std::string   StrAllVall();
+template <class Type> std::vector<Type> SubOfPat(const std::string & aPat,bool AcceptEmpty=false);
+
 
 
 };

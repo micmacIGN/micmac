@@ -1,4 +1,5 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -9,18 +10,38 @@ namespace MMVII
 /* ========================== */
 
 
+
 template <class Type>  cDataIm2D<Type>::cDataIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * aRawDataLin,eModeInitImage aModeInit) : 
-    cDataTypedIm<Type,2> (aP0,aP1,aRawDataLin,aModeInit)
+    cDataTypedIm<Type,2> (aP0,aP1,aRawDataLin,aModeInit),
+    mSzYMax (cRectObj<2>::Sz().y())
 {
-    mRawData2D = cMemManager::Alloc<tVal*>(cRectObj<2>::Sz().y()) -Y0();
+    mRawData2D = cMemManager::Alloc<tVal*>(mSzYMax) -Y0();
+    PostInit();
+}
+
+template <class Type> void  cDataIm2D<Type>::PostInit()
+{
     for (int aY=Y0() ; aY<Y1() ; aY++)
         mRawData2D[aY] = tBI::mRawDataLin + (aY-Y0()) * SzX() - X0();
 }
+
+
+template <class T> void  cDataIm2D<T>::Resize(const cPt2di& aP0,const cPt2di & aP1,eModeInitImage aMode) 
+{
+    int aPrevY0 = Y0();
+    cDataTypedIm<T,2>::Resize(aP0,aP1,aMode);
+    cMemManager::Resize(mRawData2D,aPrevY0,mSzYMax,Y0(),Sz().y());
+    PostInit();
+}
+
+
 
 template <class Type>  cDataIm2D<Type>::~cDataIm2D()
 {
    cMemManager::Free(mRawData2D+Y0());
 }
+
+// template <class Type>  cDataIm2D<Type>::
 
 template <class Type> int     cDataIm2D<Type>::VI_GetV(const cPt2di& aP)  const
 {
@@ -40,6 +61,18 @@ template <class Type> void  cDataIm2D<Type>::VD_SetV(const cPt2di& aP,const doub
    SetVTrunc(aP,aV);
 }
 
+template <class Type> const Type * cDataIm2D<Type>::GetLine(int aY)  const
+{
+   AssertYInside(aY);
+   return mRawData2D[aY];
+}
+template <class Type> Type * cDataIm2D<Type>::GetLine(int aY) 
+{
+   AssertYInside(aY);
+   return mRawData2D[aY];
+}
+
+
 
 /* ========================== */
 /*          cIm2D         */
@@ -58,7 +91,7 @@ template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aSz,Type * aRawDataLin,
 
 template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aName)
 {
-   cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName);
+   cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,true);
    cIm2D<Type> aRes(aFileIm.Sz());
    aRes.Read(aFileIm,cPt2di(0,0));
 
@@ -71,6 +104,39 @@ template <class Type>  cIm2D<Type>  cIm2D<Type>::Dup() const
    DIm().DupIn(aRes.DIm());
    return aRes;
 }
+
+
+template <class Type>  cIm2D<Type>  cIm2D<Type>::GaussFilter(double aStdDev,int aNbIter) const
+{
+    cIm2D<typename tElemNumTrait<Type>::tFloatAssoc> aImFloat(DIm().P0(),DIm().P1());
+    CopyIn(aImFloat.DIm(),DIm());
+    ExpFilterOfStdDev(aImFloat.DIm(),aNbIter,aStdDev);
+
+    cIm2D<Type> aRes(DIm().P0(),DIm().P1()); //  (DIm().P0(),DIm.P1());
+    CopyIn(aRes.DIm(),aImFloat.DIm());
+
+    return aRes;
+}
+
+template <class Type>  cIm2D<Type>  cIm2D<Type>::Decimate(int aFact) const
+{
+   // Not sure wat would be the meaning of origini != (0,0) 4 decimate
+   MMVII_INTERNAL_ASSERT_strong(DIm().P0()==cPt2di(0,0),"Decimate require (0,0) origin");
+   cIm2D<Type> aRes(mPIm->Sz()/aFact);
+   cDataIm2D<Type> & aDRes = aRes.DIm();
+
+   for (const auto & aP : aDRes)
+      aDRes.SetV(aP,mPIm->GetV(aP*aFact));
+
+   return aRes;
+}
+
+
+template <class Type>  cIm2D<Type>  cIm2D<Type>::GaussDeZoom(int aFact, int aNbIterExp,double dilate) const
+{
+    return GaussFilter(aFact*dilate,aNbIterExp).Decimate(aFact);
+}
+
 
 
 

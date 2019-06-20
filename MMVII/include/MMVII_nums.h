@@ -24,8 +24,31 @@ template <class Type> bool ValidFloatValue(const Type & aV)
 
 ///  Uniform distribution in 0-1
 double RandUnif_0_1();
+///  Uniform distribution in  -1 1
+double RandUnif_C();
+/// 1/2 , french "Pile ou Face"
+bool   HeadOrTail(); 
 /// Uniform disrtibution in [0,N[ 
 double RandUnif_N(int aN);
+
+class cFctrRR
+{  
+   public :
+      virtual  double F (double) const;
+      static cFctrRR  TheOne;
+};
+/// Random permutation , Higer Bias => Higer average rank
+std::vector<int> RandPerm(int aN,cFctrRR & aBias =cFctrRR::TheOne);
+/// Random subset K among  N  !! Higher bias => lower proba of selection
+std::vector<int> RandSet(int aK,int aN,cFctrRR & aBias =cFctrRR::TheOne);
+///  Random modification of K Value in a set of N elem
+std::vector<int> RandNeighSet(int aK,int aN,const std::vector<int> & aSet);
+/// Complement of aSet in [0,1...., N[    ;  ]]
+std::vector<int> ComplemSet(int aN,const std::vector<int> & aSet);
+
+
+
+
 /// Eventualy free memory allocated for random generation
 void FreeRandom();
 
@@ -105,18 +128,21 @@ template <> class tElemNumTrait<tU_INT1> : public tBaseNumTrait<tStdInt>
     public :
         static bool   Signed() {return false;}
         static eTyNums   TyNum() {return eTyNums::eTN_U_INT1;}
+        typedef tREAL4   tFloatAssoc;
 };
 template <> class tElemNumTrait<tU_INT2> : public tBaseNumTrait<tStdInt>
 {
     public :
         static bool   Signed() {return false;}
         static eTyNums   TyNum() {return eTyNums::eTN_U_INT2;}
+        typedef tREAL4   tFloatAssoc;
 };
 template <> class tElemNumTrait<tU_INT4> : public tBaseNumTrait<tINT8>
 {
     public :
         static bool   Signed() {return false;}
         static eTyNums   TyNum() {return eTyNums::eTN_U_INT4;}
+        typedef tREAL8   tFloatAssoc;
 };
 
       // Signed int 
@@ -126,24 +152,28 @@ template <> class tElemNumTrait<tINT1> : public tBaseNumTrait<tStdInt>
     public :
         static bool   Signed() {return true;}
         static eTyNums   TyNum() {return eTyNums::eTN_INT1;}
+        typedef tREAL4   tFloatAssoc;
 };
 template <> class tElemNumTrait<tINT2> : public tBaseNumTrait<tStdInt>
 {
     public :
         static bool   Signed() {return true;}
         static eTyNums   TyNum() {return eTyNums::eTN_INT2;}
+        typedef tREAL4   tFloatAssoc;
 };
 template <> class tElemNumTrait<tINT4> : public tBaseNumTrait<tStdInt>
 {
     public :
         static bool   Signed() {return true;}
         static eTyNums   TyNum() {return eTyNums::eTN_INT4;}
+        typedef tREAL8   tFloatAssoc;
 };
 template <> class tElemNumTrait<tINT8> : public tBaseNumTrait<tStdInt>
 {
     public :
-        static bool   Signed() {return true;}
+        static bool      Signed() {return true;}
         static eTyNums   TyNum() {return eTyNums::eTN_INT8;}
+        typedef tREAL8   tFloatAssoc;
 };
 
       // Floating type
@@ -153,18 +183,21 @@ template <> class tElemNumTrait<tREAL4> : public tBaseNumTrait<tStdDouble>
     public :
         static bool   Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL4;}
+        typedef tREAL4   tFloatAssoc;
 };
 template <> class tElemNumTrait<tREAL8> : public tBaseNumTrait<tStdDouble>
 {
     public :
         static bool   Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL8;}
+        typedef tREAL8   tFloatAssoc;
 };
 template <> class tElemNumTrait<tREAL16> : public tBaseNumTrait<tREAL16>
 {
     public :
-        static bool   Signed() {return true;} ///< Not usefull but have same interface
+        static bool      Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL16;}
+        typedef tREAL16  tFloatAssoc;
 };
 
     // ========================================================================
@@ -227,6 +260,18 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
                  return MinValue() + RandUnif_0_1() * (int(MaxValue())-int(MinValue())) ;
               return RandUnif_0_1();
          }
+         static Type RandomValueCenter()
+         {
+              if (tETrait::IsInt())
+                 return MinValue() + RandUnif_0_1() * (int(MaxValue())-int(MinValue())) ;
+              return RandUnif_C();
+         }
+         static Type Eps()
+         {
+              if (tETrait::IsInt())
+                 return 1;
+              return  std::numeric_limits<Type>::epsilon();
+         }
 
          static const tNumTrait<Type>  TheOnlyOne;
 };
@@ -263,6 +308,7 @@ inline tINT4 mod_gen(tINT4 a,tINT4 b)
     return (r <0) ? (r+ ((b>0) ? b : -b)) : r;
 }
 
+tINT4 HCF(tINT4 a,tINT4 b); // = PGCD = Highest Common Factor
 
 /* ================= rounding  ======================= */
 
@@ -323,6 +369,14 @@ template <class Type,class TCast> TCast TSquare(const Type & aV) {return aV* TCa
 template <class Type> tREAL8  R8Square(const Type & aV) {return TSquare<Type,tREAL8>(aV);} ///< To avoid oveflow with int type
 
 
+template <class Type> void OrderMinMax(Type & aV1,Type & aV2)
+{
+   if (aV1>aV2)
+      std::swap(aV1,aV2);
+}
+
+// 4 now use sort, will enhance with boost or home made
+template <class Type> Type Mediane(std::vector<Type> & aV);
 
 };
 

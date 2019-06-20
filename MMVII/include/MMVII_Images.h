@@ -59,16 +59,21 @@ template <const int Dim>  class cRectObj
 {
     public : 
         typedef cRectObjIterator<Dim> iterator; ///< For auto ...
+        typedef cPtxd<int,Dim>        tPt;
         static const cRectObj Empty00;
 
-        cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1);
+        cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1); ///< Required as iterators do not copy well becaus of ptr
+        cRectObj(const cRectObj<Dim> &) ;
 
 
-        const cPtxd<int,Dim> & P0() const {return mP0;} ///< Origin of object
-        const cPtxd<int,Dim> & P1() const {return mP1;} ///< End of object
-        const cPtxd<int,Dim> & Sz() const {return mSz;} ///< Size of object
+        const tPt & P0() const {return mP0;} ///< Origin of object
+        const tPt & P1() const {return mP1;} ///< End of object
+        const tPt & Sz() const {return mSz;} ///< Size of object
 
         const tINT8 & NbElem() const {return mNbElem;}  ///< Number of "pixel"
+
+        tINT8   IndexeLinear(const tPt &) const;
+        const tPt & SzCum() const;
 
         // Boolean operators
            /// Is this point/pixel/voxel  inside
@@ -97,6 +102,8 @@ template <const int Dim>  class cRectObj
         iterator   begin() const {return mBegin;}   ///< For auto
         iterator   end()   const {return mEnd;}   ///< For auto
 
+         
+
         //  ---  object generation ----------------
 
         cPtxd<int,Dim>  FromNormaliseCoord(const cPtxd<double,Dim> &) const ;  ///< [0,1] * => Rect
@@ -104,13 +111,14 @@ template <const int Dim>  class cRectObj
         cPtxd<int,Dim>  GeneratePointInside() const;   ///< Random point in integer rect
         cRectObj<Dim>  GenerateRectInside(double aPowSize=1.0) const; ///< Hig Power generate "small" rect, never empty
 
+
     protected :
         cPtxd<int,Dim> mP0;           ///< "smallest"
         cPtxd<int,Dim> mP1;           ///< "highest"
         cPtxd<int,Dim> mSz;           ///<  Size
         cRectObjIterator<Dim> mBegin; ///< Beging iterator
         cRectObjIterator<Dim> mEnd;   ///< Ending iterator
-        cPtxd<tINT8,Dim> mSzCum;      ///< Cumlated size : Cum[aK] = Cum[aK-1] * Sz[aK]
+        cPtxd<tINT8,Dim> mSzCum;      ///< Cumlated size : Cum[aK] = Cum[aK-1] * Sz[aK-1]
         tINT8            mNbElem;     ///< Number of pixel = Cum[Dim-1]
     private :
         cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,bool AllowEmpty);
@@ -210,9 +218,13 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         const Type & GetRDL(int aK) const {return  mRawDataLin[aK];} ///<  Kth val
 
         void InitRandom();    ///< uniform, float in [0,1], integer in [Min,Max] of Type
+        void InitRandom(const Type &aV0,const Type & aV1);  ///< uniform float in [V0, V2[
+        void InitRandomCenter();    ///< uniform, float in [-1,1], integer in [Min,Max] of Type
         void InitCste(const Type & aV); ///< Constant value
         void InitId();                  ///< Identity, only avalaible for 2D-squares images
         void InitNull();                ///< Null, faster than InitCste(0)
+        void InitDirac(const cPtxd<int,Dim> & aP,const Type &  aVal=1);  ///<  Create aDirac Image, 0 execpt 1 in P, used in test
+        void InitDirac(const Type &  aVal=1);  ///<  Create aDirac with val in center
         void Init(eModeInitImage);      ///< swicth to previous specialized version
 
         //========= Test access ============
@@ -230,17 +242,19 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         double L1Norm() const;   ///< Norm som abs
         double L2Norm() const;   ///< Norm square
         double LInfNorm() const; ///< Nomr max
+        void DupIn(cDataTypedIm<Type,Dim> &) const;  ///< Duplicate raw data
     protected :
+        void Resize(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,eModeInitImage=eModeInitImage::eMIA_NoInit);
 
         ///< Test 4 writing
         void AssertValueOk(const tBase & aV) const
         {
              MMVII_INTERNAL_ASSERT_tiny(ValueOk(aV),"Invalid Value for image");
         }
-        void DupIn(cDataTypedIm<Type,Dim> &) const;  ///< Duplicate raw data
 
         bool   mDoAlloc;  ///< was data allocated by the image (must know 4 free)
         Type *   mRawDataLin; ///< raw data containing pixel values
+        int      mNbElemMax;
 };
 
 
@@ -264,7 +278,7 @@ class cDataFileIm2D : public cRect2
         const eTyNums &   Type ()  const ;  ///< std accessor
         const std::string &  Name() const;  ///< std accessor
         /// Create a descriptor on existing file
-        static cDataFileIm2D Create(const std::string & aName);
+        static cDataFileIm2D Create(const std::string & aName,bool ForceGray);
         /// Create the file before returning the descriptor
         static cDataFileIm2D Create(const std::string & aName,eTyNums,const cPt2di & aSz,int aNbChan=1);
 
@@ -290,12 +304,15 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
     public :
         friend class cIm2D<Type>;
 
+
         typedef Type  tVal;
+        typedef tVal* tPVal;
         typedef cDataTypedIm<Type,2>   tBI;
         typedef cRectObj<2>               tRO;
         typedef typename tBI::tBase  tBase;
 
         //========= fundamental access to values ============
+
 
            /// Get Value, check access in non release mode
         const Type & GetV(const cPt2di & aP)  const
@@ -329,6 +346,9 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         void VI_SetV(const  cPt2di & aP,const int & aV)    override ; ///< call SetV
         void VD_SetV(const  cPt2di & aP,const double & aV) override ; ///< call SetV
 
+        // ==  raw pointer on origin of line
+        const Type * GetLine(int aY)  const;
+        Type * GetLine(int aY) ;
         //========= Access to sizes, only alias/facilities ============
 
         const cPt2di &  Sz()  const {return tRO::Sz();}  ///< Std Accessor
@@ -345,6 +365,8 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
 
         // const cPt2di &  Sz()  const {return cRectObj<2>::Sz();}
 
+        void Resize(const cPt2di& aP0,const cPt2di & aP1,eModeInitImage=eModeInitImage::eMIA_NoInit);
+        void Resize(const cPt2di& aSz,eModeInitImage=eModeInitImage::eMIA_NoInit);
 
 
         ///  Read file image 1 channel to 1 channel
@@ -352,8 +374,12 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         ///  Write file image 1 channel to 1 channel
         void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::Empty00);  // 1 to 1
         virtual ~cDataIm2D();  ///< will delete mRawData2D
+        
+        /// Raw image, lost all waranty is you use it...
+        tVal ** ExtractRawData2D() {return mRawData2D;}
     protected :
     private :
+        void PostInit();
         cDataIm2D(const cDataIm2D<Type> &) = delete;  ///< No copy constructor for big obj, will add a dup()
         cDataIm2D(const cPt2di & aP0,const cPt2di & aP1,
                  Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit); ///< Called by shared ptr (cIm2D)
@@ -364,7 +390,13 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         const Type & Value(const cPt2di & aP) const   {return mRawData2D[aP.y()][aP.x()];} /// Const Data Access
 
 
-        Type ** mRawData2D;  ///< Pointers on DataLin
+        void AssertYInside(int Y) const
+        {
+             MMVII_INTERNAL_ASSERT_tiny((Y>=Y0())&&(Y<Y1()),"Point out of image");
+        }
+
+        int     mSzYMax;
+        tPVal * mRawData2D;  ///< Pointers on DataLin
 };
 
 
@@ -396,6 +428,14 @@ template <class Type>  class cIm2D
        // void Read(const cDataFileIm2D &,cPt2di & aP0,cIm2D<Type> aI2,cIm2D<Type> aI3);  // 3 to 3
 
        cIm2D<Type>  Dup() const;  ///< create a duplicata
+       cIm2D<Type>  Decimate(int aFact) const;  ///< create decimated image, just take on pix out of N
+       /**  Apply gaussian filter, use a temporary float */
+       cIm2D<Type>  GaussFilter(double , int aNbIterExp=3) const;  
+       /**  Apply gaussian filter before dezoom to have good ressampling, may be a bit slow
+            StdDev => prop to fact, def value 0.5 correspond to a witdh equal to size of ressampling */
+       cIm2D<Type>  GaussDeZoom(int aFact, int aNbIterExp=3,double StdDev=DefStdDevRessample) const;  
+
+
     private :
        std::shared_ptr<tDIM> mSPtr;  ///< shared pointer to real image , allow automatic deallocation
        tDIM *                mPIm;   ///< raw pointer on mSPtr, a bit faster to store it ?
@@ -457,10 +497,15 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         void VI_SetV(const  cPt1di & aP,const int & aV)    override ;
         void VD_SetV(const  cPt1di & aP,const double & aV) override ;
 
+        void Resize(const cPt1di& aP0,const cPt1di & aP1,eModeInitImage=eModeInitImage::eMIA_NoInit);
+        void Resize(int aSz,eModeInitImage=eModeInitImage::eMIA_NoInit);
         //========= Access to sizes, only alias/facilities ============
         virtual ~cDataIm1D();
+        /// Raw image, lost all waranty is you use it...
+        tVal * ExtractRawData1D() {return mRawData1D;}
     protected :
     private :
+        void PostInit();
         Type * RawData1D() {return mRawData1D;}  ///< Used by matrix/vector interface
 
         cDataIm1D(const cDataIm1D<Type> &) = delete;  ///< No copy constructor for big obj, will add a dup()
@@ -500,6 +545,36 @@ template <class Type>  class cIm1D
        std::shared_ptr<tDIM> mSPtr;  ///< shared pointer to real image
        tDIM *                mPIm;
 };
+
+/**************************************/
+/*           LINEAR FILTERING         */
+/**************************************/
+
+/// return the variance of  exponential distribution of parameter "a" ( i.e proportiona to  "a^|x|")
+double Sigma2FromFactExp(double a);
+/// Inverse function, the usefull one 
+double FactExpFromSigma2(double aS2);
+
+
+/** General function, 
+      Normalise => If true, limit size effect and Cste => Cste (else lowe close to border)
+      cRect2 => foot print, not necessarily whole image
+      Fx,Fy => factor in x and y can be different, (if one is equal 0 => speed up)
+*/
+
+template <class Type>
+void  ExponentialFilter(bool Normalise,cDataIm2D<Type> & aIm,int   aNbIter,const cRect2 &,double Fx,double Fy);
+
+
+/** Standard parameters, normalised, whole image, Fx==Fy */
+template <class Type>
+void  ExponentialFilter(cDataIm2D<Type> & aIm,int   aNbIter,double aFact);
+/** More naturel parametrisation, specify the standard deviation of FINAL filter (including iterations),
+   the NbIter parameter allow to be more or less close to a gaussian */
+template <class Type>
+void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,int   aNbIter,double aStdDev);
+
+
 
 
 };

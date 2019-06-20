@@ -3003,6 +3003,7 @@ ElPackHomologue  ElCamera::F2toPtDirRayonL3(const ElPackHomologue & aPckIn,ElCam
    {
       if ( (! OkPt(itP->P1(),aSz1))  || (! OkPt(itP->P2(),aSz2)))
       {
+// MPD => il semble que SIFT genere des points 
           std::cout << "IM1 , P : " << itP->P1() << aSz1 << "\n";
           std::cout << "IM2 , P : " << itP->P2() << aSz2 << "\n";
           ELISE_ASSERT
@@ -3011,15 +3012,18 @@ ElPackHomologue  ElCamera::F2toPtDirRayonL3(const ElPackHomologue & aPckIn,ElCam
              "Pt Out Cam in ElCamera::F2toPtDirRayonL3"
           );
       }
-      if (
-                IsInZoneUtile(itP->P1())
-             && aCam2->IsInZoneUtile(itP->P2())
-         )
-      {
-          aPckOut.Cple_Add(F2toPtDirRayonL3(itP->ToCple(),aCam2));
-      }
       else
       {
+           if (
+                     IsInZoneUtile(itP->P1())
+                  && aCam2->IsInZoneUtile(itP->P2())
+              )
+           {
+               aPckOut.Cple_Add(F2toPtDirRayonL3(itP->ToCple(),aCam2));
+           }
+           else
+           {
+           }
       }
    }
 

@@ -104,6 +104,10 @@ class cSpecMMVII_Appli
      operator <<  ares defined on both classes ...
 */
 
+class cExplicitCopy
+{
+};
+
 class cColStrAObl
 {
     public :
@@ -130,6 +134,8 @@ class cColStrAOpt
         const  tCont & V() const;
         void clear();
         cColStrAOpt(); ///< Necessary as X(const X&) is declared (but not defined=>delete)
+        static const cColStrAOpt Empty; ///< Default paramater
+        cColStrAOpt(cExplicitCopy,const cColStrAOpt&) ;
     private :
         cColStrAOpt(const cColStrAOpt&) = delete;
         tCont mV;
@@ -184,6 +190,18 @@ class cMMVII_Ap_CPU
          int         mNbProcSys; ///< Number of processor on the system
 };
 
+/**   When we will deal with cluster computing, it will be usefull that command can specify
+   their ressource , for now this class is just a "coquille vide" arround a string
+*/
+class cParamCallSys
+{
+    public :
+       cParamCallSys(const std::string & aCom);
+       const std::string & Com() const ; ///< Accessor
+    private :
+       std::string mCom;
+};
+
      // ========================== cMMVII_Appli  ==================
 
 cMultipleOfs& StdOut(); /// Call the ostream of cMMVII_Appli if exist (else std::cout)
@@ -210,19 +228,50 @@ cMultipleOfs& ErrOut();
 */
 
 
+
 class cMMVII_Appli : public cMMVII_Ap_NameManip,
                      public cMMVII_Ap_CPU
 {
     public :
+
+        /// Temporary; will add later a "real" warning mechanism, for now track existing
+        void MMVII_WARNING(const std::string &);
+
         /// According to StdOut param can be std::cout, a File, both or none
         cMultipleOfs & StdOut();
         cMultipleOfs & HelpOut();
         cMultipleOfs & ErrOut();
 
         int  ExeCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
-        std::string  StrCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
+        // Subst  (aNameOpt,aVal)
+        // aNameOpt :  si existe substitue, si "+" ajoute a mandatory, si "3"  => sub 3 mandatory, si MMVII_NONE
+        cParamCallSys  StrCallMMVII ( const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&,
+                                      const cColStrAOpt &  aLSubst  = cColStrAOpt::Empty); ///< MMVII call itself
+        std::list<cParamCallSys>  ListStrCallMMVII
+                                (  const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&,
+                                   const std::string & aNameOpt  , const std::vector<std::string> &  LVals
+                                   //  const cColStrAOpt &  aLSubst = cColStrAOpt::Empty
+                                 ); ///< MMVII call itself
+
+        std::list<cParamCallSys>  ListStrAutoRecallMMVII
+                                (  const std::string & aNameOpt  , const std::vector<std::string> &  LVals,
+                                   const cColStrAOpt &  aLSubst = cColStrAOpt::Empty
+                                 ); ///< MMVII reccall the same command itself
+        void  ExeMultiAutoRecallMMVII
+                                (  const std::string & aNameOpt  ,  //!  Name of parameter to substitue
+                                   const std::vector<std::string> &  LVals, //! List of value for each process
+                                   const cColStrAOpt &  aLSubst = cColStrAOpt::Empty,
+                                   bool InParal=true
+                                 ); ///< MMVII reccall the same command itself
+
+
+        int ExeComSerial(const std::list<cParamCallSys> &);  ///< 1 after 1
+        int ExeComParal(const std::list<cParamCallSys> &);   ///< 4 now serial, soon paral with Make ?
+
+
         cColStrAObl& StrObl();
         cColStrAOpt& StrOpt();
+        void InitColFromVInit(); ///< Put in StrObl and StrOpt value from initial parameter
  
         static bool   ExistAppli();         ///< Return if the appli exist, no error
         static cMMVII_Appli & TheAppli();   ///< Return the unique appli, error if not
@@ -233,13 +282,14 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static void SignalInputFormat(int); ///< indicate that a xml file was read in the given version
         static bool        OutV2Format() ;  ///<  Do we write in V2 Format
 
-        void InitParam();
+        void InitParam();  ///< Parse the parameter list
 
         const std::string & TmpDirTestMMVII()   const;   ///< where to put binary file for bench, Export for global bench funtion
         const std::string & InputDirTestMMVII() const;   ///<  where are input files for bench   , Export for global bench funtion
 
         static int  SeedRandom();  ///< SeedRand if Appli init, else default
 
+        int   LevelCall() const;     ///< Accessor to mLevelCall
 
     protected :
         /// Constructor, essenntially memorize command line and specifs
