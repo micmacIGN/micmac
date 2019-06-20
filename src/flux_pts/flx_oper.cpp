@@ -76,7 +76,7 @@ class  Flux_Concat_Comp  : public Flux_Pts_Computed
                }
            }
  
-           Flux_Pts_Computed * (_flx[2]);
+           Flux_Pts_Computed * _flx[2];
            INT                 _ifl;
 };
 

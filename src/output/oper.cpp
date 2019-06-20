@@ -99,8 +99,8 @@ template <class Type> class CatCoord_Out_Comp :  public Output_Computed
 
       private :
 
-         Output_Computed *         (_to[2]);
-         Std_Pack_Of_Pts<Type> *    (_tpck[2]);
+         Output_Computed *         _to[2];
+         Std_Pack_Of_Pts<Type> *    _tpck[2];
 };
 
 
@@ -190,7 +190,7 @@ class Pipe_Out_Comp :  public Output_Computed
          }
 
       private :
-         Output_Computed *         (_to[2]);
+         Output_Computed *         _to[2];
 };
 
 

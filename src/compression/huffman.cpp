@@ -343,7 +343,7 @@ HuffmanCodec * HuffmanCodec::init_from_files
 
 const HuffmanCodec * HuffmanCodec::TiffCitt3Black()
 {
-   static const char * (name[2]) = {HUFMAN_black,HUFMAN_makeup};
+   static const char * name[2] = {HUFMAN_black,HUFMAN_makeup};
 
    return   _Tiff_Citt3_Black
           = init_from_files(_Tiff_Citt3_Black,name,2,105);
@@ -351,7 +351,7 @@ const HuffmanCodec * HuffmanCodec::TiffCitt3Black()
 
 const HuffmanCodec * HuffmanCodec::TiffCitt3White()
 {
-   static const char * (name[2]) = {HUFMAN_white,HUFMAN_makeup};
+   static const char * name[2] = {HUFMAN_white,HUFMAN_makeup};
 
    return   _Tiff_Citt3_White
           = init_from_files(_Tiff_Citt3_White,name,2,105);
@@ -359,7 +359,7 @@ const HuffmanCodec * HuffmanCodec::TiffCitt3White()
 
 const HuffmanCodec * HuffmanCodec::TiffCitt4Vert()
 {
-   static const char * (name[1]) = {HUFMAN_CCITT_MOD};
+   static const char * name[1] = {HUFMAN_CCITT_MOD};
    return    _TiffCitt4_Vert
           =  init_from_files(_TiffCitt4_Vert,name,1,12);
 
@@ -367,7 +367,7 @@ const HuffmanCodec * HuffmanCodec::TiffCitt4Vert()
 
 const HuffmanCodec * HuffmanCodec::TiffCitt4UComp()
 {
-   static const char * (name[1]) = {HUFMAN_CCIT_UCOMP};
+   static const char * name[1] = {HUFMAN_CCIT_UCOMP};
    return    _TiffCitt4_UComp
           =  init_from_files(_TiffCitt4_UComp,name,1,11);
 
@@ -375,7 +375,7 @@ const HuffmanCodec * HuffmanCodec::TiffCitt4UComp()
 
 const HuffmanCodec * HuffmanCodec::TiffMPDT6()
 {
-   static const char * (name[1]) = {HUFMAN_MPD};
+   static const char * name[1] = {HUFMAN_MPD};
    return    _Tiff_MPD_T6
           =  init_from_files(_Tiff_MPD_T6,name,1,6);
 

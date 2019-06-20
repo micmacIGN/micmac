@@ -415,7 +415,7 @@ class Gif_Tile_F2d : public Tile_F2d
 
 
         Packed_LZW_Decompr_Flow  * _LZW_flow;
-        Packed_LZW_Decompr_Flow  * (_interlac_LF[4]);
+        Packed_LZW_Decompr_Flow  * _interlac_LF[4];
         bool                       _interlaced;
         INT                        _nb_lzw;
 };
