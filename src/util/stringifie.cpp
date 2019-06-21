@@ -84,7 +84,7 @@ void Stringify
    fprintf(aFOut,"#include \"StdAfx.h\"\n");
 
    
-   fprintf(aFOut,"const char * (%s[%d]) = {\n",aNameString.c_str(),aNbLigneTot+2);
+   fprintf(aFOut,"const char * %s[%d] = {\n",aNameString.c_str(),aNbLigneTot+2);
 
    fprintf(aFOut,"\"");
    int aC;

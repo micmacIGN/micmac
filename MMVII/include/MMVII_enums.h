@@ -31,7 +31,7 @@ enum class eTA2007
             // !!!!! Common must be first UNPRINTED  !!!
                 Common,        ///< Parameter  Common to all commands
                 Internal,      ///< Reserved to internall use by MMVII
-                HDV,           ///< Has Def Value
+                HDV,           ///< Has Default Value, will be printed on help
                 eNbVals        ///< Tag for number of value
            };
 
@@ -40,6 +40,7 @@ enum class eApF
            {
                Project, ///< Project Managenent
                Test,    ///< Test
+               ImProc,  ///< Image processing
                Ori,     ///< Orientation
                Match,   ///< Dense Matching
                TieP,    ///< Tie-Point processing
@@ -53,6 +54,7 @@ enum class eApDT
            {
               Ori,    ///< Orientation
               TieP,   ///< Tie Points
+              Image,   ///< Tie Points
               Ply,    ///< Ply file
               None,     ///< Nothing 
               Console,  ///< Console 
@@ -142,7 +144,8 @@ enum class eTyNums
 
 enum class eModeInitImage
            {
-               eMIA_Rand,
+               eMIA_Rand,        ///< Rand  in [0..1]
+               eMIA_RandCenter,        ///< Rand  in [-1 1]
                eMIA_Null,
                eMIA_MatrixId,    ///<  Only for square  Matrix  : Identite, 
                eMIA_NoInit
@@ -154,6 +157,14 @@ enum class eTyInvRad
                eTVIR_ACGT,
                eTVIR_ACR0,
                eTVIR_Curve,
+               eNbVals
+           };
+
+/**  Type of eigen decomposition in matrix algebra */
+enum class eTyEigenDec
+           {
+               eTED_PHQR, // Pivot Householder QR
+               eTED_LLDT, // Cholesky with robust pivoting
                eNbVals
            };
 

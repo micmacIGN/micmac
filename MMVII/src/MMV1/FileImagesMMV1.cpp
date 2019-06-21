@@ -1,8 +1,24 @@
 #include "include/V1VII.h"
 
 
+extern std::string MM3DFixeByMMVII;
+
 namespace MMVII
 {
+
+void Init_mm3d_In_MMVII()
+{
+   // 
+   static bool First= true;
+   if (! First) return;
+   First = false;
+
+   // Compute mm3d location from relative position to MMVII
+   std::string CA0 =  DirBin2007 + "../../bin/mm3d";
+   char * A0= const_cast<char *>(CA0.c_str());
+   MM3DFixeByMMVII= CA0;
+   MMD_InitArgcArgv(1,&A0);
+}
 
 /* =========================== */
 /*       cDataFileIm2D         */
@@ -16,11 +32,16 @@ cDataFileIm2D::cDataFileIm2D(const std::string & aName,eTyNums aType,const cPt2d
 {
 }
 
-cDataFileIm2D cDataFileIm2D::Create(const std::string & aName)
+cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,bool aForceGray)
 {
-   Tiff_Im aTF=Tiff_Im::StdConvGen(aName,-1,true);
+    Init_mm3d_In_MMVII();
 
-   return cDataFileIm2D(aName,ToMMVII(aTF.type_el()),ToMMVII(aTF.sz()), aTF.nb_chan());
+    bool aForce8B = false;
+    std::string aNameTif = NameFileStd(aName,aForceGray ? 1 :-1,!aForce8B ,true,true);
+
+    Tiff_Im aTF = Tiff_Im::StdConvGen(aNameTif.c_str(),aForceGray ? 1 :-1,!aForce8B ,true);
+
+    return cDataFileIm2D(aName,ToMMVII(aTF.type_el()),ToMMVII(aTF.sz()), aTF.nb_chan());
 }
 
 cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,const cPt2di & aSz,int aNbChan)
@@ -42,7 +63,7 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
       Tiff_Im::No_Compr,
       aPIT
    );
-   return Create(aName);
+   return Create(aName,false);
 }
 
 
@@ -54,6 +75,7 @@ cDataFileIm2D::~cDataFileIm2D()
 const cPt2di &  cDataFileIm2D::Sz() const  {return  cRectObj<2>::Sz();}
 const std::string &  cDataFileIm2D::Name() const { return mName; }
 const int  & cDataFileIm2D::NbChannel ()  const { return mNbChannel; }
+const eTyNums &   cDataFileIm2D::Type ()  const {return mType;}
 
 
 

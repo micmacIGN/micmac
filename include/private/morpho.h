@@ -171,7 +171,7 @@ class SkVein
         };
 
         // for a given flag, gives the list of active bits
-        static ldir * (BitsOfFlag[256]);
+        static ldir * BitsOfFlag[256];
 
         // for a given flag,  the number of bits active
         static U_INT1    NbBitFlag[256];
@@ -191,8 +191,8 @@ class SkVein
         };
 
 
-        static cc_vflag * (CC_cx8[256]);
-        static cc_vflag * (CC_cx4[256]);
+        static cc_vflag * CC_cx8[256];
+        static cc_vflag * CC_cx4[256];
 
         static void flag_cc(int & cc,int b,int flag);
 

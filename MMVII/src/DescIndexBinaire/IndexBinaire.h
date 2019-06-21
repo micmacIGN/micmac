@@ -15,8 +15,6 @@ class cMetaDataOneFileInvRad ;
 // Class for storing info/vector on one Pts Carac
 class  cVecInvRad ;
 // Virtual Class for computing on bit
-class cIB_FoncBool ;
-// Virtual Class for computing on bit
 class cIB_LineFoncBool;
 //  Class to store computed values of given bit computer
 class cVecBool;
@@ -37,6 +35,8 @@ typedef std::unique_ptr<cVecBool> tPtVBool;
 class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
 {
      public :
+        virtual ~cAppli_ComputeParamIndexBinaire();
+
         cAppli_ComputeParamIndexBinaire(int argc,char** argv,const cSpecMMVII_Appli &);
   
         // Pure virtual methods of cMMVII_Appli
@@ -44,6 +44,7 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
         
+        // void   SaveFileData(); Not implemented for now
         // Accessors
         const std::string & DirCurPC() const ;
         cVecInvRad*  IR(int aK);
@@ -51,15 +52,19 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
         const cStrStat2<tREAL8> & Stat2();
         cDenseVect<tREAL8> &    TmpVect();
         const cResulSymEigenValue<tREAL8> &  Eigen() const;
-        void   SaveFileData();
+        int    ZoomImg() const;
+        cIm2D<tU_INT1> MakeImSz(cIm2D<tU_INT1>);
      private :
          void ProcessOneDir(const std::string &);
          void TestNewSol(const std::vector<int> &,const std::vector<const cVecBool*> &);
+         double  ScoreAPrioiri(const std::vector<int>& aSet) const;
+
 
          void ComputeIndexBinaire();
+         void OneIterComputeIndexBinaire();
          std::vector<const cVecBool*> IndexToVB(const std::vector<int>&) const;
-         std::vector<const cVecBool*> GenereVB(std::vector<int>&,int aK,int aNb) const;
-         void  TestRandom(int aNbTest,int aNb); 
+         std::vector<const cVecBool*> GenereVB(int aNbTest,std::vector<int>&,int aK,int aNb) const;
+         void  TestRandom();
          void TestNbBit() const;
          void TestNbBit(int aNb) const;
 
@@ -67,7 +72,15 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
          std::string    mPatPCar;   ///< Pattern for carac to process, if several run indepently in paral
          std::string    mPatInvRad; ///< Pattern for radial invariant used
          tREAL8         mNbPixTot;  ///< Number of pixel, juste 4 info
+
+            // Parameter that fix the combinatory (for tuning essentially)
          double         mPropFile;  ///< Prop of selected file, tuning to go faster in test mode
+         int            mNbIterBits;  ///< Number of iteration for bits selection
+         int            mNbEigenVal; ///< Number of Eigen Value selected
+         int            mNbTestCombInit; ///< Number of test in initial combinatory
+         int            mNbOptCombLoc; ///< Number of test combinatory 4 local optim
+         bool           mQuickBits;    ///< Fix all parameter to low values for test
+         int            mZoomImg;  ///< Zoom of decimation of images
 
          std::vector<std::string>  mLDirPC;   ///< List of directory containg PCar
          std::string               mDirCurPC; ///< Containe Current PCar, as only one is processed simultaneously
@@ -80,15 +93,18 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
          cDenseVect<tREAL8>    mTmpVect;
 
          cStrStat2<tREAL8>     mStat2;
+         cLeasSqtAA<tREAL8>    mLSQOpt;
          const cResulSymEigenValue<tREAL8>  *mEigen;
          std::vector<tPtVBool>              mVVBool;  ///< Memorized vector of bool
 
          std::vector<cPt2di>  mVecTrueP;  ///< True pairs
          std::vector<cPt2di>  mVecFalseP; ///< Pairs of non hom, random but memorized to have always same
          std::string          mSaveFileSelVectIR;  ///< To Save file of selected IR, usefull if we rerun from previous comp
-         double                       mBestSc;
-         std::vector<const cVecBool*> mBestVB;
-         std::vector<int>             mBestIndex;
+              // 3 variable used to store curent solution of bits selection
+         double                       mBestSc;  ///< Current score (initialize - inft)
+         std::vector<const cVecBool*> mBestVB;   ///< Vector of bool
+         std::vector<int>             mBestIndex; ///< Index of these vectors
+
 };
 
 class  cVecInvRad : public cMemCheck
@@ -97,7 +113,7 @@ class  cVecInvRad : public cMemCheck
          cVecInvRad(int aNbVal);
       
          cIm1D<tU_INT1>  mVec;
-         bool            mSelected;
+         bool            mSelected; //< When we iterate binary index, use this to "supress" IR that satisy the test
 };
 
 
@@ -118,7 +134,7 @@ class cMetaDataOneFileInvRad : public cMemCheck
         int                    mNbPair;  ///<  Number of pair
 };
 
-class cDataOneInvRad : public cMemCheck
+class cDataOneInvRad  : public cMemCheck
 {
     public :
        cDataOneInvRad(cAppli_ComputeParamIndexBinaire & anAppli,cDataOneInvRad * aPrev,eTyInvRad);
@@ -133,7 +149,8 @@ class cDataOneInvRad : public cMemCheck
        // Accessors
        cAppli_ComputeParamIndexBinaire  &   Appli() ;
        const std::string&   Dir() const;
-       const cPt2di &  SzP0() const;  
+       const cPt2di &  SzP0Init() const;  
+       const cPt2di &  SzP0Final() const;  
        int  NbPixByP() const;
        eTyInvRad  TIR() const;
        tREAL8     NbPixTot() const;
@@ -141,13 +158,16 @@ class cDataOneInvRad : public cMemCheck
        int        PosInVect() const;  
        int &      KFill();
     private :
+       void SetSzP0Final(const cPt2di &);
        cDataOneInvRad(const cDataOneInvRad &) = delete;
 
        cAppli_ComputeParamIndexBinaire  &   mAppli;  ///< Memorize global application
        eTyInvRad                            mTIR;  ///< Kind of radial invariant
        std::string                          mDir; ///< Directory with file "Cple.*tif"
        std::vector<cMetaDataOneFileInvRad>  mMDOFIR;
-       cPt2di                               mSzP0;  ///< Size Patch Init
+       cPt2di                               mSzP0Init;   ///< Size Patch Init before decimate
+       cPt2di                               mSzP0Final;  ///< Size Patch Final, after possible decimation
+
        int                                  mNbPixByP; ///< Nb of Pix/Patch Can differ if reduced
        tREAL8                               mNbPixTot;  ///< Number of Pixel, for stat/info
        int                                  mNbPatch;  ///<  Number of patch = 2 *NbPair
@@ -157,24 +177,12 @@ class cDataOneInvRad : public cMemCheck
 
 
 
-class cIB_FoncBool : public cMemCheck
-{
-     public :
-        virtual bool   Calc(const cVecInvRad &) const =0; ///< Compute one bit
-        virtual double RCalc(const cVecInvRad &) const;   ///< Continuous version def -0.5 / 0.5
-        virtual ~cIB_FoncBool();
-        cIB_FoncBool(cAppli_ComputeParamIndexBinaire & anAppli);
-     protected :
-        cAppli_ComputeParamIndexBinaire & mAppli;
-     private :
-        cIB_FoncBool (const cIB_FoncBool &) = delete;
-};
 
-class cIB_LinearFoncBool : public cIB_FoncBool
+class cIB_LinearFoncBool : public cMemCheck
 {
      public :
-        bool Calc(const cVecInvRad &) const override;
-        double RCalc(const cVecInvRad &) const override;
+        bool Calc(const cVecInvRad &) const ;
+        double RCalc(const cVecInvRad &) const ;
         cIB_LinearFoncBool
         (
              cAppli_ComputeParamIndexBinaire & anAppli,
@@ -183,20 +191,28 @@ class cIB_LinearFoncBool : public cIB_FoncBool
         );
      private :
         cIB_LinearFoncBool (const cIB_LinearFoncBool &) = delete;
+        cAppli_ComputeParamIndexBinaire & mAppli;
         int                   mK;
         double                mThresh;
 };
 
 
-class cVecBool : public cMemCheck
+class cVecBool  : public cMemCheck
 {
      public :
-         cVecBool(cIB_FoncBool * aFB,const tVPtVIR &);
+         cVecBool(cIB_LinearFoncBool * aFB,const tVPtVIR &);
          bool  KBit(int aK) const {return mVB.at(aK);}
+         const tREAL4 & Score() const {return mScore;}
      private :
          cVecBool(const cVecBool &) = delete;
-         std::shared_ptr<cIB_FoncBool>  mFB;
-         std::vector<tU_INT1> mVB;
+         std::shared_ptr<cIB_LinearFoncBool>  mFB;
+         std::vector<bool> mVB;
+
+         cDenseVect<tREAL4>  mCdg0;
+         int                 mNb0;
+         cDenseVect<tREAL4>  mCdg1;
+         int                 mNb1;
+         tREAL4              mScore;
 };
 
 int NbbBitDif(const std::vector<const cVecBool*> & aVVB,const cPt2di & aPair);

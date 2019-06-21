@@ -4,6 +4,7 @@
 #include "MMVII_EigenWrap.h"
 #include "ExternalInclude/Eigen/Eigenvalues" 
 #include "ExternalInclude/Eigen/Householder"  // HouseholderQR.h"
+// #include "ExternalInclude/Eigen/Cholesky"  // HouseholderQR.h"
 
 using namespace Eigen;
 
@@ -110,16 +111,84 @@ template <class Type> cResulSymEigenValue<Type>  cDenseMatrix<Type>::SymEigenVal
     return aRes;
 }
 
-
-template <class Type> double  cDenseMatrix<Type>::Unitarity() const
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Solve(const tDM & aMat,eTyEigenDec aTED) const
 {
-     cDenseMatrix<Type> atMM = Transpose() * (*this);
-     cDenseMatrix<Type> aId(atMM.Sz().x(),eModeInitImage::eMIA_MatrixId);
-     return aId.DIm().L2Dist(atMM.DIm());
-   
+    tMat::CheckSquare(*this);
+    tMat::CheckSizeMul(*this,aMat);
+
+    tDM aRes(aMat.Sz().x(),aMat.Sz().y());
+
+    tConst_EW aWThis(*this);
+    tConst_EW aWMat(aMat);
+    tNC_EW aWRes(aRes);
+
+    // aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWMat.EW());
+    if (aTED == eTyEigenDec::eTED_PHQR)
+    {
+       aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWMat.EW());
+    }
+    else if (aTED == eTyEigenDec::eTED_LLDT)
+    {
+       aWRes.EW() = aWThis.EW().ldlt().solve(aWMat.EW());
+    }
+    else
+    {
+        MMVII_INTERNAL_ASSERT_always(false,"Unkown type eigen decomposition");
+    }
+
+    return aRes;
 }
 
+template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::Solve(const tDV & aVect,eTyEigenDec aTED) const
+{
+    tMat::CheckSquare(*this);
+    tMat::TplCheckSizeX(aVect.Sz());
+
+    tDV aRes(aVect.Sz());
+
+    tConst_EW aWThis(*this);
+    cConst_EigenColVectWrap<Type> aWVect(aVect);
+    cNC_EigenColVectWrap<Type> aWRes(aRes);
+
+    if (aTED == eTyEigenDec::eTED_PHQR)
+    {
+       aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWVect.EW());
+    }
+    else if (aTED == eTyEigenDec::eTED_LLDT)
+    {
+       aWRes.EW() = aWThis.EW().ldlt().solve(aWVect.EW());
+    }
+    else
+    {
+        MMVII_INTERNAL_ASSERT_always(false,"Unkown type eigen decomposition");
+    }
+
+    return aRes;
+}
+
+
+
 /*
+*/
+/*
+   tDM  Solve(const tDM &) const;
+        tDV  Solve(const tDV &) const;
+
+
+
+   Matrix3f A;
+   Vector3f b;
+   A << 1,2,3,  4,5,6,  7,8,10;
+   b << 3, 3, 4;
+   cout << "Here is the matrix A:\n" << A << endl;
+   cout << "Here is the vector b:\n" << b << endl;
+   Vector3f x = A.colPivHouseholderQr().solve(b);
+   cout << "The solution is:\n" << x << endl;
+*/
+
+
+/*
+
 void TestSSS()
 {
    cDenseMatrix<double> aM(2,2);
@@ -201,6 +270,52 @@ template <class Type>  double cStrStat2<Type>::KthNormalizedCoord(int aX,const c
   return mEigen.EigenVectors().MulLineElem(aX,aV2) -mMoyMulVE(aX);
 }
 
+/* ============================================= */
+/*      cMatIner2Var<Type>                       */
+/* ============================================= */
+
+template <class Type> cMatIner2Var<Type>::cMatIner2Var() :
+   mS0  (0.0),
+   mS1  (0.0),
+   mS11 (0.0),
+   mS2  (0.0),
+   mS12 (0.0),
+   mS22 (0.0)
+{
+}
+template <class Type> void cMatIner2Var<Type>::Add(const double & aPds,const Type & aV1,const Type & aV2)
+{
+    mS0  += aPds;
+    mS1  += aPds * aV1;
+    mS11 += aPds * aV1 * aV1 ;
+    mS2  += aPds * aV2;
+    mS12 += aPds * aV1 * aV2 ;
+    mS22 += aPds * aV2 * aV2 ;
+}
+
+template <class Type> void cMatIner2Var<Type>::Normalize()
+{
+     mS1 /= mS0;
+     mS2 /= mS0;
+     mS11 /= mS0;
+     mS12 /= mS0;
+     mS22 /= mS0;
+     mS11 -= Square(mS1);
+     mS12 -= mS1 * mS2;
+     mS22 -= mS2 * mS2;
+}
+
+template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm)
+{
+    cMatIner2Var<double> aRes;
+    for (const auto & aP : aIm)
+    {
+         aRes.Add(aIm.GetV(aP),aP.x(),aP.y());
+    }
+    aRes.Normalize();
+    return aRes;
+}
+
 
 /* ===================================================== */
 /* =====              INSTANTIATION                ===== */
@@ -212,6 +327,8 @@ template  class  cStrStat2<Type>;\
 template  class  cDenseMatrix<Type>;\
 template  class  cResulSymEigenValue<Type>;\
 template  class  cResulQR_Decomp<Type>;\
+template  class  cMatIner2Var<Type>;\
+template  cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm);
 
 INSTANTIATE_ORTHOG_DENSE_MATRICES(tREAL4)
 INSTANTIATE_ORTHOG_DENSE_MATRICES(tREAL8)

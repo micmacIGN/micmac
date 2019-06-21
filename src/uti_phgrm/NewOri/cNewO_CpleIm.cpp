@@ -113,6 +113,10 @@ void  cNewO_OrInit2Im::ClikIn()
 
 double cNewO_OrInit2Im::FocMoy() const
 {
+    if (mI1->CS()==0 || mI2->CS()==0)
+    {
+       return 5000;
+    }
     double aF = 1/mI1->CS()->Focale() + 1/mI2->CS()->Focale();
     return 2 / aF;
 }
@@ -509,22 +513,27 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
          std::string aNameH = mI1->NM().NameHomFloat(mI1,mI2);
          mI1->NM().WriteCouple(aNameH,aVP1,aVP2,aVNb);
 
-         if (! aGenereOri) 
-         {
-            return;
-         }
     }
+
 
    // Prepare une partie de l'export xml
    mXml.Im1()   = mI1->Name();
    mXml.Im2()   = mI2->Name();
    mXml.Box1() = Box2dr(aInf1,aSup1);
    mXml.Box2() = Box2dr(aInf2,aSup2);
-   mXml.Calib() =  mI1->NM().OriCal();
    mXml.NbPts() = mPackPStd.size();
    mXml.Foc1()  = mI1->CS()->Focale();
    mXml.Foc2()  = mI2->CS()->Focale();
    mXml.FocMoy() = FocMoy();
+
+
+   if (! aGenereOri) 
+   {
+      return;
+   }
+
+   mXml.Calib() =  mI1->NM().OriCal();
+
 
    cXml_O2IComputed aXCmp;
    mXml.Geom().SetNoInit();
@@ -1013,8 +1022,8 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
 
 
    // Structure d'image specialisee martini
-   mIm1 = new cNewO_OneIm(*mNM,mNameIm1);
-   mIm2 = new cNewO_OneIm(*mNM,mNameIm2);
+   mIm1 = new cNewO_OneIm(*mNM,mNameIm1,mGenOri);
+   mIm2 = new cNewO_OneIm(*mNM,mNameIm2,mGenOri);
 
    mVI.push_back(mIm1);
    mVI.push_back(mIm2);

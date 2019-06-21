@@ -45,6 +45,10 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
 
        cDataIm2D<Type>  & aIm = aPIm.DIm();
        aIm.InitRandom();
+       cPt2di aPRand = aIm.GeneratePointInside();
+       tINT8 aIndRand  = aIm.IndexeLinear(aPRand);
+       MMVII_INTERNAL_ASSERT_bench(aIm.GetV(aPRand)==aIm.GetRDL(aIndRand),"Bench image error");
+
        aIm.InitNull();
        for (const auto & aP : aRect)
        {
@@ -289,11 +293,11 @@ void TestInitIm1D(int aX0, int aX1)
 {
   static int aCpt=0; aCpt++;
   cIm1D<double> aI(aX0+1,aX1-1);
-  aI.DIm().Resize(aX0,aX1);
+  aI.DIm().Resize(cPt1di(aX0),cPt1di(aX1));
   if (aCpt%2)
   {
-     aI.DIm().Resize(aX0-10,aX1+10);
-     aI.DIm().Resize(aX0,aX1);
+     aI.DIm().Resize(cPt1di(aX0-10),cPt1di(aX1+10));
+     aI.DIm().Resize(cPt1di(aX0),cPt1di(aX1));
   }
   // cIm1D<double> aI(aX0,aX1);
 

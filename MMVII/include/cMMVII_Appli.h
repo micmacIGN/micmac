@@ -258,7 +258,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
                                    const cColStrAOpt &  aLSubst = cColStrAOpt::Empty
                                  ); ///< MMVII reccall the same command itself
         void  ExeMultiAutoRecallMMVII
-                                (  const std::string & aNameOpt  , const std::vector<std::string> &  LVals,
+                                (  const std::string & aNameOpt  ,  //!  Name of parameter to substitue
+                                   const std::vector<std::string> &  LVals, //! List of value for each process
                                    const cColStrAOpt &  aLSubst = cColStrAOpt::Empty,
                                    bool InParal=true
                                  ); ///< MMVII reccall the same command itself

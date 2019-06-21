@@ -77,9 +77,9 @@ U_INT1 SkVein::dir_suc[8];
 U_INT1 SkVein::dir_pred[8];
 U_INT1 SkVein::flag_dsym[8];
 
-SkVein::ldir * (SkVein::BitsOfFlag[256]);
-SkVein::cc_vflag * (SkVein::CC_cx8[256]);
-SkVein::cc_vflag * (SkVein::CC_cx4[256]);
+SkVein::ldir * SkVein::BitsOfFlag[256];
+SkVein::cc_vflag * SkVein::CC_cx8[256];
+SkVein::cc_vflag * SkVein::CC_cx4[256];
 
 U_INT1 SkVein::NbBitFlag[256];
 U_INT1 SkVein::FlagIsSing[256];

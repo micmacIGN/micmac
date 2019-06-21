@@ -102,9 +102,20 @@ double RandUnif_0_1()
 {
    return cRandGenerator::TheOne()->Unif_0_1();
 }
+
+double RandUnif_C()
+{
+   return (RandUnif_0_1()-0.5) * 2.0;
+}
+
 double RandUnif_N(int aN)
 {
    return cRandGenerator::TheOne()->Unif_N(aN);
+}
+
+bool HeadOrTail()
+{
+     return  RandUnif_0_1() > 0.5;
 }
 
 
