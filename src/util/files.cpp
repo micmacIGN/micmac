@@ -1123,7 +1123,7 @@ ELISE_ASSERT(false,"ELISE_fp::tell Old File obsolete");
 //===================================================================
 
 
-const char * (ELISE_fp::name_mope_open[3]) = {"rb","wb","r+b"};
+const char * ELISE_fp::name_mope_open[3] = {"rb","wb","r+b"};
 
 ELISE_fp::ELISE_fp(eModeBinTxt ModeBin) :  // use Fclose,Fopen, fread ....
 mNameFile ("NoName???"),

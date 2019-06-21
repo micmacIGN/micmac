@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * (theNameVar_ParamChantierPhotogram[2124]) = {
+const char * theNameVar_ParamChantierPhotogram[2124] = {
 "<GenCpp>\n",
 "\n",
 "\n",
