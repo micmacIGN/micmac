@@ -112,7 +112,7 @@ class ElResParseDir
           const char * _name;
           bool   _is_dir;
           INT    _level;
-          const char  *(  _sub[level_max+1]);
+          const char  * _sub[level_max+1];
 };
 
 class ElActionParseDir
@@ -362,7 +362,7 @@ class  ELISE_fp
 
        private :
 
-          static const int (code_mope_seek[3]);
+          static const int code_mope_seek[3];
 
           void init(eModeBinTxt ModeBin);
           bool _byte_ordered;
@@ -372,13 +372,13 @@ class  ELISE_fp
           std::string mNameFile;
 #if BUG_CPP_Fclose
           int   _fd;
-          static const int (code_mope_open[3]);
+          static const int code_mope_open[3];
 #else
           FILE * _fp;
           std::string  mFormatFloat;
           std::string  mFormatDouble;
           char         mCarCom;
-          static const char * (name_mope_open[3]);
+          static const char * name_mope_open[3];
 #endif
          static void InterneMkDirRec(const  std::string  & aName );
 };

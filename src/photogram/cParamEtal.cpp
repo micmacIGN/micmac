@@ -646,7 +646,7 @@ cParamEtal::cParamEtal(int argc,char ** argv) :
 
 cParamEtal cParamEtal::FromStr(const std::string & aName)
 {
-    char * (tab[2]);
+    char * tab[2];
     tab[0] = 0;
     tab[1] = const_cast<char *>(aName.c_str());
     return cParamEtal(2,tab);
