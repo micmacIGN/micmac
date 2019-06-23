@@ -14,6 +14,7 @@ class cDataOneInvRad;
 class cMetaDataOneFileInvRad ;
 // Class for storing info/vector on one Pts Carac
 class  cVecInvRad ;
+     /*=====   Class specific to bit vector processing =====*/
 // Virtual Class for computing on bit
 class cIB_LineFoncBool;
 //  Class to store computed values of given bit computer
@@ -36,8 +37,7 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
 {
      public :
         virtual ~cAppli_ComputeParamIndexBinaire();
-
-        cAppli_ComputeParamIndexBinaire(int argc,char** argv,const cSpecMMVII_Appli &);
+        cAppli_ComputeParamIndexBinaire(const std::vector<std::string> &,const cSpecMMVII_Appli &);
   
         // Pure virtual methods of cMMVII_Appli
         int Exe() override;
@@ -165,7 +165,7 @@ class cDataOneInvRad  : public cMemCheck
        eTyInvRad                            mTIR;  ///< Kind of radial invariant
        std::string                          mDir; ///< Directory with file "Cple.*tif"
        std::vector<cMetaDataOneFileInvRad>  mMDOFIR;
-       cPt2di                               mSzP0Init;   ///< Size Patch Init before decimate
+       cPt2di                               mSzP0Init;   ///< Size Patch Init, before decimate
        cPt2di                               mSzP0Final;  ///< Size Patch Final, after possible decimation
 
        int                                  mNbPixByP; ///< Nb of Pix/Patch Can differ if reduced

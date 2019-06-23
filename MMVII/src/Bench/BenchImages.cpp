@@ -204,7 +204,7 @@ template <class TypeFile>  void TplBenchReadGlobIm(const std::string & aNameTiff
 
 template <class TypeImage,class tBase,class TypeFile>  void TplBenchFileImage(const cPt2di& aSz,double aDyn0)
 {
-    std::string aNameTiff = cMMVII_Appli::TheAppli().TmpDirTestMMVII() + "Test.tif";
+    std::string aNameTiff = cMMVII_Appli::CurrentAppli().TmpDirTestMMVII() + "Test.tif";
     eTyNums aTypeF2 = tElemNumTrait<TypeFile>::TyNum();
     cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aNameTiff,aTypeF2,aSz,1);
     // This image will be a copy of file

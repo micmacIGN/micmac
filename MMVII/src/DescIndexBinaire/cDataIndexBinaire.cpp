@@ -103,6 +103,8 @@ cDataOneInvRad::cDataOneInvRad(cAppli_ComputeParamIndexBinaire & anAppli,cDataOn
     mNbPatch  (0)
 {
     std::vector<std::string>  aVS; //! list of files in the folder that will be selected
+    //  In tuning mode, we dont want to process all folder, but only a proportion "mAppli.PropFile()"
+    // This code make the selection
     {
        std::vector<std::string>  aVS0;  //! Get all file corresponding to regular expression
        GetFilesFromDir(aVS0,mAppli.DirCurPC() +  E2Str(mTIR)  ,BoostAllocRegex("Cple.*tif"));
@@ -119,17 +121,18 @@ cDataOneInvRad::cDataOneInvRad(cAppli_ComputeParamIndexBinaire & anAppli,cDataOn
 
     for (int aK=0 ; aK<int(aVS.size()) ; aK++)
     {
+        // Memorize for each file meta data information 
         mMDOFIR.push_back(cMetaDataOneFileInvRad(*this,aVS[aK]));
         // If first file, initialize to size of file
         if (aK==0)
         {
            mSzP0Init.x() = mMDOFIR.back().mDFIm.Sz().x();
-           if (mSzP0Init.x()%2!=0)
+           if (mSzP0Init.x()%2!=0) // Sz in x must be even, as it contain a pair of patch
            {
               MMVII_UsersErrror(eTyUEr::eUnClassedError,"exptected even witdh");
            }
            mSzP0Init.x() /= 2;
-           mSzP0Init.y() = mMDOFIR.back().mDFIm.Sz().y();
+           mSzP0Init.y() = mMDOFIR.back().mDFIm.Sz().y(); // Initialize to full size
         }
         else
         {
@@ -142,19 +145,23 @@ cDataOneInvRad::cDataOneInvRad(cAppli_ComputeParamIndexBinaire & anAppli,cDataOn
             mSzP0Init.y() = HCF(mSzP0Init.y(),mMDOFIR.back().mDFIm.Sz().y());
         }
     }
+    // For each  meta data
     for (auto &  aMD : mMDOFIR)
     {
-       aMD.SetNbPair();  //  Check and fix nb of pair by division
-       mNbPixTot +=   aMD.mDFIm.NbElem();  // for static
+       aMD.SetNbPair();  //   fix nb of pair by division (and check division works)
+       mNbPixTot +=   aMD.mDFIm.NbElem();  // for statistic on RAM occupation maybe, not usefull really
        mNbPatch += 2 * aMD.mNbPair;  // Number of sub images total
     }
 
+    // Compute size of reduced image, a bit "heavy" but this way we are sure that we will get the
+    // same value that when we really compute them 
     {
        cIm2D<tU_INT1> aImgTmp(mSzP0Init);
        aImgTmp = mAppli.MakeImSz(aImgTmp);
        SetSzP0Final(aImgTmp.DIm().Sz());
     }
 
+    // Compute position where to concatenate value of this invariant
     mPosInVect =  (aPrev==nullptr) ? 0 :  (aPrev->mPosInVect + aPrev->NbValByP()) ;
     // aPrev->mPosInVect + aPrev->NbValByP() ;
     

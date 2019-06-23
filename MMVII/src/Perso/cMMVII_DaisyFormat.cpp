@@ -155,7 +155,7 @@ void AddData(const  cAuxAr2007 & anAux,cDaisyFOneBook & aBook)
 class cAppli_Daisy : public cMMVII_Appli
 {
      public :
-        cAppli_Daisy(int argc,char** argv,const cSpecMMVII_Appli &);
+        cAppli_Daisy(const std::vector<std::string> &  ,const cSpecMMVII_Appli &);
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
@@ -250,8 +250,8 @@ void cAppli_Daisy::GenerateOneFile(cDaisyFOneMp3 & aFile,const double &aElapsTim
    aOfstr.close();
 }
 
-cAppli_Daisy::cAppli_Daisy(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc,argv,aSpec),
+cAppli_Daisy::cAppli_Daisy(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (aVArgs,aSpec),
   mPrefOut     ("ncc"),
   mTest        (false),
   mTimeSlot    (100.0)
@@ -400,9 +400,9 @@ int cAppli_Daisy::Exe()
 }
 
 
-tMMVII_UnikPApli Alloc_Daisy(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_Daisy(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_Daisy(argc,argv,aSpec));
+   return tMMVII_UnikPApli(new cAppli_Daisy(aVArgs,aSpec));
 }
 
 cSpecMMVII_Appli  TheSpecDaisy

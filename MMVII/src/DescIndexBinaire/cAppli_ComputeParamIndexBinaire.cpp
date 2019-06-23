@@ -57,8 +57,12 @@ cAppli_ComputeParamIndexBinaire::~cAppli_ComputeParamIndexBinaire()
 {
 }
 
-cAppli_ComputeParamIndexBinaire::cAppli_ComputeParamIndexBinaire(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc,argv,aSpec),
+cAppli_ComputeParamIndexBinaire::cAppli_ComputeParamIndexBinaire
+(
+       const std::vector<std::string> & aVArgs,
+       const cSpecMMVII_Appli & aSpec
+) :
+  cMMVII_Appli (aVArgs,aSpec),
   mPatPCar     ("eTPR_LaplMax"),
   mPatInvRad   ("eTVIR_ACG."),
   mNbPixTot    (0.0),
@@ -94,6 +98,8 @@ const cResulSymEigenValue<tREAL8> &  cAppli_ComputeParamIndexBinaire::Eigen() co
 
 int cAppli_ComputeParamIndexBinaire::Exe()
 {
+   // If we want just a quick execution of bit vector for tuning, set non specified 
+   // parameters to value diff from defaults
    if (mQuickBits)
    {
        if (! IsInit(&mPropFile)) mPropFile = 0.1;
@@ -114,13 +120,20 @@ int cAppli_ComputeParamIndexBinaire::Exe()
    {
        ProcessOneDir(mLDirPC[0]);
    }
-   // If multiple p carac, exec each one in parallel
+   // If multiple p carac, exec each one in parallel using mecanism of auto recal
    else if (mLDirPC.size() > 1)
    {
-       ExeMultiAutoRecallMMVII ("PatPCar",mLDirPC,cColStrAOpt(),true);
+       ExeMultiAutoRecallMMVII 
+       (
+              "PatPCar",  // Arg that must be modified/specified on command
+              mLDirPC,    // List of value that must be subsitued in PatPCar=...
+              cColStrAOpt(),  // Possible supplementary modification (here none)
+              eTyModeRecall::eTMR_Parall  // Do it in parallel (when it will be implemanted)
+       );
    }
    else
    {
+       //  here mLDirPC.size()==0 ,  probably user did not want "no Pts Carac"
        MMVII_UsersErrror(eTyUEr::eEmptyPattern,"No directory of Pt carac found");
    }
 
@@ -131,7 +144,7 @@ int cAppli_ComputeParamIndexBinaire::Exe()
 void  cAppli_ComputeParamIndexBinaire::ProcessOneDir(const std::string & aDir)
 {
     StdOut() << "================== " << mPatPCar << " ===========\n";
-    mDirCurPC = mDirGlob + aDir + DirSeparator();
+    mDirCurPC = mDirGlob + aDir + DirSeparator(); // Compute full name of folder for data
 
     cDataOneInvRad * aLast = nullptr;
     // For all type of invariant create a structure from the folder
@@ -145,8 +158,6 @@ void  cAppli_ComputeParamIndexBinaire::ProcessOneDir(const std::string & aDir)
        mNbValByP += mVecDIR.back()->NbValByP();
        aLast = aNew;
     }
-    // Number of selected eigen val cannot be over nuber of value in one patch
-    mNbEigenVal = std::min(mNbValByP,mNbEigenVal);
 
     // Check coher of any relatively to the first one
     for (int aK=1 ; aK<int(mVecDIR.size()) ; aK++)
@@ -189,6 +200,8 @@ cIm2D<tU_INT1> cAppli_ComputeParamIndexBinaire::MakeImSz(cIm2D<tU_INT1> aImg)
 
 void  cAppli_ComputeParamIndexBinaire::ComputeIndexBinaire()
 {
+  // Number of selected eigen val cannot be over nuber of value in one patch
+   mNbEigenVal = std::min(mNbValByP,mNbEigenVal);
    for (int aKIter=0 ; aKIter<mNbIterBits; aKIter++)
        OneIterComputeIndexBinaire();
 }
@@ -431,9 +444,9 @@ void cAppli_ComputeParamIndexBinaire::TestNbBit(int aNb) const
 
      // =====================
 
-tMMVII_UnikPApli Alloc_ComputeParamIndexBinaire(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_ComputeParamIndexBinaire(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_ComputeParamIndexBinaire(argc,argv,aSpec));
+   return tMMVII_UnikPApli(new cAppli_ComputeParamIndexBinaire(aVArgs,aSpec));
 }
 
 cSpecMMVII_Appli  TheSpec_ComputeParamIndexBinaire

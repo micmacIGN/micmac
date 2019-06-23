@@ -33,7 +33,7 @@ namespace MMVII
 class cAppli_MMVII_TestEigen : public cMMVII_Appli
 {
      public :
-        cAppli_MMVII_TestEigen(int argc,char** argv,const cSpecMMVII_Appli & aSpec) ;
+        cAppli_MMVII_TestEigen(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) ;
         int Exe() override ;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt);// override {return anArgOpt;}
@@ -61,8 +61,8 @@ cCollecSpecArg2007 & cAppli_MMVII_TestEigen::ArgOpt(cCollecSpecArg2007 & anArgOp
 }
 
 
-cAppli_MMVII_TestEigen::cAppli_MMVII_TestEigen (int argc,char **argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli  (argc, argv,aSpec),
+cAppli_MMVII_TestEigen::cAppli_MMVII_TestEigen (const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli  (aVArgs,aSpec),
   mTestRawD     (false),
   mNbCho        (-1)
 {
@@ -200,9 +200,9 @@ void cAppli_MMVII_TestEigen::TCho()
 
 
 
-tMMVII_UnikPApli Alloc_MMVII_TestEigen(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_MMVII_TestEigen(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_MMVII_TestEigen(argc,argv,aSpec));
+   return tMMVII_UnikPApli(new cAppli_MMVII_TestEigen(aVArgs,aSpec));
 }
 
 

@@ -42,9 +42,14 @@ const std::vector<cSemA2007>   cSpecOneArg2007::TheEmptySem;
 cSpecOneArg2007::cSpecOneArg2007(const std::string & aName,const std::string & aCom,const tVSem & aVSem) :
    mName (aName),
    mCom  (aCom),
-   mVSem (aVSem),
-   mNbMatch (0)
+   mVSem (aVSem)
 {
+    ReInit();
+}
+
+void cSpecOneArg2007::ReInit()
+{
+   mNbMatch = 0;
 }
 
 std::string  cSpecOneArg2007::Name4Help() const

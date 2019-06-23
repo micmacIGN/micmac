@@ -27,6 +27,47 @@ cSpecMMVII_Appli::cSpecMMVII_Appli
 {
 }
 
+int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVArgs) const
+{
+   // A conserver, on le mettra dans les sauvegarde
+   if (0)
+   {
+      StdOut() << "===Com==[";
+      for (int aK=0; aK<int(aVArgs.size()) ; aK++)
+      {
+          if (aK!=0) StdOut() << " ";
+          StdOut() << aVArgs[aK];
+      }
+      StdOut() << "]\n";
+   }
+   static int aCptCallIntern=0;
+   aCptCallIntern++;
+   int aNbObjLive = cMemCheck::NbObjLive();
+   // Add this one to check  destruction with unique_ptr
+   const cMemState  aMemoState= cMemManager::CurState() ;
+   int aRes=-1;
+   {
+        // Use allocator
+        tMMVII_UnikPApli anAppli = Alloc()(aVArgs,*this);
+        // Execute
+        anAppli->InitParam();
+        if (anAppli->ModeHelp())
+           aRes = EXIT_SUCCESS;
+        else
+           aRes = anAppli->Exe();
+    }
+    cMemManager::CheckRestoration(aMemoState);
+    MMVII_INTERNAL_ASSERT_always(cMemCheck::NbObjLive()==aNbObjLive,"Mem check obj not killed");
+    aCptCallIntern--;
+    // This was the initial test, stricter, maintain it when call by main
+    if (aCptCallIntern==0)
+    {
+         MMVII_INTERNAL_ASSERT_always(cMemCheck::NbObjLive()==0,"Mem check obj not killed");
+    }
+    return aRes;
+}
+
+
 const std::string &     cSpecMMVII_Appli::Name() const {return mName;}
 tMMVII_AppliAllocator  cSpecMMVII_Appli::Alloc() const {return mAlloc;}
 const std::string &     cSpecMMVII_Appli::Comment() const {return mComment;}
@@ -42,7 +83,7 @@ bool  CheckIntersect
             const std::string & aSpace
       )
 {
-    cMMVII_Appli & anAppli = cMMVII_Appli::TheAppli();
+    cMMVII_Appli & anAppli = cMMVII_Appli::CurrentAppli();
 
     std::vector<std::string>  aVKey  =  anAppli.SplitString(aKeyList,aSpace);
     std::vector<std::string>  aVTest =  anAppli.SplitString(aList,aSpace);

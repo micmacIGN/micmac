@@ -13,7 +13,7 @@ void TestTimeV1V2()
     {
          int aSom=0;
          ElTimer aChronoV1;
-         double aT1 = cMMVII_Appli::TheAppli().SecFromT0();
+         double aT1 = cMMVII_Appli::CurrentAppli().SecFromT0();
          for (int aI=0 ; aI<10000; aI++)
          {
               for (int aJ=0 ; aJ<10000; aJ++)
@@ -23,7 +23,7 @@ void TestTimeV1V2()
          }
          if (aSom==-1)
             return;
-         double aT2 = cMMVII_Appli::TheAppli().SecFromT0();
+         double aT2 = cMMVII_Appli::CurrentAppli().SecFromT0();
 
          double aDV1 = aChronoV1.uval();
          double aDV2 = aT2-aT1;

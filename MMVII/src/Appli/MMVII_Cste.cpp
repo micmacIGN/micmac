@@ -24,8 +24,12 @@ const std::string TagSetOfCpleName = "SetCpleOfName";
 // const std::string TheMMVII_SysName => voir Utils/uti_sysdep.cpp
  
 // Name of standard directories
-const std::string TmpMMVIIDir    = "Tmp-2007-Dir/";
-const std::string MMVIITestDir    = "MMVII-TestDir/";
+const std::string TmpMMVIIDir        = "Tmp-2007-Dir/";
+const std::string MMVIITestDir       = "MMVII-TestDir/";
+const std::string TmpMMVIIProcSubDir = "Process/";
+
+// Files
+const std::string MVII_LogFile = "MMVII-LogFile.txt";
 
 // Name of common parameters
       // -- Current
@@ -40,6 +44,8 @@ const std::string GOP_SeedRand = "SeedRand";
       // -- Internal
 const std::string GIP_LevCall = "LevCall";
 const std::string GIP_ShowAll = "ShowAll";
+const std::string GIP_PGMA = "PrefixGMA";
+const std::string GIP_DirProjGMA = "DirGMA";
 
 
 #if (THE_MACRO_MMVII_SYS == MMVII_SYS_L)
