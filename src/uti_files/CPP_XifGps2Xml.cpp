@@ -318,7 +318,7 @@ int XifDate2Txt_main(int argc, char ** argv)
            argc,argv,
            LArgMain() << EAMC(aFullName,"Full Name", eSAM_IsPatFile),
            LArgMain() << EAM(aOut,"Out",true,"Output file name, Def=XifDate.txt")
-                      << EAM(aCalVOri,"CalVOri",true,"Calculate planitary velocity when an Ori is available")
+                      << EAM(aCalVOri,"CalVOri",true,"Calculate velocity when an Ori is available")
                       << EAM(aOutCalcV,"OutCalcV",true,"Output file name for calculated velocity")
                       << EAM(aHeader,"Header",true,"Include header file for velocity file, def=true")
     );
