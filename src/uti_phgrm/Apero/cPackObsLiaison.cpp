@@ -855,7 +855,6 @@ void  cPackObsLiaison::GetPtsTerrain
     {
           cObsLiaisonMultiple * anOLM = itOML->second;
           std::string aNameP = anOLM->Pose1()->Name();
-std::cout << "aNamePaNameP " << aNameP << "\n";
           if (aSelectorEstim.IsSetIn(aNameP))
           {
               aNbSel++;
