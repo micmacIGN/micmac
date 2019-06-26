@@ -713,7 +713,44 @@ int ReechRolShut_main(int argc, char ** argv)
     return EXIT_SUCCESS;
 }
 
+int ExportTPM_main(int argc, char ** argv)
+{
+    std::string aSH, aSHFile{"PMulAll.txt"}, aOut{"multiplicity.txt"}, aDir, aSHPat;
+    ElInitArgMain
+            (
+                argc,argv,
+                LArgMain() << EAMC(aSH,"Postfix of tie point file",eSAM_IsExistFile),
+                LArgMain() << EAM(aSHFile,"SHFile",true,"tie point file name (new format), def=PMulAll.txt")
+                           << EAM(aOut,"Out",true,"Output file name, def=SH_multiplicity.txt")
+                );
 
+    SplitDirAndFile(aDir, aSHPat, aSH);
+    //cInterfChantierNameManipulateur* aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+    std::map<int,int> aMapTPM;
+
+    cSetTiePMul * pSH=new cSetTiePMul(0);
+    pSH->AddFile("Homol" + aSH + "/" + aSHFile);
+    const std::vector<cSetPMul1ConfigTPM *> & aVCnf = pSH->VPMul();
+    for(auto & aCnf:aVCnf)
+    {
+        auto search = aMapTPM.find(aCnf->NbIm());
+        if(search == aMapTPM.end())
+            aMapTPM.insert(pair<int,int>(aCnf->NbIm(),aCnf->NbPts()));
+        else
+            aMapTPM.at(aCnf->NbIm()) += aCnf->NbPts();
+    }
+
+    ofstream aTPMFile;
+    aTPMFile.open(aOut);
+    for(auto aTPM:aMapTPM)
+    {
+        std::cout << aTPM.first << " " << aTPM.second << endl;
+        aTPMFile << aTPM.first << " " << aTPM.second << endl;
+    }
+    aTPMFile.close();
+    return EXIT_SUCCESS;
+}
 
 int ReechRolShutV1_main(int argc, char ** argv)
 {
@@ -819,6 +856,7 @@ int ReechRolShutV1_main(int argc, char ** argv)
     return EXIT_SUCCESS;
 
 }
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
