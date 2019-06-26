@@ -128,7 +128,6 @@ void cArgGetPtsTerrain::AddAGP
            const std::vector<cGenPoseCam *> * aVPose
      )
 {
-std::cout << "AAgggpptttt \n";
    if (mMasq)
    {
        Pt2di aPInd = round_ni(aPIm/mResol);

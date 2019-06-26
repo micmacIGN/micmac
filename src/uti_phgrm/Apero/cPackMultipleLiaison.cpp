@@ -1305,8 +1305,6 @@ double cObsLiaisonMultiple::AddObsLM
 
    int aNbNN=0;
 
-std::cout << " :AddObsLMmmmmm " << mVPMul.size() << "\n";
-
    for (int aKPm=0 ; aKPm<int(mVPMul.size()) ; aKPm++)
    {
         cOnePtsMult * aPM = mVPMul[aKPm];
@@ -1344,7 +1342,7 @@ std::cout << " :AddObsLMmmmmm " << mVPMul.size() << "\n";
 
              if (aRes.mOKRP3I)
              {
-if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
+// if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
 // std::cout << "aNbNN++aNbNN++ " << aNbNN << "\n";
 
                 if (anAVA  && (anAVA->VA().TypeVerif()==eVerifResPerIm))
@@ -1371,7 +1369,7 @@ if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
                         ELISE_ASSERT(false,"Dist >  MaxDistWarnPtsTerr")
                     }
                 }
-if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
+// if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
 
 	        double aResidu = 0;
 	        for (int aKPose=0 ; aKPose<int(aRes.mEcIm.size()) ; aKPose++)
@@ -1396,9 +1394,9 @@ if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
 
                 double aPdsIm = aPdrtIm.PdsOfError(sqrt(aResidu));
              // double aPAv = aPdsIm;
+// if (MPD_MM()) std::cout << "RRRmOKRP3ImOKRP3I  " << aPdsIm << " " << aResidu << __LINE__ << "\n";
                 aPdsIm *= pow(aNbRInit-1,aImPPM.ExposantPoidsMult().Val());
 
-if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
                 if (aGSD && aPdsIm)
                 {
 	            for (int aKPose=0 ; aKPose<int(aRes.mEcIm.size()) ; aKPose++)
@@ -1441,7 +1439,7 @@ if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
 */
                    }
 
-if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
+// if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
 
                    aSEr2 += aPdsIm * aResidu;
                    aSPds2 += aPdsIm ;
@@ -1460,7 +1458,7 @@ if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
                           }
                       }
                    }
-if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
+// if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
 /*
 REPERE-111
 for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
@@ -1510,7 +1508,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                    }
                 }
 
-if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " <<  aPdsIm << __LINE__ << "\n";
+// if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " <<  aPdsIm << " " << __LINE__ << "\n";
 
 
                 if (anArgPT&&(aPdsIm >0) && (aRes.mBSurH > anArgPT->LimBsH()))
@@ -1630,7 +1628,7 @@ if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " <<  aPdsIm << __LINE__ << "\n";
                        anAVA->AddPImDZ(aNupl.PK(mKIm),aDZ,aVpds,*aPM);
                     }
                 }
-if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n\n";
+// if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n\n";
              }
              else
              {
