@@ -128,6 +128,7 @@ void cArgGetPtsTerrain::AddAGP
            const std::vector<cGenPoseCam *> * aVPose
      )
 {
+std::cout << "AAgggpptttt \n";
    if (mMasq)
    {
        Pt2di aPInd = round_ni(aPIm/mResol);
@@ -1020,10 +1021,13 @@ cElPlan3D cAppliApero::EstimPlan
 
    aPOL->GetPtsTerrain (aPEP, aSelectorEstim, aAGPt,anAttr);
 
+
    // const std::vector<Pt3dr>  &  aVPts = aAGPt.Pts();
    // const std::vector<double> &  aVPds = aAGPt.Pds();
    std::vector<Pt3dr>   aVPts = aAGPt.Pts();
    std::vector<double>  aVPds = aAGPt.Pds();
+
+   std::cout << "NbPts 4 plan " << aVPts.size() << "\n";
 
    if ((aVPts.size() == 0) && (aPEP.AcceptDefPlanIfNoPoint().Val()))
    {

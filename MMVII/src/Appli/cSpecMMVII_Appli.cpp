@@ -110,28 +110,44 @@ void cSpecMMVII_Appli::Check()
     MMVII_INTERNAL_ASSERT_always(!mVOutputs.empty(),"cSpecMMVII_Appli No Outputs");
 }
 
-const std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
+
+std::vector<cSpecMMVII_Appli*> cSpecMMVII_Appli::TheVecAll;
+
+bool CmpCmd(cSpecMMVII_Appli * aCM1,cSpecMMVII_Appli * aCM2)
 {
-   static std::vector<cSpecMMVII_Appli*>  TheRes;
+   return aCM1->Name() < aCM2->Name();
+}
+
+std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
+{
    
-   if (TheRes.size() == 0)
+   if (TheVecAll.size() == 0)
    {    
-        TheRes.push_back(&TheSpecBench);
-        TheRes.push_back(&TheSpecTestCpp11);
-        TheRes.push_back(&TheSpec_TestBoostSerial);
-        TheRes.push_back(&TheSpecMPDTest);
-        TheRes.push_back(&TheSpecEditSet);
-        TheRes.push_back(&TheSpecEditRel);
-        TheRes.push_back(&TheSpecWalkman);
-        TheRes.push_back(&TheSpecDaisy);
-        TheRes.push_back(&TheSpec_TestEigen);
-        TheRes.push_back(&TheSpec_ComputeParamIndexBinaire);
-        TheRes.push_back(&TheSpecTestRecall);
-        TheRes.push_back(&TheSpecScaleImage);
+        TheVecAll.push_back(&TheSpecBench);
+        TheVecAll.push_back(&TheSpecTestCpp11);
+        TheVecAll.push_back(&TheSpec_TestBoostSerial);
+        TheVecAll.push_back(&TheSpecMPDTest);
+        TheVecAll.push_back(&TheSpecEditSet);
+        TheVecAll.push_back(&TheSpecEditRel);
+        TheVecAll.push_back(&TheSpecWalkman);
+        TheVecAll.push_back(&TheSpecDaisy);
+        TheVecAll.push_back(&TheSpec_TestEigen);
+        TheVecAll.push_back(&TheSpec_ComputeParamIndexBinaire);
+        TheVecAll.push_back(&TheSpecTestRecall);
+        TheVecAll.push_back(&TheSpecScaleImage);
+
+        std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }
    
-   return TheRes;
+   return TheVecAll;
 }
+
+const std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
+{
+    return InternVecAll();
+}
+
+
 
 cSpecMMVII_Appli*  cSpecMMVII_Appli::SpecOfName(const std::string & aNameCom,bool SVP)
 {

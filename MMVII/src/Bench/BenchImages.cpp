@@ -1,4 +1,5 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -131,6 +132,29 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
     MMVII_INTERNAL_ASSERT_bench(std::abs(aSomFonc-aSomFonc2)<1e-10,"Bench image iterator");
     MMVII_INTERNAL_ASSERT_bench(std::abs(aSomFonc-aSomFonc3)<1e-10,"Bench image iterator");
     MMVII_INTERNAL_ASSERT_bench(std::abs(aSomFonc-aSomFonc4)<1e-10,"Bench image iterator");
+
+}
+
+    // Make test on operator, do not want to process overflow , just use  real types
+template <class Type> void OperatorTestIm2D(const cPt2di & aP0,const cPt2di & aP1)
+{
+    {
+       cIm2D<Type> aI1(aP0,aP1,nullptr,eModeInitImage::eMIA_Rand);
+       cIm2D<Type> aI2 = aI1.Dup();
+       cDataIm2D<Type> &aDI2 = aI2.DIm();
+       
+       aI2.DIm()  *= 2; // 2I1
+       cIm2D<Type> aI3 = aI2*2 -aI1;  // 3 I1
+       cDataIm2D<Type> &aDI3 = aI3.DIm();
+
+       WeightedAddIn(aDI3,Type(0.5),aDI2);  // 4 I1
+       for (const auto & aP : aI1.DIm())
+       {
+           double aDif = std::abs(aI3.DIm().GetV(aP)-4*aI1.DIm().GetV(aP));
+           // StdOut() << "Dddd = " << aDif << "\n";
+           MMVII_INTERNAL_ASSERT_bench(aDif<1e-5,"Bench image error");
+       }
+    }
 }
 
 template <class Type> void TestOneImage2D()
@@ -155,6 +179,9 @@ void BenchGlobImage2d()
         TestOneImage2D<tREAL8>(cPt2di(0,0),cPt2di(10,10));
         TestOneImage2D<tREAL16>(cPt2di(0,0),cPt2di(10,10));
 
+
+        OperatorTestIm2D<tREAL4>(cPt2di(-2,3),cPt2di(9,8));
+        OperatorTestIm2D<tREAL8>(cPt2di(2,-3),cPt2di(5,7));
 
 /*
 */

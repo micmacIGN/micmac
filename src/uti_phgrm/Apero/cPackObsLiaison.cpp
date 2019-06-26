@@ -845,6 +845,7 @@ void  cPackObsLiaison::GetPtsTerrain
     );
     cPonderationPackMesure aPPM = aPEP.Pond();
     aPPM.Add2Compens().SetVal(false);
+    int aNbSel = 0;
     for
     (
            std::map<std::string,cObsLiaisonMultiple *>::iterator itOML=mDicoMul.begin();
@@ -854,8 +855,10 @@ void  cPackObsLiaison::GetPtsTerrain
     {
           cObsLiaisonMultiple * anOLM = itOML->second;
           std::string aNameP = anOLM->Pose1()->Name();
+std::cout << "aNamePaNameP " << aNameP << "\n";
           if (aSelectorEstim.IsSetIn(aNameP))
           {
+              aNbSel++;
               Im2D_Bits<1> aM(1,1);
               if (aPEP.KeyCalculMasq().IsInit())
               {
@@ -875,6 +878,7 @@ void  cPackObsLiaison::GetPtsTerrain
               anArg.SetMasq(0);
           }
     }
+    std::cout << "Nb Selected Image= " <<  aNbSel << "\n";
 }
 
 

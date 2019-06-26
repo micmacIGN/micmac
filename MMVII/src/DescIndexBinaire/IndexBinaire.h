@@ -26,7 +26,7 @@ class cStatDifBits;
 typedef std::shared_ptr<cVecInvRad> tPtVIR;
 typedef std::vector<tPtVIR>            tVPtVIR;
 
-typedef std::unique_ptr<cVecBool> tPtVBool;
+typedef std::shared_ptr<cVecBool> tPtVBool;
 
 /**
      Global class to process computation of binary index, will be used probably for
@@ -54,7 +54,10 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
         const cResulSymEigenValue<tREAL8> &  Eigen() const;
         int    ZoomImg() const;
         cIm2D<tU_INT1> MakeImSz(cIm2D<tU_INT1>);
+
      private :
+         void TestNewParamLinear(int aK0);
+         void AddOneEqParamLin(double aPds,const cDenseVect<tREAL4> & aCdg,int aNb);
          void ProcessOneDir(const std::string &);
          void TestNewSol(const std::vector<int> &,const std::vector<const cVecBool*> &);
          double  ScoreAPrioiri(const std::vector<int>& aSet) const;
@@ -104,6 +107,7 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
          double                       mBestSc;  ///< Current score (initialize - inft)
          std::vector<const cVecBool*> mBestVB;   ///< Vector of bool
          std::vector<int>             mBestIndex; ///< Index of these vectors
+         bool                         mMedian; ///< Median instead of average
 
 };
 
@@ -186,13 +190,14 @@ class cIB_LinearFoncBool : public cMemCheck
         cIB_LinearFoncBool
         (
              cAppli_ComputeParamIndexBinaire & anAppli,
-             int aK,
-             double aTreshold
+             int aK
         );
+        const cDenseVect<double>& Vect() const;
      private :
         cIB_LinearFoncBool (const cIB_LinearFoncBool &) = delete;
         cAppli_ComputeParamIndexBinaire & mAppli;
         int                   mK;
+        cDenseVect<double>    mVect;
         double                mThresh;
 };
 
@@ -200,11 +205,19 @@ class cIB_LinearFoncBool : public cMemCheck
 class cVecBool  : public cMemCheck
 {
      public :
-         cVecBool(cIB_LinearFoncBool * aFB,const tVPtVIR &);
+         cVecBool(bool Med,cIB_LinearFoncBool * aFB,const tVPtVIR &);
          bool  KBit(int aK) const {return mVB.at(aK);}
          const tREAL4 & Score() const {return mScore;}
+
+         cIB_LinearFoncBool&  FB();
+         const cDenseVect<tREAL4>& Cdg0() const;
+         int   Nb0() const;
+         const cDenseVect<tREAL4>& Cdg1() const;
+         int   Nb1() const;
+         
      private :
          cVecBool(const cVecBool &) = delete;
+
          std::shared_ptr<cIB_LinearFoncBool>  mFB;
          std::vector<bool> mVB;
 

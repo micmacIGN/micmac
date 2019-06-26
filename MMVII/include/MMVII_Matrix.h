@@ -82,6 +82,10 @@ template <class Type> class  cDenseVect
         // No need to duplicate all services offered by Image Classe
         tDIM & DIm(){return mIm.DIm();}
         const tDIM & DIm() const {return mIm.DIm();}
+
+        tIM & Im(){return mIm;}
+        const tIM & Im() const {return mIm;}
+
         // operator -= 
         double DotProduct(const cDenseVect &) const;
         void TplCheck(const tSpV & aV)  const

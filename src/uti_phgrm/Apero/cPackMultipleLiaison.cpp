@@ -1305,6 +1305,8 @@ double cObsLiaisonMultiple::AddObsLM
 
    int aNbNN=0;
 
+std::cout << " :AddObsLMmmmmm " << mVPMul.size() << "\n";
+
    for (int aKPm=0 ; aKPm<int(mVPMul.size()) ; aKPm++)
    {
         cOnePtsMult * aPM = mVPMul[aKPm];
@@ -1329,7 +1331,6 @@ double cObsLiaisonMultiple::AddObsLM
         int aNbRInit= aPM->InitPdsPMul(aPds,aVpds,&NbRRI);
         if (aNbRInit>=2)
         {
-             
              aNbNN++;
              static int aCpt=0; aCpt++;
              aNbMult += (aNbRInit>=3);
@@ -1343,6 +1344,7 @@ double cObsLiaisonMultiple::AddObsLM
 
              if (aRes.mOKRP3I)
              {
+// std::cout << "aNbNN++aNbNN++ " << aNbNN << "\n";
 
                 if (anAVA  && (anAVA->VA().TypeVerif()==eVerifResPerIm))
                 {

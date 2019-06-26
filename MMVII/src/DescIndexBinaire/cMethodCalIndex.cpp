@@ -14,19 +14,16 @@
 namespace MMVII
 {
 
-/* ==================================== */
-/*              cIB_FoncBool            */
-/* ==================================== */
-
 
 /* ==================================== */
 /*         cIB_LinearFoncBool           */
 /* ==================================== */
 
-cIB_LinearFoncBool::cIB_LinearFoncBool(cAppli_ComputeParamIndexBinaire & anAppli,int aK,double aTreshold) :
+cIB_LinearFoncBool::cIB_LinearFoncBool(cAppli_ComputeParamIndexBinaire & anAppli,int aK) :
    mAppli    (anAppli),
    mK        (aK),
-   mThresh   (aTreshold)
+   mVect     (mAppli.Eigen().EigenVectors().ReadCol(aK)),
+   mThresh   (mVect.DotProduct(mAppli.Stat2().Moy()))
 {
 }
 
@@ -40,15 +37,74 @@ double cIB_LinearFoncBool::RCalc(const cVecInvRad & aVIR) const
     cDenseVect<tREAL8> & aTmp = mAppli.TmpVect();
     CopyIn(aTmp.DIm(),aVIR.mVec.DIm());
 
-    return mAppli.Stat2().KthNormalizedCoord(mK,aTmp) - mThresh;
+    return mVect.DotProduct(aTmp) - mThresh;
 }
+
+const cDenseVect<double>&  cIB_LinearFoncBool::Vect() const 
+{
+   return mVect;
+}
+
+
 
 /* ==================================== */
 /*         cIB_LinearFoncBool           */
 /* ==================================== */
 
+void cAppli_ComputeParamIndexBinaire::AddOneEqParamLin(double aPds,const cDenseVect<tREAL4> & aCdg,int aNb)
+{
+   if (! aNb) return;
+   // aCdg  .  aVect - mThr = 0
+   cDenseVect<tREAL8> aV(1+mNbValByP);
+   for (int aK=0 ; aK<mNbValByP ; aK++)
+      aV(aK) = aCdg(aK);
+   aV(mNbValByP) = -1;
+   mLSQOpt.AddObservation(aPds,aV,0.0);
 
-cVecBool::cVecBool(cIB_LinearFoncBool * aFB,const tVPtVIR & aVIR)  :
+}
+
+void cAppli_ComputeParamIndexBinaire::TestNewParamLinear(int aK0Vec)
+{
+   double aPdsCloseCur = 1e-1;
+   double aPdsEq       = 1;
+   mLSQOpt.Reset();
+
+
+   const cDenseVect<double>& aVK0 = mVVBool[aK0Vec]->FB().Vect() ;
+   for (int aKP=0 ; aKP<mNbValByP ; aKP++)
+   {
+       mLSQOpt.AddObsFixVar(aPdsCloseCur,aKP,aVK0(aKP));
+   }
+   for (int aKV=0 ; aKV<int(mVVBool.size()) ; aKV++)
+   {
+      cVecBool & aVB = *(mVVBool[aKV].get());
+      double aPds = aPdsEq *  RandUnif_0_1();
+      AddOneEqParamLin(aPds,aVB.Cdg0(),aVB.Nb0());
+      AddOneEqParamLin(aPds,aVB.Cdg1(),aVB.Nb1());
+   }
+   cDenseVect<double>  aSol = mLSQOpt.Solve();
+   cDenseVect<double>  aSF(mNbValByP);
+   for (int aKP=0 ; aKP<mNbValByP ; aKP++)
+   {
+       aSF(aKP) = aSol(aKP);
+   }
+
+   std::vector<tPtVBool>   aVSave = mVVBool;
+
+   StdOut() << "D2222 " << aSF.L2Dist(aVK0) << "\n";
+
+   mVVBool = aVSave;
+}
+
+
+const cDenseVect<tREAL4>&  cVecBool::Cdg0() const {return mCdg0;}
+int                        cVecBool::Nb0()  const {return mNb0;}
+const cDenseVect<tREAL4>&  cVecBool::Cdg1() const {return mCdg1;}
+int                        cVecBool::Nb1()  const {return mNb1;}
+
+
+
+cVecBool::cVecBool(bool Med,cIB_LinearFoncBool * aFB,const tVPtVIR & aVIR)  :
     mFB (aFB),
     mCdg0 (aVIR.at(0)->mVec.DIm().Sz(),eModeInitImage::eMIA_Rand),
     mNb0  (0),
@@ -67,6 +123,12 @@ cVecBool::cVecBool(cIB_LinearFoncBool * aFB,const tVPtVIR & aVIR)  :
    {
        std::vector<double> aVMed = aVScore; // Copy pour ne pas toucher a l'original
        double aMed = Mediane(aVMed);
+
+       // StdOut() << "Meeeddd  " << aMed << "\n";
+       if (!Med)
+       {
+          aMed=0;
+       }
 
        for (auto & aV : aVScore)
        {
@@ -105,6 +167,9 @@ cVecBool::cVecBool(cIB_LinearFoncBool * aFB,const tVPtVIR & aVIR)  :
        }
 
    }
+   if (mNb0) mCdg0.DIm() *=  1/double(mNb0);
+   if (mNb1) mCdg1.DIm() *=  1/double(mNb1);
+
    aProp1 /= mVB.size();
    aPropEq /= (mVB.size() / 2.0);
 
@@ -113,6 +178,12 @@ cVecBool::cVecBool(cIB_LinearFoncBool * aFB,const tVPtVIR & aVIR)  :
 
     StdOut()  << "Eq=" << aPropEq << " Sc=" << aPropEq/aPropThEq << " P1=" << aProp1 << "\n";
 }
+
+cIB_LinearFoncBool&   cVecBool::FB()
+{
+   return *(mFB.get());
+}
+
 
 /* ==================================== */
 /*          cStatDifBits                */

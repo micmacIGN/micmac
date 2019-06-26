@@ -49,6 +49,7 @@ cCollecSpecArg2007 & cAppli_ComputeParamIndexBinaire::ArgOpt(cCollecSpecArg2007 
          << AOpt2007(mQuickBits,"QB","Set all parameter of opt to low def value (for fast tuning)",{eTA2007::HDV})
          << AOpt2007(mZoomImg,"ZoomImg","Zoom of decimation of images",{eTA2007::HDV})
          << AOpt2007(mSaveFileSelVectIR,"SaveFSVIR","File to save selected radial inv",{})
+         << AOpt2007(mMedian,"Med","Set median instead of average",{})
    ;
 }
 
@@ -78,7 +79,8 @@ cAppli_ComputeParamIndexBinaire::cAppli_ComputeParamIndexBinaire
   mStat2       (1),     // idem
   mLSQOpt      (1),     // and again 
   mEigen       (nullptr),
-  mSaveFileSelVectIR    ("")
+  mSaveFileSelVectIR    (""),
+  mMedian               (true)
 {
 }
 
@@ -231,7 +233,7 @@ void  cAppli_ComputeParamIndexBinaire::OneIterComputeIndexBinaire()
     // Allocate data for stats
     mTmpVect = cDenseVect<tREAL8>(mNbValByP);
     mStat2 = cStrStat2<tREAL8>(mNbValByP);
-    mLSQOpt =  cLeasSqtAA<tREAL8>(mNbValByP);
+    mLSQOpt =  cLeasSqtAA<tREAL8>(mNbValByP+1);
 
     // Fill the stats
     int aPerAff = 10000;
@@ -255,7 +257,7 @@ void  cAppli_ComputeParamIndexBinaire::OneIterComputeIndexBinaire()
     for (int aK=mNbValByP-1 ; aK>=mNbValByP-mNbEigenVal; aK--)
     {
         StdOut() << "EV["<< aK<< "]=" <<  mEigen->EigenValues()(aK) << "\n";
-        mVVBool.push_back(tPtVBool ( new cVecBool (new cIB_LinearFoncBool(*this,aK,0), mVIR)));
+        mVVBool.push_back(tPtVBool ( new cVecBool (mMedian,new cIB_LinearFoncBool(*this,aK), mVIR)));
     }
 
     TestRandom();
@@ -379,6 +381,7 @@ void cAppli_ComputeParamIndexBinaire::TestRandom()
 
    for (int aKC=0 ; aKC< mNbOptCombLoc ; aKC++)
    {
+        TestNewParamLinear(RandUnif_N(int(mVVBool.size())));
         if ((aKC%10)==0) 
             StdOut() << "Chnage cphase " << mNbOptCombLoc - aKC  << "\n";
 

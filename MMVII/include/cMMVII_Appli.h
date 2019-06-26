@@ -75,6 +75,12 @@ class cSpecMMVII_Appli
 
        void Check(); ///< Check that specification if ok (at least vectors non empty)
        static const std::vector<cSpecMMVII_Appli*> & VecAll(); ///< vectors of all specifs
+/*
+       static std::vector<cSpecMMVII_Appli*> VecAll(const std::string &); ///< vectors of all specifs
+       static std::vector<cSpecMMVII_Appli*> & SortedVecAll(); ///< vectors of all specifs
+       static std::vector<cSpecMMVII_Appli*> & SortedVecAll(); ///< vectors of all specifs
+*/
+
        static cSpecMMVII_Appli* SpecOfName(const std::string & aName,bool SVP); ///< Get spec; non case sensitive search
 
        const std::string &    Name() const; ///< Accessor
@@ -82,6 +88,8 @@ class cSpecMMVII_Appli
        const std::string &    Comment() const; ///< Accessor
        const std::string &    NameFile() const; ///< Accessor
     private :
+       static std::vector<cSpecMMVII_Appli*> TheVecAll;
+       static std::vector<cSpecMMVII_Appli*> & InternVecAll(); ///< vectors of all specifs
    // Data
        std::string           mName;       ///< User name
        tMMVII_AppliAllocator mAlloc;      ///< Allocator
