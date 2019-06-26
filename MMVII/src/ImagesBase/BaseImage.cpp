@@ -243,7 +243,7 @@ template <class Type,const int Dim>
     tRO::AssertSameArea(aI2);
     double aRes = 0.0;
     for (int aK=0 ; aK<NbElem() ; aK++)
-       aRes += std::abs(mRawDataLin[aK]-aI2.mRawDataLin[aK]);
+       aRes += std::fabs(mRawDataLin[aK]-aI2.mRawDataLin[aK]);
 
    return aRes/NbElem();
 }
@@ -263,7 +263,7 @@ template <class Type,const int Dim>
     tRO::AssertSameArea(aI2);
     double aRes = 0.0;
     for (int aK=0 ; aK<NbElem() ; aK++)
-       aRes = std::max(aRes,(double)std::abs(mRawDataLin[aK]-aI2.mRawDataLin[aK]));
+       aRes = std::max(aRes,(double)std::fabs(mRawDataLin[aK]-aI2.mRawDataLin[aK]));
 
    return aRes;
 }
@@ -275,7 +275,7 @@ template <class Type,const int Dim>
 {
     double aRes = 0.0;
     for (int aK=0 ; aK<NbElem() ; aK++)
-       aRes += std::abs(mRawDataLin[aK]);
+       aRes += std::fabs(mRawDataLin[aK]);
 
    return aRes/NbElem();
 }
@@ -293,7 +293,7 @@ template <class Type,const int Dim>
 {
     double aRes = 0.0;
     for (int aK=0 ; aK<NbElem() ; aK++)
-       aRes = std::max(aRes,(double) std::abs(mRawDataLin[aK]));
+       aRes = std::max(aRes,(double) std::fabs(mRawDataLin[aK]));
 
    return aRes;
 }
