@@ -855,6 +855,7 @@ extern int SimuRolShut_main(int argc, char ** argv);
 extern int GenerateOrient_main(int argc, char ** argv);
 extern int ReechRolShut_main(int argc, char ** argv);
 extern int ReechRolShutV1_main(int argc, char ** argv);
+extern int ExportTPM_main(int argc, char ** argv);
 extern int CompMAF_main(int argc, char ** argv);
 extern int GenerateOriGPS_main(int argc, char ** argv);
 extern int GenerateMAF_main(int argc, char ** argv);
@@ -1164,6 +1165,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("GenerateOrient",GenerateOrient_main,"Generate modification of orientation"));
         aRes.push_back(cMMCom("ReechRolShut",ReechRolShut_main ,"Resampling for rolling shutter effect correction, V2, reproj on new cam orientation",cArgLogCom(2)));
         aRes.push_back(cMMCom("ReechRolShutV1",ReechRolShutV1_main ,"Resampling for rolling shutter effect correction, V1, linear compression/dilatation"));
+        aRes.push_back(cMMCom("ExportTPM",ExportTPM_main ,"Export tie point multiplicity"));
         aRes.push_back(cMMCom("CompMAF",CompMAF_main ,"Compare MAF files"));
         aRes.push_back(cMMCom("GenerateOriGPS",GenerateOriGPS_main ,"Compare MAF files"));
         aRes.push_back(cMMCom("GenerateMAF",GenerateMAF_main ,"Generate simulated MAF"));
