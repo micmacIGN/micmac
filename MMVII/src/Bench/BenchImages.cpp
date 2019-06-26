@@ -100,8 +100,8 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
             Type aVTrunc = tNumTrait<Type>::Trunc(aV0);
             Type aVIm = aIm.GetV(aP);
             Type aVDupIm = aIDup.DIm().GetV(aP);
-            aDif0 += std::abs(aV0-aVIm) + std::abs(aVIm-aVDupIm);
-            aDifTr += std::abs(aVTrunc-aVIm);
+            aDif0 += std::fabs(aV0-aVIm) + std::fabs(aVIm-aVDupIm);
+            aDifTr += std::fabs(aVTrunc-aVIm);
         }
     }
     aDif0 /= aNb;
