@@ -15,7 +15,7 @@ class  	Eigen::SimplicialLLT< _Matri
 #include "ExternalInclude/Eigen/SparseCholesky"
 
 // #include "External/eigen-git-mirror-master/unsupported/Eigen/src/SparseExtra/MarketIO.h"
-#include "External/MarketIO.h"
+#include "ExternalInclude/MarketIO.h"
 #include "ExternalInclude/Eigen/LU"
 
 
