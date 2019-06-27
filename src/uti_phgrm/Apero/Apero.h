@@ -2779,6 +2779,7 @@ class cAppliApero : public NROptF1vND
          double mNbPtsFlot;
          double mMaxDistFlot;
          double mSomDistFlot;
+         double mSomDistXYFlot;
          Pt3dr  mSomEcPtsFlot;
          Pt3dr  mSomAbsEcPtsFlot;
          Pt3dr  mSomRmsEcPtsFlot;
