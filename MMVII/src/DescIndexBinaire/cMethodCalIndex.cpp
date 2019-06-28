@@ -19,11 +19,45 @@ namespace MMVII
 /*         cIB_LinearFoncBool           */
 /* ==================================== */
 
+cIB_LinearFoncBool::cIB_LinearFoncBool
+(
+     cAppli_ComputeParamIndexBinaire & anAppli, 
+     const cDenseVect<double>&   aVect, 
+     double                aThresh 
+)  :
+   mAppli    (anAppli),
+   mVect     (aVect),
+   mThresh   (aThresh)
+{
+}
+
+cIB_LinearFoncBool::cIB_LinearFoncBool
+(
+     cAppli_ComputeParamIndexBinaire & anAppli, 
+     const cDenseVect<double>&   aVect
+)  :
+    cIB_LinearFoncBool
+    (
+        anAppli,
+        aVect,
+        aVect.DotProduct(anAppli.Stat2().Moy())
+    )
+{
+}
+   
+
 cIB_LinearFoncBool::cIB_LinearFoncBool(cAppli_ComputeParamIndexBinaire & anAppli,int aK) :
+    cIB_LinearFoncBool
+    (
+        anAppli,
+        anAppli.Eigen().EigenVectors().ReadCol(aK)
+    )
+/*
    mAppli    (anAppli),
    mK        (aK),
    mVect     (mAppli.Eigen().EigenVectors().ReadCol(aK)),
    mThresh   (mVect.DotProduct(mAppli.Stat2().Moy()))
+*/
 {
 }
 
@@ -63,14 +97,16 @@ void cAppli_ComputeParamIndexBinaire::AddOneEqParamLin(double aPds,const cDenseV
 
 }
 
-void cAppli_ComputeParamIndexBinaire::TestNewParamLinear(int aK0Vec)
+
+
+void cAppli_ComputeParamIndexBinaire::TestNewParamLinear(const std::vector<tPtVBool>& aOldVB,int aK0Vec)
 {
    double aPdsCloseCur = 1e-1;
    double aPdsEq       = 1;
    mLSQOpt.Reset();
 
-
-   const cDenseVect<double>& aVK0 = mVVBool[aK0Vec]->FB().Vect() ;
+   tPtVBool aVB0 = aOldVB[aK0Vec];
+   const cDenseVect<double>& aVK0 = aVB0->FB().Vect() ;
    for (int aKP=0 ; aKP<mNbValByP ; aKP++)
    {
        mLSQOpt.AddObsFixVar(aPdsCloseCur,aKP,aVK0(aKP));
@@ -88,12 +124,24 @@ void cAppli_ComputeParamIndexBinaire::TestNewParamLinear(int aK0Vec)
    {
        aSF(aKP) = aSol(aKP);
    }
+   
+   tPtVBool aVB(new cVecBool(aVB0->Index(),false,new cIB_LinearFoncBool(*this,aSF,aSol(mNbValByP)),mVIR));
 
-   std::vector<tPtVBool>   aVSave = mVVBool;
+   std::vector<tPtVBool> aNewV = aOldVB;
+   aNewV[aK0Vec] = aVB;
+   int aK;
+   double aSc = ScoreSol(aK,aNewV);
 
-   StdOut() << "D2222 " << aSF.L2Dist(aVK0) << "\n";
+   if (aSc > mBestSc)
+   {
+      StdOut() << "D2222 " << aSF.L2Dist(aVK0) << mBestSc << " " << aSc << "\n";
+      ChangeVB(aSc,aVB,aK0Vec);
+   }
+   
+/*
+*/
 
-   mVVBool = aVSave;
+   // mVVBool = aVSave;
 }
 
 
@@ -101,10 +149,12 @@ const cDenseVect<tREAL4>&  cVecBool::Cdg0() const {return mCdg0;}
 int                        cVecBool::Nb0()  const {return mNb0;}
 const cDenseVect<tREAL4>&  cVecBool::Cdg1() const {return mCdg1;}
 int                        cVecBool::Nb1()  const {return mNb1;}
+int                        cVecBool::Index()  const {return mIndex;}
 
 
 
-cVecBool::cVecBool(bool Med,cIB_LinearFoncBool * aFB,const tVPtVIR & aVIR)  :
+cVecBool::cVecBool(int Index,bool Med,cIB_LinearFoncBool * aFB,const tVPtVIR & aVIR)  :
+    mIndex (Index),
     mFB (aFB),
     mCdg0 (aVIR.at(0)->mVec.DIm().Sz(),eModeInitImage::eMIA_Rand),
     mNb0  (0),
@@ -176,7 +226,7 @@ cVecBool::cVecBool(bool Med,cIB_LinearFoncBool * aFB,const tVPtVIR & aVIR)  :
    double aPropThEq =  Square(aProp1) + Square(1-aProp1);
    mScore = aPropEq/aPropThEq;
 
-    StdOut()  << "Eq=" << aPropEq << " Sc=" << aPropEq/aPropThEq << " P1=" << aProp1 << "\n";
+    // StdOut()  << "Eq=" << aPropEq << " Sc=" << aPropEq/aPropThEq << " P1=" << aProp1 << "\n";
 }
 
 cIB_LinearFoncBool&   cVecBool::FB()
@@ -189,7 +239,7 @@ cIB_LinearFoncBool&   cVecBool::FB()
 /*          cStatDifBits                */
 /* ==================================== */
 
-int NbbBitDif(const std::vector<const cVecBool*> & aVVB,const cPt2di & aPair)
+int NbbBitDif(const std::vector<tPtVBool> & aVVB,const cPt2di & aPair)
 {
    int aNbBitDif = 0;
    for (const auto & aVB : aVVB)
@@ -198,7 +248,7 @@ int NbbBitDif(const std::vector<const cVecBool*> & aVVB,const cPt2di & aPair)
    return aNbBitDif;
 }
 
-cStatDifBits::cStatDifBits(const std::vector<cPt2di> & aVPair,const std::vector<const cVecBool*> & aVVB) :
+cStatDifBits::cStatDifBits(const std::vector<cPt2di> & aVPair,const std::vector<tPtVBool> & aVVB) :
    mHNbBitDif (aVVB.size()+1,0),
    mStatR     (mHNbBitDif.size(),0.0),
    mStatRCum  (mHNbBitDif.size(),0.0)
@@ -240,7 +290,7 @@ double cStatDifBits::Score(const cStatDifBits & aStatFalse,double aPdsFalse,int 
    return aRes;
 }
 
-void  cStatDifBits::Show(const cStatDifBits & aStatFalse,int aK1,int aK2) const
+void  cStatDifBits::Show(const cStatDifBits & aStatFalse,int aK1,int aK2,double aVMax) const
 {
    aK1 = std::max(aK1,0);
    aK2 = std::min(aK2,int(mStatRCum.size()-1));
@@ -251,6 +301,8 @@ void  cStatDifBits::Show(const cStatDifBits & aStatFalse,int aK1,int aK2) const
                 << " " << aStatFalse.mStatRCum.at(aK) 
                 << " " << mStatRCum.at(aK)/ std::max(1e-8,aStatFalse.mStatRCum.at(aK))
                 << "\n";
+      if (mStatRCum.at(aK)>aVMax)
+         return;
    }
 }
 
