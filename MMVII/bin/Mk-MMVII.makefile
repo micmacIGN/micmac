@@ -7,7 +7,6 @@ MMV2DirSrc=${MMV2Dir}src/
 MMV2DirBin=${MMV2Dir}bin/
 MMV2Objects=${MMV2Dir}object/
 MMV2DirIncl=${MMV2Dir}include/
-#MMV2ElisePath=${MMDir}/lib/libelise_SsQt.a
 MMV2ElisePath=${MMDir}/lib/libelise.a
 #
 #
