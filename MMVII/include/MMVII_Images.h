@@ -17,34 +17,109 @@ class cBenchBaseImage;
 /// Idem cBenchBaseImage
 class cBenchImage;
 
+template <class Type,const int Dim>  class cTplBox;
+template <const int Dim>  class            cPixBoxIterator;
+template <const int Dim>  class            cPixBox;
+
+
+
+template <class Type,const int Dim>  class cTplBox
+{
+    public : 
+        typedef Type                             tNum ;
+        typedef typename  tNumTrait<Type>::tBig  tBigNum ;
+        typedef cTplBox<Type,Dim>                tBox;
+        typedef cPtxd<Type,Dim>                  tPt;
+        typedef cPtxd<tBigNum,Dim>               tBigPt;
+
+        cTplBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty=false);
+
+
+        const tPt & P0() const {return mP0;} ///< Origin of object
+        const tPt & P1() const {return mP1;} ///< End of object
+        const tPt & Sz() const {return mSz;} ///< Size of object
+
+        const tBigNum & NbElem() const {return mNbElem;}  ///< Surface  / Volume
+
+        const tPt & SzCum() const;
+
+        // Boolean operators
+           /// Is this point/pixel/voxel  inside
+        bool Inside(const tPt & aP) const  {return SupEq(aP,mP0) && InfStr(aP,mP1);}
+           /// Specialistion 1D
+        bool Inside(const tNum & aX) const  
+        {
+           // static_assert(Dim==1,"Bas dim for integer access");
+           return (aX>=mP0.x()) && (aX<mP1.x());
+        }
+        /// Return closest point inside the box
+        tPt  Proj(const tPt & aP) const {return PtInfStr(PtSupEq(aP,mP0),mP1);}
+        /// Are the two box equals
+        bool operator == (const tBox & aR2) const ;
+        /// Is  this included in aB
+        bool  IncludedIn(const  tBox & aB)const;
+        /// Sometime we need to represent the empty box explicitely
+        bool IsEmpty() const;
+        tBox   Translate(const tPt & aPt)const;
+
+        tBox Sup(const tBox & aPt)const;
+        tBox Inter(const tBox & aPt)const;
+
+        /// Assert that it is inside
+        template <class TypeIndex> void AssertInside(const TypeIndex & aP) const
+        {
+             MMVII_INTERNAL_ASSERT_tiny(Inside(aP),"Point out of image");
+        }
+        void AssertSameArea(const tBox & aV) const; ///<  Assert object are identic
+        void AssertSameSz(const   tBox & aV) const;   ///<  Check only size
+
+         
+
+        //  ---  object generation ----------------
+
+        tPt  FromNormaliseCoord(const cPtxd<double,Dim> &) const ;  ///< [0,1] * => Rect
+        static cPtxd<double,Dim>  RandomNormalised() ;     ///<  Random point in "hyper cube" [0,1] ^ Dim
+        tPt   GeneratePointInside() const;   ///< Random point in integer rect
+        tBox  GenerateRectInside(double aPowSize=1.0) const; ///< Hig Power generate "small" rect, never empty
+
+
+    protected :
+        tPt       mP0;         ///< "smallest"
+        tPt       mP1;         ///< "highest"
+        tPt       mSz;         ///<  Size
+        tBigPt    mSzCum;      ///< Cumlated size : Cum[aK] = Cum[aK-1] * Sz[aK-1]
+        tBigNum   mNbElem;     ///< Number of pixel = Cum[Dim-1]
+    private :
+};
 
 /**  Class allow to iterate the pixel of an image (in fact a rectangular object) using the
 same syntax than stl iterator => for (auto aP : anIma) ....
 */
-template <const int Dim>  class cRectObjIterator
+template <const int Dim>  class cPixBoxIterator
 {
      public :
-        friend class cRectObj<Dim>;
+        typedef cPtxd<int,Dim>        tPt;
+        typedef cPixBoxIterator<Dim>  tIter;
+        typedef cPixBox<Dim>          tPB;
+        friend class cPixBox<Dim>;
 
-        bool operator == (const cRectObjIterator<Dim> aIt2) {return  mPCur==aIt2.mPCur;}  ///< Equal iff current point are =
-        bool operator != (const cRectObjIterator<Dim> aIt2) {return  mPCur!=aIt2.mPCur;}  ///< !Equal iif not equal ...
-        cPtxd<int,Dim> & operator * () {return mPCur;}
-        const cPtxd<int,Dim> & operator * () const {return mPCur;}
-        cPtxd<int,Dim> * operator ->() {return &mPCur;}
-        const cPtxd<int,Dim> * operator ->() const {return &mPCur;}
+        bool operator == (const tIter& aIt2) {return  mPCur==aIt2.mPCur;}  ///< Equal iff current point are =
+        bool operator != (const tIter& aIt2) {return  mPCur!=aIt2.mPCur;}  ///< !Equal iif not equal ...
+        tPt & operator * () {return mPCur;}
+        tPt & operator * () const {return mPCur;}
+        tPt * operator ->() {return &mPCur;}
+        tPt * operator ->() const {return &mPCur;}
 
         /// standard prefix incrementation
-        cRectObjIterator<Dim> &  operator ++(); 
+        tIter &  operator ++(); 
         /// Just a "facility" to allow post-fix
-        cRectObjIterator<Dim> &  operator ++(int) {return ++(*this);} 
+        tIter &  operator ++(int) {return ++(*this);} 
      private :
-        cRectObjIterator(cRectObj<Dim> & aRO,const  cPtxd<int,Dim> & aP0) : mRO (&aRO),mPCur (aP0) {}
+        cPixBoxIterator(tPB & aRO,const  tPt & aP0) : mRO (&aRO),mPCur (aP0) {}
 
-        cRectObj<Dim> * mRO;  ///< The rectangular object
-        cPtxd<int,Dim> mPCur; ///< The current point 
+        tPB * mRO;  ///< The rectangular object
+        tPt             mPCur; ///< The current point 
 };
-
-
 
 /**  Class representing N-dim rectangle in pixel,
      Many basic services to test and visit the rectangle.
@@ -55,89 +130,43 @@ template <const int Dim>  class cRectObjIterator
            P0[aK] <= Pix [aK] < P1[aK]  for K in [0,Dim[
 */
 
-template <const int Dim>  class cRectObj
+template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
 {
     public : 
-        typedef cRectObjIterator<Dim> iterator; ///< For auto ...
         typedef cPtxd<int,Dim>        tPt;
-        static const cRectObj Empty00;
-
-        cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1); ///< Required as iterators do not copy well becaus of ptr
-        cRectObj(const cRectObj<Dim> &) ;
-
-
-        const tPt & P0() const {return mP0;} ///< Origin of object
-        const tPt & P1() const {return mP1;} ///< End of object
-        const tPt & Sz() const {return mSz;} ///< Size of object
-
-        const tINT8 & NbElem() const {return mNbElem;}  ///< Number of "pixel"
-
-        tINT8   IndexeLinear(const tPt &) const;
-        const tPt & SzCum() const;
-
-        // Boolean operators
-           /// Is this point/pixel/voxel  inside
-        bool Inside(const cPtxd<int,Dim> & aP) const  {return SupEq(aP,mP0) && InfStr(aP,mP1);}
-           /// Specialistion 1D
-        bool Inside(const int & aX) const  
-        {
-           // static_assert(Dim==1,"Bas dim for integer access");
-           return (aX>=mP0.x()) && (aX<mP1.x());
-        }
-        cPtxd<int,Dim> Proj(const cPtxd<int,Dim> & aP) const {return PtInfStr(PtSupEq(aP,mP0),mP1);}
-        bool operator == (const cRectObj<Dim> aR2) const ;
-        bool  IncludedIn(const cRectObj<Dim> &)const;
-        cRectObj<Dim> Translate(const cPtxd<int,Dim> & aPt)const;
-
-        /// Assert that it is inside
-        template <class TypeIndex> void AssertInside(const TypeIndex & aP) const
-        {
-             MMVII_INTERNAL_ASSERT_tiny(Inside(aP),"Point out of image");
-        }
-        void AssertSameArea(const cRectObj<Dim> & aV) const; ///<  Assert object are identic
-        void AssertSameSz(const cRectObj<Dim> & aV) const;   ///<  Check only size
+        typedef cTplBox<int,Dim>      tBox;
+        typedef cPixBoxIterator<Dim> iterator; ///< For auto ...
+        static const cPixBox<Dim>    TheEmptyBox;
         //  --- Iterator ----------------
         iterator &  begin() {return mBegin;}   ///< For auto
         iterator &  end()   {return mEnd;}   ///< For auto
         iterator   begin() const {return mBegin;}   ///< For auto
         iterator   end()   const {return mEnd;}   ///< For auto
-
-         
-
-        //  ---  object generation ----------------
-
-        cPtxd<int,Dim>  FromNormaliseCoord(const cPtxd<double,Dim> &) const ;  ///< [0,1] * => Rect
-        static cPtxd<double,Dim>  RandomNormalised() ;     ///<  Random point in "hyper cube" [0,1] ^ Dim
-        cPtxd<int,Dim>  GeneratePointInside() const;   ///< Random point in integer rect
-        cRectObj<Dim>  GenerateRectInside(double aPowSize=1.0) const; ///< Hig Power generate "small" rect, never empty
-
-
-    protected :
-        cPtxd<int,Dim> mP0;           ///< "smallest"
-        cPtxd<int,Dim> mP1;           ///< "highest"
-        cPtxd<int,Dim> mSz;           ///<  Size
-        cRectObjIterator<Dim> mBegin; ///< Beging iterator
-        cRectObjIterator<Dim> mEnd;   ///< Ending iterator
-        cPtxd<tINT8,Dim> mSzCum;      ///< Cumlated size : Cum[aK] = Cum[aK-1] * Sz[aK-1]
-        tINT8            mNbElem;     ///< Number of pixel = Cum[Dim-1]
+        tINT8     IndexeLinear(const tPt &) const;
+        /// Required by iterators  as they do not copy well becaus of ptr
+        cPixBox(const cPixBox<Dim> &) ;
+        cPixBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty = false);
+        /// It may be convenient as conversion, as tool may retun TplBox, and others may need to iterate on it
+        cPixBox(const cTplBox<int,Dim> &);
     private :
-        cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,bool AllowEmpty);
+        iterator  mBegin; ///< Beging iterator
+        iterator  mEnd;   ///< Ending iterator
 };
 
-typedef  cRectObj<1> cRect1;
-typedef  cRectObj<2> cRect2;
-typedef  cRectObj<3> cRect3;
+typedef  cPixBox<1> cRect1;
+typedef  cPixBox<2> cRect2;
+typedef  cPixBox<3> cRect3;
 
 
 
 /* Iterator allowing to visit rectangles */
 
-template <> inline cRectObjIterator<1> &  cRectObjIterator<1>::operator ++() 
+template <> inline cPixBoxIterator<1> &  cPixBoxIterator<1>::operator ++() 
 { 
    mPCur.x()++; 
    return *this;
 }
-template <> inline cRectObjIterator<2> &  cRectObjIterator<2>::operator ++() 
+template <> inline cPixBoxIterator<2> &  cPixBoxIterator<2>::operator ++() 
 {
     mPCur.x()++; 
     if (mPCur.x() == mRO->P1().x())
@@ -148,7 +177,7 @@ template <> inline cRectObjIterator<2> &  cRectObjIterator<2>::operator ++()
 
     return *this;
 }
-template <> inline cRectObjIterator<3> &  cRectObjIterator<3>::operator ++() 
+template <> inline cPixBoxIterator<3> &  cPixBoxIterator<3>::operator ++() 
 {
     mPCur.x()++; 
     if (mPCur.x() == mRO->P1().x())
@@ -170,12 +199,12 @@ template <> inline cRectObjIterator<3> &  cRectObjIterator<3>::operator ++()
 */
 
 
-template <const int Dim> class cDataGenUnTypedIm : public cRectObj<Dim>,
+template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
                                                    public cMemCheck
 {
       public :
-        typedef cRectObj<Dim>            tRO;
-        const  cRectObj<Dim> & RO() {return *this;}
+        typedef cPixBox<Dim>            tPB;
+        const   tPB  & RO() {return *this;}
 
         cDataGenUnTypedIm(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1);
 
@@ -204,12 +233,12 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         typedef Type  tVal;
         typedef tNumTrait<Type> tTraits;
         typedef typename tTraits::tBase  tBase;
-        typedef cRectObj<Dim>            tRO;
+        typedef cPixBox<Dim>            tPB;
 
-        const tINT8 & NbElem() const {return tRO::NbElem();} ///< Number total of pixel
-        const cPtxd<int,Dim> & P0() const {return tRO::P0();}  ///< facility
-        const cPtxd<int,Dim> & P1() const {return tRO::P1();}  ///< facility
-        const cPtxd<int,Dim> & Sz() const {return tRO::Sz();}  ///< facility
+        const tINT8 & NbElem() const {return tPB::NbElem();} ///< Number total of pixel
+        const cPtxd<int,Dim> & P0() const {return tPB::P0();}  ///< facility
+        const cPtxd<int,Dim> & P1() const {return tPB::P1();}  ///< facility
+        const cPtxd<int,Dim> & Sz() const {return tPB::Sz();}  ///< facility
 
         Type * RawDataLin() {return  mRawDataLin;}  ///< linear raw data
         const Type * RawDataLin() const {return  mRawDataLin;}  ///< linear raw data
@@ -229,7 +258,7 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
 
         //========= Test access ============
 
-        inline bool Inside(const cPtxd<int,Dim> & aP) const {return tRO::Inside(aP);} ///< Is Point inside def
+        inline bool Inside(const cPtxd<int,Dim> & aP) const {return tPB::Inside(aP);} ///< Is Point inside def
         inline bool ValueOk(const tBase & aV) const {return tTraits::ValueOk(aV);}  ///< Is value Ok (overflow, nan, infty..)
 
         cDataTypedIm (const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,
@@ -308,7 +337,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         typedef Type  tVal;
         typedef tVal* tPVal;
         typedef cDataTypedIm<Type,2>   tBI;
-        typedef cRectObj<2>               tRO;
+        typedef cPixBox<2>               tPB;
         typedef typename tBI::tBase  tBase;
 
         //========= fundamental access to values ============
@@ -317,7 +346,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
            /// Get Value, check access in non release mode
         const Type & GetV(const cPt2di & aP)  const
         {
-            tRO::AssertInside(aP);
+            tPB::AssertInside(aP);
             return  Value(aP);
         }
         /* No  Type & GetV() or  Type & operator()   ... as it does not allow
@@ -327,7 +356,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
           /// Set Value, check point and value in  non release mode
         void SetV(const cPt2di & aP,const tBase & aV)
         { 
-            tRO::AssertInside(aP);
+            tPB::AssertInside(aP);
             tBI::AssertValueOk(aV);
             Value(aP) = aV;
         }
@@ -335,7 +364,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
           /// Trunc then set value, no check on value
         void SetVTrunc(const cPt2di & aP,const tBase & aV)
         { 
-            tRO::AssertInside(aP);
+            tPB::AssertInside(aP);
             Value(aP) = tNumTrait<Type>::Trunc(aV);
         }
 
@@ -351,28 +380,27 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         Type * GetLine(int aY) ;
         //========= Access to sizes, only alias/facilities ============
 
-        const cPt2di &  Sz()  const {return tRO::Sz();}  ///< Std Accessor
+        const cPt2di &  Sz()  const {return tPB::Sz();}  ///< Std Accessor
         const int    &  SzX() const {return Sz().x();}   ///< Std Accessor
         const int    &  SzY() const {return Sz().y();}   ///< Std Accessor
 
-        const cPt2di &  P0()  const {return tRO::P0();}  ///< Std Accessor
+        const cPt2di &  P0()  const {return tPB::P0();}  ///< Std Accessor
         const int    &  X0()  const {return P0().x();}   ///< Std Accessor
         const int    &  Y0()  const {return P0().y();}   ///< Std Accessor
 
-        const cPt2di &  P1()  const {return tRO::P1();}  ///< Std Accessor
+        const cPt2di &  P1()  const {return tPB::P1();}  ///< Std Accessor
         const int    &  X1()  const {return P1().x();}   ///< Std Accessor
         const int    &  Y1()  const {return P1().y();}   ///< Std Accessor
 
-        // const cPt2di &  Sz()  const {return cRectObj<2>::Sz();}
 
         void Resize(const cPt2di& aP0,const cPt2di & aP1,eModeInitImage=eModeInitImage::eMIA_NoInit);
         void Resize(const cPt2di& aSz,eModeInitImage=eModeInitImage::eMIA_NoInit);
 
 
         ///  Read file image 1 channel to 1 channel
-        void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::Empty00);  
+        void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  
         ///  Write file image 1 channel to 1 channel
-        void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::Empty00);  // 1 to 1
+        void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  // 1 to 1
         virtual ~cDataIm2D();  ///< will delete mRawData2D
         
         /// Raw image, lost all waranty is you use it...
@@ -419,8 +447,8 @@ template <class Type>  class cIm2D
        tDIM & DIm() {return *(mPIm);}  ///< return raw pointer
        const tDIM & DIm() const {return *(mPIm);} ///< const version 4 raw pointer
       
-       void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::Empty00);  ///< 1 to 1
-       void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::Empty00);  // 1 to 1
+       void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  ///< 1 to 1
+       void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  // 1 to 1
 
        static cIm2D<Type> FromFile(const std::string& aName);  ///< Allocate and init from file
 
@@ -455,7 +483,7 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
 
         typedef Type  tVal;
         typedef cDataTypedIm<Type,1>   tBI;
-        typedef cRectObj<1>               tRO;
+        typedef cPixBox<1>             tPB;
         typedef typename tBI::tBase  tBase;
 
         //========= fundamental access to values ============
@@ -463,17 +491,17 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
            /// Get Value
         const Type & GetV(const int & aP)  const
         {
-            tRO::AssertInside(aP);
+            tPB::AssertInside(aP);
             return  Value(aP);
         }
         const Type & GetV(const cPt1di & aP)  const {return GetV(aP.x());}
         /// Used by matrix/vector interface 
-        Type & GetV(const int & aP) { tRO::AssertInside(aP); return  Value(aP); }
+        Type & GetV(const int & aP) { tPB::AssertInside(aP); return  Value(aP); }
 
           /// Set Value
         void SetV(const int & aP,const tBase & aV)
         { 
-            tRO::AssertInside(aP);
+            tPB::AssertInside(aP);
             tBI::AssertValueOk(aV);
             Value(aP) = aV;
         }
@@ -482,13 +510,13 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
           /// Trunc then set value
         void SetVTrunc(const int & aP,const tBase & aV)
         { 
-            tRO::AssertInside(aP);
+            tPB::AssertInside(aP);
             Value(aP) = tNumTrait<Type>::Trunc(aV);
         }
         void SetVTrunc(const  cPt1di & aP,const tBase & aV) {SetVTrunc(aP.x(),aV);}
-        const int    &  Sz() const  {return tRO::Sz().x();}
-        const int    &  X0()  const {return tRO::P0().x();}
-        const int    &  X1()  const {return tRO::P1().x();}
+        const int    &  Sz() const  {return tPB::Sz().x();}
+        const int    &  X0()  const {return tPB::P0().x();}
+        const int    &  X1()  const {return tPB::P1().x();}
 
           // Interface as generic image
 

@@ -294,7 +294,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("TestBundleInter", TestBundleInter_main, "Block Initialisation "));
 		aRes.push_back(cMMCom("Blinis", Blinis_main, "Block Initialisation ", cArgLogCom(2)));
 		aRes.push_back(cMMCom("ContrastFilter", Contrast_main, "Some contrast filtering "));
-        aRes.push_back(cMMCom("Nikrup", Nikrup_main,/*(*/ "Generik image filter, using invert polish like notation ;-) ",cArgLogCom(2)));
+        aRes.push_back(cMMCom("Nikrup", Nikrup_main,/*(*/ "Generik image filter, using invert polish like notation ;-) ",cArgLogCom(3)));
 		aRes.push_back(cMMCom("Turn90Im", TournIm_main, "Turn image of 90 degre"));
 		aRes.push_back(cMMCom("RedTieP", RedTieP_main, "Test tie points filtering "));
 		aRes.push_back(cMMCom("OriRedTieP", OriRedTie_main, "Tie points filtering, using Martini results "));
@@ -1480,6 +1480,11 @@ bool J4M()  //  indicate if we are in Jean Michael Muler Mic Mac ....
 
 int main(int argc, char ** argv)
 {
+if (0)
+{
+   for (int ak=0 ; ak<argc ; ak++)
+    std::cout << "MMM [" << argv[ak] << "]\n";
+}
 	//  Genere un warning si la ligne de commande contient des caratere non ASCII, car ceux ci
 	// peuvent être invisible et genere des erreurs peu comprehensibles
 

@@ -38,7 +38,7 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
        }
     }
     {
-       cRectObj<2> aRect(aP0,aP1);
+       cPixBox<2> aRect(aP0,aP1);
        cIm2D<Type> aPIm(aP0,aP1);
        aPIm.DIm().Resize(aP0,aP1);
        aPIm.DIm().Resize(aP0-cPt2di(1,3),aP1+cPt2di(1,10));
@@ -46,7 +46,7 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
 
        cDataIm2D<Type>  & aIm = aPIm.DIm();
        aIm.InitRandom();
-       cPt2di aPRand = aIm.GeneratePointInside();
+       cPt2di aPRand (aIm.GeneratePointInside());
        tINT8 aIndRand  = aIm.IndexeLinear(aPRand);
        MMVII_INTERNAL_ASSERT_bench(aIm.GetV(aPRand)==aIm.GetRDL(aIndRand),"Bench image error");
 
@@ -117,7 +117,7 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
 
     double aSomFonc2 = 0.0;
     double aSomFonc3 = 0.0;
-    for (cRectObjIterator<2> aP = aIm.begin() ; aP!=aIm.end() ; aP++)
+    for (cPixBoxIterator<2> aP = aIm.begin() ; aP!=aIm.end() ; aP++)
     {
         aSomFonc2 += FoncTestIm(*aP);
         aSomFonc3 += FoncTestIm(cPt2di(aP->x(),aP->y()));
@@ -253,7 +253,7 @@ template <class TypeImage,class tBase,class TypeFile>  void TplBenchFileImage(co
     for (int aK=0 ; aK<3 ; aK++)
     {
          double aDyn = aDyn0 * 2.0 * RandUnif_0_1();
-         cRect2 aR = aFileIm.GenerateRectInside(3.0);
+         cRect2 aR (aFileIm.GenerateRectInside(3.0));
          cPt2di aP0 = aR.P0();
          cIm2D<TypeImage> aIW(aR.Sz());
          aIW.DIm().InitRandom();
@@ -270,7 +270,7 @@ template <class TypeImage,class tBase,class TypeFile>  void TplBenchFileImage(co
     for (int aK=0 ; aK<3 ; aK++)
     {
          double aDyn = aDyn0 * 2.0 * RandUnif_0_1();
-         cRect2 aR = aFileIm.GenerateRectInside(3.0);
+         cRect2 aR (aFileIm.GenerateRectInside(3.0));
          cIm2D<TypeImage> aIW(aR.P0(),aR.P1());
          aIW.DIm().InitRandom();
          for (const auto & aP : aIW.DIm())
@@ -286,7 +286,7 @@ template <class TypeImage,class tBase,class TypeFile>  void TplBenchFileImage(co
     for (int aK=0 ; aK<20 ; aK++)
     {
          double aDyn = (1/aDyn0) * 2.0 * RandUnif_0_1();
-         cRect2 aR = aFileIm.GenerateRectInside(3.0);
+         cRect2 aR (aFileIm.GenerateRectInside(3.0));
          cPt2di aP0 = aR.P0();
          cIm2D<TypeImage> aIW(aR.Sz());
          aIW.Read(aFileIm,aP0,aDyn);

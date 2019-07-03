@@ -949,6 +949,11 @@ int Nikrup_main(int argc,char ** argv)
 
     TheActionOnHelp = NirupActionOnHelp;
 
+/*
+for (int ak=0 ; ak<argc ; ak++)
+    std::cout << "NNnn [" << argv[ak] << "]\n";
+*/
+
     ElInitArgMain
     (
          argc,argv,

@@ -13,7 +13,7 @@ namespace MMVII
 
 template <class Type>  cDataIm2D<Type>::cDataIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * aRawDataLin,eModeInitImage aModeInit) : 
     cDataTypedIm<Type,2> (aP0,aP1,aRawDataLin,aModeInit),
-    mSzYMax (cRectObj<2>::Sz().y())
+    mSzYMax (tPB::Sz().y())
 {
     mRawData2D = cMemManager::Alloc<tVal*>(mSzYMax) -Y0();
     PostInit();
