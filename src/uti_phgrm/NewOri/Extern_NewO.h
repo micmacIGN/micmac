@@ -183,6 +183,9 @@ class cGenGaus3D
         //indiqué par aN1,aN2,aN3
         void GetDistribGausNSym(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int aN3);
 
+        //RANDOM distribution of points 
+        void GetDistribGausRand(std::vector<Pt3dr> & aVPts,int aN);
+
     private :
         Pt3dr mCDG;
         double mVP[3];

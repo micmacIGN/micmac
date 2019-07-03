@@ -99,6 +99,7 @@ class cAppliFictObs : public cCommonMartiniAppli
         
         Pt3dr       mNumFPts;
         bool        mNSym;
+        bool        mNRand;
         int         mNbIm;
 
         bool                                                    NFHom;    //new format homol
@@ -133,6 +134,7 @@ class cAppliFictObs : public cCommonMartiniAppli
 cAppliFictObs::cAppliFictObs(int argc,char **argv) :
     mNumFPts(Pt3dr(1,1,1)),
     mNSym(false),
+    mNRand(false),
     NFHom(true),
     mPMulRed(0),
     mHomExp("dat"),
@@ -154,6 +156,7 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
         LArgMain() << EAMC(mPattern,"Pattern of images"),
         LArgMain() << EAM (mNumFPts,"NPt",true,"Number of ficticious pts, Def=1 (1:27pts, 2:175pts)")
                    << EAM (mNSym,"NSym",true,", Non-symetric point generation, Def=false")
+                   << EAM (mNRand,"NRand",true,", Random point generation, Def=false")
                    << EAM (mRedFacSup,"RedFac",true,"Residual image reduction factor, Def=20")
                    << EAM (mCorrCalib,"CorCal",true,"Model residual camera calib, Def=true")
                    << EAM (mResPoly,"Deg",true,"Degree of polyn to smooth residuals (used only if CorCal=true), Def=2")
@@ -237,6 +240,8 @@ void cAppliFictObs::GenerateFicticiousObs()
         //generate the obs fict
         if (mNSym)
             aGG1.GetDistribGausNSym(aVP,mNumFPts.x,mNumFPts.y,mNumFPts.z);
+        else if (mNRand)
+            aGG1.GetDistribGausRand(aVP,mNumFPts.x);
         else
             aGG1.GetDistribGaus(aVP,mNumFPts.x,mNumFPts.y,mNumFPts.z);
         
