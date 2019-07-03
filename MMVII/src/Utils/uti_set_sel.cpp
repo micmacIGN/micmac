@@ -1094,7 +1094,7 @@ template <class Type> void TplBenchSet(const std::string & aDir)
 
 void BenchSet(const std::string & aDir)
 {
-    cMMVII_Appli &  anAp = cMMVII_Appli::TheAppli();
+    cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
 
     TplBenchSet<int>        (aDir);
     TplBenchSet<std::string> (aDir);

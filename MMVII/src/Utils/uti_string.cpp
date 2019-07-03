@@ -58,7 +58,7 @@ cCarLookUpTable::cCarLookUpTable() :
 std::vector<std::string>  SplitString(const std::string & aStr,const std::string & aSpace)
 {
     std::vector<std::string> aRes;
-    cMMVII_Appli::TheAppli().SplitString(aRes,aStr,aSpace);
+    cMMVII_Appli::CurrentAppli().SplitString(aRes,aStr,aSpace);
     return  aRes;
 }
 
@@ -67,7 +67,7 @@ void  SplitStringArround(std::string & aBefore,std::string & aAfter,const std::s
 {
     std::string aStrSep(1,aCharSep);
     std::vector<std::string> aVStr;
-    cMMVII_Appli::TheAppli().SplitString(aVStr,aStr,aStrSep);
+    cMMVII_Appli::CurrentAppli().SplitString(aVStr,aStr,aStrSep);
 
     int aNbSplit = aVStr.size();
 

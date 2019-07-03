@@ -168,15 +168,15 @@ void  TestSharedPointer()
 class cAppli_MMVII_TestCpp11 : public cMMVII_Appli
 {
      public :
-        cAppli_MMVII_TestCpp11(int argc,char** argv,const cSpecMMVII_Appli & aSpec) ;
+        cAppli_MMVII_TestCpp11(const std::vector<std::string> &  ,const cSpecMMVII_Appli & aSpec) ;
         int Exe() override ;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override {return anArgOpt;}
 
 };
 
-cAppli_MMVII_TestCpp11::cAppli_MMVII_TestCpp11 (int argc,char **argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc,argv,aSpec)
+cAppli_MMVII_TestCpp11::cAppli_MMVII_TestCpp11 (const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (aVArgs,aSpec)
 {
 }
 
@@ -365,9 +365,9 @@ int cAppli_MMVII_TestCpp11::Exe()
 
 
 
-tMMVII_UnikPApli Alloc_MMVII_Cpp11(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_MMVII_Cpp11(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_MMVII_TestCpp11(argc,argv,aSpec));
+   return tMMVII_UnikPApli(new cAppli_MMVII_TestCpp11(aVArgs,aSpec));
 }
 
 

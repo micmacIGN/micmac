@@ -15,7 +15,7 @@ template <const int Dim> cDataGenUnTypedIm<Dim>::cDataGenUnTypedIm
                              const cPtxd<int,Dim> & aP0,
                              const cPtxd<int,Dim> & aP1
                          )  :
-                            cRectObj<Dim>(aP0,aP1)
+                            cPixBox<Dim>(aP0,aP1)
 {
 }
 
@@ -49,7 +49,7 @@ void TestBenchRectObjError(const std::string & aType,const std::string &  aMes,c
 }
 
 /* ========================== */
-/*          cRectObj          */
+/*          cPixBox           */
 /* ========================== */
 
 /// Computation to get the point we have at end of iterating a rectangle
@@ -60,14 +60,47 @@ template <const int Dim> cPtxd<int,Dim> CalPEnd(const cPtxd<int,Dim> & aP0,const
     return aRes;
 }
 
+template <const int Dim>   cPixBox<Dim>::cPixBox(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,bool AllowEmpty) :
+     cTplBox<int,Dim>(aP0,aP1,AllowEmpty),
+     mBegin  (*this,aP0),
+     mEnd    (*this,CalPEnd(aP0,aP1))
+{
+}
 
-template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,bool AllowEmpty) :
-     mP0  (aP0),
-     mP1  (aP1),
-     mSz  (aP0),
-     mBegin  (*this,mP0),
-     mEnd    (*this,CalPEnd(aP0,aP1)),
-     mNbElem (1)
+template <const int Dim>   cPixBox<Dim>::cPixBox(const cPixBox<Dim> & aR) :
+   cPixBox<Dim>(aR.mP0,aR.mP1,true)
+{
+}
+
+template <const int Dim>   cPixBox<Dim>::cPixBox(const cTplBox<int,Dim> & aR) :
+   cPixBox<Dim>(aR.P0(),aR.P1(),true)
+{
+}
+
+
+template <const int Dim> tINT8  cPixBox<Dim>::IndexeLinear(const tPt & aP) const
+{
+   tINT8 aRes = 0;
+   for (int aK=0 ; aK<Dim ; aK++)
+      aRes += tINT8(aP[aK]-tBox::mP0[aK]) * tINT8(tBox::mSzCum[aK]);
+   return aRes;
+}
+
+/* ========================== */
+/*          cTplBox           */
+/* ========================== */
+
+template <class Type,const int Dim>   
+   cTplBox<Type,Dim>::cTplBox
+   (
+       const cPtxd<Type,Dim> & aP0,
+       const cPtxd<Type,Dim> & aP1,
+       bool AllowEmpty
+   ) :
+       mP0  (aP0),
+       mP1  (aP1),
+       mSz  (aP0),
+       mNbElem (1)
 {
     //for (int aK=Dim-1 ; aK>=0 ; aK--)
     for (int aK=0 ; aK<Dim ; aK++)
@@ -86,63 +119,55 @@ template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,co
     }
 }
 
-template <const int Dim> tINT8  cRectObj<Dim>::IndexeLinear(const tPt & aP) const
+
+
+template <class Type,const int Dim> bool  cTplBox<Type,Dim>::IsEmpty() const
 {
-   tINT8 aRes = 0;
-   for (int aK=0 ; aK<Dim ; aK++)
-      aRes += tINT8(aP[aK]-mP0[aK]) * tINT8(mSzCum[aK]);
-   return aRes;
+   return mNbElem == 0;
 }
 
 
 
-template <const int Dim>   cRectObj<Dim>::cRectObj(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1) :
-   cRectObj<Dim>(aP0,aP1,false)
-{
-}
 
-template <const int Dim>   cRectObj<Dim>::cRectObj(const cRectObj<Dim> & aR) :
-   cRectObj<Dim>(aR.mP0,aR.mP1,true)
-{
-}
-
-template <const int Dim> void cRectObj<Dim>::AssertSameArea(const cRectObj<Dim> & aR2) const
+template <class Type,const int Dim> void cTplBox<Type,Dim>::AssertSameArea(const cTplBox<Type,Dim> & aR2) const
 {
     MMVII_INTERNAL_ASSERT_strong((*this)==aR2,"Rect obj were expected to have identic area");
 }
-template <const int Dim> void cRectObj<Dim>::AssertSameSz(const cRectObj<Dim> & aR2) const
+template <class Type,const int Dim> void cTplBox<Type,Dim>::AssertSameSz(const cTplBox<Type,Dim> & aR2) const
 {
     MMVII_INTERNAL_ASSERT_strong(Sz()==aR2.Sz(),"Rect obj were expected to have identic size");
 }
 
 
-template <const int Dim> bool cRectObj<Dim>::operator == (const cRectObj<Dim> aR2) const 
+template <class Type,const int Dim> bool cTplBox<Type,Dim>::operator == (const tBox & aR2) const 
 {
     return (mP0==aR2.mP0) && (mP1==aR2.mP1);
 }
 
-template <const int Dim> bool cRectObj<Dim>::IncludedIn(const cRectObj<Dim> & aR2) const
+template <class Type,const int Dim> bool cTplBox<Type,Dim>::IncludedIn(const tBox & aR2) const
 {
     return SupEq(mP0,aR2.mP0) && InfEq(mP1,aR2.mP1) ;
 }
 
-template <const int Dim> cRectObj<Dim> cRectObj<Dim>::Translate(const cPtxd<int,Dim> & aTr) const
+template <class Type,const int Dim> cTplBox<Type,Dim> cTplBox<Type,Dim>::Translate(const cPtxd<Type,Dim> & aTr) const
 {
-   return cRectObj<Dim>(mP0+aTr,mP1+aTr);
+   return cTplBox<Type,Dim>(mP0+aTr,mP1+aTr);
 }
 
 
-template <const int Dim> cPtxd<int,Dim>  cRectObj<Dim>::FromNormaliseCoord(const cPtxd<double,Dim> & aPN) const 
+template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::FromNormaliseCoord(const cPtxd<double,Dim> & aPN) const 
 {
-    cPtxd<int,Dim> aRes;
+    // MMVII_INTERNAL_ASSERT_strong(false,"To Change 
+    cPtxd<Type,Dim> aRes;
     for (int aK=0 ; aK<Dim ; aK++)
     {
-        aRes[aK] = mP0[aK] + round_down(mSz[aK]*aPN[aK]);
+        // aRes[aK] = mP0[aK] + round_down(mSz[aK]*aPN[aK]);
+        aRes[aK] = mP0[aK] + tBaseNumTrait<Type>::RoundDownToType(mSz[aK]*aPN[aK]);
     }
     return Proj(aRes);
 }
 
-template <const int Dim>  cPtxd<double,Dim>  cRectObj<Dim>::RandomNormalised() 
+template <class Type,const int Dim>  cPtxd<double,Dim>  cTplBox<Type,Dim>::RandomNormalised() 
 {
    cPtxd<double,Dim>  aRes;
    for (int aK=0 ; aK<Dim ; aK++)
@@ -152,15 +177,15 @@ template <const int Dim>  cPtxd<double,Dim>  cRectObj<Dim>::RandomNormalised()
    return aRes;
 }
 
-template <const int Dim> cPtxd<int,Dim>   cRectObj<Dim>::GeneratePointInside() const
+template <class Type,const int Dim> cPtxd<Type,Dim>   cTplBox<Type,Dim>::GeneratePointInside() const
 {
    return FromNormaliseCoord(RandomNormalised());
 }
 
-template <const int Dim> cRectObj<Dim>  cRectObj<Dim>::GenerateRectInside(double aPowSize) const
+template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::GenerateRectInside(double aPowSize) const
 {
-    cPtxd<int,Dim> aP0;
-    cPtxd<int,Dim> aP1;
+    cPtxd<Type,Dim> aP0;
+    cPtxd<Type,Dim> aP1;
     for (int aK=0 ; aK<Dim ; aK++)
     {
         double aSzRed = pow(RandUnif_0_1(),aPowSize);
@@ -168,21 +193,25 @@ template <const int Dim> cRectObj<Dim>  cRectObj<Dim>::GenerateRectInside(double
         double aX1 = aX0 + aSzRed;
         int aI0 = round_down(aX0*mSz[aK]);
         int aI1 = round_down(aX1*mSz[aK]);
-        aI1 = std::min(mP1[aK]-1,std::max(aI1,aI0+1));
-        aI0  = std::max(mP0[aK],std::min(aI0,aI1-1));
+        aI1 = std::min(int(mP1[aK]-1),std::max(aI1,aI0+1));
+        aI0  = std::max(int(mP0[aK]),std::min(aI0,aI1-1));
         aP0[aK] = aI0;
         aP1[aK] = aI1;
 
     }
-    return cRectObj<Dim>(aP0,aP1);
+    return cTplBox<Type,Dim>(aP0,aP1);
 }
+#if (0)
+#endif
 
 
 
 #define MACRO_INSTATIATE_PRECT_DIM(DIM)\
-template class cRectObj<DIM>;\
+template class cTplBox<tINT4,DIM>;\
+template class cTplBox<tREAL8,DIM>;\
+template class cPixBox<DIM>;\
 template class cDataGenUnTypedIm<DIM>;\
-template <> const cRectObj<DIM> cRectObj<DIM>::Empty00(cPtxd<int,DIM>::PCste(0),cPtxd<int,DIM>::PCste(0),true);
+template <> const cPixBox<DIM> cPixBox<DIM>::TheEmptyBox(cPtxd<int,DIM>::PCste(0),cPtxd<int,DIM>::PCste(0),true);
 
 
 
@@ -216,9 +245,11 @@ template <class Type,const int Dim>
     //     DO NOT WORK all stuff like :  this->cDataGenUnTypedIm<Dim>::cDataGenUnTypedIm(aP0,aP1);
     // static_cast<cRectObj<Dim>&>(*this) = cRectObj<Dim>(aP0,aP1);
 
-    // this-> cRectObj<Dim>::cRectObj(aP0,aP1);
+    // this-> cPixBox<Dim>::cRectObj(aP0,aP1);
 
-    new (static_cast<cRectObj<Dim>*>(this)) cRectObj<Dim>(aP0,aP1);
+    // To call the copy constructor of cPixBox, we use a placemennt new
+    // Not the best C++, but I don't success to do it other way as constructor cannot  be called explicitely
+    new (static_cast<cPixBox<Dim>*>(this)) cPixBox<Dim>(aP0,aP1);
 
     if (cMemManager::Resize(mRawDataLin,0,mNbElemMax,0,NbElem()))
     {
@@ -240,17 +271,17 @@ template <class Type,const int Dim>
 template <class Type,const int Dim>  
         double cDataTypedIm<Type,Dim>::L1Dist(const cDataTypedIm<Type,Dim> & aI2) const
 {
-    tRO::AssertSameArea(aI2);
+    tPB::AssertSameArea(aI2);
     double aRes = 0.0;
     for (int aK=0 ; aK<NbElem() ; aK++)
-       aRes += std::abs(mRawDataLin[aK]-aI2.mRawDataLin[aK]);
+       aRes += std::fabs(mRawDataLin[aK]-aI2.mRawDataLin[aK]);
 
    return aRes/NbElem();
 }
 template <class Type,const int Dim>  
         double cDataTypedIm<Type,Dim>::L2Dist(const cDataTypedIm<Type,Dim> & aI2) const
 {
-    tRO::AssertSameArea(aI2);
+    tPB::AssertSameArea(aI2);
     double aRes = 0.0;
     for (int aK=0 ; aK<NbElem() ; aK++)
        aRes += R8Square(mRawDataLin[aK]-aI2.mRawDataLin[aK]);
@@ -260,10 +291,10 @@ template <class Type,const int Dim>
 template <class Type,const int Dim>  
         double cDataTypedIm<Type,Dim>::LInfDist(const cDataTypedIm<Type,Dim> & aI2) const
 {
-    tRO::AssertSameArea(aI2);
+    tPB::AssertSameArea(aI2);
     double aRes = 0.0;
     for (int aK=0 ; aK<NbElem() ; aK++)
-       aRes = std::max(aRes,(double)std::abs(mRawDataLin[aK]-aI2.mRawDataLin[aK]));
+       aRes = std::max(aRes,(double)std::fabs(mRawDataLin[aK]-aI2.mRawDataLin[aK]));
 
    return aRes;
 }
@@ -275,7 +306,7 @@ template <class Type,const int Dim>
 {
     double aRes = 0.0;
     for (int aK=0 ; aK<NbElem() ; aK++)
-       aRes += std::abs(mRawDataLin[aK]);
+       aRes += std::fabs(mRawDataLin[aK]);
 
    return aRes/NbElem();
 }
@@ -293,7 +324,7 @@ template <class Type,const int Dim>
 {
     double aRes = 0.0;
     for (int aK=0 ; aK<NbElem() ; aK++)
-       aRes = std::max(aRes,(double) std::abs(mRawDataLin[aK]));
+       aRes = std::max(aRes,(double) std::fabs(mRawDataLin[aK]));
 
    return aRes;
 }
@@ -301,7 +332,7 @@ template <class Type,const int Dim>
 
 template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::DupIn(cDataTypedIm<Type,Dim> & aIm) const
 {
-    tRO::AssertSameSz(aIm);
+    tPB::AssertSameSz(aIm);
     MemCopy(aIm.RawDataLin(),RawDataLin(),NbElem());
     // MMVII_INTERNAL_ASSERT_strong(mSz[aK]>=0,"");
 }
@@ -350,12 +381,12 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitRandomCent
 template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitDirac(const cPtxd<int,Dim> & aP,const Type &  aVal)
 {
     InitNull();
-    mRawDataLin[tRO::IndexeLinear(aP)] = aVal;
+    mRawDataLin[tPB::IndexeLinear(aP)] = aVal;
 }
 
 template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitDirac(const Type &  aVal)
 {
-    InitDirac((tRO::mP0+tRO::mP1)/2,aVal);
+    InitDirac((tPB::mP0+tPB::mP1)/2,aVal);
 }
 
 
@@ -449,7 +480,7 @@ void cBenchBaseImage::DoBenchBI()
 void cBenchBaseImage::DoBenchRO()
 {
    {
-      cRectObj<1>  aR(cPt1di(2),cPt1di(10));
+      cPixBox<1>  aR(cPt1di(2),cPt1di(10));
       MMVII_INTERNAL_ASSERT_bench(cPt1di(aR.Sz()) ==cPt1di(8),"Bench sz RectObj");
       MMVII_INTERNAL_ASSERT_bench(aR.NbElem()==8,"Bench sz RectObj");
    }
@@ -457,12 +488,12 @@ void cBenchBaseImage::DoBenchRO()
    // Test the SetErrorHandler mecanism, abality to recover on error
    {
        MMVII_SetErrorHandler(TestBenchRectObjError);
-       cRectObj<1>  aR(cPt1di(10),cPt1di(0));
+       cPixBox<1>  aR(cPt1di(10),cPt1di(0));
        MMVII_RestoreDefaultHandle();
        MMVII_INTERNAL_ASSERT_bench(MesNegSz==TestErHandler,"Handler mechanism");
    }
    {
-      cRectObj<2>  aR(cPt2di(2,3),cPt2di(10,9));
+      cPixBox<2>  aR(cPt2di(2,3),cPt2di(10,9));
       MMVII_INTERNAL_ASSERT_bench(cPt2di(aR.Sz()) ==cPt2di(8,6),"Bench sz RectObj");
       MMVII_INTERNAL_ASSERT_bench(aR.NbElem()==48,"Bench sz RectObj");
 

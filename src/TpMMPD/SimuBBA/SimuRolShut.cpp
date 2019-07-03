@@ -234,11 +234,13 @@ cSetOfMesureAppuisFlottants_Cam::cSetOfMesureAppuisFlottants_Cam(const std::stri
 std::map<Key,Pt2dr> cSetOfMesureAppuisFlottants_Cam::ReechRS_MAF(const double aRSSpeed)
 {
     std::map<Key,Pt2dr> aMap;
+    int i=0, j=0;
     for(auto &aPtIm:mVPtIm)
     {
         std::vector<Pt2dr> aVOldP2D;
         std::vector<CamStenope*> aVCam;
         std::string aPtName = aPtIm.first;
+        std::cout << aPtName << endl;
         std::vector<cPtIm_CamXifDate> aVPtIm_CamXifDate = aPtIm.second;
         for(auto &aPtIm_CamXifDate:aVPtIm_CamXifDate)
         {
@@ -249,6 +251,8 @@ std::map<Key,Pt2dr> cSetOfMesureAppuisFlottants_Cam::ReechRS_MAF(const double aR
         ELISE_ASSERT(aVOldP2D.size() > 1 && aVCam.size() > 1, "Nb faiseaux < 2");
 
         Pt3dr aP3D = Intersect_Simple(aVCam , aVOldP2D);
+
+
         for(auto &aPtIm_CamXifDate:aVPtIm_CamXifDate)
         {
             std::string aImName = aPtIm_CamXifDate.mIm_CamXifDate.mName;
@@ -256,17 +260,26 @@ std::map<Key,Pt2dr> cSetOfMesureAppuisFlottants_Cam::ReechRS_MAF(const double aR
 
             double aEcartTime = (aPtIm_CamXifDate.mPtIm.y-aCam->Sz().y/2) * aRSSpeed/1000/1000;
             Pt3dr aEcartCenter = m_Appli.mVIm.at(aImName).mVitesse * aEcartTime;
-
             Pt2dr aNewP2D = Reproj(aCam, aP3D, aPtIm_CamXifDate.mPtIm, aEcartCenter);
+
+            Key aKey = pair<string,string>(aImName,aPtName);
+
             if(IsInImage(aCam->Sz(),aNewP2D))
-            {
-                Key aKey = pair<string,string>(aImName,aPtName);
+            { 
                 aMap.insert(pair<Key,Pt2dr>(aKey,aNewP2D));
+                i++;
+            }
+            else
+            {
+                aMap.insert(pair<Key,Pt2dr>(aKey,aPtIm_CamXifDate.mPtIm));
+                j++;
             }
         }
     }
 
+    std::cout << j << "/" << i+j << " points are not corrected!" << endl;
     return aMap;
+
 }
 
 void cSetOfMesureAppuisFlottants_Cam::Export_MAF(const std::string & aMAFOut, const std::map<Key,Pt2dr> & aMap)
@@ -700,7 +713,44 @@ int ReechRolShut_main(int argc, char ** argv)
     return EXIT_SUCCESS;
 }
 
+int ExportTPM_main(int argc, char ** argv)
+{
+    std::string aSH, aSHFile{"PMulAll.txt"}, aOut{"multiplicity.txt"}, aDir, aSHPat;
+    ElInitArgMain
+            (
+                argc,argv,
+                LArgMain() << EAMC(aSH,"Postfix of tie point file",eSAM_IsExistFile),
+                LArgMain() << EAM(aSHFile,"SHFile",true,"tie point file name (new format), def=PMulAll.txt")
+                           << EAM(aOut,"Out",true,"Output file name, def=SH_multiplicity.txt")
+                );
 
+    SplitDirAndFile(aDir, aSHPat, aSH);
+    //cInterfChantierNameManipulateur* aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+
+    std::map<int,int> aMapTPM;
+
+    cSetTiePMul * pSH=new cSetTiePMul(0);
+    pSH->AddFile("Homol" + aSH + "/" + aSHFile);
+    const std::vector<cSetPMul1ConfigTPM *> & aVCnf = pSH->VPMul();
+    for(auto & aCnf:aVCnf)
+    {
+        auto search = aMapTPM.find(aCnf->NbIm());
+        if(search == aMapTPM.end())
+            aMapTPM.insert(pair<int,int>(aCnf->NbIm(),aCnf->NbPts()));
+        else
+            aMapTPM.at(aCnf->NbIm()) += aCnf->NbPts();
+    }
+
+    ofstream aTPMFile;
+    aTPMFile.open(aOut);
+    for(auto aTPM:aMapTPM)
+    {
+        std::cout << aTPM.first << " " << aTPM.second << endl;
+        aTPMFile << aTPM.first << " " << aTPM.second << endl;
+    }
+    aTPMFile.close();
+    return EXIT_SUCCESS;
+}
 
 int ReechRolShutV1_main(int argc, char ** argv)
 {
@@ -806,6 +856,7 @@ int ReechRolShutV1_main(int argc, char ** argv)
     return EXIT_SUCCESS;
 
 }
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

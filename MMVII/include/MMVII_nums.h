@@ -73,6 +73,56 @@ typedef unsigned int   tU_INT4;
 typedef int    tStdInt;  ///< "natural" int
 typedef double tStdDouble;  ///< "natural" int
 
+/* ================= rounding  ======================= */
+
+/// return the smallest integral value >= r
+template<class Type> inline Type Tpl_round_up(tREAL8 r)
+{
+       Type i = (Type) r;
+       return i + (i < r);
+}
+inline tINT4 round_up(tREAL8 r)  { return Tpl_round_up<tINT4>(r); }
+inline tINT8 lround_up(tREAL8 r) { return Tpl_round_up<tINT8>(r); }
+
+
+/// return the smallest integral value > r
+template<class Type> inline Type Tpl_round_Uup(tREAL8 r)
+{
+       Type i = (Type) r;
+       return i + (i <= r);
+}
+inline tINT4 round_Uup(tREAL8 r) { return Tpl_round_Uup<int>(r); }
+
+
+/// return the highest integral value <= r
+template<class Type> inline Type Tpl_round_down(tREAL8 r)
+{
+       Type i = (Type) r;
+       return i - (i > r);
+}
+inline tINT4  round_down(tREAL8 r) { return Tpl_round_down<tINT4>(r); }
+inline tINT8 lround_down(tREAL8 r) { return Tpl_round_down<tINT8>(r); }
+
+/// return the highest integral value < r
+template<class Type> inline Type Tpl_round_Ddown(tREAL8 r)
+{
+       Type i = (Type) r;
+       return i - (i >= r);
+}
+inline tINT4 round_Ddown(tREAL8 r) { return Tpl_round_Ddown<tINT4>(r); }
+
+/// return the integral value closest to r , if r = i +0.5 (i integer) return i+1
+template<class Type> inline Type Tpl_round_ni(tREAL8 r)
+{
+       Type i = (Type) r;
+       i -= (i > r);
+       // return i+ ((i+0.5) <= r) ; =>  2i+1<2r  => i < 2*r-i-1
+       return i+ ((i+0.5) <= r) ;
+}
+
+inline tINT4  round_ni(tREAL8 r) { return Tpl_round_ni<tINT4>(r); }
+inline tINT8 lround_ni(tREAL8 r) { return Tpl_round_ni<tINT8>(r); }
+
 
 /*  ==============  Traits on numerical type, usable in template function ===================   */
 /*   tNumTrait => class to be used                                                              */
@@ -90,26 +140,40 @@ template <class Type> class tBaseNumTrait
 template <> class tBaseNumTrait<tStdInt>
 {
     public :
+ 
+        // For these type rounding mean something
+        static int RoundDownToType(const double & aV) {return round_down(aV);}
+
         static bool IsInt() {return true;}
         typedef tStdInt  tBase;
+        typedef tINT8    tBig;
 };
 template <> class tBaseNumTrait<tINT8>
 {
     public :
+        // For these type rounding mean something
+        static tINT8 RoundDownToType(const double & aV) {return lround_down(aV);}
+
         static bool IsInt() {return true;}
         typedef tINT8  tBase;
+        typedef tINT8    tBig;
 };
 template <> class tBaseNumTrait<tStdDouble>
 {
     public :
+        // By default rounding has no meaning
+        static double RoundDownToType(const double & aV) {return aV;}
+
         static bool IsInt() {return false;}
         typedef tStdDouble  tBase;
+        typedef tStdDouble  tBig;
 };
 template <> class tBaseNumTrait<tREAL16>
 {
     public :
         static bool IsInt() {return false;}
         typedef tREAL16  tBase;
+        typedef tREAL16  tBig;
 };
 
     // ========================================================================
@@ -229,6 +293,7 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
          typedef Type  tVal;
          typedef tElemNumTrait<Type>  tETrait;
          typedef typename  tETrait::tBase tBase;
+         typedef typename  tETrait::tBig  tBig ;
       // ===========================
          bool V_IsInt()  const override {return  tBaseNumTrait<tBase>::IsInt();}
          bool V_Signed() const override {return  tETrait::Signed();}
@@ -310,56 +375,6 @@ inline tINT4 mod_gen(tINT4 a,tINT4 b)
 
 tINT4 HCF(tINT4 a,tINT4 b); // = PGCD = Highest Common Factor
 
-/* ================= rounding  ======================= */
-
-/// return the smallest integral value >= r
-template<class Type> inline Type Tpl_round_up(tREAL8 r)
-{
-       Type i = (Type) r;
-       return i + (i < r);
-}
-inline tINT4 round_up(tREAL8 r)  { return Tpl_round_up<tINT4>(r); }
-inline tINT8 lround_up(tREAL8 r) { return Tpl_round_up<tINT8>(r); }
-
-
-/// return the smallest integral value > r
-template<class Type> inline Type Tpl_round_Uup(tREAL8 r)
-{
-       Type i = (Type) r;
-       return i + (i <= r);
-}
-inline tINT4 round_Uup(tREAL8 r) { return Tpl_round_Uup<int>(r); }
-
-
-/// return the highest integral value <= r
-template<class Type> inline Type Tpl_round_down(tREAL8 r)
-{
-       Type i = (Type) r;
-       return i - (i > r);
-}
-inline tINT4  round_down(tREAL8 r) { return Tpl_round_down<tINT4>(r); }
-inline tINT8 lround_down(tREAL8 r) { return Tpl_round_down<tINT8>(r); }
-
-/// return the highest integral value < r
-template<class Type> inline Type Tpl_round_Ddown(tREAL8 r)
-{
-       Type i = (Type) r;
-       return i - (i >= r);
-}
-inline tINT4 round_Ddown(tREAL8 r) { return Tpl_round_Ddown<tINT4>(r); }
-
-/// return the integral value closest to r , if r = i +0.5 (i integer) return i+1
-template<class Type> inline Type Tpl_round_ni(tREAL8 r)
-{
-       Type i = (Type) r;
-       i -= (i > r);
-       // return i+ ((i+0.5) <= r) ; =>  2i+1<2r  => i < 2*r-i-1
-       return i+ ((i+0.5) <= r) ;
-}
-
-inline tINT4  round_ni(tREAL8 r) { return Tpl_round_ni<tINT4>(r); }
-inline tINT8 lround_ni(tREAL8 r) { return Tpl_round_ni<tINT8>(r); }
-
 
 inline tREAL8 FracPart(tREAL8 r) {return r - round_down(r);}
 
@@ -376,7 +391,8 @@ template <class Type> void OrderMinMax(Type & aV1,Type & aV2)
 }
 
 // 4 now use sort, will enhance with boost or home made
-template <class Type> Type Mediane(std::vector<Type> & aV);
+template <class Type> Type NonConstMediane(std::vector<Type> & aV);
+template <class Type> Type ConstMediane(const std::vector<Type> & aV);
 
 };
 

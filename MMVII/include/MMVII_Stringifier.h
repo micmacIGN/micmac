@@ -138,6 +138,8 @@ class  cSpecOneArg2007 : public cMemCheck
 
         std::string  Name4Help() const;   ///< concat and format the different Name4Help of tVSem
 
+        void ReInit(); /// The same may be used several with in process call, need initialize again
+
      private :
         ///  This action defined in heriting-template class initialize "real" the value from its string value 
          virtual void V_InitParam(const std::string & aStr) = 0;

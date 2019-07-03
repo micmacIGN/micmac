@@ -43,7 +43,7 @@ void BenchGlobImage2d(); ///< Global bench on image
 void BenchFileImage(); ///< Global bench on image
 
 void BenchDenseMatrix0(); ///< Basic Vector 
-void BenchRecall();       ///< Mecanism for MMVII calling itself
+void BenchRecall(int NumGenerateBugRecall);       ///< Mecanism for MMVII calling itself
 void BenchStrIO();        ///< specially for vectors
 
 void TestTimeV1V2(); ///< Not a formal Bench, require visual inspection
