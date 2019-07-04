@@ -176,8 +176,20 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB)
     //export ori without disto
     string aDrunkOri=aNameDir + DirOut  + "Ori-"+aOri+"-"+DirOut;
     ELISE_fp::MkDirSvp(aDrunkOri);
-    MakeFileXML(aCam->StdExportCalibGlob(),aDrunkOri+"/Orientation-"+aNameIm+".xml","MicMacForAPERO");
 
+    //create ideal camera
+    std::vector<double> paramFocal;
+    CamStenopeIdeale anIdealCam(!aCam->DistIsDirecte(),aCam->Focale(),aCam->PP(),paramFocal);
+    anIdealCam.SetProfondeur(aCam->GetProfondeur());
+    anIdealCam.SetSz(aCam->Sz());
+    anIdealCam.SetIdentCam(aCam->IdentCam()+"_ideal");
+    anIdealCam.SetRayonUtile(aCam->RayonUtile(),30);
+    std::cout<<anIdealCam.IdentCam()<<": "<<anIdealCam.RayonUtile()<<std::endl;
+    anIdealCam.SetOrientation(aCam->Orient());
+    anIdealCam.SetAltiSol(aCam->GetAltiSol());
+    anIdealCam.SetIncCentre(aCam->IncCentre());
+
+    MakeFileXML(anIdealCam.StdExportCalibGlob(),aDrunkOri+"/Orientation-"+aNameIm+".tif.xml","MicMacForAPERO");
     }
 }
 
