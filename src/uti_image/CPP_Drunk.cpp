@@ -55,7 +55,7 @@ void Drunk_Banniere()
     std::cout <<  " *********************************\n\n";
 }
 
-void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB)
+void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, Box2di aCrop)
 {
     string aPattern,aNameDir;
     SplitDirAndFile(aNameDir,aPattern,aFullPattern);
@@ -74,7 +74,13 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB)
         {
             string aFullName=ListIm.front();
             ListIm.pop_front();
-            cmdDRUNK=MMDir() + "bin/mm3d Drunk " + aNameDir + aFullName + " " + aOri + " Out=" + DirOut + " Talk=0";
+            cmdDRUNK=MMDir() + "bin/mm3d Drunk " + aNameDir + aFullName + " " + aOri + " Out=" + DirOut + " Talk=0" + " RGB=";
+            if (RGB)
+                cmdDRUNK+="1 ";
+            else
+                cmdDRUNK+="0 ";
+            cmdDRUNK+=" Crop="+ToString<Box2di>(aCrop)+" ";
+
             ListDrunk.push_back(cmdDRUNK);
         }
         cEl_GPAO::DoComInParal(ListDrunk,aNameDir + "MkDrunk");
@@ -100,12 +106,20 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB)
 
     Pt2di aSz = aTF.sz();
 
+    //out size
+    if (aCrop.P0().x<0) {aCrop._p0.x=0; aCrop._p1.x=aSz.x-1;}
+    if (aCrop.P0().y<0) {aCrop._p0.y=0; aCrop._p1.y=aSz.y-1;}
+
+    Pt2di aSzOut = aCrop.sz();
+    Pt2dr aOrigOut = Pt2dr(aCrop.P0());
+    std::cout<<aNameCam<<": size out="<<aSzOut<<std::endl;
+
     Im2D_U_INT1  aImR(aSz.x,aSz.y);
     Im2D_U_INT1  aImG(aSz.x,aSz.y);
     Im2D_U_INT1  aImB(aSz.x,aSz.y);
-    Im2D_U_INT1  aImROut(aSz.x,aSz.y);
-    Im2D_U_INT1  aImGOut(aSz.x,aSz.y);
-    Im2D_U_INT1  aImBOut(aSz.x,aSz.y);
+    Im2D_U_INT1  aImROut(aSzOut.x,aSzOut.y);
+    Im2D_U_INT1  aImGOut(aSzOut.x,aSzOut.y);
+    Im2D_U_INT1  aImBOut(aSzOut.x,aSzOut.y);
 
     ELISE_COPY
     (
@@ -123,11 +137,11 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB)
 
     //Parcours des points de l'image de sortie et remplissage des valeurs
     Pt2dr ptOut;
-    for (int aY=0 ; aY<aSz.y  ; aY++)
+    for (int aY=0 ; aY<aSzOut.y  ; aY++)
     {
-        for (int aX=0 ; aX<aSz.x  ; aX++)
+        for (int aX=0 ; aX<aSzOut.x  ; aX++)
         {
-            ptOut=aCam->DistDirecte(Pt2dr(aX,aY));
+            ptOut=aCam->DistDirecte(Pt2dr(aX,aY)+aOrigOut);
 
             aDataROut[aY][aX] = Reechantillonnage::biline(aDataR, aSz.x, aSz.y, ptOut);
             aDataGOut[aY][aX] = Reechantillonnage::biline(aDataG, aSz.x, aSz.y, ptOut);
@@ -141,7 +155,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB)
 			Tiff_Im  aTOut
 		    (
 		        aNameOut.c_str(),
-		        aSz,
+                aSzOut,
 		        GenIm::u_int1,
 		        Tiff_Im::No_Compr,
 		        Tiff_Im::RGB
@@ -159,7 +173,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB)
 			Tiff_Im  aTOut
 		    (
 		        aNameOut.c_str(),
-		        aSz,
+                aSzOut,
 		        GenIm::u_int1,
 		        Tiff_Im::No_Compr,
 		        Tiff_Im::BlackIsZero
@@ -179,12 +193,12 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB)
 
     //create ideal camera
     std::vector<double> paramFocal;
-    CamStenopeIdeale anIdealCam(!aCam->DistIsDirecte(),aCam->Focale(),aCam->PP(),paramFocal);
+    CamStenopeIdeale anIdealCam(!aCam->DistIsDirecte(),aCam->Focale(),aCam->PP()-aOrigOut,paramFocal);
     anIdealCam.SetProfondeur(aCam->GetProfondeur());
     anIdealCam.SetSz(aCam->Sz());
     anIdealCam.SetIdentCam(aCam->IdentCam()+"_ideal");
-    anIdealCam.SetRayonUtile(aCam->RayonUtile(),30);
-    std::cout<<anIdealCam.IdentCam()<<": "<<anIdealCam.RayonUtile()<<std::endl;
+    if (aCam->HasRayonUtile())
+        anIdealCam.SetRayonUtile(aCam->RayonUtile(),30);
     anIdealCam.SetOrientation(aCam->Orient());
     anIdealCam.SetAltiSol(aCam->GetAltiSol());
     anIdealCam.SetIncCentre(aCam->IncCentre());
@@ -211,6 +225,7 @@ int Drunk_main(int argc,char ** argv)
 
         string aFullPattern,aOri;
         string DirOut="DRUNK/";
+        Box2di aCrop(Pt2di(-1,-1),Pt2di(-1,-1));
         bool Talk=true, RGB=true;
 
         //Reading the arguments
@@ -222,13 +237,14 @@ int Drunk_main(int argc,char ** argv)
             LArgMain()  << EAM(DirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
                         << EAM(Talk,"Talk",true,"Turn on-off commentaries")
                         << EAM(RGB,"RGB",true,"Output file with RGB channels,Def=true,set to 0 for grayscale")
-                    );
+                        << EAM(aCrop,"Crop", true, "Rectangular crop; Def=[-1,-1,-1,-1]=full")
+        );
 
         //Processing the files
 		string aPattern, aDir;
 		SplitDirAndFile(aDir, aPattern, aFullPattern);
 		StdCorrecNameOrient(aOri, aDir);
-        Drunk(aPattern,aOri,DirOut,Talk,RGB);
+        Drunk(aPattern,aOri,DirOut,Talk,RGB,aCrop);
     }
 
     return EXIT_SUCCESS;
