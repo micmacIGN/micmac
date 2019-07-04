@@ -85,18 +85,147 @@ const cDenseVect<double>&  cIB_LinearFoncBool::Vect() const
 /*         cIB_LinearFoncBool           */
 /* ==================================== */
 
-void cAppli_ComputeParamIndexBinaire::AddOneEqParamLin(double aPds,const cDenseVect<tREAL4> & aCdg,int aNb)
+template <class Type> void cAppli_ComputeParamIndexBinaire::AddOneEqParamLin(double aPds,const cDataIm1D<Type> & aCdg,double aVal,int aNb)
 {
    if (! aNb) return;
    // aCdg  .  aVect - mThr = 0
    cDenseVect<tREAL8> aV(1+mNbValByP);
    for (int aK=0 ; aK<mNbValByP ; aK++)
-      aV(aK) = aCdg(aK);
+      aV(aK) = aCdg.GetV(aK);
    aV(mNbValByP) = -1;
-   mLSQOpt.AddObservation(aPds,aV,0.0);
+   mLSQOpt.AddObservation(aPds,aV,aVal);
 
 }
 
+void cAppli_ComputeParamIndexBinaire::AddVecOneEqParamLin(double aPds,cVecInvRad & aCdg,double aVal)
+{
+    // const cDataIm1D<tU_INT1> & aDIm = aCdg.mVec.DIm();
+    // AddOneEqParamLin(aPds,aDIm,aVal,1);
+    AddOneEqParamLin(aPds,aCdg.mVec.DIm(),aVal,1);
+}
+
+
+
+void cAppli_ComputeParamIndexBinaire::OptimiseScoreAPriori(tPtVBool  aVBOld,const tVPtVIR & aVIR)  
+{
+   bool Cont = true;
+   int aCpt = 0;
+   tPtVBool  aV000 = aVBOld;
+   while (Cont)
+   {
+      aCpt++;
+      std::vector<double>  aVScore;
+      std::vector<double>  aVSAbs;
+      std::vector<double>  aVBadMin;
+      std::vector<double>  aVBadMax;
+
+      for (const auto & aV : aVIR)
+      {
+          double aSc = aVBOld->FB().RCalc(*aV);
+          aVScore.push_back(aSc);
+          aVSAbs.push_back(std::abs(aSc));
+      }
+      for (int aK=0 ; aK<int(aVIR.size()) ; aK+=2)
+      {
+         if ((aVScore[aK]>0) != (aVScore[aK+1]>0))
+         {
+             aVBadMin.push_back(std::min(aVSAbs[aK],aVSAbs[aK+1]));
+             aVBadMax.push_back(std::max(aVSAbs[aK],aVSAbs[aK+1]));
+         }
+      }
+
+      double aMedAbs = ConstMediane(aVSAbs);
+      double aMedSigned = ConstMediane(aVScore);
+      double aMedBadMin = ConstMediane(aVBadMin);
+      double aMedBadMax = ConstMediane(aVBadMax);
+      StdOut() << "MedAbs " << aMedAbs  
+               << " MedS " << aMedSigned 
+               << " MedBad " << aMedBadMin   <<  " " << aMedBadMax
+               << " Sc " << aVBOld->Score() << "\n";
+
+      double aSigma = aMedAbs / 2;
+
+   //  Fill least square
+
+      mLSQOpt.Reset();
+      double aPdsClose000 = 10;
+      double aPdsCloseCur = 1000;
+      double aPdsAver0 = 1e6;
+
+      double aSomPds = 0.0;
+      std::vector<double> aVPds;
+
+      for (int aK=0 ; aK<int(aVIR.size()) ; aK+=2)
+      {
+         aVPds.push_back(exp(-Square(aVSAbs[aK]/aSigma)));
+         aVPds.push_back(exp(-Square(aVSAbs[aK+1]/aSigma)));
+         if ((aVScore[aK]>0) != (aVScore[aK+1]>0))
+         {
+             int aKToChange =  (aVSAbs[aK] < aVSAbs[aK+1]) ? aK : (aK+1);
+             int aKCompl = (2*aK+1) - aKToChange;
+             double aPdsCh = aVPds[aKToChange];
+             double aPdsCompl = aVPds[aKCompl];
+             double aPds = (aPdsCh - aPdsCompl);
+             double aVal =  aVScore[aKCompl];
+             double aSign = (aVal >0) ? 1 : -1;
+             aVal += aSign * aMedBadMax;
+             aSomPds += aPds*aVal;
+             AddVecOneEqParamLin(aPds,*(aVIR[aKToChange]),aVal);
+         }
+         else
+         {
+             for (int aK2=aK; aK2<aK+2 ; aK2++)
+             {
+                 // Perte de temps, gain pas evident
+                 // AddVecOneEqParamLin(aVPds[aK]/10,*(aVIR[aK]),aVScore[aK]);
+             }
+         }
+      }
+      AddEqProxCur(aPdsCloseCur*aSomPds,aVBOld);
+      AddEqProxCur(aPdsClose000*aSomPds,aV000);
+      AddOneEqParamLin(aPdsAver0*aSomPds,mStat2.Moy().DIm(),0.0,1);
+      cDenseVect<double>  aSol = mLSQOpt.Solve();
+
+      tPtVBool aVBNew = VecBoolFromSol(aSol,aVBOld->Index());
+      double aDelta = aVBOld->Score() - aVBNew->Score() ;
+
+      static std::vector<double> aVDelta ;
+      aVDelta.push_back(aDelta);
+
+      StdOut()  << " L200 " << aV000->FB().Vect().L2Dist(aVBNew->FB().Vect())
+                << " L2Cur " << aVBOld->FB().Vect().L2Dist(aVBNew->FB().Vect())
+                << " SC priori " <<  aDelta 
+                << " Med-Delta " << ConstMediane(aVDelta) << "\n";
+
+      if (aDelta < 0)
+      {
+         aVBOld = aVBNew;
+         mVVBool.at(aVBOld->Index()) = aVBOld;
+      }
+      Cont = (aDelta < 0) && (aCpt<10);
+   }
+   StdOut() << "CPT=" << aCpt << "\n";
+}
+
+void cAppli_ComputeParamIndexBinaire::AddEqProxCur(double aPdsCloseCur,tPtVBool aVB0)
+{
+   const cDenseVect<double>& aVK0 = aVB0->FB().Vect() ;
+   for (int aKP=0 ; aKP<mNbValByP ; aKP++)
+   {
+       mLSQOpt.AddObsFixVar(aPdsCloseCur,aKP,aVK0(aKP));
+   }
+}
+
+tPtVBool cAppli_ComputeParamIndexBinaire::VecBoolFromSol(const  cDenseVect<double> & aSol,int aIndex)
+{
+   cDenseVect<double>  aSF(mNbValByP);
+   for (int aKP=0 ; aKP<mNbValByP ; aKP++)
+   {
+       aSF(aKP) = aSol(aKP);
+   }
+   
+   return tPtVBool (new cVecBool(aIndex,false,new cIB_LinearFoncBool(*this,aSF,aSol(mNbValByP)),mVIR));
+}
 
 
 void cAppli_ComputeParamIndexBinaire::TestNewParamLinear(const std::vector<tPtVBool>& aOldVB,int aK0Vec)
@@ -105,27 +234,26 @@ void cAppli_ComputeParamIndexBinaire::TestNewParamLinear(const std::vector<tPtVB
    double aPdsEq       = 1;
    mLSQOpt.Reset();
 
+   AddEqProxCur(aPdsCloseCur,aOldVB[aK0Vec]);
+/*
    tPtVBool aVB0 = aOldVB[aK0Vec];
    const cDenseVect<double>& aVK0 = aVB0->FB().Vect() ;
    for (int aKP=0 ; aKP<mNbValByP ; aKP++)
    {
        mLSQOpt.AddObsFixVar(aPdsCloseCur,aKP,aVK0(aKP));
    }
+*/
    for (int aKV=0 ; aKV<int(mVVBool.size()) ; aKV++)
    {
       cVecBool & aVB = *(mVVBool[aKV].get());
       double aPds = aPdsEq *  RandUnif_0_1();
-      AddOneEqParamLin(aPds,aVB.Cdg0(),aVB.Nb0());
-      AddOneEqParamLin(aPds,aVB.Cdg1(),aVB.Nb1());
+      AddOneEqParamLin(aPds,aVB.Cdg0().DIm(),0.0,aVB.Nb0());
+      AddOneEqParamLin(aPds,aVB.Cdg1().DIm(),0.0,aVB.Nb1());
    }
    cDenseVect<double>  aSol = mLSQOpt.Solve();
-   cDenseVect<double>  aSF(mNbValByP);
-   for (int aKP=0 ; aKP<mNbValByP ; aKP++)
-   {
-       aSF(aKP) = aSol(aKP);
-   }
-   
-   tPtVBool aVB(new cVecBool(aVB0->Index(),false,new cIB_LinearFoncBool(*this,aSF,aSol(mNbValByP)),mVIR));
+
+ 
+   tPtVBool aVB = VecBoolFromSol(aSol,aOldVB[aK0Vec]->Index());
 
    std::vector<tPtVBool> aNewV = aOldVB;
    aNewV[aK0Vec] = aVB;
@@ -134,7 +262,7 @@ void cAppli_ComputeParamIndexBinaire::TestNewParamLinear(const std::vector<tPtVB
 
    if (aSc > mBestSc)
    {
-      StdOut() << "D2222 " << aSF.L2Dist(aVK0) << mBestSc << " " << aSc << "\n";
+      StdOut() << "D2222 " << aVB->FB().Vect().L2Dist(aOldVB[aK0Vec]->FB().Vect()) << mBestSc << " " << aSc << "\n";
       ChangeVB(aSc,aVB,aK0Vec);
    }
    
@@ -156,9 +284,9 @@ int                        cVecBool::Index()  const {return mIndex;}
 cVecBool::cVecBool(int Index,bool Med,cIB_LinearFoncBool * aFB,const tVPtVIR & aVIR)  :
     mIndex (Index),
     mFB (aFB),
-    mCdg0 (aVIR.at(0)->mVec.DIm().Sz(),eModeInitImage::eMIA_Rand),
+    mCdg0 (aVIR.at(0)->mVec.DIm().Sz()),
     mNb0  (0),
-    mCdg1 (aVIR.at(0)->mVec.DIm().Sz(),eModeInitImage::eMIA_Rand),
+    mCdg1 (aVIR.at(0)->mVec.DIm().Sz()),
     mNb1  (0)
 {
    mVB.reserve(aVIR.size());
@@ -171,8 +299,7 @@ cVecBool::cVecBool(int Index,bool Med,cIB_LinearFoncBool * aFB,const tVPtVIR & a
    }
    if (1)
    {
-       std::vector<double> aVMed = aVScore; // Copy pour ne pas toucher a l'original
-       double aMed = Mediane(aVMed);
+       double aMed = ConstMediane(aVScore);
 
        // StdOut() << "Meeeddd  " << aMed << "\n";
        if (!Med)
@@ -191,9 +318,18 @@ cVecBool::cVecBool(int Index,bool Med,cIB_LinearFoncBool * aFB,const tVPtVIR & a
    }
 
        //mVB.push_back(aC>0);
+   CalcCdgScoreAPriori(aVIR);
 
    MMVII_INTERNAL_ASSERT_medium((mVB.size()%2)==0,"cVecBool odd size");
+}
 
+
+
+void cVecBool::CalcCdgScoreAPriori(const tVPtVIR & aVIR)  
+{
+   mCdg0.DIm().InitNull();
+   mCdg1.DIm().InitNull();
+   
    double aProp1  = 0;
    double aPropEq = 0;
 

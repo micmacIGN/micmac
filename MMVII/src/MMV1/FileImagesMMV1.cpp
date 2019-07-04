@@ -25,7 +25,7 @@ void Init_mm3d_In_MMVII()
 /* =========================== */
 
 cDataFileIm2D::cDataFileIm2D(const std::string & aName,eTyNums aType,const cPt2di & aSz,int aNbChannel) :
-    cRectObj<2> (cPt2di(0,0),aSz),
+    cPixBox<2> (cPt2di(0,0),aSz),
     mName       (aName),
     mType       (aType),
     mNbChannel  (aNbChannel)
@@ -34,6 +34,8 @@ cDataFileIm2D::cDataFileIm2D(const std::string & aName,eTyNums aType,const cPt2d
 
 cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,bool aForceGray)
 {
+    // required because with jpg/raw mm1 may call itself, need some special stuff
+    // as standar mmv1 by analyse of arg/argv would not work
     Init_mm3d_In_MMVII();
 
     bool aForce8B = false;
@@ -72,7 +74,7 @@ cDataFileIm2D::~cDataFileIm2D()
 {
 }
 
-const cPt2di &  cDataFileIm2D::Sz() const  {return  cRectObj<2>::Sz();}
+const cPt2di &  cDataFileIm2D::Sz() const  {return  cPixBox<2>::Sz();}
 const std::string &  cDataFileIm2D::Name() const { return mName; }
 const int  & cDataFileIm2D::NbChannel ()  const { return mNbChannel; }
 const eTyNums &   cDataFileIm2D::Type ()  const {return mType;}
@@ -121,7 +123,7 @@ template <class Type> void cMMV1_Conv<Type>::ReadWrite
    cRect2 aRectFullIm (cPt2di(0,0),aImV2.Sz());
 
    // Rectangle image / a un origine (0,0)
-   cRect2 aRectIm =  (aR2Init== cRect2::Empty00)           ?  // Val par def
+   cRect2 aRectIm =  (aR2Init== cRect2::TheEmptyBox)           ?  // Val par def
                      aRectFullIm                           :  // Rectangle en 00
                      aR2Init.Translate(-aImV2.P0())   ;  // Convention aR2Init tient compte de P0
 
@@ -168,31 +170,31 @@ template <> void cMMV1_Conv<tREAL16>::ReadWrite
 }
 
 
-template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cRectObj<2>& aR2)
+template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
 {
      cMMV1_Conv<Type>::ReadWrite(true,*this,aFile,aP0,aDyn,aR2);
 }
-template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cRectObj<2>& aR2)
+template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
 {
      cMMV1_Conv<Type>::ReadWrite(false,*this,aFile,aP0,aDyn,aR2);
 }
 
 
 //  It's difficult to read unsigned int4 with micmac V1, wait for final implementation
-template <>  void  cDataIm2D<tU_INT4>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cRectObj<2>& aR2)
+template <>  void  cDataIm2D<tU_INT4>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
 {
    MMVII_INTERNAL_ASSERT_strong(false,"No read for unsigned int4 now");
 }
-template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cRectObj<2>& aR2)
+template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
 {
    MMVII_INTERNAL_ASSERT_strong(false,"No write for unsigned int4 now");
 }
 
-template <class Type>  void  cIm2D<Type>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cRectObj<2>& aR2)
+template <class Type>  void  cIm2D<Type>::Read(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
 {
       DIm().Read(aFile,aP0,aDyn,aR2);
 }
-template <class Type>  void  cIm2D<Type>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cRectObj<2>& aR2)
+template <class Type>  void  cIm2D<Type>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
 {
      DIm().Write(aFile,aP0,aDyn,aR2);
 }

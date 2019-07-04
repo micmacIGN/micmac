@@ -52,6 +52,7 @@ cCollecSpecArg2007 & cAppli_ComputeParamIndexBinaire::ArgOpt(cCollecSpecArg2007 
          << AOpt2007(mMedian,"Med","Set median instead of average",{})
          << AOpt2007(mWFP,"WFP","Weight False Positive",{eTA2007::HDV})
          << AOpt2007(mNbVecBit,"NBB","Number of bits",{eTA2007::HDV})
+         << AOpt2007(mOptimAPrio,"OAP","A priori optimization",{eTA2007::HDV})
    ;
 }
 
@@ -85,7 +86,8 @@ cAppli_ComputeParamIndexBinaire::cAppli_ComputeParamIndexBinaire
   mMedian               (false),
   mWFP                  (100.0),
   mNbVecBit             (24),
-  mNbMaxNeigh           (4)
+  mNbMaxNeigh           (4),
+  mOptimAPrio           (true)
 {
 }
 
@@ -276,6 +278,10 @@ void  cAppli_ComputeParamIndexBinaire::OneIterComputeIndexBinaire()
         StdOut() << "EV["<< aK<< "]=" <<  mEigen->EigenValues()(aK) << "\n";
         int aInd = mVVBool.size();
         mVVBool.push_back(tPtVBool ( new cVecBool (aInd,mMedian,new cIB_LinearFoncBool(*this,aK), mVIR)));
+        if (mOptimAPrio)
+        {
+            OptimiseScoreAPriori(mVVBool.back(),mVIR);
+        }
     }
 
     TestRandom();
@@ -405,7 +411,7 @@ void cAppli_ComputeParamIndexBinaire::ShowStat()
    StdOut() << "========== Score : " << mBestSc  << "\n";
    cStatDifBits aStTrue(mVecTrueP,mBestVB);
    cStatDifBits aStFalse(mVecFalseP,mBestVB);
-   aStTrue.Show(aStFalse,0,12,0.9);
+   aStTrue.Show(aStFalse,0,30,0.99);
 }
 
 

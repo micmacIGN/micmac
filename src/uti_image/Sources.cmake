@@ -65,7 +65,8 @@ list(APPEND uti_image_Src_Files
     ${UTI_IMAGE_DIR}/CPP_SimuLib1.cpp
     ${UTI_IMAGE_DIR}/CPP_SimuLib2.cpp
     ${UTI_IMAGE_DIR}/CPP_SimuLib3.cpp
-    ${UTI_IMAGE_DIR}/CPP_SupMntIm.cpp)
+    ${UTI_IMAGE_DIR}/CPP_SupMntIm.cpp
+    ${UTI_IMAGE_DIR}/CPP_SiftExport.cpp)
 
 source_group(${SrcGrp_Uti_Image}\\outils FILES ${uti_image_Src_Files})
 source_group(${SrcGrp_Uti_Image}\\outils\\SIFT FILES ${uti_image_Sift_Src_Files})

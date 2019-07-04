@@ -99,6 +99,7 @@ class cAppliFictObs : public cCommonMartiniAppli
         
         Pt3dr       mNumFPts;
         bool        mNSym;
+        bool        mNRand;
         int         mNbIm;
 
         bool                                                    NFHom;    //new format homol
@@ -133,6 +134,7 @@ class cAppliFictObs : public cCommonMartiniAppli
 cAppliFictObs::cAppliFictObs(int argc,char **argv) :
     mNumFPts(Pt3dr(1,1,1)),
     mNSym(false),
+    mNRand(false),
     NFHom(true),
     mPMulRed(0),
     mHomExp("dat"),
@@ -154,6 +156,7 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
         LArgMain() << EAMC(mPattern,"Pattern of images"),
         LArgMain() << EAM (mNumFPts,"NPt",true,"Number of ficticious pts, Def=1 (1:27pts, 2:175pts)")
                    << EAM (mNSym,"NSym",true,", Non-symetric point generation, Def=false")
+                   << EAM (mNRand,"NRand",true,", Random point generation, Def=false")
                    << EAM (mRedFacSup,"RedFac",true,"Residual image reduction factor, Def=20")
                    << EAM (mCorrCalib,"CorCal",true,"Model residual camera calib, Def=true")
                    << EAM (mResPoly,"Deg",true,"Degree of polyn to smooth residuals (used only if CorCal=true), Def=2")
@@ -237,6 +240,8 @@ void cAppliFictObs::GenerateFicticiousObs()
         //generate the obs fict
         if (mNSym)
             aGG1.GetDistribGausNSym(aVP,mNumFPts.x,mNumFPts.y,mNumFPts.z);
+        else if (mNRand)
+            aGG1.GetDistribGausRand(aVP,mNumFPts.x);
         else
             aGG1.GetDistribGaus(aVP,mNumFPts.x,mNumFPts.y,mNumFPts.z);
         
@@ -1277,11 +1282,23 @@ void cAppliMinim::DoCalc()
 
     }    
     aRMoy = NearestRotation(aRMoy * (1/double(aVRQIm.size())));
-    
+   
+    //distance between two R matrices
+    double aDistRot = 0;
+    for (int aR=0; aR<int(aVRQIm.size()); aR++)
+    {
+        ElMatrix<double> aRDif = aRMoy - aVRQIm.at(aR);
+        aDistRot += sqrt(aRDif.L2());
+    } 
+    aDistRot /= aVRQIm.size();
+
     std::cout << "======================\n" ;
     std::cout << "Rot-Moy of the query image\n" << aRMoy(0,0) << " " << aRMoy(0,1) << " " << aRMoy(0,2) << "\n"
                          << aRMoy(1,0) << " " << aRMoy(1,1) << " " << aRMoy(1,2) << "\n"
                          << aRMoy(2,0) << " " << aRMoy(2,1) << " " << aRMoy(2,2) << "\n";
+
+    std::cout << "Distance between the rotations:";
+    std::cout << "+ Res_R=" << aDistRot << "\n";
 
     std::cout.precision(17);
     if (int(aVSeg.size()) >= 2)
@@ -1289,16 +1306,19 @@ void cAppliMinim::DoCalc()
 
         ElRotation3D aTest = OptimalSol(aVRQIm,aVSeg);
 
-        bool aIsOK;
+        bool   aIsOK;
+        double aResDist=0;
         Pt3dr aTr = ElSeg3D::L2InterFaisceaux(&aVPds, aVSeg, &aIsOK);
 
         std::cout << "Tr of the query image\n" << aTr << "\n"; 
     
-        std::cout << "Distance between the segments:" << "\n";
+        std::cout << "Distance between the segments:";
         for (int aK=0; aK<int(aVSeg.size()); aK++)
         {
-            std::cout << "+ " << aVSeg.at(aK).DistDoite(aTr) << "\n";
+            aResDist += aVSeg.at(aK).DistDoite(aTr);
         }
+        aResDist /= aVSeg.size();
+        std::cout << "+ Res_Tr=" << aResDist << "\n";
 
 
         //update \& save poses
@@ -1308,7 +1328,8 @@ void cAppliMinim::DoCalc()
         aCQIm->SetOrientation (ElRotation3D(aRes.inv().tr(),aRes.inv().Mat(),true));
         cOrientationConique aOriQIm = aCQIm->StdExportCalibGlob();
 
-        aOriQIm.Externe().Centre() = aTr;
+        aOriQIm.Externe().Centre()    = aTr;
+        aOriQIm.Externe().IncCentre() = Pt3dr(aResDist,aResDist,aResDist);
         
         ELISE_fp::MkDirSvp(DirOfFile(mNM->NameOriOut(mQIm)));
         MakeFileXML(aOriQIm,mNM->NameOriOut(mQIm));

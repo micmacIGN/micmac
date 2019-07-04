@@ -59,7 +59,17 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
          void ShowStat();
          void ChangeVB(double aSc,tPtVBool,int);
          void TestNewParamLinear(const std::vector<tPtVBool>&,int aK0);
-         void AddOneEqParamLin(double aPds,const cDenseVect<tREAL4> & aCdg,int aNb);
+         void OptimiseScoreAPriori(tPtVBool ,const tVPtVIR & aVIR);
+         tPtVBool VecBoolFromSol(const  cDenseVect<double> & aSol,int aIndex);
+
+
+         template <class Type> void AddOneEqParamLin(double aPds,const cDataIm1D<Type> & aCdg,double aVal,int aNb);
+         void AddVecOneEqParamLin(double aPds,cVecInvRad & aCdg,double aVal);
+         void AddEqProxCur(double aPdsCloseCur,tPtVBool aVB0);
+
+
+
+
          void ProcessOneDir(const std::string &);
          void TestNewSol(const std::vector<int> &,const std::vector<tPtVBool> &);
          double ScoreSol(int & aKMax,const  std::vector<tPtVBool> &aNewVB);
@@ -116,6 +126,7 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
          double                       mWFP;  ///< Weigth False Positive
          int                          mNbVecBit; ///< Size of bit vector
          int                          mNbMaxNeigh; ///< Used for avoiding error in RandNeighSet
+         bool                         mOptimAPrio; ///< Use a priori optimization of Bit Vect
 };
 
 class  cVecInvRad : public cMemCheck
@@ -224,6 +235,8 @@ class cVecBool  : public cMemCheck
 {
      public :
          cVecBool(int Index,bool Med,cIB_LinearFoncBool * aFB,const tVPtVIR &);
+         void CalcCdgScoreAPriori (const tVPtVIR & aVIR);
+
          bool  KBit(int aK) const {return mVB.at(aK);}
          const tREAL4 & Score() const {return mScore;}
 
