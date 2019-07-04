@@ -1282,11 +1282,23 @@ void cAppliMinim::DoCalc()
 
     }    
     aRMoy = NearestRotation(aRMoy * (1/double(aVRQIm.size())));
-    
+   
+    //distance between two R matrices
+    double aDistRot = 0;
+    for (int aR=0; aR<int(aVRQIm.size()); aR++)
+    {
+        ElMatrix<double> aRDif = aRMoy - aVRQIm.at(aR);
+        aDistRot += sqrt(aRDif.L2());
+    } 
+    aDistRot /= aVRQIm.size();
+
     std::cout << "======================\n" ;
     std::cout << "Rot-Moy of the query image\n" << aRMoy(0,0) << " " << aRMoy(0,1) << " " << aRMoy(0,2) << "\n"
                          << aRMoy(1,0) << " " << aRMoy(1,1) << " " << aRMoy(1,2) << "\n"
                          << aRMoy(2,0) << " " << aRMoy(2,1) << " " << aRMoy(2,2) << "\n";
+
+    std::cout << "Distance between the rotations:";
+    std::cout << "+ Res_R=" << aDistRot << "\n";
 
     std::cout.precision(17);
     if (int(aVSeg.size()) >= 2)
@@ -1294,16 +1306,19 @@ void cAppliMinim::DoCalc()
 
         ElRotation3D aTest = OptimalSol(aVRQIm,aVSeg);
 
-        bool aIsOK;
+        bool   aIsOK;
+        double aResDist=0;
         Pt3dr aTr = ElSeg3D::L2InterFaisceaux(&aVPds, aVSeg, &aIsOK);
 
         std::cout << "Tr of the query image\n" << aTr << "\n"; 
     
-        std::cout << "Distance between the segments:" << "\n";
+        std::cout << "Distance between the segments:";
         for (int aK=0; aK<int(aVSeg.size()); aK++)
         {
-            std::cout << "+ " << aVSeg.at(aK).DistDoite(aTr) << "\n";
+            aResDist += aVSeg.at(aK).DistDoite(aTr);
         }
+        aResDist /= aVSeg.size();
+        std::cout << "+ Res_Tr=" << aResDist << "\n";
 
 
         //update \& save poses
@@ -1313,7 +1328,8 @@ void cAppliMinim::DoCalc()
         aCQIm->SetOrientation (ElRotation3D(aRes.inv().tr(),aRes.inv().Mat(),true));
         cOrientationConique aOriQIm = aCQIm->StdExportCalibGlob();
 
-        aOriQIm.Externe().Centre() = aTr;
+        aOriQIm.Externe().Centre()    = aTr;
+        aOriQIm.Externe().IncCentre() = Pt3dr(aResDist,aResDist,aResDist);
         
         ELISE_fp::MkDirSvp(DirOfFile(mNM->NameOriOut(mQIm)));
         MakeFileXML(aOriQIm,mNM->NameOriOut(mQIm));

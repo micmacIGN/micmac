@@ -2100,12 +2100,20 @@ int Test_Homogr_main(int argc, char ** argv)
     cElHomographie  aHom = cElHomographie::RansacInitH(aPack,50,2000);
     cElHomographie  aHomInv = aHom.Inverse();
     aHom.Show();
+    aHomInv.Show();
 
     Pt2dr aTP1(1589.52418648700177,1214.28114830960817);
     Pt2dr aTP2(8317.05902029607387,555.169478782111128);
 
     std::cout << aHom.Direct(aTP1) << " " << aHomInv.Direct(aTP2) << "  " << "\n";
 
+    cElComposHomographie aHX = aHom.HX();
+    //cElComposHomographie aHY = aHom.HY();
+    cElComposHomographie aHZ = aHom.HZ();
+    double aX2  = aTP1.x*aHX.CoeffX() + aTP1.y*aHX.CoeffY() + aHX.Coeff1(); 
+    double aDiv = aTP1.x*aHZ.CoeffX() + aTP1.y*aHZ.CoeffY() + aHZ.Coeff1(); 
+
+    std::cout << aTP2.x << " " << aX2 << " " << aX2 / aDiv << "\n";
 /*    
 */
 
