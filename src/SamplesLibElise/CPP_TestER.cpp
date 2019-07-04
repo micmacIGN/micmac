@@ -2062,6 +2062,57 @@ int  FictiveObstest_main(int argc,char ** argv)
 
     return EXIT_SUCCESS;
 }
+
+
+int Test_Homogr_main(int argc, char ** argv)
+{
+    std::string aIn="";
+    Pt2dr aP1, aP2;
+    ElPackHomologue aPack;
+
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aIn,"2D correspondences"),
+        LArgMain() 
+    );
+
+#if (ELISE_windows)
+      replace( aIn.begin(), aIn.end(), '\\', '/' );
+#endif
+
+    ELISE_fp aFIn(aIn.c_str(),ELISE_fp::READ);
+    char * aLine;
+
+    while ((aLine = aFIn.std_fgets()))
+    {
+         int aNb=sscanf(aLine,"%lf  %lf %lf  %lf",&aP1.x , &aP1.y, &aP2.x , &aP2.y);
+         ELISE_ASSERT(aNb==4,"Could not read 2 double values");
+
+         std::cout << aP1 << " " << aP2 << "\n";
+         ElCplePtsHomologues aP(aP1,aP2);
+    
+         aPack.Cple_Add(aP);
+
+    }
+        
+    cElHomographie  aHom = cElHomographie::RansacInitH(aPack,50,2000);
+    cElHomographie  aHomInv = aHom.Inverse();
+    aHom.Show();
+
+    Pt2dr aTP1(1589.52418648700177,1214.28114830960817);
+    Pt2dr aTP2(8317.05902029607387,555.169478782111128);
+
+    std::cout << aHom.Direct(aTP1) << " " << aHomInv.Direct(aTP2) << "  " << "\n";
+
+/*    
+*/
+
+
+    return EXIT_SUCCESS;
+}
+
  
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -654,6 +654,7 @@ extern int TestPush(int argc, char ** argv);
 //extern int Cillia_main(int argc,char ** argv);
 extern int Homol2GCP_main(int argc, char ** argv);
 extern int CPP_SiftExport_main(int argc, char ** argv);
+extern int Test_Homogr_main(int argc, char ** argv);
 extern int GlobToLocal_main(int argc, char ** argv);
 extern int ExtractZ_main(int argc, char ** argv);
 extern int XYZ_Global_main(int argc, char ** argv);
@@ -951,6 +952,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("TestMH", TestMH_main, "Test Mike"));
 		aRes.push_back(cMMCom("TestAT", TestPush, "AT test workplace"));
 		aRes.push_back(cMMCom("ExportSIFT", CPP_SiftExport_main, "Export SIFT descriptor"));
+		aRes.push_back(cMMCom("TestH", Test_Homogr_main, "TestHomogr"));
 
 		//       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));
 		aRes.push_back(cMMCom("Homol2GCP", Homol2GCP_main, "cillia"));

@@ -101,6 +101,7 @@ int CPP_SiftExport_main(int argc,char** argv)
             fprintf(aFP,"\n");
         }
         std::cout << "Saved to: " << aFOut << "\n";
+        ElFclose(aFP);
     }
 
     return EXIT_SUCCESS;
