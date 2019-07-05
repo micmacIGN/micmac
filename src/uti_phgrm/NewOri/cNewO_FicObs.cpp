@@ -631,7 +631,7 @@ void cAppliFictObs::Initialize()
          
         
  
-            if (1)        
+            if (0)        
                 std::cout << "Triplet " << aTriNb << " " << mNameMap[a3.Name1()] << "-" << a3.Name1() << " " << mNameMap[a3.Name2()] << "-" << a3.Name2() << " " << mNameMap[a3.Name3()] << "-" << a3.Name3() << "\n";
          
             aTriNb++;

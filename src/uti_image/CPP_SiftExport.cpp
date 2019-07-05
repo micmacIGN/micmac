@@ -48,13 +48,13 @@ int CPP_SiftExport_main(int argc,char** argv)
     std::string aDir;
     std::string aNameSift;
     std::vector<Siftator::SiftPoint> aVSift;
-
+    int aSzSift = -1;
 
     ElInitArgMain
     (
         argc, argv,
         LArgMain() << EAMC(aPattern,"Pattern of images"),
-        LArgMain() 
+        LArgMain() << EAM(aSzSift,"Resol",true,"Resolution of tie-pts extraction") 
     );
     #if (ELISE_windows)
         replace( aPattern.begin(), aPattern.end(), '\\', '/' );
@@ -71,11 +71,19 @@ int CPP_SiftExport_main(int argc,char** argv)
         std::string aFOut = "SIFT_Descr_" + aK + ".txt";
         FILE * aFP=0;
 
-        getPastisGrayscaleFilename(aDir,aK,-1.0,aNameSift);
+        getPastisGrayscaleFilename(aDir,aK,aSzSift,aNameSift);
 
-        aNameSift  = "LBPp" + aK + ".dat";
-        aNameSift = "Pastis/" + aNameSift;//full resolution
+        if (EAMIsInit(&aSzSift))
+        {
+            aNameSift = DirOfFile(aNameSift) + "LBPp" + NameWithoutDir(aNameSift) + ".dat";
+        }
+        else
+        {
+            aNameSift  = "LBPp" + aK + ".dat";
+            aNameSift = "Pastis/" + aNameSift;//full resolution
+        }
         
+
         bool Ok = read_siftPoint_list(aNameSift,aVSift);
 
         if (!Ok)
@@ -85,7 +93,7 @@ int CPP_SiftExport_main(int argc,char** argv)
         }
 
 
-        
+        ELISE_fp::RmFileIfExist(aFOut);        
         aFP = ElFopen(aFOut.c_str(),"w");
         fprintf(aFP,"-------------- x y 128 SIFT descriptors  -----------\n");
 
