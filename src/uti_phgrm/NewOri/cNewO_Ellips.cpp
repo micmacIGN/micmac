@@ -207,8 +207,66 @@ void cGenGaus3D::GetDistribGausNSym(std::vector<Pt3dr> & aVPts,int aN1,int aN2,i
 
 }
 
-void cGenGaus2D::GetDistribGaus(std::vector<Pt2dr> & aVPts,int aN1,int aN2)
+void cGenGaus3D::GetDistribGausRand(std::vector<Pt3dr> & aVPts,int aN)
 {
+    aVPts.clear();
+    
+    int aMult = 10;//no of bins discretising the sampling in the ellipse
+
+    //to be revisited 0.165 = 0.33*0.5
+    Pt3dr aFact1 = mVecP[0] * (FactCorrectif(0.165*aN*aMult) * mVP[0]);
+    Pt3dr aFact2 = mVecP[1] * (FactCorrectif(0.165*aN*aMult) * mVP[1]);
+    Pt3dr aFact3 = mVecP[2] * (FactCorrectif(0.165*aN*aMult) * mVP[2]);
+ 
+    //cElRanGen aRG;
+    vector<Pt3dr> aVPRand;
+    
+    //ResetNRrand();
+    NRrandom3InitOfTime();
+
+    //collect random points and get the centroid
+    Pt3dr aMoy(0,0,0);
+    for (int aK=0; aK<aN; aK++)
+    {
+
+        double aK1 = NRrandom3();
+        double aK2 = NRrandom3();
+        double aK3 = NRrandom3();
+    
+        aVPRand.push_back (Pt3dr(aK1,aK2,aK3));
+
+        aMoy.x += aK1;
+        aMoy.y += aK2;
+        aMoy.z += aK3;
+
+    }
+    aMoy.x /= aN;
+    aMoy.y /= aN;
+    aMoy.z /= aN;
+
+
+    for (int aK=0; aK<aN; aK++)
+    {
+        int aK1I = int( (aVPRand.at(aK).x -aMoy.x) *aMult);
+        int aK2I = int( (aVPRand.at(aK).y -aMoy.y) *aMult);
+        int aK3I = int( (aVPRand.at(aK).z -aMoy.z) *aMult);
+
+        std::cout << "randommmmmm : " << aK1I << " " << aK2I << " " << aK3I <<  "\n";
+
+        Pt3dr aP  =   mCDG 
+                      + aFact1 * InvErrFoncRationel(2*aK1I,aMult)
+                      + aFact2 * InvErrFoncRationel(2*aK2I,aMult)
+                      + aFact3 * InvErrFoncRationel(2*aK3I,aMult);
+
+
+        aVPts.push_back(aP);
+
+    }
+
+}
+
+void cGenGaus2D::GetDistribGaus(std::vector<Pt2dr> & aVPts,int aN1,int aN2)
+ {
    aVPts.clear();
    Pt2dr aFact1 = mVecP[0] * (FactCorrectif(aN1) * mVP[0]);
    Pt2dr aFact2 = mVecP[1] * (FactCorrectif(aN2) * mVP[1]);
