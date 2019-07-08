@@ -35,12 +35,17 @@ extern const std::string GOP_SeedRand;   ///< StdOut, Output redirection
 //  Name of Global INTERNAL optional parameter
 extern const std::string GIP_LevCall;     ///< Level of MMVII call
 extern const std::string GIP_ShowAll;     ///< Show a lot of intermediary steps
+extern const std::string GIP_PGMA;     ///< Prefix Global Main Appli
+extern const std::string GIP_DirProjGMA;     ///< Dir Proj of Global Main Application
 
 
 // Folders
 extern const std::string TmpMMVIIDir;
 extern const std::string MMVIITestDir;
+extern const std::string TmpMMVIIProcSubDir;
 
+//  Files
+extern const std::string MVII_LogFile;
 
 extern const char CharProctected;  // => '\' on Gnu/Linux, will see on others
 

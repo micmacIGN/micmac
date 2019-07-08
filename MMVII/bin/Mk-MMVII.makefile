@@ -7,7 +7,6 @@ MMV2DirSrc=${MMV2Dir}src/
 MMV2DirBin=${MMV2Dir}bin/
 MMV2Objects=${MMV2Dir}object/
 MMV2DirIncl=${MMV2Dir}include/
-#MMV2ElisePath=${MMDir}/lib/libelise_SsQt.a
 MMV2ElisePath=${MMDir}/lib/libelise.a
 #
 #
@@ -95,7 +94,7 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 CXX=g++
 CFlags="-std=c++14" "-Wall" "-Werror" "-O4" "-march=native" -I${MMV2Dir} -I${MMDir}/include/
 BOOST_LIBS= -lboost_system -lboost_serialization -lboost_regex -lboost_filesystem
-QTAnnLibs= -lXext /usr/lib/x86_64-linux-gnu/libQt5Core.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5Gui.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5Xml.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so.5.5.1 -lGLU -lGL  -ldl -lpthread /usr/lib/x86_64-linux-gnu/libQt5Xml.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5Concurrent.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5Widgets.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5Gui.so.5.5.1 /usr/lib/x86_64-linux-gnu/libQt5Core.so.5.5.1 ../../lib/libANN.a
+QTAnnLibs= -lXext /usr/lib/x86_64-linux-gnu/libQt5Core.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so -lGLU -lGL  -ldl -lpthread /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5Concurrent.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so ../../lib/libANN.a
 LibsFlags= ${MMV2ElisePath} -lX11  ${BOOST_LIBS}  ${QTAnnLibs}
 MMV2Exe=MMVII
 #

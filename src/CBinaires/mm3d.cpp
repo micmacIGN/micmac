@@ -294,7 +294,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("TestBundleInter", TestBundleInter_main, "Block Initialisation "));
 		aRes.push_back(cMMCom("Blinis", Blinis_main, "Block Initialisation ", cArgLogCom(2)));
 		aRes.push_back(cMMCom("ContrastFilter", Contrast_main, "Some contrast filtering "));
-        aRes.push_back(cMMCom("Nikrup", Nikrup_main,/*(*/ "Generik image filter, using invert polish like notation ;-) ",cArgLogCom(2)));
+        aRes.push_back(cMMCom("Nikrup", Nikrup_main,/*(*/ "Generik image filter, using invert polish like notation ;-) ",cArgLogCom(3)));
 		aRes.push_back(cMMCom("Turn90Im", TournIm_main, "Turn image of 90 degre"));
 		aRes.push_back(cMMCom("RedTieP", RedTieP_main, "Test tie points filtering "));
 		aRes.push_back(cMMCom("OriRedTieP", OriRedTie_main, "Tie points filtering, using Martini results "));
@@ -653,6 +653,8 @@ extern int FictiveObstest_main(int argc, char ** argv);
 extern int TestPush(int argc, char ** argv);
 //extern int Cillia_main(int argc,char ** argv);
 extern int Homol2GCP_main(int argc, char ** argv);
+extern int CPP_SiftExport_main(int argc, char ** argv);
+extern int Test_Homogr_main(int argc, char ** argv);
 extern int GlobToLocal_main(int argc, char ** argv);
 extern int ExtractZ_main(int argc, char ** argv);
 extern int XYZ_Global_main(int argc, char ** argv);
@@ -859,6 +861,7 @@ extern int SimuRolShut_main(int argc, char ** argv);
 extern int GenerateOrient_main(int argc, char ** argv);
 extern int ReechRolShut_main(int argc, char ** argv);
 extern int ReechRolShutV1_main(int argc, char ** argv);
+extern int ExportTPM_main(int argc, char ** argv);
 extern int CompMAF_main(int argc, char ** argv);
 extern int GenerateOriGPS_main(int argc, char ** argv);
 extern int GenerateMAF_main(int argc, char ** argv);
@@ -948,6 +951,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("CamTOFExp", TestCamTOF_main, "Export TOF camera pcd file to MicMac formats (e.g. tif, xml, ply)"));
 		aRes.push_back(cMMCom("TestMH", TestMH_main, "Test Mike"));
 		aRes.push_back(cMMCom("TestAT", TestPush, "AT test workplace"));
+		aRes.push_back(cMMCom("ExportSIFT", CPP_SiftExport_main, "Export SIFT descriptor"));
+		aRes.push_back(cMMCom("TestH", Test_Homogr_main, "TestHomogr"));
 
 		//       aRes.push_back(cMMCom("TestCillia",Cillia_main,"cillia"));
 		aRes.push_back(cMMCom("Homol2GCP", Homol2GCP_main, "cillia"));
@@ -1171,6 +1176,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("GenerateOrient",GenerateOrient_main,"Generate modification of orientation"));
         aRes.push_back(cMMCom("ReechRolShut",ReechRolShut_main ,"Resampling for rolling shutter effect correction, V2, reproj on new cam orientation",cArgLogCom(2)));
         aRes.push_back(cMMCom("ReechRolShutV1",ReechRolShutV1_main ,"Resampling for rolling shutter effect correction, V1, linear compression/dilatation"));
+        aRes.push_back(cMMCom("ExportTPM",ExportTPM_main ,"Export tie point multiplicity"));
         aRes.push_back(cMMCom("CompMAF",CompMAF_main ,"Compare MAF files"));
         aRes.push_back(cMMCom("GenerateOriGPS",GenerateOriGPS_main ,"Compare MAF files"));
         aRes.push_back(cMMCom("GenerateMAF",GenerateMAF_main ,"Generate simulated MAF"));
@@ -1478,6 +1484,11 @@ bool J4M()  //  indicate if we are in Jean Michael Muler Mic Mac ....
 
 int main(int argc, char ** argv)
 {
+if (0)
+{
+   for (int ak=0 ; ak<argc ; ak++)
+    std::cout << "MMM [" << argv[ak] << "]\n";
+}
 	//  Genere un warning si la ligne de commande contient des caratere non ASCII, car ceux ci
 	// peuvent être invisible et genere des erreurs peu comprehensibles
 

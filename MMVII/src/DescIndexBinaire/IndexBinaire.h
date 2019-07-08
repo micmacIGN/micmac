@@ -14,6 +14,7 @@ class cDataOneInvRad;
 class cMetaDataOneFileInvRad ;
 // Class for storing info/vector on one Pts Carac
 class  cVecInvRad ;
+     /*=====   Class specific to bit vector processing =====*/
 // Virtual Class for computing on bit
 class cIB_LineFoncBool;
 //  Class to store computed values of given bit computer
@@ -25,7 +26,7 @@ class cStatDifBits;
 typedef std::shared_ptr<cVecInvRad> tPtVIR;
 typedef std::vector<tPtVIR>            tVPtVIR;
 
-typedef std::unique_ptr<cVecBool> tPtVBool;
+typedef std::shared_ptr<cVecBool> tPtVBool;
 
 /**
      Global class to process computation of binary index, will be used probably for
@@ -36,8 +37,7 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
 {
      public :
         virtual ~cAppli_ComputeParamIndexBinaire();
-
-        cAppli_ComputeParamIndexBinaire(int argc,char** argv,const cSpecMMVII_Appli &);
+        cAppli_ComputeParamIndexBinaire(const std::vector<std::string> &,const cSpecMMVII_Appli &);
   
         // Pure virtual methods of cMMVII_Appli
         int Exe() override;
@@ -54,16 +54,33 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
         const cResulSymEigenValue<tREAL8> &  Eigen() const;
         int    ZoomImg() const;
         cIm2D<tU_INT1> MakeImSz(cIm2D<tU_INT1>);
+
      private :
+         void ShowStat();
+         void ChangeVB(double aSc,tPtVBool,int);
+         void TestNewParamLinear(const std::vector<tPtVBool>&,int aK0);
+         void OptimiseScoreAPriori(tPtVBool ,const tVPtVIR & aVIR);
+         tPtVBool VecBoolFromSol(const  cDenseVect<double> & aSol,int aIndex);
+
+
+         template <class Type> void AddOneEqParamLin(double aPds,const cDataIm1D<Type> & aCdg,double aVal,int aNb);
+         void AddVecOneEqParamLin(double aPds,cVecInvRad & aCdg,double aVal);
+         void AddEqProxCur(double aPdsCloseCur,tPtVBool aVB0);
+
+
+
+
          void ProcessOneDir(const std::string &);
-         void TestNewSol(const std::vector<int> &,const std::vector<const cVecBool*> &);
+         void TestNewSol(const std::vector<int> &,const std::vector<tPtVBool> &);
+         double ScoreSol(int & aKMax,const  std::vector<tPtVBool> &aNewVB);
+
          double  ScoreAPrioiri(const std::vector<int>& aSet) const;
 
 
          void ComputeIndexBinaire();
          void OneIterComputeIndexBinaire();
-         std::vector<const cVecBool*> IndexToVB(const std::vector<int>&) const;
-         std::vector<const cVecBool*> GenereVB(int aNbTest,std::vector<int>&,int aK,int aNb) const;
+         std::vector<tPtVBool> IndexToVB(const std::vector<int>&) const;
+         std::vector<tPtVBool> GenereVB(int aNbTest,std::vector<int>&,int aK,int aNb) const;
          void  TestRandom();
          void TestNbBit() const;
          void TestNbBit(int aNb) const;
@@ -89,6 +106,7 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
          int  mNbPts;   ///< Number of PCar 
          int                    mNbValByP;  ///< Number of value by point, for dimensionning
          tVPtVIR                mVIR;
+         tVPtVIR                mVIR0;
 
          cDenseVect<tREAL8>    mTmpVect;
 
@@ -102,9 +120,13 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
          std::string          mSaveFileSelVectIR;  ///< To Save file of selected IR, usefull if we rerun from previous comp
               // 3 variable used to store curent solution of bits selection
          double                       mBestSc;  ///< Current score (initialize - inft)
-         std::vector<const cVecBool*> mBestVB;   ///< Vector of bool
+         std::vector<tPtVBool>       mBestVB;   ///< Vector of bool
          std::vector<int>             mBestIndex; ///< Index of these vectors
-
+         bool                         mMedian; ///< Median instead of average
+         double                       mWFP;  ///< Weigth False Positive
+         int                          mNbVecBit; ///< Size of bit vector
+         int                          mNbMaxNeigh; ///< Used for avoiding error in RandNeighSet
+         bool                         mOptimAPrio; ///< Use a priori optimization of Bit Vect
 };
 
 class  cVecInvRad : public cMemCheck
@@ -165,7 +187,7 @@ class cDataOneInvRad  : public cMemCheck
        eTyInvRad                            mTIR;  ///< Kind of radial invariant
        std::string                          mDir; ///< Directory with file "Cple.*tif"
        std::vector<cMetaDataOneFileInvRad>  mMDOFIR;
-       cPt2di                               mSzP0Init;   ///< Size Patch Init before decimate
+       cPt2di                               mSzP0Init;   ///< Size Patch Init, before decimate
        cPt2di                               mSzP0Final;  ///< Size Patch Final, after possible decimation
 
        int                                  mNbPixByP; ///< Nb of Pix/Patch Can differ if reduced
@@ -186,13 +208,25 @@ class cIB_LinearFoncBool : public cMemCheck
         cIB_LinearFoncBool
         (
              cAppli_ComputeParamIndexBinaire & anAppli,
-             int aK,
-             double aTreshold
+             const cDenseVect<double>&   aVect,
+             double                aThresh 
         );
+        cIB_LinearFoncBool
+        (
+             cAppli_ComputeParamIndexBinaire & anAppli,
+             const cDenseVect<double>&   aVect
+        );
+        cIB_LinearFoncBool
+        (
+             cAppli_ComputeParamIndexBinaire & anAppli,
+             int aK
+        );
+        const cDenseVect<double>& Vect() const;
      private :
         cIB_LinearFoncBool (const cIB_LinearFoncBool &) = delete;
         cAppli_ComputeParamIndexBinaire & mAppli;
-        int                   mK;
+        // int                   mK;
+        cDenseVect<double>    mVect;
         double                mThresh;
 };
 
@@ -200,11 +234,23 @@ class cIB_LinearFoncBool : public cMemCheck
 class cVecBool  : public cMemCheck
 {
      public :
-         cVecBool(cIB_LinearFoncBool * aFB,const tVPtVIR &);
+         cVecBool(int Index,bool Med,cIB_LinearFoncBool * aFB,const tVPtVIR &);
+         void CalcCdgScoreAPriori (const tVPtVIR & aVIR);
+
          bool  KBit(int aK) const {return mVB.at(aK);}
          const tREAL4 & Score() const {return mScore;}
+
+         cIB_LinearFoncBool&  FB();
+         const cDenseVect<tREAL4>& Cdg0() const;
+         int   Nb0() const;
+         const cDenseVect<tREAL4>& Cdg1() const;
+         int   Nb1() const;
+         int   Index() const;
+         
      private :
          cVecBool(const cVecBool &) = delete;
+
+         int                                  mIndex;
          std::shared_ptr<cIB_LinearFoncBool>  mFB;
          std::vector<bool> mVB;
 
@@ -215,17 +261,17 @@ class cVecBool  : public cMemCheck
          tREAL4              mScore;
 };
 
-int NbbBitDif(const std::vector<const cVecBool*> & aVVB,const cPt2di & aPair);
+int NbbBitDif(const std::vector<tPtVBool> & aVVB,const cPt2di & aPair);
 
 class cStatDifBits
 {
      public :
-        cStatDifBits(const std::vector<cPt2di> & aVPair,const std::vector<const cVecBool*> & aVB);
+        cStatDifBits(const std::vector<cPt2di> & aVPair,const std::vector<tPtVBool> & aVB);
         std::vector<int>     mHNbBitDif;
         std::vector<double>  mStatR;
         std::vector<double>  mStatRCum;
         double Score(const cStatDifBits & aStatFalse,double aPdsFalse,int &aKMax) const;
-        void  Show(const cStatDifBits & aStatFalse,int aK1,int K2) const;
+        void  Show(const cStatDifBits & aStatFalse,int aK1,int K2,double aMaxTrue) const;
 };
 
 

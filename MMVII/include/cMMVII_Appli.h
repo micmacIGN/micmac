@@ -21,7 +21,7 @@ typedef std::pair<std::string,std::string> t2S;
 
 //  Some typedef to facilitate type declaration
 typedef std::unique_ptr<cMMVII_Appli>   tMMVII_UnikPApli;
-typedef tMMVII_UnikPApli (* tMMVII_AppliAllocator)(int argc, char ** argv,const cSpecMMVII_Appli &);
+typedef tMMVII_UnikPApli (* tMMVII_AppliAllocator)(const std::vector<std::string> & aVArgcv,const cSpecMMVII_Appli &);
 
 /* ============================================ */
 /*                                              */
@@ -59,6 +59,7 @@ class cSpecMMVII_Appli
      public :
        typedef std::vector<eApF>   tVaF;  ///< Features
        typedef std::vector<eApDT>  tVaDT; ///< Data types
+       int AllocExecuteDestruct(const std::vector<std::string> &) const;
 
        cSpecMMVII_Appli
        (
@@ -74,6 +75,12 @@ class cSpecMMVII_Appli
 
        void Check(); ///< Check that specification if ok (at least vectors non empty)
        static const std::vector<cSpecMMVII_Appli*> & VecAll(); ///< vectors of all specifs
+/*
+       static std::vector<cSpecMMVII_Appli*> VecAll(const std::string &); ///< vectors of all specifs
+       static std::vector<cSpecMMVII_Appli*> & SortedVecAll(); ///< vectors of all specifs
+       static std::vector<cSpecMMVII_Appli*> & SortedVecAll(); ///< vectors of all specifs
+*/
+
        static cSpecMMVII_Appli* SpecOfName(const std::string & aName,bool SVP); ///< Get spec; non case sensitive search
 
        const std::string &    Name() const; ///< Accessor
@@ -81,6 +88,8 @@ class cSpecMMVII_Appli
        const std::string &    Comment() const; ///< Accessor
        const std::string &    NameFile() const; ///< Accessor
     private :
+       static std::vector<cSpecMMVII_Appli*> TheVecAll;
+       static std::vector<cSpecMMVII_Appli*> & InternVecAll(); ///< vectors of all specifs
    // Data
        std::string           mName;       ///< User name
        tMMVII_AppliAllocator mAlloc;      ///< Allocator
@@ -184,10 +193,15 @@ class cMMVII_Ap_CPU
     public  :
         cMMVII_Ap_CPU ();
         double SecFromT0() const;
+        // Accessors
+        std::string    StrDateBegin() const;  
+        std::string    StrDateCur() const;  
+        const std::string  &  StrIdTime() const;  
     protected :
-         tTime       mT0 ;       ///< More or less creation time
-         int         mPid;       ///< Processus id
-         int         mNbProcSys; ///< Number of processor on the system
+         tTime         mT0 ;       ///< More or less creation time
+         int           mPid;       ///< Processus id
+         int           mNbProcSys; ///< Number of processor on the system
+         std::string   mStrIdTime;   ///< Make more a less a unique id  Sec + 1O-4 sec for hour 0
 };
 
 /**   When we will deal with cluster computing, it will be usefull that command can specify
@@ -196,10 +210,17 @@ class cMMVII_Ap_CPU
 class cParamCallSys
 {
     public :
-       cParamCallSys(const std::string & aCom);
+       cParamCallSys(const cSpecMMVII_Appli & aCom2007,bool InArgSep);
+       void AddArgs(const std::string &);
+
+       int Execute() const;
        const std::string & Com() const ; ///< Accessor
     private :
-       std::string mCom;
+       const cSpecMMVII_Appli * mSpec;  ///< used for allocation in ArgSep mode
+       bool        mArgSep;  ///< means that args are maintend separated 4 use in arg/argv mode, else construc glob com
+       std::string mCom; ///< used with ! mArgSep
+       int         mArgc;  ///< classical arg count
+       std::vector<std::string> mArgv; ///< used with mArgSep
 };
 
      // ========================== cMMVII_Appli  ==================
@@ -214,7 +235,7 @@ cMultipleOfs& ErrOut();
 /** Any application of MMVII must inherit of cMMVII_Appli.
     
     It must exist one and  only one application in one process. This
-   application can be reached by method TheAppli().
+   application can be reached by method CurrentAppli().
 
    The object is first constructed, then it action is done with the
    method Exe(); this separation is necessary because some time we will need
@@ -227,6 +248,7 @@ cMultipleOfs& ErrOut();
  
 */
 
+typedef const char * tConstCharPtr;
 
 
 class cMMVII_Appli : public cMMVII_Ap_NameManip,
@@ -242,26 +264,13 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cMultipleOfs & HelpOut();
         cMultipleOfs & ErrOut();
 
-        int  ExeCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&); ///< MMVII call itself
-        // Subst  (aNameOpt,aVal)
-        // aNameOpt :  si existe substitue, si "+" ajoute a mandatory, si "3"  => sub 3 mandatory, si MMVII_NONE
-        cParamCallSys  StrCallMMVII ( const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&,
-                                      const cColStrAOpt &  aLSubst  = cColStrAOpt::Empty); ///< MMVII call itself
-        std::list<cParamCallSys>  ListStrCallMMVII
-                                (  const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&,
-                                   const std::string & aNameOpt  , const std::vector<std::string> &  LVals
-                                   //  const cColStrAOpt &  aLSubst = cColStrAOpt::Empty
-                                 ); ///< MMVII call itself
-
-        std::list<cParamCallSys>  ListStrAutoRecallMMVII
-                                (  const std::string & aNameOpt  , const std::vector<std::string> &  LVals,
-                                   const cColStrAOpt &  aLSubst = cColStrAOpt::Empty
-                                 ); ///< MMVII reccall the same command itself
+        ///< MMVII call itself
+        int   ExeCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&,bool ByLineCom=true); 
         void  ExeMultiAutoRecallMMVII
                                 (  const std::string & aNameOpt  ,  //!  Name of parameter to substitue
                                    const std::vector<std::string> &  LVals, //! List of value for each process
                                    const cColStrAOpt &  aLSubst = cColStrAOpt::Empty,
-                                   bool InParal=true
+                                   eTyModeRecall = eTyModeRecall::eTMR_Parall
                                  ); ///< MMVII reccall the same command itself
 
 
@@ -274,7 +283,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         void InitColFromVInit(); ///< Put in StrObl and StrOpt value from initial parameter
  
         static bool   ExistAppli();         ///< Return if the appli exist, no error
-        static cMMVII_Appli & TheAppli();   ///< Return the unique appli, error if not
+        static cMMVII_Appli & CurrentAppli();   ///< Return the unique appli, error if not
         virtual int Exe() = 0;              ///< Do the "real" job
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
@@ -293,7 +302,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
     protected :
         /// Constructor, essenntially memorize command line and specifs
-        cMMVII_Appli(int,char **,const cSpecMMVII_Appli &);
+        cMMVII_Appli(const std::vector<std::string> & aVArgcv, const cSpecMMVII_Appli &);
         /// Second step of construction, parse the command line and initialize values
 
         const tNameSet &                         MainSet0() const;         ///< MainSet(0) , 
@@ -306,23 +315,46 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         void InitOutFromIn(std::string &aFileOut,const std::string& aFileIn); ///< If out is not init set In, else DirProj+Out
 
         void                                      Warning(const std::string & aMes,eTyW,int line,const std::string & File);
+        std::string  Command() const; ///< Glob command by aggregation of ArgcArgv
 
     private :
         cMMVII_Appli(const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
         cMMVII_Appli & operator = (const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
+        // Subst  (aNameOpt,aVal)
+        // aNameOpt :  si existe substitue, si "+" ajoute a mandatory, si "3"  => sub 3 mandatory, si MMVII_NONE
+        cParamCallSys  StrCallMMVII ( const cSpecMMVII_Appli & aCom, const cColStrAObl&, const cColStrAOpt&,
+                                      bool Separate, // Separate argv for call inside
+                                      const cColStrAOpt &  aLSubst  = cColStrAOpt::Empty); ///< MMVII call itself
+        std::list<cParamCallSys>  ListStrCallMMVII
+                                (  const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&,
+                                   const std::string & aNameOpt  , const std::vector<std::string> &  LVals,
+                                   bool Separate
+                                   //  const cColStrAOpt &  aLSubst = cColStrAOpt::Empty
+                                 ); ///< MMVII call itself
+
+        std::list<cParamCallSys>  ListStrAutoRecallMMVII
+                                (  const std::string & aNameOpt  , const std::vector<std::string> &  LVals,
+                                   bool Separate,
+                                   const cColStrAOpt &  aLSubst = cColStrAOpt::Empty
+                                 ); ///< MMVII reccall the same command itself
 
         void                                      GenerateHelp(); ///< In Help mode print the help
         void                                      InitProject();  ///< Create Dir (an other ressources) that may be used by all processe
-
-        static cMMVII_Appli *                     msTheAppli;     ///< Unique application
+        void                                      LogCommandIn(const std::string&,bool Main);  ///< Log command begin
+        void                                      LogCommandOut(const std::string&,bool Main); ///< Log command end
+        std::string                               NameFileLog(bool Finished) const; ///< File 4 log each process
+        static std::vector<cMMVII_Appli *>        TheStackAppli;     ///< Unique application
+        static int                                TheNbCallInsideP;  ///< Number of Appli created in the same process
         static bool                               msInDstructor;  ///< Some caution must be taken once destruction has begun
         static const int                          msDefSeedRand;  ///<  Default value for Seed random generator
         void                                      AssertInitParam() const; ///< Check Init was called
     protected :
         virtual int                               DefSeedRand();  ///< Clas can redefine instead of msDefSeedRand, value <=0 mean init from time:w
         cMemState                                 mMemStateBegin; ///< To check memory management
+
+
+        std::vector<std::string>                  mArgv;      ///< copy of local copy ArgArgv to be safe
         int                                       mArgc;          ///< memo argc
-        char **                                   mArgv;          ///< memo argv
         const cSpecMMVII_Appli &                  mSpecs;         ///< The basic specs
 
         std::string                               mDirBinMMVII;   ///< where is the binary
@@ -343,7 +375,6 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mPatHelp;       ///< Possible filter on name of optionnal param shown
         bool                                      mShowAll;       ///< Tuning, show computation details
         int                                       mLevelCall;     ///< as MM call it self, level of call
-        bool                                      mDoInitProj;    ///< Init : Create folders of project, def (true<=> LevCall==1)
         cExtSet<void *>                           mSetInit;       ///< Adresses of all initialized variables
         bool                                      mInitParamDone; ///< To Check Post Init was not forgotten
         cColStrAObl                               mColStrAObl;    ///< To use << for passing multiple string
@@ -366,6 +397,15 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cMultipleOfs                              mStdCout;     ///< Standard Ouput (File,Console, both or none)
         std::string                               mParamStdOut; ///< Users value
         int                                       mSeedRand;    ///< Seed for random generator
+        // Control position/hierachy of call
+        int                                       mNumCallInsideP; ///< Numero of Appli in the process of creation
+        bool                                      mMainAppliInsideP; ///< Is the main/firsy Appli inside the process
+        bool                                      mMainProcess; ///< Is the current process
+        bool                                      mGlobalMainAppli; ///< Both main process && main appli inside P
+        std::string                               mPrefixNameAppli;  ///< String Id of process
+        std::string                               mPrefixGMA;        ///< Sting Id of Global Main Appli
+        std::string                               mDirProjGMA;        ///< Dir Project Main Appli
+
 };
 
 };

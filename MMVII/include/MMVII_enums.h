@@ -168,6 +168,15 @@ enum class eTyEigenDec
                eNbVals
            };
 
+/**  Mode of recall sub processes  */
+enum class eTyModeRecall
+           {
+               eTMR_Inside, ///< Recall in the same process
+               eTMR_Serial, ///< Recall by sub-process in serial
+               eTMR_Parall, ///< Recall by sub-process in parallel
+               eNbVals
+           };
+
 
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         

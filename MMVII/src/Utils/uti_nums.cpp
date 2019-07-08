@@ -76,7 +76,7 @@ const cVirtualTypeNum & cVirtualTypeNum::FromEnum(eTyNums aTy)
 
 template <class Type> void TplBenchTraits()
 {
-    typename tNumTrait<Type>::tBase aVal=0;
+    //typename tNumTrait<Type>::tBase aVal=0;
     StdOut()  << E2Str(tNumTrait<Type>::TyNum() )
               << " Max=" << tNumTrait<Type>::MaxValue() 
               << " Min=" <<  tNumTrait<Type>::MinValue() 
@@ -170,13 +170,20 @@ void Bench_Nums()
    }
 }
 
-template <class Type> Type  Mediane(std::vector<Type> & aV)
+template <class Type> Type  NonConstMediane(std::vector<Type> & aV)
 {
    std::sort(aV.begin(),aV.end());
    return aV.at(aV.size()/2);
 }
 
-template  double Mediane(std::vector<double> &);
+template <class Type> Type  ConstMediane(const std::vector<Type> & aV)
+{
+    std::vector<Type> aDup(aV);
+    return NonConstMediane(aDup);
+}
+
+template  double NonConstMediane(std::vector<double> &);
+template  double ConstMediane(const std::vector<double> &);
 
 };
 

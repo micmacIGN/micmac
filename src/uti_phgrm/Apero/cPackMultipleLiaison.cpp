@@ -1329,7 +1329,6 @@ double cObsLiaisonMultiple::AddObsLM
         int aNbRInit= aPM->InitPdsPMul(aPds,aVpds,&NbRRI);
         if (aNbRInit>=2)
         {
-             
              aNbNN++;
              static int aCpt=0; aCpt++;
              aNbMult += (aNbRInit>=3);
@@ -1343,6 +1342,8 @@ double cObsLiaisonMultiple::AddObsLM
 
              if (aRes.mOKRP3I)
              {
+// if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
+// std::cout << "aNbNN++aNbNN++ " << aNbNN << "\n";
 
                 if (anAVA  && (anAVA->VA().TypeVerif()==eVerifResPerIm))
                 {
@@ -1368,6 +1369,7 @@ double cObsLiaisonMultiple::AddObsLM
                         ELISE_ASSERT(false,"Dist >  MaxDistWarnPtsTerr")
                     }
                 }
+// if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
 
 	        double aResidu = 0;
 	        for (int aKPose=0 ; aKPose<int(aRes.mEcIm.size()) ; aKPose++)
@@ -1392,6 +1394,7 @@ double cObsLiaisonMultiple::AddObsLM
 
                 double aPdsIm = aPdrtIm.PdsOfError(sqrt(aResidu));
              // double aPAv = aPdsIm;
+// if (MPD_MM()) std::cout << "RRRmOKRP3ImOKRP3I  " << aPdsIm << " " << aResidu << __LINE__ << "\n";
                 aPdsIm *= pow(aNbRInit-1,aImPPM.ExposantPoidsMult().Val());
 
                 if (aGSD && aPdsIm)
@@ -1436,6 +1439,7 @@ double cObsLiaisonMultiple::AddObsLM
 */
                    }
 
+// if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
 
                    aSEr2 += aPdsIm * aResidu;
                    aSPds2 += aPdsIm ;
@@ -1454,6 +1458,7 @@ double cObsLiaisonMultiple::AddObsLM
                           }
                       }
                    }
+// if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n";
 /*
 REPERE-111
 for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
@@ -1503,6 +1508,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                    }
                 }
 
+// if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " <<  aPdsIm << " " << __LINE__ << "\n";
 
 
                 if (anArgPT&&(aPdsIm >0) && (aRes.mBSurH > anArgPT->LimBsH()))
@@ -1622,6 +1628,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                        anAVA->AddPImDZ(aNupl.PK(mKIm),aDZ,aVpds,*aPM);
                     }
                 }
+// if (MPD_MM()) std::cout << "mOKRP3ImOKRP3I  " << __LINE__ << "\n\n";
              }
              else
              {

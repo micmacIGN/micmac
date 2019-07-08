@@ -102,7 +102,7 @@ bool CmpPtrPEW(const cOneEntryWalkMan * anE1,const cOneEntryWalkMan * anE2)
 class cAppli_Walkman : public cMMVII_Appli
 {
      public :
-        cAppli_Walkman(int argc,char** argv,const cSpecMMVII_Appli &);
+        cAppli_Walkman(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
@@ -137,8 +137,8 @@ cCollecSpecArg2007 & cAppli_Walkman::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 
 
-cAppli_Walkman::cAppli_Walkman(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc,argv,aSpec),
+cAppli_Walkman::cAppli_Walkman(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (aVArgs,aSpec),
   mPat         (".*\\.mp3"),
   mNameSauv    ("Wakman.xml")
 {
@@ -216,9 +216,9 @@ int cAppli_Walkman::Exe()
 }
 
 
-tMMVII_UnikPApli Alloc_Walkman(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_Walkman(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_Walkman(argc,argv,aSpec));
+   return tMMVII_UnikPApli(new cAppli_Walkman(aVArgs,aSpec));
 }
 
 cSpecMMVII_Appli  TheSpecWalkman

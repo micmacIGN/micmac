@@ -3,6 +3,7 @@
 
 namespace MMVII
 {
+#define MSD_DEGUG()  StdOut() << "MSD_DEGUGMSD_DEGUG " << __LINE__ << " of " << __FILE__ << "\n";
 
 /*  ============================================== */
 /*                                                 */
@@ -42,13 +43,58 @@ cColStrAOpt::cColStrAOpt(cExplicitCopy,const cColStrAOpt& aCSAO)  :
 /*                                                 */
 /*  ============================================== */
 
-cParamCallSys::cParamCallSys(const std::string & aCom) :
-   mCom (aCom)
+cParamCallSys::cParamCallSys(const cSpecMMVII_Appli & aSpec,bool InArgSep) :
+   mSpec   (&aSpec),
+   mArgSep (InArgSep),
+   mArgc   (0)
 {
+}
+
+int cParamCallSys::Execute() const
+{
+   if (mArgSep)
+   {
+       static int aCpt=0; aCpt++;
+/*
+       std::vector<char *> aVArgv;
+       for (auto & aStr : mArgv)
+       {
+          aVArgv.push_back(const_cast<char*>(aStr.c_str()));
+       }
+
+       char ** argv = aVArgv.data();
+*/
+       int aRes = mSpec->AllocExecuteDestruct(mArgv);
+       return aRes;
+   }
+   else
+   {
+       // StdOut() << "EXTERN   cParamCallSys::  \n";
+       int aRes = SysCall(mCom,false);
+       // StdOut() << "   ##### EXTERN   cParamCallSys::  " << aRes << " \n";
+       return aRes;
+   }
+}
+
+void cParamCallSys::AddArgs(const std::string & aNewArg)
+{
+   if (mArgSep)
+   {
+       mArgv.push_back(aNewArg);
+   }
+   else
+   { 
+      if (mArgc)
+         mCom += " ";
+      mCom +=  aNewArg;
+   }
+
+   mArgc++;
 }
 
 const std::string &  cParamCallSys::Com() const 
 {
+   MMVII_INTERNAL_ASSERT_strong(! mArgSep,"Call com with arg non separated in cParamCallSys::Com");
    return mCom;
 }
 
@@ -77,37 +123,63 @@ template <class Type> Type PrintArg(const Type & aVal,const std::string & aName)
 
 cMMVII_Appli::~cMMVII_Appli()
 {
+   if (! mModeHelp)
+   {
+      RenameFiles(NameFileLog(false),NameFileLog(true));
+      LogCommandOut(NameFileLog(true),false);
+   }
+
+   if (mGlobalMainAppli)
+   {
+      LogCommandOut(MVII_LogFile,true);
+   }
   
-   msInDstructor = true;  // avoid problem with StdOut 
-   FreeRandom();   // Free memory
+   msInDstructor = (TheStackAppli.size()<=1);  // avoid problem with StdOut 
+   if (msInDstructor) FreeRandom();   // Free memory only top called do it
    AssertInitParam();
    // ======= delete mSetInit;
    mArgObl.clear();
    mArgFac.clear();
 
 
+   MMVII_INTERNAL_ASSERT_strong(ExistAppli(),"check in Appli Destructor");
+   MMVII_INTERNAL_ASSERT_strong(this==TheStackAppli.back(),"check in Appli Destructor");
+   TheStackAppli.pop_back();
    mStdCout.Clear();
    // Verifie que tout ce qui a ete alloue a ete desalloue 
    // cMemManager::CheckRestoration(mMemStateBegin);
    mMemStateBegin.SetCheckAtDestroy();
 }
 
+/*
+static std::vector<std::string> InitFromArgcArgv(int argc, char ** argv)
+{ 
+   std::vector<std::string> aRes;
+   for (int aK=0 ; aK<argc; aK++)
+       aRes.push_back(argv[aK]);
+   return aRes;
+}
+*/
+
+template <class Type> const Type & MessageInCstr(const Type & aVal,const std::string & aMsg,int aLine)
+{
+    StdOut() << aMsg << " at line " << aLine << "\n";
+    return aVal;
+}
 
 cMMVII_Appli::cMMVII_Appli
 (
-      int argc,
-      char ** argv,
+      const std::vector<std::string> & aVArgcv,
       const cSpecMMVII_Appli & aSpec
 )  :
+   cMMVII_Ap_CPU(),
    mMemStateBegin (cMemManager::CurState()),
-   mArgc          (argc),
-   mArgv          (argv),
+   mArgv          (aVArgcv),
+   mArgc          (mArgv.size()),
    mSpecs         (aSpec),
    mDirBinMMVII   (DirBin2007),
    mTopDirMMVII   (UpDir(mDirBinMMVII,1)),
    mFullBin       (mDirBinMMVII + Bin2007),
-   // mFullBin       (AbsoluteName(mArgv[0])),
-   // mFullBin       (PrintArg(AbsoluteName(mArgv[0]),"ABS")),
    mBinMMVII      (Bin2007),
    mDirMicMacv1   (UpDir(mTopDirMMVII,1)),
    mDirMicMacv2   (mTopDirMMVII),
@@ -120,7 +192,6 @@ cMMVII_Appli::cMMVII_Appli
    mDoInternalHelp(false),
    mShowAll       (false),
    mLevelCall     (0),
-   mDoInitProj    (false),
    mSetInit       (cExtSet<void *>(eTySC::US)),
    mInitParamDone (false),
    mVMainSets     (NbMaxMainSets,tNameSet(eTySC::NonInit)),
@@ -132,6 +203,11 @@ cMMVII_Appli::cMMVII_Appli
    mStdCout       (std::cout),
    mSeedRand      (msDefSeedRand) // In constructor, don't use virtual, wait ...
 {
+   mNumCallInsideP = TheNbCallInsideP;
+   TheNbCallInsideP++;
+   
+   mMainAppliInsideP = (mNumCallInsideP==0);
+   TheStackAppli.push_back(this);
    /// Minimal consistency test for installation, does the MicMac binary exist ?
    MMVII_INTERNAL_ASSERT_always(ExistFile(mFullBin),"Could not find MMVII binary (tried with " +  mFullBin + ")");
 }
@@ -147,7 +223,7 @@ cMultipleOfs & StdStdOut()
 cMultipleOfs& StdOut()
 {
    if (cMMVII_Appli::ExistAppli())
-     return cMMVII_Appli::TheAppli().StdOut();
+     return cMMVII_Appli::CurrentAppli().StdOut();
    return StdStdOut();
 }
 cMultipleOfs& HelpOut() {return StdOut();}
@@ -158,7 +234,7 @@ cMultipleOfs& ErrOut()  {return StdOut();}
 cMultipleOfs &  cMMVII_Appli::StdOut()
 {
    /// Maybe mStdCout not correctly initialized if we are in constructor or in destructor ?
-   if ((!msTheAppli) || msInDstructor)
+   if ((!cMMVII_Appli::ExistAppli()) || msInDstructor)
       return StdStdOut();
    return mStdCout;
 }
@@ -177,8 +253,8 @@ void cMMVII_Appli::InitParam()
 
 
   mInitParamDone = true;
-  MMVII_INTERNAL_ASSERT_always(msTheAppli==0,"cMMVII_Appli only one by process");
-  msTheAppli = this;
+  // MMVII_INTERNAL_ASSERT_always(msTheAppli==0,"cMMVII_Appli only one by process");
+  // msTheAppli = this;
 
   // Check that  cCollecSpecArg2007 were used with the good values
   MMVII_INTERNAL_ASSERT_always((&anArgObl)==&mArgObl,"cMMVII_Appli dont respect cCollecSpecArg2007");
@@ -204,13 +280,16 @@ void cMMVII_Appli::InitParam()
       <<  AOpt2007(mSeedRand,GOP_SeedRand,"Seed for random,if <=0 init from time",aCom)
       <<  AOpt2007(aDP ,GOP_DirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Common})
       <<  AOpt2007(mParamStdOut,GOP_StdOut,"Redirection of Ouput (+File for add,"+ MMVII_NONE + "for no out)",aCom)
-      <<  AOpt2007(mLevelCall,GIP_LevCall,"Internal : Don't Use !!",aInternal)
+      <<  AOpt2007(mLevelCall,GIP_LevCall,"Internal : Don't Use !! Level Of Call",aInternal)
       <<  AOpt2007(mShowAll,GIP_ShowAll,"Internal : Don't Use !!",aInternal)
+      <<  AOpt2007(mPrefixGMA,GIP_PGMA,"Internal : Don't Use !! Prefix Global Main Appli",aInternal)
+      <<  AOpt2007(mDirProjGMA,GIP_DirProjGMA,"Internal : Don't Use !! Folder Project Global Main Appli",aInternal)
   ;
 
   // Check that names of optionnal parameters begin with alphabetic caracters
   for (const auto & aSpec : mArgFac.Vec())
   {
+      aSpec->ReInit();
       if (!std::isalpha(aSpec->Name()[0]))
       {
          MMVII_INTERNAL_ASSERT_always
@@ -224,7 +303,7 @@ void cMMVII_Appli::InitParam()
   // Test if we are in help mode
   for (int aKArg=0 ; aKArg<mArgc ; aKArg++)
   {
-      char * aArgK = mArgv[aKArg];
+      const char * aArgK = mArgv[aKArg].c_str();
       if (UCaseBegin("help",aArgK) || UCaseBegin("-help",aArgK)|| UCaseBegin("--help",aArgK))
       {
          mModeHelp = true;
@@ -256,8 +335,9 @@ void cMMVII_Appli::InitParam()
       Optional = (aNbArgGot>=aNbObl);
       // If --Name replace by Name, maybe usefull for completion
       if (Optional && (mArgv[aKArg][0]=='-') && (mArgv[aKArg][1]=='-'))
-         mArgv[aKArg] += 2;
-      char * aArgK = mArgv[aKArg];
+         mArgv[aKArg] = mArgv[aKArg].substr(2);
+
+      const char * aArgK = mArgv[aKArg].c_str();
       if (aKArg<2)
       {
           //  mArgv[0] => MMVII
@@ -364,6 +444,23 @@ void cMMVII_Appli::InitParam()
        aVSpec[aK]->InitParam(aVValues[aK]);
        mSetInit.Add(aVSpec[aK]->AdrParam()); ///< Memorize this value was initialized
   }
+  mMainProcess   = (mLevelCall==0);
+  mGlobalMainAppli = mMainProcess && mMainAppliInsideP;
+  // Compute an Id , unique and (more or less ;-) understandable
+  // tINT4 aIT0 = round_ni(mT0);
+// std::cout << "Tttttt " << mT0 << " " << aIT0 << "\n";
+  mPrefixNameAppli =   std::string("MMVII")
+                     + std::string("_Tim")  + StrIdTime()
+                     + std::string("_Num")  + ToStr(mNumCallInsideP) 
+                     + std::string("_Pid")  + ToStr(mPid) 
+                     + std::string("_") + mSpecs.Name()
+                   ;
+   if (mGlobalMainAppli)
+   {
+       mPrefixGMA  = mPrefixNameAppli;
+       mDirProjGMA = mDirProject;
+   }
+   // StdOut() << "mPrefixNameAppliii " << mPrefixNameAppli << " " << mPrefixGMA << "\n";
 
   // Manange OutPut redirection
   if (IsInit(&mParamStdOut))
@@ -481,13 +578,13 @@ void cMMVII_Appli::InitParam()
   }
 
   // By default, if calls is done at top level, assure that everything is init
-  if (!IsInit(&mDoInitProj))
-     mDoInitProj = (mLevelCall==0);
 
-  if (mDoInitProj)
+  if (mGlobalMainAppli)
   {
      InitProject();
   }
+  if (!mModeHelp)
+     LogCommandIn(NameFileLog(false),false);
 
   if (mSeedRand<=0)
   {
@@ -495,9 +592,53 @@ void cMMVII_Appli::InitParam()
   }
 }
 
+
+
+std::string cMMVII_Appli::NameFileLog(bool Finished) const
+{
+   return   
+              //mDirProject
+               mDirProjGMA
+             + TmpMMVIIDir
+             + TmpMMVIIProcSubDir 
+             + mPrefixGMA + DirSeparator()
+             + mPrefixNameAppli 
+             + std::string(Finished ? "_Ok" : "_InProcess")
+             + std::string(".txt")
+          ;
+}
+
 void cMMVII_Appli::InitProject()
 {
-   CreateDirectories(mDirProject+TmpMMVIIDir,true);
+   std::string aDir = mDirProject+TmpMMVIIDir;
+   CreateDirectories(aDir,true);
+
+   aDir += TmpMMVIIProcSubDir;
+   CreateDirectories(aDir,true);
+
+   if (! mModeHelp)
+   {
+      aDir += mPrefixNameAppli;
+      CreateDirectories(aDir,true);
+      LogCommandIn(MVII_LogFile,true);
+   }
+}
+
+void cMMVII_Appli::LogCommandIn(const std::string & aName,bool MainLogFile)
+{
+   cMMVII_Ofs  aOfs(aName,true);
+   aOfs.Ofs() << "========================================================================\n";
+   aOfs.Ofs() << "  Id : " <<  mPrefixNameAppli << "\n";
+   aOfs.Ofs() << "  begining at : " <<  StrDateCur() << "\n\n";
+   aOfs.Ofs() << "  " << Command() << "\n\n";
+   aOfs.Ofs().close();
+}
+
+void cMMVII_Appli::LogCommandOut(const std::string & aName,bool MainLogFile)
+{
+   cMMVII_Ofs  aOfs(aName,true);
+   aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur() << "\n\n";
+   aOfs.Ofs().close();
 }
 
 
@@ -589,7 +730,7 @@ void cMMVII_Appli::CheckRangeMainSet(int aK) const
 
 void cMMVII_Appli::SignalInputFormat(int aNumV)
 {
-   cMMVII_Appli & TheAp = TheAppli();
+   cMMVII_Appli & TheAp = CurrentAppli();
    if (aNumV==0)
    {
    }
@@ -611,7 +752,7 @@ void cMMVII_Appli::SignalInputFormat(int aNumV)
 bool GlobOutV2Format() { return cMMVII_Appli::OutV2Format(); }
 bool   cMMVII_Appli::OutV2Format() 
 {
-   const cMMVII_Appli & TheAp = TheAppli();
+   const cMMVII_Appli & TheAp = CurrentAppli();
    // Priority to specified output if exist
    if (TheAp.mOutPutV2) return true;
    if (TheAp.mOutPutV1) return false;
@@ -624,16 +765,17 @@ bool   cMMVII_Appli::OutV2Format()
 
     // ========== Handling of global Appli =================
 
-cMMVII_Appli *  cMMVII_Appli::msTheAppli = 0;
+std::vector<cMMVII_Appli *>  cMMVII_Appli::TheStackAppli ;
+int  cMMVII_Appli::TheNbCallInsideP=0;
 bool  cMMVII_Appli::msInDstructor = false;
-cMMVII_Appli & cMMVII_Appli::TheAppli()
+cMMVII_Appli & cMMVII_Appli::CurrentAppli()
 {
-  MMVII_INTERNAL_ASSERT_medium(msTheAppli!=0,"cMMVII_Appli not created");
-  return *msTheAppli;
+  MMVII_INTERNAL_ASSERT_strong(ExistAppli(),"cMMVII_Appli not created");
+  return *(TheStackAppli.back());
 }
 bool cMMVII_Appli::ExistAppli()
 {
-  return msTheAppli != 0;
+  return !TheStackAppli.empty();
 }
  
     // ========== Random seed  =================
@@ -641,7 +783,7 @@ bool cMMVII_Appli::ExistAppli()
 const int cMMVII_Appli::msDefSeedRand = 42;
 int  cMMVII_Appli::SeedRandom()
 {
-    return msTheAppli ?  msTheAppli->mSeedRand  : msDefSeedRand;
+    return ExistAppli() ?  CurrentAppli().mSeedRand  : msDefSeedRand;
 }
 int  cMMVII_Appli::DefSeedRand()
 {
@@ -688,18 +830,28 @@ cColStrAObl& cMMVII_Appli::StrObl() {return mColStrAObl;}
 cColStrAOpt& cMMVII_Appli::StrOpt() {return mColStrAOpt;}
 
 
+/// Quote when Not Separated, i.e. when call by process , else quote will not be removed
+std::string QuoteWUS(bool Separate,const std::string & aStr)
+{
+   return Separate ? aStr : Quote(aStr);
+}
+
+
 cParamCallSys  cMMVII_Appli::StrCallMMVII
                (
                   const cSpecMMVII_Appli & aCom2007,
                   const cColStrAObl& anAObl,
                   const cColStrAOpt& anAOpt,
+                  bool  Separate,
                   const cColStrAOpt&  aSubst
                )
 {
+  cParamCallSys aRes(aCom2007,Separate);
   MMVII_INTERNAL_ASSERT_always(&anAObl==&mColStrAObl,"StrCallMMVII use StrObl() !!");
   MMVII_INTERNAL_ASSERT_always(&anAOpt==&mColStrAOpt,"StrCallMMVII use StrOpt() !!");
 
-   std::string aComGlob = mFullBin + " ";
+   // std::string aComGlob = mFullBin + " ";
+   aRes.AddArgs(mFullBin);
    int aNbSubst=0;
    std::vector<bool>  aVUsedSubst(aSubst.V().size(),false);
 /*
@@ -711,7 +863,8 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
    // Theoretically we can create the command  (dealing with unik msTheAppli before !) and check
    // the parameters, but it will be done in the call so maybe it's not worth the price ?
   
-   aComGlob += aCom2007.Name() + " ";
+   // aComGlob += aCom2007.Name() + " ";
+   aRes.AddArgs(aCom2007.Name());
 
    
    // Add mandatory args
@@ -733,7 +886,7 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
            }
            aKSubst++;
        }
-       aComGlob +=  Quote(aVal) + " ";
+       aRes.AddArgs(QuoteWUS(Separate,aVal));
        aK++;
    }
 
@@ -741,7 +894,7 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
    for (const auto & aPOpt : anAOpt.V())
    {
        // Special case, it may have be add by the auto recal process , but it will be handled separately
-       if (aPOpt.first != GIP_LevCall)
+       if ((aPOpt.first != GIP_LevCall) && (aPOpt.first !=GIP_PGMA) && (aPOpt.first !=GIP_DirProjGMA))
        {
           std::string aVal = aPOpt.second;
           int aKSubst=0;
@@ -756,33 +909,39 @@ cParamCallSys  cMMVII_Appli::StrCallMMVII
               }
               aKSubst++;
           }
-          aComGlob +=  aPOpt.first + "=" + Quote(aVal) + " ";
+          aRes.AddArgs(QuoteWUS(Separate,aPOpt.first + "=" + aVal) );
        }
    }
    // MMVII_INTERNAL_ASSERT_always(aNbSubst==(int)aSubst.V().size(),"Impossible Subst in StrCallMMVII ");
 
    // Take into account the call level which must increase
-   aComGlob += GIP_LevCall + "=" + ToStr(mLevelCall+1);
+   // aComGlob += GIP_LevCall + "=" + ToStr(mLevelCall+1);
+   aRes.AddArgs(GIP_LevCall + "=" + ToStr(mLevelCall+1));
+   aRes.AddArgs(GIP_PGMA + "=" + mPrefixGMA);
+   aRes.AddArgs(GIP_DirProjGMA + "=" + mDirProjGMA);
+   // aRes.AddArgs(GIP_PGMA + "=" + mPrefixGMA);
 
+   // If no substitution, it means it was to be added simply
    int aKSubst=0;
    for (const auto & aPSubst :  aSubst.V())
    {
       if (!aVUsedSubst[aKSubst])
       {
-         aComGlob +=  aPSubst.first + "=" + Quote(aPSubst.second) + " ";
+         aRes.AddArgs(QuoteWUS(Separate,aPSubst.first + "=" + aPSubst.second));
       }
       aKSubst++;
    }
 
    mColStrAObl.clear();
    mColStrAOpt.clear();
-   return cParamCallSys(aComGlob);
+   return aRes;
 }
 
 std::list<cParamCallSys>  cMMVII_Appli::ListStrCallMMVII
                         ( 
                               const cSpecMMVII_Appli & aCom2007,const cColStrAObl& anAObl,const cColStrAOpt& anAOpt,
-                              const std::string & aNameOpt  , const std::vector<std::string> &  aLVals
+                              const std::string & aNameOpt  , const std::vector<std::string> &  aLVals,
+                              bool Separate
                         )
 {
     std::list<cParamCallSys> aRes;
@@ -791,7 +950,7 @@ std::list<cParamCallSys>  cMMVII_Appli::ListStrCallMMVII
     {
        cColStrAOpt  aNewSubst; 
        aNewSubst << t2S(aNameOpt,aVal);
-       aRes.push_back(StrCallMMVII(aCom2007,anAObl,anAOpt,aNewSubst));
+       aRes.push_back(StrCallMMVII(aCom2007,anAObl,anAOpt,Separate,aNewSubst));
     }
 
     return aRes;
@@ -799,17 +958,15 @@ std::list<cParamCallSys>  cMMVII_Appli::ListStrCallMMVII
 
 
 
-int  cMMVII_Appli::ExeCallMMVII(const  cSpecMMVII_Appli&  aCom2007,const cColStrAObl& anAObl,const cColStrAOpt& anAOpt)
+int  cMMVII_Appli::ExeCallMMVII
+     (
+         const  cSpecMMVII_Appli&  aCom2007,
+         const cColStrAObl& anAObl,
+         const cColStrAOpt& anAOpt,
+         bool ByLineCom
+      )
 {
-     cParamCallSys aComGlob = StrCallMMVII(aCom2007,anAObl,anAOpt);
-/*
-if (0)
-{
-    Std Out() <<  "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
-    Std Out() << aComGlob << "\n";
-    getchar();
-}
-*/
+    cParamCallSys aComGlob = StrCallMMVII(aCom2007,anAObl,anAOpt,!ByLineCom);
     return  SysCall(aComGlob.Com(),false);
 }
 
@@ -817,7 +974,7 @@ int cMMVII_Appli::ExeComSerial(const std::list<cParamCallSys> & aL)
 {
     for (const auto & aPCS : aL)
     {
-        int aRes = SysCall(aPCS.Com(),false);
+        int aRes = aPCS.Execute();
         if (aRes != EXIT_SUCCESS)
         {
             MMVII_INTERNAL_ASSERT_always(false,"Error in serial com");
@@ -855,6 +1012,7 @@ std::list<cParamCallSys>  cMMVII_Appli::ListStrAutoRecallMMVII
                           ( 
                                 const std::string & aNameOpt  , 
                                 const std::vector<std::string> &  aLVals,
+                                bool                 Separate,
                                 const cColStrAOpt &  aLSubstInit
                           )
 {
@@ -866,7 +1024,7 @@ std::list<cParamCallSys>  cMMVII_Appli::ListStrAutoRecallMMVII
 
          cColStrAOpt  aNewSubst(cExplicitCopy(),aLSubstInit);  // make copy of aLSubstInit as it is const
          aNewSubst << t2S(aNameOpt,aVal); // subsitute/add  aVal with "named" arg aVal
-         aRes.push_back(StrCallMMVII(mSpecs,mColStrAObl,mColStrAOpt,aNewSubst));
+         aRes.push_back(StrCallMMVII(mSpecs,mColStrAObl,mColStrAOpt,Separate,aNewSubst));
     }
     return aRes;
 }
@@ -876,17 +1034,33 @@ void   cMMVII_Appli::ExeMultiAutoRecallMMVII
            const std::string & aNameOpt  , 
            const std::vector<std::string> &  aLVals,
            const cColStrAOpt &  aLSubstInit,
-           bool InParal
+           eTyModeRecall  aMode
        )
 {
-    std::list<cParamCallSys>  aLPCS = ListStrAutoRecallMMVII(aNameOpt,aLVals,aLSubstInit);
-    if (InParal)
+    bool Separate = (aMode==eTyModeRecall::eTMR_Inside);
+    std::list<cParamCallSys>  aLPCS = ListStrAutoRecallMMVII(aNameOpt,aLVals,Separate,aLSubstInit);
+    if (aMode==eTyModeRecall::eTMR_Parall)
+    {
        ExeComParal(aLPCS);
+    }
     else
-       ExeComSerial(aLPCS);
+    {
+           ExeComSerial(aLPCS);
+    }
 }
 
 int   cMMVII_Appli::LevelCall() const { return mLevelCall; }
+
+std::string  cMMVII_Appli::Command() const
+{
+    std::string  aRes;
+    for (int aK=0 ; aK<(int) mArgv.size() ; aK++)
+    {
+        if (aK) aRes += " ";
+        aRes += mArgv[aK];
+    }
+    return aRes;
+}
 
 
 };

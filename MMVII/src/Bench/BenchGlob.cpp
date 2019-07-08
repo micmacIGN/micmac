@@ -103,20 +103,31 @@ class cAppli_MMVII_Bench : public cMMVII_Appli
 {
      public :
 
-        cAppli_MMVII_Bench(int,char**,const cSpecMMVII_Appli & aSpec);
+        cAppli_MMVII_Bench(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
         void Bench_0000_String();
         void BenchFiles(); ///< A Bench on creation/deletion/existence of files
         int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override 
-        {
-            return anArgObl
-                      << Arg2007(mTest,"Unused, to check reentrance" )
-
-            ;
-        }
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override {return anArgOpt;}
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
         std::string mTest;
+        int         mNumBugRecall;
 };
+
+cCollecSpecArg2007 & cAppli_MMVII_Bench::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+    return anArgObl
+              << Arg2007(mTest,"Unused, to check reentrance" )
+    ;
+}
+
+cCollecSpecArg2007 & cAppli_MMVII_Bench::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
+{
+  return
+      anArgOpt
+         << AOpt2007(mNumBugRecall,"NBR","Num to Generate a Bug in Recall")
+  ;
+}
+
 
 
 void cAppli_MMVII_Bench::Bench_0000_String()
@@ -156,8 +167,9 @@ void cAppli_MMVII_Bench::Bench_0000_String()
 
    // std::string & aBefore,std::string & aAfter,const std::string & aStr,char aSep,bool SVP=false,bool PrivPref=true);
 
-cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc,argv,aSpec)
+cAppli_MMVII_Bench::cAppli_MMVII_Bench (const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli    (aVArgs,aSpec),
+  mNumBugRecall   (-1)
 {
   MMVII_INTERNAL_ASSERT_always
   (
@@ -209,6 +221,7 @@ int  cAppli_MMVII_Bench::Exe()
    // La on a verifie que ca marchait pas
    // MMVII_INTERNAL_ASSERT_all((1+1)==3,"Theoreme  pas tres fondamental de l'arithmetique");
 
+   BenchRecall(mNumBugRecall);
 
    BenchDenseMatrix0();
    BenchGlobImage();
@@ -233,7 +246,6 @@ int  cAppli_MMVII_Bench::Exe()
    BenchEnum();
    Bench_Random();
    Bench_Duration();
-   BenchRecall();
 
    BenchStrIO();
 
@@ -249,9 +261,9 @@ int  cAppli_MMVII_Bench::Exe()
 }
 
 
-tMMVII_UnikPApli Alloc_MMVII_Bench(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_MMVII_Bench(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_MMVII_Bench(argc,argv,aSpec));
+   return tMMVII_UnikPApli(new cAppli_MMVII_Bench(aVArgs,aSpec));
 }
  
 
@@ -277,9 +289,9 @@ cSpecMMVII_Appli  TheSpecBench
 class cAppli_MMRecall : public cMMVII_Appli
 {
      public :
-        static const int NbMaxArg=4;
+        static const int NbMaxArg=2;
 
-        cAppli_MMRecall(int argc,char** argv,const cSpecMMVII_Appli & aSpec);
+        cAppli_MMRecall(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
@@ -289,17 +301,21 @@ class cAppli_MMRecall : public cMMVII_Appli
         int          mLev0; ///< to have the right depth we must know level of
         std::string  mAM[NbMaxArg];
         std::string  mAO[NbMaxArg];
+        bool         mRecalInSameProcess;
+        int          mNumBug;  ///< Generate bug 4 this num
 };
 
-cAppli_MMRecall::cAppli_MMRecall(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc,argv,aSpec),
-  mLev0        (0)
+
+cAppli_MMRecall::cAppli_MMRecall(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli         (aVArgs,aSpec),
+  mLev0                (0),
+  mRecalInSameProcess  (true),
+  mNumBug              (-1)
 {
 }
 
 int cAppli_MMRecall::Exe() 
 {
-
     std::string aDirT =  TmpDirTestMMVII() ;
     // Purge TMP
     if (mLevelCall == mLev0)
@@ -312,6 +328,7 @@ int cAppli_MMRecall::Exe()
        std::string aNameF = aDirT + ToStr(mNum) + ".txt";
        cMMVII_Ofs (aNameF,false);
     }
+    MMVII_INTERNAL_ASSERT_always(mNum!=mNumBug,"Bug generate by user in cAppli_MMRecall");
 
     // Break recursion
     if (mLevelCall-mLev0 >= NbMaxArg)
@@ -324,10 +341,9 @@ int cAppli_MMRecall::Exe()
         aLVal.push_back(ToStr(2*mNum+1));
 
         cColStrAOpt  aSub;
+        eTyModeRecall aMRec = mRecalInSameProcess ? eTyModeRecall::eTMR_Inside : eTyModeRecall::eTMR_Serial;
 
-        std::list<cParamCallSys>  aLCall =  ListStrAutoRecallMMVII ("0" ,aLVal , aSub);
-
-        ExeComSerial(aLCall);
+        ExeMultiAutoRecallMMVII("0",aLVal ,aSub,aMRec);
     }
 
     // Test that we have exactly the expected file (e.g. 1,2, ... 31 )  and purge
@@ -354,8 +370,8 @@ cCollecSpecArg2007 & cAppli_MMRecall::ArgObl(cCollecSpecArg2007 & anArgObl)
           << Arg2007(mNum,"Num" )
           << Arg2007(mAM[0],"Mandatory arg0" )
           << Arg2007(mAM[1],"Mandatory arg1" )
-          << Arg2007(mAM[2],"Mandatory arg2" )
-          << Arg2007(mAM[3],"Mandatory arg3" )
+          // << Arg2007(mAM[2],"Mandatory arg2" )
+          // << Arg2007(mAM[3],"Mandatory arg3" )
    ;
 
 }
@@ -366,15 +382,17 @@ cCollecSpecArg2007 & cAppli_MMRecall::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       anArgOpt
          << AOpt2007(mAO[0],"A0","Optional Arg 0")
          << AOpt2007(mAO[1],"A1","Optional Arg 1")
-         << AOpt2007(mAO[2],"A2","Optional Arg 2")
-         << AOpt2007(mAO[3],"A3","Optional Arg 3")
+         // << AOpt2007(mAO[2],"A2","Optional Arg 2")
+         // << AOpt2007(mAO[3],"A3","Optional Arg 3")
          << AOpt2007(mLev0,"Lev0","Level of first call")
+         << AOpt2007(mRecalInSameProcess,"RISP","Recall in same process")
+         << AOpt2007(mNumBug,"NumBug","Num 4 generating purpose scratch")
    ;
 }
 
-tMMVII_UnikPApli Alloc_TestRecall(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_TestRecall(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_MMRecall(argc,argv,aSpec));
+   return tMMVII_UnikPApli(new cAppli_MMRecall(aVArgs,aSpec));
 }
 
 cSpecMMVII_Appli  TheSpecTestRecall
@@ -388,9 +406,9 @@ cSpecMMVII_Appli  TheSpecTestRecall
       __FILE__
 );
 
-void BenchRecall()
+void OneBenchRecall(bool InSameP,int aNumBug)
 {
-    cMMVII_Appli &  anAp = cMMVII_Appli::TheAppli();
+    cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
 
     anAp.StrObl() << "1";
 
@@ -402,9 +420,15 @@ void BenchRecall()
         TheSpecTestRecall,
         anAp.StrObl() ,
         anAp.StrOpt() << t2S("Lev0",ToStr(1+anAp.LevelCall()))
+                      << t2S("RISP",ToStr(InSameP))
+                      << t2S("NumBug",ToStr(aNumBug))
     );
+}
 
-
+void BenchRecall(int aNum)
+{
+     OneBenchRecall(true,-1);
+     OneBenchRecall(false,aNum);
 }
 
 
@@ -425,14 +449,14 @@ void BenchRecall()
 class cAppli_MPDTest : public cMMVII_Appli
 {
      public :
-        cAppli_MPDTest(int argc,char** argv,const cSpecMMVII_Appli & aSpec);
+        cAppli_MPDTest(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override {return anArgOpt;}
 };
 
-cAppli_MPDTest:: cAppli_MPDTest(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc,argv,aSpec)
+cAppli_MPDTest:: cAppli_MPDTest(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (aVArgs,aSpec)
 {
 }
 
@@ -573,9 +597,9 @@ int cAppli_MPDTest::Exe()
    return EXIT_SUCCESS;
 }
 
-tMMVII_UnikPApli Alloc_MPDTest(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_MPDTest(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_MPDTest(argc,argv,aSpec));
+   return tMMVII_UnikPApli(new cAppli_MPDTest(aVArgs,aSpec));
 }
 
 cSpecMMVII_Appli  TheSpecMPDTest

@@ -204,7 +204,7 @@ if (1)
 class cAppli_MMVII_TestBoostSerial : public cMMVII_Appli
 {
      public :
-        cAppli_MMVII_TestBoostSerial(int argc,char** argv,const cSpecMMVII_Appli & aSpec) ;
+        cAppli_MMVII_TestBoostSerial(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) ;
         int Exe() override ;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override {return anArgOpt;}
@@ -212,8 +212,12 @@ class cAppli_MMVII_TestBoostSerial : public cMMVII_Appli
 
 };
 
-cAppli_MMVII_TestBoostSerial::cAppli_MMVII_TestBoostSerial (int argc,char **argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc, argv,aSpec)
+cAppli_MMVII_TestBoostSerial::cAppli_MMVII_TestBoostSerial 
+(
+      const std::vector<std::string> &  aVArgs,
+      const cSpecMMVII_Appli & aSpec
+) :
+  cMMVII_Appli (aVArgs,aSpec)
 {
 }
 
@@ -224,9 +228,9 @@ int cAppli_MMVII_TestBoostSerial::Exe()
     return EXIT_SUCCESS;
 }
 
-tMMVII_UnikPApli Alloc_MMVII_TestBoostSerial(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_MMVII_TestBoostSerial(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_MMVII_TestBoostSerial(argc,argv,aSpec));
+   return tMMVII_UnikPApli(new cAppli_MMVII_TestBoostSerial(aVArgs,aSpec));
 }
 
 
