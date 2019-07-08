@@ -48,6 +48,7 @@ void BenchStrIO();        ///< specially for vectors
 
 void TestTimeV1V2(); ///< Not a formal Bench, require visual inspection
 
+void BenchFilterImage1();
 
 };
 

@@ -143,6 +143,7 @@ template <> class tBaseNumTrait<tStdInt>
  
         // For these type rounding mean something
         static int RoundDownToType(const double & aV) {return round_down(aV);}
+        static int RoundNearestToType(const double & aV) {return round_ni(aV);}
 
         static bool IsInt() {return true;}
         typedef tStdInt  tBase;
@@ -153,6 +154,7 @@ template <> class tBaseNumTrait<tINT8>
     public :
         // For these type rounding mean something
         static tINT8 RoundDownToType(const double & aV) {return lround_down(aV);}
+        static tINT8 RoundNearestToType(const double & aV) {return lround_ni(aV);}
 
         static bool IsInt() {return true;}
         typedef tINT8  tBase;
@@ -163,6 +165,7 @@ template <> class tBaseNumTrait<tStdDouble>
     public :
         // By default rounding has no meaning
         static double RoundDownToType(const double & aV) {return aV;}
+        static double RoundNearestToType(const double & aV) {return aV;}
 
         static bool IsInt() {return false;}
         typedef tStdDouble  tBase;
@@ -373,7 +376,15 @@ inline tINT4 mod_gen(tINT4 a,tINT4 b)
     return (r <0) ? (r+ ((b>0) ? b : -b)) : r;
 }
 
-tINT4 HCF(tINT4 a,tINT4 b); // = PGCD = Highest Common Factor
+template<class Type> Type DivSup(const Type & a,const Type & b) 
+{
+    MMVII_INTERNAL_ASSERT_tiny(b>0,"DivSup");
+    return (a+b-1)/b; 
+}
+
+
+tINT4 HCF(tINT4 a,tINT4 b); ///< = PGCD = Highest Common Factor
+int BinomialCoeff(int aK,int aN);
 
 
 inline tREAL8 FracPart(tREAL8 r) {return r - round_down(r);}

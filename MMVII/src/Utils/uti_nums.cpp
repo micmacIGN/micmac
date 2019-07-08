@@ -4,6 +4,25 @@
 namespace MMVII
 {
 
+int BinomialCoeff(int aK,int aN)
+{
+  if ((aK<0) || (aK>aN)) 
+     return aK;
+  if (aK> (aN/2)) 
+     aK= aN-aK;
+
+  tINT8 aNum = 1;
+  tINT8 aDenom = 1;
+
+  for (int aP = 1 ; aP<=aK ; aP++)
+  {
+      aDenom*= aP;
+      aNum *= (aN+1-aP);
+  }
+  return aNum / aDenom;
+}
+
+
 tINT4 HCF(tINT4 a,tINT4 b)
 {
    a = std::abs(a);
@@ -118,6 +137,15 @@ void BenchMod(int A,int B,int aModb)
 
 void Bench_Nums()
 {
+   MMVII_INTERNAL_ASSERT_bench (BinomialCoeff(2,10)==45,"Bench binom");
+   {
+      int aS=0;
+      for (int aK=0 ; aK<=10 ; aK++)
+      {
+         aS += BinomialCoeff(aK,10);
+      }
+      MMVII_INTERNAL_ASSERT_bench (aS==(1<<10),"Bench binom");
+   }
    BenchTraits(); 
 
    StdOut() << "Bench_NumsBench_NumsBench_NumsBench_Nums\n";

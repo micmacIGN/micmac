@@ -8,89 +8,6 @@ namespace MMVII
     \brief Classes for storing images in RAM, possibly N dimention
 */
 
-/** The purpose of this  class is to make some elementary test on image class,
-for this it is declared friend  of many image class, allowing to test atomic function
-who  will be private for standard classes/functions .
-*/
-
-class cBenchBaseImage;
-/// Idem cBenchBaseImage
-class cBenchImage;
-
-template <class Type,const int Dim>  class cTplBox;
-template <const int Dim>  class            cPixBoxIterator;
-template <const int Dim>  class            cPixBox;
-
-
-
-template <class Type,const int Dim>  class cTplBox
-{
-    public : 
-        typedef Type                             tNum ;
-        typedef typename  tNumTrait<Type>::tBig  tBigNum ;
-        typedef cTplBox<Type,Dim>                tBox;
-        typedef cPtxd<Type,Dim>                  tPt;
-        typedef cPtxd<tBigNum,Dim>               tBigPt;
-
-        cTplBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty=false);
-
-
-        const tPt & P0() const {return mP0;} ///< Origin of object
-        const tPt & P1() const {return mP1;} ///< End of object
-        const tPt & Sz() const {return mSz;} ///< Size of object
-
-        const tBigNum & NbElem() const {return mNbElem;}  ///< Surface  / Volume
-
-        const tPt & SzCum() const;
-
-        // Boolean operators
-           /// Is this point/pixel/voxel  inside
-        bool Inside(const tPt & aP) const  {return SupEq(aP,mP0) && InfStr(aP,mP1);}
-           /// Specialistion 1D
-        bool Inside(const tNum & aX) const  
-        {
-           // static_assert(Dim==1,"Bas dim for integer access");
-           return (aX>=mP0.x()) && (aX<mP1.x());
-        }
-        /// Return closest point inside the box
-        tPt  Proj(const tPt & aP) const {return PtInfStr(PtSupEq(aP,mP0),mP1);}
-        /// Are the two box equals
-        bool operator == (const tBox & aR2) const ;
-        /// Is  this included in aB
-        bool  IncludedIn(const  tBox & aB)const;
-        /// Sometime we need to represent the empty box explicitely
-        bool IsEmpty() const;
-        tBox   Translate(const tPt & aPt)const;
-
-        tBox Sup(const tBox & aPt)const;
-        tBox Inter(const tBox & aPt)const;
-
-        /// Assert that it is inside
-        template <class TypeIndex> void AssertInside(const TypeIndex & aP) const
-        {
-             MMVII_INTERNAL_ASSERT_tiny(Inside(aP),"Point out of image");
-        }
-        void AssertSameArea(const tBox & aV) const; ///<  Assert object are identic
-        void AssertSameSz(const   tBox & aV) const;   ///<  Check only size
-
-         
-
-        //  ---  object generation ----------------
-
-        tPt  FromNormaliseCoord(const cPtxd<double,Dim> &) const ;  ///< [0,1] * => Rect
-        static cPtxd<double,Dim>  RandomNormalised() ;     ///<  Random point in "hyper cube" [0,1] ^ Dim
-        tPt   GeneratePointInside() const;   ///< Random point in integer rect
-        tBox  GenerateRectInside(double aPowSize=1.0) const; ///< Hig Power generate "small" rect, never empty
-
-
-    protected :
-        tPt       mP0;         ///< "smallest"
-        tPt       mP1;         ///< "highest"
-        tPt       mSz;         ///<  Size
-        tBigPt    mSzCum;      ///< Cumlated size : Cum[aK] = Cum[aK-1] * Sz[aK-1]
-        tBigNum   mNbElem;     ///< Number of pixel = Cum[Dim-1]
-    private :
-};
 
 /**  Class allow to iterate the pixel of an image (in fact a rectangular object) using the
 same syntax than stl iterator => for (auto aP : anIma) ....
@@ -105,16 +22,17 @@ template <const int Dim>  class cPixBoxIterator
 
         bool operator == (const tIter& aIt2) {return  mPCur==aIt2.mPCur;}  ///< Equal iff current point are =
         bool operator != (const tIter& aIt2) {return  mPCur!=aIt2.mPCur;}  ///< !Equal iif not equal ...
-        tPt & operator * () {return mPCur;}
-        tPt & operator * () const {return mPCur;}
-        tPt * operator ->() {return &mPCur;}
-        tPt * operator ->() const {return &mPCur;}
+        tPt & operator * () {return mPCur;}         ///< classic operator dereference
+        tPt & operator * () const {return mPCur;}   ///< classic operator dereference
+        tPt * operator ->() {return &mPCur;}        ///< classic operator dereference
+        tPt * operator ->() const {return &mPCur;}  ///< classic operator dereference
 
         /// standard prefix incrementation
         tIter &  operator ++(); 
         /// Just a "facility" to allow post-fix
         tIter &  operator ++(int) {return ++(*this);} 
-     private :
+     protected :
+        
         cPixBoxIterator(tPB & aRO,const  tPt & aP0) : mRO (&aRO),mPCur (aP0) {}
 
         tPB * mRO;  ///< The rectangular object
@@ -140,14 +58,23 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         //  --- Iterator ----------------
         iterator &  begin() {return mBegin;}   ///< For auto
         iterator &  end()   {return mEnd;}   ///< For auto
-        iterator   begin() const {return mBegin;}   ///< For auto
-        iterator   end()   const {return mEnd;}   ///< For auto
-        tINT8     IndexeLinear(const tPt &) const;
+        const iterator &  begin() const {return mBegin;}   ///< For auto
+        const iterator &  end()   const {return mEnd;}   ///< For auto
+        tINT8     IndexeLinear(const tPt &) const; ///< Num of pixel when we iterate
         /// Required by iterators  as they do not copy well becaus of ptr
         cPixBox(const cPixBox<Dim> &) ;
         cPixBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty = false);
         /// It may be convenient as conversion, as tool may retun TplBox, and others may need to iterate on it
         cPixBox(const cTplBox<int,Dim> &);
+        // Position of point relative to PixBox
+          ///< D is the num coordina, 0 on the border, <0 out, value is the signed margin
+        int Interiority(const int  aCoord,int aD) const;  
+        int Interiority(const tPt& aP    ,int aD) const;  ///< D is 
+        int Interiority(const tPt& aP           ) const;  ///< Min of previous
+        int WinInteriority(const tPt& aP,const tPt& aWin,int aD) const;  ///< D is 
+
+        cBorderPixBox<Dim>  Border(int aSz) const;
+
     private :
         iterator  mBegin; ///< Beging iterator
         iterator  mEnd;   ///< Ending iterator
@@ -156,6 +83,97 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
 typedef  cPixBox<1> cRect1;
 typedef  cPixBox<2> cRect2;
 typedef  cPixBox<3> cRect3;
+
+
+/** Iterator on the border of rectangle, many image processing require some specific
+precaution to be taken on border (sides effect);
+
+    Method : first do a "standard" iteration inside the rectangle, then if X=left border
+
+ */
+template <const int Dim>  class cBorderPixBoxIterator : public cPixBoxIterator<Dim>
+{
+   public :
+       typedef cPtxd<int,Dim>        tPt;
+       typedef cBorderPixBoxIterator<Dim>  tIter;
+       typedef cPixBoxIterator<Dim>  tPBI;
+       typedef cBorderPixBox<Dim>    tBPB;
+
+       cBorderPixBoxIterator(tBPB & ,const  tPt & aP0);
+        /// standard prefix incrementation
+       tIter &  operator ++();
+        /// Just a "facility" to allow post-fix
+       tIter &  operator ++(int);
+
+   private :
+       tBPB *  mBPB;  ///< Pointer to the border for handling "special" incrementation
+};
+
+/** The border itself */
+
+template <const int Dim>  class cBorderPixBox
+{
+   public :
+       typedef cBorderPixBoxIterator<Dim>  iterator;
+       typedef cPixBox<Dim>          tPB;
+       typedef cPtxd<int,Dim>        tPt;
+
+       cBorderPixBox(const tPB & aRO,const tPt & aSz) ;
+       cBorderPixBox(const tPB & aRO,int aSz) ;
+       cBorderPixBox(const cBorderPixBox<Dim> &);
+
+       iterator &  begin() {return mBegin;}   ///< For auto
+       iterator &  end()   {return mEnd;}   ///< For auto
+       iterator   begin() const  {return mBegin;}   ///< For auto
+       iterator   end()   const  {return mEnd;}   ///< For auto
+       tPB &    PB();
+       void IncrPt(tPt &); ///< Make the incrementation specific to border
+   private :
+       tPB              mPB; ///< The Pix Box arround the border
+       tPt              mSz;  ///< Sz of border
+       cTplBox<int,Dim> mBoxInt;  ///< Interior box
+       int              mX0;      ///< first X of interior box
+       int              mX1;      ///< last X of interior box
+       iterator         mBegin;   ///< memorization of iterator , begin
+       iterator         mEnd;     ///< memorization of iterator , end
+};
+
+
+
+
+/** This class will be usefull to parse big image files and reassembling the results
+*/
+
+
+template <const int Dim>  class cParseBoxInOut
+{
+     public :
+        // -------- Typdef section ----------
+        typedef cPixBox<Dim>        tBox;
+        typedef cPtxd<int,Dim>      tPt;
+        typedef cParseBoxInOut<Dim> tThis;
+
+        // -------- creators ----------
+        static tThis  CreateFromSize(const tBox &, const tPt & aSz); /// Give the size of boxes
+        static tThis  CreateFromSizeCste(const tBox&, int aSz);  /// Give a constant size
+        static tThis  CreateFromSzMem(const tBox&, double AvalaibleMem); /// Allocate  approximate mem by tiles
+
+        // -------- Manipulation ----------
+
+        /** Box of indexes : "small" number of tiles , (0,0)=> top left box ..., to be used in for(auto..) */
+        const tBox & BoxIndex() const;  
+        tBox  BoxOut(const tPt & anIndex) const; ///< return OutBox from an index created by BoxIndex
+        tBox  BoxIn(const tPt & anIndex,const tPt& anOverlap) const;  ///< Idem but add an overlap
+        tBox  BoxIn(const tPt & anIndex,const int anOverlap) const;   ///< Add a constant overlap in all direction
+
+     private :
+        cParseBoxInOut(const tBox & aBoxGlob,const tBox & aBoxIndexe); ///< Create from given indexe box
+        tPt Index2Glob(const tPt &) const; ///< Map mBoxIndex  to mBoxGlob
+
+        tBox  mBoxGlob;  ///< Box with want to parse
+        tBox  mBoxIndex; ///< Box of index of sub box
+};
+
 
 
 
@@ -193,6 +211,19 @@ template <> inline cPixBoxIterator<3> &  cPixBoxIterator<3>::operator ++()
 
     return *this;
 }
+
+/** This class can be use full to parse big image files and reassembling the results
+*/
+/*
+template <const int Dim>  class cPixBoxInOut : public  cPixBox<Dim>
+{
+     public :
+         // cPixBoxInOut(const 
+     private :
+        cPixBox<Dim>  mBoxGlob;
+        cPixBox<Dim>  mBoxIndex;
+}; 
+*/
 
 
 /**  Abstract class allowing to manipulate images independanlty of their type

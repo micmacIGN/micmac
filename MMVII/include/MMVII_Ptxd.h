@@ -26,6 +26,7 @@ template <class Type,const int Dim> class cPtxd;
 template <class Type,const int Dim> class cPtxd
 {
     public :
+       static const int TheDim = Dim;
        /// Maybe some function will require generic access to data
        Type * PtRawData() {return mCoords;}
        const Type * PtRawData() const {return mCoords;}
@@ -169,6 +170,15 @@ template <class Type> inline cPtxd<Type,2> PtSupEq  (const cPtxd<Type,2> & aP1,c
 template <class Type> inline cPtxd<Type,3> PtSupEq  (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 { return cPtxd<Type,3> (std::max(aP1.x(),aP2.x()),std::max(aP1.y(),aP2.y()),std::max(aP1.z(),aP2.z())); }
 
+/// PtInfEq   : bigeest point being InfEq to
+template <class Type> inline cPtxd<Type,1> PtInfEq  (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
+{ return cPtxd<Type,1> (std::min(aP1.x(),aP2.x())); }
+template <class Type> inline cPtxd<Type,2> PtInfEq  (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
+{ return cPtxd<Type,2> (std::min(aP1.x(),aP2.x()),std::min(aP1.y(),aP2.y())); }
+template <class Type> inline cPtxd<Type,3> PtInfEq  (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
+{ return cPtxd<Type,3> (std::min(aP1.x(),aP2.x()),std::min(aP1.y(),aP2.y()),std::min(aP1.z(),aP2.z())); }
+
+
 
 ///  InfStr  :  P1.k() < P2.k() for all coordinates
 template <class Type> inline bool InfStr  (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
@@ -178,7 +188,8 @@ template <class Type> inline bool InfStr  (const cPtxd<Type,2> & aP1,const cPtxd
 template <class Type> inline bool InfStr  (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 {return  (aP1.x()<aP2.x()) && (aP1.y()<aP2.y()) && (aP1.z()<aP2.z());}
 
-///  PtInfSTr : bigets point beg=ing InfStr (definition valide for integer types)
+/**  PtInfSTr : bigets point beg=ing InfStr (definition valide for integer types) 
+  Warn non symetric function;  strictness is relative to P2, not P1 */
 template <class Type> inline cPtxd<Type,1> PtInfStr  (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
 { return cPtxd<Type,1> (std::min(aP1.x(),aP2.x()-1)); }
 template <class Type> inline cPtxd<Type,2> PtInfStr  (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
@@ -226,6 +237,114 @@ template <class Type,int Dim,int aKth> bool  CmpCoord(const cPtxd<Type,Dim> & aP
    return aP1[aKth] < aP2[aKth];
 }
 
+
+/**  CByC operator, apply an operator coordinate by coordinate, first version with one points */
+template <class Type,const int Dim,class TypeFctr>
+cPtxd<Type,Dim> CByC1P
+                (
+                   const cPtxd<Type,Dim>  & aP1,
+                   const TypeFctr &         aFctr
+                )
+{
+    cPtxd<Type,Dim> aRes;
+    for (int aK=0 ; aK<Dim ; aK++)
+        aRes[aK] = aFctr(aP1[aK]);
+    return aRes;
+}
+
+/**  CByC version with 2 points */
+template <class Type,const int Dim,class TypeFctr>
+cPtxd<Type,Dim> CByC2P
+                (
+                   const cPtxd<Type,Dim>  & aP1,
+                   const cPtxd<Type,Dim>  & aP2,
+                   const TypeFctr &         aFctr
+                )
+{
+    cPtxd<Type,Dim> aRes;
+    for (int aK=0 ; aK<Dim ; aK++)
+        aRes[aK] = aFctr(aP1[aK],aP2[aK]);
+    return aRes;
+}
+
+int NbPixVign(const int & aVign); 
+template <const int Dim> int NbPixVign(const cPtxd<int,Dim> & aVign); 
+
+
+
+/**  Class for box, they are template as typically :
+       - double will be used in geometric indexes QdTree or tiling
+       - int will be used in bitmap manipulation
+*/
+template <class Type,const int Dim>  class cTplBox 
+{
+    public : 
+        typedef Type                             tNum ;
+        typedef typename  tNumTrait<Type>::tBig  tBigNum ;
+        typedef cTplBox<Type,Dim>                tBox;
+        typedef cPtxd<Type,Dim>                  tPt;
+        typedef cPtxd<tBigNum,Dim>               tBigPt;
+
+        cTplBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty=false);
+
+
+        const tPt & P0() const {return mP0;} ///< Origin of object
+        const tPt & P1() const {return mP1;} ///< End of object
+        const tPt & Sz() const {return mSz;} ///< Size of object
+
+        const tBigNum & NbElem() const {return mNbElem;}  ///< Surface  / Volume
+
+        const tPt & SzCum() const; ///< Cumulated size, rather internal use
+
+        // Boolean operators
+           /// Is this point/pixel/voxel  inside
+        bool Inside(const tPt & aP) const  {return SupEq(aP,mP0) && InfStr(aP,mP1);}
+           /// Specialistion 1D
+        bool Inside(const tNum & aX) const  
+        {
+           // static_assert(Dim==1,"Bas dim for integer access");
+           return (aX>=mP0.x()) && (aX<mP1.x());
+        }
+        /// Return closest point inside the box
+        tPt  Proj(const tPt & aP) const {return PtInfStr(PtSupEq(aP,mP0),mP1);}
+        /// Are the two box equals
+        bool operator == (const tBox & aR2) const ;
+        /// Is  this included in aB
+        bool  IncludedIn(const  tBox & aB)const;
+        /// Sometime we need to represent the empty box explicitely
+        bool IsEmpty() const;
+        tBox   Translate(const tPt & aPt)const;
+
+        // tBox Sup(const tBox & aBox)const;
+        tBox Inter(const tBox & aBox)const; ///< Intersction handle empty case
+        tBox Dilate(const tPt & aPt)const;  ///< Dilatation, as in morpho math : mP0-P mP1+P
+
+        /// Assert that it is inside
+        template <class TypeIndex> void AssertInside(const TypeIndex & aP) const
+        {
+             MMVII_INTERNAL_ASSERT_tiny(Inside(aP),"Point out of image");
+        }
+        void AssertSameArea(const tBox & aV) const; ///<  Assert object are identic
+        void AssertSameSz(const   tBox & aV) const;   ///<  Check only size
+
+        //  ---  object generation inside box ----------------
+
+        tPt  FromNormaliseCoord(const cPtxd<double,Dim> &) const;  ///< [0,1] * => Rect
+        cPtxd<double,Dim> ToNormaliseCoord(const tPt & aP) const;  ///< Rect => [0,1] *
+
+        static cPtxd<double,Dim>  RandomNormalised() ;     ///<  Random point in "hyper cube" [0,1] ^ Dim
+        tPt   GeneratePointInside() const;   ///< Random point in integer rect
+        tBox  GenerateRectInside(double aPowSize=1.0) const; ///< Hig Power generate "small" rect, never empty
+
+
+    protected :
+        tPt       mP0;         ///< "smallest"
+        tPt       mP1;         ///< "highest"
+        tPt       mSz;         ///<  Size
+        tBigPt    mSzCum;      ///< Cumlated size : Cum[aK] = Cum[aK-1] * Sz[aK-1]
+        tBigNum   mNbElem;     ///< Number of pixel = Cum[Dim-1]
+    private :
+};
 
 
 
