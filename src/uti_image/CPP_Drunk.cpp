@@ -55,7 +55,7 @@ void Drunk_Banniere()
     std::cout <<  " *********************************\n\n";
 }
 
-void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, Box2di aCrop)
+void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, Box2di aCrop, double maxSz)
 {
     string aPattern,aNameDir;
     SplitDirAndFile(aNameDir,aPattern,aFullPattern);
@@ -101,17 +101,47 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
     CamStenope * aCam = CamOrientGenFromFile(aNameCam,anICNM);
 
+
     //Reading the image and creating the objects to be manipulated
     Tiff_Im aTF= Tiff_Im::StdConvGen(aNameDir + aNameIm,3,false);
 
     Pt2di aSz = aTF.sz();
 
     //out size
+    //if -1 => full picture
     if (aCrop.P0().x<0) {aCrop._p0.x=0; aCrop._p1.x=aSz.x-1;}
     if (aCrop.P0().y<0) {aCrop._p0.y=0; aCrop._p1.y=aSz.y-1;}
 
-    Pt2di aSzOut = aCrop.sz();
-    Pt2dr aOrigOut = Pt2dr(aCrop.P0());
+    Pt2dr aCenterOut = aCam->DistInverse( Pt2dr(aCrop.P0()+aCrop.P1())/2 );
+
+    //transform crop into output image geometry
+    Pt2dr crop0_out=aCam->DistInverse(Pt2dr(aCrop._p0));
+    Pt2dr crop1_out=aCam->DistInverse(Pt2dr(aCrop._p1));
+    set_min_max(crop0_out.x,crop1_out.x);
+    set_min_max(crop0_out.y,crop1_out.y);
+
+    //apply max image size
+    if ((crop1_out-crop0_out).x>maxSz*aSz.x)
+    {
+        std::cout<<"Output picture too big in x: resize."<<std::endl;
+        crop0_out.x=aCenterOut.x-maxSz*aSz.x/2;
+        crop1_out.x=aCenterOut.x+maxSz*aSz.x/2;
+    }
+    if ((crop1_out-crop0_out).y>maxSz*aSz.y)
+    {
+        std::cout<<"Output picture too big in y: resize."<<std::endl;
+        crop0_out.y=aCenterOut.y-maxSz*aSz.y/2;
+        crop1_out.y=aCenterOut.y+maxSz*aSz.y/2;
+    }
+
+    //trunk crop0_out to avoid PP error
+    crop0_out.x=(int)crop0_out.x;
+    crop0_out.y=(int)crop0_out.y;
+
+    std::cout<<"Crop: "<<aCrop._p0<<" => "<<crop0_out<<"\n";
+    std::cout<<"Crop: "<<aCrop._p1<<" => "<<crop1_out<<"\n";
+    Pt2dr aOrigOut = crop0_out;
+    Pt2di aSzOut = Pt2di(crop1_out-crop0_out);
     std::cout<<aNameCam<<": size out="<<aSzOut<<std::endl;
 
     Im2D_U_INT1  aImR(aSz.x,aSz.y);
@@ -136,17 +166,15 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
     U_INT1 ** aDataBOut = aImBOut.data();
 
     //Parcours des points de l'image de sortie et remplissage des valeurs
-    Pt2dr ptOut;
+    Pt2dr ptIn;
     for (int aY=0 ; aY<aSzOut.y  ; aY++)
     {
         for (int aX=0 ; aX<aSzOut.x  ; aX++)
         {
-            ptOut=aCam->DistDirecte(Pt2dr(aX,aY)+aOrigOut);
-
-            aDataROut[aY][aX] = Reechantillonnage::biline(aDataR, aSz.x, aSz.y, ptOut);
-            aDataGOut[aY][aX] = Reechantillonnage::biline(aDataG, aSz.x, aSz.y, ptOut);
-            aDataBOut[aY][aX] = Reechantillonnage::biline(aDataB, aSz.x, aSz.y, ptOut);
-
+            ptIn=aCam->DistDirecte(Pt2dr(aX,aY)+aOrigOut);
+            aDataROut[aY][aX] = Reechantillonnage::biline(aDataR, aSz.x, aSz.y, ptIn);
+            aDataGOut[aY][aX] = Reechantillonnage::biline(aDataG, aSz.x, aSz.y, ptIn);
+            aDataBOut[aY][aX] = Reechantillonnage::biline(aDataB, aSz.x, aSz.y, ptIn);
         }
     }
 	
@@ -186,14 +214,16 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
 				aTOut.out()
 			);
     }
-    
+
+    Pt2dr aPPOut=aCam->DistInverse(aCam->PP())-aOrigOut;
+
     //export ori without disto
     string aDrunkOri=aNameDir + DirOut  + "Ori-"+aOri+"-"+DirOut;
     ELISE_fp::MkDirSvp(aDrunkOri);
 
     //create ideal camera
     std::vector<double> paramFocal;
-    CamStenopeIdeale anIdealCam(!aCam->DistIsDirecte(),aCam->Focale(),aCam->PP()-aOrigOut,paramFocal);
+    CamStenopeIdeale anIdealCam(!aCam->DistIsDirecte(),aCam->Focale(),aPPOut,paramFocal);
     anIdealCam.SetProfondeur(aCam->GetProfondeur());
     anIdealCam.SetSz(aCam->Sz());
     anIdealCam.SetIdentCam(aCam->IdentCam()+"_ideal");
@@ -227,6 +257,7 @@ int Drunk_main(int argc,char ** argv)
         string DirOut="DRUNK/";
         Box2di aCrop(Pt2di(-1,-1),Pt2di(-1,-1));
         bool Talk=true, RGB=true;
+        double maxSz=1;
 
         //Reading the arguments
         ElInitArgMain
@@ -237,14 +268,15 @@ int Drunk_main(int argc,char ** argv)
             LArgMain()  << EAM(DirOut,"Out",true,"Output folder (end with /) and/or prefix (end with another char)")
                         << EAM(Talk,"Talk",true,"Turn on-off commentaries")
                         << EAM(RGB,"RGB",true,"Output file with RGB channels,Def=true,set to 0 for grayscale")
-                        << EAM(aCrop,"Crop", true, "Rectangular crop; Def=[-1,-1,-1,-1]=full")
+                        << EAM(aCrop,"Crop", true, "Rectangular crop in input image geometry; Def=[-1,-1,-1,-1]=full")
+                        << EAM(maxSz,"MaxSz",true,"Maximal output image size (factor for input image); Def=1")
         );
 
         //Processing the files
 		string aPattern, aDir;
 		SplitDirAndFile(aDir, aPattern, aFullPattern);
 		StdCorrecNameOrient(aOri, aDir);
-        Drunk(aPattern,aOri,DirOut,Talk,RGB,aCrop);
+        Drunk(aPattern,aOri,DirOut,Talk,RGB,aCrop,maxSz);
     }
 
     return EXIT_SUCCESS;
