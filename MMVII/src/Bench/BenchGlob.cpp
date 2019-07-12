@@ -250,6 +250,7 @@ int  cAppli_MMVII_Bench::Exe()
    BenchStrIO();
 
 
+   BenchFilterImage1();
    BenchFilterLinear();
 
    // We clean the temporary files created

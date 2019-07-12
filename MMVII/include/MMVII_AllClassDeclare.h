@@ -68,8 +68,12 @@ class cAuxAr2007;
 class cAr2007;
 
 // MMVII_Images.h
-template <const int Dim>  class cRectObjIterator;
-template <const int Dim>  class cRectObj;
+template <const int Dim>  class cPixBoxIterator;
+template <const int Dim>  class cPixBox;
+template <const int Dim>  class cBorderPixBox ;
+template <const int Dim>  class cBorderPixBoxIterator ;
+
+
 template <const int Dim> class cDataGenUnTypedIm ;
 template <class Type,const int Dim> class cDataTypedIm ;
 class cDataFileIm2D ;

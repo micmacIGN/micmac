@@ -298,9 +298,10 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
         cSetRefPCarac aSetRef;
         int aDifMax = 3;
         std::vector<int>  aHistoScale(aDifMax+1,0);
-        std::vector<int>  aHistoScaleStab(aDifMax+1,0);
-        double aSeuilDist = 2.0;
-        double aSeuilProp = 0.02;
+        std::vector<int>  aHistoScaleStab(aDifMax+1,0); 
+        double aSeuilDist = 2.0;  // Seuil distance en pixel
+        double aSeuilProp = 0.02; // Seuil proportionnalité sur le fait d'etre le best, sur distance eucl 
+                                  // des curves
         int aNbOk=0;
 
         const std::vector<cOnePCarac*>  &   aV1 = mCurAPC;  // Par compta avec vieux code
@@ -380,6 +381,7 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
                          }
                          
                          // aHistoScaleStab.at(ElMin(aDifMax,ElAbs(aV1[aK1]->ScaleStab() - aP->ScaleStab())))++;
+                         // SCore calcule sur les courbes
                          double aPropInv = 1 - ScoreTestMatchInvRad(aVSelObj1,aV1[aK1],aP);
                          
                          

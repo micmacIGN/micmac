@@ -34,6 +34,11 @@ template <class T> void  cDataIm2D<T>::Resize(const cPt2di& aP0,const cPt2di & a
     PostInit();
 }
 
+template <class T> void cDataIm2D<T>::Resize(const cPt2di& aSz,eModeInitImage aMode)
+{
+   Resize(cPt2di(0,0),aSz,aMode);
+}
+
 
 
 template <class Type>  cDataIm2D<Type>::~cDataIm2D()
@@ -136,6 +141,17 @@ template <class Type>  cIm2D<Type>  cIm2D<Type>::GaussDeZoom(int aFact, int aNbI
 {
     return GaussFilter(aFact*dilate,aNbIterExp).Decimate(aFact);
 }
+
+template <class Type>  cIm2D<Type>  cIm2D<Type>::Transpose() const
+{
+    cIm2D<Type> aTr(Transp(mPIm->P0()),Transp(mPIm->P1()));
+
+    for (const auto & aP : (*mPIm))
+       aTr.mPIm->SetV(Transp(aP),mPIm->GetV(aP));
+
+    return aTr;
+}
+
 
 
 
