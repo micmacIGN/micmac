@@ -179,6 +179,7 @@ template <class Type> inline cPtxd<Type,3> PtInfEq  (const cPtxd<Type,3> & aP1,c
 { return cPtxd<Type,3> (std::min(aP1.x(),aP2.x()),std::min(aP1.y(),aP2.y()),std::min(aP1.z(),aP2.z())); }
 
 
+template <class Type> inline cPtxd<Type,2> Transp  (const cPtxd<Type,2> & aP) {return  cPtxd<Type,2>(aP.y(),aP.x());}
 
 ///  InfStr  :  P1.k() < P2.k() for all coordinates
 template <class Type> inline bool InfStr  (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
@@ -270,6 +271,12 @@ cPtxd<Type,Dim> CByC2P
 int NbPixVign(const int & aVign); 
 template <const int Dim> int NbPixVign(const cPtxd<int,Dim> & aVign); 
 
+
+template <class Type,const int Dim> void MakeBox(cPtxd<Type,Dim> & aP0,cPtxd<Type,Dim> & aP1)
+{
+    for (int aK=0 ; aK<Dim ; aK++)
+        OrderMinMax(aP0[aK],aP1[aK]);
+}
 
 
 /**  Class for box, they are template as typically :

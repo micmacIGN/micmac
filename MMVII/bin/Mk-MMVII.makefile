@@ -52,6 +52,11 @@ SrcMMV1=$(wildcard ${MMV2DirMMV1}*.cpp)
 ObjMMV1=$(SrcMMV1:.cpp=.o) 
 #
 #
+MMV2DirCmdSpec=${MMV2DirSrc}CmdSpec/
+SrcCmdSpec=$(wildcard ${MMV2DirCmdSpec}*.cpp)
+ObjCmdSpec=$(SrcCmdSpec:.cpp=.o) 
+#
+#
 MMV2DirImagesBase=${MMV2DirSrc}ImagesBase/
 SrcImagesBase=$(wildcard ${MMV2DirImagesBase}*.cpp)
 ObjImagesBase=$(SrcImagesBase:.cpp=.o) 
@@ -81,7 +86,7 @@ ObjPerso=$(SrcPerso:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ=   ${ObjImagesFiltrLinear} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB} ${ObjImagesBase}  ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} 
+OBJ= ${ObjCmdSpec}  ${ObjImagesFiltrLinear} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB} ${ObjImagesBase}  ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} 
 #
 #=========  Header ========
 #
@@ -115,6 +120,8 @@ ${MMV2ResultInstal} : ${MMV2SrcInstal}
 ${MMV2DirPerso}%.o :  ${MMV2DirPerso}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirMMV1}%.o :  ${MMV2DirMMV1}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirCmdSpec}%.o :  ${MMV2DirCmdSpec}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirTLE}%.o :  ${MMV2DirTLE}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@

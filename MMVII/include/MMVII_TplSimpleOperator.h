@@ -6,11 +6,60 @@ namespace MMVII
 
 /** \file  MMVII_TplSimpleOperator.h
     \brief    Very basic and unoptimzed filter, may be usefull to test other functionnality
-              Maybe used as a "bac a sable" 4 further implementation
+
+     Formalisation close to MMV1 : Flux/Fonction/OutPut  but :
+       * template (vs virtual) implementation
+       * non buffered implementation (i.e. computation point by point)
+
+     These caracteristic do it much easier to use/increase but also not very efficient.
+
+     Maybe used as a "bac a sable" 4 further implementation (buffered, template or virtual)
+
+     Flux must be iterators on point, usable with for (const auto : )
+     Fonction  must defin  GetV
+     Out       must define SetV
 */
 
+/*=======================================================*/
+/*                                                       */
+/*                 FLUX Pts                              */
+/*                                                       */
+/*=======================================================*/
 
-     //  ===  Image value safe  =====
+/*  See template  MMVII_Images.h for
+
+      - cPixBoxIterator / cPixBox  , for iterating on rectangle
+      - cBorderPixBoxIterator / cBorderPixBox , for iterating on border
+*/
+
+/*
+template <class TFlux,class TFonc> class cIterFluxSel
+{
+    public :
+         tIter &  operator ++()
+         {
+         };
+
+    private :
+};
+
+template <class TFlux,class TFonc> class   cFluxSel
+{
+    public :
+    private :
+};
+*/
+
+/*=======================================================*/
+/*                                                       */
+/*          FUNCTIONS                                    */
+/*                                                       */
+/*=======================================================*/
+
+
+     /**   Image value "safe"  : do not generate error as when point is out,
+         give the value of projection inside de validity domai
+     */
 template <class TypeIm> class cImInputProj
 {
     public :
@@ -30,7 +79,7 @@ template <class TypeIm> cImInputProj<TypeIm> fProj(const TypeIm & aF)
     return cImInputProj<TypeIm>(aF);
 }
 
-     //  ===  Coodinates X,Y, Z... =====
+     /**  Coordinates functions */
 
 class fCoord
 {
@@ -44,7 +93,11 @@ class fCoord
        int  mK;
 };
 
-     //  ===  Som on Window =====
+// extern fCoord  fX();
+// extern fCoord  fY();
+// extern fCoord  fZ();
+
+     /** Sum on a Windows of another function */
 
 template <class TypeFctr> class cSomVign
 {
@@ -66,8 +119,8 @@ template <class TypeFctr> class cSomVign
             return aRes;
        }
     private :
-       const TypeFctr & mF;
-       cPixBox<2>       mBox;
+       const TypeFctr & mF;    ///< Summed function
+       cPixBox<2>       mBox;  ///< Windows on witch function is summed
 };
 
 template <class TypeFctr> cSomVign<TypeFctr> fSomVign(const TypeFctr & aF,const cPt2di aVign)
@@ -75,26 +128,6 @@ template <class TypeFctr> cSomVign<TypeFctr> fSomVign(const TypeFctr & aF,const 
     return cSomVign<TypeFctr>(aF,aVign);
 }
 
-  // ==== Out Translate =====
-
-template <class TypeOut,const int Dim> class cOutTrans
-{
-    public :
-       cOutTrans(TypeOut & aOut,const cPtxd<int,Dim> & aTr) :
-          mOut     (aOut),
-          mTrans   (aTr)
-       {
-       }
-       template<class TOut> void SetV(const cPtxd<int,Dim> & aP,const TOut & aV) const {return mOut.SetV(aP+mTrans,aV);}
-    private :
-       TypeOut &        mOut;
-       cPtxd<int,Dim> mTrans;
-};
-
-template <class TypeO,const int Dim> cOutTrans<TypeO,Dim> oTrans(TypeO & aF,const cPtxd<int,Dim> &aP)
-{
-    return cOutTrans<TypeO,Dim>(aF,aP);
-}
 
   // ==== Fonc Translate =====
 
@@ -141,6 +174,32 @@ template <class TypeV> cFoncCste<TypeV> fCste(const TypeV & aV)
     return cFoncCste<TypeV>(aV);
 }
 
+/*=======================================================*/
+/*                                                       */
+/*               OUTPUT                                  */
+/*                                                       */
+/*=======================================================*/
+
+  // ==== Out Translate =====
+
+template <class TypeOut,const int Dim> class cOutTrans
+{
+    public :
+       cOutTrans(TypeOut & aOut,const cPtxd<int,Dim> & aTr) :
+          mOut     (aOut),
+          mTrans   (aTr)
+       {
+       }
+       template<class TOut> void SetV(const cPtxd<int,Dim> & aP,const TOut & aV) const {return mOut.SetV(aP+mTrans,aV);}
+    private :
+       TypeOut &        mOut;
+       cPtxd<int,Dim> mTrans;
+};
+
+template <class TypeO,const int Dim> cOutTrans<TypeO,Dim> oTrans(TypeO & aF,const cPtxd<int,Dim> &aP)
+{
+    return cOutTrans<TypeO,Dim>(aF,aP);
+}
 
 
     //  ============= Copy function ============

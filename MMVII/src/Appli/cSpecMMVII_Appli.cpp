@@ -135,6 +135,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpec_ComputeParamIndexBinaire);
         TheVecAll.push_back(&TheSpecTestRecall);
         TheVecAll.push_back(&TheSpecScaleImage);
+        TheVecAll.push_back(&TheSpecCalcDiscIm);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

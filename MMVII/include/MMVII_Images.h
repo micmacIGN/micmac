@@ -494,6 +494,8 @@ template <class Type>  class cIm2D
             StdDev => prop to fact, def value 0.5 correspond to a witdh equal to size of ressampling */
        cIm2D<Type>  GaussDeZoom(int aFact, int aNbIterExp=3,double StdDev=DefStdDevRessample) const;  
 
+       /** Transposition, needed it once, maybe usefull later */
+       cIm2D<Type> Transpose() const;
 
     private :
        std::shared_ptr<tDIM> mSPtr;  ///< shared pointer to real image , allow automatic deallocation
