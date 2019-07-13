@@ -15,8 +15,8 @@ class cAppli_ScaleImage : public cMMVII_Appli
      public :
         cAppli_ScaleImage(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
         int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) ;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) ;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
      private :
         std::string mNameIn;
         std::string mNameOut;

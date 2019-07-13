@@ -80,6 +80,8 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         iterator  mEnd;   ///< Ending iterator
 };
 
+extern template const cPixBox<2>     cPixBox<2>::TheEmptyBox;  // Pb Clang, requires explicit declaration
+
 typedef  cPixBox<1> cRect1;
 typedef  cPixBox<2> cRect2;
 typedef  cPixBox<3> cRect3;

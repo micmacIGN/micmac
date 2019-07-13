@@ -37,7 +37,7 @@ class cAppli_MMVII_TestEigen : public cMMVII_Appli
         cAppli_MMVII_TestEigen(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) ;
         int Exe() override ;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt);// override {return anArgOpt;}
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;// override {return anArgOpt;}
 
         void T1(); ///< Un test de la doc
         void TestRawData(); ///< Test sur l'import des raw data

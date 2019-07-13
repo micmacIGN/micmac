@@ -120,6 +120,7 @@ class  cSpecOneArg2007 : public cMemCheck
         static const tVSem   TheEmptySem;
         ///  Name + comment  + semantic
         cSpecOneArg2007(const std::string & aName,const std::string & aCom,const tVSem & = TheEmptySem);
+        virtual ~cSpecOneArg2007(); ///< Virtual method, so add it 
 
         /// Memoize then call type specific V_InitParam
         void InitParam(const std::string & aStr) ;

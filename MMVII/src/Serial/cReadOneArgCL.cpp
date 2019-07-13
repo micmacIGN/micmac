@@ -47,6 +47,10 @@ cSpecOneArg2007::cSpecOneArg2007(const std::string & aName,const std::string & a
     ReInit();
 }
 
+cSpecOneArg2007::~cSpecOneArg2007()
+{
+}
+
 void cSpecOneArg2007::ReInit()
 {
    mNbMatch = 0;
