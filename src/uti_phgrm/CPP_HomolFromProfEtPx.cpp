@@ -250,6 +250,149 @@ int HomolFromProfEtPx_main(int argc,char ** argv)
 }
 
 
+class cAppli_Line2Line  
+{
+    public:
+        cAppli_Line2Line(int argc,char ** argv);
+
+
+    private:
+        cInterfChantierNameManipulateur* mICNM;
+
+        std::string mNameIm1;
+        std::string mNameIm2;
+        std::string mOri;
+        std::string mDir;
+        std::string mSH;
+       
+        Pt2dr  mP1; 
+        Pt2dr  mP2; 
+        int    mX;
+        int    mY;
+        double mZ;
+};
+
+cAppli_Line2Line::cAppli_Line2Line(int argc,char ** argv) : 
+    mSH("-L2L")
+{
+    
+    ElPackHomologue aPHom;
+    ElPackHomologue aPHomSym;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(mNameIm1,"Name of the \"first\" image of the pair", eSAM_IsPatFile)
+                    << EAMC(mNameIm2,"Name of the \"second\" image of the pair", eSAM_IsPatFile)
+                    << EAMC(mOri,"Input orientation directory", eSAM_IsExistFile),
+        LArgMain()  << EAM(mX,"X",true,"Column coordinate", eSAM_NoInit)
+                    << EAM(mY,"Y",true,"Row coordinate", eSAM_NoInit)
+                    << EAM(mP1,"P1",true,"Point1 defining one end of a line", eSAM_NoInit)
+                    << EAM(mP2,"P2",true,"Point2 defining other end of a line", eSAM_NoInit)
+                    << EAM(mZ,"ZMoy",true,"Mean Z-coordinate", eSAM_NoInit)
+                    << EAM(mSH,"SH",true,"Homol postfix. Def=L2L", eSAM_NoInit)
+    );
+
+    #if (ELISE_windows)
+         replace( mNameIm2.begin(), mNameIm2.end(), '\\', '/' );
+    #endif 
+    mDir = DirOfFile(mNameIm2);
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+    StdCorrecNameOrient(mOri,mDir);
+
+
+    cBasicGeomCap3D * aCam1 =  mICNM->StdCamGenerikOfNames(mOri,mNameIm1);
+    cBasicGeomCap3D * aCam2 =  mICNM->StdCamGenerikOfNames(mOri,mNameIm2);
+   
+    if (!(EAMIsInit(&mZ)))
+    {
+        mZ = aCam1->GetAltiSol();
+        std::cout << "Mean Z-coordinate: " << mZ << "\n";
+    }
+
+
+    if (EAMIsInit(&mP1) && EAMIsInit(&mP2))
+    {
+        //project Im1 to 3D
+        Pt3dr aPt1Ter = aCam1->ImEtZ2Terrain(mP1,mZ);
+        Pt3dr aPt2Ter = aCam1->ImEtZ2Terrain(mP2,mZ);
+
+        //back project to Im2
+        Pt2dr aP1Im2 = aCam2->Ter2Capteur(aPt1Ter);
+        Pt2dr aP2Im2 = aCam2->Ter2Capteur(aPt2Ter);
+
+        aPHom.Cple_Add(ElCplePtsHomologues(mP1,aP1Im2));
+        aPHom.Cple_Add(ElCplePtsHomologues(mP2,aP2Im2));
+        aPHomSym.Cple_Add(ElCplePtsHomologues(aP1Im2,mP1));
+        aPHomSym.Cple_Add(ElCplePtsHomologues(aP2Im2,mP2));
+
+    }
+    else if (EAMIsInit(&mX) || EAMIsInit(&mY))
+    {
+        Pt2di aSz = aCam1->SzBasicCapt3D();
+        Pt2di aLineX;
+        Pt2di aLineY;
+ 
+ 
+        if (EAMIsInit(&mX)) 
+        {
+            aLineX = Pt2di(mX,mX+1);
+            aLineY = Pt2di(0,aSz.y);
+        }
+        else if (EAMIsInit(&mY)) 
+        {
+            aLineX = Pt2di(0,aSz.x);
+            aLineY = Pt2di(mY,mY+1);
+        }
+ 
+        std::cout << "Line size=" << aLineX << " " << aLineY << "\n";
+ 
+        for (int aK1=aLineX.x; aK1<aLineX.y; aK1++)
+        {
+            for (int aK2=aLineY.x; aK2<aLineY.y; aK2++)
+            {
+                Pt2dr aPIm1(aK1,aK2);
+                //project Im1 to 3D
+                Pt3dr aPtTer = aCam1->ImEtZ2Terrain(aPIm1,mZ);  
+                //back project to Im2
+                Pt2dr aPIm2 = aCam2->Ter2Capteur(aPtTer);
+ 
+                aPHom.Cple_Add(ElCplePtsHomologues(aPIm1,aPIm2));
+                aPHomSym.Cple_Add(ElCplePtsHomologues(aPIm2,aPIm1));
+ 
+            }
+        }
+    }
+    else 
+        ELISE_ASSERT(false,"Insert either X / Y or P1/P2 parameter to indicate column or row coordinate");
+
+
+    //save
+    std::string aHomFile = mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+ mSH+"@txt",mNameIm1,mNameIm2,true);
+    std::string aHomSymFile = mICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+ mSH+"@txt",mNameIm2,mNameIm1,true);
+
+    std::cout << "Saved to: \n";
+    if (! ELISE_fp::exist_file(aHomFile))
+    {
+        std::cout << aHomFile << " ";
+        aPHom.StdPutInFile(aHomFile); 
+    }
+    if (! ELISE_fp::exist_file(aHomSymFile))
+    {
+        std::cout << aHomSymFile << "\n";
+        aPHomSym.StdPutInFile(aHomSymFile); 
+    }
+
+}
+
+int Line2Line_main(int argc,char ** argv)
+{
+
+    cAppli_Line2Line aAppli(argc,argv);
+
+    return EXIT_SUCCESS;
+}
+
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant \C3  la mise en
