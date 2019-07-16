@@ -225,7 +225,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
     std::vector<double> paramFocal;
     CamStenopeIdeale anIdealCam(!aCam->DistIsDirecte(),aCam->Focale(),aPPOut,paramFocal);
     anIdealCam.SetProfondeur(aCam->GetProfondeur());
-    anIdealCam.SetSz(aCam->Sz());
+    anIdealCam.SetSz(aSzOut);
     anIdealCam.SetIdentCam(aCam->IdentCam()+"_ideal");
     if (aCam->HasRayonUtile())
         anIdealCam.SetRayonUtile(aCam->RayonUtile(),30);
