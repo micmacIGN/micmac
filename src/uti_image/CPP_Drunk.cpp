@@ -215,6 +215,15 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
 			);
     }
 
+    if ( !g_externalToolHandler.get("exiftool").isCallable() )
+        cerr << "WARNING: exiftool not found" << endl;
+    else
+    {
+        std::string aCom ="exiftool -TagsFromFile " + aNameDir + aNameIm + " " + aNameOut;
+        std::cout << aCom<< "\n";
+        System(aCom);
+    }
+
     Pt2dr aPPOut=aCam->DistInverse(aCam->PP())-aOrigOut;
 
     //export ori without disto
@@ -223,7 +232,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
 
     //create ideal camera
     std::vector<double> paramFocal;
-    CamStenopeIdeale anIdealCam(!aCam->DistIsDirecte(),aCam->Focale(),aPPOut,paramFocal);
+    cCamStenopeDistPolyn anIdealCam(!aCam->DistIsDirecte(),aCam->Focale(),aPPOut,ElDistortionPolynomiale::DistId(3,1.0),paramFocal);
     anIdealCam.SetProfondeur(aCam->GetProfondeur());
     anIdealCam.SetSz(aSzOut);
     anIdealCam.SetIdentCam(aCam->IdentCam()+"_ideal");
