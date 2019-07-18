@@ -165,6 +165,14 @@ void  TestSharedPointer()
 /*                                                           */
 /*************************************************************/
 
+///  Test some functionnalities of CP11 of later
+
+/**  This class is essentially for internal use of MPD, wanted to test
+    if I understood well some new features of C++, also check if my current
+     g++ versions support them
+*/
+
+
 class cAppli_MMVII_TestCpp11 : public cMMVII_Appli
 {
      public :

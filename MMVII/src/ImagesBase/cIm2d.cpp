@@ -123,11 +123,16 @@ template <class Type>  cIm2D<Type>  cIm2D<Type>::GaussFilter(double aStdDev,int 
     return aRes;
 }
 
+template <class Type>  cPt2di  cIm2D<Type>::SzDecimate(int aFact) const
+{
+   return mPIm->Sz()/aFact;
+}
+
 template <class Type>  cIm2D<Type>  cIm2D<Type>::Decimate(int aFact) const
 {
    // Not sure wat would be the meaning of origini != (0,0) 4 decimate
    MMVII_INTERNAL_ASSERT_strong(DIm().P0()==cPt2di(0,0),"Decimate require (0,0) origin");
-   cIm2D<Type> aRes(mPIm->Sz()/aFact);
+   cIm2D<Type> aRes(SzDecimate(aFact));
    cDataIm2D<Type> & aDRes = aRes.DIm();
 
    for (const auto & aP : aDRes)
