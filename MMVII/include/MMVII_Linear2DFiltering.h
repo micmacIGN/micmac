@@ -56,10 +56,16 @@ struct cParamGP;
 template <class Type> class cGP_OneImage : public cMemCheck
 {
     public :
+        typedef cIm2D<Type>            tIm;
         typedef cGP_OneImage<Type>     tGPIm;
         typedef cGP_OneOctave<Type>    tOct;
         typedef cGaussianPyramid<Type> tPyr;
+
+        void ComputGaussianFilter();
+        /// Constructor
         cGP_OneImage(tOct * anOct,int NumInOct,tGPIm * mUp);
+        // Accessors
+        tIm ImG();  ///< Get gaussian image
     private :
         cGP_OneImage(const tGPIm &) = delete;
         tOct*         mOct;        ///< Octave it belongs to
@@ -67,6 +73,7 @@ template <class Type> class cGP_OneImage : public cMemCheck
         int           mNumInOct;   ///< Number inside octave
         tGPIm *       mUp;         ///< Possible image up in the   octave
         tGPIm *       mDown;       ///< Possible image down in the octave
+        tGPIm *       mOverlapUp;  ///< Overlaping image (== same sigma) , if exist, in up octave
         cIm2D<Type>   mImG;        ///< Gaussian image
         double        mSigmAbs;    ///< Sigma of Gauss "Absolute" 
         double        mSigmInO;    ///< Sigma of Gauss  In octave
@@ -81,16 +88,25 @@ template <class Type> class cGP_OneImage : public cMemCheck
 template <class Type> class cGP_OneOctave : public cMemCheck
 {
     public :
+        typedef cIm2D<Type>            tIm;
         typedef cGP_OneImage<Type>     tGPIm;
         typedef std::shared_ptr<tGPIm> tSP_GPIm;
         typedef cGP_OneOctave<Type>    tOct;
         typedef cGaussianPyramid<Type> tPyr;
 
-        cGP_OneOctave(tPyr * aPyr,int aNum,tOct * aUp);
+        void ComputGaussianFilter();  ///< Generate computation of gauss pyram
+        cGP_OneOctave(tPyr * aPyr,int aNum,tOct * aUp); ///< Constructor
+
+        tIm ImTop(); ///< For initalisation , need to access to top image of the pyramid
+        tGPIm * ImageOfSigmaAbs(double aSig, double aTolRel=1e-5);
+
+        
         //  ====  Accessors  ===========
         tPyr*          Pyram() const ;    ///< Accessor to Pyram
         const cPt2di &  SzIm() const;     ///<  mSzIm
         const double &  Sigm0Abs() const; ///< mSigm0Abs
+        tOct *          Up() const;       ///< Possible octave up in the pyramid, 0 if dont exist
+       
     private :
         cGP_OneOctave(const tOct &) = delete;
         tPyr*              mPyram;        ///< Pyramid it belongs to
@@ -126,12 +142,16 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
 {
     public :
       // Typedef section 
+        typedef cIm2D<Type>            tIm;
         typedef cGP_OneImage<Type>     tGPIm;
         typedef cGP_OneOctave<Type>    tOct;
         typedef std::shared_ptr<tOct>  tSP_Oct;
         typedef cGaussianPyramid<Type> tPyr;
 
-        cGaussianPyramid(const cGP_Params &);
+        cGaussianPyramid(const cGP_Params &); ///< Constructor
+        tIm ImTop(); ///< For initalisation , need to access to top image of the pyramid
+        void ComputGaussianFilter();
+
       // Accessors
         const cGP_Params & Params() const;  ///< Parameters of pyramid
         const double & MulSigm() const;    ///< Multiplier sigm conseq

@@ -201,7 +201,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeVisu) :
     mNbHighScale       (750),
     mImMasq            (1,1),
     mTImMasq           (mImMasq),
-    mDoInvarIm         (MPD_MM())
+    mDoInvarIm         (true) // (MPD_MM())
 {
    cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
    mInterp = new cTabIM2D_FromIm2D<tElNewRechPH>(aSinC,1000,false);

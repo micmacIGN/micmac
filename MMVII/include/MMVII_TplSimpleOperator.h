@@ -174,6 +174,35 @@ template <class TypeV> cFoncCste<TypeV> fCste(const TypeV & aV)
     return cFoncCste<TypeV>(aV);
 }
 
+    //  ============= Binary operators ============
+template <class TypeF1,class TypeF2,class TypeOp> class cFoncBinaryOp
+{
+    public :
+       typedef double  tBase; /// To Change
+
+       cFoncBinaryOp (const TypeF1 & aF1,const TypeF2 & aF2,const TypeOp & aOp) :
+          mF1(aF1),
+          mF2(aF2),
+          mOp (aOp)
+       {
+       }
+       template <class TypeP> tBase  GetV(const TypeP & aP) const {return mOp(mF1.GetV(aP),mF2.GetV(aP));}
+    private :
+       const TypeF1 & mF1;
+       const TypeF2 & mF2;
+       const TypeOp & mOp;
+};
+
+template <class TypeF1,class TypeF2,class TypeOp> 
+           cFoncBinaryOp<TypeF1,TypeF2,TypeOp> fBinaryOp(const TypeF1 & aF1,const TypeF2 & aF2,const TypeOp & aOp)
+{
+    return cFoncBinaryOp<TypeF1,TypeF2,TypeOp>(aF1,aF2,aOp);
+}
+
+double BasSom(const double &aV1,const double & aV2) {return aV1+aV2;}
+template <class TypeF1,class TypeF2> auto fSum(const TypeF1 & aF1,const TypeF2 & aF2) {return fBinaryOp(aF1,aF2,BasSom);}
+
+
 /*=======================================================*/
 /*                                                       */
 /*               OUTPUT                                  */

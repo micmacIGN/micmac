@@ -509,6 +509,7 @@ template <class Type>  class cIm2D
        // void Read(const cDataFileIm2D &,cPt2di & aP0,cIm2D<Type> aI2,cIm2D<Type> aI3);  // 3 to 3
 
        cIm2D<Type>  Dup() const;  ///< create a duplicata
+       void  DecimateInThis(int aFact,const cIm2D<Type> I) ;  ///< Decimate I in this ,just take on pix out of N
        cIm2D<Type>  Decimate(int aFact) const;  ///< create decimated image, just take on pix out of N
        cPt2di       SzDecimate(int aFact) const;  ///< Sometime it may be usefull to know the size before computing it
        /**  Apply gaussian filter, use a temporary float */

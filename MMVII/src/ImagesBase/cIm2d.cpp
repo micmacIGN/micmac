@@ -130,15 +130,21 @@ template <class Type>  cPt2di  cIm2D<Type>::SzDecimate(int aFact) const
 
 template <class Type>  cIm2D<Type>  cIm2D<Type>::Decimate(int aFact) const
 {
-   // Not sure wat would be the meaning of origini != (0,0) 4 decimate
-   MMVII_INTERNAL_ASSERT_strong(DIm().P0()==cPt2di(0,0),"Decimate require (0,0) origin");
+
    cIm2D<Type> aRes(SzDecimate(aFact));
-   cDataIm2D<Type> & aDRes = aRes.DIm();
-
-   for (const auto & aP : aDRes)
-      aDRes.SetV(aP,mPIm->GetV(aP*aFact));
-
+   aRes.DecimateInThis(aFact,*this);
    return aRes;
+}
+
+template <class Type>  void  cIm2D<Type>::DecimateInThis(int aFact,const cIm2D<Type> aI) 
+{
+   MMVII_INTERNAL_ASSERT_strong(aI.DIm().P0()==cPt2di(0,0),"Decimate require (0,0) origin");
+   MMVII_INTERNAL_ASSERT_strong(DIm().P0()==cPt2di(0,0),"Decimate require (0,0) origin");
+   MMVII_INTERNAL_ASSERT_strong(DIm().Sz()==aI.SzDecimate(aFact),"Incoherent size in DecimateInThis");
+   const cDataIm2D<Type> & aDIn = aI.DIm();
+
+   for (const auto & aP : DIm())
+      mPIm->SetV(aP,aDIn.GetV(aP*aFact));
 }
 
 
