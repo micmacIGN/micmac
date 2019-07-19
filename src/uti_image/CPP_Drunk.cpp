@@ -233,13 +233,15 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
     //create ideal camera
     std::vector<double> paramFocal;
     cCamStenopeDistPolyn anIdealCam(!aCam->DistIsDirecte(),aCam->Focale(),aPPOut,ElDistortionPolynomiale::DistId(3,1.0),paramFocal);
-    anIdealCam.SetProfondeur(aCam->GetProfondeur());
+    if (aCam->ProfIsDef())
+        anIdealCam.SetProfondeur(aCam->GetProfondeur());
     anIdealCam.SetSz(aSzOut);
     anIdealCam.SetIdentCam(aCam->IdentCam()+"_ideal");
     if (aCam->HasRayonUtile())
         anIdealCam.SetRayonUtile(aCam->RayonUtile(),30);
     anIdealCam.SetOrientation(aCam->Orient());
-    anIdealCam.SetAltiSol(aCam->GetAltiSol());
+    if (aCam->AltisSolIsDef())
+        anIdealCam.SetAltiSol(aCam->GetAltiSol());
     anIdealCam.SetIncCentre(aCam->IncCentre());
 
     MakeFileXML(anIdealCam.StdExportCalibGlob(),aDrunkOri+"/Orientation-"+aNameIm+".tif.xml","MicMacForAPERO");
