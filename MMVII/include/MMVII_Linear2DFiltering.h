@@ -183,6 +183,9 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
         std::vector<tSP_Oct>   mVOct;  ///< Vector of octaves
         double   mMulScale;  ///<  Scale of gaussian multiplier between two consecutive gaussian
         double   mScale0;    ///< Scale of first image, conventionnaly by default
+        /** This one is a bit tricky, because rigourously speaking , we should know the initial
+        FTM, conventionnaly we select a well sampled image with Sigm = 0.*/
+        double   mSigmIm0;  
 };
 
 };
