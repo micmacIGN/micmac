@@ -171,6 +171,12 @@ void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,int   aNbIter,double aStdDev)
      ExponentialFilter(aIm,aNbIter,FactExpFromSigma2(Square(aStdDev)/aNbIter));
 }
 
+template <class Type> 
+void  ExpFilterOfStdDev(cDataIm2D<Type> & aImOut,const cDataIm2D<Type> & aImIn,int   aNbIter,double aStdDev)
+{
+     aImIn.DupIn(aImOut);
+     ExponentialFilter(aImOut,aNbIter,FactExpFromSigma2(Square(aStdDev)/aNbIter));
+}
 
 /* ========================== */
 /*     cDataGenUnTypedIm      */

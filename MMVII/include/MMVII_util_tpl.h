@@ -143,6 +143,7 @@ template <class Type> void SortPtrValue(std::vector<Type*> &aV);
 tNameSet SetNameFromPat    (const std::string&); ///< create a set of file from a pattern
 tNameSet SetNameFromFile   (const std::string&, int aNumV); ///< create from a file xml, V1 or V2
 tNameSet SetNameFromString (const std::string&, bool AllowPat); ///< general case, try to recognize automatically V1, V2 or pattern
+std::vector<std::string>  ToVect(const tNameSet &);  ///< Less economic but more convenient than PutInVect
 
 /** read from file, select version, accept empty, error if file exist bud in bad format */
 tNameRel  RelNameFromFile (const std::string&);

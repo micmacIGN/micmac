@@ -309,6 +309,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         const tNameSet &                         MainSet1() const;         ///< MainSet(1) , 
         const tNameSet &                         MainSet(int aK) const;    ///< MainSets[aK] , check range !=0 before
         void                                     CheckRangeMainSet(int) const;  ///< Check range in [0,NbMaxMainSets[
+        std::vector<std::string>                 VectMainSet(int aK) const; ///< interface to MainSet
+        virtual bool            AcceptEmptySet(int aK) const; ///< Generally if the set is empty, it's an error
 
         virtual cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) = 0;  ///< A command specifies its mandatory args
         virtual cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) = 0;  ///< A command specifies its optional args

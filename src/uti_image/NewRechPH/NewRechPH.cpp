@@ -1023,6 +1023,7 @@ void cAimeApprentissage::DoOneDir(const cXlmAimeOneDir & aXAOD)
    mCurDir  = & aXAOD;
    if (!mCurDir->DoIt().ValWithDef(mParam.DefDoIt().Val()))
       return;
+   ELISE_fp::MkDir("PC-Ref-NH/");
 
    CD(mCurDir->Dir());
    {
