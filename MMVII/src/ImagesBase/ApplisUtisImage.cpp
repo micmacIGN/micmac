@@ -62,7 +62,7 @@ int cAppli_ScaleImage::Exe()
    cIm2D<tREAL4> aImIn(aFileIn.Sz());
    aImIn.Read(aFileIn,cPt2di(0,0));
 
-   cIm2D<tREAL4> aImOut = aImIn.GaussDeZoom(mScale,3,DefStdDevRessample*mDilate);
+   cIm2D<tREAL4> aImOut = aImIn.GaussDeZoom(mScale,3,mDilate);
    cDataFileIm2D aFileOut = cDataFileIm2D::Create(mNameOut,aFileIn.Type(),aImOut.DIm().Sz(),1);
    aImOut.Write(aFileOut,cPt2di(0,0));
 

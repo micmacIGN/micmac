@@ -36,17 +36,35 @@ template <class Type> cGP_OneImage<Type>::cGP_OneImage(tOct * anOct,int aNumInOc
     }
     mScaleInO = mScaleAbs / anOct->Scale0Abs(); // This the relative sigma between different image
 
+    mTargetSigmAbs = mPyr->SigmIm0() * mScaleAbs;
+    mTargetSigmInO = mTargetSigmAbs / anOct->Scale0Abs();
 }
 
 template <class Type> void cGP_OneImage<Type>::ComputGaussianFilter()
 {
    if (mIsTopPyr)  // Case top image do not need except if initial filtering
    {
+       double aCI0 = mPyr->Params().mConvolIm0;
+       if (aCI0!=0.0)
+       {           
+          ExpFilterOfStdDev(mImG.DIm(),mPyr->Params().mNbIter1,aCI0);
+       }
    }
    else if (mOverlapUp != nullptr)  // Case were there exist an homologous image, use decimation
    {
+       mImG.DecimateInThis(2,mOverlapUp->mImG);
    }
-   else  // Other case comput from Up image
+   else if (mUp != nullptr)  // Other case comput from Up image
+   {
+        // To maximize the gaussian aspect, compute from already filtered image
+        double aSig = DifSigm(mTargetSigmInO,mUp->mTargetSigmInO);
+        // First convulotion use more iteration as we dont benefit from accumulation
+        int aNbIter = mPyr->Params().mNbIter1 - mUp->mNumInOct;
+        // Be sure to have a minimum
+        aNbIter = std::max(aNbIter,mPyr->Params().mNbIterMin);
+        ExpFilterOfStdDev(mImG.DIm(),mUp->mImG.DIm(),aNbIter,aSig);
+   }
+   else  
    {
         // This should never happen by construction
         MMVII_INTERNAL_ASSERT_strong(mUp!=nullptr,"Up Image in ComputGaussianFilter");
@@ -66,8 +84,8 @@ template <class Type> std::string cGP_OneImage<Type>::Id()  const
    return     
               " Oc:" + ToStr(mOct->NumInPyr()) 
           +   " Im:" + ToStr(mNumInOct) 
-          +   " SOct:" + FixDigToStr(mScaleInO,4) 
-          +   " SAbs:" + FixDigToStr(mScaleAbs,4) 
+          +   " SOct:" + FixDigToStr(mScaleInO,4)   +  "/" + FixDigToStr(mTargetSigmInO,4)
+          +   " SAbs:" + FixDigToStr(mScaleAbs,4)   +  "/" + FixDigToStr(mTargetSigmAbs,4)
           +   " T:"   + std::string(mIsTopPyr ? "1" : "0") 
    ;
 }
@@ -150,7 +168,7 @@ cGP_Params::cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOve
    mNbOct        (aNbOct),
    mNbLevByOct   (aNbLevByOct),
    mNbOverlap    (aOverlap),
-   mSigmaIm0     (0.0),
+   mConvolIm0    (0.0),
    mNbIter1      (4),
    mNbIterMin    (2)
 {
@@ -164,9 +182,11 @@ cGP_Params::cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOve
 /* ==================================================== */
 
 template <class Type> cGaussianPyramid<Type>::cGaussianPyramid(const cGP_Params & aParams) :
-   mParams   (aParams),
-   mMulScale (pow(2.0,1/double(mParams.mNbLevByOct))),
-   mScale0   (1.0)
+   mParams            (aParams),
+   mMulScale          (pow(2.0,1/double(mParams.mNbLevByOct))),
+   mScale0            (1.0),
+   mEstimSigmInitIm0  (DefStdDevImWellSample),
+   mSigmIm0           (SomSigm(mEstimSigmInitIm0,mParams.mConvolIm0))
 {
    tOct * aPrec = nullptr;
    for (int aKOct=0 ; aKOct<mParams.mNbOct ; aKOct++)
@@ -197,6 +217,7 @@ template <class Type> const double & cGaussianPyramid<Type>::MulScale() const {r
 template <class Type> int  cGaussianPyramid<Type>::NbImByOct() const {return  mParams.mNbLevByOct+mParams.mNbOverlap;}
 template <class Type> const cPt2di & cGaussianPyramid<Type>::SzIm0() const {return  mParams.mSzIm0;}
 template <class Type> const double & cGaussianPyramid<Type>::Scale0() const {return  mScale0;}
+template <class Type> const double & cGaussianPyramid<Type>::SigmIm0() const {return mSigmIm0;}
 
 /* ==================================================== */
 /*              INSTANTIATION                           */

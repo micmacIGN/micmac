@@ -136,7 +136,7 @@ template <class Type>  cIm2D<Type>  cIm2D<Type>::Decimate(int aFact) const
    return aRes;
 }
 
-template <class Type>  void  cIm2D<Type>::DecimateInThis(int aFact,const cIm2D<Type> aI) 
+template <class Type>  void  cIm2D<Type>::DecimateInThis(int aFact,const cIm2D<Type> & aI) 
 {
    MMVII_INTERNAL_ASSERT_strong(aI.DIm().P0()==cPt2di(0,0),"Decimate require (0,0) origin");
    MMVII_INTERNAL_ASSERT_strong(DIm().P0()==cPt2di(0,0),"Decimate require (0,0) origin");
@@ -150,7 +150,13 @@ template <class Type>  void  cIm2D<Type>::DecimateInThis(int aFact,const cIm2D<T
 
 template <class Type>  cIm2D<Type>  cIm2D<Type>::GaussDeZoom(int aFact, int aNbIterExp,double dilate) const
 {
-    return GaussFilter(aFact*dilate,aNbIterExp).Decimate(aFact);
+    double aS0 = DefStdDevImWellSample;
+    double aSTarg = DefStdDevImWellSample * aFact;
+
+    // double aSig = sqrt(Square(aSTarg)-Square(aS0)) *dilate;
+    double aSig = DifSigm(aSTarg,aS0) *dilate;
+
+    return GaussFilter(aSig,aNbIterExp).Decimate(aFact);
 }
 
 template <class Type>  cIm2D<Type>  cIm2D<Type>::Transpose() const

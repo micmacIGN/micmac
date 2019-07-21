@@ -20,6 +20,16 @@ double FactExpFromSigma2(double aS2)
     return (aS2+1 - sqrt(Square(aS2+1)-Square(aS2))  ) / aS2 ;
 }
 
+/// Sigma of convol sqrt(A^2+B^2)
+double SomSigm(double  aS1,double aS2) {return sqrt(Square(aS1)+Square(aS2));}
+/// "Inverse" of SomSigm  sqrt(A^2-B^2)
+double DifSigm(double  aS1,double aS2) 
+{
+   MMVII_INTERNAL_ASSERT_tiny(aS1>=aS2,"DifSigm");
+   return sqrt(Square(aS1)-Square(aS2));
+}
+
+
 
 
 /** We use a class essentially to be able to use typedef, most method will be static */
@@ -199,6 +209,7 @@ MACRO_INSTANTIATE_ExpoFilter(tREAL4);
 MACRO_INSTANTIATE_ExpoFilter(tREAL8);
 MACRO_INSTANTIATE_ExpoFilter(tREAL16);
 MACRO_INSTANTIATE_ExpoFilter(tINT4);
+MACRO_INSTANTIATE_ExpoFilter(tINT2);
 
 /*
 template class cDataTypedIm<tREAL4,1>;

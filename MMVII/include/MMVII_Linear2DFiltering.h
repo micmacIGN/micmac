@@ -17,6 +17,11 @@ double Sigma2FromFactExp(double a);
 /// Inverse function, the usefull one 
 double FactExpFromSigma2(double aS2);
 
+/// Sigma of convol sqrt(A^2+B^2)
+double SomSigm(double  aS1,double a2);
+/// "Inverse" of SomSigm  sqrt(A^2-B^2)
+double DifSigm(double  aS1,double a2);
+
 
 /** General function, 
       Normalise => If true, limit size effect and Cste => Cste (else lowe close to border)
@@ -84,6 +89,8 @@ template <class Type> class cGP_OneImage : public cMemCheck
         cIm2D<Type>   mImG;        ///< Gaussian image
         double        mScaleAbs;   ///< Scale of Gauss "Absolute" , used for global analyse
         double        mScaleInO;   ///< Scale of Gauss  In octave , used for image processing
+        double        mTargetSigmAbs;  ///< Sigma Abs of gaussian we need to reach
+        double        mTargetSigmInO;  ///< Sigma , in octave, of gaussian we need to reach
         bool          mIsTopPyr;   ///< Is it top image of top octave
 };
 
@@ -146,7 +153,7 @@ struct cGP_Params
          const int  mNbLevByOct;  ///< Number of level per octave (dont include overlap)
          const int  mNbOverlap;  ///< Number of overlap
 
-         double     mSigmaIm0;   ///< Potential initial Gaussian
+         double     mConvolIm0;     ///< Possible additionnal convolution to first image
          int        mNbIter1;    ///<  Number of iteration of first Gaussian
          int        mNbIterMin;  ///<  Min number if iteration
 };
@@ -176,16 +183,18 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
         const double & Scale0() const;     ///< mScale0 scale of first image, 1.0 in 99.99 %
         int  NbImByOct() const;            ///< mNbImByOct + mNbOverlap
         const cPt2di & SzIm0() const;      ///< Size of most resolved images
+        const double & SigmIm0() const;    ///< Sigma of first image after possible convolution
     private :
         cGaussianPyramid(const cGP_Params &); ///< Constructor
         cGaussianPyramid(const tPyr &) = delete;
         cGP_Params          mParams;   ///< Memorize parameters
         std::vector<tSP_Oct>   mVOct;  ///< Vector of octaves
         double   mMulScale;  ///<  Scale of gaussian multiplier between two consecutive gaussian
-        double   mScale0;    ///< Scale of first image, conventionnaly by default
+        double   mScale0;    ///< Scale of first image, conventionnaly 1 
         /** This one is a bit tricky, because rigourously speaking , we should know the initial
-        FTM, conventionnaly we select a well sampled image with Sigm = 0.*/
-        double   mSigmIm0;  
+        FTM, conventionnaly we select a well sampled image with Sigm = DefStdDevImWellSample */
+        double   mEstimSigmInitIm0;  
+        double   mSigmIm0; ///< 
 };
 
 };

@@ -509,14 +509,14 @@ template <class Type>  class cIm2D
        // void Read(const cDataFileIm2D &,cPt2di & aP0,cIm2D<Type> aI2,cIm2D<Type> aI3);  // 3 to 3
 
        cIm2D<Type>  Dup() const;  ///< create a duplicata
-       void  DecimateInThis(int aFact,const cIm2D<Type> I) ;  ///< Decimate I in this ,just take on pix out of N
+       void  DecimateInThis(int aFact,const cIm2D<Type> & I) ;  ///< Decimate I in this ,just take on pix out of N
        cIm2D<Type>  Decimate(int aFact) const;  ///< create decimated image, just take on pix out of N
        cPt2di       SzDecimate(int aFact) const;  ///< Sometime it may be usefull to know the size before computing it
        /**  Apply gaussian filter, use a temporary float */
        cIm2D<Type>  GaussFilter(double , int aNbIterExp=3) const;  
        /**  Apply gaussian filter before dezoom to have good ressampling, may be a bit slow
-            StdDev => prop to fact, def value 0.5 correspond to a witdh equal to size of ressampling */
-       cIm2D<Type>  GaussDeZoom(int aFact, int aNbIterExp=3,double StdDev=DefStdDevRessample) const;  
+            Dilate => to change defautl gaussian kernel */
+       cIm2D<Type>  GaussDeZoom(int aFact, int aNbIterExp=3,double Dilate=1.0) const;  
 
        /** Transposition, needed it once, maybe usefull later */
        cIm2D<Type> Transpose() const;

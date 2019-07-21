@@ -67,7 +67,7 @@ extern const   std::string MMVII_NONE;  ///< For command, each time a "no value"
  /*                                                     */
  /*=====================================================*/
 
-#define  DefStdDevRessample  0.5 // 
+#define  DefStdDevImWellSample   0.6266 ///< sqrt(pi/8) voir doc GaussPyram
 
 };
 
