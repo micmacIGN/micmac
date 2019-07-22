@@ -46,6 +46,10 @@ int mmvii_GetPId();
 
 int SysCall(const std::string &, bool SVP=false); ///< call system, if SVP=false error not EXIT_SUCCESS
 
+
+/// A fake function, to stop momentarilly warnings about unused variable ...
+template <class Type> void FakeUseIt(const Type &) {}
+
 };
 
 #endif  //  _MMVII_Sys_H_

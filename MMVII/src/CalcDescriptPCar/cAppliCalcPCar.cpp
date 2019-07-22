@@ -18,12 +18,17 @@ template <class Type> class  cTplAppliCalcDescPCar
     public :
         typedef cGaussianPyramid<Type> tPyr;
         typedef std::shared_ptr<tPyr>  tSP_Pyr;
-
         cTplAppliCalcDescPCar(cAppliCalcDescPCar & anAppli);
-        void Exe();
+
+        /// Run all the process
+        void ExeGlob();
     private :
-        cAppliCalcDescPCar & mAppli;
-        tSP_Pyr              mPyr;
+        /// Run the process for one image box
+        void ExeOneBox(const cPt2di & aP,const cParseBoxInOut<2> & aPBI);
+
+        cAppliCalcDescPCar & mAppli;   ///< Reference the application
+        tSP_Pyr              mPyr;     ///< Pointer on gaussian pyramid
+        cDataFileIm2D        mDFI;     ///< Structure on image file
 };
 
 
@@ -42,10 +47,51 @@ class cAppliCalcDescPCar : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
      private :
-        std::string mNameIm;  ///< Input image pattern/name
-        std::vector<std::string>  mVSetIm;  ///< Vector of image resulting from Pattern
-        bool        mIntPyram;  ///< Impose gray image
+        std::string               mNameIm;                ///< Input image pattern/name 
+        bool        mIntPyram;  ///< Impose integer  image
+        int         mSzTile;    ///<  sz of tiles for spliting in sub processe
+        int         mOverlap;   ///< sz of  overlap between tiles
 };
+
+/* =============================================== */
+/*                                                 */
+/*            cTplAppliCalcDescPCar<Type>          */
+/*                                                 */
+/* =============================================== */
+
+template<class Type> cTplAppliCalcDescPCar<Type>::cTplAppliCalcDescPCar(cAppliCalcDescPCar & anAppli) :
+   mAppli (anAppli),
+   mPyr   (nullptr),
+   mDFI   (cDataFileIm2D::Create(mAppli.mNameIm,true))
+{
+}
+
+template<class Type> void cTplAppliCalcDescPCar<Type>::ExeGlob()
+{
+   cParseBoxInOut<2> aPBI = cParseBoxInOut<2>::CreateFromSizeCste(cRect2(cPt2di(0,0),mDFI.Sz()),mAppli.mSzTile);
+
+   for (const auto & anIndex : aPBI.BoxIndex())
+   {
+       ExeOneBox(anIndex,aPBI);
+   }
+
+
+}
+
+
+template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di & anIndex,const cParseBoxInOut<2>& aPBI)
+{
+    StdOut() << "AnIndex " << anIndex << "\n";
+}
+
+   // mPyr = tPyr::Alloc(cGP_Params(cPt2di(400,700),5,5,3));
+   // mPyr->Show();
+
+/* =============================================== */
+/*                                                 */
+/*               cAppliCalcDescPCar                */
+/*                                                 */
+/* =============================================== */
 
 cCollecSpecArg2007 & cAppliCalcDescPCar::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
@@ -64,24 +110,26 @@ cCollecSpecArg2007 & cAppliCalcDescPCar::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 int cAppliCalcDescPCar::Exe() 
 {
-   mVSetIm = VectMainSet(0);
-
-   if (mVSetIm.size() != 1)  // Multiple image, run in parall 
    {
-      ExeMultiAutoRecallMMVII("0",mVSetIm);
-      return EXIT_SUCCESS;
+      const std::vector<std::string> &  aVSetIm = VectMainSet(0);
+
+      if (aVSetIm.size() != 1)  // Multiple image, run in parall 
+      {
+         ExeMultiAutoRecallMMVII("0",aVSetIm);
+         return EXIT_SUCCESS;
+      }
    }
    // Single image, do the job ...
 
    if (mIntPyram)  // Case integer pyramids
    {
       cTplAppliCalcDescPCar<tINT2> aTplA(*this);
-      aTplA.Exe();
+      aTplA.ExeGlob();
    }
    else   // Case floating points pyramids
    {
       cTplAppliCalcDescPCar<tREAL4> aTplA(*this);
-      aTplA.Exe();
+      aTplA.ExeGlob();
    }
    
    return EXIT_SUCCESS;
@@ -89,34 +137,18 @@ int cAppliCalcDescPCar::Exe()
 
 cAppliCalcDescPCar:: cAppliCalcDescPCar(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
   cMMVII_Appli (aVArgs,aSpec),
-  mIntPyram    (false)
+  mIntPyram    (false),
+  mSzTile      (7000),
+  mOverlap     (300)
 {
 }
 
-/*  =============================================== */
-/*                                                  */
-/*             cTplAppliCalcDescPCar<Type>          */
-/*                                                  */
-/*  =============================================== */
 
-template<class Type> cTplAppliCalcDescPCar<Type>::cTplAppliCalcDescPCar(cAppliCalcDescPCar & anAppli) :
-   mAppli (anAppli),
-   mPyr   (nullptr)
-{
-}
-
-template<class Type> void cTplAppliCalcDescPCar<Type>::Exe()
-{
-   // std::shared_ptr<cGaussianPyramid<Type>>  aGP = cGaussianPyramid<tREAL4>::Alloc(cGP_Params(cPt2di(400,700),5,5,3));
-   mPyr = tPyr::Alloc(cGP_Params(cPt2di(400,700),5,5,3));
-   mPyr->Show();
-}
-
-/*  =============================================== */
-/*                                                  */
-/*                        ::                        */
-/*                                                  */
-/*  =============================================== */
+/* =============================================== */
+/*                                                 */
+/*                       ::                        */
+/*                                                 */
+/* =============================================== */
 
 tMMVII_UnikPApli Alloc_CalcDescPCar(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
 {

@@ -198,6 +198,7 @@ template  class cLinearFilter<Type>;\
 template void ExponentialFilter(bool,cDataIm2D<Type> &,int,const cRect2 &,double,double);\
 template void  ExponentialFilter(cDataIm2D<Type> & aIm,int   aNbIter,double aFact);\
 template void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,int   aNbIter,double aStdDev);\
+template void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,const cDataIm2D<Type> & aImIn,int   aNbIter,double aStdDev);\
 /*
 template  class cMatIner2Var<Type>;\
 template cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm);\

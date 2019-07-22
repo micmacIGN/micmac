@@ -77,6 +77,11 @@ template <class Type> Type * cDataIm2D<Type>::GetLine(int aY)
    return mRawData2D[aY];
 }
 
+template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName) const
+{
+    cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,tElemNumTrait<Type>::TyNum(),Sz(),1);
+    Write(aDFI,P0());
+}
 
 
 /* ========================== */
@@ -102,6 +107,7 @@ template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aNa
 
    return aRes;
 }
+
 
 template <class Type>  cIm2D<Type>  cIm2D<Type>::Dup() const
 {

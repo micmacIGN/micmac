@@ -172,9 +172,9 @@ template <const int Dim>  class cParseBoxInOut
         typedef cParseBoxInOut<Dim> tThis;
 
         // -------- creators ----------
-        static tThis  CreateFromSize(const tBox &, const tPt & aSz); /// Give the size of boxes
-        static tThis  CreateFromSizeCste(const tBox&, int aSz);  /// Give a constant size
-        static tThis  CreateFromSzMem(const tBox&, double AvalaibleMem); /// Allocate  approximate mem by tiles
+        static tThis  CreateFromSize(const tBox &, const tPt & aSz); ///< Give the size of boxes
+        static tThis  CreateFromSizeCste(const tBox&, int aSz);  ///< Give a constant size
+        static tThis  CreateFromSzMem(const tBox&, double AvalaibleMem); ///< Allocate  approximate mem by tiles
 
         // -------- Manipulation ----------
 
@@ -359,6 +359,7 @@ class cDataFileIm2D : public cRect2
         /// Create the file before returning the descriptor
         static cDataFileIm2D Create(const std::string & aName,eTyNums,const cPt2di & aSz,int aNbChan=1);
 
+
         virtual ~cDataFileIm2D();
         
      private :
@@ -452,8 +453,10 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         ///  Read file image 1 channel to 1 channel
         void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  
         ///  Write file image 1 channel to 1 channel
-        void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  // 1 to 1
+        void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
         virtual ~cDataIm2D();  ///< will delete mRawData2D
+
+        void ToFile(const std::string& aName) const; ///< Create a File having same size/type ...
         
         /// Raw image, lost all waranty is you use it...
         tVal ** ExtractRawData2D() {return mRawData2D;}
@@ -501,7 +504,7 @@ template <class Type>  class cIm2D
        const tDIM & DIm() const {return *(mPIm);} ///< const version 4 raw pointer
       
        void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  ///< 1 to 1
-       void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  // 1 to 1
+       void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
 
        static cIm2D<Type> FromFile(const std::string& aName);  ///< Allocate and init from file
 

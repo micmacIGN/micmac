@@ -51,7 +51,7 @@ void  ExpFilterOfStdDev(cDataIm2D<Type> & aIOut,const cDataIm2D<Type> & aImIn,in
 template <class Type> class cGP_OneImage;
 template <class Type> class cGP_OneOctave;
 template <class Type> class cGaussianPyramid;
-struct cParamGP;
+struct cGP_Params;
 
 /// Class to store one image of a gaussian pyram
 /**
@@ -68,9 +68,11 @@ template <class Type> class cGP_OneImage : public cMemCheck
         typedef cGP_OneOctave<Type>    tOct;
         typedef cGaussianPyramid<Type> tPyr;
 
-        void ComputGaussianFilter();
-        cGP_OneImage(tOct * anOct,int NumInOct,tGPIm * mUp); ///< Constructor
+        void ComputGaussianFilter();  ///< Generate computation of gauss image
+        void SaveInFile() const;  ///< Save image on file  (if Param seted for), tuning/teaching
         void Show() const;  ///< Show Image in text format, test and debug
+
+        cGP_OneImage(tOct * anOct,int NumInOct,tGPIm * mUp); ///< Constructor
         std::string  Id() const; ///< Some identifier, may usefull in debuging
         // Accessors
         tIm ImG();  ///< Get gaussian image
@@ -109,13 +111,15 @@ template <class Type> class cGP_OneOctave : public cMemCheck
         typedef cGP_OneOctave<Type>    tOct;
         typedef cGaussianPyramid<Type> tPyr;
 
-        void ComputGaussianFilter();  ///< Generate computation of gauss pyram
         cGP_OneOctave(tPyr * aPyr,int aNum,tOct * aUp); ///< Constructor
 
         tIm ImTop(); ///< For initalisation , need to access to top image of the pyramid
         tGPIm * ImageOfScaleAbs(double aScale, double aTolRel=1e-5) ; ///< Return image having given sigma
 
         void Show() const;  ///< Show octave in text format, test and debug
+        void ComputGaussianFilter();  ///< Generate computation of gauss pyram
+        void SaveInFile() const;  ///< Save images on disk, tuning / teaching
+  
 
         
         //  ====  Accessors  ===========
@@ -148,14 +152,17 @@ struct cGP_Params
      public :
          cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap);
 
+      // Parameters having no def values
          const cPt2di mSzIm0;    ///< Sz of Image at full resol
          const int  mNbOct;      ///< Number of octave
          const int  mNbLevByOct;  ///< Number of level per octave (dont include overlap)
          const int  mNbOverlap;  ///< Number of overlap
-
-         double     mConvolIm0;     ///< Possible additionnal convolution to first image
-         int        mNbIter1;    ///<  Number of iteration of first Gaussian
-         int        mNbIterMin;  ///<  Min number if iteration
+         
+      // Parameters with def value, can be changed
+         double      mConvolIm0;  ///< Possible additionnal convolution to first image  def 0.0
+         int         mNbIter1;    ///<  Number of iteration of first Gaussian              def 4
+         int         mNbIterMin;  ///<  Min number if iteration                            def 2
+         std::string mPrefSave;   ///<  if specified used for saving pyramid
 };
 
 /// Struct to store a gaussian pyram
@@ -175,7 +182,8 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
 
         void Show() const;  ///< Show pyramid in text format, test and debug
         tIm ImTop(); ///< For initalisation , need to access to top image of the pyramid
-        void ComputGaussianFilter();
+        void ComputGaussianFilter();  ///< Generate gauss in image of octave
+        void SaveInFile() const;  ///< Save images  in image of octave
 
       // Accessors
         const cGP_Params & Params() const;  ///< Parameters of pyramid

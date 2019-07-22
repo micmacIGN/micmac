@@ -42,7 +42,7 @@ template <class Type> cGP_OneImage<Type>::cGP_OneImage(tOct * anOct,int aNumInOc
 
 template <class Type> void cGP_OneImage<Type>::ComputGaussianFilter()
 {
-   if (mIsTopPyr)  // Case top image do not need except if initial filtering
+   if (mIsTopPyr)  // Case top image do not need filtering, except if specified in ConvolIm0
    {
        double aCI0 = mPyr->Params().mConvolIm0;
        if (aCI0!=0.0)
@@ -69,6 +69,15 @@ template <class Type> void cGP_OneImage<Type>::ComputGaussianFilter()
         // This should never happen by construction
         MMVII_INTERNAL_ASSERT_strong(mUp!=nullptr,"Up Image in ComputGaussianFilter");
    }
+}
+template <class Type> void cGP_OneImage<Type>::SaveInFile() const
+{
+    const std::string & aPref = mPyr->Params().mPrefSave;
+    if (aPref=="")
+       return ;
+
+    std::string aName = aPref + "-" + ShortId() + ".tif";
+    mImG.DIm().ToFile(aName);
 }
 
 
@@ -133,12 +142,6 @@ template <class Type> cGP_OneOctave<Type>::cGP_OneOctave(tPyr * aPyr,int aNum,tO
     }
 }
 
-template <class Type> void cGP_OneOctave<Type>::Show() const
-{
-    StdOut() << "   --- Oct --- " << mNumInPyr << " Sz=" << mSzIm << "\n";
-    for (const auto & aPtrIm : mVIms)
-       aPtrIm->Show();
-}
 
 template <class Type> cGP_OneImage<Type>* cGP_OneOctave<Type>::ImageOfScaleAbs(double aScale,double aTolRel)
 {
@@ -147,6 +150,27 @@ template <class Type> cGP_OneImage<Type>* cGP_OneOctave<Type>::ImageOfScaleAbs(d
           return  aPtr.get();
   return nullptr;
 }
+
+template <class Type> void cGP_OneOctave<Type>::ComputGaussianFilter()
+{
+   for (auto & aPtrIm : mVIms)
+       aPtrIm->ComputGaussianFilter();
+}
+
+template <class Type> void cGP_OneOctave<Type>::Show() const
+{
+    StdOut() << "   --- Oct --- " << mNumInPyr << " Sz=" << mSzIm << "\n";
+    for (const auto & aPtrIm : mVIms)
+       aPtrIm->Show();
+}
+
+template <class Type> void cGP_OneOctave<Type>::SaveInFile() const
+{
+   for (auto & aPtrIm : mVIms)
+       aPtrIm->SaveInFile();
+}
+
+
 
 template <class Type> cIm2D<Type> cGP_OneOctave<Type>::ImTop() {return mVIms.at(0)->ImG();}
     //  Accessors
@@ -170,7 +194,8 @@ cGP_Params::cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOve
    mNbOverlap    (aOverlap),
    mConvolIm0    (0.0),
    mNbIter1      (4),
-   mNbIterMin    (2)
+   mNbIterMin    (2),
+   mPrefSave     ("")
 {
 }
 
@@ -208,6 +233,18 @@ template <class Type> void cGaussianPyramid<Type>::Show() const
    StdOut() << "     type elem: " <<  E2Str(tElemNumTrait<Type>:: TyNum())  << "\n";
    for (const auto & aPtrOct : mVOct)
        aPtrOct->Show();
+}
+
+template <class Type> void cGaussianPyramid<Type>::ComputGaussianFilter()
+{
+   for (const auto & aPtrOct : mVOct)
+       aPtrOct->ComputGaussianFilter();
+}
+
+template <class Type> void cGaussianPyramid<Type>::SaveInFile() const
+{
+   for (auto & aPtrOct : mVOct)
+       aPtrOct->SaveInFile();
 }
 
 template <class Type> cIm2D<Type> cGaussianPyramid<Type>::ImTop() {return mVOct.at(0)->ImTop();}
