@@ -29,6 +29,8 @@ template <class Type> class  cTplAppliCalcDescPCar
         cAppliCalcDescPCar & mAppli;   ///< Reference the application
         tSP_Pyr              mPyr;     ///< Pointer on gaussian pyramid
         cDataFileIm2D        mDFI;     ///< Structure on image file
+        cRect2               mBoxIn;   ///< Current Input Box
+        cRect2               mBoxOut;   ///< Current Output Box, inside wich we muste save data
 };
 
 
@@ -60,9 +62,11 @@ class cAppliCalcDescPCar : public cMMVII_Appli
 /* =============================================== */
 
 template<class Type> cTplAppliCalcDescPCar<Type>::cTplAppliCalcDescPCar(cAppliCalcDescPCar & anAppli) :
-   mAppli (anAppli),
-   mPyr   (nullptr),
-   mDFI   (cDataFileIm2D::Create(mAppli.mNameIm,true))
+   mAppli  (anAppli),
+   mPyr    (nullptr),
+   mDFI    (cDataFileIm2D::Create(mAppli.mNameIm,true)),
+   mBoxIn  (cRect2::TheEmptyBox),
+   mBoxOut (cRect2::TheEmptyBox),
 {
 }
 
@@ -82,6 +86,7 @@ template<class Type> void cTplAppliCalcDescPCar<Type>::ExeGlob()
 template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di & anIndex,const cParseBoxInOut<2>& aPBI)
 {
     StdOut() << "AnIndex " << anIndex << "\n";
+    mBoxIn = aPBI.BoxIn(anIndex,mAppli.mOverlap);
 }
 
    // mPyr = tPyr::Alloc(cGP_Params(cPt2di(400,700),5,5,3));
@@ -105,6 +110,8 @@ cCollecSpecArg2007 & cAppliCalcDescPCar::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
              << AOpt2007(mIntPyram,"IntPyr","Gauss Pyramid in integer",{eTA2007::HDV})
+             << AOpt2007(mSzTile,"TileSz","Size of tile for spliting computation",{eTA2007::HDV})
+             << AOpt2007(mOverlap,"TileOL","Overlao of tile to limit sides effects",{eTA2007::HDV})
    ;
 }
 
