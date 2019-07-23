@@ -25,12 +25,22 @@ template <class Type> class  cTplAppliCalcDescPCar
     private :
         /// Run the process for one image box
         void ExeOneBox(const cPt2di & aP,const cParseBoxInOut<2> & aPBI);
+        tREAL4 ToStored(const tREAL4 aV)   {return (aV-mVC) *mDyn;}
+        tREAL4 FromStored(const tREAL4 aV) {return aV/mDyn + mVC;}
 
         cAppliCalcDescPCar & mAppli;   ///< Reference the application
+        bool                 mIsFloat; ///< Known from type
         tSP_Pyr              mPyr;     ///< Pointer on gaussian pyramid
+        tSP_Pyr              mPyrLapl;     ///< Pointer to laplacian pyramids
         cDataFileIm2D        mDFI;     ///< Structure on image file
+        tREAL4               mTargAmpl;///< Amplitude after dynamic adaptation
         cRect2               mBoxIn;   ///< Current Input Box
-        cRect2               mBoxOut;   ///< Current Output Box, inside wich we muste save data
+        cPt2di               mSzIn;    ///< Current size of inputs
+        cRect2               mBoxOut;  ///< Current Output Box, inside wich we muste save data
+
+        // To adapt dynamic  StoredVal = (RealVal-mVC) / mDyn
+        tREAL4               mVC;      ///< Central Value
+        tREAL4               mDyn;     ///< Dynamic of value
 };
 
 
@@ -53,6 +63,11 @@ class cAppliCalcDescPCar : public cMMVII_Appli
         bool        mIntPyram;  ///< Impose integer  image
         int         mSzTile;    ///<  sz of tiles for spliting in sub processe
         int         mOverlap;   ///< sz of  overlap between tiles
+        int         mNbOct;
+        int         mNbLevByOct;
+        int         mNbOverLapByO;
+        bool        mSaveIms;
+        bool        mDoLapl;
 };
 
 /* =============================================== */
@@ -62,11 +77,14 @@ class cAppliCalcDescPCar : public cMMVII_Appli
 /* =============================================== */
 
 template<class Type> cTplAppliCalcDescPCar<Type>::cTplAppliCalcDescPCar(cAppliCalcDescPCar & anAppli) :
-   mAppli  (anAppli),
-   mPyr    (nullptr),
-   mDFI    (cDataFileIm2D::Create(mAppli.mNameIm,true)),
-   mBoxIn  (cRect2::TheEmptyBox),
-   mBoxOut (cRect2::TheEmptyBox),
+   mAppli    (anAppli),
+   mIsFloat  (! tElemNumTrait<Type>::IsInt()),
+   mPyr      (nullptr),
+   mPyrLapl  (nullptr),
+   mDFI      (cDataFileIm2D::Create(mAppli.mNameIm,true)),
+   mTargAmpl (10000.0),  // Not to high => else overflow in gaussian before normalisation
+   mBoxIn    (cRect2::TheEmptyBox),
+   mBoxOut   (cRect2::TheEmptyBox)
 {
 }
 
@@ -78,25 +96,94 @@ template<class Type> void cTplAppliCalcDescPCar<Type>::ExeGlob()
    {
        ExeOneBox(anIndex,aPBI);
    }
-
-
 }
 
 
 template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di & anIndex,const cParseBoxInOut<2>& aPBI)
 {
-    StdOut() << "AnIndex " << anIndex << "\n";
+
+    // Initialize Box, Params, gaussian pyramid
     mBoxIn = aPBI.BoxIn(anIndex,mAppli.mOverlap);
+    mSzIn = mBoxIn.Sz();
+    mBoxOut = aPBI.BoxOut(anIndex);
+    cGP_Params aGP(mSzIn,mAppli.mNbOct,mAppli.mNbLevByOct,mAppli.mNbOverLapByO);
+    mPyr = tPyr::Alloc(aGP);
+
+    // Load image
+    
+    mVC = 0.0;
+    mDyn = 1.0;
+    if (mIsFloat)  // Case floating point image, just read the values
+    {
+        mPyr->ImTop().Read(mDFI,mBoxIn.P0());
+    }
+    else  // Else read the value, then adapt dynamic
+    {
+         cIm2D<tREAL4>  aImBuf(mSzIn); // Create a float image
+         cDataIm2D<tREAL4> & aDImBuf = aImBuf.DIm(); // Extract 
+         aDImBuf.Read(mDFI,mBoxIn.P0());  // Read image the file
+
+         tREAL4  aVMin,aVMax;
+         GetBounds(aVMin,aVMax,aDImBuf);   // Extract bounds of image
+         mVC = (aVMin+aVMax) / 2.0;  // Central value
+         if (aVMin != aVMax)  // Set dyn if possible, else will be 1.0
+         {
+              mDyn =  mTargAmpl / double(aVMax-aVMin);
+         }
+         cIm2D<Type>      aImTop  = mPyr->ImTop();
+         cDataIm2D<Type>& aDImTop = aImTop.DIm();
+         // Copy in top image of pyramid, the value adaptated to dynamic
+         for (const auto & aP : aDImTop)
+         {
+// StdOut() << "ppppP " << aP << aDImBuf.GetV(aP) << " " << ToStored(aDImBuf.GetV(aP)) << "\n";
+             aDImTop.SetV(aP,ToStored(aDImBuf.GetV(aP)));
+         }
+    }
+    // Compute Gaussian pyramid
+    mPyr->ComputGaussianFilter();
+
+    // Compute Lapl if rerquired
+    if (mAppli.mDoLapl)
+    {
+          mPyrLapl =  mPyr->PyramDiff();
+    }
+
+    StdOut() << "AnIndex " << anIndex << " SsZzz " << mVC << " " << mDyn << " " << mIsFloat << "\n";
+   //  Eventually save on disk all pyramids 
+    if (mAppli.mSaveIms)
+    {
+        mPyr->SetPrefSave("Gauss-" + ToStr(anIndex.x())+ToStr(anIndex.y()) +"-" + Prefix(mAppli.mNameIm));
+        mPyr->SaveInFile();
+        if (mAppli.mDoLapl)
+        {
+            mPyrLapl->SetPrefSave("Lapl-" + ToStr(anIndex.x())+ToStr(anIndex.y()) +"-" + Prefix(mAppli.mNameIm));
+            mPyrLapl->SaveInFile();
+        }
+    }
+
 }
 
-   // mPyr = tPyr::Alloc(cGP_Params(cPt2di(400,700),5,5,3));
-   // mPyr->Show();
+
+//const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap);
 
 /* =============================================== */
 /*                                                 */
 /*               cAppliCalcDescPCar                */
 /*                                                 */
 /* =============================================== */
+
+cAppliCalcDescPCar:: cAppliCalcDescPCar(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli  (aVArgs,aSpec),
+  mIntPyram     (false),
+  mSzTile       (7000),
+  mOverlap      (300),
+  mNbOct        (5),
+  mNbLevByOct   (5),
+  mNbOverLapByO (3),
+  mSaveIms      (false),
+  mDoLapl       (true)
+{
+}
 
 cCollecSpecArg2007 & cAppliCalcDescPCar::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
@@ -112,6 +199,10 @@ cCollecSpecArg2007 & cAppliCalcDescPCar::ArgOpt(cCollecSpecArg2007 & anArgOpt)
              << AOpt2007(mIntPyram,"IntPyr","Gauss Pyramid in integer",{eTA2007::HDV})
              << AOpt2007(mSzTile,"TileSz","Size of tile for spliting computation",{eTA2007::HDV})
              << AOpt2007(mOverlap,"TileOL","Overlao of tile to limit sides effects",{eTA2007::HDV})
+             << AOpt2007(mNbOct,"PyrNbO","Number of octaves in Pyramid",{eTA2007::HDV})
+             << AOpt2007(mNbLevByOct,"PyrNbL","Number of level/Octaves in Pyramid",{eTA2007::HDV})
+             << AOpt2007(mNbOverLapByO,"PyrNbOverL","Number of overlap  in Pyram(change only for Save Image)",{eTA2007::HDV})
+             << AOpt2007(mSaveIms,"SaveIms","Save images (tuning/debuging/teaching)",{eTA2007::HDV})
    ;
 }
 
@@ -142,13 +233,6 @@ int cAppliCalcDescPCar::Exe()
    return EXIT_SUCCESS;
 }
 
-cAppliCalcDescPCar:: cAppliCalcDescPCar(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (aVArgs,aSpec),
-  mIntPyram    (false),
-  mSzTile      (7000),
-  mOverlap     (300)
-{
-}
 
 
 /* =============================================== */

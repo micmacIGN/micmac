@@ -1,4 +1,5 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_Tpl_Images.h"
 
 
 namespace MMVII
@@ -70,6 +71,14 @@ template <class Type> void cGP_OneImage<Type>::ComputGaussianFilter()
         MMVII_INTERNAL_ASSERT_strong(mUp!=nullptr,"Up Image in ComputGaussianFilter");
    }
 }
+
+template <class Type> void cGP_OneImage<Type>::MakeDiff(const tGPIm &  aImDif)
+{
+   MMVII_INTERNAL_ASSERT_strong(aImDif.mDown!=nullptr,"Down Image in MakeDiff");
+
+   DiffImageInPlace(mImG.DIm(),aImDif.mImG.DIm(),aImDif.mDown->mImG.DIm());
+}
+
 template <class Type> void cGP_OneImage<Type>::SaveInFile() const
 {
     const std::string & aPref = mPyr->Params().mPrefSave;
@@ -101,7 +110,7 @@ template <class Type> std::string cGP_OneImage<Type>::Id()  const
 template <class Type> std::string cGP_OneImage<Type>::ShortId()  const
 {
    return     
-              "o_" + ToStr(mOct->NumInPyr()) +   "m_" + ToStr(mNumInOct)  ;
+              "o" + ToStr(mOct->NumInPyr()) +   "_i" + ToStr(mNumInOct)  ;
 }
 
        // ==== Accessors ====
@@ -149,6 +158,14 @@ template <class Type> cGP_OneImage<Type>* cGP_OneOctave<Type>::ImageOfScaleAbs(d
        if (RelativeDifference(aPtr->ScaleAbs(),aScale)<aTolRel)
           return  aPtr.get();
   return nullptr;
+}
+
+template <class Type> void cGP_OneOctave<Type>::MakeDiff(const tOct & anOct)
+{
+    for (int aKIm=0 ; aKIm<int(mVIms.size()) ; aKIm++)
+    {
+         mVIms.at(aKIm)->MakeDiff(*anOct.mVIms.at(aKIm));
+    }
 }
 
 template <class Type> void cGP_OneOctave<Type>::ComputGaussianFilter()
@@ -221,6 +238,7 @@ template <class Type> cGaussianPyramid<Type>::cGaussianPyramid(const cGP_Params 
    }
 }
 
+
 template <class Type>  std::shared_ptr<cGaussianPyramid<Type>>  
       cGaussianPyramid<Type>::Alloc(const cGP_Params & aParams)
 {
@@ -235,6 +253,25 @@ template <class Type> void cGaussianPyramid<Type>::Show() const
        aPtrOct->Show();
 }
 
+template <class Type>  std::shared_ptr<cGaussianPyramid<Type>>  
+      cGaussianPyramid<Type>::PyramDiff() const
+{
+    cGP_Params aParam = mParams;
+    aParam.mNbOverlap--;
+    // Not Sure thi would create a problem, but it would not be very coherent ?
+    MMVII_INTERNAL_ASSERT_strong(aParam.mNbOverlap>=0,"No overlap for PyramDiff");
+
+    tSP_Pyr aRes = Alloc(aParam);
+
+    for (int aKo=0 ; aKo<int(mVOct.size()) ; aKo++)
+    {
+        aRes->mVOct.at(aKo)->MakeDiff(*mVOct.at(aKo));
+    }
+
+
+    return aRes;
+}
+
 template <class Type> void cGaussianPyramid<Type>::ComputGaussianFilter()
 {
    for (const auto & aPtrOct : mVOct)
@@ -245,6 +282,11 @@ template <class Type> void cGaussianPyramid<Type>::SaveInFile() const
 {
    for (auto & aPtrOct : mVOct)
        aPtrOct->SaveInFile();
+}
+
+template <class Type> void cGaussianPyramid<Type>::SetPrefSave(const std::string& aPref)
+{
+  mParams.mPrefSave = aPref;
 }
 
 template <class Type> cIm2D<Type> cGaussianPyramid<Type>::ImTop() {return mVOct.at(0)->ImTop();}

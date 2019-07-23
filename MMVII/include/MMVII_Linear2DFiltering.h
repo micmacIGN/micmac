@@ -64,6 +64,7 @@ template <class Type> class cGP_OneImage : public cMemCheck
 {
     public :
         typedef cIm2D<Type>            tIm;
+        typedef cDataIm2D<Type>        tDIm;
         typedef cGP_OneImage<Type>     tGPIm;
         typedef cGP_OneOctave<Type>    tOct;
         typedef cGaussianPyramid<Type> tPyr;
@@ -78,6 +79,9 @@ template <class Type> class cGP_OneImage : public cMemCheck
         tIm ImG();  ///< Get gaussian image
         bool   IsTopPyr() const;   ///< Is it top image of top octave
         double ScaleAbs() const;   ///< Scale of Gauss "Absolute" 
+
+        /** Put in this the difference between anIm and anIm.mDown */
+        void  MakeDiff(const tGPIm & );
     private :
         std::string  ShortId() const;  ///< Helper to create Id avoid 
 
@@ -120,6 +124,8 @@ template <class Type> class cGP_OneOctave : public cMemCheck
         void ComputGaussianFilter();  ///< Generate computation of gauss pyram
         void SaveInFile() const;  ///< Save images on disk, tuning / teaching
   
+        /** Put in all image of this, the  image  whic are differences of consecutive image in anOct */
+        void  MakeDiff(const tOct & anOct);
 
         
         //  ====  Accessors  ===========
@@ -153,10 +159,10 @@ struct cGP_Params
          cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap);
 
       // Parameters having no def values
-         const cPt2di mSzIm0;    ///< Sz of Image at full resol
-         const int  mNbOct;      ///< Number of octave
-         const int  mNbLevByOct;  ///< Number of level per octave (dont include overlap)
-         const int  mNbOverlap;  ///< Number of overlap
+         cPt2di mSzIm0;    ///< Sz of Image at full resol
+         int  mNbOct;      ///< Number of octave
+         int  mNbLevByOct;  ///< Number of level per octave (dont include overlap)
+         int  mNbOverlap;  ///< Number of overlap
          
       // Parameters with def value, can be changed
          double      mConvolIm0;  ///< Possible additionnal convolution to first image  def 0.0
@@ -179,11 +185,14 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
         typedef std::shared_ptr<tPyr>  tSP_Pyr;
 
         static tSP_Pyr Alloc(const cGP_Params &); ///< Allocator
+        /** Generate a Pyramid made of the difference, typically for laplacian from gaussian */
+        tSP_Pyr  PyramDiff() const;
 
         void Show() const;  ///< Show pyramid in text format, test and debug
         tIm ImTop(); ///< For initalisation , need to access to top image of the pyramid
         void ComputGaussianFilter();  ///< Generate gauss in image of octave
         void SaveInFile() const;  ///< Save images  in image of octave
+        void SetPrefSave(const std::string&); ///< 4 set prefix that will be used, when image must be saved
 
       // Accessors
         const cGP_Params & Params() const;  ///< Parameters of pyramid
