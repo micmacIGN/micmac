@@ -24,17 +24,24 @@ static double FoncTestIm(const cPt2di & aP)
 
 template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
 {
+    // Test Id initialization + IndexeLinear + NormaliseCoord
     {
        cPt2di aSzR = aP1-aP0;
        cPt2di aSz(aSzR.x(),aSzR.x());
 
        cIm2D<Type> aPIm(aSz,nullptr,eModeInitImage::eMIA_MatrixId);
        cDataIm2D<Type>  & aIm = aPIm.DIm();
+       int aCpt=0;
        for (const auto & aP : aIm)
        {
            Type aV1 = (aP.x()==aP.y());
            Type aV2 = aIm.GetV(aP);
            MMVII_INTERNAL_ASSERT_bench(aV1==aV2,"Bench image error");
+           MMVII_INTERNAL_ASSERT_bench(aCpt==aIm.IndexeLinear(aP),"Bench image error");
+           aCpt++;
+           cPt2dr aPNorm = aIm.ToNormaliseCoord(aP);
+           cPt2di aPAgain = aIm.FromNormaliseCoord(aPNorm);
+           MMVII_INTERNAL_ASSERT_bench(aP==aPAgain,"Bench image error");
        }
     }
     {

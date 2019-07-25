@@ -9,20 +9,31 @@ namespace MMVII
 /*          cDataIm2D         */
 /* ========================== */
 
+///  A Class to compute scaling of one image
+
+/**
+     Later this class will evolve to offer the same service than MMV1 command.
+
+     For now it is pretty basic, the scale is integer, the algorithm is
+     "gaussian filter" + "decimation".
+
+     The purpose was to test visually gaussian pyramid that will be used in
+     descriptors (Aime ...)
+*/
 
 class cAppli_ScaleImage : public cMMVII_Appli
 {
      public :
         cAppli_ScaleImage(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
         int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) ;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) ;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
      private :
-        std::string mNameIn;
-        std::string mNameOut;
-        int         mScale;
-        double      mDilate;
-        bool        mForceGray;
+        std::string mNameIn;  ///< Input image name
+        std::string mNameOut; ///< Output image name
+        int         mScale;   ///< Reduction factor
+        double      mDilate;    ///< "Dilatation" of Gaussian Kernel, 1.0 means Sigma =  1/2 reduction
+        bool        mForceGray;  ///< Impose gray image
 };
 
 cCollecSpecArg2007 & cAppli_ScaleImage::ArgObl(cCollecSpecArg2007 & anArgObl) 
@@ -62,7 +73,7 @@ int cAppli_ScaleImage::Exe()
 
 cAppli_ScaleImage:: cAppli_ScaleImage(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
   cMMVII_Appli (aVArgs,aSpec),
-  mDilate      (DefStdDevRessample),
+  mDilate      (1.0),
   mForceGray   (false)
 {
 }

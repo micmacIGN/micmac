@@ -145,7 +145,7 @@ class cMMVII_Ofs : public cMemCheck
 
         std::ofstream  mOfs;
         std::string    mName;
-        bool           mModeAppend;
+        // bool           mModeAppend; Unsused warning CLANG
 };
 
 /// Secured ifstream

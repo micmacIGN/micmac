@@ -26,6 +26,8 @@ namespace MMVII
 /*                                                           */
 /* ========================================================= */
 
+/// Base class of all archive class
+
 /**
      Base class of all archive class;
  

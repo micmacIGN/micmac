@@ -8,89 +8,6 @@ namespace MMVII
     \brief Classes for storing images in RAM, possibly N dimention
 */
 
-/** The purpose of this  class is to make some elementary test on image class,
-for this it is declared friend  of many image class, allowing to test atomic function
-who  will be private for standard classes/functions .
-*/
-
-class cBenchBaseImage;
-/// Idem cBenchBaseImage
-class cBenchImage;
-
-template <class Type,const int Dim>  class cTplBox;
-template <const int Dim>  class            cPixBoxIterator;
-template <const int Dim>  class            cPixBox;
-
-
-
-template <class Type,const int Dim>  class cTplBox
-{
-    public : 
-        typedef Type                             tNum ;
-        typedef typename  tNumTrait<Type>::tBig  tBigNum ;
-        typedef cTplBox<Type,Dim>                tBox;
-        typedef cPtxd<Type,Dim>                  tPt;
-        typedef cPtxd<tBigNum,Dim>               tBigPt;
-
-        cTplBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty=false);
-
-
-        const tPt & P0() const {return mP0;} ///< Origin of object
-        const tPt & P1() const {return mP1;} ///< End of object
-        const tPt & Sz() const {return mSz;} ///< Size of object
-
-        const tBigNum & NbElem() const {return mNbElem;}  ///< Surface  / Volume
-
-        const tPt & SzCum() const;
-
-        // Boolean operators
-           /// Is this point/pixel/voxel  inside
-        bool Inside(const tPt & aP) const  {return SupEq(aP,mP0) && InfStr(aP,mP1);}
-           /// Specialistion 1D
-        bool Inside(const tNum & aX) const  
-        {
-           // static_assert(Dim==1,"Bas dim for integer access");
-           return (aX>=mP0.x()) && (aX<mP1.x());
-        }
-        /// Return closest point inside the box
-        tPt  Proj(const tPt & aP) const {return PtInfStr(PtSupEq(aP,mP0),mP1);}
-        /// Are the two box equals
-        bool operator == (const tBox & aR2) const ;
-        /// Is  this included in aB
-        bool  IncludedIn(const  tBox & aB)const;
-        /// Sometime we need to represent the empty box explicitely
-        bool IsEmpty() const;
-        tBox   Translate(const tPt & aPt)const;
-
-        tBox Sup(const tBox & aPt)const;
-        tBox Inter(const tBox & aPt)const;
-
-        /// Assert that it is inside
-        template <class TypeIndex> void AssertInside(const TypeIndex & aP) const
-        {
-             MMVII_INTERNAL_ASSERT_tiny(Inside(aP),"Point out of image");
-        }
-        void AssertSameArea(const tBox & aV) const; ///<  Assert object are identic
-        void AssertSameSz(const   tBox & aV) const;   ///<  Check only size
-
-         
-
-        //  ---  object generation ----------------
-
-        tPt  FromNormaliseCoord(const cPtxd<double,Dim> &) const ;  ///< [0,1] * => Rect
-        static cPtxd<double,Dim>  RandomNormalised() ;     ///<  Random point in "hyper cube" [0,1] ^ Dim
-        tPt   GeneratePointInside() const;   ///< Random point in integer rect
-        tBox  GenerateRectInside(double aPowSize=1.0) const; ///< Hig Power generate "small" rect, never empty
-
-
-    protected :
-        tPt       mP0;         ///< "smallest"
-        tPt       mP1;         ///< "highest"
-        tPt       mSz;         ///<  Size
-        tBigPt    mSzCum;      ///< Cumlated size : Cum[aK] = Cum[aK-1] * Sz[aK-1]
-        tBigNum   mNbElem;     ///< Number of pixel = Cum[Dim-1]
-    private :
-};
 
 /**  Class allow to iterate the pixel of an image (in fact a rectangular object) using the
 same syntax than stl iterator => for (auto aP : anIma) ....
@@ -105,16 +22,17 @@ template <const int Dim>  class cPixBoxIterator
 
         bool operator == (const tIter& aIt2) {return  mPCur==aIt2.mPCur;}  ///< Equal iff current point are =
         bool operator != (const tIter& aIt2) {return  mPCur!=aIt2.mPCur;}  ///< !Equal iif not equal ...
-        tPt & operator * () {return mPCur;}
-        tPt & operator * () const {return mPCur;}
-        tPt * operator ->() {return &mPCur;}
-        tPt * operator ->() const {return &mPCur;}
+        tPt & operator * () {return mPCur;}         ///< classic operator dereference
+        tPt & operator * () const {return mPCur;}   ///< classic operator dereference
+        tPt * operator ->() {return &mPCur;}        ///< classic operator dereference
+        tPt * operator ->() const {return &mPCur;}  ///< classic operator dereference
 
         /// standard prefix incrementation
         tIter &  operator ++(); 
         /// Just a "facility" to allow post-fix
         tIter &  operator ++(int) {return ++(*this);} 
-     private :
+     protected :
+        
         cPixBoxIterator(tPB & aRO,const  tPt & aP0) : mRO (&aRO),mPCur (aP0) {}
 
         tPB * mRO;  ///< The rectangular object
@@ -140,22 +58,140 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         //  --- Iterator ----------------
         iterator &  begin() {return mBegin;}   ///< For auto
         iterator &  end()   {return mEnd;}   ///< For auto
-        iterator   begin() const {return mBegin;}   ///< For auto
-        iterator   end()   const {return mEnd;}   ///< For auto
-        tINT8     IndexeLinear(const tPt &) const;
+        const iterator &  begin() const {return mBegin;}   ///< For auto
+        const iterator &  end()   const {return mEnd;}   ///< For auto
+        tINT8     IndexeLinear(const tPt &) const; ///< Num of pixel when we iterate
         /// Required by iterators  as they do not copy well becaus of ptr
         cPixBox(const cPixBox<Dim> &) ;
         cPixBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty = false);
         /// It may be convenient as conversion, as tool may retun TplBox, and others may need to iterate on it
         cPixBox(const cTplBox<int,Dim> &);
+        // Position of point relative to PixBox
+          ///< D is the num coordina, 0 on the border, <0 out, value is the signed margin
+        int Interiority(const int  aCoord,int aD) const;  
+        int Interiority(const tPt& aP    ,int aD) const;  ///< D is 
+        int Interiority(const tPt& aP           ) const;  ///< Min of previous
+        int WinInteriority(const tPt& aP,const tPt& aWin,int aD) const;  ///< D is 
+
+        cBorderPixBox<Dim>  Border(int aSz) const;
+
     private :
         iterator  mBegin; ///< Beging iterator
         iterator  mEnd;   ///< Ending iterator
 };
 
+extern template const cPixBox<2>     cPixBox<2>::TheEmptyBox;  // Pb Clang, requires explicit declaration
+
 typedef  cPixBox<1> cRect1;
 typedef  cPixBox<2> cRect2;
 typedef  cPixBox<3> cRect3;
+
+
+/// Iterator on the border of rectangle
+/** Iterator on the border of rectangle, many image processing require some specific
+precaution to be taken on border (sides effect);
+
+    Method : first do a "standard" iteration inside the rectangle, then if X=left border
+
+ */
+template <const int Dim>  class cBorderPixBoxIterator : public cPixBoxIterator<Dim>
+{
+   public :
+       typedef cPtxd<int,Dim>        tPt;
+       typedef cBorderPixBoxIterator<Dim>  tIter;
+       typedef cPixBoxIterator<Dim>  tPBI;
+       typedef cBorderPixBox<Dim>    tBPB;
+
+       cBorderPixBoxIterator(tBPB & ,const  tPt & aP0);
+        /// standard prefix incrementation
+       tIter &  operator ++();
+        /// Just a "facility" to allow post-fix
+       tIter &  operator ++(int);
+
+   private :
+       tBPB *  mBPB;  ///< Pointer to the border for handling "special" incrementation
+};
+
+///  Class allowing to iterate on the border itsef
+
+/**  To iterate on the border itself 
+
+     Stantard inteface to iteratible object
+     Containd the full rectangle itself + the interior rectangle
+ */
+
+
+template <const int Dim>  class cBorderPixBox
+{
+   public :
+       typedef cBorderPixBoxIterator<Dim>  iterator;
+       typedef cPixBox<Dim>          tPB;
+       typedef cPtxd<int,Dim>        tPt;
+
+       cBorderPixBox(const tPB & aRO,const tPt & aSz) ;
+       cBorderPixBox(const tPB & aRO,int aSz) ;
+       cBorderPixBox(const cBorderPixBox<Dim> &);
+
+       iterator &  begin() {return mBegin;}   ///< For auto
+       iterator &  end()   {return mEnd;}   ///< For auto
+       iterator   begin() const  {return mBegin;}   ///< For auto
+       iterator   end()   const  {return mEnd;}   ///< For auto
+       tPB &    PB();
+       void IncrPt(tPt &); ///< Make the incrementation specific to border
+   private :
+       tPB              mPB; ///< The Pix Box arround the border
+       tPt              mSz;  ///< Sz of border
+       cTplBox<int,Dim> mBoxInt;  ///< Interior box
+       int              mX0;      ///< first X of interior box
+       int              mX1;      ///< last X of interior box
+       iterator         mBegin;   ///< memorization of iterator , begin
+       iterator         mEnd;     ///< memorization of iterator , end
+};
+
+
+
+///  This class will be used to parse big image files and reassembling the results
+
+/** This class will be usefull to parse big box (image files typically) and reassembling the results
+
+    At it creation , create a "small" box of index,  then user can :
+       * iterate on these index via  BoxIndex
+       * for a given index, recuparate the  output for writing , ouput box are a partition of global 
+         box
+       * for a given index recurate input box, they add a margin to output box, and are always
+         included in global box
+*/
+
+
+template <const int Dim>  class cParseBoxInOut
+{
+     public :
+        // -------- Typdef section ----------
+        typedef cPixBox<Dim>        tBox;
+        typedef cPtxd<int,Dim>      tPt;
+        typedef cParseBoxInOut<Dim> tThis;
+
+        // -------- creators ----------
+        static tThis  CreateFromSize(const tBox &, const tPt & aSz); ///< Give the size of boxes
+        static tThis  CreateFromSizeCste(const tBox&, int aSz);  ///< Give a constant size
+        static tThis  CreateFromSzMem(const tBox&, double AvalaibleMem); ///< Allocate  approximate mem by tiles
+
+        // -------- Manipulation ----------
+
+        /** Box of indexes : "small" number of tiles , (0,0)=> top left box ..., to be used in for(auto..) */
+        const tBox & BoxIndex() const;  
+        tBox  BoxOut(const tPt & anIndex) const; ///< return OutBox from an index created by BoxIndex
+        tBox  BoxIn(const tPt & anIndex,const tPt& anOverlap) const;  ///< Idem but add an overlap
+        tBox  BoxIn(const tPt & anIndex,const int anOverlap) const;   ///< Add a constant overlap in all direction
+
+     private :
+        cParseBoxInOut(const tBox & aBoxGlob,const tBox & aBoxIndexe); ///< Create from given indexe box
+        tPt Index2Glob(const tPt &) const; ///< Map mBoxIndex  to mBoxGlob
+
+        tBox  mBoxGlob;  ///< Box with want to parse
+        tBox  mBoxIndex; ///< Box of index of sub box
+};
+
 
 
 
@@ -195,7 +231,12 @@ template <> inline cPixBoxIterator<3> &  cPixBoxIterator<3>::operator ++()
 }
 
 
-/**  Abstract class allowing to manipulate images independanlty of their type
+///  Abstract class allowing to manipulate images independanlty of their type
+
+/**  This class define an interface that allow to manipulate any image
+
+     This generic class heritate from PixBox and  define several pure
+     virtual methods to access to pixel read/write 
 */
 
 
@@ -221,7 +262,12 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
         virtual void VD_SetV(const  cPtxd<int,Dim> & aP,const double & aV)=0 ;
 };
 
+///  Classes for   ram-image containg a given type of pixel
 /**  Classes for   ram-image containg a given type of pixel
+
+      It contains a linear buffer allow to store the pixel value.
+      Some basic vector like manipulation can so be done indepentanly of the dimension
+      (like add, subb etc ...)
 */
 
 template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedIm<Dim>
@@ -283,9 +329,11 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
 
         bool   mDoAlloc;  ///< was data allocated by the image (must know 4 free)
         Type *   mRawDataLin; ///< raw data containing pixel values
-        int      mNbElemMax;
+        int      mNbElemMax;  ///< maxim number reached untill now, for resize
 };
 
+
+///   Class for file image 2D
 
 /** Class for file image, basic now, will evolve but with (hopefully)
     a same/similar interface.
@@ -311,6 +359,7 @@ class cDataFileIm2D : public cRect2
         /// Create the file before returning the descriptor
         static cDataFileIm2D Create(const std::string & aName,eTyNums,const cPt2di & aSz,int aNbChan=1);
 
+
         virtual ~cDataFileIm2D();
         
      private :
@@ -321,11 +370,15 @@ class cDataFileIm2D : public cRect2
         int          mNbChannel; ///< Number of channels
 };
 
+///  Class for 2D image in Ram of a given type :
 /**  Class for 2D image in Ram of a given type :
         * there is no copy constructor, and only shared pointer can be allocated
         * algorithm will work on these images (pointers, ref)
         * all acces are cheked (in non optimized versions)
      Class that store an image will store cIm2D
+      
+     This "pattern" will be used in many case : a class, uncopiable, that is used
+     for storing, and create shared pointer, a class for storing
 */
 
 template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
@@ -400,8 +453,10 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         ///  Read file image 1 channel to 1 channel
         void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  
         ///  Write file image 1 channel to 1 channel
-        void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  // 1 to 1
+        void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
         virtual ~cDataIm2D();  ///< will delete mRawData2D
+
+        void ToFile(const std::string& aName) const; ///< Create a File having same size/type ...
         
         /// Raw image, lost all waranty is you use it...
         tVal ** ExtractRawData2D() {return mRawData2D;}
@@ -423,12 +478,13 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
              MMVII_INTERNAL_ASSERT_tiny((Y>=Y0())&&(Y<Y1()),"Point out of image");
         }
 
-        int     mSzYMax;
+        int     mSzYMax;     ///< For resize
         tPVal * mRawData2D;  ///< Pointers on DataLin
 };
 
 
 
+///  Class for memorzing 2D images
 /**  Class for allocating and storing 2D images
      This is no more than a shared ptr on a cDataIm2D
 */
@@ -448,7 +504,7 @@ template <class Type>  class cIm2D
        const tDIM & DIm() const {return *(mPIm);} ///< const version 4 raw pointer
       
        void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  ///< 1 to 1
-       void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  // 1 to 1
+       void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
 
        static cIm2D<Type> FromFile(const std::string& aName);  ///< Allocate and init from file
 
@@ -456,22 +512,27 @@ template <class Type>  class cIm2D
        // void Read(const cDataFileIm2D &,cPt2di & aP0,cIm2D<Type> aI2,cIm2D<Type> aI3);  // 3 to 3
 
        cIm2D<Type>  Dup() const;  ///< create a duplicata
+       void  DecimateInThis(int aFact,const cIm2D<Type> & I) ;  ///< Decimate I in this ,just take on pix out of N
        cIm2D<Type>  Decimate(int aFact) const;  ///< create decimated image, just take on pix out of N
+       cPt2di       SzDecimate(int aFact) const;  ///< Sometime it may be usefull to know the size before computing it
        /**  Apply gaussian filter, use a temporary float */
        cIm2D<Type>  GaussFilter(double , int aNbIterExp=3) const;  
        /**  Apply gaussian filter before dezoom to have good ressampling, may be a bit slow
-            StdDev => prop to fact, def value 0.5 correspond to a witdh equal to size of ressampling */
-       cIm2D<Type>  GaussDeZoom(int aFact, int aNbIterExp=3,double StdDev=DefStdDevRessample) const;  
+            Dilate => to change defautl gaussian kernel */
+       cIm2D<Type>  GaussDeZoom(int aFact, int aNbIterExp=3,double Dilate=1.0) const;  
 
+       /** Transposition, needed it once, maybe usefull later */
+       cIm2D<Type> Transpose() const;
 
     private :
        std::shared_ptr<tDIM> mSPtr;  ///< shared pointer to real image , allow automatic deallocation
        tDIM *                mPIm;   ///< raw pointer on mSPtr, a bit faster to store it ?
 };
 
-// template <class Type>  cIm2D<Type> operator + (const cIm2D<Type>,const cIm2D<Type>);
 
+///  Class for 1D image in Ram of a given type
 /**  Class for 1D image in Ram of a given type :
+     Same pattern than 2D image
 */
 
 template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
@@ -547,7 +608,9 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         Type * mRawData1D;  ///< Offset vs DataLin
 };
 
+///  Class for allocating and storing 1D images
 /**  Class for allocating and storing 1D images
+    Same pattern than  cDataIm1D/cIm1D
 */
 
 template <class Type>  class cIm1D  
@@ -573,36 +636,6 @@ template <class Type>  class cIm1D
        std::shared_ptr<tDIM> mSPtr;  ///< shared pointer to real image
        tDIM *                mPIm;
 };
-
-/**************************************/
-/*           LINEAR FILTERING         */
-/**************************************/
-
-/// return the variance of  exponential distribution of parameter "a" ( i.e proportiona to  "a^|x|")
-double Sigma2FromFactExp(double a);
-/// Inverse function, the usefull one 
-double FactExpFromSigma2(double aS2);
-
-
-/** General function, 
-      Normalise => If true, limit size effect and Cste => Cste (else lowe close to border)
-      cRect2 => foot print, not necessarily whole image
-      Fx,Fy => factor in x and y can be different, (if one is equal 0 => speed up)
-*/
-
-template <class Type>
-void  ExponentialFilter(bool Normalise,cDataIm2D<Type> & aIm,int   aNbIter,const cRect2 &,double Fx,double Fy);
-
-
-/** Standard parameters, normalised, whole image, Fx==Fy */
-template <class Type>
-void  ExponentialFilter(cDataIm2D<Type> & aIm,int   aNbIter,double aFact);
-/** More naturel parametrisation, specify the standard deviation of FINAL filter (including iterations),
-   the NbIter parameter allow to be more or less close to a gaussian */
-template <class Type>
-void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,int   aNbIter,double aStdDev);
-
-
 
 
 };

@@ -47,6 +47,10 @@ cSpecOneArg2007::cSpecOneArg2007(const std::string & aName,const std::string & a
     ReInit();
 }
 
+cSpecOneArg2007::~cSpecOneArg2007()
+{
+}
+
 void cSpecOneArg2007::ReInit()
 {
    mNbMatch = 0;
@@ -217,6 +221,12 @@ MACRO_INSTANTIATE_ARG2007(double)
 MACRO_INSTANTIATE_ARG2007(bool)
 MACRO_INSTANTIATE_ARG2007(std::string)
 MACRO_INSTANTIATE_ARG2007(std::vector<std::string>)
+MACRO_INSTANTIATE_ARG2007(std::vector<int>)
+MACRO_INSTANTIATE_ARG2007(std::vector<double>)
+MACRO_INSTANTIATE_ARG2007(cPt2di)
+MACRO_INSTANTIATE_ARG2007(cPt2dr)
+MACRO_INSTANTIATE_ARG2007(cPt3di)
+MACRO_INSTANTIATE_ARG2007(cPt3dr)
 
 /*
 template <> tPtrArg2007 AOpt2007<int>(int &,const std::string & aName, const std::string & aCom);

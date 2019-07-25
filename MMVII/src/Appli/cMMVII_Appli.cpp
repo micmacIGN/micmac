@@ -530,6 +530,10 @@ void cMMVII_Appli::InitParam()
          if (!mVMainSets.at(aNum).IsInit())
          {
             mVMainSets.at(aNum)= SetNameFromString(mDirProject+aVValues[aK],true);
+            if (! AcceptEmptySet(aNum) && (mVMainSets.at(aNum).size()==0))
+            {
+                MMVII_UsersErrror(eTyUEr::eEmptyPattern,"Specified set of files was empty");
+            }
          }
          else
          {
@@ -716,6 +720,12 @@ const tNameSet &  cMMVII_Appli::MainSet(int aK) const
       MMVII_INTERNAL_ASSERT_always(false,"No mMainSet created for K="+ ToStr(aK));
    }
    return  mVMainSets.at(aK);
+}
+bool   cMMVII_Appli::AcceptEmptySet(int) const {return false;}
+
+std::vector<std::string> cMMVII_Appli::VectMainSet(int aK) const
+{
+   return ToVect(MainSet(aK));
 }
 
 void cMMVII_Appli::CheckRangeMainSet(int aK) const

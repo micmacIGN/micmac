@@ -20,6 +20,16 @@ double FactExpFromSigma2(double aS2)
     return (aS2+1 - sqrt(Square(aS2+1)-Square(aS2))  ) / aS2 ;
 }
 
+/// Sigma of convol sqrt(A^2+B^2)
+double SomSigm(double  aS1,double aS2) {return sqrt(Square(aS1)+Square(aS2));}
+/// "Inverse" of SomSigm  sqrt(A^2-B^2)
+double DifSigm(double  aS1,double aS2) 
+{
+   MMVII_INTERNAL_ASSERT_tiny(aS1>=aS2,"DifSigm");
+   return sqrt(Square(aS1)-Square(aS2));
+}
+
+
 
 
 /** We use a class essentially to be able to use typedef, most method will be static */
@@ -171,6 +181,12 @@ void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,int   aNbIter,double aStdDev)
      ExponentialFilter(aIm,aNbIter,FactExpFromSigma2(Square(aStdDev)/aNbIter));
 }
 
+template <class Type> 
+void  ExpFilterOfStdDev(cDataIm2D<Type> & aImOut,const cDataIm2D<Type> & aImIn,int   aNbIter,double aStdDev)
+{
+     aImIn.DupIn(aImOut);
+     ExponentialFilter(aImOut,aNbIter,FactExpFromSigma2(Square(aStdDev)/aNbIter));
+}
 
 /* ========================== */
 /*     cDataGenUnTypedIm      */
@@ -182,6 +198,7 @@ template  class cLinearFilter<Type>;\
 template void ExponentialFilter(bool,cDataIm2D<Type> &,int,const cRect2 &,double,double);\
 template void  ExponentialFilter(cDataIm2D<Type> & aIm,int   aNbIter,double aFact);\
 template void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,int   aNbIter,double aStdDev);\
+template void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,const cDataIm2D<Type> & aImIn,int   aNbIter,double aStdDev);\
 /*
 template  class cMatIner2Var<Type>;\
 template cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm);\
@@ -193,6 +210,7 @@ MACRO_INSTANTIATE_ExpoFilter(tREAL4);
 MACRO_INSTANTIATE_ExpoFilter(tREAL8);
 MACRO_INSTANTIATE_ExpoFilter(tREAL16);
 MACRO_INSTANTIATE_ExpoFilter(tINT4);
+MACRO_INSTANTIATE_ExpoFilter(tINT2);
 
 /*
 template class cDataTypedIm<tREAL4,1>;

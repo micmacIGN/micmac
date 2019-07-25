@@ -109,8 +109,9 @@ class cAppli_MMVII_Bench : public cMMVII_Appli
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
-        std::string mTest;
-        int         mNumBugRecall;
+
+        std::string mTest; ///< Do remember why I added that !!
+        int         mNumBugRecall; ///< Used if we want to force bug generation in recall process
 };
 
 cCollecSpecArg2007 & cAppli_MMVII_Bench::ArgObl(cCollecSpecArg2007 & anArgObl)
@@ -124,7 +125,7 @@ cCollecSpecArg2007 & cAppli_MMVII_Bench::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
   return
       anArgOpt
-         << AOpt2007(mNumBugRecall,"NBR","Num to Generate a Bug in Recall")
+         << AOpt2007(mNumBugRecall,"NBR","Num to Generate a Bug in Recall,(4 manuel inspection of log file)")
   ;
 }
 
@@ -250,6 +251,7 @@ int  cAppli_MMVII_Bench::Exe()
    BenchStrIO();
 
 
+   BenchFilterImage1();
    BenchFilterLinear();
 
    // We clean the temporary files created
@@ -284,7 +286,19 @@ cSpecMMVII_Appli  TheSpecBench
 /*                                                           */
 /* ========================================================= */
 
-/** A class to test mecanism of MMVII recall itself */
+/// A class to test mecanism of MMVII recall itself
+
+/** This class make some rather stupid computation to
+    generate and multiple recall of MMVII by itself
+
+    Each appli has an Id number Num, if the level of  recursion
+    is not reached, it generate two subprocess 2*Num and 2*Num +1
+
+    Each process generate a file, as marker of it was really executed
+
+    At the end we check that all the marker exist (and no more), and we clean
+
+*/
 
 class cAppli_MMRecall : public cMMVII_Appli
 {
@@ -297,11 +311,11 @@ class cAppli_MMRecall : public cMMVII_Appli
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
-        int          mNum;  ///< kind of idea of the call
+        int          mNum;  ///< kind of identifiant of the call
         int          mLev0; ///< to have the right depth we must know level of
-        std::string  mAM[NbMaxArg];
-        std::string  mAO[NbMaxArg];
-        bool         mRecalInSameProcess;
+        std::string  mAM[NbMaxArg];  ///<  to get the mandatory Args
+        std::string  mAO[NbMaxArg];  ///<  to get the optionall Args  
+        bool         mRecalInSameProcess; ///< The recall mecanism can be tested by subprocess or inside same
         int          mNumBug;  ///< Generate bug 4 this num
 };
 

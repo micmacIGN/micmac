@@ -207,8 +207,11 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 		}
 		
 		aPtsAL.CAC = vCameraEtCoord;
-		vPtsAI.push_back(aPtsAL);
-        std::cout<<aPtsAL.CAC.size()<<" ";
+        if ( int(vCameraEtCoord.size()) >= 2 )
+        {
+		    vPtsAI.push_back(aPtsAL);
+            std::cout<<aPtsAL.CAC.size()<<" ";
+        }
     }
     std::cout<<"done!"<<std::endl;
 	
@@ -232,7 +235,7 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 			vC2d.push_back(aCoordPtC);
         }
 
-        if (vC2d.size()<3) continue;
+        //if (vC2d.size()<3) continue;
         Pt3dr aPt3d = IntersectionFaisceaux(vCSPt,vC2d);
         Pts3d.push_back(aPt3d);
 	}

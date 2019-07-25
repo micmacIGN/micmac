@@ -33,6 +33,9 @@ Par mesure de commodité, l'archive des sources, ainsi que l'archive des binaire
 En plus des prérequis précédent, la compilation des sources nécessite l'installation de [cmake](www.cmake.org) ainsi que des fichiers d’en-tête de X11 pour Linux et MacOS X.
 Le nom du paquet Linux des headers X11 est généralement `libx11-dev`.
 Sous Windows, les outils graphiques de saisie ne sont pas générés.
+Les utilisateurs de Windows auront besoin de la bibliothèque Qt5 pour générer les interfaces graphiques telles que *SaisieMasqQT*.
+
+Pour optimiser la recompilation, [ccache](ccache.dev) est automatiquement utilisé si détecté.
 
 ## Sous Linux / MacOS X
 

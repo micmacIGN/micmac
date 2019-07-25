@@ -50,18 +50,62 @@ template <class Type>  std::vector<Type> Str2Vec(const std::string & aStrGlob)
    return  aRes;
 }
 
-                          //   - - std::vector<std::string>  - -
+                          //   - - std::vector<Type>  - -
 
-template <>  std::string cStrIO<std::vector<std::string> >::ToStr(const std::vector<std::string>  & aV)
-{
-   return  Vect2Str(aV);
-}
-template <>  std::vector<std::string> cStrIO<std::vector<std::string> >::FromStr(const std::string & aStr)
-{
-    return Str2Vec<std::string>(aStr);
-}
-template <>  const std::string cStrIO<std::vector<std::string>>::msNameType = "std::vector<std::string>";
+#define MACRO_INSTANTITATE_STRIO_VECT_TYPE(TYPE)\
+template <>  std::string cStrIO<std::vector<TYPE>>::ToStr(const std::vector<TYPE>  & aV)\
+{\
+   return  Vect2Str(aV);\
+}\
+template <>  std::vector<TYPE> cStrIO<std::vector<TYPE> >::FromStr(const std::string & aStr)\
+{\
+    return Str2Vec<TYPE>(aStr);\
+}\
+template <>  const std::string cStrIO<std::vector<TYPE>>::msNameType = "std::vector<"  #TYPE  ">";\
 
+MACRO_INSTANTITATE_STRIO_VECT_TYPE(std::string)
+MACRO_INSTANTITATE_STRIO_VECT_TYPE(int)
+MACRO_INSTANTITATE_STRIO_VECT_TYPE(double)
+
+                          //   - - cPtxd  - -
+
+#define MACRO_INSTANTITATE_STRIO_CPTXD(TYPE,DIM)\
+template <>  std::string cStrIO<cPtxd<TYPE,DIM> >::ToStr(const cPtxd<TYPE,DIM>  & aV)\
+{\
+  return Vect2Str(std::vector<TYPE>(aV.PtRawData(),aV.PtRawData()+cPtxd<TYPE,DIM>::TheDim));\
+}\
+template <>  cPtxd<TYPE,DIM> cStrIO<cPtxd<TYPE,DIM> >::FromStr(const std::string & aStr)\
+{\
+    std::vector<TYPE> aV = cStrIO<std::vector<TYPE>>::FromStr(aStr);\
+    cPtxd<TYPE,DIM> aRes;\
+    for (int aK=0 ; aK<DIM ; aK++)\
+        aRes[aK] = aV[aK];\
+    return aRes;\
+}\
+template <>  const std::string cStrIO<cPtxd<TYPE,DIM> >::msNameType = "cPtxd<" #TYPE ","  #DIM ">";\
+
+MACRO_INSTANTITATE_STRIO_CPTXD(int,2)
+MACRO_INSTANTITATE_STRIO_CPTXD(double,2)
+MACRO_INSTANTITATE_STRIO_CPTXD(int,3)
+MACRO_INSTANTITATE_STRIO_CPTXD(double,3)
+
+
+
+/*
+template <>  std::string cStrIO<cPtxd<double,2> >::ToStr(const cPtxd<double,2>  & aV)
+{
+  return Vect2Str(std::vector<double>(aV.PtRawData(),aV.PtRawData()+cPtxd<double,2>::TheDim));
+}
+template <>  cPtxd<double,2> cStrIO<cPtxd<double,2> >::FromStr(const std::string & aStr)
+{
+    std::vector<double> aV = cStrIO<std::vector<double>>::FromStr(aStr);
+    cPtxd<double,2> aRes;
+    for (int aK=0 ; aK<2 ; aK++)
+        aRes[aK] = aV[aK];
+    return aRes;
+}
+template <>  const std::string cStrIO<cPtxd<double,2> >::msNameType = "cPt2dr";
+*/
 
 
 

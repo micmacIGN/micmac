@@ -235,6 +235,20 @@ template<class T1,class T2,int Dim>
     return aSom;
 }
 
+template<class T1,int Dim>
+   void GetBounds(T1 & aVMin,T1& aVMax,const cDataTypedIm<T1,Dim> & aIm)
+{
+    aVMin = aVMax = aIm.GetRDL(0);
+    for (int aK=1 ; aK<aIm.NbElem() ; aK++)
+    {
+        const T1 & aV = aIm.GetRDL(aK);
+        aVMin = std::min(aV,aVMin);
+        aVMax = std::max(aV,aVMax);
+    }
+}
+
+
+
 
 
 };

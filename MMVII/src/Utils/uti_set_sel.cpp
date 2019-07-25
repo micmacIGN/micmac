@@ -984,6 +984,17 @@ tNameSet SetNameFromPat(const std::string& aFullPat)
      return aRes;
 }
 
+std::vector<std::string>  ToVect(const tNameSet & aSet)
+{
+   std::vector<std::string> aRes;
+   std::vector<const std::string *> aBuf;
+   aSet.PutInVect(aBuf,true);
+   for (const auto & aPStr : aBuf)
+       aRes.push_back(*aPStr);
+
+   return aRes;
+}
+
 /** Return Rel from xml file, noting if do not exist, result in &Exist
 */
 

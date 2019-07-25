@@ -297,7 +297,7 @@ class cAppli_EditRel : public cMMVII_Appli
          bool        m2Set;   ///< Is there 2 different set, true if mPat2 is init
          bool        mAllPair;
          std::string mOp;
-         int         mShow;
+         // int         mShow;
          int         mLine;
          bool        mCirc;
          bool        mReflexif;
@@ -309,7 +309,7 @@ class cAppli_EditRel : public cMMVII_Appli
 cAppli_EditRel::cAppli_EditRel(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
   cMMVII_Appli (aVArgs,aSpec),
   mAllPair     (false),
-  mShow        (0),
+  // mShow        (0),
   mLine        (0),
   mCirc        (false),
   mReflexif    (false),

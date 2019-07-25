@@ -12,7 +12,7 @@ class cAppli_ComputeParamIndexBinaire ;
 class cDataOneInvRad;
 // Class for representing information on one file, it's only meta data, as the global image is not memmorized
 class cMetaDataOneFileInvRad ;
-// Class for storing info/vector on one Pts Carac
+/// Class for storing info/vector on one Pts Carac
 class  cVecInvRad ;
      /*=====   Class specific to bit vector processing =====*/
 // Virtual Class for computing on bit
@@ -28,9 +28,13 @@ typedef std::vector<tPtVIR>            tVPtVIR;
 
 typedef std::shared_ptr<cVecBool> tPtVBool;
 
+/// Global class to process computation of binary index
+
 /**
-     Global class to process computation of binary index, will be used probably for
-     other learning.
+     Global class to process computation of binary index.
+   
+     Probably the application will be used for other learning task (as learning
+     decison by SVM, RF, RNN ... from invariant or LogPol)
 */
 
 class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
@@ -129,13 +133,16 @@ class cAppli_ComputeParamIndexBinaire : public cMMVII_Appli
          bool                         mOptimAPrio; ///< Use a priori optimization of Bit Vect
 };
 
+
+/// Class for storing info/vector on one Pts Carac
+/**  Essentially this class is a vector of "real value", pack to tU_INT1 */
 class  cVecInvRad : public cMemCheck
 {
       public :
          cVecInvRad(int aNbVal);
       
-         cIm1D<tU_INT1>  mVec;
-         bool            mSelected; //< When we iterate binary index, use this to "supress" IR that satisy the test
+         cIm1D<tU_INT1>  mVec;  ///< Values
+         bool            mSelected; ///< When we iterate binary index, use this to "supress" IR that satisy the test
 };
 
 
