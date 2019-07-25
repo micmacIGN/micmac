@@ -741,6 +741,8 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 			{
 				if (aSatellitePosition_3N[j] == aSatellitePosition_3N_loc[0]) { aNbDuplicateN = aSatellitePosition_3N.size() - j; }
 			}
+		ELISE_ASSERT(aNbDuplicateN != 0, "No overlaps in recorded stallite positions for 3N band");
+
 		aSatellitePosition_3N.erase(aSatellitePosition_3N.end() - aNbDuplicateN, aSatellitePosition_3N.end());
 		aSatellitePosition_3N.insert(aSatellitePosition_3N.end(), aSatellitePosition_3N_loc.begin(), aSatellitePosition_3N_loc.end());
 
@@ -750,6 +752,7 @@ int ASTERGT_strip_2_MM_main(int argc, char ** argv)
 		{
 			if (aSatellitePosition_3B[j] == aSatellitePosition_3B_loc[0]) { aNbDuplicateB = aSatellitePosition_3B.size() - j; }
 		}
+		ELISE_ASSERT(aNbDuplicateB != 0, "No overlaps in recorded stallite positions for 3B band");
 		aSatellitePosition_3B.erase(aSatellitePosition_3B.end() - aNbDuplicateB, aSatellitePosition_3B.end());
 		aSatellitePosition_3B.insert(aSatellitePosition_3B.end(), aSatellitePosition_3B_loc.begin(), aSatellitePosition_3B_loc.end());
 
