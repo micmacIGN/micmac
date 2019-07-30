@@ -353,8 +353,8 @@ class cAppli_NewRechPH
 
         tImNRPH   mIm0;
         tTImNRPH  mTIm0;
-        tImNRPH   mImContrast;
-        tTImNRPH  mTImContrast;
+        tImContrNRPH   mImContrast;
+        tTImContrNRPH  mTImContrast;
         tInterpolNRPH * mInterp;
         int          mIdPts;
         bool          mCallBackMulI; // Est on en call back pour cause d'image multiple
@@ -365,6 +365,7 @@ class cAppli_NewRechPH
         Im2D_Bits<1>    mImMasq;
         TIm2DBits<1>    mTImMasq;
         bool            mDoInvarIm;
+        bool            mExportAll; // Generate intermedizire results
 };
 
 class cProfilPC

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamNewRechPH[285] = {
+const char * theNameVar_ParamNewRechPH[299] = {
 "\n",
 "<GenCpp  Difndef=\"Define_NotRechNewPH\">\n",
 "\n",
@@ -277,6 +277,20 @@ const char * theNameVar_ParamNewRechPH[285] = {
 "\n",
 "   </XmlAimeParamApprentissage>\n",
 "\n",
+"   <Xml2007Pt Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"       <Pt   Nb=\"1\" Type=\"Pt2dr\">       </Pt>\n",
+"       <NumOct   Nb=\"1\" Type=\"int\">     </NumOct>\n",
+"       <NumIm    Nb=\"1\" Type=\"int\">     </NumIm>\n",
+"       <ScaleInO   Nb=\"1\" Type=\"double\">   </ScaleInO>\n",
+"       <ScaleAbs   Nb=\"1\" Type=\"double\">   </ScaleAbs>\n",
+"   </Xml2007Pt>\n",
+"\n",
+"   <Xml2007FilePt  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"       <Pts  Nb=\"*\" RefType=\"Xml2007Pt\"> </Pts> \n",
+"       <IsMin Nb=\"1\" Type=\"bool\">        </IsMin>\n",
+"       <TypePt Nb=\"1\" Type=\"int\">        </TypePt>\n",
+"       <NameTypePt Nb=\"1\" Type=\"std::string\">    </NameTypePt>\n",
+"   </Xml2007FilePt>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
 "// };\n",

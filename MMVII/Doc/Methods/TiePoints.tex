@@ -54,6 +54,8 @@ especially interested to have a low  $p_m$.
 
 \subsection{Computing $\sigma_0$}
 
+\label{GP:SIGMA0}
+
 The gaussian pyramid is made from a succession of image at different scale that
 result from a gaussian filter. How can we justify it :
 
@@ -73,7 +75,7 @@ done in MMVII is :
 
 
 \begin {itemize} 
-   \item  assimilite $I_0$ to a gaussian of  std dev $\sigma_0$;
+   \item  assimilate $I_0$ to a gaussian of  std dev $\sigma_0$;
    \item  suppose $I_0$ is well sampled (nor blurred nor aliased);
    \item we traduce it mathematically by  :
 \end {itemize} 
@@ -97,7 +99,7 @@ We integrate :
 So :
 
 \begin{equation}
-      \sigma_0 = \sqrt{\frac{\pi}{8}} \simeq 0.63
+      \sigma_0 = \sqrt{\frac{\pi}{8}} \simeq 0.626
 \end{equation}
 
 

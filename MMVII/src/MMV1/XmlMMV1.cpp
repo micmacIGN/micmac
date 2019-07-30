@@ -1,9 +1,16 @@
 #include "include/V1VII.h"
 
 
+#include "src/uti_image/NewRechPH/cParamNewRechPH.h"
+#include "../CalcDescriptPCar/AimeTieP.h"
+
+
+
+
 
 namespace MMVII
 {
+
 
 //=============  tNameRel ====================
 
@@ -82,6 +89,71 @@ template<> void  MMv1_SaveInFile(const tNameSet & aSet,const std::string & aName
     for (const auto & el : aV)
         aLON.Name().push_back(*el);
     MakeFileXML(aLON,aName);
+}
+
+/********************************************************/
+
+
+/// Class implementing services promized by cInterf_ExportAimeTiep
+
+/**  This class use MMV1 libray to implement service described in cInterf_ExportAimeTiep
+*/
+class cImplem_ExportAimeTiep : public cInterf_ExportAimeTiep
+{
+     public :
+         cImplem_ExportAimeTiep(bool IsMin,int ATypePt,const std::string & aName);
+         virtual ~cImplem_ExportAimeTiep();
+
+         void AddAimeTieP(const cProtoAimeTieP & aPATP ) override;
+         void Export(const std::string &) override;
+     private :
+          cXml2007FilePt  mPtsXml;
+};
+/* ================================= */
+/*    cInterf_ExportAimeTiep         */
+/* ================================= */
+
+cInterf_ExportAimeTiep::~cInterf_ExportAimeTiep()
+{
+}
+
+cInterf_ExportAimeTiep * cInterf_ExportAimeTiep::Alloc(bool IsMin,int ATypePt,const std::string & aName)
+{
+    return new cImplem_ExportAimeTiep(IsMin,ATypePt,aName);
+}
+
+
+
+/* ================================= */
+/*    cImplem_ExportAimeTiep         */
+/* ================================= */
+
+cImplem_ExportAimeTiep::cImplem_ExportAimeTiep(bool IsMin,int ATypePt,const std::string & aNameType)
+{
+    mPtsXml.IsMin() = IsMin;
+    mPtsXml.TypePt() = IsMin;
+    mPtsXml.NameTypePt() = aNameType;
+    
+}
+cImplem_ExportAimeTiep::~cImplem_ExportAimeTiep()
+{
+}
+
+void cImplem_ExportAimeTiep::AddAimeTieP(const cProtoAimeTieP & aPATP ) 
+{
+    cXml2007Pt aPXml;
+
+    aPXml.Pt() = ToMMV1(aPATP.Pt());
+    aPXml.NumOct() = aPATP.NumOct();
+    aPXml.NumIm() = aPATP.NumIm();
+    aPXml.ScaleInO() = aPATP.ScaleInO();
+    aPXml.ScaleAbs() = aPATP.ScaleAbs();
+
+    mPtsXml.Pts().push_back(aPXml);
+}
+void cImplem_ExportAimeTiep::Export(const std::string & aName)
+{
+     MakeFileXML(mPtsXml,aName);
 }
 
 

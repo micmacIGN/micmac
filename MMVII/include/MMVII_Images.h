@@ -64,6 +64,7 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         /// Required by iterators  as they do not copy well becaus of ptr
         cPixBox(const cPixBox<Dim> &) ;
         cPixBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty = false);
+        static cPixBox<Dim>  BoxWindow(int aSz); ///<  Box of window around pix !! symetric   [-Sz,+aSz] 
         /// It may be convenient as conversion, as tool may retun TplBox, and others may need to iterate on it
         cPixBox(const cTplBox<int,Dim> &);
         // Position of point relative to PixBox

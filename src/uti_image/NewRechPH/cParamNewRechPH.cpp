@@ -2901,4 +2901,216 @@ void xml_init(cXmlAimeParamApprentissage & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXmlAimeParamApprentissage *) {return "E9703653668F268FFE3F";};
 
+
+Pt2dr & cXml2007Pt::Pt()
+{
+   return mPt;
+}
+
+const Pt2dr & cXml2007Pt::Pt()const 
+{
+   return mPt;
+}
+
+
+int & cXml2007Pt::NumOct()
+{
+   return mNumOct;
+}
+
+const int & cXml2007Pt::NumOct()const 
+{
+   return mNumOct;
+}
+
+
+int & cXml2007Pt::NumIm()
+{
+   return mNumIm;
+}
+
+const int & cXml2007Pt::NumIm()const 
+{
+   return mNumIm;
+}
+
+
+double & cXml2007Pt::ScaleInO()
+{
+   return mScaleInO;
+}
+
+const double & cXml2007Pt::ScaleInO()const 
+{
+   return mScaleInO;
+}
+
+
+double & cXml2007Pt::ScaleAbs()
+{
+   return mScaleAbs;
+}
+
+const double & cXml2007Pt::ScaleAbs()const 
+{
+   return mScaleAbs;
+}
+
+void  BinaryUnDumpFromFile(cXml2007Pt & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Pt(),aFp);
+    BinaryUnDumpFromFile(anObj.NumOct(),aFp);
+    BinaryUnDumpFromFile(anObj.NumIm(),aFp);
+    BinaryUnDumpFromFile(anObj.ScaleInO(),aFp);
+    BinaryUnDumpFromFile(anObj.ScaleAbs(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml2007Pt & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Pt());
+    BinaryDumpInFile(aFp,anObj.NumOct());
+    BinaryDumpInFile(aFp,anObj.NumIm());
+    BinaryDumpInFile(aFp,anObj.ScaleInO());
+    BinaryDumpInFile(aFp,anObj.ScaleAbs());
+}
+
+cElXMLTree * ToXMLTree(const cXml2007Pt & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml2007Pt",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Pt"),anObj.Pt())->ReTagThis("Pt"));
+   aRes->AddFils(::ToXMLTree(std::string("NumOct"),anObj.NumOct())->ReTagThis("NumOct"));
+   aRes->AddFils(::ToXMLTree(std::string("NumIm"),anObj.NumIm())->ReTagThis("NumIm"));
+   aRes->AddFils(::ToXMLTree(std::string("ScaleInO"),anObj.ScaleInO())->ReTagThis("ScaleInO"));
+   aRes->AddFils(::ToXMLTree(std::string("ScaleAbs"),anObj.ScaleAbs())->ReTagThis("ScaleAbs"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml2007Pt & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Pt(),aTree->Get("Pt",1)); //tototo 
+
+   xml_init(anObj.NumOct(),aTree->Get("NumOct",1)); //tototo 
+
+   xml_init(anObj.NumIm(),aTree->Get("NumIm",1)); //tototo 
+
+   xml_init(anObj.ScaleInO(),aTree->Get("ScaleInO",1)); //tototo 
+
+   xml_init(anObj.ScaleAbs(),aTree->Get("ScaleAbs",1)); //tototo 
+}
+
+std::string  Mangling( cXml2007Pt *) {return "025DE199B06FEFDBFE3F";};
+
+
+std::list< cXml2007Pt > & cXml2007FilePt::Pts()
+{
+   return mPts;
+}
+
+const std::list< cXml2007Pt > & cXml2007FilePt::Pts()const 
+{
+   return mPts;
+}
+
+
+bool & cXml2007FilePt::IsMin()
+{
+   return mIsMin;
+}
+
+const bool & cXml2007FilePt::IsMin()const 
+{
+   return mIsMin;
+}
+
+
+int & cXml2007FilePt::TypePt()
+{
+   return mTypePt;
+}
+
+const int & cXml2007FilePt::TypePt()const 
+{
+   return mTypePt;
+}
+
+
+std::string & cXml2007FilePt::NameTypePt()
+{
+   return mNameTypePt;
+}
+
+const std::string & cXml2007FilePt::NameTypePt()const 
+{
+   return mNameTypePt;
+}
+
+void  BinaryUnDumpFromFile(cXml2007FilePt & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml2007Pt aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Pts().push_back(aVal);
+        }
+  } ;
+    BinaryUnDumpFromFile(anObj.IsMin(),aFp);
+    BinaryUnDumpFromFile(anObj.TypePt(),aFp);
+    BinaryUnDumpFromFile(anObj.NameTypePt(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml2007FilePt & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.Pts().size());
+    for(  std::list< cXml2007Pt >::const_iterator iT=anObj.Pts().begin();
+         iT!=anObj.Pts().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+    BinaryDumpInFile(aFp,anObj.IsMin());
+    BinaryDumpInFile(aFp,anObj.TypePt());
+    BinaryDumpInFile(aFp,anObj.NameTypePt());
+}
+
+cElXMLTree * ToXMLTree(const cXml2007FilePt & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml2007FilePt",eXMLBranche);
+  for
+  (       std::list< cXml2007Pt >::const_iterator it=anObj.Pts().begin();
+      it !=anObj.Pts().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Pts"));
+   aRes->AddFils(::ToXMLTree(std::string("IsMin"),anObj.IsMin())->ReTagThis("IsMin"));
+   aRes->AddFils(::ToXMLTree(std::string("TypePt"),anObj.TypePt())->ReTagThis("TypePt"));
+   aRes->AddFils(::ToXMLTree(std::string("NameTypePt"),anObj.NameTypePt())->ReTagThis("NameTypePt"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml2007FilePt & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Pts(),aTree->GetAll("Pts",false,1));
+
+   xml_init(anObj.IsMin(),aTree->Get("IsMin",1)); //tototo 
+
+   xml_init(anObj.TypePt(),aTree->Get("TypePt",1)); //tototo 
+
+   xml_init(anObj.NameTypePt(),aTree->Get("NameTypePt",1)); //tototo 
+}
+
+std::string  Mangling( cXml2007FilePt *) {return "609D0441F376C883FE3F";};
+
 // };

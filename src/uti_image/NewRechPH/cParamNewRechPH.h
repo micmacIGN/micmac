@@ -952,5 +952,81 @@ std::string  Mangling( cXmlAimeParamApprentissage *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml2007Pt
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml2007Pt & anObj,cElXMLTree * aTree);
+
+
+        Pt2dr & Pt();
+        const Pt2dr & Pt()const ;
+
+        int & NumOct();
+        const int & NumOct()const ;
+
+        int & NumIm();
+        const int & NumIm()const ;
+
+        double & ScaleInO();
+        const double & ScaleInO()const ;
+
+        double & ScaleAbs();
+        const double & ScaleAbs()const ;
+    private:
+        Pt2dr mPt;
+        int mNumOct;
+        int mNumIm;
+        double mScaleInO;
+        double mScaleAbs;
+};
+cElXMLTree * ToXMLTree(const cXml2007Pt &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml2007Pt &);
+
+void  BinaryUnDumpFromFile(cXml2007Pt &,ELISE_fp &);
+
+std::string  Mangling( cXml2007Pt *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml2007FilePt
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml2007FilePt & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXml2007Pt > & Pts();
+        const std::list< cXml2007Pt > & Pts()const ;
+
+        bool & IsMin();
+        const bool & IsMin()const ;
+
+        int & TypePt();
+        const int & TypePt()const ;
+
+        std::string & NameTypePt();
+        const std::string & NameTypePt()const ;
+    private:
+        std::list< cXml2007Pt > mPts;
+        bool mIsMin;
+        int mTypePt;
+        std::string mNameTypePt;
+};
+cElXMLTree * ToXMLTree(const cXml2007FilePt &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml2007FilePt &);
+
+void  BinaryUnDumpFromFile(cXml2007FilePt &,ELISE_fp &);
+
+std::string  Mangling( cXml2007FilePt *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotRechNewPH

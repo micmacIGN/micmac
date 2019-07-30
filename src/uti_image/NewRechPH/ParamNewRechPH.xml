@@ -275,6 +275,20 @@ mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
 
    </XmlAimeParamApprentissage>
 
+   <Xml2007Pt Nb="1" Class="true" ToReference="true">
+       <Pt   Nb="1" Type="Pt2dr">       </Pt>
+       <NumOct   Nb="1" Type="int">     </NumOct>
+       <NumIm    Nb="1" Type="int">     </NumIm>
+       <ScaleInO   Nb="1" Type="double">   </ScaleInO>
+       <ScaleAbs   Nb="1" Type="double">   </ScaleAbs>
+   </Xml2007Pt>
+
+   <Xml2007FilePt  Nb="1" Class="true" ToReference="true">
+       <Pts  Nb="*" RefType="Xml2007Pt"> </Pts> 
+       <IsMin Nb="1" Type="bool">        </IsMin>
+       <TypePt Nb="1" Type="int">        </TypePt>
+       <NameTypePt Nb="1" Type="std::string">    </NameTypePt>
+   </Xml2007FilePt>
 
 <Verbatim File=".h.cpp">
 // };

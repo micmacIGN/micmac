@@ -37,7 +37,9 @@ template <class Type> class  cStrIO
 /// Facilities when the type is well defined
 template <class Type> std::string ToStr(const Type & aV) {return cStrIO<Type>::ToStr(aV);}
 std::string ToStr(int aVal,int aSzMin);
-std::string FixDigToStr(double aSignedVal,int aNbDig);
+
+std::string FixDigToStr(double aSignedVal,int aNbDig); // Nb Dig after .
+std::string FixDigToStr(double aSignedVal,int aNbDigBefore,int aNbDigAfter); // Nb Dig before and  after .
 
 
 // std::string  ToS_NbDigit(int aNb,int aNbDig,bool AcceptOverFlow=false); ///< To generate with a given number of digits

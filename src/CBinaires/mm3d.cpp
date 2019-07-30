@@ -273,6 +273,7 @@ int CPP_GIMMI_main(int argc,char ** argv);
 int HomolFromProfEtPx_main(int argc,char ** argv);
 int Line2Line_main(int argc,char ** argv);
 int CoronaRessample_main(int argc,char ** argv);
+int DivFilters_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -542,6 +543,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("HomProfPx", HomolFromProfEtPx_main, " Export pixel correspondences from Px1 et Px2"));
 		aRes.push_back(cMMCom("L2L", Line2Line_main, " Project row/column in one image to another"));
 		aRes.push_back(cMMCom("CoronaCorrect", CoronaRessample_main, " Correct some geometric defautl of corona images"));
+		aRes.push_back(cMMCom("DivFilter", DivFilters_main, " Test divers filters"));
 		aRes.push_back(cMMCom("SupMntIm", SupMntIm_main, " Tool for superposition of Mnt Im & level curve"));
 
 		aRes.push_back(cMMCom("MMXmlXif", MakeMultipleXmlXifInfo_main, " Generate Xml from Xif (internal use mainly)"));

@@ -565,6 +565,11 @@ bool F(const std::string & aMes) {std::cout <<"FFFFF=" << aMes << "\n"; return t
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+   {
+      double aV= 3.3333;
+      printf("VVVVV=%05.2f\n",aV);
+   
+   }
     if ((UN>DEUX) && F("aaaa"))
     {
        F("bbbb");
