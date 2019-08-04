@@ -79,10 +79,10 @@
     </SectionEgalisation>
 
     <SectionSorties>
-        <SzDalle>    1000            </SzDalle>
+        <SzDalle>    500            </SzDalle>
         <SzBrd>      100             </SzBrd>
         <NameOrtho>  Orthophotomosaic.tif </NameOrtho>
-        <SzTileResult> 50000000 </SzTileResult>
+        <SzTileResult> 2000000 </SzTileResult>
         <!--
         <NameLabels>  Ortho-DroneMapper-Label.tif </NameLabels>
         -->
