@@ -464,6 +464,8 @@ int SimuRolShut_main(int argc, char ** argv)
                 double aX = aRatio * (aPt2d1.x-aPt2d0.x) + aPt2d0.x;
                 Pt2dr aPt2d = Pt2dr(aX,aY);
 
+                //std::cout << "P0: " << aPt2d0 << " P1: " << aPt2d1 << " Pl: " << aPt2d << endl;
+
                 if (EAMIsInit(&aNoiseGaussian))
                 {
                     aPt2d.x += distributionX(generator);
@@ -568,6 +570,7 @@ int GenerateOrient_main (int argc, char ** argv)
     Pt2dr aTInterv, aGauss;
     int aSeed;
     std::vector<std::string> aVTurn;
+    bool aTrans{true};
     ElInitArgMain
             (
                 argc, argv,
@@ -578,6 +581,7 @@ int GenerateOrient_main (int argc, char ** argv)
                 LArgMain() << EAM(aOut,"Out",true,"Output file name for genarated orientation, def=Modif_orient.txt")
                            << EAM(aSeed,"Seed",false,"Random engine, if not give, computer unix time is used.")
                            << EAM(aVTurn,"Turn",false,"List of image names representing flight turns (set the translation T(i) as T(i-1))")
+                           << EAM(aTrans,"Trans",false,"Take into account translation, def=true")
                 );
 
     // get directory
@@ -600,7 +604,7 @@ int GenerateOrient_main (int argc, char ** argv)
         CamStenope * aCam1 = aICNM->StdCamStenOfNames(aVImgs[i+1],aOri);
         Pt3dr aP1 = aCam1->PseudoOpticalCenter();
 
-        Pt3dr aP = (aP1-aP0) * aRatio;
+        Pt3dr aP = aTrans? (aP1-aP0) * aRatio : Pt3dr(0,0,0);
         //Pt3dr aP_Last = i==0 ? aP : aVTrans.back();
 
         if(IsInList(aVTurn,aVImgs[i]))
