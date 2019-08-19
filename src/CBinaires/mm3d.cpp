@@ -1175,15 +1175,15 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("ImgTMTxt2Xml_B",main_Txt2CplImageTime ,"Convert txt file containing camlight image name and GPS week and time into micmac format"));
 
         aRes.push_back(cMMCom("MoyMAF",MoyMAF_main ,"Calculate center of 4 corner points"));
-        aRes.push_back(cMMCom("GenerateTP",GenerateTP_main ,"Generate simulated tie points"));
-        aRes.push_back(cMMCom("SimuRolShut",SimuRolShut_main ,"Generate simulated tie points"));
-        aRes.push_back(cMMCom("GenerateOrient",GenerateOrient_main,"Generate modification of orientation"));
+        aRes.push_back(cMMCom("GenerateTP",GenerateTP_main ,"Generate simulated tie points",cArgLogCom(2)));
+        aRes.push_back(cMMCom("SimuRolShut",SimuRolShut_main ,"Generate simulated tie points",cArgLogCom(2)));
+        aRes.push_back(cMMCom("GenerateOrient",GenerateOrient_main,"Generate modification of orientation",cArgLogCom(2)));
         aRes.push_back(cMMCom("ReechRolShut",ReechRolShut_main ,"Resampling for rolling shutter effect correction, V2, reproj on new cam orientation",cArgLogCom(2)));
         aRes.push_back(cMMCom("ReechRolShutV1",ReechRolShutV1_main ,"Resampling for rolling shutter effect correction, V1, linear compression/dilatation"));
         aRes.push_back(cMMCom("ExportTPM",ExportTPM_main ,"Export tie point multiplicity"));
         aRes.push_back(cMMCom("CompMAF",CompMAF_main ,"Compare MAF files"));
         aRes.push_back(cMMCom("GenerateOriGPS",GenerateOriGPS_main ,"Compare MAF files"));
-        aRes.push_back(cMMCom("GenerateMAF",GenerateMAF_main ,"Generate simulated MAF"));
+        aRes.push_back(cMMCom("GenerateMAF",GenerateMAF_main ,"Generate simulated MAF",cArgLogCom(2)));
         aRes.push_back(cMMCom("GenImgTM",GenImgTM_main ,"Generate fake Img name/time couple from GPS .xml file"));
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
         aRes.push_back(cMMCom("ProcessThmImgs",ProcessThmImgs_main,"Tool to process Thermique acquisition of IGN"));
