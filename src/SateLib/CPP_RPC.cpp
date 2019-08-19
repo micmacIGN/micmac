@@ -1558,6 +1558,31 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 //Take GCPs in normalized space to compute f in image=f(ground)
 void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 {
+	// If the input grid contains longitudes going across the dateline (+180 to -180), the function fails as fitting a polynom into a non continuous space isn't gonna work
+//Checking the longitudes
+	bool containsPositiveLong = false, containsNegativeLong = false;
+	for (u_int i = 0; i < aGridGeoNorm.size(); i++)
+	{
+		if (aGridGeoNorm[i].x > 0) { containsPositiveLong = true; }
+		else { containsNegativeLong = true; }
+
+	}
+
+	// Adding 360 to negative values of longitude if we are in the edge case.
+	// Note, this trick is necessary as the earth is round, so there is always an issue of non continuity, using 0-360 longitude would make the issue arrise at longitude 0
+	// If a scene actually covers one pole and therefor has data with all possible longitude, then this whole thing won't work, and the RPC will have to be computed in a projected system directly.
+	if (containsPositiveLong && containsNegativeLong)
+	{
+		for (u_int i = 0; i < aGridGeoNorm.size(); i++)
+		{
+			if (aGridGeoNorm[i].x < 0)
+			{
+				aGridGeoNorm[i].x += 360;
+			}
+		}
+	}
+
+
 
 	//Cleaning potential data in RPC object
 	inverse_samp_num_coef.clear();
