@@ -90,7 +90,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
     }else{
 
     //Bulding the output file system
-    ELISE_fp::MkDirRec(aNameDir + DirOut);
+    ELISE_fp::MkDirRec(aNameDir + DirOfFile(DirOut));
 
     //Processing the image
     string aNameIm=ListIm.front();
@@ -227,7 +227,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
     Pt2dr aPPOut=aCam->DistInverse(aCam->PP())-aOrigOut;
 
     //export ori without disto
-    string aDrunkOri=aNameDir + DirOut  + "Ori-"+aOri+"-"+DirOut;
+    string aDrunkOri=aNameDir + DirOfFile(DirOut) + "Ori-" + aOri + "-" + DirOfFile(DirOut);
     ELISE_fp::MkDirSvp(aDrunkOri);
 
     //create ideal camera
@@ -244,7 +244,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
         anIdealCam.SetAltiSol(aCam->GetAltiSol());
     anIdealCam.SetIncCentre(aCam->IncCentre());
 
-    MakeFileXML(anIdealCam.StdExportCalibGlob(),aDrunkOri+"/Orientation-"+aNameIm+".tif.xml","MicMacForAPERO");
+    MakeFileXML(anIdealCam.StdExportCalibGlob(),aDrunkOri+"/Orientation-" + NameWithoutDir(DirOut) + aNameIm + ".tif.xml","MicMacForAPERO");
     }
 }
 
