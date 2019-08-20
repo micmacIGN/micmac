@@ -1143,15 +1143,30 @@ void RPC::ComputeNormFactors(double aHMin, double aHMax)
 	last_height = aHMax;
 	last_col = aPtImMax.x;
 	last_row = aPtImMax.y;
+
+	//fix for dateline
+	if (first_lon*last_lon < 0) // if we cross the dateline, the first an last longitude are going to be approximatelly -180 and +180, so their product will be negative
+	{
+		for (u_int i = 0; i < aPtsGeoX.size(); i++)
+		{
+			if (aPtsGeoX[i] < 0)
+			{
+				aPtsGeoX[i] += 360;
+			}
+		}
+		first_lon = *std::min_element(aPtsGeoX.begin(), aPtsGeoX.end());
+		last_lon = *std::max_element(aPtsGeoX.begin(), aPtsGeoX.end());
+	}
+
 	//Compute scales and offsets
-	long_scale = (aPtGeoMax.x - aPtGeoMin.x) / 2;
-	lat_scale = (aPtGeoMax.y - aPtGeoMin.y) / 2;
-	samp_scale = (aPtImMax.x - aPtImMin.x) / 2;
-	line_scale = (aPtImMax.y - aPtImMin.y) / 2;
-	long_off = (aPtGeoMax.x + aPtGeoMin.x) / 2;;
-	lat_off = (aPtGeoMax.y + aPtGeoMin.y) / 2;
-	samp_off = (aPtImMax.x + aPtImMin.x) / 2;
-	line_off = (aPtImMax.y + aPtImMin.y) / 2;
+	long_scale = (last_lon - first_lon) / 2;
+	lat_scale = (last_lat - first_lat) / 2;
+	samp_scale = (last_col - first_col) / 2;
+	line_scale = (last_row - first_row) / 2;
+	long_off = (last_lon + first_lon) / 2;;
+	lat_off = (last_lat + first_lat) / 2;
+	samp_off = (last_col + first_col) / 2;
+	line_off = (last_row + first_row) / 2;
 	height_scale = (aHMax - aHMin) / 2;
 	height_off = (aHMax + aHMin) / 2;
 }
