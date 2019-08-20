@@ -115,7 +115,10 @@ class cAppliFictObs : public cCommonMartiniAppli
         std::map<std::string,int>      mNameMap;
         std::map<int, TripleStr*>      mTriMap;
         std::map<int,cAccumResidu *>   mAR;
+        cAccumResidu *                 mARGlob;
         bool                           mCorrCalib;
+        bool                           mCorrGlob;
+        bool                           mCorrIma;
 
         Pt2di                       mSz;
         int                         mResPoly;
@@ -140,6 +143,8 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
     mHomExp("dat"),
     mNameOriCalib(""),
     mCorrCalib(true),
+    mCorrGlob(mCorrCalib ? true : false),
+    mCorrIma (mCorrCalib ? !mCorrGlob : false),
     mResPoly(2),
     mRedFacSup(20),
     mResMax(5),
@@ -159,6 +164,8 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
                    << EAM (mNRand,"NRand",true,", Random point generation, Def=false")
                    << EAM (mRedFacSup,"RedFac",true,"Residual image reduction factor, Def=20")
                    << EAM (mCorrCalib,"CorCal",true,"Model residual camera calib, Def=true")
+                   << EAM (mCorrGlob,"CorGlob",true,"Global modelling of CorCal, Def=true")
+                   << EAM (mCorrIma,"CorIma",true,"Per image modelling of CorCal, Def=false")
                    << EAM (mResPoly,"Deg",true,"Degree of polyn to smooth residuals (used only if CorCal=true), Def=2")
                    << EAM (mResMax,"RMax",true,"Maximum residual, everything above will be filtered out, Def=5")
                    << EAM (NFHom,"NF",true,"Save homol to new format?, Def=true")
@@ -300,7 +307,13 @@ void cAppliFictObs::GenerateFicticiousObs()
 
                     if (mCorrCalib)
                     {
-                        mAR[aT.second->mId1]->ExportResXY(ApplyRedFac(aPt),aCor);
+                    
+                        if (mCorrIma)
+                            mAR[aT.second->mId1]->ExportResXY(ApplyRedFac(aPt),aCor);
+                        else if (mCorrGlob)
+                            mARGlob->ExportResXY(ApplyRedFac(aPt),aCor);
+                        else
+                            std::cout << "Something went wrong; check mCorrCalib, mCorrGlob and mCorrIma" << "\n";
 //std::cout << "er er er Pt: " << aPt << " " << ApplyRedFac(aPt) << " Cor=" << aCor << "\n";
                     }
 
@@ -314,15 +327,6 @@ void cAppliFictObs::GenerateFicticiousObs()
                     } else a2Rec++;
                 } else a1Rec++;
                
-                //save points if visible in at leasst 2 images 
-                /*if (aTriIdsCpy.size() >1) 
-                {
-                    std::vector<float> aAttr;
-                    SaveHomolOne(aTriIdsCpy,aPImV,aAttr);
-
-                    aVPSel.push_back(aVP.at(aK));
-                }*/
-
 
             }
 
@@ -461,6 +465,7 @@ void cAppliFictObs::SaveHomolOne(std::vector<int>& aId,std::vector<Pt2dr>& aPImV
     }
 }
 
+/* Updates the per image residual and the global (i.e. camera res) */
 void cAppliFictObs::UpdateAROne(const ElPackHomologue* aPack,
                                 const CamStenope* aC1,const CamStenope* aC2,
                                 const int aC1Id,const int aC2Id)
@@ -477,12 +482,22 @@ void cAppliFictObs::UpdateAROne(const ElPackHomologue* aPack,
  
             if ((aRes1<mResMax) && (aRes1>-mResMax) && (aRes2>-mResMax) && (aRes2<mResMax)) 
             {
-
+            
                 cInfoAccumRes aInf1(itP->P1(),1.0,aRes1,aDir1);
-                mAR[aC1Id]->Accum(aInf1);
- 
                 cInfoAccumRes aInf2(itP->P2(),1.0,aRes2,aDir2);
-                mAR[aC2Id]->Accum(aInf2);
+
+                /* Per image residual */
+                if (mCorrIma)
+                {
+                    mAR[aC1Id]->Accum(aInf1);
+                    mAR[aC2Id]->Accum(aInf2);
+                }
+                /* Per camera (global) residual */
+                else if (mCorrGlob)
+                {
+                    mARGlob->Accum(aInf1);
+                    mARGlob->Accum(aInf2);
+                }
             }
             /* else   //it still somewhat strange there are pts with this large spread
             {
@@ -516,11 +531,17 @@ void cAppliFictObs::UpdateAR(const ElPackHomologue* Pack12,
 void cAppliFictObs::CalcResidPoly()
 {
     //residual displacement maps
-    bool   OnlySign=true;
+    bool   OnlySign=true;//does not generate "ResAbs-" images
 
-    for (auto aCam : mNameMap) //because residual per pose
-        mAR[aCam.second] = new cAccumResidu(mSz,mRedFacSup,OnlySign,mResPoly);
-
+    /* Initialize per image residual structure */
+    if (mCorrIma)
+    {
+        for (auto aCam : mNameMap) 
+            mAR[aCam.second] = new cAccumResidu(mSz,mRedFacSup,OnlySign,mResPoly);
+    }
+    /* Initialize the camera global residual structure */
+    else if (mCorrGlob)
+        mARGlob = new cAccumResidu(mSz,mRedFacSup,OnlySign,mResPoly);
 
     int aTriNum=0;
     for (auto aT : mTriMap)
@@ -549,7 +570,14 @@ void cAppliFictObs::CalcResidPoly()
     aUEIR.GeneratePly() = true;
 
     if (0)
-        mAR[0]->Export("./","TestRes",aUEIR,aFileExpImRes);
+        if (mCorrIma)
+            for (auto aCam : mNameMap)
+            { 
+                mAR[aCam.second]->Export("./",StdPrefix(aCam.first)+"-TestRes",aUEIR,aFileExpImRes);
+            }
+    if (0)
+        if (mCorrGlob)
+            mARGlob->Export("./","Global-TestRes",aUEIR,aFileExpImRes);
     
     fclose(aFileExpImRes); 
 
