@@ -1452,7 +1452,7 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	bool containsPositiveLong = false, containsNegativeLong = false;
 	for (u_int i = 0; i < aGridGeoNorm.size(); i++)
 	{
-		if (aGridGeoNorm[i].x > 0) { containsPositiveLong = true; }
+		if (aGridGeoNorm[i].x*long_scale + long_off > 0) { containsPositiveLong = true; }
 		else { containsNegativeLong = true; }
 
 	}
@@ -1464,9 +1464,9 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	{
 		for (u_int i = 0; i < aGridGeoNorm.size(); i++)
 		{
-			if (aGridGeoNorm[i].x < 0)
+			if (aGridGeoNorm[i].x*long_scale + long_off < 0)
 			{
-				aGridGeoNorm[i].x += 360;
+				aGridGeoNorm[i].x += 360.0/long_scale;
 			}
 		}
 	}
@@ -1574,11 +1574,11 @@ void RPC::GCP2Direct(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 {
 	// If the input grid contains longitudes going across the dateline (+180 to -180), the function fails as fitting a polynom into a non continuous space isn't gonna work
-//Checking the longitudes
+	//Checking the longitudes
 	bool containsPositiveLong = false, containsNegativeLong = false;
 	for (u_int i = 0; i < aGridGeoNorm.size(); i++)
 	{
-		if (aGridGeoNorm[i].x > 0) { containsPositiveLong = true; }
+		if (aGridGeoNorm[i].x*long_scale + long_off > 0) { containsPositiveLong = true; }
 		else { containsNegativeLong = true; }
 
 	}
@@ -1590,9 +1590,9 @@ void RPC::GCP2Inverse(vector<Pt3dr> aGridGeoNorm, vector<Pt3dr> aGridImNorm)
 	{
 		for (u_int i = 0; i < aGridGeoNorm.size(); i++)
 		{
-			if (aGridGeoNorm[i].x < 0)
+			if (aGridGeoNorm[i].x*long_scale + long_off < 0)
 			{
-				aGridGeoNorm[i].x += 360;
+				aGridGeoNorm[i].x += 360.0 / long_scale;
 			}
 		}
 	}
