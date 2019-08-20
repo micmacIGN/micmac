@@ -494,7 +494,8 @@ std::cout << "SZZZZ " << aI0.sz() << "\n";
                                 );
                             }
                             std::string aDir = DirApprentIR(mAppli.DirSaveIm(),aLabTPR,aLabTVI);
-                            std::string aName = aDir + "Cple-"+ StdPrefix(mAppli.mN1) + "-" + StdPrefix(mAppli.mN2) + + ".tif";
+                            ELISE_fp::MkDirRec(aDir);
+                            std::string aName = aDir + "Cple-"+ StdPrefix(mAppli.mN1) + "-" + StdPrefix(mAppli.mN2) + ".tif";
 
 
                             // Tiff_Im::CreateFromIm(aImGlob,aName);

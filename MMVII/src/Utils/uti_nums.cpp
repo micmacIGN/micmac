@@ -22,6 +22,20 @@ int BinomialCoeff(int aK,int aN)
   return aNum / aDenom;
 }
 
+double  RelativeDifference(const double & aV1,const double & aV2,bool * aResOk)
+{
+    double aSom =  std::abs(aV1) +  std::abs(aV2);
+    bool Ok = (aSom!=0);
+    if (aResOk!=nullptr)
+       *aResOk = Ok;
+    if (!Ok)
+    {
+        MMVII_INTERNAL_ASSERT_strong(aResOk,"Null values in RelativeDifference");
+        return std::nan("");
+    }
+    return std::abs(aV1-aV2) / aSom;
+}
+
 
 tINT4 HCF(tINT4 a,tINT4 b)
 {

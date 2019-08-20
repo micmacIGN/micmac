@@ -128,6 +128,22 @@ void BenchFilterImage_000()
            MMVII_INTERNAL_ASSERT_bench(aNbTot==aSz.x()*aSz.y(),"Bench ParseBox");
         }
      }
+     // Op Bin + Decimate
+     {
+        cIm2D<tINT2> aI1(aSz,nullptr,eModeInitImage::eMIA_Rand);
+        TplCopy (aI1.DIm(),fSum(fCoord(0),fCoord(1)),aI1.DIm());
+        for (const auto & aP: aI1.DIm())
+        {
+           MMVII_INTERNAL_ASSERT_bench((aP.x()+aP.y())==aI1.DIm().GetV(aP),"Bench fSum");
+        }
+        int aFact = 3;
+        cIm2D<tINT2> aI2 = aI1.Decimate(aFact);
+        MMVII_INTERNAL_ASSERT_bench(aI2.DIm().Sz()==aSz/aFact,"Bench Decimate");
+        for (const auto & aP: aI2.DIm())
+        {
+           MMVII_INTERNAL_ASSERT_bench((aP.x()+aP.y())*aFact==aI2.DIm().GetV(aP),"Bench fSum");
+        }
+     }
      {
         for (int aK=1 ; aK<3 ; aK++)
         {

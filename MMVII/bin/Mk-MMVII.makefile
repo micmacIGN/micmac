@@ -74,19 +74,24 @@ ObjMatrix=$(SrcMatrix:.cpp=.o)
 #
 MMV2DirDIB=${MMV2DirSrc}DescIndexBinaire/
 SrcDIB=$(wildcard ${MMV2DirDIB}*.cpp)
-ObjDIB=$(SrcDIB:.cpp=.o) 
+ObjDIB=$(SrcDIB:.cpp=.o)
 #
 #
 MMV2DirPerso=${MMV2DirSrc}Perso/
 SrcPerso=$(wildcard ${MMV2DirPerso}*.cpp)
-ObjPerso=$(SrcPerso:.cpp=.o) 
+ObjPerso=$(SrcPerso:.cpp=.o)
+#
+#
+MMV2DirCalcDescriptPCar=${MMV2DirSrc}CalcDescriptPCar/
+SrcCalcDescriptPCar=$(wildcard ${MMV2DirCalcDescriptPCar}*.cpp)
+ObjCalcDescriptPCar=$(SrcCalcDescriptPCar:.cpp=.o)
 #
 #
 #    => Le Main
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjCmdSpec}  ${ObjImagesFiltrLinear} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB} ${ObjImagesBase}  ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} 
+OBJ= ${ObjImagesFiltrLinear} ${ObjCalcDescriptPCar} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB} ${ObjImagesBase}  ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} 
 #
 #=========  Header ========
 #
@@ -117,6 +122,8 @@ ${MMV2ResultInstal} : ${MMV2SrcInstal}
 #
 # ================ Objects ==================
 #
+${MMV2DirCalcDescriptPCar}%.o :  ${MMV2DirCalcDescriptPCar}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirPerso}%.o :  ${MMV2DirPerso}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirMMV1}%.o :  ${MMV2DirMMV1}%.cpp   ${HEADER}
@@ -149,11 +156,11 @@ ${MMV2DirDIB}%.o :  ${MMV2DirDIB}%.cpp   ${HEADER} ${MMV2DirDIB}*.h
 all : ${MMV2DirBin}${MMV2Exe} ${OBJ}
 	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe}
 Show:
-	echo ${SrcUtils}
-	echo DU=${MMV2DirUtils}
-	echo ObjImagesBase: ${ObjImagesBase}
-	echo SrcImagesBase: ${SrcImagesBase}
-	echo MMV2DiImagesBase: ${MMV2DiImagesBase}
+	echo ${SrcCalcDescriptPCar}
+	echo DU=${MMV2DirCalcDescriptPCar}
+	echo ObjCalcDescriptPCar : ${ObjCalcDescriptPCar}
+	echo SrcCalcDescriptPCar: ${SrcCalcDescriptPCar}
+	echo MMV2DirCalcDescriptPCar: ${MMV2DirCalcDescriptPCar}
 clean :
 	rm -f ${OBJ}
 #

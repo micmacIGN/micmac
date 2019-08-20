@@ -385,6 +385,7 @@ template<class Type> Type DivSup(const Type & a,const Type & b)
 
 tINT4 HCF(tINT4 a,tINT4 b); ///< = PGCD = Highest Common Factor
 int BinomialCoeff(int aK,int aN);
+double  RelativeDifference(const double & aV1,const double & aV2,bool * Ok=nullptr);
 
 
 inline tREAL8 FracPart(tREAL8 r) {return r - round_down(r);}

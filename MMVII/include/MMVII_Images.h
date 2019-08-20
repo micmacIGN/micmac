@@ -87,6 +87,7 @@ typedef  cPixBox<2> cRect2;
 typedef  cPixBox<3> cRect3;
 
 
+/// Iterator on the border of rectangle
 /** Iterator on the border of rectangle, many image processing require some specific
 precaution to be taken on border (sides effect);
 
@@ -111,7 +112,14 @@ template <const int Dim>  class cBorderPixBoxIterator : public cPixBoxIterator<D
        tBPB *  mBPB;  ///< Pointer to the border for handling "special" incrementation
 };
 
-/** The border itself */
+///  Class allowing to iterate on the border itsef
+
+/**  To iterate on the border itself 
+
+     Stantard inteface to iteratible object
+     Containd the full rectangle itself + the interior rectangle
+ */
+
 
 template <const int Dim>  class cBorderPixBox
 {
@@ -142,8 +150,16 @@ template <const int Dim>  class cBorderPixBox
 
 
 
+///  This class will be used to parse big image files and reassembling the results
 
-/** This class will be usefull to parse big image files and reassembling the results
+/** This class will be usefull to parse big box (image files typically) and reassembling the results
+
+    At it creation , create a "small" box of index,  then user can :
+       * iterate on these index via  BoxIndex
+       * for a given index, recuparate the  output for writing , ouput box are a partition of global 
+         box
+       * for a given index recurate input box, they add a margin to output box, and are always
+         included in global box
 */
 
 
@@ -156,9 +172,9 @@ template <const int Dim>  class cParseBoxInOut
         typedef cParseBoxInOut<Dim> tThis;
 
         // -------- creators ----------
-        static tThis  CreateFromSize(const tBox &, const tPt & aSz); /// Give the size of boxes
-        static tThis  CreateFromSizeCste(const tBox&, int aSz);  /// Give a constant size
-        static tThis  CreateFromSzMem(const tBox&, double AvalaibleMem); /// Allocate  approximate mem by tiles
+        static tThis  CreateFromSize(const tBox &, const tPt & aSz); ///< Give the size of boxes
+        static tThis  CreateFromSizeCste(const tBox&, int aSz);  ///< Give a constant size
+        static tThis  CreateFromSzMem(const tBox&, double AvalaibleMem); ///< Allocate  approximate mem by tiles
 
         // -------- Manipulation ----------
 
@@ -214,21 +230,13 @@ template <> inline cPixBoxIterator<3> &  cPixBoxIterator<3>::operator ++()
     return *this;
 }
 
-/** This class can be use full to parse big image files and reassembling the results
-*/
-/*
-template <const int Dim>  class cPixBoxInOut : public  cPixBox<Dim>
-{
-     public :
-         // cPixBoxInOut(const 
-     private :
-        cPixBox<Dim>  mBoxGlob;
-        cPixBox<Dim>  mBoxIndex;
-}; 
-*/
 
+///  Abstract class allowing to manipulate images independanlty of their type
 
-/**  Abstract class allowing to manipulate images independanlty of their type
+/**  This class define an interface that allow to manipulate any image
+
+     This generic class heritate from PixBox and  define several pure
+     virtual methods to access to pixel read/write 
 */
 
 
@@ -254,7 +262,12 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
         virtual void VD_SetV(const  cPtxd<int,Dim> & aP,const double & aV)=0 ;
 };
 
+///  Classes for   ram-image containg a given type of pixel
 /**  Classes for   ram-image containg a given type of pixel
+
+      It contains a linear buffer allow to store the pixel value.
+      Some basic vector like manipulation can so be done indepentanly of the dimension
+      (like add, subb etc ...)
 */
 
 template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedIm<Dim>
@@ -316,9 +329,11 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
 
         bool   mDoAlloc;  ///< was data allocated by the image (must know 4 free)
         Type *   mRawDataLin; ///< raw data containing pixel values
-        int      mNbElemMax;
+        int      mNbElemMax;  ///< maxim number reached untill now, for resize
 };
 
+
+///   Class for file image 2D
 
 /** Class for file image, basic now, will evolve but with (hopefully)
     a same/similar interface.
@@ -344,6 +359,7 @@ class cDataFileIm2D : public cRect2
         /// Create the file before returning the descriptor
         static cDataFileIm2D Create(const std::string & aName,eTyNums,const cPt2di & aSz,int aNbChan=1);
 
+
         virtual ~cDataFileIm2D();
         
      private :
@@ -354,11 +370,15 @@ class cDataFileIm2D : public cRect2
         int          mNbChannel; ///< Number of channels
 };
 
+///  Class for 2D image in Ram of a given type :
 /**  Class for 2D image in Ram of a given type :
         * there is no copy constructor, and only shared pointer can be allocated
         * algorithm will work on these images (pointers, ref)
         * all acces are cheked (in non optimized versions)
      Class that store an image will store cIm2D
+      
+     This "pattern" will be used in many case : a class, uncopiable, that is used
+     for storing, and create shared pointer, a class for storing
 */
 
 template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
@@ -433,8 +453,10 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         ///  Read file image 1 channel to 1 channel
         void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  
         ///  Write file image 1 channel to 1 channel
-        void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  // 1 to 1
+        void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
         virtual ~cDataIm2D();  ///< will delete mRawData2D
+
+        void ToFile(const std::string& aName) const; ///< Create a File having same size/type ...
         
         /// Raw image, lost all waranty is you use it...
         tVal ** ExtractRawData2D() {return mRawData2D;}
@@ -456,12 +478,13 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
              MMVII_INTERNAL_ASSERT_tiny((Y>=Y0())&&(Y<Y1()),"Point out of image");
         }
 
-        int     mSzYMax;
+        int     mSzYMax;     ///< For resize
         tPVal * mRawData2D;  ///< Pointers on DataLin
 };
 
 
 
+///  Class for memorzing 2D images
 /**  Class for allocating and storing 2D images
      This is no more than a shared ptr on a cDataIm2D
 */
@@ -481,7 +504,7 @@ template <class Type>  class cIm2D
        const tDIM & DIm() const {return *(mPIm);} ///< const version 4 raw pointer
       
        void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  ///< 1 to 1
-       void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  // 1 to 1
+       void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
 
        static cIm2D<Type> FromFile(const std::string& aName);  ///< Allocate and init from file
 
@@ -489,12 +512,14 @@ template <class Type>  class cIm2D
        // void Read(const cDataFileIm2D &,cPt2di & aP0,cIm2D<Type> aI2,cIm2D<Type> aI3);  // 3 to 3
 
        cIm2D<Type>  Dup() const;  ///< create a duplicata
+       void  DecimateInThis(int aFact,const cIm2D<Type> & I) ;  ///< Decimate I in this ,just take on pix out of N
        cIm2D<Type>  Decimate(int aFact) const;  ///< create decimated image, just take on pix out of N
+       cPt2di       SzDecimate(int aFact) const;  ///< Sometime it may be usefull to know the size before computing it
        /**  Apply gaussian filter, use a temporary float */
        cIm2D<Type>  GaussFilter(double , int aNbIterExp=3) const;  
        /**  Apply gaussian filter before dezoom to have good ressampling, may be a bit slow
-            StdDev => prop to fact, def value 0.5 correspond to a witdh equal to size of ressampling */
-       cIm2D<Type>  GaussDeZoom(int aFact, int aNbIterExp=3,double StdDev=DefStdDevRessample) const;  
+            Dilate => to change defautl gaussian kernel */
+       cIm2D<Type>  GaussDeZoom(int aFact, int aNbIterExp=3,double Dilate=1.0) const;  
 
        /** Transposition, needed it once, maybe usefull later */
        cIm2D<Type> Transpose() const;
@@ -504,9 +529,10 @@ template <class Type>  class cIm2D
        tDIM *                mPIm;   ///< raw pointer on mSPtr, a bit faster to store it ?
 };
 
-// template <class Type>  cIm2D<Type> operator + (const cIm2D<Type>,const cIm2D<Type>);
 
+///  Class for 1D image in Ram of a given type
 /**  Class for 1D image in Ram of a given type :
+     Same pattern than 2D image
 */
 
 template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
@@ -582,7 +608,9 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         Type * mRawData1D;  ///< Offset vs DataLin
 };
 
+///  Class for allocating and storing 1D images
 /**  Class for allocating and storing 1D images
+    Same pattern than  cDataIm1D/cIm1D
 */
 
 template <class Type>  class cIm1D  
@@ -608,36 +636,6 @@ template <class Type>  class cIm1D
        std::shared_ptr<tDIM> mSPtr;  ///< shared pointer to real image
        tDIM *                mPIm;
 };
-
-/**************************************/
-/*           LINEAR FILTERING         */
-/**************************************/
-
-/// return the variance of  exponential distribution of parameter "a" ( i.e proportiona to  "a^|x|")
-double Sigma2FromFactExp(double a);
-/// Inverse function, the usefull one 
-double FactExpFromSigma2(double aS2);
-
-
-/** General function, 
-      Normalise => If true, limit size effect and Cste => Cste (else lowe close to border)
-      cRect2 => foot print, not necessarily whole image
-      Fx,Fy => factor in x and y can be different, (if one is equal 0 => speed up)
-*/
-
-template <class Type>
-void  ExponentialFilter(bool Normalise,cDataIm2D<Type> & aIm,int   aNbIter,const cRect2 &,double Fx,double Fy);
-
-
-/** Standard parameters, normalised, whole image, Fx==Fy */
-template <class Type>
-void  ExponentialFilter(cDataIm2D<Type> & aIm,int   aNbIter,double aFact);
-/** More naturel parametrisation, specify the standard deviation of FINAL filter (including iterations),
-   the NbIter parameter allow to be more or less close to a gaussian */
-template <class Type>
-void  ExpFilterOfStdDev(cDataIm2D<Type> & aIm,int   aNbIter,double aStdDev);
-
-
 
 
 };

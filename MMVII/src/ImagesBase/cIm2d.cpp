@@ -77,6 +77,11 @@ template <class Type> Type * cDataIm2D<Type>::GetLine(int aY)
    return mRawData2D[aY];
 }
 
+template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName) const
+{
+    cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,tElemNumTrait<Type>::TyNum(),Sz(),1);
+    Write(aDFI,P0());
+}
 
 
 /* ========================== */
@@ -103,6 +108,7 @@ template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aNa
    return aRes;
 }
 
+
 template <class Type>  cIm2D<Type>  cIm2D<Type>::Dup() const
 {
    cIm2D<Type> aRes(DIm().P0(),DIm().P1());
@@ -123,23 +129,40 @@ template <class Type>  cIm2D<Type>  cIm2D<Type>::GaussFilter(double aStdDev,int 
     return aRes;
 }
 
+template <class Type>  cPt2di  cIm2D<Type>::SzDecimate(int aFact) const
+{
+   return mPIm->Sz()/aFact;
+}
+
 template <class Type>  cIm2D<Type>  cIm2D<Type>::Decimate(int aFact) const
 {
-   // Not sure wat would be the meaning of origini != (0,0) 4 decimate
-   MMVII_INTERNAL_ASSERT_strong(DIm().P0()==cPt2di(0,0),"Decimate require (0,0) origin");
-   cIm2D<Type> aRes(mPIm->Sz()/aFact);
-   cDataIm2D<Type> & aDRes = aRes.DIm();
 
-   for (const auto & aP : aDRes)
-      aDRes.SetV(aP,mPIm->GetV(aP*aFact));
-
+   cIm2D<Type> aRes(SzDecimate(aFact));
+   aRes.DecimateInThis(aFact,*this);
    return aRes;
+}
+
+template <class Type>  void  cIm2D<Type>::DecimateInThis(int aFact,const cIm2D<Type> & aI) 
+{
+   MMVII_INTERNAL_ASSERT_strong(aI.DIm().P0()==cPt2di(0,0),"Decimate require (0,0) origin");
+   MMVII_INTERNAL_ASSERT_strong(DIm().P0()==cPt2di(0,0),"Decimate require (0,0) origin");
+   MMVII_INTERNAL_ASSERT_strong(DIm().Sz()==aI.SzDecimate(aFact),"Incoherent size in DecimateInThis");
+   const cDataIm2D<Type> & aDIn = aI.DIm();
+
+   for (const auto & aP : DIm())
+      mPIm->SetV(aP,aDIn.GetV(aP*aFact));
 }
 
 
 template <class Type>  cIm2D<Type>  cIm2D<Type>::GaussDeZoom(int aFact, int aNbIterExp,double dilate) const
 {
-    return GaussFilter(aFact*dilate,aNbIterExp).Decimate(aFact);
+    double aS0 = DefStdDevImWellSample;
+    double aSTarg = DefStdDevImWellSample * aFact;
+
+    // double aSig = sqrt(Square(aSTarg)-Square(aS0)) *dilate;
+    double aSig = DifSigm(aSTarg,aS0) *dilate;
+
+    return GaussFilter(aSig,aNbIterExp).Decimate(aFact);
 }
 
 template <class Type>  cIm2D<Type>  cIm2D<Type>::Transpose() const

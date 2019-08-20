@@ -264,6 +264,7 @@ class cAppli_Line2Line
         std::string mOri;
         std::string mDir;
         std::string mSH;
+        double      mJumpZ;
        
         Pt2dr  mP1; 
         Pt2dr  mP2; 
@@ -291,6 +292,7 @@ cAppli_Line2Line::cAppli_Line2Line(int argc,char ** argv) :
                     << EAM(mP2,"P2",true,"Point2 defining other end of a line", eSAM_NoInit)
                     << EAM(mZ,"ZMoy",true,"Mean Z-coordinate", eSAM_NoInit)
                     << EAM(mSH,"SH",true,"Homol postfix. Def=L2L", eSAM_NoInit)
+                    << EAM(mJumpZ,"JumpZ",true,"Jump in Z we want to convert in paralx", eSAM_NoInit)
     );
 
     #if (ELISE_windows)
@@ -309,6 +311,22 @@ cAppli_Line2Line::cAppli_Line2Line(int argc,char ** argv) :
         mZ = aCam1->GetAltiSol();
         std::cout << "Mean Z-coordinate: " << mZ << "\n";
     }
+
+    if (EAMIsInit(&mJumpZ))
+    {
+       Pt2dr aP = aCam1->SzBasicCapt3D() / 2.0;
+       if (EAMIsInit(&mP1))
+          aP = mP1;
+
+        Pt3dr aPt1Ter = aCam1->ImEtZ2Terrain(aP,mZ);
+        Pt3dr aPt2Ter = aCam1->ImEtZ2Terrain(aP,mZ + mJumpZ);
+
+        Pt2dr aP1Im2 = aCam2->Ter2Capteur(aPt1Ter);
+        Pt2dr aP2Im2 = aCam2->Ter2Capteur(aPt2Ter);
+
+        std::cout << "A Jump of " << mJumpZ << " create a paralax variation of " << aP2Im2 - aP1Im2 << "\n";
+    }
+    
 
 
     if (EAMIsInit(&mP1) && EAMIsInit(&mP2))
@@ -364,7 +382,12 @@ cAppli_Line2Line::cAppli_Line2Line(int argc,char ** argv) :
         }
     }
     else 
-        ELISE_ASSERT(false,"Insert either X / Y or P1/P2 parameter to indicate column or row coordinate");
+    {
+        if (!EAMIsInit(&mJumpZ))
+        {
+           ELISE_ASSERT(false,"Insert either X / Y or P1/P2 parameter to indicate column or row coordinate");
+        }
+    }
 
 
     //save

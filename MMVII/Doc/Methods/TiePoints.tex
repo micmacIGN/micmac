@@ -50,8 +50,55 @@ especially interested to have a low  $p_m$.
 \subsection{Bits vector}
 
 
+\section{Gaussian pyramid}
+
+\subsection{Computing $\sigma_0$}
+
+The gaussian pyramid is made from a succession of image at different scale that
+result from a gaussian filter. How can we justify it :
+
+\begin {itemize} 
+   \item  image $I_k$ must be at resolution  $R_k =  R_0 s ^k$,
+   \item if we assimmilat  $I_0$ to a (sum of) gaussian of std dev $\sigma_0$  , $I_k$
+         must be (sum of)  gaussian  $\sigma_0 * R_k$ 
+   \item so we can write $I_k = I_0 \ast G(\sigma_k)$ with $\sigma_k^2 + \sigma_0^2 = (\sigma_0  R_k)^2$;
+\end {itemize} 
+
+To compute the pyramid, we need an estimation of $\sigma_0$. Which is quite natural, if the initial
+image is very blured, it a high $R_0$, and the value $R_1-R_0 = (s-1)R_0$ is also high, which require
+a high value for gaussian filter.
+
+We need a way to estimate the initial value $\sigma_0$. Also it's quite arbirtrary, the way it is
+done in MMVII is :
 
 
+\begin {itemize} 
+   \item  assimilite $I_0$ to a gaussian of  std dev $\sigma_0$;
+   \item  suppose $I_0$ is well sampled (nor blurred nor aliased);
+   \item we traduce it mathematically by  :
+\end {itemize} 
+
+\begin{equation}
+    \int_{-\infty}^{+\infty} I_0 |x| = \frac{1}{2}
+\end{equation}
+
+Due to symetry , we can replace by integral on $[0,+\infty]$ and supresse absolute value :
+
+\begin{equation}
+    \int_{0}^{+\infty} \frac{x}{\sigma_0 \sqrt{2\pi}} e^{-\frac{x^2}{2\sigma_0^2}}  = \frac{1}{4}
+\end{equation}
+
+We integrate :
+
+\begin{equation}
+      \lbrack  \frac{-\sigma_0}{\sqrt{2\pi}} e^{-\frac{x^2}{2\sigma_0^2}}\rbrack  _{0}^{+\infty}  = \frac{1}{4}
+\end{equation}
+
+So :
+
+\begin{equation}
+      \sigma_0 = \sqrt{\frac{\pi}{8}} \simeq 0.63
+\end{equation}
 
 
 %----------------------------------------

@@ -98,20 +98,21 @@ template <class Type> class cMMV1_Conv
      typedef  Im2D<Type,tBase>  tImMMV1;
      typedef  cDataIm2D<Type>       tImMMVII;
 
-     static tImMMV1 ImToMMV1(tImMMVII &  aImV2)  // To avoid conflict with global MMV1
+     static tImMMV1 ImToMMV1(const tImMMVII &  aImV2)  // To avoid conflict with global MMV1
      {
-        return   tImMMV1(aImV2.RawDataLin(),nullptr,aImV2.Sz().x(),aImV2.Sz().y());
+        Type * aDL = const_cast< tImMMVII &> (aImV2).RawDataLin();
+        // return   tImMMV1(aImV2.RawDataLin(),nullptr,aImV2.Sz().x(),aImV2.Sz().y());
+        return   tImMMV1(aDL,nullptr,aImV2.Sz().x(),aImV2.Sz().y());
      };
 
       
-     static void ReadWrite(bool ReadMode,tImMMVII &aImV2,const cDataFileIm2D & aDF,const cPt2di & aP0File,double aDyn,const cRect2& aR2Init);
+     static void ReadWrite(bool ReadMode,const tImMMVII &aImV2,const cDataFileIm2D & aDF,const cPt2di & aP0File,double aDyn,const cRect2& aR2Init);
 };
-
 
 template <class Type> void cMMV1_Conv<Type>::ReadWrite
                            (
                                bool ReadMode,
-                               tImMMVII &aImV2,
+                               const tImMMVII &aImV2,
                                const cDataFileIm2D & aDF,
                                const cPt2di & aP0File,
                                double aDyn,
@@ -164,7 +165,7 @@ template <class Type> void cMMV1_Conv<Type>::ReadWrite
 }
 
 template <> void cMMV1_Conv<tREAL16>::ReadWrite
-                 (bool,tImMMVII &,const cDataFileIm2D &,const cPt2di &,double,const cRect2& )
+                 (bool,const tImMMVII &,const cDataFileIm2D &,const cPt2di &,double,const cRect2& )
 {
    MMVII_INTERNAL_ASSERT_strong(false,"No ReadWrite of 16-Byte float");
 }
@@ -174,7 +175,7 @@ template <class Type>  void  cDataIm2D<Type>::Read(const cDataFileIm2D & aFile,c
 {
      cMMV1_Conv<Type>::ReadWrite(true,*this,aFile,aP0,aDyn,aR2);
 }
-template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
+template <class Type>  void  cDataIm2D<Type>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
      cMMV1_Conv<Type>::ReadWrite(false,*this,aFile,aP0,aDyn,aR2);
 }
@@ -185,7 +186,7 @@ template <>  void  cDataIm2D<tU_INT4>::Read(const cDataFileIm2D & aFile,const cP
 {
    MMVII_INTERNAL_ASSERT_strong(false,"No read for unsigned int4 now");
 }
-template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
+template <>  void  cDataIm2D<tU_INT4>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
    MMVII_INTERNAL_ASSERT_strong(false,"No write for unsigned int4 now");
 }
@@ -194,7 +195,7 @@ template <class Type>  void  cIm2D<Type>::Read(const cDataFileIm2D & aFile,const
 {
       DIm().Read(aFile,aP0,aDyn,aR2);
 }
-template <class Type>  void  cIm2D<Type>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2)
+template <class Type>  void  cIm2D<Type>::Write(const cDataFileIm2D & aFile,const cPt2di & aP0,double aDyn,const cPixBox<2>& aR2) const
 {
      DIm().Write(aFile,aP0,aDyn,aR2);
 }
