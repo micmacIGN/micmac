@@ -265,7 +265,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
 	 cOrientationConique aOCtmp = aCam->StdExportCalibGlob();
 	 cOrientationConique aOC; 	 
 	
-	 std::string aFileInterne = aDrunkOri + NameWithoutDir(anICNM->StdNameCalib("Test",aNameIm));//anICNM->StdNameCalib(aDrunkOri,aNameIm);
+	 std::string aFileInterne = aDrunkOri + NameWithoutDir(anICNM->StdNameCalib("Test",NameWithoutDir(aNameOut)));
 	 std::string aFileExterne = aDrunkOri+"Orientation-" + NameWithoutDir(DirOut) + StdPrefix(aNameIm) + ".tif.xml";
 
 	 if (! EAMIsInit(&aOCtmp.OrIntImaM2C()))
