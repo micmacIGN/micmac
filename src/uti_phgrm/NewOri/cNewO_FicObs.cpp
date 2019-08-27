@@ -1236,6 +1236,9 @@ void cAppliMinim::DoCalc()
 
     for (auto a2 : mMapInOri)
     {
+
+        bool FOUNDREL = false;
+
         //absolut
         ElRotation3D aRAbs = a2.second->Orient().inv();  
 
@@ -1247,6 +1250,8 @@ void cAppliMinim::DoCalc()
 
         if (DicBoolFind(mCplMap,a2.first+mQIm))
         {
+            FOUNDREL = true;
+
             std::cout << "Pair: " << a2.first << " " << mQIm << "\n";
             aP2 = (*(mCplMap[a2.first+mQIm]));
 
@@ -1260,6 +1265,8 @@ void cAppliMinim::DoCalc()
         }
         else if ((DicBoolFind(mCplMap,mQIm+a2.first)))
         {
+            FOUNDREL = true;
+
             //std::cout << "Pair: " << mQIm << " " << a2.first << "\n";
             aP2 = (*(mCplMap[mQIm+a2.first]));
 
@@ -1274,28 +1281,30 @@ void cAppliMinim::DoCalc()
         }
 
 
-       aVRQIm.push_back(aRQIm.Mat());
-
-       //collect 3d segments
-       aVSeg.push_back(ElSeg3D(aRAbs.tr(),aRQIm.tr()));
-       aVPds.push_back(1.0);
-
-        if (0)
-            std::cout << "P2 Rot\n"  << aP2.Mat()(0,0) << " " << aP2.Mat()(0,1) << " " << aP2.Mat()(0,2) << "\n"
-                                     << aP2.Mat()(1,0) << " " << aP2.Mat()(1,1) << " " << aP2.Mat()(1,2) << "\n"
-                                     << aP2.Mat()(2,0) << " " << aP2.Mat()(2,1) << " " << aP2.Mat()(2,2) << "\n";
-
-
-
-        if (0)
-            std::cout << "=======\n" << "Tr1 " << aRAbs.tr() << 
-                           " \n" << "tr " << aRQIm.tr() << 
-                           " \n" << "tr " << aP2.inv().tr() <<
-                           " \n" << "Tr2 " << aRQIm.ImAff(aP2.tr()) << 
-                           " \n" << "Tr2 " << aRQIm.ImAff(aP2.inv().tr()) << 
-                           " \n" << "delta " << (aRAbs.tr() - aP2.tr()) <<  
-                           " \n" << "tr+delta " << aP2.tr() + (aRAbs.tr() - aP2.tr()) << "\n"; 
-    
+        if (FOUNDREL)
+        {
+            aVRQIm.push_back(aRQIm.Mat());
+            
+            //collect 3d segments
+            aVSeg.push_back(ElSeg3D(aRAbs.tr(),aRQIm.tr()));
+            aVPds.push_back(1.0);
+         
+            if (0)
+                std::cout << "P2 Rot\n"  << aP2.Mat()(0,0) << " " << aP2.Mat()(0,1) << " " << aP2.Mat()(0,2) << "\n"
+                                         << aP2.Mat()(1,0) << " " << aP2.Mat()(1,1) << " " << aP2.Mat()(1,2) << "\n"
+                                         << aP2.Mat()(2,0) << " " << aP2.Mat()(2,1) << " " << aP2.Mat()(2,2) << "\n";
+         
+         
+         
+            if (0)
+                std::cout << "=======\n" << "Tr1 " << aRAbs.tr() << 
+                               " \n" << "tr " << aRQIm.tr() << 
+                               " \n" << "tr " << aP2.inv().tr() <<
+                               " \n" << "Tr2 " << aRQIm.ImAff(aP2.tr()) << 
+                               " \n" << "Tr2 " << aRQIm.ImAff(aP2.inv().tr()) << 
+                               " \n" << "delta " << (aRAbs.tr() - aP2.tr()) <<  
+                               " \n" << "tr+delta " << aP2.tr() + (aRAbs.tr() - aP2.tr()) << "\n"; 
+        }
     }
 
     ElMatrix<double> aRMoy(3,3);
@@ -1313,20 +1322,24 @@ void cAppliMinim::DoCalc()
    
     //distance between two R matrices
     double aDistRot = 0;
-    for (int aR=0; aR<int(aVRQIm.size()); aR++)
+    
+    if (int(aVRQIm.size()) > 1)
     {
-        ElMatrix<double> aRDif = aRMoy - aVRQIm.at(aR);
-        aDistRot += sqrt(aRDif.L2());
-    } 
-    aDistRot /= aVRQIm.size();
+        for (int aR=0; aR<int(aVRQIm.size()); aR++)
+        {
+            ElMatrix<double> aRDif = aRMoy - aVRQIm.at(aR);
+            aDistRot += sqrt(aRDif.L2());
+        } 
+        aDistRot /= aVRQIm.size();
 
-    std::cout << "======================\n" ;
-    std::cout << "Rot-Moy of the query image\n" << aRMoy(0,0) << " " << aRMoy(0,1) << " " << aRMoy(0,2) << "\n"
-                         << aRMoy(1,0) << " " << aRMoy(1,1) << " " << aRMoy(1,2) << "\n"
-                         << aRMoy(2,0) << " " << aRMoy(2,1) << " " << aRMoy(2,2) << "\n";
-
-    std::cout << "Distance between the rotations:";
-    std::cout << "+ Res_R=" << aDistRot << "\n";
+        std::cout << "======================\n" ;
+        std::cout << "Rot-Moy of the query image\n" << aRMoy(0,0) << " " << aRMoy(0,1) << " " << aRMoy(0,2) << "\n"
+                             << aRMoy(1,0) << " " << aRMoy(1,1) << " " << aRMoy(1,2) << "\n"
+                             << aRMoy(2,0) << " " << aRMoy(2,1) << " " << aRMoy(2,2) << "\n";
+ 
+        std::cout << "Distance between the rotations:";
+        std::cout << "+ Res_R=" << aDistRot << "\n";
+    }
 
     std::cout.precision(17);
     if (int(aVSeg.size()) >= 2)
