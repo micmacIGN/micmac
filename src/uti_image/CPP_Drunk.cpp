@@ -250,35 +250,35 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
     }
     else //Export calibration in external file
     {
-//had to pass by the idealcam so as not to have the Interne initialized ble	
-	 std::vector<double> paramFocal;
-         cCamStenopeDistPolyn anIdealCam(!aCam->DistIsDirecte(),aCam->Focale(),aPPOut,ElDistortionPolynomiale::DistId(3,1.0),paramFocal);
-	 anIdealCam.SetSz(aSzOut);
-         anIdealCam.SetIdentCam(aCam->IdentCam()+"_ideal");
-	 anIdealCam.SetOrientation(aCam->Orient());
-	 anIdealCam.SetIncCentre(aCam->IncCentre());
-	 if (aCam->AltisSolIsDef())
-            anIdealCam.SetAltiSol(aCam->GetAltiSol());
-	 if (aCam->ProfIsDef())
-            anIdealCam.SetProfondeur(aCam->GetProfondeur());
-
-	 cOrientationConique aOCtmp = aCam->StdExportCalibGlob();
-	 cOrientationConique aOC; 	 
-	
-	 std::string aFileInterne = aDrunkOri + NameWithoutDir(anICNM->StdNameCalib("Test",NameWithoutDir(aNameOut)));
-	 std::string aFileExterne = aDrunkOri+"Orientation-" + NameWithoutDir(DirOut) + StdPrefix(aNameIm) + ".tif.xml";
-
-	 if (! EAMIsInit(&aOCtmp.OrIntImaM2C()))
-         	aOC.OrIntImaM2C() = aOCtmp.OrIntImaM2C();
-	 if (! EAMIsInit(&aOCtmp.TypeProj()))
-	 	aOC.TypeProj() = aOCtmp.TypeProj();
-	 if (! EAMIsInit(&aOCtmp.ZoneUtileInPixel()))
-	 	aOC.ZoneUtileInPixel() = aOCtmp. ZoneUtileInPixel();
-	 if (! EAMIsInit(&aOCtmp.ConvOri()))
-	 	aOC.ConvOri() = aOCtmp.ConvOri();
-
-	 aOC.Externe() = anIdealCam.StdExportCalibGlob().Externe();
-	 aOC.FileInterne().SetVal(aFileInterne);  // 
+         //had to pass by the idealcam so as not to have the Interne initialized ble	
+		 std::vector<double> paramFocal;
+             cCamStenopeDistPolyn anIdealCam(!aCam->DistIsDirecte(),aCam->Focale(),aPPOut,ElDistortionPolynomiale::DistId(3,1.0),paramFocal);
+		 anIdealCam.SetSz(aSzOut);
+             anIdealCam.SetIdentCam(aCam->IdentCam()+"_ideal");
+		 anIdealCam.SetOrientation(aCam->Orient());
+		 anIdealCam.SetIncCentre(aCam->IncCentre());
+		 if (aCam->AltisSolIsDef())
+                anIdealCam.SetAltiSol(aCam->GetAltiSol());
+		 if (aCam->ProfIsDef())
+                anIdealCam.SetProfondeur(aCam->GetProfondeur());
+    
+		 cOrientationConique aOCtmp = aCam->StdExportCalibGlob();
+		 cOrientationConique aOC; 	 
+		
+		 std::string aFileInterne = aDrunkOri + NameWithoutDir(anICNM->StdNameCalib("Test",NameWithoutDir(aNameOut)));
+		 std::string aFileExterne = aDrunkOri+"Orientation-" + NameWithoutDir(DirOut) + StdPrefix(aNameIm) + ".tif.xml";
+    
+		 if (! EAMIsInit(&aOCtmp.OrIntImaM2C()))
+             	aOC.OrIntImaM2C() = aOCtmp.OrIntImaM2C();
+		 if (! EAMIsInit(&aOCtmp.TypeProj()))
+		 	aOC.TypeProj() = aOCtmp.TypeProj();
+		 if (! EAMIsInit(&aOCtmp.ZoneUtileInPixel()))
+		 	aOC.ZoneUtileInPixel() = aOCtmp. ZoneUtileInPixel();
+		 if (! EAMIsInit(&aOCtmp.ConvOri()))
+		 	aOC.ConvOri() = aOCtmp.ConvOri();
+    
+		 aOC.Externe() = anIdealCam.StdExportCalibGlob().Externe();
+		 aOC.FileInterne().SetVal(aFileInterne);  // 
          MakeFileXML(aOC,aFileExterne);
 
          cCalibrationInternConique aCIO = StdGetObjFromFile<cCalibrationInternConique>
@@ -295,7 +295,8 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
          aCIO.CalibDistortion()[0].ModRad().Val().CDist() = aPPOut;
 	 if (aCam->HasRayonUtile())
 	 	aCIO.RayonUtile() = aCam->RayonUtile();
-	 MakeFileXML(aCIO,aFileInterne);
+	 
+    MakeFileXML(aCIO,aFileInterne);
 
     }
     }

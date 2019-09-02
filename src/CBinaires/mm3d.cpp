@@ -652,6 +652,7 @@ extern int TestCmpIm_Ewelina(int argc, char ** argv);
 extern int TestER_hom_main(int argc, char ** argv);
 extern int PFM2Tiff_main(int argc, char ** argv);
 extern int BAL2OriMicMac_main(int argc, char ** argv);
+extern int CPP_NewOriReadFromSfmInit(int argc, char ** argv);
 extern int ImPts2Dir_main(int argc, char ** argv);
 extern int FictiveObstest_main(int argc, char ** argv);
 extern int TestPush(int argc, char ** argv);
@@ -950,6 +951,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("TestER2", TestER_hom_main, "ER test hom"));
 		aRes.push_back(cMMCom("Tif2Pfm", PFM2Tiff_main, "Tif to pfm or the other way around"));
 		aRes.push_back(cMMCom("BAL2MM", BAL2OriMicMac_main, "Convert a BAL problem to MicMac"));
+		aRes.push_back(cMMCom("SfmI2MM", CPP_NewOriReadFromSfmInit, "Convert the SfmInit problem to MicMac"));
 		aRes.push_back(cMMCom("Im2Dir", ImPts2Dir_main, "Extract directions from images"));
 		aRes.push_back(cMMCom("FictObs", FictiveObstest_main, "someee stuff"));
 		aRes.push_back(cMMCom("CamTOFExp", TestCamTOF_main, "Export TOF camera pcd file to MicMac formats (e.g. tif, xml, ply)"));

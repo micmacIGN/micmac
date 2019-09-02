@@ -52,23 +52,27 @@ LArgMain &     cCommonMartiniAppli::ArgCMA()
 }
 
 cCommonMartiniAppli::cCommonMartiniAppli() :
-    mNameOriCalib (""),
-    mPrefHom      (""),
-    mExtName      (""),
-    mExpTxt       (false),
-    mInOri        (""),
-    mOriOut       (""),
-    mOriGPS       (""),
-    mOriCheck     (""),
-    mDebug        (false),
-    mAcceptUnSym  (true),
-    mQuick        (true),
-    mShow         (false),
-    mArg          (new LArgMain),
-    mPostInit     (false),
-    mNM           (0),
-    mNameNOMode   (TheStdModeNewOri)
+    mNameOriCalib      (""),
+    mPrefHom           (""),
+    mExtName           (""),
+    mExpTxt            (false),
+    mInOri             (""),
+    mOriOut            (""),
+    mOriGPS            (""),
+    mOriCheck          (""),
+    mDebug             (false),
+    mAcceptUnSym       (true),
+    mQuick             (true),
+    mShow              (false),
+    mTStdNbMaxTriplet   (20),
+    mTQuickNbMaxTriplet(8),
+    mTNbMinTriplet     (5),
+    mArg               (new LArgMain),
+    mPostInit          (false),
+    mNM                (0),
+    mNameNOMode        (TheStdModeNewOri)
 {
+
       (*mArg) 
               << EAM(mNameOriCalib,"OriCalib",true,"Orientation for calibration ", eSAM_IsExistDirOri)
               << EAM(mPrefHom,"SH",true,"Prefix Homologue , Def=\"\"")  // SH par homogeneite avec autre commandes 
@@ -82,7 +86,12 @@ cCommonMartiniAppli::cCommonMartiniAppli() :
               << EAM(mDebug,"Debug",true,"Debug ....")  
               << EAM(mAcceptUnSym,"AUS",true,"Accept non symetric homologous point;")  
               << EAM(mQuick,"Quick",true,"If true (default) do less test")  
+              << EAM(mTStdNbMaxTriplet,"StdNbPtTrip",true,"Min num of triple points for a triplet (Std mode)")  
+              << EAM(mTQuickNbMaxTriplet,"QNbPtTrip",true,"Min num of triple points for a triplet (Quick mode)")  
+              << EAM(mTNbMinTriplet,"NbTrip",true,"Max num of triplets per edge")  
               << EAM(mShow,"Show",true,"If true (non default) print (a lot of) messages")  ;
+
+
 }
 
 void cCommonMartiniAppli::PostInit() const

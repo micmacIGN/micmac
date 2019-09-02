@@ -142,7 +142,7 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
     mPMulRed(0),
     mHomExp("dat"),
     mNameOriCalib(""),
-    mCorrCalib(true),
+    mCorrCalib(false),
     mCorrGlob(mCorrCalib ? true : false),
     mCorrIma (mCorrCalib ? !mCorrGlob : false),
     mResPoly(2),
@@ -1121,7 +1121,7 @@ cAppliMinim::cAppliMinim(int argc,char ** argv) :
     StdCorrecNameOrient(mInOri,aDir);
 
     //update the lists of couples and triplets
-    std::string aCom =   MM3dBinFile("TestLib NO_AllOri2Im ") + "\"" + aPatInOri + "|" + mQIm+ "\"" + " ExpTxt=" + ToString(aCMA.mExpTxt);
+    std::string aCom =   MM3dBinFile("TestLib NO_AllOri2Im ") + "\"" + aPatInOri + "|" + mQIm+ "\"" + " ExpTxt=" + ToString(aCMA.mExpTxt) + " Quick=" + ToString(aCMA.mQuick);
     if (EAMIsInit(&aCMA.mNameOriCalib))
         aCom += " OriCalib=" + aCMA.mNameOriCalib;
 
@@ -1137,7 +1137,7 @@ cAppliMinim::cAppliMinim(int argc,char ** argv) :
     for (int aK=0; aK<aNbIm; aK++)
         mNameMap[mSetName->at(aK)] = aK;
 
-    mNM = new cNewO_NameManager("","",true,aDir,aCMA.mNameOriCalib,aCMA.mExpTxt ? "txt" : "dat",mOut);
+    mNM = new cNewO_NameManager("","",aCMA.mQuick,aDir,aCMA.mNameOriCalib,aCMA.mExpTxt ? "txt" : "dat",mOut);
 
     std::cout << "======================\n" ;
     std::cout << "Query image: " << mQIm << "\n";
