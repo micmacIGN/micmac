@@ -1270,7 +1270,8 @@ void cAppliMinim::DoCalc()
             //std::cout << "Pair: " << mQIm << " " << a2.first << "\n";
             aP2 = (*(mCplMap[mQIm+a2.first]));
 
-            aRQIm = aP2.inv() * aRAbs; // = aP2^-1 * R1abs
+            //aRQIm = aP2.inv() * aRAbs; // = aP2^-1 * R1abs
+            aRQIm = aRAbs * aP2.inv() ; // = R1abs * aP2^-1
         
             if (0)
                 std::cout << " atrQIm=" <<  aP2.tr() << " " << aP2.inv().tr() << "\n"; 
