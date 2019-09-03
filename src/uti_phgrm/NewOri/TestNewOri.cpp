@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
-
+#include "../TiepTri/MultTieP.h"
 
 /*
 int TestNewOriImage_main(int argc,char ** argv)
@@ -365,13 +365,20 @@ int CPP_NewOriImage2G2O_main(int argc,char ** argv)
 }
 //}
 
-typedef struct
+typedef std::map<int,Pt2dr > tKeyPt;
+struct CamSfmInit
 {
     std::string mName;
     Pt2dr  PP;
     double F;
 
-} CamSfmInit;
+    CamSfmInit(std::string n="", Pt2dr pp=Pt2dr(0,0), double f=0) : 
+            mName(n),
+            PP(pp),
+            F(f){}
+
+};
+
 
 class cAppliImportSfmInit 
 {
@@ -382,9 +389,10 @@ class cAppliImportSfmInit
 
         bool ReadCC();
         bool ReadCoords();
+        bool ReadCoordsOneCam(FILE *fptr,int &aCamId, tKeyPt &aKeyPts);
 
-        //bool AssociateTracks();
-
+        void ShowImgs();
+ 
         template <typename T>
         void FileReadOK(FILE *fptr, const char *format, T *value);
 
@@ -393,14 +401,21 @@ class cAppliImportSfmInit
         bool DoImags;
 
 
+        std::string mDir;
         std::string mCCListAllFile;
         std::string mCCFile;
         std::string mCoordsFile;
         std::string mTracksFile;
+        std::string mSH;
 
 
-        std::map<int,CamSfmInit *> mCC;
+        std::map<int,CamSfmInit *>       mCC;
+        std::map<int,int>                mSfm2MM_ID;//mapping of the sfm indexes to MM indexes; the latter must follow the image order in mCCVec
+        std::vector<std::string> *       mCCVec;//Vec to initialise the merge structure
+        tKeyPt                           mKPts; //map that associates a keypoint xy with its id; each image will have a map
+        std::map<int,tKeyPt >            mC2KPts; //map containing a keypoint set per image; the int is the image id as in mCC
 
+        //cVirtInterf_NewO_NameManager *   mVNM;
 };
 
 template <typename T>
@@ -408,18 +423,24 @@ void cAppliImportSfmInit::FileReadOK(FILE *fptr, const char *format, T *value)
 {
     int OK = fscanf(fptr, format, value);
     if (OK != 1)
-        ELISE_ASSERT(false, "cBAL2OriMicMac::Read")
+        ELISE_ASSERT(false, "cAppliImportSfmInit::FileReadOK")
 
 }
 
+void cAppliImportSfmInit::ShowImgs()
+{
+    if (mCCVec)
+    {
+        for (int aI=0; aI<int(mCCVec->size()); aI++) 
+        {
+            std::cout << " " << mCCVec->at(aI) << "\n";
+        }
 
+    }
+}
 
 bool cAppliImportSfmInit::ReadCC()
 {
-    /*FILE* fptr = fopen(mCCFile.c_str(), "r");
-    if (fptr == NULL) {
-      return false;
-    };*/
 
     /* Read the list */
     std::vector<std::string> aNameList;
@@ -436,11 +457,11 @@ bool cAppliImportSfmInit::ReadCC()
             double      aF=0;
  
             int aNb=sscanf(aLine,"%s %i %lf", aName, &aNull, &aF);
-            //std::cout << "eeee " << cnt << " " <<  (aLine) << " " << aName << " " << aNull << " " << aF << "\n";
+
  
             ELISE_ASSERT((aNb==3) || (aNb==1),"Could not read 3 or 1 values");
  
-            aNameList.push_back(aName);
+            aNameList.push_back(NameWithoutDir(aName));
  
         }
         aFIn.close();
@@ -448,6 +469,7 @@ bool cAppliImportSfmInit::ReadCC()
     }
        
     /* Read the cc and associate with the list */
+    int aMMID=0;
     {
         ELISE_fp aFIn(mCCFile.c_str(),ELISE_fp::READ);
         char * aLine;
@@ -460,52 +482,189 @@ bool cAppliImportSfmInit::ReadCC()
             int aNb=sscanf(aLine,"%i", &aIdx);
             ELISE_ASSERT((aNb==1),"Could not read the id");
 
-            mCC[aIdx] = new CamSfmInit {aNameList.at(aIdx),Pt2dr(0,0),0}; 
-
-
+            mCC[aIdx] = new CamSfmInit (aNameList.at(aIdx),Pt2dr(0,0),0); 
+            mCCVec->push_back(aNameList.at(aIdx)); 
+            mSfm2MM_ID[aIdx] = aMMID;
+            aMMID++;
         }
         aFIn.close();
         delete aLine;
    
     }
 
- 
-   //read the list first and then associate indexes from CC with names 
-/*
-    - list to a temporary vector of strings -> contains names
-    - CC to a map <idx,io>   (create a struct for io+img name) CamSfmInit
-*/
-
-
-
     return true;
 }
+
+/* Read keypts per camera and
+    update io in mCC  */
+
+bool cAppliImportSfmInit::ReadCoordsOneCam(FILE *fptr,int &aCamId, tKeyPt &aKeyPts)
+{
+    
+    char line[50];
+    for (int aIt=0; aIt<2; aIt++)
+    {
+        FileReadOK(fptr, "%s", line);
+    }
+    FileReadOK(fptr, "%i,", &aCamId);
+
+    for (int aIt=0; aIt<5; aIt++)
+    {
+        FileReadOK(fptr, "%s", line);
+    }
+    int aNbKey;
+    FileReadOK(fptr, "%i", &aNbKey);
+    //std::cout << "Nb keys: " << aNbKey << "\n";
+
+    
+    for (int aIt=0; aIt<3; aIt++)   
+    {
+        FileReadOK(fptr, "%s", line);
+    }
+
+
+    FileReadOK(fptr, "%lf,", &(mCC[aCamId]->PP.x));
+    
+
+    for (int aIt=0; aIt<2; aIt++)
+    {
+        FileReadOK(fptr, "%s", line);
+    }
+    FileReadOK(fptr, "%lf,", &(mCC[aCamId]->PP.y));
+//    std::cout << "PP: " << mCC[aCamId]->PP << "\n";
+
+    for (int aIt=0; aIt<2; aIt++)
+    {
+        FileReadOK(fptr, "%s", line);
+    }
+    FileReadOK(fptr, "%lf", &(mCC[aCamId]->F));
+//    std::cout << "F: " << mCC[aCamId]->F << "\n";
+
+
+    int   aPtId;
+    Pt2dr aPt;
+    Pt2di aIgnr;
+    Pt3di aRGB;
+    for (int aK=0; aK<aNbKey; aK++)
+    {
+        int OK = std::fscanf(fptr,"%i %lf %lf %i %i %i %i %i\n",&aPtId,&aPt.x,&aPt.y,&aIgnr.x,&aIgnr.y,&aRGB.x,&aRGB.y,&aRGB.z);
+        if (OK)
+        {
+//          std::cout << aPtId << " " << aPt << " " << aRGB << "\n";
+            aKeyPts[aPtId] = aPt;
+        }
+        else 
+        {
+            std::cout << "cAppliImportSfmInit::ReadCoordsOneCam could not read a line" << "\n";
+            return EXIT_FAILURE;
+        }
+
+    }
+
+
+    return EXIT_SUCCESS;
+}
+
+/* 1/ Read keypts per camera and update io
+   2/ Read tracks and create Homol
+
+   Decoding coords, eg:
+   2 0 0 1 0 
+    - a tie-pts visible in 2 images
+    - image id 0, point id 0
+    - image id 1, point id 0 */
 
 bool cAppliImportSfmInit::ReadCoords()
 {
-    FILE* fptr = fopen(mCoordsFile.c_str(), "r");
-    if (fptr == NULL) {
-      return false;
-    };
 
-    FILE* fptr2 = fopen(mTracksFile.c_str(), "r");
-    if (fptr2 == NULL) {
-      return false;
-    };
+    /* Keypts per camera */
+    {
+        FILE* fptr = fopen(mCoordsFile.c_str(), "r");
+        if (fptr == NULL) {
+          return false;
+        };
+ 
+ 
+        while (!std::feof(fptr)  && !ferror(fptr))
+        {
 
-/* read in a map<idx,keypts> keypts is a struct with a map<id_key,Pt2dr> 
+            tKeyPt  aKPtsPerCam;
+            int      aCamIdx;
+            ReadCoordsOneCam(fptr,aCamIdx,aKPtsPerCam);
+ 
+            mC2KPts[aCamIdx] = aKPtsPerCam;
+ 
+            /*     tKeyPt  ttt = mC2KPts[aCamIdx]; //aCamIdx camera
+            Pt2dr aaa = (ttt)[0];//first keypt of the aCamIdx camera
+            std::cout << "mC2KPts[0]: " << aaa << " " << " " << " "  << "\n"; //(*ttt)[0] */
+ 
+        }
 
-   read tracks and associated on the go while creating homol new format   */
+        fclose(fptr);
+    }
+
+    { 
+        /* Tracks and homol */
+        FILE* fptr = fopen(mTracksFile.c_str(), "r");
+        if (fptr == NULL) {
+          return false;
+        };
+ 
+        
+        int NbTrk;
+        FileReadOK(fptr, "%i", &NbTrk);
+//        std::cout << "&NbTrk " << NbTrk << "\n";
+ 
+        cSetTiePMul * aMulHomol = new cSetTiePMul(0, mCCVec);
+        std::vector<std::vector<int>>   VNumCams;
+        std::vector<std::vector<Pt2dr>> VPtsCams;
+ 
+ 
+        /* Iterate over tracks */
+        for (int aT=0; aT<NbTrk; aT++)
+        {
+            std::vector<int>   VNum;
+            std::vector<Pt2dr> VPts;
+ 
+            int aTrkLen;
+            FileReadOK(fptr, "%i", &aTrkLen);
+//            std::cout << "&aTrkLen " << aTrkLen << "\n";
+ 
+            /* Colect the track aT */
+            for (int aK=0; aK<aTrkLen; aK++)
+            {
+                int aCamID;
+                int aPtID;
+ 
+                FileReadOK(fptr, "%i", &aCamID);
+                FileReadOK(fptr, "%i", &aPtID);
+ 
+                VNum.push_back(mSfm2MM_ID[aCamID]);
+ 
+                //std::cout << "(mC2KPts[aCamID])[aPtID] " << aCamID << " " << mSfm2MM_ID[aCamID] << " " << aPtID << " " << (mC2KPts[aCamID])[aPtID] << "\n";
+                VPts.push_back((mC2KPts[aCamID])[aPtID]);
+ 
+            }
+            VNumCams.push_back(VNum);
+            VPtsCams.push_back(VPts);
+        }
+        fclose(fptr);
+      
+        for (uint aK=0; aK<VNumCams.size(); aK++)
+        {
+            vector<float> vAttr;
+            aMulHomol->AddPts(VNumCams[aK], VPtsCams[aK],vAttr);
+        }
+
+ 
+        std::string aSave = cSetTiePMul::StdName(mICNM,mSH,"-SfmInit",false); 
+        aMulHomol->Save(aSave);
+    }
+
 
     return true;
 }
 
-
-/*bool cAppliImportSfmInit::AssociateTracks()
-{
-
-    return true;
-}*/
 
 bool cAppliImportSfmInit::Read()
 {
@@ -519,26 +678,38 @@ bool cAppliImportSfmInit::Read()
     else 
         return false;
 
+    if (DoImags)
+        ShowImgs();        
+
 
     return true;
 }
 
 cAppliImportSfmInit::cAppliImportSfmInit(int argc,char ** argv) :
     DoCalib(false),
-    DoImags(false)
+    DoImags(false),
+    mSH(""),
+    mCCVec(new std::vector<std::string>())
 {
 
     ElInitArgMain
     (
         argc,argv,
-        LArgMain() << EAMC(mCCFile,"cc.txt (SfmInit format)", eSAM_IsExistFile)
+        LArgMain() << EAMC(mDir,"Working dir. If inside put ./")
+                   << EAMC(mCCFile,"cc.txt (SfmInit format)", eSAM_IsExistFile)
                    << EAMC(mCCListAllFile,"list.txt",eSAM_IsExistFile)
                    << EAMC(mCoordsFile,"coords.txt",eSAM_IsExistFile)
                    << EAMC(mTracksFile,"tracks.txt",eSAM_IsExistFile),
         LArgMain() << EAM(DoCalib,"DoCal",true,"Export the calibration files; Def=true")
                    << EAM(DoImags,"DoImg",true,"Create images from cc.txt")
+                   << EAM(mSH,"SH",true,"Homol postfix")
     );    
 
+    #if (ELISE_windows)
+        replace( mDir.begin(), mDir.end(), '\\', '/' );
+    #endif
+
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
 }
 
 int CPP_NewOriReadFromSfmInit(int argc,char ** argv)
@@ -546,7 +717,7 @@ int CPP_NewOriReadFromSfmInit(int argc,char ** argv)
 
     cAppliImportSfmInit aAppli(argc,argv);
     aAppli.Read();
-            
+    
 
     return EXIT_SUCCESS;
 }
