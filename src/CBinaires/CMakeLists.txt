@@ -100,6 +100,9 @@ if(NOT ${BUILD_ONLY_ELISE_MM3D})
         add_executable(CenterBascule  CenterBascule.c)
         install(TARGETS CenterBascule RUNTIME DESTINATION ${Install_Dir})
 
+        add_executable(GIMMI GIMMI.c)
+        install(TARGETS GIMMI RUNTIME DESTINATION ${Install_Dir})
+
         add_executable(GenXML2Cpp  GenXML2Cpp.c)
         install(TARGETS GenXML2Cpp RUNTIME DESTINATION ${Install_Dir})
 

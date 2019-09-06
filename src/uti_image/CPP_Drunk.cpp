@@ -55,7 +55,7 @@ void Drunk_Banniere()
     std::cout <<  " *********************************\n\n";
 }
 
-void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, Box2di aCrop, double maxSz)
+void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, Box2di aCrop, double maxSz,bool aCalibFileExtern=false)
 {
     string aPattern,aNameDir;
     SplitDirAndFile(aNameDir,aPattern,aFullPattern);
@@ -90,7 +90,7 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
     }else{
 
     //Bulding the output file system
-    ELISE_fp::MkDirRec(aNameDir + DirOut);
+    ELISE_fp::MkDirRec(aNameDir + DirOfFile(DirOut));
 
     //Processing the image
     string aNameIm=ListIm.front();
@@ -227,24 +227,78 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
     Pt2dr aPPOut=aCam->DistInverse(aCam->PP())-aOrigOut;
 
     //export ori without disto
-    string aDrunkOri=aNameDir + DirOut  + "Ori-"+aOri+"-"+DirOut;
+    string aDrunkOri=aNameDir + DirOfFile(DirOut) + "Ori-" + aOri + "-" + DirOfFile(DirOut);
     ELISE_fp::MkDirSvp(aDrunkOri);
 
     //create ideal camera
-    std::vector<double> paramFocal;
-    cCamStenopeDistPolyn anIdealCam(!aCam->DistIsDirecte(),aCam->Focale(),aPPOut,ElDistortionPolynomiale::DistId(3,1.0),paramFocal);
-    if (aCam->ProfIsDef())
-        anIdealCam.SetProfondeur(aCam->GetProfondeur());
-    anIdealCam.SetSz(aSzOut);
-    anIdealCam.SetIdentCam(aCam->IdentCam()+"_ideal");
-    if (aCam->HasRayonUtile())
-        anIdealCam.SetRayonUtile(aCam->RayonUtile(),30);
-    anIdealCam.SetOrientation(aCam->Orient());
-    if (aCam->AltisSolIsDef())
-        anIdealCam.SetAltiSol(aCam->GetAltiSol());
-    anIdealCam.SetIncCentre(aCam->IncCentre());
+    if (!aCalibFileExtern)
+    {
+        std::vector<double> paramFocal;
+        cCamStenopeDistPolyn anIdealCam(!aCam->DistIsDirecte(),aCam->Focale(),aPPOut,ElDistortionPolynomiale::DistId(3,1.0),paramFocal);
+        if (aCam->ProfIsDef())
+            anIdealCam.SetProfondeur(aCam->GetProfondeur());
+        anIdealCam.SetSz(aSzOut);
+        anIdealCam.SetIdentCam(aCam->IdentCam()+"_ideal");
+        if (aCam->HasRayonUtile())
+            anIdealCam.SetRayonUtile(aCam->RayonUtile(),30);
+        anIdealCam.SetOrientation(aCam->Orient());
+        if (aCam->AltisSolIsDef())
+            anIdealCam.SetAltiSol(aCam->GetAltiSol());
+        anIdealCam.SetIncCentre(aCam->IncCentre());
+ 
+        MakeFileXML(anIdealCam.StdExportCalibGlob(),aDrunkOri+"/Orientation-" + NameWithoutDir(DirOut) + aNameIm + ".tif.xml","MicMacForAPERO");
+    }
+    else //Export calibration in external file
+    {
+         //had to pass by the idealcam so as not to have the Interne initialized ble	
+		 std::vector<double> paramFocal;
+             cCamStenopeDistPolyn anIdealCam(!aCam->DistIsDirecte(),aCam->Focale(),aPPOut,ElDistortionPolynomiale::DistId(3,1.0),paramFocal);
+		 anIdealCam.SetSz(aSzOut);
+             anIdealCam.SetIdentCam(aCam->IdentCam()+"_ideal");
+		 anIdealCam.SetOrientation(aCam->Orient());
+		 anIdealCam.SetIncCentre(aCam->IncCentre());
+		 if (aCam->AltisSolIsDef())
+                anIdealCam.SetAltiSol(aCam->GetAltiSol());
+		 if (aCam->ProfIsDef())
+                anIdealCam.SetProfondeur(aCam->GetProfondeur());
+    
+		 cOrientationConique aOCtmp = aCam->StdExportCalibGlob();
+		 cOrientationConique aOC; 	 
+		
+		 std::string aFileInterne = aDrunkOri + NameWithoutDir(anICNM->StdNameCalib("Test",NameWithoutDir(aNameOut)));
+		 std::string aFileExterne = aDrunkOri+"Orientation-" + NameWithoutDir(DirOut) + StdPrefix(aNameIm) + ".tif.xml";
+    
+		 if (! EAMIsInit(&aOCtmp.OrIntImaM2C()))
+             	aOC.OrIntImaM2C() = aOCtmp.OrIntImaM2C();
+		 if (! EAMIsInit(&aOCtmp.TypeProj()))
+		 	aOC.TypeProj() = aOCtmp.TypeProj();
+		 if (! EAMIsInit(&aOCtmp.ZoneUtileInPixel()))
+		 	aOC.ZoneUtileInPixel() = aOCtmp. ZoneUtileInPixel();
+		 if (! EAMIsInit(&aOCtmp.ConvOri()))
+		 	aOC.ConvOri() = aOCtmp.ConvOri();
+    
+		 aOC.Externe() = anIdealCam.StdExportCalibGlob().Externe();
+		 aOC.FileInterne().SetVal(aFileInterne);  // 
+         MakeFileXML(aOC,aFileExterne);
 
-    MakeFileXML(anIdealCam.StdExportCalibGlob(),aDrunkOri+"/Orientation-"+aNameIm+".tif.xml","MicMacForAPERO");
+         cCalibrationInternConique aCIO = StdGetObjFromFile<cCalibrationInternConique>
+            	(
+                  	Basic_XML_MM_File("Template-Calib-Basic.xml"),
+                  	StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                  	"CalibrationInternConique",
+                  	"CalibrationInternConique"
+            	);
+
+         aCIO.PP() = aPPOut;
+         aCIO.F() = aCam->Focale();
+         aCIO.SzIm() = aSzOut;
+         aCIO.CalibDistortion()[0].ModRad().Val().CDist() = aPPOut;
+	 if (aCam->HasRayonUtile())
+	 	aCIO.RayonUtile() = aCam->RayonUtile();
+	 
+    MakeFileXML(aCIO,aFileInterne);
+
+    }
     }
 }
 
@@ -269,7 +323,7 @@ int Drunk_main(int argc,char ** argv)
         Box2di aCrop(Pt2di(-1,-1),Pt2di(-1,-1));
         bool Talk=true, RGB=true;
         double maxSz=1;
-
+	bool aExportInterne=false;
         //Reading the arguments
         ElInitArgMain
         (
@@ -281,13 +335,14 @@ int Drunk_main(int argc,char ** argv)
                         << EAM(RGB,"RGB",true,"Output file with RGB channels,Def=true,set to 0 for grayscale")
                         << EAM(aCrop,"Crop", true, "Rectangular crop in input image geometry; Def=[-1,-1,-1,-1]=full")
                         << EAM(maxSz,"MaxSz",true,"Maximal output image size (factor for input image); Def=1")
+                        << EAM(aExportInterne,"FileInt",true,"Export interior orientation in a separate file; Def=0")
         );
 
         //Processing the files
 		string aPattern, aDir;
 		SplitDirAndFile(aDir, aPattern, aFullPattern);
 		StdCorrecNameOrient(aOri, aDir);
-        Drunk(aPattern,aOri,DirOut,Talk,RGB,aCrop,maxSz);
+        Drunk(aPattern,aOri,DirOut,Talk,RGB,aCrop,maxSz,aExportInterne);
     }
 
     return EXIT_SUCCESS;

@@ -47,6 +47,8 @@ The package of X11 headers is general called `libx11-dev` under Linux distributi
 X11-based tools are not available in the Windows version.
 Windows users may need Qt5 libraries to generate graphical interfaces such as *SaisieMasqQT*.
 
+For recompilation optimization, [ccache](ccache.dev) is automatically used if detected.
+
 ## Compiling process for Linux / MacOS X
 
 - clone the git repository : `git clone https://github.com/micmacIGN/micmac.git`

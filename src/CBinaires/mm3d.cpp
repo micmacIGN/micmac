@@ -654,6 +654,7 @@ extern int TestCmpIm_Ewelina(int argc, char ** argv);
 extern int TestER_hom_main(int argc, char ** argv);
 extern int PFM2Tiff_main(int argc, char ** argv);
 extern int BAL2OriMicMac_main(int argc, char ** argv);
+extern int CPP_NewOriReadFromSfmInit(int argc, char ** argv);
 extern int ImPts2Dir_main(int argc, char ** argv);
 extern int FictiveObstest_main(int argc, char ** argv);
 extern int TestPush(int argc, char ** argv);
@@ -952,6 +953,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("TestER2", TestER_hom_main, "ER test hom"));
 		aRes.push_back(cMMCom("Tif2Pfm", PFM2Tiff_main, "Tif to pfm or the other way around"));
 		aRes.push_back(cMMCom("BAL2MM", BAL2OriMicMac_main, "Convert a BAL problem to MicMac"));
+		aRes.push_back(cMMCom("SfmI2MM", CPP_NewOriReadFromSfmInit, "Convert the SfmInit problem to MicMac"));
 		aRes.push_back(cMMCom("Im2Dir", ImPts2Dir_main, "Extract directions from images"));
 		aRes.push_back(cMMCom("FictObs", FictiveObstest_main, "someee stuff"));
 		aRes.push_back(cMMCom("CamTOFExp", TestCamTOF_main, "Export TOF camera pcd file to MicMac formats (e.g. tif, xml, ply)"));
@@ -1177,15 +1179,15 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("ImgTMTxt2Xml_B",main_Txt2CplImageTime ,"Convert txt file containing camlight image name and GPS week and time into micmac format"));
 
         aRes.push_back(cMMCom("MoyMAF",MoyMAF_main ,"Calculate center of 4 corner points"));
-        aRes.push_back(cMMCom("GenerateTP",GenerateTP_main ,"Generate simulated tie points"));
-        aRes.push_back(cMMCom("SimuRolShut",SimuRolShut_main ,"Generate simulated tie points"));
-        aRes.push_back(cMMCom("GenerateOrient",GenerateOrient_main,"Generate modification of orientation"));
+        aRes.push_back(cMMCom("GenerateTP",GenerateTP_main ,"Generate simulated tie points",cArgLogCom(2)));
+        aRes.push_back(cMMCom("SimuRolShut",SimuRolShut_main ,"Generate simulated tie points",cArgLogCom(2)));
+        aRes.push_back(cMMCom("GenerateOrient",GenerateOrient_main,"Generate modification of orientation",cArgLogCom(2)));
         aRes.push_back(cMMCom("ReechRolShut",ReechRolShut_main ,"Resampling for rolling shutter effect correction, V2, reproj on new cam orientation",cArgLogCom(2)));
         aRes.push_back(cMMCom("ReechRolShutV1",ReechRolShutV1_main ,"Resampling for rolling shutter effect correction, V1, linear compression/dilatation"));
         aRes.push_back(cMMCom("ExportTPM",ExportTPM_main ,"Export tie point multiplicity"));
         aRes.push_back(cMMCom("CompMAF",CompMAF_main ,"Compare MAF files"));
         aRes.push_back(cMMCom("GenerateOriGPS",GenerateOriGPS_main ,"Compare MAF files"));
-        aRes.push_back(cMMCom("GenerateMAF",GenerateMAF_main ,"Generate simulated MAF"));
+        aRes.push_back(cMMCom("GenerateMAF",GenerateMAF_main ,"Generate simulated MAF",cArgLogCom(2)));
         aRes.push_back(cMMCom("GenImgTM",GenImgTM_main ,"Generate fake Img name/time couple from GPS .xml file"));
         aRes.push_back(cMMCom("EsSim",EsSim_main ,"EsSim"));
         aRes.push_back(cMMCom("ProcessThmImgs",ProcessThmImgs_main,"Tool to process Thermique acquisition of IGN"));

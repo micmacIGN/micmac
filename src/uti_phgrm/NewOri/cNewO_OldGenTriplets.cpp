@@ -604,7 +604,7 @@ int cAppli_GenTriplet::ToIndex(const Pt2df &  aP0) const
 
 tSomGT * cAppli_GenTriplet::GetNextSom()
 {
-   int aNbMaxTriplet = mQuick ? TQuickNbMaxTriplet : TStdNbMaxTriplet;
+   int aNbMaxTriplet = mQuick ? mTQuickNbMaxTriplet : mTStdNbMaxTriplet;
    if (mVSomEnCourse.empty()) return 0;
    if (int(mVSomSelected.size()) > aNbMaxTriplet) return 0;
 
