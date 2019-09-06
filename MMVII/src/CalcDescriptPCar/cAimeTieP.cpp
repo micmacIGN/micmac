@@ -22,4 +22,9 @@ int   cProtoAimeTieP::NumIm() const        {return mNumIm;}
 float cProtoAimeTieP::ScaleInO() const     {return mScaleInO;}
 float cProtoAimeTieP::ScaleAbs() const     {return mScaleAbs;}
 
+void cProtoAimeTieP::SetPt(const cPt2dr & aPt)
+{
+    mPt = aPt;
+}
+
 };

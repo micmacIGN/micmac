@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamNewRechPH[299] = {
+const char * theNameVar_ParamNewRechPH[308] = {
 "\n",
 "<GenCpp  Difndef=\"Define_NotRechNewPH\">\n",
 "\n",
@@ -283,6 +283,15 @@ const char * theNameVar_ParamNewRechPH[299] = {
 "       <NumIm    Nb=\"1\" Type=\"int\">     </NumIm>\n",
 "       <ScaleInO   Nb=\"1\" Type=\"double\">   </ScaleInO>\n",
 "       <ScaleAbs   Nb=\"1\" Type=\"double\">   </ScaleAbs>\n",
+"\n",
+"       <Val     Nb=\"1\" Type=\"double\">   </Val> <!-- Val of modified image (Lapl, Corner) -->\n",
+"       <Var     Nb=\"1\" Type=\"double\">   </Var> <!-- Variance of point -->\n",
+"       <FastStd  Nb=\"1\" Type=\"double\">   </FastStd> <!-- Val of fast score, standard -->\n",
+"       <FastConx  Nb=\"1\" Type=\"double\">   </FastConx> <!-- Val of fast score, connected -->\n",
+"\n",
+"       <AutoCor  Nb=\"1\" Type=\"double\">   </AutoCor> <!-- Auto Correl of image -->\n",
+"       <NumChAC  Nb=\"1\" Type=\"int\">   </NumChAC>    <!-- Num of choice for Auto Correl -->\n",
+"       <OKAc  Nb=\"1\" Type=\"bool\">   </OKAc>         <!-- Is it ok according to AC -->\n",
 "   </Xml2007Pt>\n",
 "\n",
 "   <Xml2007FilePt  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",

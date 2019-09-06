@@ -463,16 +463,50 @@ template <class Type> class cMatIner2Var
        const Type & S22() const {return mS22;}
        void Normalize();
     private :
-        Type  mS0;
-        Type  mS1;
-        Type  mS11;
-        Type  mS2;
-        Type  mS12;
-        Type  mS22;
+        Type  mS0;   ///< Som of    W
+        Type  mS1;   ///< Som of    W * V1
+        Type  mS11;  ///< Som of    W * V1 * V1
+        Type  mS2;   ///< Som of    W * V2
+        Type  mS12;  ///< Som of    W * V1 * V2
+        Type  mS22;  ///< Som of    W * V2 * V2
 };
 
-///  A function rather specific to bench, assimilate image to a distribution and compute it 0,1,2 moments
+/// A function rather specific to bench, assimilate image to a distribution on var X,Y and compute it 0,1,2 moments
 template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm);
+
+///  BUGED:  Class to compute non biased variance from a statisic 
+
+/** Class to compute non biased variance from a statisic
+    This generalise the standard formula
+            EstimVar = N/(N-1) EmpirVar
+    To the case where there is a weighting.
+
+    It can be uses with N variable to factorize the computation on Weight
+
+     The method id BUGED as the theoreticall formula is probably wrong, or maybe it is the bench itself ?
+     However it's probably worth use it than nothing ...
+ */
+
+template <const int Dim> class cComputeStdDev
+{
+    public :
+        typedef  double tTab[Dim];
+
+        cComputeStdDev();
+
+        void Add(const  double * aVal,const double & aPds);
+        const double  *  ComputeUnBiasedVar() ;
+        const double  *  ComputeBiasedVar() ;
+        double  DeBiasFactor() const;
+
+    private :
+        double    mSomW; ///< Sum of Weight
+        double    mSomWW; ///< Sum of Weight ^2
+        tTab      mSomWV;  ///< Weighted som of vals
+        tTab      mSomWVV; ///< Weighted som of vals ^2
+        tTab      mVar;   ///< Buffer to compute the unbiased variance
+        tTab      mBVar;   ///< Buffer to compute the empirical variance
+};
 
 
 

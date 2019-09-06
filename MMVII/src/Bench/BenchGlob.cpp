@@ -112,6 +112,7 @@ class cAppli_MMVII_Bench : public cMMVII_Appli
 
         std::string mTest; ///< Do remember why I added that !!
         int         mNumBugRecall; ///< Used if we want to force bug generation in recall process
+        bool        mDoBUSD;       ///< Do we do  BenchUnbiasedStdDev
 };
 
 cCollecSpecArg2007 & cAppli_MMVII_Bench::ArgObl(cCollecSpecArg2007 & anArgObl)
@@ -126,6 +127,7 @@ cCollecSpecArg2007 & cAppli_MMVII_Bench::ArgOpt(cCollecSpecArg2007 & anArgOpt)
   return
       anArgOpt
          << AOpt2007(mNumBugRecall,"NBR","Num to Generate a Bug in Recall,(4 manuel inspection of log file)")
+         << AOpt2007(mDoBUSD,"DoBUSD","Do BenchUnbiasedStdDev (which currently dont work) ? ",{{eTA2007::HDV}})
   ;
 }
 
@@ -170,7 +172,8 @@ void cAppli_MMVII_Bench::Bench_0000_String()
 
 cAppli_MMVII_Bench::cAppli_MMVII_Bench (const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
   cMMVII_Appli    (aVArgs,aSpec),
-  mNumBugRecall   (-1)
+  mNumBugRecall   (-1),
+  mDoBUSD         (false)
 {
   MMVII_INTERNAL_ASSERT_always
   (
@@ -253,6 +256,11 @@ int  cAppli_MMVII_Bench::Exe()
 
    BenchFilterImage1();
    BenchFilterLinear();
+   BenchStat();
+   if (mDoBUSD)
+   {
+      BenchUnbiasedStdDev();
+   }
 
    // We clean the temporary files created
    RemoveRecurs(TmpDirTestMMVII(),true,false);

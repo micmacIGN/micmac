@@ -4,12 +4,13 @@
 #include "src/uti_image/NewRechPH/cParamNewRechPH.h"
 #include "../CalcDescriptPCar/AimeTieP.h"
 
-
-
+#include "include/im_tpl/cPtOfCorrel.h"
 
 
 namespace MMVII
 {
+
+
 
 
 //=============  tNameRel ====================
@@ -93,33 +94,60 @@ template<> void  MMv1_SaveInFile(const tNameSet & aSet,const std::string & aName
 
 /********************************************************/
 
+#define AC_RHO  5.0
+#define AC_SZW  3
+
+#define AC_CutInt 0.70      // Less, after integer correl, considered as not self  correl
+#define AC_CutReal 0.80     // Less in real correl considered as not self  corre
+#define AC_Threshold  0.90  // Threshold, Any value overs this, will be considered as self correl
+
+
+#define  VAR_RHO  6.0
 
 /// Class implementing services promized by cInterf_ExportAimeTiep
 
 /**  This class use MMV1 libray to implement service described in cInterf_ExportAimeTiep
 */
-class cImplem_ExportAimeTiep : public cInterf_ExportAimeTiep
+template <class Type> class cImplem_ExportAimeTiep : public cInterf_ExportAimeTiep<Type>
 {
      public :
-         cImplem_ExportAimeTiep(bool IsMin,int ATypePt,const std::string & aName);
+         cImplem_ExportAimeTiep(bool IsMin,int ATypePt,const std::string & aName,bool ForInspect);
          virtual ~cImplem_ExportAimeTiep();
 
          void AddAimeTieP(const cProtoAimeTieP & aPATP ) override;
          void Export(const std::string &) override;
+         void SetCurImages(cIm2D<Type>,cIm2D<Type>,double aScaleInO) override;
+
      private :
+          typedef typename tElemNumTrait<Type>::tBase tBase;
+          typedef Im2D<Type,tBase>           tImV1;
+          typedef TIm2D<Type,tBase>          tTImV1;
+          typedef cCutAutoCorrelDir<tTImV1>  tCACD;
+          typedef std::unique_ptr<cFastCriterCompute> tFCC;
+ 
           cXml2007FilePt  mPtsXml;
+          cIm2D<Type>     mIm0V2;  ///< Image "init",  MMVII version
+          tImV1           mIm0V1;  ///<  Image "init", MMV1 Version
+          tTImV1          mTIm0V1; ///< T Image V1
+          cIm2D<Type>     mImStdV2;  ///<  Imagge Std eq Lapl, Corner ...
+          tImV1           mImStdV1;
+          tTImV1          mTImStdV1;
+          std::shared_ptr<tCACD> mCACD;
+          tFCC                   mFCC;
+          bool                   mForInspect;
+          
 };
 /* ================================= */
 /*    cInterf_ExportAimeTiep         */
 /* ================================= */
 
-cInterf_ExportAimeTiep::~cInterf_ExportAimeTiep()
+template <class Type> cInterf_ExportAimeTiep<Type>::~cInterf_ExportAimeTiep()
 {
 }
 
-cInterf_ExportAimeTiep * cInterf_ExportAimeTiep::Alloc(bool IsMin,int ATypePt,const std::string & aName)
+template <class Type> cInterf_ExportAimeTiep<Type> * cInterf_ExportAimeTiep<Type>::Alloc(bool IsMin,int ATypePt,const std::string & aName,bool ForInspect)
 {
-    return new cImplem_ExportAimeTiep(IsMin,ATypePt,aName);
+    return new cImplem_ExportAimeTiep<Type>(IsMin,ATypePt,aName,ForInspect);
 }
 
 
@@ -128,34 +156,93 @@ cInterf_ExportAimeTiep * cInterf_ExportAimeTiep::Alloc(bool IsMin,int ATypePt,co
 /*    cImplem_ExportAimeTiep         */
 /* ================================= */
 
-cImplem_ExportAimeTiep::cImplem_ExportAimeTiep(bool IsMin,int ATypePt,const std::string & aNameType)
+template <class Type> cImplem_ExportAimeTiep<Type>::cImplem_ExportAimeTiep(bool IsMin,int ATypePt,const std::string & aNameType,bool ForInspect) :
+    mIm0V2    (cPt2di(1,1)),
+    mIm0V1    (1,1),
+    mTIm0V1   (mIm0V1),
+    mImStdV2  (cPt2di(1,1)),
+    mImStdV1  (1,1),
+    mTImStdV1 (mImStdV1),
+    mCACD  (nullptr),
+    mFCC   (cFastCriterCompute::Circle(3.0)),
+    mForInspect (ForInspect)
 {
     mPtsXml.IsMin() = IsMin;
     mPtsXml.TypePt() = IsMin;
     mPtsXml.NameTypePt() = aNameType;
     
 }
-cImplem_ExportAimeTiep::~cImplem_ExportAimeTiep()
+template <class Type> cImplem_ExportAimeTiep<Type>::~cImplem_ExportAimeTiep()
 {
 }
 
-void cImplem_ExportAimeTiep::AddAimeTieP(const cProtoAimeTieP & aPATP ) 
+template <class Type> void cImplem_ExportAimeTiep<Type>::AddAimeTieP(const cProtoAimeTieP & aPATP)
 {
+
+    Pt2di  aPIm = round_ni(ToMMV1(aPATP.Pt()) / double(1<<aPATP.NumOct()));
+    bool  aAutoCor = mCACD->AutoCorrel(aPIm,AC_CutInt,AC_CutReal,AC_Threshold);
+    
     cXml2007Pt aPXml;
+
+/*
+static int aNbOut = 0;
+static int aNbIn = 0;
+if (mCACD->mCorOut==-1)
+   aNbOut ++;
+else
+   aNbIn++;
+StdOut() << "PropOut= " << aNbOut / double(aNbIn+aNbOut) << "\n";
+*/
 
     aPXml.Pt() = ToMMV1(aPATP.Pt());
     aPXml.NumOct() = aPATP.NumOct();
     aPXml.NumIm() = aPATP.NumIm();
     aPXml.ScaleInO() = aPATP.ScaleInO();
     aPXml.ScaleAbs() = aPATP.ScaleAbs();
+    aPXml.OKAc() = ! aAutoCor;
+    aPXml.AutoCor() = mCACD->mCorOut;
+    aPXml.NumChAC() = mCACD->mNumOut;
+     
 
-    mPtsXml.Pts().push_back(aPXml);
+    if (aPXml.OKAc() || mForInspect)
+    {
+        Pt2dr aFQ =  FastQuality(mTImStdV1,aPIm,*mFCC,! mPtsXml.IsMin() ,Pt2dr(0.75,0.85));
+        aPXml.FastStd() = aFQ.x;
+        aPXml.FastConx() = aFQ.y;
+        aPXml.Var() = CubGaussWeightStandardDev(mIm0V2.DIm(),ToI(aPATP.Pt()),aPATP.ScaleInO()*VAR_RHO);
+        
+        mPtsXml.Pts().push_back(aPXml);
+    }
 }
-void cImplem_ExportAimeTiep::Export(const std::string & aName)
+template <class Type> void cImplem_ExportAimeTiep<Type>::Export(const std::string & aName)
 {
      MakeFileXML(mPtsXml,aName);
 }
 
+template <class Type> void cImplem_ExportAimeTiep<Type>::SetCurImages(cIm2D<Type> anIm0,cIm2D<Type> anImStd,double aScaleInO) 
+{
+   mIm0V2 = anIm0;
+   mIm0V1 = cMMV1_Conv<Type>::ImToMMV1(mIm0V2.DIm());
+   mTIm0V1 =  tTImV1(mIm0V1);
+
+   int aSzW = round_ni(AC_SZW*aScaleInO);
+   double aFact  = aSzW / double(AC_SZW);
+   double aRho = AC_RHO * aFact;
+
+
+   mCACD = std::shared_ptr<tCACD>(new tCACD(mTIm0V1,Pt2di(0,0),aRho,aSzW));
+
+   mImStdV2 = anImStd;
+   mImStdV1 = cMMV1_Conv<Type>::ImToMMV1(mImStdV2.DIm());
+   mTImStdV1 =  tTImV1(mImStdV1);
+
+
+}
+
+template class cInterf_ExportAimeTiep<tREAL4>;
+template class cInterf_ExportAimeTiep<tINT2>;
+template class cImplem_ExportAimeTiep<tREAL4>;
+template class cImplem_ExportAimeTiep<tINT2>;
 
 
 };

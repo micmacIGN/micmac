@@ -42,6 +42,11 @@ SrcUtils= $(wildcard ${MMV2DirUtils}*.cpp)
 ObjUtils= $(SrcUtils:.cpp=.o) 
 #
 #
+MMV2DirUtiMaths=${MMV2DirSrc}UtiMaths/
+SrcUtiMaths= $(wildcard ${MMV2DirUtiMaths}*.cpp)
+ObjUtiMaths= $(SrcUtiMaths:.cpp=.o) 
+#
+#
 MMV2DirSerial=${MMV2DirSrc}Serial/
 SrcSerial= $(wildcard ${MMV2DirSerial}*.cpp)
 ObjSerial= $(SrcSerial:.cpp=.o) 
@@ -96,7 +101,7 @@ ObjCalcDescriptPCar=$(SrcCalcDescriptPCar:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCalcDescriptPCar} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB} ${ObjImagesBase}  ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} 
+OBJ= ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCalcDescriptPCar} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB} ${ObjImagesBase}  ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} 
 #
 #=========  Header ========
 #
@@ -144,6 +149,8 @@ ${MMV2DirBench}%.o :  ${MMV2DirBench}%.cpp ${HEADER}
 ${MMV2DirAppli}%.o :  ${MMV2DirAppli}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirUtils}%.o :  ${MMV2DirUtils}%.cpp ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirUtiMaths}%.o :  ${MMV2DirUtiMaths}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirSerial}%.o :  ${MMV2DirSerial}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@

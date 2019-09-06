@@ -974,12 +974,40 @@ class cXml2007Pt
 
         double & ScaleAbs();
         const double & ScaleAbs()const ;
+
+        double & Val();
+        const double & Val()const ;
+
+        double & Var();
+        const double & Var()const ;
+
+        double & FastStd();
+        const double & FastStd()const ;
+
+        double & FastConx();
+        const double & FastConx()const ;
+
+        double & AutoCor();
+        const double & AutoCor()const ;
+
+        int & NumChAC();
+        const int & NumChAC()const ;
+
+        bool & OKAc();
+        const bool & OKAc()const ;
     private:
         Pt2dr mPt;
         int mNumOct;
         int mNumIm;
         double mScaleInO;
         double mScaleAbs;
+        double mVal;
+        double mVar;
+        double mFastStd;
+        double mFastConx;
+        double mAutoCor;
+        int mNumChAC;
+        bool mOKAc;
 };
 cElXMLTree * ToXMLTree(const cXml2007Pt &);
 

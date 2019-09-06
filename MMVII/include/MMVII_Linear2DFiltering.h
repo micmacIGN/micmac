@@ -96,6 +96,7 @@ template <class Type> class cGP_OneImage : public cMemCheck
         tGPIm * Down() const;       ///< Possible image down in the octave
         const std::string &   NameSave() const;
         tOct*  Oct() const;        ///< Octave it belongs to
+        int    NumInOct () const;        ///< Number inside octave
 
     private :
 
@@ -190,6 +191,7 @@ struct cGP_Params
          int         mNbIterMin;  ///<  Min number if iteration                            def 2
          double      mConvolC0;   ///<  Additional convolution for corner pyramid
          double      mScaleDirOrig;   ///<  Scale multiplier for diff on Orig carac point
+         double      mEstimSigmInitIm0;   ///< Estimation of sigma0 of first image
 };
 
 /// Struct to store a gaussian pyram
@@ -221,9 +223,10 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
         tIm ImTop() const; ///< For initalisation , need to access to top image of the pyramid
         tGPIm * GPImTop() const ; ///< For init or save ..., need to access to highest resolution image in high oct
         tOct * OctHom(tOct *) ;  ///< return the homologue octave (from another pyramid)
+        tGPIm * ImHom(tGPIm *) ;  ///< return the homologue image (from another pyramid)
 
         void ComputGaussianFilter();  ///< Generate gauss in image of octave
-        void SaveInFile(int aPowSPr) const;  ///< Save images  
+        void SaveInFile(int aPowSPr,bool ForInstpect) const;  ///< Save images  
       // Accessors
         const cGP_Params & Params() const;  ///< Parameters of pyramid
         const double & MulScale() const;    ///< Multiplier sigm conseq
@@ -242,7 +245,7 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
         cGaussianPyramid(const tPyr &) = delete;
 
         tPyr *   mPyrOrig;    ///< The pyramide that contain the original images
-        eTyPyrTieP mType;    ///< Type in enum possibility (Laplapcian of Gauss, Corner ...)
+        eTyPyrTieP mTypePyr;    ///< Type in enum possibility (Laplapcian of Gauss, Corner ...)
         std::string mNameIm; ///<  Name of image
         std::string mPrefix; ///<  To add to identifier for output
         cRect2      mBoxIn; /// Box of Input

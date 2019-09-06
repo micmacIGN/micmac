@@ -80,6 +80,8 @@ class cAppliCalcDescPCar : public cMMVII_Appli
         bool        mDoCorner;
         bool        mDoOriNorm;
         double      mSDON;
+        double      mCI0;   ///<  Convol Im0
+        double      mCC0;   ///<  Convol Corner0
 };
 
 /* =============================================== */
@@ -122,6 +124,8 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
     mBoxOut = aPBI.BoxOut(anIndex);
     cGP_Params aGP(mSzIn,mAppli.mNbOct,mAppli.mNbLevByOct,mAppli.mNbOverLapByO);
     aGP.mScaleDirOrig = mAppli.mSDON ;
+    aGP.mConvolIm0 = mAppli.mCI0 ;
+    aGP.mConvolC0  = mAppli.mCC0 ;
     mPyr = tPyr::Alloc(aGP,mAppli.mNameIm,aPref,mBoxIn,mBoxOut);
 
     // Load image
@@ -165,31 +169,28 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
        StdOut() << "   ############################################ \n";
        StdOut() << "   ######   NAME="  <<    mAppli.mNameIm  << "\n";
        StdOut() << "   ############################################ \n";
-       mPyr->SaveInFile(0);
     }
+    mPyr->SaveInFile(0,mAppli.mSaveIms);
 
     // Compute corner images required
     if (mAppli.mDoOriNorm)
     {
        mPyrOriNom =  mPyr->PyramOrigNormalize();
-       if (mAppli.mSaveIms)
-          mPyrOriNom->SaveInFile(0);
+       mPyrOriNom->SaveInFile(0,mAppli.mSaveIms);
     }
 
     // Compute Lapl by diff of gauss if required
     if (mAppli.mDoLapl)
     {
        mPyrLapl =  mPyr->PyramDiff();
-       if (mAppli.mSaveIms)
-          mPyrLapl->SaveInFile(0);
+       mPyrLapl->SaveInFile(0,mAppli.mSaveIms);
     }
 
     // Compute corner images required
     if (mAppli.mDoCorner)
     {
        mPyrCorner =  mPyr->PyramCorner();
-       if (mAppli.mSaveIms)
-          mPyrCorner->SaveInFile(0);
+       mPyrCorner->SaveInFile(0,mAppli.mSaveIms);
     }
 }
 
@@ -213,8 +214,10 @@ cAppliCalcDescPCar:: cAppliCalcDescPCar(const std::vector<std::string> &  aVArgs
   mSaveIms      (false),
   mDoLapl       (true),
   mDoCorner     (true),
-  mDoOriNorm    (true),
-  mSDON         (20.0)
+  mDoOriNorm    (false),
+  mSDON         (20.0),
+  mCI0          (0.7),
+  mCC0          (0.7)
 {
 }
 
@@ -237,6 +240,8 @@ cCollecSpecArg2007 & cAppliCalcDescPCar::ArgOpt(cCollecSpecArg2007 & anArgOpt)
              << AOpt2007(mNbOverLapByO,"PyrNbOverL","Number of overlap  in Pyram(change only for Save Image)",{eTA2007::HDV})
              << AOpt2007(mSaveIms,"SaveIms","Save images (tuning/debuging/teaching)",{eTA2007::HDV})
              << AOpt2007(mSDON,"SON","Scale Orig Normalized",{eTA2007::HDV})
+             << AOpt2007(mCI0,"ConvI0","Convolution top image",{eTA2007::HDV})
+             << AOpt2007(mCC0,"ConvC0","Additional Corner Convolution",{eTA2007::HDV})
    ;
 }
 

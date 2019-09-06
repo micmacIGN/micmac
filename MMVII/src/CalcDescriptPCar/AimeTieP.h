@@ -14,6 +14,7 @@ class cProtoAimeTieP
 {
     public :
         cProtoAimeTieP(const cPt2dr & aP,int aNumOct,int aNumIm,float aScaleInO,float aScaleAbs);
+        void SetPt(const cPt2dr & );
         const cPt2dr & Pt() const;
         int   NumOct() const;
         int   NumIm() const;
@@ -33,14 +34,17 @@ class cProtoAimeTieP
 /**  As I want to maintain the principle that only a very minimum
    of code of MMV2 communicate with MMV1, this interface class was created
 */
-class cInterf_ExportAimeTiep : public cMemCheck
+
+template <class Type> class cInterf_ExportAimeTiep : public cMemCheck
 {
      public :
-         static cInterf_ExportAimeTiep * Alloc(bool IsMin,int ATypePt,const std::string & aName);
+         static cInterf_ExportAimeTiep<Type> * Alloc(bool IsMin,int ATypePt,const std::string & aName,bool ForInspect );
          virtual ~cInterf_ExportAimeTiep();
          virtual void AddAimeTieP(const cProtoAimeTieP & aPATP ) = 0;
          virtual void Export(const std::string &) = 0;
-     private :
+         virtual void SetCurImages(cIm2D<Type> Im0,cIm2D<Type> ImCarac,double aScalInO) = 0;
+       
+     protected :
 
 };
 

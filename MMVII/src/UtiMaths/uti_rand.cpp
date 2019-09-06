@@ -103,6 +103,15 @@ double RandUnif_0_1()
    return cRandGenerator::TheOne()->Unif_0_1();
 }
 
+std::vector<double> VRandUnif_0_1(int aNb)
+{
+    std::vector<double> aRes;
+    for (int aK=0 ; aK<aNb ; aK++)
+        aRes.push_back(RandUnif_0_1());
+    return aRes;
+}
+
+
 double RandUnif_C()
 {
    return (RandUnif_0_1()-0.5) * 2.0;

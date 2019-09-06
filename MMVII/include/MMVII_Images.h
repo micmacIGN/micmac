@@ -65,6 +65,7 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         cPixBox(const cPixBox<Dim> &) ;
         cPixBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty = false);
         static cPixBox<Dim>  BoxWindow(int aSz); ///<  Box of window around pix !! symetric   [-Sz,+aSz] 
+        static cPixBox<Dim>  BoxWindow(const tPt &aC,int aSz); ///<  with center 
         /// It may be convenient as conversion, as tool may retun TplBox, and others may need to iterate on it
         cPixBox(const cTplBox<int,Dim> &);
         // Position of point relative to PixBox
@@ -406,6 +407,14 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         /* No  Type & GetV() or  Type & operator()   ... as it does not allow
            to check values
         */
+
+        /// Get Value with def when out side
+        tBase  DefGetV(const cPt2di & aP,const tBase & aDef )  const
+        {
+            if (tPB::Inside(aP))
+               return Value(aP);
+            return aDef;
+        }
 
           /// Set Value, check point and value in  non release mode
         void SetV(const cPt2di & aP,const tBase & aV)
