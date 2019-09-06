@@ -449,6 +449,7 @@ vector<Pt2dr> RPC::empriseCarto(vector<Pt2dr> Pgeo, std::string targetSyst, std:
     // transformation in the ground coordinate system
     std::string command;
     command = g_externalToolHandler.get("cs2cs").callName() + " " + inputSyst + " +to " + targetSyst + " processing/conv_ptGeo.txt > processing/conv_ptCarto.txt";
+    cout << command <<endl;
     int res = system(command.c_str());
     ELISE_ASSERT(res == 0, " error calling cs2cs in ptGeo2Carto ");
     // loading the coordinate of the converted point
@@ -527,6 +528,7 @@ void RPC::createDirectGrid(double ulcSamp, double ulcLine,
     // transformation in the ground coordinate system
     std::string command;
     command = g_externalToolHandler.get("cs2cs").callName() + " " + inputSyst + " +to " + targetSyst + " processing/direct_ptGeo.txt > processing/direct_ptCarto.txt";
+    cout << command <<endl;
     int res = system(command.c_str());
     if (res != 0) std::cout << "error calling cs2cs in createDirectGrid" << std::endl;
     // loading points
@@ -565,6 +567,7 @@ void RPC::createInverseGrid(double ulcX, double ulcY, int nbrSamp, int nbrLine,
     // convert to geographic coordinates
     std::string command;
     command = g_externalToolHandler.get("cs2cs").callName() + " " + targetSyst + " +to " + inputSyst + " -f %.12f processing/inverse_ptCarto.txt >processing/inverse_ptGeo.txt";
+    cout << command <<endl;
     int res = system(command.c_str());
     ELISE_ASSERT(res == 0, "error calling cs2cs in createinverseGrid");
     for (size_t i = 0; i<vAltitude.size(); ++i)
