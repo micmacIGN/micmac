@@ -151,7 +151,7 @@ void cGenGaus3D::GetDistribGaus(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int a
 }
 
 
-void cGenGaus3D::GetDistribGausNSym(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int aN3)
+void cGenGaus3D::GetDistribGausNSym(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int aN3,bool aAddPts)
 {
 
     ELISE_ASSERT( (aN1>1) && (aN2>1) && (aN3>1) ,"cGenGaus3D::GetDistribGausConf the N parameters must be bigger than 1");
@@ -203,6 +203,14 @@ void cGenGaus3D::GetDistribGausNSym(std::vector<Pt3dr> & aVPts,int aN1,int aN2,i
 
             }
         }
+    }
+
+    /* For now the AddPts will add the CDG; later possibly more options
+       - the goal is to test the CDG with the minimal no of Pts, i.e. [2,2,2],
+         and a pt/pts in the center */
+    if (aAddPts)
+    {
+        aVPts.push_back(mCDG);
     }
 
 }

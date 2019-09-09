@@ -94,15 +94,19 @@ class cAppliFictObs : public cCommonMartiniAppli
                           std::vector<Pt2dr>& aPImV,
                           std::vector<float>& aAttr);
         void SaveHomol(std::string&);        
+        double CalcPoids(double aPds);
 
         cNewO_NameManager *  mNM;
         
         Pt3dr       mNumFPts;
         bool        mNSym;
         bool        mNRand;
+        bool        mAddCDG;
         int         mNbIm;
+        std::string mPdsFun;
+  
 
-   
+ 
         bool                                                    DOTRI;
         bool                                                    DOCPLE;
         bool                                                    NFHom;    //new format homol
@@ -141,6 +145,8 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
     mNumFPts(Pt3dr(1,1,1)),
     mNSym(false),
     mNRand(false),
+    mAddCDG(false),
+    mPdsFun("L2"),
     DOTRI(true),
     DOCPLE(true),
     NFHom(true),
@@ -159,12 +165,13 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
 {
 
     bool aExpTxt=false;
+    std::vector<std::string> aNumFPtsStr;
 
     ElInitArgMain
     (
         argc, argv,
         LArgMain() << EAMC(mPattern,"Pattern of images"),
-        LArgMain() << EAM (mNumFPts,"NPt",true,"Number of ficticious pts, Def=1 (1:27pts, 2:175pts)")
+        LArgMain() << EAM (aNumFPtsStr,"NPt",true,"Number of ficticious pts, Def=1 (1:27pts, 2:175pts)")
                    << EAM (mNSym,"NSym",true,", Non-symetric point generation, Def=false")
                    << EAM (mNRand,"NRand",true,", Random point generation, Def=false")
                    << EAM (mRedFacSup,"RedFac",true,"Residual image reduction factor, Def=20")
@@ -180,6 +187,7 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
                    << EAM (mOut,"Out",true,"Output file name")
                    << EAM (DOTRI,"Tri",true,"Use triplets, Def=true")
                    << EAM (DOCPLE,"Cpl",true,"Use couples, Def=true")
+                   << EAM (mPdsFun,"Pds",true,"Poonderation function (\"C\", \"L1\", \"L2\"), Def=\"L2\"")
                    << EAM (mPly,"Ply",true,"Output ply file?, def=false")
     );
    #if (ELISE_windows)
@@ -189,6 +197,15 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
     aExpTxt ? mHomExp="txt" : mHomExp="dat";
 
     SplitDirAndFile(mDir,mPattern,mPattern);
+
+
+    ELISE_ASSERT((aNumFPtsStr.size()==3) || (aNumFPtsStr.size()==4),"NPt requires 3 or 4 values");
+    mNumFPts.x = RequireFromString<double>(aNumFPtsStr[0],"Points along 1st axis");
+    mNumFPts.y = RequireFromString<double>(aNumFPtsStr[1],"Points along 2nd axis");
+    mNumFPts.z = RequireFromString<double>(aNumFPtsStr[2],"Points along 3rd axis");
+    if (aNumFPtsStr.size()==4)
+        mAddCDG=RequireFromString<double>(aNumFPtsStr[3],"Add the CDG per respective cple/tri");
+
 
     Initialize();
    
@@ -253,7 +270,7 @@ void cAppliFictObs::GenerateFicticiousObs()
     
         //generate the obs fict
         if (mNSym)
-            aGG1.GetDistribGausNSym(aVP,mNumFPts.x,mNumFPts.y,mNumFPts.z);
+            aGG1.GetDistribGausNSym(aVP,mNumFPts.x,mNumFPts.y,mNumFPts.z,mAddCDG);
         else if (mNRand)
             aGG1.GetDistribGausRand(aVP,mNumFPts.x);
         else
@@ -340,7 +357,13 @@ void cAppliFictObs::GenerateFicticiousObs()
             //save points if visible in at leasst 2 images 
             if (aTriIdsCpy.size() >1)
             {
+
+                double aPds = CalcPoids(anEl.Pds());
+                
                 std::vector<float> aAttr;
+
+                aAttr.push_back(aPds);
+
                 SaveHomolOne(aTriIdsCpy,aPImV,aAttr);
 
                 aVPSel.push_back(aVP.at(aK));
@@ -388,7 +411,8 @@ void cAppliFictObs::GenerateFicticiousObs()
             std::string Ply0Dos = "PLY-El/";
             std::string Ply1Dos = Ply0Dos + "NSym" + ToString(mNSym) + "_Pts-" + ToString(mNumFPts.x) +
                                                      ToString(mNumFPts.y) + 
-                                                     ToString(mNumFPts.z) + "/" ;
+                                                     ToString(mNumFPts.z) + "_" +
+                                                     ToString(mAddCDG) + "/" ;
             std::string Ply1File = mSetName->at(aT.second->mId1) + "-" +
                                    mSetName->at(aT.second->mId2) + "-" +
                                    (aT.second->mC3 ? mSetName->at(aT.second->mId3) : "-Cple") + "-" +
@@ -422,6 +446,24 @@ void cAppliFictObs::GenerateFicticiousObs()
 
     std::cout << "cAppliFictObs::GenerateFicticiousObs()" << " ";    
     cout << " " << aNPtNum << " points saved. " << "\n";
+}
+
+double cAppliFictObs::CalcPoids(double aPds)
+{
+    double aRes=1;
+    int NbPtsMax = 500;
+
+    if (mPdsFun == "C")
+        aRes=1.0;
+    else if (mPdsFun=="L1")
+        aRes= aPds / double(NbPtsMax);
+    else if (mPdsFun == "L2")
+        aRes = std::pow(aPds,0.3) / std::pow(NbPtsMax,0.3);
+
+
+    std::cout << "CalcPoids:" << aPds << " " << aRes << "\n";
+
+    return aRes;
 }
 
 void cAppliFictObs::SaveHomol(std::string& aName)
@@ -462,7 +504,7 @@ void cAppliFictObs::SaveHomolOne(std::vector<int>& aId,std::vector<Pt2dr>& aPImV
                     if (DicBoolFind(mHomRed,aNameH))
                     {   
 
-                        ElCplePtsHomologues aP(aPImV.at(aK1),aPImV.at(aK2));
+                        ElCplePtsHomologues aP(aPImV.at(aK1),aPImV.at(aK2),aAttr.at(aK1));//a priori peut importe lequel K pour l'attribute comme il sera homogene par track ie par ellipse
                         mHomRed[aNameH]->Cple_Add(aP);
 
                     }
@@ -612,7 +654,9 @@ void cAppliFictObs::Initialize()
  
     //initialize reduced tie-points
     if (NFHom)
-        mPMulRed = new cSetTiePMul(0,mSetName);
+    {
+        mPMulRed = new cSetTiePMul(1,mSetName);
+    }
     else
         InitNFHom();
 
