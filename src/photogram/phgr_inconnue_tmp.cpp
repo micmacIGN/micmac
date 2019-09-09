@@ -1461,6 +1461,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
 
 
    static int aCpt = 0; aCpt++;
+// if (MPD_MM()) std::cout << "aCptaCptaCptaCpt " << aCpt << "\n";
 
 
    for (int aK=0 ; aK<int(aVCC.size()) ; aK++)

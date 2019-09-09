@@ -696,7 +696,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    cInterfBundle2Image * aBundle = mQuick ? mRedPvIBI  :  mFullPvIBI;
    double anErr=-1;
 
-   if (! aInOri)
+   if (! aInOri)  // Si on est pas en mode ou une Orient Init est imposee
    {
          {
             ElTimer aChrono;
@@ -839,6 +839,11 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
           ElTimer aChrono;
           anErr = aBundle->ResiduEq(mBestSol,anErr);
           
+if (MPD_MM())
+{
+    std::cout << " ##########=======================######### " << aBundle->VIB2I_NameType() << "\n";
+}
+
           for (int aK=0 ; aK< (DoOri3D ? (mQuick ? 6 : 10) : 2) ; aK++)
           {
                  // std::cout << "ERRCur " <<  anErr*FocMoy() << "\n";
@@ -846,6 +851,11 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
                  ElRotation3D aSol = aBundle->OneIterEq(mBestSol,anErr);
                  mBestSol = aSol;
           }
+if (MPD_MM())
+{
+    std::cout << "GGGGGG " << aBundle->VIB2I_NameType() << "\n";
+    getchar();
+}
           // finalisation sauvegarde resultats
           aTimeAdj = aChrono.uval();
    }

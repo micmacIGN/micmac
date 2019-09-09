@@ -657,54 +657,6 @@ double  cFullBundleLin::VIB2I_AddObsK(const int & aK,const double & aPds)
 
 
 
-     // ============================================================
-     // ==================   cFullBundleBase =======================
-     // ============================================================
-
-#if (0)
-class cFullBundleBase  :  public  cPackInPts2d,
-                          public  cInterfBundle2Image
-{
-    public :
-       cFullBundleBase(const  ElPackHomologue & aPack,double aFoc,bool UseAccelCoordCste);
-
-       const std::string & VIB2I_NameType() {return mBB.NameEq1();}
-       double  VIB2I_PondK(const int & aK) const {return mVPds[aK];}
-       double  VIB2I_ErrorK(const ElRotation3D &aRot,const int & aK) const;
-       double  VIB2I_AddObsK(const int & aK,const double & aPds) ;
-       void    VIB2I_InitNewRot(const ElRotation3D &aRot) {mBB.InitNewRot(aRot);}
-       ElRotation3D    VIB2I_Solve() {return  mBB.SolveResetUpdate();}
-    private  :
-
-       cEqBundleBase  mBB;
-};
-
-cFullBundleBase::cFullBundleBase(const  ElPackHomologue & aPack,double aFoc,bool UseAccelCoordCste) :
-    cPackInPts2d          (aPack),
-    cInterfBundle2Image   ((int)mVP1.size(),aFoc),
-    mBB                   (false,0,aFoc,UseAccelCoordCste)
-{
-}
-
-double  cFullBundleBase::VIB2I_ErrorK(const ElRotation3D &aRot,const int & aK) const
-{
-   return ProjCostMEP(aRot,mVP1[aK],mVP2[aK],-1);
-}
-
-double  cFullBundleBase::VIB2I_AddObsK(const int & aK,const double & aPds)
-{
-   return mBB.AddEquation12(mVP1[aK],mVP2[aK],aPds);
-}
-
-cInterfBundle2Image * cInterfBundle2Image::Bundle(const  ElPackHomologue & aPack,double aFoc,bool UseAccelCoordCste)
-{
-   return new cFullBundleBase(aPack,aFoc,UseAccelCoordCste);
-}
-#endif
-
-
-
-
 
 
 /*************************************************************************/
