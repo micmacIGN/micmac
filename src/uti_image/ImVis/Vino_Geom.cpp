@@ -666,6 +666,10 @@ void cAppli_Vino::ShowVectPCarac()
            }
        }
    }
+   if (mWithAime)
+   {
+        AimeVisu();
+   }
 }
 
 

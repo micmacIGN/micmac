@@ -91,6 +91,7 @@ const eTyNums &   cDataFileIm2D::Type ()  const {return mType;}
 
 // template <class Type> Pt2d<Type> ToMMV1(const cPtxd<Type,2> &
 
+/*
 template <class Type> class cMMV1_Conv
 {
     public :
@@ -108,6 +109,7 @@ template <class Type> class cMMV1_Conv
       
      static void ReadWrite(bool ReadMode,const tImMMVII &aImV2,const cDataFileIm2D & aDF,const cPt2di & aP0File,double aDyn,const cRect2& aR2Init);
 };
+*/
 
 template <class Type> void cMMV1_Conv<Type>::ReadWrite
                            (

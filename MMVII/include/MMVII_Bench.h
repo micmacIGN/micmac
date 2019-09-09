@@ -49,6 +49,8 @@ void BenchStrIO();        ///< specially for vectors
 void TestTimeV1V2(); ///< Not a formal Bench, require visual inspection
 
 void BenchFilterImage1();
+void BenchStat();
+void BenchUnbiasedStdDev();  ///< Test one specific function currently not correct, by default test not activated
 
 };
 

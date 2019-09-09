@@ -69,21 +69,36 @@ template <class Type> class cGP_OneImage : public cMemCheck
         typedef cGP_OneOctave<Type>    tOct;
         typedef cGaussianPyramid<Type> tPyr;
 
-        void ComputGaussianFilter();  ///< Generate computation of gauss image
-        void SaveInFile() const;  ///< Save image on file  (if Param seted for), tuning/teaching
-        void Show() const;  ///< Show Image in text format, test and debug
-
         cGP_OneImage(tOct * anOct,int NumInOct,tGPIm * mUp); ///< Constructor
+
+              // =======   Image processing for creation
+        void  ComputGaussianFilter();  ///< Generate computation of gauss image
+        void  MakeDiff(const tGPIm & ); ///< Put in this the difference between anIm and anIm.mDown
+        void  MakeCorner(); ///< Compute an indice of corner image 
+        void  MakeOrigNorm(const tGPIm & ); ///< Create an image, almost orig, but normalized
+
+              // =======   Description
+        void SaveInFile() const;  ///< Save image on file, tuning/teaching
+        void Show() const;  ///< Show Image in text format, test and debug
+ 
+              // =======   Utilitaries
+        std::string  ShortId() const;  ///< Helper to create Id avoid 
         std::string  Id() const; ///< Some identifier, may usefull in debuging
-        // Accessors
+        bool   IsTopOct() const;   ///< Is it top image in its octave
+        cPt2dr Im2File(const cPt2dr &) const; ///< To geomtry of global file
+
+              // =======   Accessors
         tIm ImG();  ///< Get gaussian image
         bool   IsTopPyr() const;   ///< Is it top image of top octave
         double ScaleAbs() const;   ///< Scale of Gauss "Absolute" 
+        double ScaleInO() const;   ///< Scale of Gauss "Absolute" 
+        tGPIm * Up() const;         ///< Possible image up in the   octave
+        tGPIm * Down() const;       ///< Possible image down in the octave
+        const std::string &   NameSave() const;
+        tOct*  Oct() const;        ///< Octave it belongs to
+        int    NumInOct () const;        ///< Number inside octave
 
-        /** Put in this the difference between anIm and anIm.mDown */
-        void  MakeDiff(const tGPIm & );
     private :
-        std::string  ShortId() const;  ///< Helper to create Id avoid 
 
         cGP_OneImage(const tGPIm &) = delete;
         tOct*         mOct;        ///< Octave it belongs to
@@ -98,6 +113,7 @@ template <class Type> class cGP_OneImage : public cMemCheck
         double        mTargetSigmAbs;  ///< Sigma Abs of gaussian we need to reach
         double        mTargetSigmInO;  ///< Sigma , in octave, of gaussian we need to reach
         bool          mIsTopPyr;   ///< Is it top image of top octave
+        std::string   mNameSave;   ///< Name generated for saving the image when required
 };
 
 /// Class to store one octabe of a gaussian pyram
@@ -117,15 +133,19 @@ template <class Type> class cGP_OneOctave : public cMemCheck
 
         cGP_OneOctave(tPyr * aPyr,int aNum,tOct * aUp); ///< Constructor
 
-        tIm ImTop(); ///< For initalisation , need to access to top image of the pyramid
+        tGPIm * GPImTop() const ; ///< For init or save, need to access to highest resolution image
+        tIm ImTop() const; ///< For initalisation , need to access to top image of the pyramid
         tGPIm * ImageOfScaleAbs(double aScale, double aTolRel=1e-5) ; ///< Return image having given sigma
+        cPt2dr Oct2File(const cPt2dr &) const; ///< To geomtry of global file
 
         void Show() const;  ///< Show octave in text format, test and debug
         void ComputGaussianFilter();  ///< Generate computation of gauss pyram
-        void SaveInFile() const;  ///< Save images on disk, tuning / teaching
   
         /** Put in all image of this, the  image  whic are differences of consecutive image in anOct */
         void  MakeDiff(const tOct & anOct);
+
+        /**  Put in all image of this, image original normalized */
+        void  MakeOrigNorm(const tOct & anOct);
 
         
         //  ====  Accessors  ===========
@@ -134,6 +154,7 @@ template <class Type> class cGP_OneOctave : public cMemCheck
         const double &  Scale0Abs() const;  ///< Scale of Top Image
         tOct *          Up() const;         ///< Possible octave up in the pyramid, 0 if dont exist
         const int &     NumInPyr() const;   ///< Number inside Pyram
+        const std::vector<tSP_GPIm>& VIms()const ;       ///< Images of the Pyramid
        
     private :
         cGP_OneOctave(const tOct &) = delete;
@@ -143,7 +164,7 @@ template <class Type> class cGP_OneOctave : public cMemCheck
         int                mNumInPyr;     ///< Number inside Pyram
         cPt2di             mSzIm;         ///< Size of images in this octave
         double             mScale0Abs;     ///<  Abs Scale of first image in octave
-        std::vector<std::shared_ptr<tGPIm>> mVIms;       ///< Images of the Pyramid
+        std::vector<tSP_GPIm> mVIms;       ///< Images of the Pyramid
 };
 
 
@@ -162,13 +183,15 @@ struct cGP_Params
          cPt2di mSzIm0;    ///< Sz of Image at full resol
          int  mNbOct;      ///< Number of octave
          int  mNbLevByOct;  ///< Number of level per octave (dont include overlap)
-         int  mNbOverlap;  ///< Number of overlap
+         int  mNbOverlap;   ///< Number of overlap
          
       // Parameters with def value, can be changed
          double      mConvolIm0;  ///< Possible additionnal convolution to first image  def 0.0
          int         mNbIter1;    ///<  Number of iteration of first Gaussian              def 4
          int         mNbIterMin;  ///<  Min number if iteration                            def 2
-         std::string mPrefSave;   ///<  if specified used for saving pyramid
+         double      mConvolC0;   ///<  Additional convolution for corner pyramid
+         double      mScaleDirOrig;   ///<  Scale multiplier for diff on Orig carac point
+         double      mEstimSigmInitIm0;   ///< Estimation of sigma0 of first image
 };
 
 /// Struct to store a gaussian pyram
@@ -179,21 +202,31 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
       // Typedef section 
         typedef cIm2D<Type>            tIm;
         typedef cGP_OneImage<Type>     tGPIm;
+        typedef std::shared_ptr<tGPIm> tSP_GPIm;
         typedef cGP_OneOctave<Type>    tOct;
         typedef std::shared_ptr<tOct>  tSP_Oct;
         typedef cGaussianPyramid<Type> tPyr;
         typedef std::shared_ptr<tPyr>  tSP_Pyr;
 
-        static tSP_Pyr Alloc(const cGP_Params &); ///< Allocator
+        static tSP_Pyr Alloc(const cGP_Params &,const std::string & aNameIm,const std::string & aPref,const cRect2 & aBIn,const cRect2 & aBOut); ///< Allocator
         /** Generate a Pyramid made of the difference, typically for laplacian from gaussian */
-        tSP_Pyr  PyramDiff() const;
+        tSP_Pyr  PyramDiff() ;
+        /** Generate a Pyramid of corner points */
+        tSP_Pyr  PyramCorner() ;
+        /** Generate a Pyramid "almost" original but with normalized values */
+        tSP_Pyr  PyramOrigNormalize() ;
+
+       
+        cPt2dr Pyr2File(const cPt2dr &) const; ///< To geomtry of global file
 
         void Show() const;  ///< Show pyramid in text format, test and debug
-        tIm ImTop(); ///< For initalisation , need to access to top image of the pyramid
-        void ComputGaussianFilter();  ///< Generate gauss in image of octave
-        void SaveInFile() const;  ///< Save images  in image of octave
-        void SetPrefSave(const std::string&); ///< 4 set prefix that will be used, when image must be saved
+        tIm ImTop() const; ///< For initalisation , need to access to top image of the pyramid
+        tGPIm * GPImTop() const ; ///< For init or save ..., need to access to highest resolution image in high oct
+        tOct * OctHom(tOct *) ;  ///< return the homologue octave (from another pyramid)
+        tGPIm * ImHom(tGPIm *) ;  ///< return the homologue image (from another pyramid)
 
+        void ComputGaussianFilter();  ///< Generate gauss in image of octave
+        void SaveInFile(int aPowSPr,bool ForInstpect) const;  ///< Save images  
       // Accessors
         const cGP_Params & Params() const;  ///< Parameters of pyramid
         const double & MulScale() const;    ///< Multiplier sigm conseq
@@ -201,17 +234,32 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
         int  NbImByOct() const;            ///< mNbImByOct + mNbOverlap
         const cPt2di & SzIm0() const;      ///< Size of most resolved images
         const double & SigmIm0() const;    ///< Sigma of first image after possible convolution
+        const std::vector<tSP_Oct>&  VOcts() const; ///< vector of octaves
+        const std::vector<tSP_GPIm>&  VAllIms () const;  ///< Vector of All Images of All Octaves
+        eTyPyrTieP TypePyr () const;    ///< Type in enum possibility (Laplapcian of Gauss, Corner ...)
+        const std::string & NameIm() const; ///<  Name of image
+        const std::string & Prefix() const; ///<  Name of image
+
     private :
-        cGaussianPyramid(const cGP_Params &); ///< Constructor
+        cGaussianPyramid(const cGP_Params &,tPyr * aOrig,eTyPyrTieP,const std::string & aNameI,const std::string & aPref,const cRect2 & aBIn,const cRect2 & aBOut); ///< Constructor
         cGaussianPyramid(const tPyr &) = delete;
+
+        tPyr *   mPyrOrig;    ///< The pyramide that contain the original images
+        eTyPyrTieP mTypePyr;    ///< Type in enum possibility (Laplapcian of Gauss, Corner ...)
+        std::string mNameIm; ///<  Name of image
+        std::string mPrefix; ///<  To add to identifier for output
+        cRect2      mBoxIn; /// Box of Input
+        cRect2      mBoxOut; ///  Box of Output
         cGP_Params          mParams;   ///< Memorize parameters
-        std::vector<tSP_Oct>   mVOct;  ///< Vector of octaves
+        std::vector<tSP_Oct>   mVOcts;  ///< Vector of octaves
+        std::vector<tSP_GPIm>  mVAllIms;  ///< Vector of All Images of All Octaves
+
         double   mMulScale;  ///<  Scale of gaussian multiplier between two consecutive gaussian
         double   mScale0;    ///< Scale of first image, conventionnaly 1 
         /** This one is a bit tricky, because rigourously speaking , we should know the initial
         FTM, conventionnaly we select a well sampled image with Sigm = DefStdDevImWellSample */
         double   mEstimSigmInitIm0;  
-        double   mSigmIm0; ///< 
+        double   mSigmIm0; ///<   Sigma of first image after possible convolution
 };
 
 };

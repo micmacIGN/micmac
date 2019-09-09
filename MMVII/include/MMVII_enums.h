@@ -174,8 +174,18 @@ enum class eTyModeRecall
                eTMR_Inside, ///< Recall in the same process
                eTMR_Serial, ///< Recall by sub-process in serial
                eTMR_Parall, ///< Recall by sub-process in parallel
-               eNbVals
+               eNbVals      ///< Tag End of Vals
            };
+
+/**  Type of Tie P, independently of the sens (Min/Max)   */
+enum class eTyPyrTieP
+{
+     eTPTP_Init,     ///< Original Pyramid
+     eTPTP_LaplG,    ///< Laplacien of Gaussian
+     eTPTP_Corner,   ///< Corner 
+     eTPTP_OriNorm,  ///< Original normalized
+     eNbVals         ///< Tag End of Vals
+};
 
 
 const std::string & E2Str(const eTySC &);         
@@ -184,6 +194,7 @@ const std::string & E2Str(const eTA2007 &);
 const std::string & E2Str(const eTyUEr &);         
 const std::string & E2Str(const eTyNums &);         
 const std::string & E2Str(const eTyInvRad &);         
+const std::string & E2Str(const eTyPyrTieP &);         
 
 template <class Type> const Type & Str2E(const std::string &); 
 template <class Type> std::string   StrAllVall();

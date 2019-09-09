@@ -22,14 +22,11 @@ template <class Type> bool ValidFloatValue(const Type & aV)
     // === generator. By default will be deterministic, 
 
 
-///  Uniform distribution in 0-1
-double RandUnif_0_1();
-///  Uniform distribution in  -1 1
-double RandUnif_C();
-/// 1/2 , french "Pile ou Face"
-bool   HeadOrTail(); 
-/// Uniform disrtibution in [0,N[ 
-double RandUnif_N(int aN);
+double RandUnif_0_1(); ///<  Uniform distribution in 0-1
+std::vector<double> VRandUnif_0_1(int aNb); ///<  Uniform distribution in 0-1
+double RandUnif_C();   ///<  Uniform distribution in  -1 1
+bool   HeadOrTail();   ///< 1/2 , french "Pile ou Face"
+double RandUnif_N(int aN); ///< Uniform disrtibution in [0,N[ 
 
 class cFctrRR
 {  
@@ -405,6 +402,29 @@ template <class Type> void OrderMinMax(Type & aV1,Type & aV2)
 // 4 now use sort, will enhance with boost or home made
 template <class Type> Type NonConstMediane(std::vector<Type> & aV);
 template <class Type> Type ConstMediane(const std::vector<Type> & aV);
+
+/*  ********************************* */
+/*       Kernels                      */
+/* ********************************** */
+
+/// A kernel, approximating "gauss"
+
+/**  a quick kernel, derivable, with support in [-1,1], coinciding with bicub in [-1,1] 
+     not really gauss but has a "bell shape"
+     1 +2X^3 -3X^2  , it's particular of bicub with Deriv(1) = 0
+*/
+/*
+class cCubAppGauss
+{
+     public :
+         tREAL8 Value(const tREAL8);
+     private :
+};
+*/
+
+/// If we dont need any kernel interface keep it simple 
+tREAL8 CubAppGaussVal(const tREAL8&);   
+
 
 };
 

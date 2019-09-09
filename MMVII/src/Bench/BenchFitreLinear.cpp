@@ -102,6 +102,7 @@ template <class Type> void TestFilterExp(cPt2di aP0,cPt2di aP1,const Type & aV0)
 }
 
 
+/*
 // Test Sigma2FromFactExp
 template <class Type> void TestVarFilterExp(cPt2di aP0,cPt2di aP1,const Type & aV0,double aFx,double aFy,int aNbIt)
 {
@@ -140,6 +141,7 @@ template <class Type> void TestVarFilterExp(cPt2di aSz,double aStdDev,int aNbIte
    MMVII_INTERNAL_ASSERT_bench(std::abs(aMat.S11()-Square(aStdDev))<aEps,"Std dev");
    MMVII_INTERNAL_ASSERT_bench(std::abs(aMat.S22()-Square(aStdDev))<aEps,"Std dev");
 }
+*/
 
 
 
@@ -149,24 +151,6 @@ void BenchFilterLinear()
    TestFilterExp<tREAL8>(cPt2di(3,2),cPt2di(20,30),1.0);
    TestFilterExp<tREAL16>(cPt2di(-4,-5),cPt2di(20,30),1.0);
    TestFilterExp<int>(cPt2di(0,0),cPt2di(20,30),1000000);
-
-   TestVarFilterExp<double>(cPt2di(-2,2),cPt2di(400,375),2.0,0.6,0.67,1);
-   TestVarFilterExp<double>(cPt2di(-2,2),cPt2di(400,375),2.0,0.6,0.67,3);
-
-   // Test Sigma2FromFactExp
-   for (int aK=1 ; aK<100 ; aK++)
-   {
-        double aS2 = aK / 5.0;
-        double aF = FactExpFromSigma2(aS2);
-        // Check both formula are inverse of each others
-        double aCheckS2 = Sigma2FromFactExp(aF);
-        // Check formula Sigma2FromFactExp on exponential filters
-        TestVarFilterExp<double>(cPt2di(0,0),cPt2di(4000,3),2.0,aF,0,1);
-        MMVII_INTERNAL_ASSERT_bench(std::abs( aS2 - aCheckS2 ) < 1e-5  ,"Sigma2FromFactExp")
-   }
-
-   TestVarFilterExp<double>(cPt2di(300,300),2.0,2,1e-6);
-   TestVarFilterExp<float>(cPt2di(300,300),5.0,3,1e-3);
 }
 
 
