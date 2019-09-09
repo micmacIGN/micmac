@@ -387,11 +387,14 @@ class cAppliImportSfmInit
 
         bool Read();
 
+    private :
         bool ReadCC();
         bool ReadCoords();
         bool ReadCoordsOneCam(FILE *fptr,int &aCamId, tKeyPt &aKeyPts);
+        void ConvMMConv(Pt2dr &aPt);
 
         void ShowImgs();
+        void DoListOfName();
  
         template <typename T>
         void FileReadOK(FILE *fptr, const char *format, T *value);
@@ -425,6 +428,21 @@ void cAppliImportSfmInit::FileReadOK(FILE *fptr, const char *format, T *value)
     if (OK != 1)
         ELISE_ASSERT(false, "cAppliImportSfmInit::FileReadOK")
 
+}
+
+void cAppliImportSfmInit::DoListOfName()
+{
+
+    if (mCCVec)
+    {
+        cListOfName aLON;
+        for (int aI=0; aI<int(mCCVec->size()); aI++)
+        {
+            aLON.Name().push_back(mCCVec->at(aI));
+        }
+
+        MakeFileXML(aLON,"ListOfFiles.xml");
+    }
 }
 
 void cAppliImportSfmInit::ShowImgs()
@@ -495,6 +513,14 @@ bool cAppliImportSfmInit::ReadCC()
     return true;
 }
 
+/* MM:      origin at (0,0)
+   SfmInit: origin at (1,1) */
+void cAppliImportSfmInit::ConvMMConv(Pt2dr &aPt)
+{
+    aPt.x = aPt.x -1;
+    aPt.y = aPt.y -1;
+}
+
 /* Read keypts per camera and
     update io in mCC  */
 
@@ -551,6 +577,7 @@ bool cAppliImportSfmInit::ReadCoordsOneCam(FILE *fptr,int &aCamId, tKeyPt &aKeyP
         if (OK)
         {
 //          std::cout << aPtId << " " << aPt << " " << aRGB << "\n";
+            ConvMMConv(aPt);
             aKeyPts[aPtId] = aPt;
         }
         else 
@@ -679,8 +706,10 @@ bool cAppliImportSfmInit::Read()
         return false;
 
     if (DoImags)
+    {
+        DoListOfName();
         ShowImgs();        
-
+    }
 
     return true;
 }
