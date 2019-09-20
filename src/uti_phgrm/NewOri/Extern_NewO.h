@@ -186,6 +186,9 @@ class cGenGaus3D
         //RANDOM distribution of points 
         void GetDistribGausRand(std::vector<Pt3dr> & aVPts,int aN);
 
+	//5-pts distribution
+        void GetDistr5Points(std::vector<Pt3dr> & aVPts);
+
     private :
         Pt3dr mCDG;
         double mVP[3];
@@ -201,6 +204,10 @@ class cGenGaus2D
         const Pt2dr  & VecP(int aK) const;
 
         void GetDistribGaus(std::vector<Pt2dr> & aVPts,int aN1,int aN2);
+
+	//3-pts distribution
+        void GetDistr3Points(std::vector<Pt2dr> & aVPts);
+
     private :
         Pt2dr  mCDG;
         double mVP[2];

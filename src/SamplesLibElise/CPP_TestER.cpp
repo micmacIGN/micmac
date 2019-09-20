@@ -1996,6 +1996,59 @@ int ImPts2Dir_main(int argc,char ** argv)
 void TestEllips_3D();
 int  FictiveObstest_main(int argc,char ** argv)
 {
+    if (1)
+    {
+        cPlyCloud aPlyEl0, aPlyEl1;
+
+        cXml_Elips2D  anEl;
+        RazEllips(anEl);
+
+        //P1
+        Pt2dr aP1(-10,20);
+        AddEllips(anEl,aP1,1.0);
+        //P2
+        Pt2dr aP2(10,20); 
+        AddEllips(anEl,aP2,1.0);
+        //P3
+        Pt2dr aP3(-10,-20);
+        AddEllips(anEl,aP3,1.0);
+        //P4
+        Pt2dr aP4(10,20);
+        AddEllips(anEl,aP4,1.0);
+        //P5
+        Pt2dr aP5(0,0);
+        AddEllips(anEl,aP5,1.0);
+        //P6 outlier
+        Pt2dr aP6(0,100);
+        AddEllips(anEl,aP6,1.0);
+
+
+        NormEllips(anEl);
+
+        cGenGaus2D aGG1(anEl);
+        std::vector<Pt2dr> aVP;
+
+        aGG1.GetDistr3Points(aVP);
+	aGG1.GetDistribGaus(aVP,1,1);
+
+        //save
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP1.x,aP1.y,0));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP2.x,aP2.y,0));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP3.x,aP3.y,0));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP4.x,aP4.y,0));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP5.x,aP5.y,0));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP6.x,aP6.y,0));
+        aPlyEl0.PutFile("PtsOrg.ply");
+        
+        for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+            aPlyEl1.AddPt(Pt3di(0,0,255),Pt3dr(aVP[aK].x,aVP[aK].y,0));
+
+        aPlyEl1.PutFile("ElGen.ply");
+
+
+    }
+
+
     /*  (0) add all points to an ellipse classe cXml_Elips3D 
         (1) normalise the ellipse
         (2) initalize the cGenGaus3D with the ellipse (+calcul valp/vecp)
@@ -2004,7 +2057,7 @@ int  FictiveObstest_main(int argc,char ** argv)
         (4) add the aVP points again the the ellipse (after reset) + norm
         (5) initialize a new cGenGaus3D with the new ellipse 
         (6) check the ratio of VP for three dimensions */
-    while (1)
+    while (0)
     {
         cPlyCloud aPlyEl0, aPlyEl1;
 
