@@ -1996,7 +1996,7 @@ int ImPts2Dir_main(int argc,char ** argv)
 void TestEllips_3D();
 int  FictiveObstest_main(int argc,char ** argv)
 {
-    if (1)
+    if (0)
     {
         cPlyCloud aPlyEl0, aPlyEl1;
 
@@ -2046,6 +2046,57 @@ int  FictiveObstest_main(int argc,char ** argv)
         aPlyEl1.PutFile("ElGen.ply");
 
 
+    }
+	
+    if (1)
+    {
+        cPlyCloud aPlyEl0, aPlyEl1;
+
+        cXml_Elips3D  anEl;
+        RazEllips(anEl);
+
+		        //P1
+        Pt3dr aP1(-10,20,0);
+        AddEllips(anEl,aP1,1.0);
+        //P2
+        Pt3dr aP2(10,20,-5);
+        AddEllips(anEl,aP2,1.0);
+        //P3
+        Pt3dr aP3(-10,-20,5);
+        AddEllips(anEl,aP3,1.0);
+        //P4
+        Pt3dr aP4(10,20,0);
+        AddEllips(anEl,aP4,1.0);
+        //P5
+        Pt3dr aP5(0,0,5);
+        AddEllips(anEl,aP5,1.0);
+        //P6 outlier
+        Pt3dr aP6(0,100,-5);
+        AddEllips(anEl,aP6,1.0);
+
+
+        NormEllips(anEl);
+
+        cGenGaus3D aGG1(anEl);
+        std::vector<Pt3dr> aVP;
+	
+		aGG1.GetDistr5Points(aVP);
+
+		//save
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP1.x,aP1.y,aP1.z));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP2.x,aP2.y,aP2.z));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP3.x,aP3.y,aP3.z));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP4.x,aP4.y,aP4.z));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP5.x,aP5.y,aP5.z));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP6.x,aP6.y,aP6.z));
+        aPlyEl0.PutFile("PtsOrg-3D.ply");
+
+        for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+            aPlyEl1.AddPt(Pt3di(0,0,255),Pt3dr(aVP[aK].x,aVP[aK].y,aVP[aK].z));
+
+        aPlyEl1.PutFile("ElGen5Pts-3D.ply");
+
+		
     }
 
 

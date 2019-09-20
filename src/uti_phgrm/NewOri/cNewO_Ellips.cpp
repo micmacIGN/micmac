@@ -152,12 +152,12 @@ void cGenGaus3D::GetDistribGaus(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int a
 
 /*
  *     _____
- *    /     /|
+ * P1 *     /|
  *   /     / |
- *  *_____*  |
- *  |   x |  *     x - pt in the middle
+ *  /___P2*  |
+ *  | P4x |  *P3   x - pt in the middle
  *  |     | /      * - pts in the corners
- *  *_____|/
+ *P5*_____|/
  *
  *
  * */
@@ -165,7 +165,7 @@ void cGenGaus3D::GetDistr5Points(std::vector<Pt3dr> & aVPts)
 {
     aVPts.clear();
 
-    int aMult=2;
+    int aMult=1;
 
     //
     Pt3dr aFact1 =  mVecP[0] * (FactCorrectif(aMult) * mVP[0]);
@@ -173,16 +173,42 @@ void cGenGaus3D::GetDistr5Points(std::vector<Pt3dr> & aVPts)
     Pt3dr aFact3 =  mVecP[2] * (FactCorrectif(aMult) * mVP[2]);
 
 
-    std::cout << "mVecP[0]=" << mVecP[0] << ", mVP[0]=" << mVP[0] << "\n";
+    /*std::cout << "mVecP[0]=" << mVecP[0] << ", mVP[0]=" << mVP[0] << "\n";
     std::cout << "mVecP[1]=" << mVecP[1] << ", mVP[1]=" << mVP[1] << "\n";
-    std::cout << "mVecP[2]=" << mVecP[2] << ", mVP[2]=" << mVP[2] << "\n";
+    std::cout << "mVecP[2]=" << mVecP[2] << ", mVP[2]=" << mVP[2] << "\n";*/
 
 
-    // InvErrFoncRationel : probability that the fonction takes a value <-1/aMult, 1/aMult>
-    Pt3dr aP;
-    aP = mCDG + aFact1 * InvErrFoncRationel(1,aMult)
-              + aFact2 * InvErrFoncRationel(1,aMult)
-              + aFact3 * InvErrFoncRationel(1,aMult); //Inv(p/q)
+    // InvErrFoncRationel : probability that the fonction takes a value <-1/aMult, 1/aMult> (lim <-.5,.5>) 
+    //                      on normalised values, i.e. mean=0 and variance=0.5
+    Pt3dr aP1;
+    aP1 = mCDG + aFact1 * InvErrFoncRationel(-1*2,2*aMult+1)
+               + aFact2 * InvErrFoncRationel(1*2,2*aMult+1)
+               + aFact3 * InvErrFoncRationel(1*2,2*aMult+1); //Inv(p/q)
+    aVPts.push_back(aP1);
+
+    Pt3dr aP2;
+    aP2 = mCDG + aFact1 * InvErrFoncRationel(1*2,2*aMult+1)
+               + aFact2 * InvErrFoncRationel(-1*2,2*aMult+1)
+               + aFact3 * InvErrFoncRationel(1*2,2*aMult+1); 
+    aVPts.push_back(aP2);
+
+    Pt3dr aP3;
+    aP3 = mCDG + aFact1 * InvErrFoncRationel(1*2,2*aMult+1)
+               + aFact2 * InvErrFoncRationel(1*2,2*aMult+1)
+               + aFact3 * InvErrFoncRationel(-1*2,2*aMult+1); 
+    aVPts.push_back(aP3);
+
+    Pt3dr aP4;
+    aP4 = mCDG + aFact1 * InvErrFoncRationel(0,2*aMult+1)
+               + aFact2 * InvErrFoncRationel(0,2*aMult+1)
+               + aFact3 * InvErrFoncRationel(0,2*aMult+1); 
+    aVPts.push_back(aP4);
+
+    Pt3dr aP5;
+    aP5 = mCDG + aFact1 * InvErrFoncRationel(-1*2,2*aMult+1)
+               + aFact2 * InvErrFoncRationel(-1*2,2*aMult+1)
+               + aFact3 * InvErrFoncRationel(-1*2,2*aMult+1); 
+    aVPts.push_back(aP5);
 
 
 }

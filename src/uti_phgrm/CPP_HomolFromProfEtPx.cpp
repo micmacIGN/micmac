@@ -72,8 +72,8 @@ class cAppliHomProfPx
         TIm2D<float,double> mTProf;
         Im2D_REAL4          mImPxT;
         TIm2D<float,double> mTPx;
-        //Im2D_U_INT1         mMasq;
-        //TIm2D<U_INT1,INT>   mTMasq;
+        Im2D_U_INT1         mMasq;
+        TIm2D<U_INT1,INT>   mTMasq;
 
         int                 mNumCorrel;
         int                 mZoomFinal;
@@ -92,8 +92,8 @@ cAppliHomProfPx::cAppliHomProfPx(int argc,char ** argv) :
     mTProf     (mImProf),
     mImPxT     (1,1),
     mTPx       (mImPxT),
-    //mMasq      (1,1),
-    //mTMasq     (mMasq),
+    mMasq      (1,1),
+    mTMasq     (mMasq),
     mZoomFinal (2),
     mNumFinal  (11),
     mZoomRatio (1)
@@ -149,10 +149,10 @@ void cAppliHomProfPx::Load()
     mTProf = TIm2D<float,double>(mImProf);
     mImPxT.Resize(mNuage->SzUnique());
     mTPx = TIm2D<float,double>(mImPxT);
-    //mMasq.Resize(mNuage->SzUnique());
-    //mTMasq = TIm2D<U_INT1,INT>(mMasq);
+    mMasq.Resize(mNuage->SzUnique());
+    mTMasq = TIm2D<U_INT1,INT>(mMasq);
 
-    /*if (EAMIsInit(&mNumCorrel))
+    if (EAMIsInit(&mNumCorrel))
     {
         ELISE_COPY
         (
@@ -162,7 +162,7 @@ void cAppliHomProfPx::Load()
         );
 
         ELISE_COPY(mImCorrel.all_pts(), mImCorrel.in()<TheSeuilC,mMasq.out());
-    }*/
+    }
 
     ELISE_COPY
     (
