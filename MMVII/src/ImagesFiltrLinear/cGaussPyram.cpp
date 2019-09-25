@@ -1,5 +1,8 @@
 #include "include/MMVII_all.h"
 #include "include/MMVII_Tpl_Images.h"
+#include "include/V1VII.h"
+#include "../CalcDescriptPCar/AimeTieP.h"
+
 
 
 namespace MMVII
@@ -21,6 +24,13 @@ template <class Type> cGP_OneImage<Type>::cGP_OneImage(tOct * anOct,int aNumInOc
     mImG       (mOct->SzIm()),
     mIsTopPyr  ((anImUp==nullptr) && (mOct->Up()==nullptr))
 {
+    mNameSave =     "Aime-" 
+                   + E2Str(mPyr->TypePyr()) 
+                   + "-" + ShortId() 
+                   + "-" +  Prefix(mPyr->NameIm())
+                   + "-" +  mPyr->Prefix()
+                   + ".tif"
+                ;
     if (mUp==nullptr)
     {
        mScaleAbs = anOct->Scale0Abs(); // initial value of octave
@@ -40,6 +50,8 @@ template <class Type> cGP_OneImage<Type>::cGP_OneImage(tOct * anOct,int aNumInOc
     mTargetSigmAbs = mPyr->SigmIm0() * mScaleAbs;
     mTargetSigmInO = mTargetSigmAbs / anOct->Scale0Abs();
 }
+
+     //  === Image processing methods
 
 template <class Type> void cGP_OneImage<Type>::ComputGaussianFilter()
 {
@@ -72,6 +84,16 @@ template <class Type> void cGP_OneImage<Type>::ComputGaussianFilter()
    }
 }
 
+template <class Type> void cGP_OneImage<Type>::MakeCorner()
+{
+    // Compute Curvature tangent to level lines
+    SelfCourbTgt(mImG);
+    // Normalise of scale; theory && experiment show a dependance in pow 3
+    SelfMulImageCsteInPlace(mImG.DIm(),pow(mScaleInO,3));
+}
+
+
+
 template <class Type> void cGP_OneImage<Type>::MakeDiff(const tGPIm &  aImDif)
 {
    MMVII_INTERNAL_ASSERT_strong(aImDif.mDown!=nullptr,"Down Image in MakeDiff");
@@ -79,17 +101,32 @@ template <class Type> void cGP_OneImage<Type>::MakeDiff(const tGPIm &  aImDif)
    DiffImageInPlace(mImG.DIm(),aImDif.mImG.DIm(),aImDif.mDown->mImG.DIm());
 }
 
-template <class Type> void cGP_OneImage<Type>::SaveInFile() const
+template <class Type> void cGP_OneImage<Type>::MakeOrigNorm(const tGPIm &  aGPI)
 {
-    const std::string & aPref = mPyr->Params().mPrefSave;
-    if (aPref=="")
-       return ;
+    tIm aImBlur = aGPI.mImG.Dup();
 
-    std::string aName = aPref + "-" + ShortId() + ".tif";
-    mImG.DIm().ToFile(aName);
+    ExpFilterOfStdDev(aImBlur.DIm(),3,mTargetSigmInO*mPyr->Params().mScaleDirOrig);
+    DiffImageInPlace(mImG.DIm(),aGPI.mImG.DIm(),aImBlur.DIm());
+    SelfMulImageCsteInPlace(mImG.DIm(),pow(mScaleInO,1));
 }
 
+     //  === Export
 
+template <class Type> cPt2dr cGP_OneImage<Type>::Im2File(const cPt2dr & aP) const
+{
+    return mOct->Oct2File(aP);
+}
+
+template <class Type> void cGP_OneImage<Type>::SaveInFile() const
+{
+    mImG.DIm().ToFile(mNameSave);
+    // MakeStdIm8BIts(mImG,mNameSave);
+}
+
+template <class Type> bool   cGP_OneImage<Type>::IsTopOct() const
+{
+    return  mUp == nullptr;
+}
 
 template <class Type> void cGP_OneImage<Type>::Show()  const
 {
@@ -116,7 +153,15 @@ template <class Type> std::string cGP_OneImage<Type>::ShortId()  const
        // ==== Accessors ====
 template <class Type> cIm2D<Type> cGP_OneImage<Type>::ImG() {return mImG;}
 template <class Type> double  cGP_OneImage<Type>::ScaleAbs() const {return mScaleAbs;}
+template <class Type> double  cGP_OneImage<Type>::ScaleInO() const {return mScaleInO;}
 
+template <class Type> cGP_OneImage<Type> * cGP_OneImage<Type>::Up() const {return mUp;}
+template <class Type> cGP_OneImage<Type> * cGP_OneImage<Type>::Down() const {return mDown;}
+template <class Type> const std::string & cGP_OneImage<Type>::NameSave() const {return mNameSave;}
+template <class Type> cGP_OneOctave<Type> * cGP_OneImage<Type>::Oct() const {return mOct;}
+
+
+template <class Type> int  cGP_OneImage<Type>::NumInOct() const {return mNumInOct;}
 
 /* ==================================================== */
 /*                                                      */
@@ -168,6 +213,15 @@ template <class Type> void cGP_OneOctave<Type>::MakeDiff(const tOct & anOct)
     }
 }
 
+template <class Type> void cGP_OneOctave<Type>::MakeOrigNorm(const tOct & anOct)
+{
+    for (int aKIm=0 ; aKIm<int(mVIms.size()) ; aKIm++)
+    {
+         mVIms.at(aKIm)->MakeOrigNorm(*anOct.mVIms.at(aKIm));
+    }
+}
+
+
 template <class Type> void cGP_OneOctave<Type>::ComputGaussianFilter()
 {
    for (auto & aPtrIm : mVIms)
@@ -181,15 +235,15 @@ template <class Type> void cGP_OneOctave<Type>::Show() const
        aPtrIm->Show();
 }
 
-template <class Type> void cGP_OneOctave<Type>::SaveInFile() const
+template <class Type> cPt2dr cGP_OneOctave<Type>::Oct2File(const cPt2dr & aP) const
 {
-   for (auto & aPtrIm : mVIms)
-       aPtrIm->SaveInFile();
+    return mPyram->Pyr2File(aP*mScale0Abs);
 }
 
 
 
-template <class Type> cIm2D<Type> cGP_OneOctave<Type>::ImTop() {return mVIms.at(0)->ImG();}
+template <class Type> cIm2D<Type> cGP_OneOctave<Type>::ImTop() const {return mVIms.at(0)->ImG();}
+template <class Type> cGP_OneImage<Type>* cGP_OneOctave<Type>::GPImTop() const {return mVIms.at(0).get();}
     //  Accessors
 
 template <class Type> cGaussianPyramid<Type>* cGP_OneOctave<Type>::Pyram() const {return mPyram;}
@@ -197,6 +251,8 @@ template <class Type> const cPt2di & cGP_OneOctave<Type>::SzIm() const {return m
 template <class Type> const double & cGP_OneOctave<Type>::Scale0Abs() const {return mScale0Abs;}
 template <class Type> cGP_OneOctave<Type>* cGP_OneOctave<Type>::Up() const {return mUp;}
 template <class Type> const int & cGP_OneOctave<Type>::NumInPyr() const {return mNumInPyr;}
+template <class Type> const  std::vector<std::shared_ptr<cGP_OneImage<Type>>> & cGP_OneOctave<Type>::VIms() const {return mVIms;}
+
 
 /* ==================================================== */
 /*                                                      */
@@ -212,7 +268,9 @@ cGP_Params::cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOve
    mConvolIm0    (0.0),
    mNbIter1      (4),
    mNbIterMin    (2),
-   mPrefSave     ("")
+   mConvolC0     (1.0),
+   mScaleDirOrig (4.0),
+   mEstimSigmInitIm0  (DefStdDevImWellSample)
 {
 }
 
@@ -223,73 +281,253 @@ cGP_Params::cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOve
 /*                                                      */
 /* ==================================================== */
 
-template <class Type> cGaussianPyramid<Type>::cGaussianPyramid(const cGP_Params & aParams) :
+
+          //  - * - * - * - * - * - * - * - * - * - *
+          //   Creators : Constructors + Allocators
+
+template <class Type> cGaussianPyramid<Type>::cGaussianPyramid
+                      (
+                            const cGP_Params & aParams,
+                            tPyr * aOrig,
+                            eTyPyrTieP aType,
+                            const std::string & aNameIm,
+                            const std::string & aPrefix,
+                            const cRect2 & aBIn,
+                            const cRect2 & aBOut
+                      ) :
+   mPyrOrig           (aOrig ? aOrig : this),
+   mTypePyr           (aType),
+   mNameIm            (aNameIm),
+   mPrefix            (aPrefix),
+   mBoxIn             (aBIn),
+   mBoxOut            (aBOut),
    mParams            (aParams),
    mMulScale          (pow(2.0,1/double(mParams.mNbLevByOct))),
    mScale0            (1.0),
-   mEstimSigmInitIm0  (DefStdDevImWellSample),
+   mEstimSigmInitIm0  (aParams.mEstimSigmInitIm0),
    mSigmIm0           (SomSigm(mEstimSigmInitIm0,mParams.mConvolIm0))
 {
    tOct * aPrec = nullptr;
    for (int aKOct=0 ; aKOct<mParams.mNbOct ; aKOct++)
    {
-       mVOct.push_back(tSP_Oct(new tOct(this,aKOct,aPrec)));
-       aPrec = mVOct.back().get();
+       mVOcts.push_back(tSP_Oct(new tOct(this,aKOct,aPrec)));
+       aPrec = mVOcts.back().get();
+       std::copy(aPrec->VIms().begin(),aPrec->VIms().end(),std::back_inserter(mVAllIms));
    }
 }
 
 
 template <class Type>  std::shared_ptr<cGaussianPyramid<Type>>  
-      cGaussianPyramid<Type>::Alloc(const cGP_Params & aParams)
+      cGaussianPyramid<Type>::Alloc(const cGP_Params & aParams,const std::string& aNameIm,const std::string& aPref,const cRect2 & aBIn,const cRect2 & aBOut)
 {
-   return  tSP_Pyr(new tPyr(aParams));
+   return  tSP_Pyr(new tPyr(aParams,nullptr,eTyPyrTieP::eTPTP_Init,aNameIm,aPref,aBIn,aBOut));
 }
+
+template <class Type>  std::shared_ptr<cGaussianPyramid<Type>>  
+      cGaussianPyramid<Type>::PyramDiff() 
+{
+    cGP_Params aParam = mParams;
+    // Require one overlap less because  of diff
+    aParam.mNbOverlap--;
+    // Not Sure thi would create a problem, but it would not be very coherent ?
+    MMVII_INTERNAL_ASSERT_strong(aParam.mNbOverlap>=0,"No overlap for PyramDiff");
+
+    tSP_Pyr aRes(new tPyr(aParam,this,eTyPyrTieP::eTPTP_LaplG,mNameIm,mPrefix,mBoxIn,mBoxOut));
+
+    for (int aKo=0 ; aKo<int(mVOcts.size()) ; aKo++)
+    {
+        aRes->mVOcts.at(aKo)->MakeDiff(*mVOcts.at(aKo));
+    }
+
+    return aRes;
+}
+
+
+template <class Type>  std::shared_ptr<cGaussianPyramid<Type>>
+      cGaussianPyramid<Type>::PyramCorner() 
+{
+    cGP_Params aParam = mParams;
+    aParam.mConvolIm0 = mParams.mConvolC0;
+    aParam.mEstimSigmInitIm0 = mSigmIm0;
+
+    //   mEstimSigmInitIm0  (aParam.mEstimSigmInitIm0),
+    //   mSigmIm0           (SomSigm(mEstimSigmInitIm0,mParams.mConvolIm0))
+
+    // Standard has created one overlap that we dont need
+    aParam.mNbOverlap--;
+    // Not Sure thi would create a problem, but it would not be very coherent ?
+    MMVII_INTERNAL_ASSERT_strong(aParam.mNbOverlap>=0,"No overlap for PyramDiff");
+
+    tSP_Pyr aRes(new tPyr(aParam,this,eTyPyrTieP::eTPTP_Corner,mNameIm,mPrefix,mBoxIn,mBoxOut));
+
+    ImTop().DIm().DupIn(aRes->ImTop().DIm());
+    aRes->ComputGaussianFilter();
+    for (const auto & aSPIm : aRes->mVAllIms)
+    {
+        aSPIm->MakeCorner();
+    }
+
+    return aRes;
+}
+
+template <class Type>  std::shared_ptr<cGaussianPyramid<Type>>
+      cGaussianPyramid<Type>::PyramOrigNormalize() 
+{
+    cGP_Params aParam = mParams;
+    // Standard has created one overlap that we dont need
+    aParam.mNbOverlap--;
+    // Not Sure thi would create a problem, but it would not be very coherent ?
+    MMVII_INTERNAL_ASSERT_strong(aParam.mNbOverlap>=0,"No overlap for PyramDiff");
+
+    tSP_Pyr aRes(new tPyr(aParam,this,eTyPyrTieP::eTPTP_OriNorm,mNameIm,mPrefix,mBoxIn,mBoxOut));
+
+    for (int aKo=0 ; aKo<int(mVOcts.size()) ; aKo++)
+    {
+        aRes->mVOcts.at(aKo)->MakeOrigNorm(*mVOcts.at(aKo));
+    }
+
+    return aRes;
+}
+
+
+
+          //  - * - * - * - * - * - * - * - * - * - *
 
 template <class Type> void cGaussianPyramid<Type>::Show() const
 {
    StdOut() << "============ Gaussian Pyramid ==============\n";
    StdOut() << "     type elem: " <<  E2Str(tElemNumTrait<Type>:: TyNum())  << "\n";
-   for (const auto & aPtrOct : mVOct)
+   for (const auto & aPtrOct : mVOcts)
        aPtrOct->Show();
-}
-
-template <class Type>  std::shared_ptr<cGaussianPyramid<Type>>  
-      cGaussianPyramid<Type>::PyramDiff() const
-{
-    cGP_Params aParam = mParams;
-    aParam.mNbOverlap--;
-    // Not Sure thi would create a problem, but it would not be very coherent ?
-    MMVII_INTERNAL_ASSERT_strong(aParam.mNbOverlap>=0,"No overlap for PyramDiff");
-
-    tSP_Pyr aRes = Alloc(aParam);
-
-    for (int aKo=0 ; aKo<int(mVOct.size()) ; aKo++)
-    {
-        aRes->mVOct.at(aKo)->MakeDiff(*mVOct.at(aKo));
-    }
-
-
-    return aRes;
 }
 
 template <class Type> void cGaussianPyramid<Type>::ComputGaussianFilter()
 {
-   for (const auto & aPtrOct : mVOct)
+   for (const auto & aPtrOct : mVOcts)
        aPtrOct->ComputGaussianFilter();
 }
 
-template <class Type> void cGaussianPyramid<Type>::SaveInFile() const
+template <class Type> cPt2dr cGaussianPyramid<Type>::Pyr2File(const cPt2dr & aP) const
 {
-   for (auto & aPtrOct : mVOct)
-       aPtrOct->SaveInFile();
+    return ToR(mBoxIn.P0()) + aP;
 }
 
-template <class Type> void cGaussianPyramid<Type>::SetPrefSave(const std::string& aPref)
+template <class Type> void ScaleAndAdd
+                           (
+                                cInterf_ExportAimeTiep<Type> * aIExp,
+                                cProtoAimeTieP            aPATPCom,
+                                const std::vector<cPt2di> & aLoc,
+                                cGP_OneImage<Type> * aPtrI
+                           )
 {
-  mParams.mPrefSave = aPref;
+
+    for (const auto & aPt : aLoc)
+    {
+       aPATPCom.SetPt(aPtrI->Im2File(ToR(aPt)));
+       aIExp->AddAimeTieP(aPATPCom);
+    }
 }
 
-template <class Type> cIm2D<Type> cGaussianPyramid<Type>::ImTop() {return mVOct.at(0)->ImTop();}
+template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool ForInspect) const
+{
+   bool DoPrint = (aPowSPr>=0) && ForInspect;
+
+   std::unique_ptr<cInterf_ExportAimeTiep<Type>> aPtrExpMin(cInterf_ExportAimeTiep<Type>::Alloc(true,int(mTypePyr),E2Str(mTypePyr),ForInspect));
+   std::unique_ptr<cInterf_ExportAimeTiep<Type>> aPtrExpMax(cInterf_ExportAimeTiep<Type>::Alloc(false,int(mTypePyr),E2Str(mTypePyr),ForInspect));
+
+   if (DoPrint)
+      StdOut() <<  "\n ######  STAT FOR " << E2Str(mTypePyr)  << " Pow " << aPowSPr << " ######\n";
+
+   // std::vector<cPt2dr> aVGlobMin;
+   // std::vector<cPt2dr> aVGlobMax;
+   int aNbMinTot = 0;
+   int aNbMaxTot = 0;
+
+   for (auto & aPtrIm : mVAllIms)
+   {
+       tGPIm * aIm0 = mPyrOrig->ImHom(aPtrIm.get());
+       aPtrExpMin->SetCurImages(aIm0->ImG(),aPtrIm->ImG(),aPtrIm->ScaleInO());
+       aPtrExpMax->SetCurImages(aIm0->ImG(),aPtrIm->ImG(),aPtrIm->ScaleInO());
+       if (ForInspect)
+          aPtrIm->SaveInFile();
+       cProtoAimeTieP aPATPCom(cPt2dr(0,0),aPtrIm->Oct()->NumInPyr(), aPtrIm->NumInOct(),
+                               aPtrIm->ScaleInO(),aPtrIm->ScaleAbs());
+       // std::string aNameSave = aPtrIm->NameSave();
+       {
+           if (DoPrint && aPtrIm->IsTopOct())
+              StdOut() <<  " ===================================================\n";
+           cIm2D<Type> aI = aPtrIm->ImG();
+           double aML =  MoyAbs(aI);
+           double aS =  aPtrIm->ScaleInO();
+
+           double aRadiusMM = 3.0;
+           cResultExtremum aResE;
+           ExtractExtremum1(aI.DIm(),aResE,aRadiusMM);
+           int aNbE = aResE.mPtsMin.size() + aResE.mPtsMax.size();
+
+           if (DoPrint)
+           {
+             StdOut()  <<  " Scale " <<  FixDigToStr(aS  ,2,2)
+                       << " M- " << FixDigToStr(aML * pow(aS,aPowSPr-1),3,8 )
+                       << " M= " << FixDigToStr(aML * pow(aS,aPowSPr  ),3,8 )
+                       << " M+ " << FixDigToStr(aML * pow(aS,aPowSPr+1),3,8 )
+                       << " E= " << FixDigToStr(aNbE * pow(aPtrIm->ScaleAbs(),1),6,2) ;
+           }
+           if (aPtrIm->Up() && aPtrIm->Down())
+           {
+               cResultExtremum aResE3;
+               ExtractExtremum3
+               (
+                   aPtrIm->Up()->ImG().DIm(),
+                   aPtrIm->ImG().DIm(),
+                   aPtrIm->Down()->ImG().DIm(),
+                   aResE3,
+                   aRadiusMM
+               );
+               int aNbE3 = aResE3.mPtsMin.size() + aResE3.mPtsMax.size();
+               if (DoPrint)
+                  StdOut()  << " PROP=" << aNbE3 << " " << aNbE3 / double(aNbE) ;
+               
+               // tOct * aOctH = mPyrOrig->OctHom(aPtrIm->Oct());
+               // std::string aNameMaster = aOctH->GPImTop()->NameSave();
+
+               ScaleAndAdd(aPtrExpMin.get(),aPATPCom,aResE3.mPtsMin,aPtrIm.get());
+               ScaleAndAdd(aPtrExpMax.get(),aPATPCom,aResE3.mPtsMax,aPtrIm.get());
+
+               aNbMinTot += aResE3.mPtsMin.size();
+               aNbMaxTot += aResE3.mPtsMax.size();
+           }
+        
+           if (DoPrint)
+              StdOut()  << "\n";
+       }
+   }
+   StdOut() << " ======  NbTot , Min " << aNbMinTot << " Max " << aNbMaxTot << "\n";
+   std::string aPref =    "Aime-" + E2Str(TypePyr()) + "-" +  MMVII::Prefix(NameIm()) + "-" +mPrefix +".dmp";
+   aPtrExpMin->Export("Min-"+ aPref);
+   aPtrExpMax->Export("Max-"+ aPref);
+}
+
+template <class Type>  cGP_OneOctave<Type> * cGaussianPyramid<Type>::OctHom(tOct *anOct)
+{
+   tOct * aRes = mVOcts.at(anOct->NumInPyr()).get();
+
+   MMVII_INTERNAL_ASSERT_strong(RelativeDifference(aRes->Scale0Abs(),anOct->Scale0Abs())<1e-5,"OctHom");
+
+   return aRes;
+}
+
+template <class Type>  cGP_OneImage<Type> * cGaussianPyramid<Type>::ImHom(tGPIm *anIm)
+{
+    tOct *  anOct = OctHom(anIm->Oct());
+    tGPIm * aRes = anOct->ImageOfScaleAbs(anIm->ScaleAbs(),1e-5);
+    MMVII_INTERNAL_ASSERT_strong(aRes!=nullptr,"ImHom");
+
+    return aRes;
+}
+
+template <class Type> cIm2D<Type> cGaussianPyramid<Type>::ImTop() const {return mVOcts.at(0)->ImTop();}
+template <class Type> cGP_OneImage<Type>* cGaussianPyramid<Type>::GPImTop() const {return mVOcts.at(0)->GPImTop();}
 
 template <class Type> const cGP_Params & cGaussianPyramid<Type>::Params() const {return mParams;}
 template <class Type> const double & cGaussianPyramid<Type>::MulScale() const {return mMulScale;}
@@ -297,6 +535,13 @@ template <class Type> int  cGaussianPyramid<Type>::NbImByOct() const {return  mP
 template <class Type> const cPt2di & cGaussianPyramid<Type>::SzIm0() const {return  mParams.mSzIm0;}
 template <class Type> const double & cGaussianPyramid<Type>::Scale0() const {return  mScale0;}
 template <class Type> const double & cGaussianPyramid<Type>::SigmIm0() const {return mSigmIm0;}
+
+template <class Type> const  std::vector<std::shared_ptr<cGP_OneOctave<Type>>> & cGaussianPyramid<Type>::VOcts() const {return mVOcts;}
+template <class Type> const  std::vector<std::shared_ptr<cGP_OneImage<Type>>> & cGaussianPyramid<Type>::VAllIms() const {return mVAllIms;}
+
+template <class Type> const std::string & cGaussianPyramid<Type>::NameIm() const {return mNameIm;}
+template <class Type> const std::string & cGaussianPyramid<Type>::Prefix() const {return mPrefix;}
+template <class Type> eTyPyrTieP cGaussianPyramid<Type>::TypePyr() const {return mTypePyr;}
 
 /* ==================================================== */
 /*              INSTANTIATION                           */
@@ -308,7 +553,7 @@ template class cGP_OneOctave<Type>;\
 template class cGaussianPyramid<Type>;\
 
 MACRO_INSTANTIATE_GaussPyram(tREAL4)
-MACRO_INSTANTIATE_GaussPyram(tINT2)
+// MACRO_INSTANTIATE_GaussPyram(tINT2)
 
 
 

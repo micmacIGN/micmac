@@ -1,0 +1,4 @@
+This folder contains class/methods for extraction of information out of images.
+
+4 now quite basic as min/max but may be completed with vectorization (contour, skeleton etc ....)
+

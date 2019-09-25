@@ -65,6 +65,10 @@ int CPP_SiftExport_main(int argc,char** argv)
 
     cElemAppliSetFile anEASF(aPattern);
     aSetName = anEASF.SetIm();
+    
+    CamStenope * aCamTmp = anEASF.mICNM->GlobCalibOfName(aSetName->at(0),"",0);
+    Pt2di aSzOrg = aCamTmp->SzBasicCapt3D();
+    double aSSF =  (aSzSift<0) ? 1.0 :   double( ElMax( aSzOrg.x, aSzOrg.y ) ) / double( aSzSift ) ;
 
     for (auto aK : *aSetName)
     {
@@ -100,7 +104,7 @@ int CPP_SiftExport_main(int argc,char** argv)
         for (auto aPt : aVSift)
         {
             //std::cout << aPt.x << " " << aPt.y << " " << aPt.scale << "\n";
-            fprintf(aFP," %lf %lf\n",aPt.x,aPt.y);
+            fprintf(aFP," %lf %lf\n",aPt.x*aSSF,aPt.y*aSSF);
             for (int aDescr=0; aDescr<SIFT_DESCRIPTOR_SIZE; aDescr++)
             {
                 //std::cout << " * " << aPt.descriptor[aDescr] ;

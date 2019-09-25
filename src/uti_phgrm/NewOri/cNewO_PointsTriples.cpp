@@ -420,7 +420,7 @@ void  cAppli_GenPTripleOneImage::GenerateTriplet(int aKC1,int aKC2)
     }
 
     int aNb = (int)aVP1Exp.size();
-    if (aNb<TNbMinTriplet)
+    if (aNb<mTNbMinTriplet)
     {
        aMap.Delete();
        return;

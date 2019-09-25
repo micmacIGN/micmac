@@ -229,17 +229,16 @@ std::string FixDigToStr(double aSignedVal,int aNbDig)
    char aBuf[100];
    sprintf(aBuf,aFormat.c_str(),aSignedVal);
    return aBuf;
-/*
-   printf("%3.2f\n",d);
-   double aAbsV = std::abs(aSignedVal);
-   double aFrac = FracPart(aAbsV);
-   int aIVal = aVal - aFrac;
-
-   std::string aRes = ToStr(aIVal) + "." + ToStr(round_ni(aFrac*pow(10.0,aNdDig)),aNbDig);
-
-   return ToStr(aIVal)
-*/
 }
+
+std::string FixDigToStr(double aSignedVal,int aNbBef,int aNbAfter)
+{
+   std::string aFormat = "%0" + ToS(aNbBef+aNbAfter+1) + "."+ToS(aNbAfter) + "f";
+   char aBuf[100];
+   sprintf(aBuf,aFormat.c_str(),aSignedVal);
+   return aBuf;
+}
+
 
 
    // ================  std::string ==============================================

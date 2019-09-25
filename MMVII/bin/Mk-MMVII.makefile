@@ -42,6 +42,11 @@ SrcUtils= $(wildcard ${MMV2DirUtils}*.cpp)
 ObjUtils= $(SrcUtils:.cpp=.o) 
 #
 #
+MMV2DirUtiMaths=${MMV2DirSrc}UtiMaths/
+SrcUtiMaths= $(wildcard ${MMV2DirUtiMaths}*.cpp)
+ObjUtiMaths= $(SrcUtiMaths:.cpp=.o) 
+#
+#
 MMV2DirSerial=${MMV2DirSrc}Serial/
 SrcSerial= $(wildcard ${MMV2DirSerial}*.cpp)
 ObjSerial= $(SrcSerial:.cpp=.o) 
@@ -65,6 +70,11 @@ ObjImagesBase=$(SrcImagesBase:.cpp=.o)
 MMV2DirImagesFiltrLinear=${MMV2DirSrc}ImagesFiltrLinear/
 SrcImagesFiltrLinear=$(wildcard ${MMV2DirImagesFiltrLinear}*.cpp)
 ObjImagesFiltrLinear=$(SrcImagesFiltrLinear:.cpp=.o) 
+#
+#
+MMV2DirImagesInfoExtract=${MMV2DirSrc}ImagesInfoExtract/
+SrcImagesInfoExtract=$(wildcard ${MMV2DirImagesInfoExtract}*.cpp)
+ObjImagesInfoExtract=$(SrcImagesInfoExtract:.cpp=.o) 
 #
 #
 MMV2DirMatrix=${MMV2DirSrc}Matrix/
@@ -91,7 +101,7 @@ ObjCalcDescriptPCar=$(SrcCalcDescriptPCar:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjImagesFiltrLinear} ${ObjCalcDescriptPCar} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB} ${ObjImagesBase}  ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} 
+OBJ= ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCalcDescriptPCar} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB} ${ObjImagesBase}  ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial} ${ObjMMV1} ${ObjPerso} 
 #
 #=========  Header ========
 #
@@ -102,7 +112,7 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #== CFLAGS etc...
 #
 CXX=g++
-CFlags="-std=c++14" "-Wall" "-Werror" "-O4" "-march=native" -I${MMV2Dir} -I${MMDir}/include/
+CFlags="-std=c++14" "-Wall" "-Werror" "-O4" "-march=native" -I${MMV2Dir} -I${MMDir}/include/ -I${MMDir}
 BOOST_LIBS= -lboost_system -lboost_serialization -lboost_regex -lboost_filesystem
 QTAnnLibs= -lXext /usr/lib/x86_64-linux-gnu/libQt5Core.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so -lGLU -lGL  -ldl -lpthread /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5Concurrent.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so ../../lib/libANN.a
 LibsFlags= ${MMV2ElisePath} -lX11  ${BOOST_LIBS}  ${QTAnnLibs}
@@ -140,11 +150,15 @@ ${MMV2DirAppli}%.o :  ${MMV2DirAppli}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirUtils}%.o :  ${MMV2DirUtils}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirUtiMaths}%.o :  ${MMV2DirUtiMaths}%.cpp ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirSerial}%.o :  ${MMV2DirSerial}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirImagesBase}%.o :  ${MMV2DirImagesBase}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirImagesFiltrLinear}%.o :  ${MMV2DirImagesFiltrLinear}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirImagesInfoExtract}%.o :  ${MMV2DirImagesInfoExtract}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirMatrix}%.o :  ${MMV2DirMatrix}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@

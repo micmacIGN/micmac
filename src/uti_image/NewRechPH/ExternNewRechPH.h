@@ -126,6 +126,10 @@ typedef Im2D<tElNewRechPH,tElBufNRPH>  tImNRPH;
 typedef TIm2D<tElNewRechPH,tElBufNRPH> tTImNRPH;
 typedef cInterpolateurIm2D<tElNewRechPH>  tInterpolNRPH;
 
+typedef float   tElContrNewRechPH ;
+typedef double  tElContrBufNRPH ;
+typedef Im2D<tElContrNewRechPH,tElContrBufNRPH>  tImContrNRPH;
+typedef TIm2D<tElContrNewRechPH,tElContrBufNRPH> tTImContrNRPH;
 
 
 double Gauss(double aSig,double aVal);

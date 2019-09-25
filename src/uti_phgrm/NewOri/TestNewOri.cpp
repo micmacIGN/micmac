@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
-
+#include "../TiepTri/MultTieP.h"
 
 /*
 int TestNewOriImage_main(int argc,char ** argv)
@@ -72,294 +72,803 @@ class Constraint;
 class Pose3d;
 class RotMat;
 
+
+//read SfmInit input
+class cAppliImportSfmInit;
+
 //namespace ceresTestER
 //{
-    class RotMat 
-    {
-        public :
-            RotMat(const Pt3dr &aI,const Pt3dr &aJ,const Pt3dr &aK) : 
-                mI(aI), 
-                mJ(aJ),
-                mK(aK) {};
-            
-            Pt3dr & I(){return mI;}
-            Pt3dr & J(){return mJ;}
-            Pt3dr & K(){return mK;}
-
-        private :
-            Pt3dr   mI;
-            Pt3dr   mJ;
-            Pt3dr   mK;
-    };
-
-    class Pose3d
-    {
-        public :
-            Pose3d(const Pt3dr &aP,
-                   const Pt3dr &aI,const Pt3dr &aJ,const Pt3dr &aK,
-                   const int aId) : 
-                mP(aP),
-                mQ(aI,aJ,aK),
-                mId(aId) {};
-
-            int    & Id(){return mId;};
-            Pt3dr  & P(){return mP;}
-            RotMat & R(){return mQ;}
-
-            static std::string name() {return "VERTEX_SE3:QUAT";};
+class RotMat 
+{
+    public :
+        RotMat(const Pt3dr &aI,const Pt3dr &aJ,const Pt3dr &aK) : 
+            mI(aI), 
+            mJ(aJ),
+            mK(aK) {};
         
-        private : 
-            Pt3dr              mP;
-            RotMat             mQ;
-            int                mId;
+        Pt3dr & I(){return mI;}
+        Pt3dr & J(){return mJ;}
+        Pt3dr & K(){return mK;}
+
+    private :
+        Pt3dr   mI;
+        Pt3dr   mJ;
+        Pt3dr   mK;
+};
+
+class Pose3d
+{
+    public :
+        Pose3d(const Pt3dr &aP,
+               const Pt3dr &aI,const Pt3dr &aJ,const Pt3dr &aK,
+               const int aId) : 
+            mP(aP),
+            mQ(aI,aJ,aK),
+            mId(aId) {};
+
+        int    & Id(){return mId;};
+        Pt3dr  & P(){return mP;}
+        RotMat & R(){return mQ;}
+
+        static std::string name() {return "VERTEX_SE3:QUAT";};
+    
+    private : 
+        Pt3dr              mP;
+        RotMat             mQ;
+        int                mId;
 
 
-    };
- 
-    class Constraint
-    {
-        public :
-            Constraint(const int & aI0,const int & aI1,
-                       const Pose3d aRel,
-                       const Pt3dr  aPdsT,
-                       const Pt3dr  aPdsR) : 
-                mI0(aI0),
-                mI1(aI1),
-                mRel(aRel),
-                mPdsR(aPdsR),
-                mPdsT(aPdsT) {};
-                
-            int    &  I0(){return mI0;};
-            int    &  I1(){return mI1;};
-            Pose3d &  Pose(){return mRel;};
-            Pt3dr  &  PdsR(){return mPdsR;}
-            Pt3dr  &  PdsT(){return mPdsT;}
+};
 
-            static std::string name() {return "EDGE_SE3:QUAT";}
-                
-        private :
-            int      mI0,mI1; 
-            Pose3d   mRel;
-            Pt3dr    mPdsR;
-            Pt3dr    mPdsT;
+class Constraint
+{
+    public :
+        Constraint(const int & aI0,const int & aI1,
+                   const Pose3d aRel,
+                   const Pt3dr  aPdsT,
+                   const Pt3dr  aPdsR) : 
+            mI0(aI0),
+            mI1(aI1),
+            mRel(aRel),
+            mPdsR(aPdsR),
+            mPdsT(aPdsT) {};
             
-    };
-    
-    class cAppliNOExport : public cCommonMartiniAppli
-    {
-        public : 
-            cAppliNOExport(int argc,char ** argv);
+        int    &  I0(){return mI0;};
+        int    &  I1(){return mI1;};
+        Pose3d &  Pose(){return mRel;};
+        Pt3dr  &  PdsR(){return mPdsR;}
+        Pt3dr  &  PdsT(){return mPdsT;}
 
-        private :
-            bool NOSave(const std::map<std::string,Pose3d *> aMP,
-                        const std::vector<Constraint*> aCVec,
-                        const std::string & aName );
-            void NOSaveConstraint(std::fstream* aFile, Constraint* aC);
-            void NOSaveNoed(std::fstream* aFile,Pose3d* aMP);
-    };
-    
+        static std::string name() {return "EDGE_SE3:QUAT";}
+            
+    private :
+        int      mI0,mI1; 
+        Pose3d   mRel;
+        Pt3dr    mPdsR;
+        Pt3dr    mPdsT;
+        
+};
 
-    ///pose X Y Z rot_I_x rot_I_y rot_I_z rot_J_x rot_J_y rot_J_z rot_K_x rot_K_y rot_K_z
-    void cAppliNOExport::NOSaveNoed(std::fstream* aFile,Pose3d* aMP)
-    {
-        *aFile << aMP->name().c_str() << " " << aMP->Id() << " " << aMP->P().x << " " << aMP->P().y << " " << aMP->P().z << 
-           " " << aMP->R().I().x << " " << aMP->R().I().y << " " << aMP->R().I().z << 
-           " " << aMP->R().J().x << " " << aMP->R().J().y << " " << aMP->R().J().z << 
-           " " << aMP->R().K().x << " " << aMP->R().K().y << " " << aMP->R().K().z << "\n";
-    };
+class cAppliNOExport : public cCommonMartiniAppli
+{
+    public : 
+        cAppliNOExport(int argc,char ** argv);
 
-    ///ID_a ID_b x_ab y_ab z_ab q_x_ab q_y_ab q_z_ab q_w_ab I_11 I_12 I_13 ... I_16 I_22 I_23 ... I_26 ... I_66 
-    void cAppliNOExport::NOSaveConstraint(std::fstream* aFile, Constraint* aC)
-    {
-        *aFile << aC->name().c_str() << " " << aC->I0() << " " << aC->I1() << " " 
-               << aC->Pose().P().x << " " << aC->Pose().P().y << " " << aC->Pose().P().z << " "
-               << aC->Pose().R().I().x << " " << aC->Pose().R().I().y << " " << aC->Pose().R().I().z << " "
-               << aC->Pose().R().J().x << " " << aC->Pose().R().J().y << " " << aC->Pose().R().J().z << " "
-               << aC->Pose().R().K().x << " " << aC->Pose().R().K().y << " " << aC->Pose().R().K().z << " "
-               << aC->PdsR().x << " 0 0 0 0 0 " 
-               << "0 " << aC->PdsR().y << " 0 0 0 0 "
-               << "0 0 " << aC->PdsR().z << " 0 0 0 "
-               << "0 0 0 " << aC->PdsT().x << " 0 0 " 
-               << "0 0 0 0 " << aC->PdsT().y << " 0 "
-               << "0 0 0 0 0 " << aC->PdsT().z << "\n";
-
-                
-    };
-
-    bool cAppliNOExport::NOSave(const std::map<std::string,Pose3d *> aMP,
-              const std::vector<Constraint*> aCVec,
-              const std::string & aName )
-    {
-       std::fstream aOut;
-       aOut.open(aName.c_str(), std::istream::out); 
-
-       if (!aOut) 
-       {
-            ELISE_ASSERT
-            (
-                    false,
-                    "NewOriImage2G2O_main save; can't open file"
-            );
-
-            return false;
-       }
-
-       for(auto aK : aMP)
-       {
-           NOSaveNoed(&aOut,aK.second);
-       }
-
-       for(auto aK : aCVec)
-       {
-           NOSaveConstraint(&aOut,aK);
-       }
-
-       return true;
-
-    };
+    private :
+        bool NOSave(const std::map<std::string,Pose3d *> aMP,
+                    const std::vector<Constraint*> aCVec,
+                    const std::string & aName );
+        void NOSaveConstraint(std::fstream* aFile, Constraint* aC);
+        void NOSaveNoed(std::fstream* aFile,Pose3d* aMP);
+};
 
 
+///pose X Y Z rot_I_x rot_I_y rot_I_z rot_J_x rot_J_y rot_J_z rot_K_x rot_K_y rot_K_z
+void cAppliNOExport::NOSaveNoed(std::fstream* aFile,Pose3d* aMP)
+{
+    *aFile << aMP->name().c_str() << " " << aMP->Id() << " " << aMP->P().x << " " << aMP->P().y << " " << aMP->P().z << 
+       " " << aMP->R().I().x << " " << aMP->R().I().y << " " << aMP->R().I().z << 
+       " " << aMP->R().J().x << " " << aMP->R().J().y << " " << aMP->R().J().z << 
+       " " << aMP->R().K().x << " " << aMP->R().K().y << " " << aMP->R().K().z << "\n";
+};
 
+///ID_a ID_b x_ab y_ab z_ab q_x_ab q_y_ab q_z_ab q_w_ab I_11 I_12 I_13 ... I_16 I_22 I_23 ... I_26 ... I_66 
+void cAppliNOExport::NOSaveConstraint(std::fstream* aFile, Constraint* aC)
+{
+    *aFile << aC->name().c_str() << " " << aC->I0() << " " << aC->I1() << " " 
+           << aC->Pose().P().x << " " << aC->Pose().P().y << " " << aC->Pose().P().z << " "
+           << aC->Pose().R().I().x << " " << aC->Pose().R().I().y << " " << aC->Pose().R().I().z << " "
+           << aC->Pose().R().J().x << " " << aC->Pose().R().J().y << " " << aC->Pose().R().J().z << " "
+           << aC->Pose().R().K().x << " " << aC->Pose().R().K().y << " " << aC->Pose().R().K().z << " "
+           << aC->PdsR().x << " 0 0 0 0 0 " 
+           << "0 " << aC->PdsR().y << " 0 0 0 0 "
+           << "0 0 " << aC->PdsR().z << " 0 0 0 "
+           << "0 0 0 " << aC->PdsT().x << " 0 0 " 
+           << "0 0 0 0 " << aC->PdsT().y << " 0 "
+           << "0 0 0 0 0 " << aC->PdsT().z << "\n";
 
-    cAppliNOExport::cAppliNOExport(int argc,char ** argv) :
-        cCommonMartiniAppli ()
-    {
+            
+};
 
-        std::string aPat,aDir;
-        std::string aOri="Martini";
-        std::string aName="triplets_g2o.txt";
- 
-        cInterfChantierNameManipulateur * aICNM;
-        std::list<std::string> aLFile;
+bool cAppliNOExport::NOSave(const std::map<std::string,Pose3d *> aMP,
+          const std::vector<Constraint*> aCVec,
+          const std::string & aName )
+{
+   std::fstream aOut;
+   aOut.open(aName.c_str(), std::istream::out); 
 
-        ElInitArgMain
+   if (!aOut) 
+   {
+        ELISE_ASSERT
         (
-            argc,argv,
-            LArgMain() << EAMC(aPat,"Pattern of images", eSAM_IsExistFile),
-            LArgMain() << EAM(aOri,"Ori",true,"Initial absolute ori; Def=[Ori-Martini]")
-                       << EAM(aName,"Out",true,"Output file name")
+                false,
+                "NewOriImage2G2O_main save; can't open file"
         );
- 
-        #if (ELISE_windows)
-            replace( aPat.begin(), aPat.end(), '\\', '/' );
-        #endif
- 
-        SplitDirAndFile(aDir,aPat,aPat);
-        StdCorrecNameOrient(aOri,aDir);
- 
-        /// get map of initial orientations
-        aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-        aOri= aICNM->StdKeyOrient(aOri);
-        aLFile =  aICNM->StdGetListOfFile(aPat,1);
 
-        std::map<std::string,Pose3d *> aMP;
+        return false;
+   }
 
-        int aNCP=0;
-        for( auto aL : aLFile )
-        {
+   for(auto aK : aMP)
+   {
+       NOSaveNoed(&aOut,aK.second);
+   }
 
-            std::string aNF = aICNM->Dir() + aICNM->Assoc1To1(aOri,aL,true);
-            Pt3dr aC = StdGetObjFromFile<Pt3dr>
-                    (
-                        aNF,
-                        StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
-                        "Centre",
-                        "Pt3dr"
-                    );        
-    
-            cOrientationConique * aCO = OptionalGetObjFromFile_WithLC<cOrientationConique>
-                                     (
-                                           0,0,
-                                           aNF,
-                                           StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
-                                           "OrientationConique",
-                                           "OrientationConique"
-                                     );
-            cRotationVect aRV   = aCO->Externe().ParamRotation();
-            
-            std::cout << "+P(" << aL << ")=" << aNCP << "\n";
+   for(auto aK : aCVec)
+   {
+       NOSaveConstraint(&aOut,aK);
+   }
 
-            aMP[aL] = new Pose3d(aC,
-                             aRV.CodageMatr().Val().L1(),
-                             aRV.CodageMatr().Val().L2(),
-                             aRV.CodageMatr().Val().L3(),
-                             aNCP++);
-        
-        }        
-        std::cout << "No de noeds=" << aNCP << "\n";
- 
+   return true;
 
-        ///triplets dir manager
-        cNewO_NameManager *  aNM = NM(aDir);
-        std::string aNameLTriplets = aNM->NameTopoTriplet(true);
-        cXml_TopoTriplet  aLT = StdGetFromSI(aNameLTriplets,Xml_TopoTriplet);
-        
-
-        ///get vector of constraints
-        int aNCC=0;
-        std::vector<Constraint*> aCVec;
-        
-        for (auto a3 : aLT.Triplets())
-        {
-            if (DicBoolFind(aMP,a3.Name1()) && DicBoolFind(aMP,a3.Name2()) && DicBoolFind(aMP,a3.Name3()))
-            {
-                std::string  aName3R = aNM->NameOriOptimTriplet(true,a3.Name1(),a3.Name2(),a3.Name3());
-                cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
-                
-                //find id inside aMP
-                Pose3d *aPA1 = aMP[a3.Name1()];
-                Pose3d *aPA2 = aMP[a3.Name2()];
-                Pose3d *aPA3 = aMP[a3.Name3()];
-         
-        
- 
-                ///1-2
-                ElRotation3D aP12 = Xml2El(aXml3Ori.Ori2On1());      
-                
-                Pt3dr aI,aJ,aK;
-                aP12.Mat().GetCol(0,aI);
-                aP12.Mat().GetCol(1,aJ);
-                aP12.Mat().GetCol(2,aK);
-         
-                
-                aCVec.push_back(new Constraint( aPA1->Id(),aPA2->Id(), 
-                                                Pose3d(aP12.tr(),aI,aJ,aK,aNCC++),
-                                                Pt3dr(1,1,1),
-                                                Pt3dr(1,1,1)
-                                                ));
-           
-                std::cout << "C=(" << aPA1->Id() << "," << aPA2->Id() << ")="  << a3.Name1() << "-" << a3.Name2() << "\n"; 
-                ///1-3
-                ElRotation3D aP13 = Xml2El(aXml3Ori.Ori3On1());
-             
-                aP13.Mat().GetCol(0,aI);
-                aP13.Mat().GetCol(1,aJ);
-                aP13.Mat().GetCol(2,aK);
-             
-                aCVec.push_back(new Constraint( aPA1->Id(),aPA3->Id(), 
-                                                Pose3d(aP13.tr(),aI,aJ,aK,aNCC++),
-                                                Pt3dr(1,1,1),
-                                                Pt3dr(1,1,1)));
-                
-                std::cout << "C=(" << aPA1->Id() << "," << aPA3->Id() << ")=" << a3.Name1() << "-" << a3.Name3() << "\n"; 
-            }
-        }
-        std::cout << "No de contraints=" << aNCC << "\n";
+};
 
 
 
-       
-        NOSave(aMP,aCVec,aName);
-                
-    }
 
-    int CPP_NewOriImage2G2O_main(int argc,char ** argv)
+cAppliNOExport::cAppliNOExport(int argc,char ** argv) :
+    cCommonMartiniAppli ()
+{
+
+    std::string aPat,aDir;
+    std::string aOri="Martini";
+    std::string aName="triplets_g2o.txt";
+
+    cInterfChantierNameManipulateur * aICNM;
+    std::list<std::string> aLFile;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain() << EAMC(aPat,"Pattern of images", eSAM_IsExistFile),
+        LArgMain() << EAM(aOri,"Ori",true,"Initial absolute ori; Def=[Ori-Martini]")
+                   << EAM(aName,"Out",true,"Output file name")
+    );
+
+    #if (ELISE_windows)
+        replace( aPat.begin(), aPat.end(), '\\', '/' );
+    #endif
+
+    SplitDirAndFile(aDir,aPat,aPat);
+    StdCorrecNameOrient(aOri,aDir);
+
+    /// get map of initial orientations
+    aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    aOri= aICNM->StdKeyOrient(aOri);
+    aLFile =  aICNM->StdGetListOfFile(aPat,1);
+
+    std::map<std::string,Pose3d *> aMP;
+
+    int aNCP=0;
+    for( auto aL : aLFile )
     {
-        cAppliNOExport aAppli(argc,argv);
-        return EXIT_SUCCESS;
+
+        std::string aNF = aICNM->Dir() + aICNM->Assoc1To1(aOri,aL,true);
+        Pt3dr aC = StdGetObjFromFile<Pt3dr>
+                (
+                    aNF,
+                    StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                    "Centre",
+                    "Pt3dr"
+                );        
+
+        cOrientationConique * aCO = OptionalGetObjFromFile_WithLC<cOrientationConique>
+                                 (
+                                       0,0,
+                                       aNF,
+                                       StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                                       "OrientationConique",
+                                       "OrientationConique"
+                                 );
+        cRotationVect aRV   = aCO->Externe().ParamRotation();
+        
+        std::cout << "+P(" << aL << ")=" << aNCP << "\n";
+
+        aMP[aL] = new Pose3d(aC,
+                         aRV.CodageMatr().Val().L1(),
+                         aRV.CodageMatr().Val().L2(),
+                         aRV.CodageMatr().Val().L3(),
+                         aNCP++);
+    
+    }        
+    std::cout << "No de noeds=" << aNCP << "\n";
+
+
+    ///triplets dir manager
+    cNewO_NameManager *  aNM = NM(aDir);
+    std::string aNameLTriplets = aNM->NameTopoTriplet(true);
+    cXml_TopoTriplet  aLT = StdGetFromSI(aNameLTriplets,Xml_TopoTriplet);
+    
+
+    ///get vector of constraints
+    int aNCC=0;
+    std::vector<Constraint*> aCVec;
+    
+    for (auto a3 : aLT.Triplets())
+    {
+        if (DicBoolFind(aMP,a3.Name1()) && DicBoolFind(aMP,a3.Name2()) && DicBoolFind(aMP,a3.Name3()))
+        {
+            std::string  aName3R = aNM->NameOriOptimTriplet(true,a3.Name1(),a3.Name2(),a3.Name3());
+            cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
+            
+            //find id inside aMP
+            Pose3d *aPA1 = aMP[a3.Name1()];
+            Pose3d *aPA2 = aMP[a3.Name2()];
+            Pose3d *aPA3 = aMP[a3.Name3()];
+     
+    
+
+            ///1-2
+            ElRotation3D aP12 = Xml2El(aXml3Ori.Ori2On1());      
+            
+            Pt3dr aI,aJ,aK;
+            aP12.Mat().GetCol(0,aI);
+            aP12.Mat().GetCol(1,aJ);
+            aP12.Mat().GetCol(2,aK);
+     
+            
+            aCVec.push_back(new Constraint( aPA1->Id(),aPA2->Id(), 
+                                            Pose3d(aP12.tr(),aI,aJ,aK,aNCC++),
+                                            Pt3dr(1,1,1),
+                                            Pt3dr(1,1,1)
+                                            ));
+       
+            std::cout << "C=(" << aPA1->Id() << "," << aPA2->Id() << ")="  << a3.Name1() << "-" << a3.Name2() << "\n"; 
+            ///1-3
+            ElRotation3D aP13 = Xml2El(aXml3Ori.Ori3On1());
+         
+            aP13.Mat().GetCol(0,aI);
+            aP13.Mat().GetCol(1,aJ);
+            aP13.Mat().GetCol(2,aK);
+         
+            aCVec.push_back(new Constraint( aPA1->Id(),aPA3->Id(), 
+                                            Pose3d(aP13.tr(),aI,aJ,aK,aNCC++),
+                                            Pt3dr(1,1,1),
+                                            Pt3dr(1,1,1)));
+            
+            std::cout << "C=(" << aPA1->Id() << "," << aPA3->Id() << ")=" << a3.Name1() << "-" << a3.Name3() << "\n"; 
+        }
+    }
+    std::cout << "No de contraints=" << aNCC << "\n";
+
+
+
+   
+    NOSave(aMP,aCVec,aName);
+            
+}
+
+int CPP_NewOriImage2G2O_main(int argc,char ** argv)
+{
+    cAppliNOExport aAppli(argc,argv);
+    return EXIT_SUCCESS;
+
+}
+//}
+
+typedef std::map<int,Pt2dr > tKeyPt;
+struct CamSfmInit
+{
+    std::string mName;
+    Pt2dr  PP;
+    double F;
+
+    CamSfmInit(std::string n="", Pt2dr pp=Pt2dr(0,0), double f=0) : 
+            mName(n),
+            PP(pp),
+            F(f){}
+
+};
+
+
+class cAppliImportSfmInit 
+{
+    public:
+        cAppliImportSfmInit(int argc,char ** argv);
+
+        bool Read();
+
+    private :
+        bool ReadCC();
+        bool ReadCoords();
+        bool ReadCoordsOneCam(FILE *fptr,int &aCamId, tKeyPt &aKeyPts);
+        void ConvMMConv(Pt2dr &aPt);
+
+        bool ReadEdges();
+        void ShowImgs();
+        void DoListOfName();
+        std::string GetListOfName();
+
+        void SaveCalib();
+ 
+        template <typename T>
+        void FileReadOK(FILE *fptr, const char *format, T *value);
+
+        cInterfChantierNameManipulateur * mICNM;
+        bool DoCalib;
+        bool DoImags;
+
+
+
+        std::string mDir;
+        std::string mCCListAllFile;
+        std::string mCCFile;
+        std::string mCoordsFile;
+        std::string mTracksFile;
+        std::string mEGFile;
+        std::string mSH;
+
+        std::string CalibDir;
+
+        std::map<int,CamSfmInit *>       mCC;//int follows the SfmInit indexing
+        std::map<int,int>                mSfm2MM_ID;//mapping of the sfm indexes to MM indexes; the latter must follow the image order in mCCVec
+        std::vector<std::string> *       mCCVec;//Vec to initialise the merge structure
+        tKeyPt                           mKPts; //map that associates a keypoint xy with its id; each image will have a map
+        std::map<int,tKeyPt >            mC2KPts; //map containing a keypoint set per image; the int is the image id as in mCC
+
+        //cVirtInterf_NewO_NameManager *   mVNM;
+};
+
+template <typename T>
+void cAppliImportSfmInit::FileReadOK(FILE *fptr, const char *format, T *value)
+{
+    int OK = fscanf(fptr, format, value);
+    if (OK != 1)
+        ELISE_ASSERT(false, "cAppliImportSfmInit::FileReadOK")
+
+}
+
+std::string cAppliImportSfmInit::GetListOfName()
+{
+    return "ListOfFiles.xml";
+}
+
+void cAppliImportSfmInit::DoListOfName()
+{
+
+    if (mCCVec)
+    {
+        cListOfName aLON;
+        for (int aI=0; aI<int(mCCVec->size()); aI++)
+        {
+            aLON.Name().push_back(mCCVec->at(aI));
+        }
+
+        MakeFileXML(aLON,GetListOfName());
+    }
+}
+
+void cAppliImportSfmInit::ShowImgs()
+{
+    if (mCCVec)
+    {
+        for (int aI=0; aI<int(mCCVec->size()); aI++) 
+        {
+            std::cout << " " << mCCVec->at(aI) << "\n";
+        }
 
     }
-//}
+}
+
+bool cAppliImportSfmInit::ReadCC()
+{
+
+    /* Read the list */
+    std::vector<std::string> aNameList;
+    {
+        ELISE_fp aFIn(mCCListAllFile.c_str(),ELISE_fp::READ);
+        char * aLine;
+ 
+
+        while ((aLine = aFIn.std_fgets()))
+        {
+ 
+            char aName[50];
+            int         aNull=0;
+            double      aF=0;
+ 
+            int aNb=sscanf(aLine,"%s %i %lf", aName, &aNull, &aF);
+
+ 
+            ELISE_ASSERT((aNb==3) || (aNb==1),"Could not read 3 or 1 values");
+ 
+            aNameList.push_back(NameWithoutDir(aName));
+ 
+        }
+        aFIn.close();
+        delete aLine;
+    }
+       
+    /* Read the cc and associate with the list */
+    int aMMID=0;
+    {
+        ELISE_fp aFIn(mCCFile.c_str(),ELISE_fp::READ);
+        char * aLine;
+
+        while ((aLine = aFIn.std_fgets()))
+        {
+
+            int         aIdx=0;
+
+            int aNb=sscanf(aLine,"%i", &aIdx);
+            ELISE_ASSERT((aNb==1),"Could not read the id");
+
+            mCC[aIdx] = new CamSfmInit (aNameList.at(aIdx),Pt2dr(0,0),0); 
+            mCCVec->push_back(aNameList.at(aIdx)); 
+            mSfm2MM_ID[aIdx] = aMMID;
+            aMMID++;
+        }
+        aFIn.close();
+        delete aLine;
+   
+    }
+
+    return true;
+}
+
+/* MM:      origin at (0,0)
+   SfmInit: origin at (1,1) */
+void cAppliImportSfmInit::ConvMMConv(Pt2dr &aPt)
+{
+    aPt.x = aPt.x -1;
+    aPt.y = aPt.y -1;
+}
+
+/* Read keypts per camera and
+    update io in mCC  */
+
+bool cAppliImportSfmInit::ReadCoordsOneCam(FILE *fptr,int &aCamId, tKeyPt &aKeyPts)
+{
+    
+    char line[50];
+    for (int aIt=0; aIt<2; aIt++)
+    {
+        FileReadOK(fptr, "%s", line);
+    }
+    FileReadOK(fptr, "%i,", &aCamId);
+
+    for (int aIt=0; aIt<5; aIt++)
+    {
+        FileReadOK(fptr, "%s", line);
+    }
+    int aNbKey;
+    FileReadOK(fptr, "%i", &aNbKey);
+    //std::cout << "Nb keys: " << aNbKey << "\n";
+
+    
+    for (int aIt=0; aIt<3; aIt++)   
+    {
+        FileReadOK(fptr, "%s", line);
+    }
+
+
+    FileReadOK(fptr, "%lf,", &(mCC[aCamId]->PP.x));
+    
+
+    for (int aIt=0; aIt<2; aIt++)
+    {
+        FileReadOK(fptr, "%s", line);
+    }
+    FileReadOK(fptr, "%lf,", &(mCC[aCamId]->PP.y));
+//    std::cout << "PP: " << mCC[aCamId]->PP << "\n";
+
+    for (int aIt=0; aIt<2; aIt++)
+    {
+        FileReadOK(fptr, "%s", line);
+    }
+    FileReadOK(fptr, "%lf", &(mCC[aCamId]->F));
+//    std::cout << "F: " << mCC[aCamId]->F << "\n";
+
+
+    int   aPtId;
+    Pt2dr aPt;
+    Pt2di aIgnr;
+    Pt3di aRGB;
+    for (int aK=0; aK<aNbKey; aK++)
+    {
+        int OK = std::fscanf(fptr,"%i %lf %lf %i %i %i %i %i\n",&aPtId,&aPt.x,&aPt.y,&aIgnr.x,&aIgnr.y,&aRGB.x,&aRGB.y,&aRGB.z);
+        if (OK)
+        {
+//          std::cout << aPtId << " " << aPt << " " << aRGB << "\n";
+            ConvMMConv(aPt);
+            aKeyPts[aPtId] = aPt;
+        }
+        else 
+        {
+            std::cout << "cAppliImportSfmInit::ReadCoordsOneCam could not read a line" << "\n";
+            return EXIT_FAILURE;
+        }
+
+    }
+
+
+    return EXIT_SUCCESS;
+}
+
+/* 1/ Read keypts per camera and update io
+   2/ Read tracks and create Homol
+
+   Decoding coords, eg:
+   2 0 0 1 0 
+    - a tie-pts visible in 2 images
+    - image id 0, point id 0
+    - image id 1, point id 0 */
+
+bool cAppliImportSfmInit::ReadCoords()
+{
+
+    /* Keypts per camera */
+    {
+        FILE* fptr = fopen(mCoordsFile.c_str(), "r");
+        if (fptr == NULL) {
+          return false;
+        };
+ 
+ 
+        while (!std::feof(fptr)  && !ferror(fptr))
+        {
+
+            tKeyPt  aKPtsPerCam;
+            int      aCamIdx;
+            ReadCoordsOneCam(fptr,aCamIdx,aKPtsPerCam);
+ 
+            mC2KPts[aCamIdx] = aKPtsPerCam;
+ 
+            /*     tKeyPt  ttt = mC2KPts[aCamIdx]; //aCamIdx camera
+            Pt2dr aaa = (ttt)[0];//first keypt of the aCamIdx camera
+            std::cout << "mC2KPts[0]: " << aaa << " " << " " << " "  << "\n"; //(*ttt)[0] */
+ 
+        }
+
+        fclose(fptr);
+    }
+
+    { 
+        /* Tracks and homol */
+        FILE* fptr = fopen(mTracksFile.c_str(), "r");
+        if (fptr == NULL) {
+          return false;
+        };
+ 
+        
+        int NbTrk;
+        FileReadOK(fptr, "%i", &NbTrk);
+//        std::cout << "&NbTrk " << NbTrk << "\n";
+ 
+        cSetTiePMul * aMulHomol = new cSetTiePMul(0, mCCVec);
+        std::vector<std::vector<int>>   VNumCams;
+        std::vector<std::vector<Pt2dr>> VPtsCams;
+ 
+ 
+        /* Iterate over tracks */
+        for (int aT=0; aT<NbTrk; aT++)
+        {
+            std::vector<int>   VNum;
+            std::vector<Pt2dr> VPts;
+ 
+            int aTrkLen;
+            FileReadOK(fptr, "%i", &aTrkLen);
+//            std::cout << "&aTrkLen " << aTrkLen << "\n";
+ 
+            /* Colect the track aT */
+            for (int aK=0; aK<aTrkLen; aK++)
+            {
+                int aCamID;
+                int aPtID;
+ 
+                FileReadOK(fptr, "%i", &aCamID);
+                FileReadOK(fptr, "%i", &aPtID);
+ 
+                VNum.push_back(mSfm2MM_ID[aCamID]);
+ 
+                //std::cout << "(mC2KPts[aCamID])[aPtID] " << aCamID << " " << mSfm2MM_ID[aCamID] << " " << aPtID << " " << (mC2KPts[aCamID])[aPtID] << "\n";
+                VPts.push_back((mC2KPts[aCamID])[aPtID]);
+ 
+            }
+            VNumCams.push_back(VNum);
+            VPtsCams.push_back(VPts);
+        }
+        fclose(fptr);
+      
+        for (uint aK=0; aK<VNumCams.size(); aK++)
+        {
+            vector<float> vAttr;
+            aMulHomol->AddPts(VNumCams[aK], VPtsCams[aK],vAttr);
+        }
+
+ 
+        std::string aSave = cSetTiePMul::StdName(mICNM,mSH,"-SfmInit",false); 
+        aMulHomol->Save(aSave);
+    }
+
+
+    return true;
+}
+
+void cAppliImportSfmInit::SaveCalib()
+{
+    for (auto aIm : mCC)
+    {
+//        std::cout << "aIm " << mICNM->StdNameCalib(CalibDir,aIm.second->mName) << "\n";
+        cCalibrationInternConique aCIO = StdGetObjFromFile<cCalibrationInternConique>
+                (
+                    Basic_XML_MM_File("Template-Calib-Basic.xml"),
+                    StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                    "CalibrationInternConique",
+                    "CalibrationInternConique"
+                );
+
+        aCIO.PP()   = aIm.second->PP ;
+        aCIO.F()    = aIm.second->F ;
+        aCIO.SzIm() = Pt2di(2*aIm.second->PP.x,2*aIm.second->PP.y); //SfmInit convention
+        aCIO.CalibDistortion()[0].ModRad().Val().CDist() = Pt2dr(0,0);
+
+        MakeFileXML(aCIO,mICNM->StdNameCalib(CalibDir,aIm.second->mName));
+
+    }
+
+
+
+}
+
+bool cAppliImportSfmInit::ReadEdges()
+{
+    /* -read edge
+       -associate with cam (io)
+       -read R and t
+       -save to NewTmp ...
+           + Xml_Ori2Im
+                - im name, 
+                - calib 
+                - NbPts
+                - Foc1 Foc2 FocMoy
+                - Box?
+
+std::map<int,CamSfmInit *>       mCC;
+ 
+*/
+    FILE* fptr = fopen(mEGFile.c_str(), "r");
+    if (fptr == NULL) {
+      return false;
+    };
+
+
+    while (!std::feof(fptr)  && !ferror(fptr))
+    {
+        Pt2di aE;
+        Pt3dr        aTij;
+        ElMatrix<double> aRij(3,3,1.0);
+
+        bool OK = std::fscanf(fptr, "%i %i %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", 
+                          &aE.x, &aE.y, 
+                          &aRij(0,0), &aRij(0,1), &aRij(0,2),
+                          &aRij(1,0), &aRij(1,1), &aRij(1,2),
+                          &aRij(2,0), &aRij(2,1), &aRij(2,2),
+                          &aTij.x, &aTij.y, &aTij.z);
+
+        std::cout << aRij(0,0) << " " << aRij(0,1) << " " << aRij(0,2) << "\n"
+                  << aRij(1,0) << " " << aRij(1,1) << " " << aRij(1,2) << "\n"
+                  << aRij(2,0) << " " << aRij(2,1) << " " << aRij(2,2) << "\n";
+        std::cout << "T " << aTij << " E " << aE << " " << OK << "\n";
+
+        getchar();
+
+
+    }
+
+    fclose(fptr);
+
+    return EXIT_SUCCESS;
+}
+
+bool cAppliImportSfmInit::Read()
+{
+    if (ReadCC())
+        std::cout << "[ImportSfmInit] Read cc.txt, done!" << "\n";
+    else 
+        return false;
+
+
+
+    if (ReadCoords())     
+        std::cout << "[ImportSfmInit] Read coords.txt and tracks.txt, done!" << "\n";
+    else 
+        return false;
+
+
+
+    if (DoImags)
+    {
+        DoListOfName();
+        ShowImgs();        
+        std::cout << "[ImportSfmInit] Image list saved to: " << GetListOfName() << "\n";
+    }
+
+
+    if (CalibDir != "")
+    {
+        SaveCalib();
+        std::cout << "[ImportSfmInit] Image calibrations saved to: " << "Ori-" + CalibDir << "\n";
+    }
+
+
+    if (mEGFile != "")
+    {
+        if (ReadEdges())
+            std::cout << "[ImportSfmInit] Edges saved to: " << "\n";
+    }
+
+    return true;
+}
+
+cAppliImportSfmInit::cAppliImportSfmInit(int argc,char ** argv) :
+    DoCalib(false),
+    DoImags(false),
+    mEGFile(""),
+    mSH(""),
+    CalibDir(""),
+    mCCVec(new std::vector<std::string>())
+{
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain() << EAMC(mDir,"Working dir. If inside put ./")
+                   << EAMC(mCCFile,"cc.txt (SfmInit format)", eSAM_IsExistFile)
+                   << EAMC(mCCListAllFile,"list.txt",eSAM_IsExistFile)
+                   << EAMC(mCoordsFile,"coords.txt",eSAM_IsExistFile)
+                   << EAMC(mTracksFile,"tracks.txt",eSAM_IsExistFile),
+        LArgMain() << EAM(mEGFile,"EG","true", "Export relative orientations from EGs.txt")
+                   << EAM(CalibDir,"OriCalib","true", "Export calibrations to OriCalib directory")
+                   << EAM(DoCalib,"DoCal",true,"Export the calibration files; Def=true")
+                   << EAM(DoImags,"DoImg",true,"Create images' xml list from cc.txt")
+                   << EAM(mSH,"SH",true,"Homol postfix")
+    );    
+
+    #if (ELISE_windows)
+        replace( mDir.begin(), mDir.end(), '\\', '/' );
+    #endif
+
+    mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+    
+    if (EAMIsInit(&CalibDir))
+    {
+        //StdCorrecNameOrient(CalibDir, mDir);
+        
+        if (! ELISE_fp::IsDirectory("Ori-"+CalibDir))
+            ELISE_fp::MkDir("Ori-"+CalibDir);
+
+    }
+}
+
+int CPP_NewOriReadFromSfmInit(int argc,char ** argv)
+{
+
+    cAppliImportSfmInit aAppli(argc,argv);
+    aAppli.Read();
+    
+
+    return EXIT_SUCCESS;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

@@ -16,8 +16,15 @@ class cAppliCalcDescPCar;
 template <class Type> class  cTplAppliCalcDescPCar
 {
     public :
+        typedef cIm2D<Type>            tIm;
+        typedef cGP_OneImage<Type>     tGPIm;
+        typedef cGP_OneOctave<Type>    tOct;
+        typedef std::shared_ptr<tOct>  tSP_Oct;
         typedef cGaussianPyramid<Type> tPyr;
         typedef std::shared_ptr<tPyr>  tSP_Pyr;
+
+
+
         cTplAppliCalcDescPCar(cAppliCalcDescPCar & anAppli);
 
         /// Run all the process
@@ -32,6 +39,8 @@ template <class Type> class  cTplAppliCalcDescPCar
         bool                 mIsFloat; ///< Known from type
         tSP_Pyr              mPyr;     ///< Pointer on gaussian pyramid
         tSP_Pyr              mPyrLapl;     ///< Pointer to laplacian pyramids
+        tSP_Pyr              mPyrCorner;   ///< Pointer to Corner pyramids
+        tSP_Pyr              mPyrOriNom;   ///< Pointer to Normalized original pyram
         cDataFileIm2D        mDFI;     ///< Structure on image file
         tREAL4               mTargAmpl;///< Amplitude after dynamic adaptation
         cRect2               mBoxIn;   ///< Current Input Box
@@ -68,6 +77,11 @@ class cAppliCalcDescPCar : public cMMVII_Appli
         int         mNbOverLapByO;
         bool        mSaveIms;
         bool        mDoLapl;
+        bool        mDoCorner;
+        bool        mDoOriNorm;
+        double      mSDON;
+        double      mCI0;   ///<  Convol Im0
+        double      mCC0;   ///<  Convol Corner0
 };
 
 /* =============================================== */
@@ -77,14 +91,15 @@ class cAppliCalcDescPCar : public cMMVII_Appli
 /* =============================================== */
 
 template<class Type> cTplAppliCalcDescPCar<Type>::cTplAppliCalcDescPCar(cAppliCalcDescPCar & anAppli) :
-   mAppli    (anAppli),
-   mIsFloat  (! tElemNumTrait<Type>::IsInt()),
-   mPyr      (nullptr),
-   mPyrLapl  (nullptr),
-   mDFI      (cDataFileIm2D::Create(mAppli.mNameIm,true)),
-   mTargAmpl (10000.0),  // Not to high => else overflow in gaussian before normalisation
-   mBoxIn    (cRect2::TheEmptyBox),
-   mBoxOut   (cRect2::TheEmptyBox)
+   mAppli     (anAppli),
+   mIsFloat   (! tElemNumTrait<Type>::IsInt()),
+   mPyr       (nullptr),
+   mPyrLapl   (nullptr),
+   mPyrOriNom (nullptr),
+   mDFI       (cDataFileIm2D::Create(mAppli.mNameIm,true)),
+   mTargAmpl  (10000.0),  // Not to high => else overflow in gaussian before normalisation
+   mBoxIn     (cRect2::TheEmptyBox),
+   mBoxOut    (cRect2::TheEmptyBox)
 {
 }
 
@@ -102,12 +117,16 @@ template<class Type> void cTplAppliCalcDescPCar<Type>::ExeGlob()
 template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di & anIndex,const cParseBoxInOut<2>& aPBI)
 {
 
+    std::string aPref = "Tile"+ToStr(anIndex.x())+ToStr(anIndex.y()) ;
     // Initialize Box, Params, gaussian pyramid
     mBoxIn = aPBI.BoxIn(anIndex,mAppli.mOverlap);
     mSzIn = mBoxIn.Sz();
     mBoxOut = aPBI.BoxOut(anIndex);
     cGP_Params aGP(mSzIn,mAppli.mNbOct,mAppli.mNbLevByOct,mAppli.mNbOverLapByO);
-    mPyr = tPyr::Alloc(aGP);
+    aGP.mScaleDirOrig = mAppli.mSDON ;
+    aGP.mConvolIm0 = mAppli.mCI0 ;
+    aGP.mConvolC0  = mAppli.mCC0 ;
+    mPyr = tPyr::Alloc(aGP,mAppli.mNameIm,aPref,mBoxIn,mBoxOut);
 
     // Load image
     
@@ -139,28 +158,40 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
              aDImTop.SetV(aP,ToStored(aDImBuf.GetV(aP)));
          }
     }
+    StdOut() << "AnIndex " << anIndex << " SsZzz " << mVC << " " << mDyn << " " << mIsFloat << "\n";
+
+
     // Compute Gaussian pyramid
     mPyr->ComputGaussianFilter();
-
-    // Compute Lapl if rerquired
-    if (mAppli.mDoLapl)
-    {
-          mPyrLapl =  mPyr->PyramDiff();
-    }
-
-    StdOut() << "AnIndex " << anIndex << " SsZzz " << mVC << " " << mDyn << " " << mIsFloat << "\n";
-   //  Eventually save on disk all pyramids 
     if (mAppli.mSaveIms)
     {
-        mPyr->SetPrefSave("Gauss-" + ToStr(anIndex.x())+ToStr(anIndex.y()) +"-" + Prefix(mAppli.mNameIm));
-        mPyr->SaveInFile();
-        if (mAppli.mDoLapl)
-        {
-            mPyrLapl->SetPrefSave("Lapl-" + ToStr(anIndex.x())+ToStr(anIndex.y()) +"-" + Prefix(mAppli.mNameIm));
-            mPyrLapl->SaveInFile();
-        }
+       
+       StdOut() << "   ############################################ \n";
+       StdOut() << "   ######   NAME="  <<    mAppli.mNameIm  << "\n";
+       StdOut() << "   ############################################ \n";
+    }
+    mPyr->SaveInFile(0,mAppli.mSaveIms);
+
+    // Compute corner images required
+    if (mAppli.mDoOriNorm)
+    {
+       mPyrOriNom =  mPyr->PyramOrigNormalize();
+       mPyrOriNom->SaveInFile(0,mAppli.mSaveIms);
     }
 
+    // Compute Lapl by diff of gauss if required
+    if (mAppli.mDoLapl)
+    {
+       mPyrLapl =  mPyr->PyramDiff();
+       mPyrLapl->SaveInFile(0,mAppli.mSaveIms);
+    }
+
+    // Compute corner images required
+    if (mAppli.mDoCorner)
+    {
+       mPyrCorner =  mPyr->PyramCorner();
+       mPyrCorner->SaveInFile(0,mAppli.mSaveIms);
+    }
 }
 
 
@@ -181,7 +212,12 @@ cAppliCalcDescPCar:: cAppliCalcDescPCar(const std::vector<std::string> &  aVArgs
   mNbLevByOct   (5),
   mNbOverLapByO (3),
   mSaveIms      (false),
-  mDoLapl       (true)
+  mDoLapl       (true),
+  mDoCorner     (true),
+  mDoOriNorm    (false),
+  mSDON         (20.0),
+  mCI0          (0.7),
+  mCC0          (0.7)
 {
 }
 
@@ -203,6 +239,9 @@ cCollecSpecArg2007 & cAppliCalcDescPCar::ArgOpt(cCollecSpecArg2007 & anArgOpt)
              << AOpt2007(mNbLevByOct,"PyrNbL","Number of level/Octaves in Pyramid",{eTA2007::HDV})
              << AOpt2007(mNbOverLapByO,"PyrNbOverL","Number of overlap  in Pyram(change only for Save Image)",{eTA2007::HDV})
              << AOpt2007(mSaveIms,"SaveIms","Save images (tuning/debuging/teaching)",{eTA2007::HDV})
+             << AOpt2007(mSDON,"SON","Scale Orig Normalized",{eTA2007::HDV})
+             << AOpt2007(mCI0,"ConvI0","Convolution top image",{eTA2007::HDV})
+             << AOpt2007(mCC0,"ConvC0","Additional Corner Convolution",{eTA2007::HDV})
    ;
 }
 
@@ -221,8 +260,10 @@ int cAppliCalcDescPCar::Exe()
 
    if (mIntPyram)  // Case integer pyramids
    {
+/*
       cTplAppliCalcDescPCar<tINT2> aTplA(*this);
       aTplA.ExeGlob();
+*/
    }
    else   // Case floating points pyramids
    {

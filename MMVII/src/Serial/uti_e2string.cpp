@@ -201,7 +201,14 @@ template<> cE2Str<eTyInvRad>::tMapE2Str cE2Str<eTyInvRad>::mE2S
            };
 TPL_ENUM_2_STRING(eTyInvRad);
 
-
+template<> cE2Str<eTyPyrTieP>::tMapE2Str cE2Str<eTyPyrTieP>::mE2S
+           {
+                {eTyPyrTieP::eTPTP_Init,"Init"},
+                {eTyPyrTieP::eTPTP_LaplG,"LaplG"},
+                {eTyPyrTieP::eTPTP_Corner,"Corner"},
+                {eTyPyrTieP::eTPTP_OriNorm,"OriNorm"}
+           };
+TPL_ENUM_2_STRING(eTyPyrTieP);
 
 
 /****************************  BENCH **************************/
@@ -228,6 +235,7 @@ void BenchEnum()
     TplBenchEnum<eTyUEr>();
     TplBenchEnum<eTyNums>();
     TplBenchEnum<eTyInvRad>();
+    TplBenchEnum<eTyPyrTieP>();
 }
 
 

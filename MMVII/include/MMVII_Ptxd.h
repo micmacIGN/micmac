@@ -135,6 +135,17 @@ template <class T> inline T Norm1(const cPtxd<T,1> & aP) {return std::abs(aP.x()
 template <class T> inline T Norm1(const cPtxd<T,2> & aP) {return std::abs(aP.x())+std::abs(aP.y());}
 template <class T> inline T NormInf(const cPtxd<T,1> & aP) {return std::abs(aP.x());}
 template <class T> inline T NormInf(const cPtxd<T,2> & aP) {return std::max(std::abs(aP.x()),std::abs(aP.y()));}
+// template <class T> inline T SqN2(const cPtxd<T,1> & aP) {return Square(aP.x());}
+   /// Currently, the L2 norm is used for comparaison, no need to extract square root
+template <class T> inline T SqN2(const cPtxd<T,2> & aP) {return Square(aP.x())+Square(aP.y());}
+/// Sort vector by norm, typically dont need to compute square root
+template <class Type,const int Dim> bool CmpN2(const cPtxd<Type,Dim> &aP1,const  cPtxd<Type,Dim> & aP2) 
+{
+    return SqN2(aP1) < SqN2(aP2);
+}
+
+
+
 
 
 ///  operator == on points
@@ -232,6 +243,10 @@ typedef cPtxd<double,3>  cPt3dr ;
 typedef cPtxd<int,3>     cPt3di ;
 typedef cPtxd<float,3>   cPt3df ;
 
+// Most frequent conversion
+inline cPt2di ToI(const cPt2dr & aP) {return cPt2di(round_ni(aP.x()),round_ni(aP.y()));}
+inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
+
 template <class Type,int Dim,int aKth> bool  CmpCoord(const cPtxd<Type,Dim> & aP1,const cPtxd<Type,Dim> & aP2)
 {
    static_assert((aKth>=0) && (aKth<Dim),"CmpCoord");
@@ -268,15 +283,23 @@ cPtxd<Type,Dim> CByC2P
     return aRes;
 }
 
+/// Number of pixel in square window
 int NbPixVign(const int & aVign); 
+/// Number of pixel in a non square window
 template <const int Dim> int NbPixVign(const cPtxd<int,Dim> & aVign); 
 
 
+/// Order coordinate so that it can define a box
 template <class Type,const int Dim> void MakeBox(cPtxd<Type,Dim> & aP0,cPtxd<Type,Dim> & aP1)
 {
     for (int aK=0 ; aK<Dim ; aK++)
         OrderMinMax(aP0[aK],aP1[aK]);
 }
+
+/// Return pixel between two radius, the order make them as sparse as possible (slow method in N^3) => To implement
+std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
+/// Implemented
+std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
 
 
 /**  Class for box, they are template as typically :

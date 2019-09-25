@@ -6,20 +6,6 @@ namespace MMVII
 {
 
 
-// return the variance of  exponential distribution of parameter "a" ( i.e proportiona to  "a^|x|")
-double Sigma2FromFactExp(double a)
-{
-   return (2*a) / Square(1-a);
-}
-
-// return the value of "a" such that  exponential distribution of parameter "a" has variance S2
-// i.e. this the "inverse" function of Sigma2FromFactExp
-
-double FactExpFromSigma2(double aS2)
-{
-    return (aS2+1 - sqrt(Square(aS2+1)-Square(aS2))  ) / aS2 ;
-}
-
 /// Sigma of convol sqrt(A^2+B^2)
 double SomSigm(double  aS1,double aS2) {return sqrt(Square(aS1)+Square(aS2));}
 /// "Inverse" of SomSigm  sqrt(A^2-B^2)
