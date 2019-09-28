@@ -62,6 +62,7 @@ class cAppliHomProfPx
 
         cElNuage3DMaille * mNuage;
         Pt2dr              mVPxT;
+        CamStenope       * mCS1;
         CamStenope       * mCS2;
 
         cDicoAppuisFlottant aD; //points in the left image
@@ -127,9 +128,15 @@ cAppliHomProfPx::cAppliHomProfPx(int argc,char ** argv) :
 void cAppliHomProfPx::Load()
 {
 
+    //Get orientation of the first image
+    std::string aIm1Ori = mDir+mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+mOri,mNameIm1,true);
+    //mCS1 = CamOrientGenFromFile(aIm1Ori,mICNM);
+    mCS1 = BasicCamOrientGenFromFile(aIm1Ori);
+
     //Get orientation of the second image
     std::string aIm2Ori = mDir+mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+mOri,mNameIm2,true);
-    mCS2 = CamOrientGenFromFile(aIm2Ori,mICNM);
+    //mCS2 = CamOrientGenFromFile(aIm2Ori,mICNM);
+    mCS2 = BasicCamOrientGenFromFile(aIm2Ori);
 
     // Read the file with Nuage parameters
     mNuage = cElNuage3DMaille::FromFileIm(mDir+mNuageName);
@@ -192,15 +199,19 @@ void cAppliHomProfPx::ExportHom()
         Pt2dr aPtIm1Full(double(aPtIm1.x)*mZoomRatio,double(aPtIm1.y)*mZoomRatio);
        
 
-        Pt3dr aPtTer = mNuage->PtOfIndexInterpol(aPtIm1);
-        
+	//get the Z
+        Pt3dr aPtTerZ = mNuage->PtOfIndexInterpol(aPtIm1);
+	//get the XY
+	Pt3dr aPtTer = mCS1->ImEtZ2Terrain(aPtIm1,aPtTerZ.z);
+        //std::cout << "aPtIm1=" << aPtIm1 <<", PtTer=" << aPtTer << " " << aPtTer2 << " aPtIm2=" <<  mCS2->R3toF2(aPtTer) << " " <<  mVPxT * mTPx.getr(aPtIm1) * mZoomRatio  << "\n";
+         
 
         if (mCS2->PIsVisibleInImage(aPtTer))
         {
             Pt2dr aPtIm2 = mCS2->R3toF2(aPtTer);
             Pt2dr aPtIm2Cor = aPtIm2 + mVPxT * mTPx.getr(aPtIm1) * mZoomRatio;//a verifier le ratio
            
-            //std::cout << "PtTer=" << aPtTer << " " << "\n";
+
             //std::cout << "im1=" << aPtIm1 << "  ,im2=" << aPtIm2 << " / " << aPtIm2Cor <<  " : " <<   mVPxT * mTPx.getr(aPtIm1) * mZoomRatio << "\n";
          
             ElCplePtsHomologues aCple(aPtIm1Full,aPtIm2Cor);

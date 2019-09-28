@@ -61,7 +61,8 @@ class cPI_Appli
           void ShowArgs();
           Pt3dr IntersectionFaisceaux(
 			                          const std::vector<CamStenope *> & aVCS,
-			                          const std::vector<Pt2dr> & aNPts2D
+			                          const std::vector<Pt2dr> & aNPts2D,
+									  double&                    aVRes
 		);
      private :
           std::list<std::string> mLFile;
@@ -236,7 +237,13 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 	
     //le vecteur des points 3d a exporter
 	std::vector<Pt3dr> Pts3d;
-	
+
+	//les residuus
+	std::vector<double> aVRes;
+
+	//le nombre d'observations
+	std::vector<int>    aVObs;
+
     //boucle sur le nombre de points a projeter en 3d
 	for(unsigned int aHG=0 ; aHG<vPtsAI.size() ; aHG++)
 	{
@@ -255,8 +262,11 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
         }
 
         //if (vC2d.size()<3) continue;
-        Pt3dr aPt3d = IntersectionFaisceaux(vCSPt,vC2d);
+		double aResidu;
+        Pt3dr aPt3d = IntersectionFaisceaux(vCSPt,vC2d,aResidu);
         Pts3d.push_back(aPt3d);
+		aVRes.push_back(aResidu);
+		aVObs.push_back(int(vCSPt.size()));
 	}
 
 	
@@ -268,7 +278,7 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 		cElemAppliSetFile aEASF(mDir + ELISE_CAR_DIR + aOut);
 		for(unsigned int aVP=0; aVP<Pts3d.size(); aVP++)
 		{
-			fprintf(aFP,"%s %lf %lf %lf \n",vPtsAI[aVP].nom.c_str(),Pts3d[aVP].x,Pts3d[aVP].y,Pts3d[aVP].z);
+			fprintf(aFP,"%s %lf %lf %lf %lf %d \n",vPtsAI[aVP].nom.c_str(),Pts3d[aVP].x,Pts3d[aVP].y,Pts3d[aVP].z, aVRes.at(aVP), aVObs.at(aVP));
 			//~ std::cout << vPtsAI.at(aVP).nom << " " << Pts3d.at(aVP).x << " " << Pts3d.at(aVP).y << " " << Pts3d.at(aVP).z << "\n" ;
 		}
 		
@@ -348,19 +358,30 @@ void cPI_Appli::ShowArgs()
 Pt3dr cPI_Appli::IntersectionFaisceaux
 	   (
 			const std::vector<CamStenope *> & aVCS,
-			const std::vector<Pt2dr> & aNPts2D
+			const std::vector<Pt2dr> & aNPts2D,
+			double &                   aResidu
 		)
 {
+	aResidu=0;
+
+	int aNb = int(aVCS.size());
+
 	//vecteur d'éléments segments 3d
 	std::vector<ElSeg3D> aVSeg;
 	
-	for (int aKR=0 ; aKR < int(aVCS.size()) ; aKR++)
+	for (int aKR=0 ; aKR < aNb ; aKR++)
 	{
 		ElSeg3D aSeg = aVCS.at(aKR)->F2toRayonR3(aNPts2D.at(aKR));
 		aVSeg.push_back(aSeg);
 	}
-    std::cout<<"Intersect "<<aVSeg.size()<<" bundles...\n";
+    std::cout<<"Intersect "<< aNb <<" bundles...\n";
 	Pt3dr aRes =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
+
+	for (int aKR=0 ; aKR < aNb ; aKR++)
+    {
+		aResidu += aVSeg.at(aKR).DistDoite(aRes);
+	}
+	aResidu /= aNb;
 
     return aRes;
 }

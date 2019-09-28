@@ -393,8 +393,12 @@ class cAppliImportSfmInit
         bool ReadCoordsOneCam(FILE *fptr,int &aCamId, tKeyPt &aKeyPts);
         void ConvMMConv(Pt2dr &aPt);
 
+        bool ReadEdges();
         void ShowImgs();
         void DoListOfName();
+        std::string GetListOfName();
+
+        void SaveCalib();
  
         template <typename T>
         void FileReadOK(FILE *fptr, const char *format, T *value);
@@ -404,15 +408,18 @@ class cAppliImportSfmInit
         bool DoImags;
 
 
+
         std::string mDir;
         std::string mCCListAllFile;
         std::string mCCFile;
         std::string mCoordsFile;
         std::string mTracksFile;
+        std::string mEGFile;
         std::string mSH;
 
+        std::string CalibDir;
 
-        std::map<int,CamSfmInit *>       mCC;
+        std::map<int,CamSfmInit *>       mCC;//int follows the SfmInit indexing
         std::map<int,int>                mSfm2MM_ID;//mapping of the sfm indexes to MM indexes; the latter must follow the image order in mCCVec
         std::vector<std::string> *       mCCVec;//Vec to initialise the merge structure
         tKeyPt                           mKPts; //map that associates a keypoint xy with its id; each image will have a map
@@ -430,6 +437,11 @@ void cAppliImportSfmInit::FileReadOK(FILE *fptr, const char *format, T *value)
 
 }
 
+std::string cAppliImportSfmInit::GetListOfName()
+{
+    return "ListOfFiles.xml";
+}
+
 void cAppliImportSfmInit::DoListOfName()
 {
 
@@ -441,7 +453,7 @@ void cAppliImportSfmInit::DoListOfName()
             aLON.Name().push_back(mCCVec->at(aI));
         }
 
-        MakeFileXML(aLON,"ListOfFiles.xml");
+        MakeFileXML(aLON,GetListOfName());
     }
 }
 
@@ -692,6 +704,81 @@ bool cAppliImportSfmInit::ReadCoords()
     return true;
 }
 
+void cAppliImportSfmInit::SaveCalib()
+{
+    for (auto aIm : mCC)
+    {
+//        std::cout << "aIm " << mICNM->StdNameCalib(CalibDir,aIm.second->mName) << "\n";
+        cCalibrationInternConique aCIO = StdGetObjFromFile<cCalibrationInternConique>
+                (
+                    Basic_XML_MM_File("Template-Calib-Basic.xml"),
+                    StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                    "CalibrationInternConique",
+                    "CalibrationInternConique"
+                );
+
+        aCIO.PP()   = aIm.second->PP ;
+        aCIO.F()    = aIm.second->F ;
+        aCIO.SzIm() = Pt2di(2*aIm.second->PP.x,2*aIm.second->PP.y); //SfmInit convention
+        aCIO.CalibDistortion()[0].ModRad().Val().CDist() = Pt2dr(0,0);
+
+        MakeFileXML(aCIO,mICNM->StdNameCalib(CalibDir,aIm.second->mName));
+
+    }
+
+
+
+}
+
+bool cAppliImportSfmInit::ReadEdges()
+{
+    /* -read edge
+       -associate with cam (io)
+       -read R and t
+       -save to NewTmp ...
+           + Xml_Ori2Im
+                - im name, 
+                - calib 
+                - NbPts
+                - Foc1 Foc2 FocMoy
+                - Box?
+
+std::map<int,CamSfmInit *>       mCC;
+ 
+*/
+    FILE* fptr = fopen(mEGFile.c_str(), "r");
+    if (fptr == NULL) {
+      return false;
+    };
+
+
+    while (!std::feof(fptr)  && !ferror(fptr))
+    {
+        Pt2di aE;
+        Pt3dr        aTij;
+        ElMatrix<double> aRij(3,3,1.0);
+
+        bool OK = std::fscanf(fptr, "%i %i %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", 
+                          &aE.x, &aE.y, 
+                          &aRij(0,0), &aRij(0,1), &aRij(0,2),
+                          &aRij(1,0), &aRij(1,1), &aRij(1,2),
+                          &aRij(2,0), &aRij(2,1), &aRij(2,2),
+                          &aTij.x, &aTij.y, &aTij.z);
+
+        std::cout << aRij(0,0) << " " << aRij(0,1) << " " << aRij(0,2) << "\n"
+                  << aRij(1,0) << " " << aRij(1,1) << " " << aRij(1,2) << "\n"
+                  << aRij(2,0) << " " << aRij(2,1) << " " << aRij(2,2) << "\n";
+        std::cout << "T " << aTij << " E " << aE << " " << OK << "\n";
+
+        getchar();
+
+
+    }
+
+    fclose(fptr);
+
+    return EXIT_SUCCESS;
+}
 
 bool cAppliImportSfmInit::Read()
 {
@@ -700,15 +787,34 @@ bool cAppliImportSfmInit::Read()
     else 
         return false;
 
+
+
     if (ReadCoords())     
         std::cout << "[ImportSfmInit] Read coords.txt and tracks.txt, done!" << "\n";
     else 
         return false;
 
+
+
     if (DoImags)
     {
         DoListOfName();
         ShowImgs();        
+        std::cout << "[ImportSfmInit] Image list saved to: " << GetListOfName() << "\n";
+    }
+
+
+    if (CalibDir != "")
+    {
+        SaveCalib();
+        std::cout << "[ImportSfmInit] Image calibrations saved to: " << "Ori-" + CalibDir << "\n";
+    }
+
+
+    if (mEGFile != "")
+    {
+        if (ReadEdges())
+            std::cout << "[ImportSfmInit] Edges saved to: " << "\n";
     }
 
     return true;
@@ -717,7 +823,9 @@ bool cAppliImportSfmInit::Read()
 cAppliImportSfmInit::cAppliImportSfmInit(int argc,char ** argv) :
     DoCalib(false),
     DoImags(false),
+    mEGFile(""),
     mSH(""),
+    CalibDir(""),
     mCCVec(new std::vector<std::string>())
 {
 
@@ -729,8 +837,10 @@ cAppliImportSfmInit::cAppliImportSfmInit(int argc,char ** argv) :
                    << EAMC(mCCListAllFile,"list.txt",eSAM_IsExistFile)
                    << EAMC(mCoordsFile,"coords.txt",eSAM_IsExistFile)
                    << EAMC(mTracksFile,"tracks.txt",eSAM_IsExistFile),
-        LArgMain() << EAM(DoCalib,"DoCal",true,"Export the calibration files; Def=true")
-                   << EAM(DoImags,"DoImg",true,"Create images from cc.txt")
+        LArgMain() << EAM(mEGFile,"EG","true", "Export relative orientations from EGs.txt")
+                   << EAM(CalibDir,"OriCalib","true", "Export calibrations to OriCalib directory")
+                   << EAM(DoCalib,"DoCal",true,"Export the calibration files; Def=true")
+                   << EAM(DoImags,"DoImg",true,"Create images' xml list from cc.txt")
                    << EAM(mSH,"SH",true,"Homol postfix")
     );    
 
@@ -739,6 +849,15 @@ cAppliImportSfmInit::cAppliImportSfmInit(int argc,char ** argv) :
     #endif
 
     mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
+    
+    if (EAMIsInit(&CalibDir))
+    {
+        //StdCorrecNameOrient(CalibDir, mDir);
+        
+        if (! ELISE_fp::IsDirectory("Ori-"+CalibDir))
+            ELISE_fp::MkDir("Ori-"+CalibDir);
+
+    }
 }
 
 int CPP_NewOriReadFromSfmInit(int argc,char ** argv)

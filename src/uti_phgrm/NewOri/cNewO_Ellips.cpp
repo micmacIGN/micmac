@@ -150,6 +150,69 @@ void cGenGaus3D::GetDistribGaus(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int a
    }
 }
 
+/*
+ *     _____
+ * P1 *     /|
+ *   /     / |
+ *  /___P2*  |
+ *  | P4x |  *P3   x - pt in the middle
+ *  |     | /      * - pts in the corners
+ *P5*_____|/
+ *
+ *
+ * */
+void cGenGaus3D::GetDistr5Points(std::vector<Pt3dr> & aVPts)
+{
+    aVPts.clear();
+
+    int aMult=1;
+
+    //
+    Pt3dr aFact1 =  mVecP[0] * (FactCorrectif(aMult) * mVP[0]);
+    Pt3dr aFact2 =  mVecP[1] * (FactCorrectif(aMult) * mVP[1]);
+    Pt3dr aFact3 =  mVecP[2] * (FactCorrectif(aMult) * mVP[2]);
+
+
+    /*std::cout << "mVecP[0]=" << mVecP[0] << ", mVP[0]=" << mVP[0] << "\n";
+    std::cout << "mVecP[1]=" << mVecP[1] << ", mVP[1]=" << mVP[1] << "\n";
+    std::cout << "mVecP[2]=" << mVecP[2] << ", mVP[2]=" << mVP[2] << "\n";*/
+
+
+    // InvErrFoncRationel : probability that the fonction takes a value <-1/aMult, 1/aMult> (lim <-.5,.5>) 
+    //                      on normalised values, i.e. mean=0 and variance=0.5
+    Pt3dr aP1;
+    aP1 = mCDG + aFact1 * InvErrFoncRationel(-1*2,2*aMult+1)
+               + aFact2 * InvErrFoncRationel(1*2,2*aMult+1)
+               + aFact3 * InvErrFoncRationel(1*2,2*aMult+1); //Inv(p/q)
+    aVPts.push_back(aP1);
+
+    Pt3dr aP2;
+    aP2 = mCDG + aFact1 * InvErrFoncRationel(1*2,2*aMult+1)
+               + aFact2 * InvErrFoncRationel(-1*2,2*aMult+1)
+               + aFact3 * InvErrFoncRationel(1*2,2*aMult+1); 
+    aVPts.push_back(aP2);
+
+    Pt3dr aP3;
+    aP3 = mCDG + aFact1 * InvErrFoncRationel(1*2,2*aMult+1)
+               + aFact2 * InvErrFoncRationel(1*2,2*aMult+1)
+               + aFact3 * InvErrFoncRationel(-1*2,2*aMult+1); 
+    aVPts.push_back(aP3);
+
+    Pt3dr aP4;
+    aP4 = mCDG + aFact1 * InvErrFoncRationel(0,2*aMult+1)
+               + aFact2 * InvErrFoncRationel(0,2*aMult+1)
+               + aFact3 * InvErrFoncRationel(0,2*aMult+1); 
+    aVPts.push_back(aP4);
+
+    Pt3dr aP5;
+    aP5 = mCDG + aFact1 * InvErrFoncRationel(-1*2,2*aMult+1)
+               + aFact2 * InvErrFoncRationel(-1*2,2*aMult+1)
+               + aFact3 * InvErrFoncRationel(-1*2,2*aMult+1); 
+    aVPts.push_back(aP5);
+
+
+}
+
 
 void cGenGaus3D::GetDistribGausNSym(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int aN3,bool aAddPts)
 {
@@ -291,6 +354,32 @@ void cGenGaus2D::GetDistribGaus(std::vector<Pt2dr> & aVPts,int aN1,int aN2)
    }
 }
 
+void cGenGaus2D::GetDistr3Points(std::vector<Pt2dr> & aVPts)
+{
+    aVPts.clear();
+
+    int aMult=2;
+
+    //
+    Pt2dr aFact1 =  mVecP[0] * (FactCorrectif(aMult) * mVP[0]);
+    Pt2dr aFact2 =  mVecP[1] * (FactCorrectif(aMult) * mVP[1]);
+
+
+    std::cout << "mVecP[0]=" << mVecP[0] << ", mVP[0]=" << mVP[0] << "\n";
+    std::cout << "mVecP[1]=" << mVecP[1] << ", mVP[1]=" << mVP[1] << "\n";
+
+    getchar();
+
+    // InvErrFoncRationel : probability that the fonction takes a value <-1/aMult, 1/aMult>
+    Pt2dr aP;
+    aP = mCDG + aFact1 * InvErrFoncRationel(1,aMult)
+              + aFact2 * InvErrFoncRationel(1,aMult); //Inv(p/q)
+
+    std::cout << "aFact1=" << aFact1 << " InvErrFoncRationel(1,aMult)=" << InvErrFoncRationel(1,aMult) << "\n aFact2=" << aFact2 << "\n";
+
+    
+	
+}
 
 const double & cGenGaus3D::ValP(int aK) const { return mVP[aK]; }
 const Pt3dr &  cGenGaus3D::VecP(int aK) const { return mVecP[aK]; }
