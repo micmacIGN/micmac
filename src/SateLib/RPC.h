@@ -105,6 +105,11 @@ public:
 class RPC
 {
 public:
+// MPD :  Declaration forgotten by someone ...
+        double ComputeDenomApprox(double ab[20], double aU[20]);
+        void ComputeEq(double aB, double aDenomApprox, double aU[20], double(&aEq)[39]);
+
+
         //Elements of RPC
         std::vector<double> direct_line_num_coef;
         std::vector<double> direct_line_den_coef;
