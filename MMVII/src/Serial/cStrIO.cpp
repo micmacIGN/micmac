@@ -69,6 +69,7 @@ MACRO_INSTANTITATE_STRIO_VECT_TYPE(double)
 
                           //   - - cPtxd  - -
 
+
 #define MACRO_INSTANTITATE_STRIO_CPTXD(TYPE,DIM)\
 template <>  std::string cStrIO<cPtxd<TYPE,DIM> >::ToStr(const cPtxd<TYPE,DIM>  & aV)\
 {\
@@ -77,6 +78,8 @@ template <>  std::string cStrIO<cPtxd<TYPE,DIM> >::ToStr(const cPtxd<TYPE,DIM>  
 template <>  cPtxd<TYPE,DIM> cStrIO<cPtxd<TYPE,DIM> >::FromStr(const std::string & aStr)\
 {\
     std::vector<TYPE> aV = cStrIO<std::vector<TYPE>>::FromStr(aStr);\
+    if (aV.size()!=DIM)\
+       MMVII_UsersErrror(eTyUEr::eBadDimForPt,"Expect="+ MMVII::ToStr(DIM) + " Got=" + MMVII::ToStr(int(aV.size())) );\
     cPtxd<TYPE,DIM> aRes;\
     for (int aK=0 ; aK<DIM ; aK++)\
         aRes[aK] = aV[aK];\
@@ -212,7 +215,7 @@ std::string  ToS_NbDigit(int aNb,int aNbDig,bool AcceptOverFlow)
 
 template <>  std::string cStrIO<double>::ToStr(const double & anI)
 {
-   sprintf(BufStrIO,"%lf",anI);
+   sprintf(BufStrIO,"%lg",anI);
    return BufStrIO;
 }
 template <>  double cStrIO<double>::FromStr(const std::string & aStr)

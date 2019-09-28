@@ -1,5 +1,8 @@
 #include "include/MMVII_all.h"
 #include <boost/algorithm/cxx14/equal.hpp>
+// #include <boost/container_hash/hash.hpp>
+// #include <boost/hash.hpp>
+#include <boost/functional/hash.hpp>
 
 
 /** \file Serial.cpp
@@ -54,6 +57,7 @@ class cAr2007 : public cMemCheck
          virtual ~cAr2007();
          virtual void Separator(); /**< Used in final but non atomic type, 
                                         for ex with Pt : in text separate x,y, in bin do nothing */
+         virtual size_t HashKey() const;
 
     protected  :
          cAr2007(bool InPut,bool Tagged);
@@ -62,6 +66,7 @@ class cAr2007 : public cMemCheck
          bool  mTagged; 
      private  :
 
+         /// By default error, to redefine in hashing class
          /// This message is send before each data is serialized, tagged file put/read their opening tag here
          virtual void RawBeginName(const cAuxAr2007& anOT);
          /// This message is send each each data is serialized, tagged file put/read their closing tag here
@@ -109,6 +114,12 @@ void DeleteAr(cAr2007 * anAr)
 }
 
 
+size_t cAr2007::HashKey() const
+{
+   MMVII_INTERNAL_ASSERT_always(!mInput,"Internal error, no cAr2007::HashKey");
+   return 0;
+}
+
 int cAr2007::NbNextOptionnal(const std::string &)
 {
    MMVII_INTERNAL_ASSERT_always(!mInput,"Internal error, no cAr2007::NbNextOptionnal");
@@ -118,7 +129,28 @@ int cAr2007::NbNextOptionnal(const std::string &)
 void AddData(const  cAuxAr2007 & anAux, int  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
-void AddData(const  cAuxAr2007 & anAux, cPt2dr  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
+
+template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aVal) 
+{
+    // anAux.Ar().TplAddDataTerm(anAux,aVal); 
+    
+    Type * aVD = aVal.PtRawData() ;
+    AddData(anAux,aVD[0]);
+    // AddData(anAux,aVal[0]);
+    for (int aK=1 ; aK<Dim ; aK++)
+    {
+        anAux.Ar().Separator();
+        AddData(anAux,aVD[aK]);
+    }
+}
+
+#define MACRO_INSTANTIATE_AddDataPtxD(DIM)\
+template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,DIM>  &  aVal) ;\
+template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tINT4,DIM>  &  aVal) ;\
+
+MACRO_INSTANTIATE_AddDataPtxD(1)
+MACRO_INSTANTIATE_AddDataPtxD(2)
+MACRO_INSTANTIATE_AddDataPtxD(3)
 
 void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) 
 {
@@ -127,6 +159,7 @@ void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal)
     AddData(anAux,aVal.V2());
 }
 
+size_t  HashValFromAr(cAr2007& anAr) {return anAr.HashKey();}
 
 
 /* ========================================================= */
@@ -522,6 +555,61 @@ void cOXml_Ar2007::RawEndName(const cAuxAr2007& anOT)
     Ofs()  << "</" << anOT.Name() << ">";
     mXTerm = false;
 }
+/*============================================================*/
+/*                                                            */
+/*          cHashValue_Ar2007                                 */
+/*                                                            */
+/*============================================================*/
+
+/// hashvalue  archive
+/**
+    An archive for writing hashing of a given value
+*/
+class  cHashValue_Ar2007 : public cAr2007
+{
+    public :
+        cHashValue_Ar2007 (bool Ordered) :
+            cAr2007   (false,false),  // Is Not Input, Tagged
+            mHashKey  (0),
+            mOrdered  (Ordered)
+        {
+        }
+        void RawAddDataTerm(int &    anI)  override;
+        void RawAddDataTerm(double &    anI)  override;
+        void RawAddDataTerm(std::string &    anI)  override;
+        size_t HashKey() const override {return mHashKey;}
+        
+    private :
+         size_t     mHashKey;
+         bool       mOrdered;
+};
+
+void cHashValue_Ar2007::RawAddDataTerm(int &    anI) 
+{
+    if (mOrdered)
+       boost::hash_combine(mHashKey, anI);
+    else
+       mHashKey ^= std::hash<int>()(anI);
+}
+
+void cHashValue_Ar2007::RawAddDataTerm(double &    aD) 
+{
+    if (mOrdered)
+       boost::hash_combine(mHashKey, aD);
+    else
+       mHashKey ^= std::hash<double>()(aD);
+}
+
+void cHashValue_Ar2007::RawAddDataTerm(std::string &    anS) 
+{
+    if (mOrdered)
+       boost::hash_combine(mHashKey, anS);
+    else 
+       mHashKey ^= std::hash<std::string>()(anS);
+}
+
+cAr2007* AllocArHashVal(bool Ordered) {return new cHashValue_Ar2007(Ordered);}
+
 
 /*============================================================*/
 /*                                                            */
@@ -538,7 +626,7 @@ class  cOBin_Ar2007 : public cAr2007
 {
     public :
         cOBin_Ar2007 (const std::string & aName) :
-            cAr2007(false,false),  // Output, Tagged
+            cAr2007(false,false),  // Is Not Input, Tagged
             mMMOs  (aName,false)
         {
         }
@@ -570,7 +658,7 @@ class  cIBin_Ar2007 : public cAr2007
 {
     public :
         cIBin_Ar2007 (const std::string & aName) :
-            cAr2007(true,false),  // Output, Tagged
+            cAr2007(true,false),  // Input, Tagged
             mMMIs  (aName)
         {
         }

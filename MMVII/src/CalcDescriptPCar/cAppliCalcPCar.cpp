@@ -79,9 +79,12 @@ class cAppliCalcDescPCar : public cMMVII_Appli
         bool        mDoLapl;
         bool        mDoCorner;
         bool        mDoOriNorm;
-        double      mSDON;
+        double      mEstSI0; // Estimation of Sigma of first image
+        double      mSDON;  ///< Scale 4 Orig Normalized
         double      mCI0;   ///<  Convol Im0
         double      mCC0;   ///<  Convol Corner0
+        std::string mPrefixOut; ///< Prefix 4 Out, is constructed from Image and CarPOut (inherited from Appli)
+        cFilterPCar          mFPC;
 };
 
 /* =============================================== */
@@ -123,9 +126,18 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
     mSzIn = mBoxIn.Sz();
     mBoxOut = aPBI.BoxOut(anIndex);
     cGP_Params aGP(mSzIn,mAppli.mNbOct,mAppli.mNbLevByOct,mAppli.mNbOverLapByO);
+
+    aGP.mPrefixSave = mAppli.mPrefixOut ;
     aGP.mScaleDirOrig = mAppli.mSDON ;
     aGP.mConvolIm0 = mAppli.mCI0 ;
     aGP.mConvolC0  = mAppli.mCC0 ;
+
+    
+    if ( mAppli.IsInit(&mAppli.mEstSI0))
+       aGP.mEstimSigmInitIm0 =  mAppli.mEstSI0;
+    aGP.mFPC  = mAppli.mFPC;
+
+     
     mPyr = tPyr::Alloc(aGP,mAppli.mNameIm,aPref,mBoxIn,mBoxOut);
 
     // Load image
@@ -172,7 +184,7 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
     }
     mPyr->SaveInFile(0,mAppli.mSaveIms);
 
-    // Compute corner images required
+    // Compute Normalized Original Image required
     if (mAppli.mDoOriNorm)
     {
        mPyrOriNom =  mPyr->PyramOrigNormalize();
@@ -204,7 +216,7 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
 /* =============================================== */
 
 cAppliCalcDescPCar:: cAppliCalcDescPCar(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli  (aVArgs,aSpec),
+  cMMVII_Appli  (aVArgs,aSpec,{eSharedPO::eSPO_CarPO}),
   mIntPyram     (false),
   mSzTile       (7000),
   mOverlap      (300),
@@ -214,10 +226,11 @@ cAppliCalcDescPCar:: cAppliCalcDescPCar(const std::vector<std::string> &  aVArgs
   mSaveIms      (false),
   mDoLapl       (true),
   mDoCorner     (true),
-  mDoOriNorm    (false),
+  mDoOriNorm    (true),
   mSDON         (20.0),
   mCI0          (0.7),
-  mCC0          (0.7)
+  mCC0          (0.7),
+  mFPC          ()
 {
 }
 
@@ -232,21 +245,27 @@ cCollecSpecArg2007 & cAppliCalcDescPCar::ArgObl(cCollecSpecArg2007 & anArgObl)
 cCollecSpecArg2007 & cAppliCalcDescPCar::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
-             << AOpt2007(mIntPyram,"IntPyr","Gauss Pyramid in integer",{eTA2007::HDV})
-             << AOpt2007(mSzTile,"TileSz","Size of tile for spliting computation",{eTA2007::HDV})
-             << AOpt2007(mOverlap,"TileOL","Overlao of tile to limit sides effects",{eTA2007::HDV})
-             << AOpt2007(mNbOct,"PyrNbO","Number of octaves in Pyramid",{eTA2007::HDV})
-             << AOpt2007(mNbLevByOct,"PyrNbL","Number of level/Octaves in Pyramid",{eTA2007::HDV})
-             << AOpt2007(mNbOverLapByO,"PyrNbOverL","Number of overlap  in Pyram(change only for Save Image)",{eTA2007::HDV})
-             << AOpt2007(mSaveIms,"SaveIms","Save images (tuning/debuging/teaching)",{eTA2007::HDV})
-             << AOpt2007(mSDON,"SON","Scale Orig Normalized",{eTA2007::HDV})
-             << AOpt2007(mCI0,"ConvI0","Convolution top image",{eTA2007::HDV})
-             << AOpt2007(mCC0,"ConvC0","Additional Corner Convolution",{eTA2007::HDV})
+       << AOpt2007(mIntPyram,"IntPyr","Gauss Pyramid in integer",{eTA2007::HDV})
+       << AOpt2007(mSzTile,"TileSz","Size of tile for spliting computation",{eTA2007::HDV})
+       << AOpt2007(mOverlap,"TileOL","Overlao of tile to limit sides effects",{eTA2007::HDV})
+       << AOpt2007(mNbOct,"PyrNbO","Number of octaves in Pyramid",{eTA2007::HDV})
+       << AOpt2007(mNbLevByOct,"PyrNbL","Number of level/Octaves in Pyramid",{eTA2007::HDV})
+       << AOpt2007(mNbOverLapByO,"PyrNbOverL","Number of overlap  in Pyram(change only for Save Image)",{eTA2007::HDV})
+       << AOpt2007(mSaveIms,"SaveIms","Save images (tuning/debuging/teaching)",{eTA2007::HDV})
+       << AOpt2007(mSDON,"SON","Scale Orig Normalized",{eTA2007::HDV})
+       << AOpt2007(mCI0,"ConvI0","Convolution top image",{eTA2007::HDV})
+       << AOpt2007(mCC0,"ConvC0","Additional Corner Convolution",{eTA2007::HDV})
+       << AOpt2007(mDoOriNorm,"DON","Do Original Normalized images, experimental",{eTA2007::HDV})
+       << AOpt2007(mEstSI0,"ESI0","Estimation of sigma of first image, by default suppose a well sampled image")
+       << AOpt2007(mFPC.mAutoC,"AC","Param 4 AutoCorrel [Val,?LowVal,?LowValIntCor]",{eTA2007::HDV,{eTA2007::ISizeV,"[1,3]"}})
+       << AOpt2007(mFPC.mPSF,"PSF","Param 4 Spatial Filtering [Dist,MulRay,PropNoFS]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
+       << AOpt2007(mFPC.mEQsf,"EQ","Exposant 4  Quality [AutoC,Var,Scale]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
    ;
 }
 
 int cAppliCalcDescPCar::Exe() 
 {
+   mFPC.FinishAC(0.1);
    {
       const std::vector<std::string> &  aVSetIm = VectMainSet(0);
 
@@ -256,6 +275,9 @@ int cAppliCalcDescPCar::Exe()
          return EXIT_SUCCESS;
       }
    }
+   CreateDirectories(PrefixPCar(mNameIm,""),true);
+   mPrefixOut = PrefixPCarOut(mNameIm);
+
    // Single image, do the job ...
 
    if (mIntPyram)  // Case integer pyramids

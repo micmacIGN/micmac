@@ -168,6 +168,29 @@ template <class Type> class cGP_OneOctave : public cMemCheck
 };
 
 
+struct cFilterPCar
+{
+     public :
+         cFilterPCar();
+         void FinishAC(double = 0.1); ///< Complete AC Value if needed
+
+         std::vector<double>  mAutoC;  ///< Threshold for auto correlation
+         const double & AC_Threshold();  ///< Final Threshold
+         const double & AC_CutReal();    ///< Cut if < this Threshold
+         const double & AC_CutInt();     ///< Cut if integer correl < this threshold
+
+         std::vector<double>  mPSF; ///< Param Spatial Filtering  [Dist,MulRAy,PropNoFS]
+         const double & DistSF();     ///< Targeted Average dist between points
+         const double & MulDistSF();  ///< Mult * DistSF = influence zone of an added point
+         const double & PropNoSF();   ///< Propoption of quality that do not depend of space filter
+
+         std::vector<double>  mEQsf; ///< Exposant for quality of point before spatial filter [AutoC,Var,Scale]
+         const double & PowAC();        ///< Exposant for (1-AutoCorrel)
+         const double & PowVar();       ///< Exposant for Variance
+         const double & PowScale();     ///< Exposant for scaling
+
+}; 
+
 /// Struct for parametrization of Gaussian Pyramid
 
 /**  As  cGaussianPyramid may evolve with many parameters
@@ -185,6 +208,7 @@ struct cGP_Params
          int  mNbLevByOct;  ///< Number of level per octave (dont include overlap)
          int  mNbOverlap;   ///< Number of overlap
          
+         cFilterPCar  mFPC; ///< Not really related to GP, but easier to embed 
       // Parameters with def value, can be changed
          double      mConvolIm0;  ///< Possible additionnal convolution to first image  def 0.0
          int         mNbIter1;    ///<  Number of iteration of first Gaussian              def 4
@@ -192,6 +216,8 @@ struct cGP_Params
          double      mConvolC0;   ///<  Additional convolution for corner pyramid
          double      mScaleDirOrig;   ///<  Scale multiplier for diff on Orig carac point
          double      mEstimSigmInitIm0;   ///< Estimation of sigma0 of first image
+      //  Parameters for saving 
+          std::string mPrefixSave;
 };
 
 /// Struct to store a gaussian pyram

@@ -58,6 +58,7 @@
 #include "MMVII_Images.h"
 #include "MMVII_Linear2DFiltering.h"
 #include "MMVII_NonLinear2DFiltering.h"
+#include "MMVII_ImageInfoExtract.h"
 #include "MMVII_Matrix.h"
 #include "MMVII_SysSurR.h"
 

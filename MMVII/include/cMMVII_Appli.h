@@ -87,6 +87,9 @@ class cSpecMMVII_Appli
        tMMVII_AppliAllocator  Alloc() const; ///< Accessor
        const std::string &    Comment() const; ///< Accessor
        const std::string &    NameFile() const; ///< Accessor
+
+       // bool HasDataTypeIn(const eApDT & aType) const;
+       // bool HasDataTypeOut(const eApDT & aType) const;
     private :
        static std::vector<cSpecMMVII_Appli*> TheVecAll;
        static std::vector<cSpecMMVII_Appli*> & InternVecAll(); ///< vectors of all specifs
@@ -95,8 +98,8 @@ class cSpecMMVII_Appli
        tMMVII_AppliAllocator mAlloc;      ///< Allocator
        std::string           mComment;    ///< Comment on what the command is suposed to do
        tVaF                  mVFeatures;  ///< Features, at leat one
-       tVaDT                 mVInputs;    //
-       tVaDT                 mVOutputs;
+       tVaDT                 mVInputs;    ///<  Vector Input Data Type
+       tVaDT                 mVOutputs;   ///<  Vector Output Data Type
        std::string           mNameFile;   ///< C++ file where it is defined, may be usefull for devlopers ?
 
 };
@@ -243,7 +246,7 @@ cMultipleOfs& ErrOut();
 
 
    The constructor of inheriting class, should (1) call cMMVII_Appli(argc,argv)
-   (2) call  InitParam for parsing the command line. This separatiion is nessary
+   (2) call  InitParam for parsing the command line. This separatiion is necessary
    because InitParam use ressource of cMMVII_Appli.
  
 */
@@ -256,6 +259,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 {
     public :
 
+        typedef std::vector<eSharedPO>  tVSPO;
         /// Temporary; will add later a "real" warning mechanism, for now track existing
         void MMVII_WARNING(const std::string &);
 
@@ -302,7 +306,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
     protected :
         /// Constructor, essenntially memorize command line and specifs
-        cMMVII_Appli(const std::vector<std::string> & aVArgcv, const cSpecMMVII_Appli &);
+        cMMVII_Appli(const std::vector<std::string> & aVArgcv, const cSpecMMVII_Appli &,tVSPO=EmptyVSPO);
         /// Second step of construction, parse the command line and initialize values
 
         const tNameSet &                         MainSet0() const;         ///< MainSet(0) , 
@@ -407,7 +411,21 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mPrefixNameAppli;  ///< String Id of process
         std::string                               mPrefixGMA;        ///< Sting Id of Global Main Appli
         std::string                               mDirProjGMA;        ///< Dir Project Main Appli
+     
+    protected :
+     // ###########"  SHARED OPTIMIZED PARAMETER #####################
+        bool   HasSharedSPO(eSharedPO) const;  ///< Is this type of parameter activated
+        static const tVSPO    EmptyVSPO;       ///< Defaut Vector  shared optional parameter
+        tVSPO                 mVSPO;           ///< Vector of shared optional parameter , use for arg spec
+        //  ====  TieP Stuff: param, name ... ============
+        std::string PrefixPCar(const std::string & aNameIm,const std::string & aPref) const;
+        std::string PrefixPCarOut(const std::string & aNameIm) const;
+        std::string PrefixPCarIn(const std::string & aNameIm) const;
 
+        std::string                               mCarPPrefOut;  ///< Prefix for output Carac point ...
+        std::string                               mCarPPrefIn;   ///< Prefix for input  Carac point ...
+        std::string                               mTiePPrefOut;  ///< Prefix for output Tie Points ...
+        std::string                               mTiePPrefIn;   ///< Prefix for inout  Tie Points ...
 };
 
 };

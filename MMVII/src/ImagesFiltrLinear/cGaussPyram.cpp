@@ -24,10 +24,11 @@ template <class Type> cGP_OneImage<Type>::cGP_OneImage(tOct * anOct,int aNumInOc
     mImG       (mOct->SzIm()),
     mIsTopPyr  ((anImUp==nullptr) && (mOct->Up()==nullptr))
 {
-    mNameSave =     "Aime-" 
+    mNameSave =      mPyr->Params().mPrefixSave
+                   + "-Ima-" 
                    + E2Str(mPyr->TypePyr()) 
                    + "-" + ShortId() 
-                   + "-" +  Prefix(mPyr->NameIm())
+                   // + "-" +  Prefix(mPyr->NameIm())
                    + "-" +  mPyr->Prefix()
                    + ".tif"
                 ;
@@ -47,7 +48,10 @@ template <class Type> cGP_OneImage<Type>::cGP_OneImage(tOct * anOct,int aNumInOc
     }
     mScaleInO = mScaleAbs / anOct->Scale0Abs(); // This the relative sigma between different image
 
+    // This is the "targeted" sigma we want to reach in the "absolute" (no decimation)
+    //  scaled image it suppose that we know the  the sigma of first image, then simply multiply by it
     mTargetSigmAbs = mPyr->SigmIm0() * mScaleAbs;
+   // For the value in octave, just divide by decimation factor
     mTargetSigmInO = mTargetSigmAbs / anOct->Scale0Abs();
 }
 
@@ -101,12 +105,16 @@ template <class Type> void cGP_OneImage<Type>::MakeDiff(const tGPIm &  aImDif)
    DiffImageInPlace(mImG.DIm(),aImDif.mImG.DIm(),aImDif.mDown->mImG.DIm());
 }
 
-template <class Type> void cGP_OneImage<Type>::MakeOrigNorm(const tGPIm &  aGPI)
+template <class Type> void cGP_OneImage<Type>::MakeOrigNorm(const tGPIm &  aOriGPI)
 {
-    tIm aImBlur = aGPI.mImG.Dup();
+    // Create a duplicata of original image
+    tIm aImBlur = aOriGPI.mImG.Dup();
 
+    // Put in  aImBlur the convolution with  Gaussian filter
     ExpFilterOfStdDev(aImBlur.DIm(),3,mTargetSigmInO*mPyr->Params().mScaleDirOrig);
-    DiffImageInPlace(mImG.DIm(),aGPI.mImG.DIm(),aImBlur.DIm());
+    // Put In Res, diff between gaussian filter an Ori
+    DiffImageInPlace(mImG.DIm(),aOriGPI.mImG.DIm(),aImBlur.DIm());
+    // Multiply by ScaleInO
     SelfMulImageCsteInPlace(mImG.DIm(),pow(mScaleInO,1));
 }
 
@@ -252,6 +260,41 @@ template <class Type> const double & cGP_OneOctave<Type>::Scale0Abs() const {ret
 template <class Type> cGP_OneOctave<Type>* cGP_OneOctave<Type>::Up() const {return mUp;}
 template <class Type> const int & cGP_OneOctave<Type>::NumInPyr() const {return mNumInPyr;}
 template <class Type> const  std::vector<std::shared_ptr<cGP_OneImage<Type>>> & cGP_OneOctave<Type>::VIms() const {return mVIms;}
+
+/* ==================================================== */
+/*                                                      */
+/*              cFilterPCar                             */
+/*                                                      */
+/* ==================================================== */
+
+cFilterPCar::cFilterPCar() :
+   mAutoC  ({0.9}),
+   mPSF    ({35,3.0,0.2}),
+   mEQsf   ({2,1,1})
+{
+}
+
+void cFilterPCar::FinishAC(double aVal)
+{
+    for (int aK=1 ; aK< 3 ; aK++)
+    {
+        if (int(mAutoC.size()) == aK)
+           mAutoC.push_back(mAutoC.back()-0.05);
+    }
+}
+
+const double & cFilterPCar::AC_Threshold() {return mAutoC.at(0);}
+const double & cFilterPCar::AC_CutReal()   {return mAutoC.at(1);}
+const double & cFilterPCar::AC_CutInt()    {return mAutoC.at(2);}
+
+const double & cFilterPCar::DistSF()       {return mPSF.at(0);}
+const double & cFilterPCar::MulDistSF()    {return mPSF.at(1);}
+const double & cFilterPCar::PropNoSF()     {return mPSF.at(2);}
+
+const double & cFilterPCar::PowAC()        {return mEQsf.at(0);}
+const double & cFilterPCar::PowVar()       {return mEQsf.at(1);}
+const double & cFilterPCar::PowScale()     {return mEQsf.at(2);}
+
 
 
 /* ==================================================== */
@@ -432,8 +475,8 @@ template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool 
 {
    bool DoPrint = (aPowSPr>=0) && ForInspect;
 
-   std::unique_ptr<cInterf_ExportAimeTiep<Type>> aPtrExpMin(cInterf_ExportAimeTiep<Type>::Alloc(true,int(mTypePyr),E2Str(mTypePyr),ForInspect));
-   std::unique_ptr<cInterf_ExportAimeTiep<Type>> aPtrExpMax(cInterf_ExportAimeTiep<Type>::Alloc(false,int(mTypePyr),E2Str(mTypePyr),ForInspect));
+   std::unique_ptr<cInterf_ExportAimeTiep<Type>> aPtrExpMin(cInterf_ExportAimeTiep<Type>::Alloc(SzIm0(),true,int(mTypePyr),E2Str(mTypePyr),ForInspect,mParams));
+   std::unique_ptr<cInterf_ExportAimeTiep<Type>> aPtrExpMax(cInterf_ExportAimeTiep<Type>::Alloc(SzIm0(),false,int(mTypePyr),E2Str(mTypePyr),ForInspect,mParams));
 
    if (DoPrint)
       StdOut() <<  "\n ######  STAT FOR " << E2Str(mTypePyr)  << " Pow " << aPowSPr << " ######\n";
@@ -503,9 +546,16 @@ template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool 
        }
    }
    StdOut() << " ======  NbTot , Min " << aNbMinTot << " Max " << aNbMaxTot << "\n";
-   std::string aPref =    "Aime-" + E2Str(TypePyr()) + "-" +  MMVII::Prefix(NameIm()) + "-" +mPrefix +".dmp";
-   aPtrExpMin->Export("Min-"+ aPref);
-   aPtrExpMax->Export("Max-"+ aPref);
+   // std::string aPref =    "Aime-" + E2Str(TypePyr()) + "-" +  MMVII::Prefix(NameIm()) + "-" +mPrefix +".dmp";
+   
+   std::string aPref =     mParams.mPrefixSave + "-AimePCar-";
+   std::string aPost =   E2Str(TypePyr()) + "-" +mPrefix +".dmp";
+
+   aPtrExpMin->FiltrageSpatialPts();
+   aPtrExpMax->FiltrageSpatialPts();
+
+   aPtrExpMin->Export(aPref+"Min-"+ aPost);
+   aPtrExpMax->Export(aPref+"Max-"+ aPost);
 }
 
 template <class Type>  cGP_OneOctave<Type> * cGaussianPyramid<Type>::OctHom(tOct *anOct)

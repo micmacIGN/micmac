@@ -103,6 +103,11 @@ template <const int Dim> int NbPixVign(const cPtxd<int,Dim> & aVign)
    return aRes;
 }
 
+static const int VeryBig = 1e9;
+const cPt2di  ThePSupImage( VeryBig, VeryBig);
+const cPt2di  ThePInfImage(-VeryBig,-VeryBig);
+
+
 
 
 
@@ -317,6 +322,10 @@ template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Dilate
 }
 
 
+template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Dilate(const Type & aVal) const
+{
+   return Dilate(tPt::PCste(aVal));
+}
 
 template <class Type,const int Dim> void cTplBox<Type,Dim>::AssertSameArea(const cTplBox<Type,Dim> & aR2) const
 {
@@ -406,14 +415,63 @@ template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Genera
     return cTplBox<Type,Dim>(aP0,aP1);
 }
 
+/* ========================== */
+/*       cTpxBoxOfPts         */
+/* ========================== */
 
+template <class Type,const int Dim>   cTplBoxOfPts<Type,Dim>::cTplBoxOfPts() :
+   mNbPts (0),
+   mP0    (tPt::PCste(0)),
+   mP1    (tPt::PCste(0))
+{
+}
+
+template <class Type,const int Dim>  int  cTplBoxOfPts<Type,Dim>::NbPts() const {return mNbPts;}
+
+template <class Type,const int Dim>  const cPtxd<Type,Dim> &  cTplBoxOfPts<Type,Dim>::P0() const
+{
+   MMVII_INTERNAL_ASSERT_medium(mNbPts,"cTplBoxOfPts<Type,Dim>::P0()")
+   return  mP0;
+}
+
+template <class Type,const int Dim>  const cPtxd<Type,Dim> &  cTplBoxOfPts<Type,Dim>::P1() const
+{
+   MMVII_INTERNAL_ASSERT_medium(mNbPts,"cTplBoxOfPts<Type,Dim>::P1()")
+   return  mP1;
+}
+
+template <class Type,const int Dim>  cTplBox<Type,Dim>  cTplBoxOfPts<Type,Dim>::CurBox() const
+{
+    return  cTplBox<Type,Dim>(mP0,mP1);
+}
+
+template <class Type,const int Dim>  void  cTplBoxOfPts<Type,Dim>::Add(const tPt & aP)
+{
+   if (mNbPts==0)
+   {
+      mP0 = aP;
+      mP1 = aP;
+   }
+   else
+   {
+      SetInfEq(mP0,aP);
+      SetSupEq(mP1,aP);
+   }
+   mNbPts++;
+}
+
+/* ========================== */
+/*       INSTANTIATION        */
+/* ========================== */
 
 #define MACRO_INSTATIATE_PRECT_DIM(DIM)\
 template class cBorderPixBoxIterator<DIM>;\
 template class cBorderPixBox<DIM>;\
 template class cTplBox<tINT4,DIM>;\
+template class cTplBoxOfPts<tINT4,DIM>;\
 template  class cParseBoxInOut<DIM>;\
 template class cTplBox<tREAL8,DIM>;\
+template class cTplBoxOfPts<tREAL8,DIM>;\
 template class cPixBox<DIM>;\
 template  int NbPixVign(const cPtxd<int,DIM> & aVign);\
 template class cDataGenUnTypedIm<DIM>;\

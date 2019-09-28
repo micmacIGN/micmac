@@ -38,12 +38,12 @@ class cProtoAimeTieP
 template <class Type> class cInterf_ExportAimeTiep : public cMemCheck
 {
      public :
-         static cInterf_ExportAimeTiep<Type> * Alloc(bool IsMin,int ATypePt,const std::string & aName,bool ForInspect );
+         static cInterf_ExportAimeTiep<Type> * Alloc(const cPt2di & aSzIm0,bool IsMin,int ATypePt,const std::string & aName,bool ForInspect,const cGP_Params & );
          virtual ~cInterf_ExportAimeTiep();
          virtual void AddAimeTieP(const cProtoAimeTieP & aPATP ) = 0;
          virtual void Export(const std::string &) = 0;
          virtual void SetCurImages(cIm2D<Type> Im0,cIm2D<Type> ImCarac,double aScalInO) = 0;
-       
+         virtual void FiltrageSpatialPts() = 0; 
      protected :
 
 };

@@ -98,13 +98,13 @@ class cSemA2007
       cSemA2007(eTA2007 aType);
 
       eTA2007 Type()            const;  ///< Accessor
-      const std::string & Aux() const;  ///< Accessor
+      const std::string & AuxA2007() const;  ///< Accessor
       std::string  Name4Help() const;   ///< Use  E2Str(const eTA2007 &) but filter to usefull, add Aux
 
     private :
 
       eTA2007      mType;
-      std::string  mAux;
+      std::string  mAuxA2007;
 };
 
 
@@ -129,6 +129,9 @@ class  cSpecOneArg2007 : public cMemCheck
         virtual void * AdrParam() = 0;    ///< cast to void * of typed adress, used by Application know if init 
         virtual const std::string & NameType() const = 0;  ///< as int, bool, ....
         virtual std::string  NameValue() const = 0;  ///< Used to print def value
+
+        virtual void  CheckSize(const std::string &) const = 0;  ///< Used to check size of vect from a parameter like "[4,6]"
+
         /// Does any of  mVSem contains aType
         bool HasType(const eTA2007 & aType,std::string * aValue=0)            const;
 
@@ -237,16 +240,20 @@ class cAuxAr2007
 
 /// Create an archive structure, its type (xml, binary, text) is determined by extension
  cAr2007* AllocArFromFile(const std::string & aName,bool Input);
-//  std::unique_ptr<cAr2007 > AllocArFromFile(const std::string & aName,bool Input);
+
+/// Create an archive for hashing value
+cAr2007* AllocArHashVal(bool ordered);
+size_t  HashValFromAr(cAr2007&); /// defined only for Hash archive
 
 /** Here are the atomic serialization function */
 
 void AddData(const  cAuxAr2007 & anAux, int  &  aVal); ///< for int
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) ; ///< for double
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string
-void AddData(const  cAuxAr2007 & anAux, cPt2dr  &  aVal) ;  ///<for cPt2dr
 void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) ;  ///< for Pair of string
 void AddData(const  cAuxAr2007 & anAux, tNameOCple  &  aVal) ;  ///< for Ordered Cple of string
+
+template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aVal) ;  ///<for cPt2dr
 
 /// Serialization for optional
 // template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,boost::optional<Type> & aL);

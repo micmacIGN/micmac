@@ -185,6 +185,25 @@ class cMultipleOfs  : public  std::ostream
         void Clear() {mVOfs.clear();}
 
         // template <class Type> cMultipleOfs & operator << (Type & aVal);
+        template <class Type> cMultipleOfs & ShowCont (const Type & aCont,const std::string & aGram)
+        {
+             *this << aGram[0];
+             int aK=0;
+             for (const auto & aVal : aCont) 
+             {
+                 if (aK!=0)  *this << aGram[1];
+                 *this << aVal;
+                 aK++;
+             }
+             *this << aGram[2];
+             return *this;
+        }
+        // General specialized for vector
+        template <class Type> cMultipleOfs & operator << (const std::vector<Type> & aVal)
+        {
+             return ShowCont(aVal,"[,]");
+        }
+        // General version
         template <class Type> cMultipleOfs & operator << (const Type & aVal)
         {
              for (const auto & Ofs :  mVOfs)

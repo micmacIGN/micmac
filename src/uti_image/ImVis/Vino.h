@@ -404,18 +404,20 @@ class cAppli_Vino : public cXml_EnvVino,
 
         //   =====  Inspection MicMacV2 
         
-        std::string                     mNameAimePCar;
-        bool                            mWithAime;
-        cXml2007FilePt                  mAimePCar;
+        std::string                       mNameAimePCar;
+        bool                              mAimeShowFailed;  // Show point failed when exist
+        std::string                       mDirAime;
+        bool                              mWithAime;
+        std::vector<cXml2007SetPtOneType> mAimePCar;
         Pt2di                           mAimeSzW;
         Pt2di                           mAimeCW;
         int                             mAimeZoomW;
         void                            AimeVisu();
         void                            InspectAime(const Pt2dr & aPt);
-        const cXml2007Pt *              AimeGetPC(const Pt2dr & aPU);
+        const cXml2007Pt *              AimeGetPC(const Pt2dr & aPU,const cXml2007SetPtOneType**);
         Im2D_REAL4 LoadAimePC(const cXml2007Pt & aPC,const std::string & aNameType,Video_Win * aW);
-        Im2D_REAL4 StdLoadAimePC(const cXml2007Pt & aPC);
-        Im2D_REAL4 I0LoadAimePC(const cXml2007Pt & aPC);
+        Im2D_REAL4 StdLoadAimePC(const cXml2007Pt & aPC,const cXml2007SetPtOneType* aSet);
+        Im2D_REAL4 I0LoadAimePC(const cXml2007Pt & aPC,const cXml2007SetPtOneType* aSet);
         Video_Win *  mAimWStd;
         Video_Win *  mAimWI0;
 
