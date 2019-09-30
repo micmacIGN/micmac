@@ -455,6 +455,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         const int    &  X1()  const {return P1().x();}   ///< Std Accessor
         const int    &  Y1()  const {return P1().y();}   ///< Std Accessor
 
+        const tINT8 & NbPix() const {return tPB::NbElem();} ///< Number total of pixel
 
         void Resize(const cPt2di& aP0,const cPt2di & aP1,eModeInitImage=eModeInitImage::eMIA_NoInit);
         void Resize(const cPt2di& aSz,eModeInitImage=eModeInitImage::eMIA_NoInit);

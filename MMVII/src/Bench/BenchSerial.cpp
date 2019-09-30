@@ -107,6 +107,24 @@ void BenchSerialization(const std::string & aDirOut,const std::string & aDirIn)
        ReadFromFile(aP12,aDirOut+"F1.xml");
        // Check the value read is the same
        MMVII_INTERNAL_ASSERT_bench(aP12==cTestSerial1(),"cAppli_MMVII_TestSerial");
+
+       cTestSerial1 aS1;
+
+       // Same object, same key
+       MMVII_INTERNAL_ASSERT_bench(HashValue(aS1,true)==HashValue(aP12,true),"Hash_1");
+       MMVII_INTERNAL_ASSERT_bench(HashValue(aS1,false)==HashValue(aP12,false),"Hash_2");
+
+       // Same object to a permutation, dif 4 ordered, equal 4 unordered
+       aS1.mP3 = PSymXY(aS1.mP3);
+       MMVII_INTERNAL_ASSERT_bench(HashValue(aS1,true)!=HashValue(aP12,true),"Hash_1");
+       MMVII_INTERNAL_ASSERT_bench(HashValue(aS1,false)==HashValue(aP12,false),"Hash_2");
+
+       // Different object, different key
+       aS1.mP3.x()++;
+       MMVII_INTERNAL_ASSERT_bench(HashValue(aS1,true)!=HashValue(aP12,true),"Hash_1");
+       MMVII_INTERNAL_ASSERT_bench(HashValue(aS1,false)!=HashValue(aP12,false),"Hash_2");
+
+       // aS1
        // Check that == return false if we change a few
        cTestSerial1 aPModif = aP12;
        aPModif.mO1 = cPt2dr(14,18);

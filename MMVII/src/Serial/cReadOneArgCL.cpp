@@ -8,8 +8,8 @@ namespace MMVII
 /* ========================== */
 
 cSemA2007::cSemA2007(eTA2007 aType,const std::string & anAux) :
-   mType (aType),
-   mAux  (anAux)
+   mType      (aType),
+   mAuxA2007  (anAux)
 {
 }
 
@@ -19,13 +19,13 @@ cSemA2007::cSemA2007(eTA2007 aType) :
 }
 
 eTA2007  cSemA2007::Type()            const {return mType;}
-const std::string &  cSemA2007::Aux() const {return mAux;}
+const std::string &  cSemA2007::AuxA2007() const {return mAuxA2007;}
 
 std::string  cSemA2007::Name4Help() const
 {
-   if (int(mType) < int(eTA2007::Common))
+   if (int(mType) < int(eTA2007::Shared))
    {
-      return E2Str(mType) + mAux;
+      return E2Str(mType) + mAuxA2007;
    }
 
    return "";
@@ -101,7 +101,7 @@ bool cSpecOneArg2007::HasType(const eTA2007 & aType,std::string * aValue) const
        if (aSem.Type() == aType)
        {
           if (aValue) 
-             *aValue =  aSem.Aux();
+             *aValue =  aSem.AuxA2007();
           return true;
        }
    }
@@ -175,9 +175,31 @@ tVecArg2007 & cCollecSpecArg2007::Vec()
 /*                                                */
 /* ============================================== */
 
+template <class Type> void  GlobCheckSize(const Type & ,const std::string & anArg) 
+{
+    MMVII_INTERNAL_ASSERT_always(false,"Check size vect for non vect arg");
+}
+
+template <class Type> void  GlobCheckSize(const std::vector<Type> & aVal,const std::string & anArg) 
+{
+    cPt2di aSz = cStrIO<cPt2di>::FromStr(anArg);
+    if ((int(aVal.size()) < aSz.x()) || ((int(aVal.size()) > aSz.y()))) 
+    {
+       MMVII_UsersErrror(eTyUEr::eBadSize4Vect,"IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
+    }
+}
+
+
 template <class Type> class cInstReadOneArgCL2007 : public cSpecOneArg2007
 {
     public :
+
+       void  CheckSize(const std::string & anArg) const override 
+       {
+               GlobCheckSize(mVal,anArg);
+       }
+
+
         void V_InitParam(const std::string & aStr) override
         {
             mVal = cStrIO<Type>::FromStr(aStr);

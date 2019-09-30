@@ -963,6 +963,9 @@ class cXml2007Pt
         Pt2dr & Pt();
         const Pt2dr & Pt()const ;
 
+        int & Id();
+        const int & Id()const ;
+
         int & NumOct();
         const int & NumOct()const ;
 
@@ -974,6 +977,15 @@ class cXml2007Pt
 
         double & ScaleAbs();
         const double & ScaleAbs()const ;
+
+        double & Score();
+        const double & Score()const ;
+
+        double & ScoreRel();
+        const double & ScoreRel()const ;
+
+        double & HeapIndexe();
+        const double & HeapIndexe()const ;
 
         double & Val();
         const double & Val()const ;
@@ -995,12 +1007,19 @@ class cXml2007Pt
 
         bool & OKAc();
         const bool & OKAc()const ;
+
+        bool & SFSelected();
+        const bool & SFSelected()const ;
     private:
         Pt2dr mPt;
+        int mId;
         int mNumOct;
         int mNumIm;
         double mScaleInO;
         double mScaleAbs;
+        double mScore;
+        double mScoreRel;
+        double mHeapIndexe;
         double mVal;
         double mVar;
         double mFastStd;
@@ -1008,6 +1027,7 @@ class cXml2007Pt
         double mAutoCor;
         int mNumChAC;
         bool mOKAc;
+        bool mSFSelected;
 };
 cElXMLTree * ToXMLTree(const cXml2007Pt &);
 
@@ -1020,16 +1040,16 @@ std::string  Mangling( cXml2007Pt *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-class cXml2007FilePt
+class cXml2007SetPtOneType
 {
     public:
         cGlobXmlGen mGXml;
 
-        friend void xml_init(cXml2007FilePt & anObj,cElXMLTree * aTree);
+        friend void xml_init(cXml2007SetPtOneType & anObj,cElXMLTree * aTree);
 
 
-        std::list< cXml2007Pt > & Pts();
-        const std::list< cXml2007Pt > & Pts()const ;
+        std::vector< cXml2007Pt > & Pts();
+        const std::vector< cXml2007Pt > & Pts()const ;
 
         bool & IsMin();
         const bool & IsMin()const ;
@@ -1040,18 +1060,18 @@ class cXml2007FilePt
         std::string & NameTypePt();
         const std::string & NameTypePt()const ;
     private:
-        std::list< cXml2007Pt > mPts;
+        std::vector< cXml2007Pt > mPts;
         bool mIsMin;
         int mTypePt;
         std::string mNameTypePt;
 };
-cElXMLTree * ToXMLTree(const cXml2007FilePt &);
+cElXMLTree * ToXMLTree(const cXml2007SetPtOneType &);
 
-void  BinaryDumpInFile(ELISE_fp &,const cXml2007FilePt &);
+void  BinaryDumpInFile(ELISE_fp &,const cXml2007SetPtOneType &);
 
-void  BinaryUnDumpFromFile(cXml2007FilePt &,ELISE_fp &);
+void  BinaryUnDumpFromFile(cXml2007SetPtOneType &,ELISE_fp &);
 
-std::string  Mangling( cXml2007FilePt *);
+std::string  Mangling( cXml2007SetPtOneType *);
 
 /******************************************************/
 /******************************************************/

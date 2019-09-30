@@ -143,8 +143,10 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::FileDirProj,"FDP"},
                 {eTA2007::MPatIm,"MPI"},
                 {eTA2007::Internal,"##Intern"},
-                {eTA2007::Common,"##Com"},
+                {eTA2007::Global,"##Glob"},
+                {eTA2007::Shared,"##Shar"},
                 {eTA2007::HDV,"##HDV"},
+                {eTA2007::ISizeV,"##ISizeV"},
                 {eTA2007::FFI,"FFI"}
            };
 TPL_ENUM_2_STRING(eTA2007);
@@ -188,6 +190,8 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eMultiModeInEditRel,"MultiModeInEditRel"},
                 {eTyUEr::e2PatInModeLineEditRel,"2PatInModeLineEditRel"},
                 {eTyUEr::eParseError,"ParseError"},
+                {eTyUEr::eBadDimForPt,"BadDimension4Pts"},
+                {eTyUEr::eBadSize4Vect,"BadSize4Vector"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
 TPL_ENUM_2_STRING(eTyUEr);

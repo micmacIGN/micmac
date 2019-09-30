@@ -24,7 +24,10 @@ const std::string TagSetOfCpleName = "SetCpleOfName";
 // const std::string TheMMVII_SysName => voir Utils/uti_sysdep.cpp
  
 // Name of standard directories
-const std::string TmpMMVIIDir        = "Tmp-2007-Dir/";
+const std::string TmpMMVIIDirPrefix        = "Tmp-2007-Dir";
+const std::string TmpMMVIIDirGlob        = TmpMMVIIDirPrefix + "-Glob/";
+const std::string TmpMMVIIDirPCar        = TmpMMVIIDirPrefix + "-PCar/";
+
 const std::string MMVIITestDir       = "MMVII-TestDir/";
 const std::string TmpMMVIIProcSubDir = "Process/";
 
@@ -56,6 +59,7 @@ const std::string  Bin2007 = "MMVII";
 
 // User/Command
 const   std::string MMVII_NONE = "NONE";
+const   std::string MMVII_StdDest = "STD";
 
 
 };

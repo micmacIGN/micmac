@@ -156,6 +156,14 @@ template<class Type> void  SaveInFile(const Type & aVal,const std::string & aNam
    }
 }
 
+template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
+{
+    std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArHashVal(ordered),DeleteAr);
+    cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
+    AddData(aGLOB,const_cast<Type&>(aVal));
+    return HashValFromAr(*anAr);
+}
+
 
 /// Read  the value in an archive
 /** Same as write, but simpler as V1/V2 choice is guided by file */

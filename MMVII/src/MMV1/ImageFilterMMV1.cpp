@@ -76,6 +76,36 @@ double  MoyAbs(cIm2D<tREAL4> aImIn)
     return aSom[0] / aSom[1];
 }
 
+template <class Type> cPt2dr   ValExtre(cIm2D<Type> aImIn)
+{
+    // cDataIm2D aDIm(aImIn.DIm());
+    // Im2D<aDIm::tVal,aDIm::tBase>  aV1In  = cMMV1_Conv<Type>::ImToMMV1(aImIn.DIm());
+    auto  aV1In  = cMMV1_Conv<Type>::ImToMMV1(aImIn.DIm());
+    double aVMin,aVMax;
+    ELISE_COPY(aV1In.all_pts(),aV1In.in(),VMin(aVMin)|VMax(aVMax));
+    return cPt2dr(aVMin,aVMax);
+}
+
+
+template <class Type> void SelfLabMaj(cIm2D<Type> aImIn,const cBox2di &  aBox)
+{
+    cPt2dr aVE = ValExtre(aImIn);
+    int aMin = round_ni(aVE.x());
+    int aMax = round_ni(aVE.y());
+    auto  aV1In  = cMMV1_Conv<Type>::ImToMMV1(aImIn.DIm());
+    ELISE_COPY
+    (
+        aV1In.all_pts(),
+        aMin+label_maj(aV1In.in_proj()-aMin,1+aMax-aMin,ToMMV1(aBox)),
+        aV1In.out()
+    );
+}
+
+
+template cPt2dr ValExtre(cIm2D<tINT2> aImIn);
+template void SelfLabMaj(cIm2D<tINT2> aImIn,const cBox2di &  aBox);
+
+//==============================
 
 void ExportHomMMV1(const std::string & aIm1,const std::string & aIm2,const std::string & SH,const std::vector<cPt2dr> & aVP)
 {

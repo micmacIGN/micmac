@@ -29,7 +29,11 @@ template <class Type> class cSysSurResolu
        /// Compute a solution
        virtual cDenseVect<Type>  Solve() = 0;
 
-       /// Usefull for bench at least (check minimum)
+       /** Return for a given "solution" the weighted residual of a given observation
+           Typically can be square, abs ....
+           Usefull for bench at least (check that solution is minimum, or least < to neighboor)
+        */
+       
        virtual Type Residual(const cDenseVect<Type> & aVect,const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) const = 0;
        
        //  ============ Fix value of variable =============
@@ -48,12 +52,19 @@ template <class Type> class cSysSurResolu
        int mNbVar;
 };
 
+/** Not sure the many thing common to least square system, at least there is the
+    residual (sum of square ...)
+*/
 template <class Type> class  cLeasSq  :  public cSysSurResolu<Type>
 {
     public :
        cLeasSq(int aNbVar);
        Type Residual(const cDenseVect<Type> & aVect,const Type& aWeight,const cDenseVect<Type> & aCoeff,const Type &  aRHS) const override;
 };
+
+/**  Implemant least by suming tA A ,  simple and efficient, by the way known to have
+  a conditionning problem 
+*/
 
 template <class Type> class  cLeasSqtAA  :  public cLeasSq<Type>
 {
