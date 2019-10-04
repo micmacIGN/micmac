@@ -95,6 +95,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
     mZoomCA            (10),
 
     //  Aime pts car
+    mAimeShowFailed  (false),
     mWithAime         (false),
     mAimeSzW          (35,35),
     mAimeCW           (mAimeSzW / 2),
@@ -164,6 +165,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
                     // << EAM(mCurStats->IntervDyn(),"Dyn",true,"Max Min value for dynamic")
          //  Aime pts car
                     << EAM(mNameAimePCar,"AimeNPC",true,"Aime name pts carac")
+                    << EAM(mAimeShowFailed,"AimeSF",true,"Aime Show Failed points")
     );
 
     mLabel =   Str2eTypePtRemark(mNameLab);
@@ -380,8 +382,29 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
     {
        mWithAime = true;
        mWithPCarac = true;
-       mAimePCar = StdGetFromNRPH(mNameAimePCar,Xml2007FilePt);
+
+       mDirAime =  "./Tmp-2007-Dir-PCar/"+ mNameIm + "/";
+       std::string aPat =  "STD-AimePCar-" + mNameAimePCar + "-Tile00.dmp";
+       cInterfChantierNameManipulateur* aAimeICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirAime);
+
+       cSetName * aSN= aAimeICNM->KeyOrPatSelector(aPat);
+
+       if (aSN->Get()->empty())
+       {
+           std::cout << "DIR=" << mDirAime << "\n";
+           std::cout << "PAT=" << aPat << "\n";
+           ELISE_ASSERT(false,"No file for Aime visualization");
+       }
+       for (const auto & aName : *(aSN->Get()))
+       {
+           std::cout << "AIMEPCAR NAME=["<< aName << "]\n";
+           mAimePCar.push_back(StdGetFromNRPH(mDirAime+aName,Xml2007SetPtOneType));
+       }
+
+
+       // Fenetre pour voir l'image initiale en zoom
        mAimWI0  = mW->PtrChc(Pt2dr(0,0),Pt2dr(mAimeZoomW,mAimeZoomW));
+       // Fenetre pour voir l'image initiale  de caracteristique
        mAimWStd  = mW->PtrChc(Pt2dr(-(2+mAimeSzW.x),0),Pt2dr(mAimeZoomW,mAimeZoomW));
     }
 }

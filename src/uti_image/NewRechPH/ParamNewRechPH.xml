@@ -277,10 +277,14 @@ mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
 
    <Xml2007Pt Nb="1" Class="true" ToReference="true">
        <Pt   Nb="1" Type="Pt2dr">       </Pt>
+       <Id   Nb="1" Type="int">         </Id>  <!-- Identifier for debugging -->
        <NumOct   Nb="1" Type="int">     </NumOct>
        <NumIm    Nb="1" Type="int">     </NumIm>
        <ScaleInO   Nb="1" Type="double">   </ScaleInO>
        <ScaleAbs   Nb="1" Type="double">   </ScaleAbs>
+       <Score      Nb="1" Type="double">   </Score>   <!-- Score , mixing Var and Correl -->
+       <ScoreRel  Nb="1" Type="double">   </ScoreRel>   <!-- Relative score, evolve accross time -->
+       <HeapIndexe  Nb="1" Type="double">   </HeapIndexe>   <!-- Used for indexe in heap in spatial filtering -->
 
        <Val     Nb="1" Type="double">   </Val> <!-- Val of modified image (Lapl, Corner) -->
        <Var     Nb="1" Type="double">   </Var> <!-- Variance of point -->
@@ -290,14 +294,15 @@ mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
        <AutoCor  Nb="1" Type="double">   </AutoCor> <!-- Auto Correl of image -->
        <NumChAC  Nb="1" Type="int">   </NumChAC>    <!-- Num of choice for Auto Correl -->
        <OKAc  Nb="1" Type="bool">   </OKAc>         <!-- Is it ok according to AC -->
+       <SFSelected  Nb="1" Type="bool"> </SFSelected>  <!-- Spatial Filtering selected -->
    </Xml2007Pt>
 
-   <Xml2007FilePt  Nb="1" Class="true" ToReference="true">
-       <Pts  Nb="*" RefType="Xml2007Pt"> </Pts> 
+   <Xml2007SetPtOneType  Nb="1" Class="true" ToReference="true">
+       <Pts  Nb="*" RefType="Xml2007Pt" Container="std::vector"> </Pts> 
        <IsMin Nb="1" Type="bool">        </IsMin>
        <TypePt Nb="1" Type="int">        </TypePt>
        <NameTypePt Nb="1" Type="std::string">    </NameTypePt>
-   </Xml2007FilePt>
+   </Xml2007SetPtOneType>
 
 <Verbatim File=".h.cpp">
 // };

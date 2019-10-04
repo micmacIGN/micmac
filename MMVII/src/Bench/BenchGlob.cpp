@@ -225,6 +225,8 @@ int  cAppli_MMVII_Bench::Exe()
    // La on a verifie que ca marchait pas
    // MMVII_INTERNAL_ASSERT_all((1+1)==3,"Theoreme  pas tres fondamental de l'arithmetique");
 
+   BenchSupport();
+
    BenchRecall(mNumBugRecall);
 
    BenchDenseMatrix0();
@@ -257,6 +259,7 @@ int  cAppli_MMVII_Bench::Exe()
    BenchFilterImage1();
    BenchFilterLinear();
    BenchStat();
+   BenchExtre();
    if (mDoBUSD)
    {
       BenchUnbiasedStdDev();
@@ -570,9 +573,22 @@ bool F(const std::string & aMes) {std::cout <<"FFFFF=" << aMes << "\n"; return t
 #define UN 1
 #define DEUX 2 
 
+void ShowAdr(double & anAdr)
+{
+       StdOut () <<  "ADDDDDr " << &(anAdr) << "\n";
+}
+
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+   {
+       cPt3dr * anAdr = nullptr;
+       StdOut () <<  "ADDDDDr  " << anAdr << "\n";
+       StdOut () <<  "ADDDDDrx " << &(anAdr->x()) << "\n";
+       StdOut () <<  "ADDDDDry " << &(anAdr->y()) << "\n";
+       StdOut () <<  "ADDDDDrz " << &(anAdr->z()) << "\n";
+       ShowAdr(anAdr->y());
+   }
    {
       double aV= 3.3333;
       printf("VVVVV=%05.2f\n",aV);

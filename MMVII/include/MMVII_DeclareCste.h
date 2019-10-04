@@ -40,7 +40,8 @@ extern const std::string GIP_DirProjGMA;     ///< Dir Proj of Global Main Applic
 
 
 // Folders
-extern const std::string TmpMMVIIDir;
+extern const std::string TmpMMVIIDirGlob;
+extern const std::string TmpMMVIIDirPCar;
 extern const std::string MMVIITestDir;
 extern const std::string TmpMMVIIProcSubDir;
 
@@ -60,6 +61,7 @@ extern const   std::string Bin2007; ///< MMVII 4 now
 // Users Value
 
 extern const   std::string MMVII_NONE;  ///< For command, each time a "no value" can be used
+extern const   std::string MMVII_StdDest;  ///< For destination parameter (TieP ...) , def value
 
  /*=====================================================*/
  /*                                                     */

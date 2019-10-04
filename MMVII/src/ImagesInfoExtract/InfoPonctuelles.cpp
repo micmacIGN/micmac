@@ -12,6 +12,9 @@ double CubGaussWeightStandardDev(const cDataIm2D<Type>  &anIm,const cPt2di& aC,d
     double aSqRad = Square(aRadius);
     cComputeStdDev<1>  aCSD;
 
+    int aNbOk = 0;
+
+
     for (const auto & aDP : aDBox)
     {
          double aN2 = SqN2(aDP);    // Square norm of displacement
@@ -20,6 +23,7 @@ double CubGaussWeightStandardDev(const cDataIm2D<Type>  &anIm,const cPt2di& aC,d
              cPt2di aP = aC + aDP;
              if (anIm.Inside(aP))
              {
+                 aNbOk++;
                  double aRatio = std::sqrt(aN2) / aRadius;
                  double aWeight = CubAppGaussVal(aRatio);
                  double aVal =  anIm.GetV(aP);
@@ -27,7 +31,10 @@ double CubGaussWeightStandardDev(const cDataIm2D<Type>  &anIm,const cPt2di& aC,d
              }
          }
     }
-    return aCSD.ComputeUnBiasedVar()[0];
+    if (! aCSD.OkForUnBiasedVar())
+       return -1;
+    double aRes = aCSD.ComputeUnBiasedVar()[0];
+    return std::sqrt(aRes);
 }
 
 

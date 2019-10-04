@@ -499,6 +499,8 @@ template <const int Dim> class cComputeStdDev
         const double  *  ComputeBiasedVar() ;
         double  DeBiasFactor() const;
 
+        bool OkForUnBiasedVar() const; ///< Test DeBiasFactor can be computed and is != 0
+
     private :
         double    mSomW; ///< Sum of Weight
         double    mSomWW; ///< Sum of Weight ^2
