@@ -260,7 +260,7 @@ void cGenGaus3D::GetDistr5Points(std::vector<Pt3dr> & aVPts,double aRedFac)
 	 	GetDistr5PointsFromVP(aFact1,aFact2,aFact3,aVPts);
 	 	
 		//std::cout << "aRedFac=" << aRedFac << ", val propre=" << aFCorrect1 << " " << aFCorrect2 << " " << aFCorrect3 << "\n";
-	 	//std::cout << "vec propre=" << mVecP[0] << " " << mVecP[1]  << " " << mVecP[2] << "\n";
+	 	//std::cout << "vec propre2=" << mVecP[0] << " " << mVecP[1]  << " " << mVecP[2] << "\n";
 	 	//std::cout << "           " << aGG1.VecP(0) << " " << aGG1.VecP(1) << " " << aGG1.VecP(2) << "\n";
 
 	}
@@ -275,6 +275,8 @@ void cGenGaus3D::GetDistr5Points(std::vector<Pt3dr> & aVPts,double aRedFac)
         Pt3dr aFact2 =  mVecP[1] * mVP[1];
         Pt3dr aFact3 =  mVecP[2] * mVP[2];
 
+	 	//std::cout << "vec propre1=" << mVecP[0] << " " << mVecP[1]  << " " << mVecP[2] << "\n" 
+		//		  << mVP[0] << " " << mVP[1] << " " << mVP[2] << "\n";
     
 		GetDistr5PointsFromVP(aFact1,aFact2,aFact3,aVPts);
     

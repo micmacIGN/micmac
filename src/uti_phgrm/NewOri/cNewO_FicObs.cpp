@@ -73,6 +73,7 @@ typedef  cFixedSizeMergeTieP<3,Pt2dr,cCMT_NoVal>    				 tElM;
 typedef  cStructMergeTieP<cFixedSizeMergeTieP<3,Pt2dr,cCMT_NoVal> >  tMapM;
 typedef  std::list<tElM *>           								 tListM;
 
+#define MinNbPtTri 5
 
 class cAppliFictObs : public cCommonMartiniAppli
 {
@@ -85,11 +86,22 @@ class cAppliFictObs : public cCommonMartiniAppli
         void InitNFHom();
         void InitNFHomOne(std::string&,std::string&);
 
-		void CalculateEllipseParam3(cXml_Elips3D& anEl,std::vector<const CamStenope * >& aVC,
+		bool CalculateEllipseParam3(cXml_Elips3D& anEl,std::vector<const CamStenope * >& aVC,
 						            const std::string& aName1,const std::string& aName2,const std::string& aName3);
-		void CalculateEllipseParam2(cXml_Elips3D& anEl,std::vector<const CamStenope * >& aVC,
+		bool CalculateEllipseParam2(cXml_Elips3D& anEl,std::vector<const CamStenope * >& aVC,
 						            const std::string& aName1,const std::string& aName2);
+		void CalculteFromHomol3(std::vector<const CamStenope * >& aVC,
+						       const std::string& aName1,const std::string& aName2,const std::string& aName3,
+							   std::vector<Pt3dr> & aVPts);
+		void CalculteFromHomol2(std::vector<const CamStenope * >& aVC,
+						       const std::string& aName1,const std::string& aName2,
+							   std::vector<Pt3dr> & aVPts);
+		void FromHomolToPack(std::vector<const CamStenope * >& aVC,
+						     const std::string& aName1,const std::string& aName2,ElPackHomologue& aPack);
+		void FromHomolToMap(std::vector<const CamStenope * >& aVC,
+                            const std::string& aName1,const std::string& aName2,const std::string& aName3,tMapM& aMap);
 		void AddVPts2Map(tMapM & aMap,ElPackHomologue& aPack,int anInd1,int anInd2);
+
 		double BsurH(ElSeg3D& aDir1,ElSeg3D& aDir2);
 		double PdsOfResBH(const double& aResid,const double& BsH);
 
@@ -245,12 +257,45 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
 
 }
 
+void Test_AddVPts2Map()
+{
+	tMapM aMap(3,false);
+
+	/* cam0 pt1 cam1 pt1
+	 * cam2 pt1 cam0 pt1
+	 * cam1 pt2 cam0 pt2
+	 * cam0 pt2 cam2 pt2 
+	 * tracks- pt1 ((0,1), (1,1), (2,1)
+	 *         pt2 ((0,2), (1,2), (2,1)))*/
+	aMap.AddArc(Pt2dr(0,1),0,Pt2dr(1,1),1,cCMT_NoVal());
+	aMap.AddArc(Pt2dr(2,1),2,Pt2dr(0,1),0,cCMT_NoVal());
+	aMap.AddArc(Pt2dr(1,2),1,Pt2dr(0,2),0,cCMT_NoVal());
+	aMap.AddArc(Pt2dr(0,2),0,Pt2dr(2,2),2,cCMT_NoVal());
+
+
+    aMap.DoExport();
+
+    const tListM aLM =  aMap.ListMerged();
+
+    for (tListM::const_iterator itM=aLM.begin() ; itM!=aLM.end() ; itM++)
+    {
+        std::vector<ElSeg3D> aVSeg;
+        if ((*itM)->NbSom()==3 )
+        {
+			std::cout << "0 " << (*itM)->GetVal(0) << " 1 " << (*itM)->GetVal(1) << " 2 " << (*itM)->GetVal(2) << "\n";
+
+		}
+	}
+	getchar();
+}
+
 void cAppliFictObs::AddVPts2Map(tMapM & aMap,ElPackHomologue& aPack,int anInd1,int anInd2)
 {
 	
 	for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
 	{
         aMap.AddArc(itP->P1(),anInd1,itP->P2(),anInd2,cCMT_NoVal());
+		//std::cout << itP->P1() << " " << itP->P2() << "\n";
 	}
 }
 
@@ -286,135 +331,418 @@ double cAppliFictObs::BsurH(ElSeg3D& aDir1,ElSeg3D& aDir2)
 	return aBsH;
 }
 
-void cAppliFictObs::CalculateEllipseParam2(cXml_Elips3D& anEl,std::vector<const CamStenope * >& aVC, 
+bool cAppliFictObs::CalculateEllipseParam2(cXml_Elips3D& anEl,std::vector<const CamStenope * >& aVC, 
 				                          const std::string& aName1,const std::string& aName2)
 {
 
 	ELISE_ASSERT(int(aVC.size())==2,"cAppliFictObs::CalculateEllipseParam. Two cameras are required.");
 
 	RazEllips(anEl);
-	
+
+/*	
+	//remembers whether inverse tie-pts exist
+	bool HomInv=false;
+
 	//	recover tie-pts & tracks 
-	std::string aKey = "NKS-Assoc-CplIm2Hom@"+mPrefHom+"@dat";
+	std::string aKey = "NKS-Assoc-CplIm2Hom@"+mPrefHom+"@"+mHomExp;
 
-	std::string aN =  mNM->ICNM()->Assoc1To2(aKey,aName1,aName2,true);
-	ElPackHomologue aPack = ElPackHomologue::FromFile(aN);
+	std::string aN    =  mNM->ICNM()->Assoc1To2(aKey,aName1,aName2,true);
+	std::string aNInv =  mNM->ICNM()->Assoc1To2(aKey,aName2,aName1,true);
 
-//std::cout << " ElPackHomologue dddddddhhhhhhhhhhhhhhhhhhhhhh " << aN << " " << aVC.at(0)->Focale() << " " <<  aVC.at(1)->Focale() << " " <<  aVC.at(0)->VraiOpticalCenter() << " " << aVC.at(1)->VraiOpticalCenter()  << "\n";
-
-
-	for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
-    {
-		std::vector<ElSeg3D> aVSeg;
-		aVSeg.push_back(aVC.at(0)->Capteur2RayTer(itP->P1()));
-		aVSeg.push_back(aVC.at(1)->Capteur2RayTer(itP->P2()));
-
-		//	intersect in 3d 
-		Pt3dr aInt =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
-	    //std::cout << aInt << "\n";
-
-		//	calc resid
-		double aResid = 0;
-		aResid += euclid(aVC.at(0)->Ter2Capteur(aInt) - itP->P1());
-		aResid += euclid(aVC.at(1)->Ter2Capteur(aInt) - itP->P2());
-		aResid /= 2.0;
-
-		if (0)
-			std::cout << "dddddddhhhhhhhhhhhhhhhhhhhhhh " << aVSeg.at(0).P0() << " " << aVSeg.at(0).P1() << " " << aVSeg.at(1).P0() << " " << aVSeg.at(1).P1()  << " " << itP->P1() << " " << itP->P1() << "\n";
-		
-		//	calc b sur h
-		double aBsH = BsurH(aVSeg.at(0),aVSeg.at(1));
-
-
-		//	compose Pds
-		double aPds = PdsOfResBH(aResid, aBsH);
-		//std::cout << "aResid=" << aResid << ", aBsH=" << aBsH << " " << aPds << "cpl\n";
-
-		//	add to ellipse
-		AddEllips(anEl,aInt,aPds);
-
+	ElPackHomologue aPack;
+	if (ELISE_fp::exist_file(aN))
+		aPack = ElPackHomologue::FromFile(aN);
+	else if (ELISE_fp::exist_file(aNInv))
+	{
+		aPack = ElPackHomologue::FromFile(aNInv);
+		HomInv = true;
 	}
+	else
+		std::cout << "NOT FOUND " << aN <<  " " << aKey << "\n";
+
+std::cout << " ElPackHomologue  dddddddhhhhhhhhhhhhhhhhhhhhhh " << aN << " " << aVC.at(0)->Focale() << " " <<  aVC.at(1)->Focale() << " " <<  aVC.at(0)->VraiOpticalCenter() << " " << aVC.at(1)->VraiOpticalCenter()  << "\n";
+*/
+
+	ElPackHomologue aPack;
+	FromHomolToPack(aVC,aName1,aName2,aPack);
 	
-	NormEllips(anEl);
+	if ( int(aPack.size()) > MinNbPtTri) 
+	{
+		for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
+        {
+			Pt2dr aPt1 = itP->P1();
+			Pt2dr aPt2 = itP->P2();
+    
+    
+			std::vector<ElSeg3D> aVSeg;
+			aVSeg.push_back(aVC.at(0)->Capteur2RayTer(aPt1));
+			aVSeg.push_back(aVC.at(1)->Capteur2RayTer(aPt2));
+    
+			//	intersect in 3d 
+			Pt3dr aInt =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
+		    //std::cout << aInt << "\n";
+    
+			//	calc resid
+			double aResid = 0;
+			aResid += euclid(aVC.at(0)->Ter2Capteur(aInt) - aPt1);
+			aResid += euclid(aVC.at(1)->Ter2Capteur(aInt) - aPt2);
+			aResid /= 2.0;
+    
+			if (0)
+				std::cout << "dddddddhhhhhhhhhhhhhhhhhhhhhh " << aVSeg.at(0).P0() << " " << aVSeg.at(0).P1() << " " << aVSeg.at(1).P0() << " " << aVSeg.at(1).P1()  << " " << aPt1 << " " << aPt2 << "\n";
+			
+			//	calc b sur h
+			double aBsH = BsurH(aVSeg.at(0),aVSeg.at(1));
+    
+    
+			//	compose Pds
+			double aPds = PdsOfResBH(aResid, aBsH);
+			//std::cout << "aResid=" << aResid << ", aBsH=" << aBsH << " " << aPds << "cpl\n";
+    
+			//	add to ellipse
+			AddEllips(anEl,aInt,aPds);
+    
+		}
+		
+		NormEllips(anEl);
+
+		return EXIT_SUCCESS;
+	}
+	else
+		return EXIT_FAILURE;
 }
 
 
-void cAppliFictObs::CalculateEllipseParam3(cXml_Elips3D& anEl,std::vector<const CamStenope * >& aVC, 
+bool cAppliFictObs::CalculateEllipseParam3(cXml_Elips3D& anEl,std::vector<const CamStenope * >& aVC, 
 				                          const std::string& aName1,const std::string& aName2,const std::string& aName3)
 {
-	ELISE_ASSERT(int(aVC.size())==3,"cAppliFictObs::CalculateEllipseParam. Two cameras are required.");
+	ELISE_ASSERT(int(aVC.size())==3,"cAppliFictObs::CalculateEllipseParam. Three cameras are required.");
 
 	RazEllips(anEl);
+	/*
+	 *
+	//remembers whether inverse tie-pts exist
+    bool Hom12Inv=false;
+    bool Hom13Inv=false;
+    bool Hom23Inv=false;
 	
 	//	recover tie-pts & tracks 
-	std::string aKey = "NKS-Assoc-CplIm2Hom@"+mPrefHom+"@dat";
+	std::string aKey = "NKS-Assoc-CplIm2Hom@" + mPrefHom + "@" + mHomExp;
 
-	std::string aN12 =  mNM->ICNM()->Assoc1To2(aKey,aName1,aName2,true);
-	std::string aN13 =  mNM->ICNM()->Assoc1To2(aKey,aName1,aName3,true);
-	std::string aN23 =  mNM->ICNM()->Assoc1To2(aKey,aName2,aName3,true);
+	std::string aN12    =  mNM->ICNM()->Assoc1To2(aKey,aName1,aName2,true);
+	std::string aN12Inv =  mNM->ICNM()->Assoc1To2(aKey,aName2,aName1,true);
+	std::string aN13    =  mNM->ICNM()->Assoc1To2(aKey,aName1,aName3,true);
+	std::string aN13Inv =  mNM->ICNM()->Assoc1To2(aKey,aName3,aName1,true);
+	std::string aN23    =  mNM->ICNM()->Assoc1To2(aKey,aName2,aName3,true);
+	std::string aN23Inv =  mNM->ICNM()->Assoc1To2(aKey,aName3,aName2,true);
 
-	ElPackHomologue aPack12 = ElPackHomologue::FromFile(aN12);
-	ElPackHomologue aPack13 = ElPackHomologue::FromFile(aN13);
-	ElPackHomologue aPack23 = ElPackHomologue::FromFile(aN23);
+	ElPackHomologue aPack12;
+	if (ELISE_fp::exist_file(aN12))
+	{
+		aPack12 = ElPackHomologue::FromFile(aN12);
+		std::cout << "Homol " << aN12 << "\n";
+	}
+	else if (ELISE_fp::exist_file(aN12Inv))
+	{
+		aPack12 = ElPackHomologue::FromFile(aN12Inv);
+		Hom12Inv = true;
+		std::cout << "Homol " << aN12Inv << "\n";
+	}
+	else
+		std::cout << "NOT FOUND " << aN12 << "\n";
+
+
+	ElPackHomologue aPack13;
+	if (ELISE_fp::exist_file(aN13))
+	{
+		aPack13 = ElPackHomologue::FromFile(aN13);
+		std::cout << "Homol " << aN13 << "\n";
+	}
+	else if (ELISE_fp::exist_file(aN13Inv))
+	{
+		aPack13 = ElPackHomologue::FromFile(aN13Inv);
+		Hom13Inv = true;
+		std::cout << "Homol " << aN13Inv << "\n";
+	}
+	else
+		std::cout << "NOT FOUND " << aN13 << "\n";
+
+
+	ElPackHomologue aPack23;
+    if (ELISE_fp::exist_file(aN23))
+	{
+		aPack23	= ElPackHomologue::FromFile(aN23);
+		std::cout << "Homol " << aN23 << "\n";
+	}
+	else if (ELISE_fp::exist_file(aN23Inv))
+	{
+		aPack23 = ElPackHomologue::FromFile(aN23Inv);
+		Hom23Inv = true;
+		std::cout << "Homol " << aN23Inv << "\n";
+	}
+	else
+		std::cout << "NOT FOUND " << aN23 << "\n";*/
+	
 
 
 
     // Cree la structure de points multiples
     tMapM aMap(3,false);
     
-	AddVPts2Map(aMap,aPack12,0,1);
-    AddVPts2Map(aMap,aPack13,0,2);
-    AddVPts2Map(aMap,aPack23,1,2);
-    aMap.DoExport();
+	FromHomolToMap(aVC,aName1,aName2,aName3,aMap);
+
+	/*if (Hom12Inv)
+		AddVPts2Map(aMap,aPack12,1,0);
+	else
+		AddVPts2Map(aMap,aPack12,0,1);
+    
+	if (Hom13Inv)
+		AddVPts2Map(aMap,aPack13,2,0);
+	else
+		AddVPts2Map(aMap,aPack13,0,2);
+
+	if (Hom23Inv)
+		AddVPts2Map(aMap,aPack23,2,1);
+	else
+    	AddVPts2Map(aMap,aPack23,1,2);
+    
+	aMap.DoExport();*/
 
     const tListM aLM =  aMap.ListMerged();
 
     // Intersect in 3d
-    std::vector<Pt2dr> aVP1Exp,aVP2Exp,aVP3Exp;
-    std::vector<U_INT1> aVNb;
-    for (tListM::const_iterator itM=aLM.begin() ; itM!=aLM.end() ; itM++)
-    {
-		std::vector<ElSeg3D> aVSeg;
-        if ((*itM)->NbSom()==3 )
+	if ( int(aLM.size()) > MinNbPtTri) 
+	{
+        for (tListM::const_iterator itM=aLM.begin() ; itM!=aLM.end() ; itM++)
         {
-		
-			aVSeg.push_back(aVC.at(0)->Capteur2RayTer((*itM)->GetVal(0)));
-			aVSeg.push_back(aVC.at(1)->Capteur2RayTer((*itM)->GetVal(1)));
-			aVSeg.push_back(aVC.at(2)->Capteur2RayTer((*itM)->GetVal(2)));
-
-			//	intersect in 3d 
-			Pt3dr aInt =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
-			//std::cout << aInt << "\n";
-			
-			//	calc resid
-			double aResid = 0;
-		    aResid += euclid(aVC.at(0)->Ter2Capteur(aInt) - (*itM)->GetVal(0));
-		    aResid += euclid(aVC.at(1)->Ter2Capteur(aInt) - (*itM)->GetVal(1));
-		    aResid += euclid(aVC.at(2)->Ter2Capteur(aInt) - (*itM)->GetVal(2));
-			aResid /= 3;
-
-			//	calc b sur h
-			double aBsH = ElMax( BsurH(aVSeg.at(0),aVSeg.at(1)),
-						  ElMax( BsurH(aVSeg.at(0),aVSeg.at(2)), 
-						         BsurH(aVSeg.at(1),aVSeg.at(2)) ));
-
-
-
-			//	compose Pds
-			double aPds = PdsOfResBH(aResid, aBsH);
-			//std::cout << "aResid=" << aResid << ", aBsH=" << aBsH << " " << aPds << " tri\n";
-
-			//	add to ellipse
-			AddEllips(anEl,aInt,aPds);
+ 		   	std::vector<ElSeg3D> aVSeg;
+            if ((*itM)->NbSom()==3 )
+            {
+ 	   		//std::cout << "=========== " << (*itM)->GetVal(0) << " "<< (*itM)->GetVal(1) << " " << (*itM)->GetVal(2) << "\n";	
+ 	   		aVSeg.push_back(aVC.at(0)->Capteur2RayTer((*itM)->GetVal(0)));
+ 	   		aVSeg.push_back(aVC.at(1)->Capteur2RayTer((*itM)->GetVal(1)));
+ 	   		aVSeg.push_back(aVC.at(2)->Capteur2RayTer((*itM)->GetVal(2)));
+ 
+ 	   		//	intersect in 3d 
+ 	   		Pt3dr aInt =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
+ 	   		//std::cout << "Inter=" << aInt << "\n";
+ 	   		
+ 	   		//	calc resid
+ 	   		double aResid = 0;
+ 	   	    aResid += euclid(aVC.at(0)->Ter2Capteur(aInt) - (*itM)->GetVal(0));
+ 	   	    aResid += euclid(aVC.at(1)->Ter2Capteur(aInt) - (*itM)->GetVal(1));
+ 	   	    aResid += euclid(aVC.at(2)->Ter2Capteur(aInt) - (*itM)->GetVal(2));
+ 	   		aResid /= 3;
+ 
+ 	   		//	calc b sur h
+ 	   		double aBsH = ElMax( BsurH(aVSeg.at(0),aVSeg.at(1)),
+ 	   					  ElMax( BsurH(aVSeg.at(0),aVSeg.at(2)), 
+ 	   					         BsurH(aVSeg.at(1),aVSeg.at(2)) ));
+ 
+ 
+ 
+ 	   		//	compose Pds
+ 	   		double aPds = PdsOfResBH(aResid, aBsH);
+ 	   		//std::cout << "aResid=" << aResid << ", aBsH=" << aBsH << " " << aPds << " tri\n";
+ 
+ 	   		//	add to ellipse
+ 	   		AddEllips(anEl,aInt,aPds);
+            }
+ 
+ 
         }
 
+		NormEllips(anEl);
 
-    }
+		return EXIT_SUCCESS;
 
-	NormEllips(anEl);
+	}
+	else
+		return 	EXIT_FAILURE;
 
 
 }
+
+void cAppliFictObs::CalculteFromHomol3(std::vector<const CamStenope * >& aVC,
+                               const std::string& aName1,const std::string& aName2,const std::string& aName3,
+							   std::vector<Pt3dr> & aVPts)
+{
+	tMapM aMap(3,false);
+	
+	FromHomolToMap(aVC,aName1,aName2,aName3,aMap);
+
+	const tListM aLM =  aMap.ListMerged();
+
+	for (tListM::const_iterator itM=aLM.begin() ; itM!=aLM.end() ; itM++)
+    {
+        std::vector<ElSeg3D> aVSeg;
+
+        //std::cout << "=========== " << (*itM)->GetVal(0) << " "<< (*itM)->GetVal(1) << " " << (*itM)->GetVal(2) << "\n";
+        aVSeg.push_back(aVC.at(0)->Capteur2RayTer((*itM)->GetVal(0)));
+        aVSeg.push_back(aVC.at(1)->Capteur2RayTer((*itM)->GetVal(1)));
+        aVSeg.push_back(aVC.at(2)->Capteur2RayTer((*itM)->GetVal(2)));
+
+        //  intersect in 3d
+        Pt3dr aInt =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
+        //std::cout << "Inter=" << aInt << "\n";
+
+		aVPts.push_back(aInt);
+
+    }
+
+}
+
+void cAppliFictObs::CalculteFromHomol2(std::vector<const CamStenope * >& aVC,
+                               const std::string& aName1,const std::string& aName2,
+							   std::vector<Pt3dr> & aVPts)
+{
+	ElPackHomologue aPack;
+	
+	FromHomolToPack(aVC,aName1,aName2,aPack);
+
+	for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
+    {
+        Pt2dr aPt1 = itP->P1();
+        Pt2dr aPt2 = itP->P2();
+
+
+        std::vector<ElSeg3D> aVSeg;
+        aVSeg.push_back(aVC.at(0)->Capteur2RayTer(aPt1));
+        aVSeg.push_back(aVC.at(1)->Capteur2RayTer(aPt2));
+
+        //  intersect in 3d 
+        Pt3dr aInt =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
+        //std::cout << aInt << "\n";
+
+
+        if (0)
+            std::cout << "dddddddhhhhhhhhhhhhhhhhhhhhhh " << aVSeg.at(0).P0() << " " << aVSeg.at(0).P1() << " " << aVSeg.at(1).P0() << " " << aVSeg.at(1).P1()  << " " << aPt1 << " " << aPt2 << "\n";
+
+
+		aVPts.push_back(aInt);
+    }
+
+}
+
+void cAppliFictObs::FromHomolToPack(std::vector<const CamStenope * >& aVC,
+                                    const std::string& aName1,const std::string& aName2,ElPackHomologue& aPack)
+{
+
+    //  recover tie-pts & tracks 
+    std::string aKey = "NKS-Assoc-CplIm2Hom@"+mPrefHom+"@"+mHomExp;
+
+    std::string aN    =  mNM->ICNM()->Assoc1To2(aKey,aName1,aName2,true);
+    std::string aNInv =  mNM->ICNM()->Assoc1To2(aKey,aName2,aName1,true);
+
+    
+    if (ELISE_fp::exist_file(aN))
+        aPack = ElPackHomologue::FromFile(aN);
+    else if (ELISE_fp::exist_file(aNInv))
+    {
+        aPack = ElPackHomologue::FromFile(aNInv);
+		aPack.SelfSwap();
+    }
+    else
+        std::cout << "NOT FOUND " << aN <<  " " << aKey << "\n";
+
+//std::cout << " ElPackHomologue  dddddddhhhhhhhhhhhhhhhhhhhhhh " << aN << " " << aVC.at(0)->Focale() << " " <<  aVC.at(1)->Focale() << " " <<  aVC.at(0)->VraiOpticalCenter() << " " << aVC.at(1)->VraiOpticalCenter()  << "\n";
+
+}
+
+void cAppliFictObs::FromHomolToMap(std::vector<const CamStenope * >& aVC,
+                                   const std::string& aName1,const std::string& aName2,const std::string& aName3,tMapM& aMap)
+{
+
+    //remembers whether inverse tie-pts exist
+    bool Hom12Inv=false;
+    bool Hom13Inv=false;
+    bool Hom23Inv=false;
+
+    //  recover tie-pts & tracks 
+    std::string aKey = "NKS-Assoc-CplIm2Hom@" + mPrefHom + "@" + mHomExp;
+
+    std::string aN12    =  mNM->ICNM()->Assoc1To2(aKey,aName1,aName2,true);
+    std::string aN12Inv =  mNM->ICNM()->Assoc1To2(aKey,aName2,aName1,true);
+    std::string aN13    =  mNM->ICNM()->Assoc1To2(aKey,aName1,aName3,true);
+    std::string aN13Inv =  mNM->ICNM()->Assoc1To2(aKey,aName3,aName1,true);
+    std::string aN23    =  mNM->ICNM()->Assoc1To2(aKey,aName2,aName3,true);
+    std::string aN23Inv =  mNM->ICNM()->Assoc1To2(aKey,aName3,aName2,true);
+
+    ElPackHomologue aPack12;
+    if (ELISE_fp::exist_file(aN12))
+    {
+        aPack12 = ElPackHomologue::FromFile(aN12);
+        //std::cout << "Homol " << aN12 << "\n";
+    }
+    else if (ELISE_fp::exist_file(aN12Inv))
+    {
+        aPack12 = ElPackHomologue::FromFile(aN12Inv);
+        Hom12Inv = true;
+        //std::cout << "Homol " << aN12Inv << "\n";
+    }
+    else
+	{
+        std::cout << "NOT FOUND " << aN12 << "\n";
+	}
+
+	
+	ElPackHomologue aPack13;
+    if (ELISE_fp::exist_file(aN13))
+    {
+        aPack13 = ElPackHomologue::FromFile(aN13);
+        //std::cout << "Homol " << aN13 << "\n";
+    }
+    else if (ELISE_fp::exist_file(aN13Inv))
+    {
+        aPack13 = ElPackHomologue::FromFile(aN13Inv);
+        Hom13Inv = true;
+        //std::cout << "Homol " << aN13Inv << "\n";
+    }
+    else
+	{
+        std::cout << "NOT FOUND " << aN13 << "\n";
+	}
+
+
+    
+	ElPackHomologue aPack23;
+    if (ELISE_fp::exist_file(aN23))
+    {
+        aPack23 = ElPackHomologue::FromFile(aN23);
+        //std::cout << "Homol " << aN23 << "\n";
+    }
+    else if (ELISE_fp::exist_file(aN23Inv))
+    {
+        aPack23 = ElPackHomologue::FromFile(aN23Inv);
+        Hom23Inv = true;
+        //std::cout << "Homol " << aN23Inv << "\n";
+    }
+    else
+	{
+		std::cout << "NOT FOUND " << aN23 << "\n";
+	}
+
+
+	
+	if (Hom12Inv)
+        AddVPts2Map(aMap,aPack12,1,0);
+    else
+        AddVPts2Map(aMap,aPack12,0,1);
+
+    if (Hom13Inv)
+        AddVPts2Map(aMap,aPack13,2,0);
+    else
+        AddVPts2Map(aMap,aPack13,0,2);
+
+    if (Hom23Inv)
+        AddVPts2Map(aMap,aPack23,2,1);
+    else
+        AddVPts2Map(aMap,aPack23,1,2);
+
+    aMap.DoExport();
+}
+
+
 
 Pt2di cAppliFictObs::ApplyRedFac(Pt2dr& aP)
 {
@@ -594,16 +922,29 @@ void cAppliFictObs::GenerateFicticiousObs()
 
 		/************* Read the ellipse ********************/
         cXml_Elips3D anEl;
+        std::vector<Pt3dr> aVP;
+		bool SUCCESS_ELLIPSE = false;
 
         //triplets
         if (aT.second->mC3)
         {
 			if (mCalcElip)
 			{
-				CalculateEllipseParam3(anEl,aVC,
-									  mSetName->at(aT.second->mId1),
+				SUCCESS_ELLIPSE = CalculateEllipseParam3(anEl,aVC,
+                                      mSetName->at(aT.second->mId1),
                                       mSetName->at(aT.second->mId2),
                                       mSetName->at(aT.second->mId3));
+
+				//original tie-pts are used
+				if (! SUCCESS_ELLIPSE)
+			 	{
+					CalculteFromHomol3(aVC,
+									  mSetName->at(aT.second->mId1),
+                                      mSetName->at(aT.second->mId2),
+                                      mSetName->at(aT.second->mId3),
+									  aVP);	
+					std::cout << "ORIGINAL PTS FOR: " << mSetName->at(aT.second->mId1) << " " << mSetName->at(aT.second->mId2) << " " << mSetName->at(aT.second->mId3) << "\n";
+				}
 
 			}
 			//Read from orientation file (generated in Martini)
@@ -620,10 +961,20 @@ void cAppliFictObs::GenerateFicticiousObs()
         {
 			if (mCalcElip)
 			{
-				CalculateEllipseParam2(anEl,aVC,
-									  mSetName->at(aT.second->mId1),
+				SUCCESS_ELLIPSE = CalculateEllipseParam2(anEl,aVC,
+                                      mSetName->at(aT.second->mId1),
                                       mSetName->at(aT.second->mId2));
-			        
+
+				//original tie-pts are used
+				if (! SUCCESS_ELLIPSE)
+			    {
+					CalculteFromHomol2(aVC,
+                                      mSetName->at(aT.second->mId1),
+                                      mSetName->at(aT.second->mId2),
+                                      aVP);
+					std::cout << "ORIGINAL PTS FOR: " << mSetName->at(aT.second->mId1) << " " << mSetName->at(aT.second->mId2) << "\n";
+				}
+						
 			}
 			//Read from orientation file (generated in Martini)
 			else
@@ -634,18 +985,20 @@ void cAppliFictObs::GenerateFicticiousObs()
             	anEl = aXml2Ori.Geom().Val().Elips();
 			}
         } 
-   
-        cGenGaus3D aGG1(anEl);
-        std::vector<Pt3dr> aVP;
+  
+		cGenGaus3D* aGG1 = 0;
+	    if (SUCCESS_ELLIPSE)	
+		{
+        	aGG1 = new cGenGaus3D(anEl);
+		}
     
 
 
-
-
-
 		/********* FIcticious points generation ***********/
-		GenerateFicticiousObsInEl(aGG1,aVP);	
-
+	    if (SUCCESS_ELLIPSE)	
+		{
+			GenerateFicticiousObsInEl(*aGG1,aVP);	
+		}
 
 
 		//re-generate points if they fall outside image
@@ -728,7 +1081,14 @@ void cAppliFictObs::GenerateFicticiousObs()
         std::cout << "\n";
 
 
-
+		if (! SUCCESS_ELLIPSE)
+		{
+			if (int(aVPSel.size()) != int(aVP.size()))
+			{
+				std::cout << "NO ellipse but less pts?" << "\n";
+				getchar();
+			}
+		}
 
 		/********* Print to PLY ***********/
         if (mPly)
@@ -1155,6 +1515,7 @@ void cAppliFictObs::InitNFHom()
 
 int CPP_FictiveObsFin_main(int argc,char ** argv)
 {
+	//Test_AddVPts2Map();
     cAppliFictObs AppliFO(argc,argv);
 
     return EXIT_SUCCESS;
@@ -1246,16 +1607,16 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
             ElRotation3D aP2 = Xml2El(aXml3Ori.Ori2On1());
             ElRotation3D aP3 = Xml2El(aXml3Ori.Ori3On1());
 
-            CamStenope * aC1 = aNM->CamOfName(a3.Name1());
-            CamStenope * aC2 = aNM->CamOfName(a3.Name2());
-            CamStenope * aC3 = aNM->CamOfName(a3.Name3());
+            CamStenope * aC1 = aNM->CalibrationCamera(a3.Name1())->Dupl();//aNM->CamOfName(a3.Name1());
+            CamStenope * aC2 = aNM->CalibrationCamera(a3.Name2())->Dupl();//aNM->CamOfName(a3.Name2());
+            CamStenope * aC3 = aNM->CalibrationCamera(a3.Name3())->Dupl();//aNM->CamOfName(a3.Name3());
 
 
             //should handle camera variant calibration
-            if (aC1==aC2)
+            /*if (aC1==aC2)
                 aC2 = aC1->Dupl();
             if (aC1==aC3)
-                aC3 = aC1->Dupl();
+                aC3 = aC1->Dupl();*/
 
             //update poses 
             aC1->SetOrientation(aP1.inv());
@@ -1290,12 +1651,12 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
                 ElRotation3D aP1 = ElRotation3D::Id;
                 ElRotation3D aP2 = aNM->OriCam2On1 (a2.N1(),a2.N2(),OK);
  
-                CamStenope *aC1 = aNM->CamOfName(a2.N1());
-                CamStenope *aC2 = aNM->CamOfName(a2.N2());
+                CamStenope *aC1 = aNM->CalibrationCamera(a2.N1())->Dupl();//aNM->CamOfName(a2.N1());
+                CamStenope *aC2 = aNM->CalibrationCamera(a2.N2())->Dupl();//aNM->CamOfName(a2.N2());
  
                 //should handle camera-variant calibration
-                if (aC1==aC2)
-                    aC2 = aC1->Dupl();
+                //if (aC1==aC2)
+                //    aC2 = aC1->Dupl();
  
                 //update poses
                 aC1->SetOrientation(aP1);//.inv()
