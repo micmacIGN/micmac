@@ -971,10 +971,12 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
                  cNOSolIn_Triplet * aTriplet = new cNOSolIn_Triplet(this,aS1,aS2,aS3,aXml3Ori);
                  mV3.push_back(aTriplet);
 
+                 ///  ADD-SOM-TRIPLET
                  aS1->attr().AddTriplet(aTriplet,1,2,0);
                  aS2->attr().AddTriplet(aTriplet,0,2,1);
                  aS3->attr().AddTriplet(aTriplet,0,1,2);
 
+                 ///  ADD-EDGE-TRIPLET
                  CreateArc(aS1,aS2,aTriplet,0,1,2);
                  CreateArc(aS2,aS3,aTriplet,1,2,0);
                  CreateArc(aS3,aS1,aTriplet,2,0,1);

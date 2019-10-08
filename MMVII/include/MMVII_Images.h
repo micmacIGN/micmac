@@ -77,10 +77,36 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
 
         cBorderPixBox<Dim>  Border(int aSz) const;
 
+        inline bool InsideBL(const cPtxd<double,Dim> & aP) const; ///< Inside for Bilin
+        inline void AssertInsideBL(const cPtxd<double,Dim> & aP) const
+        {
+             MMVII_INTERNAL_ASSERT_tiny(InsideBL(aP),"Outside image in bilinear mode");
+        }
+
     private :
         iterator  mBegin; ///< Beging iterator
         iterator  mEnd;   ///< Ending iterator
 };
+
+template <> inline  bool cPixBox<1>::InsideBL(const cPtxd<double,1> & aP) const
+{
+    return (aP.x() >= tBox::mP0.x()) &&  ((aP.x()+1) <  tBox::mP1.x());
+}
+
+template <> inline  bool cPixBox<2>::InsideBL(const cPtxd<double,2> & aP) const
+{
+    return   (aP.x() >= tBox::mP0.x()) &&  ((aP.x()+1) <  tBox::mP1.x())
+          && (aP.y() >= tBox::mP0.y()) &&  ((aP.y()+1) <  tBox::mP1.y())
+    ;
+}
+template <> inline  bool cPixBox<3>::InsideBL(const cPtxd<double,3> & aP) const
+{
+    return   (aP.x() >= tBox::mP0.x()) &&  ((aP.x()+1) <  tBox::mP1.x())
+          && (aP.y() >= tBox::mP0.y()) &&  ((aP.y()+1) <  tBox::mP1.y())
+          && (aP.z() >= tBox::mP0.z()) &&  ((aP.z()+1) <  tBox::mP1.z())
+    ;
+}
+
 
 extern template const cPixBox<2>     cPixBox<2>::TheEmptyBox;  // Pb Clang, requires explicit declaration
 
@@ -397,6 +423,11 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
 
         //========= fundamental access to values ============
 
+       inline double GetVBL(const cPt2dr & aP) const
+       {
+           tPB::AssertInsideBL(aP);
+           return  ValueBL(aP);
+       }
 
            /// Get Value, check access in non release mode
         const Type & GetV(const cPt2di & aP)  const
@@ -483,6 +514,21 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         Type & Value(const cPt2di & aP)   {return mRawData2D[aP.y()][aP.x()];} ///< Data Access
         const Type & Value(const cPt2di & aP) const   {return mRawData2D[aP.y()][aP.x()];} /// Const Data Access
 
+        double  ValueBL(const cPt2dr & aP)  const ///< Bilinear interpolation
+        {
+            int aX0 = round_down(aP.x());  ///<  "Left" limit of  pixel
+            int aY0 = round_down(aP.y());  ///<  "Up" limit of pixel
+
+            double aWeigthX1 = aP.x() - aX0;
+            double aWeightX0 = 1-aWeigthX1;
+            double aWeightY1 = aP.y() - aY0;
+
+            const Type  * aL0 = mRawData2D[aY0  ] + aX0;
+            const Type  * aL1 = mRawData2D[aY0+1] + aX0;
+
+            return  (1-aWeightY1) * (aWeightX0*aL0[0]  + aWeigthX1*aL0[1])
+                  +     aWeightY1 * (aWeightX0*aL1[0]  + aWeigthX1*aL1[1])  ;
+        } 
 
         void AssertYInside(int Y) const
         {

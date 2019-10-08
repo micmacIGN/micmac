@@ -94,6 +94,7 @@ template <class Type> class cGP_OneImage : public cMemCheck
         double ScaleInO() const;   ///< Scale of Gauss "Absolute" 
         tGPIm * Up() const;         ///< Possible image up in the   octave
         tGPIm * Down() const;       ///< Possible image down in the octave
+        tGPIm * ImOriHom() ;       ///<  Homologous image (same scale...) in Original Pyramid
         const std::string &   NameSave() const;
         tOct*  Oct() const;        ///< Octave it belongs to
         int    NumInOct () const;        ///< Number inside octave
@@ -250,6 +251,7 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
         tGPIm * GPImTop() const ; ///< For init or save ..., need to access to highest resolution image in high oct
         tOct * OctHom(tOct *) ;  ///< return the homologue octave (from another pyramid)
         tGPIm * ImHom(tGPIm *) ;  ///< return the homologue image (from another pyramid)
+        tGPIm * ImHomOri(tGPIm *) ;  ///< return the homologue image in Original Pyramid
 
         void ComputGaussianFilter();  ///< Generate gauss in image of octave
         void SaveInFile(int aPowSPr,bool ForInstpect) const;  ///< Save images  

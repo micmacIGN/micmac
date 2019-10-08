@@ -16,7 +16,7 @@ namespace MMVII
 /* *********************************************** */
 
 
-double  MoyAbs(cIm2D<tREAL4> aImIn); ///< Compute  average of Abs of Image
+template <class Type> double  MoyAbs(cIm2D<Type> aImIn); ///< Compute  average of Abs of Image
 template <class Type> cPt2dr   ValExtre(cIm2D<Type> aImIn); ///< X -> Min, Y -> Max
 
 /// Class to store results of extremum
@@ -51,6 +51,26 @@ template <class Type>
 
 template <class Type> 
 double CubGaussWeightStandardDev(const cDataIm2D<Type>  &anIm,const cPt2di&,double aRadius);
+
+template <class Type> class cAffineExtremum
+{
+    public :
+       cAffineExtremum(const cDataIm2D<Type>  &anIm,double aRadius);
+       cPt2dr OneIter(const cPt2dr &);
+       cPt2dr StdIter(const cPt2dr &,double Epsilon,int aNbIterMax); ///< aNbIterMax both res and val
+    private :
+       const cDataIm2D<Type>  &  mIm;
+       double                    mRadius;
+       double                    mSqRad;
+       cRect2                    mBox;
+       cLeasSqtAA<tREAL4>        mSysPol;
+       cDenseVect<tREAL4>        mVectPol;
+       cDenseMatrix<tREAL4>      mMatPt;
+       cDenseVect<tREAL4>        mVectPt;
+       int                       mNbIter;
+       double                    mDistIter;
+};
+
 
 };
 

@@ -16,6 +16,7 @@
 #include <typeinfo>
 #include <vector>
 #include <list>
+#include <map>
 #include <ctime>
 #include <chrono>
 // #include <algorithm> => put it in file requiring it as it seem to slow down compilation
@@ -58,10 +59,11 @@
 #include "MMVII_Images.h"
 #include "MMVII_Linear2DFiltering.h"
 #include "MMVII_NonLinear2DFiltering.h"
-#include "MMVII_ImageInfoExtract.h"
 #include "MMVII_Matrix.h"
 #include "MMVII_SysSurR.h"
+#include "MMVII_ImageInfoExtract.h"
 
+#include "MMVII_AimeTieP.h"
 // #include "MMVII_Tpl_Images.h"
 
 #include "MMVII_DeclareAllCmd.h"

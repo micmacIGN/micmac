@@ -4,6 +4,9 @@
 namespace MMVII
 {
 
+
+
+
 template <class Type> class  cTplAppliCalcDescPCar;
 class cAppliCalcDescPCar;
 
@@ -174,7 +177,10 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
 
 
     // Compute Gaussian pyramid
-    mPyr->ComputGaussianFilter();
+    {
+       cAutoTimerSegm aATS("ImGaussPyr");
+       mPyr->ComputGaussianFilter();
+    }
     if (mAppli.mSaveIms)
     {
        
@@ -187,22 +193,37 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
     // Compute Normalized Original Image required
     if (mAppli.mDoOriNorm)
     {
-       mPyrOriNom =  mPyr->PyramOrigNormalize();
+       {
+          cAutoTimerSegm aATS("ImOriNorm");
+          mPyrOriNom =  mPyr->PyramOrigNormalize();
+       }
        mPyrOriNom->SaveInFile(0,mAppli.mSaveIms);
     }
 
     // Compute Lapl by diff of gauss if required
     if (mAppli.mDoLapl)
     {
-       mPyrLapl =  mPyr->PyramDiff();
+       {
+          cAutoTimerSegm aATS("ImDifLapl");
+          mPyrLapl =  mPyr->PyramDiff();
+       }
        mPyrLapl->SaveInFile(0,mAppli.mSaveIms);
     }
 
     // Compute corner images required
     if (mAppli.mDoCorner)
     {
-       mPyrCorner =  mPyr->PyramCorner();
+       {
+          cAutoTimerSegm aATS("ImCorner");
+          mPyrCorner =  mPyr->PyramCorner();
+       }
        mPyrCorner->SaveInFile(0,mAppli.mSaveIms);
+    }
+
+
+    {  // Show times 
+       // const std::vector<double>&  aVT = cMMVII_Ap_CPU::TimeSegm().Times();
+       // mAppli.TimeSegm().Show();
     }
 }
 

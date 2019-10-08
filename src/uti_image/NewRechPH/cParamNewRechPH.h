@@ -960,8 +960,11 @@ class cXml2007Pt
         friend void xml_init(cXml2007Pt & anObj,cElXMLTree * aTree);
 
 
-        Pt2dr & Pt();
-        const Pt2dr & Pt()const ;
+        Pt2dr & PtInit();
+        const Pt2dr & PtInit()const ;
+
+        Pt2dr & PtAff();
+        const Pt2dr & PtAff()const ;
 
         int & Id();
         const int & Id()const ;
@@ -984,20 +987,8 @@ class cXml2007Pt
         double & ScoreRel();
         const double & ScoreRel()const ;
 
-        double & HeapIndexe();
-        const double & HeapIndexe()const ;
-
-        double & Val();
-        const double & Val()const ;
-
         double & Var();
         const double & Var()const ;
-
-        double & FastStd();
-        const double & FastStd()const ;
-
-        double & FastConx();
-        const double & FastConx()const ;
 
         double & AutoCor();
         const double & AutoCor()const ;
@@ -1010,8 +1001,15 @@ class cXml2007Pt
 
         bool & SFSelected();
         const bool & SFSelected()const ;
+
+        bool & Stable();
+        const bool & Stable()const ;
+
+        Im2D_INT1 & ImLP();
+        const Im2D_INT1 & ImLP()const ;
     private:
-        Pt2dr mPt;
+        Pt2dr mPtInit;
+        Pt2dr mPtAff;
         int mId;
         int mNumOct;
         int mNumIm;
@@ -1019,15 +1017,13 @@ class cXml2007Pt
         double mScaleAbs;
         double mScore;
         double mScoreRel;
-        double mHeapIndexe;
-        double mVal;
         double mVar;
-        double mFastStd;
-        double mFastConx;
         double mAutoCor;
         int mNumChAC;
         bool mOKAc;
         bool mSFSelected;
+        bool mStable;
+        Im2D_INT1 mImLP;
 };
 cElXMLTree * ToXMLTree(const cXml2007Pt &);
 

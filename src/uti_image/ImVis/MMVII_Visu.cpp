@@ -80,7 +80,7 @@ void  cAppli_Vino::AimeVisu()
        }
        for (const auto  & aPC : aVPC.Pts())
        {
-           Pt2dr aPI = aPC.Pt();
+           Pt2dr aPI = aPC.PtAff();
            Pt2dr aPW = aSim(aPI);
            if (   (aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
            {
@@ -89,17 +89,23 @@ void  cAppli_Vino::AimeVisu()
                {
                   aCoul = P8COL::yellow;
                }
+               if (!aPC.Stable())
+               {
+                  aCoul = P8COL::magenta;
+               }
                if (!aPC.OKAc())
                {
                   aCoul = P8COL::red;
                }
            
-               if ((aCoul==aCoulOk) || mAimeShowFailed)
+               if ((aCoul==aCoulOk) || mAimeShowFailed )
                {
                   double aRay = 1*aScale*aPC.ScaleAbs();
                   mW->draw_circle_abs(aPW,aRay,mW->pdisc()(aCoul));
                   Pt2dr aDir(0,IsMin ? 1 : -1);
                   mW->draw_seg(aPW,aPW+aDir*aRay,mW->pdisc()(aCoul));
+
+                  mW->draw_seg(aPW,aSim(aPC.PtInit()),mW->pdisc()(aCoul));
                }
            }
        }
@@ -116,7 +122,7 @@ const cXml2007Pt *  cAppli_Vino::AimeGetPC(const Pt2dr & aPU,const cXml2007SetPt
    {
        for (const auto  & aPC : aVPC.Pts())
        {
-          double aD = euclid(aPU,aPC.Pt());
+          double aD = euclid(aPU,aPC.PtAff());
           if (aD < aDMin)
           {
              aDMin = aD;
@@ -142,12 +148,12 @@ Im2D_REAL4 cAppli_Vino::LoadAimePC(const cXml2007Pt & aPC,const std::string & aN
    Pt2di aSzTif = aTif.sz();
 
    int aZoomIm = (1 << aPC.NumOct());
-   Pt2dr aP1 = aPC.Pt() -  Pt2dr( mAimeCW *aZoomIm) ;
-   Pt2dr aP2 = aPC.Pt() +  Pt2dr( mAimeCW * aZoomIm);
+   Pt2dr aP1 = aPC.PtAff() -  Pt2dr( mAimeCW *aZoomIm) ;
+   Pt2dr aP2 = aPC.PtAff() +  Pt2dr( mAimeCW * aZoomIm);
    ElSimilitude aU2W = mScr->to_win();
    mW->draw_rect(aU2W(aP1),aU2W(aP2),mW->pdisc()(P8COL::yellow));
    
-   Pt2di aPTif = round_ni(aPC.Pt()) /  aZoomIm;
+   Pt2di aPTif = round_ni(aPC.PtAff()) /  aZoomIm;
  
 
 
@@ -226,13 +232,15 @@ void  cAppli_Vino::InspectAime(const Pt2dr & aPW_Clik)
 
    const cXml2007SetPtOneType* aSet;
    const cXml2007Pt * aPC =   AimeGetPC(aPU_Clik,&aSet);
-   Pt2dr aPWCar = aU2W(aPC->Pt());
+   Pt2dr aPWCar = aU2W(aPC->PtAff());
 
    mW->draw_circle_abs(aPWCar,1*aScale*aPC->ScaleAbs(),mW->pdisc()(P8COL::yellow));
 
    double aSA =  aPC->ScaleAbs() ;
    double aSO =  aPC->ScaleInO() ;
-   std::cout << " SAbs=" << aSA << " SO=" << aSO  << "\n";
+   std::cout << "  SAbs=" << aSA 
+             << " SO=" << aSO  
+             << " DMov= " << euclid(aPC->PtInit(),aPC->PtAff()) / aPC->ScaleAbs() << "\n";
 
 
    Im2D_REAL4 aImStd = StdLoadAimePC(*aPC,aSet);
@@ -246,10 +254,10 @@ void  cAppli_Vino::InspectAime(const Pt2dr & aPW_Clik)
    Im2D_REAL4 aImInit = I0LoadAimePC(*aPC,aSet);
    TIm2D<REAL4,REAL8> aTInit(aImInit);
 
-   std::cout  << "PXml, Fast=" <<  aPC->FastStd() << " Var=" << aPC->Var()  << " Cor=" << aPC->AutoCor() << "\n";
-   std::cout  << "    IDENT=" << aPC->Id()   << " Score=" << aPC->Score() << "\n";
+   std::cout  << "  PXml   Var=" << aPC->Var()  << " Cor=" << aPC->AutoCor() << "\n";
+   std::cout  << "  IDENT=" << aPC->Id()   << " Score=" << aPC->Score() << "\n";
 
-   for (int aK=0 ; aK<2 ; aK++)
+   for (int aK=1 ; aK<2 ; aK++)
    {    
        // cFastCriterCompute * aFCC = (aK==0) ? aFCC0 : aFCC1;
        // Pt2dr  aFastCrit = FastQuality(aTStd,mAimeCW,*aFCC,!mAimePCar.IsMin(),Pt2dr(0.7,0.8));
@@ -260,21 +268,24 @@ void  cAppli_Vino::InspectAime(const Pt2dr & aPW_Clik)
        int    aSzW  = round_ni(aSzW0 * aSO);
        aRho = aRho * (aSzW / double(aSzW0));
 
+/*
        cCutAutoCorrelDir<TIm2D<float,double>> aCutACD(aTInit,Pt2di(0,0),aRho,aSzW);
 
        bool  aOK = aCutACD.AutoCorrel(mAimeCW,TT_SEUIL_CutAutoCorrel_INT,TT_SEUIL_CutAutoCorrel_REEL,TT_SEUIL_AutoCorrel);
        std::cout  << " AUTOC " <<  aOK  << " Cor=" << aCutACD.mCorOut << " N="<< aCutACD.mNumOut << "Param " << aRho<< " " << aSzW  << "\n";
 
+*/
         if (aK==1)
         {
-            Pt2dr aSc;
-            aCutACD.AutoCorrel(mAimeCW,1,1,1,&aSc);
+            // Pt2dr aSc;
+            // aCutACD.AutoCorrel(mAimeCW,1,1,1,&aSc);
             mAimWI0->draw_circle_abs(Pt2dr(mAimeCW),3.0,mAimWI0->pdisc()(P8COL::green));
             mAimWI0->draw_circle_loc(Pt2dr(mAimeCW),aRho,mAimWI0->pdisc()(P8COL::green));
-            std::cout << "SC= " << aSc << "\n";
+            // std::cout << "SC= " << aSc << "\n";
         }
         mAimWStd->draw_circle_loc(Pt2dr(mAimeCW),aRho,mAimWStd->pdisc()(P8COL::green));
    }
+   std::cout << "  =================================================\n\n";
 
 
 }

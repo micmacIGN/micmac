@@ -103,9 +103,9 @@ template <const int Dim> int NbPixVign(const cPtxd<int,Dim> & aVign)
    return aRes;
 }
 
-static const int VeryBig = 1e9;
-const cPt2di  ThePSupImage( VeryBig, VeryBig);
-const cPt2di  ThePInfImage(-VeryBig,-VeryBig);
+// static const int VeryBig = 1e9;
+// const cPt2di  ThePSupImage( VeryBig, VeryBig);
+// const cPt2di  ThePInfImage(-VeryBig,-VeryBig);
 
 
 
