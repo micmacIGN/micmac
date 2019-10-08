@@ -5,24 +5,14 @@
 namespace MMVII
 {
 
-template <class Type> int LexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2)
-{
-    int aSz = std::min(aV1.size(),aV2.size());
-    for (int aK=0 ; aK<aSz ; aK++)
-    {
-        if (aV1.at(aK) < aV2.at(aK))  return -1;
-        if (aV1.at(aK) > aV2.at(aK))  return  1;
-    }
-    if (aV1.size() < aV2.size()) return -1;
-    if (aV1.size() > aV2.size()) return 1;
-    return 0;
-}
 
+/*
 template <class Type> class cAffineExtremum
 {
     public :
        cAffineExtremum(const cDataIm2D<Type>  &anIm,double aRadius);
        cPt2dr OneIter(const cPt2dr &);
+       cPt2dr StdIter(const cPt2dr &,double Epsilon,int aNbIterMax); ///< aNbIterMax both res and val
     private :
        const cDataIm2D<Type>  &  mIm;
        double                    mRadius;
@@ -32,7 +22,10 @@ template <class Type> class cAffineExtremum
        cDenseVect<tREAL4>        mVectPol;
        cDenseMatrix<tREAL4>      mMatPt;
        cDenseVect<tREAL4>        mVectPt;
+       int                       mNbIter;
+       double                    mDistIter;
 };
+*/
 
 template <class Type> cAffineExtremum<Type>::cAffineExtremum(const cDataIm2D<Type>  &anIm,double aRadius) :
     mIm      (anIm),
@@ -95,8 +88,26 @@ template <class Type> cPt2dr cAffineExtremum<Type>::OneIter(const cPt2dr & aP0)
    return cPt2dr( aC.x()+aSolPt(0) , aC.y()+aSolPt(1));
 }
 
+template <class Type> cPt2dr cAffineExtremum<Type>::StdIter(const cPt2dr & aP0,double  Epsilon,int aNbIterMax)
+{
+    cPt2dr aPLast = aP0;
+    cPt2dr aPNext =  OneIter(aPLast);
+    mNbIter   = 1;
+    mDistIter = Norm2(aPLast-aPNext);
 
-template  class cAffineExtremum<tREAL4>;
+    while ((mNbIter< aNbIterMax) && (mDistIter>Epsilon))
+    {
+        aPNext =  OneIter(aPLast);
+        aPLast = aPNext;
+        mDistIter = Norm2(aPLast-aPNext);
+        mNbIter++;
+    }
+
+    return aPNext;
+    
+}
+
+
 
 /*
 template <class Type,class FDist>  std::vector<Type>  SparseOrder(const std::vector<Type> & aV,const std::vector<Type>& aRepuls0)
@@ -396,6 +407,7 @@ template <class Type> void ExtractExtremum3
 
 
 #define MACRO_INSTANTIATE_ExtractExtremum(Type)\
+template  class cAffineExtremum<Type>;\
 template  class cComputeExtrem1Im<Type>;\
 template  class cComputeExtrem3Im<Type>;\
 template void ExtractExtremum1(const cDataIm2D<Type>  &anIm,cResultExtremum & aRes,double aRadius);\
@@ -638,6 +650,10 @@ void OneBenchAffineExtre()
              aCurC = anAff.OneIter(aCurC);
          }
          MMVII_INTERNAL_ASSERT_bench(Norm2(aCurC-aCenter)<1e-3,"Sz set in  cAppli_MMRecall");
+
+         aCurC = anAff.StdIter(aP0,1e-2,3) ;
+         //  StdOut() << "AFFFFEEEE " << aCenter-aP0 << " "<< aCenter-aCurC << "\n";
+         MMVII_INTERNAL_ASSERT_bench(Norm2(aCurC-aCenter)<1e-2,"Sz set in  cAppli_MMRecall");
     }
 }
 

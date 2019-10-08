@@ -214,6 +214,9 @@ template <class TV,class TF> void erase_if(TV & aVec,const TF& aFonc)
    aVec.erase(std::remove_if(aVec.begin(),aVec.end(),aFonc),aVec.end());
 }
 
+template <class Type> int LexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2);
+
+
 
 
 };

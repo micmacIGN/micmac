@@ -201,6 +201,7 @@ enum class eSharedPO
      eNbVals         ///< Tag End of Vals
 };
 
+
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         
 const std::string & E2Str(const eTA2007 &);         

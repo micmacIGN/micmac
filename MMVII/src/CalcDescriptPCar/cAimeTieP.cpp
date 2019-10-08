@@ -1,30 +1,68 @@
 #include "include/MMVII_all.h"
-#include "AimeTieP.h"
 
 
 namespace MMVII
 {
+
+class cAimeDescriptor
+{
+     public :
+         cAimeDescriptor();
+         cIm2D<tU_INT1>   ILP();
+     private :
+        cIm2D<tU_INT1>   mILP;   ///< mImLogPol
+};
+
+class cAimePCar
+{
+     public :
+     private :
+};
+
 /* ================================= */
 /*          cProtoAimeTieP           */
 /* ================================= */
-cProtoAimeTieP::cProtoAimeTieP(const cPt2dr & aPt,int aNumOct,int aNumIm,float aScaleInO,float aScaleAbs) :
-   mPt        (aPt),
-   mNumOct    (aNumOct),
-   mNumIm     (aNumIm),
-   mScaleInO  (aScaleInO),
-   mScaleAbs  (aScaleAbs)
+
+template<class Type> 
+   cProtoAimeTieP<Type>::cProtoAimeTieP
+   (
+        cGP_OneImage<Type> * aGPI,
+        const cPt2di & aPInit
+   ) :
+   mGPI        (aGPI),
+   mPImInit    (aPInit),
+   mPFileInit  (mGPI->Im2File(ToR(mPImInit)))
 {
 }
 
-const cPt2dr & cProtoAimeTieP::Pt() const  {return mPt;}
-int   cProtoAimeTieP::NumOct() const       {return mNumOct;}
-int   cProtoAimeTieP::NumIm() const        {return mNumIm;}
-float cProtoAimeTieP::ScaleInO() const     {return mScaleInO;}
-float cProtoAimeTieP::ScaleAbs() const     {return mScaleAbs;}
+template<class Type> int   cProtoAimeTieP<Type>::NumOct()   const {return mGPI->Oct()->NumInPyr();}
+template<class Type> int   cProtoAimeTieP<Type>::NumIm()    const {return mGPI->NumInOct();}
+template<class Type> float cProtoAimeTieP<Type>::ScaleInO() const {return mGPI->ScaleInO();}
+template<class Type> float cProtoAimeTieP<Type>::ScaleAbs() const {return mGPI->ScaleAbs();}
 
-void cProtoAimeTieP::SetPt(const cPt2dr & aPt)
+template<class Type> void   cProtoAimeTieP<Type>::FillAPC(cAimePCar &)
 {
-    mPt = aPt;
 }
+
+
+template class cProtoAimeTieP<tREAL4>;
+template class cProtoAimeTieP<tINT2>;
+
+
+/* ================================= */
+/*          cAimeDescriptor          */
+/* ================================= */
+
+
+cAimeDescriptor:: cAimeDescriptor() :
+   mILP  (cPt2di(1,1))
+{
+}
+
+/* ================================= */
+/*             cAimePCar             */
+/* ================================= */
+
+
 
 };

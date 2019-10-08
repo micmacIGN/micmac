@@ -1,7 +1,6 @@
 #include "include/MMVII_all.h"
 #include "include/MMVII_Tpl_Images.h"
 #include "include/V1VII.h"
-#include "../CalcDescriptPCar/AimeTieP.h"
 
 
 
@@ -168,6 +167,10 @@ template <class Type> cGP_OneImage<Type> * cGP_OneImage<Type>::Down() const {ret
 template <class Type> const std::string & cGP_OneImage<Type>::NameSave() const {return mNameSave;}
 template <class Type> cGP_OneOctave<Type> * cGP_OneImage<Type>::Oct() const {return mOct;}
 
+template <class Type> cGP_OneImage<Type> * cGP_OneImage<Type>::ImOriHom() 
+{
+   return mPyr->ImHomOri(this);
+}
 
 template <class Type> int  cGP_OneImage<Type>::NumInOct() const {return mNumInOct;}
 
@@ -357,6 +360,25 @@ template <class Type> cGaussianPyramid<Type>::cGaussianPyramid
        aPrec = mVOcts.back().get();
        std::copy(aPrec->VIms().begin(),aPrec->VIms().end(),std::back_inserter(mVAllIms));
    }
+
+   // if (mPyrOrig==this)
+   {
+       StdOut() << "AAAAAPyyyyyyyrrrrr\n";
+       for (int aK=0 ; aK<int(mVAllIms.size()) ; aK++)
+       {
+           tGPIm * aPIm = mVAllIms[aK].get();
+           tOct  * aOct = aPIm->Oct();
+           tOct  * aOctUp = aOct->Up();
+           tGPIm * aPImUpEqui = (aOctUp ? aOctUp->ImageOfScaleAbs(aPIm->ScaleAbs()) : nullptr);
+
+           StdOut() << "KKK " << aK 
+                    <<  " O=" << aOct->NumInPyr() 
+                    <<  " I=" << aPIm->NumInOct() 
+                    <<  " S=" << ((aPImUpEqui==nullptr) ? "--" : "**")
+                    << "\n";
+       }
+       getchar();
+   }
 }
 
 
@@ -458,15 +480,14 @@ template <class Type> cPt2dr cGaussianPyramid<Type>::Pyr2File(const cPt2dr & aP)
 template <class Type> void ScaleAndAdd
                            (
                                 cInterf_ExportAimeTiep<Type> * aIExp,
-                                cProtoAimeTieP            aPATPCom,
                                 const std::vector<cPt2di> & aLoc,
                                 cGP_OneImage<Type> * aPtrI
                            )
 {
-
-    for (const auto & aPt : aLoc)
+    cAutoTimerSegm aATS("CreatePCar");
+    for (const auto & aPtImInit : aLoc)
     {
-       aPATPCom.SetPt(aPtrI->Im2File(ToR(aPt)));
+       cProtoAimeTieP<Type>   aPATPCom(aPtrI,aPtImInit);
        aIExp->AddAimeTieP(aPATPCom);
     }
 }
@@ -488,14 +509,8 @@ template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool 
 
    for (auto & aPtrIm : mVAllIms)
    {
-       tGPIm * aIm0 = mPyrOrig->ImHom(aPtrIm.get());
-       aPtrExpMin->SetCurImages(aIm0->ImG(),aPtrIm->ImG(),aPtrIm->ScaleInO());
-       aPtrExpMax->SetCurImages(aIm0->ImG(),aPtrIm->ImG(),aPtrIm->ScaleInO());
        if (ForInspect)
           aPtrIm->SaveInFile();
-       cProtoAimeTieP aPATPCom(cPt2dr(0,0),aPtrIm->Oct()->NumInPyr(), aPtrIm->NumInOct(),
-                               aPtrIm->ScaleInO(),aPtrIm->ScaleAbs());
-       // std::string aNameSave = aPtrIm->NameSave();
        {
            if (DoPrint && aPtrIm->IsTopOct())
               StdOut() <<  " ===================================================\n";
@@ -504,13 +519,17 @@ template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool 
            double aS =  aPtrIm->ScaleInO();
 
            double aRadiusMM = 3.0;
-           cResultExtremum aResE;
-           ExtractExtremum1(aI.DIm(),aResE,aRadiusMM);
-           int aNbE = aResE.mPtsMin.size() + aResE.mPtsMax.size();
-
+           int aNbE = 0;
            if (DoPrint)
            {
-             StdOut()  <<  " Scale " <<  FixDigToStr(aS  ,2,2)
+              cResultExtremum aResE;
+              {
+                 cAutoTimerSegm aATS("1Extremum");
+                 ExtractExtremum1(aI.DIm(),aResE,aRadiusMM);
+              }
+              aNbE = aResE.mPtsMin.size() + aResE.mPtsMax.size();
+
+              StdOut()  <<  " Scale " <<  FixDigToStr(aS  ,2,2)
                        << " M- " << FixDigToStr(aML * pow(aS,aPowSPr-1),3,8 )
                        << " M= " << FixDigToStr(aML * pow(aS,aPowSPr  ),3,8 )
                        << " M+ " << FixDigToStr(aML * pow(aS,aPowSPr+1),3,8 )
@@ -519,14 +538,17 @@ template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool 
            if (aPtrIm->Up() && aPtrIm->Down())
            {
                cResultExtremum aResE3;
-               ExtractExtremum3
-               (
-                   aPtrIm->Up()->ImG().DIm(),
-                   aPtrIm->ImG().DIm(),
-                   aPtrIm->Down()->ImG().DIm(),
-                   aResE3,
-                   aRadiusMM
-               );
+               {
+                  cAutoTimerSegm aATS("3Extremum");
+                  ExtractExtremum3
+                  (
+                      aPtrIm->Up()->ImG().DIm(),
+                      aPtrIm->ImG().DIm(),
+                      aPtrIm->Down()->ImG().DIm(),
+                      aResE3,
+                      aRadiusMM
+                  );
+               }
                int aNbE3 = aResE3.mPtsMin.size() + aResE3.mPtsMax.size();
                if (DoPrint)
                   StdOut()  << " PROP=" << aNbE3 << " " << aNbE3 / double(aNbE) ;
@@ -534,8 +556,8 @@ template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool 
                // tOct * aOctH = mPyrOrig->OctHom(aPtrIm->Oct());
                // std::string aNameMaster = aOctH->GPImTop()->NameSave();
 
-               ScaleAndAdd(aPtrExpMin.get(),aPATPCom,aResE3.mPtsMin,aPtrIm.get());
-               ScaleAndAdd(aPtrExpMax.get(),aPATPCom,aResE3.mPtsMax,aPtrIm.get());
+               ScaleAndAdd(aPtrExpMin.get(),aResE3.mPtsMin,aPtrIm.get());
+               ScaleAndAdd(aPtrExpMax.get(),aResE3.mPtsMax,aPtrIm.get());
 
                aNbMinTot += aResE3.mPtsMin.size();
                aNbMaxTot += aResE3.mPtsMax.size();
@@ -576,6 +598,11 @@ template <class Type>  cGP_OneImage<Type> * cGaussianPyramid<Type>::ImHom(tGPIm 
     return aRes;
 }
 
+template <class Type>  cGP_OneImage<Type> * cGaussianPyramid<Type>::ImHomOri(tGPIm *anIm)
+{
+   return mPyrOrig->ImHom(anIm);
+}
+
 template <class Type> cIm2D<Type> cGaussianPyramid<Type>::ImTop() const {return mVOcts.at(0)->ImTop();}
 template <class Type> cGP_OneImage<Type>* cGaussianPyramid<Type>::GPImTop() const {return mVOcts.at(0)->GPImTop();}
 
@@ -603,7 +630,7 @@ template class cGP_OneOctave<Type>;\
 template class cGaussianPyramid<Type>;\
 
 MACRO_INSTANTIATE_GaussPyram(tREAL4)
-// MACRO_INSTANTIATE_GaussPyram(tINT2)
+MACRO_INSTANTIATE_GaussPyram(tINT2)
 
 
 

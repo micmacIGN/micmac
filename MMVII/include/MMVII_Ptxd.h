@@ -75,6 +75,18 @@ template <class Type,const int Dim> class cPtxd
        Type mCoords[Dim];
 };
 
+template <class Type> inline bool IsNotNull (const cPtxd<Type,2> & aP1) { return (aP1.x() !=0) || (aP1.y()!=0);}
+
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+template <class Type> inline void AssertNonNul(const cPtxd<Type,2> &aP1) 
+{
+   MMVII_INTERNAL_ASSERT_tiny(IsNotNull(aP1),"Unexpected null point");
+}
+#else
+#define AssertNonNul(aP) {} 
+#endif
+
+
 ///  operator + on points
 template <class Type> inline cPtxd<Type,1> operator + (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
 { return cPtxd<Type,1>(aP1.x() + aP2.x()); }
@@ -245,8 +257,45 @@ typedef cPtxd<double,2>  cPt2dr ;
 typedef cPtxd<int,2>     cPt2di ;
 typedef cPtxd<float,2>   cPt2df ;
 
-extern const cPt2di  ThePSupImage;  ///< Very "big" point, can be used as initiallizatiion of min point of boxes
-extern const cPt2di  ThePInfImage;  ///< Very "small" point, can be used as initiallizatiion of min point of boxes
+// extern const cPt2di  ThePSupImage;  ///< Very "big" point, can be used as initiallizatiion of min point of boxes
+// extern const cPt2di  ThePInfImage;  ///< Very "small" point, can be used as initiallizatiion of min point of boxes
+
+      // Complex and  polar function dedicatde
+///   Complex multiplication 
+inline cPt2dr operator * (const cPt2dr &aP1,const cPt2dr & aP2) 
+{ 
+   return cPt2dr(aP1.x()*aP2.x()-aP1.y()*aP2.y(),aP1.x()*aP2.y()+aP1.y()*aP2.x());
+}
+inline cPt2dr conj  (const cPt2dr &aP1) {return cPt2dr(aP1.x(),-aP1.y());}
+inline cPt2dr inv   (const cPt2dr &aP1) 
+{
+   AssertNonNul(aP1);
+   return conj(aP1) / SqN2(aP1);
+}
+inline cPt2dr operator / (const cPt2dr &aP1,const cPt2dr & aP2) {return aP1 * inv(aP2);}
+
+
+inline cPt2dr ToPolar(const cPt2dr & aP1)  ///<  From x,y to To rho,teta
+{
+   AssertNonNul(aP1);
+   return  cPt2dr(hypot(aP1.x(),aP1.y()),atan2(aP1.y(),aP1.x()));
+}
+inline cPt2dr ToPolar(const cPt2dr & aP1,double aDefTeta)  ///<  With Def value 4 teta
+{
+    return IsNotNull(aP1) ? ToPolar(aP1) : cPt2dr(0,aDefTeta);
+}
+inline cPt2dr FromPolar(const double & aRho,const double & aTeta)
+{
+    return cPt2dr(aRho*cos(aTeta),aRho*sin(aTeta));
+}
+inline cPt2dr FromPolar(const cPt2dr & aP)
+{
+    return FromPolar(aP.x(),aP.y());
+}
+
+
+
+// cPt2dr operator / (const cPt2dr &aP1,const cPt2dr & aP2) {return (aP1*conj(aP)
 
     ///  3 dimension specialization
 typedef cPtxd<double,3>  cPt3dr ;

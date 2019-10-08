@@ -13,23 +13,42 @@
 namespace MMVII
 {
 
-cIm2D<tREAL4> CourbTgt(cIm2D<tREAL4> aImIn)
+template<class Type> cIm2D<Type> CourbTgt(cIm2D<Type> aImIn)
 {
-    cIm2D<tREAL4> aRes(aImIn.DIm().Sz());
+    cIm2D<Type> aRes(aImIn.DIm().Sz());
 
-    Im2D<tREAL4,tREAL8>  aV1In  = cMMV1_Conv<tREAL4>::ImToMMV1(aImIn.DIm());
-    Im2D<tREAL4,tREAL8>  aV1Res = cMMV1_Conv<tREAL4>::ImToMMV1( aRes.DIm());
+    auto  aV1In  = cMMV1_Conv<Type>::ImToMMV1(aImIn.DIm());
+    auto  aV1Res = cMMV1_Conv<Type>::ImToMMV1( aRes.DIm());
 
     ELISE_COPY(aV1In.all_pts(),courb_tgt(aV1In.in_proj(),0.5),aV1Res.out());
 
     return aRes;
 }
 
-void SelfCourbTgt(cIm2D<tREAL4> aImIn)
+
+template<class Type> void SelfCourbTgt(cIm2D<Type> aImIn)
 {
-    Im2D<tREAL4,tREAL8>  aV1In  = cMMV1_Conv<tREAL4>::ImToMMV1(aImIn.DIm());
+    auto  aV1In  = cMMV1_Conv<Type>::ImToMMV1(aImIn.DIm());
     ELISE_COPY(aV1In.all_pts(),courb_tgt(aV1In.in_proj(),0.5),aV1In.out());
 }
+
+template<class Type> double  MoyAbs(cIm2D<Type> aImIn)
+{
+    auto  aV1In  = cMMV1_Conv<Type>::ImToMMV1(aImIn.DIm());
+    double aSom[2];
+    ELISE_COPY(aV1In.all_pts(),Virgule(Abs(aV1In.in()),1),sigma(aSom,2));
+    return aSom[0] / aSom[1];
+}
+
+
+#define INSTANTIATE_TRAIT_AIME(TYPE)\
+template double  MoyAbs(cIm2D<TYPE> aImIn);\
+template cIm2D<TYPE> CourbTgt(cIm2D<TYPE> aImIn);\
+template void SelfCourbTgt(cIm2D<TYPE> aImIn);
+
+INSTANTIATE_TRAIT_AIME(tREAL4)
+INSTANTIATE_TRAIT_AIME(tINT2)
+
 
 cIm2D<tREAL4> Lapl(cIm2D<tREAL4> aImIn)
 {
@@ -67,14 +86,6 @@ void MakeStdIm8BIts(cIm2D<tREAL4> aImIn,const std::string& aName)
 }
 
 
-
-double  MoyAbs(cIm2D<tREAL4> aImIn)
-{
-    Im2D<tREAL4,tREAL8>  aV1In  = cMMV1_Conv<tREAL4>::ImToMMV1(aImIn.DIm());
-    double aSom[2];
-    ELISE_COPY(aV1In.all_pts(),Virgule(Abs(aV1In.in()),1),sigma(aSom,2));
-    return aSom[0] / aSom[1];
-}
 
 template <class Type> cPt2dr   ValExtre(cIm2D<Type> aImIn)
 {

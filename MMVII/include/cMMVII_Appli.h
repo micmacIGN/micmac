@@ -9,6 +9,7 @@ namespace MMVII
 
 */
 
+class cMMVII_Ap_CPU;
 class cSpecMMVII_Appli;
 class cMMVII_Ap_NameManip;
 class cMMVII_Appli;
@@ -187,6 +188,42 @@ class cMMVII_Ap_NameManip
 
      // ========================== cMMVII_Ap_NameManip  ==================
 
+// =========  Classes for computing segmentation of times =====
+
+class cAutoTimerSegm;
+typedef std::string tIndTS;
+typedef std::map<tIndTS,double> tTableIndTS;
+class cTimerSegm
+{
+   public :
+        
+       friend class cAutoTimerSegm;
+       cTimerSegm(cMMVII_Ap_CPU *);
+       void  SetIndex(const tIndTS &);
+       const tTableIndTS &  Times() const;
+       void Show();
+       ~cTimerSegm();
+   private :
+       tTableIndTS          mTimers;
+       tIndTS               mLastIndex;
+       cMMVII_Ap_CPU *      mAppli;
+       double               mCurBeginTime;
+};
+
+
+cTimerSegm & GlobAppTS();
+
+class cAutoTimerSegm
+{
+     public :
+          cAutoTimerSegm(cTimerSegm & ,const tIndTS& anInd);
+          cAutoTimerSegm(const tIndTS& anInd);
+          ~cAutoTimerSegm();
+     private :
+          cTimerSegm & mTS;
+          tIndTS  mSaveInd;
+};
+
 /**
     Manage CPU related information on Applis
 */
@@ -200,11 +237,13 @@ class cMMVII_Ap_CPU
         std::string    StrDateBegin() const;  
         std::string    StrDateCur() const;  
         const std::string  &  StrIdTime() const;  
+        cTimerSegm  &  TimeSegm();  ///<  To have a global time Segm
     protected :
          tTime         mT0 ;       ///< More or less creation time
          int           mPid;       ///< Processus id
          int           mNbProcSys; ///< Number of processor on the system
          std::string   mStrIdTime;   ///< Make more a less a unique id  Sec + 1O-4 sec for hour 0
+         cTimerSegm                                mTimeSegm;  ///<  To have a global time Segm
 };
 
 /**   When we will deal with cluster computing, it will be usefull that command can specify
@@ -225,6 +264,7 @@ class cParamCallSys
        int         mArgc;  ///< classical arg count
        std::vector<std::string> mArgv; ///< used with mArgSep
 };
+
 
      // ========================== cMMVII_Appli  ==================
 
