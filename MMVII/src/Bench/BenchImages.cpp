@@ -176,9 +176,46 @@ template <class Type> void TestOneImage2D()
    TestOneImage2D<Type>(cPt2di(-35,-32),cPt2di(-28,-25));
 }
 
+
+template <class Type> void TestInterBL(cPt2di aSz,Type aCste,Type aCoeffX,Type aCoeffY,Type aCXY)
+{
+    cIm2D<Type> aIm(aSz);
+    cDataIm2D<Type>& aDIm(aIm.DIm());
+
+    for (const auto & aP : aDIm)
+    {
+        Type aVal = aCste + aCoeffX * aP.x() + aCoeffY * aP.y() + aCXY * aP.x() * aP.y();
+        aDIm.SetV(aP,aVal);
+    }
+
+    for (int aNb=0 ; aNb<10000 ; aNb++)
+    {
+        double UnMinEpsilon = 0.99999;
+        cPt2dr aP(RandUnif_0_1() * (aSz.x()-1),RandUnif_0_1()*(aSz.y()-1));
+        aP = UnMinEpsilon * aP;
+        double aV1 = aCste + aCoeffX * aP.x() + aCoeffY * aP.y() + aCXY * aP.x() * aP.y();
+        double aV2 = aDIm.GetVBL(aP);
+        if(std::abs(aV1-aV2)>1e-5)
+        {
+             StdOut() << aP << "V1 " << aV1 << " dif " << aV1-aV2 << "\n";
+             MMVII_INTERNAL_ASSERT_bench(false,"Bench image error");
+        }
+    }
+}
+
 void BenchGlobImage2d()
 {
     cMemState  aState = cMemManager::CurState() ;
+    {
+         TestInterBL<tINT1>(cPt2di(10,10),-3,2,-5,0);
+         TestInterBL<tU_INT1>(cPt2di(10,10), 3,5, 2,0);
+
+         TestInterBL<tINT1>(cPt2di(8,8),-3,2,-5,-1);
+         TestInterBL<tU_INT1>(cPt2di(8,8), 3,5, 2,1);
+
+         TestInterBL<tREAL4>(cPt2di(10,10),-3.14,2.12,-5.988,-1.677);
+         TestInterBL<tREAL8>(cPt2di(10,10), 3.89,5.73, 2.0001,1.007);
+    }
     {
         TestOneImage2D<tREAL4>(cPt2di(2,2),cPt2di(4,5));
 

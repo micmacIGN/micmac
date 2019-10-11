@@ -47,16 +47,61 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define PenalMedMed       2.0
 #define NbInitEvalRot     3
 
+      /****** Data  Structure ************/
+
+/* We have more or less a "Hypergraph" structure, with nodes (camera), edges (pair) and triplet, and we need
+   to have a quick acces :
+      * for a triplet ABC to arc (AB AC BC)  and nodes  (A B C) , we say that they are adjacent
+      * for a nodes to the triplet and edge it share
+      * ...
+
+   A triplet  cNOSolIn_Triplet represent a set of 3 summits. It contains the 3 submit and edges
+   addjacent to it
+          tSomNSI *     mSoms[3];
+          tArcNSI *     mArcs[3];
+
+   and much more information (like B/H, relative orientation inside). 
+   In a triplet there is no control of order of the 3 submits. In many cases it is necessary to
+   have the same triplet information but wih a specific order. For example in  an edge
+   AB, the submit C play a role different from A and B.   This is made by  cLinkTripl,
+   basically a cLinkTripl is :
+      * a pointer to a cNOSolIn_Triplet
+      * a permutation of [1,3]  K1,K2,K3
+
+
+   For a submit   : cNOSolIn_AttrSom;   // Attribut of submits 
+          we have  std::vector<cLinkTripl> & Lnk3() {return mLnk3;} , the list of link-triplet
+          that contains a submit, and  (to check) K3 is always the submit itselg
+          
+       See Tag :                   ///  ADD-SOM-TRIPLET
+
+
+   For an edge (A,B) : cNOSolIn_AttrASym 
+         The std::vector<cLinkTripl> & Lnk3() {return mLnk3;} contains the list of
+         link triplet that contains the edge , and K1,K2 correspond to the index
+         of A and B
+
+       See Tag :                   ///  ADD-EDGE-TRIPLET
+
+*/
+
+
+/*    =====  DistCoherenceAtoB ====  
+      Compute the coherence of two triplet that share an edge. This is done
+    by computing the  difference of relative orientation of the same pair
+    in the two triplet.
+*/
+
+      /****** EstimCoherenceMed  e ************/
 
 class cNOSolIn_Triplet;  // Triplet +ou- ensembliste
-
 class cLinkTripl;  //  Un cLinkTripl est un cNOSolIn_Triplet  ordonne, fait d'un cNOSolIn_Triplet + un permutation
 
 
 
-class cNOSolIn_AttrSom;
+class cNOSolIn_AttrSom;   // Attribut des sommets
 class cNOSolIn_AttrASym;  // Attribut symetrique
-class cNOSolIn_AttrArc;
+class cNOSolIn_AttrArc;  // Attribut "normal" oriente
 class cAppli_NewSolGolInit;
 
 typedef  ElSom<cNOSolIn_AttrSom,cNOSolIn_AttrArc>         tSomNSI;
@@ -177,7 +222,7 @@ class cNOSolIn_AttrASym
          cNOSolIn_AttrASym();
          void PostInit(bool Show);
      private :
-         std::vector<cLinkTripl> mLnk3;
+         std::vector<cLinkTripl> mLnk3; // Liste des triplets partageant cet arc
          ElRotation3D            mEstimC2toC1;  // Rotation estime par aggregat "robuste" sur les triplets
          double                  mBOnH;
 

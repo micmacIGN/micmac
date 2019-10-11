@@ -2,7 +2,7 @@
 
 
 #include "src/uti_image/NewRechPH/cParamNewRechPH.h"
-#include "../CalcDescriptPCar/AimeTieP.h"
+// #include "../CalcDescriptPCar/AimeTieP.h"
 
 #include "include/im_tpl/cPtOfCorrel.h"
 #include "include/algo_geom/qdt.h"
@@ -12,8 +12,6 @@
 
 namespace MMVII
 {
-
-
 
 
 //=============  tNameRel ====================
@@ -106,17 +104,16 @@ template<> void  MMv1_SaveInFile(const tNameSet & aSet,const std::string & aName
 #define AC_RHO  5.0        // Distance used for circle of auto correl
 #define AC_SZW  3          // Size of auto correl
 
+#define AFEXTR_RADIUS  2.0  // Ray of extremum refinement 
+#define AFEXTR_DIST_INST  1.5  // Distance of instability
+#define AFEXTR_DIST_CONV  0.05  // Ray of extremum refinement 
+#define AFEXTR_NB_ITER    2  // Ray of extremum refinement 
+
    // This 3 thresholds are used to compute initial scores
 
-// #define  POW_CORREL 2.0  // privilegiate low self correlation
-// #define  POW_VAR    1.0  // privilegiate high variance
-// #define  POW_SCALE  1.0  // privilegiate high scale
 
     //  Thresholds for spatial filtering itself
 
-// #define  STD_DIST_PC  35.0 //   Standard targeted distance between points after spatial filtering
-// #define  MUL_RAY_PC   3.0  //   Multipler to compute zone of influence of a selected points
-// #define  PROP_NO_SF   0.2  //   Proportion that dont use spatial filtering
 
 
 /// Class implementing services promized by cInterf_ExportAimeTiep
@@ -134,10 +131,8 @@ template <class Type> class cImplem_ExportAimeTiep : public cInterf_ExportAimeTi
          );
          virtual ~cImplem_ExportAimeTiep();
 
-         void AddAimeTieP(const cProtoAimeTieP & aPATP ) override;
+         void AddAimeTieP(cProtoAimeTieP<Type>  aPATP ) override;
          void Export(const std::string &) override;
-         void SetCurImages(cIm2D<Type>,cIm2D<Type>,double aScaleInO) override;
-
          void FiltrageSpatialPts();
 
      private :
@@ -148,15 +143,12 @@ template <class Type> class cImplem_ExportAimeTiep : public cInterf_ExportAimeTi
           typedef std::unique_ptr<cFastCriterCompute> tFCC;
  
           cPt2di          mSzIm0; ///< Sz of Image at full resolution
-          cXml2007SetPtOneType  mPtsXml; ///< Result
-          cIm2D<Type>     mIm0V2;  ///< Image "init",  MMVII version
-          tImV1           mIm0V1;  ///<  Image "init", MMV1 Version
-          tTImV1          mTIm0V1; ///< T Image Init V1
-          cIm2D<Type>     mImStdV2;  ///<  Imagge Std eq Lapl, Corner ...
-          tImV1           mImStdV1;  ///<  Image Std V2
-          tTImV1          mTImStdV1;  /// T Image Std V2
-          std::shared_ptr<tCACD> mCACD;  ///< For computing auto correl
-          tFCC                   mFCC;  ///< For computing fast
+          cXml2007SetPtOneType  mMMV1_XmlPts; ///< Result
+          std::vector<cProtoAimeTieP<Type> > mVecProtoPts;
+          // cIm2D<Type>     mImStdV2;  ///<  Imagge Std eq Lapl, Corner ...
+          // tImV1           mImStdV1;  ///<  Image Std V2
+          // tTImV1          mTImStdV1;  /// T Image Std V2
+          // tFCC                   mFCC;  ///< For computing fast
           bool                   mForInspect;  ///< When inspect, save all points to inspect rejection
           cTplBoxOfPts<tREAL8,2> mBox;
           cGP_Params             mParam;  ///< Parameters 
@@ -192,159 +184,243 @@ template <class Type>
         const cGP_Params & aParam
     ) :
     mSzIm0    (aSzIm0),
-    mIm0V2    (cPt2di(1,1)),
-    mIm0V1    (1,1),
-    mTIm0V1   (mIm0V1),
-    mImStdV2  (cPt2di(1,1)),
-    mImStdV1  (1,1),
-    mTImStdV1 (mImStdV1),
-    mCACD  (nullptr),
-    mFCC   (cFastCriterCompute::Circle(3.0)),
+    // mImStdV2  (cPt2di(1,1)),
+    // mImStdV1  (1,1),
+    // mTImStdV1 (mImStdV1),
+    // mFCC   (cFastCriterCompute::Circle(3.0)),
     mForInspect (ForInspect),
     mParam      (aParam),
     mFP         (mParam.mFPC)
 {
-    mPtsXml.IsMin() = IsMin;
-    mPtsXml.TypePt() = IsMin;
-    mPtsXml.NameTypePt() = aNameType;
+    mMMV1_XmlPts.IsMin() = IsMin;
+    mMMV1_XmlPts.TypePt() = IsMin;
+    mMMV1_XmlPts.NameTypePt() = aNameType;
     
 }
 template <class Type> cImplem_ExportAimeTiep<Type>::~cImplem_ExportAimeTiep()
 {
 }
 
-template <class Type> void cImplem_ExportAimeTiep<Type>::AddAimeTieP(const cProtoAimeTieP & aPATP)
+template <class Type> cXml2007Pt ToMMV1(const cProtoAimeTieP<Type>&  aPATP)
 {
-    static int anIdent=0;  // for debugging and computing identifier
-    anIdent++;
-
-    Pt2di  aV1PIm = round_ni(ToMMV1(aPATP.Pt()) / double(1<<aPATP.NumOct()));
-    cPt2di aV2PIm = ToMMVII(aV1PIm);
-
-    bool  aAutoCor = mCACD->AutoCorrel(aV1PIm,mFP.AC_CutInt(),mFP.AC_CutReal(),mFP.AC_Threshold());
-    //     bool  aAutoCor = mCACD->AutoCorrel(aV1PIm,AC_CutInt,AC_CutReal,AC_Threshold);
-    
     cXml2007Pt aPXml;
 
-    aPXml.Pt() = ToMMV1(aPATP.Pt());
-    aPXml.Id() = anIdent;
+    aPXml.PtInit() = ToMMV1(aPATP.mPFileInit);
+    aPXml.PtAff() = ToMMV1(aPATP.mPFileRefined);
+    // PtAff
+    aPXml.Id() = aPATP.mId;
     aPXml.NumOct() = aPATP.NumOct();
     aPXml.NumIm() = aPATP.NumIm();
     aPXml.ScaleInO() = aPATP.ScaleInO();
     aPXml.ScaleAbs() = aPATP.ScaleAbs();
-    aPXml.OKAc() = ! aAutoCor;
-    aPXml.AutoCor() = mCACD->mCorOut;
-    aPXml.NumChAC() = mCACD->mNumOut;
+    aPXml.OKAc() = aPATP.mOkAutoCor;
+    aPXml.SFSelected() = aPATP.mSFSelected;
+    aPXml.Stable() = aPATP.mStable;
+    aPXml.AutoCor() = aPATP.mAutoCor;
+    aPXml.NumChAC() = aPATP.mNumOutAutoC;
+    // aPXml.FastStd() =  aPATP.mCritFastStd;
+    // aPXml.FastConx() =  aPATP.mCritFastCnx;
+    aPXml.Score()  =  aPATP.mScoreInit;
+    aPXml.ScoreRel()  = aPATP.mScoreRel;
+    aPXml.Var()  = aPATP.mStdDev;
 
-    if (aPXml.OKAc() || mForInspect)
+    return aPXml;
+}
+
+
+template <class Type> void cImplem_ExportAimeTiep<Type>::AddAimeTieP(cProtoAimeTieP<Type>  aPATP)
+{
+    static int anIdent=0;  // for debugging and computing identifier
+    anIdent++;
+
+    cPt2di aV2PIm = aPATP.mPImInit;
+    Pt2di  aV1PIm = ToMMV1(aV2PIm);
+
+
+    int aSzW = round_ni(AC_SZW*aPATP.ScaleInO());
+    double aFact  = aSzW / double(AC_SZW);
+    double aRho = AC_RHO * aFact;
+    static double aLastFact = aFact;
+    
+    cIm2D<Type>     aIm0V2 = aPATP.mGPI->ImOriHom()-> ImG();
+    tImV1  aIm0V1 = cMMV1_Conv<Type>::ImToMMV1(aIm0V2.DIm());  ///<  Image "init", MMV1 Version
+    tTImV1 aTIm0V1(aIm0V1);
+    // Heuristic way to avoid creating multiple 
+    static tCACD  aCACD(aTIm0V1,Pt2di(0,0),aRho,aSzW);
+    if (aFact != aLastFact)
     {
-        Pt2dr aFQ =  FastQuality(mTImStdV1,aV1PIm,*mFCC,! mPtsXml.IsMin() ,Pt2dr(0.75,0.85));
-        aPXml.FastStd() = aFQ.x;
-        aPXml.FastConx() = aFQ.y;
+       aCACD = tCACD(aTIm0V1,Pt2di(0,0),aRho,aSzW);
+       aLastFact = aFact;
+    }
+
+    bool  aAutoCor;
+    {
+        cAutoTimerSegm aATS("AutoCorrel");
+        aAutoCor  = aCACD.AutoCorrel(aV1PIm,mFP.AC_CutInt(),mFP.AC_CutReal(),mFP.AC_Threshold());
+    }
+
+
+    
+    // cXml2007Pt aPXml;
+
+    // aPXml.Pt() = ToMMV1(aPATP.mPFileInit);
+    aPATP.mId = anIdent;
+    // aPXml.NumOct() = aPATP.NumOct();
+    // aPXml.NumIm() = aPATP.NumIm();
+    // aPXml.ScaleInO() = aPATP.ScaleInO();
+    // aPXml.ScaleAbs() = aPATP.ScaleAbs();
+    aPATP.mOkAutoCor = ! aAutoCor;
+    aPATP.mAutoCor = aCACD.mCorOut;
+    aPATP.mNumOutAutoC = aCACD.mNumOut;
+
+    if (aPATP.mOkAutoCor || mForInspect)
+    {
+/*
+        Pt2dr aFQ =  FastQuality(mTImStdV1,aV1PIm,*mFCC,! mMMV1_XmlPts.IsMin() ,Pt2dr(0.75,0.85));
+        aPATP.mCritFastStd = aFQ.x;
+        aPATP.mCritFastCnx = aFQ.y;
+*/
         // Compute variance weighted by a pseudo Gauss
-        aPXml.Var() = CubGaussWeightStandardDev(mIm0V2.DIm(),aV2PIm,aPATP.ScaleInO()*VAR_RHO);
-        if (aPXml.Var()<=0)  // Case degenerate
-            aPXml.OKAc() = false;
+        {
+           cAutoTimerSegm aATS("VarGauss");
+           aPATP.mStdDev = CubGaussWeightStandardDev(aIm0V2.DIm(),aV2PIm,aPATP.ScaleInO()*VAR_RHO);
+        }
+        if (aPATP.mStdDev<=0)  // Case degenerate
+            aPATP.mOkAutoCor = false;
         else
         {
-            aPXml.Score()  =      pow(1-aPXml.AutoCor()  , mFP.PowAC())
-                               *  pow(aPXml.Var()        , mFP.PowVar())
-                               *  pow(aPATP.ScaleAbs()   , mFP.PowScale())
+            aPATP.mScoreInit  =      pow(1-aPATP.mAutoCor  , mFP.PowAC())
+                                  *  pow(aPATP.mStdDev     , mFP.PowVar())
+                                  *  pow(aPATP.ScaleAbs()  , mFP.PowScale())
                              ;
-            aPXml.ScoreRel()  = aPXml.Score(); // Initially no point selected, relative=absolute
+            aPATP.mScoreRel  = aPATP.mScoreInit; // Initially no point selected, relative=absolute
         }
 
-        if (aPXml.OKAc() || mForInspect)
+        if (aPATP.mOkAutoCor || mForInspect)
         {
-            aPXml.SFSelected() = false;
-            mBox.Add(aPATP.Pt());
-            mPtsXml.Pts().push_back(aPXml);
+            aPATP.mSFSelected = false;
+            mBox.Add(aPATP.mPFileInit);
+            mVecProtoPts.push_back(aPATP);
         }
     }
 }
 
 template <class Type> void cImplem_ExportAimeTiep<Type>::Export(const std::string & aName)
 {
-     MakeFileXML(mPtsXml,aName);
+     for (auto const & aPMMV2 : mVecProtoPts)
+     {
+          mMMV1_XmlPts.Pts().push_back(ToMMV1(aPMMV2));
+     }
+     MakeFileXML(mMMV1_XmlPts,aName);
 }
 
-template <class Type> void cImplem_ExportAimeTiep<Type>::SetCurImages(cIm2D<Type> anIm0,cIm2D<Type> anImStd,double aScaleInO) 
-{
-   mIm0V2 = anIm0;
-   mIm0V1 = cMMV1_Conv<Type>::ImToMMV1(mIm0V2.DIm());
-   mTIm0V1 =  tTImV1(mIm0V1);
-
-   int aSzW = round_ni(AC_SZW*aScaleInO);
-   double aFact  = aSzW / double(AC_SZW);
-   double aRho = AC_RHO * aFact;
-
-
-   mCACD = std::shared_ptr<tCACD>(new tCACD(mTIm0V1,Pt2di(0,0),aRho,aSzW));
-
-   mImStdV2 = anImStd;
-   mImStdV1 = cMMV1_Conv<Type>::ImToMMV1(mImStdV2.DIm());
-   mTImStdV1 =  tTImV1(mImStdV1);
-}
 
      // ================= Fitlrage spatial , point "bons" et bien repartis ===============
 
          //  ------ Qt stuff ---------------
-typedef  cXml2007Pt * tP2007Ptr;
-class cFuncPtOfXml2007
+template <class Type> class cFuncPtOfXml2007
 {   // argument du qauad tri
     // comment à partir un objet, je recuper sa pt2D
       public :
-         Pt2dr operator () (tP2007Ptr  aXP) {return Pt2dr(aXP->Pt());}
+         Pt2dr operator () (cProtoAimeTieP<Type> *  aXP) {return ToMMV1(aXP->mPFileInit);}
 };
-typedef ElQT<tP2007Ptr,Pt2dr,cFuncPtOfXml2007> tQtXml2007;
+// typedef  cXml2007Pt * tP2007Ptr;
+// typedef ElQT<tP2007Ptr,Pt2dr,cFuncPtOfXml2007> tQtXml2007;
 
          //  ------ Heap stuff ---------------
-class cAimeFS_HeapIndex
+template <class Type>  class cAimeFS_HeapIndex
 {
      public :
-        static void SetIndex(tP2007Ptr   aXP,int i)
+        static void SetIndex(cProtoAimeTieP<Type> *   aPP,int i)
         {
-                aXP->HeapIndexe() = i;
+                aPP->mHeapIndexe = i;
         }
-        static int  Index(tP2007Ptr aXP)
+        static int  Index(cProtoAimeTieP<Type> *  aPP)
         {
-             return aXP->HeapIndexe();
+             return aPP->mHeapIndexe;
         }
 };
 
-class cAimeFS_HeapCmp
+template <class Type> class cAimeFS_HeapCmp
 {
     public :
 
-        bool operator () (tP2007Ptr    aXP1,tP2007Ptr  aXP2)
+        bool operator () (cProtoAimeTieP<Type> *  aPP1,cProtoAimeTieP<Type> *  aPP2)
         {
-              return aXP1->ScoreRel() > aXP2->ScoreRel();   // compare score correl global
+              return aPP1->mScoreRel > aPP2->mScoreRel;   // compare score correl global
         }
         // est ce que objet 1 est meuilleur que 2
 };
-typedef ElHeap<tP2007Ptr,cAimeFS_HeapCmp,cAimeFS_HeapIndex> tHeapXml2007;
+// typedef ElHeap<tP2007Ptr,cAimeFS_HeapCmp,cAimeFS_HeapIndex> tHeapXml2007;
 
 
 template <class Type> void cImplem_ExportAimeTiep<Type>::FiltrageSpatialPts()
 {
-     if (mPtsXml.Pts().empty())  // may be degenerated (bounding box ...)
+     for (auto & aPATP : mVecProtoPts)
+     {
+         if (aPATP.mOkAutoCor)
+         {
+            cAutoTimerSegm aATS("Refined");
+            double aScale = aPATP.ScaleInO();
+            cAffineExtremum<Type> anAE(aPATP.mGPI->ImG().DIm(),AFEXTR_RADIUS*aScale);
+
+            cPt2dr aP0 = ToR(aPATP.mPImInit);
+            cPt2dr aPLast = aP0;
+            bool   IsInstable = false;
+            bool   GoOn = true;
+            int    aKIter = 0;
+         
+            while (GoOn)
+            {
+                cPt2dr aPNext = anAE.OneIter(aPLast);
+                if (Norm2(aPNext-aP0)>AFEXTR_DIST_INST*aScale)
+                {
+                     IsInstable = true;
+                     GoOn = false;
+                }
+                else if (Norm2(aPNext-aPLast) < AFEXTR_DIST_CONV *aScale)
+                {
+                     GoOn = false;
+                }
+
+                aKIter ++;
+                if (aKIter >=  AFEXTR_NB_ITER)
+                {
+                     GoOn = false;
+                }
+                aPLast = aPNext;
+            }
+          
+            aPATP.mPFileRefined =   aPATP.mGPI->Im2File(aPLast);
+            aPATP.mStable = ! IsInstable;
+         }
+         else
+         {
+            aPATP.mPFileRefined =   aPATP.mPFileInit;
+            aPATP.mStable = true;
+         }
+     }
+     cAutoTimerSegm aATS("SpatialFilter");
+     if (mVecProtoPts.empty())  // may be degenerated (bounding box ...)
      {
         return;
      }
      cBox2dr aB = mBox.CurBox().Dilate(10);
 
      // Quod tree for spacial indexation
-     cFuncPtOfXml2007 aFctrPt;
-     tQtXml2007  aQt(aFctrPt,ToMMV1(aB),10,20.0);
+     cFuncPtOfXml2007<Type> aFctrPt;
+     ElQT<cProtoAimeTieP<Type>*,Pt2dr,cFuncPtOfXml2007<Type> >  aQt(aFctrPt,ToMMV1(aB),10,20.0);
+
+     // tQtXml2007  aQt(aFctrPt,ToMMV1(aB),10,20.0);
 
      // Heap for handling priority
-     cAimeFS_HeapCmp aFctrCmp;
-     tHeapXml2007  aHeap(aFctrCmp);
+     cAimeFS_HeapCmp<Type> aFctrCmp;
+     ElHeap<cProtoAimeTieP<Type>*,cAimeFS_HeapCmp<Type>,cAimeFS_HeapIndex<Type>> aHeap(aFctrCmp);
 
      // Put everyting in heap and quod tree, put only validated (they may remain when inspect mode)
-     for (auto & aP : mPtsXml.Pts())
+     for (auto & aP : mVecProtoPts)
      {
-         if (aP.OKAc() )
+         if (aP.mOkAutoCor && aP.mStable)
          {
             aQt.insert(&aP);
             aHeap.push(&aP);
@@ -360,25 +436,25 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::FiltrageSpatialPts()
      {
         double aDistInfl = aDsf * mFP.MulDistSF();
         double aProp =  mFP.PropNoSF();
-        tP2007Ptr aNewP = nullptr;
+        cProtoAimeTieP<Type>* aNewP = nullptr;
         if (aHeap.pop(aNewP)) // if get next best pts 
         {
             aQt.remove(aNewP);  // supress from Qt
-            aNewP->SFSelected() = true;  // memorize it is selected
-            std::set<tP2007Ptr> aSet;
-            aQt.RVoisins(aSet,aNewP->Pt(),aDistInfl);  // Extract neighboors
+            aNewP->mSFSelected = true;  // memorize it is selected
+            std::set<cProtoAimeTieP<Type>* > aSet;
+            aQt.RVoisins(aSet,ToMMV1(aNewP->mPFileInit),aDistInfl);  // Extract neighboors
 
             for (const auto & aVois : aSet)
             {
-                if (! aVois->SFSelected())
+                if (! aVois->mSFSelected)
                 {
-                    double aD = euclid(aNewP->Pt(),aVois->Pt()); // Distance to new selected
+                    double aD = Norm2(aNewP->mPFileInit-aVois->mPFileInit); // Distance to new selected
                     double aRatio = aD/aDistInfl;  // put as ratio to max
                     aRatio = aProp + aRatio *(1-aProp); // take into account non spatial part
-                    double aNewSc = aVois->Score() * aRatio;  // comput new score 
-                    if (aNewSc < aVois->ScoreRel())  // if new score is lower
+                    double aNewSc = aVois->mScoreInit * aRatio;  // comput new score 
+                    if (aNewSc < aVois->mScoreRel)  // if new score is lower
                     {
-                        aVois->ScoreRel() = aNewSc;  // update score
+                        aVois->mScoreRel = aNewSc;  // update score
                         aHeap.MAJ(aVois);            // udpate position in heap
                     }
                 }
@@ -395,10 +471,21 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::FiltrageSpatialPts()
      {
          erase_if
          (
-             mPtsXml.Pts(),
-	     [] (const cXml2007Pt & aXP) { return  (!aXP.OKAc() ) || (! aXP.SFSelected());}
+             mVecProtoPts,
+	     [] (const cProtoAimeTieP<Type> & aPP) 
+                { return  (!aPP.mOkAutoCor) || (! aPP.mSFSelected) || (!aPP.mStable);}
          );
      }
+
+/*
+     for (auto & aPATP : mVecProtoPts)
+     {
+         cAutoTimerSegm aATS("Posterioi-Refined");
+         cAffineExtremum<Type> anAE(aPATP.mGPI->ImG().DIm(),AFEXTR_RADIUS*aPATP.ScaleInO());
+         cPt2dr aPRefIm =   anAE.StdIter(ToR(aPATP.mPImInit),1e-2,3);
+         aPATP.mPFileRefined =   aPATP.mGPI->Im2File(aPRefIm);
+     }
+*/
 }
 
 

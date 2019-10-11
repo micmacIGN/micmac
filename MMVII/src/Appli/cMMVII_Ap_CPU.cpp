@@ -13,10 +13,17 @@ std::string timePointAsString(const std::chrono::system_clock::time_point& tp)
 
 // 3600.0 * 24.0
 
+/***********************************/
+/*                                 */
+/*           cMMVII_Ap_CPU         */
+/*                                 */
+/***********************************/
+
 cMMVII_Ap_CPU::cMMVII_Ap_CPU() :
    mT0          (std::chrono::system_clock::now())     ,
    mPid         (mmvii_GetPId())   ,
-   mNbProcSys   (mmvii_NbProcSys())
+   mNbProcSys   (mmvii_NbProcSys()),
+   mTimeSegm    (this)
 {
   // Very tricky and dirty, but I dont have courage for now to understand time/clok in C++
   // To change one day ....
@@ -42,12 +49,90 @@ std::string    cMMVII_Ap_CPU::StrDateCur() const    {return  timePointAsString(s
 const std::string  &  cMMVII_Ap_CPU::StrIdTime() const  {return mStrIdTime;}
 
 
+cTimerSegm&  cMMVII_Ap_CPU::TimeSegm() {return mTimeSegm;}
+
 double cMMVII_Ap_CPU::SecFromT0() const
 {
     tTime aT1 = std::chrono::system_clock::now();
     std::chrono::duration<double, std::milli> fp_ms = aT1-mT0;
     return fp_ms.count()/1000.0;
 
+}
+
+/***********************************/
+/*                                 */
+/*          cAutoTimerSegm         */
+/*                                 */
+/***********************************/
+
+cAutoTimerSegm::cAutoTimerSegm(cTimerSegm & aTS,const tIndTS & anInd) :
+   mTS      (aTS),
+   mSaveInd (aTS.mLastIndex)
+{
+   mTS.SetIndex(anInd);
+}
+
+cAutoTimerSegm::cAutoTimerSegm(const tIndTS & anInd) :
+    cAutoTimerSegm(GlobAppTS(),anInd)
+{
+}
+
+cAutoTimerSegm::~cAutoTimerSegm()
+{
+   mTS.SetIndex(mSaveInd);
+}
+
+/***********************************/
+/*                                 */
+/*          cTimerSegm             */
+/*                                 */
+/***********************************/
+
+static const std::string DefTime(" OTHERS");
+
+cTimerSegm::cTimerSegm(cMMVII_Ap_CPU * anAppli) :
+   mLastIndex     (DefTime),
+   mAppli         (anAppli),
+   mCurBeginTime  (mAppli->SecFromT0())
+{
+}
+
+cTimerSegm::~cTimerSegm()
+{
+   if (mTimers.size() >=2) // is something was added
+     Show();
+}
+
+cTimerSegm & GlobAppTS()
+{
+   return cMMVII_Appli::CurrentAppli().TimeSegm();
+}
+
+const tTableIndTS &  cTimerSegm::Times() const {return mTimers;}
+
+void cTimerSegm::SetIndex(const tIndTS & aInd)
+{
+   double aCurTime =  mAppli->SecFromT0();
+   mTimers[mLastIndex] += aCurTime-mCurBeginTime;
+   mCurBeginTime = aCurTime;
+   mLastIndex = aInd;
+}
+
+void cTimerSegm::Show() 
+{
+   {
+      cAutoTimerSegm aATS(*this,DefTime);
+   }
+
+   double aSom = 0.0;
+   StdOut()  <<  " ========== TIMING ===========\n";
+   for (const auto & aPair : mTimers)
+   {
+       aSom += aPair.second;
+       StdOut() << " * "  << FixDigToStr(aPair.second,4,4) << " : " << aPair.first << "\n";
+   }
+
+   StdOut() << " *** SOM " << aSom  <<  " " << mAppli->SecFromT0() << "\n";
 }
 
 

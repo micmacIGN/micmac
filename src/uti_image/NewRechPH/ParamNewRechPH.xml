@@ -276,7 +276,8 @@ mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
    </XmlAimeParamApprentissage>
 
    <Xml2007Pt Nb="1" Class="true" ToReference="true">
-       <Pt   Nb="1" Type="Pt2dr">       </Pt>
+       <PtInit   Nb="1" Type="Pt2dr">       </PtInit>
+       <PtAff   Nb="1" Type="Pt2dr">       </PtAff> <!-- Refined loc extrema (by least sq) -->
        <Id   Nb="1" Type="int">         </Id>  <!-- Identifier for debugging -->
        <NumOct   Nb="1" Type="int">     </NumOct>
        <NumIm    Nb="1" Type="int">     </NumIm>
@@ -284,17 +285,14 @@ mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
        <ScaleAbs   Nb="1" Type="double">   </ScaleAbs>
        <Score      Nb="1" Type="double">   </Score>   <!-- Score , mixing Var and Correl -->
        <ScoreRel  Nb="1" Type="double">   </ScoreRel>   <!-- Relative score, evolve accross time -->
-       <HeapIndexe  Nb="1" Type="double">   </HeapIndexe>   <!-- Used for indexe in heap in spatial filtering -->
 
-       <Val     Nb="1" Type="double">   </Val> <!-- Val of modified image (Lapl, Corner) -->
        <Var     Nb="1" Type="double">   </Var> <!-- Variance of point -->
-       <FastStd  Nb="1" Type="double">   </FastStd> <!-- Val of fast score, standard -->
-       <FastConx  Nb="1" Type="double">   </FastConx> <!-- Val of fast score, connected -->
-
        <AutoCor  Nb="1" Type="double">   </AutoCor> <!-- Auto Correl of image -->
        <NumChAC  Nb="1" Type="int">   </NumChAC>    <!-- Num of choice for Auto Correl -->
        <OKAc  Nb="1" Type="bool">   </OKAc>         <!-- Is it ok according to AC -->
        <SFSelected  Nb="1" Type="bool"> </SFSelected>  <!-- Spatial Filtering selected -->
+       <Stable  Nb="1" Type="bool"> </Stable>  <!-- Stable 4 refinement -->
+       <ImLP Nb="1" Type="Im2D_INT1"> </ImLP>  <!-- Log Pol Image -->
    </Xml2007Pt>
 
    <Xml2007SetPtOneType  Nb="1" Class="true" ToReference="true">

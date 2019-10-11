@@ -400,6 +400,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
            std::cout << "AIMEPCAR NAME=["<< aName << "]\n";
            mAimePCar.push_back(StdGetFromNRPH(mDirAime+aName,Xml2007SetPtOneType));
        }
+       std::cout << "\n";
 
 
        // Fenetre pour voir l'image initiale en zoom

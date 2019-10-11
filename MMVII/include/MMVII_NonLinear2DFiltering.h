@@ -14,8 +14,8 @@ namespace MMVII
 /*                                                 */
 /* *********************************************** */
 
-cIm2D<tREAL4> CourbTgt(cIm2D<tREAL4> aImIn);
-void SelfCourbTgt(cIm2D<tREAL4> aImIn);
+template<class Type> cIm2D<Type> CourbTgt(cIm2D<Type> aImIn);
+template<class Type> void SelfCourbTgt(cIm2D<Type> aImIn);
 
 template <class Type> void SelfLabMaj(cIm2D<Type> aImIn,const cBox2di &);
 
