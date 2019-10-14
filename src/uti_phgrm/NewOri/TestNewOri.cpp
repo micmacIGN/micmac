@@ -414,7 +414,6 @@ class cAppliImportSfmInit
 
 
 		/* Save */
-		bool SaveCC();
 		bool SaveCoords();
  
         template <typename T>
@@ -1035,6 +1034,26 @@ bool cAppliImportSfmInit::Read()
 }
 
 /****************************** SAVE *******************************/
+/* 1/ Read keypts per camera and update io
+   2/ Read tracks and create Homol
+
+   Decoding coords, eg:
+   2 0 0 1 0 
+    - a tie-pts visible in 2 images
+    - image id 0, point id 0
+    - image id 1, point id 0 */
+
+/*    coords list of Pts per camera    => map<id_cam,tkey*>
+ *    tracks: id cam, id pts in list   => map<track_id,vector<pairs<id_cam,pt_id>>* >
+ * 
+ *    for each conf
+ *        for each pt
+ *            get cam for that pt
+ *            add that pt to coord_list for the cam ; retrive tkey and push next tkey_pair <pt_id,pt2dr> id follows an order
+ *            add that pt to track : track_id=conf, push pair<id_cam,pt_id> 
+ *
+ * */
+/* Remark: calibrations are considered without distortions! */
 
 bool cAppliImportSfmInit::SaveCoords()
 {
@@ -1058,82 +1077,160 @@ bool cAppliImportSfmInit::SaveCoords()
 	aSetPM->AddFile(aPMulFile);
 	std::vector<cSetPMul1ConfigTPM *> aVSetPM = aSetPM->VPMul();
 
-	std::cout << "aVSetPM.size() " << aVSetPM.size() << "\n";
+	int aNbConf = aVSetPM.size(); 
 
-	for (int aK=0; aK<int(aVSetPM.size()); aK++)
+
+	/* Initalise mC2KPts and aTracks  */
+	std::map<int,std::vector<std::pair<int,int> > > aTracks;
+
+	//aK corresponds to configurations and each typically contains more than one track
+	int aTrkGlob=0;
+	for (int aK=0; aK<aNbConf; aK++)
 	{
+		cSetPMul1ConfigTPM * aOneConf = aVSetPM[aK];
+
+		std::vector<int> aVImId = aOneConf->VIdIm();
+		int aNbCamInConf = int(aVImId.size());
+    	int aNbPtInConf = aOneConf->NbPts();
+
+		std::cout << "Track: " << aK << " nb pts: " << aNbPtInConf << " nb im:" << aVImId.size() << "\n";
+
+
+		for (int aPId=0; aPId<aNbPtInConf; aPId++)
+		{
+			//vector containing a single track (first is camera id, second is points id)
+        	std::vector<std::pair<int,int> > *aVPt = &(aTracks[aTrkGlob]);
+
+			for (int aPIm1=0; aPIm1<aNbCamInConf; aPIm1++)
+        	{
+				int aImId1 = aVImId[aPIm1];
+            	Pt2dr aPt1 = aOneConf->GetPtByImgId(aPId, aImId1);
+
+				//get current keypoints for that image
+				tKeyPt *aCurKey  = &(mC2KPts[aImId1]); 
+
+				//serves as the id of the point
+				int aKeySz = int(aCurKey->size());
+
+
+				//save to keypoints of current points
+				//	+add new pt at the end of the key structure
+				tKeyPt::iterator aKeyEnd = aCurKey->end();
+				aCurKey->insert(aKeyEnd, std::pair<int,Pt2dr>(aKeySz,aPt1));
+
+				//save to current track
+				std::pair<int,int> aCamPtId(aImId1,aKeySz);
+				aVPt->push_back (aCamPtId);
+
+
+				//std::cout << "Pt= " << aPt1 << " " << aKeySz << " cam: " << aImId1 << "\n";
+
+
+			}
+		    aTrkGlob++;
+		
+		}
+
 		
 	}
 
-/*
-    {
-        cSetPMul1ConfigTPM * aPMConfig = aVSetPM[aK];
-        aGes->FillPMulConfigToHomolPack(aPMConfig, mIs2Way);
-    }
- * */
 
-	return true;
-}
+    /* Save tracks.txt */
+    std::fstream aTrkStream;
+    aTrkStream.open(mTracksFile.c_str(), std::istream::out);
 
-/* Remark: calibrations are considered without distortions! */
-bool cAppliImportSfmInit::SaveCC()
-{
+	aTrkStream << aTrkGlob << "\n";
 
-	//save cc.txt
-    std::string  aCCName = "cc.txt";
-    std::fstream aCC;
-    aCC.open(aCCName.c_str(), std::istream::out);
-
-	//save list.txt
-	std::string aLName = "list.txt";
-	std::fstream aL;
-	aL.open(aLName.c_str(), std::istream::out);
-
-	//read
-	int aId=0;
-	for (auto aNF : mLFile)
+	for (auto aT : aTracks)
 	{
-		CamStenope * aCam = mICNM->StdCamStenOfNames(aNF,mMMOriDir);
-		std::cout << aCam->PP() << " " << aCam->Focale() << "\n";
+		//length of the track
+		int aNbMul = int(aT.second.size());
 
-		mCC[aId] = new CamSfmInit (aNF,aCam->PP(),aCam->Focale());
+		aTrkStream << aNbMul << " " ;
 
-		aCC << aId << "\n";
-		aL << aNF << " 0 " << aCam->Focale() << "\n";
+		//the track itself
+		for (int aMul=0; aMul<aNbMul; aMul++)
+		{
+			//          cam_id                              pt_id 
+			aTrkStream << aT.second.at(aMul).first << " " << aT.second.at(aMul).second << " " ;
+		}
+		aTrkStream << "\n";
 
-		aId++;
+	}
+
+	aTrkStream.close();
+
+
+	/* Save coords.txt AND fill the mCC map */
+	std::fstream aCoordStream;
+    aCoordStream.open(mCoordsFile.c_str(), std::istream::out);
+
+	for (auto aIm : mC2KPts)
+	{
+		std::string aImName = aSetPM->NameFromId(aIm.first);
+	
+		CamStenope * aCam = mICNM->StdCamStenOfNames(aImName,mMMOriDir);
+		mCC[aIm.first] = new CamSfmInit (aImName,aCam->PP(),aCam->Focale());
+
+		aCoordStream << "#index = " << aIm.first << ", name = " << aImName << ", keys = " << aIm.second.size() 
+				     << ", px = " << aCam->PP().x << ", py = " << aCam->PP().y << ", focal = " << aCam->Focale() << "\n";
+
+		for (int aPt = 0; aPt<int(aIm.second.size()); aPt++)
+		{
+			aCoordStream << aPt << " " << aIm.second.at(aPt).x << " " << aIm.second.at(aPt).y << " 0 0 255 255 255\n";  
+
+		}
 	}	
 
-	aCC.close();
-	aL.close();
+	aCoordStream.close();
+
+
+	/* Save cc.txt and list.txt from mC2KPts */
+    std::fstream aCC;
+    aCC.open(mCCFile.c_str(), std::istream::out);
+
+    //save list.txt
+    std::fstream aL;
+    aL.open(mCCListAllFile.c_str(), std::istream::out);
+
+    //read
+    for (auto aIm : mC2KPts)
+    {
+
+        aCC << aIm.first << "\n";
+        aL <<  mCC[aIm.first]->mName << " 0 " << mCC[aIm.first]->F << "\n";
+
+    }
+
+    aCC.close();
+    aL.close();	
+
+
+		
 
 	return true;
 }
+
+
+
 
 bool cAppliImportSfmInit::Save()
 {
 
 	mLFile = mICNM->StdGetListOfFile(mPat,1);
 
-	if (SaveCC())
-    	std::cout << "[ImportSfmInit] Save cc.txt done. " << "\n";
 
 	
-	//coords + tracks
-	//EGs
+	/* save coords, tracks, cc and list */
+	if (SaveCoords())
+    	std::cout << "[ImportSfmInit] Save " << mCoordsFile << " " << mTracksFile << " " << mCCFile << " " << mCCListAllFile << " done. " << "\n";
 
 
-/*
- *
- *      std::map<int,CamSfmInit *>       mCC;//int follows the SfmInit indexing
-        std::map<int,int>                mSfm2MM_ID;//mapping of the sfm indexes to MM indexes; the latter must follow the image order in mCCVec
-        std::vector<std::string> *       mCCVec;//Vec to initialise the merge structure
-        std::map<int,tKeyPt >            mC2KPts; //map containing a keypoint set per image; the int is the image id as in mCC
-
-
- *
- *
- * */
+	//EGs 
+	if (mEGFile!="")
+	{
+	
+	}
 
 
 	return true;
