@@ -415,6 +415,10 @@ class cAppliImportSfmInit
 
 		/* Save */
 		bool SaveCoords();
+		void SaveEG();
+
+		ElRotation3D OriCam2On1(const cNewO_NameManager *aNM,const std::string & aNOri1,const std::string & aNOri2,bool & OK) const;
+
  
         template <typename T>
         void FileReadOK(FILE *fptr, const char *format, T *value);
@@ -447,6 +451,7 @@ class cAppliImportSfmInit
         std::vector<std::string> *       mCCVec;//Vec to initialise the merge structure
         std::map<int,tKeyPt >            mC2KPts; //map containing a keypoint set per image; the int is the image id as in mCC
 
+		std::map<std::string,int>        mStr2Id;//mapping from image name to id
         //cVirtInterf_NewO_NameManager *   mVNM;
 };
 
@@ -1172,6 +1177,9 @@ bool cAppliImportSfmInit::SaveCoords()
 		CamStenope * aCam = mICNM->StdCamStenOfNames(aImName,mMMOriDir);
 		mCC[aIm.first] = new CamSfmInit (aImName,aCam->PP(),aCam->Focale());
 
+		//initialise the mStr2Id used in SaveEG
+		mStr2Id[aImName] = aIm.first;
+
 		aCoordStream << "#index = " << aIm.first << ", name = " << aImName << ", keys = " << aIm.second.size() 
 				     << ", px = " << aCam->PP().x << ", py = " << aCam->PP().y << ", focal = " << aCam->Focale() << "\n";
 
@@ -1211,7 +1219,82 @@ bool cAppliImportSfmInit::SaveCoords()
 	return true;
 }
 
+ElRotation3D cAppliImportSfmInit::OriCam2On1(const cNewO_NameManager *aNM,const std::string & aNOri1,const std::string & aNOri2,bool & OK) const
+{
+    OK = false;
 
+    std::string aN1 =  aNOri1;
+    std::string aN2 =  aNOri2;
+
+    if (!  ELISE_fp::exist_file(aNM->NameXmlOri2Im(aN1,aN2,true)))
+       return ElRotation3D::Id;
+
+
+    cXml_Ori2Im  aXmlO = aNM->GetOri2Im(aN1,aN2);
+    OK = aXmlO.Geom().IsInit();
+    if (!OK)
+       return ElRotation3D::Id;
+    const cXml_O2IRotation & aXO = aXmlO.Geom().Val().OrientAff();
+    ElRotation3D aR12 =    ElRotation3D (aXO.Centre(),ImportMat(aXO.Ori()),true);
+
+    OK = true;
+    return aR12;
+
+}
+
+
+
+void cAppliImportSfmInit::SaveEG()
+{
+
+	cNewO_NameManager *aNM = new cNewO_NameManager("",mSH,true,mDir,CalibDir,"dat");
+	cSauvegardeNamedRel aLCpl;
+
+
+	std::string aNameLCple = aNM->NameListeCpleOriented(true);
+
+    aLCpl = StdGetFromSI(aNameLCple,SauvegardeNamedRel);
+
+    /* Save to EG.txt */
+	std::fstream aEG;
+    aEG.open(mEGFile.c_str(), std::istream::out);
+
+	for (auto a2 : aLCpl.Cple())
+    {
+			
+
+        bool OK;
+        ElRotation3D aRel(OriCam2On1 (aNM,a2.N1(),a2.N2(),OK));
+
+		/*std::cout << aRel.tr() << " \n" 
+				  << aRel.Mat()(0,0) << " " << aRel.Mat()(0,1) << " " << aRel.Mat()(0,2) << "\n"
+				  << aRel.Mat()(1,0) << " " << aRel.Mat()(1,1) << " " << aRel.Mat()(1,2) << "\n"
+				  << aRel.Mat()(2,0) << " " << aRel.Mat()(2,1) << " " << aRel.Mat()(2,2) << "\n";*/
+
+		//save transposed R
+		if (DicBoolFind(mStr2Id,a2.N1()) && DicBoolFind(mStr2Id,a2.N2()))
+		{	
+			aEG << mStr2Id[a2.N1()] << " " << mStr2Id[a2.N2()]  << " " 
+			    << aRel.Mat()(0,0) << " " << aRel.Mat()(1,0) << " " << aRel.Mat()(2,0) << " "
+				<< aRel.Mat()(0,1) << " " << aRel.Mat()(1,1) << " " << aRel.Mat()(2,1) << " "
+				<< aRel.Mat()(0,2) << " " << aRel.Mat()(1,2) << " " << aRel.Mat()(2,2) << " "
+				<< aRel.tr().x     << " " << aRel.tr().y     << " " << aRel.tr().z     << "\n";
+		}
+		else
+			std::cout << "Could not find ids for " << a2.N1() << " " << a2.N2() << "\n";
+    }
+
+	aEG.close();
+
+
+    std::cout << "Pairs no: " << aLCpl.Cple().size() << "\n";
+    std::cout << "aNameLCple: " << aNameLCple << "\n";
+
+
+
+
+
+}
 
 
 bool cAppliImportSfmInit::Save()
@@ -1221,20 +1304,22 @@ bool cAppliImportSfmInit::Save()
 
 
 	
-	/* save coords, tracks, cc and list */
+	/* Save coords, tracks, cc and list */
 	if (SaveCoords())
     	std::cout << "[ImportSfmInit] Save " << mCoordsFile << " " << mTracksFile << " " << mCCFile << " " << mCCListAllFile << " done. " << "\n";
 
 
-	//EGs 
+	/* Save EGs */ 
 	if (mEGFile!="")
 	{
-	
+		SaveEG();	
+    	std::cout << "[ImportSfmInit] Save " << mEGFile << " done. " << "\n";
 	}
 
 
 	return true;
 }
+
 
 cAppliImportSfmInit::cAppliImportSfmInit(int argc,char ** argv) :
     DoCalib(false),
@@ -1262,7 +1347,7 @@ cAppliImportSfmInit::cAppliImportSfmInit(int argc,char ** argv) :
 				   << EAM(mTrSolFile,"Tr","true","trans_problem_solution.txt")
 				   << EAM(mEGFile,"EG","true", "Export relative orientations from EGs.txt")
                    << EAM(CalibDir,"OriCalib","true", "Export calibrations to OriCalib directory")
-                   << EAM(DoCalib,"DoCal",true,"Export the calibration files; Def=true")
+                   << EAM(DoCalib,"DoCal",true,"Export the calibration files; Def=false")
                    << EAM(DoImags,"DoImg",true,"Create images' xml list from cc.txt")
                    << EAM(mSH,"SH",true,"Homol postfix")
 				   << EAM(mPost,"Post",true,"PMul${Dest}.txt/dat")
