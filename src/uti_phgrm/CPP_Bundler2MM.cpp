@@ -42,6 +42,9 @@ class cAppliBundler
 	public:
 		cAppliBundler(int argc, char** argv);
 
+		void FromBundler();
+		void ToBundler();
+
 		void ReadList();	
 		bool ReadPoses();	
 
@@ -54,7 +57,8 @@ class cAppliBundler
 		 std::string mOri;
 		 std::string mSH;
 		 std::string mHomExp;
-    	 std::vector<std::string> mNameList;
+    	 std::vector<std::string> mNameList;//FromBundler
+		 std::list<std::string>   mLFile;//ToBundler, should be one var but too lazy to change
 		 std::string mNameConvHom;
 
 		 bool ConvHomMM2Bund;
@@ -69,7 +73,10 @@ class cAppliBundler
 		 void ConvertDR2MM(std::vector<double>& aDR,double& aFoc);
 		 void ConvertHom2MM();
 
-		 void SaveOC(ElMatrix<double>& aR, Pt3dr& aTr, double aFoc, std::vector<double>& aDr1Dr2, Pt2dr& aPP,int& aCamId);
+		 void SaveOC(ElMatrix<double>& aRotZ, ElMatrix<double>& aR, Pt3dr& aTr, 
+				     double aFoc, std::vector<double>& aDr1Dr2, Pt2dr& aPP,int& aCamId);
+
+		 void ConvRotTr(const ElMatrix<double>& dR,Pt3dr& aTr, ElMatrix<double>& aRot, bool IsDirect);
 };
 
 cAppliBundler::cAppliBundler(int argc, char** argv) :
@@ -85,18 +92,20 @@ cAppliBundler::cAppliBundler(int argc, char** argv) :
 	std::string aDir;
 	bool aExpTxt=false;
 
+
 	ElInitArgMain
     (
         argc,argv,
-        LArgMain() << EAMC(aDir,"Working dir. If inside put ./")
-				   << EAMC(mNameFile,"bundler.txt", eSAM_IsExistFile)
-				   << EAMC(mCCListAllFile,"list.txt",eSAM_IsExistFile)
-				   << EAMC(mCoordsFile,"coords.txt",eSAM_IsExistFile),
-        LArgMain() << EAM(mOri,"Out",true,"Output orientation directory") 
-        		   << EAM(mSH,"SH",true,"Homol Postfix") 
-        		   << EAM(aExpTxt,"ExpTxt",true,"Homol in ASCI?") 
-        		   << EAM(ConvHomMM2Bund,"ConvHom",true,"Convert homol to bundler format, Def=false") 
+        LArgMain() << EAMC(aDir,"Working dir. If inside put ./"),
+        LArgMain() << EAM(mNameFile,"b",true,"bundler.txt, (if FromBundler or ToBundler)" )
+                   << EAM(mCCListAllFile,"l",true,"list.txt, (if FromBundler)")
+                   << EAM(mCoordsFile,"c",true,"coords.txt, (if FromBundler)")
+                   << EAM(mOri,"Ori",true,"Orientation directory, (if FromBundler or ToBundler)")
+                   << EAM(mSH,"SH",true,"Homol Postfix")
+                   << EAM(aExpTxt,"ExpTxt",true,"Homol in ASCI?")
+                   << EAM(ConvHomMM2Bund,"ConvHom",true,"Convert homol to bundler format, Def=false")
     );
+
 
 	aExpTxt ? mHomExp="txt" : mHomExp="dat";
 	
@@ -109,21 +118,9 @@ cAppliBundler::cAppliBundler(int argc, char** argv) :
 	if (! ELISE_fp::IsDirectory(mOri))
             ELISE_fp::MkDir(mOri);
 
-
 	//list of the images (id coherent with budle file)
-	ReadList();
+    ReadList();
 
-	//read camera sizes (pas top)
-	ReadCoords();
-
-	if (ReadPoses())
-		std::cout << "[Bundler2MM] Poses done!" << "\n";
-
-	if (ConvHomMM2Bund)
-	{
-		ConvertHom2MM();
-		std::cout << "[Bundler2MM] Tie-points done!" << "\n";
-	}
 }
 
 template <typename T>
@@ -319,6 +316,12 @@ bool cAppliBundler::ReadPoses()
 	ElMatrix<double> aRot(3,3);
 	Pt3dr            aTr;
 
+
+	ElMatrix<double> aRotZ(3,3,0);
+    aRotZ(0,0) = 1;
+    aRotZ(1,1) =-1;
+    aRotZ(2,2) =-1;
+
 	if (aNbCam== int(mNameList.size()))
 	{
 		//read camera at a time and stop after reading aNbCam
@@ -375,7 +378,7 @@ bool cAppliBundler::ReadPoses()
 			Pt2dr aPP(0,0);
 
 			if (DicBoolFind(mCamSz,aCount))
-				SaveOC(aRot, aTr, aFoc, aK1K2, aPP, aCount);
+				SaveOC(aRotZ, aRot, aTr, aFoc, aK1K2, aPP, aCount);
 			else
 			{
 				std::cout << "[No orientation in SfmInit for " << mNameList.at(aCount) << " ] \n";
@@ -396,7 +399,7 @@ bool cAppliBundler::ReadPoses()
 
 }
 
-void cAppliBundler::SaveOC(ElMatrix<double>& aR, Pt3dr& aTr, double aFoc, std::vector<double>& aDr1Dr2, Pt2dr& aPP,int& aCamId)
+void cAppliBundler::SaveOC(ElMatrix<double>& aRotZ, ElMatrix<double>& aR, Pt3dr& aTr, double aFoc, std::vector<double>& aDr1Dr2, Pt2dr& aPP,int& aCamId)
 {
 	if (aFoc!=0)
 	{
@@ -436,39 +439,32 @@ void cAppliBundler::SaveOC(ElMatrix<double>& aR, Pt3dr& aTr, double aFoc, std::v
 		//externe
 		cOrientationExterneRigide aExtern;
    
-	    /* Conventions in MicMac and Bundler :
-		 * X - world coordinates
-		 * P - camera coordinates
-		 * C - position of the camera in the world coordinates
-		 * 
-		 *
-		 *   MM: X = R * P + C
-		 *   B : P = R * X + t
-		 *
-		 *   Bundler conv in MM
-		 *   Rm = R'b
-		 *   Cm = Rb*t
-		 *
-		 *   therefore, X = Rm * P + Cm => R'b * P + Rb*t
-		 *
-		 * */	
-		//conv MM is Camera2Monde and Bumnder Monde2Camera
-		ElMatrix<double> aRotMM = aR.transpose();
-		Pt3dr            aTrMM  = - (aR*aTr);	
-	
-		std::cout << -(aR*aTr) << " " << "\n";
+
+		ConvRotTr(aRotZ, aTr, aR, true);
+		
+
+		if ((mNameList.at(aCamId)=="130243089_80519c9d25_o.jpg") || (mNameList.at(aCamId)=="148323927_a290b0c5ab_o.jpg"))
+		{
+				std::cout << aFileExterne << "\n";
+				std::cout << aR(0,0) << " " << aR(0,1) << " " << aR(0,2) << "\n"
+						  << aR(1,0) << " " << aR(1,1) << " " << aR(1,2) << "\n"
+						  << aR(2,0) << " " << aR(2,1) << " " << aR(2,2) << "\n"
+						  << aTr << "\n";
+				getchar();
+		}
+
 
 		/* There are images in Bundler solution that are NAN but exist in SfmInit */
-		if (! (isnan(aTrMM.x) || isnan(aTrMM.y) || isnan(aTrMM.z)))
+		if (! (isnan(aTr.x) || isnan(aTr.y) || isnan(aTr.z)))
 		{
-			aExtern.Centre() = aTrMM;
+			aExtern.Centre() = aTr;//aTrMM;
 			aExtern.IncCentre() = Pt3dr(1,1,1);
 			
         
 			cTypeCodageMatr aTCRot;
-			aTCRot.L1() = Pt3dr(aRotMM(0,0),-aRotMM(0,1),-aRotMM(0,2));     //  1  0            0            conv Bundler: Z points away from the scene
-			aTCRot.L2() = Pt3dr(aRotMM(1,0),-aRotMM(1,1),-aRotMM(1,2));   // 0 cos teta=-1   -sin teta=0
-			aTCRot.L3() = Pt3dr(aRotMM(2,0),-aRotMM(2,1),-aRotMM(2,2));   // 0 sin teta=0   cos teta=-1
+			aTCRot.L1() = Pt3dr(aR(0,0),aR(0,1),aR(0,2));   
+			aTCRot.L2() = Pt3dr(aR(1,0),aR(1,1),aR(1,2));   
+			aTCRot.L3() = Pt3dr(aR(2,0),aR(2,1),aR(2,2));   
 			aTCRot.TrueRot() = true;
         
 			cRotationVect aRV;
@@ -493,12 +489,189 @@ void cAppliBundler::ConvertDR2MM(std::vector<double>& aDR,double& aFoc)
 	}
 }
 
+/*       
+ * * Conventions in MicMac and Bundler :
+ *
+ *          X - world coordinates
+ *          P - camera coordinates
+ *          C - position of the camera in the world coordinates
+ *          
+ *         
+ *            MM: X = R * P + C
+ *            B : P = R * X + t
+ *         
+ *            Bundler conv in MM
+ *            Rm = R'b
+ *            Cm = Rb*t
+ *         
+ *            therefore, X = Rm * P + Cm => R'b * P + Rb*t
+ *         
+ * 
+ *  Remark: conv MM is Camera2Monde and Bumnder Monde2Camera
+ *
+ *  Remark: Bundler Z points away from the scene therefore dot product with dR
+ *    1  0            0       
+ *   0 cos teta=-1   -sin teta=0
+ *   0 sin teta=0   cos teta=-1
+ *
+ * */
+void cAppliBundler::ConvRotTr(const ElMatrix<double>& dR, Pt3dr& aTr, ElMatrix<double>& aRot, bool IsDirect)
+{
+
+
+
+	/* From Bundler */
+	if (IsDirect)
+	{
+		aTr  = -(aRot * aTr);	
+		aRot = dR * aRot.transpose() ;
+	}
+	/* To Bundler */
+	else
+	{
+
+		aTr = dR * (aRot * (-aTr)) ;
+		aRot = aRot.transpose() * dR;		
+	}
+
+}
+
+
+void cAppliBundler::FromBundler()
+{
+
+
+    //read camera sizes (pas top)
+    ReadCoords();
+
+    if (ReadPoses())
+        std::cout << "[Bundler2MM] Poses done!" << "\n";
+
+    if (ConvHomMM2Bund)
+    {
+        ConvertHom2MM();
+        std::cout << "[Bundler2MM] Tie-points done!" << "\n";
+    }
+	
+
+}
+
+void cAppliBundler::ToBundler()
+{
+
+	/* (1) iterate over images
+	 * (2) read MM ori
+	 * (3) convert mm ori to bundler
+	 * (4) save ori bundler
+	 * */
+
+
+	std::fstream aOut;
+    aOut.open(mNameFile.c_str(), std::istream::out);
+	
+	/* Nb of cameras */
+	int aNbCam = int(mNameList.size());
+	int aNbTPt = 0;
+
+	aOut << "# Bundle file v0.3\n";	
+	aOut << aNbCam << " " << aNbTPt << "\n";
+
+
+
+	ElMatrix<double> aRotZ(3,3,0);
+    aRotZ(0,0) = 1;
+    aRotZ(1,1) =-1;
+    aRotZ(2,2) =-1;
+
+	std::string aKeyOri = mICNM->StdKeyOrient(mOri);
+
+	//for (auto aIm : mLFile)
+	for (auto aIm : mNameList)
+	{
+
+
+		/* externe */	
+		std::string aNF = mICNM->NameOriStenope(aKeyOri,aIm);
+
+        if (ELISE_fp::exist_file(aNF))
+        {
+
+			/* interne */
+			std::string aNC = mICNM->StdNameCalib(mOri,aIm);
+
+
+			cCalibrationInternConique aCIO = StdGetObjFromFile<cCalibrationInternConique>
+                                (
+                                    aNC,
+                                    StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                                    "CalibrationInternConique",
+                                    "CalibrationInternConique"
+                                );
+
+			//no distortions taken into account
+			aOut << aCIO.F() << " 0 0" << "\n";
+	
+            Pt3dr aC = StdGetObjFromFile<Pt3dr>
+                    (
+                        aNF,
+                        StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                        "Centre",
+                        "Pt3dr"
+                    );
+
+
+			cOrientationConique * aCO = OptionalGetObjFromFile_WithLC<cOrientationConique>
+                                 (
+                                       0,0,
+                                       aNF,
+                                       StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                                       "OrientationConique",
+                                       "OrientationConique"
+                                 );
+        	cRotationVect 		aRV  = aCO->Externe().ParamRotation();
+			ElMatrix<double>	aRot = ElMatrix<double>::Rotation(aRV.CodageMatr().Val().L1(),
+							                                      aRV.CodageMatr().Val().L2(),
+																  aRV.CodageMatr().Val().L3());
+			
+
+			ConvRotTr(aRotZ,aC,aRot,false);
+
+
+			aOut << aRot(0,0) << " " << aRot(0,1) << " " << aRot(0,2) << "\n"
+				 << aRot(1,0) << " " << aRot(1,1) << " " << aRot(1,2) << "\n"
+				 << aRot(2,0) << " " << aRot(2,1) << " " << aRot(2,2) << "\n"
+				 << std::setprecision(10) << aC.x << " " << aC.y << " " << aC.z << "\n";
+
+        }
+		else
+			aOut << "0 0 0" << "\n"
+				 << "0 0 0" << "\n"
+				 << "0 0 0" << "\n"
+				 << "0 0 0" << "\n"
+				 << "0 0 0" << "\n";
+	
+	
+	}
+	aOut.close();
+
+}
+
 int CPP_Bundler2MM_main(int argc, char** argv)
 {
 	cAppliBundler anApp(argc,argv);
+	anApp.FromBundler();
 
 	return EXIT_SUCCESS;
 }
+
+int CPP_MM2Bundler_main(int argc, char** argv)
+{
+    cAppliBundler anApp(argc,argv);
+    anApp.ToBundler();
+
+    return EXIT_SUCCESS;
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

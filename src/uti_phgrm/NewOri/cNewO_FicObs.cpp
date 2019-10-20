@@ -1544,7 +1544,30 @@ int CPP_FictiveObsFin_main(int argc,char ** argv)
 }
 
 
- 
+ElRotation3D OriCam2On1_t(const cNewO_NameManager *aNM,const std::string & aNOri1,const std::string & aNOri2,bool & OK) 
+{
+    OK = false;
+
+    std::string aN1 =  aNOri1;
+    std::string aN2 =  aNOri2;
+
+	std::cout << " rerer " << aNM->NameXmlOri2Im(aN1,aN2,true) << "\n";
+    if (!  ELISE_fp::exist_file(aNM->NameXmlOri2Im(aN1,aN2,true)))
+       return ElRotation3D::Id;
+
+
+    cXml_Ori2Im  aXmlO = aNM->GetOri2Im(aN1,aN2);
+    OK = aXmlO.Geom().IsInit();
+    if (!OK)
+       return ElRotation3D::Id;
+    const cXml_O2IRotation & aXO = aXmlO.Geom().Val().OrientAff();
+    ElRotation3D aR12 =    ElRotation3D (aXO.Centre(),ImportMat(aXO.Ori()),true);
+
+    OK = true;
+    return aR12;
+
+}
+
 int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
 {
     std::string aPattern;
@@ -1608,7 +1631,7 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
         if (ELISE_fp::exist_file(aNameLCple))
         {
             aLCpl = StdGetFromSI(aNameLCple,SauvegardeNamedRel);
-            std::cout << "Pairs no: " << aLCpl.Cple().size() << "\n";
+            std::cout << "Pairs no: " << aLCpl.Cple().size() << " " << aNameLCple << "\n";
         }
     }
 
@@ -1667,11 +1690,16 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
             if ( DicBoolFind(aNameMap,a2.N1()) &&
                  DicBoolFind(aNameMap,a2.N2()) )
             {
-                //poses
+                //poses ER changed order P1 and P2 ?
                 bool OK;
                 ElRotation3D aP1 = ElRotation3D::Id;
-                ElRotation3D aP2 = aNM->OriCam2On1 (a2.N1(),a2.N2(),OK);
- 
+                ElRotation3D aP2 = OriCam2On1_t (aNM,a2.N1(),a2.N2(),OK);
+
+			    if (1)
+				{
+					std::cout << "eeee " << aP2.tr() << " " << a2.N1() << " " << a2.N2() <<  "\n";
+				}
+				
                 CamStenope *aC1 = aNM->CalibrationCamera(a2.N1())->Dupl();//aNM->CamOfName(a2.N1());
                 CamStenope *aC2 = aNM->CalibrationCamera(a2.N2())->Dupl();//aNM->CamOfName(a2.N2());
  
