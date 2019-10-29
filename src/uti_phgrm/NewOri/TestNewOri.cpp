@@ -204,7 +204,7 @@ bool cAppliNOExport::NOSave(const std::map<std::string,Pose3d *> aMP,
                 false,
                 "NewOriImage2G2O_main save; can't open file"
         );
-
+		aOut.close();
         return false;
    }
 
@@ -218,7 +218,10 @@ bool cAppliNOExport::NOSave(const std::map<std::string,Pose3d *> aMP,
        NOSaveConstraint(&aOut,aK);
    }
 
+   aOut.close();
+
    return true;
+
 
 };
 
@@ -387,18 +390,38 @@ class cAppliImportSfmInit
 
         bool Read();
 
+		bool Save();
+
     private :
+		/* Read */
         bool ReadCC();
         bool ReadCoords();
         bool ReadCoordsOneCam(FILE *fptr,int &aCamId, tKeyPt &aKeyPts);
-        void ConvMMConv(Pt2dr &aPt);
+        void ConvMMConv(Pt2dr &aPt,bool IsDirect);
+		void ConvRelMM2SfmI(ElRotation3D& aOri2in1, ElMatrix<double>& aRij, Pt3dr& atij);
+		void InitRotZ();
+
 
         bool ReadEdges();
+		bool ReadSolution();
+
+		std::string SolutionOriName();
+
+        void SaveCalib();
+        void SaveOC(ElMatrix<double>& aR, Pt3dr& aTr, int& aCamId);
         void ShowImgs();
         void DoListOfName();
         std::string GetListOfName();
 
-        void SaveCalib();
+		bool WriteMMOri2Txt();
+
+
+		/* Save */
+		bool SaveCoords();
+		void SaveEG();
+
+		ElRotation3D OriCam2On1(const cNewO_NameManager *aNM,const std::string & aNOri1,const std::string & aNOri2,bool & OK) const;
+
  
         template <typename T>
         void FileReadOK(FILE *fptr, const char *format, T *value);
@@ -415,17 +438,29 @@ class cAppliImportSfmInit
         std::string mCoordsFile;
         std::string mTracksFile;
         std::string mEGFile;
+        std::string mRotSolFile;
+        std::string mTrSolFile;
+        std::string mMMOriDir;
         std::string mSH;
+        std::string mPost;
+
+		std::string mPat;
+		std::list<std::string> mLFile;
 
         std::string CalibDir;
 
         std::map<int,CamSfmInit *>       mCC;//int follows the SfmInit indexing
         std::map<int,int>                mSfm2MM_ID;//mapping of the sfm indexes to MM indexes; the latter must follow the image order in mCCVec
         std::vector<std::string> *       mCCVec;//Vec to initialise the merge structure
-        tKeyPt                           mKPts; //map that associates a keypoint xy with its id; each image will have a map
         std::map<int,tKeyPt >            mC2KPts; //map containing a keypoint set per image; the int is the image id as in mCC
 
+		std::map<std::string,int>        mStr2Id;//mapping from image name to id
         //cVirtInterf_NewO_NameManager *   mVNM;
+		
+
+		ElMatrix<double>*   mRotZ;
+		
+
 };
 
 template <typename T>
@@ -495,7 +530,6 @@ bool cAppliImportSfmInit::ReadCC()
  
         }
         aFIn.close();
-        delete aLine;
     }
        
     /* Read the cc and associate with the list */
@@ -518,19 +552,29 @@ bool cAppliImportSfmInit::ReadCC()
             aMMID++;
         }
         aFIn.close();
-        delete aLine;
    
     }
 
     return true;
 }
 
-/* MM:      origin at (0,0)
-   SfmInit: origin at (1,1) */
-void cAppliImportSfmInit::ConvMMConv(Pt2dr &aPt)
+/* MM:      	 origin at (0,0)
+   SfmInit/SIFT: origin at (1,1) */
+void cAppliImportSfmInit::ConvMMConv(Pt2dr &aPt,bool IsDirect)
 {
-    aPt.x = aPt.x -1;
-    aPt.y = aPt.y -1;
+	/* From SIFT to MM */
+	if (IsDirect)
+	{
+		aPt.x = aPt.x -1;
+    	aPt.y = aPt.y -1;
+	}
+	/* From MM to SIFT */
+	else
+	{
+		aPt.x = aPt.x +1;
+    	aPt.y = aPt.y +1;
+	
+	}
 }
 
 /* Read keypts per camera and
@@ -589,7 +633,7 @@ bool cAppliImportSfmInit::ReadCoordsOneCam(FILE *fptr,int &aCamId, tKeyPt &aKeyP
         if (OK)
         {
 //          std::cout << aPtId << " " << aPt << " " << aRGB << "\n";
-            ConvMMConv(aPt);
+            ConvMMConv(aPt,true);
             aKeyPts[aPtId] = aPt;
         }
         else 
@@ -706,9 +750,13 @@ bool cAppliImportSfmInit::ReadCoords()
 
 void cAppliImportSfmInit::SaveCalib()
 {
+	int aNb = mCC.size();
+	int aC=1;
     for (auto aIm : mCC)
     {
-//        std::cout << "aIm " << mICNM->StdNameCalib(CalibDir,aIm.second->mName) << "\n";
+        std::cout << "aIm " << " " << aIm.second->mName << " " << aC << " / " << aNb << "\n";
+        //std::cout << "aIm " << mICNM->StdNameCalib(CalibDir,aIm.second->mName)  << "\n";
+
         cCalibrationInternConique aCIO = StdGetObjFromFile<cCalibrationInternConique>
                 (
                     Basic_XML_MM_File("Template-Calib-Basic.xml"),
@@ -723,61 +771,352 @@ void cAppliImportSfmInit::SaveCalib()
         aCIO.CalibDistortion()[0].ModRad().Val().CDist() = Pt2dr(0,0);
 
         MakeFileXML(aCIO,mICNM->StdNameCalib(CalibDir,aIm.second->mName));
-
+		aC++;
     }
 
 
 
 }
 
+/* For now I do not need to read edges 
+ * code to finish when of interest */
+
+/*
+ *INPUT:
+ *         Rimm is the identity affine rotation and describes cam i location and rotation
+ *         Rjmm is the location of cam j in camera i
+ *
+ *OUTPUT:
+ *         Rij_sfm
+ *         tij_sfm
+ *
+ *
+ *
+ *CONVERSION SCRIPT :
+ *
+ *         Risfm0 = Rimm * RotZ   //where Rimm is Id
+ *         Rjsfm0 = Rjmm * RotZ
+ *
+ *         Risfm1 = Risfm0.transpose()
+ *         Rjsfm1 = Rjsfm0.transpose()
+ *
+ *
+ *    Relative rotation in MicMac convention :
+ *          Rij_sfm = Risfm1 * Rjsfm1.transpose()
+ *
+ *    Relative translation from i to j in world coords :
+ *          tij_world = (ti - tj) / norm(ti - tj)
+ *
+ *    Relative translation from i to j in cam i's coords
+ *          tij_sfm   = Risfm1 * tij_world   => tij_world = Risfm' * tij_sfm
+ *
+ *                                            Risfm' * tij_sfm = (ti - tj) / norm(ti - tj)
+ *                                               ti = (0,0,0)
+ *                                               Rimm = Id
+ *
+ *                                            Risfm1' * tij_sfm = -tj 
+ *                                       	  tj = - (Risfm1.transpose() * tij_sfm) 
+ *											  tj = - (Risfm0.transpose().transpose() * tij_sfm )
+ *											  tj = - (Risfm0 * tij_sfm )
+ *											  tj = - (Rimm * RotZ * tij_sfm)
+ *										->	  tj = - (RotZ * tij_sfm)
+ *
+ *                                            Rij_sfm = Risfm1 * Rjsfm1.transpose()
+ *                                            Rij_sfm = (Risfm0.transpose()) * (Rjsfm0.transpose()).transpose()
+ *                                            Rij_sfm =  (Rimm * RotZ).transpose() *
+ *                                                       ((Rjmm * RotZ).transpose()).transpose()
+ *
+ *                                            Rij_sfm = RotZ.transpose() * Rimm.transpose() * 
+ *                                                      (Rjmm * RotZ)
+ *
+ *                                            RotZ * Rij_sfm = Rimm.transpose() * Rjmm * RotZ
+ *
+ *                                            Rimm.transpose() = Id
+ *                                            RotZ * Rij_sfm * RotZ.transpose() = Id * Rjmm
+ *                                       ->   Rjmm = RotZ * Rij_sfm * RotZ.transpose()
+ *
+ *
+ *
+ *==================================================
+ *      
+ *         */
 bool cAppliImportSfmInit::ReadEdges()
 {
-    /* -read edge
-       -associate with cam (io)
-       -read R and t
-       -save to NewTmp ...
-           + Xml_Ori2Im
-                - im name, 
-                - calib 
-                - NbPts
-                - Foc1 Foc2 FocMoy
-                - Box?
 
-std::map<int,CamSfmInit *>       mCC;
- 
-*/
+
     FILE* fptr = fopen(mEGFile.c_str(), "r");
     if (fptr == NULL) {
       return false;
     };
 
-
+	int aNbEdge=0;
     while (!std::feof(fptr)  && !ferror(fptr))
     {
         Pt2di aE;
-        Pt3dr        aTij;
-        ElMatrix<double> aRij(3,3,1.0);
+        Pt3dr            atij_sfm;
+        Pt3dr            atj;
+        ElMatrix<double> aRij_sfm(3,3,1.0);
+        ElMatrix<double> aRjmm(3,3,1.0);
 
         bool OK = std::fscanf(fptr, "%i %i %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", 
                           &aE.x, &aE.y, 
-                          &aRij(0,0), &aRij(0,1), &aRij(0,2),
-                          &aRij(1,0), &aRij(1,1), &aRij(1,2),
-                          &aRij(2,0), &aRij(2,1), &aRij(2,2),
-                          &aTij.x, &aTij.y, &aTij.z);
+                          &aRij_sfm(0,0), &aRij_sfm(0,1), &aRij_sfm(0,2),
+                          &aRij_sfm(1,0), &aRij_sfm(1,1), &aRij_sfm(1,2),
+                          &aRij_sfm(2,0), &aRij_sfm(2,1), &aRij_sfm(2,2),
+                          &atij_sfm.x, &atij_sfm.y, &atij_sfm.z);
 
-        std::cout << aRij(0,0) << " " << aRij(0,1) << " " << aRij(0,2) << "\n"
-                  << aRij(1,0) << " " << aRij(1,1) << " " << aRij(1,2) << "\n"
-                  << aRij(2,0) << " " << aRij(2,1) << " " << aRij(2,2) << "\n";
-        std::cout << "T " << aTij << " E " << aE << " " << OK << "\n";
+		
+		
+		//atj = - ((*mRotZ) * atij_sfm);
+		atj = ((*mRotZ) * atij_sfm);
+		aRjmm = ((*mRotZ) * aRij_sfm) * (*mRotZ).transpose();
 
-        getchar();
+
+	 
+        if (0)
+		{
 
 
+			atij_sfm.x = -0.26035493;
+			atij_sfm.y = 0.20397937;
+			atij_sfm.z = 0.94372015;
+
+			aRij_sfm(0,0) = 0.99054416;
+			aRij_sfm(0,1) = 0.02618604;
+			aRij_sfm(0,2) = 0.134672;
+			aRij_sfm(1,0) = -0.01386052;
+			aRij_sfm(1,1) = 0.99569403;
+			aRij_sfm(1,2) = -0.09165854;
+			aRij_sfm(2,0) = -0.13649229;
+			aRij_sfm(2,1) = 0.08892521;
+			aRij_sfm(2,2) = 0.98664187;
+
+			atj = - ((*mRotZ) * atij_sfm);
+	        aRjmm = ((*mRotZ) * aRij_sfm) * (*mRotZ).transpose();
+
+
+			std::cout << aRjmm(0,0) << " " << aRjmm(0,1) << " " << aRjmm(0,2) << "\n"
+                      << aRjmm(1,0) << " " << aRjmm(1,1) << " " << aRjmm(1,2) << "\n"
+                      << aRjmm(2,0) << " " << aRjmm(2,1) << " " << aRjmm(2,2) << "\n";
+        	std::cout << "T " << atj << " E " << aE << " " << OK << "\n";
+
+
+			getchar();
+
+		}
+
+
+		cNewO_NameManager *aNM = new cNewO_NameManager("",mSH,true,mDir,CalibDir,"dat");
+	    cSauvegardeNamedRel aLCpl;
+
+		std::string aN1 = mCC[aE.x]->mName;
+		std::string aN2 = mCC[aE.y]->mName;
+
+		std::string aNameXML    = aNM->NameXmlOri2Im(aN1,aN2,false);
+		std::string aNameXMLBin = aNM->NameXmlOri2Im(aN1,aN2,true);
+	
+		cXml_Ori2Im aXml;
+		aXml.Im1() = aN1;
+		aXml.Im2() = aN2;
+
+		if (CalibDir == "")
+			ELISE_ASSERT(false, "ReadEdges() Choose a CalibDir")
+		else
+		{
+			aXml.Calib() = CalibDir;
+
+			//the relative motion
+			cXml_O2IComputed aRMC;
+			cXml_O2IRotation aRAff;
+			
+			cTypeCodageMatr aTCRot;
+			aTCRot.L1() = Pt3dr(aRjmm(0,0),aRjmm(0,1),aRjmm(0,2));   
+        	aTCRot.L2() = Pt3dr(aRjmm(1,0),aRjmm(1,1),aRjmm(1,2));   
+        	aTCRot.L3() = Pt3dr(aRjmm(2,0),aRjmm(2,1),aRjmm(2,2));   
+        	aTCRot.TrueRot() = true;
+
+			aRAff.Ori() = aTCRot;
+			aRAff.Centre() = atj;
+
+			aRMC.OrientAff() = aRAff;
+			
+			aXml.Geom() = aRMC;	
+		}
+
+		MakeFileXML(aXml,aNameXML);
+		MakeFileXML(aXml,aNameXMLBin);
+		
+		//std::cout << aNbEdge << ".." << aNameXML << " " ;
+		aNbEdge++;
     }
+	std::cout << "\n";
 
     fclose(fptr);
 
+
+
     return EXIT_SUCCESS;
+}
+
+std::string cAppliImportSfmInit::SolutionOriName()
+{
+	return ("SfmInit/");
+}
+
+void cAppliImportSfmInit::SaveOC(ElMatrix<double>& aR, Pt3dr& aTr, int& aCamId)
+{
+
+	
+	std::string aImN = mCC[aCamId]->mName;
+
+	/* internal calibration */
+	std::string aCalibName = mICNM->StdNameCalib(CalibDir,aImN);
+
+
+	/* external */
+	std::string aFileExterne = "Ori-" + SolutionOriName() + "Orientation-" + aImN + ".xml";
+	std::cout << aFileExterne <<  " " << aCalibName << "\n";
+
+	cOrientationExterneRigide aExtern;
+
+	//conv MM is Camera2Monde and Bundler Monde2Camera
+    ElMatrix<double> aRotMM = aR.transpose();
+    Pt3dr            aTrMM  = aTr;//- (aR*aTr);
+
+	std::cout << "aTrMM=" << aTrMM << "\n";
+
+	/* necessary? */
+    if (! (isnan(aTrMM.x) || isnan(aTrMM.y) || isnan(aTrMM.z)))
+    {
+        aExtern.Centre() = aTrMM;
+        aExtern.IncCentre() = Pt3dr(1,1,1);
+
+
+        cTypeCodageMatr aTCRot;
+        aTCRot.L1() = Pt3dr(aRotMM(0,0),-aRotMM(0,1),-aRotMM(0,2));     //  1  0            0            conv Bundler: Z points away from the scene
+        aTCRot.L2() = Pt3dr(aRotMM(1,0),-aRotMM(1,1),-aRotMM(1,2));   // 0 cos teta=-1   -sin teta=0
+        aTCRot.L3() = Pt3dr(aRotMM(2,0),-aRotMM(2,1),-aRotMM(2,2));   // 0 sin teta=0   cos teta=-1
+        aTCRot.TrueRot() = true;
+
+        cRotationVect aRV;
+        aRV.CodageMatr() = aTCRot;
+        aExtern.ParamRotation() = aRV;
+
+		cOrientationConique aOC;
+        aOC.ConvOri().KnownConv().SetVal(eConvApero_DistM2C);
+        aOC.Externe() = aExtern;
+        aOC.FileInterne().SetVal(aCalibName);
+
+        MakeFileXML(aOC,aFileExterne);
+    }
+
+
+}
+
+bool cAppliImportSfmInit::ReadSolution()
+{
+
+	FILE* fptrR = fopen(mRotSolFile.c_str(), "r");
+    if (fptrR == NULL) {
+      return false;
+    };
+
+
+	FILE* fptrT = fopen(mTrSolFile.c_str(), "r");
+    if (fptrT == NULL) {
+      return false;
+    };
+
+
+
+
+    for (int aK=0 ; aK<int(mCC.size()); aK++)
+    {
+		//instrad of temporary vars I could keep it in a class
+		Pt3dr aTr;
+		ElMatrix<double> aR(3,3,1.0);
+		int aIdR;
+		int aIdT;
+
+		//read rotation
+		if (!std::feof(fptrR)  && !ferror(fptrR))
+		{
+
+        	bool OK = std::fscanf(fptrR, "%i %lf %lf %lf %lf %lf %lf %lf %lf %lf",
+                          &aIdR,
+                          &aR(0,0), &aR(0,1), &aR(0,2),
+                          &aR(1,0), &aR(1,1), &aR(1,2),
+                          &aR(2,0), &aR(2,1), &aR(2,2));
+
+			if (! OK)
+				return EXIT_FAILURE;
+
+		}
+		else
+			return EXIT_FAILURE;
+
+		//read translation
+		if (!std::feof(fptrT)  && !ferror(fptrT))
+        {
+			bool OK = std::fscanf(fptrT,"%i %lf %lf %lf",
+							      &aIdT,
+								  &aTr.x,&aTr.y,&aTr.z);
+
+			if (! OK)
+				return EXIT_FAILURE;
+
+		}
+		else
+            return EXIT_FAILURE;
+
+		//if ids agree
+		if (aIdR==aIdT)
+		{
+
+			SaveOC (aR,aTr,aIdR);
+		}
+	}
+
+    fclose(fptrR);
+    fclose(fptrT);
+
+
+	return EXIT_SUCCESS;
+}
+
+bool cAppliImportSfmInit::WriteMMOri2Txt()
+{
+
+	std::string aNameSave = "micmac_centers.txt";
+	
+	std::fstream aOut;
+    aOut.open(aNameSave.c_str(), std::istream::out);
+
+	for (auto aIm : mCC)
+    {
+        std::cout << "aIm " << " " << aIm.first << " " << aIm.second->mName << " " << "\n"; 
+     	std::string aNF = mICNM->Dir() + mICNM->Assoc1To1(mMMOriDir,aIm.second->mName,true);
+
+		if (ELISE_fp::exist_file(aNF))
+		{
+
+			Pt3dr aC = StdGetObjFromFile<Pt3dr>
+                	(
+                    	aNF,
+                    	StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                    	"Centre",
+                    	"Pt3dr"
+                	);
+
+			aOut << aIm.first << " " << aC.x << " " << aC.y << " " << aC.z << "\n";
+
+		}
+
+	}	
+
+	aOut.close();
+	
+	return true;
 }
 
 bool cAppliImportSfmInit::Read()
@@ -806,6 +1145,9 @@ bool cAppliImportSfmInit::Read()
 
     if (CalibDir != "")
     {
+		if ((mRotSolFile != "") && (mTrSolFile != ""))
+			CalibDir = SolutionOriName();
+
         SaveCalib();
         std::cout << "[ImportSfmInit] Image calibrations saved to: " << "Ori-" + CalibDir << "\n";
     }
@@ -817,14 +1159,428 @@ bool cAppliImportSfmInit::Read()
             std::cout << "[ImportSfmInit] Edges saved to: " << "\n";
     }
 
+	if ( (mRotSolFile != "") && (mTrSolFile != ""))
+	{
+		if (CalibDir == "")
+		{
+			CalibDir = SolutionOriName();
+		//	SaveCalib();
+
+        	std::cout << "[ImportSfmInit] Image calibrations saved to: " << CalibDir << "\n";
+		}
+
+		if (ReadSolution())
+            std::cout << "[ImportSfmInit] rotation / translation solution done. " << "\n";
+	}
+
+	if (mMMOriDir != "")
+	{
+		if (WriteMMOri2Txt())
+		{
+			std::cout << "[ImportSfmInit] Orientations saved to: " << "\n";
+			return true;
+		}
+		else
+			return false;
+	}	
+
     return true;
+}
+
+/****************************** SAVE *******************************/
+/* 1/ Read keypts per camera and update io
+   2/ Read tracks and create Homol
+
+   Decoding coords, eg:
+   2 0 0 1 0 
+    - a tie-pts visible in 2 images
+    - image id 0, point id 0
+    - image id 1, point id 0 */
+
+/*    coords list of Pts per camera    => map<id_cam,tkey*>
+ *    tracks: id cam, id pts in list   => map<track_id,vector<pairs<id_cam,pt_id>>* >
+ * 
+ *    for each conf
+ *        for each pt
+ *            get cam for that pt
+ *            add that pt to coord_list for the cam ; retrive tkey and push next tkey_pair <pt_id,pt2dr> id follows an order
+ *            add that pt to track : track_id=conf, push pair<id_cam,pt_id> 
+ *
+ * */
+/* Remark: calibrations are considered without distortions! */
+
+bool cAppliImportSfmInit::SaveCoords()
+{
+	cSetTiePMul * aSetPM = new cSetTiePMul(0);
+
+
+	std::string aPMulFile;
+	if (ELISE_fp::exist_file(cSetTiePMul::StdName(mICNM,mSH,mPost,true)))
+		aPMulFile = cSetTiePMul::StdName(mICNM,mSH,mPost,true);
+	else if (ELISE_fp::exist_file(cSetTiePMul::StdName(mICNM,mSH,mPost,false)))
+		aPMulFile = cSetTiePMul::StdName(mICNM,mSH,mPost,false);
+	else
+	{
+		std::cout << "cAppliImportSfmInit::SaveCoords() No tie points in " 
+				  << cSetTiePMul::StdName(mICNM,mSH,mPost,false) << "\n";
+
+		return false;
+	}
+
+
+	aSetPM->AddFile(aPMulFile);
+	std::vector<cSetPMul1ConfigTPM *> aVSetPM = aSetPM->VPMul();
+
+	int aNbConf = aVSetPM.size(); 
+
+
+	/* Initalise mC2KPts and aTracks  */
+	std::map<int,std::vector<std::pair<int,int> > > aTracks;
+
+	//aK corresponds to configurations and each typically contains more than one track
+	int aTrkGlob=0;
+	for (int aK=0; aK<aNbConf; aK++)
+	{
+		cSetPMul1ConfigTPM * aOneConf = aVSetPM[aK];
+
+		std::vector<int> aVImId = aOneConf->VIdIm();
+		int aNbCamInConf = int(aVImId.size());
+    	int aNbPtInConf = aOneConf->NbPts();
+
+		std::cout << "Track: " << aK << " nb pts: " << aNbPtInConf << " nb im:" << aVImId.size() << "\n";
+
+
+		for (int aPId=0; aPId<aNbPtInConf; aPId++)
+		{
+			//vector containing a single track (first is camera id, second is points id)
+        	std::vector<std::pair<int,int> > *aVPt = &(aTracks[aTrkGlob]);
+
+			for (int aPIm1=0; aPIm1<aNbCamInConf; aPIm1++)
+        	{
+				int aImId1 = aVImId[aPIm1];
+            	Pt2dr aPt1 = aOneConf->GetPtByImgId(aPId, aImId1);
+
+				//get current keypoints for that image
+				tKeyPt *aCurKey  = &(mC2KPts[aImId1]); 
+
+				//serves as the id of the point
+				int aKeySz = int(aCurKey->size());
+
+
+				//save to keypoints of current points
+				//	+add new pt at the end of the key structure
+				tKeyPt::iterator aKeyEnd = aCurKey->end();
+				aCurKey->insert(aKeyEnd, std::pair<int,Pt2dr>(aKeySz,aPt1));
+
+				//save to current track
+				std::pair<int,int> aCamPtId(aImId1,aKeySz);
+				aVPt->push_back (aCamPtId);
+
+
+				//std::cout << "Pt= " << aPt1 << " " << aKeySz << " cam: " << aImId1 << "\n";
+
+
+			}
+		    aTrkGlob++;
+		
+		}
+
+		
+	}
+
+
+    /* Save tracks.txt */
+    std::fstream aTrkStream;
+    aTrkStream.open(mTracksFile.c_str(), std::istream::out);
+
+	aTrkStream << aTrkGlob << "\n";
+
+	for (auto aT : aTracks)
+	{
+		//length of the track
+		int aNbMul = int(aT.second.size());
+
+		aTrkStream << aNbMul << " " ;
+
+		//the track itself
+		for (int aMul=0; aMul<aNbMul; aMul++)
+		{
+			//          cam_id                              pt_id 
+			aTrkStream << aT.second.at(aMul).first << " " << aT.second.at(aMul).second << " " ;
+		}
+		aTrkStream << "\n"; 
+
+	}
+
+	aTrkStream.close();
+	std::cout << "tracks saved " << "\n";
+
+	/* Save coords.txt AND fill the mCC map */
+	std::fstream aCoordStream;
+    aCoordStream.open(mCoordsFile.c_str(), std::istream::out);
+
+	for (auto aIm : mC2KPts)
+	{
+		std::string aImName = aSetPM->NameFromId(aIm.first);
+
+		std::string aImOriName = mICNM->Dir() + mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+mMMOriDir,aImName,true);
+		
+		if (1)
+			std::cout << aImOriName << "\n";
+
+		if (  ELISE_fp::exist_file(aImOriName))
+		{	
+			CamStenope * aCam = mICNM->StdCamStenOfNames(aImName,mMMOriDir);
+			mCC[aIm.first] = new CamSfmInit (aImName,aCam->PP(),aCam->Focale());
+            
+			//initialise the mStr2Id used in SaveEG
+			mStr2Id[aImName] = aIm.first;
+            
+			aCoordStream << "#index = " << aIm.first << ", name = " << aImName << ", keys = " << aIm.second.size() 
+					     << ", px = " << aCam->PP().x << ", py = " << aCam->PP().y << ", focal = " << aCam->Focale() << "\n";
+            
+			for (int aPt = 0; aPt<int(aIm.second.size()); aPt++)
+			{
+				ConvMMConv(aIm.second.at(aPt),false);
+				aCoordStream << aPt << " " << aIm.second.at(aPt).x << " " << aIm.second.at(aPt).y << " 0 0 255 255 255\n";  
+            
+			}
+		}
+		else
+			std::cout << "cAppliImportSfmInit::SaveCoords() no orientation for " << aImName << " in " << mMMOriDir << "\n"; 
+	}	
+
+	aCoordStream.close();
+
+
+	/* Save cc.txt and list.txt from mC2KPts */
+    std::fstream aCC;
+    aCC.open(mCCFile.c_str(), std::istream::out);
+
+    //save list.txt
+    std::fstream aL;
+    aL.open(mCCListAllFile.c_str(), std::istream::out);
+
+
+
+    //read
+	for (auto aIm : mC2KPts)
+    {
+		std::string aImName = aSetPM->NameFromId(aIm.first);
+		std::string aImOriName = mICNM->Dir() + mICNM->Assoc1To1("NKS-Assoc-Im2Orient@-"+mMMOriDir,aImName,true);
+		if (  ELISE_fp::exist_file(aImOriName))
+		{
+			aCC << aIm.first << "\n";
+        	aL <<  mCC[aIm.first]->mName << " 0 " << mCC[aIm.first]->F << "\n";
+		}
+		else
+        	aL <<  aImName << "\n";
+			
+
+
+    }
+
+    aCC.close();
+    aL.close();	
+
+
+		
+
+	return true;
+}
+
+ElRotation3D cAppliImportSfmInit::OriCam2On1(const cNewO_NameManager *aNM,const std::string & aNOri1,const std::string & aNOri2,bool & OK) const
+{
+    OK = false;
+
+    std::string aN1 =  aNOri1;
+    std::string aN2 =  aNOri2;
+	
+	//std::cout << "eeeeeeeeeeeeee " << aNM->NameXmlOri2Im(aN1,aN2,true) << "\n";
+	//getchar();
+
+    if (!  ELISE_fp::exist_file(aNM->NameXmlOri2Im(aN1,aN2,true)))
+       return ElRotation3D::Id;
+
+
+    cXml_Ori2Im  aXmlO = aNM->GetOri2Im(aN1,aN2);
+    OK = aXmlO.Geom().IsInit();
+    if (!OK)
+       return ElRotation3D::Id;
+    const cXml_O2IRotation & aXO = aXmlO.Geom().Val().OrientAff();
+    ElRotation3D aR12 =    ElRotation3D (aXO.Centre(),ImportMat(aXO.Ori()),true);
+
+    OK = true;
+    return aR12;
+
+}
+
+
+/*        
+ *INPUT:
+ *         Rimm is the identity affine rotation and describes cam i location and rotation
+ *         Rjmm is the location of cam j in camera i
+ *       
+ *         ti is the origin of the coord system and is at (0,0,0)
+ *         tj is the location of j in i
+ *
+ *OUTPUT:
+ *         Rij_sfm 
+ *         tij_sfm
+ *         
+ *        
+ *        
+ *CONVERSION SCRIPT :
+ *
+ *         Risfm = Rimm * RotZ   //where Rimm is Id
+ *         Rjsfm = Rjmm * RotZ
+ *        
+ *         Risfm = Risfm.transpose()
+ *         Rjsfm = Rjsfm.transpose()
+ *        
+ *        
+ *    Relative rotation in MicMac convention :
+ *          Rij_sfm = Risfm * Rjsfm.transpose()
+ *        
+ *    Relative translation from i to j in world coords :
+ *          tij_world = (ti - tj) / norm(ti - tj)
+ *        
+ *    Relative translation from i to j in cam i's coords
+ *          tij_sfm   = Risfm * tij_world
+ *        
+ *         
+ *         */
+
+void cAppliImportSfmInit::ConvRelMM2SfmI(ElRotation3D& aOri2in1, ElMatrix<double>& aRij, Pt3dr& atij)
+{
+
+	Pt3dr ati(0,0,0);	
+	ElMatrix<double> aRi(3,3,0);
+	aRi(0,0) = 1;
+    aRi(1,1) = 1;
+    aRi(2,2) = 1;
+
+	Pt3dr atj(aOri2in1.tr());
+	ElMatrix<double> aRj(3,3,0);
+
+	//rotation of Z and inverse
+	aRi = aRi * (*mRotZ);
+	aRj = aOri2in1.Mat() * (*mRotZ);
+	aRi = aRi.transpose();
+	aRj = aRj.transpose();
+
+	//relative rotation
+	aRij = aRi * aRj.transpose();
+
+	//Pt3dr tij_world = (ati - atj) / euclid(ati - atj);
+	Pt3dr tij_world = -(ati - atj) / euclid(ati - atj);
+	
+	//relative translation
+	atij = aRi * tij_world;
+
+
+}
+
+void cAppliImportSfmInit::SaveEG()
+{
+
+	cNewO_NameManager *aNM = new cNewO_NameManager("",mSH,true,mDir,CalibDir,"dat");
+	cSauvegardeNamedRel aLCpl;
+
+
+	std::string aNameLCple = aNM->NameListeCpleOriented(true);
+
+    aLCpl = StdGetFromSI(aNameLCple,SauvegardeNamedRel);
+
+    /* Save to EG.txt */
+	std::fstream aEG;
+    aEG.open(mEGFile.c_str(), std::istream::out);
+
+
+	for (auto a2 : aLCpl.Cple())
+    {
+		
+
+		//Relative ori in MM format
+        bool OK;
+        ElRotation3D       aR2in1(OriCam2On1 (aNM,a2.N1(),a2.N2(),OK));
+
+		//relative ori in SFMInit format		
+		ElMatrix<double>   aRij(3,3,1);
+		Pt3dr              atij;
+
+		ConvRelMM2SfmI(aR2in1,aRij,atij);
+
+
+		//save the relative motion
+		if (DicBoolFind(mStr2Id,a2.N1()) && DicBoolFind(mStr2Id,a2.N2()))
+		{	
+			aEG << mStr2Id[a2.N1()] << " " << mStr2Id[a2.N2()]  << " " 
+			    << aRij(0,0) << " " << aRij(1,0) << " " << aRij(2,0) << " "
+				<< aRij(0,1) << " " << aRij(1,1) << " " << aRij(2,1) << " "
+				<< aRij(0,2) << " " << aRij(1,2) << " " << aRij(2,2) << " "
+				<< atij.x     << " " << atij.y     << " " << atij.z     << "\n";
+		}
+		else
+			std::cout << "Could not find ids for " << a2.N1() << " " << a2.N2() << " probably missing in your Ori\n";
+    }
+
+	aEG.close();
+
+
+    std::cout << "Pairs no: " << aLCpl.Cple().size() << "\n";
+    std::cout << "aNameLCple: " << aNameLCple << "\n";
+
+
+
+
+
+}
+
+
+bool cAppliImportSfmInit::Save()
+{
+
+	mLFile = mICNM->StdGetListOfFile(mPat,1);
+
+
+	
+	/* Save coords, tracks, cc and list */
+	if (SaveCoords())
+    	std::cout << "[ImportSfmInit] Save " << mCoordsFile << " " << mTracksFile << " " << mCCFile << " " << mCCListAllFile << " done. " << "\n";
+
+
+
+	/* Save EGs */ 
+	if (mEGFile!="")
+	{
+		SaveEG();	
+    	std::cout << "[ImportSfmInit] Save " << mEGFile << " done. " << "\n";
+	}
+
+
+	return true;
+}
+
+void cAppliImportSfmInit::InitRotZ()
+{
+	mRotZ = new ElMatrix<double>(3,3,0);
+    (*mRotZ)(0,0) = 1;
+    (*mRotZ)(1,1) =-1;
+    (*mRotZ)(2,2) =-1;
+
 }
 
 cAppliImportSfmInit::cAppliImportSfmInit(int argc,char ** argv) :
     DoCalib(false),
     DoImags(false),
     mEGFile(""),
+	mRotSolFile(""),
+	mTrSolFile(""),
+	mMMOriDir(""),
     mSH(""),
+    mPost(""),
+    mPat(""),
     CalibDir(""),
     mCCVec(new std::vector<std::string>())
 {
@@ -837,11 +1593,16 @@ cAppliImportSfmInit::cAppliImportSfmInit(int argc,char ** argv) :
                    << EAMC(mCCListAllFile,"list.txt",eSAM_IsExistFile)
                    << EAMC(mCoordsFile,"coords.txt",eSAM_IsExistFile)
                    << EAMC(mTracksFile,"tracks.txt",eSAM_IsExistFile),
-        LArgMain() << EAM(mEGFile,"EG","true", "Export relative orientations from EGs.txt")
+        LArgMain() << EAM(mRotSolFile,"Rot","true","rot_solution.txt") 
+				   << EAM(mTrSolFile,"Tr","true","trans_problem_solution.txt")
+				   << EAM(mEGFile,"EG","true", "Export relative orientations from EGs.txt")
                    << EAM(CalibDir,"OriCalib","true", "Export calibrations to OriCalib directory")
-                   << EAM(DoCalib,"DoCal",true,"Export the calibration files; Def=true")
+                   << EAM(DoCalib,"DoCal",true,"Export the calibration files; Def=false")
                    << EAM(DoImags,"DoImg",true,"Create images' xml list from cc.txt")
                    << EAM(mSH,"SH",true,"Homol postfix")
+				   << EAM(mPost,"Post",true,"PMul${Dest}.txt/dat")
+                   << EAM(mMMOriDir,"Ori",true,"If Pat is init -> Export MM to SfmInit else only ori to txt format ")
+                   << EAM(mPat,"Pat",true,"Pattern of images to export to SfmInit problem")
     );    
 
     #if (ELISE_windows)
@@ -849,22 +1610,53 @@ cAppliImportSfmInit::cAppliImportSfmInit(int argc,char ** argv) :
     #endif
 
     mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
-    
-    if (EAMIsInit(&CalibDir))
-    {
-        //StdCorrecNameOrient(CalibDir, mDir);
-        
-        if (! ELISE_fp::IsDirectory("Ori-"+CalibDir))
-            ELISE_fp::MkDir("Ori-"+CalibDir);
+  
 
-    }
+	//Initialize the RotZ
+	InitRotZ();
+
+    /* Read SfmInit problem in MicMac */	
+    if (mPat=="")
+	{	
+        if (EAMIsInit(&CalibDir))
+        {
+            //StdCorrecNameOrient(CalibDir, mDir);
+            
+            if (! ELISE_fp::IsDirectory("Ori-"+CalibDir))
+                ELISE_fp::MkDir("Ori-"+CalibDir);
+ 
+        }
+ 	   if (EAMIsInit(&mRotSolFile))
+ 	   {
+ 	   	if (! ELISE_fp::IsDirectory("Ori-"+SolutionOriName()))
+                ELISE_fp::MkDir("Ori-"+SolutionOriName());
+ 	   }
+ 
+ 	   if (EAMIsInit(&mMMOriDir))
+ 	   	mMMOriDir= mICNM->StdKeyOrient(mMMOriDir);
+	
+
+	   Read();
+
+	}
+	/* Export MicMac to SfmInit problem */
+	else
+	{
+		if (EAMIsInit(&mMMOriDir))
+			Save();	
+		else
+			ELISE_ASSERT(false,"You must initialise Ori when Pat is used.")
+	}
+
+
 }
+
+
 
 int CPP_NewOriReadFromSfmInit(int argc,char ** argv)
 {
 
     cAppliImportSfmInit aAppli(argc,argv);
-    aAppli.Read();
     
 
     return EXIT_SUCCESS;

@@ -74,6 +74,7 @@ typedef  cStructMergeTieP<cFixedSizeMergeTieP<3,Pt2dr,cCMT_NoVal> >  tMapM;
 typedef  std::list<tElM *>           								 tListM;
 
 #define MinNbPtTri 5
+#define MaxReprojErr 10
 
 class cAppliFictObs : public cCommonMartiniAppli
 {
@@ -390,26 +391,30 @@ std::cout << " ElPackHomologue  dddddddhhhhhhhhhhhhhhhhhhhhhh " << aN << " " << 
     
 			if (0)
 				std::cout << "dddddddhhhhhhhhhhhhhhhhhhhhhh " << aVSeg.at(0).P0() << " " << aVSeg.at(0).P1() << " " << aVSeg.at(1).P0() << " " << aVSeg.at(1).P1()  << " " << aPt1 << " " << aPt2 << "\n";
-			
-			//	calc b sur h
-			double aBsH = BsurH(aVSeg.at(0),aVSeg.at(1));
-    
-    
-			//	compose Pds
-			double aPds = PdsOfResBH(aResid, aBsH);
-			//std::cout << "aResid=" << aResid << ", aBsH=" << aBsH << " " << aPds << "cpl\n";
-    
-			//	add to ellipse
-			AddEllips(anEl,aInt,aPds);
-    
+		
+
+
+		    if (aResid < MaxReprojErr)
+			{
+				//	calc b sur h
+				double aBsH = BsurH(aVSeg.at(0),aVSeg.at(1));
+                
+                
+				//	compose Pds
+				double aPds = PdsOfResBH(aResid, aBsH);
+				//std::cout << "aResid=" << aResid << ", aBsH=" << aBsH << " " << aPds << "cpl\n";
+                
+				//	add to ellipse
+				AddEllips(anEl,aInt,aPds);
+    		}
 		}
 		
 		NormEllips(anEl);
 
-		return EXIT_SUCCESS;
+		return true;
 	}
 	else
-		return EXIT_FAILURE;
+		return false;
 }
 
 
@@ -511,6 +516,7 @@ bool cAppliFictObs::CalculateEllipseParam3(cXml_Elips3D& anEl,std::vector<const 
     const tListM aLM =  aMap.ListMerged();
 
     // Intersect in 3d
+	int MinNbPtTriTmp=0;
 	if ( int(aLM.size()) > MinNbPtTri) 
 	{
         for (tListM::const_iterator itM=aLM.begin() ; itM!=aLM.end() ; itM++)
@@ -518,48 +524,61 @@ bool cAppliFictObs::CalculateEllipseParam3(cXml_Elips3D& anEl,std::vector<const 
  		   	std::vector<ElSeg3D> aVSeg;
             if ((*itM)->NbSom()==3 )
             {
- 	   		//std::cout << "=========== " << (*itM)->GetVal(0) << " "<< (*itM)->GetVal(1) << " " << (*itM)->GetVal(2) << "\n";	
- 	   		aVSeg.push_back(aVC.at(0)->Capteur2RayTer((*itM)->GetVal(0)));
- 	   		aVSeg.push_back(aVC.at(1)->Capteur2RayTer((*itM)->GetVal(1)));
- 	   		aVSeg.push_back(aVC.at(2)->Capteur2RayTer((*itM)->GetVal(2)));
- 
- 	   		//	intersect in 3d 
- 	   		Pt3dr aInt =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
- 	   		//std::cout << "Inter=" << aInt << "\n";
- 	   		
- 	   		//	calc resid
- 	   		double aResid = 0;
- 	   	    aResid += euclid(aVC.at(0)->Ter2Capteur(aInt) - (*itM)->GetVal(0));
- 	   	    aResid += euclid(aVC.at(1)->Ter2Capteur(aInt) - (*itM)->GetVal(1));
- 	   	    aResid += euclid(aVC.at(2)->Ter2Capteur(aInt) - (*itM)->GetVal(2));
- 	   		aResid /= 3;
- 
- 	   		//	calc b sur h
- 	   		double aBsH = ElMax( BsurH(aVSeg.at(0),aVSeg.at(1)),
- 	   					  ElMax( BsurH(aVSeg.at(0),aVSeg.at(2)), 
- 	   					         BsurH(aVSeg.at(1),aVSeg.at(2)) ));
- 
- 
- 
- 	   		//	compose Pds
- 	   		double aPds = PdsOfResBH(aResid, aBsH);
- 	   		//std::cout << "aResid=" << aResid << ", aBsH=" << aBsH << " " << aPds << " tri\n";
- 
- 	   		//	add to ellipse
- 	   		AddEllips(anEl,aInt,aPds);
+ 	   			//std::cout << "=========== " << (*itM)->GetVal(0) << " "<< (*itM)->GetVal(1) << " " << (*itM)->GetVal(2) << "\n";	
+ 	   			aVSeg.push_back(aVC.at(0)->Capteur2RayTer((*itM)->GetVal(0)));
+ 	   			aVSeg.push_back(aVC.at(1)->Capteur2RayTer((*itM)->GetVal(1)));
+ 	   			aVSeg.push_back(aVC.at(2)->Capteur2RayTer((*itM)->GetVal(2)));
+                
+ 	   			//	intersect in 3d 
+ 	   			Pt3dr aInt =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
+ 	   			//std::cout << "Inter=" << aInt << "\n";
+ 	   			
+ 	   			//	calc resid
+ 	   			double aResid = 0;
+ 	   	        aResid += euclid(aVC.at(0)->Ter2Capteur(aInt) - (*itM)->GetVal(0));
+ 	   	        aResid += euclid(aVC.at(1)->Ter2Capteur(aInt) - (*itM)->GetVal(1));
+ 	   	        aResid += euclid(aVC.at(2)->Ter2Capteur(aInt) - (*itM)->GetVal(2));
+ 	   			aResid /= 3;
+               
+			    //if reprojection bigger than this don't consider	
+		        if (aResid < MaxReprojErr)
+				{	
+ 	   				//	calc b sur h
+ 	   				double aBsH = ElMax( BsurH(aVSeg.at(0),aVSeg.at(1)),
+ 	   							  ElMax( BsurH(aVSeg.at(0),aVSeg.at(2)), 
+ 	   							         BsurH(aVSeg.at(1),aVSeg.at(2)) ));
+                    
+                    
+                    
+ 	   				//	compose Pds
+ 	   				double aPds = PdsOfResBH(aResid, aBsH);
+ 	   				//std::cout << "aResid=" << aResid << ", aBsH=" << aBsH << " " << aPds << " tri\n";
+                    
+ 	   				//	add to ellipse
+ 	   				AddEllips(anEl,aInt,aPds);
+
+					MinNbPtTriTmp++;
+				}
+				else
+					{}	//std::cout << "Residual " << aResid << " which is bigger than " << MaxReprojErr << "\n";
             }
  
  
         }
 
+		if (MinNbPtTriTmp < MinNbPtTri)
+			return false;
+
 		NormEllips(anEl);
 
-		return EXIT_SUCCESS;
+		return true;
 
 	}
 	else
-		return 	EXIT_FAILURE;
-
+	{
+		std::cout << "Not enough points MinNbPtTri " << "\n";
+		return 	false;
+	}
 
 }
 
@@ -935,6 +954,7 @@ void cAppliFictObs::GenerateFicticiousObs()
                                       mSetName->at(aT.second->mId2),
                                       mSetName->at(aT.second->mId3));
 
+
 				//original tie-pts are used
 				if (! SUCCESS_ELLIPSE)
 			 	{
@@ -964,6 +984,7 @@ void cAppliFictObs::GenerateFicticiousObs()
 				SUCCESS_ELLIPSE = CalculateEllipseParam2(anEl,aVC,
                                       mSetName->at(aT.second->mId1),
                                       mSetName->at(aT.second->mId2));
+
 
 				//original tie-pts are used
 				if (! SUCCESS_ELLIPSE)
@@ -1086,7 +1107,7 @@ void cAppliFictObs::GenerateFicticiousObs()
 			if (int(aVPSel.size()) != int(aVP.size()))
 			{
 				std::cout << "NO ellipse but less pts?" << "\n";
-				getchar();
+				//getchar();
 			}
 		}
 
@@ -1523,7 +1544,30 @@ int CPP_FictiveObsFin_main(int argc,char ** argv)
 }
 
 
- 
+ElRotation3D OriCam2On1_t(const cNewO_NameManager *aNM,const std::string & aNOri1,const std::string & aNOri2,bool & OK) 
+{
+    OK = false;
+
+    std::string aN1 =  aNOri1;
+    std::string aN2 =  aNOri2;
+
+	std::cout << " rerer " << aNM->NameXmlOri2Im(aN1,aN2,true) << "\n";
+    if (!  ELISE_fp::exist_file(aNM->NameXmlOri2Im(aN1,aN2,true)))
+       return ElRotation3D::Id;
+
+
+    cXml_Ori2Im  aXmlO = aNM->GetOri2Im(aN1,aN2);
+    OK = aXmlO.Geom().IsInit();
+    if (!OK)
+       return ElRotation3D::Id;
+    const cXml_O2IRotation & aXO = aXmlO.Geom().Val().OrientAff();
+    ElRotation3D aR12 =    ElRotation3D (aXO.Centre(),ImportMat(aXO.Ori()),true);
+
+    OK = true;
+    return aR12;
+
+}
+
 int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
 {
     std::string aPattern;
@@ -1587,7 +1631,7 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
         if (ELISE_fp::exist_file(aNameLCple))
         {
             aLCpl = StdGetFromSI(aNameLCple,SauvegardeNamedRel);
-            std::cout << "Pairs no: " << aLCpl.Cple().size() << "\n";
+            std::cout << "Pairs no: " << aLCpl.Cple().size() << " " << aNameLCple << "\n";
         }
     }
 
@@ -1646,11 +1690,16 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
             if ( DicBoolFind(aNameMap,a2.N1()) &&
                  DicBoolFind(aNameMap,a2.N2()) )
             {
-                //poses
+                //poses ER changed order P1 and P2 ?
                 bool OK;
                 ElRotation3D aP1 = ElRotation3D::Id;
-                ElRotation3D aP2 = aNM->OriCam2On1 (a2.N1(),a2.N2(),OK);
- 
+                ElRotation3D aP2 = OriCam2On1_t (aNM,a2.N1(),a2.N2(),OK);
+
+			    if (1)
+				{
+					std::cout << "eeee " << aP2.tr() << " " << a2.N1() << " " << a2.N2() <<  "\n";
+				}
+				
                 CamStenope *aC1 = aNM->CalibrationCamera(a2.N1())->Dupl();//aNM->CamOfName(a2.N1());
                 CamStenope *aC2 = aNM->CalibrationCamera(a2.N2())->Dupl();//aNM->CamOfName(a2.N2());
  

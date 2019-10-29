@@ -448,6 +448,9 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
           }
           
       }
+	  if (aVL13.empty()) return false;
+	  if (aVL23.empty()) return false;
+	  if (aVLByInt.empty()) return false;
 
       Pt3dr aC31 = aC3 / MedianeSup(aVL13);
       Pt3dr aC32 = aC2 + aV3Bis * MedianeSup(aVL23);

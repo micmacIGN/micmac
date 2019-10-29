@@ -87,7 +87,7 @@ cCommonMartiniAppli::cCommonMartiniAppli() :
               << EAM(mAcceptUnSym,"AUS",true,"Accept non symetric homologous point;")  
               << EAM(mQuick,"Quick",true,"If true (default) do less test")  
               << EAM(mTStdNbMaxTriplet,"StdNbPtTrip",true,"Max num of triplets per edge (Std mode)")  
-              << EAM(mTQuickNbMaxTriplet,"QNbPtTrip",true,"Max num of triplets per edge (Quick mode)")  
+              << EAM(mTQuickNbMaxTriplet,"QNbPtTrip",true,"Max num of triplets per edge (Quick mode), Def=8")  
               << EAM(mTNbMinTriplet,"NbTrip",true,"Min num of points to calculate a triplet")  
               << EAM(mShow,"Show",true,"If true (non default) print (a lot of) messages")  ;
 

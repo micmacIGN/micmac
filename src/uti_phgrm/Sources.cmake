@@ -169,6 +169,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Morito.cpp
     ${UTI_PHGRM_DIR}/CPP_C3DC.cpp
     ${UTI_PHGRM_DIR}/CPP_GIMMI.cpp
+    ${UTI_PHGRM_DIR}/CPP_Bundler2MM.cpp
 )
 
 
