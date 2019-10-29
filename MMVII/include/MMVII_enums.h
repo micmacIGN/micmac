@@ -201,6 +201,15 @@ enum class eSharedPO
      eNbVals         ///< Tag End of Vals
 };
 
+/** Mode of normalization for orientation */
+enum class eModeNormOr
+{
+     eMNO_MaxGray,     ///< Max of gray value
+     eMNO_MaxGradT,    ///< Tangential gradient
+     eMNO_MaxGradR,    ///< Radial gradient
+     eNbVals         ///< Tag End of Vals
+};
+
 
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         

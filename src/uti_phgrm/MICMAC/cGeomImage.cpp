@@ -1782,6 +1782,11 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
       // double aEps = 1e-4 * mAnamSA->SignDZSensRayCam();
 
       double aScalLim = ElMax(0.0,cos(ElMax(0.0,ElMin(PI/2,mAppli.AnamLimAngleVisib().Val()))));
+
+if (0 && MPD_MM())
+{
+   std::cout << "sssSCALELIMMMM " << aScalLim << "\n";
+}
       Pt2dr  aP0Ter (1e20,1e20);
       Pt2dr  aP1Ter (-1e20,-1e20);
 
@@ -1805,14 +1810,22 @@ void cGeomImage_Terrain_Ori::Init0MasqAnamSA()
               // donne le point, en coordonne UV d'intersection rayon incident surf L=0
                    cTplValGesInit<Pt3dr> aPGI3A = mAnamSA->InterDemiDroiteVisible(aSeg,0);
               // aTM.oset(aP,aNbSol>0);
-if( MPD_MM() && false)
+if(0 &&  MPD_MM() )
 {
+/*
      std::cout << "IsInZoneUtile " << aPGI3A.IsInit()  << " NB" << mAnamSA->InterDroite(aSeg,0).size() << "\n";
+     for (const auto & aP : mAnamSA->InterDroite(aSeg,0))
+          std::cout << "GGGG " <<  aP << "\n";
+*/
 }
                   if (aPGI3A.IsInit() )
                   {
                      Pt3dr aP3A = aPGI3A.Val();
                      double aSc = CalcIncidTerrain(aP3A);
+if (0 && MPD_MM())
+{
+   std::cout << "xxxxxx " << aSc << "\n";
+}
                      if (aSc>aScalLim)
                      {
                          aNbOk++;

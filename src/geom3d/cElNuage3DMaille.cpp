@@ -1602,7 +1602,7 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
     bool Ok;
     // Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef,&Ok);
 
-for (int aK=0 ; aK<100 ; aK++) std::cout << "WAAArrrn BasculerAndInterpoleInverse\n";
+//  for (int aK=0 ; aK<100 ; aK++) std::cout << "WAAArrrn BasculerAndInterpoleInverse\n";
 
 Ok=true;
 Im2D_REAL4  aMntBasc = aBasc.BasculerAndInterpoleInverse(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef);

@@ -361,6 +361,12 @@ std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1); 
 std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
 
 
+//  === TABULATION OF NEIGHBOORING
+
+extern cPt2di  TAB4Corner[4] ; ///< {{1,1},{-1,1},{-1,-1},{1,-1}};
+
+
+
 /**  Class for box, they are template as typically :
        - double will be used in geometric indexes QdTree or tiling
        - int will be used in bitmap manipulation

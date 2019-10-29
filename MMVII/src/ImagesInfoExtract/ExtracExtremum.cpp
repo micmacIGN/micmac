@@ -5,6 +5,36 @@
 namespace MMVII
 {
 
+boost::optional<double>  InterpoleExtr(double V1,double V2,double V3)
+{
+    //   AX2 + BX + C 
+    // -1:   A - B + C  = V1
+    // 0 :          C   = V2
+    //  1:   A + B + C  = V3
+
+    //  C = V2
+    //  A = (V1+V3)/2 - V2
+    //  B = (V3-V1)/2 
+    // ArgMin = -B/2A  = - ((V3-V1)/2 ) /  (2*  (V1+V3)/2 - V2) = (V1-V3)/2 / (V1+V3-2V2)
+
+    double aDiv = (V1+V3-2*V2);
+    if (aDiv==0.0) return boost::optional<double>();
+
+    return boost::optional<double> ((V1-V3) /(2*aDiv));
+}
+
+double  StableInterpoleExtr(double V1,double V2,double V3)
+{
+    boost::optional<double>  aVOpt =  InterpoleExtr(V1,V2,V3);
+    if (aVOpt)
+    {
+       double aV = aVOpt.get();
+       if ((aV>=-1) && (aV<=1))
+          return aV;
+       return 0.0;
+    }
+    return 0.0;
+}
 
 /*
 template <class Type> class cAffineExtremum
@@ -678,6 +708,24 @@ void BenchExtre()
          }
      }
      BenchAffineExtre();
+     for (int aK=0 ; aK<100 ; aK++)
+     {
+         // Generate a polyn   aCX2* (X-aRoot) ^2 + aCste
+         double aRoot =  3.0 * RandUnif_C();
+         double aCX2 =   RandUnif_C();
+         double aCste =   RandUnif_C();
+         // Generate vals for  -1 0 1
+         std::vector<double> aVV;
+         for (int aK=-1 ; aK<=1 ; aK++)
+         {
+             double aVal = aCX2*Square(aK-aRoot) + aCste;
+             aVV.push_back(aVal);
+         }
+         boost::optional<double> aExtrem =  InterpoleExtr(aVV.at(0),aVV.at(1),aVV.at(2));
+         double aDif=  aRoot - aExtrem.get() ;
+         MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-5, "Interpol Extr d1");
+     }
+     // boost::optional<double>  InterpoleExtr(double V1,double V2,double V3)
      StdOut() << "Bench Extremmum\n";
 }
 

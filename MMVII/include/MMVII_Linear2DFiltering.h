@@ -70,6 +70,8 @@ template <class Type> class cGP_OneImage : public cMemCheck
         typedef cGaussianPyramid<Type> tPyr;
 
         cGP_OneImage(tOct * anOct,int NumInOct,tGPIm * mUp); ///< Constructor
+        void SetBestEquiv(int,tGPIm *);///< "Post-Construction", can be done one pyramid is complete
+
 
               // =======   Image processing for creation
         void  ComputGaussianFilter();  ///< Generate computation of gauss image
@@ -86,18 +88,22 @@ template <class Type> class cGP_OneImage : public cMemCheck
         std::string  Id() const; ///< Some identifier, may usefull in debuging
         bool   IsTopOct() const;   ///< Is it top image in its octave
         cPt2dr Im2File(const cPt2dr &) const; ///< To geomtry of global file
+        cPt2dr File2Im(const cPt2dr &) const; ///< From geomtry of global file
 
               // =======   Accessors
         tIm ImG();  ///< Get gaussian image
         bool   IsTopPyr() const;   ///< Is it top image of top octave
         double ScaleAbs() const;   ///< Scale of Gauss "Absolute" 
-        double ScaleInO() const;   ///< Scale of Gauss "Absolute" 
+        double ScaleInO() const;   ///< Scale of Gauss inside octave
         tGPIm * Up() const;         ///< Possible image up in the   octave
         tGPIm * Down() const;       ///< Possible image down in the octave
         tGPIm * ImOriHom() ;       ///<  Homologous image (same scale...) in Original Pyramid
         const std::string &   NameSave() const;
         tOct*  Oct() const;        ///< Octave it belongs to
         int    NumInOct () const;        ///< Number inside octave
+        tGPIm* BestEquiv() const; ///< Best resol of equiv scale, often itself
+        int    NumMaj() const ; ///< Num as a major image, -1 if it is not a major (i.e. exist same scale, better resol)
+        tPyr & Pyr() ; ///< refer to the pyramid it belongs to
 
     private :
 
@@ -115,6 +121,8 @@ template <class Type> class cGP_OneImage : public cMemCheck
         double        mTargetSigmInO;  ///< Sigma , in octave, of gaussian we need to reach
         bool          mIsTopPyr;   ///< Is it top image of top octave
         std::string   mNameSave;   ///< Name generated for saving the image when required
+        int           mNumMaj; ///< Num as a major image, -1 if it is not a major (i.e. exist same scale, better resol)
+        tGPIm *       mBestEquiv; ///< Best resol of equiv scale, often itself
 };
 
 /// Class to store one octabe of a gaussian pyram
@@ -138,6 +146,7 @@ template <class Type> class cGP_OneOctave : public cMemCheck
         tIm ImTop() const; ///< For initalisation , need to access to top image of the pyramid
         tGPIm * ImageOfScaleAbs(double aScale, double aTolRel=1e-5) ; ///< Return image having given sigma
         cPt2dr Oct2File(const cPt2dr &) const; ///< To geomtry of global file
+        cPt2dr File2Oct(const cPt2dr &) const; ///< From geomtry of global file
 
         void Show() const;  ///< Show octave in text format, test and debug
         void ComputGaussianFilter();  ///< Generate computation of gauss pyram
@@ -176,20 +185,30 @@ struct cFilterPCar
          void FinishAC(double = 0.1); ///< Complete AC Value if needed
 
          std::vector<double>  mAutoC;  ///< Threshold for auto correlation
-         const double & AC_Threshold();  ///< Final Threshold
-         const double & AC_CutReal();    ///< Cut if < this Threshold
-         const double & AC_CutInt();     ///< Cut if integer correl < this threshold
+         const double & AC_Threshold() const;  ///< Final Threshold
+         const double & AC_CutReal() const;    ///< Cut if < this Threshold
+         const double & AC_CutInt() const;     ///< Cut if integer correl < this threshold
 
          std::vector<double>  mPSF; ///< Param Spatial Filtering  [Dist,MulRAy,PropNoFS]
-         const double & DistSF();     ///< Targeted Average dist between points
-         const double & MulDistSF();  ///< Mult * DistSF = influence zone of an added point
-         const double & PropNoSF();   ///< Propoption of quality that do not depend of space filter
+         const double & DistSF() const;     ///< Targeted Average dist between points
+         const double & MulDistSF() const;  ///< Mult * DistSF = influence zone of an added point
+         const double & PropNoSF() const;   ///< Propoption of quality that do not depend of space filter
 
          std::vector<double>  mEQsf; ///< Exposant for quality of point before spatial filter [AutoC,Var,Scale]
-         const double & PowAC();        ///< Exposant for (1-AutoCorrel)
-         const double & PowVar();       ///< Exposant for Variance
-         const double & PowScale();     ///< Exposant for scaling
+         const double & PowAC() const;        ///< Exposant for (1-AutoCorrel)
+         const double & PowVar() const;       ///< Exposant for Variance
+         const double & PowScale() const;     ///< Exposant for scaling
 
+         std::vector<double>  mLPCirc;  ///< Circles of Log Pol param [Rho0,DeltaSI0,DeltaI]
+         const double &  LPC_Rho0() const ;  ///< Radius of first circle
+         int             LPC_DeltaI0() const ;  ///< Shit in pyramid (typcally -1 to gain a bit in resol)
+         int             LPC_DeltaIm() const ;  ///< Delta between 2 images
+
+         std::vector<double>  mLPSample;  ///< Sampling Mode for LogPol [NbTeta,NbRho,Multiplier,CensusNorm]
+         int               LPS_NbTeta()     const;   ///< Number of sample in teta
+         int               LPS_NbRho()      const;   ///< Number of sample in rho
+         const double &    LPS_Mult()       const;   ///< Multiplier before making it integer
+         bool              LPS_CensusMode() const;   ///< Do Normalization in census mode
 }; 
 
 /// Struct for parametrization of Gaussian Pyramid
@@ -245,6 +264,7 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
 
        
         cPt2dr Pyr2File(const cPt2dr &) const; ///< To geomtry of global file
+        cPt2dr File2Pyr(const cPt2dr &) const; ///< To geomtry of global file
 
         void Show() const;  ///< Show pyramid in text format, test and debug
         tIm ImTop() const; ///< For initalisation , need to access to top image of the pyramid
@@ -264,6 +284,7 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
         const double & SigmIm0() const;    ///< Sigma of first image after possible convolution
         const std::vector<tSP_Oct>&  VOcts() const; ///< vector of octaves
         const std::vector<tSP_GPIm>&  VAllIms () const;  ///< Vector of All Images of All Octaves
+        const std::vector<tGPIm*> &   VMajIm() const;  ///< Vector of "Major" images, 1 and only 1 by scale abs
         eTyPyrTieP TypePyr () const;    ///< Type in enum possibility (Laplapcian of Gauss, Corner ...)
         const std::string & NameIm() const; ///<  Name of image
         const std::string & Prefix() const; ///<  Name of image
@@ -281,6 +302,7 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
         cGP_Params          mParams;   ///< Memorize parameters
         std::vector<tSP_Oct>   mVOcts;  ///< Vector of octaves
         std::vector<tSP_GPIm>  mVAllIms;  ///< Vector of All Images of All Octaves
+        std::vector<tGPIm*>  mVMajIm;  ///< Vector of "Major" images, 1 and only 1 by scale abs
 
         double   mMulScale;  ///<  Scale of gaussian multiplier between two consecutive gaussian
         double   mScale0;    ///< Scale of first image, conventionnaly 1 

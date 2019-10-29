@@ -134,6 +134,24 @@ void BenchTraits()
    // getchar();
 }
 
+tINT4 EmbeddedIntVal(tREAL8 aRealVal)
+{
+    int aIntVal = round_ni(aRealVal);
+    MMVII_INTERNAL_ASSERT_tiny(tREAL8(aIntVal)==aRealVal,"EmbeddedIntVal");
+
+    return aIntVal;
+}
+
+bool  EmbeddedBoolVal(tINT4 aIV)
+{
+    MMVII_INTERNAL_ASSERT_tiny((aIV==0)||(aIV==1),"Enbedde In to Bool");
+    return aIV==1;
+}
+
+bool  EmbeddedBoolVal(tREAL8 aRealVal)
+{
+    return EmbeddedBoolVal(EmbeddedIntVal(aRealVal));
+}
 
 
 
@@ -146,6 +164,21 @@ void BenchMod(int A,int B,int aModb)
 
      int AmB = A - aModb;  // AmB => A multiple de B
      MMVII_INTERNAL_ASSERT_bench((AmB/B)*B == AmB ,"BenchMod-3");
+}
+
+
+double NormalisedRatio(double aI1,double aI2)
+{
+    // X = I1/I2
+    if (aI1 < aI2)   // X < 1
+        return aI1/aI2 -1;   // X -1
+    // 0<= aI2 <= aI1
+    if (aI1==0)
+    {
+       return 0;
+    }
+
+    return 1-aI2/aI1;  // 1 -1/X
 }
 
 
@@ -209,6 +242,32 @@ void Bench_Nums()
             }
          }
       }
+   }
+
+   for (int aK=0 ; aK<1000 ; aK++)
+   {
+        double aA = 5.0 * RandUnif_C();
+        double aB = 1e-2 +  RandUnif_0_1();
+        double aR = mod_real(aA,aB);
+        MMVII_INTERNAL_ASSERT_bench((aR>=0)&&(aR<aB),"Bench Modreal");
+        double aDiv = (aA-aR) / aB;
+        double aDif = aDiv - round_ni(aDiv);
+        MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-5,"Bench Frac");
+
+        double aI1 = 1e-2 +  RandUnif_0_1();
+        double aI2 = 1e-2 +  RandUnif_0_1();
+        double aR12 =  NormalisedRatio(aI1,aI2);
+        double aR21 =  NormalisedRatio(aI2,aI1); // Anti sym
+
+        double aMul =  (1e-2+ RandUnif_0_1()) *10;
+        double aRM12 =  NormalisedRatio(aI1*aMul,aI2*aMul); // Scale inv
+
+        double aI1G = aI1+ 1e-6+ 1e-2 *  RandUnif_0_1(); 
+        double aR1G2 =  NormalisedRatio(aI1G,aI2); // growing
+        MMVII_INTERNAL_ASSERT_bench( (aR12>=-1) && (aR12<=1),"Bench NormRat");
+        MMVII_INTERNAL_ASSERT_bench( std::abs(aR12+aR21)<1e-5,"Bench NormRat");
+        MMVII_INTERNAL_ASSERT_bench( std::abs(aR12-aRM12)<1e-5,"Bench NormRat");
+        MMVII_INTERNAL_ASSERT_bench( aR1G2>aR12,"Bench NormRat");
    }
 }
 

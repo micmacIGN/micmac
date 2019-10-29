@@ -94,6 +94,12 @@ void MMVII_UsersErrror(const eTyUEr &,const std::string & aMes);
 { MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
 
 
+////====================  SPECIFIC ASSERTION ON NUMERICAL VALUE ================
+
+#define  MMVII_ASSERT_INVERTIBLE_VALUE(VALUE)\
+MMVII_INTERNAL_ASSERT_tiny(ValidInvertibleFloatValue(VALUE),"Non invertible value")
+
+
 template<class T> void IgnoreUnused( const T& ) { };
 
 };

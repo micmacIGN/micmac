@@ -15,9 +15,12 @@ class cAimePCar;
 template <class Type> struct cProtoAimeTieP : public cMemCheck
 {
     public :
-        void  FillAPC(cAimePCar &);
+        typedef cGP_OneImage<Type> tGPI;
+        typedef cGaussianPyramid<Type> tPyr;
+        bool  FillAPC(const cFilterPCar&,cAimePCar &,bool ForTest);
+        bool  TestFillAPC(const cFilterPCar&); // Just to know if the point is OK for filling it
         // cProtoAimeTieP(const cPt2dr & aP,int aNumOct,int aNumIm,float aScaleInO,float aScaleAbs);
-        cProtoAimeTieP(cGP_OneImage<Type> *,const cPt2di & aPImInit);
+        cProtoAimeTieP(cGP_OneImage<Type> *,const cPt2di & aPImInit,bool ChgMaj);
 
         // void SetPt(const cPt2dr & );
         // const cPt2dr & Pt() const;
@@ -25,8 +28,12 @@ template <class Type> struct cProtoAimeTieP : public cMemCheck
         int   NumIm() const;
         float ScaleInO() const;
         float ScaleAbs() const;
+        const tPyr & Pyram() const;
+        const cGP_Params& Params() const;
+        
 
-        cGP_OneImage<Type> * mGPI;
+        tGPI *               mGPI;
+        bool                 mChgMaj;  ///< Image changed to major, tuning
         cPt2di               mPImInit;      ///<  in image octave coordinate (comes from extrema detection)
         cPt2dr               mPFileInit;    ///< idem, but global file coordinate
         cPt2dr               mPFileRefined; ///< after refinement
@@ -42,7 +49,9 @@ template <class Type> struct cProtoAimeTieP : public cMemCheck
     // Temporary data for computing 
         bool                 mSFSelected;   ///< Spatial Filtering Flag to know if has already been selected
         bool                 mStable;   ///< Is it stable vs refinement
+        bool                 mOKLP;   ///< Is it OK for LogPol
         int                  mHeapIndexe;   ///< Data for "indexed heap" stuff
+        int                  mNumAPC;  ///< Num pointing inside Vec APC, need to maitain Prop even if reftued
 
     private :
 };
@@ -64,6 +73,29 @@ template <class Type> class cInterf_ExportAimeTiep : public cMemCheck
      protected :
 
 };
+
+class cAimeDescriptor : public cMemCheck
+{
+     public :
+         cAimeDescriptor();
+         cIm2D<tU_INT1>   ILP();
+         const std::vector<double> & DirPrinc() const;
+         std::vector<double> & DirPrinc() ;
+     private :
+        cIm2D<tU_INT1>      mILP;   ///< mImLogPol
+        std::vector<double> mDirPrinc ; ///< Principal directions  options
+};
+
+class cAimePCar
+{
+     public :
+        cAimeDescriptor & Desc();
+        cPt2dr&         Pt();
+     private :
+        cAimeDescriptor mDesc;
+        cPt2dr          mPt;
+};
+
 
 /*
 class cAimeDescriptor
