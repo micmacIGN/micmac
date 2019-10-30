@@ -62,32 +62,39 @@ void cAppli_NewSolGolInit::ResetFlagCC()
 void cAppli_NewSolGolInit::NumeroteCC()
 {
     int aNumCC = 0;
+    // Parse all triplet
     for (int  aK3=0 ; aK3<int (mV3.size()) ; aK3++)
     {
         cNOSolIn_Triplet * aTri0 = mV3[aK3];
 
+        // If the triplet has not been marked, it's a new component
         if ( !aTri0->Flag().kth(mFlag3CC))
         {
             // std::vector<cNOSolIn_Triplet*> * aCC = new std::vector<cNOSolIn_Triplet*>;
+            // Create a new component
             cNO_CC_TripSom * aNewCC3S = new cNO_CC_TripSom;
-            aNewCC3S->mNumCC = aNumCC;
-            mVCC.push_back(aNewCC3S);
-            std::vector<cNOSolIn_Triplet*> * aCC3 = &(aNewCC3S->mTri);
-            std::vector<tSomNSI *> * aCCS = &(aNewCC3S->mSoms);
+            aNewCC3S->mNumCC = aNumCC;  // give it a number
+            mVCC.push_back(aNewCC3S);   // add it to the vector of component
+            std::vector<cNOSolIn_Triplet*> * aCC3 = &(aNewCC3S->mTri); // Quick acces to vec of tri in the CC
+            std::vector<tSomNSI *> * aCCS = &(aNewCC3S->mSoms); // Quick accessto som
 
             // Calcul des triplets 
-            aCC3->push_back(aTri0);
-            aTri0->Flag().set_kth_true(mFlag3CC);
-            aTri0->NumCC() = aNumCC;
+            aCC3->push_back(aTri0);  // Add triplet T0
+            aTri0->Flag().set_kth_true(mFlag3CC);// Mark it as explored
+            aTri0->NumCC() = aNumCC;  // Put  right num to T0
             int aKCur = 0;
-            while (aKCur!=int(aCC3->size()))
+            // Traditional loop of CC : while  no new inexplored neighboor
+            while (aKCur!=int(aCC3->size())) 
             {
                cNOSolIn_Triplet * aTri1 = (*aCC3)[aKCur];
+               // For each edge of the current triplet
                for (int aKA=0 ; aKA<3 ; aKA++)
                {
+                  // Get triplet adjacent to this edge and parse them
                   std::vector<cLinkTripl> &  aLnk = aTri1->KArc(aKA)->attr().ASym()->Lnk3();
                   for (int aKL=0 ; aKL<int(aLnk.size()) ; aKL++)
                   {
+                     // If not marked, mark it and push it in aCC3, return it was added
                      if (SetFlagAdd(*aCC3,aLnk[aKL].m3,mFlag3CC))
                      {
                           aLnk[aKL].m3->NumCC() = aNumCC;
@@ -97,7 +104,7 @@ void cAppli_NewSolGolInit::NumeroteCC()
                aKCur++;
             }
 
-            // Calcul des sommets 
+            // Compute the summit of the CC, it's easy, just be carrful to get them only once
             int aFlagSom = mGr.alloc_flag_som();
             for (int aKT=0 ; aKT<int(aCC3->size()) ; aKT++)
             {
@@ -621,7 +628,6 @@ tSomNSI * cAppli_NewSolGolInit::GetBestSom()
     return 0;
 }
 
-// Hameau-de-valouse.com
 
 
 void cAppli_NewSolGolInit::CalculOrient(cNOSolIn_Triplet * aGerm)

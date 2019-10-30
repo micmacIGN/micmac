@@ -85,14 +85,99 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 */
 
+/*
+   =====   cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) ====
 
-/*    =====  DistCoherenceAtoB ====  
-      Compute the coherence of two triplet that share an edge. This is done
-    by computing the  difference of relative orientation of the same pair
-    in the two triplet.
+   The constructor do all the job, the main step are :
+
+   *  construct the graph and link with the data structure presented up
+      (will be commented in the code)
+
+   *  EstimCoherenceMed()  : see bellow ; estimate an average of coherence estimatore
+   *  EstimRotsArcsInit()  : see bellow ; estimate relative orient of all edge
+   *  EstimCoheTriplet()   : see bellow ; estimate coherence of each triplet based on orientation of edge
+   *  FilterTripletValide() : see bellow ; supress incoherent triplet
+   *  NumeroteCC() :  see bellow ;  compute connected components to make separate computation inside each component
+   *  CalculOrient() :  The BIG PART  to be commented soon .....
+
+
 */
 
-      /****** EstimCoherenceMed  e ************/
+
+
+/*        A1   A2
+        / |    | \
+      C1  |    |  C2
+        \ |    | /
+          B1   B2
+
+   =====  DistCoherenceAtoB ====  
+      Compute the coherence of two triplet that share an edge. This is done
+    by computing the  difference of relative orientation of the same pair
+    in the two triplet (A1->B1  ~  A2->B2)
+
+     ====  DistCoherence1to2  === 
+        More or less the same thing than DistCoherenceAtoB but do
+      the computation in a slightly different manner, compute
+      twice the relative orientation of triplet and check they are the same
+      A1->A2 ~ B1->B2
+
+   Don't know (don't ask me now ..) why these two exist, as they are probably equivalent.
+
+*/
+
+/** ==== cAppli_NewSolGolInit.EstimCoherenceMed() ====
+
+    Estimate a median coherence (based on DistCoherenceAtoB and DistCoherence1to2)
+
+    This essential as we want a method no "sensible" threshold, the reliability
+   of two triplet will be compared to this "average" value.
+
+   Main operation :
+
+      * estimate B/H of each edge
+      * estimate coherence of triplets in same edge and push it in vector
+      *
+*/
+
+/**  ==== cAppli_NewSolGolInit.EstimRotsArcsInit() ====
+       Call InitRotOfArc for each edge
+
+       === InitRotOfArc :
+         For a given edge A,B each triplet it belongs to, has an estimation 
+         of the relative pose  R(A->B)
+         InitRotOfArc make a robust estimation taking into account all triplet
+         See command in the code to see how this robust estimation is made
+*/
+
+/**  ==== cAppli_NewSolGolInit.EstimCoheTriplet()  ====
+
+     Once we have for each edge an estimation of relative orientation, we can have
+    a "strong" coherence constraint on triplet by testing if their 3 orientation are compatible
+    with their 3 edge
+
+      This function estimate the coherence of each triplet, and also compute a standardize
+    gain using the cost and the median of all cost.
+
+      It computes also value  mSeuilCostArc wich will be used to filter valide edge
+*/
+
+
+/**   ====     cAppli_NewSolGolInit.FilterTripletValide();
+
+     Once we have computed the coherence and a threshold we can supresse the "gross" error
+   in triplet (just by testing the threshlod). Some precaution must be done to supress
+   also the link (in edge)
+*/
+
+/**   ====     cAppli_NewSolGolInit.NumeroteCC();
+
+     It may happen, originaly or after FilterTripletValide, that the graph is no longer
+    connex via triplet.  
+
+      In this case, in each connected component a solution must be computed independantly. 
+    This function computed the connected components by numerorting each sumit.
+*/
 
 class cNOSolIn_Triplet;  // Triplet +ou- ensembliste
 class cLinkTripl;  //  Un cLinkTripl est un cNOSolIn_Triplet  ordonne, fait d'un cNOSolIn_Triplet + un permutation
@@ -426,7 +511,7 @@ class cAppli_NewSolGolInit : public cCommonMartiniAppli
         tGrNSI               mGr;
         tSubGrNSI            mSubAll;
         std::map<std::string,tSomNSI *> mMapS;
-        cComputecKernelGraph             mCompKG;
+        cComputecKernelGraph             mCompKG;  // Defini dans include/general/bitm.h
 
 // Variables temporaires pour charger un triplet 
         std::vector<tSomNSI *>  mVCur3;  // Tripelt courrant
@@ -443,8 +528,8 @@ class cAppli_NewSolGolInit : public cCommonMartiniAppli
         int                     mNbSom;
         int                     mNbArc;
         int                     mNbTrip;
-        double                  mCoherMedAB;
-        double                  mCoherMed12;
+        double                  mCoherMedAB;  // Median on all arc of coher AB
+        double                  mCoherMed12;  // Median on all arc of coher 12
         double                  mMedTripletCostA;
         ElFlagAllocator         mAllocFlag3;
         int                     mFlag3Alive;
@@ -485,6 +570,7 @@ ElRotation3D RotationC2toC1(tArcNSI * anArc,cNOSolIn_Triplet * aTri);
 double DistCoherence1to2 (tArcNSI * anArc,cNOSolIn_Triplet * aTriA,cNOSolIn_Triplet * aTriB);
 
 //  Calcule la coherence en faisant deux fois le calcule qui va du triplet A vers le triplet B
+//  anArc must be adjacent to aTriA and aTriB, then the orientation of the submit are
 
 double DistCoherenceAtoB(tArcNSI * anArc,cNOSolIn_Triplet * aTriA,cNOSolIn_Triplet * aTriB);
 
