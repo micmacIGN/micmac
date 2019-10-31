@@ -179,6 +179,60 @@ Header-MicMac-eLiSe-25/06/2007*/
     This function computed the connected components by numerorting each sumit.
 */
 
+/**   ====     cAppli_NewSolGolInit.CalculOrient()
+      * Call CalculOrient(cNO_CC_TripSom * aCC)  for each connected component
+*/
+
+
+/**   ====     cAppli_NewSolGolInit.CalculOrient(cNO_CC_TripSom * aCC) 
+     Resarch in all triplet of the connected component, the one having the best (=lowest)
+     coherence. It is the seed (=Germe in french) from wich we will start to build
+     the global orientation of the CC and call CalculOrient(cNOSolIn_Triplet * aGerm)
+
+*/
+
+/** ===       cAppli_NewSolGolInit.CalculOrient(cNOSolIn_Triplet * aGerm)
+
+      * Add the three summit of Germ in the oriented summit (call AddSOrCur)
+      * iteratively get BEST=  the best som according to CalcGainByTriplet (if none end)
+         *  make an initial estimation of pose of BEST  (EstimRot)
+         * add in the oriented summit (call AddSOrCur)
+         * make some error repartition by calling ReMoyByTriplet
+
+*/
+
+/**  === cAppli_NewSolGolInit.AddSOrCur ( tSomNSI * aSom,const ElRotation3D & aR)
+      Put a aSom in the set of oriented summit :
+         * give it an initial value aR and mark it as oriented
+         * parse all it neighboor aS2
+         * if aS2 is oriented, then parse all the triplet (aSom,aS2,aS3) 
+              * if aS3 is not oriented (and is not one of the 3 seed) then put S3 in the waiting queue
+                with an initial gain
+ 
+*/
+
+/**  ===   cAppli_NewSolGolInit.ReMoyByTriplet()
+        Make one iteration of error repartition
+        Call for troplet with all summmit oriented  "ReMoyOneTriplet"
+        
+         Once all the triplet have accumulated their new orientation, set this new orientation
+      (but also put a weight on current solution).
+*/
+
+/**  ===   double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
+      
+     Let S1,S2,S3 be the three summit of aTri :
+
+       *  compute OR1,OR2,OR3 the orientation  that are
+             * compatible with orientation of Tri
+             * as close as possible to current value of S1 , ...
+             * this is done by computing the 7 transformation
+       * then accumulate these orientations in S1, ... (at the end we will do some average of all
+         solution given by each triplet)
+     
+*/
+
+
 class cNOSolIn_Triplet;  // Triplet +ou- ensembliste
 class cLinkTripl;  //  Un cLinkTripl est un cNOSolIn_Triplet  ordonne, fait d'un cNOSolIn_Triplet + un permutation
 

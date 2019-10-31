@@ -340,13 +340,14 @@ void cAppli_NewSolGolInit::ReMoyByTriplet()
     StatTrans(aTr0,aDist0);
 
     mLastEcartReMoy.clear();
+    // For all oriented som reset the stat that will accumulate the different rotation
     for (int aKS=0 ; aKS <  int(mVSOrCur.size()) ; aKS++)
     {
         tSomNSI * aSom = mVSOrCur[aKS];
-        aSom->attr().SomPdsReMoy() = 0;
-        aSom->attr().SomTrReMoy () = Pt3dr(0,0,0);
-        aSom->attr().SomPMedReM () = Pt3dr(0,0,0);
-        aSom->attr().SomMatReMoy() = ElMatrix<double>(3,3,0.0);
+        aSom->attr().SomPdsReMoy() = 0;              // Weigthing
+        aSom->attr().SomTrReMoy () = Pt3dr(0,0,0);   // Translation
+        aSom->attr().SomPMedReM () = Pt3dr(0,0,0);   // P3D Med ?
+        aSom->attr().SomMatReMoy() = ElMatrix<double>(3,3,0.0);  // Rotation
     }
 
     for (int aK3=0 ; aK3<int(mV3Use4Ori.size()) ; aK3++)
@@ -632,17 +633,16 @@ tSomNSI * cAppli_NewSolGolInit::GetBestSom()
 
 void cAppli_NewSolGolInit::CalculOrient(cNOSolIn_Triplet * aGerm)
 {
+    // Alloc a certain number of flag to mark submit
     mFlagSOrCur = mGr.alloc_flag_som();
     mFlagSOrCdt = mGr.alloc_flag_som();
     mFlagSOrGerm = mGr.alloc_flag_som();
-    mFlag3UsedForOri = mAllocFlag3.flag_alloc();
-
-    
+    mFlag3UsedForOri = mAllocFlag3.flag_alloc(); // Flag for triplet
 
 
-    SetFlagAdd(mV3Use4Ori,aGerm,mFlag3UsedForOri);
+    SetFlagAdd(mV3Use4Ori,aGerm,mFlag3UsedForOri); // Add seed and mark it
 
-    if (mHasInOri)
+    if (mHasInOri)  // Dont comment for now the branch with InOri
     {
          for (tItSNSI anItS=mGr.begin(mSubAll) ; anItS.go_on(); anItS++)
          // for (int aKS=0 ; aKS<3 ; aKS++)
@@ -659,21 +659,10 @@ void cAppli_NewSolGolInit::CalculOrient(cNOSolIn_Triplet * aGerm)
                   // aV2.push_back(aCam->Orient().inv().tr());
               }
          }
-
-/*
-         for (int aK=0 ; aK<aV1.size() ; aK++)
-         {
-              double aD1 = euclid(aV1[aK]-aV1[(aK+1)%aV1.size()]);
-              double aD2 = euclid(aV2[aK]-aV2[(aK+1)%aV1.size()]);
-              std::cout << "RRRRrrr=" << aD1 / aD2 << "\n";
-         }
-          std::cout << "UuuuuuuuuUuuu \n"; getchar();
-*/
-           
-
     }
     else
     {
+        // Put the 3 sommit in the heap
         for (int aKS=0 ; aKS<3 ; aKS++)
         {
              AddSOrCur(aGerm->KSom(aKS),aGerm->RotOfK(aKS));
