@@ -61,6 +61,7 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         const iterator &  begin() const {return mBegin;}   ///< For auto
         const iterator &  end()   const {return mEnd;}   ///< For auto
         tINT8     IndexeLinear(const tPt &) const; ///< Num of pixel when we iterate
+        tPt     FromIndexeLinear(tINT8 ) const; ///< Num of pixel when we iterate
         /// Required by iterators  as they do not copy well becaus of ptr
         cPixBox(const cPixBox<Dim> &) ;
         cPixBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty = false);
@@ -69,11 +70,14 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         /// It may be convenient as conversion, as tool may retun TplBox, and others may need to iterate on it
         cPixBox(const cTplBox<int,Dim> &);
         // Position of point relative to PixBox
-          ///< D is the num coordina, 0 on the border, <0 out, value is the signed margin
+          /// D is the num coordina, 0 on the border, <0 out, value is the signed margin
         int Interiority(const int  aCoord,int aD) const;  
         int Interiority(const tPt& aP    ,int aD) const;  ///< D is 
         int Interiority(const tPt& aP           ) const;  ///< Min of previous
         int WinInteriority(const tPt& aP,const tPt& aWin,int aD) const;  ///< D is 
+
+        ///  return normalized coordinate assuming a circular topology where begin = end in all dimension
+        tPt  CircNormProj(const tPt &) const;
 
         cBorderPixBox<Dim>  Border(int aSz) const;
 
@@ -616,6 +620,8 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         /// Used by matrix/vector interface 
         Type & GetV(const int & aP) { tPB::AssertInside(aP); return  Value(aP); }
 
+
+        const Type & CircGetV(const int & aP)  const {return Value(tPB::CircNormProj(cPt1di(aP)).x());}
           /// Set Value
         void SetV(const int & aP,const tBase & aV)
         { 
@@ -623,6 +629,17 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
             tBI::AssertValueOk(aV);
             Value(aP) = aV;
         }
+
+        void AddV(const int & aP,const tBase & aV2Add)
+        {
+            tPB::AssertInside(aP);
+            tVal & aVP =   Value(aP); 
+            tBI::AssertValueOk(aVP+aV2Add);
+            aVP += aV2Add;
+        }
+        
+
+
         void SetV(const  cPt1di & aP,const tBase & aV) {SetV(aP.x(),aV);}
 
           /// Trunc then set value
@@ -649,6 +666,7 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         virtual ~cDataIm1D();
         /// Raw image, lost all waranty is you use it...
         tVal * ExtractRawData1D() {return mRawData1D;}
+
     protected :
     private :
         void PostInit();

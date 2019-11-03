@@ -274,6 +274,7 @@ template <class Type>  double cStrStat2<Type>::KthNormalizedCoord(int aX,const c
 /*      cMatIner2Var<Type>                       */
 /* ============================================= */
 
+/*
 template <class Type> cMatIner2Var<Type>::cMatIner2Var() :
    mS0  (0.0),
    mS1  (0.0),
@@ -315,6 +316,7 @@ template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Typ
     aRes.Normalize();
     return aRes;
 }
+*/
 
 
 /* ===================================================== */
@@ -326,9 +328,7 @@ template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Typ
 template  class  cStrStat2<Type>;\
 template  class  cDenseMatrix<Type>;\
 template  class  cResulSymEigenValue<Type>;\
-template  class  cResulQR_Decomp<Type>;\
-template  class  cMatIner2Var<Type>;\
-template  cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm);
+template  class  cResulQR_Decomp<Type>;
 
 INSTANTIATE_ORTHOG_DENSE_MATRICES(tREAL4)
 INSTANTIATE_ORTHOG_DENSE_MATRICES(tREAL8)

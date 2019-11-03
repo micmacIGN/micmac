@@ -18,47 +18,116 @@ double FactExpFromSigma2(double aS2)
     return (aS2+1 - sqrt(Square(aS2+1)-Square(aS2))  ) / aS2 ;
 }
 
+/* *************************************** */
+/*                                         */
+/*        cComputeStdDev                   */
+/*                                         */
+/* *************************************** */
 
-/* *********************************************** */
-/*                                                 */
-/*        cComputeStdDev<Dim>                     */
-/*                                                 */
-/* *********************************************** */
-
-#if (0)
-///  Class to compute non biased variance from a statisic 
-
-/** Class to compute non biased variance from a statisic
-    This generalise the standard formula
-            EstimVar = N/(N-1) EmpirVar
-    To the case where there is a weighting.
-
-    It can be uses with N variable to factorize the computation on Weight
- */
-
-template <const int Dim> class cComputeStdDev
+template <class Type> cComputeStdDev<Type>::cComputeStdDev() :
+   mSomW   (0.0),
+   mSomWV  (0.0),
+   mSomWV2 (0.0)
 {
-    public :
-        typedef  double tTab[Dim];
+}
 
-        cComputeStdDev();
+template <class Type> void cComputeStdDev<Type>::Add(const Type & aW,const Type & aV)
+{
+    mSomW   += aW;
+    mSomWV  += aW *aV;
+    mSomWV2 += aW * Square(aV);
+}
 
-        void Add(const  double * aVal,const double & aPds);
-        const double  *  ComputeUnBiasedVar() ;
-        const double  *  ComputeBiasedVar() ;
-        double  DeBiasFactor() const;
 
-    private :
-        double    mSomW; ///< Sum of Weight
-        double    mSomWW; ///< Sum of Weight ^2
-        tTab      mSomWV;  ///< Weighted som of vals
-        tTab      mSomWVV; ///< Weighted som of vals ^2
-        tTab      mVar;   ///< Buffer to compute the unbiased variance
-        tTab      mBVar;   ///< Buffer to compute the empirical variance
-};
-#endif
+template <class Type> void cComputeStdDev<Type>::SelfNormalize()
+{
+    MMVII_ASSERT_INVERTIBLE_VALUE(mSomW);
+     
+    mSomWV  /= mSomW;
+    mSomWV2  /= mSomW;
+    mSomWV2 -= Square(mSomWV);
+    mStdDev = std::sqrt(std::max(Type(0.0),mSomWV2));
+}
 
-template  <const int Dim> cComputeStdDev<Dim>::cComputeStdDev() :
+template <class Type> Type cComputeStdDev<Type>::NormalizedVal(const Type & aVal)  const
+{
+    MMVII_ASSERT_INVERTIBLE_VALUE(mStdDev);
+    return (aVal-mSomWV) / mStdDev;
+}
+
+template <class Type> cComputeStdDev<Type>  cComputeStdDev<Type>::Normalize() const
+{
+     cComputeStdDev<Type> aRes = *this;
+     aRes.SelfNormalize();
+     return aRes;
+}
+
+
+/* ============================================= */
+/*      cMatIner2Var<Type>                       */
+/* ============================================= */
+
+template <class Type> cMatIner2Var<Type>::cMatIner2Var() :
+   mS0  (0.0),
+   mS1  (0.0),
+   mS11 (0.0),
+   mS2  (0.0),
+   mS12 (0.0),
+   mS22 (0.0)
+{
+}
+template <class Type> void cMatIner2Var<Type>::Add(const double & aPds,const Type & aV1,const Type & aV2)
+{
+    mS0  += aPds;
+    mS1  += aPds * aV1;
+    mS11 += aPds * aV1 * aV1 ;
+    mS2  += aPds * aV2;
+    mS12 += aPds * aV1 * aV2 ;
+    mS22 += aPds * aV2 * aV2 ;
+}
+
+template <class Type> void cMatIner2Var<Type>::Normalize()
+{
+     MMVII_ASSERT_INVERTIBLE_VALUE(mS0);
+
+     mS1 /= mS0;
+     mS2 /= mS0;
+     mS11 /= mS0;
+     mS12 /= mS0;
+     mS22 /= mS0;
+     mS11 -= Square(mS1);
+     mS12 -= mS1 * mS2;
+     mS22 -= mS2 * mS2;
+}
+
+template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm)
+{
+    cMatIner2Var<double> aRes;
+    for (const auto & aP : aIm)
+    {
+         aRes.Add(aIm.GetV(aP),aP.x(),aP.y());
+    }
+    aRes.Normalize();
+    return aRes;
+}
+
+#define INSTANTIATE_MAT_INER(TYPE)\
+template class cMatIner2Var<TYPE>;\
+template  class cComputeStdDev<TYPE>;\
+template  cMatIner2Var<double> StatFromImageDist(const cDataIm2D<TYPE> & aIm);
+
+
+INSTANTIATE_MAT_INER(tREAL4)
+INSTANTIATE_MAT_INER(tREAL8)
+INSTANTIATE_MAT_INER(tREAL16)
+
+/* *********************************************** */
+/*                                                 */
+/*        cUB_ComputeStdDev<Dim>                   */
+/*                                                 */
+/* *********************************************** */
+
+template  <const int Dim> cUB_ComputeStdDev<Dim>::cUB_ComputeStdDev() :
     mSomW   (0.0),
     mSomWW  (0.0)
 {
@@ -69,7 +138,7 @@ template  <const int Dim> cComputeStdDev<Dim>::cComputeStdDev() :
     }
 }
 
-template  <const int Dim> void cComputeStdDev<Dim>::Add(const  double *  aVal,const double & aPds)
+template  <const int Dim> void cUB_ComputeStdDev<Dim>::Add(const  double *  aVal,const double & aPds)
 {
     mSomW += aPds;
     mSomWW += Square(aPds);
@@ -79,18 +148,18 @@ template  <const int Dim> void cComputeStdDev<Dim>::Add(const  double *  aVal,co
         mSomWVV[aD] += aPds * Square(aVal[aD]);
     }
 }
-template  <const int Dim>  double cComputeStdDev<Dim>::DeBiasFactor() const
+template  <const int Dim>  double cUB_ComputeStdDev<Dim>::DeBiasFactor() const
 {
     MMVII_INTERNAL_ASSERT_strong(mSomW>0,"No value in DeBiasFactor");
     return   1 - mSomWW/Square(mSomW);
 }
 
-template  <const int Dim> bool    cComputeStdDev<Dim>::OkForUnBiasedVar() const
+template  <const int Dim> bool    cUB_ComputeStdDev<Dim>::OkForUnBiasedVar() const
 {
    return (mSomW>0)  && (DeBiasFactor()!=0);
 }
 
-template  <const int Dim> const double *   cComputeStdDev<Dim>::ComputeUnBiasedVar()
+template  <const int Dim> const double *   cUB_ComputeStdDev<Dim>::ComputeUnBiasedVar()
 {
     /* At least, this formula is correct :
          - when all weight are equal => 1-1/N
@@ -111,7 +180,7 @@ template  <const int Dim> const double *   cComputeStdDev<Dim>::ComputeUnBiasedV
    return mVar;
 }
 
-template  <const int Dim> const double *   cComputeStdDev<Dim>::ComputeBiasedVar()
+template  <const int Dim> const double *   cUB_ComputeStdDev<Dim>::ComputeBiasedVar()
 {
     for (int aD=0 ; aD<Dim ; aD++)
     {
@@ -128,7 +197,7 @@ template  <const int Dim> const double *   cComputeStdDev<Dim>::ComputeBiasedVar
 
 
 
-template class cComputeStdDev<1>;
+template class cUB_ComputeStdDev<1>;
 
 void BenchUnbiasedStdDev()
 {
@@ -145,7 +214,7 @@ void BenchUnbiasedStdDev()
          double aMoyVar=0;
          for (int aFlag=0 ; aFlag < aNbComb ; aFlag++) // Explore all combinaison
          {
-             cComputeStdDev<1> aUBS;
+             cUB_ComputeStdDev<1> aUBS;
              for (int aVar=0 ; aVar < aNbVar ; aVar++) // All Variable of this realization
              {
                  int aNumVar = (aFlag / round_ni(pow(aNbVar,aVar))) % aNbVar; // "Majic" formula to exdtrac p-adic decomp
@@ -155,7 +224,7 @@ void BenchUnbiasedStdDev()
          }
          aMoyVar /= aNbComb;
 
-         cComputeStdDev<1> aUBS;
+         cUB_ComputeStdDev<1> aUBS;
 StdOut() << "WWW=" ;
          for (int aK=0 ; aK<aNbVar ; aK++)
          {

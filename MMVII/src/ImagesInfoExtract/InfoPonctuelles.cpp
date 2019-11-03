@@ -10,7 +10,7 @@ double CubGaussWeightStandardDev(const cDataIm2D<Type>  &anIm,const cPt2di& aC,d
 {
     cRect2 aDBox = cRect2::BoxWindow(round_up(aRadius));  //! Centerd box arround (0,0)
     double aSqRad = Square(aRadius);
-    cComputeStdDev<1>  aCSD;
+    cUB_ComputeStdDev<1>  aCSD;
 
     int aNbOk = 0;
 

@@ -241,7 +241,7 @@ cAppliCalcDescPCar:: cAppliCalcDescPCar(const std::vector<std::string> &  aVArgs
   mIntPyram     (false),
   mSzTile       (7000),
   mOverlap      (300),
-  mNbOct        (5),
+  mNbOct        (7),
   mNbLevByOct   (5),
   mNbOverLapByO (3),
   mSaveIms      (false),
@@ -277,10 +277,13 @@ cCollecSpecArg2007 & cAppliCalcDescPCar::ArgOpt(cCollecSpecArg2007 & anArgOpt)
        << AOpt2007(mCI0,"ConvI0","Convolution top image",{eTA2007::HDV})
        << AOpt2007(mCC0,"ConvC0","Additional Corner Convolution",{eTA2007::HDV})
        << AOpt2007(mDoOriNorm,"DON","Do Original Normalized images, experimental",{eTA2007::HDV})
+       << AOpt2007(mDoCorner,"DOC","Do corner images",{eTA2007::HDV})
        << AOpt2007(mEstSI0,"ESI0","Estimation of sigma of first image, by default suppose a well sampled image")
        << AOpt2007(mFPC.mAutoC,"AC","Param 4 AutoCorrel [Val,?LowVal,?LowValIntCor]",{eTA2007::HDV,{eTA2007::ISizeV,"[1,3]"}})
        << AOpt2007(mFPC.mPSF,"PSF","Param 4 Spatial Filtering [Dist,MulRay,PropNoFS]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
        << AOpt2007(mFPC.mEQsf,"EQ","Exposant 4  Quality [AutoC,Var,Scale]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
+       << AOpt2007(mFPC.mLPCirc,"LPC","Circles of Log Pol [Rho0,DeltaI0,DeltaIm]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
+       << AOpt2007(mFPC.mLPSample,"LPS","Sampling Log Pol [NbTeta,NbRho,Mult,Census]",{eTA2007::HDV,{eTA2007::ISizeV,"[4,4]"}})
    ;
 }
 

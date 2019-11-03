@@ -487,12 +487,12 @@ template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Typ
      However it's probably worth use it than nothing ...
  */
 
-template <const int Dim> class cComputeStdDev
+template <const int Dim> class cUB_ComputeStdDev
 {
     public :
         typedef  double tTab[Dim];
 
-        cComputeStdDev();
+        cUB_ComputeStdDev();
 
         void Add(const  double * aVal,const double & aPds);
         const double  *  ComputeUnBiasedVar() ;
@@ -510,6 +510,23 @@ template <const int Dim> class cComputeStdDev
         tTab      mBVar;   ///< Buffer to compute the empirical variance
 };
 
+template <class Type>  class cComputeStdDev
+{
+     public :
+         cComputeStdDev();
+         void  Add(const Type & aW,const Type & aV);
+         const Type & SomW()   const {return mSomW;  }
+         const Type & SomWV()  const {return mSomWV; }
+         const Type & SomWV2() const {return mSomWV2;}
+         Type  NormalizedVal(const Type &) const;
+         cComputeStdDev<Type>  Normalize() const;
+     private :
+         void  SelfNormalize();
+         Type mSomW; 
+         Type mSomWV; 
+         Type mSomWV2; 
+         Type mStdDev; 
+};
 
 
 

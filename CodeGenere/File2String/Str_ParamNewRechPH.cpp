@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamNewRechPH[311] = {
+const char * theNameVar_ParamNewRechPH[316] = {
 "\n",
 "<GenCpp  Difndef=\"Define_NotRechNewPH\">\n",
 "\n",
@@ -288,13 +288,18 @@ const char * theNameVar_ParamNewRechPH[311] = {
 "       <Score      Nb=\"1\" Type=\"double\">   </Score>   <!-- Score , mixing Var and Correl -->\n",
 "       <ScoreRel  Nb=\"1\" Type=\"double\">   </ScoreRel>   <!-- Relative score, evolve accross time -->\n",
 "\n",
+"       <VectRho   Nb=\"1\" Type=\"std::vector<double>\">  </VectRho> <!-- To visualize sampling -->\n",
+"       <VectDir   Nb=\"1\" Type=\"std::vector<double>\">  </VectDir> <!-- to test main direc -->\n",
+"\n",
 "       <Var     Nb=\"1\" Type=\"double\">   </Var> <!-- Variance of point -->\n",
 "       <AutoCor  Nb=\"1\" Type=\"double\">   </AutoCor> <!-- Auto Correl of image -->\n",
 "       <NumChAC  Nb=\"1\" Type=\"int\">   </NumChAC>    <!-- Num of choice for Auto Correl -->\n",
 "       <OKAc  Nb=\"1\" Type=\"bool\">   </OKAc>         <!-- Is it ok according to AC -->\n",
+"       <OKLP  Nb=\"1\" Type=\"bool\">   </OKLP>         <!-- Is it ok according to LogPol -->\n",
 "       <SFSelected  Nb=\"1\" Type=\"bool\"> </SFSelected>  <!-- Spatial Filtering selected -->\n",
 "       <Stable  Nb=\"1\" Type=\"bool\"> </Stable>  <!-- Stable 4 refinement -->\n",
-"       <ImLP Nb=\"1\" Type=\"Im2D_INT1\"> </ImLP>  <!-- Log Pol Image -->\n",
+"       <ChgMaj  Nb=\"1\" Type=\"bool\"> </ChgMaj>  <!-- Changed to major, tuning -->\n",
+"       <ImLP Nb=\"1\" Type=\"Im2D_U_INT1\"> </ImLP>  <!-- Log Pol Image -->\n",
 "   </Xml2007Pt>\n",
 "\n",
 "   <Xml2007SetPtOneType  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",

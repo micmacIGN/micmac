@@ -21,7 +21,9 @@ template <class Type> cGP_OneImage<Type>::cGP_OneImage(tOct * anOct,int aNumInOc
     mDown      (nullptr),
     mOverlapUp (nullptr),
     mImG       (mOct->SzIm()),
-    mIsTopPyr  ((anImUp==nullptr) && (mOct->Up()==nullptr))
+    mIsTopPyr  ((anImUp==nullptr) && (mOct->Up()==nullptr)),
+    mNumMaj    (-1),
+    mBestEquiv (nullptr)
 {
     mNameSave =      mPyr->Params().mPrefixSave
                    + "-Ima-" 
@@ -53,6 +55,14 @@ template <class Type> cGP_OneImage<Type>::cGP_OneImage(tOct * anOct,int aNumInOc
    // For the value in octave, just divide by decimation factor
     mTargetSigmInO = mTargetSigmAbs / anOct->Scale0Abs();
 }
+
+
+template <class Type> void cGP_OneImage<Type>::SetBestEquiv(int aKMaj,tGPIm * aBestEquiv)
+{
+   mNumMaj = aKMaj;
+   mBestEquiv = aBestEquiv;
+}
+
 
      //  === Image processing methods
 
@@ -124,6 +134,11 @@ template <class Type> cPt2dr cGP_OneImage<Type>::Im2File(const cPt2dr & aP) cons
     return mOct->Oct2File(aP);
 }
 
+template <class Type> cPt2dr cGP_OneImage<Type>::File2Im(const cPt2dr & aP) const
+{
+    return mOct->File2Oct(aP);
+}
+
 template <class Type> void cGP_OneImage<Type>::SaveInFile() const
 {
     mImG.DIm().ToFile(mNameSave);
@@ -167,10 +182,16 @@ template <class Type> cGP_OneImage<Type> * cGP_OneImage<Type>::Down() const {ret
 template <class Type> const std::string & cGP_OneImage<Type>::NameSave() const {return mNameSave;}
 template <class Type> cGP_OneOctave<Type> * cGP_OneImage<Type>::Oct() const {return mOct;}
 
+template <class Type> cGP_OneImage<Type> * cGP_OneImage<Type>::BestEquiv() const {return mBestEquiv;}
+
+template <class Type> int cGP_OneImage<Type>::NumMaj() const {return mNumMaj;}
+
 template <class Type> cGP_OneImage<Type> * cGP_OneImage<Type>::ImOriHom() 
 {
    return mPyr->ImHomOri(this);
 }
+
+template <class Type> cGaussianPyramid<Type>& cGP_OneImage<Type>::Pyr() {return *mPyr;}
 
 template <class Type> int  cGP_OneImage<Type>::NumInOct() const {return mNumInOct;}
 
@@ -251,6 +272,12 @@ template <class Type> cPt2dr cGP_OneOctave<Type>::Oct2File(const cPt2dr & aP) co
     return mPyram->Pyr2File(aP*mScale0Abs);
 }
 
+template <class Type> cPt2dr cGP_OneOctave<Type>::File2Oct(const cPt2dr & aP) const
+{
+    return mPyram->File2Pyr(aP)/mScale0Abs;
+}
+
+
 
 
 template <class Type> cIm2D<Type> cGP_OneOctave<Type>::ImTop() const {return mVIms.at(0)->ImG();}
@@ -271,9 +298,11 @@ template <class Type> const  std::vector<std::shared_ptr<cGP_OneImage<Type>>> & 
 /* ==================================================== */
 
 cFilterPCar::cFilterPCar() :
-   mAutoC  ({0.9}),
-   mPSF    ({35,3.0,0.2}),
-   mEQsf   ({2,1,1})
+   mAutoC    ({0.9}),
+   mPSF      ({35,3.0,0.2}),
+   mEQsf     ({2,1,1}),
+   mLPCirc   ({2.5,-1.0,2.0}),
+   mLPSample ({16,8,32.0,0})
 {
 }
 
@@ -286,17 +315,35 @@ void cFilterPCar::FinishAC(double aVal)
     }
 }
 
-const double & cFilterPCar::AC_Threshold() {return mAutoC.at(0);}
-const double & cFilterPCar::AC_CutReal()   {return mAutoC.at(1);}
-const double & cFilterPCar::AC_CutInt()    {return mAutoC.at(2);}
+const double & cFilterPCar::AC_Threshold() const {return mAutoC.at(0);}
+const double & cFilterPCar::AC_CutReal()   const  {return mAutoC.at(1);}
+const double & cFilterPCar::AC_CutInt()    const {return mAutoC.at(2);}
 
-const double & cFilterPCar::DistSF()       {return mPSF.at(0);}
-const double & cFilterPCar::MulDistSF()    {return mPSF.at(1);}
-const double & cFilterPCar::PropNoSF()     {return mPSF.at(2);}
+const double & cFilterPCar::DistSF()       const {return mPSF.at(0);}
+const double & cFilterPCar::MulDistSF()    const {return mPSF.at(1);}
+const double & cFilterPCar::PropNoSF()     const {return mPSF.at(2);}
 
-const double & cFilterPCar::PowAC()        {return mEQsf.at(0);}
-const double & cFilterPCar::PowVar()       {return mEQsf.at(1);}
-const double & cFilterPCar::PowScale()     {return mEQsf.at(2);}
+const double & cFilterPCar::PowAC()        const {return mEQsf.at(0);}
+const double & cFilterPCar::PowVar()       const {return mEQsf.at(1);}
+const double & cFilterPCar::PowScale()     const {return mEQsf.at(2);}
+
+
+const double &  cFilterPCar::LPC_Rho0() const     {return mLPCirc.at(0);}
+int             cFilterPCar::LPC_DeltaI0() const  {return EmbeddedIntVal(mLPCirc.at(1));}
+int             cFilterPCar::LPC_DeltaIm() const  {return EmbeddedIntVal(mLPCirc.at(2));}
+
+int  cFilterPCar::LPS_NbTeta()           const {return EmbeddedIntVal(mLPSample.at(0));}
+int  cFilterPCar::LPS_NbRho()            const {return EmbeddedIntVal(mLPSample.at(1));}
+const double &  cFilterPCar::LPS_Mult()  const {return mLPSample.at(2);}
+bool  cFilterPCar::LPS_CensusMode()      const {return EmbeddedBoolVal(mLPSample.at(3));}
+
+/*
+   std::vector<double>  mLPSample;  ///< Sampling Mode for LogPol [NbTeta,NbRho,Multiplier,CensusNorm]
+         int               LPS_NbTeta()     const;   ///< Number of sample in teta
+         int               LPS_NbRho()      const;   ///< Number of sample in rho
+         const double &    LPS_Mult()       const;   ///< Multiplier before making it integer
+         bool              LPS_CensusMode() const;   ///< Do Normalization in census mode
+*/
 
 
 
@@ -354,6 +401,8 @@ template <class Type> cGaussianPyramid<Type>::cGaussianPyramid
    mSigmIm0           (SomSigm(mEstimSigmInitIm0,mParams.mConvolIm0))
 {
    tOct * aPrec = nullptr;
+   // Creates octaves who creates images ... 
+   //  also create a vector of octaves and  images 
    for (int aKOct=0 ; aKOct<mParams.mNbOct ; aKOct++)
    {
        mVOcts.push_back(tSP_Oct(new tOct(this,aKOct,aPrec)));
@@ -361,23 +410,50 @@ template <class Type> cGaussianPyramid<Type>::cGaussianPyramid
        std::copy(aPrec->VIms().begin(),aPrec->VIms().end(),std::back_inserter(mVAllIms));
    }
 
-   // if (mPyrOrig==this)
+   // Images with same scale overlap (for computing difference and max loc) , but it is 
+   // usefull to have a unique scale representation (for example when extracting LogPol image)
    {
-       StdOut() << "AAAAAPyyyyyyyrrrrr\n";
+       int aKMaj=0;
        for (int aK=0 ; aK<int(mVAllIms.size()) ; aK++)
        {
-           tGPIm * aPIm = mVAllIms[aK].get();
-           tOct  * aOct = aPIm->Oct();
-           tOct  * aOctUp = aOct->Up();
-           tGPIm * aPImUpEqui = (aOctUp ? aOctUp->ImageOfScaleAbs(aPIm->ScaleAbs()) : nullptr);
+           tGPIm * aPIm = mVAllIms[aK].get(); // The image
+           tOct  * aOct = aPIm->Oct();  // The octave
+           tOct  * aOctUp = aOct->Up();  // The possible octave with better resol
+           tGPIm * aPImUpEqui = (aOctUp ? aOctUp->ImageOfScaleAbs(aPIm->ScaleAbs()) : nullptr); // The possible im, same scale, better resol
+           tGPIm * aPImBestEqui = (aPImUpEqui==nullptr) ? aPIm : aPImUpEqui;
 
+           aPIm->SetBestEquiv(aKMaj,aPImBestEqui);
+
+/*
+           int aNumMaj = (aPImUpEqui==nullptr)? aKMaj : -1;
            StdOut() << "KKK " << aK 
                     <<  " O=" << aOct->NumInPyr() 
                     <<  " I=" << aPIm->NumInOct() 
+                    <<  " NMaj=" << aNumMaj
+                    <<  " RSA="  << aPIm->ScaleAbs() / aPImBestEqui->ScaleAbs() 
                     <<  " S=" << ((aPImUpEqui==nullptr) ? "--" : "**")
                     << "\n";
+*/
+           if (aPImUpEqui==nullptr)
+           {
+              aKMaj++;
+              mVMajIm.push_back(aPIm);
+           }
        }
+       for (int aK=1 ; aK<int(mVMajIm.size()) ; aK++)
+       {
+           double aRatio = mVMajIm[aK]->ScaleAbs()/mVMajIm[aK-1]->ScaleAbs();
+           //  StdOut() << " sSssSSs= " << aRatio << " MM=" <<  mMulScale     << "\n";
+           MMVII_INTERNAL_ASSERT_strong(std::abs(aRatio-mMulScale)<1e-5,"Ratio in MajorVectImage");
+       }
+/*
+       for (const auto & aPIm : mVMajIm)
+          StdOut() << "MAJJJ " 
+                    <<  " O=" << aPIm->Oct()->NumInPyr() 
+                    <<  " I=" << aPIm->NumInOct() 
+                   << " SA="<< aPIm->ScaleAbs() << "\n";
        getchar();
+*/
    }
 }
 
@@ -477,6 +553,11 @@ template <class Type> cPt2dr cGaussianPyramid<Type>::Pyr2File(const cPt2dr & aP)
     return ToR(mBoxIn.P0()) + aP;
 }
 
+template <class Type> cPt2dr cGaussianPyramid<Type>::File2Pyr(const cPt2dr & aP) const
+{
+    return aP- ToR(mBoxIn.P0()) ;
+}
+
 template <class Type> void ScaleAndAdd
                            (
                                 cInterf_ExportAimeTiep<Type> * aIExp,
@@ -484,10 +565,15 @@ template <class Type> void ScaleAndAdd
                                 cGP_OneImage<Type> * aPtrI
                            )
 {
-    cAutoTimerSegm aATS("CreatePCar");
+    cGP_OneImage<Type> * aBestI= aPtrI->BestEquiv();
+    int aIRatio = round_ni(aBestI->ScaleInO() / aPtrI->ScaleInO());
+    
+    // StdOut()  << "NULL= " << (aBestI==nullptr) << " BI=" << (aBestI ==aPtrI) << " R=" << aRatio << "\n";
+    cAutoTimerSegm aATS("CreatePCar");  // timing
     for (const auto & aPtImInit : aLoc)
     {
-       cProtoAimeTieP<Type>   aPATPCom(aPtrI,aPtImInit);
+       // cProtoAimeTieP<Type>   aPATPCom(aPtrI,aPtImInit );
+       cProtoAimeTieP<Type>   aPATPCom(aBestI,aPtImInit * aIRatio,aIRatio!=1);
        aIExp->AddAimeTieP(aPATPCom);
     }
 }
@@ -518,7 +604,7 @@ template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool 
            double aML =  MoyAbs(aI);
            double aS =  aPtrIm->ScaleInO();
 
-           double aRadiusMM = 3.0;
+           double aRadiusMM = 3.0; // Radius for Min/Max
            int aNbE = 0;
            if (DoPrint)
            {
@@ -615,6 +701,9 @@ template <class Type> const double & cGaussianPyramid<Type>::SigmIm0() const {re
 
 template <class Type> const  std::vector<std::shared_ptr<cGP_OneOctave<Type>>> & cGaussianPyramid<Type>::VOcts() const {return mVOcts;}
 template <class Type> const  std::vector<std::shared_ptr<cGP_OneImage<Type>>> & cGaussianPyramid<Type>::VAllIms() const {return mVAllIms;}
+
+template <class Type> const std::vector<cGP_OneImage<Type>*> &   cGaussianPyramid<Type>::VMajIm() const {return mVMajIm;}
+
 
 template <class Type> const std::string & cGaussianPyramid<Type>::NameIm() const {return mNameIm;}
 template <class Type> const std::string & cGaussianPyramid<Type>::Prefix() const {return mPrefix;}
