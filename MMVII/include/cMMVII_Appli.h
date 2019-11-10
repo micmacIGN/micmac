@@ -340,6 +340,16 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         const std::string & TmpDirTestMMVII()   const;   ///< where to put binary file for bench, Export for global bench funtion
         const std::string & InputDirTestMMVII() const;   ///<  where are input files for bench   , Export for global bench funtion
 
+
+        //  ===========  Name for Caracteristique points files  , Tile -1,-1 mean no tile
+  
+          /// Name to generates images for inspection
+        std::string NamePCarImage(const std::string & aNameIm,eTyPyrTieP,const std::string & aSpecific,const cPt2di & aTile) const;
+          /// Name to generates PCar , most general
+        std::string NamePCar(const std::string & aNameIm,eModeOutPCar,eTyPyrTieP,bool InPut,bool IsMax,const cPt2di & aTile) const;
+          /// Name to generates PCar , current : V2Bin , Input, no tile
+        std::string StdNamePCarIn(const std::string & aNameIm,eTyPyrTieP,bool IsMax) const;
+
         static int  SeedRandom();  ///< SeedRand if Appli init, else default
 
         int   LevelCall() const;     ///< Accessor to mLevelCall
@@ -458,9 +468,16 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static const tVSPO    EmptyVSPO;       ///< Defaut Vector  shared optional parameter
         tVSPO                 mVSPO;           ///< Vector of shared optional parameter , use for arg spec
         //  ====  TieP Stuff: param, name ... ============
+
+        /// General form to be called by PrefixPCarOut and PrefixPCarIn
         std::string PrefixPCar(const std::string & aNameIm,const std::string & aPref) const;
+        ///  The prefix for PCar when they are writen by the appli
         std::string PrefixPCarOut(const std::string & aNameIm) const;
+        ///  The prefix for PCar when they are read by the appli
         std::string PrefixPCarIn(const std::string & aNameIm) const;
+
+        std::string NamePCarGen(const std::string & aNameIm,eModeOutPCar,eTyPyrTieP,bool InPut,
+                                const std::string & aSpecific,const cPt2di & aTile) const;
 
         std::string                               mCarPPrefOut;  ///< Prefix for output Carac point ...
         std::string                               mCarPPrefIn;   ///< Prefix for input  Carac point ...

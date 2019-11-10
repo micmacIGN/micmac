@@ -385,7 +385,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
        mWithPCarac = true;
 
        mDirAime =  "./Tmp-2007-Dir-PCar/"+ mNameIm + "/";
-       std::string aPat =  "STD-AimePCar-" + mNameAimePCar + "-Tile00.dmp";
+       std::string aPat =  "STD-V1AimePCar-" + mNameAimePCar + "-Tile0_0.dmp";
        cInterfChantierNameManipulateur* aAimeICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirAime);
 
        cSetName * aSN= aAimeICNM->KeyOrPatSelector(aPat);

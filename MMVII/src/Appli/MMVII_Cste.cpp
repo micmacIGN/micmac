@@ -61,6 +61,15 @@ const std::string  Bin2007 = "MMVII";
 const   std::string MMVII_NONE = "NONE";
 const   std::string MMVII_StdDest = "STD";
 
+// PostFix 4 files
+const   std::string PostF_XmlFiles  = "xml";
+const   std::string PostF_DumpFiles = "dmp";
+const   std::string & StdPostF_ArMMVII(bool isXml)
+{
+    return isXml ? PostF_XmlFiles  : PostF_DumpFiles;
+}
+
+
 
 };
 

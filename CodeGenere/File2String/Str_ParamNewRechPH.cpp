@@ -304,7 +304,7 @@ const char * theNameVar_ParamNewRechPH[316] = {
 "\n",
 "   <Xml2007SetPtOneType  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "       <Pts  Nb=\"*\" RefType=\"Xml2007Pt\" Container=\"std::vector\"> </Pts> \n",
-"       <IsMin Nb=\"1\" Type=\"bool\">        </IsMin>\n",
+"       <IsMax Nb=\"1\" Type=\"bool\">        </IsMax>\n",
 "       <TypePt Nb=\"1\" Type=\"int\">        </TypePt>\n",
 "       <NameTypePt Nb=\"1\" Type=\"std::string\">    </NameTypePt>\n",
 "   </Xml2007SetPtOneType>\n",

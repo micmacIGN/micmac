@@ -182,8 +182,45 @@ double NormalisedRatio(double aI1,double aI2)
 }
 
 
+template <class Type> void  TplBenchMinMax(int aNb)
+{
+
+    std::vector<Type> aVVals;
+    Type aV0 = tNumTrait<Type>::RandomValueCenter();
+    cWitchMinMax<int,Type> aWMM(0,aV0);
+    aVVals.push_back(aV0);
+    for (int aK=0 ; aK<aNb-1 ; aK++)
+    {
+       Type aVal = tNumTrait<Type>::RandomValueCenter();
+       aVVals.push_back(aVal);
+       aWMM.Add(aK+1,aVal);
+    }
+    int aKMin = aWMM.Min().Index();
+    int aKMax = aWMM.Max().Index();
+    MMVII_INTERNAL_ASSERT_bench (aVVals.at(aKMin)==aWMM.Min().Val(),"Bench MinMax");
+    MMVII_INTERNAL_ASSERT_bench (aVVals.at(aKMax)==aWMM.Max().Val(),"Bench MinMax");
+    for (const auto & aV : aVVals)
+    {
+        MMVII_INTERNAL_ASSERT_bench (aV>=aWMM.Min().Val(),"Bench MinMax");
+        MMVII_INTERNAL_ASSERT_bench (aV<=aWMM.Max().Val(),"Bench MinMax");
+    }
+   
+}
+
+void BenchMinMax()
+{
+   for (int aK=0 ; aK<=100 ; aK++)
+   {
+       TplBenchMinMax<tU_INT1>(1+aK);
+       TplBenchMinMax<tREAL4>(1+aK);
+   }
+}
+
 void Bench_Nums()
 {
+     BenchMinMax();
+
+   //for (
    MMVII_INTERNAL_ASSERT_bench (BinomialCoeff(2,10)==45,"Bench binom");
    {
       int aS=0;

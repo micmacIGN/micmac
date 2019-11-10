@@ -65,53 +65,61 @@ template <class Type> struct cProtoAimeTieP : public cMemCheck
 template <class Type> class cInterf_ExportAimeTiep : public cMemCheck
 {
      public :
-         static cInterf_ExportAimeTiep<Type> * Alloc(const cPt2di & aSzIm0,bool IsMin,int ATypePt,const std::string & aName,bool ForInspect,const cGP_Params & );
+         static cInterf_ExportAimeTiep<Type> * Alloc(const cPt2di & aSzIm0,bool IsMin,eTyPyrTieP TypePt,const std::string & aName,bool ForInspect,const cGP_Params & );
          virtual ~cInterf_ExportAimeTiep();
          virtual void AddAimeTieP(cProtoAimeTieP<Type>  aPATP ) = 0;
-         virtual void Export(const std::string &) = 0;
+         virtual void Export(const std::string &,bool SaveV1) = 0;
          virtual void FiltrageSpatialPts() = 0; 
      protected :
 
 };
 
+/**  Class to store Aime descriptor, independantly of it caracterization
+*/ 
 class cAimeDescriptor : public cMemCheck
 {
      public :
-         cAimeDescriptor();
-         cIm2D<tU_INT1>   ILP();
-         const std::vector<double> & DirPrinc() const;
-         std::vector<double> & DirPrinc() ;
+         cAimeDescriptor();  ///< Need a default descriptor (serialization ...)
+         cIm2D<tU_INT1>   ILP();   ///< Accesor to log pol image
+
+         const std::vector<double> & DirPrinc() const; ///< const accesor to main directions
+         std::vector<double> & DirPrinc() ;            ///< non const accessor
      private :
         cIm2D<tU_INT1>      mILP;   ///< mImLogPol
         std::vector<double> mDirPrinc ; ///< Principal directions  options
 };
 
+/**  Class to store Aime Pts Car = Descriptor + localization
+*/ 
 class cAimePCar
 {
      public :
         cAimeDescriptor & Desc();
         cPt2dr&         Pt();
      private :
-        cAimeDescriptor mDesc;
-        cPt2dr          mPt;
+        cAimeDescriptor mDesc;  ///< Descriptor
+        cPt2dr          mPt;    ///<  Localization
 };
 
-
-/*
-class cAimeDescriptor
+/**  Class to store  aSet of AimePcar = vector<PC> + some common caracteritic on type
+*/ 
+class cSetAimePCAR
 {
      public :
-         cAimeDescriptor();
+        // cSetAimePCAR();
+        cSetAimePCAR(eTyPyrTieP aType,bool IsMax);
+        int &                   IType();
+        eTyPyrTieP              Type();
+        bool&                   IsMax();
+        std::vector<cAimePCar>& VPC();
+        void SaveInFile(const std::string &) const;
      private :
-        cIm2D<tU_INT1>   mILP;   ///< mImLogPol
+        int                     mType;  ///< Type registered as int, easier for AddData, in fact a eTyPyrTieP
+        bool                    mIsMax; ///< Is it a maxima or a minima of its caracteristic
+        std::vector<cAimePCar>  mVPC;   ///< Vector of Aime points
+   
 };
 
-class cAimePCar
-{
-     public :
-     private :
-};
-*/
 
 
 };

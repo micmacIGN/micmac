@@ -58,6 +58,11 @@ extern const std::string  MMv1XmlTag_RelName;
 extern const   std::string DirBin2007;  ///< computed by MM Instal
 extern const   std::string Bin2007; ///< MMVII 4 now
 
+// PostFix 4 files
+extern const   std::string PostF_XmlFiles; ///< xml now
+extern const   std::string PostF_DumpFiles; ///< dmp now
+const   std::string & StdPostF_ArMMVII(bool xml); ///< one of 2 above
+
 // Users Value
 
 extern const   std::string MMVII_NONE;  ///< For command, each time a "no value" can be used

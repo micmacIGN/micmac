@@ -694,6 +694,77 @@ std::string cMMVII_Appli::PrefixPCarIn(const std::string & aNameIm) const
    return PrefixPCar(aNameIm,mTiePPrefIn);
 }
 
+std::string cMMVII_Appli::NamePCarImage(const std::string & aNameIm,eTyPyrTieP aType,const std::string & aSpecific,const cPt2di & aTile) const
+{
+   return NamePCarGen(aNameIm,eModeOutPCar::eMOPC_Image,aType,false,aSpecific,aTile);
+}
+
+std::string  cMMVII_Appli::NamePCar
+             (const std::string & aNameIm,eModeOutPCar aMode,eTyPyrTieP aType,bool Input,bool IsMax,const cPt2di & aTile) const
+{
+   return NamePCarGen(aNameIm,aMode,aType,Input,(IsMax ? "Max" : "Min"),aTile);
+}
+
+std::string  cMMVII_Appli::StdNamePCarIn(const std::string & aNameIm,eTyPyrTieP aType,bool IsMax) const
+{
+    return NamePCar(aNameIm,eModeOutPCar::eMNO_BinPCarV2,aType,true,IsMax,cPt2di(-1,-1));
+}
+
+
+
+std::string  cMMVII_Appli::NamePCarGen
+             (
+                  const std::string & aNameIm,
+                  eModeOutPCar        aMode,
+                  eTyPyrTieP          aType,
+                  bool InPut,
+                  const std::string & aSpecific,
+                  const cPt2di & aTile
+             ) const
+{
+    std::string aPref = (InPut ? PrefixPCarIn(aNameIm) : PrefixPCarOut(aNameIm));
+    
+    std::string  aStrMode;
+    std::string  aPost;
+
+    if (aMode==eModeOutPCar::eMOPC_Image)
+    {
+        aStrMode = "Ima";
+        aPost    = "tif";
+    }
+    else if (aMode==eModeOutPCar::eMNO_PCarV1)
+    {
+        aStrMode = "V1AimePCar";
+        aPost    = "dmp";
+    }
+    else if (aMode==eModeOutPCar::eMNO_BinPCarV2)
+    {
+        aStrMode = "V2AimePCar";
+        aPost    = "dmp";
+    }
+    else if (aMode==eModeOutPCar::eMNO_XmlPCarV2)
+    {
+        aStrMode = "V2AimePCar";
+        aPost    = "xml";
+    }
+    
+    std::string aMinus("-");
+    
+    std::string  aStrTile;
+    if (aTile.x()>=0)
+    {
+         aStrTile =  "-Tile" + ToStr(aTile.x())+ "_"+ ToStr(aTile.y());
+    }
+
+    std::string aRes =    aPref 
+                        + aMinus + aStrMode 
+                        + aMinus + E2Str(aType)
+                        + aMinus + aSpecific  
+                        + aStrTile
+                        + "." +  aPost;
+
+    return aRes;
+}
 
 
 // Is called only when global main applu
