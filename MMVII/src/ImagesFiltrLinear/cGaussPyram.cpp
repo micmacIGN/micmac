@@ -25,6 +25,10 @@ template <class Type> cGP_OneImage<Type>::cGP_OneImage(tOct * anOct,int aNumInOc
     mNumMaj    (-1),
     mBestEquiv (nullptr)
 {
+    mNameSave =  mPyr->Params().mAppli->NamePCarImage(mPyr->NameIm(),mPyr->TypePyr(),ShortId(),mPyr->Params().mNumTile);
+
+/*
+StdOut() << "SssSSSS=" << mNameSave << "\n";
     mNameSave =      mPyr->Params().mPrefixSave
                    + "-Ima-" 
                    + E2Str(mPyr->TypePyr()) 
@@ -33,6 +37,8 @@ template <class Type> cGP_OneImage<Type>::cGP_OneImage(tOct * anOct,int aNumInOc
                    + "-" +  mPyr->Prefix()
                    + ".tif"
                 ;
+StdOut() << "XXXxxxX=" << mNameSave << "\n";
+*/
     if (mUp==nullptr)
     {
        mScaleAbs = anOct->Scale0Abs(); // initial value of octave
@@ -353,11 +359,12 @@ bool  cFilterPCar::LPS_CensusMode()      const {return EmbeddedBoolVal(mLPSample
 /*                                                      */
 /* ==================================================== */
 
-cGP_Params::cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap) :
+cGP_Params::cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,cMMVII_Appli * aPtrAppli) :
    mSzIm0        (aSzIm0),
    mNbOct        (aNbOct),
    mNbLevByOct   (aNbLevByOct),
    mNbOverlap    (aOverlap),
+   mAppli        (aPtrAppli),
    mConvolIm0    (0.0),
    mNbIter1      (4),
    mNbIterMin    (2),
@@ -384,14 +391,12 @@ template <class Type> cGaussianPyramid<Type>::cGaussianPyramid
                             tPyr * aOrig,
                             eTyPyrTieP aType,
                             const std::string & aNameIm,
-                            const std::string & aPrefix,
                             const cRect2 & aBIn,
                             const cRect2 & aBOut
                       ) :
    mPyrOrig           (aOrig ? aOrig : this),
    mTypePyr           (aType),
    mNameIm            (aNameIm),
-   mPrefix            (aPrefix),
    mBoxIn             (aBIn),
    mBoxOut            (aBOut),
    mParams            (aParams),
@@ -459,9 +464,9 @@ template <class Type> cGaussianPyramid<Type>::cGaussianPyramid
 
 
 template <class Type>  std::shared_ptr<cGaussianPyramid<Type>>  
-      cGaussianPyramid<Type>::Alloc(const cGP_Params & aParams,const std::string& aNameIm,const std::string& aPref,const cRect2 & aBIn,const cRect2 & aBOut)
+      cGaussianPyramid<Type>::Alloc(const cGP_Params & aParams,const std::string& aNameIm,const cRect2 & aBIn,const cRect2 & aBOut)
 {
-   return  tSP_Pyr(new tPyr(aParams,nullptr,eTyPyrTieP::eTPTP_Init,aNameIm,aPref,aBIn,aBOut));
+   return  tSP_Pyr(new tPyr(aParams,nullptr,eTyPyrTieP::eTPTP_Init,aNameIm,aBIn,aBOut));
 }
 
 template <class Type>  std::shared_ptr<cGaussianPyramid<Type>>  
@@ -473,7 +478,7 @@ template <class Type>  std::shared_ptr<cGaussianPyramid<Type>>
     // Not Sure thi would create a problem, but it would not be very coherent ?
     MMVII_INTERNAL_ASSERT_strong(aParam.mNbOverlap>=0,"No overlap for PyramDiff");
 
-    tSP_Pyr aRes(new tPyr(aParam,this,eTyPyrTieP::eTPTP_LaplG,mNameIm,mPrefix,mBoxIn,mBoxOut));
+    tSP_Pyr aRes(new tPyr(aParam,this,eTyPyrTieP::eTPTP_LaplG,mNameIm,mBoxIn,mBoxOut));
 
     for (int aKo=0 ; aKo<int(mVOcts.size()) ; aKo++)
     {
@@ -499,7 +504,7 @@ template <class Type>  std::shared_ptr<cGaussianPyramid<Type>>
     // Not Sure thi would create a problem, but it would not be very coherent ?
     MMVII_INTERNAL_ASSERT_strong(aParam.mNbOverlap>=0,"No overlap for PyramDiff");
 
-    tSP_Pyr aRes(new tPyr(aParam,this,eTyPyrTieP::eTPTP_Corner,mNameIm,mPrefix,mBoxIn,mBoxOut));
+    tSP_Pyr aRes(new tPyr(aParam,this,eTyPyrTieP::eTPTP_Corner,mNameIm,mBoxIn,mBoxOut));
 
     ImTop().DIm().DupIn(aRes->ImTop().DIm());
     aRes->ComputGaussianFilter();
@@ -520,7 +525,7 @@ template <class Type>  std::shared_ptr<cGaussianPyramid<Type>>
     // Not Sure thi would create a problem, but it would not be very coherent ?
     MMVII_INTERNAL_ASSERT_strong(aParam.mNbOverlap>=0,"No overlap for PyramDiff");
 
-    tSP_Pyr aRes(new tPyr(aParam,this,eTyPyrTieP::eTPTP_OriNorm,mNameIm,mPrefix,mBoxIn,mBoxOut));
+    tSP_Pyr aRes(new tPyr(aParam,this,eTyPyrTieP::eTPTP_OriNorm,mNameIm,mBoxIn,mBoxOut));
 
     for (int aKo=0 ; aKo<int(mVOcts.size()) ; aKo++)
     {
@@ -581,9 +586,10 @@ template <class Type> void ScaleAndAdd
 template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool ForInspect) const
 {
    bool DoPrint = (aPowSPr>=0) && ForInspect;
+   bool DoExport = (mTypePyr!= eTyPyrTieP::eTPTP_Init);
 
-   std::unique_ptr<cInterf_ExportAimeTiep<Type>> aPtrExpMin(cInterf_ExportAimeTiep<Type>::Alloc(SzIm0(),true,int(mTypePyr),E2Str(mTypePyr),ForInspect,mParams));
-   std::unique_ptr<cInterf_ExportAimeTiep<Type>> aPtrExpMax(cInterf_ExportAimeTiep<Type>::Alloc(SzIm0(),false,int(mTypePyr),E2Str(mTypePyr),ForInspect,mParams));
+   std::unique_ptr<cInterf_ExportAimeTiep<Type>> aPtrExpMin(cInterf_ExportAimeTiep<Type>::Alloc(SzIm0(),false ,mTypePyr,E2Str(mTypePyr),ForInspect,mParams));
+   std::unique_ptr<cInterf_ExportAimeTiep<Type>> aPtrExpMax(cInterf_ExportAimeTiep<Type>::Alloc(SzIm0(),true ,mTypePyr,E2Str(mTypePyr),ForInspect,mParams));
 
    if (DoPrint)
       StdOut() <<  "\n ######  STAT FOR " << E2Str(mTypePyr)  << " Pow " << aPowSPr << " ######\n";
@@ -597,6 +603,7 @@ template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool 
    {
        if (ForInspect)
           aPtrIm->SaveInFile();
+       if (DoExport)
        {
            if (DoPrint && aPtrIm->IsTopOct())
               StdOut() <<  " ===================================================\n";
@@ -653,17 +660,22 @@ template <class Type> void cGaussianPyramid<Type>::SaveInFile (int aPowSPr,bool 
               StdOut()  << "\n";
        }
    }
+   if (!DoExport)
+      return;
    StdOut() << " ======  NbTot , Min " << aNbMinTot << " Max " << aNbMaxTot << "\n";
-   // std::string aPref =    "Aime-" + E2Str(TypePyr()) + "-" +  MMVII::Prefix(NameIm()) + "-" +mPrefix +".dmp";
+
    
-   std::string aPref =     mParams.mPrefixSave + "-AimePCar-";
-   std::string aPost =   E2Str(TypePyr()) + "-" +mPrefix +".dmp";
+   // std::string aPref =     mParams.mPrefixSave + "-AimePCar-";
+   // std::string aPost =   E2Str(TypePyr()) + "-" + std::string("Tiiiiiiiiiiiiiiiiiiiiil") +".dmp";
 
    aPtrExpMin->FiltrageSpatialPts();
    aPtrExpMax->FiltrageSpatialPts();
 
-   aPtrExpMin->Export(aPref+"Min-"+ aPost);
-   aPtrExpMax->Export(aPref+"Max-"+ aPost);
+   // StdOut() <<  " ppppPPppp " <<  mParams.mAppli->NamePCar(mNameIm,eModeOutPCar::eMNO_PCarV1,TypePyr(),false,true,cPt2di(0,0)) << "\n";
+
+
+   aPtrExpMin->Export(mNameIm,ForInspect);
+   aPtrExpMax->Export(mNameIm,ForInspect);
 }
 
 template <class Type>  cGP_OneOctave<Type> * cGaussianPyramid<Type>::OctHom(tOct *anOct)
@@ -706,7 +718,7 @@ template <class Type> const std::vector<cGP_OneImage<Type>*> &   cGaussianPyrami
 
 
 template <class Type> const std::string & cGaussianPyramid<Type>::NameIm() const {return mNameIm;}
-template <class Type> const std::string & cGaussianPyramid<Type>::Prefix() const {return mPrefix;}
+// template <class Type> const cPt2di & cGaussianPyramid<Type>::NumTile() const {return mNumTile;}
 template <class Type> eTyPyrTieP cGaussianPyramid<Type>::TypePyr() const {return mTypePyr;}
 
 /* ==================================================== */

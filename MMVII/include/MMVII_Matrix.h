@@ -296,6 +296,11 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         cDenseMatrix(tIm);
         cDenseMatrix Dup() const;
         static cDenseMatrix Diag(const tDV &);
+        /**  Generate a random square matrix having "good" conditionning property , i.e with eigen value constraint,
+            usefull for bench as when the random matrix is close to singular, it may instability that fail
+            the numerical test.
+        */
+        static tDM RandomSquareRegMatrix(int aSz,bool IsSym,double aAmplAcc,double aCondMinAccept);
 
         // To contourn borring new template scope ....
         const tDIm & DIm() const {return tUO_DM::DIm();}
@@ -374,8 +379,10 @@ template <class Type> class cResulSymEigenValue
         cResulSymEigenValue(int aNb);
         cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix
 
-        const cDenseVect<Type>   &  EigenValues() const ;  ///< Eigen values
+        const cDenseVect<Type>   &  EigenValues() const ; ///< Eigen values
         const cDenseMatrix<Type> &  EigenVectors()const ; ///< Eigen vector
+        void  SetKthEigenValue(int aK,const Type & aVal) ;  ///< Eigen values
+        Type  Cond(Type Def=Type(-1)) const ; ///< Conditioning, def value is when all 0, if all0 and Def<0 : Error
 
     private :
         cDenseVect<Type>    mEigenValues;  ///< Eigen values

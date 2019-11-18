@@ -129,6 +129,18 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type>   & 
 /// std::vector interface  AddData -> StdContAddData
 template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & aL) { StdContAddData(anAux,aL); }
 
+template <class Type> void AddData(const cAuxAr2007 & anAux,cDataIm2D<Type> & aIm)
+{
+    cPt2di aSz = aIm.Sz();
+    AddData(cAuxAr2007("Sz",anAux),aSz);
+    if (anAux.Input())
+    { 
+      aIm.Resize(aSz);
+    }
+
+    cRawData4Serial aRDS(aIm.RawDataLin(),aIm.NbElem()*sizeof(Type));
+    AddData(cAuxAr2007("Data",anAux),aRDS);
+}
 
 
 /// Save the value in an archive, not proud of the const_cast ;-)

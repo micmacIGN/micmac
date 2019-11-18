@@ -210,6 +210,16 @@ enum class eModeNormOr
      eNbVals         ///< Tag End of Vals
 };
 
+/** Mode of output file for Pts Carac */
+enum class eModeOutPCar
+{
+     eMOPC_Image,     ///< Mode to save images
+     eMNO_PCarV1,     ///< Mode to save PCar to be seen in MMV1
+     eMNO_BinPCarV2,  ///< Mode to save PCar to be seen for MMVII, bin mod
+     eMNO_XmlPCarV2,  ///< Mode to save PCar to be seen for MMVII, xml mode (not sure needed ?)
+     eNbVals          ///< Tag End of Vals
+};
+
 
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         

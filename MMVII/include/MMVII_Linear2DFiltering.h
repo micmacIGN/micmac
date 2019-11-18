@@ -220,14 +220,17 @@ struct cFilterPCar
 struct cGP_Params
 {
      public :
-         cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap);
+         /// Appli is usefull for name computation
+         cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,cMMVII_Appli *);
 
       // Parameters having no def values
          cPt2di mSzIm0;    ///< Sz of Image at full resol
          int  mNbOct;      ///< Number of octave
          int  mNbLevByOct;  ///< Number of level per octave (dont include overlap)
          int  mNbOverlap;   ///< Number of overlap
+         cMMVII_Appli * mAppli; ///< Appli used for names construction
          
+         cPt2di       mNumTile; ///< Tile used for computing in small tiles (memory problem) usefull as index for save
          cFilterPCar  mFPC; ///< Not really related to GP, but easier to embed 
       // Parameters with def value, can be changed
          double      mConvolIm0;  ///< Possible additionnal convolution to first image  def 0.0
@@ -237,7 +240,7 @@ struct cGP_Params
          double      mScaleDirOrig;   ///<  Scale multiplier for diff on Orig carac point
          double      mEstimSigmInitIm0;   ///< Estimation of sigma0 of first image
       //  Parameters for saving 
-          std::string mPrefixSave;
+          // std::string mPrefixSave;
 };
 
 /// Struct to store a gaussian pyram
@@ -254,7 +257,7 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
         typedef cGaussianPyramid<Type> tPyr;
         typedef std::shared_ptr<tPyr>  tSP_Pyr;
 
-        static tSP_Pyr Alloc(const cGP_Params &,const std::string & aNameIm,const std::string & aPref,const cRect2 & aBIn,const cRect2 & aBOut); ///< Allocator
+        static tSP_Pyr Alloc(const cGP_Params &,const std::string & aNameIm,const cRect2 & aBIn,const cRect2 & aBOut); ///< Allocator
         /** Generate a Pyramid made of the difference, typically for laplacian from gaussian */
         tSP_Pyr  PyramDiff() ;
         /** Generate a Pyramid of corner points */
@@ -287,16 +290,14 @@ template <class Type> class  cGaussianPyramid : public cMemCheck
         const std::vector<tGPIm*> &   VMajIm() const;  ///< Vector of "Major" images, 1 and only 1 by scale abs
         eTyPyrTieP TypePyr () const;    ///< Type in enum possibility (Laplapcian of Gauss, Corner ...)
         const std::string & NameIm() const; ///<  Name of image
-        const std::string & Prefix() const; ///<  Name of image
 
     private :
-        cGaussianPyramid(const cGP_Params &,tPyr * aOrig,eTyPyrTieP,const std::string & aNameI,const std::string & aPref,const cRect2 & aBIn,const cRect2 & aBOut); ///< Constructor
+        cGaussianPyramid(const cGP_Params &,tPyr * aOrig,eTyPyrTieP,const std::string & aNameI,const cRect2 & aBIn,const cRect2 & aBOut); ///< Constructor
         cGaussianPyramid(const tPyr &) = delete;
 
         tPyr *   mPyrOrig;    ///< The pyramide that contain the original images
         eTyPyrTieP mTypePyr;    ///< Type in enum possibility (Laplapcian of Gauss, Corner ...)
         std::string mNameIm; ///<  Name of image
-        std::string mPrefix; ///<  To add to identifier for output
         cRect2      mBoxIn; /// Box of Input
         cRect2      mBoxOut; ///  Box of Output
         cGP_Params          mParams;   ///< Memorize parameters

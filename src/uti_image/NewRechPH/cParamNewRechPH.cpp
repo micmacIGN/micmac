@@ -3258,14 +3258,14 @@ const std::vector< cXml2007Pt > & cXml2007SetPtOneType::Pts()const
 }
 
 
-bool & cXml2007SetPtOneType::IsMin()
+bool & cXml2007SetPtOneType::IsMax()
 {
-   return mIsMin;
+   return mIsMax;
 }
 
-const bool & cXml2007SetPtOneType::IsMin()const 
+const bool & cXml2007SetPtOneType::IsMax()const 
 {
-   return mIsMin;
+   return mIsMax;
 }
 
 
@@ -3301,7 +3301,7 @@ void  BinaryUnDumpFromFile(cXml2007SetPtOneType & anObj,ELISE_fp & aFp)
               anObj.Pts().push_back(aVal);
         }
   } ;
-    BinaryUnDumpFromFile(anObj.IsMin(),aFp);
+    BinaryUnDumpFromFile(anObj.IsMax(),aFp);
     BinaryUnDumpFromFile(anObj.TypePt(),aFp);
     BinaryUnDumpFromFile(anObj.NameTypePt(),aFp);
 }
@@ -3314,7 +3314,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cXml2007SetPtOneType & anObj)
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
-    BinaryDumpInFile(aFp,anObj.IsMin());
+    BinaryDumpInFile(aFp,anObj.IsMax());
     BinaryDumpInFile(aFp,anObj.TypePt());
     BinaryDumpInFile(aFp,anObj.NameTypePt());
 }
@@ -3329,7 +3329,7 @@ cElXMLTree * ToXMLTree(const cXml2007SetPtOneType & anObj)
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("Pts"));
-   aRes->AddFils(::ToXMLTree(std::string("IsMin"),anObj.IsMin())->ReTagThis("IsMin"));
+   aRes->AddFils(::ToXMLTree(std::string("IsMax"),anObj.IsMax())->ReTagThis("IsMax"));
    aRes->AddFils(::ToXMLTree(std::string("TypePt"),anObj.TypePt())->ReTagThis("TypePt"));
    aRes->AddFils(::ToXMLTree(std::string("NameTypePt"),anObj.NameTypePt())->ReTagThis("NameTypePt"));
   aRes->mGXml = anObj.mGXml;
@@ -3344,13 +3344,13 @@ void xml_init(cXml2007SetPtOneType & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.Pts(),aTree->GetAll("Pts",false,1));
 
-   xml_init(anObj.IsMin(),aTree->Get("IsMin",1)); //tototo 
+   xml_init(anObj.IsMax(),aTree->Get("IsMax",1)); //tototo 
 
    xml_init(anObj.TypePt(),aTree->Get("TypePt",1)); //tototo 
 
    xml_init(anObj.NameTypePt(),aTree->Get("NameTypePt",1)); //tototo 
 }
 
-std::string  Mangling( cXml2007SetPtOneType *) {return "C0401E75DAC1729DFE3F";};
+std::string  Mangling( cXml2007SetPtOneType *) {return "5E47ABA22613D9D2FD3F";};
 
 // };

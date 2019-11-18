@@ -110,6 +110,9 @@ void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aD
 /// Recursively exract name of files, by return value
 std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,tNameSelector  aNS,int aLevMin, int aLevMax);
 
+char ToHexacode(int aK);
+int  FromHexaCode(char aC);
+
 
 
 
@@ -140,8 +143,8 @@ class cMMVII_Ofs : public cMemCheck
    
         ///  Ok for basic type (int, cPtd2r ...), not any composed type ( std::string ...)
         template <class Type> void TplDump(const Type & aVal) {VoidWrite(&aVal,sizeof(aVal));}
-    private :
         void VoidWrite(const void * aPtr,size_t aNb);
+    private :
 
         std::ofstream  mOfs;
         std::string    mName;
@@ -167,8 +170,8 @@ class cMMVII_Ifs : public cMemCheck
 
         /// Maybe more convenient as it does require declaration of auxiliary variable
         template<class Type> Type TplRead() {Type aVal; Read(aVal); return aVal;}
-    private :
         void VoidRead(void * aPtr,size_t aNb);
+    private :
 
          std::ifstream  mIfs;
          std::string   mName;
