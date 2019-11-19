@@ -268,9 +268,6 @@ vector<Pt3dr> ComputedZFromGCPs(REAL8** aDEMINData, vector<double> aTFWin, Pt2di
 		Pt2dr aINIJ = TFW_XY2IJ(aPtXY, aTFWin);
 		// Get DEMin value for that point
 		double aINZ = Reechantillonnage::biline(aDEMINData, aSzIN.x, aSzIN.y, aINIJ);
-		cout << "From List : " << aListXYZ[i] << endl;
-		cout << "IJ From DEMin : " << aINIJ << endl;
-		cout << "Z From DEMin : " << aINZ << endl;
 		// if the both the input and ref DEM have data at that point
 		if (aINZ > -9999 && isInside(aSzIN, aINIJ))
 		{
@@ -454,7 +451,7 @@ int Banana_main(int argc, char** argv)
 	(
 		argc, argv,
 		LArgMain() << EAMC(aDEMinPath, "Input DEM to be corrected - DEM must have tfw", eSAM_IsPatFile),
-		LArgMain() << EAM(aDeg, "DegPoly", true, "Degree of fitted polynome (default = 2)")
+		LArgMain() << EAM(aDeg, "DegPoly", true, "Degree of fitted polynome ([0-3] default = 2)")
 		<< EAM(aDEMRefPath, "DEMRef", true, "Reference DEM - DEM must have tfw", eSAM_IsPatFile)
 		<< EAM(aMaskPath, "Mask", true, "A binary mask of stable terrain - if value=1 then the point is used, if =0 then unused (to be used with a reference DEM) - mask must have tfw", eSAM_IsPatFile)
 		<< EAM(aListPointsPath, "ListPoints", true, "A text file of XY coordinates of stable points (to be used with a reference DEM)", eSAM_IsPatFile)
