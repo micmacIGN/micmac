@@ -702,7 +702,8 @@ int MakeMultipleXmlXifInfo_main(int argc,char ** argv);
 int AddAffinity_main(int argc, char **argv);
 
 int Sake_main(int argc, char ** argv);
-int SateLib_main(int argc, char ** argv);
+int SateLib_main(int argc, char** argv);
+int PostProcessing_main(int argc, char** argv);
 
 int DoAllDev_main(int argc,char ** argv);
 

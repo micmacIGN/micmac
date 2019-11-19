@@ -143,6 +143,8 @@ public:
 	}
 };
 
+
+
 extern int TiepTriFar_Main(int argc, char ** argv);
 extern int PHO_MI_main(int, char **);
 extern int TiePByMesh_main(int, char **);
@@ -261,6 +263,10 @@ std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC, const std::string & aLib
 		aVC[aK].mLib = aLib;
 	return aVC;
 }
+
+
+
+
 
 int CPP_AimeApprent(int argc, char ** argv);
 int CPP_StatPHom(int argc, char ** argv);
@@ -431,7 +437,6 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("Pastis", Pastis_main, " Tie points detection"));
 		//aRes.push_back(cMMCom("Poisson",Poisson_main," Mesh Poisson reconstruction by M. Khazdan"));
 		aRes.push_back(cMMCom("Porto", Porto_main, " Generates a global ortho-photo"));
-		aRes.push_back(cMMCom("PostProc", PostProcessing_main, " Library of post processing systems"));
 		aRes.push_back(cMMCom("Prep4masq", Prep4masq_main, " Generates files for making Masks (if SaisieMasq unavailable)"));
 		aRes.push_back(cMMCom("Reduc2MM", Reduc2MM_main, " Do some stuff"));
 		aRes.push_back(cMMCom("ReducHom", ReducHom_main, " Do some stuff"));
@@ -495,6 +500,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 		aRes.push_back(cMMCom("Sake", Sake_main, " Simplified MicMac interface for satellite images", cArgLogCom(3)));
 		aRes.push_back(cMMCom("SateLib", SateLib_main, " Library of satellite images meta-data handling - early work in progress!"));
+		aRes.push_back(cMMCom("PostProc", PostProcessing_main, " Library of post processing systems"));
 		aRes.push_back(cMMCom("SimuLib", SimuLib_Main, " Library (almost empty now)  for simulating"));
 		aRes.push_back(cMMCom("XLib", XLib_Main, " Xeres Lib - early work in progress!"));
 
@@ -614,6 +620,26 @@ public:
 int GenMain(int argc, char ** argv, const std::vector<cMMCom> & aVComs);
 
 // =========================================================
+//PostProcesing declarations
+extern int Banana_main(int argc, char** argv);
+
+const std::vector<cMMCom>& PostProcessingAvailableCommands()
+{
+	static std::vector<cMMCom> aRes;
+	if (aRes.size()) return aRes;
+
+	aRes.push_back(cMMCom("Banana", Banana_main, "Compute a nth degree polynomial correction to a DEM to correct a Banana or dome."));
+
+	cCmpMMCom CmpMMCom;
+	std::sort(aRes.begin(), aRes.end(), CmpMMCom);
+
+	return AddLib(aRes, "PostProcessing");
+}
+
+int PostProcessing_main(int argc, char** argv)
+{
+	return GenMain(argc, argv, PostProcessingAvailableCommands());
+}
 
 //TestLib declarations
 extern int  Sample_W0_main(int argc, char ** argv);
@@ -1300,26 +1326,7 @@ int SateLib_main(int argc, char** argv)
 }
 
 
-//PostProcesing declarations
-extern int Banana_main(int argc, char** argv);
 
-const std::vector<cMMCom>& PostProcessingAvailableCommands()
-{
-	static std::vector<cMMCom> aRes;
-	if (aRes.size()) return aRes;
-
-	aRes.push_back(cMMCom("Banana", Banana_main, "Recalculate the adjusted RPCs back to geodetic coordinate system"));
-
-	cCmpMMCom CmpMMCom;
-	std::sort(aRes.begin(), aRes.end(), CmpMMCom);
-
-	return AddLib(aRes, "PostProcessing");
-}
-
-int PostProcessing_main(int argc, char** argv)
-{
-	return GenMain(argc, argv, PostProcessingAvailableCommands());
-}
 
 
 //===============================================

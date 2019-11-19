@@ -261,19 +261,17 @@ vector<Pt3dr> ComputedZFromGCPs(REAL8** aDEMINData, vector<double> aTFWin, Pt2di
 
 int Banana_main(int argc, char ** argv)
 {
-	string aDEMinPath, aDEMRefPath = "", aMaskPath = "", aListPointsPath = "", aListGCPsPath = "";
-	uint aDeg;
+	std::string aDEMinPath, aDEMRefPath = "", aMaskPath = "", aListPointsPath = "", aListGCPsPath = "";
+	int aDeg=2;
 	ElInitArgMain
 	(
 		argc, argv,
-		LArgMain() 
-		<< EAMC(aDEMinPath, "Input DEM to be corrected - DEM must have tfw"),
-		LArgMain()
-		<< EAM(aDeg, "DegPoly", true, "Degree of fitted polynome (default = 2)")
-		<< EAM(aDEMRefPath, "DEMRef", true, "Reference DEM - DEM must have tfw")
-		<< EAM(aMaskPath, "Mask", true, "A binary mask of stable terrain - if value=1 then the point is used, if =0 then unused (to be used with a reference DEM) - mask must have tfw")
-		<< EAM(aListPointsPath, "ListPoints", true, "A text file of XY coordinates of stable points (to be used with a reference DEM)")
-		<< EAM(aListGCPsPath, "ListGCPs", true, "A text file of XYZ coordinates of stable points (to be used without a reference DEM)")
+		LArgMain()	<< EAMC(aDEMinPath, "Input DEM to be corrected - DEM must have tfw", eSAM_IsPatFile),
+		LArgMain()	<< EAM(aDeg, "DegPoly", true, "Degree of fitted polynome (default = 2)")
+					<< EAM(aDEMRefPath, "DEMRef", true, "Reference DEM - DEM must have tfw", eSAM_IsPatFile)
+					<< EAM(aMaskPath, "Mask", true, "A binary mask of stable terrain - if value=1 then the point is used, if =0 then unused (to be used with a reference DEM) - mask must have tfw", eSAM_IsPatFile)
+					<< EAM(aListPointsPath, "ListPoints", true, "A text file of XY coordinates of stable points (to be used with a reference DEM)", eSAM_IsPatFile)
+					<< EAM(aListGCPsPath, "ListGCPs", true, "A text file of XYZ coordinates of stable points (to be used without a reference DEM)", eSAM_IsPatFile)
 	);
 	
 	// Load Input DEM
@@ -325,7 +323,7 @@ int Banana_main(int argc, char ** argv)
 	//Export DEM
 
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 
