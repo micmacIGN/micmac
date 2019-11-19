@@ -25,6 +25,18 @@ namespace MMVII
 
 /* ========================================================= */
 /*                                                           */
+/*            cRawData4Serial                                */
+/*                                                           */
+/* ========================================================= */
+
+cRawData4Serial::cRawData4Serial(void * aAdr,int aNbElem) :
+    mAdr    (aAdr),
+    mNbElem (aNbElem)
+{
+}
+
+/* ========================================================= */
+/*                                                           */
 /*            cAr2007                                        */
 /*                                                           */
 /* ========================================================= */
@@ -77,8 +89,9 @@ class cAr2007 : public cMemCheck
          virtual void RawAddDataTerm(int &    anI) =  0; ///< Heriting class descrine how they serialze int
          virtual void RawAddDataTerm(double &    anI) =  0; ///< Heriting class descrine how they serialze double
          virtual void RawAddDataTerm(std::string &    anI) =  0; ///< Heriting class descrine how they serialze string
+         virtual void RawAddDataTerm(cRawData4Serial  &    aRDS) =  0; ///< Heriting class descrine how they serialze string
+         void RawAddDataTerm(bool &    anI) ; ///< use int to do it
       // Final non atomic type for serialization
-         virtual void RawAddDataTerm(cPt2dr &    aP) ; ///< Default value should be OK ok
 };
 
 
@@ -94,14 +107,15 @@ cAr2007::cAr2007(bool Input,bool isTagged) :
 {
 }
 
+void cAr2007::RawAddDataTerm(bool &    aBool)
+{
+    int aI = aBool;
+    RawAddDataTerm(aI);
+    aBool = aI;
+}
+
 void cAr2007::Separator()
 {
-}
-void cAr2007::RawAddDataTerm(cPt2dr &    aP) 
-{
-    RawAddDataTerm(aP.x());
-    Separator();
-    RawAddDataTerm(aP.y());
 }
 
 cAr2007::~cAr2007()
@@ -120,6 +134,7 @@ size_t cAr2007::HashKey() const
    return 0;
 }
 
+/// This function must has been redefined by all the input Archives
 int cAr2007::NbNextOptionnal(const std::string &)
 {
    MMVII_INTERNAL_ASSERT_always(!mInput,"Internal error, no cAr2007::NbNextOptionnal");
@@ -129,11 +144,11 @@ int cAr2007::NbNextOptionnal(const std::string &)
 void AddData(const  cAuxAr2007 & anAux, int  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
+void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
+void AddData(const  cAuxAr2007 & anAux, bool  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
 
 template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aVal) 
 {
-    // anAux.Ar().TplAddDataTerm(anAux,aVal); 
-    
     Type * aVD = aVal.PtRawData() ;
     AddData(anAux,aVD[0]);
     // AddData(anAux,aVal[0]);
@@ -248,6 +263,7 @@ class cIXml_Ar2007 : public cAr2007
            void RawAddDataTerm(int &    anI) override;
            void RawAddDataTerm(double &    anI) override;
            void RawAddDataTerm(std::string &    anI) override;
+           void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
            /// Read next tag, if its what expected return 1, restore state of file
            int NbNextOptionnal(const std::string &) override;
 
@@ -313,6 +329,18 @@ void cIXml_Ar2007::RawAddDataTerm(std::string &    aS)
 {
     aS =   GetNextString();
 }
+
+void cIXml_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
+{
+   tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.mAdr);
+   for (int aK=0 ; aK< aRDS.mNbElem ; aK++)
+   {
+       int aC1= FromHexaCode(GetNotEOF());
+       int aC2= FromHexaCode(GetNotEOF());
+       aPtr[aK] = aC1 * 16 + aC2;
+   }
+}
+
 
 
 void  cIXml_Ar2007::RawBeginName(const cAuxAr2007& anOT) 
@@ -496,6 +524,7 @@ class cOXml_Ar2007 : public cAr2007
          void RawAddDataTerm(int &    anI)  override;  ///< write int in text
          void RawAddDataTerm(double &    anI)  override;  ///< write double in text
          void RawAddDataTerm(std::string &    anI)  override; // write string
+         void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
          void Separator() override;  ///< put a ' ' between field of final non atomic type
 
          cMMVII_Ofs     mMMOs;  ///< secure oftsream to write values
@@ -531,6 +560,18 @@ void cOXml_Ar2007::RawAddDataTerm(std::string &  anS)
 {  
     // To allow white in string, put it between ""
     Ofs() << '"' <<anS << '"'; mXTerm=true;
+}
+
+
+void cOXml_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
+{
+   tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.mAdr);
+   for (int aK=0 ; aK< aRDS.mNbElem ; aK++)
+   {
+       int aICar = aPtr[aK];
+       Ofs() << ToHexacode(aICar/16) << ToHexacode(aICar%16) ;
+   }
+   mXTerm=true;
 }
 
 void cOXml_Ar2007::Separator() {Ofs() << ' ';}
@@ -577,12 +618,23 @@ class  cHashValue_Ar2007 : public cAr2007
         void RawAddDataTerm(int &    anI)  override;
         void RawAddDataTerm(double &    anI)  override;
         void RawAddDataTerm(std::string &    anI)  override;
+        void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
         size_t HashKey() const override {return mHashKey;}
         
     private :
          size_t     mHashKey;
          bool       mOrdered;
 };
+
+void cHashValue_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS)
+{
+   tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.mAdr);
+   for (int aK=0 ; aK< aRDS.mNbElem ; aK++)
+   {
+       int aICar = aPtr[aK];
+       RawAddDataTerm(aICar);
+   }
+}
 
 void cHashValue_Ar2007::RawAddDataTerm(int &    anI) 
 {
@@ -633,6 +685,7 @@ class  cOBin_Ar2007 : public cAr2007
         void RawAddDataTerm(int &    anI)  override;
         void RawAddDataTerm(double &    anI)  override;
         void RawAddDataTerm(std::string &    anI)  override;
+        void RawAddDataTerm(cRawData4Serial  &    aRDS) override;
         
     private :
          cMMVII_Ofs     mMMOs;
@@ -641,6 +694,11 @@ class  cOBin_Ar2007 : public cAr2007
 void cOBin_Ar2007::RawAddDataTerm(int &    anI) { mMMOs.Write(anI); }
 void cOBin_Ar2007::RawAddDataTerm(double &    anI) { mMMOs.Write(anI); }
 void cOBin_Ar2007::RawAddDataTerm(std::string &    anI) { mMMOs.Write(anI); }
+
+void cOBin_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
+{
+   mMMOs.VoidWrite(aRDS.mAdr,aRDS.mNbElem);
+}
 
 
 /*============================================================*/
@@ -666,6 +724,7 @@ class  cIBin_Ar2007 : public cAr2007
         void RawAddDataTerm(int &    anI)  override;
         void RawAddDataTerm(double &    anI)  override;
         void RawAddDataTerm(std::string &    anI)  override;
+        void RawAddDataTerm(cRawData4Serial  &    anI) override;
         
     private :
          cMMVII_Ifs     mMMIs;
@@ -680,6 +739,10 @@ int cIBin_Ar2007::NbNextOptionnal(const std::string &)
    return mMMIs.TplRead<int>();
 }
 
+void cIBin_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
+{
+   mMMIs.VoidRead(aRDS.mAdr,aRDS.mNbElem);
+}
 
 /*============================================================*/
 /*                                                            */
@@ -701,20 +764,21 @@ cAr2007 *  AllocArFromFile(const std::string & aName,bool Input)
 // StdOut() << "AllocArFromFile, " << aName << " => " << aPost << "\n";
    cAr2007 * aRes = nullptr;
 
-   if (aPost=="xml")
+   if (UCaseEqual(aPost,PostF_XmlFiles))
    {
        if (Input)
           aRes =  new cIXml_Ar2007(aName);
        else
           aRes =  new cOXml_Ar2007(aName);
    }
-   else if ((aPost=="dmp") || (aPost=="dat"))
+   else if (UCaseEqual(aPost,PostF_DumpFiles) || UCaseEqual(aPost,"dat"))
    {
        if (Input)
           aRes =  new cIBin_Ar2007(aName);
        else
           aRes =  new cOBin_Ar2007(aName);
    }
+
 
    MMVII_INTERNAL_ASSERT_always(aRes!=0,"Do not handle postfix for "+ aName);
    return aRes;

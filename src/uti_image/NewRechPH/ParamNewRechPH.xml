@@ -302,7 +302,7 @@ mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
 
    <Xml2007SetPtOneType  Nb="1" Class="true" ToReference="true">
        <Pts  Nb="*" RefType="Xml2007Pt" Container="std::vector"> </Pts> 
-       <IsMin Nb="1" Type="bool">        </IsMin>
+       <IsMax Nb="1" Type="bool">        </IsMax>
        <TypePt Nb="1" Type="int">        </TypePt>
        <NameTypePt Nb="1" Type="std::string">    </NameTypePt>
    </Xml2007SetPtOneType>

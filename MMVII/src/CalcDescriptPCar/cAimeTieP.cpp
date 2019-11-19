@@ -1,5 +1,6 @@
 #include "include/MMVII_all.h"
 #include "include/MMVII_Tpl_Images.h"
+#include "include/MMVII_2Include_Serial_Tpl.h"
 
 
 namespace MMVII
@@ -18,6 +19,11 @@ cIm2D<tU_INT1>   cAimeDescriptor::ILP() {return mILP;}
 const std::vector<double> &  cAimeDescriptor::DirPrinc() const {return mDirPrinc;}
 std::vector<double> &  cAimeDescriptor::DirPrinc() {return mDirPrinc;}
 
+void AddData(const cAuxAr2007 & anAux,cAimeDescriptor & aDesc)
+{
+   AddData(cAuxAr2007("ILP",anAux)  , aDesc.ILP().DIm());
+   AddData(cAuxAr2007("Dirs",anAux) , aDesc.DirPrinc());
+}
 
 /* ================================= */
 /*          cAimePCar                */
@@ -27,6 +33,11 @@ std::vector<double> &  cAimeDescriptor::DirPrinc() {return mDirPrinc;}
 cAimeDescriptor & cAimePCar::Desc() {return mDesc; }
 cPt2dr&           cAimePCar::Pt()   {return mPt;}
 
+void AddData(const cAuxAr2007 & anAux,cAimePCar & aPC)
+{
+     AddData(cAuxAr2007("Pt",anAux),aPC.Pt());
+     AddData(cAuxAr2007("Desc",anAux),aPC.Desc());
+}
 
 /* ================================= */
 /*          cProtoAimeTieP           */
@@ -237,7 +248,43 @@ template<class Type> bool cProtoAimeTieP<Type>::TestFillAPC(const cFilterPCar& a
     return aRes;
 }
 
+/* ================================= */
+/*          cSetAimePCAR             */
+/* ================================= */
 
+cSetAimePCAR::cSetAimePCAR(eTyPyrTieP aType,bool IsMax) :
+  mType  ((int)aType),
+  mIsMax (IsMax)
+{
+}
+
+eTyPyrTieP              cSetAimePCAR::Type()   {return eTyPyrTieP(mType);}
+int &                   cSetAimePCAR::IType()  {return mType;}
+bool&                   cSetAimePCAR::IsMax()  {return mIsMax;}
+std::vector<cAimePCar>& cSetAimePCAR::VPC()    {return mVPC;}
+
+void AddData(const cAuxAr2007 & anAux,cSetAimePCAR & aSPC)
+{
+    AddData(cAuxAr2007("Type",anAux),aSPC.IType());
+    AddData(cAuxAr2007("Max",anAux),aSPC.IsMax());
+    AddData(cAuxAr2007("VPC",anAux),aSPC.VPC() );
+}
+
+void cSetAimePCAR::SaveInFile(const std::string & aName) const
+{
+     MMVII::SaveInFile(*this,aName);
+
+     if (0)
+     {
+          for (int aK=0; aK<100 ; aK++) 
+              StdOut() << "MMv1_SaveInFile\n";
+          MMv1_SaveInFile<cSetAimePCAR>(*this,aName);  // generate an error as "it should"
+     }
+}
+
+
+
+/*  ====  INSTANCIATION  ======= */
 
 template class cProtoAimeTieP<tREAL4>;
 template class cProtoAimeTieP<tINT2>;

@@ -38,6 +38,29 @@ template <class Type> cDenseMatrix<Type>  cResulSymEigenValue<Type>::OriMatr() c
   return mEigenVectors * cDenseMatrix<Type>::Diag(mEigenValues) * mEigenVectors.Transpose();
 }
 
+template <class Type> void  cResulSymEigenValue<Type>::SetKthEigenValue(int aK,const Type & aVal)
+{
+   mEigenValues(aK) = aVal;
+}
+
+template <class Type> Type  cResulSymEigenValue<Type>::Cond(Type aDef) const
+{
+   cWitchMinMax<int,Type> aIMM(0,std::abs(mEigenValues(0)));
+   for (int aK=1 ; aK<mEigenValues.Sz()  ; aK++)
+   {
+          aIMM.Add(aK,std::abs(mEigenValues(aK)));
+   }
+   if (aIMM.Max().Val() == Type(0.0))
+   {
+       MMVII_INTERNAL_ASSERT_strong(aDef>=0,"Conditionning of null eigen value without default");
+       return aDef;
+   }
+   return  aIMM.Min().Val() / aIMM.Max().Val() ;
+}
+
+
+
+
 /* ============================================= */
 /*      cResulQR_Decomp<Type>                    */
 /* ============================================= */

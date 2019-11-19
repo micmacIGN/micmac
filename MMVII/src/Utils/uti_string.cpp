@@ -22,6 +22,19 @@ using namespace boost::filesystem;
 namespace MMVII
 {
 
+char ToHexacode(int aK)
+{
+    MMVII_INTERNAL_ASSERT_tiny((aK>=0)&&(aK<16),"ToHexacode");
+    return (aK<10) ? ('0'+aK) : ('A'+(aK-10));
+}
+
+int  FromHexaCode(char aC)
+{
+   if ((aC>='0')&&(aC<='9')) return aC-'0';
+   MMVII_INTERNAL_ASSERT_tiny((aC>='A')&&(aC<='F'),"FromHexacode");
+   return 10 + (aC-'A');
+}
+
 // Prouve la pertinence du warning sur  mTable[*aPtr] = aC;
 
 // static_assert( int(char(255)) != 255,"Bad char assert");

@@ -55,7 +55,7 @@ void  cAppli_Vino::AimeVisu()
 
    for (const auto  & aVPC : mAimePCar)
    {
-       bool IsMin = aVPC.IsMin();
+       bool IsMax = aVPC.IsMax();
        // Pt2dr  aFastCrit = FastQuality(aTStd,mAimeCW,*aFCC,!mAimePCar.IsMin(),Pt2dr(0.7,0.8));
        Pt3di  aCoulOk(0,255,0);  // Green
        if (aVPC.NameTypePt() == "Corner")
@@ -112,7 +112,7 @@ void  cAppli_Vino::AimeVisu()
                       // mW->draw_circle_abs(aPW,aRay+2,mW->pdisc()(aCoul));
                       // mW->draw_circle_abs(aPW,aRay+4,mW->pdisc()(aCoul));
                   }
-                  Pt2dr aDir(0,IsMin ? 1 : -1);
+                  Pt2dr aDir(0,IsMax ? -1 : 1);
                   mW->draw_seg(aPW,aPW+aDir*aRay,mW->prgb()(aCoul.x,aCoul.y,aCoul.z));
                   mW->draw_seg(aPW,aSim(aPC.PtInit()),mW->prgb()(aCoul.x,aCoul.y,aCoul.z));
                }
@@ -154,7 +154,7 @@ Im2D_REAL4 cAppli_Vino::LoadAimePC(const cXml2007Pt & aPC,const std::string & aN
                        +   aNameType
                        +   std::string("-o") + ToString(aPC.NumOct())
                        +   std::string("_i") + ToString(aPC.NumIm())
-                       +   "-Tile00.tif";
+                       +   "-Tile0_0.tif";
 
    Tiff_Im aTif(aName.c_str());
    Pt2di aSzTif = aTif.sz();

@@ -1063,8 +1063,8 @@ class cXml2007SetPtOneType
         std::vector< cXml2007Pt > & Pts();
         const std::vector< cXml2007Pt > & Pts()const ;
 
-        bool & IsMin();
-        const bool & IsMin()const ;
+        bool & IsMax();
+        const bool & IsMax()const ;
 
         int & TypePt();
         const int & TypePt()const ;
@@ -1073,7 +1073,7 @@ class cXml2007SetPtOneType
         const std::string & NameTypePt()const ;
     private:
         std::vector< cXml2007Pt > mPts;
-        bool mIsMin;
+        bool mIsMax;
         int mTypePt;
         std::string mNameTypePt;
 };

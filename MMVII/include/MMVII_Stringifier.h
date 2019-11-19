@@ -247,6 +247,7 @@ size_t  HashValFromAr(cAr2007&); /// defined only for Hash archive
 
 /** Here are the atomic serialization function */
 
+void AddData(const  cAuxAr2007 & anAux, bool  &  aVal); ///< for int
 void AddData(const  cAuxAr2007 & anAux, int  &  aVal); ///< for int
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) ; ///< for double
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string
@@ -254,6 +255,16 @@ void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) ;  ///< for Pair of 
 void AddData(const  cAuxAr2007 & anAux, tNameOCple  &  aVal) ;  ///< for Ordered Cple of string
 
 template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aVal) ;  ///<for cPt2dr
+
+/** This class is used to embed the information necessary to a raw/hardcopy serialization */
+struct cRawData4Serial
+{
+     public :
+        cRawData4Serial(void * aAdr,int aNbElem);
+        void * mAdr;
+        int mNbElem;
+};
+void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal); ///< for cRawData4Serial
 
 /// Serialization for optional
 // template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,boost::optional<Type> & aL);

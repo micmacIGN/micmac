@@ -346,6 +346,7 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
          }
 
          static const tNumTrait<Type>  TheOnlyOne;
+         static const std::string & NameType() {return E2Str(TheOnlyOne.V_TyNum());}
 };
 
 
@@ -402,6 +403,7 @@ tINT4 HCF(tINT4 a,tINT4 b); ///< = PGCD = Highest Common Factor
 int BinomialCoeff(int aK,int aN);
 double  RelativeDifference(const double & aV1,const double & aV2,bool * Ok=nullptr);
 
+template <class Type> int SignSupEq0(const Type & aV) {return (aV>=0) ? 1 : -1;}
 
 inline tREAL8 FracPart(tREAL8 r) {return r - round_down(r);}
 
@@ -442,6 +444,77 @@ class cCubAppGauss
 
 /// If we dont need any kernel interface keep it simple 
 tREAL8 CubAppGaussVal(const tREAL8&);   
+
+/*  ********************************* */
+/*       Witch Min and Max            */
+/* ********************************** */
+
+template <class TypeIndex,class TypeVal> class cWitchMin
+{
+     public :
+         cWitchMin(const TypeIndex & anIndex,const TypeVal & aVal) :
+             mIndexMin (anIndex),
+             mVMin     (aVal)
+         {
+         }
+         void Add(const TypeIndex & anIndex,const TypeVal & aVal)
+         {
+              if (aVal<mVMin)
+              {     
+                    mVMin = aVal;
+                    mIndexMin = anIndex;
+              }
+         }
+         const TypeIndex & Index() const {return mIndexMin;}
+         const TypeVal   & Val  () const {return mVMin;}
+     private :
+         TypeIndex mIndexMin;
+         TypeVal   mVMin;
+};
+template <class TypeIndex,class TypeVal> class cWitchMax
+{
+     public :
+         cWitchMax(const TypeIndex & anIndex,const TypeVal & aVal) :
+             mIndexMax (anIndex),
+             mVMax     (aVal)
+         {
+         }
+         void Add(const TypeIndex & anIndex,const TypeVal & aVal)
+         {
+              if (aVal>mVMax)
+              {
+                    mVMax = aVal;
+                    mIndexMax = anIndex;
+              }
+         }
+         const TypeIndex & Index() const {return mIndexMax;}
+         const TypeVal   & Val  () const {return mVMax;}
+     private :
+         TypeIndex mIndexMax;
+         TypeVal   mVMax;
+};
+template <class TypeIndex,class TypeVal> class cWitchMinMax
+{
+     public  :
+         cWitchMinMax(const TypeIndex & anIndex,const TypeVal & aVal) :
+             mMin(anIndex,aVal),
+             mMax(anIndex,aVal)
+         {
+         }
+         void Add(const TypeIndex & anIndex,const TypeVal & aVal)
+         {
+             mMin.Add(anIndex,aVal);
+             mMax.Add(anIndex,aVal);
+         }
+         const cWitchMin<TypeIndex,TypeVal> & Min() const {return  mMin;}
+         const cWitchMax<TypeIndex,TypeVal> & Max() const {return  mMax;}
+
+     private :
+         cWitchMin<TypeIndex,TypeVal> mMin;
+         cWitchMax<TypeIndex,TypeVal> mMax;
+};
+
+
 
 
 };

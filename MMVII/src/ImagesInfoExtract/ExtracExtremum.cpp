@@ -655,6 +655,14 @@ void OneBenchAffineExtre()
     double aVA = aSign * (RandUnif_0_1() * 0.1); 
     double aVB = aSign *(RandUnif_0_1() * 0.1); 
     double aVC = aSign *(RandUnif_0_1() * 0.1); 
+
+   
+    cDenseMatrix<double>  aMatReg = cDenseMatrix<double>::RandomSquareRegMatrix(2,true,1.0,0.1);
+    aVA = aMatReg(0,0);
+    aVB = aMatReg(0,1);
+    aVC = aMatReg(1,1);
+
+
     cPt2dr aCenter (aSz.x()/2.0+RandUnif_C()*3,aSz.y()/2.0+RandUnif_C()*3);
 
     // Generate image 
@@ -679,17 +687,31 @@ void OneBenchAffineExtre()
          {
              aCurC = anAff.OneIter(aCurC);
          }
+        
+/*
+         cDenseMatrix<tREAL8> aMat(2,2);
+            aMat.SetElem(0,0,aVA);
+            aMat.SetElem(1,1,aVC);
+            aMat.SetElem(0,1,aVB);
+            aMat.SetElem(1,0,aVB);
+         StdOut() << "AFFFFEEEE " << aCenter-aCurC << " "<< aCenter-aCurC 
+                  << " " << aVA 
+                  << " " << aVB 
+                  << " " << aVC 
+                  << " " << aVA *   aVC - aVB * aVB
+                  << "\n";
+*/
          MMVII_INTERNAL_ASSERT_bench(Norm2(aCurC-aCenter)<1e-3,"Sz set in  cAppli_MMRecall");
 
          aCurC = anAff.StdIter(aP0,1e-2,3) ;
-         //  StdOut() << "AFFFFEEEE " << aCenter-aP0 << " "<< aCenter-aCurC << "\n";
+
          MMVII_INTERNAL_ASSERT_bench(Norm2(aCurC-aCenter)<1e-2,"Sz set in  cAppli_MMRecall");
     }
 }
 
 void BenchAffineExtre()
 {
-   for (int aK=0 ; aK<10 ; aK++)
+   for (int aK=0 ; aK<10; aK++)
    {
       OneBenchAffineExtre();
    }

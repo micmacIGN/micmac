@@ -123,14 +123,15 @@ template<class Type> void cTplAppliCalcDescPCar<Type>::ExeGlob()
 template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di & anIndex,const cParseBoxInOut<2>& aPBI)
 {
 
-    std::string aPref = "Tile"+ToStr(anIndex.x())+ToStr(anIndex.y()) ;
+    // std::string aPref = "Tile"+ToStr(anIndex.x())+ToStr(anIndex.y()) ;
     // Initialize Box, Params, gaussian pyramid
     mBoxIn = aPBI.BoxIn(anIndex,mAppli.mOverlap);
     mSzIn = mBoxIn.Sz();
     mBoxOut = aPBI.BoxOut(anIndex);
-    cGP_Params aGP(mSzIn,mAppli.mNbOct,mAppli.mNbLevByOct,mAppli.mNbOverLapByO);
+    cGP_Params aGP(mSzIn,mAppli.mNbOct,mAppli.mNbLevByOct,mAppli.mNbOverLapByO,&mAppli);
 
-    aGP.mPrefixSave = mAppli.mPrefixOut ;
+    aGP.mNumTile    = anIndex;
+    // aGP.mPrefixSave = mAppli.mPrefixOut ;
     aGP.mScaleDirOrig = mAppli.mSDON ;
     aGP.mConvolIm0 = mAppli.mCI0 ;
     aGP.mConvolC0  = mAppli.mCC0 ;
@@ -141,7 +142,7 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
     aGP.mFPC  = mAppli.mFPC;
 
      
-    mPyr = tPyr::Alloc(aGP,mAppli.mNameIm,aPref,mBoxIn,mBoxOut);
+    mPyr = tPyr::Alloc(aGP,mAppli.mNameIm,mBoxIn,mBoxOut);
 
     // Load image
     
