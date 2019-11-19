@@ -53,7 +53,7 @@ Pt2dr TFW_IJ2XY(Pt2dr aIJ, vector<double> aTFW)
 	return aXY;
 }
 
-Pt2dr TFW_XY2IJ(Pt2drXY, vector<double> aTFW)
+Pt2dr TFW_XY2IJ(Pt2dr aXY, vector<double> aTFW)
 {
 	Pt2dr aIJ;	
 	aIJ.y=(aXY.x-aTFW[4]-aTFW[0]*aXY.y+aTFW[0]*aTFW[5])/(aTFW[2]-aTFW[0]*aTFW[3]);
@@ -90,7 +90,7 @@ vector<Pt3dr> ComputedZFromDEMAndMask(REAL8** aDEMINData, vector<double> aTFWin,
 			vector<double> aTFWMask = { aRes_xEast,aRes_xNorth,aRes_yEast,aRes_yNorth,aCorner_East,aCorner_North };
 
 	// Load Reference DEM
-		string aDir, aNameDEMRef;
+		string aNameDEMRef;
 		SplitDirAndFile(aDir, aNameDEMRef, aDEMRefPath);
 
 		cInterfChantierNameManipulateur* aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
@@ -110,35 +110,34 @@ vector<Pt3dr> ComputedZFromDEMAndMask(REAL8** aDEMINData, vector<double> aTFWin,
 		REAL8** aDEMREFData = aDEMRef.data();
 
 		// Load Ref DEM georeference data
-			string aTFWName = aDir + aNameDEMRef.substr(0, aNameDEMRef.size() - 2) + "fw";
-			std::fstream aTFWFile(aTFWName.c_str(), std::ios_base::in);
-			double aRes_xEast, aRes_xNorth, aRes_yEast, aRes_yNorth, aCorner_East, aCorner_North;
+			aTFWName = aDir + aNameDEMRef.substr(0, aNameDEMRef.size() - 2) + "fw";
+			std::fstream aTFWFileRef(aTFWName.c_str(), std::ios_base::in);
 
 			// Make sure the file stream is good.
-			ELISE_ASSERT(aTFWFile, "Failed to open the reference DEM .tfw file");
+			ELISE_ASSERT(aTFWFileRef, "Failed to open the reference DEM .tfw file");
 
-			aTFWFile >> aRes_xEast >> aRes_xNorth >> aRes_yEast >> aRes_yNorth >> aCorner_East >> aCorner_North;
+			aTFWFileRef >> aRes_xEast >> aRes_xNorth >> aRes_yEast >> aRes_yNorth >> aCorner_East >> aCorner_North;
 			vector<double> aTFWRef = { aRes_xEast,aRes_xNorth,aRes_yEast,aRes_yNorth,aCorner_East,aCorner_North };
 
 
 
 	vector<Pt3dr> aListXYdZ;
 	
-	for(i=0, i<aSzIN.x, i++)
+	for(u_int i=0; i<aSzIN.x; i++)
 	{
-		for(j=0, j<aSzIN.y, j++)
+		for(u_int j=0; j<aSzIN.y; j++)
 		{
 			Pt2dr aPosIJ(i,j);
 			// get the world coordinate of the current input DEM point
-			Pt2dr aPosXY=XYfromTFW(aPosIJ,aTFWin);
+			Pt2dr aPosXY= TFW_IJ2XY(aPosIJ,aTFWin);
 			// Get the mask image coordinate for that world coordinate
-			Pt2dr aMaskIJ=IJfromTFW(aPosXY,aTFWMask);
+			Pt2dr aMaskIJ= TFW_XY2IJ(aPosXY,aTFWMask);
 			// Get the DEMRef image coordinate for that world coordinate
-			Pt2dr aREFIJ=IJfromTFW(aPosXY,aTFWRef);
+			Pt2dr aREFIJ= TFW_XY2IJ(aPosXY,aTFWRef);
 			// get DEMRef value for that point
 			double aREFZ=Reechantillonnage::biline(aDEMREFData, aSzREF.x, aSzREF.y, aREFIJ);
 			// if the mask is positive and both the input and ref DEM have data
-			if(aDEMINData[j][i]>-9999 && aREFZ>-9999 && aData_Mask[int(aMaskPixel.y)][int(aMaskPixel.x)]==1)
+			if(aDEMINData[j][i]>-9999 && aREFZ>-9999 && aData_Mask[int(aMaskIJ.y)][int(aMaskIJ.x)]==1)
 			{
 				// Create point at XY with dZ between DEMin and DEMRef as Z.
 				Pt3dr aPtdZ(aPosXY.x,aPosXY.y,aDEMINData[j][i]-aREFZ);
@@ -154,7 +153,7 @@ vector<Pt3dr> ComputedZFromDEMAndMask(REAL8** aDEMINData, vector<double> aTFWin,
 	return aListXYdZ;
 }
 
-vector<Pt3dr> ComputedZFromDEMAndXY(REAL8** aDEMINData, vector<double> aTFWin, Pt2di aSzIN, string aDEMRef, string aListPointsPath)
+vector<Pt3dr> ComputedZFromDEMAndXY(REAL8** aDEMINData, vector<double> aTFWin, Pt2di aSzIN, string aDEMRefPath, string aListPointsPath)
 {
 	
 	
@@ -198,15 +197,15 @@ vector<Pt3dr> ComputedZFromDEMAndXY(REAL8** aDEMINData, vector<double> aTFWin, P
 	vector<Pt3dr> aListXYdZ;
 	
 	// for each XY in aListXY
-	for(i=0, i<aListXY.size(), i++)
+	for(u_int i=0; i<aListXY.size(); i++)
 	{
 		// Get the DEMIn image coordinate for that world coordinate
-		Pt2dr aINIJ=IJfromTFW(aListXY[i],aTFWin);
+		Pt2dr aINIJ=TFW_XY2IJ(aListXY[i],aTFWin);
 		// Get DEMin value for that point
 		double aINZ=Reechantillonnage::biline(aDEMINData, aSzIN.x, aSzIN.y, aINIJ);
 		
 		// Get the DEMRef image coordinate for that world coordinate
-		Pt2dr aREFIJ=IJfromTFW(aListXY[i],aTFWRef);
+		Pt2dr aREFIJ= TFW_XY2IJ(aListXY[i],aTFWRef);
 		// Get DEMRef value for that point
 		double aREFZ=Reechantillonnage::biline(aDEMREFData, aSzREF.x, aSzREF.y, aREFIJ);
 		
@@ -236,11 +235,11 @@ vector<Pt3dr> ComputedZFromGCPs(REAL8** aDEMINData, vector<double> aTFWin, Pt2di
 	vector<Pt3dr> aListXYdZ;
 	
 	// for each XY in aListXY
-	for(i=0, i<aListXYZ.size(), i++)
+	for(u_int i=0; i<aListXYZ.size(); i++)
 	{
 		Pt2dr aPtXY(aListXYZ[i].x,aListXYZ[i].y);
 		// Get the DEMIn image coordinate for that world coordinate
-		Pt2dr aINIJ=IJfromTFW(aPtXY,aTFWin);
+		Pt2dr aINIJ=TFW_XY2IJ(aPtXY,aTFWin);
 		// Get DEMin value for that point
 		double aINZ=Reechantillonnage::biline(aDEMINData, aSzIN.x, aSzIN.y, aINIJ);
 
@@ -253,6 +252,7 @@ vector<Pt3dr> ComputedZFromGCPs(REAL8** aDEMINData, vector<double> aTFWin, Pt2di
 		}
 	
 	}
+	return aListXYdZ;
 }
 
 
