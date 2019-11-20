@@ -67,7 +67,7 @@ Pt2dr TFW_XY2IJ(Pt2dr aXY, vector<double> aTFW)
 
 bool isInside(Pt2di aBorder, Pt2dr aPt)
 {
-	return (aPt.x > 0, aPt.y > 0, aPt.x < aBorder.x, aPt.y < aBorder.y);
+	return (aPt.x > 0 && aPt.y > 0 && aPt.x < aBorder.x && aPt.y < aBorder.y);
 }
 
 vector<Pt3dr> ComputedZFromDEMAndMask(REAL8** aDEMINData, vector<double> aTFWin, Pt2di aSzIN, string aDEMRefPath, string aMaskPath)
