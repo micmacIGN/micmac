@@ -49,7 +49,7 @@ before_install:
 script:
 - mkdir build
 - cd build
-- cmake .. -DWITH_QT5=ON -DWITH_CCACHE=ON
+- cmake .. -DWITH_QT5=ON -DWITH_CCACHE=OFF
 - make -j2
 - make install
 after_success:
