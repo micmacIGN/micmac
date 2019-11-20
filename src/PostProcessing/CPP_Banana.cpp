@@ -106,7 +106,7 @@ vector<Pt3dr> ComputedZFromDEMAndMask(REAL8** aDEMINData, vector<double> aTFWin,
 	SplitDirAndFile(aDir, aNameDEMRef, aDEMRefPath);
 
 	cInterfChantierNameManipulateur* aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-	const std::vector<std::string>* aSetIm = aICNM->Get(aNameDEMRef);
+	//const std::vector<std::string>* aSetIm = aICNM->Get(aNameDEMRef);
 	Tiff_Im aTF = Tiff_Im::StdConvGen(aDir + aNameDEMRef, 1, true);
 	Pt2di aSzREF = aTF.sz();
 
@@ -135,9 +135,9 @@ vector<Pt3dr> ComputedZFromDEMAndMask(REAL8** aDEMINData, vector<double> aTFWin,
 
 	vector<Pt3dr> aListXYdZ;
 
-	for (u_int i = 0; i < aSzIN.x; i++)
+	for (int i = 0; i < aSzIN.x; i++)
 	{
-		for (u_int j = 0; j < aSzIN.y; j++)
+		for (int j = 0; j < aSzIN.y; j++)
 		{
 			Pt2dr aPosIJ(i, j);
 			// get the world coordinate of the current input DEM point
@@ -185,7 +185,7 @@ vector<Pt3dr> ComputedZFromDEMAndXY(REAL8** aDEMINData, vector<double> aTFWin, P
 	SplitDirAndFile(aDir, aNameDEMRef, aDEMRefPath);
 
 	cInterfChantierNameManipulateur* aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-	const std::vector<std::string>* aSetIm = aICNM->Get(aNameDEMRef);
+	//const std::vector<std::string>* aSetIm = aICNM->Get(aNameDEMRef);
 	Tiff_Im aTF = Tiff_Im::StdConvGen(aDir + aNameDEMRef, 1, true);
 	Pt2di aSzREF = aTF.sz();
 
@@ -216,7 +216,7 @@ vector<Pt3dr> ComputedZFromDEMAndXY(REAL8** aDEMINData, vector<double> aTFWin, P
 	vector<Pt3dr> aListXYdZ;
 
 	// for each XY in aListXY
-	for (u_int i = 0; i < aListXY.size(); i++)
+	for (int i = 0; i < aListXY.size(); i++)
 	{
 		// Get the DEMIn image coordinate for that world coordinate
 		Pt2dr aINIJ = TFW_XY2IJ(aListXY[i], aTFWin);
@@ -261,7 +261,7 @@ vector<Pt3dr> ComputedZFromGCPs(REAL8** aDEMINData, vector<double> aTFWin, Pt2di
 	vector<Pt3dr> aListXYdZ;
 
 	// for each XY in aListXY
-	for (u_int i = 0; i < aListXYZ.size(); i++)
+	for (int i = 0; i < aListXYZ.size(); i++)
 	{
 		Pt2dr aPtXY(aListXYZ[i].x, aListXYZ[i].y);
 		// Get the DEMIn image coordinate for that world coordinate
@@ -293,12 +293,11 @@ vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg)
 	if (aDeg == 0) {
 		nbParam = 1;
 		//initialized to 0
-		double aBanana[1] = { 0 };
 		L2SysSurResol aSysBanana(1);
-		for (u_int i = 0; i < aListXYdZ.size(); i++) {
+		for (size_t i = 0; i < aListXYdZ.size(); i++) {
 
-			double X = aListXYdZ[i].x;
-			double Y = aListXYdZ[i].y;
+			//double X = aListXYdZ[i].x;
+			//double Y = aListXYdZ[i].y;
 
 			double aPoly[1] = {
 				1
@@ -310,7 +309,7 @@ vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg)
 		bool Ok;
 		Im1D_REAL8 aSolBanana = aSysBanana.GSSR_Solve(&Ok);
 		double* aDataBanana = aSolBanana.data();
-		for (uint i = 0; i < nbParam; i++) { aPolyBanana[i]=aDataBanana[i]; }
+		for (int i = 0; i < nbParam; i++) { aPolyBanana[i]=aDataBanana[i]; }
 		aResidual = aSysBanana.ResiduAfterSol();
 
 	}
@@ -318,9 +317,8 @@ vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg)
 	if (aDeg == 1) {
 		nbParam = 3;
 		//initialized to 0
-		double aBanana[3] = { 0, 0, 0 };
 		L2SysSurResol aSysBanana(3);
-		for (u_int i = 0; i < aListXYdZ.size(); i++) {
+		for (size_t i = 0; i < aListXYdZ.size(); i++) {
 
 			double X = aListXYdZ[i].x;
 			double Y = aListXYdZ[i].y;
@@ -334,7 +332,7 @@ vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg)
 		bool Ok;
 		Im1D_REAL8 aSolBanana = aSysBanana.GSSR_Solve(&Ok);
 		double* aDataBanana = aSolBanana.data();
-		for (uint i = 0; i < nbParam; i++) { aPolyBanana[i] = aDataBanana[i]; }
+		for (int i = 0; i < nbParam; i++) { aPolyBanana[i] = aDataBanana[i]; }
 		aResidual = aSysBanana.ResiduAfterSol();
 
 	}
@@ -342,9 +340,8 @@ vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg)
 	if (aDeg == 2) {
 		nbParam = 6;
 		//initialized to 0
-		double aBanana[6] = { 0, 0, 0, 0, 0, 0 };
 		L2SysSurResol aSysBanana(6);
-		for (u_int i = 0; i < aListXYdZ.size(); i++) {
+		for (size_t i = 0; i < aListXYdZ.size(); i++) {
 			double X = aListXYdZ[i].x;
 			double Y = aListXYdZ[i].y;
 			double aPoly[6] = {
@@ -359,7 +356,7 @@ vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg)
 		bool Ok;
 		Im1D_REAL8 aSolBanana = aSysBanana.GSSR_Solve(&Ok);
 		double* aDataBanana = aSolBanana.data();
-		for (uint i = 0; i < nbParam; i++) { aPolyBanana[i] = aDataBanana[i]; }
+		for (int i = 0; i < nbParam; i++) { aPolyBanana[i] = aDataBanana[i]; }
 		aResidual = aSysBanana.ResiduAfterSol();
 	}
 
@@ -367,9 +364,8 @@ vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg)
 	if (aDeg == 3) {
 		nbParam = 10;
 		//initialized to 0
-		double aBanana[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		L2SysSurResol aSysBanana(10);
-		for (u_int i = 0; i < aListXYdZ.size(); i++) {
+		for (size_t i = 0; i < aListXYdZ.size(); i++) {
 			double X = aListXYdZ[i].x;
 			double Y = aListXYdZ[i].y;
 			double aPoly[10] = {
@@ -385,7 +381,7 @@ vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg)
 		bool Ok;
 		Im1D_REAL8 aSolBanana = aSysBanana.GSSR_Solve(&Ok);
 		double* aDataBanana = aSolBanana.data();
-		for (uint i = 0; i < nbParam; i++) { aPolyBanana[i] = aDataBanana[i]; }
+		for (int i = 0; i < nbParam; i++) { aPolyBanana[i] = aDataBanana[i]; }
 		aResidual = aSysBanana.ResiduAfterSol();
 	}
 
