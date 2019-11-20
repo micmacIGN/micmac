@@ -105,7 +105,7 @@ vector<Pt3dr> ComputedZFromDEMAndMask(REAL8** aDEMINData, vector<double> aTFWin,
 	string aNameDEMRef;
 	SplitDirAndFile(aDir, aNameDEMRef, aDEMRefPath);
 
-	cInterfChantierNameManipulateur* aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+	//cInterfChantierNameManipulateur* aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 	//const std::vector<std::string>* aSetIm = aICNM->Get(aNameDEMRef);
 	Tiff_Im aTF = Tiff_Im::StdConvGen(aDir + aNameDEMRef, 1, true);
 	Pt2di aSzREF = aTF.sz();
@@ -184,7 +184,7 @@ vector<Pt3dr> ComputedZFromDEMAndXY(REAL8** aDEMINData, vector<double> aTFWin, P
 	string aDir, aNameDEMRef;
 	SplitDirAndFile(aDir, aNameDEMRef, aDEMRefPath);
 
-	cInterfChantierNameManipulateur* aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+	//cInterfChantierNameManipulateur* aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
 	//const std::vector<std::string>* aSetIm = aICNM->Get(aNameDEMRef);
 	Tiff_Im aTF = Tiff_Im::StdConvGen(aDir + aNameDEMRef, 1, true);
 	Pt2di aSzREF = aTF.sz();
@@ -216,7 +216,7 @@ vector<Pt3dr> ComputedZFromDEMAndXY(REAL8** aDEMINData, vector<double> aTFWin, P
 	vector<Pt3dr> aListXYdZ;
 
 	// for each XY in aListXY
-	for (int i = 0; i < aListXY.size(); i++)
+	for (size_t i = 0; i < aListXY.size(); i++)
 	{
 		// Get the DEMIn image coordinate for that world coordinate
 		Pt2dr aINIJ = TFW_XY2IJ(aListXY[i], aTFWin);
@@ -261,7 +261,7 @@ vector<Pt3dr> ComputedZFromGCPs(REAL8** aDEMINData, vector<double> aTFWin, Pt2di
 	vector<Pt3dr> aListXYdZ;
 
 	// for each XY in aListXY
-	for (int i = 0; i < aListXYZ.size(); i++)
+	for (size_t i = 0; i < aListXYZ.size(); i++)
 	{
 		Pt2dr aPtXY(aListXYZ[i].x, aListXYZ[i].y);
 		// Get the DEMIn image coordinate for that world coordinate
@@ -460,8 +460,8 @@ int Banana_main(int argc, char** argv)
 	string aDir, aNameDEMin;
 	SplitDirAndFile(aDir, aNameDEMin, aDEMinPath);
 
-	cInterfChantierNameManipulateur* aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-	const std::vector<std::string>* aSetIm = aICNM->Get(aNameDEMin);
+	//cInterfChantierNameManipulateur* aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+	//const std::vector<std::string>* aSetIm = aICNM->Get(aNameDEMin);
 	Tiff_Im aTF = Tiff_Im::StdConvGen(aDir + aNameDEMin, 1, true);
 	Pt2di aSz = aTF.sz();
 
