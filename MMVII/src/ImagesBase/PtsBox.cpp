@@ -108,6 +108,9 @@ template <const int Dim> int NbPixVign(const cPtxd<int,Dim> & aVign)
 // const cPt2di  ThePInfImage(-VeryBig,-VeryBig);
 
 
+cPt2di  TAB4Corner[4] = {{1,1},{-1,1},{-1,-1},{1,-1}};
+
+
 
 
 
@@ -169,7 +172,6 @@ template <const int Dim>   cPixBox<Dim>::cPixBox(const cTplBox<int,Dim> & aR) :
 {
 }
 
-
 template <const int Dim> tINT8  cPixBox<Dim>::IndexeLinear(const tPt & aP) const
 {
    tINT8 aRes = 0;
@@ -177,6 +179,20 @@ template <const int Dim> tINT8  cPixBox<Dim>::IndexeLinear(const tPt & aP) const
       aRes += tINT8(aP[aK]-tBox::mP0[aK]) * tINT8(tBox::mSzCum[aK]);
    return aRes;
 }
+
+template <const int Dim> cPtxd<int,Dim>  cPixBox<Dim>::FromIndexeLinear(tINT8  anIndexe) const
+{
+   tPt aRes;
+   for (int aK=0 ; aK<Dim ; aK++)
+   {
+      aRes[aK]  = tBox::mP0[aK] + anIndexe % tBox::mSz[aK];
+      anIndexe /= tBox::mSz[aK];
+   }
+   return aRes;
+}
+
+
+
 
 template <const int Dim> int cPixBox<Dim>::Interiority(const int  aCoord,int aD) const
 {
@@ -206,6 +222,15 @@ template <const int Dim> cBorderPixBox<Dim>  cPixBox<Dim>::Border(int aSz) const
 {
    return  cBorderPixBox<Dim>(*this,aSz);
 }
+
+template <const int Dim> cPtxd<int,Dim>  cPixBox<Dim>::CircNormProj(const tPt & aPt) const
+{
+    cPtxd<int,Dim>  aRes;
+    for (int aD=0 ; aD<Dim ; aD++)
+       aRes[aD] = tBox::mP0[aD] + mod(aPt[aD]-tBox::mP0[aD],tBox::mSz[aD]);
+    return aRes;
+}
+
 
 
 /* ========================== */

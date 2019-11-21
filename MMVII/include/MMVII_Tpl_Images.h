@@ -247,7 +247,29 @@ template<class T1,int Dim>
     }
 }
 
+template<class TOper,class T1,int Dim>
+   cPtxd<int,Dim> WhitchMinMax(const TOper & Op, const cDataTypedIm<T1,Dim> & aIm)
+{
+    int aKMax = 0;
+    T1 aVMax = aIm.GetRDL(aKMax);
+    for (int aK=1 ; aK<aIm.NbElem() ; aK++)
+    {
+        const T1 & aV = aIm.GetRDL(aK);
+        // if (aV > aVMax)
+        if (Op(aV,aVMax))
+        {
+            aVMax = aV;
+            aKMax = aK;
+        }
+    }
+    return aIm.FromIndexeLinear(aKMax);
+}
 
+template<class T1,int Dim>
+   cPtxd<int,Dim> WhitchMax(const cDataTypedIm<T1,Dim> & aIm)
+{
+     return WhitchMinMax([](const T1&aV1,const T1&aV2){return aV1>aV2;},aIm);
+}
 
 
 

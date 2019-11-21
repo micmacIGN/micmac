@@ -46,6 +46,84 @@ template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::Diag(const cDenseVe
 }
 
 
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::RandomSquareRegMatrix
+                    (
+                        int    aSz,
+                        bool   IsSym,
+                        double AmplAcc,
+                        double aCondMinAccept
+                    )
+{
+    cDenseMatrix<Type>  aRes(aSz,eModeInitImage::eMIA_RandCenter);
+    cResulSymEigenValue<Type> aRSEV(1);
+    if (IsSym)
+    {
+       aRes.SelfSymetrize();
+       aRSEV = aRes.SymEigenValue();
+    }
+    else
+    {
+       // Still need to write non self adjoint interface to Eigen ....
+       MMVII_INTERNAL_ASSERT_always(false,"RandomSquareRegMatrix do not handle unsym");
+    }
+
+    const cDenseVect<Type> &  aVEV =  aRSEV.EigenValues();
+
+    // Set global amplitude 
+    {
+       Type aSom = 0;  // Average of eigen value
+       for (int aK=0 ; aK<aSz  ; aK++)
+       {
+          aSom += std::abs(aVEV(aK));
+       }
+       aSom /= aSz;
+       if (aSom<AmplAcc)
+       {
+          if (aSom==0)  // Case 0 , put any value non degenerate
+          {
+             for (int aK=0 ; aK<aSz  ; aK++)
+             {
+                aRSEV.SetKthEigenValue(aK,(1+aK)*(HeadOrTail() ? -1 : 1) );
+             }
+          }
+          else // else multiply to have the given amplitude
+          {
+             double aMul = AmplAcc/aSom;
+             for (int aK=0 ; aK<aSz  ; aK++)
+             {
+                aRSEV.SetKthEigenValue(aK,aMul*aVEV(aK));
+             }
+          }
+       }
+    }
+
+    // Set conditionning
+    {
+       cWitchMinMax<int,Type> aIMM(0,std::abs(aVEV(0)));
+       for (int aK=0 ; aK<aSz  ; aK++)
+       {
+          aIMM.Add(aK,std::abs(aVEV(aK)));
+       }
+       double aCond = aIMM.Min().Val() / aIMM.Max().Val() ;
+       if (aCond <aCondMinAccept)
+       {
+            //  (ToAdd + VMin) / (Vmax +ToAdd) = Cond : simplify by supresse VMin 
+            //  ToAdd = Cond (VMax+ ToAdd)   =>  ToAdd = Cond * VMax (1-Cond)  + Some precuatio,
+
+            Type AbsToAdd = (1.01 * aIMM.Max().Val() * aCondMinAccept) / (1-aCondMinAccept);
+            for (int aK=0 ; aK<aSz  ; aK++)
+            {
+               Type ToAdd = AbsToAdd * SignSupEq0(aVEV(aK));
+               aRSEV.SetKthEigenValue(aK,aVEV(aK) + ToAdd);
+            }
+       }
+    }
+
+    return aRSEV.OriMatr();
+}
+
+
+
 
 template <class Type>  void  cDenseMatrix<Type>::Show() const
 {

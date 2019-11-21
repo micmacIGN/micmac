@@ -418,8 +418,11 @@ class cAppli_Vino : public cXml_EnvVino,
         Im2D_REAL4 LoadAimePC(const cXml2007Pt & aPC,const std::string & aNameType,Video_Win * aW);
         Im2D_REAL4 StdLoadAimePC(const cXml2007Pt & aPC,const cXml2007SetPtOneType* aSet);
         Im2D_REAL4 I0LoadAimePC(const cXml2007Pt & aPC,const cXml2007SetPtOneType* aSet);
+        void AimeShowProfil(Im2D_U_INT1 aILP,int aMode);
+
         Video_Win *  mAimWStd;
         Video_Win *  mAimWI0;
+        Video_Win *  mAimWLP;  // log-pol image
 
         Video_Win * PtrChc(Pt2dr tr,Pt2dr sc,bool SetClikCoord = false);
 

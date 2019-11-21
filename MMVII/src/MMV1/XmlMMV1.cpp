@@ -126,15 +126,16 @@ template <class Type> class cImplem_ExportAimeTiep : public cInterf_ExportAimeTi
          cImplem_ExportAimeTiep
          (
                const cPt2di& aSzIm0,
-               bool IsMin,int ATypePt,const std::string & aName,bool ForInspect,
+               bool IsMax,eTyPyrTieP ATypePt,const std::string & aName,bool ForInspect,
                const cGP_Params & aParam
          );
          virtual ~cImplem_ExportAimeTiep();
 
          void AddAimeTieP(cProtoAimeTieP<Type>  aPATP ) override;
-         void Export(const std::string &) override;
+         void Export(const std::string &,bool SaveV1) override;
          void FiltrageSpatialPts();
 
+          std::string NameExport(const std::string & aName,eModeOutPCar aMode);
      private :
           typedef typename tElemNumTrait<Type>::tBase tBase;
           typedef Im2D<Type,tBase>           tImV1;
@@ -145,6 +146,8 @@ template <class Type> class cImplem_ExportAimeTiep : public cInterf_ExportAimeTi
           cPt2di          mSzIm0; ///< Sz of Image at full resolution
           cXml2007SetPtOneType  mMMV1_XmlPts; ///< Result
           std::vector<cProtoAimeTieP<Type> > mVecProtoPts;
+          // std::vmector<cAimePCar >            mVecAPC;
+          cSetAimePCAR       mSetAPC;
           // cIm2D<Type>     mImStdV2;  ///<  Imagge Std eq Lapl, Corner ...
           // tImV1           mImStdV1;  ///<  Image Std V2
           // tTImV1          mTImStdV1;  /// T Image Std V2
@@ -152,7 +155,7 @@ template <class Type> class cImplem_ExportAimeTiep : public cInterf_ExportAimeTi
           bool                   mForInspect;  ///< When inspect, save all points to inspect rejection
           cTplBoxOfPts<tREAL8,2> mBox;
           cGP_Params             mParam;  ///< Parameters 
-          cFilterPCar &          mFP;  ///< Parameters 
+          cFilterPCar &          mFPC;  ///< Parameters 
 };
 /* ================================= */
 /*    cInterf_ExportAimeTiep         */
@@ -162,9 +165,9 @@ template <class Type> cInterf_ExportAimeTiep<Type>::~cInterf_ExportAimeTiep()
 {
 }
 
-template <class Type> cInterf_ExportAimeTiep<Type> * cInterf_ExportAimeTiep<Type>::Alloc(const cPt2di& aSzIm0,bool IsMin,int ATypePt,const std::string & aName,bool ForInspect,const cGP_Params & aParam )
+template <class Type> cInterf_ExportAimeTiep<Type> * cInterf_ExportAimeTiep<Type>::Alloc(const cPt2di& aSzIm0,bool IsMax,eTyPyrTieP ATypePt,const std::string & aName,bool ForInspect,const cGP_Params & aParam )
 {
-    return new cImplem_ExportAimeTiep<Type>(aSzIm0,IsMin,ATypePt,aName,ForInspect,aParam);
+    return new cImplem_ExportAimeTiep<Type>(aSzIm0,IsMax,ATypePt,aName,ForInspect,aParam);
 }
 
 
@@ -177,8 +180,8 @@ template <class Type>
    cImplem_ExportAimeTiep<Type>::cImplem_ExportAimeTiep
    (
         const cPt2di & aSzIm0,
-        bool IsMin,
-        int ATypePt,
+        bool IsMax,
+        eTyPyrTieP ATypePt,
         const std::string & aNameType,
         bool ForInspect,
         const cGP_Params & aParam
@@ -188,12 +191,13 @@ template <class Type>
     // mImStdV1  (1,1),
     // mTImStdV1 (mImStdV1),
     // mFCC   (cFastCriterCompute::Circle(3.0)),
+    mSetAPC     (ATypePt,IsMax),
     mForInspect (ForInspect),
     mParam      (aParam),
-    mFP         (mParam.mFPC)
+    mFPC        (mParam.mFPC)
 {
-    mMMV1_XmlPts.IsMin() = IsMin;
-    mMMV1_XmlPts.TypePt() = IsMin;
+    mMMV1_XmlPts.IsMax() =  IsMax;
+    mMMV1_XmlPts.TypePt() = int(ATypePt);
     mMMV1_XmlPts.NameTypePt() = aNameType;
     
 }
@@ -201,7 +205,7 @@ template <class Type> cImplem_ExportAimeTiep<Type>::~cImplem_ExportAimeTiep()
 {
 }
 
-template <class Type> cXml2007Pt ToMMV1(const cProtoAimeTieP<Type>&  aPATP)
+template <class Type> cXml2007Pt ToXmlMMV1(const cProtoAimeTieP<Type>&  aPATP,cAimePCar * aAPCPtr)
 {
     cXml2007Pt aPXml;
 
@@ -223,7 +227,13 @@ template <class Type> cXml2007Pt ToMMV1(const cProtoAimeTieP<Type>&  aPATP)
     aPXml.Score()  =  aPATP.mScoreInit;
     aPXml.ScoreRel()  = aPATP.mScoreRel;
     aPXml.Var()  = aPATP.mStdDev;
+    aPXml.ChgMaj()  = aPATP.mChgMaj;
+    aPXml.OKLP()  = aPATP.mOKLP;
 
+    if (aAPCPtr!=nullptr)
+    {
+        aPXml.ImLP() = cMMV1_Conv<tU_INT1>::ImToMMV1(aAPCPtr->Desc().ILP().DIm());
+    }
     return aPXml;
 }
 
@@ -256,7 +266,7 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::AddAimeTieP(cProtoAimeT
     bool  aAutoCor;
     {
         cAutoTimerSegm aATS("AutoCorrel");
-        aAutoCor  = aCACD.AutoCorrel(aV1PIm,mFP.AC_CutInt(),mFP.AC_CutReal(),mFP.AC_Threshold());
+        aAutoCor  = aCACD.AutoCorrel(aV1PIm,mFPC.AC_CutInt(),mFPC.AC_CutReal(),mFPC.AC_Threshold());
     }
 
 
@@ -289,9 +299,9 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::AddAimeTieP(cProtoAimeT
             aPATP.mOkAutoCor = false;
         else
         {
-            aPATP.mScoreInit  =      pow(1-aPATP.mAutoCor  , mFP.PowAC())
-                                  *  pow(aPATP.mStdDev     , mFP.PowVar())
-                                  *  pow(aPATP.ScaleAbs()  , mFP.PowScale())
+            aPATP.mScoreInit  =      pow(1-aPATP.mAutoCor  , mFPC.PowAC())
+                                  *  pow(aPATP.mStdDev     , mFPC.PowVar())
+                                  *  pow(aPATP.ScaleAbs()  , mFPC.PowScale())
                              ;
             aPATP.mScoreRel  = aPATP.mScoreInit; // Initially no point selected, relative=absolute
         }
@@ -305,13 +315,37 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::AddAimeTieP(cProtoAimeT
     }
 }
 
-template <class Type> void cImplem_ExportAimeTiep<Type>::Export(const std::string & aName)
+template <class Type> std::string cImplem_ExportAimeTiep<Type>::NameExport(const std::string & aNameIm,eModeOutPCar aMode)
 {
-     for (auto const & aPMMV2 : mVecProtoPts)
+     return  mParam.mAppli->NamePCar
+             (
+                aNameIm,
+                aMode,
+                mSetAPC.Type(),
+                false,
+                mSetAPC.IsMax(),
+                mParam.mNumTile
+             );
+}
+
+template <class Type> void cImplem_ExportAimeTiep<Type>::Export(const std::string & aNameIm,bool SaveV1)
+{
+     // Eventualy save to MMV1 format for visual inspection
+     if (SaveV1)
      {
-          mMMV1_XmlPts.Pts().push_back(ToMMV1(aPMMV2));
+        std::string aNameV1 = NameExport(aNameIm, eModeOutPCar::eMNO_PCarV1);
+        for (auto const & aPMMV2 : mVecProtoPts)
+        {
+            int aNum = aPMMV2.mNumAPC;
+            cAimePCar * aAPCPtr = (aNum>=0) ? &(mSetAPC.VPC().at(aNum)) : nullptr; 
+            mMMV1_XmlPts.Pts().push_back(ToXmlMMV1(aPMMV2,aAPCPtr));
+        }
+        MakeFileXML(mMMV1_XmlPts,aNameV1);
+        mMMV1_XmlPts.Pts().clear() ;
      }
-     MakeFileXML(mMMV1_XmlPts,aName);
+     // Now save in V2 format , what we really need
+     std::string aNameV2 = NameExport(aNameIm, eModeOutPCar::eMNO_BinPCarV2);
+     mSetAPC.SaveInFile(aNameV2);
 }
 
 
@@ -400,6 +434,20 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::FiltrageSpatialPts()
             aPATP.mStable = true;
          }
      }
+     {
+        cAutoTimerSegm aATS("TestOKLogPol");
+        for (auto & aPATP : mVecProtoPts)
+        {
+            if (aPATP.mStable  && aPATP.mOkAutoCor)
+            {
+                aPATP.mOKLP = aPATP.TestFillAPC(mFPC);
+            }
+            else
+            {
+                aPATP.mOKLP = true;
+            }
+        }
+     }
      cAutoTimerSegm aATS("SpatialFilter");
      if (mVecProtoPts.empty())  // may be degenerated (bounding box ...)
      {
@@ -420,7 +468,7 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::FiltrageSpatialPts()
      // Put everyting in heap and quod tree, put only validated (they may remain when inspect mode)
      for (auto & aP : mVecProtoPts)
      {
-         if (aP.mOkAutoCor && aP.mStable)
+         if (aP.mOkAutoCor && aP.mStable && aP.mOKLP)
          {
             aQt.insert(&aP);
             aHeap.push(&aP);
@@ -430,12 +478,12 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::FiltrageSpatialPts()
      //  do the spatial filtering
      // double aMulRay = mFPC.mPSF.at(1);
      // double aPropNoSF = mFPC.mPSF.at(2);
-     double aDsf = mFP.DistSF();
+     double aDsf = mFPC.DistSF();
      int NbToGet= (mSzIm0.x()*mSzIm0.y()) / Square(aDsf);
      while (NbToGet>0)
      {
-        double aDistInfl = aDsf * mFP.MulDistSF();
-        double aProp =  mFP.PropNoSF();
+        double aDistInfl = aDsf * mFPC.MulDistSF();
+        double aProp =  mFPC.PropNoSF();
         cProtoAimeTieP<Type>* aNewP = nullptr;
         if (aHeap.pop(aNewP)) // if get next best pts 
         {
@@ -473,19 +521,24 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::FiltrageSpatialPts()
          (
              mVecProtoPts,
 	     [] (const cProtoAimeTieP<Type> & aPP) 
-                { return  (!aPP.mOkAutoCor) || (! aPP.mSFSelected) || (!aPP.mStable);}
+                { return  (!aPP.mOkAutoCor) || (! aPP.mSFSelected) || (!aPP.mStable) || (!aPP.mOKLP);}
          );
      }
-
-/*
-     for (auto & aPATP : mVecProtoPts)
      {
-         cAutoTimerSegm aATS("Posterioi-Refined");
-         cAffineExtremum<Type> anAE(aPATP.mGPI->ImG().DIm(),AFEXTR_RADIUS*aPATP.ScaleInO());
-         cPt2dr aPRefIm =   anAE.StdIter(ToR(aPATP.mPImInit),1e-2,3);
-         aPATP.mPFileRefined =   aPATP.mGPI->Im2File(aPRefIm);
+        cAutoTimerSegm aATS("ImLogPol");
+        for (auto & aPATP : mVecProtoPts)
+        {
+            // Test required because has not been erase in inspect mode
+            if (aPATP.mOkAutoCor &&  aPATP.mSFSelected && aPATP.mStable && aPATP.mOKLP)
+            {
+                 cAimePCar aAPC;
+                 bool Ok = aPATP.FillAPC(mFPC,aAPC,false);
+                 MMVII_INTERNAL_ASSERT_tiny(Ok,"Incoherence in FillAPC");
+                 aPATP.mNumAPC = mSetAPC.VPC().size();
+                 mSetAPC.VPC().push_back(aAPC);
+            }
+        }
      }
-*/
 }
 
 

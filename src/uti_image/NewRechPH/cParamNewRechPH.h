@@ -987,6 +987,12 @@ class cXml2007Pt
         double & ScoreRel();
         const double & ScoreRel()const ;
 
+        std::vector<double> & VectRho();
+        const std::vector<double> & VectRho()const ;
+
+        std::vector<double> & VectDir();
+        const std::vector<double> & VectDir()const ;
+
         double & Var();
         const double & Var()const ;
 
@@ -999,14 +1005,20 @@ class cXml2007Pt
         bool & OKAc();
         const bool & OKAc()const ;
 
+        bool & OKLP();
+        const bool & OKLP()const ;
+
         bool & SFSelected();
         const bool & SFSelected()const ;
 
         bool & Stable();
         const bool & Stable()const ;
 
-        Im2D_INT1 & ImLP();
-        const Im2D_INT1 & ImLP()const ;
+        bool & ChgMaj();
+        const bool & ChgMaj()const ;
+
+        Im2D_U_INT1 & ImLP();
+        const Im2D_U_INT1 & ImLP()const ;
     private:
         Pt2dr mPtInit;
         Pt2dr mPtAff;
@@ -1017,13 +1029,17 @@ class cXml2007Pt
         double mScaleAbs;
         double mScore;
         double mScoreRel;
+        std::vector<double> mVectRho;
+        std::vector<double> mVectDir;
         double mVar;
         double mAutoCor;
         int mNumChAC;
         bool mOKAc;
+        bool mOKLP;
         bool mSFSelected;
         bool mStable;
-        Im2D_INT1 mImLP;
+        bool mChgMaj;
+        Im2D_U_INT1 mImLP;
 };
 cElXMLTree * ToXMLTree(const cXml2007Pt &);
 
@@ -1047,8 +1063,8 @@ class cXml2007SetPtOneType
         std::vector< cXml2007Pt > & Pts();
         const std::vector< cXml2007Pt > & Pts()const ;
 
-        bool & IsMin();
-        const bool & IsMin()const ;
+        bool & IsMax();
+        const bool & IsMax()const ;
 
         int & TypePt();
         const int & TypePt()const ;
@@ -1057,7 +1073,7 @@ class cXml2007SetPtOneType
         const std::string & NameTypePt()const ;
     private:
         std::vector< cXml2007Pt > mPts;
-        bool mIsMin;
+        bool mIsMax;
         int mTypePt;
         std::string mNameTypePt;
 };

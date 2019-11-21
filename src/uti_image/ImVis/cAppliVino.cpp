@@ -101,7 +101,8 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
     mAimeCW           (mAimeSzW / 2),
     mAimeZoomW        (7),
     mAimWStd          (nullptr),
-    mAimWI0           (nullptr)
+    mAimWI0           (nullptr),
+    mAimWLP           (nullptr)
 {
     mNameXmlIn = Basic_XML_MM_File("Def_Xml_EnvVino.xml");
     if (argc>1)
@@ -384,7 +385,7 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
        mWithPCarac = true;
 
        mDirAime =  "./Tmp-2007-Dir-PCar/"+ mNameIm + "/";
-       std::string aPat =  "STD-AimePCar-" + mNameAimePCar + "-Tile00.dmp";
+       std::string aPat =  "STD-V1AimePCar-" + mNameAimePCar + "-Tile0_0.dmp";
        cInterfChantierNameManipulateur* aAimeICNM = cInterfChantierNameManipulateur::BasicAlloc(mDirAime);
 
        cSetName * aSN= aAimeICNM->KeyOrPatSelector(aPat);
@@ -407,6 +408,10 @@ cAppli_Vino::cAppli_Vino(int argc,char ** argv,const std::string & aNameImExtern
        mAimWI0  = mW->PtrChc(Pt2dr(0,0),Pt2dr(mAimeZoomW,mAimeZoomW));
        // Fenetre pour voir l'image initiale  de caracteristique
        mAimWStd  = mW->PtrChc(Pt2dr(-(2+mAimeSzW.x),0),Pt2dr(mAimeZoomW,mAimeZoomW));
+
+       double aTr =  4+ 2 * mAimeSzW.x;
+       double aZ  = 18.0;
+       mAimWLP   = mW->PtrChc(Pt2dr(-1-aTr *(mAimeZoomW/aZ),-1.8),Pt2dr(aZ,aZ));
     }
 }
 

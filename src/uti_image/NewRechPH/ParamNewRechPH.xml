@@ -286,18 +286,23 @@ mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
        <Score      Nb="1" Type="double">   </Score>   <!-- Score , mixing Var and Correl -->
        <ScoreRel  Nb="1" Type="double">   </ScoreRel>   <!-- Relative score, evolve accross time -->
 
+       <VectRho   Nb="1" Type="std::vector<double>">  </VectRho> <!-- To visualize sampling -->
+       <VectDir   Nb="1" Type="std::vector<double>">  </VectDir> <!-- to test main direc -->
+
        <Var     Nb="1" Type="double">   </Var> <!-- Variance of point -->
        <AutoCor  Nb="1" Type="double">   </AutoCor> <!-- Auto Correl of image -->
        <NumChAC  Nb="1" Type="int">   </NumChAC>    <!-- Num of choice for Auto Correl -->
        <OKAc  Nb="1" Type="bool">   </OKAc>         <!-- Is it ok according to AC -->
+       <OKLP  Nb="1" Type="bool">   </OKLP>         <!-- Is it ok according to LogPol -->
        <SFSelected  Nb="1" Type="bool"> </SFSelected>  <!-- Spatial Filtering selected -->
        <Stable  Nb="1" Type="bool"> </Stable>  <!-- Stable 4 refinement -->
-       <ImLP Nb="1" Type="Im2D_INT1"> </ImLP>  <!-- Log Pol Image -->
+       <ChgMaj  Nb="1" Type="bool"> </ChgMaj>  <!-- Changed to major, tuning -->
+       <ImLP Nb="1" Type="Im2D_U_INT1"> </ImLP>  <!-- Log Pol Image -->
    </Xml2007Pt>
 
    <Xml2007SetPtOneType  Nb="1" Class="true" ToReference="true">
        <Pts  Nb="*" RefType="Xml2007Pt" Container="std::vector"> </Pts> 
-       <IsMin Nb="1" Type="bool">        </IsMin>
+       <IsMax Nb="1" Type="bool">        </IsMax>
        <TypePt Nb="1" Type="int">        </TypePt>
        <NameTypePt Nb="1" Type="std::string">    </NameTypePt>
    </Xml2007SetPtOneType>

@@ -15,6 +15,14 @@ namespace MMVII
 /*                                                 */
 /* *********************************************** */
 
+/**  Given three consecutive value interpole the extremum assumming a parabol, no value if alligned
+*/
+boost::optional<double>  InterpoleExtr(double V1,double V2,double V3);
+/**  Given three consecutive value interpole the extremum assumming a parabol
+*/
+double  StableInterpoleExtr(double V1,double V2,double V3);
+
+
 
 template <class Type> double  MoyAbs(cIm2D<Type> aImIn); ///< Compute  average of Abs of Image
 template <class Type> cPt2dr   ValExtre(cIm2D<Type> aImIn); ///< X -> Min, Y -> Max

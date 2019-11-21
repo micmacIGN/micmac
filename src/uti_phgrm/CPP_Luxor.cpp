@@ -279,6 +279,9 @@ void cAppliLuxor::LBACampari(const std::list<std::string>& aStrList)
                        + aCampOriIn + " " 
                        + mInOri ;
 
+	if (EAMIsInit(&mSH))
+        aCom += " SH=" + mSH;
+
     std::cout << "LBA= " << aCom << "\n";
 
     TopSystem(aCom.c_str());
@@ -372,7 +375,7 @@ void cAppliLuxor::DoSBBA(const std::string & aName,const std::string & aNamePrev
     else
     {
        
-        aCom += " InOri=" + aInOri +
+        aCom += " InOri=" + StdPrefix(aInOri) +
                 " OriOut=" + StdPrefix(aName);
     }
 
@@ -407,7 +410,7 @@ void cAppliLuxor::DoSBBA()
             DoSBBA(*aW);
             
             if (LBA_ACTIVE)
-                BasculeMorito (*aW,mInOri + ".xml");
+                BasculeMorito (*aW,*std::prev(aW,1));
             else
             {
                 BasculeMorito (*aW,*std::prev(aW,1));
@@ -415,10 +418,10 @@ void cAppliLuxor::DoSBBA()
         }
         else
         {
-            if (LBA_ACTIVE)
-                DoSBBA(*aW,mInOri + ".xml");
-            else
-			    DoSBBA(*aW,*std::prev(aW,i));
+            //if (LBA_ACTIVE)
+                DoSBBA(*aW,*std::prev(aW,1));
+            //else
+			  //  DoSBBA(*aW,*std::prev(aW,i));
         }
 
         if (DoLBA)

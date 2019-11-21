@@ -55,23 +55,23 @@ void  cAppli_Vino::AimeVisu()
 
    for (const auto  & aVPC : mAimePCar)
    {
-       bool IsMin = aVPC.IsMin();
+       bool IsMax = aVPC.IsMax();
        // Pt2dr  aFastCrit = FastQuality(aTStd,mAimeCW,*aFCC,!mAimePCar.IsMin(),Pt2dr(0.7,0.8));
-       int aCoulOk = P8COL::green;
+       Pt3di  aCoulOk(0,255,0);  // Green
        if (aVPC.NameTypePt() == "Corner")
        {
        }
        else if (aVPC.NameTypePt() == "LaplG")
        {
-           aCoulOk= P8COL::blue;
+           aCoulOk = Pt3di(0,0,255);  // blue
        }
        else if (aVPC.NameTypePt() == "OriNorm")
        {
-           aCoulOk= P8COL::cyan;
+           aCoulOk = Pt3di(0,255,255);  // cyan
        }
        else if (aVPC.NameTypePt() == "Init")
        {
-           aCoulOk= P8COL::magenta;
+           aCoulOk = Pt3di(128,128,128);  // gray ???
        }
        else
        {
@@ -84,28 +84,37 @@ void  cAppli_Vino::AimeVisu()
            Pt2dr aPW = aSim(aPI);
            if (   (aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
            {
-               int aCoul = aCoulOk;
+               Pt3di aCoul = aCoulOk;
                if (!aPC.SFSelected())
                {
-                  aCoul = P8COL::yellow;
+                  aCoul = Pt3di(255,255,0); // yellow
+               }
+               if (!aPC.OKLP())
+               {
+                  aCoul = Pt3di(255,128,0); // orange
                }
                if (!aPC.Stable())
                {
-                  aCoul = P8COL::magenta;
+                  aCoul = Pt3di(255,0,255); // magenta
                }
                if (!aPC.OKAc())
                {
-                  aCoul = P8COL::red;
+                  aCoul = Pt3di(255,0,0); // red
                }
            
                if ((aCoul==aCoulOk) || mAimeShowFailed )
                {
                   double aRay = 1*aScale*aPC.ScaleAbs();
-                  mW->draw_circle_abs(aPW,aRay,mW->pdisc()(aCoul));
-                  Pt2dr aDir(0,IsMin ? 1 : -1);
-                  mW->draw_seg(aPW,aPW+aDir*aRay,mW->pdisc()(aCoul));
-
-                  mW->draw_seg(aPW,aSim(aPC.PtInit()),mW->pdisc()(aCoul));
+                  mW->draw_circle_abs(aPW,aRay,mW->prgb()(aCoul.x,aCoul.y,aCoul.z));
+// mW->draw_circle_abs(aPW,aRay+3,mW->prgb()(255,0,0));
+                  if (0 && aPC.ChgMaj())
+                  {
+                      // mW->draw_circle_abs(aPW,aRay+2,mW->pdisc()(aCoul));
+                      // mW->draw_circle_abs(aPW,aRay+4,mW->pdisc()(aCoul));
+                  }
+                  Pt2dr aDir(0,IsMax ? -1 : 1);
+                  mW->draw_seg(aPW,aPW+aDir*aRay,mW->prgb()(aCoul.x,aCoul.y,aCoul.z));
+                  mW->draw_seg(aPW,aSim(aPC.PtInit()),mW->prgb()(aCoul.x,aCoul.y,aCoul.z));
                }
            }
        }
@@ -122,13 +131,16 @@ const cXml2007Pt *  cAppli_Vino::AimeGetPC(const Pt2dr & aPU,const cXml2007SetPt
    {
        for (const auto  & aPC : aVPC.Pts())
        {
-          double aD = euclid(aPU,aPC.PtAff());
-          if (aD < aDMin)
+          if (mAimeShowFailed || ( aPC.SFSelected() && aPC.OKLP() && aPC.Stable() && aPC.OKAc()))
           {
-             aDMin = aD;
-             aRes = & aPC;
-             *aSet=&(aVPC);
-          }
+              double aD = euclid(aPU,aPC.PtAff());
+              if (aD < aDMin)
+              {
+                 aDMin = aD;
+                 aRes = & aPC;
+                 *aSet=&(aVPC);
+              }
+         }
        }
    }
    return aRes;
@@ -142,7 +154,7 @@ Im2D_REAL4 cAppli_Vino::LoadAimePC(const cXml2007Pt & aPC,const std::string & aN
                        +   aNameType
                        +   std::string("-o") + ToString(aPC.NumOct())
                        +   std::string("_i") + ToString(aPC.NumIm())
-                       +   "-Tile00.tif";
+                       +   "-Tile0_0.tif";
 
    Tiff_Im aTif(aName.c_str());
    Pt2di aSzTif = aTif.sz();
@@ -218,6 +230,28 @@ Im2D_REAL4  cAppli_Vino::I0LoadAimePC(const cXml2007Pt & aPC,const cXml2007SetPt
 #define TT_Rho1 5.0
 #define TT_SzW1 3
 
+void cAppli_Vino::AimeShowProfil(Im2D_U_INT1 aILP,int aMode)
+{
+     int aNbTeta = aILP.sz().x;
+     int aNbRho = aILP.sz().y;
+     Fonc_Num aF = aILP.in();
+     if (aMode==1)
+     {
+        aF = Abs(aILP.in()-aILP.in()[Virgule((FX+1)%aNbTeta,FY)]);
+     }
+     if (aMode==2)
+     {
+        aF = Abs(aILP.in()-aILP.in()[Virgule(FX,FY+1)]);
+        aNbRho--;
+     }
+     Im1D_REAL4 aHist(aNbTeta,0.0);
+     ELISE_COPY
+     (
+        rectangle(Pt2di(0,0),Pt2di(aNbTeta,aNbRho)),
+        aF,
+        aHist.histo().chc(FX)
+     );
+}
 
 void  cAppli_Vino::InspectAime(const Pt2dr & aPW_Clik)
 {
@@ -234,7 +268,7 @@ void  cAppli_Vino::InspectAime(const Pt2dr & aPW_Clik)
    const cXml2007Pt * aPC =   AimeGetPC(aPU_Clik,&aSet);
    Pt2dr aPWCar = aU2W(aPC->PtAff());
 
-   mW->draw_circle_abs(aPWCar,1*aScale*aPC->ScaleAbs(),mW->pdisc()(P8COL::yellow));
+   mW->draw_circle_abs(aPWCar,1*aScale*aPC->ScaleAbs()+4,mW->pdisc()(P8COL::white));
 
    double aSA =  aPC->ScaleAbs() ;
    double aSO =  aPC->ScaleInO() ;
@@ -286,6 +320,29 @@ void  cAppli_Vino::InspectAime(const Pt2dr & aPW_Clik)
         mAimWStd->draw_circle_loc(Pt2dr(mAimeCW),aRho,mAimWStd->pdisc()(P8COL::green));
    }
    std::cout << "  =================================================\n\n";
+
+   {
+       Im2D_U_INT1 aILP = aPC->ImLP();
+       Pt2di aSz = aILP.sz();
+       if (aSz.x > 1)
+       {
+           ELISE_COPY
+           (
+                aILP.all_pts(),
+                Max(0,Min(255,128 + 2*(aILP.in()-128))),
+                mAimWLP->ogray() // | VMax(aMax) | VMin(aMin)
+           );
+           ELISE_COPY
+           (
+                border_rect(Pt2di(-1,-1),aSz+Pt2di(1,1)),
+                Virgule(255,128,0),
+                mAimWLP->orgb() // | VMax(aMax) | VMin(aMin)
+           );
+           AimeShowProfil(aILP,0);
+           AimeShowProfil(aILP,1);
+           AimeShowProfil(aILP,2);
+       }
+   }
 
 
 }
