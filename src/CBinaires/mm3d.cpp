@@ -143,6 +143,8 @@ public:
 	}
 };
 
+
+
 extern int TiepTriFar_Main(int argc, char ** argv);
 extern int PHO_MI_main(int, char **);
 extern int TiePByMesh_main(int, char **);
@@ -261,6 +263,10 @@ std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC, const std::string & aLib
 		aVC[aK].mLib = aLib;
 	return aVC;
 }
+
+
+
+
 
 int CPP_AimeApprent(int argc, char ** argv);
 int CPP_StatPHom(int argc, char ** argv);
@@ -494,6 +500,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 		aRes.push_back(cMMCom("Sake", Sake_main, " Simplified MicMac interface for satellite images", cArgLogCom(3)));
 		aRes.push_back(cMMCom("SateLib", SateLib_main, " Library of satellite images meta-data handling - early work in progress!"));
+		aRes.push_back(cMMCom("PostProc", PostProcessing_main, " Library of post processing systems"));
 		aRes.push_back(cMMCom("SimuLib", SimuLib_Main, " Library (almost empty now)  for simulating"));
 		aRes.push_back(cMMCom("XLib", XLib_Main, " Xeres Lib - early work in progress!"));
 
@@ -613,6 +620,26 @@ public:
 int GenMain(int argc, char ** argv, const std::vector<cMMCom> & aVComs);
 
 // =========================================================
+//PostProcesing declarations
+extern int Banana_main(int argc, char** argv);
+
+const std::vector<cMMCom>& PostProcessingAvailableCommands()
+{
+	static std::vector<cMMCom> aRes;
+	if (aRes.size()) return aRes;
+
+	aRes.push_back(cMMCom("Banana", Banana_main, "Compute a nth degree polynomial correction to a DEM to correct a Banana or dome."));
+
+	cCmpMMCom CmpMMCom;
+	std::sort(aRes.begin(), aRes.end(), CmpMMCom);
+
+	return AddLib(aRes, "PostProcessing");
+}
+
+int PostProcessing_main(int argc, char** argv)
+{
+	return GenMain(argc, argv, PostProcessingAvailableCommands());
+}
 
 //TestLib declarations
 extern int  Sample_W0_main(int argc, char ** argv);
@@ -1225,36 +1252,36 @@ int SampleLibElise_main(int argc, char ** argv)
 }
 
 //SateLib declarations
-extern int RecalRPC_main(int argc, char ** argv);
-extern int CropRPC_main(int argc, char ** argv);
-extern int Grid2RPC_main(int argc, char ** argv);
-extern int RPC_main(int argc, char ** argv);
-extern int NewRefineModel_main(int argc, char **argv);
-extern int RefineModel_main(int argc, char **argv);
-extern int RefineJitter_main(int argc, char **argv);
-extern int ApplyParralaxCor_main(int argc, char **argv);
-extern int Dimap2Grid_main(int argc, char **argv);
-extern int DimapUseRPC_main(int argc, char **argv);
-extern int DigitalGlobe2Grid_main(int argc, char **argv);
-extern int Aster2Grid_main(int argc, char **argv);
-extern int AsterDestrip_main(int argc, char **argv);
-extern int SATtoBundle_main(int argc, char ** argv);
-extern int SATvalid_main(int argc, char ** argv);
-extern int SATTrajectory_main(int argc, char ** argv);
-extern int SatEmpriseSol_main(int argc, char ** argv);
-extern int CalcBsurH_main(int argc, char ** argv);
-extern int CalcBsurHGrille_main(int argc, char ** argv);
-extern int CPP_SATDef2D_main(int argc, char ** argv);
-extern int CPP_TestRPCDirectGen(int argc, char ** argv);
-extern int CPP_TestRPCBackProj(int argc, char ** argv);
-extern int CPP_TestSystematicResiduals(int argc, char ** argv);
-extern int DoTile_main(int argc, char ** argv);
-extern int ASTERGT2MM_main(int argc, char ** argv);
-extern int ASTERGT_strip_2_MM_main(int argc, char ** argv);
-extern int ASTERProjAngle_main(int argc, char ** argv);
-extern int ASTERProjAngle2OtherBand_main(int argc, char ** argv);
+extern int RecalRPC_main(int argc, char** argv);
+extern int CropRPC_main(int argc, char** argv);
+extern int Grid2RPC_main(int argc, char** argv);
+extern int RPC_main(int argc, char** argv);
+extern int NewRefineModel_main(int argc, char** argv);
+extern int RefineModel_main(int argc, char** argv);
+extern int RefineJitter_main(int argc, char** argv);
+extern int ApplyParralaxCor_main(int argc, char** argv);
+extern int Dimap2Grid_main(int argc, char** argv);
+extern int DimapUseRPC_main(int argc, char** argv);
+extern int DigitalGlobe2Grid_main(int argc, char** argv);
+extern int Aster2Grid_main(int argc, char** argv);
+extern int AsterDestrip_main(int argc, char** argv);
+extern int SATtoBundle_main(int argc, char** argv);
+extern int SATvalid_main(int argc, char** argv);
+extern int SATTrajectory_main(int argc, char** argv);
+extern int SatEmpriseSol_main(int argc, char** argv);
+extern int CalcBsurH_main(int argc, char** argv);
+extern int CalcBsurHGrille_main(int argc, char** argv);
+extern int CPP_SATDef2D_main(int argc, char** argv);
+extern int CPP_TestRPCDirectGen(int argc, char** argv);
+extern int CPP_TestRPCBackProj(int argc, char** argv);
+extern int CPP_TestSystematicResiduals(int argc, char** argv);
+extern int DoTile_main(int argc, char** argv);
+extern int ASTERGT2MM_main(int argc, char** argv);
+extern int ASTERGT_strip_2_MM_main(int argc, char** argv);
+extern int ASTERProjAngle_main(int argc, char** argv);
+extern int ASTERProjAngle2OtherBand_main(int argc, char** argv);
 
-const std::vector<cMMCom> & SateLibAvailableCommands()
+const std::vector<cMMCom>& SateLibAvailableCommands()
 {
 	static std::vector<cMMCom> aRes;
 	if (aRes.size()) return aRes;
@@ -1293,10 +1320,13 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 	return AddLib(aRes, "SateLib");
 }
 
-int SateLib_main(int argc, char ** argv)
+int SateLib_main(int argc, char** argv)
 {
 	return GenMain(argc, argv, SateLibAvailableCommands());
 }
+
+
+
 
 
 //===============================================
@@ -1582,6 +1612,7 @@ const std::vector<cMMCom> & AllCom()
 		CatCom(aRes, getAvailableCommands());
 		CatCom(aRes, TestLibAvailableCommands());
 		CatCom(aRes, SateLibAvailableCommands());
+		CatCom(aRes, PostProcessingAvailableCommands());
 		CatCom(aRes, SimuLibAvailableCommands());
 		CatCom(aRes, XLibAvailableCommands());
 	}
