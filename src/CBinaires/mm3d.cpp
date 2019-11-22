@@ -856,6 +856,8 @@ int UnionFiltragePHom_Main(int argc, char ** argv);
 
 int TestYZ_main(int argc, char ** argv);
 
+extern int TestLulin_main(int argc, char ** argv);
+
 extern int ReechHomol_main(int argc, char ** argv);
 extern int DeformAnalyse_main(int argc, char ** argv);
 extern int ExtraitHomol_main(int argc, char ** argv);
@@ -907,6 +909,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	static std::vector<cMMCom> aRes;
 	if (aRes.empty())
 	{
+
+            aRes.push_back(cMMCom("TestLulin", TestLulin_main, "Explaination: TestLulin "));
 
 		aRes.push_back(cMMCom("Exo0", TD_Exo0, "Some stuff "));
 		aRes.push_back(cMMCom("Exo1", TD_Exo1, "Some stuff "));
