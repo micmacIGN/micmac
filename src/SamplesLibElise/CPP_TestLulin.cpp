@@ -64,7 +64,7 @@ int ExtractSiftPt(std::string aNameIm, int aSzSift)
         return EXIT_SUCCESS;
 }
 
-int TestLulin_main(int argc, char *argv[])
+int TestLulin_main(int argc, char **argv)
 {
     std::string aNameIm;
     int aSzSift;
