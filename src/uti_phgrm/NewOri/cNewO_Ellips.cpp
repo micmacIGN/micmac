@@ -150,6 +150,141 @@ void cGenGaus3D::GetDistribGaus(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int a
    }
 }
 
+/*
+ *     _____
+ * P1 *     /|
+ *   /     / |
+ *  /___P2*  |
+ *  | P4x |  *P3   x - pt in the middle
+ *  |     | /      * - pts in the corners
+ *P5*_____|/
+ *
+ *
+ * */
+void cGenGaus3D::GetDistr5PointsFromVP(Pt3dr aFact1,Pt3dr aFact2,Pt3dr aFact3,std::vector<Pt3dr> & aVPts)
+{
+    // InvErrFoncRationel : probability that the fonction takes a value <-1/aMult, 1/aMult> (lim <-.5,.5>) 
+    //                      on normalised values, i.e. mean=0 and variance=0.5
+    
+	aVPts.clear();
+
+	Pt3dr aP1;
+    aP1 = mCDG + aFact1 * InvErrFoncRationel(-1*2,2+1)
+               + aFact2 * InvErrFoncRationel(1*2,2+1)
+               + aFact3 * InvErrFoncRationel(1*2,2+1); //Inv(p/q)
+    aVPts.push_back(aP1);
+
+    Pt3dr aP2;
+    aP2 = mCDG + aFact1 * InvErrFoncRationel(1*2,2+1)
+               + aFact2 * InvErrFoncRationel(-1*2,2+1)
+               + aFact3 * InvErrFoncRationel(1*2,2+1);
+    aVPts.push_back(aP2);
+
+    Pt3dr aP3;
+    aP3 = mCDG + aFact1 * InvErrFoncRationel(1*2,2+1)
+               + aFact2 * InvErrFoncRationel(1*2,2+1)
+               + aFact3 * InvErrFoncRationel(-1*2,2+1);
+    aVPts.push_back(aP3);
+
+    Pt3dr aP4;
+    aP4 = mCDG + aFact1 * InvErrFoncRationel(0,2+1)
+               + aFact2 * InvErrFoncRationel(0,2+1)
+               + aFact3 * InvErrFoncRationel(0,2+1);
+    aVPts.push_back(aP4);
+
+    Pt3dr aP5;
+    aP5 = mCDG + aFact1 * InvErrFoncRationel(-1*2,2+1)
+               + aFact2 * InvErrFoncRationel(-1*2,2+1)
+               + aFact3 * InvErrFoncRationel(-1*2,2+1);
+    aVPts.push_back(aP5);
+	//std::cout << "GetDistr5PointsFromVP ******** " << aP1 << " " << aP2 << " " << aP3 << " " << aP4 << " " << aP5 << 
+	//		     " Facs=" << aFact1 << " " << aFact2 << " " << aFact3 << "\n";
+	//std::cout << "======== InvErrFoncRationel(-1*2,2+1)=" << InvErrFoncRationel(-1*2,2+1) << ", (0,2+1)=" << InvErrFoncRationel(0,2+1) << ", (1*2,2+1)=" << InvErrFoncRationel(1*2,2+1) << "\n"; 
+}
+
+
+/* Recursive function that :
+ * - in the firt place genreates ficticious points from eigenvectors and eigen vallues
+ * - secondly, verifies that the eigenvalues calculated on the new points are equal to old eigen values
+ * - corrects the new eigenvalues with a FCorrect
+ *
+ * RedFac is used to fit points inside the image if they fall outside
+ *
+ * */
+void cGenGaus3D::GetDistr5Points(std::vector<Pt3dr> & aVPts,double aRedFac)
+{
+
+
+	int aNbPts = int(aVPts.size());
+
+	if (aNbPts)
+	{
+
+		double aFCorrect1 = 0;
+		double aFCorrect2 = 0;
+		double aFCorrect3 = 0;
+		
+		/* Apply a scaling factor to fit points in the images */
+		if (aRedFac!=1.0)
+		{
+	 	   aFCorrect1 = aRedFac;
+	 	   aFCorrect2 = aRedFac;
+	 	   aFCorrect3 = aRedFac;
+
+		}
+		/* Normalize the eigen values to fit the eigen values of the initial ellipse */
+		else
+		{
+	        cXml_Elips3D  anEl;
+         
+            RazEllips(anEl);
+            for (int aK=0 ; aK<aNbPts ; aK++)
+            {
+                 AddEllips(anEl,aVPts.at(aK),1.0);
+            }
+            NormEllips(anEl);
+         
+            cGenGaus3D aGG1(anEl);
+         
+         
+	 	   aFCorrect1 = mVP[0]/aGG1.ValP(0);
+	 	   aFCorrect2 = mVP[1]/aGG1.ValP(1);
+	 	   aFCorrect3 = mVP[2]/aGG1.ValP(2);
+
+		}
+
+        Pt3dr aFact1 =  mVecP[0] * (aFCorrect1 * mVP[0]);
+        Pt3dr aFact2 =  mVecP[1] * (aFCorrect2 * mVP[1]);
+        Pt3dr aFact3 =  mVecP[2] * (aFCorrect3 * mVP[2]);
+     
+	 	GetDistr5PointsFromVP(aFact1,aFact2,aFact3,aVPts);
+	 	
+		//std::cout << "aRedFac=" << aRedFac << ", val propre=" << aFCorrect1 << " " << aFCorrect2 << " " << aFCorrect3 << "\n";
+	 	//std::cout << "vec propre2=" << mVecP[0] << " " << mVecP[1]  << " " << mVecP[2] << "\n";
+	 	//std::cout << "           " << aGG1.VecP(0) << " " << aGG1.VecP(1) << " " << aGG1.VecP(2) << "\n";
+
+	}
+	/* The generation of the 3D points. 
+	 * First pure generation with no scaling, no normalisation. 
+	 * Then apply normalisation */
+	else
+	{
+    
+        //
+        Pt3dr aFact1 =  mVecP[0] * mVP[0];
+        Pt3dr aFact2 =  mVecP[1] * mVP[1];
+        Pt3dr aFact3 =  mVecP[2] * mVP[2];
+
+	 	//std::cout << "vec propre1=" << mVecP[0] << " " << mVecP[1]  << " " << mVecP[2] << "\n" 
+		//		  << mVP[0] << " " << mVP[1] << " " << mVP[2] << "\n";
+    
+		GetDistr5PointsFromVP(aFact1,aFact2,aFact3,aVPts);
+    
+		/* Normalise */
+		GetDistr5Points(aVPts);
+	}
+}
+
 
 void cGenGaus3D::GetDistribGausNSym(std::vector<Pt3dr> & aVPts,int aN1,int aN2,int aN3,bool aAddPts)
 {
@@ -291,6 +426,32 @@ void cGenGaus2D::GetDistribGaus(std::vector<Pt2dr> & aVPts,int aN1,int aN2)
    }
 }
 
+void cGenGaus2D::GetDistr3Points(std::vector<Pt2dr> & aVPts)
+{
+    aVPts.clear();
+
+    int aMult=2;
+
+    //
+    Pt2dr aFact1 =  mVecP[0] * (FactCorrectif(aMult) * mVP[0]);
+    Pt2dr aFact2 =  mVecP[1] * (FactCorrectif(aMult) * mVP[1]);
+
+
+    std::cout << "mVecP[0]=" << mVecP[0] << ", mVP[0]=" << mVP[0] << "\n";
+    std::cout << "mVecP[1]=" << mVecP[1] << ", mVP[1]=" << mVP[1] << "\n";
+
+    getchar();
+
+    // InvErrFoncRationel : probability that the fonction takes a value <-1/aMult, 1/aMult>
+    Pt2dr aP;
+    aP = mCDG + aFact1 * InvErrFoncRationel(1,aMult)
+              + aFact2 * InvErrFoncRationel(1,aMult); //Inv(p/q)
+
+    std::cout << "aFact1=" << aFact1 << " InvErrFoncRationel(1,aMult)=" << InvErrFoncRationel(1,aMult) << "\n aFact2=" << aFact2 << "\n";
+
+    
+	
+}
 
 const double & cGenGaus3D::ValP(int aK) const { return mVP[aK]; }
 const Pt3dr &  cGenGaus3D::VecP(int aK) const { return mVecP[aK]; }

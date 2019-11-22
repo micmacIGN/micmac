@@ -53,56 +53,119 @@ void  cAppli_Vino::AimeVisu()
    if (aScale < 1.0)
       return;
 
-   for (const auto  & aPC : mAimePCar.Pts())
+   for (const auto  & aVPC : mAimePCar)
    {
-       Pt2dr aPI = aPC.Pt();
-       Pt2dr aPW = aSim(aPI);
-       if (   (aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
+       bool IsMax = aVPC.IsMax();
+       // Pt2dr  aFastCrit = FastQuality(aTStd,mAimeCW,*aFCC,!mAimePCar.IsMin(),Pt2dr(0.7,0.8));
+       Pt3di  aCoulOk(0,255,0);  // Green
+       if (aVPC.NameTypePt() == "Corner")
        {
-          int aCoul = aPC.OKAc() ? P8COL::green : P8COL::red;
-           mW->draw_circle_abs(aPW,1*aScale*aPC.ScaleAbs(),mW->pdisc()(aCoul));
+       }
+       else if (aVPC.NameTypePt() == "LaplG")
+       {
+           aCoulOk = Pt3di(0,0,255);  // blue
+       }
+       else if (aVPC.NameTypePt() == "OriNorm")
+       {
+           aCoulOk = Pt3di(0,255,255);  // cyan
+       }
+       else if (aVPC.NameTypePt() == "Init")
+       {
+           aCoulOk = Pt3di(128,128,128);  // gray ???
+       }
+       else
+       {
+           std::cout <<  "TYPE=[" << aVPC.NameTypePt() << "]\n";
+           ELISE_ASSERT(false,"Unknown type");
+       }
+       for (const auto  & aPC : aVPC.Pts())
+       {
+           Pt2dr aPI = aPC.PtAff();
+           Pt2dr aPW = aSim(aPI);
+           if (   (aPW.x>0) && (aPW.y>0) && (aPW.x<SzW().x) && (aPW.y<SzW().y))
+           {
+               Pt3di aCoul = aCoulOk;
+               if (!aPC.SFSelected())
+               {
+                  aCoul = Pt3di(255,255,0); // yellow
+               }
+               if (!aPC.OKLP())
+               {
+                  aCoul = Pt3di(255,128,0); // orange
+               }
+               if (!aPC.Stable())
+               {
+                  aCoul = Pt3di(255,0,255); // magenta
+               }
+               if (!aPC.OKAc())
+               {
+                  aCoul = Pt3di(255,0,0); // red
+               }
+           
+               if ((aCoul==aCoulOk) || mAimeShowFailed )
+               {
+                  double aRay = 1*aScale*aPC.ScaleAbs();
+                  mW->draw_circle_abs(aPW,aRay,mW->prgb()(aCoul.x,aCoul.y,aCoul.z));
+// mW->draw_circle_abs(aPW,aRay+3,mW->prgb()(255,0,0));
+                  if (0 && aPC.ChgMaj())
+                  {
+                      // mW->draw_circle_abs(aPW,aRay+2,mW->pdisc()(aCoul));
+                      // mW->draw_circle_abs(aPW,aRay+4,mW->pdisc()(aCoul));
+                  }
+                  Pt2dr aDir(0,IsMax ? -1 : 1);
+                  mW->draw_seg(aPW,aPW+aDir*aRay,mW->prgb()(aCoul.x,aCoul.y,aCoul.z));
+                  mW->draw_seg(aPW,aSim(aPC.PtInit()),mW->prgb()(aCoul.x,aCoul.y,aCoul.z));
+               }
+           }
        }
    }
 }
 
-const cXml2007Pt *  cAppli_Vino::AimeGetPC(const Pt2dr & aPU)
+const cXml2007Pt *  cAppli_Vino::AimeGetPC(const Pt2dr & aPU,const cXml2007SetPtOneType** aSet)
 {
+   *aSet = nullptr;
    const cXml2007Pt * aRes = nullptr;
    double aDMin = 1e10;
 
-   for (const auto  & aPC : mAimePCar.Pts())
+   for (const auto  & aVPC : mAimePCar)
    {
-      double aD = euclid(aPU,aPC.Pt());
-      if (aD < aDMin)
-      {
-         aDMin = aD;
-         aRes = & aPC;
-      }
+       for (const auto  & aPC : aVPC.Pts())
+       {
+          if (mAimeShowFailed || ( aPC.SFSelected() && aPC.OKLP() && aPC.Stable() && aPC.OKAc()))
+          {
+              double aD = euclid(aPU,aPC.PtAff());
+              if (aD < aDMin)
+              {
+                 aDMin = aD;
+                 aRes = & aPC;
+                 *aSet=&(aVPC);
+              }
+         }
+       }
    }
    return aRes;
 }
 
 Im2D_REAL4 cAppli_Vino::LoadAimePC(const cXml2007Pt & aPC,const std::string & aNameType,Video_Win * aW)
 {
-   std::string aName =
-       std::string("Aime-")
-   +   aNameType
-   +   std::string("-o") + ToString(aPC.NumOct())
-   +   std::string("_i") + ToString(aPC.NumIm())
-   +   std::string("-") 
-   +   StdPrefix(mNameIm)
-   +   "-Tile00.tif";
+    
+   std::string aName =   mDirAime
+                       +"STD-Ima-" 
+                       +   aNameType
+                       +   std::string("-o") + ToString(aPC.NumOct())
+                       +   std::string("_i") + ToString(aPC.NumIm())
+                       +   "-Tile0_0.tif";
 
    Tiff_Im aTif(aName.c_str());
    Pt2di aSzTif = aTif.sz();
 
    int aZoomIm = (1 << aPC.NumOct());
-   Pt2dr aP1 = aPC.Pt() -  Pt2dr( mAimeCW *aZoomIm) ;
-   Pt2dr aP2 = aPC.Pt() +  Pt2dr( mAimeCW * aZoomIm);
+   Pt2dr aP1 = aPC.PtAff() -  Pt2dr( mAimeCW *aZoomIm) ;
+   Pt2dr aP2 = aPC.PtAff() +  Pt2dr( mAimeCW * aZoomIm);
    ElSimilitude aU2W = mScr->to_win();
    mW->draw_rect(aU2W(aP1),aU2W(aP2),mW->pdisc()(P8COL::yellow));
    
-   Pt2di aPTif = round_ni(aPC.Pt()) /  aZoomIm;
+   Pt2di aPTif = round_ni(aPC.PtAff()) /  aZoomIm;
  
 
 
@@ -148,14 +211,16 @@ Im2D_REAL4 cAppli_Vino::LoadAimePC(const cXml2007Pt & aPC,const std::string & aN
    return aRes;
 }
 
-Im2D_REAL4 cAppli_Vino::StdLoadAimePC(const cXml2007Pt & aPC)
+Im2D_REAL4 cAppli_Vino::StdLoadAimePC(const cXml2007Pt & aPC,const cXml2007SetPtOneType* aSet)
 {
-     return LoadAimePC(aPC,mAimePCar.NameTypePt(),mAimWStd);
+     return LoadAimePC(aPC,aSet->NameTypePt(),mAimWStd);
 }
-Im2D_REAL4  cAppli_Vino::I0LoadAimePC(const cXml2007Pt & aPC)
+Im2D_REAL4  cAppli_Vino::I0LoadAimePC(const cXml2007Pt & aPC,const cXml2007SetPtOneType* aSet)
 {
      return LoadAimePC(aPC,"Init",mAimWI0);
 }
+/*
+*/
 
 #define TT_SEUIL_AutoCorrel  0.90          // Seuil d'elimination par auto-correlation
 #define TT_SEUIL_CutAutoCorrel_INT 0.70    // Seuil d'acceptation rapide par auto correl entiere
@@ -165,11 +230,33 @@ Im2D_REAL4  cAppli_Vino::I0LoadAimePC(const cXml2007Pt & aPC)
 #define TT_Rho1 5.0
 #define TT_SzW1 3
 
+void cAppli_Vino::AimeShowProfil(Im2D_U_INT1 aILP,int aMode)
+{
+     int aNbTeta = aILP.sz().x;
+     int aNbRho = aILP.sz().y;
+     Fonc_Num aF = aILP.in();
+     if (aMode==1)
+     {
+        aF = Abs(aILP.in()-aILP.in()[Virgule((FX+1)%aNbTeta,FY)]);
+     }
+     if (aMode==2)
+     {
+        aF = Abs(aILP.in()-aILP.in()[Virgule(FX,FY+1)]);
+        aNbRho--;
+     }
+     Im1D_REAL4 aHist(aNbTeta,0.0);
+     ELISE_COPY
+     (
+        rectangle(Pt2di(0,0),Pt2di(aNbTeta,aNbRho)),
+        aF,
+        aHist.histo().chc(FX)
+     );
+}
 
 void  cAppli_Vino::InspectAime(const Pt2dr & aPW_Clik)
 {
-   static cFastCriterCompute * aFCC0 = cFastCriterCompute::Circle(3.0);
-   static cFastCriterCompute * aFCC1 = cFastCriterCompute::Circle(5.0);
+   // static cFastCriterCompute * aFCC0 = cFastCriterCompute::Circle(3.0);
+   // static cFastCriterCompute * aFCC1 = cFastCriterCompute::Circle(5.0);
 
    ElSimilitude aU2W = mScr->to_win();
    double aScale = euclid(aU2W.sc());
@@ -177,17 +264,20 @@ void  cAppli_Vino::InspectAime(const Pt2dr & aPW_Clik)
 
    Pt2dr aPU_Clik = aW2U(aPW_Clik);
 
-   const cXml2007Pt * aPC =   AimeGetPC(aPU_Clik);
-   Pt2dr aPWCar = aU2W(aPC->Pt());
+   const cXml2007SetPtOneType* aSet;
+   const cXml2007Pt * aPC =   AimeGetPC(aPU_Clik,&aSet);
+   Pt2dr aPWCar = aU2W(aPC->PtAff());
 
-   mW->draw_circle_abs(aPWCar,1*aScale*aPC->ScaleAbs(),mW->pdisc()(P8COL::yellow));
+   mW->draw_circle_abs(aPWCar,1*aScale*aPC->ScaleAbs()+4,mW->pdisc()(P8COL::white));
 
    double aSA =  aPC->ScaleAbs() ;
    double aSO =  aPC->ScaleInO() ;
-   std::cout << " SAbs=" << aSA << " SO=" << aSO  << "\n";
+   std::cout << "  SAbs=" << aSA 
+             << " SO=" << aSO  
+             << " DMov= " << euclid(aPC->PtInit(),aPC->PtAff()) / aPC->ScaleAbs() << "\n";
 
 
-   Im2D_REAL4 aImStd = StdLoadAimePC(*aPC);
+   Im2D_REAL4 aImStd = StdLoadAimePC(*aPC,aSet);
    if (aImStd.sz().x == 1)
    {
       std::cout << "oooooooooooOUT\n";
@@ -195,35 +285,63 @@ void  cAppli_Vino::InspectAime(const Pt2dr & aPW_Clik)
    }
    TIm2D<REAL4,REAL8> aTStd(aImStd);
 
-   Im2D_REAL4 aImInit = I0LoadAimePC(*aPC);
+   Im2D_REAL4 aImInit = I0LoadAimePC(*aPC,aSet);
    TIm2D<REAL4,REAL8> aTInit(aImInit);
 
-   std::cout  << "PXml, Fast " <<  aPC->FastStd() << " Cor " << aPC->AutoCor() << "\n";
+   std::cout  << "  PXml   Var=" << aPC->Var()  << " Cor=" << aPC->AutoCor() << "\n";
+   std::cout  << "  IDENT=" << aPC->Id()   << " Score=" << aPC->Score() << "\n";
 
-   for (int aK=0 ; aK<2 ; aK++)
+   for (int aK=1 ; aK<2 ; aK++)
    {    
-       cFastCriterCompute * aFCC = (aK==0) ? aFCC0 : aFCC1;
-       Pt2dr  aFastCrit = FastQuality(aTStd,mAimeCW,*aFCC,!mAimePCar.IsMin(),Pt2dr(0.7,0.8));
+       // cFastCriterCompute * aFCC = (aK==0) ? aFCC0 : aFCC1;
+       // Pt2dr  aFastCrit = FastQuality(aTStd,mAimeCW,*aFCC,!mAimePCar.IsMin(),Pt2dr(0.7,0.8));
+       // std::cout << "Fast=" << aFastCrit 
 
        double aRho = (aK==0)  ? TT_Rho0  : TT_Rho1;
        int    aSzW0 = (aK==0)  ? TT_SzW0  : TT_SzW1;
        int    aSzW  = round_ni(aSzW0 * aSO);
        aRho = aRho * (aSzW / double(aSzW0));
 
+/*
        cCutAutoCorrelDir<TIm2D<float,double>> aCutACD(aTInit,Pt2di(0,0),aRho,aSzW);
 
        bool  aOK = aCutACD.AutoCorrel(mAimeCW,TT_SEUIL_CutAutoCorrel_INT,TT_SEUIL_CutAutoCorrel_REEL,TT_SEUIL_AutoCorrel);
-       std::cout << "Fast=" << aFastCrit << " AUTOC " <<  aOK  << " Cor=" << aCutACD.mCorOut << " N="<< aCutACD.mNumOut << "Param " << aRho<< " " << aSzW  << "\n";
+       std::cout  << " AUTOC " <<  aOK  << " Cor=" << aCutACD.mCorOut << " N="<< aCutACD.mNumOut << "Param " << aRho<< " " << aSzW  << "\n";
 
+*/
         if (aK==1)
         {
-            Pt2dr aSc;
-            aCutACD.AutoCorrel(mAimeCW,1,1,1,&aSc);
+            // Pt2dr aSc;
+            // aCutACD.AutoCorrel(mAimeCW,1,1,1,&aSc);
             mAimWI0->draw_circle_abs(Pt2dr(mAimeCW),3.0,mAimWI0->pdisc()(P8COL::green));
             mAimWI0->draw_circle_loc(Pt2dr(mAimeCW),aRho,mAimWI0->pdisc()(P8COL::green));
-            std::cout << "SC= " << aSc << "\n";
+            // std::cout << "SC= " << aSc << "\n";
         }
         mAimWStd->draw_circle_loc(Pt2dr(mAimeCW),aRho,mAimWStd->pdisc()(P8COL::green));
+   }
+   std::cout << "  =================================================\n\n";
+
+   {
+       Im2D_U_INT1 aILP = aPC->ImLP();
+       Pt2di aSz = aILP.sz();
+       if (aSz.x > 1)
+       {
+           ELISE_COPY
+           (
+                aILP.all_pts(),
+                Max(0,Min(255,128 + 2*(aILP.in()-128))),
+                mAimWLP->ogray() // | VMax(aMax) | VMin(aMin)
+           );
+           ELISE_COPY
+           (
+                border_rect(Pt2di(-1,-1),aSz+Pt2di(1,1)),
+                Virgule(255,128,0),
+                mAimWLP->orgb() // | VMax(aMax) | VMin(aMin)
+           );
+           AimeShowProfil(aILP,0);
+           AimeShowProfil(aILP,1);
+           AimeShowProfil(aILP,2);
+       }
    }
 
 

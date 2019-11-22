@@ -40,7 +40,8 @@ extern const std::string GIP_DirProjGMA;     ///< Dir Proj of Global Main Applic
 
 
 // Folders
-extern const std::string TmpMMVIIDir;
+extern const std::string TmpMMVIIDirGlob;
+extern const std::string TmpMMVIIDirPCar;
 extern const std::string MMVIITestDir;
 extern const std::string TmpMMVIIProcSubDir;
 
@@ -57,9 +58,15 @@ extern const std::string  MMv1XmlTag_RelName;
 extern const   std::string DirBin2007;  ///< computed by MM Instal
 extern const   std::string Bin2007; ///< MMVII 4 now
 
+// PostFix 4 files
+extern const   std::string PostF_XmlFiles; ///< xml now
+extern const   std::string PostF_DumpFiles; ///< dmp now
+const   std::string & StdPostF_ArMMVII(bool xml); ///< one of 2 above
+
 // Users Value
 
 extern const   std::string MMVII_NONE;  ///< For command, each time a "no value" can be used
+extern const   std::string MMVII_StdDest;  ///< For destination parameter (TieP ...) , def value
 
  /*=====================================================*/
  /*                                                     */

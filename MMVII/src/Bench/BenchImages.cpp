@@ -28,7 +28,6 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
     {
        cPt2di aSzR = aP1-aP0;
        cPt2di aSz(aSzR.x(),aSzR.x());
-
        cIm2D<Type> aPIm(aSz,nullptr,eModeInitImage::eMIA_MatrixId);
        cDataIm2D<Type>  & aIm = aPIm.DIm();
        int aCpt=0;
@@ -38,6 +37,7 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
            Type aV2 = aIm.GetV(aP);
            MMVII_INTERNAL_ASSERT_bench(aV1==aV2,"Bench image error");
            MMVII_INTERNAL_ASSERT_bench(aCpt==aIm.IndexeLinear(aP),"Bench image error");
+           MMVII_INTERNAL_ASSERT_bench(aP==aIm.FromIndexeLinear(aCpt),"Bench image error");
            aCpt++;
            cPt2dr aPNorm = aIm.ToNormaliseCoord(aP);
            cPt2di aPAgain = aIm.FromNormaliseCoord(aPNorm);
@@ -53,6 +53,11 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
 
        cDataIm2D<Type>  & aIm = aPIm.DIm();
        aIm.InitRandom();
+       cPt2di aPMax = WhitchMax(aIm) ;
+       for (const auto & aP : aRect)
+       {
+           MMVII_INTERNAL_ASSERT_bench(aIm.GetV(aPMax)>=aIm.GetV(aP),"Bench image error");
+       }
        cPt2di aPRand (aIm.GeneratePointInside());
        tINT8 aIndRand  = aIm.IndexeLinear(aPRand);
        MMVII_INTERNAL_ASSERT_bench(aIm.GetV(aPRand)==aIm.GetRDL(aIndRand),"Bench image error");
@@ -176,9 +181,46 @@ template <class Type> void TestOneImage2D()
    TestOneImage2D<Type>(cPt2di(-35,-32),cPt2di(-28,-25));
 }
 
+
+template <class Type> void TestInterBL(cPt2di aSz,Type aCste,Type aCoeffX,Type aCoeffY,Type aCXY)
+{
+    cIm2D<Type> aIm(aSz);
+    cDataIm2D<Type>& aDIm(aIm.DIm());
+
+    for (const auto & aP : aDIm)
+    {
+        Type aVal = aCste + aCoeffX * aP.x() + aCoeffY * aP.y() + aCXY * aP.x() * aP.y();
+        aDIm.SetV(aP,aVal);
+    }
+
+    for (int aNb=0 ; aNb<10000 ; aNb++)
+    {
+        double UnMinEpsilon = 0.99999;
+        cPt2dr aP(RandUnif_0_1() * (aSz.x()-1),RandUnif_0_1()*(aSz.y()-1));
+        aP = UnMinEpsilon * aP;
+        double aV1 = aCste + aCoeffX * aP.x() + aCoeffY * aP.y() + aCXY * aP.x() * aP.y();
+        double aV2 = aDIm.GetVBL(aP);
+        if(std::abs(aV1-aV2)>1e-5)
+        {
+             StdOut() << aP << "V1 " << aV1 << " dif " << aV1-aV2 << "\n";
+             MMVII_INTERNAL_ASSERT_bench(false,"Bench image error");
+        }
+    }
+}
+
 void BenchGlobImage2d()
 {
     cMemState  aState = cMemManager::CurState() ;
+    {
+         TestInterBL<tINT1>(cPt2di(10,10),-3,2,-5,0);
+         TestInterBL<tU_INT1>(cPt2di(10,10), 3,5, 2,0);
+
+         TestInterBL<tINT1>(cPt2di(8,8),-3,2,-5,-1);
+         TestInterBL<tU_INT1>(cPt2di(8,8), 3,5, 2,1);
+
+         TestInterBL<tREAL4>(cPt2di(10,10),-3.14,2.12,-5.988,-1.677);
+         TestInterBL<tREAL8>(cPt2di(10,10), 3.89,5.73, 2.0001,1.007);
+    }
     {
         TestOneImage2D<tREAL4>(cPt2di(2,2),cPt2di(4,5));
 
@@ -328,6 +370,7 @@ void TestInitIm1D(int aX0, int aX1)
   static int aCpt=0; aCpt++;
   cIm1D<double> aI(aX0+1,aX1-1);
   aI.DIm().Resize(cPt1di(aX0),cPt1di(aX1));
+  int aSz = aX1 - aX0;
   if (aCpt%2)
   {
      aI.DIm().Resize(cPt1di(aX0-10),cPt1di(aX1+10));
@@ -357,6 +400,13 @@ void TestInitIm1D(int aX0, int aX1)
      MMVII_INTERNAL_ASSERT_bench(aDif<1e-15,"Bench image-1D error");
      MMVII_INTERNAL_ASSERT_bench(std::abs(aV0-aV2)<1e-15,"Bench image-1D error");
   }
+
+  MMVII_INTERNAL_ASSERT_bench(aDI.GetV(aX0+1)==aDI.CircGetV(aX0+1-aSz) ,"Bench image-1D error");
+  MMVII_INTERNAL_ASSERT_bench(aDI.GetV(aX0+aSz-1)==aDI.CircGetV(aX0-1) ,"Bench image-1D error");
+  MMVII_INTERNAL_ASSERT_bench(aDI.GetV(aX0+aSz-1)==aDI.CircGetV(aX0-1) ,"Bench image-1D error");
+  MMVII_INTERNAL_ASSERT_bench(aDI.GetV(aX0+1)==aDI.CircGetV(aX0+1+44*aSz) ,"Bench image-1D error");
+  MMVII_INTERNAL_ASSERT_bench(aDI.GetV(aX0+1)==aDI.CircGetV(aX0+1-44*aSz) ,"Bench image-1D error");
+
 }
 
 void BenchIm1D()

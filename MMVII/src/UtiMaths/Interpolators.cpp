@@ -6,7 +6,7 @@ namespace MMVII
 tREAL8 CubAppGaussVal(const tREAL8& aV)
 {
    tREAL8 aAbsV = std::abs(aV);
-   if (aAbsV<1.0) return 0.0;
+   if (aAbsV>1.0) return 0.0;
 
    tREAL8 aAV2 = Square(aAbsV);
 

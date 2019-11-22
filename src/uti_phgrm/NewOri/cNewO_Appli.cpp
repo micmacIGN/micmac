@@ -86,11 +86,10 @@ cCommonMartiniAppli::cCommonMartiniAppli() :
               << EAM(mDebug,"Debug",true,"Debug ....")  
               << EAM(mAcceptUnSym,"AUS",true,"Accept non symetric homologous point;")  
               << EAM(mQuick,"Quick",true,"If true (default) do less test")  
-              << EAM(mTStdNbMaxTriplet,"StdNbPtTrip",true,"Min num of triple points for a triplet (Std mode)")  
-              << EAM(mTQuickNbMaxTriplet,"QNbPtTrip",true,"Min num of triple points for a triplet (Quick mode)")  
-              << EAM(mTNbMinTriplet,"NbTrip",true,"Max num of triplets per edge")  
+              << EAM(mTStdNbMaxTriplet,"StdNbPtTrip",true,"Max num of triplets per edge (Std mode)")  
+              << EAM(mTQuickNbMaxTriplet,"QNbPtTrip",true,"Max num of triplets per edge (Quick mode), Def=8")  
+              << EAM(mTNbMinTriplet,"NbTrip",true,"Min num of points to calculate a triplet")  
               << EAM(mShow,"Show",true,"If true (non default) print (a lot of) messages")  ;
-
 
 }
 
@@ -152,6 +151,10 @@ std::string    cCommonMartiniAppli::ComParam()
    if (EAMIsInit(&mOriGPS))        aCom += " OriGPS="    + mOriGPS;
    if (EAMIsInit(&mOriCheck))      aCom += " OriCheck="    + mOriCheck;
    if (EAMIsInit(&mDebug))         aCom += " Debug="     + ToString(mDebug);
+   if (EAMIsInit(&mTStdNbMaxTriplet)) aCom += " StdNbPtTrip="     + ToString(mTStdNbMaxTriplet);
+   if (EAMIsInit(&mTQuickNbMaxTriplet)) aCom += " QNbPtTrip="     + ToString(mTQuickNbMaxTriplet);
+   if (EAMIsInit(&mTNbMinTriplet)) aCom += " NbTrip="     + ToString(mTNbMinTriplet);
+
 
    return aCom;
 }

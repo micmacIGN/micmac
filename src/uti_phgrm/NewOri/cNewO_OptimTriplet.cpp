@@ -303,7 +303,9 @@ double cPairOfTriplet::ResiduMoy(const ElRotation3D & aR1,const ElRotation3D & a
             double aRes1 = Residu(mIm1->Im(),aR1,aI,mFullVP1[aK]);
             double aRes2 = Residu(mIm2->Im(),aR2,aI,mFullVP2[aK]);
 
-            aVRes.push_back((aRes1+aRes2)/2.0);
+			if(! isnan((aRes1+aRes2)/2.0))
+            	aVRes.push_back((aRes1+aRes2)/2.0);
+
         }
     }
     return MedianeSup(aVRes);

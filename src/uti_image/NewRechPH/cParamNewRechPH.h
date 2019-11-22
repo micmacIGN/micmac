@@ -960,8 +960,14 @@ class cXml2007Pt
         friend void xml_init(cXml2007Pt & anObj,cElXMLTree * aTree);
 
 
-        Pt2dr & Pt();
-        const Pt2dr & Pt()const ;
+        Pt2dr & PtInit();
+        const Pt2dr & PtInit()const ;
+
+        Pt2dr & PtAff();
+        const Pt2dr & PtAff()const ;
+
+        int & Id();
+        const int & Id()const ;
 
         int & NumOct();
         const int & NumOct()const ;
@@ -975,17 +981,20 @@ class cXml2007Pt
         double & ScaleAbs();
         const double & ScaleAbs()const ;
 
-        double & Val();
-        const double & Val()const ;
+        double & Score();
+        const double & Score()const ;
+
+        double & ScoreRel();
+        const double & ScoreRel()const ;
+
+        std::vector<double> & VectRho();
+        const std::vector<double> & VectRho()const ;
+
+        std::vector<double> & VectDir();
+        const std::vector<double> & VectDir()const ;
 
         double & Var();
         const double & Var()const ;
-
-        double & FastStd();
-        const double & FastStd()const ;
-
-        double & FastConx();
-        const double & FastConx()const ;
 
         double & AutoCor();
         const double & AutoCor()const ;
@@ -995,19 +1004,42 @@ class cXml2007Pt
 
         bool & OKAc();
         const bool & OKAc()const ;
+
+        bool & OKLP();
+        const bool & OKLP()const ;
+
+        bool & SFSelected();
+        const bool & SFSelected()const ;
+
+        bool & Stable();
+        const bool & Stable()const ;
+
+        bool & ChgMaj();
+        const bool & ChgMaj()const ;
+
+        Im2D_U_INT1 & ImLP();
+        const Im2D_U_INT1 & ImLP()const ;
     private:
-        Pt2dr mPt;
+        Pt2dr mPtInit;
+        Pt2dr mPtAff;
+        int mId;
         int mNumOct;
         int mNumIm;
         double mScaleInO;
         double mScaleAbs;
-        double mVal;
+        double mScore;
+        double mScoreRel;
+        std::vector<double> mVectRho;
+        std::vector<double> mVectDir;
         double mVar;
-        double mFastStd;
-        double mFastConx;
         double mAutoCor;
         int mNumChAC;
         bool mOKAc;
+        bool mOKLP;
+        bool mSFSelected;
+        bool mStable;
+        bool mChgMaj;
+        Im2D_U_INT1 mImLP;
 };
 cElXMLTree * ToXMLTree(const cXml2007Pt &);
 
@@ -1020,19 +1052,19 @@ std::string  Mangling( cXml2007Pt *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
-class cXml2007FilePt
+class cXml2007SetPtOneType
 {
     public:
         cGlobXmlGen mGXml;
 
-        friend void xml_init(cXml2007FilePt & anObj,cElXMLTree * aTree);
+        friend void xml_init(cXml2007SetPtOneType & anObj,cElXMLTree * aTree);
 
 
-        std::list< cXml2007Pt > & Pts();
-        const std::list< cXml2007Pt > & Pts()const ;
+        std::vector< cXml2007Pt > & Pts();
+        const std::vector< cXml2007Pt > & Pts()const ;
 
-        bool & IsMin();
-        const bool & IsMin()const ;
+        bool & IsMax();
+        const bool & IsMax()const ;
 
         int & TypePt();
         const int & TypePt()const ;
@@ -1040,18 +1072,18 @@ class cXml2007FilePt
         std::string & NameTypePt();
         const std::string & NameTypePt()const ;
     private:
-        std::list< cXml2007Pt > mPts;
-        bool mIsMin;
+        std::vector< cXml2007Pt > mPts;
+        bool mIsMax;
         int mTypePt;
         std::string mNameTypePt;
 };
-cElXMLTree * ToXMLTree(const cXml2007FilePt &);
+cElXMLTree * ToXMLTree(const cXml2007SetPtOneType &);
 
-void  BinaryDumpInFile(ELISE_fp &,const cXml2007FilePt &);
+void  BinaryDumpInFile(ELISE_fp &,const cXml2007SetPtOneType &);
 
-void  BinaryUnDumpFromFile(cXml2007FilePt &,ELISE_fp &);
+void  BinaryUnDumpFromFile(cXml2007SetPtOneType &,ELISE_fp &);
 
-std::string  Mangling( cXml2007FilePt *);
+std::string  Mangling( cXml2007SetPtOneType *);
 
 /******************************************************/
 /******************************************************/

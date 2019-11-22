@@ -2902,14 +2902,36 @@ void xml_init(cXmlAimeParamApprentissage & anObj,cElXMLTree * aTree)
 std::string  Mangling( cXmlAimeParamApprentissage *) {return "E9703653668F268FFE3F";};
 
 
-Pt2dr & cXml2007Pt::Pt()
+Pt2dr & cXml2007Pt::PtInit()
 {
-   return mPt;
+   return mPtInit;
 }
 
-const Pt2dr & cXml2007Pt::Pt()const 
+const Pt2dr & cXml2007Pt::PtInit()const 
 {
-   return mPt;
+   return mPtInit;
+}
+
+
+Pt2dr & cXml2007Pt::PtAff()
+{
+   return mPtAff;
+}
+
+const Pt2dr & cXml2007Pt::PtAff()const 
+{
+   return mPtAff;
+}
+
+
+int & cXml2007Pt::Id()
+{
+   return mId;
+}
+
+const int & cXml2007Pt::Id()const 
+{
+   return mId;
 }
 
 
@@ -2957,14 +2979,47 @@ const double & cXml2007Pt::ScaleAbs()const
 }
 
 
-double & cXml2007Pt::Val()
+double & cXml2007Pt::Score()
 {
-   return mVal;
+   return mScore;
 }
 
-const double & cXml2007Pt::Val()const 
+const double & cXml2007Pt::Score()const 
 {
-   return mVal;
+   return mScore;
+}
+
+
+double & cXml2007Pt::ScoreRel()
+{
+   return mScoreRel;
+}
+
+const double & cXml2007Pt::ScoreRel()const 
+{
+   return mScoreRel;
+}
+
+
+std::vector<double> & cXml2007Pt::VectRho()
+{
+   return mVectRho;
+}
+
+const std::vector<double> & cXml2007Pt::VectRho()const 
+{
+   return mVectRho;
+}
+
+
+std::vector<double> & cXml2007Pt::VectDir()
+{
+   return mVectDir;
+}
+
+const std::vector<double> & cXml2007Pt::VectDir()const 
+{
+   return mVectDir;
 }
 
 
@@ -2976,28 +3031,6 @@ double & cXml2007Pt::Var()
 const double & cXml2007Pt::Var()const 
 {
    return mVar;
-}
-
-
-double & cXml2007Pt::FastStd()
-{
-   return mFastStd;
-}
-
-const double & cXml2007Pt::FastStd()const 
-{
-   return mFastStd;
-}
-
-
-double & cXml2007Pt::FastConx()
-{
-   return mFastConx;
-}
-
-const double & cXml2007Pt::FastConx()const 
-{
-   return mFastConx;
 }
 
 
@@ -3033,54 +3066,133 @@ const bool & cXml2007Pt::OKAc()const
    return mOKAc;
 }
 
+
+bool & cXml2007Pt::OKLP()
+{
+   return mOKLP;
+}
+
+const bool & cXml2007Pt::OKLP()const 
+{
+   return mOKLP;
+}
+
+
+bool & cXml2007Pt::SFSelected()
+{
+   return mSFSelected;
+}
+
+const bool & cXml2007Pt::SFSelected()const 
+{
+   return mSFSelected;
+}
+
+
+bool & cXml2007Pt::Stable()
+{
+   return mStable;
+}
+
+const bool & cXml2007Pt::Stable()const 
+{
+   return mStable;
+}
+
+
+bool & cXml2007Pt::ChgMaj()
+{
+   return mChgMaj;
+}
+
+const bool & cXml2007Pt::ChgMaj()const 
+{
+   return mChgMaj;
+}
+
+
+Im2D_U_INT1 & cXml2007Pt::ImLP()
+{
+   return mImLP;
+}
+
+const Im2D_U_INT1 & cXml2007Pt::ImLP()const 
+{
+   return mImLP;
+}
+
 void  BinaryUnDumpFromFile(cXml2007Pt & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.Pt(),aFp);
+     BinaryUnDumpFromFile(anObj.PtInit(),aFp);
+    BinaryUnDumpFromFile(anObj.PtAff(),aFp);
+    BinaryUnDumpFromFile(anObj.Id(),aFp);
     BinaryUnDumpFromFile(anObj.NumOct(),aFp);
     BinaryUnDumpFromFile(anObj.NumIm(),aFp);
     BinaryUnDumpFromFile(anObj.ScaleInO(),aFp);
     BinaryUnDumpFromFile(anObj.ScaleAbs(),aFp);
-    BinaryUnDumpFromFile(anObj.Val(),aFp);
+    BinaryUnDumpFromFile(anObj.Score(),aFp);
+    BinaryUnDumpFromFile(anObj.ScoreRel(),aFp);
+    BinaryUnDumpFromFile(anObj.VectRho(),aFp);
+    BinaryUnDumpFromFile(anObj.VectDir(),aFp);
     BinaryUnDumpFromFile(anObj.Var(),aFp);
-    BinaryUnDumpFromFile(anObj.FastStd(),aFp);
-    BinaryUnDumpFromFile(anObj.FastConx(),aFp);
     BinaryUnDumpFromFile(anObj.AutoCor(),aFp);
     BinaryUnDumpFromFile(anObj.NumChAC(),aFp);
     BinaryUnDumpFromFile(anObj.OKAc(),aFp);
+    BinaryUnDumpFromFile(anObj.OKLP(),aFp);
+    BinaryUnDumpFromFile(anObj.SFSelected(),aFp);
+    BinaryUnDumpFromFile(anObj.Stable(),aFp);
+    BinaryUnDumpFromFile(anObj.ChgMaj(),aFp);
+    BinaryUnDumpFromFile(anObj.ImLP(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cXml2007Pt & anObj)
 {
-    BinaryDumpInFile(aFp,anObj.Pt());
+    BinaryDumpInFile(aFp,anObj.PtInit());
+    BinaryDumpInFile(aFp,anObj.PtAff());
+    BinaryDumpInFile(aFp,anObj.Id());
     BinaryDumpInFile(aFp,anObj.NumOct());
     BinaryDumpInFile(aFp,anObj.NumIm());
     BinaryDumpInFile(aFp,anObj.ScaleInO());
     BinaryDumpInFile(aFp,anObj.ScaleAbs());
-    BinaryDumpInFile(aFp,anObj.Val());
+    BinaryDumpInFile(aFp,anObj.Score());
+    BinaryDumpInFile(aFp,anObj.ScoreRel());
+    BinaryDumpInFile(aFp,anObj.VectRho());
+    BinaryDumpInFile(aFp,anObj.VectDir());
     BinaryDumpInFile(aFp,anObj.Var());
-    BinaryDumpInFile(aFp,anObj.FastStd());
-    BinaryDumpInFile(aFp,anObj.FastConx());
     BinaryDumpInFile(aFp,anObj.AutoCor());
     BinaryDumpInFile(aFp,anObj.NumChAC());
     BinaryDumpInFile(aFp,anObj.OKAc());
+    BinaryDumpInFile(aFp,anObj.OKLP());
+    BinaryDumpInFile(aFp,anObj.SFSelected());
+    BinaryDumpInFile(aFp,anObj.Stable());
+    BinaryDumpInFile(aFp,anObj.ChgMaj());
+    BinaryDumpInFile(aFp,anObj.ImLP());
 }
 
 cElXMLTree * ToXMLTree(const cXml2007Pt & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml2007Pt",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("Pt"),anObj.Pt())->ReTagThis("Pt"));
+   aRes->AddFils(::ToXMLTree(std::string("PtInit"),anObj.PtInit())->ReTagThis("PtInit"));
+   aRes->AddFils(::ToXMLTree(std::string("PtAff"),anObj.PtAff())->ReTagThis("PtAff"));
+   aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
    aRes->AddFils(::ToXMLTree(std::string("NumOct"),anObj.NumOct())->ReTagThis("NumOct"));
    aRes->AddFils(::ToXMLTree(std::string("NumIm"),anObj.NumIm())->ReTagThis("NumIm"));
    aRes->AddFils(::ToXMLTree(std::string("ScaleInO"),anObj.ScaleInO())->ReTagThis("ScaleInO"));
    aRes->AddFils(::ToXMLTree(std::string("ScaleAbs"),anObj.ScaleAbs())->ReTagThis("ScaleAbs"));
-   aRes->AddFils(::ToXMLTree(std::string("Val"),anObj.Val())->ReTagThis("Val"));
+   aRes->AddFils(::ToXMLTree(std::string("Score"),anObj.Score())->ReTagThis("Score"));
+   aRes->AddFils(::ToXMLTree(std::string("ScoreRel"),anObj.ScoreRel())->ReTagThis("ScoreRel"));
+   aRes->AddFils(::ToXMLTree(std::string("VectRho"),anObj.VectRho())->ReTagThis("VectRho"));
+   aRes->AddFils(::ToXMLTree(std::string("VectDir"),anObj.VectDir())->ReTagThis("VectDir"));
    aRes->AddFils(::ToXMLTree(std::string("Var"),anObj.Var())->ReTagThis("Var"));
-   aRes->AddFils(::ToXMLTree(std::string("FastStd"),anObj.FastStd())->ReTagThis("FastStd"));
-   aRes->AddFils(::ToXMLTree(std::string("FastConx"),anObj.FastConx())->ReTagThis("FastConx"));
    aRes->AddFils(::ToXMLTree(std::string("AutoCor"),anObj.AutoCor())->ReTagThis("AutoCor"));
    aRes->AddFils(::ToXMLTree(std::string("NumChAC"),anObj.NumChAC())->ReTagThis("NumChAC"));
    aRes->AddFils(::ToXMLTree(std::string("OKAc"),anObj.OKAc())->ReTagThis("OKAc"));
+   aRes->AddFils(::ToXMLTree(std::string("OKLP"),anObj.OKLP())->ReTagThis("OKLP"));
+   aRes->AddFils(::ToXMLTree(std::string("SFSelected"),anObj.SFSelected())->ReTagThis("SFSelected"));
+   aRes->AddFils(::ToXMLTree(std::string("Stable"),anObj.Stable())->ReTagThis("Stable"));
+   aRes->AddFils(::ToXMLTree(std::string("ChgMaj"),anObj.ChgMaj())->ReTagThis("ChgMaj"));
+   aRes->AddFils(::ToXMLTree(std::string("ImLP"),anObj.ImLP())->ReTagThis("ImLP"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -3091,7 +3203,11 @@ void xml_init(cXml2007Pt & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
-   xml_init(anObj.Pt(),aTree->Get("Pt",1)); //tototo 
+   xml_init(anObj.PtInit(),aTree->Get("PtInit",1)); //tototo 
+
+   xml_init(anObj.PtAff(),aTree->Get("PtAff",1)); //tototo 
+
+   xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
 
    xml_init(anObj.NumOct(),aTree->Get("NumOct",1)); //tototo 
 
@@ -3101,68 +3217,80 @@ void xml_init(cXml2007Pt & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.ScaleAbs(),aTree->Get("ScaleAbs",1)); //tototo 
 
-   xml_init(anObj.Val(),aTree->Get("Val",1)); //tototo 
+   xml_init(anObj.Score(),aTree->Get("Score",1)); //tototo 
+
+   xml_init(anObj.ScoreRel(),aTree->Get("ScoreRel",1)); //tototo 
+
+   xml_init(anObj.VectRho(),aTree->Get("VectRho",1)); //tototo 
+
+   xml_init(anObj.VectDir(),aTree->Get("VectDir",1)); //tototo 
 
    xml_init(anObj.Var(),aTree->Get("Var",1)); //tototo 
-
-   xml_init(anObj.FastStd(),aTree->Get("FastStd",1)); //tototo 
-
-   xml_init(anObj.FastConx(),aTree->Get("FastConx",1)); //tototo 
 
    xml_init(anObj.AutoCor(),aTree->Get("AutoCor",1)); //tototo 
 
    xml_init(anObj.NumChAC(),aTree->Get("NumChAC",1)); //tototo 
 
    xml_init(anObj.OKAc(),aTree->Get("OKAc",1)); //tototo 
+
+   xml_init(anObj.OKLP(),aTree->Get("OKLP",1)); //tototo 
+
+   xml_init(anObj.SFSelected(),aTree->Get("SFSelected",1)); //tototo 
+
+   xml_init(anObj.Stable(),aTree->Get("Stable",1)); //tototo 
+
+   xml_init(anObj.ChgMaj(),aTree->Get("ChgMaj",1)); //tototo 
+
+   xml_init(anObj.ImLP(),aTree->Get("ImLP",1)); //tototo 
 }
 
-std::string  Mangling( cXml2007Pt *) {return "CD20E25BBBC220ABFE3F";};
+std::string  Mangling( cXml2007Pt *) {return "9AFAFEB31711B7AAFE3F";};
 
 
-std::list< cXml2007Pt > & cXml2007FilePt::Pts()
+std::vector< cXml2007Pt > & cXml2007SetPtOneType::Pts()
 {
    return mPts;
 }
 
-const std::list< cXml2007Pt > & cXml2007FilePt::Pts()const 
+const std::vector< cXml2007Pt > & cXml2007SetPtOneType::Pts()const 
 {
    return mPts;
 }
 
 
-bool & cXml2007FilePt::IsMin()
+bool & cXml2007SetPtOneType::IsMax()
 {
-   return mIsMin;
+   return mIsMax;
 }
 
-const bool & cXml2007FilePt::IsMin()const 
+const bool & cXml2007SetPtOneType::IsMax()const 
 {
-   return mIsMin;
+   return mIsMax;
 }
 
 
-int & cXml2007FilePt::TypePt()
-{
-   return mTypePt;
-}
-
-const int & cXml2007FilePt::TypePt()const 
+int & cXml2007SetPtOneType::TypePt()
 {
    return mTypePt;
 }
 
+const int & cXml2007SetPtOneType::TypePt()const 
+{
+   return mTypePt;
+}
 
-std::string & cXml2007FilePt::NameTypePt()
+
+std::string & cXml2007SetPtOneType::NameTypePt()
 {
    return mNameTypePt;
 }
 
-const std::string & cXml2007FilePt::NameTypePt()const 
+const std::string & cXml2007SetPtOneType::NameTypePt()const 
 {
    return mNameTypePt;
 }
 
-void  BinaryUnDumpFromFile(cXml2007FilePt & anObj,ELISE_fp & aFp)
+void  BinaryUnDumpFromFile(cXml2007SetPtOneType & anObj,ELISE_fp & aFp)
 {
    { int aNb;
     BinaryUnDumpFromFile(aNb,aFp);
@@ -3173,35 +3301,35 @@ void  BinaryUnDumpFromFile(cXml2007FilePt & anObj,ELISE_fp & aFp)
               anObj.Pts().push_back(aVal);
         }
   } ;
-    BinaryUnDumpFromFile(anObj.IsMin(),aFp);
+    BinaryUnDumpFromFile(anObj.IsMax(),aFp);
     BinaryUnDumpFromFile(anObj.TypePt(),aFp);
     BinaryUnDumpFromFile(anObj.NameTypePt(),aFp);
 }
 
-void  BinaryDumpInFile(ELISE_fp & aFp,const cXml2007FilePt & anObj)
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml2007SetPtOneType & anObj)
 {
     BinaryDumpInFile(aFp,(int)anObj.Pts().size());
-    for(  std::list< cXml2007Pt >::const_iterator iT=anObj.Pts().begin();
+    for(  std::vector< cXml2007Pt >::const_iterator iT=anObj.Pts().begin();
          iT!=anObj.Pts().end();
           iT++
     )
         BinaryDumpInFile(aFp,*iT);
-    BinaryDumpInFile(aFp,anObj.IsMin());
+    BinaryDumpInFile(aFp,anObj.IsMax());
     BinaryDumpInFile(aFp,anObj.TypePt());
     BinaryDumpInFile(aFp,anObj.NameTypePt());
 }
 
-cElXMLTree * ToXMLTree(const cXml2007FilePt & anObj)
+cElXMLTree * ToXMLTree(const cXml2007SetPtOneType & anObj)
 {
   XMLPushContext(anObj.mGXml);
-  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml2007FilePt",eXMLBranche);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml2007SetPtOneType",eXMLBranche);
   for
-  (       std::list< cXml2007Pt >::const_iterator it=anObj.Pts().begin();
+  (       std::vector< cXml2007Pt >::const_iterator it=anObj.Pts().begin();
       it !=anObj.Pts().end();
       it++
   ) 
       aRes->AddFils(ToXMLTree((*it))->ReTagThis("Pts"));
-   aRes->AddFils(::ToXMLTree(std::string("IsMin"),anObj.IsMin())->ReTagThis("IsMin"));
+   aRes->AddFils(::ToXMLTree(std::string("IsMax"),anObj.IsMax())->ReTagThis("IsMax"));
    aRes->AddFils(::ToXMLTree(std::string("TypePt"),anObj.TypePt())->ReTagThis("TypePt"));
    aRes->AddFils(::ToXMLTree(std::string("NameTypePt"),anObj.NameTypePt())->ReTagThis("NameTypePt"));
   aRes->mGXml = anObj.mGXml;
@@ -3209,20 +3337,20 @@ cElXMLTree * ToXMLTree(const cXml2007FilePt & anObj)
   return aRes;
 }
 
-void xml_init(cXml2007FilePt & anObj,cElXMLTree * aTree)
+void xml_init(cXml2007SetPtOneType & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
    xml_init(anObj.Pts(),aTree->GetAll("Pts",false,1));
 
-   xml_init(anObj.IsMin(),aTree->Get("IsMin",1)); //tototo 
+   xml_init(anObj.IsMax(),aTree->Get("IsMax",1)); //tototo 
 
    xml_init(anObj.TypePt(),aTree->Get("TypePt",1)); //tototo 
 
    xml_init(anObj.NameTypePt(),aTree->Get("NameTypePt",1)); //tototo 
 }
 
-std::string  Mangling( cXml2007FilePt *) {return "BB61EC336D844FE5FD3F";};
+std::string  Mangling( cXml2007SetPtOneType *) {return "5E47ABA22613D9D2FD3F";};
 
 // };

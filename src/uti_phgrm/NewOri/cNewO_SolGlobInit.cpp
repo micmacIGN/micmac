@@ -307,11 +307,11 @@ void cNOSolIn_AttrASym::PostInit(bool Show)
         ElRotation3D aR1 = aTri.RotOfSom(aLnk.S1());
         ElRotation3D aR2 = aTri.RotOfSom(aLnk.S2());
 
-        double aD12 =  euclid(aR1.tr()-aR2.tr());
-        double aD1M =  euclid(aR1.tr()-aTri.PMed());
-        double aD2M =  euclid(aR2.tr()-aTri.PMed());
+        double aD12 =  euclid(aR1.tr()-aR2.tr());  // Base distance
+        double aD1M =  euclid(aR1.tr()-aTri.PMed());  // depth cam1
+        double aD2M =  euclid(aR2.tr()-aTri.PMed());  // depth cam2
 
-        double aBOnH = aD12/((aD1M+aD2M)/2.0);
+        double aBOnH = aD12/((aD1M+aD2M)/2.0);  // Basic formula
         aVBSurH.push_back(aBOnH);
 
         if (Show)
@@ -586,6 +586,7 @@ void cAppli_NewSolGolInit::FilterTripletValide()
 
    mV3 = aNewV3;
 
+   // We must do the same stuff with the link
    for (tItSNSI anItS=mGr.begin(mSubAll) ; anItS.go_on(); anItS++)
    {
           tSomNSI * aS1 = &(*anItS);
@@ -609,8 +610,9 @@ void  cAppli_NewSolGolInit::EstimCoheTriplet()
     std::vector<Pt2df> aVCost3A;
     for (int aK=0  ; aK<int(mV3.size()) ; aK++)
     {
-         mV3[aK]->CalcCoherFromArcs(false);
-         aVCost3A.push_back(Pt2df(mV3[aK]->CostArc(),mV3[aK]->Nb3() ));
+         mV3[aK]->CalcCoherFromArcs(false);  // Calc coherence
+         // Push value to have a median weighted by numlbre of 3 points
+         aVCost3A.push_back(Pt2df(mV3[aK]->CostArc(),mV3[aK]->Nb3() ));  
     }
 
     mMedTripletCostA = DefMedianPond(0,-1,aVCost3A,0);
@@ -657,7 +659,7 @@ void  cAppli_NewSolGolInit::EstimCoherenceMed()
 {
     // Calcul du nombre de couples de triplets ayant des arcs commun
   
-    int aNbTT = 0;
+    int aNbTT = 0; // Number of pair of triplet
     for (tItSNSI anItS=mGr.begin(mSubAll) ; anItS.go_on(); anItS++)
     {
           tSomNSI * aS1 = &(*anItS);
@@ -666,8 +668,8 @@ void  cAppli_NewSolGolInit::EstimCoherenceMed()
                 if ((*anItA).attr().IsOrASym())
                 {
                     int aNbT = (int)(*anItA).attr().ASym()->Lnk3().size();
-                     aNbTT += (aNbT*(aNbT-1)) / 2;
-                     (*anItA).attr().ASym()->PostInit(false);
+                    aNbTT += (aNbT*(aNbT-1)) / 2;  // number of subset with 2 elements
+                    (*anItA).attr().ASym()->PostInit(false); // compute average B/H
                 }
           }
     }
@@ -749,8 +751,13 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
        }
    }
 
-   // Remplissage de la structure de calul du noyau
-   mCompKG.SetN((int)aVL.size());
+   // Fill the kernel structure, see  include/general/bitm.h
+   // Comment in file
+   // "Robust computation of average element as the one minimizing the sum distance" 
+
+   mCompKG.SetN((int)aVL.size());  // Set the size of kernel
+
+   // Fill the matrix of cost, by parsing all pair of triplet
    for (int aK1=0 ; aK1<int(aVL.size()) ; aK1++)
    {
        cNOSolIn_Triplet * aTri1 = aVL[aK1].m3;
@@ -758,23 +765,32 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
        {
            cNOSolIn_Triplet * aTri2 = aVL[aK2].m3;
            double  aDC = DistCoherenceAtoB(anArc,aTri1,aTri2);
-           double  aDatt =   CoutAttenueTetaMax(aDC,mCoherMedAB*FactAttCohMed);  //aDC / (aDC+mCoherMed*FactAttCohMed);
+           // We transformat the cost in a normalized value between 0 and 1 using formula :
+           //  aDC / (aDC+mCoherMed*FactAttCohMed);
+           double  aDatt =   CoutAttenueTetaMax(aDC,mCoherMedAB*FactAttCohMed);  
+           // Weight is proportional to number of triple points
            mCompKG.AddCost(aK1,aK2,aTri2->Nb3(),aTri1->Nb3(),aDatt);
        }
    }
 
+   // Store vector of relative rotation to compute them once an only once
    std::vector<ElRotation3D> aVR;
    for (int aK1=0 ; aK1<int(aVL.size()) ; aK1++)
    {
        aVR.push_back(RotationC2toC1(anArc,aVL[aK1].m3));
    }
    
-   int aKK = mCompKG.GetKernelGen();
+   // Get a robust value by extracting the rotation mimizing
+   // GetKernelGen do some complicated stuff, I will document later, but basically it
+   // extract the summit with mimimal somm o weight (with some "robust" filterign ?)
+   int aKK = mCompKG.GetKernelGen();  
    double aBSurH0 =  aVL[aKK].m3->BOnH();
    ElRotation3D aR0 = aVR[aKK];
    double aD0 = euclid(aR0.tr());
    double aSomD =0.0;
 
+   //  Now we have a initial guess of the relative rotation by some median like value
+   // we can try to imrpove it by some weighted average
    
    int aNbIter = 4;
    for (int aKIter = 0 ; aKIter<(aNbIter) ; aKIter++)
@@ -783,16 +799,17 @@ void  cAppli_NewSolGolInit::InitRotOfArc(tArcNSI * anArc,bool Test)
         double aSomPds = 0.0;
         Pt3dr   aSomTr (0,0,0);
         aSomD = 0;
+        // Here begin the somm of weighted avareage
         for (int aK=0 ; aK<int(aVL.size()) ; aK++)
         {
              double aD =  DistanceRot(aR0,aVR[aK],aBSurH0);
              aSomD += aD;
 
              double aPds = 0;
-             if (aD < 6 * mCoherMed12)
+             if (aD < 6 * mCoherMed12) // Some threshold on "big" outlayr
              {
-                   aPds = 1 /(1 + ElSquare(aD/(2*mCoherMed12)));
-                   double aPdsPop = aPds * aVL[aK].m3->Nb3();
+                   aPds = 1 /(1 + ElSquare(aD/(2*mCoherMed12))); // "Classiq MicMac" formula
+                   double aPdsPop = aPds * aVL[aK].m3->Nb3();  // Weight prop to triple points
                    aSomPds += aPdsPop;
                    aSomTr  = aSomTr  + (vunit(aVR[aK].tr()) * aD0) * aPdsPop;
                    aSomMat = aSomMat + aVR[aK].Mat() * aPdsPop;
@@ -971,10 +988,12 @@ cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) :
                  cNOSolIn_Triplet * aTriplet = new cNOSolIn_Triplet(this,aS1,aS2,aS3,aXml3Ori);
                  mV3.push_back(aTriplet);
 
+                 ///  ADD-SOM-TRIPLET
                  aS1->attr().AddTriplet(aTriplet,1,2,0);
                  aS2->attr().AddTriplet(aTriplet,0,2,1);
                  aS3->attr().AddTriplet(aTriplet,0,1,2);
 
+                 ///  ADD-EDGE-TRIPLET
                  CreateArc(aS1,aS2,aTriplet,0,1,2);
                  CreateArc(aS2,aS3,aTriplet,1,2,0);
                  CreateArc(aS3,aS1,aTriplet,2,0,1);

@@ -28,10 +28,12 @@ enum class eTA2007
                 MPatIm,        ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
             // ---------- Not Printed -----------
-            // !!!!! Common must be first UNPRINTED  !!!
-                Common,        ///< Parameter  Common to all commands
+            // !!!!! Shared must be first UNPRINTED  !!! because of test in Name4Help()
+                Shared,        ///< Parameter  Shared by many (several) command
+                Global,        ///< Parameter  Common to all commands
                 Internal,      ///< Reserved to internall use by MMVII
                 HDV,           ///< Has Default Value, will be printed on help
+                ISizeV,        ///< Interval size vect, print on help
                 eNbVals        ///< Tag for number of value
            };
 
@@ -113,6 +115,8 @@ enum class eTyUEr
               eMultiModeInEditRel,
               e2PatInModeLineEditRel,
               eParseError,
+              eBadDimForPt,
+              eBadSize4Vect,
               eUnClassedError,
               eNbVals
            };
@@ -185,6 +189,35 @@ enum class eTyPyrTieP
      eTPTP_Corner,   ///< Corner 
      eTPTP_OriNorm,  ///< Original normalized
      eNbVals         ///< Tag End of Vals
+};
+
+/**  Value of optional parameter, that are shared, and must be activated */
+enum class eSharedPO
+{
+     eSPO_CarPO,     ///< Caracterestic Points Out
+     eSPO_CarPI,     ///< Caracterestic Points Input
+     eSPO_TiePO,     ///< Caracterestic Points Out
+     eSPO_TiePI,     ///< Caracterestic Points Input
+     eNbVals         ///< Tag End of Vals
+};
+
+/** Mode of normalization for orientation */
+enum class eModeNormOr
+{
+     eMNO_MaxGray,     ///< Max of gray value
+     eMNO_MaxGradT,    ///< Tangential gradient
+     eMNO_MaxGradR,    ///< Radial gradient
+     eNbVals         ///< Tag End of Vals
+};
+
+/** Mode of output file for Pts Carac */
+enum class eModeOutPCar
+{
+     eMOPC_Image,     ///< Mode to save images
+     eMNO_PCarV1,     ///< Mode to save PCar to be seen in MMV1
+     eMNO_BinPCarV2,  ///< Mode to save PCar to be seen for MMVII, bin mod
+     eMNO_XmlPCarV2,  ///< Mode to save PCar to be seen for MMVII, xml mode (not sure needed ?)
+     eNbVals          ///< Tag End of Vals
 };
 
 

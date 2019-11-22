@@ -10,7 +10,10 @@ double CubGaussWeightStandardDev(const cDataIm2D<Type>  &anIm,const cPt2di& aC,d
 {
     cRect2 aDBox = cRect2::BoxWindow(round_up(aRadius));  //! Centerd box arround (0,0)
     double aSqRad = Square(aRadius);
-    cComputeStdDev<1>  aCSD;
+    cUB_ComputeStdDev<1>  aCSD;
+
+    int aNbOk = 0;
+
 
     for (const auto & aDP : aDBox)
     {
@@ -20,6 +23,7 @@ double CubGaussWeightStandardDev(const cDataIm2D<Type>  &anIm,const cPt2di& aC,d
              cPt2di aP = aC + aDP;
              if (anIm.Inside(aP))
              {
+                 aNbOk++;
                  double aRatio = std::sqrt(aN2) / aRadius;
                  double aWeight = CubAppGaussVal(aRatio);
                  double aVal =  anIm.GetV(aP);
@@ -27,7 +31,10 @@ double CubGaussWeightStandardDev(const cDataIm2D<Type>  &anIm,const cPt2di& aC,d
              }
          }
     }
-    return aCSD.ComputeUnBiasedVar()[0];
+    if (! aCSD.OkForUnBiasedVar())
+       return -1;
+    double aRes = aCSD.ComputeUnBiasedVar()[0];
+    return std::sqrt(aRes);
 }
 
 

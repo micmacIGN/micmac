@@ -9,6 +9,10 @@ template <class Type> bool ValidFloatValue(const Type & aV)
    // return ! (   ((boost::math::isnan)(aV)) ||   ((boost::math::isinf)(aV)));
    return (boost::math::isfinite)(aV) ;
 }
+template <class Type> bool ValidInvertibleFloatValue(const Type & aV)
+{
+    return ValidFloatValue(aV) && (aV!=0.0);
+}
 
 
 /** \file MMVII_nums.h
@@ -120,6 +124,9 @@ template<class Type> inline Type Tpl_round_ni(tREAL8 r)
 inline tINT4  round_ni(tREAL8 r) { return Tpl_round_ni<tINT4>(r); }
 inline tINT8 lround_ni(tREAL8 r) { return Tpl_round_ni<tINT8>(r); }
 
+tINT4 EmbeddedIntVal(tREAL8 r); ///< When a real value is used for embedding a int, check that value is really int and return it
+bool  EmbeddedBoolVal(tREAL8 r); ///< When a real value is used for embedding a bool, check that value is really bool and return it
+bool  EmbeddedBoolVal(int V); ///< When a int value is used for embedding a bool, check that value is 0 or 1
 
 /*  ==============  Traits on numerical type, usable in template function ===================   */
 /*   tNumTrait => class to be used                                                              */
@@ -339,6 +346,7 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
          }
 
          static const tNumTrait<Type>  TheOnlyOne;
+         static const std::string & NameType() {return E2Str(TheOnlyOne.V_TyNum());}
 };
 
 
@@ -373,17 +381,29 @@ inline tINT4 mod_gen(tINT4 a,tINT4 b)
     return (r <0) ? (r+ ((b>0) ? b : -b)) : r;
 }
 
+///  Modulo with real value, same def as with int but build-in C support
+inline tREAL8 mod_real(tREAL8 a,tREAL8 b)
+{
+   MMVII_INTERNAL_ASSERT_tiny(b>0,"modreal");
+   tREAL8 aRes = a - b * round_ni(a/b);
+   return (aRes<0) ? aRes+b : aRes;
+}
+
 template<class Type> Type DivSup(const Type & a,const Type & b) 
 {
     MMVII_INTERNAL_ASSERT_tiny(b>0,"DivSup");
     return (a+b-1)/b; 
 }
 
+/// Return a value depending only of ratio, in [-1,1], eq 0 if I1=I2, and invert sign when swap I1,I2
+double NormalisedRatio(double aI1,double aI2);
+
 
 tINT4 HCF(tINT4 a,tINT4 b); ///< = PGCD = Highest Common Factor
 int BinomialCoeff(int aK,int aN);
 double  RelativeDifference(const double & aV1,const double & aV2,bool * Ok=nullptr);
 
+template <class Type> int SignSupEq0(const Type & aV) {return (aV>=0) ? 1 : -1;}
 
 inline tREAL8 FracPart(tREAL8 r) {return r - round_down(r);}
 
@@ -424,6 +444,77 @@ class cCubAppGauss
 
 /// If we dont need any kernel interface keep it simple 
 tREAL8 CubAppGaussVal(const tREAL8&);   
+
+/*  ********************************* */
+/*       Witch Min and Max            */
+/* ********************************** */
+
+template <class TypeIndex,class TypeVal> class cWitchMin
+{
+     public :
+         cWitchMin(const TypeIndex & anIndex,const TypeVal & aVal) :
+             mIndexMin (anIndex),
+             mVMin     (aVal)
+         {
+         }
+         void Add(const TypeIndex & anIndex,const TypeVal & aVal)
+         {
+              if (aVal<mVMin)
+              {     
+                    mVMin = aVal;
+                    mIndexMin = anIndex;
+              }
+         }
+         const TypeIndex & Index() const {return mIndexMin;}
+         const TypeVal   & Val  () const {return mVMin;}
+     private :
+         TypeIndex mIndexMin;
+         TypeVal   mVMin;
+};
+template <class TypeIndex,class TypeVal> class cWitchMax
+{
+     public :
+         cWitchMax(const TypeIndex & anIndex,const TypeVal & aVal) :
+             mIndexMax (anIndex),
+             mVMax     (aVal)
+         {
+         }
+         void Add(const TypeIndex & anIndex,const TypeVal & aVal)
+         {
+              if (aVal>mVMax)
+              {
+                    mVMax = aVal;
+                    mIndexMax = anIndex;
+              }
+         }
+         const TypeIndex & Index() const {return mIndexMax;}
+         const TypeVal   & Val  () const {return mVMax;}
+     private :
+         TypeIndex mIndexMax;
+         TypeVal   mVMax;
+};
+template <class TypeIndex,class TypeVal> class cWitchMinMax
+{
+     public  :
+         cWitchMinMax(const TypeIndex & anIndex,const TypeVal & aVal) :
+             mMin(anIndex,aVal),
+             mMax(anIndex,aVal)
+         {
+         }
+         void Add(const TypeIndex & anIndex,const TypeVal & aVal)
+         {
+             mMin.Add(anIndex,aVal);
+             mMax.Add(anIndex,aVal);
+         }
+         const cWitchMin<TypeIndex,TypeVal> & Min() const {return  mMin;}
+         const cWitchMax<TypeIndex,TypeVal> & Max() const {return  mMax;}
+
+     private :
+         cWitchMin<TypeIndex,TypeVal> mMin;
+         cWitchMax<TypeIndex,TypeVal> mMax;
+};
+
+
 
 
 };

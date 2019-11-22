@@ -129,6 +129,18 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type>   & 
 /// std::vector interface  AddData -> StdContAddData
 template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & aL) { StdContAddData(anAux,aL); }
 
+template <class Type> void AddData(const cAuxAr2007 & anAux,cDataIm2D<Type> & aIm)
+{
+    cPt2di aSz = aIm.Sz();
+    AddData(cAuxAr2007("Sz",anAux),aSz);
+    if (anAux.Input())
+    { 
+      aIm.Resize(aSz);
+    }
+
+    cRawData4Serial aRDS(aIm.RawDataLin(),aIm.NbElem()*sizeof(Type));
+    AddData(cAuxAr2007("Data",anAux),aRDS);
+}
 
 
 /// Save the value in an archive, not proud of the const_cast ;-)
@@ -154,6 +166,14 @@ template<class Type> void  SaveInFile(const Type & aVal,const std::string & aNam
    {
      MMv1_SaveInFile<Type>(aVal,aName);
    }
+}
+
+template<class Type> size_t  HashValue(const Type & aVal,bool ordered)
+{
+    std::unique_ptr<cAr2007,void(*)(cAr2007 *)>  anAr (AllocArHashVal(ordered),DeleteAr);
+    cAuxAr2007  aGLOB(TagMMVIISerial,*anAr);
+    AddData(aGLOB,const_cast<Type&>(aVal));
+    return HashValFromAr(*anAr);
 }
 
 

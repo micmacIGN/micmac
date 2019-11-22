@@ -164,6 +164,7 @@ cAppliMorito::cAppliMorito(int argc,char ** argv)  :
     mDir                ("./")
 {
 
+	bool aShowSol=false;
 
     ElInitArgMain
      (
@@ -173,6 +174,7 @@ cAppliMorito::cAppliMorito(int argc,char ** argv)  :
                       << EAMC(mOriOut,"Orientation Dir"),
            LArgMain() << EAM(mWithOutLayer,"WithOutLayer",true,"Is robust estimation requires or simply L2 (Def=false, other not supported now)")
                       << EAM(mDir,"Dir",true,"Global directory, Def=./")
+                      << EAM(aShowSol,"Show",true,"Show the transformation, Def=false")
 
 
     );
@@ -214,6 +216,15 @@ cAppliMorito::cAppliMorito(int argc,char ** argv)  :
     // InitScTr2to1();
     ComputNewRot2();
     Sauv();
+
+	if (aShowSol)
+	{
+		std::cout << "Lambda= " << mSc2to1 << "\n"
+				  << "Tr    = " << mTr2to1 << "\n"
+				  << "R     = " << mRM2toM1(0,0) << "  " << mRM2toM1(0,1) << " " << mRM2toM1(0,2) <<  "\n"
+				  << "        " << mRM2toM1(1,0) << "  " << mRM2toM1(1,1) << " " << mRM2toM1(1,2) <<  "\n"
+				  << "        " << mRM2toM1(2,0) << "  " << mRM2toM1(2,1) << " " << mRM2toM1(2,2) <<  "\n";
+	}
 }
 
 /*

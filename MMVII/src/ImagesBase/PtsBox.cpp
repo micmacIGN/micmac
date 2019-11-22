@@ -103,6 +103,14 @@ template <const int Dim> int NbPixVign(const cPtxd<int,Dim> & aVign)
    return aRes;
 }
 
+// static const int VeryBig = 1e9;
+// const cPt2di  ThePSupImage( VeryBig, VeryBig);
+// const cPt2di  ThePInfImage(-VeryBig,-VeryBig);
+
+
+cPt2di  TAB4Corner[4] = {{1,1},{-1,1},{-1,-1},{1,-1}};
+
+
 
 
 
@@ -164,7 +172,6 @@ template <const int Dim>   cPixBox<Dim>::cPixBox(const cTplBox<int,Dim> & aR) :
 {
 }
 
-
 template <const int Dim> tINT8  cPixBox<Dim>::IndexeLinear(const tPt & aP) const
 {
    tINT8 aRes = 0;
@@ -172,6 +179,20 @@ template <const int Dim> tINT8  cPixBox<Dim>::IndexeLinear(const tPt & aP) const
       aRes += tINT8(aP[aK]-tBox::mP0[aK]) * tINT8(tBox::mSzCum[aK]);
    return aRes;
 }
+
+template <const int Dim> cPtxd<int,Dim>  cPixBox<Dim>::FromIndexeLinear(tINT8  anIndexe) const
+{
+   tPt aRes;
+   for (int aK=0 ; aK<Dim ; aK++)
+   {
+      aRes[aK]  = tBox::mP0[aK] + anIndexe % tBox::mSz[aK];
+      anIndexe /= tBox::mSz[aK];
+   }
+   return aRes;
+}
+
+
+
 
 template <const int Dim> int cPixBox<Dim>::Interiority(const int  aCoord,int aD) const
 {
@@ -201,6 +222,15 @@ template <const int Dim> cBorderPixBox<Dim>  cPixBox<Dim>::Border(int aSz) const
 {
    return  cBorderPixBox<Dim>(*this,aSz);
 }
+
+template <const int Dim> cPtxd<int,Dim>  cPixBox<Dim>::CircNormProj(const tPt & aPt) const
+{
+    cPtxd<int,Dim>  aRes;
+    for (int aD=0 ; aD<Dim ; aD++)
+       aRes[aD] = tBox::mP0[aD] + mod(aPt[aD]-tBox::mP0[aD],tBox::mSz[aD]);
+    return aRes;
+}
+
 
 
 /* ========================== */
@@ -317,6 +347,10 @@ template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Dilate
 }
 
 
+template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Dilate(const Type & aVal) const
+{
+   return Dilate(tPt::PCste(aVal));
+}
 
 template <class Type,const int Dim> void cTplBox<Type,Dim>::AssertSameArea(const cTplBox<Type,Dim> & aR2) const
 {
@@ -406,14 +440,63 @@ template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Genera
     return cTplBox<Type,Dim>(aP0,aP1);
 }
 
+/* ========================== */
+/*       cTpxBoxOfPts         */
+/* ========================== */
 
+template <class Type,const int Dim>   cTplBoxOfPts<Type,Dim>::cTplBoxOfPts() :
+   mNbPts (0),
+   mP0    (tPt::PCste(0)),
+   mP1    (tPt::PCste(0))
+{
+}
+
+template <class Type,const int Dim>  int  cTplBoxOfPts<Type,Dim>::NbPts() const {return mNbPts;}
+
+template <class Type,const int Dim>  const cPtxd<Type,Dim> &  cTplBoxOfPts<Type,Dim>::P0() const
+{
+   MMVII_INTERNAL_ASSERT_medium(mNbPts,"cTplBoxOfPts<Type,Dim>::P0()")
+   return  mP0;
+}
+
+template <class Type,const int Dim>  const cPtxd<Type,Dim> &  cTplBoxOfPts<Type,Dim>::P1() const
+{
+   MMVII_INTERNAL_ASSERT_medium(mNbPts,"cTplBoxOfPts<Type,Dim>::P1()")
+   return  mP1;
+}
+
+template <class Type,const int Dim>  cTplBox<Type,Dim>  cTplBoxOfPts<Type,Dim>::CurBox() const
+{
+    return  cTplBox<Type,Dim>(mP0,mP1);
+}
+
+template <class Type,const int Dim>  void  cTplBoxOfPts<Type,Dim>::Add(const tPt & aP)
+{
+   if (mNbPts==0)
+   {
+      mP0 = aP;
+      mP1 = aP;
+   }
+   else
+   {
+      SetInfEq(mP0,aP);
+      SetSupEq(mP1,aP);
+   }
+   mNbPts++;
+}
+
+/* ========================== */
+/*       INSTANTIATION        */
+/* ========================== */
 
 #define MACRO_INSTATIATE_PRECT_DIM(DIM)\
 template class cBorderPixBoxIterator<DIM>;\
 template class cBorderPixBox<DIM>;\
 template class cTplBox<tINT4,DIM>;\
+template class cTplBoxOfPts<tINT4,DIM>;\
 template  class cParseBoxInOut<DIM>;\
 template class cTplBox<tREAL8,DIM>;\
+template class cTplBoxOfPts<tREAL8,DIM>;\
 template class cPixBox<DIM>;\
 template  int NbPixVign(const cPtxd<int,DIM> & aVign);\
 template class cDataGenUnTypedIm<DIM>;\
