@@ -15,7 +15,17 @@ int ExtractSiftPt(std::string aNameIm, int aSzSift)
 
         getPastisGrayscaleFilename(aDir,afileName,aSzSift,aNameSift);
 
-        aNameSift  = DirOfFile(aNameSift) +"Pastis/" +  "LBPp" + NameWithoutDir(aNameSift) + ".dat";
+		if (aSzSift>0)
+        	aNameSift  = DirOfFile(aNameSift) +"Pastis/" +  "LBPp" + NameWithoutDir(aNameSift) + ".dat";
+		else
+		{
+			aNameSift  = "LBPp" + afileName + ".dat";
+        	aNameSift = "Pastis/" + aNameSift;
+		}
+
+
+		std::cout << aNameSift << "\n";
+
 
         //read the file to know its original size
         Tiff_Im aFileInit = PastisTif(aNameIm);
@@ -28,8 +38,10 @@ int ExtractSiftPt(std::string aNameIm, int aSzSift)
         std::vector<Siftator::SiftPoint> aVSift;
         bool Ok = read_siftPoint_list(aNameSift,aVSift);
         if(Ok == false)
+		{
+			std::cout << "something went wrong" << "\n";
             return 0;
-
+		}
 
         std::string aNewDir = aDir + "unzip/";
         ELISE_fp::MkDir(aNewDir);
