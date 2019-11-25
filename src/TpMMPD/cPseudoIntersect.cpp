@@ -61,7 +61,8 @@ class cPI_Appli
           void ShowArgs();
           Pt3dr IntersectionFaisceaux(
 			                          const std::vector<CamStenope *> & aVCS,
-			                          const std::vector<Pt2dr> & aNPts2D
+			                          const std::vector<Pt2dr> & aNPts2D,
+									  double&                    aVRes
 		);
      private :
           std::list<std::string> mLFile;
@@ -72,13 +73,16 @@ class cPI_Appli
 		  std::string a2dPtsFile;		//fichier .xml qui contient les pointes des images (avec SaisieAppuisInit)
 		  std::string aOut;				//nom fichier de sortie
           cInterfChantierNameManipulateur * mICNM;
+        
 };
 
-cPI_Appli::cPI_Appli(int argc,char ** argv)
+cPI_Appli::cPI_Appli(int argc,char ** argv) 
 {
      bool aShowArgs=false;
      bool aXmlExport=true;
+     std::map<std::string,int> mCamNameMap;//structure to eliminate measurements outside the pattern
      Pt3dr aInc(1,1,1);
+        
      
      ElInitArgMain
      (
@@ -98,6 +102,10 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 
      mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
      mLFile = mICNM->StdGetListOfFile(mPat);
+
+     int aK=0;
+     for (auto aNameCam : mLFile)
+        mCamNameMap[aNameCam] = aK++;
 
     if (aShowArgs) ShowArgs();
     
@@ -147,13 +155,18 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
     std::cout<<"Reading points..."<<std::flush;
     for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end(); iT1++)
     {
-        std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
-
-
-        for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2 ++)
+        //take into account only images in the pattern
+        const std::string aImName = iT1->NameIm();
+        if (DicBoolFind(mCamNameMap,aImName))
         {
-            std::string aNamePt = iT2->NamePt();
-            vNamePts.push_back(aNamePt);
+            std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
+
+
+            for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2 ++)
+            {
+                std::string aNamePt = iT2->NamePt();
+                vNamePts.push_back(aNamePt);
+            }
         }
 	}
     std::cout<<"done!"<<std::endl;
@@ -181,40 +194,56 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 		//boucle sur les images
 		for (std::list<cMesureAppuiFlottant1Im>::iterator iT1 = aLMAF.begin() ; iT1 != aLMAF.end() ; iT1++)
 		{
-			std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
-            //std::cout<<" Image "<<iT1->NameIm()<<":\n";
-			//boucle sur tous les points saisis sur l'image courante
-			for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2++)
-			{
-				
-                //std::cout<<"  - pt "<<iT2->NamePt()<<": ";
-                //si je tombe sur le point courant je dois ajouter la camera + coord dans cette camera
-                if(namePt == iT2->NamePt())
+
+            //take into account only images in the pattern
+            const std::string aImName = iT1->NameIm();
+            if (DicBoolFind(mCamNameMap,aImName))
+            {
+
+				std::list<cOneMesureAF1I> & aMes = iT1->OneMesureAF1I();
+                //std::cout<<" Image "<<iT1->NameIm()<<":\n";
+				//boucle sur tous les points saisis sur l'image courante
+				for (std::list<cOneMesureAF1I>::iterator iT2 = aMes.begin() ; iT2 != aMes.end() ; iT2++)
 				{
-					std::string oriNameFile = aOriIn+"Orientation-"+iT1->NameIm()+".xml";
-                    //std::cout<<"ok "<<oriNameFile<<" ";
-                    if (!ELISE_fp::exist_file(oriNameFile)) continue;
-					CamStenope * cameraCourante = CamOrientGenFromFile(oriNameFile,mICNM);
-					Pt2dr coordCourant = iT2->PtIm();
-					CamCoord aCameraEtCoord;
-					aCameraEtCoord.Cam = cameraCourante;
-					aCameraEtCoord.coord2d=coordCourant;
-					vCameraEtCoord.push_back(aCameraEtCoord);
-                    //std::cout<<"("<<vCameraEtCoord.size()<<")\n";
+					
+                    //std::cout<<"  - pt "<<iT2->NamePt()<<": ";
+                    //si je tombe sur le point courant je dois ajouter la camera + coord dans cette camera
+                    if(namePt == iT2->NamePt())
+					{
+						std::string oriNameFile = aOriIn+"Orientation-"+iT1->NameIm()+".xml";
+                        //std::cout<<"ok "<<oriNameFile<<" ";
+                        if (!ELISE_fp::exist_file(oriNameFile)) continue;
+						CamStenope * cameraCourante = CamOrientGenFromFile(oriNameFile,mICNM);
+						Pt2dr coordCourant = iT2->PtIm();
+						CamCoord aCameraEtCoord;
+						aCameraEtCoord.Cam = cameraCourante;
+						aCameraEtCoord.coord2d=coordCourant;
+						vCameraEtCoord.push_back(aCameraEtCoord);
+                        //std::cout<<"("<<vCameraEtCoord.size()<<")\n";
+                    }
+                    //else std::cout<<"non\n";
                 }
-                //else std::cout<<"non\n";
             }
 		}
 		
 		aPtsAL.CAC = vCameraEtCoord;
-		vPtsAI.push_back(aPtsAL);
-        std::cout<<aPtsAL.CAC.size()<<" ";
+        if ( int(vCameraEtCoord.size()) >= 2 )
+        {
+		    vPtsAI.push_back(aPtsAL);
+            std::cout<<aPtsAL.CAC.size()<<" ";
+        }
     }
     std::cout<<"done!"<<std::endl;
 	
     //le vecteur des points 3d a exporter
 	std::vector<Pt3dr> Pts3d;
-	
+
+	//les residuus
+	std::vector<double> aVRes;
+
+	//le nombre d'observations
+	std::vector<int>    aVObs;
+
     //boucle sur le nombre de points a projeter en 3d
 	for(unsigned int aHG=0 ; aHG<vPtsAI.size() ; aHG++)
 	{
@@ -232,10 +261,14 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 			vC2d.push_back(aCoordPtC);
         }
 
-        if (vC2d.size()<3) continue;
-        Pt3dr aPt3d = IntersectionFaisceaux(vCSPt,vC2d);
+        //if (vC2d.size()<3) continue;
+		double aResidu;
+        Pt3dr aPt3d = IntersectionFaisceaux(vCSPt,vC2d,aResidu);
         Pts3d.push_back(aPt3d);
+		aVRes.push_back(aResidu);
+		aVObs.push_back(int(vCSPt.size()));
 	}
+
 	
 	//export en .txt
 	if (!MMVisualMode)
@@ -245,7 +278,7 @@ cPI_Appli::cPI_Appli(int argc,char ** argv)
 		cElemAppliSetFile aEASF(mDir + ELISE_CAR_DIR + aOut);
 		for(unsigned int aVP=0; aVP<Pts3d.size(); aVP++)
 		{
-			fprintf(aFP,"%s %lf %lf %lf \n",vPtsAI[aVP].nom.c_str(),Pts3d[aVP].x,Pts3d[aVP].y,Pts3d[aVP].z);
+			fprintf(aFP,"%s %lf %lf %lf %lf %d \n",vPtsAI[aVP].nom.c_str(),Pts3d[aVP].x,Pts3d[aVP].y,Pts3d[aVP].z, aVRes.at(aVP), aVObs.at(aVP));
 			//~ std::cout << vPtsAI.at(aVP).nom << " " << Pts3d.at(aVP).x << " " << Pts3d.at(aVP).y << " " << Pts3d.at(aVP).z << "\n" ;
 		}
 		
@@ -325,19 +358,31 @@ void cPI_Appli::ShowArgs()
 Pt3dr cPI_Appli::IntersectionFaisceaux
 	   (
 			const std::vector<CamStenope *> & aVCS,
-			const std::vector<Pt2dr> & aNPts2D
+			const std::vector<Pt2dr> & aNPts2D,
+			double &                   aResidu
 		)
 {
+	aResidu=0;
+
+	int aNb = int(aVCS.size());
+
 	//vecteur d'éléments segments 3d
 	std::vector<ElSeg3D> aVSeg;
 	
-	for (int aKR=0 ; aKR < int(aVCS.size()) ; aKR++)
+	for (int aKR=0 ; aKR < aNb ; aKR++)
 	{
 		ElSeg3D aSeg = aVCS.at(aKR)->F2toRayonR3(aNPts2D.at(aKR));
 		aVSeg.push_back(aSeg);
 	}
-    std::cout<<"Intersect "<<aVSeg.size()<<" bundles...\n";
+    std::cout<<"Intersect "<< aNb <<" bundles...\n";
 	Pt3dr aRes =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
+
+	for (int aKR=0 ; aKR < aNb ; aKR++)
+    {
+		aResidu += aVSeg.at(aKR).DistDoite(aRes);
+	}
+	aResidu /= aNb;
+
     return aRes;
 }
 

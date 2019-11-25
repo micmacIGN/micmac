@@ -1503,7 +1503,7 @@ class cAppliListIm
 
 // inline functions
 
-bool isUsingSeparateDirectories(){ return MMUserEnv().UseSeparateDirectories().Val(); }
+bool isUsingSeparateDirectories(){ return MMUserEnv().UseSeparateDirectories().ValWithDef(false); }
 
 
 // === Gestionnaire de nom pour les fusions ===============

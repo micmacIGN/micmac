@@ -773,7 +773,7 @@ void DoConstructGraph( const string &i_outputFilename, size_t i_nbMaxPointsPerIm
         if ( nbPoints==0 ) continue;
 
         pSrc = &( ( *itSrc )[0] );
-        memcpy( pDst, pSrc, nbPoints*sizeof( DigeoPoint ) );
+        memcpy( static_cast<void*>(pDst), pSrc, nbPoints*sizeof( DigeoPoint ) );
         pDst += nbPoints;
         while (nbPoints--) *itIndex++ = i;
     }
@@ -1047,7 +1047,6 @@ int Tapioca_main(int argc,char ** argv)
 
     cTplValGesInit<std::string>  aTplFCND;
     anICNM = cInterfChantierNameManipulateur::StdAlloc(argc,argv,aDir,aTplFCND);
-
 
     MakeXmlXifInfo(aFullDir,anICNM);
 

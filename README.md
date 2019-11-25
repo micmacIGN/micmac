@@ -1,3 +1,7 @@
+MICMAC
+======
+[![Build Status](https://travis-ci.org/micmacIGN/micmac.svg?branch=master)](https://travis-ci.org/micmacIGN/micmac)
+
 [Version française](LISEZMOI.md)
 
 # Prerequisites
@@ -42,6 +46,8 @@ program. Linux and MacOS X users may also want to get X11 header files in order 
 The package of X11 headers is general called `libx11-dev` under Linux distributions.
 X11-based tools are not available in the Windows version.
 Windows users may need Qt5 libraries to generate graphical interfaces such as *SaisieMasqQT*.
+
+For recompilation optimization, [ccache](ccache.dev) is automatically used if detected.
 
 ## Compiling process for Linux / MacOS X
 

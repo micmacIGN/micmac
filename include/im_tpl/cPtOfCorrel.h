@@ -208,8 +208,10 @@ template <class TIm> Pt2dr  FastQuality(TIm anIm,Pt2di aP,cFastCriterCompute & a
    typename TIm::tValueElem aVMin =   aCrit.FRA().Out(0);
    for (int aK=1 ; aK<aNbPts ; aK++)
    {
+      typename TIm::tValueElem aVk = aCrit.FRA().Out(aK);
      // std::cout << "HHHH " << aCrit.FRA().In(aK) << " " << aCrit.FRA().Out(aK) << "\n";
-       aVMin = ElMin(aVMin, aCrit.FRA().Out(aK));
+       aVMin = ElMin(aVMin, aVk);
+       // aVMin = ElMin(aVMin, aCrit.FRA().Out(aK)); // Pb de cast
    }
    double  aResC = (aV0-aVMin);
 
@@ -318,6 +320,9 @@ template <class TypeIm> class  cAutoCorrelDir
 template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
 {
     public :
+         int mNumOut;
+         double  mCorOut;
+
          cCutAutoCorrelDir(TypeIm anIm,const Pt2di & aP0,double aRho,int aSzW ) :
              cAutoCorrelDir<TypeIm> (anIm,aP0,aRho,aSzW),
              mNbPts                 (SortedAngleFlux2StdCont(mVPt,circle(Pt2dr(0,0),aRho)).size())
@@ -333,7 +338,12 @@ template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
                {
                     double aCor = this->ICorrelOneOffset(this->mP0,mVPt[aK],this->mSzW);
 // if (BugAC) std::cout << "CCcccI " << aCor << " " << this->mTIm.sz() << "\n";
-                    if (aCor > aSeuilAccept) return true;
+                    if (aCor > aSeuilAccept) 
+                    {
+                         mCorOut = aCor;
+                         mNumOut = 0;
+                         return true;
+                    }
                     if (aCor > aCorrMax)
                     {
                         aCorrMax = aCor;
@@ -341,7 +351,12 @@ template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
                     }
                }
                ELISE_ASSERT(aKMax!=-1,"AutoCorrel no K");
-               if (aCorrMax < aRejetInt) return false;
+               if (aCorrMax < aRejetInt) 
+               {
+                    mCorOut = aCorrMax;
+                    mNumOut = 1;
+                    return false;
+               }
 
                Pt2dr aRhoTeta = Pt2dr::polar(Pt2dr(mVPt[aKMax]),0.0);
 
@@ -349,8 +364,18 @@ template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
                //  Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,aStep0*0.5,2);  BUG CORRIGE VERIF AVEC GIANG
                Pt2dr aRes1 =  this->DoItOneStep(aRhoTeta.y,2,aStep0*0.5);
 
-               if (aRes1.y>aSeuilAccept)   return true;
-               if (aRes1.y<aRejetReel)     return false;
+               if (aRes1.y>aSeuilAccept)   
+               {
+                  mNumOut = 2;
+                  mCorOut = aRes1.y;
+                  return true;
+               }
+               if (aRes1.y<aRejetReel) 
+               {
+                  mNumOut = 3;
+                  mCorOut = aRes1.y;
+                  return false;
+               }
 
                // Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,aStep0*0.2,2); BUG CORRIGE VERIF AVEC GIANG
                Pt2dr aRes2 =  this->DoItOneStep(aRes1.x,2,aStep0*0.2);
@@ -358,6 +383,8 @@ template <class TypeIm> class cCutAutoCorrelDir : public cAutoCorrelDir<TypeIm>
                if (aPtrRes) 
                   *aPtrRes = aRes2;
 
+               mNumOut = 4;
+               mCorOut = aRes2.y;
                return aRes2.y > aSeuilAccept;
          }
 

@@ -201,7 +201,8 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeVisu) :
     mNbHighScale       (750),
     mImMasq            (1,1),
     mTImMasq           (mImMasq),
-    mDoInvarIm         (MPD_MM())
+    mDoInvarIm         (true), // (MPD_MM())
+    mExportAll         (false)
 {
    cSinCardApodInterpol1D * aSinC = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,5.0,5.0,1e-4,false);
    mInterp = new cTabIM2D_FromIm2D<tElNewRechPH>(aSinC,1000,false);
@@ -252,6 +253,7 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeVisu) :
                       << EAM(DebugNRPH, "Debug",true,"if true activate a lot of messages ")
                       << EAM(mKeyNameMasq, "KeyNameMasq",true,"Masq =>4 now an image (later a key if necessary)")
                       << EAM(mDoInvarIm, "DOI",true,"Do Invariant Image, def=MPD_MM")
+                      << EAM(mExportAll, "ExportAll",true,"Generate all intermediary results")
    );
 
    
@@ -356,8 +358,8 @@ cAppli_NewRechPH::cAppli_NewRechPH(int argc,char ** argv,bool ModeVisu) :
    mQT = new tQtOPC (mArgQt,Box2dr(Pt2dr(-10,-10),Pt2dr(10,10)+Pt2dr(mSzIm)),5,50);
 
 
-   mImContrast  = tImNRPH(mSzIm.x,mSzIm.y);
-   mTImContrast = tTImNRPH(mImContrast);
+   mImContrast  = tImContrNRPH(mSzIm.x,mSzIm.y);
+   mTImContrast = tTImContrNRPH(mImContrast);
    ComputeContrast();
 
    // 2*mSzIm => a cause du "demi pixel" en +
@@ -658,6 +660,7 @@ void cAppli_NewRechPH::ComputeContrast()
    Symb_FNum aS1 (aFSom.v1()/aS0);
    Symb_FNum aS2 (Max(0.0,aFSom.v2()/aS0 -Square(aS1)));
 
+
    tImNRPH aImC0  (mSzIm.x,mSzIm.y);
    double aNbVois = ElSquare(1+2*mSzContrast);
    // compute variance of image
@@ -668,6 +671,10 @@ void cAppli_NewRechPH::ComputeContrast()
         sqrt(aS2) * (aNbVois/(aNbVois-1.0)),
         mImContrast.out() | aImC0.out()
    );
+   if (mExportAll)
+   {
+      Tiff_Im::CreateFromIm(mImContrast,"ImVar.tif");
+   }
    
 
    // Calcul d'une valeur  moyenne robuste
@@ -709,9 +716,19 @@ void cAppli_NewRechPH::ComputeContrast()
    double aMoy = aSomF / aSom;
    double aFact = 1.0-1.0/mDistAttenContr;
    FilterExp(mImContrast,aFact);
+   if (mExportAll)
+   {
+      Tiff_Im::CreateFromIm(mImContrast,"ImFExpVarInit.tif");
+   }
+
    Im2D_REAL4 aIP1(mSzIm.x,mSzIm.y,1.0);
    FilterExp(aIP1,aFact);
    ELISE_COPY(mImContrast.all_pts(),mImContrast.in()/aIP1.in(),mImContrast.out());
+   if (mExportAll)
+   {
+      std::cout << "FFFfff  "<< aFact << " " << mDistAttenContr << "\n";
+      Tiff_Im::CreateFromIm(mImContrast,"ImFExpVarNorm.tif");
+   }
 
    ELISE_COPY
    (
@@ -723,7 +740,7 @@ void cAppli_NewRechPH::ComputeContrast()
 
 
    // Pb si lance en //, si necessaire le mettre en option
-   if (0)
+   if (mExportAll)
    {
       Tiff_Im::CreateFromIm(aImC0,"ImC0.tif");
       Tiff_Im::CreateFromIm(mImContrast,"ImSeuilContraste.tif");
@@ -973,7 +990,7 @@ void cAimeApprentissage::DoOneRef()
                                  + " NC= "
                                  + " DSI=" + mAbsDir;
                aLCom.push_back(aCom);
-               // std::cout << "   NAMME= " << aName << "\n";
+               //std::cout << "   COM= " << aCom << "\n";
             }
         }
 
@@ -1023,6 +1040,7 @@ void cAimeApprentissage::DoOneDir(const cXlmAimeOneDir & aXAOD)
    mCurDir  = & aXAOD;
    if (!mCurDir->DoIt().ValWithDef(mParam.DefDoIt().Val()))
       return;
+   ELISE_fp::MkDir("PC-Ref-NH/");
 
    CD(mCurDir->Dir());
    {

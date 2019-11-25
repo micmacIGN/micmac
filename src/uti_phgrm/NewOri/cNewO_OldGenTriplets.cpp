@@ -118,11 +118,21 @@ void cSwappablePairVPts::Swap_Create(const Swap_tArgCreate & anArg)
 }
 
 
+// NewOri.h:#define  TNbCaseP1  6  // Nombre de case sur lesquelle on discretise
+// Un certain  nombre de grandeur sont calcule en geometrie image avec des
+// densite, cette valeur fixe le nombre de cases
+
+// Par efficacite (??) ceci est géré de manière linéaire, la fonction
+// ToIndex fait la corresponace entre ces indexes lineaire et les coordonnees images
+// initiale.
+
+// mNb => memorise le nombre de point par case
+// mDens est une densite, theoriquement dans [0,1], mais comme tout les tableaux sont entier, c'est 
+// multiplie par TQuant
 
 
 
-
-static const int  TMaxNbCase = TNbCaseP1 * TNbCaseP1;
+static const int  TMaxNbCase = TNbCaseP1 * TNbCaseP1;  
 static const int  TMaxGain = 2e9;
 
 class cGTrip_AttrSom;
@@ -438,6 +448,9 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
           }
           
       }
+	  if (aVL13.empty()) return false;
+	  if (aVL23.empty()) return false;
+	  if (aVLByInt.empty()) return false;
 
       Pt3dr aC31 = aC3 / MedianeSup(aVL13);
       Pt3dr aC32 = aC2 + aV3Bis * MedianeSup(aVL23);
@@ -487,6 +500,10 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
       int aGain = ElMin(aGain1,aGain2);
 
 
+      // Initialise en fonction des points triple de 1 et 2 et 3
+      // alors que NbGlob a ete initialise en fonction des points double
+      // !!!! [NB23]  Les points triples ne sont pas un sous ensemble des point 
+      // double  pt AB et pt BC  => triple ABC sans paire AC 
       InitNb(aVP1);
       int aNbC = mAppli->NbCases();
       int * aNbGlob =  mAppli->CurS1()->attr().mNb;
@@ -494,14 +511,17 @@ bool cGTrip_AttrSom::InitTriplet(tSomGT * aSom,tArcGT * anA12)
       mGainGlob = 0;
       for (int aK=0 ; aK< aNbC ; aK++)
       {
+           // densite des 3 par rapport au 2
            double aDens = double(mNb[aK]) / double(ElMax(1,aNbGlob[aK]));
-           aDens = ElMin(1.0,aDens);
-           aDens = (aDens * TAttenDens) / (aDens * TAttenDens +1) ;
+           aDens = ElMin(1.0,aDens); // voir NB23 , la densite peut etre > 1
+           aDens = (aDens * TAttenDens) / (aDens * TAttenDens +1) ; // ?? redondant avec prec
            mDens[aK] = round_ni( (TQuant * aDens * (TAttenDens+1)) / TAttenDens);
 
            mGain[aK] = mDens[aK] * TQuant * aGain;
-           mGainGlob +=  mGain[aK] * aPdsGlob[aK];
-
+           mGainGlob +=  mGain[aK] * aPdsGlob[aK];  // Pds de la case prop a sqrt du NbGlob
+          /*
+                Le gain c'est + ou -  Som (Nb/NbGlob * sqrt(NbGblob)) , a revoir ...
+          */
       }
 
       if (mAppli->CurTestArc())
@@ -536,6 +556,10 @@ void  cGTrip_AttrSom::UpdateCost(tSomGT * aSomThis,tSomGT *aSomSel)
            int aD2 =  aDens2[aK];
            ElSetMin(mGain[aK], mDens[aK] * ( aNewGain * aD2 + TQuant*(TQuant-aD2)));
            mGainGlob +=  mGain[aK] * aPdsGlob[aK];
+/*
+           mGain[aK] = mDens[aK] * TQuant * aGain;
+           mGainGlob +=  mGain[aK] * aPdsGlob[aK];  // Pds de la case prop a sqrt du NbGlob
+*/
       }
 }
 
@@ -583,7 +607,7 @@ int cAppli_GenTriplet::ToIndex(const Pt2df &  aP0) const
 
 tSomGT * cAppli_GenTriplet::GetNextSom()
 {
-   int aNbMaxTriplet = mQuick ? TQuickNbMaxTriplet : TStdNbMaxTriplet;
+   int aNbMaxTriplet = mQuick ? mTQuickNbMaxTriplet : mTStdNbMaxTriplet;
    if (mVSomEnCourse.empty()) return 0;
    if (int(mVSomSelected.size()) > aNbMaxTriplet) return 0;
 
@@ -629,6 +653,10 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
     std::vector<Pt2df> aVP1,aVP2;
     ElTimer aChrono;
     mNM->LoadHomFloats(&(anArc.s1().attr().Im()),&(anArc.s2().attr().Im()),&aVP1,&aVP2);
+if (0&&MPD_MM())
+{
+    std::cout << "iiIiii " << aVP1.size() << "\n";
+}
     mTimeLoadCple += aChrono.uval();
     mNbLoadCple ++;
 
@@ -688,6 +716,11 @@ void cAppli_GenTriplet::GenTriplet(tArcGT & anArc)
           AddSomTmp(aS3);
        }
     }
+if (0&&MPD_MM())
+{
+    std::cout << "jjjjjj " << aVP1.size() << "\n";
+    getchar();
+}
     mTimeMerge += aChroMerge.uval();
 
 

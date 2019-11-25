@@ -949,6 +949,11 @@ int Nikrup_main(int argc,char ** argv)
 
     TheActionOnHelp = NirupActionOnHelp;
 
+/*
+for (int ak=0 ; ak<argc ; ak++)
+    std::cout << "NNnn [" << argv[ak] << "]\n";
+*/
+
     ElInitArgMain
     (
          argc,argv,
@@ -1203,6 +1208,71 @@ int TournIm_main(int argc,char ** argv)
 
     return EXIT_SUCCESS;
 }
+
+/**********  Test a bunch of idea about filters *******/
+
+int DivFilters_main(int argc,char ** argv)
+{
+    std::string aNameIn;
+    std::vector<std::string> aParamSupMoinsInf;
+
+    ElInitArgMain
+    (
+         argc,argv,
+         LArgMain()  << EAMC(aNameIn,"Name of Input image", eSAM_IsExistFile),
+         LArgMain()  << EAM(aParamSupMoinsInf,"SMI",true,"Sup Moins Inf [SzW]", eSAM_NoInit)
+    );
+
+    if (!MMVisualMode)
+    {
+        Im2D<float,double> aIm=  Im2D<float,double>::FromFileStd(aNameIn);
+        TIm2D<float,double>  aDIm(aIm);
+        Pt2di aSzIm = aIm.sz();
+
+        if (EAMIsInit(&aParamSupMoinsInf))
+        {
+             Im2D<float,double> aImNbInfSup(aSzIm.x,aSzIm.y);
+             int aSzW;  FromString(aSzW,aParamSupMoinsInf.at(0));
+             Pt2di aP;
+             for (aP.y=aSzW ; aP.y<aSzIm.y-aSzW  ; aP.y++)
+             {
+                 for (aP.x=aSzW ; aP.x<aSzIm.x-aSzW  ; aP.x++)
+                 {
+                      int aNbSup=0;
+                      int aNbInf=0;
+                      float aV0 = aDIm.get(aP);
+                      for (int aDy=-aSzW; aDy<=aSzW ; aDy++)
+                      {
+                          for (int aDx=-aSzW; aDx<=aSzW ; aDx++)
+                          {
+                              if ((aDx!=0) || (aDy!=0))
+                              {
+                                  Pt2di aDP(aDx,aDy);
+                                  Pt2di aQ = aP+aDP;
+                                  float aV1 = aDIm.get(aQ) + aDx/10.0 + aDy/100.0;
+                                  if (aV1>aV0)
+                                  {
+                                      aNbSup++;
+                                  }
+                                  else
+                                  {
+                                      aNbInf++;
+                                  }
+                              }
+                          }
+                      }
+                      double aProp = (aNbInf-aNbSup)/double(aNbInf+aNbSup);
+                      double V5 = (aProp>0) ? 0.5 : -0.5;
+                      aImNbInfSup.SetR(aP,std::abs(aProp-V5));
+                 }
+             }
+             Tiff_Im::CreateFromIm(aImNbInfSup,"InfSup-"+StdPrefix(aNameIn)+".tif");
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
+
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

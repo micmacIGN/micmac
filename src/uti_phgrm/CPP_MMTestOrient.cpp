@@ -101,6 +101,7 @@ cAppliMMTestOrient::cAppliMMTestOrient(int argc,char ** argv)
     bool    ShowCom = false;
     bool ExportDepl = false;
     bool mModeGB = false;
+    bool aModeProfSouhaite = true;
 
     ElInitArgMain
     (
@@ -116,6 +117,7 @@ cAppliMMTestOrient::cAppliMMTestOrient(int argc,char ** argv)
                     << EAM(mModeOri,"MOri",true,"Mode Orientation (GRID or RTO), Mandatory in PB", eSAM_NoInit)
                     << EAM(aZMoy,"ZMoy",true,"Average Z, Mandatory in PB", eSAM_NoInit)
                     << EAM(aZInc,"ZInc",true,"Incertitude on Z, Mandatory in PB", eSAM_NoInit)
+                    << EAM(aModeProfSouhaite,"MPS",true,"Mode Prof Prefered (def=true if conik)", eSAM_NoInit)
                     << EAM(ShowCom,"ShowCom",true,"Show MicMac command (tuning purpose)")
                     << EAM(ExportDepl,"ExportDepl",true,"Export result as displacement maps")
                     << EAM(aDirMEC,"DirMEC",true,"Output directory (Def GeoI-Px/)")
@@ -188,6 +190,7 @@ cAppliMMTestOrient::cAppliMMTestOrient(int argc,char ** argv)
                        +  std::string(" +Zoom0=") + ToString(Zoom0) + " "
                        +  std::string(" +ZoomF=") + ToString(ZoomF) + " "
                        +  std::string(" +DirMEC=") + aDirMEC + " "
+                       +  std::string(" +ModeProfSouhaite=") + ToString(aModeProfSouhaite) + " "
                       ;
 
     if (mModePB)

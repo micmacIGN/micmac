@@ -471,6 +471,8 @@ bool ElGetStrSys( const std::string & i_base_cmd, std::string &o_result )
 static std::string ArgvMMDir;
 static std::string CurrentProgramFullName;
 static std::string CurrentProgramSubcommand = "unknown";
+std::string MM3DFixeByMMVII ="";
+
 void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 {
     static bool First=true;
@@ -540,6 +542,10 @@ void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 
             // if which failed then we're doomed
             ELISE_ASSERT( whichSucceed, "MMD_InitArgcArgv : unable to retrieve binaries directory" );
+        }
+        if (MM3DFixeByMMVII !="")
+        {
+           aFullArg0 = MM3DFixeByMMVII ;
         }
 
         std::string aPatProg = "([0-9]|[a-z]|[A-Z]|_)+";
@@ -968,7 +974,6 @@ std::string XML_MM_File(const std::string & aFile)
         mSubDirRec (aSubDirRec)
     {
         // std::cout << "mSubDirRec " << mSubDirRec <<  " " << this<<  "\n";
-        // getchar();
     }
 
     cInterfChantierNameManipulateur * cMultiNC::ICNM()
@@ -1289,7 +1294,6 @@ const cInterfChantierSetNC::tSet  * cSetName::Get()
         std::map<tKey,cSetName *>::iterator anIt = mDico.find(aKeySsArb);
         if (anIt==mDico.end())
         {
-// std::cout << "NO fOUND " << aKeySsArb<<"\n"; getchar();
             return 0;
         }
 
@@ -1871,10 +1875,8 @@ const cInterfChantierSetNC::tSet  * cSetName::Get()
             cNameRelDescriptor & aNRD = *(new cNameRelDescriptor(aSCR->NRD()));
 
             // std::cout << aKey  << "+++" << aVParams[0] << " " << aVParams[1]<< " " << aVParams.size() << "\n";
-            // getchar();
             TransFormArgKey(aNRD,false,aVParams);
             // std::cout << "lllllllllllll\n";
-            // getchar();
             cStdChantierRel * aNewSCR =  new cStdChantierRel(*mGlob,aNRD);
             mRels[aKey] = aNewSCR;
             return true;
@@ -2545,12 +2547,12 @@ std::string cInterfChantierNameManipulateur::NameOriStenope(const tKey & aKeyOri
 
     bool MPD_MM()
     {
-        static bool aRes = MMUserEnv().UserName().Val() == "MPD";
+        static bool aRes = MMUserEnv().UserName().ValWithDef("") == "MPD";
         return aRes;
     }
     bool ERupnik_MM()
     {
-        static bool aRes = MMUserEnv().UserName().Val() == "ERupnik";
+        static bool aRes = MMUserEnv().UserName().ValWithDef("") == "ERupnik";
         return aRes;
     }
 
@@ -2932,7 +2934,7 @@ cInterfChantierNameManipulateur* cInterfChantierNameManipulateur::BasicAlloc(con
     {
 
         tNuplet aRes= isDirect ? Direct(aKey,aVNames)  : Inverse(aKey,aVNames);
-        ELISE_ASSERT(aRes.size()==1,"Multiple res in Assoc1To1");
+        ELISE_ASSERT(aRes.size()==1,"Multiple res in Assoc1ToN");
 
         return aRes[0];
     }
@@ -2981,7 +2983,7 @@ cInterfChantierNameManipulateur* cInterfChantierNameManipulateur::BasicAlloc(con
 
         tNuplet aRes= isDirect ? Direct(aKey,aInput)  : Inverse(aKey,aInput);
 
-        ELISE_ASSERT(aRes.size()==1,"Multiple res in Assoc1To2");
+        ELISE_ASSERT(aRes.size()==1,"Multiple res in Assoc1To3");
 
         return aRes[0];
     }
@@ -3002,7 +3004,7 @@ cInterfChantierNameManipulateur* cInterfChantierNameManipulateur::BasicAlloc(con
 
         tNuplet aRes= isDirect ? Direct(aKey,aInput)  : Inverse(aKey,aInput);
 
-        ELISE_ASSERT(aRes.size()==2,"Multiple res in Assoc1To1");
+        ELISE_ASSERT(aRes.size()==2,"Wrong res number in Assoc2To1");
 
         return std::pair<std::string,std::string>(aRes[0],aRes[1]);
 
@@ -3434,7 +3436,6 @@ void cStdChantierRel::AddAllCpleKeySet
                 {
 
                     const std::vector<std::string> & aVS = itO->Soms();
-                    // std::cout << "SIZ " << aVS.size() << "\n"; getchar();
                     const std::vector<int> & aVI = itO->Delta();
                     for (int aKS=0 ; aKS<int(aVS.size()) ; aKS++)
                     {

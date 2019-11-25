@@ -1,0 +1,11 @@
+This folder will contains the soft for computation of objects to match for TieP :
+
+    * extraction of "salient" point
+    * computation of descriptors
+
+
+Also this may be conceptually two different concept, the computation is done
+in the same  movement are they both use gaussian pyramids that are time consuming
+to compute and would require many hard disk space to save.
+
+

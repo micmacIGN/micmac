@@ -73,6 +73,7 @@ set(VERBOSE 0)
 
 set(MICMAC_VERSION_MAJOR 1)
 set(MICMAC_VERSION_MINOR 0)
+option(WERROR "Do warning generate error with gcc"  ON)
 
 ##############################
 ## 			OPTIONS			##
@@ -135,6 +136,17 @@ option(WITH_DOXYGEN "Generation de documentation" OFF )
 
 # Update QT translations
 option(UPDATE_TRANSLATIONS "Update source translation translations/*.ts files (WARNING: make clean will delete the source .ts files! Danger!)" OFF)
+
+option(WITH_CCACHE  "Use ccache to speed up recompilation" ON)
+
+# Configure CCache if available
+if(WITH_CCACHE)
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND)
+endif()
 
 # fichier contenant la fonction gerant les en-tetes precompilees
 include(precompiled_headers.cmake)
@@ -591,9 +603,14 @@ endif()
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # DEFINITION : des preprocesseurs G++
+
 if(CMAKE_COMPILER_IS_GNUCC)
 	#~ add_compile_options(-O2 -Wall) // pas gere par le cmake de la forge
+if (${WERROR})
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -Werror")
+else ()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall")
+endif()
 endif()
 
 # DEFINITION : Windows : le projet debug est genere directement sous bin pour avoir les informations de Debug

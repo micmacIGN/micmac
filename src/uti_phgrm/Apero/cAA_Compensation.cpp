@@ -403,15 +403,22 @@ void cAppliApero::AddObservationsAppuisFlottants(const std::list<cObsAppuisFlott
 
       if (mNbPtsFlot)
       {
-          Pt3dr  aBias = mSomEcPtsFlot/mNbPtsFlot;
-          double aBiasPlani = euclid(Pt2dr(aBias.x,aBias.y));
+          Pt3dr  aMeanEc = mSomEcPtsFlot/mNbPtsFlot;
+          double aMeanEcXY = mSomDistXYFlot/mNbPtsFlot;
+          double aMeanEcXYZ = mSomDistFlot/mNbPtsFlot;
           Pt3dr  aRMS2 = mSomRmsEcPtsFlot/mNbPtsFlot;
           Pt3dr  aRMS = Pt3dr(sqrt(aRMS2.x),sqrt(aRMS2.y),sqrt(aRMS2.z));
-          double aRMSPlani = euclid(Pt2dr(aRMS.x,aRMS.y));
-          std::cout << "=== GCP STAT ===  Dist,  Moy="<< (mSomDistFlot/mNbPtsFlot) << " Max=" << mMaxDistFlot << "\n";
-          std::cout <<  "[X,Y,Z],      MoyAbs=" << (mSomAbsEcPtsFlot/mNbPtsFlot) << " Max=" << mMaxAbsEcPtsFlot << " Bias=" << aBias << " Rms=" << aRMS << "\n";
-          std::cout <<  "[Plani,alti], Bias=[" << aBiasPlani << "," << aBias.z << "] RMS=[" << aRMSPlani << "," << aRMS.z << "]\n";
-          std::cout <<  "Norm,         Bias=" << euclid(aBias) << " RMS=" << euclid(aRMS) << "\n";
+          double aRMSXY = euclid(Pt2dr(aRMS.x,aRMS.y));
+          double aCoef = sqrt(mNbPtsFlot/(mNbPtsFlot-1)); //unbiased STD coef
+          Pt3dr  aSTDEc = Pt3dr(sqrt(aRMS2.x-pow(aMeanEc.x,2))*aCoef,
+                                sqrt(aRMS2.y-pow(aMeanEc.y,2))*aCoef,
+                                sqrt(aRMS2.z-pow(aMeanEc.z,2))*aCoef);
+          double aSTDEcXY = sqrt(aRMS2.x+aRMS2.y-pow(aMeanEcXY,2))*aCoef;
+          double aSTDEcXYZ = sqrt(aRMS2.x+aRMS2.y+aRMS2.z-pow(aMeanEcXYZ,2))*aCoef;
+          std::cout << "=== GCP STAT ===  Dist,  Moy="<< (aMeanEcXYZ) << " Max=" << mMaxDistFlot << "\n";
+          std::cout <<  "[X,Y,Z],      MoyAbs=" << (mSomAbsEcPtsFlot/mNbPtsFlot) << " Max=" << mMaxAbsEcPtsFlot << " Mean=" << aMeanEc << " STD=" << aSTDEc << " Rms=" << aRMS << "\n";
+          std::cout <<  "[Plani,alti], Mean=[" << aMeanEcXY << "," << aMeanEc.z << "] STD=[" << aSTDEcXY << "," << aSTDEc.z << "] RMS=[" << aRMSXY << "," << aRMS.z << "]\n";
+          std::cout <<  "Norm,         Mean=" << aMeanEcXYZ << " STD= " << aSTDEcXYZ << " RMS=" << euclid(aRMS) << "\n";
       }
    }
 }
@@ -420,8 +427,10 @@ void cAppliApero::AddEcPtsFlot(const Pt3dr & anEc)
 {
    mNbPtsFlot++;
    double aD = euclid(anEc);
+   double aDXY = euclid(Pt2dr(anEc.x,anEc.y));
    mMaxDistFlot= ElMax(mMaxDistFlot,aD);
    mSomDistFlot += aD;
+   mSomDistXYFlot += aDXY;
    mSomEcPtsFlot = anEc + mSomEcPtsFlot;
    Pt3dr aEcAbs = Pt3dr(ElAbs(anEc.x),ElAbs(anEc.y),ElAbs(anEc.z));
    mSomAbsEcPtsFlot = aEcAbs + mSomAbsEcPtsFlot;
@@ -713,8 +722,59 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
        aStdConvTxt.close();
     }
 
+    bool  ExportMMF = mParam.SectionChantier().ExportMatrixMarket().Val() ;
+    FILE * aFileEMMF=nullptr;
+    // Export to Matrix Market format
+    if (ExportMMF)
+    {
+        cGenSysSurResol * aSys = mSetEq.Sys();   
+        int aNbV = aSys->NbVar();
+        int aNbNN = 0;
+        int aNbTot = 0;
+        bool DoSym = true; // If true export 2 way else only for J>=I
+        for (int aIter=0 ; aIter<2 ; aIter++)
+        {
+            if (aIter==1)
+            {
+                aFileEMMF = FopenNN("Test_SPD.mtx","w","Export Matrix MarketFormat");
+                fprintf(aFileEMMF,"%d %d %d\n",aNbV,aNbV,aNbNN);
+            }
+            for (int aI=0 ; aI<aNbV ; aI++)
+            {
+                 int aJ0 = (DoSym ? 0 : aI);
+                 for (int aJ=aJ0 ; aJ<aNbV ; aJ++)
+                 {
+                     double aV  = aSys->GetElemQuad(aI,aJ);
+                     bool IsNull = (aV==0);
+                     if (aIter==0)
+                     {
+                         aNbTot++;
+                         if (! IsNull)
+                            aNbNN++;
+                     }
+                     else
+                     {
+                         if (! IsNull)
+                         {
+                             fprintf(aFileEMMF,"%d %d %10.10E\n",aI+1,aJ+1,aV);  // !!! => Fuck Fortran index convention  !!!
+                             // fprintf(aFP,"%d %d %lf\n",aI,aJ,aV);
+                          }
+                     }
+                 }
+            }
+        }
+        std::cout << "===========  EXPORT MATRIX MARKET FORMAT =========\n";
+        std::cout << "  Densite NN=" << (double(aNbNN) / double(aNbTot)) << " NbVar=" << aNbV << "\n";
+    }
+
+    ElTimer aChronoSolve;
     mSetEq.Solve(aSO.SomErPond(),(bool *)0);
 
+    if (ExportMMF)
+    {
+       fprintf(aFileEMMF,"%% MicMac Cholesky time = %lf\n",aChronoSolve.uval());
+       fclose(aFileEMMF);
+    }
 
     if (mESPA)
     {

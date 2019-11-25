@@ -484,7 +484,7 @@ template <class Type,class TyBase> Liste_Pts<Type,TyBase>::Liste_Pts(INT dim,Typ
 template <class Type,class TyBase> Liste_Pts<Type,TyBase>::Liste_Pts(Type *x,Type * y,INT nb) :
           Liste_Pts_Gen (0)
 {
-   Type * (d[2]);
+   Type * d[2];
     d[0] = x;
     d[1] = y;
 

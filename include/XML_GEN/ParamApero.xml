@@ -142,6 +142,8 @@
     <eTRPB_VisibIm> </eTRPB_VisibIm>
     <eTRPB_OutIm> </eTRPB_OutIm>
     <eTRPB_PbInterBundle> </eTRPB_PbInterBundle>
+    <eTRPB_RatioDistP2Cam> </eTRPB_RatioDistP2Cam>
+    <eTRPB_Unknown> </eTRPB_Unknown>
     <eTRPB_NbVals> </eTRPB_NbVals>
 </enum>
 
@@ -972,6 +974,12 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
 
         <SectionChantier Nb="1">
 
+              <RatioMaxDistCS  Type="double" Nb="?" Def="30.0" > </RatioMaxDistCS>
+              <!-- Permet d'eliminer les tie points de maniere reproductible
+                   [7,1,13,4]  => elimine ceux dont le numero est egal a 1%7 et a 4 % 13
+              -->
+              <DebugVecElimTieP  Type="std::string" Nb="?" > </DebugVecElimTieP>
+
               <DoStatElimBundle Nb="?" Type="int"> </DoStatElimBundle>
               <UseExportImageResidu  Nb="?"> 
                    <SzByPair Nb="?" Type="double" Def="30"> </SzByPair> 
@@ -1028,6 +1036,8 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
               -->
              <ThresholdWarnPointsBehind Nb="?" Type="double" Def="0.01"></ThresholdWarnPointsBehind>
 
+             <!-- Used to test alternative solution to linear solution of least square -->
+             <ExportMatrixMarket Nb="?" Type="bool" Def="false"> </ExportMatrixMarket>
         </SectionChantier>
 
 
@@ -1574,6 +1584,7 @@ normalises en echelle et/ou en translation -->
 		          <PatternSel Nb="?" Type="std::string" Def=".*" > </PatternSel>
 			  <NameFileXml    Nb="?" Type="std::string"  > </NameFileXml>
 			  <NameFileTxt    Nb="?" Type="std::string"  > </NameFileTxt>
+			  <NameFileJSON    Nb="?" Type="std::string"  > </NameFileJSON>
 			  <TextComplTxt Nb="?" Type="std::string">  </TextComplTxt>
 		     </ExportPtsFlottant>
 

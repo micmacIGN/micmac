@@ -8,8 +8,8 @@ namespace MMVII
 /* ========================== */
 
 cSemA2007::cSemA2007(eTA2007 aType,const std::string & anAux) :
-   mType (aType),
-   mAux  (anAux)
+   mType      (aType),
+   mAuxA2007  (anAux)
 {
 }
 
@@ -19,13 +19,13 @@ cSemA2007::cSemA2007(eTA2007 aType) :
 }
 
 eTA2007  cSemA2007::Type()            const {return mType;}
-const std::string &  cSemA2007::Aux() const {return mAux;}
+const std::string &  cSemA2007::AuxA2007() const {return mAuxA2007;}
 
 std::string  cSemA2007::Name4Help() const
 {
-   if (int(mType) < int(eTA2007::Common))
+   if (int(mType) < int(eTA2007::Shared))
    {
-      return E2Str(mType) + mAux;
+      return E2Str(mType) + mAuxA2007;
    }
 
    return "";
@@ -42,9 +42,18 @@ const std::vector<cSemA2007>   cSpecOneArg2007::TheEmptySem;
 cSpecOneArg2007::cSpecOneArg2007(const std::string & aName,const std::string & aCom,const tVSem & aVSem) :
    mName (aName),
    mCom  (aCom),
-   mVSem (aVSem),
-   mNbMatch (0)
+   mVSem (aVSem)
 {
+    ReInit();
+}
+
+cSpecOneArg2007::~cSpecOneArg2007()
+{
+}
+
+void cSpecOneArg2007::ReInit()
+{
+   mNbMatch = 0;
 }
 
 std::string  cSpecOneArg2007::Name4Help() const
@@ -92,7 +101,7 @@ bool cSpecOneArg2007::HasType(const eTA2007 & aType,std::string * aValue) const
        if (aSem.Type() == aType)
        {
           if (aValue) 
-             *aValue =  aSem.Aux();
+             *aValue =  aSem.AuxA2007();
           return true;
        }
    }
@@ -105,11 +114,21 @@ const std::string  & cSpecOneArg2007::Name() const
    return mName;
 }
 
+const std::string  & cSpecOneArg2007::Value() const
+{
+   return mValue;
+}
+
 const std::string  & cSpecOneArg2007::Com() const
 {
    return mCom;
 }
 
+void  cSpecOneArg2007::InitParam(const std::string & aStr) 
+{
+   mValue = aStr;
+   V_InitParam(aStr);
+}
 
 
 /* ============================ */
@@ -149,16 +168,39 @@ tVecArg2007 & cCollecSpecArg2007::Vec()
 
 
 
+
 /* ============================================== */
 /*                                                */
 /*       cInstReadOneArgCL2007                    */
 /*                                                */
 /* ============================================== */
 
+template <class Type> void  GlobCheckSize(const Type & ,const std::string & anArg) 
+{
+    MMVII_INTERNAL_ASSERT_always(false,"Check size vect for non vect arg");
+}
+
+template <class Type> void  GlobCheckSize(const std::vector<Type> & aVal,const std::string & anArg) 
+{
+    cPt2di aSz = cStrIO<cPt2di>::FromStr(anArg);
+    if ((int(aVal.size()) < aSz.x()) || ((int(aVal.size()) > aSz.y()))) 
+    {
+       MMVII_UsersErrror(eTyUEr::eBadSize4Vect,"IntervalOk=" + anArg + " Got=" + ToStr(int(aVal.size())));
+    }
+}
+
+
 template <class Type> class cInstReadOneArgCL2007 : public cSpecOneArg2007
 {
     public :
-        void InitParam(const std::string & aStr) override
+
+       void  CheckSize(const std::string & anArg) const override 
+       {
+               GlobCheckSize(mVal,anArg);
+       }
+
+
+        void V_InitParam(const std::string & aStr) override
         {
             mVal = cStrIO<Type>::FromStr(aStr);
         }
@@ -200,7 +242,13 @@ MACRO_INSTANTIATE_ARG2007(int)
 MACRO_INSTANTIATE_ARG2007(double)
 MACRO_INSTANTIATE_ARG2007(bool)
 MACRO_INSTANTIATE_ARG2007(std::string)
-
+MACRO_INSTANTIATE_ARG2007(std::vector<std::string>)
+MACRO_INSTANTIATE_ARG2007(std::vector<int>)
+MACRO_INSTANTIATE_ARG2007(std::vector<double>)
+MACRO_INSTANTIATE_ARG2007(cPt2di)
+MACRO_INSTANTIATE_ARG2007(cPt2dr)
+MACRO_INSTANTIATE_ARG2007(cPt3di)
+MACRO_INSTANTIATE_ARG2007(cPt3dr)
 
 /*
 template <> tPtrArg2007 AOpt2007<int>(int &,const std::string & aName, const std::string & aCom);

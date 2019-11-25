@@ -19,6 +19,7 @@ namespace MMVII
 
 void mem_raz(void * adr,int64_t nb);
 #define MEM_RAZ(x,nb) mem_raz((void *)(x),(nb)*sizeof(*(x)))
+template <class Type> void  MemCopy(Type * aDest,const Type * aSrce,size_t aNum) {memcpy(aDest,aSrce,sizeof(Type)*aNum);}
 
 
 /*
@@ -57,8 +58,8 @@ class cMemState
         int64_t  mCheckNb;
         int64_t  mCheckSize;
         int64_t  mCheckPtr;
-        int64_t  mNbObjCreated;
-        bool     mDoCheckAtDestroy; ///< Sometime we need to do the check at the very end of the existence
+        int64_t  mNbObjCreated;   ///< Number of allocation/desalloc
+        bool     mDoCheckAtDestroy; ///< Sometime we need to do the check at the very end of the existence, this is 4 last object
 };
 
 /**
@@ -89,6 +90,20 @@ class cMemManager
         {
            return  static_cast<Type *> (cMemManager::Calloc(nmemb,sizeof(Type)));
         }
+
+        template <class Type> static bool Resize (Type *& aPtr,int aX0Prec,int & aSzMax,int aX0New,int aSzNew)
+        {
+           if (aSzNew > aSzMax)
+           {
+                Free(aPtr+aX0Prec); 
+                aPtr = Alloc<Type> (aSzNew)-aX0New;
+                aSzMax = aSzNew;
+                return true;
+           }
+           else
+               aPtr = aPtr + aX0Prec-aX0New;
+           return false;
+        }
     private :
 
         static cMemState mState;
@@ -105,11 +120,15 @@ class  cMemCheck
       public :
          void * operator new    (size_t sz);
          void operator delete   (void * ptr) ;
+#if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny)
+         cMemCheck()  {TheNbObjLive++;}
+         cMemCheck(const cMemCheck &)  {TheNbObjLive++;}
+         ~cMemCheck() {TheNbObjLive--;  }
+#endif
+         static int    NbObjLive();
       private :
-
+         static int    TheNbObjLive;
        // to avoid use 
-         void * operator new []  (size_t sz);
-         void operator delete [] (void * ptr) ;
 };
 
 

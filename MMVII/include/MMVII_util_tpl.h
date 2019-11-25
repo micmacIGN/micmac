@@ -96,7 +96,7 @@ void BenchSet(const std::string & aDir);
 template <class Type> class cExtSet  : public  cSelector<Type>
 {
     public :
-         ~cExtSet() ;
+         virtual ~cExtSet() ;
          cExtSet<Type>   Dupl() const ; // return a duplicata
          cExtSet<Type>   EmptySet() const ; // return a set from same type
 
@@ -143,6 +143,7 @@ template <class Type> void SortPtrValue(std::vector<Type*> &aV);
 tNameSet SetNameFromPat    (const std::string&); ///< create a set of file from a pattern
 tNameSet SetNameFromFile   (const std::string&, int aNumV); ///< create from a file xml, V1 or V2
 tNameSet SetNameFromString (const std::string&, bool AllowPat); ///< general case, try to recognize automatically V1, V2 or pattern
+std::vector<std::string>  ToVect(const tNameSet &);  ///< Less economic but more convenient than PutInVect
 
 /** read from file, select version, accept empty, error if file exist bud in bad format */
 tNameRel  RelNameFromFile (const std::string&);
@@ -188,6 +189,32 @@ template <class Type> class cOrderedPair
            Type mV1;
            Type mV2;
 };
+
+
+#if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny)
+#define  M_VectorAt(V,aK) (V.at(aK))
+#else
+#define  M_VectorAt(V,aK) (V[aK])
+#endif 
+
+
+/* *************************************************** */
+/*                                                     */
+/*   Complement to STL, thing in C++20 and not 14 .... */
+/*                                                     */
+/* *************************************************** */
+
+template<class TCont,class TVal> bool  BoolFind(const TCont & aCont,const TVal & aVal)
+{
+    return std::find(aCont.begin(),aCont.end(),aVal) != aCont.end();
+}
+
+template <class TV,class TF> void erase_if(TV & aVec,const TF& aFonc)
+{
+   aVec.erase(std::remove_if(aVec.begin(),aVec.end(),aFonc),aVec.end());
+}
+
+template <class Type> int LexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2);
 
 
 

@@ -1085,6 +1085,12 @@ bool SolveBundle3Image
                anEr2 = aDefError;
            }
     }
+    //  Il doit y avoir plus propre mais je n'ai pas le courage d'intervenir dans le noyau
+    for (int aK=0; aK<int(aB3.mXI.size()) ; aK++)
+    {
+       if (! (IsOkData(aB3.mXI[aK]) && IsOkData(aB3.mYI[aK]) && IsOkData(aB3.mZI[aK])))
+          return false;
+    }
     if (aParam.mNbIter==0)
     {
        anEr3 = aB3.OneIter3(anEr3); 
@@ -1128,18 +1134,35 @@ class cFullBundleBase  :  public  cPackInPts2d,
        double  VIB2I_PondK(const int & aK) const {return mVPds[aK];}
        double  VIB2I_ErrorK(const ElRotation3D &aRot,const int & aK) const;
        double  VIB2I_AddObsK(const int & aK,const double & aPds) ;
-       void    VIB2I_InitNewRot(const ElRotation3D &aRot) {mBB.InitNewRot(aRot);}
+       // void    VIB2I_InitNewRot(const ElRotation3D &aRot) {mBB.InitNewRot(aRot);}
+       void    VIB2I_InitNewRot(const ElRotation3D &aRot) ;
        ElRotation3D    VIB2I_Solve() {return  mBB.SolveResetUpdate();}
+     
     private  :
 
        cEqBundleBase  mBB;
+       bool           mAddCstrDrone;
 };
+
+void    cFullBundleBase::VIB2I_InitNewRot(const ElRotation3D &aRot) 
+{
+    if (mAddCstrDrone) 
+    {
+       std::cout << "InitNewRotInitNewRot " << aRot.tr() << " " << VIB2I_NameType() << "\n";
+    }
+    mBB.InitNewRot(aRot);
+}
 
 cFullBundleBase::cFullBundleBase(const  ElPackHomologue & aPack,double aFoc,bool UseAccelCoordCste) :
     cPackInPts2d          (aPack),
     cInterfBundle2Image   ((int)mVP1.size(),aFoc),
-    mBB                   (false,0,aFoc,UseAccelCoordCste)
+    mBB                   (false,0,aFoc,UseAccelCoordCste),
+    mAddCstrDrone         (MPD_MM())
 {
+    if (mAddCstrDrone)
+    {
+        std::cout << "ADD CSTRE DRONE \n";
+    }
 }
 
 double  cFullBundleBase::VIB2I_ErrorK(const ElRotation3D &aRot,const int & aK) const

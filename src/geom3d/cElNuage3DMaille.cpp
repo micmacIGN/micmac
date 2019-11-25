@@ -761,9 +761,9 @@ void cElNuage3DMaille::PlyPutFile
 
    if (aAddNormale)
    {
-       fprintf(aFP,"property float nx\n");
-       fprintf(aFP,"property float ny\n");
-       fprintf(aFP,"property float nz\n");
+       fprintf(aFP,"property %s nx\n",aTypeXYZ.c_str());
+       fprintf(aFP,"property %s ny\n",aTypeXYZ.c_str());
+       fprintf(aFP,"property %s nz\n",aTypeXYZ.c_str());
    }
 
    const char * aVCoul[3]={"red","green","blue"};
@@ -832,7 +832,6 @@ void cElNuage3DMaille::NuageXZGCOL(const std::string & aName,bool B64)
 {
    AssertNoEmptyData();
    std::string aNameXYZ = aName+"_XYZ.tif";
-
    L_Arg_Opt_Tiff aL;
    aL = aL+Arg_Tiff(Tiff_Im::ANoStrip());
 
@@ -915,19 +914,39 @@ void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP, bool aModeBin, int aAddNorma
        {
            Pt3dr aN = NormaleOfIndex(anI, aAddNormale);
 
-           float Nxyz[3];
-           Nxyz[0] = (float)aN.x;
-           Nxyz[1] = (float)aN.y;
-           Nxyz[2] = (float)aN.z;
-
-           if (aModeBin)
+           if (DoublePrec)
            {
-               int aNb= (int)fwrite(Nxyz, sizeof(float), 3, aFP);
-               ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex-Normale");
+               double Nxyz[3];
+               Nxyz[0] = (double)aN.x;
+               Nxyz[1] = (double)aN.y;
+               Nxyz[2] = (double)aN.z;
+
+               if (aModeBin)
+               {
+                   int aNb= (int)fwrite(Nxyz, sizeof(double), 3, aFP);
+                   ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex-Normale");
+               }
+               else
+               {
+                   fprintf(aFP," %.6f %.6f %.6f", Nxyz[0], Nxyz[1], Nxyz[2]);
+               }
            }
            else
            {
-               fprintf(aFP," %.6f %.6f %.6f", Nxyz[0], Nxyz[1], Nxyz[2]);
+               float Nxyz[3];
+               Nxyz[0] = (float)aN.x;
+               Nxyz[1] = (float)aN.y;
+               Nxyz[2] = (float)aN.z;
+
+               if (aModeBin)
+               {
+                   int aNb= (int)fwrite(Nxyz, sizeof(float), 3, aFP);
+                   ELISE_ASSERT(aNb==3,"cElNuage3DMaille::PlyPutDataVertex-Normale");
+               }
+               else
+               {
+                   fprintf(aFP," %.6f %.6f %.6f", Nxyz[0], Nxyz[1], Nxyz[2]);
+               }
            }
        }
 
@@ -1603,7 +1622,7 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
     bool Ok;
     // Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef,&Ok);
 
-for (int aK=0 ; aK<100 ; aK++) std::cout << "WAAArrrn BasculerAndInterpoleInverse\n";
+//  for (int aK=0 ; aK<100 ; aK++) std::cout << "WAAArrrn BasculerAndInterpoleInverse\n";
 
 Ok=true;
 Im2D_REAL4  aMntBasc = aBasc.BasculerAndInterpoleInverse(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef);

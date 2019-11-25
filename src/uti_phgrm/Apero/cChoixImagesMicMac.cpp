@@ -336,7 +336,14 @@ class cCaseOcupIm
         {
              double aProf = MedianeSup(aVProf);
              mPIm = mSomPts / mSomPds;
-             mPTer  = aPC->CurCam()->ImEtProf2Terrain(mPIm,aProf);
+             if (aPC->CurCam()->IsInZoneUtile(mPIm))
+             {
+                 mPTer  = aPC->CurCam()->ImEtProf2Terrain(mPIm,aProf);
+             }
+             else
+             {
+                  mSomPds = 0.0;
+             }
              aVProf.clear();
         }
 
@@ -344,6 +351,14 @@ class cCaseOcupIm
         {
              return aPC->CurCam()->PIsVisibleInImage(mPTer);
         }
+        double SomPds() const {return mSomPds;}
+        double & SomPds() {return mSomPds;}
+        Pt3dr PTer() const
+        {
+            ELISE_ASSERT(mSomPds!=0,"Nul Pds for cCaseOcupIm::PTer");
+            return mPTer;
+        }
+    private  :
 
         Pt2dr mPIm;
         Pt3dr mPTer;
@@ -356,7 +371,7 @@ double SomPds(const std::vector<cCaseOcupIm>  & aVC)
 {
     double aRes = 0;
     for (int aKC=0 ; aKC<int(aVC.size()) ; aKC++)
-        aRes += aVC[aKC].mSomPds;
+        aRes += aVC[aKC].SomPds();
     return aRes;
 }
 double SomPds(const std::vector<std::vector<cCaseOcupIm> > & aVVC)
@@ -372,7 +387,7 @@ double SomPdsVisible(const std::vector<cCaseOcupIm>  & aVC,cPoseCam * aPC)
     double aRes = 0;
     for (int aKC=0 ; aKC<int(aVC.size()) ; aKC++)
         if (aVC[aKC].PoseMeVoit(aPC))
-           aRes += aVC[aKC].mSomPds;
+           aRes += aVC[aKC].SomPds();
     return aRes;
 }
 double SomPdsVisible(const std::vector<std::vector<cCaseOcupIm> > & aVVC,cPoseCam * aPC)
@@ -552,7 +567,7 @@ double cCombinPosCam::GainOfCase(const cCaseOcupIm & aCase,cSetCombPosCam & aSet
        if (aPuis2&mFlag)
        {
            const CamStenope * aCS = mVCam[aLog]->CurCam();
-           if (aCS->PIsVisibleInImage(aCase.mPTer))
+           if ((aCase.SomPds()) && (aCS->PIsVisibleInImage(aCase.PTer())))
            {
                aFlagRes |= aPuis2;
            }
@@ -562,7 +577,7 @@ double cCombinPosCam::GainOfCase(const cCaseOcupIm & aCase,cSetCombPosCam & aSet
    }
    ELISE_ASSERT(aFlagGlob==mFlag,"Check flags in cCombinPosCam::Gain");
    
-   return aSet.GetComb(aFlagRes).mGainDir * aCase.mSomPds;
+   return aSet.GetComb(aFlagRes).mGainDir * aCase.SomPds();
 }
 
 double cCombinPosCam::GainOfCase(const std::vector<cCaseOcupIm> & aVC,cSetCombPosCam & aSet)
@@ -712,7 +727,7 @@ bool  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
            {
                cCaseOcupIm & aCase  =  aVCase.at(aKY).at(aKX);
                aCase.Finish(aPC0);
-               double  & aSomP = aCase.mSomPds;
+               double  & aSomP = aCase.SomPds();
                aSomP  = aSomP /aSomMoy;
                if (aSomP > 1) aSomP =  2.0 - 1 / aSomP;
            }
@@ -725,7 +740,7 @@ bool  cAppliApero::ExportImSecMM(const cChoixImMM & aCIM,cPoseCam* aPC0,const cM
            for (int aKX = 0 ; aKX < aNbCaseX ; aKX++)
            {
                cCaseOcupIm & aCase  =  aVCase.at(aKY).at(aKX);
-               aCase.mSomPds /= aSomPds;
+               aCase.SomPds()  /= aSomPds;
            }
        }
    }

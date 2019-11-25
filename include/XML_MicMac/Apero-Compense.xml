@@ -20,6 +20,8 @@
            <eSymb>  MaxResTieP=* ${SigmaTieP} ${FactMaxRes}  </eSymb>
 
            <Symb>  SauvAutom="" </Symb>
+           <Symb>  DoSauvAutom=true    </Symb>
+
            <Symb>  PropDiagU=1.0  </Symb>
 
 
@@ -217,6 +219,9 @@
            <Symb> SigmaRapOnZ=1.0 </Symb>
            <Symb> KeyGrpRapOnZ=XXXX </Symb>
            <Symb> DSElimB=0 </Symb>
+           <Symb> StrDebugVecElimTieP="" </Symb>
+           <Symb> RatioMaxDistCS=30.0 </Symb>
+           <Symb> ExportMatrixMarket=false </Symb>
 
        </DicoLoc>
 
@@ -463,6 +468,9 @@
 
 
         <SectionChantier>
+             <ExportMatrixMarket> ${ExportMatrixMarket} </ExportMatrixMarket>
+             <RatioMaxDistCS> ${RatioMaxDistCS} </RatioMaxDistCS>
+             <DebugVecElimTieP> ${StrDebugVecElimTieP} </DebugVecElimTieP>
              <DoStatElimBundle> ${DSElimB} </DoStatElimBundle>
              <#WHEN VTEST=${DoUseExportImageResidu}>
                    <UseExportImageResidu>
@@ -479,7 +487,7 @@
 	     <DirectoryChantier> XXXX </DirectoryChantier>
              <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
              <SauvAutom>  ${SauvAutom} </SauvAutom>
-             <SauvAutomBasic>  true </SauvAutomBasic>
+             <SauvAutomBasic>  ${DoSauvAutom} </SauvAutomBasic>
         </SectionChantier>
 
         <SectionSolveur>

@@ -130,17 +130,20 @@ cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
    ModeleAddFour(false),
    ModeleAddPoly(false),
    TheModelAdd(""),
+   mSauvAutom       (""),
+   mRatioMaxDistCS  (30.0),
    mNamesBlockInit  (false),
    mDSElimB         (1),
+   mExportMatrixMarket        (false),
    mArg             (new LArgMain)
 {
     (*mArg) << EAM(mVBlockGlob,"BlocGlob",true,"Param for Glob bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
             << EAM(mVBlockDistGlob,"DistBlocGlob",true,"Param for Dist Glob bloc compute [File,SigmaDist,?MulFinal,?Export]")
             << EAM(mVBlockRel,"BlocTimeRel",true,"Param for Time Reliative bloc compute [File,SigmaCenter,SigmaRot,?MulFinal,?Export]")
             << EAM(mVOptGlob,"OptBlocG",true,"[SigmaTr,SigmaRot]")
-            << EAM(GlobLibFoc,"FocFree",true,"Foc Free (Def=false)", eSAM_IsBool)
-            << EAM(GlobLibPP,"PPFree",true,"Principal Point Free (Def=false)", eSAM_IsBool)
-            << EAM(GlobLibAff,"AffineFree",true,"Affine Parameter (Def=false)", eSAM_IsBool)
+            << EAM(GlobLibFoc,"FocFree",true,"Foc Free (Def=true)", eSAM_IsBool)
+            << EAM(GlobLibPP,"PPFree",true,"Principal Point Free (Def=true)", eSAM_IsBool)
+            << EAM(GlobLibAff,"AffineFree",true,"Affine Parameter (Def=true)", eSAM_IsBool)
             << EAM(GlobDegAdd,"DegAdd",true, "When specified, degree of additionnal parameter")
             << EAM(GlobDegGen,"DegFree",true, "When specified degree of freedom of parameters generiqs")
             << EAM(GlobDRadMaxUSer,"DRMax",true, "When specified degree of freedom of radial parameters")
@@ -150,6 +153,9 @@ cAppli_Tapas_Campari::cAppli_Tapas_Campari() :
             << EAM(GlobLibDec,"LibDec",true,"Free decentric parameter, Def context dependant", eSAM_IsBool)
             << EAM(mRapOnZ,"RapOnZ",true,"Force Rappel on Z [Z,Sigma,KeyGrp]")
             << EAM(mDSElimB,"SElimB",true,"Print stat on reason for bundle elimination (0,1,2)")
+            << EAM(mExportMatrixMarket,"ExpMatMark",true,"Export Cov Matrix to Matrix Market Format+Eigen/cmp")
+            << EAM(mSauvAutom,"SauvAutom",true, "Save intermediary results to, Set NONE if dont want any", eSAM_IsOutputFile)
+            << EAM(mRatioMaxDistCS,"RatioMaxDistCS",true, "Ratio max of distance P-Center ", eSAM_IsOutputFile)
                ;
 }
 
@@ -166,6 +172,22 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
     {
        mCom = mCom + " +DSElimB=" + ToString(mDSElimB) + " ";
     }
+    if (ExportMatrixMarket())
+    {
+       mCom = mCom + " +ExportMatrixMarket=true ";
+    }
+
+    if (mSauvAutom!="")
+    {
+        if (mSauvAutom=="NONE")
+           mCom =   mCom + " +DoSauvAutom=false";
+        else
+           mCom =   mCom + " +SauvAutom="+mSauvAutom;
+    }
+    if (EAMIsInit(&mRatioMaxDistCS))
+    {
+        mCom = mCom + " +RatioMaxDistCS=" + ToString(mRatioMaxDistCS) + " ";
+    }
 
 
     if (EAMIsInit(&mRapOnZ))
@@ -181,6 +203,7 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
     AddParamBloc(mCom,mVBlockRel,"TimeRel",true);
     AddParamBloc(mCom,mVBlockGlob,"Glob",true);
     AddParamBloc(mCom,mVBlockDistGlob,"DistGlob",false);
+
 
     if (EAMIsInit(&mVOptGlob))
     {
@@ -207,6 +230,19 @@ void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom)
           mCom += std::string(" +WBG_Stricte=true ");
        }
     }
+
+
+    if (1)
+    {
+       mStrParamBloc = mStrParamBloc + BlQUOTE(StrInitOfEAM(&mVOptGlob));
+        
+/*
+       std::cout << "00:" << mCom << "\n";
+       std::cout << "11:" << mStrParamBloc << "\n";
+       getchar();
+*/
+    }
+
 }
 
 void cAppli_Tapas_Campari::AddParamBloc(std::string & mCom,std::vector<std::string> & aVBL,const std::string & aPref,bool ModeRot)
@@ -409,6 +445,7 @@ class cAppli_Campari : public cAppli_Tapas_Campari
 */
 
        std::vector<double>   mPdsErrorGps;
+       std::string  mStrDebugVTP;  // Debug sur les tie points
 
 };
 
@@ -531,6 +568,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(aVRegulDist,"RegulDist",true,"Parameter fo RegulDist [Val,Grad,Hessian,NbCase,SeuilNb]")
                     << EAM(RapTxt,"RapTxt",true,"Output report of residual for each point")
                     << EAM(aVExpImRes,"ExpImRes",true,"Sz of Im Res=[Cam,Pose,Pair]")
+                    << EAM(mStrDebugVTP,"StrDebugVTP",true,"String of debug for tie points")
 
     );
 
@@ -572,11 +610,16 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                aNbIterFin = 0;
             }
        }
+       if ( (!EAMIsInit(&aNbIterFin)) && (DSElimB()>=3))
+       {
+          aNbIterFin = 0;
+       }
 
-       if (EAMIsInit(&CalibMod2Refine)){
+       if (EAMIsInit(&CalibMod2Refine))
+       {
 
-       InitVerifModele(CalibMod2Refine,mICNM);
-       if (!EAMIsInit(&AddViscInterne)) AddViscInterne=1;
+           InitVerifModele(CalibMod2Refine,mICNM);
+           if (!EAMIsInit(&AddViscInterne)) AddViscInterne=1;
        }
 
        if (!GlobLibPP && GlobLibCD) std::cout << "Warning, distorsion center is set to free but Principal point is set to frozen.\n I will not adjust Distorsion center.\n";
@@ -771,6 +814,10 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         {
            mCom +=   std::string(" +ModeResolSysLin=eSysPlein");
         }
+        if (EAMIsInit(&mStrDebugVTP))
+        {
+           mCom += " +StrDebugVecElimTieP=" + mStrDebugVTP + " ";
+        }
 
         if (aExportSensib) 
         {
@@ -922,8 +969,6 @@ int cAppli_Campari::RTA()
               aResGlobRTA.BestMult() =  aMul;
          }
          MakeFileXML(aResGlobRTA,mNameRTA);
-
-         // std::cout << "GPPPPP " << aBuf << "\n";
     }
     MakeFileXML(aResGlobRTA,mNameRTA);
 

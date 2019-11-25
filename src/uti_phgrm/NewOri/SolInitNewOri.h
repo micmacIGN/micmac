@@ -47,16 +47,200 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define PenalMedMed       2.0
 #define NbInitEvalRot     3
 
+      /****** Data  Structure ************/
+
+/* We have more or less a "Hypergraph" structure, with nodes (camera), edges (pair) and triplet, and we need
+   to have a quick acces :
+      * for a triplet ABC to arc (AB AC BC)  and nodes  (A B C) , we say that they are adjacent
+      * for a nodes to the triplet and edge it share
+      * ...
+
+   A triplet  cNOSolIn_Triplet represent a set of 3 summits. It contains the 3 submit and edges
+   addjacent to it
+          tSomNSI *     mSoms[3];
+          tArcNSI *     mArcs[3];
+
+   and much more information (like B/H, relative orientation inside). 
+   In a triplet there is no control of order of the 3 submits. In many cases it is necessary to
+   have the same triplet information but wih a specific order. For example in  an edge
+   AB, the submit C play a role different from A and B.   This is made by  cLinkTripl,
+   basically a cLinkTripl is :
+      * a pointer to a cNOSolIn_Triplet
+      * a permutation of [1,3]  K1,K2,K3
+
+
+   For a submit   : cNOSolIn_AttrSom;   // Attribut of submits 
+          we have  std::vector<cLinkTripl> & Lnk3() {return mLnk3;} , the list of link-triplet
+          that contains a submit, and  (to check) K3 is always the submit itselg
+          
+       See Tag :                   ///  ADD-SOM-TRIPLET
+
+
+   For an edge (A,B) : cNOSolIn_AttrASym 
+         The std::vector<cLinkTripl> & Lnk3() {return mLnk3;} contains the list of
+         link triplet that contains the edge , and K1,K2 correspond to the index
+         of A and B
+
+       See Tag :                   ///  ADD-EDGE-TRIPLET
+
+*/
+
+/*
+   =====   cAppli_NewSolGolInit::cAppli_NewSolGolInit(int argc, char ** argv) ====
+
+   The constructor do all the job, the main step are :
+
+   *  construct the graph and link with the data structure presented up
+      (will be commented in the code)
+
+   *  EstimCoherenceMed()  : see bellow ; estimate an average of coherence estimatore
+   *  EstimRotsArcsInit()  : see bellow ; estimate relative orient of all edge
+   *  EstimCoheTriplet()   : see bellow ; estimate coherence of each triplet based on orientation of edge
+   *  FilterTripletValide() : see bellow ; supress incoherent triplet
+   *  NumeroteCC() :  see bellow ;  compute connected components to make separate computation inside each component
+   *  CalculOrient() :  The BIG PART  to be commented soon .....
+
+
+*/
+
+
+
+/*        A1   A2
+        / |    | \
+      C1  |    |  C2
+        \ |    | /
+          B1   B2
+
+   =====  DistCoherenceAtoB ====  
+      Compute the coherence of two triplet that share an edge. This is done
+    by computing the  difference of relative orientation of the same pair
+    in the two triplet (A1->B1  ~  A2->B2)
+
+     ====  DistCoherence1to2  === 
+        More or less the same thing than DistCoherenceAtoB but do
+      the computation in a slightly different manner, compute
+      twice the relative orientation of triplet and check they are the same
+      A1->A2 ~ B1->B2
+
+   Don't know (don't ask me now ..) why these two exist, as they are probably equivalent.
+
+*/
+
+/** ==== cAppli_NewSolGolInit.EstimCoherenceMed() ====
+
+    Estimate a median coherence (based on DistCoherenceAtoB and DistCoherence1to2)
+
+    This essential as we want a method no "sensible" threshold, the reliability
+   of two triplet will be compared to this "average" value.
+
+   Main operation :
+
+      * estimate B/H of each edge
+      * estimate coherence of triplets in same edge and push it in vector
+      *
+*/
+
+/**  ==== cAppli_NewSolGolInit.EstimRotsArcsInit() ====
+       Call InitRotOfArc for each edge
+
+       === InitRotOfArc :
+         For a given edge A,B each triplet it belongs to, has an estimation 
+         of the relative pose  R(A->B)
+         InitRotOfArc make a robust estimation taking into account all triplet
+         See command in the code to see how this robust estimation is made
+*/
+
+/**  ==== cAppli_NewSolGolInit.EstimCoheTriplet()  ====
+
+     Once we have for each edge an estimation of relative orientation, we can have
+    a "strong" coherence constraint on triplet by testing if their 3 orientation are compatible
+    with their 3 edge
+
+      This function estimate the coherence of each triplet, and also compute a standardize
+    gain using the cost and the median of all cost.
+
+      It computes also value  mSeuilCostArc wich will be used to filter valide edge
+*/
+
+
+/**   ====     cAppli_NewSolGolInit.FilterTripletValide();
+
+     Once we have computed the coherence and a threshold we can supresse the "gross" error
+   in triplet (just by testing the threshlod). Some precaution must be done to supress
+   also the link (in edge)
+*/
+
+/**   ====     cAppli_NewSolGolInit.NumeroteCC();
+
+     It may happen, originaly or after FilterTripletValide, that the graph is no longer
+    connex via triplet.  
+
+      In this case, in each connected component a solution must be computed independantly. 
+    This function computed the connected components by numerorting each sumit.
+*/
+
+/**   ====     cAppli_NewSolGolInit.CalculOrient()
+      * Call CalculOrient(cNO_CC_TripSom * aCC)  for each connected component
+*/
+
+
+/**   ====     cAppli_NewSolGolInit.CalculOrient(cNO_CC_TripSom * aCC) 
+     Resarch in all triplet of the connected component, the one having the best (=lowest)
+     coherence. It is the seed (=Germe in french) from wich we will start to build
+     the global orientation of the CC and call CalculOrient(cNOSolIn_Triplet * aGerm)
+
+*/
+
+/** ===       cAppli_NewSolGolInit.CalculOrient(cNOSolIn_Triplet * aGerm)
+
+      * Add the three summit of Germ in the oriented summit (call AddSOrCur)
+      * iteratively get BEST=  the best som according to CalcGainByTriplet (if none end)
+         *  make an initial estimation of pose of BEST  (EstimRot)
+         * add in the oriented summit (call AddSOrCur)
+         * make some error repartition by calling ReMoyByTriplet
+
+*/
+
+/**  === cAppli_NewSolGolInit.AddSOrCur ( tSomNSI * aSom,const ElRotation3D & aR)
+      Put a aSom in the set of oriented summit :
+         * give it an initial value aR and mark it as oriented
+         * parse all it neighboor aS2
+         * if aS2 is oriented, then parse all the triplet (aSom,aS2,aS3) 
+              * if aS3 is not oriented (and is not one of the 3 seed) then put S3 in the waiting queue
+                with an initial gain
+ 
+*/
+
+/**  ===   cAppli_NewSolGolInit.ReMoyByTriplet()
+        Make one iteration of error repartition
+        Call for troplet with all summmit oriented  "ReMoyOneTriplet"
+        
+         Once all the triplet have accumulated their new orientation, set this new orientation
+      (but also put a weight on current solution).
+*/
+
+/**  ===   double cAppli_NewSolGolInit::ReMoyOneTriplet(cNOSolIn_Triplet * aTri)
+      
+     Let S1,S2,S3 be the three summit of aTri :
+
+       *  compute OR1,OR2,OR3 the orientation  that are
+             * compatible with orientation of Tri
+             * as close as possible to current value of S1 , ...
+             * this is done by computing the 7 transformation
+       * then accumulate these orientations in S1, ... (at the end we will do some average of all
+         solution given by each triplet)
+     
+*/
+
 
 class cNOSolIn_Triplet;  // Triplet +ou- ensembliste
-
 class cLinkTripl;  //  Un cLinkTripl est un cNOSolIn_Triplet  ordonne, fait d'un cNOSolIn_Triplet + un permutation
 
 
 
-class cNOSolIn_AttrSom;
+class cNOSolIn_AttrSom;   // Attribut des sommets
 class cNOSolIn_AttrASym;  // Attribut symetrique
-class cNOSolIn_AttrArc;
+class cNOSolIn_AttrArc;  // Attribut "normal" oriente
 class cAppli_NewSolGolInit;
 
 typedef  ElSom<cNOSolIn_AttrSom,cNOSolIn_AttrArc>         tSomNSI;
@@ -177,7 +361,7 @@ class cNOSolIn_AttrASym
          cNOSolIn_AttrASym();
          void PostInit(bool Show);
      private :
-         std::vector<cLinkTripl> mLnk3;
+         std::vector<cLinkTripl> mLnk3; // Liste des triplets partageant cet arc
          ElRotation3D            mEstimC2toC1;  // Rotation estime par aggregat "robuste" sur les triplets
          double                  mBOnH;
 
@@ -381,7 +565,7 @@ class cAppli_NewSolGolInit : public cCommonMartiniAppli
         tGrNSI               mGr;
         tSubGrNSI            mSubAll;
         std::map<std::string,tSomNSI *> mMapS;
-        cComputecKernelGraph             mCompKG;
+        cComputecKernelGraph             mCompKG;  // Defini dans include/general/bitm.h
 
 // Variables temporaires pour charger un triplet 
         std::vector<tSomNSI *>  mVCur3;  // Tripelt courrant
@@ -398,8 +582,8 @@ class cAppli_NewSolGolInit : public cCommonMartiniAppli
         int                     mNbSom;
         int                     mNbArc;
         int                     mNbTrip;
-        double                  mCoherMedAB;
-        double                  mCoherMed12;
+        double                  mCoherMedAB;  // Median on all arc of coher AB
+        double                  mCoherMed12;  // Median on all arc of coher 12
         double                  mMedTripletCostA;
         ElFlagAllocator         mAllocFlag3;
         int                     mFlag3Alive;
@@ -440,6 +624,7 @@ ElRotation3D RotationC2toC1(tArcNSI * anArc,cNOSolIn_Triplet * aTri);
 double DistCoherence1to2 (tArcNSI * anArc,cNOSolIn_Triplet * aTriA,cNOSolIn_Triplet * aTriB);
 
 //  Calcule la coherence en faisant deux fois le calcule qui va du triplet A vers le triplet B
+//  anArc must be adjacent to aTriA and aTriB, then the orientation of the submit are
 
 double DistCoherenceAtoB(tArcNSI * anArc,cNOSolIn_Triplet * aTriA,cNOSolIn_Triplet * aTriB);
 

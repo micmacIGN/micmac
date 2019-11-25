@@ -113,6 +113,10 @@ void  cNewO_OrInit2Im::ClikIn()
 
 double cNewO_OrInit2Im::FocMoy() const
 {
+    if (mI1->CS()==0 || mI2->CS()==0)
+    {
+       return 5000;
+    }
     double aF = 1/mI1->CS()->Focale() + 1/mI2->CS()->Focale();
     return 2 / aF;
 }
@@ -509,22 +513,27 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
          std::string aNameH = mI1->NM().NameHomFloat(mI1,mI2);
          mI1->NM().WriteCouple(aNameH,aVP1,aVP2,aVNb);
 
-         if (! aGenereOri) 
-         {
-            return;
-         }
     }
+
 
    // Prepare une partie de l'export xml
    mXml.Im1()   = mI1->Name();
    mXml.Im2()   = mI2->Name();
    mXml.Box1() = Box2dr(aInf1,aSup1);
    mXml.Box2() = Box2dr(aInf2,aSup2);
-   mXml.Calib() =  mI1->NM().OriCal();
    mXml.NbPts() = mPackPStd.size();
    mXml.Foc1()  = mI1->CS()->Focale();
    mXml.Foc2()  = mI2->CS()->Focale();
    mXml.FocMoy() = FocMoy();
+
+
+   if (! aGenereOri) 
+   {
+      return;
+   }
+
+   mXml.Calib() =  mI1->NM().OriCal();
+
 
    cXml_O2IComputed aXCmp;
    mXml.Geom().SetNoInit();
@@ -687,7 +696,7 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
    cInterfBundle2Image * aBundle = mQuick ? mRedPvIBI  :  mFullPvIBI;
    double anErr=-1;
 
-   if (! aInOri)
+   if (! aInOri)  // Si on est pas en mode ou une Orient Init est imposee
    {
          {
             ElTimer aChrono;
@@ -830,6 +839,11 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
           ElTimer aChrono;
           anErr = aBundle->ResiduEq(mBestSol,anErr);
           
+if (MPD_MM())
+{
+    std::cout << " ##########=======================######### " << aBundle->VIB2I_NameType() << "\n";
+}
+
           for (int aK=0 ; aK< (DoOri3D ? (mQuick ? 6 : 10) : 2) ; aK++)
           {
                  // std::cout << "ERRCur " <<  anErr*FocMoy() << "\n";
@@ -837,6 +851,11 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
                  ElRotation3D aSol = aBundle->OneIterEq(mBestSol,anErr);
                  mBestSol = aSol;
           }
+if (MPD_MM())
+{
+    std::cout << "GGGGGG " << aBundle->VIB2I_NameType() << "\n";
+    getchar();
+}
           // finalisation sauvegarde resultats
           aTimeAdj = aChrono.uval();
    }
@@ -1009,12 +1028,12 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
 
    // Class cNewO_NameManager classe qui permet d'acceder a tous les nom de fichier
    // crees dans Martini
-   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,DirOfFile(mNameIm1),mNameOriCalib,"dat");
+   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,DirOfFile(mNameIm1),mNameOriCalib,mExpTxt ? "txt" : "dat");
 
 
    // Structure d'image specialisee martini
-   mIm1 = new cNewO_OneIm(*mNM,mNameIm1);
-   mIm2 = new cNewO_OneIm(*mNM,mNameIm2);
+   mIm1 = new cNewO_OneIm(*mNM,mNameIm1,mGenOri);
+   mIm2 = new cNewO_OneIm(*mNM,mNameIm2,mGenOri);
 
    mVI.push_back(mIm1);
    mVI.push_back(mIm2);
@@ -1163,7 +1182,6 @@ int TestAllNewOriImage_main(int argc,char ** argv)
    cCommonMartiniAppli aCMA;
    std::string aNameIm1;
    std::string aPatGlob;
-   bool aExpTxt=0;
 
 
    ElInitArgMain
@@ -1174,20 +1192,19 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                    << aCMA.ArgCMA()
                    << EAM(aNameIm1,"NameIm1",true,"Name of Image1, internal purpose")
                    << EAM(aPatGlob,"PatGlob",true,"Name of Image1, internal purpose")
-                   << EAM(aExpTxt,"ExpTxt",true,"input homol format is txt? def false, binary format")
    );
 
    bool aModeIm1 = EAMIsInit(&aNameIm1);
 	
 	std::string aInHomol="dat";
-   if (aExpTxt) aInHomol="txt";
+   if (aCMA.mExpTxt) aInHomol="txt";
    if (aModeIm1) 
       aPat = aNameIm1;
-   
+
    cElemAppliSetFile anEASF(aPat);
    const cInterfChantierNameManipulateur::tSet * aVIm = anEASF.SetIm();
    std::string aDir = anEASF.mDir;
-   cNewO_NameManager * aNM =  new cNewO_NameManager(aCMA.mExtName,aCMA.mPrefHom,aCMA.mQuick,aDir,aCMA.mNameOriCalib,"dat");
+   cNewO_NameManager * aNM =  new cNewO_NameManager(aCMA.mExtName,aCMA.mPrefHom,aCMA.mQuick,aDir,aCMA.mNameOriCalib,aInHomol);
    cInterfChantierNameManipulateur* anICNM = anEASF.mICNM;
 
    if (!aModeIm1)
@@ -1205,7 +1222,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
        {
            std::string aName = (*aVIm)[aK];
            aNM->NameXmlOri2Im(aName,aName,true);
-           std::string aCom =  GlobArcArgv  + " NameIm1=" + aName + " PatGlob="+ QUOTE(anEASF.mPat) + " ExpTxt=" + ToString(aExpTxt);
+           std::string aCom =  GlobArcArgv  + " NameIm1=" + aName + " PatGlob="+ QUOTE(anEASF.mPat) + " ExpTxt=" + ToString(aCMA.mExpTxt);
 
           if (aCMA.mShow) 
              std::cout << "Com= " << aCom << "\n";
@@ -1277,6 +1294,7 @@ int TestAllNewOriImage_main(int argc,char ** argv)
                   aLON.Name().push_back(aNameIm2);
            }
        }
+
        MakeFileXML(aLON,aDir + aNM->NameListeImOrientedWith(aNameIm1,true));
        MakeFileXML(aLON,aDir + aNM->NameListeImOrientedWith(aNameIm1,false));
        exit(EXIT_SUCCESS);

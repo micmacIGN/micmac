@@ -2,25 +2,54 @@ language: cpp
 matrix:
   include:
   - os: linux
-    dist: trusty
+    dist: xenial
     sudo: required
     compiler: gcc
+    env:
+      - MATRIX_EVAL="CC=gcc && CXX=g++"
+  - os: linux
+    dist: xenial
+    sudo: required
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-7
+    env:
+      - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+  - os: linux
+    dist: xenial
+    sudo: required
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-9
+    env:
+      - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
   - os: osx
     osx_image: xcode9.3
     compiler: clang
+    env:
+      - MATRIX_EVAL="CC=clang && CXX=clang++"
   - os: osx
     osx_image: xcode10.2
     compiler: clang
+    env:
+      - MATRIX_EVAL="CC=clang && CXX=clang++"
 
 before_install:
+- eval "${MATRIX_EVAL}"
 - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then sudo apt-get update -qq && sudo apt-get
-  install -qq qtbase5-dev; fi
+  install -qq qtbase5-dev libqt5opengl5-dev; fi
 - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then brew update && brew install qt && export PATH="/usr/local/opt/qt/bin:$PATH"; fi
 #Hombrew bug: https://github.com/Homebrew/homebrew-core/issues/8392
 script:
 - mkdir build
 - cd build
-- cmake .. -DWITH_QT5=On
+- cmake .. -DWITH_QT5=ON -DWITH_CCACHE=OFF
 - make -j2
 - make install
 after_success:

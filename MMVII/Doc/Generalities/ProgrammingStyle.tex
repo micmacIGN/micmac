@@ -1,0 +1,40 @@
+% -------------------
+% -------------------
+% -------------------
+
+\chapter{Programming organisation, style ...}
+
+\section{Naming convention}
+
+\section{Never use {\tt std::cout, printf \dots}}
+
+\section{Encapsulation of boost, stl ..}
+\section{Error handling}
+\section{Memory check}
+\section{Serialization}
+\section{Shared pointer}
+
+\section{Random number}
+
+\PPP use some pseudo random generator. As every such generator
+they must be initialized with a seed.
+By default , the seed is always the same to facilitate debuging.
+When user wants initialization from time this must be specified 
+with a negative value of parameter {\tt  SeedRand}.
+
+
+
+\section{Enum to string}
+
+The enum/string  conversion is a recurent problem of \CPP which
+as far as I know is still an issue. A possible solution
+would be to use some code genration which from easy to read
+an write text file woul generate it. But I tried to limitate
+the code generation in \PPP.
+
+In file {\tt Serial/uti\_e2string.cpp} is implemanted 
+the used solution , it consist  to create data for each enum
+for which we want to do the conversion {\tt Serial/uti\_e2string.cpp}.
+
+
+

@@ -64,9 +64,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 //  #define  TNbMinPMul 8  // Nombre de point triple minimal pour un triplet
 #define  TAttenDens 3.0
 
-#define TNbMinTriplet 3    // Nombre de point triple minimal pour un triplet
-#define TStdNbMaxTriplet 20   // Nombre maximal de triplet calcule
-#define TQuickNbMaxTriplet 8   // Nombre maximal de triplet calcule
+//#define TNbMinTriplet 8    // Nombre de point triple minimal pour un triplet // er: added to cCommonMartiniAppli class
+//#define TStdNbMaxTriplet 20   // Nombre maximal de triplet calcule  // er:  added to cCommonMartiniAppli class
+//#define TQuickNbMaxTriplet 3   // Nombre maximal de triplet calcule // er:  added to cCommonMartiniAppli class
 #define TGainSeuil    5e-3
 
 #define NbMaxATT 100000
@@ -100,6 +100,7 @@ class cCommonMartiniAppli
        std::string    mNameOriCalib;
        std::string    mPrefHom;
        std::string    mExtName;
+       bool           mExpTxt;
        std::string    mInOri;
        std::string    mOriOut;
        std::string    mOriGPS;
@@ -110,6 +111,9 @@ class cCommonMartiniAppli
        bool           mQuick;
        bool           mShow;
        // const std::string &   NameNOMode();
+       int mTStdNbMaxTriplet;
+       int mTQuickNbMaxTriplet;
+       int mTNbMinTriplet;
 
        eTypeModeNO    ModeNO() const;
        cNewO_NameManager * NM(const std::string & aDir) const;
@@ -140,7 +144,8 @@ class cNewO_OneIm
             cNewO_OneIm
             (
                  cNewO_NameManager & aNM,
-                 const std::string  & aName
+                 const std::string  & aName,
+                 bool  WithOri = true
             );
 
             CamStenope * CS();

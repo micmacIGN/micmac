@@ -309,7 +309,7 @@ int TestDistortion_main(int argc,char ** argv)
     std::string aNameCalib;
     Pt2dr aPt2d;
     Pt3dr aPt3d;
-    REAL prof=10;
+    REAL prof=1;
     bool showAngles=false;
 
     ElInitArgMain
@@ -318,7 +318,7 @@ int TestDistortion_main(int argc,char ** argv)
         LArgMain()  <<  EAMC(aNameCalib,"Calibration Name"),
         LArgMain()  <<  EAM(aPt2d, "p2d", true, "Point in picture coordinates")
                     <<  EAM(aPt3d, "p3d", true, "Point in world coordinates")
-                    <<  EAM(prof, "prof", true, "prof for p2d (default=10)")
+                    <<  EAM(prof, "prof", true, "prof for p2d (default=1)")
                     <<  EAM(showAngles, "showAngles", true, "show angles in/out (default=false)")
     );
 
@@ -341,13 +341,16 @@ int TestDistortion_main(int argc,char ** argv)
 
     if (EAMIsInit(&aPt2d))
     {
-        std::cout << "M2 " << aPt2d << " ---> F2 " << aCam->NormM2C(aPt2d) << " ---> R3 "<< aCam->ImEtProf2Terrain(aCam->NormM2C(aPt2d),prof) << "\n";
+        std::cout << "M2 " << aPt2d << " ---> F2 " << aCam->NormM2C(aPt2d)  << " --->C2 " <<
+                     aCam->F2toC2(aCam->NormM2C(aPt2d)) << " ---> R3 "<< aCam->ImEtProf2Terrain(aCam->NormM2C(aPt2d),prof) << "\n";
     }
 
     if (EAMIsInit(&aPt3d))
     {
         std::cout << "prof: "<< aCam->ProfondeurDeChamps(aPt3d) << "\n";
-        std::cout << "R3 "<< aPt3d << " ---> F2 "<< aCam->Ter2Capteur(aPt3d);
+        std::cout << "R3 "<< aPt3d;
+        std::cout << " ---> C2 "<< aCam->DistInverse(aCam->NormC2M(aCam->Ter2Capteur(aPt3d)));
+        std::cout << " ---> F2 "<< aCam->Ter2Capteur(aPt3d);
         std::cout << " ---> M2 "<< aCam->NormC2M(aCam->Ter2Capteur(aPt3d)) << "\n";
     }
 

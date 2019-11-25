@@ -40,7 +40,8 @@ bool cMemState::operator == (const cMemState & aSt2) const
 {
     return       (mCheckNb    ==  aSt2.mCheckNb  )
            &&    (mCheckSize  ==  aSt2.mCheckSize)
-           &&    (mCheckPtr   ==  aSt2.mCheckPtr )   ;
+           &&    (mCheckPtr   ==  aSt2.mCheckPtr )   
+    ;
 }
 
 int cMemState::NbObjCreated() const
@@ -54,7 +55,10 @@ int cMemState::NbObjCreated() const
 cMemState  cMemManager::mState;
 
 
-const cMemState  cMemManager::CurState() {return mState; }
+const cMemState  cMemManager::CurState() 
+{
+    return mState;
+}
 bool  cMemManager::IsOkCheckRestoration(const cMemState & aSt)  {return aSt==mState;}
 
 
@@ -189,6 +193,10 @@ void cMemCheck::operator delete   (void * aPtr)
 {
     cMemManager::Free(aPtr);
 }
+
+int     cMemCheck::NbObjLive() {return TheNbObjLive;}
+
+int     cMemCheck::TheNbObjLive=0;
 
 
 

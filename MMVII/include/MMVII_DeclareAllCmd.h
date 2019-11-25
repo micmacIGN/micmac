@@ -17,6 +17,12 @@ extern cSpecMMVII_Appli  TheSpecEditSet;
 extern cSpecMMVII_Appli  TheSpecEditRel;
 extern cSpecMMVII_Appli  TheSpecWalkman;
 extern cSpecMMVII_Appli  TheSpecDaisy;
+extern cSpecMMVII_Appli  TheSpec_TestEigen;
+extern cSpecMMVII_Appli  TheSpec_ComputeParamIndexBinaire;
+extern cSpecMMVII_Appli  TheSpecTestRecall;
+extern cSpecMMVII_Appli  TheSpecScaleImage;
+extern cSpecMMVII_Appli  TheSpecCalcDiscIm;
+extern cSpecMMVII_Appli  TheSpecCalcDescPCar;
 
 };
 

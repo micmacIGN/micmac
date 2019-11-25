@@ -40,20 +40,39 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 
+CamStenope * DefaultCamera(const std::string & aName)
+{
+    cMetaDataPhoto aMDP = cMetaDataPhoto::CreateExiv2(aName);
+    Pt2di aSz = aMDP.SzImTifOrXif(true);
+    if (aSz.x <=0)
+       aSz = Pt2di(6000,4000); // N'importe quoi, mais ca risque de passer ....
+
+    std::vector<double> aPAF;
+
+    CamStenopeIdeale * aRes = new CamStenopeIdeale(true,euclid(aSz),Pt2dr(aSz)/2.0,aPAF);
+    aRes->SetSz(aSz);
+    return aRes;
+}
+
 cNewO_OneIm::cNewO_OneIm
 (
       cNewO_NameManager & aNM,
-      const std::string  & aName
+      const std::string  & aName,
+      bool                 WithOri
 )  :
    mNM   (&aNM),
-   mCS   (aNM.CamOfName(aName)),
+   mCS   (WithOri ?  (aNM.CamOfName(aName)) : DefaultCamera(aName)),
    mName (aName)
 {
 
+// std::cout << "CSSSSSSSSSSs  "<< mCS << "\n";
+// getchar();
+// mCS = aNM.CamOfName(aName);
+// std::cout << "XXXXXXXXXX  "<< mCS << "\n";
 
     static std::set<CamStenope*> aSetSave;
 
-    if (aSetSave.find(mCS) == aSetSave.end())
+    if (mCS && (aSetSave.find(mCS) == aSetSave.end()))
     {
         aSetSave.insert(mCS);
         std::string  aNameCal = mNM->ICNM()->StdNameCalib(mNM->OriOut(),aName);

@@ -16,10 +16,24 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
+
 using namespace boost::filesystem;
 
 namespace MMVII
 {
+
+char ToHexacode(int aK)
+{
+    MMVII_INTERNAL_ASSERT_tiny((aK>=0)&&(aK<16),"ToHexacode");
+    return (aK<10) ? ('0'+aK) : ('A'+(aK-10));
+}
+
+int  FromHexaCode(char aC)
+{
+   if ((aC>='0')&&(aC<='9')) return aC-'0';
+   MMVII_INTERNAL_ASSERT_tiny((aC>='A')&&(aC<='F'),"FromHexacode");
+   return 10 + (aC-'A');
+}
 
 // Prouve la pertinence du warning sur  mTable[*aPtr] = aC;
 
@@ -57,7 +71,7 @@ cCarLookUpTable::cCarLookUpTable() :
 std::vector<std::string>  SplitString(const std::string & aStr,const std::string & aSpace)
 {
     std::vector<std::string> aRes;
-    cMMVII_Appli::TheAppli().SplitString(aRes,aStr,aSpace);
+    cMMVII_Appli::CurrentAppli().SplitString(aRes,aStr,aSpace);
     return  aRes;
 }
 
@@ -66,7 +80,7 @@ void  SplitStringArround(std::string & aBefore,std::string & aAfter,const std::s
 {
     std::string aStrSep(1,aCharSep);
     std::vector<std::string> aVStr;
-    cMMVII_Appli::TheAppli().SplitString(aVStr,aStr,aStrSep);
+    cMMVII_Appli::CurrentAppli().SplitString(aVStr,aStr,aStrSep);
 
     int aNbSplit = aVStr.size();
 
@@ -245,6 +259,12 @@ uintmax_t SizeFile(const std::string & aName)
     return file_size(aPath);
 }
 
+bool IsDirectory(const std::string & aName)
+{
+    path aPath(aName);
+    return is_directory(aPath);
+}
+
 
 void MakeNameDir(std::string & aDir)
 {
@@ -375,10 +395,11 @@ bool  RemovePatternFile(const  std::string & aPat,bool SVP)
     tNameSet aSet = SetNameFromString(aPat,true);
     std::vector<const std::string *> aVS;
     aSet.PutInVect(aVS,false);
+    std::string aDir = DirOfPath(aPat,false);
 
     for (const auto & aS : aVS)
     {
-        if (!RemoveFile(*aS,SVP))
+        if (!RemoveFile(aDir+*aS,SVP))
            return false;
     }
     return true;
@@ -413,12 +434,12 @@ void CopyFile(const std::string & aName,const std::string & aDest)
 */
 
 
-void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,const tNameSelector &  aNS)
+void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,const tNameSelector &  aNS,bool OnlyRegular)
 {
    for (directory_iterator itr(aDir); itr!=directory_iterator(); ++itr)
    {
       std::string aName ( itr->path().filename().c_str());
-      if ( is_regular_file(itr->status()) &&  aNS.Match(aName))
+      if ( ( (!OnlyRegular) || is_regular_file(itr->status())) &&  aNS.Match(aName))
          aRes.push_back(aName);
    }
 }
@@ -426,11 +447,21 @@ void GetFilesFromDir(std::vector<std::string> & aRes,const std::string & aDir,co
 /**
    Implementation of GetFilesFromDir, by value , use GetFilesFromDir by adress
 */
-std::vector<std::string> GetFilesFromDir(const std::string & aDir,const tNameSelector &  aNS)
+std::vector<std::string> GetFilesFromDir(const std::string & aDir,const tNameSelector &  aNS,bool OnlyRegular)
 {
     std::vector<std::string> aRes;
-    GetFilesFromDir(aRes,aDir,aNS);
+    GetFilesFromDir(aRes,aDir,aNS,OnlyRegular);
  
+    return aRes;
+}
+
+std::vector<std::string> GetSubDirFromDir(const std::string & aDir,const tNameSelector &  aNS)
+{
+    // std::vector<std::string> aR0 = GetFilesFromDir(aDir,aNS,false);
+    std::vector<std::string> aRes;
+    for (const auto & aN : GetFilesFromDir(aDir,aNS,false))
+       if (IsDirectory(aDir+aN))
+          aRes.push_back(aN);
     return aRes;
 }
 

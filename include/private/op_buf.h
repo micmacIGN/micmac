@@ -123,7 +123,7 @@ class Fonc_Num_OP_Buf
 
          INT                    _nbf;
       private :
-         class Buf_Fonc_Op_buf  * (_buf_foncs[3]);
+         class Buf_Fonc_Op_buf  * _buf_foncs[3];
 
 
          bool                  _first;

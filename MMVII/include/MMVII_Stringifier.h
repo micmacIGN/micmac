@@ -37,7 +37,9 @@ template <class Type> class  cStrIO
 /// Facilities when the type is well defined
 template <class Type> std::string ToStr(const Type & aV) {return cStrIO<Type>::ToStr(aV);}
 std::string ToStr(int aVal,int aSzMin);
-std::string FixDigToStr(double aSignedVal,int aNbDig);
+
+std::string FixDigToStr(double aSignedVal,int aNbDig); // Nb Dig after .
+std::string FixDigToStr(double aSignedVal,int aNbDigBefore,int aNbDigAfter); // Nb Dig before and  after .
 
 
 // std::string  ToS_NbDigit(int aNb,int aNbDig,bool AcceptOverFlow=false); ///< To generate with a given number of digits
@@ -96,13 +98,13 @@ class cSemA2007
       cSemA2007(eTA2007 aType);
 
       eTA2007 Type()            const;  ///< Accessor
-      const std::string & Aux() const;  ///< Accessor
+      const std::string & AuxA2007() const;  ///< Accessor
       std::string  Name4Help() const;   ///< Use  E2Str(const eTA2007 &) but filter to usefull, add Aux
 
     private :
 
       eTA2007      mType;
-      std::string  mAux;
+      std::string  mAuxA2007;
 };
 
 
@@ -120,25 +122,35 @@ class  cSpecOneArg2007 : public cMemCheck
         static const tVSem   TheEmptySem;
         ///  Name + comment  + semantic
         cSpecOneArg2007(const std::string & aName,const std::string & aCom,const tVSem & = TheEmptySem);
+        virtual ~cSpecOneArg2007(); ///< Virtual method, so add it 
 
-        ///  This action defined in heriting-template class initialize "real" the value from its string value 
-        virtual void InitParam(const std::string & aStr) = 0;
+        /// Memoize then call type specific V_InitParam
+        void InitParam(const std::string & aStr) ;
         virtual void * AdrParam() = 0;    ///< cast to void * of typed adress, used by Application know if init 
         virtual const std::string & NameType() const = 0;  ///< as int, bool, ....
         virtual std::string  NameValue() const = 0;  ///< Used to print def value
+
+        virtual void  CheckSize(const std::string &) const = 0;  ///< Used to check size of vect from a parameter like "[4,6]"
+
         /// Does any of  mVSem contains aType
         bool HasType(const eTA2007 & aType,std::string * aValue=0)            const;
 
         const tVSem & VSem() const;         ///< Accessor
         const std::string  & Name() const;  ///< Accessor
+        const std::string  & Value() const;  ///< Accessor
         const std::string  & Com() const;   ///< Accessor
         int NbMatch () const;         ///< Accessor
         void IncrNbMatch() ;
 
         std::string  Name4Help() const;   ///< concat and format the different Name4Help of tVSem
 
-     private :
+        void ReInit(); /// The same may be used several with in process call, need initialize again
 
+     private :
+        ///  This action defined in heriting-template class initialize "real" the value from its string value 
+         virtual void V_InitParam(const std::string & aStr) = 0;
+
+         std::string     mValue;  ///< memorize Value used in init (command parameter)
          std::string     mName; ///< Name for optionnal
          std::string     mCom;  ///< Comment for all
          tVSem           mVSem;    ///< Vector of semantic
@@ -228,16 +240,31 @@ class cAuxAr2007
 
 /// Create an archive structure, its type (xml, binary, text) is determined by extension
  cAr2007* AllocArFromFile(const std::string & aName,bool Input);
-//  std::unique_ptr<cAr2007 > AllocArFromFile(const std::string & aName,bool Input);
+
+/// Create an archive for hashing value
+cAr2007* AllocArHashVal(bool ordered);
+size_t  HashValFromAr(cAr2007&); /// defined only for Hash archive
 
 /** Here are the atomic serialization function */
 
+void AddData(const  cAuxAr2007 & anAux, bool  &  aVal); ///< for int
 void AddData(const  cAuxAr2007 & anAux, int  &  aVal); ///< for int
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) ; ///< for double
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string
-void AddData(const  cAuxAr2007 & anAux, cPt2dr  &  aVal) ;  ///<for cPt2dr
 void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) ;  ///< for Pair of string
 void AddData(const  cAuxAr2007 & anAux, tNameOCple  &  aVal) ;  ///< for Ordered Cple of string
+
+template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aVal) ;  ///<for cPt2dr
+
+/** This class is used to embed the information necessary to a raw/hardcopy serialization */
+struct cRawData4Serial
+{
+     public :
+        cRawData4Serial(void * aAdr,int aNbElem);
+        void * mAdr;
+        int mNbElem;
+};
+void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal); ///< for cRawData4Serial
 
 /// Serialization for optional
 // template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,boost::optional<Type> & aL);

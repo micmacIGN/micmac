@@ -64,6 +64,30 @@ template <class TypeEnum> class cE2Str
          return aRes;
      }
 
+     static std::vector<TypeEnum> VecOfPat(const std::string & aPat,bool AcceptEmpy)
+     {
+          std::vector<TypeEnum> aRes;
+          tNameSelector  aSel =  BoostAllocRegex(aPat);
+          for (const auto & it : mE2S)
+          {
+              if (aSel.Match(it.second))
+              {
+                 aRes.push_back(it.first);
+              }
+          }
+          if ((!AcceptEmpy) && aRes.empty())
+          {
+             MMVII_UsersErrror
+             (
+                eTyUEr::eEmptyPattern,
+                "No value for enum, allowed are :"+StrAllVall<eTyInvRad>()
+             );
+
+          }
+
+          return aRes;
+     }
+
    private :
      typedef std::map<TypeEnum,std::string> tMapE2Str;
      typedef std::map<std::string,TypeEnum> tMapStr2E;
@@ -87,9 +111,11 @@ template <> const TypeEnum & Str2E<TypeEnum>(const std::string & aName)\
 template <> std::string   StrAllVall<TypeEnum>()\
 {\
    return cE2Str<TypeEnum>::StrAllVal();\
-}
-
-
+}\
+template <> std::vector<TypeEnum> SubOfPat<TypeEnum>(const std::string & aPat,bool AcceptEmpty)\
+{\
+   return cE2Str<TypeEnum>::VecOfPat(aPat,AcceptEmpty);\
+}\
 
 
 // This part must be redefined for each
@@ -117,18 +143,37 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::FileDirProj,"FDP"},
                 {eTA2007::MPatIm,"MPI"},
                 {eTA2007::Internal,"##Intern"},
-                {eTA2007::Common,"##Com"},
+                {eTA2007::Global,"##Glob"},
+                {eTA2007::Shared,"##Shar"},
                 {eTA2007::HDV,"##HDV"},
+                {eTA2007::ISizeV,"##ISizeV"},
                 {eTA2007::FFI,"FFI"}
            };
 TPL_ENUM_2_STRING(eTA2007);
 
 
 
+template<> cE2Str<eTyNums>::tMapE2Str cE2Str<eTyNums>::mE2S
+           {
+                {eTyNums::eTN_INT1,"INT1"},
+                {eTyNums::eTN_U_INT1,"U_INT1"},
+                {eTyNums::eTN_INT2,"INT2"},
+                {eTyNums::eTN_U_INT2,"U_INT2"},
+                {eTyNums::eTN_INT4,"INT4"},
+                {eTyNums::eTN_U_INT4,"U_INT4"},
+                {eTyNums::eTN_INT8,"INT8"},
+                {eTyNums::eTN_REAL4,"REAL4"},
+                {eTyNums::eTN_REAL8,"REAL8"},
+                {eTyNums::eTN_REAL16,"REAL16"}
+           };
+TPL_ENUM_2_STRING(eTyNums);
+
+
 template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
            {
                 {eTyUEr::eCreateDir,"MkDir"},
                 {eTyUEr::eRemoveFile,"RmFile"},
+                {eTyUEr::eEmptyPattern,"EmptyPattern"},
                 {eTyUEr::eBadFileSetName,"FileSetN"},
                 {eTyUEr::eBadFileRelName,"FileRelN"},
                 {eTyUEr::eOpenFile,"OpenFile"},
@@ -140,14 +185,34 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eBadOptParam,"BadOptP"},
                 {eTyUEr::eInsufNbParam,"InsufP"},
                 {eTyUEr::eIntervWithoutSet,"IntWithoutS"},
+                {eTyUEr::eTooBig4NbDigit,"TooBig4NbDigit"},
                 {eTyUEr::eNoModeInEditRel,"NoModeInEditRel"},
                 {eTyUEr::eMultiModeInEditRel,"MultiModeInEditRel"},
-                {eTyUEr::e2PatInModeLineEditRel,"2PatInModeLineEditRel"}
+                {eTyUEr::e2PatInModeLineEditRel,"2PatInModeLineEditRel"},
+                {eTyUEr::eParseError,"ParseError"},
+                {eTyUEr::eBadDimForPt,"BadDimension4Pts"},
+                {eTyUEr::eBadSize4Vect,"BadSize4Vector"},
+                {eTyUEr::eUnClassedError,"UnClassedError"}
            };
 TPL_ENUM_2_STRING(eTyUEr);
 
+template<> cE2Str<eTyInvRad>::tMapE2Str cE2Str<eTyInvRad>::mE2S
+           {
+                {eTyInvRad::eTVIR_ACGR,"eTVIR_ACGR"},
+                {eTyInvRad::eTVIR_ACGT,"eTVIR_ACGT"},
+                {eTyInvRad::eTVIR_ACR0,"eTVIR_ACR0"},
+                {eTyInvRad::eTVIR_Curve,"eTVIR_Curve"}
+           };
+TPL_ENUM_2_STRING(eTyInvRad);
 
-
+template<> cE2Str<eTyPyrTieP>::tMapE2Str cE2Str<eTyPyrTieP>::mE2S
+           {
+                {eTyPyrTieP::eTPTP_Init,"Init"},
+                {eTyPyrTieP::eTPTP_LaplG,"LaplG"},
+                {eTyPyrTieP::eTPTP_Corner,"Corner"},
+                {eTyPyrTieP::eTPTP_OriNorm,"OriNorm"}
+           };
+TPL_ENUM_2_STRING(eTyPyrTieP);
 
 
 /****************************  BENCH **************************/
@@ -168,9 +233,13 @@ template<class TypeEnum> void TplBenchEnum()
 /// Bench enum
 void BenchEnum()
 {
-   TplBenchEnum<eOpAff>();
-   TplBenchEnum<eTySC>();
-   TplBenchEnum<eTA2007>();
+    TplBenchEnum<eOpAff>();
+    TplBenchEnum<eTySC>();
+    TplBenchEnum<eTA2007>();
+    TplBenchEnum<eTyUEr>();
+    TplBenchEnum<eTyNums>();
+    TplBenchEnum<eTyInvRad>();
+    TplBenchEnum<eTyPyrTieP>();
 }
 
 

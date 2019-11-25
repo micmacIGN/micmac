@@ -93,19 +93,25 @@ bool  RemovePatternFile(const  std::string & aPat,bool SVP); ///< Remove all fil
 bool CaseSBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case SENS-itive premisse of aStr ?
 void SkeepWhite(const char * & aC);
 char DirSeparator();
+bool IsDirectory(const std::string & aName);
+
 
 
 /// Create a selector associated to a regular expression, by convention return Cste-true selector if string=""
 tNameSelector  BoostAllocRegex(const std::string& aRegEx);
 
 /// Exract name of files located in the directory, by return value
-std::vector<std::string>  GetFilesFromDir(const std::string & aDir,const tNameSelector& );
+std::vector<std::string>  GetFilesFromDir(const std::string & aDir,const tNameSelector& ,bool OnlyRegular=true);
+std::vector<std::string>  GetSubDirFromDir(const std::string & aDir,const tNameSelector&);
 /// Exract name of files, by ref
-void GetFilesFromDir(std::vector<std::string>&,const std::string & aDir,const tNameSelector &);
+void GetFilesFromDir(std::vector<std::string>&,const std::string & aDir,const tNameSelector &,bool OnlyRegular=true);
 /// Recursively exract name of files located in the directory, by return value
 void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir, tNameSelector  aNS,int aLevMin, int aLevMax);
 /// Recursively exract name of files, by return value
 std::vector<std::string> RecGetFilesFromDir(const std::string & aDir,tNameSelector  aNS,int aLevMin, int aLevMax);
+
+char ToHexacode(int aK);
+int  FromHexaCode(char aC);
 
 
 
@@ -137,12 +143,12 @@ class cMMVII_Ofs : public cMemCheck
    
         ///  Ok for basic type (int, cPtd2r ...), not any composed type ( std::string ...)
         template <class Type> void TplDump(const Type & aVal) {VoidWrite(&aVal,sizeof(aVal));}
-    private :
         void VoidWrite(const void * aPtr,size_t aNb);
+    private :
 
         std::ofstream  mOfs;
         std::string    mName;
-        bool           mModeAppend;
+        // bool           mModeAppend; Unsused warning CLANG
 };
 
 /// Secured ifstream
@@ -164,8 +170,8 @@ class cMMVII_Ifs : public cMemCheck
 
         /// Maybe more convenient as it does require declaration of auxiliary variable
         template<class Type> Type TplRead() {Type aVal; Read(aVal); return aVal;}
-    private :
         void VoidRead(void * aPtr,size_t aNb);
+    private :
 
          std::ifstream  mIfs;
          std::string   mName;
@@ -181,6 +187,26 @@ class cMultipleOfs  : public  std::ostream
         void Add(std::ostream & aOfs) {mVOfs.push_back(&aOfs);}
         void Clear() {mVOfs.clear();}
 
+        // template <class Type> cMultipleOfs & operator << (Type & aVal);
+        template <class Type> cMultipleOfs & ShowCont (const Type & aCont,const std::string & aGram)
+        {
+             *this << aGram[0];
+             int aK=0;
+             for (const auto & aVal : aCont) 
+             {
+                 if (aK!=0)  *this << aGram[1];
+                 *this << aVal;
+                 aK++;
+             }
+             *this << aGram[2];
+             return *this;
+        }
+        // General specialized for vector
+        template <class Type> cMultipleOfs & operator << (const std::vector<Type> & aVal)
+        {
+             return ShowCont(aVal,"[,]");
+        }
+        // General version
         template <class Type> cMultipleOfs & operator << (const Type & aVal)
         {
              for (const auto & Ofs :  mVOfs)

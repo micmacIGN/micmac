@@ -142,19 +142,21 @@ cCalcAimeImAutoCorr::cCalcAimeImAutoCorr(Im2D_INT1 anIm,bool L1Mode) :
     mL1Mode         (L1Mode),
     mIR0            (mNbR,mNbT0/2),
     mIGR            (mNbR-1,mNbT0),
-    mIGT            (mNbR,mNbT0)
+    mIGT            (mNbR,mNbT0/2)
 /*
     mTImCor         (mImCor),
     mImVis          (1,1)
 */
 {
     int aSzTetaR0 =  mIR0.mImCor.sz().y;
+    int aSzTetaGT =  mIGT.mImCor.sz().y; // GT being anti symetric, take only half size
     for (int aKT=0 ; aKT<mNbT0 ; aKT++)
     {
         double aS0=0;
         double aS1=0;
         double aS2=0;
-        bool DoR0 = aKT <aSzTetaR0;
+        bool DoR0 = aKT < aSzTetaR0;
+        bool DoGT = aKT < aSzTetaGT;
         for (int aKR=0 ; aKR<mNbR ; aKR++)
         {
            
@@ -168,9 +170,14 @@ cCalcAimeImAutoCorr::cCalcAimeImAutoCorr(Im2D_INT1 anIm,bool L1Mode) :
             }
 
             // double  aC = AutoCorrelGR(aKR,aKT+1); 
-            mIGT.mTImCor.oset(Pt2di(aKR,aKT),AutoCorrelGT(aKR,aKT));
+            if (DoGT)
+            {
+               mIGT.mTImCor.oset(Pt2di(aKR,aKT),AutoCorrelGT(aKR,aKT));
+            }
             if (aKR>=1)
+            {
                mIGR.mTImCor.oset(Pt2di(aKR-1,aKT),AutoCorrelGR(aKR,aKT));
+            }
         }
         if (DoR0)
         {
@@ -658,6 +665,10 @@ void cAppli_Vino::ShowVectPCarac()
               // std::cout << "FfFffff " << aPU << " " << aPW << "\n";
            }
        }
+   }
+   if (mWithAime)
+   {
+        AimeVisu();
    }
 }
 

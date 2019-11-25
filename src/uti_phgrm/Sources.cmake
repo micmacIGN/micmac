@@ -104,6 +104,7 @@ configure_file(
 
 set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_ChamVec3D.cpp
+    ${UTI_PHGRM_DIR}/CPP_HomolFromProfEtPx.cpp
     ${UTI_PHGRM_DIR}/CPP_NuageBascule.cpp
     ${UTI_PHGRM_DIR}/CPP_ReechInvEpip.cpp
     ${UTI_PHGRM_DIR}/CPP_CreateEpip.cpp
@@ -168,6 +169,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Morito.cpp
     ${UTI_PHGRM_DIR}/CPP_C3DC.cpp
     ${UTI_PHGRM_DIR}/CPP_GIMMI.cpp
+    ${UTI_PHGRM_DIR}/CPP_Bundler2MM.cpp
 )
 
 

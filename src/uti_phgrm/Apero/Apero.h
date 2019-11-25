@@ -1037,6 +1037,17 @@ Pt3dr InterFaisceaux
            const cNupletPtsHomologues  &   aNPt
       );
 
+// Pour pouvoir optionnellement reconstituer les TieP originaux
+// Par exemple dans l'export
+
+class cSingleTieP
+{
+    public :
+      int mK1;
+      int mK2;
+      Pt2dr mP1;
+      Pt2dr mP2;
+};
 
 class cOnePtsMult
 {
@@ -1052,7 +1063,7 @@ class cOnePtsMult
 
         const Pt2dr& P0()  const;
         const Pt2dr& PK(int ) const ;
-        void Add(int aNum,const Pt2dr & aP,bool IsFirstSet);
+        void AddPt2PMul(int aNum,const Pt2dr & aP,bool IsFirstSet);
         cOnePtsMult();
         const tFixedSetInt & Flag() const; 
         void SetCombin(cOneCombinMult *);
@@ -1087,6 +1098,8 @@ class cOnePtsMult
 
          bool OnPRaz() const;
          void SetOnPRaz(bool);
+         void AddSTP(const cSingleTieP & aSTP);
+         const std::list<cSingleTieP> & LSTP();
 
     private :
         double              mMemPds;
@@ -1099,6 +1112,7 @@ class cOnePtsMult
   // tous les points appartiennent au plan de rappel
         U_INT1                 mOnPlaneRapOnz;
         U_INT1                 mMemPtOk;
+        std::list<cSingleTieP> mLSTP;
 };
 
 
@@ -1135,7 +1149,7 @@ class cStatErB
 
       void AddLab(eTypeResulPtsBundle,double aPds=1 );
       void AddLab(const cStatErB & aS2);
-      void Show();
+      void ShowStatErB();
    private : 
       double mStatRes[(int)eTRPB_NbVals] ;
       double mNbTot;
@@ -2294,9 +2308,20 @@ class cAppliApero : public NROptF1vND
         ElRotation3D  GetUnikRotationBloc(const std::string & aNameBloc,const std::string& aNameCam);
 
         void PreInitBloc(const std::string & aNameBloc);
+        int  LevStaB() const;
+        bool MemoSingleTieP() const;
+        bool ExportTiePEliminated() const;
+        bool DebugEliminateNumTieP(int aNum) const
+        {
+            if (! mUseVDETp)
+               return false;
+            return CalcDebugEliminateNumTieP(aNum);
+        }
+
 
 
     private :
+       bool CalcDebugEliminateNumTieP(int aNum) const;
 
        void SetPdsRegDist(const cXmlPondRegDist *);
 
@@ -2754,6 +2779,7 @@ class cAppliApero : public NROptF1vND
          double mNbPtsFlot;
          double mMaxDistFlot;
          double mSomDistFlot;
+         double mSomDistXYFlot;
          Pt3dr  mSomEcPtsFlot;
          Pt3dr  mSomAbsEcPtsFlot;
          Pt3dr  mSomRmsEcPtsFlot;
@@ -2774,6 +2800,12 @@ class cAppliApero : public NROptF1vND
 
          std::string mDirExportImRes;
          FILE *      mFileExpImRes;
+         int         mLevStaB;
+
+         // DebugVecElimTieP
+         bool  mUseVDETp;
+         std::vector<int>  mNumsVDETp;
+         int               mDebugNumPts;
 };
 
 #define ADDALLMAJ(aMes) AddAllMajick(__LINE__,__FILE__,aMes)

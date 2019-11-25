@@ -1996,6 +1996,110 @@ int ImPts2Dir_main(int argc,char ** argv)
 void TestEllips_3D();
 int  FictiveObstest_main(int argc,char ** argv)
 {
+    if (0)
+    {
+        cPlyCloud aPlyEl0, aPlyEl1;
+
+        cXml_Elips2D  anEl;
+        RazEllips(anEl);
+
+        //P1
+        Pt2dr aP1(-10,20);
+        AddEllips(anEl,aP1,1.0);
+        //P2
+        Pt2dr aP2(10,20); 
+        AddEllips(anEl,aP2,1.0);
+        //P3
+        Pt2dr aP3(-10,-20);
+        AddEllips(anEl,aP3,1.0);
+        //P4
+        Pt2dr aP4(10,20);
+        AddEllips(anEl,aP4,1.0);
+        //P5
+        Pt2dr aP5(0,0);
+        AddEllips(anEl,aP5,1.0);
+        //P6 outlier
+        Pt2dr aP6(0,100);
+        AddEllips(anEl,aP6,1.0);
+
+
+        NormEllips(anEl);
+
+        cGenGaus2D aGG1(anEl);
+        std::vector<Pt2dr> aVP;
+
+        aGG1.GetDistr3Points(aVP);
+	aGG1.GetDistribGaus(aVP,1,1);
+
+        //save
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP1.x,aP1.y,0));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP2.x,aP2.y,0));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP3.x,aP3.y,0));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP4.x,aP4.y,0));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP5.x,aP5.y,0));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP6.x,aP6.y,0));
+        aPlyEl0.PutFile("PtsOrg.ply");
+        
+        for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+            aPlyEl1.AddPt(Pt3di(0,0,255),Pt3dr(aVP[aK].x,aVP[aK].y,0));
+
+        aPlyEl1.PutFile("ElGen.ply");
+
+
+    }
+	
+    if (1)
+    {
+        cPlyCloud aPlyEl0, aPlyEl1;
+
+        cXml_Elips3D  anEl;
+        RazEllips(anEl);
+
+		        //P1
+        Pt3dr aP1(-10,20,0);
+        AddEllips(anEl,aP1,1.0);
+        //P2
+        Pt3dr aP2(10,20,-5);
+        AddEllips(anEl,aP2,1.0);
+        //P3
+        Pt3dr aP3(-10,-20,5);
+        AddEllips(anEl,aP3,1.0);
+        //P4
+        Pt3dr aP4(10,20,0);
+        AddEllips(anEl,aP4,1.0);
+        //P5
+        Pt3dr aP5(0,0,5);
+        AddEllips(anEl,aP5,1.0);
+        //P6 outlier
+        Pt3dr aP6(0,100,-5);
+        AddEllips(anEl,aP6,1.0);
+
+
+        NormEllips(anEl);
+
+        cGenGaus3D aGG1(anEl);
+        std::vector<Pt3dr> aVP;
+	
+		aGG1.GetDistr5Points(aVP);
+
+		//save
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP1.x,aP1.y,aP1.z));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP2.x,aP2.y,aP2.z));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP3.x,aP3.y,aP3.z));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP4.x,aP4.y,aP4.z));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP5.x,aP5.y,aP5.z));
+        aPlyEl0.AddPt(Pt3di(255,0,0),Pt3dr(aP6.x,aP6.y,aP6.z));
+        aPlyEl0.PutFile("PtsOrg-3D.ply");
+
+        for (int aK=0 ; aK<int(aVP.size()) ; aK++)
+            aPlyEl1.AddPt(Pt3di(0,0,255),Pt3dr(aVP[aK].x,aVP[aK].y,aVP[aK].z));
+
+        aPlyEl1.PutFile("ElGen5Pts-3D.ply");
+
+		
+    }
+
+
     /*  (0) add all points to an ellipse classe cXml_Elips3D 
         (1) normalise the ellipse
         (2) initalize the cGenGaus3D with the ellipse (+calcul valp/vecp)
@@ -2004,7 +2108,7 @@ int  FictiveObstest_main(int argc,char ** argv)
         (4) add the aVP points again the the ellipse (after reset) + norm
         (5) initialize a new cGenGaus3D with the new ellipse 
         (6) check the ratio of VP for three dimensions */
-    while (1)
+    while (0)
     {
         cPlyCloud aPlyEl0, aPlyEl1;
 
@@ -2062,6 +2166,65 @@ int  FictiveObstest_main(int argc,char ** argv)
 
     return EXIT_SUCCESS;
 }
+
+
+int Test_Homogr_main(int argc, char ** argv)
+{
+    std::string aIn="";
+    Pt2dr aP1, aP2;
+    ElPackHomologue aPack;
+
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aIn,"2D correspondences"),
+        LArgMain() 
+    );
+
+#if (ELISE_windows)
+      replace( aIn.begin(), aIn.end(), '\\', '/' );
+#endif
+
+    ELISE_fp aFIn(aIn.c_str(),ELISE_fp::READ);
+    char * aLine;
+
+    while ((aLine = aFIn.std_fgets()))
+    {
+         int aNb=sscanf(aLine,"%lf  %lf %lf  %lf",&aP1.x , &aP1.y, &aP2.x , &aP2.y);
+         ELISE_ASSERT(aNb==4,"Could not read 2 double values");
+
+         std::cout << aP1 << " " << aP2 << "\n";
+         ElCplePtsHomologues aP(aP1,aP2);
+    
+         aPack.Cple_Add(aP);
+
+    }
+        
+    cElHomographie  aHom = cElHomographie::RansacInitH(aPack,50,2000);
+    cElHomographie  aHomInv = aHom.Inverse();
+    aHom.Show();
+    aHomInv.Show();
+
+    Pt2dr aTP1(1589.52418648700177,1214.28114830960817);
+    Pt2dr aTP2(8317.05902029607387,555.169478782111128);
+
+    std::cout << aHom.Direct(aTP1) << " " << aHomInv.Direct(aTP2) << "  " << "\n";
+
+    cElComposHomographie aHX = aHom.HX();
+    //cElComposHomographie aHY = aHom.HY();
+    cElComposHomographie aHZ = aHom.HZ();
+    double aX2  = aTP1.x*aHX.CoeffX() + aTP1.y*aHX.CoeffY() + aHX.Coeff1(); 
+    double aDiv = aTP1.x*aHZ.CoeffX() + aTP1.y*aHZ.CoeffY() + aHZ.Coeff1(); 
+
+    std::cout << aTP2.x << " " << aX2 << " " << aX2 / aDiv << "\n";
+/*    
+*/
+
+
+    return EXIT_SUCCESS;
+}
+
  
 /*Footer-MicMac-eLiSe-25/06/2007
 

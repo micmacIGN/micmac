@@ -161,7 +161,7 @@ class ElEM   // Elise Erreur Message
                _data_2.i  = d;
          }
 
-
+         ElEM(const ElEM &m) : _type(m._type),_data(m._data), _data_2(m._data_2) {}
 
 
       private  :
@@ -225,7 +225,7 @@ class Elise_Pile_Mess_N
     friend class Elise_Pile_Mess_0;
     public :
          inline  Elise_Pile_Mess_N
-                 operator << (ElEM  m);
+                 operator << (const ElEM &m);
 
     private :
          Elise_Pile_Mess_N();
@@ -239,7 +239,7 @@ class Elise_Pile_Mess_0
 
      public :
          inline  Elise_Pile_Mess_N
-                 operator << (ElEM  m)
+                 operator << (const ElEM&  m)
          {
                  _nb = 0;
                  _stack[_nb++] = m;
@@ -256,7 +256,7 @@ private :
 extern  Elise_Pile_Mess_0 EEM0;
 
 inline  Elise_Pile_Mess_N
-        Elise_Pile_Mess_N::operator << (ElEM  m)
+        Elise_Pile_Mess_N::operator << (const ElEM&  m)
 {
        Elise_Pile_Mess_0::_stack[Elise_Pile_Mess_0::_nb++] = m;
        return _the_one;

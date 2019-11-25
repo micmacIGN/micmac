@@ -37,7 +37,7 @@ namespace MMVII
 class cAppli_EditSet : public cMMVII_Appli
 {
      public :
-        cAppli_EditSet(int argc,char** argv,const cSpecMMVII_Appli &);  ///< constructor
+        cAppli_EditSet(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli &);  ///< constructor
         int Exe() override;                                             ///< execute action
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override; ///< return spec of  mandatory args
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override; ///< return spec of optional args
@@ -68,8 +68,8 @@ cCollecSpecArg2007 & cAppli_EditSet::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       ;
 }
 
-cAppli_EditSet::cAppli_EditSet(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc,argv,aSpec),
+cAppli_EditSet::cAppli_EditSet(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (aVArgs,aSpec),
   mShow        (0)
 {
 }
@@ -120,9 +120,9 @@ int cAppli_EditSet::Exe()
    return EXIT_SUCCESS;
 }
 
-tMMVII_UnikPApli Alloc_EditSet(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_EditSet(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_EditSet(argc,argv,aSpec));
+   return tMMVII_UnikPApli(new cAppli_EditSet(aVArgs,aSpec));
 }
 
 cSpecMMVII_Appli  TheSpecEditSet
@@ -155,7 +155,7 @@ void OneBenchEditSet
         const std::string & ExpSet   // Expect set
     )
 {
-    cMMVII_Appli &  anAp = cMMVII_Appli::TheAppli();
+    cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
     std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
     std::string aDirT = anAp.TmpDirTestMMVII()  ;
     std::string Input = "Input.xml";
@@ -186,7 +186,6 @@ void OneBenchEditSet
     // reutiliser à chaque fois
 
     // Line bottom was used to chekc emptyness of StrOpt / StrObl
-    //  std::cout << "FFFFFFf  " << anAp.StrOpt().V().size() << " " << anAp.StrObl().V().size() << "\n";
     cColStrAOpt & anArgOpt = anAp.StrOpt() << t2S("Out",Ouput);
 
 
@@ -282,7 +281,7 @@ void BenchEditSet()
 class cAppli_EditRel : public cMMVII_Appli
 {
      public :
-        cAppli_EditRel(int argc,char** argv,const cSpecMMVII_Appli &);
+        cAppli_EditRel(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli &);
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
@@ -298,7 +297,7 @@ class cAppli_EditRel : public cMMVII_Appli
          bool        m2Set;   ///< Is there 2 different set, true if mPat2 is init
          bool        mAllPair;
          std::string mOp;
-         int         mShow;
+         // int         mShow;
          int         mLine;
          bool        mCirc;
          bool        mReflexif;
@@ -307,10 +306,10 @@ class cAppli_EditRel : public cMMVII_Appli
          std::string mModeUsed;
 };
 
-cAppli_EditRel::cAppli_EditRel(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc,argv,aSpec),
+cAppli_EditRel::cAppli_EditRel(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (aVArgs,aSpec),
   mAllPair     (false),
-  mShow        (0),
+  // mShow        (0),
   mLine        (0),
   mCirc        (false),
   mReflexif    (false),
@@ -455,9 +454,9 @@ int cAppli_EditRel::Exe()
 }
 
 
-tMMVII_UnikPApli Alloc_EditRel(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_EditRel(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_EditRel(argc,argv,aSpec));
+   return tMMVII_UnikPApli(new cAppli_EditRel(aVArgs,aSpec));
 }
 
 cSpecMMVII_Appli  TheSpecEditRel
@@ -489,11 +488,8 @@ void OneBenchEditRel
         cColStrAOpt&        anArgOpt    ///< Optional parameters
     )
 {
-    cMMVII_Appli &  anAp = cMMVII_Appli::TheAppli();
+    cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
     std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
-/*
-    std::string aDirT = anAp.TmpDirTestMMVII()  ;
-*/
     std::string aNameFullFime = aDirI + aNameFile ;
     anAp.ExeCallMMVII
     (
@@ -505,7 +501,6 @@ void OneBenchEditRel
     tNameRel aRelInOut =  RelNameFromFile (aNameFullFime);
     std::vector<const tNamePair *> aVP;
     aRelInOut.PutInVect(aVP,true);
-    // std::cout << "TH= " << aCardTh << " Got=" << aVP.size() << "\n";
     
     if (aCardTh>=0)
     {
@@ -515,12 +510,11 @@ void OneBenchEditRel
              "OneBenchEditRel, bad card assertion"
         );
     }
-
 }
 
 void BenchEditRel ()
 {
-   cMMVII_Appli &  anAp = cMMVII_Appli::TheAppli();
+   cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
    std::string aDirI = anAp.InputDirTestMMVII() + "Files/" ;
 
    RemovePatternFile(aDirI+"RelTest.*.xml",true);

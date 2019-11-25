@@ -24,10 +24,19 @@ const std::string TagSetOfCpleName = "SetCpleOfName";
 // const std::string TheMMVII_SysName => voir Utils/uti_sysdep.cpp
  
 // Name of standard directories
-const std::string TmpMMVIIDir    = "Tmp-2007-Dir/";
-const std::string MMVIITestDir    = "MMVII-TestDir/";
+const std::string TmpMMVIIDirPrefix        = "Tmp-2007-Dir";
+const std::string TmpMMVIIDirGlob        = TmpMMVIIDirPrefix + "-Glob/";
+const std::string TmpMMVIIDirPCar        = TmpMMVIIDirPrefix + "-PCar/";
+
+const std::string MMVIITestDir       = "MMVII-TestDir/";
+const std::string TmpMMVIIProcSubDir = "Process/";
+
+// Files
+const std::string MVII_LogFile = "MMVII-LogFile.txt";
 
 // Name of common parameters
+      // -- Current
+const std::string CurOP_Out = "Out";  ///< Many command have an Output file 
       // -- External
 const std::string GOP_DirProj  = "DirProj";
 const std::string GOP_NumVO    = "NumVOut";
@@ -38,6 +47,8 @@ const std::string GOP_SeedRand = "SeedRand";
       // -- Internal
 const std::string GIP_LevCall = "LevCall";
 const std::string GIP_ShowAll = "ShowAll";
+const std::string GIP_PGMA = "PrefixGMA";
+const std::string GIP_DirProjGMA = "DirGMA";
 
 
 #if (THE_MACRO_MMVII_SYS == MMVII_SYS_L)
@@ -48,6 +59,16 @@ const std::string  Bin2007 = "MMVII";
 
 // User/Command
 const   std::string MMVII_NONE = "NONE";
+const   std::string MMVII_StdDest = "STD";
+
+// PostFix 4 files
+const   std::string PostF_XmlFiles  = "xml";
+const   std::string PostF_DumpFiles = "dmp";
+const   std::string & StdPostF_ArMMVII(bool isXml)
+{
+    return isXml ? PostF_XmlFiles  : PostF_DumpFiles;
+}
+
 
 
 };

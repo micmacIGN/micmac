@@ -81,6 +81,11 @@ bool cNewO_NameManager::LoadTriplet(const std::string & anI1,const std::string &
    std::string aName3 = NameHomTriplet(aVIm[0],aVIm[1],aVIm[2]);
    if (! ELISE_fp::exist_file(aName3)) return false;
 
+if (0 && MPD_MM())
+{
+   std::cout << "NN33333 " << aName3 << "\n";
+}
+
    tPtrVPt2df aVPt[3];
    aVPt[aRnk[0]] =  aVP1;
    aVPt[aRnk[1]] =  aVP2;
@@ -123,6 +128,10 @@ void cNewO_NameManager::LoadHomFloats(std::string  aName1,std::string  aName2,st
        ElSwap(aVP1,aVP2);
    }
    std::string aNameH = NameHomFloat(aName1,aName2);
+if (0 &&MPD_MM())
+{
+   std::cout << "N22222 " << aNameH << "\n";
+}
    GenLoadHomFloats(aNameH,aVP1,aVP2,SVP);
 }
 
@@ -411,7 +420,7 @@ void  cAppli_GenPTripleOneImage::GenerateTriplet(int aKC1,int aKC2)
     }
 
     int aNb = (int)aVP1Exp.size();
-    if (aNb<TNbMinTriplet)
+    if (aNb<mTNbMinTriplet)
     {
        aMap.Delete();
        return;
@@ -419,6 +428,15 @@ void  cAppli_GenPTripleOneImage::GenerateTriplet(int aKC1,int aKC2)
     // Sauvegarde les triplet si assez
 
     mNM->WriteTriplet(aName3,aVP1Exp,aVP2Exp,aVP3Exp,aVNb);
+
+if (0 && MPD_MM())
+{
+    std::cout << "GGTTt 3 " <<  aNb  
+             << " :: " << aVP1In.size() << " " << aVP2In.size()
+             << " :: " << mVP1[aKC1].size() << " " <<  mVP2[aKC1].size()
+             << " :: " << mVP1[aKC2].size() << " " <<  mVP2[aKC2].size()
+             << "\n";
+}
 
     aMap.Delete();
 }

@@ -40,6 +40,7 @@
          <eTVIR_ACR0>      </eTVIR_ACR0>  <!-- Auto correl radiom basiques -->
          <eTVIR_ACGT>      </eTVIR_ACGT>  <!-- Auto correl gradient tangentiel-->
          <eTVIR_ACGR>      </eTVIR_ACGR>  <!-- Auto correl gradient radial-->
+         <eTVIR_LogPol>      </eTVIR_LogPol>  <!-- NOT an invariant, BUT usefull for exporting -->
          <eTVIR_NoLabel>   </eTVIR_NoLabel>  <!-- Auto correl gradient radial-->
    </enum>
 
@@ -274,6 +275,37 @@ mm3d PHom_RenameRef 6 Soldat-Hue-IMGP7031.JPG
 
    </XmlAimeParamApprentissage>
 
+   <Xml2007Pt Nb="1" Class="true" ToReference="true">
+       <PtInit   Nb="1" Type="Pt2dr">       </PtInit>
+       <PtAff   Nb="1" Type="Pt2dr">       </PtAff> <!-- Refined loc extrema (by least sq) -->
+       <Id   Nb="1" Type="int">         </Id>  <!-- Identifier for debugging -->
+       <NumOct   Nb="1" Type="int">     </NumOct>
+       <NumIm    Nb="1" Type="int">     </NumIm>
+       <ScaleInO   Nb="1" Type="double">   </ScaleInO>
+       <ScaleAbs   Nb="1" Type="double">   </ScaleAbs>
+       <Score      Nb="1" Type="double">   </Score>   <!-- Score , mixing Var and Correl -->
+       <ScoreRel  Nb="1" Type="double">   </ScoreRel>   <!-- Relative score, evolve accross time -->
+
+       <VectRho   Nb="1" Type="std::vector<double>">  </VectRho> <!-- To visualize sampling -->
+       <VectDir   Nb="1" Type="std::vector<double>">  </VectDir> <!-- to test main direc -->
+
+       <Var     Nb="1" Type="double">   </Var> <!-- Variance of point -->
+       <AutoCor  Nb="1" Type="double">   </AutoCor> <!-- Auto Correl of image -->
+       <NumChAC  Nb="1" Type="int">   </NumChAC>    <!-- Num of choice for Auto Correl -->
+       <OKAc  Nb="1" Type="bool">   </OKAc>         <!-- Is it ok according to AC -->
+       <OKLP  Nb="1" Type="bool">   </OKLP>         <!-- Is it ok according to LogPol -->
+       <SFSelected  Nb="1" Type="bool"> </SFSelected>  <!-- Spatial Filtering selected -->
+       <Stable  Nb="1" Type="bool"> </Stable>  <!-- Stable 4 refinement -->
+       <ChgMaj  Nb="1" Type="bool"> </ChgMaj>  <!-- Changed to major, tuning -->
+       <ImLP Nb="1" Type="Im2D_U_INT1"> </ImLP>  <!-- Log Pol Image -->
+   </Xml2007Pt>
+
+   <Xml2007SetPtOneType  Nb="1" Class="true" ToReference="true">
+       <Pts  Nb="*" RefType="Xml2007Pt" Container="std::vector"> </Pts> 
+       <IsMax Nb="1" Type="bool">        </IsMax>
+       <TypePt Nb="1" Type="int">        </TypePt>
+       <NameTypePt Nb="1" Type="std::string">    </NameTypePt>
+   </Xml2007SetPtOneType>
 
 <Verbatim File=".h.cpp">
 // };

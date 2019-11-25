@@ -6994,6 +6994,11 @@ const Pt2dr & cOneMesureAF1I::PtIm()const
    return mPtIm;
 }
 
+void cOneMesureAF1I::SetPtIm(Pt2dr & aPt)
+{
+    mPtIm = aPt;
+}
+
 void  BinaryUnDumpFromFile(cOneMesureAF1I & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;

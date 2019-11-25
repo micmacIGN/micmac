@@ -581,6 +581,8 @@ class cSubstitueBlocIncTmp
          void ResetNonTmp();
 
          double  Cond() const;  // Du cBufSubstIncTmp
+         void InitSsBlocSpecCond(cSsBloc **  aSsBlocSpecCond);
+
       private :
 
          std::vector<cSsBloc>    mVSBlTmp;
@@ -645,6 +647,9 @@ class cParamPtProj
        double mSeuilOkBehind;
        double mSeuilBsHRefut;
        bool   mProjIsInit;
+
+       // Ratio de distance acceptable pour les cameras stenopes
+       double mRatioMaxDistCS;
 
        // Le point terrain d'intersection de faisceau
        Pt3dr mTer;

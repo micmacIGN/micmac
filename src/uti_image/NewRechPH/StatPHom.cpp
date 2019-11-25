@@ -258,13 +258,20 @@ void AddRand(cSetRefPCarac & aSRef,const std::vector<cOnePCarac*> aVP, int aNb)
 
 Im2D_INT1   ImOfCarac(const cOnePCarac & aPC,eTypeVecInvarR aType)
 {
+    // std::cout << "ImOfCarac " << aPC.ProfR().ImProfil().sz() << "\n";
     switch(aType)
     {
-        case eTVIR_Curve : return aPC.ProfR().ImProfil();
+        // case eTVIR_Curve : return aPC.ProfR().ImProfil();
+        case eTVIR_Curve : return aPC.InvR().ImRad();
         case eTVIR_ACR0  : return aPC.RIAC().IR0();
         case eTVIR_ACGT  : return aPC.RIAC().IGT();
         case eTVIR_ACGR  : return aPC.RIAC().IGR();
-
+        case eTVIR_LogPol : 
+        {
+             Im2D_INT1  aILP =  aPC.ImLogPol();
+             // Im2D_INT1 aRes(aILP.sz().x,aILP.sz.y);
+             return aILP;
+        }
         default: ;
     }
     ELISE_ASSERT(false,"ImOfCarac");
@@ -291,9 +298,10 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
         cSetRefPCarac aSetRef;
         int aDifMax = 3;
         std::vector<int>  aHistoScale(aDifMax+1,0);
-        std::vector<int>  aHistoScaleStab(aDifMax+1,0);
-        double aSeuilDist = 2.0;
-        double aSeuilProp = 0.02;
+        std::vector<int>  aHistoScaleStab(aDifMax+1,0); 
+        double aSeuilDist = 2.0;  // Seuil distance en pixel
+        double aSeuilProp = 0.02; // Seuil proportionnalité sur le fait d'etre le best, sur distance eucl 
+                                  // des curves
         int aNbOk=0;
 
         const std::vector<cOnePCarac*>  &   aV1 = mCurAPC;  // Par compta avec vieux code
@@ -373,6 +381,7 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
                          }
                          
                          // aHistoScaleStab.at(ElMin(aDifMax,ElAbs(aV1[aK1]->ScaleStab() - aP->ScaleStab())))++;
+                         // SCore calcule sur les courbes
                          double aPropInv = 1 - ScoreTestMatchInvRad(aVSelObj1,aV1[aK1],aP);
                          
                          
@@ -461,6 +470,7 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
                         if (aNbSample != 0)
                         {
                             Im2D_INT1 aI0 = ImOfCarac(aVT.at(0).P1(),aLabTVI);
+std::cout << "SZZZZ " << aI0.sz() << "\n";
                             Pt2di aSz0 = aI0.sz();
                             Pt2di aSzGlob (aSz0.x,aSz0.y*aNbSample);
                             Im2D_U_INT1 aImGlob(2*aSzGlob.x,aSzGlob.y);
@@ -484,7 +494,8 @@ void cOneImSPH::TestMatch(cOneImSPH & aI2,eTypePtRemark aLab)
                                 );
                             }
                             std::string aDir = DirApprentIR(mAppli.DirSaveIm(),aLabTPR,aLabTVI);
-                            std::string aName = aDir + "Cple-"+ StdPrefix(mAppli.mN1) + "-" + StdPrefix(mAppli.mN2) + + ".tif";
+                            ELISE_fp::MkDirRec(aDir);
+                            std::string aName = aDir + "Cple-"+ StdPrefix(mAppli.mN1) + "-" + StdPrefix(mAppli.mN2) + ".tif";
 
 
                             // Tiff_Im::CreateFromIm(aImGlob,aName);

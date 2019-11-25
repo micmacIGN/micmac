@@ -103,20 +103,34 @@ class cAppli_MMVII_Bench : public cMMVII_Appli
 {
      public :
 
-        cAppli_MMVII_Bench(int,char**,const cSpecMMVII_Appli & aSpec);
+        cAppli_MMVII_Bench(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
         void Bench_0000_String();
         void BenchFiles(); ///< A Bench on creation/deletion/existence of files
         int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override 
-        {
-            return anArgObl
-                      << Arg2007(mTest,"Unused, to check reentrance" )
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
-            ;
-        }
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override {return anArgOpt;}
-        std::string mTest;
+        std::string mTest; ///< Do remember why I added that !!
+        int         mNumBugRecall; ///< Used if we want to force bug generation in recall process
+        bool        mDoBUSD;       ///< Do we do  BenchUnbiasedStdDev
 };
+
+cCollecSpecArg2007 & cAppli_MMVII_Bench::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+    return anArgObl
+              << Arg2007(mTest,"Unused, to check reentrance" )
+    ;
+}
+
+cCollecSpecArg2007 & cAppli_MMVII_Bench::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
+{
+  return
+      anArgOpt
+         << AOpt2007(mNumBugRecall,"NBR","Num to Generate a Bug in Recall,(4 manuel inspection of log file)")
+         << AOpt2007(mDoBUSD,"DoBUSD","Do BenchUnbiasedStdDev (which currently dont work) ? ",{{eTA2007::HDV}})
+  ;
+}
+
 
 
 void cAppli_MMVII_Bench::Bench_0000_String()
@@ -156,8 +170,10 @@ void cAppli_MMVII_Bench::Bench_0000_String()
 
    // std::string & aBefore,std::string & aAfter,const std::string & aStr,char aSep,bool SVP=false,bool PrivPref=true);
 
-cAppli_MMVII_Bench::cAppli_MMVII_Bench (int argc,char **argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc,argv,aSpec)
+cAppli_MMVII_Bench::cAppli_MMVII_Bench (const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli    (aVArgs,aSpec),
+  mNumBugRecall   (-1),
+  mDoBUSD         (false)
 {
   MMVII_INTERNAL_ASSERT_always
   (
@@ -194,6 +210,9 @@ void cAppli_MMVII_Bench::BenchFiles()
 }
 
 
+void BenchFilterLinear();
+
+
 int  cAppli_MMVII_Bench::Exe()
 {
    // Begin with purging directory
@@ -205,6 +224,13 @@ int  cAppli_MMVII_Bench::Exe()
    MMVII_INTERNAL_ASSERT_bench((1+1)==2,"Theoreme fondamental de l'arithmetique");
    // La on a verifie que ca marchait pas
    // MMVII_INTERNAL_ASSERT_all((1+1)==3,"Theoreme  pas tres fondamental de l'arithmetique");
+
+   BenchSupport();
+
+   BenchRecall(mNumBugRecall);
+
+   BenchDenseMatrix0();
+   BenchGlobImage();
 
    Bench_Nums();
 
@@ -227,17 +253,30 @@ int  cAppli_MMVII_Bench::Exe()
    Bench_Random();
    Bench_Duration();
 
+   BenchStrIO();
+
+
+   BenchFilterImage1();
+   BenchFilterLinear();
+   BenchStat();
+   BenchExtre();
+   if (mDoBUSD)
+   {
+      BenchUnbiasedStdDev();
+   }
 
    // We clean the temporary files created
    RemoveRecurs(TmpDirTestMMVII(),true,false);
+
+   //  TestTimeV1V2(); => Valide ratio ~=  1
 
    return EXIT_SUCCESS;
 }
 
 
-tMMVII_UnikPApli Alloc_MMVII_Bench(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_MMVII_Bench(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_MMVII_Bench(argc,argv,aSpec));
+   return tMMVII_UnikPApli(new cAppli_MMVII_Bench(aVArgs,aSpec));
 }
  
 
@@ -251,6 +290,171 @@ cSpecMMVII_Appli  TheSpecBench
       {eApDT::Console},
       __FILE__
 );
+
+/* ========================================================= */
+/*                                                           */
+/*            cAppli_MMRecall                                */
+/*                                                           */
+/* ========================================================= */
+
+/// A class to test mecanism of MMVII recall itself
+
+/** This class make some rather stupid computation to
+    generate and multiple recall of MMVII by itself
+
+    Each appli has an Id number Num, if the level of  recursion
+    is not reached, it generate two subprocess 2*Num and 2*Num +1
+
+    Each process generate a file, as marker of it was really executed
+
+    At the end we check that all the marker exist (and no more), and we clean
+
+*/
+
+class cAppli_MMRecall : public cMMVII_Appli
+{
+     public :
+        static const int NbMaxArg=2;
+
+        cAppli_MMRecall(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+
+        int          mNum;  ///< kind of identifiant of the call
+        int          mLev0; ///< to have the right depth we must know level of
+        std::string  mAM[NbMaxArg];  ///<  to get the mandatory Args
+        std::string  mAO[NbMaxArg];  ///<  to get the optionall Args  
+        bool         mRecalInSameProcess; ///< The recall mecanism can be tested by subprocess or inside same
+        int          mNumBug;  ///< Generate bug 4 this num
+};
+
+
+cAppli_MMRecall::cAppli_MMRecall(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli         (aVArgs,aSpec),
+  mLev0                (0),
+  mRecalInSameProcess  (true),
+  mNumBug              (-1)
+{
+}
+
+int cAppli_MMRecall::Exe() 
+{
+    std::string aDirT =  TmpDirTestMMVII() ;
+    // Purge TMP
+    if (mLevelCall == mLev0)
+    {
+        RemovePatternFile(aDirT+".*",true);
+    }
+
+    // to create a file with Num in name
+    { 
+       std::string aNameF = aDirT + ToStr(mNum) + ".txt";
+       cMMVII_Ofs (aNameF,false);
+    }
+    MMVII_INTERNAL_ASSERT_always(mNum!=mNumBug,"Bug generate by user in cAppli_MMRecall");
+
+    // Break recursion
+    if (mLevelCall-mLev0 >= NbMaxArg)
+       return EXIT_SUCCESS;
+
+    // Recursive call to two son  N-> 2N, 2N+1, it's the standard binary tree like in heap, this make it bijective
+    {
+        std::vector<std::string> aLVal;
+        aLVal.push_back(ToStr(2*mNum));
+        aLVal.push_back(ToStr(2*mNum+1));
+
+        cColStrAOpt  aSub;
+        eTyModeRecall aMRec = mRecalInSameProcess ? eTyModeRecall::eTMR_Inside : eTyModeRecall::eTMR_Serial;
+
+        ExeMultiAutoRecallMMVII("0",aLVal ,aSub,aMRec);
+    }
+
+    // Test that we have exactly the expected file (e.g. 1,2, ... 31 )  and purge
+    if (mLevelCall == mLev0)
+    {
+        tNameSet  aSet1 = SetNameFromPat(aDirT+".*");
+        MMVII_INTERNAL_ASSERT_bench(aSet1.size()== ((2<<NbMaxArg) -1),"Sz set in  cAppli_MMRecall");
+
+        tNameSet  aSet2 ;
+        for (int aK=1 ; aK<(2<<NbMaxArg) ; aK++)
+            aSet2.Add( ToStr(aK) + ".txt");
+
+        MMVII_INTERNAL_ASSERT_bench(aSet1.Equal(aSet2),"Sz set in  cAppli_MMRecall");
+        RemovePatternFile(aDirT+".*",true);
+    }
+
+    return EXIT_SUCCESS;
+}
+
+
+cCollecSpecArg2007 & cAppli_MMRecall::ArgObl(cCollecSpecArg2007 & anArgObl) 
+{
+   return anArgObl
+          << Arg2007(mNum,"Num" )
+          << Arg2007(mAM[0],"Mandatory arg0" )
+          << Arg2007(mAM[1],"Mandatory arg1" )
+          // << Arg2007(mAM[2],"Mandatory arg2" )
+          // << Arg2007(mAM[3],"Mandatory arg3" )
+   ;
+
+}
+
+cCollecSpecArg2007 & cAppli_MMRecall::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+  return
+      anArgOpt
+         << AOpt2007(mAO[0],"A0","Optional Arg 0")
+         << AOpt2007(mAO[1],"A1","Optional Arg 1")
+         // << AOpt2007(mAO[2],"A2","Optional Arg 2")
+         // << AOpt2007(mAO[3],"A3","Optional Arg 3")
+         << AOpt2007(mLev0,"Lev0","Level of first call")
+         << AOpt2007(mRecalInSameProcess,"RISP","Recall in same process")
+         << AOpt2007(mNumBug,"NumBug","Num 4 generating purpose scratch")
+   ;
+}
+
+tMMVII_UnikPApli Alloc_TestRecall(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
+{
+   return tMMVII_UnikPApli(new cAppli_MMRecall(aVArgs,aSpec));
+}
+
+cSpecMMVII_Appli  TheSpecTestRecall
+(
+     "TestRecall",
+      Alloc_TestRecall,
+      "Use in Bench to Test Recall of MMVII by itself ",
+      {eApF::Test},
+      {eApDT::None},
+      {eApDT::Console},
+      __FILE__
+);
+
+void OneBenchRecall(bool InSameP,int aNumBug)
+{
+    cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
+
+    anAp.StrObl() << "1";
+
+    for (int aK=0 ; aK< cAppli_MMRecall::NbMaxArg; aK++)
+        anAp.StrObl() << ToStr(10*aK);
+
+    anAp.ExeCallMMVII
+    (
+        TheSpecTestRecall,
+        anAp.StrObl() ,
+        anAp.StrOpt() << t2S("Lev0",ToStr(1+anAp.LevelCall()))
+                      << t2S("RISP",ToStr(InSameP))
+                      << t2S("NumBug",ToStr(aNumBug))
+    );
+}
+
+void BenchRecall(int aNum)
+{
+     OneBenchRecall(true,-1);
+     OneBenchRecall(false,aNum);
+}
 
 
 /* ========================================================= */
@@ -270,14 +474,14 @@ cSpecMMVII_Appli  TheSpecBench
 class cAppli_MPDTest : public cMMVII_Appli
 {
      public :
-        cAppli_MPDTest(int argc,char** argv,const cSpecMMVII_Appli & aSpec);
+        cAppli_MPDTest(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override {return anArgOpt;}
 };
 
-cAppli_MPDTest:: cAppli_MPDTest(int argc,char** argv,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (argc,argv,aSpec)
+cAppli_MPDTest:: cAppli_MPDTest(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
+  cMMVII_Appli (aVArgs,aSpec)
 {
 }
 
@@ -345,12 +549,81 @@ class cMultipleOfs  : public  std::ostream
 };
 */
 
+void TestVectBool()
+{
+    StdOut() << "BEGIN TBOOL \n"; getchar();
+
+    for (int aK=0 ; aK<5000 ; aK++)
+    {
+        std::vector<bool> * aV = new std::vector<bool>;
+        for (int aK=0 ; aK<1000000 ; aK++)
+           aV->push_back(true);
+    }
+    StdOut() << "END TBOOL \n"; getchar();
+    for (int aK=0 ; aK<5000 ; aK++)
+    {
+        std::vector<tU_INT1> * aV = new std::vector<tU_INT1>;
+        for (int aK=0 ; aK<1000000 ; aK++)
+           aV->push_back(1);
+    }
+    StdOut() << "END TBYTE \n"; getchar();
+}
+
+bool F(const std::string & aMes) {std::cout <<"FFFFF=" << aMes << "\n"; return true;}
+#define UN 1
+#define DEUX 2 
+
+void ShowAdr(double & anAdr)
+{
+       StdOut () <<  "ADDDDDr " << &(anAdr) << "\n";
+}
 
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+   {
+       cPt3dr * anAdr = nullptr;
+       StdOut () <<  "ADDDDDr  " << anAdr << "\n";
+       StdOut () <<  "ADDDDDrx " << &(anAdr->x()) << "\n";
+       StdOut () <<  "ADDDDDry " << &(anAdr->y()) << "\n";
+       StdOut () <<  "ADDDDDrz " << &(anAdr->z()) << "\n";
+       ShowAdr(anAdr->y());
+   }
+   {
+      double aV= 3.3333;
+      printf("VVVVV=%05.2f\n",aV);
+   
+   }
+    if ((UN>DEUX) && F("aaaa"))
+    {
+       F("bbbb");
+    }
+    F("ccccc");
    
 /*
+   cSparseVect<float>  aSV;
+   for (const auto & aP : aSV)
+   {
+        std::cout << aP.mI << "\n";
+   }
+*/
+
+/*
+   cIm2D<tU_INT1> aIm(cPt2di(3,3));
+   aIm.DIm().SetV(cPt2di(0,0),13);
+   // aIm.DIm().SetV(cPt2di(0,0),1000);
+   // aIm.DIm().SetV(cPt2di(-1,0),1);
+   // new cIm2D<tU_INT1>(cPt2di(3,3));
+   cDataIm2D<tU_INT1> & aDIm = aIm.DIm();
+   tU_INT1*  aPtr = aDIm.RawDataLin();
+   StdOut() << "aIm=" << int(aPtr[0]) <<  "\n";
+   aPtr[0] = 14;
+   StdOut() << "aIm=" << (int)aDIm.GetV(cPt2di(0,0)) <<  "\n";
+   // aPtr[-1] = 0;
+*/
+
+/*
+    TestVectBool();
    cMMVII_Ofs aOs1("toto1.txt");
    cMMVII_Ofs aOs2("toto2.txt");
 
@@ -367,9 +640,9 @@ int cAppli_MPDTest::Exe()
    return EXIT_SUCCESS;
 }
 
-tMMVII_UnikPApli Alloc_MPDTest(int argc,char ** argv,const cSpecMMVII_Appli & aSpec)
+tMMVII_UnikPApli Alloc_MPDTest(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec)
 {
-   return tMMVII_UnikPApli(new cAppli_MPDTest(argc,argv,aSpec));
+   return tMMVII_UnikPApli(new cAppli_MPDTest(aVArgs,aSpec));
 }
 
 cSpecMMVII_Appli  TheSpecMPDTest

@@ -47,6 +47,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 //  =======   Pour visualiser les points carac new
 #include "../NewRechPH/cParamNewRechPH.h"
 #include "../NewRechPH/ExternNewRechPH.h"
+#include "../NewRechPH/NewRechPH.h"
 
 // std::string NameFileNewPCarac(const std::string & aNameGlob,bool Bin,const std::string & anExt);
 // void ShowPt(const cOnePCarac & aPC,const ElSimilitude & aSim,Video_Win * aW);
@@ -401,7 +402,31 @@ class cAppli_Vino : public cXml_EnvVino,
         eTypePtRemark                    mLabel;
         int                              mZoomCA;  // Zoom Carac Aime
 
+        //   =====  Inspection MicMacV2 
         
+        std::string                       mNameAimePCar;
+        bool                              mAimeShowFailed;  // Show point failed when exist
+        std::string                       mDirAime;
+        bool                              mWithAime;
+        std::vector<cXml2007SetPtOneType> mAimePCar;
+        Pt2di                           mAimeSzW;
+        Pt2di                           mAimeCW;
+        int                             mAimeZoomW;
+        void                            AimeVisu();
+        void                            InspectAime(const Pt2dr & aPt);
+        const cXml2007Pt *              AimeGetPC(const Pt2dr & aPU,const cXml2007SetPtOneType**);
+        Im2D_REAL4 LoadAimePC(const cXml2007Pt & aPC,const std::string & aNameType,Video_Win * aW);
+        Im2D_REAL4 StdLoadAimePC(const cXml2007Pt & aPC,const cXml2007SetPtOneType* aSet);
+        Im2D_REAL4 I0LoadAimePC(const cXml2007Pt & aPC,const cXml2007SetPtOneType* aSet);
+        void AimeShowProfil(Im2D_U_INT1 aILP,int aMode);
+
+        Video_Win *  mAimWStd;
+        Video_Win *  mAimWI0;
+        Video_Win *  mAimWLP;  // log-pol image
+
+        Video_Win * PtrChc(Pt2dr tr,Pt2dr sc,bool SetClikCoord = false);
+
+
 };
 
 Fonc_Num  ChgDynAppliVino(Fonc_Num aF,cAppli_Vino & anAppli);

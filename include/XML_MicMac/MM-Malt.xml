@@ -276,8 +276,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
              <IncludeFileLoc>  ${FileZMoy} </IncludeFileLoc>
              <#WHEN VTEST=${UseDEMInit}>
                  <MNT_Init>  
-                     <DEM_Init_Image> ${DEMInitIMG} </DEM_Init_Image>
-                     <DEM_Init_Xml> ${DEMInitXML} </DEM_Init_Xml>
+                     <MNT_Init_Image> ${DEMInitIMG} </MNT_Init_Image>
+                     <MNT_Init_Xml> ${DEMInitXML} </MNT_Init_Xml>
                  </MNT_Init>
              </#WHEN>
       </IntervAltimetrie>
