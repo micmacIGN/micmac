@@ -214,7 +214,7 @@ See https://en.wikipedia.org/wiki/Image_sensor_format#Table_of_sensor_formats_an
 	
    <CameraEntry>
         <Name>  COOLPIX W300 </Name>
-        <SzCaptMm>   6.17 4.55 </SzCaptMm>
+        <SzCaptMm>  4.55 6.17</SzCaptMm>
         <ShortName> COOLPIX W300  </ShortName>
    </CameraEntry>
 	
