@@ -1,0 +1,38 @@
+MMDir=..
+CXX=g++
+INCLUDEDIRS = -I. -I${MMDir}/include/
+CXXFlags= -std=c++11 -fPIC -Wall -Werror  -O2  -march=native ${INCLUDEDIRS}
+BOOST_LIBS= -lboost_system -lboost_serialization -lboost_regex -lboost_filesystem
+QTAnnLibs= -lXext /usr/lib/x86_64-linux-gnu/libQt5Core.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so -lGLU -lGL  -ldl -lpthread /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5Concurrent.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so ../lib/libANN.a
+
+CXX_WRAP_FLAGS = ${CXXFlags} -I/usr/include/python3.6 ${INCLUDEDIRS}
+
+LFLAGS = ${MMDir}/lib/libelise.a -lX11  ${BOOST_LIBS} ${QTAnnLibs}
+SO = _mm3d.so
+
+CXX_SRCS = $(wildcard ./api/*.cpp)
+
+OBJ_FILES = $(CXX_SRCS:.cpp=.o)
+
+I_SRCS = $(wildcard *.i)
+PY_FILES = $(I_SRCS:.i=.py)
+WRAP_CXX_FILES = $(I_SRCS:.i=_wrap.cxx)
+WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
+
+.SECONDARY: $(WRAP_CXX_FILES)
+
+all: $(OBJ_FILES) $(WRAP_O_FILES)
+	$(CXX) -Xlinker -export-dynamic -shared $^ $(LFLAGS) -o $(SO)
+
+clean:
+	rm -f $(OBJ_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES) $(PY_FILES) $(SO)
+
+%.o: %.cpp
+	$(CXX) -c $(CXXFlags) $< -o $@
+
+%_wrap.o: %_wrap.cxx
+	$(CXX) -c  $(CXX_WRAP_FLAGS) $< -o $@
+
+%_wrap.cxx: %.i $(OBJ_FILES)
+	swig -python -c++ ${INCLUDEDIRS} $<
+
