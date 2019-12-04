@@ -814,6 +814,9 @@ class cElComposHomographie
          }
          Fonc_Num operator() (Pt2d<Fonc_Num> ) const;
 
+         #ifdef SWIG
+         cElComposHomographie(){}
+         #endif
 
          cElComposHomographie(REAL aX,REAL aY,REAL a1);
          cElComposHomographie(const cXmlAffinR2ToR &);
@@ -875,6 +878,10 @@ class cElHomographie  : public cElMap2D
           // Size = 2 , similitude
           // Size = 3 , affinite
           // Size = 4 ou +, homographie reelle, ajuste par moindre L2  ou  L1
+
+          #ifdef SWIG
+          cElHomographie(){}
+          #endif
 
           cElHomographie(const ElPackHomologue &,bool aL2);
           cElHomographie(const cXmlHomogr &);
@@ -2137,7 +2144,6 @@ Pt3dr IntersectionRayonPerspectif
 
 // Camera a Stenope
 
-
 class CamStenope : public ElCamera
 {
       public :
@@ -2342,7 +2348,6 @@ class CamStenope : public ElCamera
 
          double SzDiffFinie() const;
 };
-
 
 
 

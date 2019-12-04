@@ -1048,6 +1048,9 @@ template <class Type>  class ElMatrix
           ElMatrix(INT,bool init_id = true);
           ElMatrix(INT,INT,Type v =0);
           ElMatrix(const ElMatrix<Type> & m2);
+          //#ifdef SWIG
+          ElMatrix(){}
+          //#endif
           ElMatrix<Type> & operator = (const ElMatrix<Type> &);
           ~ElMatrix();
 
@@ -1254,6 +1257,9 @@ template <class Type> class TplElRotation3D
          static const TplElRotation3D<Type> Id;
          TplElRotation3D(Pt3d<Type> tr,const ElMatrix<Type> &,bool aTrueRot);
          TplElRotation3D(Pt3d<Type> tr,Type teta01,Type teta02,Type teta12);
+         //#ifdef SWIG
+         TplElRotation3D(){}
+         //#endif
 
          Pt3d<Type> ImAff(Pt3d<Type>) const; //return _tr + _Mat * p;
 
@@ -1455,6 +1461,9 @@ class Polynome2dReal
 
 
             Polynome2dReal(INT aD0,REAL anAmpl); // Contient tous les monomes, avec un coeff 1.0
+            //#ifdef SWIG
+            Polynome2dReal(){}
+            //#endif
             void SetDegre1(REAL aV0,REAL aVX, REAL aVY,bool AnnulOthers = true);
 
             REAL operator () (Pt2dr aP) const;
