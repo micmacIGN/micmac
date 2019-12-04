@@ -1402,9 +1402,9 @@ class cElHour
       double aNbSec
       );
 
-      #ifdef SWIG
+      //#ifdef SWIG
       cElHour(){}
-      #endif
+      //#endif
 
       double InSec() const; // Sec depuis minuits
       int    H() const;
@@ -1449,9 +1449,9 @@ class cElDate
          const cElHour &
        );
 
-        #ifdef SWIG
+        //#ifdef SWIG
         cElDate(){}
-        #endif
+        //#endif
 
         const cElHour &  H() const;
     int Y() const;

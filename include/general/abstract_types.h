@@ -1026,9 +1026,9 @@ class Output : public  PRC0
      public :
         ~Output();
         Output(class Output_Not_Comp *);
-        #ifdef SWIG
+        //#ifdef SWIG
         Output(){}
-        #endif
+        //#endif
         Output(class Liste_Pts_Gen);
         class Output_Computed * compute (const class Arg_Output_Comp &);
         static Output onul(INT dim = 1);

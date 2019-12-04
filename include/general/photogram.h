@@ -146,7 +146,9 @@ class Appar23
         int   mNum;  // Rajoutes pour gerer les cibles
 
         Appar23 (Pt2dr PIM,Pt3dr PTER,int aNum=-1) ;
-
+        //#ifdef SWIG
+        Appar23(){}
+        //#endif
     private  :
 
 };
@@ -214,6 +216,9 @@ class cNupletPtsHomologues
         REAL & Pds() ;
 
     cNupletPtsHomologues(int aNb,double aPds=1.0);
+    //#ifdef SWIG
+    cNupletPtsHomologues(){}
+    //#endif
     int NbPts() const;
 
     const Pt2dr & PK(int aK) const ;
@@ -244,6 +249,9 @@ class ElCplePtsHomologues : public cNupletPtsHomologues
      public :
 
         ElCplePtsHomologues (Pt2dr aP1,Pt2dr aP2,REAL aPds=1.0);
+        //#ifdef SWIG
+        ElCplePtsHomologues(){}
+        //#endif
 
         const Pt2dr & P1() const ;
         Pt2dr & P1() ;
@@ -814,9 +822,9 @@ class cElComposHomographie
          }
          Fonc_Num operator() (Pt2d<Fonc_Num> ) const;
 
-         #ifdef SWIG
+         //#ifdef SWIG
          cElComposHomographie(){}
-         #endif
+         //#endif
 
          cElComposHomographie(REAL aX,REAL aY,REAL a1);
          cElComposHomographie(const cXmlAffinR2ToR &);
@@ -879,9 +887,9 @@ class cElHomographie  : public cElMap2D
           // Size = 3 , affinite
           // Size = 4 ou +, homographie reelle, ajuste par moindre L2  ou  L1
 
-          #ifdef SWIG
+          //#ifdef SWIG
           cElHomographie(){}
-          #endif
+          //#endif
 
           cElHomographie(const ElPackHomologue &,bool aL2);
           cElHomographie(const cXmlHomogr &);
