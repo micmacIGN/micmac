@@ -1,9 +1,15 @@
 #include "StdAfx.h"
 
+/**
+@file
+@brief New methods for python API and existing classes
+**/
+
 class CamStenope;
 
 //-------------------- Nouvelles methodes ---------------------
 
+//! Create CamStenope form a XML file
 CamStenope *  CamOrientFromFile(std::string filename);
 
 //-------------------- classes MM a exporter ------------------
