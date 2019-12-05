@@ -22,7 +22,8 @@ typedef ElAffin2D tOrIntIma ;
 %template(Pt2di) Pt2d<INT>;
 %template(Pt2dr) Pt2d<REAL>;
 %template(Pt3dr) Pt3d<REAL>;
-
+%template(ElRotation3D) TplElRotation3D<REAL>;
+%template(ElMatrixr) ElMatrix<REAL>;
 
 //ajout print PtNdx
 %extend Pt2d<INT> {
