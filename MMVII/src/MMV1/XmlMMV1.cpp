@@ -200,6 +200,16 @@ template <class Type>
     mMMV1_XmlPts.TypePt() = int(ATypePt);
     mMMV1_XmlPts.NameTypePt() = aNameType;
     
+    if (mFPC.LPS_CensusMode())
+    {
+         mSetAPC.Census() = true;
+         mSetAPC.Ampl2N()   =  cSetAimePCAR::TheCensusMult;
+    }
+    else
+    {
+         mSetAPC.Census() = false;
+         mSetAPC.Ampl2N()   = mFPC.LPS_Mult();
+    }
 }
 template <class Type> cImplem_ExportAimeTiep<Type>::~cImplem_ExportAimeTiep()
 {

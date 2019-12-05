@@ -99,7 +99,7 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::RandomSquareRegMat
 
     // Set conditionning
     {
-       cWitchMinMax<int,Type> aIMM(0,std::abs(aVEV(0)));
+       cWhitchMinMax<int,Type> aIMM(0,std::abs(aVEV(0)));
        for (int aK=0 ; aK<aSz  ; aK++)
        {
           aIMM.Add(aK,std::abs(aVEV(aK)));

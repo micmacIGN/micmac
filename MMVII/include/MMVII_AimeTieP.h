@@ -5,6 +5,7 @@ namespace MMVII
 {
 class cAimeDescriptor;
 class cAimePCar;
+class cSetAimePCAR;
 
 /// Proto-class for Aime TieP
 
@@ -84,14 +85,24 @@ class cAimeDescriptor : public cMemCheck
 
          const std::vector<double> & DirPrinc() const; ///< const accesor to main directions
          std::vector<double> & DirPrinc() ;            ///< non const accessor
+
+         ///  this[x] / AD2[x+aShift]
+         double  DistanceFromIShift(const cAimeDescriptor & aAD2,int aShift,const cSetAimePCAR & aSet) const;
+         // X1 and X2 are the peek, supposed to be homologous in 
+         double  DistanceFrom2RPeek(double aX1,const cAimeDescriptor & aAD2,double aX2,const cSetAimePCAR & aSet) const;
+         // IPeek is an index from  DirPrinc
+         double  DistanceFromStdPeek(int aIPeek,const cAimeDescriptor & aAD2,const cSetAimePCAR & aSet) const;
+         //  Compute best match from all Dir Princ
+         cWhitchMin<int,double>  DistanceFromBestPeek(const cAimeDescriptor & aAD2,const cSetAimePCAR & aSet) const;
+
      private :
-        cIm2D<tU_INT1>      mILP;   ///< mImLogPol
+        cIm2D<tU_INT1>      mILP;       ///< mImLogPol
         std::vector<double> mDirPrinc ; ///< Principal directions  options
 };
 
 /**  Class to store Aime Pts Car = Descriptor + localization
 */ 
-class cAimePCar
+class cAimePCar : public cMemCheck
 {
      public :
         cAimeDescriptor & Desc();
@@ -103,21 +114,30 @@ class cAimePCar
 
 /**  Class to store  aSet of AimePcar = vector<PC> + some common caracteritic on type
 */ 
-class cSetAimePCAR
+class cSetAimePCAR : public cMemCheck
 {
      public :
         // cSetAimePCAR();
-        cSetAimePCAR(eTyPyrTieP aType,bool IsMax);
+        cSetAimePCAR(eTyPyrTieP aType,bool IsMax); ///< "Real" constructor
+        cSetAimePCAR(); ///< Sometime need a default constructor
         int &                   IType();
         eTyPyrTieP              Type();
         bool&                   IsMax();
+        bool&                   Census();
+        const bool&             Census() const;
+        double&                 Ampl2N();
+        const double&           Ampl2N() const;
         std::vector<cAimePCar>& VPC();
         void SaveInFile(const std::string &) const;
+        void InitFromFile(const std::string &) ;
+        // For census, as the value are strictly in [-1,1] we can use a universall value for normalize
+        static const double TheCensusMult;
      private :
-        int                     mType;  ///< Type registered as int, easier for AddData, in fact a eTyPyrTieP
-        bool                    mIsMax; ///< Is it a maxima or a minima of its caracteristic
-        std::vector<cAimePCar>  mVPC;   ///< Vector of Aime points
-   
+        int                     mType;   ///< Type registered as int, easier for AddData, in fact a eTyPyrTieP
+        bool                    mIsMax;  ///< Is it a maxima or a minima of its caracteristic
+        std::vector<cAimePCar>  mVPC;    ///< Vector of Aime points
+        bool                    mCensus; ///<  Is it Census mode
+        double                  mAmpl2N;   ///< Ampl between the normalized value  IPL = Norm*Ampl
 };
 
 

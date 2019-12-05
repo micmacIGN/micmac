@@ -449,10 +449,10 @@ tREAL8 CubAppGaussVal(const tREAL8&);
 /*       Witch Min and Max            */
 /* ********************************** */
 
-template <class TypeIndex,class TypeVal> class cWitchMin
+template <class TypeIndex,class TypeVal> class cWhitchMin
 {
      public :
-         cWitchMin(const TypeIndex & anIndex,const TypeVal & aVal) :
+         cWhitchMin(const TypeIndex & anIndex,const TypeVal & aVal) :
              mIndexMin (anIndex),
              mVMin     (aVal)
          {
@@ -471,10 +471,10 @@ template <class TypeIndex,class TypeVal> class cWitchMin
          TypeIndex mIndexMin;
          TypeVal   mVMin;
 };
-template <class TypeIndex,class TypeVal> class cWitchMax
+template <class TypeIndex,class TypeVal> class cWhitchMax
 {
      public :
-         cWitchMax(const TypeIndex & anIndex,const TypeVal & aVal) :
+         cWhitchMax(const TypeIndex & anIndex,const TypeVal & aVal) :
              mIndexMax (anIndex),
              mVMax     (aVal)
          {
@@ -493,10 +493,10 @@ template <class TypeIndex,class TypeVal> class cWitchMax
          TypeIndex mIndexMax;
          TypeVal   mVMax;
 };
-template <class TypeIndex,class TypeVal> class cWitchMinMax
+template <class TypeIndex,class TypeVal> class cWhitchMinMax
 {
      public  :
-         cWitchMinMax(const TypeIndex & anIndex,const TypeVal & aVal) :
+         cWhitchMinMax(const TypeIndex & anIndex,const TypeVal & aVal) :
              mMin(anIndex,aVal),
              mMax(anIndex,aVal)
          {
@@ -506,12 +506,12 @@ template <class TypeIndex,class TypeVal> class cWitchMinMax
              mMin.Add(anIndex,aVal);
              mMax.Add(anIndex,aVal);
          }
-         const cWitchMin<TypeIndex,TypeVal> & Min() const {return  mMin;}
-         const cWitchMax<TypeIndex,TypeVal> & Max() const {return  mMax;}
+         const cWhitchMin<TypeIndex,TypeVal> & Min() const {return  mMin;}
+         const cWhitchMax<TypeIndex,TypeVal> & Max() const {return  mMax;}
 
      private :
-         cWitchMin<TypeIndex,TypeVal> mMin;
-         cWitchMax<TypeIndex,TypeVal> mMax;
+         cWhitchMin<TypeIndex,TypeVal> mMin;
+         cWhitchMax<TypeIndex,TypeVal> mMax;
 };
 
 

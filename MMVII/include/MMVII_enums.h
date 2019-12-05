@@ -55,8 +55,9 @@ enum class eApF
 enum class eApDT
            {
               Ori,    ///< Orientation
+              PCar,   ///< Tie Points
               TieP,   ///< Tie Points
-              Image,   ///< Tie Points
+              Image,   ///< Image
               Ply,    ///< Ply file
               None,     ///< Nothing 
               Console,  ///< Console 
