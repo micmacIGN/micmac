@@ -827,9 +827,9 @@ std::vector<std::vector<Pt2di> > PointOfCouronnes(const std::vector<int> &Dist,b
 std::vector<std::vector<Pt2di> > StdPointOfCouronnes(int aDMax,bool AddD4First);
 
 
-#define Pt3di  Pt3d<INT>
-#define Pt3dr  Pt3d<REAL>
-#define Pt3df  Pt3d<float>
+typedef  Pt3d<INT> Pt3di;
+typedef  Pt3d<double> Pt3dr;
+typedef  Pt3d<float> Pt3df;
 
 
 template <class Type> class Pt3d : public  ElStdTypeScal<Type>
