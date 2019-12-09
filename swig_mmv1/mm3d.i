@@ -26,6 +26,7 @@ typedef ElAffin2D tOrIntIma ;
 namespace std {
     %template(IntVector)    vector<int>;
     %template(DoubleVector) vector<double>;
+    %template(StringVector) vector<string>;
 }
  
 //def de REAL etc pour pouvoir les utiliser en python

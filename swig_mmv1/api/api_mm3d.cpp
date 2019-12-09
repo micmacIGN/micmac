@@ -19,7 +19,7 @@ void createIdealCamXML(double focale, Pt2dr aPP, Pt2di aSz, std::string oriName,
         anIdealCam.SetRayonUtile(rayonUtile,30);
     anIdealCam.SetOrientation(orient);
     anIdealCam.SetIncCentre(Pt3dr(1,1,1));
-
+    ELISE_fp::MkDirSvp(oriName);
     MakeFileXML(anIdealCam.StdExportCalibGlob(),oriName+"/Orientation-" + NameWithoutDir(oriName) + imgName + ".tif.xml","MicMacForAPERO");
 }
 
@@ -54,3 +54,8 @@ std::vector<double> rot2list(ElRotation3D &r)
     return l;
 }
 
+std::vector<std::string> getFileSet(std::string dir, std::string pattern)
+{
+    cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(dir);
+    return *(aICNM->Get(pattern));
+}

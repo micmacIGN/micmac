@@ -21,3 +21,8 @@ r=mm3d.list2rot(l)
 print(r)
 ll=mm3d.rot2list(r)
 print(ll)
+
+mm3d.createIdealCamXML (100.0, mm3d.Pt2dr(1000,1000), mm3d.Pt2di(2000,2000), "Ori", "Im001", "cam", r, 200.0, 1200)
+
+li = mm3d.getFileSet(".",".*.py")
+

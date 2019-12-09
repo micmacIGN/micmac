@@ -27,6 +27,8 @@ ElRotation3D list2rot(std::vector<double> l);
 //! Convert a ElRotation3D into a python 9-element list
 std::vector<double> rot2list(ElRotation3D &r);
 
+std::vector<std::string> getFileSet(std::string dir, std::string pattern);
+
 //-------------------- classes MM a exporter ------------------
 #ifdef SWIG
 
