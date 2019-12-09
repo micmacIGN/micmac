@@ -48,7 +48,7 @@ The documentation is in swig_mmv1/doc/html/index.html
 
 TODO
 ----
- * add simple list <> ElMatrix
+ * use distutils?
  * fix mm modifications (constructors) 
  * for now the selected classes are copied in api_mm3d.h
  * make a script to automatically extract classes definitions from mm3d sources

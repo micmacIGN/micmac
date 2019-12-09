@@ -40,5 +40,5 @@ clean:
 	$(CXX) -c  $(CXX_WRAP_FLAGS) $< -o $@
 
 %_wrap.cxx: %.i $(OBJ_FILES)
-	swig -python -c++ ${INCLUDEDIRS} $<
+	swig -python -py3 -c++ ${INCLUDEDIRS} $<
 

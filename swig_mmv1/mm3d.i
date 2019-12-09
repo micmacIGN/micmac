@@ -1,5 +1,6 @@
 %module mm3d
 %{
+#define SWIG_FILE_WITH_INIT
 #include "StdAfx.h"
 #include "api/api_mm3d.h"
 #include "general/photogram.h"
@@ -7,6 +8,12 @@ typedef ElAffin2D tOrIntIma ;
 
 #include <sstream>
 %}
+
+//check python version
+%pythoncode %{
+print("MicMac Python3 API")
+%}
+
 
 #define ElSTDNS  std::
 #define ElTmplSpecNull template <>
