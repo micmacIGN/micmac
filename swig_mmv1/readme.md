@@ -36,22 +36,22 @@ Only tested on Linux.
 Dependances:
  - SWIG 3.0
  - Python 3.6 headers
- - for documentation: doxygen
+ - for documentation: doxygen, GraphViz
 
 Compile micmac (to have lib/libelise.a), then
 cd swig_mmv1
-make -f Makefile_swig_linux
+make -f Makefile_swig_linux all
 
 The files to distribute are: swig_mmv1/_mm3d.so and swig_mmv1/mm3d.py
-
-cd doc
-doxygen Doxyfile
 
 The documentation is in swig_mmv1/doc/html/index.html
 
 TODO
 ----
+ * add simple list <> ElMatrix
+ * fix mm modifications (constructors) 
  * for now the selected classes are copied in api_mm3d.h
  * make a script to automatically extract classes definitions from mm3d sources
  * create a header file for each subject
+ * do not quit python on fatal errors?
 

@@ -1,13 +1,11 @@
 MMDir=..
 CXX=g++
 INCLUDEDIRS = -I. -I${MMDir}/include/
+DOCDIR = doc/
 CXXFlags= -std=c++11 -fPIC -Wall -Werror  -O2  -march=native ${INCLUDEDIRS}
-BOOST_LIBS= -lboost_system -lboost_serialization -lboost_regex -lboost_filesystem
-QTAnnLibs= -lXext /usr/lib/x86_64-linux-gnu/libQt5Core.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so -lGLU -lGL  -ldl -lpthread /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5Concurrent.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so ../lib/libANN.a
-
 CXX_WRAP_FLAGS = ${CXXFlags} -I/usr/include/python3.6 ${INCLUDEDIRS}
 
-LFLAGS = ${MMDir}/lib/libelise.a -lX11  ${BOOST_LIBS} ${QTAnnLibs}
+LFLAGS = ${MMDir}/lib/libelise.a -lX11 -lXext -lm -ldl -lpthread ${MMDir}/lib/libANN.a
 SO = _mm3d.so
 
 CXX_SRCS = $(wildcard ./api/*.cpp)
@@ -19,13 +17,21 @@ PY_FILES = $(I_SRCS:.i=.py)
 WRAP_CXX_FILES = $(I_SRCS:.i=_wrap.cxx)
 WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 
+.PHONY: clean doc swig
+
 .SECONDARY: $(WRAP_CXX_FILES)
 
-all: $(OBJ_FILES) $(WRAP_O_FILES)
+swig: $(OBJ_FILES) $(WRAP_O_FILES)
 	$(CXX) -Xlinker -export-dynamic -shared $^ $(LFLAGS) -o $(SO)
+
+all: swig doc
+
+doc:
+	cd $(DOCDIR) && doxygen
 
 clean:
 	rm -f $(OBJ_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES) $(PY_FILES) $(SO)
+	rm -Rf $(DOCDIR)/html
 
 %.o: %.cpp
 	$(CXX) -c $(CXXFlags) $< -o $@

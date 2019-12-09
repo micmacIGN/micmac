@@ -1,5 +1,10 @@
-#include "StdAfx.h"
+#ifndef API_MM3D_H
+#define API_MM3D_H
 
+#include "StdAfx.h"
+#include <algorithm>
+#include <functional>
+#include <numeric>
 /**
 @file
 @brief New methods for python API and existing classes
@@ -15,6 +20,12 @@ CamStenope *  CamOrientFromFile(std::string filename);
 //! Create XML of an ideal Cam
 void createIdealCamXML(double focale, Pt2dr aPP, Pt2di aSz, std::string oriName, std::string imgName, std::string idCam, ElRotation3D &orient, double prof, double rayonUtile);
 //void createIdealCamXML(CamStenope * aCam, Pt2dr aPP, Pt2di aSz, std::string oriName, std::string imgName);
+
+//! Convert a python 9-element list into a ElRotation3D
+ElRotation3D list2rot(std::vector<double> l);
+
+//! Convert a ElRotation3D into a python 9-element list
+std::vector<double> rot2list(ElRotation3D &r);
 
 //-------------------- classes MM a exporter ------------------
 #ifdef SWIG
@@ -1073,6 +1084,6 @@ class CamStenope : public ElCamera
 
 
 
-
-
 #endif
+
+#endif //API_MM3D_H

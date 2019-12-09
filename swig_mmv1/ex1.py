@@ -15,3 +15,9 @@ print('''//   R3 : "reel" coordonnee initiale
 print("Focale ",c.Focale())
 print("M2 ",p," ---> F2 ",c.NormM2C(p)," --->C2 ",c.F2toC2(c.NormM2C(p))," ---> R3 ",c.ImEtProf2Terrain(c.NormM2C(p),prof))
                      
+l=[1,0,0,0,1,0,0,0,1]
+print(l)
+r=mm3d.list2rot(l)
+print(r)
+ll=mm3d.rot2list(r)
+print(ll)

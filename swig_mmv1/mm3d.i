@@ -4,6 +4,8 @@
 #include "api/api_mm3d.h"
 #include "general/photogram.h"
 typedef ElAffin2D tOrIntIma ;
+
+#include <sstream>
 %}
 
 #define ElSTDNS  std::
@@ -12,6 +14,12 @@ typedef ElAffin2D tOrIntIma ;
 %include <std_string.i>
 %include <std_vector.i>
 %include <cpointer.i>
+%include stl.i
+//templates (has to be before %include "api/api_mm3d.h")
+namespace std {
+    %template(IntVector)    vector<int>;
+    %template(DoubleVector) vector<double>;
+}
  
 //def de REAL etc pour pouvoir les utiliser en python
 %include "general/CMake_defines.h"
@@ -19,11 +27,13 @@ typedef ElAffin2D tOrIntIma ;
 
 //avec les classes a exporter
 %include "api/api_mm3d.h"
+
 %template(Pt2di) Pt2d<INT>;
 %template(Pt2dr) Pt2d<REAL>;
 %template(Pt3dr) Pt3d<REAL>;
 %template(ElRotation3D) TplElRotation3D<REAL>;
 %template(ElMatrixr) ElMatrix<REAL>;
+
 
 //ajout print PtNdx
 %extend Pt2d<INT> {
@@ -47,3 +57,23 @@ typedef ElAffin2D tOrIntIma ;
     return tmp;
   }
 };
+
+/*
+%extend std::vector<double> {
+  char *__repr__() {
+    static char tmp[1024];
+    std::ostringstream oss;
+    oss<<"[";
+    for (unsigned int i=0;i<$self->size();i++)
+    {
+      oss<<$self->at(i);
+      if (i<$self->size()-1)
+        oss<<", ";
+    }
+    oss<<"]";
+    strncpy(tmp,oss.str().c_str(),1023);
+    return tmp;
+  }
+};
+*/
+

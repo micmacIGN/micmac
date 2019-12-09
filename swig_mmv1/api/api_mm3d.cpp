@@ -23,4 +23,34 @@ void createIdealCamXML(double focale, Pt2dr aPP, Pt2di aSz, std::string oriName,
     MakeFileXML(anIdealCam.StdExportCalibGlob(),oriName+"/Orientation-" + NameWithoutDir(oriName) + imgName + ".tif.xml","MicMacForAPERO");
 }
 
+ElRotation3D list2rot(std::vector<double> l)
+{
+    ElMatrix<REAL> mat(3,3);
+    int k=0;
+    for (int i=0;i<3;i++)
+        for (int j=0;j<3;j++)
+        {
+            mat(i,j)=l.at(k);
+            k++;
+        }
+    
+    ElRotation3D r(Pt3dr(),mat,false);
+    return r;
+}
+
+std::vector<double> rot2list(ElRotation3D &r)
+{
+    std::vector<double> l;
+    l.resize(9);
+    int k=0;
+    ElMatrix<REAL> mat=r.Mat();
+    for (int i=0;i<3;i++)
+        for (int j=0;j<3;j++)
+        {
+            l[k]=mat(i,j);
+            k++;
+        }
+    
+    return l;
+}
 
