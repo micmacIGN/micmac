@@ -54,4 +54,15 @@ TODO
  * make a script to automatically extract classes definitions from mm3d sources
  * create a header file for each subject
  * do not quit python on fatal errors?
+ * see https://pybind11.readthedocs.io/en/stable/intro.html
 
+ * createIdealCamXML: from quaternion, and add check points
+
+Crash on import
+---------------
+ in mm3d_wrap.cxx, the line
+ result = ((ElPackHomologue const *)arg1)->BoxP1();
+ makes python crash on import.
+ it can be avoided without Box2dr BoxP1() const; in api_mm3d.h.
+ Box2dr default constructor seems ok, and tPairPt  PMed() const; also crashes.
+ It may be a problem with SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ElPackHomologue, 0 |  0 );

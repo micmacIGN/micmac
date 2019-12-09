@@ -1192,6 +1192,9 @@ class ElDistortionPolynomiale : public ElDistortion22_Gen
                const Polynome2dReal & aDistY,
                REAL                   anEpsilonInv = 1e-7
            );
+           //#ifdef SWIG
+           ElDistortionPolynomiale():mDistX(1,1e-7),mDistY(1,1e-7),mEpsilon(1e-7){}
+           //#endif
            virtual Pt2dr Direct(Pt2dr) const ;  // **
 
             const Polynome2dReal & DistX() const ;
