@@ -1049,7 +1049,7 @@ template <class Type>  class ElMatrix
           ElMatrix(INT,INT,Type v =0);
           ElMatrix(const ElMatrix<Type> & m2);
           //#ifdef SWIG
-          ElMatrix(){}
+          ElMatrix();
           //#endif
           ElMatrix<Type> & operator = (const ElMatrix<Type> &);
           ~ElMatrix();
@@ -1258,7 +1258,7 @@ template <class Type> class TplElRotation3D
          TplElRotation3D(Pt3d<Type> tr,const ElMatrix<Type> &,bool aTrueRot);
          TplElRotation3D(Pt3d<Type> tr,Type teta01,Type teta02,Type teta12);
          //#ifdef SWIG
-         TplElRotation3D(){}
+         TplElRotation3D();
          //#endif
 
          Pt3d<Type> ImAff(Pt3d<Type>) const; //return _tr + _Mat * p;
