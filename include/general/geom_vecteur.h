@@ -683,9 +683,9 @@ class ElSeg3D
 {
      public :
          ElSeg3D(Pt3dr aP0,Pt3dr aP1);
-         //#ifdef SWIG
+         #ifdef FORSWIG
          ElSeg3D(){}
-         //#endif
+         #endif
 
           Pt3dr  Tgt() const;
           Pt3dr  TgNormee() const;

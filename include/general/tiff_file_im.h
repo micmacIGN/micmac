@@ -330,9 +330,9 @@ class Tiff_Im : public ElGenFileIm
           };
 
           Tiff_Im(const char *);  // initialize to the first image
-          //#ifdef SWIG
+          #ifdef FORSWIG
           Tiff_Im(){}
-          //#endif
+          #endif
 
           // Binary, Gray level, RGB
 

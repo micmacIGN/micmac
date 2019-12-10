@@ -112,13 +112,6 @@ template <class Type>
             _data[y][x] = m2._data[y][x];
 }
 
-//#ifdef SWIG
-template <class Type>
-      ElMatrix<Type>::ElMatrix() :
-          _tx(0),_ty(0),_data(0),mTMx(0),mTMy(0)
-{}
-//endif
-
 template <class Type>
          ElMatrix<Type>::ElMatrix(INT tx,INT ty,Type v)
 {
@@ -1299,18 +1292,6 @@ ElMatrix<Fonc_Num> InvMatrix(const ElMatrix<Fonc_Num> & mat)
     ELISE_ASSERT(false,"InvMatrix(const ElMatrix<Fonc_Num> & mat)");
     return mat;
 }
-
-//#ifdef SWIG
-template <class Type> TplElRotation3D<Type>::TplElRotation3D() :
-     _tr(0,0,0),
-    _Mat(3,3,0),
-    _InvM(3,3,0),
-    _teta01(strtod("NAN(teta01)", NULL)),
-    _teta02(strtod("NAN(teta02)", NULL)),
-    _teta12(strtod("NAN(teta12)", NULL)),
-    mTrueRot(false)
-{}
-//#endif
 
 template <class Type> TplElRotation3D<Type>::TplElRotation3D(Pt3d<Type> tr,const ElMatrix<Type> & mat,bool aTrueRot) :
     _tr       (tr),

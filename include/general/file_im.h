@@ -91,9 +91,9 @@ class ElGenFileIm :  public PRC0,
      protected :
 
           ElGenFileIm(ElDataGenFileIm *);
-          //#ifdef SWIG
+          #ifdef FORSWIG
           ElGenFileIm(){}
-          //#endif
+          #endif
 
      private :
 

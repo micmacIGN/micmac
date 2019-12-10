@@ -1048,9 +1048,9 @@ template <class Type>  class ElMatrix
           ElMatrix(INT,bool init_id = true);
           ElMatrix(INT,INT,Type v =0);
           ElMatrix(const ElMatrix<Type> & m2);
-          //#ifdef SWIG
-          ElMatrix();
-          //#endif
+          #ifdef FORSWIG
+          ElMatrix():_tx(0),_ty(0),_data(0),mTMx(0),mTMy(0){}
+          #endif
           ElMatrix<Type> & operator = (const ElMatrix<Type> &);
           ~ElMatrix();
 
@@ -1257,9 +1257,10 @@ template <class Type> class TplElRotation3D
          static const TplElRotation3D<Type> Id;
          TplElRotation3D(Pt3d<Type> tr,const ElMatrix<Type> &,bool aTrueRot);
          TplElRotation3D(Pt3d<Type> tr,Type teta01,Type teta02,Type teta12);
-         //#ifdef SWIG
-         TplElRotation3D();
-         //#endif
+         #ifdef FORSWIG
+         TplElRotation3D():_tr(0,0,0),_Mat(3,3,0),_InvM(3,3,0),_teta01(strtod("NAN(teta01)", NULL)),
+            _teta02(strtod("NAN(teta02)", NULL)),_teta12(strtod("NAN(teta12)", NULL)),mTrueRot(false){}
+         #endif
 
          Pt3d<Type> ImAff(Pt3d<Type>) const; //return _tr + _Mat * p;
 
@@ -1461,9 +1462,9 @@ class Polynome2dReal
 
 
             Polynome2dReal(INT aD0,REAL anAmpl); // Contient tous les monomes, avec un coeff 1.0
-            //#ifdef SWIG
+            #ifdef FORSWIG
             Polynome2dReal(){}
-            //#endif
+            #endif
             void SetDegre1(REAL aV0,REAL aVX, REAL aVY,bool AnnulOthers = true);
 
             REAL operator () (Pt2dr aP) const;

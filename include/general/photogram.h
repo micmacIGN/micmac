@@ -146,9 +146,9 @@ class Appar23
         int   mNum;  // Rajoutes pour gerer les cibles
 
         Appar23 (Pt2dr PIM,Pt3dr PTER,int aNum=-1) ;
-        //#ifdef SWIG
+        #ifdef FORSWIG
         Appar23(){}
-        //#endif
+        #endif
     private  :
 
 };
@@ -216,9 +216,10 @@ class cNupletPtsHomologues
         REAL & Pds() ;
 
     cNupletPtsHomologues(int aNb,double aPds=1.0);
-    //#ifdef SWIG
+    #ifdef FORSWIG
     cNupletPtsHomologues(){}
-    //#endif
+    ~cNupletPtsHomologues(){}
+    #endif
     int NbPts() const;
 
     const Pt2dr & PK(int aK) const ;
@@ -249,9 +250,9 @@ class ElCplePtsHomologues : public cNupletPtsHomologues
      public :
 
         ElCplePtsHomologues (Pt2dr aP1,Pt2dr aP2,REAL aPds=1.0);
-        //#ifdef SWIG
+        #ifdef FORSWIG
         ElCplePtsHomologues(){}
-        //#endif
+        #endif
 
         const Pt2dr & P1() const ;
         Pt2dr & P1() ;
@@ -344,7 +345,9 @@ class cPackNupletsHom
          typedef tCont::iterator                  tIter;
          typedef tCont::const_iterator            tCstIter;
      cPackNupletsHom(int aDim);
-
+        #ifdef FORSWIG
+        tCont &getList(){return mCont;}
+        #endif
      void write(class  ELISE_fp & aFile) const;
          static cPackNupletsHom read(ELISE_fp & aFile);
          typedef tCont::iterator         iterator;
@@ -822,9 +825,9 @@ class cElComposHomographie
          }
          Fonc_Num operator() (Pt2d<Fonc_Num> ) const;
 
-         //#ifdef SWIG
+         #ifdef FORSWIG
          cElComposHomographie(){}
-         //#endif
+         #endif
 
          cElComposHomographie(REAL aX,REAL aY,REAL a1);
          cElComposHomographie(const cXmlAffinR2ToR &);
@@ -887,9 +890,9 @@ class cElHomographie  : public cElMap2D
           // Size = 3 , affinite
           // Size = 4 ou +, homographie reelle, ajuste par moindre L2  ou  L1
 
-          //#ifdef SWIG
+          #ifdef FORSWIG
           cElHomographie(){}
-          //#endif
+          #endif
 
           cElHomographie(const ElPackHomologue &,bool aL2);
           cElHomographie(const cXmlHomogr &);
@@ -1192,9 +1195,9 @@ class ElDistortionPolynomiale : public ElDistortion22_Gen
                const Polynome2dReal & aDistY,
                REAL                   anEpsilonInv = 1e-7
            );
-           //#ifdef SWIG
+           #ifdef FORSWIG
            ElDistortionPolynomiale():mDistX(1,1e-7),mDistY(1,1e-7),mEpsilon(1e-7){}
-           //#endif
+           #endif
            virtual Pt2dr Direct(Pt2dr) const ;  // **
 
             const Polynome2dReal & DistX() const ;

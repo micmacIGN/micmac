@@ -77,7 +77,7 @@ template <class Type> class ElStdTypeScal
     private :
 };
 
-#ifndef SWIG
+#ifndef FORSWIG
 ElTmplSpecNull INT   ElStdTypeScal<INT>::RtoT(REAL v); //  { return round_ni(v);}
 ElTmplSpecNull REAL  ElStdTypeScal<REAL>::RtoT(REAL v); //  { return v;}
 ElTmplSpecNull INT   ElStdTypeScal<INT>::RTtoT(REAL v) ; // { return round_ni(v);}
@@ -1537,9 +1537,9 @@ class cTransfo3D
 {
      public :
           virtual std::vector<Pt3dr> Src2Cibl(const std::vector<Pt3dr> &) const = 0;
-          //#ifdef SWIG
+          #ifdef FORSWIG
           virtual ~cTransfo3D() {}
-          //#endif
+          #endif
           static cTransfo3D * Alloc(const std::string & aName,const std::string & aDir) ;
 
 };
