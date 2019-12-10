@@ -395,7 +395,7 @@ class ElPackHomologue : public cPackNupletsHom
      bool  mSolveInL1;
 
      public :
-         Box2dr BoxP1() const;
+         //Box2dr BoxP1() const;//unimplemented, crashes python
          ElPackHomologue();
          void SelfSwap(); // Intervertit les  2
          void ApplyHomographies
@@ -478,7 +478,7 @@ class ElPackHomologue : public cPackNupletsHom
                        INT &                NbP2
                   ) const;
 
-             tPairPt  PMed() const;
+             //tPairPt  PMed() const;//unimplemented, crashes python
 
              // Si tous les points sont coplanaires, ou presque,
              //  la mise en place par l'algo standard est degenere,
