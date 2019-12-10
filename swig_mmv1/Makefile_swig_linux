@@ -2,8 +2,9 @@ MMDir=..
 CXX=g++
 INCLUDEDIRS = -I. -I${MMDir}/include/
 DOCDIR = doc/
+PYTHON_VERSION = 3.6
 CXXFlags= -std=c++11 -fPIC -Wall -Werror  -O2  -march=native ${INCLUDEDIRS}
-CXX_WRAP_FLAGS = ${CXXFlags} -I/usr/include/python3.6 ${INCLUDEDIRS}
+CXX_WRAP_FLAGS = ${CXXFlags} -I/usr/include/python${PYTHON_VERSION} ${INCLUDEDIRS}
 
 LFLAGS = ${MMDir}/lib/libelise.a -lX11 -lXext -lm -ldl -lpthread ${MMDir}/lib/libANN.a
 SO = _mm3d.so
@@ -17,20 +18,24 @@ PY_FILES = $(I_SRCS:.i=.py)
 WRAP_CXX_FILES = $(I_SRCS:.i=_wrap.cxx)
 WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 
-.PHONY: clean doc swig
+.PHONY: clean doc swig check
 
 .SECONDARY: $(WRAP_CXX_FILES)
 
 swig: $(OBJ_FILES) $(WRAP_O_FILES)
 	$(CXX) -Xlinker -export-dynamic -shared $^ $(LFLAGS) -o $(SO)
 
-all: swig doc
+check: $(OBJ_FILES) $(WRAP_O_FILES) test_exe.cpp
+	$(CXX) -c $(CXXFlags) test_exe.cpp -o test_exe.o 
+	$(CXX) $(OBJ_FILES) $(WRAP_O_FILES) test_exe.o $(LFLAGS) -lpython${PYTHON_VERSION}m -o test
+
+all: swig check doc
 
 doc:
 	cd $(DOCDIR) && doxygen
 
 clean:
-	rm -f $(OBJ_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES) $(PY_FILES) $(SO)
+	rm -f $(OBJ_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES) $(PY_FILES) $(SO) test_exe.o test
 	rm -Rf $(DOCDIR)/html
 
 %.o: %.cpp

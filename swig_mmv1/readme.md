@@ -60,9 +60,13 @@ TODO
 
 Crash on import
 ---------------
- in mm3d_wrap.cxx, the line
- result = ((ElPackHomologue const *)arg1)->BoxP1();
- makes python crash on import.
- it can be avoided without Box2dr BoxP1() const; in api_mm3d.h.
- Box2dr default constructor seems ok, and tPairPt  PMed() const; also crashes.
- It may be a problem with SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ElPackHomologue, 0 |  0 );
+ Python may crash if some references are not definied in _mm3d.so.
+ This may happen when importing a class for which some methods are defined but not implemented nor used in MicMac.
+ Swig will use them and _mm3d.so linking will not test it.
+ 
+ Use
+```
+    make -f Makefile_swig_linux check
+```
+ To link a dummy executable to check if all methods are implemented in MicMac.
+

@@ -1146,7 +1146,7 @@ class ElPackHomologue : public cPackNupletsHom
      bool  mSolveInL1;
 
      public :
-         //Box2dr BoxP1() const; //segfault in python??
+         //Box2dr BoxP1() const;//unimplemented, crashes python
          ElPackHomologue();
          void SelfSwap(); // Intervertit les  2
          void ApplyHomographies
@@ -1206,6 +1206,7 @@ class ElPackHomologue : public cPackNupletsHom
             // la rotation qui envoie de 1 vers 2
             ElMatrix<REAL> MepRelCocentrique(int aNbRansac,int aNbMaxPts) const;
 
+
             //   Toutes les mises en place relatives font les hypotheses suivantes
         //
         //      - points "photogrammetriques" (x,y) -> (x,y,1)
@@ -1219,6 +1220,7 @@ class ElPackHomologue : public cPackNupletsHom
          // Phys : cherche a avoir le max de couples de rayons
          // qui s'intersectent avec des Z positifs
              ElRotation3D MepRelPhysStd(REAL LongBase,bool L2);
+
          // Nombre de points ayant une intersection positive en Im1 et Im2
          REAL SignInters
                   (
@@ -1227,7 +1229,7 @@ class ElPackHomologue : public cPackNupletsHom
                        INT &                NbP2
                   ) const;
 
-             //tPairPt  PMed() const; //segfault in python??
+             //tPairPt  PMed() const;//unimplemented, crashes python
              // Si tous les points sont coplanaires, ou presque,
              //  la mise en place par l'algo standard est degenere,
              // on choisit donc un algo ad hoc
