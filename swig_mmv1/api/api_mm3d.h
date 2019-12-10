@@ -24,6 +24,9 @@ void createIdealCamXML(double focale, Pt2dr aPP, Pt2di aSz, std::string oriName,
 //! Convert a python 9-element list into a ElRotation3D
 ElRotation3D list2rot(std::vector<double> l);
 
+//! Convert a quaternion into a ElRotation3D
+ElRotation3D quaternion2rot(double a, double b, double c, double d);
+
 //! Convert a ElRotation3D into a python 9-element list
 std::vector<double> rot2list(ElRotation3D &r);
 

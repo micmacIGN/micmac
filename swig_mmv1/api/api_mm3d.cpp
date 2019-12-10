@@ -54,6 +54,25 @@ std::vector<double> rot2list(ElRotation3D &r)
     return l;
 }
 
+ElRotation3D quaternion2rot(double a, double b, double c, double d)
+{
+    double n=sqrt(a*a+b*b+c*c+d*d);
+    std::cout<<"Quat norm: "<<n<<"\n";
+    a/=n;b/=n;c/=n;d/=n;
+	ElMatrix<REAL> mat(3,3);
+	mat(0,0)=a*a+b*b-c*c-d*d;
+	mat(0,1)=2*b*c-2*a*d;
+	mat(0,2)=2*a*c+2*b*d;
+	mat(1,0)=2*a*d+2*b*c;
+	mat(1,1)=a*a-b*b+c*c-d*d;
+	mat(1,2)=2*c*d-2*a*b;
+	mat(2,0)=2*b*d-2*a*c;
+	mat(2,1)=2*a*b+2*c*d;
+	mat(2,2)=a*a-b*b-c*c+d*d;
+	ElRotation3D r(Pt3dr(),mat,false);
+	return r;
+}
+
 std::vector<std::string> getFileSet(std::string dir, std::string pattern)
 {
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(dir);

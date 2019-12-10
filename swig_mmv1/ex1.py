@@ -26,3 +26,7 @@ mm3d.createIdealCamXML (100.0, mm3d.Pt2dr(1000,1000), mm3d.Pt2di(2000,2000), "Or
 
 li = mm3d.getFileSet(".",".*.py")
 
+r=mm3d.quaternion2rot(0.706421209674, 0.000595506000, -0.002847643999, -0.707785709674)
+l=mm3d.rot2list(r)
+
+
