@@ -3,7 +3,7 @@ CXX=g++
 INCLUDEDIRS = -I. -I${MMDir}/include/
 DOCDIR = doc/
 PYTHON_VERSION = 3.6
-CXXFlags= -std=c++11 -fPIC -Wall -Werror  -O2  -march=native ${INCLUDEDIRS}
+CXXFlags= -std=c++11 -fPIC -Wall -Werror  -O2  -march=native ${INCLUDEDIRS} -DFORSWIG
 CXX_WRAP_FLAGS = ${CXXFlags} -I/usr/include/python${PYTHON_VERSION} ${INCLUDEDIRS}
 
 LFLAGS = ${MMDir}/lib/libelise.a -lX11 -lXext -lm -ldl -lpthread ${MMDir}/lib/libANN.a
@@ -45,5 +45,5 @@ clean:
 	$(CXX) -c  $(CXX_WRAP_FLAGS) $< -o $@
 
 %_wrap.cxx: %.i $(OBJ_FILES)
-	swig -python -py3 -c++ ${INCLUDEDIRS} $<
+	swig -python -py3 -DFORSWIG -c++ ${INCLUDEDIRS} $<
 

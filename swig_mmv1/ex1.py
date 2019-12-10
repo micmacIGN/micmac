@@ -29,4 +29,14 @@ li = mm3d.getFileSet(".",".*.py")
 r=mm3d.quaternion2rot(0.706421209674, 0.000595506000, -0.002847643999, -0.707785709674)
 l=mm3d.rot2list(r)
 
+pack = mm3d.ElPackHomologue.FromFile("Zhenjue/Homol/PastisDSC_3115.JPG/DSC_3116.JPG.dat")
+print(pack.size())
+list_homol=pack.getList()
+for h in list_homol[0:10]:
+   print(h.P1(),h.P2())
+
+aPackOut=mm3d.ElPackHomologue()
+aCple=mm3d.ElCplePtsHomologues(mm3d.Pt2dr(10,10),mm3d.Pt2dr(20,20));
+aPackOut.Cple_Add(aCple);
+aPackOut.StdPutInFile("homol.dat");
 

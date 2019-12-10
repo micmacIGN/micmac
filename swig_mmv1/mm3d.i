@@ -20,6 +20,7 @@ print("MicMac Python3 API")
 typedef ElAffin2D tOrIntIma ;
 %include <std_string.i>
 %include <std_vector.i>
+%include <std_list.i>
 %include <cpointer.i>
 %include stl.i
 //templates (has to be before %include "api/api_mm3d.h")
@@ -27,11 +28,18 @@ namespace std {
     %template(IntVector)    vector<int>;
     %template(DoubleVector) vector<double>;
     %template(StringVector) vector<string>;
+    %template(HomolList)    list<cNupletPtsHomologues>;
 }
  
 //def de REAL etc pour pouvoir les utiliser en python
 %include "general/CMake_defines.h"
 %include "general/sys_dep.h"
+
+//renommage de methodes surchargees
+//%rename(getCoeffX) cElComposHomographie::CoeffX();
+//%rename(getCoeffY) cElComposHomographie::CoeffY();
+//%rename(getCoeff1) cElComposHomographie::Coeff1();
+//%rename(getCoeff) ElDistRadiale_PolynImpair::Coeff(int);
 
 //avec les classes a exporter
 %include "api/api_mm3d.h"
@@ -42,6 +50,12 @@ namespace std {
 %template(ElRotation3D) TplElRotation3D<REAL>;
 %template(ElMatrixr) ElMatrix<REAL>;
 
+
+/*%extend cPackNupletsHom {
+  std::list<cNupletPtsHomologues> &getList() {
+      return $self->mCont;
+  }
+};*/
 
 //ajout print PtNdx
 %extend Pt2d<INT> {

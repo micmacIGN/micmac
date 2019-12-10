@@ -27,7 +27,7 @@ copy _mm3d.so and mm3d.py in your working directory, then with python3:
 
 Documentation
 -------------
-See [main file doc](api__mm3d_8h.html)
+See [files doc](files.html)
 
 Compilation
 -----------
@@ -49,7 +49,7 @@ The documentation is in swig_mmv1/doc/html/index.html
 TODO
 ----
  * use distutils?
- * fix mm modifications (constructors) 
+ * fix mm modifications (#ifdef FORSWIG) 
  * for now the selected classes are copied in api_mm3d.h
  * make a script to automatically extract classes definitions from mm3d sources
  * create a header file for each subject

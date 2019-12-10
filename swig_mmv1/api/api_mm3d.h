@@ -2,9 +2,6 @@
 #define API_MM3D_H
 
 #include "StdAfx.h"
-#include <algorithm>
-#include <functional>
-#include <numeric>
 /**
 @file
 @brief New methods for python API and existing classes
@@ -53,9 +50,9 @@ template <class Type>  class ElMatrix
           ElMatrix(INT,bool init_id = true);
           ElMatrix(INT,INT,Type v =0);
           ElMatrix(const ElMatrix<Type> & m2);
-          //#ifdef SWIG
+          #ifdef FORSWIG
           ElMatrix(){}
-          //#endif
+          #endif
           ElMatrix<Type> & operator = (const ElMatrix<Type> &);
           ~ElMatrix();
 
@@ -209,9 +206,9 @@ template <class Type> class TplElRotation3D
          static const TplElRotation3D<Type> Id;
          TplElRotation3D(Pt3d<Type> tr,const ElMatrix<Type> &,bool aTrueRot);
          TplElRotation3D(Pt3d<Type> tr,Type teta01,Type teta02,Type teta12);
-         //#ifdef SWIG
+         #ifdef FORSWIG
          TplElRotation3D(){}
-         //#endif
+         #endif
 
          Pt3d<Type> ImAff(Pt3d<Type>) const; //return _tr + _Mat * p;
 
@@ -1088,6 +1085,81 @@ class CamStenope : public ElCamera
 };
 
 
+
+
+class cNupletPtsHomologues
+{
+     public :
+    ElCplePtsHomologues & ToCple();
+    const ElCplePtsHomologues & ToCple() const;
+
+// Uniquement en dim 2
+        const Pt2dr & P1() const ;
+        Pt2dr & P1() ;
+        const Pt2dr & P2() const ;
+        Pt2dr & P2() ;
+
+
+
+        const REAL & Pds() const ;
+        REAL & Pds() ;
+
+    cNupletPtsHomologues(int aNb,double aPds=1.0);
+    #ifdef FORSWIG
+    cNupletPtsHomologues(){}
+    ~cNupletPtsHomologues(){}
+    #endif
+    int NbPts() const;
+
+    const Pt2dr & PK(int aK) const ;
+        Pt2dr & PK(int aK) ;
+
+    void write(class  ELISE_fp & aFile) const;
+        static cNupletPtsHomologues read(ELISE_fp & aFile);
+
+        void AddPts(const Pt2dr & aPt);
+
+        bool IsDr(int aK) const;
+        void SetDr(int aK);
+
+     private :
+        void AssertD2() const;
+        std::vector<Pt2dr> mPts;
+        REAL  mPds;
+  // Gestion super bas-niveau avec des flag de bits pour etre compatible avec la structure physique faite
+  // quand on ne contenait que des points ....
+        int   mFlagDr;
+        void AssertIsValideFlagDr(int aK) const;
+        bool IsValideFlagDr(int aK) const;
+
+};
+
+
+class ElCplePtsHomologues : public cNupletPtsHomologues
+{
+     public :
+
+        ElCplePtsHomologues (Pt2dr aP1,Pt2dr aP2,REAL aPds=1.0);
+        #ifdef FORSWIG
+        ElCplePtsHomologues(){}
+        #endif
+
+        const Pt2dr & P1() const ;
+        Pt2dr & P1() ;
+
+        const Pt2dr & P2() const ;
+        Pt2dr & P2() ;
+
+
+        // Box2D
+         void SelfSwap(); // Intervertit les  2
+
+      double Profondeur(const ElRotation3D & aR) const;
+
+     private :
+
+};
+
 class cPackNupletsHom
 {
      public :
@@ -1095,7 +1167,9 @@ class cPackNupletsHom
          typedef tCont::iterator                  tIter;
          typedef tCont::const_iterator            tCstIter;
      cPackNupletsHom(int aDim);
-
+        #ifdef FORSWIG
+        tCont &getList(){return mCont;}
+        #endif
      void write(class  ELISE_fp & aFile) const;
          static cPackNupletsHom read(ELISE_fp & aFile);
          typedef tCont::iterator         iterator;
