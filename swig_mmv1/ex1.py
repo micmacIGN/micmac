@@ -40,3 +40,10 @@ aCple=mm3d.ElCplePtsHomologues(mm3d.Pt2dr(10,10),mm3d.Pt2dr(20,20));
 aPackOut.Cple_Add(aCple);
 aPackOut.StdPutInFile("homol.dat");
 
+"""
+try:
+  c=mm3d.cTD_Camera("Ori-FishEyeBasic/Orientation-Calibration_geo_14_001_01_015000.thm.dng_G.tif.xml")
+except:
+  print("argh")
+"""
+

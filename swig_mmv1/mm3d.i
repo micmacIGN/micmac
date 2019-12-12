@@ -5,7 +5,7 @@
 #include "api/api_mm3d.h"
 #include "general/photogram.h"
 typedef ElAffin2D tOrIntIma ;
-
+#include "api/TpPPMD.h"
 #include <sstream>
 %}
 
@@ -37,6 +37,7 @@ namespace std {
 
 //avec les classes a exporter
 %include "api/api_mm3d.h"
+%include "api/TpPPMD.h"
 
 %template(Pt2di) Pt2d<INT>;
 %template(Pt2dr) Pt2d<REAL>;
