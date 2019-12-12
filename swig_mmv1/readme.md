@@ -9,7 +9,7 @@ This is an API to a small part of MicMac for Python 3.
 Download
 --------
 
-  * [2019/12/04 binary version for Python 3.6 with Ubuntu 18.04](../../bin/swig_mmv1-20191204.tar.bz2)
+  * [2019/12/04 binary version for Python 3.6 with Ubuntu 18.04](../../bin/swig_mmv1-20191212.tar.bz2)
 
 
 Usage
@@ -51,10 +51,11 @@ TODO
  * use distutils?
  * fix mm modifications (#ifdef FORSWIG) 
  * for now the selected classes are copied in api_mm3d.h
- * make a script to automatically extract classes definitions from mm3d sources
+ * make a script to automatically extract classes definitions from mm3d sources, add @file
  * create a header file for each subject
- * do not quit python on fatal errors?
+ * do not quit python on fatal errors? (add exceptions in micmac?)
  * see https://pybind11.readthedocs.io/en/stable/intro.html
+ * include libs in _mm3d.so : ImportError: /lib/x86_64-linux-gnu/libm.so.6: versionGLIBC_2.27' not found
 
  * createIdealCamXML: from quaternion, and add check points
 

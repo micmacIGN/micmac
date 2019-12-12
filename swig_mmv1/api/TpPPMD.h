@@ -36,6 +36,12 @@ English :
     See below and http://www.cecill.info.
 
 Header-MicMac-eLiSe-25/06/2007*/
+
+/**
+@file
+@brief TpPPMD
+**/
+
 #ifndef __TD_CAMERA__
 #define __TD_CAMERA__
 
