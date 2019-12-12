@@ -11,6 +11,9 @@ class CamStenope;
 
 //-------------------- Nouvelles methodes ---------------------
 
+//!internal usage
+void mm3d_init();
+
 //! Create CamStenope form a XML file
 CamStenope *  CamOrientFromFile(std::string filename);
 

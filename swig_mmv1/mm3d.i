@@ -9,12 +9,6 @@ typedef ElAffin2D tOrIntIma ;
 #include <sstream>
 %}
 
-//check python version
-%pythoncode %{
-print("MicMac Python3 API")
-%}
-
-
 #define ElSTDNS  std::
 #define ElTmplSpecNull template <>
 typedef ElAffin2D tOrIntIma ;
@@ -49,6 +43,13 @@ namespace std {
 %template(Pt3dr) Pt3d<REAL>;
 %template(ElRotation3D) TplElRotation3D<REAL>;
 %template(ElMatrixr) ElMatrix<REAL>;
+
+
+//check python version
+%pythoncode %{
+print("MicMac Python3 API")
+mm3d_init();
+%}
 
 
 /*%extend cPackNupletsHom {

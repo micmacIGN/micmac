@@ -1,6 +1,14 @@
 #include "api_mm3d.h"
 #include <iostream>
 
+extern bool TheExitOnBrkp;
+void mm3d_init()
+{
+	TheExitOnBrkp =true;
+	std::cout<<"mm3d initialized."<<std::endl;
+}
+
+
 CamStenope * CamOrientFromFile(std::string filename)
 {
 	cElemAppliSetFile anEASF(filename);
