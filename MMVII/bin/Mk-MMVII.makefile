@@ -97,11 +97,15 @@ SrcCalcDescriptPCar=$(wildcard ${MMV2DirCalcDescriptPCar}*.cpp)
 ObjCalcDescriptPCar=$(SrcCalcDescriptPCar:.cpp=.o)
 #
 #
+MMV2DirMatchTieP=${MMV2DirSrc}MatchTieP/
+SrcMatchTieP=$(wildcard ${MMV2DirMatchTieP}*.cpp)
+ObjMatchTieP=$(SrcMatchTieP:.cpp=.o)
+#
 #    => Le Main
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso} 
+OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso} 
 #
 #=========  Header ========
 #
@@ -132,6 +136,8 @@ ${MMV2ResultInstal} : ${MMV2SrcInstal}
 #
 # ================ Objects ==================
 #
+${MMV2DirMatchTieP}%.o :  ${MMV2DirMatchTieP}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirCalcDescriptPCar}%.o :  ${MMV2DirCalcDescriptPCar}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirPerso}%.o :  ${MMV2DirPerso}%.cpp   ${HEADER}

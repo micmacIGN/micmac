@@ -54,6 +54,7 @@ void BenchStat();
 void BenchUnbiasedStdDev();  ///< Test one specific function currently not correct, by default test not activated
 void BenchSupport();  ///< Test support function that could/should exist in standard libs
 
+void BenchMyJets();
 
 };
 

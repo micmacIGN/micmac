@@ -187,7 +187,7 @@ template <class Type> void  TplBenchMinMax(int aNb)
 
     std::vector<Type> aVVals;
     Type aV0 = tNumTrait<Type>::RandomValueCenter();
-    cWitchMinMax<int,Type> aWMM(0,aV0);
+    cWhitchMinMax<int,Type> aWMM(0,aV0);
     aVVals.push_back(aV0);
     for (int aK=0 ; aK<aNb-1 ; aK++)
     {

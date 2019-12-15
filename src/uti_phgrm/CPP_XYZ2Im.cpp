@@ -301,6 +301,151 @@ int Im2XYZ_main(int argc,char ** argv)
 {
     return TransfoCam_main(argc,argv,false);
 }
+
+ElRotation3D ListRot2RotPhys(const  std::list<ElRotation3D> & aLRot,const ElPackHomologue & aPack);
+std::list<ElRotation3D>  MatEssToMulipleRot(const  ElMatrix<REAL> & aMEss,double LBase);
+
+void Sho33( ElMatrix<REAL> aM)
+{
+    for (int aY=0 ; aY<3 ; aY++)
+      printf("  %f \t %f \t %f \n",aM(0,aY),aM(1,aY),aM(2,aY));
+}
+
+bool ShowMSG_ListRot2RotPhys=false;
+
+//int  PPMD_CalcEss(int argc,char ** argv)
+int  PPMD_MatEss2Orient(int argc,char ** argv)
+{
+   ShowMSG_ListRot2RotPhys = true;
+
+   Pt3dr aRefAll = vunit(Pt3dr(0.0743780117532993751,1.39204657194425052, -0.335883991159797279));
+   Pt3dr aRef2 = vunit(Pt3dr(0.08730003023518626, 1.6357168231794974 ,-0.393890910854981069));
+
+   std::string I1,I2,Cal;
+   std::string PostH="txt";
+   std::string SH="_ConvOLDFormat";
+   
+   ElInitArgMain
+   (
+           argc,argv,
+           LArgMain()  << EAMC(I1,"Name Im1")
+                       << EAMC(I2,"Name Im1")
+                       << EAMC(Cal,"Name Calib"),
+           LArgMain()
+   );
+
+   cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+   std::string   aFilePtsIn = anICNM->Assoc1To2("NKS-Assoc-CplIm2Hom@"+ SH+"@"+PostH,I1,I2,true);
+
+   ElPackHomologue  aPackInit =  ElPackHomologue::FromFile(aFilePtsIn);
+   CamStenope *   aCam1 = anICNM->StdCamStenOfNames(I1,Cal);
+   CamStenope *   aCam2 = anICNM->StdCamStenOfNames(I2,Cal);
+
+   ElPackHomologue  aPackPh = aCam1->F2toPtDirRayonL3(aPackInit,aCam2);
+
+   std::vector<double> aVMatPy({ -3.48751824,  20.52539487,-361.5038316,  101.79664035,  -6.19477011,
+  -18.78353249,  351.48896237,  -22.88157752,1});
+
+   ElMatrix<REAL>  aMatPy(3,3);
+   for (int aX=0 ; aX<3 ; aX++)
+   {
+      for (int aY=0 ; aY<3 ; aY++)
+      {
+          aMatPy(aX,aY) = aVMatPy.at(aX+3*aY);
+      }
+   }
+/*
+ [[  -3.48751824   20.52539487 -361.5038316 ]
+ [ 101.79664035   -6.19477011  -18.78353249]
+ [ 351.48896237  -22.88157752   1.        ]]
+
+*/
+   ElMatrix<REAL> aMM_MEss = aPackPh.MatriceEssentielle(true);
+   aMM_MEss *= 1/aMM_MEss(2,2);
+
+   ElRotation3D aR1toW(Pt3dr(0,0,0),0,0,PI);
+   std::cout << "==== aR1ToMonde === \n";
+   Sho33(aR1toW.Mat());
+
+  
+   for (int aKMat=0 ; aKMat<1 ; aKMat++)
+   {
+      std::cout << "===============\n";
+      bool PyMath = (aKMat==0);
+      ElMatrix<REAL> aMEss = PyMath ? aMatPy : aMM_MEss;
+      Sho33(aMEss);
+    
+      std::list<ElRotation3D>  aLR = MatEssToMulipleRot(aMEss,1.0);
+      for (const auto & aR : aLR)
+      {
+           std::cout << "=====TR=" << aR.inv().tr() << "\n";
+           Sho33( aR.inv().Mat());
+      }
+
+      // Orientation Monde to Cam de la camera 1
+      ElRotation3D  aR1to2 = ListRot2RotPhys(aLR,aPackPh);
+      ElRotation3D  aR2toW = aR1toW * aR1to2.inv();
+
+
+
+      std::cout << "WINN = " << aR2toW.tr() << "\n";
+      Sho33(aR2toW.Mat());
+   }
+   if (0)
+   {
+       std::cout << "Refpts " << aRef2  << " " << aRefAll << "\n";
+
+       ElMatrix<REAL> aSvd1(3,3),aDiag(3,3),aSvd2(3,3);
+       svdcmp_diag(aMatPy,aSvd1,aDiag,aSvd2,true);
+       std::cout << " ================  SVD1 ============\n";
+       Sho33(aSvd1);
+       std::cout << " ================  DIAG ============\n";
+       Sho33(aDiag);
+       std::cout << " ================  SVD2 ============\n";
+       Sho33(aSvd2);
+   }
+   {
+       ElMatrix<REAL> MTest =  ElMatrix<REAL>::Rotation(0,0,PI/2);
+       Sho33(MTest);
+   }
+
+
+   return EXIT_SUCCESS;
+}
+
+int  XXX_PPMD_MatEss2Orient(int argc,char ** argv)
+{
+   std::vector<double> VMat;
+   ElInitArgMain
+   (
+           argc,argv,
+           LArgMain()  << EAMC(VMat,"Matrice as vector of nine double"),
+           LArgMain()
+   );
+   ELISE_ASSERT(VMat.size()==9,"Bad size 4 essential matrix");
+
+   ElMatrix<REAL>  aMat(3,3);
+   for (int aX=0 ; aX<3 ; aX++)
+   {
+      for (int aY=0 ; aY<3 ; aY++)
+      {
+          aMat(aX,aY) = VMat.at(aX+3*aY);
+          // aMat(aY,aX) = VMat.at(aX+3*aY);
+      }
+   }
+
+   std::list<ElRotation3D> LM=   MatEssToMulipleRot(aMat,1.0);
+   for (const auto & aR : LM)
+   {
+        std::cout << aR.tr() << "\n";
+   }
+
+
+   return EXIT_SUCCESS;
+}
+
+
+
 /*
 int main(int argc,char ** argv)
 {

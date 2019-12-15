@@ -219,6 +219,8 @@ int  cAppli_MMVII_Bench::Exe()
    CreateDirectories(TmpDirTestMMVII(),true );
    RemoveRecurs(TmpDirTestMMVII(),true,false);
 
+   // Test jets
+   BenchMyJets();
 
    //  On teste les macro d'assertion
    MMVII_INTERNAL_ASSERT_bench((1+1)==2,"Theoreme fondamental de l'arithmetique");
@@ -581,6 +583,14 @@ void ShowAdr(double & anAdr)
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+   {
+       // Si on le met a 10h => reveil a 6h20
+       double t = 8.0;
+       sleep(3600.0 * t);
+       std::string aName= "/home/mpd/Bureau/Perso1/Musik/Bach/bach-goldberg-variations-bwv-988-glenn-gould-1981.mp3";
+       aName = "cvlc " + aName;
+       StdOut() << system(aName.c_str()) << "\n";;
+   }
    {
        cPt3dr * anAdr = nullptr;
        StdOut () <<  "ADDDDDr  " << anAdr << "\n";

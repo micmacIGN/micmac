@@ -306,6 +306,15 @@ void cMMVII_Appli::InitParam()
   {
      mArgFac << AOpt2007(mCarPPrefOut,"CarPOut","Name for Output caracteristic points",{eTA2007::HDV});
   }
+  if (HasSharedSPO(eSharedPO::eSPO_CarPI))
+  {
+     mArgFac << AOpt2007(mCarPPrefIn,"CarPIn","Name for Input caracteristic points",{eTA2007::HDV});
+  }
+
+
+
+
+
   // To not put intervals in help/parameters when they are not usefull
   {
       bool HasMain0 = false;

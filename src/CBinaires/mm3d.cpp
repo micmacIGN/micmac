@@ -253,6 +253,8 @@ int ConvertOriCalib_main(int argc, char ** argv);
 int DroneFootPrint(int argc,char ** argv);
 
 int Image_Vide(int argc,char ** argv);
+int  PPMD_MatEss2Orient(int argc,char ** argv);
+
 
 
 std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC, const std::string & aLib)
@@ -280,6 +282,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 	static std::vector<cMMCom> aRes;
 	if (aRes.empty())
 	{
+		aRes.push_back(cMMCom("PPMD_MatEss2Orient", PPMD_MatEss2Orient, "transform essential matrix as list of orient "));
 		aRes.push_back(cMMCom("Help", CPP_MMHelp, "Help on existing MicMac commands "));
 		aRes.push_back(cMMCom("BAR", BasculeRobuste_main, "Bascule robutse "));
 
