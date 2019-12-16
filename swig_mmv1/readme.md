@@ -9,7 +9,7 @@ This is an API to a small part of MicMac for Python 3.
 Download
 --------
 
-  * [2019/12/04 binary version for Python 3.6 with Ubuntu 18.04](../../bin/swig_mmv1-20191212.tar.bz2)
+  * [2019/12/12 binary version for Python 3.6 with Ubuntu 18.04](../../bin/swig_mmv1-20191212.tar.bz2)
 
 
 Usage

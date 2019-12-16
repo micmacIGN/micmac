@@ -35,6 +35,19 @@ namespace std {
 //%rename(getCoeff1) cElComposHomographie::Coeff1();
 //%rename(getCoeff) ElDistRadiale_PolynImpair::Coeff(int);
 
+
+%include exception.i       
+%exception {
+  try {
+    $action
+  } catch(runtime_error & e) {
+    SWIG_exception(SWIG_RuntimeError, e.what());
+  } catch(...) {
+    SWIG_exception(SWIG_RuntimeError, "Unknown exception");
+  }
+}
+
+
 //avec les classes a exporter
 %include "api/api_mm3d.h"
 %include "api/TpPPMD.h"
@@ -51,6 +64,9 @@ namespace std {
 print("MicMac Python3 API")
 mm3d_init();
 %}
+
+
+
 
 
 /*%extend cPackNupletsHom {

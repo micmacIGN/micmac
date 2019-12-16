@@ -1,5 +1,7 @@
 import mm3d
+
 c=mm3d.CamOrientFromFile("Ori-FishEyeBasic/Orientation-Calibration_geo_14_001_01_015000.thm.dng_G.tif.xml")
+
 p=mm3d.Pt2dr(1000,1000)
 prof=1
 
@@ -46,4 +48,13 @@ try:
 except:
   print("argh")
 """
+
+#c=mm3d.CamOrientFromFile("Ori-FishEyeBasic/Orientation-Calibration_geo_14_001_01_015000.thm.dng_G.tif.xml ")
+
+try:
+  c=mm3d.CamOrientFromFile("Ori-FishEyeBasic/Orientation-Calibration_geo_14_001_01_015000.thm.dng_G.tif.xml ")
+except RuntimeError as e:
+  print(e)
+
+
 

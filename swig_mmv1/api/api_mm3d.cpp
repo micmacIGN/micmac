@@ -1,13 +1,48 @@
 #include "api_mm3d.h"
 #include <iostream>
 
+
 extern bool TheExitOnBrkp;
 void mm3d_init()
 {
 	TheExitOnBrkp =true;
 	std::cout<<"mm3d initialized."<<std::endl;
+	
+	//try to use custom error handler: crashes
+	//cEliseFatalErrorHandler::SetCurHandler(new cEliseFatalErrorHandlerPy());
 }
 
+void cEliseFatalErrorHandlerPy::cEFEH_OnErreur(const char * mes,const char * file,int line)
+{
+	std::string msg =
+           "------------------------------------------------------------\n";
+    msg += "|   Sorry :(, the following FATAL ERROR happened               \n";
+    msg += "|                                                           \n";
+    msg += "|    " + std::string(mes)  +                               "\n";
+    msg += "|                                                           \n";
+    msg += "------------------------------------------------------------\n";
+
+    std::stringstream sl, sf;
+    sl << line;
+
+    #if ELISE_DEPLOY == 0
+        sf << file;
+    #else
+        const char *s = strstr(file, PROJECT_SOURCE_DIR);
+        if (s == NULL) sf << file;
+        else sf << s + strlen(PROJECT_SOURCE_DIR) + 1;
+    #endif
+
+    msg += "-------------------------------------------------------------\n";
+    msg += "|       (Elise's)  LOCATION :                                \n";
+    msg += "|                                                            \n";
+    msg += "| Error was detected\n";
+    msg += "|          at line : " + sl.str()  +                        "\n";
+    msg += "|          of file : " + sf.str()  +                        "\n";
+    msg += "-------------------------------------------------------------\n";
+// getchar();
+    throw(runtime_error(msg));
+}
 
 CamStenope * CamOrientFromFile(std::string filename)
 {
@@ -86,3 +121,38 @@ std::vector<std::string> getFileSet(std::string dir, std::string pattern)
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(dir);
     return *(aICNM->Get(pattern));
 }
+
+
+
+void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,int line)
+{
+    std::string msg =
+           "------------------------------------------------------------\n";
+    msg += "|   Sorry :), the following FATAL ERROR happened               \n";
+    msg += "|                                                           \n";
+    msg += "|    " + std::string(mes)  +                               "\n";
+    msg += "|                                                           \n";
+    msg += "------------------------------------------------------------\n";
+
+    std::stringstream sl, sf;
+    sl << line;
+
+    #if ELISE_DEPLOY == 0
+        sf << file;
+    #else
+        const char *s = strstr(file, PROJECT_SOURCE_DIR);
+        if (s == NULL) sf << file;
+        else sf << s + strlen(PROJECT_SOURCE_DIR) + 1;
+    #endif
+
+    msg += "-------------------------------------------------------------\n";
+    msg += "|       (Elise's)  LOCATION :                                \n";
+    msg += "|                                                            \n";
+    msg += "| Error was detected\n";
+    msg += "|          at line : " + sl.str()  +                        "\n";
+    msg += "|          of file : " + sf.str()  +                        "\n";
+    msg += "-------------------------------------------------------------\n";
+// getchar();
+    throw(runtime_error(msg));
+}
+
