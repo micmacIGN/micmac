@@ -8,15 +8,15 @@ void mm3d_init()
 	TheExitOnBrkp =true;
 	std::cout<<"mm3d initialized."<<std::endl;
 	
-	//try to use custom error handler: crashes
-	//cEliseFatalErrorHandler::SetCurHandler(new cEliseFatalErrorHandlerPy());
+	//use custom error handler to throw exception
+	cEliseFatalErrorHandler::SetCurHandler(new cEliseFatalErrorHandlerPy());
 }
 
 void cEliseFatalErrorHandlerPy::cEFEH_OnErreur(const char * mes,const char * file,int line)
 {
 	std::string msg =
            "------------------------------------------------------------\n";
-    msg += "|   Sorry :(, the following FATAL ERROR happened               \n";
+    msg += "|   Sorry, the following FATAL ERROR happened               \n";
     msg += "|                                                           \n";
     msg += "|    " + std::string(mes)  +                               "\n";
     msg += "|                                                           \n";
@@ -124,6 +124,7 @@ std::vector<std::string> getFileSet(std::string dir, std::string pattern)
 
 
 
+/* //test: shadow original void __attribute__((weak)) cEliseFatalErrorHandler::cEFEH_OnErreur
 void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,int line)
 {
     std::string msg =
@@ -154,5 +155,5 @@ void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,
     msg += "-------------------------------------------------------------\n";
 // getchar();
     throw(runtime_error(msg));
-}
+}*/
 

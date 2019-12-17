@@ -162,15 +162,17 @@ cEliseFatalErrorHandler * cEliseFatalErrorHandler::CurHandler()
 cEliseFatalErrorHandler * cEliseFatalErrorHandler::CurHandler(cEliseFatalErrorHandler * aH)
 {
    static cEliseFatalErrorHandler * aRes = 0;
-   if ((aH==0) && (aRes==0))
+
+   if (aH!=0)
+       aRes = aH;
+   else if (aRes==0)
       aRes = new cEliseFatalErrorHandler;
-    else
-      aRes = aH;
+
    return aRes;
 }
 
 
-void __attribute__((weak)) cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,int line)
+void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,int line)
 {
     std::string msg =
            "------------------------------------------------------------\n";
