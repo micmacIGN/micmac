@@ -70,6 +70,7 @@
 // communication MMVII/MMv1
 
 #include "MMVII_MMV1Compat.h"
+#include "MMVII_Derivatives.h"
 
 
 #endif //  _MMVII_ALL_H_

@@ -1001,6 +1001,7 @@ void cMMVII_Appli::MMVII_WARNING(const std::string & aMes)
               // Accessors
 const std::string & cMMVII_Appli::TmpDirTestMMVII()   const {return mTmpDirTestMMVII;}
 const std::string & cMMVII_Appli::InputDirTestMMVII() const {return mInputDirTestMMVII;}
+const std::string & cMMVII_Appli::TopDirMMVII()       const {return mTopDirMMVII;}
 
 
 void cMMVII_Appli::InitOutFromIn(std::string &aFileOut,const std::string& aFileIn)

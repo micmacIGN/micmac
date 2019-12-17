@@ -409,6 +409,7 @@ inline tREAL8 FracPart(tREAL8 r) {return r - round_down(r);}
 
 
 template <class Type> Type Square(const Type & aV) {return aV*aV;}
+template <class Type> Type Cube(const Type & aV) {return aV*aV*aV;}
 template <class Type,class TCast> TCast TSquare(const Type & aV) {return aV* TCast(aV);}
 template <class Type> tREAL8  R8Square(const Type & aV) {return TSquare<Type,tREAL8>(aV);} ///< To avoid oveflow with int type
 

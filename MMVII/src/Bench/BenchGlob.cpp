@@ -479,11 +479,22 @@ class cAppli_MPDTest : public cMMVII_Appli
         cAppli_MPDTest(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override {return anArgOpt;}
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+     private :
+        bool mMMV1_GenCodeTestCam;
 };
 
+cCollecSpecArg2007 & cAppli_MPDTest::ArgOpt(cCollecSpecArg2007 & anArgOpt) 
+{
+  return
+      anArgOpt
+         << AOpt2007(mMMV1_GenCodeTestCam,"V1_GCTC","Generate code for Test Cam")
+  ;
+}
+
 cAppli_MPDTest:: cAppli_MPDTest(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (aVArgs,aSpec)
+  cMMVII_Appli     (aVArgs,aSpec),
+  mMMV1_GenCodeTestCam  (false)
 {
 }
 
@@ -583,6 +594,12 @@ void ShowAdr(double & anAdr)
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+   if (mMMV1_GenCodeTestCam)
+   {
+       //StdOut() << "kkk=[" << mTopDirMMVII <<"]\n";
+       MMV1_GenerateCodeTestCam();
+       return EXIT_SUCCESS;
+   }
    {
        // Si on le met a 10h => reveil a 6h20
        double t = 8.0;

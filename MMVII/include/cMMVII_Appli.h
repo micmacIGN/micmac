@@ -337,6 +337,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         void InitParam();  ///< Parse the parameter list
 
+        const std::string & TopDirMMVII()   const;   ///<  main directory of MMVII , upon include,src ..
         const std::string & TmpDirTestMMVII()   const;   ///< where to put binary file for bench, Export for global bench funtion
         const std::string & InputDirTestMMVII() const;   ///<  where are input files for bench   , Export for global bench funtion
 

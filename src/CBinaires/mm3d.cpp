@@ -276,6 +276,8 @@ int HomolFromProfEtPx_main(int argc,char ** argv);
 int Line2Line_main(int argc,char ** argv);
 int CoronaRessample_main(int argc,char ** argv);
 int DivFilters_main(int argc,char ** argv);
+int AnalysePxFrac_Main(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -411,6 +413,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("MMInitialModel", MMInitialModel_main, " Initial Model for MicMac ")); //  ,cArgLogCom(2)));
 		aRes.push_back(cMMCom("MMTestAllAuto", MMAllAuto_main, " Full automatic version for 1 view point, test mode ", cArgLogCom(2)));
 		aRes.push_back(cMMCom("MM2DPosSism", MM2DPostSism_Main, " Simplified interface for post 2D post sismic deformation ", cArgLogCom(2)));
+		aRes.push_back(cMMCom("DistPxFrac", AnalysePxFrac_Main, "Compute distribution of fractional part of paralax ", cArgLogCom(2)));
 		aRes.push_back(cMMCom("MMMergeCloud", MM_FusionNuage_main, " Merging of low resol cloud, in preparation 2 MicMac ", cArgLogCom(2)));
 
 		aRes.push_back(cMMCom("MergeDepthMap", FusionCarteProf_main, " Merging of individual, stackable, depth maps "));
