@@ -647,6 +647,7 @@ extern int  TD_Exo6(int argc, char ** argv);
 extern int  TD_Exo7(int argc, char ** argv);
 extern int  TD_Exo8(int argc, char ** argv);
 extern int  TD_Exo9(int argc, char ** argv);
+extern int  PPMD_Appariement_main(int argc, char ** argv);
 
 extern int TD_Match1_main(int argc, char ** argv);
 extern int TD_Match2_main(int argc, char ** argv);
@@ -931,6 +932,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("Exo7", TD_Exo7, "Some stuff "));
 		aRes.push_back(cMMCom("Exo8", TD_Exo8, "Some stuff "));
 		aRes.push_back(cMMCom("Exo9", TD_Exo9, "Some stuff "));
+		aRes.push_back(cMMCom("ExoMatch", PPMD_Appariement_main, "Some stuff "));
 
 		aRes.push_back(cMMCom("NoBill", UnWindows, "Supress the big shit in file resulting from (f**king) Windows editing"));
 
