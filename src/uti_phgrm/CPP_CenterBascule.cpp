@@ -140,6 +140,7 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
    double aScaleC;
    double aScaleO;
    double aF;
+   Pt2dr SeuilMatRel;
 
    ElInitArgMain
    (
@@ -157,6 +158,7 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
                     << EAM(aScaleC,"ScaleC",true,"Scale for camera center difference, the center diff is displayed when this option is activated")
                     << EAM(aScaleO,"ScaleO",true,"Scale for camera orientation difference, the ori diff is displayed when this option is activated")
                     << EAM(aF,"F",true,"approximate value of focal length in (m), Def=0.03875m for Camlight")
+                    << EAM(SeuilMatRel,"SMR",true,"Seuil Mat Rel [Ratio,Prop] ")
 
    );
 
@@ -181,10 +183,15 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
    {
      mCSVContent.open(mCSV);
      isCSV = true;
-     mCSVContent<< "Img,X1,Y1,Z1,dX,dY,dZ,dXY,dXYZ\n";
+     mCSVContent<< "Img,X1,Y1,Z1,dX,dY,dZ,dXY,dXYZ,dMat,dTrRel,dMatRel\n";
    }
    cPlyCloud aPlyC, aPlyO;
 
+   CamStenope * aCamPrec1 = nullptr;
+   CamStenope * aCamPrec2 = nullptr;
+   std::vector<double>      aVDMatRel;
+   std::vector<std::string> aVName;
+   double  aMoyMatRel =0;
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
        cImaMM * anIm = mVSoms[aK]->attr().mIma;
@@ -193,6 +200,22 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
 
        Pt3dr aC1 = aCam1->VraiOpticalCenter();
        Pt3dr aC2 = aCam2->VraiOpticalCenter();
+
+       double  aDMat = aCam1->Orient().Mat().L2(aCam2->Orient().Mat());
+       double  aDMatRel = 0.0;
+       double  aDTrRel = 0.0;
+       if (aK>0)
+       {
+             //    Orientation Monde to Cam
+             ElRotation3D aP1_2_C1 =  aCam1->Orient() * aCamPrec1->Orient().inv();   // M2C1  * P12M = P12C1
+             ElRotation3D aP2_2_C2 =  aCam2->Orient() * aCamPrec2->Orient().inv();   // M2C1  * P12M = P12C1
+             aDMatRel = aP1_2_C1.Mat().L2(aP2_2_C2.Mat())  ;
+             aDTrRel = euclid(aP1_2_C1.tr()-aP2_2_C2.tr()) ;
+       }
+       aMoyMatRel+=aDMatRel;
+       aVDMatRel.push_back(aDMatRel);
+       aVName.push_back(anIm->mNameIm);
+    
 
        if (EAMIsInit(&aScaleO))
        {
@@ -219,7 +242,19 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
 
        if (isCSV)
        {
-           mCSVContent << anIm->mNameIm <<","<< ToString(aC1.x) << "," << ToString(aC1.y) << "," << ToString(aC1.z) << "," << ToString(abs(aC1.x - aC2.x)) << "," << ToString(abs(aC1.y - aC2.y)) << "," <<ToString(aC1.z - aC2.z) << "," <<  ToString(aDCXY) << "," << ToString(aDC);
+           mCSVContent << anIm->mNameIm <<","
+                       << ToString(aC1.x) << "," 
+                       << ToString(aC1.y) << "," 
+                       << ToString(aC1.z) << "," 
+                       << ToString(abs(aC1.x - aC2.x)) << "," 
+                       << ToString(abs(aC1.y - aC2.y)) << "," 
+                       << ToString(aC1.z - aC2.z) << "," 
+                       << ToString(aDCXY) << "," 
+                       << ToString(aDC)   << ","
+                       << ToString(aDMat*1e5) << ","
+                       << ToString(aDTrRel ) << ","
+                       << ToString(aDMatRel*1e10) 
+           ;
            mCSVContent << "\n";
        }
 
@@ -228,6 +263,8 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
            aPlyC.AddSeg(aColXY,aC1,Pt3dr(aC2.x+(aC2.x-aC1.x)*100000*aScaleC,aC2.y+(aC2.y-aC1.y)*100000*aScaleC,aC1.z),10000);
            aPlyC.AddSeg(aColZ,aC1,Pt3dr(aC1.x,aC1.y,aC2.z+(aC2.z-aC1.z)*100000*aScaleC),10000);
        }
+       aCamPrec1 = aCam1;
+       aCamPrec2 = aCam2;
    }
 	
    std::cout << "Aver;  DistCenter= " << aSomDC/mVSoms.size()
@@ -256,6 +293,20 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
    {
        aPlyC.PutFile(mPly.substr(0,mPly.size()-4)+"_Center.ply");
        aPlyO.PutFile(mPly.substr(0,mPly.size()-4)+"_Orientation.ply");
+   }
+
+   if (EAMIsInit(&SeuilMatRel)) 
+   {
+       std::cout << "======= Threshold Matrix Relative ======\n";
+       std::vector<double> aVDM = aVDMatRel;
+       double aValStd = KthValProp(aVDM,SeuilMatRel.y);
+
+       for (int aK=0 ; aK<int(aVDMatRel.size()) ; aK++)
+       {
+           double aRatio = aVDMatRel[aK] / aValStd;
+           if (aRatio>SeuilMatRel.x)
+              std::cout << aVName[aK] << " " << aRatio << "\n";
+       }
    }
 }
 
