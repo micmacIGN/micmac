@@ -9,20 +9,42 @@ This is an API to a small part of MicMac for Python 3.
 Download
 --------
 
-  * [2019/12/12 binary version for Python 3.6 with Ubuntu 18.04](../../bin/swig_mmv1-20191212.tar.bz2)
+  * [2019/12/17 binary version for Python 3.6 with Ubuntu 18.04](../../bin/swig_mmv1_20191217.tar.bz2)
 
 
 Usage
 -----
 
-copy _mm3d.so and mm3d.py in your working directory, then with python3:
+Copy _mm3d.so and mm3d.py in your working directory, then with python3:
 
 ```python
     import mm3d
-    c=mm3d.CamOrientFromFile("Ori-FishEyeBasic/Orientation-Calibration_geo_14_001_01_015000.thm.dng_G.tif.xml")
-    p=mm3d.Pt2dr(1000,1000)
-    prof=1
-    print(c.ImEtProf2Terrain(c.NormM2C(p),prof))
+    
+    #read orientation xml
+    try:
+		c=mm3d.CamOrientFromFile("Ori-FishEyeBasic/Orientation-Calibration_geo_14_001_01_015000.thm.dng_G.tif.xml")
+		p=mm3d.Pt2dr(1000,1000)
+		prof=1
+		print(c.ImEtProf2Terrain(c.NormM2C(p),prof))
+	except RuntimeError as e:
+		print(e)
+
+    #get set of files from regex
+    li = mm3d.getFileSet(".",".*.py")
+    
+    #read homol pack
+	pack = mm3d.ElPackHomologue.FromFile("Zhenjue/Homol/PastisDSC_3115.JPG/DSC_3116.JPG.dat")
+	print(pack.size())
+	list_homol=pack.getList()
+	for h in list_homol[0:10]:
+	   print(h.P1(),h.P2())
+
+	#create homol pack
+	aPackOut=mm3d.ElPackHomologue()
+	aCple=mm3d.ElCplePtsHomologues(mm3d.Pt2dr(10,10),mm3d.Pt2dr(20,20));
+	aPackOut.Cple_Add(aCple);
+	aPackOut.StdPutInFile("homol.dat");
+
 ```
 
 Documentation
