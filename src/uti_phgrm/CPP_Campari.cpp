@@ -697,6 +697,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     +  std::string(" +UEIR_ByPose=") + ToString(aVExpImRes[1])
                     +  std::string(" +UEIR_ByPair=") + ToString(aVExpImRes[2]) 
                     +  std::string(" +UEIR_NbMesByCase=") + ToString(aNbByC) 
+                    +  std::string(" ")
            ;
                     
        }

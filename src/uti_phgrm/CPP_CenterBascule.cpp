@@ -117,6 +117,24 @@ int CentreBascule_main(int argc,char ** argv)
 /*                                                                   */
 /*********************************************************************/
 
+class cCmpOriOneSom
+{
+    public :
+        cCmpOriOneSom(const std::string& aName,CamStenope* C1,CamStenope* C2) ;
+  
+    public :
+       const std::string mName;
+       const CamStenope * mCam1;
+       const CamStenope * mCam2;
+};
+
+cCmpOriOneSom::cCmpOriOneSom(const std::string& aName,CamStenope* aCam1,CamStenope* aCam2)  :
+   mName (aName),
+   mCam1 (aCam1),
+   mCam2 (aCam2)
+{
+}
+
 class cAppli_CmpOriCam : public cAppliWithSetImage
 {
     public :
