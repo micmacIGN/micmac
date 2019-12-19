@@ -120,19 +120,130 @@ int CentreBascule_main(int argc,char ** argv)
 class cCmpOriOneSom
 {
     public :
-        cCmpOriOneSom(const std::string& aName,CamStenope* C1,CamStenope* C2) ;
+       cCmpOriOneSom(const std::string& aName,CamStenope* C1,CamStenope* C2) ;
+       void SetPrec(const cCmpOriOneSom & aS1);
+
+       void Show(ofstream & ofs,bool WithRel,bool DoCirc) const;
+       void PlyShowDiffRot(cPlyCloud & aPlyFile,double aMult,const Pt3di & aCol) const;
+       void PlyShowDiffCenter(cPlyCloud & aPlyFile,double aMult,const Pt3di & aCol) const;
   
     public :
        const std::string mName;
        const CamStenope * mCam1;
+       //   mCam1.Orient() =   Orientation Monde to Cam
+       ElRotation3D       mRC1ToM;
+       Pt3dr              mC1;
+       Pt2dr              mP1;
        const CamStenope * mCam2;
+       ElRotation3D       mRC2ToM;
+       Pt3dr              mC2;
+       Pt2dr              mP2;
+       int                mNum;
+       double             mAbsCurv;
+       double             mDC;
+       double             mDMat;
+       double             mDMatRel;
+       double             mDCRel;
+       ElRotation3D       mRC1ToC2;
+       // For analyzing circular traj
+       double             mDistBcl;  // Ratio of "bouclage"
+       bool               mIsPivot;
+       int                mNumTour;
+       int                mNumInTour;
+       double             mAbscInTour;
 };
 
-cCmpOriOneSom::cCmpOriOneSom(const std::string& aName,CamStenope* aCam1,CamStenope* aCam2)  :
-   mName (aName),
-   mCam1 (aCam1),
-   mCam2 (aCam2)
+
+void cCmpOriOneSom::SetPrec(const cCmpOriOneSom & aSPrec)
 {
+    mNum = aSPrec.mNum + 1;
+    mAbsCurv = aSPrec.mAbsCurv+ euclid(mC1-aSPrec.mC1);
+    // Calcul des orientations relatives / à image prec pour 1 et 2
+    ElRotation3D aCurToPrec1 =  aSPrec.mRC1ToM.inv()  * mRC1ToM ;  
+    ElRotation3D aCurToPrec2 =  aSPrec.mRC2ToM.inv()  * mRC2ToM ;  
+
+    // Calcul des difference en rotation et centres pour ces orientations relatives
+    mDMatRel = sqrt(aCurToPrec1.Mat().L2(aCurToPrec2.Mat()))  ;  // plus ou moin homogene a des radians
+    mDCRel   = euclid(aCurToPrec1.tr()-aCurToPrec2.tr()) ;
+
+    // They are similar but different 
+    // double aDD = sqrt(mRC1ToC2.Mat().L2(aSPrec.mRC1ToC2.Mat()));
+    // std::cout << "FFFFff  " << aDD / mDMatRel << "\n";  
+}
+
+void cCmpOriOneSom::Show(ofstream & ofs,bool WithRel,bool DoCirc) const
+{
+    double MultDMat = 1e5;
+
+    ofs << mName
+        << "," << ToString(mC1.x) 
+        << "," << ToString(mC1.y) 
+        << "," << ToString(mC1.z) 
+        << "," << ToString(abs(mC1.x - mC2.x)) 
+        << "," << ToString(abs(mC1.y - mC2.y)) 
+        << "," << ToString(mC1.z - mC2.z) 
+        << "," << ToString(euclid(mP1-mP2))
+        << "," << ToString(euclid(mC1-mC2))
+        << "," << ToString(mDMat*MultDMat)
+    ;
+
+    if (WithRel)
+    {
+        ofs 
+            << "," << ToString(mDCRel) 
+            << "," << ToString(mDMatRel*MultDMat)
+        ;
+    }
+    if (DoCirc)
+    {
+        ofs 
+            << "," << ToString(mNumTour) 
+            << "," << ToString(mNumInTour) 
+            << "," << ToString(mAbscInTour)
+        ;
+    }
+    ofs << "\n";
+
+}
+
+void cCmpOriOneSom::PlyShowDiffRot(cPlyCloud & aPlyFile,double aMult,const Pt3di & aCol) const
+{
+    // We represent the Axiator of differential orientation 
+    Pt3dr anAxe = AxeRot(mRC1ToC2.Mat());
+    double anAngle = TetaOfAxeRot(mRC1ToC2.Mat(),anAxe);
+    aPlyFile.AddSeg(aCol,mC1,mC1+anAxe*(anAngle*aMult),3000);
+}
+
+void cCmpOriOneSom::PlyShowDiffCenter(cPlyCloud & aPlyFile,double aMult,const Pt3di & aCol) const
+{
+    aPlyFile.AddSeg(aCol,mC1,mC1+(mC2-mC1)*aMult,3000);
+}
+
+cCmpOriOneSom::cCmpOriOneSom(const std::string& aName,CamStenope* aCam1,CamStenope* aCam2)  :
+   mName       (aName),
+   mCam1       (aCam1),
+   mRC1ToM     (aCam1->Orient().inv()),
+   mC1         (mRC1ToM.tr()),
+   mP1         (mC1.x,mC1.y),
+   mCam2       (aCam2),
+   mRC2ToM     (aCam2->Orient().inv()),
+   mC2         (mRC2ToM.tr()),
+   mP2         (mC2.x,mC2.y),
+   mNum        (0.0),
+   mAbsCurv    (0.0),
+   mDC         (euclid(mC1-mC2)),
+   mDMat       (sqrt(mRC1ToM.Mat().L2(mRC2ToM.Mat()))),
+   mDMatRel    (0.0),
+   mDCRel      (0.0),
+   mRC1ToC2    (mRC2ToM.inv() * mRC1ToM),
+   mDistBcl    (0.0),
+   mIsPivot    (false),
+   mNumTour    (0),
+   mNumInTour  (0),
+   mAbscInTour (0)
+{
+   ELISE_ASSERT(euclid( mCam1->VraiOpticalCenter() - mC1)<1e-5,"Verif conventions");
+  // Pt3dr AxeRot(const ElMatrix<REAL> & aMat);
 }
 
 class cAppli_CmpOriCam : public cAppliWithSetImage
@@ -140,14 +251,63 @@ class cAppli_CmpOriCam : public cAppliWithSetImage
     public :
 
         cAppli_CmpOriCam(int argc, char** argv);
+        void ComputeCircular();
 
         std::string mPat,mOri1,mOri2;
         std::string mDirOri2;
         std::string mXmlG;
         std::string mCSV = "CSVEachPose.csv";
         std::string mPly;
+        std::vector<cCmpOriOneSom> mVCmp;
         cInterfChantierNameManipulateur * mICNM2;
+        std::vector<double>  mSeuilsCircs;
+
 };
+
+void cAppli_CmpOriCam::ComputeCircular()
+{
+   ELISE_ASSERT(mSeuilsCircs.size()==2,"Size Seuil Circs");
+    int aI0 = round_ni(mSeuilsCircs.at(0));
+    double aSeuilDist  = mSeuilsCircs.at(1);
+    std::vector<double> aVRatio;
+    cCmpOriOneSom & aS0=mVCmp[aI0];
+    for (auto & aSom : mVCmp)
+    {
+        aSom.mDistBcl = euclid(aSom.mC1-aS0.mC1) ;
+    }
+    for (int aK=1 ; aK<int(mVCmp.size()-1); aK++)
+    {
+       cCmpOriOneSom & aSom=mVCmp[aK];
+       if (
+                 (aSom.mDistBcl<aSeuilDist)  
+              && (aSom.mDistBcl<mVCmp[aK-1].mDistBcl) 
+              && (aSom.mDistBcl<mVCmp[aK+1].mDistBcl)
+          )
+       {
+          aSom.mIsPivot= true;
+          std::cout << aSom.mName << " " << aSom.mDistBcl << "\n";
+       }
+    }
+    for (int aK=1 ; aK<int(mVCmp.size()); aK++)
+    {
+       cCmpOriOneSom & aPrec = mVCmp[aK-1];
+       cCmpOriOneSom & aSom  = mVCmp[aK];
+       if (aSom.mIsPivot)
+       {
+           aSom.mNumTour = aPrec.mNumTour+1;
+           aSom.mNumInTour = 0;
+           aSom.mAbscInTour = 0;
+       }
+       else
+       {
+           aSom.mNumTour = aPrec.mNumTour;
+           aSom.mNumInTour = aPrec.mNumInTour+1;
+           aSom.mAbscInTour = aPrec.mAbscInTour + euclid(aSom.mC1-aPrec.mC1);
+       }
+    }
+    std::cout << "END PIVOT \n";
+    getchar();
+}
 
 cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
     cAppliWithSetImage(argc-1,argv+1,0)
@@ -177,16 +337,16 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
                     << EAM(aScaleO,"ScaleO",true,"Scale for camera orientation difference, the ori diff is displayed when this option is activated")
                     << EAM(aF,"F",true,"approximate value of focal length in (m), Def=0.03875m for Camlight")
                     << EAM(SeuilMatRel,"SMR",true,"Seuil Mat Rel [Ratio,Prop] ")
-
+                    << EAM(mSeuilsCircs,"SeuilCirc",true,"Thresholds to compute circ [I0,RatBcl]")
    );
+   bool DoRel = true; // Do relative informatio,
+   bool DoCirc = EAMIsInit(&mSeuilsCircs);
 
    mICNM2 = mEASF.mICNM;
    if (EAMIsInit(&mDirOri2))
    {
        mICNM2 = cInterfChantierNameManipulateur::BasicAlloc(mDirOri2);
    }
-/*
-*/
 
 
    mICNM2->CorrecNameOrient(mOri2);
@@ -201,88 +361,57 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
    {
      mCSVContent.open(mCSV);
      isCSV = true;
-     mCSVContent<< "Img,X1,Y1,Z1,dX,dY,dZ,dXY,dXYZ,dMat,dTrRel,dMatRel\n";
+     mCSVContent<< "Img,X1,Y1,Z1,dX,dY,dZ,dXY,dXYZ,dMat";
+     if (DoRel)
+        mCSVContent<< ",dTrRel,dMatRel";
+     if (DoCirc)
+        mCSVContent<< ",NumTour,NumInTour,AbscInTour";
+     mCSVContent<< "\n";
    }
    cPlyCloud aPlyC, aPlyO;
 
-   CamStenope * aCamPrec1 = nullptr;
-   CamStenope * aCamPrec2 = nullptr;
-   std::vector<double>      aVDMatRel;
-   std::vector<std::string> aVName;
-   double  aMoyMatRel =0;
+   // Calcul de la structure de sommets fusionnant les 2 orientations
    for (int aK=0 ; aK<int(mVSoms.size()) ; aK++)
    {
        cImaMM * anIm = mVSoms[aK]->attr().mIma;
        CamStenope * aCam1 =  anIm->CamSNN();
        CamStenope * aCam2 = mICNM2->StdCamStenOfNames(anIm->mNameIm,mOri2);
 
-       Pt3dr aC1 = aCam1->VraiOpticalCenter();
-       Pt3dr aC2 = aCam2->VraiOpticalCenter();
+       mVCmp.push_back(cCmpOriOneSom(anIm->mNameIm,aCam1,aCam2));
+   }
 
-       double  aDMat = aCam1->Orient().Mat().L2(aCam2->Orient().Mat());
-       double  aDMatRel = 0.0;
-       double  aDTrRel = 0.0;
-       if (aK>0)
-       {
-             //    Orientation Monde to Cam
-             ElRotation3D aP1_2_C1 =  aCam1->Orient() * aCamPrec1->Orient().inv();   // M2C1  * P12M = P12C1
-             ElRotation3D aP2_2_C2 =  aCam2->Orient() * aCamPrec2->Orient().inv();   // M2C1  * P12M = P12C1
-             aDMatRel = aP1_2_C1.Mat().L2(aP2_2_C2.Mat())  ;
-             aDTrRel = euclid(aP1_2_C1.tr()-aP2_2_C2.tr()) ;
-       }
-       aMoyMatRel+=aDMatRel;
-       aVDMatRel.push_back(aDMatRel);
-       aVName.push_back(anIm->mNameIm);
-    
+   // Calcul des orientation relatives, des abscisses etc ...
+   std::vector<double>      aVDMatRel;
+   for (int aK=1 ; aK<int(mVCmp.size()) ; aK++)
+   {
+      mVCmp[aK].SetPrec(mVCmp[aK-1]);
+      aVDMatRel.push_back(mVCmp[aK].mDMatRel);
+   }
 
+   if (DoCirc)
+   {
+        ComputeCircular();
+   }
+
+
+   for (const auto & aSom : mVCmp)
+   {
+       aSomDC += aSom.mDC;
+       aSomDM += aSom.mDMat;
        if (EAMIsInit(&aScaleO))
        {
-           ElSeg3D aRay2 = aCam2->Capteur2RayTer(aCam2->PP());
-           double prof = - aCam1->Focale()/5120*32.7/1000;
-
-           Pt2dr aP = aCam1->Ter2Capteur(aRay2.P1()-(aC2-aC1));
-
-           Pt3dr aPP3D = aCam1->ImEtProf2Terrain(aCam1->PP(),prof);
-
-           Pt3dr aP3D = aCam1->ImEtProf2Terrain(aP,prof);
-
-           aPlyO.AddSeg(aColOri,aPP3D,aP3D+(aPP3D-aP3D)*1000*aScaleO,10000);
+           aSom.PlyShowDiffRot(aPlyO,aScaleO,aColOri);
        }
-       ElRotation3D aR1= aCam1->Orient();
-       ElRotation3D aR2= aCam2->Orient();
-
-       double aDC = euclid(aC1-aC2);
-       double aDCXY = euclid(Pt2dr(aC1.x,aC1.y)-Pt2dr(aC2.x,aC2.y));
-       double aDM = aR1.Mat().L2(aR2.Mat());
-       aSomDC += aDC;
-       aSomDM += aDM;
-       std::cout << anIm->mNameIm << "\n";
 
        if (isCSV)
        {
-           mCSVContent << anIm->mNameIm <<","
-                       << ToString(aC1.x) << "," 
-                       << ToString(aC1.y) << "," 
-                       << ToString(aC1.z) << "," 
-                       << ToString(abs(aC1.x - aC2.x)) << "," 
-                       << ToString(abs(aC1.y - aC2.y)) << "," 
-                       << ToString(aC1.z - aC2.z) << "," 
-                       << ToString(aDCXY) << "," 
-                       << ToString(aDC)   << ","
-                       << ToString(aDMat*1e5) << ","
-                       << ToString(aDTrRel ) << ","
-                       << ToString(aDMatRel*1e10) 
-           ;
-           mCSVContent << "\n";
+           aSom.Show(mCSVContent,DoRel,DoCirc);
        }
 
        if(EAMIsInit(&aScaleC))
        {
-           aPlyC.AddSeg(aColXY,aC1,Pt3dr(aC2.x+(aC2.x-aC1.x)*100000*aScaleC,aC2.y+(aC2.y-aC1.y)*100000*aScaleC,aC1.z),10000);
-           aPlyC.AddSeg(aColZ,aC1,Pt3dr(aC1.x,aC1.y,aC2.z+(aC2.z-aC1.z)*100000*aScaleC),10000);
+            aSom.PlyShowDiffCenter(aPlyC,aScaleC,aColXY);
        }
-       aCamPrec1 = aCam1;
-       aCamPrec2 = aCam2;
    }
 	
    std::cout << "Aver;  DistCenter= " << aSomDC/mVSoms.size()
@@ -313,17 +442,17 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
        aPlyO.PutFile(mPly.substr(0,mPly.size()-4)+"_Orientation.ply");
    }
 
+
    if (EAMIsInit(&SeuilMatRel)) 
    {
        std::cout << "======= Threshold Matrix Relative ======\n";
-       std::vector<double> aVDM = aVDMatRel;
-       double aValStd = KthValProp(aVDM,SeuilMatRel.y);
+       double aValStd = KthValProp(aVDMatRel,SeuilMatRel.y);
 
-       for (int aK=0 ; aK<int(aVDMatRel.size()) ; aK++)
+       for (const auto & aSom : mVCmp)
        {
-           double aRatio = aVDMatRel[aK] / aValStd;
+           double aRatio = aSom.mDMatRel / aValStd;
            if (aRatio>SeuilMatRel.x)
-              std::cout << aVName[aK] << " " << aRatio << "\n";
+              std::cout << aSom.mName << " " << aRatio << "\n";
        }
    }
 }
