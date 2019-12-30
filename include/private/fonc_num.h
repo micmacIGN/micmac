@@ -137,6 +137,9 @@ class cElCompiledFonc
 	 const std::vector<double> &   Vals() const;
          const std::vector<double> &   CompCoord() const;
 	 const std::vector<std::vector<double> > &  CompDer() const;
+         const std::vector<double> &   ValSsVerif() const;
+         const std::vector<std::vector<double> > &  CompDerSsVerif() const;
+
 
         
 	 void SVD_And_AddEqSysSurResol

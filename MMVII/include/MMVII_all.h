@@ -70,7 +70,7 @@
 // communication MMVII/MMv1
 
 #include "MMVII_MMV1Compat.h"
-#include "MMVII_Derivatives.h"
+//  #include "MMVII_Derivatives.h" => not include by default now, requires <Eigen/Dense> => time consuming
 
 
 #endif //  _MMVII_ALL_H_

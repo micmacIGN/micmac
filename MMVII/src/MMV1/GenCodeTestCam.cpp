@@ -1,5 +1,7 @@
 #include "include/V1VII.h"
 #include "cGeneratedCodeTestCam.h"
+#include "include/MMVII_Derivatives.h"
+
 
 namespace MMVII
 {
@@ -33,8 +35,8 @@ class cGenCodeTestCam
        cValFormel          mK2;
        cValFormel          mK4;
        cValFormel          mK6;
-       cValFormel          mFoc;
        cP2dFormel          mPP;
+       cValFormel          mFoc;
 };
 
 class cMMV1_TestCam : public cInterfaceTestCam
@@ -58,6 +60,22 @@ class cMMV1_TestCam : public cInterfaceTestCam
 void  cMMV1_TestCam::InitFromParams(const std::vector<double> & aVals)
 {
    mCamGen.SetCoordCur(aVals.data());
+// MesIm_x
+   *(mCamGen.AdrVarLocFromString("MesIm_x")) = 0.0;
+   *(mCamGen.AdrVarLocFromString("MesIm_y")) = 0.0;
+
+   *(mCamGen.AdrVarLocFromString("R0_0_0")) = 1.0;
+   *(mCamGen.AdrVarLocFromString("R0_1_0")) = 0.0;
+   *(mCamGen.AdrVarLocFromString("R0_2_0")) = 0.0;
+
+   *(mCamGen.AdrVarLocFromString("R0_0_1")) = 0.0;
+   *(mCamGen.AdrVarLocFromString("R0_1_1")) = 1.0;
+   *(mCamGen.AdrVarLocFromString("R0_2_1")) = 0.0;
+
+   *(mCamGen.AdrVarLocFromString("R0_0_2")) = 0.0;
+   *(mCamGen.AdrVarLocFromString("R0_1_2")) = 0.0;
+   *(mCamGen.AdrVarLocFromString("R0_2_2")) = 1.0;
+
 } 
 
 cMMV1_TestCam::cMMV1_TestCam ()
@@ -68,8 +86,8 @@ cMMV1_TestCam::cMMV1_TestCam ()
 void  cMMV1_TestCam::Compute(std::vector<double> & aVals,std::vector<std::vector<double> > &  aDeriv)
 {
    mCamGen.ComputeValDeriv();
-   aVals  = mCamGen.Vals();
-   aDeriv = mCamGen.CompDer();
+   aVals  = mCamGen.ValSsVerif();
+   aDeriv = mCamGen.CompDerSsVerif();
 }
 
 void  cMMV1_TestCam::Compute(int aNb)
@@ -83,6 +101,14 @@ cInterfaceTestCam * cInterfaceTestCam::AllocMMV1()
     return new cMMV1_TestCam;
 }
 
+/*
+       cGenCodeTestCam  aGen;
+       cGeneratedCodeTestCam aCamGen;
+       aGen.Init(aCamGen);
+       aCamGen.SetCoordCur(aVVals);
+       aCamGen.ComputeValDeriv();
+
+*/
 
 
 
@@ -104,8 +130,8 @@ cGenCodeTestCam::cGenCodeTestCam() :
    mK2      ( 0.002,"K2",mSet,mLInterv),
    mK4      (-0.001,"K4",mSet,mLInterv),
    mK6      ( 0.001,"K6",mSet,mLInterv),
-   mFoc     ( 5000,"F",mSet,mLInterv),
-   mPP      (Pt2dr(3000,2000),"PP",mSet,mLInterv)
+   mPP      (Pt2dr(3000,2000),"PP",mSet,mLInterv),
+   mFoc     ( 5000,"F",mSet,mLInterv)
 {
 }
 
@@ -149,12 +175,12 @@ void cGenCodeTestCam::Generate()
 
 void   MMV1_GenerateCodeTestCam()
 {
-    if (0) 
+    if (1) 
     {
        cGenCodeTestCam  aGCTC;
        aGCTC.Generate();
     }
-    if (1)
+    if (0)
     {
        double   aVVals[30];
        cGenCodeTestCam  aGen;

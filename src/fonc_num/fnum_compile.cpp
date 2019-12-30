@@ -861,6 +861,14 @@ const std::vector<double> &   cElCompiledFonc::Vals() const
    ELISE_ASSERT(isValComputed,"No Val Computed");
    return mVal;
 }
+const std::vector<double> &   cElCompiledFonc::ValSsVerif() const
+{
+   return mVal;
+}
+const std::vector<std::vector<double> > &  cElCompiledFonc::CompDerSsVerif() const
+{
+   return mCompDer;
+}
 
 const std::vector<std::vector<double> > &  cElCompiledFonc::CompDer() const
 {

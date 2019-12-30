@@ -8,12 +8,12 @@ cGeneratedCodeTestCam::cGeneratedCodeTestCam():
 {
    AddIntRef (cIncIntervale("CCam",3,6));
    AddIntRef (cIncIntervale("CD",9,11));
-   AddIntRef (cIncIntervale("F",14,15));
+   AddIntRef (cIncIntervale("F",16,17));
    AddIntRef (cIncIntervale("K2",11,12));
    AddIntRef (cIncIntervale("K4",12,13));
    AddIntRef (cIncIntervale("K6",13,14));
    AddIntRef (cIncIntervale("PGr",0,3));
-   AddIntRef (cIncIntervale("PP",15,17));
+   AddIntRef (cIncIntervale("PP",14,16));
    AddIntRef (cIncIntervale("W",6,9));
    Close(false);
 }
@@ -80,11 +80,11 @@ void cGeneratedCodeTestCam::ComputeVal()
    double tmp55_ = VCube(tmp47_);
    double tmp56_ = tmp54_ * tmp55_;
    double tmp57_ = tmp53_ + tmp56_;
-   double tmp58_ = mCompCoord[14];
+   double tmp58_ = mCompCoord[16];
 
-  mVal[0] = (mCompCoord[15] + (tmp35_ + (tmp37_) * (tmp57_)) * tmp58_) - mLocMesIm_x;
+  mVal[0] = (mCompCoord[14] + (tmp35_ + (tmp37_) * (tmp57_)) * tmp58_) - mLocMesIm_x;
 
-  mVal[1] = (mCompCoord[16] + (tmp43_ + (tmp45_) * (tmp57_)) * tmp58_) - mLocMesIm_y;
+  mVal[1] = (mCompCoord[15] + (tmp43_ + (tmp45_) * (tmp57_)) * tmp58_) - mLocMesIm_y;
 
 }
 
@@ -175,7 +175,7 @@ void cGeneratedCodeTestCam::ComputeValDeriv()
    double tmp81_ = 2 * (tmp80_);
    double tmp82_ = tmp81_ * (tmp45_);
    double tmp83_ = tmp72_ + tmp82_;
-   double tmp84_ = mCompCoord[14];
+   double tmp84_ = mCompCoord[16];
    double tmp85_ = mLocR0_1_2 * tmp19_;
    double tmp86_ = mLocR0_1_1 * tmp26_;
    double tmp87_ = tmp85_ - tmp86_;
@@ -455,7 +455,7 @@ void cGeneratedCodeTestCam::ComputeValDeriv()
    double tmp361_ = (tmp45_) * (tmp70_);
    double tmp362_ = tmp43_ + tmp361_;
 
-  mVal[0] = (mCompCoord[15] + (tmp260_) * tmp84_) - mLocMesIm_x;
+  mVal[0] = (mCompCoord[14] + (tmp260_) * tmp84_) - mLocMesIm_x;
 
   mCompDer[0][0] = (tmp60_ + (tmp60_) * (tmp70_) + (tmp269_) * (tmp37_)) * tmp84_;
   mCompDer[0][1] = (tmp96_ + (tmp96_) * (tmp70_) + (tmp278_) * (tmp37_)) * tmp84_;
@@ -471,10 +471,10 @@ void cGeneratedCodeTestCam::ComputeValDeriv()
   mCompDer[0][11] = (tmp47_) * (tmp37_) * tmp84_;
   mCompDer[0][12] = tmp64_ * (tmp37_) * tmp84_;
   mCompDer[0][13] = tmp68_ * (tmp37_) * tmp84_;
-  mCompDer[0][14] = tmp260_;
-  mCompDer[0][15] = 1;
-  mCompDer[0][16] = 0;
-  mVal[1] = (mCompCoord[16] + (tmp362_) * tmp84_) - mLocMesIm_y;
+  mCompDer[0][14] = 1;
+  mCompDer[0][15] = 0;
+  mCompDer[0][16] = tmp260_;
+  mVal[1] = (mCompCoord[15] + (tmp362_) * tmp84_) - mLocMesIm_y;
 
   mCompDer[1][0] = (tmp80_ + (tmp80_) * (tmp70_) + (tmp269_) * (tmp45_)) * tmp84_;
   mCompDer[1][1] = (tmp106_ + (tmp106_) * (tmp70_) + (tmp278_) * (tmp45_)) * tmp84_;
@@ -490,9 +490,9 @@ void cGeneratedCodeTestCam::ComputeValDeriv()
   mCompDer[1][11] = (tmp47_) * (tmp45_) * tmp84_;
   mCompDer[1][12] = tmp64_ * (tmp45_) * tmp84_;
   mCompDer[1][13] = tmp68_ * (tmp45_) * tmp84_;
-  mCompDer[1][14] = tmp362_;
-  mCompDer[1][15] = 0;
-  mCompDer[1][16] = 1;
+  mCompDer[1][14] = 0;
+  mCompDer[1][15] = 1;
+  mCompDer[1][16] = tmp362_;
 }
 
 
