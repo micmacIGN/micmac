@@ -154,6 +154,8 @@ std::string    cCommonMartiniAppli::ComParam()
    if (EAMIsInit(&mTStdNbMaxTriplet)) aCom += " StdNbPtTrip="     + ToString(mTStdNbMaxTriplet);
    if (EAMIsInit(&mTQuickNbMaxTriplet)) aCom += " QNbPtTrip="     + ToString(mTQuickNbMaxTriplet);
    if (EAMIsInit(&mTNbMinTriplet)) aCom += " NbTrip="     + ToString(mTNbMinTriplet);
+   // MPD corrige oubli !!!
+   if (EAMIsInit(&mExpTxt)) aCom += " ExpTxt="     + ToString(mExpTxt);
 
 
    return aCom;

@@ -3094,6 +3094,9 @@ class cSectionChantier
         friend void xml_init(cSectionChantier & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< int > & NumAttrPdsNewF();
+        const cTplValGesInit< int > & NumAttrPdsNewF()const ;
+
         cTplValGesInit< double > & RatioMaxDistCS();
         const cTplValGesInit< double > & RatioMaxDistCS()const ;
 
@@ -3199,6 +3202,7 @@ class cSectionChantier
         cTplValGesInit< bool > & ExportMatrixMarket();
         const cTplValGesInit< bool > & ExportMatrixMarket()const ;
     private:
+        cTplValGesInit< int > mNumAttrPdsNewF;
         cTplValGesInit< double > mRatioMaxDistCS;
         cTplValGesInit< std::string > mDebugVecElimTieP;
         cTplValGesInit< int > mDoStatElimBundle;
@@ -7117,6 +7121,9 @@ class cParamApero
 
         cSectionInconnues & SectionInconnues();
         const cSectionInconnues & SectionInconnues()const ;
+
+        cTplValGesInit< int > & NumAttrPdsNewF();
+        const cTplValGesInit< int > & NumAttrPdsNewF()const ;
 
         cTplValGesInit< double > & RatioMaxDistCS();
         const cTplValGesInit< double > & RatioMaxDistCS()const ;

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamApero[1845] = {
+const char * theNameVar_ParamApero[1848] = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -975,6 +975,9 @@ const char * theNameVar_ParamApero[1845] = {
 "\n",
 "\n",
 "        <SectionChantier Nb=\"1\">\n",
+"\n",
+"              <!-- Si >=0, l'attribut de ce numero est utilise comme ponderation de points dans le nouveau format -->\n",
+"              <NumAttrPdsNewF Nb=\"?\" Type=\"int\" Def=\"-1\"> </NumAttrPdsNewF>\n",
 "\n",
 "              <RatioMaxDistCS  Type=\"double\" Nb=\"?\" Def=\"30.0\" > </RatioMaxDistCS>\n",
 "              <!-- Permet d'eliminer les tie points de maniere reproductible\n",

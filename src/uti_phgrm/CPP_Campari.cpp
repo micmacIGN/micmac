@@ -447,13 +447,15 @@ class cAppli_Campari : public cAppli_Tapas_Campari
        std::vector<double>   mPdsErrorGps;
        std::string  mStrDebugVTP;  // Debug sur les tie points
 
+       int  mNumPtsAttrNewF;
 };
 
 
 
 cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
-    AeroOut    (""),
-    mNameRTA   ("SauvRTA.xml")
+    AeroOut          (""),
+    mNameRTA         ("SauvRTA.xml"),
+    mNumPtsAttrNewF  (-1)
 {
     mStr0 = MakeStrFromArgcARgv(argc,argv,true);
     MMD_InitArgcArgv(argc,argv);
@@ -569,6 +571,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(RapTxt,"RapTxt",true,"Output report of residual for each point")
                     << EAM(aVExpImRes,"ExpImRes",true,"Sz of Im Res=[Cam,Pose,Pair]")
                     << EAM(mStrDebugVTP,"StrDebugVTP",true,"String of debug for tie points")
+
+                    << EAM(mNumPtsAttrNewF,"NAWNF",true,"Num Attribute for Weigthing in New Format")
 
     );
 
@@ -784,9 +788,14 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                         + " +EcartMaxPlaniPondCentre=" + ToString(mPdsErrorGps[1])
                         + " +SigmaPlaniPondCentre=" + ToString(mPdsErrorGps[2])
                         + " +EcartMaxAltiPondCentre=" + ToString(mPdsErrorGps[3])
-                        + " +SigmaPlaniPondCentre=" + ToString(mPdsErrorGps[4]) ;
+                        + " +SigmaPlaniPondCentre=" + ToString(mPdsErrorGps[4])  + " ";
         }
 
+
+        if (EAMIsInit(&mNumPtsAttrNewF))
+        {
+           mCom = mCom + " +NumAttrPdsNewF=" + ToString(mNumPtsAttrNewF) + " ";
+        }
 
         if (aSetHom=="NONE")
         {

@@ -40,6 +40,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "MultTieP.h"
 
+CamStenope * DefaultCamera(const std::string & aName);
+
+
 bool  FileModeBin(const std::string & aName)
 {
    std::string aPost = StdPostfix(aName);
@@ -127,7 +130,8 @@ std::vector<Pt2dr> VecPtofVecIT(const std::vector<cPairIntType<Pt2df> >  & aVecI
 const std::list<tMergeRat *> &  CreatePMul
                                 (
                                     cVirtInterf_NewO_NameManager * aVNM,
-                                    const std::vector<std::string> * aVIm
+                                    const std::vector<std::string> * aVIm,
+                                    bool  WithOri
                                 )
 {
     
@@ -137,7 +141,11 @@ const std::list<tMergeRat *> &  CreatePMul
     {
        const std::string & aNameIm = (*aVIm)[aKIm];
        aDicoNumIm[aNameIm] = aKIm;
-       aDicCam[aNameIm] = aVNM->CalibrationCamera((*aVIm)[aKIm]);
+       if (WithOri)
+          aDicCam[aNameIm] = aVNM->CalibrationCamera(aNameIm);
+       else
+          aDicCam[aNameIm] = DefaultCamera(aNameIm);
+
     }
 
     std::string aNameCple = aVNM->NameListeCpleConnected(true);
@@ -159,6 +167,9 @@ const std::list<tMergeRat *> &  CreatePMul
             CamStenope * aCS1 = aDicCam[itV->N1()] ;
             CamStenope * aCS2 = aDicCam[itV->N2()] ;
 
+// std::cout << "FFFpppp111 " << aCS1->Focale() << aCS1->PP() << "\n";
+// std::cout << "FFFpppp222 " << aCS2->Focale() << aCS2->PP() << "\n";
+
             std::vector<Pt2df> aVP1,aVP2;
             aVNM->LoadHomFloats(itV->N1(),itV->N2(),&aVP1,&aVP2);
             int aNum1 = it1->second;
@@ -168,6 +179,10 @@ const std::list<tMergeRat *> &  CreatePMul
             {
                 Pt2dr aP1 = aCS1->L3toF2(Pt3dr(aVP1[aKP].x,aVP1[aKP].y,1.0));
                 Pt2dr aP2 = aCS2->L3toF2(Pt3dr(aVP2[aKP].x,aVP2[aKP].y,1.0));
+
+// std::cout << "IIII" << aP1 << aP2 << aVP1[aKP] << aVP2[aKP] << "\n"; getchar();
+
+
                 aMergeStruct.AddArc(ToPt2df(aP1),aNum1,ToPt2df(aP2),aNum2,cCMT_NoVal());
             }
         }
@@ -221,10 +236,11 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
 
    mEASF.Init(mPatImage);
    mFilesIm = mEASF.SetIm();
-        ELISE_fp::RmFileIfExist("NewOriTmpQuick");              // => Giang : bug ambiguous : delete all result of NO_AllOri2Im before convert homol ?
-        ELISE_fp::RmFileIfExist("NewOriTmp" + mSH + "Quick");
+
    if (mDoNewOri)
    {
+        ELISE_fp::PurgeDirRecursif("NewOriTmp" + mSH + "Quick");
+
         std::string aCom =  MM3dBinFile("TestLib NO_AllOri2Im ") + QUOTE(mPatImage) + " GenOri=false " + " SH=" + mSH + " AUS=true"+ " ExpTxt="+ToString(mExpTxt);
         cout<<aCom<<endl;
         System(aCom);
@@ -234,8 +250,8 @@ cAppliConvertToNewFormatHom::cAppliConvertToNewFormatHom(int argc,char ** argv) 
    }
 
    mVNM = cVirtInterf_NewO_NameManager::StdAlloc(mSH,mEASF.mDir,"",true);
-   // Conserve les numeros initiaux des images
-   const std::list<tMergeRat *> &  aLMR = CreatePMul  (mVNM,mFilesIm);
+   // Conserve les numeros initiaux des images ; Si on a fait NO_AllOri2Im avec GenOri=false => les ori sont default
+   const std::list<tMergeRat *> &  aLMR = CreatePMul  (mVNM,mFilesIm,!mDoNewOri);
    std::cout << "DONE PMUL " << aLMR.size() << " \n";
 
    cSetTiePMul * aSetOutPM = new cSetTiePMul(1);
@@ -389,6 +405,7 @@ void cSetPMul1ConfigTPM::Add(const std::vector<Pt2dr> & aVP,const std::vector<fl
 
 float cSetPMul1ConfigTPM::Attr(int aKP,int aKAttr) const
 {
+   ELISE_ASSERT(aKAttr<mNbAttr,"cSetPMul1ConfigTPM::Attr");
    return mVAttr[mNbAttr*aKP + aKAttr];
 }
 
