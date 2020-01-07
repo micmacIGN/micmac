@@ -255,6 +255,8 @@ int ConvertOriCalib_main(int argc, char ** argv);
 int DroneFootPrint(int argc,char ** argv);
 
 int Image_Vide(int argc,char ** argv);
+int  PPMD_MatEss2Orient(int argc,char ** argv);
+
 
 
 std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC, const std::string & aLib)
@@ -280,12 +282,15 @@ int HomolFromProfEtPx_main(int argc,char ** argv);
 int Line2Line_main(int argc,char ** argv);
 int CoronaRessample_main(int argc,char ** argv);
 int DivFilters_main(int argc,char ** argv);
+int AnalysePxFrac_Main(int argc,char ** argv);
+
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
 	static std::vector<cMMCom> aRes;
 	if (aRes.empty())
 	{
+		aRes.push_back(cMMCom("PPMD_MatEss2Orient", PPMD_MatEss2Orient, "transform essential matrix as list of orient "));
 		aRes.push_back(cMMCom("Help", CPP_MMHelp, "Help on existing MicMac commands "));
 		aRes.push_back(cMMCom("BAR", BasculeRobuste_main, "Bascule robutse "));
 
@@ -414,6 +419,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("MMInitialModel", MMInitialModel_main, " Initial Model for MicMac ")); //  ,cArgLogCom(2)));
 		aRes.push_back(cMMCom("MMTestAllAuto", MMAllAuto_main, " Full automatic version for 1 view point, test mode ", cArgLogCom(2)));
 		aRes.push_back(cMMCom("MM2DPosSism", MM2DPostSism_Main, " Simplified interface for post 2D post sismic deformation ", cArgLogCom(2)));
+		aRes.push_back(cMMCom("DistPxFrac", AnalysePxFrac_Main, "Compute distribution of fractional part of paralax ", cArgLogCom(2)));
 		aRes.push_back(cMMCom("MMMergeCloud", MM_FusionNuage_main, " Merging of low resol cloud, in preparation 2 MicMac ", cArgLogCom(2)));
 
 		aRes.push_back(cMMCom("MergeDepthMap", FusionCarteProf_main, " Merging of individual, stackable, depth maps "));
@@ -668,6 +674,7 @@ extern int  TD_Exo6(int argc, char ** argv);
 extern int  TD_Exo7(int argc, char ** argv);
 extern int  TD_Exo8(int argc, char ** argv);
 extern int  TD_Exo9(int argc, char ** argv);
+extern int  PPMD_Appariement_main(int argc, char ** argv);
 
 extern int TD_Match1_main(int argc, char ** argv);
 extern int TD_Match2_main(int argc, char ** argv);
@@ -886,6 +893,8 @@ int UnionFiltragePHom_Main(int argc, char ** argv);
 
 int TestYZ_main(int argc, char ** argv);
 
+extern int TestLulin_main(int argc, char ** argv);
+
 extern int ReechHomol_main(int argc, char ** argv);
 extern int DeformAnalyse_main(int argc, char ** argv);
 extern int ExtraitHomol_main(int argc, char ** argv);
@@ -938,6 +947,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	if (aRes.empty())
 	{
 
+            aRes.push_back(cMMCom("TestLulin", TestLulin_main, "Explaination: TestLulin "));
+
 		aRes.push_back(cMMCom("Exo0", TD_Exo0, "Some stuff "));
 		aRes.push_back(cMMCom("Exo1", TD_Exo1, "Some stuff "));
 		aRes.push_back(cMMCom("Exo2", TD_Exo2, "Some stuff "));
@@ -948,6 +959,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("Exo7", TD_Exo7, "Some stuff "));
 		aRes.push_back(cMMCom("Exo8", TD_Exo8, "Some stuff "));
 		aRes.push_back(cMMCom("Exo9", TD_Exo9, "Some stuff "));
+		aRes.push_back(cMMCom("ExoMatch", PPMD_Appariement_main, "Some stuff "));
 
 		aRes.push_back(cMMCom("NoBill", UnWindows, "Supress the big shit in file resulting from (f**king) Windows editing"));
 

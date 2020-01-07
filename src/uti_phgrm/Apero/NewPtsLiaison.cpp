@@ -348,6 +348,8 @@ void  cAppliApero::CDNP_Compense
    double aLimBsHRefut = Param().LimBsHRefut().Val();
    cArg_UPL anArgUPL = ArgUPL();
 
+   int aNAWNF = Param().NumAttrPdsNewF().Val();
+
    for (int aKp=0 ; aKp<aNbPts ; aKp++)
    {
        cNupletPtsHomologues aNUpl(0);
@@ -358,6 +360,11 @@ void  cAppliApero::CDNP_Compense
        }
 
       double aPdsIm = 1.0;
+      if (aNAWNF>=0)
+      {
+          aPdsIm = aConf->Attr(aKp,aNAWNF);
+      }
+
       double aResidu = 0;
       int aNbEtape = 2;
 

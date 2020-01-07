@@ -141,7 +141,7 @@ cInterfChantierNameManipulateur *  cNewO_NameManager::ICNM()
 
 CamStenope * cInterfChantierNameManipulateur::GlobCalibOfName(const std::string  & aName,const std::string & aPrefOriCal,bool aModeFraser) 
 {
-   // std::cout << "cInterfChantierNameManipulateur::GlobCalibOfName \n"; getchar();
+   // std::cout << "cInterfChantierNameManipulateur::GlobCalibOfName " << aPrefOriCal << "\n"; getchar();
 
 
    if (aPrefOriCal =="")

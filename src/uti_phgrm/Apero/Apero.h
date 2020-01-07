@@ -1063,7 +1063,7 @@ class cOnePtsMult
 
         const Pt2dr& P0()  const;
         const Pt2dr& PK(int ) const ;
-        void AddPt2PMul(int aNum,const Pt2dr & aP,bool IsFirstSet);
+        void AddPt2PMul(int aNum,const Pt2dr & aP,bool IsFirstSet,double aPds);
         cOnePtsMult();
         const tFixedSetInt & Flag() const; 
         void SetCombin(cOneCombinMult *);
@@ -1332,7 +1332,7 @@ class cObsLiaisonMultiple
                       bool packMustBeSwapped=false // file aNamePack contains the couples in inverse order (the first point belongs to aName2 and the second to aName1)
                 );
 
-           void AddCple(int anI1,int anI2,const ElCplePtsHomologues&,bool IsFirstSet);
+           void AddCple(int anI1,int anI2,const ElCplePtsHomologues&,bool IsFirstSet,double aPds);
 
 
           cAppliApero &                              mAppli;

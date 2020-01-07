@@ -47,6 +47,8 @@
          
          <Symb>  Px1Moy=0 </Symb>
          <Symb>  Px2Moy=0 </Symb>
+         <Symb>  Interpolateur=eInterpolSinCard </Symb>
+         <Symb>  SurEchWCor=1 </Symb>
 
          <Symb>   ZoomInit=1 </Symb>
          <eSymb>  WithZ4= SupEq ${ZoomInit} 4 </eSymb>
@@ -162,7 +164,9 @@ L'ordre des resolutions : les plus basses aux plus grandes.
 
             <GenImagesCorrel> true </GenImagesCorrel>
 
-            <ModeInterpolation> eInterpolSinCard </ModeInterpolation>
+            <ModeInterpolation> ${Interpolateur} </ModeInterpolation>
+            <SurEchWCor> ${SurEchWCor} </SurEchWCor>
+
             <SzSinCard>  5.0 </SzSinCard>
             <SzAppodSinCard>  5.0 </SzAppodSinCard>
 

@@ -223,6 +223,8 @@
            <Symb> RatioMaxDistCS=30.0 </Symb>
            <Symb> ExportMatrixMarket=false </Symb>
 
+           <Symb> NumAttrPdsNewF=-1 </Symb>
+
        </DicoLoc>
 
 
@@ -468,6 +470,7 @@
 
 
         <SectionChantier>
+             <NumAttrPdsNewF> ${NumAttrPdsNewF}  </NumAttrPdsNewF>
              <ExportMatrixMarket> ${ExportMatrixMarket} </ExportMatrixMarket>
              <RatioMaxDistCS> ${RatioMaxDistCS} </RatioMaxDistCS>
              <DebugVecElimTieP> ${StrDebugVecElimTieP} </DebugVecElimTieP>

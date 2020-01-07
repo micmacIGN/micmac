@@ -506,6 +506,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         
         /// Raw image, lost all waranty is you use it...
         tVal ** ExtractRawData2D() {return mRawData2D;}
+        const tPVal * ExtractRawData2D() const {return mRawData2D;}
     protected :
     private :
         void PostInit();

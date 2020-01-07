@@ -306,6 +306,15 @@ void cMMVII_Appli::InitParam()
   {
      mArgFac << AOpt2007(mCarPPrefOut,"CarPOut","Name for Output caracteristic points",{eTA2007::HDV});
   }
+  if (HasSharedSPO(eSharedPO::eSPO_CarPI))
+  {
+     mArgFac << AOpt2007(mCarPPrefIn,"CarPIn","Name for Input caracteristic points",{eTA2007::HDV});
+  }
+
+
+
+
+
   // To not put intervals in help/parameters when they are not usefull
   {
       bool HasMain0 = false;
@@ -992,6 +1001,7 @@ void cMMVII_Appli::MMVII_WARNING(const std::string & aMes)
               // Accessors
 const std::string & cMMVII_Appli::TmpDirTestMMVII()   const {return mTmpDirTestMMVII;}
 const std::string & cMMVII_Appli::InputDirTestMMVII() const {return mInputDirTestMMVII;}
+const std::string & cMMVII_Appli::TopDirMMVII()       const {return mTopDirMMVII;}
 
 
 void cMMVII_Appli::InitOutFromIn(std::string &aFileOut,const std::string& aFileIn)

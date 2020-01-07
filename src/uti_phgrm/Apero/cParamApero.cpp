@@ -10825,6 +10825,17 @@ void xml_init(cTimeLinkage & anObj,cElXMLTree * aTree)
 std::string  Mangling( cTimeLinkage *) {return "BEB337D7A41F8CD1FD3F";};
 
 
+cTplValGesInit< int > & cSectionChantier::NumAttrPdsNewF()
+{
+   return mNumAttrPdsNewF;
+}
+
+const cTplValGesInit< int > & cSectionChantier::NumAttrPdsNewF()const 
+{
+   return mNumAttrPdsNewF;
+}
+
+
 cTplValGesInit< double > & cSectionChantier::RatioMaxDistCS()
 {
    return mRatioMaxDistCS;
@@ -11214,6 +11225,14 @@ void  BinaryUnDumpFromFile(cSectionChantier & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.NumAttrPdsNewF().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.NumAttrPdsNewF().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.NumAttrPdsNewF().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.RatioMaxDistCS().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.RatioMaxDistCS().ValForcedForUnUmp(),aFp);
         }
@@ -11431,6 +11450,8 @@ void  BinaryUnDumpFromFile(cSectionChantier & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionChantier & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.NumAttrPdsNewF().IsInit());
+    if (anObj.NumAttrPdsNewF().IsInit()) BinaryDumpInFile(aFp,anObj.NumAttrPdsNewF().Val());
     BinaryDumpInFile(aFp,anObj.RatioMaxDistCS().IsInit());
     if (anObj.RatioMaxDistCS().IsInit()) BinaryDumpInFile(aFp,anObj.RatioMaxDistCS().Val());
     BinaryDumpInFile(aFp,anObj.DebugVecElimTieP().IsInit());
@@ -11491,6 +11512,8 @@ cElXMLTree * ToXMLTree(const cSectionChantier & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SectionChantier",eXMLBranche);
+   if (anObj.NumAttrPdsNewF().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("NumAttrPdsNewF"),anObj.NumAttrPdsNewF().Val())->ReTagThis("NumAttrPdsNewF"));
    if (anObj.RatioMaxDistCS().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("RatioMaxDistCS"),anObj.RatioMaxDistCS().Val())->ReTagThis("RatioMaxDistCS"));
    if (anObj.DebugVecElimTieP().IsInit())
@@ -11555,6 +11578,8 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
+   xml_init(anObj.NumAttrPdsNewF(),aTree->Get("NumAttrPdsNewF",1),int(-1)); //tototo 
+
    xml_init(anObj.RatioMaxDistCS(),aTree->Get("RatioMaxDistCS",1),double(30.0)); //tototo 
 
    xml_init(anObj.DebugVecElimTieP(),aTree->Get("DebugVecElimTieP",1)); //tototo 
@@ -11610,7 +11635,7 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    xml_init(anObj.ExportMatrixMarket(),aTree->Get("ExportMatrixMarket",1),bool(false)); //tototo 
 }
 
-std::string  Mangling( cSectionChantier *) {return "64F2B4F850271D90FCBF";};
+std::string  Mangling( cSectionChantier *) {return "BF5204A4724122A2FE3F";};
 
 
 cTplValGesInit< bool > & cSectionSolveur::AllMatSym()
@@ -26461,6 +26486,17 @@ const cSectionInconnues & cParamApero::SectionInconnues()const
 }
 
 
+cTplValGesInit< int > & cParamApero::NumAttrPdsNewF()
+{
+   return SectionChantier().NumAttrPdsNewF();
+}
+
+const cTplValGesInit< int > & cParamApero::NumAttrPdsNewF()const 
+{
+   return SectionChantier().NumAttrPdsNewF();
+}
+
+
 cTplValGesInit< double > & cParamApero::RatioMaxDistCS()
 {
    return SectionChantier().RatioMaxDistCS();
@@ -27238,7 +27274,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "769625359E0142E3FE3F";};
+std::string  Mangling( cParamApero *) {return "461983D4EB88F2BEFD3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

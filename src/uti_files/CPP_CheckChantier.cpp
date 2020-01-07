@@ -38,6 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
+#include "../include/im_tpl/image.h"
 
 /*
 */
@@ -136,9 +137,54 @@ void CheckSetFile(const std::string & aDir,const std::string & aKey,const std::s
 
 int CheckOneTiff_main(int argc,char ** argv)
 {
+   // Comme c'etait comme cela, j'y touche pas, mais rajoute quand meme qqchose
    std::string  aName = InitJunkErrorHandler(argc,argv);
+
+   int  CorrecNan = 0;
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  << EAMC(aName,"Directory "),
+        LArgMain()  << EAM(CorrecNan,"WCNan",true,"With check/correction of nan (1=check,2=correc)")
+   );
+
    Tiff_Im aTF(aName.c_str());
    ELISE_COPY(aTF.all_pts(),aTF.in(),Output::onul());
+   if (CorrecNan)
+   {
+      Im2D<REAL8,REAL8>  aIm =  Im2D<REAL8,REAL8>::FromFileStd(aName);
+      TIm2D<REAL8,REAL8>  aTIm(aIm);
+      
+      Pt2di aSz = aIm.sz();
+      Pt2di aP;
+      Im2D_Bits<1>       aMasqOk(aSz.x,aSz.y,1);
+      TIm2DBits<1>      aTMasqOk(aMasqOk);
+      Im2D_Bits<1>       aMasqRes(aSz.x,aSz.y,1);
+      int aCptNan=0;
+      for (aP.x=0 ; aP.x<aSz.x ;  aP.x++)
+      {
+          for (aP.y=0 ; aP.y<aSz.y ;  aP.y++)
+          {
+               REAL8  aV = aTIm.get(aP);
+               if (std_isnan(aV))
+               {
+                  aCptNan++;
+                  aTMasqOk.oset(aP,0);
+                  aTIm.oset(aP,0.0);
+               }
+          }
+      }
+      std::cout << "Nb Nan = " << aCptNan << "\n";
+      if (CorrecNan>=2)
+      {
+          Im2D<REAL8,REAL8> aImCorrec = ImpaintL2(aMasqOk,aMasqRes,aIm,4);
+
+          std::string aNameRes = StdPrefix(aName)+"_Correc.tif";
+
+          Tiff_Im aTifOut(aNameRes.c_str(),aSz,aTF.type_el(),aTF.mode_compr(),aTF.phot_interp());
+          ELISE_COPY(aImCorrec.all_pts(),aImCorrec.in(),aTifOut.out());
+      }
+   }
    return EXIT_SUCCESS;
 }
 

@@ -129,6 +129,7 @@ set(Src_TD_PPMD
     ${TDPPMD_DIR}/TiePByMesh/TiepTriFar/TiepTriFar_method.cpp
 
     ${TDPPMD_DIR}/MosaicTFWImg/mosaictfwimg.cpp
+	${TDPPMD_DIR}/cTD_PPMD_Appariement.cpp
 )
 
 #SOURCE_GROUP(Util FILES ${Util_Src_Files})

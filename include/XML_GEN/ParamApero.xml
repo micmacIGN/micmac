@@ -974,6 +974,9 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
 
         <SectionChantier Nb="1">
 
+              <!-- Si >=0, l'attribut de ce numero est utilise comme ponderation de points dans le nouveau format -->
+              <NumAttrPdsNewF Nb="?" Type="int" Def="-1"> </NumAttrPdsNewF>
+
               <RatioMaxDistCS  Type="double" Nb="?" Def="30.0" > </RatioMaxDistCS>
               <!-- Permet d'eliminer les tie points de maniere reproductible
                    [7,1,13,4]  => elimine ceux dont le numero est egal a 1%7 et a 4 % 13

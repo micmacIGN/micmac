@@ -292,6 +292,8 @@ void cAppliCmpCal::OneItere(bool First,bool Last,const std::string Out)
 						mP0.x * aPdsX+mP1.x * (1-aPdsX),
 						mP0.y * aPdsY+mP1.y * (1-aPdsY)
 						);
+
+// std::cout << "PIMMM " << aPIm << "\n";
 			InitNormales (aPIm);
 			
 			mEqORV->AddObservation(mN1,mN2);

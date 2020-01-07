@@ -1321,6 +1321,8 @@ ElRotation3D RotationOfInvariantPoint(const Pt3dr & ,const ElMatrix<double> &);
 ElMatrix<REAL> VecKern ( const ElMatrix<REAL> & aMat);
 ElMatrix<REAL> VecOfValP(const ElMatrix<REAL> & aMat,REAL aVP);
 Pt3dr AxeRot(const ElMatrix<REAL> & aMat);
+double TetaOfAxeRot(const ElMatrix<REAL> & aMat, Pt3dr & aP1);
+
 
 double LongBase(const ElRotation3D &);
 ElRotation3D ScaleBase(const ElRotation3D &,const double & aScale); // Passer 1/LongBase pour faire base unit

@@ -1846,6 +1846,37 @@ void cMultiContEQF::Add(const cMultiContEQF & aM2)
 }
 
 
+cP3dFormel::cP3dFormel(const Pt3dr & aPt,const std::string & aName,cSetEqFormelles & aSet,cIncListInterv & aLI) :
+   cElemEqFormelle(aSet,false),
+   mPt   (aPt),
+   mFPt  (aSet.Alloc().NewPt3(aName,mPt))
+{
+   IncInterv().SetName(aName);
+   CloseEEF();
+   aLI.AddInterv(IncInterv());
+}
+
+cP2dFormel::cP2dFormel(const Pt2dr & aPt,const std::string & aName,cSetEqFormelles & aSet,cIncListInterv & aLI) :
+   cElemEqFormelle(aSet,false),
+   mPt   (aPt),
+   mFPt  (aSet.Alloc().NewPt2(aName,mPt))
+{
+   IncInterv().SetName(aName);
+   CloseEEF();
+   aLI.AddInterv(IncInterv());
+}
+
+cValFormel::cValFormel(const double & aVal,const std::string & aName,cSetEqFormelles & aSet,cIncListInterv & aLI) :
+   cElemEqFormelle(aSet,false),
+   mVal   (aVal),
+   mFVal  (aSet.Alloc().NewF(aName,aName,&mVal))
+{
+   IncInterv().SetName(aName);
+   CloseEEF();
+   aLI.AddInterv(IncInterv());
+}
+
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
