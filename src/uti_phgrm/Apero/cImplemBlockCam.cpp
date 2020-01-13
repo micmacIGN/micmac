@@ -65,7 +65,7 @@ ElRotation3D  RotCamToBlock(const cParamOrientSHC & aPOS)
 // Return the Rotation that transformate from Cam1 Coord to Cam2 Coord
 ElRotation3D  RotCam1ToCam2(const cParamOrientSHC & aPOS1,const cParamOrientSHC & aPOS2)
 {
-    return  RotCamToBlock(aPOS2).inv() * RotCamToBlock(aPOS2);
+    return  RotCamToBlock(aPOS2).inv() * RotCamToBlock(aPOS1);
 }
 
 /****************************************************************************/

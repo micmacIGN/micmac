@@ -128,6 +128,7 @@ class cAppli_OriFromBlock
         std::string mNameCalib;  // input calibration (required for non oriented image)
         std::string mNameBlock;  // name of the block-blini
         std::string mOriOut;     // Output orientation
+        bool        mCPI;        // Calibration Per Image
 
         cStructBlockCam mBlock;  // structure of the rigid bloc
         std::string     mKeyBl;  // key for name compute of bloc
@@ -139,10 +140,12 @@ class cAppli_OriFromBlock
         const std::vector<std::string> *   mVN;    // list of images
         std::vector<cAOFB_Im*>             mVecI;  // list of "compiled"
         std::map<t2Str,cAOFB_Im*>          mMapI;  // map Time+Grp -> compiled image
+    
 
 };
 
-cAppli_OriFromBlock::cAppli_OriFromBlock (int argc,char ** argv)
+cAppli_OriFromBlock::cAppli_OriFromBlock (int argc,char ** argv) :
+   mCPI (false)
 {
     MMD_InitArgcArgv(argc,argv);
 
@@ -152,8 +155,10 @@ cAppli_OriFromBlock::cAppli_OriFromBlock (int argc,char ** argv)
         LArgMain()  << EAMC(mPatIm,"Full name (Dir+Pat)", eSAM_IsPatFile)
                     << EAMC(mOriIn,"Input Orientation folder", eSAM_IsExistDirOri)
                     << EAMC(mNameCalib,"Calibration folder", eSAM_IsExistDirOri)
-                    << EAMC(mNameBlock,"File for block"),
+                    << EAMC(mNameBlock,"File for block")
+                    << EAMC(mOriOut,"Output Orientation folder"),
         LArgMain()
+                    << EAM(mCPI,"CPI",true,"Calib Per Im")
     );
 
         //  =========== Naming and name stuff ====
@@ -239,8 +244,17 @@ cAppli_OriFromBlock::cAppli_OriFromBlock (int argc,char ** argv)
     {
         if (aPtrI->mDone)
         {
-            // aPtrI->mCamCalib->SetOrientation(aPtrI->mR_Cam2W.inv());
- // std::string StdExport2File(cInterfChantierNameManipulateur *,const std::string & aDirOri,const std::string & aNameIm);
+            // Case calibration by image, we export directly the results
+            //  std::string aNameFI =   mICNM->StdNameCalib(mNameCalib,aName);
+            std::string aNameFI =   mICNM->StdNameCalib(mOriOut,aPtrI->mName);
+            CamStenope  * aCamCal = mICNM->GlobCalibOfName(aPtrI->mName,mNameCalib,true);
+            aCamCal->SetOrientation(aPtrI->mR_Cam2W.inv());
+            aCamCal->StdExport2File(mICNM,mOriOut,aPtrI->mName,mCPI ? "" : aNameFI);
+            if (!mCPI)
+            {
+                std::string aNameCal =   mICNM->StdNameCalib(mNameCalib,aPtrI->mName);
+                ELISE_fp::CpFile(aNameCal,aNameFI);
+            }
         }
     }
 
