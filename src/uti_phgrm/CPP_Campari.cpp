@@ -306,22 +306,27 @@ std::string  cAppli_Tapas_Campari::TimeStamp(const std::string & aName,cInterfCh
 std::string   cAppli_Tapas_Campari::ExtendPattern
                            (
                                       const std::string & aPatGlob,
-                                      const std::string & aImCenter,
+                                      const std::string & aPatCenter,
                                       cInterfChantierNameManipulateur * anICNM
                            )
 {
    const cInterfChantierNameManipulateur::tSet *  aSetGlob = anICNM->Get(aPatGlob);
    std::string aKey = mSBC.KeyIm2TimeCam();
 
-   std::string aTimeC = anICNM->Assoc2To1(mSBC.KeyIm2TimeCam(),aImCenter,true).first;
+   const cInterfChantierNameManipulateur::tSet *  aSetCenter = anICNM->Get(aPatCenter);
    cPatOfName aPat;
-   for (const auto & aName : *aSetGlob)
+
+   for (const auto & aImCenter : *aSetCenter)
    {
+      std::string aTimeC = anICNM->Assoc2To1(mSBC.KeyIm2TimeCam(),aImCenter,true).first;
+      for (const auto & aName : *aSetGlob)
+      {
          std::pair<std::string,std::string> aPair = anICNM->Assoc2To1(mSBC.KeyIm2TimeCam(),aName,true);
          if (aPair.first == aTimeC) 
             aPat.AddName(aName);
             // std::cout << "PAIR " << aPair.first << " *** " <<  aPair.second << "\n";
 
+      }
    }
 
 

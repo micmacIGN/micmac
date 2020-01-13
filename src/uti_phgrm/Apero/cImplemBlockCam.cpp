@@ -41,6 +41,33 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 // ModifDIST ==> Tag Provisoire des modifs a rajouter si dist
 
+// Return the cParamOrientSHC of a given name
+cParamOrientSHC * POriFromBloc(cStructBlockCam & aBloc,const std::string & aName,bool SVP)
+{
+    for ( auto & aPOS : aBloc.ParamOrientSHC())
+    {
+        if (aPOS.IdGrp() == aName)
+           return & aPOS;
+    }
+    if (!SVP)
+    {
+        ELISE_ASSERT(false ,"Cannot get POriFromBloc");
+    }
+    return nullptr;
+}
+ 
+// Return the Rotation that transformate from Cam Coord to Block coordinates (in fact coord of "first" cam)
+ElRotation3D  RotCamToBlock(const cParamOrientSHC & aPOS)
+{
+    return  ElRotation3D(aPOS.Vecteur(),ImportMat(aPOS.Rot()),true);
+}
+
+// Return the Rotation that transformate from Cam1 Coord to Cam2 Coord
+ElRotation3D  RotCam1ToCam2(const cParamOrientSHC & aPOS1,const cParamOrientSHC & aPOS2)
+{
+    return  RotCamToBlock(aPOS2).inv() * RotCamToBlock(aPOS2);
+}
+
 /****************************************************************************/
 /*                                                                          */
 /*        Rigid Block, distance equation                                    */

@@ -581,7 +581,7 @@ class cPoseCam : public cGenPoseCam
           ElRotation3D   CurRot() const;
           Pt3dr CurCentre() const;
           Pt3dr CurCentreOfPt(const Pt2dr & ) const;
-          void SetCurRot(const ElRotation3D & aRot);
+          void PCSetCurRot(const ElRotation3D & aRot);
           void  SetBascRig(const cSolBasculeRig & aSBR);
 
 
@@ -728,6 +728,8 @@ class cPoseCam : public cGenPoseCam
           cStructRigidInit *           mSRI;
           cPreCompBloc *               mBlocCam;
           cPreCB1Pose *                mPoseInBlocCam;
+          bool                         mUseRappelPose;  // Do we use a "rappel" to a given value
+          ElRotation3D                 mRotURP;  // Rotation use Rappel Pose
 };
 
 
@@ -2318,6 +2320,7 @@ class cAppliApero : public NROptF1vND
             return CalcDebugEliminateNumTieP(aNum);
         }
 
+        const cRappelPose * PtrRP() const;
 
 
     private :
@@ -2806,6 +2809,7 @@ class cAppliApero : public NROptF1vND
          bool  mUseVDETp;
          std::vector<int>  mNumsVDETp;
          int               mDebugNumPts;
+         const cRappelPose * mRappelPose;
 };
 
 #define ADDALLMAJ(aMes) AddAllMajick(__LINE__,__FILE__,aMes)

@@ -236,7 +236,7 @@ void GenerateCodeEqOffsetGPS(bool aGL)
 
      ElRotation3D aRot(Pt3dr(0,0,0),0,0,0);
      cRotationFormelle * aRF = aSet.NewRotation (cNameSpaceEqF::eRotLibre,aRot);
-     aRF->SetGL(aGL);
+     aRF->SetGL(aGL,ElRotation3D::Id);
 
      cBaseGPS * aBase = aSet.NewBaseGPS(Pt3dr(0,0,0));
      aSet.NewEqOffsetGPS(*aRF,*aBase,true);

@@ -39,6 +39,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "NewOri.h"
 #include "../TiepTri/MultTieP.h"
+//  #include "../Apero/Apero.h"
 #include "../Apero/cPose.cpp"
 //extern bool ERupnik_MM();
 

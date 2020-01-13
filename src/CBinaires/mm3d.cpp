@@ -208,6 +208,7 @@ int TestDistM2C_main(int argc, char ** argv);
 int TestDistortion_main(int argc, char ** argv);
 
 int Blinis_main(int argc, char ** argv);
+int OrientFromBlock_main(int argc, char ** argv);
 int Contrast_main(int argc, char ** argv);
 int Nikrup_main(int argc, char ** argv);
 int TournIm_main(int argc,char ** argv);
@@ -301,6 +302,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("TestPbRPC", TestCamRPC, "Test possible Problems on RPC ", cArgLogCom(2)));
 		aRes.push_back(cMMCom("TestBundleInter", TestBundleInter_main, "Block Initialisation "));
 		aRes.push_back(cMMCom("Blinis", Blinis_main, "Block Initialisation ", cArgLogCom(2)));
+		aRes.push_back(cMMCom("OriFromBlock", OrientFromBlock_main, "Use Rigid Block to complete orientation ", cArgLogCom(2)));
 		aRes.push_back(cMMCom("ContrastFilter", Contrast_main, "Some contrast filtering "));
         aRes.push_back(cMMCom("Nikrup", Nikrup_main,/*(*/ "Generik image filter, using invert polish like notation ;-) ",cArgLogCom(3)));
 		aRes.push_back(cMMCom("Turn90Im", TournIm_main, "Turn image of 90 degre"));
