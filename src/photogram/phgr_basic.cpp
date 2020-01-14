@@ -901,7 +901,7 @@ void ElPackHomologue::StdPutInFile(const std::string & aName) const
            itP++
        )
        {
-           fprintf(aFP,"%f %f %f %f\n",itP->P1().x,itP->P1().y,itP->P2().x,itP->P2().y);
+           fprintf(aFP,"%f %f %f %f %f\n",itP->P1().x,itP->P1().y,itP->P2().x,itP->P2().y,itP->Pds());
        }
        ElFclose(aFP);
 /*
