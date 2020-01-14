@@ -3495,9 +3495,15 @@ cOrientationConique  ElCamera::StdExportCalibGlob() const
    return StdExportCalibGlob(true);
 }
 
-std::string  ElCamera::StdExport2File(cInterfChantierNameManipulateur *anICNM,const std::string & aDirOri,const std::string & aNameIm)
+std::string  ElCamera::StdExport2File(cInterfChantierNameManipulateur *anICNM,const std::string & aDirOri,const std::string & aNameIm,const std::string & aNameFileInterne)
 {
+   bool FileInterne = (aNameFileInterne != "");
    cOrientationConique  anOC = StdExportCalibGlob() ;
+   if (FileInterne)
+   {
+      anOC.Interne().SetNoInit();
+      anOC.FileInterne().SetVal(aNameFileInterne);
+   }
    std::string aName = anICNM->NameOriStenope(aDirOri,aNameIm);
    MakeFileXML(anOC,aName);
    return aName;

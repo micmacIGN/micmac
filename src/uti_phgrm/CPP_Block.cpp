@@ -90,6 +90,184 @@ int Blinis_main(int argc,char ** argv)
     else return EXIT_SUCCESS;
 }
 
+/***********************************************************************/
+
+class cAOFB_Im
+{
+     public :
+        cAOFB_Im(const std::string & aName,CamStenope* aCamInit,const std::string& aNameCalib) :
+          mName      (aName),
+          mCamInit   (aCamInit),
+          mNameCalib  (aNameCalib),
+          mDone      (mCamInit!=nullptr),
+          mR_Cam2W   (mDone ? mCamInit->Orient().inv()  : ElRotation3D::Id)
+        {
+        }
+
+        std::string   mName;     // Name of image
+        CamStenope  * mCamInit;  // Possible initial camera (pose+Cal)
+        std::string   mNameCalib; // Name of calibration
+        bool          mDone;
+        ElRotation3D  mR_Cam2W;  // Orientation Cam -> Word
+};
+
+class cAppli_OriFromBlock
+{
+    public :
+        cAppli_OriFromBlock (int argc,char ** argv);
+    private :
+        // Extract Time Stamp and Grp from Compiled image
+        typedef std::pair<std::string,std::string>  t2Str;
+        t2Str  TimGrp(cAOFB_Im * aPtrI)
+        {
+           return mICNM->Assoc2To1(mKeyBl,aPtrI->mName,true);
+        }
+
+        std::string mPatIm;  // Liste of all images
+        std::string mOriIn;  // input orientation
+        std::string mNameCalib;  // input calibration (required for non oriented image)
+        std::string mNameBlock;  // name of the block-blini
+        std::string mOriOut;     // Output orientation
+        bool        mCPI;        // Calibration Per Image
+
+        cStructBlockCam mBlock;  // structure of the rigid bloc
+        std::string     mKeyBl;  // key for name compute of bloc
+
+
+        cElemAppliSetFile mEASF; // Structure to extract pattern + name manip
+        std::string                        mDir; // Directory of data
+        cInterfChantierNameManipulateur *  mICNM;  // Name manip
+        const std::vector<std::string> *   mVN;    // list of images
+        std::vector<cAOFB_Im*>             mVecI;  // list of "compiled"
+        std::map<t2Str,cAOFB_Im*>          mMapI;  // map Time+Grp -> compiled image
+    
+
+};
+
+cAppli_OriFromBlock::cAppli_OriFromBlock (int argc,char ** argv) :
+   mCPI (false)
+{
+    MMD_InitArgcArgv(argc,argv);
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(mPatIm,"Full name (Dir+Pat)", eSAM_IsPatFile)
+                    << EAMC(mOriIn,"Input Orientation folder", eSAM_IsExistDirOri)
+                    << EAMC(mNameCalib,"Calibration folder", eSAM_IsExistDirOri)
+                    << EAMC(mNameBlock,"File for block")
+                    << EAMC(mOriOut,"Output Orientation folder"),
+        LArgMain()
+                    << EAM(mCPI,"CPI",true,"Calib Per Im")
+    );
+
+        //  =========== Naming and name stuff ====
+    mEASF.Init(mPatIm); // Compute the pattern
+    mICNM = mEASF.mICNM;  // Extract name manip
+    mVN = mEASF.SetIm();  // Extract list of input name
+    mDir = mEASF.mDir;
+
+    StdCorrecNameOrient(mOriIn,mDir);
+    StdCorrecNameOrient(mNameCalib,mDir);
+
+
+        //  =========== Block stuff ====
+    mBlock = StdGetFromPCP(mNameBlock,StructBlockCam); // Init Block
+    mKeyBl =  mBlock.KeyIm2TimeCam(); // Store key for facilitie
+    
+    // Create structur of "compiled" cam
+    for (int aKIm=0 ; aKIm<int(mVN->size()) ; aKIm++)
+    {
+        const std::string & aName = (*mVN)[aKIm];
+        CamStenope * aCamIn = mICNM->StdCamStenOfNamesSVP(aName,mOriIn);  // Camera may not 
+        std::string  aNameCal = mICNM->StdNameCalib(mNameCalib,aName);
+        mICNM->GlobCalibOfName(aName,mNameCalib,true);  // Calib should exist
+        cAOFB_Im * aPtrI = new cAOFB_Im(aName,aCamIn,aNameCal);  // Create compiled
+        mVecI.push_back(aPtrI);  // memo all compiled
+        mMapI[TimGrp(aPtrI)] = aPtrI; // We will need to access to pose from Time & Group
+        // std::pair<std::string,std::string> aPair=mICNM->Assoc2To1(mKeyBl,aPtrI->mName,true);
+    }
+
+    // Try to compile pose non existing
+    for (const auto & aPtrI : mVecI)
+    {
+        // If cam init exits nothing to do
+        if (! aPtrI->mCamInit)
+        {
+           int  aNbInit = 0;
+           // Extract time stamp & name of this block
+           t2Str aPair= TimGrp(aPtrI);
+           std::string aNameTime = aPair.first; // get a time stamp
+           std::string aNameGrp  = aPair.second;// get a cam name
+           
+           cParamOrientSHC * OrInBlock = POriFromBloc(mBlock,aNameGrp,false); // Extrac orientaion in block
+
+           // In the case there is several head oriented, we store multiple solutio,
+           std::vector<ElRotation3D>  aVecOrient;
+           std::vector<double>        aVecPds;
+
+           // Parse the block of camera
+           for (const auto & aLiaison :  mBlock.LiaisonsSHC().Val().ParamOrientSHC())
+           {
+              std::string aNeighGrp = aLiaison.IdGrp();
+              if (aNameGrp != aNeighGrp)  // No need to try to init on itself
+              {
+                 // Extract neighboor in block from time-stamp & group
+                 cAOFB_Im* aNeigh = mMapI[t2Str(aNameTime,aNeighGrp)];
+                 if (aNeigh && aNeigh->mCamInit) // If neighbooring exist and has orientation init
+                 {
+                    cParamOrientSHC * aOriNeigh = POriFromBloc(mBlock,aNeighGrp,false);
+
+                    ElRotation3D aOri_Neigh2World =  aNeigh->mCamInit->Orient().inv(); // Monde->Neigh
+                    ElRotation3D aOriBlock_This2Neigh = RotCam1ToCam2(*OrInBlock,*aOriNeigh);
+                    ElRotation3D aOri_This2Word = aOri_Neigh2World * aOriBlock_This2Neigh;
+                    aVecOrient.push_back(aOri_This2Word);
+                    aVecPds.push_back(1.0);
+                    aNbInit++;
+                    std::cout << aPtrI->mName << " From " << aNeigh->mName << "\n";
+                 }
+              }
+           }
+           if (aNbInit)
+           {
+              aPtrI->mR_Cam2W = AverRotation(aVecOrient,aVecPds);
+              aPtrI->mDone = true;
+           }
+           else
+           {
+           }
+        }
+    }
+
+    // Now export 
+    for (const auto & aPtrI : mVecI)
+    {
+        if (aPtrI->mDone)
+        {
+            // Case calibration by image, we export directly the results
+            //  std::string aNameFI =   mICNM->StdNameCalib(mNameCalib,aName);
+            std::string aNameFI =   mICNM->StdNameCalib(mOriOut,aPtrI->mName);
+            CamStenope  * aCamCal = mICNM->GlobCalibOfName(aPtrI->mName,mNameCalib,true);
+            aCamCal->SetOrientation(aPtrI->mR_Cam2W.inv());
+            aCamCal->StdExport2File(mICNM,mOriOut,aPtrI->mName,mCPI ? "" : aNameFI);
+            if (!mCPI)
+            {
+                std::string aNameCal =   mICNM->StdNameCalib(mNameCalib,aPtrI->mName);
+                ELISE_fp::CpFile(aNameCal,aNameFI);
+            }
+        }
+    }
+
+    // cElemAppliSetFile anEASF(mPatIm);
+}
+
+int OrientFromBlock_main(int argc,char ** argv)
+{
+    cAppli_OriFromBlock anAppli(argc,argv);
+
+    return EXIT_SUCCESS;
+}
+
 
 /***********************************************************************/
 

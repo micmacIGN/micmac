@@ -224,7 +224,7 @@ bool cRotationFormelle::IsGL() const
 {
     return mModeGL;
 }
-void cRotationFormelle::SetGL(bool aModeGL)
+void cRotationFormelle::SetGL(bool aModeGL,const ElRotation3D & aGuimb2CM)
 {
 /*
     if (aModeGL)
@@ -233,7 +233,7 @@ void cRotationFormelle::SetGL(bool aModeGL)
        MatGL(false);
     }
 */
-    SetCurRot(CurRot());
+    SetCurRot(CurRot(),aGuimb2CM);
     mModeGL = aModeGL;
 }
 const ElMatrix<Fonc_Num> & cRotationFormelle::MatFGL(int aKForceGL)
@@ -317,7 +317,7 @@ void cRotationFormelle::ReactuFcteurRapCoU()
         mFcteurRapCoU->SetNormValFtcrFixedNormEuclid(euclid(mCurCOpt-pRotAttach->mCurCOpt));
 }
 
-void cRotationFormelle::SetCurRot(const ElRotation3D & aR2CM)
+void cRotationFormelle::SetCurRot(const ElRotation3D & aR2CM,const ElRotation3D & aGuimb2CM)
 {
     AssertDegre0();
 
@@ -326,14 +326,26 @@ void cRotationFormelle::SetCurRot(const ElRotation3D & aR2CM)
     mCurCOpt.z = aR2CM.tr().z;
     if (mModeGL)
     {
-        mMGL = aR2CM.Mat();
+        // ElRotation3D cRotationFormelle::CurRot()
+        //  aRes = ElRotation3D(aRes.tr(),mMGL*aRes.Mat(),true);
+        //  Mat =    mMGL-1 *  Rot  
+        
 
         // mCurCOpt.x = 0;
         // mCurCOpt.y = 0;
         // mCurCOpt.z = 0;
+
+        mMGL = aGuimb2CM.Mat();
+        ElRotation3D aCurDif (Pt3dr(0,0,0), mMGL.transpose()*aR2CM.Mat() ,true);
+        mCurTeta01 = aCurDif.teta01();
+        mCurTeta02 = aCurDif.teta02();
+        mCurTeta12 = aCurDif.teta12();
+/*
+        mMGL = aR2CM.Mat();
         mCurTeta01 = 0;
         mCurTeta02 = 0;
         mCurTeta12 = 0;
+*/
     }
     else
     {
@@ -709,7 +721,7 @@ cCameraFormelle::cEqAppui::cEqAppui
 {
    if (Code2Gen)  // En mode normal, on ne modifie pas la camera
    {
-       mCam.SetGL(isGL);
+       mCam.SetGL(isGL,ElRotation3D::Id);
    }
 
    if (isProj)
@@ -950,9 +962,9 @@ cMatr_Etat_PhgrF &  cCameraFormelle::MatRGL(bool isP)
 }
 */
 
-void cCameraFormelle::SetGL(bool aModeGL)
+void cCameraFormelle::SetGL(bool aModeGL,const ElRotation3D & aGuimb2CM)
 {
-    mRot->SetGL(aModeGL);
+    mRot->SetGL(aModeGL,aGuimb2CM);
 }
 bool cCameraFormelle::IsGL() const
 {
@@ -1357,9 +1369,9 @@ void  cCameraFormelle::Update_0F2D()
     mCameraCourante = CalcCameraCourante();
 }
 
-void     cCameraFormelle::SetCurRot(const ElRotation3D & aR2CM)
+void     cCameraFormelle::SetCurRot(const ElRotation3D & aR2CM,const ElRotation3D & aGuimb2CM)
 {
-     mRot->SetCurRot(aR2CM);
+     mRot->SetCurRot(aR2CM,aGuimb2CM);
      mCameraCourante->SetOrientation(mRot->CurRot().inv());
      // mCameraCourante->SetOrientation(aR2CM.inv());
      Update_0F2D();

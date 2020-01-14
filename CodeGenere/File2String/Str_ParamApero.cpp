@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamApero[1848] = {
+const char * theNameVar_ParamApero[1855] = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -975,6 +975,13 @@ const char * theNameVar_ParamApero[1848] = {
 "\n",
 "\n",
 "        <SectionChantier Nb=\"1\">\n",
+"              <!-- This section is used when we want to force a pose to be closed to a value -->\n",
+"              <RappelPose Nb=\"?\">\n",
+"                  <Id Nb=\"1\" Type=\"std::string\"> </Id>\n",
+"                  <PdsCentre  Nb=\"1\" Type=\"double\">  </PdsCentre>\n",
+"                  <PdsOrient  Nb=\"1\" Type=\"double\">  </PdsOrient>\n",
+"                  <PatternApply  Nb=\"1\" Type=\"cElRegex_Ptr\">  </PatternApply>\n",
+"              </RappelPose>\n",
 "\n",
 "              <!-- Si >=0, l'attribut de ce numero est utilise comme ponderation de points dans le nouveau format -->\n",
 "              <NumAttrPdsNewF Nb=\"?\" Type=\"int\" Def=\"-1\"> </NumAttrPdsNewF>\n",

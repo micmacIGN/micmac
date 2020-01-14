@@ -296,6 +296,7 @@ class cAppli_Ori_Txt2Xml_main
          bool                mComputeOrFromC;
          bool                mComputeCple;
          bool                mAcceptNonExitsingImage;
+         std::string         mFileNonExist;
 };
 
 void cAppli_Ori_Txt2Xml_main::operator()(tSomVois* aS1,tSomVois* aS2,bool)  // Delaunay Call back
@@ -762,8 +763,12 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
 
                       << EAM(mGenOrFromC,"CalOFC",true,"When specified compute initial orientation from centers (in Ori-GenFromC) Ori-${CalOFC}, must contains internal calibrations")
                       << EAM(mAcceptNonExitsingImage,"OkNoIm",true,"Do not create error if image does not exist (def = false)")
+                      << EAM(mFileNonExist,"FNI",true,"File to Create when non exist")
                       << EAM(mSzV,"SzW",true,"Size for visualisation")
     );
+
+    // It seems normal to non existing when it is automatically corrected  (else why ?)
+    mAcceptNonExitsingImage = mAcceptNonExitsingImage || EAMIsInit(&mFileNonExist);
 
     if (MMVisualMode) return;
 
@@ -1046,6 +1051,11 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
                    if (!mAcceptNonExitsingImage)
                    {
                         ELISE_ASSERT(false,"This image does not exist");
+                   }
+                   else if (EAMIsInit(&mFileNonExist))
+                   {
+                      Ok=true;
+                      ELISE_fp::CpFile(mFileNonExist,aNameIm);
                    }
              }
              else

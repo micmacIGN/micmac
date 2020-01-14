@@ -8,8 +8,8 @@
       <DicoLoc>
 
                <Symb>  HasSinglePoseCalibEstim=false </Symb>
-               <Symb>  PatSinglePose=XXXXX </Symb>
-               <Symb>  PatSingleCalib=XXXXX </Symb>
+               <Symb>  PatSinglePose=PSPXXXXX </Symb>
+               <Symb>  PatSingleCalib=PSCXXXXX </Symb>
 <!--
 
                <Symb>  HasSinglePoseCalibEstim=true </Symb>
@@ -39,7 +39,7 @@
                <Symb>  SetIm=NKS-Set-OfPatternAndFoc@[[${PatternAllIm}]]@${FocMin}@${FocMax} </Symb>
 -->
 
-               <Symb>  SetImInit="XXXX" </Symb>
+               <Symb>  SetImInit="SIIXXXX" </Symb>
 
                <Symb>  FileCamInit=InitCamCenter.xml </Symb>
                <Symb>  AeroIn=XXXXXX </Symb>

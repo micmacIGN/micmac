@@ -1330,6 +1330,7 @@ ElRotation3D ScaleBase(const ElRotation3D &,const double & aScale); // Passer 1/
 
 double ProfFromCam(const ElRotation3D & anOr,const Pt3dr & aP);  // anOr M->C
 
+ElRotation3D AverRotation(const std::vector<ElRotation3D> & aVRot,const std::vector<double> & aVWeights);
 
 void SauvFile(const ElRotation3D &,const std::string &);
 void XML_SauvFile(const ElRotation3D &,const std::string &,const std::string & aNameEngl,bool aModeMatr);

@@ -337,7 +337,7 @@ void GenCodeAppui(bool C2M,bool isFixe,bool isGL,bool isAFocal,bool wDist,const 
 	{
 	   cCameraFormelle * aCam =  aPIF->NewCam(cNameSpaceEqF::eRotFigee,aRot,0,"toto",false,false);
            if (isGL)
-              aCam->SetGL(true);
+              aCam->SetGL(true,ElRotation3D::Id);
 	   aCam->AddForUseFctrEqAppuisInc(true,false,wDist,EqDroite);
 	   aCam->AddForUseFctrEqAppuisInc(true,true,wDist,EqDroite);
 	}
