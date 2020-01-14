@@ -89,9 +89,9 @@ class cAppliFictObs : public cCommonMartiniAppli
         void InitNFHomOne(std::string&,std::string&);
 
 		bool CalculateEllipseParam3(cXml_Elips3D& anEl,std::vector<const CamStenope * >& aVC,
-						            const std::string& aName1,const std::string& aName2,const std::string& aName3);
+						            const std::string& aName1,const std::string& aName2,const std::string& aName3,int& NbPts);
 		bool CalculateEllipseParam2(cXml_Elips3D& anEl,std::vector<const CamStenope * >& aVC,
-						            const std::string& aName1,const std::string& aName2);
+						            const std::string& aName1,const std::string& aName2,int& NbPts);
 		void CalculteFromHomol3(std::vector<const CamStenope * >& aVC,
 						       const std::string& aName1,const std::string& aName2,const std::string& aName3,
 							   std::vector<Pt3dr> & aVPts);
@@ -148,7 +148,8 @@ class cAppliFictObs : public cCommonMartiniAppli
         cSetTiePMul *                                           mPMulRed; 
         std::map<std::string,ElPackHomologue *>                 mHomRed; //hom name, hom
         std::map<std::string,std::map<std::string,std::string>> mHomMap; //cam name, cam name, hom name
-        std::string                                             mHomExp;
+        std::string                                             mHomExpIn;
+        std::string                                             mHomExpOut;
     
         std::string                    mNameOriCalib;    
         cXml_TopoTriplet               mLT;
@@ -188,7 +189,8 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
 	mCalcElip(true),
     NFHom(true),
     mPMulRed(0),
-    mHomExp("dat"),
+    mHomExpIn("dat"),
+    mHomExpOut("dat"),
     mNameOriCalib(""),
     mCorrCalib(false),
     mCorrGlob(mCorrCalib ? true : false),
@@ -201,7 +203,8 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
     mPly(false)
 {
 
-    bool aExpTxt=false;
+    bool aExpTxtIn=false;
+    bool aExpTxtOut=false;
     std::vector<std::string> aNumFPtsStr;
 
     ElInitArgMain
@@ -218,7 +221,8 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
                    << EAM (mResPoly,"Deg",true,"Degree of polyn to smooth residuals (used only if CorCal=true), Def=2")
                    << EAM (mResMax,"RMax",true,"Maximum residual, everything above will be filtered out, Def=5")
                    << EAM (NFHom,"NF",true,"Save homol to new format?, Def=true")
-                   << EAM (aExpTxt,"ExpTxt",true,"ASCII homol?, Def=true")
+                   << EAM (aExpTxtIn,"ExpTxtIn",true,"ASCII homol old format?, Def=false")
+                   << EAM (aExpTxtOut,"ExpTxtOut",true,"ASCII homol old format?, Def=false")
                    << EAM (mPrefHom,"SH",true,"Homol post-fix, Def=\"\"")
                    << EAM (mNameOriCalib,"OriCalib",true,"Calibration folder if exists, Def=\"\"")
                    << EAM (mOut,"Out",true,"Output file name")
@@ -231,7 +235,8 @@ cAppliFictObs::cAppliFictObs(int argc,char **argv) :
         replace( mPattern.begin(), mPattern.end(), '\\', '/' );
    #endif
 
-    aExpTxt ? mHomExp="txt" : mHomExp="dat";
+    aExpTxtIn ? mHomExpIn="txt" : mHomExpIn="dat";
+    aExpTxtOut ? mHomExpOut="txt" : mHomExpOut="dat";
 
     SplitDirAndFile(mDir,mPattern,mPattern);
 
@@ -334,7 +339,7 @@ double cAppliFictObs::BsurH(ElSeg3D& aDir1,ElSeg3D& aDir2)
 }
 
 bool cAppliFictObs::CalculateEllipseParam2(cXml_Elips3D& anEl,std::vector<const CamStenope * >& aVC, 
-				                          const std::string& aName1,const std::string& aName2)
+				                          const std::string& aName1,const std::string& aName2,int& NbPts)
 {
 
 	ELISE_ASSERT(int(aVC.size())==2,"cAppliFictObs::CalculateEllipseParam. Two cameras are required.");
@@ -368,6 +373,8 @@ std::cout << " ElPackHomologue  dddddddhhhhhhhhhhhhhhhhhhhhhh " << aN << " " << 
 	ElPackHomologue aPack;
 	FromHomolToPack(aVC,aName1,aName2,aPack);
 	
+	NbPts = 0;
+
 	if ( int(aPack.size()) > MinNbPtTri) 
 	{
 		for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
@@ -407,6 +414,7 @@ std::cout << " ElPackHomologue  dddddddhhhhhhhhhhhhhhhhhhhhhh " << aN << " " << 
                 
 				//	add to ellipse
 				AddEllips(anEl,aInt,aPds);
+				NbPts++;
     		}
 		}
 		
@@ -420,7 +428,7 @@ std::cout << " ElPackHomologue  dddddddhhhhhhhhhhhhhhhhhhhhhh " << aN << " " << 
 
 
 bool cAppliFictObs::CalculateEllipseParam3(cXml_Elips3D& anEl,std::vector<const CamStenope * >& aVC, 
-				                          const std::string& aName1,const std::string& aName2,const std::string& aName3)
+				                          const std::string& aName1,const std::string& aName2,const std::string& aName3,int& NbPts)
 {
 	ELISE_ASSERT(int(aVC.size())==3,"cAppliFictObs::CalculateEllipseParam. Three cameras are required.");
 
@@ -517,7 +525,7 @@ bool cAppliFictObs::CalculateEllipseParam3(cXml_Elips3D& anEl,std::vector<const 
     const tListM aLM =  aMap.ListMerged();
 
     // Intersect in 3d
-	int MinNbPtTriTmp=0;
+	NbPts=0;
 	if ( int(aLM.size()) > MinNbPtTri) 
 	{
         for (tListM::const_iterator itM=aLM.begin() ; itM!=aLM.end() ; itM++)
@@ -558,7 +566,7 @@ bool cAppliFictObs::CalculateEllipseParam3(cXml_Elips3D& anEl,std::vector<const 
  	   				//	add to ellipse
  	   				AddEllips(anEl,aInt,aPds);
 
-					MinNbPtTriTmp++;
+					NbPts++;
 				}
 				else
 					{}	//std::cout << "Residual " << aResid << " which is bigger than " << MaxReprojErr << "\n";
@@ -567,7 +575,7 @@ bool cAppliFictObs::CalculateEllipseParam3(cXml_Elips3D& anEl,std::vector<const 
  
         }
 
-		if (MinNbPtTriTmp < MinNbPtTri)
+		if (NbPts < MinNbPtTri)
 			return false;
 
 		NormEllips(anEl);
@@ -649,7 +657,7 @@ void cAppliFictObs::FromHomolToPack(std::vector<const CamStenope * >& aVC,
 {
 
     //  recover tie-pts & tracks 
-    std::string aKey = "NKS-Assoc-CplIm2Hom@"+mPrefHom+"@"+mHomExp;
+    std::string aKey = "NKS-Assoc-CplIm2Hom@"+mPrefHom+"@"+mHomExpIn;
 
     std::string aN    =  mNM->ICNM()->Assoc1To2(aKey,aName1,aName2,true);
     std::string aNInv =  mNM->ICNM()->Assoc1To2(aKey,aName2,aName1,true);
@@ -679,7 +687,7 @@ void cAppliFictObs::FromHomolToMap(std::vector<const CamStenope * >& aVC,
     bool Hom23Inv=false;
 
     //  recover tie-pts & tracks 
-    std::string aKey = "NKS-Assoc-CplIm2Hom@" + mPrefHom + "@" + mHomExp;
+    std::string aKey = "NKS-Assoc-CplIm2Hom@" + mPrefHom + "@" + mHomExpIn;
 
     std::string aN12    =  mNM->ICNM()->Assoc1To2(aKey,aName1,aName2,true);
     std::string aN12Inv =  mNM->ICNM()->Assoc1To2(aKey,aName2,aName1,true);
@@ -945,6 +953,9 @@ void cAppliFictObs::GenerateFicticiousObs()
         std::vector<Pt3dr> aVP;
 		bool SUCCESS_ELLIPSE = false;
 
+		//Nb of points that contributed to ellipsoid generation
+		int  aNbPts3D=0;
+
         //triplets
         if (aT.second->mC3)
         {
@@ -953,7 +964,8 @@ void cAppliFictObs::GenerateFicticiousObs()
 				SUCCESS_ELLIPSE = CalculateEllipseParam3(anEl,aVC,
                                       mSetName->at(aT.second->mId1),
                                       mSetName->at(aT.second->mId2),
-                                      mSetName->at(aT.second->mId3));
+                                      mSetName->at(aT.second->mId3),
+									  aNbPts3D);
 
 
 				//original tie-pts are used
@@ -964,6 +976,9 @@ void cAppliFictObs::GenerateFicticiousObs()
                                       mSetName->at(aT.second->mId2),
                                       mSetName->at(aT.second->mId3),
 									  aVP);	
+
+					aNbPts3D = int(aVP.size());
+
 					std::cout << "ORIGINAL PTS FOR: " << mSetName->at(aT.second->mId1) << " " << mSetName->at(aT.second->mId2) << " " << mSetName->at(aT.second->mId3) << "\n";
 				}
 
@@ -976,6 +991,7 @@ void cAppliFictObs::GenerateFicticiousObs()
                                                                       mSetName->at(aT.second->mId3));
                  cXml_Ori3ImInit aXml3Ori = StdGetFromSI(aName3R,Xml_Ori3ImInit);
                  anEl = aXml3Ori.Elips();
+				 aNbPts3D = aXml3Ori.NbTriplet();
 			}
         }
         else//cple
@@ -984,7 +1000,8 @@ void cAppliFictObs::GenerateFicticiousObs()
 			{
 				SUCCESS_ELLIPSE = CalculateEllipseParam2(anEl,aVC,
                                       mSetName->at(aT.second->mId1),
-                                      mSetName->at(aT.second->mId2));
+                                      mSetName->at(aT.second->mId2),
+									  aNbPts3D);
 
 
 				//original tie-pts are used
@@ -994,6 +1011,8 @@ void cAppliFictObs::GenerateFicticiousObs()
                                       mSetName->at(aT.second->mId1),
                                       mSetName->at(aT.second->mId2),
                                       aVP);
+					aNbPts3D = int(aVP.size());
+					
 					std::cout << "ORIGINAL PTS FOR: " << mSetName->at(aT.second->mId1) << " " << mSetName->at(aT.second->mId2) << "\n";
 				}
 						
@@ -1005,6 +1024,7 @@ void cAppliFictObs::GenerateFicticiousObs()
                 	                                     mSetName->at(aT.second->mId2),true);
             	cXml_Ori2Im aXml2Ori = StdGetFromSI(aNamOri,Xml_Ori2Im);
             	anEl = aXml2Ori.Geom().Val().Elips();
+				aNbPts3D = aXml2Ori.NbPts();
 			}
         } 
   
@@ -1054,8 +1074,8 @@ void cAppliFictObs::GenerateFicticiousObs()
             if (aTriIdsIn.size() >1)
             {
 
-                double aPds = CalcPoids(anEl.Pds());
-                
+                double aPds = CalcPoids(aNbPts3D);
+
                 std::vector<float> aAttr;
 
                 aAttr.push_back(aPds);
@@ -1156,7 +1176,7 @@ void cAppliFictObs::GenerateFicticiousObs()
     SaveHomol(aSaveTo);
 
     std::cout << "cAppliFictObs::GenerateFicticiousObs()" << " ";    
-    cout << " " << aNPtNum << " points saved. " << "\n";
+    cout << " " << aNPtNum << " points saved." << "\n";
 
 
 }
@@ -1164,14 +1184,15 @@ void cAppliFictObs::GenerateFicticiousObs()
 double cAppliFictObs::CalcPoids(double aPds)
 {
     double aRes=1;
-    int NbPtsMax = 500;
+    int NbPtsMax = 100;
 
     if (mPdsFun == "C")
         aRes=1.0;
     else if (mPdsFun=="L1")
         aRes= aPds / double(NbPtsMax);
     else if (mPdsFun == "L2")
-        aRes = std::pow(aPds,0.3) / std::pow(NbPtsMax,0.3);
+        aRes = 1- ((aPds*NbPtsMax) / (aPds+NbPtsMax))/aPds;
+        //aRes = std::pow(aPds,0.3) / std::pow(NbPtsMax,0.3);
 
 
     //std::cout << "CalcPoids:" << aPds << " " << aRes << "\n";
@@ -1212,19 +1233,21 @@ void cAppliFictObs::SaveHomolOne(std::vector<int>& aId,std::vector<Pt2dr>& aPImV
                     std::string aN1 = mSetName->at(aId.at(aK1));
                     std::string aN2 = mSetName->at(aId.at(aK2));
                    
-                    std::string aNameH = mNM->ICNM()->Assoc1To2("NKS-Assoc-CplIm2Hom@"+mOut+"@"+mHomExp,aN1,aN2,true);  
+                    std::string aNameH = mNM->ICNM()->Assoc1To2("NKS-Assoc-CplIm2Hom@"+mOut+"@"+mHomExpOut,aN1,aN2,true);  
 
                     if (DicBoolFind(mHomRed,aNameH))
                     {   
 
-                        ElCplePtsHomologues aP(aPImV.at(aK1),aPImV.at(aK2),aAttr.at(aK1));//a priori peut importe lequel K pour l'attribute comme il sera homogene par track ie par ellipse
+                        ElCplePtsHomologues aP(aPImV.at(aK1),aPImV.at(aK2),aAttr.at(0));//a priori peut importe lequel K pour l'attribute comme il sera homogene par track ie par ellipse
                         mHomRed[aNameH]->Cple_Add(aP);
+						
 
                     }
                 }
             }
         }
     }
+
 }
 
 /* Updates the per image residual and the global (i.e. camera res) */
@@ -1365,14 +1388,6 @@ void cAppliFictObs::Initialize()
     mNM = new cNewO_NameManager("",mPrefHom,true,mDir,mNameOriCalib,"dat");
 
  
-    //initialize reduced tie-points
-    if (NFHom)
-    {
-        mPMulRed = new cSetTiePMul(1,mSetName);
-    }
-    else
-        InitNFHom();
-
 
 
     //update triplet orientations in mTriMap
@@ -1475,6 +1490,7 @@ void cAppliFictObs::Initialize()
         }
     }
 
+
     if (aTriNb!=0)
     {
         mSz = mTriMap[0]->mC1->Sz();
@@ -1482,12 +1498,25 @@ void cAppliFictObs::Initialize()
     }
     else
         ELISE_ASSERT(false,"cAppliFictObs::Initialize no couples or triplets found");
+
+
+
+    //initialize reduced tie-points
+    if (NFHom)
+    {
+        mPMulRed = new cSetTiePMul(1,mSetName);
+    }
+    else
+        InitNFHom();
+
+
+
 }   
 
 
 void cAppliFictObs::InitNFHomOne(std::string& N1,std::string& N2)
 {
-    std::string aNameH = mNM->ICNM()->Assoc1To2("NKS-Assoc-CplIm2Hom@"+mOut+"@"+mHomExp,N1,N2,true);
+    std::string aNameH = mNM->ICNM()->Assoc1To2("NKS-Assoc-CplIm2Hom@"+mOut+"@"+mHomExpOut,N1,N2,true);
 
     if (! DicBoolFind(mHomRed,aNameH))
     {
