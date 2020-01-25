@@ -2109,6 +2109,43 @@
     <OneCmd Nb="*" RefType="Xml_Specif1MMCmd"> </OneCmd>
 </Xml_SpecifAllMMCmd>
 
+
+<Xml_ParamGraphStereopolis Nb="1" Class="true" ToReference="true">
+    <!-- Generally INS. BTW this used for trajectography -->
+    <NameGrpC Nb="1" Type="std::string"> </NameGrpC>
+    <!-- Section to compute pair between consecutives -->
+    <GS_SectionLinear Nb="?">
+         <GS_OneLinear Nb="*">
+              <!-- Take only one out of period.  For inside head, may be convenient to limite size-->
+              <Period   Nb="?" Type="int" Def="1"> </Period>  
+              <DeltaMin Nb="1" Type="int"> </DeltaMin>
+              <DeltaMax Nb="1" Type="int"> </DeltaMax> <!-- Excluded -->
+              <CpleGrp  Nb="+" Type="cCpleString"> </CpleGrp> <!-- Name val -->
+         </GS_OneLinear>
+    </GS_SectionLinear>
+
+    <!-- Section to compute "many" pair when cross happens -->
+    <GS_SectionCross Nb="?">
+        <DistMax Nb="1" Type="double"> </DistMax>
+        <DistCurvMin Nb="1" Type="double"> </DistCurvMin>
+           <!-- To avoid false cross with overlapping trajectory -->
+        <AngleMinSpeed Nb="1" Type="double"> </AngleMinSpeed>
+        <DistMinTraj   Nb="1" Type="double"> </DistMinTraj>
+        <ListCam Nb="+" Type="std::string"> </ListCam>  <!-- Not All Cam are in one bloc for cross -->
+    </GS_SectionCross>
+
+    <!-- Section to compute pair with overlaping trajectory  -->
+    <GS_SectionOverlapingTraj Nb="?">
+        <AngleMaxSpeed Nb="1" Type="double"> </AngleMaxSpeed>
+        <DistMaxTraj   Nb="1" Type="double"> </DistMaxTraj>
+        <OneInterv_OT Nb="+">
+            <DistMax Nb="1" Type="double"> </DistMax>
+            <CpleGrp  Nb="+" Type="cCpleString"> </CpleGrp> <!-- Name val -->
+        </OneInterv_OT>
+    </GS_SectionOverlapingTraj>
+
+</Xml_ParamGraphStereopolis>
+
 <Verbatim File=".h.cpp">
 // };
 </Verbatim>

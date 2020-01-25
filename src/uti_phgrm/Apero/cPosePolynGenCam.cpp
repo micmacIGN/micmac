@@ -80,6 +80,10 @@ tGrApero::TSom * cGenPoseCam::Som()
    return mSom;
 }
 
+void cGenPoseCam::UseRappelOnPose() const 
+{
+}
+
 
 
 bool cGenPoseCam::PreInit() const { return mPreInit; }

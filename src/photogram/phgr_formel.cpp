@@ -268,21 +268,23 @@ void cElemEqFormelle::SetValAndInit(REAL aVal,INT anIndGlob)
 
 cElemEqFormelle::tContFcteur  cElemEqFormelle::FoncRappInit(INT i0,INT i1)
 {
-
-/*
-if (0)
-{
-   for (int i=i0 ; i<i1  ; i++)
-      std::cout << "VALSSINIT" << mValsInit[i] << "\n";
-}
-*/
-
    return FoncRapp(i0,i1,&(mValsInit[0]));
 }
 
-void cElemEqFormelle::AddFoncRappInit(cMultiContEQF & aPush,INT i0,INT i1,double aTol)
+void cElemEqFormelle::AddFoncRappInit
+     (
+         cMultiContEQF & aPush,
+         INT i0,
+         INT i1,
+         double aTol,
+         std::vector<double>* aVals
+     )
 {
-    tContFcteur aPlus = FoncRappInit(i0,i1);
+    if (aVals)
+    {
+       ELISE_ASSERT(int(aVals->size())==(i1-i0),"AddFoncRappInit size vals incoherent ");
+    }
+    tContFcteur aPlus =  aVals ? FoncRapp(i0,i1,&((*aVals)[0])-i0)  :  FoncRappInit(i0,i1);
     for (INT aK=0; aK<INT(aPlus.size()) ; aK++)
          aPush.AddAcontrainte(aPlus[aK],aTol);
 }

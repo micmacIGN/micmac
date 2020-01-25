@@ -6994,11 +6994,6 @@ const Pt2dr & cOneMesureAF1I::PtIm()const
    return mPtIm;
 }
 
-void cOneMesureAF1I::SetPtIm(Pt2dr & aPt)
-{
-    mPtIm = aPt;
-}
-
 void  BinaryUnDumpFromFile(cOneMesureAF1I & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -24418,5 +24413,684 @@ void xml_init(cXml_SpecifAllMMCmd & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cXml_SpecifAllMMCmd *) {return "20390C65F56AF2DEFB3F";};
+
+
+cTplValGesInit< int > & cGS_OneLinear::Period()
+{
+   return mPeriod;
+}
+
+const cTplValGesInit< int > & cGS_OneLinear::Period()const 
+{
+   return mPeriod;
+}
+
+
+int & cGS_OneLinear::DeltaMin()
+{
+   return mDeltaMin;
+}
+
+const int & cGS_OneLinear::DeltaMin()const 
+{
+   return mDeltaMin;
+}
+
+
+int & cGS_OneLinear::DeltaMax()
+{
+   return mDeltaMax;
+}
+
+const int & cGS_OneLinear::DeltaMax()const 
+{
+   return mDeltaMax;
+}
+
+
+std::list< cCpleString > & cGS_OneLinear::CpleGrp()
+{
+   return mCpleGrp;
+}
+
+const std::list< cCpleString > & cGS_OneLinear::CpleGrp()const 
+{
+   return mCpleGrp;
+}
+
+void  BinaryUnDumpFromFile(cGS_OneLinear & anObj,ELISE_fp & aFp)
+{
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Period().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Period().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Period().SetNoInit();
+  } ;
+    BinaryUnDumpFromFile(anObj.DeltaMin(),aFp);
+    BinaryUnDumpFromFile(anObj.DeltaMax(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cCpleString aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.CpleGrp().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cGS_OneLinear & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Period().IsInit());
+    if (anObj.Period().IsInit()) BinaryDumpInFile(aFp,anObj.Period().Val());
+    BinaryDumpInFile(aFp,anObj.DeltaMin());
+    BinaryDumpInFile(aFp,anObj.DeltaMax());
+    BinaryDumpInFile(aFp,(int)anObj.CpleGrp().size());
+    for(  std::list< cCpleString >::const_iterator iT=anObj.CpleGrp().begin();
+         iT!=anObj.CpleGrp().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cGS_OneLinear & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"GS_OneLinear",eXMLBranche);
+   if (anObj.Period().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Period"),anObj.Period().Val())->ReTagThis("Period"));
+   aRes->AddFils(::ToXMLTree(std::string("DeltaMin"),anObj.DeltaMin())->ReTagThis("DeltaMin"));
+   aRes->AddFils(::ToXMLTree(std::string("DeltaMax"),anObj.DeltaMax())->ReTagThis("DeltaMax"));
+  for
+  (       std::list< cCpleString >::const_iterator it=anObj.CpleGrp().begin();
+      it !=anObj.CpleGrp().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("CpleGrp"),(*it))->ReTagThis("CpleGrp"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cGS_OneLinear & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Period(),aTree->Get("Period",1),int(1)); //tototo 
+
+   xml_init(anObj.DeltaMin(),aTree->Get("DeltaMin",1)); //tototo 
+
+   xml_init(anObj.DeltaMax(),aTree->Get("DeltaMax",1)); //tototo 
+
+   xml_init(anObj.CpleGrp(),aTree->GetAll("CpleGrp",false,1));
+}
+
+std::string  Mangling( cGS_OneLinear *) {return "58A1E21FDC4D6BC8FDBF";};
+
+
+std::list< cGS_OneLinear > & cGS_SectionLinear::GS_OneLinear()
+{
+   return mGS_OneLinear;
+}
+
+const std::list< cGS_OneLinear > & cGS_SectionLinear::GS_OneLinear()const 
+{
+   return mGS_OneLinear;
+}
+
+void  BinaryUnDumpFromFile(cGS_SectionLinear & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cGS_OneLinear aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.GS_OneLinear().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cGS_SectionLinear & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.GS_OneLinear().size());
+    for(  std::list< cGS_OneLinear >::const_iterator iT=anObj.GS_OneLinear().begin();
+         iT!=anObj.GS_OneLinear().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cGS_SectionLinear & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"GS_SectionLinear",eXMLBranche);
+  for
+  (       std::list< cGS_OneLinear >::const_iterator it=anObj.GS_OneLinear().begin();
+      it !=anObj.GS_OneLinear().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("GS_OneLinear"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cGS_SectionLinear & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.GS_OneLinear(),aTree->GetAll("GS_OneLinear",false,1));
+}
+
+std::string  Mangling( cGS_SectionLinear *) {return "5AD3092E3A64FEC0FE3F";};
+
+
+double & cGS_SectionCross::DistMax()
+{
+   return mDistMax;
+}
+
+const double & cGS_SectionCross::DistMax()const 
+{
+   return mDistMax;
+}
+
+
+double & cGS_SectionCross::DistCurvMin()
+{
+   return mDistCurvMin;
+}
+
+const double & cGS_SectionCross::DistCurvMin()const 
+{
+   return mDistCurvMin;
+}
+
+
+double & cGS_SectionCross::AngleMinSpeed()
+{
+   return mAngleMinSpeed;
+}
+
+const double & cGS_SectionCross::AngleMinSpeed()const 
+{
+   return mAngleMinSpeed;
+}
+
+
+double & cGS_SectionCross::DistMinTraj()
+{
+   return mDistMinTraj;
+}
+
+const double & cGS_SectionCross::DistMinTraj()const 
+{
+   return mDistMinTraj;
+}
+
+
+std::list< std::string > & cGS_SectionCross::ListCam()
+{
+   return mListCam;
+}
+
+const std::list< std::string > & cGS_SectionCross::ListCam()const 
+{
+   return mListCam;
+}
+
+void  BinaryUnDumpFromFile(cGS_SectionCross & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.DistMax(),aFp);
+    BinaryUnDumpFromFile(anObj.DistCurvMin(),aFp);
+    BinaryUnDumpFromFile(anObj.AngleMinSpeed(),aFp);
+    BinaryUnDumpFromFile(anObj.DistMinTraj(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             std::string aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.ListCam().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cGS_SectionCross & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.DistMax());
+    BinaryDumpInFile(aFp,anObj.DistCurvMin());
+    BinaryDumpInFile(aFp,anObj.AngleMinSpeed());
+    BinaryDumpInFile(aFp,anObj.DistMinTraj());
+    BinaryDumpInFile(aFp,(int)anObj.ListCam().size());
+    for(  std::list< std::string >::const_iterator iT=anObj.ListCam().begin();
+         iT!=anObj.ListCam().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cGS_SectionCross & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"GS_SectionCross",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("DistMax"),anObj.DistMax())->ReTagThis("DistMax"));
+   aRes->AddFils(::ToXMLTree(std::string("DistCurvMin"),anObj.DistCurvMin())->ReTagThis("DistCurvMin"));
+   aRes->AddFils(::ToXMLTree(std::string("AngleMinSpeed"),anObj.AngleMinSpeed())->ReTagThis("AngleMinSpeed"));
+   aRes->AddFils(::ToXMLTree(std::string("DistMinTraj"),anObj.DistMinTraj())->ReTagThis("DistMinTraj"));
+  for
+  (       std::list< std::string >::const_iterator it=anObj.ListCam().begin();
+      it !=anObj.ListCam().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("ListCam"),(*it))->ReTagThis("ListCam"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cGS_SectionCross & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.DistMax(),aTree->Get("DistMax",1)); //tototo 
+
+   xml_init(anObj.DistCurvMin(),aTree->Get("DistCurvMin",1)); //tototo 
+
+   xml_init(anObj.AngleMinSpeed(),aTree->Get("AngleMinSpeed",1)); //tototo 
+
+   xml_init(anObj.DistMinTraj(),aTree->Get("DistMinTraj",1)); //tototo 
+
+   xml_init(anObj.ListCam(),aTree->GetAll("ListCam",false,1));
+}
+
+std::string  Mangling( cGS_SectionCross *) {return "1722A5927232D4EEFC3F";};
+
+
+double & cOneInterv_OT::DistMax()
+{
+   return mDistMax;
+}
+
+const double & cOneInterv_OT::DistMax()const 
+{
+   return mDistMax;
+}
+
+
+std::list< cCpleString > & cOneInterv_OT::CpleGrp()
+{
+   return mCpleGrp;
+}
+
+const std::list< cCpleString > & cOneInterv_OT::CpleGrp()const 
+{
+   return mCpleGrp;
+}
+
+void  BinaryUnDumpFromFile(cOneInterv_OT & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.DistMax(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cCpleString aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.CpleGrp().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cOneInterv_OT & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.DistMax());
+    BinaryDumpInFile(aFp,(int)anObj.CpleGrp().size());
+    for(  std::list< cCpleString >::const_iterator iT=anObj.CpleGrp().begin();
+         iT!=anObj.CpleGrp().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cOneInterv_OT & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OneInterv_OT",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("DistMax"),anObj.DistMax())->ReTagThis("DistMax"));
+  for
+  (       std::list< cCpleString >::const_iterator it=anObj.CpleGrp().begin();
+      it !=anObj.CpleGrp().end();
+      it++
+  ) 
+      aRes->AddFils(::ToXMLTree(std::string("CpleGrp"),(*it))->ReTagThis("CpleGrp"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cOneInterv_OT & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.DistMax(),aTree->Get("DistMax",1)); //tototo 
+
+   xml_init(anObj.CpleGrp(),aTree->GetAll("CpleGrp",false,1));
+}
+
+std::string  Mangling( cOneInterv_OT *) {return "58C0CB36EE31F8ABFA3F";};
+
+
+double & cGS_SectionOverlapingTraj::AngleMaxSpeed()
+{
+   return mAngleMaxSpeed;
+}
+
+const double & cGS_SectionOverlapingTraj::AngleMaxSpeed()const 
+{
+   return mAngleMaxSpeed;
+}
+
+
+double & cGS_SectionOverlapingTraj::DistMaxTraj()
+{
+   return mDistMaxTraj;
+}
+
+const double & cGS_SectionOverlapingTraj::DistMaxTraj()const 
+{
+   return mDistMaxTraj;
+}
+
+
+std::list< cOneInterv_OT > & cGS_SectionOverlapingTraj::OneInterv_OT()
+{
+   return mOneInterv_OT;
+}
+
+const std::list< cOneInterv_OT > & cGS_SectionOverlapingTraj::OneInterv_OT()const 
+{
+   return mOneInterv_OT;
+}
+
+void  BinaryUnDumpFromFile(cGS_SectionOverlapingTraj & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.AngleMaxSpeed(),aFp);
+    BinaryUnDumpFromFile(anObj.DistMaxTraj(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cOneInterv_OT aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.OneInterv_OT().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cGS_SectionOverlapingTraj & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.AngleMaxSpeed());
+    BinaryDumpInFile(aFp,anObj.DistMaxTraj());
+    BinaryDumpInFile(aFp,(int)anObj.OneInterv_OT().size());
+    for(  std::list< cOneInterv_OT >::const_iterator iT=anObj.OneInterv_OT().begin();
+         iT!=anObj.OneInterv_OT().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cGS_SectionOverlapingTraj & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"GS_SectionOverlapingTraj",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("AngleMaxSpeed"),anObj.AngleMaxSpeed())->ReTagThis("AngleMaxSpeed"));
+   aRes->AddFils(::ToXMLTree(std::string("DistMaxTraj"),anObj.DistMaxTraj())->ReTagThis("DistMaxTraj"));
+  for
+  (       std::list< cOneInterv_OT >::const_iterator it=anObj.OneInterv_OT().begin();
+      it !=anObj.OneInterv_OT().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("OneInterv_OT"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cGS_SectionOverlapingTraj & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.AngleMaxSpeed(),aTree->Get("AngleMaxSpeed",1)); //tototo 
+
+   xml_init(anObj.DistMaxTraj(),aTree->Get("DistMaxTraj",1)); //tototo 
+
+   xml_init(anObj.OneInterv_OT(),aTree->GetAll("OneInterv_OT",false,1));
+}
+
+std::string  Mangling( cGS_SectionOverlapingTraj *) {return "DB47F3DDFF7A7AEDFD3F";};
+
+
+std::string & cXml_ParamGraphStereopolis::NameGrpC()
+{
+   return mNameGrpC;
+}
+
+const std::string & cXml_ParamGraphStereopolis::NameGrpC()const 
+{
+   return mNameGrpC;
+}
+
+
+std::list< cGS_OneLinear > & cXml_ParamGraphStereopolis::GS_OneLinear()
+{
+   return GS_SectionLinear().Val().GS_OneLinear();
+}
+
+const std::list< cGS_OneLinear > & cXml_ParamGraphStereopolis::GS_OneLinear()const 
+{
+   return GS_SectionLinear().Val().GS_OneLinear();
+}
+
+
+cTplValGesInit< cGS_SectionLinear > & cXml_ParamGraphStereopolis::GS_SectionLinear()
+{
+   return mGS_SectionLinear;
+}
+
+const cTplValGesInit< cGS_SectionLinear > & cXml_ParamGraphStereopolis::GS_SectionLinear()const 
+{
+   return mGS_SectionLinear;
+}
+
+
+double & cXml_ParamGraphStereopolis::DistMax()
+{
+   return GS_SectionCross().Val().DistMax();
+}
+
+const double & cXml_ParamGraphStereopolis::DistMax()const 
+{
+   return GS_SectionCross().Val().DistMax();
+}
+
+
+double & cXml_ParamGraphStereopolis::DistCurvMin()
+{
+   return GS_SectionCross().Val().DistCurvMin();
+}
+
+const double & cXml_ParamGraphStereopolis::DistCurvMin()const 
+{
+   return GS_SectionCross().Val().DistCurvMin();
+}
+
+
+double & cXml_ParamGraphStereopolis::AngleMinSpeed()
+{
+   return GS_SectionCross().Val().AngleMinSpeed();
+}
+
+const double & cXml_ParamGraphStereopolis::AngleMinSpeed()const 
+{
+   return GS_SectionCross().Val().AngleMinSpeed();
+}
+
+
+double & cXml_ParamGraphStereopolis::DistMinTraj()
+{
+   return GS_SectionCross().Val().DistMinTraj();
+}
+
+const double & cXml_ParamGraphStereopolis::DistMinTraj()const 
+{
+   return GS_SectionCross().Val().DistMinTraj();
+}
+
+
+std::list< std::string > & cXml_ParamGraphStereopolis::ListCam()
+{
+   return GS_SectionCross().Val().ListCam();
+}
+
+const std::list< std::string > & cXml_ParamGraphStereopolis::ListCam()const 
+{
+   return GS_SectionCross().Val().ListCam();
+}
+
+
+cTplValGesInit< cGS_SectionCross > & cXml_ParamGraphStereopolis::GS_SectionCross()
+{
+   return mGS_SectionCross;
+}
+
+const cTplValGesInit< cGS_SectionCross > & cXml_ParamGraphStereopolis::GS_SectionCross()const 
+{
+   return mGS_SectionCross;
+}
+
+
+double & cXml_ParamGraphStereopolis::AngleMaxSpeed()
+{
+   return GS_SectionOverlapingTraj().Val().AngleMaxSpeed();
+}
+
+const double & cXml_ParamGraphStereopolis::AngleMaxSpeed()const 
+{
+   return GS_SectionOverlapingTraj().Val().AngleMaxSpeed();
+}
+
+
+double & cXml_ParamGraphStereopolis::DistMaxTraj()
+{
+   return GS_SectionOverlapingTraj().Val().DistMaxTraj();
+}
+
+const double & cXml_ParamGraphStereopolis::DistMaxTraj()const 
+{
+   return GS_SectionOverlapingTraj().Val().DistMaxTraj();
+}
+
+
+std::list< cOneInterv_OT > & cXml_ParamGraphStereopolis::OneInterv_OT()
+{
+   return GS_SectionOverlapingTraj().Val().OneInterv_OT();
+}
+
+const std::list< cOneInterv_OT > & cXml_ParamGraphStereopolis::OneInterv_OT()const 
+{
+   return GS_SectionOverlapingTraj().Val().OneInterv_OT();
+}
+
+
+cTplValGesInit< cGS_SectionOverlapingTraj > & cXml_ParamGraphStereopolis::GS_SectionOverlapingTraj()
+{
+   return mGS_SectionOverlapingTraj;
+}
+
+const cTplValGesInit< cGS_SectionOverlapingTraj > & cXml_ParamGraphStereopolis::GS_SectionOverlapingTraj()const 
+{
+   return mGS_SectionOverlapingTraj;
+}
+
+void  BinaryUnDumpFromFile(cXml_ParamGraphStereopolis & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameGrpC(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.GS_SectionLinear().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.GS_SectionLinear().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.GS_SectionLinear().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.GS_SectionCross().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.GS_SectionCross().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.GS_SectionCross().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.GS_SectionOverlapingTraj().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.GS_SectionOverlapingTraj().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.GS_SectionOverlapingTraj().SetNoInit();
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ParamGraphStereopolis & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameGrpC());
+    BinaryDumpInFile(aFp,anObj.GS_SectionLinear().IsInit());
+    if (anObj.GS_SectionLinear().IsInit()) BinaryDumpInFile(aFp,anObj.GS_SectionLinear().Val());
+    BinaryDumpInFile(aFp,anObj.GS_SectionCross().IsInit());
+    if (anObj.GS_SectionCross().IsInit()) BinaryDumpInFile(aFp,anObj.GS_SectionCross().Val());
+    BinaryDumpInFile(aFp,anObj.GS_SectionOverlapingTraj().IsInit());
+    if (anObj.GS_SectionOverlapingTraj().IsInit()) BinaryDumpInFile(aFp,anObj.GS_SectionOverlapingTraj().Val());
+}
+
+cElXMLTree * ToXMLTree(const cXml_ParamGraphStereopolis & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_ParamGraphStereopolis",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameGrpC"),anObj.NameGrpC())->ReTagThis("NameGrpC"));
+   if (anObj.GS_SectionLinear().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.GS_SectionLinear().Val())->ReTagThis("GS_SectionLinear"));
+   if (anObj.GS_SectionCross().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.GS_SectionCross().Val())->ReTagThis("GS_SectionCross"));
+   if (anObj.GS_SectionOverlapingTraj().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.GS_SectionOverlapingTraj().Val())->ReTagThis("GS_SectionOverlapingTraj"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_ParamGraphStereopolis & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NameGrpC(),aTree->Get("NameGrpC",1)); //tototo 
+
+   xml_init(anObj.GS_SectionLinear(),aTree->Get("GS_SectionLinear",1)); //tototo 
+
+   xml_init(anObj.GS_SectionCross(),aTree->Get("GS_SectionCross",1)); //tototo 
+
+   xml_init(anObj.GS_SectionOverlapingTraj(),aTree->Get("GS_SectionOverlapingTraj",1)); //tototo 
+}
+
+std::string  Mangling( cXml_ParamGraphStereopolis *) {return "C81DA2EEDFC08691FB3F";};
 
 // };

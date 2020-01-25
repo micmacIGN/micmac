@@ -414,6 +414,7 @@ class cGenPoseCam
          tGrApero::TSom * Som();
          virtual Pt2di SzCalib() const = 0;
     protected :
+          virtual void UseRappelOnPose() const;
           cGenPoseCam(cAppliApero & anAppli,const std::string & aName);
    
           cAppliApero & mAppli;
@@ -638,6 +639,7 @@ class cPoseCam : public cGenPoseCam
           void   SetPreCompBloc(cPreCompBloc *);
           cPreCB1Pose *  GetPreCB1Pose(bool SVP) const; // SVP => can be 0
           void  SetPreCB1Pose(cPreCB1Pose *);
+          void UseRappelOnPose() const override;
      private  :
 
           void AssertHasObsCentre() const;

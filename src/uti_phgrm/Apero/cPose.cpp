@@ -2308,7 +2308,8 @@ if  (mSRI && MPD_MM())
     mUseRappelPose = mAppli.PtrRP()  &&  mAppli.PtrRP()->PatternApply()->Match(mName);
     if (mUseRappelPose)
     {
-        mRotURP = mAppli.Orient(mAppli.PtrRP()->Id(),mName);
+        CamStenope * aCS = mAppli.ICNM()->StdCamStenOfNames(mName,mAppli.PtrRP()->IdOrient());
+        mRotURP = aCS->Orient().inv();
     }
 
     double aLMG = mAppli.Param().LimModeGL().Val();
@@ -2377,6 +2378,21 @@ if  (mSRI && MPD_MM())
              mAppli.CheckInit(theLiasInit,this);
     }
 }
+
+
+void cPoseCam::UseRappelOnPose() const 
+{
+   if (! mUseRappelPose) return;
+
+   double aPdsC  = 1/ElSquare(mAppli.PtrRP()->SigmaC());
+   Pt3dr aPtPdsC(aPdsC,aPdsC,aPdsC);
+   double aPdsR  = 1/ElSquare(mAppli.PtrRP()->SigmaR());
+   Pt3dr aPtPdsR (aPdsR,aPdsR,aPdsR);
+   mRF->AddRappOnRot(mRotURP,aPtPdsC,aPtPdsR);
+
+   // std::cout << "NAME RAPPELE ON POSE =" << mName << "\n";
+}
+
 
 void cPoseCam::AffineRot()
 {

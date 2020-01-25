@@ -41,6 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define DEF_OFSET -12349876
 
+int Recover_Main(int argc, char ** argv);
+
 int XLib_Main(int argc, char ** argv);
 
 const cArgLogCom cArgLogCom::NoLog(-1);
@@ -256,6 +258,8 @@ int DroneFootPrint(int argc,char ** argv);
 int Image_Vide(int argc,char ** argv);
 int  PPMD_MatEss2Orient(int argc,char ** argv);
 
+int GrapheStereopolis_main(int argc,char ** argv);
+
 
 
 std::vector<cMMCom>&  AddLib(std::vector<cMMCom> & aVC, const std::string & aLib)
@@ -370,6 +374,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("CenterBascule", CentreBascule_main, " Relative to absolute using embedded GPS", cArgLogCom(2)));
 
 		aRes.push_back(cMMCom("GrapheHom", GrapheHom_main, "Compute XML-Visibility graph from approximate orientation", cArgLogCom(3)));
+		aRes.push_back(cMMCom("GrapheStereopolis", GrapheStereopolis_main,"Compute Pair of Image for Stereopolis", cArgLogCom(2)));
 		aRes.push_back(cMMCom("GCPConvert", GCP_Txt2Xml_main, "Convert GCP from Txt 2 XML", cArgLogCom(3)));
 		aRes.push_back(cMMCom("OriConvert", Ori_Txt2Xml_main, "Convert Orientation from Txt 2 XML", cArgLogCom(3)));
 		aRes.push_back(cMMCom("OriExport", OriExport_main, "Export orientation from XML to XML or TXT with specified convention", cArgLogCom(3)));
@@ -477,6 +482,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("TestChantier", TestChantier_main, " Test global acquisition"));
 
 		aRes.push_back(cMMCom("TestKey", TestSet_main, " Test Keys for Sets and Assoc"));
+		aRes.push_back(cMMCom("Recover", Recover_Main, " Basic tool for recover files"));
 		aRes.push_back(cMMCom("TestNameCalib", TestNameCalib_main, " Test Name of calibration"));
 		aRes.push_back(cMMCom("TestMTD", TestMTD_main, " Test meta data of image"));
 		aRes.push_back(cMMCom("TestCmds", TestCmds_main, " Test MM3D commands on micmac_data sets"));
