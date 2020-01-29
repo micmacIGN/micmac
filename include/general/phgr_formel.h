@@ -453,7 +453,8 @@ class  cElemEqFormelle :  public cNameSpaceEqF
             const  cIncIntervale & IncInterv() const;
             cIncIntervale & IncInterv() ;
             tContFcteur & AllFonct();
-	    void  AddFoncRappInit(cMultiContEQF &,INT i0,INT i1,double aTol);
+            // Is aVals given, its not on init value but on vals, then its size must be equal to i1-i0
+	    void  AddFoncRappInit(cMultiContEQF &,INT i0,INT i1,double aTol,std::vector<double>* aVals=nullptr);
             REAL AddRappViscosite
                  (
                       const std::string  & aContexte,
@@ -1539,6 +1540,8 @@ class cRotationFormelle : public cElemEqFormelle,
 	   void  SetTolCentre(double);
 
            Pt3dr AddRappOnCentre(const Pt3dr & aVal,const Pt3dr & aPds,bool WithDerSec);
+           void  AddRappOnRot(const ElRotation3D &  aRot,const Pt3dr & aPdsC,const Pt3dr & aPdsRot);
+
            void ReactuFcteurRapCoU();
 
            // cMatr_Etat_PhgrF &  MatGL(bool) ;     // Mode Gimbal Lock

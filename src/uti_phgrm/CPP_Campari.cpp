@@ -453,6 +453,7 @@ class cAppli_Campari : public cAppli_Tapas_Campari
        std::string  mStrDebugVTP;  // Debug sur les tie points
 
        int  mNumPtsAttrNewF;
+       std::vector<std::string>  mROP;
 };
 
 
@@ -580,6 +581,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(mStrDebugVTP,"StrDebugVTP",true,"String of debug for tie points")
 
                     << EAM(mNumPtsAttrNewF,"NAWNF",true,"Num Attribute for Weigthing in New Format")
+                    << EAM(mROP,"ROP",true,"Rappel On Pose [IdOr,SigmaC,SigmaOr,Pattern]")
 
     );
 
@@ -807,6 +809,19 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         {
            mCom = mCom + " +NumAttrPdsNewF=" + ToString(mNumPtsAttrNewF) + " ";
         }
+
+        if (EAMIsInit(&mROP))
+        {
+           ELISE_ASSERT(mROP.size()==4,"Bad size for Rappel On Pose (ROP)");
+           StdCorrecNameOrient(mROP.at(0),mDir);
+           mCom = mCom +  " +WithROP=true"
+                       +  " +ROPOrient="+ mROP.at(0)
+                       +  " +ROPSigmaC="+ mROP.at(1)
+                       +  " +ROPSigmaR="+ mROP.at(2)
+                       +  " +ROPPattern="+ QUOTE(mROP.at(3))
+                       +  " ";
+        }
+    
 
         if (aSetHom=="NONE")
         {

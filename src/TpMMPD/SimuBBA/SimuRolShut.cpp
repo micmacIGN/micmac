@@ -842,15 +842,16 @@ int ReechRolShutV1_main(int argc, char ** argv)
         for(auto & aMAF : aLMAF)
         {
             std::string aNameIm = aMAF.NameIm();
-            std::list<cOneMesureAF1I> & aMes = aMAF.OneMesureAF1I();
+            //std::list<cOneMesureAF1I> & aMes = aMAF.OneMesureAF1I();
             std::cout << aNameIm << endl;
 
-            for(auto & aOneMes : aMes)
+            for(auto & aOneMes : aMAF.OneMesureAF1I())
             {
                 Pt2dr aPt = aOneMes.PtIm();
                 std::cout << aOneMes.NamePt() << " before:" << aOneMes.PtIm();
                 Pt2dr aNewPt = Pt2dr(aPt.x,aPt.y*aMapReechScale[aNameIm]);
-                aOneMes.SetPtIm(aNewPt);
+                // aOneMes.SetPtIm(aNewPt); ==> MPD D'OU VIENT CETTE FONCTION ??? COMPILE PAS
+                aOneMes.PtIm() = aNewPt;
                 std::cout << " after:" << aOneMes.PtIm() << endl;
             }
         }

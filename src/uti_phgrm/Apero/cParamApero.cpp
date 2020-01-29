@@ -10593,36 +10593,36 @@ void xml_init(cSectionInconnues & anObj,cElXMLTree * aTree)
 std::string  Mangling( cSectionInconnues *) {return "4CECE2192C59959DFE3F";};
 
 
-std::string & cRappelPose::Id()
+std::string & cRappelPose::IdOrient()
 {
-   return mId;
+   return mIdOrient;
 }
 
-const std::string & cRappelPose::Id()const 
+const std::string & cRappelPose::IdOrient()const 
 {
-   return mId;
-}
-
-
-double & cRappelPose::PdsCentre()
-{
-   return mPdsCentre;
-}
-
-const double & cRappelPose::PdsCentre()const 
-{
-   return mPdsCentre;
+   return mIdOrient;
 }
 
 
-double & cRappelPose::PdsOrient()
+double & cRappelPose::SigmaC()
 {
-   return mPdsOrient;
+   return mSigmaC;
 }
 
-const double & cRappelPose::PdsOrient()const 
+const double & cRappelPose::SigmaC()const 
 {
-   return mPdsOrient;
+   return mSigmaC;
+}
+
+
+double & cRappelPose::SigmaR()
+{
+   return mSigmaR;
+}
+
+const double & cRappelPose::SigmaR()const 
+{
+   return mSigmaR;
 }
 
 
@@ -10638,17 +10638,17 @@ const cElRegex_Ptr & cRappelPose::PatternApply()const
 
 void  BinaryUnDumpFromFile(cRappelPose & anObj,ELISE_fp & aFp)
 {
-     BinaryUnDumpFromFile(anObj.Id(),aFp);
-    BinaryUnDumpFromFile(anObj.PdsCentre(),aFp);
-    BinaryUnDumpFromFile(anObj.PdsOrient(),aFp);
+     BinaryUnDumpFromFile(anObj.IdOrient(),aFp);
+    BinaryUnDumpFromFile(anObj.SigmaC(),aFp);
+    BinaryUnDumpFromFile(anObj.SigmaR(),aFp);
     BinaryUnDumpFromFile(anObj.PatternApply(),aFp);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cRappelPose & anObj)
 {
-    BinaryDumpInFile(aFp,anObj.Id());
-    BinaryDumpInFile(aFp,anObj.PdsCentre());
-    BinaryDumpInFile(aFp,anObj.PdsOrient());
+    BinaryDumpInFile(aFp,anObj.IdOrient());
+    BinaryDumpInFile(aFp,anObj.SigmaC());
+    BinaryDumpInFile(aFp,anObj.SigmaR());
     BinaryDumpInFile(aFp,anObj.PatternApply());
 }
 
@@ -10656,9 +10656,9 @@ cElXMLTree * ToXMLTree(const cRappelPose & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"RappelPose",eXMLBranche);
-   aRes->AddFils(::ToXMLTree(std::string("Id"),anObj.Id())->ReTagThis("Id"));
-   aRes->AddFils(::ToXMLTree(std::string("PdsCentre"),anObj.PdsCentre())->ReTagThis("PdsCentre"));
-   aRes->AddFils(::ToXMLTree(std::string("PdsOrient"),anObj.PdsOrient())->ReTagThis("PdsOrient"));
+   aRes->AddFils(::ToXMLTree(std::string("IdOrient"),anObj.IdOrient())->ReTagThis("IdOrient"));
+   aRes->AddFils(::ToXMLTree(std::string("SigmaC"),anObj.SigmaC())->ReTagThis("SigmaC"));
+   aRes->AddFils(::ToXMLTree(std::string("SigmaR"),anObj.SigmaR())->ReTagThis("SigmaR"));
    aRes->AddFils(::ToXMLTree(std::string("PatternApply"),anObj.PatternApply())->ReTagThis("PatternApply"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
@@ -10670,16 +10670,16 @@ void xml_init(cRappelPose & anObj,cElXMLTree * aTree)
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
 
-   xml_init(anObj.Id(),aTree->Get("Id",1)); //tototo 
+   xml_init(anObj.IdOrient(),aTree->Get("IdOrient",1)); //tototo 
 
-   xml_init(anObj.PdsCentre(),aTree->Get("PdsCentre",1)); //tototo 
+   xml_init(anObj.SigmaC(),aTree->Get("SigmaC",1)); //tototo 
 
-   xml_init(anObj.PdsOrient(),aTree->Get("PdsOrient",1)); //tototo 
+   xml_init(anObj.SigmaR(),aTree->Get("SigmaR",1)); //tototo 
 
    xml_init(anObj.PatternApply(),aTree->Get("PatternApply",1)); //tototo 
 }
 
-std::string  Mangling( cRappelPose *) {return "3A8AAFCD102ADFADFE3F";};
+std::string  Mangling( cRappelPose *) {return "B7342D8BF89C60F2FE3F";};
 
 
 cTplValGesInit< double > & cUseExportImageResidu::SzByPair()
@@ -10914,36 +10914,36 @@ void xml_init(cTimeLinkage & anObj,cElXMLTree * aTree)
 std::string  Mangling( cTimeLinkage *) {return "BEB337D7A41F8CD1FD3F";};
 
 
-std::string & cSectionChantier::Id()
+std::string & cSectionChantier::IdOrient()
 {
-   return RappelPose().Val().Id();
+   return RappelPose().Val().IdOrient();
 }
 
-const std::string & cSectionChantier::Id()const 
+const std::string & cSectionChantier::IdOrient()const 
 {
-   return RappelPose().Val().Id();
-}
-
-
-double & cSectionChantier::PdsCentre()
-{
-   return RappelPose().Val().PdsCentre();
-}
-
-const double & cSectionChantier::PdsCentre()const 
-{
-   return RappelPose().Val().PdsCentre();
+   return RappelPose().Val().IdOrient();
 }
 
 
-double & cSectionChantier::PdsOrient()
+double & cSectionChantier::SigmaC()
 {
-   return RappelPose().Val().PdsOrient();
+   return RappelPose().Val().SigmaC();
 }
 
-const double & cSectionChantier::PdsOrient()const 
+const double & cSectionChantier::SigmaC()const 
 {
-   return RappelPose().Val().PdsOrient();
+   return RappelPose().Val().SigmaC();
+}
+
+
+double & cSectionChantier::SigmaR()
+{
+   return RappelPose().Val().SigmaR();
+}
+
+const double & cSectionChantier::SigmaR()const 
+{
+   return RappelPose().Val().SigmaR();
 }
 
 
@@ -11793,7 +11793,7 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    xml_init(anObj.ExportMatrixMarket(),aTree->Get("ExportMatrixMarket",1),bool(false)); //tototo 
 }
 
-std::string  Mangling( cSectionChantier *) {return "BCC79A91A32077D5FCBF";};
+std::string  Mangling( cSectionChantier *) {return "4CE89E5872B0B5CFFC3F";};
 
 
 cTplValGesInit< bool > & cSectionSolveur::AllMatSym()
@@ -26644,36 +26644,36 @@ const cSectionInconnues & cParamApero::SectionInconnues()const
 }
 
 
-std::string & cParamApero::Id()
+std::string & cParamApero::IdOrient()
 {
-   return SectionChantier().RappelPose().Val().Id();
+   return SectionChantier().RappelPose().Val().IdOrient();
 }
 
-const std::string & cParamApero::Id()const 
+const std::string & cParamApero::IdOrient()const 
 {
-   return SectionChantier().RappelPose().Val().Id();
-}
-
-
-double & cParamApero::PdsCentre()
-{
-   return SectionChantier().RappelPose().Val().PdsCentre();
-}
-
-const double & cParamApero::PdsCentre()const 
-{
-   return SectionChantier().RappelPose().Val().PdsCentre();
+   return SectionChantier().RappelPose().Val().IdOrient();
 }
 
 
-double & cParamApero::PdsOrient()
+double & cParamApero::SigmaC()
 {
-   return SectionChantier().RappelPose().Val().PdsOrient();
+   return SectionChantier().RappelPose().Val().SigmaC();
 }
 
-const double & cParamApero::PdsOrient()const 
+const double & cParamApero::SigmaC()const 
 {
-   return SectionChantier().RappelPose().Val().PdsOrient();
+   return SectionChantier().RappelPose().Val().SigmaC();
+}
+
+
+double & cParamApero::SigmaR()
+{
+   return SectionChantier().RappelPose().Val().SigmaR();
+}
+
+const double & cParamApero::SigmaR()const 
+{
+   return SectionChantier().RappelPose().Val().SigmaR();
 }
 
 
@@ -27487,7 +27487,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "9AE0676CD8CEB4F7FC3F";};
+std::string  Mangling( cParamApero *) {return "E5FC97C9FD44E1D0FE3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

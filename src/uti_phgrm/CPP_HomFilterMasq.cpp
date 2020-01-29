@@ -96,6 +96,8 @@ int HomFilterMasq_main(int argc,char ** argv)
 
     Pt2dr  aSelecTer;
 
+    std::vector<double> aVParam3DRel;
+
 
     ElInitArgMain
     (
@@ -114,14 +116,24 @@ int HomFilterMasq_main(int argc,char ** argv)
                     << EAM(aPostOut,"PostOut",true,"Post for Output dir Hom, Def=MasqFiltered")
                     << EAM(aOriMasq3D,"OriMasq3D",true,"Orientation for Masq 3D")
                     << EAM(aNameMasq3D,"Masq3D",true,"File of Masq3D, Def=AperiCloud_${OriMasq3D}.ply")
+                    << EAM(aVParam3DRel,"Param3DRel",true,"Relative 3D param [DZMin,DZMax,DistMax]")
                     << EAM(aSelecTer,"SelecTer",true,"[Per,Prop] Period of tiling on ground selection, Prop=proporion of selected")
                     << EAM(aDistId,"DistId",true,"Supress pair such that d(P1,P2) < DistId, def unused")
-                    << EAM(aDistHom,"DistH",true,"Distance for filtering homologous point")
+                    << EAM(aDistHom,"DistH",true,"Distance of reprojection for filtering homologous point")
                     << EAM(DoSym,"Symetrise",true,"Symetrise masq")
                     << EAM(DoCalNb,"Nb",true,"Calculate number of homologous points")
     );
     bool aHasOri3D =  EAMIsInit(&aOriMasq3D);
     bool HasTerSelec = EAMIsInit(&aSelecTer);
+    bool HasRel3DFilter = EAMIsInit(&aVParam3DRel);
+    double aDZMin=0,aDZMax=0,aDistMax=0;
+    if (HasRel3DFilter)
+    {
+       ELISE_ASSERT(aVParam3DRel.size()==3,"aVParam3DRel bad size");
+       aDZMin = aVParam3DRel.at(0);
+       aDZMax = aVParam3DRel.at(1);
+       aDistMax = aVParam3DRel.at(2);
+    }
 
 
     #if (ELISE_windows)
@@ -157,7 +169,7 @@ int HomFilterMasq_main(int argc,char ** argv)
         }
         else
         {
-            ELISE_ASSERT(EAMIsInit(&aSelecTer) || (aDistHom>=0),"Unused OriMasq3D");
+            ELISE_ASSERT(EAMIsInit(&aSelecTer) || (aDistHom>=0) || HasRel3DFilter ,"Unused OriMasq3D");
         }
         aKeyOri = "NKS-Assoc-Im2Orient@" + aOriMasq3D;
     }
@@ -313,6 +325,26 @@ std::cout << aNameIm1  << " # " << aNameIm2 << "\n";
                                    Ok = OkTer;
                                    aNbTestTer ++;
                                    aNbInTer += OkTer;
+                               }
+                               if (Ok && HasRel3DFilter)
+                               {
+                                   CamStenope * aCam1 = aVCam[aKN1]->DownCastCS();
+                                   CamStenope * aCam2 = aVCam[aKN2]->DownCastCS();
+                                   Pt3dr aC1 = aCam1->PseudoOpticalCenter();
+                                   Pt3dr aC2 = aCam2->PseudoOpticalCenter();
+
+                                   double aDZ1   =  aC1.z-aPTer.z;
+                                   double aDist1 =  euclid(aC1-aPTer);
+                                   double aDZ2   =  aC2.z-aPTer.z;
+                                   double aDist2 =  euclid(aC2-aPTer);
+                                   if (  
+                                           ((aDZ1<aDZMin) &&  (aDZ2<aDZMin))
+                                        || ((aDZ2>aDZMax) &&  (aDZ2>aDZMax))
+                                        || ((aDist1>aDistMax) &&  (aDist2>aDistMax))
+                                      )
+                                   {
+                                      Ok = false;
+                                   }
                                }
                        
                                if (Ok && (aDistHom >0 ))

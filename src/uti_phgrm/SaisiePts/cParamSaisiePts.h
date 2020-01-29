@@ -95,6 +95,9 @@ class cPointGlob
         cTplValGesInit< Pt3dr > & Incert();
         const cTplValGesInit< Pt3dr > & Incert()const ;
 
+        cTplValGesInit< Pt3dr > & Normale();
+        const cTplValGesInit< Pt3dr > & Normale()const ;
+
         cTplValGesInit< double > & LargeurFlou();
         const cTplValGesInit< double > & LargeurFlou()const ;
 
@@ -131,6 +134,7 @@ class cPointGlob
         cTplValGesInit< Pt3dr > mPt3DFromDico;
         cTplValGesInit< bool > mMes3DExportable;
         cTplValGesInit< Pt3dr > mIncert;
+        cTplValGesInit< Pt3dr > mNormale;
         cTplValGesInit< double > mLargeurFlou;
         cTplValGesInit< cContenuPt > mContenuPt;
         cTplValGesInit< int > mNumAuto;
@@ -484,11 +488,19 @@ class cSectionTerrain
 
         cTplValGesInit< std::string > & PIMsFilterVis();
         const cTplValGesInit< std::string > & PIMsFilterVis()const ;
+
+        cTplValGesInit< double > & DistMaxVisib();
+        const cTplValGesInit< double > & DistMaxVisib()const ;
+
+        cTplValGesInit< cElRegex_Ptr > & PatternNamePtsVisib();
+        const cTplValGesInit< cElRegex_Ptr > & PatternNamePtsVisib()const ;
     private:
         cTplValGesInit< double > mIntervPercProf;
         cTplValGesInit< cProfEstimator > mProfEstimator;
         cTplValGesInit< std::string > mMasq3DFilterVis;
         cTplValGesInit< std::string > mPIMsFilterVis;
+        cTplValGesInit< double > mDistMaxVisib;
+        cTplValGesInit< cElRegex_Ptr > mPatternNamePtsVisib;
 };
 cElXMLTree * ToXMLTree(const cSectionTerrain &);
 
@@ -604,6 +616,12 @@ class cParamSaisiePts
 
         cTplValGesInit< std::string > & PIMsFilterVis();
         const cTplValGesInit< std::string > & PIMsFilterVis()const ;
+
+        cTplValGesInit< double > & DistMaxVisib();
+        const cTplValGesInit< double > & DistMaxVisib()const ;
+
+        cTplValGesInit< cElRegex_Ptr > & PatternNamePtsVisib();
+        const cTplValGesInit< cElRegex_Ptr > & PatternNamePtsVisib()const ;
 
         cSectionTerrain & SectionTerrain();
         const cSectionTerrain & SectionTerrain()const ;

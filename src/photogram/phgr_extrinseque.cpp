@@ -275,6 +275,41 @@ Pt3dr  cRotationFormelle::AddRappOnCentre(const Pt3dr & aPVal,const Pt3dr & aPds
     return aRes;
 }
 
+void  cRotationFormelle::AddRappOnRot(const ElRotation3D &  aRot,const Pt3dr & aPdsC,const Pt3dr & aPdsRot)
+{
+    double aVVals[6];
+
+    ELISE_ASSERT(mModeGL,"RotationFormelle::AddRappOnRot no Guibal lock");
+    // On veut , d'apres l'utilisation du Guimbal :
+    // aRot = ElRotation3D(mCurCOpt.tr(),mMGL*mCurTeta01.Mat(),true);
+    // Donc on impose :
+    // mCurTeta01 = mMGL.tranp() * aRot
+    ElRotation3D aTargetMat (Pt3dr(0,0,0),mMGL.transpose()*aRot.Mat(),true);
+    aVVals[0]= aTargetMat.teta01();
+    aVVals[1]= aTargetMat.teta02();
+    aVVals[2]= aTargetMat.teta12();
+
+
+    Pt3dr aTargC = aRot.tr();
+
+    aVVals[3]= aTargC.x;
+    aVVals[4]= aTargC.y;
+    aVVals[5]= aTargC.z;
+
+    tContFcteur aFRap =  FoncRapp(0,6,aVVals);
+    mSet.AddEqFonctToSys(aFRap[0],aPdsRot.x,false);
+    mSet.AddEqFonctToSys(aFRap[1],aPdsRot.y,false);
+    mSet.AddEqFonctToSys(aFRap[2],aPdsRot.z,false);
+    mSet.AddEqFonctToSys(aFRap[3],aPdsC.x,false);
+    mSet.AddEqFonctToSys(aFRap[4],aPdsC.y,false);
+    mSet.AddEqFonctToSys(aFRap[5],aPdsC.z,false);
+/*
+    
+   return aRes;
+   aRot = aPdsC;
+*/
+}
+
 
 void  cRotationFormelle::SetTolAng(double aTol)
 {

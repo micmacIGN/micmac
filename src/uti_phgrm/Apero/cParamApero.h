@@ -3028,21 +3028,21 @@ class cRappelPose
         friend void xml_init(cRappelPose & anObj,cElXMLTree * aTree);
 
 
-        std::string & Id();
-        const std::string & Id()const ;
+        std::string & IdOrient();
+        const std::string & IdOrient()const ;
 
-        double & PdsCentre();
-        const double & PdsCentre()const ;
+        double & SigmaC();
+        const double & SigmaC()const ;
 
-        double & PdsOrient();
-        const double & PdsOrient()const ;
+        double & SigmaR();
+        const double & SigmaR()const ;
 
         cElRegex_Ptr & PatternApply();
         const cElRegex_Ptr & PatternApply()const ;
     private:
-        std::string mId;
-        double mPdsCentre;
-        double mPdsOrient;
+        std::string mIdOrient;
+        double mSigmaC;
+        double mSigmaR;
         cElRegex_Ptr mPatternApply;
 };
 cElXMLTree * ToXMLTree(const cRappelPose &);
@@ -3127,14 +3127,14 @@ class cSectionChantier
         friend void xml_init(cSectionChantier & anObj,cElXMLTree * aTree);
 
 
-        std::string & Id();
-        const std::string & Id()const ;
+        std::string & IdOrient();
+        const std::string & IdOrient()const ;
 
-        double & PdsCentre();
-        const double & PdsCentre()const ;
+        double & SigmaC();
+        const double & SigmaC()const ;
 
-        double & PdsOrient();
-        const double & PdsOrient()const ;
+        double & SigmaR();
+        const double & SigmaR()const ;
 
         cElRegex_Ptr & PatternApply();
         const cElRegex_Ptr & PatternApply()const ;
@@ -7171,14 +7171,14 @@ class cParamApero
         cSectionInconnues & SectionInconnues();
         const cSectionInconnues & SectionInconnues()const ;
 
-        std::string & Id();
-        const std::string & Id()const ;
+        std::string & IdOrient();
+        const std::string & IdOrient()const ;
 
-        double & PdsCentre();
-        const double & PdsCentre()const ;
+        double & SigmaC();
+        const double & SigmaC()const ;
 
-        double & PdsOrient();
-        const double & PdsOrient()const ;
+        double & SigmaR();
+        const double & SigmaR()const ;
 
         cElRegex_Ptr & PatternApply();
         const cElRegex_Ptr & PatternApply()const ;
