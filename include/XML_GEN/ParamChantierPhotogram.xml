@@ -717,6 +717,8 @@
            <NamePt Nb="1" Type="std::string"> </NamePt>
            <Incertitude Nb="1"  Type="Pt3dr"> </Incertitude>
            <UseForRTA Nb="?" Type="bool" Def="true"> </UseForRTA>
+           <Norm2Surf Nb="?"  Type="Pt3dr"> </Norm2Surf>  <!-- if specified, can be used for visibility -->
+           <TetaN2SHor Nb="?"  Type="double"> </TetaN2SHor>  <!-- Angle in degree for Norm2Surf horizontal -->
        </OneAppuisDAF>
    </DicoAppuisFlottant>
    

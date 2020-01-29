@@ -1433,7 +1433,6 @@ bool OkReproj
 bool ResidualStepByStep = false;
 
 
-
 Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
        (
            const cRapOnZ *      aRAZ,
@@ -1446,6 +1445,7 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
            std::string *             aMesPb
        )
 {
+  
    if (aMesPb) *aMesPb="NoPb";
 
    aParam.mHasResolMoy = false;

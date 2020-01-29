@@ -6427,6 +6427,28 @@ const cTplValGesInit< bool > & cOneAppuisDAF::UseForRTA()const
    return mUseForRTA;
 }
 
+
+cTplValGesInit< Pt3dr > & cOneAppuisDAF::Norm2Surf()
+{
+   return mNorm2Surf;
+}
+
+const cTplValGesInit< Pt3dr > & cOneAppuisDAF::Norm2Surf()const 
+{
+   return mNorm2Surf;
+}
+
+
+cTplValGesInit< double > & cOneAppuisDAF::TetaN2SHor()
+{
+   return mTetaN2SHor;
+}
+
+const cTplValGesInit< double > & cOneAppuisDAF::TetaN2SHor()const 
+{
+   return mTetaN2SHor;
+}
+
 void  BinaryUnDumpFromFile(cOneAppuisDAF & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.Pt(),aFp);
@@ -6440,6 +6462,22 @@ void  BinaryUnDumpFromFile(cOneAppuisDAF & anObj,ELISE_fp & aFp)
         }
         else  anObj.UseForRTA().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Norm2Surf().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Norm2Surf().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Norm2Surf().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.TetaN2SHor().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.TetaN2SHor().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.TetaN2SHor().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cOneAppuisDAF & anObj)
@@ -6449,6 +6487,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cOneAppuisDAF & anObj)
     BinaryDumpInFile(aFp,anObj.Incertitude());
     BinaryDumpInFile(aFp,anObj.UseForRTA().IsInit());
     if (anObj.UseForRTA().IsInit()) BinaryDumpInFile(aFp,anObj.UseForRTA().Val());
+    BinaryDumpInFile(aFp,anObj.Norm2Surf().IsInit());
+    if (anObj.Norm2Surf().IsInit()) BinaryDumpInFile(aFp,anObj.Norm2Surf().Val());
+    BinaryDumpInFile(aFp,anObj.TetaN2SHor().IsInit());
+    if (anObj.TetaN2SHor().IsInit()) BinaryDumpInFile(aFp,anObj.TetaN2SHor().Val());
 }
 
 cElXMLTree * ToXMLTree(const cOneAppuisDAF & anObj)
@@ -6460,6 +6502,10 @@ cElXMLTree * ToXMLTree(const cOneAppuisDAF & anObj)
    aRes->AddFils(ToXMLTree(std::string("Incertitude"),anObj.Incertitude())->ReTagThis("Incertitude"));
    if (anObj.UseForRTA().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("UseForRTA"),anObj.UseForRTA().Val())->ReTagThis("UseForRTA"));
+   if (anObj.Norm2Surf().IsInit())
+      aRes->AddFils(ToXMLTree(std::string("Norm2Surf"),anObj.Norm2Surf().Val())->ReTagThis("Norm2Surf"));
+   if (anObj.TetaN2SHor().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("TetaN2SHor"),anObj.TetaN2SHor().Val())->ReTagThis("TetaN2SHor"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -6477,9 +6523,13 @@ void xml_init(cOneAppuisDAF & anObj,cElXMLTree * aTree)
    xml_init(anObj.Incertitude(),aTree->Get("Incertitude",1)); //tototo 
 
    xml_init(anObj.UseForRTA(),aTree->Get("UseForRTA",1),bool(true)); //tototo 
+
+   xml_init(anObj.Norm2Surf(),aTree->Get("Norm2Surf",1)); //tototo 
+
+   xml_init(anObj.TetaN2SHor(),aTree->Get("TetaN2SHor",1)); //tototo 
 }
 
-std::string  Mangling( cOneAppuisDAF *) {return "B6347A05E335B2BFFD3F";};
+std::string  Mangling( cOneAppuisDAF *) {return "2FF4CBF525D2929EFF3F";};
 
 
 std::list< cOneAppuisDAF > & cDicoAppuisFlottant::OneAppuisDAF()
@@ -6538,7 +6588,7 @@ void xml_init(cDicoAppuisFlottant & anObj,cElXMLTree * aTree)
    xml_init(anObj.OneAppuisDAF(),aTree->GetAll("OneAppuisDAF",false,1));
 }
 
-std::string  Mangling( cDicoAppuisFlottant *) {return "19E38C257C947DA2FE3F";};
+std::string  Mangling( cDicoAppuisFlottant *) {return "96C4234B620110DFFD3F";};
 
 
 std::string & cCpleImgTime::NameIm()

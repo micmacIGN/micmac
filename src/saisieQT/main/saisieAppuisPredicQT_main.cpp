@@ -18,7 +18,10 @@ void SaisieAppuisPredic(int argc, char ** argv,
                       double &aZInc,
                       std::string & aInputSec,
                       bool & WithMaxMinPt,
-		      double & aGama);
+		      double & aGama,
+                      std::string & aPatFilter,
+                      double & aDistMax
+       );
 
 
 using namespace std;
@@ -92,7 +95,9 @@ int saisieAppuisPredicQT_main(int argc, char *argv[])
     }
 
     bool WithMaxMinPt=false;
-    SaisieAppuisPredic(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameMesure, aTypePts, aMasq3D,aPIMsFilter,aFlou, aForceGray, aZMoy, aZInc, aInputSec,WithMaxMinPt, aGama);
+    std::string aPatF;
+    double aDistMax;
+    SaisieAppuisPredic(argc, argv, aSzWin, aNbFen, aFullName, aDir, aName, aNamePt, aNameOri, aModeOri, aNameMesure, aTypePts, aMasq3D,aPIMsFilter,aFlou, aForceGray, aZMoy, aZInc, aInputSec,WithMaxMinPt, aGama,aPatF,aDistMax);
 
     if (!MMVisualMode)
     {

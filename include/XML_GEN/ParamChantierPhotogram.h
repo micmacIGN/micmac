@@ -2213,11 +2213,19 @@ class cOneAppuisDAF
 
         cTplValGesInit< bool > & UseForRTA();
         const cTplValGesInit< bool > & UseForRTA()const ;
+
+        cTplValGesInit< Pt3dr > & Norm2Surf();
+        const cTplValGesInit< Pt3dr > & Norm2Surf()const ;
+
+        cTplValGesInit< double > & TetaN2SHor();
+        const cTplValGesInit< double > & TetaN2SHor()const ;
     private:
         Pt3dr mPt;
         std::string mNamePt;
         Pt3dr mIncertitude;
         cTplValGesInit< bool > mUseForRTA;
+        cTplValGesInit< Pt3dr > mNorm2Surf;
+        cTplValGesInit< double > mTetaN2SHor;
 };
 cElXMLTree * ToXMLTree(const cOneAppuisDAF &);
 
