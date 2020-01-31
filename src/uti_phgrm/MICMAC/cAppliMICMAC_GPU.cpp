@@ -1414,25 +1414,61 @@ if (0)
              int aY0 = anY - mCurSzV0.x;
              int aY1 = anY + mCurSzV0.x;
 
-
+             std::string mode = "normal";
+//             /* NORMAL
+             std::vector<float> imageM;
              for (int aXV=aX0 ; aXV<=aX1 ; aXV++)
              {
                   for (int aYV=aY0 ; aYV<=aY1 ; aYV++)
                   {
                        double aSV = 0;
                        double aSVV = 0;
+                       std::vector<double> vectMediane;
                        for (int aKIm=0 ; aKIm<aNbImCur ; aKIm++)
                        {
                             double aV = aCurVLI[aKIm]->ValNorm(aXV,aYV);
 // std::cout << "VvV = " << aV << "\n";
                             aSV += aV;
                             aSVV += QSquare(aV) ;
+                            vectMediane.push_back(aV);
                        }
-                       anEC2 += (aSVV-QSquare(aSV)/aNbImCur);
+
+                       if(mode=="normal")
+                           anEC2 += (aSVV-QSquare(aSV)/aNbImCur);
+                       else if(mode=="moyenne")
+                       {
+                           aSV/=aNbImCur;
+                           imageM.push_back(aSV);
+                       }
+                       else if (mode == "mediane")
+                       {
+                           std::sort(vectMediane.begin(), vectMediane.end());
+                           if (vectMediane.size()%2==0)
+                               imageM.push_back((vectMediane[vectMediane.size()/2]+vectMediane[vectMediane.size()/2-1])/2);
+                           else
+                               imageM.push_back(vectMediane[(vectMediane.size()-1)/2]);
+                       }
                   }
              }
+
 // std::cout << "NOCMS " << anEC2 << "\n";
-             aCost = anEC2 / ((aNbImCur -1) * mNbPtsWFixe);
+
+             if(mode=="normal")
+                 aCost = anEC2 / ((aNbImCur -1) * mNbPtsWFixe);
+             else
+             {
+                 double aSVmoy = 0;
+                 double aSVVmoy = 0;
+                 for (size_t aI=0 ; aI<imageM.size();++aI)
+                 {
+                     aSVmoy += imageM[aI];
+                     aSVVmoy += QSquare(imageM[aI]);
+                 }
+                 aCost = (aSVVmoy-QSquare(aSVmoy)/aNbImCur)/((aNbImCur -1) *mNbPtsWFixe);
+
+                 if (mode == "moyenne") std::cout << "aCost MOYENNE " << aCost << std::endl;
+                 if (mode == "mediane") std::cout << "aCost MEDIANE " << aCost << std::endl;
+             }
           }
 
 if (0)

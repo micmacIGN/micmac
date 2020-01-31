@@ -39,6 +39,11 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include "XML_GEN/all_tpl.h"
 
+#include "../uti_phgrm/MICMAC/cInterfModuleImageLoader.h"
+#include "../uti_phgrm/MICMAC/Jp2ImageLoader.h"
+#include "../uti_phgrm/MICMAC/cCameraModuleOrientation.h"
+#include "../uti_phgrm/MICMAC/cOrientationRTO.h"
+
 #if ELISE_QT
     #include "general/visual_mainwindow.h"
 #endif
@@ -62,6 +67,95 @@ template <class Type> void VerifIn(const Type & aV,const Type * aTab,int aNb, co
      std::cout <<  "\n";
      ELISE_ASSERT(false,"Value is not in eligible set ");
 }
+
+int getPlacePoint(const std::string fileName)
+{
+    int placePoint = -1;
+    for(int l=(int)(fileName.size()-1);(l>=0)&&(placePoint==-1);--l)
+    {
+        if (fileName[l]=='.')
+        {
+            placePoint = l;
+        }
+    }
+    return placePoint;
+}
+
+Pt2di getImageSz(std::string const &aName)
+{
+    //on recupere l'extension
+    int placePoint = getPlacePoint(aName);
+    std::string ext = std::string("");
+    if (placePoint!=-1)
+    {
+        ext.assign(aName.begin()+placePoint+1,aName.end());
+    }
+    //std::cout << "Extension : "<<ext<<std::endl;
+
+#if defined (__USE_JP2__)
+    // on teste l'extension
+    if ((ext==std::string("jp2"))|| (ext==std::string("JP2")) || (ext==std::string("Jp2")))
+    {
+        //std::cout<<"JP2 avec Jp2ImageLoader"<<std::endl;
+        std_unique_ptr<cInterfModuleImageLoader> aRes(new JP2ImageLoader(aName, false));
+        if (aRes.get())
+        {
+            return Std2Elise(aRes->Sz(1));
+        }
+    }
+#endif
+
+    Tiff_Im aTif = Tiff_Im::StdConvGen(aName,1,true,false);
+    return aTif.sz();
+}
+
+bool getCamera(const std::string imageName, const std::string oriType, const std::string modeOri, const std::string mDir, const Pt2di ImgSz, shared_ptr<ElCamera>& aCam, cInterfChantierNameManipulateur * mICNM)
+{
+    std::string orientationName;
+    ElAffin2D oriIntImaM2C;
+
+    if (modeOri=="GRID")
+    {
+        int placePoint = getPlacePoint(imageName);
+        if (placePoint==-1) return false;
+
+        std::string baseName;
+        baseName.assign(imageName.begin(),imageName.begin()+placePoint+1);
+        orientationName = mDir + baseName+oriType;
+        if (ELISE_fp::exist_file(orientationName))
+        {
+            shared_ptr<ElCamera> aCam2 (new cCameraModuleOrientation(new OrientationGrille(orientationName),ImgSz,oriIntImaM2C));
+            aCam = aCam2;
+        }
+    }
+    else
+    {
+        //Soit il s'agit d'une orientation normale
+        if (ELISE_fp::exist_file(mDir + "Ori-" + oriType + "/Orientation-" + imageName + ".xml"))
+        {
+            orientationName = mDir + "Ori-" + oriType + "/Orientation-" + imageName + ".xml";
+
+            std::cout<<orientationName<<std::endl;
+            shared_ptr<ElCamera> aCam2 (Cam_Gen_From_File(orientationName,"OrientationConique", mICNM));
+            aCam = aCam2;
+        }
+        //Soit d'une orientation passee par GenBundle
+        else if (ELISE_fp::exist_file(mDir + "Ori-" + oriType + "/GB-Orientation-" + imageName + ".xml"))
+        {
+            orientationName = mDir + "Ori-" + oriType + "/GB-Orientation-" + imageName + ".xml";
+
+            shared_ptr<ElCamera> aCam2 (new cCameraModuleOrientation(new OrientationRTO(orientationName),ImgSz,oriIntImaM2C));
+            aCam = aCam2;
+        }
+        else
+        {
+            orientationName = "";
+        }
+    }
+
+    return (ELISE_fp::exist_file(orientationName));
+}
+
 
 class cAppliMalt
 {
@@ -153,6 +247,7 @@ class cAppliMalt
           int         mVSNI;
           int         mNbDirPrgD;
           bool        mPrgDReInject;
+          bool        mSpatial;
 };
 
 
@@ -244,7 +339,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
     mMaxFlow       (false),
     mSzRec         (50),
     mNbDirPrgD     (7),
-    mPrgDReInject  (false)
+    mPrgDReInject  (false),
+    mSpatial       (false)
 {
 
 #if ELISE_QT
@@ -298,7 +394,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
 
     InitDefValFromType();
 
-    Box2dr aBoxClip, aBoxTerrain;
+    Box2dr aBoxClip, aBoxTerrain, aBoxTerrainGeomIm;
+    double aZMin=-999;
     double aResolTerrain;
     double aRatioResolImage=1;
 
@@ -373,6 +470,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mIncidMax,"IncMax",true,"Maximum incidence of image", eSAM_NoInit)
                     << EAM(aBoxClip,"BoxClip",true,"To Clip Computation, normalized image coordinates ([0,0,1,1] means full box)", eSAM_Normalize)
                     << EAM(aBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])")
+                    << EAM(aBoxTerrainGeomIm,"BoxTerrainGeomIm",true,"For GeomImage, using orientation to project... ([Xmin,Ymin,Xmax,Ymax])")
+                    << EAM(aZMin,"ZMin",true,"to compute BoxTerrainGeomIm projection in the image")
                     << EAM(aResolTerrain,"ResolTerrain",true,"Ground Resol (Def automatically computed)", eSAM_NoInit)
                     << EAM(aRatioResolImage,"RRI",true,"Ratio Resol Image (f.e. if set to 0.8 and image resol is 2.0, will be computed at 1.6)", eSAM_NoInit)
                     << EAM(mRoundResol,"RoundResol",true,"Use rounding of resolution (def context dependent,tuning purpose)", eSAM_InternalUse)
@@ -393,9 +492,10 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mNbDirPrgD,"NbDirPrgD",true,"Nb Dir for prog dyn, (rather for tuning)")
                     << EAM(mPrgDReInject,"PrgDReInject",true,"Reinjection mode for Prg Dyn (experimental)")
                     << EAM(OrthoImSupMNT,"OISM",true,"When true footprint of ortho-image=footprint of DSM")
+                    << EAM(mSpatial,"Spatial",true,"Compute the DTM with spatial optimized parameters")
                     << EAM(aDEMInitIMG,"DEMInitIMG",true,"img of the DEM used to initialise the depth research", eSAM_NoInit)
                     << EAM(aDEMInitXML,"DEMInitXML",true,"xml of the DEM used to initialise the depth research", eSAM_NoInit)
-                );
+     );
 
     if (!MMVisualMode)
     {
@@ -711,6 +811,18 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       // mZoomInit
 
       std::string aFileMM = "MM-Malt.xml";
+
+      if (mSpatial && mType==eGeomImage)
+      {
+          aFileMM="MM-Malt-Spatial.xml";
+          mSzW = 2;
+          mZRegul = 0.12;
+//          mAffineLast = true;
+          mZPas = 1.0;
+          mCostTrans = 4.0;
+          mDefCor = 0.3;
+          mNbMinIV = 2;
+      }
 
       if (0)
       {
@@ -1228,6 +1340,78 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   +  std::string(" +Y1Terrain=") + ToString(aBoxTerrain._p1.y) ;
       }
 
+      if (EAMIsInit(&aBoxTerrainGeomIm) && eGeomImage)
+      {
+          std::cout << "Calcul d'une boxImage a partir de celle ci (Terrain): " << aBoxTerrainGeomIm  << std::endl;
+
+          Pt2di ImgSz = getImageSz(mDir + mImMaster);
+          std::cout << "ImgSz: " << ImgSz.x << " " << ImgSz.y << std::endl;
+          std::cout << "ZMin: "<< aZMin<< std::endl;
+
+          if (aZMin==-999)
+          {
+              std::cout << "*****************************************************************************" << std::endl;
+              std::cout << "***** Donner le ZMin pour reprojeter la BoxTerrain en coordonnees image *****" << std::endl;
+              std::cout << "*****************************************************************************" << std::endl;
+              return;
+          }
+          shared_ptr<ElCamera> aCam;
+
+          if (!getCamera(mImMaster,mOri,mModeOri,mDir,ImgSz, aCam, mICNM))
+          {
+              std::cout << "No orientation file for " << mImMaster << " - skip " << std::endl;
+              return;
+          }
+
+          //Ecriture en pt3d pour utiliser Ter2Capteur
+          Pt3dr PtSO, PtSE, PtNO, PtNE;
+          PtSO.x = aBoxTerrainGeomIm._p0.x;  PtSO.y = aBoxTerrainGeomIm._p0.y;  PtSO.z = aZMin;
+          PtNE.x = aBoxTerrainGeomIm._p1.x;  PtNE.y = aBoxTerrainGeomIm._p1.y;  PtNE.z = aZMin;
+          PtSE.x = PtNE.x;        PtSE.y = PtSO.y;        PtSE.z = aZMin;
+          PtNO.x = PtSO.x;        PtNO.y = PtNE.y;        PtNO.z = aZMin;
+          Pt2dr ptINO = aCam->Ter2Capteur(PtNO);
+          Pt2dr ptINE = aCam->Ter2Capteur(PtNE);
+          Pt2dr ptISO = aCam->Ter2Capteur(PtSO);
+          Pt2dr ptISE = aCam->Ter2Capteur(PtSE);
+
+          std::cout << "ptINO : " << ptINO.x << " " << ptINO.y << std::endl;
+          std::cout << "ptINE : " << ptINE.x << " " << ptINE.y << std::endl;
+          std::cout << "ptISO : " << ptISO.x << " " << ptISO.y << std::endl;
+          std::cout << "ptISE : " << ptISE.x << " " << ptISE.y << std::endl;
+
+          int marge = 20; // en pixel
+
+          int cmin = std::min(std::min(ptINE.x,ptISE.x), std::min(ptINO.x,ptISO.x))-marge;
+          cmin = std::max(cmin, 0);
+
+          int lmin = std::min(std::min(ptINE.y,ptISE.y), std::min(ptINO.y,ptISO.y))-marge;
+          lmin = std::max(lmin, 0);
+
+          int cmax = std::max(std::max(ptINE.x,ptISE.x), std::max(ptINO.x,ptISO.x))+marge;
+          cmax = std::min(cmax, ImgSz.x);
+
+          int lmax = std::max(std::max(ptINE.y,ptISE.y), std::max(ptINO.y,ptISO.y))+marge;
+          lmax = std::min(lmax, ImgSz.y);
+
+          std::cout << "BOX : " << cmin << " " << lmin << " " << cmax << " " << lmax << std::endl;
+
+          if (cmin>=ImgSz.x || cmax<=0 || lmin>=ImgSz.y || lmax<=0)
+          {
+              std::cout << "**********************************************************************" << std::endl;
+              std::cout << "******* La BoxTerrainGeomIm est en dehors de l'image maitresse *******" << std::endl;
+              std::cout << "**********************************************************************" << std::endl;
+              return;
+          }
+          else
+          {
+              mCom  =    mCom + " +UseBoxTerrain=true "
+                      +  std::string(" +X0Terrain=") + ToString(cmin)
+                      +  std::string(" +Y0Terrain=") + ToString(lmin)
+                      +  std::string(" +X1Terrain=") + ToString(cmax)
+                      +  std::string(" +Y1Terrain=") + ToString(lmax) ;
+          }
+      }
+
       if (EAMIsInit(&mMaxFlow)) mCom = mCom + " +AlgoMaxFlow=" + ToString(mMaxFlow);
       if (EAMIsInit(&mSzRec))   mCom = mCom + " +SzRec=" + ToString(mSzRec);
 
@@ -1241,6 +1425,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       {
           if (mMCorPonc)
             mCom = mCom + " +ModeAgrCor=eAggregIm1Maitre";
+          else if (mSpatial)
+              mCom = mCom + " +ModeAgrCor=eAggregSymetrique";
           else
             mCom = mCom + " +ModeAgrCor=eAggregMoyMedIm1Maitre";
       }
@@ -1260,8 +1446,14 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
               mCom= mCom + " +UseClas2=true" + " +Clas2=" +QUOTE(mEquiv[1]);
           if (mEquiv.size()>2)
               mCom= mCom + " +UseClas3=true" + " +Clas3=" +QUOTE(mEquiv[2]);
-
           if (mEquiv.size()>3)
+              mCom= mCom + " +UseClas4=true" + " +Clas4=" +QUOTE(mEquiv[3]);
+          if (mEquiv.size()>4)
+              mCom= mCom + " +UseClas5=true" + " +Clas5=" +QUOTE(mEquiv[4]);
+          if (mEquiv.size()>5)
+              mCom= mCom + " +UseClas6=true" + " +Clas6=" +QUOTE(mEquiv[5]);
+
+          if (mEquiv.size()>6)
               ELISE_ASSERT(false,"too many equiv class for Malt, use MicMac");
       }
       if (mPenalSelImBestNadir>0)
