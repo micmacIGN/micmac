@@ -110,7 +110,7 @@ foreach(source_file ${IncFiles})
 	get_filename_component(NameFile ${source_file}  NAME)
 
 	string(REGEX REPLACE "/${NameFile}" "" includeTree ${VarName})
-	string(REGEX REPLACE "${PROJECT_SOURCE_DIR}/" "" includeTree ${includeTree})
+#	string(REGEX REPLACE "${PROJECT_SOURCE_DIR}/" "" includeTree ${includeTree})
 	string(REGEX REPLACE "/" "\\\\\\\\" includeTree ${includeTree})
 	source_group("${includeTree}" FILES ${source_file})
 endforeach(source_file)
