@@ -1340,7 +1340,7 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                   +  std::string(" +Y1Terrain=") + ToString(aBoxTerrain._p1.y) ;
       }
 
-      if (EAMIsInit(&aBoxTerrainGeomIm) && eGeomImage)
+      if (EAMIsInit(&aBoxTerrainGeomIm) && mType==eGeomImage)
       {
           std::cout << "Calcul d'une boxImage a partir de celle ci (Terrain): " << aBoxTerrainGeomIm  << std::endl;
 
