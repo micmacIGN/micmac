@@ -382,7 +382,7 @@ int PlyGCP_main(int argc,char ** argv)
     (
         argc,argv,
         LArgMain()  << EAMC(aNameGCP,"Name of GCP  file", eSAM_IsExistFile)
-                    << EAMC(aResol,"Resolution"),
+                    << EAMC(aResol,"Resolution, use for string"),
         LArgMain()  << EAM(aNamePly,"Out",true," Def= GCP.ply")
                     << EAM(aNorm,"Normal",true,"Def=(0,0,1)")
                     << EAM(aCoul,"Coul",true,"Color Def=[255,0,0]")

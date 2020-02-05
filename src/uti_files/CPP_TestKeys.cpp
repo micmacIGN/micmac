@@ -39,6 +39,38 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 #include <algorithm>
 
+int Recover_Main(int argc, char ** argv)
+{
+    std::string aNameIn,aNameOut;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameIn, "Name of Input File")
+                    << EAMC(aNameOut, "Name of Input File"),
+        LArgMain()  
+    );
+
+    FILE * aFPin = FopenNN(aNameIn,"r","In recover");
+    FILE * aFPOut = FopenNN(aNameOut,"w","In recover");
+
+    int aC;
+    while (  (aC= fgetc(aFPin)) != EOF)
+    {
+        if (  
+                  ( (aC>='a') && (aC<='z'))
+               || ( (aC>='A') && (aC<='Z'))
+               || ( (aC>='0') && (aC<='9'))
+               || (aC=='\n')
+           )
+           fputc(aC,aFPOut);
+    }
+    fclose(aFPin);
+    fclose(aFPOut);
+
+    return EXIT_SUCCESS;
+}
+
+
 /*
 Parametre de Tapas :
 

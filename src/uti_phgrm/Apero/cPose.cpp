@@ -1005,7 +1005,9 @@ cPoseCam::cPoseCam
     mEqOffsetGPS         (0),
     mSRI                 (nullptr),
     mBlocCam             (nullptr),
-    mPoseInBlocCam       (nullptr)
+    mPoseInBlocCam       (nullptr),
+    mUseRappelPose       (false),
+    mRotURP              (ElRotation3D::Id)
 {
     mPrec = this;
     mNext = this;
@@ -1532,10 +1534,13 @@ void  cPoseCam::AddLink(cPoseCam * aPC)
 
 
 
-void cPoseCam::SetCurRot(const ElRotation3D & aRot)
+void cPoseCam::PCSetCurRot(const ElRotation3D & aRot)
 {
+    ELISE_ASSERT(!mUseRappelPose,"Internam Error, probaly bascule + UseRappelPose");
+
+
     AssertHasNotCamNonOrtho();
-    mCF->SetCurRot(aRot);
+    mCF->SetCurRot(aRot,aRot);
 }
 
 
@@ -1557,7 +1562,7 @@ void  cPoseCam::SetBascRig(const cSolBasculeRig & aSBR)
         aP =  aSBR(aP);
     }
 
-    SetCurRot(aSBR.TransformOriC2M(CurRot()));
+    PCSetCurRot(aSBR.TransformOriC2M(CurRot()));
 
 
     const CamStenope *  aCS = CurCam() ;
@@ -2291,7 +2296,6 @@ if  (mSRI && MPD_MM())
         ElCamera::ChangeSys(aVCam,aTransfo,true,true);
 
         ElRotation3D aRMod = aCS->Orient();
-        // mCF->SetCurRot(aRMod.inv());
         aRot = aRMod.inv();
 
 // ShowMatr("Entree",aRot.Mat());
@@ -2300,19 +2304,27 @@ if  (mSRI && MPD_MM())
     }
 
 
+    mRotURP = aRot;
+    mUseRappelPose = mAppli.PtrRP()  &&  mAppli.PtrRP()->PatternApply()->Match(mName);
+    if (mUseRappelPose)
+    {
+        CamStenope * aCS = mAppli.ICNM()->StdCamStenOfNames(mName,mAppli.PtrRP()->IdOrient());
+        mRotURP = aCS->Orient().inv();
+    }
+
     double aLMG = mAppli.Param().LimModeGL().Val();
     double aGVal = GuimbalAnalyse(aRot,false);
-    if ((aLMG>0) && (aGVal<aLMG))
+    if (((aLMG>0) && (aGVal<aLMG)) || mUseRappelPose)
     {
        std::cout << "GUIMBAL-INIT " << mName << " " << aGVal<< "\n";
-       mCF->SetGL(true);
+       mCF->SetGL(true,mRotURP);
     }
     else
     {
        std::cout << "NO GUIMBAL " << mName  << " " << aGVal<< "\n";
     }
 
-    mCF->SetCurRot(aRot);
+    mCF->SetCurRot(aRot,mRotURP);
 
 
 
@@ -2366,6 +2378,21 @@ if  (mSRI && MPD_MM())
              mAppli.CheckInit(theLiasInit,this);
     }
 }
+
+
+void cPoseCam::UseRappelOnPose() const 
+{
+   if (! mUseRappelPose) return;
+
+   double aPdsC  = 1/ElSquare(mAppli.PtrRP()->SigmaC());
+   Pt3dr aPtPdsC(aPdsC,aPdsC,aPdsC);
+   double aPdsR  = 1/ElSquare(mAppli.PtrRP()->SigmaR());
+   Pt3dr aPtPdsR (aPdsR,aPdsR,aPdsR);
+   mRF->AddRappOnRot(mRotURP,aPtPdsC,aPtPdsR);
+
+   // std::cout << "NAME RAPPELE ON POSE =" << mName << "\n";
+}
+
 
 void cPoseCam::AffineRot()
 {

@@ -103,7 +103,8 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
    mNumCalib          (0),
    mNumImage          (0),
    mLevStaB           (mParam.SectionChantier().DoStatElimBundle().ValWithDef(0)),
-   mUseVDETp          (false)
+   mUseVDETp          (false),
+   mRappelPose        (mParam.SectionChantier().RappelPose().PtrVal())
    // mGlobManiP3TI      (0)
 {
 
@@ -1161,6 +1162,9 @@ bool cAppliApero::ExportTiePEliminated() const
 {
    return (mLevStaB>=3) && IsLastEtapeOfLastIter();
 }
+
+const cRappelPose * cAppliApero::PtrRP() const {return mRappelPose;}
+
 
 /*
 int  LevStaB() const;

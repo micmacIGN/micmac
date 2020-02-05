@@ -247,6 +247,17 @@ const cTplValGesInit< Pt3dr > & cPointGlob::Incert()const
 }
 
 
+cTplValGesInit< Pt3dr > & cPointGlob::Normale()
+{
+   return mNormale;
+}
+
+const cTplValGesInit< Pt3dr > & cPointGlob::Normale()const 
+{
+   return mNormale;
+}
+
+
 cTplValGesInit< double > & cPointGlob::LargeurFlou()
 {
    return mLargeurFlou;
@@ -395,6 +406,14 @@ void  BinaryUnDumpFromFile(cPointGlob & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.Normale().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Normale().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Normale().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.LargeurFlou().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.LargeurFlou().ValForcedForUnUmp(),aFp);
         }
@@ -479,6 +498,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cPointGlob & anObj)
     if (anObj.Mes3DExportable().IsInit()) BinaryDumpInFile(aFp,anObj.Mes3DExportable().Val());
     BinaryDumpInFile(aFp,anObj.Incert().IsInit());
     if (anObj.Incert().IsInit()) BinaryDumpInFile(aFp,anObj.Incert().Val());
+    BinaryDumpInFile(aFp,anObj.Normale().IsInit());
+    if (anObj.Normale().IsInit()) BinaryDumpInFile(aFp,anObj.Normale().Val());
     BinaryDumpInFile(aFp,anObj.LargeurFlou().IsInit());
     if (anObj.LargeurFlou().IsInit()) BinaryDumpInFile(aFp,anObj.LargeurFlou().Val());
     BinaryDumpInFile(aFp,anObj.ContenuPt().IsInit());
@@ -517,6 +538,8 @@ cElXMLTree * ToXMLTree(const cPointGlob & anObj)
       aRes->AddFils(::ToXMLTree(std::string("Mes3DExportable"),anObj.Mes3DExportable().Val())->ReTagThis("Mes3DExportable"));
    if (anObj.Incert().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("Incert"),anObj.Incert().Val())->ReTagThis("Incert"));
+   if (anObj.Normale().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Normale"),anObj.Normale().Val())->ReTagThis("Normale"));
    if (anObj.LargeurFlou().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("LargeurFlou"),anObj.LargeurFlou().Val())->ReTagThis("LargeurFlou"));
    if (anObj.ContenuPt().IsInit())
@@ -561,6 +584,8 @@ void xml_init(cPointGlob & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.Incert(),aTree->Get("Incert",1)); //tototo 
 
+   xml_init(anObj.Normale(),aTree->Get("Normale",1)); //tototo 
+
    xml_init(anObj.LargeurFlou(),aTree->Get("LargeurFlou",1),double(0.0)); //tototo 
 
    xml_init(anObj.ContenuPt(),aTree->Get("ContenuPt",1)); //tototo 
@@ -580,7 +605,7 @@ void xml_init(cPointGlob & anObj,cElXMLTree * aTree)
    xml_init(anObj.FromDico(),aTree->Get("FromDico",1)); //tototo 
 }
 
-std::string  Mangling( cPointGlob *) {return "9EBFCF3DC34C29ADFE3F";};
+std::string  Mangling( cPointGlob *) {return "846910AB12572EDDFCBF";};
 
 
 std::list< cPointGlob > & cSetPointGlob::PointGlob()
@@ -639,7 +664,7 @@ void xml_init(cSetPointGlob & anObj,cElXMLTree * aTree)
    xml_init(anObj.PointGlob(),aTree->GetAll("PointGlob",false,1));
 }
 
-std::string  Mangling( cSetPointGlob *) {return "6EDC1913507224BDFF3F";};
+std::string  Mangling( cSetPointGlob *) {return "37436826261BF5A8FF3F";};
 
 
 eEtatPointeImage & cOneSaisie::Etat()
@@ -1705,6 +1730,28 @@ const cTplValGesInit< std::string > & cSectionTerrain::PIMsFilterVis()const
    return mPIMsFilterVis;
 }
 
+
+cTplValGesInit< double > & cSectionTerrain::DistMaxVisib()
+{
+   return mDistMaxVisib;
+}
+
+const cTplValGesInit< double > & cSectionTerrain::DistMaxVisib()const 
+{
+   return mDistMaxVisib;
+}
+
+
+cTplValGesInit< cElRegex_Ptr > & cSectionTerrain::PatternNamePtsVisib()
+{
+   return mPatternNamePtsVisib;
+}
+
+const cTplValGesInit< cElRegex_Ptr > & cSectionTerrain::PatternNamePtsVisib()const 
+{
+   return mPatternNamePtsVisib;
+}
+
 void  BinaryUnDumpFromFile(cSectionTerrain & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -1739,6 +1786,22 @@ void  BinaryUnDumpFromFile(cSectionTerrain & anObj,ELISE_fp & aFp)
         }
         else  anObj.PIMsFilterVis().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.DistMaxVisib().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.DistMaxVisib().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.DistMaxVisib().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PatternNamePtsVisib().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PatternNamePtsVisib().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PatternNamePtsVisib().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionTerrain & anObj)
@@ -1751,6 +1814,10 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionTerrain & anObj)
     if (anObj.Masq3DFilterVis().IsInit()) BinaryDumpInFile(aFp,anObj.Masq3DFilterVis().Val());
     BinaryDumpInFile(aFp,anObj.PIMsFilterVis().IsInit());
     if (anObj.PIMsFilterVis().IsInit()) BinaryDumpInFile(aFp,anObj.PIMsFilterVis().Val());
+    BinaryDumpInFile(aFp,anObj.DistMaxVisib().IsInit());
+    if (anObj.DistMaxVisib().IsInit()) BinaryDumpInFile(aFp,anObj.DistMaxVisib().Val());
+    BinaryDumpInFile(aFp,anObj.PatternNamePtsVisib().IsInit());
+    if (anObj.PatternNamePtsVisib().IsInit()) BinaryDumpInFile(aFp,anObj.PatternNamePtsVisib().Val());
 }
 
 cElXMLTree * ToXMLTree(const cSectionTerrain & anObj)
@@ -1765,6 +1832,10 @@ cElXMLTree * ToXMLTree(const cSectionTerrain & anObj)
       aRes->AddFils(::ToXMLTree(std::string("Masq3DFilterVis"),anObj.Masq3DFilterVis().Val())->ReTagThis("Masq3DFilterVis"));
    if (anObj.PIMsFilterVis().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PIMsFilterVis"),anObj.PIMsFilterVis().Val())->ReTagThis("PIMsFilterVis"));
+   if (anObj.DistMaxVisib().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("DistMaxVisib"),anObj.DistMaxVisib().Val())->ReTagThis("DistMaxVisib"));
+   if (anObj.PatternNamePtsVisib().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PatternNamePtsVisib"),anObj.PatternNamePtsVisib().Val())->ReTagThis("PatternNamePtsVisib"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -1782,9 +1853,13 @@ void xml_init(cSectionTerrain & anObj,cElXMLTree * aTree)
    xml_init(anObj.Masq3DFilterVis(),aTree->Get("Masq3DFilterVis",1)); //tototo 
 
    xml_init(anObj.PIMsFilterVis(),aTree->Get("PIMsFilterVis",1)); //tototo 
+
+   xml_init(anObj.DistMaxVisib(),aTree->Get("DistMaxVisib",1)); //tototo 
+
+   xml_init(anObj.PatternNamePtsVisib(),aTree->Get("PatternNamePtsVisib",1)); //tototo 
 }
 
-std::string  Mangling( cSectionTerrain *) {return "9670D68A763FEBAFFE3F";};
+std::string  Mangling( cSectionTerrain *) {return "3CBBC271C12BE8E6FC3F";};
 
 
 cTplValGesInit< cChantierDescripteur > & cParamSaisiePts::DicoLoc()
@@ -2139,6 +2214,28 @@ const cTplValGesInit< std::string > & cParamSaisiePts::PIMsFilterVis()const
 }
 
 
+cTplValGesInit< double > & cParamSaisiePts::DistMaxVisib()
+{
+   return SectionTerrain().DistMaxVisib();
+}
+
+const cTplValGesInit< double > & cParamSaisiePts::DistMaxVisib()const 
+{
+   return SectionTerrain().DistMaxVisib();
+}
+
+
+cTplValGesInit< cElRegex_Ptr > & cParamSaisiePts::PatternNamePtsVisib()
+{
+   return SectionTerrain().PatternNamePtsVisib();
+}
+
+const cTplValGesInit< cElRegex_Ptr > & cParamSaisiePts::PatternNamePtsVisib()const 
+{
+   return SectionTerrain().PatternNamePtsVisib();
+}
+
+
 cSectionTerrain & cParamSaisiePts::SectionTerrain()
 {
    return mSectionTerrain;
@@ -2222,6 +2319,6 @@ void xml_init(cParamSaisiePts & anObj,cElXMLTree * aTree)
    xml_init(anObj.DirectoryChantier(),aTree->Get("DirectoryChantier",1)); //tototo 
 }
 
-std::string  Mangling( cParamSaisiePts *) {return "ACAB05A583C30E95FF3F";};
+std::string  Mangling( cParamSaisiePts *) {return "5DF90EDA3EA187A4FF3F";};
 
 // };

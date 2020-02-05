@@ -901,7 +901,7 @@ void ElPackHomologue::StdPutInFile(const std::string & aName) const
            itP++
        )
        {
-           fprintf(aFP,"%f %f %f %f\n",itP->P1().x,itP->P1().y,itP->P2().x,itP->P2().y);
+           fprintf(aFP,"%f %f %f %f %f\n",itP->P1().x,itP->P1().y,itP->P2().x,itP->P2().y,itP->Pds());
        }
        ElFclose(aFP);
 /*
@@ -3495,9 +3495,15 @@ cOrientationConique  ElCamera::StdExportCalibGlob() const
    return StdExportCalibGlob(true);
 }
 
-std::string  ElCamera::StdExport2File(cInterfChantierNameManipulateur *anICNM,const std::string & aDirOri,const std::string & aNameIm)
+std::string  ElCamera::StdExport2File(cInterfChantierNameManipulateur *anICNM,const std::string & aDirOri,const std::string & aNameIm,const std::string & aNameFileInterne)
 {
+   bool FileInterne = (aNameFileInterne != "");
    cOrientationConique  anOC = StdExportCalibGlob() ;
+   if (FileInterne)
+   {
+      anOC.Interne().SetNoInit();
+      anOC.FileInterne().SetVal(aNameFileInterne);
+   }
    std::string aName = anICNM->NameOriStenope(aDirOri,aNameIm);
    MakeFileXML(anOC,aName);
    return aName;

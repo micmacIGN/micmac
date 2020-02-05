@@ -162,6 +162,12 @@ for (int aK=0 ; aK<aNbIter; aK++)
        AddObservationsRigidGrp(anSO.ObsRigidGrpImage(),IsLastIter,aSO);
    }
 
+   {
+      for (const auto & aPose : mVecPose)
+      {
+          aPose->UseRappelOnPose();
+      }
+   }
 
    {
        AddObservationsContrCamGenInc(anSO.ContrCamGenInc(),IsLastIter,aSO);

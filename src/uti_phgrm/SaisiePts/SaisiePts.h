@@ -596,6 +596,9 @@ class cAppli_SaisiePts
     void OnModifLoadedImage();
     cMMByImNM *                       PIMsFilter();
 
+    bool ValidePt(const cPointGlob & aPG,const Pt3dr & aP3d,cBasicGeomCap3D * aCap) const;
+
+
 private :
 
     void RenameIdPt(std::string &);
