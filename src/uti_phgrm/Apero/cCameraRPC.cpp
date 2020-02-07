@@ -4292,6 +4292,30 @@ bool CalcCentreOptiqueGrille(const OrientationGrille & aOri, Pt3dr & aCentre)
 
 }
 
+int SatPosition_main(int argc,char ** argv)
+{
+    std::string aGRIName;
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aGRIName,"Grid"),
+        LArgMain()
+     );
+
+    OrientationGrille aGRI(aGRIName);
+
+    Pt3dr aCentre;
+    if (! CalcCentreOptiqueGrille(aGRI,aCentre))
+        return EXIT_FAILURE;
+
+    std::cout << aCentre.x << " " << aCentre.y << " " << aCentre.z << "\n";
+
+    return EXIT_SUCCESS;
+
+}
+
+
 int CalcBsurHGrille_main(int argc,char ** argv)
 {
     std::string aGRIName1,aGRIName2;
@@ -4324,6 +4348,7 @@ int CalcBsurHGrille_main(int argc,char ** argv)
     double aB = euclid(aCentre2-aCentre1);
 
     std::cout << "B=" << aB << ", H=" << aCentre1.z << ", B/H=" << aB/aCentre1.z << "\n";
+
 
     return(1);    
 
@@ -4397,6 +4422,83 @@ int CalcBsurH_main(int argc,char ** argv)
 
         std::cout << "\n";
         
+    }
+
+    /* Print out the list of images */
+    i=0;
+    for( it1=aListFile.begin(); it1 !=aListFile.end(); it1++, i++ )
+        std::cout << i << " " << (*it1) << "\n";
+
+    return EXIT_SUCCESS;
+}
+
+int CalcBsurHGrid_main(int argc,char ** argv)
+{
+
+    cInterfChantierNameManipulateur * aICNM;
+    std::string aFullName;
+    std::string aDir;
+    std::string aName;
+    std::list<std::string> aListFile;
+
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aFullName,"Orientation file (or pattern) in cXml_CamGenPolBundle format"),
+        LArgMain()
+     );
+
+    SplitDirAndFile(aDir, aName, aFullName);
+    aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+    aListFile = aICNM->StdGetListOfFile(aName);
+
+    /* Print out the b sur h */
+    int i=0, j=0;
+    std::list<std::string>::iterator it1=aListFile.begin();
+    for( ; it1 !=aListFile.end(); it1++, i++ )
+    {
+        CameraRPC aCam1( aDir+(*it1));
+
+
+        Pt2dr aCentIm1(double(aCam1.SzBasicCapt3D().x)/2,double(aCam1.SzBasicCapt3D().y)/2);
+        Pt3dr aTer = aCam1.ImEtZ2Terrain(aCentIm1, aCam1.GetAltiSol());
+
+        Pt3dr a01 = aCam1.OpticalCenterOfPixel(aCentIm1);
+
+
+        std::list<std::string>::iterator it2=aListFile.begin();
+        j=i;
+        for( it2=it1; it2 !=aListFile.end(); it2++, j++)
+        {
+            if( (*it1)!=(*it2))
+            {
+                CameraRPC aCam2( aDir+(*it2) );
+
+                Pt2dr aTerBPrj = aCam2.Ter2Capteur(aTer);
+
+                Pt3dr a02 = aCam2.OpticalCenterOfPixel(aTerBPrj);
+
+                //H within the "epipolar plane"
+                double aA = sqrt(std::pow(a01.x - aTer.x,2) + std::pow(a01.y - aTer.y,2) + std::pow(a01.z - aTer.z,2) );
+                double aB = sqrt(std::pow(a02.x - aTer.x,2) + std::pow(a02.y - aTer.y,2) + std::pow(a02.z - aTer.z,2) );
+                double aC = sqrt(std::pow(a02.x - a01.x,2)  + std::pow(a02.y - a01.y,2)  + std::pow(a02.z - a01.z,2)  );
+                double aH = sqrt( aA*aB*(aA+aB+aC)*(aA+aB-aC) )/(aA+aB);
+
+                //std::cout << "\n a01 " << a01 << ", a02 " << a02 << ", aCentIm1 " << aCentIm1 << ", aTerBPrj " << aTerBPrj << ", aTer " << aTer << "\n";
+                //std::cout << " aA " << aA << ", aB " << aB << ", aC " << aC << ", aH " << aH << "\n";
+
+                std::cout << " (" << i << "," << j << ")"
+                          << aC/aH;
+            }
+            else
+                std::cout << " (" << i << "," << j << ")0.0 ";
+
+        }
+
+
+        std::cout << "\n";
+
     }
 
     /* Print out the list of images */
@@ -4860,33 +4962,33 @@ void cRPCVerf::Compare3D(std::vector<Pt3dr> &aGrid3d) const
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant a la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+Ce logiciel est regi par la licence CeCILL-B soumise au droit francais et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusee par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilité au code source et des droits de copie,
-de modification et de redistribution accordés par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-seule une responsabilité restreinte pèse sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concédants successifs.
+En contrepartie de l'accessibilite au code source et des droits de copie,
+de modification et de redistribution accordes par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitee.  Pour les memes raisons,
+seule une responsabilite restreinte pese sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concedants successifs.
 
-A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
-avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+A cet egard  l'attention de l'utilisateur est attiree sur les risques
+associes au chargement,  a  l'utilisation,  a  la modification et/ou au
+developpement et a  la reproduction du logiciel par l'utilisateur etant
+donne sa specificite de logiciel libre, qui peut le rendre complexe a
+manipuler et qui le reserve donc a des developpeurs et des professionnels
+avertis possedant  des  connaissances  informatiques approfondies. Les
+utilisateurs sont donc invites a  charger  et  tester  l'adequation  du
+logiciel a  leurs besoins dans des conditions permettant d'assurer la
+securite de leurs systemes et ou de leurs donnees et, plus generalement,
+a l'utiliser et l'exploiter dans les memes conditions de securite.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
-pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+Le fait que vous puissiez acceder a cet en-tete signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accepte les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
