@@ -284,23 +284,33 @@ cStat1Distrib * cStatOneClassEquiv::NextDistrib()
 
 REAL cStatOneClassEquiv::Cov() const
 {
-  REAL aSigmaTot = 0.0;
+    bool verbose = false;
+    if (verbose)
+    {
+      std::cout << __FILE__<< " : "<<__LINE__<<std::endl;
+      std::cout << "mNbOK : "<<mNbOK<<std::endl; //Nb de pixel dans la vignette
+      std::cout << "mKCurDist : "<<mKCurDist<<std::endl; //Nb d'images dispo
+    }
 
-  for (int aIndPix=0; aIndPix<mNbOK ; aIndPix++)
-  {
-      int aKPix = mIndOK[aIndPix];
-      {
-         REAL aS1=0.0;
-         REAL aS2=0.0;
-         for (INT aKDist=0; aKDist<mKCurDist ; aKDist++)
+    REAL aSigmaTot = 0.0;
+
+     for (int aIndPix=0; aIndPix<mNbOK ; aIndPix++)// Pour chaque pixel de la vignette
+     {
+         int aKPix = mIndOK[aIndPix];// Le pointeur dans le tableau pour ce pixel
          {
-            double aV =  mData[aKDist][aKPix];
-            aS1 += aV;
-            aS2 += ElSquare(aV);
+            REAL aS1=0.0;
+            REAL aS2=0.0;
+            for (INT aKDist=0; aKDist<mKCurDist ; aKDist++)// Pour toutes les images dispo
+            {
+               double aV =  mData[aKDist][aKPix];
+               aS1 += aV;
+               aS2 += ElSquare(aV);
+            }
+            aSigmaTot += aS2-ElSquare(aS1)/mKCurDist;
          }
-         aSigmaTot += aS2-ElSquare(aS1)/mKCurDist;
-      }
-  }
+     }
+     if (verbose) std::cout << "aSigmaTot = " << aSigmaTot<<std::endl;
+
 /*
   for (int aKPix=0; aKPix<mNbV ; aKPix++)
   {
@@ -382,8 +392,8 @@ REAL cStatOneClassEquiv::CoeffInfoMut() const
 //     for(int j=0;j<nb_bins; j++)
 //       cout<<"histo2d["<<i<<"]["<<j<<"] "<<histo2d[i][j]<<"\n";
 
-  // calculer histo_2d : matrice 9 * 9 dont la somme des coeff est �gale
-  // au nb de pixels dans la fen�tre : (2N+1)*(2N+1) (N = taille de la 1/2 fenetre)
+  // calculer histo_2d : matrice 9 * 9 dont la somme des coeff est �gale
+  // au nb de pixels dans la fen�tre : (2N+1)*(2N+1) (N = taille de la 1/2 fenetre)
   
   // matrice de double hist2d_norm = histo_2d/(2N+1)*(2N+1)
   std::vector<std::vector<double> > histo2d_norm(nb_bins,std::vector<double>(nb_bins,0.));
@@ -692,7 +702,7 @@ void cStatGlob::SetSomsMade(bool aSSM)
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -708,17 +718,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant 
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �  
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez 
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
