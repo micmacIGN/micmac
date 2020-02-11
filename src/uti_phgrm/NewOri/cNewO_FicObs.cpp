@@ -1191,7 +1191,7 @@ double cAppliFictObs::CalcPoids(double aPds)
     else if (mPdsFun=="L1")
         aRes= aPds / double(NbPtsMax);
     else if (mPdsFun == "L2")
-        aRes = 1- ((aPds*NbPtsMax) / (aPds+NbPtsMax))/aPds;
+        aRes = 1- ((NbPtsMax) / (aPds+NbPtsMax));
         //aRes = std::pow(aPds,0.3) / std::pow(NbPtsMax,0.3);
 
 
