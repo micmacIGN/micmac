@@ -142,7 +142,7 @@ void  cAppliApero::ConstructMST
    }
 {
    std::cout << "MM " << MPD_MM() << " BLoc=" << UseBloc << "\n";
-   getchar();
+   //getchar();
 }
 
    // A chaque iteration on va affecter un sommet
