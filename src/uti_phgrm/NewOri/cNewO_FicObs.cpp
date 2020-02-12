@@ -37,11 +37,13 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include "StdAfx.h"
 #include "NewOri.h"
 #include "../TiepTri/MultTieP.h"
-//  #include "../Apero/Apero.h"
-#include "../Apero/cPose.cpp"
+#include "../Apero/cPose.h"
 //extern bool ERupnik_MM();
+
+class cAccumResidu;
 
 ElRotation3D TestOriConvention(std::string & aNameOri, const std::string & mNameIm1, const std::string & mNameIm2);
 

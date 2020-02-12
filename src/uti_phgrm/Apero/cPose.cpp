@@ -43,7 +43,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 
 
-#include "Apero.h"
+#include "cPose.h"
 
     /* ========== cStructRigidInit ============*/
 
@@ -56,20 +56,13 @@ cStructRigidInit::cStructRigidInit(cPoseCam * RigidMere,const ElRotation3D & aR)
 
 static const int NbMinCreateIm = 200;
 
-class cPtAVGR;
-class cAperoVisuGlobRes;
+//class cPtAVGR;
+//class cAperoVisuGlobRes;
 
+
+/***************** classes moved to cPose.h *******************/
      /*===========     cPtAVGR  ===========*/
 
-class cPtAVGR
-{
-    public :
-        cPtAVGR (const Pt3dr & aP,double aRes);
-        Pt3df mPt;
-        float mRes;
-        float mResFiltr;
-        bool  mInQt;
-};
 
 
 cPtAVGR::cPtAVGR(const Pt3dr & aP,double aRes) :
@@ -78,15 +71,15 @@ cPtAVGR::cPtAVGR(const Pt3dr & aP,double aRes) :
 {
 }
 
-class cFoncPtOfPtAVGR
+/*class cFoncPtOfPtAVGR
 {
    public :
        Pt2dr operator () (cPtAVGR * aP) {return  Pt2dr(aP->mPt.x,aP->mPt.y);}
-};
+};*/
 
      /*===========     cAperoVisuGlobRes  ===========*/
 
-typedef enum
+/*typedef enum
 {
     eBAVGR_X,
     eBAVGR_Y,
@@ -122,7 +115,7 @@ class cAperoVisuGlobRes
        cPlyCloud            mPC;
        cPlyCloud            mPCLeg;  // Legende
        double               mVMilZ;
-};
+};*/
 
 
 cAperoVisuGlobRes::cAperoVisuGlobRes() :
@@ -356,7 +349,7 @@ static cAperoVisuGlobRes mAVGR;
 
 //============================================
 
-class cInfoAccumRes
+/*class cInfoAccumRes
 {
      public :
        cInfoAccumRes(const Pt2dr & aPt,double aPds,double aResidu,const Pt2dr & aDir);
@@ -365,7 +358,7 @@ class cInfoAccumRes
        double mPds;
        double mResidu;
        Pt2dr  mDir;
-};
+};*/
 
 
 cInfoAccumRes::cInfoAccumRes(const Pt2dr & aPt,double aPds,double aResidu,const Pt2dr & aDir) :
@@ -376,7 +369,7 @@ cInfoAccumRes::cInfoAccumRes(const Pt2dr & aPt,double aPds,double aResidu,const 
 {
 }
 
-class cAccumResidu
+/*class cAccumResidu
 {
     public :
        void Accum(const cInfoAccumRes &);
@@ -407,7 +400,7 @@ class cAccumResidu
        bool                     mInit;
        int                      mDegPol;
        L2SysSurResol *          mSys;
-};
+};*/
 
 cAccumResidu::cAccumResidu(Pt2di aSz,double aResol,bool OnlySign,int aDegPol) :
    mNbInfo (0),
@@ -1689,12 +1682,12 @@ double DistanceMatr(const ElRotation3D & aR1,const ElRotation3D & aR2)
    return aId.L2(aMatr);
 }
 
-class cTransfo3DIdent : public cTransfo3D
+/*class cTransfo3DIdent : public cTransfo3D
 {
      public :
           std::vector<Pt3dr> Src2Cibl(const std::vector<Pt3dr> & aSrc) const {return aSrc;}
 
-};
+};*/
 
 
 extern bool DebugOFPA;
