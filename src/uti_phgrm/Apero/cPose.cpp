@@ -1546,6 +1546,7 @@ void cPoseCam::PCSetCurRot(const ElRotation3D & aRot)
 
 void  cPoseCam::SetBascRig(const cSolBasculeRig & aSBR)
 {
+    PCSetCurRot(aSBR.TransformOriC2M(CurRot()));
 
     Pt3dr aP;
     if (mSomPM)
@@ -1556,13 +1557,17 @@ void  cPoseCam::SetBascRig(const cSolBasculeRig & aSBR)
     else
     {
         const CamStenope *  aCS = CurCam() ;
-        ELISE_ASSERT( (mProfondeur != PROF_UNDEF()),"No Profondeur in cPoseCam::SetBascRig");
+        if (mProfondeur == PROF_UNDEF())
+        {
+            std::cout << "Warn : NoProfInBasc For camera =" << mName << "\n";
+            // ELISE_ASSERT( false,"No Profondeur in cPoseCam::SetBascRig");
+            return ;
+        }
 
         aP =  aCS->ImEtProf2Terrain(aCS->Sz()/2.0,mProfondeur);
         aP =  aSBR(aP);
     }
 
-    PCSetCurRot(aSBR.TransformOriC2M(CurRot()));
 
 
     const CamStenope *  aCS = CurCam() ;

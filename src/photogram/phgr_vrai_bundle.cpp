@@ -1157,12 +1157,14 @@ cFullBundleBase::cFullBundleBase(const  ElPackHomologue & aPack,double aFoc,bool
     cPackInPts2d          (aPack),
     cInterfBundle2Image   ((int)mVP1.size(),aFoc),
     mBB                   (false,0,aFoc,UseAccelCoordCste),
-    mAddCstrDrone         (MPD_MM())
+    mAddCstrDrone         (false && MPD_MM())
 {
     if (mAddCstrDrone)
     {
         std::cout << "ADD CSTRE DRONE \n";
     }
+/*
+*/
 }
 
 double  cFullBundleBase::VIB2I_ErrorK(const ElRotation3D &aRot,const int & aK) const

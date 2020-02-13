@@ -530,6 +530,112 @@ const std::string & TheNameFileTxtConvName()
     static std::string TMC="Sensib-ConvName.txt";
     return TMC;
 }
+
+const std::string & TheNameFileXmlConvNameIm()
+{
+    static std::string TMC="Sensib-ConvName-Im.xml";
+    return TMC;
+}
+
+std::map<std::string,std::string>  LecSensibName(const std::string & aNameFile,const std::string & aPref)
+{
+    std::map<std::string,std::string> aRes;
+    ELISE_fp  aFile(aNameFile.c_str(),ELISE_fp::READ);
+
+    std::string aPat = std::string(" (") + aPref + ".*) => (.*)";
+    cElRegex anAutom(aPat,10);
+    bool endof=false;
+    std::string aLine;
+
+    while (!endof)
+    {
+        if (aFile.fgets(aLine,endof))
+        {
+             if (anAutom.Match(aLine))
+             {  
+                std::string anId = anAutom.KIemeExprPar(1);
+                std::string aVal = anAutom.KIemeExprPar(2);
+                aRes[anId] = aVal;
+             }
+        }
+    }
+    return aRes;
+}
+ 
+std::map<std::string,std::vector<cSensibDateOneInc> >
+    LecSensibDicIm(const std::string & aNameConv,const std::string & aNameXml)
+{
+    std::map<std::string,std::vector<cSensibDateOneInc> > aRes;
+
+    std::map<std::string,std::string> aConv =   LecSensibName ( aNameConv,"Ima");
+    cXmlNameSensibs     aXmlSN = StdGetFromAp(aNameXml,XmlNameSensibs);
+
+    for (const auto & aS1I : aXmlSN.SensibDateOneInc())
+    {
+        auto anIter = aConv.find(aS1I.NameBloc());
+        if (anIter != aConv.end())
+        {
+             aRes[anIter->second].push_back(aS1I);
+        }
+    }
+
+    return aRes;
+}
+
+const cSensibDateOneInc * GetSensib(const std::vector<cSensibDateOneInc> & aVec,const std::string & anId,bool SVP=false)
+{
+    auto anIter = std::find_if
+                  (
+                      aVec.begin(),
+                      aVec.end(),
+                      [anId](const cSensibDateOneInc & aS1) {return aS1.NameInc() == anId;}
+                  );
+     if (anIter == aVec.end())
+     {
+         ELISE_ASSERT(SVP,"Cannot find in GetSensib");
+         return nullptr;
+     }
+
+     return  &(*anIter);
+}
+
+
+std::map<std::string,std::pair<Pt3dr,Pt3dr>> GetSCenterOPK(const std::string & aNameConv,const std::string & aNameXml)
+{
+     std::map<std::string,std::pair<Pt3dr,Pt3dr> > aRes;
+
+     for (const auto & aVec : LecSensibDicIm(aNameConv,aNameXml))
+     {
+          Pt3dr aSCenter
+                (
+                    GetSensib(aVec.second,"Cx")->SensibParamInv(),
+                    GetSensib(aVec.second,"Cy")->SensibParamInv(),
+                    GetSensib(aVec.second,"Cz")->SensibParamInv()
+                 );
+          Pt3dr aSOPK
+                (
+                    GetSensib(aVec.second,"T12")->SensibParamInv(),
+                    GetSensib(aVec.second,"T02")->SensibParamInv(),
+                    GetSensib(aVec.second,"T01")->SensibParamInv()
+                 );
+          if (0)
+          {
+               std::cout << "SSSss " << aVec.first << aSCenter << aSOPK << "\n";
+          }
+          aRes[aVec.first] = std::pair<Pt3dr,Pt3dr>(aSCenter,aSOPK);
+     }
+
+     return aRes;
+}
+std::map<std::string,std::pair<Pt3dr,Pt3dr>>    StdGetSCenterOPK(const std::string &  aDir)
+{
+   return GetSCenterOPK(aDir+"/Sensib-ConvName.txt",aDir+"/Sensib-Data.dmp");
+}
+
+
+
+
+
 std::string  TheNameFileExpSens(bool Bin)
 {
     return "Sensib-Data" + std::string(Bin ? ".dmp" : ".xml");
@@ -670,6 +776,7 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
        std::string aNameConv =  aPrefESPA + TheNameFileTxtConvName();
 
        ofstream  aStdConvTxt (aNameConv.c_str());
+       cSauvegardeNamedRel  aRelIm;
        if (! aStdConvTxt.is_open())
        {
 		    std::cout << "FILE=" << aNameConv << "\n";
@@ -689,6 +796,7 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
        for (int aK=0 ; aK<int(mNamesIdIm.size()) ; aK++)
        {
           aStdConvTxt<< " " << IdOfIma(aK) << " => " << mNamesIdIm[aK]  << "\n";
+          aRelIm.Cple().push_back(cCpleString(IdOfIma(aK), mNamesIdIm[aK]));
        }
 
        Im2D_REAL4 aMCov(aNbV,aNbV);
@@ -726,6 +834,7 @@ std::cout << "DONNNNE AOAF : NonO ==============================================
 
        //fclose(aFConvTxt);
        aStdConvTxt.close();
+       MakeFileXML(aRelIm,aPrefESPA+ TheNameFileXmlConvNameIm());
     }
 
     bool  ExportMMF = mParam.SectionChantier().ExportMatrixMarket().Val() ;

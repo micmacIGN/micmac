@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamChantierPhotogram[2163] = {
+const char * theNameVar_ParamChantierPhotogram[2164] = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -1772,6 +1772,7 @@ const char * theNameVar_ParamChantierPhotogram[2163] = {
 "-->\n",
 "    <StructBlockCam Nb=\"*\" Class=\"true\" ToReference=\"true\">\n",
 "         <KeyIm2TimeCam Nb=\"1\" Type=\"std::string\"> </KeyIm2TimeCam>\n",
+"         <MasterGrp Nb=\"?\" Type=\"std::string\"> </MasterGrp>\n",
 "\n",
 "         <LiaisonsSHC Nb=\"?\">\n",
 "              <ParamOrientSHC Nb=\"*\">\n",
