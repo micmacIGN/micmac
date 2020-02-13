@@ -172,7 +172,7 @@ cAppliMorito::cAppliMorito(int argc,char ** argv)  :
            LArgMain() << EAMC(mOri1,"First set of image", eSAM_IsPatFile)
                       << EAMC(mOri2,"Second set of image", eSAM_IsPatFile)
                       << EAMC(mOriOut,"Orientation Dir"),
-           LArgMain() << EAM(mWithOutLayer,"WithOutLayer",true,"Is robust estimation requires or simply L2 (Def=false, other not supported now)")
+           LArgMain() << EAM(mWithOutLayer,"WithOutLayer",true,"If robust estimation required or simply L2 (Def=false, other not supported now)")
                       << EAM(mDir,"Dir",true,"Global directory, Def=./")
                       << EAM(aShowSol,"Show",true,"Show the transformation, Def=false")
 

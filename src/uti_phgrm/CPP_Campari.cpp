@@ -481,7 +481,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     LocLibPP =  true;
     LocLibDec = true;
     LocLibCD=   true;
-    bool  AllFree = false;  
+    bool  AllFree = false; 
+    std::string AllFreePattern;	
     std::string CalibMod2Refine;
     bool AddViscInterne=false;
     double ViscosInterne=0.1;
@@ -547,6 +548,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(CPI1,"CPI1",true,"Calib Per Im, Firt time", eSAM_IsBool)
                     << EAM(CPI2,"CPI2",true,"Calib Per Im, After first time, reUsing Calib Per Im As input", eSAM_IsBool)
                     << EAM(AllFree,"AllFree",true,"Refine all calibration parameters (Def=false)", eSAM_IsBool)
+                    << EAM(AllFreePattern,"AllFreePat",true,"Pattern of images that will be subject to AllFree (Def=.*)", eSAM_IsBool)
                     << EAM(CalibMod2Refine,"GradualRefineCal",true,"Calibration model to refine gradually",eSAM_None)
                     << EAM(DetailAppuis,"DetGCP",true,"Detail on GCP (Def=false)", eSAM_IsBool)
                     << EAM(Viscos,"Visc",true,"Viscosity on external orientation in Levenberg-Marquardt like resolution (Def=1.0)")
@@ -663,6 +665,10 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         if (EAMIsInit(&RapTxt)) mCom += std::string(" +RapTxt=") + RapTxt + " ";
     if (AllPoseFigee) mCom    +=            " +PoseFigee=true ";
 
+        if (EAMIsInit(&AllFreePattern))
+        {
+            mCom    += "  +AllFreePattern=" + AllFreePattern + " ";
+        }
         if (EAMIsInit(&PatPoseFigee))
         {
             mCom    += " +WithPatPoseFigee=true +PatPoseFigee=" + PatPoseFigee + " ";

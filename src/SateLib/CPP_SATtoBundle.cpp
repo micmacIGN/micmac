@@ -219,6 +219,47 @@ int SatEmpriseSol_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 } 
 
+int SatBBox_main(int argc,char ** argv)
+{
+    std::string aGRIName;
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aGRIName,"Grid"),
+        LArgMain()
+     );
+
+    OrientationGrille aOri(aGRIName);
+
+    Pt2dr aDZ = aOri.GetRangeZ();
+    double Zmin =max(min(aDZ.x, aDZ.y),0.);
+
+    Pt2dr aDC = aOri.GetRangeCol(); //problems if the grid is much wider than the image...
+    Pt2dr aDR = aOri.GetRangeRow();
+
+
+    Pt2dr aP00(aDC.x,aDR.x);
+    Pt2dr aP01(aDC.x,abs(aDR.y));
+    Pt2dr aP10(aDC.y,aDR.x);
+    Pt2dr aP11(aDC.y,abs(aDR.y));
+
+    Pt2dr aP00Gr,aP01Gr,aP10Gr,aP11Gr;
+    aOri.ImageAndPx2Obj(aP00.x,aP00.y,&Zmin,aP00Gr.x,aP00Gr.y);
+    aOri.ImageAndPx2Obj(aP01.x,aP01.y,&Zmin,aP01Gr.x,aP01Gr.y);
+    aOri.ImageAndPx2Obj(aP10.x,aP10.y,&Zmin,aP10Gr.x,aP10Gr.y);
+    aOri.ImageAndPx2Obj(aP11.x,aP11.y,&Zmin,aP11Gr.x,aP11Gr.y);
+
+    double Xmin=min(min(aP00Gr.x, aP01Gr.x), min(aP10Gr.x, aP11Gr.x));
+    double Xmax=max(max(aP00Gr.x, aP01Gr.x), max(aP10Gr.x, aP11Gr.x));
+    double Ymin=min(min(aP00Gr.y, aP01Gr.y), min(aP10Gr.y, aP11Gr.y));
+    double Ymax=max(max(aP00Gr.y, aP01Gr.y), max(aP10Gr.y, aP11Gr.y));
+
+    std::cout << Xmin << " " << Ymin << " " << Xmax << " " << Ymax << "\n";
+
+    return EXIT_SUCCESS;
+}
+
 
 int SATtoOpticalCenter_main(cSatI_Appli &aApps)
 {

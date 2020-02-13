@@ -930,6 +930,7 @@ class cAppliOneReechMarqFid : public ElDistortion22_Gen ,
         bool        mBySingle;
         int         mNumKer;
         std::string mPostMasq;
+		bool ExportAffine;
 };
 
 // mAffin (mm) = Pixel
@@ -964,7 +965,8 @@ cAppliOneReechMarqFid::cAppliOneReechMarqFid(int argc,char ** argv) :
      mAffPixIm2ChambreMm  (ElAffin2D::Id()),
      mBySingle            (true),
      mNumKer              (5),
-     mPostMasq            ("NONE")
+     mPostMasq            ("NONE"),
+	 ExportAffine 		  (true)
 {
     ElInitArgMain
     (
@@ -974,6 +976,7 @@ cAppliOneReechMarqFid::cAppliOneReechMarqFid(int argc,char ** argv) :
           LArgMain()   <<  EAM(mBoxChambreMm,"BoxCh",true,"Box in Chambre (generally in mm, [xmin,ymin,xmax,ymax])")
                        << EAM(mNumKer,"Kern",true,"Kernel of interpol,0 Bilin, 1 Bicub, other SinC (fix size of apodisation window), Def=5")
                        << EAM(mPostMasq,"AttrMasq",true,"Atribut for masq toto-> toto_AttrMasq.tif, NONE if unused, Def=NONE")
+					   << EAM(ExportAffine,"ExpAff","true","Export the affine transformation")
     );
 
     if (mPostMasq!="NONE") 
@@ -1045,6 +1048,16 @@ void cAppliOneReechMarqFid::DoReech()
           2000
     );
     std::cout << "FOR " << mNameIm << " RESIDU " << mResidu   << " Time " << aChrono.uval() << " \n";
+
+	if (ExportAffine)
+	{
+		std::string aAffFileDir = "Ori-InterneScan/";
+		ELISE_fp::MkDirSvp(aAffFileDir);
+
+		mAffChambreMm2PixIm.SaveInFile(aAffFileDir+"OIS-Reech_"+StdPrefix(mNameIm)+"_ChambreMm2Pix.xml");
+		//MakeFileXML(mAffChambreMm2PixIm,aAffFileDir+"OIS-Reech_"+StdPrefix(mNameIm)+"_ChambreMm2Pix.xml");
+
+	}
 }
     
 

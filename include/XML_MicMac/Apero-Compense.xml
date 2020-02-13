@@ -51,7 +51,7 @@
            <Symb>  AffineFree=false </Symb>
            <Symb>  LibCD=false </Symb>
            <Symb>  LibDec=false </Symb>
-         
+		   <Symb>  AllFreePattern=".*" </Symb>         
 
  	   <Symb>  PoseFigee=false </Symb>
 
@@ -826,8 +826,9 @@
 
                    <#WHEN VTEST=${AllFree}>
                          <IterationsCompensation>
-                            <SectionContraintes>
+							<SectionContraintes>
                                <ContraintesCamerasInc>
+								   <PatternNameApply> ${AllFreePattern} </PatternNameApply>
                                    <Val> eAllParamLibres  </Val>
                                </ContraintesCamerasInc>
                             </SectionContraintes>
