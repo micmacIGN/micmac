@@ -142,6 +142,7 @@ class cCmpOriOneSom
        double             mAbsCurv;
        double             mDC;
        double             mDMat;
+       double             mDMatAng;//angular distance between rotation matrices
        double             mDMatRel;
        double             mDCRel;
        ElRotation3D       mRC1ToC2;
@@ -252,6 +253,7 @@ class cAppli_CmpOriCam : public cAppliWithSetImage
 
         cAppli_CmpOriCam(int argc, char** argv);
         void ComputeCircular();
+		void ComputeAngularDist();
 
         std::string mPat,mOri1,mOri2;
         std::string mDirOri2;
@@ -309,6 +311,134 @@ void cAppli_CmpOriCam::ComputeCircular()
     getchar();
 }
 
+ElMatrix<double> Half_R_Rt(const ElMatrix<double>& R)
+{
+    ElMatrix<double> aRes((R - R.transpose())*0.5);
+
+    /*std::cout << aRes(0,0) << " " << aRes(0,1) << " " << aRes(0,2) << "\n"
+              << aRes(1,0) << " " << aRes(1,1) << " " << aRes(1,2) << "\n"
+              << aRes(2,0) << " " << aRes(2,1) << " " << aRes(2,2) << "\n";*/
+    return aRes;
+}
+
+std::vector<double> R2q(const ElMatrix<double>& R)
+{
+	std::vector<double> q(4);
+
+	q.at(0) = (R(0,0) + R(1,1) + R(2,2) -1) *0.5;
+	q.at(1) = (R(2,1) - R(1,2)) *0.5;
+	q.at(2) = (R(0,2) - R(2,0)) *0.5;
+	q.at(3) = (R(1,0) - R(0,1)) *0.5;
+
+	q.at(0) = sqrt((q.at(0)+1)/2);
+	
+	for (int aK=1; aK<4; aK++)
+	{
+		q.at(aK) = q.at(aK)/2/q.at(0);
+	}
+
+	//std::cout << "q " << q << "\n";
+	return q;
+}
+
+
+/* Logarithm of a matrix S*R^T  */
+Pt3dr LogR(const ElMatrix<double>& SRt)
+{
+    Pt3dr aRes(0,0,0);
+
+    //transform to skew matrix
+    ElMatrix<double> SRtx = Half_R_Rt(SRt);
+
+    //if euclidean norm equal to zero return zero matrix
+    if (SRtx.L2()==0)
+        return aRes;
+
+    Pt3dr y (SRtx(2,1),SRtx(0,2),SRtx(1,0));
+    double yNorm = euclid(y);
+
+
+    aRes.x = std::asin(yNorm) * y.x * 1/yNorm;
+    aRes.y = std::asin(yNorm) * y.y * 1/yNorm;
+    aRes.z = std::asin(yNorm) * y.z * 1/yNorm;
+    //std::cout << "LogSRtx=" << aRes << "\n";
+
+
+    return aRes;
+
+}
+
+/* Angular distance from quaternions
+ *
+ * Teta = 2*acos (|c|) where (c,vec) = q1^-1 * q2
+ *      where c is the real and vec the imaginary part of the resulting quaternion
+ *
+ * Hartley, R., Trumpf, J., Dai, Y. and Li, H., 2013. Rotation averaging. International journal of computer vision, 103(3), pp.267-305.
+ *
+ * */
+double AngDistFromQ(std::vector<double>& q1,std::vector<double>& q2)
+{
+	double aRes;
+
+	double SOM2=0;
+	for (int aK=0; aK<4; aK++)
+		SOM2 += q1.at(aK)*q1.at(aK);
+
+	std::vector<double> q1Inv(4);
+	q1Inv.at(0) = q1.at(0)/SOM2;
+	for (int aK=1; aK<4; aK++)
+	{
+		q1Inv.at(aK) = -q1.at(aK)/SOM2;
+	}
+
+	double q1Inv_q2_dot = q1Inv.at(1)*q2.at(1) + q1Inv.at(2)*q2.at(2) + q1Inv.at(3)*q2.at(3);
+	double q1Inv_q2_real = q1Inv.at(0)*q2.at(0) - q1Inv_q2_dot;
+
+	/* Computation of the real part not necessary for the angular distance 
+	Pt3dr q1Inv_q2_cross = Pt3dr (q1Inv.at(2)*q2.at(3) - q1Inv.at(3)*q2.at(2),
+					              q1Inv.at(3)*q2.at(1) - q1Inv.at(1)*q2.at(3),
+								  q1Inv.at(1)*q2.at(2) - q1Inv.at(2)*q2.at(1));
+
+	Pt3dr q1Inv_q2_im = Pt3dr (q1Inv.at(0)*q2.at(1) + q2.at(0)*q1Inv.at(1) + q1Inv_q2_cross.x,
+					           q1Inv.at(0)*q2.at(2) + q2.at(0)*q1Inv.at(2) + q1Inv_q2_cross.y,
+							   q1Inv.at(0)*q2.at(3) + q2.at(0)*q1Inv.at(3) + q1Inv_q2_cross.z); */
+
+	aRes = 2*acos (abs(q1Inv_q2_real));
+	aRes *= (180/PI);
+
+	return aRes;
+}
+
+/* Angular distance from Rotations in SO(3)
+ *
+ * mDMatAng = || log(S*R^t) ||_2
+ * where S and R are two rotation matrices that we compare
+ 
+ * Hartley, R., Trumpf, J., Dai, Y. and Li, H., 2013. Rotation averaging. International journal of computer vision, 103(3), pp.267-305.
+ * */
+
+double AngDistFromR(ElMatrix<double>& R1,ElMatrix<double>& R2)
+{
+	Pt3dr LogSRtx = LogR(R1*R2.transpose());
+
+	return euclid(LogSRtx) *180/PI;
+}
+
+
+
+void cAppli_CmpOriCam::ComputeAngularDist()
+{
+	//iterate over all cameras
+	for (auto & aSom : mVCmp)
+    {
+
+		std::vector<double> q1 = R2q(aSom.mRC1ToM.Mat());
+		std::vector<double> q2 = R2q(aSom.mRC2ToM.Mat());
+		aSom.mDMatAng = AngDistFromQ(q1,q2);
+		//std::cout << "mDMatAng=" << aSom.mDMatAng << "\n";
+    }
+}
+
 cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
     cAppliWithSetImage(argc-1,argv+1,0)
 {
@@ -319,6 +449,7 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
    double aScaleO;
    double aF;
    Pt2dr SeuilMatRel;
+   bool DoAngDist = false; 
 
    ElInitArgMain
    (
@@ -338,9 +469,11 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
                     << EAM(aF,"F",true,"approximate value of focal length in (m), Def=0.03875m for Camlight")
                     << EAM(SeuilMatRel,"SMR",true,"Seuil Mat Rel [Ratio,Prop] ")
                     << EAM(mSeuilsCircs,"SeuilCirc",true,"Thresholds to compute circ [I0,RatBcl]")
+                    << EAM(DoAngDist,"AngDist",true,"Calculate the angular distance, Def=false")
    );
    bool DoRel = true; // Do relative informatio,
    bool DoCirc = EAMIsInit(&mSeuilsCircs);
+
 
    mICNM2 = mEASF.mICNM;
    if (EAMIsInit(&mDirOri2))
@@ -354,6 +487,7 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
 
    double aSomDC = 0;
    double aSomDM = 0;
+   double aSomDMAng = 0;
 
    bool isCSV = false;
    ofstream mCSVContent;
@@ -393,11 +527,19 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
         ComputeCircular();
    }
 
+   if (DoAngDist)
+   {
+       ComputeAngularDist();
+   }
 
    for (const auto & aSom : mVCmp)
    {
        aSomDC += aSom.mDC;
        aSomDM += aSom.mDMat;
+
+	   if (DoAngDist)
+	       aSomDMAng += aSom.mDMatAng;
+
        if (EAMIsInit(&aScaleO))
        {
            aSom.PlyShowDiffRot(aPlyO,aScaleO,aColOri);
@@ -416,6 +558,7 @@ cAppli_CmpOriCam::cAppli_CmpOriCam(int argc, char** argv) :
 	
    std::cout << "Aver;  DistCenter= " << aSomDC/mVSoms.size()
              << " DistMatrix= " << aSomDM/mVSoms.size()
+			 << " DistMatrixAng= " << (DoAngDist ? ToString(aSomDMAng/mVSoms.size()) : "not calculated")
              << "\n";
    if(mXmlG!="")
    {
