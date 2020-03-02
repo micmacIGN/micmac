@@ -37,11 +37,13 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
+#include "StdAfx.h"
 #include "NewOri.h"
 #include "../TiepTri/MultTieP.h"
-//  #include "../Apero/Apero.h"
-#include "../Apero/cPose.cpp"
+#include "../Apero/cPose.h"
 //extern bool ERupnik_MM();
+
+class cAccumResidu;
 
 ElRotation3D TestOriConvention(std::string & aNameOri, const std::string & mNameIm1, const std::string & mNameIm2);
 
@@ -1191,7 +1193,7 @@ double cAppliFictObs::CalcPoids(double aPds)
     else if (mPdsFun=="L1")
         aRes= aPds / double(NbPtsMax);
     else if (mPdsFun == "L2")
-        aRes = 1- ((aPds*NbPtsMax) / (aPds+NbPtsMax))/aPds;
+        aRes = 1- ((NbPtsMax) / (aPds+NbPtsMax));
         //aRes = std::pow(aPds,0.3) / std::pow(NbPtsMax,0.3);
 
 

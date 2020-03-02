@@ -449,6 +449,22 @@ template <class TVal> TVal KthValProp(std::vector<TVal> & aV,double aProp)
 
 double MedianPond(std::vector<Pt2df> &  aV,int * aKMed=0);
 
+template <class Type,class TFctr> Pt3dr  P3DMed(const Type & aCont,const TFctr & aFctr)
+{
+     std::vector<double>  mCX;
+     std::vector<double>  mCY;
+     std::vector<double>  mCZ;
+
+     for (const auto & anObj : aCont)
+     {
+         Pt3dr aP = aFctr(anObj);
+         mCX.push_back(aP.x);
+         mCY.push_back(aP.y);
+         mCZ.push_back(aP.z);
+     }
+     return Pt3dr(MedianeSup(mCX),MedianeSup(mCY),MedianeSup(mCZ));
+}
+
 
 
 #endif  // _ELISE_EXT_STL_NUMERICS_H

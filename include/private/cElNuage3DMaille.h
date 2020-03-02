@@ -238,7 +238,7 @@ class cElNuage3DMaille : public cCapture3D
 
         Pt3dr PtOfIndex(const tIndex2D & aP) const ;
         Pt3dr PtOfIndexInterpol(const Pt2dr & aP) const;  // [2]
-        Pt3dr NormaleOfIndex(const tIndex2D&, int) const;
+        Pt3dr NormaleOfIndex(const tIndex2D&, int, const Pt3dr&) const;
 
 
         virtual Pt3dr Loc_PtOfIndex(const tIndex2D & aP) const = 0;

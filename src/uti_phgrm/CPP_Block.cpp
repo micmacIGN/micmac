@@ -37,7 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
-
+#include "BlockCam.h"
 
 
 int Blinis_main(int argc,char ** argv)
@@ -46,9 +46,10 @@ int Blinis_main(int argc,char ** argv)
     MMD_InitArgcArgv(argc,argv);
 
     std::string  aDir,aPat,aFullDir;
-    std::string AeroIn;
-    std::string KeyIm2Bloc;
-    std::string aFileOut;
+    std::string  AeroIn;
+    std::string  KeyIm2Bloc;
+    std::string  aFileOut;
+    std::string  aMasterGrp;
 
 
     ElInitArgMain
@@ -59,6 +60,7 @@ int Blinis_main(int argc,char ** argv)
                     << EAMC(KeyIm2Bloc,"Key for computing bloc structure")
                     << EAMC(aFileOut,"File for destination"),
         LArgMain()
+                    << EAM(aMasterGrp,"MGrp",true,"Master Group if you need to fix it (as in IMU for example)")
     );
 
     if (!MMVisualMode)
@@ -71,6 +73,10 @@ int Blinis_main(int argc,char ** argv)
 
     cStructBlockCam aBlockName = StdGetFromPCP(Basic_XML_MM_File("Stereo-Bloc_Naming.xml"),StructBlockCam);
     aBlockName.KeyIm2TimeCam()  = KeyIm2Bloc;
+    if (EAMIsInit(&aMasterGrp))
+    {
+         aBlockName.MasterGrp().SetVal(aMasterGrp);
+    }
     ELISE_fp::MkDirSvp(aDir+"Tmp-MM-Dir/");
     MakeFileXML(aBlockName,aDir+"Tmp-MM-Dir/Stereo-Bloc_Naming.xml");
     std::string aCom =   MM3dBinFile_quotes( "Apero" )
@@ -92,31 +98,6 @@ int Blinis_main(int argc,char ** argv)
 
 /***********************************************************************/
 
-class cAppli_Block
-{
-   public :
-        CamStenope * CamS(const std::string & aName) {return  mICNM->StdCamStenOfNamesSVP(aName,mOriIn);}
-        typedef std::pair<std::string,std::string>  t2Str;
-        t2Str  TimGrp(const std::string & aName)
-        {
-           return mICNM->Assoc2To1(mKeyBl,aName,true);
-        }
-   protected :
-        void Compile();
-
-    // === Input parameters
-        std::string mPatIm;  // Liste of all images
-        std::string mOriIn;  // input orientation
-        std::string mNameBlock;  // name of the block-blini
-
-    // === Computed parameters
-        std::string     mKeyBl;  // key for name compute of bloc
-        cStructBlockCam mBlock;  // structure of the rigid bloc
-        cElemAppliSetFile mEASF; // Structure to extract pattern + name manip
-        const std::vector<std::string> *   mVN;    // list of images
-        std::string                        mDir; // Directory of data
-        cInterfChantierNameManipulateur *  mICNM;  // Name manip
-};
 
 void cAppli_Block::Compile()
 {
@@ -197,7 +178,7 @@ cAppli_OriFromBlock::cAppli_OriFromBlock (int argc,char ** argv) :
     {
         const std::string & aName = (*mVN)[aKIm];
         // CamStenope * aCamIn = mICNM->StdCamStenOfNamesSVP(aName,mOriIn);  // Camera may not 
-        CamStenope * aCamIn = CamS(aName);
+        CamStenope * aCamIn = CamSOfName(aName);
         std::string  aNameCal = mICNM->StdNameCalib(mNameCalib,aName);
         mICNM->GlobCalibOfName(aName,mNameCalib,true);  // Calib should exist
         cAOFB_Im * aPtrI = new cAOFB_Im(aName,aCamIn,aNameCal);  // Create compiled
@@ -293,21 +274,6 @@ int OrientFromBlock_main(int argc,char ** argv)
 
 /***********************************************************************/
 
-class cOneImBrion
-{
-    public :
-    private :
-        std::string  mName; 
-        CamStenope   * mCalib;
-};
-
-class cAppli_Brion   // Block Rigid Initialisation des Orientation Normale
-{
-    public :
-    private :
-       cStructBlockCam  mBlock;
-};
-
 
 /***********************************************************/
 /*                                                         */
@@ -315,98 +281,35 @@ class cAppli_Brion   // Block Rigid Initialisation des Orientation Normale
 /*                                                         */
 /***********************************************************/
 
-class cGS_Cam;
-class cGS_1BlC; //  1 Bloc Camera
-class cGS_Appli;  //  Application
 
-
-class cGS_Cam //  1 Camera
-{
-    public :
-        cGS_Cam(CamStenope * aCamS, const std::string &aName, const std::string &aGrp) :
-            mCamS (aCamS),
-            mName (aName),
-            mGrp  (aGrp)
-        {
-        }
-        cGS_Cam(const cGS_Cam&) = delete;
-        CamStenope * mCamS;  // Camera
-        std::string  mName;  // Name Im
-        std::string  mGrp;   // Groupe in the block
-};
-
-
-class cGS_1BlC //  1 Bloc Camera
-{
-    public :
-      double DistLine(const cGS_1BlC & aBl2) const;
-      double Time() const {return mCamC->mCamS->GetTime();}
-      cGS_Cam * CamOfGrp(const std::string & aGrp) const;
-      bool  ValidForCross(const cGS_1BlC&,const cGS_SectionCross &) const;
-
-      cGS_1BlC(cGS_Appli&,const std::vector<std::string> &);
-      cGS_1BlC(const cGS_1BlC&) = delete;
-
-      cGS_Appli& mAppli;   // Application  
-      std::vector<cGS_Cam *> mVCams;  // Vector of all cam/image
-      cGS_Cam *              mCamC;   // Centrale camera (generaly INS)
-      Pt3dr                  mP3;     // Center
-      Pt2dr                  mP2;     // P for indextion in QT
-      Pt2dr                  mV2;     // 2D speed
-      Seg2d                  mSeg;    // line  PCur -> Next
-      int                    mNum;    // Numerotation, can be usefull ?
-      double                 mAbsCurv;  // Curvilinear abscisse
-};
-
-//extern Box2dr aBox;
-//ElQT<cGS_1BlC * ,Pt2dr,Pt2dr (*)(cGS_1BlC *)> aQT([](cGS_1BlC *aBl){return aBl->mP2;},aBox,20,20);
-
-// (aGetP1,aBox,20,20);
-
-
-
-class cGS_Appli : public cAppli_Block //  Application
-{
-     public :
-         cGS_Appli(int,char**);
-         bool AddPair(std::string aS1,std::string aS2);
-         const std::string & NameGrpC() const {return mParam.NameGrpC();}
-     private :
-         void AddAllBloc(const cGS_1BlC&,const cGS_1BlC &);
-         double  mDistStd;
-         typedef ElQT<cGS_1BlC * ,Pt2dr,Pt2dr (*)(cGS_1BlC *)> tQtSom;
-         typedef ElQT<cGS_1BlC * ,Seg2d,Seg2d (*)(cGS_1BlC *)> tQtArc;
-
-         cXml_ParamGraphStereopolis mParam;
-         int                      mLevelMsg;
-         int AdaptIndex(int aKBl) {return  ElMax(0,ElMin(mNbBloc,aKBl));}
-
-         std::vector<cGS_1BlC *>  mVBlocs;
-         int                      mNbBloc;
-         std::set<t2Str>          mSetStr;
-         tQtSom *                 mQtSom;
-         tQtArc *                 mQtArc;
-         cPlyCloud                mPlyCross;
-         std::string              mNameSave;
-};
 
     // ===========   cGS_1BlC =============
 
-cGS_1BlC::cGS_1BlC(cGS_Appli& anAppli,const std::vector<std::string> & aVN) :
-   mAppli (anAppli),
-   mCamC  (nullptr)
+cGS_1BlC::cGS_1BlC(cGS_Appli& anAppli,const std::string& aTimeId,const std::vector<std::string> & aVN) :
+   mAppli   (anAppli),
+   mTimeId    (aTimeId),
+   mCamC    (nullptr),
+   mCamSec  (nullptr)
 {
     for (const auto  & aName : aVN)
     {
         // Compute new Cam with name & grp
-        CamStenope * aCam = mAppli.CamS(aName);
+        CamStenope * aCam = mAppli.CamSOfName(aName);
         std::string  aNameGrp =  mAppli.TimGrp(aName).second;
-        cGS_Cam * aGS_Cam = new cGS_Cam(aCam,aName,aNameGrp);
+        cGS_Cam * aGS_Cam = new cGS_Cam(aCam,aName,aNameGrp,this);
+        mAppli.CamOfName(aName) = aGS_Cam;
+
         // save it
         mVCams.push_back(aGS_Cam);
         // Chek if it is the central one
         if (aNameGrp==mAppli.NameGrpC())
+        {
            mCamC   = aGS_Cam;
+        }
+        else
+        {
+           mCamSec = aGS_Cam;
+        }
     }
     if (mCamC)
     {
@@ -483,32 +386,84 @@ void cGS_Appli::AddAllBloc(const cGS_1BlC& aBl1,const cGS_1BlC & aBl2)
 }
 
 
-
-cGS_Appli::cGS_Appli (int argc,char ** argv)  :
-   mLevelMsg (1),
-   mQtSom    (nullptr),
-   mQtArc    (nullptr),
-   mNameSave ("GrapheStereropolis.xml")
+void cGS_Appli::SauvRel()
 {
-    bool mDoPlyCros = true;
+    std::string aName = StdPrefix(mNameSave)  + "_" + ToString(mNbFile) + "." + StdPostfix(mNameSave);
+
+    MakeFileXML(mRel,mDir+aName);
+}
+
+cGS_Appli::cGS_Appli (int argc,char ** argv,eModeAppli aMode)  :
+   mMode       (aMode),
+   mLevelMsg   (1),
+   mQtSom      (nullptr),
+   mQtArc      (nullptr),
+   mNameSave   ("GrapheStereropolis.xml"),
+   mNbPairByF  (2000),
+   mNbFile     (0),
+   mPInf       (1e20,1e20),
+   mPSup       (-1e20,-1e20),
+   mDoPlyCros  (true)
+{
 
     MMD_InitArgcArgv(argc,argv);
 
-    std::string aNameParam;
-    ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  << EAMC(mPatIm,"Full name (Dir+Pat)", eSAM_IsPatFile)
-                    << EAMC(mOriIn,"Input Orientation folder", eSAM_IsExistDirOri)
-                    << EAMC(mNameBlock,"File for block")
-                    << EAMC(aNameParam,"Name Grp Centrale Camera"),
-        LArgMain()
-                    << EAM(mLevelMsg,"LevMsg",true,"Level of Message, def=1")
-                    << EAM(mNameSave,"Out",true,"Name 4 save, def=GrapheStereropolis.xml")
-    );
-    mParam = StdGetFromPCP(aNameParam,Xml_ParamGraphStereopolis);
+    LArgMain anArgObl;
+    anArgObl  << EAMC(mPatIm,"Full name (Dir+Pat)", eSAM_IsPatFile)
+              << EAMC(mOriIn,"Input Orientation folder", eSAM_IsExistDirOri)
+              << EAMC(mNameBlock,"File for block");
+    LArgMain anArgOpt;
+    anArgOpt << EAM(mLevelMsg,"LevMsg",true,"Level of Message, def=1");
+
+
+    if (aMode == eGraphe)
+    {
+        ElInitArgMain
+        (
+            argc,argv,
+            anArgObl
+                        << EAMC(mNameParam,"Name File Param"),
+            anArgOpt
+                        << EAM(mNameSave,"Out",true,"Name 4 save, def=GrapheStereropolis.xml")
+                        << EAM(mNbPairByF,"NbPByF",true,"Max number of pair by file")
+        );
+        mParam = StdGetFromPCP(mNameParam,Xml_ParamGraphStereopolis);
+        mNameGrpC = mParam.NameGrpC();
+    }
+    else if (aMode == eCheckRel)
+    {
+        ElInitArgMain
+        (
+            argc,argv,
+            anArgObl
+                        << EAMC(mNamePointe,"Name File Pointe"),
+            anArgOpt
+                        // << EAM(mNameSave,"Out",true,"Name 4 save, def=GrapheStereropolis.xml")
+        );
+    }
+    else if (aMode == eComputeBlini)
+    {
+        ElInitArgMain
+        (
+            argc,argv,
+            anArgObl,
+            anArgOpt
+                        << EAM(mDirInc,"DirInc",true,"Folder 4 Inc reading")
+                        << EAM(mNameMasq3D,"Masq3D",true,"Folder 4 eliminating part of trajectory")
+                        << EAM(mSig0Incert,"SigmaInc",true,"Sigma to transform incet in weight")
+        );
+    }
 
     cAppli_Block::Compile();
+    // Must be done now because 
+    if (aMode !=  eGraphe)
+    {
+        mNameGrpC = mBlock.MasterGrp().ValWithDef(mBlock.ParamOrientSHC().begin()->IdGrp());
+    }
+
+    if (EAMIsInit(&mDirInc))
+       StdCorrecNameOrient(mDirInc,mDir);
+
     if (mLevelMsg>=1)  std::cout << "=== DONE READ ARGS\n";
 
     // Map  Name of Time => Vecteur of name images at this time
@@ -519,20 +474,20 @@ cGS_Appli::cGS_Appli (int argc,char ** argv)  :
     {
         t2Str  aTimG =  TimGrp(aName);
         aMapBl[aTimG.first].push_back(aName);
+        mSetBloc.insert(aTimG.second);
     }
     if (mLevelMsg>=1)  std::cout << "=== DONE COMPUTE Groups, NbInit=" << aMapBl.size() << "\n";
 
     // Compute bloc
-    Pt2dr aPInf(1e20,1e20);
-    Pt2dr aPSup(-1e20,-1e20);
+    bool RequireCamSec = (mMode==cGS_Appli::eComputeBlini);
     for (const auto & aBloc : aMapBl)
     {
-        cGS_1BlC * aGSB = new cGS_1BlC(*this,aBloc.second);
-        if (aGSB->mCamC!=nullptr)
+        cGS_1BlC * aGSB = new cGS_1BlC(*this,aBloc.first,aBloc.second);
+        if (  (aGSB->mCamC!=nullptr) && ((!RequireCamSec)||(aGSB->mCamSec!=nullptr))  )
         {
            mVBlocs.push_back(aGSB);
-           aPInf = Inf(aPInf,aGSB->mP2);
-           aPSup = Sup(aPSup,aGSB->mP2);
+           mPInf = Inf(mPInf,aGSB->mP2);
+           mPSup = Sup(mPSup,aGSB->mP2);
         }
     }
 
@@ -581,7 +536,283 @@ cGS_Appli::cGS_Appli (int argc,char ** argv)  :
             aCur.mSeg    = Seg2d(aCur.mP2,aNext.mP2);
          }
     }
-    if (mLevelMsg>=1)  std::cout << "=== DONE COMPUTED SPEED\n";
+
+}  
+
+int cGS_Appli::Exe()
+{
+    if (mMode == eGraphe)
+    {
+       DoGraphe();
+    }
+    else if (mMode == eCheckRel)
+    {
+         DoCheckMesures();
+    }
+
+    return EXIT_SUCCESS;
+}
+
+
+
+// Represent 1 point + a cam
+class  cInterv_OneP3D2C;
+class cGS_OneP3D2Check;
+class cGS_OnePointe2Check;
+
+class cGS_OnePointe2Check
+{
+    public :
+        cGS_OnePointe2Check(const Pt2dr aPt,cGS_Cam * aCam) :
+            mPt  (aPt ),
+            mCam (aCam),
+            mSeg (mCam->mCamS->Capteur2RayTer(mPt))
+        {
+        }
+        double Absc() const {return mCam->mBlock->mAbsCurv;}
+        double DProj(const Pt3dr & aPTer) {return euclid(mPt, mCam->mCamS->Ter2Capteur(aPTer));}
+
+        Pt2dr mPt;
+        cGS_Cam * mCam;
+        ElSeg3D   mSeg;
+};
+
+// Represent a list of consecutive cGS_OneP3D2Check
+class  cInterv_OneP3D2C
+{
+    public :
+        cInterv_OneP3D2C(int aInd0,int aInd1,cGS_OneP3D2Check * aP3);
+        double ScoreReproj(const Pt3dr & aP) const;
+        Pt3dr Inter(int aI1,int aI2,bool & Ok) const;
+        double ScoreReproj(int aI1,int aI2) const;
+        void Print(FILE * aFp) const;
+
+        cGS_OneP3D2Check * mP3;
+        int mInd0;
+        int mInd1;
+        double mScoreMin;
+        double mScoreMax;
+        double mScoreSom;
+        Pt2di  mCplMin;
+        bool   mOk;
+        Pt3dr  mPInter;
+};
+class cGS_OneP3D2Check
+{
+    public :
+        cGS_OneP3D2Check(const std::string & aName) :
+            mName  (aName),
+            mScMax (0.0),
+            mScSom (0.0)
+        {
+        }
+
+        std::string mName;
+        double      mScMax;
+        double      mScSom;
+
+        std::vector<cGS_OnePointe2Check>    mVPt;
+        std::vector<cInterv_OneP3D2C*>       mVInt;
+        void Print(FILE * aFp) const;
+        void Compile();
+};
+
+/****************   cInterv_OneP3D2C        ***********/
+
+double cInterv_OneP3D2C::ScoreReproj(const Pt3dr & aP) const
+{
+    double aRes = 0.0;
+    for (int aInd=mInd0 ; aInd<mInd1 ; aInd++)
+    {
+        aRes += mP3->mVPt[aInd].DProj(aP);
+    }
+    int aNbConstr  = (mInd1 - mInd0) * 2;
+    int aDOF  =  aNbConstr -3 ; // degre of freedom
+    return aRes / double(aDOF);
+}
+
+Pt3dr cInterv_OneP3D2C::Inter(int aI1,int aI2,bool &Ok) const
+{
+   std::vector<ElSeg3D> aVS;
+   aVS.push_back(mP3->mVPt[aI1].mSeg);
+   aVS.push_back(mP3->mVPt[aI2].mSeg);
+   return  InterSeg(aVS,Ok);
+}
+
+double cInterv_OneP3D2C::ScoreReproj(int aI1,int aI2) const
+{
+   bool Ok;
+   Pt3dr aPInter = Inter(aI1,aI2,Ok);
+   return Ok ?  ScoreReproj(aPInter) : 1e20;
+}
+
+
+cInterv_OneP3D2C::cInterv_OneP3D2C(int aInd0,int aInd1,cGS_OneP3D2Check * aP3) :
+   mP3       (aP3),
+   mInd0     (aInd0),
+   mInd1     (aInd1),
+   mScoreMin (1e10),
+   mScoreMax (0),
+   mScoreSom (0),
+   mCplMin   (-1,-1),
+   mOk       (false)
+{
+     for (int aI1 = mInd0 ; aI1<mInd1 ; aI1++)
+     {
+        for (int aI2 = aI1+1 ; aI2<mInd1 ; aI2++)
+        {
+             double aSc = ScoreReproj(aI1,aI2);
+             if (aSc<mScoreMin)
+             {
+                 mScoreMin = aSc;
+                 mCplMin = Pt2di(aI1,aI2);
+                 mOk = true;
+             }
+        }
+     }
+     if (mOk)
+     {
+        mPInter = Inter(mCplMin.x,mCplMin.y,mOk);
+
+        for (int anInd = mInd0 ; anInd<mInd1 ; anInd++)
+        {
+            double aD = mP3->mVPt[anInd].DProj(mPInter);
+            mScoreMax = ElMax(mScoreMax,aD);
+            mScoreSom += aD;
+        }
+     }
+}
+
+void cInterv_OneP3D2C::Print(FILE * aFp) const
+{
+    double aPixThres = 5;
+    fprintf(aFp,"- - - - - - - - - - - - - - -\n");
+    for (int anInd=mInd0 ; anInd<mInd1 ; anInd++)
+    {
+        double aDist = mP3->mVPt[anInd].DProj(mPInter);
+        bool Ok = (aDist<aPixThres);
+        std::string aStrIndic = Ok ? " " :  "!" ;
+        fprintf
+        (
+              aFp,
+              "%s Dist=%f Im=%s",
+              aStrIndic.c_str(),
+              aDist,
+              mP3->mVPt[anInd].mCam->mName.c_str()
+         );
+         fprintf(aFp,"\n");
+    }
+}
+
+
+
+/**********  cGS_OneP3D2Check **************/
+
+void cGS_OneP3D2Check::Print(FILE * aFp) const
+{
+    fprintf(aFp,"############################################################\n");
+    fprintf(aFp,"     Name Point : %s\n",mName.c_str());
+
+    for(const auto & aPtrInt : mVInt)
+    {
+       aPtrInt->Print(aFp);
+    }
+}
+
+
+void cGS_OneP3D2Check::Compile()
+{
+    std::sort
+    (
+        mVPt.begin(), mVPt.end(),
+        [](const cGS_OnePointe2Check & aP1,const cGS_OnePointe2Check & aP2) {return aP1.Absc()<aP2.Absc();}
+    );
+
+    int aNb = mVPt.size();
+    int aEnd = 0;
+    double aDistJump = 50;
+
+
+    while (aEnd != aNb)
+    {
+        int aBegin = aEnd;
+        aEnd = aBegin +1;
+        while ((aEnd != aNb) && (ElAbs(mVPt[aEnd-1].Absc()-mVPt[aEnd].Absc()) <aDistJump))
+              aEnd++;
+        if (aEnd >= aBegin+2)
+        {
+            cInterv_OneP3D2C * aInterv = new cInterv_OneP3D2C(aBegin,aEnd,this);
+            if (aInterv->mOk)
+            {
+                mVInt.push_back(aInterv);
+                mScMax = ElMax(mScMax,aInterv->mScoreMax);
+                mScSom +=  aInterv->mScoreSom;
+            }
+        }
+    }
+}
+
+void  cGS_Appli::DoCheckMesures()
+{
+    mSMAF = StdGetFromPCP(mNamePointe,SetOfMesureAppuisFlottants);
+    std::map<std::string,cGS_OneP3D2Check *> mDicoP3;
+
+    int aNbPointes = 0;
+    for (const auto & aMes1Im : mSMAF.MesureAppuiFlottant1Im())
+    {
+// std::cout<<"IMMM " << aMes1Im.NameIm() << "\n";
+         cGS_Cam *aCam = CamOfName(aMes1Im.NameIm());
+         if (aCam!=nullptr)
+         {
+             for (auto aPointe : aMes1Im.OneMesureAF1I())
+             {
+                  aNbPointes++;
+                  cGS_OneP3D2Check * & aP3  = mDicoP3[aPointe.NamePt()];
+                  if (aP3==nullptr)
+                  {
+                      aP3 = new cGS_OneP3D2Check(aPointe.NamePt());
+                  }
+                  aP3->mVPt.push_back(cGS_OnePointe2Check(aPointe.PtIm(),aCam));
+             }
+         }
+    }
+    const cGS_OneP3D2Check * aWorst = nullptr;
+    double   aScMax = -1;
+    double   aScSum = 0;
+    for (const auto & aPointe : mDicoP3)
+    {
+         if (aPointe.second)
+         {
+             aPointe.second->Compile();
+             aScSum +=  aPointe.second->mScSom;
+             if (aPointe.second->mScMax > aScMax)
+             {
+                 aScMax = aPointe.second->mScMax;
+                 aWorst = aPointe.second;
+             }
+         }
+    }
+    FILE * aFP = FopenNN("CheckGCPStereopolis.txt","w","DoCheckMesures");
+
+    fprintf(aFP,"AVERAGE = %f\n",aScSum/aNbPointes);
+    if (aWorst)
+    {
+          fprintf(aFP,"WORT POINT = %s\n",aWorst->mName.c_str());
+    }
+    for (const auto & aPointe : mDicoP3)
+    {
+         if (aPointe.second)
+         {
+             aPointe.second->Print(aFP);
+         }
+    }
+    fclose(aFP);
+}
+
+
+
+void  cGS_Appli::DoGraphe()
+{
 
     // Compute Quod Tree for spatial indexation
     {
@@ -591,14 +822,14 @@ cGS_Appli::cGS_Appli (int argc,char ** argv)  :
        mQtSom= new tQtSom
                    (
                         [](cGS_1BlC *aBl){return aBl->mP2;},
-                        Box2dr(aPInf-aRab,aPSup+aRab),
+                        Box2dr(mPInf-aRab,mPSup+aRab),
                         10,
                         mDistStd*5.0
                     );
        mQtArc= new tQtArc
                    (
                         [](cGS_1BlC *aBl){return aBl->mSeg;},
-                        Box2dr(aPInf-aRab,aPSup+aRab),
+                        Box2dr(mPInf-aRab,mPSup+aRab),
                         10,
                         mDistStd*5.0
                     );
@@ -676,19 +907,37 @@ cGS_Appli::cGS_Appli (int argc,char ** argv)  :
     std::cout << "NB  VAL , FOR LINE: " <<  aNbLine  << " FOR CROSS: " << aNbCross << "\n";
 
     // Save to file
-    cSauvegardeNamedRel aRel;
+
+    int aCptPair = 0;
     for (const auto & aPair : mSetStr)
     {
-        aRel.Cple().push_back(cCpleString(aPair.first,aPair.second));
+        mRel.Cple().push_back(cCpleString(aPair.first,aPair.second));
+        aCptPair ++;
+        // If we are at limit size, flush buffer
+        if (aCptPair== mNbPairByF)
+        {
+            SauvRel();
+            mRel.Cple().clear();
+            aCptPair=0;
+            mNbFile++;
+        }
     }
-    MakeFileXML(aRel,mDir+mNameSave);
+    // Save remaining
+    SauvRel();
+}
+
+int CheckGCPStereopolis_main(int argc,char ** argv)
+{
+    cGS_Appli anAppli(argc,argv,cGS_Appli::eCheckRel);
+
+    return anAppli.Exe();
 }
 
 int GrapheStereopolis_main(int argc,char ** argv)
 {
-    cGS_Appli(argc,argv);
+    cGS_Appli anAppli(argc,argv,cGS_Appli::eGraphe);
 
-    return EXIT_SUCCESS;
+    return anAppli.Exe();
 }
 
 /*Footer-MicMac-eLiSe-25/06/2007

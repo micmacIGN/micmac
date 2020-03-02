@@ -6535,6 +6535,9 @@ class cStructBlockCam
         std::string & KeyIm2TimeCam();
         const std::string & KeyIm2TimeCam()const ;
 
+        cTplValGesInit< std::string > & MasterGrp();
+        const cTplValGesInit< std::string > & MasterGrp()const ;
+
         std::list< cParamOrientSHC > & ParamOrientSHC();
         const std::list< cParamOrientSHC > & ParamOrientSHC()const ;
 
@@ -6542,6 +6545,7 @@ class cStructBlockCam
         const cTplValGesInit< cLiaisonsSHC > & LiaisonsSHC()const ;
     private:
         std::string mKeyIm2TimeCam;
+        cTplValGesInit< std::string > mMasterGrp;
         cTplValGesInit< cLiaisonsSHC > mLiaisonsSHC;
 };
 cElXMLTree * ToXMLTree(const cStructBlockCam &);

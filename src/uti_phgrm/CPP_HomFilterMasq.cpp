@@ -120,7 +120,7 @@ int HomFilterMasq_main(int argc,char ** argv)
                     << EAM(aSelecTer,"SelecTer",true,"[Per,Prop] Period of tiling on ground selection, Prop=proporion of selected")
                     << EAM(aDistId,"DistId",true,"Supress pair such that d(P1,P2) < DistId, def unused")
                     << EAM(aDistHom,"DistH",true,"Distance of reprojection for filtering homologous point")
-                    << EAM(DoSym,"Symetrise",true,"Symetrise masq")
+                    << EAM(DoSym,"Symetrise",true,"Symetrise Files when dont exist")
                     << EAM(DoCalNb,"Nb",true,"Calculate number of homologous points")
     );
     bool aHasOri3D =  EAMIsInit(&aOriMasq3D);

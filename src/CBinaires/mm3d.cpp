@@ -261,6 +261,8 @@ int Image_Vide(int argc,char ** argv);
 int  PPMD_MatEss2Orient(int argc,char ** argv);
 
 int GrapheStereopolis_main(int argc,char ** argv);
+int CheckGCPStereopolis_main(int argc,char ** argv);
+int AnalyseTrajStereopolis_main(int argc,char ** argv);
 
 
 
@@ -381,6 +383,11 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 		aRes.push_back(cMMCom("GrapheHom", GrapheHom_main, "Compute XML-Visibility graph from approximate orientation", cArgLogCom(3)));
 		aRes.push_back(cMMCom("GrapheStereopolis", GrapheStereopolis_main,"Compute Pair of Image for Stereopolis", cArgLogCom(2)));
+		aRes.push_back(cMMCom("CheckGCPStereopolis", CheckGCPStereopolis_main,"Check GCP with strategy optimized for Stereopolis-like acquisition", cArgLogCom(2)));
+
+
+		aRes.push_back(cMMCom("AnalyseTrajStereopolis", AnalyseTrajStereopolis_main,"Analyse trajectory of Stereopolis-like acquisition", cArgLogCom(2)));
+
 		aRes.push_back(cMMCom("GCPConvert", GCP_Txt2Xml_main, "Convert GCP from Txt 2 XML", cArgLogCom(3)));
 		aRes.push_back(cMMCom("OriConvert", Ori_Txt2Xml_main, "Convert Orientation from Txt 2 XML", cArgLogCom(3)));
 		aRes.push_back(cMMCom("OriExport", OriExport_main, "Export orientation from XML to XML or TXT with specified convention", cArgLogCom(3)));
@@ -1272,36 +1279,38 @@ int SampleLibElise_main(int argc, char ** argv)
 }
 
 //SateLib declarations
-extern int RecalRPC_main(int argc, char** argv);
-extern int CropRPC_main(int argc, char** argv);
-extern int Grid2RPC_main(int argc, char** argv);
-extern int RPC_main(int argc, char** argv);
-extern int NewRefineModel_main(int argc, char** argv);
-extern int RefineModel_main(int argc, char** argv);
-extern int RefineJitter_main(int argc, char** argv);
-extern int ApplyParralaxCor_main(int argc, char** argv);
-extern int Dimap2Grid_main(int argc, char** argv);
-extern int DimapUseRPC_main(int argc, char** argv);
-extern int DigitalGlobe2Grid_main(int argc, char** argv);
-extern int Aster2Grid_main(int argc, char** argv);
-extern int AsterDestrip_main(int argc, char** argv);
-extern int SATtoBundle_main(int argc, char** argv);
-extern int SATvalid_main(int argc, char** argv);
-extern int SATTrajectory_main(int argc, char** argv);
-extern int SatEmpriseSol_main(int argc, char** argv);
-extern int CalcBsurH_main(int argc, char** argv);
-extern int CalcBsurHGrille_main(int argc, char** argv);
-extern int CPP_SATDef2D_main(int argc, char** argv);
-extern int CPP_TestRPCDirectGen(int argc, char** argv);
-extern int CPP_TestRPCBackProj(int argc, char** argv);
-extern int CPP_TestSystematicResiduals(int argc, char** argv);
-extern int DoTile_main(int argc, char** argv);
-extern int ASTERGT2MM_main(int argc, char** argv);
-extern int ASTERGT_strip_2_MM_main(int argc, char** argv);
-extern int ASTERProjAngle_main(int argc, char** argv);
-extern int ASTERProjAngle2OtherBand_main(int argc, char** argv);
+extern int RecalRPC_main(int argc, char ** argv);
+extern int CropRPC_main(int argc, char ** argv);
+extern int Grid2RPC_main(int argc, char ** argv);
+extern int RPC_main(int argc, char ** argv);
+extern int NewRefineModel_main(int argc, char **argv);
+extern int RefineModel_main(int argc, char **argv);
+extern int RefineJitter_main(int argc, char **argv);
+extern int ApplyParralaxCor_main(int argc, char **argv);
+extern int Dimap2Grid_main(int argc, char **argv);
+extern int DimapUseRPC_main(int argc, char **argv);
+extern int DigitalGlobe2Grid_main(int argc, char **argv);
+extern int Aster2Grid_main(int argc, char **argv);
+extern int AsterDestrip_main(int argc, char **argv);
+extern int SATtoBundle_main(int argc, char ** argv);
+extern int SATvalid_main(int argc, char ** argv);
+extern int SATTrajectory_main(int argc, char ** argv);
+extern int SatEmpriseSol_main(int argc, char ** argv);
+extern int SatBBox_main(int argc, char ** argv);
+extern int SatPosition_main(int argc, char ** argv);
+extern int CalcBsurH_main(int argc, char ** argv);
+extern int CalcBsurHGrille_main(int argc, char ** argv);
+extern int CPP_SATDef2D_main(int argc, char ** argv);
+extern int CPP_TestRPCDirectGen(int argc, char ** argv);
+extern int CPP_TestRPCBackProj(int argc, char ** argv);
+extern int CPP_TestSystematicResiduals(int argc, char ** argv);
+extern int DoTile_main(int argc, char ** argv);
+extern int ASTERGT2MM_main(int argc, char ** argv);
+extern int ASTERGT_strip_2_MM_main(int argc, char ** argv);
+extern int ASTERProjAngle_main(int argc, char ** argv);
+extern int ASTERProjAngle2OtherBand_main(int argc, char ** argv);
 
-const std::vector<cMMCom>& SateLibAvailableCommands()
+const std::vector<cMMCom> & SateLibAvailableCommands()
 {
 	static std::vector<cMMCom> aRes;
 	if (aRes.size()) return aRes;
@@ -1325,9 +1334,11 @@ const std::vector<cMMCom>& SateLibAvailableCommands()
 	aRes.push_back(cMMCom("AsterDestrip", AsterDestrip_main, "Destrip Aster Images "));
 	aRes.push_back(cMMCom("SATtoBundle", SATtoBundle_main, "Export a satellite image to a grid of bundles"));
 	aRes.push_back(cMMCom("SATValid", SATvalid_main, "Validate the prj function by either retrieving the line of optical centers or the provided GCPs"));
-	aRes.push_back(cMMCom("SatFootprint", SatEmpriseSol_main, "Satellite foortprints in ply"));
-	aRes.push_back(cMMCom("SatTrajectory", SATTrajectory_main, "Satellite trajectories in ply"));
-	aRes.push_back(cMMCom("BsurH", CalcBsurH_main, "Calculate the b/h ratio for a pattern of images"));
+    aRes.push_back(cMMCom("SatFootprint", SatEmpriseSol_main, "Satellite foortprints in ply"));
+    aRes.push_back(cMMCom("SatBBox", SatBBox_main, "Get satellite's footprint (in txt) BBox (from GRID)"));
+    aRes.push_back(cMMCom("SatTrajectory", SATTrajectory_main, "Satellite trajectories in ply"));
+    aRes.push_back(cMMCom("SatPosition", SatPosition_main, "Satellite position"));
+    aRes.push_back(cMMCom("BsurH", CalcBsurH_main, "Calculate the b/h ratio for a pattern of images"));
 	aRes.push_back(cMMCom("BsurHGRI", CalcBsurHGrille_main, "Calculate the b/h ratio for a pattern of images"));
 	aRes.push_back(cMMCom("SATD2D", CPP_SATDef2D_main, "Visualize 2D deformation fields of a pushbroom image"));
 	aRes.push_back(cMMCom("TestRPC", CPP_TestRPCDirectGen, "Test the calculation of direct RPCs"));

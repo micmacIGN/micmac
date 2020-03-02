@@ -20510,6 +20510,17 @@ const std::string & cStructBlockCam::KeyIm2TimeCam()const
 }
 
 
+cTplValGesInit< std::string > & cStructBlockCam::MasterGrp()
+{
+   return mMasterGrp;
+}
+
+const cTplValGesInit< std::string > & cStructBlockCam::MasterGrp()const 
+{
+   return mMasterGrp;
+}
+
+
 std::list< cParamOrientSHC > & cStructBlockCam::ParamOrientSHC()
 {
    return LiaisonsSHC().Val().ParamOrientSHC();
@@ -20537,6 +20548,14 @@ void  BinaryUnDumpFromFile(cStructBlockCam & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.MasterGrp().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.MasterGrp().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.MasterGrp().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.LiaisonsSHC().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.LiaisonsSHC().ValForcedForUnUmp(),aFp);
         }
@@ -20547,6 +20566,8 @@ void  BinaryUnDumpFromFile(cStructBlockCam & anObj,ELISE_fp & aFp)
 void  BinaryDumpInFile(ELISE_fp & aFp,const cStructBlockCam & anObj)
 {
     BinaryDumpInFile(aFp,anObj.KeyIm2TimeCam());
+    BinaryDumpInFile(aFp,anObj.MasterGrp().IsInit());
+    if (anObj.MasterGrp().IsInit()) BinaryDumpInFile(aFp,anObj.MasterGrp().Val());
     BinaryDumpInFile(aFp,anObj.LiaisonsSHC().IsInit());
     if (anObj.LiaisonsSHC().IsInit()) BinaryDumpInFile(aFp,anObj.LiaisonsSHC().Val());
 }
@@ -20556,6 +20577,8 @@ cElXMLTree * ToXMLTree(const cStructBlockCam & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"StructBlockCam",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("KeyIm2TimeCam"),anObj.KeyIm2TimeCam())->ReTagThis("KeyIm2TimeCam"));
+   if (anObj.MasterGrp().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("MasterGrp"),anObj.MasterGrp().Val())->ReTagThis("MasterGrp"));
    if (anObj.LiaisonsSHC().IsInit())
       aRes->AddFils(ToXMLTree(anObj.LiaisonsSHC().Val())->ReTagThis("LiaisonsSHC"));
   aRes->mGXml = anObj.mGXml;
@@ -20570,10 +20593,12 @@ void xml_init(cStructBlockCam & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.KeyIm2TimeCam(),aTree->Get("KeyIm2TimeCam",1)); //tototo 
 
+   xml_init(anObj.MasterGrp(),aTree->Get("MasterGrp",1)); //tototo 
+
    xml_init(anObj.LiaisonsSHC(),aTree->Get("LiaisonsSHC",1)); //tototo 
 }
 
-std::string  Mangling( cStructBlockCam *) {return "B06598583EB111DCFE3F";};
+std::string  Mangling( cStructBlockCam *) {return "9231968F03FA00A5FF3F";};
 
 
 std::list< std::string > & cXmlExivEntry::Names()

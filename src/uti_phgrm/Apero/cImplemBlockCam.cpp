@@ -783,19 +783,26 @@ cImplemBlockCam::cImplemBlockCam
       mGlobDistTB     (false)
 {
     const std::vector<cPoseCam*> & aVP = mAppli.VecAllPose();
+    std::string aMasterGrp = aSBC.MasterGrp().ValWithDef("");
 
     // On initialise les camera
-    for (int aKP=0 ; aKP<int(aVP.size()) ; aKP++)
+    for (int anIter = 0 ; anIter<2 ; anIter++)  // Deux iter pour forcer le groupe maitre eventuellement
     {
-        cPoseCam * aPC = aVP[aKP];
-        std::string aNamePose = aPC->Name();
-        std::pair<std::string,std::string> aPair =   mAppli.ICNM()->Assoc2To1(mSBC.KeyIm2TimeCam(),aNamePose,true);
-        std::string aNameCam = aPair.second;
-        if (! DicBoolFind(mName2Cam,aNameCam)) // si aNameCam se trouve dans mName2Cam
+
+        for (int aKP=0 ; aKP<int(aVP.size()) ; aKP++)
         {
-            cIBC_OneCam *  aCam = new cIBC_OneCam(aNameCam, (int)mNum2Cam.size()); // (name & index dans mNum2Cam)
-            mName2Cam[aNameCam] = aCam;
-            mNum2Cam.push_back(aCam); 
+            cPoseCam * aPC = aVP[aKP];
+            std::string aNamePose = aPC->Name();
+            std::pair<std::string,std::string> aPair =   mAppli.ICNM()->Assoc2To1(mSBC.KeyIm2TimeCam(),aNamePose,true);
+            std::string aNameCam = aPair.second;
+            // At first iter, we do it if  master, at second if not master
+            bool Doit = (anIter==0) == (aNameCam==aMasterGrp);
+            if (Doit && (! DicBoolFind(mName2Cam,aNameCam))) // si aNameCam se trouve dans mName2Cam
+            {
+                cIBC_OneCam *  aCam = new cIBC_OneCam(aNameCam, (int)mNum2Cam.size()); // (name & index dans mNum2Cam)
+                mName2Cam[aNameCam] = aCam;
+                mNum2Cam.push_back(aCam); 
+            }
         }
     }
     mNbCam  = (int)mNum2Cam.size();

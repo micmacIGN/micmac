@@ -1770,6 +1770,7 @@
 -->
     <StructBlockCam Nb="*" Class="true" ToReference="true">
          <KeyIm2TimeCam Nb="1" Type="std::string"> </KeyIm2TimeCam>
+         <MasterGrp Nb="?" Type="std::string"> </MasterGrp>
 
          <LiaisonsSHC Nb="?">
               <ParamOrientSHC Nb="*">
