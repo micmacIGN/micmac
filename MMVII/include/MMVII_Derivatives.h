@@ -388,11 +388,11 @@ template<int N> cEpsNum<N> operator/(const cEpsNum<N>& f, const cEpsNum<N>& g) {
   return cEpsNum<N>(f.mNum / g.mNum,  (f.mEps / g.mNum) - g.mEps *(f.mNum/Square(g.mNum)));
 }
 
-template<int N> cEpsNum<N> Square(const cEpsNum<N>& f) {
+template<int N> cEpsNum<N> square(const cEpsNum<N>& f) {
   return cEpsNum<N>(Square(f.mNum) , 2* f.mNum* f.mEps  );
 }
 
-template<int N> cEpsNum<N> Cube(const cEpsNum<N>& f) {
+template<int N> cEpsNum<N> cube(const cEpsNum<N>& f) {
   return cEpsNum<N>(Cube(f.mNum) , (3*Square(f.mNum)) * f.mEps );
 }
 

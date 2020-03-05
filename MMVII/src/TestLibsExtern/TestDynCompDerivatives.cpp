@@ -1,851 +1,615 @@
-#ifndef _MMVII_DynAndStatFormalDerivation_H_
-#define _MMVII_DynAndStatFormalDerivation_H_
+#include "include/MMVII_all.h"
+#include "include/MMVII_Derivatives.h"
+#include "include/MMVII_FormalDerivatives.h"
+
+#include "ceres/jet.h"
+
+namespace  FD = NS_MMVII_FormalDerivative;
+using ceres::Jet;
+using MMVII::cEpsNum;
+
+
+// ========== Define on Jets two optimization as we did on formal 
+
+template <typename T, int N>
+inline Jet<T, N> square(const Jet<T, N>& f) {
+  return Jet<T, N>(FD::square(f.a), 2.0*f.a * f.v);
+}
+
+template <typename T, int N>
+inline Jet<T, N> cube(const Jet<T, N>& f) {
+  return Jet<T, N>(FD::cube(f.a), 3.0*FD::square(f.a) * f.v);
+}
+
+//=========================================
+
+static auto BeginOfTime = std::chrono::steady_clock::now();
+double TimeElapsFromT0()
+{
+    auto now = std::chrono::steady_clock::now();
+    return std::chrono::duration_cast<std::chrono::microseconds>(now - BeginOfTime).count() / 1e6;
+}
 
 
 /** \file TestDynCompDerivatives.cpp
-    \brief Proto of generated code
+    \brief Illustration and test of formal derivative
 
-Prototype of generated code, do not know how it will evolve
-   
+    {I}  A detailled example of use, and test of correctness => for the final user
+
+    {II} An example on basic function to get some insight in the way it works
+
 */
 
-#define WITH_MMVII false
 
-#if (WITH_MMVII)   //=========================================================
-#include "include/MMVII_all.h"
-#include "include/MMVII_Derivatives.h"
-using namespace MMVII;
-#else             //==========================================================
-class cMemCheck
-{
-};
-#include "ExternalInclude/Eigen/Dense"
-#include <memory>
-#include <map>
-#include <iostream> 
 
-#endif            //==========================================================
+/* The library is in the namespace NS_MMVII_FormalDerivative, we want to
+use it conveniently without the "using" directive, so create an alias FD */
 
-#define TPLDecl <class TypeElem,const int TheSzBuf>
-#define TPLInst <TypeElem,TheSzBuf>
 
-/* *************************************************** */
-/* *************************************************** */
-/* *                                                 * */
-/* *    Pre-Declaration of all classes               * */
-/* *                                                 * */
-/* *************************************************** */
-/* *************************************************** */
 
-   // The two classes visible by user are cFormulaFD (mainly) and cContextFormalDer (rarely)
+/* {I}   ========================  EXAMPLE OF USE :  Ratkoswky   ==========================================
 
-/** Encupsulation of share ptr on cImplemFormFD , */
-template TPLDecl class cFormulaFD ; 
-/** Class for managing the "context", i.e. coordinating all the  formula 
-    and their derivative corresponding to a single use */
-template TPLDecl class cContextFormalDer;  
+   In this first basic example, we take the same model than Ceres jet, the ratkoswky
+   function.
 
-     // Other classe are cImplemFormFD  and its derivatives
-template TPLDecl class cImplemFormFD  ;   ///< Mother class of all FunFormal, abstract class with pure virtual method
-          // ---  "Atomic" function : Unknown, constant, observation
-template TPLDecl class cFObsFormalDer ;   ///< "Observations" corresponding to user constant (change for each evaluation)
-template TPLDecl class cFCsteFormalDer ;   ///< Constant function
-template TPLDecl class cFUnknownFormalDer; ///< "Unknown"  for representing coordinates function X0,X1,X2 ....
-          // ---  Unary operator
-template TPLDecl class cOpUnFormalDer ;     ///< Mother Class of all unary operator
-template TPLDecl class cSquareFormalDer ;   ///< Class for square operator
-template TPLDecl class cExpFormalDer ;      ///< Class for exponential operator
-template TPLDecl class cMin1FormalDer ;     ///< Class for Unary Minus
-          // ---  Binary operator
-template TPLDecl class cOpBinFormalDer ;   ///< Mother class of binary operators
-template TPLDecl class cSumFormalDer ;     ///< Class for sum of 2 functions
-template TPLDecl class cMulFormalDer ;     ///< Class for multiplication of 2 functions
-template TPLDecl class cSubFormalDer ;     ///< Class for substraction of 2 functions
-template TPLDecl class cDivFormalDer ;     ///< Class for division of 2 functions
+    We want to fit a curve y= F(x) with the parametric model  [Ratko] , where b1,..,b4 are the unknown and
+    x,y the observations :
 
-/* *************************************************** */
-/* *************************************************** */
-/* *                                                 * */
-/* *         Declare all operator                    * */
-/* *                                                 * */
-/* *************************************************** */
-/* *************************************************** */
-
-    // -------- Declare all binary operators  ----------------
-      
-          // For each operator with have the 3 versions  "Formula x Formula"  ,
-          //  "Number x Formula"    and "Formula x Number"
-
-      //  Operator +
-template TPLDecl cFormulaFD TPLInst  operator +(const cFormulaFD TPLInst & aF1 ,const cFormulaFD TPLInst & aF2);
-template TPLDecl cFormulaFD TPLInst  operator +(const TypeElem & aV1,const cFormulaFD TPLInst & aF2);
-template TPLDecl cFormulaFD TPLInst  operator +(const cFormulaFD TPLInst & aF1,const TypeElem & aV2);
-      //  Operator *
-template TPLDecl cFormulaFD TPLInst  operator *(const cFormulaFD TPLInst & aF1 ,const cFormulaFD TPLInst & aF2);
-template TPLDecl cFormulaFD TPLInst  operator *(const TypeElem & aV1,const cFormulaFD TPLInst & aF2);
-template TPLDecl cFormulaFD TPLInst  operator *(const cFormulaFD TPLInst & aF1,const TypeElem & aV2);
-      //  Operator -
-template TPLDecl cFormulaFD TPLInst  operator -(const cFormulaFD TPLInst & aF1 ,const cFormulaFD TPLInst & aF2);
-template TPLDecl cFormulaFD TPLInst  operator -(const TypeElem & aV1,const cFormulaFD TPLInst & aF2);
-template TPLDecl cFormulaFD TPLInst  operator -(const cFormulaFD TPLInst & aF1,const TypeElem & aV2);
-      //  Operator /
-template TPLDecl cFormulaFD TPLInst  operator /(const cFormulaFD TPLInst & aF1 ,const cFormulaFD TPLInst & aF2);
-template TPLDecl cFormulaFD TPLInst  operator /(const TypeElem & aV1,const cFormulaFD TPLInst & aF2);
-template TPLDecl cFormulaFD TPLInst  operator /(const cFormulaFD TPLInst & aF1,const TypeElem & aV2);
-
-    // -------- Declare all unary operators  ----------------
-template TPLDecl cFormulaFD TPLInst  square(const cFormulaFD TPLInst & aF);
-template TPLDecl cFormulaFD TPLInst  exp(const cFormulaFD TPLInst & aF);
-template TPLDecl cFormulaFD TPLInst  operator - (const cFormulaFD TPLInst & aF);
-
-
-/* *************************************************** */
-/* *************************************************** */
-/* *                                                 * */
-/* *        Definition of all classes                * */
-/* *                                                 * */
-/* *************************************************** */
-/* *************************************************** */
-
-            //  -------------------  3 "Main" Classes  -------------------------
-            //     cContextFormalDer  / cFormulaFD  / cImplemFormFD 
-            // ----------------------------------------------------------------
-
-template TPLDecl class cContextFormalDer : public cMemCheck
-{
-    public :
-
-      // Result of several evaluation are stored in a buffer, Eigen vector are used 
-      // as they implement efficiently arithmeticall operation
-        typedef Eigen::Matrix<TypeElem, 1, TheSzBuf> tBuf;
-        typedef cImplemFormFD  TPLInst               tIFD;
-        typedef cFormulaFD TPLInst                   tFormulaFD;
-        typedef std::map<std::string,tFormulaFD>     tDicoFunc;
-        typedef std::map<TypeElem,tFormulaFD>        tDicoCste;
-        typedef std::vector<std::string>             tVecId;
-
-        friend tFormulaFD;
-
-
-      // ---------------------------  Constructors -------------------
-        /// Constructor with explicit Id for Unknown/Observation if we want to analyze the generated code
-        inline cContextFormalDer(const tVecId & aVecUK,const tVecId & aVecObs);
-        /// Constructor with basic Id (if we dont generate code, or dont want to analyse it by human)
-        inline cContextFormalDer(int aNbUnknown,int aNbObservation);
-
-      // ---------------------------  Accessors -------------------
-        const std::vector<tFormulaFD>& VUK()  const {return  mVFuncUnknown;}  ///< Unknowns
-        const std::vector<tFormulaFD>& VObs() const {return  mVFuncObs;}      ///< Observations
-
-
-
-      // ---------------------------  Acces to function from names, values -------------------
-        /// Indicate if the formula corresponding to a given string allreay exist
-        inline bool  ExistFunc(const std::string & aName) const 
-        {
-              return (mDicoFunc.find(aName) != mDicoFunc.end());
-        }
-        /// Func of given name, Error if don't exist
-        inline tFormulaFD FuncOfName(const std::string & aName) const ;
-        /// Add a function (put it in dico), Error if already exist
-        inline void AddFormula(tFormulaFD aPF)
-        {
-           if (ExistFunc(aPF->Name())) throw ("Multiple add of identic name :[" + aPF->Name() + "]");
-           mDicoFunc[aPF->Name()] = aPF;
-           mVAllFormula.push_back(aPF);
-        }
-
-        /// Func of given constant, create if don't exist
-        inline tFormulaFD CsteOfVal(const TypeElem & aCste) ;
-        tFormulaFD  Cste0() const  {return mCste0;}  ///< Acces to a current constant
-        tFormulaFD  Cste1() const  {return mCste1;}  ///< Another Acces to a current constant
-        tFormulaFD  Cste2() const  {return mCste2;}  ///< Yet another Acces to a current constant
-        /// Tuning ---  Print the stack of function as a tree 
-        inline void ShowStackFunc() const;
-
-
-        size_t      NbCurFonc() const {return mVAllFormula.size();}
-    private :
-        cContextFormalDer(const cContextFormalDer &) = delete;  ///< Don't allow copy
-
-        /// Used to generate automatically Id for Unknown/Observatio, when we dont need to control them explicitely
-        static std::vector<std::string>   MakeAutomId(const std::string & aPrefix,int aNb);
-
-        size_t                    mNbCste;   ///< Number Cste
-        size_t                    mNbUK;  ///< Dim=number of unkown
-        size_t                    mNbObs;   ///< Number of obserbation variable
-        std::vector<tFormulaFD>   mVFuncUnknown; ///< Vector of All Unknowns
-        std::vector<tFormulaFD>   mVFuncObs; ///< Vector of All Observations
-        tDicoFunc                 mDicoFunc;  ///< Map Name => Func
-        std::vector<tFormulaFD>   mVAllFormula;  ///< Vector of All Func, allow to parse them in creation order
-        tDicoCste                 mDicoCste;  ///< Map  Value => Func Constant
-        tFormulaFD                mCste0;     ///< Fonc constant null
-        tFormulaFD                mCste1;     ///< Fonc constant 1
-        tFormulaFD                mCste2;     ///< Fonc constant 1
-};
-
-template TPLDecl class cFormulaFD 
-{
-    public :
-       typedef cContextFormalDer TPLInst     tContext;
-       typedef typename tContext::tIFD       tIFD;
-       typedef typename tContext::tFormulaFD tFormulaFD;
-       typedef std::shared_ptr<tIFD>         tSPtrFuncFD;
-
-       //  -------------------- constructor -------------------
-             /// Construct from a pointer, standard 
-       cFormulaFD  (tIFD  * aRawPtr) :
-           mSPtr  (aRawPtr)
-       {
-       }
-             /// Default constructor, required by some code (vector ?)
-       cFormulaFD  ():
-           cFormulaFD  TPLInst (nullptr)
-       {
-       }
-       // --------------- operator on pointer ---------------------
-
-       tIFD & operator*() const  {return *mSPtr;}  ///< Standard behaviour of a pointer
-       tIFD * operator->() const {return mSPtr.operator ->();}  ///< Standard behaviour of a pointer
-       bool IsNull() const {return mSPtr.get()==nullptr;} ///< Safer than giving acces to raw pointer
-
-       // --------------- Naming  ---------------------
-
-           /// Generate the unique indentifier of a binary expression
-       std::string NameOperBin(const std::string & aNameOper,const tFormulaFD & aF2) const
-       {
-           return "F"+ std::to_string((*this)->NumGlob()) + aNameOper + "F"  + std::to_string(aF2->NumGlob());
-       }
-
-           /// Generate the unique indentifier of a unary expression
-       std::string NameOperUn(const std::string & aNameOper) const
-       {
-           return  aNameOper + " F"  + std::to_string((*this)->NumGlob());
-       }
-
-    private :
-       tSPtrFuncFD mSPtr;  ///< Smart/shared point on object 
-};
-
-
-template TPLDecl class cImplemFormFD  : public cMemCheck
-{
-    public :
-      // See eigen documentation,  this macro is mandatory for alignment reason
-       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-       typedef TypeElem  tElem;
-       static const int  vSzBuf = TheSzBuf;
-
-       typedef cContextFormalDer TPLInst    tContext;
-       typedef typename tContext::tBuf      tBuf;
-       typedef typename tContext::tFormulaFD  tFormulaFD;
-
-       friend tContext;
-
-       virtual bool  IsCste0() const {return false;} ///< To redefine in constant func, Used for simplification in "/ * + -"
-       virtual bool  IsCste1() const {return false;} ///< To redefine in constant func, Used for simplification in "/ *"
-       // virtual void ComputeBuf() = 0;
-       virtual tFormulaFD Derivate(int aK) const  = 0;
-       // Used to print constant from generic pointer
-       virtual const TypeElem * ValCste() const  {return nullptr;}
-
-      
-       /// Infixed "Pretty" Print .  For tuning and checking (reduction, derivative)
-       virtual std::string  InfixPPrint() const =0; 
-
-     // ---------- Accessors ---------------
-       const std::string  & Name() const {return mName;}  ///< Standard accessor
-       tContext *  Context() const {return mContext;}   ///< Standard accesor
-       int  NumGlob() const {return mNumGlob;}  ///< Standard accessor
-
-       virtual ~cImplemFormFD () {}   ///< Add a virtual ~X() when we have virtual methods
-    protected :
-       inline cImplemFormFD (tContext * aContext,const std::string & aName) :
-              mContext (aContext),
-              mName    (aName),
-              mNumGlob (mContext->NbCurFonc())
-       { }
-
-       tBuf                   mBuf;       ///< Buf to store values
-       tContext *             mContext;   ///< Context that manage all the funcion cooperating
-       const std::string      mName;      ///< string represention of the formula like  for example "+C2*S6cos3.6"
-       int                    mNumGlob;   ///< Global number (!= Num in class)
-    private  :
-       cImplemFormFD (const cImplemFormFD  &) = delete;
-};
-
-            //  -------------------  ATOMIC FORMULA -------------------------
-            //     cFUnknownFormalDer / cFUnknownFormalDer /  cFUnknownFormalDer
-            // ----------------------------------------------------------------
-
-template TPLDecl class cFUnknownFormalDer : public cImplemFormFD  TPLInst
-{
-      public :
-            typedef cImplemFormFD  TPLInst   tIFD;
-            typedef typename tIFD::tContext  tContext;
-            typedef typename tContext::tFormulaFD  tFormulaFD;
-
-            std::string  InfixPPrint() const override {return tIFD::Name();}
-            tFormulaFD Derivate(int aK) const override 
-            {
-                return (aK==mNumUnk) ? tIFD::mContext->Cste1() :  tIFD::mContext->Cste0();
-            }
-
-            friend tContext;
-      private  :
-            inline cFUnknownFormalDer(tContext * aContext,const std::string& aName,int aNum) :
-                tIFD       (aContext,aName),
-                mNumUnk    (aNum)
-            { }
-
-            int  mNumUnk;
-};
-
-template TPLDecl class cFObsFormalDer : public cImplemFormFD  TPLInst
-{
-      public :
-            typedef cImplemFormFD  TPLInst   tIFD;
-            typedef typename tIFD::tContext  tContext;
-            typedef typename tContext::tFormulaFD  tFormulaFD;
-            friend tContext;
-
-            std::string  InfixPPrint() const override {return tIFD::Name();}
-            tFormulaFD Derivate(int aK) const override {return tIFD::mContext->Cste0();}
-
-      protected  :
-            inline cFObsFormalDer(tContext * aContext,const std::string & aName,int aNum) : 
-                  tIFD   (aContext,aName),
-                  mNum   (aNum)
-            { }
-            int     mNum;
-};
-
-template TPLDecl class cFCsteFormalDer : public cImplemFormFD TPLInst
-{
-      public :
-            typedef cImplemFormFD  TPLInst   tIFD;
-            typedef typename tIFD::tContext  tContext;
-            typedef typename tContext::tBuf  tBuf;
-            typedef typename tContext::tFormulaFD  tFormulaFD;
-            friend tContext;
-
-            bool  IsCste0() const override {return mVal==0.0;} ///< Here we know if we are constant 0
-            bool  IsCste1() const override {return mVal==1.0;} ///< Here we know if we are constant 1
-            //  std::string  InfixPPrint() const override {return "C" + std::to_string(mVal);}
-            std::string  InfixPPrint() const override {return tIFD::Name();}
-            tFormulaFD Derivate(int aK) const override {return tIFD::mContext->Cste0();}
-            const TypeElem * ValCste() const override  {return &mVal;}
-
-      protected  :
-            inline cFCsteFormalDer(tContext * aContext,const std::string & aName,int aNum,const TypeElem& aVal) : 
-               tIFD   (aContext,aName),
-               mNum   (aNum),
-               mVal   (aVal)
-            {
-              tIFD::mBuf= tBuf::Constant(mVal); // We know the value of buf that will never change
-            }
-            int     mNum;
-            const TypeElem mVal;
-};
-            //  -------------------  FORMULA ON UNARY OPERATOR ---------------
-            //          MOTHER CLASS : cOpUnFormalDer
-            //  cSquareFormalDer / cExpFormalDer
-            // ----------------------------------------------------------------
-
-template TPLDecl class cOpUnFormalDer : public cImplemFormFD  TPLInst
-{
-      public :
-            typedef cImplemFormFD  TPLInst   tIFD;
-            typedef typename tIFD::tContext  tContext;
-            typedef typename tIFD::tFormulaFD  tFormulaFD;
-
-            virtual std::string  NameOperator() const = 0;
-            std::string  InfixPPrint() const override 
-            {
-               return NameOperator() + " "+  mF->InfixPPrint() ;
-            }
-      protected  :
-            inline cOpUnFormalDer(tFormulaFD aF,const std::string & aName) :
-                 tIFD  (aF->Context(),aName),
-                 mF (aF)
-            { }
-            tFormulaFD  mF;
-};
-
-
-/*   Probably not more efficient than implementing Square as F*F, because derivation would give
-     F'F + F'F  BUT would be reorder as F'F + F'F and unified ...
-     By the way it was a test, if necessary replace Square by F*F */
-template TPLDecl class cSquareFormalDer : public cOpUnFormalDer  TPLInst
-{
-     public :
-            typedef cImplemFormFD  TPLInst     tIFD;
-            typedef typename tIFD::tFormulaFD  tFormulaFD;
-            typedef cOpUnFormalDer TPLInst     tO1;
-
-            std::string  NameOperator() const override {return "square";}
-            cSquareFormalDer (tFormulaFD aF,const std::string & aName) :
-                tO1 (aF,aName)
-            { }
-      private :
-            tFormulaFD Derivate(int aK) const override 
-            {
-                return  2.0  * tO1::mF->Derivate(aK)  * tO1::mF;
-            }
-};
-
-
-template TPLDecl class cExpFormalDer : public cOpUnFormalDer  TPLInst
-{
-     public :
-            typedef cImplemFormFD  TPLInst     tIFD;
-            typedef typename tIFD::tFormulaFD  tFormulaFD;
-            typedef cOpUnFormalDer TPLInst     tO1;
-
-            std::string  NameOperator() const override {return "exp";}
-            cExpFormalDer (tFormulaFD aF,const std::string & aName) :
-                tO1 (aF,aName)
-            { }
-      private :
-            tFormulaFD Derivate(int aK) const override 
-            {
-                return   tO1::mF->Derivate(aK)  * exp(tO1::mF);
-            }
-};
-
-template TPLDecl class cMin1FormalDer : public cOpUnFormalDer  TPLInst
-{
-     public :
-            typedef cImplemFormFD  TPLInst     tIFD;
-            typedef typename tIFD::tFormulaFD  tFormulaFD;
-            typedef cOpUnFormalDer TPLInst     tO1;
-
-            std::string  NameOperator() const override {return "-";}
-            cMin1FormalDer (tFormulaFD aF,const std::string & aName) :
-                tO1 (aF,aName)
-            { }
-      private :
-            tFormulaFD Derivate(int aK) const override 
-            {
-                return   - tO1::mF->Derivate(aK)  ;
-            }
-};
-
-
-            //  -------------------  FORMULA ON BINARY OPERATOR ---------------
-            //          MOTHER CLASS : cOpBinFormalDer
-            //  cSumFormalDer / cMulFormalDer / cSubFormalDer / cDivFormalDer
-            // ----------------------------------------------------------------
-
-template TPLDecl class cOpBinFormalDer : public cImplemFormFD  TPLInst
-{
-      public :
-            typedef cImplemFormFD  TPLInst   tIFD;
-            typedef typename tIFD::tContext  tContext;
-            typedef typename tIFD::tFormulaFD  tFormulaFD;
-
-            virtual std::string  NameOperator() const = 0;
-            std::string  InfixPPrint() const override 
-            {
-               return NameOperator() + "("+  mF1->InfixPPrint() + " " + mF2->InfixPPrint() + ")";
-            }
-      protected  :
-            inline cOpBinFormalDer(tFormulaFD aF1,tFormulaFD aF2,const std::string & aName):
-                 tIFD  (aF1->Context(),aName),
-                 mF1 (aF1),
-                 mF2 (aF2)
-            {
-                // It doesn't work to mix formula from different context
-                assert(mF1->Context()==mF2->Context());
-            }
-
-
-            tFormulaFD  mF1;
-            tFormulaFD  mF2;
-};
-
-
-template TPLDecl class cSumFormalDer : public cOpBinFormalDer TPLInst
-{
-      public :
-            typedef cImplemFormFD  TPLInst   tIFD;
-            typedef typename tIFD::tFormulaFD  tFormulaFD;
-            typedef cOpBinFormalDer TPLInst    tO2;
-
-            inline cSumFormalDer(tFormulaFD aF1,tFormulaFD aF2,const std::string & aName) :
-                   tO2 (aF1,aF2,aName) 
-            { }
-      private  :
-            tFormulaFD Derivate(int aK) const override {return  tO2::mF1->Derivate(aK) + tO2::mF2->Derivate(aK);}
-            std::string  NameOperator() const override {return "+";}
-};
-
-template TPLDecl class cMulFormalDer : public cOpBinFormalDer TPLInst
-{
-      public :
-            typedef cImplemFormFD  TPLInst   tIFD;
-            typedef typename tIFD::tFormulaFD  tFormulaFD;
-            typedef cOpBinFormalDer TPLInst    tO2;
-
-            inline cMulFormalDer(tFormulaFD aF1,tFormulaFD aF2,const std::string & aName) :
-                   tO2 (aF1,aF2,aName)
-            { }
-      private  :
-            tFormulaFD Derivate(int aK) const override 
-            {
-                return  tO2::mF2*tO2::mF1->Derivate(aK) + tO2::mF1*tO2::mF2->Derivate(aK);
-            }
-            std::string  NameOperator() const override {return "*";}
-};
-
-template TPLDecl class cSubFormalDer : public cOpBinFormalDer TPLInst
-{
-      public :
-            typedef cImplemFormFD  TPLInst   tIFD;
-            typedef typename tIFD::tFormulaFD  tFormulaFD;
-            typedef cOpBinFormalDer TPLInst    tO2;
-
-            inline cSubFormalDer(tFormulaFD aF1,tFormulaFD aF2,const std::string & aName) :
-                   tO2 (aF1,aF2,aName)
-            { }
-      private  :
-            tFormulaFD Derivate(int aK) const override {return tO2::mF1->Derivate(aK) - tO2::mF2->Derivate(aK);}
-            std::string  NameOperator() const override {return "-";}
-};
-
-template TPLDecl class cDivFormalDer : public cOpBinFormalDer TPLInst
-{
-      public :
-            typedef cImplemFormFD  TPLInst   tIFD;
-            typedef typename tIFD::tFormulaFD  tFormulaFD;
-            typedef cOpBinFormalDer TPLInst    tO2;
-
-            inline cDivFormalDer(tFormulaFD aF1,tFormulaFD aF2,const std::string & aName) :
-                   tO2 (aF1,aF2,aName)
-            { }
-      private  :
-            tFormulaFD Derivate(int aK) const override 
-            {
-               return (tO2::mF1->Derivate(aK)* tO2::mF2 - tO2::mF2->Derivate(aK) * tO2::mF1) / square(tO2::mF2);
-            }
-            std::string  NameOperator() const override {return "/";}
-};
-
-
-
-// template TPLDecl class cDivFormalDer ;     ///< Class for division of 2 functions
-/* *************************************************** */
-/* *************************************************** */
-/* *                                                 * */
-/* *        External Definition of methods           * */
-/* *                                                 * */
-/* *************************************************** */
-/* *************************************************** */
-
-
-
-
-
-      /* ----------------------------------------------*/
-      /*             cContextFormalDer                 */
-      /* ----------------------------------------------*/
-
-template TPLDecl std::vector<std::string> cContextFormalDer TPLInst::MakeAutomId(const std::string & aPrefix,int aNb)
-{
-      tVecId aRes;
-      for (int aK=0 ; aK<aNb ; aK++)
-          aRes.push_back(aPrefix+ std::to_string(aK));
-      return aRes;
-}
-
-template TPLDecl cContextFormalDer TPLInst::cContextFormalDer(const tVecId & aVNameUK,const tVecId & aVNameObs) :
-    mNbCste (0),
-    mNbUK   (aVNameUK.size()),
-    mNbObs  (aVNameObs.size()),
-    mCste0  (CsteOfVal(0.0)),
-    mCste1  (CsteOfVal(1.0)),
-    mCste2  (CsteOfVal(2.0))
-{
-    // Generate all the function corresponding to unknown
-    for (size_t aNumUK=0 ; aNumUK<mNbUK ; aNumUK++)
-    {
-        tFormulaFD aFuncUK(new cFUnknownFormalDer TPLInst(this,aVNameUK[aNumUK],aNumUK));  // Create it
-        mVFuncUnknown.push_back(aFuncUK);   // Push it in vector of coordinat func
-        AddFormula(aFuncUK);  // Add to all func
-    }
-
-    // Generate all the function corresponding to observations
-    for (size_t aNumObs=0 ; aNumObs<mNbObs ; aNumObs++)
-    {
-        tFormulaFD aFuncObs(new cFObsFormalDer TPLInst(this,aVNameObs[aNumObs],aNumObs));  // Create it
-        mVFuncObs.push_back(aFuncObs);   // Push it in vector of coordinat func
-        AddFormula(aFuncObs);  // Add to all func
-    }
-}
-
-template TPLDecl cContextFormalDer TPLInst::cContextFormalDer(int aNbUK,int aNbObs) :
-     cContextFormalDer TPLInst(MakeAutomId("X",aNbUK),MakeAutomId("V",aNbObs))
-{
-}
-
-template TPLDecl cFormulaFD TPLInst cContextFormalDer TPLInst::CsteOfVal(const TypeElem & aCste) 
-{
-  tFormulaFD & aRef = mDicoCste[aCste];
-  if (aRef.IsNull())  // If it was not existing, the map contain now the def element
-  {
-     aRef=tFormulaFD(new cFCsteFormalDer TPLInst(this,"C"+std::to_string(mNbCste),mNbCste,aCste));
-     mNbCste++;
-     AddFormula(aRef);
-  }
-
-  return aRef;
-}
-
-template TPLDecl cFormulaFD TPLInst cContextFormalDer TPLInst::FuncOfName(const std::string & aName) const 
-{
-    const auto & anIt = mDicoFunc.find(aName);
-    if (anIt == mDicoFunc.end()) throw ("Try to acces non existing name :[" + aName + "]");
-    return anIt->second;
-}
-
-template TPLDecl void cContextFormalDer TPLInst::ShowStackFunc() const
-{
-    for (const auto & aForm : mVAllFormula)
-    {
-       std::cout << "Form[" << aForm->NumGlob() << "] => " << aForm->Name();
-       const TypeElem * aPV = aForm->ValCste();
-       if (aPV)
-           std::cout << " ; Val=" << *aPV;
-       std::cout << "\n";
-    }
-}
-
-/* *************************************************** */
-/* *************************************************** */
-/* *                                                 * */
-/* *        Global function                          * */
-/* *                                                 * */
-/* *************************************************** */
-/* *************************************************** */
-
-      /* ----------------------------------------------*/
-      /*     Binary operator between formulas          */
-      /* ----------------------------------------------*/
-
-template <class TypeCompiled>  class cGenOperatorBinaire
-{
-    public :
-         typedef typename TypeCompiled::tIFD     tIFD;
-         typedef typename tIFD::tFormulaFD  tFormulaFD;
-         static tFormulaFD   Generate(tFormulaFD aF1,tFormulaFD aF2,const std::string & aNameOp)
-         {
-             // Extract context (take F1 ou F2, does not matter, they must be the same)
-             auto aPCont = aF1->Context();  
-             std::string aNameForm =  aF1.NameOperBin(aNameOp,aF2);
-
-             if (aPCont->ExistFunc(aNameForm))
-               return aPCont->FuncOfName(aNameForm);
-
-             tFormulaFD aResult (new TypeCompiled(aF1,aF2,aNameForm));
-             aPCont->AddFormula(aResult);
-             return aResult;
-         }
-};
-
-       
-template TPLDecl cFormulaFD TPLInst  operator +(const cFormulaFD TPLInst & aF1,const cFormulaFD TPLInst & aF2) 
-{
-     // Use the fact that 0 is neutral element to simplify
-     if (aF1->IsCste0()) return aF2;
-     if (aF2->IsCste0()) return aF1;
-
-     // Use commutativity of + to have a unique representation
-     if (aF1->Name() > aF2->Name()) 
-        return aF2+aF1;
-
-     return cGenOperatorBinaire<cSumFormalDer<TypeElem,TheSzBuf> >::Generate(aF1,aF2,"+");
-}
-
-template TPLDecl cFormulaFD TPLInst  operator -(const cFormulaFD TPLInst & aF1,const cFormulaFD TPLInst & aF2) 
-{
-     // Use the fact that 0 is neutral element to simplify
-     if (aF1->IsCste0()) return -aF2;
-     if (aF2->IsCste0()) return aF1;
-
-     return cGenOperatorBinaire<cSubFormalDer<TypeElem,TheSzBuf> >::Generate(aF1,aF2,"-");
-}
-
-template TPLDecl cFormulaFD TPLInst  operator *(const cFormulaFD TPLInst & aF1,const cFormulaFD TPLInst & aF2) 
-{
-     // Use the fact that 1 is neutral element to simplify
-     if (aF1->IsCste1()) return aF2;
-     if (aF2->IsCste1()) return aF1;
-
-     // Use the fact that 0 is absorbant element to simplify
-     if (aF1->IsCste0()) return aF1;
-     if (aF2->IsCste0()) return aF2;
-
-
-     // Use commutativity of + to have a unique representation
-     if (aF1->Name() > aF2->Name()) 
-        return aF2 * aF1;
-
-     return cGenOperatorBinaire<cMulFormalDer<TypeElem,TheSzBuf> >::Generate(aF1,aF2,"*");
-}
-
-template TPLDecl cFormulaFD TPLInst  operator /(const cFormulaFD TPLInst & aF1,const cFormulaFD TPLInst & aF2) 
-{
-     if (aF1->IsCste0()) return aF1;  // 0/F2 = 0
-     if (aF2->IsCste1()) return aF1;  // F1/1 = F1
-
-     return cGenOperatorBinaire<cDivFormalDer<TypeElem,TheSzBuf> >::Generate(aF1,aF2,"/");
-}
-
-
-      /* ----------------------------------------------------------*/
-      /*  Binary   Operator  between Formula and  constants        */
-      /* ----------------------------------------------------------*/
-
-        // ++++++++++++++++++++++++
-template TPLDecl inline cFormulaFD TPLInst  operator +(const TypeElem & aV1,const cFormulaFD TPLInst & aF2)
-{
-  return aF2->Context()->CsteOfVal(aV1) + aF2;
-}
-template TPLDecl inline cFormulaFD TPLInst  operator +(const cFormulaFD TPLInst & aF1,const TypeElem & aV2)
-{
-    return aV2+aF1;
-}
-        // ************************
-template TPLDecl inline cFormulaFD TPLInst  operator *(const TypeElem & aV1,const cFormulaFD TPLInst & aF2)
-{
-  return aF2->Context()->CsteOfVal(aV1) * aF2;
-}
-template TPLDecl inline cFormulaFD TPLInst  operator *(const cFormulaFD TPLInst & aF1,const TypeElem & aV2)
-{
-    return aV2*aF1;
-}
-        // ************************
-template TPLDecl inline cFormulaFD TPLInst  operator -(const TypeElem & aV1,const cFormulaFD TPLInst & aF2)
-{
-  return aF2->Context()->CsteOfVal(aV1) - aF2;
-}
-template TPLDecl inline cFormulaFD TPLInst  operator -(const cFormulaFD TPLInst & aF1,const TypeElem & aV2)
-{
-  return aF1-aF1->Context()->CsteOfVal(aV2) ;
-}
-
-
-
-      /* ---------------------------------------*/
-      /*           Unary   Operator             */
-      /* ---------------------------------------*/
-
-template <class TypeCompiled>  class cGenOperatorUnaire
-{
-    public :
-         typedef typename TypeCompiled::tIFD     tIFD;
-         typedef typename tIFD::tFormulaFD  tFormulaFD;
-         static tFormulaFD   Generate(tFormulaFD aF,const std::string & aNameOp)
-         {
-             auto aPCont = aF->Context();  
-             std::string aNameForm = aF.NameOperUn(aNameOp);
-
-             if (aPCont->ExistFunc(aNameForm))
-               return aPCont->FuncOfName(aNameForm);
-
-             tFormulaFD aResult (new TypeCompiled(aF,aNameForm));
-             aPCont->AddFormula(aResult);
-             return aResult;
-         }
-};
+         y = b1 / (1+exp(b2-b3*x)) ^ 1/b4  [Ratko]
     
-template TPLDecl inline cFormulaFD TPLInst  square(const cFormulaFD TPLInst & aF)
-{
-    return cGenOperatorUnaire<cSquareFormalDer<TypeElem,TheSzBuf> >::Generate(aF,"square");
-}
+    we have a set of value (x1,y1), (x2,y2) ..., an initial guess of the parameter b(i) and want
+    to compute optimal value. Typically we want to use non linear least-square for that, and 
+    need to compute differential of  equation [Ratko] . The MMVII_FormalDerivative
+    offers service for fast differentiation. The weighted least-square is another story that we dont study here.
 
-template TPLDecl inline cFormulaFD TPLInst  exp(const cFormulaFD TPLInst & aF)
-{
-    return cGenOperatorUnaire<cExpFormalDer<TypeElem,TheSzBuf> >::Generate(aF,"exp");
-}
-template TPLDecl inline cFormulaFD TPLInst  operator - (const cFormulaFD TPLInst & aF)
-{
-    return cGenOperatorUnaire<cMin1FormalDer<TypeElem,TheSzBuf> >::Generate(aF,"-");
-}
-
-      /* ----------------------------------------------*/
-      /*                     TEST                      */
-      /* ----------------------------------------------*/
-static const int SzBufTest = 8;
-typedef  double TypeTest;
-typedef  cFormulaFD <TypeTest,SzBufTest>  tFormulaTest;
-
-
-void   BenchFormalDer()
-{
-    {
-       cContextFormalDer<TypeTest,SzBufTest>  aCFD(3,5);
-
-       tFormulaTest  X0 = aCFD.VUK().at(0);
-       tFormulaTest  X1 = aCFD.VUK().at(1);
-       tFormulaTest  X2 = aCFD.VUK().at(2);
-
-       tFormulaTest  aF = (X0+X1) * (X0 +square(X2)) - exp(-square(X0));
-       // tFormulaTest  aF = X0 * X0;
-       tFormulaTest  aFd0 = aF->Derivate(0);
-
-       std::cout << "F=" << aF->InfixPPrint() << "\n";
-       std::cout << "Fd=" << aFd0->InfixPPrint() << "\n";
-
-       aCFD.ShowStackFunc();
-/*
-       aCFD.CsteOfVal(3.14);
-       aCFD.CsteOfVal(3.14);
-       tFormulaTest  aU0 = aCFD.VUK()[0];
-       tFormulaTest  aU1 = aCFD.VUK()[1];
-       tFormulaTest  aO0 = aCFD.VObs()[0];
-       tFormulaTest  aO1 = aCFD.VObs()[1];
-       tFormulaTest  aO2 = aCFD.VObs()[2];
-
-       tFormulaTest  aSom00 = aU0 + aO0;
-       tFormulaTest  aSomInv00 = aO0 + aU0;
-       tFormulaTest  aSom11 = aO1 + aU1;
-
-       tFormulaTest  aSom0 = aCFD.VUK()[0] + aCFD.Cste0();
-       tFormulaTest  aSom1 = aCFD.VUK()[0] + aCFD.Cste1();
-
-       tFormulaTest  aSom3 = aCFD.VUK()[0] + 3.14;
-       tFormulaTest  aSom4 = 3.14 + aCFD.VUK()[0] ;
-       std::cout << "TEST ADD CST " << aSom0->Name() << " " << aSom1->Name() << "\n";
-       std::cout << "TEST ADD CST " << aSom3->Name() << " " << aSom4->Name() << "\n";
-
-       aO0+aO1;
-       aO1+aO2;
-       aO0+(aO1+aO2);
-       {
-          tFormulaTest aS=(aO0+aO1)*(aO2+2.1);
-          std::cout << "PP=" << aS->InfixPPrint() << "\n";
-       }
 */
 
-       // cFormulaFD<TypeTest,SzBufTest> aPtr(nullptr);
-       // aPtr->IsCste0();
-       
 
-       // std::shared_ptr<cFuncFormalDer <8,double> > aF1  =
-       
-        // const std::vector<tFormulaFD>& VUK()  const {return  mVFuncUnknown;}  ///< Unknowns
-        // const std::vector<tFormulaFD>& VObs() const {return  mVFuncObs;}      ///< Observations
+/**   RatkoswkyResidual  : residual of the Ratkoswky equation as a  function of unknowns and observation. 
+
+        We return a vector because this is the general case to have a N-dimentional return value 
+     (i.e. multiple residual like in photogrametic colinear equation).
+
+        This template function can work on numerical type, formula, jets ....
+*/
+
+template <class Type> 
+std::vector<Type> RatkoswkyResidual
+                  (
+                      const std::vector<Type> & aVUk,
+                      const std::vector<Type> & aVObs
+                  )
+{
+    const Type & b1 = aVUk[0];
+    const Type & b2 = aVUk[1];
+    const Type & b3 = aVUk[2];
+    const Type & b4 = aVUk[3];
+
+    const Type & x  = aVObs[1];  // Warn the data I got were in order y,x ..
+    const Type & y  = aVObs[0];
+
+    pow(b1,2.7);
+
+    // Model :  y = b1 / (1+exp(b2-b3*x)) ^ 1/b4 + Error()  [Ratko]
+    return { b1 / pow(1.0+exp(b2-b3*x),1.0/b4) - y } ;
+}
+
+
+/**  For test Declare a literal vector of pair Y,X corresponding to observations
+    (not elagant but to avoid parse file in this tutorial)
+*/
+typedef std::vector<std::vector<double>> tVRatkoswkyData;
+static tVRatkoswkyData TheVRatkoswkyData
+{
+     {16.08E0,1.0E0}, {33.83E0,2.0E0}, {65.80E0,3.0E0}, {97.20E0,4.0E0}, {191.55E0,5.0E0}, 
+     {326.20E0,6.0E0}, {386.87E0,7.0E0}, {520.53E0,8.0E0}, {590.03E0,9.0E0}, {651.92E0,10.0E0}, 
+     {724.93E0,11.0E0}, {699.56E0,12.0E0}, {689.96E0,13.0E0}, {637.56E0,14.0E0}, {717.41E0,15.0E0} 
+};
+
+
+/**  Use  RatkoswkyResidual on Formulas to computes its derivatives
+*/
+
+void TestRatkoswky(const tVRatkoswkyData & aVData,const std::vector<double> & aInitialGuess)
+{
+    size_t aNbUk = 4;
+    size_t aNbObs = 2;
+    assert(aInitialGuess.size()==aNbUk); // consitency test
+
+   //-[1] ========= Create/Init the coordinator =================  
+   //-    This part [1] would be executed only one time
+        // Create a coordinator/context where values are stored on double and :
+        //  4 unknown (b1-b4), 2 observations, a buffer of size 100
+    FD::cCoordinatorF<double>  aCFD(100,aNbUk,aNbObs);
+
+        // Create formulas of residuals, VUk and VObs are  vector of formulas for unkown and observation
+    auto  aFormulaRes = RatkoswkyResidual(aCFD.VUk(),aCFD.VObs());
+
+        // Set the formula that will be computed
+    aCFD.SetCurFormulasWithDerivative(aFormulaRes);
+
+   //-[2] ========= Now Use the coordinator to compute vals & derivatives ================= 
+       // "Push" the data , this does not make the computation, data are memporized
+       // In real case, you should be care to flush with EvalAndClear before you exceed buffe (100)
+     for (const auto  & aVYX : aVData)
+     {
+          assert(aVYX.size()==aNbObs); // consitency test
+          aCFD.PushNewEvals(aInitialGuess,aVYX);
+     }
+        // Now run the computation on "pushed" data, we have the derivative
+     const std::vector<std::vector<double> *> & aVEvals = aCFD.EvalAndClear();
+     assert(aVEvals.size()==aVData.size()); // Check we get the number of computation we inserted
+
+   //-[3] ========= Now we can use the derivatives ========================== 
+   //  directly on aVEvals,  or with  interface : DerComp(), ValComp()
+   //  here the "use" we do is to check coherence with numerical values and derivatives
+
+     
+    for (size_t aKObs=0; aKObs<aVData.size() ; aKObs++)
+    {
+         // aLineRes ->  result correspond to 1 obs
+         //  storing order :   V0 dV0/dX0 dV0/dX1 .... V1 dV1/dX1 .... (here only one val)
+         const std::vector<double> & aLineRes = *(aVEvals.at(aKObs));
+
+         // [3.1] Check the value
+         double aValFLine =  aLineRes[0]; // we access via the vector
+         double aValInterface =   aCFD.ValComp(aKObs,0); // via the interface, 0=> first value (unique here)
+         double aValStd =  RatkoswkyResidual<double>(aInitialGuess,aVData[aKObs]).at(0); // Numerical value
+         assert(aValFLine==aValInterface); // exactly the same
+         assert(std::abs(aValFLine-aValStd)<1e-10); // may exist some numericall effect
+
+         // [3.2]  Check the derivate
+         for (size_t aKUnk=0 ; aKUnk<aNbUk ; aKUnk++)
+         {
+            double aDerFLine =  aLineRes[1+aKUnk]; // access via the vector
+            double aDerInterface =  aCFD.DerComp(aKObs,0,aKUnk); // via the interface
+            assert(aDerFLine==aDerInterface); // exactly the same
+            // Compute derivate by finite difference ; 
+            // RatkoswkyResidual<double> is the "standard" function operating on numbers
+            // see NumericalDerivate in "MMVII_FormalDerivatives.h" 
+            double aDerNum =  FD::NumericalDerivate
+                              (RatkoswkyResidual<double>,aInitialGuess,aVData[aKObs],aKUnk,1e-5).at(0);
+
+            // Check but with pessimistic majoration of error in finite difference
+            assert(std::abs(aDerFLine-aDerNum)<1e-4);
+         }
     }
-    // new cContextFormalDer<double,100> (3,5);
+     std::cout << "OK  TestRatkoswky \n";
+}
 
-    int i=10;
-    std::string aStr = "i="+ std::to_string(i);
-    std::cout  << "BenchFormalDerBenchFormalDerBenchFormalDer " << aStr << "\n";
+
+/* {II}  ========================    ==========================================
+
+   This second example, we take a very basic example to analyse some part of the
+*/
+template <class Type> 
+std::vector<Type> FitCube
+                  (
+                      const std::vector<Type> & aVUk,
+                      const std::vector<Type> & aVObs
+                  )
+{
+    const Type & a = aVUk[0];
+    const Type & b = aVUk[1];
+
+    const Type & x  = aVObs[0];  
+    const Type & y  = aVObs[1];
+     
+    // Naturally the user would write that
+    if (false)
+    {
+       Type F = (a+b *x);
+       return {F*F*F - y};
+       return {cube(a+b *x)- y};
+    }
+
+
+    // but here we want to test the reduction process
+    return {(a+b *x)*(x*b+a)*(a+b *x) - y};
+}
+
+void InspectCube()
+{
+    std::cout <<  "===================== TestRatkoswky  ===================\n";
+
+    // Create a context where values are stored on double and :
+    //    2 unknown, 2 observations, a buffer of size 100
+    //    aCFD(100,2,2) would have the same effect for the computation
+    //    The variant with vector of string, will fix the name of variables, it
+    //    will be usefull when will generate code and will want  to analyse it
+    FD::cCoordinatorF<double>  aCFD(100,{"a","b"},{"x","y"});
+
+    // Inspect vector of unknown and vector of observations
+    {  
+        for (const auto & aF : aCFD.VUk())
+           std::cout << "Unknowns : "<< aF->Name() << "\n";
+        for (const auto & aF : aCFD.VObs())
+           std::cout << "Observation : "<< aF->Name() << "\n";
+    }
+
+    // Create the formula corresponding to residual
+    std::vector<FD::cFormula<double>>  aVResidu = FitCube(aCFD.VUk(),aCFD.VObs());
+    FD::cFormula<double>  aResidu = aVResidu[0];
+ 
+    // Inspect the formula 
+    std::cout  << "RESIDU FORMULA, Num=" << aResidu->NumGlob() << " Name=" <<  aResidu->Name() <<"\n";
+    std::cout  << " PP=[" << aResidu->InfixPPrint() <<"]\n";
+
+    // Inspect the derivative  relatively to b
+    auto aDerb = aResidu->Derivate(1);  
+    std::cout  << "DERIVATE FORMULA , Num=" << aDerb->NumGlob() << " Name=" <<  aDerb->Name() <<"\n";
+    std::cout  << " PP=[" << aDerb->InfixPPrint() <<"]\n";
+
+    // Set the formula that will be computed
+    aCFD.SetCurFormulasWithDerivative(aVResidu);
+    
+    // Print stack of formula
+    std::cout << "====== Stack === \n";
+    aCFD.ShowStackFunc();
 
     getchar();
 }
 
+/* {III}  ========================  Test perf on colinearit equation =================================
 
-#endif // _MMVII_DynAndStatFormalDerivation_H_
+       On this example 
+
+*/
+
+
+
+#define NB_UK  19
+#define NB_OBS 11
+
+/*  Capital letter for 3D variable/formulas and small for 2D */
+template <class TypeUk,class TypeObs> std::vector<TypeUk> FraserCamColinearEq
+                  (
+                      const std::vector<TypeUk> & aVUk,
+                      const std::vector<TypeObs> & aVObs
+                  )
+{
+    assert (aVUk.size() ==NB_UK) ;// FD::UserSError("Bad size for unknown");
+    assert (aVObs.size()==NB_OBS) ;// FD::UserSError("Bad size for observations");
+
+    // 0 - Ground Coordinates of projected point
+    const auto & XGround = aVUk[0];
+    const auto & YGround = aVUk[1];
+    const auto & ZGround = aVUk[2];
+// std::cout << "LLL " << __LINE__ << " " << XGround.mNum << " " << YGround.mNum << " " << ZGround.mNum << "\n";
+
+    // 1 - Pose / External parameter 
+        // 1.1  Coordinate of camera center
+    const auto & C_XCam = aVUk[3];
+    const auto & C_YCam = aVUk[4];
+    const auto & C_ZCam = aVUk[5];
+
+        // 1.2  Coordinate of Omega vector coding the unknown "tiny" rotation
+    const auto & Wx = aVUk[6];
+    const auto & Wy = aVUk[7];
+    const auto & Wz = aVUk[8];
+
+    // 2 - Intrinsic parameters
+         // 2.1 Principal point  and Focal
+    const auto & xPP = aVUk[ 9];
+    const auto & yPP = aVUk[10];
+    const auto & zPP = aVUk[11]; // also named as focal
+
+         // Also in this model we confond Principal point and distorsion center, name 
+         // explicitely the dist center case we change our mind
+    const auto & xCD = xPP;
+    const auto & yCD = yPP;
+
+         // 2.2  Radial  distortions coefficients
+    const auto & k2D = aVUk[12];
+    const auto & k4D = aVUk[13];
+    const auto & k6D = aVUk[14];
+
+         // 2.3  Decentric distorstion
+    const auto & p1 = aVUk[15];
+    const auto & p2 = aVUk[16];
+
+         // 2.3  Affine distorsion
+    const auto & b1 = aVUk[17];
+    const auto & b2 = aVUk[18];
+
+   // Vector P->Cam
+    auto  XPC = XGround-C_XCam;
+    auto  YPC = YGround-C_YCam;
+    auto  ZPC = ZGround-C_ZCam;
+
+
+    // Coordinate of points in  camera coordinate system, do not integrate "tiny" rotation
+
+    auto  XCam0 = aVObs[0] * XPC +  aVObs[1]* YPC +  aVObs[2]*ZPC;
+    auto  YCam0 = aVObs[3] * XPC +  aVObs[4]* YPC +  aVObs[5]*ZPC;
+    auto  ZCam0 = aVObs[6] * XPC +  aVObs[7]* YPC +  aVObs[8]*ZPC;
+
+// std::cout << "LLL " << __LINE__ << " " << aVObs[0] << " " << aVObs[1] << " " << aVObs[2] << "\n";
+
+    // Now "tiny" rotation
+    //  Wx      X      Wy * Z - Wz * Y
+    //  Wy  ^   Y  =   Wz * X - Wx * Z
+    //  Wz      Z      Wx * Y - Wy * X
+
+     //  P =  P0 + W ^ P0 
+
+    auto  XCam = XCam0 + Wy * ZCam0 - Wz * YCam0;
+    auto  YCam = YCam0 + Wz * XCam0 - Wx * ZCam0;
+    auto  ZCam = ZCam0 + Wx * YCam0 - Wy * XCam0;
+
+    // Projection :  (xPi,yPi,1) is the bundle direction in camera coordinates
+
+    auto xPi =  XCam/ZCam;
+    auto yPi =  YCam/ZCam;
+// std::cout << "LLL " << __LINE__ << " " << XCam.mNum << " " << YCam.mNum << " " << ZCam.mNum << "\n";
+// std::cout << "LLL " << __LINE__ << " " << xPi.mNum << " " << yPi.mNum << "\n";
+
+    // Coordinate relative to distorsion center
+    auto xC =  xPi-xCD;
+    auto yC =  yPi-yCD;
+    auto x2C = square(xC);  // Use the indermediar value to (probably) optimize Jet
+    auto y2C = square(yC);
+    auto xyC = xC * yC;
+    auto Rho2C = x2C + y2C;
+
+   // Compute the distorsion
+    auto rDist = k2D*Rho2C + k4D * square(Rho2C) + k6D*cube(Rho2C);
+    auto affDist = b1 * xC + b2 * yC;
+    auto decX = p1*(3.0*x2C + y2C) +  p2*(2.0*xyC);
+    auto decY = p2*(3.0*y2C + x2C) +  p1*(2.0*xyC);
+    
+
+    auto xDist =  xPi + xC * rDist + decX + affDist;
+    auto yDist =  yPi + yC * rDist + decY ;
+
+   // Use principal point and focal
+    auto xIm =  xPP  + zPP  * xDist;
+    auto yIm =  yPP  + zPP  * yDist;
+
+// std::cout << "LLL " << __LINE__ << " " << xIm.mNum << " " << yIm.mNum << "\n";
+
+    auto x_Residual = xIm -  aVObs[ 9];
+    auto y_Residual = yIm -  aVObs[10];
+
+// getchar();
+
+    return {x_Residual,y_Residual};
+}
+
+
+class cTestFraserCamColinearEq
+{
+    public :
+       cTestFraserCamColinearEq(int aSzBuf);
+
+    private :
+       
+       static const int  TheNbUk  = 19;
+       static const int  TheNbObs = 11;
+       typedef Jet<double,NB_UK>  tJets;
+       typedef cEpsNum<NB_UK>     tEps;
+
+       static const  std::vector<std::string> TheVNamesUnknowns;
+       static const  std::vector<std::string> TheVNamesObs;
+
+       /// Return unknowns vect after fixing XYZ (ground point)
+       const std::vector<double> & VUk(double X,double Y,double Z);
+       /// Return observation vect t after fixing I,J (pixel projection)
+       const std::vector<double> & VObs(double I,double J);
+
+ 
+       FD::cCoordinatorF<double>  mCFD;  /// Coordinator for formal derivative
+       std::vector<double>        mVUk;  /// Buffer for computing the unknown
+       std::vector<double>        mVObs; /// Buffer for computing the unknown
+};
+
+
+const std::vector<double> & cTestFraserCamColinearEq::VUk(double X,double Y,double Z)
+{
+   mVUk[0] = X;
+   mVUk[1] = Y;
+   mVUk[2] = Z;
+
+   return mVUk;
+}
+
+const std::vector<double> & cTestFraserCamColinearEq::VObs(double I,double J)
+{
+     mVObs[ 9] = I;
+     mVObs[10] = J;
+    
+    return mVObs;
+}
+
+
+
+const std::vector<std::string> 
+  cTestFraserCamColinearEq::TheVNamesUnknowns
+  {
+      "XGround","YGround","ZGround",            // Unknown 3D Point
+      "XCam","YCam","ZCam", "Wx","Wy","Wz",     // External Parameters
+      "ppX","ppY","ppZ",                        // Internal : principal point + focal
+      "k2","k4","k6", "p1","p2","b1","b2"       // Distorsion (radiale/ Decentric/Affine)
+  };
+
+const std::vector<std::string> 
+  cTestFraserCamColinearEq::TheVNamesObs
+  {
+        "oR00","oR01","oR02","oR10","oR11","oR12","oR20","oR21","oR22",
+        "oXIm","oYIm"
+  };
+
+
+
+
+cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf) :
+    // mCFD (aSzBuf,19,11) would have the same effect, but future generated code will be less readable
+     mCFD  (aSzBuf,TheVNamesUnknowns,TheVNamesObs),
+     mVUk  (TheNbUk,0.0),
+     mVObs (TheNbObs,0.0)
+{
+   // In unknown, we set everything to zero exepct focal to 1
+   mVUk[11] = 1.0;
+   // In obs, we set the current matrix to Id
+   mVObs[0] = mVObs[4] = mVObs[8] = 1;
+
+   double aT0 = TimeElapsFromT0();
+
+   auto aVFormula = FraserCamColinearEq(mCFD.VUk(),mCFD.VObs());
+   mCFD.SetCurFormulasWithDerivative(aVFormula);
+   double aT1 = TimeElapsFromT0();
+    
+   std::cout << "TestFraser NbEq=" << mCFD.VReached().size() << " TimeInit=" << (aT1-aT0) << "\n";
+
+   
+   // mCFD.ShowStackFunc();
+
+   int aNbTestTotal =  1e5; ///< Approximative number of Test
+   int aNbTestWithBuf = aNbTestTotal/aSzBuf;  ///< Number of time we will fill the buffer
+   aNbTestTotal = aNbTestWithBuf * aSzBuf; ///< Number of test with one equation
+
+   // Here we initiate with "peferct" projection, to check something
+   const std::vector<double> & aVUk  =  VUk(1.0,2.0,10.0);
+   const std::vector<double> & aVObs =  VObs(0.101,0.2); 
+   
+   // Make the computation with jets
+   double TimeJets = TimeElapsFromT0();
+   std::vector<tJets> aJetRes;
+   {
+        std::vector<tJets>  aVJetUk;
+        for (int aK=0 ; aK<NB_UK ; aK++)
+            aVJetUk.push_back(tJets(aVUk[aK],aK));
+
+        for (int aK=0 ; aK<aNbTestTotal ; aK++)
+        {
+            aJetRes = FraserCamColinearEq(aVJetUk,aVObs);
+        }
+        TimeJets = TimeElapsFromT0() - TimeJets;
+   }
+
+   double TimeEps = TimeElapsFromT0();
+   std::vector<tEps> aEpsRes;
+   {
+        std::vector<tEps >  aVEpsUk;
+        for (int aK=0 ; aK<NB_UK ; aK++)
+            aVEpsUk.push_back(tEps(aVUk[aK],aK));
+        for (int aK=0 ; aK<aNbTestTotal ; aK++)
+        {
+            aEpsRes = FraserCamColinearEq(aVEpsUk,aVObs);
+        }
+        TimeEps = TimeElapsFromT0() - TimeEps;
+   }
+
+   // Make the computation with formal deriv buffered
+   double TimeBuf = TimeElapsFromT0();
+   {
+       for (int aK=0 ; aK<aNbTestWithBuf ; aK++)
+       {
+           // Fill the buffers with data
+           for (int aKInBuf=0 ; aKInBuf<aSzBuf ; aKInBuf++)
+               mCFD.PushNewEvals(aVUk,aVObs);
+           // Evaluate the derivate once buffer is full
+           mCFD.EvalAndClear();
+       }
+       TimeBuf = TimeElapsFromT0() - TimeBuf;
+   }
+
+   for (int aKV=0 ; aKV<int(aEpsRes.size()) ; aKV++)
+   {
+      std::cout << "VALssss " << aKV << "\n";
+      std::cout << "  J:" <<  aJetRes[aKV].a << " E:" << aEpsRes[aKV].mNum << "\n";
+   }
+
+   std::cout 
+         << " TimeJets= " << TimeJets 
+         << " TimeEps= " << TimeEps 
+         << " TimeBuf= " << TimeBuf
+         << "\n";
+}
+
+void TestFraserCamColinearEq()
+{
+   {
+       cTestFraserCamColinearEq (1000);
+       //  cTestFraserCamColinearEq (100);
+       //  cTestFraserCamColinearEq (10);
+       cTestFraserCamColinearEq (1);
+   }
+/*
+   {
+        using MMVII::cEpsNum;
+        std::vector<cEpsNum<NB_UK> >  aVUk;
+        for (int aK=0 ; aK<NB_UK ; aK++)
+            aVUk.push_back(cEpsNum<NB_UK>(1.0,aK));
+
+        std::vector<double>  aVObs;
+        for (int aK=0 ; aK<NB_OBS ; aK++)
+            aVObs.push_back(1/(1.0+aK));
+
+       auto aVRes = FraserCamColinearEq(aVUk,aVObs);
+   }
+   {
+        std::vector<Jet<double,NB_UK> >  aVUk;
+        for (int aK=0 ; aK<NB_UK ; aK++)
+            aVUk.push_back(Jet<double,NB_UK>(1.0,aK));
+
+        std::vector<double>  aVObs;
+        for (int aK=0 ; aK<NB_OBS ; aK++)
+            aVObs.push_back(1/(1.0+aK));
+
+       auto aVRes = FraserCamColinearEq(aVUk,aVObs);
+   }
+*/
+
+   getchar();
+}
+
+
+/* -------------------------------------------------- */
+
+namespace  MMVII
+{
+    void BenchCmpOpVect();
+};
+
+void   BenchFormalDer()
+{
+    // MMVII::BenchCmpOpVect();
+    TestFraserCamColinearEq();
+   // Run TestRatkoswky with static obsevation an inital guess 
+    TestRatkoswky(TheVRatkoswkyData,{100,10,1,1});
+    InspectCube() ;
+    // cTestOperationVector<float,90>::DoIt();
+    // cTestOperationVector<float,128>::DoIt();
+    // cTestOperationVector<double,128>::DoIt();
+    getchar();
+}
+
+
+/*
+--- Form[0] => C0 ; Val=0
+--- Form[1] => C1 ; Val=1
+--- Form[2] => C2 ; Val=2
+-0- Form[3] => a
+-0- Form[4] => b
+-0- Form[5] => x
+-0- Form[6] => y
+-1- Form[7] => F4*F5      // bx
+-2- Form[8] => F7+F3      // a+bx
+-3- Form[9] => F8*F8      // (a+bx) ^2
+-4- Form[10] => F8*F9     // (a+bx) ^ 3
+-5- Form[11] => F10-F6    // (a+bx)^3-y
+-3- Form[12] => F8*F5     // x(a+bx)
+-4- Form[13] => F12+F12   // 2x(a+bx)
+-5- Form[14] => F13*F8    // 2x(a+bx)^2
+-4- Form[15] => F9*F5     // x (a+bx)^2
+-6- Form[16] => F14+F15   // 3 x(a+bx)^2
+-3- Form[17] => F8+F8     // 2 (a+bx) 
+-4- Form[18] => F8*F17    // 2 (a+bx) ^2
+-5- Form[19] => F18+F9    // 3 (a+bx) ^2
+REACHED 5 3 6 4 7 8 9 17 12 10 18 15 13 11 14 19 16   // Reached formula in their computation order
+CUR 11 19 16   // Computed formula
+*/
+
+
+
