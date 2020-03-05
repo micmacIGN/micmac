@@ -973,6 +973,13 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
 
 
         <SectionChantier Nb="1">
+              <!-- This section is used when we want to force a pose to be closed to a value -->
+              <RappelPose Nb="?">
+                  <IdOrient Nb="1" Type="std::string"> </IdOrient>
+                  <SigmaC  Nb="1" Type="double">  </SigmaC> <!-- Ground Units -->
+                  <SigmaR  Nb="1" Type="double">  </SigmaR> <!-- Radian -->
+                  <PatternApply  Nb="1" Type="cElRegex_Ptr">  </PatternApply>
+              </RappelPose>
 
               <!-- Si >=0, l'attribut de ce numero est utilise comme ponderation de points dans le nouveau format -->
               <NumAttrPdsNewF Nb="?" Type="int" Def="-1"> </NumAttrPdsNewF>

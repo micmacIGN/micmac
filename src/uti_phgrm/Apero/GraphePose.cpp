@@ -140,6 +140,10 @@ void  cAppliApero::ConstructMST
         UseBloc = true;
         PreInitBloc(aMST.MSTBlockRigid().Val());
    }
+{
+   std::cout << "MM " << MPD_MM() << " BLoc=" << UseBloc << "\n";
+   //getchar();
+}
 
    // A chaque iteration on va affecter un sommet
    for (int aTimes=0 ; aTimes<aNbC ; aTimes++)

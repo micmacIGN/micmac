@@ -1684,7 +1684,7 @@ class ElCamera : public cCapture3D
          cVerifOrient MakeVerif( int aNbVerif,double aProf,const char *,const Pt3di  * aNbDeterm=0) const;
          cOrientationConique  StdExportCalibGlob(bool Matr) const;
          cOrientationConique  StdExportCalibGlob() const;
-         std::string StdExport2File(cInterfChantierNameManipulateur *,const std::string & aDirOri,const std::string & aNameIm);  // Test -> Ori-R
+         std::string StdExport2File(cInterfChantierNameManipulateur *,const std::string & aDirOri,const std::string & aNameIm,const std::string & aFileInterne = "");  // Test -> Ori-R
 
       virtual  Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const = 0;
       virtual  Pt3dr NoDistImEtProf2Terrain(const Pt2dr & aP,double aZ) const = 0;

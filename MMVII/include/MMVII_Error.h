@@ -100,7 +100,8 @@ void MMVII_UsersErrror(const eTyUEr &,const std::string & aMes);
 MMVII_INTERNAL_ASSERT_tiny(ValidInvertibleFloatValue(VALUE),"Non invertible value")
 
 
-template<class T> void IgnoreUnused( const T& ) { };
+template<class T> void IgnoreUnused( const T& ) { }; /// To avoid some warning on TEMPORARILY unused variable 
+void DoNothingWithIt(void *);  /// Used to avoid compiler optimization, make believe it can be used
 
 };
 

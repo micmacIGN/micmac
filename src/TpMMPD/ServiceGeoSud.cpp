@@ -145,7 +145,7 @@ std::vector<TIm2D<Type,TyBase>* > createVTIm2DFromFile(std::string const &aName,
             int mFlagLoadedIms=0;
             std::vector<sLowLevelIm<Type> > vSLLI;
 
-            for(size_t i=0;i<aRes->NbCanaux();++i)
+            for(int i=0;i<aRes->NbCanaux();++i)
             {
                 TIm2D<Type,TyBase> * ptr = new TIm2D<Type,TyBase>(SzCrop);
                 vPtr.push_back(ptr);

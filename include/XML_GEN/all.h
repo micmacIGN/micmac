@@ -1117,6 +1117,16 @@ cXml_ParamBascRigide   EL2Xml(const cSolBasculeRig &);
 cTypeCodageMatr ExportMatr(const ElMatrix<double> & aMat);
 ElMatrix<double> ImportMat(const cTypeCodageMatr & aCM);
 
+// Return the cParamOrientSHC of a given name
+cParamOrientSHC * POriFromBloc(cStructBlockCam & aBloc,const std::string & aName,bool SVP);
+// Return the Rotation that transformate from Cam Coord to Block coordinates (in fact coord of "first" cam)
+ElRotation3D  RotCamToBlock(const cParamOrientSHC & aPOS);
+// Return the Rotation that transformate from Cam1 Coord to Cam2 Coord
+ElRotation3D  RotCam1ToCam2(const cParamOrientSHC & aPOS1,const cParamOrientSHC & aPOS2);
+
+
+
+
 cXml_Rotation El2Xml(const ElRotation3D & aRot);
 ElRotation3D Xml2El(const cXml_Rotation & aXml);
 ElRotation3D Xml2ElRot(const cXml_O2IRotation & aXml);

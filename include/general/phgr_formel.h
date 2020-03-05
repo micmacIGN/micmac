@@ -453,7 +453,8 @@ class  cElemEqFormelle :  public cNameSpaceEqF
             const  cIncIntervale & IncInterv() const;
             cIncIntervale & IncInterv() ;
             tContFcteur & AllFonct();
-	    void  AddFoncRappInit(cMultiContEQF &,INT i0,INT i1,double aTol);
+            // Is aVals given, its not on init value but on vals, then its size must be equal to i1-i0
+	    void  AddFoncRappInit(cMultiContEQF &,INT i0,INT i1,double aTol,std::vector<double>* aVals=nullptr);
             REAL AddRappViscosite
                  (
                       const std::string  & aContexte,
@@ -1516,7 +1517,9 @@ class cRotationFormelle : public cElemEqFormelle,
 	  Pt3d<Fonc_Num>   ImVect(Pt3d<Fonc_Num>,int aKForceGL=-1);
           Pt3d<Fonc_Num>   COpt();
 	  ElRotation3D     CurRot();
-	  void     SetCurRot(const ElRotation3D & aR2CM);
+          // Si on veut forcer une valeur de rotation, on le fait avec MForce * DRot et une contraintye Drot =0
+          // du cout cela se fait en utilisant le codage guimbal et en separant la rotation courrante de la veleur guimbal
+	  void     SetCurRot(const ElRotation3D & aCurR2CM,const ElRotation3D & aGuimbCurR2CM);
 	  ElRotation3D     CurRot(REAL aT);
 
 	   ~cRotationFormelle();
@@ -1537,10 +1540,12 @@ class cRotationFormelle : public cElemEqFormelle,
 	   void  SetTolCentre(double);
 
            Pt3dr AddRappOnCentre(const Pt3dr & aVal,const Pt3dr & aPds,bool WithDerSec);
+           void  AddRappOnRot(const ElRotation3D &  aRot,const Pt3dr & aPdsC,const Pt3dr & aPdsRot);
+
            void ReactuFcteurRapCoU();
 
            // cMatr_Etat_PhgrF &  MatGL(bool) ;     // Mode Gimbal Lock
-           void SetGL(bool aModeGL);
+           void SetGL(bool aModeGL,const ElRotation3D & aGuimb2CM);
            const ElMatrix<Fonc_Num> & MatFGL(int ForceGL);
            ElMatrix<Fonc_Num>  MatFGLComplete(int ForceGL);
            const ElMatrix<REAL> &       MGL() const;
@@ -1660,7 +1665,7 @@ class cCameraFormelle :  public cGenPDVFormelle
           ElAffin2D & ResiduM2C();
 
 
-	  void     SetCurRot(const ElRotation3D & aR2CM);
+	  void     SetCurRot(const ElRotation3D & aR2CM,const ElRotation3D & aGuimbC2M);
           friend class cParamIntrinsequeFormel;
 
 	  Pt3d<Fonc_Num>   DirRayonF(Pt2d<Fonc_Num>,int aKCam);
@@ -1706,7 +1711,7 @@ class cCameraFormelle :  public cGenPDVFormelle
 	   Pt2dr AddEqAppuisInc(const Pt2dr & aPIm,double aPds, cParamPtProj &,bool IsEqDroite,cParamCalcVarUnkEl*);
            virtual void Update_0F2D();
            void TestVB10(const std::string& aMes) const;
-           void SetGL(bool aModeGL);
+           void SetGL(bool aModeGL,const ElRotation3D & aGuimb2CM);
            // cMatr_Etat_PhgrF &  MatRGL(bool isP) ;     // Mode Gimbal Lock
            bool IsGL() const;
 

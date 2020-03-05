@@ -41,6 +41,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #define DEF_OFSET -12349876
 
+int Recover_Main(int argc, char ** argv);
+
 int XLib_Main(int argc, char ** argv);
 
 const cArgLogCom cArgLogCom::NoLog(-1);
@@ -208,6 +210,7 @@ int TestDistM2C_main(int argc, char ** argv);
 int TestDistortion_main(int argc, char ** argv);
 
 int Blinis_main(int argc, char ** argv);
+int OrientFromBlock_main(int argc, char ** argv);
 int Contrast_main(int argc, char ** argv);
 int Nikrup_main(int argc, char ** argv);
 int TournIm_main(int argc,char ** argv);
@@ -254,6 +257,10 @@ int DroneFootPrint(int argc,char ** argv);
 
 int Image_Vide(int argc,char ** argv);
 int  PPMD_MatEss2Orient(int argc,char ** argv);
+
+int GrapheStereopolis_main(int argc,char ** argv);
+int CheckGCPStereopolis_main(int argc,char ** argv);
+int AnalyseTrajStereopolis_main(int argc,char ** argv);
 
 
 
@@ -306,6 +313,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("TestPbRPC", TestCamRPC, "Test possible Problems on RPC ", cArgLogCom(2)));
 		aRes.push_back(cMMCom("TestBundleInter", TestBundleInter_main, "Block Initialisation "));
 		aRes.push_back(cMMCom("Blinis", Blinis_main, "Block Initialisation ", cArgLogCom(2)));
+		aRes.push_back(cMMCom("OriFromBlock", OrientFromBlock_main, "Use Rigid Block to complete orientation ", cArgLogCom(2)));
 		aRes.push_back(cMMCom("ContrastFilter", Contrast_main, "Some contrast filtering "));
         aRes.push_back(cMMCom("Nikrup", Nikrup_main,/*(*/ "Generik image filter, using invert polish like notation ;-) ",cArgLogCom(3)));
 		aRes.push_back(cMMCom("Turn90Im", TournIm_main, "Turn image of 90 degre"));
@@ -373,6 +381,12 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("CenterBascule", CentreBascule_main, " Relative to absolute using embedded GPS", cArgLogCom(2)));
 
 		aRes.push_back(cMMCom("GrapheHom", GrapheHom_main, "Compute XML-Visibility graph from approximate orientation", cArgLogCom(3)));
+		aRes.push_back(cMMCom("GrapheStereopolis", GrapheStereopolis_main,"Compute Pair of Image for Stereopolis", cArgLogCom(2)));
+		aRes.push_back(cMMCom("CheckGCPStereopolis", CheckGCPStereopolis_main,"Check GCP with strategy optimized for Stereopolis-like acquisition", cArgLogCom(2)));
+
+
+		aRes.push_back(cMMCom("AnalyseTrajStereopolis", AnalyseTrajStereopolis_main,"Analyse trajectory of Stereopolis-like acquisition", cArgLogCom(2)));
+
 		aRes.push_back(cMMCom("GCPConvert", GCP_Txt2Xml_main, "Convert GCP from Txt 2 XML", cArgLogCom(3)));
 		aRes.push_back(cMMCom("OriConvert", Ori_Txt2Xml_main, "Convert Orientation from Txt 2 XML", cArgLogCom(3)));
 		aRes.push_back(cMMCom("OriExport", OriExport_main, "Export orientation from XML to XML or TXT with specified convention", cArgLogCom(3)));
@@ -480,6 +494,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("TestChantier", TestChantier_main, " Test global acquisition"));
 
 		aRes.push_back(cMMCom("TestKey", TestSet_main, " Test Keys for Sets and Assoc"));
+		aRes.push_back(cMMCom("Recover", Recover_Main, " Basic tool for recover files"));
 		aRes.push_back(cMMCom("TestNameCalib", TestNameCalib_main, " Test Name of calibration"));
 		aRes.push_back(cMMCom("TestMTD", TestMTD_main, " Test meta data of image"));
 		aRes.push_back(cMMCom("TestCmds", TestCmds_main, " Test MM3D commands on micmac_data sets"));
@@ -1259,6 +1274,8 @@ extern int SATtoBundle_main(int argc, char ** argv);
 extern int SATvalid_main(int argc, char ** argv);
 extern int SATTrajectory_main(int argc, char ** argv);
 extern int SatEmpriseSol_main(int argc, char ** argv);
+extern int SatBBox_main(int argc, char ** argv);
+extern int SatPosition_main(int argc, char ** argv);
 extern int CalcBsurH_main(int argc, char ** argv);
 extern int CalcBsurHGrille_main(int argc, char ** argv);
 extern int CPP_SATDef2D_main(int argc, char ** argv);
@@ -1295,9 +1312,11 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 	aRes.push_back(cMMCom("AsterDestrip", AsterDestrip_main, "Destrip Aster Images "));
 	aRes.push_back(cMMCom("SATtoBundle", SATtoBundle_main, "Export a satellite image to a grid of bundles"));
 	aRes.push_back(cMMCom("SATValid", SATvalid_main, "Validate the prj function by either retrieving the line of optical centers or the provided GCPs"));
-	aRes.push_back(cMMCom("SatFootprint", SatEmpriseSol_main, "Satellite foortprints in ply"));
-	aRes.push_back(cMMCom("SatTrajectory", SATTrajectory_main, "Satellite trajectories in ply"));
-	aRes.push_back(cMMCom("BsurH", CalcBsurH_main, "Calculate the b/h ratio for a pattern of images"));
+    aRes.push_back(cMMCom("SatFootprint", SatEmpriseSol_main, "Satellite foortprints in ply"));
+    aRes.push_back(cMMCom("SatBBox", SatBBox_main, "Get satellite's footprint (in txt) BBox (from GRID)"));
+    aRes.push_back(cMMCom("SatTrajectory", SATTrajectory_main, "Satellite trajectories in ply"));
+    aRes.push_back(cMMCom("SatPosition", SatPosition_main, "Satellite position"));
+    aRes.push_back(cMMCom("BsurH", CalcBsurH_main, "Calculate the b/h ratio for a pattern of images"));
 	aRes.push_back(cMMCom("BsurHGRI", CalcBsurHGrille_main, "Calculate the b/h ratio for a pattern of images"));
 	aRes.push_back(cMMCom("SATD2D", CPP_SATDef2D_main, "Visualize 2D deformation fields of a pushbroom image"));
 	aRes.push_back(cMMCom("TestRPC", CPP_TestRPCDirectGen, "Test the calculation of direct RPCs"));

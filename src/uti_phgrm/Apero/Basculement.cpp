@@ -890,7 +890,7 @@ cSolBasculeRig cAppliApero::BasculePoints
                ElCamera::ChangeSys(aVC,*aPtrBNL,FTR,!aBonC);
                if (FTR)
                {
-                  aPC->SetCurRot(aCS->Orient().inv());
+                  aPC->PCSetCurRot(aCS->Orient().inv());
                }
                else
                {
@@ -901,7 +901,6 @@ cSolBasculeRig cAppliApero::BasculePoints
 /*
 */
             }
-            //   aPC->SetCurRot ( aSBR.TransformOriC2M(aPC->CurRot()));
 
             if (aPC->HasObsOnCentre() && ((!CalcV) || (aPC->HasObsOnVitesse())))
             {
@@ -1281,7 +1280,6 @@ void cAppliApero::BasculePlan
 //  {RP2E     * Rc}(Cam)  = Plan
 //
 // std::cout << euclid(aPC->CurRot().tr()) <<  " " <<  aPC->CurRot().tr()  << "\n";
-            // aPC->SetCurRot(aRP2E.inv()*(aPC->CurRot()));
 //            std::cout << "BASCULE PLAN DONE FOR " << aPC->Name() << "\n";
 // std::cout << euclid(aPC->CurRot().tr()) <<  " " << aPC->CurRot().tr() << "\n\n";
             aPC->SetBascRig(aSBR);
@@ -1395,7 +1393,7 @@ void cAppliApero::FixeEchelle(const cFixeEchelle & aFE)
        if ( aPC->RotIsInit())
        {
             ElRotation3D  aR = aPC->CurRot();
-            aPC->SetCurRot(ElRotation3D(aR.tr()*aMult,aR.Mat(),true));
+            aPC->PCSetCurRot(ElRotation3D(aR.tr()*aMult,aR.Mat(),true));
        }
    }
 
@@ -1626,8 +1624,7 @@ void cAppliApero::FixeOrientPlane(const cFixeOrientPlane & aFOP)
        {
 // std::cout << aR.Mat() * (Pt3dr(0,0,1)) << "\n";
 // std::cout << aPC->CurRot().Mat() * (Pt3dr(0,0,1)) << "\n";
-            aPC->SetCurRot(aR*aPC->CurRot());
-// std::cout << aPC->CurRot().Mat() * (Pt3dr(0,0,1)) << "\n\n";
+            aPC->PCSetCurRot(aR*aPC->CurRot());
        }
    }
 }

@@ -414,6 +414,7 @@ class cGenPoseCam
          tGrApero::TSom * Som();
          virtual Pt2di SzCalib() const = 0;
     protected :
+          virtual void UseRappelOnPose() const;
           cGenPoseCam(cAppliApero & anAppli,const std::string & aName);
    
           cAppliApero & mAppli;
@@ -581,7 +582,7 @@ class cPoseCam : public cGenPoseCam
           ElRotation3D   CurRot() const;
           Pt3dr CurCentre() const;
           Pt3dr CurCentreOfPt(const Pt2dr & ) const;
-          void SetCurRot(const ElRotation3D & aRot);
+          void PCSetCurRot(const ElRotation3D & aRot);
           void  SetBascRig(const cSolBasculeRig & aSBR);
 
 
@@ -638,6 +639,7 @@ class cPoseCam : public cGenPoseCam
           void   SetPreCompBloc(cPreCompBloc *);
           cPreCB1Pose *  GetPreCB1Pose(bool SVP) const; // SVP => can be 0
           void  SetPreCB1Pose(cPreCB1Pose *);
+          void UseRappelOnPose() const override;
      private  :
 
           void AssertHasObsCentre() const;
@@ -728,6 +730,8 @@ class cPoseCam : public cGenPoseCam
           cStructRigidInit *           mSRI;
           cPreCompBloc *               mBlocCam;
           cPreCB1Pose *                mPoseInBlocCam;
+          bool                         mUseRappelPose;  // Do we use a "rappel" to a given value
+          ElRotation3D                 mRotURP;  // Rotation use Rappel Pose
 };
 
 
@@ -2318,6 +2322,7 @@ class cAppliApero : public NROptF1vND
             return CalcDebugEliminateNumTieP(aNum);
         }
 
+        const cRappelPose * PtrRP() const;
 
 
     private :
@@ -2806,6 +2811,7 @@ class cAppliApero : public NROptF1vND
          bool  mUseVDETp;
          std::vector<int>  mNumsVDETp;
          int               mDebugNumPts;
+         const cRappelPose * mRappelPose;
 };
 
 #define ADDALLMAJ(aMes) AddAllMajick(__LINE__,__FILE__,aMes)

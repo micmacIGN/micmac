@@ -21,6 +21,13 @@ See https://en.wikipedia.org/wiki/Image_sensor_format#Table_of_sensor_formats_an
 <MMCameraDataBase>
 
    <CameraEntry>
+        <Name> LadyBug </Name>
+        <SzCaptMm>  7.23 8.67  </SzCaptMm>
+        <ShortName> LadyBug </ShortName>
+   </CameraEntry>
+
+
+   <CameraEntry>
         <Name> OV8865 </Name>
         <SzCaptMm>  3.4 4.67 </SzCaptMm>
         <ShortName> OV8865 </ShortName>

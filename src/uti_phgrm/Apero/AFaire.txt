@@ -1,4 +1,7 @@
 
+              <RappelPose Nb="?">
+
+======================================================================
 -1- Terminer l'optimisation par descente sur la ligne des moindres
 carres (traquer LAMBDA MIN pour voir le fichier). 99% du boulot
 est fait (= calcul du score f(Lambda)) , reste une minim par

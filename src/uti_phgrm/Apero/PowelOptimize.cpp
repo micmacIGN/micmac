@@ -346,7 +346,7 @@ std::cout <<  "\n";
 
 void cOneRotPowelOptimize::AvantEval(const double * aP)
 {
-   mCam->SetCurRot(Param2Rot(aP));
+   mCam->PCSetCurRot(Param2Rot(aP));
 }
 
 double   cOneRotPowelOptimize::ResiduLiaison()
