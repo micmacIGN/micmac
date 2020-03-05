@@ -1,6 +1,17 @@
 #ifndef _MMVII_FormalDerivative_H_
 #define _MMVII_FormalDerivative_H_
 
+#define WITH_MMVII false
+#define WITH_EIGEN false
+
+
+#if WITH_EIGEN
+#include "ExternalInclude/Eigen/Dense"  // TODO => replace with standard eigen file
+#define EIGEN_ALLIGNMENT_IN_MMVII EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+#else
+#define EIGEN_ALLIGNMENT_IN_MMVII 
+#endif
+
 /** \file MMVII_FormalDerivate.h
     \brief File for generating formal derivate
 
@@ -14,7 +25,7 @@
       * definition of "main" classes : cFormula , cCoordinatorF ,  cImplemF "  ;  
       * the 3 class for Atomic formula who will (probably) stay the same : Unkown, Observation, Constants
 
-   This file include 2 files corresponding to type of formula :
+   This file include 2 files corresponding to following type of formula :
 
       * classes for "unary" formulas in  "MMVII_FormDer_UnaryOp.h"
       * classes for "binary" formulas in "MMVII_FormDer_BinaryOp.h"
@@ -44,14 +55,29 @@
           - indicate to the coordinator the formula you want work on, with generally its derivate
           - evaluate the values of the formula for  given unknows and observations
              
-       cFormula<Type> is no more than an encapsulation of the "concrete" class 
+       cFormula<Type> is no more than an encapsulation of a pointer on the "concrete" class cImplemF.
 
-           
-   
+      * cImplemF<Type> : is the mother class of all the formula. It's a pure abstract class, it contains
+        several pure virtual methods. The two main methods are "Derivate"  and "ComputeBuf", this is
+        the two methods the users will have to define when extension to the library with new
+        operator is required.
+
+          -  cFormula<Type> Derivate(int aK) return the formula of its derivate by Xk. Heres is
+            two example extract from the code, one for multiplication, other from unknowns :
+
+              o return  mF2*mF1->Derivate(aK) + mF1*mF2->Derivate(aK); // From cMulF : (FG)' = F'G + FG'
+              o return (aK==mNumUnk) ? tImplemF::mCoordF->Cste1() :  tImplemF::mCoordF->Cste0(); // from cUnknownF
+
+
+           -  void ComputeBuf(int aK0,int aK1) : update the buffer of its data, once it subformula has
+             been updated, this is method that does the real job. Here an extract from  cExpF and cDivF :
+
+              o  for (int aK=aK0 ; aK<aK1 ; aK++) mDataBuf[aK] = std::exp(mDataF[aK]);
+              o  for (int aK=aK0 ; aK<aK1 ; aK++) mDataBuf[aK] =  mDataF1[aK] / mDataF2[aK];
+
 */
 
 
-#define WITH_MMVII true
 
 #if (WITH_MMVII)
 #include "include/MMVII_all.h"
@@ -64,6 +90,22 @@ class cMemCheck
 #include <memory>
 #include <map>
 #include <iostream> 
+#include <cassert>
+#include "memory.h"
+#include <memory>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <typeinfo>
+#include <vector>
+#include <list>
+#include <map>
+#include <ctime>
+#include <chrono>
+#include <math.h>   
+#include <cmath>
+#include <algorithm>
+#include <sstream>
 
 #endif            //========================================================== WITH_MMVI
 
@@ -83,6 +125,9 @@ namespace  NS_MMVII_FormalDerivative
 
 /// This function is required if we want to have same operation on numbers double and formulas
 double square(const double & aV)  {return aV*aV;}
+double square(const float & aV)  {return aV*aV;}
+double cube(const double & aV)  {return aV*aV*aV;}
+double cube(const float & aV)  {return aV*aV*aV;}
 // static double square(const float & aV)  {return aV*aV;}
 
 void Error(const std::string & aMes,const std::string & aExplanation)
@@ -162,54 +207,44 @@ template <class TypeElem> class cCoordinatorF;
     // -------- Declaration all binary operators  ----------------
       
           // For each operator with have the 3 versions  "Formula x Formula"  ,
-          //  "Number x Formula"    and "Formula x Number"
+          //  "Number x Formula"    and "Formula x Number" , the two last are rather 
+          // syntactic suggar (i.e. make usage easier, but do not extend the library power)
+          
 
       //  Operator +
 template <class TypeElem> cFormula <TypeElem>  
          operator +(const cFormula <TypeElem> & aF1 ,const cFormula <TypeElem> & aF2);
-template <class TypeElem> cFormula <TypeElem>  
-         operator +(const TypeElem & aV1,const cFormula <TypeElem> & aF2);
-template <class TypeElem> cFormula <TypeElem>  
-         operator +(const cFormula <TypeElem> & aF1,const TypeElem & aV2);
+template <class TypeElem> cFormula <TypeElem>  operator +(const TypeElem & aV1,const cFormula <TypeElem> & aF2);
+template <class TypeElem> cFormula <TypeElem>  operator +(const cFormula <TypeElem> & aF1,const TypeElem & aV2);
       //  Operator *
 template <class TypeElem> cFormula <TypeElem>  
          operator *(const cFormula <TypeElem> & aF1 ,const cFormula <TypeElem> & aF2);
-template <class TypeElem> cFormula <TypeElem>  
-         operator *(const TypeElem & aV1,const cFormula <TypeElem> & aF2);
-template <class TypeElem> cFormula <TypeElem>  
-         operator *(const cFormula <TypeElem> & aF1,const TypeElem & aV2);
+template <class TypeElem> cFormula <TypeElem>  operator *(const TypeElem & aV1,const cFormula <TypeElem> & aF2);
+template <class TypeElem> cFormula <TypeElem>  operator *(const cFormula <TypeElem> & aF1,const TypeElem & aV2);
       //  Operator -
 template <class TypeElem> cFormula <TypeElem>  
          operator -(const cFormula <TypeElem> & aF1 ,const cFormula <TypeElem> & aF2);
-template <class TypeElem> cFormula <TypeElem>  
-         operator -(const TypeElem & aV1,const cFormula <TypeElem> & aF2);
-template <class TypeElem> cFormula <TypeElem>  
-         operator -(const cFormula <TypeElem> & aF1,const TypeElem & aV2);
+template <class TypeElem> cFormula <TypeElem>  operator -(const TypeElem & aV1,const cFormula <TypeElem> & aF2);
+template <class TypeElem> cFormula <TypeElem>  operator -(const cFormula <TypeElem> & aF1,const TypeElem & aV2);
       //  Operator /
 template <class TypeElem> cFormula <TypeElem>  
          operator /(const cFormula <TypeElem> & aF1 ,const cFormula <TypeElem> & aF2);
-template <class TypeElem> cFormula <TypeElem>  
-         operator /(const TypeElem & aV1,const cFormula <TypeElem> & aF2);
-template <class TypeElem> cFormula <TypeElem>  
-         operator /(const cFormula <TypeElem> & aF1,const TypeElem & aV2);
+template <class TypeElem> cFormula <TypeElem>  operator /(const TypeElem & aV1,const cFormula <TypeElem> & aF2);
+template <class TypeElem> cFormula <TypeElem>  operator /(const cFormula <TypeElem> & aF1,const TypeElem & aV2);
       //  pow
 template <class TypeElem> cFormula <TypeElem>  
          pow (const cFormula <TypeElem> & aF1 ,const cFormula <TypeElem> & aF2);
-template <class TypeElem> cFormula <TypeElem>  
-         pow (const TypeElem & aV1,const cFormula <TypeElem> & aF2);
-template <class TypeElem> cFormula <TypeElem>  
-         pow (const cFormula <TypeElem> & aF1,const TypeElem & aV2);
+template <class TypeElem> cFormula <TypeElem>  pow (const TypeElem & aV1,const cFormula <TypeElem> & aF2);
+           /// This one defined in MMVII_FormDer_UnaryOp.h
+template <class TypeElem> cFormula <TypeElem>  pow (const cFormula <TypeElem> & aF1,const TypeElem & aV2);
 
 
     // -------- Declare all unary operators  ----------------
-template <class TypeElem> cFormula <TypeElem>  
-         square(const cFormula <TypeElem> & aF);
-template <class TypeElem> cFormula <TypeElem>  
-         exp(const cFormula <TypeElem> & aF);
-template <class TypeElem> cFormula <TypeElem>  
-         operator - (const cFormula <TypeElem> & aF);
-template <class TypeElem> cFormula <TypeElem>  
-         log(const cFormula <TypeElem> & aF);
+template <class TypeElem> cFormula <TypeElem>  square(const cFormula <TypeElem> & aF);
+template <class TypeElem> cFormula <TypeElem>  cube(const cFormula <TypeElem> & aF);
+template <class TypeElem> cFormula <TypeElem>  exp(const cFormula <TypeElem> & aF);
+template <class TypeElem> cFormula <TypeElem>  operator - (const cFormula <TypeElem> & aF);
+template <class TypeElem> cFormula <TypeElem>  log(const cFormula <TypeElem> & aF);
 
     // -------- Declaration of Coordinator class  ----------------
 
@@ -231,8 +266,8 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
         cCoordinatorF(const cCoordinatorF<TypeElem> &) = delete;  
 
       // ---------------------------  Accessors to Atomic Formulas -------------------
-        const std::vector<cFormula <TypeElem> >& VUk()  const {return  mVFormUnknowns;}  ///< Unknowns
-        const std::vector<cFormula <TypeElem> >& VObs() const {return  mVFormObservations;}      ///< Observations
+        const std::vector<tFormula>& VUk()  const {return  mVFormUnknowns;}     ///< Unknowns
+        const std::vector<tFormula>& VObs() const {return  mVFormObservations;} ///< Observations
 
       // ---------------------------  Manipulation  -------------------
 
@@ -303,6 +338,8 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
         tFormula  Cste2() const  {return mCste2;}  ///< Yet another Acces to a current constant
         /// Tuning ---  Print the stack of function as a tree 
         inline void ShowStackFunc() const;
+        /// Formula used for computation, 
+        const std::vector<tFormula>& VReached() const {return  mVReachedF;} 
 
 
         size_t      NbCurFonc() const {return mVAllFormula.size();}
@@ -495,10 +532,12 @@ template <class TypeElem> class cFormula
            return "F"+ std::to_string((*this)->NumGlob()) + aNameOper + "F"  + std::to_string(aF2->NumGlob());
        }
 
-           /// Generate the unique indentifier of a unary expression
-       std::string NameFormulaUn(const std::string & aNameOper) const
+           /// Generate the unique indentifier of a unary expression, Aux is used for add parameter like pow(F,Cste)
+       std::string NameFormulaUn(const std::string & aNameOper,const std::string& Aux) const
        {
-           return  aNameOper + " F"  + std::to_string((*this)->NumGlob());
+           std::string aRes =  aNameOper + " F"  + std::to_string((*this)->NumGlob()) ;
+           if (Aux!="") aRes += " " + Aux;
+           return  aRes;
        }
        /// To allow destruction without giving access to raw pointer
        void FreeMem() {delete mPtr; mPtr=nullptr;}
@@ -836,6 +875,7 @@ const std::vector<std::vector<TypeElem> *> & cCoordinatorF<TypeElem>::EvalAndCle
         for (size_t aKFunc=0 ; aKFunc< mVCurF.size() ; aKFunc++)
             aLine[aKFunc] = mVCurF[aKFunc]->GetBuf(aKLine);
     }
+    mNbInBuf = 0;
     
     return mBufRes;
 }

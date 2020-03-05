@@ -1,8 +1,43 @@
+#include "include/MMVII_all.h"
+#include "include/MMVII_Derivatives.h"
 #include "include/MMVII_FormalDerivatives.h"
+
+#include "ceres/jet.h"
+
+namespace  FD = NS_MMVII_FormalDerivative;
+using ceres::Jet;
+using MMVII::cEpsNum;
+
+
+// ========== Define on Jets two optimization as we did on formal 
+
+template <typename T, int N>
+inline Jet<T, N> square(const Jet<T, N>& f) {
+  return Jet<T, N>(FD::square(f.a), 2.0*f.a * f.v);
+}
+
+template <typename T, int N>
+inline Jet<T, N> cube(const Jet<T, N>& f) {
+  return Jet<T, N>(FD::cube(f.a), 3.0*FD::square(f.a) * f.v);
+}
+
+//=========================================
+
+static auto BeginOfTime = std::chrono::steady_clock::now();
+double TimeElapsFromT0()
+{
+    auto now = std::chrono::steady_clock::now();
+    return std::chrono::duration_cast<std::chrono::microseconds>(now - BeginOfTime).count() / 1e6;
+}
+
+
 /** \file TestDynCompDerivatives.cpp
     \brief Illustration and test of formal derivative
 
     {I}  A detailled example of use, and test of correctness => for the final user
+
+    {II} An example on basic function to get some insight in the way it works
+
 */
 
 
@@ -10,7 +45,6 @@
 /* The library is in the namespace NS_MMVII_FormalDerivative, we want to
 use it conveniently without the "using" directive, so create an alias FD */
 
-namespace  FD = NS_MMVII_FormalDerivative;
 
 
 /* {I}   ========================  EXAMPLE OF USE :  Ratkoswky   ==========================================
@@ -53,6 +87,8 @@ std::vector<Type> RatkoswkyResidual
 
     const Type & x  = aVObs[1];  // Warn the data I got were in order y,x ..
     const Type & y  = aVObs[0];
+
+    pow(b1,2.7);
 
     // Model :  y = b1 / (1+exp(b2-b3*x)) ^ 1/b4 + Error()  [Ratko]
     return { b1 / pow(1.0+exp(b2-b3*x),1.0/b4) - y } ;
@@ -102,7 +138,7 @@ void TestRatkoswky(const tVRatkoswkyData & aVData,const std::vector<double> & aI
      }
         // Now run the computation on "pushed" data, we have the derivative
      const std::vector<std::vector<double> *> & aVEvals = aCFD.EvalAndClear();
-     assert(aVEvals.size()==aVData.size());
+     assert(aVEvals.size()==aVData.size()); // Check we get the number of computation we inserted
 
    //-[3] ========= Now we can use the derivatives ========================== 
    //  directly on aVEvals,  or with  interface : DerComp(), ValComp()
@@ -144,7 +180,7 @@ void TestRatkoswky(const tVRatkoswkyData & aVData,const std::vector<double> & aI
 
 /* {II}  ========================    ==========================================
 
-   This second example, we take a very basic example to analyse
+   This second example, we take a very basic example to analyse some part of the
 */
 template <class Type> 
 std::vector<Type> FitCube
@@ -158,10 +194,18 @@ std::vector<Type> FitCube
 
     const Type & x  = aVObs[0];  
     const Type & y  = aVObs[1];
- 
-    Type F = (a + b *x);
+     
+    // Naturally the user would write that
+    if (false)
+    {
+       Type F = (a+b *x);
+       return {F*F*F - y};
+       return {cube(a+b *x)- y};
+    }
 
-    return {F*F*F - y};
+
+    // but here we want to test the reduction process
+    return {(a+b *x)*(x*b+a)*(a+b *x) - y};
 }
 
 void InspectCube()
@@ -169,7 +213,10 @@ void InspectCube()
     std::cout <<  "===================== TestRatkoswky  ===================\n";
 
     // Create a context where values are stored on double and :
-    //  4 unknown (b1-b4), 2 observations, a buffer of size 100
+    //    2 unknown, 2 observations, a buffer of size 100
+    //    aCFD(100,2,2) would have the same effect for the computation
+    //    The variant with vector of string, will fix the name of variables, it
+    //    will be usefull when will generate code and will want  to analyse it
     FD::cCoordinatorF<double>  aCFD(100,{"a","b"},{"x","y"});
 
     // Inspect vector of unknown and vector of observations
@@ -185,369 +232,384 @@ void InspectCube()
     FD::cFormula<double>  aResidu = aVResidu[0];
  
     // Inspect the formula 
-    std::cout  << "RESIDU FORMULA=[" << aResidu->InfixPPrint() <<"]\n";
+    std::cout  << "RESIDU FORMULA, Num=" << aResidu->NumGlob() << " Name=" <<  aResidu->Name() <<"\n";
+    std::cout  << " PP=[" << aResidu->InfixPPrint() <<"]\n";
 
-    // Inspect the derivative  relatively to b2
-    std::cout  << "DERIVEATE FORMULA=[" << aResidu->Derivate(1)->InfixPPrint() <<"]\n";
+    // Inspect the derivative  relatively to b
+    auto aDerb = aResidu->Derivate(1);  
+    std::cout  << "DERIVATE FORMULA , Num=" << aDerb->NumGlob() << " Name=" <<  aDerb->Name() <<"\n";
+    std::cout  << " PP=[" << aDerb->InfixPPrint() <<"]\n";
 
     // Set the formula that will be computed
     aCFD.SetCurFormulasWithDerivative(aVResidu);
     
     // Print stack of formula
+    std::cout << "====== Stack === \n";
     aCFD.ShowStackFunc();
 
     getchar();
 }
 
-#include "ExternalInclude/Eigen/Dense"  // TODO => replace with standard eigen file
+/* {III}  ========================  Test perf on colinearit equation =================================
+
+       On this example 
+
+*/
+
+
+
+#define NB_UK  19
+#define NB_OBS 11
+
+/*  Capital letter for 3D variable/formulas and small for 2D */
+template <class TypeUk,class TypeObs> std::vector<TypeUk> FraserCamColinearEq
+                  (
+                      const std::vector<TypeUk> & aVUk,
+                      const std::vector<TypeObs> & aVObs
+                  )
+{
+    assert (aVUk.size() ==NB_UK) ;// FD::UserSError("Bad size for unknown");
+    assert (aVObs.size()==NB_OBS) ;// FD::UserSError("Bad size for observations");
+
+    // 0 - Ground Coordinates of projected point
+    const auto & XGround = aVUk[0];
+    const auto & YGround = aVUk[1];
+    const auto & ZGround = aVUk[2];
+// std::cout << "LLL " << __LINE__ << " " << XGround.mNum << " " << YGround.mNum << " " << ZGround.mNum << "\n";
+
+    // 1 - Pose / External parameter 
+        // 1.1  Coordinate of camera center
+    const auto & C_XCam = aVUk[3];
+    const auto & C_YCam = aVUk[4];
+    const auto & C_ZCam = aVUk[5];
+
+        // 1.2  Coordinate of Omega vector coding the unknown "tiny" rotation
+    const auto & Wx = aVUk[6];
+    const auto & Wy = aVUk[7];
+    const auto & Wz = aVUk[8];
+
+    // 2 - Intrinsic parameters
+         // 2.1 Principal point  and Focal
+    const auto & xPP = aVUk[ 9];
+    const auto & yPP = aVUk[10];
+    const auto & zPP = aVUk[11]; // also named as focal
+
+         // Also in this model we confond Principal point and distorsion center, name 
+         // explicitely the dist center case we change our mind
+    const auto & xCD = xPP;
+    const auto & yCD = yPP;
+
+         // 2.2  Radial  distortions coefficients
+    const auto & k2D = aVUk[12];
+    const auto & k4D = aVUk[13];
+    const auto & k6D = aVUk[14];
+
+         // 2.3  Decentric distorstion
+    const auto & p1 = aVUk[15];
+    const auto & p2 = aVUk[16];
+
+         // 2.3  Affine distorsion
+    const auto & b1 = aVUk[17];
+    const auto & b2 = aVUk[18];
+
+   // Vector P->Cam
+    auto  XPC = XGround-C_XCam;
+    auto  YPC = YGround-C_YCam;
+    auto  ZPC = ZGround-C_ZCam;
+
+
+    // Coordinate of points in  camera coordinate system, do not integrate "tiny" rotation
+
+    auto  XCam0 = aVObs[0] * XPC +  aVObs[1]* YPC +  aVObs[2]*ZPC;
+    auto  YCam0 = aVObs[3] * XPC +  aVObs[4]* YPC +  aVObs[5]*ZPC;
+    auto  ZCam0 = aVObs[6] * XPC +  aVObs[7]* YPC +  aVObs[8]*ZPC;
+
+// std::cout << "LLL " << __LINE__ << " " << aVObs[0] << " " << aVObs[1] << " " << aVObs[2] << "\n";
+
+    // Now "tiny" rotation
+    //  Wx      X      Wy * Z - Wz * Y
+    //  Wy  ^   Y  =   Wz * X - Wx * Z
+    //  Wz      Z      Wx * Y - Wy * X
+
+     //  P =  P0 + W ^ P0 
+
+    auto  XCam = XCam0 + Wy * ZCam0 - Wz * YCam0;
+    auto  YCam = YCam0 + Wz * XCam0 - Wx * ZCam0;
+    auto  ZCam = ZCam0 + Wx * YCam0 - Wy * XCam0;
+
+    // Projection :  (xPi,yPi,1) is the bundle direction in camera coordinates
+
+    auto xPi =  XCam/ZCam;
+    auto yPi =  YCam/ZCam;
+// std::cout << "LLL " << __LINE__ << " " << XCam.mNum << " " << YCam.mNum << " " << ZCam.mNum << "\n";
+// std::cout << "LLL " << __LINE__ << " " << xPi.mNum << " " << yPi.mNum << "\n";
+
+    // Coordinate relative to distorsion center
+    auto xC =  xPi-xCD;
+    auto yC =  yPi-yCD;
+    auto x2C = square(xC);  // Use the indermediar value to (probably) optimize Jet
+    auto y2C = square(yC);
+    auto xyC = xC * yC;
+    auto Rho2C = x2C + y2C;
+
+   // Compute the distorsion
+    auto rDist = k2D*Rho2C + k4D * square(Rho2C) + k6D*cube(Rho2C);
+    auto affDist = b1 * xC + b2 * yC;
+    auto decX = p1*(3.0*x2C + y2C) +  p2*(2.0*xyC);
+    auto decY = p2*(3.0*y2C + x2C) +  p1*(2.0*xyC);
+    
+
+    auto xDist =  xPi + xC * rDist + decX + affDist;
+    auto yDist =  yPi + yC * rDist + decY ;
+
+   // Use principal point and focal
+    auto xIm =  xPP  + zPP  * xDist;
+    auto yIm =  yPP  + zPP  * yDist;
+
+// std::cout << "LLL " << __LINE__ << " " << xIm.mNum << " " << yIm.mNum << "\n";
+
+    auto x_Residual = xIm -  aVObs[ 9];
+    auto y_Residual = yIm -  aVObs[10];
+
+// getchar();
+
+    return {x_Residual,y_Residual};
+}
+
+
+class cTestFraserCamColinearEq
+{
+    public :
+       cTestFraserCamColinearEq(int aSzBuf);
+
+    private :
+       
+       static const int  TheNbUk  = 19;
+       static const int  TheNbObs = 11;
+       typedef Jet<double,NB_UK>  tJets;
+       typedef cEpsNum<NB_UK>     tEps;
+
+       static const  std::vector<std::string> TheVNamesUnknowns;
+       static const  std::vector<std::string> TheVNamesObs;
+
+       /// Return unknowns vect after fixing XYZ (ground point)
+       const std::vector<double> & VUk(double X,double Y,double Z);
+       /// Return observation vect t after fixing I,J (pixel projection)
+       const std::vector<double> & VObs(double I,double J);
+
+ 
+       FD::cCoordinatorF<double>  mCFD;  /// Coordinator for formal derivative
+       std::vector<double>        mVUk;  /// Buffer for computing the unknown
+       std::vector<double>        mVObs; /// Buffer for computing the unknown
+};
+
+
+const std::vector<double> & cTestFraserCamColinearEq::VUk(double X,double Y,double Z)
+{
+   mVUk[0] = X;
+   mVUk[1] = Y;
+   mVUk[2] = Z;
+
+   return mVUk;
+}
+
+const std::vector<double> & cTestFraserCamColinearEq::VObs(double I,double J)
+{
+     mVObs[ 9] = I;
+     mVObs[10] = J;
+    
+    return mVObs;
+}
+
+
+
+const std::vector<std::string> 
+  cTestFraserCamColinearEq::TheVNamesUnknowns
+  {
+      "XGround","YGround","ZGround",            // Unknown 3D Point
+      "XCam","YCam","ZCam", "Wx","Wy","Wz",     // External Parameters
+      "ppX","ppY","ppZ",                        // Internal : principal point + focal
+      "k2","k4","k6", "p1","p2","b1","b2"       // Distorsion (radiale/ Decentric/Affine)
+  };
+
+const std::vector<std::string> 
+  cTestFraserCamColinearEq::TheVNamesObs
+  {
+        "oR00","oR01","oR02","oR10","oR11","oR12","oR20","oR21","oR22",
+        "oXIm","oYIm"
+  };
+
+
+
+
+cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf) :
+    // mCFD (aSzBuf,19,11) would have the same effect, but future generated code will be less readable
+     mCFD  (aSzBuf,TheVNamesUnknowns,TheVNamesObs),
+     mVUk  (TheNbUk,0.0),
+     mVObs (TheNbObs,0.0)
+{
+   // In unknown, we set everything to zero exepct focal to 1
+   mVUk[11] = 1.0;
+   // In obs, we set the current matrix to Id
+   mVObs[0] = mVObs[4] = mVObs[8] = 1;
+
+   double aT0 = TimeElapsFromT0();
+
+   auto aVFormula = FraserCamColinearEq(mCFD.VUk(),mCFD.VObs());
+   mCFD.SetCurFormulasWithDerivative(aVFormula);
+   double aT1 = TimeElapsFromT0();
+    
+   std::cout << "TestFraser NbEq=" << mCFD.VReached().size() << " TimeInit=" << (aT1-aT0) << "\n";
+
+   
+   // mCFD.ShowStackFunc();
+
+   int aNbTestTotal =  1e5; ///< Approximative number of Test
+   int aNbTestWithBuf = aNbTestTotal/aSzBuf;  ///< Number of time we will fill the buffer
+   aNbTestTotal = aNbTestWithBuf * aSzBuf; ///< Number of test with one equation
+
+   // Here we initiate with "peferct" projection, to check something
+   const std::vector<double> & aVUk  =  VUk(1.0,2.0,10.0);
+   const std::vector<double> & aVObs =  VObs(0.101,0.2); 
+   
+   // Make the computation with jets
+   double TimeJets = TimeElapsFromT0();
+   std::vector<tJets> aJetRes;
+   {
+        std::vector<tJets>  aVJetUk;
+        for (int aK=0 ; aK<NB_UK ; aK++)
+            aVJetUk.push_back(tJets(aVUk[aK],aK));
+
+        for (int aK=0 ; aK<aNbTestTotal ; aK++)
+        {
+            aJetRes = FraserCamColinearEq(aVJetUk,aVObs);
+        }
+        TimeJets = TimeElapsFromT0() - TimeJets;
+   }
+
+   double TimeEps = TimeElapsFromT0();
+   std::vector<tEps> aEpsRes;
+   {
+        std::vector<tEps >  aVEpsUk;
+        for (int aK=0 ; aK<NB_UK ; aK++)
+            aVEpsUk.push_back(tEps(aVUk[aK],aK));
+        for (int aK=0 ; aK<aNbTestTotal ; aK++)
+        {
+            aEpsRes = FraserCamColinearEq(aVEpsUk,aVObs);
+        }
+        TimeEps = TimeElapsFromT0() - TimeEps;
+   }
+
+   // Make the computation with formal deriv buffered
+   double TimeBuf = TimeElapsFromT0();
+   {
+       for (int aK=0 ; aK<aNbTestWithBuf ; aK++)
+       {
+           // Fill the buffers with data
+           for (int aKInBuf=0 ; aKInBuf<aSzBuf ; aKInBuf++)
+               mCFD.PushNewEvals(aVUk,aVObs);
+           // Evaluate the derivate once buffer is full
+           mCFD.EvalAndClear();
+       }
+       TimeBuf = TimeElapsFromT0() - TimeBuf;
+   }
+
+   for (int aKV=0 ; aKV<int(aEpsRes.size()) ; aKV++)
+   {
+      std::cout << "VALssss " << aKV << "\n";
+      std::cout << "  J:" <<  aJetRes[aKV].a << " E:" << aEpsRes[aKV].mNum << "\n";
+   }
+
+   std::cout 
+         << " TimeJets= " << TimeJets 
+         << " TimeEps= " << TimeEps 
+         << " TimeBuf= " << TimeBuf
+         << "\n";
+}
+
+void TestFraserCamColinearEq()
+{
+   {
+       cTestFraserCamColinearEq (1000);
+       //  cTestFraserCamColinearEq (100);
+       //  cTestFraserCamColinearEq (10);
+       cTestFraserCamColinearEq (1);
+   }
+/*
+   {
+        using MMVII::cEpsNum;
+        std::vector<cEpsNum<NB_UK> >  aVUk;
+        for (int aK=0 ; aK<NB_UK ; aK++)
+            aVUk.push_back(cEpsNum<NB_UK>(1.0,aK));
+
+        std::vector<double>  aVObs;
+        for (int aK=0 ; aK<NB_OBS ; aK++)
+            aVObs.push_back(1/(1.0+aK));
+
+       auto aVRes = FraserCamColinearEq(aVUk,aVObs);
+   }
+   {
+        std::vector<Jet<double,NB_UK> >  aVUk;
+        for (int aK=0 ; aK<NB_UK ; aK++)
+            aVUk.push_back(Jet<double,NB_UK>(1.0,aK));
+
+        std::vector<double>  aVObs;
+        for (int aK=0 ; aK<NB_OBS ; aK++)
+            aVObs.push_back(1/(1.0+aK));
+
+       auto aVRes = FraserCamColinearEq(aVUk,aVObs);
+   }
+*/
+
+   getchar();
+}
+
 
 /* -------------------------------------------------- */
 
-
-/*
-template <class Type> 
-std::vector<Type> ResiduRat43
-                  (
-                     const std::vector<Type> & aVUk,
-                     const std::vector<Type> & aVObs
-                  )
-*/
-
-
-/* *************************************************** */
-/* *************************************************** */
-/* *                                                 * */
-/* *        TEST                                     * */
-/* *                                                 * */
-/* *************************************************** */
-/* *************************************************** */
-
-using FD::square;
-
-std::vector<double> VRand(unsigned aSeed,int aNb)
+namespace  MMVII
 {
-    std::srand(aSeed);
-    std::vector<double> aVRes;
-    for (int aK=0 ; aK<aNb ; aK++)
-    {
-       double aV =  std::rand()/((double) RAND_MAX );
-       aVRes.push_back(aV);
-    }
+    void BenchCmpOpVect();
+};
 
-    return aVRes;
-}
-
-template <class Type> 
-std::vector<Type> Residu
-                  (
-                     const std::vector<Type> & aVUk,
-                     const std::vector<Type> & aVObs
-                  )
-{
-    const Type & X0 = aVUk.at(0);
-    const Type & X1 = aVUk.at(1);
-    const Type & X2 = aVUk.at(2);
-
-    const Type & V0 = aVObs.at(0);
-    const Type & V1 = aVObs.at(1);
-
-    Type aF0 =  2.0 *X0 + X0*X1*X2 + pow(square(V0)+square(X0-X2),(X1*V1)/X2);
-    Type aF1 =  log(square(X0+X1+X2+V0+V1));
-    Type aF2 =  -aF0 + aF1;
-             
-    return {aF0,aF1,aF2};
-}
-
-
-void TestDyn()
-{
-    int aNbUk  = 3;
-    int aNbObs = 2;
-
-    FD::cCoordinatorF<double>  aCFD(100,aNbUk,aNbObs);
-    aCFD.SetCurFormulasWithDerivative(Residu(aCFD.VUk(),aCFD.VObs()));
-
-    int aNbT = 2;
-    unsigned aSeedUk=333, aSeedObs=222;
-    for (int aKTest=0 ; aKTest<aNbT ; aKTest++)
-    {
-       std::vector<double> aVUk  = VRand(aKTest+aSeedUk ,aNbUk);
-       std::vector<double> aVObs = VRand(aKTest+aSeedObs,aNbObs);
-       aCFD.PushNewEvals(aVUk,aVObs);
-    }
-    aCFD.EvalAndClear();
-
-    for (int aKTest=0 ; aKTest<aNbT ; aKTest++)
-    {
-       // const std::vector<double> & aLineDyn =  *(aVDyn[aKTest]);
-       std::vector<double> aVUk  = VRand(aKTest+aSeedUk ,aNbUk);
-       std::vector<double> aVObs = VRand(aKTest+aSeedObs,aNbObs);
-       std::vector<double> aVRes = Residu(aVUk,aVObs);
-       int aNbRes = aVRes.size();
-
-       for (int aKx=0 ; aKx<aNbUk ; aKx++)
-       {
-           double aEps = 1e-5;
-           std::vector<double> aVUkP  = aVUk;
-           std::vector<double> aVUkM  = aVUk;
-           aVUkP[aKx] += aEps;
-           aVUkM[aKx] -= aEps;
-
-           std::vector<double> aVResP = Residu(aVUkP,aVObs);
-           std::vector<double> aVResM = Residu(aVUkM,aVObs);
-           for (int aKRes=0 ; aKRes<aNbRes ; aKRes++)
-           {
-               double aDerNum  = (aVResP[aKRes]-aVResM[aKRes]) / (2*aEps);
-               double aDerForm = aCFD.DerComp(aKTest,aKRes,aKx);
-               double aDif = std::abs(aDerNum-aDerForm);
-               assert(aDif<1e-4);
-           }
-       }
-       for (int aKRes=0 ; aKRes<aNbRes ; aKRes++)
-       {
-           double aDif = std::abs(aCFD.ValComp(aKTest,aKRes) - aVRes[aKRes] );
-           assert(aDif<1e-7);
-       }
-
-    }
-    aCFD.ShowStackFunc();
-    getchar();
-}
-
-
-
-typedef  double TypeTest;
-typedef  FD::cFormula <TypeTest>  tFormulaTest;
-
-// #include "include/MMVII_all.h"
-// #include "include/MMVII_Derivatives.h"
-
-
-
-
-
-
-#define SzTEigen 90
-typedef float tTEigen;
-typedef  Eigen::Array<tTEigen,1,Eigen::Dynamic>  tEigenSubArray;
-typedef  Eigen::Map<tEigenSubArray > tEigenWrap;
 void   BenchFormalDer()
 {
+    // MMVII::BenchCmpOpVect();
+    TestFraserCamColinearEq();
    // Run TestRatkoswky with static obsevation an inital guess 
     TestRatkoswky(TheVRatkoswkyData,{100,10,1,1});
     InspectCube() ;
-
-    // TestDyn();
-    if (1)
-    {
-        Eigen::Array<tTEigen, 1, SzTEigen>  aAFix = Eigen::Array<tTEigen, 1, SzTEigen>::Random();
-        // Eigen::Array<tTEigen,Eigen::Dynamic,Eigen::Dynamic>   aADyn(1,SzTEigen);
-        // Eigen::Array<tTEigen,Eigen::Dynamic,1>   aADyn(SzTEigen);
-        Eigen::Array<tTEigen,1,Eigen::Dynamic>   aADyn(SzTEigen);
-        Eigen::Array<tTEigen,Eigen::Dynamic,Eigen::Dynamic>   aADyn1(1,1);
-        Eigen::Array<tTEigen,Eigen::Dynamic,Eigen::Dynamic>   aADyn2(1,SzTEigen);
-
-
-        for (int aX=0 ; aX<SzTEigen ; aX++)
-        {
-            aAFix(0,aX)  = 10 + 2.0*aX;
-            aAFix(0,aX)  = 1;
-            aAFix(0,aX)  = 10 + 2.0*aX;
-        }
-        aAFix = 1;
-        aADyn = aAFix;
-       
-        aADyn1(0,0) = 1.0;
-         
-#if (WITH_MMVII)
-        int aNb=1e7;
-        double aT0 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        for (int aK=0 ; aK<aNb ; aK++)
-        {
-             aAFix = aAFix + aAFix -10;
-             aAFix = (aAFix + 10)/2;
-        }
-        double aT1 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        for (int aK=0 ; aK<aNb ; aK++)
-        {
-             aADyn = aADyn + aADyn -10;
-             aADyn = (aADyn + 10)/2;
-        }
-        double aT2 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        if (0)
-        {
-           for (int aK=0 ; aK<aNb*SzTEigen ; aK++)
-           {
-               aADyn1 = aADyn1 + aADyn1 -10;
-               aADyn1 = (aADyn1 + 10)/2;
-           }
-        }
-        double aT3 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        for (int aK=0 ; aK<aNb ; aK++)
-        {
-             Eigen::Array<tTEigen,1,Eigen::Dynamic>   aBloc 
-                // = aADyn.topLeftCorner(1,SzTEigen);
-                // = aADyn.block(0,0,1,SzTEigen);
-                = aADyn.head(SzTEigen-1);
-             aBloc = aBloc + aBloc -10;
-             aBloc = (aBloc + 10)/2;
-             if (aK==0)
-             {
-                  std::cout << "AAAAADr  " << &(aBloc(0,0)) - &(aADyn(0,0)) << "\n";
-                  std::cout << "AAAAADr  " << aBloc(0,0)   << " " << aADyn(0,0) << "\n";
-             }
-        }
-        double aT4 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        for (int aK=0 ; aK<aNb ; aK++)
-        {
-            for (int aX=0 ; aX<SzTEigen ; aX++)
-            {
-                aADyn2(aX) = aADyn2(aX) + aADyn2(aX) -10;
-                aADyn2(aX) = (aADyn2(aX) + 10)/2;
-            }
-        }
-        double aT5 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        for (int aK=0 ; aK<aNb ; aK++)
-        {
-            tTEigen * aData = &  aADyn(0) ;
-            for (int aX=0 ; aX<SzTEigen ; aX++)
-            {
-                aData[aX] =  aData[aX] + aData[aX] -10;
-                aData[aX] = (aData[aX] + 10)/2;
-            }
-        }
-        double aT6 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        for (int aK=0 ; aK<aNb ; aK++)
-        {
-             tEigenWrap aWrap(&aADyn(0),1,SzTEigen-1);
-             // aWrap += aWrap ;
-             // aWrap += 10;
-             aWrap = aWrap + aWrap -10;
-             aWrap = (aWrap + 10)/2;
-        }
-        double aT7 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        std::cout << " T01-EigenFix " << aT1-aT0 << " T12-EigenDyn " << aT2-aT1 
-                  << " T23 " << aT3-aT2 << " T34-EigenBloc " << aT4-aT3  << "\n"
-                  << " T45-EigenElem " << aT5-aT4 << " T56_RawData " << aT6-aT5 
-                  << " T67-EigenWrap " << aT7-aT6 
-                  << "\n";
-        std::cout << "FIXSZ " << aAFix.rows() << " C:" <<  aAFix.cols() << "\n";
-        std::cout << "DYNSZ " << aADyn.rows() << " C:" <<  aADyn.cols() << "\n";
-#endif
-    }
-
-
-    {
-       int aNbUk  = 3;
-       int aNbObs = 5;
-       FD::cCoordinatorF<TypeTest>  aCFD(100,aNbUk,aNbObs);
-
-       std::vector<TypeTest> aVUk(aNbUk,0.0);
-       std::vector<TypeTest> aVObs(aNbObs,0.0);
-       aCFD.PushNewEvals(aVUk,aVObs);
-       aCFD.EvalAndClear();
-
-       tFormulaTest  X0 = aCFD.VUk().at(0);
-       if (0)
-       {
-          FD::cCoordinatorF<TypeTest>  aCFD2(100,3,5);
-          tFormulaTest  B0 = aCFD2.VUk().at(0);
-          X0 + B0;
-       }
-       tFormulaTest  X1 = aCFD.VUk().at(1);
-       tFormulaTest  X2 = aCFD.VUk().at(2);
-
-       tFormulaTest  aF0 =  X0 ;
-       for (int aK=0 ; aK<5 ; aK++)
-       {
-           std::cout << "K= " << aK << " R=" << aF0->RecursiveRec() << "\n";
-           aF0 = aF0 + aF0;
-       }
-/*
-       tFormulaTest  aF1 = aF0 + aF0;
-       tFormulaTest  aF2 = aF1 + aF1;
-       tFormulaTest  aF3 = aF2 + aF2;
-       tFormulaTest  aF4 = aF3 + aF3;
-       std::cout << "Re=" << aF->InfixPPrint() << "\n";
-*/
-   
-
-       tFormulaTest  aF = (X0+X1) * (X0 +square(X2)) - exp(-square(X0))/X0;
-       // tFormulaTest  aF = X0 * X0;
-       tFormulaTest  aFd0 = aF->Derivate(0);
-
-       std::cout << "F=" << aF->InfixPPrint() << "\n";
-       std::cout << "Fd=" << aFd0->InfixPPrint() << "\n";
-
-       // aF->ComputeBuf();
-       std::vector<tFormulaTest> aVF{aF0,aF0};
-       aCFD.SetCurFormulas(aVF);
-       aCFD.SetCurFormulasWithDerivative(aVF);
-
-       aCFD.ShowStackFunc();
-/*
-       aCFD.CsteOfVal(3.14);
-       aCFD.CsteOfVal(3.14);
-       tFormulaTest  aU0 = aCFD.VUK()[0];
-       tFormulaTest  aU1 = aCFD.VUK()[1];
-       tFormulaTest  aO0 = aCFD.VObs()[0];
-       tFormulaTest  aO1 = aCFD.VObs()[1];
-       tFormulaTest  aO2 = aCFD.VObs()[2];
-
-       tFormulaTest  aSom00 = aU0 + aO0;
-       tFormulaTest  aSomInv00 = aO0 + aU0;
-       tFormulaTest  aSom11 = aO1 + aU1;
-
-       tFormulaTest  aSom0 = aCFD.VUK()[0] + aCFD.Cste0();
-       tFormulaTest  aSom1 = aCFD.VUK()[0] + aCFD.Cste1();
-
-       tFormulaTest  aSom3 = aCFD.VUK()[0] + 3.14;
-       tFormulaTest  aSom4 = 3.14 + aCFD.VUK()[0] ;
-       std::cout << "TEST ADD CST " << aSom0->Name() << " " << aSom1->Name() << "\n";
-       std::cout << "TEST ADD CST " << aSom3->Name() << " " << aSom4->Name() << "\n";
-
-       aO0+aO1;
-       aO1+aO2;
-       aO0+(aO1+aO2);
-       {
-          tFormulaTest aS=(aO0+aO1)*(aO2+2.1);
-          std::cout << "PP=" << aS->InfixPPrint() << "\n";
-       }
-*/
-
-       // aPtr->IsCste0();
-       
-
-       // std::shared_ptr<cFuncFormalDer <8,double> > aF1  =
-       
-    }
-    // new cCoordinatorF<double,100> (3,5);
-
-    
-
-    int i=10;
-    std::string aStr = "i="+ std::to_string(i);
-    std::cout  << "BenchFormalDerBenchFormalDerBenchFormalDer " << aStr << "\n";
-
-    Eigen::MatrixXf m(10,20);
-    Eigen::MatrixXf aM2 = m.topLeftCorner(8,15);
-
-
-    Eigen::Array<double, 2, 25>  a;
-
-    std::cout << "MMMM R:" << m.rows() << " C:" <<  m.cols() << "\n";
-    std::cout << "MMMM R:" << aM2.rows() << " C:" <<  aM2.cols() << "\n";
-    std::cout << "MMMM A:" << a.rows() << " C:" <<  a.cols() << "\n";
-
+    // cTestOperationVector<float,90>::DoIt();
+    // cTestOperationVector<float,128>::DoIt();
+    // cTestOperationVector<double,128>::DoIt();
     getchar();
 }
+
+
+/*
+--- Form[0] => C0 ; Val=0
+--- Form[1] => C1 ; Val=1
+--- Form[2] => C2 ; Val=2
+-0- Form[3] => a
+-0- Form[4] => b
+-0- Form[5] => x
+-0- Form[6] => y
+-1- Form[7] => F4*F5      // bx
+-2- Form[8] => F7+F3      // a+bx
+-3- Form[9] => F8*F8      // (a+bx) ^2
+-4- Form[10] => F8*F9     // (a+bx) ^ 3
+-5- Form[11] => F10-F6    // (a+bx)^3-y
+-3- Form[12] => F8*F5     // x(a+bx)
+-4- Form[13] => F12+F12   // 2x(a+bx)
+-5- Form[14] => F13*F8    // 2x(a+bx)^2
+-4- Form[15] => F9*F5     // x (a+bx)^2
+-6- Form[16] => F14+F15   // 3 x(a+bx)^2
+-3- Form[17] => F8+F8     // 2 (a+bx) 
+-4- Form[18] => F8*F17    // 2 (a+bx) ^2
+-5- Form[19] => F18+F9    // 3 (a+bx) ^2
+REACHED 5 3 6 4 7 8 9 17 12 10 18 15 13 11 14 19 16   // Reached formula in their computation order
+CUR 11 19 16   // Computed formula
+*/
+
 
 

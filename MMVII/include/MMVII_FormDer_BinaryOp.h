@@ -363,6 +363,13 @@ inline cFormula<TypeElem> operator /(const cFormula<TypeElem> & aF1,const TypeEl
   return aF1/aF1->CoordF()->CsteOfVal(aV2) ;
 }
 
+        // powpowpowpowpowpowpow
+
+template <class TypeElem> cFormula <TypeElem>  pow (const TypeElem & aV1,const cFormula <TypeElem> & aF2)
+{
+   return exp(log(aV1)*aF2);
+}
+
 
 
 }; //   NS_MMVII_FormalDerivative

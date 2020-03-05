@@ -9,6 +9,12 @@ void mem_raz(void * adr,int64_t nb)
     memset(adr,0,nb);
 }
 
+void DoNothingWithIt(void *)
+{
+   // As expected ;-)
+}
+
+
 //================ cMemState =======
 
 cMemState::cMemState() :
