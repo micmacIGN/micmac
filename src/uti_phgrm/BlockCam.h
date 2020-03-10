@@ -8,7 +8,8 @@
 class cAppli_Block
 {
    public :
-        CamStenope * CamSOfName(const std::string & aName) {return  mICNM->StdCamStenOfNames(aName,mOriIn);}
+        // CamStenope * CamSOfName(const std::string & aName) {return  mICNM->StdCamStenOfNames(aName,mOriIn);}
+        CamStenope * CamSOfName(const std::string & aName) {return  mICNM->StdCamStenOfNamesSVP(aName,mOriIn);} // Corrige une possible regression qui generait une erreur si non existe
         typedef std::pair<std::string,std::string>  t2Str;
         t2Str  TimGrp(const std::string & aName)
         {
