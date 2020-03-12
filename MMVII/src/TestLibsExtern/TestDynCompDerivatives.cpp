@@ -38,6 +38,8 @@ double TimeElapsFromT0()
 
     {II} An example on basic function to get some insight in the way it works
 
+    {III} A realistic example to make performance test on different methods
+
 */
 
 
@@ -380,7 +382,7 @@ template <class TypeUk,class TypeObs> std::vector<TypeUk> FraserCamColinearEq
 class cTestFraserCamColinearEq
 {
     public :
-       cTestFraserCamColinearEq(int aSzBuf);
+       cTestFraserCamColinearEq(int aSzBuf,bool Show);
 
     private :
        
@@ -442,7 +444,7 @@ const std::vector<std::string>
 
 
 
-cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf) :
+cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf,bool Show) :
     // mCFD (aSzBuf,19,11) would have the same effect, but future generated code will be less readable
      mCFD  (aSzBuf,TheVNamesUnknowns,TheVNamesObs),
      mVUk  (TheNbUk,0.0),
@@ -456,7 +458,20 @@ cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf) :
    double aT0 = TimeElapsFromT0();
 
    auto aVFormula = FraserCamColinearEq(mCFD.VUk(),mCFD.VObs());
+   if (Show)
+   {
+       mCFD.SetCurFormulas({aVFormula[0]});
+       int aNbRx = mCFD.VReached().size() ;
+       mCFD.SetCurFormulas(aVFormula);
+       int aNbRxy = mCFD.VReached().size() ;
+
+       std::cout << "NbReached x:" << aNbRx << "  xy:" << aNbRxy << "\n";
+        
+       mCFD.SetCurFormulas({aVFormula[0]});
+       mCFD.ShowStackFunc();
+   }
    mCFD.SetCurFormulasWithDerivative(aVFormula);
+
    double aT1 = TimeElapsFromT0();
     
    std::cout << "TestFraser NbEq=" << mCFD.VReached().size() << " TimeInit=" << (aT1-aT0) << "\n";
@@ -514,10 +529,18 @@ cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf) :
        TimeBuf = TimeElapsFromT0() - TimeBuf;
    }
 
-   for (int aKV=0 ; aKV<int(aEpsRes.size()) ; aKV++)
+   for (int aKVal=0 ; aKVal<int(aEpsRes.size()) ; aKVal++)
    {
-      std::cout << "VALssss " << aKV << "\n";
-      std::cout << "  J:" <<  aJetRes[aKV].a << " E:" << aEpsRes[aKV].mNum << "\n";
+      std::cout << "VALssss " << aKVal << "\n";
+      std::cout << "  J:" <<  aJetRes[aKVal].a 
+                <<  " E:" << aEpsRes[aKVal].mNum 
+                <<  " F:" << mCFD.ValComp(0,aKVal) << "\n";
+      for (int aKVar=0;  aKVar< NB_UK ; aKVar++)
+      {
+           std::cout << "  dJ:" << aJetRes[aKVal].v[aKVar]
+                     <<  " dE:" << aEpsRes[aKVal].mEps[aKVar]
+                     <<  " dF:" << mCFD.DerComp(0,aKVal,aKVar) << "\n";
+      }
    }
 
    std::cout 
@@ -530,10 +553,10 @@ cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf) :
 void TestFraserCamColinearEq()
 {
    {
-       cTestFraserCamColinearEq (1000);
+       cTestFraserCamColinearEq (1000,false);
        //  cTestFraserCamColinearEq (100);
        //  cTestFraserCamColinearEq (10);
-       cTestFraserCamColinearEq (1);
+       cTestFraserCamColinearEq (1,false);
    }
 /*
    {

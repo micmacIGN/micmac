@@ -640,6 +640,9 @@ class cPoseCam : public cGenPoseCam
           cPreCB1Pose *  GetPreCB1Pose(bool SVP) const; // SVP => can be 0
           void  SetPreCB1Pose(cPreCB1Pose *);
           void UseRappelOnPose() const override;
+          int DifBlocInf1(const cPoseCam &) const; // Return "Many" if not initialized
+          void SetNumTimeBloc(int aNum);
+
      private  :
 
           void AssertHasObsCentre() const;
@@ -729,6 +732,7 @@ class cPoseCam : public cGenPoseCam
           cEqOffsetGPS *               mEqOffsetGPS;
           cStructRigidInit *           mSRI;
           cPreCompBloc *               mBlocCam;
+          int                          mNumTimeBloc;
           cPreCB1Pose *                mPoseInBlocCam;
           bool                         mUseRappelPose;  // Do we use a "rappel" to a given value
           ElRotation3D                 mRotURP;  // Rotation use Rappel Pose

@@ -736,13 +736,14 @@ int Tapas_main_new(int argc,char ** argv)
               const std::vector<std::string> & aVTime = anATP.BlocTimeStamps();
               std::map<std::string,int> & aCptTime =  anATP.BlocCptTime();
 
+              // Recupere l'image la plus proche du milieu et dont le bloc est plein
               int aDistMax = -1;
               int aKMax = -1;
               for (int aK=0 ; aK<int(aVImage.size()) ; aK++)
               {
                  if (aCptTime[aVTime[aK]] == aNBInBl)
                  {
-                    int aDist = ElMin(aK,int(aVImage.size()-1-aK));
+                    int aDist = ElMin(aK,int(aVImage.size()-1-aK)); // Distance to border, max in midle
                     if (aDist>aDistMax)
                     {
                        aDistMax = aDist;

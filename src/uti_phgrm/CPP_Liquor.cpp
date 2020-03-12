@@ -146,8 +146,11 @@ class cAppliLiquor : public cAppli_Tapas_Campari
         double                           mOverlapProp; // entre les 2, il peut sembler logique d'avoir  une raccord prop
         int                              mExe;
         std::string                      mSH;
-		bool 							 mExpTxt;
+        std::string                      mSHTapas;
+        bool                             mExpTxt;
         std::string                      mParamCommon;
+        std::string                      mParamTapas;
+        std::string                      mParamCampari;
         std::string                      mKeyName;
 };
 
@@ -218,6 +221,7 @@ cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
                       << EAM(mIntervOverlap,"IOL",true,"Interval Overlap Def(3,40) image / (4,8) Blocs")
                       << EAM(mExe,"Exe",true,"Execute commands 2 always, 1 if dont exist, 0 never")
                       << EAM(mSH,"SH",true,"Set of Homogue")
+                      << EAM(mSHTapas,"SHTapas",true,"Set of Homologue special for Tapas")
                       << EAM(mExpTxt,"ExpTxt",true,"Homol in txt, Def=false")
                       << EAM(mKeyName,"KeyName",true,"Key Name for print")
                       << ArgATP()
@@ -250,9 +254,23 @@ cAppliLiquor::cAppliLiquor(int argc,char ** argv)  :
     }
     mParamCommon  =  StrParamBloc();
 
-    mParamCommon  += BlQUOTE(StrInitOfEAM(&mSH));
+    if (EAMIsInit(&mSHTapas))
+    {
+       if (mSHTapas!="")
+       {
+          mParamTapas += BlQUOTE(" SH="+mSHTapas);
+       }
+    }
+    else
+    {
+       mParamTapas    += BlQUOTE(StrInitOfEAM(&mSH));
+    }
+    mParamCampari  += BlQUOTE(StrInitOfEAM(&mSH));
+
+
+
     mParamCommon  += std::string(" SauvAutom=NONE ");
-	mParamCommon  +=  std::string(" ExpTxt=") + ToString(mExpTxt);
+    mParamCommon  +=  std::string(" ExpTxt=") + ToString(mExpTxt);
 /*
 {
     for (const auto & aS : *mVNames)
@@ -331,6 +349,7 @@ void  cAppliLiquor::DoComRec(int aLevel)
                                 +  anIL.NameOri()  + " "
                                 //  +  StrImMinMax(anIL)
                                 +  mParamCommon
+                                +  mParamCampari
                                 +  " SigmaTieP=2.0 ";
         }
 
@@ -451,6 +470,7 @@ std::string cAppliLiquor::ComTerm(const  cIntervLiquor& anIL) const
                       + std::string(" RefineAll=false ")
                       //  => dan ParamCommon + std::string(" SauvAutom=NONE ")
                       + mParamCommon
+                      + mParamTapas
                       ;
 
    return aCom;
