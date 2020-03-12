@@ -284,13 +284,18 @@ int Line2Line_main(int argc,char ** argv);
 int CoronaRessample_main(int argc,char ** argv);
 int DivFilters_main(int argc,char ** argv);
 int AnalysePxFrac_Main(int argc,char ** argv);
-
+int CPP_YannEstimHomog(int argc,char ** argv);
+int CPP_YannApplyHomog(int argc,char ** argv);
+int CPP_YannInvHomolHomog(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
 	static std::vector<cMMCom> aRes;
 	if (aRes.empty())
 	{
+		aRes.push_back(cMMCom("EstimHomog",CPP_YannEstimHomog, "Homographie estimation from GCPs and image measurements "));
+		aRes.push_back(cMMCom("ApplyHomog",CPP_YannApplyHomog, "Homographie application on images "));
+		aRes.push_back(cMMCom("InvHomolHomog",CPP_YannInvHomolHomog, "Homographie application on images "));
 		aRes.push_back(cMMCom("PPMD_MatEss2Orient", PPMD_MatEss2Orient, "transform essential matrix as list of orient "));
 		aRes.push_back(cMMCom("Help", CPP_MMHelp, "Help on existing MicMac commands "));
 		aRes.push_back(cMMCom("BAR", BasculeRobuste_main, "Bascule robutse "));
@@ -680,6 +685,7 @@ extern int CPP_NewOriReadFromSfmInit(int argc, char ** argv);
 extern int CPP_Bundler2MM_main(int argc, char ** argv);
 extern int CPP_MM2Bundler_main(int argc, char ** argv);
 extern int CPP_Strecha2MM(int argc, char ** argv);
+extern int CPP_MM2OpenMVG_main(int argc, char ** argv);
 extern int ImPts2Dir_main(int argc, char ** argv);
 extern int FictiveObstest_main(int argc, char ** argv);
 extern int TestPush(int argc, char ** argv);
@@ -987,6 +993,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("Bundler2MM", CPP_Bundler2MM_main, "Convert the Bundler solution to MicMac"));
 		aRes.push_back(cMMCom("MM2Bundler", CPP_MM2Bundler_main, "Convert the MicMac  solution to Bundler"));
 		aRes.push_back(cMMCom("Str2MM", CPP_Strecha2MM, "Convert the Strecha solution to MicMac"));
+		aRes.push_back(cMMCom("MM2OMVG", CPP_MM2OpenMVG_main, "Convert Homol (PMul) to OpenMVG features / matches"));
 		aRes.push_back(cMMCom("Im2Dir", ImPts2Dir_main, "Extract directions from images"));
 		aRes.push_back(cMMCom("FictObs", FictiveObstest_main, "someee stuff"));
 		aRes.push_back(cMMCom("CamTOFExp", TestCamTOF_main, "Export TOF camera pcd file to MicMac formats (e.g. tif, xml, ply)"));

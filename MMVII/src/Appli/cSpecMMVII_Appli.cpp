@@ -25,6 +25,7 @@ cSpecMMVII_Appli::cSpecMMVII_Appli
   mVOutputs   (aOutputs),
   mNameFile   (aNameFile)
 {
+    TheVecAll().push_back(this);
 }
 
 int cSpecMMVII_Appli::AllocExecuteDestruct(const std::vector<std::string> & aVArgs) const
@@ -111,43 +112,30 @@ void cSpecMMVII_Appli::Check()
 }
 
 
-std::vector<cSpecMMVII_Appli*> cSpecMMVII_Appli::TheVecAll;
+std::vector<cSpecMMVII_Appli*> *cSpecMMVII_Appli::msTheVecAll = nullptr;
+bool cSpecMMVII_Appli::isVecAllSorted = false;
+
+std::vector<cSpecMMVII_Appli*> &cSpecMMVII_Appli::TheVecAll(void)
+{
+    if (msTheVecAll == nullptr)
+        msTheVecAll = new std::vector<cSpecMMVII_Appli*>;
+    return *msTheVecAll;
+}
+
 
 bool CmpCmd(cSpecMMVII_Appli * aCM1,cSpecMMVII_Appli * aCM2)
 {
    return aCM1->Name() < aCM2->Name();
 }
 
-std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
-{
-   
-   if (TheVecAll.size() == 0)
-   {    
-        TheVecAll.push_back(&TheSpecBench);
-        TheVecAll.push_back(&TheSpecTestCpp11);
-        TheVecAll.push_back(&TheSpec_TestBoostSerial);
-        TheVecAll.push_back(&TheSpecMPDTest);
-        TheVecAll.push_back(&TheSpecEditSet);
-        TheVecAll.push_back(&TheSpecEditRel);
-        TheVecAll.push_back(&TheSpecWalkman);
-        TheVecAll.push_back(&TheSpecDaisy);
-        TheVecAll.push_back(&TheSpec_TestEigen);
-        TheVecAll.push_back(&TheSpec_ComputeParamIndexBinaire);
-        TheVecAll.push_back(&TheSpecTestRecall);
-        TheVecAll.push_back(&TheSpecScaleImage);
-        TheVecAll.push_back(&TheSpecCalcDiscIm);
-        TheVecAll.push_back(&TheSpecCalcDescPCar);
-        TheVecAll.push_back(&TheSpecMatchTieP);
-
-        std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
-   }
-   
-   return TheVecAll;
-}
 
 const std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::VecAll()
 {
-    return InternVecAll();
+    if (! isVecAllSorted) {
+        std::sort(TheVecAll().begin(),TheVecAll().end(),CmpCmd);
+        isVecAllSorted = true;
+    }
+   return TheVecAll();
 }
 
 
