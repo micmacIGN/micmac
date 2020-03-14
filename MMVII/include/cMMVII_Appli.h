@@ -92,9 +92,8 @@ class cSpecMMVII_Appli
        // bool HasDataTypeIn(const eApDT & aType) const;
        // bool HasDataTypeOut(const eApDT & aType) const;
     private :
-       static std::vector<cSpecMMVII_Appli*> *msTheVecAll;
-       static std::vector<cSpecMMVII_Appli*> &TheVecAll(void);
-       static bool isVecAllSorted;
+       static std::vector<cSpecMMVII_Appli*> TheVecAll;
+       static std::vector<cSpecMMVII_Appli*> & InternVecAll(); ///< vectors of all specifs
    // Data
        std::string           mName;       ///< User name
        tMMVII_AppliAllocator mAlloc;      ///< Allocator
