@@ -536,6 +536,39 @@ const cSolChemOptImV &  cOneImageVideo::SolOfLength(int aNbL)
 
 #define TEST true
 
+// To get output of ffmpeg's FPS request
+
+std::string getCmdOutput(const char* cmd) {
+    char buffer[128];
+    std::string result = "";
+    #if (ELISE_windows)
+        FILE* pipe = _popen(cmd, "r");
+        if (!pipe) throw std::runtime_error("_popen() failed!");
+        try {
+            while (fgets(buffer, sizeof buffer, pipe) != NULL) {
+                result += buffer;
+            }
+        } catch (...) {
+            _pclose(pipe);
+            throw;
+        }
+        _pclose(pipe);
+    #else
+        FILE* pipe = popen(cmd, "r");
+        if (!pipe) throw std::runtime_error("popen() failed!");
+        try {
+            while (fgets(buffer, sizeof buffer, pipe) != NULL) {
+                result += buffer;
+            }
+        } catch (...) {
+            pclose(pipe);
+            throw;
+        }
+        pclose(pipe);
+    #endif
+    return result;
+}
+
 cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
      mCam            ("NONE"),
      mPostfix        ("png"),
@@ -558,7 +591,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
            LArgMain() << EAM(mTargetRate,"Rate",true,"Rate final Def=4")
                       << EAM(mParamSzSift,"ParamSzSift",true,"Parameter used for sift development, def=-1 (Highest)")
                       << EAM(mPatNumber,"PatNumber",true,"Pat number (reduce number for test)")
-                      << EAM(mDoVideo2Im,"DoV2I",true,"Do the development of video 2 images, def true iff no image to corresp pattern")
+                      << EAM(mDoVideo2Im,"DoV2I",true,"Do the development of video 2 images, def true if no image to corresp pattern")
                       << EAM(mNbDigit,"NDig",true,"Nb digit for numbering out images (Def=5)")
                       << EAM(mFoc,"Foc",true,"Set focale in xif, def=F35")
                       << EAM(mCam,"Cam",true,"Set Cam in xif")
@@ -567,7 +600,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
                       << EAM(mTuning,"Tuning",true,"as it says ... ")
                       << EAM(mSzDecoup,"TheSzDecoup",true,"Sz of a priori split, \"expert\" level , Def=300 ")
                       << EAM(mOverLap,"OverLap",true,"Target overlap between images ")
-                      << EAM(mRateVideoInit,"RateVideo",true,"Rate image per seconde (FPS), Def=24 ")
+                      << EAM(mRateVideoInit,"RateVideo",true,"Rate image per seconde (FPS), Def=fps value from ffmpeg ")
     );
 
 // avconv -i adjudant.MOV Im_0247_%5d_Ok.png  
@@ -608,12 +641,21 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
     // Extraction des images fixes +  remplit les xif
     if (mDoVideo2Im)
     {
-        std::string aComDev =       "avconv -i " 
+        std::string aComDev =       "ffmpeg -i "
                               +  mFullNameVideo + " "
                               +  mEASF.mDir  + mPrefix + "%" + ToString(mNbDigit)  + "d_Ok." + mPostfix;
 
         System(aComDev);
         // std::cout << aComDev<< "\n";
+
+        std::string aComFPS =       "ffmpeg -i "
+                              +  mFullNameVideo + " 2>&1 | sed -n \"s/.*, \\(.*\\) fp.*/\\1/p\"";
+
+        std::string aFps = getCmdOutput(aComFPS.c_str());
+        std::stringstream ss;
+        ss << aFps;
+        ss >> mRateVideoInit;
+        std::cout << "FPS video : " << mRateVideoInit << "\n";
 
         if (mF35>0)
         {
@@ -621,7 +663,7 @@ cAppliDevideo::cAppliDevideo(int argc,char ** argv) :
                                         +   QUOTE(mMMPatImDev) 
                                         + " F=" + ToString(mFoc)
                                         + " F35=" + ToString(mF35)
-                                        + " Cam=" + mCam
+                                        + " Cam='" + mCam + "'"
                                     ;
 
                System(aComXif);
