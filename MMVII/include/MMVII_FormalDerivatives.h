@@ -11,6 +11,8 @@
 #else
 #define EIGEN_ALLIGNMENT_IN_MMVII 
 #endif
+/*
+*/
 
 /** \file MMVII_FormalDerivate.h
     \brief File for generating formal derivate
@@ -123,7 +125,7 @@ namespace  NS_MMVII_FormalDerivative
 
 */
 
-/// This function is required if we want to have same operation on numbers double and formulas
+/// These functions are required if we want to have same operation on numbers double and formulas
 double square(const double & aV)  {return aV*aV;}
 double square(const float & aV)  {return aV*aV;}
 double cube(const double & aV)  {return aV*aV*aV;}
@@ -147,6 +149,11 @@ void UserSError(const std::string & aMes)
    Error(aMes,"Probable error on user's side due to unapropriate usage of the library");
 }
 
+void AssertAlmostEqual(const double & aV1,const double & aV2,const double & aEps)
+{
+   if ( (std::abs(aV1-aV2)> aEps*(std::abs(aV1)+std::abs(aV2))) )
+      InternalError("Test equality failed");
+}
 
 /** This function computes derivates by finites difference
     It is used in the tests to check correction of  formal derivatives. Also used
@@ -301,6 +308,8 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
              return  mBufRes.at(aNumPush)->at(mSzInterval*aKElem +1 + aKVarDer);
          }
         
+         /** Generate code, class cName  , file cName.h, cName.cpp */
+         void GenerateCode(const std::string & Name);
 
     private :  // END-USER
          /*   =================================================================================
@@ -429,7 +438,8 @@ template <class TypeElem> class cImplemF  : public cMemCheck
 {
     public :
       // See eigen documentation,  this macro is mandatory for alignment reason
-       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+       //  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+       EIGEN_ALLIGNMENT_IN_MMVII 
 
        typedef TypeElem                        tElem;
        typedef cCoordinatorF<TypeElem>         tCoordF;

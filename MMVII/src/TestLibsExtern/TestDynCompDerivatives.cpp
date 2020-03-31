@@ -1,12 +1,12 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_Derivatives.h"
+// #include "include/MMVII_all.h"
 #include "include/MMVII_FormalDerivatives.h"
+//#include "include/MMVII_Derivatives.h"
 
 #include "ceres/jet.h"
 
 namespace  FD = NS_MMVII_FormalDerivative;
 using ceres::Jet;
-using MMVII::cEpsNum;
+// using MMVII::cEpsNum;
 
 
 // ========== Define on Jets two optimization as we did on formal 
@@ -389,7 +389,7 @@ class cTestFraserCamColinearEq
        static const int  TheNbUk  = 19;
        static const int  TheNbObs = 11;
        typedef Jet<double,NB_UK>  tJets;
-       typedef cEpsNum<NB_UK>     tEps;
+       //  typedef cEpsNum<NB_UK>     tEps;
 
        static const  std::vector<std::string> TheVNamesUnknowns;
        static const  std::vector<std::string> TheVNamesObs;
@@ -502,6 +502,7 @@ cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf,bool Show) :
         TimeJets = TimeElapsFromT0() - TimeJets;
    }
 
+/*
    double TimeEps = TimeElapsFromT0();
    std::vector<tEps> aEpsRes;
    {
@@ -514,6 +515,7 @@ cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf,bool Show) :
         }
         TimeEps = TimeElapsFromT0() - TimeEps;
    }
+*/
 
    // Make the computation with formal deriv buffered
    double TimeBuf = TimeElapsFromT0();
@@ -529,23 +531,32 @@ cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf,bool Show) :
        TimeBuf = TimeElapsFromT0() - TimeBuf;
    }
 
-   for (int aKVal=0 ; aKVal<int(aEpsRes.size()) ; aKVal++)
+   for (int aKVal=0 ; aKVal<int(aJetRes.size()) ; aKVal++)
    {
-      std::cout << "VALssss " << aKVal << "\n";
-      std::cout << "  J:" <<  aJetRes[aKVal].a 
-                <<  " E:" << aEpsRes[aKVal].mNum 
-                <<  " F:" << mCFD.ValComp(0,aKVal) << "\n";
+      double aVJ = aJetRes[aKVal].a;
+      // double aVE = aEpsRes[aKVal].mNum ;
+      double aVF = mCFD.ValComp(0,aKVal); 
+      // std::cout << "VALssss " << aKVal << "\n";
+      // std::cout << "  J:" <<  aVJ <<  " E:" << aVE <<  " F:" << aVF << "\n";
+      //  assert(std::abs(aVJ-aVE)<1e-5);
+      // assert(std::abs(aVJ-aVF)<1e-5);
+
+      FD::AssertAlmostEqual(aVJ,aVF,1e-5);
+      // FD::AssertAlmostEqual(aVJ,aVF,1e-5);
       for (int aKVar=0;  aKVar< NB_UK ; aKVar++)
       {
-           std::cout << "  dJ:" << aJetRes[aKVal].v[aKVar]
-                     <<  " dE:" << aEpsRes[aKVal].mEps[aKVar]
-                     <<  " dF:" << mCFD.DerComp(0,aKVal,aKVar) << "\n";
+           double aDVJ = aJetRes[aKVal].v[aKVar];
+           //  double aDVE = aEpsRes[aKVal].mEps[aKVar] ;
+           double aDVF = mCFD.DerComp(0,aKVal,aKVar); 
+      //  FD::AssertAlmostEqual(aDVJ,aDVE,1e-5);
+           FD::AssertAlmostEqual(aDVJ,aDVF,1e-5);
+      //  std::cout << "  dJ:" << aDVJ <<  " dE:" << aDVE <<  " dF:" << aDVF << "\n";
       }
    }
 
    std::cout 
          << " TimeJets= " << TimeJets 
-         << " TimeEps= " << TimeEps 
+         // << " TimeEps= " << TimeEps 
          << " TimeBuf= " << TimeBuf
          << "\n";
 }

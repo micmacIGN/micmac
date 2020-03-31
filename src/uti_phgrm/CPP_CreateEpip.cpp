@@ -87,6 +87,8 @@ class cApply_CreateEpip_main
       std::string        mName2;
       bool               mWithOri;
       int                mNbBloc;
+      int                mDegSupInv;
+      double             mEpsCheckInv;
       Pt2dr              mDir1;
       Pt2dr              mDir2;
 
@@ -97,7 +99,14 @@ class cApply_CreateEpip_main
       void Ressample(cBasicGeomCap3D * aG1,EpipolaireCoordinate & E1,double aStep);
 };
 
-Pt2dr  cApply_CreateEpip_main::DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D * aG2,ElPackHomologue & aPack,bool AddToP1)
+// Compute direction of epip in G2 and fill Pack, AddToP1 indicate which way it must be added
+Pt2dr  cApply_CreateEpip_main::DirEpipIm2
+       (
+            cBasicGeomCap3D * aG1,
+            cBasicGeomCap3D * aG2,
+            ElPackHomologue & aPack,
+            bool AddToP1
+       )
 {
     Pt2dr aSz =  Pt2dr(aG1->SzBasicCapt3D());
  
@@ -105,6 +114,8 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D 
     Pt2dr aSomTens2(0,0);
     // On le met tres petit, ce qui a priori n'est pas genant et evite 
     // d'avoir des point hors zone
+    //  GetVeryRoughInterProf est une proportion
+
     double aIProf = aG1->GetVeryRoughInterProf() / 100.0;
 
 /*
@@ -116,6 +127,7 @@ if (MPD_MM())
 */
 
 
+    // aEps avoid points to be too close to limits
     double aEps = 5e-4;
 
     double aLenghtSquare = ElMin(mLengthMin,sqrt((aSz.x*aSz.y) / (mNbXY*mNbXY)));
@@ -125,20 +137,24 @@ if (MPD_MM())
     int aNbY = ElMax(1+3*mDegre,round_up(aSz.y /aLenghtSquare));
 
 
-    std::cout << "NBBBB " << aNbX << " " << aNbY << "\n";
+    std::cout << "NBBBB  x:" << aNbX << " y:" << aNbY <<  " z: " << mNbZ << "\n";
      
 
     for (int aKX=0 ; aKX<= aNbX ; aKX++)
     {
+        // Barrycentrik weighting, 
         double aPdsX = ElMax(aEps,ElMin(1-aEps,aKX /double(aNbX)));
         for (int aKY=0 ; aKY<= aNbY ; aKY++)
         {
+            // Barrycentrik weighting, 
             double aPdsY = ElMax(aEps,ElMin(1-aEps,aKY/double(aNbY)));
+            // Point in image 1 on regular gris
             Pt2dr aPIm1 = aSz.mcbyc(Pt2dr(aPdsX,aPdsY));
             if (aG1->CaptHasData(aPIm1))
             {
                 Pt3dr aPT1;
                 Pt3dr aC1;
+                // Compute bundle with origin on pseudo center
                 aG1->GetCenterAndPTerOnBundle(aC1,aPT1,aPIm1);
 
                 // std::cout << "IPROF " << aIProf * euclid(aPT1-aC1)  << " " << aPT1  << "\n";
@@ -146,16 +162,19 @@ if (MPD_MM())
                 std::vector<Pt2dr> aVPIm2;
                 for (int aKZ = -mNbZ ; aKZ <= mNbZ ; aKZ++)
                 {
+                     // Compute P Ground on bundle
                      Pt3dr aPT2 = aC1 + (aPT1-aC1) * (1+(aIProf*aKZ) / mNbZ);
                      if (aG1->PIsVisibleInImage(aPT2) && aG2->PIsVisibleInImage(aPT2))
                      {
+                        // Add projection
                         aVPIm2.push_back(aG2->Ter2Capteur(aPT2));
                         ElCplePtsHomologues aCple(aPIm1,aVPIm2.back(),1.0);
-                        if (! AddToP1) 
+                        if (! AddToP1)  // If Im1/Im2 were swapped
                            aCple.SelfSwap();
                         aPack.Cple_Add(aCple);
                      }
                 }
+                // If more than one point is Ok
                 if (aVPIm2.size() >=2)
                 {
                     Pt2dr aDir2 = vunit(aVPIm2.back()-aVPIm2[0]);
@@ -165,7 +184,7 @@ if (MPD_MM())
         }
     }
     Pt2dr aRT = Pt2dr::polar(aSomTens2,0.0);
-    return Pt2dr::FromPolar(1.0,aRT.y/2.0);
+    return Pt2dr::FromPolar(1.0,aRT.y/2.0); // Divide angle as it was multiplied
 }
 
 class cTmpReechEpip
@@ -183,7 +202,8 @@ class cTmpReechEpip
                 const std::string & aPostMasq,
                 int aNumKer,
                 bool aDebug,
-                int  aNbBloc
+                int  aNbBloc,
+                double aEpsChekInv = 1e-2 // Check accuracy of inverse
         );
      private :
         Box2dr                 mBoxImIn;
@@ -241,7 +261,8 @@ cTmpReechEpip::cTmpReechEpip
         const std::string & aPostMasq,
         int aNumKer ,
         bool Debug,
-        int  aNbBloc
+        int  aNbBloc,
+        double aEpsCheckInv
 ) :
     mBoxImIn(aBoxImIn),
     mEpi    (anEpi),
@@ -256,7 +277,11 @@ cTmpReechEpip::cTmpReechEpip
     mRedImY    (mSzRed.x,mSzRed.y),
     mRedTImY   (mRedImY)
 {
-
+    std::cout << "=== RESAMPLE EPIP " << aNameOri 
+              << " Ker=" << aNumKer 
+              << " Step=" << mStep 
+              << " SzRed=" << mSzRed 
+              << "======\n";
 
 
     cInterpolateurIm2D<REAL4> * aPtrSCI = 0;
@@ -295,7 +320,7 @@ cTmpReechEpip::cTmpReechEpip
           if ((aPIm.x>mBoxImIn._p0.x) && (aPIm.y>mBoxImIn._p0.y) && (aPIm.x<mBoxImIn._p1.x) && (aPIm.y<mBoxImIn._p1.y))
           {
                Pt2dr aPEpi2 = anEpi->Direct(aPIm);
-               if (euclid(aPEpi-aPEpi2) < 1e-2)
+               if (euclid(aPEpi-aPEpi2) < aEpsCheckInv)
                {
                     Ok= true;
                     mRedTMasq.oset(aPInd,Ok);
@@ -328,6 +353,10 @@ cTmpReechEpip::cTmpReechEpip
     if (ExportMasq)
     {
         std::string aNameMasq = StdPrefix(aNameOut)+ aPostMasq  +".tif";
+        if (Debug)
+        {
+           Tiff_Im::Create8BFromFonc("Reduc-"+aNameMasq,mRedIMasq.sz(),mRedIMasq.in()*255);
+        }
         aTifMasq =  Debug                         ?
                     Tiff_Im(aNameMasq.c_str())    :
                     Tiff_Im
@@ -480,11 +509,11 @@ void cApply_CreateEpip_main::DoEpipGen()
       mNbXY      = 100;
       ElPackHomologue aPack;
 
-  
+      // Compute the direction  and the set of homologous points
       if (mWithOri)
       {
-         mDir2 =  DirEpipIm2(mGenI1,mGenI2,aPack,true);
-         mDir1 =  DirEpipIm2(mGenI2,mGenI1,aPack,false);
+         mDir2 =  DirEpipIm2(mGenI1,mGenI2,aPack,true);  // Dont Swap
+         mDir1 =  DirEpipIm2(mGenI2,mGenI1,aPack,false); // Swap Pt
       }
       else
       {
@@ -496,8 +525,8 @@ void cApply_CreateEpip_main::DoEpipGen()
           aPack = mICNM->StdPackHomol("",mName1,mName2);
       }
 
-      std::cout << "Compute Epip\n";
-      CpleEpipolaireCoord * aCple = CpleEpipolaireCoord::PolynomialFromHomologue(false,aPack,mDegre,mDir1,mDir2);
+      std::cout << "Compute Epip ; D1=" << mDir1 << " ,D2=" << mDir2 << "\n";
+      CpleEpipolaireCoord * aCple = CpleEpipolaireCoord::PolynomialFromHomologue(false,aPack,mDegre,mDir1,mDir2,mDegSupInv);
 
       EpipolaireCoordinate & e1 = aCple->EPI1();
       EpipolaireCoordinate & e2 = aCple->EPI2();
@@ -505,6 +534,7 @@ void cApply_CreateEpip_main::DoEpipGen()
       Pt2dr aInf1(1e20,1e20),aSup1(-1e20,-1e20);
       Pt2dr aInf2(1e20,1e20),aSup2(-1e20,-1e20);
 
+      double aBias = 0.0;
       double aErrMax = 0.0;
       double aErrMoy = 0.0;
       int    mNbP = 0;
@@ -521,21 +551,27 @@ void cApply_CreateEpip_main::DoEpipGen()
       double aErrMaxDir1 = 0.0;
       double aErrMaxInv1 = 0.0;
 
+      // Compute accuracy, bounding box 
       for (ElPackHomologue::const_iterator itC=aPack.begin() ; itC!= aPack.end() ; itC++)
       {
+           // Images of P1 and P2 by epipolar transforms
            Pt2dr aP1 = e1.Direct(itC->P1());
            Pt2dr aP2 = e2.Direct(itC->P2());
+           // Update bounding boxes
            aInf1 = Inf(aInf1,aP1);
            aSup1 = Sup(aSup1,aP1);
            aInf2 = Inf(aInf2,aP2);
            aSup2 = Sup(aSup2,aP2);
 
+           // Average off of X
            aX2mX1 += aP2.x - aP1.x;
 
-           double anErr = ElAbs(aP1.y-aP2.y);
+           double aDifY = aP1.y-aP2.y; // Should be 0
+           double anErr = ElAbs(aDifY);
            mNbP++;
            aErrMax = ElMax(anErr,aErrMax);
            aErrMoy += anErr;
+           aBias   += aDifY;
 
            if (aCple3)
            {
@@ -567,15 +603,26 @@ void cApply_CreateEpip_main::DoEpipGen()
       std::cout << aInf1 << " " <<  aSup1 << "\n";
       std::cout << aInf2 << " " <<  aSup2 << "\n";
       std::cout << "DIR " << mDir1 << " " << mDir2 << " X2-X1 " << aX2mX1<< "\n";
-      std::cout << "Epip Rect Accuracy, Moy " << aErrMoy/mNbP << " Max " << aErrMax << "\n";
+
+      std::cout << "Epip Rect Accuracy:" 
+                << " Bias " << aBias/mNbP 
+                << " ,Moy " <<  aErrMoy/mNbP 
+                << " ,Max " <<  aErrMax 
+                << "\n";
+
+      std::cout << "Epip NbPts= " << mNbP << " Redund=" << mNbP/double(ElSquare(mDegre)) << "\n";
 
       bool aConsChan = true;
-      Pt2di aSzI1 = mWithOri ? mGenI1->SzBasicCapt3D() : Tiff_Im::StdConvGen(mName1.c_str(),aConsChan ? -1 :1 ,true).sz() ;
-      Pt2di aSzI2 = mWithOri ? mGenI2->SzBasicCapt3D() : Tiff_Im::StdConvGen(mName2.c_str(),aConsChan ? -1 :1 ,true).sz() ;
+      Pt2di aSzI1 = mWithOri ? 
+                    mGenI1->SzBasicCapt3D() : 
+                    Tiff_Im::StdConvGen(mName1.c_str(),aConsChan ? -1 :1 ,true).sz() ;
+      Pt2di aSzI2 = mWithOri ? 
+                    mGenI2->SzBasicCapt3D() : 
+                    Tiff_Im::StdConvGen(mName2.c_str(),aConsChan ? -1 :1 ,true).sz() ;
 
-      cTmpReechEpip aReech1(aConsChan,mName1,Box2dr(Pt2dr(0,0),Pt2dr(aSzI1)),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1"+mPostIm+".tif",mPostMasq,mNumKer,mDebug,mNbBloc);
+      cTmpReechEpip aReech1(aConsChan,mName1,Box2dr(Pt2dr(0,0),Pt2dr(aSzI1)),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1"+mPostIm+".tif",mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
       std::cout << "DONE IM1 \n";
-      cTmpReechEpip aReech2(aConsChan,mName2,Box2dr(Pt2dr(0,0),Pt2dr(aSzI2)),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2"+mPostIm+".tif",mPostMasq,mNumKer,mDebug,mNbBloc);
+      cTmpReechEpip aReech2(aConsChan,mName2,Box2dr(Pt2dr(0,0),Pt2dr(aSzI2)),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2"+mPostIm+".tif",mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
       std::cout << "DONE IM2 \n";
 
       std::cout << "DONNE REECH TMP \n";
@@ -589,15 +636,17 @@ void cApply_CreateEpip_main::DoEpipGen()
 
 
 cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
-   mDegre    (-1),
-   mForceGen (false),
-   mNumKer   (5),
-   mDebug    (false),
-   mPostMasq (""),
-   mGenI1    (0),
-   mGenI2    (0),
-   mWithOri  (true),
-   mNbBloc   (2000)
+   mDegre     (-1),
+   mForceGen  (false),
+   mNumKer    (5),
+   mDebug     (false),
+   mPostMasq  (""),
+   mGenI1     (0),
+   mGenI2     (0),
+   mWithOri   (true),
+   mNbBloc    (2000),
+   mDegSupInv (4),
+   mEpsCheckInv (1e-1)
 {
     Tiff_Im::SetDefTileFile(50000);
     std::string aDir= ELISE_Current_DIR;
@@ -634,6 +683,9 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 		    << EAM(mDir1,"Dir1",false,"Direction of Epip one (when Ori=NONE)")
 		    << EAM(mDir2,"Dir2",false,"Direction of Epip one (when Ori=NONE)")
 		    << EAM(mNbBloc,"NbBloc",false,"Sz of Bloc (mostly tuning)")
+		    << EAM(mDebug,"Debug",false,"Debuging")
+		    << EAM(mDegSupInv,"SDI",false,"Supplementary degree for inverse")
+		    << EAM(mEpsCheckInv,"ECI",false,"Espsilpn for check inverse accuracy")
     );
 
 
@@ -675,10 +727,12 @@ if (!MMVisualMode)
 
      if ((!mWithOri) || (mGenI1->DownCastCS()==0) || (mGenI2->DownCastCS()==0) || mForceGen)
      {
+
          if (! EAMIsInit(&mDegre))
          {
             mDegre = mWithOri ? 9 : 2;
          }
+         std::cout << "DDDDDD " << mDegre << " " << mWithOri << "\n";
          DoEpipGen();
          return;
      }

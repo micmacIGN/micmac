@@ -1362,7 +1362,8 @@ class CpleEpipolaireCoord
                                                 const ElPackHomologue &,
                                                 INT   aDegre,
                                                 Pt2dr aDir1,
-                                                Pt2dr aDir2
+                                                Pt2dr aDir2,
+                                                int   aDeltaDeg=2
                                         );
             static CpleEpipolaireCoord * PolynomialFromHomologue
                                         (
@@ -1371,7 +1372,8 @@ class CpleEpipolaireCoord
                                                 const ElPackHomologue & lHL2,
                                                 INT   aDegreL2,
                                                 Pt2dr aDir1,
-                                                Pt2dr aDir2
+                                                Pt2dr aDir2,
+                                                int   aDeltaDeg=2
                                         );
 
             static CpleEpipolaireCoord * PolynomialFromHomologue
@@ -1382,7 +1384,8 @@ class CpleEpipolaireCoord
                                                 const ElPackHomologue &,
                                                 INT   aDegre,
                                                 Pt2dr aDir1,
-                                                Pt2dr aDir2
+                                                Pt2dr aDir2,
+                                                int   aDeltaDeg=2
                                         );
 
 
