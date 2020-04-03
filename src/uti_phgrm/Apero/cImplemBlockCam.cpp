@@ -502,12 +502,14 @@ class cIBC_ImsOneTime
         cIBC_ImsOneTime(int aNbCam,const std::string& aNameTime) ;
         void  AddPose(cPoseCam *, int aNum);
         cPoseCam * Pose(int aKP);
+        void SetNum(int aNum);
         const std::string & NameTime() const {return mNameTime;}
 
     private :
 
-        std::vector<cPoseCam *> mCams;
+        std::vector<cPoseCam *> mVCams;
         std::string             mNameTime;
+        int                     mNums;
 };
 
 
@@ -614,27 +616,36 @@ static cCmp_IOT_Ptr TheIOTCmp;
 
 
 cIBC_ImsOneTime::cIBC_ImsOneTime(int aNb,const std::string & aNameTime) :
-       mCams     (aNb),
+       mVCams     (aNb),
        mNameTime (aNameTime)
 {
 }
 
+void cIBC_ImsOneTime::SetNum(int aNum)
+{
+    for (auto & aPCam : mVCams)
+    {
+        if (aPCam)
+           aPCam->SetNumTimeBloc(aNum);
+    }
+}
+
 void  cIBC_ImsOneTime::AddPose(cPoseCam * aPC, int aNum) 
 {
-    cPoseCam * aPC0 =  mCams.at(aNum);
+    cPoseCam * aPC0 =  mVCams.at(aNum);
     if (aPC0 != 0)
     {
          std::cout <<  "For cameras " << aPC->Name() <<  "  and  " << aPC0->Name() << "\n";
          ELISE_ASSERT(false,"Conflicting name from KeyIm2TimeCam ");
     }
     
-    mCams[aNum] = aPC;
+    mVCams[aNum] = aPC;
 }
 
 
 cPoseCam * cIBC_ImsOneTime::Pose(int aKP)
 {
-   return mCams.at(aKP);
+   return mVCams.at(aKP);
 }
     // =================================
     //              cIBC_OneCam 
@@ -845,6 +856,8 @@ cImplemBlockCam::cImplemBlockCam
     }
     mNbTime = (int)mNum2ITime.size();
     std::sort(mNum2ITime.begin(),mNum2ITime.end(),TheIOTCmp); // sort by time stamp
+    for (int aK=0 ; aK<mNbTime ; aK++)
+        mNum2ITime[aK]->SetNum(aK);
 
 
 // ## 

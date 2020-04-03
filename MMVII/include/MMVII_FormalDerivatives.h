@@ -462,7 +462,7 @@ template <class TypeElem> class cImplemF  : public cMemCheck
        /// Compute in the reference graphe and put formal explored in VReached
        void CalcRecursiveDepth(std::vector<tFormula> & VReached) ;
        int Depth() const {return mDepth;}  ///< Standard accessor
-       void SetDepth(bool aDepth) {mDepth = aDepth;}  ///< Fix Reached
+       void SetDepth(int aDepth) {mDepth = aDepth;}  ///< Fix Reached
 
 
      // ---------- Tuning / Debugging / Analysing ---------------
