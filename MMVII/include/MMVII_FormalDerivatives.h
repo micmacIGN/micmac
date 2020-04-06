@@ -126,10 +126,48 @@ namespace  NS_MMVII_FormalDerivative
 */
 
 /// These functions are required if we want to have same operation on numbers double and formulas
-double square(const double & aV)  {return aV*aV;}
-double square(const float & aV)  {return aV*aV;}
-double cube(const double & aV)  {return aV*aV*aV;}
-double cube(const float & aV)  {return aV*aV*aV;}
+inline double square(const double & aV)  {return aV*aV;}
+inline double square(const float & aV)   {return aV*aV;}
+
+inline double cube(const double & aV)    {return aV*aV*aV;}
+inline double cube(const float & aV)     {return aV*aV*aV;}
+
+inline double pow4(const double & aV)   {return square(square(aV));}
+inline double pow4(const float & aV)    {return square(square(aV));}
+
+inline double pow5(const double & aV)   {return aV *pow4(aV);}
+inline double pow5(const float & aV)    {return aV *pow4(aV);}
+
+inline double pow6(const double & aV)   {return square(cube(aV));}
+inline double pow6(const float & aV)    {return square(cube(aV));}
+
+inline double pow7(const double & aV)   {return aV *pow6(aV);}
+inline double pow7(const float & aV)    {return aV *pow6(aV);}
+
+inline double pow8(const double & aV)   {return square(pow4(aV));}
+inline double pow8(const float & aV)    {return square(pow4(aV));}
+
+inline double pow9(const double & aV)   {return aV *pow8(aV);}
+inline double pow9(const float & aV)    {return aV *pow8(aV);}
+
+template <class Type> Type powI(const Type & aV,const int aNb)
+{
+   switch (aNb)
+   {
+        case 0 : return Type(1.0);
+        case 1 : return aV;
+        case 2 : return square(aV);
+        case 3 : return cube(aV);
+        case 4 : return pow4(aV);
+        case 5 : return pow5(aV);
+        case 6 : return pow6(aV);
+        case 7 : return pow7(aV);
+        case 8 : return pow8(aV);
+        case 9 : return pow9(aV);
+   }
+   return std::pow(aV,Type(aNb));
+}
+
 // static double square(const float & aV)  {return aV*aV;}
 
 void Error(const std::string & aMes,const std::string & aExplanation)
@@ -154,6 +192,7 @@ void AssertAlmostEqual(const double & aV1,const double & aV2,const double & aEps
    if ( (std::abs(aV1-aV2)> aEps*(std::abs(aV1)+std::abs(aV2))) )
       InternalError("Test equality failed");
 }
+
 
 /** This function computes derivates by finites difference
     It is used in the tests to check correction of  formal derivatives. Also used
@@ -853,6 +892,8 @@ void cCoordinatorF<TypeElem>::SetCurFormulas(const std::vector<tFormula> & aVF)
     } 
 
     // Use depth to have topological sort
+    // In fact it is probably not necessary to make this sort, initial order of reaching order
+    // should work;  by the way : no dammage ..
     std::sort
     (
         mVReachedF.begin(),

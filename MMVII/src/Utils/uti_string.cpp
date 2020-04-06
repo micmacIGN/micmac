@@ -146,6 +146,12 @@ std::string Postfix(const std::string & aStr,char aSep,bool SVP,bool PrivPref)
     return aAfter;
 }
 
+std::string LastPostfix(const std::string & aStr,char aSep)
+{
+    return Postfix(aStr,aSep,true,true);
+}
+
+
 
 bool UCaseEqual(const std::string & aStr1 ,const std::string & aStr2)
 {
@@ -361,7 +367,7 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
         }
         else
         {
-            MMVII_INTERNAL_ASSERT_user(eTyUEr::eCreateDir,"Cannot create directory for arg " + aDir);
+            MMVII_UsersErrror(eTyUEr::eCreateDir,"Cannot create directory for arg " + aDir);
         }
     }
     return Ok;
@@ -381,10 +387,7 @@ bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP)
 bool RemoveFile(const  std::string & aFile,bool SVP)
 {
    bool Ok = boost::filesystem::remove(aFile);
-   if ((! Ok) && (!SVP))
-   {
-      MMVII_INTERNAL_ASSERT_user(eTyUEr::eRemoveFile,"Cannot remove file for arg " + aFile);
-   }
+   MMVII_INTERNAL_ASSERT_User(  Ok||SVP  , eTyUEr::eRemoveFile,"Cannot remove file for arg " + aFile);
    return Ok;
 }
 

@@ -83,10 +83,10 @@ void MMVII_RestoreDefaultHandle();
 { MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
 
 void MMVII_UsersErrror(const eTyUEr &,const std::string & aMes);
-#define MMVII_INTERNAL_ASSERT_user(aRef,aMes)\
- if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_UserError ) \
+#define MMVII_INTERNAL_ASSERT_User(aTest,aRef,aMes)\
+ if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_UserError) && (!(aTest))) \
 {  MMVII_UsersErrror(aRef,aMes);}
-
+void MMVII_UnclasseUsEr(const std::string & aMes);
 
 
 #define MMVII_INTERNAL_ASSERT_always(aTest,aMes)\

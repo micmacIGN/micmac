@@ -11,15 +11,24 @@ using ceres::Jet;
 
 // ========== Define on Jets two optimization as we did on formal 
 
-template <typename T, int N>
-inline Jet<T, N> square(const Jet<T, N>& f) {
-  return Jet<T, N>(FD::square(f.a), 2.0*f.a * f.v);
+template <typename T, int N> inline Jet<T, N> square(const Jet<T, N>& f) 
+{
+  return Jet<T, N>(FD::square(f.a), (2.0*f.a) * f.v);
 }
 
-template <typename T, int N>
-inline Jet<T, N> cube(const Jet<T, N>& f) {
-  return Jet<T, N>(FD::cube(f.a), 3.0*FD::square(f.a) * f.v);
+template <typename T, int N> inline Jet<T, N> cube(const Jet<T, N>& f) 
+{
+  T a2 = FD::square(f.a);
+  return Jet<T, N>(f.a*a2, (3.0*a2) * f.v);
 }
+
+template <typename T, int N> inline Jet<T, N> pow4(const Jet<T, N>& f) 
+{
+  T a3 = FD::cube(f.a);
+  return Jet<T, N>(f.a*a3, (4.0*a3) * f.v);
+}
+
+//=========================================
 
 //=========================================
 
@@ -212,7 +221,7 @@ std::vector<Type> FitCube
 
 void InspectCube()
 {
-    std::cout <<  "===================== TestRatkoswky  ===================\n";
+    std::cout <<  "===================== TestFoncCube  ===================\n";
 
     // Create a context where values are stored on double and :
     //    2 unknown, 2 observations, a buffer of size 100
@@ -259,197 +268,381 @@ void InspectCube()
 */
 
 
-
-#define NB_UK  19
-#define NB_OBS 11
-
-/*  Capital letter for 3D variable/formulas and small for 2D */
-template <class TypeUk,class TypeObs> std::vector<TypeUk> FraserCamColinearEq
-                  (
-                      const std::vector<TypeUk> & aVUk,
-                      const std::vector<TypeObs> & aVObs
-                  )
-{
-    assert (aVUk.size() ==NB_UK) ;// FD::UserSError("Bad size for unknown");
-    assert (aVObs.size()==NB_OBS) ;// FD::UserSError("Bad size for observations");
-
-    // 0 - Ground Coordinates of projected point
-    const auto & XGround = aVUk[0];
-    const auto & YGround = aVUk[1];
-    const auto & ZGround = aVUk[2];
-// std::cout << "LLL " << __LINE__ << " " << XGround.mNum << " " << YGround.mNum << " " << ZGround.mNum << "\n";
-
-    // 1 - Pose / External parameter 
-        // 1.1  Coordinate of camera center
-    const auto & C_XCam = aVUk[3];
-    const auto & C_YCam = aVUk[4];
-    const auto & C_ZCam = aVUk[5];
-
-        // 1.2  Coordinate of Omega vector coding the unknown "tiny" rotation
-    const auto & Wx = aVUk[6];
-    const auto & Wy = aVUk[7];
-    const auto & Wz = aVUk[8];
-
-    // 2 - Intrinsic parameters
-         // 2.1 Principal point  and Focal
-    const auto & xPP = aVUk[ 9];
-    const auto & yPP = aVUk[10];
-    const auto & zPP = aVUk[11]; // also named as focal
-
-         // Also in this model we confond Principal point and distorsion center, name 
-         // explicitely the dist center case we change our mind
-    const auto & xCD = xPP;
-    const auto & yCD = yPP;
-
-         // 2.2  Radial  distortions coefficients
-    const auto & k2D = aVUk[12];
-    const auto & k4D = aVUk[13];
-    const auto & k6D = aVUk[14];
-
-         // 2.3  Decentric distorstion
-    const auto & p1 = aVUk[15];
-    const auto & p2 = aVUk[16];
-
-         // 2.3  Affine distorsion
-    const auto & b1 = aVUk[17];
-    const auto & b2 = aVUk[18];
-
-   // Vector P->Cam
-    auto  XPC = XGround-C_XCam;
-    auto  YPC = YGround-C_YCam;
-    auto  ZPC = ZGround-C_ZCam;
-
-
-    // Coordinate of points in  camera coordinate system, do not integrate "tiny" rotation
-
-    auto  XCam0 = aVObs[0] * XPC +  aVObs[1]* YPC +  aVObs[2]*ZPC;
-    auto  YCam0 = aVObs[3] * XPC +  aVObs[4]* YPC +  aVObs[5]*ZPC;
-    auto  ZCam0 = aVObs[6] * XPC +  aVObs[7]* YPC +  aVObs[8]*ZPC;
-
-// std::cout << "LLL " << __LINE__ << " " << aVObs[0] << " " << aVObs[1] << " " << aVObs[2] << "\n";
-
-    // Now "tiny" rotation
-    //  Wx      X      Wy * Z - Wz * Y
-    //  Wy  ^   Y  =   Wz * X - Wx * Z
-    //  Wz      Z      Wx * Y - Wy * X
-
-     //  P =  P0 + W ^ P0 
-
-    auto  XCam = XCam0 + Wy * ZCam0 - Wz * YCam0;
-    auto  YCam = YCam0 + Wz * XCam0 - Wx * ZCam0;
-    auto  ZCam = ZCam0 + Wx * YCam0 - Wy * XCam0;
-
-    // Projection :  (xPi,yPi,1) is the bundle direction in camera coordinates
-
-    auto xPi =  XCam/ZCam;
-    auto yPi =  YCam/ZCam;
-// std::cout << "LLL " << __LINE__ << " " << XCam.mNum << " " << YCam.mNum << " " << ZCam.mNum << "\n";
-// std::cout << "LLL " << __LINE__ << " " << xPi.mNum << " " << yPi.mNum << "\n";
-
-    // Coordinate relative to distorsion center
-    auto xC =  xPi-xCD;
-    auto yC =  yPi-yCD;
-    auto x2C = square(xC);  // Use the indermediar value to (probably) optimize Jet
-    auto y2C = square(yC);
-    auto xyC = xC * yC;
-    auto Rho2C = x2C + y2C;
-
-   // Compute the distorsion
-    auto rDist = k2D*Rho2C + k4D * square(Rho2C) + k6D*cube(Rho2C);
-    auto affDist = b1 * xC + b2 * yC;
-    auto decX = p1*(3.0*x2C + y2C) +  p2*(2.0*xyC);
-    auto decY = p2*(3.0*y2C + x2C) +  p1*(2.0*xyC);
-    
-
-    auto xDist =  xPi + xC * rDist + decX + affDist;
-    auto yDist =  yPi + yC * rDist + decY ;
-
-   // Use principal point and focal
-    auto xIm =  xPP  + zPP  * xDist;
-    auto yIm =  yPP  + zPP  * yDist;
-
-// std::cout << "LLL " << __LINE__ << " " << xIm.mNum << " " << yIm.mNum << "\n";
-
-    auto x_Residual = xIm -  aVObs[ 9];
-    auto y_Residual = yIm -  aVObs[10];
-
-// getchar();
-
-    return {x_Residual,y_Residual};
-}
-
-
-class cTestFraserCamColinearEq
+template <const int NbParamD> class cCountDist
 {
     public :
-       cTestFraserCamColinearEq(int aSzBuf,bool Show);
+        static const int TheNbDist  =  NbParamD;
+        static const int TheNbUk    = 12 + TheNbDist;
+        static const int TheNbObs   = 11;
 
-    private :
-       
-       static const int  TheNbUk  = 19;
-       static const int  TheNbObs = 11;
-       typedef Jet<double,NB_UK>  tJets;
-       //  typedef cEpsNum<NB_UK>     tEps;
-
-       static const  std::vector<std::string> TheVNamesUnknowns;
-       static const  std::vector<std::string> TheVNamesObs;
-
-       /// Return unknowns vect after fixing XYZ (ground point)
-       const std::vector<double> & VUk(double X,double Y,double Z);
-       /// Return observation vect t after fixing I,J (pixel projection)
-       const std::vector<double> & VObs(double I,double J);
-
- 
-       FD::cCoordinatorF<double>  mCFD;  /// Coordinator for formal derivative
-       std::vector<double>        mVUk;  /// Buffer for computing the unknown
-       std::vector<double>        mVObs; /// Buffer for computing the unknown
+        typedef Jet<double,TheNbUk>  tJets;
+        typedef FD::cCoordinatorF<double>  tCoord;
+        typedef typename tCoord::tFormula  tFormula;
 };
 
 
-const std::vector<double> & cTestFraserCamColinearEq::VUk(double X,double Y,double Z)
-{
-   mVUk[0] = X;
-   mVUk[1] = Y;
-   mVUk[2] = Z;
+/*
+    We avoid
+     - Degre 0 =>  all because principal point
 
-   return mVUk;
-}
+     - Degre 1 =>  (1 0 0 1) is focal (0 -1 1 0) is rotation
+               A complementary base is :
+                 (1 0 0 0)  (0 1 0 0)  
+             So we avoid  degree 1 in Y
 
-const std::vector<double> & cTestFraserCamColinearEq::VObs(double I,double J)
+     - Degre 2 :
+
+          Rotation arround X  + linear are highly correlated to X2 , so avoid X2 in X
+          Idem avoid Y2 in Y
+
+    Number of term in  Degree 2 : 1 X Y X2 XY Y2 =>  1 +2 +3 = (2+1)(2+2) /2
+
+    Total number :
+        ( ((D+1)(D+2)) / 2 ) *2  -6  
+          
+*/
+
+template <const int Degree> class  cCountPolDist  : public cCountDist<(Degree+1)*(Degree+2) -6> 
 {
-     mVObs[ 9] = I;
-     mVObs[10] = J;
+     public :
+        static const int TheDegree  =  Degree;
     
-    return mVObs;
-}
+        static bool OkMonome(bool isX,int aDegX,int aDegY)
+        {
+            if ((aDegX ==0) && (aDegY==0))          return false;  // 
+            if ((!isX) && ((aDegX + aDegY) ==1))       return false;  // 
+            if (isX &&    (aDegX==2) &&  (aDegY ==0))  return false;  // 
+            if ((!isX) && (aDegX==0) &&  (aDegY ==2))  return false;  // 
+            return true;
+        }
+};
+
+cCountPolDist<4>  aD4;
 
 
 
-const std::vector<std::string> 
-  cTestFraserCamColinearEq::TheVNamesUnknowns
-  {
-      "XGround","YGround","ZGround",            // Unknown 3D Point
-      "XCam","YCam","ZCam", "Wx","Wy","Wz",     // External Parameters
-      "ppX","ppY","ppZ",                        // Internal : principal point + focal
-      "k2","k4","k6", "p1","p2","b1","b2"       // Distorsion (radiale/ Decentric/Affine)
-  };
-
-const std::vector<std::string> 
-  cTestFraserCamColinearEq::TheVNamesObs
-  {
+static const std::vector<std::string> VNamesObs
+{
         "oR00","oR01","oR02","oR10","oR11","oR12","oR20","oR21","oR22",
         "oXIm","oYIm"
-  };
+};
+
+static const std::vector<std::string>  VUnkGlob
+      {
+        "XGround","YGround","ZGround",        // Unknown 3D Point
+        "XCam","YCam","ZCam", "Wx","Wy","Wz", // External Parameters
+        "ppX","ppY","ppZ"                     // Internal : principal point + focal
+      };
+
+template <class T,const int N> Jet<T, N>  CreateCste(const T & aV,const Jet<T, N>&) 
+{
+    return Jet<T, N>(aV);
+}
+template <class T>  FD::cFormula<T> CreateCste(const T & aV,const FD::cFormula<T> & aF) 
+{
+    return aF->CoordF()->CsteOfVal(aV);
+}
+
+template <class TypeUk,class TypeObs,const int Deg> class cTplPolDist : public cCountPolDist<Deg>
+{
+    public :
+       typedef  TypeUk   tUk;
+       typedef  TypeObs  tObs;
+
+       static const std::vector<std::string>&  VNamesUnknowns()
+       {
+         static std::vector<std::string>  TheV;
+         if (TheV.empty()) // First call
+         {
+            TheV = VUnkGlob;
+            static std::vector<int>  aXDx,aXDy,aYDx,aYDy;
+            InitDegreeMonomes(aXDx,aXDy,aYDx,aYDy);
+ 
+            for (size_t aK=0 ; aK<aXDx.size() ; aK++)
+                TheV.push_back("xPol_" + std::to_string(aXDx.at(aK)) + std::to_string(aXDy.at(aK)));
+
+            for (size_t aK=0 ; aK<aYDx.size() ; aK++)
+                TheV.push_back("yPol_" + std::to_string(aYDx.at(aK)) + std::to_string(aYDy.at(aK)));
+         }
+         return  TheV;
+       }
+       static std::vector<TypeUk> Dist (
+                                 const tUk & xPi,const tUk & yPi, 
+                                 const std::vector<tUk> & aVUk, const std::vector<tObs> & aVObs
+                             )
+       {
+            static std::vector<int>  aXDx,aXDy,aYDx,aYDy;
+            if (aXDx.empty())
+               InitDegreeMonomes(aXDx,aXDy,aYDx,aYDy);
+             
+            std::vector<tUk> aVMonX;  
+            std::vector<tUk> aVMonY;  
+
+            aVMonX.push_back(CreateCste(1.0,xPi));
+            aVMonY.push_back(CreateCste(1.0,xPi));
+            for (int aD=1 ;aD<=Deg ; aD++)
+            {
+               aVMonX.push_back(aVMonX.back()*xPi);
+               aVMonY.push_back(aVMonY.back()*yPi);
+            }
+            auto xDist =  CreateCste(0.0,xPi);
+            auto yDist =  CreateCste(0.0,xPi);
+
+            int anInd = 12;
+            for (size_t aK=0; aK<aXDx.size() ; aK++)
+                xDist = xDist+aVMonX.at(aXDx.at(aK))*aVMonY.at(aXDy.at(aK))*aVUk.at(anInd++);
+
+            for (size_t aK=0; aK<aYDx.size() ; aK++)
+                yDist = yDist+aVMonX.at(aYDx.at(aK))*aVMonY.at(aYDy.at(aK))*aVUk.at(anInd++);
+
+            return {xDist,yDist};
+       }
+
+    private :
+       static inline void InitDegreeMonomes
+            (
+                std::vector<int>  & aXDx,  // Degre in x of X component
+                std::vector<int>  & aXDy,  // Degre in y of X component
+                std::vector<int>  & aYDx,  // Degre in x of Y component
+                std::vector<int>  & aYDy   // Degre in y of Y component
+            )
+        {
+            for (int aDx=0 ; aDx<=Deg ; aDx++)
+            {
+                for (int aDy=0 ; (aDx+aDy)<=Deg ; aDy++)
+                {
+                    if (cCountPolDist<Deg>::OkMonome(true,aDx,aDy))
+                    {
+                        aXDx.push_back(aDx);
+                        aXDy.push_back(aDy);
+                    }
+
+                    if (cCountPolDist<Deg>::OkMonome(false,aDx,aDy))
+                    {
+                        aYDx.push_back(aDx);
+                        aYDy.push_back(aDy);
+                    }
+                }
+            }
+        }
+};
 
 
 
 
-cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf,bool Show) :
-    // mCFD (aSzBuf,19,11) would have the same effect, but future generated code will be less readable
-     mCFD  (aSzBuf,TheVNamesUnknowns,TheVNamesObs),
+
+template <class TypeUk,class TypeObs> class cTplFraserDist : public cCountDist<7>
+{
+  public :
+    typedef  TypeUk   tUk;
+    typedef  TypeObs  tObs;
+    static const std::vector<std::string>&  VNamesUnknowns()
+    {
+      static std::vector<std::string>  TheV;
+      if (TheV.empty())
+      {
+        TheV = VUnkGlob;
+        for (auto aS :{"k2","k4","k6", "p1","p2","b1","b2"}) // Distorsion (radiale/ Decentric/Affine)
+           TheV.push_back(aS);
+      }
+ 
+      return  TheV;
+    }
+
+    static std::vector<TypeUk> Dist (
+                                 const tUk & xPi,const tUk & yPi, 
+                                 const std::vector<tUk> & aVUk, const std::vector<tObs> & aVObs
+                             )
+    {
+         // Also in this model we confond Principal point and distorsion center, name 
+         // explicitely the dist center 
+         const auto & xCD = aVUk[ 9];
+         const auto & yCD = aVUk[10];
+
+         // 2.2  Radial  distortions coefficients
+         const auto & k2D = aVUk[12];
+         const auto & k4D = aVUk[13];
+         const auto & k6D = aVUk[14];
+
+         // 2.3  Decentric distorstion
+         const auto & p1 = aVUk[15];
+         const auto & p2 = aVUk[16];
+
+         // 2.3  Affine distorsion
+         const auto & b1 = aVUk[17];
+         const auto & b2 = aVUk[18];
+
+    // Coordinate relative to distorsion center
+         auto xC =  xPi-xCD;
+         auto yC =  yPi-yCD;
+         auto x2C = square(xC);  // Use the indermediar value to (probably) optimize Jet
+         auto y2C = square(yC);
+         auto xyC = xC * yC;
+         auto Rho2C = x2C + y2C;
+
+   // Compute the distorsion
+         auto rDist = k2D*Rho2C + k4D * square(Rho2C) + k6D*cube(Rho2C);
+         auto affDist = b1 * xC + b2 * yC;
+         auto decX = p1*(3.0*x2C + y2C) +  p2*(2.0*xyC);
+         auto decY = p2*(3.0*y2C + x2C) +  p1*(2.0*xyC);
+    
+
+         auto xDist =  xPi + xC * rDist + decX + affDist;
+         auto yDist =  yPi + yC * rDist + decY ;
+
+         return {xDist,yDist};
+    }
+  private :
+};
+
+
+// template <class TypeUk,class TypeObs>  class cEqCoLinearity
+template <class TypeDist>  class cEqCoLinearity
+{
+  public :
+    typedef typename TypeDist::tUk   tUk;
+    typedef typename TypeDist::tObs  tObs;
+
+    typedef typename TypeDist::tJets  tJets;
+    static const int  TheNbUk  = TypeDist::TheNbUk;
+    static const int  TheNbObs = TypeDist::TheNbObs;
+
+       /*  Capital letter for 3D variable/formulas and small for 2D */
+    static     std::vector<tUk> Residual
+                  (
+                      const std::vector<tUk> & aVUk,
+                      const std::vector<tObs> & aVObs
+                  )
+    {
+        assert (aVUk.size() ==TheNbUk) ;  // FD::UserSError("Bad size for unknown");
+        assert (aVObs.size()==TheNbObs) ;// FD::UserSError("Bad size for observations");
+
+        // 0 - Ground Coordinates of projected point
+        const auto & XGround = aVUk[0];
+        const auto & YGround = aVUk[1];
+        const auto & ZGround = aVUk[2];
+
+        // 1 - Pose / External parameter 
+            // 1.1  Coordinate of camera center
+        const auto & C_XCam = aVUk[3];
+        const auto & C_YCam = aVUk[4];
+        const auto & C_ZCam = aVUk[5];
+
+            // 1.2  Coordinate of Omega vector coding the unknown "tiny" rotation
+        const auto & Wx = aVUk[6];
+        const auto & Wy = aVUk[7];
+        const auto & Wz = aVUk[8];
+
+        // 2 - Intrinsic parameters
+             // 2.1 Principal point  and Focal
+        const auto & xPP = aVUk[ 9];
+        const auto & yPP = aVUk[10];
+        const auto & zPP = aVUk[11]; // also named as focal
+
+       // Vector P->Cam
+        auto  XPC = XGround-C_XCam;
+        auto  YPC = YGround-C_YCam;
+        auto  ZPC = ZGround-C_ZCam;
+
+
+        // Coordinate of points in  camera coordinate system, do not integrate "tiny" rotation
+
+        auto  XCam0 = aVObs[0] * XPC +  aVObs[1]* YPC +  aVObs[2]*ZPC;
+        auto  YCam0 = aVObs[3] * XPC +  aVObs[4]* YPC +  aVObs[5]*ZPC;
+        auto  ZCam0 = aVObs[6] * XPC +  aVObs[7]* YPC +  aVObs[8]*ZPC;
+
+        // Now "tiny" rotation
+        //  Wx      X      Wy * Z - Wz * Y
+        //  Wy  ^   Y  =   Wz * X - Wx * Z
+        //  Wz      Z      Wx * Y - Wy * X
+
+         //  P =  P0 + W ^ P0 
+
+        auto  XCam = XCam0 + Wy * ZCam0 - Wz * YCam0;
+        auto  YCam = YCam0 + Wz * XCam0 - Wx * ZCam0;
+        auto  ZCam = ZCam0 + Wx * YCam0 - Wy * XCam0;
+
+        // Projection :  (xPi,yPi,1) is the bundle direction in camera coordinates
+
+        auto xPi =  XCam/ZCam;
+        auto yPi =  YCam/ZCam;
+        auto   aVDist = TypeDist::Dist(xPi,yPi,aVUk,aVObs);
+
+        const auto & xDist =  aVDist[0];
+        const auto & yDist =  aVDist[1];
+
+       // Use principal point and focal to compute image projection
+        auto xIm =  xPP  + zPP  * xDist;
+        auto yIm =  yPP  + zPP  * yDist;
+
+
+       // 
+        auto x_Residual = xIm -  aVObs[ 9];
+        auto y_Residual = yIm -  aVObs[10];
+
+
+        return {x_Residual,y_Residual};
+    }
+};
+
+
+//  TJD  : type jets dist  , TFD : type formal dist
+template <class TJD,class TFD>  class cTestEqCoL
+{
+    public :
+       cTestEqCoL(int aSzBuf,bool Show);
+
+    private :
+       static const int  TheNbUk = TJD::TheNbUk;
+       static const int  TheNbObs = TJD::TheNbObs;
+
+       typedef typename TJD::tJets          tJets;
+       typedef FD::cCoordinatorF<double>    tCoord;
+       typedef typename tCoord::tFormula    tFormula;
+
+       // static const  std::vector<std::string> TheVNamesUnknowns;
+       // static const  std::vector<std::string> TheVNamesObs;
+
+       /// Return unknowns vect after fixing XYZ (ground point)
+       const std::vector<double> & VUk(double X,double Y,double Z)
+       {
+          mVUk[0] = X;
+          mVUk[1] = Y;
+          mVUk[2] = Z;
+
+          return mVUk;
+       }
+       /// Return observation vect  after fixing I,J (pixel projection)
+       const std::vector<double> & VObs(double I,double J)
+       {
+          mVObs[ 9] = I;
+          mVObs[10] = J;
+    
+         return mVObs;
+       }
+
+ 
+       tCoord                     mCFD;  ///< Coordinator for formal derivative
+       std::vector<double>        mVUk;  ///< Buffer for computing the unknown
+       std::vector<double>        mVObs; ///< Buffer for computing the unknown
+};
+
+
+
+
+template <class TJD,class TFD>
+cTestEqCoL<TJD,TFD>::cTestEqCoL(int aSzBuf,bool Show) :
+     // mCFD (aSzBuf,TheNbUk,TheNbObs), //  would have the same effect, but future generated code will be less readable
+     mCFD  (aSzBuf,TJD::VNamesUnknowns(),VNamesObs),
      mVUk  (TheNbUk,0.0),
      mVObs (TheNbObs,0.0)
 {
+   // As I was not able to make automatic computation of size Jets, we check that user
+   // did not mistake
+
+   static_assert(TJD::tUk::DIMENSION==TheNbUk,"Incoherent size Jets/Number Unknonws");
+
+
    // In unknown, we set everything to zero exepct focal to 1
    mVUk[11] = 1.0;
    // In obs, we set the current matrix to Id
@@ -457,7 +650,8 @@ cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf,bool Show) :
 
    double aT0 = TimeElapsFromT0();
 
-   auto aVFormula = FraserCamColinearEq(mCFD.VUk(),mCFD.VObs());
+//   auto aVFormula = FraserFuncCamColinearEq(mCFD.VUk(),mCFD.VObs());
+   auto aVFormula = cEqCoLinearity<TFD>::Residual (mCFD.VUk(),mCFD.VObs());
    if (Show)
    {
        mCFD.SetCurFormulas({aVFormula[0]});
@@ -474,7 +668,10 @@ cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf,bool Show) :
 
    double aT1 = TimeElapsFromT0();
     
-   std::cout << "TestFraser NbEq=" << mCFD.VReached().size() << " TimeInit=" << (aT1-aT0) << "\n";
+   std::cout << "TestFraser " 
+             << ", SzBuf=" << aSzBuf 
+             << ", NbEq=" << mCFD.VReached().size() 
+             << ", TimeInit=" << (aT1-aT0) << "\n";
 
    
    // mCFD.ShowStackFunc();
@@ -492,30 +689,15 @@ cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf,bool Show) :
    std::vector<tJets> aJetRes;
    {
         std::vector<tJets>  aVJetUk;
-        for (int aK=0 ; aK<NB_UK ; aK++)
+        for (int aK=0 ; aK<TheNbUk ; aK++)
             aVJetUk.push_back(tJets(aVUk[aK],aK));
 
         for (int aK=0 ; aK<aNbTestTotal ; aK++)
         {
-            aJetRes = FraserCamColinearEq(aVJetUk,aVObs);
+            aJetRes = cEqCoLinearity<TJD>::Residual (aVJetUk,aVObs);
         }
         TimeJets = TimeElapsFromT0() - TimeJets;
    }
-
-/*
-   double TimeEps = TimeElapsFromT0();
-   std::vector<tEps> aEpsRes;
-   {
-        std::vector<tEps >  aVEpsUk;
-        for (int aK=0 ; aK<NB_UK ; aK++)
-            aVEpsUk.push_back(tEps(aVUk[aK],aK));
-        for (int aK=0 ; aK<aNbTestTotal ; aK++)
-        {
-            aEpsRes = FraserCamColinearEq(aVEpsUk,aVObs);
-        }
-        TimeEps = TimeElapsFromT0() - TimeEps;
-   }
-*/
 
    // Make the computation with formal deriv buffered
    double TimeBuf = TimeElapsFromT0();
@@ -543,7 +725,7 @@ cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf,bool Show) :
 
       FD::AssertAlmostEqual(aVJ,aVF,1e-5);
       // FD::AssertAlmostEqual(aVJ,aVF,1e-5);
-      for (int aKVar=0;  aKVar< NB_UK ; aKVar++)
+      for (int aKVar=0;  aKVar< TheNbUk ; aKVar++)
       {
            double aDVJ = aJetRes[aKVal].v[aKVar];
            //  double aDVE = aEpsRes[aKVal].mEps[aKVar] ;
@@ -558,42 +740,36 @@ cTestFraserCamColinearEq::cTestFraserCamColinearEq(int aSzBuf,bool Show) :
          << " TimeJets= " << TimeJets 
          // << " TimeEps= " << TimeEps 
          << " TimeBuf= " << TimeBuf
-         << "\n";
+         << "\n\n";
 }
+
+typedef cTplFraserDist<Jet<double,19>,double>                     tFraserJ;
+typedef cTplFraserDist<FD::cFormula<double>,FD::cFormula<double>> tFraserF;
+
+
+typedef cTplPolDist<Jet<double,12+8*9-6>,double,7> tPolJD7;
+typedef cTplPolDist<FD::cFormula<double>,FD::cFormula<double>,7> tPolFD7;
+
+typedef cTplPolDist<Jet<double,12+3*4-6>,double,2> tPolJD2;
+typedef cTplPolDist<FD::cFormula<double>,FD::cFormula<double>,2> tPolFD2;
 
 void TestFraserCamColinearEq()
 {
+   for (auto SzBuf : {1000,1})
    {
-       cTestFraserCamColinearEq (1000,false);
-       //  cTestFraserCamColinearEq (100);
-       //  cTestFraserCamColinearEq (10);
-       cTestFraserCamColinearEq (1,false);
+       cTestEqCoL<tFraserJ,tFraserF> (SzBuf,false);
    }
-/*
+
+   for (auto SzBuf : {1000,1})
    {
-        using MMVII::cEpsNum;
-        std::vector<cEpsNum<NB_UK> >  aVUk;
-        for (int aK=0 ; aK<NB_UK ; aK++)
-            aVUk.push_back(cEpsNum<NB_UK>(1.0,aK));
-
-        std::vector<double>  aVObs;
-        for (int aK=0 ; aK<NB_OBS ; aK++)
-            aVObs.push_back(1/(1.0+aK));
-
-       auto aVRes = FraserCamColinearEq(aVUk,aVObs);
+       cTestEqCoL<tPolJD2,tPolFD2> (SzBuf,false);
    }
+
+
+   for (auto SzBuf : {1000,1})
    {
-        std::vector<Jet<double,NB_UK> >  aVUk;
-        for (int aK=0 ; aK<NB_UK ; aK++)
-            aVUk.push_back(Jet<double,NB_UK>(1.0,aK));
-
-        std::vector<double>  aVObs;
-        for (int aK=0 ; aK<NB_OBS ; aK++)
-            aVObs.push_back(1/(1.0+aK));
-
-       auto aVRes = FraserCamColinearEq(aVUk,aVObs);
+       cTestEqCoL<tPolJD7,tPolFD7> (SzBuf,false);
    }
-*/
 
    getchar();
 }
@@ -608,6 +784,33 @@ namespace  MMVII
 
 void   BenchFormalDer()
 {
+    for (int aK=0 ; aK<10 ; aK++)
+    {
+        double aV= 1.35;
+        double aP1= pow(aV,double(aK));
+        double aP2= FD::powI(aV,aK);
+        std::cout << "HHHHH " << aP1 << " " << aP2 << "\n";
+        FD::AssertAlmostEqual(aP1,aP2,1e-8);
+    } 
+    int aNb=1e8;
+
+    double aT0 = TimeElapsFromT0();
+    double aS=0;
+    for (int aK=0 ; aK<aNb ; aK++)
+        aS+=std::pow(1.3,7);
+
+    double aT1 = TimeElapsFromT0();
+    for (int aK=0 ; aK<aNb ; aK++)
+        aS-=FD::powI(1.3,7);
+
+    double aT2 = TimeElapsFromT0();
+    for (int aK=0 ; aK<aNb ; aK++)
+        aS-=FD::pow7(1.3);
+
+    double aT3 = TimeElapsFromT0();
+
+    std::cout << "PowR " << aT1-aT0 << " PowI " << aT2-aT1 << " P7 " << aT3-aT2  << " SOM=" << aS << "\n";
+
     // MMVII::BenchCmpOpVect();
     TestFraserCamColinearEq();
    // Run TestRatkoswky with static obsevation an inital guess 
@@ -641,6 +844,11 @@ void   BenchFormalDer()
 -3- Form[17] => F8+F8     // 2 (a+bx) 
 -4- Form[18] => F8*F17    // 2 (a+bx) ^2
 -5- Form[19] => F18+F9    // 3 (a+bx) ^2
+
+(a+bx)^3
+3 (a+bx)^2 
+3 x (a+bx)^2
+
 REACHED 5 3 6 4 7 8 9 17 12 10 18 15 13 11 14 19 16   // Reached formula in their computation order
 CUR 11 19 16   // Computed formula
 */

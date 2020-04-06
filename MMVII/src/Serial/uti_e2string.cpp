@@ -48,7 +48,7 @@ template <class TypeEnum> class cE2Str
          // String to enum is probably a user error (programm create enum)
          if (anIt == mS2E->end())
          {
-            MMVII_INTERNAL_ASSERT_user(eTyUEr::eBadEnum,"Str2E for : " + aStr + " ; valid are : " + StrAllVal() );
+            MMVII_UsersErrror(eTyUEr::eBadEnum,"Str2E for : "+aStr+" ; valids are : "+ StrAllVal() );
          }
          return anIt->second;
      }
@@ -192,6 +192,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eParseError,"ParseError"},
                 {eTyUEr::eBadDimForPt,"BadDimension4Pts"},
                 {eTyUEr::eBadSize4Vect,"BadSize4Vector"},
+                {eTyUEr::eMultiplePostifx,"MultiplePostifx"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
            };
 TPL_ENUM_2_STRING(eTyUEr);

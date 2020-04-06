@@ -63,6 +63,7 @@ enum class eApDT
               Console,  ///< Console 
               Xml,      ///< Xml-files
               FileSys,      ///< Input is the file system (list of file)
+              Media,      ///< Input is the file system (list of file)
               eNbVals       ///< Tag for number of value
            };
 
@@ -118,6 +119,7 @@ enum class eTyUEr
               eParseError,
               eBadDimForPt,
               eBadSize4Vect,
+              eMultiplePostifx,
               eUnClassedError,
               eNbVals
            };

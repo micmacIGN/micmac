@@ -308,7 +308,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cMultipleOfs & HelpOut();
         cMultipleOfs & ErrOut();
 
-        ///< MMVII call itself
+        ///< External call sys : use GlobalSysCall + register the command in log files
+        int ExtSysCall(const std::string & aCom, bool SVP);
+
+
+        /// MMVII call itself
         int   ExeCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&,bool ByLineCom=true); 
         void  ExeMultiAutoRecallMMVII
                                 (  const std::string & aNameOpt  ,  //!  Name of parameter to substitue

@@ -129,7 +129,7 @@ cCollecSpecArg2007 & cAppli_Walkman::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return 
       anArgOpt
-         << AOpt2007(mPat,"Pat","Pattern (regex), def=.*\\.mp3",{})
+         << AOpt2007(mPat,"Pat","Pattern (regex), def=.*\\.mp3",{eTA2007::HDV})
    ;
 }
 
@@ -223,12 +223,12 @@ tMMVII_UnikPApli Alloc_Walkman(const std::vector<std::string> &  aVArgs,const cS
 
 cSpecMMVII_Appli  TheSpecWalkman
 (
-     "Walkman",
+     "MediaWalkman",
       Alloc_Walkman,
       "This command is used to make a random selection of music",
       {eApF::Perso},
-      {eApDT::FileSys},
-      {eApDT::Xml},
+      {eApDT::FileSys,eApDT::Media},
+      {eApDT::Xml,eApDT::Media},
       __FILE__
 );
 
