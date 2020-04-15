@@ -1,15 +1,14 @@
-// #include "include/MMVII_all.h"
 #include "include/MMVII_FormalDerivatives.h"
-//#include "include/MMVII_Derivatives.h"
-
 #include "ceres/jet.h"
+
 
 namespace  FD = NS_MMVII_FormalDerivative;
 using ceres::Jet;
-// using MMVII::cEpsNum;
 
 
-// ========== Define on Jets two optimization as we did on formal 
+// ========= Define on Jets some function that make them work like formula and nums
+// and also may optimize the computation so that comparison is fair
+    
 
 template <typename T, int N> inline Jet<T, N> square(const Jet<T, N>& f) 
 {
@@ -22,19 +21,31 @@ template <typename T, int N> inline Jet<T, N> cube(const Jet<T, N>& f)
   return Jet<T, N>(f.a*a2, (3.0*a2) * f.v);
 }
 
-template <typename T, int N> inline Jet<T, N> pow4(const Jet<T, N>& f) 
+
+template <typename T, int N> inline Jet<T, N> powI(const Jet<T, N>& aJ,const int & aExp) 
 {
-  T a3 = FD::cube(f.a);
-  return Jet<T, N>(f.a*a3, (4.0*a3) * f.v);
+   // In this case avoid compute 1/x and multiply by x
+   if (aExp==0) return Jet<T,N>(1.0);
+
+   // make a single computation of pow
+   T aPm1 = FD::powI(aJ.a,aExp-1);
+   return Jet<T,N>(aJ.a*aPm1,(aExp*aPm1)*aJ.v);
 }
 
-//=========================================
+template <class T,const int N> Jet<T, N>  CreateCste(const T & aV,const Jet<T, N>&) 
+{
+    return Jet<T, N>(aV);
+}
+
+
 
 //=========================================
 
-static auto BeginOfTime = std::chrono::steady_clock::now();
+//=========================================
+
 double TimeElapsFromT0()
 {
+    static auto BeginOfTime = std::chrono::steady_clock::now();
     auto now = std::chrono::steady_clock::now();
     return std::chrono::duration_cast<std::chrono::microseconds>(now - BeginOfTime).count() / 1e6;
 }
@@ -209,9 +220,9 @@ std::vector<Type> FitCube
     // Naturally the user would write that
     if (false)
     {
+       return {cube(a+b *x)- y};
        Type F = (a+b *x);
        return {F*F*F - y};
-       return {cube(a+b *x)- y};
     }
 
 
@@ -261,175 +272,130 @@ void InspectCube()
     getchar();
 }
 
-/* {III}  ========================  Test perf on colinearit equation =================================
+/* {III}  ========================  Test perf on colinearit equation ==========================
 
-       On this example 
+    On this example we use the colinearity equation which is central in bundle adjustment. We
+    use it with different type of camera :
 
+       * a Fraser camera, which a very current as it modelize physically the
+         main distorsion with a relatively low number of parameters
+
+       * a polynomial model that is more mathemitcall that can be used to approximate any
+         function;  the degree is parametrizable inside a template
+
+Now we make a macro description of the main classes :
+
+   class cEqCoLinearity<class TypeDist> :  implement the colinarity equation;
+
+        It is parametrized by the type of distortion TypeDist; the TypeDist
+        will define the mathematicall function of distorsion
+        the TypeDist will also define the types of "scalars" for unknowns 
+        and observation. Scalar can be jet,cFormula, num.
+        See class cTplFraserDist for a detailled example of requirement to
+        be a valid dist.
+
+        Fundamental static method : Residual , for a given value of unknown and obs,
+        return the vector of residual (x,y).
+
+    cCountDist<const int> a Class for centralizing the counting of unknown and obs
+        
+    class cTplFraserDist<TypeUk,TypeObs> : public cCountDist<7>
+         a class implemanting fraser distorsion
+
+    class cTplPolDist<TypeUk,TypeObs,Deg>
+         a class implemanting polynomial distorsion of degre "Deg"
 */
 
+/*
+    ================ Mathematical formalization ===============
+
+    The unknown are :
+
+       * Pg = PGround
+       * C  = Center of camera
+       * R  = Orientation of camera Rotation Matrix
+       * F,PP = Principal point and focal
+       * Distortion
+
+    Then, without distorsion, we have alreay 12 unkwnown
+
+    We write the rotation as  R = A * R0 , were R0 is the current value of the
+    rotation. Because :
+       * it avoid the the classical guimbal-lock problem
+       * as A is a rotation close to identity, we ca, write A = I + ^W were W 
+         is a small vector , and ^W is the vector product matrix
+   
+   Then we have 11 obsevation : 
+
+        * 9 for matrix R0
+        * 2 for image point PIm
+
+   The equation is
+
+        * Pc  =  (I +^W) R0 (Pg-C)  for Pc= coordinate in camera repair
+        * PPi = Pp + F*(Pc.x,Pc.y) / Pc.z   for projection without distorsion
+        
+    =>    PIm = Dist(Proj) 
+*/
+
+/**
+    A class for sharing the number of unknown & observations. One template parameter
+    the number of unknown of the distortion
+*/
 
 template <const int NbParamD> class cCountDist
 {
     public :
-        static const int TheNbDist  =  NbParamD;
-        static const int TheNbUk    = 12 + TheNbDist;
-        static const int TheNbObs   = 11;
+        static const int TheNbDist        =  NbParamD;
+        static const int TheNbCommonUk    = 12 ;
+        static const int TheNbUk          = TheNbCommonUk + TheNbDist;
+        static const int TheNbObs         = 11;
 
         typedef Jet<double,TheNbUk>  tJets;
         typedef FD::cCoordinatorF<double>  tCoord;
         typedef typename tCoord::tFormula  tFormula;
-};
 
-
-/*
-    We avoid
-     - Degre 0 =>  all because principal point
-
-     - Degre 1 =>  (1 0 0 1) is focal (0 -1 1 0) is rotation
-               A complementary base is :
-                 (1 0 0 0)  (0 1 0 0)  
-             So we avoid  degree 1 in Y
-
-     - Degre 2 :
-
-          Rotation arround X  + linear are highly correlated to X2 , so avoid X2 in X
-          Idem avoid Y2 in Y
-
-    Number of term in  Degree 2 : 1 X Y X2 XY Y2 =>  1 +2 +3 = (2+1)(2+2) /2
-
-    Total number :
-        ( ((D+1)(D+2)) / 2 ) *2  -6  
-          
-*/
-
-template <const int Degree> class  cCountPolDist  : public cCountDist<(Degree+1)*(Degree+2) -6> 
-{
-     public :
-        static const int TheDegree  =  Degree;
-    
-        static bool OkMonome(bool isX,int aDegX,int aDegY)
+        static const std::vector<std::string> & VNamesObs()
         {
-            if ((aDegX ==0) && (aDegY==0))          return false;  // 
-            if ((!isX) && ((aDegX + aDegY) ==1))       return false;  // 
-            if (isX &&    (aDegX==2) &&  (aDegY ==0))  return false;  // 
-            if ((!isX) && (aDegX==0) &&  (aDegY ==2))  return false;  // 
-            return true;
-        }
-};
-
-cCountPolDist<4>  aD4;
-
-
-
-static const std::vector<std::string> VNamesObs
-{
-        "oR00","oR01","oR02","oR10","oR11","oR12","oR20","oR21","oR22",
-        "oXIm","oYIm"
-};
-
-static const std::vector<std::string>  VUnkGlob
-      {
-        "XGround","YGround","ZGround",        // Unknown 3D Point
-        "XCam","YCam","ZCam", "Wx","Wy","Wz", // External Parameters
-        "ppX","ppY","ppZ"                     // Internal : principal point + focal
-      };
-
-template <class T,const int N> Jet<T, N>  CreateCste(const T & aV,const Jet<T, N>&) 
-{
-    return Jet<T, N>(aV);
-}
-template <class T>  FD::cFormula<T> CreateCste(const T & aV,const FD::cFormula<T> & aF) 
-{
-    return aF->CoordF()->CsteOfVal(aV);
-}
-
-template <class TypeUk,class TypeObs,const int Deg> class cTplPolDist : public cCountPolDist<Deg>
-{
-    public :
-       typedef  TypeUk   tUk;
-       typedef  TypeObs  tObs;
-
-       static const std::vector<std::string>&  VNamesUnknowns()
-       {
-         static std::vector<std::string>  TheV;
-         if (TheV.empty()) // First call
-         {
-            TheV = VUnkGlob;
-            static std::vector<int>  aXDx,aXDy,aYDx,aYDy;
-            InitDegreeMonomes(aXDx,aXDy,aYDx,aYDy);
- 
-            for (size_t aK=0 ; aK<aXDx.size() ; aK++)
-                TheV.push_back("xPol_" + std::to_string(aXDx.at(aK)) + std::to_string(aXDy.at(aK)));
-
-            for (size_t aK=0 ; aK<aYDx.size() ; aK++)
-                TheV.push_back("yPol_" + std::to_string(aYDx.at(aK)) + std::to_string(aYDy.at(aK)));
+            static std::vector<std::string> TheVObs
+            {
+                "oR00","oR01","oR02","oR10","oR11","oR12","oR20","oR21","oR22", // Rotation
+                "oXIm","oYIm"  // Image point
+            };
+            return TheVObs;
+        };
+        static const std::vector<std::string> & VUnkGlob ()
+        {
+            static std::vector<std::string> TheVUk
+            {
+              "XGround","YGround","ZGround",        // Unknown 3D Point
+              "XCam","YCam","ZCam", "Wx","Wy","Wz", // External Parameters
+              "ppX","ppY","ppZ"                     // Internal : principal point + focal
+            };
+            return TheVUk;
          }
-         return  TheV;
-       }
-       static std::vector<TypeUk> Dist (
-                                 const tUk & xPi,const tUk & yPi, 
-                                 const std::vector<tUk> & aVUk, const std::vector<tObs> & aVObs
-                             )
-       {
-            static std::vector<int>  aXDx,aXDy,aYDx,aYDy;
-            if (aXDx.empty())
-               InitDegreeMonomes(aXDx,aXDy,aYDx,aYDy);
-             
-            std::vector<tUk> aVMonX;  
-            std::vector<tUk> aVMonY;  
 
-            aVMonX.push_back(CreateCste(1.0,xPi));
-            aVMonY.push_back(CreateCste(1.0,xPi));
-            for (int aD=1 ;aD<=Deg ; aD++)
-            {
-               aVMonX.push_back(aVMonX.back()*xPi);
-               aVMonY.push_back(aVMonY.back()*yPi);
-            }
-            auto xDist =  CreateCste(0.0,xPi);
-            auto yDist =  CreateCste(0.0,xPi);
-
-            int anInd = 12;
-            for (size_t aK=0; aK<aXDx.size() ; aK++)
-                xDist = xDist+aVMonX.at(aXDx.at(aK))*aVMonY.at(aXDy.at(aK))*aVUk.at(anInd++);
-
-            for (size_t aK=0; aK<aYDx.size() ; aK++)
-                yDist = yDist+aVMonX.at(aYDx.at(aK))*aVMonY.at(aYDy.at(aK))*aVUk.at(anInd++);
-
-            return {xDist,yDist};
-       }
-
-    private :
-       static inline void InitDegreeMonomes
-            (
-                std::vector<int>  & aXDx,  // Degre in x of X component
-                std::vector<int>  & aXDy,  // Degre in y of X component
-                std::vector<int>  & aYDx,  // Degre in x of Y component
-                std::vector<int>  & aYDy   // Degre in y of Y component
-            )
-        {
-            for (int aDx=0 ; aDx<=Deg ; aDx++)
-            {
-                for (int aDy=0 ; (aDx+aDy)<=Deg ; aDy++)
-                {
-                    if (cCountPolDist<Deg>::OkMonome(true,aDx,aDy))
-                    {
-                        aXDx.push_back(aDx);
-                        aXDy.push_back(aDy);
-                    }
-
-                    if (cCountPolDist<Deg>::OkMonome(false,aDx,aDy))
-                    {
-                        aYDx.push_back(aDx);
-                        aYDy.push_back(aDy);
-                    }
-                }
-            }
-        }
 };
 
+/**  Class implementing the fraser model distortion.
 
+     It contains the 4 prerequirement to be a Valid distorsion class usable in
+     cEqCoLinearity<TypeDist>  :
 
+        *  definition of type of unknown tUk
+        *  definition of type of obs     tObs
+        *  definition of the vector of names of unknown VNamesUnknowns(),
+           this vector contain the 12 global unknown + those specific to dist
+        *  method Dist for computing the distortion
 
+     The method Dist take as parameters :
+
+        * xPi, yPi
+        * the vector of unknown , the 12 first value are those  describes above
+        * the vector of observation, it is not used for now, but maybe 
+          will be later for some dist ?
+
+*/
 
 template <class TypeUk,class TypeObs> class cTplFraserDist : public cCountDist<7>
 {
@@ -439,10 +405,12 @@ template <class TypeUk,class TypeObs> class cTplFraserDist : public cCountDist<7
     static const std::vector<std::string>&  VNamesUnknowns()
     {
       static std::vector<std::string>  TheV;
+      // Add name of distorsion to others unkonw
       if (TheV.empty())
       {
-        TheV = VUnkGlob;
-        for (auto aS :{"k2","k4","k6", "p1","p2","b1","b2"}) // Distorsion (radiale/ Decentric/Affine)
+        TheV = VUnkGlob();
+        // k2,k4,k6  Distorsion radiale; p1 p2 Decentric ; b1 b2 Affine
+        for (auto aS :{"k2","k4","k6", "p1","p2","b1","b2"}) 
            TheV.push_back(aS);
       }
  
@@ -451,24 +419,23 @@ template <class TypeUk,class TypeObs> class cTplFraserDist : public cCountDist<7
 
     static std::vector<TypeUk> Dist (
                                  const tUk & xPi,const tUk & yPi, 
-                                 const std::vector<tUk> & aVUk, const std::vector<tObs> & aVObs
+                                 const std::vector<tUk> & aVUk, const std::vector<tObs> & 
                              )
     {
-         // Also in this model we confond Principal point and distorsion center, name 
-         // explicitely the dist center 
+         // In this model we confond Principal point and distorsion center, 
          const auto & xCD = aVUk[ 9];
          const auto & yCD = aVUk[10];
 
-         // 2.2  Radial  distortions coefficients
+         //  Radial  distortions coefficients
          const auto & k2D = aVUk[12];
          const auto & k4D = aVUk[13];
          const auto & k6D = aVUk[14];
 
-         // 2.3  Decentric distorstion
+         //   Decentric distorstion
          const auto & p1 = aVUk[15];
          const auto & p2 = aVUk[16];
 
-         // 2.3  Affine distorsion
+         //   Affine distorsion
          const auto & b1 = aVUk[17];
          const auto & b2 = aVUk[18];
 
@@ -494,6 +461,213 @@ template <class TypeUk,class TypeObs> class cTplFraserDist : public cCountDist<7
     }
   private :
 };
+
+
+
+
+/*
+    Class for implementing a polynomial distorsion. The maximal degree
+  is the last parameter of this template class.
+
+    In this model, we want to be abble to approximat any smooth function,
+  so a priori we will use all the monome under a given degree.
+    Let D be the degree the  distortion will be :
+
+      Distx = Som (dx_ij   X^i Y^j)   i+j<=D
+      Disty = Som (dy_ij   X^i Y^j)   i+j<=D
+
+
+     But it we want to avoid sur parametrization, we have to be cautious and avoid
+   certain monoms because they redundant, or highly correlated, with some external
+   parameter (rotation) or other internal parameter ( PP,focal). So we avoid :
+
+     - Degre 0 =>  all because principal point
+
+     - Degre 1 => 
+           * we note  (dx_10 dx_01 dy_10 dy_01) the degree 1 parameter
+           * (1 0 0 1) is focal, so avoid it 
+           * (0 -1 1 0) is a pure rotation and redundant with rotation around axe, avoid it
+           * so we have to select a complementary base,
+           * (1 0 0 0)  (0 1 0 0)  is a complementary base 
+
+        So we avoid  degree 1 in Y
+
+     - Degre 2 :
+
+          * Rotation arround X  + linear are highly correlated to X2 + affine, so we muste
+            so avoid X2 in X
+          * Idem avoid Y2 in Y
+
+
+    Finnaly we have :
+
+        *  (D+1) (D+2) /2  monome in X, same for Y
+        *  6 monome to avoid
+
+     ----------------------------------------------------------------
+
+   In this class we have the 4 requirement as in Fraser. We have also two
+   facility function :
+
+   * bool OkMonome(bool isX,int aDegX,int aDegY) indicate if a monome of
+     degree Dx,Dy is not to avoid (the bool isX means if it for Dx or Dy as
+     the rule is not the same)
+          
+   * void InitDegreeMonomes(xDx,xDy,yDx,yDy);
+        The 4 parameters are & of vector of int, as a result they contain the
+      degrees of the monomes :
+          DistX =  Som ( X ^ xDx[K]  Y ^ yDy[k])
+        
+*/
+
+
+/**  Class implementing a polynomial distorsion of degree  Deg
+*/
+
+
+template <class TypeUk,class TypeObs,const int Deg> class cTplPolDist : 
+       public cCountDist<(Deg+1)*(Deg+2) -6> 
+{
+    public :
+       typedef  TypeUk   tUk;
+       typedef  TypeObs  tObs;
+       typedef cCountDist<(Deg+1)*(Deg+2) -6>  tCountDist;
+
+   
+       // Vectors of names of unknowns
+       static const std::vector<std::string>&  VNamesUnknowns()
+       {
+         static std::vector<std::string>  TheV;
+         if (TheV.empty()) // First call
+         {
+            // Get the common unknowns
+            TheV = tCountDist::VUnkGlob();
+
+            // Get the degrees of monomes
+            std::vector<int>  aXDx,aXDy,aYDx,aYDy;
+            InitDegreeMonomes(aXDx,aXDy,aYDx,aYDy);
+ 
+           // Add the name of monomes for X Dist
+            for (size_t aK=0 ; aK<aXDx.size() ; aK++)
+            {
+                TheV.push_back
+                (
+                     "xDistPol_" 
+                    + std::to_string(aXDx.at(aK))  + "_"
+                    + std::to_string(aXDy.at(aK))
+                );
+            }
+
+           // Add the name of monomes for Y Dist
+            for (size_t aK=0 ; aK<aYDx.size() ; aK++)
+            {
+                TheV.push_back
+                (
+                     "yDistPol_" 
+                    + std::to_string(aYDx.at(aK))  + "_"
+                    + std::to_string(aYDy.at(aK))
+                );
+            }
+         }
+         return  TheV;
+       }
+
+       // Vectors of names of unknowns
+
+       static std::vector<TypeUk> Dist (
+                                 const tUk & xPi,const tUk & yPi, 
+                                 const std::vector<tUk> & aVUk, const std::vector<tObs> & 
+                             )
+       {
+            static std::vector<int>  aXDx,aXDy,aYDx,aYDy;
+            if (aXDx.empty()) // first call compute degree of monomes
+               InitDegreeMonomes(aXDx,aXDy,aYDx,aYDy);
+             
+            //  We compute here the  Value of monomes : X^i and Y^j , 
+            // this is an optimisation for jets, probably not usefull for formula, but does not hurt either
+            std::vector<tUk> aVMonX;  
+            std::vector<tUk> aVMonY;  
+
+            // We can compute it using powI optimized functionc, or using a recurence formula
+            // According to type, the optimal computation may not be the same
+            // On tests it seems more or less equivalent ....
+            if (0)
+            {  
+               // Case using powI
+               for (int aD=0 ;aD<=Deg ; aD++)
+               {
+                  aVMonX.push_back(powI(xPi,aD));
+                  aVMonY.push_back(powI(yPi,aD));
+               }
+            }
+            else
+            {
+               // Case using recurence   X^(k+1) = X^k *X
+               aVMonX.push_back(CreateCste(1.0,xPi));
+               aVMonY.push_back(CreateCste(1.0,xPi));
+               for (int aD=1 ;aD<=Deg ; aD++)
+               {
+                  aVMonX.push_back(aVMonX.back()*xPi);
+                  aVMonY.push_back(aVMonY.back()*yPi);
+               }
+            }
+            // Initialisze  with identity
+            auto xDist =  xPi;
+            auto yDist =  yPi;
+
+            int anInd =  tCountDist::TheNbCommonUk;  // Unkown on dist are stored after common 
+            // Be carefull to be coherent with VNamesUnknowns
+            for (size_t aK=0; aK<aXDx.size() ; aK++)
+                xDist = xDist+aVMonX.at(aXDx.at(aK))*aVMonY.at(aXDy.at(aK))*aVUk.at(anInd++);
+
+            for (size_t aK=0; aK<aYDx.size() ; aK++)
+                yDist = yDist+aVMonX.at(aYDx.at(aK))*aVMonY.at(aYDy.at(aK))*aVUk.at(anInd++);
+
+            return {xDist,yDist};
+       }
+
+    private :
+       // indicate if X^DegX  Y ^DegY is to avoid for xDist/yDist 
+       static bool OkMonome(bool isX,int aDegX,int aDegY)
+       {
+            if ((aDegX ==0) && (aDegY==0)) return false;  // degre 0 : avoid
+            if ((!isX) && ((aDegX + aDegY) ==1))       return false;  //  degre 1 in dY : avoid
+            if (isX &&    (aDegX==2) &&  (aDegY ==0))  return false;  //  X2 in dX avoid
+            if ((!isX) && (aDegX==0) &&  (aDegY ==2))  return false;  //  Y2 in dY avoid
+   
+            return true;  // then ok
+       }
+
+       static inline void InitDegreeMonomes
+            (
+                std::vector<int>  & aXDx,  // Degre in x of X component
+                std::vector<int>  & aXDy,  // Degre in y of X component
+                std::vector<int>  & aYDx,  // Degre in x of Y component
+                std::vector<int>  & aYDy   // Degre in y of Y component
+            )
+        {
+            for (int aDx=0 ; aDx<=Deg ; aDx++)
+            {
+                for (int aDy=0 ; (aDx+aDy)<=Deg ; aDy++)
+                {
+                    if (OkMonome(true,aDx,aDy))
+                    {
+                        aXDx.push_back(aDx);
+                        aXDy.push_back(aDy);
+                    }
+
+                    if (OkMonome(false,aDx,aDy))
+                    {
+                        aYDx.push_back(aDx);
+                        aYDy.push_back(aDy);
+                    }
+                }
+            }
+        }
+};
+
+
+
 
 
 // template <class TypeUk,class TypeObs>  class cEqCoLinearity
@@ -566,8 +740,9 @@ template <class TypeDist>  class cEqCoLinearity
 
         auto xPi =  XCam/ZCam;
         auto yPi =  YCam/ZCam;
-        auto   aVDist = TypeDist::Dist(xPi,yPi,aVUk,aVObs);
 
+        // Now compute the distorsion
+        auto   aVDist = TypeDist::Dist(xPi,yPi,aVUk,aVObs);
         const auto & xDist =  aVDist[0];
         const auto & yDist =  aVDist[1];
 
@@ -576,7 +751,7 @@ template <class TypeDist>  class cEqCoLinearity
         auto yIm =  yPP  + zPP  * yDist;
 
 
-       // 
+       // substract image observations to have a residual
         auto x_Residual = xIm -  aVObs[ 9];
         auto y_Residual = yIm -  aVObs[10];
 
@@ -633,7 +808,7 @@ template <class TJD,class TFD>  class cTestEqCoL
 template <class TJD,class TFD>
 cTestEqCoL<TJD,TFD>::cTestEqCoL(int aSzBuf,bool Show) :
      // mCFD (aSzBuf,TheNbUk,TheNbObs), //  would have the same effect, but future generated code will be less readable
-     mCFD  (aSzBuf,TJD::VNamesUnknowns(),VNamesObs),
+     mCFD  (aSzBuf,TJD::VNamesUnknowns(),TJD::VNamesObs()),
      mVUk  (TheNbUk,0.0),
      mVObs (TheNbObs,0.0)
 {
@@ -665,6 +840,26 @@ cTestEqCoL<TJD,TFD>::cTestEqCoL(int aSzBuf,bool Show) :
        mCFD.ShowStackFunc();
    }
    mCFD.SetCurFormulasWithDerivative(aVFormula);
+   if (Show)
+   {
+      const std::vector<tFormula>& aVR =mCFD.VReached();
+      int aNbTot=0;
+      int aNbPl=0;
+      for (const auto  & aF : aVR)
+      {
+          aNbTot++;
+          std::string anOp =  aF->NameOperator() ;
+          std::cout << "Opp= " << anOp << "\n";
+          if ((anOp=="+") || (anOp=="*"))
+          {
+             aNbPl++;
+          }
+      }
+      std::cout 
+                 << " Tot=" << aNbTot
+                 << " Pl=" << aNbPl
+                 << "\n";
+   }
 
    double aT1 = TimeElapsFromT0();
     
@@ -755,21 +950,47 @@ typedef cTplPolDist<FD::cFormula<double>,FD::cFormula<double>,2> tPolFD2;
 
 void TestFraserCamColinearEq()
 {
-   for (auto SzBuf : {1000,1})
    {
-       cTestEqCoL<tFraserJ,tFraserF> (SzBuf,false);
-   }
+      FD::cCoordinatorF<double>  aCoord(100,4,2);
+      FD::cFormula<double>     aFPi = aCoord.CsteOfVal(3.14);
+      FD::cFormula<double>     aFE = aCoord.CsteOfVal(exp(1));
+      FD::cFormula<double>     aFCste = aFE+aFPi;
+      std::cout  << " CSTE=[" << aFCste->InfixPPrint() <<"]\n";
 
-   for (auto SzBuf : {1000,1})
-   {
-       cTestEqCoL<tPolJD2,tPolFD2> (SzBuf,false);
+      FD::cFormula<double>     aX =  aCoord.VUk()[0];
+      FD::cFormula<double>     aY =  aCoord.VUk()[1];
+      FD::cFormula<double>     aZ =  aCoord.VUk()[2];
+      FD::cFormula<double>     aT =  aCoord.VUk()[3];
+      FD::cFormula<double>     aMX = - aX;
+      FD::cFormula<double>     aMMX = - aMX;
+      std::cout  << " -X, --X=[" << aMX->InfixPPrint() << " " << aMMX->InfixPPrint() <<"]\n";
+
+      FD::cFormula<double>     aPipX =  aFPi - aMX;
+      std::cout  << " piPx= [" << aPipX->InfixPPrint() << "," << aPipX->Name()  <<"]\n";
+
+
+      FD::cFormula<double>     XpX =  aX + aX;
+      std::cout  << " XpX= [" << XpX->InfixPPrint()  <<"]\n";
+
+
+      FD::cFormula<double>     XpPiX =  aZ+ aX + aY + aX * aFPi + aT;
+
+      std::cout  << " XpPiX= [" << XpPiX->InfixPPrint()  <<"]\n";
+      aCoord.ShowStackFunc();
    }
+   getchar();
 
 
    for (auto SzBuf : {1000,1})
    {
        cTestEqCoL<tPolJD7,tPolFD7> (SzBuf,false);
+
+       cTestEqCoL<tFraserJ,tFraserF> (SzBuf,false);
+       cTestEqCoL<tPolJD2,tPolFD2> (SzBuf,false);
+
+       std::cout << "======================\n";
    }
+
 
    getchar();
 }
@@ -782,35 +1003,58 @@ namespace  MMVII
     void BenchCmpOpVect();
 };
 
-void   BenchFormalDer()
+void   Bench_powI()
 {
-    for (int aK=0 ; aK<10 ; aK++)
+    // Test that function powI gives the same results than pow
+    // Test alsp for jets, the value and the derivatives
+    for (int aK=-4 ; aK<44 ; aK++)
     {
         double aV= 1.35;
         double aP1= pow(aV,double(aK));
         double aP2= FD::powI(aV,aK);
-        std::cout << "HHHHH " << aP1 << " " << aP2 << "\n";
         FD::AssertAlmostEqual(aP1,aP2,1e-8);
+
+        Jet<double,1> aJ0= powI(Jet<double,1> (aV,0),aK);
+        FD::AssertAlmostEqual(aP1,aJ0.a,1e-8);
+
+        double aEps = 1e-7;
+        double aP1Minus = pow(aV-aEps,double(aK));
+        double aP1Plus  = pow(aV+aEps,double(aK));
+        double aNumDer = (aP1Plus-aP1Minus) / (2.0*aEps);
+        FD::AssertAlmostEqual(aNumDer,aJ0.v[0],1e-8);
     } 
+
+    // Bench on time performance
     int aNb=1e8;
 
+         // Using std::pow
     double aT0 = TimeElapsFromT0();
     double aS=0;
     for (int aK=0 ; aK<aNb ; aK++)
         aS+=std::pow(1.3,7);
 
+         // Using powI
     double aT1 = TimeElapsFromT0();
     for (int aK=0 ; aK<aNb ; aK++)
-        aS-=FD::powI(1.3,7);
+        aS-=  FD::powI(1.3,7);
 
+         // Using pow7 => supress the switch
     double aT2 = TimeElapsFromT0();
     for (int aK=0 ; aK<aNb ; aK++)
         aS-=FD::pow7(1.3);
 
     double aT3 = TimeElapsFromT0();
 
-    std::cout << "PowR " << aT1-aT0 << " PowI " << aT2-aT1 << " P7 " << aT3-aT2  << " SOM=" << aS << "\n";
+    std::cout << "PowR " << aT1-aT0 
+              << " PowI " << aT2-aT1 
+              << " P7 " << aT3-aT2  
+              << " SOM=" << aS << "\n";
+}
 
+void   BenchFormalDer()
+{
+
+    Bench_powI();
     // MMVII::BenchCmpOpVect();
     TestFraserCamColinearEq();
    // Run TestRatkoswky with static obsevation an inital guess 

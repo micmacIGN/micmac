@@ -1,5 +1,8 @@
 #ifndef _MMVII_FormalDerivative_H_
 #define _MMVII_FormalDerivative_H_
+using namespace std;
+
+
 
 #define WITH_MMVII false
 #define WITH_EIGEN false
@@ -111,6 +114,19 @@ class cMemCheck
 
 #endif            //========================================================== WITH_MMVI
 
+// REDUCTION RULES
+// TODO => REPLACE BY METHOD ON COORDINATOR WHEN THEY IMPROVE THINGS ....
+#define  DOREDUCE      false
+
+#define  REDUCE_CSTE    DOREDUCE    //  Cste+Cste => cste
+#define  REDUCE_MM      DOREDUCE    //  - - x => x  ;  a-(-b) => a+b
+#define  REDUCE_ASSOCP  DOREDUCE       /*  B + (A + C) = > A + ( B + C),  
+      more generally order the + operator, could be done with '*'  */
+#define  REDUCE_DISTRIB DOREDUCE    //  A#B ~ A#C=> A#(B~C)  ; # in "*/" and   ~ in "+-"
+#define  REDUCE_ApA     DOREDUCE    //  A+A => 2*A, not good by itself, but may creat other reduc
+#define  REDUCE_DIST1   DOREDUCE    //  A + A*C => A *(1+C) si C est csteto have all constant close
+void SHOW_REDUCE(const std::string & aMes) {} // std::cout << "REDUCE " << aMes << "\n";}
+
 
 namespace  NS_MMVII_FormalDerivative
 {
@@ -121,54 +137,32 @@ namespace  NS_MMVII_FormalDerivative
 /*                                                     */
 /* *************************************************** */
 
-/*
 
-*/
+/// The CreateCste is required for formula, so we need it also on num type
+template <class Type> inline Type CreateCste(const Type  & aV,const Type &) { return aV; }
 
-/// These functions are required if we want to have same operation on numbers double and formulas
-inline double square(const double & aV)  {return aV*aV;}
-inline double square(const float & aV)   {return aV*aV;}
-
-inline double cube(const double & aV)    {return aV*aV*aV;}
-inline double cube(const float & aV)     {return aV*aV*aV;}
-
-inline double pow4(const double & aV)   {return square(square(aV));}
-inline double pow4(const float & aV)    {return square(square(aV));}
-
-inline double pow5(const double & aV)   {return aV *pow4(aV);}
-inline double pow5(const float & aV)    {return aV *pow4(aV);}
-
-inline double pow6(const double & aV)   {return square(cube(aV));}
-inline double pow6(const float & aV)    {return square(cube(aV));}
-
-inline double pow7(const double & aV)   {return aV *pow6(aV);}
-inline double pow7(const float & aV)    {return aV *pow6(aV);}
-
-inline double pow8(const double & aV)   {return square(pow4(aV));}
-inline double pow8(const float & aV)    {return square(pow4(aV));}
-
-inline double pow9(const double & aV)   {return aV *pow8(aV);}
-inline double pow9(const float & aV)    {return aV *pow8(aV);}
-
-template <class Type> Type powI(const Type & aV,const int aNb)
+/// because pow is defined in std and there is cast int->float that would make it unaccessible
+template <class Type> inline Type pow(const Type & aV,const int & aExp)    
 {
-   switch (aNb)
-   {
-        case 0 : return Type(1.0);
-        case 1 : return aV;
-        case 2 : return square(aV);
-        case 3 : return cube(aV);
-        case 4 : return pow4(aV);
-        case 5 : return pow5(aV);
-        case 6 : return pow6(aV);
-        case 7 : return pow7(aV);
-        case 8 : return pow8(aV);
-        case 9 : return pow9(aV);
-   }
-   return std::pow(aV,Type(aNb));
+    return std::pow(aV,Type(aExp));
 }
 
-// static double square(const float & aV)  {return aV*aV;}
+/* These functions are required if we want to have same operation on numbers double and formulas
+   They are suposed to be optimized implementation of pow for integer low value
+   of the exponent 
+*/
+template <class Type> inline Type square(const Type & aV)  {return aV*aV;}
+template <class Type> inline Type cube(const Type & aV)    {return aV*aV*aV;}
+template <class Type> inline Type pow4(const Type & aV)    {return square(square(aV));}
+template <class Type> inline Type pow5(const Type & aV)    {return aV *pow4(aV);}
+template <class Type> inline Type pow6(const Type & aV)    {return square(cube(aV));}
+template <class Type> inline Type pow7(const Type & aV)    {return aV *pow6(aV);}
+template <class Type> inline Type pow8(const Type & aV)    {return square(pow4(aV));}
+template <class Type> inline Type pow9(const Type & aV)    {return aV *pow8(aV);}
+
+
+      //============= BASIC  ERROR HANDLING ==============
+
 
 void Error(const std::string & aMes,const std::string & aExplanation)
 {
@@ -177,16 +171,18 @@ void Error(const std::string & aMes,const std::string & aExplanation)
     std::cout << "  Message  ["<< aMes << "]\n";
     assert(false);
 }
-
+     ///    Error due probably to internal mistake
 void InternalError(const std::string & aMes)
 {
    Error(aMes,"Internal Error of the Library");
 }
+     /// Error probably due to bas usage of the library (typically out limit vector access)
 void UserSError(const std::string & aMes)
 {
    Error(aMes,"Probable error on user's side due to unapropriate usage of the library");
 }
 
+     /// Check equality in test, taking account numericall error
 void AssertAlmostEqual(const double & aV1,const double & aV2,const double & aEps)
 {
    if ( (std::abs(aV1-aV2)> aEps*(std::abs(aV1)+std::abs(aV2))) )
@@ -283,14 +279,49 @@ template <class TypeElem> cFormula <TypeElem>
 template <class TypeElem> cFormula <TypeElem>  pow (const TypeElem & aV1,const cFormula <TypeElem> & aF2);
            /// This one defined in MMVII_FormDer_UnaryOp.h
 template <class TypeElem> cFormula <TypeElem>  pow (const cFormula <TypeElem> & aF1,const TypeElem & aV2);
+template <class TypeElem> cFormula <TypeElem>  pow (const cFormula <TypeElem> & aF1,const int & aV2);
 
 
-    // -------- Declare all unary operators  ----------------
+    // -------- integer low power  ----------------
 template <class TypeElem> cFormula <TypeElem>  square(const cFormula <TypeElem> & aF);
 template <class TypeElem> cFormula <TypeElem>  cube(const cFormula <TypeElem> & aF);
+template <class TypeElem> cFormula <TypeElem>  pow4(const cFormula <TypeElem> & aF);
+template <class TypeElem> cFormula <TypeElem>  pow5(const cFormula <TypeElem> & aF);
+template <class TypeElem> cFormula <TypeElem>  pow6(const cFormula <TypeElem> & aF);
+template <class TypeElem> cFormula <TypeElem>  pow7(const cFormula <TypeElem> & aF);
+template <class TypeElem> cFormula <TypeElem>  pow8(const cFormula <TypeElem> & aF);
+template <class TypeElem> cFormula <TypeElem>  pow9(const cFormula <TypeElem> & aF);
+
+    // --- other unary operator
 template <class TypeElem> cFormula <TypeElem>  exp(const cFormula <TypeElem> & aF);
 template <class TypeElem> cFormula <TypeElem>  operator - (const cFormula <TypeElem> & aF);
 template <class TypeElem> cFormula <TypeElem>  log(const cFormula <TypeElem> & aF);
+
+     // ---- sometime we need a templetized way to create constants
+template <class T>  cFormula<T> CreateCste(const T & aV,const cFormula<T> & aF);
+
+
+     /// --- powI , return pow of integral exponent,
+
+template <class Type> Type powI(const Type & aV,const int & aExp)
+{
+   switch (aExp)
+   {
+        // case 0 : return Type(1.0);
+        case 0 : return CreateCste(1.0,aV);
+        case 1 : return aV;
+        case 2 : return square(aV);
+        case 3 : return cube(aV);
+        case 4 : return pow4(aV);
+        case 5 : return pow5(aV);
+        case 6 : return pow6(aV);
+        case 7 : return pow7(aV);
+        case 8 : return pow8(aV);
+        case 9 : return pow9(aV);
+   }
+   // else use the classical pow
+   return pow(aV,aExp);
+}
 
     // -------- Declaration of Coordinator class  ----------------
 
@@ -377,6 +408,7 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
            if (ExistFunc(aPF->Name())) InternalError ("Multiple add of identic name :[" + aPF->Name() + "]");
            mDicoFunc[aPF->Name()] = aPF;
            mVAllFormula.push_back(aPF);
+           aPF->TryReducAssoc();
         }
 
         /// Func of given constant, create if don't exist
@@ -488,7 +520,20 @@ template <class TypeElem> class cImplemF  : public cMemCheck
        //----------- For derivation and reduction--------------
        virtual bool  IsCste0() const {return false;} ///< To redefine in constant func, Used for simplification in "/ * + -"
        virtual bool  IsCste1() const {return false;} ///< To redefine in constant func, Used for simplification in "/ *"
+        virtual bool IsDistribInt() const {return false;} ///< To redefine in *,/ for distributivity
+
        virtual tFormula Derivate(int aK) const  = 0;  ///< Compute the formula of it's derivative to Kth unknown
+
+        /**  In this functionwe try to make reduction using associativity (and maybe others),
+             as we want to do it only on maximal chains of + (or *) this has to be run by the father of
+             the chain
+        */
+        void TryReducAssoc();
+        virtual cImplemF<TypeElem> * ReducAssoc() {return this;}
+        virtual bool  IsMult()  const {return false;}
+        virtual bool  IsSum()   const {return false;}
+        bool  ReducAssocTried() const {return mReducAssocTried;}
+        virtual cFormula<TypeElem> VOper2(const tFormula &,const tFormula &) const; ///< Use in distributive reducion to recal the operator binaire if suitable
 
        // --------------  For Computation -------------------------
        /// Method that wil compute data inside  mBuf
@@ -522,6 +567,10 @@ template <class TypeElem> class cImplemF  : public cMemCheck
        /// Number of reference that would occur without reduction on identic formula (to test performance in paper)
        int RecursiveRec() const;
 
+       /// Access at global level is 4 reducing, also it is used 4 implemant in Unary & Binary
+       virtual const std::string &  NameOperator() const = 0;
+
+
       // --------------------  Destructor / Constructor  --------------------------
        virtual ~cImplemF () {}   ///< Add a virtual ~X() when we have virtual methods, who knows ...
     protected :
@@ -532,7 +581,8 @@ template <class TypeElem> class cImplemF  : public cMemCheck
               mName    (aName),
               mNumGlob (mCoordF->NbCurFonc()),
               mReached (false),
-              mDepth   (-1)
+              mDepth   (-1),
+              mReducAssocTried (false)
        { 
        }
 
@@ -546,6 +596,7 @@ template <class TypeElem> class cImplemF  : public cMemCheck
     private  :
 
        cImplemF (const cImplemF<TypeElem>  &) = delete; ///< No Copy
+       bool  mReducAssocTried;
 };
 
 template <class TypeElem> class cFormula 
@@ -570,6 +621,7 @@ template <class TypeElem> class cFormula
 
        // UNUSED 4 NOW  tImplemF & operator*() const  {return *mPtr;}  ///< Standard behaviour of a pointer
        tImplemF * operator->() const {return mPtr;}  ///< Standard behaviour of a pointer
+       tImplemF * RawPtr() const {return mPtr;}  ///< Explicit acces
        // DO NOT WORK  const std::unique_ptr<tImplemF>  operator->() const {return std::unique_ptr<mPtr>;} 
        bool IsNull() const {return mPtr==nullptr;} ///< Safer than giving acces to raw pointer
 
@@ -638,6 +690,8 @@ template <class TypeElem> class cUnknownF : public cAtomicF<TypeElem>
             typedef typename tImplemF::tCoordF  tCoordF;
             typedef typename tCoordF::tFormula  tFormula;
 
+            const std::string &  NameOperator() const override {static std::string s("UK"); return s;}
+
             std::string  InfixPPrint() const override {return tImplemF::Name();}
             ///  rule :  dXi/dXj = delta(i,j)
             tFormula Derivate(int aK) const override 
@@ -664,6 +718,7 @@ template <class TypeElem> class cObservationF : public cAtomicF<TypeElem>
             typedef typename tCoordF::tFormula  tFormula;
             friend tCoordF;
 
+            const std::string &  NameOperator() const override {static std::string s("Obs"); return s;}
       private  :
             inline cObservationF(tCoordF * aCoordF,const std::string & aName,int aNum) : 
                   tAtom  (aCoordF,aName),
@@ -685,7 +740,7 @@ template <class TypeElem> class cConstantF : public cAtomicF<TypeElem>
             bool  IsCste0() const override {return mVal==0.0;} ///< Here we know if we are constant 0
             bool  IsCste1() const override {return mVal==1.0;} ///< Here we know if we are constant 1
             const TypeElem * ValCste() const override  {return &mVal;}
-
+            const std::string &  NameOperator() const override {static std::string s("Cste"); return s;}
       protected  :
             inline cConstantF(tCoordF * aCoordF,const std::string & aName,int aNum,const TypeElem& aVal) : 
                tAtom   (aCoordF,aName),
@@ -702,11 +757,21 @@ template <class TypeElem> class cConstantF : public cAtomicF<TypeElem>
 /* *************************************************** */
 /* *************************************************** */
 /* *                                                 * */
-/* *         cImplemF / cCoordinatorF                    * */
+/* *     cFormula / cImplemF / cCoordinatorF         * */
 /* *        External Definition of methods           * */
 /* *                                                 * */
 /* *************************************************** */
 /* *************************************************** */
+
+      /* ---------------------- */
+      /*        cFormula        */
+      /* ---------------------- */
+
+template <class T>  cFormula<T> CreateCste(const T & aV,const cFormula<T> & aF)
+{
+    return aF->CoordF()->CsteOfVal(aV);
+}
+
 
       /* ---------------------- */
       /*        cImplemF        */
@@ -733,6 +798,27 @@ template <class TypeElem> void cImplemF<TypeElem>::CalcRecursiveDepth(std::vecto
    mDepth++; // my depth is 1 + max of depth of my referenced formulas
    aVReached.push_back(tFormula(this));
 }
+
+template <class TypeElem> void cImplemF<TypeElem>::TryReducAssoc()
+{
+   for (auto  & aF : Ref())
+   {
+       // F will not belong to the terminal command that will have to reparsed
+       // If we are in the config  (A+B) + .. maybe the chain will grow later
+       if (aF->NameOperator() != NameOperator())
+       {
+          aF = aF->ReducAssoc();
+       }
+       aF->mReducAssocTried = true;
+   }
+}
+
+template <class TypeElem> cFormula<TypeElem> cImplemF<TypeElem>::VOper2(const tFormula & aF1,const tFormula &) const
+{
+   InternalError("Uncorrect virtula binary operation");
+   return aF1;
+}
+
       /* ---------------------- */
       /*       cCoordinatorF        */
       /* ---------------------- */
@@ -804,7 +890,8 @@ cFormula<TypeElem> cCoordinatorF<TypeElem>::CsteOfVal(const TypeElem & aCste)
   tFormula & aRef = mDicoCste[aCste];
   if (aRef.IsNull())  // If it was not existing, the map contain now the def element
   {
-     aRef=tFormula(new cConstantF<TypeElem>(this,"C"+std::to_string(mNbCste),mNbCste,aCste));
+     // The ! is used to make constant first in alphab order, used for reduction ?
+     aRef=tFormula(new cConstantF<TypeElem>(this,"_C"+std::to_string(mNbCste),mNbCste,aCste));
      mNbCste++;
      AddFormula(aRef);
   }
@@ -874,8 +961,18 @@ void    cCoordinatorF<TypeElem>::SetCurFormulasWithDerivative(const std::vector<
 }
 
 template <class TypeElem> 
-void cCoordinatorF<TypeElem>::SetCurFormulas(const std::vector<tFormula> & aVF)
+void cCoordinatorF<TypeElem>::SetCurFormulas(const std::vector<tFormula> & aVF0)
 {
+    std::vector<tFormula> aVF;
+    for(auto aF : aVF0)
+    {
+       if (! aF->ReducAssocTried())
+       {
+          aF = tFormula(aF->ReducAssoc());
+          // std::cout << "GGGGGGGG " << aF->Name() << " \n";
+       }
+       aVF.push_back(aF);
+    }
     mWithDer=false;
     mSzInterval = 1;
     mVCurF     = aVF;
@@ -963,10 +1060,13 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
     std::cout << "\n";
 }
 
+
 }; //   NS_MMVII_FormalDerivative
 
 #include "MMVII_FormDer_UnaryOp.h"
 #include "MMVII_FormDer_BinaryOp.h"
+
+
 
 /*
 https://www.itl.nist.gov/div898/strd/nls/data/ratkowsky3.shtml
