@@ -32,11 +32,10 @@ template <class TypeElem> class cUnaryF : public cImplemF<TypeElem>
             typedef typename tImplemF::tFormula tFormula;
             typedef typename tImplemF::tBuf     tBuf;
 
-            virtual std::string  NameOperator() const = 0;
             virtual std::string  PostName() const {return "";}
             std::string  InfixPPrint() const override 
             {
-               return NameOperator() + " "+  mF->InfixPPrint() + PostName() ;
+               return this->NameOperator() + " "+  mF->InfixPPrint() + PostName() ;
             }
 
             /// In the cas an additional parameter is used, as "powc F30 3.14"
@@ -75,7 +74,7 @@ template <class TypeElem> class cSquareF : public cUnaryF<TypeElem>
                 cUnaryF <TypeElem> (aF,aName)
             { }
       private :
-            std::string  NameOperator() const override {return "square";}
+            const std::string &  NameOperator() const override {static std::string s("square"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
             {
                 for (int aK=aK0 ; aK<aK1 ; aK++)
@@ -99,7 +98,7 @@ template <class TypeElem> class cCubeF : public cUnaryF<TypeElem>
                 cUnaryF <TypeElem> (aF,aName)
             { }
       private :
-            std::string  NameOperator() const override {return "cube";}
+            const std::string &  NameOperator() const override {static std::string s("cube"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
             {
                 for (int aK=aK0 ; aK<aK1 ; aK++)
@@ -109,6 +108,99 @@ template <class TypeElem> class cCubeF : public cUnaryF<TypeElem>
             cFormula<TypeElem> Derivate(int aK) const override 
             {
                 return  3.0  * mF->Derivate(aK)  * square(mF);
+            }
+};
+
+template <class TypeElem> class cPow4 : public cUnaryF<TypeElem>
+{
+     public :
+            using cUnaryF<TypeElem>::mF;
+            using cUnaryF<TypeElem>::mDataF;
+            using cImplemF<TypeElem>::mDataBuf;
+     
+            cPow4 (cFormula<TypeElem> aF,const std::string & aName) :
+                cUnaryF <TypeElem> (aF,aName)
+            { }
+      private :
+            const std::string &  NameOperator() const override {static std::string s("pow4"); return s;}
+            void ComputeBuf(int aK0,int aK1) override  
+            {
+                for (int aK=aK0 ; aK<aK1 ; aK++)
+                    mDataBuf[aK] =  pow4(mDataF[aK]);
+            }
+            ///  rule : (F^4)' =   4 F' F^2
+            cFormula<TypeElem> Derivate(int aK) const override 
+            {
+                return  4.0  * mF->Derivate(aK)  * cube(mF);
+            }
+};
+template <class TypeElem> class cPow5 : public cUnaryF<TypeElem>
+{
+     public :
+            using cUnaryF<TypeElem>::mF;
+            using cUnaryF<TypeElem>::mDataF;
+            using cImplemF<TypeElem>::mDataBuf;
+     
+            cPow5 (cFormula<TypeElem> aF,const std::string & aName) :
+                cUnaryF <TypeElem> (aF,aName)
+            { }
+      private :
+            const std::string &  NameOperator() const override {static std::string s("pow5"); return s;}
+            void ComputeBuf(int aK0,int aK1) override  
+            {
+                for (int aK=aK0 ; aK<aK1 ; aK++)
+                    mDataBuf[aK] =  pow5(mDataF[aK]);
+            }
+            ///  rule : (F^5)' =   5 F' F^4
+            cFormula<TypeElem> Derivate(int aK) const override 
+            {
+                return  5.0  * mF->Derivate(aK)  * pow4(mF);
+            }
+};
+template <class TypeElem> class cPow6 : public cUnaryF<TypeElem>
+{
+     public :
+            using cUnaryF<TypeElem>::mF;
+            using cUnaryF<TypeElem>::mDataF;
+            using cImplemF<TypeElem>::mDataBuf;
+     
+            cPow6 (cFormula<TypeElem> aF,const std::string & aName) :
+                cUnaryF <TypeElem> (aF,aName)
+            { }
+      private :
+            const std::string &  NameOperator() const override {static std::string s("pow6"); return s;}
+            void ComputeBuf(int aK0,int aK1) override  
+            {
+                for (int aK=aK0 ; aK<aK1 ; aK++)
+                    mDataBuf[aK] =  pow6(mDataF[aK]);
+            }
+            ///  rule : (F^6)' =   6 F' F^5
+            cFormula<TypeElem> Derivate(int aK) const override 
+            {
+                return  6.0  * mF->Derivate(aK)  * pow5(mF);
+            }
+};
+template <class TypeElem> class cPow7 : public cUnaryF<TypeElem>
+{
+     public :
+            using cUnaryF<TypeElem>::mF;
+            using cUnaryF<TypeElem>::mDataF;
+            using cImplemF<TypeElem>::mDataBuf;
+     
+            cPow7 (cFormula<TypeElem> aF,const std::string & aName) :
+                cUnaryF <TypeElem> (aF,aName)
+            { }
+      private :
+            const std::string &  NameOperator() const override {static std::string s("pow7"); return s;}
+            void ComputeBuf(int aK0,int aK1) override  
+            {
+                for (int aK=aK0 ; aK<aK1 ; aK++)
+                    mDataBuf[aK] =  pow7(mDataF[aK]);
+            }
+            ///  rule : (F^7)' =   7 F' F^6
+            cFormula<TypeElem> Derivate(int aK) const override 
+            {
+                return  7.0  * mF->Derivate(aK)  * pow6(mF);
             }
 };
 
@@ -124,7 +216,7 @@ template <class TypeElem> class cExpF : public cUnaryF<TypeElem>
                 cUnaryF <TypeElem> (aF,aName)
             { }
       private :
-            std::string  NameOperator() const override {return "exp";}
+            const std::string &  NameOperator() const override {static std::string s("exp"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
             {
                 for (int aK=aK0 ; aK<aK1 ; aK++)
@@ -148,7 +240,7 @@ template <class TypeElem> class cMin1F : public cUnaryF<TypeElem>
                 cUnaryF <TypeElem> (aF,aName)
             { }
       private :
-            std::string  NameOperator() const override {return "-";}
+            const std::string &  NameOperator() const override {static std::string s("-"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
             {
                 for (int aK=aK0 ; aK<aK1 ; aK++)
@@ -172,7 +264,7 @@ template <class TypeElem> class cLogF : public cUnaryF<TypeElem>
                 cUnaryF <TypeElem> (aF,aName)
             { }
       private :
-            std::string  NameOperator() const override {return "log";}
+            const std::string &  NameOperator() const override {static std::string s("log"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
             {
                 for (int aK=aK0 ; aK<aK1 ; aK++)
@@ -199,7 +291,7 @@ template <class TypeElem> class cPowCste : public cUnaryF<TypeElem>
             { 
             }
       private :
-            std::string  NameOperator() const override {return "powc";}
+            const std::string &  NameOperator() const override {static std::string s("powc"); return s;}
             virtual std::string  PostName() const {return " " + std::to_string(mExp);}
             void ComputeBuf(int aK0,int aK1) override  
             {
@@ -259,6 +351,27 @@ inline cFormula<TypeElem>  cube(const cFormula<TypeElem> & aF)
 {
     return cGenOperatorUnaire<cCubeF<TypeElem> >::Generate(aF,"cube");
 }
+template <class TypeElem> 
+inline cFormula<TypeElem>  pow4(const cFormula<TypeElem> & aF)
+{
+    return cGenOperatorUnaire<cPow4<TypeElem> >::Generate(aF,"pow4");
+}
+template <class TypeElem> 
+inline cFormula<TypeElem>  pow5(const cFormula<TypeElem> & aF)
+{
+    return cGenOperatorUnaire<cPow5<TypeElem> >::Generate(aF,"pow5");
+}
+template <class TypeElem> 
+inline cFormula<TypeElem>  pow6(const cFormula<TypeElem> & aF)
+{
+    return cGenOperatorUnaire<cPow6<TypeElem> >::Generate(aF,"pow6");
+}
+template <class TypeElem> 
+inline cFormula<TypeElem>  pow7(const cFormula<TypeElem> & aF)
+{
+    return cGenOperatorUnaire<cPow7<TypeElem> >::Generate(aF,"pow7");
+}
+
 
 template <class TypeElem> 
 inline cFormula<TypeElem> exp(const cFormula<TypeElem> & aF)
@@ -268,8 +381,19 @@ inline cFormula<TypeElem> exp(const cFormula<TypeElem> & aF)
 template <class TypeElem> 
 inline cFormula<TypeElem>  operator - (const cFormula<TypeElem> & aF)
 {
+    // rule  - (- x) ==  x
+    if (REDUCE_MM &&  (aF->NameOperator()=="-"))
+    {
+       if (aF->Ref().size()==1)
+       {
+          SHOW_REDUCE("-(-x)");
+          return aF->Ref()[0];
+       }
+    }
+
     return cGenOperatorUnaire<cMin1F<TypeElem> >::Generate(aF,"-");
 }
+
 template <class TypeElem> 
 inline cFormula<TypeElem>  log (const cFormula<TypeElem> & aF)
 {
@@ -283,7 +407,14 @@ inline cFormula<TypeElem>  pow (const cFormula<TypeElem> & aF,const TypeElem& aV
     if (aVal==TypeElem(3)) return cube(aF);
     return cGenOperatorUnaire<cPowCste<TypeElem> >::Generate(aF,"powc",std::to_string(aVal));
 }
+template <class TypeElem> 
+inline cFormula<TypeElem>  pow (const cFormula<TypeElem> & aF,const int & aVal )
+{
+   return pow(aF,TypeElem(aVal));
+}
 
+template <class TypeElem> inline cFormula<TypeElem>  pow8 (const cFormula<TypeElem> & aF){return pow(aF,8);}
+template <class TypeElem> inline cFormula<TypeElem>  pow9 (const cFormula<TypeElem> & aF){return pow(aF,9);}
 }; //   NS_MMVII_FormalDerivative
 
 

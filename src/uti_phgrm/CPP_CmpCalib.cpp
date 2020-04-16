@@ -567,10 +567,11 @@ cLibertOfCalib GetDefDegreeOfCalib(const cCalibDistortion & aCalib )
 void GenerateMesure2D3D(cBasicGeomCap3D * aCamIn,int aNbXY,int aNbProf,const std::string & aNameIm,cDicoAppuisFlottant & aDAF,cMesureAppuiFlottant1Im & aMAF)
 {
 
+// std::cout << "CONVCALL " << __LINE__ << "\n";
     double aProfGlob = 1.0;
     CamStenope * aCS = aCamIn->DownCastCS() ;
 
-    if (aCS)
+    if (aCS && aCS->ProfIsDef())
     {
          aProfGlob = aCS->GetProfondeur();
     }
@@ -749,6 +750,7 @@ int ConvertCalib_main(int argc, char** argv)
                    << EAM(DecFree,"DecFree",true,"Decentrik free (def=true when appliable)")
     );
 
+
     if (MMVisualMode) return EXIT_SUCCESS;
 
    std::string aNameImage = aCalibOut;
@@ -759,7 +761,9 @@ int ConvertCalib_main(int argc, char** argv)
    cDicoAppuisFlottant aDAF;
    cMesureAppuiFlottant1Im aMAF;
 
+std::cout << "CONVCALL " << __LINE__ << "\n";
    GenerateMesure2D3D(aCamIn,aNbXY,aNbProf,aNameImage,aDAF,aMAF);
+std::cout << "CONVCALL " << __LINE__ << "\n";
    cCalibrationInternConique aCICOut = StdGetFromPCP(aCalibOut,CalibrationInternConique);
    cLibertOfCalib  aLOC = GetDefDegreeOfCalib(aCICOut.CalibDistortion().back());
    if (!EAMIsInit(&aDRMax) ) aDRMax = aLOC.mDegRad;
@@ -789,8 +793,8 @@ int ConvertCalib_main(int argc, char** argv)
                       ;
 
 
-   System(aCom);
    std::cout << "COM= " << aCom << "\n";
+   System(aCom);
 
 
 // "/opt/micmac/culture3d/bin/mm3d"

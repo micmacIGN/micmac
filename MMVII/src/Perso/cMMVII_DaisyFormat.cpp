@@ -407,7 +407,7 @@ tMMVII_UnikPApli Alloc_Daisy(const std::vector<std::string> &  aVArgs,const cSpe
 
 cSpecMMVII_Appli  TheSpecDaisy
 (
-     "Daisy",
+     "MediaDaisy",
       Alloc_Daisy,
       "This command is used to generate audio book to daisy format from mp3 files",
       {eApF::Perso},

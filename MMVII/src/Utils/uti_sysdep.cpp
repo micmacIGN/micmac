@@ -3,7 +3,7 @@
 namespace MMVII
 {
 
-int SysCall(const std::string & aCom, bool SVP) 
+int GlobSysCall(const std::string & aCom, bool SVP) 
 {
    int aResult = system(aCom.c_str());
    if (aResult != EXIT_SUCCESS)

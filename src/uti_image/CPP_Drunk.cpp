@@ -99,8 +99,16 @@ void Drunk(string aFullPattern,string aOri,string DirOut, bool Talk, bool RGB, B
     //Loading the camera
     string aNameCam="Ori-"+aOri+"/Orientation-"+aNameIm+".xml";
     cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aNameDir);
-    CamStenope * aCam = CamOrientGenFromFile(aNameCam,anICNM);
+    // CamStenope * aCam = CamOrientGenFromFile(aNameCam,anICNM);
 
+    CamStenope * aCam = anICNM->StdCamStenOfNamesSVP (aNameIm,aOri) ; 
+    bool WithExtern  = (aCam != nullptr);
+    if (!WithExtern)
+    {
+       std::string  aNameCal = anICNM->StdNameCalib(aOri,aNameIm);
+       aCam =  Std_Cal_From_File(aNameCal);
+       // aCalibFileExtern= true;
+    }
 
     //Reading the image and creating the objects to be manipulated
     Tiff_Im aTF= Tiff_Im::StdConvGen(aNameDir + aNameIm,3,false);
