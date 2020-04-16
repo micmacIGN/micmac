@@ -43,30 +43,28 @@ Header-MicMac-eLiSe-25/06/2007*/
 using namespace SolGlobInit_DFS ;
 
 
-/*
- * procedure DFS(G, v) is
-      label v as discovered
-      for all directed edges from v to w that are in G.adjacentEdges(v) do
-          if vertex w is not labeled as discovered then
-              recursively call DFS(G, w)
- * */
-
-/*
- * The DFS is a standard algorithm for system-
-atically creating a tree given a starting vertex of a graph. In our modification, in each
-instance we start at a random vertex and at every parent vertex, we randomly pick the
-next adjacent vertex to be visited in the search process.
- * 
- * */
+#define MIN_WEIGHT 0.5
+#define MAX_WEIGHT 10.0
 
 extern double DistBase(Pt3dr  aB1,Pt3dr  aB2);
 extern double DistanceRot(const ElRotation3D & aR1,const ElRotation3D & aR2,double aBSurH);
+
+void PrintRotation(const ElMatrix<double> Mat,const std::string Msg)
+{
+	std::cout << " ===R" << Msg << " === \n";
+    for (int l=0; l<3; l++){
+        for (int c=0; c<3; c++)
+            std::cout << Mat(l,c) << " ";
+
+		std::cout << "\n";
+	}
+}
 
 //=====================================================================================
 #ifdef GRAPHVIZ_ENABLED
 
 
-GVC_t *cSolGlobInit_RandomDFS::GRAPHVIZ_GVCInit(const std::string& aGName)
+GVC_t *cSolGlobInit_NRandom::GRAPHVIZ_GVCInit(const std::string& aGName)
 {
     std::string Prefix = "-o";
 
@@ -100,7 +98,7 @@ GVC_t *cSolGlobInit_RandomDFS::GRAPHVIZ_GVCInit(const std::string& aGName)
 	
 }
 
-std::pair<graph_t *,GVC_t *> cSolGlobInit_RandomDFS::GRAPHVIZ_GraphInit(const std::string& aGName)
+std::pair<graph_t *,GVC_t *> cSolGlobInit_NRandom::GRAPHVIZ_GraphInit(const std::string& aGName)
 {
 
 	GVC_t *gvc = GRAPHVIZ_GVCInit(aGName);
@@ -113,7 +111,7 @@ std::pair<graph_t *,GVC_t *> cSolGlobInit_RandomDFS::GRAPHVIZ_GraphInit(const st
 	return std::pair<graph_t*,GVC_t*>(g,gvc);
 }
 
-graph_t *cSolGlobInit_RandomDFS::GRAPHIZ_GraphRead(std::string& aFName)
+graph_t *cSolGlobInit_NRandom::GRAPHIZ_GraphRead(std::string& aFName)
 {
 	graph_t *g;
 
@@ -136,7 +134,7 @@ graph_t *cSolGlobInit_RandomDFS::GRAPHIZ_GraphRead(std::string& aFName)
 }
 
 /* */
-void cSolGlobInit_RandomDFS::GRAPHIZ_GraphSerialize(std::string& aFName,graph_t *g)
+void cSolGlobInit_NRandom::GRAPHIZ_GraphSerialize(std::string& aFName,graph_t *g)
 {
 	FILE *fp;
 
@@ -146,7 +144,7 @@ void cSolGlobInit_RandomDFS::GRAPHIZ_GraphSerialize(std::string& aFName,graph_t 
 }
 
 
-void cSolGlobInit_RandomDFS::GRAPHIZ_GraphKill(graph_t *g,GVC_t *gvc,std::string aWriteName)
+void cSolGlobInit_NRandom::GRAPHIZ_GraphKill(graph_t *g,GVC_t *gvc,std::string aWriteName)
 {
 	gvLayoutJobs(gvc, g);
 
@@ -166,7 +164,7 @@ void cSolGlobInit_RandomDFS::GRAPHIZ_GraphKill(graph_t *g,GVC_t *gvc,std::string
 
 }
 
-void cSolGlobInit_RandomDFS::GRAPHIZ_NodeInit(graph_t *g,
+void cSolGlobInit_NRandom::GRAPHIZ_NodeInit(graph_t *g,
 				      const std::string& aName1,
 					  const std::string& aName2,
 					  const std::string& aName3)
@@ -214,7 +212,7 @@ void cSolGlobInit_RandomDFS::GRAPHIZ_NodeInit(graph_t *g,
 
 }
 
-void cSolGlobInit_RandomDFS::GRAPHVIZ_NodeAdd(graph_t* g,
+void cSolGlobInit_NRandom::GRAPHVIZ_NodeAdd(graph_t* g,
 				      const std::string& aName1,
 					  const std::string& aName2,
 					  const std::string& aName3)
@@ -238,7 +236,7 @@ void cSolGlobInit_RandomDFS::GRAPHVIZ_NodeAdd(graph_t* g,
 
 }
 
-void cSolGlobInit_RandomDFS::GRAPHVIZ_EdgeChgColor(graph_t* g,
+void cSolGlobInit_NRandom::GRAPHVIZ_EdgeChgColor(graph_t* g,
 				                                   const std::string& aName1,
 				                                   const std::string& aName2,
 												   std::string aColor)
@@ -263,7 +261,7 @@ void cSolGlobInit_RandomDFS::GRAPHVIZ_EdgeChgColor(graph_t* g,
 }
 
 /* Find node and change its color */
-void cSolGlobInit_RandomDFS::GRAPHVIZ_NodeChgColor(graph_t* g,const std::string& aName)
+void cSolGlobInit_NRandom::GRAPHVIZ_NodeChgColor(graph_t* g,const std::string& aName)
 {
 	
     char * aNName = (char *)aName.c_str();
@@ -278,7 +276,7 @@ void cSolGlobInit_RandomDFS::GRAPHVIZ_NodeChgColor(graph_t* g,const std::string&
 
 }
 
-void cSolGlobInit_RandomDFS::WriteGraphToFile()
+void cSolGlobInit_NRandom::WriteGraphToFile()
 {
 	// Clear the sommets
     mVS.clear();
@@ -369,7 +367,7 @@ void cSolGlobInit_RandomDFS::WriteGraphToFile()
 
 
 
-cNOSolIn_Triplet::cNOSolIn_Triplet(cSolGlobInit_RandomDFS *anAppli,tSomNSI * aS1,tSomNSI * aS2,tSomNSI *aS3,const cXml_Ori3ImInit &aTrip) :
+cNOSolIn_Triplet::cNOSolIn_Triplet(cSolGlobInit_NRandom *anAppli,tSomNSI * aS1,tSomNSI * aS2,tSomNSI *aS3,const cXml_Ori3ImInit &aTrip) :
     mAppli (anAppli),
     mNb3   (aTrip.NbTriplet()),
     mNumCC (-1),
@@ -417,7 +415,7 @@ tSomNSI * cLinkTripl::S2() const {return  m3->KSom(mK2);}
 tSomNSI * cLinkTripl::S3() const {return  m3->KSom(mK3);}
 
 
-cNOSolIn_AttrSom::cNOSolIn_AttrSom(const std::string & aName,cSolGlobInit_RandomDFS & anAppli) :
+cNOSolIn_AttrSom::cNOSolIn_AttrSom(const std::string & aName,cSolGlobInit_NRandom & anAppli) :
 	mName(aName),
 	mAppli(&anAppli),
 	mIm            (new cNewO_OneIm(mAppli->NM(),mName)),
@@ -469,7 +467,7 @@ void cNOSolIn_Triplet::SetArc(int aK,tArcNSI * anArc)
 }
 
 
-void cSolGlobInit_RandomDFS::CreateArc(tSomNSI *aS1,tSomNSI *aS2,cNOSolIn_Triplet *aTripl,int aK1,int aK2,int aK3)
+void cSolGlobInit_NRandom::CreateArc(tSomNSI *aS1,tSomNSI *aS2,cNOSolIn_Triplet *aTripl,int aK1,int aK2,int aK3)
 {
      tArcNSI * anArc = mGr.arc_s1s2(*aS1,*aS2);
      if (anArc==0)
@@ -484,7 +482,21 @@ void cSolGlobInit_RandomDFS::CreateArc(tSomNSI *aS1,tSomNSI *aS2,cNOSolIn_Triple
      aTripl->SetArc(aK3,anArc);
 }
 
-cNOSolIn_Triplet* cSolGlobInit_RandomDFS::GetBestTri()
+cLinkTripl * cSolGlobInit_NRandom::GetBestTriDyn()
+{
+    cLinkTripl * aLnk;
+    if (mHeapTriDyn.pop(aLnk))
+       return aLnk;
+
+    return 0;
+
+
+}
+
+
+
+
+cNOSolIn_Triplet* cSolGlobInit_NRandom::GetBestTri()
 {
     cNOSolIn_Triplet * aLnk;
     if (mHeapTriAll.pop(aLnk))
@@ -497,15 +509,17 @@ cNOSolIn_Triplet* cSolGlobInit_RandomDFS::GetBestTri()
 
 static cNO_CmpTriSolByCost TheCmp3Sol;
 
-cSolGlobInit_RandomDFS::cSolGlobInit_RandomDFS(int argc,char ** argv) :
+cSolGlobInit_NRandom::cSolGlobInit_NRandom(int argc,char ** argv) :
 	mNbSom(0),
 	mNbTrip(0),
 	mFlag3CC(mAllocFlag3.flag_alloc()),
+	mFlagS(mGr.alloc_flag_som()),
 	mDebug(false),
 	mNbSamples(1000),
 	mIterCur(0),
 	mGraphName(""),
-	mHeapTriAll(TheCmp3Sol)
+	mHeapTriAll(TheCmp3Sol),
+	mHeapTriDyn(TheCmp3)
 
 {
 	bool aModeBin = true;
@@ -601,17 +615,483 @@ cSolGlobInit_RandomDFS::cSolGlobInit_RandomDFS(int argc,char ** argv) :
 
             }
     }
-    std::cout << "LOADED GRAPH " << mChrono.uval() << "\n";
+    std::cout << "LOADED GRAPH " << mChrono.uval() << ", NbTrip=" << mNbTrip << "\n";
 
 #ifdef GRAPHVIZ_ENABLED
-	
-	WriteGraphToFile();
-    std::cout << "SAVED GRAPHHIZ " << mChrono.uval() << "\n";
+
+	if (mGraphName!="")	
+	{
+		WriteGraphToFile();
+    	std::cout << "SAVED GRAPHHIZ " << mChrono.uval() << "\n";
+	}
 
 #endif
 }
 
-void  cSolGlobInit_RandomDFS::DoOneRandomDFS(bool UseCoherence)
+/* Connected components */
+
+void cSolGlobInit_NRandom::NumeroteCC()
+{
+    int aNumCC = 0;
+
+    for (int  aK3=0 ; aK3<int (mV3.size()) ; aK3++)
+    {
+        cNOSolIn_Triplet * aTri0 = mV3[aK3];
+
+        // If the triplet has not been marked, it's a new component
+        if ( !aTri0->Flag().kth(mFlag3CC))
+        {
+            // Create a new component
+            cNO_CC_TripSom * aNewCC3S = new cNO_CC_TripSom;
+            aNewCC3S->mNumCC = aNumCC;  // give it a number
+            mVCC.push_back(aNewCC3S);   // add it to the vector of component
+            std::vector<cNOSolIn_Triplet*> * aCC3 = &(aNewCC3S->mTri); // Quick acces to vec of tri in the CC
+            std::vector<tSomNSI *> * aCCS = &(aNewCC3S->mSoms); // Quick accessto som
+
+            // Calcul des triplets
+            aCC3->push_back(aTri0);  // Add triplet T0
+            aTri0->Flag().set_kth_true(mFlag3CC);// Mark it as explored
+            aTri0->NumCC() = aNumCC;  // Put  right num to T0
+            int aKCur = 0;
+            // Traditional loop of CC : while  no new inexplored neighboor
+            while (aKCur!=int(aCC3->size()))
+            {
+               cNOSolIn_Triplet * aTri1 = (*aCC3)[aKCur];
+               // For each edge of the current triplet
+               for (int aKA=0 ; aKA<3 ; aKA++)
+               {
+                  // Get triplet adjacent to this edge and parse them
+                  std::vector<cLinkTripl> &  aLnk = aTri1->KArc(aKA)->attr().ASym()->Lnk3();
+                  for (int aKL=0 ; aKL<int(aLnk.size()) ; aKL++)
+                  {
+                     // If not marked, mark it and push it in aCC3, return it was added
+                     if (SetFlagAdd(*aCC3,aLnk[aKL].m3,mFlag3CC))
+                     {
+                          aLnk[aKL].m3->NumCC() = aNumCC;
+                     }
+                  }
+               }
+               aKCur++;
+            }
+
+            // Compute the summit of the CC, it's easy, just be carrful to get them only once
+            int aFlagSom = mGr.alloc_flag_som();
+            for (int aKT=0 ; aKT<int(aCC3->size()) ; aKT++)
+            {
+                cNOSolIn_Triplet * aTri = (*aCC3)[aKT];
+                for (int aKS=0 ;  aKS<3 ; aKS++)
+                {
+                    SetFlagAdd(*aCCS,aTri->KSom(aKS),aFlagSom);
+                }
+            }
+
+            FreeAllFlag(*aCCS,aFlagSom);
+            mGr.free_flag_som(aFlagSom);
+
+			std::cout << "Nb of sommets " << aCCS->size() << " in CC " << aNumCC << "\n"; 
+
+            aNumCC++;
+        }
+    }
+
+    FreeAllFlag(mV3,mFlag3CC);
+	std::cout << "Nb of CCs " << aNumCC << "\n"; 
+}
+	
+/* Randomly choose an adjacent triplet from a set */
+cLinkTripl * cSolGlobInit_NRandom::GetRandTri()
+{
+
+
+    cLinkTripl * aTri;
+
+	if (int(mSCur3Adj.size()))
+	{
+		int aRndTriIdx = NRrandom3(int(mSCur3Adj.size())-1);
+
+
+		// Get the triplet
+		std::set<cLinkTripl *>::iterator it = mSCur3Adj.begin();
+		std::advance(it, aRndTriIdx);
+		aTri = *it;
+
+
+		// Remove triplet from the set => mark as explored
+		mSCur3Adj.erase(it);	
+
+
+		// If the sommet was in the meantime added to global solution, 
+		// search for another one
+		while ( aTri->S3()->flag_kth(mFlagS) && int(mSCur3Adj.size()))
+		{
+			aRndTriIdx = NRrandom3(int(mSCur3Adj.size())-1);
+
+			it = mSCur3Adj.begin();
+			std::advance(it, aRndTriIdx);
+			aTri = *it;
+
+			mSCur3Adj.erase(it);	
+
+		}
+
+    	return aTri;
+	}
+    return 0;
+	
+}
+
+/* Add neighbouring/adjacent triplets to set */
+void cSolGlobInit_NRandom::AddArcOrCur(cNOSolIn_AttrASym *anArc)
+{
+	// Adjacent triplets
+	std::vector<cLinkTripl> &  aLnk = anArc->Lnk3();
+
+	for (int aK=0; aK< int(aLnk.size()); aK++)
+	{
+
+
+		// Test if the sommet S3 exists
+		if (! aLnk.at(aK).S3()->flag_kth(mFlagS))
+		{
+			mSCur3Adj.insert(&(aLnk.at(aK)));
+
+		}
+		// If S3 exists, try to add triplets adjacent to edges: S1-S3 and S2-S3
+		else
+		{
+			/*std::cout << "Sommet Already added=" 
+			      << aLnk.at(aK).S1()->attr().Im()->Name() << " "
+			      << aLnk.at(aK).S2()->attr().Im()->Name() << " "
+				  << aLnk.at(aK).S3()->attr().Im()->Name() << "\n";*/
+
+			for (int aKArc=0; aKArc<3; aKArc++)
+			{
+				if (anArc!=aLnk.at(aK).m3->KArc(aKArc)->attr().ASym())
+				{
+					// Secondary triplets adjacent to S1-S3 or S2-S3
+					std::vector<cLinkTripl> &  aLnkSec = aLnk.at(aK).m3->KArc(aKArc)->attr().ASym()->Lnk3();
+
+					for (int aT=0; aT< int(aLnkSec.size()); aT++)
+					{
+						// Test if the "collateral" sommet S3 exists
+        				if (! aLnkSec.at(aT).S3()->flag_kth(mFlagS))
+        				{
+							mSCur3Adj.insert(&(aLnkSec.at(aT)));
+						}
+					}		
+				}
+			}
+		}
+	}
+}
+
+
+void cSolGlobInit_NRandom::EstimRt(cLinkTripl * aLnk)
+{
+
+    // Get sommets
+    tSomNSI * aS1 = aLnk->S1();
+    tSomNSI * aS2 = aLnk->S2();
+    tSomNSI * aS3 = aLnk->S3();
+
+    // Get current R,t of the mother pair
+    ElRotation3D aC1ToM = aS1->attr().CurRot();
+    ElRotation3D aC2ToM = aS2->attr().CurRot();
+
+    // Get rij,tij of the triplet sommets
+    const ElRotation3D aC1ToL = aLnk->m3->RotOfSom(aS1);
+    const ElRotation3D aC2ToL = aLnk->m3->RotOfSom(aS2);
+    const ElRotation3D aC3ToL = aLnk->m3->RotOfSom(aS3);
+
+    // Propagate R,t according to:
+    // aC1ToM.tr() = T0 + aRL2M * aC1ToL.tr() * Lambda
+    //
+    // 1-R
+    ElMatrix<double> aRL2Mprim = aC1ToM.Mat() * aC1ToL.Mat().transpose();
+    ElMatrix<double> aRL2Mbis  = aC2ToM.Mat() * aC2ToL.Mat().transpose();
+    ElMatrix<double> aRL2M     = NearestRotation((aRL2Mprim+aRL2Mbis)*0.5);
+
+
+
+    // 2-Lambda
+    double d12L  = euclid(aC2ToL.tr() - aC1ToL.tr());
+    double d12M  = euclid(aC2ToM.tr() - aC1ToM.tr());
+    double Lambda = d12M / ElMax(d12L,1e-20);
+
+
+    // 3-t
+    Pt3dr aC1ToLRot = aRL2M * aC1ToL.tr();
+    Pt3dr aC2ToLRot = aRL2M * aC2ToL.tr();
+
+    Pt3dr T0prim = aC1ToM.tr() - aC1ToLRot * Lambda;
+    Pt3dr T0bis  = aC2ToM.tr() - aC2ToLRot * Lambda;
+    Pt3dr T0 = (T0prim+T0bis) /2.0;
+
+    Pt3dr aT3 = T0 + aRL2M * aC3ToL.tr() * Lambda;
+
+    // 4- Set R3,t3
+    aS3->attr().CurRot() = ElRotation3D(aT3,aRL2M*aC3ToL.Mat(),true);
+    aS3->attr().TestRot() = ElRotation3D(aT3,aRL2M*aC3ToL.Mat(),true);//used in coherence
+	
+	// Mark node as vistied
+	aS3->flag_set_kth_true(mFlagS);
+}
+
+void  cSolGlobInit_NRandom::RandomSolOneCC(cNOSolIn_Triplet * aSeed,int NbSomCC)
+{
+	int aNumCCSom=0;
+
+	for (int aK=0; aK<3; aK++)
+	{
+		// Set the current R,t of the seed
+    	aSeed->KSom(aK)->attr().CurRot() = aSeed->RotOfSom(aSeed->KSom(aK));
+	
+		// Mark as explored 
+		aSeed->KSom(aK)->flag_set_kth_true(mFlagS);
+
+		// Mark the concatenation order 
+		aSeed->KSom(aK)->attr().NumCC() = ++aNumCCSom;
+
+		// Add the seed to the set of adj triplets
+		AddArcOrCur(aSeed->KArc(aK)->attr().ASym());
+	}
+
+
+	int Cpt=0;
+	cLinkTripl * aTri=0;
+	while ((aTri = GetRandTri()) && ((Cpt+3)<NbSomCC))
+	{
+		/*std::cout << "=== Add new node " << Cpt << " " << aTri->S1()->attr().Im()->Name() << " "
+                            << aTri->S2()->attr().Im()->Name() << " "
+                            << aTri->S3()->attr().Im()->Name() << "\n";*/
+
+		// Flag as visted
+		aTri->m3->Flag().set_kth_true(mFlag3CC);
+
+		// Flag the concatenation order
+		aTri->S3()->attr().NumCC() = ++aNumCCSom;
+
+		// Propagate R,t and flag sommet as visited
+		EstimRt(aTri);	
+
+		// Add two new edges and their respective adjacent triplets
+		AddArcOrCur(aTri->m3->KArc(0)->attr().ASym());
+		AddArcOrCur(aTri->m3->KArc(1)->attr().ASym());
+		AddArcOrCur(aTri->m3->KArc(2)->attr().ASym());
+
+		Cpt++;
+	}
+	
+	std::cout << "In this CC, nb of connected nodes " << Cpt+3 << "\n";
+
+
+
+	
+}
+
+
+void  cSolGlobInit_NRandom::RandomSolOneCC(cNO_CC_TripSom * aCC)
+{
+
+	 NRrandom3InitOfTime();
+	 std::cout << "DFS per CC, Nb Som " << aCC->mSoms.size() << ", nb triplets " << aCC->mTri.size() << "\n";
+
+	
+	 // Select random seed triplet
+     int aSeed = NRrandom3(int(aCC->mTri.size()-1));
+
+     cNOSolIn_Triplet * aTri0 = aCC->mTri[aSeed];
+     std::cout << "Seed triplet " << aTri0->KSom(0)->attr().Im()->Name() << " "
+                                  << aTri0->KSom(1)->attr().Im()->Name() << " "
+                                  << aTri0->KSom(2)->attr().Im()->Name() << "\n";
+
+
+	 // Flag as visited
+	 aTri0->Flag().set_kth_true(mFlag3CC);
+
+     ELISE_ASSERT(aTri0!=0,"Cannot compute seed in RandomSolOneCC");
+
+	 // Build the initial solution in this CC
+     RandomSolOneCC(aTri0,aCC->mSoms.size());
+
+	 // Calculate coherence scores within this CC
+     CoherTriplets(aCC->mTri);
+	 //CoherTripletsGraphBased(aCC->mTri);
+
+	 // Save
+     //std::string aOutOri = "DSF_Init" +  ToString(mIterCur);
+     //Save(aOutOri);
+
+	 // Print
+	 //for (int aK=0; aK<int(aCC->mSoms.size()); aK++)
+	 //	std::cout << aCC->mSoms[aK]->flag_kth(mFlagS) << ", " << aCC->mSoms[aK]->attr().Im()->Name() << "\n";
+
+	 // Free flags
+	 FreeAllFlag(aCC->mSoms,mFlagS);
+	 FreeAllFlag(aCC->mTri,mFlag3CC);
+
+	 // Free the set of current unvisted adjacent triplets
+	 mSCur3Adj.clear();
+
+ 	// Reset the concatenation order
+	FreeSomNumCCFlag(); 
+}
+
+void cSolGlobInit_NRandom::AddTriOnHeap(cLinkTripl *aLnk)
+{
+	std::vector<cLinkTripl *> aVMaj;
+
+	std::vector<int> aSIdx {aLnk->mK1,aLnk->mK2,aLnk->mK3};
+    for (int aK=0; aK<3; aK++)
+    {
+		std::vector<cLinkTripl *> &  aVT = aLnk->m3->KArc(aSIdx[aK])->attr().ASym()->Lnk3Ptr();
+
+		for (int aT=0; aT< int(aVT.size()); aT++)
+        {
+
+            // If triplet was not visited
+            if ( !aVT[aT]->m3->Flag().kth(mFlag3CC))
+            {
+
+				// Add to heap
+                mHeapTriDyn.push(aVT[aT]);
+
+                // Push to aVMaj
+                aVMaj.push_back(aVT[aT]);
+
+                // Flag as marked
+                aVT[aT]->m3->Flag().set_kth_true(mFlag3CC);
+		
+				/*std::cout << "___________ " ;
+                std::cout << "added triplet Lnk "
+                          << aVT[aT]->S1()->attr().Im()->Name() << " "
+                          << aVT[aT]->S2()->attr().Im()->Name() << " "
+                          << aVT[aT]->S3()->attr().Im()->Name() << "\n";*/
+
+
+
+			}
+		}
+	}
+
+	for (int aK=0; aK<int(aVMaj.size()); aK++)
+    {
+        mHeapTriDyn.MAJ(aVMaj[aK]);
+
+    }
+
+}
+
+
+void cSolGlobInit_NRandom::BestSolOneCC(cNO_CC_TripSom *aCC)
+{
+
+	int NbSomCC = int(aCC->mSoms.size());
+
+	// Pick the best triplet
+    cNOSolIn_Triplet * aTri0 = GetBestTri();
+    std::cout << "Best triplet " << aTri0->KSom(0)->attr().Im()->Name() << " "
+                                 << aTri0->KSom(1)->attr().Im()->Name() << " "
+                                 << aTri0->KSom(2)->attr().Im()->Name() << " "
+                                 << aTri0->CostArc() << "\n";
+
+    // Flag triplet as marked
+    aTri0->Flag().set_kth_true(mFlag3CC);
+
+	
+	for (int aK=0; aK<3; aK++)
+    {
+        // Flag sommets as explored
+        aTri0->KSom(aK)->flag_set_kth_true(mFlagS);
+
+        // Set the current R,t of the seed
+        aTri0->KSom(aK)->attr().CurRot() = aTri0->RotOfSom(aTri0->KSom(aK));
+
+		//PrintRotation(aTri0->KSom(aK)->attr().CurRot().Mat(),ToString(aK));
+
+
+    }
+
+	// Fill the dynamic heap with triplets connected to this triplet
+	cLinkTripl * aLnk0 = new cLinkTripl(aTri0,0,1,2);
+    AddTriOnHeap(aLnk0);
+
+
+	// Iterate to build the solution while updating the heap
+    int Cpt=0;
+    cLinkTripl * aTriNext=0;
+    while ( (aTriNext=GetBestTriDyn()) && ((Cpt+3)<NbSomCC))
+    {
+		// Check that the node has not been added in the meantime
+		if (! aTriNext->S3()->flag_kth(mFlagS))
+		{
+    		std::cout << "=== Add new node " << Cpt << " "
+                  << aTriNext->S1()->attr().Im()->Name() << " "
+                  << aTriNext->S2()->attr().Im()->Name() << " "
+                  << aTriNext->S3()->attr().Im()->Name() << " "
+                  << aTriNext->m3->CostArc() << "\n";
+            
+
+			/*PrintRotation(aTriNext->S1()->attr().CurRot().Mat(),"0");
+			PrintRotation(aTriNext->S2()->attr().CurRot().Mat(),"1");
+			PrintRotation(aTriNext->S3()->attr().CurRot().Mat(),"2");*/
+            
+            
+			// Propagate R,t
+            EstimRt(aTriNext);
+            
+            
+			// Add to heap
+            AddTriOnHeap(aTriNext);
+            
+            Cpt++;
+
+		}
+		else // however, try to adjacent triplets of that triplet
+		{
+
+			// Add to heap
+            AddTriOnHeap(aTriNext);
+
+		}
+
+    }
+
+    std::cout << "Nb final sommets=" << Cpt+3 << ", out of " << NbSomCC << "\n";
+
+
+}
+
+
+
+void  cSolGlobInit_NRandom::RandomSolAllCC()
+{
+	std::cout << "Nb of connected components=" << mVCC.size() << "\n";
+	for (int aKC=0 ;  aKC<int(mVCC.size()) ; aKC++)
+    	RandomSolOneCC(mVCC[aKC]);
+
+}
+
+void cSolGlobInit_NRandom::BestSolAllCC()
+{
+	// Add all triplets to global heap
+	// (used only to get best seed)
+	HeapPerSol();
+
+
+	// Get best solution for each CC
+	for (int aKC=0 ;  aKC<int(mVCC.size()) ; aKC++)
+        BestSolOneCC(mVCC[aKC]);
+
+	// Save
+    std::string aOutOri = "DSF_BestInit";
+    Save(aOutOri,true);
+
+	// Free triplets
+	FreeAllFlag(mV3,mFlag3CC);
+}
+
+void  cSolGlobInit_NRandom::DoOneRandomDFS(bool UseCoherence)
 {
 
 	NRrandom3InitOfTime();
@@ -649,7 +1129,7 @@ void  cSolGlobInit_RandomDFS::DoOneRandomDFS(bool UseCoherence)
 	aTri0->KSom(1)->attr().CurRot() = aTri0->RotOfSom(aTri0->KSom(1));
 	aTri0->KSom(2)->attr().CurRot() = aTri0->RotOfSom(aTri0->KSom(2));
 
-
+	getchar();
 
 #ifdef GRAPHVIZ_ENABLED
 
@@ -686,7 +1166,7 @@ void  cSolGlobInit_RandomDFS::DoOneRandomDFS(bool UseCoherence)
     aNewCC3S->mNumCC = aNumCC; 
     mVCC.push_back(aNewCC3S);  
     std::vector<cNOSolIn_Triplet*> * aCC3 = &(aNewCC3S->mTri); // Quick acces to vec of tri in the CC
-    std::vector<tSomNSI *> * aCCS = &(aNewCC3S->mSoms); // Quick access to som
+    // std::vector<tSomNSI *> * aCCS = &(aNewCC3S->mSoms); // Quick access to som
 
 
 	
@@ -694,10 +1174,8 @@ void  cSolGlobInit_RandomDFS::DoOneRandomDFS(bool UseCoherence)
     // Calcul des triplets 
     aCC3->push_back(aTri0);  // Add triplet T0
 
-    aTri0->Flag().set_kth_true(mFlag3CC);// Mark it as explored
-    aTri0->NumCC() = aNumCC;  // Put  right num to T0
-   	int aKCur = 0;
-
+    //aTri0->Flag().set_kth_true(mFlag3CC);// Mark it as explored
+    //aTri0->NumCC() = aNumCC;  // Put  right num to T0
 
     
 
@@ -705,12 +1183,12 @@ void  cSolGlobInit_RandomDFS::DoOneRandomDFS(bool UseCoherence)
 	while (int(mVS.size())!=mNbSom)
 	{
 		if (mDebug)
-			std::cout << int(mVS.size()) << "/" << mNbSom << "\n" ;
+			std::cout << int(mVS.size()) << "/" << mNbSom << " " ;
 
 		// Randomly select a triplet (out of visited ones)
 		int t_r = NRrandom3(int(aCC3->size()));
-		/*if (mDebug)
-			std::cout << ", trip_r=" << t_r << "/" << int(aCC3->size()) ;*/
+		if (mDebug)
+			std::cout << ", trip_r=" << t_r << "/" << int(aCC3->size()) << " ";
 
 
 		cNOSolIn_Triplet * aTri1 = (*aCC3)[t_r];
@@ -719,8 +1197,8 @@ void  cSolGlobInit_RandomDFS::DoOneRandomDFS(bool UseCoherence)
 		// Randomly select an edge e_r
 		int e_r = NRrandom3(3);
 		
-		/*if (mDebug)
-			std::cout << ", edge_r=" << e_r << "/3" ;*/
+		if (mDebug)
+			std::cout << ", edge_r=" << e_r << "/3 " ;
 
 		//Triplets adjacent to edge e_r
 		std::vector<cLinkTripl> &  aLnk = aTri1->KArc(e_r)->attr().ASym()->Lnk3();
@@ -740,17 +1218,20 @@ void  cSolGlobInit_RandomDFS::DoOneRandomDFS(bool UseCoherence)
 		/*cLinkTripl TriAdjCur = (UseCoherence ? *(aTri1->KArc(e_r)->attr().ASym()->GetBestTri()) 
 						                     : aLnk[e_a]);*/
 
-		/*if (mDebug)
+		if (mDebug)
 				std::cout << ", edge_a=" << e_a << "/" << int(aLnk.size()) << "\n";
-		}*/
+
 
 
 
 		// If not marked, mark it and push it in aCC3, return it was added
 		if (! DicBoolFind(mVS,TriAdjCur.S3()->attr().Im()->Name()))
 		{
-			TriAdjCur.m3->NumCC() = aNumCC;
+			//TriAdjCur.m3->NumCC() = aNumCC;
 			mVS[TriAdjCur.S3()->attr().Im()->Name()] = TriAdjCur.S3();
+
+			//Update aCC3
+			aCC3->push_back(TriAdjCur.m3);
 
 			// Get sommets
 			tSomNSI * aS1 = TriAdjCur.S1();
@@ -812,7 +1293,6 @@ void  cSolGlobInit_RandomDFS::DoOneRandomDFS(bool UseCoherence)
 
 		}
 
-        aKCur++;	
 	
 	}
 
@@ -824,15 +1304,60 @@ void  cSolGlobInit_RandomDFS::DoOneRandomDFS(bool UseCoherence)
 	std::string aOutOri = "DSF_" + (UseCoherence ? "BestInit" : ToString(mIterCur));
 	Save(aOutOri);
 
-	std::cout << "NbTriii " << aCC3->size() << " NbSooom " << aCCS->size() << "\n";
+	std::cout << "NbTriii " << aCC3->size() << " NbSooom " << mVS.size() << "\n";
 
 #ifdef GRAPHVIZ_ENABLED 
 	GRAPHIZ_GraphKill(g,gvc);
 #endif
+}
+
+
+
+void cSolGlobInit_NRandom::CoherTripletsGraphBased(std::vector<cNOSolIn_Triplet *>& aV3)
+{
+	int Nb = int(aV3.size());
+		
+	double a1 = (MAX_WEIGHT - MIN_WEIGHT)/ElMax(Nb-1,1);
+	double a2 = (MIN_WEIGHT*Nb - MAX_WEIGHT)/ElMax(Nb-1,1);
+
+	for (int aT=0; aT<int(aV3.size()); aT++)
+    {
+		// Get the base edge being the two smaller NumCC
+		// EB1 = min(a,b)    EB2 = min(c,max(a,b))
+		int aEB1 = ElMin(aV3[aT]->KSom(0)->attr().NumCC(),
+						 aV3[aT]->KSom(1)->attr().NumCC());
+		int aEB2 = ElMin(aV3[aT]->KSom(2)->attr().NumCC(),
+				   ElMax(aV3[aT]->KSom(0)->attr().NumCC(),
+                         aV3[aT]->KSom(1)->attr().NumCC()));
+
+		int aDist = ElMax(aEB1,aEB2);	
+
+
+		double aCostCur = ElMin(abs(aV3[aT]->CoherTest()),1e9);
+
+		aV3[aT]->CostArcPerSample().push_back(aCostCur/(a1*aDist+a2));
+
+		//std::cout << "aDist=" << aDist << ", CNom=" << aCostCur << ", Pds=" << (a1*aDist+a2) << ", CPds=" << aCostCur/(a1*aDist+a2) << "\n";
+	}
+	//getchar();
+}
+
+void cSolGlobInit_NRandom::CoherTriplets(std::vector<cNOSolIn_Triplet *>& aV3)
+{
+
+    for (int aT=0; aT<int(aV3.size()); aT++)
+    {
+        double aCostCur = ElMin(abs(aV3[aT]->CoherTest()),1e9);
+        aV3[aT]->CostArcPerSample().push_back(aCostCur);
+
+        //std::cout << "cost=" << aCostCur << "\n"; 
+    }
 
 }
 
-void cSolGlobInit_RandomDFS::CoherTriplets()
+
+
+void cSolGlobInit_NRandom::CoherTriplets()
 {
 	//std::cout << "size CostArcPerSample=" <<  int(mV3[0]->CostArcPerSample().size()) << "\n";
 
@@ -846,7 +1371,7 @@ void cSolGlobInit_RandomDFS::CoherTriplets()
 
 }
 
-void cSolGlobInit_RandomDFS::CoherTripletsAllSamples()
+void cSolGlobInit_NRandom::CoherTripletsAllSamples()
 {
 	for (int aT=0; aT<int(mV3.size()); aT++)
     {
@@ -863,7 +1388,7 @@ void cSolGlobInit_RandomDFS::CoherTripletsAllSamples()
 }
 
 /* This heap will serve to GetBestTri when building the ultimate init solution */
-void cSolGlobInit_RandomDFS::HeapPerEdge()
+void cSolGlobInit_NRandom::HeapPerEdge()
 {
 
 	// For all triplets
@@ -894,7 +1419,8 @@ void cSolGlobInit_RandomDFS::HeapPerEdge()
 	
 }
 
-void cSolGlobInit_RandomDFS::HeapPerSol()
+
+void cSolGlobInit_NRandom::HeapPerSol()
 {
 	// Update heap
     for (auto aTri : mV3)
@@ -909,30 +1435,58 @@ void cSolGlobInit_RandomDFS::HeapPerSol()
     }
 }
 
-void cSolGlobInit_RandomDFS::Save(std::string& OriOut)
+void cSolGlobInit_NRandom::FreeSomNumCCFlag()
 {
+	for (tItSNSI anItS=mGr.begin(mSubAll) ; anItS.go_on(); anItS++)
+    {
+		(*anItS).attr().NumCC() = 0;
+	}
+}
+
+void cSolGlobInit_NRandom::Save(std::string& OriOut,bool SaveListOfName)
+{
+
+	std::list<std::string> aListOfName;
+
     for (tItSNSI anItS=mGr.begin(mSubAll) ; anItS.go_on(); anItS++)
     {
-        cNewO_OneIm * anI = (*anItS).attr().Im();
-        std::string aNameIm = anI->Name();
-        CamStenope * aCS = anI->CS();
-        ElRotation3D aROld2Cam = (*anItS).attr().CurRot().inv();
+		if ((*anItS).flag_kth(mFlagS))
+		{
+            cNewO_OneIm * anI = (*anItS).attr().Im();
+            std::string aNameIm = anI->Name();
+            CamStenope * aCS = anI->CS();
+            ElRotation3D aROld2Cam = (*anItS).attr().CurRot().inv();
+         
+            aCS->SetOrientation(aROld2Cam);
+         
+            cOrientationConique anOC =  aCS->StdExportCalibGlob();
+            anOC.Interne().SetNoInit();
+         
+	 	    std::string aFileIterne = mNM->ICNM()->StdNameCalib(mNameOriCalib,aNameIm);
+            
+	 	    std::string aNameOri = mNM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-"+OriOut,aNameIm,true);
+            anOC.FileInterne().SetVal (NameWithoutDir(aFileIterne));
+         
+	 	    // Copy interior orientation
+	 	    std::string aCom = "cp " + aFileIterne + " " + DirOfFile(aNameOri); 
+	 	    System(aCom);
+         
+			aListOfName.push_back(aNameIm);
 
-        aCS->SetOrientation(aROld2Cam);
-
-        cOrientationConique anOC =  aCS->StdExportCalibGlob();
-        anOC.Interne().SetNoInit();
-        anOC.FileInterne().SetVal(mNM->ICNM()->StdNameCalib(mNM->OriOut(),aNameIm));
-
-        std::string aNameOri = mNM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-"+OriOut,aNameIm,true);
-
-        MakeFileXML(anOC,aNameOri);
-
+            MakeFileXML(anOC,aNameOri);
+		}
     }
+
+	if (SaveListOfName)
+	{
+		cListOfName aLOF;
+		aLOF.Name() = aListOfName;
+		MakeFileXML(aLOF,"ListPattern_" + OriOut + ".xml");
+	}
 }
 
 
-void cSolGlobInit_RandomDFS::ShowTripletCost()
+void cSolGlobInit_NRandom::ShowTripletCost()
 {
 	for (auto aTri : mV3)
 	{
@@ -943,7 +1497,7 @@ void cSolGlobInit_RandomDFS::ShowTripletCost()
 	}
 }
 
-void  cSolGlobInit_RandomDFS::DoRandomDFS()
+void  cSolGlobInit_NRandom::DoRandomDFS()
 {
 	for (mIterCur=0; mIterCur<mNbSamples; mIterCur++)
     {
@@ -968,13 +1522,39 @@ void  cSolGlobInit_RandomDFS::DoRandomDFS()
 	ShowTripletCost();
 }
 
+void cSolGlobInit_NRandom::DoNRandomSol()
+{
+	// Create connected components
+	NumeroteCC();
+
+	// Build random inital solutions
+	for (mIterCur=0; mIterCur<mNbSamples; mIterCur++)
+    {
+		std::cout << "Iter=" << mIterCur << "\n";
+		RandomSolAllCC();
+	}
+
+
+	// Calculate median and 80% quantile coherence scores of mNbSamples
+    CoherTripletsAllSamples();
+
+	// Print the cost for all triplets
+    ShowTripletCost();
+
+	// Build "most coherent" solution
+	BestSolAllCC();
+}
 
 int CPP_SolGlobInit_RandomDFS_main(int argc,char ** argv)
 {
 
-	cSolGlobInit_RandomDFS aSGI(argc,argv);
+	cSolGlobInit_NRandom aSGI(argc,argv);
 
-	aSGI.DoRandomDFS();
+	// New pipeline
+	aSGI.DoNRandomSol();
+
+	// Old pipeline
+	//aSGI.DoRandomDFS();
 
 
     return EXIT_SUCCESS;
@@ -1006,6 +1586,7 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
     mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,mEASF.mDir,mNameOriCalib,"dat");
     //const cInterfChantierNameManipulateur::tSet * aVIm = mEASF.SetIm();
 
+	StdCorrecNameOrient(mNameOriCalib,aDir);
 	StdCorrecNameOrient(InOri,aDir);
 
     cXml_TopoTriplet aXml3 =  StdGetFromSI(mNM->NameTopoTriplet(true),Xml_TopoTriplet);

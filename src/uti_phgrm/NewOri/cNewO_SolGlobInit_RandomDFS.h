@@ -59,7 +59,7 @@ class cNOSolIn_AttrASym;
 class cNOSolIn_AttrArc;
 class cNOSolIn_Triplet;
 class cLinkTripl;
-class cSolGlobInit_RandomDFS;
+class cSolGlobInit_NRandom;
 class cNO_HeapIndTri_NSI;
 class cNO_CmpTriByCost;
 
@@ -78,8 +78,9 @@ class cNOSolIn_AttrSom
      public :
          cNOSolIn_AttrSom() :
              mCurRot (ElRotation3D::Id),
-             mTestRot (ElRotation3D::Id) {}
-         cNOSolIn_AttrSom(const std::string & aName,cSolGlobInit_RandomDFS & anAppli);
+             mTestRot (ElRotation3D::Id),
+	   		 mNumCC(0)	{}
+         cNOSolIn_AttrSom(const std::string & aName,cSolGlobInit_NRandom & anAppli);
 
 
          void AddTriplet(cNOSolIn_Triplet *,int aK0,int aK1,int aK2);
@@ -88,18 +89,17 @@ class cNOSolIn_AttrSom
          ElRotation3D & TestRot() {return mTestRot;}
 
          std::vector<cLinkTripl> & Lnk3() {return mLnk3;}
-
-
+		 int & NumCC() {return mNumCC;}
 
     private:
          std::string                      mName;
-         cSolGlobInit_RandomDFS *         mAppli;
+         cSolGlobInit_NRandom *           mAppli;
          int                              mHeapIndex;
          cNewO_OneIm *                    mIm;
          std::vector<cLinkTripl>          mLnk3;
 		 ElRotation3D                     mCurRot;
          ElRotation3D                     mTestRot;
-
+		 int 							  mNumCC;
 };
 
 
@@ -120,7 +120,7 @@ class cNOSolIn_AttrArc
 class cNOSolIn_Triplet
 {
       public :
-          cNOSolIn_Triplet(cSolGlobInit_RandomDFS *,tSomNSI * aS1,tSomNSI * aS2,tSomNSI *aS3,const cXml_Ori3ImInit &);
+          cNOSolIn_Triplet(cSolGlobInit_NRandom *,tSomNSI * aS1,tSomNSI * aS2,tSomNSI *aS3,const cXml_Ori3ImInit &);
           void SetArc(int aK,tArcNSI *);
           tSomNSI * KSom(int aK) const {return mSoms[aK];}
           tArcNSI * KArc(int aK) const {return mArcs[aK];}
@@ -163,7 +163,7 @@ class cNOSolIn_Triplet
 
       private :
           cNOSolIn_Triplet(const cNOSolIn_Triplet &); // N.I.
-          cSolGlobInit_RandomDFS * mAppli;
+          cSolGlobInit_NRandom * mAppli;
           tSomNSI *           mSoms[3];
           tArcNSI *           mArcs[3];
 		  float               mCostArc;
@@ -286,26 +286,50 @@ class cNO_CmpTriSolByCost
 
 typedef ElHeap<cNOSolIn_Triplet*,cNO_CmpTriSolByCost,cNO_HeapIndTriSol_NSI> tHeapTriSolNSI;
 
-class cSolGlobInit_RandomDFS : public cCommonMartiniAppli
+class cSolGlobInit_NRandom : public cCommonMartiniAppli
 {
     public:
-        cSolGlobInit_RandomDFS(int argc,char ** argv);
+        cSolGlobInit_NRandom(int argc,char ** argv);
 		cNewO_NameManager & NM() {return *mNM;}
 
+		// begin old pipeline
 		void DoOneRandomDFS(bool UseCoherence=false);
 		void DoRandomDFS();
+		// end old pipeline
+
+		// new pipeline entry point
+		void DoNRandomSol();
+
+		void RandomSolAllCC();
+		void RandomSolOneCC(cNO_CC_TripSom *);
+		void RandomSolOneCC(cNOSolIn_Triplet *,int) ;
+		
+		void BestSolAllCC();
+		void BestSolOneCC(cNO_CC_TripSom *);
 
     private:
+		void         AddTriOnHeap(cLinkTripl *);
+		void 		 NumeroteCC();
+		void 		 AddArcOrCur(cNOSolIn_AttrASym *);
+	    cLinkTripl * GetRandTri();
+		void         EstimRt(cLinkTripl *);
+
+
         void CreateArc(tSomNSI *,tSomNSI *,cNOSolIn_Triplet *,int aK0,int aK1,int aK2);
 		void CoherTriplets();
+		void CoherTriplets(std::vector<cNOSolIn_Triplet *>& aV3);
+		void CoherTripletsGraphBased(std::vector<cNOSolIn_Triplet *>& aV3);
 		void CoherTripletsAllSamples();
 		void HeapPerEdge();
 		void HeapPerSol();
+
 		void ShowTripletCost();
 
 		cNOSolIn_Triplet * GetBestTri();
+	    cLinkTripl 		 * GetBestTriDyn();
 
-		void Save(std::string& OriOut);
+		void Save(std::string& OriOut,bool SaveListOfName=false);
+		void FreeSomNumCCFlag();
 
         std::string mFullPat;
         cElemAppliSetFile    mEASF;
@@ -318,13 +342,17 @@ class cSolGlobInit_RandomDFS : public cCommonMartiniAppli
 
 
         std::vector<cNOSolIn_Triplet*> mV3;
-		std::vector<cNO_CC_TripSom *> mVCC;
+		std::vector<cNO_CC_TripSom *>  mVCC;
+
+		// CC vars
+		std::set<cLinkTripl *>    mSCur3Adj;//dynamic list of currently adjacent triplets
 
         int             		mNbSom;
         int             		mNbArc;
         int             		mNbTrip;
 		ElFlagAllocator         mAllocFlag3;
 		int 					mFlag3CC;
+		int 					mFlagS;
         bool            		mDebug;
         int             		mNbSamples;
         ElTimer         		mChrono;
@@ -357,8 +385,8 @@ class cSolGlobInit_RandomDFS : public cCommonMartiniAppli
 
 #endif
 		std::string mGraphName;
-		tHeapTriSolNSI mHeapTriAll;
-
+		tHeapTriSolNSI mHeapTriAll;//contains all triplets
+		tHeapTriNSI    mHeapTriDyn;
 };
 
 

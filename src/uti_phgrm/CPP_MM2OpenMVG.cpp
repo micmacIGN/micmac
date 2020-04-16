@@ -168,6 +168,16 @@ void cAppliOMVG::Save()
 		file.close();
 
 	}
+	//desc file empty
+	    for (auto aImage : aMap_Features)
+    {
+
+        std::string FeatureName = StdPrefix(aImage.first.c_str()) + ".desc";
+        std::ofstream file(FeatureName.c_str());
+        file.close();
+
+    }
+
 
 	std::ofstream match_file("match.f.txt");
 	for (auto aMatch : aMap_Matches)
