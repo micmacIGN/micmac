@@ -171,12 +171,16 @@ vector<Pt3dr> ComputedZFromDEMAndXY(REAL8** aDEMINData, vector<double> aTFWin, P
 
 	// Load list of points
 	vector<Pt2dr> aListXY;
-	std::ifstream infile(aListPointsPath);
+	std::ifstream inFile;
+	inFile.open(aListPointsPath);
+	ELISE_ASSERT(inFile, "Unable to open file");
+
 	double aX, aY;
-	while (infile >> aX >> aY)
+	while (inFile >> aX >> aY)
 	{
 		Pt2dr aPt(aX, aY);
 		aListXY.push_back(aPt);
+		//cout << aPt << endl;
 	}
 
 
@@ -250,12 +254,16 @@ vector<Pt3dr> ComputedZFromGCPs(REAL8** aDEMINData, vector<double> aTFWin, Pt2di
 	// Load list of points
 	vector<Pt3dr> aListXYZ;
 
-	std::ifstream infile(aListGCPsPath);
+	std::ifstream inFile;
+	inFile.open(aListGCPsPath);
+	ELISE_ASSERT(inFile, "Unable to open file");
+
 	double aX, aY, aZ;
-	while (infile >> aX >> aY >> aZ)
+	while (inFile >> aX >> aY >> aZ)
 	{
 		Pt3dr aPt(aX, aY, aZ);
 		aListXYZ.push_back(aPt);
+		//cout << aPt << endl;
 	}
 
 	vector<Pt3dr> aListXYdZ;
@@ -268,10 +276,13 @@ vector<Pt3dr> ComputedZFromGCPs(REAL8** aDEMINData, vector<double> aTFWin, Pt2di
 		Pt2dr aINIJ = TFW_XY2IJ(aPtXY, aTFWin);
 		// Get DEMin value for that point
 		double aINZ = Reechantillonnage::biline(aDEMINData, aSzIN.x, aSzIN.y, aINIJ);
+
+		//cout << aListXYZ[i].x << " " << aListXYZ[i].y << " " << aINZ << " " << aListXYZ[i].z << " " << aINZ - aListXYZ[i].z << endl;
 		// if the both the input and ref DEM have data at that point
-		if (aINZ > -9999 && isInside(aSzIN, aINIJ))
+		if (aINZ > -9998 && isInside(aSzIN, aINIJ))
 		{
 			// Create point at XY with dZ between DEMin and DEMRef as Z.
+			//cout << "Point added" << endl;
 			Pt3dr aPtdZ(aListXYZ[i].x, aListXYZ[i].y, aINZ - aListXYZ[i].z);
 			aListXYdZ.push_back(aPtdZ);
 		}
@@ -280,14 +291,15 @@ vector<Pt3dr> ComputedZFromGCPs(REAL8** aDEMINData, vector<double> aTFWin, Pt2di
 	return aListXYdZ;
 }
 
-vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg)
+vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg, vector<double> aTFWin)
 {
+	//NOTE : the polynome is estimated on a coordinate system where the origin (0,0) is the center of the input DEM
 
 	std::cout << "Solving banana with a degree " << aDeg << " polynome." << endl;
 
 	int nbParam;
-	vector<double> aPolyBanana = { 0,0,0, 0,0,0,0,0,0,0 };
-	double aResidual;
+	vector<double> aPolyBanana = { 0,0,0,0,0,0,0,0,0,0 };
+	double aResidual=0;
 
 
 	if (aDeg == 0) {
@@ -296,12 +308,13 @@ vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg)
 		L2SysSurResol aSysBanana(1);
 		for (size_t i = 0; i < aListXYdZ.size(); i++) {
 
-			//double X = aListXYdZ[i].x;
-			//double Y = aListXYdZ[i].y;
+			//double X = aListXYdZ[i].x - aTFWin[6];//Centering in x
+			//double Y = aListXYdZ[i].y - aTFWin[7];//Centering in y
 
 			double aPoly[1] = {
 				1
 			};
+			cout << "Added equation A=" << aListXYdZ[i].z << endl;
 			aSysBanana.AddEquation(1, aPoly, aListXYdZ[i].z);
 		}
 
@@ -320,12 +333,13 @@ vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg)
 		L2SysSurResol aSysBanana(3);
 		for (size_t i = 0; i < aListXYdZ.size(); i++) {
 
-			double X = aListXYdZ[i].x;
-			double Y = aListXYdZ[i].y;
+			double X = aListXYdZ[i].x - aTFWin[6];//Centering in x
+			double Y = aListXYdZ[i].y - aTFWin[7];//Centering in y
 			double aPoly[3] = {
 				1,
-				 X,  Y
-			};aSysBanana.AddEquation(1, aPoly, aListXYdZ[i].z);
+				X,  Y
+			};
+			aSysBanana.AddEquation(1, aPoly, aListXYdZ[i].z);
 		}
 
 		//Computing the result
@@ -342,8 +356,8 @@ vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg)
 		//initialized to 0
 		L2SysSurResol aSysBanana(6);
 		for (size_t i = 0; i < aListXYdZ.size(); i++) {
-			double X = aListXYdZ[i].x;
-			double Y = aListXYdZ[i].y;
+			double X = aListXYdZ[i].x - aTFWin[6];//Centering in x
+			double Y = aListXYdZ[i].y - aTFWin[7];//Centering in y
 			double aPoly[6] = {
 				1,
 				 X,  Y,
@@ -366,8 +380,8 @@ vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg)
 		//initialized to 0
 		L2SysSurResol aSysBanana(10);
 		for (size_t i = 0; i < aListXYdZ.size(); i++) {
-			double X = aListXYdZ[i].x;
-			double Y = aListXYdZ[i].y;
+			double X = aListXYdZ[i].x - aTFWin[6];//Centering in x
+			double Y = aListXYdZ[i].y - aTFWin[7];//Centering in y
 			double aPoly[10] = {
 				1,
 				 X,  Y,
@@ -393,6 +407,8 @@ vector<double> Banana_Solve(vector<Pt3dr> aListXYdZ, int aDeg)
 
 void Banana_Apply(REAL8** aDEMINData, vector<double> aTFWin, Pt2di aSzIN, vector<double> aBananaPoly, string aNameOut)
 {
+	//NOTE : the polynome was estimated on a coordinate system where the origin (0,0) is the center of the input DEM, this needs to be taken into account here
+
 	Tiff_Im aTF = Tiff_Im(aNameOut.c_str(), aSzIN, GenIm::real4, Tiff_Im::No_Compr, Tiff_Im::BlackIsZero);
 
 	Im2D_REAL4  aDEM(aSzIN.x, aSzIN.y);
@@ -410,12 +426,19 @@ void Banana_Apply(REAL8** aDEMINData, vector<double> aTFWin, Pt2di aSzIN, vector
 	{
 		for (int aX = 0; aX < aSzIN.x; aX++)
 		{
-			Pt2dr aPtIm(aX, aY);
-			Pt2dr aPtW = TFW_IJ2XY(aPtIm, aTFWin);
-			aCor = aBananaPoly[0] + aPtW.x * aBananaPoly[1] + aPtW.y * aBananaPoly[2]
-				+ aPtW.x * aPtW.y * aBananaPoly[3] + aPtW.x * aPtW.x * aBananaPoly[4] + aPtW.y * aPtW.y * aBananaPoly[5]
-				+ aPtW.x * aPtW.x * aPtW.x * aBananaPoly[6] + aPtW.x * aPtW.y * aPtW.y * aBananaPoly[7] + aPtW.x * aPtW.x * aPtW.y * aBananaPoly[8] + aPtW.y * aPtW.y * aPtW.y * aBananaPoly[9];
-			aData[aY][aX] = aDEMINData[aY][aX]+aCor;
+			if (aDEMINData[aY][aX] == -9999) { aData[aY][aX] = -9999; }//Keep nodata as nodata (-9999)
+			else {
+				Pt2dr aPtIm(aX, aY);
+				Pt2dr aPtW = TFW_IJ2XY(aPtIm, aTFWin);
+				//Recenter:
+				aPtW.x -= aTFWin[6];
+				aPtW.y -= aTFWin[7];
+				aCor = aBananaPoly[0] + aPtW.x * aBananaPoly[1] + aPtW.y * aBananaPoly[2]
+					+ aPtW.x * aPtW.y * aBananaPoly[3] + aPtW.x * aPtW.x * aBananaPoly[4] + aPtW.y * aPtW.y * aBananaPoly[5]
+					+ aPtW.x * aPtW.x * aPtW.x * aBananaPoly[6] + aPtW.x * aPtW.y * aPtW.y * aBananaPoly[7] + aPtW.x * aPtW.x * aPtW.y * aBananaPoly[8] + aPtW.y * aPtW.y * aPtW.y * aBananaPoly[9];
+
+				aData[aY][aX] = aDEMINData[aY][aX] - aCor;
+			}
 		}
 	}
 
@@ -434,7 +457,6 @@ void Banana_Apply(REAL8** aDEMINData, vector<double> aTFWin, Pt2di aSzIN, vector
 		aDEM.in(),
 		aTOut.out()
 	);
-
 
 }
 
@@ -485,8 +507,10 @@ int Banana_main(int argc, char** argv)
 	ELISE_ASSERT(aTFWFile, "Failed to open the input DEM .tfw file");
 
 	aTFWFile >> aRes_xEast >> aRes_xNorth >> aRes_yEast >> aRes_yNorth >> aCorner_East >> aCorner_North;
-	vector<double> aTFW = { aRes_xEast,aRes_xNorth,aRes_yEast,aRes_yNorth,aCorner_East,aCorner_North };
-
+	//TiffWorld with added center coordinate as (X_center,Y_center)=(aTFW[6],aTFW[7])
+	vector<double> aTFW = { aRes_xEast,aRes_xNorth,aRes_yEast,aRes_yNorth,aCorner_East,aCorner_North,
+		aCorner_East + (aSz.x * aRes_xEast) / 2 + (aSz.y * aRes_yEast) / 2, aCorner_North + (aSz.x * aRes_xNorth) / 2 + (aSz.y * aRes_yNorth) / 2, };
+	cout << "TFW:" << aTFW << endl;
 
 	// Define outfile name
 	if (aNameOut == "") { aNameOut = aDir + aNameDEMin.substr(0, aNameDEMin.size() - 4) + "_Corrected.tif"; }
@@ -500,13 +524,16 @@ int Banana_main(int argc, char** argv)
 	else { ELISE_ASSERT(false, "No valid combination of input given"); }
 
 	//cout << "List of XYdZ:" << endl << aListXYdZ << endl;
+	vector<uint> aMinPts = { 1,3,6,10 };
+	cout << "Nb of valid points to be used in fit : " << aListXYdZ.size() << " (Minimum for Deg " << aDeg << " = " << aMinPts[aDeg] << ")" << endl;
+	ELISE_ASSERT(aListXYdZ.size() > aMinPts[aDeg], "Not enough points to compute polynomial correction of desired degree.");
 
 	//Compute polynome that would fit that distribution of bias
-	vector<double> aBananaPoly = Banana_Solve(aListXYdZ, aDeg);
-
+	vector<double> aBananaPoly = Banana_Solve(aListXYdZ, aDeg, aTFW);
 	//Apply polynome to DEM and export it
 	Banana_Apply(aDEMINData, aTFW, aSz, aBananaPoly, aNameOut);
-
+	// Copy tfw
+	ELISE_fp::copy_file(aTFWName, aNameOut.substr(0, aNameOut.size() - 2) + "fw", true);
 
 	return EXIT_SUCCESS;
 }
