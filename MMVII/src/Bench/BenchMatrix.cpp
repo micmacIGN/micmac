@@ -523,8 +523,9 @@ template <class Type> void BenchSysSur(cSysSurResolu<Type>& aSys,bool Exact)
                 aNewV(aK) = aSol(aK) + aEps * RandUnif_C();
 
              Type aRN = Residual(aSys,aNewV,aLWeight,aLVec,aLVal);
+             // StdOut() << "RRRRR  " << aRN-aR0 << "\n";
 
-             MMVII_INTERNAL_ASSERT_bench(aRN>aR0,"Bench residual ");
+             MMVII_INTERNAL_ASSERT_bench(aRN>=aR0-1e-7,"Bench residual ");
 
              // double aD = aSol.DIm().L2Dist(aNewV.DIm());
              // StdOut() << " D=" << aD << "Dif " << (aRN-aR0) /Square(aD) << "\n";

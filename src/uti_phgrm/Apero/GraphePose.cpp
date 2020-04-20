@@ -76,6 +76,9 @@ void  cAppliApero::ConstructMST
           const cPoseCameraInc &   aPCI
       )
 {
+bool MST_DEBUG = false &&  MPD_MM();
+
+
 
    if (mNbRotPreInit==0)
    {
@@ -91,13 +94,18 @@ void  cAppliApero::ConstructMST
 
 
    const cMEP_SPEC_MST & aMST  = aPCI.MEP_SPEC_MST().Val();
-   bool Show = aMST.Show().Val();
+   bool Show = aMST.Show().Val() ;
    int  aNbPtsMin  = aMST.MinNbPtsInit().Val();
    double anExpDist = aMST.ExpDist().Val();
    double anExpNb   = aMST.ExpNb().Val();
    if (Show)
    {
        std::cout << "MST  " << aLNew.size() << "\n";
+   }
+   if (MST_DEBUG)
+   {
+       for (const auto & aN : aLNew )
+           std::cout <<  " ---  NNeew " << aN<< "\n";
    }
 
 
@@ -113,6 +121,10 @@ void  cAppliApero::ConstructMST
    {
        if (mVecPose[aK]->PreInit())
        {
+if (MST_DEBUG)
+{
+    std::cout << "IIIIIII " << mVecPose[aK]->Name() << "\n";
+}
             ELISE_ASSERT
             (
                 !BoolFind(aLNew,mVecPose[aK]->Name()),
@@ -140,10 +152,16 @@ void  cAppliApero::ConstructMST
         UseBloc = true;
         PreInitBloc(aMST.MSTBlockRigid().Val());
    }
+if (MST_DEBUG)
+{
+   std::cout << "MM " << MPD_MM() << " BLoc=" << UseBloc << "\n";
+   getchar();
+}
 
    // A chaque iteration on va affecter un sommet
    for (int aTimes=0 ; aTimes<aNbC ; aTimes++)
    {
+if (MST_DEBUG) std::cout << "aVRigid2Init SIIZE " << aVRigid2Init.size() << "\n";
        cPoseCam  * aBestCam = 0;
        int aNbRotPreInit = -1;
        std::vector<cPoseCam *>  aVBestC;
@@ -165,6 +183,11 @@ void  cAppliApero::ConstructMST
                   bool GotPMul;
                   double aPds = anOLM->StdQualityZone(ZuUseInInit(),OnInit,aNbPtsMin,anExpDist,anExpNb,GotPMul);
 
+if (MST_DEBUG&& (aTimes==0))
+{
+   std::cout <<  "MSTPDs " << aPds  << " " << aPcK->Name() << " " <<  anOLM->NbRotPreInit()  << "\n";
+}
+
                   if (aPds> 0)
                   {
                       if (aPds>aPdsMax)
@@ -177,6 +200,11 @@ void  cAppliApero::ConstructMST
                   }
                }
            }
+if (MST_DEBUG && aBestCam)
+{
+    std::cout << "aBestCamwwww " << aBestCam->Name() << " Time " << aTimes << "\n";
+    if (aTimes==0) getchar();
+}
 
            // On calcule les pere-mere
            if (aBestCam != 0)
@@ -309,6 +337,7 @@ void  cAppliApero::ConstructMST
    }
 
 
+if (MST_DEBUG) { std::cout << "ENDDDDDDDD MST \n"; getchar(); }
    // aSInit.pushlast(anAppli.PoseFromName(*itI)->Som());
 }
 

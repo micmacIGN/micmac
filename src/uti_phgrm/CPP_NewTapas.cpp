@@ -408,6 +408,7 @@ int Tapas_main_new(int argc,char ** argv)
     double aLVM = 1.0;
     bool MultipleBlock =false;
     bool IsMidle= false;
+    bool InitBlocCam = false;
 
     ElInitArgMain
     (
@@ -455,6 +456,7 @@ int Tapas_main_new(int argc,char ** argv)
                     << EAM(aVRegulDist,"RegulDist",true,"Parameter fo RegulDist [Val,Grad,Hessian,NbCase,SeuilNb]")
                     << EAM(aLVM,"MulLVM",true,"Multipier Levenberg Markard")
                     << EAM(MultipleBlock,"MultipleBlock",true,"Multiple block need special caution (only related to Levenberg Markard)")
+                    << EAM(InitBlocCam,"UBR4I","Use Bloc Rigid for Init, def=context dependent")
                     << anATP.ArgATP()
     );
 
@@ -734,13 +736,14 @@ int Tapas_main_new(int argc,char ** argv)
               const std::vector<std::string> & aVTime = anATP.BlocTimeStamps();
               std::map<std::string,int> & aCptTime =  anATP.BlocCptTime();
 
+              // Recupere l'image la plus proche du milieu et dont le bloc est plein
               int aDistMax = -1;
               int aKMax = -1;
               for (int aK=0 ; aK<int(aVImage.size()) ; aK++)
               {
                  if (aCptTime[aVTime[aK]] == aNBInBl)
                  {
-                    int aDist = ElMin(aK,int(aVImage.size()-1-aK));
+                    int aDist = ElMin(aK,int(aVImage.size()-1-aK)); // Distance to border, max in midle
                     if (aDist>aDistMax)
                     {
                        aDistMax = aDist;
@@ -784,7 +787,8 @@ int Tapas_main_new(int argc,char ** argv)
 */
            if (EAMIsInit(&ImInit))
            {
-               aCom = aCom + " +InitCamCenter=false +InitBlocCam=true ";
+               InitBlocCam = true;
+               aCom = aCom + " +InitCamCenter=false ";
                ImInit= QUOTE(anATP.ExtendPattern(aPat,ImInit,aICNM));
                aCom =   aCom + " +SetImInit="+ImInit;
            }
@@ -800,6 +804,10 @@ int Tapas_main_new(int argc,char ** argv)
        }
 
 
+       if (InitBlocCam)
+       {
+          aCom = aCom + " +InitBlocCam=true ";
+       }
        anATP.AddParamBloc(aCom);
 
        std::cout << "Com = " << aCom << "\n";

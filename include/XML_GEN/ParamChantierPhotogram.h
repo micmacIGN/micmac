@@ -2213,11 +2213,19 @@ class cOneAppuisDAF
 
         cTplValGesInit< bool > & UseForRTA();
         const cTplValGesInit< bool > & UseForRTA()const ;
+
+        cTplValGesInit< Pt3dr > & Norm2Surf();
+        const cTplValGesInit< Pt3dr > & Norm2Surf()const ;
+
+        cTplValGesInit< double > & TetaN2SHor();
+        const cTplValGesInit< double > & TetaN2SHor()const ;
     private:
         Pt3dr mPt;
         std::string mNamePt;
         Pt3dr mIncertitude;
         cTplValGesInit< bool > mUseForRTA;
+        cTplValGesInit< Pt3dr > mNorm2Surf;
+        cTplValGesInit< double > mTetaN2SHor;
 };
 cElXMLTree * ToXMLTree(const cOneAppuisDAF &);
 
@@ -2442,8 +2450,6 @@ class cOneMesureAF1I
 
         Pt2dr & PtIm();
         const Pt2dr & PtIm()const ;
-
-        void SetPtIm(Pt2dr & aPt);
     private:
         cTplValGesInit< double > mPrecPointe;
         std::string mNamePt;
@@ -6529,6 +6535,9 @@ class cStructBlockCam
         std::string & KeyIm2TimeCam();
         const std::string & KeyIm2TimeCam()const ;
 
+        cTplValGesInit< std::string > & MasterGrp();
+        const cTplValGesInit< std::string > & MasterGrp()const ;
+
         std::list< cParamOrientSHC > & ParamOrientSHC();
         const std::list< cParamOrientSHC > & ParamOrientSHC()const ;
 
@@ -6536,6 +6545,7 @@ class cStructBlockCam
         const cTplValGesInit< cLiaisonsSHC > & LiaisonsSHC()const ;
     private:
         std::string mKeyIm2TimeCam;
+        cTplValGesInit< std::string > mMasterGrp;
         cTplValGesInit< cLiaisonsSHC > mLiaisonsSHC;
 };
 cElXMLTree * ToXMLTree(const cStructBlockCam &);
@@ -7902,6 +7912,223 @@ void  BinaryDumpInFile(ELISE_fp &,const cXml_SpecifAllMMCmd &);
 void  BinaryUnDumpFromFile(cXml_SpecifAllMMCmd &,ELISE_fp &);
 
 std::string  Mangling( cXml_SpecifAllMMCmd *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cGS_OneLinear
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cGS_OneLinear & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< int > & Period();
+        const cTplValGesInit< int > & Period()const ;
+
+        int & DeltaMin();
+        const int & DeltaMin()const ;
+
+        int & DeltaMax();
+        const int & DeltaMax()const ;
+
+        std::list< cCpleString > & CpleGrp();
+        const std::list< cCpleString > & CpleGrp()const ;
+    private:
+        cTplValGesInit< int > mPeriod;
+        int mDeltaMin;
+        int mDeltaMax;
+        std::list< cCpleString > mCpleGrp;
+};
+cElXMLTree * ToXMLTree(const cGS_OneLinear &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cGS_OneLinear &);
+
+void  BinaryUnDumpFromFile(cGS_OneLinear &,ELISE_fp &);
+
+std::string  Mangling( cGS_OneLinear *);
+
+class cGS_SectionLinear
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cGS_SectionLinear & anObj,cElXMLTree * aTree);
+
+
+        std::list< cGS_OneLinear > & GS_OneLinear();
+        const std::list< cGS_OneLinear > & GS_OneLinear()const ;
+    private:
+        std::list< cGS_OneLinear > mGS_OneLinear;
+};
+cElXMLTree * ToXMLTree(const cGS_SectionLinear &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cGS_SectionLinear &);
+
+void  BinaryUnDumpFromFile(cGS_SectionLinear &,ELISE_fp &);
+
+std::string  Mangling( cGS_SectionLinear *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cGS_SectionCross
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cGS_SectionCross & anObj,cElXMLTree * aTree);
+
+
+        double & DistMax();
+        const double & DistMax()const ;
+
+        double & DistCurvMin();
+        const double & DistCurvMin()const ;
+
+        double & AngleMinSpeed();
+        const double & AngleMinSpeed()const ;
+
+        double & DistMinTraj();
+        const double & DistMinTraj()const ;
+
+        std::list< std::string > & ListCam();
+        const std::list< std::string > & ListCam()const ;
+    private:
+        double mDistMax;
+        double mDistCurvMin;
+        double mAngleMinSpeed;
+        double mDistMinTraj;
+        std::list< std::string > mListCam;
+};
+cElXMLTree * ToXMLTree(const cGS_SectionCross &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cGS_SectionCross &);
+
+void  BinaryUnDumpFromFile(cGS_SectionCross &,ELISE_fp &);
+
+std::string  Mangling( cGS_SectionCross *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cOneInterv_OT
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cOneInterv_OT & anObj,cElXMLTree * aTree);
+
+
+        double & DistMax();
+        const double & DistMax()const ;
+
+        std::list< cCpleString > & CpleGrp();
+        const std::list< cCpleString > & CpleGrp()const ;
+    private:
+        double mDistMax;
+        std::list< cCpleString > mCpleGrp;
+};
+cElXMLTree * ToXMLTree(const cOneInterv_OT &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cOneInterv_OT &);
+
+void  BinaryUnDumpFromFile(cOneInterv_OT &,ELISE_fp &);
+
+std::string  Mangling( cOneInterv_OT *);
+
+class cGS_SectionOverlapingTraj
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cGS_SectionOverlapingTraj & anObj,cElXMLTree * aTree);
+
+
+        double & AngleMaxSpeed();
+        const double & AngleMaxSpeed()const ;
+
+        double & DistMaxTraj();
+        const double & DistMaxTraj()const ;
+
+        std::list< cOneInterv_OT > & OneInterv_OT();
+        const std::list< cOneInterv_OT > & OneInterv_OT()const ;
+    private:
+        double mAngleMaxSpeed;
+        double mDistMaxTraj;
+        std::list< cOneInterv_OT > mOneInterv_OT;
+};
+cElXMLTree * ToXMLTree(const cGS_SectionOverlapingTraj &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cGS_SectionOverlapingTraj &);
+
+void  BinaryUnDumpFromFile(cGS_SectionOverlapingTraj &,ELISE_fp &);
+
+std::string  Mangling( cGS_SectionOverlapingTraj *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_ParamGraphStereopolis
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_ParamGraphStereopolis & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameGrpC();
+        const std::string & NameGrpC()const ;
+
+        std::list< cGS_OneLinear > & GS_OneLinear();
+        const std::list< cGS_OneLinear > & GS_OneLinear()const ;
+
+        cTplValGesInit< cGS_SectionLinear > & GS_SectionLinear();
+        const cTplValGesInit< cGS_SectionLinear > & GS_SectionLinear()const ;
+
+        double & DistMax();
+        const double & DistMax()const ;
+
+        double & DistCurvMin();
+        const double & DistCurvMin()const ;
+
+        double & AngleMinSpeed();
+        const double & AngleMinSpeed()const ;
+
+        double & DistMinTraj();
+        const double & DistMinTraj()const ;
+
+        std::list< std::string > & ListCam();
+        const std::list< std::string > & ListCam()const ;
+
+        cTplValGesInit< cGS_SectionCross > & GS_SectionCross();
+        const cTplValGesInit< cGS_SectionCross > & GS_SectionCross()const ;
+
+        double & AngleMaxSpeed();
+        const double & AngleMaxSpeed()const ;
+
+        double & DistMaxTraj();
+        const double & DistMaxTraj()const ;
+
+        std::list< cOneInterv_OT > & OneInterv_OT();
+        const std::list< cOneInterv_OT > & OneInterv_OT()const ;
+
+        cTplValGesInit< cGS_SectionOverlapingTraj > & GS_SectionOverlapingTraj();
+        const cTplValGesInit< cGS_SectionOverlapingTraj > & GS_SectionOverlapingTraj()const ;
+    private:
+        std::string mNameGrpC;
+        cTplValGesInit< cGS_SectionLinear > mGS_SectionLinear;
+        cTplValGesInit< cGS_SectionCross > mGS_SectionCross;
+        cTplValGesInit< cGS_SectionOverlapingTraj > mGS_SectionOverlapingTraj;
+};
+cElXMLTree * ToXMLTree(const cXml_ParamGraphStereopolis &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_ParamGraphStereopolis &);
+
+void  BinaryUnDumpFromFile(cXml_ParamGraphStereopolis &,ELISE_fp &);
+
+std::string  Mangling( cXml_ParamGraphStereopolis *);
 
 /******************************************************/
 /******************************************************/

@@ -55,13 +55,15 @@ enum class eApF
 enum class eApDT
            {
               Ori,    ///< Orientation
+              PCar,   ///< Tie Points
               TieP,   ///< Tie Points
-              Image,   ///< Tie Points
+              Image,   ///< Image
               Ply,    ///< Ply file
               None,     ///< Nothing 
               Console,  ///< Console 
               Xml,      ///< Xml-files
               FileSys,      ///< Input is the file system (list of file)
+              Media,      ///< Input is the file system (list of file)
               eNbVals       ///< Tag for number of value
            };
 
@@ -117,6 +119,7 @@ enum class eTyUEr
               eParseError,
               eBadDimForPt,
               eBadSize4Vect,
+              eMultiplePostifx,
               eUnClassedError,
               eNbVals
            };

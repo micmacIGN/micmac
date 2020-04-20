@@ -57,12 +57,14 @@ class  cReadOri : public cReadObject
                mInc3(-1,-1,-1),
                mInc (-1)
         {
+
               AddString("N",&mName,true);
               AddPt3dr("XYZ",&mPt,true);
               AddPt3dr("WPK",&mWPK,false);
               AddDouble("Ix",&mInc3.x,false);
               AddDouble("Iy",&mInc3.y,false);
               AddDouble("Iz",&mInc3.z,false);
+              AddDouble("T",&mTime,false);
         }
 
         std::string mName;
@@ -70,6 +72,7 @@ class  cReadOri : public cReadObject
         Pt3dr       mWPK;
         Pt3dr       mInc3;
         double      mInc;
+        double      mTime;
 };
 
 
@@ -195,7 +198,7 @@ class cAppli_Ori_Txt2Xml_main
          void SauvOriFinal();
          void OnePasseElargV(int aK0, int aK1, int aStep);
          void SauvRel();
-         void InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK,Pt3dr anInc);
+         void InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK,Pt3dr anInc,double aTime);
 
          void InitGrapheVois();
          void VoisInitDelaunay();
@@ -296,6 +299,7 @@ class cAppli_Ori_Txt2Xml_main
          bool                mComputeOrFromC;
          bool                mComputeCple;
          bool                mAcceptNonExitsingImage;
+         std::string         mFileNonExist;
 };
 
 void cAppli_Ori_Txt2Xml_main::operator()(tSomVois* aS1,tSomVois* aS2,bool)  // Delaunay Call back
@@ -651,7 +655,7 @@ void cAppli_Ori_Txt2Xml_main::CalcVitesse()
                  if (mTetaFromCap)
                     aWPK = Pt3dr(0,0, angle(Pt2dr(aV.x,aV.y)) * (180/PI) -80);
 
-                 InitCamera(*aCam,aC,aWPK,Pt3dr(-1,-1,-1));
+                 InitCamera(*aCam,aC,aWPK,Pt3dr(-1,-1,-1),-1);
              }
          }
      }
@@ -762,8 +766,12 @@ cAppli_Ori_Txt2Xml_main::cAppli_Ori_Txt2Xml_main(int argc,char ** argv) :
 
                       << EAM(mGenOrFromC,"CalOFC",true,"When specified compute initial orientation from centers (in Ori-GenFromC) Ori-${CalOFC}, must contains internal calibrations")
                       << EAM(mAcceptNonExitsingImage,"OkNoIm",true,"Do not create error if image does not exist (def = false)")
+                      << EAM(mFileNonExist,"FNI",true,"File to Create when non exist")
                       << EAM(mSzV,"SzW",true,"Size for visualisation")
     );
+
+    // It seems normal to non existing when it is automatically corrected  (else why ?)
+    mAcceptNonExitsingImage = mAcceptNonExitsingImage || EAMIsInit(&mFileNonExist);
 
     if (MMVisualMode) return;
 
@@ -977,7 +985,7 @@ void cAppli_Ori_Txt2Xml_main::VoisInitDelaunayCroist()
     // std::cout << "Viiissuu "<< mBoxC.sz() << " " << mScaleV << "\n"; getchar();
 }
 
-void  cAppli_Ori_Txt2Xml_main::InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK,Pt3dr anInc)
+void  cAppli_Ori_Txt2Xml_main::InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK,Pt3dr anInc,double aTime)
 {
     const cElDate & aDate =   aCam.mMTD->Date(true);
     const cElDate & aDate0 =   mVCam[0]->mMTD->Date(true);
@@ -987,6 +995,8 @@ void  cAppli_Ori_Txt2Xml_main::InitCamera(cTxtCam & aCam,Pt3dr  aC,Pt3dr  aWPK,P
     {
        aCam.mOC->Externe().Centre() = aC;
        aCam.mTime =  (mMTDOnce | allDateUnInit)  ? aCam.mNum : aCam.mMTD->Date().DifInSec(mVCam[0]->mMTD->Date()) ;
+       if (aTime > 0)
+           aCam.mTime = aTime;
 
        aCam.mOC->Externe().Time().SetVal(aCam.mTime);
        aCam.mC = aC;
@@ -1039,6 +1049,7 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
         std::string aNameIm;
         if (aReadApp.Decode(aLine) && (aCpt>=mCptMin) && (aCpt<mCptMax))
         {
+
              aNameIm =  mICNM->Assoc1To1(mKeyName2Image,aReadApp.mName,true);
              if (! ELISE_fp::exist_file(aNameIm))
              {
@@ -1046,6 +1057,11 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
                    if (!mAcceptNonExitsingImage)
                    {
                         ELISE_ASSERT(false,"This image does not exist");
+                   }
+                   else if (EAMIsInit(&mFileNonExist))
+                   {
+                      Ok=true;
+                      ELISE_fp::CpFile(mFileNonExist,aNameIm);
                    }
              }
              else
@@ -1117,8 +1133,9 @@ void cAppli_Ori_Txt2Xml_main::ParseFile()
            double aIx = aReadApp.IsDef(aReadApp.mInc3.x) ? aReadApp.mInc3.x : -1;
            double aIy = aReadApp.IsDef(aReadApp.mInc3.y) ? aReadApp.mInc3.y : -1;
            double aIz = aReadApp.IsDef(aReadApp.mInc3.z) ? aReadApp.mInc3.z : -1;
-
-           InitCamera(aNewCam,aC,mHasWPK  ? aReadApp.mWPK :Pt3dr(0,0,0),Pt3dr(aIx,aIy,aIz));
+           double aTime = aReadApp.IsDef(aReadApp.mTime) ? aReadApp.mTime : - 1;
+   
+           InitCamera(aNewCam,aC,mHasWPK  ? aReadApp.mWPK :Pt3dr(0,0,0),Pt3dr(aIx,aIy,aIz),aTime);
            aNewCam.mPrio = aNewCam.mTime ;// + aNewCam.mNum * 1e-7;
 
 

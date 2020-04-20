@@ -306,22 +306,27 @@ std::string  cAppli_Tapas_Campari::TimeStamp(const std::string & aName,cInterfCh
 std::string   cAppli_Tapas_Campari::ExtendPattern
                            (
                                       const std::string & aPatGlob,
-                                      const std::string & aImCenter,
+                                      const std::string & aPatCenter,
                                       cInterfChantierNameManipulateur * anICNM
                            )
 {
    const cInterfChantierNameManipulateur::tSet *  aSetGlob = anICNM->Get(aPatGlob);
    std::string aKey = mSBC.KeyIm2TimeCam();
 
-   std::string aTimeC = anICNM->Assoc2To1(mSBC.KeyIm2TimeCam(),aImCenter,true).first;
+   const cInterfChantierNameManipulateur::tSet *  aSetCenter = anICNM->Get(aPatCenter);
    cPatOfName aPat;
-   for (const auto & aName : *aSetGlob)
+
+   for (const auto & aImCenter : *aSetCenter)
    {
+      std::string aTimeC = anICNM->Assoc2To1(mSBC.KeyIm2TimeCam(),aImCenter,true).first;
+      for (const auto & aName : *aSetGlob)
+      {
          std::pair<std::string,std::string> aPair = anICNM->Assoc2To1(mSBC.KeyIm2TimeCam(),aName,true);
          if (aPair.first == aTimeC) 
             aPat.AddName(aName);
             // std::cout << "PAIR " << aPair.first << " *** " <<  aPair.second << "\n";
 
+      }
    }
 
 
@@ -447,13 +452,16 @@ class cAppli_Campari : public cAppli_Tapas_Campari
        std::vector<double>   mPdsErrorGps;
        std::string  mStrDebugVTP;  // Debug sur les tie points
 
+       int  mNumPtsAttrNewF;
+       std::vector<std::string>  mROP;
 };
 
 
 
 cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
-    AeroOut    (""),
-    mNameRTA   ("SauvRTA.xml")
+    AeroOut          (""),
+    mNameRTA         ("SauvRTA.xml"),
+    mNumPtsAttrNewF  (-1)
 {
     mStr0 = MakeStrFromArgcARgv(argc,argv,true);
     MMD_InitArgcArgv(argc,argv);
@@ -473,7 +481,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     LocLibPP =  true;
     LocLibDec = true;
     LocLibCD=   true;
-    bool  AllFree = false;  
+    bool  AllFree = false; 
+    std::string AllFreePattern;	
     std::string CalibMod2Refine;
     bool AddViscInterne=false;
     double ViscosInterne=0.1;
@@ -539,6 +548,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(CPI1,"CPI1",true,"Calib Per Im, Firt time", eSAM_IsBool)
                     << EAM(CPI2,"CPI2",true,"Calib Per Im, After first time, reUsing Calib Per Im As input", eSAM_IsBool)
                     << EAM(AllFree,"AllFree",true,"Refine all calibration parameters (Def=false)", eSAM_IsBool)
+                    << EAM(AllFreePattern,"AllFreePat",true,"Pattern of images that will be subject to AllFree (Def=.*)", eSAM_IsBool)
                     << EAM(CalibMod2Refine,"GradualRefineCal",true,"Calibration model to refine gradually",eSAM_None)
                     << EAM(DetailAppuis,"DetGCP",true,"Detail on GCP (Def=false)", eSAM_IsBool)
                     << EAM(Viscos,"Visc",true,"Viscosity on external orientation in Levenberg-Marquardt like resolution (Def=1.0)")
@@ -569,6 +579,9 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     << EAM(RapTxt,"RapTxt",true,"Output report of residual for each point")
                     << EAM(aVExpImRes,"ExpImRes",true,"Sz of Im Res=[Cam,Pose,Pair]")
                     << EAM(mStrDebugVTP,"StrDebugVTP",true,"String of debug for tie points")
+
+                    << EAM(mNumPtsAttrNewF,"NAWNF",true,"Num Attribute for Weigthing in New Format")
+                    << EAM(mROP,"ROP",true,"Rappel On Pose [IdOr,SigmaC,SigmaOr,Pattern]")
 
     );
 
@@ -652,6 +665,10 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
         if (EAMIsInit(&RapTxt)) mCom += std::string(" +RapTxt=") + RapTxt + " ";
     if (AllPoseFigee) mCom    +=            " +PoseFigee=true ";
 
+        if (EAMIsInit(&AllFreePattern))
+        {
+            mCom    += "  +AllFreePattern=" + AllFreePattern + " ";
+        }
         if (EAMIsInit(&PatPoseFigee))
         {
             mCom    += " +WithPatPoseFigee=true +PatPoseFigee=" + PatPoseFigee + " ";
@@ -697,6 +714,7 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                     +  std::string(" +UEIR_ByPose=") + ToString(aVExpImRes[1])
                     +  std::string(" +UEIR_ByPair=") + ToString(aVExpImRes[2]) 
                     +  std::string(" +UEIR_NbMesByCase=") + ToString(aNbByC) 
+                    +  std::string(" ")
            ;
                     
        }
@@ -783,9 +801,27 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                         + " +EcartMaxPlaniPondCentre=" + ToString(mPdsErrorGps[1])
                         + " +SigmaPlaniPondCentre=" + ToString(mPdsErrorGps[2])
                         + " +EcartMaxAltiPondCentre=" + ToString(mPdsErrorGps[3])
-                        + " +SigmaPlaniPondCentre=" + ToString(mPdsErrorGps[4]) ;
+                        + " +SigmaPlaniPondCentre=" + ToString(mPdsErrorGps[4])  + " ";
         }
 
+
+        if (EAMIsInit(&mNumPtsAttrNewF))
+        {
+           mCom = mCom + " +NumAttrPdsNewF=" + ToString(mNumPtsAttrNewF) + " ";
+        }
+
+        if (EAMIsInit(&mROP))
+        {
+           ELISE_ASSERT(mROP.size()==4,"Bad size for Rappel On Pose (ROP)");
+           StdCorrecNameOrient(mROP.at(0),mDir);
+           mCom = mCom +  " +WithROP=true"
+                       +  " +ROPOrient="+ mROP.at(0)
+                       +  " +ROPSigmaC="+ mROP.at(1)
+                       +  " +ROPSigmaR="+ mROP.at(2)
+                       +  " +ROPPattern="+ QUOTE(mROP.at(3))
+                       +  " ";
+        }
+    
 
         if (aSetHom=="NONE")
         {

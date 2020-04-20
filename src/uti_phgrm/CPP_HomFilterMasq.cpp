@@ -77,7 +77,8 @@ int HomFilterMasq_main(int argc,char ** argv)
     // MemoArg(argc,argv);
     MMD_InitArgcArgv(argc,argv);
     std::string  aDir,aPat,aFullDir;
-    bool ExpTxt=false;
+    bool ExpTxtIn=false;
+    bool ExpTxtOut=false;
     std::string PostPlan="_Masq";
     std::string KeyCalcMasq;
     std::string KeyEquivNoMasq;
@@ -95,6 +96,8 @@ int HomFilterMasq_main(int argc,char ** argv)
 
     Pt2dr  aSelecTer;
 
+    std::vector<double> aVParam3DRel;
+
 
     ElInitArgMain
     (
@@ -107,19 +110,30 @@ int HomFilterMasq_main(int argc,char ** argv)
                     << EAM(KeyEquivNoMasq,"KeyEquivNoMasq",true,"When given if KENM(i1)==KENM(i2), don't masq")
                     << EAM(aResol,"Resol",true,"Sub Resolution for masq storing, Def=10")
                     << EAM(AcceptNoMask,"ANM",true,"Accept no mask, def = true if MasqGlob and false else")
-                    << EAM(ExpTxt,"ExpTxt",true,"Ascii format for in and out, def=false")
+                    << EAM(ExpTxtIn,"ExpTxt",true,"Ascii format for in and out, def=false")
+                    << EAM(ExpTxtOut,"ExpTxtOut",true,"Ascii format for out when != in , def=ExpTxt")
                     << EAM(aPostIn,"PostIn",true,"Post for Input dir Hom, Def=")
                     << EAM(aPostOut,"PostOut",true,"Post for Output dir Hom, Def=MasqFiltered")
                     << EAM(aOriMasq3D,"OriMasq3D",true,"Orientation for Masq 3D")
                     << EAM(aNameMasq3D,"Masq3D",true,"File of Masq3D, Def=AperiCloud_${OriMasq3D}.ply")
+                    << EAM(aVParam3DRel,"Param3DRel",true,"Relative 3D param [DZMin,DZMax,DistMax]")
                     << EAM(aSelecTer,"SelecTer",true,"[Per,Prop] Period of tiling on ground selection, Prop=proporion of selected")
                     << EAM(aDistId,"DistId",true,"Supress pair such that d(P1,P2) < DistId, def unused")
-                    << EAM(aDistHom,"DistH",true,"Distance for filtering homologous point")
-                    << EAM(DoSym,"Symetrise",true,"Symetrise masq")
+                    << EAM(aDistHom,"DistH",true,"Distance of reprojection for filtering homologous point")
+                    << EAM(DoSym,"Symetrise",true,"Symetrise Files when dont exist")
                     << EAM(DoCalNb,"Nb",true,"Calculate number of homologous points")
     );
     bool aHasOri3D =  EAMIsInit(&aOriMasq3D);
     bool HasTerSelec = EAMIsInit(&aSelecTer);
+    bool HasRel3DFilter = EAMIsInit(&aVParam3DRel);
+    double aDZMin=0,aDZMax=0,aDistMax=0;
+    if (HasRel3DFilter)
+    {
+       ELISE_ASSERT(aVParam3DRel.size()==3,"aVParam3DRel bad size");
+       aDZMin = aVParam3DRel.at(0);
+       aDZMax = aVParam3DRel.at(1);
+       aDistMax = aVParam3DRel.at(2);
+    }
 
 
     #if (ELISE_windows)
@@ -155,7 +169,7 @@ int HomFilterMasq_main(int argc,char ** argv)
         }
         else
         {
-            ELISE_ASSERT(EAMIsInit(&aSelecTer) || (aDistHom>=0),"Unused OriMasq3D");
+            ELISE_ASSERT(EAMIsInit(&aSelecTer) || (aDistHom>=0) || HasRel3DFilter ,"Unused OriMasq3D");
         }
         aKeyOri = "NKS-Assoc-Im2Orient@" + aOriMasq3D;
     }
@@ -221,17 +235,20 @@ int HomFilterMasq_main(int argc,char ** argv)
     if (aHasOri3D)
        aResolMoy /= aVCam.size();
 
-    std::string anExt = ExpTxt ? "txt" : "dat";
+    std::string anExtIn = ExpTxtIn ? "txt" : "dat";
+    if (!EAMIsInit(&ExpTxtOut))
+      ExpTxtOut = ExpTxtIn;
+    std::string anExtOut = ExpTxtOut ? "txt" : "dat";
 
 
     std::string aKHIn =   std::string("NKS-Assoc-CplIm2Hom@")
                        +  std::string(aPostIn)
                        +  std::string("@")
-                       +  std::string(anExt);
+                       +  std::string(anExtIn);
     std::string aKHOut =   std::string("NKS-Assoc-CplIm2Hom@")
                         +  std::string(aPostOut)
                         +  std::string("@")
-                       +  std::string(anExt);
+                       +  std::string(anExtOut);
 
 
     double aPeriodTer=0,aSeuilDistTer=0;
@@ -309,6 +326,26 @@ std::cout << aNameIm1  << " # " << aNameIm2 << "\n";
                                    aNbTestTer ++;
                                    aNbInTer += OkTer;
                                }
+                               if (Ok && HasRel3DFilter)
+                               {
+                                   CamStenope * aCam1 = aVCam[aKN1]->DownCastCS();
+                                   CamStenope * aCam2 = aVCam[aKN2]->DownCastCS();
+                                   Pt3dr aC1 = aCam1->PseudoOpticalCenter();
+                                   Pt3dr aC2 = aCam2->PseudoOpticalCenter();
+
+                                   double aDZ1   =  aC1.z-aPTer.z;
+                                   double aDist1 =  euclid(aC1-aPTer);
+                                   double aDZ2   =  aC2.z-aPTer.z;
+                                   double aDist2 =  euclid(aC2-aPTer);
+                                   if (  
+                                           ((aDZ1<aDZMin) &&  (aDZ2<aDZMin))
+                                        || ((aDZ2>aDZMax) &&  (aDZ2>aDZMax))
+                                        || ((aDist1>aDistMax) &&  (aDist2>aDistMax))
+                                      )
+                                   {
+                                      Ok = false;
+                                   }
+                               }
                        
                                if (Ok && (aDistHom >0 ))
                                {
@@ -332,7 +369,7 @@ std::cout << aNameIm1  << " # " << aNameIm2 << "\n";
                        
                            if (Ok)
                            {
-                               ElCplePtsHomologues aCple(aP1,aP2);
+                               ElCplePtsHomologues aCple(aP1,aP2,itP->Pds());
                                aPackOut.Cple_Add(aCple);
                                if (SymThisFile) 
                                {

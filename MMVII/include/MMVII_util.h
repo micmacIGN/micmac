@@ -67,6 +67,8 @@ void  SplitStringArround(std::string & aBefore,std::string & aAfter,const std::s
 std::string Prefix(const std::string & aStr,char aSep='.',bool SVP=false,bool PrivPref=true);
 std::string Postfix(const std::string & aStr,char aSep='.',bool SVP=false,bool PrivPref=true);
 
+std::string LastPostfix(const std::string & aStr,char aSep='.'); ///< No error:  a=> ""  a.b.c => "c"
+
 
 // Direcytory and files names, Rely on boost
 void MakeNameDir(std::string & aDir); ///< Add a '/', or equiv, to make a name of directory
@@ -128,6 +130,8 @@ int  FromHexaCode(char aC);
    try to offer them from a more secured way. The Write(const Type & ) are 
    typed ; it calss VoidWrite which check the number of byte written (if
    enough debug)
+
+   No need for close() as it done automatically at destroy in std::ofstream.
 */
 class cMMVII_Ofs : public cMemCheck
 {

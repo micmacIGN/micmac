@@ -505,6 +505,8 @@ cNewO_OrInit2Im::cNewO_OrInit2Im
              aInf2 = Inf(aInf2,aP2);
              aSup2 = Sup(aSup2,aP2);
 
+             // std::cout << "HHhhhh  " << FocMoy()  <<  " "  << aP1 << aP2 << "\n"; getchar();
+
              aVP1.push_back(Pt2df(aP1.x,aP1.y));
              aVP2.push_back(Pt2df(aP2.x,aP2.y));
              aVNb.push_back((*itC)->NbArc());
@@ -1028,12 +1030,28 @@ cNO_AppliOneCple::cNO_AppliOneCple(int argc,char **argv)  :
 
    // Class cNewO_NameManager classe qui permet d'acceder a tous les nom de fichier
    // crees dans Martini
-   mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,DirOfFile(mNameIm1),mNameOriCalib,mExpTxt ? "txt" : "dat");
+
+   // MPD MODIF SINON PAS TRANSMISSION DES COMMON APPLI
+   // mNM = new cNewO_NameManager(mExtName,mPrefHom,mQuick,DirOfFile(mNameIm1),mNameOriCalib,mExpTxt ? "txt" : "dat");
+
+/*
+{
+     cNewO_NameManager * aNM0 =  new cNewO_NameManager(mExtName,mPrefHom,mQuick,DirOfFile(mNameIm1),mNameOriCalib,mExpTxt ? "txt" : "dat");
+     cNewO_OneIm* aIm0 = new cNewO_OneIm(*aNM0,mNameIm1,mGenOri);
+   std::cout << " 00000 IIii11KK111  " << aIm0->CS()->Focale() << aIm0->CS()->PP() << "\n";
+}
+*/
+
+   mNM =   cCommonMartiniAppli::NM(DirOfFile(mNameIm1));
 
 
    // Structure d'image specialisee martini
    mIm1 = new cNewO_OneIm(*mNM,mNameIm1,mGenOri);
    mIm2 = new cNewO_OneIm(*mNM,mNameIm2,mGenOri);
+
+   // std::cout << "IIii11KK111  " << mIm1->CS() << "\n";
+   // std::cout << "IIii11KK111  " << mIm1->CS()->Focale() << mIm1->CS()->PP() << "\n";
+  // getchar();
 
    mVI.push_back(mIm1);
    mVI.push_back(mIm2);

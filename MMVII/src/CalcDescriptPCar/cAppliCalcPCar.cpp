@@ -49,6 +49,7 @@ template <class Type> class  cTplAppliCalcDescPCar
         cRect2               mBoxIn;   ///< Current Input Box
         cPt2di               mSzIn;    ///< Current size of inputs
         cRect2               mBoxOut;  ///< Current Output Box, inside wich we muste save data
+        int                  mNbTiles;  ///< Number of tiles, usefull to know if we need to merge at end
 
         // To adapt dynamic  StoredVal = (RealVal-mVC) / mDyn
         tREAL4               mVC;      ///< Central Value
@@ -112,6 +113,8 @@ template<class Type> cTplAppliCalcDescPCar<Type>::cTplAppliCalcDescPCar(cAppliCa
 template<class Type> void cTplAppliCalcDescPCar<Type>::ExeGlob()
 {
    cParseBoxInOut<2> aPBI = cParseBoxInOut<2>::CreateFromSizeCste(cRect2(cPt2di(0,0),mDFI.Sz()),mAppli.mSzTile);
+   mNbTiles = aPBI.BoxIndex().NbElem();
+   MMVII_INTERNAL_ASSERT_always(mNbTiles==1,"Merge of Tiling  to do ...");
 
    for (const auto & anIndex : aPBI.BoxIndex())
    {
@@ -122,7 +125,6 @@ template<class Type> void cTplAppliCalcDescPCar<Type>::ExeGlob()
 
 template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di & anIndex,const cParseBoxInOut<2>& aPBI)
 {
-
     // std::string aPref = "Tile"+ToStr(anIndex.x())+ToStr(anIndex.y()) ;
     // Initialize Box, Params, gaussian pyramid
     mBoxIn = aPBI.BoxIn(anIndex,mAppli.mOverlap);
@@ -130,7 +132,8 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
     mBoxOut = aPBI.BoxOut(anIndex);
     cGP_Params aGP(mSzIn,mAppli.mNbOct,mAppli.mNbLevByOct,mAppli.mNbOverLapByO,&mAppli);
 
-    aGP.mNumTile    = anIndex;
+    // Value cPt2di(-1,-1) : special value indicating that tiles must not be written at end
+    aGP.mNumTile    = (mNbTiles==1) ? cPt2di(-1,-1)  : anIndex;
     // aGP.mPrefixSave = mAppli.mPrefixOut ;
     aGP.mScaleDirOrig = mAppli.mSDON ;
     aGP.mConvolIm0 = mAppli.mCI0 ;
@@ -341,7 +344,7 @@ cSpecMMVII_Appli  TheSpecCalcDescPCar
       "Compute caracteristic points and descriptors, using Aime method",
       {eApF::TieP,eApF::ImProc},
       {eApDT::Image},
-      {eApDT::TieP},
+      {eApDT::PCar},
       __FILE__
 );
 

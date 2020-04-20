@@ -98,9 +98,9 @@ cAppliBundler::cAppliBundler(int argc, char** argv) :
         argc,argv,
         LArgMain() << EAMC(aDir,"Working dir. If inside put ./"),
         LArgMain() << EAM(mNameFile,"b",true,"bundler.txt, (if FromBundler or ToBundler)" )
-                   << EAM(mCCListAllFile,"l",true,"list.txt, (if FromBundler)")
+                   << EAM(mCCListAllFile,"l",true,"list.txt, (if FromBundler or ToBundler)")
                    << EAM(mCoordsFile,"c",true,"coords.txt, (if FromBundler)")
-                   << EAM(mOri,"Ori",true,"Orientation directory, (if FromBundler or ToBundler)")
+                   << EAM(mOri,"Ori",true,"Orientation directory withoout Ori-, (if FromBundler or ToBundler)")
                    << EAM(mSH,"SH",true,"Homol Postfix")
                    << EAM(aExpTxt,"ExpTxt",true,"Homol in ASCI?")
                    << EAM(ConvHomMM2Bund,"ConvHom",true,"Convert homol to bundler format, Def=false")

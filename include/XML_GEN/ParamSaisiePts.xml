@@ -44,6 +44,8 @@
           <!-- Si un seul pointe 2D, il y a un point 3D comme predict, mais pas mesure a exporter -->
           <Mes3DExportable Nb="?"  Type="bool"> </Mes3DExportable>
           <Incert Nb="?" Type="Pt3dr"> </Incert>
+          <Normale Nb="?" Type="Pt3dr"> </Normale>
+
           <LargeurFlou Nb="?" Type="double" Def="0.0"> </LargeurFlou>
           <ContenuPt Nb="?"  UnionType="true">
               <None Nb="?" Type="std::string"> </None> <!-- Pour k'sa compile -->
@@ -147,6 +149,8 @@ pas interfere avec format utilisateur basique, on separe -->
              </ProfEstimator>
              <Masq3DFilterVis Nb="?" Type="std::string"> </Masq3DFilterVis>
              <PIMsFilterVis Nb="?" Type="std::string">   </PIMsFilterVis>
+             <DistMaxVisib  Nb="?" Type="double">        </DistMaxVisib>
+             <PatternNamePtsVisib  Nb="?" Type="cElRegex_Ptr"> </PatternNamePtsVisib>
         </SectionTerrain>
 
 

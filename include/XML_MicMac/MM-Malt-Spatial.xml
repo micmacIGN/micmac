@@ -1,0 +1,795 @@
+<!--
+   The simplest MicMac exemple
+
+-->
+
+<ParamMICMAC>
+
+<DicoLoc>
+<!-- Entrees minimales -->
+<!--
+   <Symb> Dir=""     </Symb>
+   <Symb> ImPat="IMG_[0-9]{4}.CR2"     </Symb>
+   <Symb> Ori=All     </Symb>
+
+MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/marc/TMP/PalazzioSpada/
+
+-->
+   <Symb> Dir="XXXX"     </Symb>
+   <Symb> ImPat="XXX"     </Symb>
+   <Symb> Ori=XXXX     </Symb>
+
+<!-- Parametre Algo  "fondamentaux" -->
+   <Symb> ZRegul=0.12     </Symb>
+   <Symb> SzW=2           </Symb>
+   <Symb> ZoomFinal=2     </Symb>
+   <Symb> ResolRelOrhto=0.5     </Symb>
+   <Symb> ZoomInit=32     </Symb>
+
+
+<!-- Parametre Algo ayant une valeur par defaut -->
+   <Symb>   DefCor=0.3      </Symb>
+   <Symb>   CostTrans=4.0      </Symb>
+   <Symb>   NbMinIV=2       </Symb>
+   <Symb>   Repere="NO-REPERE"  </Symb>
+   <Symb>   FileAnam=EmptyXML.xml  </Symb>
+   <Symb>   FileZMoy=EmptyXML.xml  </Symb>
+   <Symb>   UseGpu=false </Symb>
+   <eSymb>  NotUseGpu=! ${UseGpu} </eSymb>
+
+
+   <Symb>  FileMasqT=MM-MasqTerrain.xml </Symb>
+   <Symb>  FileZ4PC=MM-Zoom4-PC.xml </Symb>
+   <Symb>  FileZ2PC=EmptyXML.xml </Symb>
+
+   <Symb> FileZ1Raff=MM-Zoom1Raffin.xml</Symb>
+
+   <Symb>  FileZ64=EmptyXML.xml </Symb>
+   <Symb>  FileZ32=EmptyXML.xml </Symb>
+   <Symb>  FileZ16PC=MM-Zoom16-PC.xml </Symb>
+   <Symb>  FileOthoF=MM-Malt-OrthoFinal.xml </Symb>
+   <Symb>  FileOthoQ=MM-Malt-OrthoQuick.xml </Symb>
+   <Symb>  FileUnAnam=EmptyXML.xml </Symb>
+
+   <Symb>  ZPas=1.0 </Symb>
+        <!-- Calcules -->
+   <Symb>  DbleZPas=2.0 </Symb>
+   <Symb>  DemiZPas=0.5 </Symb>
+
+<!-- Parametre de "Chantier -->
+   <Symb> DirQO=Qk-ORTHO  </Symb>
+   <Symb> DirMEC=MEC-Malt/  </Symb>
+   <Symb> Chantier=STD-MALT  </Symb>
+   <Symb> DirTA=TA  </Symb>
+   <Symb> Purge=true  </Symb>
+
+   <Symb> MkFPC=true  </Symb>
+   <Symb> DoMEC=true  </Symb>
+
+   <Symb> DirOrthoF=ORTHO  </Symb>
+
+   <Symb>  NbEtapeQuant=-1 </Symb>
+
+   <Symb> NameMaskOrtho=../${DirMEC}AutoMask_STD-MALT_Num_${NbEtapeQuant}.tif </Symb>
+   <Symb> NameMTDMaskOrtho=../${DirMEC}Z_Num${NbEtapeQuant}_DeZoom${ZoomFinal}_STD-MALT.xml </Symb>
+
+   <Symb>  Geom=eGeomMNTFaisceauIm1ZTerrain_Px1D </Symb>
+
+
+   <Symb>  ImageMaster=XXXX  </Symb>
+   <Symb>  ImageMasterSsPost=XXXX  </Symb>
+   <Symb>  FileIm1=EmptyXML.xml  </Symb>
+   <Symb>  ZIncIsProp=true  </Symb>
+   <Symb>  FullIm1=false  </Symb>
+   <Symb>  PasInPixel=true  </Symb>
+
+
+   <Symb>  ImMNT=".*" </Symb>
+   <Symb>  ImOrtho=".*" </Symb>
+
+   <Symb>ButDoOrtho=false </Symb>
+  
+   <Symb>  FileDoNothing=EmptyXML.xml  </Symb>
+   <Symb>  UseImSec=false  </Symb>
+   <Symb>  CorMS=true  </Symb>
+   <Symb> eAggregSymetrique=eAggregSymetrique </Symb>
+
+
+    <!-- NOUVELLE FONCTIONNALITE SYMBOLE EVALUE, NOTATION POLONAISE INVERSE -->
+    <eSymb> AddZoom64=Sup ${ZoomInit} 64 </eSymb>
+    <eSymb> AddZoom32=Sup ${ZoomInit} 32 </eSymb>
+    <eSymb> AddZoom16=Sup ${ZoomInit} 16 </eSymb>
+    <eSymb> AddZoom8=Sup ${ZoomInit} 8 </eSymb>
+    <eSymb> AddZoom4=Sup ${ZoomInit} 4 </eSymb>
+    <eSymb> AddZoom2=Sup ${ZoomInit} 2 </eSymb>
+
+    <eSymb>  DoNotMEC=! ${DoMEC} </eSymb>
+    <Symb>   ButDoOrtho=true </Symb>
+  
+    <!-- GESTION DES MASQUE IMAGE -->
+    <Symb>  UseMasqPerIm=false </Symb>
+    <Symb>  MasqPerIm="XXXXXX" </Symb>
+    <Symb>  UseGlobMasqPerIm=false </Symb>
+    <Symb>  GlobMasqPerIm="XXXXXX" </Symb>
+
+
+    <!-- GESTION DES IMAGES MAX MIN -->
+    <Symb>  UseImMaxMin="false" </Symb>
+    <Symb>  ImMin="XXXXXX" </Symb>
+    <Symb>  ImMax="XXXXXX" </Symb>
+
+
+    <Symb>  DoAnam=false </Symb>
+    <Symb>  ParamAnam=XXXXX </Symb>
+    <Symb>  IncidMax= 0.75 </Symb>
+    <Symb>  DoIncid=false </Symb>
+    <Symb>  DoMaskNadir=false </Symb>
+
+
+    <eSymb>  NotZoom8="Neq 8 ${ZoomFinal}" </eSymb>
+    <Symb>   UseClip=false </Symb>
+    <Symb>   X0Clip=0 </Symb>
+    <Symb>   Y0Clip=0 </Symb>
+    <Symb>   X1Clip=1 </Symb>
+    <Symb>   Y1Clip=1 </Symb>
+	
+	
+	<Symb>   UseBoxTerrain=false </Symb>
+    <Symb>   X0Terrain=0 </Symb>
+    <Symb>   Y0Terrain=0 </Symb>
+    <Symb>   X1Terrain=1 </Symb>
+    <Symb>   Y1Terrain=1 </Symb>
+
+    <Symb>   UseRR=false </Symb>
+    <Symb>   RoundResol=XXXX </Symb>
+    <Symb>   GCC=false </Symb>
+
+
+    <eSymb>  NotCorMS=! ${CorMS}  </eSymb>
+
+    <!-- GESTION DES CLASSES D'EQUIV -->
+
+   <Symb>  UseEqui=false </Symb>
+   <Symb>  UseClas1=false </Symb>
+   <Symb>  Clas1=.* </Symb>
+   <Symb>  UseClas2=false </Symb>
+   <Symb>  Clas2=.* </Symb>
+   <Symb>  UseClas3=false </Symb>
+   <Symb>  Clas3=.* </Symb>
+   <Symb>  UseClas4=false </Symb>
+   <Symb>  Clas4=.* </Symb>
+   <Symb>  UseClas5=false </Symb>
+   <Symb>  Clas5=.* </Symb>
+   <Symb>  UseClas6=false </Symb>
+   <Symb>  Clas6=.* </Symb>
+   <Symb>  EZA=false </Symb>
+   <Symb>  SzRec=50 </Symb>  <!-- Valeur par defaut actuel pour compatibilite -->
+   <Symb>   AlgoMaxFlow=false </Symb>
+
+   <Symb> UseMasq3D=false </Symb>
+   <Symb> NameMasq3D=XXXX </Symb>
+
+   <Symb> UseResolTerrain=false </Symb>
+   <Symb> ResolTerrain=0 </Symb>
+   <Symb> UseRatioResolImage=false </Symb>
+   <Symb> RatioResolImage=1 </Symb>
+
+    <Symb> UseDEMInit=false </Symb>
+    <Symb> DEMInitXML="XXXXXX" </Symb>
+    <Symb> DEMInitIMG="XXXXXX" </Symb>
+
+<!--
+
+    <Symb>  UseEqui=t=rue </Symb>
+    <Symb>  UseClas1=true </Symb>
+    <Symb>  Clas1=FD2A2B_fx00064.* </Symb>
+-->
+
+
+     <Symb> ZIncCalc=0.3       </Symb>
+     <Symb> Conik=true   </Symb>                   <!-- true -->
+     <eSymb>NonConik=! ${Conik} </eSymb>           <!--  ??? -->
+     <Symb> PxIsProp=${Conik}          </Symb> 
+     <Symb> ModeOriIm=eGeomImageOri  </Symb>  
+     <Symb> ModeOrientStd=${Conik}     </Symb>   
+     <Symb> MSDense=true     </Symb>   
+
+     <Symb> SpecDirFaisc="false" </Symb>
+     <Symb> DirFaisX="XXXXX" </Symb>
+     <Symb> DirFaisY="XXXXX" </Symb>
+     <Symb> DirFaisZ="XXXXX" </Symb>
+
+     <eSymb> UseMasqImGlobOrLoc= Or ${UseMasqPerIm} ${UseGlobMasqPerIm} </eSymb>
+
+     <eSymb> InParal= Neq 0 ${NbProc} </eSymb>
+
+
+     <Symb> UsePtDebug=false </Symb>
+     <Symb> PtDebugX=-10000000 </Symb>
+     <Symb> PtDebugY=-10000000 </Symb>
+     <Symb> RSRT=false </Symb>
+     
+     <Symb> UseGenBundle=false </Symb>
+     <Symb> ForDeform=false </Symb>
+     <Symb> UsePC=true </Symb>
+     <Symb> UseVSNI=false </Symb>
+     <Symb> VSNI=0 </Symb>
+     <Symb> NbDirPrgDyn=8 </Symb>
+     <Symb> ModeAgregPrgDyn=ePrgDAgrSomme </Symb>
+</DicoLoc>
+
+<!--  M2 : Describe the ground zone where the matching is to be done -->
+<Section_Terrain>    
+      <IntervAltimetrie>
+           <!-- -->
+             <ZIncCalc>   ${ZIncCalc} </ZIncCalc>
+             <ZIncIsProp> ${ZIncIsProp} </ZIncIsProp>
+             <IncludeFileLoc>  ${FileZMoy} </IncludeFileLoc>
+             <#WHEN VTEST=${UseDEMInit}>
+                 <MNT_Init>  
+                     <MNT_Init_Image> ${DEMInitIMG} </MNT_Init_Image>
+                     <MNT_Init_Xml> ${DEMInitXML} </MNT_Init_Xml>
+                 </MNT_Init>
+             </#WHEN>
+      </IntervAltimetrie>
+
+      <IntervSpecialZInv>
+             <MulZMin> 0.5</MulZMin>
+             <MulZMax> 3 </MulZMax>
+       </IntervSpecialZInv>
+
+      <Planimetrie>
+           <#WHEN VTEST=${UseResolTerrain}>
+                  <ResolutionTerrain> ${ResolTerrain} </ResolutionTerrain>
+           </#WHEN>
+           <#WHEN VTEST=${UseRatioResolImage}>
+                  <RatioResolImage> ${RatioResolImage} </RatioResolImage>
+           </#WHEN>
+
+
+
+           <RoundSpecifiedRT>  ${RSRT} </RoundSpecifiedRT>
+           <IncludeFileLoc>  ${FileMasqT} </IncludeFileLoc>
+           <FilterEstimTerrain> ${ImMNT} </FilterEstimTerrain>
+		   
+		   
+		<#WHEN VTEST=${UseBoxTerrain}>
+          <BoxTerrain>  ${X0Terrain} ${Y0Terrain} ${X1Terrain} ${Y1Terrain} </BoxTerrain>
+		</#WHEN>
+		   
+      </Planimetrie>
+
+      <#WHEN VTEST=${UseRR}>
+          <GeoRefAutoRoundResol> ${RoundResol} </GeoRefAutoRoundResol>
+      </#WHEN>
+
+</Section_Terrain>
+
+<!--  M3 : describe the set of images to match -->
+<Section_PriseDeVue >   
+     <SingulariteInCorresp_I1I2> true</SingulariteInCorresp_I1I2>
+     <GeomImages> ${ModeOriIm} </GeomImages>
+
+     <#WHEN VTEST=${UseVSNI}>
+        <ValSpecNotImage> ${VSNI} </ValSpecNotImage>
+     </#WHEN>
+
+     <Images >
+           <IncludeFileLoc>  ${FileIm1} </IncludeFileLoc>
+           <ImPat>    ${ImPat}  </ImPat>
+           <#WHEN VTEST=${UseImMaxMin}>
+              <Filter>
+                  <Min>  ${ImMin}  </Min>
+                  <Max>  ${ImMax} </Max>
+              </Filter>
+           </#WHEN>
+           <#WHEN VTEST=${UseImSec}>
+               <ImSecCalcApero>
+                  <Key> NKS-Assoc-ImSec@-${Ori} </Key>
+               </ImSecCalcApero>
+           </#WHEN>
+     </Images>
+
+     <#IF VTEST=${UseGenBundle}>
+           <NomsGeometrieImage>
+                   <NGI_StdDir>
+                        <StdDir>  ${Ori} </StdDir>
+                        <NGI_StdDir_Apply> .* </NGI_StdDir_Apply>
+                   </NGI_StdDir>
+           </NomsGeometrieImage>
+           <#IF VTEST=${ModeOrientStd}>
+               <NomsGeometrieImage>
+                   <FCND_Mode_GeomIm>
+                         <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-${Ori} </FCND_GeomCalc>
+                   </FCND_Mode_GeomIm>
+               </NomsGeometrieImage>
+               <NomsGeometrieImage>
+                      <PatternSel>  (.*)\.[0-9,a-z,A-Z,_]{3,4} </PatternSel>
+                      <PatNameGeom> $1.${Ori}    </PatNameGeom>
+                </NomsGeometrieImage>
+           </#IF>
+     </#IF>
+
+
+     <#WHEN VTEST=${UseGlobMasqPerIm}>
+         <MasqImageIn>
+             <OneMasqueImage>
+                 <PatternSel> .*   </PatternSel>
+                 <NomMasq>  ${GlobMasqPerIm}    </NomMasq>
+             </OneMasqueImage>
+         </MasqImageIn>
+     </#WHEN>
+
+     <#WHEN VTEST=${UseMasqPerIm}>
+         <MasqImageIn>
+             <OneMasqueImage>
+                 <PatternSel> (.*)\.(.*)   </PatternSel>
+                 <NomMasq>  $1${MasqPerIm}.tif    </NomMasq>
+             </OneMasqueImage>
+             <AcceptNonExistingFile> true </AcceptNonExistingFile>
+        </MasqImageIn>
+     </#WHEN>
+     
+     <#WHEN VTEST=${UseEqui}>
+        <ClassEquivalenceImage>
+             <MapN2NByAutom>
+                 <#WHEN VTEST=${UseClas1}>
+                    <OneAutomMapN2N>
+                         <MatchPattern> ${Clas1} </MatchPattern>
+                         <Result> Classe1 </Result>
+                    </OneAutomMapN2N>
+                 </#WHEN>
+                 <#WHEN VTEST=${UseClas2}>
+                    <OneAutomMapN2N>
+                         <MatchPattern> ${Clas2} </MatchPattern>
+                         <Result> Classe2 </Result>
+                    </OneAutomMapN2N>
+                 </#WHEN>
+                 <#WHEN VTEST=${UseClas3}>
+                    <OneAutomMapN2N>
+                         <MatchPattern> ${Clas3} </MatchPattern>
+                         <Result> Classe3 </Result>
+                    </OneAutomMapN2N>
+                 </#WHEN>
+                 <#WHEN VTEST=${UseClas4}>
+                    <OneAutomMapN2N>
+                         <MatchPattern> ${Clas4} </MatchPattern>
+                         <Result> Classe4 </Result>
+                    </OneAutomMapN2N>
+                 </#WHEN>
+                 <#WHEN VTEST=${UseClas5}>
+                    <OneAutomMapN2N>
+                         <MatchPattern> ${Clas5} </MatchPattern>
+                         <Result> Classe5 </Result>
+                    </OneAutomMapN2N>
+                 </#WHEN>
+                 <#WHEN VTEST=${UseClas6}>
+                    <OneAutomMapN2N>
+                         <MatchPattern> ${Clas6} </MatchPattern>
+                         <Result> Classe6 </Result>
+                    </OneAutomMapN2N>
+                 </#WHEN>
+                 <OneAutomMapN2N>
+                         <MatchPattern> .* </MatchPattern>
+                         <Result> ClasseDef </Result>
+                 </OneAutomMapN2N>
+             </MapN2NByAutom>
+        </ClassEquivalenceImage>
+     </#WHEN>
+</Section_PriseDeVue>
+
+
+<Section_MEC >
+
+      <#WHEN VTEST=${UseClip}>
+          <ProportionClipMEC>  ${X0Clip} ${Y0Clip} ${X1Clip} ${Y1Clip} </ProportionClipMEC>
+      </#WHEN>
+
+      <PasIsInPixel>  ${PasInPixel} </PasIsInPixel>
+      <NbMinImagesVisibles>  ${NbMinIV} </NbMinImagesVisibles>
+      <ChantierFullImage1> ${FullIm1} </ChantierFullImage1>
+      <#WHEN VTEST=${UseMasq3D}>
+           <MMUseMasq3D>
+                <NameMasq> ${NameMasq3D} </NameMasq>
+                <ZoomBegin> 16 </ZoomBegin>
+                <Dilate> 2 </Dilate>
+           </MMUseMasq3D>
+      </#WHEN>
+
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      ${SzW}             </SzW>
+
+             <#WHEN VTEST=${NotUseGpu}>
+                <#IF VTEST=${AlgoMaxFlow}>
+                    <AlgoRegul>  eAlgoCoxRoy </AlgoRegul>
+                    <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+                 </#IF>
+             </#WHEN>
+
+
+             <CoxRoy8Cnx> true </CoxRoy8Cnx>  
+             <CoxRoyUChar> false </CoxRoyUChar> 
+
+             <#WHEN VTEST=${UseGpu}>
+                <AlgoRegul>  eAlgoTestGPU </AlgoRegul>
+             </#WHEN>
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+             <GenCubeCorrel > ${GCC} </GenCubeCorrel>
+
+             <ZPas>        ${ZPas} </ZPas>
+             <ModeInterpolation> eInterpolBiCub </ModeInterpolation>
+
+			 <ZDilatAlti>  5      </ZDilatAlti>
+             <ZDilatPlani> 2      </ZDilatPlani>
+			 <ZRegul>  ${ZRegul}  </ZRegul>
+			 
+             <ModulationProgDyn>
+                 <EtapeProgDyn>
+                      <ModeAgreg> ${ModeAgregPrgDyn} </ModeAgreg>
+                      <NbDir>   ${NbDirPrgDyn}               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   20.0    </Px1PenteMax>
+<!--
+                  <ArgMaskAuto >
+                      <ValDefCorrel >  ${DefCor} </ValDefCorrel>
+                      <CostTrans >     ${CostTrans}   </CostTrans>
+                      <ReInjectMask> false   </ReInjectMask>
+                  </ArgMaskAuto>
+-->
+            </ModulationProgDyn>
+
+            <ImageSelecteur>
+                   <ModeExclusion > false </ModeExclusion>
+                   <PatternSel > ${ImMNT} </PatternSel>
+            </ImageSelecteur>
+
+            <DynamiqueCorrel>eCoeffAngle</DynamiqueCorrel>
+            <AggregCorr> ${ModeAgrCor} </AggregCorr>
+<!--
+            <#WHEN VTEST=${CorMS}>
+                 <#WHEN VTEST=${NotUseGpu}>
+                     <CorrelAdHoc>
+                          <TypeCAH>
+                               <GPU_Correl> </GPU_Correl>
+                          </TypeCAH>
+                     </CorrelAdHoc>
+                  </#WHEN>
+            </#WHEN>
+-->
+            <#WHEN VTEST=${UseGpu}>
+               <CorrelAdHoc>
+                   <SzBlocAH > 128 </SzBlocAH>
+                   <TypeCAH>
+                           <GPU_CorrelBasik >  true   </GPU_CorrelBasik>
+                   </TypeCAH>
+               </CorrelAdHoc>
+            </#WHEN>
+            
+        </EtapeMEC>
+	     
+<!--
+        <EtapeMEC> 
+                <DeZoom >        ${ZoomInit}        </DeZoom> 
+                <ZPas>           ${DbleZPas}       </ZPas>
+        </EtapeMEC>
+-->
+        <EtapeMEC> 
+                <DeZoom >        ${ZoomInit}        </DeZoom> 
+        </EtapeMEC>
+
+        <#WHEN VTEST=${AddZoom64}>
+              <EtapeMEC>
+                  <DeZoom >        64        </DeZoom>
+                  <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+                  <ZPas>        ${DbleZPas} </ZPas>
+
+              </EtapeMEC>
+        </#WHEN>
+
+        <#WHEN VTEST=${AddZoom32}>
+              <EtapeMEC>
+                  <DeZoom >        32        </DeZoom>
+                  <ZPas>  ${DbleZPas} </ZPas>
+<!--
+                  <ModeInterpolation> eInterpolBiLin </ModeInterpolation>
+-->
+              </EtapeMEC>
+        </#WHEN>
+        <#WHEN VTEST=${AddZoom16}>
+            <EtapeMEC>
+                    <DeZoom >        16        </DeZoom>
+					<ZPas>  ${DbleZPas} </ZPas>
+                    
+<!--
+                    <#WHEN VTEST=${UsePC}>
+                         <GenerePartiesCachees>
+                             <SeuilUsePC> 3 </SeuilUsePC>
+                             <ByMkF> ${MkFPC} </ByMkF>
+                         </GenerePartiesCachees>
+                    </#WHEN>
+                    <ZDilatAlti>  4    </ZDilatAlti>
+                    <ZDilatPlani> 3    </ZDilatPlani>
+-->
+             </EtapeMEC>
+        </#WHEN>
+
+        <#WHEN VTEST=${AddZoom8}>
+            <EtapeMEC>
+<!--
+                 <ModeInterpolation Portee="Globale"> eInterpolSinCard </ModeInterpolation>
+                 <#WHEN VTEST=${ForDeform}>
+                       <SzSinCard Portee="Globale">  5.0 </SzSinCard>
+                       <SzAppodSinCard Portee="Globale">  5.0 </SzAppodSinCard>
+                 </#WHEN>
+-->
+
+                 <DeZoom >        8        </DeZoom> 
+                 <ZPas>  ${DbleZPas} </ZPas>
+				 <ZDilatAlti>  10    </ZDilatAlti>
+<!--
+                 <ZDilatPlani> 3    </ZDilatPlani>
+                 <ModulationProgDyn Portee="Globale">
+                         <EtapeProgDyn>
+                              <ModeAgreg> ${ModeAgregPrgDyn} </ModeAgreg>
+                              <NbDir>   ${NbDirPrgDyn}              </NbDir>
+                         </EtapeProgDyn>
+                         <Px1PenteMax>   1.0    </Px1PenteMax>
+                         <ArgMaskAuto >
+                                <ValDefCorrel >  ${DefCor} </ValDefCorrel>
+                                <CostTrans >     2.0   </CostTrans>
+                                <ReInjectMask>  false   </ReInjectMask>
+                         </ArgMaskAuto>
+                   </ModulationProgDyn>
+                   <#WHEN VTEST=${NotZoom8}>
+                       <#WHEN VTEST=${UsePC}>
+                          <GenerePartiesCachees >
+                             <SeuilUsePC> 4 </SeuilUsePC>
+                             <ByMkF> true </ByMkF>
+                          </GenerePartiesCachees>
+                       </#WHEN>
+                   </#WHEN>
+                   <#WHEN VTEST=${CorMS}>
+                       <SzW Portee="Globale"> 1 </SzW>
+                       <CorrelAdHoc Portee="Globale">
+                           <CorrelMultiScale>
+                                  <UseGpGpu> ${UseGpu} </UseGpGpu>
+                                  <ModeDense> ${MSDense} </ModeDense>
+                                  <UseWAdapt>  false </UseWAdapt>
+                                  <OneParamCMS>
+                                       <SzW> 1 1 </SzW>
+                                       <Sigma> 0 </Sigma>
+                                       <Pds> 1.0 </Pds>
+                                  </OneParamCMS>
+                                  <OneParamCMS>
+                                       <SzW> 2 2 </SzW>
+                                       <Sigma> 1.0 </Sigma>
+                                       <Pds> 0.5 </Pds>
+                                  </OneParamCMS>
+                                  <OneParamCMS>
+                                       <SzW> 4 4 </SzW>
+                                       <Sigma> 2.0 </Sigma>
+                                       <Pds> 0.25 </Pds>
+                                  </OneParamCMS>
+                           </CorrelMultiScale>
+                           <#WHEN VTEST=${NotUseGpu}>
+                               <TypeCAH>
+                                      <GPU_Correl> </GPU_Correl>
+                                </TypeCAH>
+                            </#WHEN>
+                            <#WHEN VTEST=${UseGpu}>
+                                <SzBlocAH > 128 </SzBlocAH>
+                                <TypeCAH>
+                                        <GPU_CorrelBasik >  true   </GPU_CorrelBasik>
+                                </TypeCAH>
+                            </#WHEN>
+                       </CorrelAdHoc>
+                   </#WHEN>
+-->
+
+            </EtapeMEC>
+        </#WHEN>
+
+        <#WHEN VTEST=${AddZoom4}>
+			<EtapeMEC>
+				<DeZoom >     4        </DeZoom> 
+				<ZDilatAlti>  10    </ZDilatAlti>
+				<ZPas>  ${ZPas} </ZPas>
+			</EtapeMEC>
+<!--
+             <IncludeFileLoc>  ${FileZ4PC} </IncludeFileLoc>
+-->
+        </#WHEN>
+        <#WHEN VTEST=${AddZoom2}>
+			<EtapeMEC>
+				<DeZoom >     2        </DeZoom> 
+				<ZDilatAlti>  4    </ZDilatAlti>
+			</EtapeMEC>
+<!--
+				 <IncludeFileLoc>  ${FileZ2PC} </IncludeFileLoc>
+-->
+        </#WHEN>
+
+        <#WHEN VTEST=${NotZoom8}>
+            <EtapeMEC> 
+                <DeZoom>        ${ZoomFinal}        </DeZoom> 
+				<CorrelAdHoc>
+					<EpsilonAddMoyenne>0</EpsilonAddMoyenne>
+					<EpsilonMulMoyenne>0</EpsilonMulMoyenne>
+					<SzBlocAH>40</SzBlocAH>
+					<CorrelMultiScale>
+						<UseGpGpu>false</UseGpGpu>
+						<ModeDense>false</ModeDense>
+						<UseWAdapt>false</UseWAdapt>
+						<ModeMax>false</ModeMax>
+						<OneParamCMS>
+							<SzW>2 2</SzW>
+							<Sigma>0</Sigma>
+							<Pds>1</Pds>
+							<SquareW>false</SquareW>
+						</OneParamCMS>
+						<OneParamCMS>
+							<SzW>3 3</SzW>
+							<Sigma>1</Sigma>
+							<Pds>0.5</Pds>
+							<SquareW>false</SquareW>
+						</OneParamCMS>
+						<OneParamCMS>
+							<SzW>4 4</SzW>
+							<Sigma>2</Sigma>
+							<Pds>0.25</Pds>
+							<SquareW>false</SquareW>
+						</OneParamCMS>
+					</CorrelMultiScale>
+					<TypeCAH>
+						<GPU_Correl> </GPU_Correl>
+					</TypeCAH>
+				</CorrelAdHoc>
+				<SzW>2</SzW> 
+				<ZDilatAlti> 4  </ZDilatAlti>
+				<ModulationProgDyn Portee="Globale">
+					<EtapeProgDyn>
+							<ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+								<NbDir>   8              </NbDir>
+						</EtapeProgDyn>
+						<Px1PenteMax> 10 </Px1PenteMax>
+						<ArgMaskAuto >
+							<ValDefCorrel >  0.3 </ValDefCorrel>
+								<CostTrans > 4.0 </CostTrans>
+								<ReInjectMask>  false   </ReInjectMask>
+						</ArgMaskAuto>
+				</ModulationProgDyn>
+
+            </EtapeMEC>
+			<EtapeMEC> 
+				<DeZoom>    ${ZoomFinal}        </DeZoom> 
+				<ZPas>		${DemiZPas}  </ZPas>
+				<ZDilatAlti> 4  </ZDilatAlti>
+				<ZDilatPlani> 1  </ZDilatPlani>
+			</EtapeMEC>            
+        </#WHEN>
+
+
+        <EtapeMEC> 
+               <DeZoom>        ${ZoomFinal}        </DeZoom> 
+               <ZPas>          1.0       </ZPas>
+               <AlgoRegul>  eAlgoDequant </AlgoRegul>
+               <ExportZAbs> ${EZA} </ExportZAbs>
+
+
+               <ImageSelecteur>
+                   <ModeExclusion > false </ModeExclusion>
+                   <PatternSel > .* </PatternSel>
+               </ImageSelecteur>
+
+
+               <IncludeFileLoc>  ${FileOthoF} </IncludeFileLoc>
+               <IncludeFileLoc>  ${FileUnAnam} </IncludeFileLoc>
+        </EtapeMEC>
+
+</Section_MEC>
+
+<!--  M4 : Specify the output geometry -->
+<Section_Results >
+
+    <#WHEN  VTEST=${SpecDirFaisc}>
+         <X_DirPlanInterFaisceau> ${DirFaisX} </X_DirPlanInterFaisceau>
+         <Y_DirPlanInterFaisceau> ${DirFaisY} </Y_DirPlanInterFaisceau>
+         <Z_DirPlanInterFaisceau> ${DirFaisZ} </Z_DirPlanInterFaisceau>
+    </#WHEN>
+
+    <GeomMNT> ${Geom}  </GeomMNT> 
+    <RepereCorrel>   ${Repere}  </RepereCorrel>
+    <IncludeFileLoc>  ${FileAnam} </IncludeFileLoc>
+
+    <DoMEC>   ${DoMEC} </DoMEC>
+
+    <ZoomMakeTA> 8 </ZoomMakeTA>
+    <OrthoTA> true </OrthoTA>
+
+    <IncludeFileLoc>  ${FileDoNothing} </IncludeFileLoc>
+    <#WHEN VTEST=${DoNotMEC}>
+        <DoNothingBut>
+            <ButDoOrtho>  ${ButDoOrtho} </ButDoOrtho>
+            <ButDoMemPart>  true </ButDoMemPart>
+            <ButDoOriMNT>  true </ButDoOriMNT>
+        </DoNothingBut>
+    </#WHEN>
+
+
+    <#WHEN VTEST=${DoIncid}>
+          <AnamorphoseGeometrieMNT>
+               <AnamLimAngleVisib> ${IncidMax} </AnamLimAngleVisib>
+                <AnamDeZoomMasq> 16 </AnamDeZoomMasq>
+                <#WHEN VTEST=${DoAnam}>
+                     <AnamSurfaceAnalytique>
+                            <NameFile> ${ParamAnam}</NameFile>
+                            <Id> TheSurf </Id>
+                      </AnamSurfaceAnalytique>
+                </#WHEN>
+                <#WHEN VTEST=${DoMaskNadir}>
+                      <MakeMaskImNadir>
+                           <DynIncid > 1e4</DynIncid>
+                           <MakeAlsoMaskTerrain> true </MakeAlsoMaskTerrain>
+                           <KBest  >  1  </KBest>
+                           <IncertAngle  > 0.1 </IncertAngle>
+                           <Dilat32 >  6 </Dilat32>
+                           <Erod32>  3</Erod32>
+                      </MakeMaskImNadir>
+                </#WHEN>
+          </AnamorphoseGeometrieMNT>
+    </#WHEN>
+
+
+
+<!--
+    <RepereCorrel>  Repere.xml </RepereCorrel>
+ <DoNothingBut>
+        <ButDoRedrLocAnam>  true </ButDoRedrLocAnam>
+    </DoNothingBut>
+-->
+
+
+
+
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  ${Dir} </WorkDir> 
+     <TmpMEC>    ${DirMEC}  </TmpMEC>
+     <TmpResult> ${DirMEC}  </TmpResult>
+     <TmpPyr>    Pyram/  </TmpPyr>
+<!--
+     <ByProcess>   ${MMNbProc}  </ByProcess>
+-->
+     <ByProcess>   ${NbProc}  </ByProcess>
+     <NomChantier> ${Chantier} </NomChantier>
+
+     <PurgeMECResultBefore>  ${Purge} </PurgeMECResultBefore>
+
+     <SzRecouvrtDalles> ${SzRec}</SzRecouvrtDalles>
+
+
+<!--
+   <Symb> Etape0=1  </Symb>
+     <FirstEtapeMEC> ${Etape0}  </FirstEtapeMEC>
+     <ByProcess>   0  </ByProcess>
+-->
+     <DefTileFile>  40000</DefTileFile>
+
+</Section_WorkSpace>
+
+
+<Section_Vrac> 
+    <#WHEN VTEST=${UsePtDebug}>
+        <PtDebug>  ${PtDebugX} ${PtDebugY} </PtDebug>
+    </#WHEN>
+  
+</Section_Vrac>
+
+
+</ParamMICMAC>
+
+

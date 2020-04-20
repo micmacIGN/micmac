@@ -812,8 +812,17 @@ ElPackHomologue ElPackHomologue::FromFile(const std::string & aName)
                 if ( aFTxt.fgets( aBuf, End ) ) //if (aFTxt.fgets(aBuf,200,End)) TEST_OVERFLOW
                 {
                    Pt2dr aP1,aP2;
+                   double aPds=1.0;
+                   int aNb = sscanf(aBuf.c_str(),"%lf %lf %lf %lf %lf",&aP1.x,&aP1.y,&aP2.x,&aP2.y,&aPds);
+
+                   if ((aNb==4) || (aNb==5))
+                   {
+                        aPck.Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
+                   }
+               /*
                    if (sscanf(aBuf.c_str(),"%lf %lf %lf %lf",&aP1.x,&aP1.y,&aP2.x,&aP2.y)==4) //sscanf(aBuf.c_str(),"%lf %lf %lf %lf",&aP1.x,&aP1.y,&aP2.x,&aP2.y); TEST_OVERFLOW
                      aPck.Cple_Add(ElCplePtsHomologues(aP1,aP2,1.0));
+*/
                 }
             }
 
@@ -892,7 +901,7 @@ void ElPackHomologue::StdPutInFile(const std::string & aName) const
            itP++
        )
        {
-           fprintf(aFP,"%f %f %f %f\n",itP->P1().x,itP->P1().y,itP->P2().x,itP->P2().y);
+           fprintf(aFP,"%f %f %f %f %f\n",itP->P1().x,itP->P1().y,itP->P2().x,itP->P2().y,itP->Pds());
        }
        ElFclose(aFP);
 /*
@@ -3486,9 +3495,15 @@ cOrientationConique  ElCamera::StdExportCalibGlob() const
    return StdExportCalibGlob(true);
 }
 
-std::string  ElCamera::StdExport2File(cInterfChantierNameManipulateur *anICNM,const std::string & aDirOri,const std::string & aNameIm)
+std::string  ElCamera::StdExport2File(cInterfChantierNameManipulateur *anICNM,const std::string & aDirOri,const std::string & aNameIm,const std::string & aNameFileInterne)
 {
+   bool FileInterne = (aNameFileInterne != "");
    cOrientationConique  anOC = StdExportCalibGlob() ;
+   if (FileInterne)
+   {
+      anOC.Interne().SetNoInit();
+      anOC.FileInterne().SetVal(aNameFileInterne);
+   }
    std::string aName = anICNM->NameOriStenope(aDirOri,aNameIm);
    MakeFileXML(anOC,aName);
    return aName;

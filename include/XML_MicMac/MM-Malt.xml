@@ -196,6 +196,12 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
    <Symb>  Clas2=.* </Symb>
    <Symb>  UseClas3=false </Symb>
    <Symb>  Clas3=.* </Symb>
+   <Symb>  UseClas4=false </Symb>
+   <Symb>  Clas4=.* </Symb>
+   <Symb>  UseClas5=false </Symb>
+   <Symb>  Clas5=.* </Symb>
+   <Symb>  UseClas6=false </Symb>
+   <Symb>  Clas6=.* </Symb>
    <Symb>  EZA=false </Symb>
    <Symb>  SzRec=50 </Symb>  <!-- Valeur par defaut actuel pour compatibilite -->
    <Symb>   AlgoMaxFlow=false </Symb>
@@ -398,6 +404,24 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
                     <OneAutomMapN2N>
                          <MatchPattern> ${Clas3} </MatchPattern>
                          <Result> Classe3 </Result>
+                    </OneAutomMapN2N>
+                 </#WHEN>
+                 <#WHEN VTEST=${UseClas4}>
+                    <OneAutomMapN2N>
+                         <MatchPattern> ${Clas4} </MatchPattern>
+                         <Result> Classe4 </Result>
+                    </OneAutomMapN2N>
+                 </#WHEN>
+                 <#WHEN VTEST=${UseClas5}>
+                    <OneAutomMapN2N>
+                         <MatchPattern> ${Clas5} </MatchPattern>
+                         <Result> Classe5 </Result>
+                    </OneAutomMapN2N>
+                 </#WHEN>
+                 <#WHEN VTEST=${UseClas6}>
+                    <OneAutomMapN2N>
+                         <MatchPattern> ${Clas6} </MatchPattern>
+                         <Result> Classe6 </Result>
                     </OneAutomMapN2N>
                  </#WHEN>
                  <OneAutomMapN2N>

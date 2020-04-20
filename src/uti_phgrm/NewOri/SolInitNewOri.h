@@ -55,7 +55,7 @@ Header-MicMac-eLiSe-25/06/2007*/
       * for a nodes to the triplet and edge it share
       * ...
 
-   A triplet  cNOSolIn_Triplet represent a set of 3 summits. It contains the 3 submit and edges
+   A triplet  cNOSolIn_Triplet represent a set of 3 summits. It contains the 3 summit and edges
    addjacent to it
           tSomNSI *     mSoms[3];
           tArcNSI *     mArcs[3];

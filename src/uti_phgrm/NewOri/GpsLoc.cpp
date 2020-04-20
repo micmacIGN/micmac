@@ -64,6 +64,14 @@ cSolBasculeRig StdSolFromPts
                       int   aNbL2                 = 5
                 );
 
+
+enum EstimType
+{
+	L1,
+	L1Pds,
+	L2
+};
+
 /** 
    cXml_Rotation
 ElRotation3D Xml2El(const cXml_Rotation & aXml)
@@ -126,22 +134,89 @@ class cGpsLoc_Som
 {
     public :
         cGpsLoc_Som(const std::string & aName);
-        cGpsLoc_Rep  & Sol();
-	    Pt3dr        & Gps();
+		~cGpsLoc_Som();
+
+		cGpsLoc_Rep  			  & Sol();
+        std::vector<cGpsLoc_Rep>  & SolPerTri();
+	    Pt3dr        			  & Gps();
+	
+		void 						RemoveOutliers();
+		void						CalcMedErr();
+
+		double 					  & ErrMed();	
+		std::vector<double>       & Pds();
+
         void Save(cNewO_NameManager *);
+		inline std::string Name() {return mName;}
+
     private :
         std::string mName;
-        cGpsLoc_Rep mSol;//centre perspective+rotation absolute calculé
-        Pt3dr       mGPS;//centre perspectif mesuré par le GPS
+        cGpsLoc_Rep 			 mSol;//final centre perspective+rotation absolute calculé
+		std::vector<cGpsLoc_Rep> mSolPerTri;//vector of solutions from N triplets
+        Pt3dr       			 mGPS;//centre perspectif mesuré par le GPS
+
+        double 		           * mErrMed;
+		std::vector<double>      mPds;
 };
 
 cGpsLoc_Som::cGpsLoc_Som(const std::string & aName)  :
-    mName (aName)
+    mName (aName),
+	mErrMed(NULL)
 {
 }
+cGpsLoc_Som::~cGpsLoc_Som()
+{
+	if (mErrMed)
+		delete mErrMed;
+}
 
-cGpsLoc_Rep & cGpsLoc_Som::Sol() {return mSol;}
-Pt3dr       & cGpsLoc_Som::Gps() {return mGPS;}
+std::vector<cGpsLoc_Rep> & cGpsLoc_Som::SolPerTri() {return mSolPerTri;}
+cGpsLoc_Rep 			 & cGpsLoc_Som::Sol() {return mSol;}
+Pt3dr       			 & cGpsLoc_Som::Gps() {return mGPS;}
+double                   & cGpsLoc_Som::ErrMed() {return *mErrMed;}
+std::vector<double>      & cGpsLoc_Som::Pds() {return mPds;}
+
+
+void cGpsLoc_Som::CalcMedErr()
+{
+    std::vector<double> anErr;
+
+    for (auto aOri : mSolPerTri)
+    {
+        anErr.push_back (euclid(mGPS - aOri.Ori()));
+    }
+
+	mErrMed = new double;
+    (*mErrMed) = KthValProp(anErr,0.75);
+	std::cout << mName << " Quantile 75% Err " << (*mErrMed) << "\n";
+}
+
+void cGpsLoc_Som::RemoveOutliers()
+{
+
+	if (mErrMed)
+	{
+		std::vector<cGpsLoc_Rep> aSolPerTriNew;
+		std::vector<double>      aPdsNew;
+    
+		double anErr = 0;
+		int Nb = mSolPerTri.size();
+		for (int aK=0; aK<Nb; aK++)
+		{
+			anErr = euclid(mSolPerTri.at(aK).Ori()-mGPS);
+			if (anErr < 2*(*mErrMed))	
+			{
+				aSolPerTriNew.push_back(mSolPerTri.at(aK));
+				aPdsNew.push_back(mPds.at(aK));
+			}
+		}
+		std::cout << mName << " : removed" << Nb - aSolPerTriNew.size() << " out of " << Nb <<  ". Threshold=" << 2*(*mErrMed) << "\n";
+    
+		mSolPerTri = aSolPerTriNew;
+		mPds = aPdsNew;
+	}
+}
+
 
 void cGpsLoc_Som::Save(cNewO_NameManager * aNM)
 {
@@ -151,6 +226,9 @@ void cGpsLoc_Som::Save(cNewO_NameManager * aNM)
    aCS->SetOrientation(aR.inv());
 
    cOrientationConique anOC =  aCS->StdExportCalibGlob();
+
+   //set the uncertainty
+   anOC.Externe().IncCentre() = Pt3dr(ErrMed(),ErrMed(),ErrMed());
 
    std::string aNameOri = aNM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-"+aNM->OriOut()+"-GpsLoc",mName,true);
 
@@ -170,19 +248,37 @@ class cGpsLoc_Triplet
     public :
         cGpsLoc_Triplet(tGLS_Ptr  aS1,tGLS_Ptr aS2,tGLS_Ptr aS3,const cXml_Ori3ImInit & aXmlOri);
         void InitSomTrivial();
+		void PrintCurSoms();
     private :
        tGLS_Ptr     mSoms[3]; //absolute
        cGpsLoc_Rep  mReps[3]; //repere local
        Pt3dr        mPMed;
+
+	   cGenGaus3D  *mGG;
+
+	   cSolBasculeRig mBasc;//transformation relativeto absolut
 };
 
 cGpsLoc_Triplet::cGpsLoc_Triplet(tGLS_Ptr  aS1,tGLS_Ptr aS2,tGLS_Ptr aS3,const cXml_Ori3ImInit & aXmlOri) :
-    mSoms {aS1,aS2,aS3}
+    mSoms {aS1,aS2,aS3},
+	mBasc(cSolBasculeRig::Id())
 {
     mReps[0] = cGpsLoc_Rep();
     mReps[1] = cGpsLoc_Rep(Xml2El(aXmlOri.Ori2On1()));
     mReps[2] = cGpsLoc_Rep(Xml2El(aXmlOri.Ori3On1()));
     mPMed = aXmlOri.PMed();
+
+	//get the ellipse and its eigen values
+	cXml_Elips3D anEl;
+	RazEllips(anEl);
+	AddEllips(anEl,mSoms[0]->Gps(),1.0);
+	AddEllips(anEl,mSoms[1]->Gps(),1.0);
+	AddEllips(anEl,mSoms[2]->Gps(),1.0);
+	NormEllips(anEl);
+	mGG = new cGenGaus3D(anEl);
+
+	//std::cout << mGG->ValP(0) << " " << mGG->ValP(1) << " " << mGG->ValP(2) << "\n";
+	//std::cout << mSoms[0]->Name() << " " <<  mSoms[1]->Name() << " " << mSoms[2]->Name() <<  "\n";
 }
 
 
@@ -194,43 +290,61 @@ void cGpsLoc_Triplet::InitSomTrivial()
     
     for (auto aK : {0,1,2})
     {
-         //mSoms[aK]->Sol() = mReps[aK];
     
         mVP1.push_back(mReps[aK].Ori());
         mVP2.push_back(mSoms[aK]->Gps());
     }
 
     //le calcul de la similitude (7parametrs) à partir de points dans les deux reperes 
-    cSolBasculeRig    aSol = cSolBasculeRig::StdSolFromPts(mVP1,mVP2);
+    mBasc = cSolBasculeRig::StdSolFromPts(mVP1,mVP2);
  
-    //la pose calculée
-    ElRotation3D      aPose(aSol.Tr(),aSol.Rot(),true);
+    ElRotation3D      aPose(mBasc.Tr(),mBasc.Rot(),true);
  
-    /*
-    std::cout << "Bascule, Tr=" << aSol.Tr() << ", Lambda=" << aSol.Lambda() << "\n";
-    std::cout << ", Rot=" << aSol.Rot()(0,0) << ", " << aSol.Rot()(0,1) << ", " << aSol.Rot()(0,2) << "\n"
-                          << aSol.Rot()(1,0) << ", " << aSol.Rot()(1,1) << ", " << aSol.Rot()(1,2) << "\n"
-                          << aSol.Rot()(2,0) << ", " << aSol.Rot()(2,1) << ", " << aSol.Rot()(2,2) << "\n";
-    */
+    
+    /*std::cout << "Bascule, Tr=" << mBasc.Tr() << ", Lambda=" << mBasc.Lambda() << "\n";
+    std::cout << ", Rot=" << mBasc.Rot()(0,0) << ", " << mBasc.Rot()(0,1) << ", " << mBasc.Rot()(0,2) << "\n"
+                          << mBasc.Rot()(1,0) << ", " << mBasc.Rot()(1,1) << ", " << mBasc.Rot()(1,2) << "\n"
+                          << mBasc.Rot()(2,0) << ", " << mBasc.Rot()(2,1) << ", " << mBasc.Rot()(2,2) << "\n";*/
+    
     
     //sauvgaurde de la pose dans l'objet de la classe
     for (auto aK : {0,1,2})
     {
-        Pt3dr aPEch( mReps[aK].Ori().x * aSol.Lambda(),
-                     mReps[aK].Ori().y * aSol.Lambda(),
-                     mReps[aK].Ori().z * aSol.Lambda() );
+        Pt3dr aPEch( mReps[aK].Ori().x * mBasc.Lambda(),
+                     mReps[aK].Ori().y * mBasc.Lambda(),
+                     mReps[aK].Ori().z * mBasc.Lambda() );
 
         //calcul de la position du centre perspectif de la camera aK dans repere absolut 
         Pt3dr              aOriBasc = aPose.ImAff(aPEch); // tk + Mk * Ckj;
         ElMatrix<double>   aRotBasc = aPose.Mat() * mReps[aK].MatRot();// Mk * Mkj
 
         mSoms[aK]->Sol() = cGpsLoc_Rep(ElRotation3D(aOriBasc,aRotBasc,true));
-        
+
+		//sauvgarde de tous les candidates
+		std::vector<cGpsLoc_Rep> & aSolPerTri = mSoms[aK]->SolPerTri();
+		aSolPerTri.push_back(cGpsLoc_Rep(ElRotation3D(aOriBasc,aRotBasc,true)));
+
+		//save Pds
+		std::vector<double> & aPds = mSoms[aK]->Pds();
+		aPds.push_back(1.0);
+
+        if (0)
+			PrintCurSoms();	
     }
 
 }
 
+void cGpsLoc_Triplet::PrintCurSoms()
+{
+	for (auto aK : {0,1,2})
+	{
+		std::cout << "img=" << mSoms[aK]->Name() << " " << mSoms[aK]->Sol().Ori() << ", \n" 
+                            << mSoms[aK]->Sol().MatRot()(0,0) << ", " << mSoms[aK]->Sol().MatRot()(0,1) << ", " << mSoms[aK]->Sol().MatRot()(0,2) << "\n"  
+                            << mSoms[aK]->Sol().MatRot()(1,0) << ", " << mSoms[aK]->Sol().MatRot()(1,1) << ", " << mSoms[aK]->Sol().MatRot()(1,2) << "\n"
+                            << mSoms[aK]->Sol().MatRot()(2,0) << ", " << mSoms[aK]->Sol().MatRot()(2,1) << ", " << mSoms[aK]->Sol().MatRot()(2,2) << "\n";
+	}
 
+}
 
 
 /* ========================================= */
@@ -245,12 +359,22 @@ class cAppliGpsLoc : public cCommonMartiniAppli
           cAppliGpsLoc(int argc,char ** argv);
      private :
           void InitSom();
+		  void CalcOptSol();
+		  void CalcMedErr();
+		  void RemoveOutliers();
+		
+		  cGpsLoc_Rep CalcL1(std::vector<cGpsLoc_Rep>& aCandidateSol);
+		  cGpsLoc_Rep CalcL1Pds(std::vector<cGpsLoc_Rep>& aCandidateSol,std::vector<double>& aPds);
+		
+		  EstimType Str2Enum(std::string& aStr);
 
           std::string                          mDir;
           // Associe un nom d'image a l'objet C++
           std::map<std::string,cGpsLoc_Som *>  mMapS;
           std::vector<cGpsLoc_Triplet>         mV3;
           int                                  mNbSom;
+
+		  EstimType                            mET;
 };
 
 void cAppliGpsLoc::InitSom()
@@ -258,14 +382,121 @@ void cAppliGpsLoc::InitSom()
    
 }
 
+void cAppliGpsLoc::CalcMedErr()
+{
+	for(auto aS : mMapS)
+		aS.second->CalcMedErr();
+
+}
+
+void cAppliGpsLoc::RemoveOutliers()
+{
+	for(auto aS : mMapS)
+		aS.second->RemoveOutliers();
+}
+
+
+void cAppliGpsLoc::CalcOptSol()
+{
+	//calculate the median error per sommet
+	CalcMedErr();	
+
+	//remove outliers
+	RemoveOutliers();	
+	
+	//calculate the optimal solution on inliers	
+	for(auto aS : mMapS)
+	{
+		switch (mET)
+		{
+			case L1 : 
+					aS.second->Sol() = CalcL1(aS.second->SolPerTri());
+					break;
+			case L1Pds : 
+					aS.second->Sol() = CalcL1Pds(aS.second->SolPerTri(),aS.second->Pds());
+					break;
+			case L2 : //TO-DO
+					break;
+
+		}
+	}
+}
+
+cGpsLoc_Rep cAppliGpsLoc::CalcL1(std::vector<cGpsLoc_Rep>& aCandidateSol)
+{
+
+	int Nb = aCandidateSol.size();
+	Pt3dr aOri(0,0,0);
+	ElMatrix<double> aRotBasc(3,3);
+
+	for (auto aK : aCandidateSol)
+	{
+		aOri.x     += aK.Ori().x;
+		aOri.y     += aK.Ori().y;
+		aOri.z     += aK.Ori().z;
+		aRotBasc += aK.MatRot();
+	}
+	aOri.x /= Nb;
+	aOri.y /= Nb;
+	aOri.z /= Nb;
+	aRotBasc *= double(1)/Nb;   
+	aRotBasc = NearestRotation(aRotBasc);
+
+
+	return cGpsLoc_Rep(ElRotation3D(aOri,aRotBasc,true));
+}
+
+cGpsLoc_Rep cAppliGpsLoc::CalcL1Pds(std::vector<cGpsLoc_Rep>& aCandidateSol, std::vector<double>& aPds)
+{
+
+    ELISE_ASSERT(aPds.size()==aCandidateSol.size(),"Incoherent size for Pds and solution candidates.");
+
+	
+	int aJ=0;
+	double aPdsSom=0;
+	Pt3dr aOri(0,0,0);
+	ElMatrix<double> aRotBasc(3,3);
+
+	for (auto aK : aCandidateSol)
+	{
+		aOri.x     += (aK.Ori().x * aPds.at(aJ));
+		aOri.y     += (aK.Ori().y * aPds.at(aJ));
+		aOri.z     += (aK.Ori().z * aPds.at(aJ));
+		aRotBasc += (aK.MatRot() * aPds.at(aJ));
+		
+		aPdsSom += aPds.at(aJ);
+
+		aJ++;
+	}
+	aOri.x /= aPdsSom;
+	aOri.y /= aPdsSom;
+	aOri.z /= aPdsSom;
+	aRotBasc *= double(1)/aPdsSom;   
+	aRotBasc = NearestRotation(aRotBasc);
+
+	return cGpsLoc_Rep(ElRotation3D(aOri,aRotBasc,true));
+}
+
+EstimType cAppliGpsLoc::Str2Enum(std::string& aStr)
+{
+	if (aStr=="L1")
+		return L1;
+	else if (aStr=="L1Pds")
+		return L1Pds;
+	else 
+		return L2;
+}
+
 cAppliGpsLoc::cAppliGpsLoc(int argc,char ** argv) :
     cCommonMartiniAppli (),
-    mDir                ("./")
+    mDir                ("./"),
+	mET           		(L1)
 {
    int tata;
    std::string aPat;
    std::string aDir;
    std::string aGpsOri;
+   std::string EstimTypeStr;
    
    cInterfChantierNameManipulateur * aICNM; 
 
@@ -277,12 +508,16 @@ cAppliGpsLoc::cAppliGpsLoc(int argc,char ** argv) :
         LArgMain() << EAMC(aPat,"Pattern of images", eSAM_IsExistFile) 
                    << EAMC(aGpsOri,"GPS orientation (OrientationConique)", eSAM_IsExistFile) ,
         LArgMain() << EAM(tata,"GenOri",true,"Generate Ori, Def=true, false for quick process to RedTieP")
+				   << EAM(EstimTypeStr,"EType",true,"L1, L1Pds, L2")
                    << ArgCMA()
    );
  
    #if (ELISE_windows)
         replace( aPat.begin(), aPat.end(), '\\', '/' );
    #endif
+
+   if (EAMIsInit(&EstimTypeStr))
+   		mET = Str2Enum(EstimTypeStr);
 
    SplitDirAndFile(aDir,aPat,aPat);
    StdCorrecNameOrient(aGpsOri,aDir);//ajoutera "Ori-" devant aGpsOri si necessaire
@@ -315,7 +550,6 @@ cAppliGpsLoc::cAppliGpsLoc(int argc,char ** argv) :
       mMapS[aName] = new cGpsLoc_Som(aName);
       mMapS[aName]->Gps() = aC;      
 
-      //std::cout << "+Pt3dr=" << mMapS[aName]->Gps() << "\n"; 
 
    }
 
@@ -327,7 +561,7 @@ cAppliGpsLoc::cAppliGpsLoc(int argc,char ** argv) :
    cXml_TopoTriplet  aLT = StdGetFromSI(aNameLTriplets,Xml_TopoTriplet);
 
    //pour chaque triplets 
-   //  + verifie s'il existe son sommet
+   //  + verifie s'il y existe son sommet
    //  + recuper les cGpsLoc_Som correspondant a chaque image d'un triplet (absolut)
    //  + recuper le nom de fichier qui contient l'orientation d'un triplet (relatif)(aName3R) 
    //  + lecture du fichier (aXml3Ori)
@@ -359,17 +593,20 @@ cAppliGpsLoc::cAppliGpsLoc(int argc,char ** argv) :
    }
    else
    {   // calcul pour chaque triplet
-/* Commente car warning unused
+
        for (auto a3 : mV3)
        {
-            //a faire:
-            //- calcul de lorientation absolute pour chaque sommet dans chaque triplet independement
-            //  (alors on dispose de plusiers poses abs pour chaque sommet)
-            //- estimer la transformation de similitude (7param) la plus robuste en prennant en compte toutes les resultat 
+	       a3.InitSomTrivial();
        }
-*/
-
    }
+
+   //calculate an optimal solution
+   CalcOptSol();
+
+   //save
+   for (auto aS : mMapS)
+	   aS.second->Save(aNM);	   
+
 }
 
 

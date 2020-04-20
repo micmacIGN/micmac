@@ -488,6 +488,29 @@ static REAL SetToMatDirecte(ElMatrix<REAL> & aMat)
    return -1;
 }
 
+
+ElRotation3D AverRotation(const std::vector<ElRotation3D> & aVRot,const std::vector<double> & aVWeights)
+{
+    ELISE_ASSERT(aVRot.size()==aVWeights.size(),"AverRotation dif size");
+    Pt3dr aC(0,0,0);
+    ElMatrix<double> aMat(3,3,0.0);
+    double aSomW = 0.0;
+
+    for (int aK=0 ; aK<int(aVRot.size()) ; aK++)
+    {
+        double aW = aVWeights[aK];
+        aC = aC + aVRot[aK].tr() * aW;
+        aSomW += aW;
+        aMat = aMat + aVRot[aK].Mat() * aW;
+    }
+    aC = aC / aSomW;
+    aMat = NearestRotation(aMat*(1.0/aSomW));
+
+    return ElRotation3D(aC,aMat,true);
+}
+
+
+
 ElMatrix<REAL> NearestRotation ( const ElMatrix<REAL> & aMat)
 {
      INT n = aMat.tx();

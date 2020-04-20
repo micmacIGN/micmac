@@ -556,12 +556,12 @@ void AddEllips(cXml_Elips3D & anEl,const Pt3dr & aP,double aPds)
 {
    ELISE_ASSERT(!anEl.Norm(),"AddEllips");
    anEl.CDG() = anEl.CDG() + aP * aPds;
-   anEl.Sxx() += aPds * aP.x * aP.x;
-   anEl.Syy() += aPds * aP.y * aP.y;
-   anEl.Szz() += aPds * aP.z * aP.z;
-   anEl.Sxy() += aPds * aP.x * aP.y;
-   anEl.Sxz() += aPds * aP.x * aP.z;
-   anEl.Syz() += aPds * aP.y * aP.z;
+   anEl.Sxx() += aPds * aPds * aP.x * aP.x;
+   anEl.Syy() += aPds * aPds * aP.y * aP.y;
+   anEl.Szz() += aPds * aPds * aP.z * aP.z;
+   anEl.Sxy() += aPds * aPds * aP.x * aP.y;
+   anEl.Sxz() += aPds * aPds * aP.x * aP.z;
+   anEl.Syz() += aPds * aPds * aP.y * aP.z;
    anEl.Pds() += aPds;
 }
 
@@ -569,9 +569,9 @@ void AddEllips(cXml_Elips2D & anEl,const Pt2dr & aP,double aPds)
 {
    ELISE_ASSERT(!anEl.Norm(),"AddEllips");
    anEl.CDG() = anEl.CDG() + aP * aPds;
-   anEl.Sxx() += aPds * aP.x * aP.x;
-   anEl.Syy() += aPds * aP.y * aP.y;
-   anEl.Sxy() += aPds * aP.x * aP.y;
+   anEl.Sxx() += aPds * aPds * aP.x * aP.x;
+   anEl.Syy() += aPds * aPds * aP.y * aP.y;
+   anEl.Sxy() += aPds * aPds * aP.x * aP.y;
    anEl.Pds() += aPds;
 }
 
@@ -583,12 +583,12 @@ void NormEllips(cXml_Elips3D & anEl)
    anEl.CDG() = anEl.CDG() / aPds;
    Pt3dr aCdg = anEl.CDG();
 
-   anEl.Sxx() = anEl.Sxx() / aPds - aCdg.x * aCdg.x;
-   anEl.Syy() = anEl.Syy() / aPds - aCdg.y * aCdg.y;
-   anEl.Szz() = anEl.Szz() / aPds - aCdg.z * aCdg.z;
-   anEl.Sxy() = anEl.Sxy() / aPds - aCdg.x * aCdg.y;
-   anEl.Sxz() = anEl.Sxz() / aPds - aCdg.x * aCdg.z;
-   anEl.Syz() = anEl.Syz() / aPds - aCdg.y * aCdg.z;
+   anEl.Sxx() = anEl.Sxx() / (aPds * aPds) - aCdg.x * aCdg.x;
+   anEl.Syy() = anEl.Syy() / (aPds * aPds) - aCdg.y * aCdg.y;
+   anEl.Szz() = anEl.Szz() / (aPds * aPds) - aCdg.z * aCdg.z;
+   anEl.Sxy() = anEl.Sxy() / (aPds * aPds) - aCdg.x * aCdg.y;
+   anEl.Sxz() = anEl.Sxz() / (aPds * aPds) - aCdg.x * aCdg.z;
+   anEl.Syz() = anEl.Syz() / (aPds * aPds) - aCdg.y * aCdg.z;
 }
 void NormEllips(cXml_Elips2D & anEl)
 {
@@ -598,9 +598,9 @@ void NormEllips(cXml_Elips2D & anEl)
    anEl.CDG() = anEl.CDG() / aPds;
    Pt2dr aCdg = anEl.CDG();
 
-   anEl.Sxx() = anEl.Sxx() / aPds - aCdg.x * aCdg.x;
-   anEl.Syy() = anEl.Syy() / aPds - aCdg.y * aCdg.y;
-   anEl.Sxy() = anEl.Sxy() / aPds - aCdg.x * aCdg.y;
+   anEl.Sxx() = anEl.Sxx() / (aPds * aPds) - aCdg.x * aCdg.x;
+   anEl.Syy() = anEl.Syy() / (aPds * aPds) - aCdg.y * aCdg.y;
+   anEl.Sxy() = anEl.Sxy() / (aPds * aPds) - aCdg.x * aCdg.y;
 }
 
 

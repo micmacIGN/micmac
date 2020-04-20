@@ -308,7 +308,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cMultipleOfs & HelpOut();
         cMultipleOfs & ErrOut();
 
-        ///< MMVII call itself
+        ///< External call sys : use GlobalSysCall + register the command in log files
+        int ExtSysCall(const std::string & aCom, bool SVP);
+
+
+        /// MMVII call itself
         int   ExeCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&,bool ByLineCom=true); 
         void  ExeMultiAutoRecallMMVII
                                 (  const std::string & aNameOpt  ,  //!  Name of parameter to substitue
@@ -337,6 +341,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         void InitParam();  ///< Parse the parameter list
 
+        const std::string & TopDirMMVII()   const;   ///<  main directory of MMVII , upon include,src ..
         const std::string & TmpDirTestMMVII()   const;   ///< where to put binary file for bench, Export for global bench funtion
         const std::string & InputDirTestMMVII() const;   ///<  where are input files for bench   , Export for global bench funtion
 

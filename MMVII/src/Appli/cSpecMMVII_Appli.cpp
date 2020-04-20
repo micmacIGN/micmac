@@ -131,12 +131,14 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecEditRel);
         TheVecAll.push_back(&TheSpecWalkman);
         TheVecAll.push_back(&TheSpecDaisy);
+        TheVecAll.push_back(&TheSpecCatVideo);
         TheVecAll.push_back(&TheSpec_TestEigen);
         TheVecAll.push_back(&TheSpec_ComputeParamIndexBinaire);
         TheVecAll.push_back(&TheSpecTestRecall);
         TheVecAll.push_back(&TheSpecScaleImage);
         TheVecAll.push_back(&TheSpecCalcDiscIm);
         TheVecAll.push_back(&TheSpecCalcDescPCar);
+        TheVecAll.push_back(&TheSpecMatchTieP);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

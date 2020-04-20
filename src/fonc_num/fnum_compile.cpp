@@ -811,7 +811,7 @@ void   cElCompiledFonc::InitBloc(const cSetEqFormelles & aSet)
 }
 
 
-void cElCompiledFonc::SetCoordCur(double * aRealCoord)
+void cElCompiledFonc::SetCoordCur(const double * aRealCoord)
 {
 
    ELISE_ASSERT(isCurMappingSet,"No Current Mapping");
@@ -823,6 +823,7 @@ void cElCompiledFonc::SetCoordCur(double * aRealCoord)
    {
       INT aIC = LIC(aK);
       mCompCoord[aIC] = aRealCoord[mMapComp2Real[aIC]];
+      // std::cout << "FFFffFFf " << aIC << " " <<mMapComp2Real[aIC] << "\n";
    }
 
    PostSetCoordCur();
@@ -855,14 +856,32 @@ REAL cElCompiledFonc::Val(INT aD) const
    return mVal[aD];
 }
 
-
-
-
 const std::vector<double> &   cElCompiledFonc::Vals() const
 {
    ELISE_ASSERT(isValComputed,"No Val Computed");
    return mVal;
 }
+const std::vector<double> &   cElCompiledFonc::ValSsVerif() const
+{
+   return mVal;
+}
+const std::vector<std::vector<double> > &  cElCompiledFonc::CompDerSsVerif() const
+{
+   return mCompDer;
+}
+
+const std::vector<std::vector<double> > &  cElCompiledFonc::CompDer() const
+{
+   ELISE_ASSERT(isDerComputed,"No Der Computed");
+   return mCompDer;
+}
+const std::vector<double> &   cElCompiledFonc::CompCoord() const
+{
+   ELISE_ASSERT(isCoordSet,"No Coord Set");
+   return mCompCoord;
+}
+
+
 
 REAL cElCompiledFonc::Deriv(INT aD,INT aK) const
 {
