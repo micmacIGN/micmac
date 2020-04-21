@@ -73,6 +73,7 @@ template <class TypeElem> class cSquareF : public cUnaryF<TypeElem>
             cSquareF (cFormula<TypeElem> aF,const std::string & aName) :
                 cUnaryF <TypeElem> (aF,aName)
             { }
+            static TypeElem Operation(const TypeElem & aV1) {return aV1 * aV1;}
       private :
             const std::string &  NameOperator() const override {static std::string s("square"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
@@ -97,6 +98,7 @@ template <class TypeElem> class cCubeF : public cUnaryF<TypeElem>
             cCubeF (cFormula<TypeElem> aF,const std::string & aName) :
                 cUnaryF <TypeElem> (aF,aName)
             { }
+            static TypeElem Operation(const TypeElem & aV1) {return aV1 * aV1 * aV1;}
       private :
             const std::string &  NameOperator() const override {static std::string s("cube"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
@@ -121,6 +123,7 @@ template <class TypeElem> class cPow4 : public cUnaryF<TypeElem>
             cPow4 (cFormula<TypeElem> aF,const std::string & aName) :
                 cUnaryF <TypeElem> (aF,aName)
             { }
+            static TypeElem Operation(const TypeElem & aV1) {return pow4(aV1);}
       private :
             const std::string &  NameOperator() const override {static std::string s("pow4"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
@@ -144,6 +147,7 @@ template <class TypeElem> class cPow5 : public cUnaryF<TypeElem>
             cPow5 (cFormula<TypeElem> aF,const std::string & aName) :
                 cUnaryF <TypeElem> (aF,aName)
             { }
+            static TypeElem Operation(const TypeElem & aV1) {return pow5(aV1);}
       private :
             const std::string &  NameOperator() const override {static std::string s("pow5"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
@@ -167,6 +171,7 @@ template <class TypeElem> class cPow6 : public cUnaryF<TypeElem>
             cPow6 (cFormula<TypeElem> aF,const std::string & aName) :
                 cUnaryF <TypeElem> (aF,aName)
             { }
+            static TypeElem Operation(const TypeElem & aV1) {return pow6(aV1);}
       private :
             const std::string &  NameOperator() const override {static std::string s("pow6"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
@@ -190,6 +195,7 @@ template <class TypeElem> class cPow7 : public cUnaryF<TypeElem>
             cPow7 (cFormula<TypeElem> aF,const std::string & aName) :
                 cUnaryF <TypeElem> (aF,aName)
             { }
+            static TypeElem Operation(const TypeElem & aV1) {return pow7(aV1);}
       private :
             const std::string &  NameOperator() const override {static std::string s("pow7"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
@@ -215,6 +221,7 @@ template <class TypeElem> class cExpF : public cUnaryF<TypeElem>
             cExpF (cFormula<TypeElem> aF,const std::string & aName) :
                 cUnaryF <TypeElem> (aF,aName)
             { }
+            static TypeElem Operation(const TypeElem & aV1) {return std::exp(aV1);}
       private :
             const std::string &  NameOperator() const override {static std::string s("exp"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
@@ -239,6 +246,7 @@ template <class TypeElem> class cMin1F : public cUnaryF<TypeElem>
             cMin1F (cFormula<TypeElem> aF,const std::string & aName) :
                 cUnaryF <TypeElem> (aF,aName)
             { }
+            static TypeElem Operation(const TypeElem & aV1) {return - aV1;}
       private :
             const std::string &  NameOperator() const override {static std::string s("-"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
@@ -263,6 +271,7 @@ template <class TypeElem> class cLogF : public cUnaryF<TypeElem>
             cLogF (cFormula<TypeElem> aF,const std::string & aName) :
                 cUnaryF <TypeElem> (aF,aName)
             { }
+            static TypeElem Operation(const TypeElem & aV1) {return std::log(aV1);}
       private :
             const std::string &  NameOperator() const override {static std::string s("log"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
@@ -290,6 +299,8 @@ template <class TypeElem> class cPowCste : public cUnaryF<TypeElem>
                 mExp  (cUnaryF<TypeElem>::Extrac1Param (aName))
             { 
             }
+            // Cannot be static because of mExp
+            TypeElem Operation(const TypeElem & aV1) {return std::pow(aV1,mExp);}
       private :
             const std::string &  NameOperator() const override {static std::string s("powc"); return s;}
             virtual std::string  PostName() const {return " " + std::to_string(mExp);}
@@ -322,6 +333,7 @@ template <class TypeElem> class cPowCste : public cUnaryF<TypeElem>
 template <class TypeCompiled>  class cGenOperatorUnaire
 {
     public :
+         typedef typename TypeCompiled::tElem     tElem;
          typedef typename TypeCompiled::tCoordF     tCoordF;
          typedef typename TypeCompiled::tImplemF     tImplemF;
          typedef typename tImplemF::tFormula  tFormula;
@@ -334,8 +346,20 @@ template <class TypeCompiled>  class cGenOperatorUnaire
              if (aPCont->ExistFunc(aNameForm))  // If it already exist 
                return aPCont->FuncOfName(aNameForm);  // Then return formula whih this name
 
-             tFormula aResult (new TypeCompiled(aF,aNameForm)); // else create it
-             aPCont->AddFormula(aResult); // indicate to the context to remember this new formula 
+             auto opType = new TypeCompiled(aF,aNameForm);
+             if (REDUCE_CSTE)
+             {
+                 const tElem * aC1 = aF->ValCste();
+                 if (aC1)
+                 {
+                    SHOW_REDUCE(aNameOp + std::to_string(*aC1) + Aux);
+                    tElem  aC2 = opType->Operation(*aC1);      // We have to use Operation() on a class instance because of cPowCste
+                    delete opType;
+                    return CreateCste(aC2,aF);
+                 }
+             }
+             tFormula aResult(opType);
+             aPCont->AddFormula(aResult); // indicate to the context to remember this new formula
              return aResult;              // return it
          }
 };
@@ -381,10 +405,6 @@ inline cFormula<TypeElem> exp(const cFormula<TypeElem> & aF)
 template <class TypeElem> 
 inline cFormula<TypeElem>  operator - (const cFormula<TypeElem> & aF)
 {
-    const TypeElem * aC = aF->ValCste();
-    if (aC)
-       return aF->CoordF()->CsteOfVal(- *aC);  // help reduce other operation on '-0' or '-1' too
-
     // rule  - (- x) ==  x
     if (REDUCE_MM &&  (aF->NameOperator()=="-"))
     {

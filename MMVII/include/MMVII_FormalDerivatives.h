@@ -121,7 +121,7 @@ class cMemCheck
 // TODO => REPLACE BY METHOD ON COORDINATOR WHEN THEY IMPROVE THINGS ....
 #define  DOREDUCE      false
 
-#define  REDUCE_CSTE    DOREDUCE    //  Cste+Cste => cste
+#define  REDUCE_CSTE    true    //  Cste+Cste => cste
 #define  REDUCE_MM      DOREDUCE    //  - - x => x  ;  a-(-b) => a+b
 #define  REDUCE_ASSOCP  DOREDUCE       /*  B + (A + C) = > A + ( B + C),  
       more generally order the + operator, could be done with '*'  */
