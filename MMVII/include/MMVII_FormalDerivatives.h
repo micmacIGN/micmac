@@ -2,6 +2,9 @@
 #define _MMVII_FormalDerivative_H_
 using namespace std;
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 
 #define WITH_MMVII false
@@ -1008,10 +1011,28 @@ template <class TypeElem>
 const std::vector<std::vector<TypeElem> *> & cCoordinatorF<TypeElem>::EvalAndClear()
 {
     // Make the real hard stuff, compute the data, the depedancy ordering should make it coherent
+#ifdef _OPENMP
+#pragma omp parallel
+    {
+        size_t thread_num = omp_get_thread_num();
+        size_t num_threads = omp_get_num_threads();
+        size_t start = thread_num * mNbInBuf / num_threads;
+        size_t end = (thread_num + 1) * mNbInBuf / num_threads;
+
+        if (end>start)
+        {
+            for (auto & aF : mVReachedF)
+            {
+                aF->ComputeBuf(start,end);
+            }
+        }
+    }
+#else
     for (auto & aF : mVReachedF)
     {
        aF->ComputeBuf(0,mNbInBuf);
     }
+#endif
 
     mBufRes.clear();
     for (size_t aKLine=0 ; aKLine<mNbInBuf ;  aKLine++)
