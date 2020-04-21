@@ -524,6 +524,9 @@ cFormula<TypeElem> operator *
      if (aF1->IsCste(0)) return aF1;
      if (aF2->IsCste(0)) return aF2;
 
+     // Remove a multiplication
+     if (aF1->IsCste(-1)) return -aF2;
+     if (aF2->IsCste(-1)) return -aF1;
 
      // Use commutativity of + to have a unique representation
      if (aF1->Name() > aF2->Name()) 
@@ -542,6 +545,7 @@ cFormula<TypeElem> operator /
      if (aF1->IsCste(0)) return aF1;  // 0/F2 -> 0
      if (aF2->IsCste(1)) return aF1;  // F1/1 -> F1
 
+     if (aF2->IsCste(-1)) return -aF1; // F1/-1 -> -F1
      return cGenOperatorBinaire<cDivF<TypeElem> >::Generate(aF1,aF2,"/");
 }
 
