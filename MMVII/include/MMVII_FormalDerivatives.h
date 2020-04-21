@@ -367,12 +367,12 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
          */
          const std::vector<tOneRes *> & EvalAndClear();
          /// Retur value computed taking into account order of storage
-         const TypeElem &  ValComp(int aNumPush,int aKElem)
+         const TypeElem &  ValComp(int aNumPush,int aKElem) const
          {
              return  mBufRes.at(aNumPush)->at(mSzInterval*aKElem);
          }
          /// Retur value of derivate computed taking into account order of storage
-         const TypeElem &  DerComp(int aNumPush,int aKElem,int aKVarDer)
+         const TypeElem &  DerComp(int aNumPush,int aKElem,int aKVarDer) const
          {
              if (! mWithDer)  UserSError("Acces to derivate wich were not computed");
              return  mBufRes.at(aNumPush)->at(mSzInterval*aKElem +1 + aKVarDer);
