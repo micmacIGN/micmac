@@ -518,8 +518,7 @@ template <class TypeElem> class cImplemF  : public cMemCheck
        typedef typename tCoordF::tFormula      tFormula;
 
        //----------- For derivation and reduction--------------
-       virtual bool  IsCste0() const {return false;} ///< To redefine in constant func, Used for simplification in "/ * + -"
-       virtual bool  IsCste1() const {return false;} ///< To redefine in constant func, Used for simplification in "/ *"
+       virtual bool  IsCste(const TypeElem &) const {return false;} ///< To redefine in constant func, Used for simplification in "/ * + -"
         virtual bool IsDistribInt() const {return false;} ///< To redefine in *,/ for distributivity
 
        virtual tFormula Derivate(int aK) const  = 0;  ///< Compute the formula of it's derivative to Kth unknown
@@ -737,8 +736,7 @@ template <class TypeElem> class cConstantF : public cAtomicF<TypeElem>
             typedef typename tCoordF::tBuf      tBuf;
             friend tCoordF;
 
-            bool  IsCste0() const override {return mVal==0.0;} ///< Here we know if we are constant 0
-            bool  IsCste1() const override {return mVal==1.0;} ///< Here we know if we are constant 1
+            bool  IsCste(const TypeElem &K) const override {return mVal==K;} ///< Here we know if we are a constant of value K
             const TypeElem * ValCste() const override  {return &mVal;}
             const std::string &  NameOperator() const override {static std::string s("Cste"); return s;}
       protected  :
