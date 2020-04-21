@@ -125,7 +125,7 @@ class cMemCheck
 #define  REDUCE_DISTRIB DOREDUCE    //  A#B ~ A#C=> A#(B~C)  ; # in "*/" and   ~ in "+-"
 #define  REDUCE_ApA     DOREDUCE    //  A+A => 2*A, not good by itself, but may creat other reduc
 #define  REDUCE_DIST1   DOREDUCE    //  A + A*C => A *(1+C) si C est csteto have all constant close
-void SHOW_REDUCE(const std::string & aMes) {} // std::cout << "REDUCE " << aMes << "\n";}
+static inline void SHOW_REDUCE(const std::string & aMes) {} // std::cout << "REDUCE " << aMes << "\n";}
 
 
 namespace  NS_MMVII_FormalDerivative
@@ -164,7 +164,7 @@ template <class Type> inline Type pow9(const Type & aV)    {return aV *pow8(aV);
       //============= BASIC  ERROR HANDLING ==============
 
 
-void Error(const std::string & aMes,const std::string & aExplanation)
+static inline void Error(const std::string & aMes,const std::string & aExplanation)
 {
     std::cout << "In MMVII_FormalDerivative a fatal error" << "\n";
     std::cout << "  Likely Source   ["<< aExplanation << "\n";
@@ -172,18 +172,18 @@ void Error(const std::string & aMes,const std::string & aExplanation)
     assert(false);
 }
      ///    Error due probably to internal mistake
-void InternalError(const std::string & aMes)
+static inline void InternalError(const std::string & aMes)
 {
    Error(aMes,"Internal Error of the Library");
 }
      /// Error probably due to bas usage of the library (typically out limit vector access)
-void UserSError(const std::string & aMes)
+static inline void UserSError(const std::string & aMes)
 {
    Error(aMes,"Probable error on user's side due to unapropriate usage of the library");
 }
 
      /// Check equality in test, taking account numericall error
-void AssertAlmostEqual(const double & aV1,const double & aV2,const double & aEps)
+static inline void AssertAlmostEqual(const double & aV1,const double & aV2,const double & aEps)
 {
    if ( (std::abs(aV1-aV2)> aEps*(std::abs(aV1)+std::abs(aV2))) )
       InternalError("Test equality failed");
