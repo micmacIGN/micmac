@@ -402,6 +402,9 @@ template <class TypeUk,class TypeObs> class cTplFraserDist : public cCountDist<7
   public :
     typedef  TypeUk   tUk;
     typedef  TypeObs  tObs;
+    /// Usable for message, also for name generation in formulas
+    static std::string  NameModel() {return "Fraser";}
+
     static const std::vector<std::string>&  VNamesUnknowns()
     {
       static std::vector<std::string>  TheV;
@@ -533,6 +536,8 @@ template <class TypeUk,class TypeObs,const int Deg> class cTplPolDist :
        typedef  TypeObs  tObs;
        typedef cCountDist<(Deg+1)*(Deg+2) -6>  tCountDist;
 
+       /// Usable for message, also for name generation in formulas
+       static std::string  NameModel() {return "XYPol_Deg"+std::to_string(Deg);}
    
        // Vectors of names of unknowns
        static const std::vector<std::string>&  VNamesUnknowns()
@@ -863,7 +868,7 @@ cTestEqCoL<TJD,TFD>::cTestEqCoL(int aSzBuf,bool Show) :
 
    double aT1 = TimeElapsFromT0();
     
-   std::cout << "TestFraser " 
+   std::cout << "Test "  +  TFD::NameModel()
              << ", SzBuf=" << aSzBuf 
              << ", NbEq=" << mCFD.VReached().size() 
              << ", TimeInit=" << (aT1-aT0) << "\n";
