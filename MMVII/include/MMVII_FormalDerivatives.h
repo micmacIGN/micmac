@@ -560,7 +560,6 @@ template <class TypeElem> class cImplemF  : public cMemCheck
        int Depth() const {return mDepth;}  ///< Standard accessor
        void SetDepth(int aDepth) {mDepth = aDepth;}  ///< Fix Reached
 
-
      // ---------- Tuning / Debugging / Analysing ---------------
        /// Used to print constant from generic formula
        virtual const TypeElem * ValCste() const  {return nullptr;}
@@ -568,6 +567,9 @@ template <class TypeElem> class cImplemF  : public cMemCheck
        virtual std::string  InfixPPrint() const =0; 
        /// Number of reference that would occur without reduction on identic formula (to test performance in paper)
        int RecursiveRec() const;
+
+     // Every where a reference name is needed
+       std::string NameGlob() const { return "F" + std::to_string(NumGlob());}
 
        /// Access at global level is 4 reducing, also it is used 4 implemant in Unary & Binary
        virtual const std::string &  NameOperator() const = 0;
@@ -632,13 +634,13 @@ template <class TypeElem> class cFormula
            /// Generate the unique indentifier of a binary expression
        std::string NameFormulaBin(const std::string & aNameOper,const tFormula & aF2) const
        {
-           return "F"+ std::to_string((*this)->NumGlob()) + aNameOper + "F"  + std::to_string(aF2->NumGlob());
+           return (*this)->NameGlob() + aNameOper + aF2->NameGlob();
        }
 
            /// Generate the unique indentifier of a unary expression
        std::string NameFormulaUn(const std::string & aNameOper) const
        {
-           return aNameOper + " F"  + std::to_string((*this)->NumGlob()) ;
+           return aNameOper + " " + (*this)->NameGlob();
        }
        /// To allow destruction without giving access to raw pointer
        void FreeMem() {delete mPtr; mPtr=nullptr;}
@@ -1055,7 +1057,7 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
        else 
           std::cout <<  "-" << aForm->Depth() << "-";
 
-       std::cout << " Form[" << aForm->NumGlob() << "] => " << aForm->Name();
+       std::cout << " " << aForm->NameGlob() << " => " << aForm->Name();
        const TypeElem * aPV = aForm->ValCste();
        if (aPV)
            std::cout << " ; Val=" << *aPV;
