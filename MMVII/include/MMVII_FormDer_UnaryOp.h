@@ -381,7 +381,7 @@ inline cFormula<TypeElem>  log (const cFormula<TypeElem> & aF)
 
 template <class TypeElem> inline cFormula<TypeElem>  pow8 (const cFormula<TypeElem> & aF){return pow(aF,8);}
 template <class TypeElem> inline cFormula<TypeElem>  pow9 (const cFormula<TypeElem> & aF){return pow(aF,9);}
-}; //   NS_MMVII_FormalDerivative
+} //   NS_MMVII_FormalDerivative
 
 
 

@@ -1080,7 +1080,7 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
 }
 
 
-}; //   NS_MMVII_FormalDerivative
+} //   NS_MMVII_FormalDerivative
 
 #include "MMVII_FormDer_UnaryOp.h"
 #include "MMVII_FormDer_BinaryOp.h"

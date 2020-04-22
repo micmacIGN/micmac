@@ -640,7 +640,7 @@ inline cFormula<TypeElem>  pow (const cFormula<TypeElem> & aF,const int & aVal )
 
 
 
-}; //   NS_MMVII_FormalDerivative
+} //   NS_MMVII_FormalDerivative
 
 
 #endif //  _MMVII_FormDer_BinaryOp_H_
