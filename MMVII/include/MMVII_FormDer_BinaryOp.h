@@ -391,7 +391,10 @@ template <class TypeElem> class cPowF : public cBinaryF<TypeElem>
             /// (F^G) ' = (F^G) (G F'/F + G'log(F))
             cFormula<TypeElem> Derivate(int aK) const override 
             {
-               return   pow(mF1,mF2) * ( (mF1->Derivate(aK)/mF1)*mF2 + mF2->Derivate(aK)*log(mF1)) ;
+                if (mF2->ValCste())
+                    return mF2 * mF1->Derivate(aK) * pow(mF1,mF2 - 1.0);
+                else
+                    return pow(mF1,mF2) * ( (mF1->Derivate(aK)/mF1)*mF2 + mF2->Derivate(aK)*log(mF1)) ;
             }
 };
 
@@ -556,7 +559,16 @@ cFormula<TypeElem>   pow
                                     const cFormula<TypeElem> & aF2
                               ) 
 {
-     return cGenOperatorBinaire<cPowF<TypeElem> >::Generate(aF1,aF2,"^");
+    if (aF2->IsCste(0)) return aF1->CoordF()->Cste1();
+    if (aF2->IsCste(1)) return aF1;
+    if (aF2->IsCste(2)) return square(aF1);
+    if (aF2->IsCste(3)) return cube(aF1);
+    if (aF2->IsCste(4)) return pow4(aF1);
+    if (aF2->IsCste(5)) return pow5(aF1);
+    if (aF2->IsCste(6)) return pow6(aF1);
+    if (aF2->IsCste(7)) return pow7(aF1);
+    // Don't use pow8 nor pow9: they are defined as pow(x,8/9) and then loop back here
+    return cGenOperatorBinaire<cPowF<TypeElem> >::Generate(aF1,aF2,"^");
 }
 
       /* ----------------------------------------------------------*/
@@ -613,6 +625,17 @@ inline cFormula<TypeElem> operator /(const cFormula<TypeElem> & aF1,const TypeEl
 template <class TypeElem> cFormula <TypeElem>  pow (const TypeElem & aV1,const cFormula <TypeElem> & aF2)
 {
    return exp(log(aV1)*aF2);
+}
+template <class TypeElem>
+inline cFormula<TypeElem>  pow (const cFormula<TypeElem> & aF1,const TypeElem& aV2 )
+{
+    return pow(aF1, aF1->CoordF()->CsteOfVal(aV2));
+}
+
+template <class TypeElem>
+inline cFormula<TypeElem>  pow (const cFormula<TypeElem> & aF,const int & aVal )
+{
+   return pow(aF,TypeElem(aVal));
 }
 
 

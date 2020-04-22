@@ -38,18 +38,6 @@ template <class TypeElem> class cUnaryF : public cImplemF<TypeElem>
                return this->NameOperator() + " "+  mF->InfixPPrint() + PostName() ;
             }
 
-            /// In the cas an additional parameter is used, as "powc F30 3.14"
-            TypeElem Extrac1Param (const std::string & aString)
-            {
-                std::string aBuf1,aBuf2;
-                TypeElem aVal;
-
-                std::stringstream aStream(aString);
-
-                aStream >> aBuf1 >> aBuf2 >> aVal;
-                return aVal;
-            }
-
       protected  :
             std::vector<tFormula> Ref() const override{return std::vector<tFormula>{mF};}
             inline cUnaryF(tFormula aF,const std::string & aName) :
@@ -287,38 +275,6 @@ template <class TypeElem> class cLogF : public cUnaryF<TypeElem>
 };
 
 
-template <class TypeElem> class cPowCste : public cUnaryF<TypeElem>
-{
-     public :
-            using cUnaryF<TypeElem>::mF;
-            using cUnaryF<TypeElem>::mDataF;
-            using cImplemF<TypeElem>::mDataBuf;
-
-            cPowCste (cFormula<TypeElem> aF,const std::string & aName) :
-                cUnaryF <TypeElem> (aF,aName),
-                mExp  (cUnaryF<TypeElem>::Extrac1Param (aName))
-            { 
-            }
-            // Cannot be static because of mExp
-            TypeElem Operation(const TypeElem & aV1) {return std::pow(aV1,mExp);}
-      private :
-            const std::string &  NameOperator() const override {static std::string s("powc"); return s;}
-            virtual std::string  PostName() const {return " " + std::to_string(mExp);}
-            void ComputeBuf(int aK0,int aK1) override  
-            {
-                for (int aK=aK0 ; aK<aK1 ; aK++)
-                    mDataBuf[aK] = std::pow(mDataF[aK],mExp);
-            }
-            /// rule : (log F)'  =  F' / F
-            cFormula<TypeElem> Derivate(int aK) const override 
-            {
-                return   (mExp*mF->Derivate(aK)) * pow(mF,mExp-1.0);
-            }
-
-            TypeElem mExp;
-};
-
-
       /* ---------------------------------------*/
       /*           Global Functio on unary op   */
       /* ---------------------------------------*/
@@ -338,27 +294,25 @@ template <class TypeCompiled>  class cGenOperatorUnaire
          typedef typename TypeCompiled::tImplemF     tImplemF;
          typedef typename tImplemF::tFormula  tFormula;
 
-         static tFormula   Generate(tFormula aF,const std::string & aNameOp,const std::string & Aux="")
+         static tFormula   Generate(tFormula aF,const std::string & aNameOp)
          {
              tCoordF* aPCont = aF->CoordF();  // Get the context from the formula
-             std::string aNameForm = aF.NameFormulaUn(aNameOp,Aux);  // Compute the name formula should have
+             std::string aNameForm = aF.NameFormulaUn(aNameOp);  // Compute the name formula should have
 
              if (aPCont->ExistFunc(aNameForm))  // If it already exist 
                return aPCont->FuncOfName(aNameForm);  // Then return formula whih this name
 
-             auto opType = new TypeCompiled(aF,aNameForm);
              if (REDUCE_CSTE)
              {
                  const tElem * aC1 = aF->ValCste();
                  if (aC1)
                  {
-                    SHOW_REDUCE(aNameOp + std::to_string(*aC1) + Aux);
-                    tElem  aC2 = opType->Operation(*aC1);      // We have to use Operation() on a class instance because of cPowCste
-                    delete opType;
+                    SHOW_REDUCE(aNameOp + std::to_string(*aC1));
+                    tElem  aC2 = TypeCompiled::Operation(*aC1);
                     return CreateCste(aC2,aF);
                  }
              }
-             tFormula aResult(opType);
+             tFormula aResult(new TypeCompiled(aF,aNameForm));
              aPCont->AddFormula(aResult); // indicate to the context to remember this new formula
              return aResult;              // return it
          }
@@ -424,18 +378,6 @@ inline cFormula<TypeElem>  log (const cFormula<TypeElem> & aF)
     return cGenOperatorUnaire<cLogF<TypeElem> >::Generate(aF,"log");
 }
 
-template <class TypeElem> 
-inline cFormula<TypeElem>  pow (const cFormula<TypeElem> & aF,const TypeElem& aVal )
-{
-    if (aVal==TypeElem(2)) return square(aF);
-    if (aVal==TypeElem(3)) return cube(aF);
-    return cGenOperatorUnaire<cPowCste<TypeElem> >::Generate(aF,"powc",std::to_string(aVal));
-}
-template <class TypeElem> 
-inline cFormula<TypeElem>  pow (const cFormula<TypeElem> & aF,const int & aVal )
-{
-   return pow(aF,TypeElem(aVal));
-}
 
 template <class TypeElem> inline cFormula<TypeElem>  pow8 (const cFormula<TypeElem> & aF){return pow(aF,8);}
 template <class TypeElem> inline cFormula<TypeElem>  pow9 (const cFormula<TypeElem> & aF){return pow(aF,9);}

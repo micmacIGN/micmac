@@ -635,12 +635,10 @@ template <class TypeElem> class cFormula
            return "F"+ std::to_string((*this)->NumGlob()) + aNameOper + "F"  + std::to_string(aF2->NumGlob());
        }
 
-           /// Generate the unique indentifier of a unary expression, Aux is used for add parameter like pow(F,Cste)
-       std::string NameFormulaUn(const std::string & aNameOper,const std::string& Aux) const
+           /// Generate the unique indentifier of a unary expression
+       std::string NameFormulaUn(const std::string & aNameOper) const
        {
-           std::string aRes =  aNameOper + " F"  + std::to_string((*this)->NumGlob()) ;
-           if (Aux!="") aRes += " " + Aux;
-           return  aRes;
+           return aNameOper + " F"  + std::to_string((*this)->NumGlob()) ;
        }
        /// To allow destruction without giving access to raw pointer
        void FreeMem() {delete mPtr; mPtr=nullptr;}
