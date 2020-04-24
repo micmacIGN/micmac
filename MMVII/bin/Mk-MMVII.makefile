@@ -128,6 +128,16 @@ ${MMV2_CODEGEN}: ${MMV2_CGEN_SRC} ${MMV2_CGEN_DIR}/Formula_*.h $(filter-out ${MM
 	( cd ${MMV2DirIncl} && $@ )
 
 HEADER:= ${HEADER} ${MMV2_CODEGEN}
+
+${MMV2_CGEN_DIR}/%.o :  ${MMV2_CGEN_DIR}/%.cpp ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+
+MMV2_TCGEN_SRCS=$(filter-out ${MMV2_CGEN_SRC},$(wildcard ${MMV2_CGEN_DIR}/*.cpp))
+MMV2_TCGEN_OBJS=${MMV2_TCGEN_SRCS:.cpp=.o}
+OBJ:=${OBJ} ${MMV2_TCGEN_OBJS}
+
+${MMV2_TCGEN_OBJS}: ${HEADER} ${MMV2_CGEN_DIR}/TestCodeGenTpl.h
+
 ${OBJ}: | ${MMV2_CODEGEN}
 
 #
