@@ -8,6 +8,10 @@ MMV2DirBin=${MMV2Dir}bin/
 MMV2Objects=${MMV2Dir}object/
 MMV2DirIncl=${MMV2Dir}include/
 MMV2ElisePath=${MMDir}/lib/libelise.a
+MMV2Exe=MMVII
+
+all : ${MMV2DirBin}${MMV2Exe}
+
 #
 #
 #       ===== INSTALLATION ========================================
@@ -112,6 +116,31 @@ OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjU
 #
 HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #
+# ========== Code Generator
+#
+MMV2_CGEN_DIR=${MMV2DirSrc}TestCodeGen
+MMV2_CGEN_SRC=${MMV2_CGEN_DIR}/CodeGenerator.cpp
+MMV2_CODEGEN=${MMV2DirBin}CodeGenerator
+
+${MMV2_CODEGEN}: ${MMV2_CGEN_SRC} ${MMV2_CGEN_DIR}/Formula_*.h $(filter-out ${MMV2DirIncl}CodeGen_%.h,${HEADER})
+	${CXX}  $< ${CFlags}  -o $@
+	@echo "* Generating Formulas code"
+	( cd ${MMV2DirIncl} && $@ )
+
+HEADER:= ${HEADER} ${MMV2_CODEGEN}
+
+${MMV2_CGEN_DIR}/%.o :  ${MMV2_CGEN_DIR}/%.cpp ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+
+MMV2_TCGEN_SRCS=$(filter-out ${MMV2_CGEN_SRC},$(wildcard ${MMV2_CGEN_DIR}/*.cpp))
+MMV2_TCGEN_OBJS=${MMV2_TCGEN_SRCS:.cpp=.o}
+OBJ:=${OBJ} ${MMV2_TCGEN_OBJS}
+
+${MMV2_TCGEN_OBJS}: ${HEADER} ${MMV2_CGEN_DIR}/TestCodeGenTpl.h
+
+${OBJ}: | ${MMV2_CODEGEN}
+
+#
 #  Binaries
 #== CFLAGS etc...
 #
@@ -120,7 +149,6 @@ CFlags= "-fopenmp" "-std=c++14" "-Wall"  "-Werror" "-O4" "-march=native" -I${MMV
 BOOST_LIBS= -lboost_system -lboost_serialization -lboost_regex -lboost_filesystem
 QTAnnLibs= -lXext /usr/lib/x86_64-linux-gnu/libQt5Core.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so -lGLU -lGL  -ldl -lpthread /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5Concurrent.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so ../../lib/libANN.a
 LibsFlags= ${MMV2ElisePath} -lX11  ${BOOST_LIBS}  ${QTAnnLibs}
-MMV2Exe=MMVII
 #
 ${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ResultInstal} ${MMV2ElisePath}
 	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe} 
@@ -173,8 +201,6 @@ ${MMV2DirDIB}%.o :  ${MMV2DirDIB}%.cpp   ${HEADER} ${MMV2DirDIB}*.h
 #
 #       ===== TEST ========================================
 #
-all : ${MMV2DirBin}${MMV2Exe} ${OBJ}
-	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe}
 Show:
 	echo ${SrcCalcDescriptPCar}
 	echo DU=${MMV2DirCalcDescriptPCar}
@@ -182,6 +208,6 @@ Show:
 	echo SrcCalcDescriptPCar: ${SrcCalcDescriptPCar}
 	echo MMV2DirCalcDescriptPCar: ${MMV2DirCalcDescriptPCar}
 clean :
-	rm -f ${OBJ}
+	rm -f ${OBJ} ${MMV2_CODEGEN} ${MMV2DirIncl}CodeGen_*.h
 #
 #
