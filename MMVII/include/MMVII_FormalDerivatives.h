@@ -384,9 +384,9 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
         
          // ---------- Code generator ---------------
          /** Generate code, class cName  , file cName.h, cName.cpp */
-         void GenerateCode(const std::string & Name) const { genCodeNAddr(Name); genCodeDevel(Name); }
-         void genCodeNAddr(const std::string &formulaName) const;
-         void genCodeDevel(const std::string &formulaName) const;
+         std::vector<std::string> GenerateCode(const std::string & Name) const { return {genCodeNAddr(Name),genCodeDevel(Name)}; }
+         std::string genCodeNAddr(const std::string &formulaName) const;
+         std::string genCodeDevel(const std::string &formulaName) const;
 
 
     private :  // END-USER
@@ -1128,10 +1128,11 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
 }
 
 template <class TypeElem>
-void cCoordinatorF<TypeElem>::genCodeNAddr(const std::string &formulaName) const
+std::string cCoordinatorF<TypeElem>::genCodeNAddr(const std::string &formulaName) const
 {
     std::string className  = formulaName + "NAddr";
-    std::ofstream os("CodeGen_" + className + ".h");
+    std::string fileName  = "CodeGen_" + className + ".h";
+    std::ofstream os(fileName);
 
     std::string parentClass =
             "GenFuncTpl<TypeElem," +
@@ -1181,13 +1182,15 @@ void cCoordinatorF<TypeElem>::genCodeNAddr(const std::string &formulaName) const
           "  this->mInBuf=0;\n"
           "}\n\n"
           "} // namespace CodeGen\n";
+    return fileName;
 }
 
 template <class TypeElem>
-void cCoordinatorF<TypeElem>::genCodeDevel(const std::string &formulaName) const
+std::string cCoordinatorF<TypeElem>::genCodeDevel(const std::string &formulaName) const
 {
     std::string className  = formulaName;
-    std::ofstream os("CodeGen_" + className + ".h");
+    std::string fileName  = "CodeGen_" + className + ".h";
+    std::ofstream os(fileName);
 
     std::string parentClass =
             "GenFuncTpl<TypeElem," +
@@ -1238,6 +1241,7 @@ void cCoordinatorF<TypeElem>::genCodeDevel(const std::string &formulaName) const
           "  this->mInBuf=0;\n"
           "}\n\n"
           "} // namespace CodeGen\n";
+    return fileName;
 }
 
 } //   NS_MMVII_FormalDerivative

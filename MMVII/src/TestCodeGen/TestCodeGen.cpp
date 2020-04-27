@@ -1,17 +1,6 @@
 #include "TestCodeGenTpl.h"
 
-#include "include/CodeGen_Fraser.h"
-#include "include/CodeGen_FraserNAddr.h"
-#include "include/CodeGen_PrimitivesTest.h"
-#include "include/CodeGen_PrimitivesTestNAddr.h"
-#include "include/CodeGen_RatkowskyResidual.h"
-#include "include/CodeGen_RatkowskyResidualNAddr.h"
-#include "include/CodeGen_EqColLinearityFraser.h"
-#include "include/CodeGen_EqColLinearityFraserNAddr.h"
-#include "include/CodeGen_EqColLinearityXYPol_Deg2.h"
-#include "include/CodeGen_EqColLinearityXYPol_Deg2NAddr.h"
-#include "include/CodeGen_EqColLinearityXYPol_Deg7.h"
-#include "include/CodeGen_EqColLinearityXYPol_Deg7NAddr.h"
+#include "include/CodeGen_IncludeAll.h"
 
 #include "Formula_Fraser_Test.h"
 #include "Formula_Primitives_Test.h"

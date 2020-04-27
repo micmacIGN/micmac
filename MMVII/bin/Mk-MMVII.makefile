@@ -124,10 +124,12 @@ MMV2_CODEGEN=${MMV2DirBin}CodeGenerator
 
 ${MMV2_CODEGEN}: ${MMV2_CGEN_SRC} ${MMV2_CGEN_DIR}/Formula_*.h $(filter-out ${MMV2DirIncl}CodeGen_%.h,${HEADER})
 	${CXX}  $< ${CFlags}  -o $@
-	@echo "* Generating Formulas code"
-	( cd ${MMV2DirIncl} && $@ )
 
-HEADER:= ${HEADER} ${MMV2_CODEGEN}
+${MMV2DirIncl}/CodeGen_IncludeAll.h: ${MMV2_CODEGEN}
+	@echo "* Generating Formulas code"
+	( cd ${MMV2DirIncl} && ${MMV2_CODEGEN} )
+
+HEADER:= ${HEADER} ${MMV2DirIncl}/CodeGen_IncludeAll.h
 
 ${MMV2_CGEN_DIR}/%.o :  ${MMV2_CGEN_DIR}/%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
