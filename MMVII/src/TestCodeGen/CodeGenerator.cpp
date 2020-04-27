@@ -1,4 +1,3 @@
-//#include "include/MMVII_FormDer_CGenTpl.h"
 #include "include/MMVII_FormalDerivatives.h"
 
 #include "Formula_Fraser_Test.h"

@@ -74,12 +74,6 @@ template <class TypeElem> class cSquareF : public cUnaryF<TypeElem>
             static TypeElem Operation(const TypeElem & aV1) {return aV1 * aV1;}
       private :
             const std::string &  NameOperator() const override {static std::string s("square"); return s;}
-            std::string genCodeNAddr() const override {
-                return  mF->genCodeFormName()  + " * " + mF->genCodeFormName();
-            }
-            std::string genCodeDef() const override {
-                return "(" + mF->genCodeRef() + " * " + mF->genCodeRef() + ")";
-            }
             void ComputeBuf(int aK0,int aK1) override
             {
                 for (int aK=aK0 ; aK<aK1 ; aK++)
@@ -105,14 +99,6 @@ template <class TypeElem> class cCubeF : public cUnaryF<TypeElem>
             static TypeElem Operation(const TypeElem & aV1) {return aV1 * aV1 * aV1;}
       private :
             const std::string &  NameOperator() const override {static std::string s("cube"); return s;}
-            virtual std::string genCodeNAddr() const override {
-                  return mF->genCodeFormName() + " * " + mF->genCodeFormName() + " * " + mF->genCodeFormName();
-            }
-
-            virtual std::string genCodeDef() const override {
-                return "(" + mF->genCodeRef() + " * " + mF->genCodeRef() + " * " + mF->genCodeRef() + ")";
-            }
-
             void ComputeBuf(int aK0,int aK1) override
             {
                 for (int aK=aK0 ; aK<aK1 ; aK++)
