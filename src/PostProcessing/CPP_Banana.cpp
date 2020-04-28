@@ -70,7 +70,7 @@ bool isInside(Pt2di aBorder, Pt2dr aPt)
 	return (aPt.x > 0 && aPt.y > 0 && aPt.x < aBorder.x && aPt.y < aBorder.y);
 }
 
-vector<Pt3dr> ComputedZFromDEMAndMask(REAL8** aDEMINData, vector<double> aTFWin, Pt2di aSzIN, string aDEMRefPath, string aMaskPath)
+vector<Pt3dr> ComputedZFromDEMAndMask(REAL8** aDEMINData, vector<double> aTFWin, Pt2di aSzIN, string aDEMRefPath, string aMaskPath, double adZthresh)
 {
 
 	std::cout << "Using Reference DEM : " << aDEMRefPath << endl;
@@ -149,7 +149,7 @@ vector<Pt3dr> ComputedZFromDEMAndMask(REAL8** aDEMINData, vector<double> aTFWin,
 			// get DEMRef value for that point
 			double aREFZ = Reechantillonnage::biline(aDEMREFData, aSzREF.x, aSzREF.y, aREFIJ);
 			// if the mask is positive and both the input and ref DEM have data
-			if (aDEMINData[j][i] > -9999 && aREFZ > -9999 && aData_Mask[int(aMaskIJ.y)][int(aMaskIJ.x)] == 1)
+			if (aDEMINData[j][i] > -9998 && aREFZ > -9998 && aData_Mask[int(aMaskIJ.y)][int(aMaskIJ.x)] == 1 && abs(aDEMINData[j][i] - aREFZ) < adZthresh)
 			{
 				// Create point at XY with dZ between DEMin and DEMRef as Z.
 				Pt3dr aPtdZ(aPosXY.x, aPosXY.y, aDEMINData[j][i] - aREFZ);
@@ -163,7 +163,7 @@ vector<Pt3dr> ComputedZFromDEMAndMask(REAL8** aDEMINData, vector<double> aTFWin,
 	return aListXYdZ;
 }
 
-vector<Pt3dr> ComputedZFromDEMAndXY(REAL8** aDEMINData, vector<double> aTFWin, Pt2di aSzIN, string aDEMRefPath, string aListPointsPath)
+vector<Pt3dr> ComputedZFromDEMAndXY(REAL8** aDEMINData, vector<double> aTFWin, Pt2di aSzIN, string aDEMRefPath, string aListPointsPath, double adZthresh)
 {
 
 	std::cout << "Using Reference DEM : " << aDEMRefPath << endl;
@@ -233,7 +233,7 @@ vector<Pt3dr> ComputedZFromDEMAndXY(REAL8** aDEMINData, vector<double> aTFWin, P
 		double aREFZ = Reechantillonnage::biline(aDEMREFData, aSzREF.x, aSzREF.y, aREFIJ);
 
 		// if the both the input and ref DEM have data at that point
-		if (aINZ > -9999 && aREFZ > -9999 && isInside(aSzIN, aINIJ))
+		if (aINZ > -9998 && aREFZ > -9998 && isInside(aSzIN, aINIJ) && abs(aINZ - aREFZ) < adZthresh)
 		{
 			// Create point at XY with dZ between DEMin and DEMRef as Z.
 			Pt3dr aPtdZ(aListXY[i].x, aListXY[i].y, aINZ - aREFZ);
@@ -246,7 +246,7 @@ vector<Pt3dr> ComputedZFromDEMAndXY(REAL8** aDEMINData, vector<double> aTFWin, P
 	return aListXYdZ;
 }
 
-vector<Pt3dr> ComputedZFromGCPs(REAL8** aDEMINData, vector<double> aTFWin, Pt2di aSzIN, string aListGCPsPath)
+vector<Pt3dr> ComputedZFromGCPs(REAL8** aDEMINData, vector<double> aTFWin, Pt2di aSzIN, string aListGCPsPath, double adZthresh)
 {
 
 	std::cout << "Using GCPs : " << aListGCPsPath << endl;
@@ -279,7 +279,7 @@ vector<Pt3dr> ComputedZFromGCPs(REAL8** aDEMINData, vector<double> aTFWin, Pt2di
 
 		//cout << aListXYZ[i].x << " " << aListXYZ[i].y << " " << aINZ << " " << aListXYZ[i].z << " " << aINZ - aListXYZ[i].z << endl;
 		// if the both the input and ref DEM have data at that point
-		if (aINZ > -9998 && isInside(aSzIN, aINIJ))
+		if (aINZ > -9998 && isInside(aSzIN, aINIJ) && abs(aINZ - aListXYZ[i].z)<adZthresh)
 		{
 			// Create point at XY with dZ between DEMin and DEMRef as Z.
 			//cout << "Point added" << endl;
@@ -465,11 +465,13 @@ int Banana_main(int argc, char** argv)
 {
 	std::string aDEMinPath, aDEMRefPath = "", aMaskPath = "", aListPointsPath = "", aListGCPsPath = "", aNameOut="";
 	int aDeg = 2;
+	double adZthresh = 200;
 	ElInitArgMain
 	(
 		argc, argv,
 		LArgMain() << EAMC(aDEMinPath, "Input DEM to be corrected - DEM must have tfw", eSAM_IsPatFile),
 		LArgMain() << EAM(aDeg, "DegPoly", true, "Degree of fitted polynome ([0-3] default = 2)")
+		<< EAM(adZthresh, "dZthresh", true, "Threshold in elevation difference between reference and Input (in vertical units, def=200)", eSAM_IsPatFile)
 		<< EAM(aDEMRefPath, "DEMRef", true, "Reference DEM - DEM must have tfw", eSAM_IsPatFile)
 		<< EAM(aMaskPath, "Mask", true, "A binary mask of stable terrain - if value=1 then the point is used, if =0 then unused (to be used with a reference DEM) - mask must have tfw", eSAM_IsPatFile)
 		<< EAM(aListPointsPath, "ListPoints", true, "A text file of XY coordinates of stable points (to be used with a reference DEM)", eSAM_IsPatFile)
@@ -518,9 +520,9 @@ int Banana_main(int argc, char** argv)
 	// Check what inputs are given
 	//For each case, a list of XYdZ points (aListXYdZ) is generated.
 	vector<Pt3dr> aListXYdZ;
-	if (aDEMRefPath != "" && aMaskPath != "") { aListXYdZ = ComputedZFromDEMAndMask(aDEMINData, aTFW, aSz, aDEMRefPath, aMaskPath); }
-	else if (aDEMRefPath != "" && aListPointsPath != "") { aListXYdZ = ComputedZFromDEMAndXY(aDEMINData, aTFW, aSz, aDEMRefPath, aListPointsPath); }
-	else if (aListGCPsPath != "") { aListXYdZ = ComputedZFromGCPs(aDEMINData, aTFW, aSz, aListGCPsPath); }
+	if (aDEMRefPath != "" && aMaskPath != "") { aListXYdZ = ComputedZFromDEMAndMask(aDEMINData, aTFW, aSz, aDEMRefPath, aMaskPath, adZthresh); }
+	else if (aDEMRefPath != "" && aListPointsPath != "") { aListXYdZ = ComputedZFromDEMAndXY(aDEMINData, aTFW, aSz, aDEMRefPath, aListPointsPath, adZthresh); }
+	else if (aListGCPsPath != "") { aListXYdZ = ComputedZFromGCPs(aDEMINData, aTFW, aSz, aListGCPsPath, adZthresh); }
 	else { ELISE_ASSERT(false, "No valid combination of input given"); }
 
 	//cout << "List of XYdZ:" << endl << aListXYdZ << endl;
