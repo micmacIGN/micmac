@@ -90,6 +90,12 @@ protected:
     void codeGenTestNAddr(Bench &bench);
     void codeGenTestForm(Bench &bench);
 
+    static inline bool almostEqual(const double & aV1,const double & aV2,const double & aEps)
+    {
+       return std::abs(aV1-aV2) <= aEps*(std::abs(aV1)+std::abs(aV2));
+    }
+
+
     template<typename T>
     ResType CFDtoArray(const FD::cCoordinatorF<T>& cfd, size_t n) {
         ResType val;
@@ -129,13 +135,13 @@ void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::checkVsJet(const std::string& name, con
 
     for (int aKVal=0 ; aKVal<int(aJetRes.size()) ; aKVal++)
     {
-        if (fabs(aJetRes[aKVal].a - val[aKVal*step]) > fabs(aJetRes[aKVal].a) * 1e-15) {
+        if (! almostEqual(aJetRes[aKVal].a,val[aKVal*step],1e-5)) {
             std::cerr << name  << ": Error for value " << aKVal;
             std::cerr << "  (Jet:" <<  aJetRes[aKVal].a << ", Diff:" << aJetRes[aKVal].a - val[aKVal*step] << ")\n" ;
         }
         for (int aKDer=0;  aKDer< TheNbUk ; aKDer++)
         {
-            if (fabs(aJetRes[aKVal].v[aKDer] - val[aKVal*step+aKDer+1]) > fabs(aJetRes[aKVal].v[aKDer]) * 1e-15) {
+            if (! almostEqual(aJetRes[aKVal].v[aKDer],val[aKVal*step+aKDer+1],1e-5)) {
                 std::cerr << name  << ": Error for derivative #" << aKDer << " and value " << aKVal;
                 std::cerr << "  (Jet:" <<  aJetRes[aKVal].v[aKDer] << ", Diff:" << aJetRes[aKVal].v[aKDer] - val[aKVal*step+aKDer+1] << ")\n" ;
             }
@@ -162,10 +168,10 @@ void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::checkAll()
     mCFD.EvalAndClear();
 
     val=CFDtoArray(mCFD,0);
-    checkVsJet(testNames[2],val);
+    checkVsJet(testNames[1],val);
     for (size_t i=0; i< mCFD.SzBuf(); i++) {
         if (CFDtoArray(mCFD,i) != val)
-            std::cerr << testNames[2] << ": Error buffer: values[" << i << "] != values[0]\n";
+            std::cerr << testNames[1] << ": Error buffer: values[" << i << "] != values[0]\n";
     }
 
     // Check codegen N-Addr
@@ -173,11 +179,11 @@ void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::checkAll()
     for (size_t i=0; i<formNAddr.bufferSize(); i++)
         formNAddr.pushNewEvals(mVUk,mVObs);
     formNAddr.evalAndClear();
-    checkVsJet(testNames[3],formNAddr.result()[0]);
+    checkVsJet(testNames[2],formNAddr.result()[0]);
     auto nAddrRes = formNAddr.result();
     for (size_t i=0; i< nAddrRes.size(); i++) {
         if (nAddrRes[i] != nAddrRes[0])
-            std::cerr << testNames[3] << ": Error buffer: values[" << i << "] != values[0]\n";
+            std::cerr << testNames[2] << ": Error buffer: values[" << i << "] != values[0]\n";
     }
 
     // Check codegen formula
@@ -185,11 +191,11 @@ void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::checkAll()
     for (size_t i=0; i<formForm.bufferSize(); i++)
         formForm.pushNewEvals(mVUk,mVObs);
     formForm.evalAndClear();
-    checkVsJet(testNames[4],formForm.result()[0]);
+    checkVsJet(testNames[3],formForm.result()[0]);
     auto formRes = formForm.result();
     for (size_t i=0; i< formRes.size(); i++) {
         if (formRes[i] != formRes[0])
-            std::cerr << testNames[4] << ": Error buffer: values[" << i << "] != values[0]\n";
+            std::cerr << testNames[3] << ": Error buffer: values[" << i << "] != values[0]\n";
     }
 }
 
