@@ -219,6 +219,8 @@ int  cAppli_MMVII_Bench::Exe()
    CreateDirectories(TmpDirTestMMVII(),true );
    RemoveRecurs(TmpDirTestMMVII(),true,false);
 
+   // Test Fast Tree Dist
+   BenchFastTreeDist();
    // Test jets
    BenchMyJets();
 

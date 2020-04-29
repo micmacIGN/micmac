@@ -54,10 +54,12 @@ void BenchStat();
 void BenchUnbiasedStdDev();  ///< Test one specific function currently not correct, by default test not activated
 void BenchSupport();  ///< Test support function that could/should exist in standard libs
 
+
 void BenchMyJets();  ///< Test on Jets, correctness and efficience
 void BenchJetsCam();  ///< Test specifique to camera projection
 void MMV1_GenerateCodeTestCam(); ///< To generate code of derivative MMV1-like (for comparing with jets)
 
+void BenchFastTreeDist(); ///< Test method for fast computation of dist in tree
 
 };
 
