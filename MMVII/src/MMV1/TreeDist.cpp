@@ -14,7 +14,7 @@
            time maybe optimistic for praticall case as with this algoritm we get 
            longer time for shortest dist, and pratically we may have more short dist
            (with the simulation Avg=1.5 on all pair, but Avg=2.7 with pair corresponding
-            to Dist<=3)
+           to Dist<=3)
 
     All the library is in the namespace NS_MMVII_FastTreeDist.
 */
@@ -81,6 +81,41 @@ class cOneLevFTD;
 
      Not especially flexible, rather targeted for specialized algoritm. Could easily 
    evolve to a weighted version.
+*/
+
+/*  Example of graph representation by adjac in this implementation
+  
+Call to InitAdj  :
+        (
+              {0,2,3,3,5,7,9},
+              {1,0,4,0,6,6,10}
+        );
+Corresponding to graph :
+    1
+     \
+      0-3-4   5-6-7 8  9-10
+     /
+    2
+
+We get for  mBeginNeigh mEndNeigh; mBufNeigh; 
+
+mBufNeigh:    | 1 | 2 | 3 | 0 | 0 | 0 | 4 | 3 | 6 | 5 | 7 | 6  ...
+              ^           ^   ^   ^       ^   ^ 
+mBeginNeigh   0           1   2   3       4   5
+mEndNeigh                 0   1   2       3   4
+
+Note that we cannot use  mEndNeigh[X] = mBeginNeigh[X+1] in the implemantation,
+to econmize on vector.  Because this property , true a creatio,
+disappear after suppression (at least with the fast
+suppression we use).
+
+For example, if we suppres 1, we get :
+
+mBufNeigh:    | 2 | 3 |###|###| 0 | 0 | 4 | 3 | 6 | 5 | 7 | 6
+              ^           ^   ^   ^       ^   ^ 
+mBeginNeigh   0           1   2   3       4   5
+mEndNeigh              0  1       2       3   4
+
 */
 
 class cAdjGraph  : public cMemCheck
@@ -164,10 +199,11 @@ class cFastTreeDist : private cAdjGraph
         void RecComputeKernInd(int aS);
         void ComputeKernInd(int aS);
 
+        // Explorate the 
         void Explorate(int aS,int aLev,int aNumCC);
 
         bool mShow;
-        int  mNbLevel;
+        int  mNbLevel;      ///< Number max of level,
         std::vector<int>    mMarq;      ///< Marker used for connected component (CC)
         std::vector<int>    mNumInsideCC;   ///< reach order in CC, used for orienting graph
         std::vector<int>    mNbDesc;    ///< Number of descend in the oriented tree
@@ -195,6 +231,11 @@ cAdjGraph::cAdjGraph(const int & aNbSom) :
     mEndNeigh   (mNbSom,nullptr)
 {
 }
+
+/*  For example
+
+
+*/
 
 void cAdjGraph::InitAdj(const std::vector<int> & aVS1,const std::vector<int> & aVS2)
 {
@@ -264,6 +305,7 @@ void cAdjGraph::Show() const
 void cAdjGraph::SupressAdjSom(const int aS1)
 {
     AssertOk(aS1);
+    // 1- Parse the neighoor S2 of S1, and supress S1 in the neighboor of S2
     for (auto aS2 = mBeginNeigh[aS1] ; aS2 <mEndNeigh[aS1] ; aS2++)
     {
         int * aBS2In = mBeginNeigh[*aS2]; 
@@ -278,7 +320,7 @@ void cAdjGraph::SupressAdjSom(const int aS1)
         // Less succ to *aS2
         mEndNeigh[*aS2] = aBS2Out;
     }
-    // No succ to S1
+    //2- Set  No succ to S1
     mEndNeigh[aS1] = mBeginNeigh[aS1];
 }
 
@@ -297,8 +339,10 @@ void cAdjGraph::CalcCC(std::vector<int> & aRes,int aS0,std::vector<int> & aMarq,
     while (aKS != int(aRes.size()))
     {
         int aS = aRes[aKS];
+        // Parse neigh of current som
         for (auto aNeigh = mBeginNeigh[aS] ; aNeigh <mEndNeigh[aS] ; aNeigh++)
         {
+            // If not explored marq it and add it to Res
             if (aMarq[*aNeigh] == aMIn)
             {
                 aMarq[*aNeigh] = aMOut;
@@ -323,6 +367,7 @@ int cAdjGraph::RawDist(int aS0,int aS1) const
 
     while (aK0!=aK1)
     {
+        // Here we explore by "generation" to keep track of distance
         for (int aK=aK0; aK<aK1; aK++)
         {
            int aS = aVSom[aK];
@@ -382,12 +427,15 @@ cFastTreeDist::cFastTreeDist(const int & aNbSom) :
     mNumInsideCC (aNbSom),
     mNbDesc      (aNbSom),
     mOrigQual    (aNbSom),
-    mNumCC       (aNbSom,-1)
+    mNumCC       (aNbSom,-1),
+    mLevels      (mNbLevel,cOneLevFTD(aNbSom))
 {
+/*
     mLevels.reserve(mNbLevel);
     cOneLevFTD aLev(aNbSom);
     for (int aK=0 ; aK<mNbLevel ; aK++)
         mLevels.push_back(aLev);
+*/
 }
 
 void cFastTreeDist::ComputeKernInd(int aS1)
