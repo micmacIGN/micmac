@@ -105,11 +105,16 @@ MMV2DirMatchTieP=${MMV2DirSrc}MatchTieP/
 SrcMatchTieP=$(wildcard ${MMV2DirMatchTieP}*.cpp)
 ObjMatchTieP=$(SrcMatchTieP:.cpp=.o)
 #
+#
+MMV2DirGraphs=${MMV2DirSrc}Graphs/
+SrcGraphs=$(wildcard ${MMV2DirGraphs}*.cpp)
+ObjGraphs=$(SrcGraphs:.cpp=.o) 
+#
 #    => Le Main
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso} 
+OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs}
 #
 #=========  Header ========
 #
@@ -199,6 +204,8 @@ ${MMV2DirImagesInfoExtract}%.o :  ${MMV2DirImagesInfoExtract}%.cpp   ${HEADER}
 ${MMV2DirMatrix}%.o :  ${MMV2DirMatrix}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirDIB}%.o :  ${MMV2DirDIB}%.cpp   ${HEADER} ${MMV2DirDIB}*.h
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirGraphs}%.o :  ${MMV2DirGraphs}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 #
 #       ===== TEST ========================================

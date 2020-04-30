@@ -1,3 +1,4 @@
+#if (0)
 /** \file MMVII_TreeDist.h
     \brief  classes for fast computation  of distance in tree
 
@@ -197,7 +198,6 @@ class cFastTreeDist : private cAdjGraph
 
     private :
         void RecComputeKernInd(int aS);
-        void ComputeKernInd(int aS);
 
         // Explorate the 
         void Explorate(int aS,int aLev,int aNumCC);
@@ -430,23 +430,8 @@ cFastTreeDist::cFastTreeDist(const int & aNbSom) :
     mNumCC       (aNbSom,-1),
     mLevels      (mNbLevel,cOneLevFTD(aNbSom))
 {
-/*
-    mLevels.reserve(mNbLevel);
-    cOneLevFTD aLev(aNbSom);
-    for (int aK=0 ; aK<mNbLevel ; aK++)
-        mLevels.push_back(aLev);
-*/
 }
 
-void cFastTreeDist::ComputeKernInd(int aS1)
-{
-/*
-    mOrigQual[aS1] = 0;
-    for (auto aPS2 = mBeginNeigh[aS1] ; aPS2 <mEndNeigh[aS1] ; aPS2++)
-        mOrigQual[aS1] = std::max(mOrigQual[aS1],mNbDesc[*aPS2]);
-*/
-
-}
 
 void cFastTreeDist::RecComputeKernInd(int aS1)
 {
@@ -824,3 +809,4 @@ void BenchFastTreeDist()
 
 };
 
+#endif
