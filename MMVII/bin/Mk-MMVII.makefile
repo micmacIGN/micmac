@@ -129,7 +129,7 @@ ${MMV2DirIncl}/CodeGen_IncludeAll.h: ${MMV2_CODEGEN}
 	@echo "* Generating Formulas code"
 	( cd ${MMV2DirIncl} && ${MMV2_CODEGEN} )
 
-HEADER:= ${HEADER} ${MMV2DirIncl}/CodeGen_IncludeAll.h
+HEADER:=$(filter-out ${MMV2DirIncl}CodeGen%.h,${HEADER})
 
 ${MMV2_CGEN_DIR}/%.o :  ${MMV2_CGEN_DIR}/%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
@@ -138,7 +138,7 @@ MMV2_TCGEN_SRCS=$(filter-out ${MMV2_CGEN_SRC},$(wildcard ${MMV2_CGEN_DIR}/*.cpp)
 MMV2_TCGEN_OBJS=${MMV2_TCGEN_SRCS:.cpp=.o}
 OBJ:=${OBJ} ${MMV2_TCGEN_OBJS}
 
-${MMV2_TCGEN_OBJS}: ${HEADER} ${MMV2_CGEN_DIR}/TestCodeGenTpl.h
+${MMV2_TCGEN_OBJS}: ${HEADER} ${MMV2_CGEN_DIR}/TestCodeGenTpl.h ${MMV2DirIncl}/CodeGen_IncludeAll.h
 
 ${OBJ}: | ${MMV2_CODEGEN}
 
