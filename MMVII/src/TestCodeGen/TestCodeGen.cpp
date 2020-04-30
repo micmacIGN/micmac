@@ -20,11 +20,10 @@ namespace CG = CodeGen;
 namespace MMVII
 {
 
-
-class  TestPrimitives : public cCodeGenTest<cPrimitivesTest,CG::PrimitivesTestNAddr<double>,CG::PrimitivesTest<double>>
+class  TestPrimitives : public cCodeGenTest<cPrimitivesTest,CG::PrimitivesTest<double>,CG::PrimitivesTestDevel<double>>
 {
 public:
-    TestPrimitives(size_t nbTest) : cCodeGenTest<cPrimitivesTest,CG::PrimitivesTestNAddr<double>,CG::PrimitivesTest<double>>(nbTest)
+    TestPrimitives(size_t nbTest) : cCodeGenTest<cPrimitivesTest,CG::PrimitivesTest<double>,CG::PrimitivesTestDevel<double>>(nbTest)
     {
         mVUk[0] = 1;
         mVUk[1] = 2;
@@ -80,9 +79,9 @@ int cAppli_TestCodeGen::Exe()
     obs[ 9] = 0.101;
     obs[10] = 0.2;
 
-//     cCodeGenTest<cFraserCamColinear,CG::FraserNAddr<double>,CG::Fraser<double>> test(1000000);
-    cCodeGenTest<cEqCoLinearity<cTplPolDist<7>>,CG::EqColLinearityXYPol_Deg7NAddr<double>,CG::EqColLinearityXYPol_Deg7<double>> test(1000000);
-//     cCodeGenTest<cEqCoLinearity<cTplFraserDist>,CG::EqColLinearityFraserNAddr<double>,CG::EqColLinearityFraserNAddr<double>> test(1000000);
+//     cCodeGenTest<cFraserCamColinear,CG::Fraser<double>,CG::FraserDevel<double>> test(1000000);
+    cCodeGenTest<cEqCoLinearity<cTplPolDist<7>>,CG::EqColLinearityXYPol_Deg7<double>,CG::EqColLinearityXYPol_Deg7Devel<double>> test(100000);
+//     cCodeGenTest<cEqCoLinearity<cTplFraserDist>,CG::EqColLinearityFraser<double>,CG::EqColLinearityFraserDevel<double>> test(1000000);
      test.mVUk = uk;
      test.mVObs =  obs;
      test.checkAll();

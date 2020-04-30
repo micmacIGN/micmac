@@ -150,12 +150,12 @@ void cAppliOMVG::Save()
 			
 			}
 
-			std::cout << "=====Pt " << "\n";
 		}
 
 	}
 
 	//save to files 
+	//feat file
 	for (auto aImage : aMap_Features)
 	{
 

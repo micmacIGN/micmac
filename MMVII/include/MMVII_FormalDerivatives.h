@@ -384,7 +384,7 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
         
          // ---------- Code generator ---------------
          /** Generate code, class cName  , file cName.h, cName.cpp */
-         std::vector<std::string> GenerateCode(const std::string & Name) const { return {genCodeNAddr(Name),genCodeDevel(Name)}; }
+         std::string GenerateCode(const std::string & Name) const { return genCodeNAddr(Name); }
          std::string genCodeNAddr(const std::string &formulaName) const;
          std::string genCodeDevel(const std::string &formulaName) const;
 
@@ -1130,7 +1130,7 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
 template <class TypeElem>
 std::string cCoordinatorF<TypeElem>::genCodeNAddr(const std::string &formulaName) const
 {
-    std::string className  = formulaName + "NAddr";
+    std::string className  = formulaName;
     std::string fileName  = "CodeGen_" + className + ".h";
     std::ofstream os(fileName);
 
@@ -1145,7 +1145,7 @@ std::string cCoordinatorF<TypeElem>::genCodeNAddr(const std::string &formulaName
           "#ifdef _OPENMP\n"
           "#include <omp.h>\n"
           "#endif\n"
-          "#include \"include/MMVII_FormDer_CGenTpl.h\"\n"
+          "#include \"MMVII_FormDer_CGenTpl.h\"\n"
           "\n"
           "namespace CodeGen {\n\n"
           "template<typename TypeElem>\n"
@@ -1188,7 +1188,7 @@ std::string cCoordinatorF<TypeElem>::genCodeNAddr(const std::string &formulaName
 template <class TypeElem>
 std::string cCoordinatorF<TypeElem>::genCodeDevel(const std::string &formulaName) const
 {
-    std::string className  = formulaName;
+    std::string className  = formulaName + "Devel";
     std::string fileName  = "CodeGen_" + className + ".h";
     std::ofstream os(fileName);
 
@@ -1203,7 +1203,7 @@ std::string cCoordinatorF<TypeElem>::genCodeDevel(const std::string &formulaName
           "#ifdef _OPENMP\n"
           "#include <omp.h>\n"
           "#endif\n"
-          "#include \"include/MMVII_FormDer_CGenTpl.h\"\n"
+          "#include \"MMVII_FormDer_CGenTpl.h\"\n"
           "\n"
           "namespace CodeGen {\n\n"
           "template<typename TypeElem>\n"
