@@ -2,6 +2,9 @@
 #define _MMVII_FormalDerivative_H_
 using namespace std;
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 
 #define WITH_MMVII false
@@ -111,6 +114,7 @@ class cMemCheck
 #include <cmath>
 #include <algorithm>
 #include <sstream>
+#include <iomanip>
 
 #endif            //========================================================== WITH_MMVI
 
@@ -118,14 +122,14 @@ class cMemCheck
 // TODO => REPLACE BY METHOD ON COORDINATOR WHEN THEY IMPROVE THINGS ....
 #define  DOREDUCE      false
 
-#define  REDUCE_CSTE    DOREDUCE    //  Cste+Cste => cste
+#define  REDUCE_CSTE    true    //  Cste+Cste => cste
 #define  REDUCE_MM      DOREDUCE    //  - - x => x  ;  a-(-b) => a+b
 #define  REDUCE_ASSOCP  DOREDUCE       /*  B + (A + C) = > A + ( B + C),  
       more generally order the + operator, could be done with '*'  */
 #define  REDUCE_DISTRIB DOREDUCE    //  A#B ~ A#C=> A#(B~C)  ; # in "*/" and   ~ in "+-"
 #define  REDUCE_ApA     DOREDUCE    //  A+A => 2*A, not good by itself, but may creat other reduc
 #define  REDUCE_DIST1   DOREDUCE    //  A + A*C => A *(1+C) si C est csteto have all constant close
-void SHOW_REDUCE(const std::string & aMes) {} // std::cout << "REDUCE " << aMes << "\n";}
+static inline void SHOW_REDUCE(const std::string & aMes) {} // std::cout << "REDUCE " << aMes << "\n";}
 
 
 namespace  NS_MMVII_FormalDerivative
@@ -164,7 +168,7 @@ template <class Type> inline Type pow9(const Type & aV)    {return aV *pow8(aV);
       //============= BASIC  ERROR HANDLING ==============
 
 
-void Error(const std::string & aMes,const std::string & aExplanation)
+static inline void Error(const std::string & aMes,const std::string & aExplanation)
 {
     std::cout << "In MMVII_FormalDerivative a fatal error" << "\n";
     std::cout << "  Likely Source   ["<< aExplanation << "\n";
@@ -172,18 +176,18 @@ void Error(const std::string & aMes,const std::string & aExplanation)
     assert(false);
 }
      ///    Error due probably to internal mistake
-void InternalError(const std::string & aMes)
+static inline void InternalError(const std::string & aMes)
 {
    Error(aMes,"Internal Error of the Library");
 }
      /// Error probably due to bas usage of the library (typically out limit vector access)
-void UserSError(const std::string & aMes)
+static inline void UserSError(const std::string & aMes)
 {
    Error(aMes,"Probable error on user's side due to unapropriate usage of the library");
 }
 
      /// Check equality in test, taking account numericall error
-void AssertAlmostEqual(const double & aV1,const double & aV2,const double & aEps)
+static inline void AssertAlmostEqual(const double & aV1,const double & aV2,const double & aEps)
 {
    if ( (std::abs(aV1-aV2)> aEps*(std::abs(aV1)+std::abs(aV2))) )
       InternalError("Test equality failed");
@@ -367,19 +371,23 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
          */
          const std::vector<tOneRes *> & EvalAndClear();
          /// Retur value computed taking into account order of storage
-         const TypeElem &  ValComp(int aNumPush,int aKElem)
+         const TypeElem &  ValComp(int aNumPush,int aKElem) const
          {
              return  mBufRes.at(aNumPush)->at(mSzInterval*aKElem);
          }
          /// Retur value of derivate computed taking into account order of storage
-         const TypeElem &  DerComp(int aNumPush,int aKElem,int aKVarDer)
+         const TypeElem &  DerComp(int aNumPush,int aKElem,int aKVarDer) const
          {
              if (! mWithDer)  UserSError("Acces to derivate wich were not computed");
              return  mBufRes.at(aNumPush)->at(mSzInterval*aKElem +1 + aKVarDer);
          }
         
+         // ---------- Code generator ---------------
          /** Generate code, class cName  , file cName.h, cName.cpp */
-         void GenerateCode(const std::string & Name);
+         std::vector<std::string> GenerateCode(const std::string & Name) const { return {genCodeNAddr(Name),genCodeDevel(Name)}; }
+         std::string genCodeNAddr(const std::string &formulaName) const;
+         std::string genCodeDevel(const std::string &formulaName) const;
+
 
     private :  // END-USER
          /*   =================================================================================
@@ -518,8 +526,7 @@ template <class TypeElem> class cImplemF  : public cMemCheck
        typedef typename tCoordF::tFormula      tFormula;
 
        //----------- For derivation and reduction--------------
-       virtual bool  IsCste0() const {return false;} ///< To redefine in constant func, Used for simplification in "/ * + -"
-       virtual bool  IsCste1() const {return false;} ///< To redefine in constant func, Used for simplification in "/ *"
+       virtual bool  IsCste(const TypeElem &) const {return false;} ///< To redefine in constant func, Used for simplification in "/ * + -"
         virtual bool IsDistribInt() const {return false;} ///< To redefine in *,/ for distributivity
 
        virtual tFormula Derivate(int aK) const  = 0;  ///< Compute the formula of it's derivative to Kth unknown
@@ -558,6 +565,13 @@ template <class TypeElem> class cImplemF  : public cMemCheck
        int Depth() const {return mDepth;}  ///< Standard accessor
        void SetDepth(int aDepth) {mDepth = aDepth;}  ///< Fix Reached
 
+       // ---------- Code gen -----------------------
+       virtual bool isAtomic() const { return false;}
+       virtual std::string  genCodeFormName() const {return NameGlob();} // Name of formula, referenced value for Atomic
+       virtual std::string  genCodeNAddr() const = 0;      // N-Addresses code generation
+       virtual std::string  genCodeDef() const = 0;        // Formula definition generation
+       virtual std::string  genCodeRef() const;            // Formula reference generation
+       int usedCnt() const {return mUsedCnt;}  ///< Standard accessor
 
      // ---------- Tuning / Debugging / Analysing ---------------
        /// Used to print constant from generic formula
@@ -566,6 +580,9 @@ template <class TypeElem> class cImplemF  : public cMemCheck
        virtual std::string  InfixPPrint() const =0; 
        /// Number of reference that would occur without reduction on identic formula (to test performance in paper)
        int RecursiveRec() const;
+
+     // Every where a reference name is needed
+       std::string NameGlob() const { return "F" + std::to_string(NumGlob());}
 
        /// Access at global level is 4 reducing, also it is used 4 implemant in Unary & Binary
        virtual const std::string &  NameOperator() const = 0;
@@ -582,6 +599,7 @@ template <class TypeElem> class cImplemF  : public cMemCheck
               mNumGlob (mCoordF->NbCurFonc()),
               mReached (false),
               mDepth   (-1),
+              mUsedCnt (0),
               mReducAssocTried (false)
        { 
        }
@@ -596,6 +614,7 @@ template <class TypeElem> class cImplemF  : public cMemCheck
     private  :
 
        cImplemF (const cImplemF<TypeElem>  &) = delete; ///< No Copy
+       unsigned               mUsedCnt;
        bool  mReducAssocTried;
 };
 
@@ -630,15 +649,13 @@ template <class TypeElem> class cFormula
            /// Generate the unique indentifier of a binary expression
        std::string NameFormulaBin(const std::string & aNameOper,const tFormula & aF2) const
        {
-           return "F"+ std::to_string((*this)->NumGlob()) + aNameOper + "F"  + std::to_string(aF2->NumGlob());
+           return (*this)->NameGlob() + aNameOper + aF2->NameGlob();
        }
 
-           /// Generate the unique indentifier of a unary expression, Aux is used for add parameter like pow(F,Cste)
-       std::string NameFormulaUn(const std::string & aNameOper,const std::string& Aux) const
+           /// Generate the unique indentifier of a unary expression
+       std::string NameFormulaUn(const std::string & aNameOper) const
        {
-           std::string aRes =  aNameOper + " F"  + std::to_string((*this)->NumGlob()) ;
-           if (Aux!="") aRes += " " + Aux;
-           return  aRes;
+           return aNameOper + " " + (*this)->NameGlob();
        }
        /// To allow destruction without giving access to raw pointer
        void FreeMem() {delete mPtr; mPtr=nullptr;}
@@ -677,9 +694,16 @@ template <class TypeElem> class cAtomicF : public cImplemF<TypeElem>
             void ComputeBuf(int aK0,int aK1) override  { }
             std::vector<tFormula> Ref() const override{return std::vector<tFormula>();}
      protected :
+            bool isAtomic() const override { return true;}
+            std::string genCodeFormName() const override { return this->Name();}
+            std::string genCodeNAddr() const override { return this->genCodeFormName();}
+            std::string genCodeRef() const override { return this->genCodeFormName();}
+            std::string genCodeDef() const override { return mCodeValue;}
+
             inline cAtomicF(tCoordF * aCoordF,const std::string& aName) :
                 tImplemF       (aCoordF,aName)
             { }
+            std::string mCodeValue;
 };
 
 template <class TypeElem> class cUnknownF : public cAtomicF<TypeElem>
@@ -704,7 +728,9 @@ template <class TypeElem> class cUnknownF : public cAtomicF<TypeElem>
             inline cUnknownF(tCoordF * aCoordF,const std::string& aName,int aNum) :
                 tAtom   (aCoordF,aName),
                 mNumUnk (aNum)
-            { }
+            {
+                  this->mCodeValue =  "this->vvUk[aK][" + std::to_string(mNumUnk) + "]";
+            }
 
             int  mNumUnk; ///< Number of the Unknown; like  : 0 for X0,  1 for X1 ...
 };
@@ -723,7 +749,9 @@ template <class TypeElem> class cObservationF : public cAtomicF<TypeElem>
             inline cObservationF(tCoordF * aCoordF,const std::string & aName,int aNum) : 
                   tAtom  (aCoordF,aName),
                   mNum   (aNum)
-            { }
+            {
+                  this->mCodeValue =  "this->vvObs[aK][" + std::to_string(mNum) + "]";
+            }
             int     mNum; ///< Number of the Observation; like  : 0 for V0,  1 for V1 ...
 };
 
@@ -737,8 +765,7 @@ template <class TypeElem> class cConstantF : public cAtomicF<TypeElem>
             typedef typename tCoordF::tBuf      tBuf;
             friend tCoordF;
 
-            bool  IsCste0() const override {return mVal==0.0;} ///< Here we know if we are constant 0
-            bool  IsCste1() const override {return mVal==1.0;} ///< Here we know if we are constant 1
+            bool  IsCste(const TypeElem &K) const override {return mVal==K;} ///< Here we know if we are a constant of value K
             const TypeElem * ValCste() const override  {return &mVal;}
             const std::string &  NameOperator() const override {static std::string s("Cste"); return s;}
       protected  :
@@ -748,7 +775,13 @@ template <class TypeElem> class cConstantF : public cAtomicF<TypeElem>
                mVal    (aVal)
             {
                for (auto & aV : tImplemF::mBuf) aV = aVal;  // Initialize buf  with const val
+               std::stringstream ss;
+              // Precision that ensures that Num0 -> ASCII -> Num1 => Num1 == Num0
+              // May cause some odd but correct value for non exactly representable numbers
+               ss << std::setprecision(std::numeric_limits<decltype(mVal)>::max_digits10) << mVal;
+               this->mCodeValue =  ss.str();
             }
+            std::string genCodeFormName() const override { return this->mCodeValue;}
             int     mNum;
             const TypeElem mVal;
 };
@@ -789,7 +822,11 @@ template <class TypeElem> int cImplemF<TypeElem>::RecursiveRec() const
 
 template <class TypeElem> void cImplemF<TypeElem>::CalcRecursiveDepth(std::vector<tFormula> & aVReached) 
 {
-   if (mDepth != -1) return; // if we were already here , nothing to do
+   if (mDepth != -1)  {
+       mUsedCnt++;
+       return; // if we were already here , nothing to do
+   }
+   mUsedCnt = 1;
    for (const auto  & aF : Ref())
    {
       aF->CalcRecursiveDepth(aVReached); // parse sub formula
@@ -817,6 +854,17 @@ template <class TypeElem> cFormula<TypeElem> cImplemF<TypeElem>::VOper2(const tF
 {
    InternalError("Uncorrect virtula binary operation");
    return aF1;
+}
+
+
+template <class TypeElem>
+std::string  cImplemF<TypeElem>::genCodeRef() const
+{
+    if (usedCnt() == 1) {
+        return genCodeDef();
+    } else {
+        return genCodeFormName();
+    }
 }
 
       /* ---------------------- */
@@ -1010,10 +1058,28 @@ template <class TypeElem>
 const std::vector<std::vector<TypeElem> *> & cCoordinatorF<TypeElem>::EvalAndClear()
 {
     // Make the real hard stuff, compute the data, the depedancy ordering should make it coherent
+#ifdef _OPENMP
+#pragma omp parallel
+    {
+        size_t thread_num = omp_get_thread_num();
+        size_t num_threads = omp_get_num_threads();
+        size_t start = thread_num * mNbInBuf / num_threads;
+        size_t end = (thread_num + 1) * mNbInBuf / num_threads;
+
+        if (end>start)
+        {
+            for (auto & aF : mVReachedF)
+            {
+                aF->ComputeBuf(start,end);
+            }
+        }
+    }
+#else
     for (auto & aF : mVReachedF)
     {
        aF->ComputeBuf(0,mNbInBuf);
     }
+#endif
 
     mBufRes.clear();
     for (size_t aKLine=0 ; aKLine<mNbInBuf ;  aKLine++)
@@ -1024,11 +1090,10 @@ const std::vector<std::vector<TypeElem> *> & cCoordinatorF<TypeElem>::EvalAndCle
             aLine[aKFunc] = mVCurF[aKFunc]->GetBuf(aKLine);
     }
     mNbInBuf = 0;
-    
     return mBufRes;
 }
 
-template <class TypeElem> 
+template <class TypeElem>
 void cCoordinatorF<TypeElem>::ShowStackFunc() const
 {
     for (const auto & aForm : mVAllFormula)
@@ -1038,7 +1103,9 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
        else 
           std::cout <<  "-" << aForm->Depth() << "-";
 
-       std::cout << " Form[" << aForm->NumGlob() << "] => " << aForm->Name();
+       std::cout << aForm->usedCnt() << "- ";
+       std::cout << aForm->NameGlob() << " => " << aForm->Name();
+
        const TypeElem * aPV = aForm->ValCste();
        if (aPV)
            std::cout << " ; Val=" << *aPV;
@@ -1060,8 +1127,124 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
     std::cout << "\n";
 }
 
+template <class TypeElem>
+std::string cCoordinatorF<TypeElem>::genCodeNAddr(const std::string &formulaName) const
+{
+    std::string className  = formulaName + "NAddr";
+    std::string fileName  = "CodeGen_" + className + ".h";
+    std::ofstream os(fileName);
 
-}; //   NS_MMVII_FormalDerivative
+    std::string parentClass =
+            "GenFuncTpl<TypeElem," +
+            std::to_string(mNbUK) + "," +
+            std::to_string(mNbObs) + "," +
+            std::to_string(mVCurF.size()) +  "," +
+            std::to_string(mSzInterval) + ">" ;
+
+    os << "#include <vector>\n"
+          "#ifdef _OPENMP\n"
+          "#include <omp.h>\n"
+          "#endif\n"
+          "#include \"include/MMVII_FormDer_CGenTpl.h\"\n"
+          "\n"
+          "namespace CodeGen {\n\n"
+          "template<typename TypeElem>\n"
+          "class " << className << " : public " << parentClass << "\n"
+          "{\n"
+          "public:\n"
+          "    " << className << "(size_t szBuf) : " << parentClass << "(szBuf) {}\n"
+          "    static std::string FormulaName() { return \"" << formulaName << "\";}\n"
+          "    void evalAndClear();\n"
+          "};\n"
+          "\n"
+          "template<typename TypeElem>\n"
+          "void " << className << "<TypeElem>::evalAndClear()\n"
+          "{\n"
+          "#ifdef _OPENMP\n"
+          "#pragma omp parallel for\n"
+          "#endif\n"
+          "  for (size_t aK=0; aK < this->mInBuf; aK++) {\n"
+          "// Declare local vars in loop to make them per thread\n";
+
+    for (auto & aForm : mVFormUnknowns)
+        os << "    TypeElem &" << aForm->genCodeFormName() << " = " << aForm->genCodeDef() << ";\n";
+    for (const auto & aForm : mVFormObservations)
+        os << "    TypeElem &" << aForm->genCodeFormName() << " = " << aForm->genCodeDef() << ";\n";
+
+    for (const auto & aForm : mVReachedF) {
+        if (!aForm->isAtomic())
+            os << "    TypeElem " << aForm->genCodeFormName() << " = " << aForm->genCodeNAddr() << ";\n";
+    }
+
+    for (size_t i=0; i<mVCurF.size(); i++)
+       os <<  "    this->vvRes[aK][" << i << "] = " << mVCurF[i]->genCodeFormName() << ";\n";
+    os << "  }\n"
+          "  this->mInBuf=0;\n"
+          "}\n\n"
+          "} // namespace CodeGen\n";
+    return fileName;
+}
+
+template <class TypeElem>
+std::string cCoordinatorF<TypeElem>::genCodeDevel(const std::string &formulaName) const
+{
+    std::string className  = formulaName;
+    std::string fileName  = "CodeGen_" + className + ".h";
+    std::ofstream os(fileName);
+
+    std::string parentClass =
+            "GenFuncTpl<TypeElem," +
+            std::to_string(mNbUK) + "," +
+            std::to_string(mNbObs) + "," +
+            std::to_string(mVCurF.size()) + "," +
+            std::to_string(mSzInterval) + ">" ;
+
+    os << "#include <vector>\n"
+          "#ifdef _OPENMP\n"
+          "#include <omp.h>\n"
+          "#endif\n"
+          "#include \"include/MMVII_FormDer_CGenTpl.h\"\n"
+          "\n"
+          "namespace CodeGen {\n\n"
+          "template<typename TypeElem>\n"
+          "class " << className << " : public " << parentClass << "\n"
+          "{\n"
+          "public:\n"
+          "    " << className << "(size_t szBuf) : " << parentClass << "(szBuf) {}\n"
+          "    static std::string FormulaName() { return \"" << formulaName << "\";}\n"
+          "    void evalAndClear();\n"
+          "};\n"
+          "\n"
+          "template<typename TypeElem>\n"
+          "void " << className << "<TypeElem>::evalAndClear()\n"
+          "{\n"
+          "#ifdef _OPENMP\n"
+          "#pragma omp parallel for\n"
+          "#endif\n"
+          "  for (size_t aK=0; aK < this->mInBuf; aK++) {\n"
+          "// Declare local vars in loop to make them per thread\n";
+
+
+    for (auto & aForm : mVFormUnknowns)
+        os << "    TypeElem &" << aForm->genCodeFormName() << " = " << aForm->genCodeDef() << ";\n";
+    for (const auto & aForm : mVFormObservations)
+        os << "    TypeElem &" << aForm->genCodeFormName() << " = " << aForm->genCodeDef() << ";\n";
+
+    for (const auto & aForm : mVReachedF) {
+        if (aForm->usedCnt() != 1 && !aForm->isAtomic()) {
+            os << "    TypeElem " << aForm->genCodeFormName() << " = " << aForm->genCodeDef() << ";\n";
+        }
+    }
+    for (size_t i=0; i<mVCurF.size(); i++)
+       os <<  "    this->vvRes[aK][" << i << "] = " << mVCurF[i]->genCodeRef() << ";\n";
+    os << "  }\n"
+          "  this->mInBuf=0;\n"
+          "}\n\n"
+          "} // namespace CodeGen\n";
+    return fileName;
+}
+
+} //   NS_MMVII_FormalDerivative
 
 #include "MMVII_FormDer_UnaryOp.h"
 #include "MMVII_FormDer_BinaryOp.h"

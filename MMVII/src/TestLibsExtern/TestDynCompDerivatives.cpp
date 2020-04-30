@@ -351,10 +351,6 @@ template <const int NbParamD> class cCountDist
         static const int TheNbUk          = TheNbCommonUk + TheNbDist;
         static const int TheNbObs         = 11;
 
-        typedef Jet<double,TheNbUk>  tJets;
-        typedef FD::cCoordinatorF<double>  tCoord;
-        typedef typename tCoord::tFormula  tFormula;
-
         static const std::vector<std::string> & VNamesObs()
         {
             static std::vector<std::string> TheVObs
@@ -397,11 +393,12 @@ template <const int NbParamD> class cCountDist
 
 */
 
-template <class TypeUk,class TypeObs> class cTplFraserDist : public cCountDist<7>
+class cTplFraserDist : public cCountDist<7>
 {
   public :
-    typedef  TypeUk   tUk;
-    typedef  TypeObs  tObs;
+    /// Usable for message, also for name generation in formulas
+    static std::string  NameModel() {return "Fraser";}
+
     static const std::vector<std::string>&  VNamesUnknowns()
     {
       static std::vector<std::string>  TheV;
@@ -417,7 +414,8 @@ template <class TypeUk,class TypeObs> class cTplFraserDist : public cCountDist<7
       return  TheV;
     }
 
-    static std::vector<TypeUk> Dist (
+    template<typename tUk, typename tObs>
+    static std::vector<tUk> Dist (
                                  const tUk & xPi,const tUk & yPi, 
                                  const std::vector<tUk> & aVUk, const std::vector<tObs> & 
                              )
@@ -525,14 +523,14 @@ template <class TypeUk,class TypeObs> class cTplFraserDist : public cCountDist<7
 */
 
 
-template <class TypeUk,class TypeObs,const int Deg> class cTplPolDist : 
+template <const int Deg> class cTplPolDist :
        public cCountDist<(Deg+1)*(Deg+2) -6> 
 {
     public :
-       typedef  TypeUk   tUk;
-       typedef  TypeObs  tObs;
        typedef cCountDist<(Deg+1)*(Deg+2) -6>  tCountDist;
 
+       /// Usable for message, also for name generation in formulas
+       static std::string  NameModel() {return "XYPol_Deg"+std::to_string(Deg);}
    
        // Vectors of names of unknowns
        static const std::vector<std::string>&  VNamesUnknowns()
@@ -574,12 +572,13 @@ template <class TypeUk,class TypeObs,const int Deg> class cTplPolDist :
 
        // Vectors of names of unknowns
 
-       static std::vector<TypeUk> Dist (
+       template<typename tUk, typename tObs>
+       static std::vector<tUk> Dist (
                                  const tUk & xPi,const tUk & yPi, 
                                  const std::vector<tUk> & aVUk, const std::vector<tObs> & 
                              )
        {
-            static std::vector<int>  aXDx,aXDy,aYDx,aYDy;
+           static std::vector<int>  aXDx,aXDy,aYDx,aYDy;
             if (aXDx.empty()) // first call compute degree of monomes
                InitDegreeMonomes(aXDx,aXDy,aYDx,aYDy);
              
@@ -669,19 +668,17 @@ template <class TypeUk,class TypeObs,const int Deg> class cTplPolDist :
 
 
 
-
-// template <class TypeUk,class TypeObs>  class cEqCoLinearity
 template <class TypeDist>  class cEqCoLinearity
 {
   public :
-    typedef typename TypeDist::tUk   tUk;
-    typedef typename TypeDist::tObs  tObs;
-
-    typedef typename TypeDist::tJets  tJets;
     static const int  TheNbUk  = TypeDist::TheNbUk;
     static const int  TheNbObs = TypeDist::TheNbObs;
+    static const std::vector<std::string>& VNamesUnknowns() { return TypeDist::VNamesUnknowns();}
+    static const std::vector<std::string>& VNamesObs() { return TypeDist::VNamesObs();}
+    static std::string NameModel() { return TypeDist::NameModel();}
 
        /*  Capital letter for 3D variable/formulas and small for 2D */
+    template <typename tUk, typename tObs>
     static     std::vector<tUk> Residual
                   (
                       const std::vector<tUk> & aVUk,
@@ -761,22 +758,18 @@ template <class TypeDist>  class cEqCoLinearity
 };
 
 
-//  TJD  : type jets dist  , TFD : type formal dist
-template <class TJD,class TFD>  class cTestEqCoL
+
+template <class FORMULA>  class cTestEqCoL
 {
     public :
        cTestEqCoL(int aSzBuf,bool Show);
 
     private :
-       static const int  TheNbUk = TJD::TheNbUk;
-       static const int  TheNbObs = TJD::TheNbObs;
+       static const int  TheNbUk = FORMULA::TheNbUk;
+       static const int  TheNbObs = FORMULA::TheNbObs;
 
-       typedef typename TJD::tJets          tJets;
        typedef FD::cCoordinatorF<double>    tCoord;
        typedef typename tCoord::tFormula    tFormula;
-
-       // static const  std::vector<std::string> TheVNamesUnknowns;
-       // static const  std::vector<std::string> TheVNamesObs;
 
        /// Return unknowns vect after fixing XYZ (ground point)
        const std::vector<double> & VUk(double X,double Y,double Z)
@@ -805,19 +798,13 @@ template <class TJD,class TFD>  class cTestEqCoL
 
 
 
-template <class TJD,class TFD>
-cTestEqCoL<TJD,TFD>::cTestEqCoL(int aSzBuf,bool Show) :
+template <class FORMULA>
+cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,bool Show) :
      // mCFD (aSzBuf,TheNbUk,TheNbObs), //  would have the same effect, but future generated code will be less readable
-     mCFD  (aSzBuf,TJD::VNamesUnknowns(),TJD::VNamesObs()),
+     mCFD  (aSzBuf,FORMULA::VNamesUnknowns(),FORMULA::VNamesObs()),
      mVUk  (TheNbUk,0.0),
      mVObs (TheNbObs,0.0)
 {
-   // As I was not able to make automatic computation of size Jets, we check that user
-   // did not mistake
-
-   static_assert(TJD::tUk::DIMENSION==TheNbUk,"Incoherent size Jets/Number Unknonws");
-
-
    // In unknown, we set everything to zero exepct focal to 1
    mVUk[11] = 1.0;
    // In obs, we set the current matrix to Id
@@ -826,7 +813,7 @@ cTestEqCoL<TJD,TFD>::cTestEqCoL(int aSzBuf,bool Show) :
    double aT0 = TimeElapsFromT0();
 
 //   auto aVFormula = FraserFuncCamColinearEq(mCFD.VUk(),mCFD.VObs());
-   auto aVFormula = cEqCoLinearity<TFD>::Residual (mCFD.VUk(),mCFD.VObs());
+   auto aVFormula = FORMULA::Residual (mCFD.VUk(),mCFD.VObs());
    if (Show)
    {
        mCFD.SetCurFormulas({aVFormula[0]});
@@ -863,7 +850,7 @@ cTestEqCoL<TJD,TFD>::cTestEqCoL(int aSzBuf,bool Show) :
 
    double aT1 = TimeElapsFromT0();
     
-   std::cout << "TestFraser " 
+   std::cout << "Test "  +  FORMULA::NameModel()
              << ", SzBuf=" << aSzBuf 
              << ", NbEq=" << mCFD.VReached().size() 
              << ", TimeInit=" << (aT1-aT0) << "\n";
@@ -880,6 +867,7 @@ cTestEqCoL<TJD,TFD>::cTestEqCoL(int aSzBuf,bool Show) :
    const std::vector<double> & aVObs =  VObs(0.101,0.2); 
    
    // Make the computation with jets
+   typedef Jet<double,TheNbUk> tJets;
    double TimeJets = TimeElapsFromT0();
    std::vector<tJets> aJetRes;
    {
@@ -889,7 +877,7 @@ cTestEqCoL<TJD,TFD>::cTestEqCoL(int aSzBuf,bool Show) :
 
         for (int aK=0 ; aK<aNbTestTotal ; aK++)
         {
-            aJetRes = cEqCoLinearity<TJD>::Residual (aVJetUk,aVObs);
+            aJetRes = FORMULA::Residual (aVJetUk,aVObs);
         }
         TimeJets = TimeElapsFromT0() - TimeJets;
    }
@@ -938,15 +926,6 @@ cTestEqCoL<TJD,TFD>::cTestEqCoL(int aSzBuf,bool Show) :
          << "\n\n";
 }
 
-typedef cTplFraserDist<Jet<double,19>,double>                     tFraserJ;
-typedef cTplFraserDist<FD::cFormula<double>,FD::cFormula<double>> tFraserF;
-
-
-typedef cTplPolDist<Jet<double,12+8*9-6>,double,7> tPolJD7;
-typedef cTplPolDist<FD::cFormula<double>,FD::cFormula<double>,7> tPolFD7;
-
-typedef cTplPolDist<Jet<double,12+3*4-6>,double,2> tPolJD2;
-typedef cTplPolDist<FD::cFormula<double>,FD::cFormula<double>,2> tPolFD2;
 
 void TestFraserCamColinearEq()
 {
@@ -983,10 +962,9 @@ void TestFraserCamColinearEq()
 
    for (auto SzBuf : {1000,1})
    {
-       cTestEqCoL<tPolJD7,tPolFD7> (SzBuf,false);
-
-       cTestEqCoL<tFraserJ,tFraserF> (SzBuf,false);
-       cTestEqCoL<tPolJD2,tPolFD2> (SzBuf,false);
+       cTestEqCoL<cEqCoLinearity<cTplFraserDist>> (SzBuf,false);
+       cTestEqCoL<cEqCoLinearity<cTplPolDist<7>>> (SzBuf,false);
+       cTestEqCoL<cEqCoLinearity<cTplPolDist<2>>> (SzBuf,false);
 
        std::cout << "======================\n";
    }
