@@ -529,6 +529,7 @@ class cElNuage3DMaille : public cCapture3D
 
         void GenTri(std::vector<tTri> &,const tIndex2D &,int aOffset) const;
         void AddTri(std::vector<tTri> &,const tIndex2D &,int *K123,int aOffset) const;
+        double TriArea(const Pt3dr &,const Pt3dr &, const Pt3dr &) const;
 
      protected  :
         void AssertNoEmptyData() const;

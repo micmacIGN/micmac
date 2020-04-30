@@ -471,20 +471,45 @@ void cElNuage3DMaille::AddTri(std::vector<tTri> & aMesh,const tIndex2D & aP,int 
        );
 }
 
+double cElNuage3DMaille::TriArea(const Pt3dr &aP1,const Pt3dr &aP2, const Pt3dr &aP3) const
+{
+  double d1 = aP1.x*(aP2.y-aP3.y)+aP2.x*(aP3.y-aP1.y)+aP3.x*(aP1.y-aP2.y);
+  double d2 = aP1.y*(aP2.z-aP3.z)+aP2.y*(aP3.z-aP1.z)+aP3.y*(aP1.z-aP2.z);
+  double d3 = aP1.z*(aP2.x-aP3.x)+aP2.z*(aP3.x-aP1.x)+aP3.z*(aP1.x-aP2.x);
+  double a = sqrt(Square(d1)+Square(d2)+Square(d3))/2.;
+
+  return a;
+}
+
 void cElNuage3DMaille::GenTri(std::vector<tTri> & aMesh,const tIndex2D &aP,int aOffset) const
 {
     aMesh.clear();
-    // int aKT1[3] ={4,5,8};
-    // int aKT2[3] ={4,8,7};
-    int aKT1[3] ={8,5,4};
-    int aKT2[3] ={7,8,4};
+
+    int aKT[4] = {4,5,7,8};
+    std::vector<Pt3dr>  aPT;
+    for (int aK=0 ; aK<4 ; aK++)
+    {
+      if (!mTImDef.get(aP+VOIS_9[aKT[aK]],0))
+          return;
+      aPT.push_back(PtOfIndex(aP+VOIS_9[aKT[aK]]));
+    }
+
+    double aT1 = TriArea(aPT[0],aPT[1],aPT[2]);
+    double aT2 = TriArea(aPT[1],aPT[2],aPT[3]);
+    double aT3 = TriArea(aPT[2],aPT[3],aPT[0]);
+    double aT4 = TriArea(aPT[3],aPT[0],aPT[1]);
+
+    int aKT1[3]={7,5,4};
+    int aKT2[3]={5,7,8};
+    if (aT1+aT2>aT3+aT4) //The best diagonal is the one that minimize the area of the 2 triangles
+    {
+      aKT1[1] = 8;
+      aKT2[1] = 4;
+    }
 
     AddTri(aMesh,aP,aKT1,aOffset);
     AddTri(aMesh,aP,aKT2,aOffset);
 }
-/*
-*/
-
 
 void cElNuage3DMaille::AddExportMesh()
 {
