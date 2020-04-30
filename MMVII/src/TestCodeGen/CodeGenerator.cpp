@@ -20,8 +20,10 @@ void GenerateCode()
 
     auto aVFormula = FORMULA::formula(mCFD1.VUk(),mCFD1.VObs());
     mCFD1.SetCurFormulasWithDerivative(aVFormula);
-    auto names = mCFD1.GenerateCode(FORMULA::FormulaName());
-    includesNames.insert(includesNames.end(),names.begin(),names.end());
+    auto name = mCFD1.GenerateCode(FORMULA::FormulaName());
+    includesNames.push_back(name);
+    name = mCFD1.genCodeDevel(FORMULA::FormulaName());
+    includesNames.push_back(name);
 }
 
 
