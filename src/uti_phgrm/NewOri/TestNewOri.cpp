@@ -37,8 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 
-#include "NewOri.h"
-#include "../TiepTri/MultTieP.h"
+#include "TestNewOri.h"
 
 /*
 int TestNewOriImage_main(int argc,char ** argv)
@@ -75,6 +74,9 @@ class RotMat;
 
 //read SfmInit input
 class cAppliImportSfmInit;
+
+//read artsquad benchmark
+class cAppliImportArtsQuad;
 
 //namespace ceresTestER
 //{
@@ -382,6 +384,15 @@ struct CamSfmInit
 
 };
 
+template <typename T>
+void FileReadOK(FILE *fptr, const char *format, T *value)
+{
+    int OK = fscanf(fptr, format, value);
+    if (OK != 1)
+        ELISE_ASSERT(false, "cAppliImportSfmInit::FileReadOK")
+
+}
+
 
 class cAppliImportSfmInit 
 {
@@ -423,8 +434,8 @@ class cAppliImportSfmInit
 		ElRotation3D OriCam2On1(const cNewO_NameManager *aNM,const std::string & aNOri1,const std::string & aNOri2,bool & OK) const;
 
  
-        template <typename T>
-        void FileReadOK(FILE *fptr, const char *format, T *value);
+        //template <typename T>
+        //void FileReadOK(FILE *fptr, const char *format, T *value);
 
         cInterfChantierNameManipulateur * mICNM;
         bool DoCalib;
@@ -463,14 +474,14 @@ class cAppliImportSfmInit
 
 };
 
-template <typename T>
+/*template <typename T>
 void cAppliImportSfmInit::FileReadOK(FILE *fptr, const char *format, T *value)
 {
     int OK = fscanf(fptr, format, value);
     if (OK != 1)
         ELISE_ASSERT(false, "cAppliImportSfmInit::FileReadOK")
 
-}
+}*/
 
 std::string cAppliImportSfmInit::GetListOfName()
 {
@@ -1661,6 +1672,161 @@ int CPP_NewOriReadFromSfmInit(int argc,char ** argv)
 
     return EXIT_SUCCESS;
 }
+
+//================================================= ArtsQuad
+
+bool cAppliImportArtsQuad::SaveCalib()
+{
+
+	std::string CalibName = "Calib";
+	ELISE_fp::MkDirSvp("Ori-"+CalibName);
+
+	std::cout << mFocalName << "\n";
+	FILE* fptr = fopen(mFocalName.c_str(), "r");
+    if (fptr == NULL) {
+          return false;
+    };
+
+	std::cout << "START" << "\n";
+    char buf[50]; 
+	double f;
+    while (fscanf(fptr,"%s %lf",buf,&f)==2) 
+    {
+
+		Tiff_Im aTF = Tiff_Im::StdConvGen(buf,-1,true);
+	   	Pt2di aSzIm = aTF.sz();
+        
+		cCalibrationInternConique aCIO = StdGetObjFromFile<cCalibrationInternConique>
+                (
+                    Basic_XML_MM_File("Template-Calib-Basic.xml"),
+                    StdGetFileXMLSpec("ParamChantierPhotogram.xml"),
+                    "CalibrationInternConique",
+                    "CalibrationInternConique"
+                );
+
+		aCIO.PP()   = Pt2dr(double(aSzIm.x)*0.5,double(aSzIm.y)*0.5) ;
+        aCIO.F()    = f ;
+        aCIO.SzIm() = aSzIm;
+        aCIO.CalibDistortion()[0].ModRad().Val().CDist() = Pt2dr(0,0);
+
+        MakeFileXML(aCIO,mICNM->StdNameCalib(CalibName,buf));
+
+        
+    }
+    fclose(fptr);
+
+
+
+	return true;
+
+}
+
+
+bool cAppliImportArtsQuad::ImportTracks()
+{
+	// Read the list of images
+	std::vector<std::string> * aVIm = new std::vector<std::string>();
+
+	FILE* fptr = fopen(mListName.c_str(), "r");
+    if (fptr == NULL) {
+          return false;
+    };
+
+	char buf[100]; 
+    while (fscanf(fptr,"%s",buf)==1) 
+	{
+		aVIm->push_back(buf);
+        //printf("%s\n", buf); 
+	}
+	fclose(fptr);
+
+	// Read & save the tracks
+	cSetTiePMul * aPMul = new cSetTiePMul(0, aVIm);
+	vector<float> vAttr;
+
+	fptr = fopen(mTrackName.c_str(), "r");
+    if (fptr == NULL) {
+          return false;
+    };
+
+	int num_tracks;
+    FileReadOK(fptr, "%i", &num_tracks);
+    std::cout << "&NbTrk " << num_tracks << "\n";
+
+	/* Iterate over tracks */
+    for (int aT=0; aT<num_tracks; aT++)
+    {
+
+		std::vector<int>   VImId;
+		std::vector<Pt2dr> VImPos;
+
+
+		int num_views;
+        FileReadOK(fptr, "%i", &num_views);
+
+		/* Colect the track aT */
+        for (int aK=0; aK<num_views; aK++)
+        {
+            int 	view_id;
+			int 	key_id;
+			Pt2dr   xy;
+			Pt3di   rgb;
+
+
+			FileReadOK(fptr, "%i", &view_id);
+			FileReadOK(fptr, "%i", &key_id);
+			FileReadOK(fptr, "%lf", &xy.x);
+			FileReadOK(fptr, "%lf", &xy.y);
+			FileReadOK(fptr, "%i", &rgb.x);
+			FileReadOK(fptr, "%i", &rgb.y);
+			FileReadOK(fptr, "%i", &rgb.z);
+
+			/*std::cout << "view_id " << view_id 
+					  << ", xy " << xy << ", rgb " << rgb << "\n";*/
+
+			VImId.push_back(view_id);
+			VImPos.push_back(xy);
+
+		}
+		aPMul->AddPts(VImId,VImPos,vAttr);
+	}
+
+	fclose(fptr);
+
+	std::string aSave = cSetTiePMul::StdName(mICNM,mSH,"",false);
+	aPMul->Save(aSave);
+	std::cout << "Saved to " << aSave << "\n";
+
+	return true;
+}
+
+cAppliImportArtsQuad::cAppliImportArtsQuad(int argc,char ** argv) :
+	mFocalName(""),
+	mSH("")
+{
+	ElInitArgMain
+    (
+        argc,argv,
+        LArgMain() << EAMC(mTrackName,"File containing the tracks", eSAM_IsExistFile)
+        	       << EAMC(mListName,"File containing the list of images", eSAM_IsExistFile),
+        LArgMain() << EAM(mSH,"SH",true,"Homol folder postfix, Def=""")
+				   << EAM(mFocalName,"Foc",true,"File containing focal lengths, Def=""")
+    );
+
+	mICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+
+}
+
+int CPP_ImportArtsQuad(int argc,char ** argv)
+{
+	cAppliImportArtsQuad aAppliAQ(argc,argv);
+
+	//aAppliAQ.ImportTracks();
+	aAppliAQ.SaveCalib();
+
+	return EXIT_SUCCESS;
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

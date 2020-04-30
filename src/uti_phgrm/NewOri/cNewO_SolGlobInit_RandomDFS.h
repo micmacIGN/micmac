@@ -79,7 +79,7 @@ class cNOSolIn_AttrSom
          cNOSolIn_AttrSom() :
              mCurRot (ElRotation3D::Id),
              mTestRot (ElRotation3D::Id),
-	   		 mNumCC(0)	{}
+	   		 mNumCC (-1)	{}
          cNOSolIn_AttrSom(const std::string & aName,cSolGlobInit_NRandom & anAppli);
 
 
@@ -88,7 +88,7 @@ class cNOSolIn_AttrSom
 		 ElRotation3D & CurRot() {return mCurRot;}
          ElRotation3D & TestRot() {return mTestRot;}
 
-         std::vector<cLinkTripl> & Lnk3() {return mLnk3;}
+         std::vector<cLinkTripl>  & Lnk3() {return mLnk3;}
 		 int & NumCC() {return mNumCC;}
 
     private:
@@ -99,6 +99,10 @@ class cNOSolIn_AttrSom
          std::vector<cLinkTripl>          mLnk3;
 		 ElRotation3D                     mCurRot;
          ElRotation3D                     mTestRot;
+
+		 //unique Id, corresponds to the distance of the triplet 
+		 //which built/included this node in the solution;
+		 //mNumCC is used in the graph-based incoherence computation
 		 int 							  mNumCC;
 };
 
@@ -131,6 +135,9 @@ class cNOSolIn_Triplet
           int  Nb3() const {return mNb3;}
           ElTabFlag & Flag() {return   mTabFlag;}
           int & NumCC() {return mNumCC;}
+          int & NumId() {return mNumId;}
+          int & NumTT() {return mNumTT;}
+
 
 		  const ElRotation3D & RotOfSom(tSomNSI * aS) const
           {
@@ -172,7 +179,9 @@ class cNOSolIn_Triplet
 
           int           mNb3;
           ElTabFlag     mTabFlag;
-          int           mNumCC;
+          int           mNumCC;//if of its connected component
+          int           mNumId;//unique Id throughout all iters
+          int           mNumTT;//unique Id equiv of triplet order; each iter
 		  ElRotation3D  mR2on1;
           ElRotation3D  mR3on1;
           float         mBOnH;
@@ -201,6 +210,16 @@ class cLinkTripl
          }
 
          int  & HeapIndex() {return mHeapIndex;}
+
+		 bool operator<(cLinkTripl& other) const
+		 {
+		     return m3->NumId() < other.m3->NumId();
+		 }
+		 bool operator==(cLinkTripl& other) const
+		 {std::cout << "###\n";
+		     return m3->NumId() == other.m3->NumId();
+		 }
+
 
          cNOSolIn_Triplet  *  m3;
          U_INT1               mK1;
@@ -240,7 +259,7 @@ class cNO_CmpTriByCost
     public:
         bool operator()(cLinkTripl * aL1,cLinkTripl * aL2)
         {
-            return (aL1->m3)->CostArc() < (aL2->m3)->CostArc();
+            return (aL1->m3)->CostArcMed() < (aL2->m3)->CostArcMed();
         }
 };
 
@@ -258,10 +277,13 @@ class cNOSolIn_AttrASym
          cLinkTripl *       GetBestTri();
          tHeapTriNSI        mHeapTri;
 
-     private :
-         std::vector<cLinkTripl> mLnk3; // Liste des triplets partageant cet arc
-		 std::vector<cLinkTripl*> mLnk3Ptr; //Dirty trick pour faire marcher heap
+		 int &              NumArc() {return mNumArc;}
 
+     private :
+         std::vector<cLinkTripl>  mLnk3; // Liste des triplets partageant cet arc
+		 std::vector<cLinkTripl*> mLnk3Ptr; //Dirty trick pour faire marcher heap
+	
+		 int                      mNumArc;
 };
 
 class  cNO_HeapIndTriSol_NSI
@@ -285,6 +307,14 @@ class cNO_CmpTriSolByCost
 };
 
 typedef ElHeap<cNOSolIn_Triplet*,cNO_CmpTriSolByCost,cNO_HeapIndTriSol_NSI> tHeapTriSolNSI;
+
+struct CmpLnk
+{
+	bool operator()(cLinkTripl* T1, cLinkTripl* T2) const 
+	{
+		return (T1->m3->NumId()) < (T2->m3->NumId());
+	}
+};
 
 class cSolGlobInit_NRandom : public cCommonMartiniAppli
 {
@@ -319,6 +349,7 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 		void CoherTriplets();
 		void CoherTriplets(std::vector<cNOSolIn_Triplet *>& aV3);
 		void CoherTripletsGraphBased(std::vector<cNOSolIn_Triplet *>& aV3);
+		void CoherTripletsGraphBasedV2(std::vector<cNOSolIn_Triplet *>& aV3,int);
 		void CoherTripletsAllSamples();
 		void HeapPerEdge();
 		void HeapPerSol();
@@ -330,6 +361,7 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 
 		void Save(std::string& OriOut,bool SaveListOfName=false);
 		void FreeSomNumCCFlag();
+		void FreeSCur3Adj(tSomNSI *);
 
         std::string mFullPat;
         cElemAppliSetFile    mEASF;
@@ -345,7 +377,7 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 		std::vector<cNO_CC_TripSom *>  mVCC;
 
 		// CC vars
-		std::set<cLinkTripl *>    mSCur3Adj;//dynamic list of currently adjacent triplets
+		std::set<cLinkTripl *,CmpLnk>    mSCur3Adj;//dynamic list of currently adjacent triplets
 
         int             		mNbSom;
         int             		mNbArc;
@@ -357,7 +389,7 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
         int             		mNbSamples;
         ElTimer         		mChrono;
 		int                     mIterCur;
-
+		bool                    mGraphCoher;
 
 #ifdef GRAPHVIZ_ENABLED
 		GVC_t *GRAPHVIZ_GVCInit(const std::string& aGName);
