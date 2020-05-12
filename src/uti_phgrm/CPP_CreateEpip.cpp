@@ -85,6 +85,7 @@ class cApply_CreateEpip_main
       cBasicGeomCap3D *  mGenI2;
       std::string        mName1;
       std::string        mName2;
+      std::string        mOri;
       bool               mWithOri;
       int                mNbBloc;
       int                mDegSupInv;
@@ -97,7 +98,11 @@ class cApply_CreateEpip_main
       Pt2dr DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D * aG2,ElPackHomologue & aPack,bool AddToP1);
 
       void Ressample(cBasicGeomCap3D * aG1,EpipolaireCoordinate & E1,double aStep);
+
+
+      void SaveOrient(bool I1,CpleEpipolaireCoord * aCple) const;
 };
+
 
 // Compute direction of epip in G2 and fill Pack, AddToP1 indicate which way it must be added
 Pt2dr  cApply_CreateEpip_main::DirEpipIm2
@@ -497,7 +502,64 @@ cTmpReechEpip::cTmpReechEpip
     }
 }
 
+void SaveOrientEpip
+     (
+         const std::string &                aNameIm,
+         const std::string &                aNameOther,
+         EpipolaireCoordinate &             anEpi,
+         const std::string &                anOri,
+         cInterfChantierNameManipulateur *  anICNM
+      )
+{
+   std::string  aNameFile = anICNM->Assoc1To2
+                        (
+                            "NKS-Assoc-CplIm2OriGenEpi@"+anOri+"@txt",
+                            aNameIm,aNameOther,true
+                        );
+   ELISE_fp  aFile(aNameFile.c_str(),ELISE_fp::WRITE,false,ELISE_fp::eTxtTjs);
+   aFile.write(aNameIm);
+   aFile.write(anICNM->StdNameCamGenOfNames(anOri,aNameIm));
+   
+   anEpi.CastToPol()->write(aFile);
+   aFile.close();
+}
 
+void SaveCpleOrientEpip
+     (
+         const std::string &                aName1,
+         const std::string &                aName2,
+         CpleEpipolaireCoord*               aCple,
+         const std::string &                anOri,
+         cInterfChantierNameManipulateur *  anICNM
+      )
+{
+    SaveOrientEpip(aName1,aName2,aCple->EPI1(),anOri,anICNM);
+    SaveOrientEpip(aName2,aName1,aCple->EPI2(),anOri,anICNM);
+}
+
+
+
+
+void cApply_CreateEpip_main::SaveOrient(bool isI1,CpleEpipolaireCoord * aCple) const
+{
+   // std::string  aName = "Epi-" + aNameIm + ".dat";
+   std::string aNameIm = isI1 ? mName1 : mName2 ;
+   std::string aNameOther = isI1 ? mName2 : mName1 ;
+   std::string  aName = mICNM->Assoc1To2
+                        (
+                            "NKS-Assoc-CplIm2OriGenEpi@"+mOri+"@txt",
+                            aNameIm,aNameOther,true
+                        );
+   EpipolaireCoordinate & anEpi = isI1 ? aCple->EPI1() : aCple->EPI2();
+
+
+   ELISE_fp  aFile(aName.c_str(),ELISE_fp::WRITE,false,ELISE_fp::eTxtTjs);
+   aFile.write(aNameIm);
+   aFile.write(mICNM->StdNameCamGenOfNames(mOri,aNameIm));
+   
+   anEpi.CastToPol()->write(aFile);
+   aFile.close();
+}
 
 
 
@@ -527,6 +589,13 @@ void cApply_CreateEpip_main::DoEpipGen()
 
       std::cout << "Compute Epip ; D1=" << mDir1 << " ,D2=" << mDir2 << "\n";
       CpleEpipolaireCoord * aCple = CpleEpipolaireCoord::PolynomialFromHomologue(false,aPack,mDegre,mDir1,mDir2,mDegSupInv);
+
+      if (1)
+      {
+         SaveOrient(true,aCple);
+         SaveOrient(false,aCple);
+
+      }
 
       EpipolaireCoordinate & e1 = aCple->EPI1();
       EpipolaireCoordinate & e2 = aCple->EPI2();
@@ -710,6 +779,7 @@ if (!MMVisualMode)
      else
      {
      }
+     mOri = anOri;
 
      if (mPostMasq!="NONE") 
      {
@@ -723,6 +793,7 @@ if (!MMVisualMode)
      {
         mGenI1 = mICNM->StdCamGenerikOfNames(anOri,mName1);
         mGenI2 = mICNM->StdCamGenerikOfNames(anOri,mName2);
+
      }
 
      if ((!mWithOri) || (mGenI1->DownCastCS()==0) || (mGenI2->DownCastCS()==0) || mForceGen)
@@ -756,7 +827,6 @@ if (!MMVisualMode)
       // aCam1->SetSz(aTif1.sz(),true);
       // aCam2->SetSz(aTif2.sz(),true);
 
-// for (int aK=0; aK<13 ; aK++) std::cout << "SSSssssssssssssssssssiize !!!!\n"; getchar();
 
   //  Test commit
 
@@ -782,6 +852,7 @@ if (!MMVisualMode)
 
      aCplE.SetNameLock("End");
      aCplE.LockMess("End cCpleEpip::ImEpip");
+
 
 
      return ;

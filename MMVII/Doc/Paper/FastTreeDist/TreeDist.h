@@ -72,7 +72,7 @@ class cOneBenchFastTreeDist;
 /* ======================================= */
 
 /**
-    A class for compact representation of graph as adjacency list (ie for each submit
+    A class for compact representation of graph as adjacency list (ie for each summit
    offer direct access to the set of its neighboor).
 
      Not especially flexible, rather targeted for specialized algoritm. Could easily 
@@ -120,7 +120,7 @@ class cAdjGraph  : public cMemCheck
        /// We dont want unvolontar copy
        cAdjGraph(const cAdjGraph &) = delete;
 
-       /// create with number of submit, reserve the memory that can be allocat
+       /// create with number of summit, reserve the memory that can be allocat
        inline cAdjGraph(const int & aNbSom);
 
        /** Creat edge for each pair (aVS1[aK],aVS2[aK]), put it 2 way ,
@@ -134,14 +134,14 @@ class cAdjGraph  : public cMemCheck
        /// Check that the connected component has no cycle
        inline void  CheckIsTree(const std::vector<int> & aCC) const; 
        /// Compute distance with basic algorithm; used here to check the fast implementation
-       inline int RawDist(int aS0,int aS1) const;
+       inline int BasicDist(int aS0,int aS1) const;
 
        /// Compute connected component
        inline void CalcCC(std::vector<int> & aRes,int aS0,std::vector<int> & aMarq,int aMIn,int aMOut);
     protected :
         void AssertOk(int aNumS) const; ///< Check num is valide range
 
-        int mNbSom;                        ///< Number of submits
+        int mNbSom;                        ///< Number of summits
         std::vector<int *>    mBeginNeigh; ///< Pointer to begin of neighoor
         std::vector<int *>    mEndNeigh;   ///< Pointer to end   of neighboor
         std::vector<int>      mBufNeigh;   ///< Buffer to store the neigh (Begin/end point in it)
@@ -165,9 +165,9 @@ class cOneLevFTD : public cMemCheck
 /**  class offering all necessary services for fast computation of dist in a tree.
      Interface is limited to 3 method
 
-       1- cFastTreeDist => constructor, allocate memory with a number N of submit
+       1- cFastTreeDist => constructor, allocate memory with a number N of summit
        2- MakeDist  => make the precomputation on give set of edges, time "N log(N)"
-       3-  Dist => compute the dist between two subimit, time log(N) in worst case 
+       3-  Dist => compute the dist between two summit, time log(N) in worst case 
        
 */
 
@@ -185,7 +185,7 @@ class cFastTreeDist : private cAdjGraph
         
         inline void MakeDist(const std::vector<int> & aVS1,const std::vector<int> & aVS2); 
 
-        /// compute the distance between two submit; return -1 if not connected
+        /// compute the distance between two summit; return -1 if not connected
         inline int Dist(int aI1,int aI2) const;
 
         /// Not 4 computation. Usefull only to make empiricall stat on the number of step
@@ -196,9 +196,9 @@ class cFastTreeDist : private cAdjGraph
         inline void ComputeQualityPivot(int aS);
 
         /** Explorate, recursively, the connected component :
-            - S a submit the "seed" of the CC
+            - S a summit the "seed" of the CC
             - aLev = the   Level in the recursive call
-            - aNumCC = num of the CC, used a level 1 to memorize if 2 submit are connected
+            - aNumCC = num of the CC, used a level 1 to memorize if 2 summit are connected
         */
         inline void Explorate(int aS,int aLev,int aNumCC);
 
@@ -352,12 +352,12 @@ void cAdjGraph::CalcCC(std::vector<int> & aRes,int aS0,std::vector<int> & aMarq,
         aKS ++;
     }
 }
-int cAdjGraph::RawDist(int aS0,int aS1) const
+int cAdjGraph::BasicDist(int aS0,int aS1) const
 {
     //if (aS0==aS1) 
        //return 0;
     std::vector<int> aVMarq(mNbSom,0);
-    std::vector<int> aVSom;   ///< Submit of component
+    std::vector<int> aVSom;   ///< Summits of component
 
     aVMarq[aS0] = 1;
     aVSom.push_back(aS0);     //  Add it  to component
@@ -392,7 +392,7 @@ int cAdjGraph::RawDist(int aS0,int aS1) const
 
 void   cAdjGraph::CheckIsTree(const std::vector<int> & aCC) const
 {
-   //  Check there is no cycle by consistency nb submit/ nb edges
+   //  Check there is no cycle by consistency nb summit/ nb edges
    int aNbE=0;
    for (const auto & aS : aCC)
        aNbE +=   NbNeigh(aS);
@@ -664,7 +664,7 @@ inline float RandUnif_0_1() { return RandUnif_N(NB_RAND_UNIF) / float(NB_RAND_UN
     the main method are :
 
       - create random forest to test many configuration
-      - compute fast dist  on any pair of submit
+      - compute fast dist  on any pair of summit
       - compute distance with basic method
       - check that the two computation give the same result
 */
@@ -679,7 +679,7 @@ class cOneBenchFastTreeDist
       double  SomAvgLowT() {return mSomAvgLowT / mNbTest;}
 
     private :
-      int                mNbSom; ///< Number of submit
+      int                mNbSom; ///< Number of summit
       int                mNbCC;  ///< Number of connected components
       cFastTreeDist      mFTD;   ///< Fast tree to compute fast distance
       cAdjGraph          mAdjG;  ///< Adjence Graph to check validity of fast distance
@@ -711,7 +711,7 @@ void cOneBenchFastTreeDist::MakeOneTest(bool Show,bool CheckDist)
     for (int aK=0 ; aK<mNbSom ; aK++)
     {
         int aNum = RandUnif_N(mNbCC); 
-        aVCC.at(aNum).push_back(aK);  // Add a submit inside the CC aNum
+        aVCC.at(aNum).push_back(aK);  // Add a summit inside the CC aNum
     }
 
           //  ----  1.2 generate the graph -------------
@@ -733,7 +733,7 @@ void cOneBenchFastTreeDist::MakeOneTest(bool Show,bool CheckDist)
         for (int aK1=1 ; aK1<int(aCC.size()) ; aK1++)
         {
              // We add CC[aK] to  the already created tree we select
-             // randomly a submit inside this tree
+             // randomly a summit inside this tree
              double aPds = sqrt(RandUnif_0_1());  // Bias to have longer chain
              int aK2 = floor(aPds*aK1);  // we rattach K1 to K2
              aK2 = std::max(0,std::min(aK2,aK1-1));  // to be sure that index is correct
@@ -751,13 +751,13 @@ void cOneBenchFastTreeDist::MakeOneTest(bool Show,bool CheckDist)
            for (int aS2=0 ; aS2<mNbSom ; aS2++)
            {
                int aD= mFTD.Dist(aS1,aS2);  // Fast distance
-               int aD2= mAdjG.RawDist(aS1,aS2);  // Easy algorihtm to check
+               int aD2= mAdjG.BasicDist(aS1,aS2);  // Easy algorihtm to check
                assert(aD==aD2);
            }
        }
     }
 
-    // Is show and 1 Connected component make stat on the time for distance
+    // If 1 Connected component make stat on the time for distance
     if ( (mNbCC==1) && (mNbSom>1))
     {
        int aNbTest =0;  // Number of test

@@ -139,7 +139,7 @@ en premi\`ere lecture.}}}
 \maketitle 
 
 \begin{abstract}
-   Computation of distances between two submits of a tree is an operation that occurs in some
+   Computation of distances between two summits of a tree is an operation that occurs in some
 pattern recognition problem. When this operation has to be done thousands of times on millions
 of trees, the linear standard  algorithms in $\mathcal{O}(N)$ for each pair
     may be a bottleneck to the global computation.
@@ -156,11 +156,11 @@ of trees, the linear standard  algorithms in $\mathcal{O}(N)$ for each pair
 
 \section{Motivation}
 
-Computation of distance between two submits of a graph is  a basic well known
-problem of graph theory for which there exist efficient methods. This is even  easier in 
+Computation of distance between two summits of a graph is  a basic well known
+problem of graph theory for which there exist efficient methods (\cite{Dikjstra59}). This is even  easier in 
 the case where the graph is known to be tree or a forest (i.e. no cycle), in this case
 the time of basic algorithm are proportionnal to $N$ where $N$ is the number of
-submits. However there are cases where this operation has to be done a huge
+summits. However there are cases where this operation has to be done a huge
 number of time and for which these linear performance may be limitative.
 
 
@@ -241,7 +241,7 @@ the distance in the tree; for example, something like equation~\ref{QualDistij} 
 There is much more to say, and formula~\ref{QualDistij} should probably
 need more attention.  However the fact is that to test formula like~\ref{QualDistij}
 we need a way to compute for a given tree the distance $D^k_{i,j}$ of many pair
-of submits inside this tree.
+of summits inside this tree.
 
 In this paper we present an efficient  method with the following performance :
 
@@ -269,29 +269,29 @@ to be easily integrated in user code.
 \includegraphics[width=5cm]{FIGS/FTD-LabSplit.jpg}
  \\ \hline \hline
 \end{tabular}
-\caption{Notation for a Tree; Distance to submit A; labeling of component after suppressing A}
+\caption{Notation for a Tree; Distance to summit A; labeling of component after suppressing A}
 \label{TreeNotation}
 \end{figure}
 
 Figure~\ref{TreeNotation} illustrate the notion used for the computation :
 
 \begin{itemize}
-   \item  let $A$ be a any submit (we will see in next section how chosing it);
+   \item  let $A$ be a any summit (we will see in next section how chosing it);
 
-   \item  starting from $A$ we can easily compute for each submit the distance 
+   \item  starting from $A$ we can easily compute for each summit the distance 
           to $A$ and also propagate a labeling of the connected components 
           we would obtain if we would supress all edges connected to $A$ from the tree;
 
-   \item  left image of figure~\ref{TreeNotation} present the tree and the name of submit we will use;
+   \item  left image of figure~\ref{TreeNotation} present the tree and the name of summit we will use;
 
-   \item  middle image present the distance  to submit $A$;
+   \item  middle image present the distance  to summit $A$;
 
    \item  right image present the labeling $L_A$  of connected components of the graph we would obtain
           if were supressing all edges starting from $A$.
  
 \end{itemize}
 
-The presented  method is based on the elementary remark that if two submit $B$ and $G$ do not belong
+The presented  method is based on the elementary remark that if two summit $B$ and $G$ do not belong
 to the same component, then the shortest past from $B$ to $G$ cross $A$, and $D(B,G) = D(B,A) + D(A,G)$.
 This is formalized by equation~\ref{EqTriang} :
 
@@ -300,18 +300,21 @@ This is formalized by equation~\ref{EqTriang} :
 \end{equation}
 
 
-The following, recursive, split algorithm can then be formulated : we first
+When $L_A(B) \neq L_A(G)$ we can compute the distance. To deal we the case where 
+$L_A(B) = L_A(G)$, we just have to consider that the connected components are subgraph
+and make the computation inside each components. This is a recursive definition
+and it leads to hhe following, recursive, split algorithm  : we first
 make a recursrive pre-computation for the whole graphe (using algorithm~\ref{AlgoPrec}),
 we then use this precomputation  to compute distance between pairs using the 
-algorithm~\ref{AlgoComp} :
+algorithm~\ref{AlgoDistComp} :
 
 \begin{algorithm}
-\caption{{\it PreComputeDist} (Graph $\mathcal{G}$ ,Level  $L$)} 
+\caption{{\it PreComputeDist (Graph $\mathcal{G}$ ,Level  $L$)} : recursively split the graph and compute distance and labels } 
 \begin{algorithmic}
     \IF{$Card(\mathcal{G})  = 1$}
        \STATE we are done
     \ELSE
-        \STATE select a \emph{pivot} submit $A$ 
+        \STATE select a \emph{pivot} summit $A$ 
         \STATE $\forall s\in \mathcal{G}$ compute $Dist(A,s)$ and $Lab_A(s) $ and save it at level $L$
         \FORALL{$\mathcal{CC}$ connected component of $\mathcal{G} -\{A\}$}
               \STATE {\it PreComputeDist} ($\mathcal{CC}$,$L+1$)
@@ -323,7 +326,7 @@ algorithm~\ref{AlgoComp} :
 
 
 \begin{algorithm}
-\caption{{\it ComputeDist} (I,J)}
+\caption{{\it ComputeDist (I,J)} : compute the distance between I and J, once the pre-computation has been done (i.e. $Lab_L$ and $Dist_L$ have been computed)}
 \begin{algorithmic}
     \IF{I=J}
        \STATE \RETURN 0
@@ -335,7 +338,7 @@ algorithm~\ref{AlgoComp} :
         \ENDFOR
     \ENDIF
 \end{algorithmic}
-\label{AlgoComp}
+\label{AlgoDistComp}
 \end{algorithm}
 
 
@@ -360,7 +363,7 @@ algorithm~\ref{AlgoComp} :
 \label{TreeSplit}
 \end{figure}
 
-Untill now we have not discussed how we select the \emph{pivot} submit.
+Untill now we have not discussed how we select the \emph{pivot} summit.
 Obviously this may have a main influence on the efficiency of algorithm~\ref{AlgoPrec}.
 This is illustrated on figure~\ref{TreeSplit}. On this figure we see that the
 choice of $A$ as pivot does not decrease so much the size of the biggest
@@ -383,7 +386,7 @@ we see that :
 To answer to the  question of the \emph{pivot} selection, we must must solve two issues :
 
 \begin{itemize}
-   \item define a criteria on each submit that caracterize how good it would be to choose it
+   \item define a criteria on each summit that caracterize how good it would be to choose it
        as \emph{pivot};
    \item ensure that this criteria can be computed fastly enough .
 \end{itemize}
@@ -391,10 +394,10 @@ To answer to the  question of the \emph{pivot} selection, we must must solve two
 For the first issue  we want, after split,  to avoid having too big connected
 component. So we simply take as criteria to select $A$ as pivot,  the maximum size of all
 connected components after supression of $A$. Once computed on all $\mathcal{G}$, we
-will select the submit minimizing this criteria.
+will select the summit minimizing this criteria.
 
 \begin{algorithm}
-\caption{{\it NaivePivotQual} (S)}
+\caption{{\it NaivePivotQual (S)} : easy but unefficient definition of quality as a pivot}
 \begin{algorithmic}
      \STATE Qual=0  
      \FORALL{$\mathcal{CC}$ connected component of $\mathcal{G} -\{S\}$}
@@ -402,11 +405,11 @@ will select the submit minimizing this criteria.
      \ENDFOR
      \STATE \RETURN Qual
 \end{algorithmic}
-\label{AlgoComp}
+\label{AlgoNaivePivot}
 \end{algorithm}
 
-If "naive" definition of algorithm~\ref{AlgoComp} is satifying, we cannot simply compute
-it for each submit, as the cost would be $N$ for each submit, which would result
+If "naive" definition of algorithm~\ref{AlgoNaivePivot} is satifying, we cannot simply compute
+it for each summit, as the cost would be $N$ for each summit, which would result
 in $N^2$ for all the graph.  This is why in next section, we  describe a recursive 
 modification approach  leading to a global cost of $N$ for the computation of \emph{pivot quality}
 on the whole graph.
@@ -431,8 +434,8 @@ on the whole graph.
 \end{figure}
 
 Figure~\ref{TreeHerit} illustrate the fast computation. In a first step, we select
-an arbitray submit, $A$ here, and consider the oriented tree with $A$ as head, an compute
-the function $H_A(S)$ which, for each submit, contain the size of the subtree under $S$. This computation
+an arbitray summit, $A$ here, and consider the oriented tree with $A$ as head, an compute
+the function $H_A(S)$ which, for each summit, contain the size of the subtree under $S$. This computation
 can easily be done in linear time.
 
 Now we have the two interesting property : 
@@ -448,7 +451,7 @@ $H_A$, we have only two operation to do :
 
 
 \begin{enumerate}
-  \item   $H_C(C) = H_A(A) = N$ , in  fact this is always the same value (the number of submit of the graph);
+  \item   $H_C(C) = H_A(A) = N$ , in  fact this is always the same value (the number of summit of the graph);
   \item   $H_C(A) = N-H_A(C)$  because the subtree correponding to $H_C(A)$ and $H_A(C)$ are the
           two complementary subtree we obtain by supressing edge $(A,C)$.
 \end{enumerate}
@@ -457,7 +460,7 @@ $H_A$, we have only two operation to do :
 \begin{algorithm}
 \caption{{\it RecursPivotQual} ($S$,$F$)  }
 \begin{algorithmic}
-     \STATE \COMMENT{Before, compute the quality whith $H_A$ of first submit}
+     \STATE \COMMENT{Before, compute the quality whith $H_A$ of first summit}
      \STATE QMax=0  
      \FORALL{$n$ neighboor of $S$}
               \STATE QMax = Max(QMax,H(n))
@@ -476,7 +479,7 @@ $H_A$, we have only two operation to do :
               \STATE H[n] = hn
      \ENDFOR
 \end{algorithmic}
-\label{AlgoComp}
+\label{AlgoRecPivot}
 \end{algorithm}
 
 %---------------------------------------------
@@ -501,11 +504,35 @@ consist of essentially of $3$ methods :
 
    \item {\tt void MakeDist(const std::vector<int> \& aVS1,const std::vector<int> \& aVS2);} : make all the
          pre-computation for a given graph ,see comment in the code for graph representation;
-~\ref{AlgoPrec}
+         this function implement the algorithm ~\ref{AlgoPrec}, internally it calls the 
+        method {\tt ComputeQualityPivot} that implement the algorithm~\ref{AlgoRecPivot}
 
-   \item {\tt int Dist(int aI1,int aI2) const;}   compute the distance bewteen two submit once
-        the pre-computation has been done (correspond to algorithm ~\ref{AlgoComp}).
+   \item {\tt int Dist(int aI1,int aI2) const;}   compute the distance bewteen two summit once
+        the pre-computation has been done (correspond to algorithm ~\ref{AlgoDistComp}).
 \end{itemize}
+
+The end of the file contains a class and several functions that make test. The purpose of these
+test :
+
+\begin{itemize}
+   \item make an "experimental proof"  of  correctness , this is done by computing
+       the distance two way : the fast method that is described here, a basic method
+       using standard propagation algorithm; 
+
+   \item make some statistics on the computaion to have an "experimental proof" of the complexity;
+
+   \item generate random tree/forest to make these check/test in various configurations;
+  
+   \item these service are implemented in the class {\tt cOneBenchFastTreeDist}.
+\end{itemize}
+
+
+The function {\tt AllBenchFastTreeDist} call the service that check the correctness of distance computation.
+The function {\tt StatTimeBenchFastTreeDist} call the services that make statistic .
+
+    
+
+
 
 
 %---------------------------------------------
@@ -534,10 +561,10 @@ that at each decomposition the connected component have a size inferior to
 half of the graph. Let prove it, illustrated by figure~\ref{TreeComplexity} :
 
 \begin{itemize}
-     \item let $N$ be the number of submit of $\mathcal{G}$  , $N=\overline{\mathcal{G}}$;
+     \item let $N$ be the number of summit of $\mathcal{G}$  , $N=\overline{\mathcal{G}}$;
      \item let $p$ be the pivot;
      \item let  $\mathcal{C}^+$ be the connected componet of $\mathcal{G}-\{p\}$ 
-           with maximal number of submit and $m$ the submit connecting $\mathcal{C}^+$ to $p$;
+           with maximal number of summit and $m$ the summit connecting $\mathcal{C}^+$ to $p$;
 
      \item if we had   $=\overline{\mathcal{C}^+} > \frac{N}{2}$, then if we were taking $m$ as pivot ,
            connected of $\mathcal{G}-\{m\}$ would be :
@@ -551,24 +578,24 @@ half of the graph. Let prove it, illustrated by figure~\ref{TreeComplexity} :
 \end{itemize}
 
 
-As each component, in the recursive split, has a size inferior to the initial size,
+As each component, in the recursive split, has a size inferior to half of the initial size,
 the maximal number of level is $log_2(N)$.  At each level the computation is linear.
 So :
 
 \begin{itemize}
    \item  the pre-computaion has a complexity of $N log(N)$;
-   \item  the computation of each distance, in algorithm~\ref{AlgoComp} is in worst case equal to 
-          the maximum level, so $log(N)$ is the cost for computation of distance in worst case;
+   \item  the computation of each distance, in algorithm~\ref{AlgoDistComp} is in worst case equal to 
+          the maximum level, so $log_2(N)$ is the cost for computation of distance in worst case;
 \end{itemize} 
 
 The computation of distance in average case is more complex to analyse. We
-can make the following, not $100\%$ formal, reasoning in algoritm~\ref{AlgoComp}:
+can make the following, not $100\%$ formal, reasoning in algoritm~\ref{AlgoDistComp}:
 
 \begin{itemize}
    \item  the probabilty that  $Lab_1(I)=Lab_1(J)$ is inferior  to $\frac{1}{2}$ because size
           of maximal component is inferior to $\frac{1}{2}$;
    \item  the probabilty that  $Lab_2(I)=Lab_2(J)$ is inferior  to $\frac{1}{4}$ because size
-          of maximal component is inferior to $\frac{1}{4}$ ;
+          of maximal component is inferior to $\frac{1}{4}$  (half of the half );
    \item  \dots 
    \item  so the average cost is bounded by $\sum\limits_{\substack{k=1}}^{\infty} k \frac{1}{2}^k = 2$
 \end{itemize}
@@ -583,15 +610,15 @@ can make the following, not $100\%$ formal, reasoning in algoritm~\ref{AlgoComp}
    AvgLowT      & 1.63   & 2.42   & 3.03   &   3.53 &  3.79 &   4.06   & 4.36   \\ \hline
    Low/Log  & 0.59   & 0.58   &  0.60  &    0.63 & 0.63 &   0.63   &  0.65      \\ \hline 
 \end{tabular}
-\caption{Computation time of distance between pair as function of the number of submits : (1) {\tt \bf AvgT}= average 
+\caption{Computation time of distance between pair as function of the number of summits : (1) {\tt \bf AvgT}= average 
 (2) {\tt \bf  AvgLowT}=average for "low" distance ($\leq 3$), (3) {\tt \bf Low/Log} =  average of "low" /Log(NbSom)}
 \label{ExpCalc}
 \end{figure}
 
 
-Figure~\ref{ExpCalc} present the experimental computation time we obtain using the 
+Figure~\ref{ExpCalc} presents the experimental computation time we obtain using the 
 command {\tt StatTimeBenchFastTreeDist}, that generate random trees and evaluate
-the average level reached in algorithm~\ref{AlgoComp} , this level beign proportionnal to the time.
+the average level reached in algorithm~\ref{AlgoDistComp} , this level being proportionnal to the time.
 The line {\tt AvgT}  correspond to the average, on all pair of the graph, 
 we see that this time if almost constant .
 
@@ -605,7 +632,7 @@ This is the reason of the two last lines :
 
 \begin{itemize}
     \item {\tt \bf  AvgLowT}  this line present an average on the pair corresponding to "low" distances,
-         here the threshold is arbitrarily $3$, we clearly see the time is growing with the number of submit;
+         here the threshold is arbitrarily $3$, we clearly see the time is growing with the number of summit;
 
     \item {\tt \bf  Low/Log}  is the previous line divided by $log(NbSom)$, we see that it is almost constant
           and validate that the time for low distance a modelisation in $log(N)$, like worst case, is coherent.
@@ -615,6 +642,9 @@ This is the reason of the two last lines :
 \begin{thebibliography}{References}
    \bibitem[Govindu, Venu 2006]{Govin2006}   
           Govindu, Venu. "Robustness in Motion Averaging." Computer Vision–ACCV 2006 (2006): 457-466.
+
+   \bibitem[Dikjstra, E.W. 1959]{Dikjstra59}   Dikjstra, E W. "A note on two problems in connexion with graphs". 
+           Numer. Math. 1 (1959), 269-271.
 \end{thebibliography}
 
 \end{document}
