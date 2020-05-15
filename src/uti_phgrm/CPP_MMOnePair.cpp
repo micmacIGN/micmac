@@ -468,6 +468,7 @@ cAppliMMOnePair::cAppliMMOnePair(int argc,char ** argv) :
               DoMasqReentrant(true,aStep,aStep==mStepEnd);
               DoMasqReentrant(false,aStep,aStep==mStepEnd);
 
+
               SauvMasqReentrant(true,aStep,aStep==mStepEnd);
               SauvMasqReentrant(false,aStep,aStep==mStepEnd);
            }
@@ -683,9 +684,10 @@ void cAppliMMOnePair::DoMasqReentrant(bool MasterIs1,int aStep,bool aLast)
                           + " Regul=0.5"
                       ;
 
+
      if (EAMIsInit(&mMM1PMasq3D)) aCom = aCom + " Masq3D=" +mMM1PMasq3D;
 
-     aCom = aCom + " RedM=1.0 ";   // Avec la prog dyn, pas de raison de ne pas faire ts le temps \E0 full resol
+     aCom = aCom + " RedM=1.0 ";   // Avec la prog dyn, pas de raison de ne pas faire ts le temps a full resol
      if (aLast)
      {
         aCom = aCom + " ExpFin=true " ;

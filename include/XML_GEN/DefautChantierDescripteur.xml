@@ -741,6 +741,39 @@
 	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
     </KeyedNamesAssociations>
 
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  3 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)%(.*)%(.*) </PatternTransform>
+                <CalcName> EpipIm-$1-$2-$3.#1  </CalcName>
+                <Separateur > % </Separateur>
+             </Direct>
+<!--
+   A priori inverse pas utile. Si elle devait l'etre, il faudrait changer les conventions et 
+	     <Inverse>
+                <PatternTransform>  Ori-Epi-#1/Orient_(.*)_-_(.*).#2 </PatternTransform>
+                <CalcName> $1  </CalcName>
+                <CalcName> $2  </CalcName>
+	     </Inverse>
+-->
+        </Calcs>
+        <Key>  NKS-Assoc-NameImEpip </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  3 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)%(.*)%(.*) </PatternTransform>
+                <CalcName> EpipAppuis-$1-$2-$3.xml  </CalcName>
+                <Separateur > % </Separateur>
+             </Direct>
+        </Calcs>
+        <Key>  NKS-Assoc-NameAppuiEpip </Key>
+    </KeyedNamesAssociations>
 
 
 

@@ -92,15 +92,16 @@ class cApply_CreateEpip_main
       double             mEpsCheckInv;
       Pt2dr              mDir1;
       Pt2dr              mDir2;
+      bool               mMakeAppuis;
 
       void DoEpipGen();
 
-      Pt2dr DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D * aG2,ElPackHomologue & aPack,bool AddToP1);
+      Pt2dr DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D * aG2,ElPackHomologue & aPack,bool AddToP1, std::list<Appar23> &   aL23);
 
       void Ressample(cBasicGeomCap3D * aG1,EpipolaireCoordinate & E1,double aStep);
 
+      void MakeAppuis(bool Is1,const std::list<Appar23>&aLT1,EpipolaireCoordinate & anEpi,Pt2dr aP0Epi,Pt2dr aP1Epi);
 
-      void SaveOrient(bool I1,CpleEpipolaireCoord * aCple) const;
 };
 
 
@@ -110,9 +111,12 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
             cBasicGeomCap3D * aG1,
             cBasicGeomCap3D * aG2,
             ElPackHomologue & aPack,
-            bool AddToP1
+            bool AddToP1,
+            std::list<Appar23> &   aL23
        )
 {
+
+
     Pt2dr aSz =  Pt2dr(aG1->SzBasicCapt3D());
  
 
@@ -142,7 +146,6 @@ if (MPD_MM())
     int aNbY = ElMax(1+3*mDegre,round_up(aSz.y /aLenghtSquare));
 
 
-    std::cout << "NBBBB  x:" << aNbX << " y:" << aNbY <<  " z: " << mNbZ << "\n";
      
 
     for (int aKX=0 ; aKX<= aNbX ; aKX++)
@@ -172,11 +175,17 @@ if (MPD_MM())
                      if (aG1->PIsVisibleInImage(aPT2) && aG2->PIsVisibleInImage(aPT2))
                      {
                         // Add projection
-                        aVPIm2.push_back(aG2->Ter2Capteur(aPT2));
-                        ElCplePtsHomologues aCple(aPIm1,aVPIm2.back(),1.0);
-                        if (! AddToP1)  // If Im1/Im2 were swapped
-                           aCple.SelfSwap();
-                        aPack.Cple_Add(aCple);
+                        Pt2dr aPIm2 = aG2->Ter2Capteur(aPT2);
+                        if (aG2->CaptHasData(aPIm2))
+                        {
+                            aL23.push_back(Appar23(aPIm1,aPT2));
+
+                            aVPIm2.push_back(aPIm2);
+                            ElCplePtsHomologues aCple(aPIm1,aVPIm2.back(),1.0);
+                            if (! AddToP1)  // If Im1/Im2 were swapped
+                               aCple.SelfSwap();
+                            aPack.Cple_Add(aCple);
+                        }
                      }
                 }
                 // If more than one point is Ok
@@ -214,13 +223,13 @@ class cTmpReechEpip
         Box2dr                 mBoxImIn;
         ElDistortion22_Gen *   mEpi;
         double                 mStep;
-        Pt2dr                  mP0;
+        Pt2dr                  mP0Epi;
         Pt2di                  mSzEpi;
         Pt2di                  mSzRed;
 
         Pt2dr ToFullEpiCoord(const Pt2dr & aP)
         {
-            return mP0 + aP * mStep;
+            return mP0Epi + aP * mStep;
         }
         Pt2dr ToFullEpiCoord(const Pt2di & aP) {return ToFullEpiCoord(Pt2dr(aP));}
 
@@ -237,7 +246,7 @@ class cTmpReechEpip
 void ReechFichier
     (
         bool  ConsChan,
-        const std::string & aNameOri,
+        const std::string & aNameImInit,
         Box2dr aBoxImIn,
         ElDistortion22_Gen * anEpi,
         Box2dr aBox,
@@ -248,7 +257,7 @@ void ReechFichier
         int   aNbBloc
 )
 {
-    cTmpReechEpip aReech(ConsChan,aNameOri,aBoxImIn,anEpi,aBox,aStep,aNameOut,aPostMasq,aNumKer,false,aNbBloc);
+    cTmpReechEpip aReech(ConsChan,aNameImInit,aBoxImIn,anEpi,aBox,aStep,aNameOut,aPostMasq,aNumKer,false,aNbBloc);
 }
 
 
@@ -257,10 +266,10 @@ void ReechFichier
 cTmpReechEpip::cTmpReechEpip
 (
         bool aConsChan,
-        const std::string & aNameOri,
+        const std::string & aNameImInit,
         Box2dr aBoxImIn,
         ElDistortion22_Gen * anEpi,
-        Box2dr aBox,
+        Box2dr aBoxImOut,
         double aStep,
         const std::string & aNameOut,
         const std::string & aPostMasq,
@@ -272,9 +281,9 @@ cTmpReechEpip::cTmpReechEpip
     mBoxImIn(aBoxImIn),
     mEpi    (anEpi),
     mStep   (aStep),
-    mP0     (aBox._p0),
-    mSzEpi  (aBox.sz()),
-    mSzRed  (round_up (aBox.sz() / aStep) + Pt2di(1,1)),
+    mP0Epi  (aBoxImOut._p0),
+    mSzEpi  (aBoxImOut.sz()),
+    mSzRed  (round_up (aBoxImOut.sz() / aStep) + Pt2di(1,1)),
     mRedIMasq  (mSzRed.x,mSzRed.y,0),
     mRedTMasq  (mRedIMasq),
     mRedImX    (mSzRed.x,mSzRed.y),
@@ -282,7 +291,7 @@ cTmpReechEpip::cTmpReechEpip
     mRedImY    (mSzRed.x,mSzRed.y),
     mRedTImY   (mRedImY)
 {
-    std::cout << "=== RESAMPLE EPIP " << aNameOri 
+    std::cout << "=== RESAMPLE EPIP " << aNameImInit 
               << " Ker=" << aNumKer 
               << " Step=" << mStep 
               << " SzRed=" << mSzRed 
@@ -338,7 +347,7 @@ cTmpReechEpip::cTmpReechEpip
     ELISE_COPY(mRedIMasq.all_pts(),dilat_d8(mRedIMasq.in(0),4),mRedIMasq.out());
 
 
-    Tiff_Im aTifOri = Tiff_Im::StdConvGen(aNameOri.c_str(),aConsChan ? -1 :1 ,true);
+    Tiff_Im aTifOri = Tiff_Im::StdConvGen(aNameImInit.c_str(),aConsChan ? -1 :1 ,true);
     Tiff_Im aTifEpi  = Debug                       ?
                        Tiff_Im(aNameOut.c_str())     :
                        Tiff_Im
@@ -502,64 +511,6 @@ cTmpReechEpip::cTmpReechEpip
     }
 }
 
-void SaveOrientEpip
-     (
-         const std::string &                aNameIm,
-         const std::string &                aNameOther,
-         EpipolaireCoordinate &             anEpi,
-         const std::string &                anOri,
-         cInterfChantierNameManipulateur *  anICNM
-      )
-{
-   std::string  aNameFile = anICNM->Assoc1To2
-                        (
-                            "NKS-Assoc-CplIm2OriGenEpi@"+anOri+"@txt",
-                            aNameIm,aNameOther,true
-                        );
-   ELISE_fp  aFile(aNameFile.c_str(),ELISE_fp::WRITE,false,ELISE_fp::eTxtTjs);
-   aFile.write(aNameIm);
-   aFile.write(anICNM->StdNameCamGenOfNames(anOri,aNameIm));
-   
-   anEpi.CastToPol()->write(aFile);
-   aFile.close();
-}
-
-void SaveCpleOrientEpip
-     (
-         const std::string &                aName1,
-         const std::string &                aName2,
-         CpleEpipolaireCoord*               aCple,
-         const std::string &                anOri,
-         cInterfChantierNameManipulateur *  anICNM
-      )
-{
-    SaveOrientEpip(aName1,aName2,aCple->EPI1(),anOri,anICNM);
-    SaveOrientEpip(aName2,aName1,aCple->EPI2(),anOri,anICNM);
-}
-
-
-
-
-void cApply_CreateEpip_main::SaveOrient(bool isI1,CpleEpipolaireCoord * aCple) const
-{
-   // std::string  aName = "Epi-" + aNameIm + ".dat";
-   std::string aNameIm = isI1 ? mName1 : mName2 ;
-   std::string aNameOther = isI1 ? mName2 : mName1 ;
-   std::string  aName = mICNM->Assoc1To2
-                        (
-                            "NKS-Assoc-CplIm2OriGenEpi@"+mOri+"@txt",
-                            aNameIm,aNameOther,true
-                        );
-   EpipolaireCoordinate & anEpi = isI1 ? aCple->EPI1() : aCple->EPI2();
-
-
-   ELISE_fp  aFile(aName.c_str(),ELISE_fp::WRITE,false,ELISE_fp::eTxtTjs);
-   aFile.write(aNameIm);
-   aFile.write(mICNM->StdNameCamGenOfNames(mOri,aNameIm));
-   
-   anEpi.CastToPol()->write(aFile);
-   aFile.close();
-}
 
 
 
@@ -570,12 +521,13 @@ void cApply_CreateEpip_main::DoEpipGen()
       mNbZ       = 1;
       mNbXY      = 100;
       ElPackHomologue aPack;
+      std::list<Appar23>  aLT1,aLT2;
 
       // Compute the direction  and the set of homologous points
       if (mWithOri)
       {
-         mDir2 =  DirEpipIm2(mGenI1,mGenI2,aPack,true);  // Dont Swap
-         mDir1 =  DirEpipIm2(mGenI2,mGenI1,aPack,false); // Swap Pt
+         mDir2 =  DirEpipIm2(mGenI1,mGenI2,aPack,true,aLT1);  // Dont Swap
+         mDir1 =  DirEpipIm2(mGenI2,mGenI1,aPack,false,aLT2); // Swap Pt
       }
       else
       {
@@ -590,12 +542,13 @@ void cApply_CreateEpip_main::DoEpipGen()
       std::cout << "Compute Epip ; D1=" << mDir1 << " ,D2=" << mDir2 << "\n";
       CpleEpipolaireCoord * aCple = CpleEpipolaireCoord::PolynomialFromHomologue(false,aPack,mDegre,mDir1,mDir2,mDegSupInv);
 
+      // Save the result of epipolar in (relatively) raw format, containg polynoms+ name of orent
+      //  in case we want to do a Cap3D=> nuage from them
       if (1)
       {
-         SaveOrient(true,aCple);
-         SaveOrient(false,aCple);
-
+          aCple->SaveOrientCpleEpip(mOri,mICNM,mName1,mName2);
       }
+
 
       EpipolaireCoordinate & e1 = aCple->EPI1();
       EpipolaireCoordinate & e2 = aCple->EPI2();
@@ -689,15 +642,62 @@ void cApply_CreateEpip_main::DoEpipGen()
                     mGenI2->SzBasicCapt3D() : 
                     Tiff_Im::StdConvGen(mName2.c_str(),aConsChan ? -1 :1 ,true).sz() ;
 
-      cTmpReechEpip aReech1(aConsChan,mName1,Box2dr(Pt2dr(0,0),Pt2dr(aSzI1)),&e1,Box2dr(aInf1,aSup1),mStepReech,"ImEpi1"+mPostIm+".tif",mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
+      std::string aNI1 = mICNM->NameImEpip(mOri,mName1,mName2);
+      std::string aNI2 = mICNM->NameImEpip(mOri,mName2,mName1);
+
+      cTmpReechEpip aReech1(aConsChan,mName1,Box2dr(Pt2dr(0,0),Pt2dr(aSzI1)),&e1,Box2dr(aInf1,aSup1),mStepReech,aNI1,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
       std::cout << "DONE IM1 \n";
-      cTmpReechEpip aReech2(aConsChan,mName2,Box2dr(Pt2dr(0,0),Pt2dr(aSzI2)),&e2,Box2dr(aInf2,aSup2),mStepReech,"ImEpi2"+mPostIm+".tif",mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
+      cTmpReechEpip aReech2(aConsChan,mName2,Box2dr(Pt2dr(0,0),Pt2dr(aSzI2)),&e2,Box2dr(aInf2,aSup2),mStepReech,aNI2,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
       std::cout << "DONE IM2 \n";
 
       std::cout << "DONNE REECH TMP \n";
 
 //  ::cTmpReechEpip(cBasicGeomCap3D * aGeom,EpipolaireCoordinate * anEpi,Box2dr aBox,double aStep) :
+
+      if (mMakeAppuis)
+      {
+           MakeAppuis(true ,aLT1,e1,aInf1,aSup1);
+           MakeAppuis(false,aLT2,e2,aInf2,aSup2);
+      }
 }
+
+void cApply_CreateEpip_main::MakeAppuis
+     (
+          bool Is1,
+          const std::list<Appar23>&aLT1,
+          EpipolaireCoordinate & anEpi,
+          Pt2dr aP0Epi,
+          Pt2dr aP1Epi
+      )
+{
+          //  Pt2dr ToFullEpiCoord(const Pt2dr & aP) { return mP0Epi + aP * mStep; }
+          // Pt2dr aPEpi = ToFullEpiCoord(aPInd);
+          // Pt2dr aPIm =  anEpi->Inverse(aPEpi);
+          //  aPIm  = Inver(aPEpi+P0)
+          //  PEpi = 
+    std::list<Appar23> aLCor;
+    Pt2dr aInfEpi( 1e20, 1e20);
+    Pt2dr aSupEpi(-1e20,-1e20);
+    Pt2dr aSzEpi = aP1Epi - aP0Epi;
+    for (const auto & aP : aLT1)
+    {
+        Pt2dr aPEpi =  anEpi.Direct(aP.pim) - aP0Epi;
+        aInfEpi = Inf(aPEpi,aInfEpi);
+        aSupEpi = Sup(aPEpi,aSupEpi);
+        // std::cout << aP.pim << " " << anEpi.Direct(aP.pim) - aP0Epi << " " << anEpi.Inverse(aP.pim) +aP0Epi << "\n";
+        aLCor.push_back(Appar23(aPEpi,aP.pter));
+    }
+    std::string aN1 = Is1 ? mName1 : mName2 ;
+    std::string aN2 = Is1 ? mName2 : mName1 ;
+
+    std::string aNameAp = mICNM->NameAppuiEpip(mOri,aN1,aN2);
+
+
+    cListeAppuis1Im  aLAp =  El2Xml(aLCor,aN1);
+    MakeFileXML(aLAp,aNameAp);
+    std::cout << "======  MakeAppuis ====== " << aInfEpi  << " :: " << aSupEpi -aSzEpi << "\n";//  getchar();
+}
+
 
 
     // std::string  aNameEpi = Is1?"ImEpi1.tif":"ImEpi2.tif";
@@ -715,7 +715,8 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mWithOri   (true),
    mNbBloc    (2000),
    mDegSupInv (4),
-   mEpsCheckInv (1e-1)
+   mEpsCheckInv (1e-1),
+   mMakeAppuis  (false)
 {
     Tiff_Im::SetDefTileFile(50000);
     std::string aDir= ELISE_Current_DIR;
@@ -798,6 +799,9 @@ if (!MMVisualMode)
 
      if ((!mWithOri) || (mGenI1->DownCastCS()==0) || (mGenI2->DownCastCS()==0) || mForceGen)
      {
+         // In case Generik, by default we create Appuis
+         if (!EAMIsInit(&mMakeAppuis))
+            mMakeAppuis = true;
 
          if (! EAMIsInit(&mDegre))
          {

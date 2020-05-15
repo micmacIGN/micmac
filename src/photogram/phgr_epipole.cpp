@@ -47,6 +47,37 @@ Header-MicMac-eLiSe-25/06/2007*/
 /*    EpipolaireCoordinate                       */
 /*                                               */
 /*************************************************/
+void EpipolaireCoordinate::SaveOrientEpip
+              (
+                  const std::string &                anOri,
+                  cInterfChantierNameManipulateur *  anICNM,
+                  const std::string &                aNameIm,
+                  const std::string &                aNameOther
+               ) const
+{
+   //   anOri + aNameIm + aNameOther + Ori(aNameIm) + Ori(aNameOther)  +  OrientationItself
+   std::string  aNameFile = anICNM->NameOrientEpipGen(anOri,aNameIm,aNameOther);
+
+   /*std::string  aNameFile = anICNM->Assoc1To2
+                        (
+                            "NKS-Assoc-CplIm2OriGenEpi@"+anOri+"@txt",
+                            aNameIm,aNameOther,true
+                        );
+   */
+   ELISE_fp  aFile(aNameFile.c_str(),ELISE_fp::WRITE,false,ELISE_fp::eTxtTjs);
+
+
+   aFile.write(anOri);
+   aFile.write(aNameIm);
+   aFile.write(anICNM->StdNameCamGenOfNames(anOri,aNameIm));
+   aFile.write(aNameOther);
+   aFile.write(anICNM->StdNameCamGenOfNames(anOri,aNameOther));
+
+   CastToPol()->write(aFile);
+   aFile.close();
+}
+
+
 
 
 void EpipolaireCoordinate::HeriteChScale(EpipolaireCoordinate & anEC,REAL aChSacle)
@@ -446,6 +477,18 @@ CpleEpipolaireCoord::~CpleEpipolaireCoord()
    delete mEPI2;
 }
 
+void CpleEpipolaireCoord::SaveOrientCpleEpip
+     (
+                  const std::string &                anOri,
+                  cInterfChantierNameManipulateur *  anICNM,
+                  const std::string &                aName1,
+                  const std::string &                aName2
+     ) const
+{
+    EPI1().SaveOrientEpip(anOri,anICNM,aName1,aName2);
+    EPI2().SaveOrientEpip(anOri,anICNM,aName2,aName1);
+}
+
 
 bool  CpleEpipolaireCoord::IsMappingEpi1() const
 {
@@ -550,17 +593,10 @@ Pt2dr CpleEpipolaireCoord::Homol(Pt2dr aP,Pt2dr aParalaxe,bool Sens12)
 
 
 
-
-
-
-EpipolaireCoordinate & CpleEpipolaireCoord::EPI1()
-{
-   return *mEPI1;
-}
-EpipolaireCoordinate & CpleEpipolaireCoord::EPI2()
-{
-   return *mEPI2;
-}
+const EpipolaireCoordinate & CpleEpipolaireCoord::EPI1() const { return *mEPI1; }
+const EpipolaireCoordinate & CpleEpipolaireCoord::EPI2() const { return *mEPI2; }
+EpipolaireCoordinate & CpleEpipolaireCoord::EPI1() { return *mEPI1; }
+EpipolaireCoordinate & CpleEpipolaireCoord::EPI2() { return *mEPI2; }
 
 /*
     On cherche a resoudre dans les reperes epipolaire (liés aux directio aDir1, 
