@@ -245,7 +245,13 @@ cListeAppuis1Im  El2Xml(const std::list<Appar23> & aLAp,const std::string &aName
    aRes.NameImage().SetVal(aNameImage);
    TEl2Xml(aRes.Mesures(),aLAp);
 
-    return aRes;
+   int aCpt=0;
+   for (auto & aP : aRes.Mesures())
+   {
+      aP.Num() = aCpt++;
+   }
+
+   return aRes;
 }
 
 

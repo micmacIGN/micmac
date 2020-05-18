@@ -105,11 +105,16 @@ MMV2DirMatchTieP=${MMV2DirSrc}MatchTieP/
 SrcMatchTieP=$(wildcard ${MMV2DirMatchTieP}*.cpp)
 ObjMatchTieP=$(SrcMatchTieP:.cpp=.o)
 #
+#
+MMV2DirGraphs=${MMV2DirSrc}Graphs/
+SrcGraphs=$(wildcard ${MMV2DirGraphs}*.cpp)
+ObjGraphs=$(SrcGraphs:.cpp=.o) 
+#
 #    => Le Main
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso} 
+OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs}
 #
 #=========  Header ========
 #
@@ -129,7 +134,7 @@ ${MMV2DirIncl}/CodeGen_IncludeAll.h: ${MMV2_CODEGEN}
 	@echo "* Generating Formulas code"
 	( cd ${MMV2DirIncl} && ${MMV2_CODEGEN} )
 
-HEADER:= ${HEADER} ${MMV2DirIncl}/CodeGen_IncludeAll.h
+HEADER:=$(filter-out ${MMV2DirIncl}CodeGen%.h,${HEADER})
 
 ${MMV2_CGEN_DIR}/%.o :  ${MMV2_CGEN_DIR}/%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
@@ -138,7 +143,7 @@ MMV2_TCGEN_SRCS=$(filter-out ${MMV2_CGEN_SRC},$(wildcard ${MMV2_CGEN_DIR}/*.cpp)
 MMV2_TCGEN_OBJS=${MMV2_TCGEN_SRCS:.cpp=.o}
 OBJ:=${OBJ} ${MMV2_TCGEN_OBJS}
 
-${MMV2_TCGEN_OBJS}: ${HEADER} ${MMV2_CGEN_DIR}/TestCodeGenTpl.h
+${MMV2_TCGEN_OBJS}: ${HEADER} ${MMV2_CGEN_DIR}/TestCodeGenTpl.h ${MMV2DirIncl}/CodeGen_IncludeAll.h
 
 ${OBJ}: | ${MMV2_CODEGEN}
 
@@ -199,6 +204,8 @@ ${MMV2DirImagesInfoExtract}%.o :  ${MMV2DirImagesInfoExtract}%.cpp   ${HEADER}
 ${MMV2DirMatrix}%.o :  ${MMV2DirMatrix}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirDIB}%.o :  ${MMV2DirDIB}%.cpp   ${HEADER} ${MMV2DirDIB}*.h
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirGraphs}%.o :  ${MMV2DirGraphs}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 #
 #       ===== TEST ========================================

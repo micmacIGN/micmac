@@ -14,14 +14,14 @@
            time maybe optimistic for praticall case as with this algoritm we get 
            longer time for shortest dist, and pratically we may have more short dist
            (with the simulation Avg=1.5 on all pair, but Avg=2.7 with pair corresponding
-            to Dist<=3)
+           to Dist<=3)
 
     All the library is in the namespace NS_MMVII_FastTreeDist.
 */
 
 
 // Set false for external use, set true inside MMMVII to benefit from functionality
-// that will check correctness
+// with additionnal correctness checking
 #define WITH_MMVII false
 
 
@@ -38,17 +38,10 @@ class cMemCheck
 #include <vector>
 #include <iostream>
 #include <algorithm>
-
-// Some basic rand function defined in MMVII, used to generated random tree
-int RandUnif_N(int aNb) { return rand() % aNb; }
-#define NB_RAND_UNIF 1000000
-float RandUnif_0_1() { return RandUnif_N(NB_RAND_UNIF) / float(NB_RAND_UNIF); }
-
 #endif   //========================================================== WITH_MMVI
 
 namespace NS_MMVII_FastTreeDist
 {
-
 /* ======================================= */
 /* ======================================= */
 /* =                                     = */ 
@@ -67,6 +60,9 @@ class cAdjGraph;
 // auxilary, a "cFastTreeDist" contains several "cOneLevFTD"
 class cOneLevFTD;   
 
+// class to test the validity of the implementation (definition at end of file)
+class cOneBenchFastTreeDist;
+
 /* ======================================= */
 /* ======================================= */
 /* =                                     = */ 
@@ -76,11 +72,46 @@ class cOneLevFTD;
 /* ======================================= */
 
 /**
-    A class for compact representation of graph as adjacency list (ie for each submit
+    A class for compact representation of graph as adjacency list (ie for each summit
    offer direct access to the set of its neighboor).
 
      Not especially flexible, rather targeted for specialized algoritm. Could easily 
    evolve to a weighted version.
+*/
+
+/*  Example of graph representation by adjajency in this implementation
+  
+Call to InitAdj  :
+        (
+              {0,2,3,3,5,7,9},
+              {1,0,4,0,6,6,10}
+        );
+Corresponding to graph :
+    1
+     \
+      0-3-4   5-6-7 8  9-10
+     /
+    2
+
+We get for  mBeginNeigh mEndNeigh; mBufNeigh; 
+
+mBufNeigh:    | 1 | 2 | 3 | 0 | 0 | 0 | 4 | 3 | 6 | 5 | 7 | 6  ...
+              ^           ^   ^   ^       ^   ^ 
+mBeginNeigh   0           1   2   3       4   5
+mEndNeigh                 0   1   2       3   4
+
+Note that we cannot use  mEndNeigh[X] = mBeginNeigh[X+1] in the implemantation,
+to econmize on vector.  Because this property , true a creation,
+disappear after suppression ,at least with the fast
+suppression we use, and we need to supress edge
+
+For example, if we suppres 1, we get :
+
+mBufNeigh:    | 2 | 3 |###|###| 0 | 0 | 4 | 3 | 6 | 5 | 7 | 6
+              ^           ^   ^   ^       ^   ^ 
+mBeginNeigh   0           1   2   3       4   5
+mEndNeigh              0  1       2       3   4
+
 */
 
 class cAdjGraph  : public cMemCheck
@@ -89,28 +120,28 @@ class cAdjGraph  : public cMemCheck
        /// We dont want unvolontar copy
        cAdjGraph(const cAdjGraph &) = delete;
 
-       /// create with number of submit, reserve the memory that can be allocat
-       cAdjGraph(const int & aNbSom);
+       /// create with number of summit, reserve the memory that can be allocat
+       inline cAdjGraph(const int & aNbSom);
 
        /** Creat edge for each pair (aVS1[aK],aVS2[aK]), put it 2 way ,
            remove potential exsiting edge. */
-       void InitAdj(const std::vector<int> & aVS1,const std::vector<int> & aVS2); 
+       inline void InitAdj(const std::vector<int> & aVS1,const std::vector<int> & aVS2); 
 
-       void SupressAdjSom(const int aS); ///< Supress all the neigboor of S in two way
-       int  NbNeigh(int) const;  ///<  Number of neigboor
-       void Show() const; ///< Print a representation
+       inline void SupressAdjSom(const int aS); ///< Supress all the neigboor of S in two way
+       inline int  NbNeigh(int) const;  ///<  Number of neigboor
+       inline void Show() const; ///< Print a representation
        
        /// Check that the connected component has no cycle
-       void  CheckIsTree(const std::vector<int> & aCC) const; 
+       inline void  CheckIsTree(const std::vector<int> & aCC) const; 
        /// Compute distance with basic algorithm; used here to check the fast implementation
-       int RawDist(int aS0,int aS1) const;
+       inline int BasicDist(int aS0,int aS1) const;
 
        /// Compute connected component
-       void CalcCC(std::vector<int> & aRes,int aS0,std::vector<int> & aMarq,int aMIn,int aMOut);
+       inline void CalcCC(std::vector<int> & aRes,int aS0,std::vector<int> & aMarq,int aMIn,int aMOut);
     protected :
         void AssertOk(int aNumS) const; ///< Check num is valide range
 
-        int mNbSom;                        ///< Number of submits
+        int mNbSom;                        ///< Number of summits
         std::vector<int *>    mBeginNeigh; ///< Pointer to begin of neighoor
         std::vector<int *>    mEndNeigh;   ///< Pointer to end   of neighboor
         std::vector<int>      mBufNeigh;   ///< Buffer to store the neigh (Begin/end point in it)
@@ -124,7 +155,7 @@ class cOneLevFTD : public cMemCheck
     public :
         friend class cFastTreeDist;
         
-        cOneLevFTD(int aNbSom); ///< create alloocating data
+        inline cOneLevFTD(int aNbSom); ///< create alloocating data
     private :
         std::vector<int>      mDistTop; ///< distance to subtree top
         std::vector<int>      mLabels;  ///< Label of subtree
@@ -134,9 +165,9 @@ class cOneLevFTD : public cMemCheck
 /**  class offering all necessary services for fast computation of dist in a tree.
      Interface is limited to 3 method
 
-       1- cFastTreeDist => constructor, allocate memory with a number N of submit
+       1- cFastTreeDist => constructor, allocate memory with a number N of summit
        2- MakeDist  => make the precomputation on give set of edges, time "N log(N)"
-       3-  Dist => compute the dist between two subimit, time log(N) in worst case 
+       3-  Dist => compute the dist between two summit, time log(N) in worst case 
        
 */
 
@@ -147,34 +178,39 @@ class cFastTreeDist : private cAdjGraph
             /// Copy has no added value, so forbid it to avoid unwanted use
         cFastTreeDist(const cFastTreeDist &) = delete;
             /// just need to know the number of summit to allocate
-        cFastTreeDist(const int & aNbSom);
+        inline cFastTreeDist(const int & aNbSom);
         
         /**  Make all the computation necessary to compute dist, if the graph is
         not a forest, generate an error */
         
-        void MakeDist(const std::vector<int> & aVS1,const std::vector<int> & aVS2); 
+        inline void MakeDist(const std::vector<int> & aVS1,const std::vector<int> & aVS2); 
 
-        /// compute the distance between two submit; return -1 if not connected
-        int Dist(int aI1,int aI2) const;
+        /// compute the distance between two summit; return -1 if not connected
+        inline int Dist(int aI1,int aI2) const;
 
         /// Not 4 computation. Usefull only to make empiricall stat on the number of step
-        int TimeDist(int aI1,int aI2) const;
+        inline int TimeDist(int aI1,int aI2) const;
 
     private :
-        void RecComputeKernInd(int aS);
-        void ComputeKernInd(int aS);
+        /// Compute, rescursively, the Quality of S a Origin of a sub tree
+        inline void ComputeQualityPivot(int aS);
 
-        void Explorate(int aS,int aLev,int aNumCC);
+        /** Explorate, recursively, the connected component :
+            - S a summit the "seed" of the CC
+            - aLev = the   Level in the recursive call
+            - aNumCC = num of the CC, used a level 1 to memorize if 2 summit are connected
+        */
+        inline void Explorate(int aS,int aLev,int aNumCC);
 
-        bool mShow;
-        int  mNbLevel;
+        bool mShow;         ///< Print message ?
+        int  mNbLevel;      ///< Number max of level,
         std::vector<int>    mMarq;      ///< Marker used for connected component (CC)
         std::vector<int>    mNumInsideCC;   ///< reach order in CC, used for orienting graph
         std::vector<int>    mNbDesc;    ///< Number of descend in the oriented tree
-        std::vector<int>    mOrigQual;  ///< Quality  to select  as Origin
+        std::vector<int>    mPivotQual;  ///< Quality  to select  as Origin
         std::vector<int>    mNumCC;     ///< Num of initial CC, special case for dist
 
-        std::vector<cOneLevFTD> mLevels;
+        std::vector<cOneLevFTD> mLevels;  ///< Stack of levels in recursive split
 };
 
 /* ======================================= */
@@ -195,6 +231,11 @@ cAdjGraph::cAdjGraph(const int & aNbSom) :
     mEndNeigh   (mNbSom,nullptr)
 {
 }
+
+/*  For example
+
+
+*/
 
 void cAdjGraph::InitAdj(const std::vector<int> & aVS1,const std::vector<int> & aVS2)
 {
@@ -264,6 +305,7 @@ void cAdjGraph::Show() const
 void cAdjGraph::SupressAdjSom(const int aS1)
 {
     AssertOk(aS1);
+    // 1- Parse the neighoor S2 of S1, and supress S1 in the neighboor of S2
     for (auto aS2 = mBeginNeigh[aS1] ; aS2 <mEndNeigh[aS1] ; aS2++)
     {
         int * aBS2In = mBeginNeigh[*aS2]; 
@@ -278,7 +320,7 @@ void cAdjGraph::SupressAdjSom(const int aS1)
         // Less succ to *aS2
         mEndNeigh[*aS2] = aBS2Out;
     }
-    // No succ to S1
+    //2- Set  No succ to S1
     mEndNeigh[aS1] = mBeginNeigh[aS1];
 }
 
@@ -297,8 +339,10 @@ void cAdjGraph::CalcCC(std::vector<int> & aRes,int aS0,std::vector<int> & aMarq,
     while (aKS != int(aRes.size()))
     {
         int aS = aRes[aKS];
+        // Parse neigh of current som
         for (auto aNeigh = mBeginNeigh[aS] ; aNeigh <mEndNeigh[aS] ; aNeigh++)
         {
+            // If not explored marq it and add it to Res
             if (aMarq[*aNeigh] == aMIn)
             {
                 aMarq[*aNeigh] = aMOut;
@@ -308,12 +352,12 @@ void cAdjGraph::CalcCC(std::vector<int> & aRes,int aS0,std::vector<int> & aMarq,
         aKS ++;
     }
 }
-int cAdjGraph::RawDist(int aS0,int aS1) const
+int cAdjGraph::BasicDist(int aS0,int aS1) const
 {
     //if (aS0==aS1) 
        //return 0;
     std::vector<int> aVMarq(mNbSom,0);
-    std::vector<int> aVSom;   ///< Submit of component
+    std::vector<int> aVSom;   ///< Summits of component
 
     aVMarq[aS0] = 1;
     aVSom.push_back(aS0);     //  Add it  to component
@@ -323,6 +367,7 @@ int cAdjGraph::RawDist(int aS0,int aS1) const
 
     while (aK0!=aK1)
     {
+        // Here we explore by "generation" to keep track of distance
         for (int aK=aK0; aK<aK1; aK++)
         {
            int aS = aVSom[aK];
@@ -347,7 +392,7 @@ int cAdjGraph::RawDist(int aS0,int aS1) const
 
 void   cAdjGraph::CheckIsTree(const std::vector<int> & aCC) const
 {
-   //  Check there is no cycle by consistency nb submit/ nb edges
+   //  Check there is no cycle by consistency nb summit/ nb edges
    int aNbE=0;
    for (const auto & aS : aCC)
        aNbE +=   NbNeigh(aS);
@@ -381,31 +426,19 @@ cFastTreeDist::cFastTreeDist(const int & aNbSom) :
     mMarq        (aNbSom,-1),
     mNumInsideCC (aNbSom),
     mNbDesc      (aNbSom),
-    mOrigQual    (aNbSom),
-    mNumCC       (aNbSom,-1)
+    mPivotQual    (aNbSom),
+    mNumCC       (aNbSom,-1),
+    mLevels      (mNbLevel,cOneLevFTD(aNbSom))
 {
-    mLevels.reserve(mNbLevel);
-    cOneLevFTD aLev(aNbSom);
-    for (int aK=0 ; aK<mNbLevel ; aK++)
-        mLevels.push_back(aLev);
 }
 
-void cFastTreeDist::ComputeKernInd(int aS1)
-{
-/*
-    mOrigQual[aS1] = 0;
-    for (auto aPS2 = mBeginNeigh[aS1] ; aPS2 <mEndNeigh[aS1] ; aPS2++)
-        mOrigQual[aS1] = std::max(mOrigQual[aS1],mNbDesc[*aPS2]);
-*/
 
-}
-
-void cFastTreeDist::RecComputeKernInd(int aS1)
+void cFastTreeDist::ComputeQualityPivot(int aS1)
 {
     // Compute the indicator itself
-    mOrigQual[aS1] = 0;
+    mPivotQual[aS1] = 0;
     for (auto aPS2 = mBeginNeigh[aS1] ; aPS2 <mEndNeigh[aS1] ; aPS2++)
-        mOrigQual[aS1] = std::max(mOrigQual[aS1],mNbDesc[*aPS2]);
+        mPivotQual[aS1] = std::max(mPivotQual[aS1],mNbDesc[*aPS2]);
 
     // Now recursive formula
     for (auto aPS2 = mBeginNeigh[aS1] ; aPS2 <mEndNeigh[aS1] ; aPS2++)
@@ -421,7 +454,7 @@ void cFastTreeDist::RecComputeKernInd(int aS1)
            mNbDesc[aS1] -= aNbDesc2;
            mNbDesc[*aPS2] += mNbDesc[aS1];
            // recursive call 
-           RecComputeKernInd(*aPS2);
+           ComputeQualityPivot(*aPS2);
 
            // Restore previous value
            mNbDesc[aS1] = aNbDesc1;
@@ -484,15 +517,15 @@ void cFastTreeDist::Explorate(int aS0,int aLev,int aNumCC)
         }
    }
    //4- Make the computation of quality as origin on all the component
-   RecComputeKernInd(aS0);
+   ComputeQualityPivot(aS0);
  
    //5- The kern is the summit minimizing the kern indicator
    int aBestOrig    = aCC[0];
-   int aQualOrig =  mOrigQual[aBestOrig];
+   int aQualOrig =  mPivotQual[aBestOrig];
    for (int aK=1 ; aK<int(aCC.size()) ; aK++)
    {
        int aS = aCC[aK];
-       int aCrit = mOrigQual[aS];
+       int aCrit = mPivotQual[aS];
        if (aCrit<aQualOrig)
        {
            aBestOrig  = aS;
@@ -544,7 +577,7 @@ void cFastTreeDist::Explorate(int aS0,int aLev,int aNumCC)
            std::cout << " [" 
                      << aS            << "," 
                      << mNbDesc[aS]   << "," 
-                     << mOrigQual[aS] << ","
+                     << mPivotQual[aS] << ","
                      << aDistTop[aS] << ","
                      << aLabels[aS] 
                      << "]";
@@ -560,7 +593,7 @@ void cFastTreeDist::Explorate(int aS0,int aLev,int aNumCC)
     {
         if ((aS!=aBestOrig) && (mMarq[aS]==aLev))
         {
-            Explorate(aS,aLev+1,-1);  // NumCC unused after lev 0
+            Explorate(aS,aLev+1,-1);  // -1 for NumCC as it is unused after lev 0
         }
     }
 }
@@ -615,50 +648,78 @@ int cFastTreeDist::Dist(int aI1,int aI2) const
    return 0;
 }
 
-   
-};
+/* ---------------------------------- */
+/* |   cOneBenchFastTreeDist        | */
+/* ---------------------------------- */
+
+#if (! WITH_MMVII)
+// Some basic rand function defined in MMVII, used to generated random tree
+inline int RandUnif_N(int aNb) { return rand() % aNb; }
+#define NB_RAND_UNIF 1000000
+inline float RandUnif_0_1() { return RandUnif_N(NB_RAND_UNIF) / float(NB_RAND_UNIF); }
+#endif
 
 
-namespace MMVII
-{
+/** Class to check correctness of implemantion. Basically, the serice offered in
+    the main method are :
+
+      - create random forest to test many configuration
+      - compute fast dist  on any pair of summit
+      - compute distance with basic method
+      - check that the two computation give the same result
+*/
 
 class cOneBenchFastTreeDist
 {
     public :
-  
-      cOneBenchFastTreeDist(int aNbSom,int aNbCC);
-      void DoOne();
-    private :
-      typedef NS_MMVII_FastTreeDist::cFastTreeDist tFTD;
-      typedef NS_MMVII_FastTreeDist::cAdjGraph     tAdjG;
+      inline cOneBenchFastTreeDist(int aNbSom,int aNbCC);
+      inline void MakeOneTest(bool Show,bool ChekDist);
 
-      int                mNbSom;
-      int                mNbCC;
-      tFTD               mFTD;
-      tAdjG              mAdjG;
+      double  AvgT() {return mSomAvgT / mNbTest;}
+      double  SomAvgLowT() {return mSomAvgLowT / mNbTest;}
+
+    private :
+      int                mNbSom; ///< Number of summit
+      int                mNbCC;  ///< Number of connected components
+      cFastTreeDist      mFTD;   ///< Fast tree to compute fast distance
+      cAdjGraph          mAdjG;  ///< Adjence Graph to check validity of fast distance
+
+      int                mNbTest;
+      double             mSomAvgT;
+      double             mSomAvgLowT;
 };
 
 cOneBenchFastTreeDist::cOneBenchFastTreeDist(int aNbSom,int aNbCC) :
    mNbSom  (aNbSom),
    mNbCC   (std::min(aNbCC,aNbSom)),
    mFTD    (mNbSom),
-   mAdjG   (mNbSom)
+   mAdjG   (mNbSom),
+   mNbTest (0),
+   mSomAvgT(0.0),
+   mSomAvgLowT(0.0)
    // mGr     (nullptr)
 {
 }
 
-void cOneBenchFastTreeDist::DoOne()
-{
+void cOneBenchFastTreeDist::MakeOneTest(bool Show,bool CheckDist)
+{ 
+    mNbTest ++;
+    //========= 1 Generate a random forest with mNbCC components =====================
+
+          //  ----  1.1 generate the label of the CC -------------
     std::vector<std::vector<int>> aVCC(mNbCC); // set of connected components
     for (int aK=0 ; aK<mNbSom ; aK++)
     {
-        aVCC.at(RandUnif_N(mNbCC)).push_back(aK);
+        int aNum = RandUnif_N(mNbCC); 
+        aVCC.at(aNum).push_back(aK);  // Add a summit inside the CC aNum
     }
 
+          //  ----  1.2 generate the graph -------------
     std::vector<int> aV1;
     std::vector<int> aV2;
-    for (auto & aCC : aVCC)
+    for (auto & aCC : aVCC) // For each CC
     {
+        // order randomly the CC
         std::vector<double> aVR;
         for (int aK=0 ; aK<int(aCC.size()) ; aK++)
         {
@@ -671,38 +732,41 @@ void cOneBenchFastTreeDist::DoOne()
         );
         for (int aK1=1 ; aK1<int(aCC.size()) ; aK1++)
         {
-             // On doit tirer dans [0,K[ en privilegiant les valeur haute
-             //  pour avoir des  chaines longue
-             double aPds = sqrt(RandUnif_0_1());
-             int aK2 = floor(aPds*aK1);
-             aK2 = std::max(0,std::min(aK2,aK1-1));
+             // We add CC[aK] to  the already created tree we select
+             // randomly a summit inside this tree
+             double aPds = sqrt(RandUnif_0_1());  // Bias to have longer chain
+             int aK2 = floor(aPds*aK1);  // we rattach K1 to K2
+             aK2 = std::max(0,std::min(aK2,aK1-1));  // to be sure that index is correct
              aV1.push_back(aCC[aK1]);
              aV2.push_back(aCC[aK2]);
         }
     }
-    mFTD.MakeDist(aV1,aV2);
-    mAdjG.InitAdj(aV1,aV2);
+    mFTD.MakeDist(aV1,aV2);  // Create Dist with this graph
+    mAdjG.InitAdj(aV1,aV2);  // Make a copy of the same graph for checking
 
-    for (int aS1=0 ; aS1<mNbSom ; aS1++)
+    if (CheckDist)
     {
-        for (int aS2=0 ; aS2<mNbSom ; aS2++)
-        {
-            int aD= mFTD.Dist(aS1,aS2);
-            int aD2= mAdjG.RawDist(aS1,aS2);
-            assert(aD==aD2);
-        }
+       for (int aS1=0 ; aS1<mNbSom ; aS1++)
+       {
+           for (int aS2=0 ; aS2<mNbSom ; aS2++)
+           {
+               int aD= mFTD.Dist(aS1,aS2);  // Fast distance
+               int aD2= mAdjG.BasicDist(aS1,aS2);  // Easy algorihtm to check
+               assert(aD==aD2);
+           }
+       }
     }
 
-
-    if (mNbCC==1)
+    // If 1 Connected component make stat on the time for distance
+    if ( (mNbCC==1) && (mNbSom>1))
     {
-       int aNbTest =0;
-       int aSomT  =0;
-       int aMaxT  =0;
+       int aNbTest =0;  // Number of test
+       int aSomT  =0;   // Sum of time (=number of step)
+       int aMaxT  =0;   // Max of time
 
-       const int aSeuiLowD = 3;
-       int aSomLowD  = 0;
-       int aNbLowD   = 0;
+       const int aThresholdD = 3;  // Threshold for "low" distances
+       int aSomTLowD  = 0;   // Sum of time on low distances
+       int aNbLowD   = 0;   // number of test on low distance
 
        for (int aS1=0 ; aS1<mNbSom ; aS1++)
        {
@@ -713,66 +777,76 @@ void cOneBenchFastTreeDist::DoOne()
                int aT = mFTD.TimeDist(aS1,aS2);
                aSomT += aT;
                aMaxT = std::max(aMaxT,aT);
-               if (aD<=aSeuiLowD)
+               if (aD<=aThresholdD)
                {
-                  aSomLowD += aT;
+                  aSomTLowD += aT;
                   aNbLowD++;
                }
            }
        }
-       std::cout << "Nb=" << mNbSom  
-                 << " AvgT=" << aSomT/double(aNbTest) 
-                 << " MaxT=" << aMaxT
-                 << " AvgLow=" << aSomLowD/double(aNbLowD) 
-                 << "\n";
+       mSomAvgT += aSomT/double(aNbTest);
+       mSomAvgLowT += aSomTLowD/double(aNbLowD);
+       if (Show)
+       {
+          std::cout << "Nb=" << mNbSom  
+                    << " AvgT=" << aSomT/double(aNbTest) 
+                    << " MaxT=" << aMaxT
+                    << " AvgTLow=" << aSomTLowD/double(aNbLowD) 
+                    << "\n";
+       }
     }
 }
 
-void OneBenchFastTreeDist(int aNbSom,int aNbCC)
+/* ---------------------------------- */
+/* |   Global function              | */
+/* ---------------------------------- */
+
+inline void OneBenchFastTreeDist(int aNbSom,int aNbCC,bool Show)
 {
     cOneBenchFastTreeDist aBFTD(aNbSom,aNbCC);
 
+    // We call 4 MakeOneTest to check that several call to MakeDist on the same cFastTreeDist is fine
     for (int aK=0 ; aK<4 ; aK++)
     {
-        aBFTD.DoOne();
+        aBFTD.MakeOneTest(Show,true);
     }
-    std::cout << "DONNE  "<<  aNbSom << " " << aNbCC << "\n";
+    if (Show)
+       std::cout << "DONNE  "<<  aNbSom << " " << aNbCC << "\n";
 }
 
-
-void BenchFastTreeDist()
+inline void AllBenchFastTreeDist(bool Show)
 {
-    for (int aNb=1 ; aNb<15 ; aNb++)
+    for (int aNb=1 ; aNb<=15 ; aNb++)
     {
-         int aNb2 = aNb*aNb;
-         OneBenchFastTreeDist(aNb2,1);
-         OneBenchFastTreeDist(aNb2,2);
-         OneBenchFastTreeDist(aNb2,3);
+        // We want to test various size , including high size, but to go relatively faste
+        // test only square 1 4 9 ... 225
+        int aNb2 = aNb*aNb;
+        // We test we various number of connected components
+        OneBenchFastTreeDist(aNb2,1,Show);
+        OneBenchFastTreeDist(aNb2+1,2,Show);
+        OneBenchFastTreeDist(aNb2+2,3,Show);
     }
+}
 
-
-    NS_MMVII_FastTreeDist::cFastTreeDist aFTD(11);
-/*
-    1
-     \
-      0-3-4   5-6-7 8  9-10
-     /
-    2
-*/
-/*
-    aFTD.MakeDist
-    (
-       {0,2,3,3,5,7,9},
-       {1,0,4,0,6,6,10}
-    );
-*/
-/*
-    aFTD.Show();
-
-    aFTD.SupressAdjSom(2);
-    aFTD.Show();
-*/
+inline void StatTimeBenchFastTreeDist()
+{
+    for (int aNb=2 ; aNb<=30 ; aNb++)
+    {
+        int aNb2 = aNb*aNb;
+        cOneBenchFastTreeDist aBFTD(aNb2,1);
+        for (int aK=0 ; aK<20 ; aK++)
+        {
+            aBFTD.MakeOneTest(false,false);
+        }
+        std::cout << "Nb " << aNb2 
+                  << " " << aBFTD.AvgT()  
+                  << " " << aBFTD.SomAvgLowT()
+                  << " " << aBFTD.SomAvgLowT() / log(aNb2)
+                  << "\n";
+    }
 }
 
 };
+
+
 

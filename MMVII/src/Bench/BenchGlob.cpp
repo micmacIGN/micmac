@@ -11,6 +11,9 @@
 
 */
 
+// #include "include/TreeDist.h"
+
+
 
 namespace MMVII
 {
@@ -221,6 +224,8 @@ int  cAppli_MMVII_Bench::Exe()
 
    // Test Fast Tree Dist
    BenchFastTreeDist();
+   //NS_MMVII_FastTreeDist::AllBenchFastTreeDist(true);
+
    // Test jets
    BenchMyJets();
 
