@@ -1268,6 +1268,22 @@ if(1)
 
 
     }
+    else if (aType == eTIGB_MMEpip)
+    {
+
+        /* Grid in 3D */
+        std::vector<Pt3dr> aGrid3D,aGrid3DTest;
+        /* Grid in 2D */
+        std::vector<Pt3dr> aGrid2D,aGrid2DTest;
+
+        /*
+        CalculRPC(aGrid3D, aGrid2D,
+                  aGrid3DTest, aGrid2DTest,
+                  mDirSNum, mDirLNum, mDirSDen, mDirLDen,
+                  mInvSNum, mInvLNum, mInvSDen, mInvLDen, 1);
+        */
+
+    }
     /*else if (aType == eTIGB_MMASTER)
     {
 	   AsterMetaDataXML(aNameFile);
@@ -3945,6 +3961,32 @@ void cRPC::ReadScanLineSensor(const std::string &aFile,
     mImRows[1] = aXml.ImSz().y-1;
     mImCols[0] = 0;
     mImCols[1] = aXml.ImSz().x-1;*/
+
+
+}
+
+void cRPC::ReadEpiGrid(const std::string &aFile,
+                             std::vector<Pt3dr> & aG3d,    std::vector<Pt3dr> & aG2d,
+                             std::vector<Pt3dr> & aG3dTest,std::vector<Pt3dr> & aG2dTest)
+{
+
+    /* Read the grids */
+    std::string aGCPGrFile = StdPrefix(aFile)+"-S3D.xml";
+    cDicoAppuisFlottant aGrSet=StdGetFromPCP(aGCPGrFile,DicoAppuisFlottant);
+
+    std::string aGCPImFile = StdPrefix(aFile)+"-S2D.xml"; 
+    cSetOfMesureAppuisFlottants aImSet=StdGetFromPCP(aGCPImFile,SetOfMesureAppuisFlottants);
+  
+
+    /* Fill the grids */
+    std::cout << "size GrSet=" << aGrSet.OneAppuisDAF().size() << ",\n" 
+              << "size ImSet=" << aImSet.MesureAppuiFlottant1Im().size() << "\n";
+
+    
+    /* Initialise the min/max ground coords */
+   
+
+    /* Initialise the min/max img coords */
 
 
 }

@@ -41,6 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 //#include "general/CMake_defines.h"
 #include "graphes/cNewO_BuildOptions.h"
+#include <random>
 
 #ifdef GRAPHVIZ_ENABLED
 	#include  <graphviz/gvc.h>
@@ -164,6 +165,13 @@ class cNOSolIn_Triplet
 		  float   CostArcMed() const {return mCostArcMed;}
 		  float&  CostArcMed() {return mCostArcMed;}
 		  std::vector<float>& CostArcPerSample() {return mCostArcPerSample;};
+          std::vector<int>& DistArcPerSample() {return mDistArcPerSample;};
+          double   PdsSum() const {return mPdsSum;}
+		  double&  PdsSum() {return mPdsSum;}
+          double   CostPdsSum() const {return mCostPdsSum;}
+		  double&  CostPdsSum() {return mCostPdsSum;}
+
+          double CalcDistArc();
 
           int  & HeapIndex() {return mHeapIndex;}
 
@@ -176,10 +184,13 @@ class cNOSolIn_Triplet
 		  float               mCostArc;
           float               mCostArcMed;
 		  std::vector<float>  mCostArcPerSample;
+          std::vector<int>    mDistArcPerSample;
+          double mPdsSum;//sum of Pds for the computation of the weighted mean
+          double mCostPdsSum;//sum of cost times pds for the computation of the weighted mean
 
           int           mNb3;
           ElTabFlag     mTabFlag;
-          int           mNumCC;//if of its connected component
+          int           mNumCC;//id of its connected component
           int           mNumId;//unique Id throughout all iters
           int           mNumTT;//unique Id equiv of triplet order; each iter
 		  ElRotation3D  mR2on1;
@@ -351,6 +362,7 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 		void CoherTripletsGraphBased(std::vector<cNOSolIn_Triplet *>& aV3);
 		void CoherTripletsGraphBasedV2(std::vector<cNOSolIn_Triplet *>& aV3,int);
 		void CoherTripletsAllSamples();
+        void CoherTripletsAllSamplesMesPond();
 		void HeapPerEdge();
 		void HeapPerSol();
 
@@ -361,6 +373,8 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 
 		void Save(std::string& OriOut,bool SaveListOfName=false);
 		void FreeSomNumCCFlag();
+		void FreeSomNumCCFlag(std::vector<tSomNSI *>);
+		void FreeTriNumTTFlag(std::vector<cNOSolIn_Triplet *>&);
 		void FreeSCur3Adj(tSomNSI *);
 
         std::string mFullPat;
@@ -389,7 +403,7 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
         int             		mNbSamples;
         ElTimer         		mChrono;
 		int                     mIterCur;
-		bool                    mGraphCoher;
+		//bool                    mGraphCoher;
 
 #ifdef GRAPHVIZ_ENABLED
 		GVC_t *GRAPHVIZ_GVCInit(const std::string& aGName);
@@ -418,11 +432,17 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 #endif
 		std::string mGraphName;
 		tHeapTriSolNSI mHeapTriAll;//contains all triplets
-		tHeapTriNSI    mHeapTriDyn;
+		tHeapTriNSI    mHeapTriDyn; 
+
+        double mDistThresh;
+        bool   mApplyCostPds;
+
 };
 
 
 } //SolGlobInit_DFS
+
+class RandUnifQuick;
 
 class cAppliGenOptTriplets : public cCommonMartiniAppli
 {
@@ -431,7 +451,10 @@ class cAppliGenOptTriplets : public cCommonMartiniAppli
 		
 
 	private:
+        
 		ElMatrix<double> RandPeturbR();
+        ElMatrix<double> RandPeturbRGovindu();
+        ElMatrix<double> w2R(double[]);
 
 		std::string mFullPat; 
 		std::string InOri;
@@ -443,8 +466,28 @@ class cAppliGenOptTriplets : public cCommonMartiniAppli
 
 		cElemAppliSetFile    mEASF;
         cNewO_NameManager  * mNM;
-		
+
+		RandUnifQuick * TheRandUnif;
 };
+
+class RandUnifQuick 
+{
+    public:
+        RandUnifQuick(int Seed);
+        double Unif_0_1();
+        ~RandUnifQuick() {}
+
+    private:
+        std::mt19937                     mGen;
+        std::uniform_real_distribution<> mDis01;
+
+};
+/*
+double RandUnif_C()
+{
+   return (RandUnif_0_1()-0.5) * 2.0;
+}
+*/
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

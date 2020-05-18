@@ -83,6 +83,7 @@ typedef enum
   eTIGB_MMIkonos,
   eTIGB_MMASTER,
   eTIGB_MMScanLineSensor,
+  eTIGB_MMEpip,
   eTIGB_NbVals
 } eTypeImporGenBundle;
 void xml_init(eTypeImporGenBundle & aVal,cElXMLTree * aTree);

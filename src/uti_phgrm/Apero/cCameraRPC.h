@@ -289,6 +289,11 @@ class cRPC
                                 std::vector<Pt3dr> &,
                                 std::vector<Pt3dr> &,
                                 std::vector<Pt3dr> &);
+        void ReadEpiGrid(const std::string &,
+                                std::vector<Pt3dr> &,
+                                std::vector<Pt3dr> &,
+                                std::vector<Pt3dr> &,
+                                std::vector<Pt3dr> &);
 
         
         /* Change coordinate system */
