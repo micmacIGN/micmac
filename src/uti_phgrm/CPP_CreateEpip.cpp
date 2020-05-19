@@ -181,15 +181,18 @@ if (MPD_MM())
                 // std::cout << "IPROF " << aIProf * euclid(aPT1-aC1)  << " " << aPT1  << "\n";
 
                 std::vector<Pt2dr> aVPIm2;
-                for (int aKZ = -mNbZ ; aKZ <= mNbZ ; aKZ++)
+                double aNbZSup = mNbZ + (mIntervZIsDef ? 1 : 0); //  if interval Z, add one more
+                for (int aKZ = -mNbZ ; aKZ <= aNbZSup  ; aKZ++)
                 {
                      // Compute P Ground on bundle
                      Pt3dr aPT2 = aC1 + (aPT1-aC1) * (1+(aIProf*aKZ) / mNbZ);
                      // Now if we have interval Z, we are probably in RPC and it imporatnt to "fill" all the space
-                     // we do it by selecting randomly the space
+                     // we do it by selecting one more randomly in the space 
                      if ( mIntervZIsDef)
                      {
-                          double aPds = NRrandom3();
+                          double aPds = (aKZ+mNbZ) / double(2*mNbZ);  // Standard weithin, betwen 0 and 1
+                          if (aKZ > mNbZ)  // if additionnal add a random
+                              aPds = NRrandom3();
                           aPT2 = aG1->ImEtZ2Terrain(aPIm1,mZMin*aPds + mZMax * (1-aPds));
                      }
 
