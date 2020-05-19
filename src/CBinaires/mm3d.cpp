@@ -261,6 +261,8 @@ int  PPMD_MatEss2Orient(int argc,char ** argv);
 int GrapheStereopolis_main(int argc,char ** argv);
 int CheckGCPStereopolis_main(int argc,char ** argv);
 int AnalyseTrajStereopolis_main(int argc,char ** argv);
+int CPP_CalcImScale(int argc,char** argv);
+
 
 
 
@@ -383,6 +385,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("GrapheHom", GrapheHom_main, "Compute XML-Visibility graph from approximate orientation", cArgLogCom(3)));
 		aRes.push_back(cMMCom("GrapheStereopolis", GrapheStereopolis_main,"Compute Pair of Image for Stereopolis", cArgLogCom(2)));
 		aRes.push_back(cMMCom("CheckGCPStereopolis", CheckGCPStereopolis_main,"Check GCP with strategy optimized for Stereopolis-like acquisition", cArgLogCom(2)));
+		aRes.push_back(cMMCom("CalcImScale", CPP_CalcImScale,"Calculate scale of image", cArgLogCom(2)));
 
 
 		aRes.push_back(cMMCom("AnalyseTrajStereopolis", AnalyseTrajStereopolis_main,"Analyse trajectory of Stereopolis-like acquisition", cArgLogCom(2)));
