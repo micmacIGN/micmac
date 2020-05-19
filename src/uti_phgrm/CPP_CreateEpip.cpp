@@ -66,7 +66,8 @@ class cApply_CreateEpip_main
    public :
       cApply_CreateEpip_main(int argc,char ** argv);
 
-     cInterfChantierNameManipulateur * mICNM;
+      cInterfChantierNameManipulateur * mICNM;
+      void  IntervZAddIm(cBasicGeomCap3D *);
 
 
       int    mDegre;
@@ -93,6 +94,9 @@ class cApply_CreateEpip_main
       Pt2dr              mDir1;
       Pt2dr              mDir2;
       bool               mMakeAppuis;
+      bool               mIntervZIsDef;
+      double             mZMin;
+      double             mZMax;
 
       void DoEpipGen();
 
@@ -104,6 +108,16 @@ class cApply_CreateEpip_main
 
 };
 
+void  cApply_CreateEpip_main::IntervZAddIm(cBasicGeomCap3D * aGeom)
+{
+    if (aGeom->AltisSolMinMaxIsDef())
+    {
+        mIntervZIsDef = true;
+        Pt2dr aPZ =aGeom->GetAltiSolMinMax();
+        mZMin= ElMin(mZMin,aPZ.x);
+        mZMax= ElMax(mZMax,aPZ.y);
+    }
+}
 
 // Compute direction of epip in G2 and fill Pack, AddToP1 indicate which way it must be added
 Pt2dr  cApply_CreateEpip_main::DirEpipIm2
@@ -115,8 +129,7 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
             std::list<Appar23> &   aL23
        )
 {
-
-
+   
     Pt2dr aSz =  Pt2dr(aG1->SzBasicCapt3D());
  
 
@@ -172,6 +185,14 @@ if (MPD_MM())
                 {
                      // Compute P Ground on bundle
                      Pt3dr aPT2 = aC1 + (aPT1-aC1) * (1+(aIProf*aKZ) / mNbZ);
+                     // Now if we have interval Z, we are probably in RPC and it imporatnt to "fill" all the space
+                     // we do it by selecting randomly the space
+                     if ( mIntervZIsDef)
+                     {
+                          double aPds = NRrandom3();
+                          aPT2 = aG1->ImEtZ2Terrain(aPIm1,mZMin*aPds + mZMax * (1-aPds));
+                     }
+
                      if (aG1->PIsVisibleInImage(aPT2) && aG2->PIsVisibleInImage(aPT2))
                      {
                         // Add projection
@@ -716,7 +737,10 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mNbBloc    (2000),
    mDegSupInv (4),
    mEpsCheckInv (1e-1),
-   mMakeAppuis  (false)
+   mMakeAppuis  (false),
+   mIntervZIsDef (false),
+   mZMin         (1e20),
+   mZMax         (-1e20)
 {
     Tiff_Im::SetDefTileFile(50000);
     std::string aDir= ELISE_Current_DIR;
@@ -795,6 +819,8 @@ if (!MMVisualMode)
         mGenI1 = mICNM->StdCamGenerikOfNames(anOri,mName1);
         mGenI2 = mICNM->StdCamGenerikOfNames(anOri,mName2);
 
+        IntervZAddIm(mGenI1);
+        IntervZAddIm(mGenI2);
      }
 
      if ((!mWithOri) || (mGenI1->DownCastCS()==0) || (mGenI2->DownCastCS()==0) || mForceGen)
