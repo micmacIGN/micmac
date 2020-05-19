@@ -61,6 +61,7 @@
         <eTIGB_MMIkonos>    </eTIGB_MMIkonos>
         <eTIGB_MMASTER>     </eTIGB_MMASTER>
         <eTIGB_MMScanLineSensor>     </eTIGB_MMScanLineSensor>
+        <eTIGB_MMEpip>      </eTIGB_MMEpip>
         <eTIGB_NbVals>      </eTIGB_NbVals>
     </enum>
 

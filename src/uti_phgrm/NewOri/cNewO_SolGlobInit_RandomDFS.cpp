@@ -369,6 +369,8 @@ void cSolGlobInit_NRandom::WriteGraphToFile()
 
 cNOSolIn_Triplet::cNOSolIn_Triplet(cSolGlobInit_NRandom *anAppli,tSomNSI * aS1,tSomNSI * aS2,tSomNSI *aS3,const cXml_Ori3ImInit &aTrip) :
     mAppli (anAppli),
+	mPdsSum(0),
+	mCostPdsSum(0),
     mNb3   (aTrip.NbTriplet()),
     mNumCC (-1),
 	mNumId (-1),
@@ -520,10 +522,12 @@ cSolGlobInit_NRandom::cSolGlobInit_NRandom(int argc,char ** argv) :
 	mDebug(false),
 	mNbSamples(1000),
 	mIterCur(0),
-	mGraphCoher(false),
+	//mGraphCoher(false),
 	mGraphName(""),
 	mHeapTriAll(TheCmp3Sol),
-	mHeapTriDyn(TheCmp3)
+	mHeapTriDyn(TheCmp3),
+	mDistThresh(1e3),
+	mApplyCostPds(false)
 
 {
 	bool aModeBin = true;
@@ -534,7 +538,9 @@ cSolGlobInit_NRandom::cSolGlobInit_NRandom(int argc,char ** argv) :
          LArgMain() << EAMC(mFullPat,"Pattern"),
          LArgMain() << EAM(mDebug,"Debug",true,"Print some stuff, Def=false")
                     << EAM(mNbSamples,"Nb",true,"Number of samples, Def=1000")
-                    << EAM(mGraphCoher,"GraphCoh",true,"Graph-based incoherence, Def=false")
+                   // << EAM(mGraphCoher,"GraphCoh",true,"Graph-based incoherence, Def=false")
+				    << EAM(mApplyCostPds,"CostPds",true,"Apply Pds to cost, Def=false")
+					<< EAM(mDistThresh,"DistThresh",true,"Aply distance threshold when computing incoh on samples")
 					<< EAM(aModeBin,"Bin",true,"Binaries file, def = true",eSAM_IsBool)
                     << ArgCMA()
 #ifdef GRAPHVIZ_ENABLED
@@ -989,15 +995,10 @@ void  cSolGlobInit_NRandom::RandomSolOneCC(cNO_CC_TripSom * aCC)
      RandomSolOneCC(aTri0,aCC->mSoms.size());
 
 	 // Calculate coherence scores within this CC
-	 if (! mGraphCoher)
-     	CoherTriplets(aCC->mTri);
-	 else
-	 	CoherTripletsGraphBasedV2(aCC->mTri,aCC->mSoms.size());
-
-
-	 // Print
-	 //for (int aK=0; aK<int(aCC->mSoms.size()); aK++)
-	 //	std::cout << aCC->mSoms[aK]->flag_kth(mFlagS) << ", " << aCC->mSoms[aK]->attr().Im()->Name() << "\n";
+	 //if (! mGraphCoher)
+	 //CoherTripletsGraphBasedV2(aCC->mTri,aCC->mSoms.size());
+     CoherTriplets(aCC->mTri);
+	   
 
 	 // Free flags
 	 FreeAllFlag(aCC->mSoms,mFlagS);
@@ -1006,8 +1007,11 @@ void  cSolGlobInit_NRandom::RandomSolOneCC(cNO_CC_TripSom * aCC)
 	 // Free the set of current unvisted adjacent triplets
 	 mSCur3Adj.clear();
 
- 	 // Reset the concatenation order
-	 FreeSomNumCCFlag(); 
+ 	 // Reset the node concatenation order
+	 FreeSomNumCCFlag(aCC->mSoms);
+
+	 // Reset the triplet concatenation order 
+	 FreeTriNumTTFlag(aCC->mTri); 
 }
 
 void cSolGlobInit_NRandom::AddTriOnHeap(cLinkTripl *aLnk)
@@ -1390,6 +1394,25 @@ void  cSolGlobInit_NRandom::DoOneRandomDFS(bool UseCoherence)
 #endif
 }
 
+double cNOSolIn_Triplet::CalcDistArc()
+{
+	double aDist = 0;
+	// Not "solution" triplet
+	if (this->NumTT() == -1)
+	{
+		for (int aS=0; aS<3; aS++)
+			aDist += this->KSom(aS)->attr().NumCC(); 
+		aDist /= 3;
+
+	}
+	// "Solution" triplet
+	else
+		aDist = this->NumTT();
+
+	return aDist;
+
+}
+
 /*
  * Incoherence score weighted by the distance in the graph
  *   Note1: a triplet may or may not have contributed to the solution
@@ -1397,10 +1420,12 @@ void  cSolGlobInit_NRandom::DoOneRandomDFS(bool UseCoherence)
  *   Note3: the distance of a "solution" triplet is equivalent of the order of the new sommet 
  *   Note4: the distance of all other triplets is equivalent of a mean distance of all three sommets
  *    
+ *   This function will also store the graph distances per each 
  * */
 void cSolGlobInit_NRandom::CoherTripletsGraphBasedV2(std::vector<cNOSolIn_Triplet *>& aV3,int NbSom) 
 {
-	double a1 = (MAX_WEIGHT - MIN_WEIGHT)/ElMax(NbSom-1,1);
+	//double a1 = (MAX_WEIGHT - MIN_WEIGHT)/ElMax(NbSom-1,1);
+	double a1 = (MAX_WEIGHT - MIN_WEIGHT)/(ElSquare(NbSom)*(NbSom-1));
     double a2 = (MIN_WEIGHT*NbSom - MAX_WEIGHT)/ElMax(NbSom-1,1);
 
 	for (int aT=0; aT<int(aV3.size()); aT++)
@@ -1414,27 +1439,17 @@ void cSolGlobInit_NRandom::CoherTripletsGraphBasedV2(std::vector<cNOSolIn_Triple
                   << aV3[aT]->KSom(1)->attr().Im()->Name() << " "
                   << aV3[aT]->KSom(2)->attr().Im()->Name() << " ";*/
 
-		double aDist = 0;
-		// Not "solution" triplet
-		if (aV3[aT]->NumTT() == -1)
-		{
-			for (int aS=0; aS<3; aS++)
-				aDist += aV3[aT]->KSom(aS)->attr().NumCC(); 
-			aDist /= 3;
-
-		}
-		// "Solution" triplet
-		else
-			aDist = aV3[aT]->NumTT();
+		double aDist = aV3[aT]->CalcDistArc();
 
 		double aCostCur = ElMin(abs(aV3[aT]->CoherTest()),1e9);
 
         //std::cout << ",Dist=" << aDist << ",CostN=" <<  aCostCur << ",CPds=" << aCostCur/aDist << "\n";  
 		
 		//aV3[aT]->CostArcPerSample().push_back(aCostCur/sqrt(aDist));
-		aV3[aT]->CostArcPerSample().push_back(aCostCur/(a1*aDist+a2));
-		
-
+		//aV3[aT]->CostArcPerSample().push_back(aCostCur/(a1*aDist+a2));
+		aV3[aT]->CostArcPerSample().push_back(aCostCur/(a1*aDist*aDist*aDist +a2));
+		aV3[aT]->DistArcPerSample().push_back(aDist);
+	
 
 	}
 
@@ -1470,21 +1485,44 @@ void cSolGlobInit_NRandom::CoherTripletsGraphBased(std::vector<cNOSolIn_Triplet 
 
 }
 
+/* Pure incoherence/cost calculated as a function of rotational and translation discrepancy 
+   # stores a N vector where N is the number of samples 
+   # stores only the sum of Pds*Incoh and sum of Pds 
+*/
 void cSolGlobInit_NRandom::CoherTriplets(std::vector<cNOSolIn_Triplet *>& aV3)
 {
-
+	double alpha = 0.5;
     for (int aT=0; aT<int(aV3.size()); aT++)
     {
-        double aCostCur = ElMin(abs(aV3[aT]->CoherTest()),1e9);
-        aV3[aT]->CostArcPerSample().push_back(aCostCur);
+		// Calculate the distance in the graph
+		double aDist = aV3[aT]->CalcDistArc();
 
+		// Cost
+        double aCostCur = ElMin(abs(aV3[aT]->CoherTest()),1e3);
+
+		// Apply Pds to Cost
+		if (mApplyCostPds)
+			aCostCur /= (1.0/std::pow(0.5,aDist) -1);//Pds=(1/0.5^d) -1
+	
+		
+		// Update if distance above threshold
+		if (aDist<mDistThresh)
+		{
+			aV3[aT]->CostPdsSum() += aCostCur*std::pow(alpha,aDist);
+			aV3[aT]->PdsSum() += std::pow(alpha,aDist);
+
+			aV3[aT]->CostArcPerSample().push_back(aCostCur);
+			aV3[aT]->DistArcPerSample().push_back(aDist);
+
+			//std::cout << "    Dist,a^dist=" << aDist << " " <<  std::pow(alpha,aDist) << " " << aCostCur << "\n";
+			//getchar();
+		}
         //std::cout << "cost=" << aCostCur << "\n"; 
     }
 
 }
 
-
-
+/* Old incoherence on all triplets in the graph */
 void cSolGlobInit_NRandom::CoherTriplets()
 {
 	//std::cout << "size CostArcPerSample=" <<  int(mV3[0]->CostArcPerSample().size()) << "\n";
@@ -1499,6 +1537,7 @@ void cSolGlobInit_NRandom::CoherTriplets()
 
 }
 
+/* Final mean and 80%quantile incoherence computed on all triplets in the graph */
 void cSolGlobInit_NRandom::CoherTripletsAllSamples()
 {
 	for (int aT=0; aT<int(mV3.size()); aT++)
@@ -1506,13 +1545,33 @@ void cSolGlobInit_NRandom::CoherTripletsAllSamples()
 		
 		mV3[aT]->CostArc() = KthValProp(mV3[aT]->CostArcPerSample(),0.8);
 		mV3[aT]->CostArcMed() = MedianeSup(mV3[aT]->CostArcPerSample());
-		
-		/*std::cout << "Ec80=" << mV3[aT]->CostArc() << 
-				     ", MED=" << mV3[aT]->CostArcMed() << " " << 
-					 mV3[aT]->KSom(0)->attr().Im()->Name() << " " << 
-					 mV3[aT]->KSom(1)->attr().Im()->Name() << " " <<
-					 mV3[aT]->KSom(2)->attr().Im()->Name() << "\n";*/
+		 
 	}	
+}
+
+/* Final incoherence computed as a weighted median 
+   - optionally takes into account only triplets with distance < threshold */
+void cSolGlobInit_NRandom::CoherTripletsAllSamplesMesPond()
+{
+	double alpha = 0.5;
+	for (int aT=0; aT<int(mV3.size()); aT++)
+    { 
+		/* Weighted mean */
+		mV3[aT]->CostArc() = mV3[aT]->CostPdsSum() / mV3[aT]->PdsSum();
+		//std::cout << "CostPdsSum()/PdsSum() " << mV3[aT]->CostPdsSum() << " " << mV3[aT]->PdsSum() 
+		//          << " Nb=" <<  mV3[aT]->DistArcPerSample().size() << "\n";
+
+		std::vector<Pt2df> aVCostPds;
+		for (int aS=0; aS<int(mV3[aT]->CostArcPerSample().size()); aS++ )
+		{
+			aVCostPds.push_back (Pt2df(mV3[aT]->CostArcPerSample()[aS], std::pow(alpha,mV3[aT]->DistArcPerSample()[aS])));
+		}
+
+		/* Weighted median */
+		mV3[aT]->CostArcMed() =  MedianPond(aVCostPds,0);
+
+	}	
+
 }
 
 /* This heap will serve to GetBestTri when building the ultimate init solution */
@@ -1563,11 +1622,27 @@ void cSolGlobInit_NRandom::HeapPerSol()
     }
 }
 
+void cSolGlobInit_NRandom::FreeTriNumTTFlag(std::vector<cNOSolIn_Triplet *>& aV3)
+{
+	for (auto aT : aV3)
+	{
+		aT->NumTT() = -1;
+	}
+}
+
+void cSolGlobInit_NRandom::FreeSomNumCCFlag(std::vector<tSomNSI *> aVS)
+{
+	for (auto aS : aVS)
+	{
+		(*aS).attr().NumCC() = -1;
+	}
+}
+
 void cSolGlobInit_NRandom::FreeSomNumCCFlag()
 {
 	for (tItSNSI anItS=mGr.begin(mSubAll) ; anItS.go_on(); anItS++)
     {
-		(*anItS).attr().NumCC() = 0;
+		(*anItS).attr().NumCC() = -1;
 	}
 }
 
@@ -1663,8 +1738,9 @@ void cSolGlobInit_NRandom::DoNRandomSol()
 	}
 
 
-	// Calculate median and 80% quantile coherence scores of mNbSamples
-    CoherTripletsAllSamples();
+	// Calculate median/mean incoherence scores of mNbSamples
+    //CoherTripletsAllSamples();
+	CoherTripletsAllSamplesMesPond();
 
 	// Print the cost for all triplets
     ShowTripletCost();
@@ -1691,8 +1767,23 @@ int CPP_SolGlobInit_RandomDFS_main(int argc,char ** argv)
 
 cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
 	mSigma(0),
-	mRatioOutlier(0)
+	mRatioOutlier(0),
+	TheRandUnif(new RandUnifQuick(100))
+
 {
+	/*std::set<double> RandSet; //:
+	RandSet.insert(1.0);
+	RandSet.insert(1.0);
+	RandSet.insert(2.0); 
+	std::cout << RandSet.size() << "\n";
+	getchar(); 
+	for (int i=0; i<100000; i++)
+	{
+		double rndNo = TheRandUnif->Unif_0_1();
+		RandSet.insert(rndNo);
+	}
+	std::cout << RandSet.size() << "\n";
+	getchar();*/
 
     NRrandom3InitOfTime();
 
@@ -1764,8 +1855,8 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
 
 		if (DicBoolFind(aOutlierList,aK))
 		{
-			aXml.Ori2On1() = El2Xml(ElRotation3D(aPair.first.tr(),RandPeturbR(),true));
-            aXml.Ori3On1() = El2Xml(ElRotation3D(aPair.second.tr(),RandPeturbR(),true));
+			aXml.Ori2On1() = El2Xml(ElRotation3D(aPair.first.tr(),RandPeturbRGovindu(),true));
+            aXml.Ori3On1() = El2Xml(ElRotation3D(aPair.second.tr(),RandPeturbRGovindu(),true));
 			std::cout << "Perturbed R=["<< it3->Name1() <<","<< it3->Name2() << "," << it3->Name3() 
 					                    << "], " << aPair.first.tr() << " " << aPair.second.tr() << "\n";	
 		}
@@ -1785,10 +1876,56 @@ cAppliGenOptTriplets::cAppliGenOptTriplets(int argc,char ** argv) :
 	}
 }
 
+/* Kanatani : Geometric Computation for Machine Vision */
+ElMatrix<double> cAppliGenOptTriplets::w2R(double w[])
+{
+	ElMatrix<double> aRes(3,3,0);//identity
+	for (int i=0; i<3; i++)
+		aRes(i,i)=1.0;
+
+	double norm = sqrt(w[0]*w[0] + w[1]*w[1] + w[2]*w[2]);
+
+	if (norm>0)
+	{
+		w[0] /= norm;
+		w[1] /= norm;
+		w[2] /= norm;
+
+		double s = sin(norm);
+		double c = cos(norm);
+		double cc = 1-c;
+
+		aRes(0,0) = c+w[0]*w[0]*cc;  //c+n1*n1*cc
+		aRes(1,0) = w[0]*w[1]*cc+w[2]*s;//n12cc+n3s
+		aRes(2,0) = w[2]*w[0]*cc-w[1]*s;//n31cc-n2s
+
+		aRes(0,1) = w[0]*w[1]*cc-w[2]*s;//n12cc-n3s; 
+		aRes(1,1) = c+w[1]*w[1]*cc;//c+n2*n2*cc; 
+		aRes(2,1) = w[1]*w[2]*cc+w[0]*s;//n23cc+n1s; 
+
+		aRes(0,2) = w[2]*w[0]*cc+w[1]*s;//n31cc+n2s;
+		aRes(1,2) = w[1]*w[2]*cc+w[0]*s;//n23cc-n1s;
+		aRes(2,2) = c+w[2]*w[2]*cc;//c+n3*n3*cc;
+
+		 
+	}
+	 
+	return aRes;
+	 
+}
+
+ElMatrix<double> cAppliGenOptTriplets::RandPeturbRGovindu()
+{
+	double aW[] = {100*PI*(TheRandUnif->Unif_0_1()-0.5)*2.0,
+	               100*PI*(TheRandUnif->Unif_0_1()-0.5)*2.0,
+				   100*PI*(TheRandUnif->Unif_0_1()-0.5)*2.0};
+ 
+	return w2R(aW);
+} 
 
 ElMatrix<double> cAppliGenOptTriplets::RandPeturbR()
 {
-	
+
 	double aW[] = {NRrandom3(),NRrandom3(),NRrandom3()};
 
 	Pt3dr aI(exp(0),exp(aW[2]),exp(-aW[1]));
@@ -1801,6 +1938,15 @@ ElMatrix<double> cAppliGenOptTriplets::RandPeturbR()
 	return aRes;	
 }
 
+RandUnifQuick::RandUnifQuick(int Seed):
+	mGen     (Seed),
+	mDis01   (0.0,1.0)
+{}
+
+double RandUnifQuick::Unif_0_1()
+{
+	return mDis01(mGen);
+}
 
 int CPP_GenOptTriplets(int argc,char ** argv)
 {

@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_SuperposImage[2000] = {
+const char * theNameVar_SuperposImage[2001] = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -63,6 +63,7 @@ const char * theNameVar_SuperposImage[2000] = {
 "        <eTIGB_MMIkonos>    </eTIGB_MMIkonos>\n",
 "        <eTIGB_MMASTER>     </eTIGB_MMASTER>\n",
 "        <eTIGB_MMScanLineSensor>     </eTIGB_MMScanLineSensor>\n",
+"        <eTIGB_MMEpip>      </eTIGB_MMEpip>\n",
 "        <eTIGB_NbVals>      </eTIGB_NbVals>\n",
 "    </enum>\n",
 "\n",
