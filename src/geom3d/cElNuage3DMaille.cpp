@@ -692,13 +692,14 @@ void cElNuage3DMaille::PlyPutFile
            bool aModeBin,
            bool SavePtsCol,
            int aAddNormale,
+           const std::list<std::string> & aNormName,
            bool DoublePrec,
            const Pt3dr& anOffset
      ) const
 {
     std::vector<const cElNuage3DMaille *> aVN;
     aVN.push_back(this);
-    PlyPutFile(aName,aComments,aVN,0,0,aModeBin, SavePtsCol, aAddNormale,DoublePrec,anOffset);
+    PlyPutFile(aName,aComments,aVN,0,0,aModeBin, SavePtsCol, aAddNormale, aNormName, DoublePrec, anOffset);
 }
 
 
@@ -713,6 +714,7 @@ void cElNuage3DMaille::PlyPutFile
            bool aModeBin,
            bool SavePtsCol,
            int aAddNormale,
+           const std::list<std::string> & aNormName,
            bool DoublePrec,
            const Pt3dr & anOffset
      )
@@ -786,9 +788,22 @@ void cElNuage3DMaille::PlyPutFile
 
    if (aAddNormale)
    {
-       fprintf(aFP,"property %s nx\n",aTypeXYZ.c_str());
-       fprintf(aFP,"property %s ny\n",aTypeXYZ.c_str());
-       fprintf(aFP,"property %s nz\n",aTypeXYZ.c_str());
+       if (aNormName.size()==3)
+       {
+           for (std::list<std::string>::const_iterator itS=aNormName.begin(); itS!=aNormName.end(); itS++)
+           {
+               fprintf(aFP,"property %s %s\n",aTypeXYZ.c_str(),itS->c_str());
+           }
+       }
+       else{
+           if (aNormName.size()!=0)
+           {
+               std::cout << "Warning NormName not used, should be 3 strings"<<std::endl;
+           }
+           fprintf(aFP,"property %s nx\n",aTypeXYZ.c_str());
+           fprintf(aFP,"property %s ny\n",aTypeXYZ.c_str());
+           fprintf(aFP,"property %s nz\n",aTypeXYZ.c_str());
+       }
    }
 
    const char * aVCoul[3]={"red","green","blue"};
