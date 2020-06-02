@@ -1,5 +1,5 @@
-#ifndef MMVII_FORMDER_CGENTPL_H
-#define MMVII_FORMDER_CGENTPL_H
+#ifndef _SymbDer_CGenTpl_H_
+#define _SymbDer_CGenTpl_H_
 
 #include <vector>
 #include <array>
@@ -84,4 +84,4 @@ template <class Type> inline Type pow9(const Type & aV)    {return aV *pow8(aV);
 
 } // namespace CodeGen
 
-#endif // MMVII_FORMDER_CGENTPL_H
+#endif // _SymbDer_CGenTpl_H_

@@ -5,7 +5,6 @@
 #include <vector>
 #include <string>
 
-#include "include/MMVII_FormalDerivatives.h"
 #include "ceres/ceres.h"
 
 namespace FD = NS_MMVII_FormalDerivative;

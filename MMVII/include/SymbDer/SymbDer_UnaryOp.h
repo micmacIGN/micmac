@@ -1,8 +1,8 @@
-#ifndef _MMVII_FormDer_UnaryOp_H_
-#define _MMVII_FormDer_UnaryOp_H_
+#ifndef _SymbDer_UnaryOp_H_
+#define _SymbDer_UnaryOp_H_
 
-/** \file MMVII_FormDer_UnaryOp.h
-    \brief File for unary operator on formal derivative
+/** \file SymbDer_UnaryOp.h
+    \brief File for unary operator on symbolic derivative
 */
 
 
@@ -427,4 +427,4 @@ template <class TypeElem> inline cFormula<TypeElem>  pow9 (const cFormula<TypeEl
 
 
 
-#endif // _MMVII_FormDer_UnaryOp_H_
+#endif // _SymbDer_UnaryOp_H_

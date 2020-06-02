@@ -1,5 +1,5 @@
-#ifndef _MMVII_FormalDerivative_H_
-#define _MMVII_FormalDerivative_H_
+#ifndef _SymbolicDerivatives_H_
+#define _SymbolicDerivatives_H_
 using namespace std;
 
 #ifdef _OPENMP
@@ -20,10 +20,10 @@ using namespace std;
 /*
 */
 
-/** \file MMVII_FormalDerivate.h
-    \brief File for generating formal derivate
+/** \file SymbolicDerivates.h
+    \brief File for generating symbolic derivate
 
-   Classes for generated formal derivative.  All classes are single template classes. 
+   Classes for generated symbolic derivative.  All classes are single template classes.
    The template parameter indicate the numerical type used for storage/computation 
    (float, double ...)
 
@@ -170,7 +170,7 @@ template <class Type> inline Type pow9(const Type & aV)    {return aV *pow8(aV);
 
 static inline void Error(const std::string & aMes,const std::string & aExplanation)
 {
-    std::cout << "In MMVII_FormalDerivative a fatal error" << "\n";
+    std::cout << "In SymbolicDerivative a fatal error" << "\n";
     std::cout << "  Likely Source   ["<< aExplanation << "\n";
     std::cout << "  Message  ["<< aMes << "]\n";
     assert(false);
@@ -195,7 +195,7 @@ static inline void AssertAlmostEqual(const double & aV1,const double & aV2,const
 
 
 /** This function computes derivates by finites difference
-    It is used in the tests to check correction of  formal derivatives. Also used
+    It is used in the tests to check correction of  symbolic derivatives. Also used
     in didactic parts.
 */
 
@@ -562,7 +562,7 @@ template <class TypeElem> class cImplemF  : public cMemCheck
      // ---------- Reached Flag ---------------
        bool Reached() const {return mReached;}  ///< Standard accessor
        void SetReached(bool IsReached) {mReached = IsReached;}  ///< Fix Reached
-       /// Compute in the reference graphe and put formal explored in VReached
+       /// Compute in the reference graphe and put formula explored in VReached
        void CalcRecursiveDepth(std::vector<tFormula> & VReached) ;
        int Depth() const {return mDepth;}  ///< Standard accessor
        void SetDepth(int aDepth) {mDepth = aDepth;}  ///< Fix Reached
@@ -1147,7 +1147,7 @@ std::string cCoordinatorF<TypeElem>::genCodeNAddr(const std::string &formulaName
           "#ifdef _OPENMP\n"
           "#include <omp.h>\n"
           "#endif\n"
-          "#include \"MMVII_FormDer_CGenTpl.h\"\n"
+          "#include \"SymbDer/SymbDer_CGenTpl.h\"\n"
           "\n"
           "namespace CodeGen {\n\n"
           "template<typename TypeElem>\n"
@@ -1205,7 +1205,7 @@ std::string cCoordinatorF<TypeElem>::genCodeDevel(const std::string &formulaName
           "#ifdef _OPENMP\n"
           "#include <omp.h>\n"
           "#endif\n"
-          "#include \"MMVII_FormDer_CGenTpl.h\"\n"
+          "#include \"SymbDer/SymbDer_CGenTpl.h\"\n"
           "\n"
           "namespace CodeGen {\n\n"
           "template<typename TypeElem>\n"
@@ -1248,8 +1248,8 @@ std::string cCoordinatorF<TypeElem>::genCodeDevel(const std::string &formulaName
 
 } //   NS_MMVII_FormalDerivative
 
-#include "MMVII_FormDer_UnaryOp.h"
-#include "MMVII_FormDer_BinaryOp.h"
+#include "SymbDer_UnaryOp.h"
+#include "SymbDer_BinaryOp.h"
 
 
 
@@ -1264,4 +1264,4 @@ http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.89.7749&rep=rep1&type=p
 http://www.autodiff.org/
 */
 
-#endif // _MMVII_FormalDerivative_H_
+#endif // _SymbolicDerivatives_H_

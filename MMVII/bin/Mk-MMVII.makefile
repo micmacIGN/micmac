@@ -10,6 +10,9 @@ MMV2DirIncl=${MMV2Dir}include/
 MMV2ElisePath=${MMDir}/lib/libelise.a
 MMV2Exe=MMVII
 
+MMSymbDerDir=${MMV2DirIncl}/SymbDer
+MMSymbDerHeader=$(wildcard ${MMSymbDerDir}/*.h)
+
 all : ${MMV2DirBin}${MMV2Exe}
 
 #
@@ -136,7 +139,7 @@ ${MMV2DirIncl}/CodeGen_IncludeAll.h: ${MMV2_CODEGEN}
 
 HEADER:=$(filter-out ${MMV2DirIncl}CodeGen%.h,${HEADER})
 
-${MMV2_CGEN_DIR}/%.o :  ${MMV2_CGEN_DIR}/%.cpp ${HEADER}
+${MMV2_CGEN_DIR}/%.o :  ${MMV2_CGEN_DIR}/%.cpp ${HEADER} ${MMSymbDerHeader}
 	${CXX} -c  $< ${CFlags} -o $@
 
 MMV2_TCGEN_SRCS=$(filter-out ${MMV2_CGEN_SRC},$(wildcard ${MMV2_CGEN_DIR}/*.cpp))
@@ -146,6 +149,7 @@ OBJ:=${OBJ} ${MMV2_TCGEN_OBJS}
 ${MMV2_TCGEN_OBJS}: ${HEADER} ${MMV2_CGEN_DIR}/TestCodeGenTpl.h ${MMV2DirIncl}/CodeGen_IncludeAll.h
 
 ${OBJ}: | ${MMV2_CODEGEN}
+
 
 #
 #  Binaries
@@ -181,7 +185,7 @@ ${MMV2DirMMV1}%.o :  ${MMV2DirMMV1}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirCmdSpec}%.o :  ${MMV2DirCmdSpec}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
-${MMV2DirTLE}%.o :  ${MMV2DirTLE}%.cpp   ${HEADER}
+${MMV2DirTLE}%.o :  ${MMV2DirTLE}%.cpp   ${HEADER} ${MMSymbDerHeader}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirT4MkF}%.o :  ${MMV2DirT4MkF}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@

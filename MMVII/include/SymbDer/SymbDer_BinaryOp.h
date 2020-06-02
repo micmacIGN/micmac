@@ -1,7 +1,7 @@
-#ifndef _MMVII_FormDer_BinaryOp_H_
-#define _MMVII_FormDer_BinaryOp_H_
+#ifndef _SymbDer_BinaryOp_H_
+#define _SymbDer_BinaryOp_H_
 
-/** \file MMVII_FormDer_BinaryOp.h
+/** \file SymbDer_BinaryOp.h
     \brief File for definition of binary operators inside formula
 
 */
@@ -656,4 +656,4 @@ inline cFormula<TypeElem>  pow (const cFormula<TypeElem> & aF,const int & aVal )
 } //   NS_MMVII_FormalDerivative
 
 
-#endif //  _MMVII_FormDer_BinaryOp_H_
+#endif //  _SymbDer_BinaryOp_H_
