@@ -2,7 +2,7 @@
 #include <string>
 #include <fstream>
 
-#include "include/SymbDer/SymbolicDerivatives.h"
+#include "SymbDer/SymbolicDerivatives.h"
 
 #include "Formula_Fraser_Test.h"
 #include "Formula_Primitives_Test.h"

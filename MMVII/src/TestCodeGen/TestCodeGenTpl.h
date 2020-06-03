@@ -6,7 +6,7 @@
 #endif
 
 #include "ChronoBench.h"
-#include "include/SymbDer/SymbolicDerivatives.h"
+#include "SymbDer/SymbolicDerivatives.h"
 
 #include <ceres/jet.h>
 
