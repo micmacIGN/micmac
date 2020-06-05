@@ -397,13 +397,13 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
     public :
 
       // Result of several evaluation are stored in a buffer, Eigen vector are used 
-      // as they implement efficiently arithmeticall operation
+      // as they implement efficiently arithmetical operation
         // typedef Eigen::Array<TypeElem, 1, Eigen::Dynamic>  tBuf;
         typedef std::vector<TypeElem>  tBuf;
 
 
       // ---------------------------  Acces to function from names, values -------------------
-        /// Indicate if the formula corresponding to a given string allreay exist
+        /// Indicate if the formula corresponding to a given string already exist
         inline bool  ExistFunc(const std::string & aName) const 
         {
               return (mDicoFunc.find(aName) != mDicoFunc.end());
@@ -428,6 +428,8 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
         inline void ShowStackFunc() const;
         /// Formula used for computation, 
         const std::vector<tFormula>& VReached() const {return  mVReachedF;} 
+        // Current (top) formulas
+        const std::vector<tFormula>& VCurrentF() const {return  mVCurF;}
 
 
         size_t      NbCurFonc() const {return mVAllFormula.size();}
