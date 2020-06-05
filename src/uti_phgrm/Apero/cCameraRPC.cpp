@@ -1276,12 +1276,23 @@ if(1)
         /* Grid in 2D */
         std::vector<Pt3dr> aGrid2D,aGrid2DTest;
 
-        /*
+        ReadEpiGrid(aNameRPC,aGrid3D,aGrid2D,aGrid3DTest,aGrid2DTest);
+
+        ISMETER=true;
+        ISINV=true;
         CalculRPC(aGrid3D, aGrid2D,
                   aGrid3DTest, aGrid2DTest,
                   mDirSNum, mDirLNum, mDirSDen, mDirLDen,
                   mInvSNum, mInvLNum, mInvSDen, mInvLDen, 1);
-        */
+        ISDIR=true;
+
+        SetRecGrid();
+
+        //Show();
+
+        std::string aNameNewRPC = NameSave(aName,"Ori-EpiRPC/");
+        cRPC::Save2XmlStdMMName_(*this, aNameNewRPC);
+        
 
     }
     /*else if (aType == eTIGB_MMASTER)
@@ -1310,9 +1321,9 @@ void cRPC::Initialize_(const cSystemeCoord *aChSys)
 
 }
 
-std::string cRPC::NameSave(const std::string & aName)
+std::string cRPC::NameSave(const std::string & aName,std::string aDirName)
 {
-    std::string aNewDir = DirOfFile(aName)+ "NEW/";
+    std::string aNewDir = DirOfFile(aName)+ aDirName;
     ELISE_fp::MkDirSvp(aNewDir);
 
     std::string aNameXml = aNewDir + StdPrefix(NameWithoutDir(aName)) + ".xml";
@@ -2025,7 +2036,7 @@ void cRPC::ChSysRPC_(const cSystemeCoord &aChSys,
 
 if(0)
 {
-    std::cout << "ewelina image norm" << "\n";
+    std::cout << "ewelina image norm " << "\n";
     Pt3dr aPMin, aPMax, aPSum;
     GetGridExt(aGridImgN, aPMin, aPMax, aPSum);
     std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
@@ -2051,9 +2062,9 @@ if(0)
 		aGridImgTest.at(aK).z = aGridCorSysTest.at(aK).z;
 
 
-    if( ISMETER==true ) 
+    /*if( ISMETER==true ) 
     if(aGridCorSys.size() < 1500)
-        std::cout << aGridCorSys << "\n";
+        std::cout << aGridCorSys << "\n";*/
    
 
  
@@ -3970,25 +3981,66 @@ void cRPC::ReadEpiGrid(const std::string &aFile,
                              std::vector<Pt3dr> & aG3dTest,std::vector<Pt3dr> & aG2dTest)
 {
 
-    /* Read the grids */
-    std::string aGCPGrFile = StdPrefix(aFile)+"-S3D.xml";
-    cDicoAppuisFlottant aGrSet=StdGetFromPCP(aGCPGrFile,DicoAppuisFlottant);
-
-    std::string aGCPImFile = StdPrefix(aFile)+"-S2D.xml"; 
-    cSetOfMesureAppuisFlottants aImSet=StdGetFromPCP(aGCPImFile,SetOfMesureAppuisFlottants);
-  
+    /* Read the grids */ 
+    cListeAppuis1Im aGrMes=StdGetFromPCP(aFile,ListeAppuis1Im); 
+    std::list< cMesureAppuis > aMesL = aGrMes.Mesures();
 
     /* Fill the grids */
-    std::cout << "size GrSet=" << aGrSet.OneAppuisDAF().size() << ",\n" 
-              << "size ImSet=" << aImSet.MesureAppuiFlottant1Im().size() << "\n";
+    std::pair<Pt3dr,Pt3dr> aGrMinMax(std::make_pair<Pt3dr,Pt3dr>(Pt3dr(1e9,1e9,1e9),Pt3dr(-1e9,-1e9,-1e9)));
+    std::pair<Pt3dr,Pt3dr> aImMinMax(std::make_pair<Pt3dr,Pt3dr>(Pt3dr(1e9,1e9,1e9),Pt3dr(-1e9,-1e9,-1e9)));
+    int i=0;
+    for (auto aMes : aMesL)
+    {
+        if (i%2)
+        {
+            aG3dTest.push_back(aMes.Ter());
+            aG2dTest.push_back(Pt3dr(aMes.Im().x,aMes.Im().y,aMes.Ter().z));
+        }
+        else
+        {
+            aG3d.push_back(aMes.Ter());
+            aG2d.push_back(Pt3dr(aMes.Im().x,aMes.Im().y,aMes.Ter().z));
+        }     
+
+        /* Min/Max values */
+        if (aMes.Im().x < aImMinMax.first.x) aImMinMax.first.x = aMes.Im().x;
+        if (aMes.Im().y < aImMinMax.first.y) aImMinMax.first.y = aMes.Im().y;
+
+        if (aMes.Im().x > aImMinMax.second.x) aImMinMax.second.x = aMes.Im().x;
+        if (aMes.Im().y > aImMinMax.second.y) aImMinMax.second.y = aMes.Im().y;
+
+        if (aMes.Ter().x < aGrMinMax.first.x) aGrMinMax.first.x = aMes.Ter().x;
+        if (aMes.Ter().y < aGrMinMax.first.y) aGrMinMax.first.y = aMes.Ter().y;
+        if (aMes.Ter().z < aGrMinMax.first.z) aGrMinMax.first.z = aMes.Ter().z;
+
+        if (aMes.Ter().x > aGrMinMax.second.x) aGrMinMax.second.x = aMes.Ter().x;
+        if (aMes.Ter().y > aGrMinMax.second.y) aGrMinMax.second.y = aMes.Ter().y;
+        if (aMes.Ter().z > aGrMinMax.second.z) aGrMinMax.second.z = aMes.Ter().z;
+
+        i++;   
+    }
 
     
-    /* Initialise the min/max ground coords */
-   
+    /* Set the min/max ground coords */ 
+    mGrC1[0] = aGrMinMax.first.x;
+    mGrC1[1] = aGrMinMax.second.x;
+    mGrC2[0] = aGrMinMax.first.y;
+    mGrC2[1] = aGrMinMax.second.y;
+    mGrC3[0] = aGrMinMax.first.z;
+    mGrC3[1] = aGrMinMax.second.z;
 
-    /* Initialise the min/max img coords */
+    /* Set the min/max img coords */
+    mImRows[0] = aImMinMax.first.x;
+    mImRows[1] = aImMinMax.second.x;
+    mImCols[0] = aImMinMax.first.y;
+    mImCols[1] = aImMinMax.second.y;
 
-
+    if (0)
+    {
+        std::cout << "aGrMinMax=" << aGrMinMax.first << "," << aGrMinMax.second 
+                  << ", aImMinMax=" << aImMinMax.first << "," << aImMinMax.second << "\n";
+        std::cout << "aG3d/aG3dTest=" << aG3d.size() << "," << aG3dTest.size() << "\n";
+    }
 }
 
 void cRPC::ReconstructValidityxy()

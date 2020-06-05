@@ -221,7 +221,7 @@ class cRPC
                     );
         /* Save non-existing RPCs in original coordinate system */
         static std::string Save2XmlStdMMName_(cRPC &, const std::string &);
-        static std::string NameSave(const std::string & aDirLoc);
+        static std::string NameSave(const std::string & aDirLoc,std::string aDirName="NEW/");
         void Show();
 
         /* 2D<->3D projections */

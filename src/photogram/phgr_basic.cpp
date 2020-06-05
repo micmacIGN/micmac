@@ -1830,6 +1830,12 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
                     aType = eTIGB_MMScanLineSensor;
                     return;
                 }
+				//MMEpip
+				if (aTree->Get("ListeAppuis1Im") !=0)
+				{
+					aType = eTIGB_MMEpip;
+					return;
+				}
 
            }
            else
@@ -1907,7 +1913,8 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
              aType==eTIGB_MMEuclid || 
              aType==eTIGB_MMIkonos || 
              aType==eTIGB_MMOriGrille ||
-             aType==eTIGB_MMScanLineSensor )
+             aType==eTIGB_MMScanLineSensor ||
+		     aType==eTIGB_MMEpip	)
     {
 	
 	return CameraRPC::CamRPCOrientGenFromFile(aName, aType, aChSys);
@@ -1934,6 +1941,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
                 case eTIGB_MMIkonos :
                 case eTIGB_MMOriGrille :
                 case eTIGB_MMScanLineSensor :
+				case eTIGB_MMEpip :
                       return  CameraRPC::CamRPCOrientGenFromFile(aName,aTrueType,aChSys);
 
                 default : ;

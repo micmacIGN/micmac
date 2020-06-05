@@ -91,6 +91,7 @@ int Nuage2Ply_main(int argc,char ** argv)
 
     std::string  aNeighMask;
     int NormByC = 0;
+    std::vector<string> aVNormName;
     bool ForceRGB=true;
 
     ElInitArgMain
@@ -111,6 +112,7 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(DoXYZ,"DoXYZ",true,"Do XYZ, export as RGB image where R=X,G=Y,B=Z")
                     << EAM(DoNrm,"Normale",true,"Add normale (Def=false, usable for Poisson)")
                     << EAM(NormByC,"NormByC",true,"Replace normal (Def=0, 2=optical center 1=point to center vector)",eSAM_InternalUse)
+                    << EAM(aVNormName,"NormName",true,"Replace normal name (Def=nx,ny,nz)", eSAM_NoInit )
                     << EAM(aExagZ,"ExagZ",true,"To exagerate the depth, Def=1.0")
                     << EAM(aRatio,"RatioAttrCarte",true,"")
                     << EAM(aDoMesh,"Mesh",true, "Do mesh (Def=false)")
@@ -241,9 +243,10 @@ int Nuage2Ply_main(int argc,char ** argv)
     {
         if (! EAMIsInit(&DoNrm)) DoNrm = 5;
         aRes->SetNormByCenter(NormByC);
-        aLComment.push_back("Norm is camera origin");
+        aLComment.push_back("Norm is camera origin - NormByC : "+ToString(NormByC));
     }
 
+    std::list<std::string > aLNormName(aVNormName.begin(), aVNormName.end());
     if (DoPly)
     {
 
@@ -252,7 +255,7 @@ int Nuage2Ply_main(int argc,char ** argv)
            aRes->AddExportMesh();
        }
 
-       aRes->PlyPutFile( aNameOut, aLComment, (aBin!=0), true, DoNrm, DoublePrec, anOffset );
+       aRes->PlyPutFile( aNameOut, aLComment, (aBin!=0), true, DoNrm, aLNormName, DoublePrec, anOffset );
     }
     if (DoXYZ)
     {
