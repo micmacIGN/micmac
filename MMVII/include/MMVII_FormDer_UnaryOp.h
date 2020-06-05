@@ -284,6 +284,33 @@ template <class TypeElem> class cLogF : public cUnaryF<TypeElem>
             }
 };
 
+/**  Classe for square root */
+template <class TypeElem> class cSqrtF : public cUnaryF<TypeElem>
+{
+     public :
+            using cUnaryF<TypeElem>::mF;
+            using cUnaryF<TypeElem>::mDataF;
+            using cImplemF<TypeElem>::mDataBuf;
+
+            cSqrtF (cFormula<TypeElem> aF,const std::string & aName) :
+                cUnaryF <TypeElem> (aF,aName)
+            { }
+            static TypeElem Operation(const TypeElem & aV1) {return std::sqrt(aV1);}
+      private :
+            const std::string &  NameOperator() const override {static std::string s("sqrt"); return s;}
+            void ComputeBuf(int aK0,int aK1) override
+            {
+                for (int aK=aK0 ; aK<aK1 ; aK++)
+                    mDataBuf[aK] =  std::sqrt(mDataF[aK]);
+            }
+            ///  rule : (sqrt(F))' =   F' / (2 * sqrt(F))
+            cFormula<TypeElem> Derivate(int aK) const override
+            {
+                return  mF->Derivate(aK)  / (2.0 * sqrt(mF));
+            }
+};
+
+
       /* ---------------------------------------*/
       /*           Global Functio on unary op   */
       /* ---------------------------------------*/
@@ -385,6 +412,12 @@ template <class TypeElem>
 inline cFormula<TypeElem>  log (const cFormula<TypeElem> & aF)
 {
     return cGenOperatorUnaire<cLogF<TypeElem> >::Generate(aF,"log");
+}
+
+template <class TypeElem>
+inline cFormula<TypeElem> sqrt(const cFormula<TypeElem> & aF)
+{
+    return cGenOperatorUnaire<cSqrtF<TypeElem> >::Generate(aF,"sqrt");
 }
 
 
