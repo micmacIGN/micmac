@@ -98,7 +98,7 @@ class cApply_CreateEpip_main
       double             mZMin;
       double             mZMax;
 
-      void DoEpipGen();
+      void DoEpipGen(bool DoIm);
 
       Pt2dr DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D * aG2,ElPackHomologue & aPack,bool AddToP1, std::list<Appar23> &   aL23);
 
@@ -538,7 +538,7 @@ cTmpReechEpip::cTmpReechEpip
 
 
 
-void cApply_CreateEpip_main::DoEpipGen()
+void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 {
       mLengthMin = 500.0;
       mStepReech = 10.0;
@@ -657,6 +657,9 @@ void cApply_CreateEpip_main::DoEpipGen()
                 << "\n";
 
       std::cout << "Epip NbPts= " << mNbP << " Redund=" << mNbP/double(ElSquare(mDegre)) << "\n";
+
+
+      if (!DoIm) return;
 
       bool aConsChan = true;
       Pt2di aSzI1 = mWithOri ? 
@@ -837,7 +840,7 @@ if (!MMVisualMode)
             mDegre = mWithOri ? 9 : 2;
          }
          std::cout << "DDDDDD " << mDegre << " " << mWithOri << "\n";
-         DoEpipGen();
+         DoEpipGen(DoIm);
          return;
      }
 
