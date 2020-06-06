@@ -73,6 +73,7 @@ class cApply_CreateEpip_main
       int    mDegre;
       int    mNbZ ;
       int    mNbXY ;
+      int    mNbZRand ;
       double mLengthMin ;
       double mStepReech ;
       bool   mForceGen;
@@ -97,6 +98,8 @@ class cApply_CreateEpip_main
       bool               mIntervZIsDef;
       double             mZMin;
       double             mZMax;
+      double             mIProf;
+      Pt2dr              mIntZ;             
 
       void DoEpipGen(bool DoIm);
 
@@ -138,7 +141,8 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
     // d'avoir des point hors zone
     //  GetVeryRoughInterProf est une proportion
 
-    double aIProf = aG1->GetVeryRoughInterProf() / 100.0;
+    if (!EAMIsInit(&mIProf))
+       mIProf = aG1->GetVeryRoughInterProf() / 100.0;
 
 /*
 if (MPD_MM())
@@ -152,9 +156,11 @@ if (MPD_MM())
     // aEps avoid points to be too close to limits
     double aEps = 5e-4;
 
+    // Comput size of grid that will give mNbbXY ^2 points
     double aLenghtSquare = ElMin(mLengthMin,sqrt((aSz.x*aSz.y) / (mNbXY*mNbXY)));
 
 
+    // Assure it give a sufficient reduduncy
     int aNbX = ElMax(1+3*mDegre,round_up(aSz.x /aLenghtSquare));
     int aNbY = ElMax(1+3*mDegre,round_up(aSz.y /aLenghtSquare));
 
@@ -181,19 +187,27 @@ if (MPD_MM())
                 // std::cout << "IPROF " << aIProf * euclid(aPT1-aC1)  << " " << aPT1  << "\n";
 
                 std::vector<Pt2dr> aVPIm2;
-                double aNbZSup = mNbZ + (mIntervZIsDef ? 1 : 0); //  if interval Z, add one more
+                double aNbZSup = mNbZ + mNbZRand; 
                 for (int aKZ = -mNbZ ; aKZ <= aNbZSup  ; aKZ++)
                 {
+                     bool isZRand =  (aKZ > mNbZ)  ;
                      // Compute P Ground on bundle
-                     Pt3dr aPT2 = aC1 + (aPT1-aC1) * (1+(aIProf*aKZ) / mNbZ);
+                     Pt3dr aPT2 ;
                      // Now if we have interval Z, we are probably in RPC and it imporatnt to "fill" all the space
                      // we do it by selecting one more randomly in the space 
                      if ( mIntervZIsDef)
                      {
                           double aPds = (aKZ+mNbZ) / double(2*mNbZ);  // Standard weithin, betwen 0 and 1
-                          if (aKZ > mNbZ)  // if additionnal add a random
+                          if (isZRand)  // if additionnal add a random
                               aPds = NRrandom3();
                           aPT2 = aG1->ImEtZ2Terrain(aPIm1,mZMin*aPds + mZMax * (1-aPds));
+                     }
+                     else
+                     {
+                          double aPds = aKZ / double(mNbZ);
+                          if (isZRand)  // if additionnal add a random
+                              aPds = NRrandC();
+                          aPT2 = aC1 + (aPT1-aC1) * (1+mIProf*aPds);
                      }
 
                      if (aG1->PIsVisibleInImage(aPT2) && aG2->PIsVisibleInImage(aPT2))
@@ -204,8 +218,9 @@ if (MPD_MM())
                         {
                             aL23.push_back(Appar23(aPIm1,aPT2));
 
-                            aVPIm2.push_back(aPIm2);
-                            ElCplePtsHomologues aCple(aPIm1,aVPIm2.back(),1.0);
+                            if (! isZRand)
+                               aVPIm2.push_back(aPIm2);
+                            ElCplePtsHomologues aCple(aPIm1,aPIm2,1.0);
                             if (! AddToP1)  // If Im1/Im2 were swapped
                                aCple.SelfSwap();
                             aPack.Cple_Add(aCple);
@@ -542,8 +557,7 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 {
       mLengthMin = 500.0;
       mStepReech = 10.0;
-      mNbZ       = 1;
-      mNbXY      = 100;
+      //  mNbXY      = 100;
       ElPackHomologue aPack;
       std::list<Appar23>  aLT1,aLT2;
 
@@ -733,6 +747,9 @@ void cApply_CreateEpip_main::MakeAppuis
 
 cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mDegre     (-1),
+   mNbZ       (1),
+   mNbXY      (100),
+   mNbZRand   (1),
    mForceGen  (false),
    mNumKer    (5),
    mDebug     (false),
@@ -786,6 +803,11 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 		    << EAM(mDebug,"Debug",false,"Debuging")
 		    << EAM(mDegSupInv,"SDI",false,"Supplementary degree for inverse")
 		    << EAM(mEpsCheckInv,"ECI",false,"Espsilpn for check inverse accuracy")
+		    << EAM(mNbZ,"NbZ",false,"Number of Z, def=1 (NbLayer=1+2*NbZ)")
+		    << EAM(mNbZRand,"NbZRand",false,"Number of additional random Z in each bundle, Def=1")
+		    << EAM(mIProf,"IProf",false,"Interval prof (for test in mode FG of frame cam, else unused)")
+		    << EAM(mIntZ,"IntZ",false,"Z interval, for test or correct interval of RPC")
+		    << EAM(mNbXY,"NbXY",false,"Number of point / line or col, def=100")
     );
 
 
@@ -827,6 +849,12 @@ if (!MMVisualMode)
 
         IntervZAddIm(mGenI1);
         IntervZAddIm(mGenI2);
+     }
+     if (EAMIsInit(&mIntZ))
+     {
+          mIntervZIsDef = true;
+          mZMin         = mIntZ.x;
+          mZMax         = mIntZ.y;
      }
 
      if ((!mWithOri) || (mGenI1->DownCastCS()==0) || (mGenI2->DownCastCS()==0) || mForceGen)
