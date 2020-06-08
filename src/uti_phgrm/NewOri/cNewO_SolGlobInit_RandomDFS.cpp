@@ -527,7 +527,8 @@ cSolGlobInit_NRandom::cSolGlobInit_NRandom(int argc,char ** argv) :
 	mHeapTriAll(TheCmp3Sol),
 	mHeapTriDyn(TheCmp3),
 	mDistThresh(1e3),
-	mApplyCostPds(false)
+	mApplyCostPds(false),
+	mAlphaProb(0.5)
 
 {
 	bool aModeBin = true;
@@ -542,6 +543,7 @@ cSolGlobInit_NRandom::cSolGlobInit_NRandom(int argc,char ** argv) :
 				    << EAM(mApplyCostPds,"CostPds",true,"Apply Pds to cost, Def=false")
 					<< EAM(mDistThresh,"DistThresh",true,"Aply distance threshold when computing incoh on samples")
 					<< EAM(aModeBin,"Bin",true,"Binaries file, def = true",eSAM_IsBool)
+					<< EAM(mAlphaProb,"Alpha",true,"Probability that a triplet at distance Dist is not an outlier, Prob=Alpha^Dist; Def=0.5")
                     << ArgCMA()
 #ifdef GRAPHVIZ_ENABLED
 					<< EAM(mGraphName,"Graph",true,"GraphViz filename")
@@ -1491,7 +1493,7 @@ void cSolGlobInit_NRandom::CoherTripletsGraphBased(std::vector<cNOSolIn_Triplet 
 */
 void cSolGlobInit_NRandom::CoherTriplets(std::vector<cNOSolIn_Triplet *>& aV3)
 {
-	double alpha = 0.5;
+	//double alpha = 0.5;
     for (int aT=0; aT<int(aV3.size()); aT++)
     {
 		// Calculate the distance in the graph
@@ -1502,19 +1504,20 @@ void cSolGlobInit_NRandom::CoherTriplets(std::vector<cNOSolIn_Triplet *>& aV3)
 
 		// Apply Pds to Cost
 		if (mApplyCostPds)
-			aCostCur /= (1.0/std::pow(0.5,aDist) -1);//Pds=(1/0.5^d) -1
+			aCostCur /=  sqrt(aDist);//Pds= sqrt(aDist)
+			//aCostCur /= (1.0/std::pow(0.5,aDist) -1);//Pds=(1/0.5^d) -1
 	
 		
 		// Update if distance above threshold
 		if (aDist<mDistThresh)
 		{
-			aV3[aT]->CostPdsSum() += aCostCur*std::pow(alpha,aDist);
-			aV3[aT]->PdsSum() += std::pow(alpha,aDist);
+			aV3[aT]->CostPdsSum() += aCostCur*std::pow(mAlphaProb,aDist);
+			aV3[aT]->PdsSum() += std::pow(mAlphaProb,aDist);
 
 			aV3[aT]->CostArcPerSample().push_back(aCostCur);
 			aV3[aT]->DistArcPerSample().push_back(aDist);
 
-			//std::cout << "    Dist,a^dist=" << aDist << " " <<  std::pow(alpha,aDist) << " " << aCostCur << "\n";
+			//std::cout << "    Dist,SQRT,0.5^dist,cost=" << aDist << " " << sqrt(aDist) << " " << std::pow(mAlphaProb,aDist) << " " << aCostCur << "\n";
 			//getchar();
 		}
         //std::cout << "cost=" << aCostCur << "\n"; 
@@ -1553,7 +1556,7 @@ void cSolGlobInit_NRandom::CoherTripletsAllSamples()
    - optionally takes into account only triplets with distance < threshold */
 void cSolGlobInit_NRandom::CoherTripletsAllSamplesMesPond()
 {
-	double alpha = 0.5;
+	//double alpha = 0.5;
 	for (int aT=0; aT<int(mV3.size()); aT++)
     { 
 		/* Weighted mean */
@@ -1564,7 +1567,7 @@ void cSolGlobInit_NRandom::CoherTripletsAllSamplesMesPond()
 		std::vector<Pt2df> aVCostPds;
 		for (int aS=0; aS<int(mV3[aT]->CostArcPerSample().size()); aS++ )
 		{
-			aVCostPds.push_back (Pt2df(mV3[aT]->CostArcPerSample()[aS], std::pow(alpha,mV3[aT]->DistArcPerSample()[aS])));
+			aVCostPds.push_back (Pt2df(mV3[aT]->CostArcPerSample()[aS], std::pow(mAlphaProb,mV3[aT]->DistArcPerSample()[aS])));
 		}
 
 		/* Weighted median */
