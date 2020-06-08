@@ -97,8 +97,9 @@ cAppliCamTOF::cAppliCamTOF(int argc,char** argv) :
         {
             int DoNrm=0;
             std::list<std::string> aLC;
+            std::list<std::string> aLNN;
             cElNuage3DMaille* aNuage = cElNuage3DMaille::FromFileIm(CreateName(3),"XML_ParamNuage3DMaille","",1.0);
-            aNuage->PlyPutFile(CreateName(4),aLC, true, true, DoNrm, true);
+            aNuage->PlyPutFile(CreateName(4),aLC, true, true, DoNrm, aLNN, true);
         }
         else
             ELISE_ASSERT(false,"cAppliCamTOF::cAppliCamTOF NuageProf.xml file missing");
