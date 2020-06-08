@@ -2,7 +2,7 @@
 #include "ceres/jet.h"
 
 
-namespace  FD = NS_MMVII_FormalDerivative;
+namespace  SD = NS_SymbolicDerivative;
 using ceres::Jet;
 
 
@@ -12,12 +12,12 @@ using ceres::Jet;
 
 template <typename T, int N> inline Jet<T, N> square(const Jet<T, N>& f) 
 {
-  return Jet<T, N>(FD::square(f.a), (2.0*f.a) * f.v);
+  return Jet<T, N>(SD::square(f.a), (2.0*f.a) * f.v);
 }
 
 template <typename T, int N> inline Jet<T, N> cube(const Jet<T, N>& f) 
 {
-  T a2 = FD::square(f.a);
+  T a2 = SD::square(f.a);
   return Jet<T, N>(f.a*a2, (3.0*a2) * f.v);
 }
 
@@ -28,7 +28,7 @@ template <typename T, int N> inline Jet<T, N> powI(const Jet<T, N>& aJ,const int
    if (aExp==0) return Jet<T,N>(1.0);
 
    // make a single computation of pow
-   T aPm1 = FD::powI(aJ.a,aExp-1);
+   T aPm1 = SD::powI(aJ.a,aExp-1);
    return Jet<T,N>(aJ.a*aPm1,(aExp*aPm1)*aJ.v);
 }
 
@@ -142,7 +142,7 @@ void TestRatkoswky(const tVRatkoswkyData & aVData,const std::vector<double> & aI
    //-    This part [1] would be executed only one time
         // Create a coordinator/context where values are stored on double and :
         //  4 unknown (b1-b4), 2 observations, a buffer of size 100
-    FD::cCoordinatorF<double>  aCFD(100,aNbUk,aNbObs);
+    SD::cCoordinatorF<double>  aCFD(100,aNbUk,aNbObs);
 
         // Create formulas of residuals, VUk and VObs are  vector of formulas for unkown and observation
     auto  aFormulaRes = RatkoswkyResidual(aCFD.VUk(),aCFD.VObs());
@@ -189,7 +189,7 @@ void TestRatkoswky(const tVRatkoswkyData & aVData,const std::vector<double> & aI
             // Compute derivate by finite difference ; 
             // RatkoswkyResidual<double> is the "standard" function operating on numbers
             // see NumericalDerivate in "MMVII_FormalDerivatives.h" 
-            double aDerNum =  FD::NumericalDerivate
+            double aDerNum =  SD::NumericalDerivate
                               (RatkoswkyResidual<double>,aInitialGuess,aVData[aKObs],aKUnk,1e-5).at(0);
 
             // Check but with pessimistic majoration of error in finite difference
@@ -239,7 +239,7 @@ void InspectCube()
     //    aCFD(100,2,2) would have the same effect for the computation
     //    The variant with vector of string, will fix the name of variables, it
     //    will be usefull when will generate code and will want  to analyse it
-    FD::cCoordinatorF<double>  aCFD(100,{"a","b"},{"x","y"});
+    SD::cCoordinatorF<double>  aCFD(100,{"a","b"},{"x","y"});
 
     // Inspect vector of unknown and vector of observations
     {  
@@ -250,8 +250,8 @@ void InspectCube()
     }
 
     // Create the formula corresponding to residual
-    std::vector<FD::cFormula<double>>  aVResidu = FitCube(aCFD.VUk(),aCFD.VObs());
-    FD::cFormula<double>  aResidu = aVResidu[0];
+    std::vector<SD::cFormula<double>>  aVResidu = FitCube(aCFD.VUk(),aCFD.VObs());
+    SD::cFormula<double>  aResidu = aVResidu[0];
  
     // Inspect the formula 
     std::cout  << "RESIDU FORMULA, Num=" << aResidu->NumGlob() << " Name=" <<  aResidu->Name() <<"\n";
@@ -685,8 +685,8 @@ template <class TypeDist>  class cEqCoLinearity
                       const std::vector<tObs> & aVObs
                   )
     {
-        assert (aVUk.size() ==TheNbUk) ;  // FD::UserSError("Bad size for unknown");
-        assert (aVObs.size()==TheNbObs) ;// FD::UserSError("Bad size for observations");
+        assert (aVUk.size() ==TheNbUk) ;  // SD::UserSError("Bad size for unknown");
+        assert (aVObs.size()==TheNbObs) ;// SD::UserSError("Bad size for observations");
 
         // 0 - Ground Coordinates of projected point
         const auto & XGround = aVUk[0];
@@ -768,7 +768,7 @@ template <class FORMULA>  class cTestEqCoL
        static const int  TheNbUk = FORMULA::TheNbUk;
        static const int  TheNbObs = FORMULA::TheNbObs;
 
-       typedef FD::cCoordinatorF<double>    tCoord;
+       typedef SD::cCoordinatorF<double>    tCoord;
        typedef typename tCoord::tFormula    tFormula;
 
        /// Return unknowns vect after fixing XYZ (ground point)
@@ -906,7 +906,7 @@ cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,bool Show) :
       //  assert(std::abs(aVJ-aVE)<1e-5);
       // assert(std::abs(aVJ-aVF)<1e-5);
 
-      FD::AssertAlmostEqual(aVJ,aVF,1e-5);
+      SD::AssertAlmostEqual(aVJ,aVF,1e-5);
       // FD::AssertAlmostEqual(aVJ,aVF,1e-5);
       for (int aKVar=0;  aKVar< TheNbUk ; aKVar++)
       {
@@ -914,7 +914,7 @@ cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,bool Show) :
            //  double aDVE = aEpsRes[aKVal].mEps[aKVar] ;
            double aDVF = mCFD.DerComp(0,aKVal,aKVar); 
       //  FD::AssertAlmostEqual(aDVJ,aDVE,1e-5);
-           FD::AssertAlmostEqual(aDVJ,aDVF,1e-5);
+           SD::AssertAlmostEqual(aDVJ,aDVF,1e-5);
       //  std::cout << "  dJ:" << aDVJ <<  " dE:" << aDVE <<  " dF:" << aDVF << "\n";
       }
    }
@@ -930,29 +930,29 @@ cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,bool Show) :
 void TestFraserCamColinearEq()
 {
    {
-      FD::cCoordinatorF<double>  aCoord(100,4,2);
-      FD::cFormula<double>     aFPi = aCoord.CsteOfVal(3.14);
-      FD::cFormula<double>     aFE = aCoord.CsteOfVal(exp(1));
-      FD::cFormula<double>     aFCste = aFE+aFPi;
+      SD::cCoordinatorF<double>  aCoord(100,4,2);
+      SD::cFormula<double>     aFPi = aCoord.CsteOfVal(3.14);
+      SD::cFormula<double>     aFE = aCoord.CsteOfVal(exp(1));
+      SD::cFormula<double>     aFCste = aFE+aFPi;
       std::cout  << " CSTE=[" << aFCste->InfixPPrint() <<"]\n";
 
-      FD::cFormula<double>     aX =  aCoord.VUk()[0];
-      FD::cFormula<double>     aY =  aCoord.VUk()[1];
-      FD::cFormula<double>     aZ =  aCoord.VUk()[2];
-      FD::cFormula<double>     aT =  aCoord.VUk()[3];
-      FD::cFormula<double>     aMX = - aX;
-      FD::cFormula<double>     aMMX = - aMX;
+      SD::cFormula<double>     aX =  aCoord.VUk()[0];
+      SD::cFormula<double>     aY =  aCoord.VUk()[1];
+      SD::cFormula<double>     aZ =  aCoord.VUk()[2];
+      SD::cFormula<double>     aT =  aCoord.VUk()[3];
+      SD::cFormula<double>     aMX = - aX;
+      SD::cFormula<double>     aMMX = - aMX;
       std::cout  << " -X, --X=[" << aMX->InfixPPrint() << " " << aMMX->InfixPPrint() <<"]\n";
 
-      FD::cFormula<double>     aPipX =  aFPi - aMX;
+      SD::cFormula<double>     aPipX =  aFPi - aMX;
       std::cout  << " piPx= [" << aPipX->InfixPPrint() << "," << aPipX->Name()  <<"]\n";
 
 
-      FD::cFormula<double>     XpX =  aX + aX;
+      SD::cFormula<double>     XpX =  aX + aX;
       std::cout  << " XpX= [" << XpX->InfixPPrint()  <<"]\n";
 
 
-      FD::cFormula<double>     XpPiX =  aZ+ aX + aY + aX * aFPi + aT;
+      SD::cFormula<double>     XpPiX =  aZ+ aX + aY + aX * aFPi + aT;
 
       std::cout  << " XpPiX= [" << XpPiX->InfixPPrint()  <<"]\n";
       aCoord.ShowStackFunc();
@@ -989,17 +989,17 @@ void   Bench_powI()
     {
         double aV= 1.35;
         double aP1= pow(aV,double(aK));
-        double aP2= FD::powI(aV,aK);
-        FD::AssertAlmostEqual(aP1,aP2,1e-8);
+        double aP2= SD::powI(aV,aK);
+        SD::AssertAlmostEqual(aP1,aP2,1e-8);
 
         Jet<double,1> aJ0= powI(Jet<double,1> (aV,0),aK);
-        FD::AssertAlmostEqual(aP1,aJ0.a,1e-8);
+        SD::AssertAlmostEqual(aP1,aJ0.a,1e-8);
 
         double aEps = 1e-7;
         double aP1Minus = pow(aV-aEps,double(aK));
         double aP1Plus  = pow(aV+aEps,double(aK));
         double aNumDer = (aP1Plus-aP1Minus) / (2.0*aEps);
-        FD::AssertAlmostEqual(aNumDer,aJ0.v[0],1e-8);
+        SD::AssertAlmostEqual(aNumDer,aJ0.v[0],1e-8);
     } 
 
     // Bench on time performance
@@ -1014,12 +1014,12 @@ void   Bench_powI()
          // Using powI
     double aT1 = TimeElapsFromT0();
     for (int aK=0 ; aK<aNb ; aK++)
-        aS-=  FD::powI(1.3,7);
+        aS-=  SD::powI(1.3,7);
 
          // Using pow7 => supress the switch
     double aT2 = TimeElapsFromT0();
     for (int aK=0 ; aK<aNb ; aK++)
-        aS-=FD::pow7(1.3);
+        aS-=SD::pow7(1.3);
 
     double aT3 = TimeElapsFromT0();
 

@@ -15,7 +15,7 @@ static std::vector<std::string> includesNames;
 template<typename FORMULA>
 void GenerateCode()
 {
-    NS_MMVII_FormalDerivative::cCoordinatorF<double>
+    NS_SymbolicDerivative::cCoordinatorF<double>
             mCFD1(0,FORMULA::VNamesUnknowns(),FORMULA::VNamesObs());
 
     auto aVFormula = FORMULA::formula(mCFD1.VUk(),mCFD1.VObs());

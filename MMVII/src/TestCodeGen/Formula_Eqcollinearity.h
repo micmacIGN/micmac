@@ -7,8 +7,6 @@
 
 #include "ceres/ceres.h"
 
-namespace FD = NS_MMVII_FormalDerivative;
-
 
 /* {III}  ========================  Test perf on colinearit equation ==========================
 
@@ -423,8 +421,8 @@ template <class TypeDist>  class cEqCoLinearity
                       const std::vector<tObs> & aVObs
                   )
     {
-        assert (aVUk.size() ==TheNbUk) ;  // FD::UserSError("Bad size for unknown");
-        assert (aVObs.size()==TheNbObs) ;// FD::UserSError("Bad size for observations");
+        assert (aVUk.size() ==TheNbUk) ;  // SD::UserSError("Bad size for unknown");
+        assert (aVObs.size()==TheNbObs) ;// SD::UserSError("Bad size for observations");
 
         // 0 - Ground Coordinates of projected point
         const auto & XGround = aVUk[0];

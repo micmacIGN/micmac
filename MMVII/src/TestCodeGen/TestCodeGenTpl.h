@@ -11,18 +11,18 @@
 #include <ceres/jet.h>
 
 using ceres::Jet;
-namespace  FD = NS_MMVII_FormalDerivative;
+namespace  SD = NS_SymbolicDerivative;
 
 // ========== Define on Jets two optimization as we did on formal
 
 template <typename T, int N> inline Jet<T, N> square(const Jet<T, N>& f)
 {
-  return Jet<T, N>(FD::square(f.a), (2.0*f.a) * f.v);
+  return Jet<T, N>(SD::square(f.a), (2.0*f.a) * f.v);
 }
 
 template <typename T, int N> inline Jet<T, N> cube(const Jet<T, N>& f)
 {
-  T a2 = FD::square(f.a);
+  T a2 = SD::square(f.a);
   return Jet<T, N>(f.a*a2, (3.0*a2) * f.v);
 }
 
@@ -33,7 +33,7 @@ template <typename T, int N> inline Jet<T, N> powI(const Jet<T, N>& aJ,const int
    if (aExp==0) return Jet<T,N>(1.0);
 
    // make a single computation of pow
-   T aPm1 = FD::powI(aJ.a,aExp-1);
+   T aPm1 = SD::powI(aJ.a,aExp-1);
    return Jet<T,N>(aJ.a*aPm1,(aExp*aPm1)*aJ.v);
 }
 
@@ -97,7 +97,7 @@ protected:
 
 
     template<typename T>
-    ResType CFDtoArray(const FD::cCoordinatorF<T>& cfd, size_t n) {
+    ResType CFDtoArray(const SD::cCoordinatorF<T>& cfd, size_t n) {
         ResType val;
         size_t step = TheNbUk + 1;
         size_t nVal = val.size() / step;
@@ -160,7 +160,7 @@ void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::checkAll()
     ResType val;
 
     // Check dynamic evaluation
-    FD::cCoordinatorF<double>  mCFD(BUF_SIZE,EQDEF::VNamesUnknowns(),EQDEF::VNamesObs());
+    SD::cCoordinatorF<double>  mCFD(BUF_SIZE,EQDEF::VNamesUnknowns(),EQDEF::VNamesObs());
     auto aVFormula = EQDEF::formula(mCFD.VUk(),mCFD.VObs());
     mCFD.SetCurFormulasWithDerivative(aVFormula);
     for (size_t i=0; i<mCFD.SzBuf(); i++)
@@ -223,7 +223,7 @@ void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::codeGenTestJets(Bench &bench)
 template<class EQDEF, class EQNADDR, class EQFORM>
 void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::codeGenTestDyn(Bench &bench)
 {
-    FD::cCoordinatorF<double>  mCFD(mSizeBuf,EQDEF::VNamesUnknowns(),EQDEF::VNamesObs());
+    SD::cCoordinatorF<double>  mCFD(mSizeBuf,EQDEF::VNamesUnknowns(),EQDEF::VNamesObs());
 
     bench.start();
     bench.start(1);

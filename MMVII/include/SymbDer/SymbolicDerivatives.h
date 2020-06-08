@@ -132,7 +132,7 @@ class cMemCheck
 static inline void SHOW_REDUCE(const std::string & aMes) {} // std::cout << "REDUCE " << aMes << "\n";}
 
 
-namespace  NS_MMVII_FormalDerivative
+namespace  NS_SymbolicDerivative
 {
 
 /* *************************************************** */
@@ -1246,7 +1246,7 @@ std::string cCoordinatorF<TypeElem>::genCodeDevel(const std::string &formulaName
     return fileName;
 }
 
-} //   NS_MMVII_FormalDerivative
+} //   NS_Symbolic_Derivative
 
 #include "SymbDer_UnaryOp.h"
 #include "SymbDer_BinaryOp.h"

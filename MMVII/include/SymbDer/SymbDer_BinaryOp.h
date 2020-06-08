@@ -8,7 +8,7 @@
 
 
 
-namespace  NS_MMVII_FormalDerivative
+namespace  NS_SymbolicDerivative
 {
 
 /* *************************************************** */
@@ -653,7 +653,7 @@ inline cFormula<TypeElem>  pow (const cFormula<TypeElem> & aF,const int & aVal )
 
 
 
-} //   NS_MMVII_FormalDerivative
+} //   NS_Symbolic_Derivative
 
 
 #endif //  _SymbDer_BinaryOp_H_
