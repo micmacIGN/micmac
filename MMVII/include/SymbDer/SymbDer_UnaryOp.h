@@ -39,14 +39,14 @@ template <class TypeElem> class cUnaryF : public cImplemF<TypeElem>
             }
 
       protected  :
-            virtual std::string genCodeNAddr() const override
+            virtual std::string GenCodeNAddr() const override
             {
-                return this->NameOperator() + "(" + mF->genCodeFormName() + ")";
+                return this->NameOperator() + "(" + mF->GenCodeFormName() + ")";
             }
 
-            virtual std::string genCodeDef() const override
+            virtual std::string GenCodeDef() const override
             {
-                return this->NameOperator() + "(" + mF->genCodeRef() + ")";
+                return this->NameOperator() + "(" + mF->GenCodeRef() + ")";
             }
 
             std::vector<tFormula> Ref() const override{return std::vector<tFormula>{mF};}

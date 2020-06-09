@@ -53,12 +53,12 @@ template <class TypeElem> class cBinaryF : public cImplemF<TypeElem>
       protected  :
             void AssocSortedVect(std::vector<tFormula> & aV);
             void EmpileAssoc (const cFormula <TypeElem>& aF, std::vector<tFormula > & aV);
-            virtual std::string genCodeNAddr() const override {
-                return "(" + mF1->genCodeFormName() + " " + this->NameOperator() +  " " + mF2->genCodeFormName() + ")";
+            virtual std::string GenCodeNAddr() const override {
+                return "(" + mF1->GenCodeFormName() + " " + this->NameOperator() +  " " + mF2->GenCodeFormName() + ")";
             }
 
-            virtual std::string genCodeDef() const override {
-                return "(" + mF1->genCodeRef() + " " + this->NameOperator() +  " " + mF2->genCodeRef() + ")";
+            virtual std::string GenCodeDef() const override {
+                return "(" + mF1->GenCodeRef() + " " + this->NameOperator() +  " " + mF2->GenCodeRef() + ")";
             }
             std::vector<tFormula> Ref() const override{return std::vector<tFormula>{mF1,mF2};}
             inline cBinaryF(tFormula aF1,tFormula aF2,const std::string & aName):
@@ -388,12 +388,12 @@ template <class TypeElem> class cPowF : public cBinaryF<TypeElem>
             { }
       private  :
             const std::string &  NameOperator() const override {static std::string s("^"); return s;}
-            virtual std::string genCodeNAddr() const override {
-                return "pow(" + mF1->genCodeFormName() + "," + mF2->genCodeFormName() + ")";
+            virtual std::string GenCodeNAddr() const override {
+                return "pow(" + mF1->GenCodeFormName() + "," + mF2->GenCodeFormName() + ")";
             }
 
-            virtual std::string genCodeDef() const override {
-                return "pow(" + mF1->genCodeRef() + ","  + mF2->genCodeRef() + ")";
+            virtual std::string GenCodeDef() const override {
+                return "pow(" + mF1->GenCodeRef() + ","  + mF2->GenCodeRef() + ")";
             }
             void ComputeBuf(int aK0,int aK1) override
             {

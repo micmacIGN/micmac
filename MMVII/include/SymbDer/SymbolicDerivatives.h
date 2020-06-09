@@ -384,9 +384,9 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
         
          // ---------- Code generator ---------------
          /** Generate code, class cName  , file cName.h, cName.cpp */
-         std::string GenerateCode(const std::string & Name) const { return genCodeNAddr(Name); }
-         std::string genCodeNAddr(const std::string &formulaName) const;
-         std::string genCodeDevel(const std::string &formulaName) const;
+         std::string GenerateCode(const std::string & aName) const { return GenCodeNAddr(aName); }
+         std::string GenCodeNAddr(const std::string &aName) const;
+         std::string GenCodeDevel(const std::string &aName) const;
 
 
     private :  // END-USER
@@ -429,7 +429,7 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
         /// Formula used for computation, 
         const std::vector<tFormula>& VReached() const {return  mVReachedF;} 
         // Current (top) formulas
-        const std::vector<tFormula>& VCurrentF() const {return  mVCurF;}
+        const std::vector<tFormula>& VCurrent() const {return  mVCurF;}
 
 
         size_t      NbCurFonc() const {return mVAllFormula.size();}
@@ -569,11 +569,11 @@ template <class TypeElem> class cImplemF  : public cMemCheck
 
        // ---------- Code gen -----------------------
        virtual bool isAtomic() const { return false;}
-       virtual std::string  genCodeFormName() const {return NameGlob();} // Name of formula, referenced value for Atomic
-       virtual std::string  genCodeNAddr() const = 0;      // N-Addresses code generation
-       virtual std::string  genCodeDef() const = 0;        // Formula definition generation
-       virtual std::string  genCodeRef() const;            // Formula reference generation
-       int usedCnt() const {return mUsedCnt;}  ///< Standard accessor
+       virtual std::string  GenCodeFormName() const {return NameGlob();} // Name of formula, referenced value for Atomic
+       virtual std::string  GenCodeNAddr() const = 0;      // N-Addresses code generation
+       virtual std::string  GenCodeDef() const = 0;        // Formula definition generation
+       virtual std::string  GenCodeRef() const;            // Formula reference generation
+       int UsedCnt() const {return mUsedCnt;}  ///< Standard accessor
 
      // ---------- Tuning / Debugging / Analysing ---------------
        /// Used to print constant from generic formula
@@ -697,10 +697,10 @@ template <class TypeElem> class cAtomicF : public cImplemF<TypeElem>
             std::vector<tFormula> Ref() const override{return std::vector<tFormula>();}
      protected :
             bool isAtomic() const override { return true;}
-            std::string genCodeFormName() const override { return this->Name();}
-            std::string genCodeNAddr() const override { return this->genCodeFormName();}
-            std::string genCodeRef() const override { return this->genCodeFormName();}
-            std::string genCodeDef() const override { return mCodeValue;}
+            std::string GenCodeFormName() const override { return this->Name();}
+            std::string GenCodeNAddr() const override { return this->GenCodeFormName();}
+            std::string GenCodeRef() const override { return this->GenCodeFormName();}
+            std::string GenCodeDef() const override { return mCodeValue;}
 
             inline cAtomicF(tCoordF * aCoordF,const std::string& aName) :
                 tImplemF       (aCoordF,aName)
@@ -783,7 +783,7 @@ template <class TypeElem> class cConstantF : public cAtomicF<TypeElem>
                ss << std::setprecision(std::numeric_limits<decltype(mVal)>::max_digits10) << mVal;
                this->mCodeValue =  ss.str();
             }
-            std::string genCodeFormName() const override { return this->mCodeValue;}
+            std::string GenCodeFormName() const override { return this->mCodeValue;}
             int     mNum;
             const TypeElem mVal;
 };
@@ -860,12 +860,12 @@ template <class TypeElem> cFormula<TypeElem> cImplemF<TypeElem>::VOper2(const tF
 
 
 template <class TypeElem>
-std::string  cImplemF<TypeElem>::genCodeRef() const
+std::string  cImplemF<TypeElem>::GenCodeRef() const
 {
-    if (usedCnt() == 1) {
-        return genCodeDef();
+    if (UsedCnt() == 1) {
+        return GenCodeDef();
     } else {
-        return genCodeFormName();
+        return GenCodeFormName();
     }
 }
 
@@ -1105,7 +1105,7 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
        else 
           std::cout <<  "-" << aForm->Depth() << "-";
 
-       std::cout << aForm->usedCnt() << "- ";
+       std::cout << aForm->UsedCnt() << "- ";
        std::cout << aForm->NameGlob() << " => " << aForm->Name();
 
        const TypeElem * aPV = aForm->ValCste();
@@ -1130,9 +1130,9 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
 }
 
 template <class TypeElem>
-std::string cCoordinatorF<TypeElem>::genCodeNAddr(const std::string &formulaName) const
+std::string cCoordinatorF<TypeElem>::GenCodeNAddr(const std::string &aName) const
 {
-    std::string className  = formulaName;
+    std::string className  = aName;
     std::string fileName  = "CodeGen_" + className + ".h";
     std::ofstream os(fileName);
 
@@ -1155,7 +1155,7 @@ std::string cCoordinatorF<TypeElem>::genCodeNAddr(const std::string &formulaName
           "{\n"
           "public:\n"
           "    " << className << "(size_t szBuf) : " << parentClass << "(szBuf) {}\n"
-          "    static std::string FormulaName() { return \"" << formulaName << "\";}\n"
+          "    static std::string FormulaName() { return \"" << aName << "\";}\n"
           "    void evalAndClear();\n"
           "};\n"
           "\n"
@@ -1169,17 +1169,17 @@ std::string cCoordinatorF<TypeElem>::genCodeNAddr(const std::string &formulaName
           "// Declare local vars in loop to make them per thread\n";
 
     for (auto & aForm : mVFormUnknowns)
-        os << "    TypeElem &" << aForm->genCodeFormName() << " = " << aForm->genCodeDef() << ";\n";
+        os << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
     for (const auto & aForm : mVFormObservations)
-        os << "    TypeElem &" << aForm->genCodeFormName() << " = " << aForm->genCodeDef() << ";\n";
+        os << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
 
     for (const auto & aForm : mVReachedF) {
         if (!aForm->isAtomic())
-            os << "    TypeElem " << aForm->genCodeFormName() << " = " << aForm->genCodeNAddr() << ";\n";
+            os << "    TypeElem " << aForm->GenCodeFormName() << " = " << aForm->GenCodeNAddr() << ";\n";
     }
 
     for (size_t i=0; i<mVCurF.size(); i++)
-       os <<  "    this->vvRes[aK][" << i << "] = " << mVCurF[i]->genCodeFormName() << ";\n";
+       os <<  "    this->vvRes[aK][" << i << "] = " << mVCurF[i]->GenCodeFormName() << ";\n";
     os << "  }\n"
           "  this->mInBuf=0;\n"
           "}\n\n"
@@ -1188,9 +1188,9 @@ std::string cCoordinatorF<TypeElem>::genCodeNAddr(const std::string &formulaName
 }
 
 template <class TypeElem>
-std::string cCoordinatorF<TypeElem>::genCodeDevel(const std::string &formulaName) const
+std::string cCoordinatorF<TypeElem>::GenCodeDevel(const std::string &aName) const
 {
-    std::string className  = formulaName + "Devel";
+    std::string className  = aName + "Devel";
     std::string fileName  = "CodeGen_" + className + ".h";
     std::ofstream os(fileName);
 
@@ -1213,7 +1213,7 @@ std::string cCoordinatorF<TypeElem>::genCodeDevel(const std::string &formulaName
           "{\n"
           "public:\n"
           "    " << className << "(size_t szBuf) : " << parentClass << "(szBuf) {}\n"
-          "    static std::string FormulaName() { return \"" << formulaName << "\";}\n"
+          "    static std::string FormulaName() { return \"" << aName << "\";}\n"
           "    void evalAndClear();\n"
           "};\n"
           "\n"
@@ -1228,17 +1228,17 @@ std::string cCoordinatorF<TypeElem>::genCodeDevel(const std::string &formulaName
 
 
     for (auto & aForm : mVFormUnknowns)
-        os << "    TypeElem &" << aForm->genCodeFormName() << " = " << aForm->genCodeDef() << ";\n";
+        os << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
     for (const auto & aForm : mVFormObservations)
-        os << "    TypeElem &" << aForm->genCodeFormName() << " = " << aForm->genCodeDef() << ";\n";
+        os << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
 
     for (const auto & aForm : mVReachedF) {
-        if (aForm->usedCnt() != 1 && !aForm->isAtomic()) {
-            os << "    TypeElem " << aForm->genCodeFormName() << " = " << aForm->genCodeDef() << ";\n";
+        if (aForm->UsedCnt() != 1 && !aForm->isAtomic()) {
+            os << "    TypeElem " << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
         }
     }
     for (size_t i=0; i<mVCurF.size(); i++)
-       os <<  "    this->vvRes[aK][" << i << "] = " << mVCurF[i]->genCodeRef() << ";\n";
+       os <<  "    this->vvRes[aK][" << i << "] = " << mVCurF[i]->GenCodeRef() << ";\n";
     os << "  }\n"
           "  this->mInBuf=0;\n"
           "}\n\n"
