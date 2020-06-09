@@ -73,6 +73,7 @@ class cCalcImScale
        Box2di      mBoxIn;
        Box2di      mBoxOut;
        Pt2di       mSzIn;
+       bool        mMaxGlob;
 };
 
 double  cCalcImScale::SigmaOfK(int aK) const
@@ -82,12 +83,17 @@ double  cCalcImScale::SigmaOfK(int aK) const
 
 void  cCalcImScale::AddFoncInd(Fonc_Num aF,int aK)
 {
-   ELISE_COPY
-   (
-      select(mIm0.all_pts(),aF>mImVMax.in()),
-      aF,
-      mImVMax.out()  |  (mIndMax.out() << aK)
-   );
+   if (mMaxGlob)
+   {
+       ELISE_COPY
+       (
+          select(mIm0.all_pts(),aF>mImVMax.in()),
+          aF,
+          mImVMax.out()  |  (mIndMax.out() << aK)
+       );
+       return;
+   }
+ 
 }
 
 std::string   cCalcImScale::OneBoxScaleGradScale()
@@ -198,7 +204,8 @@ cCalcImScale::cCalcImScale(int argc,char** argv) :
      mSzBrd    (100),
      mIm0      (1,1),
      mIndMax   (1,1),
-     mImVMax   (1,1)
+     mImVMax   (1,1),
+     mMaxGlob  (true)
 {
    ElInitArgMain
    (
