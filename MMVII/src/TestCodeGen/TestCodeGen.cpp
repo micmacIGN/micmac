@@ -1,24 +1,14 @@
 #include "TestCodeGenTpl.h"
-
-#include "include/CodeGen_IncludeAll.h"
+#include "CodeGen_IncludeAll.h"
 
 #include "Formula_Fraser_Test.h"
 #include "Formula_Primitives_Test.h"
 #include "Formula_Ratkowskyresidual.h"
 #include "Formula_Eqcollinearity.h"
 
-#include "include/MMVII_all.h"
-
 
 namespace CG = CodeGen;
 
-/* ==================================================== */
-/*                                                      */
-/*          cAppli_TestCodeGen                          */
-/*                                                      */
-/* ==================================================== */
-namespace MMVII
-{
 
 class  TestPrimitives : public cCodeGenTest<cPrimitivesTest,CG::PrimitivesTest<double>,CG::PrimitivesTestDevel<double>>
 {
@@ -33,32 +23,7 @@ public:
 
 
 
-class cAppli_TestCodeGen : public cMMVII_Appli
-{
-     public :
-        cAppli_TestCodeGen(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
-        int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override {return anArgObl;}
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
-     private :
-        int mSizeBuf;
-        int mThreads;
-};
-
-
-cCollecSpecArg2007 & cAppli_TestCodeGen::ArgOpt(cCollecSpecArg2007 & anArgOpt)
-{
-    return anArgOpt << AOpt2007(mSizeBuf,"b","Buffer Size",{})
-                    << AOpt2007(mThreads,"t","Nb Thread Max",{});
-}
-
-cAppli_TestCodeGen::cAppli_TestCodeGen(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
-  cMMVII_Appli (aVArgs,aSpec),mSizeBuf(0),mThreads(0)
-{
-}
-
-
-int cAppli_TestCodeGen::Exe()
+static int doTest(int sizeBuf, int nbThreads)
 {
 //    TestFraser test(1000000);
 //   TestPrimitives test(1000000);
@@ -85,32 +50,37 @@ int cAppli_TestCodeGen::Exe()
      test.mVUk = uk;
      test.mVObs =  obs;
      test.checkAll();
-    if (mSizeBuf == 0 || mThreads==0) {
+    if (sizeBuf == 0 || nbThreads==0) {
         test.benchMark();
     } else {
-        test.oneShot(mThreads,mSizeBuf);
+        test.oneShot(nbThreads,sizeBuf);
     }
    return EXIT_SUCCESS;
 }
 
 
-tMMVII_UnikPApli Alloc_TestCodeGen(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec)
+int main(int argc, char *argv[])
 {
-   return tMMVII_UnikPApli(new cAppli_TestCodeGen(aVArgs,aSpec));
+    int opt;
+    int sizeBuf=0;
+    int nbThreads=0;
+
+    while ((opt = getopt(argc, argv, "b:t:h")) != -1) {
+          switch (opt) {
+          case 'b':
+              sizeBuf = atoi(optarg);
+              break;
+          case 't':
+              nbThreads = atoi(optarg);
+              break;
+          default: /* '?' */
+              std::cerr << "Usage: " << argv[0] <<  " [-b SizeBuf -t NbThreads]\n";
+              exit(EXIT_FAILURE);
+          }
+    }
+    if (optind < argc) {
+        std::cerr << "Usage: " << argv[0] <<  " [-b SizeBuf -t NbThreads]\n";
+        exit(EXIT_FAILURE);
+    }
+    return doTest(sizeBuf,nbThreads);
 }
-
-cSpecMMVII_Appli TheSpecTestCodeGen
-(
-     "TestCodeGen",
-      Alloc_TestCodeGen,
-      "Code Generator test",
-      {eApF::Perso},
-      {eApDT::FileSys},
-      {eApDT::Xml},
-      __FILE__
-);
-
-}
-
-
-

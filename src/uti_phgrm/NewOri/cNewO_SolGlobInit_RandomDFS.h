@@ -436,6 +436,7 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 
         double mDistThresh;
         bool   mApplyCostPds;
+        double mAlphaProb;
 
 };
 

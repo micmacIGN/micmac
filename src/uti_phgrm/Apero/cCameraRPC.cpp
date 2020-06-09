@@ -2169,7 +2169,8 @@ if(0)
             aPDifMoy.y += aPDif.y;
         }
 
- 
+        std::cout << "RPC precision: [" <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
+                                       <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << "]\n";
         if( (double(aPDifMoy.x)/(aGridGroundTest.size())) > 1 || (double(aPDifMoy.y)/(aGridGroundTest.size())) > 1 )
             std::cout << "RPC recalculation"
                 <<  " precision: " << double(aPDifMoy.x)/(aGridGroundTest.size()) << " "

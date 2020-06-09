@@ -2,7 +2,7 @@
 #include <string>
 #include <fstream>
 
-#include "include/MMVII_FormalDerivatives.h"
+#include "SymbDer/SymbolicDerivatives.h"
 
 #include "Formula_Fraser_Test.h"
 #include "Formula_Primitives_Test.h"
@@ -15,14 +15,14 @@ static std::vector<std::string> includesNames;
 template<typename FORMULA>
 void GenerateCode()
 {
-    NS_MMVII_FormalDerivative::cCoordinatorF<double>
+    NS_SymbolicDerivative::cCoordinatorF<double>
             mCFD1(0,FORMULA::VNamesUnknowns(),FORMULA::VNamesObs());
 
     auto aVFormula = FORMULA::formula(mCFD1.VUk(),mCFD1.VObs());
     mCFD1.SetCurFormulasWithDerivative(aVFormula);
     auto name = mCFD1.GenerateCode(FORMULA::FormulaName());
     includesNames.push_back(name);
-    name = mCFD1.genCodeDevel(FORMULA::FormulaName());
+    name = mCFD1.GenCodeDevel(FORMULA::FormulaName());
     includesNames.push_back(name);
 }
 

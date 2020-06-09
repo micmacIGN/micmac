@@ -10,6 +10,8 @@ MMV2DirIncl=${MMV2Dir}include/
 MMV2ElisePath=${MMDir}/lib/libelise.a
 MMV2Exe=MMVII
 
+MMSymbDerHeader=$(wildcard ${MMV2DirIncl}/SymbDer/*.h)
+
 all : ${MMV2DirBin}${MMV2Exe}
 
 #
@@ -120,32 +122,6 @@ OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjU
 #
 #
 HEADER=$(wildcard ${MMV2DirIncl}*.h)
-#
-# ========== Code Generator
-#
-MMV2_CGEN_DIR=${MMV2DirSrc}TestCodeGen
-MMV2_CGEN_SRC=${MMV2_CGEN_DIR}/CodeGenerator.cpp
-MMV2_CODEGEN=${MMV2DirBin}CodeGenerator
-
-${MMV2_CODEGEN}: ${MMV2_CGEN_SRC} ${MMV2_CGEN_DIR}/Formula_*.h $(filter-out ${MMV2DirIncl}CodeGen_%.h,${HEADER})
-	${CXX}  $< ${CFlags}  -o $@
-
-${MMV2DirIncl}/CodeGen_IncludeAll.h: ${MMV2_CODEGEN}
-	@echo "* Generating Formulas code"
-	( cd ${MMV2DirIncl} && ${MMV2_CODEGEN} )
-
-HEADER:=$(filter-out ${MMV2DirIncl}CodeGen%.h,${HEADER})
-
-${MMV2_CGEN_DIR}/%.o :  ${MMV2_CGEN_DIR}/%.cpp ${HEADER}
-	${CXX} -c  $< ${CFlags} -o $@
-
-MMV2_TCGEN_SRCS=$(filter-out ${MMV2_CGEN_SRC},$(wildcard ${MMV2_CGEN_DIR}/*.cpp))
-MMV2_TCGEN_OBJS=${MMV2_TCGEN_SRCS:.cpp=.o}
-OBJ:=${OBJ} ${MMV2_TCGEN_OBJS}
-
-${MMV2_TCGEN_OBJS}: ${HEADER} ${MMV2_CGEN_DIR}/TestCodeGenTpl.h ${MMV2DirIncl}/CodeGen_IncludeAll.h
-
-${OBJ}: | ${MMV2_CODEGEN}
 
 #
 #  Binaries
@@ -181,7 +157,7 @@ ${MMV2DirMMV1}%.o :  ${MMV2DirMMV1}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirCmdSpec}%.o :  ${MMV2DirCmdSpec}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
-${MMV2DirTLE}%.o :  ${MMV2DirTLE}%.cpp   ${HEADER}
+${MMV2DirTLE}%.o :  ${MMV2DirTLE}%.cpp   ${HEADER} ${MMSymbDerHeader}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirT4MkF}%.o :  ${MMV2DirT4MkF}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
@@ -217,6 +193,6 @@ Show:
 	echo SrcCalcDescriptPCar: ${SrcCalcDescriptPCar}
 	echo MMV2DirCalcDescriptPCar: ${MMV2DirCalcDescriptPCar}
 clean :
-	rm -f ${OBJ} ${MMV2_CODEGEN} ${MMV2DirIncl}CodeGen_*.h
+	rm -f ${OBJ}
 #
 #
