@@ -50,7 +50,10 @@ class cCalcImScale
         cCalcImScale(int argc,char** argv);
     private :
 
-       std::string NameIMax(const std::string & aNature) {return  "IndMax-" + aNature + mNameIm + ".tif";}
+       std::string NameIMax(const std::string & aNature) 
+       {
+            return  "IndMax-" + std::string(mMaxGlob?"Glob-":"Loc-" ) + aNature + mNameIm + ".tif";
+       }
 
        double  SigmaOfK(int aK) const;
        void    AddFoncInd(Fonc_Num aF,int aK);
@@ -98,23 +101,34 @@ void  cCalcImScale::AddFoncInd(Fonc_Num aF,int aK)
        return;
    }
 
+   ELISE_COPY (mImVMax.all_pts(),aF,mImVMax.out());
    // Si troiseme itere toute images sont init
    if (aK>=2)
    {
+
       // On met jour les max loc pas encore initialise
+      int aCPT = 0;
       ELISE_COPY
       (
-         select(mIm0.all_pts(),(mImVMax.in()==255) && (mImNM2.in()<mImNM1.in()) && (mImVMax.in() <= mImNM1.in())),
+         select(mIm0.all_pts(),(mIndMax.in()==255) && (mImNM2.in()<mImNM1.in()) && (mImVMax.in() <= mImNM1.in())),
          (aK-1),
-         mIndMax.out()
+         mIndMax.out()  | (sigma(aCPT) << 1)
       );
+
+/*
+Tiff_Im::CreateFromIm(mImNM2,"XXX-V0.tif");
+Tiff_Im::CreateFromIm(mImNM1,"XXX-V1.tif");
+Tiff_Im::CreateFromIm(mImVMax,"XXX-V2.tif");
+std::cout << "JJJJJJJ " << aK << " " << aCPT << "\n";
+getchar();
+*/
 
       if (aK==(mNbPow-1))  // Si derniere etape
       {
            // Quand aucun max loc, si derniere etape et croissant
            ELISE_COPY
            (
-               select(mIm0.all_pts(),(mImVMax.in()==255) && (mImVMax.in() > mImNM1.in())),
+               select(mIm0.all_pts(),(mIndMax.in()==255) && (mImVMax.in() > mImNM1.in())),
                aK,
                mIndMax.out()
            );
@@ -122,7 +136,7 @@ void  cCalcImScale::AddFoncInd(Fonc_Num aF,int aK)
            // Quand aucun max loc, et pas croissant alors decroissant
            ELISE_COPY
            (
-               select(mIm0.all_pts(),(mImVMax.in()==255) ),
+               select(mIm0.all_pts(),(mIndMax.in()==255) ),
                0,
                mIndMax.out()
            );
@@ -258,18 +272,22 @@ cCalcImScale::cCalcImScale(int argc,char** argv) :
         LArgMain()  << EAM(mNbByOct,"NbByO",true,"Number by octave, def = 5")
                     << EAM(mSzMax,"SzMax",true,"Sz for tiling")
                     << EAM(mNbPow,"NbP",true,"Number of power")
+                    << EAM(mMaxGlob,"Glob",true,"Max Glob/Firs max loc")
    );
 
    Tiff_Im aTF = Tiff_Im::StdConvGen(mNameIm,1,true);
    mSzGlob = aTF.sz();
    cDecoupageInterv2D aDec =   cDecoupageInterv2D::SimpleDec(mSzGlob,mSzMax,mSzBrd);
 
+
+std::cout << "HHHHHH\n";
    for (int aKInterv = 0 ; aKInterv < aDec.NbInterv() ; aKInterv++)
    {
        mBoxIn = aDec.KthIntervIn(aKInterv);
        mBoxOut = aDec.KthIntervOut(aKInterv);
        mSzIn   = mBoxIn.sz();
 
+std::cout << "JJJJJ " << aKInterv << " " << mSzIn << "\n";
        mIm0.Resize(mSzIn);
        mIndMax.Resize(mSzIn);
        mImVMax.Resize(mSzIn);

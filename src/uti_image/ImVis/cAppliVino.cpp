@@ -656,7 +656,7 @@ void  cAppli_Vino::ShowOneVal(Pt2dr aPW)
 
     EffaceMessageVal();
     //  On my computer with small pixel/big curset I dont see the messag
-    int OffsetY = (MPD_MM()) ? -50 : 50;
+    int OffsetY = (MPD_MM()) ? -50 : -50;
 
     mVBoxMessageVal.push_back(PutMessage(aPW+Pt2dr(-20,OffsetY),aMesXY,P8COL::black));
 
