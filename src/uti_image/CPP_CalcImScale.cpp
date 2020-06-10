@@ -70,6 +70,10 @@ class cCalcImScale
        Im2D_REAL4  mIm0;
        Im2D_U_INT1 mIndMax;
        Im2D_REAL4  mImVMax;
+
+       Im2D_REAL4  mImNM2;
+       Im2D_REAL4  mImNM1;
+
        Box2di      mBoxIn;
        Box2di      mBoxOut;
        Pt2di       mSzIn;
@@ -93,6 +97,42 @@ void  cCalcImScale::AddFoncInd(Fonc_Num aF,int aK)
        );
        return;
    }
+
+   // Si troiseme itere toute images sont init
+   if (aK>=2)
+   {
+      // On met jour les max loc pas encore initialise
+      ELISE_COPY
+      (
+         select(mIm0.all_pts(),(mImVMax.in()==255) && (mImNM2.in()<mImNM1.in()) && (mImVMax.in() <= mImNM1.in())),
+         (aK-1),
+         mIndMax.out()
+      );
+
+      if (aK==(mNbPow-1))  // Si derniere etape
+      {
+           // Quand aucun max loc, si derniere etape et croissant
+           ELISE_COPY
+           (
+               select(mIm0.all_pts(),(mImVMax.in()==255) && (mImVMax.in() > mImNM1.in())),
+               aK,
+               mIndMax.out()
+           );
+
+           // Quand aucun max loc, et pas croissant alors decroissant
+           ELISE_COPY
+           (
+               select(mIm0.all_pts(),(mImVMax.in()==255) ),
+               0,
+               mIndMax.out()
+           );
+      }
+   }
+
+   Im2D_REAL4 aLastINM2 = mImNM2;
+   mImNM2               = mImNM1;
+   mImNM1               = mImVMax;
+   mImVMax              = aLastINM2;
  
 }
 
@@ -182,6 +222,7 @@ std::string  cCalcImScale::OneBoxLapl()
         
     }
 
+    // Filtrage de Ind   ouverture puis fermeture
     ELISE_COPY
     (
          mIndMax.all_pts(),
@@ -205,6 +246,8 @@ cCalcImScale::cCalcImScale(int argc,char** argv) :
      mIm0      (1,1),
      mIndMax   (1,1),
      mImVMax   (1,1),
+     mImNM2    (1,1),
+     mImNM1    (1,1),
      mMaxGlob  (true)
 {
    ElInitArgMain
@@ -237,6 +280,11 @@ cCalcImScale::cCalcImScale(int argc,char** argv) :
             Virgule(trans(aTF.in(),mBoxIn.P0()),255,-1),
             Virgule(mIm0.out(),mIndMax.out(),mImVMax.out())
        );
+       if (! mMaxGlob)
+       {
+          mImNM2.Resize(mSzIn);
+          mImNM1.Resize(mSzIn);
+       }
      
 
        std::string aPost;
