@@ -25,7 +25,6 @@ extern cSpecMMVII_Appli  TheSpecScaleImage;
 extern cSpecMMVII_Appli  TheSpecCalcDiscIm;
 extern cSpecMMVII_Appli  TheSpecCalcDescPCar;
 extern cSpecMMVII_Appli  TheSpecMatchTieP;
-extern cSpecMMVII_Appli  TheSpecTestCodeGen;
 
 };
 
