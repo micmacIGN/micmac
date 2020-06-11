@@ -1258,6 +1258,135 @@ int OneReechFid_main(int argc,char ** argv)
      return EXIT_SUCCESS;
 }
 
+int AllReechFromAscii_main(int argc,char** argv)
+{
+	std::string aImNamePat;
+    std::string aASCIINamePat;
+    cElemAppliSetFile aEASF;
+
+	ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aImNamePat,"Pattern of image names to crop/rotate/scale", eSAM_IsExistFile)
+                      << EAMC(aASCIINamePat,"Pattern of the ascii files with 2D correspondences", eSAM_IsExistFile),
+          LArgMain()  
+    );
+
+    #if (ELISE_windows)
+      replace( aASCIINamePat.begin(), aASCIINamePat.end(), '\\', '/' );
+      replace( aImNamePat.begin(), aImNamePat.end(), '\\', '/' );
+    #endif
+
+	aEASF.Init(aImNamePat);
+
+	cElRegex  anAutom(aImNamePat.c_str(),10);
+
+	std::list<std::string>  aLCom;
+    for (size_t aKIm=0  ; aKIm< aEASF.SetIm()->size() ; aKIm++)
+    {
+        std::string aNameIm = (*aEASF.SetIm())[aKIm];
+
+		std::string aNameCorresp  =  MatchAndReplace(anAutom,aNameIm,aASCIINamePat);
+
+		std::string aCom = MM3dBinFile_quotes("TestLib")
+                     	 + " OneReechFromAscii "
+						 + aNameIm 
+						 + " " + aNameCorresp
+						 + " Out=" + StdPrefix(aNameCorresp) +".tif" ;
+		std::cout << aCom << "\n";
+		aLCom.push_back(aCom);
+	}
+
+	cEl_GPAO::DoComInParal(aLCom);
+
+	return EXIT_SUCCESS;
+}
+
+int OneReechFromAscii_main(int argc,char** argv)
+{
+	std::string aFullName;
+	std::string aOutName;
+	std::string aASCIIName;
+
+	Pt2dr aP1, aP2;
+	Pt2di aSzOut(0,0);
+    ElPackHomologue aPack;
+	cElemAppliSetFile aEASF;
+
+    ElInitArgMain
+    (
+          argc,argv,
+          LArgMain()  << EAMC(aFullName,"Name of image to crop/rotate/scale", eSAM_IsExistFile)
+                      << EAMC(aASCIIName,"Name of the ascii file with 2D correspondences", eSAM_IsExistFile),
+          LArgMain()  << EAM(aOutName,"Out",true,"Name of the output, Def=Image+ASCII_filename.tif")
+    );
+
+	#if (ELISE_windows)
+      replace( aASCIIName.begin(), aASCIIName.end(), '\\', '/' );
+      replace( aFullName.begin(), aFullName.end(), '\\', '/' );
+	#endif
+
+	aEASF.Init(aFullName);
+
+	if (!EAMIsInit(&aOutName))
+		aOutName = StdPrefix(aFullName) + "_" + StdPrefix(aASCIIName) + ".tif";
+
+
+
+
+	/*1- Save Homol */
+    ELISE_fp aFIn(aASCIIName.c_str(),ELISE_fp::READ);
+    char * aLine;
+
+    while ((aLine = aFIn.std_fgets()))
+    {
+         int aNb=sscanf(aLine,"%lf  %lf %lf  %lf",&aP1.x , &aP1.y, &aP2.x , &aP2.y);
+         ELISE_ASSERT(aNb==4,"Could not read 2 double values");
+
+         //std::cout << aP1 << " " << aP2 << "\n";
+         ElCplePtsHomologues aP(aP1,aP2);
+
+         aPack.Cple_Add(aP);
+
+		 if (aP1.x>aSzOut.x)
+		 	aSzOut.x=aP1.x;
+		 if (aP1.y>aSzOut.y)
+		 	aSzOut.y=aP1.y;
+
+    }
+
+    cElHomographie  aHom = cElHomographie::RansacInitH(aPack,50,2000);
+
+	std::string aKeyHom = "NKS-Assoc-CplIm2Hom@@dat";
+    std::string aNameH = aEASF.mDir + aEASF.mICNM->Assoc1To2(aKeyHom,aOutName,aFullName,true);
+	aPack.StdPutInFile(aNameH);
+
+
+	/*2- Save empty "transformed" image */
+	GenIm::type_el aTypeOut = GenIm::u_int1;
+    Tiff_Im aTifEpi = Tiff_Im
+                       (
+                           aOutName.c_str(),
+                           aSzOut,
+                           aTypeOut,
+                           Tiff_Im::No_Compr,
+                           Tiff_Im::BlackIsZero
+                       );
+
+	/*3- Do resampling in the transformed image */
+	std::string aCom = MM3dBinFile_quotes("TestLib") 
+		             + " OneReechHom " 
+				     + aOutName
+				     + " " + aEASF.mDir + aFullName +
+				     + " " + aOutName
+					 + " PostMasq=NONE";
+
+	System(aCom);	 
+
+
+
+	return EXIT_SUCCESS;
+}
 
 
 /*Footer-MicMac-eLiSe-25/06/2007
