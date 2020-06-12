@@ -94,6 +94,7 @@ class cApply_CreateEpip_main
       double             mEpsCheckInv;
       Pt2dr              mDir1;
       Pt2dr              mDir2;
+      Pt2di              mNbCalcAutoDir;
       bool               mMakeAppuis;
       bool               mIntervZIsDef;
       double             mZMin;
@@ -551,6 +552,7 @@ cTmpReechEpip::cTmpReechEpip
 }
 
 
+// void CalcDirEpip(const ElPackHomologue)
 
 
 void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
@@ -569,12 +571,19 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       }
       else
       {
-          ELISE_ASSERT
-          (
-              EAMIsInit(&mDir1) &&  EAMIsInit(&mDir2),
-              "Dir1 and Dir2 must be initialized in mode no ori"
-          );
           aPack = mICNM->StdPackHomol("",mName1,mName2);
+          if (EAMIsInit(&mNbCalcAutoDir))
+          {
+              aPack.DirEpipolaire(mDir1,mDir2,mNbCalcAutoDir.x,mNbCalcAutoDir.y,1);
+          }
+          else
+          {
+              ELISE_ASSERT
+              (
+                  EAMIsInit(&mDir1) &&  EAMIsInit(&mDir2),
+                  "Dir1 and Dir2 must be initialized in mode no ori"
+              );
+          }
       }
 
       std::cout << "Compute Epip ; D1=" << mDir1 << " ,D2=" << mDir2 << "\n";
@@ -808,6 +817,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 		    << EAM(mIProf,"IProf",false,"Interval prof (for test in mode FG of frame cam, else unused)")
 		    << EAM(mIntZ,"IntZ",false,"Z interval, for test or correct interval of RPC")
 		    << EAM(mNbXY,"NbXY",false,"Number of point / line or col, def=100")
+		    << EAM(mNbCalcAutoDir,"NbCalcDir",false,"Calc directions : Nbts / NbEchDir")
     );
 
 

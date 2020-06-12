@@ -76,6 +76,8 @@ class cCalcImScale
 
        Im2D_REAL4  mImNM2;
        Im2D_REAL4  mImNM1;
+       Im2D_REAL4  mImNM0;
+       Im2D_U_INT1 mMaxLocPrec;
 
        Box2di      mBoxIn;
        Box2di      mBoxOut;
@@ -90,6 +92,7 @@ double  cCalcImScale::SigmaOfK(int aK) const
 
 void  cCalcImScale::AddFoncInd(Fonc_Num aF,int aK)
 {
+   //Pt2di aPBug(626,596);
    if (mMaxGlob)
    {
        ELISE_COPY
@@ -101,52 +104,39 @@ void  cCalcImScale::AddFoncInd(Fonc_Num aF,int aK)
        return;
    }
 
-   ELISE_COPY (mImVMax.all_pts(),aF,mImVMax.out());
-   // Si troiseme itere toute images sont init
+   ELISE_COPY(mImNM0.all_pts(),aF,mImNM0.out());
+
+   //std::cout << "LocVBUG= " << mImVMax.GetR(aPBug) << "\n";
+
    if (aK>=2)
    {
-
-      // On met jour les max loc pas encore initialise
-      int aCPT = 0;
+      // K=0 pas de max loc
+      // K=1 max loc , calculable a K=2, et utilisable a partir de K=2 aussi
+      // puisque la max lox "barre" la route aux suivants
       ELISE_COPY
       (
-         select(mIm0.all_pts(),(mIndMax.in()==255) && (mImNM2.in()<mImNM1.in()) && (mImVMax.in() <= mImNM1.in())),
-         (aK-1),
-         mIndMax.out()  | (sigma(aCPT) << 1)
+         select
+         (
+             mIm0.all_pts(),
+                (mImNM2.in()<mImNM1.in()) 
+             && (mImNM0.in() <= mImNM1.in())
+         ),
+         1,
+         mMaxLocPrec.out()
       );
-
-/*
-Tiff_Im::CreateFromIm(mImNM2,"XXX-V0.tif");
-Tiff_Im::CreateFromIm(mImNM1,"XXX-V1.tif");
-Tiff_Im::CreateFromIm(mImVMax,"XXX-V2.tif");
-std::cout << "JJJJJJJ " << aK << " " << aCPT << "\n";
-getchar();
-*/
-
-      if (aK==(mNbPow-1))  // Si derniere etape
-      {
-           // Quand aucun max loc, si derniere etape et croissant
-           ELISE_COPY
-           (
-               select(mIm0.all_pts(),(mIndMax.in()==255) && (mImVMax.in() > mImNM1.in())),
-               aK,
-               mIndMax.out()
-           );
-
-           // Quand aucun max loc, et pas croissant alors decroissant
-           ELISE_COPY
-           (
-               select(mIm0.all_pts(),(mIndMax.in()==255) ),
-               0,
-               mIndMax.out()
-           );
-      }
    }
+   ELISE_COPY
+   (
+       select(mIm0.all_pts(),mImNM0.in()>mImVMax.in() && (!mMaxLocPrec.in())),
+       aF,
+       mImVMax.out()  |  (mIndMax.out() << aK)
+   );
+
 
    Im2D_REAL4 aLastINM2 = mImNM2;
    mImNM2               = mImNM1;
-   mImNM1               = mImVMax;
-   mImVMax              = aLastINM2;
+   mImNM1               = mImNM0;
+   mImNM0               = aLastINM2;
  
 }
 
@@ -262,7 +252,9 @@ cCalcImScale::cCalcImScale(int argc,char** argv) :
      mImVMax   (1,1),
      mImNM2    (1,1),
      mImNM1    (1,1),
-     mMaxGlob  (true)
+     mImNM0  (1,1),
+     mMaxLocPrec  (1,1),
+     mMaxGlob  (false)
 {
    ElInitArgMain
    (
@@ -280,14 +272,12 @@ cCalcImScale::cCalcImScale(int argc,char** argv) :
    cDecoupageInterv2D aDec =   cDecoupageInterv2D::SimpleDec(mSzGlob,mSzMax,mSzBrd);
 
 
-std::cout << "HHHHHH\n";
    for (int aKInterv = 0 ; aKInterv < aDec.NbInterv() ; aKInterv++)
    {
        mBoxIn = aDec.KthIntervIn(aKInterv);
        mBoxOut = aDec.KthIntervOut(aKInterv);
        mSzIn   = mBoxIn.sz();
 
-std::cout << "JJJJJ " << aKInterv << " " << mSzIn << "\n";
        mIm0.Resize(mSzIn);
        mIndMax.Resize(mSzIn);
        mImVMax.Resize(mSzIn);
@@ -302,6 +292,9 @@ std::cout << "JJJJJ " << aKInterv << " " << mSzIn << "\n";
        {
           mImNM2.Resize(mSzIn);
           mImNM1.Resize(mSzIn);
+          mImNM0.Resize(mSzIn);
+          mMaxLocPrec.Resize(mSzIn);
+          mMaxLocPrec.raz();
        }
      
 
