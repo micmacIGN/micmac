@@ -556,6 +556,7 @@ void ElPackHomologue::PrivDirEpipolaire(Pt2dr & aRes1,Pt2dr & aRes2,INT aSz) con
 
     for (INT aK1=0 ; aK1<aSz ; aK1++)
     {
+        std::cout << "PrivDirEpipolaire Phase1, remain " << (aSz-aK1) << "\n";
         for (INT aK2=0 ; aK2<aSz ; aK2++)
         {
              REAL alpha1 = (aK1 + 0.5)* 3.14 /aSz;
@@ -584,17 +585,20 @@ void ElPackHomologue::PrivDirEpipolaire(Pt2dr & aRes1,Pt2dr & aRes2,INT aSz) con
         }
     }
     {
-    for (INT aK1=0 ; aK1<aSz ; aK1++)
-        for (INT aK2=0 ; aK2<aSz ; aK2++)
+        for (INT aK1=0 ; aK1<aSz ; aK1++)
         {
-             REAL ecart;
-             ELISE_COPY
-             (
-                 aScore.all_pts(),
-                 aScore.in()*(1-ecart_frac((aK1-FX)/REAL(aSz))-ecart_frac((aK2-FY)/REAL(aSz))),
-                 sigma(ecart)
-             );
-              aScoreMoy.data()[aK2][aK1] = ecart;
+            std::cout << "PrivDirEpipolaire Phase1, remain " << (aSz-aK1) << "\n";
+            for (INT aK2=0 ; aK2<aSz ; aK2++)
+            {
+                 REAL ecart;
+                 ELISE_COPY
+                 (
+                     aScore.all_pts(),
+                     aScore.in()*(1-ecart_frac((aK1-FX)/REAL(aSz))-ecart_frac((aK2-FY)/REAL(aSz))),
+                     sigma(ecart)
+                 );
+                  aScoreMoy.data()[aK2][aK1] = ecart;
+            }
         }
     }
 
