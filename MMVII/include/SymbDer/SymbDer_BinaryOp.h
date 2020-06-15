@@ -389,11 +389,11 @@ template <class TypeElem> class cPowF : public cBinaryF<TypeElem>
       private  :
             const std::string &  NameOperator() const override {static std::string s("^"); return s;}
             virtual std::string GenCodeNAddr() const override {
-                return "pow(" + mF1->GenCodeFormName() + "," + mF2->GenCodeFormName() + ")";
+                return "std::pow(" + mF1->GenCodeFormName() + "," + mF2->GenCodeFormName() + ")";
             }
 
             virtual std::string GenCodeDef() const override {
-                return "pow(" + mF1->GenCodeRef() + ","  + mF2->GenCodeRef() + ")";
+                return "std::pow(" + mF1->GenCodeRef() + ","  + mF2->GenCodeRef() + ")";
             }
             void ComputeBuf(int aK0,int aK1) override
             {

@@ -221,7 +221,7 @@ template <class TypeElem> class cExpF : public cUnaryF<TypeElem>
             { }
             static TypeElem Operation(const TypeElem & aV1) {return std::exp(aV1);}
       private :
-            const std::string &  NameOperator() const override {static std::string s("exp"); return s;}
+            const std::string &  NameOperator() const override {static std::string s("std::exp"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
             {
                 for (int aK=aK0 ; aK<aK1 ; aK++)
@@ -271,7 +271,7 @@ template <class TypeElem> class cLogF : public cUnaryF<TypeElem>
             { }
             static TypeElem Operation(const TypeElem & aV1) {return std::log(aV1);}
       private :
-            const std::string &  NameOperator() const override {static std::string s("log"); return s;}
+            const std::string &  NameOperator() const override {static std::string s("std::log"); return s;}
             void ComputeBuf(int aK0,int aK1) override  
             {
                 for (int aK=aK0 ; aK<aK1 ; aK++)
@@ -297,7 +297,7 @@ template <class TypeElem> class cSqrtF : public cUnaryF<TypeElem>
             { }
             static TypeElem Operation(const TypeElem & aV1) {return std::sqrt(aV1);}
       private :
-            const std::string &  NameOperator() const override {static std::string s("sqrt"); return s;}
+            const std::string &  NameOperator() const override {static std::string s("std::sqrt"); return s;}
             void ComputeBuf(int aK0,int aK1) override
             {
                 for (int aK=aK0 ; aK<aK1 ; aK++)
