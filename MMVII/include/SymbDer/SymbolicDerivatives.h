@@ -155,31 +155,6 @@ template <class Type> inline Type pow(const Type & aV,const int & aExp)
       //============= BASIC  ERROR HANDLING ==============
 
 
-static inline void Error(const std::string & aMes,const std::string & aExplanation)
-{
-    std::cout << "In SymbolicDerivative a fatal error" << "\n";
-    std::cout << "  Likely Source   ["<< aExplanation << "\n";
-    std::cout << "  Message  ["<< aMes << "]\n";
-    assert(false);
-}
-     ///    Error due probably to internal mistake
-static inline void InternalError(const std::string & aMes)
-{
-   Error(aMes,"Internal Error of the Library");
-}
-     /// Error probably due to bas usage of the library (typically out limit vector access)
-static inline void UserSError(const std::string & aMes)
-{
-   Error(aMes,"Probable error on user's side due to unapropriate usage of the library");
-}
-
-     /// Check equality in test, taking account numericall error
-static inline void AssertAlmostEqual(const double & aV1,const double & aV2,const double & aEps)
-{
-   if ( (std::abs(aV1-aV2)> aEps*(std::abs(aV1)+std::abs(aV2))) )
-      InternalError("Test equality failed");
-}
-
 
 /** This function computes derivates by finites difference
     It is used in the tests to check correction of  symbolic derivatives. Also used

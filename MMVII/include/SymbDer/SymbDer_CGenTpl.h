@@ -6,7 +6,6 @@
 
 #include "SymbDer_Common.h"
 
-// TODO: specialized exceptions
 namespace NS_SymbolicDerivative {
 
 template<typename TypeElem,size_t NB_UK, size_t NB_OBS, size_t NB_RES, unsigned Interval>
@@ -32,7 +31,7 @@ public:
     void pushNewEvals(const UkType &aVUk,const ObsType &aVObs)
     {
         if (mInBuf >= mSizeBuf)
-            throw std::range_error("Codegen buffer overflow");
+            UserSError("Push exceed buffer capacity");
         vvUk[mInBuf] = aVUk;
         vvObs[mInBuf] = aVObs;
         mInBuf++;
@@ -40,11 +39,11 @@ public:
     void pushNewEvals(const VType &aVUk,const VType &aVObs)
     {
         if (mInBuf >= mSizeBuf)
-            throw std::range_error("Codegen buffer overflow");
+            throw std::range_error("Push exceed buffer capacity");
         if (aVUk.size() != NB_UK)
-            throw std::range_error("Codegen ukn size error");
+            throw std::range_error("Bad size in Unknowns");
         if (aVObs.size() != NB_OBS)
-            throw std::range_error("Codegen obs size error");
+            throw std::range_error("Bad size in Obervations");
         for (size_t i=0; i<NB_UK; i++)
             vvUk[mInBuf][i] = aVUk[i];
         for (size_t i=0; i<NB_OBS; i++)
