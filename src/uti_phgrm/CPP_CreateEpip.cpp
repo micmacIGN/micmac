@@ -349,12 +349,18 @@ cTmpReechEpip::cTmpReechEpip
     {
       
        cKernelInterpol1D * aKer = 0;
+if (0)
+{
+           aKer  =  cKernelInterpol1D::StdInterpCHC(1.5);
+
+}
        if (aNumKer==1)
           aKer = new cCubicInterpKernel(-0.5);
        else
           aKer = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,aNumKer,aNumKer/2,1e-4,false);
 
        aPtrSCI =  new  cTabIM2D_FromIm2D<REAL4>   (aKer,1000,false);
+
        // cTabIM2D_FromIm2D<REAL4>   aSSCI (&aKer,1000,false);
     }
 
@@ -973,6 +979,7 @@ class cAppliReechHomogr    : public ElDistortion22_Gen
         ElPackHomologue  mPack;
         cElHomographie  mH1To2;
         cElHomographie  mH2To1;
+        double          mScaleReech;
 };
 
 Pt2dr cAppliReechHomogr::Direct(Pt2dr aP) const
@@ -1000,6 +1007,7 @@ cAppliReechHomogr::cAppliReechHomogr(int argc,char ** argv)  :
                       << EAMC(mFullNameI2,"Name of \"Slave\" Image", eSAM_IsExistFile)
                       << EAMC(mNameI2Redr,"Name of resulting registered Image", eSAM_IsExistFile),
           LArgMain()  << EAM (mPostMasq,"PostMasq",true,"Name of Masq , Def = \"Masq\"")
+                      << EAM (mScaleReech,"ScaleReech",true,"Scale Resampling, used for interpolator when downsizing")
     );
 
      mNameI1 = NameWithoutDir(mFullNameI1);
@@ -1365,7 +1373,9 @@ int OneReechFromAscii_main(int argc,char** argv)
 
     }
 
-    cElHomographie  aHom = cElHomographie::RansacInitH(aPack,50,2000);
+    ElSimilitude  aSim = L2EstimSimHom(aPack);
+
+    //  cElHomographie  aHom = cElHomographie::RansacInitH(aPack,50,2000);
 
 	std::string aKeyHom = "NKS-Assoc-CplIm2Hom@@dat";
     std::string aNameH = aEASF.mDir + aEASF.mICNM->Assoc1To2(aKeyHom,aOutName,aFullName,true);
@@ -1389,7 +1399,9 @@ int OneReechFromAscii_main(int argc,char** argv)
 				     + aOutName
 				     + " " + aEASF.mDir + aFullName +
 				     + " " + aOutName
-					 + " PostMasq=NONE";
+				     + std::string(" PostMasq=NONE ")
+				     + std::string(" ScaleReech=") + ToString(euclid(aSim.sc())) + std::string(" ")
+                           ;
 
 	System(aCom);	 
 
