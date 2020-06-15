@@ -85,7 +85,7 @@ using namespace std;
 
 */
 
-
+#include "SymbDer_Common.h"
 
 #if (WITH_MMVII)
 #include "include/MMVII_all.h"
@@ -150,19 +150,6 @@ template <class Type> inline Type pow(const Type & aV,const int & aExp)
 {
     return std::pow(aV,Type(aExp));
 }
-
-/* These functions are required if we want to have same operation on numbers double and formulas
-   They are suposed to be optimized implementation of pow for integer low value
-   of the exponent 
-*/
-template <class Type> inline Type square(const Type & aV)  {return aV*aV;}
-template <class Type> inline Type cube(const Type & aV)    {return aV*aV*aV;}
-template <class Type> inline Type pow4(const Type & aV)    {return square(square(aV));}
-template <class Type> inline Type pow5(const Type & aV)    {return aV *pow4(aV);}
-template <class Type> inline Type pow6(const Type & aV)    {return square(cube(aV));}
-template <class Type> inline Type pow7(const Type & aV)    {return aV *pow6(aV);}
-template <class Type> inline Type pow8(const Type & aV)    {return square(pow4(aV));}
-template <class Type> inline Type pow9(const Type & aV)    {return aV *pow8(aV);}
 
 
       //============= BASIC  ERROR HANDLING ==============
@@ -1149,7 +1136,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeNAddr(const std::string &aName) cons
           "#endif\n"
           "#include \"SymbDer/SymbDer_CGenTpl.h\"\n"
           "\n"
-          "namespace CodeGen {\n\n"
+          "namespace NS_SymbolicDerivative {\n\n"
           "template<typename TypeElem>\n"
           "class " << className << " : public " << parentClass << "\n"
           "{\n"
@@ -1183,7 +1170,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeNAddr(const std::string &aName) cons
     os << "  }\n"
           "  this->mInBuf=0;\n"
           "}\n\n"
-          "} // namespace CodeGen\n";
+          "} // namespace NS_SymbolicDerivative\n";
     return fileName;
 }
 
@@ -1207,7 +1194,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeDevel(const std::string &aName) cons
           "#endif\n"
           "#include \"SymbDer/SymbDer_CGenTpl.h\"\n"
           "\n"
-          "namespace CodeGen {\n\n"
+          "namespace NS_SymbolicDerivative {\n\n"
           "template<typename TypeElem>\n"
           "class " << className << " : public " << parentClass << "\n"
           "{\n"
@@ -1242,7 +1229,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeDevel(const std::string &aName) cons
     os << "  }\n"
           "  this->mInBuf=0;\n"
           "}\n\n"
-          "} // namespace CodeGen\n";
+          "} // namespace NS_SymbolicDerivative\n";
     return fileName;
 }
 
