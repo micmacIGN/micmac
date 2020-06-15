@@ -3,6 +3,9 @@
 
 #include <iostream>
 #include <assert.h>
+// ===================== MPD  error: call of overloaded ‘abs(const double&)’ is ambiguous ===============
+#include <math.h>
+#include <cmath>
 
 namespace NS_SymbolicDerivative {
 
@@ -36,6 +39,7 @@ static inline void UserSError(const std::string & aMes)
 {
    Error(aMes,"Probable error on user's side due to unapropriate usage of the library");
 }
+
 
      /// Check equality in test, taking account numericall error
 static inline void AssertAlmostEqual(const double & aV1,const double & aV2,const double & aEps)
