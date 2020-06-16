@@ -103,6 +103,9 @@ class cCelMatch3
 };
 
 
+/* Class that will be used to instantiate cProg2DOptimiser
+*/
+
 class cTD_Match3_main
 {
      public :
@@ -110,8 +113,8 @@ class cTD_Match3_main
 
         ///===== PRE-REQUIREMENT FOR 2D PROG DYN , transfer
 
-            typedef  cCelMatch3 tArgCelTmp;
-            typedef  cCelMatch3 tArgNappe;
+            typedef  cCelMatch3 tArgCelTmp; // Type temporary when parsing a line
+            typedef  cCelMatch3 tArgNappe;  // Type where is stored permently  the 3D value 
 
       ///-------- Not a PRE-REQUIREMENT but Helpull
 
@@ -163,8 +166,11 @@ class cTD_Match3_main
 
 void cTD_Match3_main::DoConnexion
      (
-         const Pt2di & aPIn, const Pt2di & aPOut,
-         ePrgSens aSens,int aRab,int aMul,
+         const Pt2di & aPIn,   // Point of input column
+         const Pt2di & aPOut,  // Point of output column
+         ePrgSens aSens,       // Is it forward or backwrad,  need to indicate it in udate
+         int ,
+         int ,
          tCelOpt*Input,int aInZMin,int aInZMax,
          tCelOpt*Ouput,int aOutZMin,int aOutZMax
      )
@@ -173,9 +179,10 @@ void cTD_Match3_main::DoConnexion
     double aRegulCost = 0.1;
 
 // =====================
-    for (int aZOut=aOutZMin ; aZOut<aOutZMax ; aZOut++)
+    for (int aZOut=aOutZMin ; aZOut<aOutZMax ; aZOut++)  // Parse all the input Z
     {
            int aDZMin,aDZMax;
+           // Compute the inteval of deta-z that are inside the "jump" and inside Z-In
            ComputeIntervaleDelta
             (
                 aDZMin,aDZMax,aZOut,aNbJump,
@@ -185,8 +192,8 @@ void cTD_Match3_main::DoConnexion
             for (int aDZ = aDZMin; aDZ<= aDZMax ; aDZ++)
             {
                  int aZIn = aZOut + aDZ;
-                 int  aICost = ToI(aRegulCost * ElAbs(aDZ) );
-                 Ouput[aZOut].UpdateCostOneArc(Input[aZIn],aSens,aICost);
+                 int  aICost = ToI(aRegulCost * ElAbs(aDZ) );  // Compute the regularization cost
+                 Ouput[aZOut].UpdateCostOneArc(Input[aZIn],aSens,aICost);  // Update the out cost
             }
     }
 }
@@ -272,31 +279,39 @@ cTD_Match3_main::cTD_Match3_main(int argc,char ** argv) :
     mIm2 =  Im2D_U_INT1::FromFileStd(mNameIm2);
     // if (mW) mW->clik_in();
 
-   Im2D_INT2 aNapInf(mSz1.x,mSz1.y, -mPxInterv);
-   Im2D_INT2 aNapSup(mSz1.x,mSz1.y,1+ mPxInterv);
+   Im2D_INT2 aNapInf(mSz1.x,mSz1.y, -mPxInterv);   // Z Min has constant valure 
+   Im2D_INT2 aNapSup(mSz1.x,mSz1.y,1+ mPxInterv);  // Z Max has "opposite" constant value
 
-   cProg2DOptimiser<cTD_Match3_main> aPrgD(*this,aNapInf,aNapSup,0,1);
+   //  Create the strtucture
+   cProg2DOptimiser<cTD_Match3_main> aPrgD
+                                     (
+                                         *this,
+                                         aNapInf,  //  ZMIn 
+                                         aNapSup,  // ZMax
+                                         0,1       // Allow to create more value
+                                     );
 
    cDynTplNappe3D<tCelNap> &  aSparseVol = aPrgD.Nappe();
    tCelNap ***  aSparsPtr = aSparseVol.Data() ;
 
+    // Fill the data term with correlation
     for (int aPx= -mPxInterv ; aPx <= mPxInterv ; aPx++)
     {
-        TestOnePx(aPx); // Compute correl
+        TestOnePx(aPx); // Compute correlation for 1 paralax
         float **  aDataCor = mImCor.data();
         for (int anX=0 ; anX<mSz1.x ; anX++)
         {
             for (int anY=0 ; anY<mSz1.y ; anY++)
             {
                 int aICost =  ToI (1-aDataCor[anY][anX]);
-                aSparsPtr[anY][anX][aPx].SetOwnCost(aICost);
+                aSparsPtr[anY][anX][aPx].SetOwnCost(aICost);   // Fill the cube 
             }
         }
     }
 
-    aPrgD.DoOptim(5);  // Number of direction
+    aPrgD.DoOptim(5);  // Main call to optimize, parameter = Number of direction
 
-    aPrgD.TranfereSol(mPxOpt.data());
+    aPrgD.TranfereSol(mPxOpt.data()); // Copy the value of solution
     
     Tiff_Im::Create8BFromFonc("PxPrgD.tif",mSz1,mPxOpt.in()+128);
 }
