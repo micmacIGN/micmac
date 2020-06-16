@@ -158,10 +158,12 @@ class cTD_Match3_main
 
         Pt2di       mSz1;
         Pt2di       mSz2;
-        int         mPxInterv;
+        Pt2di       mPxInterv;
         Video_Win*  mW;
         int         mSzW;
-        int         mNbPix;
+        double      mNbPix;
+        int         mNbJump;
+        double      mRegulCost;
 };
 
 void cTD_Match3_main::DoConnexion
@@ -175,8 +177,6 @@ void cTD_Match3_main::DoConnexion
          tCelOpt*Ouput,int aOutZMin,int aOutZMax
      )
 {
-    int aNbJump = 1;
-    double aRegulCost = 0.1;
 
 // =====================
     for (int aZOut=aOutZMin ; aZOut<aOutZMax ; aZOut++)  // Parse all the input Z
@@ -185,14 +185,14 @@ void cTD_Match3_main::DoConnexion
            // Compute the inteval of deta-z that are inside the "jump" and inside Z-In
            ComputeIntervaleDelta
             (
-                aDZMin,aDZMax,aZOut,aNbJump,
+                aDZMin,aDZMax,aZOut,mNbJump,
                 aOutZMin,aOutZMax,
                 aInZMin,aInZMax
             );
             for (int aDZ = aDZMin; aDZ<= aDZMax ; aDZ++)
             {
                  int aZIn = aZOut + aDZ;
-                 int  aICost = ToI(aRegulCost * ElAbs(aDZ) );  // Compute the regularization cost
+                 int  aICost = ToI(mRegulCost * ElAbs(aDZ) );  // Compute the regularization cost
                  Ouput[aZOut].UpdateCostOneArc(Input[aZIn],aSens,aICost);  // Update the out cost
             }
     }
@@ -239,9 +239,11 @@ cTD_Match3_main::cTD_Match3_main(int argc,char ** argv) :
     mImCor    (1,1),
     mPxOpt    (1,1),
     mCorOpt   (1,1),
-    mPxInterv (50),
+    mPxInterv (-50,50),
     mW        (0),
-    mSzW      (3)
+    mSzW      (3),
+    mNbJump   (1),
+    mRegulCost (0.1)
 {
     std::string mNameIm1,mNameIm2;
     bool Visu=true;
@@ -254,6 +256,8 @@ cTD_Match3_main::cTD_Match3_main(int argc,char ** argv) :
            LArgMain() << EAM(mPxInterv,"PxI",true, "Paralax intervall")
                       << EAM(Visu,"Visu",true,"Interactive visualisation")
                       << EAM(mSzW,"SzW",true,"Size of correlation window")
+                      << EAM(mRegulCost,"Regul",true,"Regularisation factor")
+                      << EAM(mNbJump,"NbJ",true,"Nb Jump")
     );
 
     mNbPix = ElSquare(1+2*mSzW);
@@ -279,8 +283,8 @@ cTD_Match3_main::cTD_Match3_main(int argc,char ** argv) :
     mIm2 =  Im2D_U_INT1::FromFileStd(mNameIm2);
     // if (mW) mW->clik_in();
 
-   Im2D_INT2 aNapInf(mSz1.x,mSz1.y, -mPxInterv);   // Z Min has constant valure 
-   Im2D_INT2 aNapSup(mSz1.x,mSz1.y,1+ mPxInterv);  // Z Max has "opposite" constant value
+   Im2D_INT2 aNapInf(mSz1.x,mSz1.y, mPxInterv.x);   // Z Min has constant valure 
+   Im2D_INT2 aNapSup(mSz1.x,mSz1.y,1+ mPxInterv.y);  // Z Max has "opposite" constant value
 
    //  Create the strtucture
    cProg2DOptimiser<cTD_Match3_main> aPrgD
@@ -295,7 +299,7 @@ cTD_Match3_main::cTD_Match3_main(int argc,char ** argv) :
    tCelNap ***  aSparsPtr = aSparseVol.Data() ;
 
     // Fill the data term with correlation
-    for (int aPx= -mPxInterv ; aPx <= mPxInterv ; aPx++)
+    for (int aPx= mPxInterv.x ; aPx <= mPxInterv.y ; aPx++)
     {
         TestOnePx(aPx); // Compute correlation for 1 paralax
         float **  aDataCor = mImCor.data();
