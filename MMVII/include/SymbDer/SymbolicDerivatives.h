@@ -403,6 +403,9 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
         /// Used to generate automatically Id for Unknown/Observatio, when we dont need to control them explicitely
         static std::vector<std::string>   MakeAutomId(const std::string & aPrefix,int aNb);
 
+        void GenCodeProlog(const std::string &aName, const std::string &aClassName, std::ofstream &aOs) const;
+        void GenCodeEpilog(std::ofstream &aOs) const;
+
         size_t                         mSzBuf;       ///< Capacity of bufferirsation
         size_t                         mNbCste;      ///< Number Cste
         size_t                         mNbUK;        ///< Dim=number of unkown
@@ -1092,12 +1095,11 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
 }
 
 template <class TypeElem>
-std::string cCoordinatorF<TypeElem>::GenCodeNAddr(const std::string &aName) const
+void cCoordinatorF<TypeElem>::GenCodeProlog(
+    const std::string& aName,
+    const std::string &aClassName,
+    std::ofstream& aOs) const
 {
-    std::string className  = aName;
-    std::string fileName  = "CodeGen_" + className + ".h";
-    std::ofstream os(fileName);
-
     std::string parentClass =
             "GenFuncTpl<TypeElem," +
             std::to_string(mNbUK) + "," +
@@ -1105,7 +1107,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeNAddr(const std::string &aName) cons
             std::to_string(mVCurF.size()) +  "," +
             std::to_string(mSzInterval) + ">" ;
 
-    os << "#include <vector>\n"
+    aOs << "#include <vector>\n"
           "#ifdef _OPENMP\n"
           "#include <omp.h>\n"
           "#endif\n"
@@ -1113,39 +1115,55 @@ std::string cCoordinatorF<TypeElem>::GenCodeNAddr(const std::string &aName) cons
           "\n"
           "namespace NS_SymbolicDerivative {\n\n"
           "template<typename TypeElem>\n"
-          "class " << className << " : public " << parentClass << "\n"
+          "class " << aClassName << " : public " << parentClass << "\n"
           "{\n"
           "public:\n"
-          "    " << className << "(size_t szBuf) : " << parentClass << "(szBuf) {}\n"
+          "    " << aClassName << "(size_t szBuf) : " << parentClass << "(szBuf) {}\n"
           "    static std::string FormulaName() { return \"" << aName << "\";}\n"
           "    void evalAndClear();\n"
           "};\n"
           "\n"
           "template<typename TypeElem>\n"
-          "void " << className << "<TypeElem>::evalAndClear()\n"
+          "void " << aClassName << "<TypeElem>::evalAndClear()\n"
           "{\n"
           "#ifdef _OPENMP\n"
           "#pragma omp parallel for\n"
           "#endif\n"
           "  for (size_t aK=0; aK < this->mInBuf; aK++) {\n"
           "// Declare local vars in loop to make them per thread\n";
-
     for (auto & aForm : mVFormUnknowns)
-        os << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
+        aOs << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
     for (const auto & aForm : mVFormObservations)
-        os << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
+        aOs << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
 
+}
+
+template <class TypeElem>
+void cCoordinatorF<TypeElem>::GenCodeEpilog(std::ofstream& aOs) const
+{
+    aOs << "  }\n"
+          "  this->mInBuf=0;\n"
+          "}\n\n"
+          "} // namespace NS_SymbolicDerivative\n";
+}
+
+
+template <class TypeElem>
+std::string cCoordinatorF<TypeElem>::GenCodeNAddr(const std::string &aName) const
+{
+    std::string className  = aName;
+    std::string fileName  = "CodeGen_" + className + ".h";
+    std::ofstream os(fileName);
+
+    GenCodeProlog(aName, className, os);
     for (const auto & aForm : mVReachedF) {
         if (!aForm->isAtomic())
             os << "    TypeElem " << aForm->GenCodeFormName() << " = " << aForm->GenCodeNAddr() << ";\n";
     }
-
     for (size_t i=0; i<mVCurF.size(); i++)
        os <<  "    this->vvRes[aK][" << i << "] = " << mVCurF[i]->GenCodeFormName() << ";\n";
-    os << "  }\n"
-          "  this->mInBuf=0;\n"
-          "}\n\n"
-          "} // namespace NS_SymbolicDerivative\n";
+
+    GenCodeEpilog(os);
     return fileName;
 }
 
@@ -1156,44 +1174,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeDevel(const std::string &aName) cons
     std::string fileName  = "CodeGen_" + className + ".h";
     std::ofstream os(fileName);
 
-    std::string parentClass =
-            "GenFuncTpl<TypeElem," +
-            std::to_string(mNbUK) + "," +
-            std::to_string(mNbObs) + "," +
-            std::to_string(mVCurF.size()) + "," +
-            std::to_string(mSzInterval) + ">" ;
-
-    os << "#include <vector>\n"
-          "#ifdef _OPENMP\n"
-          "#include <omp.h>\n"
-          "#endif\n"
-          "#include \"SymbDer/SymbDer_CGenTpl.h\"\n"
-          "\n"
-          "namespace NS_SymbolicDerivative {\n\n"
-          "template<typename TypeElem>\n"
-          "class " << className << " : public " << parentClass << "\n"
-          "{\n"
-          "public:\n"
-          "    " << className << "(size_t szBuf) : " << parentClass << "(szBuf) {}\n"
-          "    static std::string FormulaName() { return \"" << aName << "\";}\n"
-          "    void evalAndClear();\n"
-          "};\n"
-          "\n"
-          "template<typename TypeElem>\n"
-          "void " << className << "<TypeElem>::evalAndClear()\n"
-          "{\n"
-          "#ifdef _OPENMP\n"
-          "#pragma omp parallel for\n"
-          "#endif\n"
-          "  for (size_t aK=0; aK < this->mInBuf; aK++) {\n"
-          "// Declare local vars in loop to make them per thread\n";
-
-
-    for (auto & aForm : mVFormUnknowns)
-        os << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
-    for (const auto & aForm : mVFormObservations)
-        os << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
-
+    GenCodeProlog(aName, className, os);
     for (const auto & aForm : mVReachedF) {
         if (aForm->UsedCnt() != 1 && !aForm->isAtomic()) {
             os << "    TypeElem " << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
@@ -1201,10 +1182,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeDevel(const std::string &aName) cons
     }
     for (size_t i=0; i<mVCurF.size(); i++)
        os <<  "    this->vvRes[aK][" << i << "] = " << mVCurF[i]->GenCodeRef() << ";\n";
-    os << "  }\n"
-          "  this->mInBuf=0;\n"
-          "}\n\n"
-          "} // namespace NS_SymbolicDerivative\n";
+    GenCodeEpilog(os);
     return fileName;
 }
 
