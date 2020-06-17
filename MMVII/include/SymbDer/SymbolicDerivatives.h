@@ -85,7 +85,7 @@ using namespace std;
 
 */
 
-
+#include "SymbDer_Common.h"
 
 #if (WITH_MMVII)
 #include "include/MMVII_all.h"
@@ -151,47 +151,9 @@ template <class Type> inline Type pow(const Type & aV,const int & aExp)
     return std::pow(aV,Type(aExp));
 }
 
-/* These functions are required if we want to have same operation on numbers double and formulas
-   They are suposed to be optimized implementation of pow for integer low value
-   of the exponent 
-*/
-template <class Type> inline Type square(const Type & aV)  {return aV*aV;}
-template <class Type> inline Type cube(const Type & aV)    {return aV*aV*aV;}
-template <class Type> inline Type pow4(const Type & aV)    {return square(square(aV));}
-template <class Type> inline Type pow5(const Type & aV)    {return aV *pow4(aV);}
-template <class Type> inline Type pow6(const Type & aV)    {return square(cube(aV));}
-template <class Type> inline Type pow7(const Type & aV)    {return aV *pow6(aV);}
-template <class Type> inline Type pow8(const Type & aV)    {return square(pow4(aV));}
-template <class Type> inline Type pow9(const Type & aV)    {return aV *pow8(aV);}
-
 
       //============= BASIC  ERROR HANDLING ==============
 
-
-static inline void Error(const std::string & aMes,const std::string & aExplanation)
-{
-    std::cout << "In SymbolicDerivative a fatal error" << "\n";
-    std::cout << "  Likely Source   ["<< aExplanation << "\n";
-    std::cout << "  Message  ["<< aMes << "]\n";
-    assert(false);
-}
-     ///    Error due probably to internal mistake
-static inline void InternalError(const std::string & aMes)
-{
-   Error(aMes,"Internal Error of the Library");
-}
-     /// Error probably due to bas usage of the library (typically out limit vector access)
-static inline void UserSError(const std::string & aMes)
-{
-   Error(aMes,"Probable error on user's side due to unapropriate usage of the library");
-}
-
-     /// Check equality in test, taking account numericall error
-static inline void AssertAlmostEqual(const double & aV1,const double & aV2,const double & aEps)
-{
-   if ( (std::abs(aV1-aV2)> aEps*(std::abs(aV1)+std::abs(aV2))) )
-      InternalError("Test equality failed");
-}
 
 
 /** This function computes derivates by finites difference
@@ -1149,7 +1111,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeNAddr(const std::string &aName) cons
           "#endif\n"
           "#include \"SymbDer/SymbDer_CGenTpl.h\"\n"
           "\n"
-          "namespace CodeGen {\n\n"
+          "namespace NS_SymbolicDerivative {\n\n"
           "template<typename TypeElem>\n"
           "class " << className << " : public " << parentClass << "\n"
           "{\n"
@@ -1183,7 +1145,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeNAddr(const std::string &aName) cons
     os << "  }\n"
           "  this->mInBuf=0;\n"
           "}\n\n"
-          "} // namespace CodeGen\n";
+          "} // namespace NS_SymbolicDerivative\n";
     return fileName;
 }
 
@@ -1207,7 +1169,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeDevel(const std::string &aName) cons
           "#endif\n"
           "#include \"SymbDer/SymbDer_CGenTpl.h\"\n"
           "\n"
-          "namespace CodeGen {\n\n"
+          "namespace NS_SymbolicDerivative {\n\n"
           "template<typename TypeElem>\n"
           "class " << className << " : public " << parentClass << "\n"
           "{\n"
@@ -1242,7 +1204,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeDevel(const std::string &aName) cons
     os << "  }\n"
           "  this->mInBuf=0;\n"
           "}\n\n"
-          "} // namespace CodeGen\n";
+          "} // namespace NS_SymbolicDerivative\n";
     return fileName;
 }
 

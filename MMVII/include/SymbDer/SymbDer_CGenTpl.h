@@ -4,8 +4,9 @@
 #include <vector>
 #include <array>
 
-// TODO: specialized exceptions
-namespace CodeGen {
+#include "SymbDer_Common.h"
+
+namespace NS_SymbolicDerivative {
 
 template<typename TypeElem,size_t NB_UK, size_t NB_OBS, size_t NB_RES, unsigned Interval>
 class GenFuncTpl
@@ -30,7 +31,7 @@ public:
     void pushNewEvals(const UkType &aVUk,const ObsType &aVObs)
     {
         if (mInBuf >= mSizeBuf)
-            throw std::range_error("Codegen buffer overflow");
+            UserSError("Push exceed buffer capacity");
         vvUk[mInBuf] = aVUk;
         vvObs[mInBuf] = aVObs;
         mInBuf++;
@@ -38,11 +39,11 @@ public:
     void pushNewEvals(const VType &aVUk,const VType &aVObs)
     {
         if (mInBuf >= mSizeBuf)
-            throw std::range_error("Codegen buffer overflow");
+            throw std::range_error("Push exceed buffer capacity");
         if (aVUk.size() != NB_UK)
-            throw std::range_error("Codegen ukn size error");
+            throw std::range_error("Bad size in Unknowns");
         if (aVObs.size() != NB_OBS)
-            throw std::range_error("Codegen obs size error");
+            throw std::range_error("Bad size in Obervations");
         for (size_t i=0; i<NB_UK; i++)
             vvUk[mInBuf][i] = aVUk[i];
         for (size_t i=0; i<NB_OBS; i++)
@@ -73,15 +74,6 @@ protected:
     size_t mInBuf;
 };
 
-template <class Type> inline Type square(const Type & aV)  {return aV*aV;}
-template <class Type> inline Type cube(const Type & aV)    {return aV*aV*aV;}
-template <class Type> inline Type pow4(const Type & aV)    {return square(square(aV));}
-template <class Type> inline Type pow5(const Type & aV)    {return aV *pow4(aV);}
-template <class Type> inline Type pow6(const Type & aV)    {return square(cube(aV));}
-template <class Type> inline Type pow7(const Type & aV)    {return aV *pow6(aV);}
-template <class Type> inline Type pow8(const Type & aV)    {return square(pow4(aV));}
-template <class Type> inline Type pow9(const Type & aV)    {return aV *pow8(aV);}
-
-} // namespace CodeGen
+} // namespace NS_SymbolicDerivative
 
 #endif // _SymbDer_CGenTpl_H_

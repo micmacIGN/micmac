@@ -74,6 +74,7 @@ class cApply_CreateEpip_main
       int    mNbZ ;
       int    mNbXY ;
       int    mNbZRand ;
+      // int    mNbZCheck ;   // Ceux la sont aussi random
       double mLengthMin ;
       double mStepReech ;
       bool   mForceGen;
@@ -101,14 +102,18 @@ class cApply_CreateEpip_main
       double             mZMax;
       double             mIProf;
       Pt2dr              mIntZ;             
+      std::vector<double> mParamEICE;
 
       void DoEpipGen(bool DoIm);
 
-      Pt2dr DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D * aG2,ElPackHomologue & aPack,bool AddToP1, std::list<Appar23> &   aL23);
+      Pt2dr DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D * aG2,ElPackHomologue & aPack,bool ForCheck,bool AddToP1, std::list<Appar23> &   aL23);
 
       void Ressample(cBasicGeomCap3D * aG1,EpipolaireCoordinate & E1,double aStep);
 
       void MakeAppuis(bool Is1,const std::list<Appar23>&aLT1,EpipolaireCoordinate & anEpi,Pt2dr aP0Epi,Pt2dr aP1Epi);
+
+      void   ExportImCurveEpip(EpipolaireCoordinate & anEpip,const Box2dr&,const Box2dr&,const std::string & aName);
+      double PhaseValue(const double & aV,const double & aSzY) const;
 
 };
 
@@ -126,10 +131,11 @@ void  cApply_CreateEpip_main::IntervZAddIm(cBasicGeomCap3D * aGeom)
 // Compute direction of epip in G2 and fill Pack, AddToP1 indicate which way it must be added
 Pt2dr  cApply_CreateEpip_main::DirEpipIm2
        (
-            cBasicGeomCap3D * aG1,
-            cBasicGeomCap3D * aG2,
-            ElPackHomologue & aPack,
-            bool AddToP1,
+            cBasicGeomCap3D *      aG1,
+            cBasicGeomCap3D *      aG2,
+            ElPackHomologue &      aPack,
+            bool                   ForCheck,
+            bool                   AddToP1,
             std::list<Appar23> &   aL23
        )
 {
@@ -171,11 +177,13 @@ if (MPD_MM())
     for (int aKX=0 ; aKX<= aNbX ; aKX++)
     {
         // Barrycentrik weighting, 
-        double aPdsX = ElMax(aEps,ElMin(1-aEps,aKX /double(aNbX)));
+        double aPdsX = ForCheck ? NRrandom3() :  (aKX /double(aNbX));
+        aPdsX = ElMax(aEps,ElMin(1-aEps,aPdsX));
         for (int aKY=0 ; aKY<= aNbY ; aKY++)
         {
             // Barrycentrik weighting, 
-            double aPdsY = ElMax(aEps,ElMin(1-aEps,aKY/double(aNbY)));
+            double aPdsY = ForCheck ? NRrandom3() : (aKY/double(aNbY));
+            aPdsY = ElMax(aEps,ElMin(1-aEps,aPdsY));
             // Point in image 1 on regular gris
             Pt2dr aPIm1 = aSz.mcbyc(Pt2dr(aPdsX,aPdsY));
             if (aG1->CaptHasData(aPIm1))
@@ -191,7 +199,7 @@ if (MPD_MM())
                 double aNbZSup = mNbZ + mNbZRand; 
                 for (int aKZ = -mNbZ ; aKZ <= aNbZSup  ; aKZ++)
                 {
-                     bool isZRand =  (aKZ > mNbZ)  ;
+                     bool isZRand =  (aKZ > mNbZ)  || ForCheck ;
                      // Compute P Ground on bundle
                      Pt3dr aPT2 ;
                      // Now if we have interval Z, we are probably in RPC and it imporatnt to "fill" all the space
@@ -349,12 +357,18 @@ cTmpReechEpip::cTmpReechEpip
     {
       
        cKernelInterpol1D * aKer = 0;
+if (0)
+{
+           aKer  =  cKernelInterpol1D::StdInterpCHC(1.5);
+
+}
        if (aNumKer==1)
           aKer = new cCubicInterpKernel(-0.5);
        else
           aKer = new cSinCardApodInterpol1D(cSinCardApodInterpol1D::eTukeyApod,aNumKer,aNumKer/2,1e-4,false);
 
        aPtrSCI =  new  cTabIM2D_FromIm2D<REAL4>   (aKer,1000,false);
+
        // cTabIM2D_FromIm2D<REAL4>   aSSCI (&aKer,1000,false);
     }
 
@@ -554,6 +568,48 @@ cTmpReechEpip::cTmpReechEpip
 
 // void CalcDirEpip(const ElPackHomologue)
 
+extern void SetExagEpip(double aVal);
+
+double cApply_CreateEpip_main::PhaseValue(const double & aV,const double & aSzY) const
+{
+  double   aNbLine = mParamEICE.at(1);
+  double   aPer =  aSzY / aNbLine;
+  double   aLarg =  mParamEICE.at(2);
+  double  aPhase = ElAbs(Centered_mod_real(aV,aPer)/aPer);
+  aPhase = ElMin(aPhase/aLarg,1.0) *PI;
+
+  double aRes =  (1+cos(aPhase)) /2.0;
+  return aRes;
+}
+
+void cApply_CreateEpip_main::ExportImCurveEpip(EpipolaireCoordinate & anEpip,const Box2dr& aBoxIn,const Box2dr& aBoxOut,const std::string & aName)
+{
+    ELISE_ASSERT(mParamEICE.size()==4,"Bad Size for ExpCurve");
+    double aLRed =  mParamEICE.at(0);
+    SetExagEpip(mParamEICE.at(3));
+
+    Pt2dr aSzIn = aBoxIn.sz();
+    double aScale = ElMax(aSzIn.x,aSzIn.y) / aLRed;
+    Pt2di aSzRed = round_ni(aSzIn / aScale);
+
+    Pt2di aP;
+    Im2D_U_INT1 aIm(aSzRed.x,aSzRed.y);
+
+    for (aP.x=0 ; aP.x<aSzRed.x ; aP.x++)
+    {
+        for (aP.y=0 ; aP.y<aSzRed.y ; aP.y++)
+        {
+            Pt2dr aPIn  = aBoxIn.P0() + Pt2dr(aP) * aScale;
+
+            Pt2dr aPOut = anEpip.Direct(aPIn);
+            double aVy = PhaseValue(aPOut.y,aBoxOut.sz().y);
+            
+            aIm.SetR(aP,255*aVy);
+        }
+    }
+    SetExagEpip(1.0);
+    Tiff_Im::CreateFromIm(aIm,aName);
+}
 
 void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 {
@@ -561,13 +617,22 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       mStepReech = 10.0;
       //  mNbXY      = 100;
       ElPackHomologue aPack;
+      ElPackHomologue aPackCheck;
       std::list<Appar23>  aLT1,aLT2;
 
       // Compute the direction  and the set of homologous points
       if (mWithOri)
       {
-         mDir2 =  DirEpipIm2(mGenI1,mGenI2,aPack,true,aLT1);  // Dont Swap
-         mDir1 =  DirEpipIm2(mGenI2,mGenI1,aPack,false,aLT2); // Swap Pt
+         // For checking
+         {
+             std::list<Appar23>  aLTCheck1,aLTCheck2;
+             DirEpipIm2(mGenI1,mGenI2,aPackCheck,true,true  ,aLTCheck1);  // Dont Swap
+             DirEpipIm2(mGenI2,mGenI1,aPackCheck,true,false ,aLTCheck2); // Swap Pt
+         }
+
+
+         mDir2 =  DirEpipIm2(mGenI1,mGenI2,aPack,false,true,aLT1);  // Dont Swap
+         mDir1 =  DirEpipIm2(mGenI2,mGenI1,aPack,false,false,aLT2); // Swap Pt
       }
       else
       {
@@ -603,86 +668,70 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       Pt2dr aInf1(1e20,1e20),aSup1(-1e20,-1e20);
       Pt2dr aInf2(1e20,1e20),aSup2(-1e20,-1e20);
 
-      double aBias = 0.0;
-      double aErrMax = 0.0;
-      double aErrMoy = 0.0;
-      int    mNbP = 0;
-      double aX2mX1 = 0.0;
-
-      CpleEpipolaireCoord * aCple3 = 0;
-      CpleEpipolaireCoord * aCple7 = 0;
-      if (0)
+      for (int aKTime=0 ; aKTime<2 ; aKTime++)
       {
-         aCple3 = CpleEpipolaireCoord::PolynomialFromHomologue(false,aPack,3,mDir1,mDir2);
-         aCple7 = CpleEpipolaireCoord::PolynomialFromHomologue(false,aPack,7,mDir1,mDir2);
+            aInf1=Pt2dr(1e20,1e20);
+            aSup1=Pt2dr(-1e20,-1e20);
+            aInf2=Pt2dr(1e20,1e20);
+            aSup2=Pt2dr(-1e20,-1e20);
+
+            bool ForCheck = (aKTime==0);
+            ElPackHomologue * aPackK = ForCheck ? &aPackCheck  : & aPack;
+
+            double aBias = 0.0;
+            double aErrMax = 0.0;
+            double aErrMoy = 0.0;
+            int    mNbP = 0;
+            double aX2mX1 = 0.0;
+
+            // Compute accuracy, bounding box 
+            for (ElPackHomologue::const_iterator itC=aPackK->begin() ; itC!= aPackK->end() ; itC++)
+            {
+                 // Images of P1 and P2 by epipolar transforms
+                 Pt2dr aP1 = e1.Direct(itC->P1());
+                 Pt2dr aP2 = e2.Direct(itC->P2());
+                 // Update bounding boxes
+                 aInf1 = Inf(aInf1,aP1);
+                 aSup1 = Sup(aSup1,aP1);
+                 aInf2 = Inf(aInf2,aP2);
+                 aSup2 = Sup(aSup2,aP2);
+
+                 // Average off of X
+                 aX2mX1 += aP2.x - aP1.x;
+
+                 double aDifY = aP1.y-aP2.y; // Should be 0
+                 double anErr = ElAbs(aDifY);
+                 mNbP++;
+                 aErrMax = ElMax(anErr,aErrMax);
+                 aErrMoy += anErr;
+                 aBias   += aDifY;
+            }
+
+            aX2mX1 /= mNbP;
+
+            double aInfY = ElMax(aInf1.y,aInf2.y);
+            double aSupY = ElMax(aSup1.y,aSup2.y);
+            aInf1.y = aInf2.y = aInfY;
+            aSup1.y = aSup2.y = aSupY;
+
+
+            std::cout  << "======================= " << (ForCheck ? " CONTROL" : "LEARNING DATA") << " ========\n";
+            std::cout << "Epip Rect Accuracy:" 
+                      << " Bias " << aBias/mNbP 
+                      << " ,Moy " <<  aErrMoy/mNbP 
+                      << " ,Max " <<  aErrMax 
+                      << "\n";
+
+            if (! ForCheck)
+            {
+                std::cout << "DIR " << mDir1 << " " << mDir2 << " X2-X1 " << aX2mX1<< "\n";
+                std::cout << "Epip NbPts= " << mNbP << " Redund=" << mNbP/double(ElSquare(mDegre)) << "\n";
+            }
+      
       }
+      std::cout  << "BOX1 " << aInf1 << " " <<  aSup1 << "\n";
+      std::cout  << "BOX2 " << aInf2 << " " <<  aSup2 << "\n";
 
-      double aErrMaxDir1 = 0.0;
-      double aErrMaxInv1 = 0.0;
-
-      // Compute accuracy, bounding box 
-      for (ElPackHomologue::const_iterator itC=aPack.begin() ; itC!= aPack.end() ; itC++)
-      {
-           // Images of P1 and P2 by epipolar transforms
-           Pt2dr aP1 = e1.Direct(itC->P1());
-           Pt2dr aP2 = e2.Direct(itC->P2());
-           // Update bounding boxes
-           aInf1 = Inf(aInf1,aP1);
-           aSup1 = Sup(aSup1,aP1);
-           aInf2 = Inf(aInf2,aP2);
-           aSup2 = Sup(aSup2,aP2);
-
-           // Average off of X
-           aX2mX1 += aP2.x - aP1.x;
-
-           double aDifY = aP1.y-aP2.y; // Should be 0
-           double anErr = ElAbs(aDifY);
-           mNbP++;
-           aErrMax = ElMax(anErr,aErrMax);
-           aErrMoy += anErr;
-           aBias   += aDifY;
-
-           if (aCple3)
-           {
-               Pt2dr aQ1D3 = aCple3->EPI1().Direct(itC->P1());
-               Pt2dr aQ1D7 = aCple7->EPI1().Direct(itC->P1());
-               double aDQ1 = euclid(aQ1D3-aQ1D7);
-               aErrMaxDir1 = ElMax(aDQ1,aErrMaxDir1);
-
-               Pt2dr aR1D3 =  aCple3->EPI1().Inverse(aQ1D3);
-               Pt2dr aR1D7 =  aCple7->EPI1().Inverse(aQ1D7);
-               double aDR1 = euclid(aR1D3-aR1D7);
-               aErrMaxInv1 = ElMax(aDR1,aErrMaxInv1);
-
-           }
-
-      }
-      if (aCple3)
-      {
-         std::cout << "MAX ER " << aErrMaxDir1 << " " << aErrMaxInv1 << "\n";
-      }
-
-      aX2mX1 /= mNbP;
-
-      double aInfY = ElMax(aInf1.y,aInf2.y);
-      double aSupY = ElMax(aSup1.y,aSup2.y);
-      aInf1.y = aInf2.y = aInfY;
-      aSup1.y = aSup2.y = aSupY;
-
-      std::cout << aInf1 << " " <<  aSup1 << "\n";
-      std::cout << aInf2 << " " <<  aSup2 << "\n";
-      std::cout << "DIR " << mDir1 << " " << mDir2 << " X2-X1 " << aX2mX1<< "\n";
-
-      std::cout << "Epip Rect Accuracy:" 
-                << " Bias " << aBias/mNbP 
-                << " ,Moy " <<  aErrMoy/mNbP 
-                << " ,Max " <<  aErrMax 
-                << "\n";
-
-      std::cout << "Epip NbPts= " << mNbP << " Redund=" << mNbP/double(ElSquare(mDegre)) << "\n";
-
-
-      if (!DoIm) return;
 
       bool aConsChan = true;
       Pt2di aSzI1 = mWithOri ? 
@@ -695,12 +744,20 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       std::string aNI1 = mICNM->NameImEpip(mOri,mName1,mName2);
       std::string aNI2 = mICNM->NameImEpip(mOri,mName2,mName1);
 
-      cTmpReechEpip aReech1(aConsChan,mName1,Box2dr(Pt2dr(0,0),Pt2dr(aSzI1)),&e1,Box2dr(aInf1,aSup1),mStepReech,aNI1,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
-      std::cout << "DONE IM1 \n";
-      cTmpReechEpip aReech2(aConsChan,mName2,Box2dr(Pt2dr(0,0),Pt2dr(aSzI2)),&e2,Box2dr(aInf2,aSup2),mStepReech,aNI2,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
-      std::cout << "DONE IM2 \n";
+      Box2dr aBIn1(Pt2dr(0,0),Pt2dr(aSzI1));
+      Box2dr aBOut1(aInf1,aSup1);
+      Box2dr aBIn2(Pt2dr(0,0),Pt2dr(aSzI2));
+      Box2dr aBOut2(aInf2,aSup2);
 
-      std::cout << "DONNE REECH TMP \n";
+      if (DoIm)
+      {
+         cTmpReechEpip aReech1(aConsChan,mName1,aBIn1,&e1,aBOut1,mStepReech,aNI1,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
+         std::cout << "DONE IM1 \n";
+         cTmpReechEpip aReech2(aConsChan,mName2,aBIn2,&e2,aBOut2,mStepReech,aNI2,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
+         std::cout << "DONE IM2 \n";
+
+         std::cout << "DONNE REECH TMP \n";
+      }
 
 //  ::cTmpReechEpip(cBasicGeomCap3D * aGeom,EpipolaireCoordinate * anEpi,Box2dr aBox,double aStep) :
 
@@ -708,6 +765,12 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       {
            MakeAppuis(true ,aLT1,e1,aInf1,aSup1);
            MakeAppuis(false,aLT2,e2,aInf2,aSup2);
+      }
+
+      if (EAMIsInit(&mParamEICE))
+      {
+         ExportImCurveEpip(e1,aBIn1,aBOut1,"ImLineEpip1.tif");
+         ExportImCurveEpip(e2,aBIn2,aBOut2,"ImLineEpip2.tif");
       }
 }
 
@@ -818,6 +881,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 		    << EAM(mIntZ,"IntZ",false,"Z interval, for test or correct interval of RPC")
 		    << EAM(mNbXY,"NbXY",false,"Number of point / line or col, def=100")
 		    << EAM(mNbCalcAutoDir,"NbCalcDir",false,"Calc directions : Nbts / NbEchDir")
+		    << EAM(mParamEICE,"ExpCurve",false,"SzIm , Number of Line, Larg (in [0 1]), Exag deform")
     );
 
 
@@ -973,6 +1037,7 @@ class cAppliReechHomogr    : public ElDistortion22_Gen
         ElPackHomologue  mPack;
         cElHomographie  mH1To2;
         cElHomographie  mH2To1;
+        double          mScaleReech;
 };
 
 Pt2dr cAppliReechHomogr::Direct(Pt2dr aP) const
@@ -1000,6 +1065,7 @@ cAppliReechHomogr::cAppliReechHomogr(int argc,char ** argv)  :
                       << EAMC(mFullNameI2,"Name of \"Slave\" Image", eSAM_IsExistFile)
                       << EAMC(mNameI2Redr,"Name of resulting registered Image", eSAM_IsExistFile),
           LArgMain()  << EAM (mPostMasq,"PostMasq",true,"Name of Masq , Def = \"Masq\"")
+                      << EAM (mScaleReech,"ScaleReech",true,"Scale Resampling, used for interpolator when downsizing")
     );
 
      mNameI1 = NameWithoutDir(mFullNameI1);
@@ -1365,7 +1431,9 @@ int OneReechFromAscii_main(int argc,char** argv)
 
     }
 
-    cElHomographie  aHom = cElHomographie::RansacInitH(aPack,50,2000);
+    ElSimilitude  aSim = L2EstimSimHom(aPack);
+
+    //  cElHomographie  aHom = cElHomographie::RansacInitH(aPack,50,2000);
 
 	std::string aKeyHom = "NKS-Assoc-CplIm2Hom@@dat";
     std::string aNameH = aEASF.mDir + aEASF.mICNM->Assoc1To2(aKeyHom,aOutName,aFullName,true);
@@ -1389,7 +1457,9 @@ int OneReechFromAscii_main(int argc,char** argv)
 				     + aOutName
 				     + " " + aEASF.mDir + aFullName +
 				     + " " + aOutName
-					 + " PostMasq=NONE";
+				     + std::string(" PostMasq=NONE ")
+				     + std::string(" ScaleReech=") + ToString(euclid(aSim.sc())) + std::string(" ")
+                           ;
 
 	System(aCom);	 
 

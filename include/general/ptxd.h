@@ -627,6 +627,8 @@ class ElSimilitude : public cElMap2D
           Pt2dr  _tr;
           Pt2dr  _sc;
 };
+ElSimilitude  L2EstimSimHom(const class ElPackHomologue & aPack);
+
 
 class cElHomographie;
 class ElAffin2D : public cElMap2D

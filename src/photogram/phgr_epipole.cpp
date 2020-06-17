@@ -313,6 +313,11 @@ bool  cMappingEpipCoord::IsEpipId() const
 /*                                               */
 /*************************************************/
 
+static double  mExagEpip=1.0;
+void SetExagEpip(double aVal)
+{
+    mExagEpip = aVal;
+}
 
 void  EpipolaireCoordinate::Diff(ElMatrix<REAL> &,Pt2dr) const 
 {
@@ -326,11 +331,12 @@ void  EpipolaireCoordinate::Diff(ElMatrix<REAL> &,Pt2dr) const
 
 Pt2dr PolynomialEpipolaireCoordinate::ToCoordEpipol(Pt2dr aPInit) const
 {
-   return Pt2dr(aPInit.x,mPolToYEpip(aPInit));
+   return Pt2dr(aPInit.x,aPInit.y + (mPolToYEpip(aPInit)-aPInit.y) * mExagEpip);
 }
 
 Pt2dr PolynomialEpipolaireCoordinate::ToCoordInit(Pt2dr aP) const
 {
+   ELISE_ASSERT(mExagEpip==1.0,"Can Invert Epip with mExagEpip");
    return Pt2dr(aP.x,mPolToYInit(aP));
 }
 

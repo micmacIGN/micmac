@@ -7,13 +7,13 @@
 #include "Formula_Eqcollinearity.h"
 
 
-namespace CG = CodeGen;
+namespace SD = NS_SymbolicDerivative;
 
 
-class  TestPrimitives : public cCodeGenTest<cPrimitivesTest,CG::PrimitivesTest<double>,CG::PrimitivesTestDevel<double>>
+class  TestPrimitives : public cCodeGenTest<cPrimitivesTest,SD::PrimitivesTest<double>,SD::PrimitivesTestDevel<double>>
 {
 public:
-    TestPrimitives(size_t nbTest) : cCodeGenTest<cPrimitivesTest,CG::PrimitivesTest<double>,CG::PrimitivesTestDevel<double>>(nbTest)
+    TestPrimitives(size_t nbTest) : cCodeGenTest<cPrimitivesTest,SD::PrimitivesTest<double>,SD::PrimitivesTestDevel<double>>(nbTest)
     {
         mVUk[0] = 1;
         mVUk[1] = 2;
@@ -44,9 +44,9 @@ static int doTest(int sizeBuf, int nbThreads)
     obs[ 9] = 0.101;
     obs[10] = 0.2;
 
-//     cCodeGenTest<cFraserCamColinear,CG::Fraser<double>,CG::FraserDevel<double>> test(1000000);
-    cCodeGenTest<cEqCoLinearity<cTplPolDist<7>>,CG::EqColLinearityXYPol_Deg7<double>,CG::EqColLinearityXYPol_Deg7Devel<double>> test(100000);
-//     cCodeGenTest<cEqCoLinearity<cTplFraserDist>,CG::EqColLinearityFraser<double>,CG::EqColLinearityFraserDevel<double>> test(1000000);
+//     cCodeGenTest<cFraserCamColinear,SD::Fraser<double>,SD::FraserDevel<double>> test(1000000);
+    cCodeGenTest<cEqCoLinearity<cTplPolDist<7>>,SD::EqColLinearityXYPol_Deg7<double>,SD::EqColLinearityXYPol_Deg7Devel<double>> test(100000);
+//     cCodeGenTest<cEqCoLinearity<cTplFraserDist>,SD::EqColLinearityFraser<double>,SD::EqColLinearityFraserDevel<double>> test(1000000);
      test.mVUk = uk;
      test.mVObs =  obs;
      test.checkAll();
