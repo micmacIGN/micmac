@@ -102,6 +102,7 @@ class cApply_CreateEpip_main
       double             mZMax;
       double             mIProf;
       Pt2dr              mIntZ;             
+      std::vector<double> mParamEICE;
 
       void DoEpipGen(bool DoIm);
 
@@ -110,6 +111,9 @@ class cApply_CreateEpip_main
       void Ressample(cBasicGeomCap3D * aG1,EpipolaireCoordinate & E1,double aStep);
 
       void MakeAppuis(bool Is1,const std::list<Appar23>&aLT1,EpipolaireCoordinate & anEpi,Pt2dr aP0Epi,Pt2dr aP1Epi);
+
+      void   ExportImCurveEpip(EpipolaireCoordinate & anEpip,const Box2dr&,const Box2dr&,const std::string & aName);
+      double PhaseValue(const double & aV,const double & aSzY) const;
 
 };
 
@@ -564,6 +568,48 @@ if (0)
 
 // void CalcDirEpip(const ElPackHomologue)
 
+extern void SetExagEpip(double aVal);
+
+double cApply_CreateEpip_main::PhaseValue(const double & aV,const double & aSzY) const
+{
+  double   aNbLine = mParamEICE.at(1);
+  double   aPer =  aSzY / aNbLine;
+  double   aLarg =  mParamEICE.at(2);
+  double  aPhase = ElAbs(Centered_mod_real(aV,aPer)/aPer);
+  aPhase = ElMin(aPhase/aLarg,1.0) *PI;
+
+  double aRes =  (1+cos(aPhase)) /2.0;
+  return aRes;
+}
+
+void cApply_CreateEpip_main::ExportImCurveEpip(EpipolaireCoordinate & anEpip,const Box2dr& aBoxIn,const Box2dr& aBoxOut,const std::string & aName)
+{
+    ELISE_ASSERT(mParamEICE.size()==4,"Bad Size for ExpCurve");
+    double aLRed =  mParamEICE.at(0);
+    SetExagEpip(mParamEICE.at(3));
+
+    Pt2dr aSzIn = aBoxIn.sz();
+    double aScale = ElMax(aSzIn.x,aSzIn.y) / aLRed;
+    Pt2di aSzRed = round_ni(aSzIn / aScale);
+
+    Pt2di aP;
+    Im2D_U_INT1 aIm(aSzRed.x,aSzRed.y);
+
+    for (aP.x=0 ; aP.x<aSzRed.x ; aP.x++)
+    {
+        for (aP.y=0 ; aP.y<aSzRed.y ; aP.y++)
+        {
+            Pt2dr aPIn  = aBoxIn.P0() + Pt2dr(aP) * aScale;
+
+            Pt2dr aPOut = anEpip.Direct(aPIn);
+            double aVy = PhaseValue(aPOut.y,aBoxOut.sz().y);
+            
+            aIm.SetR(aP,255*aVy);
+        }
+    }
+    SetExagEpip(1.0);
+    Tiff_Im::CreateFromIm(aIm,aName);
+}
 
 void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 {
@@ -686,7 +732,6 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       std::cout  << "BOX1 " << aInf1 << " " <<  aSup1 << "\n";
       std::cout  << "BOX2 " << aInf2 << " " <<  aSup2 << "\n";
 
-      if (!DoIm) return;
 
       bool aConsChan = true;
       Pt2di aSzI1 = mWithOri ? 
@@ -699,12 +744,20 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       std::string aNI1 = mICNM->NameImEpip(mOri,mName1,mName2);
       std::string aNI2 = mICNM->NameImEpip(mOri,mName2,mName1);
 
-      cTmpReechEpip aReech1(aConsChan,mName1,Box2dr(Pt2dr(0,0),Pt2dr(aSzI1)),&e1,Box2dr(aInf1,aSup1),mStepReech,aNI1,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
-      std::cout << "DONE IM1 \n";
-      cTmpReechEpip aReech2(aConsChan,mName2,Box2dr(Pt2dr(0,0),Pt2dr(aSzI2)),&e2,Box2dr(aInf2,aSup2),mStepReech,aNI2,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
-      std::cout << "DONE IM2 \n";
+      Box2dr aBIn1(Pt2dr(0,0),Pt2dr(aSzI1));
+      Box2dr aBOut1(aInf1,aSup1);
+      Box2dr aBIn2(Pt2dr(0,0),Pt2dr(aSzI2));
+      Box2dr aBOut2(aInf2,aSup2);
 
-      std::cout << "DONNE REECH TMP \n";
+      if (DoIm)
+      {
+         cTmpReechEpip aReech1(aConsChan,mName1,aBIn1,&e1,aBOut1,mStepReech,aNI1,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
+         std::cout << "DONE IM1 \n";
+         cTmpReechEpip aReech2(aConsChan,mName2,aBIn2,&e2,aBOut2,mStepReech,aNI2,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
+         std::cout << "DONE IM2 \n";
+
+         std::cout << "DONNE REECH TMP \n";
+      }
 
 //  ::cTmpReechEpip(cBasicGeomCap3D * aGeom,EpipolaireCoordinate * anEpi,Box2dr aBox,double aStep) :
 
@@ -712,6 +765,12 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       {
            MakeAppuis(true ,aLT1,e1,aInf1,aSup1);
            MakeAppuis(false,aLT2,e2,aInf2,aSup2);
+      }
+
+      if (EAMIsInit(&mParamEICE))
+      {
+         ExportImCurveEpip(e1,aBIn1,aBOut1,"ImLineEpip1.tif");
+         ExportImCurveEpip(e2,aBIn2,aBOut2,"ImLineEpip2.tif");
       }
 }
 
@@ -822,6 +881,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 		    << EAM(mIntZ,"IntZ",false,"Z interval, for test or correct interval of RPC")
 		    << EAM(mNbXY,"NbXY",false,"Number of point / line or col, def=100")
 		    << EAM(mNbCalcAutoDir,"NbCalcDir",false,"Calc directions : Nbts / NbEchDir")
+		    << EAM(mParamEICE,"ExpCurve",false,"SzIm , Number of Line, Larg (in [0 1]), Exag deform")
     );
 
 
