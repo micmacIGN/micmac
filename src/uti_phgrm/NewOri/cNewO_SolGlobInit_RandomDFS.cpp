@@ -45,6 +45,7 @@ using namespace SolGlobInit_DFS ;
 
 #define MIN_WEIGHT 0.5
 #define MAX_WEIGHT 10.0
+#define IFLAG -1.0
 
 extern double DistBase(Pt3dr  aB1,Pt3dr  aB2);
 extern double DistanceRot(const ElRotation3D & aR1,const ElRotation3D & aR2,double aBSurH);
@@ -358,7 +359,7 @@ void cSolGlobInit_NRandom::WriteGraphToFile()
 	for (int  aK3=0 ; aK3<int (mV3.size()) ; aK3++)
     {
          mV3[aK3]->Flag().set_kth_false(mFlag3CC);
-		 mV3[aK3]->NumCC() = -1;
+		 mV3[aK3]->NumCC() = IFLAG;
     }
 
 }
@@ -372,9 +373,9 @@ cNOSolIn_Triplet::cNOSolIn_Triplet(cSolGlobInit_NRandom *anAppli,tSomNSI * aS1,t
 	mPdsSum(0),
 	mCostPdsSum(0),
     mNb3   (aTrip.NbTriplet()),
-    mNumCC (-1),
-	mNumId (-1),
-	mNumTT (-1),
+    mNumCC (IFLAG),
+	mNumId (IFLAG),
+	mNumTT (IFLAG),
 	mR2on1 (Xml2El(aTrip.Ori2On1())),
     mR3on1 (Xml2El(aTrip.Ori3On1())),
     mBOnH  (aTrip.BSurH())
@@ -444,7 +445,7 @@ static cNO_CmpTriByCost TheCmp3;
 
 cNOSolIn_AttrASym::cNOSolIn_AttrASym() :
 	mHeapTri(TheCmp3),
-    mNumArc (-1)
+    mNumArc (IFLAG)
 {
 }
 
@@ -1061,7 +1062,6 @@ void cSolGlobInit_NRandom::AddTriOnHeap(cLinkTripl *aLnk)
 
 }
 
-
 void cSolGlobInit_NRandom::BestSolOneCC(cNO_CC_TripSom *aCC)
 {
 
@@ -1108,7 +1108,7 @@ void cSolGlobInit_NRandom::BestSolOneCC(cNO_CC_TripSom *aCC)
                   << aTriNext->S1()->attr().Im()->Name() << " "
                   << aTriNext->S2()->attr().Im()->Name() << " "
                   << aTriNext->S3()->attr().Im()->Name() << " "
-                  << aTriNext->m3->CostArcMed() << "\n";
+                  << aTriNext->m3->CostArcMed() << ", " << aTriNext->m3->CostArc() << "\n";
             
 
 			/*PrintRotation(aTriNext->S1()->attr().CurRot().Mat(),"0");
@@ -1398,9 +1398,14 @@ void  cSolGlobInit_NRandom::DoOneRandomDFS(bool UseCoherence)
 
 double cNOSolIn_Triplet::CalcDistArc()
 {
+	// Check whether sommet was orientated in this CC
+	for (int aS=0; aS<3; aS++)
+		if (this->KSom(aS)->attr().NumCC() == IFLAG)
+			return IFLAG;
+
 	double aDist = 0;
 	// Not "solution" triplet
-	if (this->NumTT() == -1)
+	if (this->NumTT() == IFLAG)
 	{
 		for (int aS=0; aS<3; aS++)
 			aDist += this->KSom(aS)->attr().NumCC(); 
@@ -1509,7 +1514,7 @@ void cSolGlobInit_NRandom::CoherTriplets(std::vector<cNOSolIn_Triplet *>& aV3)
 	
 		
 		// Update if distance above threshold
-		if (aDist<mDistThresh)
+		if ((aDist<mDistThresh) && (aDist!=IFLAG))
 		{
 			aV3[aT]->CostPdsSum() += aCostCur*std::pow(mAlphaProb,aDist);
 			aV3[aT]->PdsSum() += std::pow(mAlphaProb,aDist);
@@ -1629,7 +1634,7 @@ void cSolGlobInit_NRandom::FreeTriNumTTFlag(std::vector<cNOSolIn_Triplet *>& aV3
 {
 	for (auto aT : aV3)
 	{
-		aT->NumTT() = -1;
+		aT->NumTT() = IFLAG;
 	}
 }
 
@@ -1637,7 +1642,7 @@ void cSolGlobInit_NRandom::FreeSomNumCCFlag(std::vector<tSomNSI *> aVS)
 {
 	for (auto aS : aVS)
 	{
-		(*aS).attr().NumCC() = -1;
+		(*aS).attr().NumCC() = IFLAG;
 	}
 }
 
@@ -1645,7 +1650,7 @@ void cSolGlobInit_NRandom::FreeSomNumCCFlag()
 {
 	for (tItSNSI anItS=mGr.begin(mSubAll) ; anItS.go_on(); anItS++)
     {
-		(*anItS).attr().NumCC() = -1;
+		(*anItS).attr().NumCC() = IFLAG;
 	}
 }
 
@@ -1691,6 +1696,26 @@ void cSolGlobInit_NRandom::Save(std::string& OriOut,bool SaveListOfName)
 	}
 }
 
+void cSolGlobInit_NRandom::ShowTripletCostPerSample()
+{
+	for (auto aTri : mV3)
+	{
+		std::cout << "[" << aTri->KSom(0)->attr().Im()->Name() << ","
+			           	 << aTri->KSom(1)->attr().Im()->Name() << ","
+                         << aTri->KSom(2)->attr().Im()->Name() << "],\n";
+
+		std::vector<float> aCostV = aTri->CostArcPerSample();
+		std::vector<int>   aDistV = aTri->DistArcPerSample();
+
+		int aNb = int(aDistV.size());
+		for (int aS=0; aS<aNb; aS++)
+		{
+			std::cout << "[" << aCostV.at(aS) << "," << aDistV.at(aS) << "], ";
+		}
+		std::cout << "\n";
+
+	}
+}
 
 void cSolGlobInit_NRandom::ShowTripletCost()
 {
@@ -1747,6 +1772,8 @@ void cSolGlobInit_NRandom::DoNRandomSol()
 
 	// Print the cost for all triplets
     ShowTripletCost();
+	if (mDebug)
+		ShowTripletCostPerSample();
 
 	// Build "most coherent" solution
 	BestSolAllCC();

@@ -367,6 +367,7 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 		void HeapPerSol();
 
 		void ShowTripletCost();
+		void ShowTripletCostPerSample();
 
 		cNOSolIn_Triplet * GetBestTri();
 	    cLinkTripl 		 * GetBestTriDyn();
