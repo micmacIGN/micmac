@@ -23,7 +23,7 @@ public:
 
 
 
-static int doTest(int sizeBuf, int nbThreads)
+static int doTest(int sizeBuf, int nbThreads, const std::string& name)
 {
 //    TestFraser test(1000000);
 //   TestPrimitives test(1000000);
@@ -45,7 +45,7 @@ static int doTest(int sizeBuf, int nbThreads)
     obs[10] = 0.2;
 
 //     cCodeGenTest<cFraserCamColinear,SD::Fraser<double>,SD::FraserDevel<double>> test(1000000);
-    cCodeGenTest<cEqCoLinearity<cTplPolDist<7>>,SD::EqColLinearityXYPol_Deg7<double>,SD::EqColLinearityXYPol_Deg7Devel<double>> test(100000);
+    cCodeGenTest<cEqCoLinearity<cTplPolDist<7>>,SD::EqColLinearityXYPol_Deg7<double>,SD::EqColLinearityXYPol_Deg7Devel<double>> test(100000,name);
 //     cCodeGenTest<cEqCoLinearity<cTplFraserDist>,SD::EqColLinearityFraser<double>,SD::EqColLinearityFraserDevel<double>> test(1000000);
      test.mVUk = uk;
      test.mVObs =  obs;
@@ -64,6 +64,7 @@ int main(int argc, char *argv[])
     int opt;
     int sizeBuf=0;
     int nbThreads=0;
+    std::string name;
 
     while ((opt = getopt(argc, argv, "b:t:h")) != -1) {
           switch (opt) {
@@ -74,13 +75,19 @@ int main(int argc, char *argv[])
               nbThreads = atoi(optarg);
               break;
           default: /* '?' */
-              std::cerr << "Usage: " << argv[0] <<  " [-b SizeBuf -t NbThreads]\n";
+              std::cerr << "Usage: " << argv[0] <<  " [-b SizeBuf -t NbThreads] [nom test]\n";
               exit(EXIT_FAILURE);
           }
     }
-    if (optind < argc) {
-        std::cerr << "Usage: " << argv[0] <<  " [-b SizeBuf -t NbThreads]\n";
+    if (sizeBuf == 0 && nbThreads == 0) {
+        if (optind < argc) {
+            name = argv[optind];
+            optind++;
+        }
+    }
+    if (((sizeBuf==0) != (nbThreads==0)) || optind < argc) {
+        std::cerr << "Usage: " << argv[0] <<  " [-b SizeBuf -t NbThreads] [nom test]\n";
         exit(EXIT_FAILURE);
     }
-    return doTest(sizeBuf,nbThreads);
+    return doTest(sizeBuf,nbThreads,name);
 }
