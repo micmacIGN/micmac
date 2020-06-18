@@ -314,9 +314,12 @@ bool  cMappingEpipCoord::IsEpipId() const
 /*************************************************/
 
 static double  mExagEpip=1.0;
-void SetExagEpip(double aVal)
+static bool mApproxInvExagEpip=false;
+
+void SetExagEpip(double aVal,bool AcceptApprox)
 {
     mExagEpip = aVal;
+    mApproxInvExagEpip=AcceptApprox;
 }
 
 void  EpipolaireCoordinate::Diff(ElMatrix<REAL> &,Pt2dr) const 
@@ -336,7 +339,31 @@ Pt2dr PolynomialEpipolaireCoordinate::ToCoordEpipol(Pt2dr aPInit) const
 
 Pt2dr PolynomialEpipolaireCoordinate::ToCoordInit(Pt2dr aP) const
 {
-   ELISE_ASSERT(mExagEpip==1.0,"Can Invert Epip with mExagEpip");
+   if (mExagEpip!=1.0)
+   {
+       static double aErMax = 0.0;
+       ELISE_ASSERT(mApproxInvExagEpip,"Can Invert Epip with mExagEpip");
+       double aY = aP.y;
+       double aG =  aY;
+       int aNb=10;
+       
+       for (int aK=0 ; aK<= aNb ; aK++)
+       {
+            aP = ToCoordEpipol(Pt2dr(aP.x,aG));
+            double aEr = aP.y - aY;
+            aG = aG - aEr;
+            if (aK==aNb)
+            {
+                double aAe = ElAbs(aEr);
+                if (aAe>aErMax)
+                {
+                    aErMax = aAe;
+                    std::cout << "Errrr EpipInverse/Scale " << aK << " " << aErMax << "\n";
+                }
+            }
+       }
+       return Pt2dr(aP.x,aG);
+   }
    return Pt2dr(aP.x,mPolToYInit(aP));
 }
 
