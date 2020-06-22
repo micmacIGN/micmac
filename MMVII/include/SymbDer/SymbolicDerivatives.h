@@ -323,9 +323,17 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
 
          // ---------- Code generator ---------------
          /** Generate code, class cName  , file cName.h, cName.cpp. Return filename w/o ext, or "" if error */
-         std::string GenerateCode() const { return GenCodeNAddr(); }
-         std::string GenCodeNAddr() const { return GenCodeCommon(true);  }
-         std::string GenCodeDevel() const { return GenCodeCommon(false); }
+         std::string GenerateCode(const std::string &aFilePrefix="CodeGen_") const
+         { return GenCodeNAddr(aFilePrefix);
+         }
+         std::string GenCodeNAddr(const std::string &aFilePrefix="CodeGen_") const
+         {
+             return GenCodeCommon(aFilePrefix, true);
+         }
+         std::string GenCodeDevel(const std::string &aFilePrefix="CodeGen_") const
+         {
+             return GenCodeCommon(aFilePrefix, false);
+         }
 
     private :  // END-USER
          /*   =================================================================================
@@ -382,7 +390,7 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
         /// Used to generate automatically Id for Unknown/Observatio, when we dont need to control them explicitely
         static std::vector<std::string>   MakeAutomId(const std::string & aPrefix,int aNb);
 
-        std::string GenCodeCommon(bool isShortExpr) const;
+        std::string GenCodeCommon(const string &aPrefix, bool isShortExpr) const;
 
         size_t                         mNbCste;      ///< Number Cste
         std::vector<tFormula>          mVFormUnknowns; ///< Vector of All Unknowns
@@ -1039,7 +1047,7 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
 }
 
 template <class TypeElem>
-std::string cCoordinatorF<TypeElem>::GenCodeCommon(bool isShortExpr) const
+std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, bool isShortExpr) const
 {
     std::string aName = this->Name();
     if (aName.size() == 0)
@@ -1052,7 +1060,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(bool isShortExpr) const
 
     if (! isShortExpr)
         aClassName = aClassName + "LongExpr";
-    std::string aFileName  = "CodeGen_" + aClassName;
+    std::string aFileName  = aPrefix + aClassName;
     std::ofstream aOs(aFileName + ".h");
     if (!aOs)
         return "";
