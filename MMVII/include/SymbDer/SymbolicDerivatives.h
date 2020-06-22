@@ -323,9 +323,9 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
 
          // ---------- Code generator ---------------
          /** Generate code, class cName  , file cName.h, cName.cpp. Return filename w/o ext, or "" if error */
-         std::string GenerateCode(const std::string & aName) const { return GenCodeNAddr(aName); }
-         std::string GenCodeNAddr(const std::string &aName) const { return GenCodeCommon(aName,true);  }
-         std::string GenCodeDevel(const std::string &aName) const { return GenCodeCommon(aName,false); }
+         std::string GenerateCode() const { return GenCodeNAddr(); }
+         std::string GenCodeNAddr() const { return GenCodeCommon(true);  }
+         std::string GenCodeDevel() const { return GenCodeCommon(false); }
 
     private :  // END-USER
          /*   =================================================================================
@@ -382,7 +382,7 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
         /// Used to generate automatically Id for Unknown/Observatio, when we dont need to control them explicitely
         static std::vector<std::string>   MakeAutomId(const std::string & aPrefix,int aNb);
 
-        std::string GenCodeCommon(const std::string &aName, bool isShortExpr) const;
+        std::string GenCodeCommon(bool isShortExpr) const;
 
         size_t                         mNbCste;      ///< Number Cste
         std::vector<tFormula>          mVFormUnknowns; ///< Vector of All Unknowns
@@ -1039,11 +1039,19 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
 }
 
 template <class TypeElem>
-std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aName, bool isShortExpr) const
+std::string cCoordinatorF<TypeElem>::GenCodeCommon(bool isShortExpr) const
 {
-    std::string aClassName  = aName;
+    std::string aName = this->Name();
+    if (aName.size() == 0)
+        UserSError("Formula name is empty.",this->Name());
+    for (auto &c : aName) {
+        if (!std::isalnum(c) && c != '_')
+            UserSError("Formula name is not a valid C++ identifier: '_,a..z,A..Z,0..9' only.",this->Name());
+    }
+    std::string aClassName  = "c" + aName;
+
     if (! isShortExpr)
-        aClassName = aClassName + "Devel";
+        aClassName = aClassName + "LongExpr";
     std::string aFileName  = "CodeGen_" + aClassName;
     std::ofstream aOs(aFileName + ".h");
     if (!aOs)
