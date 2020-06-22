@@ -322,11 +322,10 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
          void  SetCurFormulasWithDerivative(const std::vector<tFormula> & aVF);
 
          // ---------- Code generator ---------------
-         /** Generate code, class cName  , file cName.h, cName.cpp */
+         /** Generate code, class cName  , file cName.h, cName.cpp. Return filename w/o ext, or "" if error */
          std::string GenerateCode(const std::string & aName) const { return GenCodeNAddr(aName); }
-         std::string GenCodeNAddr(const std::string &aName) const;
-         std::string GenCodeDevel(const std::string &aName) const;
-
+         std::string GenCodeNAddr(const std::string &aName) const { return GenCodeCommon(aName,true);  }
+         std::string GenCodeDevel(const std::string &aName) const { return GenCodeCommon(aName,false); }
 
     private :  // END-USER
          /*   =================================================================================
@@ -383,8 +382,7 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
         /// Used to generate automatically Id for Unknown/Observatio, when we dont need to control them explicitely
         static std::vector<std::string>   MakeAutomId(const std::string & aPrefix,int aNb);
 
-        void GenCodeProlog(const std::string &aName, const std::string &aClassName, std::ofstream &aOs) const;
-        void GenCodeEpilog(std::ofstream &aOs) const;
+        std::string GenCodeCommon(const std::string &aName, bool isShortExpr) const;
 
         size_t                         mNbCste;      ///< Number Cste
         std::vector<tFormula>          mVFormUnknowns; ///< Vector of All Unknowns
@@ -1041,13 +1039,17 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
 }
 
 template <class TypeElem>
-void cCoordinatorF<TypeElem>::GenCodeProlog(
-    const std::string& aName,
-    const std::string &aClassName,
-    std::ofstream& aOs) const
+std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aName, bool isShortExpr) const
 {
-    std::string parentClass = "cCalculator<TypeElem>";
+    std::string aClassName  = aName;
+    if (! isShortExpr)
+        aClassName = aClassName + "Devel";
+    std::string aFileName  = "CodeGen_" + aClassName;
+    std::ofstream aOs(aFileName + ".h");
+    if (!aOs)
+        return "";
 
+    std::string aParentClass = "cCalculator<TypeElem>";
     aOs << "#include <vector>\n"
            "#ifdef _OPENMP\n"
            "#include <omp.h>\n"
@@ -1056,10 +1058,10 @@ void cCoordinatorF<TypeElem>::GenCodeProlog(
            "\n"
            "namespace NS_SymbolicDerivative {\n\n"
            "template<typename TypeElem>\n"
-           "class " << aClassName << " : public " << parentClass << "\n"
+           "class " << aClassName << " : public " << aParentClass << "\n"
            "{\n"
            "public:\n"
-           "    typedef " << parentClass << " Super;\n"
+           "    typedef " << aParentClass << " Super;\n"
            "    " << aClassName  << "(size_t aSzBuf) : \n"
            "      Super(\"" << aName << "\", aSzBuf,"
                   << this->mNbUK << ","
@@ -1093,53 +1095,28 @@ void cCoordinatorF<TypeElem>::GenCodeProlog(
     for (const auto & aForm : mVFormObservations)
         aOs << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
 
-}
+    if (isShortExpr) {
+        for (const auto & aForm : mVReachedF) {
+            if (!aForm->isAtomic())
+                aOs << "    TypeElem " << aForm->GenCodeFormName() << " = " << aForm->GenCodeNAddr() << ";\n";
+        }
+        for (size_t i=0; i<mVCurF.size(); i++)
+           aOs <<  "    this->mBufLineRes[aK][" << i << "] = " << mVCurF[i]->GenCodeFormName() << ";\n";
+    } else {
+        for (const auto & aForm : mVReachedF) {
+            if (aForm->UsedCnt() != 1 && !aForm->isAtomic()) {
+                aOs << "    TypeElem " << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
+            }
+        }
+        for (size_t i=0; i<mVCurF.size(); i++)
+           aOs <<  "    this->mBufLineRes[aK][" << i << "] = " << mVCurF[i]->GenCodeRef() << ";\n";
+    }
 
-template <class TypeElem>
-void cCoordinatorF<TypeElem>::GenCodeEpilog(std::ofstream& aOs) const
-{
     aOs << "  }\n"
            "}\n\n"
            "} // namespace NS_SymbolicDerivative\n";
-}
 
-
-template <class TypeElem>
-std::string cCoordinatorF<TypeElem>::GenCodeNAddr(const std::string &aName) const
-{
-    std::string className  = aName;
-    std::string fileName  = "CodeGen_" + className + ".h";
-    std::ofstream os(fileName);
-
-    GenCodeProlog(aName, className, os);
-    for (const auto & aForm : mVReachedF) {
-        if (!aForm->isAtomic())
-            os << "    TypeElem " << aForm->GenCodeFormName() << " = " << aForm->GenCodeNAddr() << ";\n";
-    }
-    for (size_t i=0; i<mVCurF.size(); i++)
-       os <<  "    this->mBufLineRes[aK][" << i << "] = " << mVCurF[i]->GenCodeFormName() << ";\n";
-
-    GenCodeEpilog(os);
-    return fileName;
-}
-
-template <class TypeElem>
-std::string cCoordinatorF<TypeElem>::GenCodeDevel(const std::string &aName) const
-{
-    std::string className  = aName + "Devel";
-    std::string fileName  = "CodeGen_" + className + ".h";
-    std::ofstream os(fileName);
-
-    GenCodeProlog(aName, className, os);
-    for (const auto & aForm : mVReachedF) {
-        if (aForm->UsedCnt() != 1 && !aForm->isAtomic()) {
-            os << "    TypeElem " << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
-        }
-    }
-    for (size_t i=0; i<mVCurF.size(); i++)
-       os <<  "    this->mBufLineRes[aK][" << i << "] = " << mVCurF[i]->GenCodeRef() << ";\n";
-    GenCodeEpilog(os);
-    return fileName;
+    return aFileName;
 }
 
 } //   NS_Symbolic_Derivative
