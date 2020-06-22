@@ -22,7 +22,7 @@ void GenerateCode()
     mCFD1.SetCurFormulasWithDerivative(aVFormula);
     auto name = mCFD1.GenerateCode();
     includesNames.push_back(name + ".h");
-    name = mCFD1.GenCodeDevel();
+    name = mCFD1.GenCodeLonExpr();
     includesNames.push_back(name + ".h");
 }
 

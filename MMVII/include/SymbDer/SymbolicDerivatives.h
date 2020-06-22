@@ -324,13 +324,13 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
          // ---------- Code generator ---------------
          /** Generate code, class cName  , file cName.h, cName.cpp. Return filename w/o ext, or "" if error */
          std::string GenerateCode(const std::string &aFilePrefix="CodeGen_") const
-         { return GenCodeNAddr(aFilePrefix);
+         { return GenCodeShortExpr(aFilePrefix);
          }
-         std::string GenCodeNAddr(const std::string &aFilePrefix="CodeGen_") const
+         std::string GenCodeShortExpr(const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, true);
          }
-         std::string GenCodeDevel(const std::string &aFilePrefix="CodeGen_") const
+         std::string GenCodeLonExpr(const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, false);
          }
@@ -513,7 +513,7 @@ template <class TypeElem> class cImplemF  : public cMemCheck
        // ---------- Code gen -----------------------
        virtual bool isAtomic() const { return false;}
        virtual std::string  GenCodeFormName() const {return NameGlob();} // Name of formula, referenced value for Atomic
-       virtual std::string  GenCodeNAddr() const = 0;      // N-Addresses code generation
+       virtual std::string  GenCodeShortExpr() const = 0;      // N-Addresses code generation
        virtual std::string  GenCodeDef() const = 0;        // Formula definition generation
        virtual std::string  GenCodeRef() const;            // Formula reference generation
        int UsedCnt() const {return mUsedCnt;}  ///< Standard accessor
@@ -641,7 +641,7 @@ template <class TypeElem> class cAtomicF : public cImplemF<TypeElem>
      protected :
             bool isAtomic() const override { return true;}
             std::string GenCodeFormName() const override { return this->Name();}
-            std::string GenCodeNAddr() const override { return this->GenCodeFormName();}
+            std::string GenCodeShortExpr() const override { return this->GenCodeFormName();}
             std::string GenCodeRef() const override { return this->GenCodeFormName();}
             std::string GenCodeDef() const override { return mCodeValue;}
 
@@ -1114,7 +1114,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, b
     if (isShortExpr) {
         for (const auto & aForm : mVReachedF) {
             if (!aForm->isAtomic())
-                aOs << "    TypeElem " << aForm->GenCodeFormName() << " = " << aForm->GenCodeNAddr() << ";\n";
+                aOs << "    TypeElem " << aForm->GenCodeFormName() << " = " << aForm->GenCodeShortExpr() << ";\n";
         }
         for (size_t i=0; i<mVCurF.size(); i++)
            aOs <<  "    this->mBufLineRes[aK][" << i << "] = " << mVCurF[i]->GenCodeFormName() << ";\n";

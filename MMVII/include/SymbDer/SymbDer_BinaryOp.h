@@ -53,7 +53,7 @@ template <class TypeElem> class cBinaryF : public cImplemF<TypeElem>
       protected  :
             void AssocSortedVect(std::vector<tFormula> & aV);
             void EmpileAssoc (const cFormula <TypeElem>& aF, std::vector<tFormula > & aV);
-            virtual std::string GenCodeNAddr() const override {
+            virtual std::string GenCodeShortExpr() const override {
                 return "(" + mF1->GenCodeFormName() + " " + this->NameOperator() +  " " + mF2->GenCodeFormName() + ")";
             }
 
@@ -388,7 +388,7 @@ template <class TypeElem> class cPowF : public cBinaryF<TypeElem>
             { }
       private  :
             const std::string &  NameOperator() const override {static std::string s("^"); return s;}
-            virtual std::string GenCodeNAddr() const override {
+            virtual std::string GenCodeShortExpr() const override {
                 return "std::pow(" + mF1->GenCodeFormName() + "," + mF2->GenCodeFormName() + ")";
             }
 
