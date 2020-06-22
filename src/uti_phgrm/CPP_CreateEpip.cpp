@@ -1058,6 +1058,7 @@ cAppliReechHomogr::cAppliReechHomogr(int argc,char ** argv)  :
     mH1To2    (cElHomographie::Id()),
     mH2To1    (cElHomographie::Id())
 {
+	bool aShow=false;
     ElInitArgMain
     (
           argc,argv,
@@ -1066,6 +1067,7 @@ cAppliReechHomogr::cAppliReechHomogr(int argc,char ** argv)  :
                       << EAMC(mNameI2Redr,"Name of resulting registered Image", eSAM_IsExistFile),
           LArgMain()  << EAM (mPostMasq,"PostMasq",true,"Name of Masq , Def = \"Masq\"")
                       << EAM (mScaleReech,"ScaleReech",true,"Scale Resampling, used for interpolator when downsizing")
+					  << EAM (aShow,"Show",true,"Show the computed homographies")
     );
 
      mNameI1 = NameWithoutDir(mFullNameI1);
@@ -1083,6 +1085,14 @@ cAppliReechHomogr::cAppliReechHomogr(int argc,char ** argv)  :
      mH1To2 = cElHomographie::RobustInit(anEcart,&aQuality,aPack,Ok,50,80.0,2000);
      mH2To1 = mH1To2.Inverse();
      std::cout << "Ecart " << anEcart << " ; Quality " << aQuality    << " \n";
+
+	 if (aShow)
+	 {
+	 	std::cout << "H12=" << "\n";
+		mH1To2.Show();
+	 	std::cout << "H21=" << "\n";
+		mH2To1.Show();
+	 }
 
      cMetaDataPhoto aMTD1 = cMetaDataPhoto::CreateExiv2(mFullNameI1);
      cMetaDataPhoto aMTD2 = cMetaDataPhoto::CreateExiv2(mFullNameI2);
@@ -1339,13 +1349,14 @@ int AllReechFromAscii_main(int argc,char** argv)
 	std::string aImNamePat;
     std::string aASCIINamePat;
     cElemAppliSetFile aEASF;
+	bool aShow = false;
 
 	ElInitArgMain
     (
           argc,argv,
           LArgMain()  << EAMC(aImNamePat,"Pattern of image names to crop/rotate/scale", eSAM_IsExistFile)
                       << EAMC(aASCIINamePat,"Pattern of the ascii files with 2D correspondences", eSAM_IsExistFile),
-          LArgMain()  
+          LArgMain()  << EAM(aShow,"Show",true,"Show computed homographies")
     );
 
     #if (ELISE_windows)
@@ -1368,7 +1379,8 @@ int AllReechFromAscii_main(int argc,char** argv)
                      	 + " OneReechFromAscii "
 						 + aNameIm 
 						 + " " + aNameCorresp
-						 + " Out=" + StdPrefix(aNameCorresp) +".tif" ;
+						 + " Out=" + StdPrefix(aNameCorresp) +".tif" 
+						 + " Show=" + ToString(aShow);
 		std::cout << aCom << "\n";
 		aLCom.push_back(aCom);
 	}
@@ -1383,6 +1395,7 @@ int OneReechFromAscii_main(int argc,char** argv)
 	std::string aFullName;
 	std::string aOutName;
 	std::string aASCIIName;
+	bool aShow = false;
 
 	Pt2dr aP1, aP2;
 	Pt2di aSzOut(0,0);
@@ -1395,6 +1408,7 @@ int OneReechFromAscii_main(int argc,char** argv)
           LArgMain()  << EAMC(aFullName,"Name of image to crop/rotate/scale", eSAM_IsExistFile)
                       << EAMC(aASCIIName,"Name of the ascii file with 2D correspondences", eSAM_IsExistFile),
           LArgMain()  << EAM(aOutName,"Out",true,"Name of the output, Def=Image+ASCII_filename.tif")
+		  			  << EAM(aShow,"Show",true,"Show computed homographies")
     );
 
 	#if (ELISE_windows)
@@ -1459,7 +1473,7 @@ int OneReechFromAscii_main(int argc,char** argv)
 				     + " " + aOutName
 				     + std::string(" PostMasq=NONE ")
 				     + std::string(" ScaleReech=") + ToString(euclid(aSim.sc())) + std::string(" ")
-                           ;
+                     + "Show=" + ToString(aShow);
 
 	System(aCom);	 
 
