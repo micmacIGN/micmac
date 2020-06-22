@@ -59,12 +59,14 @@ template<class EQDEF, class EQNADDR, class EQFORM>
 class cCodeGenTest
 {
 public:
-    cCodeGenTest(unsigned nbTest) : mVUk(TheNbUk,0.0),mVObs (TheNbObs,0.0),mNbTestTarget(nbTest),mNbTest(nbTest),mSizeBuf(1)
+    cCodeGenTest(unsigned nbTest, const std::string& aName="") : mVUk(TheNbUk,0.0),mVObs (TheNbObs,0.0),mNbTestTarget(nbTest),mNbTest(nbTest),mSizeBuf(1),filePrefix(aName)
  {
-    static_assert(EQDEF::NbUk() == EQNADDR::NbUk(),"Test codegen: incompatible interpreted and N-Addr compiled formula");
-    static_assert(EQDEF::NbUk() == EQFORM::NbUk(),"Test codegen: incompatible interpreted and compiled formula");
-    static_assert(EQDEF::NbObs() == EQNADDR::NbObs(),"Test codegen: incompatible interpreted and N-Addr compiled formula");
-    static_assert(EQDEF::NbObs() == EQFORM::NbObs(),"Test codegen: incompatible interpreted and compiled formula");
+        if (filePrefix.size())
+            filePrefix += "_";
+//    static_assert(EQDEF::NbUk() == EQNADDR::NbUk(),"Test codegen: incompatible interpreted and N-Addr compiled formula");
+//    static_assert(EQDEF::NbUk() == EQFORM::NbUk(),"Test codegen: incompatible interpreted and compiled formula");
+//    static_assert(EQDEF::NbObs() == EQNADDR::NbObs(),"Test codegen: incompatible interpreted and N-Addr compiled formula");
+//    static_assert(EQDEF::NbObs() == EQFORM::NbObs(),"Test codegen: incompatible interpreted and compiled formula");
  }
     void setSizeBuf(size_t aSizeBuf) { mSizeBuf = aSizeBuf ; mNbTest = (mNbTestTarget / mSizeBuf) * mSizeBuf; }
     void oneShot(int numThreads, int sizeBuf);
@@ -78,53 +80,37 @@ protected:
     static const auto TheNbUk = EQDEF::NbUk();
     static const auto TheNbObs = EQDEF::NbObs();
 
-    typedef typename EQNADDR::ResType ResType;
+    enum Tests {Jets, Dyn, NAddr, Devel};
+    static constexpr std::initializer_list<Tests> allTests = {Jets,Dyn,NAddr,Devel};
 
-    void checkVsJet(const std::string& name, const ResType &values);
+    typedef typename EQNADDR::tOneRes tOneRes;
 
-    template<class FORMULA>
-    void codeGenTestCGen(Bench &bench,const std::string &name);
+    void checkVsJet(Tests test, const tOneRes &values);
 
-    void codeGenTestJets(Bench &bench);
-    void codeGenTestDyn(Bench &bench);
-    void codeGenTestNAddr(Bench &bench);
-    void codeGenTestForm(Bench &bench);
+    void TestSD(Tests test, Bench &bench);
+    void TestJets(Bench &bench);
 
     static inline bool almostEqual(const double & aV1,const double & aV2,const double & aEps)
     {
        return std::abs(aV1-aV2) <= aEps*(std::abs(aV1)+std::abs(aV2));
     }
 
-
-    template<typename T>
-    ResType CFDtoArray(const SD::cCoordinatorF<T>& cfd, size_t n) {
-        ResType val;
-        size_t step = TheNbUk + 1;
-        size_t nVal = val.size() / step;
-
-        for (size_t i=0; i< nVal; i++) {
-            val[i*step] = cfd.ValComp(n,i);
-            for (size_t j=0; j<TheNbUk; j++)
-                val[i*step + j + 1] = cfd.DerComp(n,i,j);
-        }
-        return val;
-    }
-
     unsigned mNbTestTarget;
     unsigned mNbTest;
     size_t mSizeBuf;
+    std::string filePrefix;
 
-    static const std::vector<std::string> testNames;
+    static const std::array<const std::string,allTests.size()> testNames ;
 };
 
 template<class EQDEF, class EQNADDR, class EQFORM>
-const std::vector<std::string>
+const std::array<const std::string,cCodeGenTest<EQDEF,EQNADDR,EQFORM>::allTests.size()>
 cCodeGenTest<EQDEF,EQNADDR,EQFORM>::testNames = {"Jet","Buf","NAd","Fml"};
 
-
 template<class EQDEF, class EQNADDR, class EQFORM>
-void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::checkVsJet(const std::string& name, const ResType &val)
+void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::checkVsJet(Tests test, const tOneRes &val)
 {
+    auto name = testNames[test];
     // Verif resultats
     typedef Jet<double,TheNbUk> tJets;
     std::vector<tJets> aVJetUk;
@@ -157,51 +143,39 @@ void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::checkAll()
 
     std::cout << "Checking all results ..." << "\n";
     // Check EPS
-    ResType val;
+    tOneRes val;
+    SD::cCalculator<double> *calculator=0;
 
-    // Check dynamic evaluation
-    SD::cCoordinatorF<double>  mCFD(BUF_SIZE,EQDEF::VNamesUnknowns(),EQDEF::VNamesObs());
-    auto aVFormula = EQDEF::formula(mCFD.VUk(),mCFD.VObs());
-    mCFD.SetCurFormulasWithDerivative(aVFormula);
-    for (size_t i=0; i<mCFD.SzBuf(); i++)
-        mCFD.PushNewEvals(mVUk,mVObs);
-    mCFD.EvalAndClear();
 
-    val=CFDtoArray(mCFD,0);
-    checkVsJet(testNames[1],val);
-    for (size_t i=0; i< mCFD.SzBuf(); i++) {
-        if (CFDtoArray(mCFD,i) != val)
-            std::cerr << testNames[1] << ": Error buffer: values[" << i << "] != values[0]\n";
+    for (auto &test : allTests) {
+        switch (test) {
+        case Jets: continue;
+        case Dyn: {
+            auto mCFD = new SD::cCoordinatorF<double>(BUF_SIZE,EQDEF::VNamesUnknowns(),EQDEF::VNamesObs());
+            auto aVFormula = EQDEF::formula(mCFD->VUk(),mCFD->VObs());
+            mCFD->SetCurFormulasWithDerivative(aVFormula);
+            calculator = mCFD;
+            break;
+        }
+        case NAddr: calculator = new EQNADDR(BUF_SIZE); break;
+        case Devel: calculator = new EQFORM(BUF_SIZE); break;
+        }
+        for (size_t i=0; i<calculator->SzBuf(); i++)
+            calculator->PushNewEvals(mVUk,mVObs);
+        auto res = calculator->EvalAndClear();
+        checkVsJet(test,*res[0]);
+        for (size_t i=0; i< res.size(); i++) {
+            if (*res[i] != *res[0])
+                std::cerr << this->testNames[test] << ": Error buffer: values[" << i << "] != values[0]\n";
+        }
+        delete calculator;
     }
 
-    // Check codegen N-Addr
-    EQNADDR formNAddr(BUF_SIZE);
-    for (size_t i=0; i<formNAddr.bufferSize(); i++)
-        formNAddr.pushNewEvals(mVUk,mVObs);
-    formNAddr.evalAndClear();
-    checkVsJet(testNames[2],formNAddr.result()[0]);
-    auto nAddrRes = formNAddr.result();
-    for (size_t i=0; i< nAddrRes.size(); i++) {
-        if (nAddrRes[i] != nAddrRes[0])
-            std::cerr << testNames[2] << ": Error buffer: values[" << i << "] != values[0]\n";
-    }
-
-    // Check codegen formula
-    EQFORM formForm(BUF_SIZE);
-    for (size_t i=0; i<formForm.bufferSize(); i++)
-        formForm.pushNewEvals(mVUk,mVObs);
-    formForm.evalAndClear();
-    checkVsJet(testNames[3],formForm.result()[0]);
-    auto formRes = formForm.result();
-    for (size_t i=0; i< formRes.size(); i++) {
-        if (formRes[i] != formRes[0])
-            std::cerr << testNames[3] << ": Error buffer: values[" << i << "] != values[0]\n";
-    }
 }
 
 
 template<class EQDEF, class EQNADDR, class EQFORM>
-void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::codeGenTestJets(Bench &bench)
+void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::TestJets(Bench &bench)
 {
     typedef Jet<double,TheNbUk> tJets;
     std::vector<tJets> aRes;
@@ -221,71 +195,38 @@ void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::codeGenTestJets(Bench &bench)
 }
 
 template<class EQDEF, class EQNADDR, class EQFORM>
-void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::codeGenTestDyn(Bench &bench)
+void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::TestSD(Tests test,Bench &bench)
 {
-    SD::cCoordinatorF<double>  mCFD(mSizeBuf,EQDEF::VNamesUnknowns(),EQDEF::VNamesObs());
-
+    SD::cCalculator<double> *calculator=0;
     bench.start();
     bench.start(1);
-    auto aVFormula = EQDEF::formula(mCFD.VUk(),mCFD.VObs());
-    mCFD.SetCurFormulasWithDerivative(aVFormula);
-    bench.stop(1);
-    for (unsigned aK=0 ; aK<mNbTest / mSizeBuf ; aK++)
-    {
-        // Fill the buffers with data
-        bench.start(2);
-        for (size_t aKInBuf=0 ; aKInBuf<mSizeBuf ; aKInBuf++)
-            mCFD.PushNewEvals(mVUk,mVObs);
-        bench.stopStart(2,3);
-        // Evaluate the derivate once buffer is full
-        mCFD.EvalAndClear();
-        bench.stop(3);
+    switch (test) {
+    case Jets: return;
+    case Dyn: {
+        auto mCFD = new SD::cCoordinatorF<double>(mSizeBuf,EQDEF::VNamesUnknowns(),EQDEF::VNamesObs());
+        auto aVFormula = EQDEF::formula(mCFD->VUk(),mCFD->VObs());
+        mCFD->SetCurFormulasWithDerivative(aVFormula);
+        calculator = mCFD;
+        break;
     }
-    bench.stop();
-}
-
-
-template<class EQDEF, class EQNADDR, class EQFORM>
-template<class FORMULA>
-void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::codeGenTestCGen(Bench &bench, const std::string& name)
-{
-    FORMULA formula(0);
-    typename FORMULA::UkType aVUk;
-    typename FORMULA::ObsType aVObs;
-    for (size_t i=0; i<aVUk.size(); i++)
-        aVUk[i] = mVUk[i];
-    for (size_t i=0; i<aVObs.size(); i++)
-        aVObs[i] = mVObs[i];
-
-    bench.start();
-    bench.start(1);
-    formula = FORMULA(mSizeBuf);
+    case NAddr: calculator = new EQNADDR(mSizeBuf); break;
+    case Devel: calculator = new EQFORM(mSizeBuf); break;
+    }
     bench.stop(1);
     for (unsigned aK=0 ; aK<mNbTest / mSizeBuf ; aK++)
     {
         // Fill the buffers with data
         bench.start(2);
         for (size_t aKi=0 ; aKi<mSizeBuf ; aKi++)
-            formula.pushNewEvals(aVUk,aVObs);
+            calculator->PushNewEvals(mVUk,mVObs);
         bench.stopStart(2,3);
-        formula.evalAndClear();
+        calculator->EvalAndClear();
         bench.stop(3);
     }
     bench.stop();
+    delete calculator;
 }
 
-template<class EQDEF, class EQNADDR, class EQFORM>
-void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::codeGenTestNAddr(Bench &bench)
-{
-    this->codeGenTestCGen<EQNADDR>(bench,"NAddr");
-}
-
-
-template<class EQDEF, class EQNADDR, class EQFORM>
-void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::codeGenTestForm(Bench &bench)
-{
-    this->codeGenTestCGen<EQFORM>(bench,"Form");
-}
 
 template<class EQDEF, class EQNADDR, class EQFORM>
 void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::oneShot(int numThreads, int sizeBuf)
@@ -298,14 +239,13 @@ void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::oneShot(int numThreads, int sizeBuf)
     setSizeBuf(sizeBuf);
     checkAll();
 
-    for (size_t i=0; i<testNames.size(); i++) {
-        switch(i) {
-        case 0: codeGenTestJets(bench); break;
-        case 1: codeGenTestDyn(bench); break;
-        case 2: codeGenTestNAddr(bench); break;
-        case 3: codeGenTestForm(bench); break;
+    for (auto &test : allTests) {
+        if (test == Jets ) {
+            TestJets(bench);
+        } else {
+            TestSD(test,bench);
         }
-        std::cout << testNames[i] << ": " <<bench.currents() << "\n";
+        std::cout << testNames[test] << ": " <<bench.currents() << "\n";
         bench.reset();
     }
 }
@@ -318,11 +258,11 @@ void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::benchMark(void)
 //    static const size_t NbTest=20;
     static const size_t NbTest=10;
 
-    for (size_t test=0; test <testNames.size(); test++) {
+    for (auto &test : allTests) {
         std::vector<size_t> nb_buffer;
         std::vector<size_t> nb_thread;
 
-        std::cout << "** " << EQDEF::FormulaName() << "  " << testNames[test] << "\n";
+        std::cout << "** " << EQDEF::FormulaName() << "  " << this->testNames[test] << "\n";
         if (test == 0) {
             nb_buffer={1};
             nb_thread={1};
@@ -336,7 +276,7 @@ void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::benchMark(void)
 #endif
         }
 
-        std::ofstream os(EQDEF::FormulaName() + "_"  + testNames[test] + ".txt");
+        std::ofstream os(filePrefix +  EQDEF::FormulaName() + "_"  + this->testNames[test] + ".txt");
         os << "Buf ";
         for (auto &t : nb_thread) os << t << " ";
         for (auto &t : nb_thread) os << t << " ";
@@ -350,25 +290,23 @@ void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::benchMark(void)
                 omp_set_num_threads(threads);
 #endif
                 Bench bench;
-                std::string testName = testNames[test];
+                std::string testName = this->testNames[test];
                 if (test!=0)
                     testName += " B:" + std::to_string(bufs) + " T:" + std::to_string(threads);
                 testName += " ";
 
                 while(1) {
                     for (size_t n=0; n<NbTest; n++)  {
-                        switch(test) {
-                        case 0: codeGenTestJets(bench); break;
-                        case 1: codeGenTestDyn(bench); break;
-                        case 2: codeGenTestNAddr(bench); break;
-                        case 3: codeGenTestForm(bench); break;
-                        }
+                        if (test == Jets)
+                            TestJets(bench);
+                        else
+                            TestSD(test,bench);
                         std::cout << testName << bench.currents() << "\n";
                         bench.next();
                     }
                     auto filter=bench.filter();
                     std::cout << testName << "Main Mean:" << filter.mean << " sigma:" << filter.stddev << "\n";
-                    if (filter.stddev < filter.mean / 10)
+                    if (filter.stddev < filter.mean * 0.15)
                         break;
                     std::cout << testName << "Redoing this test ...\n";
                 }
