@@ -47,7 +47,7 @@ template <class TypeElem> class cBinaryF : public cImplemF<TypeElem>
             /// We need a default value to compile in associative
             static tFormula FOperation(const tFormula & aV1,const tFormula & aV2) 
             {
-                InternalError("No operation defined");
+                InternalError("No operation defined",aV1->CoordF()->Name());
                 return aV1;
             }
       protected  :
@@ -70,7 +70,7 @@ template <class TypeElem> class cBinaryF : public cImplemF<TypeElem>
             {
                 // It doesn't work to mix formula from different context
                 if (mF1->CoordF()!=mF2->CoordF())
-                   UserSError("Mix formula from different context");
+                   UserSError("Mix formula from different context",this->mCoordF->Name());
             }
 
             tFormula  mF1;   ///< First argument of operator

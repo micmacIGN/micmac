@@ -300,9 +300,9 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
 
       // ---------------------------  Constructors / Destructor -------------------
         /// Constructor with explicit Id for Unknown/Observation. Used if we want to analyze the generated code
-        inline cCoordinatorF(int SzBuf,const std::vector<std::string> & aVecUK,const std::vector<std::string> & aVecObs);
+        inline cCoordinatorF(const string &aName, int SzBuf, const std::vector<std::string> & aVecUK, const std::vector<std::string> & aVecObs);
         /// Constructor with basic Id (used if we dont generate code, or dont want to analyse it by human)
-        inline cCoordinatorF(int SzBuf,int aNbUnknown,int aNbObservation);
+        inline cCoordinatorF(const string &aName, int SzBuf,int aNbUnknown,int aNbObservation);
         /// Destructeur will free allocated formulas
         virtual ~cCoordinatorF();
         /// Copies are not allowed on this kind of object.
@@ -352,7 +352,7 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
         /// Add a function (put it in dico), Error if already exist
         inline void AddFormula(tFormula aPF)
         {
-           if (ExistFunc(aPF->Name())) InternalError ("Multiple add of identic name :[" + aPF->Name() + "]");
+           if (ExistFunc(aPF->Name())) InternalError ("Multiple add of identic name :[" + aPF->Name() + "]",this->Name());
            mDicoFunc[aPF->Name()] = aPF;
            mVAllFormula.push_back(aPF);
            aPF->TryReducAssoc();
@@ -791,7 +791,7 @@ template <class TypeElem> void cImplemF<TypeElem>::TryReducAssoc()
 
 template <class TypeElem> cFormula<TypeElem> cImplemF<TypeElem>::VOper2(const tFormula & aF1,const tFormula &) const
 {
-   InternalError("Uncorrect virtula binary operation");
+   InternalError("Incorrect virtual binary operation",this->mCoordF->Name());
    return aF1;
 }
 
@@ -822,11 +822,12 @@ std::vector<std::string> cCoordinatorF<TypeElem>::MakeAutomId(const std::string 
 template <class TypeElem> 
 cCoordinatorF<TypeElem>::cCoordinatorF
 (
-       int aSzBuf,
-       const std::vector<std::string> & aVNameUK,
-       const std::vector<std::string> & aVNameObs
+        const std::string & aName,
+        int aSzBuf,
+        const std::vector<std::string> & aVNameUK,
+        const std::vector<std::string> & aVNameObs
 ) :
-    cCalculator<TypeElem>(aSzBuf,aVNameUK.size(),aVNameObs.size()),
+    cCalculator<TypeElem>(aName,aSzBuf,aVNameUK.size(),aVNameObs.size()),
     mNbCste     (0),
     mCste0      (CsteOfVal(0.0)),
     mCste1      (CsteOfVal(1.0)),
@@ -851,8 +852,8 @@ cCoordinatorF<TypeElem>::cCoordinatorF
 }
 
 template <class TypeElem> 
-cCoordinatorF<TypeElem>::cCoordinatorF(int aSzBuf,int aNbUK,int aNbObs) :
-         cCoordinatorF<TypeElem>(aSzBuf,MakeAutomId("X",aNbUK),MakeAutomId("V",aNbObs))
+cCoordinatorF<TypeElem>::cCoordinatorF(const string &aName, int aSzBuf, int aNbUK, int aNbObs) :
+         cCoordinatorF<TypeElem>(aName,aSzBuf,MakeAutomId("X",aNbUK),MakeAutomId("V",aNbObs))
 {
 }
 
@@ -884,7 +885,7 @@ template <class TypeElem>
 cFormula <TypeElem> cCoordinatorF<TypeElem>::FuncOfName(const std::string & aName) const 
 {
     const auto & anIt = mDicoFunc.find(aName);
-    if (anIt == mDicoFunc.end()) InternalError ("Try to acces non existing name :[" + aName + "]");
+    if (anIt == mDicoFunc.end()) InternalError ("Try to acces non existing name :[" + aName + "]",this->Name());
     return anIt->second;
 }
 
@@ -1059,8 +1060,8 @@ void cCoordinatorF<TypeElem>::GenCodeProlog(
            "{\n"
            "public:\n"
            "    typedef " << parentClass << " Super;\n"
-           "    " << aClassName << "(size_t aSzBuf) : \n"
-           "      Super(aSzBuf,"
+           "    " << aClassName  << "(size_t aSzBuf) : \n"
+           "      Super(\"" << aName << "\", aSzBuf,"
                   << this->mNbUK << ","
                   << this->mNbObs << ","
                   << this->mWithDer << ","

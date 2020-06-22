@@ -142,7 +142,7 @@ void TestRatkoswky(const tVRatkoswkyData & aVData,const std::vector<double> & aI
    //-    This part [1] would be executed only one time
         // Create a coordinator/context where values are stored on double and :
         //  4 unknown (b1-b4), 2 observations, a buffer of size 100
-    SD::cCoordinatorF<double>  aCFD(100,aNbUk,aNbObs);
+    SD::cCoordinatorF<double>  aCFD("RatKowsky",100,aNbUk,aNbObs);
 
         // Create formulas of residuals, VUk and VObs are  vector of formulas for unkown and observation
     auto  aFormulaRes = RatkoswkyResidual(aCFD.VUk(),aCFD.VObs());
@@ -239,7 +239,7 @@ void InspectCube()
     //    aCFD(100,2,2) would have the same effect for the computation
     //    The variant with vector of string, will fix the name of variables, it
     //    will be usefull when will generate code and will want  to analyse it
-    SD::cCoordinatorF<double>  aCFD(100,{"a","b"},{"x","y"});
+    SD::cCoordinatorF<double>  aCFD("FitCube",100,{"a","b"},{"x","y"});
 
     // Inspect vector of unknown and vector of observations
     {  
@@ -801,7 +801,7 @@ template <class FORMULA>  class cTestEqCoL
 template <class FORMULA>
 cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,bool Show) :
      // mCFD (aSzBuf,TheNbUk,TheNbObs), //  would have the same effect, but future generated code will be less readable
-     mCFD  (aSzBuf,FORMULA::VNamesUnknowns(),FORMULA::VNamesObs()),
+     mCFD  (FORMULA::NameModel(),aSzBuf,FORMULA::VNamesUnknowns(),FORMULA::VNamesObs()),
      mVUk  (TheNbUk,0.0),
      mVObs (TheNbObs,0.0)
 {
@@ -930,7 +930,7 @@ cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,bool Show) :
 void TestFraserCamColinearEq()
 {
    {
-      SD::cCoordinatorF<double>  aCoord(100,4,2);
+      SD::cCoordinatorF<double>  aCoord("test",100,4,2);
       SD::cFormula<double>     aFPi = aCoord.CsteOfVal(3.14);
       SD::cFormula<double>     aFE = aCoord.CsteOfVal(exp(1));
       SD::cFormula<double>     aFCste = aFE+aFPi;

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <assert.h>
 #include <vector>
+#include <string>
 // ===================== MPD  error: call of overloaded ‘abs(const double&)’ is ambiguous ===============
 #include <math.h>
 #include <cmath>
@@ -23,22 +24,24 @@ template <class Type> inline Type pow7(const Type & aV)    {return aV *pow6(aV);
 template <class Type> inline Type pow8(const Type & aV)    {return square(pow4(aV));}
 template <class Type> inline Type pow9(const Type & aV)    {return aV *pow8(aV);}
 
-static inline void Error(const std::string & aMes,const std::string & aExplanation)
+static inline void Error(const std::string & aMes,const std::string & aExplanation, const std::string& aContext)
 {
     std::cout << "In SymbolicDerivative a fatal error" << "\n";
-    std::cout << "  Likely Source   ["<< aExplanation << "\n";
+    std::cout << "  Likely Source   ["<< aExplanation << "]\n";
+    if (aContext.size())
+        std::cout << "  For formula     ["<< aContext << "]\n";
     std::cout << "  Message  ["<< aMes << "]\n";
     assert(false);
 }
      ///    Error due probably to internal mistake
-static inline void InternalError(const std::string & aMes)
+static inline void InternalError(const std::string & aMes, const std::string& aContext)
 {
-   Error(aMes,"Internal Error of the Library");
+   Error(aMes,"Internal Error of the Library",aContext);
 }
      /// Error probably due to bas usage of the library (typically out limit vector access)
-static inline void UserSError(const std::string & aMes)
+static inline void UserSError(const std::string & aMes, const std::string& aContext)
 {
-   Error(aMes,"Probable error on user's side due to unapropriate usage of the library");
+   Error(aMes,"Probable error on user's side due to unapropriate usage of the library",aContext);
 }
 
 
@@ -46,7 +49,7 @@ static inline void UserSError(const std::string & aMes)
 static inline void AssertAlmostEqual(const double & aV1,const double & aV2,const double & aEps)
 {
    if ( (std::abs(aV1-aV2)> aEps*(std::abs(aV1)+std::abs(aV2))) )
-      InternalError("Test equality failed");
+      InternalError("Test equality failed","");
 }
 
 
@@ -60,6 +63,9 @@ public:
     cCalculator() = delete;
     cCalculator(const cCalculator&) = delete;
     virtual ~cCalculator() {}
+
+    const std::string& Name() const { return mName;}
+    void SetName(const std::string& aName) const { mName = aName;}
 
     bool BufIsFull() const {return mNbInBuf == mSzBuf;} ///< Can we push more value ?
     size_t SzBuf() const  {return mSzBuf;}  ///< Total Number of value we can push
@@ -83,7 +89,7 @@ public:
     /// Retur value of derivate computed taking into account order of storage
     const TypeElem & DerComp(int aNumPush,int aKElem,int aKVarDer) const
     {
-        if (! mWithDer)  UserSError("Acces to derivate wich were not computed");
+        if (! mWithDer)  UserSError("Acces to derivate wich were not computed",Name());
         return  mBufRes.at(aNumPush)->at(mSzInterval*aKElem +1 + aKVarDer);
     }
 
@@ -92,7 +98,8 @@ public:
     const std::vector<tOneRes*> & Result() const { return mBufRes; }
 
 protected:
-    cCalculator(int aSzBuf, size_t aNbUk, size_t aNbObs, bool aWithDer=false, int aSzInterval=1) :
+    cCalculator(const std::string& aName, int aSzBuf, size_t aNbUk, size_t aNbObs, bool aWithDer=false, int aSzInterval=1) :
+    mName       (aName),
     mSzBuf      (aSzBuf),
     mNbUK       (aNbUk),
     mNbObs      (aNbObs),
@@ -112,6 +119,8 @@ protected:
     // Do actual caluculus. Just store resulst in mBurLineRes. This class manages mBufRes
     virtual void DoEval() = 0;
 
+
+    std::string                    mName;
     size_t                         mSzBuf;       ///< Capacity of bufferirsation
     size_t                         mNbUK;        ///< Dim=number of unkown
     size_t                         mNbObs;       ///< Number of obserbation variable
@@ -128,15 +137,15 @@ void cCalculator<T>::PushNewEvals(const std::vector<T> &aVUK, const std::vector<
 
     if (this->mNbInBuf >= this->mSzBuf)
     {
-        UserSError("Push exceed buffer capacity");
+        UserSError("Push exceed buffer capacity",Name());
     }
     if (aVUK.size() != NbUk())  // Check size are coherents
     {
-        UserSError("Bad size in Unknowns");
+        UserSError("Bad size in Unknowns",Name());
     }
     if (aVObs.size() != NbObs())  // Check size are coherents
     {
-        UserSError("Bad size in Onservations");
+        UserSError("Bad size in Onservations",Name());
     }
 
     this->SetNewUks(aVUK);

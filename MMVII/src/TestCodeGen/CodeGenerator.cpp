@@ -16,7 +16,7 @@ template<typename FORMULA>
 void GenerateCode()
 {
     NS_SymbolicDerivative::cCoordinatorF<double>
-            mCFD1(0,FORMULA::VNamesUnknowns(),FORMULA::VNamesObs());
+            mCFD1(FORMULA::FormulaName(),0,FORMULA::VNamesUnknowns(),FORMULA::VNamesObs());
 
     auto aVFormula = FORMULA::formula(mCFD1.VUk(),mCFD1.VObs());
     mCFD1.SetCurFormulasWithDerivative(aVFormula);
