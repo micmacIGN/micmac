@@ -291,7 +291,7 @@ template <class Type> Type powI(const Type & aV,const int & aExp)
 
     // -------- Declaration of Coordinator class  ----------------
 
-template <class TypeElem> class cCoordinatorF : public cMemCheck
+template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,public cMemCheck
 {
     public :
  
@@ -304,7 +304,7 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
         /// Constructor with basic Id (used if we dont generate code, or dont want to analyse it by human)
         inline cCoordinatorF(int SzBuf,int aNbUnknown,int aNbObservation);
         /// Destructeur will free allocated formulas
-        ~cCoordinatorF();
+        virtual ~cCoordinatorF();
         /// Copies are not allowed on this kind of object.
         cCoordinatorF(const cCoordinatorF<TypeElem> &) = delete;  
 
@@ -321,29 +321,6 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
               VF0 dVF0/dX0  dVF0/dX1 .... VF1 dVF1/dX0 ... */
          void  SetCurFormulasWithDerivative(const std::vector<tFormula> & aVF);
 
-         ///  Add a new set of vals (unknown + Obs) inside de evaluation "queue"
-         void  PushNewEvals(const std::vector<TypeElem> & aVUK,const std::vector<TypeElem> & aVObs);
-               
-         bool BufIsFull() const {return mNbInBuf == mSzBuf;} ///< Can we push more value ?
-         size_t    SzBuf() const  {return mSzBuf;}  ///< Number of value we can add
-
-         /** Make the evaluation of current functions on pushe valuse . Let V be the result
-             (*V[0]) is  the  vector of containing current formula for first SetCur
-             !! => Warn the same memory space is recycled ...
-         */
-         const std::vector<tOneRes *> & EvalAndClear();
-         /// Retur value computed taking into account order of storage
-         const TypeElem &  ValComp(int aNumPush,int aKElem) const
-         {
-             return  mBufRes.at(aNumPush)->at(mSzInterval*aKElem);
-         }
-         /// Retur value of derivate computed taking into account order of storage
-         const TypeElem &  DerComp(int aNumPush,int aKElem,int aKVarDer) const
-         {
-             if (! mWithDer)  UserSError("Acces to derivate wich were not computed");
-             return  mBufRes.at(aNumPush)->at(mSzInterval*aKElem +1 + aKVarDer);
-         }
-        
          // ---------- Code generator ---------------
          /** Generate code, class cName  , file cName.h, cName.cpp */
          std::string GenerateCode(const std::string & aName) const { return GenCodeNAddr(aName); }
@@ -396,17 +373,20 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
 
         size_t      NbCurFonc() const {return mVAllFormula.size();}
     private :
+        /// Called by cCalculator::PushNewEvals to Set Unknown/Observations
+        virtual void SetNewUks(const std::vector<TypeElem> &aVUks) override;
+        virtual void SetNewObs(const std::vector<TypeElem> &aVObs) override;
 
-         /// Called by PushNewEvals to Set Unknown/Observations
-         void  SetNewVals(std::vector<tFormula> & aVF,const std::string & aMes,const std::vector<TypeElem> & aVVals);
+        /** Make the evaluation of current functions on pushed values */
+        virtual void DoEval() override;
 
         /// Used to generate automatically Id for Unknown/Observatio, when we dont need to control them explicitely
         static std::vector<std::string>   MakeAutomId(const std::string & aPrefix,int aNb);
 
-        size_t                         mSzBuf;       ///< Capacity of bufferirsation
+        void GenCodeProlog(const std::string &aName, const std::string &aClassName, std::ofstream &aOs) const;
+        void GenCodeEpilog(std::ofstream &aOs) const;
+
         size_t                         mNbCste;      ///< Number Cste
-        size_t                         mNbUK;        ///< Dim=number of unkown
-        size_t                         mNbObs;       ///< Number of obserbation variable
         std::vector<tFormula>          mVFormUnknowns; ///< Vector of All Unknowns
         std::vector<tFormula>          mVFormObservations; ///< Vector of All Observations
         std::map<std::string,tFormula> mDicoFunc;    ///< Map Name => Func
@@ -415,13 +395,8 @@ template <class TypeElem> class cCoordinatorF : public cMemCheck
         tFormula                       mCste0;       ///< Fonc constant null
         tFormula                       mCste1;       ///< Fonc constant 1
         tFormula                       mCste2;       ///< Fonc constant 1
-        size_t                         mNbInBuf;     ///< Number of Unknown/Obs vect currenlty loaded in buf
-        bool                           mWithDer;     ///< Done With Derivate
-        int                            mSzInterval;  ///< Size between two val, depends if computation done with deriv
         std::vector<tFormula>          mVCurF;       ///< Current evaluted formulas
         std::vector<tFormula>          mVReachedF;   ///< Formula "reachable" i.e. necessary to comput mVCurF
-        std::vector<tOneRes>           mBufLineRes;  ///< Reserve memory for each line
-        std::vector<tOneRes*>          mBufRes;      ///< Reserve memory for result itself
 
 };
 
@@ -693,7 +668,7 @@ template <class TypeElem> class cUnknownF : public cAtomicF<TypeElem>
                 tAtom   (aCoordF,aName),
                 mNumUnk (aNum)
             {
-                  this->mCodeValue =  "this->vvUk[aK][" + std::to_string(mNumUnk) + "]";
+                  this->mCodeValue =  "this->mVUk[aK][" + std::to_string(mNumUnk) + "]";
             }
 
             int  mNumUnk; ///< Number of the Unknown; like  : 0 for X0,  1 for X1 ...
@@ -714,7 +689,7 @@ template <class TypeElem> class cObservationF : public cAtomicF<TypeElem>
                   tAtom  (aCoordF,aName),
                   mNum   (aNum)
             {
-                  this->mCodeValue =  "this->vvObs[aK][" + std::to_string(mNum) + "]";
+                  this->mCodeValue =  "this->mVObs[aK][" + std::to_string(mNum) + "]";
             }
             int     mNum; ///< Number of the Observation; like  : 0 for V0,  1 for V1 ...
 };
@@ -851,21 +826,15 @@ cCoordinatorF<TypeElem>::cCoordinatorF
        const std::vector<std::string> & aVNameUK,
        const std::vector<std::string> & aVNameObs
 ) :
-    mSzBuf      (aSzBuf),
+    cCalculator<TypeElem>(aSzBuf,aVNameUK.size(),aVNameObs.size()),
     mNbCste     (0),
-    mNbUK       (aVNameUK.size()),
-    mNbObs      (aVNameObs.size()),
     mCste0      (CsteOfVal(0.0)),
     mCste1      (CsteOfVal(1.0)),
-    mCste2      (CsteOfVal(2.0)),
-    mNbInBuf    (0),
-    mBufLineRes (mSzBuf),
-    mBufRes     ()
+    mCste2      (CsteOfVal(2.0))
     
 {
-    mBufRes.reserve(mSzBuf);
     // Generate all the function corresponding to unknown
-    for (size_t aNumUK=0 ; aNumUK<mNbUK ; aNumUK++)
+    for (size_t aNumUK=0 ; aNumUK<this->mNbUK ; aNumUK++)
     {
         tFormula aFuncUK(new cUnknownF<TypeElem>(this,aVNameUK[aNumUK],aNumUK));  // Create it
         mVFormUnknowns.push_back(aFuncUK);   // Push it in vector of coordinat func
@@ -873,7 +842,7 @@ cCoordinatorF<TypeElem>::cCoordinatorF
     }
 
     // Generate all the function corresponding to observations
-    for (size_t aNumObs=0 ; aNumObs<mNbObs ; aNumObs++)
+    for (size_t aNumObs=0 ; aNumObs<this->mNbObs ; aNumObs++)
     {
         tFormula aFuncObs(new cObservationF<TypeElem>(this,aVNameObs[aNumObs],aNumObs));  // Create it
         mVFormObservations.push_back(aFuncObs);   // Push it in vector of coordinat func
@@ -920,38 +889,21 @@ cFormula <TypeElem> cCoordinatorF<TypeElem>::FuncOfName(const std::string & aNam
 }
 
 template <class TypeElem> 
-void cCoordinatorF<TypeElem>::SetNewVals
-     (
-         std::vector<tFormula> & aVF,
-         const std::string & aMes,
-         const std::vector<TypeElem> & aVVals
-     )
+void cCoordinatorF<TypeElem>::SetNewUks(const std::vector<TypeElem> & aVUks)
 {
-    if (aVF.size() != aVVals.size())  // Check size are coherents
+    for (size_t aK=0 ; aK<aVUks.size() ; aK++)  // Init Vals of formulas buffer
     {
-       UserSError("Bad size in " + aMes);
-    }
-    for (size_t aK=0 ; aK<aVF.size() ; aK++)  // Init Vals of formulas buffer
-    {
-        aVF[aK]->SetBuf(mNbInBuf,aVVals[aK]);
+        mVFormUnknowns[aK]->SetBuf(this->mNbInBuf,aVUks[aK]);
     }
 }
 
-template <class TypeElem> 
-void cCoordinatorF<TypeElem>::PushNewEvals
-     (
-          const std::vector<TypeElem> & aVUK,
-          const std::vector<TypeElem> & aVObs
-     )
+template <class TypeElem>
+void cCoordinatorF<TypeElem>::SetNewObs(const std::vector<TypeElem> & aVObs)
 {
-
-    if (mNbInBuf >= mSzBuf)
+    for (size_t aK=0 ; aK<aVObs.size() ; aK++)  // Init Vals of formulas buffer
     {
-       UserSError("Push exceed buffer capacity");
+        mVFormObservations[aK]->SetBuf(this->mNbInBuf,aVObs[aK]);
     }
-    SetNewVals(mVFormUnknowns,"Unknowns",aVUK);
-    SetNewVals(mVFormObservations,"Observations",aVObs);
-    mNbInBuf++;
 }
 
 
@@ -962,14 +914,14 @@ void    cCoordinatorF<TypeElem>::SetCurFormulasWithDerivative(const std::vector<
    for (const auto & aF : aVF)
    {
        aVWDer.push_back(aF);
-       for (size_t aUK=0 ; aUK<mNbUK ; aUK++)
+       for (size_t aUK=0 ; aUK<this->mNbUK ; aUK++)
        {
            aVWDer.push_back(aF->Derivate(aUK));
        }
    }
    SetCurFormulas(aVWDer);
-   mWithDer    = true;
-   mSzInterval = 1+mNbUK;
+   this->mWithDer    = true;
+   this->mSzInterval = 1+this->mNbUK;
 }
 
 template <class TypeElem> 
@@ -985,8 +937,8 @@ void cCoordinatorF<TypeElem>::SetCurFormulas(const std::vector<tFormula> & aVF0)
        }
        aVF.push_back(aF);
     }
-    mWithDer=false;
-    mSzInterval = 1;
+    this->mWithDer=false;
+    this->mSzInterval = 1;
     mVCurF     = aVF;
 
     // Erase previous
@@ -1012,14 +964,14 @@ void cCoordinatorF<TypeElem>::SetCurFormulas(const std::vector<tFormula> & aVF0)
 
     
     // Make Buf of Res to have right size
-    for (auto & aLine : mBufLineRes)
+    for (auto & aLine : this->mBufLineRes)
     {
         aLine.resize(mVCurF.size());
     }
 }
 
 template <class TypeElem> 
-const std::vector<std::vector<TypeElem> *> & cCoordinatorF<TypeElem>::EvalAndClear()
+void cCoordinatorF<TypeElem>::DoEval()
 {
     // Make the real hard stuff, compute the data, the depedancy ordering should make it coherent
 #ifdef _OPENMP
@@ -1027,8 +979,8 @@ const std::vector<std::vector<TypeElem> *> & cCoordinatorF<TypeElem>::EvalAndCle
     {
         size_t thread_num = omp_get_thread_num();
         size_t num_threads = omp_get_num_threads();
-        size_t start = thread_num * mNbInBuf / num_threads;
-        size_t end = (thread_num + 1) * mNbInBuf / num_threads;
+        size_t start = thread_num * this->mNbInBuf / num_threads;
+        size_t end = (thread_num + 1) * this->mNbInBuf / num_threads;
 
         if (end>start)
         {
@@ -1041,20 +993,16 @@ const std::vector<std::vector<TypeElem> *> & cCoordinatorF<TypeElem>::EvalAndCle
 #else
     for (auto & aF : mVReachedF)
     {
-       aF->ComputeBuf(0,mNbInBuf);
+       aF->ComputeBuf(0,this->mNbInBuf);
     }
 #endif
 
-    mBufRes.clear();
-    for (size_t aKLine=0 ; aKLine<mNbInBuf ;  aKLine++)
+    for (size_t aKLine=0 ; aKLine<this->mNbInBuf ;  aKLine++)
     {
-        std::vector<TypeElem> & aLine  = mBufLineRes[aKLine];
-        mBufRes.push_back(&aLine);
+        std::vector<TypeElem> & aLine  = this->mBufLineRes[aKLine];
         for (size_t aKFunc=0 ; aKFunc< mVCurF.size() ; aKFunc++)
             aLine[aKFunc] = mVCurF[aKFunc]->GetBuf(aKLine);
     }
-    mNbInBuf = 0;
-    return mBufRes;
 }
 
 template <class TypeElem>
@@ -1092,60 +1040,85 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
 }
 
 template <class TypeElem>
+void cCoordinatorF<TypeElem>::GenCodeProlog(
+    const std::string& aName,
+    const std::string &aClassName,
+    std::ofstream& aOs) const
+{
+    std::string parentClass = "cCalculator<TypeElem>";
+
+    aOs << "#include <vector>\n"
+           "#ifdef _OPENMP\n"
+           "#include <omp.h>\n"
+           "#endif\n"
+           "#include \"SymbDer/SymbDer_Common.h\"\n"
+           "\n"
+           "namespace NS_SymbolicDerivative {\n\n"
+           "template<typename TypeElem>\n"
+           "class " << aClassName << " : public " << parentClass << "\n"
+           "{\n"
+           "public:\n"
+           "    typedef " << parentClass << " Super;\n"
+           "    " << aClassName << "(size_t aSzBuf) : \n"
+           "      Super(aSzBuf,"
+                  << this->mNbUK << ","
+                  << this->mNbObs << ","
+                  << this->mWithDer << ","
+                  << this->mSzInterval << "),\n"
+           "      mVUk(aSzBuf),mVObs(aSzBuf)\n"
+           "    {\n"
+           "      for (auto& line : this->mBufLineRes)\n"
+           "        line.resize(" << mVCurF.size() << ");\n"
+           "    }\n"
+           "    static std::string FormulaName() { return \"" << aName << "\";}\n"
+           "protected:\n"
+           "    virtual void SetNewUks(const std::vector<TypeElem> & aVUks) override { this->mVUk[this->mNbInBuf] = aVUks; }\n"
+           "    virtual void SetNewObs(const std::vector<TypeElem> & aVObs) override { this->mVObs[this->mNbInBuf] = aVObs; }\n"
+           "    virtual void DoEval() override;\n"
+           "    std::vector<std::vector<TypeElem>> mVUk;\n"
+           "    std::vector<std::vector<TypeElem>> mVObs;\n"
+           "};\n"
+           "\n"
+           "template<typename TypeElem>\n"
+           "void " << aClassName << "<TypeElem>::DoEval()\n"
+           "{\n"
+           "#ifdef _OPENMP\n"
+           "#pragma omp parallel for\n"
+           "#endif\n"
+           "  for (size_t aK=0; aK < this->mNbInBuf; aK++) {\n"
+           "// Declare local vars in loop to make them per thread\n";
+    for (auto & aForm : mVFormUnknowns)
+        aOs << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
+    for (const auto & aForm : mVFormObservations)
+        aOs << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
+
+}
+
+template <class TypeElem>
+void cCoordinatorF<TypeElem>::GenCodeEpilog(std::ofstream& aOs) const
+{
+    aOs << "  }\n"
+           "}\n\n"
+           "} // namespace NS_SymbolicDerivative\n";
+}
+
+
+template <class TypeElem>
 std::string cCoordinatorF<TypeElem>::GenCodeNAddr(const std::string &aName) const
 {
     std::string className  = aName;
     std::string fileName  = "CodeGen_" + className + ".h";
     std::ofstream os(fileName);
 
-    std::string parentClass =
-            "GenFuncTpl<TypeElem," +
-            std::to_string(mNbUK) + "," +
-            std::to_string(mNbObs) + "," +
-            std::to_string(mVCurF.size()) +  "," +
-            std::to_string(mSzInterval) + ">" ;
-
-    os << "#include <vector>\n"
-          "#ifdef _OPENMP\n"
-          "#include <omp.h>\n"
-          "#endif\n"
-          "#include \"SymbDer/SymbDer_CGenTpl.h\"\n"
-          "\n"
-          "namespace NS_SymbolicDerivative {\n\n"
-          "template<typename TypeElem>\n"
-          "class " << className << " : public " << parentClass << "\n"
-          "{\n"
-          "public:\n"
-          "    " << className << "(size_t szBuf) : " << parentClass << "(szBuf) {}\n"
-          "    static std::string FormulaName() { return \"" << aName << "\";}\n"
-          "    void evalAndClear();\n"
-          "};\n"
-          "\n"
-          "template<typename TypeElem>\n"
-          "void " << className << "<TypeElem>::evalAndClear()\n"
-          "{\n"
-          "#ifdef _OPENMP\n"
-          "#pragma omp parallel for\n"
-          "#endif\n"
-          "  for (size_t aK=0; aK < this->mInBuf; aK++) {\n"
-          "// Declare local vars in loop to make them per thread\n";
-
-    for (auto & aForm : mVFormUnknowns)
-        os << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
-    for (const auto & aForm : mVFormObservations)
-        os << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
-
+    GenCodeProlog(aName, className, os);
     for (const auto & aForm : mVReachedF) {
         if (!aForm->isAtomic())
             os << "    TypeElem " << aForm->GenCodeFormName() << " = " << aForm->GenCodeNAddr() << ";\n";
     }
-
     for (size_t i=0; i<mVCurF.size(); i++)
-       os <<  "    this->vvRes[aK][" << i << "] = " << mVCurF[i]->GenCodeFormName() << ";\n";
-    os << "  }\n"
-          "  this->mInBuf=0;\n"
-          "}\n\n"
-          "} // namespace NS_SymbolicDerivative\n";
+       os <<  "    this->mBufLineRes[aK][" << i << "] = " << mVCurF[i]->GenCodeFormName() << ";\n";
+
+    GenCodeEpilog(os);
     return fileName;
 }
 
@@ -1156,55 +1129,15 @@ std::string cCoordinatorF<TypeElem>::GenCodeDevel(const std::string &aName) cons
     std::string fileName  = "CodeGen_" + className + ".h";
     std::ofstream os(fileName);
 
-    std::string parentClass =
-            "GenFuncTpl<TypeElem," +
-            std::to_string(mNbUK) + "," +
-            std::to_string(mNbObs) + "," +
-            std::to_string(mVCurF.size()) + "," +
-            std::to_string(mSzInterval) + ">" ;
-
-    os << "#include <vector>\n"
-          "#ifdef _OPENMP\n"
-          "#include <omp.h>\n"
-          "#endif\n"
-          "#include \"SymbDer/SymbDer_CGenTpl.h\"\n"
-          "\n"
-          "namespace NS_SymbolicDerivative {\n\n"
-          "template<typename TypeElem>\n"
-          "class " << className << " : public " << parentClass << "\n"
-          "{\n"
-          "public:\n"
-          "    " << className << "(size_t szBuf) : " << parentClass << "(szBuf) {}\n"
-          "    static std::string FormulaName() { return \"" << aName << "\";}\n"
-          "    void evalAndClear();\n"
-          "};\n"
-          "\n"
-          "template<typename TypeElem>\n"
-          "void " << className << "<TypeElem>::evalAndClear()\n"
-          "{\n"
-          "#ifdef _OPENMP\n"
-          "#pragma omp parallel for\n"
-          "#endif\n"
-          "  for (size_t aK=0; aK < this->mInBuf; aK++) {\n"
-          "// Declare local vars in loop to make them per thread\n";
-
-
-    for (auto & aForm : mVFormUnknowns)
-        os << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
-    for (const auto & aForm : mVFormObservations)
-        os << "    TypeElem &" << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
-
+    GenCodeProlog(aName, className, os);
     for (const auto & aForm : mVReachedF) {
         if (aForm->UsedCnt() != 1 && !aForm->isAtomic()) {
             os << "    TypeElem " << aForm->GenCodeFormName() << " = " << aForm->GenCodeDef() << ";\n";
         }
     }
     for (size_t i=0; i<mVCurF.size(); i++)
-       os <<  "    this->vvRes[aK][" << i << "] = " << mVCurF[i]->GenCodeRef() << ";\n";
-    os << "  }\n"
-          "  this->mInBuf=0;\n"
-          "}\n\n"
-          "} // namespace NS_SymbolicDerivative\n";
+       os <<  "    this->mBufLineRes[aK][" << i << "] = " << mVCurF[i]->GenCodeRef() << ";\n";
+    GenCodeEpilog(os);
     return fileName;
 }
 
