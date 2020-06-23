@@ -72,24 +72,35 @@
 \newcommand{\PiTO}[1]{\pi_2(\pi_1^{-1}(#1))}
 \newcommand{\CurvO}{{\mathcal{T}_1}}
 
+%  Bundles 
 
 \newcommand{\Bund}[1]{\ensuremath{\mathcal{B}_{#1}}}
 \newcommand{\BundO}{\Bund{1}}
 \newcommand{\BundT}{\Bund{2}}
 \newcommand{\BundK}{\Bund{k}}
 
+% Epipolar lines
+
 \newcommand{\LineE}[1]{\ensuremath{\mathcal{L}_{#1}}}
 \newcommand{\LineO}{\LineE{1}}
 \newcommand{\LineT}{\LineE{2}}
 \newcommand{\LineK}{\LineE{k}}
+
+% Epipolar Curves
 
 \newcommand{\CurveE}[1]{\ensuremath{\mathcal{C}_{#1}}}
 \newcommand{\CurveO}{\CurveE{1}}
 \newcommand{\CurveT}{\CurveE{2}}
 \newcommand{\CurveK}{\CurveE{k}}
 
-
+% "Epipolar Surface"
 \newcommand{\Sv}{\ensuremath{\mathcal{S}_{v}}}
+
+\newcommand{\BigV}[1]{\ensuremath{\overrightarrow{#1}}}
+\newcommand{\TanO}[1]{\BigV{t_1#1}}
+\newcommand{\TanT}[1]{\BigV{t_2#1}}
+
+\newcommand{\Negl}[1]{\ensuremath{\mathcal{O}(#1)}}
 
 
 
@@ -104,6 +115,7 @@
 \newtheorem{theorem}{Theorem}
 \newtheorem{notation}{Notation}
 \newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
 
 
 %---------------------------------------------
@@ -328,6 +340,8 @@ unique.
 
 \subsection{Existence of epipolar ressampling}
 
+\label{ExistEpip}
+
 It is well known that :
 
 \begin{itemize}
@@ -394,6 +408,167 @@ of bundles we have after this construction $\BundT(P_1) \cap \BundO(P_2) \neq \e
 Right : generic case, paht don't intersect, no epipolar can exist}
 \label{FigClothPath}
 \end{figure}
+
+
+%---------------------------------------------
+
+
+\subsection{A local caracterization of epipolar existence}
+
+In this section we compute a local formula (i.e. a differential equation) that gives the conditions for
+existence of an epipolar geometry. This section is rather theoriticall and
+can be omitted for user interested mainly by practicall application.
+
+\begin{figure}
+\centering
+\begin{tabular}{||c||}
+ \hline \hline
+\includegraphics[width=10cm]{FIGS/EquadifEpip.jpg}
+ \\ \hline \hline
+\end{tabular}
+\caption{Notation for local caracterization of epipolar existence}
+\label{EqDifEpip}
+\end{figure}
+
+The idea is , as in section~\ref{ExistEpip}, is to make a  computation of pathes two way, $\BundO$ then $\BundT$ ,
+and $\BundT$ then $\BundO$; then we express a taylor expansion of the intersection distance
+between these two path.  We use the notation of figure~\ref{EqDifEpip} :
+
+\begin{itemize}
+   \item we make the sub-vertical assumption \footnote{when this assumption can be made,
+          not we could use curvilinear abscisse};
+   \item let $P$ be any point of $\RR^3$;
+   \item consider a first path $(P,P_1,Q_1)$ following  $\BundO$ then $\BundT$ , making a
+         progression $d_{z1}$ on $\BundO$ and  $d_{z2}$ on $\BundT$ ;
+   \item consider a second path $(P,P_2,Q_2)$ following  $\BundT$ then $\BundO$ , making a
+         progression $d_{z'2}$ on $\BundO$ and  $d_{z'1}$ on $\BundT$ ;
+   \item we note $\overrightarrow{t_1(P)}=(x,y,1)$ the tangent to bundle  $\BundO$  in point $P$
+         (and similarly $\overrightarrow{t_2}(P)$);
+   \item when we will write  $\DerPart{F}{z_1}$ we will refer to the coordinate system $(i_1,j_1,z) = \PiVert_1^{-1}(x,y,z)$,
+         idem for  $\DerPart{F}{z_2}$, and obviously as they are two different coordinate systems, we have in general
+        $\DerPart{F}{z_1}  \neq \DerPart{F}{z_2}$;
+\end{itemize}
+
+Now, whatever may be the pair of 'small' values $(\delta_1,\delta_2)$,  we will compute the  pair of values
+$(\delta'_1,\delta'_2)$ that minimize the distance $|Q_1,Q_2|$ and express the annulation of the
+second degree taylor expansion of this distance (the first degree can always being annulated as we will see). 
+Noting $\delta$ the max of all $\delta$, the degree $2$ Taylor expansion gives :
+
+\begin{equation}
+    P_1 =  P +  \delta_1 \TanO{(P)} + \frac{{\delta_1}^2}{2} \DerPart { \TanO{}}{z_1}(P)  + \Negl{\delta^3} \label{P1} 
+\end{equation}
+\begin{equation}
+    Q_1 =  P_1 +  \delta_2 \TanT{(P_1)} + \frac{{\delta_2}^2}{2} \DerPart { \TanT{}}{z_2}(P_1) + \Negl{\delta^3} \label{Q1}
+\end{equation}
+\begin{equation}
+     \TanT{(P_1)} = \TanT{(P)} +  \delta_1   \DerPart { \TanT{}}{z_1}(P) + \Negl{\delta^2} \label{TP1}
+\end{equation}
+
+Putting together equations~\ref{P1},~\ref{Q1},~\ref{TP1} we can make a taylor expansion of path
+$P$ to $Q_1$ :
+
+\begin{equation}
+    Q_1 =    P +  \delta_1 \TanO{(P)} 
+               +  \delta_2 \TanT{(P)} 
+               + \frac{{\delta_1}^2}{2} \DerPart { \TanO{}}{z_1}(P) 
+               + \frac{{\delta_2}^2}{2} \DerPart { \TanT{}}{z_2}(P) 
+               +  \delta_1  \delta_2  \DerPart { \TanT{}}{z_1}(P)  
+               + \Negl{\delta^3}
+       \label{Q1ofP}
+\end{equation}
+
+And similarly for $P$ to $Q_2$ :
+
+\begin{equation}
+    Q_2 =    P +  \delta'_2 \TanT{(P)} 
+               +  \delta'_1 \TanO{(P)} 
+               + \frac{{\delta'_2}^2}{2} \DerPart { \TanT{}}{z_2}(P) 
+               + \frac{{\delta'_1}^2}{2} \DerPart { \TanO{}}{z_1}(P) 
+               +  \delta'_1  \delta'_2  \DerPart { \TanO{}}{z_2}(P)  
+               + \Negl{\delta^3}
+       \label{Q2ofP}
+\end{equation}
+
+The firts degree Taylor expansion of $Q_2-Q_1$ gives :
+
+\begin{equation}
+    Q_2 -Q_1 =   (\delta'_1 -\delta_1) \TanO{(P)} +  (\delta'_2 -\delta_2) \TanT{(P)}  + \Negl{\delta^2}
+\end{equation}
+
+To minimize $|Q_2 -Q_1|$, the first step is to annulate the degree $1$ terms of $ Q_2 -Q_1$ . We assume
+that $\TanT{(P)}$ and $\TanO{(P)}$  are independant vectors~\footnote{elsewhere, it would be a 
+degenerate case of stereovision} and we must then make of $\delta'_2 -\delta_2$ and $\delta'_1 -\delta_1$
+term of degre $2$ :
+
+\begin{equation}
+   \Delta_1 =   \delta'_1 -\delta_1 = \Negl{\delta^2}  \; ; \; \Delta_2 =   \delta'_2 -\delta_2 = \Negl{\delta^2}
+   \label{Delta}
+\end{equation}
+
+To develop $ Q_2 -Q_1$ we can use the following identities  that are direct consquences of~\ref{Delta} :
+
+\begin{equation}
+   \delta_1  \delta_2 -  \delta'_1  \delta'_2  = \Negl{\delta^3} \;;\;
+   {\delta_1}^2 - {\delta'_1}^2 =  \Negl{\delta^3} \;;\;
+   {\delta_2}^2 - {\delta'_2}^2 =  \Negl{\delta^3} 
+   \label{NeglDelta}
+\end{equation}
+
+Subtracting \ref{Q1ofP} to \ref{Q2ofP}, and using~\ref{NeglDelta},we can write :
+
+\begin{equation}
+    Q_2 -Q_1 =   \Delta_1 \TanO{(P)} +   \Delta_2 \TanT{(P)}  
+               + \delta_1  \delta_2(\DerPart { \TanT{}}{z_1}(P)  -\DerPart { \TanO{}}{z_2}(P) )
+               + \Negl{\delta^3}
+\end{equation}
+
+
+We now traduce the intersection of path by annulating the degree $2$ Taylor expansion of $Q_2 -Q_1$.
+We have  $3$ vector, and their weighted sum can be null, iff they are colinear.
+
+\begin{theorem}[Existence of epipolar]
+The epipolar exist iff the following determinant is null :
+
+\begin{equation}
+\left[ \begin{array}{c|c|c}
+\TanO{} & \TanT{}  & \DerPart { \TanT{}}{z_1}  -\DerPart { \TanO{}}{z_2}  
+\end{array} \right]  
+=0
+\end{equation}
+
+\end{theorem}
+
+\begin{remark}[Epipolar equation with central perspective camera]
+As an illustration in an easy case, we can see that this condition is trivially 
+satisfied for a pair of central perspective cameras as we have the annulation of both terms as shown
+in equation~\ref{EqEpipConik}. This is because for a given point $P$,
+for any point $P_1$ on $\BundO(P)$, $\TanT{P_1}$ belongs to the epipolar
+plane $\mathcal{P}$ , we have $\TanT{P_1} \in \mathcal{P}$, so $\DerPart { \TanT{}}{z_1} \in \mathcal{P}$,
+and as we have also $\TanO{(P)} \in  \mathcal{P}, \TanT{(P)} \in  \mathcal{P}$, the collineratity
+between $\TanO{(P)}$ , $\TanT{(P)}$ and $\DerPart { \TanT{}}{z_1}(P)$ is proved.
+
+\begin{equation}
+\left[ \begin{array}{c|c|c}
+\TanO{} & \TanT{}  & \DerPart { \TanT{}}{z_1}  
+\end{array} \right]  
+=\left[ \begin{array}{c|c|c}
+\TanO{} & \TanT{}  & \DerPart { \TanO{}}{z_2}  
+\end{array} \right]  
+=0
+\label{EqEpipConik}
+\end{equation}
+\end{remark}
+
+%---------------------------------------------
+
+
+\subsection{Ambiguity of epipolar ressampling}
+
+When it exists, the epipolar ressembling is not unique.  We
+describe here exactly the ambiguity that exists as it is necessary
+to handle it rigourously in the method we propose for optimal epipolar rectification.
+
+Let $\phi_1,\phi_2$ and  $\phi'_1,\phi'_2$ be two   epipolar resampling.
 
 
 
