@@ -10,10 +10,10 @@
 namespace SD = NS_SymbolicDerivative;
 
 
-class  TestPrimitives : public cCodeGenTest<cPrimitivesTest,SD::cPrimitivesTest<double>,SD::cPrimitivesTestLongExpr<double>>
+class  TestPrimitives : public cCodeGenTest<cPrimitivesTest,SD::cPrimitivesTest,SD::cPrimitivesTestLongExpr>
 {
 public:
-    TestPrimitives(size_t nbTest) : cCodeGenTest<cPrimitivesTest,SD::cPrimitivesTest<double>,SD::cPrimitivesTestLongExpr<double>>(nbTest)
+    TestPrimitives(size_t nbTest) : cCodeGenTest<cPrimitivesTest,SD::cPrimitivesTest,SD::cPrimitivesTestLongExpr>(nbTest)
     {
         mVUk[0] = 1;
         mVUk[1] = 2;
@@ -44,9 +44,9 @@ static int doTest(int sizeBuf, int nbThreads, const std::string& name)
     obs[ 9] = 0.101;
     obs[10] = 0.2;
 
-//     cCodeGenTest<cFraserCamColinear,SD::cFraser<double>,SD::cFraserLongExpr<double>> test(1000000);
-    cCodeGenTest<cEqCoLinearity<cTplPolDist<7>>,SD::cEqColLinearityXYPol_Deg7<double>,SD::cEqColLinearityXYPol_Deg7LongExpr<double>> test(100000,name);
-//     cCodeGenTest<cEqCoLinearity<cTplFraserDist>,SD::cEqColLinearityFraser<double>,SD::cEqColLinearityFraserLongExpr<double>> test(1000000);
+//     cCodeGenTest<cFraserCamColinear,SD::cFraser,SD::cFraserLongExpr> test(1000000);
+    cCodeGenTest<cEqCoLinearity<cTplPolDist<7>>,SD::cEqColLinearityXYPol_Deg7,SD::cEqColLinearityXYPol_Deg7LongExpr> test(100000,name);
+//     cCodeGenTest<cEqCoLinearity<cTplFraserDist>,SD::cEqColLinearityFraser,SD::cEqColLinearityFraserLongExpr> test(1000000);
      test.mVUk = uk;
      test.mVObs =  obs;
      test.checkAll();

@@ -21,9 +21,9 @@ void GenerateCode()
     auto aVFormula = FORMULA::formula(mCFD1.VUk(),mCFD1.VObs());
     mCFD1.SetCurFormulasWithDerivative(aVFormula);
     auto name = mCFD1.GenerateCode();
-    includesNames.push_back(name + ".h");
+    includesNames.push_back(name);
     name = mCFD1.GenCodeLonExpr();
-    includesNames.push_back(name + ".h");
+    includesNames.push_back(name);
 }
 
 
@@ -38,7 +38,11 @@ int main(int , char **)
 
     std::ofstream os(std::string("CodeGen_IncludeAll.h"));
     for (auto &include : includesNames )
-        os << "#include \"" << include << "\"\n";
+        os << "#include \"" << include << ".h\"\n";
+
+    os = std::ofstream(std::string("CodeGen_MakeFile"));
+    for (auto &file : includesNames )
+        os << file << ".o: " << file << ".cpp " << file << ".h" << "\n";
 
     return EXIT_SUCCESS;
 }

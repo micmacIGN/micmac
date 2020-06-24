@@ -2,7 +2,7 @@ INCDIR=../../include/
 CXXFLAGS=-fopenmp -std=c++14 -Wall -Werror -O4 -march=native -I$(INCDIR)
 SYMBDER_INCLUDES=$(wildcard $(INCDIR)/SymbDer/*.h)
 
-all: TestCodeGen
+all: CodeGen_IncludeAll.h TestCodeGen
 
 
 CodeGenerator: CodeGenerator.cpp Formula_*.h $(SYMBDER_INCLUDES)
@@ -11,9 +11,15 @@ CodeGenerator: CodeGenerator.cpp Formula_*.h $(SYMBDER_INCLUDES)
 CodeGen_IncludeAll.h: CodeGenerator
 	@echo "* Generating Formulas code"
 	./CodeGenerator
+	$(MAKE) TestCodeGen
 
-TestCodeGen: TestCodeGen.cpp TestCodeGenTpl.h ChronoBench.h CodeGen_IncludeAll.h $(SYMBDER_INCLUDES)
-	$(CXX) $< $(CXXFLAGS)  -o $@
+FUNCTIONS=$(patsubst %.cpp,%.o,$(wildcard CodeGen_*.cpp))
+
+CodeGen_%.o: CodeGen_%.cpp CodeGen_%.h
+	$(CXX) -c $< $(CXXFLAGS)  -o $@
+
+TestCodeGen: TestCodeGen.cpp $(FUNCTIONS) TestCodeGenTpl.h ChronoBench.h CodeGen_IncludeAll.h $(SYMBDER_INCLUDES)
+	$(CXX) $< $(FUNCTIONS) $(CXXFLAGS)  -o $@
  
 clean:
-	rm -f *.o CodeGen*.h CodeGenerator TestCodeGen
+	rm -f *.o CodeGen_* CodeGenerator TestCodeGen
