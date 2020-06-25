@@ -93,8 +93,9 @@ public:
         return  mBufRes.at(aNumPush)->at(mSzInterval*aKElem +1 + aKVarDer);
     }
 
-    const size_t NbUk() const { return mNbUK; }
-    const size_t NbObs() const { return mNbObs; }
+    const size_t NbUk() const { return mNbUK; }                 // Nb of unknowns
+    const size_t NbObs() const { return mNbObs; }               // Nb of Observations
+    const size_t NbElem() const { return mNbElem; }             // Nb of primary values returned by formula (w/o counting derivatives)
     const std::vector<tOneRes*> & Result() const { return mBufRes; }
 
 protected:
@@ -103,6 +104,7 @@ protected:
     mSzBuf      (aSzBuf),
     mNbUK       (aNbUk),
     mNbObs      (aNbObs),
+    mNbElem     (0),
     mNbInBuf    (0),
     mWithDer    (aWithDer),
     mSzInterval (aSzInterval),
@@ -124,6 +126,7 @@ protected:
     size_t                         mSzBuf;       ///< Capacity of bufferirsation
     size_t                         mNbUK;        ///< Dim=number of unkown
     size_t                         mNbObs;       ///< Number of obserbation variable
+    size_t                         mNbElem;      ///< Number of elements returned by the formula (w/o derivative)
     size_t                         mNbInBuf;     ///< Number of Unknown/Obs vect currenlty loaded in buf
     bool                           mWithDer;     ///< Done With Derivate
     int                            mSzInterval;  ///< Size between two val, depends if computation done with deriv

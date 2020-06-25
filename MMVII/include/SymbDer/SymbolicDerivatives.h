@@ -953,6 +953,7 @@ void    cCoordinatorF<TypeElem>::SetCurFormulasWithDerivative(const std::vector<
    SetCurFormulas(aVWDer);
    this->mWithDer    = true;
    this->mSzInterval = 1+this->mNbUK;
+   this->mNbElem = aVF.size();
 }
 
 template <class TypeElem> 
@@ -970,6 +971,7 @@ void cCoordinatorF<TypeElem>::SetCurFormulas(const std::vector<tFormula> & aVF0)
     }
     this->mWithDer=false;
     this->mSzInterval = 1;
+    this->mNbElem = aVF0.size();
     mVCurF     = aVF;
 
     // Erase previous
@@ -1120,6 +1122,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
                   << this->mSzInterval << "),\n"
            "      mVUk(aSzBuf),mVObs(aSzBuf)\n"
            "    {\n"
+           "      this->mNbElem = " << this->mNbElem << ";\n"
            "      for (auto& line : this->mBufLineRes)\n"
            "        line.resize(" << mVCurF.size() << ");\n"
            "    }\n"
