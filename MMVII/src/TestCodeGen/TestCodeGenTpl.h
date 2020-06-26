@@ -151,7 +151,7 @@ void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::checkAll()
         switch (test) {
         case Jets: continue;
         case Dyn: {
-            auto mCFD = new SD::cCoordinatorF<double>(BUF_SIZE,EQDEF::VNamesUnknowns(),EQDEF::VNamesObs());
+            auto mCFD = new SD::cCoordinatorF<double>(EQDEF::FormulaName(),BUF_SIZE,EQDEF::VNamesUnknowns(),EQDEF::VNamesObs());
             auto aVFormula = EQDEF::formula(mCFD->VUk(),mCFD->VObs());
             mCFD->SetCurFormulasWithDerivative(aVFormula);
             calculator = mCFD;
@@ -203,7 +203,7 @@ void cCodeGenTest<EQDEF,EQNADDR,EQFORM>::TestSD(Tests test,Bench &bench)
     switch (test) {
     case Jets: return;
     case Dyn: {
-        auto mCFD = new SD::cCoordinatorF<double>(mSizeBuf,EQDEF::VNamesUnknowns(),EQDEF::VNamesObs());
+        auto mCFD = new SD::cCoordinatorF<double>(EQDEF::FormulaName(),mSizeBuf,EQDEF::VNamesUnknowns(),EQDEF::VNamesObs());
         auto aVFormula = EQDEF::formula(mCFD->VUk(),mCFD->VObs());
         mCFD->SetCurFormulasWithDerivative(aVFormula);
         calculator = mCFD;
