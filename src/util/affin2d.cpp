@@ -275,6 +275,12 @@ class cMapPol2d : public  cElMap2D
        int            mNbMon;
 };
 
+cElMap2D *  MapPolFromHom(const ElPackHomologue & aPack,const Box2dr & aBox,int aDeg,int aRabDegInv)
+{
+   cMapPol2d * aRes = new cMapPol2d(aDeg,aBox,aRabDegInv);
+   L2EstimMapHom(aRes,aPack);
+   return aRes;
+}
 
 std::vector<std::string>  cMapPol2d::ParamAux() const
 {
