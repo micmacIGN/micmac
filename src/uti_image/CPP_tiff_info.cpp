@@ -38,6 +38,30 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
+int tiff_split(int argc,char ** argv)
+{
+    std::string aName,PostFix;
+    std::vector<int> aVC;
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aName,"Image", eSAM_IsExistFile) 
+                    << EAMC(aVC,"Channels"),
+        LArgMain()  << EAM(PostFix,"PostFix",true)
+    );
+
+    Tiff_Im tiff = Tiff_Im::BasicConvStd(aName.c_str());
+
+    for (int aK=0 ; aK<int(aVC.size()) ; aK++)
+    {
+        std::string aNameOut = "Split_" + ToString(aVC.at(aK)) + aName;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+
+
 int tiff_info_main(int argc,char ** argv)
 {
     {

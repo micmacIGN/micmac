@@ -606,6 +606,8 @@ void cApply_CreateEpip_main::ExportImCurveEpip
     Pt2di aP;
     Im2D_U_INT1 aIm(aSzRed.x,aSzRed.y);
 
+    Pt2dr aSumGx(0,0),aSumGy(0,0);
+    double aSumPG=0;
     for (aP.x=0 ; aP.x<aSzRed.x ; aP.x++)
     {
         for (aP.y=0 ; aP.y<aSzRed.y ; aP.y++)
@@ -616,6 +618,18 @@ void cApply_CreateEpip_main::ExportImCurveEpip
             double aVy = PhaseValue(aPEpi1.y,aBoxOut1.sz().y);
             
             double aVal = 1-aVy;
+            {
+                 // Pt2dr aPIm00  = (aBoxIn1.P0() +aBoxIn1.P1())/2.0;
+                 Pt2dr aPIm00  = aPIm1;
+                 Pt2dr aPIm10  = aPIm00 + Pt2dr(1,0);
+                 Pt2dr aPIm01  = aPIm00 + Pt2dr(0,1);
+
+                 Pt2dr aGx = anEpip1.Direct(aPIm10) -anEpip1.Direct(aPIm00);
+                 Pt2dr aGy = anEpip1.Direct(aPIm01) -anEpip1.Direct(aPIm00);
+                 aSumGx = aSumGx + aGx;
+                 aSumGy = aSumGy + aGy;
+                 aSumPG++;
+            }
 
             if (ShowOut)
             {
@@ -631,7 +645,16 @@ void cApply_CreateEpip_main::ExportImCurveEpip
             aIm.SetR(aP,255*aVal);
         }
     }
+    aSumGx = aSumGx / aSumPG;
+    aSumGy = aSumGy / aSumPG;
     SetExagEpip(1.0,false);
+
+    std::cout << "================== Create Im Curves =====================\n";
+    std::cout << " Sc=" <<  aScale
+              << " Grad " << aSumGx  << aSumGy  
+              << " Nx:" << euclid(aSumGx) << " Ny:" << euclid(aSumGy)
+              << " BOWY " << aBoxOut1.sz().y
+              << "\n";
     Tiff_Im::CreateFromIm(aIm,aName);
 }
 
