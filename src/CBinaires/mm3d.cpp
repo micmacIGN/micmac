@@ -822,6 +822,8 @@ int OneReechHom_main(int argc, char ** argv);
 int OneReechFromAscii_main(int argc, char ** argv);
 int AllReechFromAscii_main(int argc, char ** argv);
 int AllReechHom_main(int argc, char ** argv);
+int OneHomMMToAerial_main(int argc,char** argv);
+int AllHomMMToAerial_main(int argc,char** argv);
 int RTI_main(int argc, char ** argv);
 int RTIRecalRadiom_main(int argc, char ** argv);
 int RTIMed_main(int argc, char ** argv);
@@ -1178,6 +1180,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("AllReechFromAscii",AllReechFromAscii_main," Resample an image pattern using homography and 4 pts"));
         aRes.push_back(cMMCom("OneReechHom",OneReechHom_main," Resample image using homography"));
         aRes.push_back(cMMCom("AllReechHom",AllReechHom_main," Resample multiple image using homography"));
+        aRes.push_back(cMMCom("OneMMToAerial",OneHomMMToAerial_main," Project terrestrial image to aerial images"));
+        aRes.push_back(cMMCom("AllMMToAerial",AllHomMMToAerial_main," Project a pattern of terrestrial images to aerial images"));
         aRes.push_back(cMMCom("RTI",RTI_main," RTI prototype"));
         aRes.push_back(cMMCom("RTI_RR",RTIRecalRadiom_main," RTI recalage radiom"));
         aRes.push_back(cMMCom("RTIMed",RTIMed_main," RTI calc median image"));

@@ -1417,6 +1417,7 @@ int OneReechFromAscii_main(int argc,char** argv)
 	std::string aOutName;
 	std::string aASCIIName;
 	bool aShow = false;
+	bool aDoReech = true;
 
 	Pt2dr aP1, aP2;
 	Pt2di aSzOut(0,0);
@@ -1429,6 +1430,7 @@ int OneReechFromAscii_main(int argc,char** argv)
           LArgMain()  << EAMC(aFullName,"Name of image to crop/rotate/scale", eSAM_IsExistFile)
                       << EAMC(aASCIIName,"Name of the ascii file with 2D correspondences", eSAM_IsExistFile),
           LArgMain()  << EAM(aOutName,"Out",true,"Name of the output, Def=Image+ASCII_filename.tif")
+		  			  << EAM(aDoReech,"DoReech",true,"Do resampling, Def=true")
 		  			  << EAM(aShow,"Show",true,"Show computed homographies")
     );
 
@@ -1469,35 +1471,47 @@ int OneReechFromAscii_main(int argc,char** argv)
     ElSimilitude  aSim = L2EstimSimHom(aPack);
 
     //  cElHomographie  aHom = cElHomographie::RansacInitH(aPack,50,2000);
-
 	std::string aKeyHom = "NKS-Assoc-CplIm2Hom@@dat";
     std::string aNameH = aEASF.mDir + aEASF.mICNM->Assoc1To2(aKeyHom,aOutName,aFullName,true);
-	aPack.StdPutInFile(aNameH);
+    aPack.StdPutInFile(aNameH);
+
+	if (aDoReech)
+	{
+    
+		/*2- Save empty "transformed" image */
+		GenIm::type_el aTypeOut = GenIm::u_int1;
+        Tiff_Im aTifEpi = Tiff_Im
+                           (
+                               aOutName.c_str(),
+                               aSzOut,
+                               aTypeOut,
+                               Tiff_Im::No_Compr,
+                               Tiff_Im::BlackIsZero
+                           );
+    
+		/*3- Do resampling in the transformed image */
+		std::string aCom = MM3dBinFile_quotes("TestLib") 
+			             + " OneReechHom " 
+					     + aOutName
+					     + " " + aEASF.mDir + aFullName +
+					     + " " + aOutName
+					     + std::string(" PostMasq=NONE ")
+					     + std::string(" ScaleReech=") + ToString(euclid(aSim.sc())) + std::string(" ")
+                         + "Show=" + ToString(aShow);
+    
+		System(aCom);	 
+	}
+	else
+	{
+		cElHomographie  aH12 = cElHomographie::RansacInitH(aPack,50,2000);
+		cElHomographie  aH21 = aH12.Inverse();
 
 
-	/*2- Save empty "transformed" image */
-	GenIm::type_el aTypeOut = GenIm::u_int1;
-    Tiff_Im aTifEpi = Tiff_Im
-                       (
-                           aOutName.c_str(),
-                           aSzOut,
-                           aTypeOut,
-                           Tiff_Im::No_Compr,
-                           Tiff_Im::BlackIsZero
-                       );
-
-	/*3- Do resampling in the transformed image */
-	std::string aCom = MM3dBinFile_quotes("TestLib") 
-		             + " OneReechHom " 
-				     + aOutName
-				     + " " + aEASF.mDir + aFullName +
-				     + " " + aOutName
-				     + std::string(" PostMasq=NONE ")
-				     + std::string(" ScaleReech=") + ToString(euclid(aSim.sc())) + std::string(" ")
-                     + "Show=" + ToString(aShow);
-
-	System(aCom);	 
-
+        std::cout << "H12=" << "\n";
+        aH12.Show();
+        std::cout << "H21=" << "\n";
+        aH21.Show();
+	}
 
 
 	return EXIT_SUCCESS;
