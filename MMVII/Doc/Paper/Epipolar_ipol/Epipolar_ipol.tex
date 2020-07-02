@@ -733,11 +733,12 @@ A more formalized description of the algorithm is given in bloc ~\ref{AlgoGlob}.
 
 
 \subsubsection{Why should it work ?}
+\label{WhyWork}
 
 Intuitively, it may be not obvious that the system of equation~\ref{EqV1V2} is well posed.
 In fact, in the case where there would exist a functionnal relation between
 $p_1$ and $p_2$ , as $p_1=F(p_2)$,  there would exist infinity of solution
-for $(V_1,V_2)$ :   for any function $V: \RR^2 \rightarrow \RR $ we can generate a solution $(V\circ F, V)$ .
+for $(V_1,V_2)$ :   for any function $V: \RR^2 \rightarrow \RR $ we can generate a solution $(V,V\circ F)$ .
 
 \begin{figure}
 \centering
@@ -775,6 +776,13 @@ V_2(p^1_2) = V_2(p^2_2)  =  V_2(p^3_2) \dots \label{RedrCurv}
 
 If we look at left image of figure~\ref{NonFuncCorresp}, we see that equation~\ref{RedrCurv}
 impose the constraints that the "piece of curve" become horizontal.
+
+
+
+\subsubsection{Epipolar resampling without the localisation model}
+
+As described above, the method cannot work in general when there is 
+a functionnal correspondance $p_1=F(p_2)$ between tie points.
 
 %---------------------------------------------
 %---------------------------------------------
@@ -925,8 +933,7 @@ to the "real" inverse we can increase the degre (typically the degree of $W$
 is $d+4$ in our implementation). These has no inconvenient as long the redunduncy
 is high enough.
 
-\subsection{Epipolar resampling without the localisation model}
-\er{MPD ecrira un mot}
+
 %---------------------------------------------
 %---------------------------------------------
 %---------------------------------------------
