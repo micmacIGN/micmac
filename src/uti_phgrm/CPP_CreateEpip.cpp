@@ -105,6 +105,8 @@ class cApply_CreateEpip_main
       std::vector<double> mParamEICE;
 
       void DoEpipGen(bool DoIm);
+      void DoOh(Pt2dr aC1,const ElPackHomologue & aPackCheck,CpleEpipolaireCoord * aChekEpi);
+      Pt2dr  OhNextPOnCurvE(const Pt2dr aP1,bool Im1,bool Forward);
 
       Pt2dr DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D * aG2,ElPackHomologue & aPack,bool ForCheck,bool AddToP1, std::list<Appar23> &   aL23);
 
@@ -115,6 +117,8 @@ class cApply_CreateEpip_main
       void   ExportImCurveEpip(EpipolaireCoordinate & e1,const Box2dr& aBoxIn1,const Box2dr&,const std::string & aName,EpipolaireCoordinate & e2,const Box2dr& aBoxIn2,double aX2mX1);
       double PhaseValue(const double & aV,const double & aSzY) const;
 
+
+      std::vector<double>  mParamTestOh;
 };
 
 void  cApply_CreateEpip_main::IntervZAddIm(cBasicGeomCap3D * aGeom)
@@ -602,6 +606,8 @@ void cApply_CreateEpip_main::ExportImCurveEpip
     Pt2di aP;
     Im2D_U_INT1 aIm(aSzRed.x,aSzRed.y);
 
+    Pt2dr aSumGx(0,0),aSumGy(0,0);
+    double aSumPG=0;
     for (aP.x=0 ; aP.x<aSzRed.x ; aP.x++)
     {
         for (aP.y=0 ; aP.y<aSzRed.y ; aP.y++)
@@ -612,6 +618,18 @@ void cApply_CreateEpip_main::ExportImCurveEpip
             double aVy = PhaseValue(aPEpi1.y,aBoxOut1.sz().y);
             
             double aVal = 1-aVy;
+            {
+                 // Pt2dr aPIm00  = (aBoxIn1.P0() +aBoxIn1.P1())/2.0;
+                 Pt2dr aPIm00  = aPIm1;
+                 Pt2dr aPIm10  = aPIm00 + Pt2dr(1,0);
+                 Pt2dr aPIm01  = aPIm00 + Pt2dr(0,1);
+
+                 Pt2dr aGx = anEpip1.Direct(aPIm10) -anEpip1.Direct(aPIm00);
+                 Pt2dr aGy = anEpip1.Direct(aPIm01) -anEpip1.Direct(aPIm00);
+                 aSumGx = aSumGx + aGx;
+                 aSumGy = aSumGy + aGy;
+                 aSumPG++;
+            }
 
             if (ShowOut)
             {
@@ -627,9 +645,172 @@ void cApply_CreateEpip_main::ExportImCurveEpip
             aIm.SetR(aP,255*aVal);
         }
     }
+    aSumGx = aSumGx / aSumPG;
+    aSumGy = aSumGy / aSumPG;
     SetExagEpip(1.0,false);
+
+    std::cout << "================== Create Im Curves =====================\n";
+    std::cout << " Sc=" <<  aScale
+              << " Grad " << aSumGx  << aSumGy  
+              << " Nx:" << euclid(aSumGx) << " Ny:" << euclid(aSumGy)
+              << " BOWY " << aBoxOut1.sz().y
+              << "\n";
     Tiff_Im::CreateFromIm(aIm,aName);
 }
+
+
+Pt2dr  cApply_CreateEpip_main::OhNextPOnCurvE(const Pt2dr aPIm1,bool Im1,bool Forward)
+{
+  cBasicGeomCap3D *  aG1 =  mGenI1 ;
+  cBasicGeomCap3D *  aG2 =  mGenI2 ;
+  double     aZ1 = mZMin;
+  double     aZ2 = mZMax;
+
+  if (!Im1)
+     ElSwap(aG1,aG2);
+
+  if (Im1!=Forward)  // a priori pour que la variation soit ds le meme sens il faut intervertir pour Im2
+     ElSwap(aZ1,aZ2);
+
+
+  Pt3dr aPTer1 = aG1->ImEtZ2Terrain(aPIm1,aZ1);
+  Pt2dr aPIm2  = aG2->Ter2Capteur(aPTer1);
+  Pt3dr aPTer2 = aG2->ImEtZ2Terrain(aPIm2,aZ2);
+  Pt2dr aQIm1  = aG1->Ter2Capteur(aPTer2);
+
+  return aQIm1;
+}
+
+class cOhEpipPt
+{
+     public :
+          cOhEpipPt(const Pt2dr & aP1,const Pt2dr & aP2,const Pt2dr & aPE) :
+             mP1 (aP1) ,
+             mP2 (aP2) ,
+             mPE (aPE) 
+           {
+           }
+ 
+           Pt2dr mP1;
+           Pt2dr mP2;
+           Pt2dr mPE;
+
+     private :
+};
+
+
+void cApply_CreateEpip_main::DoOh(Pt2dr aC1,const ElPackHomologue & aPackCheck,CpleEpipolaireCoord * aChekEpi)
+{
+
+     // Calcul centre Image 2
+     ELISE_ASSERT (mIntervZIsDef,"No IntervZ in Oh test");
+     Box2dr aBox1 (Pt2dr(0,0),Pt2dr(mGenI1->SzBasicCapt3D()));
+     Box2dr aBox2 (Pt2dr(0,0),Pt2dr(mGenI2->SzBasicCapt3D()));
+     // Pt2dr aBox2 (Pt2dr(0,0),Pt2dr(mGenI2->SzBasicCapt3D()));
+
+
+     Pt2dr   aPForw = OhNextPOnCurvE(aC1,true,true);
+     Pt2dr   aPBckw = OhNextPOnCurvE(aC1,true,false);
+     double aDist = euclid(aPForw,aPBckw)/2.0;
+
+     Pt2dr  aDirEpi1 = vunit(aPForw-aPBckw) ;
+     Pt2dr  aDirOrth = aDirEpi1  * Pt2dr(0,1) * aDist;
+
+     // Calcul des point "centraux" debut des courves epip
+     // parcourt la direction ortho a droit et a gauche
+     std::vector<cOhEpipPt>  aVSeedOh; // seed of epipolar point
+     for (int aSens=-1 ; aSens<=1 ; aSens+=2)
+     {
+           int aK0 = (aSens>=0) ? 0 : -1;
+           Pt2dr aPIm1 = aC1 + aDirOrth*double(aK0);
+           while (aBox1.inside(aPIm1))
+           {
+               Pt3dr aPTer = mGenI1->ImEtZ2Terrain(aPIm1,(mZMin+mZMax)/2.0);
+               Pt2dr  aPIm2 =  mGenI2->Ter2Capteur(aPTer);
+               if (aBox2.inside(aPIm2))
+               {
+                    aVSeedOh.push_back(cOhEpipPt(aPIm1,aPIm2,Pt2dr(0,aDist*aK0)));
+               }
+               aPIm1 = aPIm1 + aDirOrth*double(aSens);
+               aK0 += aSens;
+           }
+     }
+
+     // Calcul des courbes epipolaires et memo des corresp 
+     double aMaxDif=0.0;  // Chekc that point are homolologues with MicMac epip
+     double aSomDif=0.0;
+     double aNbDif = 0;
+     std::vector<cOhEpipPt>  aVPtsOh; // all epipolar point
+     ElPackHomologue  aPackIm1;  // Corresp  Im1 -> Epi1
+     ElPackHomologue  aPackIm2;
+     for (const auto & aPOh : aVSeedOh)
+     {
+         for (int aSens=-1 ; aSens<=1 ; aSens+=2)
+         {
+             int aK = 0;
+             Pt2dr aPIm1 = aPOh.mP1;
+             Pt2dr aPIm2 = aPOh.mP2;
+             Pt2dr aPE  = aPOh.mPE;
+             bool goForW = (aSens>=0);
+             while (aBox1.inside(aPIm1) && aBox2.inside(aPIm2))
+             {
+                  if ((aK!=0) || (goForW))
+                  {
+                       aVPtsOh.push_back(cOhEpipPt(aPIm1,aPIm2,aPE));
+                       {
+                           Pt2dr aPC1  = aChekEpi->EPI1().Direct(aPIm1);
+                           Pt2dr aPC2  = aChekEpi->EPI2().Direct(aPIm2);
+                           double aDif = ElAbs(aPC1.y-aPC2.y);
+                           aMaxDif = ElMax(aDif,aMaxDif);
+                           aSomDif += aDif;
+                           aNbDif ++;
+                       }
+
+                       aPackIm1.Cple_Add(ElCplePtsHomologues (aPIm1,aPE));
+                       aPackIm2.Cple_Add(ElCplePtsHomologues (aPIm2,aPE));
+                  }
+
+                  aPIm1  = OhNextPOnCurvE(aPIm1,true,goForW);
+                  aPIm2  = OhNextPOnCurvE(aPIm2,false,goForW);
+                  aPE.x += aSens * aDist;
+                  aK    += aSens;
+             }
+         }
+     }
+     std::cout << "===============================Oh================  " << "\n";
+     std::cout << "cohernce hom  "
+               << " Avg=" << aSomDif/aNbDif 
+               << " Max:" << aMaxDif 
+               << " Zs: " << mZMin << " " << mZMax << "\n";
+
+     int aDeg = round_ni(mParamTestOh.at(0));
+
+     cElMap2D *  aMap1 = MapPolFromHom(aPackIm1,aBox1,aDeg,0);
+     cElMap2D *  aMap2 = MapPolFromHom(aPackIm2,aBox2,aDeg,0);
+
+     aMaxDif=0.0;  // Chekc that point are homolologues with MicMac epip
+     aSomDif=0.0;
+     aNbDif = 0;
+
+
+     for (const auto & aCple :  aPackCheck)
+     {
+         Pt2dr aPE1 = (*aMap1)(aCple.P1());
+         Pt2dr aPE2 = (*aMap2)(aCple.P2());
+         double aDif = ElAbs(aPE1.y - aPE2.y);
+         aMaxDif = ElMax(aDif,aMaxDif);
+         aSomDif += aDif;
+         aNbDif ++;
+     }
+     std::cout << "TestEpipOh : "
+               << " Avg=" << aSomDif/aNbDif 
+               << " Max:" << aMaxDif 
+               << " \n";
+     
+}
+
+//cElMap2D *  MapPolFromHom(const ElPackHomologue & aPack,const Box2dr & aBox,int aDeg,int aRabDegInv);
+
 
 void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 {
@@ -705,6 +886,8 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
             double aErrMoy = 0.0;
             int    mNbP = 0;
 
+            Pt2dr  aC1(0,0);
+
             // Compute accuracy, bounding box 
             for (ElPackHomologue::const_iterator itC=aPackK->begin() ; itC!= aPackK->end() ; itC++)
             {
@@ -726,9 +909,11 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
                  aErrMax = ElMax(anErr,aErrMax);
                  aErrMoy += anErr;
                  aBias   += aDifY;
+                 aC1 = aP1 + aC1;
             }
 
             aX2mX1 /= mNbP;
+            aC1 = aC1/mNbP;
 
             double aInfY = ElMax(aInf1.y,aInf2.y);
             double aSupY = ElMax(aSup1.y,aSup2.y);
@@ -748,8 +933,12 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
                 std::cout << "DIR " << mDir1 << " " << mDir2 << " X2-X1 " << aX2mX1<< "\n";
                 std::cout << "Epip NbPts= " << mNbP << " Redund=" << mNbP/double(ElSquare(mDegre)) << "\n";
             }
-      
+            if (EAMIsInit(&mParamTestOh) && (!ForCheck))
+            {
+                 DoOh(aC1,aPackCheck,aCple);
+            }
       }
+      std::cout  << "===================================\n";
       std::cout  << "BOX1 " << aInf1 << " " <<  aSup1 << "\n";
       std::cout  << "BOX2 " << aInf2 << " " <<  aSup2 << "\n";
 
@@ -903,6 +1092,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 		    << EAM(mNbXY,"NbXY",false,"Number of point / line or col, def=100")
 		    << EAM(mNbCalcAutoDir,"NbCalcDir",false,"Calc directions : Nbts / NbEchDir")
 		    << EAM(mParamEICE,"ExpCurve",false,"0-SzIm ,1-Number of Line,2- Larg (in [0 1]),3-Exag deform,4-ShowOut")
+		    << EAM(mParamTestOh,"OhP",false,"Oh's method test parameter(none for now)")
     );
 
 
