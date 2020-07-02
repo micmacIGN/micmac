@@ -132,7 +132,7 @@ From the algebraic standpoint, it is equal to applying two 2D projective transfo
 
   
 %
-Unlike the central projection camera model, pushbroom-like sensors acquire each image row from a different perspective center. As a consequence, the epipolar lines are neither straight lines, nor are they conjugate across the image~\cite{Gupta1997}.  One way to overcome this particularity is to simplify the projection function with a 2D affine~\cite{ono1999epipolar} or a parallel projection model~\cite{morgan2006epipolar}. Such approximations usually come at a prize of the loss of precision, especially with the increasing camera field-of-view or in mountainous scenes. In the context of image dense matching, de~Francis \textit{et al.}~\cite{deFrancis2014stereo} improves the precision by partitioning the images into small patches for which indepedent affine rectifictions are computed. Alternatively and with equally good precision, Oh~\cite{Oh2011} uses the \textit{Rational polynomial coefficients} (RPCs) to map the epipolar curves across the full size images with lines in a piecewise approach.
+Unlike the central projection camera model, pushbroom-like sensors acquire each image row from a different perspective center. As a consequence, the epipolar lines are neither straight lines, nor are they conjugate across the image~\cite{Gupta1997}.  One way to overcome this particularity is to simplify the projection function with a 2D affine~\cite{ono1999epipolar,wang2011epipolar} or a parallel projection model~\cite{morgan2006epipolar}. Such approximations usually come at a prize of the loss of precision, especially with the increasing camera field-of-view or in mountainous scenes. In the context of image dense matching, de~Francis \textit{et al.}~\cite{deFrancis2014stereo} improves the precision by partitioning the images into small patches for which indepedent affine rectifictions are computed. Alternatively and with equally good precision, Oh~\cite{Oh2011} uses the \textit{Rational polynomial coefficients} (RPCs) to map the epipolar curves across the full size images with lines in a piecewise approach.
 %
 %ù while being locally approximated to straight lines. Oh~\cite{Oh2011} approximates the epipolar curves of an image pair by piecewise linear curves with a set of virtual correspondences. An image pair is then resampled to an equivalent geometry, imposing that the conjugate curves become straight and aligned on the y-axis. 
 
@@ -272,7 +272,7 @@ in matching of a single image pair, the epipolar geometry
 can provide an "elegant" solution to separating the problem in two independent problems. \er{ER thinks this should be removed $\rightarrow$} When two images are in epipolar geometry, two points $p_1,p_2$ are potential homologous iff they have the same ordinate ($y_1=y_2$).
 
 \begin{definition}[Epipolar Geometry]
-\emph{Denoted as $E$ and illustrated in Figures~\ref{FigDefEpip} and~\ref{FigAmbigEpip}.}
+\emph{Illustrated in Figures~\ref{FigDefEpip} and~\ref{FigAmbigEpip}.}
 
 Let $\pi_1,\pi_2$ be two cameras and let $\phi_1,\phi_2$  be two diffeomorphisms
 of $\RR^2$. We say that $\phi_1,\phi_2$ are epipolar resamplings iff:
@@ -296,6 +296,8 @@ of $\RR^2$. We say that $\phi_1,\phi_2$ are epipolar resamplings iff:
 
 
 \noindent The matching of epipolar images is simplified because we know that the lines in two images are globally homologous. 
+\er{The space of the image rectified to epipolar geometry is denoted by $E$ (see Figure~\ref{FigDefEpip})}
+
 
 \begin{notation}[Epipolar line and curve.]
 We note $\LineK(v)$   the epipolar  line of $E_k$ defined by $v_k=v$. We also note $\CurveK(v)$ the epipolar
@@ -923,12 +925,25 @@ to the "real" inverse we can increase the degre (typically the degree of $W$
 is $d+4$ in our implementation). These has no inconvenient as long the redunduncy
 is high enough.
 
-
+\subsection{Epipolar resampling without the localisation model}
+\er{MPD ecrira un mot}
 %---------------------------------------------
 %---------------------------------------------
 %---------------------------------------------
 
 \section{Experimentation}
+
+Datasets:
+\begin{itemize}
+\item Corona, +MPD, les courbes (teorique fait par Benjamin)
+\item Pleiades, residu 
+\item Spot
+\end{itemize}
+
+\begin{itemize}
+\item nous
+\item Oh
+\end{itemize}
 
 Exemple de résultats avec résidus. + qq crop d'images rectifiees.
 
@@ -937,9 +952,12 @@ Exemple de résultats avec résidus. + qq crop d'images rectifiees.
 C'est la que c'est vraiment utile .... 
 
 
-\subsection{Use with pinhole camera}
+\subsection{Use with radar images}
 
-Permet de faire des test supplémentaire.
+? 
+
+%\subsection{Use with pinhole camera}
+%Permet de faire des test supplémentaire.
 
 \subsection{Use without model}
 
