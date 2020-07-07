@@ -178,6 +178,7 @@ if (MPD_MM())
 
      
 
+    int aNbTens=0;
     for (int aKX=0 ; aKX<= aNbX ; aKX++)
     {
         // Barrycentrik weighting, 
@@ -245,9 +246,15 @@ if (MPD_MM())
                 {
                     Pt2dr aDir2 = vunit(aVPIm2.back()-aVPIm2[0]);
                     aSomTens2 = aSomTens2 + aDir2 * aDir2; // On double l'angle pour en faire un tenseur
+                    aNbTens++;
                 }
             }
         }
+    }
+    if (!ForCheck)
+    {
+       std::cout << "Number points for tensor " << aNbTens << "\n";
+       ELISE_ASSERT(aNbTens!=0,"Cannot compute direction no valide point");
     }
     Pt2dr aRT = Pt2dr::polar(aSomTens2,0.0);
     return Pt2dr::FromPolar(1.0,aRT.y/2.0); // Divide angle as it was multiplied
