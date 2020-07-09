@@ -7,10 +7,12 @@ template<class Type> std::unique_ptr<Type>  NNfs(const std::string & aNameFile,c
 {
     std::unique_ptr<Type> aRes (new Type(aNameFile));
 
-    if (!aRes->good())
-    {
-       MMVII_INTERNAL_ASSERT_user(eTyUEr::eOpenFile,"Cannot open file : "  + aNameFile + " ,Mode=" + aMode+  " ,context=" + aMes);
-    }
+    MMVII_INTERNAL_ASSERT_User
+    (
+          aRes->good(),
+          eTyUEr::eOpenFile,
+          "Cannot open file : "  + aNameFile + " ,Mode=" + aMode+  " ,context=" + aMes
+    );
 
     return aRes;
 }
@@ -36,10 +38,12 @@ cMMVII_Ofs::cMMVII_Ofs(const std::string & aName,bool ModeAppend) :
    mOfs  (aName,ModeAppend ? std::ios_base::app : std::ios_base::out),
    mName (aName)
 {
-    if (!mOfs.good())
-    {
-       MMVII_INTERNAL_ASSERT_user(eTyUEr::eOpenFile,"Cannot open file : "  + mName + " in mode write");
-    }
+    MMVII_INTERNAL_ASSERT_User
+    (
+         mOfs.good(),
+         eTyUEr::eOpenFile,
+         "Cannot open file : "  + mName + " in mode write"
+    );
 }
 
 const std::string &   cMMVII_Ofs::Name() const
@@ -52,7 +56,7 @@ std::ofstream & cMMVII_Ofs::Ofs()
 #if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny)
    if (!mOfs.good())
    {
-       MMVII_INTERNAL_ASSERT_user(eTyUEr::eWriteFile,"Bad file for "+mName);
+       MMVII_UsersErrror(eTyUEr::eWriteFile,"Bad file for "+mName);
    }
 #endif
    return mOfs;
@@ -101,10 +105,12 @@ cMMVII_Ifs::cMMVII_Ifs(const std::string & aName) :
    mIfs  (aName),
    mName (aName)
 {
-    if (!mIfs.good())
-    {
-       MMVII_INTERNAL_ASSERT_user(eTyUEr::eOpenFile,"Cannot open file : "  + mName + " in mode read");
-    }
+    MMVII_INTERNAL_ASSERT_User
+    (
+        mIfs.good(),
+        eTyUEr::eOpenFile,
+        "Cannot open file : "  + mName + " in mode read"
+    );
 }
 
 const std::string &   cMMVII_Ifs::Name() const
@@ -117,7 +123,7 @@ std::ifstream & cMMVII_Ifs::Ifs()
 #if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny)
    if (!mIfs.good())
    {
-       MMVII_INTERNAL_ASSERT_user(eTyUEr::eReadFile,"Bad file for "+mName);
+       MMVII_UsersErrror(eTyUEr::eReadFile,"Bad file for "+mName);
    }
 #endif
    return mIfs;

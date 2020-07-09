@@ -1,8 +1,65 @@
-#include "include/MMVII_FormalDerivatives.h"
+#include "include/SymbDer/SymbolicDerivatives.h"
+#include "ceres/jet.h"
+
+
+namespace  SD = NS_SymbolicDerivative;
+using ceres::Jet;
+
+
+// ========= Define on Jets some function that make them work like formula and nums
+// and also may optimize the computation so that comparison is fair
+    
+
+template <typename T, int N> inline Jet<T, N> square(const Jet<T, N>& f) 
+{
+  return Jet<T, N>(SD::square(f.a), (2.0*f.a) * f.v);
+}
+
+template <typename T, int N> inline Jet<T, N> cube(const Jet<T, N>& f) 
+{
+  T a2 = SD::square(f.a);
+  return Jet<T, N>(f.a*a2, (3.0*a2) * f.v);
+}
+
+
+template <typename T, int N> inline Jet<T, N> powI(const Jet<T, N>& aJ,const int & aExp) 
+{
+   // In this case avoid compute 1/x and multiply by x
+   if (aExp==0) return Jet<T,N>(1.0);
+
+   // make a single computation of pow
+   T aPm1 = SD::powI(aJ.a,aExp-1);
+   return Jet<T,N>(aJ.a*aPm1,(aExp*aPm1)*aJ.v);
+}
+
+template <class T,const int N> Jet<T, N>  CreateCste(const T & aV,const Jet<T, N>&) 
+{
+    return Jet<T, N>(aV);
+}
+
+
+
+//=========================================
+
+//=========================================
+
+double TimeElapsFromT0()
+{
+    static auto BeginOfTime = std::chrono::steady_clock::now();
+    auto now = std::chrono::steady_clock::now();
+    return std::chrono::duration_cast<std::chrono::microseconds>(now - BeginOfTime).count() / 1e6;
+}
+
+
 /** \file TestDynCompDerivatives.cpp
     \brief Illustration and test of formal derivative
 
     {I}  A detailled example of use, and test of correctness => for the final user
+
+    {II} An example on basic function to get some insight in the way it works
+
+    {III} A realistic example to make performance test on different methods
+
 */
 
 
@@ -10,7 +67,6 @@
 /* The library is in the namespace NS_MMVII_FormalDerivative, we want to
 use it conveniently without the "using" directive, so create an alias FD */
 
-namespace  FD = NS_MMVII_FormalDerivative;
 
 
 /* {I}   ========================  EXAMPLE OF USE :  Ratkoswky   ==========================================
@@ -54,6 +110,8 @@ std::vector<Type> RatkoswkyResidual
     const Type & x  = aVObs[1];  // Warn the data I got were in order y,x ..
     const Type & y  = aVObs[0];
 
+    pow(b1,2.7);
+
     // Model :  y = b1 / (1+exp(b2-b3*x)) ^ 1/b4 + Error()  [Ratko]
     return { b1 / pow(1.0+exp(b2-b3*x),1.0/b4) - y } ;
 }
@@ -84,7 +142,7 @@ void TestRatkoswky(const tVRatkoswkyData & aVData,const std::vector<double> & aI
    //-    This part [1] would be executed only one time
         // Create a coordinator/context where values are stored on double and :
         //  4 unknown (b1-b4), 2 observations, a buffer of size 100
-    FD::cCoordinatorF<double>  aCFD(100,aNbUk,aNbObs);
+    SD::cCoordinatorF<double>  aCFD("RatKowsky",100,aNbUk,aNbObs);
 
         // Create formulas of residuals, VUk and VObs are  vector of formulas for unkown and observation
     auto  aFormulaRes = RatkoswkyResidual(aCFD.VUk(),aCFD.VObs());
@@ -102,7 +160,7 @@ void TestRatkoswky(const tVRatkoswkyData & aVData,const std::vector<double> & aI
      }
         // Now run the computation on "pushed" data, we have the derivative
      const std::vector<std::vector<double> *> & aVEvals = aCFD.EvalAndClear();
-     assert(aVEvals.size()==aVData.size());
+     assert(aVEvals.size()==aVData.size()); // Check we get the number of computation we inserted
 
    //-[3] ========= Now we can use the derivatives ========================== 
    //  directly on aVEvals,  or with  interface : DerComp(), ValComp()
@@ -131,7 +189,7 @@ void TestRatkoswky(const tVRatkoswkyData & aVData,const std::vector<double> & aI
             // Compute derivate by finite difference ; 
             // RatkoswkyResidual<double> is the "standard" function operating on numbers
             // see NumericalDerivate in "MMVII_FormalDerivatives.h" 
-            double aDerNum =  FD::NumericalDerivate
+            double aDerNum =  SD::NumericalDerivate
                               (RatkoswkyResidual<double>,aInitialGuess,aVData[aKObs],aKUnk,1e-5).at(0);
 
             // Check but with pessimistic majoration of error in finite difference
@@ -144,7 +202,7 @@ void TestRatkoswky(const tVRatkoswkyData & aVData,const std::vector<double> & aI
 
 /* {II}  ========================    ==========================================
 
-   This second example, we take a very basic example to analyse
+   This second example, we take a very basic example to analyse some part of the
 */
 template <class Type> 
 std::vector<Type> FitCube
@@ -158,19 +216,30 @@ std::vector<Type> FitCube
 
     const Type & x  = aVObs[0];  
     const Type & y  = aVObs[1];
- 
-    Type F = (a + b *x);
+     
+    // Naturally the user would write that
+    if (false)
+    {
+       return {cube(a+b *x)- y};
+       Type F = (a+b *x);
+       return {F*F*F - y};
+    }
 
-    return {F*F*F - y};
+
+    // but here we want to test the reduction process
+    return {(a+b *x)*(x*b+a)*(a+b *x) - y};
 }
 
 void InspectCube()
 {
-    std::cout <<  "===================== TestRatkoswky  ===================\n";
+    std::cout <<  "===================== TestFoncCube  ===================\n";
 
     // Create a context where values are stored on double and :
-    //  4 unknown (b1-b4), 2 observations, a buffer of size 100
-    FD::cCoordinatorF<double>  aCFD(100,{"a","b"},{"x","y"});
+    //    2 unknown, 2 observations, a buffer of size 100
+    //    aCFD(100,2,2) would have the same effect for the computation
+    //    The variant with vector of string, will fix the name of variables, it
+    //    will be usefull when will generate code and will want  to analyse it
+    SD::cCoordinatorF<double>  aCFD("FitCube",100,{"a","b"},{"x","y"});
 
     // Inspect vector of unknown and vector of observations
     {  
@@ -181,373 +250,830 @@ void InspectCube()
     }
 
     // Create the formula corresponding to residual
-    std::vector<FD::cFormula<double>>  aVResidu = FitCube(aCFD.VUk(),aCFD.VObs());
-    FD::cFormula<double>  aResidu = aVResidu[0];
+    std::vector<SD::cFormula<double>>  aVResidu = FitCube(aCFD.VUk(),aCFD.VObs());
+    SD::cFormula<double>  aResidu = aVResidu[0];
  
     // Inspect the formula 
-    std::cout  << "RESIDU FORMULA=[" << aResidu->InfixPPrint() <<"]\n";
+    std::cout  << "RESIDU FORMULA, Num=" << aResidu->NumGlob() << " Name=" <<  aResidu->Name() <<"\n";
+    std::cout  << " PP=[" << aResidu->InfixPPrint() <<"]\n";
 
-    // Inspect the derivative  relatively to b2
-    std::cout  << "DERIVEATE FORMULA=[" << aResidu->Derivate(1)->InfixPPrint() <<"]\n";
+    // Inspect the derivative  relatively to b
+    auto aDerb = aResidu->Derivate(1);  
+    std::cout  << "DERIVATE FORMULA , Num=" << aDerb->NumGlob() << " Name=" <<  aDerb->Name() <<"\n";
+    std::cout  << " PP=[" << aDerb->InfixPPrint() <<"]\n";
 
     // Set the formula that will be computed
     aCFD.SetCurFormulasWithDerivative(aVResidu);
     
     // Print stack of formula
+    std::cout << "====== Stack === \n";
     aCFD.ShowStackFunc();
 
     getchar();
 }
 
-#include "ExternalInclude/Eigen/Dense"  // TODO => replace with standard eigen file
+/* {III}  ========================  Test perf on colinearit equation ==========================
+
+    On this example we use the colinearity equation which is central in bundle adjustment. We
+    use it with different type of camera :
+
+       * a Fraser camera, which a very current as it modelize physically the
+         main distorsion with a relatively low number of parameters
+
+       * a polynomial model that is more mathemitcall that can be used to approximate any
+         function;  the degree is parametrizable inside a template
+
+Now we make a macro description of the main classes :
+
+   class cEqCoLinearity<class TypeDist> :  implement the colinarity equation;
+
+        It is parametrized by the type of distortion TypeDist; the TypeDist
+        will define the mathematicall function of distorsion
+        the TypeDist will also define the types of "scalars" for unknowns 
+        and observation. Scalar can be jet,cFormula, num.
+        See class cTplFraserDist for a detailled example of requirement to
+        be a valid dist.
+
+        Fundamental static method : Residual , for a given value of unknown and obs,
+        return the vector of residual (x,y).
+
+    cCountDist<const int> a Class for centralizing the counting of unknown and obs
+        
+    class cTplFraserDist<TypeUk,TypeObs> : public cCountDist<7>
+         a class implemanting fraser distorsion
+
+    class cTplPolDist<TypeUk,TypeObs,Deg>
+         a class implemanting polynomial distorsion of degre "Deg"
+*/
+
+/*
+    ================ Mathematical formalization ===============
+
+    The unknown are :
+
+       * Pg = PGround
+       * C  = Center of camera
+       * R  = Orientation of camera Rotation Matrix
+       * F,PP = Principal point and focal
+       * Distortion
+
+    Then, without distorsion, we have alreay 12 unkwnown
+
+    We write the rotation as  R = A * R0 , were R0 is the current value of the
+    rotation. Because :
+       * it avoid the the classical guimbal-lock problem
+       * as A is a rotation close to identity, we ca, write A = I + ^W were W 
+         is a small vector , and ^W is the vector product matrix
+   
+   Then we have 11 obsevation : 
+
+        * 9 for matrix R0
+        * 2 for image point PIm
+
+   The equation is
+
+        * Pc  =  (I +^W) R0 (Pg-C)  for Pc= coordinate in camera repair
+        * PPi = Pp + F*(Pc.x,Pc.y) / Pc.z   for projection without distorsion
+        
+    =>    PIm = Dist(Proj) 
+*/
+
+/**
+    A class for sharing the number of unknown & observations. One template parameter
+    the number of unknown of the distortion
+*/
+
+template <const int NbParamD> class cCountDist
+{
+    public :
+        static const int TheNbDist        =  NbParamD;
+        static const int TheNbCommonUk    = 12 ;
+        static const int TheNbUk          = TheNbCommonUk + TheNbDist;
+        static const int TheNbObs         = 11;
+
+        static const std::vector<std::string> & VNamesObs()
+        {
+            static std::vector<std::string> TheVObs
+            {
+                "oR00","oR01","oR02","oR10","oR11","oR12","oR20","oR21","oR22", // Rotation
+                "oXIm","oYIm"  // Image point
+            };
+            return TheVObs;
+        };
+        static const std::vector<std::string> & VUnkGlob ()
+        {
+            static std::vector<std::string> TheVUk
+            {
+              "XGround","YGround","ZGround",        // Unknown 3D Point
+              "XCam","YCam","ZCam", "Wx","Wy","Wz", // External Parameters
+              "ppX","ppY","ppZ"                     // Internal : principal point + focal
+            };
+            return TheVUk;
+         }
+
+};
+
+/**  Class implementing the fraser model distortion.
+
+     It contains the 4 prerequirement to be a Valid distorsion class usable in
+     cEqCoLinearity<TypeDist>  :
+
+        *  definition of type of unknown tUk
+        *  definition of type of obs     tObs
+        *  definition of the vector of names of unknown VNamesUnknowns(),
+           this vector contain the 12 global unknown + those specific to dist
+        *  method Dist for computing the distortion
+
+     The method Dist take as parameters :
+
+        * xPi, yPi
+        * the vector of unknown , the 12 first value are those  describes above
+        * the vector of observation, it is not used for now, but maybe 
+          will be later for some dist ?
+
+*/
+
+class cTplFraserDist : public cCountDist<7>
+{
+  public :
+    /// Usable for message, also for name generation in formulas
+    static std::string  NameModel() {return "Fraser";}
+
+    static const std::vector<std::string>&  VNamesUnknowns()
+    {
+      static std::vector<std::string>  TheV;
+      // Add name of distorsion to others unkonw
+      if (TheV.empty())
+      {
+        TheV = VUnkGlob();
+        // k2,k4,k6  Distorsion radiale; p1 p2 Decentric ; b1 b2 Affine
+        for (auto aS :{"k2","k4","k6", "p1","p2","b1","b2"}) 
+           TheV.push_back(aS);
+      }
+ 
+      return  TheV;
+    }
+
+    template<typename tUk, typename tObs>
+    static std::vector<tUk> Dist (
+                                 const tUk & xPi,const tUk & yPi, 
+                                 const std::vector<tUk> & aVUk, const std::vector<tObs> & 
+                             )
+    {
+         // In this model we confond Principal point and distorsion center, 
+         const auto & xCD = aVUk[ 9];
+         const auto & yCD = aVUk[10];
+
+         //  Radial  distortions coefficients
+         const auto & k2D = aVUk[12];
+         const auto & k4D = aVUk[13];
+         const auto & k6D = aVUk[14];
+
+         //   Decentric distorstion
+         const auto & p1 = aVUk[15];
+         const auto & p2 = aVUk[16];
+
+         //   Affine distorsion
+         const auto & b1 = aVUk[17];
+         const auto & b2 = aVUk[18];
+
+    // Coordinate relative to distorsion center
+         auto xC =  xPi-xCD;
+         auto yC =  yPi-yCD;
+         auto x2C = square(xC);  // Use the indermediar value to (probably) optimize Jet
+         auto y2C = square(yC);
+         auto xyC = xC * yC;
+         auto Rho2C = x2C + y2C;
+
+   // Compute the distorsion
+         auto rDist = k2D*Rho2C + k4D * square(Rho2C) + k6D*cube(Rho2C);
+         auto affDist = b1 * xC + b2 * yC;
+         auto decX = p1*(3.0*x2C + y2C) +  p2*(2.0*xyC);
+         auto decY = p2*(3.0*y2C + x2C) +  p1*(2.0*xyC);
+    
+
+         auto xDist =  xPi + xC * rDist + decX + affDist;
+         auto yDist =  yPi + yC * rDist + decY ;
+
+         return {xDist,yDist};
+    }
+  private :
+};
+
+
+
+
+/*
+    Class for implementing a polynomial distorsion. The maximal degree
+  is the last parameter of this template class.
+
+    In this model, we want to be abble to approximat any smooth function,
+  so a priori we will use all the monome under a given degree.
+    Let D be the degree the  distortion will be :
+
+      Distx = Som (dx_ij   X^i Y^j)   i+j<=D
+      Disty = Som (dy_ij   X^i Y^j)   i+j<=D
+
+
+     But it we want to avoid sur parametrization, we have to be cautious and avoid
+   certain monoms because they redundant, or highly correlated, with some external
+   parameter (rotation) or other internal parameter ( PP,focal). So we avoid :
+
+     - Degre 0 =>  all because principal point
+
+     - Degre 1 => 
+           * we note  (dx_10 dx_01 dy_10 dy_01) the degree 1 parameter
+           * (1 0 0 1) is focal, so avoid it 
+           * (0 -1 1 0) is a pure rotation and redundant with rotation around axe, avoid it
+           * so we have to select a complementary base,
+           * (1 0 0 0)  (0 1 0 0)  is a complementary base 
+
+        So we avoid  degree 1 in Y
+
+     - Degre 2 :
+
+          * Rotation arround X  + linear are highly correlated to X2 + affine, so we muste
+            so avoid X2 in X
+          * Idem avoid Y2 in Y
+
+
+    Finnaly we have :
+
+        *  (D+1) (D+2) /2  monome in X, same for Y
+        *  6 monome to avoid
+
+     ----------------------------------------------------------------
+
+   In this class we have the 4 requirement as in Fraser. We have also two
+   facility function :
+
+   * bool OkMonome(bool isX,int aDegX,int aDegY) indicate if a monome of
+     degree Dx,Dy is not to avoid (the bool isX means if it for Dx or Dy as
+     the rule is not the same)
+          
+   * void InitDegreeMonomes(xDx,xDy,yDx,yDy);
+        The 4 parameters are & of vector of int, as a result they contain the
+      degrees of the monomes :
+          DistX =  Som ( X ^ xDx[K]  Y ^ yDy[k])
+        
+*/
+
+
+/**  Class implementing a polynomial distorsion of degree  Deg
+*/
+
+
+template <const int Deg> class cTplPolDist :
+       public cCountDist<(Deg+1)*(Deg+2) -6> 
+{
+    public :
+       typedef cCountDist<(Deg+1)*(Deg+2) -6>  tCountDist;
+
+       /// Usable for message, also for name generation in formulas
+       static std::string  NameModel() {return "XYPol_Deg"+std::to_string(Deg);}
+   
+       // Vectors of names of unknowns
+       static const std::vector<std::string>&  VNamesUnknowns()
+       {
+         static std::vector<std::string>  TheV;
+         if (TheV.empty()) // First call
+         {
+            // Get the common unknowns
+            TheV = tCountDist::VUnkGlob();
+
+            // Get the degrees of monomes
+            std::vector<int>  aXDx,aXDy,aYDx,aYDy;
+            InitDegreeMonomes(aXDx,aXDy,aYDx,aYDy);
+ 
+           // Add the name of monomes for X Dist
+            for (size_t aK=0 ; aK<aXDx.size() ; aK++)
+            {
+                TheV.push_back
+                (
+                     "xDistPol_" 
+                    + std::to_string(aXDx.at(aK))  + "_"
+                    + std::to_string(aXDy.at(aK))
+                );
+            }
+
+           // Add the name of monomes for Y Dist
+            for (size_t aK=0 ; aK<aYDx.size() ; aK++)
+            {
+                TheV.push_back
+                (
+                     "yDistPol_" 
+                    + std::to_string(aYDx.at(aK))  + "_"
+                    + std::to_string(aYDy.at(aK))
+                );
+            }
+         }
+         return  TheV;
+       }
+
+       // Vectors of names of unknowns
+
+       template<typename tUk, typename tObs>
+       static std::vector<tUk> Dist (
+                                 const tUk & xPi,const tUk & yPi, 
+                                 const std::vector<tUk> & aVUk, const std::vector<tObs> & 
+                             )
+       {
+           static std::vector<int>  aXDx,aXDy,aYDx,aYDy;
+            if (aXDx.empty()) // first call compute degree of monomes
+               InitDegreeMonomes(aXDx,aXDy,aYDx,aYDy);
+             
+            //  We compute here the  Value of monomes : X^i and Y^j , 
+            // this is an optimisation for jets, probably not usefull for formula, but does not hurt either
+            std::vector<tUk> aVMonX;  
+            std::vector<tUk> aVMonY;  
+
+            // We can compute it using powI optimized functionc, or using a recurence formula
+            // According to type, the optimal computation may not be the same
+            // On tests it seems more or less equivalent ....
+            if (0)
+            {  
+               // Case using powI
+               for (int aD=0 ;aD<=Deg ; aD++)
+               {
+                  aVMonX.push_back(powI(xPi,aD));
+                  aVMonY.push_back(powI(yPi,aD));
+               }
+            }
+            else
+            {
+               // Case using recurence   X^(k+1) = X^k *X
+               aVMonX.push_back(CreateCste(1.0,xPi));
+               aVMonY.push_back(CreateCste(1.0,xPi));
+               for (int aD=1 ;aD<=Deg ; aD++)
+               {
+                  aVMonX.push_back(aVMonX.back()*xPi);
+                  aVMonY.push_back(aVMonY.back()*yPi);
+               }
+            }
+            // Initialisze  with identity
+            auto xDist =  xPi;
+            auto yDist =  yPi;
+
+            int anInd =  tCountDist::TheNbCommonUk;  // Unkown on dist are stored after common 
+            // Be carefull to be coherent with VNamesUnknowns
+            for (size_t aK=0; aK<aXDx.size() ; aK++)
+                xDist = xDist+aVMonX.at(aXDx.at(aK))*aVMonY.at(aXDy.at(aK))*aVUk.at(anInd++);
+
+            for (size_t aK=0; aK<aYDx.size() ; aK++)
+                yDist = yDist+aVMonX.at(aYDx.at(aK))*aVMonY.at(aYDy.at(aK))*aVUk.at(anInd++);
+
+            return {xDist,yDist};
+       }
+
+    private :
+       // indicate if X^DegX  Y ^DegY is to avoid for xDist/yDist 
+       static bool OkMonome(bool isX,int aDegX,int aDegY)
+       {
+            if ((aDegX ==0) && (aDegY==0)) return false;  // degre 0 : avoid
+            if ((!isX) && ((aDegX + aDegY) ==1))       return false;  //  degre 1 in dY : avoid
+            if (isX &&    (aDegX==2) &&  (aDegY ==0))  return false;  //  X2 in dX avoid
+            if ((!isX) && (aDegX==0) &&  (aDegY ==2))  return false;  //  Y2 in dY avoid
+   
+            return true;  // then ok
+       }
+
+       static inline void InitDegreeMonomes
+            (
+                std::vector<int>  & aXDx,  // Degre in x of X component
+                std::vector<int>  & aXDy,  // Degre in y of X component
+                std::vector<int>  & aYDx,  // Degre in x of Y component
+                std::vector<int>  & aYDy   // Degre in y of Y component
+            )
+        {
+            for (int aDx=0 ; aDx<=Deg ; aDx++)
+            {
+                for (int aDy=0 ; (aDx+aDy)<=Deg ; aDy++)
+                {
+                    if (OkMonome(true,aDx,aDy))
+                    {
+                        aXDx.push_back(aDx);
+                        aXDy.push_back(aDy);
+                    }
+
+                    if (OkMonome(false,aDx,aDy))
+                    {
+                        aYDx.push_back(aDx);
+                        aYDy.push_back(aDy);
+                    }
+                }
+            }
+        }
+};
+
+
+
+
+template <class TypeDist>  class cEqCoLinearity
+{
+  public :
+    static const int  TheNbUk  = TypeDist::TheNbUk;
+    static const int  TheNbObs = TypeDist::TheNbObs;
+    static const std::vector<std::string>& VNamesUnknowns() { return TypeDist::VNamesUnknowns();}
+    static const std::vector<std::string>& VNamesObs() { return TypeDist::VNamesObs();}
+    static std::string NameModel() { return TypeDist::NameModel();}
+
+       /*  Capital letter for 3D variable/formulas and small for 2D */
+    template <typename tUk, typename tObs>
+    static     std::vector<tUk> Residual
+                  (
+                      const std::vector<tUk> & aVUk,
+                      const std::vector<tObs> & aVObs
+                  )
+    {
+        assert (aVUk.size() ==TheNbUk) ;  // SD::UserSError("Bad size for unknown");
+        assert (aVObs.size()==TheNbObs) ;// SD::UserSError("Bad size for observations");
+
+        // 0 - Ground Coordinates of projected point
+        const auto & XGround = aVUk[0];
+        const auto & YGround = aVUk[1];
+        const auto & ZGround = aVUk[2];
+
+        // 1 - Pose / External parameter 
+            // 1.1  Coordinate of camera center
+        const auto & C_XCam = aVUk[3];
+        const auto & C_YCam = aVUk[4];
+        const auto & C_ZCam = aVUk[5];
+
+            // 1.2  Coordinate of Omega vector coding the unknown "tiny" rotation
+        const auto & Wx = aVUk[6];
+        const auto & Wy = aVUk[7];
+        const auto & Wz = aVUk[8];
+
+        // 2 - Intrinsic parameters
+             // 2.1 Principal point  and Focal
+        const auto & xPP = aVUk[ 9];
+        const auto & yPP = aVUk[10];
+        const auto & zPP = aVUk[11]; // also named as focal
+
+       // Vector P->Cam
+        auto  XPC = XGround-C_XCam;
+        auto  YPC = YGround-C_YCam;
+        auto  ZPC = ZGround-C_ZCam;
+
+
+        // Coordinate of points in  camera coordinate system, do not integrate "tiny" rotation
+
+        auto  XCam0 = aVObs[0] * XPC +  aVObs[1]* YPC +  aVObs[2]*ZPC;
+        auto  YCam0 = aVObs[3] * XPC +  aVObs[4]* YPC +  aVObs[5]*ZPC;
+        auto  ZCam0 = aVObs[6] * XPC +  aVObs[7]* YPC +  aVObs[8]*ZPC;
+
+        // Now "tiny" rotation
+        //  Wx      X      Wy * Z - Wz * Y
+        //  Wy  ^   Y  =   Wz * X - Wx * Z
+        //  Wz      Z      Wx * Y - Wy * X
+
+         //  P =  P0 + W ^ P0 
+
+        auto  XCam = XCam0 + Wy * ZCam0 - Wz * YCam0;
+        auto  YCam = YCam0 + Wz * XCam0 - Wx * ZCam0;
+        auto  ZCam = ZCam0 + Wx * YCam0 - Wy * XCam0;
+
+        // Projection :  (xPi,yPi,1) is the bundle direction in camera coordinates
+
+        auto xPi =  XCam/ZCam;
+        auto yPi =  YCam/ZCam;
+
+        // Now compute the distorsion
+        auto   aVDist = TypeDist::Dist(xPi,yPi,aVUk,aVObs);
+        const auto & xDist =  aVDist[0];
+        const auto & yDist =  aVDist[1];
+
+       // Use principal point and focal to compute image projection
+        auto xIm =  xPP  + zPP  * xDist;
+        auto yIm =  yPP  + zPP  * yDist;
+
+
+       // substract image observations to have a residual
+        auto x_Residual = xIm -  aVObs[ 9];
+        auto y_Residual = yIm -  aVObs[10];
+
+
+        return {x_Residual,y_Residual};
+    }
+};
+
+
+
+template <class FORMULA>  class cTestEqCoL
+{
+    public :
+       cTestEqCoL(int aSzBuf,bool Show);
+
+    private :
+       static const int  TheNbUk = FORMULA::TheNbUk;
+       static const int  TheNbObs = FORMULA::TheNbObs;
+
+       typedef SD::cCoordinatorF<double>    tCoord;
+       typedef typename tCoord::tFormula    tFormula;
+
+       /// Return unknowns vect after fixing XYZ (ground point)
+       const std::vector<double> & VUk(double X,double Y,double Z)
+       {
+          mVUk[0] = X;
+          mVUk[1] = Y;
+          mVUk[2] = Z;
+
+          return mVUk;
+       }
+       /// Return observation vect  after fixing I,J (pixel projection)
+       const std::vector<double> & VObs(double I,double J)
+       {
+          mVObs[ 9] = I;
+          mVObs[10] = J;
+    
+         return mVObs;
+       }
+
+ 
+       tCoord                     mCFD;  ///< Coordinator for formal derivative
+       std::vector<double>        mVUk;  ///< Buffer for computing the unknown
+       std::vector<double>        mVObs; ///< Buffer for computing the unknown
+};
+
+
+
+
+template <class FORMULA>
+cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,bool Show) :
+     // mCFD (aSzBuf,TheNbUk,TheNbObs), //  would have the same effect, but future generated code will be less readable
+     mCFD  (FORMULA::NameModel(),aSzBuf,FORMULA::VNamesUnknowns(),FORMULA::VNamesObs()),
+     mVUk  (TheNbUk,0.0),
+     mVObs (TheNbObs,0.0)
+{
+   // In unknown, we set everything to zero exepct focal to 1
+   mVUk[11] = 1.0;
+   // In obs, we set the current matrix to Id
+   mVObs[0] = mVObs[4] = mVObs[8] = 1;
+
+   double aT0 = TimeElapsFromT0();
+
+//   auto aVFormula = FraserFuncCamColinearEq(mCFD.VUk(),mCFD.VObs());
+   auto aVFormula = FORMULA::Residual (mCFD.VUk(),mCFD.VObs());
+   if (Show)
+   {
+       mCFD.SetCurFormulas({aVFormula[0]});
+       int aNbRx = mCFD.VReached().size() ;
+       mCFD.SetCurFormulas(aVFormula);
+       int aNbRxy = mCFD.VReached().size() ;
+
+       std::cout << "NbReached x:" << aNbRx << "  xy:" << aNbRxy << "\n";
+        
+       mCFD.SetCurFormulas({aVFormula[0]});
+       mCFD.ShowStackFunc();
+   }
+   mCFD.SetCurFormulasWithDerivative(aVFormula);
+   if (Show)
+   {
+      const std::vector<tFormula>& aVR =mCFD.VReached();
+      int aNbTot=0;
+      int aNbPl=0;
+      for (const auto  & aF : aVR)
+      {
+          aNbTot++;
+          std::string anOp =  aF->NameOperator() ;
+          std::cout << "Opp= " << anOp << "\n";
+          if ((anOp=="+") || (anOp=="*"))
+          {
+             aNbPl++;
+          }
+      }
+      std::cout 
+                 << " Tot=" << aNbTot
+                 << " Pl=" << aNbPl
+                 << "\n";
+   }
+
+   double aT1 = TimeElapsFromT0();
+    
+   std::cout << "Test "  +  FORMULA::NameModel()
+             << ", SzBuf=" << aSzBuf 
+             << ", NbEq=" << mCFD.VReached().size() 
+             << ", TimeInit=" << (aT1-aT0) << "\n";
+
+   
+   // mCFD.ShowStackFunc();
+
+   int aNbTestTotal =  1e5; ///< Approximative number of Test
+   int aNbTestWithBuf = aNbTestTotal/aSzBuf;  ///< Number of time we will fill the buffer
+   aNbTestTotal = aNbTestWithBuf * aSzBuf; ///< Number of test with one equation
+
+   // Here we initiate with "peferct" projection, to check something
+   const std::vector<double> & aVUk  =  VUk(1.0,2.0,10.0);
+   const std::vector<double> & aVObs =  VObs(0.101,0.2); 
+   
+   // Make the computation with jets
+   typedef Jet<double,TheNbUk> tJets;
+   double TimeJets = TimeElapsFromT0();
+   std::vector<tJets> aJetRes;
+   {
+        std::vector<tJets>  aVJetUk;
+        for (int aK=0 ; aK<TheNbUk ; aK++)
+            aVJetUk.push_back(tJets(aVUk[aK],aK));
+
+        for (int aK=0 ; aK<aNbTestTotal ; aK++)
+        {
+            aJetRes = FORMULA::Residual (aVJetUk,aVObs);
+        }
+        TimeJets = TimeElapsFromT0() - TimeJets;
+   }
+
+   // Make the computation with formal deriv buffered
+   double TimeBuf = TimeElapsFromT0();
+   {
+       for (int aK=0 ; aK<aNbTestWithBuf ; aK++)
+       {
+           // Fill the buffers with data
+           for (int aKInBuf=0 ; aKInBuf<aSzBuf ; aKInBuf++)
+               mCFD.PushNewEvals(aVUk,aVObs);
+           // Evaluate the derivate once buffer is full
+           mCFD.EvalAndClear();
+       }
+       TimeBuf = TimeElapsFromT0() - TimeBuf;
+   }
+
+   for (int aKVal=0 ; aKVal<int(aJetRes.size()) ; aKVal++)
+   {
+      double aVJ = aJetRes[aKVal].a;
+      // double aVE = aEpsRes[aKVal].mNum ;
+      double aVF = mCFD.ValComp(0,aKVal); 
+      // std::cout << "VALssss " << aKVal << "\n";
+      // std::cout << "  J:" <<  aVJ <<  " E:" << aVE <<  " F:" << aVF << "\n";
+      //  assert(std::abs(aVJ-aVE)<1e-5);
+      // assert(std::abs(aVJ-aVF)<1e-5);
+
+      SD::AssertAlmostEqual(aVJ,aVF,1e-5);
+      // FD::AssertAlmostEqual(aVJ,aVF,1e-5);
+      for (int aKVar=0;  aKVar< TheNbUk ; aKVar++)
+      {
+           double aDVJ = aJetRes[aKVal].v[aKVar];
+           //  double aDVE = aEpsRes[aKVal].mEps[aKVar] ;
+           double aDVF = mCFD.DerComp(0,aKVal,aKVar); 
+      //  FD::AssertAlmostEqual(aDVJ,aDVE,1e-5);
+           SD::AssertAlmostEqual(aDVJ,aDVF,1e-5);
+      //  std::cout << "  dJ:" << aDVJ <<  " dE:" << aDVE <<  " dF:" << aDVF << "\n";
+      }
+   }
+
+   std::cout 
+         << " TimeJets= " << TimeJets 
+         // << " TimeEps= " << TimeEps 
+         << " TimeBuf= " << TimeBuf
+         << "\n\n";
+}
+
+
+void TestFraserCamColinearEq()
+{
+   {
+      SD::cCoordinatorF<double>  aCoord("test",100,4,2);
+      SD::cFormula<double>     aFPi = aCoord.CsteOfVal(3.14);
+      SD::cFormula<double>     aFE = aCoord.CsteOfVal(exp(1));
+      SD::cFormula<double>     aFCste = aFE+aFPi;
+      std::cout  << " CSTE=[" << aFCste->InfixPPrint() <<"]\n";
+
+      SD::cFormula<double>     aX =  aCoord.VUk()[0];
+      SD::cFormula<double>     aY =  aCoord.VUk()[1];
+      SD::cFormula<double>     aZ =  aCoord.VUk()[2];
+      SD::cFormula<double>     aT =  aCoord.VUk()[3];
+      SD::cFormula<double>     aMX = - aX;
+      SD::cFormula<double>     aMMX = - aMX;
+      std::cout  << " -X, --X=[" << aMX->InfixPPrint() << " " << aMMX->InfixPPrint() <<"]\n";
+
+      SD::cFormula<double>     aPipX =  aFPi - aMX;
+      std::cout  << " piPx= [" << aPipX->InfixPPrint() << "," << aPipX->Name()  <<"]\n";
+
+
+      SD::cFormula<double>     XpX =  aX + aX;
+      std::cout  << " XpX= [" << XpX->InfixPPrint()  <<"]\n";
+
+
+      SD::cFormula<double>     XpPiX =  aZ+ aX + aY + aX * aFPi + aT;
+
+      std::cout  << " XpPiX= [" << XpPiX->InfixPPrint()  <<"]\n";
+      aCoord.ShowStackFunc();
+   }
+   getchar();
+
+
+   for (auto SzBuf : {1000,1})
+   {
+       cTestEqCoL<cEqCoLinearity<cTplFraserDist>> (SzBuf,false);
+       cTestEqCoL<cEqCoLinearity<cTplPolDist<7>>> (SzBuf,false);
+       cTestEqCoL<cEqCoLinearity<cTplPolDist<2>>> (SzBuf,false);
+
+       std::cout << "======================\n";
+   }
+
+
+   getchar();
+}
+
 
 /* -------------------------------------------------- */
 
-
-/*
-template <class Type> 
-std::vector<Type> ResiduRat43
-                  (
-                     const std::vector<Type> & aVUk,
-                     const std::vector<Type> & aVObs
-                  )
-*/
-
-
-/* *************************************************** */
-/* *************************************************** */
-/* *                                                 * */
-/* *        TEST                                     * */
-/* *                                                 * */
-/* *************************************************** */
-/* *************************************************** */
-
-using FD::square;
-
-std::vector<double> VRand(unsigned aSeed,int aNb)
+namespace  MMVII
 {
-    std::srand(aSeed);
-    std::vector<double> aVRes;
+    void BenchCmpOpVect();
+};
+
+void   Bench_powI()
+{
+    // Test that function powI gives the same results than pow
+    // Test alsp for jets, the value and the derivatives
+    for (int aK=-4 ; aK<44 ; aK++)
+    {
+        double aV= 1.35;
+        double aP1= pow(aV,double(aK));
+        double aP2= SD::powI(aV,aK);
+        SD::AssertAlmostEqual(aP1,aP2,1e-8);
+
+        Jet<double,1> aJ0= powI(Jet<double,1> (aV,0),aK);
+        SD::AssertAlmostEqual(aP1,aJ0.a,1e-8);
+
+        double aEps = 1e-7;
+        double aP1Minus = pow(aV-aEps,double(aK));
+        double aP1Plus  = pow(aV+aEps,double(aK));
+        double aNumDer = (aP1Plus-aP1Minus) / (2.0*aEps);
+        SD::AssertAlmostEqual(aNumDer,aJ0.v[0],1e-8);
+    } 
+
+    // Bench on time performance
+    int aNb=1e8;
+
+         // Using std::pow
+    double aT0 = TimeElapsFromT0();
+    double aS=0;
     for (int aK=0 ; aK<aNb ; aK++)
-    {
-       double aV =  std::rand()/((double) RAND_MAX );
-       aVRes.push_back(aV);
-    }
+        aS+=std::pow(1.3,7);
 
-    return aVRes;
+         // Using powI
+    double aT1 = TimeElapsFromT0();
+    for (int aK=0 ; aK<aNb ; aK++)
+        aS-=  SD::powI(1.3,7);
+
+         // Using pow7 => supress the switch
+    double aT2 = TimeElapsFromT0();
+    for (int aK=0 ; aK<aNb ; aK++)
+        aS-=SD::pow7(1.3);
+
+    double aT3 = TimeElapsFromT0();
+
+    std::cout << "PowR " << aT1-aT0 
+              << " PowI " << aT2-aT1 
+              << " P7 " << aT3-aT2  
+              << " SOM=" << aS << "\n";
 }
 
-template <class Type> 
-std::vector<Type> Residu
-                  (
-                     const std::vector<Type> & aVUk,
-                     const std::vector<Type> & aVObs
-                  )
-{
-    const Type & X0 = aVUk.at(0);
-    const Type & X1 = aVUk.at(1);
-    const Type & X2 = aVUk.at(2);
-
-    const Type & V0 = aVObs.at(0);
-    const Type & V1 = aVObs.at(1);
-
-    Type aF0 =  2.0 *X0 + X0*X1*X2 + pow(square(V0)+square(X0-X2),(X1*V1)/X2);
-    Type aF1 =  log(square(X0+X1+X2+V0+V1));
-    Type aF2 =  -aF0 + aF1;
-             
-    return {aF0,aF1,aF2};
-}
-
-
-void TestDyn()
-{
-    int aNbUk  = 3;
-    int aNbObs = 2;
-
-    FD::cCoordinatorF<double>  aCFD(100,aNbUk,aNbObs);
-    aCFD.SetCurFormulasWithDerivative(Residu(aCFD.VUk(),aCFD.VObs()));
-
-    int aNbT = 2;
-    unsigned aSeedUk=333, aSeedObs=222;
-    for (int aKTest=0 ; aKTest<aNbT ; aKTest++)
-    {
-       std::vector<double> aVUk  = VRand(aKTest+aSeedUk ,aNbUk);
-       std::vector<double> aVObs = VRand(aKTest+aSeedObs,aNbObs);
-       aCFD.PushNewEvals(aVUk,aVObs);
-    }
-    aCFD.EvalAndClear();
-
-    for (int aKTest=0 ; aKTest<aNbT ; aKTest++)
-    {
-       // const std::vector<double> & aLineDyn =  *(aVDyn[aKTest]);
-       std::vector<double> aVUk  = VRand(aKTest+aSeedUk ,aNbUk);
-       std::vector<double> aVObs = VRand(aKTest+aSeedObs,aNbObs);
-       std::vector<double> aVRes = Residu(aVUk,aVObs);
-       int aNbRes = aVRes.size();
-
-       for (int aKx=0 ; aKx<aNbUk ; aKx++)
-       {
-           double aEps = 1e-5;
-           std::vector<double> aVUkP  = aVUk;
-           std::vector<double> aVUkM  = aVUk;
-           aVUkP[aKx] += aEps;
-           aVUkM[aKx] -= aEps;
-
-           std::vector<double> aVResP = Residu(aVUkP,aVObs);
-           std::vector<double> aVResM = Residu(aVUkM,aVObs);
-           for (int aKRes=0 ; aKRes<aNbRes ; aKRes++)
-           {
-               double aDerNum  = (aVResP[aKRes]-aVResM[aKRes]) / (2*aEps);
-               double aDerForm = aCFD.DerComp(aKTest,aKRes,aKx);
-               double aDif = std::abs(aDerNum-aDerForm);
-               assert(aDif<1e-4);
-           }
-       }
-       for (int aKRes=0 ; aKRes<aNbRes ; aKRes++)
-       {
-           double aDif = std::abs(aCFD.ValComp(aKTest,aKRes) - aVRes[aKRes] );
-           assert(aDif<1e-7);
-       }
-
-    }
-    aCFD.ShowStackFunc();
-    getchar();
-}
-
-
-
-typedef  double TypeTest;
-typedef  FD::cFormula <TypeTest>  tFormulaTest;
-
-// #include "include/MMVII_all.h"
-// #include "include/MMVII_Derivatives.h"
-
-
-
-
-
-
-#define SzTEigen 90
-typedef float tTEigen;
-typedef  Eigen::Array<tTEigen,1,Eigen::Dynamic>  tEigenSubArray;
-typedef  Eigen::Map<tEigenSubArray > tEigenWrap;
 void   BenchFormalDer()
 {
+
+    Bench_powI();
+    // MMVII::BenchCmpOpVect();
+    TestFraserCamColinearEq();
    // Run TestRatkoswky with static obsevation an inital guess 
     TestRatkoswky(TheVRatkoswkyData,{100,10,1,1});
     InspectCube() ;
-
-    // TestDyn();
-    if (1)
-    {
-        Eigen::Array<tTEigen, 1, SzTEigen>  aAFix = Eigen::Array<tTEigen, 1, SzTEigen>::Random();
-        // Eigen::Array<tTEigen,Eigen::Dynamic,Eigen::Dynamic>   aADyn(1,SzTEigen);
-        // Eigen::Array<tTEigen,Eigen::Dynamic,1>   aADyn(SzTEigen);
-        Eigen::Array<tTEigen,1,Eigen::Dynamic>   aADyn(SzTEigen);
-        Eigen::Array<tTEigen,Eigen::Dynamic,Eigen::Dynamic>   aADyn1(1,1);
-        Eigen::Array<tTEigen,Eigen::Dynamic,Eigen::Dynamic>   aADyn2(1,SzTEigen);
-
-
-        for (int aX=0 ; aX<SzTEigen ; aX++)
-        {
-            aAFix(0,aX)  = 10 + 2.0*aX;
-            aAFix(0,aX)  = 1;
-            aAFix(0,aX)  = 10 + 2.0*aX;
-        }
-        aAFix = 1;
-        aADyn = aAFix;
-       
-        aADyn1(0,0) = 1.0;
-         
-#if (WITH_MMVII)
-        int aNb=1e7;
-        double aT0 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        for (int aK=0 ; aK<aNb ; aK++)
-        {
-             aAFix = aAFix + aAFix -10;
-             aAFix = (aAFix + 10)/2;
-        }
-        double aT1 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        for (int aK=0 ; aK<aNb ; aK++)
-        {
-             aADyn = aADyn + aADyn -10;
-             aADyn = (aADyn + 10)/2;
-        }
-        double aT2 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        if (0)
-        {
-           for (int aK=0 ; aK<aNb*SzTEigen ; aK++)
-           {
-               aADyn1 = aADyn1 + aADyn1 -10;
-               aADyn1 = (aADyn1 + 10)/2;
-           }
-        }
-        double aT3 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        for (int aK=0 ; aK<aNb ; aK++)
-        {
-             Eigen::Array<tTEigen,1,Eigen::Dynamic>   aBloc 
-                // = aADyn.topLeftCorner(1,SzTEigen);
-                // = aADyn.block(0,0,1,SzTEigen);
-                = aADyn.head(SzTEigen-1);
-             aBloc = aBloc + aBloc -10;
-             aBloc = (aBloc + 10)/2;
-             if (aK==0)
-             {
-                  std::cout << "AAAAADr  " << &(aBloc(0,0)) - &(aADyn(0,0)) << "\n";
-                  std::cout << "AAAAADr  " << aBloc(0,0)   << " " << aADyn(0,0) << "\n";
-             }
-        }
-        double aT4 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        for (int aK=0 ; aK<aNb ; aK++)
-        {
-            for (int aX=0 ; aX<SzTEigen ; aX++)
-            {
-                aADyn2(aX) = aADyn2(aX) + aADyn2(aX) -10;
-                aADyn2(aX) = (aADyn2(aX) + 10)/2;
-            }
-        }
-        double aT5 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        for (int aK=0 ; aK<aNb ; aK++)
-        {
-            tTEigen * aData = &  aADyn(0) ;
-            for (int aX=0 ; aX<SzTEigen ; aX++)
-            {
-                aData[aX] =  aData[aX] + aData[aX] -10;
-                aData[aX] = (aData[aX] + 10)/2;
-            }
-        }
-        double aT6 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        for (int aK=0 ; aK<aNb ; aK++)
-        {
-             tEigenWrap aWrap(&aADyn(0),1,SzTEigen-1);
-             // aWrap += aWrap ;
-             // aWrap += 10;
-             aWrap = aWrap + aWrap -10;
-             aWrap = (aWrap + 10)/2;
-        }
-        double aT7 = cMMVII_Appli::CurrentAppli().SecFromT0(); 
-
-        std::cout << " T01-EigenFix " << aT1-aT0 << " T12-EigenDyn " << aT2-aT1 
-                  << " T23 " << aT3-aT2 << " T34-EigenBloc " << aT4-aT3  << "\n"
-                  << " T45-EigenElem " << aT5-aT4 << " T56_RawData " << aT6-aT5 
-                  << " T67-EigenWrap " << aT7-aT6 
-                  << "\n";
-        std::cout << "FIXSZ " << aAFix.rows() << " C:" <<  aAFix.cols() << "\n";
-        std::cout << "DYNSZ " << aADyn.rows() << " C:" <<  aADyn.cols() << "\n";
-#endif
-    }
-
-
-    {
-       int aNbUk  = 3;
-       int aNbObs = 5;
-       FD::cCoordinatorF<TypeTest>  aCFD(100,aNbUk,aNbObs);
-
-       std::vector<TypeTest> aVUk(aNbUk,0.0);
-       std::vector<TypeTest> aVObs(aNbObs,0.0);
-       aCFD.PushNewEvals(aVUk,aVObs);
-       aCFD.EvalAndClear();
-
-       tFormulaTest  X0 = aCFD.VUk().at(0);
-       if (0)
-       {
-          FD::cCoordinatorF<TypeTest>  aCFD2(100,3,5);
-          tFormulaTest  B0 = aCFD2.VUk().at(0);
-          X0 + B0;
-       }
-       tFormulaTest  X1 = aCFD.VUk().at(1);
-       tFormulaTest  X2 = aCFD.VUk().at(2);
-
-       tFormulaTest  aF0 =  X0 ;
-       for (int aK=0 ; aK<5 ; aK++)
-       {
-           std::cout << "K= " << aK << " R=" << aF0->RecursiveRec() << "\n";
-           aF0 = aF0 + aF0;
-       }
-/*
-       tFormulaTest  aF1 = aF0 + aF0;
-       tFormulaTest  aF2 = aF1 + aF1;
-       tFormulaTest  aF3 = aF2 + aF2;
-       tFormulaTest  aF4 = aF3 + aF3;
-       std::cout << "Re=" << aF->InfixPPrint() << "\n";
-*/
-   
-
-       tFormulaTest  aF = (X0+X1) * (X0 +square(X2)) - exp(-square(X0))/X0;
-       // tFormulaTest  aF = X0 * X0;
-       tFormulaTest  aFd0 = aF->Derivate(0);
-
-       std::cout << "F=" << aF->InfixPPrint() << "\n";
-       std::cout << "Fd=" << aFd0->InfixPPrint() << "\n";
-
-       // aF->ComputeBuf();
-       std::vector<tFormulaTest> aVF{aF0,aF0};
-       aCFD.SetCurFormulas(aVF);
-       aCFD.SetCurFormulasWithDerivative(aVF);
-
-       aCFD.ShowStackFunc();
-/*
-       aCFD.CsteOfVal(3.14);
-       aCFD.CsteOfVal(3.14);
-       tFormulaTest  aU0 = aCFD.VUK()[0];
-       tFormulaTest  aU1 = aCFD.VUK()[1];
-       tFormulaTest  aO0 = aCFD.VObs()[0];
-       tFormulaTest  aO1 = aCFD.VObs()[1];
-       tFormulaTest  aO2 = aCFD.VObs()[2];
-
-       tFormulaTest  aSom00 = aU0 + aO0;
-       tFormulaTest  aSomInv00 = aO0 + aU0;
-       tFormulaTest  aSom11 = aO1 + aU1;
-
-       tFormulaTest  aSom0 = aCFD.VUK()[0] + aCFD.Cste0();
-       tFormulaTest  aSom1 = aCFD.VUK()[0] + aCFD.Cste1();
-
-       tFormulaTest  aSom3 = aCFD.VUK()[0] + 3.14;
-       tFormulaTest  aSom4 = 3.14 + aCFD.VUK()[0] ;
-       std::cout << "TEST ADD CST " << aSom0->Name() << " " << aSom1->Name() << "\n";
-       std::cout << "TEST ADD CST " << aSom3->Name() << " " << aSom4->Name() << "\n";
-
-       aO0+aO1;
-       aO1+aO2;
-       aO0+(aO1+aO2);
-       {
-          tFormulaTest aS=(aO0+aO1)*(aO2+2.1);
-          std::cout << "PP=" << aS->InfixPPrint() << "\n";
-       }
-*/
-
-       // aPtr->IsCste0();
-       
-
-       // std::shared_ptr<cFuncFormalDer <8,double> > aF1  =
-       
-    }
-    // new cCoordinatorF<double,100> (3,5);
-
-    
-
-    int i=10;
-    std::string aStr = "i="+ std::to_string(i);
-    std::cout  << "BenchFormalDerBenchFormalDerBenchFormalDer " << aStr << "\n";
-
-    Eigen::MatrixXf m(10,20);
-    Eigen::MatrixXf aM2 = m.topLeftCorner(8,15);
-
-
-    Eigen::Array<double, 2, 25>  a;
-
-    std::cout << "MMMM R:" << m.rows() << " C:" <<  m.cols() << "\n";
-    std::cout << "MMMM R:" << aM2.rows() << " C:" <<  aM2.cols() << "\n";
-    std::cout << "MMMM A:" << a.rows() << " C:" <<  a.cols() << "\n";
-
+    // cTestOperationVector<float,90>::DoIt();
+    // cTestOperationVector<float,128>::DoIt();
+    // cTestOperationVector<double,128>::DoIt();
     getchar();
 }
+
+
+/*
+--- Form[0] => C0 ; Val=0
+--- Form[1] => C1 ; Val=1
+--- Form[2] => C2 ; Val=2
+-0- Form[3] => a
+-0- Form[4] => b
+-0- Form[5] => x
+-0- Form[6] => y
+-1- Form[7] => F4*F5      // bx
+-2- Form[8] => F7+F3      // a+bx
+-3- Form[9] => F8*F8      // (a+bx) ^2
+-4- Form[10] => F8*F9     // (a+bx) ^ 3
+-5- Form[11] => F10-F6    // (a+bx)^3-y
+-3- Form[12] => F8*F5     // x(a+bx)
+-4- Form[13] => F12+F12   // 2x(a+bx)
+-5- Form[14] => F13*F8    // 2x(a+bx)^2
+-4- Form[15] => F9*F5     // x (a+bx)^2
+-6- Form[16] => F14+F15   // 3 x(a+bx)^2
+-3- Form[17] => F8+F8     // 2 (a+bx) 
+-4- Form[18] => F8*F17    // 2 (a+bx) ^2
+-5- Form[19] => F18+F9    // 3 (a+bx) ^2
+
+(a+bx)^3
+3 (a+bx)^2 
+3 x (a+bx)^2
+
+REACHED 5 3 6 4 7 8 9 17 12 10 18 15 13 11 14 19 16   // Reached formula in their computation order
+CUR 11 19 16   // Computed formula
+*/
+
 
 

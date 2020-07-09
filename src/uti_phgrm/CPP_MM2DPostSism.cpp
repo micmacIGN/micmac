@@ -146,7 +146,8 @@ int MM2DPostSism_Main(int argc,char ** argv)
     int aSurEchWCor=1;
     std::string aDirMEC="MEC/";
     std::string anInterp = "SinCard";
-
+    double aCorrelMin = 0.5;
+    double aGammaCorrel = 2.0;
     Pt2dr  aPxMoy(0,0);
     int    aZoomInit = 1;
 
@@ -168,6 +169,8 @@ int MM2DPostSism_Main(int argc,char ** argv)
                 << EAM(aZoomInit,"ZoomInit",true,"Initial Zoom, Def=1 (can be long of Inc>2)")
                 << EAM(anInterp,"Interp",true,"Interpolator,Def=SinCard, can be PPV,MPD,Bilin,BiCub,BicubOpt)")
                 << EAM(aSurEchWCor,"SEWC",true,"Over Sampling Correlation Window)")
+                << EAM(aCorrelMin,"CorMin",true,"Min correlation, def=0.5")
+                << EAM(aGammaCorrel,"GamaCor",true,"Gama coeff, def=2 (higher, priveligiate hig cor)")
     );
 
     if (!MMVisualMode)
@@ -210,6 +213,8 @@ int MM2DPostSism_Main(int argc,char ** argv)
                             + " +ZoomInit=" + ToString(aZoomInit)
                             + " +Interpolateur=eInterpol" + anInterp
                             + " +SurEchWCor=" + ToString(aSurEchWCor)
+                            + " +CorrelMin=" + ToString(aCorrelMin)
+                            + " +GammaCorrel=" + ToString(aGammaCorrel)
                             ;
 
 

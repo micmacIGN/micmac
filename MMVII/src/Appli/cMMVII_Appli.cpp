@@ -70,7 +70,7 @@ int cParamCallSys::Execute() const
    else
    {
        // StdOut() << "EXTERN   cParamCallSys::  \n";
-       int aRes = SysCall(mCom,false);
+       int aRes = GlobSysCall(mCom,false);
        // StdOut() << "   ##### EXTERN   cParamCallSys::  " << aRes << " \n";
        return aRes;
    }
@@ -418,18 +418,15 @@ void cMMVII_Appli::InitParam()
                         MMVII_INTERNAL_ASSERT_always(false,"\""+ aName +"\" is multiple in specification");
                     }
                     // Same name was used several time
-                    if (aSpec->NbMatch() !=0)
-                    {
-                        MMVII_INTERNAL_ASSERT_user(eTyUEr::eMulOptParam,"\""+aName +"\" was used multiple time");
-                    }
+                    MMVII_INTERNAL_ASSERT_User
+                    (  aSpec->NbMatch()==0  ,eTyUEr::eMulOptParam,"\""+aName +"\" was used multiple time");
                     aSpec->IncrNbMatch();
                  }
              }
              // Name does not correspond to spec
-             if (aNbSpecGot==0)
-             {
-                MMVII_INTERNAL_ASSERT_user(eTyUEr::eBadOptParam,"\""+aName +"\" is not a valide optionnal value");
-             }
+             MMVII_INTERNAL_ASSERT_User
+             (  aNbSpecGot!=0  ,eTyUEr::eBadOptParam,"\""+aName +"\" is not a valide optionnal value");
+
              aVValues.push_back(aValue);
           }
           else
@@ -452,7 +449,7 @@ void cMMVII_Appli::InitParam()
          GenerateHelp();
          return;
       }
-      MMVII_INTERNAL_ASSERT_user
+      MMVII_UsersErrror
       (
           eTyUEr::eInsufNbParam,
           "Not enough Arg, expecting " + ToS(aNbObl)  + " , Got only " +  ToS(aNbArgGot)
@@ -630,7 +627,7 @@ void cMMVII_Appli::InitParam()
       // Why should user init interval if there no set ?
       if (IsInit(&mIntervFilterMS[aNum]) && (!  mVMainSets.at(aNum).IsInit()))
       {
-         MMVII_INTERNAL_ASSERT_user(eTyUEr::eIntervWithoutSet,"Interval without filter for num:"+ToStr(aNum));
+         MMVII_UsersErrror(eTyUEr::eIntervWithoutSet,"Interval without filter for num:"+ToStr(aNum));
       }
       if (aNum>0)
       {
@@ -1148,6 +1145,24 @@ std::list<cParamCallSys>  cMMVII_Appli::ListStrCallMMVII
     return aRes;
 }
 
+int cMMVII_Appli::ExtSysCall(const std::string & aCom, bool SVP)
+{
+   std::string aName  = NameFileLog(false);
+   {
+      cMMVII_Ofs  aOfs(aName,true);
+      aOfs.Ofs() << "  ---   begining at : " <<  StrDateCur() << "\n";
+      aOfs.Ofs() << "        ExtCom : [" <<  aCom << "]\n";
+      aOfs.Ofs().close();
+   }
+   int aResult = GlobSysCall(aCom,SVP);
+   {
+      cMMVII_Ofs  aOfs(aName,true);
+      aOfs.Ofs() << "  ---   ending at : " <<  StrDateCur() << "\n\n";
+      aOfs.Ofs().close();
+   }
+   return aResult;
+}
+
 
 
 int  cMMVII_Appli::ExeCallMMVII
@@ -1159,7 +1174,7 @@ int  cMMVII_Appli::ExeCallMMVII
       )
 {
     cParamCallSys aComGlob = StrCallMMVII(aCom2007,anAObl,anAOpt,!ByLineCom);
-    return  SysCall(aComGlob.Com(),false);
+    return  GlobSysCall(aComGlob.Com(),false);
 }
 
 int cMMVII_Appli::ExeComSerial(const std::list<cParamCallSys> & aL)

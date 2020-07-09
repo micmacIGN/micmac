@@ -188,7 +188,7 @@ void cGpsLoc_Som::CalcMedErr()
 
 	mErrMed = new double;
     (*mErrMed) = KthValProp(anErr,0.75);
-	std::cout << mName << " Median Err " << (*mErrMed) << "\n";
+	std::cout << mName << " Quantile 75% Err " << (*mErrMed) << "\n";
 }
 
 void cGpsLoc_Som::RemoveOutliers()
@@ -226,6 +226,9 @@ void cGpsLoc_Som::Save(cNewO_NameManager * aNM)
    aCS->SetOrientation(aR.inv());
 
    cOrientationConique anOC =  aCS->StdExportCalibGlob();
+
+   //set the uncertainty
+   anOC.Externe().IncCentre() = Pt3dr(ErrMed(),ErrMed(),ErrMed());
 
    std::string aNameOri = aNM->ICNM()->Assoc1To1("NKS-Assoc-Im2Orient@-"+aNM->OriOut()+"-GpsLoc",mName,true);
 
