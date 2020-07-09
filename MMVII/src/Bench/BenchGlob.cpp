@@ -11,6 +11,9 @@
 
 */
 
+// #include "include/TreeDist.h"
+
+
 
 namespace MMVII
 {
@@ -218,6 +221,10 @@ int  cAppli_MMVII_Bench::Exe()
    // Begin with purging directory
    CreateDirectories(TmpDirTestMMVII(),true );
    RemoveRecurs(TmpDirTestMMVII(),true,false);
+
+   // Test Fast Tree Dist
+   BenchFastTreeDist();
+   //NS_MMVII_FastTreeDist::AllBenchFastTreeDist(true);
 
    // Test jets
    BenchMyJets();

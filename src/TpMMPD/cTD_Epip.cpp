@@ -292,7 +292,7 @@ std::string cOneImTDEpip::NameFileDownScale(double aScale) const
 
 std::string cOneImTDEpip::ComCreateImDownScale(double aScale) const
 {
-	std::string aNameRes = NameFileDownScale(aScale);
+    std::string aNameRes = NameFileDownScale(aScale);
 	
     if (ELISE_fp::exist_file(aNameRes)) return "";
     

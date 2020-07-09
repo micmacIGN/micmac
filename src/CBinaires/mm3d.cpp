@@ -263,6 +263,8 @@ int  PPMD_MatEss2Orient(int argc,char ** argv);
 int GrapheStereopolis_main(int argc,char ** argv);
 int CheckGCPStereopolis_main(int argc,char ** argv);
 int AnalyseTrajStereopolis_main(int argc,char ** argv);
+int CPP_CalcImScale(int argc,char** argv);
+
 
 
 
@@ -389,6 +391,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("GrapheHom", GrapheHom_main, "Compute XML-Visibility graph from approximate orientation", cArgLogCom(3)));
 		aRes.push_back(cMMCom("GrapheStereopolis", GrapheStereopolis_main,"Compute Pair of Image for Stereopolis", cArgLogCom(2)));
 		aRes.push_back(cMMCom("CheckGCPStereopolis", CheckGCPStereopolis_main,"Check GCP with strategy optimized for Stereopolis-like acquisition", cArgLogCom(2)));
+		aRes.push_back(cMMCom("CalcImScale", CPP_CalcImScale,"Calculate scale of image", cArgLogCom(2)));
 
 
 		aRes.push_back(cMMCom("AnalyseTrajStereopolis", AnalyseTrajStereopolis_main,"Analyse trajectory of Stereopolis-like acquisition", cArgLogCom(2)));
@@ -709,6 +712,7 @@ extern int TestER_hom_main(int argc, char ** argv);
 extern int PFM2Tiff_main(int argc, char ** argv);
 extern int BAL2OriMicMac_main(int argc, char ** argv);
 extern int CPP_NewOriReadFromSfmInit(int argc, char ** argv);
+extern int CPP_ImportArtsQuad(int argc, char ** argv);
 extern int CPP_Bundler2MM_main(int argc, char ** argv);
 extern int CPP_MM2Bundler_main(int argc, char ** argv);
 extern int CPP_Strecha2MM(int argc, char ** argv);
@@ -842,7 +846,11 @@ int TestARCam_main(int argc, char ** argv);
 int CPP_TestPhysMod_Main(int argc, char ** argv);
 int MvImgsByFile_main(int argc, char** argv);
 int OneReechHom_main(int argc, char ** argv);
+int OneReechFromAscii_main(int argc, char ** argv);
+int AllReechFromAscii_main(int argc, char ** argv);
 int AllReechHom_main(int argc, char ** argv);
+int OneHomMMToAerial_main(int argc,char** argv);
+int AllHomMMToAerial_main(int argc,char** argv);
 int RTI_main(int argc, char ** argv);
 int RTIRecalRadiom_main(int argc, char ** argv);
 int RTIMed_main(int argc, char ** argv);
@@ -1019,6 +1027,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("Tif2Pfm", PFM2Tiff_main, "Tif to pfm or the other way around"));
 		aRes.push_back(cMMCom("BAL2MM", BAL2OriMicMac_main, "Convert a BAL problem to MicMac"));
 		aRes.push_back(cMMCom("SfmI2MM", CPP_NewOriReadFromSfmInit, "Convert the SfmInit problem to MicMac"));
+		aRes.push_back(cMMCom("ArtsQuad", CPP_ImportArtsQuad, "Read ArtsQuad tracks to MicMac tie-pts"));
 		aRes.push_back(cMMCom("Bundler2MM", CPP_Bundler2MM_main, "Convert the Bundler solution to MicMac"));
 		aRes.push_back(cMMCom("MM2Bundler", CPP_MM2Bundler_main, "Convert the MicMac  solution to Bundler"));
 		aRes.push_back(cMMCom("Str2MM", CPP_Strecha2MM, "Convert the Strecha solution to MicMac"));
@@ -1194,8 +1203,12 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TestPhysMod",CPP_TestPhysMod_Main,"Unitary test for new bundle gen"));
 
         aRes.push_back(cMMCom("TestParseDir",TestElParseDir_main," Test Parse Dir"));
+        aRes.push_back(cMMCom("OneReechFromAscii",OneReechFromAscii_main," Resample image using homography and 4 pts"));
+        aRes.push_back(cMMCom("AllReechFromAscii",AllReechFromAscii_main," Resample an image pattern using homography and 4 pts"));
         aRes.push_back(cMMCom("OneReechHom",OneReechHom_main," Resample image using homography"));
         aRes.push_back(cMMCom("AllReechHom",AllReechHom_main," Resample multiple image using homography"));
+        aRes.push_back(cMMCom("OneMMToAerial",OneHomMMToAerial_main," Project terrestrial image to aerial images"));
+        aRes.push_back(cMMCom("AllMMToAerial",AllHomMMToAerial_main," Project a pattern of terrestrial images to aerial images"));
         aRes.push_back(cMMCom("RTI",RTI_main," RTI prototype"));
         aRes.push_back(cMMCom("RTI_RR",RTIRecalRadiom_main," RTI recalage radiom"));
         aRes.push_back(cMMCom("RTIMed",RTIMed_main," RTI calc median image"));

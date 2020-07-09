@@ -1199,9 +1199,19 @@ int TournIm_main(int argc,char ** argv)
         aPref = "T270-";
         aFTrans = Virgule(aSz.x-1-FY,FX);
     }
+    else if (aNumGeom==4) 
+    {
+        aPref = "SymX-";
+        aFTrans = Virgule(aSz.x-1-FX,FY);
+    }
+    else if (aNumGeom==6) 
+    {
+        aPref = "SymY-";
+        aFTrans = Virgule(FX,aSz.y-1-FY);
+    }
     else
     {
-        ELISE_ASSERT(false,"Unhandled value for ²");
+        ELISE_ASSERT(false,"Unhandled value for NumGeom");
     }
 
     std::string aNameOut = DirOfFile(aNameIm) + aPref+ StdPrefix(NameWithoutDir(aNameIm))+".tif";
@@ -1210,7 +1220,7 @@ int TournIm_main(int argc,char ** argv)
     Tiff_Im aTifOut
             (
                 aNameOut.c_str(),
-                ((aNumGeom%2)==1) ? Pt2di(aSz.y,aSz.x) : Pt2di(aSz.x,aSz.y),
+                ((aNumGeom%2)==1)  ? Pt2di(aSz.y,aSz.x) : Pt2di(aSz.x,aSz.y),
                 aTif.type_el(),
                 Tiff_Im::No_Compr,
                 aTif.phot_interp(),

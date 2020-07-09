@@ -208,6 +208,8 @@ eTypeImporGenBundle  Str2eTypeImporGenBundle(const std::string & aName)
       return eTIGB_MMASTER;
    else if (aName=="eTIGB_MMScanLineSensor")
       return eTIGB_MMScanLineSensor;
+   else if (aName=="eTIGB_MMEpip")
+      return eTIGB_MMEpip;
    else if (aName=="eTIGB_NbVals")
       return eTIGB_NbVals;
   else
@@ -245,6 +247,8 @@ std::string  eToString(const eTypeImporGenBundle & anObj)
       return  "eTIGB_MMASTER";
    if (anObj==eTIGB_MMScanLineSensor)
       return  "eTIGB_MMScanLineSensor";
+   if (anObj==eTIGB_MMEpip)
+      return  "eTIGB_MMEpip";
    if (anObj==eTIGB_NbVals)
       return  "eTIGB_NbVals";
  std::cout << "Enum = eTypeImporGenBundle\n";
@@ -269,7 +273,7 @@ void  BinaryUnDumpFromFile(eTypeImporGenBundle & anObj,ELISE_fp & aFp)
    anObj=(eTypeImporGenBundle) aIVal;
 }
 
-std::string  Mangling( eTypeImporGenBundle *) {return "D5E45037973C289BFD3F";};
+std::string  Mangling( eTypeImporGenBundle *) {return "7261BB7CC1F03DB1FE3F";};
 
 eTypeModeNO  Str2eTypeModeNO(const std::string & aName)
 {
