@@ -587,42 +587,38 @@ If epipolar geometry exists, there exist a unique epipolar resampling $\phi_1,\p
 %---------------------------------------------
 %---------------------------------------------
 
-\section{Proposed method for epipolar ressampling}
+\section{Proposed method for epipolar geometry resampling}
 
 
 \subsection{Hypothesis and layout}
 
 \subsubsection{Principles}
-The principle of the methods is to use \emph{H-Compatible}  points $p_1,p_2$ to calculate a
-pair of function $\phi_1,\phi_2$ that complain with the epipolar constraint :
-\emph{"$\phi_1(p_1)$ and $\phi_2(p_2)$ are on the same line"}. As these epipolar function
-are not unique, in application of theorem~\ref{Theo:Fix:Ambig} we  parametrize $\phi_k$ according to following equation :
-
+The principle of the method is to use \emph{H-Compatible}  points $p_1,p_2$ to calculate a
+pair of functions $\phi_1,\phi_2$ that comply with the epipolar constraint, i.e. 
+\emph{"$\phi_1(p_1)$ and $\phi_2(p_2)$ are on the same line"}. As these epipolar functions
+are not unique, we parameterize the $\phi_k$ in Theorem~\ref{Theo:Fix:Ambig} accordingly:
 
 \begin{equation}
     \phi_k(i,j) = (i,V_k(i,j))  \; \; ; \; \;
     V_k : \RR^2 \rightarrow \RR  
   \label{EpipVParam}
 \end{equation}
-
-This parametrization handle  equation~\ref{Ambig:PhiO} and~\ref{Ambig:PhiT}; 
-we will see later \footnote{see equation~\ref{CstrV1:0} and ~\ref{CstrV1:1} in section~\ref{ChoicePolyn}}
-how we handle equation \ref{Ambig:Line}.
-For  computing $V_1,V_2$ , for any pair of \emph{H-Compatible} points we add the observation
-of equation~\ref{EqV1V2} that constraint $V_1$ and $V_2$ :
+%
+This parametrization implements the constraints of Equations~\eqref{Ambig:PhiO} and~\ref{Ambig:PhiT}. In Section~\ref{ChoicePolyn} we will see how the constraint of Equation~\ref{Ambig:Line} is accounted for\footnote{See Equations~\eqref{CstrV1:0},~\eqref{CstrV1:1}.}. 
+To compute $V_1,V_2$, for any pair of \emph{H-Compatible} points we add an observation that
+constraints $V_1$ and $V_2$:
 
 
 \begin{equation}
-    V_1(p_1) = V_2(p_2) \label{EqV1V2}
+    V_1(p_1) = V_2(p_2) \label{EqV1V2}.
 \end{equation}
 
 \subsubsection{Hypothesis}
 
 
-The method take as input two geometric models of the camera $\pi_1$ and $\pi_2$.
-These models are regarded as "black box" satisfying the equation~\ref{Eq:Proj} and the method 
-make no specific assumption on the physical model of the camera. In our own \CPP implementation,
-the cameras are regarded as pure virtual classes offering interface to equation~\ref{Eq:Proj}.
+The method take as input two camera models $\pi_1$ and $\pi_2$.
+These models are considered as black-boxes that satisfy Equation~\eqref{Eq:Proj} No specific assumption on the physical model of the camera is made. In our own \CPP implementation,
+the cameras are regarded as pure virtual classes offering interface to equation~\eqref{Eq:Proj}.
 In this paper, the examples processed by our method are RPC satellite models and frame camera (central perspective) but the
 only restriction in on the "smoothness" of the projection function :
 
@@ -662,7 +658,7 @@ at the center of the data.
 
 The method then estimates for each image the average direction $\vec{D}_k$
 of its epolar line, and a rotation $R_k$ is applied to the data so that the epipolar line become
-globally horizontal using formula of equation~\ref{EqRot}.
+globally horizontal using formula of equation~\eqref{EqRot}.
 The  epipolar deformation is computed on these rotated data.
 
 \begin{equation}
