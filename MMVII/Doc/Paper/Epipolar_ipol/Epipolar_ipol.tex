@@ -90,6 +90,8 @@
 
 \definecolor{orange}{rgb}{1,0.5,0} 
 \newcommand{\er}[1]{\textcolor{orange}{#1}} 
+\definecolor{magenta}{rgb}{1,0,1} 
+\newcommand{\mpd}[1]{\textcolor{magenta}{#1}} 
 
 %-------------------------------------------------------------------------------
 \begin{document}
@@ -108,10 +110,15 @@ Epipolar geometry of images plays a central role in many applications in the fie
 
 \begin{enumerate}
    \item In the camera pose orientation step when computing the
-      relative orientation of a pair images from their corresponding points. Assuming the projection follows the central perspective and the internal calibration is known, one can compute the epipolar geometry using the essential matrix.
-   \item In the image dense matching step where the epipolar rectification simplifies the correspondence search because we know
+      relative orientation of a pair images from their corresponding points. Assuming 
+      the projection follows the central perspective and the internal calibration is known,
+      one can compute the epipolar geometry using the essential matrix
+      \mpd{then recover relative from epipolar + cite Fusiello (?)};
+   \item In the image dense matching step where the epipolar rectification simplifies the 
+       correspondence search because we know
         that for a point $(x_1,y)$ in image $I_1$, its correspondence is some point
-        $(x_2,y)$ in image $I_2$. Therefore, finding correspondences across images reduces to a $1$ dimensional problem.
+        $(x_2,y)$ in image $I_2$. Therefore, finding correspondences across images reduces to 
+        a $1$ dimensional problem.
 \end{enumerate}
 
 \noindent In this paper, we only study  the epipolar rectification problem and more specifically
@@ -315,6 +322,7 @@ curve of $I_k$ defined by $\CurveK(v) = \phi_k^{-1}(\LineK(v))$
 %---------------------------------------------
 
 \subsection{Existence of epipolar geometry}
+\label{ExistEpip}
 
 We now discuss the existence of {epipolar geometry}. As you will see, epipolar geometry generally does not exist, and when it does, it is not
 unique. It is well known that:
@@ -954,6 +962,9 @@ then there exist some function relation between them :
          and note $S^\mathcal{Z}$  the corresponding surface;
    \item for a point $p_1$ of $I_1$, note $ \PiZVert (p_1)$
          the intersection of  $\BundO(p_1)$ and the surface  $S^\mathcal{Z}$;
+         $\PiZVert$ is the inverse of the restriction  $\pi_1$ 
+         as function froù $I_1$ to $S^\mathcal{Z}$;
+
    \item we see now there exist a functionnal relation between all the homologous
          points $(p_1,p_2)$ corresponding to equation 
 \end{itemize}
@@ -970,6 +981,8 @@ a functionnal relation between them.
 \noindent {\underline {\bf Pro \& Cons:}} We reanalyse now the argument of~\ref{WhyWork}.
 Suppose we have already compute an epipolar geometry, and that there exist af functionnal
 correspondence between $e_1$ and $e_1$ :
+
+
 
 %---------------------------------------------
 %---------------------------------------------
