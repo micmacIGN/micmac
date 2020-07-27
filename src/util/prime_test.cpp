@@ -45,20 +45,75 @@ class cVecPrime
 {
 
      public :
-         typedef U_INT8 tInt;
-         static cVecPrime  * FromCalc(int aNb,bool Exact,Pt2di & aInt);
+         typedef U_INT8 tInt;  // Type of storage for number
+
+         /*  Allocate the vector of prim :
+               * Nb : number of prime
+         */
+
+         static cVecPrime  * FromCalc(int & aNb,Pt2di & aInt);
+         void MakeOneFamillyTest(const std::vector<int>&,bool Show) const;
+         // void MakeFamillyTest(const std::vector<int>&,bool Show) const;
+
+
          void Show(const Pt2di &Show) const;
-         U_INT8  NbNombre() {return mV.back();}
-         U_INT8  NbPrime() {return  mV.size();}
+         tInt  NbNombre()      const {return mVPrimes.back();}
+         tInt  NbPrime()       const {return  mVPrimes.size();}
+         tInt  Prime(tInt aK)  const {return  mVPrimes.at(aK);}
      private :
+         bool OkOneFamillyTest(int aK,const std::vector<int> &,bool Show) const;
+
          bool  DivideByCur(tInt aVal) const;
          tInt  PushNext();
 
 
          cVecPrime();
-         std::vector<tInt> mV;
+         std::vector<tInt> mVPrimes;
          static      std::string  NameBuf();
 };
+
+/*  Familly conjecture , one familly */
+bool cVecPrime::OkOneFamillyTest(int aKPrim,const std::vector<int> & aVDif,bool Show) const
+{
+    if ( (aKPrim+aVDif.size()>=mVPrimes.size()))
+      return false;
+
+    tInt aP0 = mVPrimes[aKPrim];
+    for (unsigned int aKDif=0 ; aKDif<aVDif.size(); aKDif++)
+    {
+        if (mVPrimes[aKPrim+aKDif+1] != aP0 + aVDif[aKDif])
+           return false;
+    }
+    if (Show)
+    {
+        std::cout << "P : " << aP0;
+        for (unsigned int aKDif=0 ; aKDif<aVDif.size(); aKDif++)
+            std::cout << " " << mVPrimes[aKPrim+aKDif+1]  ;
+        std::cout << "\n";
+    }
+
+    return true;
+}
+
+void cVecPrime::MakeOneFamillyTest(const std::vector<int> & aVDif,bool Show) const
+{
+   int aNbFam=0;
+   for (unsigned int aKPrim=0 ; aKPrim<mVPrimes.size()  ; aKPrim++)
+   {
+       if (OkOneFamillyTest(aKPrim,aVDif,Show))
+          aNbFam++;
+   }
+
+   double aNbN = NbNombre();
+   double aTh = aNbN / pow(log(aNbN),1+aVDif.size());
+
+   std::cout << "NbF=" << aNbFam << " Ratio "  << aNbFam/aTh << "\n";
+
+}
+
+
+
+
 
 std::string cVecPrime::NameBuf()
 {
@@ -71,7 +126,7 @@ cVecPrime::cVecPrime()
 
 bool  cVecPrime::DivideByCur(tInt aVal) const
 {
-   for (auto const & aV : mV)
+   for (auto const & aV : mVPrimes)
    {
        if ((aVal%aV)==0)
           return true;
@@ -84,12 +139,12 @@ bool  cVecPrime::DivideByCur(tInt aVal) const
 
 cVecPrime::tInt cVecPrime::PushNext()
 {
-    tInt  aV = mV.back() + 1;
+    tInt  aV = mVPrimes.back() + 1;
 
     while (DivideByCur(aV))
       aV++;
 
-   mV.push_back(aV);
+   mVPrimes.push_back(aV);
 
    return aV;
        
@@ -97,7 +152,7 @@ cVecPrime::tInt cVecPrime::PushNext()
 
 void cVecPrime:: Show(const Pt2di &Show) const
 {
-    for (const auto & aV : mV)
+    for (const auto & aV : mVPrimes)
     {
        if ((aV>= tInt(Show.x)) && (aV<= tInt(Show.y)))
           std::cout << "Prime : " << aV << "\n";
@@ -105,45 +160,57 @@ void cVecPrime:: Show(const Pt2di &Show) const
    std::cout << "===================================\n";
 }
 
-cVecPrime *   cVecPrime::FromCalc(int aNb,bool Exact,Pt2di & aInterv)
+cVecPrime *   cVecPrime::FromCalc(int & aNb,Pt2di & aIntervShow)
 {
     ElTimer aChrono;
     cVecPrime * aRes = new cVecPrime;
+    bool gotChange = false;  // Will we need to save changes
+    U_INT4 aSzFile=0;
+    // If the file already exist
     if (ELISE_fp::exist_file(NameBuf()))
     {
        ELISE_fp aFp(NameBuf().c_str(),ELISE_fp::READ);
-       int aNbFile = aFp.read_U_INT4();
-       if (Exact)
+       aSzFile = aFp.read_U_INT4(); // Number of int already created
+       int aNbFile = aSzFile;
+       if (aNb !=-1)
        {
+           // If exact, truncate if too many
            aNbFile  = ElMin(aNb,aNbFile);
+       }
+       else
+       {
+           aNb =  aNbFile;
        }
           
        for (int aK=0 ; aK<aNbFile ; aK++)
        {
-            aRes->mV.push_back(aFp.read_U_INT8());
+            aRes->mVPrimes.push_back(aFp.read_U_INT8());
        }
        aFp.close();
        aNb -= aNbFile;
     }
     else
     {
-       aRes->mV.push_back(2);
+       gotChange = true;
+       aNb --;
+       aRes->mVPrimes.push_back(2);
     }
 
     ElTimer aT;
 
-    for (int aK=1 ; aK< aNb ; aK++)
+    for (int aK=0 ; aK< aNb ; aK++)
     {
-        /*tInt aV =*/  aRes->PushNext();
+         gotChange = true;
+         aRes->PushNext();
     }
     //==================================
-    if (!Exact)
+    if (gotChange)
     {
        ELISE_fp aFp(NameBuf().c_str(),ELISE_fp::WRITE);
-       aFp.write_U_INT4(aRes->mV.size());
-       for (int aK=0 ; aK<int(aRes->mV.size()) ; aK++)
+       aFp.write_U_INT4(aRes->mVPrimes.size());
+       for (int aK=0 ; aK<int(aRes->mVPrimes.size()) ; aK++)
        {
-           aFp.write_U_INT8(aRes->mV[aK]);
+           aFp.write_U_INT8(aRes->mVPrimes[aK]);
        }
        aFp.close();
     }
@@ -151,9 +218,15 @@ cVecPrime *   cVecPrime::FromCalc(int aNb,bool Exact,Pt2di & aInterv)
     {
     }
 
-    if (EAMIsInit(&aInterv))
+    if (EAMIsInit(&aIntervShow))
     {
-         std::vector<tInt> aNewV;
+         std::cout << "SHOW FIRST PRIME \n ";
+         for (tInt aK=aIntervShow.x ; aK<tInt(aIntervShow.y) ; aK++)
+         {
+             if (aK<aRes->NbPrime())
+                std::cout << aRes->Prime(aK) << " ";
+         }
+         std::cout << "\n=======================\n ";
     }
     
 
@@ -161,9 +234,11 @@ cVecPrime *   cVecPrime::FromCalc(int aNb,bool Exact,Pt2di & aInterv)
 
     double aNbP = aRes->NbPrime(); 
     double aNbN = aRes->NbNombre();
-    std::cout << " NbN= " << aNbN  << " NbP=" << aNbP 
-              << " Ratio=" <<  (aNbN/log(aNbN)) / aNbP
-              << " Ratio=" <<  aNbN / (aNbP * log(aNbP))
+    std::cout  << " NbN= " << aNbN  << " NbP=" << aNbP 
+               << " Ratio=" <<  (aNbN/log(aNbN)) / aNbP
+               << " Ratio=" <<  aNbN / (aNbP * log(aNbP))
+               << " SzFile=" <<  aSzFile
+               << " Change=" <<  gotChange
                << "\n";
 
     return aRes;
@@ -172,19 +247,26 @@ cVecPrime *   cVecPrime::FromCalc(int aNb,bool Exact,Pt2di & aInterv)
 int CPP_GenPrime(int argc,char** argv)
 {
     int aNb;
-    bool Exact=false;
     Pt2di aTestSeq;
-    Pt2di aInterv;
+    Pt2di aIntervShow;
+    std::vector<int>  aFamTest;
+
     ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(aNb,"Number of test on prime"),
-        LArgMain()  << EAM(Exact,"Exact",true,"Exact number ?")
-                    << EAM(aTestSeq,"Seq",true,"Sequence to test")
-                    << EAM(aInterv,"Show",true,"Sequence to show")
+        LArgMain()  << EAM(aTestSeq,"Seq",true,"Sequence to test")
+                    << EAM(aIntervShow,"Show",true,"Sequence to show")
+                    << EAM(aFamTest,"FamSeq",true,"Familly (twin, cousin ...) sequnce to test [Ofs1,Ofs2,...] ")
 
     );
-    cVecPrime *   aVP = cVecPrime::FromCalc(aNb,Exact,aInterv);
+    cVecPrime *   aVP = cVecPrime::FromCalc(aNb,aIntervShow);
+
+    if (EAMIsInit(&aFamTest))
+    {
+       bool ShowFam = false;
+       aVP->MakeOneFamillyTest(aFamTest,ShowFam);
+    }
 
 /*
     if (EAMIsInit(&aTestShow))
