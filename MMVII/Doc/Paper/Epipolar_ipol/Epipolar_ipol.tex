@@ -90,6 +90,8 @@
 
 \definecolor{orange}{rgb}{1,0.5,0} 
 \newcommand{\er}[1]{\textcolor{orange}{#1}} 
+\definecolor{magenta}{rgb}{1,0,1} 
+\newcommand{\mpd}[1]{\textcolor{magenta}{#1}} 
 
 %-------------------------------------------------------------------------------
 \begin{document}
@@ -108,10 +110,15 @@ Epipolar geometry of images plays a central role in many applications in the fie
 
 \begin{enumerate}
    \item In the camera pose orientation step when computing the
-      relative orientation of a pair images from their corresponding points. Assuming the projection follows the central perspective and the internal calibration is known, one can compute the epipolar geometry using the essential matrix.
-   \item In the image dense matching step where the epipolar rectification simplifies the correspondence search because we know
+      relative orientation of a pair images from their corresponding points. Assuming 
+      the projection follows the central perspective and the internal calibration is known,
+      one can compute the epipolar geometry using the essential matrix
+      \mpd{then recover relative from epipolar + cite Fusiello (?)};
+   \item In the image dense matching step where the epipolar rectification simplifies the 
+       correspondence search because we know
         that for a point $(x_1,y)$ in image $I_1$, its correspondence is some point
-        $(x_2,y)$ in image $I_2$. Therefore, finding correspondences across images reduces to a $1$ dimensional problem.
+        $(x_2,y)$ in image $I_2$. Therefore, finding correspondences across images reduces to 
+        a $1$ dimensional problem.
 \end{enumerate}
 
 \noindent In this paper, we only study  the epipolar rectification problem and more specifically
@@ -314,7 +321,12 @@ curve of $I_k$ defined by $\CurveK(v) = \phi_k^{-1}(\LineK(v))$
 
 %---------------------------------------------
 
+<<<<<<< HEAD
 \subsection{Existence of epipolar geometry}\label{ExistEpip}
+=======
+\subsection{Existence of epipolar geometry}
+\label{ExistEpip}
+>>>>>>> c5f337490c1d0f667a982192fd79773efee0d10b
 
 We now discuss the existence of {epipolar geometry}. As you will see, epipolar geometry generally does not exist, and when it does, it is not
 unique. It is well known that:
@@ -755,6 +767,8 @@ V_2(p^1_2) = V_2(p^2_2)  =  V_2(p^3_2) \dots \label{RedrCurv}
 
 If we look at left image of figure~\ref{NonFuncCorresp}, we see that equation~\eqref{RedrCurv}
 impose the constraints that the "piece of curve" become horizontal.
+We will see in~\ref{EpipTieP} a more detailled analysis explaining how of the 
+method can work even with configuration different of figure~\ref{NonFuncCorresp}.
 
 
 
@@ -914,10 +928,14 @@ is high enough.
 
 \subsection{Epipolar resampling without the localisation model}
 
+\label{EpipTieP}
+
 The question we adress here is : \emph{"is it possible to use
 the proposed method  for computing epipolar geometry
 when we have only  tie points computed from images but no geometric model"}.  In fact
-there is not binary simple answer as there pro and cons to solve this question .
+there is \er{easy yes/no answer as there pro and cons arguments to solve this question}
+and, as we will see, the precise answer depends of the tie points (it is in fact a
+trade-off between the nature of the relief and complexity of the model).
 
 \noindent {\underline {\bf Pro: }}  algorithm~\ref{AlgoGlob} only use tie points and a
 direction for computing the epipolar geometry. For this computation,
@@ -936,6 +954,9 @@ then there exist some function relation between them :
          and note $S^\mathcal{Z}$  the corresponding surface;
    \item for a point $p_1$ of $I_1$, note $ \PiZVert (p_1)$
          the intersection of  $\BundO(p_1)$ and the surface  $S^\mathcal{Z}$;
+         $\PiZVert$ is the inverse of the restriction  $\pi_1$ 
+         as function froù $I_1$ to $S^\mathcal{Z}$;
+
    \item we see now there exist a functionnal relation between all the homologous
          points $(p_1,p_2)$ corresponding to equation 
 \end{itemize}
@@ -947,11 +968,58 @@ then there exist some function relation between them :
 
 But, as discussed in~\ref{WhyWork}, it is not possible, in the most general
 case, to recover epipolar geometry from set of homologous points when there exist
-a functionnal relation between them.
+a functionnal $p_2=F(p_1)$ relation between them. 
 
-\noindent {\underline {\bf Pro \& Cons:}} We reanalyse now the argument of~\ref{WhyWork}.
-Suppose we have already compute an epipolar geometry, and that there exist af functionnal
-correspondence between $e_1$ and $e_1$ :
+\noindent {\underline {\bf Pro \& Cons:}} If  we analyse again the text of~\ref{WhyWork},
+we can see that in the argumentation we have ommitted the fact that in the proposed method,
+the function $V_1$ and $V_2$ have to be very "smooth" functions. 
+We make again the reasoning :
+
+\begin{itemize}
+   \item suppose we have computed an epipolar geometry  : $e_k=(u_k,v_k)=\phi_k(p_k) = (x_k,V_k(y_k)$,
+         with $v_1=v_2$ and $V_k$ being "smooth" function and we try to analyse if these
+         geometry was ambiguous:
+
+   \item  we have $e_2 = (\phi_2 \circ  \pi_2 \circ  \PiZVert \circ  \phi_1^{-1}) (e_1) = P(e_1)$
+
+    \item we write  previous equation as $(u_2,v_2) = P(u_1,v_1) = (u_1 + p_x(u_1,v_1),v_1)$,  where
+          $p_x$ is what usually called the "paralax function"; 
+
+   \item as in ~\ref{WhyWork}  for any function $W_2 : \RR^2 \rightarrow \RR  $, let $W_1$ be the function
+         define by $W_1 = W_2 \circ P$
+
+   \item for any $e_1,e_2$ , then $(u_1,W_1(u_1,v_1))$ and $(u_2,W_2(u_2,v_2))$ satisy also the epipolar constraint
+         as $W_1(u_1,v_1)) = W_2 (P(u_1,v_1)) = W_2(u_2,v_2)$
+
+\end{itemize}
+
+So now the question we have to solve, is it possible that both $W_2$ and $W_2 \circ P$ are
+smooths function. And the answser is "it depends of the smoothness of $P$".
+
+If $P$ is itself a smooth function, then obviously for any smooth $W_2$,  $W_2 \circ P$  will
+be also smooth and the epipolar will be ambiguous.  As an archetype case, is the terrain is
+flat, then $p_x=0$, then  $P=Id$ and as $W_1=W_2$, $W_1$ is smooth if $W_2$ is smooth . 
+In this case so the epipolar geometry is ambigous.
+
+Alternatively, is the relief has many high frequency, then $P$ has also many high frequency,
+and it impossible that both  $W_2$ and $W_2 \circ P$ are smooth. This can be seen more formally
+by following equation :
+
+\begin{equation}
+   \DerPart{W_2 \circ P}{u} = \DerPart{P}{u} \DerPart{W_2} {u} \circ P  \label{DerParW2P}
+\end{equation}
+
+As an archetype case for any point where the rellief is not derivable,
+we have $ \DerPart{P}{u}= \infty$ and equation~\ref{DerParW2P}, lead to $ \DerPart{W_2} {u}=0$.
+If taking into account the degree freedom on $W_2$
+
+ $W_2$ is a polynomial function 
+
+
+
+
+
+
 
 %---------------------------------------------
 %---------------------------------------------

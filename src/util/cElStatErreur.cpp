@@ -46,19 +46,49 @@ cElStatErreur::cElStatErreur(INT NbValInit) :
    mErrs(NbValInit),
    mOk (true)
 {
+   Reset();
 }
 
 void cElStatErreur::AddErreur(REAL anErr)
 {
   mOk = false;
   mErrs.push_back(anErr);
+  mSom0++;
+  mSom1+= anErr;
+  mSom2+= ElSquare(anErr);
 }
 
 void cElStatErreur::Reset()
 {
+    mSom0 = 0.0;
+    mSom1 = 0.0;
+    mSom2 = 0.0;
     mOk = true;
     mErrs.clear();
 }
+
+void  cElStatErreur::AssertNotEmpty() const
+{
+   ELISE_ASSERT(mSom0>=0,"Empty in cElStatErreur::Erreur");
+}
+
+double  cElStatErreur::Avg() const
+{
+    AssertNotEmpty();
+    return mSom1 / mSom0;
+}
+
+double  cElStatErreur::Ect() const
+{
+    AssertNotEmpty();
+    double aAv1 =  mSom1 / mSom0;
+    double aAv2 =  mSom2 / mSom0;
+
+    double aVar = aAv2-ElSquare(aAv1);
+
+    return std::sqrt(std::max(0.0,aVar));
+}
+
 
 REAL cElStatErreur::Erreur(REAL Pos)
 {
