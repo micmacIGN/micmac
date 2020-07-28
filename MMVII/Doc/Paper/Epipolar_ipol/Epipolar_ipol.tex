@@ -314,7 +314,7 @@ curve of $I_k$ defined by $\CurveK(v) = \phi_k^{-1}(\LineK(v))$
 
 %---------------------------------------------
 
-\subsection{Existence of epipolar geometry}
+\subsection{Existence of epipolar geometry}\label{ExistEpip}
 
 We now discuss the existence of {epipolar geometry}. As you will see, epipolar geometry generally does not exist, and when it does, it is not
 unique. It is well known that:
@@ -342,23 +342,22 @@ of the same point. Then, $v_2=v$ according to Definition~\ref{EqEpiEgalY} and $P
 \begin{equation}
    \forall v \forall P \in \Sv :  \BundO(P) \subset \Sv , \BundT \subset \Sv, \label{ClothureBundle}
 \end{equation}
-which is again a direct consequence of definitions, if $P \in \Sv$ then $\pi_k^{-1}(P) \in \CurveK(v)$
-(see Equation~\ref{Svk}), then $\pi_k^{-1}(\pi_k(P)) = \BundK(P) \subset \Sv$.
-
-
-But the existence of a stable foliation for the two bundles sets, as expressed in Equation~\ref{ClothureBundle},
-cannot  be satisfied in general. It is  illustrated 
+which is again a direct consequence of definitions. If $P \in \Sv$ then $\pi_k^{-1}(P) \in \CurveK(v)$
+(see Equation~\eqref{Svk}), then $\pi_k^{-1}(\pi_k(P)) = \BundK(P) \subset \Sv$.
+%
+However, in general the existence of a stable foliation for the two bundles sets, as expressed in Equation~\eqref{ClothureBundle},
+cannot  be satisfied. It is  illustrated 
 by Figure~\ref{FigClothPath} and explained in the following.  Let $\pi_1,\pi_2$ be any two  projections and suppose
-there exists  a folliation satisfying the Equation~\ref{ClothureBundle}. Then, 
+there exists  a foliation satisfying the Equation~\eqref{ClothureBundle}. Then, 
 
 \begin{itemize}
-   \item  let $P$ be any point of ground space, and $\Sv$ be the surface such that $P \in \Sv$;
+   \item  let $P$ be any point in ground space, and $\Sv$ be the surface such that $P \in \Sv$;
    \item  let $P_1 \neq P$ be a point on $\BundO(P)$, $P_1 \in \Sv$, then $\BundT(P_1) \subset \Sv$;
    \item  let $P_2 \neq P$ be a point on $\BundT(P)$, $P_2 \in S_v$, then $\BundO(P_2) \subset \Sv$;
    \item  as $\BundT(P_1)$ and $\BundO(P_1)$ are included in the same surface $\Sv$ they
             must intersect somewhere in a point $Q$.
 \end{itemize}
-The above is a contradiction because, in the general case, there is no reason that for any two sets
+In the general case, the above is a contradiction because there is no reason that for any two sets
 of bundles the condition $\BundT(P_1) \cap \BundO(P_2) \neq \emptyset $ is satisfied
 (see Figure~\ref{FigClothPath} on the right).
 
@@ -378,11 +377,11 @@ Right : generic case, paht don't intersect, no epipolar can exist}
 %---------------------------------------------
 
 
-\subsection{A local caracterization of epipolar existence}
+\subsection{A local characterization of epipolar existence}
 
-In this section we compute a local formula (i.e. a differential equation) that gives the conditions for
-existence of an epipolar geometry. This section is rather theoriticall and
-can be omitted for user interested mainly by practicall application.
+In this section we compute a local formula (i.e. a differential equation) that provides conditions for
+the existence of an epipolar geometry. This section is rather theoretical and
+can be omitted for user interested mainly in the practical application.
 
 \begin{figure}
 \centering
@@ -395,15 +394,14 @@ can be omitted for user interested mainly by practicall application.
 \label{EqDifEpip}
 \end{figure}
 
-The idea is , as in section~\ref{ExistEpip}, is to make a  computation of pathes two way, $\BundO$ then $\BundT$ ,
-and $\BundT$ then $\BundO$; then we express a taylor expansion of the intersection distance
-between these two path.  We use the notation of figure~\ref{EqDifEpip} :
-
+Analogously to the proof in Section~\ref{ExistEpip}, we will make a  computation of two-way paths, $\BundO$ then $\BundT$,
+as well as $\BundT$ and $\BundO$. Then, we express the intersection distance
+between these two path as the Taylor expansion. Let's consider the following (see Figure~\ref{EqDifEpip}):
 \begin{itemize}
-   \item we make the sub-vertical assumption \footnote{when this assumption can be made,
-          not we could use curvilinear abscisse};
+   \item we make the quasi-vertical assumption\footnote{when this assumption can be made,
+          \er{note we could use curvilinear abscissa}};
    \item let $P$ be any point of $\RR^3$;
-   \item consider a first path $(P,P_1,Q_1)$ following  $\BundO$ then $\BundT$ , making a
+   \item consider the first path $(P,P_1,Q_1)$ following  $\BundO$ then $\BundT$ , making a
          progression $d_{z1}$ on $\BundO$ and  $d_{z2}$ on $\BundT$ ;
    \item consider a second path $(P,P_2,Q_2)$ following  $\BundT$ then $\BundO$ , making a
          progression $d_{z'2}$ on $\BundO$ and  $d_{z'1}$ on $\BundT$ ;
@@ -414,10 +412,9 @@ between these two path.  We use the notation of figure~\ref{EqDifEpip} :
         $\DerPart{F}{z_1}  \neq \DerPart{F}{z_2}$;
 \end{itemize}
 
-Now, whatever may be the pair of 'small' values $(\delta_1,\delta_2)$,  we will compute the  pair of values
-$(\delta'_1,\delta'_2)$ that minimize the distance $|Q_1,Q_2|$ and express the annulation of the
-second degree taylor expansion of this distance (the first degree can always being annulated as we will see). 
-Noting $\delta$ the max of all $\delta$, the degree $2$ Taylor expansion gives :
+Now, whatever may be the pair of 'small' values $(\delta_1,\delta_2)$,  we will compute a  pair of values
+$(\delta'_1,\delta'_2)$ that minimize the distance $|Q_1,Q_2|$ and express the canceling of the
+second degree Taylor expansion of this distance (the first degree can always being canceled out as we will see).  Noting $\delta$ the max of all $\delta$, the second degree Taylor expansion gives :
 
 \begin{equation}
     P_1 =  P +  \delta_1 \TanO{(P)} + \frac{{\delta_1}^2}{2} \DerPart { \TanO{}}{z_1}(P)  + \Negl{\delta^3} \label{P1} 
@@ -428,10 +425,9 @@ Noting $\delta$ the max of all $\delta$, the degree $2$ Taylor expansion gives :
 \begin{equation}
      \TanT{(P_1)} = \TanT{(P)} +  \delta_1   \DerPart { \TanT{}}{z_1}(P) + \Negl{\delta^2} \label{TP1}
 \end{equation}
-
-Putting together equations~\ref{P1},~\ref{Q1},~\ref{TP1} we can make a taylor expansion of path
-$P$ to $Q_1$ :
-
+%
+Putting together Equations~\eqref{P1},~\eqref{Q1},~\eqref{TP1} we can perform a Taylor expansion of the path
+$P$ to $Q_1$:
 \begin{equation}
     Q_1 =    P +  \delta_1 \TanO{(P)} 
                +  \delta_2 \TanT{(P)} 
@@ -441,9 +437,9 @@ $P$ to $Q_1$ :
                + \Negl{\delta^3}
        \label{Q1ofP}
 \end{equation}
-
+%
 And similarly for $P$ to $Q_2$ :
-
+%
 \begin{equation}
     Q_2 =    P +  \delta'_2 \TanT{(P)} 
                +  \delta'_1 \TanO{(P)} 
@@ -453,24 +449,23 @@ And similarly for $P$ to $Q_2$ :
                + \Negl{\delta^3}
        \label{Q2ofP}
 \end{equation}
-
-The firts degree Taylor expansion of $Q_2-Q_1$ gives :
-
+%
+The first degree Taylor expansion of $Q_2-Q_1$ gives :
+%
 \begin{equation}
     Q_2 -Q_1 =   (\delta'_1 -\delta_1) \TanO{(P)} +  (\delta'_2 -\delta_2) \TanT{(P)}  + \Negl{\delta^2}
 \end{equation}
-
-To minimize $|Q_2 -Q_1|$, the first step is to annulate the degree $1$ terms of $ Q_2 -Q_1$ . We assume
-that $\TanT{(P)}$ and $\TanO{(P)}$  are independant vectors~\footnote{elsewhere, it would be a 
-degenerate case of stereovision} and we must then make of $\delta'_2 -\delta_2$ and $\delta'_1 -\delta_1$
-term of degre $2$ :
+%
+To minimize $|Q_2 -Q_1|$, the first step is to cancel the first degree  terms of $ Q_2 -Q_1$. We assume
+that $\TanT{(P)}$ and $\TanO{(P)}$  are independant vectors\footnote{Otherwise, it would be a 
+degenerate case for stereovision} and we must then \er{make of $\delta'_2 -\delta_2$ and $\delta'_1 -\delta_1$ term of degre $2$:}
 
 \begin{equation}
    \Delta_1 =   \delta'_1 -\delta_1 = \Negl{\delta^2}  \; ; \; \Delta_2 =   \delta'_2 -\delta_2 = \Negl{\delta^2}
    \label{Delta}
 \end{equation}
-
-To develop $ Q_2 -Q_1$ we can use the following identities  that are direct consquences of~\ref{Delta} :
+%
+To develop $ Q_2 -Q_1$ we can use the following identities  that are direct consequences of~Equation~\eqref{Delta}:
 
 \begin{equation}
    \delta_1  \delta_2 -  \delta'_1  \delta'_2  = \Negl{\delta^3} \;;\;
@@ -478,21 +473,19 @@ To develop $ Q_2 -Q_1$ we can use the following identities  that are direct cons
    {\delta_2}^2 - {\delta'_2}^2 =  \Negl{\delta^3} 
    \label{NeglDelta}
 \end{equation}
-
-Subtracting \ref{Q1ofP} to \ref{Q2ofP}, and using~\ref{NeglDelta},we can write :
+%
+Subtracting Equation~\eqref{Q1ofP} from Equation~\eqref{Q2ofP}, and using Equation~\eqref{NeglDelta}, we can write :
 
 \begin{equation}
     Q_2 -Q_1 =   \Delta_1 \TanO{(P)} +   \Delta_2 \TanT{(P)}  
                + \delta_1  \delta_2(\DerPart { \TanT{}}{z_1}(P)  -\DerPart { \TanO{}}{z_2}(P) )
                + \Negl{\delta^3}
 \end{equation}
-
-
-We now traduce the intersection of path by annulating the degree $2$ Taylor expansion of $Q_2 -Q_1$.
-We have  $3$ vector, and their weighted sum can be null, iff they are colinear.
+%
+We now translate the intersection of paths by canceling the second degree Taylor expansion in $Q_2 -Q_1$. We have three vectors, and their weighted sum can be null iff they are colinear.
 
 \begin{theorem}[Existence of epipolar]
-The epipolar exist iff the following determinant is null :
+The epipolar geometry exists iff the following determinant is null:
 
 \begin{equation}
 \left[ \begin{array}{c|c|c}
@@ -505,12 +498,12 @@ The epipolar exist iff the following determinant is null :
 
 \begin{remark}[Epipolar equation with central perspective camera]
 As an illustration in an easy case, we can see that this condition is trivially 
-satisfied for a pair of central perspective cameras as we have the annulation of both terms as shown
-in equation~\ref{EqEpipConik}. This is because for a given point $P$,
+satisfied for a pair of central perspective cameras as we have the canceling of both terms as shown
+in Equation~\eqref{EqEpipConik}. This is because for a given point $P$,
 for any point $P_1$ on $\BundO(P)$, $\TanT{P_1}$ belongs to the epipolar
-plane $\mathcal{P}$ , we have $\TanT{P_1} \in \mathcal{P}$, so $\DerPart { \TanT{}}{z_1} \in \mathcal{P}$,
-and as we have also $\TanO{(P)} \in  \mathcal{P}, \TanT{(P)} \in  \mathcal{P}$, the collineratity
-between $\TanO{(P)}$ , $\TanT{(P)}$ and $\DerPart { \TanT{}}{z_1}(P)$ is proved.
+plane $\mathcal{P}$. We have $\TanT{P_1} \in \mathcal{P}$, so $\DerPart { \TanT{}}{z_1} \in \mathcal{P}$,
+and as we have also $\TanO{(P)} \in  \mathcal{P}, \TanT{(P)} \in  \mathcal{P}$, the collinearity
+between $\TanO{(P)}$ , $\TanT{(P)}$ and $\DerPart { \TanT{}}{z_1}(P)$ is thus proven.
 
 \begin{equation}
 \left[ \begin{array}{c|c|c}
@@ -533,7 +526,7 @@ between $\TanO{(P)}$ , $\TanT{(P)}$ and $\DerPart { \TanT{}}{z_1}(P)$ is proved.
 When the epipolar geometry exists, the epipolar resampling is not unique. To demonstrate that our rectification method handles this ambiguity rigorously, we first describe it formally. Let $\phi_1,\phi_2$ and  $\phi'_1,\phi'_2$ be two   epipolar resamplings.
 For any pair of lines $\LineK(v)$ in $E_k$, there are corresponding 
 homologous curves $\CurveO(v),\CurveT(v)$  in images 
-$I_1,I_2$ (see Equation~\ref{Eq:CurvHom}). Following the depiction in Figure~\ref{FigAmbigEpip}, if $\phi'_k(\CurveK(v)))$
+$I_1,I_2$ (see Equation~\eqref{Eq:CurvHom}). Following the depiction in Figure~\ref{FigAmbigEpip}, if $\phi'_k(\CurveK(v)))$
 are  lines $\LineK(v')$ in $E_k$, one can observe that $\phi'_1 \phi_1^{-1}$  and $\phi'_2 \phi_2^{-1}$ are diffeomorphisms transforming lines in lines, and they globally \er{operate the same transformation on lines.}
 And \textit{vice versa}, let  $\phi_1,\phi_2$ be an epipolar resampling and let $\Lambda_1,\Lambda_2$ 
 be diffeomorphisms  that are stable for lines and make globally the same transformation on lines. We can thus note that $\Lambda_1 \circ \phi_1$ and  $\Lambda_2 \circ \phi_2$ are also an epipolar resampling.
@@ -543,10 +536,10 @@ Having devised the exact ambiguity, we can now define two constraints to impose 
 \begin{enumerate}
 \item Constraint on uniqueness of the deformation
 inside each line of each \er{function}. For instance, one can impose that the colums remain constant (i.e.
-the deformation is made only on  $y$), as given in Equations~\ref{Ambig:PhiO}
+the deformation is made only on  $y$), as given in Equations~\eqref{Ambig:PhiO}
 and~\ref{Ambig:PhiT};
 \item Constraint on the global deformation of lines\footnote{i.e. where each line
-is transformed globally to another line}. For instance, by fixing the transformation of one image, as given Equation~\ref{FigAmbigEpip}.
+is transformed globally to another line}. For instance, by fixing the transformation of one image, as given Equation~\eqref{FigAmbigEpip}.
 \end{enumerate}
  
 
@@ -604,7 +597,7 @@ are not unique, we parameterize the $\phi_k$ in Theorem~\ref{Theo:Fix:Ambig} acc
   \label{EpipVParam}
 \end{equation}
 %
-This parametrization implements the constraints of Equations~\eqref{Ambig:PhiO} and~\ref{Ambig:PhiT}. In Section~\ref{ChoicePolyn} we will see how the constraint of Equation~\ref{Ambig:Line} is accounted for\footnote{See Equations~\eqref{CstrV1:0},~\eqref{CstrV1:1}.}. 
+This parametrization implements the constraints of Equations~\eqref{Ambig:PhiO} and~\eqref{Ambig:PhiT}. In Section~\ref{ChoicePolyn} we will see how the constraint of Equation~\eqref{Ambig:Line} is accounted for\footnote{See Equations~\eqref{CstrV1:0},~\eqref{CstrV1:1}.}. 
 To compute $V_1,V_2$, for any pair of \emph{H-Compatible} points we add an observation that
 constraints $V_1$ and $V_2$:
 
@@ -617,14 +610,14 @@ constraints $V_1$ and $V_2$:
 
 
 The method take as input two camera models $\pi_1$ and $\pi_2$.
-These models are considered as black-boxes that satisfy Equation~\eqref{Eq:Proj} No specific assumption on the physical model of the camera is made. In our own \CPP implementation,
-the cameras are regarded as pure virtual classes offering interface to equation~\eqref{Eq:Proj}.
-In this paper, the examples processed by our method are RPC satellite models and frame camera (central perspective) but the
-only restriction in on the "smoothness" of the projection function :
+These models are considered as black-boxes that satisfy Equation~\eqref{Eq:Proj}, and for which no specific assumption is made on the physical model of the camera. In our own \CPP implementation,
+the cameras are considered as pure virtual classes offering the interface to Equation~\eqref{Eq:Proj}.
+In this paper, the examples processed by our method are RPC satellite models and the pinhole model, however, the
+only restriction put is on the "smoothness" of the projection function, i.e.:
 
 \begin{itemize}
-    \item the fact that $\pi$ are   $\mathcal{C}^{\infty}$ function;
-    \item the fact that the direction of epipolar curves have a limited interval of variation (say for example
+    \item $\pi$ are $\mathcal{C}^{\infty}$ functions, and
+    \item the directions of epipolar curves vary within a limited range (for example,
           less than $\frac{\pi}{2}$).
 \end{itemize}
 
@@ -638,46 +631,35 @@ only restriction in on the "smoothness" of the projection function :
 \caption{Left : a set of epipolar line not handled with our methods. Right : a perfectly acceptable pair  of epipolar line}
 \label{BadGoodEpip}
 \end{figure}
+%
+\noindent Figure~\ref{BadGoodEpip} illustrates the latter constraint. The left image presents a set
+of epipolar lines with too large direction variations. The right image represents a pair of epipolar lines whose directions change within a small range, therefore suitable for the proposed resampling method. 
 
-Figure~\ref{BadGoodEpip} illustrates the last constraint on epipolar curves. Left image present a set
-of epipolar line that would not be handled by our methods.  Right image, represent a pair of epipolar line
-that would be handled without problem because for each of them the direction of the line are included
-in a restricted interval. 
+\subsubsection{Estimation of the center and the global direction}
 
+To begin with, the method estimates the centers $C_1,C_2$ of a set of points $p_1$ and $p_2$. This is done by a calculating the average of all points coordinates.  Then, the computations pursue in
+a coordinate system with the origin at that center. Thanks to this "normalisation", the constraint in Equation~\ref{Ambig:Line} will be applied at the center of the data points.
 
-\subsubsection{Center and global direction estimations}
-
-The mehod estimate first the center $C_1,C_2$ of set of points $p_1$ and $p_2$, this is done by
-a simple computation of average of coordinates.  Then all the computation are done in
-a repaire originate in this center. 
-
-This operation is usefull for the  application of constraint~\ref{Ambig:Line} so that is applied
-at the center of the data.
-
-
-
-The method then estimates for each image the average direction $\vec{D}_k$
-of its epolar line, and a rotation $R_k$ is applied to the data so that the epipolar line become
-globally horizontal using formula of equation~\eqref{EqRot}.
-The  epipolar deformation is computed on these rotated data.
+Next, for each image we estimate the average direction $\vec{D}_k$
+of its epipolar lines, and using Equation~\eqref{EqRot} a rotation $R_k$ is applied to the data points. The epipolar lines become now globally horizontal and the subsequent epipolar deformation is computed on the rotated data points.
 
 \begin{equation}
     R_k(p) =  \frac{p-C_k}{\vec{D}_k}  \label{EqRot}
 \end{equation}
 
 
-This setting in a repair where epipolar lines are globaly horizontal, is
-a consequence of equations~\ref{EpipVParam}, and is illustrated by figure~\ref{ReqOrient} :
-
+The use of the coordinate system where epipolar lines are globaly horizontal, is
+a consequence of Equation~\eqref{EpipVParam}, and is illustrated by Figure~\ref{ReqOrient}.
+\er{ER- remove that but add extra comment in the figure?
 \begin{itemize}
    \item left image of figure~\ref{ReqOrient} presents a case where epipolar curve are quasi vertical
          and for which an epipolar correction, without initial rotation,  
-          according to equation~\ref{EpipVParam} would be impossible;
+          according to equation~\eqref{EpipVParam} would be impossible;
    \item middle image of figure~\ref{ReqOrient} presents a case where epipolar curve are oblique,
-         in this case epipolar correction according to equation~\ref{EpipVParam} would be possible
+         in this case epipolar correction according to equation~\eqref{EpipVParam} would be possible
          but would lead to important distorsion in the image, as can be seen on left image.
 \end{itemize}
-
+}
 
 
 
@@ -688,8 +670,8 @@ a consequence of equations~\ref{EpipVParam}, and is illustrated by figure~\ref{R
 \includegraphics[width=10cm]{FIGS/EpipReqOrient.jpg}
  \\ \hline \hline
 \end{tabular}
-\caption{Left : quasi vertical epipolar curve, correction with equation~\ref{EpipVParam} is impossible. 
-         Middle,Right  : oblique curve, epipolar rectification  with equation~\ref{EpipVParam} is possible
+\caption{Left : quasi vertical epipolar curve, correction with equation~\eqref{EpipVParam} is impossible. 
+         Middle,Right  : oblique curve, epipolar rectification  with equation~\eqref{EpipVParam} is possible
          but generate important distorsion}
 \label{ReqOrient}
 \end{figure}
@@ -732,7 +714,7 @@ A more formalized description of the algorithm is given in bloc ~\ref{AlgoGlob}.
 \subsubsection{Why should it work ?}
 \label{WhyWork}
 
-Intuitively, it may be not obvious that the system of equation~\ref{EqV1V2} is well posed.
+Intuitively, it may be not obvious that the system of equation~\eqref{EqV1V2} is well posed.
 In fact, in the case where there would exist a functionnal relation between
 $p_1$ and $p_2$ , as $p_1=F(p_2)$,  there would exist infinity of solution
 for $(V_1,V_2)$ :   for any function $V: \RR^2 \rightarrow \RR $ we can generate a solution $(V,V\circ F)$ .
@@ -765,13 +747,13 @@ we have the equation  :
 \end{equation}
 
 
-And equation~\ref{MultiTieP} brings in fact the constraint : 
+And equation~\eqref{MultiTieP} brings in fact the constraint : 
 
 \begin{equation}
 V_2(p^1_2) = V_2(p^2_2)  =  V_2(p^3_2) \dots \label{RedrCurv}
 \end{equation}
 
-If we look at left image of figure~\ref{NonFuncCorresp}, we see that equation~\ref{RedrCurv}
+If we look at left image of figure~\ref{NonFuncCorresp}, we see that equation~\eqref{RedrCurv}
 impose the constraints that the "piece of curve" become horizontal.
 
 
@@ -790,7 +772,7 @@ impose the constraints that the "piece of curve" become horizontal.
 
 We need to select a space of parametric function to represente $V_1,V_2$. The only constraint
 is that $V_1,V_2$ are $\mathcal{C}^{\infty}$ function , plus the additional constraint of 
-equation~\ref{Ambig:Line}. 
+equation~\eqref{Ambig:Line}. 
 
 Classicaly when we want to parametrize a set of function  $\mathcal{C}^{\infty}$,
 a "natural" candidate is the set of polynoms of given degree; we know the function will be
@@ -804,7 +786,7 @@ we can add sufficient number of measure to have a high level of redundancy (say,
 $100$ times more measures than constraints).
 
 Let $d$ be the selected degree, we have two vectors of unknown $C^1_{a,b},C^2_{a,b}$ 
-corresponding to coefficients of the polynoms as written in equation~\ref{EqPol}:
+corresponding to coefficients of the polynoms as written in equation~\eqref{EqPol}:
 
 
 \begin{equation}
@@ -813,7 +795,7 @@ corresponding to coefficients of the polynoms as written in equation~\ref{EqPol}
    
 \subsubsection{Imposing constrainte on global lines deformation}
 
-In this paramatrisation, we must take into account equation~\ref{Ambig:Line}.
+In this paramatrisation, we must take into account equation~\eqref{Ambig:Line}.
 When using constraint~\ref{Ambig:Line}, we have  $i=0$ , so we can supress all term  $i^a$ for $a\neq 0$
 and the equation can be writen as :
 
@@ -822,7 +804,7 @@ and the equation can be writen as :
     V_1(0,j) =  j =   \sum\limits_{\substack{b=0}}^{N}  C^1_{0,b}  j^b  \label{CstrV1:0}
 \end{equation}
 
-In equation~\ref{CstrV1:0}, $j$ and the  sum are both polynom, so if their function are equal on a segment, they
+In equation~\eqref{CstrV1:0}, $j$ and the  sum are both polynom, so if their function are equal on a segment, they
 must be equal term by term. The constraint then comes to force a number the
 unknown $C^1_{0,k}$ who have a known value  : $1$ for $C^1_{0,1}$ and $0$ else.
 Using kronecker delta we can write :
@@ -871,7 +853,7 @@ generation of the points with $\pi_1$  as master.
 
 Once we have computed centers $c_1,c_2$, directions   $\vec{D}_1,\vec{D}_2$  and the list $L_{1,2}$,
 we use it  to normalize the center the measure and make the direction globally
-horizontal : we apply equation~\ref{EqRot}  to all elements of the list.
+horizontal : we apply equation~\eqref{EqRot}  to all elements of the list.
 
 
 \subsubsection{Estimating the rectification}
@@ -884,9 +866,9 @@ a matter of merging the previous part :
     \item let $d$ be the degree of the polynoms;
     \item the unknown are the coefficient of the polynomes $V_1$ and $V_2$, there is
           $\frac{(d+1)(d+2)}{2}$ unknowns for $V_2$ and $\frac{(d+1)(d+2)}{2}-(d+1) $  for $V_1$
-          taking into account the  constraint of equation ~\ref{CstrV1:1}
+          taking into account the  constraint of equation~\eqref{CstrV1:1}
      \item for each pair of corrected point $q_1,q_2$ we add to the least square system
-          the equation ~\ref{EqPol};
+          the equation~\eqref{EqPol};
 \end{itemize}
 
 We then estimate the $V_1,V_2$ by in the least square system. An obtain :
