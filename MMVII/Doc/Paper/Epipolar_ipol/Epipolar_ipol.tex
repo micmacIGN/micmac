@@ -5,7 +5,7 @@
 %-------------------------------------------------------------------------------
 \documentclass{ipol}
 \usepackage{mathrsfs} 
-
+\usepackage{xfrac}
 \usepackage{amsmath} 
 \usepackage{amsfonts}
 \usepackage{rotating} 
@@ -321,12 +321,8 @@ curve of $I_k$ defined by $\CurveK(v) = \phi_k^{-1}(\LineK(v))$
 
 %---------------------------------------------
 
-<<<<<<< HEAD
-\subsection{Existence of epipolar geometry}\label{ExistEpip}
-=======
-\subsection{Existence of epipolar geometry}
-\label{ExistEpip}
->>>>>>> c5f337490c1d0f667a982192fd79773efee0d10b
+%<<<<<<< HEAD
+\subsection{Existence of epipolar geometry}\label{ExistEpip} 
 
 We now discuss the existence of {epipolar geometry}. As you will see, epipolar geometry generally does not exist, and when it does, it is not
 unique. It is well known that:
@@ -778,7 +774,7 @@ method can work even with configuration different of figure~\ref{NonFuncCorresp}
 %---------------------------------------------
 
 
-\subsection{Detailled implementation}
+\subsection{Detailed implementation}
 
 
 \subsubsection{Choice of a parametric functional space}
@@ -1045,6 +1041,79 @@ Exemple de résultats avec résidus. + qq crop d'images rectifiees.
 
 C'est la que c'est vraiment utile .... 
 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%ù
+\begin{table}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c||c|c|c|c|}
+
+%\cline{2-5} 
+\multicolumn{1}{c}{}  & \multicolumn{4}{c}{Oh~\cite{Oh2011}} & \multicolumn{4}{c}{Ours}   \\
+ \cline{2-9} 
+ \multicolumn{1}{c}{}  & \multicolumn{4}{|c||}{ $\sfrac{B}{H}$ } & \multicolumn{4}{|c|}{$\sfrac{B}{H}$ }  \\
+ %\cline{2-9}
+ \multicolumn{1}{c|}{$Z_{buff}$ [m]}  &  0.1 &  0.15   & 0.25  &  0.45 &  0.1 &  0.15   & 0.25  &  0.45   \\
+ \cline{1-9}
+  
+ 50 & 0.0070  & 0.0142    & 0.0156   &  0.0084   &  0.0017   &  0.0017  & 0.0017  & 0.0012\\
+100 & 0.0065  & 0.0144    & 0.0157   &  0.0092   &  0.0019   &  0.0018  & 0.0017  & 0.0012\\
+200 & 0.0057  & 0.0151    & 0.0164   &  0.0098   &  0.0027   &  0.0022  & 0.0022  & 0.0014\\
+270 & 0.0055  & 0.0156    & 0.0144   &  0.0010   &  0.0036   &  0.0026  & 0.0026  & 0.0020\\
+\hline 
+
+\end{tabular}
+\end{center}
+\caption{Maximum value of the remaining y-parallax [pix] for acquisitions from a \textbf{single orbit}. $Z_{buff}$ corresponds to half the depth of the volumne used in the resampling calculation.}\label{tab:PHR1mono}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c||c|c|c|c|}
+
+%\cline{2-5} 
+\multicolumn{1}{c}{}  & \multicolumn{4}{c}{Oh~\cite{Oh2011}} & \multicolumn{4}{c}{Ours}   \\
+ \cline{2-9} 
+ \multicolumn{1}{c}{}  & \multicolumn{4}{|c||}{ $\sfrac{B}{H}$ } & \multicolumn{4}{|c|}{$\sfrac{B}{H}$ }  \\
+ %\cline{2-9}
+ \multicolumn{1}{c|}{$Z_{buff}$ [m]}  &  0.13 &  0.2   & 0.3  &  0.4 &  0.13 &  0.2   & 0.3  &  0.4   \\
+ \cline{1-9}
+  
+ 50  &  0.0297    &  0.0059   & 0.0178   & 0.0112 & 0.0021   & 0.0021     & 0.0021    &  0.0021   \\
+100  &  0.0284    &  0.0088   & 0.0183   & 0.0134 & 0.0029   & 0.0037     & 0.0034    &  0.0034   \\
+200  &  0.0325    &  0.0196   & 0.0252   & 0.0232 & 0.0064   & 0.0010     & 0.0086    &  0.0088   \\
+270  &  0.0381    &  0.0311   & 0.0343   & 0.0340 & 0.0101   & 0.0171     & 0.0143    &  0.0154   \\
+\hline 
+
+\end{tabular}
+\end{center}
+\caption{Maximum value of the remaining y-parallax [pix] for acquisitions from \textbf{multiple orbits}. $Z_{buff}$ corresponds to half the depth of the volumne used in the resampling calculation.}\label{tab:PHR1multi}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[t!]
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c||c|c|c|c|}
+
+%\cline{2-5} 
+\multicolumn{1}{c}{}  & \multicolumn{4}{c}{Single orbit} & \multicolumn{4}{c}{Multiple orbits}   \\
+ \cline{2-9} 
+ \multicolumn{1}{c}{}  & \multicolumn{4}{|c||}{ $\sfrac{B}{H}$ } & \multicolumn{4}{|c|}{$\sfrac{B}{H}$ }  \\
+ %\cline{2-9}
+ \multicolumn{1}{c|}{$Z_{buff}$ [m]}  &  0.1 &  0.15   & 0.25  &  0.45 &  0.13 &  0.2   & 0.3  &  0.4   \\
+ \cline{1-9}
+  
+ 50-270  &   1.6$e^{-5}$    &  0.8$e^{-5}$  &  0.3$e^{-5}$  &  0.1$e^{-5}$   &   2.0$e^{-5}$  &     0.7$e^{-5}$  &  0.5$e^{-5}$   &    0.2$e^{-5}$   \\
+%100  &       &      &       &     &     &      &     &       \\
+%200  &       &      &       &     &     &      &     &       \\
+%270  &       &      &       &     &     &      &     &       \\
+\hline 
+
+\end{tabular}
+\end{center}
+\caption{Epipolarability indices for acquisitions from a single and {multiple orbits}.}\label{tab:PHR1indices}
+\end{table}
 
 \subsection{Use with radar images}
 
