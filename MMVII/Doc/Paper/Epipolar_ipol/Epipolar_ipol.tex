@@ -20,7 +20,7 @@
 \usepackage{algorithmic}  
 \usepackage{amsthm}
 
-\ipolSetTitle{Epipolar rectification of a generic camera  model}
+\ipolSetTitle{Epipolar rectification of a generic camera}
 \ipolSetAuthors{Marc Pierrot Deseilligny\ipolAuthorMark{1},
                 Ewelina Rupnik\ipolAuthorMark{1}}
 \ipolSetAffiliations{%
@@ -102,32 +102,32 @@ ble
 \end{ipolAbstract}
 
 %-------------------------------------------------------------------------------
-\ipolKeywords{epipolar rectification, generic camera}
+\ipolKeywords{epipolar rectification, generic camera, pushbroom sensor, central perspective}
 
 %-------------------------------------------------------------------------------
 \section{Introduction}
-Epipolar geometry of images plays a central role in many applications in the field of photogrammetry and computer vision. Within the stereo-reconstruction pipeline, it intervenes twice:
+The epipolar geometry of images plays a central role in many applications in the field of photogrammetry and computer vision. In the stereo-reconstruction pipeline, it is \er{used} twice:
 
 \begin{enumerate}
-   \item In the camera pose orientation step when computing the
-      relative orientation of a pair images from their corresponding points. Assuming 
+   \item In the camera pose orientation step, when computing the
+      relative orientation of a pair of images from their corresponding points. Assuming 
       the projection follows the central perspective and the internal calibration is known,
-      one can compute the epipolar geometry using the essential matrix
-      \mpd{then recover relative from epipolar + cite Fusiello (?)};
-   \item In the image dense matching step where the epipolar rectification simplifies the 
-       correspondence search because we know
-        that for a point $(x_1,y)$ in image $I_1$, its correspondence is some point
-        $(x_2,y)$ in image $I_2$. Therefore, finding correspondences across images reduces to 
-        a $1$ dimensional problem.
+      one can compute the epipolar geometry of the images using the essential matrix. Finally, the relative orientation is recovered \cite{fusiello2000epi}.   
+     
+   \item In the image dense matching step, where the epipolar rectification simplifies the 
+       correspondence search because for any point $(x_1,y)$ in image $I_1$, its correspondence is some point $(x_2,y)$ in image $I_2$. Therefore, finding correspondences across images reduces to 
+        a $1$-dimensional problem ($1$D).
 \end{enumerate}
 
 \noindent In this paper, we only study  the epipolar rectification problem and more specifically
-its application to a generic camera model, focusing on the pushbroom sensors.
+its application to a generic camera model.%, focusing on the pushbroom sensors.
 
 \subsection{Related works}
-Rectifying a pinhole camera stereo pair comes down to transforming their original epipolar geometry to a canonical form where: (a) their focal planes are coplanar, (b) their conjugate epipolar lines are colinear, and (c) parallel to the camera's x-axis. 
+Rectifying a central perspective camera stereo pair involves transforming their original epipolar geometry to a canonical form where: (a) their focal planes are coplanar, and (b) their conjugate epipolar lines are colinear, and parallel to the camera's x-axis. 
 %It is equivalent of sending the stereo pair's epipoles at infinity. 
-From the algebraic standpoint, it is equal to applying two 2D projective transformation to either images of the stereo pair. Several approaches to compute such transformations have been proposed over the course of the last 30 years. For a calibrated stereo pair (i.e. with known camera projection matrices), there exists a unique rectifying transformation, up to a rotation along the baseline~\cite{fusiello2000epi}. In an uncalibrated case, the solution is obtained by factoring out two 2D homographies from the fundamental matrix. Because there are no two unique homographies, the common practice is to parametrize these transformations such that the distortions caused by rectifying are minimized. For instance, Loop and Zhang~\cite{loop1999epi} decompose the rectifying homographies to a combination of the projective, similarity, shearing transforms and impose that the first stays close to an affine mapping. Hartley~\cite{hartley1999epi} satisfies a condition that for a neighborhood of a point (e.g. the center of an image) the computed homography is a rigid transformation. Building on this work, Isgro and Trucco's~\cite{isgro1999epi} approach obtains a unique solution by minimizing the x-disparity, without having to explicitly calculate the fundamental matrix. Instead of minimizing the disparity in the first coordinate, Wu and Yu~\cite{wu2005epi} recycle an idea first introduced by Hartley~\cite{hartley1999epi} which requires that the aspect ratio of the images before and after rectification is constant. More recently, Fusiello and Irsara~\cite{fusiello2008epi} introduced the camera matrices back into the equation and proposed a \textit{quasi}-Euclidean approach for uncalibrated cameras, similar to that of the calibrated cameras case. Their projective transformations are parametrized by five angles and a focal length. Monasse \textit{et al.}~\cite{monasse2010epi} break down the one-time rotation of~\cite{fusiello2008epi} to a three step procedure, and prove increased robustness by using a geometric error measure (i.e., camera rotation angle) to reduce the rectifying error distortions.
+From the algebraic standpoint, this is equivalent to applying two $2$-dimensional ($2$D) projective transformations to both images of the stereo pair. Several approaches to computing such transformations have been proposed over the course of the last 30 years.
+
+For a calibrated stereo pair (i.e. with known camera projection matrices), there exists a unique rectifying transformation, up to a rotation along the baseline~\cite{fusiello2000epi}. In an uncalibrated case, the solution is obtained by factoring out two 2D homographies from the fundamental matrix. Because there are no two unique homographies, the common practice is to parametrize these transformations such that the distortions caused by the rectification process are minimized. For instance, Loop and Zhang~\cite{loop1999epi} decompose the rectifying homographies to a combination of the projective, similarity and shearing transforms, with the condition that the prrojective transform remains (close to) affine. Hartley~\cite{hartley1999epi} satisfies the condition that for a neighborhood of a point (e.g. the center of an image), the computed homography is a rigid transformation. Building on this work, Isgro and Trucco's~\cite{isgro1999epi} approach obtains a unique solution by minimizing the x-disparity without having to explicitly calculate the fundamental matrix. Instead of minimizing the disparity in the first coordinate, Wu and Yu~\cite{wu2005epi} recycle an idea first introduced by Hartley~\cite{hartley1999epi} which requires that the aspect ratio of the images before and after rectification is constant. More recently, Fusiello and Irsara~\cite{fusiello2008epi} introduced the camera matrices back into the equation and proposed a \textit{quasi}-Euclidean approach for uncalibrated cameras, similar to that of the calibrated cameras case. Their projective transformations are parametrized by five angles and a focal length. Monasse \textit{et al.}~\cite{monasse2010epi} break down the one-time rotation of~\cite{fusiello2008epi} to a three step procedure, and prove increased robustness by using a geometric error measure (i.e., camera rotation angle) to reduce the rectifying error distortions.
 
 %force the plane at infinity to be close to the plane at infinity of a calibrated stereo pair. This is possible by making an educated guess and estimating only the focal length.
 
@@ -140,7 +140,7 @@ From the algebraic standpoint, it is equal to applying two 2D projective transfo
 
   
 %
-Unlike the central projection camera model, pushbroom-like sensors acquire each image row from a different perspective center. As a consequence, the epipolar lines are neither straight lines, nor are they conjugate across the image~\cite{Gupta1997}.  One way to overcome this particularity is to simplify the projection function with a 2D affine~\cite{ono1999epipolar,wang2011epipolar} or a parallel projection model~\cite{morgan2006epipolar}. Such approximations usually come at a prize of the loss of precision, especially with the increasing camera field-of-view or in mountainous scenes. In the context of image dense matching, de~Francis \textit{et al.}~\cite{deFrancis2014stereo} improves the precision by partitioning the images into small patches for which indepedent affine rectifictions are computed. Alternatively and with equally good precision, Oh~\cite{Oh2011} uses the \textit{Rational polynomial coefficients} (RPCs) to map the epipolar curves across the full size images with lines in a piecewise approach.
+Unlike the central projection camera model, pushbroom-like sensors acquire each image row from a different perspective center. As a consequence, the epipolar lines are neither straight lines, nor are they conjugate across the image~\cite{Gupta1997}.  One way to overcome this particularity is to simplify the projection function with a 2D affine~\cite{ono1999epipolar,wang2011epipolar} or a parallel projection model~\cite{morgan2006epipolar}. Such approximations usually come at the price of precision, especially with the increasing camera field-of-view or in mountainous scenes. In the context of dense image matching, de~Francis \textit{et al.}~\cite{deFrancis2014stereo} improves the precision by partitioning the images into small patches, for which indepedent affine rectifictions are computed. Alternatively, and with equally good precision, Oh~\cite{Oh2011} uses the \textit{Rational Polynomial Coefficients} (RPCs) to map the epipolar curves across the full size images with lines in a piecewise approach.
 %
 %ù while being locally approximated to straight lines. Oh~\cite{Oh2011} approximates the epipolar curves of an image pair by piecewise linear curves with a set of virtual correspondences. An image pair is then resampled to an equivalent geometry, imposing that the conjugate curves become straight and aligned on the y-axis. 
 
@@ -158,35 +158,31 @@ Unlike the central projection camera model, pushbroom-like sensors acquire each 
 
 %Carlo de Franchis , split the images in small patch, in each patch compute a coniq camera that approximate the model for each pair, make an epipolar resampling of this approximate coniq camera.  Advantage : simple an reuse existing method. Drawback : need small patch to be accurate enough.
 
-%\begin{itemize}
-   %\item Isabelle Veillet :   these a l'IGN bureau Lahman
- %  \item Ooh \cite{Oh2011}  : par suivi de ligne  
- %  \item orientation by epipolar (Samantha )
-%\end{itemize}
+\subsection{Contributions}
+Our research work proposes an epipolar geometry rectification method that is not tied to any camera physical model. %Thus, our method can be applied to images taken with the central projection camera model and the pushbroom sensor. 
+We demonstrate that on a range of models, including Pleiades images (pushbroom), the Corona images (panoramic pushbroom), a consumer grade camera images (central perspective) as well as \er{Sentinel-1 radar images (pushbroom)}.
+The method resembles Oh's~\cite{Oh2011} approach in that it exploits the point correspondences to find the polynomial mapping to epipolar geometry. However, unlike the work of Oh~\cite{Oh2011}, we do not require that the camera geometric model is known. We demonstrate that in some circumstances, point correspondences obtained from an image processing routine, e.g. SIFT~\cite{lowe2004distinctive}, can serve to find the epipolar resampling. 
 
-NOUS: 
-\begin{itemize}
-\item nous optimization global donc repartition d'erreur (Oh no)
-\item no a priori on narrow FOV, altitude diffs in terr wrt the satellite altitude (true for affine approximations) 
-\item no need for localisation model (true for all except for Wang?)
-\end{itemize}
+In the remainder of this publication, we first outlay the mathematical background of the epipolar geometry and identify cases when epipolar geometry does not exist or is ambiguous  (Section~\ref{sec:math}). Then, we introduce our method (Section~\ref{sec:method}), and finally present the experiments on different datasets with and without the geometric model (Section~\ref{sec:experiments}). The results are compared against the Oh's~\cite{Oh2011} method with respect to the y-parallax remaining after the resampling to the epipolar geometry.
 
-%\subsection{Topic of the paper}
+ %\subsection{Topic of the paper}
 
 
 
-\section{The mathematics of epipolar geometry in the generic case}
+\section{The mathematics of epipolar geometry in the generic case}\label{sec:math}
 
 \subsection{Formalisation and notation of projections}
 
-\begin{figure}
+\begin{figure}[htb]
 \centering
-\begin{tabular}{||c||}
- \hline \hline
-\includegraphics[width=10cm]{FIGS/NotaProj.jpg} 
- \\ \hline \hline
+\begin{tabular}{c}
+% \hline 
+ \\
+\includegraphics[width=6cm]{FIGS/NotaProj.png} 
+ \\ 
+  \\%\hline 
 \end{tabular}
-\caption{A projection and a bundle}
+\caption{A projection and a bundle.}
 \label{FigNotaProj}
 \end{figure}
 
@@ -194,8 +190,8 @@ NOUS:
 
 %\includegraphics[width=12cm]{FIGS/NotaSets.jpg}
 
-We define the geometric sensor model of an image by a projection function $\pi$, that computes for a given 3D
-point its 2D projection in the image:
+We define the geometric sensor model of an image by a projection function $\pi$, that computes, for a given 3D
+point, its 2D projection in the image:
 
 \begin{definition}[Generic geometric sensor model]  
 
@@ -208,7 +204,7 @@ A geometric sensor model $\pi$ is a $\mathcal{C}^{\infty}$ mapping from ground s
 \end{equation}
 \end{definition}
 
-\noindent Next, we define the bundles of a projection :
+\noindent Next, we define the bundles of a projection:
 
 \begin{definition}[Bundle]
 For $p_k \in I_k$ we note $\BundK(p_k)$  the bundle corresponding to $\pi_k^{-1}(p_k)$. \er{When there is no confusion},
@@ -217,26 +213,26 @@ we note identically  $\BundK(P)$, where $P\in \RR^3$,
 \end{definition}
 
 
-\noindent Later, for simplicity we will use the  {quasi vertical} hypothesis, which allows to extend $\pi$ to a
-bijective mapping of $\RR^3$ and compute its inverse:
+\noindent Later, for simplicity, we will use the  {quasi-vertical} hypothesis, which allows us to extend $\pi$ to a
+bijective mapping of $\RR^3$ and compute its inverse.
 
-\begin{definition}[Quasi vertical camera model]  
-We say that the projection is quasi vertical if the following mapping $\PiVert$ is a diffeomophism of $\RR^3$:
+\begin{definition}[Quasi-vertical camera model]  
+We say that the projection is quasi-vertical if the following mapping $\PiVert$ is a diffeomophism of $\RR^3$:
 \begin{equation}
   \PiVert :  \RR^3  \rightarrow \RR^3  ,  (X,Y,Z)  \rightarrow (i,j,Z) = \PiVert(X,Y,Z)  , with (i,j) = \pi(X,Y,Z). \label{PiInvert}
 \end{equation}
 \end{definition}
-
-\noindent Given $2$ images $I_1$ and $I_2$, the knowledge  of their geometric models $\pi_1$ and  $\pi_2$
+%
+Given $2$ images $I_1$ and $I_2$, the knowledge  of their geometric models $\pi_1$ and  $\pi_2$
 reduces the matching between $2$ images to a 1D problem. In fact, given a point $p_1$ in $I_1$,
 we can compute the 3D curve $\BundO(p_1)$ of  ground points that project to $p_1$ in $I_1$, and compute its
 homologous curve in $I_2$ with $\pi_2(\BundO(p_1))$. We now define the H-compatible relation between two points
 by the following definition:
 
 \begin{definition}[H-Compatible, $\HComp$] 
-\emph{Illustrated on Figure~\ref{FigNotaComp}.}
+\emph{Illustrated in Figure~\ref{FigNotaComp}.}
 
-We says that $p_1$ in  $I_1$ and $p_2$ in $I_2$ are  $\pi_1-\pi_2$ H-compatible, and write $p_1 \HComp p_2$, if   the following condition is satisfied:
+We say that $p_1$ in  $I_1$ and $p_2$ in $I_2$ are  $\pi_1-\pi_2$ H-compatible, and write $p_1 \HComp p_2$, if   the following condition is satisfied:
 
 \begin{equation}
    ( \BundO(p_1) \cap  \BundT(p_2) \neq \emptyset    )
@@ -245,18 +241,18 @@ We says that $p_1$ in  $I_1$ and $p_2$ in $I_2$ are  $\pi_1-\pi_2$ H-compatible,
 \end{equation}
 \end{definition}
 
-\begin{figure}
+\begin{figure}[htb!]
 \centering
-\begin{tabular}{||c||}
- \hline \hline
-\includegraphics[width=15cm]{FIGS/NotaBundle.jpg} 
- \\ \hline \hline
+\begin{tabular}{c}
+ %\hline \\
+\includegraphics[width=9cm]{FIGS/NotaBundle.png} 
+ %\\ \hline
 \end{tabular}
 \caption{Illustration of $\HComp$}
 \label{FigNotaComp}
 \end{figure}
 
-\noindent In image matching, the relation $p_1 \HComp p_2$  means that $p_1$ and $p_2$ are potentially homologous.
+\noindent In image matching, the relationship $p_1 \HComp p_2$  means that $p_1$ and $p_2$ are potentially homologous.
 
 %---------------------------------------------
 %---------------------------------------------
@@ -265,19 +261,18 @@ We says that $p_1$ in  $I_1$ and $p_2$ in $I_2$ are  $\pi_1-\pi_2$ H-compatible,
 
 
 % - - - - - - - - - - - - - - -
-\subsection{Definition of epipolar geometry}
+\subsection{Definition of the epipolar geometry}
 
-In fact, the previous relations are sufficient to implement all the matching techniques and
-$(\pi_1,\pi_2)$ can be used to define a matching process taking advantage
-of the~\emph{a priori} knowledge on the scene geometry. That is, given a point in one image, we can easily
+In fact, the previous relationships are sufficient to implement all the matching techniques and
+$(\pi_1,\pi_2)$ can be used to define a matching process, taking advantage
+of the~\emph{a priori} knowledge of the scene geometry. That is, given a point in one image, we can easily
 follow its curve of potentially homologous points in the other image.
-This way of handling geometry (i.e., without the epipolar geometry) has also the advantage of being adaptable to multi-image matching. We can thus see that epipolar geometry is not required in the image matching process.
+This technique, which does not exploit the epipolar geometry, has the advantage of also being adaptable to multi-image matching. Epipolar geometry is therefore not strictly required for the image matching process.
 
-The drawback of this approach is that it mixes, in the same routine, two 
-different problems: the handling of the geometry and resampling on one side;
-the matching process on the other side. When one is interested
-in matching of a single image pair, the epipolar geometry
-can provide an "elegant" solution to separating the problem in two independent problems. \er{ER thinks this should be removed $\rightarrow$} When two images are in epipolar geometry, two points $p_1,p_2$ are potential homologous iff they have the same ordinate ($y_1=y_2$).
+The drawback of this approach is that it combines two different problems in the same procedure: the handling of the geometry and resampling and
+the matching process. When one is interested
+in the matching of a single image pair, the epipolar geometry
+can provide an elegant solution by separating the problem in two. \er{ER thinks this should be removed $\rightarrow$ When two images are in epipolar geometry, two points $p_1,p_2$ are potential homologous iff they have the same ordinate ($y_1=y_2$).}
 
 \begin{definition}[Epipolar Geometry]
 \emph{Illustrated in Figures~\ref{FigDefEpip} and~\ref{FigAmbigEpip}.}
@@ -293,10 +288,10 @@ of $\RR^2$. We say that $\phi_1,\phi_2$ are epipolar resamplings iff:
 
 \begin{figure}
 \centering
-\begin{tabular}{||c||}
- \hline \hline
-\includegraphics[width=15cm]{FIGS/Epip.jpg} 
- \\ \hline \hline
+\begin{tabular}{c}
+ %\hline \\
+\includegraphics[width=9cm]{FIGS/Epip.png} 
+ %\\ \hline 
 \end{tabular}
 \caption{Illustration of epipolar geometry.}
 \label{FigDefEpip}
@@ -304,125 +299,125 @@ of $\RR^2$. We say that $\phi_1,\phi_2$ are epipolar resamplings iff:
 
 
 \noindent The matching of epipolar images is simplified because we know that the lines in two images are globally homologous. 
-\er{The space of the image rectified to epipolar geometry is denoted by $E$ (see Figure~\ref{FigDefEpip})}
+%\er{The space of the image rectified to epipolar geometry is denoted by $E$ (see Figure~\ref{FigDefEpip})}
 
 
 \begin{notation}[Epipolar line and curve.]
-We note $\LineK(v)$   the epipolar  line of $E_k$ defined by $v_k=v$. We also note $\CurveK(v)$ the epipolar
+We denote $\LineK(v)$  as the epipolar  line of $E_k$ defined by $v_k=v$. We also denote $\CurveK(v)$ as the epipolar
 curve of $I_k$ defined by $\CurveK(v) = \phi_k^{-1}(\LineK(v))$
 \end{notation}
 %
 \noindent We can see that when epipolar geometry exists, the two curves $\CurveO(v)$ and $\CurveT(v)$ are globally homologous:
 
 \begin{equation}
-     \CurveO(v) = \PiOT{C_2(v)}   ;  \CurveT(v) = \PiTO{C_1(v)} \label{Eq:CurvHom}
+     \CurveO(v) = \PiOT{C_2(v)}   ;  \CurveT(v) = \PiTO{C_1(v)}.\label{Eq:CurvHom}
 \end{equation}
 
 
 %---------------------------------------------
 
 %<<<<<<< HEAD
-\subsection{Existence of epipolar geometry}\label{ExistEpip} 
+\subsection{Existence of the epipolar geometry}\label{ExistEpip} 
 
-We now discuss the existence of {epipolar geometry}. As you will see, epipolar geometry generally does not exist, and when it does, it is not
+We now discuss the existence of the {epipolar geometry}. As you will see, the epipolar geometry generally does not exist, and when it does, it is not
 unique. It is well known that:
 
 \begin{itemize}
-    \item for any image pair following the central projection there exists  an epipolar geometry;
+    \item for any image pair following the {central projection}, there exists  an epipolar geometry;
 
-    \item  not all image pairs can be resampled to epipolar geometry; for example, a cylindrical projection, applicable to many push-broom satellites, generally does not allow for epipolar resampling.
+    \item  not all image pairs can be resampled to epipolar geometry. For example, a cylindrical projection, applicable to many push-broom satellites, generally does not allow for epipolar resampling.
 
 \end{itemize}
-We explain now why epipolar geometry does not exist for any $\pi_1,\pi_2$ and is rather an exception. Let's define the surface $\Sv^k$ of $\RR^3$ by :
+We explain now why the epipolar geometry does not exist for any $\pi_1,\pi_2$ and is instead an exception. Let's define the surface $\Sv^k$ of $\RR^3$ by:
 
 \begin{equation}
    \Sv^k = \pi_k^{-1}(\CurveK(v)).  \label{Svk}
 \end{equation}
-Following the definition of the \er{epipolar geometry}, it can be seen that $\Sv^1$ and $\Sv^2$ are the same surface $\Sv$:
+By the definition of {epipolar geometry} above, it can be seen that $\Sv^1$ and $\Sv^2$ are the same surface $\Sv$:
 
 \begin{equation}
-   \Sv^1 = \Sv^2 = \Sv,
+   \Sv^1 = \Sv^2 = \Sv.
 \end{equation}
-which is a direct consequence of definitions. For any $P\in\Sv^1$, set  $e_1=\phi_1(\pi_1(P))=(u_1,v)$
-and $e_2=\phi_2(\pi_2(P))=(u_2,v_2)$, we have $\pi_1(P) \HComp \pi_2(P)$ because they are projections
+For any $P\in\Sv^1$, set  $e_1=\phi_1(\pi_1(P))=(u_1,v)$
+and $e_2=\phi_2(\pi_2(P))=(u_2,{v_2})$. We then have $\pi_1(P) \HComp \pi_2(P)$ because they are projections
 of the same point. Then, $v_2=v$ according to Definition~\ref{EqEpiEgalY} and $P \in \Sv^2$. Furthermore, the $\Sv$ defines a foliation of $\RR^3$, and it can be seen that:
 
 \begin{equation}
    \forall v \forall P \in \Sv :  \BundO(P) \subset \Sv , \BundT \subset \Sv, \label{ClothureBundle}
 \end{equation}
-which is again a direct consequence of definitions. If $P \in \Sv$ then $\pi_k^{-1}(P) \in \CurveK(v)$
+which also leads directly from the definitions above. If $P \in \Sv$ then $\pi_k^{-1}(P) \in \CurveK(v)$
 (see Equation~\eqref{Svk}), then $\pi_k^{-1}(\pi_k(P)) = \BundK(P) \subset \Sv$.
 %
-However, in general the existence of a stable foliation for the two bundles sets, as expressed in Equation~\eqref{ClothureBundle},
-cannot  be satisfied. It is  illustrated 
-by Figure~\ref{FigClothPath} and explained in the following.  Let $\pi_1,\pi_2$ be any two  projections and suppose
-there exists  a foliation satisfying the Equation~\eqref{ClothureBundle}. Then, 
+However, in general, the existence of a stable foliation for the two bundle sets, as expressed in Equation~\eqref{ClothureBundle},
+cannot  be satisfied, as illustrated 
+in Figure~\ref{FigClothPath}.  To explain further, let $\pi_1$ and $\pi_2$ be any two  projections and suppose
+there exists  a foliation satisfying the Equation~\eqref{ClothureBundle}. Then, let: 
 
 \begin{itemize}
-   \item  let $P$ be any point in ground space, and $\Sv$ be the surface such that $P \in \Sv$;
-   \item  let $P_1 \neq P$ be a point on $\BundO(P)$, $P_1 \in \Sv$, then $\BundT(P_1) \subset \Sv$;
-   \item  let $P_2 \neq P$ be a point on $\BundT(P)$, $P_2 \in S_v$, then $\BundO(P_2) \subset \Sv$;
-   \item  as $\BundT(P_1)$ and $\BundO(P_1)$ are included in the same surface $\Sv$ they
-            must intersect somewhere in a point $Q$.
+   \item   $P$ be any point in $3$D space, and $\Sv$ be the surface such that $P \in \Sv$;
+   \item   $P_1 \neq P$ be a point on $\BundO(P)$, $P_1 \in \Sv$, then $\BundT(P_1) \subset \Sv$;
+   \item   $P_2 \neq P$ be a point on $\BundT(P)$, $P_2 \in S_v$, then $\BundO(P_2) \subset \Sv$.
 \end{itemize}
-In the general case, the above is a contradiction because there is no reason that for any two sets
-of bundles the condition $\BundT(P_1) \cap \BundO(P_2) \neq \emptyset $ is satisfied
-(see Figure~\ref{FigClothPath} on the right).
+As $\BundT(P_1)$ and $\BundO(P_1)$ are included in the same surface $\Sv$, they
+            must intersect somewhere in a point $Q$.
+In the general case, the above is a contradiction because  there is no reason that the condition $\BundT(P_1) \cap \BundO(P_2) \neq \emptyset $ is satisfied for any two sets
+of bundles (see Figure~\ref{FigClothPath},right).
 
-\begin{figure}
+\begin{figure}[h!]
 \centering
-\begin{tabular}{||c|c||}
- \hline \hline
-\includegraphics[width=8cm]{FIGS/ClothPathEpip.jpg} &
-\includegraphics[width=8cm]{FIGS/ClothPathNonEpip.jpg} 
- \\ \hline \hline
+\begin{tabular}{cc}
+%\hline
+%& \\
+\includegraphics[width=7cm]{FIGS/ClothPathEpip.png} &
+\includegraphics[width=7cm]{FIGS/ClothPathNonEpip.png}\\
+% & \\\hline
 \end{tabular}
-\caption{Clothure of path . Left : epipolar case, the bundle are on the same level of a foliation and intersect.
-Right : generic case, paht don't intersect, no epipolar can exist}
+\caption{Path closure. Left: in the epipolar case, the bundles are on the same level of the foliation and the intersection.
+Right: in the generic case, the paths don't intersect and no epipolar geometry exists.}
 \label{FigClothPath}
 \end{figure}
 
 %---------------------------------------------
 
 
-\subsection{A local characterization of epipolar existence}
+\subsection{A local characterization of the epipolar existence}
 
-In this section we compute a local formula (i.e. a differential equation) that provides conditions for
+In this section, we compute a local formula (i.e. a differential equation) that provides conditions for
 the existence of an epipolar geometry. This section is rather theoretical and
-can be omitted for user interested mainly in the practical application.
+can be omitted by readers mainly interested in practical applications.
 
 \begin{figure}
 \centering
-\begin{tabular}{||c||}
- \hline \hline
-\includegraphics[width=10cm]{FIGS/EquadifEpip.jpg}
- \\ \hline \hline
+\begin{tabular}{c}
+% \hline \\
+\includegraphics[width=7cm]{FIGS/EquadifEpip.png}
+% \\ \\ \hline
 \end{tabular}
-\caption{Notation for local caracterization of epipolar existence}
+\caption{Notation for local characterization of the epipolar existence}
 \label{EqDifEpip}
 \end{figure}
 
-Analogously to the proof in Section~\ref{ExistEpip}, we will make a  computation of two-way paths, $\BundO$ then $\BundT$,
-as well as $\BundT$ and $\BundO$. Then, we express the intersection distance
-between these two path as the Taylor expansion. Let's consider the following (see Figure~\ref{EqDifEpip}):
+Analogously to the proof in Section~\ref{ExistEpip}, we will make a  computation of two-way paths, \er{$\BundO$ then $\BundT$,
+as well as $\BundT$ and $\BundO$}. Then, we express the \er{intersection distance}
+between these two paths as the Taylor expansion. Let's consider the following (see Figure~\ref{EqDifEpip}):
 \begin{itemize}
    \item we make the quasi-vertical assumption\footnote{when this assumption can be made,
           \er{note we could use curvilinear abscissa}};
-   \item let $P$ be any point of $\RR^3$;
-   \item consider the first path $(P,P_1,Q_1)$ following  $\BundO$ then $\BundT$ , making a
-         progression $d_{z1}$ on $\BundO$ and  $d_{z2}$ on $\BundT$ ;
-   \item consider a second path $(P,P_2,Q_2)$ following  $\BundT$ then $\BundO$ , making a
-         progression $d_{z'2}$ on $\BundO$ and  $d_{z'1}$ on $\BundT$ ;
-   \item we note $\overrightarrow{t_1(P)}=(x,y,1)$ the tangent to bundle  $\BundO$  in point $P$
+   \item let $P$ be any point in $\RR^3$;
+   \item consider the first path $(P,P_1,Q_1)$ following  $\BundO$ then $\BundT$, making a
+         progression $d_{z_1}$ on $\BundO$ and  $d_{z_2}$ on $\BundT$ ;
+   \item consider a second path $(P,P_2,Q_2)$ following  $\BundT$ then $\BundO$, making a
+         progression $d_{z'_2}$ on $\BundO$ and  $d_{z'_1}$ on $\BundT$ ;
+   \item we denote $\overrightarrow{t_1(P)}=(x,y,1)$ as the tangent to the bundle  $\BundO$  in point $P$
          (and similarly $\overrightarrow{t_2}(P)$);
-   \item when we will write  $\DerPart{F}{z_1}$ we will refer to the coordinate system $(i_1,j_1,z) = \PiVert_1^{-1}(x,y,z)$,
+   \item when we write  $\DerPart{F}{z_1}$, we will refer to the coordinate system $(i_1,j_1,z) = \PiVert_1^{-1}(x,y,z)$,
          idem for  $\DerPart{F}{z_2}$, and obviously as they are two different coordinate systems, we have in general
-        $\DerPart{F}{z_1}  \neq \DerPart{F}{z_2}$;
+        $\DerPart{F}{z_1}  \neq \DerPart{F}{z_2}$.
 \end{itemize}
 
-Now, whatever may be the pair of 'small' values $(\delta_1,\delta_2)$,  we will compute a  pair of values
-$(\delta'_1,\delta'_2)$ that minimize the distance $|Q_1,Q_2|$ and express the canceling of the
-second degree Taylor expansion of this distance (the first degree can always being canceled out as we will see).  Noting $\delta$ the max of all $\delta$, the second degree Taylor expansion gives :
+Now, for any pair of "small" values $(\delta_1,\delta_2)$,  we  compute 
+$(\delta'_1,\delta'_2)$ which minimize the distance $|Q_1,Q_2|$ and express the canceling of the
+second degree Taylor expansion of this distance (the first degree can always be canceled out as we will see).  Noting $\delta$ the max of all $\delta$, the second degree Taylor expansion gives :
 
 \begin{equation}
     P_1 =  P +  \delta_1 \TanO{(P)} + \frac{{\delta_1}^2}{2} \DerPart { \TanO{}}{z_1}(P)  + \Negl{\delta^3} \label{P1} 
@@ -529,36 +524,36 @@ between $\TanO{(P)}$ , $\TanT{(P)}$ and $\DerPart { \TanT{}}{z_1}(P)$ is thus pr
 %---------------------------------------------
 
 
-\subsection{Ambiguity of epipolar geometry}
+\subsection{Ambiguity of the epipolar geometry}
 
 When the epipolar geometry exists, the epipolar resampling is not unique. To demonstrate that our rectification method handles this ambiguity rigorously, we first describe it formally. Let $\phi_1,\phi_2$ and  $\phi'_1,\phi'_2$ be two   epipolar resamplings.
 For any pair of lines $\LineK(v)$ in $E_k$, there are corresponding 
 homologous curves $\CurveO(v),\CurveT(v)$  in images 
 $I_1,I_2$ (see Equation~\eqref{Eq:CurvHom}). Following the depiction in Figure~\ref{FigAmbigEpip}, if $\phi'_k(\CurveK(v)))$
-are  lines $\LineK(v')$ in $E_k$, one can observe that $\phi'_1 \phi_1^{-1}$  and $\phi'_2 \phi_2^{-1}$ are diffeomorphisms transforming lines in lines, and they globally \er{operate the same transformation on lines.}
-And \textit{vice versa}, let  $\phi_1,\phi_2$ be an epipolar resampling and let $\Lambda_1,\Lambda_2$ 
+are  lines $\LineK(v')$ in $E_k$, one can observe that $\phi'_1 \phi_1^{-1}$  and $\phi'_2 \phi_2^{-1}$ are diffeomorphisms transforming lines into lines, and they globally \er{operate the same transformation on lines.}
+\textit{Vice versa}, let  $\phi_1,\phi_2$ be an epipolar resampling and let $\Lambda_1,\Lambda_2$ 
 be diffeomorphisms  that are stable for lines and make globally the same transformation on lines. We can thus note that $\Lambda_1 \circ \phi_1$ and  $\Lambda_2 \circ \phi_2$ are also an epipolar resampling.
 
 
-Having devised the exact ambiguity, we can now define two constraints to impose a unique epipolar resampling: 
+Having devised the exact ambiguity, we can now define two constraints to impose on a unique epipolar resampling: 
 \begin{enumerate}
-\item Constraint on uniqueness of the deformation
+\item Constraint on the uniqueness of the deformation
 inside each line of each \er{function}. For instance, one can impose that the colums remain constant (i.e.
-the deformation is made only on  $y$), as given in Equations~\eqref{Ambig:PhiO}
-and~\ref{Ambig:PhiT};
+the deformation is only made  on  $y$), as given in Equations~\eqref{Ambig:PhiO}
+and~\eqref{Ambig:PhiT};
 \item Constraint on the global deformation of lines\footnote{i.e. where each line
-is transformed globally to another line}. For instance, by fixing the transformation of one image, as given Equation~\eqref{FigAmbigEpip}.
+is transformed globally to another line}. For instance, by fixing the transformation of one image, as given in Equation~\eqref{FigAmbigEpip}.
 \end{enumerate}
  
 
 \begin{figure}
 \centering
-\begin{tabular}{||c||}
- \hline \hline
-\includegraphics[width=10cm]{FIGS/AmbigEpip.jpg}
- \\ \hline \hline
+\begin{tabular}{c}
+% \hline \hline
+\includegraphics[width=10cm]{FIGS/AmbigEpip.png}
+% \\ \hline \hline
 \end{tabular}
-\caption{Ambiguity : two possible epipolar resampling}
+\caption{Ambiguity of the epipolar geometry: two possible epipolar resamplings for a single stereopair.}
 \label{FigAmbigEpip}
 \end{figure}
 
@@ -567,7 +562,7 @@ is transformed globally to another line}. For instance, by fixing the transforma
 
 \begin{theorem}[Unique epipolar constraint]
 
-If epipolar geometry exists, there exist a unique epipolar resampling $\phi_1,\phi_2$ satisfying the $3$ following constraints:
+If the epipolar geometry exists, there exists a unique epipolar resampling $\phi_1,\phi_2$ satisfying the  following three constraints:
 
 \begin{equation}
     \phi_1(x,y) = (x,y') \label{Ambig:PhiO}
@@ -588,7 +583,7 @@ If epipolar geometry exists, there exist a unique epipolar resampling $\phi_1,\p
 %---------------------------------------------
 %---------------------------------------------
 
-\section{Proposed method for epipolar geometry resampling}
+\section{Proposed method for epipolar geometry resampling}\label{sec:method}
 
 
 \subsection{Hypothesis and layout}
@@ -598,16 +593,15 @@ The principle of the method is to use \emph{H-Compatible}  points $p_1,p_2$ to c
 pair of functions $\phi_1,\phi_2$ that comply with the epipolar constraint, i.e. 
 \emph{"$\phi_1(p_1)$ and $\phi_2(p_2)$ are on the same line"}. As these epipolar functions
 are not unique, we parameterize the $\phi_k$ in Theorem~\ref{Theo:Fix:Ambig} accordingly:
-
+%
 \begin{equation}
-    \phi_k(i,j) = (i,V_k(i,j))  \; \; ; \; \;
+    \phi_k(i,j) = (i,V_k(i,j)); \; \;
     V_k : \RR^2 \rightarrow \RR  
   \label{EpipVParam}
 \end{equation}
 %
-This parametrization implements the constraints of Equations~\eqref{Ambig:PhiO} and~\eqref{Ambig:PhiT}. In Section~\ref{ChoicePolyn} we will see how the constraint of Equation~\eqref{Ambig:Line} is accounted for\footnote{See Equations~\eqref{CstrV1:0},~\eqref{CstrV1:1}.}. 
-To compute $V_1,V_2$, for any pair of \emph{H-Compatible} points we add an observation that
-constraints $V_1$ and $V_2$:
+This parametrization implements the constraints of Equations~\eqref{Ambig:PhiO} and~\eqref{Ambig:PhiT}. We will account for the constraint of  Equation~\eqref{Ambig:Line} in Section~\ref{ChoicePolyn}\footnote{See Equations~\eqref{CstrV1:0},~\eqref{CstrV1:1}.}. 
+To compute $V_1,V_2$, for any pair of \emph{H-Compatible} points, we add an observation that constrains $V_1$ and $V_2$:
 
 
 \begin{equation}
@@ -617,11 +611,10 @@ constraints $V_1$ and $V_2$:
 \subsubsection{Hypothesis}
 
 
-The method take as input two camera models $\pi_1$ and $\pi_2$.
-These models are considered as black-boxes that satisfy Equation~\eqref{Eq:Proj}, and for which no specific assumption is made on the physical model of the camera. In our own \CPP implementation,
-the cameras are considered as pure virtual classes offering the interface to Equation~\eqref{Eq:Proj}.
-In this paper, the examples processed by our method are RPC satellite models and the pinhole model, however, the
-only restriction put is on the "smoothness" of the projection function, i.e.:
+The method takes two camera models $\pi_1$ and $\pi_2$ as inputs.
+These models are considered black-boxes that satisfy Equation~\eqref{Eq:Proj}, and for which no specific assumption is made on the physical model of the camera. In our \CPP implementation,
+the cameras are considered to be pure virtual classes offering the interface to Equation~\eqref{Eq:Proj}.
+In this paper, the examples processed by our method are pushbroom satellite models known by their RPCs, the central perspective and \er{radar} models. However, the only restriction imposed on the generic nature of the model is that the projection function is "smooth", i.e.:
 
 \begin{itemize}
     \item $\pi$ are $\mathcal{C}^{\infty}$ functions, and
@@ -631,33 +624,31 @@ only restriction put is on the "smoothness" of the projection function, i.e.:
 
 \begin{figure}
 \centering
-\begin{tabular}{||c||}
- \hline \hline
-\includegraphics[width=10cm]{FIGS/BadGoodLines.jpg}
- \\ \hline \hline
+\begin{tabular}{c}
+% \hline \hline
+\includegraphics[width=10cm]{FIGS/BadGoodLines.png}
+% \\ \hline \hline
 \end{tabular}
-\caption{Left : a set of epipolar line not handled with our methods. Right : a perfectly acceptable pair  of epipolar line}
+\caption{Left: a set of epipolar lines not handled by our method. Right: a perfectly acceptable pair  of epipolar lines.}
 \label{BadGoodEpip}
 \end{figure}
 %
-\noindent Figure~\ref{BadGoodEpip} illustrates the latter constraint. The left image presents a set
+Figure~\ref{BadGoodEpip} illustrates the latter constraint. The left image presents a set
 of epipolar lines with too large direction variations. The right image represents a pair of epipolar lines whose directions change within a small range, therefore suitable for the proposed resampling method. 
 
 \subsubsection{Estimation of the center and the global direction}
 
-To begin with, the method estimates the centers $C_1,C_2$ of a set of points $p_1$ and $p_2$. This is done by a calculating the average of all points coordinates.  Then, the computations pursue in
-a coordinate system with the origin at that center. Thanks to this "normalisation", the constraint in Equation~\ref{Ambig:Line} will be applied at the center of the data points.
+To begin with, the method estimates the centers \er{[inconsistent with small c in the implemention] $C_1,C_2$} of a set of points $p_1$ and $p_2$. This is done by calculating the average of all points' coordinates.  Then, the computations continue in
+the coordinate systems centered at $C_1,C_2$. After this "normalisation", the constraint in Equation~\ref{Ambig:Line} is applied at these centers.
 
 Next, for each image we estimate the average direction $\vec{D}_k$
-of its epipolar lines, and using Equation~\eqref{EqRot} a rotation $R_k$ is applied to the data points. The epipolar lines become now globally horizontal and the subsequent epipolar deformation is computed on the rotated data points.
+of its epipolar lines, and using Equation~\eqref{EqRot}, a rotation $R_k$ is applied to the\er{data points ER does not like this data points}. The epipolar lines are now globally horizontal and the subsequent epipolar deformation is computed on the rotated data points. \er{ER is this phrase necessary? -The use of the coordinate system where epipolar lines are globaly horizontal, is
+a consequence of Equation~\eqref{EpipVParam}, and is illustrated by Figure~\ref{ReqOrient}}.
 
 \begin{equation}
     R_k(p) =  \frac{p-C_k}{\vec{D}_k}  \label{EqRot}
 \end{equation}
-
-
-The use of the coordinate system where epipolar lines are globaly horizontal, is
-a consequence of Equation~\eqref{EpipVParam}, and is illustrated by Figure~\ref{ReqOrient}.
+%
 \er{ER- remove that but add extra comment in the figure?
 \begin{itemize}
    \item left image of figure~\ref{ReqOrient} presents a case where epipolar curve are quasi vertical
@@ -669,18 +660,15 @@ a consequence of Equation~\eqref{EpipVParam}, and is illustrated by Figure~\ref{
 \end{itemize}
 }
 
-
-
 \begin{figure}
 \centering
-\begin{tabular}{||c||}
- \hline \hline
-\includegraphics[width=10cm]{FIGS/EpipReqOrient.jpg}
- \\ \hline \hline
+\begin{tabular}{c}
+% \hline \hline
+\includegraphics[width=10cm]{FIGS/EpipReqOrient.png}
+% \\ \hline \hline
 \end{tabular}
-\caption{Left : quasi vertical epipolar curve, correction with equation~\eqref{EpipVParam} is impossible. 
-         Middle,Right  : oblique curve, epipolar rectification  with equation~\eqref{EpipVParam} is possible
-         but generate important distorsion}
+\caption{Left: quasi-vertical epipolar curve for which correction with Equation~\eqref{EpipVParam} is impossible.  Middle and right: oblique curves for which epipolar rectification  with Equation~\eqref{EpipVParam} is possible
+         but generates significant distortion.}
 \label{ReqOrient}
 \end{figure}
 
@@ -690,26 +678,26 @@ a consequence of Equation~\eqref{EpipVParam}, and is illustrated by Figure~\ref{
 
 \subsubsection{Layout}
 
-The layout of the method we propose is then $3$ steps : (1) estimate the global 
-direction of epipolar curve (2) estimate $F_1,F_2$ the local epipolar rectification
- in the repaire linked to these global direction (3)  estimate the final
+The layout of the method follows three steps: (1) estimate the global 
+direction of epipolar lines; (2) estimate $F_1,F_2$ as  the local epipolar rectification
+ in the coordinate system linked to the global direction; (3)  estimate the final
 epipolar rectification as a composition of $F_1,F_2$ and the rotation.
-A more formalized description of the algorithm is given in bloc ~\ref{AlgoGlob}.
+A more formalized description of the algorithm is given in Algorithm~\ref{AlgoGlob}.
 
 
-\begin{algorithm}
-\caption{Epipolar($\pi_1$,$\pi_2$)}
+\begin{algorithm}[H]
+\caption{Epipolar($\pi_1$,$\pi_2$). \emph{Layout of the algorithm for computing the epipolar rectification from camera models}}
 \begin{algorithmic}
-    \STATE {\emph{Layout of the algorithm for computing the epipolar rectification from camera models}}
-    \STATE Use $\pi_1,\pi_2$ to estimate a set of \emph{H-Compatible} point $\mathcal{H} =\{(p_1,p_2)\}$ : 
-    \STATE Estimate centers $C_1$ and $C_2$ ;
-    \STATE Estimate global direction of epipolars $\vec{D}_1$ and $\vec{D}_2$ ,
-    \STATE Estimate rotations $R_1,R_2$ according to formula~\ref{EqRot}
+   % \STATE {\emph{Layout of the algorithm for computing the epipolar rectification from camera models}}
+    \STATE Use $\pi_1,\pi_2$ to estimate a set of \emph{H-Compatible} points $\mathcal{H} =\{(p_1,p_2)\}$ : 
+    \STATE Estimate centers $C_1$ and $C_2$;
+    \STATE Estimate global direction of epipolars $\vec{D}_1$ and $\vec{D}_2$,
+    \STATE Estimate rotations $R_1,R_2$ according to Equation~\eqref{EqRot}
     \FORALL{$p_1,p_2 \in \mathcal{H}$}
-              \STATE set : $q_1 = R_1(p_1)$,  $q_2 = R_2(p_2)$
-              \STATE add equation : $V_1(q_1) = V_2(q_2)$
+              \STATE set: $q_1 = R_1(p_1)$,  $q_2 = R_2(p_2)$
+              \STATE add equation: $V_1(q_1) = V_2(q_2)$
     \ENDFOR
-    \STATE estimate by least square $V_1$ and $V_2$
+    \STATE estimate with the least squares method $V_1$ and $V_2$
     \STATE set $F_k(x,y)=(x,V_k(x,y))$  %, $F_2(x,y)=(x,V_2(x,y))$
     \STATE set $\phi_k =  F_k \circ  R_k $ % and $\phi_2=F_2 \circ R_2$
     \RETURN $(\phi_1,\phi_2)$
@@ -719,52 +707,51 @@ A more formalized description of the algorithm is given in bloc ~\ref{AlgoGlob}.
 
 
 
-\subsubsection{Why should it work ?}
+\subsubsection{Why does our method work?}
 \label{WhyWork}
 
-Intuitively, it may be not obvious that the system of equation~\eqref{EqV1V2} is well posed.
-In fact, in the case where there would exist a functionnal relation between
-$p_1$ and $p_2$ , as $p_1=F(p_2)$,  there would exist infinity of solution
-for $(V_1,V_2)$ :   for any function $V: \RR^2 \rightarrow \RR $ we can generate a solution $(V,V\circ F)$ .
+Intuitively, it may not be  obvious that the system of equations in Equation~\eqref{EqV1V2} is well posed.
+In fact, if there was a functional relationship between
+$p_1$ and $p_2$, as $p_1=F(p_2)$,  an infinity of solutions
+for $(V_1,V_2)$ would exist, because   for any function $V: \RR^2 \rightarrow \RR $ we can generate a solution $(V,V\circ F)$.
 
 \begin{figure}
 \centering
-\begin{tabular}{||c||}
- \hline \hline
-\includegraphics[width=10cm]{FIGS/NonFuncCorresp.jpg}
- \\ \hline \hline
+\begin{tabular}{c}
+% \hline \hline
+\includegraphics[width=10cm]{FIGS/NonFuncCorresp.png}
+% \\ \hline \hline
 \end{tabular}
-\caption{Letft : for each $p_1$ we generate several $3d$ point on $B_1(p_1)$ . Middle :
-         the multiple corresspondance in $I_2$ . Right : a dense network of curve in $I_2$.}
+\caption{Left: for each $p_1$, we generate several $3$D points on $B_1(p_1)$. Middle:
+         the multiple correspondences in $I_2$. Right: a dense network of curves in $I_2$.}
  
 \label{NonFuncCorresp}
 \end{figure}
 
-The thing here is that, due to the $3d$ origin of $p_1,p_2$ there is
-\emph{no} functionnal relation between $p_1,p_2$ and there is consequently
-much more constraint on $(V_1,V_2)$. Instead of functionnal relation,
-we can generate  "one to many" (and  "many to one") correspondance as illustrated on figure~\ref{NonFuncCorresp} .
-For example, for a given  point $p_1$, folowing the curve $\pi_2(\BundO(p_1))$ we can generate
-several points on the bundle (potentially an infinity) and have then several (many) correspondance
-by  $\pi_2$ for a single point. Let write $p^k_2$ be multiple homologous of $p_1$,
-we have the equation  :
-
-
+However, note that due to {the $3$D aspect} of $p_1$ and $p_2$, there is
+\emph{no} functional relationship between them and, consequently,
+there are more constraints on $(V_1,V_2)$. Instead of a functional relationship,
+we can generate  "one to many" (and  "many to one") correspondences as illustrated in Figure~\ref{NonFuncCorresp}.
+For example, for a given  point $p_1$, following the curve $\pi_2(\BundO(p_1))$, we can generate
+several points on the bundle (potentially an infinity) which results in many correspondences.
+%by  $\pi_2$ for a single point. 
+To illustrate, if we take $p^k_2$ to be multiple homologous points of $p_1$,
+we then have the equation:
+%
 \begin{equation}
-    V_1(p_1) = V_2(p^1_2)   \;;\; V_1(p_1) = V_2(p^2_2)   \;;\; V_1(p_1) = V_2(p^3_2)  \dots \label{MultiTieP}
+    V_1(p_1) = V_2(p^1_2)   \;;\; V_1(p_1) = V_2(p^2_2)   \;;\; V_1(p_1) = V_2(p^3_2)  \dots , \label{MultiTieP}
 \end{equation}
-
-
-And equation~\eqref{MultiTieP} brings in fact the constraint : 
-
+%
+which in fact enforces this constraint: 
+%
 \begin{equation}
 V_2(p^1_2) = V_2(p^2_2)  =  V_2(p^3_2) \dots \label{RedrCurv}
 \end{equation}
-
-If we look at left image of figure~\ref{NonFuncCorresp}, we see that equation~\eqref{RedrCurv}
-impose the constraints that the "piece of curve" become horizontal.
-We will see in~\ref{EpipTieP} a more detailled analysis explaining how of the 
-method can work even with configuration different of figure~\ref{NonFuncCorresp}.
+%
+If we now look at left image of Figure~\ref{NonFuncCorresp}, we see that Equation~\eqref{RedrCurv}
+imposes the constraint that a "piece of curve" is horizontal.
+In Section~\ref{EpipTieP}, we will see a more detailed analysis explaining how the 
+method can work even with configurations different than those depicted in Figure~\ref{NonFuncCorresp}.
 
 
 
@@ -780,61 +767,53 @@ method can work even with configuration different of figure~\ref{NonFuncCorresp}
 \subsubsection{Choice of a parametric functional space}
 \label{ChoicePolyn}
 
-We need to select a space of parametric function to represente $V_1,V_2$. The only constraint
-is that $V_1,V_2$ are $\mathcal{C}^{\infty}$ function , plus the additional constraint of 
-equation~\eqref{Ambig:Line}. 
+We need to select a space of parametric functions to represent $V_1,V_2$. The only constraint
+is that $V_1,V_2$ are $\mathcal{C}^{\infty}$ functions, and that the additional constraint in 
+Equation~\eqref{Ambig:Line} is valid. 
 
-Classicaly when we want to parametrize a set of function  $\mathcal{C}^{\infty}$,
-a "natural" candidate is the set of polynoms of given degree; we know the function will be
-$\mathcal{C}^{\infty}$ and, according to Stone-Weierstrass theorem (\cite{Weierstrass1885} and \cite{Stone1937})
-which says that they space of polynoms is dense in the space of continuous function, we know that a suffucient
-degree we will be abble to approximate any function with the desirable accuracy. A possible
-limitation of selecting polynomal with high degree is over-fitting that may lead to
-undesirable high frequency; we dont have this problem here because  the measure
-are synthetized from $\pi_1,\pi_2$ and, whatever beign the degree we select for polynomial,
-we can add sufficient number of measure to have a high level of redundancy (say, for example
-$100$ times more measures than constraints).
+Classically, when parameterizing a set of functions  $\mathcal{C}^{\infty}$,
+a "natural" candidate is the set of polynomials of a given degree. We know that the function will be
+$\mathcal{C}^{\infty}$ and, \er{according to the Stone-Weierstrass theorem \cite{Weierstrass1885,Stone1937} (which says that the space of polynomials is dense in the space of continuous functions),  with a sufficiently high
+degree we will be able to accurately approximate any function}. A~possible
+limitation of selecting high degree polynomial is over-fitting, which may lead to
+unwanted high frequency behavior. In our case, this problem should never arise as the measurements  are synthesized from the projection functions $\pi_1,\pi_2$, which provides sufficient redundancy (for instance, hundreds of times more measurements than constraints).
 
-Let $d$ be the selected degree, we have two vectors of unknown $C^1_{a,b},C^2_{a,b}$ 
-corresponding to coefficients of the polynoms as written in equation~\eqref{EqPol}:
+If $d$ is the selected degree, we have two vectors of unknowns $C^1_{a,b},C^2_{a,b}$, 
+corresponding to coefficients of the polynomials:
 
 
 \begin{equation}
-   V_k(p) = V_k(i,j) =  \sum\limits_{\substack{a=0}}^d  \sum\limits_{\substack{b=0}}^{d-a}  C^k_{a,b}  i^a j^b \label{EqPol}
+   V_k(p) = V_k(i,j) =  \sum\limits_{\substack{a=0}}^d  \sum\limits_{\substack{b=0}}^{d-a}  C^k_{a,b}  i^a j^b. \label{EqPol}
 \end{equation}
    
-\subsubsection{Imposing constrainte on global lines deformation}
+\subsubsection{Imposing constraints on global lines deformation}
 
-In this paramatrisation, we must take into account equation~\eqref{Ambig:Line}.
-When using constraint~\ref{Ambig:Line}, we have  $i=0$ , so we can supress all term  $i^a$ for $a\neq 0$
-and the equation can be writen as :
+%In this paramatrisation, we must take into account Equation~\eqref{Ambig:Line}.
+When applying the constraint in Equation~\eqref{Ambig:Line}, we notice that  $i=0$, thence we can suppress all terms  $i^a$ for $a\neq 0$. The constraint equation then reads:
 
 
 \begin{equation}
     V_1(0,j) =  j =   \sum\limits_{\substack{b=0}}^{N}  C^1_{0,b}  j^b  \label{CstrV1:0}
 \end{equation}
 
-In equation~\eqref{CstrV1:0}, $j$ and the  sum are both polynom, so if their function are equal on a segment, they
-must be equal term by term. The constraint then comes to force a number the
-unknown $C^1_{0,k}$ who have a known value  : $1$ for $C^1_{0,1}$ and $0$ else.
-Using kronecker delta we can write :
+In Equation~\eqref{CstrV1:0}, $j$ on the left and the  sum on the right are both polynomials, so if their functions are equal on a segment, they
+must be equal term by term. \er{The constraint then comes to force a number the
+unknowns $C^1_{0,k}$ which have known values: $1$ for $C^1_{0,1}$ and $0$ otherwise}.
+Using the Kronecker delta, we can write:
 
 \begin{equation}
          C^1_{0,k} = \delta_{1,k} \label{CstrV1:1}
 \end{equation}
 
-\subsubsection{Generation of points, direction and centers}
+\subsubsection{Generation of points, computation of the direction and centers}
 
-The generation of  data from $\pi_1$ and $\pi_2$  is made
-in two way, once with $I_1$ as master, once with $I_2$;
-at each step the  "master one" is 
-used to follow its bundle. The algorithm~\ref{AlgoGenData} present the 
-generation of the points with $\pi_1$  as master.
+The  points from $\pi_1$ and $\pi_2$ are generated twice, using each image as the master. The bundles are always generated from the  master images. The Algorithm~\ref{AlgoGenData} presents the 
+generation of the points with $I_1$  as the master, as well as the computation of the global direction and the points' centers.
 
-\begin{algorithm}
-\emph{Compute a list $L_{1,2}$  of   $\pi_1-\pi_2$ H-compatible pair with $I_1$ as master image,
-  compute also center $c_1$ of points of $I_1$  and global direction $\vec{D}_2$ for epipolar curves of $I_2$}
-\caption{GenerateData()}
+\begin{algorithm}[H]
+%\emph{Compute a list $L_{1,2}$  of   $\pi_1-\pi_2$ H-compatible pair with $I_1$ as master image,  compute also center $c_1$ of points of $I_1$  and global direction $\vec{D}_2$ for epipolar curves of $I_2$}
+\caption{GenerateData(). \emph{Compute a list $L_{1,2}$  of   $\pi_1-\pi_2$ H-compatible pairs with $I_1$ as the master image.
+ Compute also the center $c_1$ of points in $I_1$  and the global direction $\vec{D}_2$ for epipolar curves of $I_2$.}}
 \begin{algorithmic}
     \STATE $L_{1,2}\gets () $ ;  $c_1 \gets (0,0)$  ;   $\vec{D}_2 \gets  \overrightarrow{(0,0)}$ ; $N \gets 0 $
     \FOR{$p_1.x=0$  \TO $X_1$  {\bf Step} $\delta_{x,y}$   } 
@@ -856,160 +835,141 @@ generation of the points with $\pi_1$  as master.
 \label{AlgoGenData}
 \end{algorithm}
 
-\ref{PiInvert}
+\er{what is it? \ref{PiInvert}}
+%\paragraph{Using center and direction}
 
-
-\subsubsection{Using center and direction}
-
-Once we have computed centers $c_1,c_2$, directions   $\vec{D}_1,\vec{D}_2$  and the list $L_{1,2}$,
-we use it  to normalize the center the measure and make the direction globally
-horizontal : we apply equation~\eqref{EqRot}  to all elements of the list.
+Once the centers $c_1,c_2$, directions   $\vec{D}_1,\vec{D}_2$  and the list $L_{1,2}$ are computed,
+they are used to normalize the measurements and make the direction globally
+horizontal by applying Equation~\eqref{EqRot} to all elements of the list.
 
 
 \subsubsection{Estimating the rectification}
 
-As the data are synthetic data, without outlayer, we can directly solve
-the equations by least square . This essentially is
-a matter of merging the previous part :
+As the measurements are synthetic and without outliers, we can directly solve
+the equations with the linear least squares  method, thus merging all previous steps:
 
 \begin{itemize}
-    \item let $d$ be the degree of the polynoms;
-    \item the unknown are the coefficient of the polynomes $V_1$ and $V_2$, there is
-          $\frac{(d+1)(d+2)}{2}$ unknowns for $V_2$ and $\frac{(d+1)(d+2)}{2}-(d+1) $  for $V_1$
-          taking into account the  constraint of equation~\eqref{CstrV1:1}
-     \item for each pair of corrected point $q_1,q_2$ we add to the least square system
-          the equation~\eqref{EqPol};
+    \item let $d$ be the degree of the polynomials;
+    \item the unknowns are the coefficient of the polynomials $V_1$ and $V_2$. There are
+          $\frac{(d+1)(d+2)}{2}$ unknowns for $V_2$ and $\frac{(d+1)(d+2)}{2}-(d+1) $  for $V_1$,
+          taking into account the  constraint in Equation~\eqref{CstrV1:1};
+     \item for each pair of normalized points $q_1,q_2$ we add 
+          the Equation~\eqref{EqPol} to the least squares equation system.
 \end{itemize}
-
-We then estimate the $V_1,V_2$ by in the least square system. An obtain :
-
+%
+We then estimate the $V_1,V_2$ and obtain:
+%
 \begin{equation}
   \varphi_k(p) = \varphi_k(i,j) = (i,V_k(i,j))  \;;\;    \phi_k =  \varphi_k  \circ R_k 
 \end{equation}
 
-\subsubsection{Estimating inverse function}
+\paragraph{Estimating the inverse function}
 
-For the computation of the rectified image itself, we also need the inverse function, 
-as the natural way to resample  $I_k$ in $E_k$ is to write :
+The natural way to resample  $I_k$ in $E_k$ is to write:
 
 \begin{equation}
-  E_k(p) = I_k(\phi^{-1}_k(p))
+  E_k(p) = I_k(\phi^{-1}_k(p)).
 \end{equation}
-
-The inverse of $R_k$ is obvious. For computing the inverse of $\varphi_k$  we
-use the fact that if $\varphi$ is invariant for the column, then $\varphi^{-1}$ is also.
-So we can paremetrize it with a function $W : \RR^2 \rightarrow \RR$ as :
+Therefore, to rectify an image, we also need to calculate the inverse function. The inverse of $R_k$ is obvious. For computing the inverse of $\varphi_k$,  we
+exploit the fact that if $\varphi$ is invariant for the column, then $\varphi^{-1}$ is invariant too. Consequently, we can parametrize it with a function $W: \RR^2 \rightarrow \RR$ as:
 
 \begin{equation}
   \varphi^{-1}_k(p) = \varphi^{-1}_k(u,v) = (u,W_k(u,v))  
 \end{equation}
-
-
-For the estimation of $W$ we use the same argument as in~\ref{ChoicePolyn}, and
-use the base of polynomial function. Once the $V_k$ are known we generate
-for each point $p_k=(i,j)$ in $L_{1,2}$ the observation :
+%
+To estimate  $W$, we follow the same rationale as in Section~\ref{ChoicePolyn}, and
+use the base of a polynomial function. Once the $V_k$ are known, we generate
+for each point $p_k=(i,j)$ in $L_{1,2}$ an observation:
 
 \begin{equation}
    W_k(i,V_k(i,j))  = j \label{InverseEpip}
 \end{equation}
 
-If we want to assure that the computed inverse is sufficiently close
-to the "real" inverse we can increase the degre (typically the degree of $W$
-is $d+4$ in our implementation). These has no inconvenient as long the redunduncy
-is high enough.
+If we want to ensure that the computed inverse is sufficiently close
+to the "real" inverse, we can increase the polynomial's degree (in our implementation, we typically use the degree of $d+4$). It has no side effects as long as we maintain high redundancy.
 
 %---------------------------------------------
 %---------------------------------------------
 %---------------------------------------------
 
-\subsection{Epipolar resampling without the localisation model}
-
+\subsection{Epipolar resampling without the geometric model -- \er{not too happy with this section}}
 \label{EpipTieP}
-
-The question we adress here is : \emph{"is it possible to use
-the proposed method  for computing epipolar geometry
-when we have only  tie points computed from images but no geometric model"}.  In fact
-there is \er{easy yes/no answer as there pro and cons arguments to solve this question}
-and, as we will see, the precise answer depends of the tie points (it is in fact a
-trade-off between the nature of the relief and complexity of the model).
-
-\noindent {\underline {\bf Pro: }}  algorithm~\ref{AlgoGlob} only use tie points and a
-direction for computing the epipolar geometry. For this computation,
-it does not matter if the tie points are extracted from the geometric model
-(as with algorithm~\ref{AlgoGenData}) or from an image 
-processing method, like SIFT (\cite{LOWE}) , that do not require any
-\emph{a priori} information on image geometry. So as long as we
-are able to know the directions the method can be used.
+\er{Ideally, there is no bullet-ing but full sentences.}
 
 
-\noindent {\underline {\bf Cons:}} when the tie points comes from an image computation,
-then there exist some function relation between them :
+\emph{"Is it possible to use
+the proposed method to compute the epipolar geometry
+if we have point correspondences between the image pairs but we don't know the geometric model?"} There is a straightforward answer to whether it is possible or not. As elaborated in the following pros and cons arguments, the answer depends on the point correspondences, and is a trade-off between the nature of the 3D scene and the complexity of the model. 
+%In fact there is \er{easy yes/no answer as there pro and cons arguments to solve this question} and, as we will see, the precise answer depends of the tie points (it is in fact a trade-off between the nature of the relief and complexity of the model).
+%
+
+{\underline {\bf Pro:}}  Algorithm~\ref{AlgoGlob} uses only point correspondences and a
+direction to compute the epipolar geometry. It does not matter if the point correspondences are extracted from the geometric model
+(as with Algorithm~\ref{AlgoGenData}) or from an image 
+processing method, e.g. SIFT \cite{lowe2004distinctive}, which does not require any
+\emph{a priori} information on image geometry. Hence, as long as 
+we know the directions, our method can be used.
+
+
+{\underline {\bf Cons:}} When the point correspondences are computed with an image processing routine,
+ there exists some functional relationship between them. Suppose that:
 
 \begin{itemize}
-   \item suppose the relief can be describe a function $Z=\mathcal{Z}(X,Y)$,
-         and note $S^\mathcal{Z}$  the corresponding surface;
-   \item for a point $p_1$ of $I_1$, note $ \PiZVert (p_1)$
-         the intersection of  $\BundO(p_1)$ and the surface  $S^\mathcal{Z}$;
-         $\PiZVert$ is the inverse of the restriction  $\pi_1$ 
-         as function froù $I_1$ to $S^\mathcal{Z}$;
-
-   \item we see now there exist a functionnal relation between all the homologous
-         points $(p_1,p_2)$ corresponding to equation 
+   \item the 3D scene can be described by a function $Z=\mathcal{Z}(X,Y)$,
+         and denote $S^\mathcal{Z}$ as the corresponding surface;
+   \item for a point $p_1$ of $I_1$, denote $ \PiZVert (p_1)$
+         as the intersection of  $\BundO(p_1)$ and the surface  $S^\mathcal{Z}$;
+         $\PiZVert$ is the inverse of the \er{restriction}  $\pi_1$ 
+         as function from $I_1$ to $S^\mathcal{Z}$.
 \end{itemize}
-
+We now see that there exists a functional relationship between all the point correspondences $(p_1,p_2)$ and it follows the equation:
 \begin{equation}
-   p_2 = (\pi_2 \circ  \PiZVert) (p_1) = F^\mathcal{Z}(p_1)
+   p_2 = (\pi_2 \circ  \PiZVert) (p_1) = F^\mathcal{Z}(p_1).
 \end{equation}
+%
+Therefore, as discussed in Section~\ref{WhyWork}, in the most general
+case, it is impossible to recover the epipolar geometry from a set of correspondences.% when there is a functional relation $p_2=F(p_1)$ between them. 
 
-
-But, as discussed in~\ref{WhyWork}, it is not possible, in the most general
-case, to recover epipolar geometry from set of homologous points when there exist
-a functionnal $p_2=F(p_1)$ relation between them. 
-
-\noindent {\underline {\bf Pro \& Cons:}} If  we analyse again the text of~\ref{WhyWork},
-we can see that in the argumentation we have ommitted the fact that in the proposed method,
-the function $V_1$ and $V_2$ have to be very "smooth" functions. 
-We make again the reasoning :
+{\underline {\bf Pro \& Cons:}} If we go back  to Section~\ref{WhyWork},
+we can see that we missed the fact that in the proposed method,
+the functions $V_1$ and $V_2$ have to be "smooth". 
+Let's reason again:
 
 \begin{itemize}
-   \item suppose we have computed an epipolar geometry  : $e_k=(u_k,v_k)=\phi_k(p_k) = (x_k,V_k(y_k)$,
-         with $v_1=v_2$ and $V_k$ being "smooth" function and we try to analyse if these
-         geometry was ambiguous:
+   \item suppose we have computed an epipolar geometry: $e_k=(u_k,v_k)=\phi_k(p_k) = (x_k,V_k(y_k)$,
+         with $v_1=v_2$ and $V_k$ being a "smooth" function and we try to analyze if the
+         geometry was ambiguous;
 
    \item  we have $e_2 = (\phi_2 \circ  \pi_2 \circ  \PiZVert \circ  \phi_1^{-1}) (e_1) = P(e_1)$
 
-    \item we write  previous equation as $(u_2,v_2) = P(u_1,v_1) = (u_1 + p_x(u_1,v_1),v_1)$,  where
-          $p_x$ is what usually called the "paralax function"; 
+    \item we write the previous equation as $(u_2,v_2) = P(u_1,v_1) = (u_1 + p_x(u_1,v_1),v_1)$,  where
+          $p_x$ is what is usually called the "parallax function"; 
 
-   \item as in ~\ref{WhyWork}  for any function $W_2 : \RR^2 \rightarrow \RR  $, let $W_1$ be the function
-         define by $W_1 = W_2 \circ P$
+   \item as in Section~\ref{WhyWork},  for any function $W_2 : \RR^2 \rightarrow \RR  $, let $W_1$ be the function
+         defined by $W_1 = W_2 \circ P$;
 
-   \item for any $e_1,e_2$ , then $(u_1,W_1(u_1,v_1))$ and $(u_2,W_2(u_2,v_2))$ satisy also the epipolar constraint
-         as $W_1(u_1,v_1)) = W_2 (P(u_1,v_1)) = W_2(u_2,v_2)$
+   \item then, for any $e_1,e_2$, $(u_1,W_1(u_1,v_1))$ and $(u_2,W_2(u_2,v_2))$, we also satisfy the epipolar constraint
+         as $W_1(u_1,v_1)) = W_2 (P(u_1,v_1)) = W_2(u_2,v_2)$.
 
 \end{itemize}
 
-So now the question we have to solve, is it possible that both $W_2$ and $W_2 \circ P$ are
-smooths function. And the answser is "it depends of the smoothness of $P$".
-
+Is it possible that $W_2$ and $W_2 \circ P$ are both smooth functions? This depends on the smoothness of $P$.
+%
 If $P$ is itself a smooth function, then obviously for any smooth $W_2$,  $W_2 \circ P$  will
-be also smooth and the epipolar will be ambiguous.  As an archetype case, is the terrain is
-flat, then $p_x=0$, then  $P=Id$ and as $W_1=W_2$, $W_1$ is smooth if $W_2$ is smooth . 
-In this case so the epipolar geometry is ambigous.
-
-Alternatively, is the relief has many high frequency, then $P$ has also many high frequency,
-and it impossible that both  $W_2$ and $W_2 \circ P$ are smooth. This can be seen more formally
-by following equation :
+also be smooth and the epipolar resampling will be ambiguous. If we take the canonical example of a flat 3D scene, then $p_x=0$,  $P=Id$ and as $W_1=W_2$, $W_1$ is smooth if $W_2$ is smooth. 
+In this case the epipolar geometry is also ambiguous.
+%
+However, if the scene has high frequency depth changes, then $P$ also has high frequencies,
+and  $W_2$ and $W_2 \circ P$ cannot both be smooth. This can be seen more formally
+by the following equation:
 
 \begin{equation}
    \DerPart{W_2 \circ P}{u} = \DerPart{P}{u} \DerPart{W_2} {u} \circ P  \label{DerParW2P}
 \end{equation}
 
-As an archetype case for any point where the rellief is not derivable,
-we have $ \DerPart{P}{u}= \infty$ and equation~\ref{DerParW2P}, lead to $ \DerPart{W_2} {u}=0$.
-If taking into account the degree freedom on $W_2$
-
- $W_2$ is a polynomial function 
+\er{As an archetype case}, for any point where the scene is not differentiable,
+we have $ \DerPart{P}{u}= \infty$ and Equation~\eqref{DerParW2P} which lead to $ \DerPart{W_2} {u}=0$.
+\er{Taking into account the degree freedom on $W_2$, $W_2$ is a polynomial function ..... missing?}
 
 
 
@@ -1021,7 +981,7 @@ If taking into account the degree freedom on $W_2$
 %---------------------------------------------
 %---------------------------------------------
 
-\section{Experimentation}
+\section{Experiments}\label{sec:experiments}
 
 Datasets:
 \begin{itemize}
@@ -1037,7 +997,7 @@ Datasets:
 
 Exemple de résultats avec résidus. + qq crop d'images rectifiees.
 
-\subsection{Use with satellite images}
+\subsection{Satellite images}
 
 C'est la que c'est vraiment utile .... 
 
@@ -1115,24 +1075,37 @@ C'est la que c'est vraiment utile ....
 \caption{Epipolarability indices for acquisitions from a single and {multiple orbits}.}\label{tab:PHR1indices}
 \end{table}
 
-\subsection{Use with radar images}
+\subsection{Radar images}
 
 ? 
 
 %\subsection{Use with pinhole camera}
 %Permet de faire des test supplémentaire.
 
-\subsection{Use without model}
+\subsection{Images without the geometric model}
 
-
+\paragraph{Corona KH-4B images}
 Exposé precis avec modele analytique:
 
     * calcul des points homologues, en 3D => direction moyenne
     * resolution par moindres carress avec degres élevé, degré sup pour l'inverse
     * Utilité du 3D, precision en fonction de la nappes, possibilité d'utiliser un modèle 3D grossier .
 
-In its standard use
+
+\begin{figure}[h!]
+\centering
+\begin{tabular}{c}
+% \hline \hline
+\includegraphics[width=14cm]{FIGS/ExpCorona_lowres.png}
+% \\ \hline \hline
+\end{tabular}
+\caption{Corona KH-4B steropair and the point correspondences (top); the epipolar curves in the original geometry of the stereopair (middle); and the stereopair resampled to the epipolar geometry, rotated by 90$^\circ$ (bottom).}
+ 
+\label{ExpCorona}
+\end{figure}
     
+    
+\paragraph{Pl\'eiades images}
 %---------------------------------------------
 %---------------------------------------------
 %---------------------------------------------

@@ -112,8 +112,9 @@ class cApply_CreateEpip_main
       bool   mDebug;
       std::string mPostMasq;
       std::string mPostIm;
+	  std::string mNameHom;
       bool mExpTxt;
-
+	  
       cBasicGeomCap3D *  mGenI1;
       cBasicGeomCap3D *  mGenI2;
       std::string        mName1;
@@ -968,7 +969,7 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       }
       else
       {
-          aPack = mICNM->StdPackHomol("",mName1,mName2);
+          aPack = mICNM->StdPackHomol(mNameHom,mName1,mName2);
           if (EAMIsInit(&mNbCalcAutoDir))
           {
               aPack.DirEpipolaire(mDir1,mDir2,mNbCalcAutoDir.x,mNbCalcAutoDir.y,1);
@@ -1169,6 +1170,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mNumKer    (5),
    mDebug     (false),
    mPostMasq  (""),
+   mNameHom   (""),
    mGenI1     (0),
    mGenI2     (0),
    mWithOri   (true),
@@ -1189,7 +1191,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
     bool Cons16B = true;
     bool InParal = true;
     bool DoIm = true;
-    std::string aNameHom;
+    //std::string aNameHom;
     bool mExpTxt=false;
 
 
@@ -1205,7 +1207,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
                     << EAM(Cons16B,"16B",true,"Maintain 16 Bits images if avalaible (Def=true)", eSAM_IsBool)
                     << EAM(InParal,"InParal",true,"Compute in parallel (Def=true)", eSAM_IsBool)
                     << EAM(DoIm,"DoIm",true,"Compute image (def=true !!)", eSAM_IsBool)
-                    << EAM(aNameHom,"NameH",true,"Extension to compute Hom point in epi coord (def=none)", eSAM_NoInit)
+                    << EAM(mNameHom,"NameH",true,"Extension to compute Hom point in epi coord (def=none)", eSAM_NoInit)
                     << EAM(mDegre,"Degre",true,"Degre of polynom to correct epi (def=9)")
                     << EAM(mForceGen,"FG",true,"Force generik epip even with stenope cam")
                     << EAM(mNumKer,"Kern",true,"Kernel of interpol,0 Bilin, 1 Bicub, other SinC (fix size of apodisation window), Def=5")
@@ -1322,8 +1324,8 @@ if (!MMVisualMode)
                );
 
      const char * aCarHom = 0;
-     if (EAMIsInit(&aNameHom))
-        aCarHom = aNameHom.c_str();
+     if (EAMIsInit(&mNameHom))
+        aCarHom = mNameHom.c_str();
 
      std::cout << "TimeEpi-0 \n";
      ElTimer aChrono;
