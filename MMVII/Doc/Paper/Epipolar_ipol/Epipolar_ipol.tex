@@ -140,7 +140,7 @@ For a calibrated stereo pair (i.e. with known camera projection matrices), there
 
   
 %
-Unlike the central projection camera model, pushbroom-like sensors acquire each image row from a different perspective center. As a consequence, the epipolar lines are neither straight lines, nor are they conjugate across the image~\cite{Gupta1997}.  One way to overcome this particularity is to simplify the projection function with a 2D affine~\cite{ono1999epipolar,wang2011epipolar} or a parallel projection model~\cite{morgan2006epipolar}. Such approximations usually come at the price of precision, especially with the increasing camera field-of-view or in mountainous scenes. In the context of dense image matching, de~Francis \textit{et al.}~\cite{deFrancis2014stereo} improves the precision by partitioning the images into small patches, for which indepedent affine rectifictions are computed. Alternatively, and with equally good precision, Oh~\cite{Oh2011} uses the \textit{Rational Polynomial Coefficients} (RPCs) to map the epipolar curves across the full size images with lines in a piecewise approach.
+Unlike the central projection camera model, pushbroom-like sensors acquire each image row from a different perspective center. As a consequence, the epipolar lines are neither straight lines, nor are they conjugate across the image~\cite{Gupta1997}.  One way to overcome this particularity is to simplify the projection function with a 2D affine~\cite{ono1999epipolar,wang2011epipolar} or a parallel projection model~\cite{morgan2006epipolar}. Such approximations usually come at the price of precision, especially with the increasing camera field-of-view or in mountainous scenes. By extending the 2D affine model with two quaratic terms, Okamonoto \textit{et al.}~\cite{okamoto:99:DLT} demonstrates improved performance on SPOT images. In the context of dense image matching, de~Francis \textit{et al.}~\cite{deFrancis2014stereo} improves the precision by partitioning the images into small patches, for which indepedent affine rectifictions are computed. Alternatively, and with equally good precision, Oh~\cite{Oh2011} uses the \textit{Rational Polynomial Coefficients} (RPCs) to map the epipolar curves across the full size images with lines, in a piecewise approach, followed by a global rectification transformation using a polynomial function of 3$^{rd}$ order.
 %
 %ù while being locally approximated to straight lines. Oh~\cite{Oh2011} approximates the epipolar curves of an image pair by piecewise linear curves with a set of virtual correspondences. An image pair is then resampled to an equivalent geometry, imposing that the conjugate curves become straight and aligned on the y-axis. 
 
@@ -1108,7 +1108,20 @@ Exposé precis avec modele analytique:
 \paragraph{Pl\'eiades images}
 %---------------------------------------------
 %---------------------------------------------
+
+\paragraph{Consumer grade camera}
 %---------------------------------------------
+\begin{figure}[h!]
+\centering
+\begin{tabular}{c}
+% \hline \hline
+\includegraphics[width=14cm]{FIGS/escalier_sol.jpeg}
+% \\ \hline \hline
+\end{tabular}
+\caption{dddd consumer grade cam}
+ 
+\label{ExpConsumerCam}
+\end{figure}
 
 \section{Discussion and perspective}
 
