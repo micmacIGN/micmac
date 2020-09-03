@@ -109,7 +109,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 }
 
 cBasicGeomCap3D * CameraRPC::CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType, const cSystemeCoord * aChSys)
-{
+{ 
     cBasicGeomCap3D * aRes = new CameraRPC(aName, aType, aChSys); 
     
     return aRes;
@@ -854,7 +854,6 @@ std::string CameraRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anI
                                const ElAffin2D & anOrIntInit2Cur
                     ) const
 {
-	std::cout << "aNameImClip " << aNameImClip << " aOriOut " << aOriOut << "\n";
     return mRPC->Save2XmlStdMMName(anICNM,aOriOut,aNameImClip,anOrIntInit2Cur);
 }
 
@@ -1111,6 +1110,7 @@ void cRPC::Initialize(const std::string &aName,
                       )
 {
 
+
     std::string aNameRPC=aName;
     if(AutoDetermineRPCFile(aName))
     {
@@ -1122,7 +1122,7 @@ void cRPC::Initialize(const std::string &aName,
         mRefine = eRP_Poly;
 
     }
-    
+   	
     if(aChSys)
         mChSys = *aChSys;
 
@@ -1269,7 +1269,7 @@ if(1)
 
     }
     else if (aType == eTIGB_MMEpip)
-    {
+    { 
 
         /* Grid in 3D */
         std::vector<Pt3dr> aGrid3D,aGrid3DTest;
@@ -1290,8 +1290,8 @@ if(1)
 
         //Show();
 
-        std::string aNameNewRPC = NameSave(aName,"Ori-EpiRPC/");
-        cRPC::Save2XmlStdMMName_(*this, aNameNewRPC);
+        //std::string aNameNewRPC = NameSave(aName,"Ori-EpiRPC/");
+        //cRPC::Save2XmlStdMMName_(*this, aNameNewRPC);
         
 
     }
@@ -1309,7 +1309,6 @@ if(1)
     else {ELISE_ASSERT(false,"Unknown RPC mode.");}
 
     //Show();
-    
 }
 
 void cRPC::Initialize_(const cSystemeCoord *aChSys)
@@ -1323,11 +1322,12 @@ void cRPC::Initialize_(const cSystemeCoord *aChSys)
 
 std::string cRPC::NameSave(const std::string & aName,std::string aDirName)
 {
-    std::string aNewDir = DirOfFile(aName)+ aDirName;
+	std::string aPrefix = DirOfFile(aName);
+    std::string aNewDir = aPrefix.substr(0,aPrefix.size()-1) + aDirName + "/";
     ELISE_fp::MkDirSvp(aNewDir);
 
     std::string aNameXml = aNewDir + StdPrefix(NameWithoutDir(aName)) + ".xml";
-    
+
     return aNameXml;
 }
 
@@ -1519,20 +1519,23 @@ std::string cRPC::Save2XmlStdMMName_(cRPC &aRPC, const std::string &aName)
 }
 
 std::string cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
-                               const std::string & aOriOut,
+                               const std::string & aOri,
                                const std::string & aNameImClip,
-                               const ElAffin2D & anOrIntInit2Cur
+                               const ElAffin2D & anOrIntInit2Cur,
+                               const std::string & aOriOut
                     )
 
 {
-  // aOriOut == "" => convention pour cas special appel a l'ancienne
-    std::string aName = (aOriOut=="")? aNameImClip  : anICNM->StdNameCamGenOfNames(aOriOut,aNameImClip);
-    std::string aPref = (aOriOut=="") ? "" :  anICNM->Dir() ;
+  // aOri == "" => convention pour cas special appel a l'ancienne
+    std::string aName = (aOri=="")? aNameImClip  : anICNM->StdNameCamGenOfNames(aOri,aNameImClip);
+    std::string aPref = (aOri=="") ? "" :  anICNM->Dir() ;
     /* Create new RPC */
     cRPC aRPCSauv(aName);
-   
-    std::string aNameXml = cRPC::NameSave(aRPCSauv.mName);
-    std::string aNewDirLoc = DirOfFile(aNameXml); 
+ 
+
+	std::string aNameXmlOld = aRPCSauv.mName;
+    std::string aNameXml 	= cRPC::NameSave(aRPCSauv.mName,aOriOut);
+    std::string aNewDirLoc 	= DirOfFile(aNameXml); 
   
     /* Save the new RPC to XML file */
     cRPC::Save2XmlStdMMName_(aRPCSauv,aNameXml);
@@ -1544,9 +1547,8 @@ std::string cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
     cXml_CamGenPolBundle aXML =  StdGetFromSI(aName,Xml_CamGenPolBundle);
 
     int aType = eTIGB_Unknown;
-    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aNameXml,aType,aXML.SysCible().PtrCopy());
+    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aNameXmlOld,aType,aXML.SysCible().PtrCopy());
     const cSystemeCoord * aCh = aXML.SysCible().PtrCopy();
-
     
     cPolynomial_BGC3M2D aPolNew(aCh,aCamSsCor,aNameXml,aXML.NameIma(),0);
     std::string aNameGenXml =  aPolNew.NameSave("","");
@@ -4291,6 +4293,7 @@ int RecalRPC_main(int argc,char ** argv)
     std::string aDir;
     std::string aName;
     std::list<std::string> aListFile;
+	std::string aOriOut;
 
     bool aVf=false;
 
@@ -4299,16 +4302,26 @@ int RecalRPC_main(int argc,char ** argv)
         argc, argv,
         LArgMain() << EAMC(aFullName,"Orientation file (or pattern) in cXml_CamGenPolBundle format"),
         LArgMain() << EAM(aVf,"Vf", "Verification of the re-calculation on all tie points (Def = false)")
-     );
+				   << EAM(aOriOut,"OriOut","Directory of the output")
+    );
+
 
     SplitDirAndFile(aDir, aName, aFullName);
     aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     aListFile = aICNM->StdGetListOfFile(aName);
 
+	if (EAMIsInit(&aOriOut))
+		StdCorrecNameOrient(aOriOut,aDir,true);
+
+
     std::list<std::string>::iterator itL=aListFile.begin();
     for( ; itL !=aListFile.end(); itL++ )
     {
-        cRPC::Save2XmlStdMMName(0,"",(aDir+*itL),ElAffin2D::Id());
+		if (EAMIsInit(&aOriOut))
+        	cRPC::Save2XmlStdMMName(0,"",(aDir+*itL),ElAffin2D::Id(),aOriOut);
+		else
+        	cRPC::Save2XmlStdMMName(0,"",(aDir+*itL),ElAffin2D::Id());
+
     }
     
    

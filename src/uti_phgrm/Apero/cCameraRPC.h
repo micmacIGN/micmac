@@ -215,9 +215,10 @@ class cRPC
 
         /* Re-save in original coordinate system */
         static std::string Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
-                                        const std::string & aOriOut,
+                                        const std::string & aOri,
                                         const std::string & aNameImClip,
-                                        const ElAffin2D & anOrIntInit2Cur
+                                        const ElAffin2D & anOrIntInit2Cur,
+										const std::string & aOriOut="/NEW"
                     );
         /* Save non-existing RPCs in original coordinate system */
         static std::string Save2XmlStdMMName_(cRPC &, const std::string &);
