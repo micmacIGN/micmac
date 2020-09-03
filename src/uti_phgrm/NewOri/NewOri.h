@@ -481,6 +481,8 @@ class cExeParalByPaquets
           int                    mNbInOnePaquet;
 };
 
+CamStenope * DefaultCamera(const std::string & aName);
+
 
 
 

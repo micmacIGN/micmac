@@ -65,8 +65,7 @@ cNewO_OneIm::cNewO_OneIm
    mName (aName)
 {
 
-// std::cout << "CSSSSSSSSSSs  "<< mCS << "\n";
-// getchar();
+ //  std::cout << "CSSSSSSSSSSs  "<< mCS << " "<< WithOri  << "\n"; getchar();
 // mCS = aNM.CamOfName(aName);
 // std::cout << "XXXXXXXXXX  "<< mCS << "\n";
 

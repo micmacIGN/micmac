@@ -556,6 +556,7 @@ void ElPackHomologue::PrivDirEpipolaire(Pt2dr & aRes1,Pt2dr & aRes2,INT aSz) con
 
     for (INT aK1=0 ; aK1<aSz ; aK1++)
     {
+        std::cout << "PrivDirEpipolaire Phase1, remain " << (aSz-aK1) << "\n";
         for (INT aK2=0 ; aK2<aSz ; aK2++)
         {
              REAL alpha1 = (aK1 + 0.5)* 3.14 /aSz;
@@ -584,17 +585,20 @@ void ElPackHomologue::PrivDirEpipolaire(Pt2dr & aRes1,Pt2dr & aRes2,INT aSz) con
         }
     }
     {
-    for (INT aK1=0 ; aK1<aSz ; aK1++)
-        for (INT aK2=0 ; aK2<aSz ; aK2++)
+        for (INT aK1=0 ; aK1<aSz ; aK1++)
         {
-             REAL ecart;
-             ELISE_COPY
-             (
-                 aScore.all_pts(),
-                 aScore.in()*(1-ecart_frac((aK1-FX)/REAL(aSz))-ecart_frac((aK2-FY)/REAL(aSz))),
-                 sigma(ecart)
-             );
-              aScoreMoy.data()[aK2][aK1] = ecart;
+            std::cout << "PrivDirEpipolaire Phase1, remain " << (aSz-aK1) << "\n";
+            for (INT aK2=0 ; aK2<aSz ; aK2++)
+            {
+                 REAL ecart;
+                 ELISE_COPY
+                 (
+                     aScore.all_pts(),
+                     aScore.in()*(1-ecart_frac((aK1-FX)/REAL(aSz))-ecart_frac((aK2-FY)/REAL(aSz))),
+                     sigma(ecart)
+                 );
+                  aScoreMoy.data()[aK2][aK1] = ecart;
+            }
         }
     }
 
@@ -812,8 +816,17 @@ ElPackHomologue ElPackHomologue::FromFile(const std::string & aName)
                 if ( aFTxt.fgets( aBuf, End ) ) //if (aFTxt.fgets(aBuf,200,End)) TEST_OVERFLOW
                 {
                    Pt2dr aP1,aP2;
+                   double aPds=1.0;
+                   int aNb = sscanf(aBuf.c_str(),"%lf %lf %lf %lf %lf",&aP1.x,&aP1.y,&aP2.x,&aP2.y,&aPds);
+
+                   if ((aNb==4) || (aNb==5))
+                   {
+                        aPck.Cple_Add(ElCplePtsHomologues(aP1,aP2,aPds));
+                   }
+               /*
                    if (sscanf(aBuf.c_str(),"%lf %lf %lf %lf",&aP1.x,&aP1.y,&aP2.x,&aP2.y)==4) //sscanf(aBuf.c_str(),"%lf %lf %lf %lf",&aP1.x,&aP1.y,&aP2.x,&aP2.y); TEST_OVERFLOW
                      aPck.Cple_Add(ElCplePtsHomologues(aP1,aP2,1.0));
+*/
                 }
             }
 
@@ -892,7 +905,7 @@ void ElPackHomologue::StdPutInFile(const std::string & aName) const
            itP++
        )
        {
-           fprintf(aFP,"%f %f %f %f\n",itP->P1().x,itP->P1().y,itP->P2().x,itP->P2().y);
+           fprintf(aFP,"%f %f %f %f %f\n",itP->P1().x,itP->P1().y,itP->P2().x,itP->P2().y,itP->Pds());
        }
        ElFclose(aFP);
 /*
@@ -1821,6 +1834,12 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
                     aType = eTIGB_MMScanLineSensor;
                     return;
                 }
+				//MMEpip
+				if (aTree->Get("ListeAppuis1Im") !=0)
+				{
+					aType = eTIGB_MMEpip;
+					return;
+				}
 
            }
            else
@@ -1898,7 +1917,8 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
              aType==eTIGB_MMEuclid || 
              aType==eTIGB_MMIkonos || 
              aType==eTIGB_MMOriGrille ||
-             aType==eTIGB_MMScanLineSensor )
+             aType==eTIGB_MMScanLineSensor ||
+		     aType==eTIGB_MMEpip	)
     {
 	
 	return CameraRPC::CamRPCOrientGenFromFile(aName, aType, aChSys);
@@ -1914,7 +1934,9 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
 
          std::string aNameType = ThePattSatelit.KIemeExprPar(1);
     
-	 eTypeImporGenBundle aTrueType = Str2eTypeImporGenBundle(aNameType);
+	 eTypeImporGenBundle aTrueType = eTIGB_Unknown;
+	 AutoDetermineTypeTIGB(aTrueType,aName);//ER modif to look inside the file rather than reason from the filename: eTypeImporGenBundle aTrueType = Str2eTypeImporGenBundle(aNameType);
+
          aIntType =  aTrueType;
 
          switch (aTrueType)
@@ -1925,6 +1947,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
                 case eTIGB_MMIkonos :
                 case eTIGB_MMOriGrille :
                 case eTIGB_MMScanLineSensor :
+				case eTIGB_MMEpip :
                       return  CameraRPC::CamRPCOrientGenFromFile(aName,aTrueType,aChSys);
 
                 default : ;
@@ -3486,9 +3509,15 @@ cOrientationConique  ElCamera::StdExportCalibGlob() const
    return StdExportCalibGlob(true);
 }
 
-std::string  ElCamera::StdExport2File(cInterfChantierNameManipulateur *anICNM,const std::string & aDirOri,const std::string & aNameIm)
+std::string  ElCamera::StdExport2File(cInterfChantierNameManipulateur *anICNM,const std::string & aDirOri,const std::string & aNameIm,const std::string & aNameFileInterne)
 {
+   bool FileInterne = (aNameFileInterne != "");
    cOrientationConique  anOC = StdExportCalibGlob() ;
+   if (FileInterne)
+   {
+      anOC.Interne().SetNoInit();
+      anOC.FileInterne().SetVal(aNameFileInterne);
+   }
    std::string aName = anICNM->NameOriStenope(aDirOri,aNameIm);
    MakeFileXML(anOC,aName);
    return aName;

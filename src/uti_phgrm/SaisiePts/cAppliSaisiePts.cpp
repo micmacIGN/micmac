@@ -758,6 +758,20 @@ void cAppli_SaisiePts::InitPG()
             aPG.Name() = itA->NamePt() ;
             aPG.LargeurFlou().SetVal(itIm->LargeurFlou().Val());
             aPG.P3D().SetVal(itA->Pt());
+            if (itA->Norm2Surf().IsInit())
+            {
+               aPG.Normale().SetVal(vunit(itA->Norm2Surf().Val()));
+            }
+            else if (itA->TetaN2SHor().IsInit())
+            {
+                 double aTeta = itA->TetaN2SHor().Val() * (PI/180.0);
+                 Pt2dr aN2 = Pt2dr::FromPolar(1,aTeta);
+                 aPG.Normale().SetVal(Pt3dr(aN2.x,aN2.y,0.0));
+            }
+/*
+itA->TetaN2SHor().Val();
+*/
+
             aPG.Incert().SetVal(itA->Incertitude());
             aPG.ContenuPt().SetNoInit();
             aPG.FromDico().SetVal(true);
@@ -894,6 +908,35 @@ void cAppli_SaisiePts::AddPGInAllImages(cSP_PointGlob  * aSPG)
     }
 }
 
+bool cAppli_SaisiePts::ValidePt(const cPointGlob & aPG,const Pt3dr & aP3d,cBasicGeomCap3D * aCapt3D) const
+{
+   if (! aCapt3D->PIsVisibleInImage(aP3d)) 
+       return false;
+
+   if (mParam.DistMaxVisib().IsInit())
+   {
+      CamStenope *aCS = aCapt3D->DownCastCS() ;
+      if (euclid (aP3d-aCS->PseudoOpticalCenter()) > mParam.DistMaxVisib().Val())
+         return false;
+   }
+
+   if (mParam.PatternNamePtsVisib().IsInit())
+   {
+       if (!mParam.PatternNamePtsVisib().Val()->Match(aPG.Name()))
+          return false;
+   }
+
+   if (aPG.Normale().IsInit())
+   {
+       Pt2dr aPIm = aCapt3D->Ter2Capteur(aP3d);
+       ElSeg3D  aSeg = aCapt3D->Capteur2RayTer(aPIm);
+       double aScal = scal(aSeg.TgNormee(),aPG.Normale().Val());
+       return aScal < 0;
+   }
+
+   return true;
+}
+
 
 void cAppli_SaisiePts::AddOnePGInImage
      (cSP_PointGlob  * aSPG,cImage & anI,bool WithP3D,const Pt3dr & aP3d,bool InMasq3D)
@@ -919,7 +962,7 @@ void cAppli_SaisiePts::AddOnePGInImage
 
 
 
-                if (! aCapt3D->PIsVisibleInImage(aP3d)) 
+                if (! ValidePt(aPG,aP3d,aCapt3D) )
                 {
                     OkInIm = false;
                 }
@@ -1109,44 +1152,7 @@ void cAppli_SaisiePts::Save()
 
         MakeFileXML(aDico,mSauv3D);
 
-        /*
-*/
     }
-    /*
-  a voir si pb de versions sous commit
-<<<<<<< .mine
-    <DicoAppuisFlottant>
-          <OneAppuisDAF>
-               <Pt>  103 -645 5</Pt>
-               <NamePt>Coin-Gauche </NamePt>
-               <Incertitude>  10 10 10  </Incertitude>
-          </OneAppuisDAF>
-
-=======
-     A FUSIONNER AVEC LA VERSION SUR PC IGN, pas commite ???
-     if (mParam.ExportPointeTerrain().IsInit())
-     {
-        cDicoAppuisFlottant aDic;
-        for
-        (
-            std::list<cPointGlob>::iterator itP=mSPG.PointGlob().begin();
-            itP!=mSPG.PointGlob().end();
-            itP++
-        )
-        {
-            if (itP->Mes3DExportable().ValWithDef(false))
-            {
-               cOneAppuisDAF anAp;
-               anAp.Pt() = itP->P3D.Val();
-               anAp.NamePt() = itP->Name();
-               anAp.Incertitude() = Pt3dr(1,1,1);
-               aDic.OneAppuisDAF().push_back(anAp);
-            }
-        }
-        MakeFileXML(aDic, DC()+(mParam.ExportPointeTerrain().Val()));
-     }
->>>>>>> .r889
-*/
 }
 
 

@@ -1163,11 +1163,13 @@ int Contrast_main(int argc,char ** argv)
 int TournIm_main(int argc,char ** argv)
 {
     std::string aNameIm;
+    int  aNumGeom = 1;
     ElInitArgMain
     (
          argc,argv,
          LArgMain()  << EAMC(aNameIm,"Name of Input image", eSAM_IsExistFile),
          LArgMain()
+                     << EAM(aNumGeom,"NumGeom",true,"0=>Id,1=>90(def), 2=>180,3=>270,[4-7]=>Sym", eSAM_NoInit)
     );
 
     Tiff_Im aTif =  Tiff_Im::StdConvGen(aNameIm,-1,true);
@@ -1175,20 +1177,62 @@ int TournIm_main(int argc,char ** argv)
     Pt2di aSz = aVIm[0]->sz();
     std::cout << "SZ IN " << aSz << "\n";
 
-    std::string aNameOut ="T90-"+ aNameIm;
+    Fonc_Num aFTrans = Virgule(FY,aSz.y-1-FX);
+    std::string aPref = "T90-";
+
+    if (aNumGeom==0) 
+    {
+        aPref = "T0-";
+        aFTrans = Virgule(FX,FY);
+    }
+    else if (aNumGeom==1) 
+    {
+        aFTrans = Virgule(FY,aSz.y-1-FX);
+    }
+    else if (aNumGeom==2)
+    {
+        aPref = "T180-";
+        aFTrans = Virgule(aSz.x-1-FX,aSz.y-1-FY);
+    }
+    else if (aNumGeom==3)
+    {
+        aPref = "T270-";
+        aFTrans = Virgule(aSz.x-1-FY,FX);
+    }
+    else if (aNumGeom==4) 
+    {
+        aPref = "SymX-";
+        aFTrans = Virgule(aSz.x-1-FX,FY);
+    }
+    else if (aNumGeom==6) 
+    {
+        aPref = "SymY-";
+        aFTrans = Virgule(FX,aSz.y-1-FY);
+    }
+    else
+    {
+        ELISE_ASSERT(false,"Unhandled value for NumGeom");
+    }
+
+    std::string aNameOut = DirOfFile(aNameIm) + aPref+ StdPrefix(NameWithoutDir(aNameIm))+".tif";
+    L_Arg_Opt_Tiff aLarg;
+    aLarg = aLarg+  Arg_Tiff(Tiff_Im::ANoStrip());
     Tiff_Im aTifOut
             (
                 aNameOut.c_str(),
-                Pt2di(aSz.y,aSz.x),
+                ((aNumGeom%2)==1)  ? Pt2di(aSz.y,aSz.x) : Pt2di(aSz.x,aSz.y),
                 aTif.type_el(),
                 Tiff_Im::No_Compr,
-                aTif.phot_interp()
+                aTif.phot_interp(),
+                aLarg
             );
     std::cout << "SZ OUT " << aTifOut.sz() << "\n";
 
     Fonc_Num aF;
     int aKIm=0;
-    Fonc_Num aFTrans = Virgule(FY,aSz.y-1-FX);
+
+
+
     // aFTrans  = Virgule(FY,aSz.y-1-FX);
     for (auto aI : aVIm)
     {
@@ -1197,6 +1241,7 @@ int TournIm_main(int argc,char ** argv)
         aF = (aKIm) ? Virgule(aF,aNewF) : aNewF;
         aKIm++;
     }
+/*
     int aX0,aX1,aY0,aY1;
     ELISE_COPY(
          aTifOut.all_pts(),
@@ -1204,6 +1249,7 @@ int TournIm_main(int argc,char ** argv)
          Virgule(VMin(aX0)|VMax(aX1),VMin(aY0)|VMax(aY1))
     );
     std::cout << "XXX " << aX0 << " " << aX1 << ";; Y " << aY0 << " " << aY1 << "\n";
+*/
     ELISE_COPY(aTifOut.all_pts(),aF,aTifOut.out());
 
     return EXIT_SUCCESS;

@@ -60,7 +60,9 @@ void SaisieAppuisPredic(int argc, char ** argv,
                       double &aZInc,
                       std::string & aInputSec,
                       bool & WithMaxMinPt,
-                      double & aGama
+                      double & aGama,
+                      std::string & aPatFilter,
+                      double & aDistMax
                         )
 {
     MMD_InitArgcArgv(argc,argv);
@@ -85,6 +87,8 @@ void SaisieAppuisPredic(int argc, char ** argv,
                             << EAM(PIMsFilter,"PIMsF",true,"PIMs filter used for visibility", eSAM_NoInit)
                             << EAM(aInputSec,"InputSec",true,"For inmporting Other Inputs", eSAM_NoInit)
                             << EAM(WithMaxMinPt,"WMM",true,"With max-min option for point seizing", eSAM_NoInit)
+                            << EAM(aPatFilter,"PNF",true,"Pts Name Filter", eSAM_NoInit)
+                            << EAM(aDistMax,"DMax",true,"Dist Max to center", eSAM_NoInit)
                 );
 
     if (!MMVisualMode)
@@ -127,6 +131,8 @@ void SaisieAppuisPredic(int argc, char ** argv,
 #if ELISE_X11
 int  SaisieAppuisPredic_main(int argc,char ** argv)
 {
+    std::string  aPatFilter;
+    double  aDistMax;
     Pt2di aSzW(800,800);
     Pt2di aNbFen(-1,-1);
     std::string aFullName,aNamePt,anOri, aModeOri, aNameMesure, aDir, aName;
@@ -141,7 +147,7 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
     bool WithMaxMinPt=false;
     double aGama = 1.0;
 
-    SaisieAppuisPredic(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, aNameMesure, aTypePts,aMasq3D,aPIMsFilter, aFlou, aForceGray, aZMoy, aZInc,aInputSec,WithMaxMinPt, aGama);
+    SaisieAppuisPredic(argc, argv, aSzW, aNbFen, aFullName, aDir, aName, aNamePt, anOri, aModeOri, aNameMesure, aTypePts,aMasq3D,aPIMsFilter, aFlou, aForceGray, aZMoy, aZInc,aInputSec,WithMaxMinPt, aGama,aPatFilter,aDistMax);
 
     if(!MMVisualMode)
     {
@@ -194,6 +200,21 @@ int  SaisieAppuisPredic_main(int argc,char ** argv)
         {
            aCom = aCom + " +Gama=" + ToString(aGama) + " ";
         }
+        if (EAMIsInit(&aPatFilter))
+        {
+           aCom = aCom + " +WithPatFilt=true  +PatFilt=" + QUOTE(aPatFilter) + " ";
+        }
+        if (EAMIsInit(&aDistMax))
+        {
+           aCom = aCom + " +WithDmax=true  +DistMax=" + ToString(aDistMax) + " ";
+        }
+/*
+        if (EAMIsInit(&aDistMax))
+        {
+           aCom = aCom + " +Gama=" + ToString(aGama) + " ";
+        }
+*/
+
 
         std::cout << aCom << "\n";
 

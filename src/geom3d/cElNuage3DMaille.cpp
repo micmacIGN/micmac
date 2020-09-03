@@ -249,6 +249,7 @@ cElNuage3DMaille::cElNuage3DMaille
    mVoisImDef     (mImDef),
    mTVoisImDef    (mVoisImDef),
    mNormByCenter  (0),
+   mDistCenter    (0),
    m2RepGlob      (0),
    m2RepLoc       (0),
    mAnam          (0),
@@ -321,6 +322,11 @@ void cElNuage3DMaille::SetVoisImDef(Im2D_Bits<1> anIm)
 void cElNuage3DMaille::SetNormByCenter(int val)
 {
     mNormByCenter = val;
+}
+
+void cElNuage3DMaille::SetDistCenter(double val)
+{
+    mDistCenter = val;
 }
 
 bool cElNuage3DMaille::IsEmpty()
@@ -471,20 +477,45 @@ void cElNuage3DMaille::AddTri(std::vector<tTri> & aMesh,const tIndex2D & aP,int 
        );
 }
 
+double cElNuage3DMaille::TriArea(const Pt3dr &aP1,const Pt3dr &aP2, const Pt3dr &aP3) const
+{
+  double d1 = aP1.x*(aP2.y-aP3.y)+aP2.x*(aP3.y-aP1.y)+aP3.x*(aP1.y-aP2.y);
+  double d2 = aP1.y*(aP2.z-aP3.z)+aP2.y*(aP3.z-aP1.z)+aP3.y*(aP1.z-aP2.z);
+  double d3 = aP1.z*(aP2.x-aP3.x)+aP2.z*(aP3.x-aP1.x)+aP3.z*(aP1.x-aP2.x);
+  double a = sqrt(Square(d1)+Square(d2)+Square(d3))/2.;
+
+  return a;
+}
+
 void cElNuage3DMaille::GenTri(std::vector<tTri> & aMesh,const tIndex2D &aP,int aOffset) const
 {
     aMesh.clear();
-    // int aKT1[3] ={4,5,8};
-    // int aKT2[3] ={4,8,7};
-    int aKT1[3] ={8,5,4};
-    int aKT2[3] ={7,8,4};
+
+    int aKT[4] = {4,5,7,8};
+    std::vector<Pt3dr>  aPT;
+    for (int aK=0 ; aK<4 ; aK++)
+    {
+      if (!mTImDef.get(aP+VOIS_9[aKT[aK]],0))
+          return;
+      aPT.push_back(PtOfIndex(aP+VOIS_9[aKT[aK]]));
+    }
+
+    double aT1 = TriArea(aPT[0],aPT[1],aPT[2]);
+    double aT2 = TriArea(aPT[1],aPT[2],aPT[3]);
+    double aT3 = TriArea(aPT[2],aPT[3],aPT[0]);
+    double aT4 = TriArea(aPT[3],aPT[0],aPT[1]);
+
+    int aKT1[3]={7,5,4};
+    int aKT2[3]={5,7,8};
+    if (aT1+aT2>aT3+aT4) //The best diagonal is the one that minimize the area of the 2 triangles
+    {
+      aKT1[1] = 8;
+      aKT2[1] = 4;
+    }
 
     AddTri(aMesh,aP,aKT1,aOffset);
     AddTri(aMesh,aP,aKT2,aOffset);
 }
-/*
-*/
-
 
 void cElNuage3DMaille::AddExportMesh()
 {
@@ -667,13 +698,14 @@ void cElNuage3DMaille::PlyPutFile
            bool aModeBin,
            bool SavePtsCol,
            int aAddNormale,
+           const std::list<std::string> & aNormName,
            bool DoublePrec,
            const Pt3dr& anOffset
      ) const
 {
     std::vector<const cElNuage3DMaille *> aVN;
     aVN.push_back(this);
-    PlyPutFile(aName,aComments,aVN,0,0,aModeBin, SavePtsCol, aAddNormale,DoublePrec,anOffset);
+    PlyPutFile(aName,aComments,aVN,0,0,aModeBin, SavePtsCol, aAddNormale, aNormName, DoublePrec, anOffset);
 }
 
 
@@ -688,6 +720,7 @@ void cElNuage3DMaille::PlyPutFile
            bool aModeBin,
            bool SavePtsCol,
            int aAddNormale,
+           const std::list<std::string> & aNormName,
            bool DoublePrec,
            const Pt3dr & anOffset
      )
@@ -761,9 +794,22 @@ void cElNuage3DMaille::PlyPutFile
 
    if (aAddNormale)
    {
-       fprintf(aFP,"property %s nx\n",aTypeXYZ.c_str());
-       fprintf(aFP,"property %s ny\n",aTypeXYZ.c_str());
-       fprintf(aFP,"property %s nz\n",aTypeXYZ.c_str());
+       if (aNormName.size()==3)
+       {
+           for (std::list<std::string>::const_iterator itS=aNormName.begin(); itS!=aNormName.end(); itS++)
+           {
+               fprintf(aFP,"property %s %s\n",aTypeXYZ.c_str(),itS->c_str());
+           }
+       }
+       else{
+           if (aNormName.size()!=0)
+           {
+               std::cout << "Warning NormName not used, should be 3 strings"<<std::endl;
+           }
+           fprintf(aFP,"property %s nx\n",aTypeXYZ.c_str());
+           fprintf(aFP,"property %s ny\n",aTypeXYZ.c_str());
+           fprintf(aFP,"property %s nz\n",aTypeXYZ.c_str());
+       }
    }
 
    const char * aVCoul[3]={"red","green","blue"};
@@ -912,7 +958,7 @@ void cElNuage3DMaille::PlyPutDataVertex(FILE * aFP, bool aModeBin, int aAddNorma
 
        if (aAddNormale)
        {
-           Pt3dr aN = NormaleOfIndex(anI, aAddNormale);
+           Pt3dr aN = NormaleOfIndex(anI, aAddNormale, anOffset);
 
            if (DoublePrec)
            {
@@ -1125,7 +1171,7 @@ double cElNuage3DMaille::DiffDeSurface
 }
 
 //Compute local normal on 3D points in a window (wSize x wSize)
-Pt3dr cElNuage3DMaille::NormaleOfIndex(const tIndex2D& anI1, int wSize) const
+Pt3dr cElNuage3DMaille::NormaleOfIndex(const tIndex2D& anI1, int wSize, const Pt3dr & anOffset) const
 {
     if (IndexHasContenu(anI1))
     {
@@ -1136,7 +1182,16 @@ Pt3dr cElNuage3DMaille::NormaleOfIndex(const tIndex2D& anI1, int wSize) const
                 if (mNormByCenter==1)
                    return aTgt * (-aFact);
                 else if (mNormByCenter==2)
-                   return mCam->OrigineProf();
+                {
+                    Pt3dr aCentreOptique = mCam->OrigineProf() - anOffset;
+
+                    if(aCentreOptique.z==0) //On est probablement en mode grille, donc il faut calculer un pseudo centre...
+                    {
+                        std::cout<<"Be carefull, GRID orientation -> it's not the real center. Camera distance set to "<<mDistCenter<<"m (DistC"<<std::endl;
+                        aCentreOptique = aV.P0()+aTgt*mDistCenter - anOffset;
+                    }
+                    return aCentreOptique;
+                }
 
         std::vector<Pt3dr> aVP;
         std::vector<double> aVPds;

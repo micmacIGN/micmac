@@ -210,6 +210,11 @@ class cInterfChantierNameManipulateur
 
 
 
+        std::string   NameAppuiEpip(const std::string & anOri,const std::string & aIm1,const std::string & aIm2) ;
+        std::string   NameImEpip(const std::string & anOri,const std::string & aIm1,const std::string & aIm2) ;
+        std::string   NameOrientEpipGen(const std::string & anOri,const std::string & aIm1,const std::string & aIm2) ;
+
+
         ElPackHomologue StdPackHomol(const std::string & anExt,const std::string & aI1,const std::string &aI2);
         std::string  StdNameHomol(const std::string & anExt,const std::string & aI1,const std::string &aI2);
 
@@ -1116,6 +1121,16 @@ cXml_ParamBascRigide   EL2Xml(const cSolBasculeRig &);
 
 cTypeCodageMatr ExportMatr(const ElMatrix<double> & aMat);
 ElMatrix<double> ImportMat(const cTypeCodageMatr & aCM);
+
+// Return the cParamOrientSHC of a given name
+cParamOrientSHC * POriFromBloc(cStructBlockCam & aBloc,const std::string & aName,bool SVP);
+// Return the Rotation that transformate from Cam Coord to Block coordinates (in fact coord of "first" cam)
+ElRotation3D  RotCamToBlock(const cParamOrientSHC & aPOS);
+// Return the Rotation that transformate from Cam1 Coord to Cam2 Coord
+ElRotation3D  RotCam1ToCam2(const cParamOrientSHC & aPOS1,const cParamOrientSHC & aPOS2);
+
+
+
 
 cXml_Rotation El2Xml(const ElRotation3D & aRot);
 ElRotation3D Xml2El(const cXml_Rotation & aXml);

@@ -629,6 +629,10 @@ class ElSimilitude : public cElMap2D
           Pt2dr  _sc;
 };
 
+ElSimilitude  L2EstimSimHom(const class ElPackHomologue & aPack);
+
+
+
 class cElHomographie;
 class ElAffin2D : public cElMap2D
 {
@@ -1217,6 +1221,7 @@ template <class Type> class Box2d
 
 typedef Box2d<INT> Box2di;
 typedef Box2d<REAL>  Box2dr;
+cElMap2D *  MapPolFromHom(const ElPackHomologue & aPack,const Box2dr & aBox,int aDeg,int aRabDegInv);
 Pt2di BoxPClipedIntervC(const Box2di &,const Pt2di &);
 
 extern std::istream & operator >> (std::istream & ifs,Box2dr  &aBox);

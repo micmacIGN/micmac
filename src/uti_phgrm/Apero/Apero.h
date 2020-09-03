@@ -414,6 +414,7 @@ class cGenPoseCam
          tGrApero::TSom * Som();
          virtual Pt2di SzCalib() const = 0;
     protected :
+          virtual void UseRappelOnPose() const;
           cGenPoseCam(cAppliApero & anAppli,const std::string & aName);
    
           cAppliApero & mAppli;
@@ -581,7 +582,7 @@ class cPoseCam : public cGenPoseCam
           ElRotation3D   CurRot() const;
           Pt3dr CurCentre() const;
           Pt3dr CurCentreOfPt(const Pt2dr & ) const;
-          void SetCurRot(const ElRotation3D & aRot);
+          void PCSetCurRot(const ElRotation3D & aRot);
           void  SetBascRig(const cSolBasculeRig & aSBR);
 
 
@@ -638,6 +639,10 @@ class cPoseCam : public cGenPoseCam
           void   SetPreCompBloc(cPreCompBloc *);
           cPreCB1Pose *  GetPreCB1Pose(bool SVP) const; // SVP => can be 0
           void  SetPreCB1Pose(cPreCB1Pose *);
+          void UseRappelOnPose() const override;
+          int DifBlocInf1(const cPoseCam &) const; // Return "Many" if not initialized
+          void SetNumTimeBloc(int aNum);
+
      private  :
 
           void AssertHasObsCentre() const;
@@ -727,7 +732,10 @@ class cPoseCam : public cGenPoseCam
           cEqOffsetGPS *               mEqOffsetGPS;
           cStructRigidInit *           mSRI;
           cPreCompBloc *               mBlocCam;
+          int                          mNumTimeBloc;
           cPreCB1Pose *                mPoseInBlocCam;
+          bool                         mUseRappelPose;  // Do we use a "rappel" to a given value
+          ElRotation3D                 mRotURP;  // Rotation use Rappel Pose
 };
 
 
@@ -1063,7 +1071,7 @@ class cOnePtsMult
 
         const Pt2dr& P0()  const;
         const Pt2dr& PK(int ) const ;
-        void AddPt2PMul(int aNum,const Pt2dr & aP,bool IsFirstSet);
+        void AddPt2PMul(int aNum,const Pt2dr & aP,bool IsFirstSet,double aPds);
         cOnePtsMult();
         const tFixedSetInt & Flag() const; 
         void SetCombin(cOneCombinMult *);
@@ -1332,7 +1340,7 @@ class cObsLiaisonMultiple
                       bool packMustBeSwapped=false // file aNamePack contains the couples in inverse order (the first point belongs to aName2 and the second to aName1)
                 );
 
-           void AddCple(int anI1,int anI2,const ElCplePtsHomologues&,bool IsFirstSet);
+           void AddCple(int anI1,int anI2,const ElCplePtsHomologues&,bool IsFirstSet,double aPds);
 
 
           cAppliApero &                              mAppli;
@@ -2318,6 +2326,7 @@ class cAppliApero : public NROptF1vND
             return CalcDebugEliminateNumTieP(aNum);
         }
 
+        const cRappelPose * PtrRP() const;
 
 
     private :
@@ -2806,6 +2815,7 @@ class cAppliApero : public NROptF1vND
          bool  mUseVDETp;
          std::vector<int>  mNumsVDETp;
          int               mDebugNumPts;
+         const cRappelPose * mRappelPose;
 };
 
 #define ADDALLMAJ(aMes) AddAllMajick(__LINE__,__FILE__,aMes)

@@ -124,7 +124,7 @@ class cElCompiledFonc
 
          void SetMappingCur(const cIncListInterv &,cSetEqFormelles *);
          const cIncListInterv &  MapRef() const;
-         void SetCoordCur(double * aRealCoord);
+         void SetCoordCur(const double * aRealCoord);
 
          void ComputeValAndSetIVC();
 
@@ -135,6 +135,11 @@ class cElCompiledFonc
          REAL Deriv(INT aD,INT aK) const;
          REAL DerSec(INT aD,INT aK1,INT aK2) const;
 	 const std::vector<double> &   Vals() const;
+         const std::vector<double> &   CompCoord() const;
+	 const std::vector<std::vector<double> > &  CompDer() const;
+         const std::vector<double> &   ValSsVerif() const;
+         const std::vector<std::vector<double> > &  CompDerSsVerif() const;
+
 
         
 	 void SVD_And_AddEqSysSurResol

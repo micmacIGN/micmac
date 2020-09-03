@@ -14,6 +14,7 @@ set(uti_phgrm_NewOri_Src_Files
     ${UTI_PHGRM_NEW_ORI}/cNewO_OptimTriplet.cpp
     ${UTI_PHGRM_NEW_ORI}/cNewO_SolGlobInit.cpp
     ${UTI_PHGRM_NEW_ORI}/cNewO_SolGlobInit_Build.cpp
+    ${UTI_PHGRM_NEW_ORI}/cNewO_SolGlobInit_RandomDFS.cpp
     ${UTI_PHGRM_NEW_ORI}/cNewO_SolGlob_PondApriori.cpp
     ${UTI_PHGRM_NEW_ORI}/cNewO_DynFusPtsMul.cpp
     ${UTI_PHGRM_NEW_ORI}/cNewO_Ellips.cpp
@@ -28,4 +29,14 @@ list( APPEND uti_phgrm_Src_Files
 	${uti_phgrm_NewOri_Src_Files}
 )
 
+set(GRAPHVIZ_ENABLED 0)
+if(${WITH_GRAPHVIZ})
+	set(GRAPHVIZ_ENABLED 1)
+endif()
+
+
+configure_file(
+    ${UTI_PHGRM_NEW_ORI}/cNewO_BuildOptions.h.in
+    ${PROJECT_SOURCE_DIR}/include/graphes/cNewO_BuildOptions.h
+)
 

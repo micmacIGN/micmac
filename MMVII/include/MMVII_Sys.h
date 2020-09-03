@@ -44,7 +44,7 @@ const eSYS TheSYS = eSYS::MacOs;
 int mmvii_NbProcSys();
 int mmvii_GetPId();
 
-int SysCall(const std::string &, bool SVP=false); ///< call system, if SVP=false error not EXIT_SUCCESS
+int GlobSysCall(const std::string &, bool SVP=false); ///< call system, if SVP=false error not EXIT_SUCCESS
 
 
 /// A fake function, to stop momentarilly warnings about unused variable ...

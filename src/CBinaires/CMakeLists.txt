@@ -50,6 +50,10 @@ if(Boost_FOUND)
         target_link_libraries(mm3d ${Boost_LIBRARIES} ${Boost_THREADAPI})
 endif()
 
+if(WITH_GRAPHVIZ)
+    target_link_libraries(mm3d "${gvc_LIBRARIES}" -lcgraph)
+endif()
+
 install(TARGETS mm3d RUNTIME DESTINATION ${Install_Dir})
 
 include(InstallRequiredSystemLibraries)

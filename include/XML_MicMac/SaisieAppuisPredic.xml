@@ -19,6 +19,10 @@
              <Symb> WithInputSec=false </Symb>
              <Symb> InputSec=XXXX </Symb>
              <Symb> UseMinMaxPt=false </Symb>
+             <Symb> WithDmax=false </Symb>
+             <Symb> WithPatFilt=false </Symb>
+             <Symb> DistMax=1e10 </Symb>
+             <Symb> PatFilt=.* </Symb>
 
         </DicoLoc>
 
@@ -76,6 +80,13 @@
              </#WHEN>
              <#WHEN VTEST=${WithPIMsFilter}>
                    <PIMsFilterVis> ${PIMsFilter} </PIMsFilterVis>
+             </#WHEN>
+
+             <#WHEN VTEST=${WithDmax}>
+                   <DistMaxVisib>  ${DistMax}  </DistMaxVisib>
+             </#WHEN>
+             <#WHEN VTEST=${WithPatFilt}>
+                   <PatternNamePtsVisib>  ${PatFilt}  </PatternNamePtsVisib>
              </#WHEN>
 
         </SectionTerrain>

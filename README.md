@@ -64,6 +64,17 @@ Instead of makefiles, *Cmake* generates a Visual C++ solution, named `micmac.sln
 Be sure to be in *Release* configuration, for Micmac is much faster built this way than in *Debug* mode.
 Again, do not compile the entire solution but just the `INSTALL` project, otherwise compiled binaries won't be copied in the `bin` directory and this will prevent Micmac from working.
 
+## Docker image
+A precompiled docker image is available and ready to use:
+
+`docker pull rupnike/micmac`
+
+or build your own image from scratch using the existing Dockerfile:
+
+`docker image build -t micmac:1.0 -f Dockerfile`
+
+[![Docker Status](https://dockeri.co/image/rupnike/micmac)](https://hub.docker.com/r/rupnike/micmac/)
+
 # Installation test
 
 The website [logiciels.ign.fr](http://logiciels.ign.fr/?Telechargement,20) also provides a test dataset called `Boudha_dataset.zip`.

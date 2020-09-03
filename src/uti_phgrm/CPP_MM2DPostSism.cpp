@@ -143,8 +143,11 @@ int MM2DPostSism_Main(int argc,char ** argv)
     bool useDequant=true;
     double aIncCalc=2.0;
     int aSsResolOpt=4;
+    int aSurEchWCor=1;
     std::string aDirMEC="MEC/";
-
+    std::string anInterp = "SinCard";
+    double aCorrelMin = 0.5;
+    double aGammaCorrel = 2.0;
     Pt2dr  aPxMoy(0,0);
     int    aZoomInit = 1;
 
@@ -164,6 +167,10 @@ int MM2DPostSism_Main(int argc,char ** argv)
                 << EAM(aDirMEC,"DirMEC",true,"Subdirectory where the results will be stored (Def='MEC/')")
                 << EAM(aPxMoy,"PxMoy",true,"Px-Moy , Def=(0,0)")
                 << EAM(aZoomInit,"ZoomInit",true,"Initial Zoom, Def=1 (can be long of Inc>2)")
+                << EAM(anInterp,"Interp",true,"Interpolator,Def=SinCard, can be PPV,MPD,Bilin,BiCub,BicubOpt)")
+                << EAM(aSurEchWCor,"SEWC",true,"Over Sampling Correlation Window)")
+                << EAM(aCorrelMin,"CorMin",true,"Min correlation, def=0.5")
+                << EAM(aGammaCorrel,"GamaCor",true,"Gama coeff, def=2 (higher, priveligiate hig cor)")
     );
 
     if (!MMVisualMode)
@@ -188,6 +195,7 @@ int MM2DPostSism_Main(int argc,char ** argv)
         {
              aPxMoy = Pt2dr(DecalageFromPC(aIm1,aIm2));
         }
+       
 
         std::string aCom =    MM3dBinFile("MICMAC")
                             + XML_MM_File("MM-PostSism.xml")
@@ -203,6 +211,10 @@ int MM2DPostSism_Main(int argc,char ** argv)
                             + " +Px1Moy=" + ToString(aPxMoy.x)
                             + " +Px2Moy=" + ToString(aPxMoy.y)
                             + " +ZoomInit=" + ToString(aZoomInit)
+                            + " +Interpolateur=eInterpol" + anInterp
+                            + " +SurEchWCor=" + ToString(aSurEchWCor)
+                            + " +CorrelMin=" + ToString(aCorrelMin)
+                            + " +GammaCorrel=" + ToString(aGammaCorrel)
                             ;
 
 
@@ -679,6 +691,118 @@ cAppliFusionDepl::cAppliFusionDepl(int argc,char ** argv) :
 int FusionDepl_Main(int argc,char ** argv)
 {
     cAppliFusionDepl anAppli(argc,argv);
+    return EXIT_SUCCESS;
+}
+
+
+int AnalysePxFrac_Main(int argc,char ** argv)
+{
+    std::string aNameIm;
+    int         aNbStep=100;
+    Box2di      aBox;
+    int         aBrd;
+    Pt2dr       aMinMax;
+    bool        Unsigned=true;
+    double      aMul=1.0;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aNameIm,"Name of Image"),
+        LArgMain()  << EAM(aNbStep,"NbStep",true,"Number of step in one pixel, def=100")
+                    << EAM(aBox,"Box",true,"Box, def=full image")
+                    << EAM(aBrd,"Border",true,"Border to supr, def=0")
+                    << EAM(aMinMax,"MinMax",true,"MinMax values")
+                    << EAM(Unsigned,"USigned",true,"Unsigned frac")
+                    << EAM(aMul,"Mul",true,"Multiplier, def=1.0")
+    );
+
+    Im2D_REAL4 aIm = Im2D_REAL4::FromFileStd(aNameIm);
+
+    Pt2di aP0(0,0);
+    Pt2di aP1 = aIm.sz();
+
+    if (EAMIsInit(&aBox))
+    {
+       aP0 = aBox._p0;
+       aP1 = aBox._p1;
+    }
+    if (EAMIsInit(&aBrd))
+    {
+       Pt2di aPBrd(aBrd,aBrd);
+       aP0 = aP0 + aPBrd;
+       aP1 = aP1 - aPBrd;
+    }
+
+    Flux_Pts aFlux = rectangle(aP0,aP1);
+    if (EAMIsInit(&aMinMax))
+    {
+        Symb_FNum aSI0(aIm.in());
+        aFlux = select(aFlux,(aSI0>=aMinMax.x) && (aSI0<aMinMax.y));
+    }
+ 
+    Symb_FNum aSFonc  (aIm.in()*aMul);
+    Fonc_Num  aFonc = aSFonc;
+    int aSzHist = aNbStep;
+    if ( Unsigned)
+    {
+        aFonc = ecart_frac(aSFonc);
+        aSzHist = aNbStep/2;
+    }
+    else
+    {
+        aFonc = aSFonc-round_down(aSFonc);
+        aSzHist = aNbStep;
+    }
+
+    aFonc = Max(0,Min(aSzHist-1,round_down(aFonc * aNbStep)));
+    Im1D<double,double> aH(aSzHist,0.0);
+    double NbTot;
+
+    ELISE_COPY
+    (
+        aFlux,
+        1,
+           aH.histo().chc(aFonc)
+        |  sigma(NbTot)
+    );
+
+    ELISE_COPY(aH.all_pts(),aH.in() *(aSzHist/NbTot),aH.out());
+
+    for (int aK=0 ; aK<aSzHist ; aK++)
+    {
+       std::cout << "K=" << aK << " " << aH.data()[aK] << "\n";
+    }
+    std::cout  << "NBTOT=" << NbTot << "\n";
+
+    if (ELISE_X11)
+    {
+        Pt2di aSzW(500,800);
+        int aBrd= 10;
+        double aRatX = (aSzW.x-2*aBrd) /aSzHist;
+        double aRatY = (aSzW.y-2*aBrd) *0.5;
+
+        Video_Win  aW =  Video_Win::WStd(aSzW,1.0);
+
+        std::vector<Pt2dr> aVPt;
+        for (int aX=0 ; aX<aSzHist ; aX++)
+            aVPt.push_back(Pt2dr(round_ni(aBrd+aX*aRatX),round_ni(aSzW.y - aBrd - aH.data()[aX] * aRatY)));
+
+        // Axes
+        aW.draw_seg(Pt2dr(0,aSzW.y - aBrd),Pt2dr(aSzW.x,aSzW.y - aBrd),aW.pdisc()(P8COL::white));
+        aW.draw_seg(Pt2dr(aBrd,0),Pt2dr(aBrd,aSzW.y),aW.pdisc()(P8COL::white));
+
+        // Valeur moyenne
+        aW.draw_seg(Pt2dr(aBrd,aSzW.y - aBrd-aRatY),Pt2dr(aSzW.x,aSzW.y - aBrd-aRatY),aW.pdisc()(P8COL::green));
+
+        for (int aX=0 ; aX<aSzHist-1 ; aX++)
+           aW.draw_seg(aVPt[aX],aVPt[aX+1],aW.pdisc()(P8COL::red));
+
+
+
+        aW.clik_in();
+    }
+
     return EXIT_SUCCESS;
 }
 

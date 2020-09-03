@@ -1223,6 +1223,14 @@ class ElDistortionPolynomiale : public ElDistortion22_Gen
 class EpipolaireCoordinate : public ElDistortion22_Gen
 {
     public :
+         void SaveOrientEpip
+              (
+                  const std::string &                anOri,
+                  cInterfChantierNameManipulateur *  anICNM,
+                  const std::string &                aNameIm,
+                  const std::string &                aNameOther
+               ) const;
+
 
         // Lorsque aParal ballaye R, on obtient
         // la courbe epipolaire passant par aP
@@ -1372,6 +1380,14 @@ class PolynomialEpipolaireCoordinate : public EpipolaireCoordinate
 class CpleEpipolaireCoord
 {
     public :
+         void SaveOrientCpleEpip
+              (
+                  const std::string &                anOri,
+                  cInterfChantierNameManipulateur *  anICNM,
+                  const std::string &                aName1,
+                  const std::string &                aName2
+               ) const;
+
 
             static CpleEpipolaireCoord * EpipolaireNoDist
                    (Pt2dr aPHom1,Pt2dr aPHom2,Pt2dr aDir1,Pt2dr aDir2);
@@ -1383,7 +1399,8 @@ class CpleEpipolaireCoord
                                                 const ElPackHomologue &,
                                                 INT   aDegre,
                                                 Pt2dr aDir1,
-                                                Pt2dr aDir2
+                                                Pt2dr aDir2,
+                                                int   aDeltaDeg=2
                                         );
             static CpleEpipolaireCoord * PolynomialFromHomologue
                                         (
@@ -1392,7 +1409,8 @@ class CpleEpipolaireCoord
                                                 const ElPackHomologue & lHL2,
                                                 INT   aDegreL2,
                                                 Pt2dr aDir1,
-                                                Pt2dr aDir2
+                                                Pt2dr aDir2,
+                                                int   aDeltaDeg=2
                                         );
 
             static CpleEpipolaireCoord * PolynomialFromHomologue
@@ -1403,7 +1421,8 @@ class CpleEpipolaireCoord
                                                 const ElPackHomologue &,
                                                 INT   aDegre,
                                                 Pt2dr aDir1,
-                                                Pt2dr aDir2
+                                                Pt2dr aDir2,
+                                                int   aDeltaDeg=2
                                         );
 
 
@@ -1435,8 +1454,10 @@ class CpleEpipolaireCoord
                                           );
 
             ~CpleEpipolaireCoord();
-            EpipolaireCoordinate & EPI1();
-            EpipolaireCoordinate & EPI2();
+            const EpipolaireCoordinate & EPI1() const;
+            const EpipolaireCoordinate & EPI2() const;
+            EpipolaireCoordinate & EPI1() ;
+            EpipolaireCoordinate & EPI2() ;
 
             Pt2dr Hom12(Pt2dr,Pt2dr aParalaxe); // x=> paralaxe, y variation de colonne
             Pt2dr Hom12(Pt2dr,REAL aParalaxe);
@@ -1705,7 +1726,7 @@ class ElCamera : public cCapture3D
          cVerifOrient MakeVerif( int aNbVerif,double aProf,const char *,const Pt3di  * aNbDeterm=0) const;
          cOrientationConique  StdExportCalibGlob(bool Matr) const;
          cOrientationConique  StdExportCalibGlob() const;
-         std::string StdExport2File(cInterfChantierNameManipulateur *,const std::string & aDirOri,const std::string & aNameIm);  // Test -> Ori-R
+         std::string StdExport2File(cInterfChantierNameManipulateur *,const std::string & aDirOri,const std::string & aNameIm,const std::string & aFileInterne = "");  // Test -> Ori-R
 
       virtual  Pt3dr ImEtProf2Terrain(const Pt2dr & aP,double aZ) const = 0;
       virtual  Pt3dr NoDistImEtProf2Terrain(const Pt2dr & aP,double aZ) const = 0;

@@ -123,6 +123,9 @@ option(BUILD_BENCH "compile low-level test bench" OFF)
 # Interfaces de saisie des param�tres
 option(WITH_QT5 "compile Qt interfaces" OFF)
 
+# Graphiz library 
+option(WITH_GRAPHVIZ "Use graphviz" OFF)
+
 # Compilateur C++11
 option(WITH_CPP11 "Compilateur C++11" ON)
 
@@ -669,6 +672,15 @@ configure_file(
 )
 
 set_source_files_properties("src/tiff/el_dcraw.c" elise PROPERTIES COMPILE_FLAGS "-O2 -Wall" COMPILE_DEFINITIONS "")
+
+if(${WITH_GRAPHVIZ})
+	INCLUDE(FindPkgConfig)
+    PKG_SEARCH_MODULE(gvc REQUIRED libgvc libcgraph libcdt)
+    LINK_DIRECTORIES(${gvc_LIBRARY_DIRS})
+    INCLUDE_DIRECTORIES(${gvc_INCLUDE_DIRS})
+
+	message(STATUS "-----> using graphviz library")
+endif()
 
 #~ message("QT_QMAKE_EXECUTABLE = ${QT_QMAKE_EXECUTABLE}")
 #~ message("QT_MOC_EXECUTABLE = ${QT_MOC_EXECUTABLE}")

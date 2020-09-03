@@ -109,7 +109,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 }
 
 cBasicGeomCap3D * CameraRPC::CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType, const cSystemeCoord * aChSys)
-{
+{ 
     cBasicGeomCap3D * aRes = new CameraRPC(aName, aType, aChSys); 
     
     return aRes;
@@ -854,7 +854,6 @@ std::string CameraRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anI
                                const ElAffin2D & anOrIntInit2Cur
                     ) const
 {
-	std::cout << "aNameImClip " << aNameImClip << " aOriOut " << aOriOut << "\n";
     return mRPC->Save2XmlStdMMName(anICNM,aOriOut,aNameImClip,anOrIntInit2Cur);
 }
 
@@ -1111,6 +1110,7 @@ void cRPC::Initialize(const std::string &aName,
                       )
 {
 
+
     std::string aNameRPC=aName;
     if(AutoDetermineRPCFile(aName))
     {
@@ -1122,7 +1122,7 @@ void cRPC::Initialize(const std::string &aName,
         mRefine = eRP_Poly;
 
     }
-    
+   	
     if(aChSys)
         mChSys = *aChSys;
 
@@ -1268,6 +1268,33 @@ if(1)
 
 
     }
+    else if (aType == eTIGB_MMEpip)
+    { 
+
+        /* Grid in 3D */
+        std::vector<Pt3dr> aGrid3D,aGrid3DTest;
+        /* Grid in 2D */
+        std::vector<Pt3dr> aGrid2D,aGrid2DTest;
+
+        ReadEpiGrid(aNameRPC,aGrid3D,aGrid2D,aGrid3DTest,aGrid2DTest);
+
+        ISMETER=true;
+        ISINV=true;
+        CalculRPC(aGrid3D, aGrid2D,
+                  aGrid3DTest, aGrid2DTest,
+                  mDirSNum, mDirLNum, mDirSDen, mDirLDen,
+                  mInvSNum, mInvLNum, mInvSDen, mInvLDen, 1);
+        ISDIR=true;
+
+        SetRecGrid();
+
+        //Show();
+
+        //std::string aNameNewRPC = NameSave(aName,"Ori-EpiRPC/");
+        //cRPC::Save2XmlStdMMName_(*this, aNameNewRPC);
+        
+
+    }
     /*else if (aType == eTIGB_MMASTER)
     {
 	   AsterMetaDataXML(aNameFile);
@@ -1282,7 +1309,6 @@ if(1)
     else {ELISE_ASSERT(false,"Unknown RPC mode.");}
 
     //Show();
-    
 }
 
 void cRPC::Initialize_(const cSystemeCoord *aChSys)
@@ -1294,13 +1320,14 @@ void cRPC::Initialize_(const cSystemeCoord *aChSys)
 
 }
 
-std::string cRPC::NameSave(const std::string & aName)
+std::string cRPC::NameSave(const std::string & aName,std::string aDirName)
 {
-    std::string aNewDir = DirOfFile(aName)+ "NEW/";
+	std::string aPrefix = DirOfFile(aName);
+    std::string aNewDir = aPrefix.substr(0,aPrefix.size()-1) + aDirName + "/";
     ELISE_fp::MkDirSvp(aNewDir);
 
     std::string aNameXml = aNewDir + StdPrefix(NameWithoutDir(aName)) + ".xml";
-    
+
     return aNameXml;
 }
 
@@ -1492,20 +1519,23 @@ std::string cRPC::Save2XmlStdMMName_(cRPC &aRPC, const std::string &aName)
 }
 
 std::string cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
-                               const std::string & aOriOut,
+                               const std::string & aOri,
                                const std::string & aNameImClip,
-                               const ElAffin2D & anOrIntInit2Cur
+                               const ElAffin2D & anOrIntInit2Cur,
+                               const std::string & aOriOut
                     )
 
 {
-  // aOriOut == "" => convention pour cas special appel a l'ancienne
-    std::string aName = (aOriOut=="")? aNameImClip  : anICNM->StdNameCamGenOfNames(aOriOut,aNameImClip);
-    std::string aPref = (aOriOut=="") ? "" :  anICNM->Dir() ;
+  // aOri == "" => convention pour cas special appel a l'ancienne
+    std::string aName = (aOri=="")? aNameImClip  : anICNM->StdNameCamGenOfNames(aOri,aNameImClip);
+    std::string aPref = (aOri=="") ? "" :  anICNM->Dir() ;
     /* Create new RPC */
     cRPC aRPCSauv(aName);
-   
-    std::string aNameXml = cRPC::NameSave(aRPCSauv.mName);
-    std::string aNewDirLoc = DirOfFile(aNameXml); 
+ 
+
+	std::string aNameXmlOld = aRPCSauv.mName;
+    std::string aNameXml 	= cRPC::NameSave(aRPCSauv.mName,aOriOut);
+    std::string aNewDirLoc 	= DirOfFile(aNameXml); 
   
     /* Save the new RPC to XML file */
     cRPC::Save2XmlStdMMName_(aRPCSauv,aNameXml);
@@ -1517,9 +1547,8 @@ std::string cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
     cXml_CamGenPolBundle aXML =  StdGetFromSI(aName,Xml_CamGenPolBundle);
 
     int aType = eTIGB_Unknown;
-    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aNameXml,aType,aXML.SysCible().PtrCopy());
+    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aNameXmlOld,aType,aXML.SysCible().PtrCopy());
     const cSystemeCoord * aCh = aXML.SysCible().PtrCopy();
-
     
     cPolynomial_BGC3M2D aPolNew(aCh,aCamSsCor,aNameXml,aXML.NameIma(),0);
     std::string aNameGenXml =  aPolNew.NameSave("","");
@@ -2009,7 +2038,7 @@ void cRPC::ChSysRPC_(const cSystemeCoord &aChSys,
 
 if(0)
 {
-    std::cout << "ewelina image norm" << "\n";
+    std::cout << "ewelina image norm " << "\n";
     Pt3dr aPMin, aPMax, aPSum;
     GetGridExt(aGridImgN, aPMin, aPMax, aPSum);
     std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
@@ -2035,9 +2064,9 @@ if(0)
 		aGridImgTest.at(aK).z = aGridCorSysTest.at(aK).z;
 
 
-    if( ISMETER==true ) 
+    /*if( ISMETER==true ) 
     if(aGridCorSys.size() < 1500)
-        std::cout << aGridCorSys << "\n";
+        std::cout << aGridCorSys << "\n";*/
    
 
  
@@ -2142,7 +2171,8 @@ if(0)
             aPDifMoy.y += aPDif.y;
         }
 
- 
+        std::cout << "RPC precision: [" <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
+                                       <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << "]\n";
         if( (double(aPDifMoy.x)/(aGridGroundTest.size())) > 1 || (double(aPDifMoy.y)/(aGridGroundTest.size())) > 1 )
             std::cout << "RPC recalculation"
                 <<  " precision: " << double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
@@ -3949,6 +3979,73 @@ void cRPC::ReadScanLineSensor(const std::string &aFile,
 
 }
 
+void cRPC::ReadEpiGrid(const std::string &aFile,
+                             std::vector<Pt3dr> & aG3d,    std::vector<Pt3dr> & aG2d,
+                             std::vector<Pt3dr> & aG3dTest,std::vector<Pt3dr> & aG2dTest)
+{
+
+    /* Read the grids */ 
+    cListeAppuis1Im aGrMes=StdGetFromPCP(aFile,ListeAppuis1Im); 
+    std::list< cMesureAppuis > aMesL = aGrMes.Mesures();
+
+    /* Fill the grids */
+    std::pair<Pt3dr,Pt3dr> aGrMinMax(std::make_pair<Pt3dr,Pt3dr>(Pt3dr(1e9,1e9,1e9),Pt3dr(-1e9,-1e9,-1e9)));
+    std::pair<Pt3dr,Pt3dr> aImMinMax(std::make_pair<Pt3dr,Pt3dr>(Pt3dr(1e9,1e9,1e9),Pt3dr(-1e9,-1e9,-1e9)));
+    int i=0;
+    for (auto aMes : aMesL)
+    {
+        if (i%2)
+        {
+            aG3dTest.push_back(aMes.Ter());
+            aG2dTest.push_back(Pt3dr(aMes.Im().x,aMes.Im().y,aMes.Ter().z));
+        }
+        else
+        {
+            aG3d.push_back(aMes.Ter());
+            aG2d.push_back(Pt3dr(aMes.Im().x,aMes.Im().y,aMes.Ter().z));
+        }     
+
+        /* Min/Max values */
+        if (aMes.Im().x < aImMinMax.first.x) aImMinMax.first.x = aMes.Im().x;
+        if (aMes.Im().y < aImMinMax.first.y) aImMinMax.first.y = aMes.Im().y;
+
+        if (aMes.Im().x > aImMinMax.second.x) aImMinMax.second.x = aMes.Im().x;
+        if (aMes.Im().y > aImMinMax.second.y) aImMinMax.second.y = aMes.Im().y;
+
+        if (aMes.Ter().x < aGrMinMax.first.x) aGrMinMax.first.x = aMes.Ter().x;
+        if (aMes.Ter().y < aGrMinMax.first.y) aGrMinMax.first.y = aMes.Ter().y;
+        if (aMes.Ter().z < aGrMinMax.first.z) aGrMinMax.first.z = aMes.Ter().z;
+
+        if (aMes.Ter().x > aGrMinMax.second.x) aGrMinMax.second.x = aMes.Ter().x;
+        if (aMes.Ter().y > aGrMinMax.second.y) aGrMinMax.second.y = aMes.Ter().y;
+        if (aMes.Ter().z > aGrMinMax.second.z) aGrMinMax.second.z = aMes.Ter().z;
+
+        i++;   
+    }
+
+    
+    /* Set the min/max ground coords */ 
+    mGrC1[0] = aGrMinMax.first.x;
+    mGrC1[1] = aGrMinMax.second.x;
+    mGrC2[0] = aGrMinMax.first.y;
+    mGrC2[1] = aGrMinMax.second.y;
+    mGrC3[0] = aGrMinMax.first.z;
+    mGrC3[1] = aGrMinMax.second.z;
+
+    /* Set the min/max img coords */
+    mImRows[0] = aImMinMax.first.x;
+    mImRows[1] = aImMinMax.second.x;
+    mImCols[0] = aImMinMax.first.y;
+    mImCols[1] = aImMinMax.second.y;
+
+    if (0)
+    {
+        std::cout << "aGrMinMax=" << aGrMinMax.first << "," << aGrMinMax.second 
+                  << ", aImMinMax=" << aImMinMax.first << "," << aImMinMax.second << "\n";
+        std::cout << "aG3d/aG3dTest=" << aG3d.size() << "," << aG3dTest.size() << "\n";
+    }
+}
+
 void cRPC::ReconstructValidityxy()
 {
     ELISE_ASSERT(ISINV, "cRPC::ReconstructValidityxy() RPCs need to be initialised" );
@@ -4196,6 +4293,7 @@ int RecalRPC_main(int argc,char ** argv)
     std::string aDir;
     std::string aName;
     std::list<std::string> aListFile;
+	std::string aOriOut;
 
     bool aVf=false;
 
@@ -4204,16 +4302,26 @@ int RecalRPC_main(int argc,char ** argv)
         argc, argv,
         LArgMain() << EAMC(aFullName,"Orientation file (or pattern) in cXml_CamGenPolBundle format"),
         LArgMain() << EAM(aVf,"Vf", "Verification of the re-calculation on all tie points (Def = false)")
-     );
+				   << EAM(aOriOut,"OriOut","Directory of the output")
+    );
+
 
     SplitDirAndFile(aDir, aName, aFullName);
     aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     aListFile = aICNM->StdGetListOfFile(aName);
 
+	if (EAMIsInit(&aOriOut))
+		StdCorrecNameOrient(aOriOut,aDir,true);
+
+
     std::list<std::string>::iterator itL=aListFile.begin();
     for( ; itL !=aListFile.end(); itL++ )
     {
-        cRPC::Save2XmlStdMMName(0,"",(aDir+*itL),ElAffin2D::Id());
+		if (EAMIsInit(&aOriOut))
+        	cRPC::Save2XmlStdMMName(0,"",(aDir+*itL),ElAffin2D::Id(),aOriOut);
+		else
+        	cRPC::Save2XmlStdMMName(0,"",(aDir+*itL),ElAffin2D::Id());
+
     }
     
    
@@ -4292,6 +4400,30 @@ bool CalcCentreOptiqueGrille(const OrientationGrille & aOri, Pt3dr & aCentre)
 
 }
 
+int SatPosition_main(int argc,char ** argv)
+{
+    std::string aGRIName;
+
+    ElInitArgMain
+    (
+        argc, argv,
+        LArgMain() << EAMC(aGRIName,"Grid"),
+        LArgMain()
+     );
+
+    OrientationGrille aGRI(aGRIName);
+
+    Pt3dr aCentre;
+    if (! CalcCentreOptiqueGrille(aGRI,aCentre))
+        return EXIT_FAILURE;
+
+    std::cout << aCentre.x << " " << aCentre.y << " " << aCentre.z << "\n";
+
+    return EXIT_SUCCESS;
+
+}
+
+
 int CalcBsurHGrille_main(int argc,char ** argv)
 {
     std::string aGRIName1,aGRIName2;
@@ -4324,6 +4456,7 @@ int CalcBsurHGrille_main(int argc,char ** argv)
     double aB = euclid(aCentre2-aCentre1);
 
     std::cout << "B=" << aB << ", H=" << aCentre1.z << ", B/H=" << aB/aCentre1.z << "\n";
+
 
     return(1);    
 
@@ -4860,33 +4993,33 @@ void cRPCVerf::Compare3D(std::vector<Pt3dr> &aGrid3d) const
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant à la mise en
+Ce logiciel est un programme informatique servant a la mise en
 correspondances d'images pour la reconstruction du relief.
 
-Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+Ce logiciel est regi par la licence CeCILL-B soumise au droit francais et
 respectant les principes de diffusion des logiciels libres. Vous pouvez
 utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA 
+de la licence CeCILL-B telle que diffusee par le CEA, le CNRS et l'INRIA
 sur le site "http://www.cecill.info".
 
-En contrepartie de l'accessibilité au code source et des droits de copie,
-de modification et de redistribution accordés par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-seule une responsabilité restreinte pèse sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concédants successifs.
+En contrepartie de l'accessibilite au code source et des droits de copie,
+de modification et de redistribution accordes par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitee.  Pour les memes raisons,
+seule une responsabilite restreinte pese sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concedants successifs.
 
-A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant 
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
-manipuler et qui le réserve donc à des développeurs et des professionnels
-avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+A cet egard  l'attention de l'utilisateur est attiree sur les risques
+associes au chargement,  a  l'utilisation,  a  la modification et/ou au
+developpement et a  la reproduction du logiciel par l'utilisateur etant
+donne sa specificite de logiciel libre, qui peut le rendre complexe a
+manipuler et qui le reserve donc a des developpeurs et des professionnels
+avertis possedant  des  connaissances  informatiques approfondies. Les
+utilisateurs sont donc invites a  charger  et  tester  l'adequation  du
+logiciel a  leurs besoins dans des conditions permettant d'assurer la
+securite de leurs systemes et ou de leurs donnees et, plus generalement,
+a l'utiliser et l'exploiter dans les memes conditions de securite.
 
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
-pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+Le fait que vous puissiez acceder a cet en-tete signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accepte les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

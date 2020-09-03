@@ -3020,6 +3020,39 @@ std::string  Mangling( cSectionInconnues *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cRappelPose
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cRappelPose & anObj,cElXMLTree * aTree);
+
+
+        std::string & IdOrient();
+        const std::string & IdOrient()const ;
+
+        double & SigmaC();
+        const double & SigmaC()const ;
+
+        double & SigmaR();
+        const double & SigmaR()const ;
+
+        cElRegex_Ptr & PatternApply();
+        const cElRegex_Ptr & PatternApply()const ;
+    private:
+        std::string mIdOrient;
+        double mSigmaC;
+        double mSigmaR;
+        cElRegex_Ptr mPatternApply;
+};
+cElXMLTree * ToXMLTree(const cRappelPose &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cRappelPose &);
+
+void  BinaryUnDumpFromFile(cRappelPose &,ELISE_fp &);
+
+std::string  Mangling( cRappelPose *);
+
 class cUseExportImageResidu
 {
     public:
@@ -3093,6 +3126,24 @@ class cSectionChantier
 
         friend void xml_init(cSectionChantier & anObj,cElXMLTree * aTree);
 
+
+        std::string & IdOrient();
+        const std::string & IdOrient()const ;
+
+        double & SigmaC();
+        const double & SigmaC()const ;
+
+        double & SigmaR();
+        const double & SigmaR()const ;
+
+        cElRegex_Ptr & PatternApply();
+        const cElRegex_Ptr & PatternApply()const ;
+
+        cTplValGesInit< cRappelPose > & RappelPose();
+        const cTplValGesInit< cRappelPose > & RappelPose()const ;
+
+        cTplValGesInit< int > & NumAttrPdsNewF();
+        const cTplValGesInit< int > & NumAttrPdsNewF()const ;
 
         cTplValGesInit< double > & RatioMaxDistCS();
         const cTplValGesInit< double > & RatioMaxDistCS()const ;
@@ -3199,6 +3250,8 @@ class cSectionChantier
         cTplValGesInit< bool > & ExportMatrixMarket();
         const cTplValGesInit< bool > & ExportMatrixMarket()const ;
     private:
+        cTplValGesInit< cRappelPose > mRappelPose;
+        cTplValGesInit< int > mNumAttrPdsNewF;
         cTplValGesInit< double > mRatioMaxDistCS;
         cTplValGesInit< std::string > mDebugVecElimTieP;
         cTplValGesInit< int > mDoStatElimBundle;
@@ -7117,6 +7170,24 @@ class cParamApero
 
         cSectionInconnues & SectionInconnues();
         const cSectionInconnues & SectionInconnues()const ;
+
+        std::string & IdOrient();
+        const std::string & IdOrient()const ;
+
+        double & SigmaC();
+        const double & SigmaC()const ;
+
+        double & SigmaR();
+        const double & SigmaR()const ;
+
+        cElRegex_Ptr & PatternApply();
+        const cElRegex_Ptr & PatternApply()const ;
+
+        cTplValGesInit< cRappelPose > & RappelPose();
+        const cTplValGesInit< cRappelPose > & RappelPose()const ;
+
+        cTplValGesInit< int > & NumAttrPdsNewF();
+        const cTplValGesInit< int > & NumAttrPdsNewF()const ;
 
         cTplValGesInit< double > & RatioMaxDistCS();
         const cTplValGesInit< double > & RatioMaxDistCS()const ;

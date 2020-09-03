@@ -365,7 +365,7 @@ const Pt2dr& cOnePtsMult::PK(int aK ) const
 }
 
 
-void cOnePtsMult::AddPt2PMul(int aNum,const Pt2dr & aP,bool IsFirstSet)
+void cOnePtsMult::AddPt2PMul(int aNum,const Pt2dr & aP,bool IsFirstSet,double aNewPds)
 {
    if (mFlagI.IsIn(aNum))
    {
@@ -381,8 +381,22 @@ void cOnePtsMult::AddPt2PMul(int aNum,const Pt2dr & aP,bool IsFirstSet)
 #endif
    }
    mFlagI.Add(aNum);
-   mNPts.AddPts(aP);
 
+   
+   int aNbPts = mNPts.NbPts();
+   // Update the weithgint of mNPts so that is is the average of weigth of pairs
+   if (aNbPts==0)
+   {
+       // First case is speciall, weight should not be re-used
+       mNPts.Pds() = aNewPds;
+   }
+   else
+   {
+       double aSomPds = mNPts.Pds() * (aNbPts-1) + aNewPds; // Transform avergae in som
+       mNPts.Pds() = aSomPds / aNbPts;  // Back an average
+   }
+
+   mNPts.AddPts(aP);
 }
 
 const tFixedSetInt & cOnePtsMult::Flag() const
@@ -810,7 +824,7 @@ void cObsLiaisonMultiple::AddPack
 
       if (aC1->AcceptPoint(itP->P1()) && aC2->AcceptPoint(itP->P2()))
       {
-          aNewPack.Cple_Add(ElCplePtsHomologues(itP->P1(),itP->P2()));
+          aNewPack.Cple_Add(ElCplePtsHomologues(itP->P1(),itP->P2(),itP->Pds()));
       }
    }
    aPack = aNewPack;
@@ -823,12 +837,13 @@ void cObsLiaisonMultiple::AddPack
 
    for (ElPackHomologue::const_iterator itP=aPack.begin();itP!=aPack.end();itP++)
    {
-       AddCple(anInd1,anInd2,itP->ToCple(),IsFirstSet);
+/// std::cout << "PppPpppp " << itP->Pds() << "\n";
+       AddCple(anInd1,anInd2,itP->ToCple(),IsFirstSet,itP->Pds());
    }
 }
 
 
-void cObsLiaisonMultiple::AddCple(int aK1,int aK2,const ElCplePtsHomologues& aCpl,bool IsFirstSet)
+void cObsLiaisonMultiple::AddCple(int aK1,int aK2,const ElCplePtsHomologues& aCpl,bool IsFirstSet,double aPds)
 {
 
     std::list<cOnePtsMult *> aLPM = mIndPMul->KPPVois
@@ -846,7 +861,8 @@ void cObsLiaisonMultiple::AddCple(int aK1,int aK2,const ElCplePtsHomologues& aCp
     if (aLPM.empty())
     {
          aPM = new cOnePtsMult;
-         aPM->AddPt2PMul(aK1,aCpl.P1(),IsFirstSet);
+         // Weitght doent matter for creation
+         aPM->AddPt2PMul(aK1,aCpl.P1(),IsFirstSet,aPds);
          mVPMul.push_back(aPM);
          if (! mBox.Include(aCpl.P1()))
          {
@@ -861,7 +877,7 @@ void cObsLiaisonMultiple::AddCple(int aK1,int aK2,const ElCplePtsHomologues& aCp
     {
         aPM = *(aLPM.begin());
     }
-    aPM->AddPt2PMul(aK2,aCpl.P2(),IsFirstSet);
+    aPM->AddPt2PMul(aK2,aCpl.P2(),IsFirstSet,aPds);
 
     if (mAppli.MemoSingleTieP()) // TestSTP
     {
@@ -1324,9 +1340,10 @@ double cObsLiaisonMultiple::AddObsLM
         const std::vector<cGenPoseCam *> & aVP = aCOM->GenVP();
 	std::vector<double> aVpds;
 
-        double aPds = aNupl.Pds() * mMultPds;
+        double aPdsGlob = aNupl.Pds() * mMultPds;
+
         int  NbRRI;
-        int aNbRInit= aPM->InitPdsPMul(aPds,aVpds,&NbRRI);
+        int aNbRInit= aPM->InitPdsPMul(aPdsGlob,aVpds,&NbRRI);
         if (aNbRInit>=2)
         {
              aNbNN++;
@@ -1552,7 +1569,7 @@ for (int aK=0 ; aK<int(aVpds.size()) ;  aK++)
                     double aPdsSurf = 0;
                     if (mEqS)
                     {
-                       aPdsSurf = aPdrtSurf.PdsOfError(ElAbs(aRes.mEcSurf)) * aPds;
+                       aPdsSurf = aPdrtSurf.PdsOfError(ElAbs(aRes.mEcSurf)) * aPdsGlob;
                     }
 
                      aCOM->LiaisTer()->SetTerrainInit(true);

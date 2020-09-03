@@ -170,6 +170,15 @@ cElHomographie HomogrRobustInit(const ElPackHomologue & aPackFull,double aPropRa
     return TplMap2DRobustInit<cElHomographie>(aPackFull,aPropRan,aNbTir,eTM2_Homogr,nullptr);
 }
 
+ElSimilitude  L2EstimSimHom(const ElPackHomologue & aPack)
+{
+   ElSimilitude aRes;
+   L2EstimMapHom(&aRes,aPack);
+   return aRes;
+}
+
+
+
 ElSimilitude SimilRobustInitGen(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir,bool IsRot)
 {
 /*
@@ -266,6 +275,12 @@ class cMapPol2d : public  cElMap2D
        int            mNbMon;
 };
 
+cElMap2D *  MapPolFromHom(const ElPackHomologue & aPack,const Box2dr & aBox,int aDeg,int aRabDegInv)
+{
+   cMapPol2d * aRes = new cMapPol2d(aDeg,aBox,aRabDegInv);
+   L2EstimMapHom(aRes,aPack);
+   return aRes;
+}
 
 std::vector<std::string>  cMapPol2d::ParamAux() const
 {

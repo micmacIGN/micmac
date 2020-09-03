@@ -2967,6 +2967,22 @@ cInterfChantierNameManipulateur* cInterfChantierNameManipulateur::BasicAlloc(con
         return aRes[0];
     }
 
+std::string cInterfChantierNameManipulateur::NameImEpip(const std::string & anOri,const std::string & aIm1,const std::string & aIm2)
+{
+   return Assoc1To3("NKS-Assoc-NameImEpip@tif",anOri,aIm1,aIm2,true);
+}
+
+std::string cInterfChantierNameManipulateur::NameOrientEpipGen(const std::string & anOri,const std::string & aIm1,const std::string & aIm2)
+{
+  return Assoc1To2 ( "NKS-Assoc-CplIm2OriGenEpi@"+anOri+"@txt", aIm1,aIm2,true);
+
+}
+
+std::string cInterfChantierNameManipulateur::NameAppuiEpip(const std::string & anOri,const std::string & aIm1,const std::string & aIm2)
+{
+   return Assoc1To3("NKS-Assoc-NameAppuiEpip",anOri,aIm1,aIm2,true);
+}
+
     std::string  cInterfChantierNameManipulateur::Assoc1To3
         (
         const tKey & aKey,

@@ -386,12 +386,14 @@ cAppliMyRename::cAppliMyRename(int argc,char ** argv)  :
     for (int aK=0 ; aK <int(aVM.size()) ; aK++)
     {
         ;
-        if (mPrfNum!=0)
+        if (EAMIsInit(&mPrfNum))
         {
             int aPrf=aK+mPrfNum;
-            stringstream ss;
-            ss << aPrf;
-            aVM[aK].mNameOut = ss.str() + aVM[aK].mNameOut;
+            // stringstream ss;
+            // ss << aPrf;
+            char Buf[100];
+            sprintf(Buf,"%06d",aPrf);
+            aVM[aK].mNameOut = std::string(Buf) + aVM[aK].mNameOut;
         }
         std::string aSys = string(SYS_MV) + ' ' + ToStrBlkCorr(mDir+aVM[aK].mNameIn) + " " + ToStrBlkCorr(mDir+aVM[aK].mNameOut);
 

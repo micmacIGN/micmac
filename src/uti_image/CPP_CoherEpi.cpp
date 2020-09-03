@@ -523,6 +523,7 @@ void cCEM_OneIm::ComputeOrtho()
 /*                                                                 */
 /*******************************************************************/
 
+
 cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
     mSzDecoup (2000),
     mBrd      (250),
@@ -827,6 +828,8 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
 
 
        Im2D_U_INT1 anAR1 = mIm1->ImAR();
+
+
        if (mFinal)
        {
           if (mCple)
@@ -836,8 +839,6 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
              Fonc_Num aFBsH = mCple->BSurHOfPx(I1ISFirst,aFPx);
              aFBsH = Max(0,Min(1,(aFBsH-mBSHRejet) / (mBSHOk-mBSHRejet))) * 255;
              ELISE_COPY(anAR1.all_pts(),Min(anAR1.in(),aFBsH),anAR1.out());
-/*
-*/
           }
           else
           {
@@ -863,6 +864,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
 
 
        Tiff_Im::Create8BFromFonc(mDir+ mPrefix + mPostfixP + ".tif",anAR1.sz(),anAR1.in());
+
 
        if (mDoMasq)
        {

@@ -51,7 +51,7 @@
            <Symb>  AffineFree=false </Symb>
            <Symb>  LibCD=false </Symb>
            <Symb>  LibDec=false </Symb>
-         
+		   <Symb>  AllFreePattern=".*" </Symb>         
 
  	   <Symb>  PoseFigee=false </Symb>
 
@@ -223,6 +223,14 @@
            <Symb> RatioMaxDistCS=30.0 </Symb>
            <Symb> ExportMatrixMarket=false </Symb>
 
+           <Symb> NumAttrPdsNewF=-1 </Symb>
+
+           <!-- ROP = Rappel On Pose -->
+           <Symb>  WithROP=false      </Symb>
+           <Symb>  ROPSigmaC=-11.0 </Symb>
+           <Symb>  ROPSigmaR=-11.0  </Symb>
+           <Symb>  ROPOrient="XXX_RopOrient"   </Symb>
+           <Symb>  ROPPattern="XXX_RopPattern"   </Symb>
        </DicoLoc>
 
 
@@ -260,6 +268,7 @@
                   <KeySet>  NKS-Set-Orient@${AeroIn} </KeySet>
                   <KeyAssoc>  NKS-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
              </BDD_Orient>
+             
 
 
              <#WHEN  VTEST=${WithGCP}>
@@ -468,6 +477,15 @@
 
 
         <SectionChantier>
+             <#WHEN VTEST=${WithROP}>
+                 <RappelPose>
+                     <IdOrient >    ${ROPOrient}  </IdOrient>
+                     <SigmaC>       ${ROPSigmaC}  </SigmaC>
+                     <SigmaR>       ${ROPSigmaR}  </SigmaR>
+                     <PatternApply> ${ROPPattern} </PatternApply>
+                 </RappelPose>
+             </#WHEN>
+             <NumAttrPdsNewF> ${NumAttrPdsNewF}  </NumAttrPdsNewF>
              <ExportMatrixMarket> ${ExportMatrixMarket} </ExportMatrixMarket>
              <RatioMaxDistCS> ${RatioMaxDistCS} </RatioMaxDistCS>
              <DebugVecElimTieP> ${StrDebugVecElimTieP} </DebugVecElimTieP>
@@ -808,8 +826,9 @@
 
                    <#WHEN VTEST=${AllFree}>
                          <IterationsCompensation>
-                            <SectionContraintes>
+							<SectionContraintes>
                                <ContraintesCamerasInc>
+								   <PatternNameApply> ${AllFreePattern} </PatternNameApply>
                                    <Val> eAllParamLibres  </Val>
                                </ContraintesCamerasInc>
                             </SectionContraintes>

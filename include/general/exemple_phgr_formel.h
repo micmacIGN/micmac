@@ -1220,6 +1220,43 @@ template <class Type> class cStructMergeTieP
 };
 
 
+class cP3dFormel : public cElemEqFormelle
+{
+    public :
+       cP3dFormel(const Pt3dr &,const std::string & aName,cSetEqFormelles &,cIncListInterv & aLI);
+       const Pt3dr &  Pt()          const {return mPt;}
+       const Pt3d<Fonc_Num> & FPt() const {return mFPt;}
+
+    private :
+       Pt3dr               mPt;
+       Pt3d<Fonc_Num>      mFPt;
+};
+
+class cP2dFormel : public cElemEqFormelle
+{
+    public :
+       cP2dFormel(const Pt2dr &,const std::string & aName,cSetEqFormelles &,cIncListInterv & aLInterv);
+       const Pt2dr &  Pt()          const {return mPt;}
+       const Pt2d<Fonc_Num> & FPt() const {return mFPt;}
+
+    private :
+       Pt2dr               mPt;
+       Pt2d<Fonc_Num>      mFPt;
+};
+
+class cValFormel : public cElemEqFormelle
+{   
+    public :
+       cValFormel(const double &,const std::string & aName,cSetEqFormelles &,cIncListInterv & aLI);
+       const double &  Val()          const {return mVal;}
+       const Fonc_Num & FVal() const {return mFVal;}
+     
+    private :
+       double        mVal;
+       Fonc_Num      mFVal;
+};
+
+
 
 
 

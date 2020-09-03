@@ -19,11 +19,68 @@ cIm2D<tU_INT1>   cAimeDescriptor::ILP() {return mILP;}
 const std::vector<double> &  cAimeDescriptor::DirPrinc() const {return mDirPrinc;}
 std::vector<double> &  cAimeDescriptor::DirPrinc() {return mDirPrinc;}
 
+double  cAimeDescriptor::DistanceFromIShift(const cAimeDescriptor & aAD2,int aShift,const cSetAimePCAR & aSet) const
+{
+   const cDataIm2D<tU_INT1>  & aDIm1(mILP.DIm());
+   cPt2di aSz1= aDIm1.Sz();
+   tU_INT1 * const * aData1 = aDIm1.ExtractRawData2D();
+
+   const cDataIm2D<tU_INT1>  & aDIm2(aAD2.mILP.DIm());
+   cPt2di aSz2= aDIm2.Sz();
+   tU_INT1 * const * aData2 = aDIm2.ExtractRawData2D();
+
+   MMVII_INTERNAL_ASSERT_tiny(aSz1==aSz2,"cAimeDescriptor::Distance");
+   int aNbX = aSz1.x();
+   aShift = mod(aShift,aNbX);
+   int aIRes = 0;
+
+   for (int aY=0 ; aY<aSz1.y() ; aY++)
+   {
+       const tU_INT1 * aLine1 = aData1[aY];
+       const tU_INT1 * aLine2 = aData2[aY];
+       for (int aX1= 0; aX1<aNbX ; aX1++)
+       {
+           aIRes += Square(aLine1[aX1]-aLine2[(aX1+aShift)%aNbX]);
+       }
+   
+   } 
+   double aRes = aIRes;
+   aRes /= aSz1.x() * aSz1.y();
+   aRes /= Square(aSet.Ampl2N());
+
+   return aRes;
+}
+
+double  cAimeDescriptor::DistanceFrom2RPeek(double aX1,const cAimeDescriptor & aAD2,double aX2,const cSetAimePCAR & aSet) const
+{
+    return DistanceFromIShift(aAD2,round_ni(aX2-aX1),aSet);
+}
+
+double cAimeDescriptor::DistanceFromStdPeek(int aIPeek,const cAimeDescriptor & aAD2,const cSetAimePCAR & aSet) const
+{
+    return DistanceFrom2RPeek(mDirPrinc.at(aIPeek),aAD2,aAD2.mDirPrinc.at(aIPeek),aSet);
+}
+
+
+cWhitchMin<int,double>  cAimeDescriptor::DistanceFromBestPeek(const cAimeDescriptor & aAD2,const cSetAimePCAR & aSet) const
+{
+    cWhitchMin<int,double> aWMin(-1,1e60);
+    for (int aK=0 ; aK<int(mDirPrinc.size()) ; aK++)
+    {
+        aWMin.Add(aK,DistanceFromStdPeek(aK,aAD2,aSet));
+    }
+    return aWMin; 
+}
+
+
+
 void AddData(const cAuxAr2007 & anAux,cAimeDescriptor & aDesc)
 {
    AddData(cAuxAr2007("ILP",anAux)  , aDesc.ILP().DIm());
    AddData(cAuxAr2007("Dirs",anAux) , aDesc.DirPrinc());
 }
+
+
 
 /* ================================= */
 /*          cAimePCar                */
@@ -227,7 +284,7 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
         if (aCensusMode)
         {
             // double aVN  = aV0/aVCentral;
-            aValRes = 128 * (1+ NormalisedRatio(aV0,aVCentral));
+            aValRes = 128 + cSetAimePCAR::TheCensusMult * NormalisedRatio(aV0,aVCentral);
         }
         else
         {
@@ -252,23 +309,44 @@ template<class Type> bool cProtoAimeTieP<Type>::TestFillAPC(const cFilterPCar& a
 /*          cSetAimePCAR             */
 /* ================================= */
 
+const double cSetAimePCAR::TheCensusMult = 128.0;
+
 cSetAimePCAR::cSetAimePCAR(eTyPyrTieP aType,bool IsMax) :
   mType  ((int)aType),
   mIsMax (IsMax)
 {
 }
 
+cSetAimePCAR::cSetAimePCAR():
+   cSetAimePCAR(eTyPyrTieP::eNbVals,true)
+{
+}
+
+
 eTyPyrTieP              cSetAimePCAR::Type()   {return eTyPyrTieP(mType);}
 int &                   cSetAimePCAR::IType()  {return mType;}
 bool&                   cSetAimePCAR::IsMax()  {return mIsMax;}
 std::vector<cAimePCar>& cSetAimePCAR::VPC()    {return mVPC;}
+bool&          cSetAimePCAR::Census()       {return mCensus;}
+const bool&    cSetAimePCAR::Census() const {return mCensus;}
+double&        cSetAimePCAR::Ampl2N()       {return mAmpl2N;}
+const double&  cSetAimePCAR::Ampl2N() const {return mAmpl2N;}
+
 
 void AddData(const cAuxAr2007 & anAux,cSetAimePCAR & aSPC)
 {
     AddData(cAuxAr2007("Type",anAux),aSPC.IType());
     AddData(cAuxAr2007("Max",anAux),aSPC.IsMax());
     AddData(cAuxAr2007("VPC",anAux),aSPC.VPC() );
+    AddData(cAuxAr2007("Census",anAux),aSPC.Census() );
+    AddData(cAuxAr2007("Ampl2N",anAux),aSPC.Ampl2N() );
 }
+
+void cSetAimePCAR::InitFromFile(const std::string & aName) 
+{
+    ReadFromFile(*this,aName);
+}
+
 
 void cSetAimePCAR::SaveInFile(const std::string & aName) const
 {

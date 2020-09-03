@@ -364,11 +364,14 @@ std::list<ElRotation3D> ElPackHomologue::MepRelStd(REAL LBase,bool SysL2)  // Co
    return MatEssToMulipleRot(aMEss,LBase);
 }
 
+extern bool ShowMSG_ListRot2RotPhys;
+
 ElRotation3D ListRot2RotPhys(const  std::list<ElRotation3D> & aLRot,const ElPackHomologue & aPack)
 {
     const ElRotation3D * aRes = &(aLRot.front());
     INT aScMin = -20 * aPack.size();
 
+    int aCpt=0;
     for
     (
          std::list<ElRotation3D>::const_iterator it=aLRot.begin();
@@ -384,6 +387,11 @@ ElRotation3D ListRot2RotPhys(const  std::list<ElRotation3D> & aLRot,const ElPack
            aScMin = aScore;
 	   aRes = &(*it);
        }
+       if (ShowMSG_ListRot2RotPhys)
+       {
+           std::cout << "Cpt " << aCpt << " SCORE " << aScore << "\n";
+       }
+       aCpt++;
     }
 
     return *aRes;

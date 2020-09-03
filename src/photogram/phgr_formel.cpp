@@ -268,21 +268,23 @@ void cElemEqFormelle::SetValAndInit(REAL aVal,INT anIndGlob)
 
 cElemEqFormelle::tContFcteur  cElemEqFormelle::FoncRappInit(INT i0,INT i1)
 {
-
-/*
-if (0)
-{
-   for (int i=i0 ; i<i1  ; i++)
-      std::cout << "VALSSINIT" << mValsInit[i] << "\n";
-}
-*/
-
    return FoncRapp(i0,i1,&(mValsInit[0]));
 }
 
-void cElemEqFormelle::AddFoncRappInit(cMultiContEQF & aPush,INT i0,INT i1,double aTol)
+void cElemEqFormelle::AddFoncRappInit
+     (
+         cMultiContEQF & aPush,
+         INT i0,
+         INT i1,
+         double aTol,
+         std::vector<double>* aVals
+     )
 {
-    tContFcteur aPlus = FoncRappInit(i0,i1);
+    if (aVals)
+    {
+       ELISE_ASSERT(int(aVals->size())==(i1-i0),"AddFoncRappInit size vals incoherent ");
+    }
+    tContFcteur aPlus =  aVals ? FoncRapp(i0,i1,&((*aVals)[0])-i0)  :  FoncRappInit(i0,i1);
     for (INT aK=0; aK<INT(aPlus.size()) ; aK++)
          aPush.AddAcontrainte(aPlus[aK],aTol);
 }
@@ -1843,6 +1845,37 @@ void cMultiContEQF::Add(const cMultiContEQF & aM2)
 {
     for (int aK=0; aK<int(aM2.mContraintes.size()) ; aK++)
        mContraintes.push_back(aM2.mContraintes[aK]);
+}
+
+
+cP3dFormel::cP3dFormel(const Pt3dr & aPt,const std::string & aName,cSetEqFormelles & aSet,cIncListInterv & aLI) :
+   cElemEqFormelle(aSet,false),
+   mPt   (aPt),
+   mFPt  (aSet.Alloc().NewPt3(aName,mPt))
+{
+   IncInterv().SetName(aName);
+   CloseEEF();
+   aLI.AddInterv(IncInterv());
+}
+
+cP2dFormel::cP2dFormel(const Pt2dr & aPt,const std::string & aName,cSetEqFormelles & aSet,cIncListInterv & aLI) :
+   cElemEqFormelle(aSet,false),
+   mPt   (aPt),
+   mFPt  (aSet.Alloc().NewPt2(aName,mPt))
+{
+   IncInterv().SetName(aName);
+   CloseEEF();
+   aLI.AddInterv(IncInterv());
+}
+
+cValFormel::cValFormel(const double & aVal,const std::string & aName,cSetEqFormelles & aSet,cIncListInterv & aLI) :
+   cElemEqFormelle(aSet,false),
+   mVal   (aVal),
+   mFVal  (aSet.Alloc().NewF(aName,aName,&mVal))
+{
+   IncInterv().SetName(aName);
+   CloseEEF();
+   aLI.AddInterv(IncInterv());
 }
 
 
