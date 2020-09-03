@@ -19,6 +19,7 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}  
 \usepackage{amsthm}
+\usepackage{ulem}
 
 \ipolSetTitle{Epipolar rectification of a generic camera}
 \ipolSetAuthors{Marc Pierrot Deseilligny\ipolAuthorMark{1},
@@ -92,6 +93,8 @@
 \newcommand{\er}[1]{\textcolor{orange}{#1}} 
 \definecolor{magenta}{rgb}{1,0,1} 
 \newcommand{\mpd}[1]{\textcolor{magenta}{#1}} 
+\definecolor{blue}{rgb}{0,0,1} 
+\newcommand{\ermpdok}[1]{{\bf \textcolor{blue}{#1}} }
 
 %-------------------------------------------------------------------------------
 \begin{document}
@@ -105,8 +108,18 @@ ble
 \ipolKeywords{epipolar rectification, generic camera, pushbroom sensor, central perspective}
 
 %-------------------------------------------------------------------------------
+TODO :
+\begin{enumerate}
+   \item  décrire méthode de calcul automatique des directions dans le cas sans modèle;
+
+   \item Allégation :  marche aussi sans modèle, minimise globalement le critère d'erreur, 
+         formulation théorique de l'ambiguité et des condition d'existence d'un crière épipolaire;
+         mesure de "l'épipolarabilité" d'un couple;
+ 
+\end{enumerate}
+
 \section{Introduction}
-The epipolar geometry of images plays a central role in many applications in the field of photogrammetry and computer vision. In the stereo-reconstruction pipeline, it is \er{used} twice:
+The epipolar geometry of images plays a central role in many applications in the field of photogrammetry and computer vision. In the stereo-reconstruction pipeline, it is \ermpdok{used} twice:
 
 \begin{enumerate}
    \item In the camera pose orientation step, when computing the
@@ -160,7 +173,7 @@ Unlike the central projection camera model, pushbroom-like sensors acquire each 
 
 \subsection{Contributions}
 Our research work proposes an epipolar geometry rectification method that is not tied to any camera physical model. %Thus, our method can be applied to images taken with the central projection camera model and the pushbroom sensor. 
-We demonstrate that on a range of models, including Pleiades images (pushbroom), the Corona images (panoramic pushbroom), a consumer grade camera images (central perspective) as well as \er{Sentinel-1 radar images (pushbroom)}.
+We demonstrate that on a range of models, including Pleiades images (pushbroom), the Corona images (panoramic pushbroom), a consumer grade camera images (central perspective) as well as \ermpdok{Sentinel-1 radar images (pushbroom)}.
 The method resembles Oh's~\cite{Oh2011} approach in that it exploits the point correspondences to find the polynomial mapping to epipolar geometry. However, unlike the work of Oh~\cite{Oh2011}, we do not require that the camera geometric model is known. We demonstrate that in some circumstances, point correspondences obtained from an image processing routine, e.g. SIFT~\cite{lowe2004distinctive}, can serve to find the epipolar resampling. 
 
 In the remainder of this publication, we first outlay the mathematical background of the epipolar geometry and identify cases when epipolar geometry does not exist or is ambiguous  (Section~\ref{sec:math}). Then, we introduce our method (Section~\ref{sec:method}), and finally present the experiments on different datasets with and without the geometric model (Section~\ref{sec:experiments}). The results are compared against the Oh's~\cite{Oh2011} method with respect to the y-parallax remaining after the resampling to the epipolar geometry.
@@ -207,7 +220,8 @@ A geometric sensor model $\pi$ is a $\mathcal{C}^{\infty}$ mapping from ground s
 \noindent Next, we define the bundles of a projection:
 
 \begin{definition}[Bundle]
-For $p_k \in I_k$ we note $\BundK(p_k)$  the bundle corresponding to $\pi_k^{-1}(p_k)$. \er{When there is no confusion},
+For $p_k \in I_k$ we note $\BundK(p_k)$  the bundle corresponding 
+to $\pi_k^{-1}(p_k)$. \mpd{When there is no ambiguity},
 we note identically  $\BundK(P)$, where $P\in \RR^3$,
  the bundle corresponding to $\pi_k^{-1}(\pi_k(P)) = \BundK(\pi_k(P))$.
 \end{definition}
@@ -272,7 +286,7 @@ This technique, which does not exploit the epipolar geometry, has the advantage 
 The drawback of this approach is that it combines two different problems in the same procedure: the handling of the geometry and resampling and
 the matching process. When one is interested
 in the matching of a single image pair, the epipolar geometry
-can provide an elegant solution by separating the problem in two. \er{ER thinks this should be removed $\rightarrow$ When two images are in epipolar geometry, two points $p_1,p_2$ are potential homologous iff they have the same ordinate ($y_1=y_2$).}
+can provide an elegant solution by separating the problem in two. \er{ER thinks this should be removed $\rightarrow$ When two images are in epipolar geometry, two points $p_1,p_2$ are potential homologous iff they have the same ordinate ($y_1=y_2$).}  \mpd{A discuter}
 
 \begin{definition}[Epipolar Geometry]
 \emph{Illustrated in Figures~\ref{FigDefEpip} and~\ref{FigAmbigEpip}.}
@@ -397,11 +411,12 @@ can be omitted by readers mainly interested in practical applications.
 \label{EqDifEpip}
 \end{figure}
 
-Analogously to the proof in Section~\ref{ExistEpip}, we will make a  computation of two-way paths, \er{$\BundO$ then $\BundT$,
-as well as $\BundT$ and $\BundO$}. Then, we express the \er{intersection distance}
-between these two paths as the Taylor expansion. Let's consider the following (see Figure~\ref{EqDifEpip}):
+Analogously to the proof in Section~\ref{ExistEpip}, we will make a  computation of two-way paths, \ermpdok{$\BundO$ then $\BundT$,
+as well as $\BundT$} \mpd{then  \sout{and}} $\BundO$. Then, we express the \ermpdok{intersection distance}
+between these two paths as the Taylor expansion \footnote{ \mpd{On dirait pas plutot the Taylor expansion 
+of the intersection distance}}  . Let's consider the following (see Figure~\ref{EqDifEpip}):
 \begin{itemize}
-   \item we make the quasi-vertical assumption\footnote{when this assumption can be made,
+   \item we make the quasi-vertical assumption\footnote{when this assumption can \mpd{not ?} be made,
           \er{note we could use curvilinear abscissa}};
    \item let $P$ be any point in $\RR^3$;
    \item consider the first path $(P,P_1,Q_1)$ following  $\BundO$ then $\BundT$, making a
@@ -461,7 +476,7 @@ The first degree Taylor expansion of $Q_2-Q_1$ gives :
 %
 To minimize $|Q_2 -Q_1|$, the first step is to cancel the first degree  terms of $ Q_2 -Q_1$. We assume
 that $\TanT{(P)}$ and $\TanO{(P)}$  are independant vectors\footnote{Otherwise, it would be a 
-degenerate case for stereovision} and we must then \er{make of $\delta'_2 -\delta_2$ and $\delta'_1 -\delta_1$ term of degre $2$:}
+degenerate case for stereovision} and we must then \ermpdok{make of $\delta'_2 -\delta_2$ and $\delta'_1 -\delta_1$ term of degre $2$:}
 
 \begin{equation}
    \Delta_1 =   \delta'_1 -\delta_1 = \Negl{\delta^2}  \; ; \; \Delta_2 =   \delta'_2 -\delta_2 = \Negl{\delta^2}
@@ -530,7 +545,7 @@ When the epipolar geometry exists, the epipolar resampling is not unique. To dem
 For any pair of lines $\LineK(v)$ in $E_k$, there are corresponding 
 homologous curves $\CurveO(v),\CurveT(v)$  in images 
 $I_1,I_2$ (see Equation~\eqref{Eq:CurvHom}). Following the depiction in Figure~\ref{FigAmbigEpip}, if $\phi'_k(\CurveK(v)))$
-are  lines $\LineK(v')$ in $E_k$, one can observe that $\phi'_1 \phi_1^{-1}$  and $\phi'_2 \phi_2^{-1}$ are diffeomorphisms transforming lines into lines, and they globally \er{operate the same transformation on lines.}
+are  lines $\LineK(v')$ in $E_k$, one can observe that $\phi'_1 \phi_1^{-1}$  and $\phi'_2 \phi_2^{-1}$ are diffeomorphisms transforming lines into lines, and they globally \er{\sout{operate the same transformation on lines}}\mpd{Not sure to undestand}
 \textit{Vice versa}, let  $\phi_1,\phi_2$ be an epipolar resampling and let $\Lambda_1,\Lambda_2$ 
 be diffeomorphisms  that are stable for lines and make globally the same transformation on lines. We can thus note that $\Lambda_1 \circ \phi_1$ and  $\Lambda_2 \circ \phi_2$ are also an epipolar resampling.
 
@@ -538,7 +553,7 @@ be diffeomorphisms  that are stable for lines and make globally the same transfo
 Having devised the exact ambiguity, we can now define two constraints to impose on a unique epipolar resampling: 
 \begin{enumerate}
 \item Constraint on the uniqueness of the deformation
-inside each line of each \er{function}. For instance, one can impose that the colums remain constant (i.e.
+inside each line \mpd{?\sout{of each \er{function}}}. For instance, one can impose that the colums remain constant (i.e.
 the deformation is only made  on  $y$), as given in Equations~\eqref{Ambig:PhiO}
 and~\eqref{Ambig:PhiT};
 \item Constraint on the global deformation of lines\footnote{i.e. where each line
@@ -614,7 +629,7 @@ To compute $V_1,V_2$, for any pair of \emph{H-Compatible} points, we add an obse
 The method takes two camera models $\pi_1$ and $\pi_2$ as inputs.
 These models are considered black-boxes that satisfy Equation~\eqref{Eq:Proj}, and for which no specific assumption is made on the physical model of the camera. In our \CPP implementation,
 the cameras are considered to be pure virtual classes offering the interface to Equation~\eqref{Eq:Proj}.
-In this paper, the examples processed by our method are pushbroom satellite models known by their RPCs, the central perspective and \er{radar} models. However, the only restriction imposed on the generic nature of the model is that the projection function is "smooth", i.e.:
+In this paper, the examples processed by our method are pushbroom satellite models known by their RPCs, the central perspective and \ermpdok{radar} models. However, the only restriction imposed on the generic nature of the model is that the projection function is "smooth", i.e.:
 
 \begin{itemize}
     \item $\pi$ are $\mathcal{C}^{\infty}$ functions, and
@@ -638,27 +653,10 @@ of epipolar lines with too large direction variations. The right image represent
 
 \subsubsection{Estimation of the center and the global direction}
 
-To begin with, the method estimates the centers \er{[inconsistent with small c in the implemention] $C_1,C_2$} of a set of points $p_1$ and $p_2$. This is done by calculating the average of all points' coordinates.  Then, the computations continue in
+To begin with, the method estimates the centers \ermpdok{\sout{[inconsistent with small c in the implemention]} $C_1,C_2$} of a set of points $p_1$ and $p_2$. This is done by calculating the average of all points' coordinates.  Then, the computations continue in
 the coordinate systems centered at $C_1,C_2$. After this "normalisation", the constraint in Equation~\ref{Ambig:Line} is applied at these centers.
 
-Next, for each image we estimate the average direction $\vec{D}_k$
-of its epipolar lines, and using Equation~\eqref{EqRot}, a rotation $R_k$ is applied to the\er{data points ER does not like this data points}. The epipolar lines are now globally horizontal and the subsequent epipolar deformation is computed on the rotated data points. \er{ER is this phrase necessary? -The use of the coordinate system where epipolar lines are globaly horizontal, is
-a consequence of Equation~\eqref{EpipVParam}, and is illustrated by Figure~\ref{ReqOrient}}.
-
-\begin{equation}
-    R_k(p) =  \frac{p-C_k}{\vec{D}_k}  \label{EqRot}
-\end{equation}
-%
-\er{ER- remove that but add extra comment in the figure?
-\begin{itemize}
-   \item left image of figure~\ref{ReqOrient} presents a case where epipolar curve are quasi vertical
-         and for which an epipolar correction, without initial rotation,  
-          according to equation~\eqref{EpipVParam} would be impossible;
-   \item middle image of figure~\ref{ReqOrient} presents a case where epipolar curve are oblique,
-         in this case epipolar correction according to equation~\eqref{EpipVParam} would be possible
-         but would lead to important distorsion in the image, as can be seen on left image.
-\end{itemize}
-}
+\mpd{BEGIN CHANGE}
 
 \begin{figure}
 \centering
@@ -672,8 +670,30 @@ a consequence of Equation~\eqref{EpipVParam}, and is illustrated by Figure~\ref{
 \label{ReqOrient}
 \end{figure}
 
+Then we need to compute a coordinate system where epipolar lines are globaly horizontal. This requirement is
+a consequence of equation~\eqref{EpipVParam}, and is illustrated by Figure~\ref{ReqOrient}:
 
 
+\begin{itemize}
+   \item left image of figure~\ref{ReqOrient} presents a case where epipolar curve are quasi vertical
+         and for which an epipolar correction, without initial rotation,  
+          according to equation~\eqref{EpipVParam} would be impossible;
+   \item middle image of figure~\ref{ReqOrient} presents a case where epipolar curve are oblique,
+         in this case epipolar correction according to equation~\eqref{EpipVParam} would be possible
+         but would lead to important distorsion in the image, as can be seen on left image.
+\end{itemize}
+
+
+So for each image we estimate the average direction $\vec{D}_k$
+of its epipolar lines, and using Equation~\eqref{EqRot}, a rotation $R_k$ is applied to the\mpd{input point}. 
+
+\begin{equation}
+    R_k(p) =  \frac{p-C_k}{\vec{D}_k}  \label{EqRot}
+\end{equation}
+
+The epipolar lines are now globally horizontal and the subsequent epipolar deformation can be computed on the rotated data points. 
+
+\mpd{END CHANGE}
 
 
 \subsubsection{Layout}
