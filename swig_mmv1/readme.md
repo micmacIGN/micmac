@@ -56,13 +56,19 @@ Compilation
 Only tested on Linux.
 
 Dependances:
- - SWIG 3.0
- - Python 3.6 headers
+ - SWIG
+ - Python 3 headers
  - for documentation: doxygen, GraphViz
 
+On debian:
+    apt install swig python3-dev doxygen graphviz
+
+
 Compile micmac (to have lib/libelise.a), then
-cd swig_mmv1
-make -f Makefile_swig_linux all
+
+    cd swig_mmv1
+
+    make -f Makefile_swig_linux all
 
 The files to distribute are: swig_mmv1/_mm3d.so and swig_mmv1/mm3d.py
 

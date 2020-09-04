@@ -2,11 +2,10 @@ MMDir=..
 CXX=g++
 INCLUDEDIRS = -I. -I${MMDir}/include/
 DOCDIR = doc/
-PYTHON_VERSION = 3.6
 CXXFlags= -std=c++11 -fPIC -Wall -Werror  -O2  -march=native ${INCLUDEDIRS} -DFORSWIG
-CXX_WRAP_FLAGS = ${CXXFlags} -I/usr/include/python${PYTHON_VERSION} ${INCLUDEDIRS}
+CXX_WRAP_FLAGS = ${CXXFlags} `pkg-config --cflags python3` ${INCLUDEDIRS}
 
-LFLAGS = ${MMDir}/lib/libelise.a -lX11 -lXext -lm -ldl -lpthread ${MMDir}/lib/libANN.a
+LFLAGS = ${MMDir}/lib/libelise.a -lX11 -lXext -lm -ldl -lpthread ${MMDir}/lib/libANN.a `pkg-config --libs python3-embed`
 SO = _mm3d.so
 
 CXX_SRCS = $(wildcard ./api/*.cpp)
@@ -27,7 +26,7 @@ swig: $(OBJ_FILES) $(WRAP_O_FILES)
 
 check: $(OBJ_FILES) $(WRAP_O_FILES) test_exe.cpp
 	$(CXX) -c $(CXXFlags) test_exe.cpp -o test_exe.o 
-	$(CXX) $(OBJ_FILES) $(WRAP_O_FILES) test_exe.o $(LFLAGS) -lpython${PYTHON_VERSION}m -o test
+	$(CXX) $(OBJ_FILES) $(WRAP_O_FILES) test_exe.o $(LFLAGS) -o test
 
 all: swig check doc
 
