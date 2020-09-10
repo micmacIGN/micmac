@@ -793,10 +793,12 @@ Equation~\eqref{Ambig:Line} is valid.
 
 Classically, when parameterizing a set of functions  $\mathcal{C}^{\infty}$,
 a "natural" candidate is the set of polynomials of a given degree. We know that the function will be
-$\mathcal{C}^{\infty}$ and, \er{according to the Stone-Weierstrass theorem \cite{Weierstrass1885,Stone1937} (which says that the space of polynomials is dense in the space of continuous functions),  with a sufficiently high
-degree we will be able to accurately approximate any function}. A~possible
+$\mathcal{C}^{\infty}$ and, according to the Stone-Weierstrass theorem \cite{Weierstrass1885,Stone1937} (which says that the space of polynomials is dense in the space of continuous functions),  with a sufficiently high
+degree we will be able to accurately approximate any continuous function. A~possible
 limitation of selecting high degree polynomial is over-fitting, which may lead to
-unwanted high frequency behavior. In our case, this problem should never arise as the measurements  are synthesized from the projection functions $\pi_1,\pi_2$, which provides sufficient redundancy (for instance, hundreds of times more measurements than constraints).
+unwanted high frequency behavior. In our case, this problem should never arise as the measurements  are synthesized from the projection functions $\pi_1,\pi_2$, which provides sufficient redundancy (for instance,
+ hundreds of times more measurements than constraints). \mpd{Note, this will be a different issue when we use
+the method with tie points and without model in section \ref{EpipTieP}}.
 
 If $d$ is the selected degree, we have two vectors of unknowns $C^1_{a,b},C^2_{a,b}$, 
 corresponding to coefficients of the polynomials:
@@ -855,7 +857,8 @@ generation of the points with $I_1$  as the master, as well as the computation o
 \label{AlgoGenData}
 \end{algorithm}
 
-\er{what is it? \ref{PiInvert}}
+
+%  \er{what is it? \ref{PiInvert}}
 %\paragraph{Using center and direction}
 
 Once the centers $c_1,c_2$, directions   $\vec{D}_1,\vec{D}_2$  and the list $L_{1,2}$ are computed,
@@ -919,7 +922,8 @@ to the "real" inverse, we can increase the polynomial's degree (in our implement
 
 \emph{"Is it possible to use
 the proposed method to compute the epipolar geometry
-if we have point correspondences between the image pairs but we don't know the geometric model?"} There is a straightforward answer to whether it is possible or not. As elaborated in the following pros and cons arguments, the answer depends on the point correspondences, and is a trade-off between the nature of the 3D scene and the complexity of the model. 
+if we have point correspondences between the image pairs but we don't know the geometric model?"} There is \mpd{NO}
+a straightforward answer to whether it is possible or not. As elaborated in the following pros and cons arguments, the answer depends on the point correspondences, and is a trade-off between the nature of the 3D scene and the complexity of the model. 
 %In fact there is \er{easy yes/no answer as there pro and cons arguments to solve this question} and, as we will see, the precise answer depends of the tie points (it is in fact a trade-off between the nature of the relief and complexity of the model).
 %
 
@@ -987,6 +991,7 @@ by the following equation:
    \DerPart{W_2 \circ P}{u} = \DerPart{P}{u} \DerPart{W_2} {u} \circ P  \label{DerParW2P}
 \end{equation}
 
+\mpd{to discuss}
 \er{As an archetype case}, for any point where the scene is not differentiable,
 we have $ \DerPart{P}{u}= \infty$ and Equation~\eqref{DerParW2P} which lead to $ \DerPart{W_2} {u}=0$.
 \er{Taking into account the degree freedom on $W_2$, $W_2$ is a polynomial function ..... missing?}
