@@ -950,6 +950,7 @@ extern int CPP_AppliCreateEpi_main(int argc,char ** argv);
 extern int CPP_AppliMM1P_main(int argc,char ** argv);
 extern int CPP_AppliRecalRPC_main(int argc,char ** argv);
 extern int CPP_AppliFusion_main(int argc,char ** argv);
+extern int CPP_TransformGeom_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -1271,6 +1272,9 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("Sat3D_MM1P",CPP_AppliMM1P_main,"Do dense image matching in epipolar geometry (case satellite)"));
         aRes.push_back(cMMCom("Sat3D_EpiRPC",CPP_AppliRecalRPC_main,"Recalculate RPC for epipolar geometry images (case satellite)"));
         aRes.push_back(cMMCom("Sat3D_Fuse",CPP_AppliFusion_main,"Fusion of individual depth maps (case satellite)"));
+		aRes.push_back(cMMCom("TransGeom", CPP_TransformGeom_main, "Transform geometry of depth map to eGeomMNTFaisceauIm1ZTerrain_Px1D"));
+
+
    }
 
     cCmpMMCom CmpMMCom;

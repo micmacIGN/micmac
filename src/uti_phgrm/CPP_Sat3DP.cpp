@@ -56,6 +56,7 @@ class cAppliMM1P;
 
 
 
+
 /****************************************/
 /********* cCommonAppliSat3D ************/
 /****************************************/
@@ -639,6 +640,8 @@ class cAppliFusion
 		cCommonAppliSat3D mCAS3D;
 
 	private:
+
+
 		std::string mFilePairs;
 		std::string mOri;
 
@@ -658,6 +661,8 @@ cAppliFusion::cAppliFusion(int argc,char ** argv)
 
     StdCorrecNameOrient(mOri,mCAS3D.mDir,true);
 }
+
+
 
 void cAppliFusion::DoAll()
 {
@@ -704,6 +709,19 @@ void cAppliFusion::DoAll()
 
 	std::cout << "COM= " << aCom << "\n";
 	System(aCom);
+
+	/* Transform surfaces between geometries 
+	 * from eGeomPxBiDim 
+	 * to eGeomMNTFaisceauIm1ZTerrain_Px1D */
+	for (auto itP : aLP)
+    {
+		std::string aSurfaceName = "MEC2Im-" + itP + "/"
+                                 + "NuageImProf_LeChantier_Etape_7.xml";
+	
+		//collect cmd to do conversion in parallel
+		//
+	}
+
 
 
 	/* Transform individual surfaces to global frame */
@@ -860,10 +878,68 @@ void cAppliSat3DPipeline::DoAll()
 
 }
 
+
 int Sat3D_main(int argc, char ** argv)
 {
 	cAppliSat3DPipeline aAppliSat3D(argc,argv);
 	aAppliSat3D.DoAll();
+
+	return EXIT_SUCCESS;
+}
+
+/****************************************/
+/********* CPP_TransformGeom    ************/
+/****************************************/
+int CPP_TransformGeom_main(int argc, char ** argv)
+{
+
+	std::string aDir;
+	std::string aOri;
+	std::string aNuageName;
+
+
+	ElInitArgMain
+   	(
+        argc,argv,
+        LArgMain()  << EAMC(aDir,"Current directory")
+	   				<< EAMC(aNuageName,"XML NuageImProf file")
+                    << EAMC(aOri,"Orientation directory",eSAM_IsDir),
+        LArgMain()
+
+   	);
+
+
+    StdCorrecNameOrient(aOri,aDir,true);
+
+	cXML_ParamNuage3DMaille  aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
+           								(
+                							aNuageName,
+                							StdGetFileXMLSpec("SuperposImage.xml"),
+                							"XML_ParamNuage3DMaille",
+                							"XML_ParamNuage3DMaille"
+           								);
+	double aRatioAltiPlan = aNuageIn.RatioResolAltiPlani().Val();
+	
+	cImage_Profondeur aImProf   = aNuageIn.Image_Profondeur().Val();
+	double            aOrgALti  = aImProf.OrigineAlti();
+	double            aResolAlti= aImProf.OrigineAlti();
+
+	std::string aImName = aImProf.Image();
+	Tiff_Im     aImProfTif(aImName.c_str());
+
+	//TIm2D<float,double> aImX(aSzR);
+    //TIm2D<float,double> aImY(aSzR);
+	//
+	//aImX.oset(aP,aPIm.x);
+
+
+	std::cout << aRatioAltiPlan << "\n";
+
+
+
+
+//in XML_GEN/SuperposImage.h  definition of class
+//remove px1 when converted
 
 	return EXIT_SUCCESS;
 }
