@@ -1,9 +1,13 @@
 %module mm3d
 %{
+//includes to be able to compile
 #define SWIG_FILE_WITH_INIT
 #include "StdAfx.h"
 #include "api/api_mm3d.h"
 #include "general/photogram.h"
+#include "general/util.h"
+#include "private/files.h"
+#include "XML_GEN/ParamChantierPhotogram.h"
 typedef ElAffin2D tOrIntIma ;
 #include "api/TpPPMD.h"
 #include <sstream>
@@ -23,6 +27,7 @@ namespace std {
     %template(DoubleVector) vector<double>;
     %template(StringVector) vector<string>;
     %template(HomolList)    list<cNupletPtsHomologues>;
+    %template(CpleStringVector) vector<cCpleString>;
 }
  
 //def de REAL etc pour pouvoir les utiliser en python
@@ -34,6 +39,9 @@ namespace std {
 //%rename(getCoeffY) cElComposHomographie::CoeffY();
 //%rename(getCoeff1) cElComposHomographie::Coeff1();
 //%rename(getCoeff) ElDistRadiale_PolynImpair::Coeff(int);
+
+%rename(_True) FBool::True;
+%rename(_False) FBool::False;
 
 
 %include exception.i       
@@ -47,10 +55,13 @@ namespace std {
   }
 }
 
-
-//avec les classes a exporter
+//classes to export
 %include "api/api_mm3d.h"
 %include "api/TpPPMD.h"
+%include "general/util.h"
+//%include "private/files.h" //not working for now
+void MakeFileXML(const cSauvegardeNamedRel & anObj,const std::string & aName,const std::string & aTagEnglob=""); //just one version of MakeFileXML for now
+%include "XML_GEN/ParamChantierPhotogram.h"
 
 %template(Pt2di) Pt2d<INT>;
 %template(Pt2dr) Pt2d<REAL>;

@@ -1,5 +1,8 @@
 import mm3d
 
+"""
+Equivalent to TestCam
+"""
 c=mm3d.CamOrientFromFile("Ori-FishEyeBasic/Orientation-Calibration_geo_14_001_01_015000.thm.dng_G.tif.xml")
 
 p=mm3d.Pt2dr(1000,1000)
@@ -16,7 +19,12 @@ print('''//   R3 : "reel" coordonnee initiale
 //''')
 print("Focale ",c.Focale())
 print("M2 ",p," ---> F2 ",c.NormM2C(p)," --->C2 ",c.F2toC2(c.NormM2C(p))," ---> R3 ",c.ImEtProf2Terrain(c.NormM2C(p),prof))
-                     
+
+
+"""
+Rotations
+"""
+
 l=[1,0,0,0,1,0,0,0,1]
 print(l)
 r=mm3d.list2rot(l)
@@ -31,6 +39,10 @@ li = mm3d.getFileSet(".",".*.py")
 r=mm3d.quaternion2rot(0.706421209674, 0.000595506000, -0.002847643999, -0.707785709674)
 l=mm3d.rot2list(r)
 
+"""
+Read homol file
+"""
+
 pack = mm3d.ElPackHomologue.FromFile("Zhenjue/Homol/PastisDSC_3115.JPG/DSC_3116.JPG.dat")
 print(pack.size())
 list_homol=pack.getList()
@@ -42,6 +54,9 @@ aCple=mm3d.ElCplePtsHomologues(mm3d.Pt2dr(10,10),mm3d.Pt2dr(20,20));
 aPackOut.Cple_Add(aCple);
 aPackOut.StdPutInFile("homol.dat");
 
+"""
+Exceptions
+"""
 """
 try:
   c=mm3d.cTD_Camera("Ori-FishEyeBasic/Orientation-Calibration_geo_14_001_01_015000.thm.dng_G.tif.xml")
@@ -57,4 +72,22 @@ except RuntimeError as e:
   print(e)
 
 
+"""
+Create couples file for Tapioca (for 2 parallel cameras)
+"""
+aRel = mm3d.cSauvegardeNamedRel()
 
+#line part
+for c in range(1,3):
+  for f in range(1,10):
+    imA="cam{}_img{:05}".format(c,f)
+    imB="cam{}_img{:05}".format(c,f+1)
+    aRel.Cple().append(mm3d.cCpleString(imA,imB))
+
+#parallel part
+for f in range(1,11):
+  imA="cam1_img{:05}".format(f)
+  imB="cam2_img{:05}".format(f)
+  aRel.Cple().append(mm3d.cCpleString(imA,imB))
+
+mm3d.MakeFileXML(aRel,"cpl.xml")
