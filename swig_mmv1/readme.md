@@ -47,6 +47,8 @@ Copy _mm3d.so and mm3d.py in your working directory, then with python3:
 
 ```
 
+More usage examples can be found in swig_mmv1/examples_py
+
 Documentation
 -------------
 See [files doc](files.html)
@@ -64,20 +66,43 @@ On debian:
     apt install swig python3-dev doxygen graphviz
 
 
-Compile micmac (to have lib/libelise.a), then
+Compile micmac (to have lib/libelise.a, for now without Qt), then
 
     cd swig_mmv1
 
-    make -f Makefile_swig_linux all
+    make -f Makefile_swig_linux
 
 The files to distribute are: swig_mmv1/_mm3d.so and swig_mmv1/mm3d.py
 
+To create documentation:
+
+    make -f Makefile_swig_linux doc
+
 The documentation is in swig_mmv1/doc/html/index.html
+
+Developement
+------------
+
+To add MM classes to python, add then to mm3d.i file (both #include and %include).
+If you want to be able to use python lists for objects of these classes, use %template.
+
+To check if everything is correct :
+
+    make -f Makefile_swig_linux clean && make -f Makefile_swig_linux check
+
+This way you can see every undefined references that you have to fix (by adding other files or hiding it with #ifndef SWIG).
+
 
 TODO
 ----
+ * add private/files.h
+ * fix warnings (do not look at functions eToString etc?)
+ * add it to cmake to support compilation with Qt
+ * how to automatically add every used implementation of templates (like MakeFileXML)?
+ * try to use %naturalvar
+ * make MM matrix to/from np.array conversion?
  * use distutils?
- * fix mm modifications (#ifdef FORSWIG) 
+ * fix mm modifications (#if[n]def FORSWIG)
  * for now the selected classes are copied in api_mm3d.h
  * make a script to automatically extract classes definitions from mm3d sources, add @file
  * create a header file for each subject
@@ -99,3 +124,11 @@ Crash on import
 ```
  To link a dummy executable to check if all methods are implemented in MicMac.
 
+
+Changes in MicMac to check:
+---------------------------
+Parts removed are in #ifndef SWIG for now.
+ * remove TheFileMMDIR (not used ?)
+ * remove BanniereGlobale (not used ?)
+ * xml2cpp enum definition synthax
+ * eToString, ToXMLTree, BinaryDumpInFile overloads are shadowed, but new functions with _classname are created for python users. Why is there no problem with BinaryUnDumpFromFile and Mangling ??

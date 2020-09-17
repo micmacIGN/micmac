@@ -5,7 +5,7 @@ DOCDIR = doc/
 CXXFlags= -std=c++11 -fPIC -Wall -Werror  -O2  -march=native ${INCLUDEDIRS} -DFORSWIG
 CXX_WRAP_FLAGS = ${CXXFlags} `pkg-config --cflags python3` ${INCLUDEDIRS}
 
-LFLAGS = ${MMDir}/lib/libelise.a -lX11 -lXext -lm -ldl -lpthread ${MMDir}/lib/libANN.a `pkg-config --libs python3-embed` `pkg-config --libs python3`
+LFLAGS = ${MMDir}/lib/libelise.a -lX11 -lXext -lm -ldl -lpthread ${MMDir}/lib/libANN.a `pkg-config --libs python3-embed` `pkg-config --libs python3` -Wl,--warn-unresolved-symbols
 SO = _mm3d.so
 
 CXX_SRCS = $(wildcard ./api/*.cpp)
