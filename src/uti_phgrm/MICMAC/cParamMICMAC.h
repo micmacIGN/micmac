@@ -3,67 +3,82 @@
 #define Define_NotMicMac
 // NO MORE
 // Quelque chose
-typedef enum
+enum eModeGeomMEC
 {
   eGeomMECIm1,
   eGeomMECTerrain,
   eNoGeomMEC
-} eModeGeomMEC;
+};
 void xml_init(eModeGeomMEC & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModeGeomMEC & aVal);
+std::string  eToString_eModeGeomMEC(const eModeGeomMEC & aVal);
 
 eModeGeomMEC  Str2eModeGeomMEC(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeGeomMEC & anObj);
+cElXMLTree * ToXMLTree_eModeGeomMEC(const std::string & aNameTag,const eModeGeomMEC & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eModeGeomMEC &);
+void  BinaryDumpInFile_eModeGeomMEC(ELISE_fp &,const eModeGeomMEC &);
 
 std::string  Mangling( eModeGeomMEC *);
+std::string  Mangling_eModeGeomMEC( eModeGeomMEC *);
 
 void  BinaryUnDumpFromFile(eModeGeomMEC &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eModeGeomMEC(eModeGeomMEC &,ELISE_fp &);
 
-typedef enum
+enum eModeCensusCost
 {
   eMCC_GrCensus,
   eMCC_CensusBasic,
   eMCC_CensusCorrel,
   eMCC_CensusQuantitatif,
   eMCC_CensusMixCorrelBasic
-} eModeCensusCost;
+};
 void xml_init(eModeCensusCost & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModeCensusCost & aVal);
+std::string  eToString_eModeCensusCost(const eModeCensusCost & aVal);
 
 eModeCensusCost  Str2eModeCensusCost(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeCensusCost & anObj);
+cElXMLTree * ToXMLTree_eModeCensusCost(const std::string & aNameTag,const eModeCensusCost & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eModeCensusCost &);
+void  BinaryDumpInFile_eModeCensusCost(ELISE_fp &,const eModeCensusCost &);
 
 std::string  Mangling( eModeCensusCost *);
+std::string  Mangling_eModeCensusCost( eModeCensusCost *);
 
 void  BinaryUnDumpFromFile(eModeCensusCost &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eModeCensusCost(eModeCensusCost &,ELISE_fp &);
 
-typedef enum
+enum eTypeModeleAnalytique
 {
   eTMA_Homologues,
   eTMA_DHomD,
   eTMA_Ori,
   eTMA_Nuage3D
-} eTypeModeleAnalytique;
+};
 void xml_init(eTypeModeleAnalytique & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeModeleAnalytique & aVal);
+std::string  eToString_eTypeModeleAnalytique(const eTypeModeleAnalytique & aVal);
 
 eTypeModeleAnalytique  Str2eTypeModeleAnalytique(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeModeleAnalytique & anObj);
+cElXMLTree * ToXMLTree_eTypeModeleAnalytique(const std::string & aNameTag,const eTypeModeleAnalytique & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeModeleAnalytique &);
+void  BinaryDumpInFile_eTypeModeleAnalytique(ELISE_fp &,const eTypeModeleAnalytique &);
 
 std::string  Mangling( eTypeModeleAnalytique *);
+std::string  Mangling_eTypeModeleAnalytique( eTypeModeleAnalytique *);
 
 void  BinaryUnDumpFromFile(eTypeModeleAnalytique &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeModeleAnalytique(eTypeModeleAnalytique &,ELISE_fp &);
 
-typedef enum
+enum eModeGeomImage
 {
   eGeomImageOri,
   eGeomImageModule,
@@ -77,40 +92,50 @@ typedef enum
   eGeomImage_EpipolairePure,
   eGeomGen,
   eNoGeomIm
-} eModeGeomImage;
+};
 void xml_init(eModeGeomImage & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModeGeomImage & aVal);
+std::string  eToString_eModeGeomImage(const eModeGeomImage & aVal);
 
 eModeGeomImage  Str2eModeGeomImage(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeGeomImage & anObj);
+cElXMLTree * ToXMLTree_eModeGeomImage(const std::string & aNameTag,const eModeGeomImage & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eModeGeomImage &);
+void  BinaryDumpInFile_eModeGeomImage(ELISE_fp &,const eModeGeomImage &);
 
 std::string  Mangling( eModeGeomImage *);
+std::string  Mangling_eModeGeomImage( eModeGeomImage *);
 
 void  BinaryUnDumpFromFile(eModeGeomImage &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eModeGeomImage(eModeGeomImage &,ELISE_fp &);
 
-typedef enum
+enum eOnEmptyImSecApero
 {
   eOEISA_error,
   eOEISA_exit,
   eOEISA_goon
-} eOnEmptyImSecApero;
+};
 void xml_init(eOnEmptyImSecApero & aVal,cElXMLTree * aTree);
 std::string  eToString(const eOnEmptyImSecApero & aVal);
+std::string  eToString_eOnEmptyImSecApero(const eOnEmptyImSecApero & aVal);
 
 eOnEmptyImSecApero  Str2eOnEmptyImSecApero(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eOnEmptyImSecApero & anObj);
+cElXMLTree * ToXMLTree_eOnEmptyImSecApero(const std::string & aNameTag,const eOnEmptyImSecApero & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eOnEmptyImSecApero &);
+void  BinaryDumpInFile_eOnEmptyImSecApero(ELISE_fp &,const eOnEmptyImSecApero &);
 
 std::string  Mangling( eOnEmptyImSecApero *);
+std::string  Mangling_eOnEmptyImSecApero( eOnEmptyImSecApero *);
 
 void  BinaryUnDumpFromFile(eOnEmptyImSecApero &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eOnEmptyImSecApero(eOnEmptyImSecApero &,ELISE_fp &);
 
-typedef enum
+enum eModeAggregCorr
 {
   eAggregSymetrique,
   eAggregIm1Maitre,
@@ -118,59 +143,74 @@ typedef enum
   eAggregMaxIm1Maitre,
   eAggregMinIm1Maitre,
   eAggregMoyMedIm1Maitre
-} eModeAggregCorr;
+};
 void xml_init(eModeAggregCorr & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModeAggregCorr & aVal);
+std::string  eToString_eModeAggregCorr(const eModeAggregCorr & aVal);
 
 eModeAggregCorr  Str2eModeAggregCorr(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeAggregCorr & anObj);
+cElXMLTree * ToXMLTree_eModeAggregCorr(const std::string & aNameTag,const eModeAggregCorr & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eModeAggregCorr &);
+void  BinaryDumpInFile_eModeAggregCorr(ELISE_fp &,const eModeAggregCorr &);
 
 std::string  Mangling( eModeAggregCorr *);
+std::string  Mangling_eModeAggregCorr( eModeAggregCorr *);
 
 void  BinaryUnDumpFromFile(eModeAggregCorr &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eModeAggregCorr(eModeAggregCorr &,ELISE_fp &);
 
-typedef enum
+enum eModeDynamiqueCorrel
 {
   eCoeffCorrelStd,
   eCoeffAngle,
   eCoeffGamma
-} eModeDynamiqueCorrel;
+};
 void xml_init(eModeDynamiqueCorrel & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModeDynamiqueCorrel & aVal);
+std::string  eToString_eModeDynamiqueCorrel(const eModeDynamiqueCorrel & aVal);
 
 eModeDynamiqueCorrel  Str2eModeDynamiqueCorrel(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeDynamiqueCorrel & anObj);
+cElXMLTree * ToXMLTree_eModeDynamiqueCorrel(const std::string & aNameTag,const eModeDynamiqueCorrel & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eModeDynamiqueCorrel &);
+void  BinaryDumpInFile_eModeDynamiqueCorrel(ELISE_fp &,const eModeDynamiqueCorrel &);
 
 std::string  Mangling( eModeDynamiqueCorrel *);
+std::string  Mangling_eModeDynamiqueCorrel( eModeDynamiqueCorrel *);
 
 void  BinaryUnDumpFromFile(eModeDynamiqueCorrel &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eModeDynamiqueCorrel(eModeDynamiqueCorrel &,ELISE_fp &);
 
-typedef enum
+enum eTypeImPyram
 {
   eUInt8Bits,
   eUInt16Bits,
   eFloat32Bits
-} eTypeImPyram;
+};
 void xml_init(eTypeImPyram & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeImPyram & aVal);
+std::string  eToString_eTypeImPyram(const eTypeImPyram & aVal);
 
 eTypeImPyram  Str2eTypeImPyram(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeImPyram & anObj);
+cElXMLTree * ToXMLTree_eTypeImPyram(const std::string & aNameTag,const eTypeImPyram & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeImPyram &);
+void  BinaryDumpInFile_eTypeImPyram(ELISE_fp &,const eTypeImPyram &);
 
 std::string  Mangling( eTypeImPyram *);
+std::string  Mangling_eTypeImPyram( eTypeImPyram *);
 
 void  BinaryUnDumpFromFile(eTypeImPyram &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeImPyram(eTypeImPyram &,ELISE_fp &);
 
-typedef enum
+enum eAlgoRegul
 {
   eAlgoCoxRoy,
   eAlgo2PrgDyn,
@@ -181,21 +221,26 @@ typedef enum
   eAlgoLeastSQ,
   eAlgoTestGPU,
   eAlgoIdentite
-} eAlgoRegul;
+};
 void xml_init(eAlgoRegul & aVal,cElXMLTree * aTree);
 std::string  eToString(const eAlgoRegul & aVal);
+std::string  eToString_eAlgoRegul(const eAlgoRegul & aVal);
 
 eAlgoRegul  Str2eAlgoRegul(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eAlgoRegul & anObj);
+cElXMLTree * ToXMLTree_eAlgoRegul(const std::string & aNameTag,const eAlgoRegul & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eAlgoRegul &);
+void  BinaryDumpInFile_eAlgoRegul(ELISE_fp &,const eAlgoRegul &);
 
 std::string  Mangling( eAlgoRegul *);
+std::string  Mangling_eAlgoRegul( eAlgoRegul *);
 
 void  BinaryUnDumpFromFile(eAlgoRegul &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eAlgoRegul(eAlgoRegul &,ELISE_fp &);
 
-typedef enum
+enum eModeInterpolation
 {
   eInterpolPPV,
   eInterpolBiLin,
@@ -204,141 +249,176 @@ typedef enum
   eOldInterpolSinCard,
   eInterpolMPD,
   eInterpolBicubOpt
-} eModeInterpolation;
+};
 void xml_init(eModeInterpolation & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModeInterpolation & aVal);
+std::string  eToString_eModeInterpolation(const eModeInterpolation & aVal);
 
 eModeInterpolation  Str2eModeInterpolation(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeInterpolation & anObj);
+cElXMLTree * ToXMLTree_eModeInterpolation(const std::string & aNameTag,const eModeInterpolation & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eModeInterpolation &);
+void  BinaryDumpInFile_eModeInterpolation(ELISE_fp &,const eModeInterpolation &);
 
 std::string  Mangling( eModeInterpolation *);
+std::string  Mangling_eModeInterpolation( eModeInterpolation *);
 
 void  BinaryUnDumpFromFile(eModeInterpolation &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eModeInterpolation(eModeInterpolation &,ELISE_fp &);
 
-typedef enum
+enum eTypeFiltrage
 {
   eFiltrageMedian,
   eFiltrageMoyenne,
   eFiltrageDeriche,
   eFiltrageGamma,
   eFiltrageEqLoc
-} eTypeFiltrage;
+};
 void xml_init(eTypeFiltrage & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeFiltrage & aVal);
+std::string  eToString_eTypeFiltrage(const eTypeFiltrage & aVal);
 
 eTypeFiltrage  Str2eTypeFiltrage(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeFiltrage & anObj);
+cElXMLTree * ToXMLTree_eTypeFiltrage(const std::string & aNameTag,const eTypeFiltrage & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeFiltrage &);
+void  BinaryDumpInFile_eTypeFiltrage(ELISE_fp &,const eTypeFiltrage &);
 
 std::string  Mangling( eTypeFiltrage *);
+std::string  Mangling_eTypeFiltrage( eTypeFiltrage *);
 
 void  BinaryUnDumpFromFile(eTypeFiltrage &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeFiltrage(eTypeFiltrage &,ELISE_fp &);
 
-typedef enum
+enum ePxApply
 {
   eApplyPx1,
   eApplyPx2,
   eApplyPx12
-} ePxApply;
+};
 void xml_init(ePxApply & aVal,cElXMLTree * aTree);
 std::string  eToString(const ePxApply & aVal);
+std::string  eToString_ePxApply(const ePxApply & aVal);
 
 ePxApply  Str2ePxApply(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const ePxApply & anObj);
+cElXMLTree * ToXMLTree_ePxApply(const std::string & aNameTag,const ePxApply & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const ePxApply &);
+void  BinaryDumpInFile_ePxApply(ELISE_fp &,const ePxApply &);
 
 std::string  Mangling( ePxApply *);
+std::string  Mangling_ePxApply( ePxApply *);
 
 void  BinaryUnDumpFromFile(ePxApply &,ELISE_fp &);
+void  BinaryUnDumpFromFile_ePxApply(ePxApply &,ELISE_fp &);
 
-typedef enum
+enum eModeAggregProgDyn
 {
   ePrgDAgrSomme,
   ePrgDAgrMax,
   ePrgDAgrReinject,
   ePrgDAgrProgressif
-} eModeAggregProgDyn;
+};
 void xml_init(eModeAggregProgDyn & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModeAggregProgDyn & aVal);
+std::string  eToString_eModeAggregProgDyn(const eModeAggregProgDyn & aVal);
 
 eModeAggregProgDyn  Str2eModeAggregProgDyn(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeAggregProgDyn & anObj);
+cElXMLTree * ToXMLTree_eModeAggregProgDyn(const std::string & aNameTag,const eModeAggregProgDyn & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eModeAggregProgDyn &);
+void  BinaryDumpInFile_eModeAggregProgDyn(ELISE_fp &,const eModeAggregProgDyn &);
 
 std::string  Mangling( eModeAggregProgDyn *);
+std::string  Mangling_eModeAggregProgDyn( eModeAggregProgDyn *);
 
 void  BinaryUnDumpFromFile(eModeAggregProgDyn &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eModeAggregProgDyn(eModeAggregProgDyn &,ELISE_fp &);
 
-typedef enum
+enum eMicMacCodeRetourErreur
 {
   eErrNbPointInEqOriRel,
   eErrImageFileEmpty,
   eErrPtHomHorsImage,
   eErrRecouvrInsuffisant,
   eErrGrilleInverseNonDisponible
-} eMicMacCodeRetourErreur;
+};
 void xml_init(eMicMacCodeRetourErreur & aVal,cElXMLTree * aTree);
 std::string  eToString(const eMicMacCodeRetourErreur & aVal);
+std::string  eToString_eMicMacCodeRetourErreur(const eMicMacCodeRetourErreur & aVal);
 
 eMicMacCodeRetourErreur  Str2eMicMacCodeRetourErreur(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eMicMacCodeRetourErreur & anObj);
+cElXMLTree * ToXMLTree_eMicMacCodeRetourErreur(const std::string & aNameTag,const eMicMacCodeRetourErreur & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eMicMacCodeRetourErreur &);
+void  BinaryDumpInFile_eMicMacCodeRetourErreur(ELISE_fp &,const eMicMacCodeRetourErreur &);
 
 std::string  Mangling( eMicMacCodeRetourErreur *);
+std::string  Mangling_eMicMacCodeRetourErreur( eMicMacCodeRetourErreur *);
 
 void  BinaryUnDumpFromFile(eMicMacCodeRetourErreur &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eMicMacCodeRetourErreur(eMicMacCodeRetourErreur &,ELISE_fp &);
 
-typedef enum
+enum eTypeWinCorrel
 {
   eWInCorrelFixe,
   eWInCorrelExp,
   eWInCorrelRectSpec
-} eTypeWinCorrel;
+};
 void xml_init(eTypeWinCorrel & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeWinCorrel & aVal);
+std::string  eToString_eTypeWinCorrel(const eTypeWinCorrel & aVal);
 
 eTypeWinCorrel  Str2eTypeWinCorrel(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeWinCorrel & anObj);
+cElXMLTree * ToXMLTree_eTypeWinCorrel(const std::string & aNameTag,const eTypeWinCorrel & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeWinCorrel &);
+void  BinaryDumpInFile_eTypeWinCorrel(ELISE_fp &,const eTypeWinCorrel &);
 
 std::string  Mangling( eTypeWinCorrel *);
+std::string  Mangling_eTypeWinCorrel( eTypeWinCorrel *);
 
 void  BinaryUnDumpFromFile(eTypeWinCorrel &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeWinCorrel(eTypeWinCorrel &,ELISE_fp &);
 
-typedef enum
+enum eTypeModeEchantPtsI
 {
   eModeEchantRegulier,
   eModeEchantNonAutoCor,
   eModeEchantAleatoire,
   eModeEchantPtsIntByComandeExterne
-} eTypeModeEchantPtsI;
+};
 void xml_init(eTypeModeEchantPtsI & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeModeEchantPtsI & aVal);
+std::string  eToString_eTypeModeEchantPtsI(const eTypeModeEchantPtsI & aVal);
 
 eTypeModeEchantPtsI  Str2eTypeModeEchantPtsI(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeModeEchantPtsI & anObj);
+cElXMLTree * ToXMLTree_eTypeModeEchantPtsI(const std::string & aNameTag,const eTypeModeEchantPtsI & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeModeEchantPtsI &);
+void  BinaryDumpInFile_eTypeModeEchantPtsI(ELISE_fp &,const eTypeModeEchantPtsI &);
 
 std::string  Mangling( eTypeModeEchantPtsI *);
+std::string  Mangling_eTypeModeEchantPtsI( eTypeModeEchantPtsI *);
 
 void  BinaryUnDumpFromFile(eTypeModeEchantPtsI &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeModeEchantPtsI(eTypeModeEchantPtsI &,ELISE_fp &);
 
-typedef enum
+enum eSemantiqueLL
 {
   eSLL_Geom_X,
   eSLL_Geom_Y,
@@ -354,19 +434,24 @@ typedef enum
   eSLL_Radiom_Lidar,
   eSLL_Radiom_Unknown,
   eSLL_Unknown
-} eSemantiqueLL;
+};
 void xml_init(eSemantiqueLL & aVal,cElXMLTree * aTree);
 std::string  eToString(const eSemantiqueLL & aVal);
+std::string  eToString_eSemantiqueLL(const eSemantiqueLL & aVal);
 
 eSemantiqueLL  Str2eSemantiqueLL(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eSemantiqueLL & anObj);
+cElXMLTree * ToXMLTree_eSemantiqueLL(const std::string & aNameTag,const eSemantiqueLL & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eSemantiqueLL &);
+void  BinaryDumpInFile_eSemantiqueLL(ELISE_fp &,const eSemantiqueLL &);
 
 std::string  Mangling( eSemantiqueLL *);
+std::string  Mangling_eSemantiqueLL( eSemantiqueLL *);
 
 void  BinaryUnDumpFromFile(eSemantiqueLL &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eSemantiqueLL(eSemantiqueLL &,ELISE_fp &);
 
 class cSpecFitrageImage
 {

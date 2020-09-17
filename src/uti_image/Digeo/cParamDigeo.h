@@ -2,7 +2,7 @@
 	#define Define_NotDigeo
 #include "XML_GEN/all.h"
 //
-typedef enum
+enum eTypeTopolPt
 {
   eTtpSommet,
   eTtpCuvette,
@@ -10,57 +10,72 @@ typedef enum
   eTtpCorner,
   eSiftMaxDog,
   eSiftMinDog
-} eTypeTopolPt;
+};
 void xml_init(eTypeTopolPt & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeTopolPt & aVal);
+std::string  eToString_eTypeTopolPt(const eTypeTopolPt & aVal);
 
 eTypeTopolPt  Str2eTypeTopolPt(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeTopolPt & anObj);
+cElXMLTree * ToXMLTree_eTypeTopolPt(const std::string & aNameTag,const eTypeTopolPt & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeTopolPt &);
+void  BinaryDumpInFile_eTypeTopolPt(ELISE_fp &,const eTypeTopolPt &);
 
 std::string  Mangling( eTypeTopolPt *);
+std::string  Mangling_eTypeTopolPt( eTypeTopolPt *);
 
 void  BinaryUnDumpFromFile(eTypeTopolPt &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeTopolPt(eTypeTopolPt &,ELISE_fp &);
 
-typedef enum
+enum eReducDemiImage
 {
   eRDI_121,
   eRDI_010,
   eRDI_11
-} eReducDemiImage;
+};
 void xml_init(eReducDemiImage & aVal,cElXMLTree * aTree);
 std::string  eToString(const eReducDemiImage & aVal);
+std::string  eToString_eReducDemiImage(const eReducDemiImage & aVal);
 
 eReducDemiImage  Str2eReducDemiImage(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eReducDemiImage & anObj);
+cElXMLTree * ToXMLTree_eReducDemiImage(const std::string & aNameTag,const eReducDemiImage & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eReducDemiImage &);
+void  BinaryDumpInFile_eReducDemiImage(ELISE_fp &,const eReducDemiImage &);
 
 std::string  Mangling( eReducDemiImage *);
+std::string  Mangling_eReducDemiImage( eReducDemiImage *);
 
 void  BinaryUnDumpFromFile(eReducDemiImage &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eReducDemiImage(eReducDemiImage &,ELISE_fp &);
 
-typedef enum
+enum ePointRefinement
 {
   eRefine2D,
   eRefine3D,
   eRefineNone
-} ePointRefinement;
+};
 void xml_init(ePointRefinement & aVal,cElXMLTree * aTree);
 std::string  eToString(const ePointRefinement & aVal);
+std::string  eToString_ePointRefinement(const ePointRefinement & aVal);
 
 ePointRefinement  Str2ePointRefinement(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const ePointRefinement & anObj);
+cElXMLTree * ToXMLTree_ePointRefinement(const std::string & aNameTag,const ePointRefinement & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const ePointRefinement &);
+void  BinaryDumpInFile_ePointRefinement(ELISE_fp &,const ePointRefinement &);
 
 std::string  Mangling( ePointRefinement *);
+std::string  Mangling_ePointRefinement( ePointRefinement *);
 
 void  BinaryUnDumpFromFile(ePointRefinement &,ELISE_fp &);
+void  BinaryUnDumpFromFile_ePointRefinement(ePointRefinement &,ELISE_fp &);
 
 class cImageDigeo
 {

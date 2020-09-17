@@ -32,12 +32,35 @@ std::string  eToString(const eTestDump & anObj)
    return "";
 }
 
+std::string  eToString_eTestDump(const eTestDump & anObj)
+{
+   if (anObj==eTestDump_0)
+      return  "eTestDump_0";
+   if (anObj==eTestDump_1)
+      return  "eTestDump_1";
+   if (anObj==eTestDump_3)
+      return  "eTestDump_3";
+ std::cout << "Enum = eTestDump\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTestDump & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eTestDump(const std::string & aNameTag,const eTestDump & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eTestDump & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eTestDump(ELISE_fp & aFp,const eTestDump & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -49,7 +72,16 @@ void  BinaryUnDumpFromFile(eTestDump & anObj,ELISE_fp & aFp)
    anObj=(eTestDump) aIVal;
 }
 
+void  BinaryUnDumpFromFile_eTestDump(eTestDump & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTestDump) aIVal;
+}
+
 std::string  Mangling( eTestDump *) {return "767F80144228FCC6FD3F";};
+
+std::string  Mangling_eTestDump( eTestDump *) {return "767F80144228FCC6FD3F";};
 
 
 std::string & cTD2REF::K()

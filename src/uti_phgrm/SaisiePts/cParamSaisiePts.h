@@ -3,7 +3,7 @@
 // #include "general/all.h"
 // #include "private/all.h"
 //
-typedef enum
+enum eTypePts
 {
   eNSM_GeoCube,
   eNSM_Plaquette,
@@ -11,21 +11,26 @@ typedef enum
   eNSM_MaxLoc,
   eNSM_MinLoc,
   eNSM_NonValue
-} eTypePts;
+};
 void xml_init(eTypePts & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypePts & aVal);
+std::string  eToString_eTypePts(const eTypePts & aVal);
 
 eTypePts  Str2eTypePts(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypePts & anObj);
+cElXMLTree * ToXMLTree_eTypePts(const std::string & aNameTag,const eTypePts & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypePts &);
+void  BinaryDumpInFile_eTypePts(ELISE_fp &,const eTypePts &);
 
 std::string  Mangling( eTypePts *);
+std::string  Mangling_eTypePts( eTypePts *);
 
 void  BinaryUnDumpFromFile(eTypePts &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypePts(eTypePts &,ELISE_fp &);
 
-typedef enum
+enum eEtatPointeImage
 {
   eEPI_NonSaisi,
   eEPI_Refute,
@@ -34,19 +39,24 @@ typedef enum
   eEPI_NonValue,
   eEPI_Disparu,
   eEPI_Highlight
-} eEtatPointeImage;
+};
 void xml_init(eEtatPointeImage & aVal,cElXMLTree * aTree);
 std::string  eToString(const eEtatPointeImage & aVal);
+std::string  eToString_eEtatPointeImage(const eEtatPointeImage & aVal);
 
 eEtatPointeImage  Str2eEtatPointeImage(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eEtatPointeImage & anObj);
+cElXMLTree * ToXMLTree_eEtatPointeImage(const std::string & aNameTag,const eEtatPointeImage & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eEtatPointeImage &);
+void  BinaryDumpInFile_eEtatPointeImage(ELISE_fp &,const eEtatPointeImage &);
 
 std::string  Mangling( eEtatPointeImage *);
+std::string  Mangling_eEtatPointeImage( eEtatPointeImage *);
 
 void  BinaryUnDumpFromFile(eEtatPointeImage &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eEtatPointeImage(eEtatPointeImage &,ELISE_fp &);
 
 class cContenuPt
 {

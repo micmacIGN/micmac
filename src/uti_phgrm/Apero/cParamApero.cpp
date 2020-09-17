@@ -205,12 +205,121 @@ std::string  eToString(const eTypeContrainteCalibCamera & anObj)
    return "";
 }
 
+std::string  eToString_eTypeContrainteCalibCamera(const eTypeContrainteCalibCamera & anObj)
+{
+   if (anObj==eAllParamLibres)
+      return  "eAllParamLibres";
+   if (anObj==eAllParamFiges)
+      return  "eAllParamFiges";
+   if (anObj==eLiberteParamDeg_0)
+      return  "eLiberteParamDeg_0";
+   if (anObj==eLiberteParamDeg_1)
+      return  "eLiberteParamDeg_1";
+   if (anObj==eLiberteParamDeg_2)
+      return  "eLiberteParamDeg_2";
+   if (anObj==eLiberteParamDeg_3)
+      return  "eLiberteParamDeg_3";
+   if (anObj==eLiberteParamDeg_4)
+      return  "eLiberteParamDeg_4";
+   if (anObj==eLiberteParamDeg_5)
+      return  "eLiberteParamDeg_5";
+   if (anObj==eLiberteParamDeg_6)
+      return  "eLiberteParamDeg_6";
+   if (anObj==eLiberteParamDeg_7)
+      return  "eLiberteParamDeg_7";
+   if (anObj==eLiberteParamDeg_2_NoAff)
+      return  "eLiberteParamDeg_2_NoAff";
+   if (anObj==eLiberteParamDeg_3_NoAff)
+      return  "eLiberteParamDeg_3_NoAff";
+   if (anObj==eLiberteParamDeg_4_NoAff)
+      return  "eLiberteParamDeg_4_NoAff";
+   if (anObj==eLiberteParamDeg_5_NoAff)
+      return  "eLiberteParamDeg_5_NoAff";
+   if (anObj==eLiberteFocale_0)
+      return  "eLiberteFocale_0";
+   if (anObj==eLiberteFocale_1)
+      return  "eLiberteFocale_1";
+   if (anObj==eLib_PP_CD_00)
+      return  "eLib_PP_CD_00";
+   if (anObj==eLib_PP_CD_10)
+      return  "eLib_PP_CD_10";
+   if (anObj==eLib_PP_CD_01)
+      return  "eLib_PP_CD_01";
+   if (anObj==eLib_PP_CD_11)
+      return  "eLib_PP_CD_11";
+   if (anObj==eLib_PP_CD_Lies)
+      return  "eLib_PP_CD_Lies";
+   if (anObj==eLiberte_DR0)
+      return  "eLiberte_DR0";
+   if (anObj==eLiberte_DR1)
+      return  "eLiberte_DR1";
+   if (anObj==eLiberte_DR2)
+      return  "eLiberte_DR2";
+   if (anObj==eLiberte_DR3)
+      return  "eLiberte_DR3";
+   if (anObj==eLiberte_DR4)
+      return  "eLiberte_DR4";
+   if (anObj==eLiberte_DR5)
+      return  "eLiberte_DR5";
+   if (anObj==eLiberte_DR6)
+      return  "eLiberte_DR6";
+   if (anObj==eLiberte_DR7)
+      return  "eLiberte_DR7";
+   if (anObj==eLiberte_DR8)
+      return  "eLiberte_DR8";
+   if (anObj==eLiberte_DR9)
+      return  "eLiberte_DR9";
+   if (anObj==eLiberte_DR10)
+      return  "eLiberte_DR10";
+   if (anObj==eLiberte_Dec0)
+      return  "eLiberte_Dec0";
+   if (anObj==eLiberte_Dec1)
+      return  "eLiberte_Dec1";
+   if (anObj==eLiberte_Dec2)
+      return  "eLiberte_Dec2";
+   if (anObj==eLiberte_Dec3)
+      return  "eLiberte_Dec3";
+   if (anObj==eLiberte_Dec4)
+      return  "eLiberte_Dec4";
+   if (anObj==eLiberte_Dec5)
+      return  "eLiberte_Dec5";
+   if (anObj==eLiberte_Phgr_Std_Aff)
+      return  "eLiberte_Phgr_Std_Aff";
+   if (anObj==eLiberte_Phgr_Std_Dec)
+      return  "eLiberte_Phgr_Std_Dec";
+   if (anObj==eFige_Phgr_Std_Aff)
+      return  "eFige_Phgr_Std_Aff";
+   if (anObj==eFige_Phgr_Std_Dec)
+      return  "eFige_Phgr_Std_Dec";
+   if (anObj==eLiberte_AFocal0)
+      return  "eLiberte_AFocal0";
+   if (anObj==eLiberte_AFocal1)
+      return  "eLiberte_AFocal1";
+   if (anObj==eFige_AFocal0)
+      return  "eFige_AFocal0";
+   if (anObj==eFige_AFocal1)
+      return  "eFige_AFocal1";
+ std::cout << "Enum = eTypeContrainteCalibCamera\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeContrainteCalibCamera & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eTypeContrainteCalibCamera(const std::string & aNameTag,const eTypeContrainteCalibCamera & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeContrainteCalibCamera & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eTypeContrainteCalibCamera(ELISE_fp & aFp,const eTypeContrainteCalibCamera & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -222,7 +331,16 @@ void  BinaryUnDumpFromFile(eTypeContrainteCalibCamera & anObj,ELISE_fp & aFp)
    anObj=(eTypeContrainteCalibCamera) aIVal;
 }
 
+void  BinaryUnDumpFromFile_eTypeContrainteCalibCamera(eTypeContrainteCalibCamera & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeContrainteCalibCamera) aIVal;
+}
+
 std::string  Mangling( eTypeContrainteCalibCamera *) {return "2A9FBC8D7962D48EFD3F";};
+
+std::string  Mangling_eTypeContrainteCalibCamera( eTypeContrainteCalibCamera *) {return "2A9FBC8D7962D48EFD3F";};
 
 eTypeCalibAutom  Str2eTypeCalibAutom(const std::string & aName)
 {
@@ -300,12 +418,57 @@ std::string  eToString(const eTypeCalibAutom & anObj)
    return "";
 }
 
+std::string  eToString_eTypeCalibAutom(const eTypeCalibAutom & anObj)
+{
+   if (anObj==eCalibAutomRadial)
+      return  "eCalibAutomRadial";
+   if (anObj==eCalibAutomPhgrStd)
+      return  "eCalibAutomPhgrStd";
+   if (anObj==eCalibAutomFishEyeLineaire)
+      return  "eCalibAutomFishEyeLineaire";
+   if (anObj==eCalibAutomFishEyeEquiSolid)
+      return  "eCalibAutomFishEyeEquiSolid";
+   if (anObj==eCalibAutomRadialBasic)
+      return  "eCalibAutomRadialBasic";
+   if (anObj==eCalibAutomPhgrStdBasic)
+      return  "eCalibAutomPhgrStdBasic";
+   if (anObj==eCalibAutomFour7x2)
+      return  "eCalibAutomFour7x2";
+   if (anObj==eCalibAutomFour11x2)
+      return  "eCalibAutomFour11x2";
+   if (anObj==eCalibAutomFour15x2)
+      return  "eCalibAutomFour15x2";
+   if (anObj==eCalibAutomFour19x2)
+      return  "eCalibAutomFour19x2";
+   if (anObj==eCalibAutomEbner)
+      return  "eCalibAutomEbner";
+   if (anObj==eCalibAutomBrown)
+      return  "eCalibAutomBrown";
+   if (anObj==eCalibAutomFishEyeStereographique)
+      return  "eCalibAutomFishEyeStereographique";
+   if (anObj==eCalibAutomNone)
+      return  "eCalibAutomNone";
+ std::cout << "Enum = eTypeCalibAutom\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeCalibAutom & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eTypeCalibAutom(const std::string & aNameTag,const eTypeCalibAutom & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeCalibAutom & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eTypeCalibAutom(ELISE_fp & aFp,const eTypeCalibAutom & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -317,7 +480,16 @@ void  BinaryUnDumpFromFile(eTypeCalibAutom & anObj,ELISE_fp & aFp)
    anObj=(eTypeCalibAutom) aIVal;
 }
 
+void  BinaryUnDumpFromFile_eTypeCalibAutom(eTypeCalibAutom & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeCalibAutom) aIVal;
+}
+
 std::string  Mangling( eTypeCalibAutom *) {return "93BCB8F66AB20F99FE3F";};
+
+std::string  Mangling_eTypeCalibAutom( eTypeCalibAutom *) {return "93BCB8F66AB20F99FE3F";};
 
 eTypeContraintePoseCamera  Str2eTypeContraintePoseCamera(const std::string & aName)
 {
@@ -363,12 +535,41 @@ std::string  eToString(const eTypeContraintePoseCamera & anObj)
    return "";
 }
 
+std::string  eToString_eTypeContraintePoseCamera(const eTypeContraintePoseCamera & anObj)
+{
+   if (anObj==ePoseLibre)
+      return  "ePoseLibre";
+   if (anObj==ePoseFigee)
+      return  "ePoseFigee";
+   if (anObj==ePoseBaseNormee)
+      return  "ePoseBaseNormee";
+   if (anObj==ePoseVraieBaseNormee)
+      return  "ePoseVraieBaseNormee";
+   if (anObj==eCentreFige)
+      return  "eCentreFige";
+   if (anObj==eAnglesFiges)
+      return  "eAnglesFiges";
+ std::cout << "Enum = eTypeContraintePoseCamera\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeContraintePoseCamera & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eTypeContraintePoseCamera(const std::string & aNameTag,const eTypeContraintePoseCamera & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeContraintePoseCamera & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eTypeContraintePoseCamera(ELISE_fp & aFp,const eTypeContraintePoseCamera & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -380,7 +581,16 @@ void  BinaryUnDumpFromFile(eTypeContraintePoseCamera & anObj,ELISE_fp & aFp)
    anObj=(eTypeContraintePoseCamera) aIVal;
 }
 
+void  BinaryUnDumpFromFile_eTypeContraintePoseCamera(eTypeContraintePoseCamera & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeContraintePoseCamera) aIVal;
+}
+
 std::string  Mangling( eTypeContraintePoseCamera *) {return "56693E40073CC98CFC3F";};
+
+std::string  Mangling_eTypeContraintePoseCamera( eTypeContraintePoseCamera *) {return "56693E40073CC98CFC3F";};
 
 eTypeVerif  Str2eTypeVerif(const std::string & aName)
 {
@@ -410,12 +620,33 @@ std::string  eToString(const eTypeVerif & anObj)
    return "";
 }
 
+std::string  eToString_eTypeVerif(const eTypeVerif & anObj)
+{
+   if (anObj==eVerifDZ)
+      return  "eVerifDZ";
+   if (anObj==eVerifResPerIm)
+      return  "eVerifResPerIm";
+ std::cout << "Enum = eTypeVerif\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeVerif & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eTypeVerif(const std::string & aNameTag,const eTypeVerif & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeVerif & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eTypeVerif(ELISE_fp & aFp,const eTypeVerif & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -427,7 +658,16 @@ void  BinaryUnDumpFromFile(eTypeVerif & anObj,ELISE_fp & aFp)
    anObj=(eTypeVerif) aIVal;
 }
 
+void  BinaryUnDumpFromFile_eTypeVerif(eTypeVerif & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeVerif) aIVal;
+}
+
 std::string  Mangling( eTypeVerif *) {return "A4761FEAD4F4298EFF3F";};
+
+std::string  Mangling_eTypeVerif( eTypeVerif *) {return "A4761FEAD4F4298EFF3F";};
 
 eTypeResulPtsBundle  Str2eTypeResulPtsBundle(const std::string & aName)
 {
@@ -497,12 +737,53 @@ std::string  eToString(const eTypeResulPtsBundle & anObj)
    return "";
 }
 
+std::string  eToString_eTypeResulPtsBundle(const eTypeResulPtsBundle & anObj)
+{
+   if (anObj==eTRPB_Ok)
+      return  "eTRPB_Ok";
+   if (anObj==eTRPB_InsufPoseInit)
+      return  "eTRPB_InsufPoseInit";
+   if (anObj==eTRPB_PdsResNull)
+      return  "eTRPB_PdsResNull";
+   if (anObj==eTRPB_NotInMasq3D)
+      return  "eTRPB_NotInMasq3D";
+   if (anObj==eTRPB_BSurH)
+      return  "eTRPB_BSurH";
+   if (anObj==eTRPB_Behind)
+      return  "eTRPB_Behind";
+   if (anObj==eTRPB_VisibIm)
+      return  "eTRPB_VisibIm";
+   if (anObj==eTRPB_OutIm)
+      return  "eTRPB_OutIm";
+   if (anObj==eTRPB_PbInterBundle)
+      return  "eTRPB_PbInterBundle";
+   if (anObj==eTRPB_RatioDistP2Cam)
+      return  "eTRPB_RatioDistP2Cam";
+   if (anObj==eTRPB_Unknown)
+      return  "eTRPB_Unknown";
+   if (anObj==eTRPB_NbVals)
+      return  "eTRPB_NbVals";
+ std::cout << "Enum = eTypeResulPtsBundle\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeResulPtsBundle & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eTypeResulPtsBundle(const std::string & aNameTag,const eTypeResulPtsBundle & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeResulPtsBundle & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eTypeResulPtsBundle(ELISE_fp & aFp,const eTypeResulPtsBundle & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -514,7 +795,16 @@ void  BinaryUnDumpFromFile(eTypeResulPtsBundle & anObj,ELISE_fp & aFp)
    anObj=(eTypeResulPtsBundle) aIVal;
 }
 
+void  BinaryUnDumpFromFile_eTypeResulPtsBundle(eTypeResulPtsBundle & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeResulPtsBundle) aIVal;
+}
+
 std::string  Mangling( eTypeResulPtsBundle *) {return "054E6ACDF2582EDCFD3F";};
+
+std::string  Mangling_eTypeResulPtsBundle( eTypeResulPtsBundle *) {return "054E6ACDF2582EDCFD3F";};
 
 eTypePondMST_MEP  Str2eTypePondMST_MEP(const std::string & aName)
 {
@@ -540,12 +830,31 @@ std::string  eToString(const eTypePondMST_MEP & anObj)
    return "";
 }
 
+std::string  eToString_eTypePondMST_MEP(const eTypePondMST_MEP & anObj)
+{
+   if (anObj==eMST_PondCard)
+      return  "eMST_PondCard";
+ std::cout << "Enum = eTypePondMST_MEP\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypePondMST_MEP & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eTypePondMST_MEP(const std::string & aNameTag,const eTypePondMST_MEP & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eTypePondMST_MEP & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eTypePondMST_MEP(ELISE_fp & aFp,const eTypePondMST_MEP & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -557,7 +866,16 @@ void  BinaryUnDumpFromFile(eTypePondMST_MEP & anObj,ELISE_fp & aFp)
    anObj=(eTypePondMST_MEP) aIVal;
 }
 
+void  BinaryUnDumpFromFile_eTypePondMST_MEP(eTypePondMST_MEP & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypePondMST_MEP) aIVal;
+}
+
 std::string  Mangling( eTypePondMST_MEP *) {return "44B19BE5E78640BCFE3F";};
+
+std::string  Mangling_eTypePondMST_MEP( eTypePondMST_MEP *) {return "44B19BE5E78640BCFE3F";};
 
 eControleDescDic  Str2eControleDescDic(const std::string & aName)
 {
@@ -591,12 +909,35 @@ std::string  eToString(const eControleDescDic & anObj)
    return "";
 }
 
+std::string  eToString_eControleDescDic(const eControleDescDic & anObj)
+{
+   if (anObj==eCDD_Jamais)
+      return  "eCDD_Jamais";
+   if (anObj==eCDD_OnRemontee)
+      return  "eCDD_OnRemontee";
+   if (anObj==eCDD_Toujours)
+      return  "eCDD_Toujours";
+ std::cout << "Enum = eControleDescDic\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eControleDescDic & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eControleDescDic(const std::string & aNameTag,const eControleDescDic & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eControleDescDic & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eControleDescDic(ELISE_fp & aFp,const eControleDescDic & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -608,7 +949,16 @@ void  BinaryUnDumpFromFile(eControleDescDic & anObj,ELISE_fp & aFp)
    anObj=(eControleDescDic) aIVal;
 }
 
+void  BinaryUnDumpFromFile_eControleDescDic(eControleDescDic & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eControleDescDic) aIVal;
+}
+
 std::string  Mangling( eControleDescDic *) {return "A59768EBFC71FA8FFEBF";};
+
+std::string  Mangling_eControleDescDic( eControleDescDic *) {return "A59768EBFC71FA8FFEBF";};
 
 eModePonderationRobuste  Str2eModePonderationRobuste(const std::string & aName)
 {
@@ -650,12 +1000,39 @@ std::string  eToString(const eModePonderationRobuste & anObj)
    return "";
 }
 
+std::string  eToString_eModePonderationRobuste(const eModePonderationRobuste & anObj)
+{
+   if (anObj==ePondL2)
+      return  "ePondL2";
+   if (anObj==ePondL1)
+      return  "ePondL1";
+   if (anObj==ePondLK)
+      return  "ePondLK";
+   if (anObj==ePondGauss)
+      return  "ePondGauss";
+   if (anObj==eL1Secured)
+      return  "eL1Secured";
+ std::cout << "Enum = eModePonderationRobuste\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModePonderationRobuste & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eModePonderationRobuste(const std::string & aNameTag,const eModePonderationRobuste & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eModePonderationRobuste & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eModePonderationRobuste(ELISE_fp & aFp,const eModePonderationRobuste & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -667,7 +1044,16 @@ void  BinaryUnDumpFromFile(eModePonderationRobuste & anObj,ELISE_fp & aFp)
    anObj=(eModePonderationRobuste) aIVal;
 }
 
+void  BinaryUnDumpFromFile_eModePonderationRobuste(eModePonderationRobuste & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eModePonderationRobuste) aIVal;
+}
+
 std::string  Mangling( eModePonderationRobuste *) {return "74627F43374791B4FE3F";};
+
+std::string  Mangling_eModePonderationRobuste( eModePonderationRobuste *) {return "74627F43374791B4FE3F";};
 
 eUniteMesureErreur  Str2eUniteMesureErreur(const std::string & aName)
 {
@@ -705,12 +1091,37 @@ std::string  eToString(const eUniteMesureErreur & anObj)
    return "";
 }
 
+std::string  eToString_eUniteMesureErreur(const eUniteMesureErreur & anObj)
+{
+   if (anObj==eUME_Radian)
+      return  "eUME_Radian";
+   if (anObj==eUME_Image)
+      return  "eUME_Image";
+   if (anObj==eUME_Terrain)
+      return  "eUME_Terrain";
+   if (anObj==eUME_Naturel)
+      return  "eUME_Naturel";
+ std::cout << "Enum = eUniteMesureErreur\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eUniteMesureErreur & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eUniteMesureErreur(const std::string & aNameTag,const eUniteMesureErreur & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eUniteMesureErreur & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eUniteMesureErreur(ELISE_fp & aFp,const eUniteMesureErreur & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -722,7 +1133,16 @@ void  BinaryUnDumpFromFile(eUniteMesureErreur & anObj,ELISE_fp & aFp)
    anObj=(eUniteMesureErreur) aIVal;
 }
 
+void  BinaryUnDumpFromFile_eUniteMesureErreur(eUniteMesureErreur & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eUniteMesureErreur) aIVal;
+}
+
 std::string  Mangling( eUniteMesureErreur *) {return "EDCF38BD57896797FE3F";};
+
+std::string  Mangling_eUniteMesureErreur( eUniteMesureErreur *) {return "EDCF38BD57896797FE3F";};
 
 eNiveauShowMessage  Str2eNiveauShowMessage(const std::string & aName)
 {
@@ -768,12 +1188,41 @@ std::string  eToString(const eNiveauShowMessage & anObj)
    return "";
 }
 
+std::string  eToString_eNiveauShowMessage(const eNiveauShowMessage & anObj)
+{
+   if (anObj==eNSM_None)
+      return  "eNSM_None";
+   if (anObj==eNSM_Iter)
+      return  "eNSM_Iter";
+   if (anObj==eNSM_Paquet)
+      return  "eNSM_Paquet";
+   if (anObj==eNSM_Percentile)
+      return  "eNSM_Percentile";
+   if (anObj==eNSM_CpleIm)
+      return  "eNSM_CpleIm";
+   if (anObj==eNSM_Indiv)
+      return  "eNSM_Indiv";
+ std::cout << "Enum = eNiveauShowMessage\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eNiveauShowMessage & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eNiveauShowMessage(const std::string & aNameTag,const eNiveauShowMessage & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eNiveauShowMessage & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eNiveauShowMessage(ELISE_fp & aFp,const eNiveauShowMessage & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -785,7 +1234,16 @@ void  BinaryUnDumpFromFile(eNiveauShowMessage & anObj,ELISE_fp & aFp)
    anObj=(eNiveauShowMessage) aIVal;
 }
 
+void  BinaryUnDumpFromFile_eNiveauShowMessage(eNiveauShowMessage & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eNiveauShowMessage) aIVal;
+}
+
 std::string  Mangling( eNiveauShowMessage *) {return "FE0F4716AD679488FF3F";};
+
+std::string  Mangling_eNiveauShowMessage( eNiveauShowMessage *) {return "FE0F4716AD679488FF3F";};
 
 eModePointLiaison  Str2eModePointLiaison(const std::string & aName)
 {
@@ -815,12 +1273,33 @@ std::string  eToString(const eModePointLiaison & anObj)
    return "";
 }
 
+std::string  eToString_eModePointLiaison(const eModePointLiaison & anObj)
+{
+   if (anObj==eMPL_DbleCoplanIm)
+      return  "eMPL_DbleCoplanIm";
+   if (anObj==eMPL_PtTerrainInc)
+      return  "eMPL_PtTerrainInc";
+ std::cout << "Enum = eModePointLiaison\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModePointLiaison & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eModePointLiaison(const std::string & aNameTag,const eModePointLiaison & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eModePointLiaison & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eModePointLiaison(ELISE_fp & aFp,const eModePointLiaison & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -832,7 +1311,16 @@ void  BinaryUnDumpFromFile(eModePointLiaison & anObj,ELISE_fp & aFp)
    anObj=(eModePointLiaison) aIVal;
 }
 
+void  BinaryUnDumpFromFile_eModePointLiaison(eModePointLiaison & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eModePointLiaison) aIVal;
+}
+
 std::string  Mangling( eModePointLiaison *) {return "407480E1CA11AA8DF83F";};
+
+std::string  Mangling_eModePointLiaison( eModePointLiaison *) {return "407480E1CA11AA8DF83F";};
 
 
 std::string & cPowPointLiaisons::Id()

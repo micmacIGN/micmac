@@ -2,24 +2,29 @@
 #define Define_ParamXMLNew0
 #include "StdAfx.h"
 // NOMORE ...
-typedef enum
+enum eTestDump
 {
   eTestDump_0,
   eTestDump_1,
   eTestDump_3
-} eTestDump;
+};
 void xml_init(eTestDump & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTestDump & aVal);
+std::string  eToString_eTestDump(const eTestDump & aVal);
 
 eTestDump  Str2eTestDump(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTestDump & anObj);
+cElXMLTree * ToXMLTree_eTestDump(const std::string & aNameTag,const eTestDump & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTestDump &);
+void  BinaryDumpInFile_eTestDump(ELISE_fp &,const eTestDump &);
 
 std::string  Mangling( eTestDump *);
+std::string  Mangling_eTestDump( eTestDump *);
 
 void  BinaryUnDumpFromFile(eTestDump &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTestDump(eTestDump &,ELISE_fp &);
 
 class cTD2REF
 {

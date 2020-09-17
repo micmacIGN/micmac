@@ -3,7 +3,7 @@
 #define Define_NotApero
 // #include "XML_GEN/all.h"
 // NO MORE ...
-typedef enum
+enum eTypeContrainteCalibCamera
 {
   eAllParamLibres,
   eAllParamFiges,
@@ -51,21 +51,26 @@ typedef enum
   eLiberte_AFocal1,
   eFige_AFocal0,
   eFige_AFocal1
-} eTypeContrainteCalibCamera;
+};
 void xml_init(eTypeContrainteCalibCamera & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeContrainteCalibCamera & aVal);
+std::string  eToString_eTypeContrainteCalibCamera(const eTypeContrainteCalibCamera & aVal);
 
 eTypeContrainteCalibCamera  Str2eTypeContrainteCalibCamera(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeContrainteCalibCamera & anObj);
+cElXMLTree * ToXMLTree_eTypeContrainteCalibCamera(const std::string & aNameTag,const eTypeContrainteCalibCamera & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeContrainteCalibCamera &);
+void  BinaryDumpInFile_eTypeContrainteCalibCamera(ELISE_fp &,const eTypeContrainteCalibCamera &);
 
 std::string  Mangling( eTypeContrainteCalibCamera *);
+std::string  Mangling_eTypeContrainteCalibCamera( eTypeContrainteCalibCamera *);
 
 void  BinaryUnDumpFromFile(eTypeContrainteCalibCamera &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeContrainteCalibCamera(eTypeContrainteCalibCamera &,ELISE_fp &);
 
-typedef enum
+enum eTypeCalibAutom
 {
   eCalibAutomRadial,
   eCalibAutomPhgrStd,
@@ -81,21 +86,26 @@ typedef enum
   eCalibAutomBrown,
   eCalibAutomFishEyeStereographique,
   eCalibAutomNone
-} eTypeCalibAutom;
+};
 void xml_init(eTypeCalibAutom & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeCalibAutom & aVal);
+std::string  eToString_eTypeCalibAutom(const eTypeCalibAutom & aVal);
 
 eTypeCalibAutom  Str2eTypeCalibAutom(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeCalibAutom & anObj);
+cElXMLTree * ToXMLTree_eTypeCalibAutom(const std::string & aNameTag,const eTypeCalibAutom & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeCalibAutom &);
+void  BinaryDumpInFile_eTypeCalibAutom(ELISE_fp &,const eTypeCalibAutom &);
 
 std::string  Mangling( eTypeCalibAutom *);
+std::string  Mangling_eTypeCalibAutom( eTypeCalibAutom *);
 
 void  BinaryUnDumpFromFile(eTypeCalibAutom &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeCalibAutom(eTypeCalibAutom &,ELISE_fp &);
 
-typedef enum
+enum eTypeContraintePoseCamera
 {
   ePoseLibre,
   ePoseFigee,
@@ -103,39 +113,49 @@ typedef enum
   ePoseVraieBaseNormee,
   eCentreFige,
   eAnglesFiges
-} eTypeContraintePoseCamera;
+};
 void xml_init(eTypeContraintePoseCamera & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeContraintePoseCamera & aVal);
+std::string  eToString_eTypeContraintePoseCamera(const eTypeContraintePoseCamera & aVal);
 
 eTypeContraintePoseCamera  Str2eTypeContraintePoseCamera(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeContraintePoseCamera & anObj);
+cElXMLTree * ToXMLTree_eTypeContraintePoseCamera(const std::string & aNameTag,const eTypeContraintePoseCamera & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeContraintePoseCamera &);
+void  BinaryDumpInFile_eTypeContraintePoseCamera(ELISE_fp &,const eTypeContraintePoseCamera &);
 
 std::string  Mangling( eTypeContraintePoseCamera *);
+std::string  Mangling_eTypeContraintePoseCamera( eTypeContraintePoseCamera *);
 
 void  BinaryUnDumpFromFile(eTypeContraintePoseCamera &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeContraintePoseCamera(eTypeContraintePoseCamera &,ELISE_fp &);
 
-typedef enum
+enum eTypeVerif
 {
   eVerifDZ,
   eVerifResPerIm
-} eTypeVerif;
+};
 void xml_init(eTypeVerif & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeVerif & aVal);
+std::string  eToString_eTypeVerif(const eTypeVerif & aVal);
 
 eTypeVerif  Str2eTypeVerif(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeVerif & anObj);
+cElXMLTree * ToXMLTree_eTypeVerif(const std::string & aNameTag,const eTypeVerif & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeVerif &);
+void  BinaryDumpInFile_eTypeVerif(ELISE_fp &,const eTypeVerif &);
 
 std::string  Mangling( eTypeVerif *);
+std::string  Mangling_eTypeVerif( eTypeVerif *);
 
 void  BinaryUnDumpFromFile(eTypeVerif &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeVerif(eTypeVerif &,ELISE_fp &);
 
-typedef enum
+enum eTypeResulPtsBundle
 {
   eTRPB_Ok,
   eTRPB_InsufPoseInit,
@@ -149,98 +169,123 @@ typedef enum
   eTRPB_RatioDistP2Cam,
   eTRPB_Unknown,
   eTRPB_NbVals
-} eTypeResulPtsBundle;
+};
 void xml_init(eTypeResulPtsBundle & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeResulPtsBundle & aVal);
+std::string  eToString_eTypeResulPtsBundle(const eTypeResulPtsBundle & aVal);
 
 eTypeResulPtsBundle  Str2eTypeResulPtsBundle(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeResulPtsBundle & anObj);
+cElXMLTree * ToXMLTree_eTypeResulPtsBundle(const std::string & aNameTag,const eTypeResulPtsBundle & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeResulPtsBundle &);
+void  BinaryDumpInFile_eTypeResulPtsBundle(ELISE_fp &,const eTypeResulPtsBundle &);
 
 std::string  Mangling( eTypeResulPtsBundle *);
+std::string  Mangling_eTypeResulPtsBundle( eTypeResulPtsBundle *);
 
 void  BinaryUnDumpFromFile(eTypeResulPtsBundle &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeResulPtsBundle(eTypeResulPtsBundle &,ELISE_fp &);
 
-typedef enum
+enum eTypePondMST_MEP
 {
   eMST_PondCard
-} eTypePondMST_MEP;
+};
 void xml_init(eTypePondMST_MEP & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypePondMST_MEP & aVal);
+std::string  eToString_eTypePondMST_MEP(const eTypePondMST_MEP & aVal);
 
 eTypePondMST_MEP  Str2eTypePondMST_MEP(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypePondMST_MEP & anObj);
+cElXMLTree * ToXMLTree_eTypePondMST_MEP(const std::string & aNameTag,const eTypePondMST_MEP & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypePondMST_MEP &);
+void  BinaryDumpInFile_eTypePondMST_MEP(ELISE_fp &,const eTypePondMST_MEP &);
 
 std::string  Mangling( eTypePondMST_MEP *);
+std::string  Mangling_eTypePondMST_MEP( eTypePondMST_MEP *);
 
 void  BinaryUnDumpFromFile(eTypePondMST_MEP &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypePondMST_MEP(eTypePondMST_MEP &,ELISE_fp &);
 
-typedef enum
+enum eControleDescDic
 {
   eCDD_Jamais,
   eCDD_OnRemontee,
   eCDD_Toujours
-} eControleDescDic;
+};
 void xml_init(eControleDescDic & aVal,cElXMLTree * aTree);
 std::string  eToString(const eControleDescDic & aVal);
+std::string  eToString_eControleDescDic(const eControleDescDic & aVal);
 
 eControleDescDic  Str2eControleDescDic(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eControleDescDic & anObj);
+cElXMLTree * ToXMLTree_eControleDescDic(const std::string & aNameTag,const eControleDescDic & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eControleDescDic &);
+void  BinaryDumpInFile_eControleDescDic(ELISE_fp &,const eControleDescDic &);
 
 std::string  Mangling( eControleDescDic *);
+std::string  Mangling_eControleDescDic( eControleDescDic *);
 
 void  BinaryUnDumpFromFile(eControleDescDic &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eControleDescDic(eControleDescDic &,ELISE_fp &);
 
-typedef enum
+enum eModePonderationRobuste
 {
   ePondL2,
   ePondL1,
   ePondLK,
   ePondGauss,
   eL1Secured
-} eModePonderationRobuste;
+};
 void xml_init(eModePonderationRobuste & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModePonderationRobuste & aVal);
+std::string  eToString_eModePonderationRobuste(const eModePonderationRobuste & aVal);
 
 eModePonderationRobuste  Str2eModePonderationRobuste(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModePonderationRobuste & anObj);
+cElXMLTree * ToXMLTree_eModePonderationRobuste(const std::string & aNameTag,const eModePonderationRobuste & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eModePonderationRobuste &);
+void  BinaryDumpInFile_eModePonderationRobuste(ELISE_fp &,const eModePonderationRobuste &);
 
 std::string  Mangling( eModePonderationRobuste *);
+std::string  Mangling_eModePonderationRobuste( eModePonderationRobuste *);
 
 void  BinaryUnDumpFromFile(eModePonderationRobuste &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eModePonderationRobuste(eModePonderationRobuste &,ELISE_fp &);
 
-typedef enum
+enum eUniteMesureErreur
 {
   eUME_Radian,
   eUME_Image,
   eUME_Terrain,
   eUME_Naturel
-} eUniteMesureErreur;
+};
 void xml_init(eUniteMesureErreur & aVal,cElXMLTree * aTree);
 std::string  eToString(const eUniteMesureErreur & aVal);
+std::string  eToString_eUniteMesureErreur(const eUniteMesureErreur & aVal);
 
 eUniteMesureErreur  Str2eUniteMesureErreur(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eUniteMesureErreur & anObj);
+cElXMLTree * ToXMLTree_eUniteMesureErreur(const std::string & aNameTag,const eUniteMesureErreur & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eUniteMesureErreur &);
+void  BinaryDumpInFile_eUniteMesureErreur(ELISE_fp &,const eUniteMesureErreur &);
 
 std::string  Mangling( eUniteMesureErreur *);
+std::string  Mangling_eUniteMesureErreur( eUniteMesureErreur *);
 
 void  BinaryUnDumpFromFile(eUniteMesureErreur &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eUniteMesureErreur(eUniteMesureErreur &,ELISE_fp &);
 
-typedef enum
+enum eNiveauShowMessage
 {
   eNSM_None,
   eNSM_Iter,
@@ -248,37 +293,47 @@ typedef enum
   eNSM_Percentile,
   eNSM_CpleIm,
   eNSM_Indiv
-} eNiveauShowMessage;
+};
 void xml_init(eNiveauShowMessage & aVal,cElXMLTree * aTree);
 std::string  eToString(const eNiveauShowMessage & aVal);
+std::string  eToString_eNiveauShowMessage(const eNiveauShowMessage & aVal);
 
 eNiveauShowMessage  Str2eNiveauShowMessage(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eNiveauShowMessage & anObj);
+cElXMLTree * ToXMLTree_eNiveauShowMessage(const std::string & aNameTag,const eNiveauShowMessage & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eNiveauShowMessage &);
+void  BinaryDumpInFile_eNiveauShowMessage(ELISE_fp &,const eNiveauShowMessage &);
 
 std::string  Mangling( eNiveauShowMessage *);
+std::string  Mangling_eNiveauShowMessage( eNiveauShowMessage *);
 
 void  BinaryUnDumpFromFile(eNiveauShowMessage &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eNiveauShowMessage(eNiveauShowMessage &,ELISE_fp &);
 
-typedef enum
+enum eModePointLiaison
 {
   eMPL_DbleCoplanIm,
   eMPL_PtTerrainInc
-} eModePointLiaison;
+};
 void xml_init(eModePointLiaison & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModePointLiaison & aVal);
+std::string  eToString_eModePointLiaison(const eModePointLiaison & aVal);
 
 eModePointLiaison  Str2eModePointLiaison(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModePointLiaison & anObj);
+cElXMLTree * ToXMLTree_eModePointLiaison(const std::string & aNameTag,const eModePointLiaison & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eModePointLiaison &);
+void  BinaryDumpInFile_eModePointLiaison(ELISE_fp &,const eModePointLiaison &);
 
 std::string  Mangling( eModePointLiaison *);
+std::string  Mangling_eModePointLiaison( eModePointLiaison *);
 
 void  BinaryUnDumpFromFile(eModePointLiaison &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eModePointLiaison(eModePointLiaison &,ELISE_fp &);
 
 class cPowPointLiaisons
 {

@@ -238,8 +238,9 @@ void cElXMLTree::GenEnum
     fprintf
     (
         aFileH,
-        "typedef enum\n"
-	"{\n"
+        "enum %s\n"
+        "{\n",
+        aName.c_str()
     );
 
 
@@ -271,8 +272,7 @@ void cElXMLTree::GenEnum
     fprintf
     (
         aFileH,
-	"\n} %s;\n",
-	aName.c_str()
+        "\n};\n"
     );
     fprintf
     (
@@ -285,8 +285,11 @@ void cElXMLTree::GenEnum
     fprintf
     (
         aFileH,
-	"std::string  eToString(const %s & aVal);\n\n",
-	aName.c_str()
+        "std::string  eToString(const %s & aVal);\n"
+        "std::string  eToString_%s(const %s & aVal);\n\n",
+        aName.c_str(),
+        aName.c_str(),
+        aName.c_str()
     );
     fprintf
     (
@@ -298,26 +301,38 @@ void cElXMLTree::GenEnum
     fprintf
     (
         aFileH,
-	"cElXMLTree * ToXMLTree(const std::string & aNameTag,const %s & anObj);\n\n",
-	aName.c_str()
+        "cElXMLTree * ToXMLTree(const std::string & aNameTag,const %s & anObj);\n"
+        "cElXMLTree * ToXMLTree_%s(const std::string & aNameTag,const %s & anObj);\n\n",
+        aName.c_str(),
+        aName.c_str(),
+        aName.c_str()
     );
     fprintf
     (
         aFileH,
-	"void  BinaryDumpInFile(ELISE_fp &,const %s &);\n\n",
-	aName.c_str()
+        "void  BinaryDumpInFile(ELISE_fp &,const %s &);\n"
+        "void  BinaryDumpInFile_%s(ELISE_fp &,const %s &);\n\n",
+        aName.c_str(),
+        aName.c_str(),
+        aName.c_str()
     );
     fprintf
     (
         aFileH,
-	"std::string  Mangling( %s *);\n\n",
-	aName.c_str()
+        "std::string  Mangling( %s *);\n"
+        "std::string  Mangling_%s( %s *);\n\n",
+        aName.c_str(),
+        aName.c_str(),
+        aName.c_str()
     );
     fprintf
     (
         aFileH,
-	"void  BinaryUnDumpFromFile(%s &,ELISE_fp &);\n\n",
-	aName.c_str()
+        "void  BinaryUnDumpFromFile(%s &,ELISE_fp &);\n"
+        "void  BinaryUnDumpFromFile_%s(%s &,ELISE_fp &);\n\n",
+        aName.c_str(),
+        aName.c_str(),
+        aName.c_str()
     );
 
 
@@ -375,7 +390,7 @@ void cElXMLTree::GenEnum
 	aName.c_str(),
 	aName.c_str()
     );
-    
+
     fprintf
     (
         aFileCpp,
@@ -405,29 +420,77 @@ void cElXMLTree::GenEnum
     (
         aFileCpp,
         " std::cout << \"Enum = %s\\n\";\n"
-	"   ELISE_ASSERT(false,\"Bad Value in eToString for enum value \");\n"
-	"   return \"\";\n"
-	"}\n\n",
+        "   ELISE_ASSERT(false,\"Bad Value in eToString for enum value \");\n"
+        "   return \"\";\n"
+        "}\n\n",
         aName.c_str()
     );
 
+    fprintf
+    (
+        aFileCpp,
+        "std::string  eToString_%s(const %s & anObj)\n"
+        "{\n",
+        aName.c_str(),
+        aName.c_str()
+    );
 
+    for
+    (
+        std::list<cElXMLTree *>::iterator itF=mFils.begin();
+        itF != mFils.end();
+        itF++
+    )
+    {
+
+          fprintf
+          (
+          aFileCpp,
+          "   if (anObj==%s)\n"
+          "      return  \"%s\";\n",
+          (*itF)->mValTag.c_str(),
+          (*itF)->mValTag.c_str()
+          );
+    }
+    fprintf
+    (
+        aFileCpp,
+        " std::cout << \"Enum = %s\\n\";\n"
+        "   ELISE_ASSERT(false,\"Bad Value in eToString for enum value \");\n"
+        "   return \"\";\n"
+        "}\n\n",
+        aName.c_str()
+    );
 
     // ToXMLTree 
     fprintf
     (
         aFileCpp,
-	"cElXMLTree * ToXMLTree(const std::string & aNameTag,const %s & anObj)\n"
-	"{\n",
-	aName.c_str()
+        "cElXMLTree * ToXMLTree(const std::string & aNameTag,const %s & anObj)\n"
+        "{\n",
+        aName.c_str()
     );
     fprintf
     (
         aFileCpp,
-	"      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));\n"
-	"}\n\n"
+        "      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));\n"
+        "}\n\n"
     );
 
+    fprintf
+    (
+        aFileCpp,
+        "cElXMLTree * ToXMLTree_%s(const std::string & aNameTag,const %s & anObj)\n"
+        "{\n",
+        aName.c_str(),
+        aName.c_str()
+    );
+    fprintf
+    (
+        aFileCpp,
+        "      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));\n"
+        "}\n\n"
+    );
 
     fprintf
     (
@@ -437,6 +500,16 @@ void cElXMLTree::GenEnum
          "   BinaryDumpInFile(aFp,int(anObj));\n"
          "}\n\n",
 	  aName.c_str()
+    );
+    fprintf
+    (
+         aFileCpp,
+         "void  BinaryDumpInFile_%s(ELISE_fp & aFp,const %s & anObj)\n"
+         "{\n"
+         "   BinaryDumpInFile(aFp,int(anObj));\n"
+         "}\n\n",
+      aName.c_str(),
+      aName.c_str()
     );
 
     fprintf
@@ -453,10 +526,32 @@ void cElXMLTree::GenEnum
     );
     fprintf
     (
+         aFileCpp,
+         "void  BinaryUnDumpFromFile_%s(%s & anObj,ELISE_fp & aFp)\n"
+         "{\n"
+         "   int aIVal;\n"
+         "   BinaryUnDumpFromFile(aIVal,aFp);\n"
+         "   anObj=(%s) aIVal;\n"
+         "}\n\n",
+      aName.c_str(),
+      aName.c_str(),
+      aName.c_str()
+    );
+
+    fprintf
+    (
         aFileCpp,
-	"std::string  Mangling( %s *) {return \"%s\";};\n\n",
-	aName.c_str(),
-	aMj.ShortMajId().c_str()
+        "std::string  Mangling( %s *) {return \"%s\";};\n\n",
+        aName.c_str(),
+        aMj.ShortMajId().c_str()
+    );
+    fprintf
+    (
+        aFileCpp,
+        "std::string  Mangling_%s( %s *) {return \"%s\";};\n\n",
+        aName.c_str(),
+        aName.c_str(),
+        aMj.ShortMajId().c_str()
     );
 /*
 */

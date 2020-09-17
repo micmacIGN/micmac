@@ -6,43 +6,53 @@
 // #include "private/all.h"
 // #include "XML_GEN/ParamChantierPhotogram.h"
 //
-typedef enum
+enum eTypeSurfaceAnalytique
 {
   eTSA_CylindreRevolution
-} eTypeSurfaceAnalytique;
+};
 void xml_init(eTypeSurfaceAnalytique & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeSurfaceAnalytique & aVal);
+std::string  eToString_eTypeSurfaceAnalytique(const eTypeSurfaceAnalytique & aVal);
 
 eTypeSurfaceAnalytique  Str2eTypeSurfaceAnalytique(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeSurfaceAnalytique & anObj);
+cElXMLTree * ToXMLTree_eTypeSurfaceAnalytique(const std::string & aNameTag,const eTypeSurfaceAnalytique & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeSurfaceAnalytique &);
+void  BinaryDumpInFile_eTypeSurfaceAnalytique(ELISE_fp &,const eTypeSurfaceAnalytique &);
 
 std::string  Mangling( eTypeSurfaceAnalytique *);
+std::string  Mangling_eTypeSurfaceAnalytique( eTypeSurfaceAnalytique *);
 
 void  BinaryUnDumpFromFile(eTypeSurfaceAnalytique &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeSurfaceAnalytique(eTypeSurfaceAnalytique &,ELISE_fp &);
 
-typedef enum
+enum eModeBoxFusion
 {
   eMBF_Union,
   eMBF_Inter,
   eMBF_First
-} eModeBoxFusion;
+};
 void xml_init(eModeBoxFusion & aVal,cElXMLTree * aTree);
 std::string  eToString(const eModeBoxFusion & aVal);
+std::string  eToString_eModeBoxFusion(const eModeBoxFusion & aVal);
 
 eModeBoxFusion  Str2eModeBoxFusion(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eModeBoxFusion & anObj);
+cElXMLTree * ToXMLTree_eModeBoxFusion(const std::string & aNameTag,const eModeBoxFusion & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eModeBoxFusion &);
+void  BinaryDumpInFile_eModeBoxFusion(ELISE_fp &,const eModeBoxFusion &);
 
 std::string  Mangling( eModeBoxFusion *);
+std::string  Mangling_eModeBoxFusion( eModeBoxFusion *);
 
 void  BinaryUnDumpFromFile(eModeBoxFusion &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eModeBoxFusion(eModeBoxFusion &,ELISE_fp &);
 
-typedef enum
+enum eQualCloud
 {
   eQC_Out,
   eQC_ZeroCohBrd,
@@ -56,21 +66,26 @@ typedef enum
   eQC_Coh2,
   eQC_Coh3,
   eQC_NonAff
-} eQualCloud;
+};
 void xml_init(eQualCloud & aVal,cElXMLTree * aTree);
 std::string  eToString(const eQualCloud & aVal);
+std::string  eToString_eQualCloud(const eQualCloud & aVal);
 
 eQualCloud  Str2eQualCloud(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eQualCloud & anObj);
+cElXMLTree * ToXMLTree_eQualCloud(const std::string & aNameTag,const eQualCloud & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eQualCloud &);
+void  BinaryDumpInFile_eQualCloud(ELISE_fp &,const eQualCloud &);
 
 std::string  Mangling( eQualCloud *);
+std::string  Mangling_eQualCloud( eQualCloud *);
 
 void  BinaryUnDumpFromFile(eQualCloud &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eQualCloud(eQualCloud &,ELISE_fp &);
 
-typedef enum
+enum eTypeImporGenBundle
 {
   eTIGB_Unknown,
   eTIGB_MMSten,
@@ -85,42 +100,52 @@ typedef enum
   eTIGB_MMScanLineSensor,
   eTIGB_MMEpip,
   eTIGB_NbVals
-} eTypeImporGenBundle;
+};
 void xml_init(eTypeImporGenBundle & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeImporGenBundle & aVal);
+std::string  eToString_eTypeImporGenBundle(const eTypeImporGenBundle & aVal);
 
 eTypeImporGenBundle  Str2eTypeImporGenBundle(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeImporGenBundle & anObj);
+cElXMLTree * ToXMLTree_eTypeImporGenBundle(const std::string & aNameTag,const eTypeImporGenBundle & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeImporGenBundle &);
+void  BinaryDumpInFile_eTypeImporGenBundle(ELISE_fp &,const eTypeImporGenBundle &);
 
 std::string  Mangling( eTypeImporGenBundle *);
+std::string  Mangling_eTypeImporGenBundle( eTypeImporGenBundle *);
 
 void  BinaryUnDumpFromFile(eTypeImporGenBundle &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeImporGenBundle(eTypeImporGenBundle &,ELISE_fp &);
 
-typedef enum
+enum eTypeModeNO
 {
   eModeNO_Std,
   eModeNO_TTK,
   eModeNO_StdNoTTK,
   eModeNO_OnlyHomogr,
   eModeNO_NbVals
-} eTypeModeNO;
+};
 void xml_init(eTypeModeNO & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeModeNO & aVal);
+std::string  eToString_eTypeModeNO(const eTypeModeNO & aVal);
 
 eTypeModeNO  Str2eTypeModeNO(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeModeNO & anObj);
+cElXMLTree * ToXMLTree_eTypeModeNO(const std::string & aNameTag,const eTypeModeNO & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeModeNO &);
+void  BinaryDumpInFile_eTypeModeNO(ELISE_fp &,const eTypeModeNO &);
 
 std::string  Mangling( eTypeModeNO *);
+std::string  Mangling_eTypeModeNO( eTypeModeNO *);
 
 void  BinaryUnDumpFromFile(eTypeModeNO &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeModeNO(eTypeModeNO &,ELISE_fp &);
 
-typedef enum
+enum eTypeMap2D
 {
   eTM2_Homot,
   eTM2_Simil,
@@ -132,19 +157,24 @@ typedef enum
   eTM2_HomotPure,
   eTM2_Trans,
   eTM2_NbVals
-} eTypeMap2D;
+};
 void xml_init(eTypeMap2D & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeMap2D & aVal);
+std::string  eToString_eTypeMap2D(const eTypeMap2D & aVal);
 
 eTypeMap2D  Str2eTypeMap2D(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeMap2D & anObj);
+cElXMLTree * ToXMLTree_eTypeMap2D(const std::string & aNameTag,const eTypeMap2D & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeMap2D &);
+void  BinaryDumpInFile_eTypeMap2D(ELISE_fp &,const eTypeMap2D &);
 
 std::string  Mangling( eTypeMap2D *);
+std::string  Mangling_eTypeMap2D( eTypeMap2D *);
 
 void  BinaryUnDumpFromFile(eTypeMap2D &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeMap2D(eTypeMap2D &,ELISE_fp &);
 
 class cIntervLutConvertion
 {

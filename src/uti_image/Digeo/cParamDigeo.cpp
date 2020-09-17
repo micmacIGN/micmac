@@ -45,12 +45,41 @@ std::string  eToString(const eTypeTopolPt & anObj)
    return "";
 }
 
+std::string  eToString_eTypeTopolPt(const eTypeTopolPt & anObj)
+{
+   if (anObj==eTtpSommet)
+      return  "eTtpSommet";
+   if (anObj==eTtpCuvette)
+      return  "eTtpCuvette";
+   if (anObj==eTtpCol)
+      return  "eTtpCol";
+   if (anObj==eTtpCorner)
+      return  "eTtpCorner";
+   if (anObj==eSiftMaxDog)
+      return  "eSiftMaxDog";
+   if (anObj==eSiftMinDog)
+      return  "eSiftMinDog";
+ std::cout << "Enum = eTypeTopolPt\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeTopolPt & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eTypeTopolPt(const std::string & aNameTag,const eTypeTopolPt & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeTopolPt & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eTypeTopolPt(ELISE_fp & aFp,const eTypeTopolPt & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -62,7 +91,16 @@ void  BinaryUnDumpFromFile(eTypeTopolPt & anObj,ELISE_fp & aFp)
    anObj=(eTypeTopolPt) aIVal;
 }
 
+void  BinaryUnDumpFromFile_eTypeTopolPt(eTypeTopolPt & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eTypeTopolPt) aIVal;
+}
+
 std::string  Mangling( eTypeTopolPt *) {return "CC0F34E54BDAE3A5FE3F";};
+
+std::string  Mangling_eTypeTopolPt( eTypeTopolPt *) {return "CC0F34E54BDAE3A5FE3F";};
 
 eReducDemiImage  Str2eReducDemiImage(const std::string & aName)
 {
@@ -96,12 +134,35 @@ std::string  eToString(const eReducDemiImage & anObj)
    return "";
 }
 
+std::string  eToString_eReducDemiImage(const eReducDemiImage & anObj)
+{
+   if (anObj==eRDI_121)
+      return  "eRDI_121";
+   if (anObj==eRDI_010)
+      return  "eRDI_010";
+   if (anObj==eRDI_11)
+      return  "eRDI_11";
+ std::cout << "Enum = eReducDemiImage\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eReducDemiImage & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eReducDemiImage(const std::string & aNameTag,const eReducDemiImage & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eReducDemiImage & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eReducDemiImage(ELISE_fp & aFp,const eReducDemiImage & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -113,7 +174,16 @@ void  BinaryUnDumpFromFile(eReducDemiImage & anObj,ELISE_fp & aFp)
    anObj=(eReducDemiImage) aIVal;
 }
 
+void  BinaryUnDumpFromFile_eReducDemiImage(eReducDemiImage & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eReducDemiImage) aIVal;
+}
+
 std::string  Mangling( eReducDemiImage *) {return "AB929125A8D1908BFF3F";};
+
+std::string  Mangling_eReducDemiImage( eReducDemiImage *) {return "AB929125A8D1908BFF3F";};
 
 ePointRefinement  Str2ePointRefinement(const std::string & aName)
 {
@@ -147,12 +217,35 @@ std::string  eToString(const ePointRefinement & anObj)
    return "";
 }
 
+std::string  eToString_ePointRefinement(const ePointRefinement & anObj)
+{
+   if (anObj==eRefine2D)
+      return  "eRefine2D";
+   if (anObj==eRefine3D)
+      return  "eRefine3D";
+   if (anObj==eRefineNone)
+      return  "eRefineNone";
+ std::cout << "Enum = ePointRefinement\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const ePointRefinement & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_ePointRefinement(const std::string & aNameTag,const ePointRefinement & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const ePointRefinement & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_ePointRefinement(ELISE_fp & aFp,const ePointRefinement & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
 }
@@ -164,7 +257,16 @@ void  BinaryUnDumpFromFile(ePointRefinement & anObj,ELISE_fp & aFp)
    anObj=(ePointRefinement) aIVal;
 }
 
+void  BinaryUnDumpFromFile_ePointRefinement(ePointRefinement & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(ePointRefinement) aIVal;
+}
+
 std::string  Mangling( ePointRefinement *) {return "00F2FE9D1EAAAAD9FE3F";};
+
+std::string  Mangling_ePointRefinement( ePointRefinement *) {return "00F2FE9D1EAAAAD9FE3F";};
 
 
 cTplValGesInit< double > & cImageDigeo::ResolInit()
