@@ -43,7 +43,7 @@ l=mm3d.rot2list(r)
 Read homol file
 """
 
-pack = mm3d.ElPackHomologue.FromFile("Zhenjue/Homol/PastisDSC_3115.JPG/DSC_3116.JPG.dat")
+pack = mm3d.ElPackHomologue.FromFile("examples_py/IMG_5564.dat")
 print(pack.size())
 list_homol=pack.getList()
 for h in list_homol[0:10]:
@@ -52,7 +52,7 @@ for h in list_homol[0:10]:
 aPackOut=mm3d.ElPackHomologue()
 aCple=mm3d.ElCplePtsHomologues(mm3d.Pt2dr(10,10),mm3d.Pt2dr(20,20));
 aPackOut.Cple_Add(aCple);
-aPackOut.StdPutInFile("homol.dat");
+aPackOut.StdPutInFile("examples_py/homol.dat");
 
 """
 Exceptions

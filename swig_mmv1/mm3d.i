@@ -8,20 +8,21 @@
 #include "general/util.h"
 #include "private/files.h"
 #include "XML_GEN/ParamChantierPhotogram.h"
-typedef ElAffin2D tOrIntIma ;
+typedef ElAffin2D tOrIntIma ; //mandatory because only declared in cBasicGeomCap3D in general/photogram.h?
 #include "api/TpPPMD.h"
 #include <sstream>
 %}
 
 #define ElSTDNS  std::
 #define ElTmplSpecNull template <>
-typedef ElAffin2D tOrIntIma ;
 %include <std_string.i>
 %include <std_vector.i>
 %include <std_list.i>
 %include <cpointer.i>
 %include stl.i
+
 //templates (has to be before %include "api/api_mm3d.h")
+//used to make them usable as python lists
 namespace std {
     %template(IntVector)    vector<int>;
     %template(DoubleVector) vector<double>;
@@ -34,16 +35,18 @@ namespace std {
 %include "general/CMake_defines.h"
 %include "general/sys_dep.h"
 
-//renommage de methodes surchargees
+//rename overloaded methods to avoid shadowing
 //%rename(getCoeffX) cElComposHomographie::CoeffX();
 //%rename(getCoeffY) cElComposHomographie::CoeffY();
 //%rename(getCoeff1) cElComposHomographie::Coeff1();
 //%rename(getCoeff) ElDistRadiale_PolynImpair::Coeff(int);
 
+//True is a reserved name in python3
 %rename(_True) FBool::True;
+%rename(_MayBe) FBool::MayBe;
 %rename(_False) FBool::False;
 
-
+//be able to use python exceptions
 %include exception.i       
 %exception {
   try {
@@ -75,8 +78,6 @@ void MakeFileXML(const cSauvegardeNamedRel & anObj,const std::string & aName,con
 print("MicMac Python3 API")
 mm3d_init();
 %}
-
-
 
 
 
