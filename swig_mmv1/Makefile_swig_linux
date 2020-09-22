@@ -8,6 +8,10 @@ CXX_WRAP_FLAGS = ${CXXFlags} `pkg-config --cflags python3` ${INCLUDEDIRS}
 LFLAGS = ${MMDir}/lib/libelise.a -lX11 -lXext -lm -ldl -lpthread ${MMDir}/lib/libANN.a `pkg-config --libs python3-embed` `pkg-config --libs python3` -Wl,--warn-unresolved-symbols
 SO = _mm3d.so
 
+ifeq ($(USEQT), ON)
+    QTLINK= -lGL -lGLU  -lQt5Core -lQt5Gui -lQt5Widgets -lQt5Concurrent -lQt5OpenGL -lQt5Xml
+endif
+
 CXX_SRCS = $(wildcard ./api/*.cpp)
 
 OBJ_FILES = $(CXX_SRCS:.cpp=.o)
@@ -22,11 +26,11 @@ WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 .SECONDARY: $(WRAP_CXX_FILES)
 
 swig: $(OBJ_FILES) $(WRAP_O_FILES)
-	$(CXX) -Xlinker -export-dynamic -shared $^ $(LFLAGS) -o $(SO)
+	$(CXX) -Xlinker -export-dynamic -shared $^ $(LFLAGS) -o $(SO)  $(QTLINK)
 
 check: $(OBJ_FILES) $(WRAP_O_FILES) test_exe.cpp
 	$(CXX) -c $(CXXFlags) test_exe.cpp -o test_exe.o 
-	$(CXX) $(OBJ_FILES) $(WRAP_O_FILES) test_exe.o $(LFLAGS) -o test
+	$(CXX) $(OBJ_FILES) $(WRAP_O_FILES) test_exe.o $(LFLAGS) -o test  $(QTLINK)
 
 all: swig check doc
 

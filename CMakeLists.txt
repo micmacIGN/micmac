@@ -100,6 +100,9 @@ option(BUILD_ONLY_ELISE_MM3D "Projet Elise et MM3D uniquement" OFF)
 # construire l'interface graphique
 option(WITH_ETALONPOLY  "Build etalonnage polygone" ON)
 
+# construire l'API python
+option(WITH_APIPYTHON  "Build API Python" OFF)
+
 # construire les binaires Poisson
 option(BUILD_POISSON "Build Poisson binaries" ON)
 
@@ -616,10 +619,17 @@ else ()
 endif()
 endif()
 
-#fPIC pour swig
+if (WITH_APIPYTHON)
 if(NOT MSVC)
+	#fPIC pour swig
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+	#problem: does not check that libElise is up to date
+	add_custom_target(apipy DEPENDS ${libElise}
+		COMMAND make -f Makefile_swig_linux check swig USEQT=${WITH_QT5}
+		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/swig_mmv1
+	)
+endif()
 endif()
 
 # DEFINITION : Windows : le projet debug est genere directement sous bin pour avoir les informations de Debug

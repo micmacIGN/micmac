@@ -56,7 +56,7 @@ Compilation
 -----------
 Only tested on Linux.
 
-Dependances:
+Dependencies:
  - SWIG
  - Python 3 headers
  - for documentation: doxygen, GraphViz
@@ -65,16 +65,16 @@ On debian:
     apt install swig python3-dev doxygen graphviz
 
 
-Compile micmac (to have lib/libelise.a, for now without Qt), then
+To compile, select "WITH_APIPYTHON" in cmake interface, then:
+    make apipy
 
-    cd swig_mmv1
-
-    make -f Makefile_swig_linux
+(if elise is to be updated, you have to run "make elise")
 
 The files to distribute are: swig_mmv1/_mm3d.so and swig_mmv1/mm3d.py
 
 To create documentation:
 
+    cd swig_mmv1
     make -f Makefile_swig_linux doc
 
 The documentation is in swig_mmv1/doc/html/index.html
@@ -85,7 +85,7 @@ Developement
 To add MM classes to python, add then to mm3d.i file (both #include and %include).
 If you want to be able to use python lists for objects of these classes, use %template.
 
-To check if everything is correct :
+To check if everything is correct:
 
     make -f Makefile_swig_linux clean && make -f Makefile_swig_linux check
 
@@ -94,7 +94,7 @@ This way you can see every undefined references that you have to fix (by adding 
 
 TODO
 ----
- * python closes if Elise_Pile_Mess_0::display (ex: mm3d.ElPackHomologue.FromFile, when file does not exist and is .dat)
+ * confirm that ElExit shadowing is ok
  * add private/files.h
  * fix warnings (do not look at functions eToString etc?)
  * add it to cmake to support compilation with Qt
