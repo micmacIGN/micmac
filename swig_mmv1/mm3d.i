@@ -1,11 +1,14 @@
 %module mm3d
 %{
+//----------------------------------------------------------------------
 //includes to be able to compile
 #define SWIG_FILE_WITH_INIT
 #include "StdAfx.h"
 #include "api/api_mm3d.h"
 #include "general/photogram.h"
 #include "general/util.h"
+#include "general/bitm.h"
+#include "general/ptxd.h"
 #include "private/files.h"
 #include "XML_GEN/ParamChantierPhotogram.h"
 typedef ElAffin2D tOrIntIma ; //mandatory because only declared in cBasicGeomCap3D in general/photogram.h?
@@ -13,6 +16,7 @@ typedef ElAffin2D tOrIntIma ; //mandatory because only declared in cBasicGeomCap
 #include <sstream>
 %}
 
+//----------------------------------------------------------------------
 #define ElSTDNS  std::
 #define ElTmplSpecNull template <>
 %include <std_string.i>
@@ -21,6 +25,7 @@ typedef ElAffin2D tOrIntIma ; //mandatory because only declared in cBasicGeomCap
 %include <cpointer.i>
 %include stl.i
 
+//----------------------------------------------------------------------
 //templates (has to be before %include "api/api_mm3d.h")
 //used to make them usable as python lists
 namespace std {
@@ -31,10 +36,11 @@ namespace std {
     %template(CpleStringVector) vector<cCpleString>;
 }
  
-//def de REAL etc pour pouvoir les utiliser en python
+//def REAL etc to be able to use them in python
 %include "general/CMake_defines.h"
 %include "general/sys_dep.h"
 
+//----------------------------------------------------------------------
 //rename overloaded methods to avoid shadowing
 //%rename(getCoeffX) cElComposHomographie::CoeffX();
 //%rename(getCoeffY) cElComposHomographie::CoeffY();
@@ -46,6 +52,7 @@ namespace std {
 %rename(_MayBe) FBool::MayBe;
 %rename(_False) FBool::False;
 
+//----------------------------------------------------------------------
 //be able to use python exceptions
 %include exception.i       
 %exception {
@@ -58,14 +65,45 @@ namespace std {
   }
 }
 
+//----------------------------------------------------------------------
+//things to ignore in next includes to be able to compile
+
+//need several default constructors
+%ignore Im2DGen::neigh_test_and_set;
+%ignore GenIm::load_file;
+%ignore GenIm::box;
+%ignore to_flux;
+%ignore Liste_Pts_Gen::all_pts;
+
+//those inline functions are implemented in a cpp file not used when compiling mm3d_wrap.cxx
+%ignore cTabulKernelInterpol::AdrDisc2Real;
+%ignore cTabulKernelInterpol::DerAdrDisc2Real;
+
+//complex template: to fix
+%ignore jacobi_diag;
+
+//unimplemented
+%ignore tCho2double;
+%ignore cComposElMap2D::NewFrom0;
+%ignore cComposElMap2D::NewFrom1;
+%ignore cComposElMap2D::NewFrom2;
+%ignore cComposElMap2D::NewFrom3;
+%ignore Monome2dReal::Ampl;
+%ignore ChangementSysC;
+%ignore cCs2Cs::Delete();
+
+//----------------------------------------------------------------------
 //classes to export
 %include "api/api_mm3d.h"
 %include "api/TpPPMD.h"
 %include "general/util.h"
+%include "general/bitm.h"
+%include "general/ptxd.h"
 //%include "private/files.h" //not working for now
 void MakeFileXML(const cSauvegardeNamedRel & anObj,const std::string & aName,const std::string & aTagEnglob=""); //just one version of MakeFileXML for now
-%include "XML_GEN/ParamChantierPhotogram.h"
+//%include "XML_GEN/ParamChantierPhotogram.h"
 
+//----------------------------------------------------------------------
 %template(Pt2di) Pt2d<INT>;
 %template(Pt2dr) Pt2d<REAL>;
 %template(Pt3dr) Pt3d<REAL>;
@@ -80,7 +118,7 @@ mm3d_init();
 %}
 
 
-
+//----------------------------------------------------------------------
 /*%extend cPackNupletsHom {
   std::list<cNupletPtsHomologues> &getList() {
       return $self->mCont;

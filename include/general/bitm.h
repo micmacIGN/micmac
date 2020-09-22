@@ -313,7 +313,7 @@ class GenIm : public PRC0 ,
 
         virtual ~GenIm();
 
-        typedef enum type_el
+        enum type_el
         {
              u_int1,
              int1,
@@ -334,8 +334,7 @@ class GenIm : public PRC0 ,
              u_int4,
              u_int8,
              no_type    // to have some def value
-        }
-        type_el;
+        };
 
        // must be same size, use optimized if same type,
        // else use ELISE_COPY
