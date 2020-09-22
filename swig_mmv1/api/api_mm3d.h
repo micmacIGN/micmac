@@ -32,12 +32,6 @@ std::vector<double> rot2list(ElRotation3D &r);
 
 std::vector<std::string> getFileSet(std::string dir, std::string pattern);
 
-//! ErrorHandler specific for interactive usage
-class cEliseFatalErrorHandlerPy: public cEliseFatalErrorHandler
-{
-    public :
-        virtual void cEFEH_OnErreur(const char * mes,const char * file,int line); 
-};
 //-------------------- classes MM a exporter ------------------
 #ifdef SWIG
 

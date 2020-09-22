@@ -7,41 +7,41 @@ void mm3d_init()
 {
 	TheExitOnBrkp =true;
 	std::cout<<"mm3d initialized."<<std::endl;
-	
-	//use custom error handler to throw exception
-	cEliseFatalErrorHandler::SetCurHandler(new cEliseFatalErrorHandlerPy());
 }
 
-void cEliseFatalErrorHandlerPy::cEFEH_OnErreur(const char * mes,const char * file,int line)
+//shadow classic ElExit to use throw(runtime_error) instead of exit(code)
+void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
 {
-	std::string msg =
-           "------------------------------------------------------------\n";
-    msg += "|   Sorry, the following FATAL ERROR happened               \n";
-    msg += "|                                                           \n";
-    msg += "|    " + std::string(mes)  +                               "\n";
-    msg += "|                                                           \n";
-    msg += "------------------------------------------------------------\n";
+    //cFileDebug does not exist in pymm3d for now
+   /*cFileDebug::TheOne.Close(aCode);
 
-    std::stringstream sl, sf;
-    sl << line;
+   if (aCode==0)
+      StdEXIT(0);
 
-    #if ELISE_DEPLOY == 0
-        sf << file;
-    #else
-        const char *s = strstr(file, PROJECT_SOURCE_DIR);
-        if (s == NULL) sf << file;
-        else sf << s + strlen(PROJECT_SOURCE_DIR) + 1;
-    #endif
+    std::string aFileName = ( isUsingSeparateDirectories() ?
+                              MMTemporaryDirectory() + "MM-Error-"+ GetUnikId() + ".txt" :
+                              Dir2Write() + "MM-Error-"+ GetUnikId() + ".txt" );
 
-    msg += "-------------------------------------------------------------\n";
-    msg += "|       (Elise's)  LOCATION :                                \n";
-    msg += "|                                                            \n";
-    msg += "| Error was detected\n";
-    msg += "|          at line : " + sl.str()  +                        "\n";
-    msg += "|          of file : " + sf.str()  +                        "\n";
-    msg += "-------------------------------------------------------------\n";
-// getchar();
-    throw(runtime_error(msg));
+   FILE * aFP = fopen(aFileName.c_str(),"a+");
+   if (aFP)
+   {
+      fprintf(aFP,"Exit with code %d \n",aCode);
+      fprintf(aFP,"Generated from line %d  of file %s \n",aLine,aFile);
+      fprintf(aFP,"PID=%d\n",mm_getpid());
+      if (aMessage!="")
+         fprintf(aFP,"Context=[%s]\n",aMessage.c_str());
+
+      for (int aK=0 ; aK<(int)GlobMessErrContext.size() ; aK++)
+         fprintf(aFP,"GMEC:%s\n",GlobMessErrContext[aK].c_str()),
+
+      fprintf(aFP,"MM3D-Command=[%s]\n",GlobArcArgv.c_str());
+   }*/
+
+// std::cout << "ELExit " << __FILE__ << __LINE__ << " " << aCode << " " << GlobArcArgv << "\n";
+   //StdEXIT(aCode);
+   std::ostringstream oss;
+   oss<<"MicMac exit with code "<<aCode;
+   throw(runtime_error(oss.str()));
 }
 
 CamStenope * CamOrientFromFile(std::string filename)
@@ -121,39 +121,4 @@ std::vector<std::string> getFileSet(std::string dir, std::string pattern)
     cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(dir);
     return *(aICNM->Get(pattern));
 }
-
-
-
-/* //test: shadow original void __attribute__((weak)) cEliseFatalErrorHandler::cEFEH_OnErreur
-void cEliseFatalErrorHandler::cEFEH_OnErreur(const char * mes,const char * file,int line)
-{
-    std::string msg =
-           "------------------------------------------------------------\n";
-    msg += "|   Sorry :), the following FATAL ERROR happened               \n";
-    msg += "|                                                           \n";
-    msg += "|    " + std::string(mes)  +                               "\n";
-    msg += "|                                                           \n";
-    msg += "------------------------------------------------------------\n";
-
-    std::stringstream sl, sf;
-    sl << line;
-
-    #if ELISE_DEPLOY == 0
-        sf << file;
-    #else
-        const char *s = strstr(file, PROJECT_SOURCE_DIR);
-        if (s == NULL) sf << file;
-        else sf << s + strlen(PROJECT_SOURCE_DIR) + 1;
-    #endif
-
-    msg += "-------------------------------------------------------------\n";
-    msg += "|       (Elise's)  LOCATION :                                \n";
-    msg += "|                                                            \n";
-    msg += "| Error was detected\n";
-    msg += "|          at line : " + sl.str()  +                        "\n";
-    msg += "|          of file : " + sf.str()  +                        "\n";
-    msg += "-------------------------------------------------------------\n";
-// getchar();
-    throw(runtime_error(msg));
-}*/
 

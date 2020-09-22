@@ -1031,7 +1031,7 @@ int System(const std::string & aComOri,bool aSVP,bool AddOptGlob,bool UseTheNbIt
      return aRes;
 }
 
-void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
+void __attribute__((weak)) ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
 {
    cFileDebug::TheOne.Close(aCode);
 
