@@ -609,12 +609,17 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 if(CMAKE_COMPILER_IS_GNUCC)
 	#~ add_compile_options(-O2 -Wall) // pas gere par le cmake de la forge
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 if (${WERROR})
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -Werror -fPIC")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -Werror")
 else ()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -fPIC")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall")
 endif()
+endif()
+
+#fPIC pour swig
+if(NOT MSVC)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif()
 
 # DEFINITION : Windows : le projet debug est genere directement sous bin pour avoir les informations de Debug
