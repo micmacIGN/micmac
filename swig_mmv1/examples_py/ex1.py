@@ -3,7 +3,7 @@ import mm3d
 """
 Equivalent to TestCam
 """
-c=mm3d.CamOrientFromFile("Ori-FishEyeBasic/Orientation-Calibration_geo_14_001_01_015000.thm.dng_G.tif.xml")
+c=mm3d.CamOrientFromFile("examples_py/Orientation-IMG_5564.tif.xml")
 
 p=mm3d.Pt2dr(1000,1000)
 prof=1
@@ -64,10 +64,9 @@ except:
   print("argh")
 """
 
-#c=mm3d.CamOrientFromFile("Ori-FishEyeBasic/Orientation-Calibration_geo_14_001_01_015000.thm.dng_G.tif.xml ")
 
 try:
-  c=mm3d.CamOrientFromFile("Ori-FishEyeBasic/Orientation-Calibration_geo_14_001_01_015000.thm.dng_G.tif.xml ")
+  c=mm3d.CamOrientFromFile("not_existing.xml")
 except RuntimeError as e:
   print(e)
 

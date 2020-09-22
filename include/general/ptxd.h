@@ -77,12 +77,11 @@ template <class Type> class ElStdTypeScal
     private :
 };
 
-#ifndef FORSWIG
 ElTmplSpecNull INT   ElStdTypeScal<INT>::RtoT(REAL v); //  { return round_ni(v);}
 ElTmplSpecNull REAL  ElStdTypeScal<REAL>::RtoT(REAL v); //  { return v;}
 ElTmplSpecNull INT   ElStdTypeScal<INT>::RTtoT(REAL v) ; // { return round_ni(v);}
 ElTmplSpecNull REAL  ElStdTypeScal<REAL>::RTtoT(REAL v) ; // { return v;}
-#endif
+
 /*
 */
 // INT totoR() {return ElStdTypeScal<INT>::RtoT(3.0);}

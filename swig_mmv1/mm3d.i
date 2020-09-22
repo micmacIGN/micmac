@@ -42,10 +42,10 @@ namespace std {
 
 //----------------------------------------------------------------------
 //rename overloaded methods to avoid shadowing
-//%rename(getCoeffX) cElComposHomographie::CoeffX();
-//%rename(getCoeffY) cElComposHomographie::CoeffY();
-//%rename(getCoeff1) cElComposHomographie::Coeff1();
-//%rename(getCoeff) ElDistRadiale_PolynImpair::Coeff(int);
+%rename(getCoeffX) cElComposHomographie::CoeffX();
+%rename(getCoeffY) cElComposHomographie::CoeffY();
+%rename(getCoeff1) cElComposHomographie::Coeff1();
+%rename(getCoeff) ElDistRadiale_PolynImpair::Coeff(int);
 
 //True is a reserved name in python3
 %rename(_True) FBool::True;
@@ -74,10 +74,13 @@ namespace std {
 %ignore GenIm::box;
 %ignore to_flux;
 %ignore Liste_Pts_Gen::all_pts;
+%ignore CalcPtsInteret::GetOnePtsInteret;
+%ignore cElemMepRelCoplan::Plan;
 
-//those inline functions are implemented in a cpp file not used when compiling mm3d_wrap.cxx
+//implemented in a cpp file not used when compiling mm3d_wrap.cxx
 %ignore cTabulKernelInterpol::AdrDisc2Real;
 %ignore cTabulKernelInterpol::DerAdrDisc2Real;
+%ignore RansacMatriceEssentielle;
 
 //complex template: to fix
 %ignore jacobi_diag;
@@ -90,7 +93,18 @@ namespace std {
 %ignore cComposElMap2D::NewFrom3;
 %ignore Monome2dReal::Ampl;
 %ignore ChangementSysC;
-%ignore cCs2Cs::Delete();
+%ignore cCs2Cs::Delete;
+%ignore ElPhotogram::bench_photogram_0;
+%ignore cMirePolygonEtal;
+%ignore cProjCple;
+%ignore cCpleEpip;
+%ignore ElPhotogram;
+%ignore EcartTotalProjection;
+%ignore cProjListHom;
+%ignore cDbleGrid::Name;
+
+//misc
+%ignore Test_DBL;
 
 //----------------------------------------------------------------------
 //classes to export
@@ -99,6 +113,7 @@ namespace std {
 %include "general/util.h"
 %include "general/bitm.h"
 %include "general/ptxd.h"
+%include "general/photogram.h"
 //%include "private/files.h" //not working for now
 void MakeFileXML(const cSauvegardeNamedRel & anObj,const std::string & aName,const std::string & aTagEnglob=""); //just one version of MakeFileXML for now
 //%include "XML_GEN/ParamChantierPhotogram.h"
