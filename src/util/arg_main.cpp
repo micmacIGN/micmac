@@ -1031,7 +1031,14 @@ int System(const std::string & aComOri,bool aSVP,bool AddOptGlob,bool UseTheNbIt
      return aRes;
 }
 
-void __attribute__((weak)) ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
+#if (ELISE_windows)
+    //on visual implementation in lib is always weak
+    #define WEAK_IMPL
+#else
+    #define WEAK_IMPL __attribute__((weak))
+#endif
+
+void WEAK_IMPL ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
 {
    cFileDebug::TheOne.Close(aCode);
 
