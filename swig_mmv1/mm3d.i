@@ -10,9 +10,11 @@
 #include "general/bitm.h"
 #include "general/ptxd.h"
 #include "private/files.h"
+#include "XML_GEN/SuperposImage.h"
 #include "XML_GEN/ParamChantierPhotogram.h"
 typedef ElAffin2D tOrIntIma ; //mandatory because only declared in cBasicGeomCap3D in general/photogram.h?
 #include "api/TpPPMD.h"
+#include "../src/uti_phgrm/NewOri/NewOri.h"
 #include <sstream>
 %}
 
@@ -34,6 +36,7 @@ namespace std {
     %template(StringVector) vector<string>;
     %template(HomolList)    list<cNupletPtsHomologues>;
     %template(CpleStringVector) vector<cCpleString>;
+    %template(cXml_OneTripletList) list< cXml_OneTriplet >;
 }
  
 //def REAL etc to be able to use them in python
@@ -102,6 +105,7 @@ namespace std {
 %ignore EcartTotalProjection;
 %ignore cProjListHom;
 %ignore cDbleGrid::Name;
+%ignore TestMEPCoCentrik;
 
 //misc
 %ignore Test_DBL;
@@ -114,8 +118,25 @@ namespace std {
 %include "general/bitm.h"
 %include "general/ptxd.h"
 %include "general/photogram.h"
+%include "../src/uti_phgrm/NewOri/NewOri.h"
 //%include "private/files.h" //not working for now
 void MakeFileXML(const cSauvegardeNamedRel & anObj,const std::string & aName,const std::string & aTagEnglob=""); //just one version of MakeFileXML for now
+
+//%include "XML_GEN/SuperposImage.h"
+class cXml_TopoTriplet
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_TopoTriplet & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXml_OneTriplet > & Triplets();
+        const std::list< cXml_OneTriplet > & Triplets()const ;
+    private:
+        std::list< cXml_OneTriplet > mTriplets;
+};
+
 //%include "XML_GEN/ParamChantierPhotogram.h"
 
 //----------------------------------------------------------------------

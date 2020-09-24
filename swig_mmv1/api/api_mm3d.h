@@ -32,4 +32,8 @@ std::vector<double> rot2list(ElRotation3D &r);
 
 std::vector<std::string> getFileSet(std::string dir, std::string pattern);
 
+
+cXml_TopoTriplet StdGetFromSI_Xml_TopoTriplet(const std::string & aNameFileObj);
+
+
 #endif //API_MM3D_H

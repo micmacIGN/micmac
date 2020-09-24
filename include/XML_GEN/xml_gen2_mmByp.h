@@ -351,6 +351,9 @@ typedef const tVUI1 tCVUI1;
 class cVirtInterf_NewO_NameManager
 {
        public :
+          #ifdef FORSWIG
+           virtual ~cVirtInterf_NewO_NameManager(){};
+          #endif
            virtual void WriteTriplet(const std::string & aNameFile,tCVP2f &,tCVP2f &,tCVP2f &,tCVUI1 &)=0;
            virtual void WriteCouple(const std::string & aNameFile,tCVP2f &,tCVP2f &,tCVUI1 &) = 0;
 

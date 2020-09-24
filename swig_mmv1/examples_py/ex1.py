@@ -1,4 +1,5 @@
 import mm3d
+import os
 
 """
 Equivalent to TestCam
@@ -90,3 +91,22 @@ for f in range(1,11):
   aRel.Cple().append(mm3d.cCpleString(imA,imB))
 
 mm3d.MakeFileXML(aRel,"cpl.xml")
+
+
+"""
+Lecture d'une liste de triplets  
+"""
+aWDir = 'examples_py/'
+
+# Read data manager
+aCMA = mm3d.cCommonMartiniAppli() 
+aNM = aCMA.NM(aWDir)
+NameTri = aNM.NameTopoTriplet(True)
+print(NameTri)
+
+# Read triplets 
+aXml_TopoTriplet = mm3d.StdGetFromSI_Xml_TopoTriplet(NameTri)
+aTris = aXml_TopoTriplet.Triplets()
+
+# Read triplets
+aXml_TopoTriplet = mm3d.StdGetFromSI_Xml_TopoTriplet(NameTri)

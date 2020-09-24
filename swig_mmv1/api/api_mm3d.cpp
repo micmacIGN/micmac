@@ -122,3 +122,9 @@ std::vector<std::string> getFileSet(std::string dir, std::string pattern)
     return *(aICNM->Get(pattern));
 }
 
+cXml_TopoTriplet StdGetFromSI_Xml_TopoTriplet(const std::string & aNameFileObj)
+{
+    return StdGetObjFromFile<cXml_TopoTriplet>(aNameFileObj,StdGetFileXMLSpec("SuperposImage.xml"),
+        	"Xml_TopoTriplet", "Xml_TopoTriplet");
+}
+
