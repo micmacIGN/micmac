@@ -6,6 +6,7 @@ Introduction
 
 This is an API to a small part of MicMac for Python 3.
 
+
 Download
 --------
 
@@ -52,6 +53,7 @@ Documentation
 -------------
 See [files doc](files.html)
 
+
 Compilation
 -----------
 Only tested on Linux.
@@ -79,6 +81,7 @@ To create documentation:
 
 The documentation is in swig_mmv1/doc/html/index.html
 
+
 Developement
 ------------
 
@@ -92,6 +95,16 @@ To check if everything is correct:
 This way you can see every undefined references that you have to fix (by adding other files or hiding it with #ifndef SWIG).
 
 
+Developement-distutils version
+------------------------------
+
+    swig -python -py3 -DFORSWIG -c++ -I. -I../include/ mm3d.i
+    python3 setup.py clean
+    rm *.so
+    python3 setup.py build_ext --inplace
+    sudo python3 setup.py install
+
+
 TODO
 ----
  * confirm that ElExit shadowing is ok
@@ -102,7 +115,6 @@ TODO
  * how to automatically add every used implementation of templates (like MakeFileXML)?
  * try to use %naturalvar
  * make MM matrix to/from np.array conversion?
- * use distutils?
  * fix mm modifications (#if[n]def FORSWIG)
  * for now the selected classes are copied in api_mm3d.h
  * make a script to automatically extract classes definitions from mm3d sources, add @file
