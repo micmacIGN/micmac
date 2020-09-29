@@ -626,7 +626,11 @@ if(NOT MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 	#problem: does not check that libElise is up to date
 	add_custom_target(apipy DEPENDS ${libElise}
-		COMMAND make -f Makefile_swig_linux check swig USEQT=${WITH_QT5}
+		COMMAND make -f Makefile_swig_linux swig USEQT=${WITH_QT5}
+		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/swig_mmv1
+	)
+	add_custom_target(apipyclean
+		COMMAND make -f Makefile_swig_linux clean
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/swig_mmv1
 	)
 endif()

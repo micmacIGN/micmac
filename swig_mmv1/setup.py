@@ -6,15 +6,29 @@ setup.py file for SWIG example
 
 from distutils.core import setup, Extension
 
+import sys
+
+libs=[]
+if "USEQT=ON" in sys.argv:
+  print("With USEQT")
+  libs=['GL', 'GLU', 'Qt5Core', 'Qt5Gui', 'Qt5Widgets', 'Qt5Concurrent', 'Qt5OpenGL', 'Qt5Xml']
+else:
+  print("Without USEQT")
+
+#clear arguments for setup()
+for arg in sys.argv[:]:
+    if arg.startswith("USEQT"):
+        sys.argv.remove(arg)
 
 mm3d_module = Extension('_mm3d',
            define_macros = [('FORSWIG','')],
            sources=['mm3d_wrap.cxx', 'api/api_mm3d.cpp'],
-           libraries = ['X11', 'Xext', 'm', 'dl', 'pthread'],
+           libraries = ['X11', 'Xext', 'm', 'dl', 'pthread']+libs,
            library_dirs = [],
            include_dirs = ['/usr/local/include', '.', '../include/'],
            language="c++",
-           extra_objects=["../lib/libelise.a", "../lib/libANN.a"]
+           extra_objects=["../lib/libelise.a", "../lib/libANN.a"],
+           extra_compile_args=['-std=c++11']
        )
 
 setup (name = 'mm3d',

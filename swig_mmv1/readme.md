@@ -60,19 +60,19 @@ Only tested on Linux.
 
 Dependencies:
  - SWIG
+ - pkg-config
  - Python 3 headers
  - for documentation: doxygen, GraphViz
 
 On debian:
-    apt install swig python3-dev doxygen graphviz
-
+    apt install swig python3-dev doxygen graphviz pkg-config
 
 To compile, select "WITH_APIPYTHON" in cmake interface, then:
     make apipy
+(if elise is to be updated, you have to run "make elise" first)
 
-(if elise is to be updated, you have to run "make elise")
-
-The files to distribute are: swig_mmv1/_mm3d.so and swig_mmv1/mm3d.py
+mm3d for python is automatically available to the user from an directory.
+The files to distribute are in swig_mmv1/build/lib.linux-x86_64-3.x/ (the .so file must be renamed _mm3d.so)
 
 To create documentation:
 
@@ -90,19 +90,9 @@ If you want to be able to use python lists for objects of these classes, use %te
 
 To check if everything is correct:
 
-    make -f Makefile_swig_linux clean && make -f Makefile_swig_linux check
+    make -f Makefile_swig_linux clean && make -f Makefile_swig_linux swig check
 
 This way you can see every undefined references that you have to fix (by adding other files or hiding it with #ifndef SWIG).
-
-
-Developement-distutils version
-------------------------------
-
-    swig -python -py3 -DFORSWIG -c++ -I. -I../include/ mm3d.i
-    python3 setup.py clean
-    rm *.so
-    python3 setup.py build_ext --inplace
-    sudo python3 setup.py install
 
 
 TODO
