@@ -107,6 +107,3 @@ print(NameTri)
 # Read triplets 
 aXml_TopoTriplet = mm3d.StdGetFromSI_Xml_TopoTriplet(NameTri)
 aTris = aXml_TopoTriplet.Triplets()
-
-# Read triplets
-aXml_TopoTriplet = mm3d.StdGetFromSI_Xml_TopoTriplet(NameTri)
