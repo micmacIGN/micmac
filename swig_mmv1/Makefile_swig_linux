@@ -26,7 +26,8 @@ WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 .SECONDARY: $(WRAP_CXX_FILES)
 
 swig: $(OBJ_FILES) $(WRAP_O_FILES)
-	$(CXX) -Xlinker -export-dynamic -shared $^ $(LFLAGS) -o $(SO)  $(QTLINK)
+	#$(CXX) -Xlinker -export-dynamic -shared $^ $(LFLAGS) -o $(SO)  $(QTLINK)
+	python3 setup.py install --user USEQT=$(USEQT)
 
 check: $(OBJ_FILES) $(WRAP_O_FILES) test_exe.cpp
 	$(CXX) -c $(CXXFlags) test_exe.cpp -o test_exe.o 
@@ -40,6 +41,8 @@ doc:
 clean:
 	rm -f $(OBJ_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES) $(PY_FILES) $(SO) test_exe.o test
 	rm -Rf $(DOCDIR)/html
+	python3 setup.py clean
+	rm -f *.so
 
 %.o: %.cpp
 	$(CXX) -c $(CXXFlags) $< -o $@

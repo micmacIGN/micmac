@@ -106,4 +106,3 @@ aNM = aCMA.NM(aWDir)
 NameTri = aNM.NameTopoTriplet(True) 
 aXml_TopoTriplet = mm3d.StdGetFromSI_Xml_TopoTriplet(NameTri)
 aTris = aXml_TopoTriplet.Triplets()
-

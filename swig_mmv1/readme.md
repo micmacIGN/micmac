@@ -6,6 +6,7 @@ Introduction
 
 This is an API to a small part of MicMac for Python 3.
 
+
 Download
 --------
 
@@ -52,25 +53,26 @@ Documentation
 -------------
 See [files doc](files.html)
 
+
 Compilation
 -----------
 Only tested on Linux.
 
 Dependencies:
  - SWIG
+ - pkg-config
  - Python 3 headers
  - for documentation: doxygen, GraphViz
 
 On debian:
-    apt install swig python3-dev doxygen graphviz
-
+    apt install swig python3-dev doxygen graphviz pkg-config
 
 To compile, select "WITH_APIPYTHON" in cmake interface, then:
     make apipy
+(if elise is to be updated, you have to run "make elise" first)
 
-(if elise is to be updated, you have to run "make elise")
-
-The files to distribute are: swig_mmv1/_mm3d.so and swig_mmv1/mm3d.py
+mm3d for python is automatically available to the user from an directory.
+The files to distribute are in swig_mmv1/build/lib.linux-x86_64-3.x/ (the .so file must be renamed _mm3d.so)
 
 To create documentation:
 
@@ -78,6 +80,7 @@ To create documentation:
     make -f Makefile_swig_linux doc
 
 The documentation is in swig_mmv1/doc/html/index.html
+
 
 Developement
 ------------
@@ -87,7 +90,7 @@ If you want to be able to use python lists for objects of these classes, use %te
 
 To check if everything is correct:
 
-    make -f Makefile_swig_linux clean && make -f Makefile_swig_linux check
+    make -f Makefile_swig_linux clean && make -f Makefile_swig_linux swig check
 
 This way you can see every undefined references that you have to fix (by adding other files or hiding it with #ifndef SWIG).
 
@@ -102,7 +105,6 @@ TODO
  * how to automatically add every used implementation of templates (like MakeFileXML)?
  * try to use %naturalvar
  * make MM matrix to/from np.array conversion?
- * use distutils?
  * fix mm modifications (#if[n]def FORSWIG)
  * for now the selected classes are copied in api_mm3d.h
  * make a script to automatically extract classes definitions from mm3d sources, add @file
