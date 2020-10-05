@@ -128,3 +128,8 @@ cXml_TopoTriplet StdGetFromSI_Xml_TopoTriplet(const std::string & aNameFileObj)
         	"Xml_TopoTriplet", "Xml_TopoTriplet");
 }
 
+cXml_Ori3ImInit  StdGetFromSI_Xml_Ori3ImInit(const std::string & aNameFileObj)
+{
+	return StdGetObjFromFile<cXml_Ori3ImInit>(aNameFileObj,StdGetFileXMLSpec("SuperposImage.xml"),
+            "Xml_Ori3ImInit", "Xml_Ori3ImInit");
+}

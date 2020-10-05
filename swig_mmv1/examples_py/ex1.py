@@ -101,12 +101,9 @@ aWDir = 'examples_py/'
 # Read data manager
 aCMA = mm3d.cCommonMartiniAppli() 
 aNM = aCMA.NM(aWDir)
-NameTri = aNM.NameTopoTriplet(True)
-print(NameTri)
 
 # Read triplets 
+NameTri = aNM.NameTopoTriplet(True) 
 aXml_TopoTriplet = mm3d.StdGetFromSI_Xml_TopoTriplet(NameTri)
 aTris = aXml_TopoTriplet.Triplets()
 
-# Read triplets
-aXml_TopoTriplet = mm3d.StdGetFromSI_Xml_TopoTriplet(NameTri)
