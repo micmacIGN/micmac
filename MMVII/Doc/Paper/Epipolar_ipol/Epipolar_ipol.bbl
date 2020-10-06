@@ -1,0 +1,96 @@
+\begin{thebibliography}{10}
+
+\bibitem{okamoto:99:DLT}
+{\sc Okamoto. A., T.~Ono, S.~Akamatsu, C.~Fraser, S.~Hattori, and Hasegawa H.},
+  {\em {G}eometric {C}haracteristics of {A}lternative {T}riangulaion {M}odels
+  for {S}atellite {I}magery}, in Proceedings of ASPRS 1999 Annual Conference,
+  1999.
+
+\bibitem{deFrancis2014stereo}
+{\sc Carlo de~Franchis, Enric Meinhardt-Llopis, Julien Michel, J-M Morel, and
+  Gabriele Facciolo}, {\em On stereo-rectification of pushbroom images}, in
+  2014 IEEE International Conference on Image Processing (ICIP), IEEE, 2014,
+  pp.~5447--5451.
+
+\bibitem{fusiello2008epi}
+{\sc Andrea Fusiello and Luca Irsara}, {\em Quasi-euclidean uncalibrated
+  epipolar rectification}, in 2008 19th International Conference on Pattern
+  Recognition, IEEE, 2008, pp.~1--4.
+
+\bibitem{fusiello2000epi}
+{\sc Andrea Fusiello, Emanuele Trucco, and Alessandro Verri}, {\em A compact
+  algorithm for rectification of stereo pairs}, Machine vision and
+  applications, 12 (2000), pp.~16--22.
+
+\bibitem{Gupta1997}
+{\sc Rajiv Gupta and Richard~I Hartley}, {\em Linear pushbroom cameras}, IEEE
+  Transactions on pattern analysis and machine intelligence, 19 (1997),
+  pp.~963--975.
+
+\bibitem{hartley1999epi}
+{\sc Richard~I Hartley}, {\em Theory and practice of projective rectification},
+  International Journal of Computer Vision, 35 (1999), pp.~115--127.
+
+\bibitem{isgro1999epi}
+{\sc Francesco Isgr{\`o} and Emanuele Trucco}, {\em On robust rectification for
+  uncalibrated images}, in Proceedings 10th International Conference on Image
+  Analysis and Processing, IEEE, 1999, pp.~297--302.
+
+\bibitem{loop1999epi}
+{\sc Charles Loop and Zhengyou Zhang}, {\em Computing rectifying homographies
+  for stereo vision}, in Proceedings. 1999 IEEE Computer Society Conference on
+  Computer Vision and Pattern Recognition (Cat. No PR00149), vol.~1, IEEE,
+  1999, pp.~125--131.
+
+\bibitem{lowe2004distinctive}
+{\sc David~G Lowe}, {\em Distinctive image features from scale-invariant
+  keypoints}, International {J}ournal of {C}omputer {V}ision, 60 (2004),
+  pp.~91--110.
+
+\bibitem{morgan2006epipolar}
+{\sc Michel Morgan, Kyung-Ok Kim, Soo Jeong, and Ayman Habib}, {\em Epipolar
+  resampling of space-borne linear array scanner scenes using parallel
+  projection}, Photogrammetric Engineering \& Remote Sensing, 72 (2006),
+  pp.~1255--1263.
+
+\bibitem{Oh2011}
+{\sc Jaehong Oh}, {\em Novel Approach to Epipolar Resampling of HRSI and
+  Satellite Stereo Imagery-based Georeferencing of Aerial Images}, PhD thesis,
+  The Ohio State University, 2011.
+
+\bibitem{ono1999epipolar}
+{\sc Tetsu Ono}, {\em Epipolar resampling of high resolution satellite
+  imagery}, in Joint Workshop of {ISPRS} {WG} I/1, I/3 and IV/4 Sensors and
+  Mapping from Space, Citeseer, 1999.
+
+\bibitem{monasse2010epi}
+{\sc Zhongwei~Tang Pascal~Monasse, Jean-Michel~Morel}, {\em Three-step image
+  rectification.}, BMVC, 89 (2010), pp.~1--10.
+
+\bibitem{Stone1937}
+{\sc Marshall~Harvey Stone}, {\em Applications of the theory of boolean rings
+  to general topology}, Transactions of the American Mathematical Society, 41
+  (1937), pp.~375--481.
+
+\bibitem{tao2001use}
+{\sc C~Vincent Tao and Yong Hu}, {\em Use of the rational function model for
+  image rectification}, Canadian Journal of Remote Sensing, 27 (2001),
+  pp.~593--602.
+
+\bibitem{wang2011epipolar}
+{\sc Mi~Wang, Fen Hu, and Jonathan Li}, {\em Epipolar resampling of linear
+  pushbroom satellite imagery by a new epipolarity model}, ISPRS Journal of
+  Photogrammetry and Remote Sensing, 66 (2011), pp.~347--355.
+
+\bibitem{Weierstrass1885}
+{\sc Karl Weierstrass}, {\em {\"U}ber die analytische darstellbarkeit
+  sogenannter willk{\"u}rlicher functionen einer reellen ver{\"a}nderlichen},
+  Sitzungsberichte der K{\"o}niglich Preu{\ss}ischen Akademie der
+  Wissenschaften zu Berlin, 2 (1885), pp.~633--639.
+
+\bibitem{wu2005epi}
+{\sc Hsien-Huang~P Wu and Yu-Hua Yu}, {\em Projective rectification with
+  reduced geometric distortion for stereo vision and stereoscopic video},
+  Journal of Intelligent and Robotic Systems, 42 (2005), pp.~71--94.
+
+\end{thebibliography}

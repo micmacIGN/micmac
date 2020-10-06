@@ -1,0 +1,7 @@
+#include "../src/uti_phgrm/NewOri/NewOri.h"
+#include <sstream>
+%}
+
+
+%include "../src/uti_phgrm/NewOri/NewOri.h"
+

@@ -142,6 +142,8 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 	mFilePairs("Pairs.xml"),
 	mOutRPC("EpiRPC"),
 	mDegreRPC(0),
+	mZoom0(64),
+	mZoomF(1),
 	mNameEpiLOF("EpiListOfFile.xml"),
 	mOutSMDM("Fusion/"),
 	mArgCommon(new LArgMain)
@@ -636,11 +638,12 @@ class cAppliFusion
 		cAppliFusion(int argc,char ** argv);
 
 		void DoAll();
-
+		
 		cCommonAppliSat3D mCAS3D;
 
 	private:
-
+		std::string PxZName(const std::string & aInPx);
+		std::string NuageZName(const std::string & aInNuageProf);
 
 		std::string mFilePairs;
 		std::string mOri;
@@ -663,15 +666,28 @@ cAppliFusion::cAppliFusion(int argc,char ** argv)
 }
 
 
+std::string cAppliFusion::PxZName(const std::string & aInPx)
+{
+	return StdPrefix(aInPx) + "_FIm1ZTerr.tif";
+}
+
+std::string cAppliFusion::NuageZName(const std::string & aInNuageProf)
+{
+	return StdPrefix(aInNuageProf) + "_FIm1ZTerr.xml";
+}
 
 void cAppliFusion::DoAll()
 {
 	cSauvegardeNamedRel aPairs = StdGetFromPCP(mCAS3D.mDir+mFilePairs,SauvegardeNamedRel);
 
+	/* Key to retrieve MEC2Im directory name */
+	std::string aKeyMEC2Im = "Key-Assoc-MEC-Dir";
+
+
 	/* Create xml file list with the concerned epipolar images */	
 	cListOfName 				aLON;
 	std::map<std::string,int>	aMEp;
-	std::list<std::string>      aLP;
+	std::list<std::pair<std::string,std::string>>  aLP;
 
 	int aCpt=0;
     for (auto itP : aPairs.Cple())
@@ -679,13 +695,13 @@ void cAppliFusion::DoAll()
         std::string aNI1 = mCAS3D.mICNM->NameImEpip(mOri,itP.N1(),itP.N2());
         std::string aNI2 = mCAS3D.mICNM->NameImEpip(mOri,itP.N2(),itP.N1());
 
-		aLP.push_back(aNI1+"-"+aNI2);
-		aLP.push_back(aNI2+"-"+aNI1);
+		aLP.push_back(std::make_pair(aNI1,aNI2));
+		//aLP.push_back(std::make_pair(aNI2,aNI1));
 
 
 		if (!DicBoolFind(aMEp,aNI1))
 		{
-			aMEp[aNI1] = aCpt;
+			aMEp[aNI1] = aCpt; // ca sert à quoi???
     		aLON.Name().push_back(aNI1);
 		}
 		aCpt++;
@@ -710,32 +726,64 @@ void cAppliFusion::DoAll()
 	std::cout << "COM= " << aCom << "\n";
 	System(aCom);
 
-	/* Transform surfaces between geometries 
-	 * from eGeomPxBiDim 
-	 * to eGeomMNTFaisceauIm1ZTerrain_Px1D */
+	/* Transform surfaces between geometries from eGeomPxBiDim to 
+	 * eGeomMNTFaisceauIm1ZTerrain_Px1D */
+	
+	std::list<std::string> aLCTG;
+	bool aAffineLast = false;
+	int aNbEtape = 1 // Num premiere etape
+			     + round_ni(log2(mCAS3D.mZoom0/ mCAS3D.mZoomF))
+				 //+ 1   //  Dulication de pas a la premier
+				 + (aAffineLast ? 1 : 0)  ;  // Raffinement de pas;
+
+
+	std::string aNuageInName = "NuageImProf_LeChantier_Etape_" + ToString(aNbEtape) + ".xml";
+	std::string aPxInName = "Px1_Num" + ToString(aNbEtape) 
+			              + "_DeZoom" + ToString(mCAS3D.mZoomF) 
+						  + "_LeChantier.tif";//not coherent with reality but it does not matter
+
 	for (auto itP : aLP)
     {
-		std::string aSurfaceName = "MEC2Im-" + itP + "/"
-                                 + "NuageImProf_LeChantier_Etape_7.xml";
-	
+		std::string aMECDir = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.first,itP.second,true);
+
+
+
 		//collect cmd to do conversion in parallel
-		//
+		std::string aCTG = MMBinFile(MM3DStr) + "TestLib TransGeom "
+				         + mCAS3D.mDir + " " 
+						 + itP.first + " "
+						 + itP.second + " " 
+						 + mCAS3D.mOutRPC + " "
+						 + aMECDir+aNuageInName + " "
+						 + aMECDir+NuageZName(aNuageInName) + " "
+						 + aMECDir+PxZName(aPxInName);
+
+
+		std::cout << aCTG << "\n";
+
+		aLCTG.push_back(aCTG);
+
 	}
+	cEl_GPAO::DoComInParal(aLCTG);
 
 
 
 	/* Transform individual surfaces to global frame */
 	std::list<std::string> aLCom;
 
+	std::string aNuageOutName = "NuageImProf_STD-MALT_Etape_" + ToString(aNbEtape+1) + ".xml";
 	std::string aPref = "DSM_Pair";
 	ELISE_fp::MkDirSvp(mCAS3D.mOutSMDM);	
 	aCpt=0;
+
+
 	for (auto itP : aLP)
 	{
+		std::string aMECDir = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.first,itP.second,true);
+		
 		std::string aComFuse = MMBinFile(MM3DStr) + " NuageBascule " 
-				             + "MEC2Im-" + itP + "/"
-							 + "NuageImProf_LeChantier_Etape_7.xml " 
-							 + "MEC-Malt/NuageImProf_STD-MALT_Etape_8.xml " 
+				             + aMECDir + NuageZName(aNuageInName) + " " 
+							 + "MEC-Malt/" + aNuageOutName + " " 
 							 + mCAS3D.mOutSMDM + aPref + ToString(aCpt) + ".xml"; 
 
 		aCpt++;
@@ -743,9 +791,11 @@ void cAppliFusion::DoAll()
 		std::cout << aComFuse << "\n";
 		aLCom.push_back(aComFuse);
 	}	
-	cEl_GPAO::DoComInParal(aLCom);
+	cEl_GPAO::DoComInSerie(aLCom);
 
-	/* Merge */
+
+
+	/* Fusion */
 	std::string aComMerge = MMBinFile(MM3DStr) + " SMDM " + mCAS3D.mOutSMDM + "/" + aPref + ".*xml";
 	std::cout << aComMerge << "\n";
 
@@ -828,7 +878,7 @@ void cAppliSat3DPipeline::DoAll()
 	/********************************/
 	if (! EAMIsInit(&mCAS3D.mFilePairs)) 
 	{
-		StdCom("TestLib Sat3D_Pairs ", 
+		StdCom("TestLib SAT4GEO_Pairs ", 
 			    mCAS3D.mDir + BLANK + QUOTE(mPat) + BLANK + mOri + BLANK + 
 				mCAS3D.ComParamPairs());
 	}
@@ -843,7 +893,7 @@ void cAppliSat3DPipeline::DoAll()
 	/* 2- Rectify pairs of images to epipolar geometry  */
 	/****************************************************/
 	if (mCAS3D.mDoIm == true)
-		StdCom("TestLib Sat3D_CreateEpip ", 
+		StdCom("TestLib SAT4GEO_CreateEpip ", 
 				mCAS3D.mFilePairs + BLANK + mOri + BLANK + 
 				mCAS3D.ComParamEpip());
 	else
@@ -854,7 +904,7 @@ void cAppliSat3DPipeline::DoAll()
 	/**************************************/
 	/* 3- Recalculate the RPC orientation */
 	/**************************************/
-	StdCom("TestLib Sat3D_EpiRPC ", mCAS3D.mFilePairs + BLANK + mOri
+	StdCom("TestLib SAT4GEO_EpiRPC ", mCAS3D.mFilePairs + BLANK + mOri
 								    + mCAS3D.ComParamRPC());
 	
 
@@ -862,7 +912,7 @@ void cAppliSat3DPipeline::DoAll()
 	/******************************************************/
 	/* 4- Perform dense image matching per pair of images */
 	/******************************************************/
-	StdCom("TestLib Sat3D_MM1P ", 
+	StdCom("TestLib SAT4GEO_MM1P ", 
 			mCAS3D.mFilePairs + BLANK + mOri + BLANK + mCAS3D.ComParamMatch());
 
 
@@ -871,7 +921,7 @@ void cAppliSat3DPipeline::DoAll()
 	/* 5- Transform the per-pair reconstructions to a commont reference frame 
 	 *    and do the 3D fusion */
 	/**************************************************************************/
-	StdCom("TestLib Sat3D_Fuse ", mCAS3D.mFilePairs + BLANK + mOri 
+	StdCom("TestLib SAT4GEO_Fuse ", mCAS3D.mFilePairs + BLANK + mOri 
 								 + mCAS3D.ComParamFuse());  
 
 
@@ -896,21 +946,32 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 	std::string aDir;
 	std::string aOri;
 	std::string aNuageName;
-
+	std::string aNuageNameOut;
+	std::string aIm1;
+	std::string aIm2;
+	std::string aPx1NameOut;
 
 	ElInitArgMain
    	(
         argc,argv,
         LArgMain()  << EAMC(aDir,"Current directory")
+					<< EAMC(aIm1,"First (left) image")
+					<< EAMC(aIm2,"Second (right) image")
+                    << EAMC(aOri,"Orientation directory",eSAM_IsDir)
 	   				<< EAMC(aNuageName,"XML NuageImProf file")
-                    << EAMC(aOri,"Orientation directory",eSAM_IsDir),
+					<< EAMC(aNuageNameOut,"XML NuageImProf output file")
+					<< EAMC(aPx1NameOut,"Depth map output name, e.g., Px1Z.tif"),
         LArgMain()
 
    	);
 
-
+	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     StdCorrecNameOrient(aOri,aDir,true);
 
+	// Directory of the depth map
+	std::string aDirMEC = DirOfFile(aNuageName);
+
+	/* Read the depth map */
 	cXML_ParamNuage3DMaille  aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
            								(
                 							aNuageName,
@@ -918,39 +979,82 @@ int CPP_TransformGeom_main(int argc, char ** argv)
                 							"XML_ParamNuage3DMaille",
                 							"XML_ParamNuage3DMaille"
            								);
-	double aRatioAltiPlan = aNuageIn.RatioResolAltiPlani().Val();
 	
-	cImage_Profondeur aImProf   = aNuageIn.Image_Profondeur().Val();
-	double            aOrgALti  = aImProf.OrigineAlti();
-	double            aResolAlti= aImProf.OrigineAlti();
+	cImage_Profondeur aImProfPx   = aNuageIn.Image_Profondeur().Val();
 
-	std::string aImName = aImProf.Image();
-	Tiff_Im     aImProfTif(aImName.c_str());
+	std::string aImName = aDirMEC + aImProfPx.Image();
+	Tiff_Im     aImProfPxTif(aImName.c_str());
+	Pt2di       aSz = aImProfPxTif.sz();
 
-	//TIm2D<float,double> aImX(aSzR);
-    //TIm2D<float,double> aImY(aSzR);
-	//
-	//aImX.oset(aP,aPIm.x);
+	TIm2D<float,double> aImProfPxTIM(aSz);
+	ELISE_COPY
+    (
+           aImProfPxTIM.all_pts(),
+           aImProfPxTif.in(),
+           aImProfPxTIM.out()
+    );
+
+	/* Create the depth map to which we will write */
+	TIm2D<float,double> aImProfZTIM(aSz);
 
 
-	std::cout << aRatioAltiPlan << "\n";
+	/* Read cameras */
+	cBasicGeomCap3D * aCamI1 = aICNM->StdCamGenerikOfNames(aOri,aIm1);	
+	cBasicGeomCap3D * aCamI2 = aICNM->StdCamGenerikOfNames(aOri,aIm2);	
+
+	/* Triangulate */
+	for (int aK1=0; aK1<aSz.x; aK1++)
+	{
+		for (int aK2=0; aK2<aSz.y; aK2++)
+		{
+			Pt2di aPt1(aK1                                  , aK2);
+			Pt2dr aPt2(aK1 + aImProfPxTIM.get(aPt1), aK2);
+
+			ElSeg3D aSeg1 = aCamI1->Capteur2RayTer(Pt2dr(aPt1.x,aPt1.y)); 
+			ElSeg3D aSeg2 = aCamI2->Capteur2RayTer(aPt2); 
+
+			std::vector<ElSeg3D> aVSeg = {aSeg1,aSeg2};
+			
+			Pt3dr aRes =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
+
+			aImProfZTIM.oset(aPt1,aRes.z);
+		}
+	}
 
 
+	/* Save new depth maps */
+    Tiff_Im     aImProfZTif  ( aPx1NameOut.c_str(),
+					           aSz,
+							   aImProfPxTif.type_el(),
+							   aImProfPxTif.mode_compr(),
+							   aImProfPxTif.phot_interp());
 
 
-//in XML_GEN/SuperposImage.h  definition of class
-//remove px1 when converted
+    ELISE_COPY
+    (
+        aImProfZTif.all_pts(),
+        aImProfZTIM.in(),
+        aImProfZTif.out()
+    );
+
+
+	// update aNuageIn
+	aImProfPx.Image()      		= NameWithoutDir(aPx1NameOut);
+	aImProfPx.GeomRestit() 		= eGeomMNTFaisceauIm1ZTerrain_Px1D;
+	aNuageIn.Image_Profondeur() = aImProfPx;
+
+	/* Update the orientation */
+	aNuageIn.NameOri() = aICNM->StdNameCamGenOfNames(aOri,aIm1);
+
+	MakeFileXML(aNuageIn,aNuageNameOut);
 
 	return EXIT_SUCCESS;
 }
 
 
 //TODO:
-//testing of OutRPC bc i think it does not take it into account in EpiRPC
-//fix pb with NuageBascule
-//automated calcul of Etape
-//
-//
+//-add mask in triangulation
+//-triangulation per Box?
 //
 /*Footer-MicMac-eLiSe-25/06/2007
 
