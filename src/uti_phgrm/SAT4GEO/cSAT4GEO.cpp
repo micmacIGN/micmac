@@ -126,12 +126,20 @@ std::string cCommonAppliSat3D::ComParamEpip()
     return aCom;
 }
 
+std::string cCommonAppliSat3D::ComParamRPC_Basic()
+{
+    std::string aCom;
+    if (EAMIsInit(&mDegreRPC))  aCom += aCom  + " Degre=" + ToString(mDegreRPC);
+    if (EAMIsInit(&mChSys))     aCom += " ChSys=" + mChSys;
+
+    return aCom;
+}
+
 std::string cCommonAppliSat3D::ComParamRPC()
 {
-	std::string aCom;
-	if (EAMIsInit(&mDegreRPC))  aCom += aCom  + " Degre=" + ToString(mDegreRPC);
-	if (EAMIsInit(&mChSys))     aCom += " ChSys=" + mChSys;
-//	if (EAMIsInit(&mOutRPC))     aCom += " OutRPC=" + mOutRPC;
+	std::string aCom = ComParamRPC_Basic();
+
+	if (EAMIsInit(&mOutRPC))     aCom += " OutRPC=" + mOutRPC;
 
 	return aCom;
 }
@@ -145,7 +153,7 @@ std::string cCommonAppliSat3D::ComParamMatch()
     if (EAMIsInit(&mZoomF))   aCom +=  " ZoomF=" + ToString(mZoomF);
     if (EAMIsInit(&mCMS))     aCom +=  " CMS=" + ToString(mCMS);
     if (EAMIsInit(&mDoPly))   aCom +=  " DoPly=" + ToString(mDoPly);
-    if (EAMIsInit(&mRegul))   aCom +=  " Regul=" + ToString(mRegul);
+    if (EAMIsInit(&mRegul))   aCom +=  " ZReg=" + ToString(mRegul);
     if (EAMIsInit(&mDefCor))  aCom +=  " DefCor=" + ToString(mDefCor);
     if (EAMIsInit(&mSzW0))    aCom +=  " SzW0=" + ToString(mSzW0);
     if (EAMIsInit(&mCensusQ)) aCom +=  " CensusQ=" + ToString(mCensusQ);
@@ -341,24 +349,24 @@ cAppliRecalRPC::cAppliRecalRPC(int argc, char** argv)
 
         std::string aComI1 = MMBinFile(MM3DStr) + "Convert2GenBundle "
                               + aNI1 + BLANK + aNAppuisI1 + BLANK
-							  + mCAS3D.mOutRPC.substr(0,mCAS3D.mOutRPC.size()-1) 
-                              + mCAS3D.ComParamRPC();
+							  + mCAS3D.mOutRPC 
+                              + mCAS3D.ComParamRPC_Basic();
 
         std::string aComI2 = MMBinFile(MM3DStr) + "Convert2GenBundle "
                               + aNI2 + BLANK + aNAppuisI2 + BLANK
-							  + mCAS3D.mOutRPC.substr(0,mCAS3D.mOutRPC.size()-1)
-                              + mCAS3D.ComParamRPC();
+							  + mCAS3D.mOutRPC
+                              + mCAS3D.ComParamRPC_Basic();
 
 
-		std::string aKeyGB = "NKS-Assoc-Im2GBOrient@-" +  mCAS3D.mOutRPC.substr(0,mCAS3D.mOutRPC.size()-1);
+		std::string aKeyGB = "NKS-Assoc-Im2GBOrient@-" +  mCAS3D.mOutRPC;
 
 		std::string aNameGBI1 = mCAS3D.mICNM->Assoc1To1(aKeyGB,aNI1,true);
 		std::string aNameGBI2 = mCAS3D.mICNM->Assoc1To1(aKeyGB,aNI2,true);
 
 		std::string aComConv1 = MMBinFile(MM3DStr) + "Satelib RecalRPC " 
-							  + aNameGBI1 + " OriOut=" + mCAS3D.mOutRPC.substr(mCAS3D.mOutRPC.size()-1);
+							  + aNameGBI1 + " OriOut=" + mCAS3D.mOutRPC;
 		std::string aComConv2 = MMBinFile(MM3DStr) + "Satelib RecalRPC " 
-							  + aNameGBI2 + " OriOut=" + mCAS3D.mOutRPC.substr(mCAS3D.mOutRPC.size()-1);
+							  + aNameGBI2 + " OriOut=" + mCAS3D.mOutRPC;
 
 
 
@@ -367,8 +375,7 @@ cAppliRecalRPC::cAppliRecalRPC(int argc, char** argv)
 		aLCom.push_back(aComConv1);
 		aLCom.push_back(aComConv2);
 
-		// remove tmp dir
-		aLCom.push_back("rm -r Ori-" + mCAS3D.mOutRPC.substr(0,mCAS3D.mOutRPC.size()-1));
+
     }
 
 
@@ -377,7 +384,7 @@ cAppliRecalRPC::cAppliRecalRPC(int argc, char** argv)
     else
     {
         for (auto iCmd : aLCom)
-            std::cout << "SUBCOM= " << iCmd << "\n";
+            std::cout << "SUBCOM_RPC= " << iCmd << "\n";
     }
 }
 
@@ -574,6 +581,7 @@ void cAppliFusion::DoAll()
 			              + "_DeZoom" + ToString(mCAS3D.mZoomF) 
 						  + "_LeChantier.tif";//not coherent with reality but it does not matter
 
+	std::string aMaskName = "AutoMask_LeChantier_Num_" + ToString(aNbEtape-1) + ".tif";
 	for (auto itP : aLP)
     {
 		std::string aMECDir = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.first,itP.second,true);
@@ -588,7 +596,9 @@ void cAppliFusion::DoAll()
 						 + mCAS3D.mOutRPC + " "
 						 + aMECDir+aNuageInName + " "
 						 + aMECDir+NuageZName(aNuageInName) + " "
-						 + aMECDir+PxZName(aPxInName);
+						 + aMECDir+PxZName(aPxInName) + " "
+						 + "Mask=" + aMECDir+aMaskName 
+						 + " Exe=" + ToString(mCAS3D.mExe);
 
 
 
@@ -597,7 +607,7 @@ void cAppliFusion::DoAll()
 	}
 
     if (mCAS3D.mExe)
-		cEl_GPAO::DoComInParal(aLCTG);
+		cEl_GPAO::DoComInSerie(aLCTG);
     else
     {
         for (auto iCmd : aLCTG)
@@ -772,6 +782,11 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 	std::string aIm2;
 	std::string aPx1NameOut;
 	std::string aPx1MasqName;
+	bool InParal = true;
+	bool CalleByP = false;
+	int aSzDecoup = 2000;
+	Box2di aBoxOut;
+	bool aExe=true;
 
 	ElInitArgMain
    	(
@@ -784,111 +799,202 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 					<< EAMC(aNuageNameOut,"XML NuageImProf output file")
 					<< EAMC(aPx1NameOut,"Depth map output name, e.g., Px1Z.tif"),
         LArgMain()  << EAM(aPx1MasqName,"Mask",true,"Depth map's mask (if exits)")
+					<< EAM(InParal,"InParal",true,"Compute in parallel (Def=true)")
+                    << EAM(CalleByP,"CalleByP",true,"Internal Use", eSAM_InternalUse)
+                    << EAM(aBoxOut,"BoxOut",true,"Internal Use", eSAM_InternalUse)
+					<< EAM(aExe,"Exe",true,"Execute, def=true")
 
    	);
+
+
 
 	cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     StdCorrecNameOrient(aOri,aDir,true);
 
-	// Directory of the depth map
-	std::string aDirMEC = DirOfFile(aNuageName);
+    // Directory of the depth map
+    std::string aDirMEC = DirOfFile(aNuageName);
 
-	/* Read the depth map */
-	cXML_ParamNuage3DMaille  aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
-           								(
-                							aNuageName,
-                							StdGetFileXMLSpec("SuperposImage.xml"),
-                							"XML_ParamNuage3DMaille",
-                							"XML_ParamNuage3DMaille"
-           								);
-	
+    /* Read the depth map */
+    cXML_ParamNuage3DMaille  aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
+                                        (
+                                            aNuageName,
+                                            StdGetFileXMLSpec("SuperposImage.xml"),
+                                            "XML_ParamNuage3DMaille",
+                                            "XML_ParamNuage3DMaille"
+                                        );
 	cImage_Profondeur aImProfPx   = aNuageIn.Image_Profondeur().Val();
+	Pt2di aSz = aNuageIn.NbPixel();
 
-	std::string aImName = aDirMEC + aImProfPx.Image();
-	Tiff_Im     aImProfPxTif(aImName.c_str());
-	Pt2di       aSz = aImProfPxTif.sz();
-
-	TIm2D<float,double> aImProfPxTIM(aSz);
-	ELISE_COPY
-    (
-           aImProfPxTIM.all_pts(),
-           aImProfPxTif.in(),
-           aImProfPxTIM.out()
-    );
-
-
-
-	/* Read cameras */
-	cBasicGeomCap3D * aCamI1 = aICNM->StdCamGenerikOfNames(aOri,aIm1);	
-	cBasicGeomCap3D * aCamI2 = aICNM->StdCamGenerikOfNames(aOri,aIm2);	
+	/* Create new depth map if needed */
+	bool isModified;
+    Tiff_Im aImProfZTif = Tiff_Im::CreateIfNeeded(
+                            isModified,
+                            aPx1NameOut.c_str(),
+                            aSz,
+                            GenIm::real4,
+                            Tiff_Im::No_Compr,
+                            Tiff_Im::BlackIsZero
+                         );
 
 
-	/* Read the mask */
-	Im2D_Bits<1> aMasq(aSz.x,aSz.y,1);
-	if (EAMIsInit(&aPx1MasqName))
+	if (CalleByP)
 	{
+		Pt2di aSzOut = aBoxOut.sz();
+    
+		std::string aImName = aDirMEC + aImProfPx.Image();
+		
+		Tiff_Im     aImProfPxTif(aImName.c_str());
+
+    	/* Read the input depth map */
+		TIm2D<float,double> aTImProfPx(aSzOut);
 		ELISE_COPY
-		(			aMasq.all_pts(),
-					Tiff_Im(aPx1MasqName.c_str()).in(),
-				   	aMasq.out()
-		);
-	}
-	TIm2DBits<1> aTMasq(aMasq);
-
-
-	/* Create the depth map to which we will write */
-	TIm2D<float,double> aImProfZTIM(aSz);
-
-	/* Triangulate and fill in aImProfZTIM */
-	for (int aK1=0; aK1<aSz.x; aK1++)
-	{
-		for (int aK2=0; aK2<aSz.y; aK2++)
+        (
+               aTImProfPx.all_pts(),
+               trans(aImProfPxTif.in(),aBoxOut._p0),
+               aTImProfPx.out()
+        );
+  
+    
+    
+		/* Read the mask */
+		Im2D_Bits<1> aMasq(aSzOut.x,aSzOut.y,1);
+		if (EAMIsInit(&aPx1MasqName))
 		{
-			Pt2di aPt1(aK1, aK2);
-			
-			if (aTMasq.get(aPt1))
-			{
+			ELISE_COPY
+			(			aMasq.all_pts(),
+						trans(Tiff_Im(aPx1MasqName.c_str()).in(),aBoxOut._p0),
+					   	aMasq.out()
+			);
+		}
+		TIm2DBits<1> aTMasq(aMasq);
+    
+    
+		/* Create the depth map to which we will write */
+		//TIm2D<float,double> aTImProfZ(aSzOut);
+		TIm2D<float,double> aTImProfZ(aSz);
+  
 
-				Pt2dr aPt2(aK1 + aImProfPxTIM.get(aPt1), aK2);
-                
-				ElSeg3D aSeg1 = aCamI1->Capteur2RayTer(Pt2dr(aPt1.x,aPt1.y)); 
-				ElSeg3D aSeg2 = aCamI2->Capteur2RayTer(aPt2); 
-                
-				std::vector<ElSeg3D> aVSeg = {aSeg1,aSeg2};
-				
-				Pt3dr aRes =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
-                
-				aImProfZTIM.oset(aPt1,aRes.z);
+		/* Read cameras */
+		cBasicGeomCap3D * aCamI1 = aICNM->StdCamGenerikOfNames(aOri,aIm1);	
+		cBasicGeomCap3D * aCamI2 = aICNM->StdCamGenerikOfNames(aOri,aIm2);	
+		
+		/* Triangulate and fill in aTImProfZ */
+		Pt2di aPt1;
+		for (aPt1.x=0; aPt1.x<aSzOut.x; aPt1.x++)
+		{
+			for (aPt1.y=0; aPt1.y<aSzOut.y; aPt1.y++)
+			{
+				Pt2di aPt1InFul(aPt1.x + aBoxOut._p0.x,aPt1.y + aBoxOut._p0.y);
+
+
+				if (aTMasq.get(aPt1))
+				{
+
+					Pt2dr aPt2InFul(aPt1InFul.x + aTImProfPx.get(aPt1), aPt1InFul.y);
+
+                    
+					ElSeg3D aSeg1 = aCamI1->Capteur2RayTer(Pt2dr(aPt1InFul.x,aPt1InFul.y)); 
+					ElSeg3D aSeg2 = aCamI2->Capteur2RayTer(aPt2InFul); 
+                    
+					std::vector<ElSeg3D> aVSeg = {aSeg1,aSeg2};
+					
+					Pt3dr aRes =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
+
+					aTImProfZ.oset(aPt1InFul,aRes.z);
+
+				}
 			}
 		}
+
+    
+
+		/* Write box to new depth map */
+        ELISE_COPY
+        (
+            rectangle(aBoxOut._p0,aBoxOut._p1), //aImProfZTif.all_pts(),
+            //trans(aTImProfZ.in(),aBoxOut._p0),
+            aTImProfZ.in(),
+            aImProfZTif.out()
+        );
+   	
+
+		/*Disc_Pal  Pdisc = Disc_Pal::P8COL();
+		Gray_Pal  Pgr (30);
+		Circ_Pal  Pcirc = Circ_Pal::PCIRC6(30);
+       	RGB_Pal   Prgb  (5,5,5);
+		Elise_Set_Of_Palette SOP
+        (    NewLElPal(Pdisc)
+            + Elise_Palette(Pgr)
+            + Elise_Palette(Prgb)
+            + Elise_Palette(Pcirc)  );
+
+		
+        Video_Display Ecr((char *) NULL);
+        Ecr.load(SOP);
+
+		Pt2di aSzWin(-110+aSzOut.x,-50+aSzOut.y);
+	    Video_Win   W  (Ecr,SOP,Pt2di(50,50),aSzOut);
+		ELISE_COPY
+        (
+            rectangle(Pt2di(110,50),aSzWin),
+            trans(aTImProfZ.in(),aBoxOut._p0),
+            W.out(Pgr)
+        );*/
+
+		//getchar();
+   		
+		//TODO add creation of new masks
+
 	}
-	//cDecoupageInterv2D aDecoup = cDecoupageInterv2D::SimpleDec
-	//int FusionCarteProf_main(int argc,char ** argv)
+	else
+	{
+		cDecoupageInterv2D aDecoup  = cDecoupageInterv2D::SimpleDec(aSz,aSzDecoup,0);
+		
+		std::list<std::string> aLCom;
+
+		std::string aComBase = MMBinFile(MM3DStr) + "TestLib TransGeom "
+			                 + aDir + BLANK 
+							 + aIm1 + BLANK
+                         	 + aIm2 + BLANK
+                         	 + aOri + BLANK
+                         	 + aNuageName + BLANK
+                        	 + aNuageNameOut + BLANK
+                         	 + aPx1NameOut + BLANK
+							 + "InParal=" + ToString(InParal);
+
+		if (EAMIsInit(&aPx1MasqName))
+			aComBase += " Mask=" + aPx1MasqName + " ";
 
 
-	/* Save new depth maps */
-    Tiff_Im     aImProfZTif  ( aPx1NameOut.c_str(),
-					           aSz,
-							   aImProfPxTif.type_el(),
-							   aImProfPxTif.mode_compr(),
-							   aImProfPxTif.phot_interp());
+		for (int aK=0; aK<aDecoup.NbInterv(); aK++)
+		{
+			std::string aCom = aComBase + " CalleByP=true " 
+					         + "BoxOut=" + ToString(aDecoup.KthIntervIn(aK));
+			aLCom.push_back(aCom);
+		}
 
 
-    ELISE_COPY
-    (
-        aImProfZTif.all_pts(),
-        aImProfZTIM.in(),
-        aImProfZTif.out()
-    );
 
-
-	/* Update aNuageIn */
-	aImProfPx.Image()      		= NameWithoutDir(aPx1NameOut);
-	aImProfPx.GeomRestit() 		= eGeomMNTFaisceauIm1ZTerrain_Px1D;
-	aNuageIn.Image_Profondeur() = aImProfPx;
-	aNuageIn.NameOri() = aICNM->StdNameCamGenOfNames(aOri,aIm1);
-
-	MakeFileXML(aNuageIn,aNuageNameOut);
+		if (aExe)
+        	cEl_GPAO::DoComInParal(aLCom);
+	    else
+    	{
+        	for (auto iCmd : aLCom)
+            	std::cout << "SUBCOM_TG= " << iCmd << "\n";
+    	}
+	
+		if (aExe)
+		{
+			/* Update aNuageIn */
+            aImProfPx.Image()           = NameWithoutDir(aPx1NameOut);
+            aImProfPx.GeomRestit()      = eGeomMNTFaisceauIm1ZTerrain_Px1D;
+            aNuageIn.Image_Profondeur() = aImProfPx;
+            aNuageIn.NameOri() = aICNM->StdNameCamGenOfNames(aOri,aIm1);
+            
+            MakeFileXML(aNuageIn,aNuageNameOut);
+		}
+	
+	}
 
 	return EXIT_SUCCESS;
 }

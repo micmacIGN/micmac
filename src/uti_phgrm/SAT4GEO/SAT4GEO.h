@@ -72,6 +72,7 @@ class cCommonAppliSat3D
         LArgMain &     ArgCom();
         std::string    ComParamPairs();
         std::string    ComParamEpip();
+        std::string    ComParamRPC_Basic();
         std::string    ComParamRPC();
         std::string    ComParamMatch();
         std::string    ComParamFuse();

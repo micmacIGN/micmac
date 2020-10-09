@@ -1322,11 +1322,15 @@ void cRPC::Initialize_(const cSystemeCoord *aChSys)
 
 std::string cRPC::NameSave(const std::string & aName,std::string aDirName)
 {
-	std::string aPrefix = DirOfFile(aName);
+	/*std::string aPrefix = DirOfFile(aName);
     std::string aNewDir = aPrefix.substr(0,aPrefix.size()-1) + aDirName + "/";
-    ELISE_fp::MkDirSvp(aNewDir);
+    ELISE_fp::MkDirSvp(aNewDir);*/
 
-    std::string aNameXml = aNewDir + StdPrefix(NameWithoutDir(aName)) + ".xml";
+	StdCorrecNameOrient(aDirName,"./",true);
+	//ELISE_fp::MkDirSvp("Ori-" + aDirName);
+
+    //std::string aNameXml = aNewDir + StdPrefix(NameWithoutDir(aName)) + ".xml";
+    std::string aNameXml = "Ori-" + aDirName + "/" + StdPrefix(NameWithoutDir(aName)) + ".xml";
 
     return aNameXml;
 }
@@ -1536,7 +1540,7 @@ std::string cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
 	std::string aNameXmlOld = aRPCSauv.mName;
     std::string aNameXml 	= cRPC::NameSave(aRPCSauv.mName,aOriOut);
     std::string aNewDirLoc 	= DirOfFile(aNameXml); 
-  
+	std::cout << "eeeeeeee " << aNameXml << " " << aOriOut << " " << aRPCSauv.mName << "\n"; 
     /* Save the new RPC to XML file */
     cRPC::Save2XmlStdMMName_(aRPCSauv,aNameXml);
 
@@ -2171,8 +2175,11 @@ if(0)
             aPDifMoy.y += aPDif.y;
         }
 
-        std::cout << "RPC precision: [" <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
+		if (ERupnik_MM())
+		{
+        	std::cout << "RPC precision: [" <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
                                        <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << "]\n";
+		}
         if( (double(aPDifMoy.x)/(aGridGroundTest.size())) > 1 || (double(aPDifMoy.y)/(aGridGroundTest.size())) > 1 )
             std::cout << "RPC recalculation"
                 <<  " precision: " << double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
