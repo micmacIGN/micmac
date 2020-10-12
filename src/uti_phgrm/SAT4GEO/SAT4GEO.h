@@ -158,6 +158,8 @@ class cSomSat
        CameraRPC *          mCam;
        Pt3dr                mC;
 
+
+
        bool HasInter(const cSomSat & aS2) const;
 
 };
@@ -178,6 +180,8 @@ class cGraphHomSat
 
     private :
 
+		double CalcBtoH(const CameraRPC * , const CameraRPC * );
+
         std::string mDir;
         std::string mPat;
         std::string mOri;
@@ -189,6 +193,7 @@ class cGraphHomSat
         std::vector<cSomSat *>    mVC;
         int                    mNbSom;
         double                 mAltiSol;
+	    Pt2dr                  mBtoHLim;
 
 };
 
@@ -257,8 +262,10 @@ class cAppliFusion
         cCommonAppliSat3D mCAS3D;
 
     private:
+		std::string AddFilePostFix();
         std::string PxZName(const std::string & aInPx);
         std::string NuageZName(const std::string & aInNuageProf);
+		std::string MaskZName(const std::string & aInMask);
 
         std::string mFilePairs;
         std::string mOri;

@@ -192,7 +192,8 @@ bool cSomSat::HasInter(const cSomSat & aS2) const
 
 cGraphHomSat::cGraphHomSat(int argc,char ** argv) :
       mOut       ("Pairs.xml"),
-      mAltiSol   (0)
+      mAltiSol   (0),
+	  mBtoHLim   (Pt2dr(0.01,0.3))
 {
 
 	
@@ -203,8 +204,9 @@ cGraphHomSat::cGraphHomSat(int argc,char ** argv) :
         LArgMain()  << EAMC(mDir,"Directory", eSAM_IsDir)
                     << EAMC(mPat,"Images pattern", eSAM_IsPatFile)
                     << EAMC(mOri,"Orientation dir", eSAM_IsExistFile),
-        LArgMain()  << EAM(mAltiSol,"AltiSol",true)
-                    << EAM(mOut,"Out",true)
+        LArgMain()  << EAM(mAltiSol,"AltiSol",true, "Ground altitutde")
+					<< EAM(mBtoHLim,"BH",true,"Base to height ratio limits, def=[0.01,0.3]")
+                    << EAM(mOut,"Out",true,"Output file name")
 
     );
     if (!MMVisualMode)
@@ -242,6 +244,9 @@ cGraphHomSat::cGraphHomSat(int argc,char ** argv) :
 
 
 
+		/* Get overlapping images *****************
+		 *  + verify if images intersect in 3D
+		 *  + check if within bh limits 	 *  */
 		cSauvegardeNamedRel aRel;
         for (int aK1=0 ; aK1<mNbSom ; aK1++)
         {
@@ -249,7 +254,10 @@ cGraphHomSat::cGraphHomSat(int argc,char ** argv) :
             {
                  if (mVC[aK1]->HasInter(*(mVC[aK2])))
                  {
-                    aRel.Cple().push_back(cCpleString(mVC[aK1]->mName,mVC[aK2]->mName));
+					double aBH = CalcBtoH(mVC[aK1]->mCam,mVC[aK2]->mCam);
+				
+					if ( (aBH>mBtoHLim.x) && (aBH<mBtoHLim.y))
+                    	aRel.Cple().push_back(cCpleString(mVC[aK1]->mName,mVC[aK2]->mName));
                  }
 
             }
@@ -259,6 +267,26 @@ cGraphHomSat::cGraphHomSat(int argc,char ** argv) :
 
 
 	}
+}
+
+double cGraphHomSat::CalcBtoH(const CameraRPC * aCam1, const CameraRPC * aCam2)
+{
+	Pt2dr aCentIm1(double(aCam1->SzBasicCapt3D().x)/2,double(aCam1->SzBasicCapt3D().y)/2);
+    Pt3dr aTer 		  = aCam1->ImEtZ2Terrain(aCentIm1, aCam1->GetAltiSol());
+
+    Pt3dr aCenter1Ter = aCam1->OpticalCenterOfPixel(aCentIm1);
+
+	Pt2dr aTerBPrj 	  = aCam2->Ter2Capteur(aTer);
+    Pt3dr aCenter2Ter = aCam2->OpticalCenterOfPixel(aTerBPrj);
+
+    //H within the "epipolar plane"
+    double aA = sqrt(std::pow(aCenter1Ter.x - aTer.x,2) + std::pow(aCenter1Ter.y - aTer.y,2) + std::pow(aCenter1Ter.z - aTer.z,2) );
+    double aB = sqrt(std::pow(aCenter2Ter.x - aTer.x,2) + std::pow(aCenter2Ter.y - aTer.y,2) + std::pow(aCenter2Ter.z - aTer.z,2) );
+    double aC = sqrt(std::pow(aCenter2Ter.x - aCenter1Ter.x,2)  + std::pow(aCenter2Ter.y - aCenter1Ter.y,2)  + std::pow(aCenter2Ter.z - aCenter1Ter.z,2)  );
+    double aH = sqrt( aA*aB*(aA+aB+aC)*(aA+aB-aC) )/(aA+aB);
+
+	return (aC/aH);
+
 }
 
 int GraphHomSat_main(int argc,char** argv)
@@ -483,12 +511,22 @@ cAppliFusion::cAppliFusion(int argc,char ** argv)
 
 std::string cAppliFusion::PxZName(const std::string & aInPx)
 {
-	return StdPrefix(aInPx) + "_FIm1ZTerr.tif";
+	return StdPrefix(aInPx) + AddFilePostFix() + ".tif";
 }
 
 std::string cAppliFusion::NuageZName(const std::string & aInNuageProf)
 {
-	return StdPrefix(aInNuageProf) + "_FIm1ZTerr.xml";
+	return StdPrefix(aInNuageProf) + AddFilePostFix() + ".xml";
+}
+
+std::string  cAppliFusion::MaskZName(const std::string & aInMask)
+{
+	return StdPrefix(aInMask) + AddFilePostFix() + ".tif";
+}
+
+std::string cAppliFusion::AddFilePostFix()
+{
+	return "_FIm1ZTerr";
 }
 
 /*
@@ -584,25 +622,40 @@ void cAppliFusion::DoAll()
 	std::string aMaskName = "AutoMask_LeChantier_Num_" + ToString(aNbEtape-1) + ".tif";
 	for (auto itP : aLP)
     {
-		std::string aMECDir = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.first,itP.second,true);
+		std::string aMECDir1to2 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.first,itP.second,true);
+		std::string aMECDir2to1 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.second,itP.first,true);
 
 
 
 		//collect cmd to do conversion in parallel
-		std::string aCTG = MMBinFile(MM3DStr) + "TestLib TransGeom "
+		std::string aCTG1to2 = MMBinFile(MM3DStr) + "TestLib TransGeom "
 				         + mCAS3D.mDir + " " 
 						 + itP.first + " "
 						 + itP.second + " " 
 						 + mCAS3D.mOutRPC + " "
-						 + aMECDir+aNuageInName + " "
-						 + aMECDir+NuageZName(aNuageInName) + " "
-						 + aMECDir+PxZName(aPxInName) + " "
-						 + "Mask=" + aMECDir+aMaskName 
-						 + " Exe=" + ToString(mCAS3D.mExe);
+						 + aMECDir1to2+aNuageInName + " "
+						 + aMECDir1to2+NuageZName(aNuageInName) + " "
+						 + aMECDir1to2+PxZName(aPxInName) + " "
+						 + "Mask=" + aMECDir1to2+aMaskName + " " 
+						 + "MaskOut=" + aMECDir1to2 + MaskZName(aMaskName) + " " 
+						 + "Exe=" + ToString(mCAS3D.mExe);
+
+		std::string aCTG2to1 = MMBinFile(MM3DStr) + "TestLib TransGeom "
+				         + mCAS3D.mDir + " " 
+						 + itP.second + " " 
+						 + itP.first + " "
+						 + mCAS3D.mOutRPC + " "
+						 + aMECDir2to1+aNuageInName + " "
+						 + aMECDir2to1+NuageZName(aNuageInName) + " "
+						 + aMECDir2to1+PxZName(aPxInName) + " "
+						 + "Mask=" + aMECDir2to1+aMaskName + " " 
+						 + "MaskOut=" + aMECDir2to1 + MaskZName(aMaskName) + " " 
+						 + "Exe=" + ToString(mCAS3D.mExe);
 
 
 
-		aLCTG.push_back(aCTG);
+		aLCTG.push_back(aCTG1to2);
+		aLCTG.push_back(aCTG2to1);
 
 	}
 
@@ -628,16 +681,26 @@ void cAppliFusion::DoAll()
 
 	for (auto itP : aLP)
 	{
-		std::string aMECDir = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.first,itP.second,true);
+		std::string aMECDir1to2 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.first,itP.second,true);
+		std::string aMECDir2to1 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.second,itP.first,true);
 		
-		std::string aComFuse = MMBinFile(MM3DStr) + "NuageBascule " 
-				             + aMECDir + NuageZName(aNuageInName) + " " 
-							 + "MEC-Malt/" + aNuageOutName + " " 
-							 + mCAS3D.mOutSMDM + aPref + ToString(aCpt) + ".xml"; 
-
+		std::string aComFuse1to2 = MMBinFile(MM3DStr) + "NuageBascule " 
+				                 + aMECDir1to2 + NuageZName(aNuageInName) + " " 
+							     + "MEC-Malt/" + aNuageOutName + " " 
+							     + mCAS3D.mOutSMDM + aPref + ToString(aCpt) + ".xml"; 
+		aCpt++;
+		
+		std::string aComFuse2to1 = MMBinFile(MM3DStr) + "NuageBascule " 
+				                 + aMECDir2to1 + NuageZName(aNuageInName) + " " 
+							     + "MEC-Malt/" + aNuageOutName + " " 
+							     + mCAS3D.mOutSMDM + aPref + ToString(aCpt) + ".xml"; 
 		aCpt++;
 
-		aLCom.push_back(aComFuse);
+
+
+
+		aLCom.push_back(aComFuse1to2);
+		aLCom.push_back(aComFuse2to1);
 	}	
 
     if (mCAS3D.mExe)
@@ -782,6 +845,7 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 	std::string aIm2;
 	std::string aPx1NameOut;
 	std::string aPx1MasqName;
+	std::string aPx1MasqNameOut;
 	bool InParal = true;
 	bool CalleByP = false;
 	int aSzDecoup = 2000;
@@ -799,6 +863,7 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 					<< EAMC(aNuageNameOut,"XML NuageImProf output file")
 					<< EAMC(aPx1NameOut,"Depth map output name, e.g., Px1Z.tif"),
         LArgMain()  << EAM(aPx1MasqName,"Mask",true,"Depth map's mask (if exits)")
+		            << EAM(aPx1MasqNameOut,"MaskOut",true,"Name of the new mask (in new geometry)")
 					<< EAM(InParal,"InParal",true,"Compute in parallel (Def=true)")
                     << EAM(CalleByP,"CalleByP",true,"Internal Use", eSAM_InternalUse)
                     << EAM(aBoxOut,"BoxOut",true,"Internal Use", eSAM_InternalUse)
@@ -836,9 +901,26 @@ int CPP_TransformGeom_main(int argc, char ** argv)
                             Tiff_Im::BlackIsZero
                          );
 
+	/* Create mask if needed */
+	if (! EAMIsInit(&aPx1MasqNameOut))
+		aPx1MasqNameOut = DirOfFile(aPx1NameOut) + "/AutoMask_LeChantier_Num_6_GBundle.tif";
+
+
+	Tiff_Im  aImMasqZTif =  Tiff_Im::CreateIfNeeded(
+                            isModified,
+                            aPx1MasqNameOut.c_str(),
+                            aSz,
+                            GenIm::bits1_msbf,
+                            Tiff_Im::No_Compr,
+                            Tiff_Im::BlackIsZero
+                      );
+
+
 
 	if (CalleByP)
 	{
+		std::cout << "START: Box p0=[" << aBoxOut._p0 << "], p1=[" << aBoxOut._p1 << "] \n";
+
 		Pt2di aSzOut = aBoxOut.sz();
     
 		std::string aImName = aDirMEC + aImProfPx.Image();
@@ -869,10 +951,9 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 		TIm2DBits<1> aTMasq(aMasq);
     
     
-		/* Create the depth map to which we will write */
-		//TIm2D<float,double> aTImProfZ(aSzOut);
+		/* Create the depth map & mask to which we will write */
 		TIm2D<float,double> aTImProfZ(aSz);
-  
+  		Im2D_Bits<1>        aTMasqZ(aSz.x,aSz.y,0);
 
 		/* Read cameras */
 		cBasicGeomCap3D * aCamI1 = aICNM->StdCamGenerikOfNames(aOri,aIm1);	
@@ -901,7 +982,8 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 					Pt3dr aRes =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
 
 					aTImProfZ.oset(aPt1InFul,aRes.z);
-
+				
+					aTMasqZ.set(aPt1InFul.x,aPt1InFul.y,1);
 				}
 			}
 		}
@@ -911,12 +993,21 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 		/* Write box to new depth map */
         ELISE_COPY
         (
-            rectangle(aBoxOut._p0,aBoxOut._p1), //aImProfZTif.all_pts(),
+            rectangle(aBoxOut._p0,aBoxOut._p1), 
             //trans(aTImProfZ.in(),aBoxOut._p0),
             aTImProfZ.in(),
             aImProfZTif.out()
         );
    	
+		/* Write box to the new mask */
+		ELISE_COPY
+		(
+			rectangle(aBoxOut._p0,aBoxOut._p1),
+			aTMasqZ.in(),
+			aImMasqZTif.out()	
+		);
+
+		std::cout << "END: Box p0=[" << aBoxOut._p0 << "], p1=[" << aBoxOut._p1 << "] \n";
 
 		/*Disc_Pal  Pdisc = Disc_Pal::P8COL();
 		Gray_Pal  Pgr (30);
@@ -943,7 +1034,6 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 
 		//getchar();
    		
-		//TODO add creation of new masks
 
 	}
 	else
@@ -960,7 +1050,12 @@ int CPP_TransformGeom_main(int argc, char ** argv)
                          	 + aNuageName + BLANK
                         	 + aNuageNameOut + BLANK
                          	 + aPx1NameOut + BLANK
+							 + "Mask=" + aPx1MasqName + BLANK
+							 + "MaskOut=" + aPx1MasqNameOut + BLANK 
 							 + "InParal=" + ToString(InParal);
+
+
+
 
 		if (EAMIsInit(&aPx1MasqName))
 			aComBase += " Mask=" + aPx1MasqName + " ";
@@ -987,6 +1082,7 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 		{
 			/* Update aNuageIn */
             aImProfPx.Image()           = NameWithoutDir(aPx1NameOut);
+			aImProfPx.Masq()            = NameWithoutDir(aPx1MasqNameOut);
             aImProfPx.GeomRestit()      = eGeomMNTFaisceauIm1ZTerrain_Px1D;
             aNuageIn.Image_Profondeur() = aImProfPx;
             aNuageIn.NameOri() = aICNM->StdNameCamGenOfNames(aOri,aIm1);
@@ -1001,10 +1097,8 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 
 
 //TODO:
-// move everything to new files inside dir SAT4GEO
 //- MMBy1 from other correlator
 //- add Bsur min in pairs creation
-//-?triangulation per Box?
 //
 
 /*Footer-MicMac-eLiSe-25/06/2007
