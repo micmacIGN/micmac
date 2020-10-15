@@ -47,6 +47,7 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 	mSH(""),
 	mExpTxt(false),
 	mFilePairs("Pairs.xml"),
+	mDoIm(true),
 	mOutRPC("EpiRPC"),
 	mDegreRPC(0),
 	mZoom0(64),
@@ -273,7 +274,6 @@ double cGraphHomSat::CalcBtoH(const CameraRPC * aCam1, const CameraRPC * aCam2)
 {
 	Pt2dr aCentIm1(double(aCam1->SzBasicCapt3D().x)/2,double(aCam1->SzBasicCapt3D().y)/2);
     Pt3dr aTer 		  = aCam1->ImEtZ2Terrain(aCentIm1, aCam1->GetAltiSol());
-
     Pt3dr aCenter1Ter = aCam1->OpticalCenterOfPixel(aCentIm1);
 
 	Pt2dr aTerBPrj 	  = aCam2->Ter2Capteur(aTer);
