@@ -681,6 +681,8 @@ of epipolar lines with too large direction variations. The right image represent
 
 \subsubsection{Estimation of the center and the global direction}
 
+\label{EstCenterDir}
+
 To begin with, the method estimates the centers  $C_1,C_2$ of a set of points $p_1$ and $p_2$. This is done by calculating the average of all points' coordinates.  Then, the computations continue in
 the coordinate systems centered at $C_1,C_2$. After this "normalisation", the constraint in Equation~\ref{Ambig:Line} is applied at these centers.
 
@@ -948,7 +950,7 @@ to the "real" inverse, we can increase the polynomial's degree (in our implement
 
 \subsection{Epipolar resampling without the geometric model -- \er{not too happy with this section} \mpd{me neither (;-)}}
 
-\subsubsection{Possibility}
+\subsubsection{Possibility with only tie-points}
 
 \label{EpipTieP}
 \er{Ideally, there is no bullet-ing but full sentences.}
@@ -1038,11 +1040,21 @@ we have the $W_2=Id$, which show the uniqueness of  the solution.
 }
 
 
-\subsubsection{Estimating the directions}
+\subsubsection{Estimating the directions without model}
 
-For using our methods, we tie-points, we need also a way to estimate the directions, 
-as it is done in.
+For using our methods, with tie-points, we need also a way to estimate the global directions, 
+as it is done in  section~\ref{EstCenterDir} when we have the geometric models.
 
+In the implemantation we provide, we give two options to the user : provide it or let the
+programm compute it automatically.  Obviously the providing option can be safer when the user has 
+sufficient knowledge on the acquisition; it can be used for examle with like satellite  along the track ,
+like in the example we provide with Corona acquisition. The automatic option is based
+on a  discretization of possible directions and combinatorial exploration of all the pair 
+of possible direction ; for a given pair, a quality  criterion is computed  on residual
+of epipolar ressampling with degree $0$ \mpd{TO CHECK !!!} , using a $L1$ norm (to be more robust to outliers).
+
+
+\mpd{Faut il donner un algorithme ? Ou est-ce suffisement simple pour être potentiellement clair ?}
 
 \ENDCHANGE{}
 
