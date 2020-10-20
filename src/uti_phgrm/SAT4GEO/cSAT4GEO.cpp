@@ -610,11 +610,12 @@ void cAppliFusion::DoAll()
 	bool aAffineLast = false;
 	int aNbEtape = 1 // Num premiere etape
 			     + round_ni(log2(mCAS3D.mZoom0/ mCAS3D.mZoomF))
-				 //+ 1   //  Dulication de pas a la premier
+				 + 1   //  Dulication de pas a la premier
 				 + (aAffineLast ? 1 : 0)  ;  // Raffinement de pas;
 
 
-	std::string aNuageInName = "NuageImProf_LeChantier_Etape_" + ToString(aNbEtape) + ".xml";
+	//std::string aNuageInName = "NuageImProf_LeChantier_Etape_" + ToString(aNbEtape) + ".xml";
+	std::string aNuageInName = "MMLastNuage.xml";
 	std::string aPxInName = "Px1_Num" + ToString(aNbEtape) 
 			              + "_DeZoom" + ToString(mCAS3D.mZoomF) 
 						  + "_LeChantier.tif";//not coherent with reality but it does not matter
@@ -672,7 +673,9 @@ void cAppliFusion::DoAll()
 	/* Transform individual surfaces to global frame */
 	std::list<std::string> aLCom;
 
-	std::string aNuageOutName = "NuageImProf_STD-MALT_Etape_" + ToString(aNbEtape+1) + ".xml";
+	//std::string aNuageOutName = "NuageImProf_STD-MALT_Etape_" + ToString(aNbEtape+1) + ".xml";
+	//std::string aNuageOutName = "NuageImProf_STD-MALT_Etape_" + ToString(aNbEtape) + ".xml";
+	std::string aNuageOutName = "MMLastNuage.xml";
 	std::string aPref = "DSM_Pair";
 	if (mCAS3D.mExe)
 			ELISE_fp::MkDirSvp(mCAS3D.mOutSMDM);	
@@ -888,7 +891,8 @@ int CPP_TransformGeom_main(int argc, char ** argv)
                                             "XML_ParamNuage3DMaille"
                                         );
 	cImage_Profondeur aImProfPx   = aNuageIn.Image_Profondeur().Val();
-	Pt2di aSz = aNuageIn.NbPixel();
+	Pt2di 		aSz = aNuageIn.NbPixel();
+	//double aResAlti = aNuageIn.ResolutionAlti();
 
 	/* Create new depth map if needed */
 	bool isModified;
@@ -1097,8 +1101,8 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 
 
 //TODO:
-//- MMBy1 from other correlator
-//- add Bsur min in pairs creation
+//- MICMAC/FusionCarteProf.cpp     atioResolAltiPlani(
+//- MMNuageLast and change GeomTransf
 //
 
 /*Footer-MicMac-eLiSe-25/06/2007
