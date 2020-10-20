@@ -590,7 +590,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("PIMs", MPI_main, "Per Image Matchings"));
 		aRes.push_back(cMMCom("PIMs2Ply", MPI2Ply_main, "Generate Ply from Per Image Matchings"));
 		aRes.push_back(cMMCom("PIMs2Mnt", MPI2Mnt_main, "Generate Mnt from Per Image Matchings"));
-		aRes.push_back(cMMCom("Sat3D", Sat3D_main, "Satellite 3D pipeline"));
+		aRes.push_back(cMMCom("SAT4GEO", Sat3D_main, "Satellite 3D pipeline"));
 
 
 		aRes.push_back(cMMCom("AllDev", DoAllDev_main, "Force development of all tif/xif file"));
@@ -950,6 +950,7 @@ extern int CPP_AppliCreateEpi_main(int argc,char ** argv);
 extern int CPP_AppliMM1P_main(int argc,char ** argv);
 extern int CPP_AppliRecalRPC_main(int argc,char ** argv);
 extern int CPP_AppliFusion_main(int argc,char ** argv);
+extern int CPP_TransformGeom_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -1266,11 +1267,14 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
         aRes.push_back(cMMCom("AC_CQ",CPP_AutoCorr_CensusQuant,"Auto correl for Census Quant"));
 
-        aRes.push_back(cMMCom("Sat3D_Pairs",GraphHomSat_main,"Calculate overlapping image pairs (case satellite)"));
-        aRes.push_back(cMMCom("Sat3D_CreateEpip",CPP_AppliCreateEpi_main,"Calculate the epipolar geometry (case satellite)"));
-        aRes.push_back(cMMCom("Sat3D_MM1P",CPP_AppliMM1P_main,"Do dense image matching in epipolar geometry (case satellite)"));
-        aRes.push_back(cMMCom("Sat3D_EpiRPC",CPP_AppliRecalRPC_main,"Recalculate RPC for epipolar geometry images (case satellite)"));
-        aRes.push_back(cMMCom("Sat3D_Fuse",CPP_AppliFusion_main,"Fusion of individual depth maps (case satellite)"));
+        aRes.push_back(cMMCom("SAT4GEO_Pairs",GraphHomSat_main,"Calculate overlapping image pairs (case satellite)"));
+        aRes.push_back(cMMCom("SAT4GEO_CreateEpip",CPP_AppliCreateEpi_main,"Calculate the epipolar geometry (case satellite)"));
+        aRes.push_back(cMMCom("SAT4GEO_MM1P",CPP_AppliMM1P_main,"Do dense image matching in epipolar geometry (case satellite)"));
+        aRes.push_back(cMMCom("SAT4GEO_EpiRPC",CPP_AppliRecalRPC_main,"Recalculate RPC for epipolar geometry images (case satellite)"));
+        aRes.push_back(cMMCom("SAT4GEO_Fuse",CPP_AppliFusion_main,"Fusion of individual depth maps (case satellite)"));
+		aRes.push_back(cMMCom("TransGeom", CPP_TransformGeom_main, "Transform geometry of depth map to eGeomMNTFaisceauIm1ZTerrain_Px1D"));
+
+
    }
 
     cCmpMMCom CmpMMCom;

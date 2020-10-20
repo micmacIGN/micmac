@@ -1050,6 +1050,7 @@ cRPC::cRPC(const std::string &aName) :
     mRecGrid(Pt3di(0,0,0)),
     mName("")
 {
+
     if( AutoDetermineRPCFile(aName) )
     {
         /* Read Xml_CamGenPolBundle */
@@ -1109,7 +1110,6 @@ void cRPC::Initialize(const std::string &aName,
                       const cSystemeCoord *aChSys
                       )
 {
-
 
     std::string aNameRPC=aName;
     if(AutoDetermineRPCFile(aName))
@@ -1222,7 +1222,8 @@ void cRPC::Initialize(const std::string &aName,
     else if(aType==eTIGB_MMScanLineSensor)
     {
         ISMETER=true;
-        NEWPARAM_REGUL = 0.00005; //problems with RPC estimation for TITAN
+        //NEWPARAM_REGUL = 0.00005; //problems with RPC estimation for TITAN
+        NEWPARAM_REGUL   = 0.001; 
 
         /* Grid in 3D */
         std::vector<Pt3dr> aGrid3D,aGrid3DTest;
@@ -1234,9 +1235,10 @@ void cRPC::Initialize(const std::string &aName,
         ReadScanLineSensor(aNameRPC,aGrid3D,aGrid2D,aGrid3DTest,aGrid2DTest);
         ISINV=true;
 
-if(1)
+if(0)
 {
-        std::cout << "size grid to grid verif: " << aGrid3D.size() << "," << aGrid3DTest.size() << "\n";
+        std::cout << "RPC computed on : " << aGrid3D.size() << " 2D-3D correspondances, \n" 
+				     "    precision computed on : " << aGrid3DTest.size() << " 2D-3D correspondances.\n";
 
         cPlyCloud aPly3d, aPly2d;
         for (auto aP : aGrid3D)
@@ -1261,9 +1263,8 @@ if(1)
         //a priori pas necessaire
         SetRecGrid();
    
-        Show();
+        //Show();
  
-
 
 
 
@@ -1322,11 +1323,15 @@ void cRPC::Initialize_(const cSystemeCoord *aChSys)
 
 std::string cRPC::NameSave(const std::string & aName,std::string aDirName)
 {
-	std::string aPrefix = DirOfFile(aName);
+	/*std::string aPrefix = DirOfFile(aName);
     std::string aNewDir = aPrefix.substr(0,aPrefix.size()-1) + aDirName + "/";
-    ELISE_fp::MkDirSvp(aNewDir);
+    ELISE_fp::MkDirSvp(aNewDir);*/
 
-    std::string aNameXml = aNewDir + StdPrefix(NameWithoutDir(aName)) + ".xml";
+	StdCorrecNameOrient(aDirName,"./",true);
+	//ELISE_fp::MkDirSvp("Ori-" + aDirName);
+
+    //std::string aNameXml = aNewDir + StdPrefix(NameWithoutDir(aName)) + ".xml";
+    std::string aNameXml = "Ori-" + aDirName + "/" + StdPrefix(NameWithoutDir(aName)) + ".xml";
 
     return aNameXml;
 }
@@ -1518,6 +1523,7 @@ std::string cRPC::Save2XmlStdMMName_(cRPC &aRPC, const std::string &aName)
    return aName;
 }
 
+
 std::string cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
                                const std::string & aOri,
                                const std::string & aNameImClip,
@@ -1526,6 +1532,8 @@ std::string cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
                     )
 
 {
+	//std::cout << "cRPC::Save2XmlStdMMName" << "\n";
+
   // aOri == "" => convention pour cas special appel a l'ancienne
     std::string aName = (aOri=="")? aNameImClip  : anICNM->StdNameCamGenOfNames(aOri,aNameImClip);
     std::string aPref = (aOri=="") ? "" :  anICNM->Dir() ;
@@ -1536,9 +1544,12 @@ std::string cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
 	std::string aNameXmlOld = aRPCSauv.mName;
     std::string aNameXml 	= cRPC::NameSave(aRPCSauv.mName,aOriOut);
     std::string aNewDirLoc 	= DirOfFile(aNameXml); 
-  
+
+
+
     /* Save the new RPC to XML file */
     cRPC::Save2XmlStdMMName_(aRPCSauv,aNameXml);
+
 
     /* Save the new cXml_CamGenPolBundle file :
      * - read the old cXml_CamGenPolBundle,
@@ -2171,18 +2182,21 @@ if(0)
             aPDifMoy.y += aPDif.y;
         }
 
-        std::cout << "RPC precision: [" <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
+		if (ERupnik_MM())
+		{
+        	std::cout << "RPC precision: [" <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
                                        <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << "]\n";
+		}
+
         if( (double(aPDifMoy.x)/(aGridGroundTest.size())) > 1 || (double(aPDifMoy.y)/(aGridGroundTest.size())) > 1 )
             std::cout << "RPC recalculation"
                 <<  " precision: " << double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
-                << double(aPDifMoy.y)/(aGridGroundTest.size()) << " [pix] \n xXXXXXXXXX ATTENTION XXXXXXXXXXXXXXXXX\n"
+                << double(aPDifMoy.y)/(aGridGroundTest.size()) << " [pix] \n xXXXXXXXXX Warning     XXXXXXXXXXXXXXXXX\n"
                 <<                                                       " x          badly estimated RPCs          X\n"
-                <<                                                       " x          choose a larger crop          X\n"
+                <<                                                       " x                                        X\n"
                 <<                                                       " xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n";
     }
     
-        
 }
 
 void cRPC::UpdateRPC( double (&aDirSNum)[20], double (&aDirLNum)[20],
@@ -3821,8 +3835,6 @@ void cRPC::ReadScanLineSensor(const std::string &aFile,std::vector<Pt3dr> & aG3d
                     mGrC3[0] = (mGrC3[0] > aAdd.z) ? aAdd.z : mGrC3[0];
                     mGrC3[1] = (mGrC3[1] < aAdd.z) ? aAdd.z : mGrC3[1];
                 
-                    //std::cout << "eeewwwwee min xgr: " << mGrC1[0] << ", Add: " << aAdd.x 
-                    //          << ", line/col: " << aL.IndLine() << " " << aS.IndCol() << "\n";
                 }
 
 
@@ -3830,9 +3842,12 @@ void cRPC::ReadScanLineSensor(const std::string &aFile,std::vector<Pt3dr> & aG3d
             }
         }
     }
-    std::cout << "min/max: " << mGrC1[0] << ", " << mGrC1[1] << "\n" 
-                             << mGrC2[0] << ", " << mGrC2[1] << "\n"
-                             << mGrC3[0] << ", " << mGrC3[1] << "\n"; 
+	if (0)
+	{
+    	std::cout << "Volume of validity X= " << mGrC1[0] << ", " << mGrC1[1] << "\n" 
+        	      << "                   Y= " << mGrC2[0] << ", " << mGrC2[1] << "\n"
+            	  << "                   Z= " << mGrC3[0] << ", " << mGrC3[1] << "\n"; 
+	}
 
     /* Fill the min/max rows/cols */
 
@@ -3876,24 +3891,39 @@ void cRPC::FillAndVerifyBord(double &aL, double &aC,
     mGrC3[0] = (mGrC3[0] > aP2.z) ? aP2.z : mGrC3[0];
     mGrC3[1] = (mGrC3[1] < aP1.z) ? aP1.z : mGrC3[1];
     mGrC3[1] = (mGrC3[1] < aP2.z) ? aP2.z : mGrC3[1];
-   
-     //if more than two points 
+  
+
+    //if more than two points 
     for (auto aAdd : aP3)
     {
+
         aG3d.push_back (aAdd);
         aG2d.push_back (Pt3dr(aC, aL,aAdd.z));
         
         //update min/max ground validity
-        mGrC1[0] = (mGrC1[0] > aAdd.x) ? aAdd.x : mGrC1[0];
-        mGrC1[1] = (mGrC1[1] < aAdd.x) ? aAdd.x : mGrC1[1];
-        mGrC2[0] = (mGrC2[0] > aAdd.y) ? aAdd.y : mGrC2[0];
-        mGrC2[1] = (mGrC2[1] < aAdd.y) ? aAdd.y : mGrC2[1];
-        mGrC3[0] = (mGrC3[0] > aAdd.z) ? aAdd.z : mGrC3[0];
-        mGrC3[1] = (mGrC3[1] < aAdd.z) ? aAdd.z : mGrC3[1];
-    
-        //std::cout << "eeewwwwee min xgr: " << mGrC1[0] << ", Add: " << aAdd.x 
+		UpdateGrC(aAdd);
+
     }
+
+	/*
+	if (mGrC1[0] < 201366.0)
+	{
+		std::cout << "outside = " << mGrC1[0] << " L=" << aL << " C=" << aC << "\n";
+		getchar();
+	}*/
 }
+
+void cRPC::UpdateGrC(Pt3dr& aP)
+{
+	mGrC1[0] = (mGrC1[0] > aP.x) ? aP.x : mGrC1[0];
+    mGrC1[1] = (mGrC1[1] < aP.x) ? aP.x : mGrC1[1];
+    mGrC2[0] = (mGrC2[0] > aP.y) ? aP.y : mGrC2[0];
+    mGrC2[1] = (mGrC2[1] < aP.y) ? aP.y : mGrC2[1];
+    mGrC3[0] = (mGrC3[0] > aP.z) ? aP.z : mGrC3[0];
+    mGrC3[1] = (mGrC3[1] < aP.z) ? aP.z : mGrC3[1];
+
+}
+
 
 void cRPC::ReadScanLineSensor(const std::string &aFile,
                               std::vector<Pt3dr> & aG3d,    std::vector<Pt3dr> & aG2d,
@@ -3965,9 +3995,10 @@ void cRPC::ReadScanLineSensor(const std::string &aFile,
             //aSkipPt++;
         }
     }
-    std::cout << "min/max: " << mGrC1[0] << ", " << mGrC1[1] << "\n" 
-                             << mGrC2[0] << ", " << mGrC2[1] << "\n"
-                             << mGrC3[0] << ", " << mGrC3[1] << "\n"; 
+	if (0)
+		std::cout << "Volume of validity X= [" << mGrC1[0] << ", " << mGrC1[1] << "]\n"
+        	      << "                   Y= [" << mGrC2[0] << ", " << mGrC2[1] << "]\n"
+            	  << "                   Z= [" << mGrC3[0] << ", " << mGrC3[1] << "]\n";
 
     /* Fill the min/max rows/cols */
 

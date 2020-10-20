@@ -2664,6 +2664,22 @@
         <Key> Key-Assoc-Nuage-Ply </Key>
     </KeyedNamesAssociations>
 
+<!-- 
+	MEC - decompose image name from MEC2Im-XXX
+-->
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)@(.*) </PatternTransform>
+				<CalcName>  MEC2Im-$1-$2/  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key> Key-Assoc-MEC-Dir </Key>
+    </KeyedNamesAssociations>
+
+
 
 <!--
       Masq-Image

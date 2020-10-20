@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="ISO8859-1" standalone="yes" ?>
+<MMVII_Serialization>
+   <SetCpleOfName>
+      <Nb>15</Nb>
+      <el>"F0.txt" "F1.txt"</el>
+      <el>"F0.txt" "F2.txt"</el>
+      <el>"F0.txt" "F3.txt"</el>
+      <el>"F0.txt" "F4.txt"</el>
+      <el>"F0.txt" "F5.txt"</el>
+      <el>"F1.txt" "F2.txt"</el>
+      <el>"F1.txt" "F3.txt"</el>
+      <el>"F1.txt" "F4.txt"</el>
+      <el>"F1.txt" "F5.txt"</el>
+      <el>"F2.txt" "F3.txt"</el>
+      <el>"F2.txt" "F4.txt"</el>
+      <el>"F2.txt" "F5.txt"</el>
+      <el>"F3.txt" "F4.txt"</el>
+      <el>"F3.txt" "F5.txt"</el>
+      <el>"F4.txt" "F5.txt"</el>
+   </SetCpleOfName>
+</MMVII_Serialization>
