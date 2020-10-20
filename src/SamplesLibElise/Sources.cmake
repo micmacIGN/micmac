@@ -20,6 +20,7 @@ set(SamplesLibElise_Src_Files
     ${SAMPLESLIBELISE_DIR}/CPP_TestCamTOF.cpp 
     ${SAMPLESLIBELISE_DIR}/CPP_TestMH.cpp 
     ${SAMPLESLIBELISE_DIR}/CPP_TestLulin.cpp
+    ${SAMPLESLIBELISE_DIR}/CPP_CroBA_Utils.cpp
 )
 
 # JE NE SAIS PAS SI CA SERT ???
