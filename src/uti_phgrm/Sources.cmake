@@ -175,7 +175,8 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_Bundler2MM.cpp
     ${UTI_PHGRM_DIR}/CPP_MM2OpenMVG.cpp
     ${UTI_PHGRM_DIR}/CPP_MMToAerial.cpp
-	${UTI_PHGRM_DIR}/CPP_Sat3DP.cpp
+    ${UTI_PHGRM_DIR}/CPP_Sat3DP.cpp
+    ${UTI_PHGRM_DIR}/CPP_Line3D.cpp
 )
 
 

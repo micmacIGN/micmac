@@ -290,6 +290,8 @@ int CPP_YannEstimHomog(int argc,char ** argv);
 int CPP_YannApplyHomog(int argc,char ** argv);
 int CPP_YannInvHomolHomog(int argc,char ** argv);
 
+int CPP_GCP2MeasureLine3D(int argc,char ** argv);
+
 const std::vector<cMMCom> & getAvailableCommands()
 {
 	static std::vector<cMMCom> aRes;
@@ -549,6 +551,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("SaisiePts", SaisiePts_main, " Tool to capture GCP (low level, not recommended)"));
 		aRes.push_back(cMMCom("SEL", SEL_main, " Tool to visualize tie points"));
 		aRes.push_back(cMMCom("MICMACSaisieLiaisons", MICMACSaisieLiaisons_main, " Low level version of SEL, not recommended"));
+
+		aRes.push_back(cMMCom("GCP2MeasuresL3D", CPP_GCP2MeasureLine3D, " Convert a set of GCP in measure of 3D lines using convention NameLine_x with x={1,2}",cArgLogCom(2)));
 
 #ifdef ETA_POLYGON
 		aRes.push_back(cMMCom("HackToF", HackToF,"Hack ToF format "));
