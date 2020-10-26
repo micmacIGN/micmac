@@ -39,7 +39,7 @@ bool GloNavigationData::hasEphemeris(int PRN, GPSTime time){
 		found = true; break;									     // Contrainte 3
 	}
 
-	if ((!found) or (time - this->navSlots.at(idx).getTime() > GLO_COEFF_SECURITY*GLO_RINEX_NAV_INTERVAL_SEC)){
+	if ((!found) || (time - this->navSlots.at(idx).getTime() > GLO_COEFF_SECURITY*GLO_RINEX_NAV_INTERVAL_SEC)){
         return false;
 	}
 
