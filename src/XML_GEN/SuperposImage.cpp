@@ -208,6 +208,8 @@ eTypeImporGenBundle  Str2eTypeImporGenBundle(const std::string & aName)
       return eTIGB_MMASTER;
    else if (aName=="eTIGB_MMScanLineSensor")
       return eTIGB_MMScanLineSensor;
+   else if (aName=="eTIGB_MMEpip")
+      return eTIGB_MMEpip;
    else if (aName=="eTIGB_NbVals")
       return eTIGB_NbVals;
   else
@@ -245,6 +247,8 @@ std::string  eToString(const eTypeImporGenBundle & anObj)
       return  "eTIGB_MMASTER";
    if (anObj==eTIGB_MMScanLineSensor)
       return  "eTIGB_MMScanLineSensor";
+   if (anObj==eTIGB_MMEpip)
+      return  "eTIGB_MMEpip";
    if (anObj==eTIGB_NbVals)
       return  "eTIGB_NbVals";
  std::cout << "Enum = eTypeImporGenBundle\n";
@@ -269,7 +273,7 @@ void  BinaryUnDumpFromFile(eTypeImporGenBundle & anObj,ELISE_fp & aFp)
    anObj=(eTypeImporGenBundle) aIVal;
 }
 
-std::string  Mangling( eTypeImporGenBundle *) {return "D5E45037973C289BFD3F";};
+std::string  Mangling( eTypeImporGenBundle *) {return "7261BB7CC1F03DB1FE3F";};
 
 eTypeModeNO  Str2eTypeModeNO(const std::string & aName)
 {
@@ -28796,5 +28800,212 @@ void xml_init(cXml_Map2D & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cXml_Map2D *) {return "20DED58EB83F42D0FE3F";};
+
+
+std::string & cXml_OneMeasure3DLineInIm::NameLine3D()
+{
+   return mNameLine3D;
+}
+
+const std::string & cXml_OneMeasure3DLineInIm::NameLine3D()const 
+{
+   return mNameLine3D;
+}
+
+
+Pt2dr & cXml_OneMeasure3DLineInIm::P1()
+{
+   return mP1;
+}
+
+const Pt2dr & cXml_OneMeasure3DLineInIm::P1()const 
+{
+   return mP1;
+}
+
+
+Pt2dr & cXml_OneMeasure3DLineInIm::P2()
+{
+   return mP2;
+}
+
+const Pt2dr & cXml_OneMeasure3DLineInIm::P2()const 
+{
+   return mP2;
+}
+
+void  BinaryUnDumpFromFile(cXml_OneMeasure3DLineInIm & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameLine3D(),aFp);
+    BinaryUnDumpFromFile(anObj.P1(),aFp);
+    BinaryUnDumpFromFile(anObj.P2(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_OneMeasure3DLineInIm & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameLine3D());
+    BinaryDumpInFile(aFp,anObj.P1());
+    BinaryDumpInFile(aFp,anObj.P2());
+}
+
+cElXMLTree * ToXMLTree(const cXml_OneMeasure3DLineInIm & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_OneMeasure3DLineInIm",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameLine3D"),anObj.NameLine3D())->ReTagThis("NameLine3D"));
+   aRes->AddFils(::ToXMLTree(std::string("P1"),anObj.P1())->ReTagThis("P1"));
+   aRes->AddFils(::ToXMLTree(std::string("P2"),anObj.P2())->ReTagThis("P2"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_OneMeasure3DLineInIm & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NameLine3D(),aTree->Get("NameLine3D",1)); //tototo 
+
+   xml_init(anObj.P1(),aTree->Get("P1",1)); //tototo 
+
+   xml_init(anObj.P2(),aTree->Get("P2",1)); //tototo 
+}
+
+std::string  Mangling( cXml_OneMeasure3DLineInIm *) {return "37865D226D6FD384FE3F";};
+
+
+std::string & cXml_SetMeasure3DLineInOneIm::NameIm()
+{
+   return mNameIm;
+}
+
+const std::string & cXml_SetMeasure3DLineInOneIm::NameIm()const 
+{
+   return mNameIm;
+}
+
+
+std::list< cXml_OneMeasure3DLineInIm > & cXml_SetMeasure3DLineInOneIm::Measures()
+{
+   return mMeasures;
+}
+
+const std::list< cXml_OneMeasure3DLineInIm > & cXml_SetMeasure3DLineInOneIm::Measures()const 
+{
+   return mMeasures;
+}
+
+void  BinaryUnDumpFromFile(cXml_SetMeasure3DLineInOneIm & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameIm(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_OneMeasure3DLineInIm aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Measures().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_SetMeasure3DLineInOneIm & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameIm());
+    BinaryDumpInFile(aFp,(int)anObj.Measures().size());
+    for(  std::list< cXml_OneMeasure3DLineInIm >::const_iterator iT=anObj.Measures().begin();
+         iT!=anObj.Measures().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_SetMeasure3DLineInOneIm & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_SetMeasure3DLineInOneIm",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameIm"),anObj.NameIm())->ReTagThis("NameIm"));
+  for
+  (       std::list< cXml_OneMeasure3DLineInIm >::const_iterator it=anObj.Measures().begin();
+      it !=anObj.Measures().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Measures"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_SetMeasure3DLineInOneIm & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NameIm(),aTree->Get("NameIm",1)); //tototo 
+
+   xml_init(anObj.Measures(),aTree->GetAll("Measures",false,1));
+}
+
+std::string  Mangling( cXml_SetMeasure3DLineInOneIm *) {return "6CA5A8225BC15E9DFCBF";};
+
+
+std::list< cXml_SetMeasure3DLineInOneIm > & cXml_SetMeasureGlob3DLine::AllMeasures()
+{
+   return mAllMeasures;
+}
+
+const std::list< cXml_SetMeasure3DLineInOneIm > & cXml_SetMeasureGlob3DLine::AllMeasures()const 
+{
+   return mAllMeasures;
+}
+
+void  BinaryUnDumpFromFile(cXml_SetMeasureGlob3DLine & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_SetMeasure3DLineInOneIm aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.AllMeasures().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_SetMeasureGlob3DLine & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.AllMeasures().size());
+    for(  std::list< cXml_SetMeasure3DLineInOneIm >::const_iterator iT=anObj.AllMeasures().begin();
+         iT!=anObj.AllMeasures().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_SetMeasureGlob3DLine & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_SetMeasureGlob3DLine",eXMLBranche);
+  for
+  (       std::list< cXml_SetMeasure3DLineInOneIm >::const_iterator it=anObj.AllMeasures().begin();
+      it !=anObj.AllMeasures().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("AllMeasures"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_SetMeasureGlob3DLine & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.AllMeasures(),aTree->GetAll("AllMeasures",false,1));
+}
+
+std::string  Mangling( cXml_SetMeasureGlob3DLine *) {return "958417229DFA6093FF3F";};
 
 // };

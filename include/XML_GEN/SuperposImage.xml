@@ -61,6 +61,7 @@
         <eTIGB_MMIkonos>    </eTIGB_MMIkonos>
         <eTIGB_MMASTER>     </eTIGB_MMASTER>
         <eTIGB_MMScanLineSensor>     </eTIGB_MMScanLineSensor>
+        <eTIGB_MMEpip>      </eTIGB_MMEpip>
         <eTIGB_NbVals>      </eTIGB_NbVals>
     </enum>
 
@@ -1983,6 +1984,27 @@
 <Xml_Map2D Nb="1" Class="true" ToReference="true" >
      <Maps Nb="*" RefType="Xml_Map2DElem"> </Maps>
 </Xml_Map2D>
+
+<!-- Classes to represent measures used for projection of unknown 3D lines in images -->
+
+<!-- Nb, Class and ToRef must be present on "top" class -->
+<Xml_OneMeasure3DLineInIm  Nb="1" Class="true" ToReference="true">
+    <!-- std::string and Pt2dr are atomic types eligible to generate code -->
+    <NameLine3D Nb="1" Type="std::string"> </NameLine3D>
+    <P1 Nb="1" Type="Pt2dr"> </P1>
+    <P2 Nb="1" Type="Pt2dr"> </P2>
+</Xml_OneMeasure3DLineInIm>
+
+<Xml_SetMeasure3DLineInOneIm  Nb="1" Class="true" ToReference="true">
+    <NameIm Nb="1" Type="std::string"> </NameIm>
+    <!-- We use RefType because it's not an atomic but one xml previously  created -->
+    <Measures Nb="*" RefType="Xml_OneMeasure3DLineInIm"> </Measures>
+</Xml_SetMeasure3DLineInOneIm>
+
+<Xml_SetMeasureGlob3DLine Nb="1" Class="true" ToReference="true">
+    <AllMeasures Nb="*" RefType="Xml_SetMeasure3DLineInOneIm"> </AllMeasures>
+</Xml_SetMeasureGlob3DLine>
+
 
 
 <Verbatim File=".h.cpp">

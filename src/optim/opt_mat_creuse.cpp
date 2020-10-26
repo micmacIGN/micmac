@@ -1806,12 +1806,12 @@ void cElMatCreuseBlocSym::CalculCholesky()
                       {
                            if (aScal <=0)
                            {
-                               std::cout << "Value =  "  << aScal << "\n";
+                               std::cout << "ValueNeg =  "  << aScal << "\n";
                                static bool First = true;
                                if (First)
                                {
                                      std::cout << " Warn tape enter to continue" << std::endl;
-                                     if (TheExitOnWarn || MPD_MM())
+                                     if (TheExitOnWarn) // ( || MPD_MM())
                                          ElEXIT(1,"aScal<=0 in Cholesky");
                                      else
                                      {

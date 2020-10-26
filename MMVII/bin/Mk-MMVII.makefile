@@ -8,6 +8,12 @@ MMV2DirBin=${MMV2Dir}bin/
 MMV2Objects=${MMV2Dir}object/
 MMV2DirIncl=${MMV2Dir}include/
 MMV2ElisePath=${MMDir}/lib/libelise.a
+MMV2Exe=MMVII
+
+MMSymbDerHeader=$(wildcard ${MMV2DirIncl}/SymbDer/*.h)
+
+all : ${MMV2DirBin}${MMV2Exe}
+
 #
 #
 #       ===== INSTALLATION ========================================
@@ -101,26 +107,31 @@ MMV2DirMatchTieP=${MMV2DirSrc}MatchTieP/
 SrcMatchTieP=$(wildcard ${MMV2DirMatchTieP}*.cpp)
 ObjMatchTieP=$(SrcMatchTieP:.cpp=.o)
 #
+#
+MMV2DirGraphs=${MMV2DirSrc}Graphs/
+SrcGraphs=$(wildcard ${MMV2DirGraphs}*.cpp)
+ObjGraphs=$(SrcGraphs:.cpp=.o) 
+#
 #    => Le Main
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso} 
+OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs}
 #
 #=========  Header ========
 #
 #
 HEADER=$(wildcard ${MMV2DirIncl}*.h)
+
 #
 #  Binaries
 #== CFLAGS etc...
 #
 CXX=g++
-CFlags= "-std=c++14" "-Wall"  "-Werror" "-O4" "-march=native" -I${MMV2Dir} -I${MMDir}/include/ -I${MMDir}
+CFlags= "-fopenmp" "-std=c++14" "-Wall"  "-Werror" "-O4" "-march=native" -I${MMV2Dir} -I${MMDir}/include/ -I${MMDir}
 BOOST_LIBS= -lboost_system -lboost_serialization -lboost_regex -lboost_filesystem
 QTAnnLibs= -lXext /usr/lib/x86_64-linux-gnu/libQt5Core.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so -lGLU -lGL  -ldl -lpthread /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5Concurrent.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so ../../lib/libANN.a
 LibsFlags= ${MMV2ElisePath} -lX11  ${BOOST_LIBS}  ${QTAnnLibs}
-MMV2Exe=MMVII
 #
 ${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ResultInstal} ${MMV2ElisePath}
 	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe} 
@@ -146,7 +157,7 @@ ${MMV2DirMMV1}%.o :  ${MMV2DirMMV1}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirCmdSpec}%.o :  ${MMV2DirCmdSpec}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
-${MMV2DirTLE}%.o :  ${MMV2DirTLE}%.cpp   ${HEADER}
+${MMV2DirTLE}%.o :  ${MMV2DirTLE}%.cpp   ${HEADER} ${MMSymbDerHeader}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirT4MkF}%.o :  ${MMV2DirT4MkF}%.cpp ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
@@ -170,11 +181,11 @@ ${MMV2DirMatrix}%.o :  ${MMV2DirMatrix}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirDIB}%.o :  ${MMV2DirDIB}%.cpp   ${HEADER} ${MMV2DirDIB}*.h
 	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirGraphs}%.o :  ${MMV2DirGraphs}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
 #
 #       ===== TEST ========================================
 #
-all : ${MMV2DirBin}${MMV2Exe} ${OBJ}
-	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe}
 Show:
 	echo ${SrcCalcDescriptPCar}
 	echo DU=${MMV2DirCalcDescriptPCar}

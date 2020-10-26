@@ -998,6 +998,7 @@ cPoseCam::cPoseCam
     mEqOffsetGPS         (0),
     mSRI                 (nullptr),
     mBlocCam             (nullptr),
+    mNumTimeBloc         (-1),
     mPoseInBlocCam       (nullptr),
     mUseRappelPose       (false),
     mRotURP              (ElRotation3D::Id)
@@ -1099,6 +1100,17 @@ bool cPoseCam::FidExist() const
    return mFidExist;
 }
 
+
+void cPoseCam::SetNumTimeBloc(int aNum)
+{
+   mNumTimeBloc = aNum;
+}
+
+int cPoseCam::DifBlocInf1(const cPoseCam & aPC) const
+{
+   if ((mNumTimeBloc==-1) || (aPC.mNumTimeBloc==-1)) return 1000;
+   return ElAbs(mNumTimeBloc-aPC.mNumTimeBloc);
+}
 
 
 

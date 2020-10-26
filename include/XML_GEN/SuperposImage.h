@@ -83,6 +83,7 @@ typedef enum
   eTIGB_MMIkonos,
   eTIGB_MMASTER,
   eTIGB_MMScanLineSensor,
+  eTIGB_MMEpip,
   eTIGB_NbVals
 } eTypeImporGenBundle;
 void xml_init(eTypeImporGenBundle & aVal,cElXMLTree * aTree);
@@ -8955,6 +8956,90 @@ void  BinaryDumpInFile(ELISE_fp &,const cXml_Map2D &);
 void  BinaryUnDumpFromFile(cXml_Map2D &,ELISE_fp &);
 
 std::string  Mangling( cXml_Map2D *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_OneMeasure3DLineInIm
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_OneMeasure3DLineInIm & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameLine3D();
+        const std::string & NameLine3D()const ;
+
+        Pt2dr & P1();
+        const Pt2dr & P1()const ;
+
+        Pt2dr & P2();
+        const Pt2dr & P2()const ;
+    private:
+        std::string mNameLine3D;
+        Pt2dr mP1;
+        Pt2dr mP2;
+};
+cElXMLTree * ToXMLTree(const cXml_OneMeasure3DLineInIm &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_OneMeasure3DLineInIm &);
+
+void  BinaryUnDumpFromFile(cXml_OneMeasure3DLineInIm &,ELISE_fp &);
+
+std::string  Mangling( cXml_OneMeasure3DLineInIm *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_SetMeasure3DLineInOneIm
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_SetMeasure3DLineInOneIm & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameIm();
+        const std::string & NameIm()const ;
+
+        std::list< cXml_OneMeasure3DLineInIm > & Measures();
+        const std::list< cXml_OneMeasure3DLineInIm > & Measures()const ;
+    private:
+        std::string mNameIm;
+        std::list< cXml_OneMeasure3DLineInIm > mMeasures;
+};
+cElXMLTree * ToXMLTree(const cXml_SetMeasure3DLineInOneIm &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_SetMeasure3DLineInOneIm &);
+
+void  BinaryUnDumpFromFile(cXml_SetMeasure3DLineInOneIm &,ELISE_fp &);
+
+std::string  Mangling( cXml_SetMeasure3DLineInOneIm *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_SetMeasureGlob3DLine
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_SetMeasureGlob3DLine & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXml_SetMeasure3DLineInOneIm > & AllMeasures();
+        const std::list< cXml_SetMeasure3DLineInOneIm > & AllMeasures()const ;
+    private:
+        std::list< cXml_SetMeasure3DLineInOneIm > mAllMeasures;
+};
+cElXMLTree * ToXMLTree(const cXml_SetMeasureGlob3DLine &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_SetMeasureGlob3DLine &);
+
+void  BinaryUnDumpFromFile(cXml_SetMeasureGlob3DLine &,ELISE_fp &);
+
+std::string  Mangling( cXml_SetMeasureGlob3DLine *);
 
 /******************************************************/
 /******************************************************/

@@ -67,7 +67,8 @@ int ScaleIm_main(int argc,char ** argv)
     bool aForceGray  = false;
     bool aForce8B  = false;
 
-    bool aModeMasq=false;
+    bool aModeMasq   = false;
+    bool Arg2IsWidth = false;
 
 
     ElInitArgMain
@@ -90,6 +91,7 @@ int ScaleIm_main(int argc,char ** argv)
                 << EAM(aForce8B,"F8B",true,"Force 8 bits (Def=false)")
                 << EAM(aModeMasq,"ModMasq",true,"Mode Masq => binarize at 0.9999 threshlod ")
                 << EAM(aNameDepl,"NameDepl",true,"Image of displacement ")
+                << EAM(Arg2IsWidth ,"Arg2IsW",true,"If 2nd Arg is Witdh")
     );
     if (!MMVisualMode)
     {
@@ -100,13 +102,15 @@ int ScaleIm_main(int argc,char ** argv)
     if (aDilXY.x<0)
        aDilXY = Pt2dr(aDilate,aDilate);
 
-    if (aScY==0)
-        aScY= aScX;
-
 
     std::string aNameTif = NameFileStd(aNameIn,aForceGray ? 1 :-1,!aForce8B ,true,true);
-
     Tiff_Im tiff = Tiff_Im::StdConvGen(aNameIn.c_str(),aForceGray ? 1 :-1,!aForce8B ,true);
+    if (Arg2IsWidth)
+    {
+        aScX =   tiff.sz().x / double(aScX);
+    }
+    if (aScY==0)
+        aScY= aScX;
 
     aP0.SetSup(Pt2dr(0,0));
     Pt2di aSzG = tiff.sz();

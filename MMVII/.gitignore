@@ -1,0 +1,9 @@
+include/CodeGen_*.h
+*.o
+*.aux
+*.idx
+*.log
+*.out
+*.toc
+MMVII/MMVII-TestDir/Input/Files/RelTest.xml
+MMVII/MMVII-TestDir/Input/Files/RelTest_0-5.xml

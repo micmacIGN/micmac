@@ -261,6 +261,8 @@ int  PPMD_MatEss2Orient(int argc,char ** argv);
 int GrapheStereopolis_main(int argc,char ** argv);
 int CheckGCPStereopolis_main(int argc,char ** argv);
 int AnalyseTrajStereopolis_main(int argc,char ** argv);
+int CPP_CalcImScale(int argc,char** argv);
+
 
 
 
@@ -291,6 +293,8 @@ int CPP_YannExcludeSats(int argc,char ** argv);
 int CPP_YannSetTimestamps(int argc,char ** argv);
 int CPP_YannSkyMask(int argc,char ** argv);
 int CPP_YannScript(int argc,char ** argv);
+
+int CPP_GCP2MeasureLine3D(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -387,6 +391,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("GrapheHom", GrapheHom_main, "Compute XML-Visibility graph from approximate orientation", cArgLogCom(3)));
 		aRes.push_back(cMMCom("GrapheStereopolis", GrapheStereopolis_main,"Compute Pair of Image for Stereopolis", cArgLogCom(2)));
 		aRes.push_back(cMMCom("CheckGCPStereopolis", CheckGCPStereopolis_main,"Check GCP with strategy optimized for Stereopolis-like acquisition", cArgLogCom(2)));
+		aRes.push_back(cMMCom("CalcImScale", CPP_CalcImScale,"Calculate scale of image", cArgLogCom(2)));
 
 
 		aRes.push_back(cMMCom("AnalyseTrajStereopolis", AnalyseTrajStereopolis_main,"Analyse trajectory of Stereopolis-like acquisition", cArgLogCom(2)));
@@ -551,6 +556,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("SEL", SEL_main, " Tool to visualize tie points"));
 		aRes.push_back(cMMCom("MICMACSaisieLiaisons", MICMACSaisieLiaisons_main, " Low level version of SEL, not recommended"));
 
+		aRes.push_back(cMMCom("GCP2MeasuresL3D", CPP_GCP2MeasureLine3D, " Convert a set of GCP in measure of 3D lines using convention NameLine_x with x={1,2}",cArgLogCom(2)));
+
 #ifdef ETA_POLYGON
 		aRes.push_back(cMMCom("HackToF", HackToF,"Hack ToF format "));
 
@@ -591,6 +598,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("PIMs", MPI_main, "Per Image Matchings"));
 		aRes.push_back(cMMCom("PIMs2Ply", MPI2Ply_main, "Generate Ply from Per Image Matchings"));
 		aRes.push_back(cMMCom("PIMs2Mnt", MPI2Mnt_main, "Generate Mnt from Per Image Matchings"));
+		aRes.push_back(cMMCom("SAT4GEO", Sat3D_main, "Satellite 3D pipeline"));
 
 
 		aRes.push_back(cMMCom("AllDev", DoAllDev_main, "Force development of all tif/xif file"));
@@ -686,6 +694,7 @@ extern int TestER_hom_main(int argc, char ** argv);
 extern int PFM2Tiff_main(int argc, char ** argv);
 extern int BAL2OriMicMac_main(int argc, char ** argv);
 extern int CPP_NewOriReadFromSfmInit(int argc, char ** argv);
+extern int CPP_ImportArtsQuad(int argc, char ** argv);
 extern int CPP_Bundler2MM_main(int argc, char ** argv);
 extern int CPP_MM2Bundler_main(int argc, char ** argv);
 extern int CPP_Strecha2MM(int argc, char ** argv);
@@ -797,6 +806,8 @@ int CPP_GenAllImP3(int argc, char ** argv);
 int CPP_OptimTriplet_main(int argc, char ** argv);
 int CPP_AllOptimTriplet_main(int argc, char ** argv);
 int CPP_NewSolGolInit_main(int argc, char ** argv);
+int CPP_SolGlobInit_RandomDFS_main(int argc, char ** argv);
+int CPP_GenOptTriplets(int argc, char ** argv);
 int CPP_NewOriImage2G2O_main(int argc, char ** argv);
 int CPP_FictiveObsFin_main(int argc, char ** argv);
 int CPP_XmlOriRel2OriAbs_main(int argc, char ** argv);
@@ -817,7 +828,11 @@ int TestARCam_main(int argc, char ** argv);
 int CPP_TestPhysMod_Main(int argc, char ** argv);
 int MvImgsByFile_main(int argc, char** argv);
 int OneReechHom_main(int argc, char ** argv);
+int OneReechFromAscii_main(int argc, char ** argv);
+int AllReechFromAscii_main(int argc, char ** argv);
 int AllReechHom_main(int argc, char ** argv);
+int OneHomMMToAerial_main(int argc,char** argv);
+int AllHomMMToAerial_main(int argc,char** argv);
 int RTI_main(int argc, char ** argv);
 int RTIRecalRadiom_main(int argc, char ** argv);
 int RTIMed_main(int argc, char ** argv);
@@ -938,6 +953,12 @@ extern int ConvTiePointPix4DMM_main(int argc,char ** argv);
 extern int OrthoDirectFromDenseCloud_main(int argc,char ** argv);
 extern int TiepGraphByCamDist_main(int argc,char ** argv);
 
+extern int GraphHomSat_main(int argc,char ** argv);
+extern int CPP_AppliCreateEpi_main(int argc,char ** argv);
+extern int CPP_AppliMM1P_main(int argc,char ** argv);
+extern int CPP_AppliRecalRPC_main(int argc,char ** argv);
+extern int CPP_AppliFusion_main(int argc,char ** argv);
+extern int CPP_TransformGeom_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -999,6 +1020,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("Tif2Pfm", PFM2Tiff_main, "Tif to pfm or the other way around"));
 		aRes.push_back(cMMCom("BAL2MM", BAL2OriMicMac_main, "Convert a BAL problem to MicMac"));
 		aRes.push_back(cMMCom("SfmI2MM", CPP_NewOriReadFromSfmInit, "Convert the SfmInit problem to MicMac"));
+		aRes.push_back(cMMCom("ArtsQuad", CPP_ImportArtsQuad, "Read ArtsQuad tracks to MicMac tie-pts"));
 		aRes.push_back(cMMCom("Bundler2MM", CPP_Bundler2MM_main, "Convert the Bundler solution to MicMac"));
 		aRes.push_back(cMMCom("MM2Bundler", CPP_MM2Bundler_main, "Convert the MicMac  solution to Bundler"));
 		aRes.push_back(cMMCom("Str2MM", CPP_Strecha2MM, "Convert the Strecha solution to MicMac"));
@@ -1157,6 +1179,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("NO_OneImOptTrip",CPP_OptimTriplet_main,"New Orientation : otimize triplet"));
         aRes.push_back(cMMCom("NO_AllImOptTrip",CPP_AllOptimTriplet_main,"New Orientation : otimize triplet"));
         aRes.push_back(cMMCom("NO_SolInit3",CPP_NewSolGolInit_main,"New Orientation : sol init from triplet"));
+        aRes.push_back(cMMCom("NO_SolInit_RndDFS",CPP_SolGlobInit_RandomDFS_main,"New Orientation : sol init by random DFS"));
+        aRes.push_back(cMMCom("NO_GenPerfTripl",CPP_GenOptTriplets,"New Orientation : generate perfect triplets from InOri"));
         aRes.push_back(cMMCom("NO_ExportG2O",CPP_NewOriImage2G2O_main,"New Orientation : export triplets to g2o"));
 
         aRes.push_back(cMMCom("NO_GenTriOfCple",CPP_NewGenTriOfCple,"New Orientation : select triple of one edge"));
@@ -1172,8 +1196,12 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TestPhysMod",CPP_TestPhysMod_Main,"Unitary test for new bundle gen"));
 
         aRes.push_back(cMMCom("TestParseDir",TestElParseDir_main," Test Parse Dir"));
+        aRes.push_back(cMMCom("OneReechFromAscii",OneReechFromAscii_main," Resample image using homography and 4 pts"));
+        aRes.push_back(cMMCom("AllReechFromAscii",AllReechFromAscii_main," Resample an image pattern using homography and 4 pts"));
         aRes.push_back(cMMCom("OneReechHom",OneReechHom_main," Resample image using homography"));
         aRes.push_back(cMMCom("AllReechHom",AllReechHom_main," Resample multiple image using homography"));
+        aRes.push_back(cMMCom("OneMMToAerial",OneHomMMToAerial_main," Project terrestrial image to aerial images"));
+        aRes.push_back(cMMCom("AllMMToAerial",AllHomMMToAerial_main," Project a pattern of terrestrial images to aerial images"));
         aRes.push_back(cMMCom("RTI",RTI_main," RTI prototype"));
         aRes.push_back(cMMCom("RTI_RR",RTIRecalRadiom_main," RTI recalage radiom"));
         aRes.push_back(cMMCom("RTIMed",RTIMed_main," RTI calc median image"));
@@ -1251,6 +1279,14 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
 
         aRes.push_back(cMMCom("AC_CQ",CPP_AutoCorr_CensusQuant,"Auto correl for Census Quant"));
+
+        aRes.push_back(cMMCom("SAT4GEO_Pairs",GraphHomSat_main,"Calculate overlapping image pairs (case satellite)"));
+        aRes.push_back(cMMCom("SAT4GEO_CreateEpip",CPP_AppliCreateEpi_main,"Calculate the epipolar geometry (case satellite)"));
+        aRes.push_back(cMMCom("SAT4GEO_MM1P",CPP_AppliMM1P_main,"Do dense image matching in epipolar geometry (case satellite)"));
+        aRes.push_back(cMMCom("SAT4GEO_EpiRPC",CPP_AppliRecalRPC_main,"Recalculate RPC for epipolar geometry images (case satellite)"));
+        aRes.push_back(cMMCom("SAT4GEO_Fuse",CPP_AppliFusion_main,"Fusion of individual depth maps (case satellite)"));
+		aRes.push_back(cMMCom("TransGeom", CPP_TransformGeom_main, "Transform geometry of depth map to eGeomMNTFaisceauIm1ZTerrain_Px1D"));
+
 
    }
 

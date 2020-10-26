@@ -717,6 +717,71 @@
 	<SubDirAutoMake> Homol#1 </SubDirAutoMake>
 	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
     </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)%(.*) </PatternTransform>
+                <CalcName> Ori-GenEpi-#1/Orient_$1-$2.#2  </CalcName>
+                <Separateur > % </Separateur>
+             </Direct>
+<!--
+   A priori inverse pas utile. Si elle devait l'etre, il faudrait changer les conventions et 
+	     <Inverse>
+                <PatternTransform>  Ori-Epi-#1/Orient_(.*)_-_(.*).#2 </PatternTransform>
+                <CalcName> $1  </CalcName>
+                <CalcName> $2  </CalcName>
+	     </Inverse>
+-->
+        </Calcs>
+        <Key>  NKS-Assoc-CplIm2OriGenEpi </Key>
+	<SubDirAutoMake> Ori-GenEpi-#1 </SubDirAutoMake>
+	<SubDirAutoMakeRec> true </SubDirAutoMakeRec>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  3 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)%(.*)%(.*) </PatternTransform>
+                <CalcName> EpipIm-$1-$2-$3.#1  </CalcName>
+                <Separateur > % </Separateur>
+             </Direct>
+<!--
+   A priori inverse pas utile. Si elle devait l'etre, il faudrait changer les conventions et 
+	     <Inverse>
+                <PatternTransform>  Ori-Epi-#1/Orient_(.*)_-_(.*).#2 </PatternTransform>
+                <CalcName> $1  </CalcName>
+                <CalcName> $2  </CalcName>
+	     </Inverse>
+-->
+        </Calcs>
+        <Key>  NKS-Assoc-NameImEpip </Key>
+    </KeyedNamesAssociations>
+
+    <KeyedNamesAssociations>
+        <IsParametrized>  true </IsParametrized>
+        <Calcs>
+            <Arrite>  3 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)%(.*)%(.*) </PatternTransform>
+                <CalcName> EpipAppuis-$1-$2-$3.xml  </CalcName>
+                <Separateur > % </Separateur>
+			</Direct>
+			<Inverse>
+					<PatternTransform> EpipAppuis-(.*)-(.*)-(.*).xml </PatternTransform>
+					<CalcName> $2 </CalcName>
+					<CalcName> $3 </CalcName>
+			</Inverse>
+        </Calcs>
+        <Key>  NKS-Assoc-NameAppuiEpip </Key>
+    </KeyedNamesAssociations>
+
+
+
     
      <KeyedSetsOfNames >
           <IsParametrized>  true </IsParametrized>
@@ -2598,6 +2663,22 @@
         </Calcs>
         <Key> Key-Assoc-Nuage-Ply </Key>
     </KeyedNamesAssociations>
+
+<!-- 
+	MEC - decompose image name from MEC2Im-XXX
+-->
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)@(.*) </PatternTransform>
+				<CalcName>  MEC2Im-$1-$2/  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key> Key-Assoc-MEC-Dir </Key>
+    </KeyedNamesAssociations>
+
 
 
 <!--

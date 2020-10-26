@@ -22,6 +22,7 @@ set(UTI_PHGRM_TEXT_DIR ${UTI_PHGRM_DIR}/TexturePacker)
 
 set(UTI_PHGRM_MAXFLOW_DIR ${UTI_PHGRM_GRAPHCUT_DIR}/MaxFlow)
 set(UTI_PHGRM_QPBO_DIR ${UTI_PHGRM_GRAPHCUT_DIR}/QPBO-v1.4)
+set(UTI_PHGRM_SAT4GEO_DIR ${UTI_PHGRM_DIR}/SAT4GEO)
 
 set(SrcGrp_Uti_PHGRM uti_phgrm)
 set(SrcGrp_Graph_Cut uti_phgrm/GraphCut)
@@ -44,6 +45,7 @@ include(${UTI_PHGRM_NEW_ORI}/Sources.cmake)
 include(${UTI_PHGRM_SAT_PHYS_MOD}/Sources.cmake)
 include(${UTI_PHGRM_TEXT_DIR}/Sources.cmake)
 include(${UTI_PHGRM_TiePTri_DIR}/Sources.cmake)
+include(${UTI_PHGRM_SAT4GEO_DIR}/Sources.cmake)
 
 #define __CUDA_API_VERSION 0x5050
 
@@ -172,6 +174,9 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_GIMMI.cpp
     ${UTI_PHGRM_DIR}/CPP_Bundler2MM.cpp
     ${UTI_PHGRM_DIR}/CPP_MM2OpenMVG.cpp
+    ${UTI_PHGRM_DIR}/CPP_MMToAerial.cpp
+    ${UTI_PHGRM_DIR}/CPP_Sat3DP.cpp
+    ${UTI_PHGRM_DIR}/CPP_Line3D.cpp
 )
 
 
@@ -188,6 +193,7 @@ SOURCE_GROUP(${SrcGrp_Graph_Cut}\\MaxFlow FILES ${uti_phgrm_MaxFlow_Src_Files})
 SOURCE_GROUP(${SrcGrp_Graph_Cut}\\QPBO FILES ${uti_phgrm_qpbo_Src_Files})
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\Porto FILES ${uti_phgrm_Porto_Src_Files})
 SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\ReducHom FILES ${uti_phgrm_Porto_Src_Files})
+SOURCE_GROUP(${SrcGrp_Uti_PHGRM}\\SAT4GEO FILES ${uti_phgrm_Sat4Geo_Src_Files})
 
 
 if(${CUDA_ENABLED})
@@ -205,4 +211,5 @@ list(APPEND uti_phgrm_Src_Files ${uti_phgrm_ReducHom_Src_Files})
 list(APPEND uti_phgrm_Src_Files ${uti_phgrm_RHH_Src_Files})
 list(APPEND uti_phgrm_Src_Files ${uti_phgrm_Casa_Src_Files})
 list(APPEND uti_phgrm_Src_Files ${uti_phgrm_Text_Src_Files})
+list(APPEND uti_phgrm_Src_Files ${uti_phgrm_Sat4Geo_Src_Files})
 list(APPEND Elise_Src_Files ${uti_phgrm_Src_Files})

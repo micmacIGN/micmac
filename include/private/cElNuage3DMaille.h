@@ -215,6 +215,7 @@ class cElNuage3DMaille : public cCapture3D
              return (mTVoisImDef.get(anI,0) != 0);
         }
         void SetNormByCenter(int val);
+        void SetDistCenter(double val);
 
         bool  IndexHasContenuForInterpol(const tIndex2D & aP) const
         {
@@ -358,6 +359,7 @@ class cElNuage3DMaille : public cCapture3D
                   const std::string & aName,const std::list<std::string>& aComments, bool aModeBin,
                   bool SavePtsCol = true,
                   int aAddNormale=0,
+                  const std::list<std::string>& aNormName = {},
                   bool DoublePrec = false,
                   const Pt3dr& anOffset = Pt3dr(0,0,0)
              ) const;
@@ -372,6 +374,7 @@ class cElNuage3DMaille : public cCapture3D
                     bool aModeBin,
                     bool SavePtsCol = true,
                     int aAddNormale = 0,
+                    const std::list<std::string>& aNormName = {},
                     bool DoublePrec = false,
                     const Pt3dr& anOffset = Pt3dr(0,0,0)
                 ) ;
@@ -529,6 +532,7 @@ class cElNuage3DMaille : public cCapture3D
 
         void GenTri(std::vector<tTri> &,const tIndex2D &,int aOffset) const;
         void AddTri(std::vector<tTri> &,const tIndex2D &,int *K123,int aOffset) const;
+        double TriArea(const Pt3dr &,const Pt3dr &, const Pt3dr &) const;
 
      protected  :
         void AssertNoEmptyData() const;
@@ -558,6 +562,7 @@ class cElNuage3DMaille : public cCapture3D
         Im2D_Bits<1>                  mVoisImDef;
         TIm2DBits<1>                  mTVoisImDef;
         int                           mNormByCenter;
+        double                        mDistCenter;
 
         cChCoCart *                   m2RepGlob;
         cChCoCart *                   m2RepLoc;

@@ -109,7 +109,7 @@ CameraRPC::CameraRPC(const std::string &aNameFile,
 }
 
 cBasicGeomCap3D * CameraRPC::CamRPCOrientGenFromFile(const std::string & aName, const eTypeImporGenBundle aType, const cSystemeCoord * aChSys)
-{
+{ 
     cBasicGeomCap3D * aRes = new CameraRPC(aName, aType, aChSys); 
     
     return aRes;
@@ -854,7 +854,6 @@ std::string CameraRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anI
                                const ElAffin2D & anOrIntInit2Cur
                     ) const
 {
-	std::cout << "aNameImClip " << aNameImClip << " aOriOut " << aOriOut << "\n";
     return mRPC->Save2XmlStdMMName(anICNM,aOriOut,aNameImClip,anOrIntInit2Cur);
 }
 
@@ -1051,6 +1050,7 @@ cRPC::cRPC(const std::string &aName) :
     mRecGrid(Pt3di(0,0,0)),
     mName("")
 {
+
     if( AutoDetermineRPCFile(aName) )
     {
         /* Read Xml_CamGenPolBundle */
@@ -1122,7 +1122,7 @@ void cRPC::Initialize(const std::string &aName,
         mRefine = eRP_Poly;
 
     }
-    
+   	
     if(aChSys)
         mChSys = *aChSys;
 
@@ -1222,7 +1222,8 @@ void cRPC::Initialize(const std::string &aName,
     else if(aType==eTIGB_MMScanLineSensor)
     {
         ISMETER=true;
-        NEWPARAM_REGUL = 0.00005; //problems with RPC estimation for TITAN
+        //NEWPARAM_REGUL = 0.00005; //problems with RPC estimation for TITAN
+        NEWPARAM_REGUL   = 0.001; 
 
         /* Grid in 3D */
         std::vector<Pt3dr> aGrid3D,aGrid3DTest;
@@ -1234,9 +1235,10 @@ void cRPC::Initialize(const std::string &aName,
         ReadScanLineSensor(aNameRPC,aGrid3D,aGrid2D,aGrid3DTest,aGrid2DTest);
         ISINV=true;
 
-if(1)
+if(0)
 {
-        std::cout << "size grid to grid verif: " << aGrid3D.size() << "," << aGrid3DTest.size() << "\n";
+        std::cout << "RPC computed on : " << aGrid3D.size() << " 2D-3D correspondances, \n" 
+				     "    precision computed on : " << aGrid3DTest.size() << " 2D-3D correspondances.\n";
 
         cPlyCloud aPly3d, aPly2d;
         for (auto aP : aGrid3D)
@@ -1261,11 +1263,37 @@ if(1)
         //a priori pas necessaire
         SetRecGrid();
    
-        Show();
+        //Show();
  
 
 
 
+    }
+    else if (aType == eTIGB_MMEpip)
+    { 
+
+        /* Grid in 3D */
+        std::vector<Pt3dr> aGrid3D,aGrid3DTest;
+        /* Grid in 2D */
+        std::vector<Pt3dr> aGrid2D,aGrid2DTest;
+
+        ReadEpiGrid(aNameRPC,aGrid3D,aGrid2D,aGrid3DTest,aGrid2DTest);
+
+        ISMETER=true;
+        ISINV=true;
+        CalculRPC(aGrid3D, aGrid2D,
+                  aGrid3DTest, aGrid2DTest,
+                  mDirSNum, mDirLNum, mDirSDen, mDirLDen,
+                  mInvSNum, mInvLNum, mInvSDen, mInvLDen, 1);
+        ISDIR=true;
+
+        SetRecGrid();
+
+        //Show();
+
+        //std::string aNameNewRPC = NameSave(aName,"Ori-EpiRPC/");
+        //cRPC::Save2XmlStdMMName_(*this, aNameNewRPC);
+        
 
     }
     /*else if (aType == eTIGB_MMASTER)
@@ -1282,7 +1310,6 @@ if(1)
     else {ELISE_ASSERT(false,"Unknown RPC mode.");}
 
     //Show();
-    
 }
 
 void cRPC::Initialize_(const cSystemeCoord *aChSys)
@@ -1294,13 +1321,18 @@ void cRPC::Initialize_(const cSystemeCoord *aChSys)
 
 }
 
-std::string cRPC::NameSave(const std::string & aName)
+std::string cRPC::NameSave(const std::string & aName,std::string aDirName)
 {
-    std::string aNewDir = DirOfFile(aName)+ "NEW/";
-    ELISE_fp::MkDirSvp(aNewDir);
+	/*std::string aPrefix = DirOfFile(aName);
+    std::string aNewDir = aPrefix.substr(0,aPrefix.size()-1) + aDirName + "/";
+    ELISE_fp::MkDirSvp(aNewDir);*/
 
-    std::string aNameXml = aNewDir + StdPrefix(NameWithoutDir(aName)) + ".xml";
-    
+	StdCorrecNameOrient(aDirName,"./",true);
+	//ELISE_fp::MkDirSvp("Ori-" + aDirName);
+
+    //std::string aNameXml = aNewDir + StdPrefix(NameWithoutDir(aName)) + ".xml";
+    std::string aNameXml = "Ori-" + aDirName + "/" + StdPrefix(NameWithoutDir(aName)) + ".xml";
+
     return aNameXml;
 }
 
@@ -1491,24 +1523,33 @@ std::string cRPC::Save2XmlStdMMName_(cRPC &aRPC, const std::string &aName)
    return aName;
 }
 
+
 std::string cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
-                               const std::string & aOriOut,
+                               const std::string & aOri,
                                const std::string & aNameImClip,
-                               const ElAffin2D & anOrIntInit2Cur
+                               const ElAffin2D & anOrIntInit2Cur,
+                               const std::string & aOriOut
                     )
 
 {
-  // aOriOut == "" => convention pour cas special appel a l'ancienne
-    std::string aName = (aOriOut=="")? aNameImClip  : anICNM->StdNameCamGenOfNames(aOriOut,aNameImClip);
-    std::string aPref = (aOriOut=="") ? "" :  anICNM->Dir() ;
+	//std::cout << "cRPC::Save2XmlStdMMName" << "\n";
+
+  // aOri == "" => convention pour cas special appel a l'ancienne
+    std::string aName = (aOri=="")? aNameImClip  : anICNM->StdNameCamGenOfNames(aOri,aNameImClip);
+    std::string aPref = (aOri=="") ? "" :  anICNM->Dir() ;
     /* Create new RPC */
     cRPC aRPCSauv(aName);
-   
-    std::string aNameXml = cRPC::NameSave(aRPCSauv.mName);
-    std::string aNewDirLoc = DirOfFile(aNameXml); 
-  
+ 
+
+	std::string aNameXmlOld = aRPCSauv.mName;
+    std::string aNameXml 	= cRPC::NameSave(aRPCSauv.mName,aOriOut);
+    std::string aNewDirLoc 	= DirOfFile(aNameXml); 
+
+
+
     /* Save the new RPC to XML file */
     cRPC::Save2XmlStdMMName_(aRPCSauv,aNameXml);
+
 
     /* Save the new cXml_CamGenPolBundle file :
      * - read the old cXml_CamGenPolBundle,
@@ -1517,9 +1558,8 @@ std::string cRPC::Save2XmlStdMMName(  cInterfChantierNameManipulateur * anICNM,
     cXml_CamGenPolBundle aXML =  StdGetFromSI(aName,Xml_CamGenPolBundle);
 
     int aType = eTIGB_Unknown;
-    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aNameXml,aType,aXML.SysCible().PtrCopy());
+    cBasicGeomCap3D * aCamSsCor = cBasicGeomCap3D::StdGetFromFile(aNameXmlOld,aType,aXML.SysCible().PtrCopy());
     const cSystemeCoord * aCh = aXML.SysCible().PtrCopy();
-
     
     cPolynomial_BGC3M2D aPolNew(aCh,aCamSsCor,aNameXml,aXML.NameIma(),0);
     std::string aNameGenXml =  aPolNew.NameSave("","");
@@ -2009,7 +2049,7 @@ void cRPC::ChSysRPC_(const cSystemeCoord &aChSys,
 
 if(0)
 {
-    std::cout << "ewelina image norm" << "\n";
+    std::cout << "ewelina image norm " << "\n";
     Pt3dr aPMin, aPMax, aPSum;
     GetGridExt(aGridImgN, aPMin, aPMax, aPSum);
     std::cout << "Min " << aPMin << " \n Max " << aPMax << "\n";
@@ -2035,9 +2075,9 @@ if(0)
 		aGridImgTest.at(aK).z = aGridCorSysTest.at(aK).z;
 
 
-    if( ISMETER==true ) 
+    /*if( ISMETER==true ) 
     if(aGridCorSys.size() < 1500)
-        std::cout << aGridCorSys << "\n";
+        std::cout << aGridCorSys << "\n";*/
    
 
  
@@ -2142,17 +2182,21 @@ if(0)
             aPDifMoy.y += aPDif.y;
         }
 
- 
+		if (ERupnik_MM())
+		{
+        	std::cout << "RPC precision: [" <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
+                                       <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << "]\n";
+		}
+
         if( (double(aPDifMoy.x)/(aGridGroundTest.size())) > 1 || (double(aPDifMoy.y)/(aGridGroundTest.size())) > 1 )
             std::cout << "RPC recalculation"
                 <<  " precision: " << double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
-                << double(aPDifMoy.y)/(aGridGroundTest.size()) << " [pix] \n xXXXXXXXXX ATTENTION XXXXXXXXXXXXXXXXX\n"
+                << double(aPDifMoy.y)/(aGridGroundTest.size()) << " [pix] \n xXXXXXXXXX Warning     XXXXXXXXXXXXXXXXX\n"
                 <<                                                       " x          badly estimated RPCs          X\n"
-                <<                                                       " x          choose a larger crop          X\n"
+                <<                                                       " x                                        X\n"
                 <<                                                       " xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n";
     }
     
-        
 }
 
 void cRPC::UpdateRPC( double (&aDirSNum)[20], double (&aDirLNum)[20],
@@ -3791,8 +3835,6 @@ void cRPC::ReadScanLineSensor(const std::string &aFile,std::vector<Pt3dr> & aG3d
                     mGrC3[0] = (mGrC3[0] > aAdd.z) ? aAdd.z : mGrC3[0];
                     mGrC3[1] = (mGrC3[1] < aAdd.z) ? aAdd.z : mGrC3[1];
                 
-                    //std::cout << "eeewwwwee min xgr: " << mGrC1[0] << ", Add: " << aAdd.x 
-                    //          << ", line/col: " << aL.IndLine() << " " << aS.IndCol() << "\n";
                 }
 
 
@@ -3800,9 +3842,12 @@ void cRPC::ReadScanLineSensor(const std::string &aFile,std::vector<Pt3dr> & aG3d
             }
         }
     }
-    std::cout << "min/max: " << mGrC1[0] << ", " << mGrC1[1] << "\n" 
-                             << mGrC2[0] << ", " << mGrC2[1] << "\n"
-                             << mGrC3[0] << ", " << mGrC3[1] << "\n"; 
+	if (0)
+	{
+    	std::cout << "Volume of validity X= " << mGrC1[0] << ", " << mGrC1[1] << "\n" 
+        	      << "                   Y= " << mGrC2[0] << ", " << mGrC2[1] << "\n"
+            	  << "                   Z= " << mGrC3[0] << ", " << mGrC3[1] << "\n"; 
+	}
 
     /* Fill the min/max rows/cols */
 
@@ -3846,24 +3891,39 @@ void cRPC::FillAndVerifyBord(double &aL, double &aC,
     mGrC3[0] = (mGrC3[0] > aP2.z) ? aP2.z : mGrC3[0];
     mGrC3[1] = (mGrC3[1] < aP1.z) ? aP1.z : mGrC3[1];
     mGrC3[1] = (mGrC3[1] < aP2.z) ? aP2.z : mGrC3[1];
-   
-     //if more than two points 
+  
+
+    //if more than two points 
     for (auto aAdd : aP3)
     {
+
         aG3d.push_back (aAdd);
         aG2d.push_back (Pt3dr(aC, aL,aAdd.z));
         
         //update min/max ground validity
-        mGrC1[0] = (mGrC1[0] > aAdd.x) ? aAdd.x : mGrC1[0];
-        mGrC1[1] = (mGrC1[1] < aAdd.x) ? aAdd.x : mGrC1[1];
-        mGrC2[0] = (mGrC2[0] > aAdd.y) ? aAdd.y : mGrC2[0];
-        mGrC2[1] = (mGrC2[1] < aAdd.y) ? aAdd.y : mGrC2[1];
-        mGrC3[0] = (mGrC3[0] > aAdd.z) ? aAdd.z : mGrC3[0];
-        mGrC3[1] = (mGrC3[1] < aAdd.z) ? aAdd.z : mGrC3[1];
-    
-        //std::cout << "eeewwwwee min xgr: " << mGrC1[0] << ", Add: " << aAdd.x 
+		UpdateGrC(aAdd);
+
     }
+
+	/*
+	if (mGrC1[0] < 201366.0)
+	{
+		std::cout << "outside = " << mGrC1[0] << " L=" << aL << " C=" << aC << "\n";
+		getchar();
+	}*/
 }
+
+void cRPC::UpdateGrC(Pt3dr& aP)
+{
+	mGrC1[0] = (mGrC1[0] > aP.x) ? aP.x : mGrC1[0];
+    mGrC1[1] = (mGrC1[1] < aP.x) ? aP.x : mGrC1[1];
+    mGrC2[0] = (mGrC2[0] > aP.y) ? aP.y : mGrC2[0];
+    mGrC2[1] = (mGrC2[1] < aP.y) ? aP.y : mGrC2[1];
+    mGrC3[0] = (mGrC3[0] > aP.z) ? aP.z : mGrC3[0];
+    mGrC3[1] = (mGrC3[1] < aP.z) ? aP.z : mGrC3[1];
+
+}
+
 
 void cRPC::ReadScanLineSensor(const std::string &aFile,
                               std::vector<Pt3dr> & aG3d,    std::vector<Pt3dr> & aG2d,
@@ -3935,9 +3995,10 @@ void cRPC::ReadScanLineSensor(const std::string &aFile,
             //aSkipPt++;
         }
     }
-    std::cout << "min/max: " << mGrC1[0] << ", " << mGrC1[1] << "\n" 
-                             << mGrC2[0] << ", " << mGrC2[1] << "\n"
-                             << mGrC3[0] << ", " << mGrC3[1] << "\n"; 
+	if (0)
+		std::cout << "Volume of validity X= [" << mGrC1[0] << ", " << mGrC1[1] << "]\n"
+        	      << "                   Y= [" << mGrC2[0] << ", " << mGrC2[1] << "]\n"
+            	  << "                   Z= [" << mGrC3[0] << ", " << mGrC3[1] << "]\n";
 
     /* Fill the min/max rows/cols */
 
@@ -3947,6 +4008,73 @@ void cRPC::ReadScanLineSensor(const std::string &aFile,
     mImCols[1] = aXml.ImSz().x-1;*/
 
 
+}
+
+void cRPC::ReadEpiGrid(const std::string &aFile,
+                             std::vector<Pt3dr> & aG3d,    std::vector<Pt3dr> & aG2d,
+                             std::vector<Pt3dr> & aG3dTest,std::vector<Pt3dr> & aG2dTest)
+{
+
+    /* Read the grids */ 
+    cListeAppuis1Im aGrMes=StdGetFromPCP(aFile,ListeAppuis1Im); 
+    std::list< cMesureAppuis > aMesL = aGrMes.Mesures();
+
+    /* Fill the grids */
+    std::pair<Pt3dr,Pt3dr> aGrMinMax(std::make_pair<Pt3dr,Pt3dr>(Pt3dr(1e9,1e9,1e9),Pt3dr(-1e9,-1e9,-1e9)));
+    std::pair<Pt3dr,Pt3dr> aImMinMax(std::make_pair<Pt3dr,Pt3dr>(Pt3dr(1e9,1e9,1e9),Pt3dr(-1e9,-1e9,-1e9)));
+    int i=0;
+    for (auto aMes : aMesL)
+    {
+        if (i%2)
+        {
+            aG3dTest.push_back(aMes.Ter());
+            aG2dTest.push_back(Pt3dr(aMes.Im().x,aMes.Im().y,aMes.Ter().z));
+        }
+        else
+        {
+            aG3d.push_back(aMes.Ter());
+            aG2d.push_back(Pt3dr(aMes.Im().x,aMes.Im().y,aMes.Ter().z));
+        }     
+
+        /* Min/Max values */
+        if (aMes.Im().x < aImMinMax.first.x) aImMinMax.first.x = aMes.Im().x;
+        if (aMes.Im().y < aImMinMax.first.y) aImMinMax.first.y = aMes.Im().y;
+
+        if (aMes.Im().x > aImMinMax.second.x) aImMinMax.second.x = aMes.Im().x;
+        if (aMes.Im().y > aImMinMax.second.y) aImMinMax.second.y = aMes.Im().y;
+
+        if (aMes.Ter().x < aGrMinMax.first.x) aGrMinMax.first.x = aMes.Ter().x;
+        if (aMes.Ter().y < aGrMinMax.first.y) aGrMinMax.first.y = aMes.Ter().y;
+        if (aMes.Ter().z < aGrMinMax.first.z) aGrMinMax.first.z = aMes.Ter().z;
+
+        if (aMes.Ter().x > aGrMinMax.second.x) aGrMinMax.second.x = aMes.Ter().x;
+        if (aMes.Ter().y > aGrMinMax.second.y) aGrMinMax.second.y = aMes.Ter().y;
+        if (aMes.Ter().z > aGrMinMax.second.z) aGrMinMax.second.z = aMes.Ter().z;
+
+        i++;   
+    }
+
+    
+    /* Set the min/max ground coords */ 
+    mGrC1[0] = aGrMinMax.first.x;
+    mGrC1[1] = aGrMinMax.second.x;
+    mGrC2[0] = aGrMinMax.first.y;
+    mGrC2[1] = aGrMinMax.second.y;
+    mGrC3[0] = aGrMinMax.first.z;
+    mGrC3[1] = aGrMinMax.second.z;
+
+    /* Set the min/max img coords */
+    mImRows[0] = aImMinMax.first.x;
+    mImRows[1] = aImMinMax.second.x;
+    mImCols[0] = aImMinMax.first.y;
+    mImCols[1] = aImMinMax.second.y;
+
+    if (0)
+    {
+        std::cout << "aGrMinMax=" << aGrMinMax.first << "," << aGrMinMax.second 
+                  << ", aImMinMax=" << aImMinMax.first << "," << aImMinMax.second << "\n";
+        std::cout << "aG3d/aG3dTest=" << aG3d.size() << "," << aG3dTest.size() << "\n";
+    }
 }
 
 void cRPC::ReconstructValidityxy()
@@ -4196,6 +4324,7 @@ int RecalRPC_main(int argc,char ** argv)
     std::string aDir;
     std::string aName;
     std::list<std::string> aListFile;
+	std::string aOriOut;
 
     bool aVf=false;
 
@@ -4204,16 +4333,26 @@ int RecalRPC_main(int argc,char ** argv)
         argc, argv,
         LArgMain() << EAMC(aFullName,"Orientation file (or pattern) in cXml_CamGenPolBundle format"),
         LArgMain() << EAM(aVf,"Vf", "Verification of the re-calculation on all tie points (Def = false)")
-     );
+				   << EAM(aOriOut,"OriOut","Directory of the output")
+    );
+
 
     SplitDirAndFile(aDir, aName, aFullName);
     aICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
     aListFile = aICNM->StdGetListOfFile(aName);
 
+	if (EAMIsInit(&aOriOut))
+		StdCorrecNameOrient(aOriOut,aDir,true);
+
+
     std::list<std::string>::iterator itL=aListFile.begin();
     for( ; itL !=aListFile.end(); itL++ )
     {
-        cRPC::Save2XmlStdMMName(0,"",(aDir+*itL),ElAffin2D::Id());
+		if (EAMIsInit(&aOriOut))
+        	cRPC::Save2XmlStdMMName(0,"",(aDir+*itL),ElAffin2D::Id(),aOriOut);
+		else
+        	cRPC::Save2XmlStdMMName(0,"",(aDir+*itL),ElAffin2D::Id());
+
     }
     
    

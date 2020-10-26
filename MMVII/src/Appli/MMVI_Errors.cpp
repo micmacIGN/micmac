@@ -54,6 +54,10 @@ void MMVII_UsersErrror(const eTyUEr & aRef,const std::string & aMes)
     );
 }
 
+void MMVII_UnclasseUsEr(const std::string & aMes)
+{
+    MMVII_UsersErrror(eTyUEr::eUnClassedError,aMes);
+}
 
 /// Warning : temporary version
 /** Will evolve significativelly as MMVII grows
