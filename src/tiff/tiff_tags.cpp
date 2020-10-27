@@ -190,6 +190,7 @@ const char * Tiff_Im::name_compr(INT compr)
           case  PackBits_Compr    :    return  "PackBits";
           case  NoByte_PackBits_Compr    :    return  "NoBytePackBits";
     }
+	
     El_Internal.ElAssert
     (
         0,
