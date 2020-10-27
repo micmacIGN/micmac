@@ -166,21 +166,8 @@ GPSTime str2GPSTime(std::string time) {
 // --------------------------------------------------------------------------------------
 std::string execCmdOutput(const char* cmd) {
 
-	#ifdef __linux__
-		
-    	std::array<char, 128> buffer;
-   		std::string result;
-    	std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-	    if (!pipe) {
-        	throw std::runtime_error("popen() failed!");
-    	}
-    	while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        	result += buffer.data();
-    	}
-    	return result;
-	
-	#else
-		
+	// Version Windows
+	#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 		char buffer[128];
     	std::string result = "";
     	std::shared_ptr<FILE> pipe(_popen(cmd, "r"), _pclose);
@@ -191,12 +178,21 @@ std::string execCmdOutput(const char* cmd) {
             	result += buffer;
     	}
     	return result;
+    	
+	#else   // Version Linux ou Mac
+		
+		std::array<char, 128> buffer;
+   		std::string result;
+    	std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+	    if (!pipe) {
+        	throw std::runtime_error("popen() failed!");
+    	}
+    	while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        	result += buffer.data();
+    	}
+    	return result;
 	
 	#endif
- 
-	
-	
-
 
 }
 
