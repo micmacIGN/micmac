@@ -113,7 +113,7 @@ std::vector<std::string> Utils::getSupportedSatellites(){
 // ---------------------------------------------------------------
 std::vector<std::string> Utils::tokenize(std::string texte, std::string delimiter){
 
-	int delimiter_pos = 0;
+	size_t delimiter_pos = 0;
 	std::string token = "";
 	std::vector<std::string> tokens;
 

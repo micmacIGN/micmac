@@ -11,7 +11,7 @@
 ObservationSlot& ObservationData::lookForEpoch(GPSTime time){
 
     double min = 1e30; int argmin = 0;
-    for (int i=0; i<this->getNumberOfObservationSlots(); i++){
+    for (unsigned i=0; i<this->getNumberOfObservationSlots(); i++){
         GPSTime time_epoch = this->getObservationSlots().at(i).getTimestamp();
         double diff = std::abs(time.convertToAbsTime() - time_epoch.convertToAbsTime());
         if (diff < min){
@@ -160,7 +160,7 @@ void ObservationData::printRinexFile(std::string rinex_file_path){
 	// |COMMENT             | Comment (suppression, add, notice...)    |     A60    |
 	// +--------------------+------------------------------------------+------------+
 	for (unsigned int i=0; i<this->comments.size(); i++){
-		int length = comments.at(i).size();
+		size_t length = comments.at(i).size();
 		int nl = length/59; int remaining = length % 59;
 		for (int j=0; j<nl; j++) {
 			output << comments.at(i).substr(j*59,59) << " COMMENT" << std::endl;
@@ -172,7 +172,8 @@ void ObservationData::printRinexFile(std::string rinex_file_path){
 	// +--------------------+------------------------------------------+------------+
 	// |MARKER NAME         | Name of antenna marker                   |     A60    |
 	// +--------------------+------------------------------------------+------------+
-	output << this->getMarkerName() << Utils::blank(60-this->getMarkerName().size());
+	int temp1 = static_cast<int>(60-this->getMarkerName().size());
+	output << this->getMarkerName() << Utils::blank(temp1);
 	output << "MARKER NAME" << std::endl;
 
 	// +--------------------+------------------------------------------+------------+
@@ -180,14 +181,16 @@ void ObservationData::printRinexFile(std::string rinex_file_path){
 	// |                    | (Version: e.g. Internal Software Version)|            |
 	// +--------------------+------------------------------------------+------------+
 	output << Utils::blank(20);
-	output << this->getReceiverType() << Utils::blank(20-this->getReceiverType().size());
+	int temp2 = static_cast<int>(20-this->getReceiverType().size());
+	output << this->getReceiverType() << Utils::blank(temp2);
 	output << Utils::blank(20) << "REC # / TYPE / VERS" << std::endl;
 
 	// +--------------------+------------------------------------------+------------+
 	// |ANT # / TYPE        | Antenna number and type                  |    2A20    |
 	// +--------------------+------------------------------------------+------------+
 	output << Utils::blank(20);
-	output << this->getAntennaType() << Utils::blank(20-this->getAntennaType().size());
+	int temp3 = static_cast<int>(20-this->getAntennaType().size());
+	output << this->getAntennaType() << Utils::blank(temp3);
 	output << Utils::blank(20) << "ANT # / TYPE" << std::endl;
 
 	// +--------------------+------------------------------------------+------------+
@@ -235,7 +238,7 @@ void ObservationData::printRinexFile(std::string rinex_file_path){
 	// |                    |     the header label in cols. 61-80!)    |            |
 	// +--------------------+------------------------------------------+------------+
 	std::vector<std::string> codes = getActivatedChannels();
-	int nb_channels = codes.size();
+	int nb_channels = static_cast<int>(codes.size());
 
 	output << Utils::formatNumber(nb_channels, "%6d");
 

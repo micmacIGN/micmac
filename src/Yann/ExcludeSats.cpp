@@ -165,9 +165,14 @@ GPSTime str2GPSTime(std::string time) {
 // Fonction d'appel system pour récupérer la sortie d'une commande
 // --------------------------------------------------------------------------------------
 std::string execCmdOutput(const char* cmd) {
+	
     std::array<char, 128> buffer;
     std::string result;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+	#ifdef __linux__
+    	std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+	#else
+		std::unique_ptr<FILE, decltype(&pclose)> pipe(_popen(cmd, "r"), _pclose);
+	#endif
     if (!pipe) {
         throw std::runtime_error("popen() failed!");
     }
@@ -175,7 +180,9 @@ std::string execCmdOutput(const char* cmd) {
         result += buffer.data();
     }
     return result;
+
 }
+
 
 // --------------------------------------------------------------------------------------
 // Fonction d'ajout des timestamps dans les images (champ exif Date/Time Original)
@@ -200,13 +207,13 @@ cAppli_YannSetTimestamps::cAppli_YannSetTimestamps(int argc, char ** argv){
 
 	std::cout << "Format:        " << mTimestampsFmt << std::endl;
 	
-	unsigned posix = mTimestampsFmt.find("Ix"); if (posix < mTimestampsFmt.size()) mTimestampsFmt.replace(posix,2,"I");
-	unsigned posiy = mTimestampsFmt.find("Iy"); if (posiy < mTimestampsFmt.size()) mTimestampsFmt.replace(posiy,2,"J");
-	unsigned posiz = mTimestampsFmt.find("Iz"); if (posiz < mTimestampsFmt.size()) mTimestampsFmt.replace(posiz,2,"K");
+	size_t posix = mTimestampsFmt.find("Ix"); if (posix < mTimestampsFmt.size()) mTimestampsFmt.replace(posix,2,"I");
+	size_t posiy = mTimestampsFmt.find("Iy"); if (posiy < mTimestampsFmt.size()) mTimestampsFmt.replace(posiy,2,"J");
+	size_t posiz = mTimestampsFmt.find("Iz"); if (posiz < mTimestampsFmt.size()) mTimestampsFmt.replace(posiz,2,"K");
 	
 	std::string delimiter = mTimestampsFmt.substr(4,1);
-	int time_position = (mTimestampsFmt.find("T")-3)/2;
-	int name_position = (mTimestampsFmt.find("N")-3)/2;
+	size_t time_position = (mTimestampsFmt.find("T")-3)/2;
+	size_t name_position = (mTimestampsFmt.find("N")-3)/2;
 	
 	std::cout << "Delimiter:     " << delimiter << std::endl;
 	std::cout << "Time position: " << time_position << std::endl;
@@ -226,7 +233,7 @@ cAppli_YannSetTimestamps::cAppli_YannSetTimestamps(int argc, char ** argv){
         mDir = mEASF.mDir;
 	}
 	
-	unsigned N = mEASF.SetIm()->size();
+	size_t N = mEASF.SetIm()->size();
 	
 	for (unsigned i=0; i<N; i++){
 		IMAGES.push_back(mEASF.SetIm()[0][i]);
@@ -353,7 +360,7 @@ cAppli_YannExcludeSats::cAppli_YannExcludeSats(int argc, char ** argv){
 				 	<<  EAM(mAux,"Aux", "0", "Auxiliary output file [default: no]")
 				  	<<  EAM(mOutRinex,"Out", "excluded_sats.o", "Output rinex file [default: excluded_sats.o]"));
 	
-	
+
 	std::string sep =  "-----------------------------------------------------------------------";
 	
 	std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -413,7 +420,7 @@ cAppli_YannExcludeSats::cAppli_YannExcludeSats(int argc, char ** argv){
         mDir = mEASF.mDir;
 	}
 	
-	unsigned N = mEASF.SetIm()->size();
+	size_t N = mEASF.SetIm()->size();
 	
 	// ---------------------------------------------------------------
 	// Dossier de sortie (optionnel)
@@ -574,7 +581,7 @@ cAppli_YannExcludeSats::cAppli_YannExcludeSats(int argc, char ** argv){
 	// ---------------------------------------------------------------
 	// Parcours des slots d'observations
 	// ---------------------------------------------------------------
-	for (int i=0; i<obs.getNumberOfObservationSlots(); i++){
+	for (unsigned i=0; i<obs.getNumberOfObservationSlots(); i++){
 		
 		ObservationSlot& slot = obs.getObservationSlots().at(i);
 		std::vector<std::string> signal_received; 
@@ -906,6 +913,7 @@ cAppli_YannExcludeSats::cAppli_YannExcludeSats(int argc, char ** argv){
 // --------------------------------------------------------------------------------------
 // Script de détection de masque de ciel
 // Appel du code python de neural net (cf Imran Lokhat)
+// L'installeur ne fonctionne pour l'instant que sous Linux (problème avec appel cmd)
 // --------------------------------------------------------------------------------------
 cAppli_YannSkyMask::cAppli_YannSkyMask(int argc, char ** argv){
 	
@@ -984,7 +992,7 @@ cAppli_YannSkyMask::cAppli_YannSkyMask(int argc, char ** argv){
 	if (!EAMIsInit(&mThresh)) mThresh = "-1";
 	if (!EAMIsInit(&mFilter)) mFilter = "0";
 
-	unsigned N = mEASF.SetIm()->size();
+	size_t N = mEASF.SetIm()->size();
 
 	for (unsigned i=0; i<N; i++){
 		IMAGES.push_back(mEASF.SetIm()[0][i]);
@@ -1118,7 +1126,7 @@ cAppli_YannScript::cAppli_YannScript(int argc, char ** argv){
 	
 	std::vector<GeoCoords> trajectory;
 
-	for (int i=0; i<rover.getNumberOfObservationSlots(); i++){
+	for (unsigned i=0; i<rover.getNumberOfObservationSlots(); i++){
 
 		ObservationSlot roverSlot = rover.getObservationSlots().at(i);
 		
@@ -1126,9 +1134,11 @@ cAppli_YannScript::cAppli_YannScript(int argc, char ** argv){
 			ObservationSlot baseSlot  =  base.getObservationSlots().at(i);
 			solution = Algorithms::estimateDifferentialPosition(roverSlot, baseSlot, base.getApproxAntennaPosition(), nav);
 			
+			int nb_sat = static_cast<int> (solution.getNumberOfUsedSatellites());
+			
 			std::cout << roverSlot.getTimestamp() << " " << solution.getPosition().toGeoCoords() << " ";
 			std::cout << Utils::formatNumber(solution.getPosition().distanceTo(ground_truth), "%6.3f")  << " ";
-			std::cout << Utils::formatNumber(solution.getNumberOfUsedSatellites(), "%02d sats") << " ";
+			std::cout << Utils::formatNumber(nb_sat, "%02d sats") << " ";
 			std::cout << Utils::formatNumber(solution.getPDOP(), "%3.2f") << " ";
 			std::cout << Utils::formatNumber(solution.getDeltaTime()*1e9, "%3.1f ns") << std::endl;
 			

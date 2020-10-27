@@ -31,7 +31,7 @@ class ObservationSlot {
 		void setTimestamp(GPSTime& timestamp){this->timestamp = timestamp;}
 
 		// Méthodes
-		int getNumberOfObservations(){return this->slot.size();}
+		size_t getNumberOfObservations(){return this->slot.size();}
 		void addObservation(Observation& obs){this->slot[obs.getSatName()] = obs;}
 		void removeSatellite(std::string);
 		void removeConstellation(std::string);

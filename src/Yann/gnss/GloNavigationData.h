@@ -41,7 +41,7 @@ class GloNavigationData{
 		std::vector<GloNavigationSlot>& getNavigationSlots(){return this->navSlots;}
 		GloNavigationSlot& getNavigationSlot(int i){return this->navSlots.at(i);};
         GPSTime getTRefCorr(){return this->time_ref_corr_time;}
-		int getNumberOfNavigationSlots(){return this->navSlots.size();};
+		size_t getNumberOfNavigationSlots(){return this->navSlots.size();};
 		int* getPRNCount(){return this->PRN_COUNT;}
 		int getLeapSeconds(){return this->leap_seconds;};
 		double getCorrectionTime(){return this->corr_time;}

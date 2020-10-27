@@ -52,7 +52,7 @@ class ObservationData {
 		std::string getObservationType(){return this->observation_type;}
 		std::vector<ObservationSlot>& getObservationSlots(){return this->ObservationSlots;}
 		std::vector<std::string> getActivatedChannels();
-		int getNumberOfObservationSlots(){return this->ObservationSlots.size();}
+		size_t getNumberOfObservationSlots(){return this->ObservationSlots.size();}
 		int getLeapSeconds(){return this->leap_seconds;}
 		double getInterval(){return this->interval;}
 		GPSTime getTimeOfFirstObs(){return this->ObservationSlots.front().getTimestamp();}

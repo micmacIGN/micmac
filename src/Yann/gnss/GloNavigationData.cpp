@@ -28,7 +28,7 @@ bool GloNavigationData::hasEphemeris(int PRN, GPSTime time){
        return false;
     }
 
-	int idx;
+	size_t idx;
 	bool found = false;
 
 	GloNavigationSlot slot;
@@ -72,7 +72,7 @@ GloNavigationSlot& GloNavigationData::getNavigationSlot(int PRN, GPSTime time){
 		assert (false);
     }
 
-	int idx;
+	size_t idx;
 	bool found = false;
 
 	GloNavigationSlot slot;
@@ -83,8 +83,8 @@ GloNavigationSlot& GloNavigationData::getNavigationSlot(int PRN, GPSTime time){
 		found = true; break;									                                         // Contrainte 3
 	}
 
-	if ((!found) or (time - this->navSlots.at(idx).getTime() > GLO_COEFF_SECURITY*GLO_RINEX_NAV_INTERVAL_SEC)){
-        std::cout << PRN<< std::endl;
+	if ((!found) || (time - this->navSlots.at(idx).getTime() > GLO_COEFF_SECURITY*GLO_RINEX_NAV_INTERVAL_SEC)){
+        std::cout << PRN << std::endl;
 		std::cout << "ERROR: GPS time [" << time << "] is out of rinex nav file range for PRN [R";
 		std::cout << Utils::formatNumber(PRN,"%02d") << "]" << std::endl;
 		assert (false);

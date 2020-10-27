@@ -47,7 +47,7 @@ class NavigationData {
 		std::vector<NavigationSlot>& getNavigationSlots(){return this->navSlots;}
 		std::string getConstellation(){return this->constellation;}
 		NavigationSlot& getNavigationSlot(int i){return this->navSlots.at(i);};
-		int getNumberOfNavigationSlots(){return this->navSlots.size();};
+		size_t getNumberOfNavigationSlots(){return this->navSlots.size();};
 		int* getPRNCount(){return this->PRN_COUNT;}
 
 		// Mutateurs

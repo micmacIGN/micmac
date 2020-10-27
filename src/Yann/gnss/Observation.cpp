@@ -16,6 +16,7 @@ double Observation::getChannel(std::string obs_type){
      	
 	std::cout << "ERROR: type " << obs_type << " is not a valid type of observable" << std::endl;
 	assert(false);
+	return -1;
 	
 }
 
@@ -35,6 +36,7 @@ int Observation::getChannel_LLI(std::string obs_type){
      	
 	std::cout << "ERROR: type " << obs_type << " is not a valid type of observable" << std::endl;
 	assert(false);
+	return -1;
 	
 }
 
@@ -54,6 +56,7 @@ int Observation::getChannel_SGS(std::string obs_type){
      	
 	std::cout << "ERROR: type " << obs_type << " is not a valid type of observable" << std::endl;
 	assert(false);
+	return -1;
 }
 
 // ---------------------------------------------------------------
@@ -71,6 +74,7 @@ bool Observation::hasChannel(std::string obs_type){
      	
 	std::cout << "ERROR: type " << obs_type << " is not a valid type of observable" << std::endl;
 	assert(false);
+	return -1;
 	
 }
 

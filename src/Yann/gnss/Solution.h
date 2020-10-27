@@ -64,7 +64,7 @@ class Solution{
         double getDeltaTime(){return this->delta_time;}
         double getClockDrift(){return this->clock_drift;}
         int getNumberOfVisibleSatellites(){return this->nb_satellites_visible;}
-        int getNumberOfUsedSatellites(){return this->used_satellites.size();}
+        size_t getNumberOfUsedSatellites(){return this->used_satellites.size();}
         std::vector<std::string> getUsedSatellites(){return this->used_satellites;}
 		std::vector<double> getResiduals(){return this->residuals;}
 

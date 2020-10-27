@@ -458,7 +458,7 @@ cAppli_YannApplyHomog::cAppli_YannApplyHomog(int argc, char ** argv){
         mDir = mEASF.mDir;
 	}
 	
-	unsigned N = mEASF.SetIm()->size();
+	size_t N = mEASF.SetIm()->size();
 	
 	bool hasCalib = false;
 	
@@ -734,8 +734,8 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	// Recherche de l'image ayant le plus de points
 	// ---------------------------------------------------------------
 	
+	size_t val = 0;
 	unsigned max = 0;
-	unsigned val = 0;
 	unsigned argmax = 0;
 	int selected = -1;
 

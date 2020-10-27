@@ -29,7 +29,7 @@ bool NavigationData::hasEphemeris(int PRN, GPSTime time){
        return false;
     }
 
-	int idx;
+	size_t idx;
 	bool found = false;
 
 	NavigationSlot slot;
@@ -40,7 +40,7 @@ bool NavigationData::hasEphemeris(int PRN, GPSTime time){
 		found = true; break;									     // Contrainte 3
 	}
 
-	if ((!found) or (time - this->navSlots.at(idx).getTime() > COEFF_SECURITY*RINEX_NAV_INTERVAL_SEC)){
+	if ((!found) || (time - this->navSlots.at(idx).getTime() > COEFF_SECURITY*RINEX_NAV_INTERVAL_SEC)){
         return false;
 	}
 
@@ -74,7 +74,7 @@ NavigationSlot& NavigationData::getNavigationSlot(int PRN, GPSTime time){
 		assert (false);
     }
 
-	int idx;
+	size_t idx;
 	bool found = false;
 
 	NavigationSlot slot;
@@ -85,7 +85,7 @@ NavigationSlot& NavigationData::getNavigationSlot(int PRN, GPSTime time){
 		found = true; break;									     // Contrainte 3
 	}
 
-	if ((!found) or (time - this->navSlots.at(idx).getTime() > COEFF_SECURITY*RINEX_NAV_INTERVAL_SEC)){
+	if ((!found) || (time - this->navSlots.at(idx).getTime() > COEFF_SECURITY*RINEX_NAV_INTERVAL_SEC)){
         std::cout << PRN<< std::endl;
 		std::cout << "ERROR: GNSS time [" << time << "] is out of rinex nav file range for PRN [";
 		std::cout << this->constellation << Utils::formatNumber(PRN,"%02d") << "]" << std::endl;

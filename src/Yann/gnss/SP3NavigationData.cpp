@@ -15,11 +15,11 @@ double SP3NavigationData::lagrange_interpolation(double x, std::vector<double>& 
 
 	double y = 0;
 	double l;
-	int order = X.size();
+	size_t order = X.size();
 
-	for (int i=0; i<order; i++){
+	for (unsigned i=0; i<order; i++){
 		l = 1;
-		for (int j=0; j<order; j++){
+		for (unsigned j=0; j<order; j++){
 			if (i==j) continue;
 			l = l*(x-X.at(j))/(X.at(i)-X.at(j));
 		}
@@ -50,7 +50,7 @@ std::vector<int> SP3NavigationData::select_indices_for_lagrange(GPSTime time){
 
 	int id_avant = ORDER_LAGRANGE/2-1;
 	int id_apres = ORDER_LAGRANGE/2-1;
-	int N = this->slots.size()-idx;
+	size_t N = this->slots.size()-idx;
 
 	if (time - this->slots.at(idx-1).time <= SP3_INTERVAL_SEC/2){
 		id_avant ++;
@@ -59,7 +59,7 @@ std::vector<int> SP3NavigationData::select_indices_for_lagrange(GPSTime time){
 	}
 
 	id_avant = std::min(id_avant, (int)idx-1);
-	id_apres = std::min(id_apres, N);
+	id_apres = std::min(id_apres, static_cast<int>(N));
 
 	for (unsigned int i=idx-1-id_avant; i<=idx+1+id_apres; i++){
 		indices.push_back(i);
@@ -92,6 +92,7 @@ int SP3NavigationData::lineIndexFromPRN(std::string prn, std::vector<std::string
 
     std::cout << "ERROR: [" << prn << "] can't be found in sp3 navigation file" << std::endl;
     assert (false);
+	return -1;
 
 }
 

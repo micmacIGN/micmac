@@ -22,7 +22,7 @@ class Trajectory{
 
         std::vector<Solution>& getPoints(){return this->points;}
         Solution& getPoint(int index){return this->points.at(index);}
-        int getNumberOfPoints(){return this->points.size();}
+        size_t getNumberOfPoints(){return this->points.size();}
 
         void setPoints(std::vector<Solution> points){this->points = points;}
         void addPoint(Solution point){this->points.push_back(point);}

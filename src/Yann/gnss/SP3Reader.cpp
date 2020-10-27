@@ -89,7 +89,7 @@ SP3NavigationData SP3Reader::readNavFile(std::string nav_file_path){
 	// -----------------------------------------------------
 	// Data summary
 	// -----------------------------------------------------
-	int n = navData.slots.size()*navData.slots.at(0).PRN.size();
+	size_t n = navData.slots.size()*navData.slots.at(0).PRN.size();
 	std::cout << navData.slots.size() << " data slots loaded with success (" << n << " records)" << std::endl;
 	if (navData.slots.size() > 0){
 		std::cout << "Date of first navigation slot:  " << navData.slots.at(0).time << std::endl;
@@ -98,7 +98,7 @@ SP3NavigationData SP3Reader::readNavFile(std::string nav_file_path){
 		std::cout << sep << std::endl;
 
 		if (clock_errrors.size() > 0){
-			int pc = clock_errrors.size()*100/n;
+			int pc = static_cast<int>(clock_errrors.size())*100/n;
 			std::cout << "WARNING: Satellite clock unknown for " << clock_errrors.size() << " (" << pc << " %) record(s)" << std::endl;
 		}
 	}

@@ -8,7 +8,7 @@
 // -------------------------------------------------------------------------------
 Solution Algorithms::estimateSpeed(std::vector<double> doppler, std::vector<ECEFCoords> sat_pos, std::vector<ECEFCoords> sat_speed, ECEFCoords rcv, int freq){
 
-    int n = doppler.size();
+    size_t n = doppler.size();
     double EMISSION_FREQ = L1_FREQ;
 
     if (freq == 2) EMISSION_FREQ = L2_FREQ;
@@ -16,7 +16,7 @@ Solution Algorithms::estimateSpeed(std::vector<double> doppler, std::vector<ECEF
     // Vecteur d'obs et matrice schéma
 	ElMatrix<REAL> A(4,n,0.0); 
 	ElMatrix<REAL> B(1,n,0.0);
-    for (int i=0; i<n; i++){
+    for (unsigned i=0; i<n; i++){
         ECEFCoords radius = (rcv-sat_pos.at(i)); radius.normalize();
         double radial_speed = radius.dot(sat_speed.at(i));
         A(0,i) = radius.X;
@@ -130,7 +130,7 @@ Trajectory Algorithms::estimateTrajectory(ObservationData obs, NavigationData na
 
     Trajectory trajectory;
 
-    for (int i=0; i<obs.getNumberOfObservationSlots(); i++){
+    for (unsigned i=0; i<obs.getNumberOfObservationSlots(); i++){
 
         ObservationSlot slot = obs.getObservationSlots().at(i);
         Solution solution = Algorithms::estimateState(slot, nav);
@@ -157,7 +157,7 @@ Trajectory Algorithms::estimateTrajectory(ObservationData obs, NavigationData na
 // -------------------------------------------------------------------------------
 Solution Algorithms::estimateApproxPosition(std::vector<double> psr, std::vector<ECEFCoords> sat_pos, ElMatrix<REAL> SIGMA){
 
-    int n = psr.size();
+    size_t n = psr.size();
     bool convergence = false;
 
     ECEFCoords receiver(0,0,0);
@@ -178,7 +178,7 @@ Solution Algorithms::estimateApproxPosition(std::vector<double> psr, std::vector
         // Design and obs matrices
         ElMatrix<REAL> A(4,n,0.0); 
 		ElMatrix<REAL> B(1,n,0.0);
-        for (int i=0; i<n; i++){
+        for (unsigned i=0; i<n; i++){
 
             ECEFCoords sat = sat_pos.at(i);
             double ri = sat.distanceTo(receiver);
@@ -222,10 +222,10 @@ void Algorithms::computeDopIndices(Solution& solution, std::vector<ECEFCoords> s
     double r; ENUCoords temp;
 	ECEFCoords rcv = solution.getPosition();
 
-    int n = sat_pos.size();
+    size_t n = sat_pos.size();
 
     ElMatrix<REAL> G(4,n,0.0); 
-    for (int i=0; i<n; i++) {
+    for (unsigned i=0; i<n; i++) {
         r = sat_pos.at(i).distanceTo(rcv);
         temp = sat_pos.at(i).toENUCoords(rcv);
         G(0,i) = -temp.E/r;
@@ -268,7 +268,7 @@ std::vector<double> Algorithms::computeResiduals(Solution solution, std::vector<
 Solution Algorithms::estimateApproxPosition(std::vector<double> psr, std::vector<ECEFCoords> satellite_pos){
 
     // Vecteur de poids
-    ElMatrix<REAL> W(psr.size(),psr.size(),0.0);
+    ElMatrix<REAL> W(static_cast<int>(psr.size()), static_cast<int>(psr.size()), 0.0);
     for (unsigned i=0; i<psr.size(); i++) W(i,i) = 1;
 
     return estimateApproxPosition(psr, satellite_pos, W);
@@ -361,14 +361,14 @@ Solution Algorithms::estimatePosition(std::vector<std::string> sat_names,
 	}
 	
 	// Calcul des poids de Gauss-Markov
-	ElMatrix<REAL> W(weights_final.size(),weights_final.size(),0.0);
+	ElMatrix<REAL> W(static_cast<int>(weights_final.size()), static_cast<int>(weights_final.size()), 0.0);
     for (unsigned i=0; i<weights_final.size(); i++) {
 		W(i,i) = WEIGHTED_OLS? m.at(i)*m.at(i):1.0;
 	}
 
     // Solution finale
     Solution output = estimateApproxPosition(psr_final, satellite_positions_final, W);
-    output.setNumberOfVisibleSatellites(pseudorange.size());
+    output.setNumberOfVisibleSatellites(static_cast<int>(pseudorange.size()));
     output.setUsedSatellites(sat_names_final);
 	
 	// ----------------------------------------------
@@ -442,7 +442,7 @@ Solution Algorithms::estimatePosition(ObservationSlot slot, NavigationData nav){
     // Calcul de la solution
     Solution solution =  estimatePosition(sat_candidates, psr, sats, atm);;
     solution.setTimestamp(slot.getTimestamp());
-    solution.setNumberOfVisibleSatellites(sat_names.size());
+    solution.setNumberOfVisibleSatellites(static_cast<int>(sat_names.size()));
 	
 	// ----------------------------------------------
     // Calcul des résidus
@@ -512,7 +512,7 @@ Solution Algorithms::estimatePosition(ObservationSlot slot, NavigationData nav, 
     // Calcul de la solution
     Solution solution =  estimatePosition(sat_candidates, psr, sats, atm);;
     solution.setTimestamp(slot.getTimestamp());
-    solution.setNumberOfVisibleSatellites(sat_names.size());
+    solution.setNumberOfVisibleSatellites(static_cast<int>(sat_names.size()));
     return solution;
 
 }
@@ -572,7 +572,7 @@ Solution Algorithms::estimatePosition(ObservationSlot slot, NavigationDataSet na
     // Calcul de la solution
     Solution solution =  estimatePosition(sat_candidate, psr, sats, atm);
     solution.setTimestamp(slot.getTimestamp());
-    solution.setNumberOfVisibleSatellites(sat_names.size());
+    solution.setNumberOfVisibleSatellites(static_cast<int>(sat_names.size()));
     return solution;
 
 }
@@ -607,7 +607,7 @@ Solution Algorithms::estimateDifferentialPosition(ObservationSlot rover, Observa
     std::vector<std::string> sat_rover = rover.getSatellites();
     std::vector<std::string> sat_base  =  base.getSatellites();
 
-    int nb_visible_sats = sat_rover.size();
+    size_t nb_visible_sats = sat_rover.size();
 
     for (unsigned i=0; i<sat_rover.size(); i++){
         bool is_in_base = false;
@@ -660,7 +660,7 @@ Solution Algorithms::estimateDifferentialPosition(ObservationSlot rover, Observa
     }
 
      // Calcul des élévations
-	ElMatrix<REAL> W(sat_base.size(),sat_base.size(),0.0);
+	ElMatrix<REAL> W(static_cast<int>(sat_base.size()), static_cast<int>(sat_base.size()), 0.0);
     for (unsigned i=0; i<sat_base.size(); i++) {
 		W(i,i) = WEIGHTED_OLS? pow(sin(pos.elevationTo(ephemeride.at(i)))/0.8, 2):1.0;
 	}
