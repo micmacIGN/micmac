@@ -735,7 +735,7 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	// ---------------------------------------------------------------
 	
 	size_t val = 0;
-	unsigned max = 0;
+	size_t max = 0;
 	unsigned argmax = 0;
 	int selected = -1;
 
@@ -783,7 +783,7 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	int Ny_org = im_size_origin.y;
 
 	// Test nombre de points suffisant
-	const int N = MESURE_IMAGES[selected].OneMesureAF1I().size();
+	const size_t N = MESURE_IMAGES[selected].OneMesureAF1I().size();
 	std::string tmp = "ERROR: not enough points in image measurement file (" + std::to_string(N) + ")";
 
 	ELISE_ASSERT(N >= 4, tmp.c_str());
@@ -908,7 +908,7 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	
 	ElMatrix<REAL> Aplan(3,N,0.0);
 	ElMatrix<REAL> Bplan(1,N,1.0);
-	for (int i=0; i<N; i++){
+	for (unsigned i=0; i<N; i++){
 		Aplan(0,i) = P3D[0][i];
 		Aplan(1,i) = P3D[1][i];
 		Aplan(2,i) = P3D[2][i];
@@ -926,7 +926,7 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	double rmse_plan = 0;
 	std::cout << "Point planarization";
 	double abc_norm = sqrt(Xplan.L2());
-	for (int i=0; i<N; i++){
+	for (unsigned i=0; i<N; i++){
 		std::cout << std::endl;
 		double val = abs(Xplan(0,0)*P3D[0][i] + Xplan(0,1)*P3D[1][i] + Xplan(0,2)*P3D[2][i] - 1)/abc_norm;
 		rmse_plan += val*val;
@@ -1014,7 +1014,7 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	
 	L2SysSurResol  system(8);               // Solveur moindres carrés
 
-	for (int i=0; i<N; i++){
+	for (unsigned i=0; i<N; i++){
 		
 		double eq1_coeff[8];
 		double eq2_coeff[8];
@@ -1057,7 +1057,7 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	double residu = 0;
 	double Z, xp_predict, yp_predict;
 	double er2, residu_x, residu_y;
-	for (int i=0; i<N; i++){
+	for (unsigned i=0; i<N; i++){
 		std::cout << std::endl;
 		Z = (H(0,6)*X3DF[i] + H(0,7)*Y3DF[i] + 1);
 		xp_predict = (H(0,0)*X3DF[i] + H(0,1)*Y3DF[i] + H(0,2))/Z;

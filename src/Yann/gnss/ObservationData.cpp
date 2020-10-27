@@ -160,7 +160,7 @@ void ObservationData::printRinexFile(std::string rinex_file_path){
 	// |COMMENT             | Comment (suppression, add, notice...)    |     A60    |
 	// +--------------------+------------------------------------------+------------+
 	for (unsigned int i=0; i<this->comments.size(); i++){
-		size_t length = comments.at(i).size();
+		int length = comments.at(i).size();
 		int nl = length/59; int remaining = length % 59;
 		for (int j=0; j<nl; j++) {
 			output << comments.at(i).substr(j*59,59) << " COMMENT" << std::endl;

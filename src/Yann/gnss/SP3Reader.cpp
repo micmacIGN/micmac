@@ -98,7 +98,7 @@ SP3NavigationData SP3Reader::readNavFile(std::string nav_file_path){
 		std::cout << sep << std::endl;
 
 		if (clock_errrors.size() > 0){
-			int pc = static_cast<int>(clock_errrors.size())*100/n;
+			size_t pc = clock_errrors.size()*100/n;
 			std::cout << "WARNING: Satellite clock unknown for " << clock_errrors.size() << " (" << pc << " %) record(s)" << std::endl;
 		}
 	}
