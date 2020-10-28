@@ -116,16 +116,15 @@ namespace std {
 %include "api/api_mm3d.h"
 %include "api/SuperposImage_extract.h"
 %include "api/files_extract.h"
+%include "api/ParamChantierPhotogram_extract.h"
 %include "../src/TpMMPD/TpPPMD.h"
 %include "general/util.h"
 %include "general/bitm.h"
 %include "general/ptxd.h"
-%include "general/photogram.h"
+%include "general/photogram.h" //45s
 %include "../src/uti_phgrm/NewOri/NewOri.h"
+
 //%include "XML_GEN/xml_gen2_mmByp.h"
-%include "XML_GEN/ParamChantierPhotogram.h"
-
-
 
 
 //----------------------------------------------------------------------
