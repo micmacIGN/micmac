@@ -118,7 +118,7 @@ std::vector<std::string> Utils::tokenize(std::string texte, std::string delimite
 	std::vector<std::string> tokens;
 
 	delimiter_pos = texte.find(delimiter.c_str());
-   	while (delimiter_pos > 0){
+   	while ((delimiter_pos > 0) && (delimiter_pos < texte.size()+1)){
 		std::string token = texte.substr(0, delimiter_pos);
 		texte = texte.substr(delimiter_pos+1, texte.size()-delimiter_pos);
 		delimiter_pos = texte.find(delimiter.c_str());

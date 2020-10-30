@@ -937,7 +937,7 @@ cAppli_YannSkyMask::cAppli_YannSkyMask(int argc, char ** argv){
         LArgMain()  <<  EAM(mProba,"Prob", "0", "Probabilistic prediction")
 				    <<  EAM(mThresh,"Thresh", "-1", "Decision threshold")
 				    <<  EAM(mInv,"Inv", "0", "Inverse prediction")
-				   	<<  EAM(mFilter,"Filter", "0", "Filtering artifacts (typical size in px)")
+				   	<<  EAM(mFilter,"Filter", "0", "Filtering (artifacts relative size)")
 				 	<<  EAM(mInstall,"Install", "0", "Install neural net program")
 				    <<  EAM(mUninstall,"Uninstall", "0", "Uninstall neural net program"));
 	
@@ -1029,9 +1029,16 @@ cAppli_YannSkyMask::cAppli_YannSkyMask(int argc, char ** argv){
 	ELISE_fp::MkDir(outDir);
 
 	std::string cmd;
+	std::vector<std::string> SIZES_X;
+	std::vector<std::string> SIZES_Y;
 
 	for (unsigned i=0; i<N; i++){
-		std::cout << IMAGES.at(i)  << std::endl;
+		std::string im_size = execCmdOutput(("identify "+IMAGES.at(i)).c_str());
+		std::string dim = Utils::tokenize(im_size," ").at(2);
+		std::vector<std::string> dims = Utils::tokenize(dim, "x");
+		SIZES_X.push_back(dims.at(0)); 
+		SIZES_Y.push_back(dims.at(1));
+		std::cout << IMAGES.at(i) << " [" << dims.at(0) << " x " << dims.at(1) << "]" << std::endl;
 		cmd = "convert -resize 480x360! "+IMAGES.at(i)+" "+raw_dir+"/"+IMAGES.at(i)+".png";
 		System(cmd);
 	}
@@ -1050,7 +1057,9 @@ cAppli_YannSkyMask::cAppli_YannSkyMask(int argc, char ** argv){
 	std::cout << "------------------------------------------" << std::endl;
 	for (unsigned i=0; i<N; i++){
 		std::cout << IMAGES.at(i)  << std::endl;
-		cmd = "convert -compress None -resize 2048x2458! "+temp_output_folder+"/"+IMAGES.at(i)+".png "+outDir+"/"+IMAGES.at(i);
+		std::string x_px = ""+SIZES_X.at(i);
+		std::string y_px = ""+SIZES_Y.at(i);
+		cmd = "convert -compress None -resize "+x_px+"x"+y_px+"! "+temp_output_folder+"/"+IMAGES.at(i)+".png "+outDir+"/"+IMAGES.at(i);
 		System(cmd);
 	}
 

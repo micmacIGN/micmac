@@ -139,7 +139,7 @@ int CPP_GCP2MeasureLine3D(int argc,char ** argv)
 	  }
     
    }
-	
+		
    MakeFileXML(mesureInAllImages, aNameLine3GCP);
 	
    std::cout << "-------------------------------------------------------------------------------" << std::endl;	
