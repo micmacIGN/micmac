@@ -44,7 +44,15 @@ int CPP_GCP2MeasureLine3D(int argc,char ** argv)
     MMD_InitArgcArgv(argc,argv);
     std::string  aNameFileGCP;
     std::string  aNameLine3GCP;
-
+	
+	double x1, x2, y1, y2;
+	
+	int line_number = 0;
+	int image_number = 0;
+	
+	// ----------------------------------------------------------
+	// Arguments
+	// ----------------------------------------------------------
     ElInitArgMain
     (
         argc,argv,
@@ -60,44 +68,84 @@ int CPP_GCP2MeasureLine3D(int argc,char ** argv)
     {
        aNameLine3GCP = "L3D_"+aNameFileGCP;
     }
+	
+	// ----------------------------------------------------------
+	// Output structure
+	// ----------------------------------------------------------
+	cXml_OneMeasure3DLineInIm mesure;
+	cXml_SetMeasure3DLineInOneIm mesureInImage;
+	cXml_SetMeasureGlob3DLine mesureInAllImages;
 
+	std::list< cXml_OneMeasure3DLineInIm > mesures;
+	std::list< cXml_SetMeasure3DLineInOneIm > allMesures;
+	
+	mesureInImage.Measures() = mesures;
+	mesureInAllImages.AllMeasures() = allMesures;
+	
 
     cSetOfMesureAppuisFlottants aGCPDic = StdGetFromPCP(aNameFileGCP,SetOfMesureAppuisFlottants);
 
    // Pour each image
-   for (const auto & aItIm : aGCPDic.MesureAppuiFlottant1Im())
-   {
+   for (const auto & aItIm : aGCPDic.MesureAppuiFlottant1Im()){
+	   
       // we cast to vector 4 sort
       std::vector<cOneMesureAF1I> aVMes(aItIm.OneMesureAF1I().begin(),aItIm.OneMesureAF1I().end());
-      std::sort
-      (
+      std::sort(
          aVMes.begin(),
          aVMes.end(),
          [](const cOneMesureAF1I &aM1,const cOneMesureAF1I &aM2) 
          {return aM1.NamePt()<aM2.NamePt();}
       );
       int aNbM = (aVMes.size());
-      if ((aNbM%2)!=0)
-      {
-          std::cout << "NameIm= " << aItIm.NameIm() << " " << aNbM<< "\n";
+	  
+      if ((aNbM%2)!=0){
+          std::cout << "NameIm = " << aItIm.NameIm() << " " << aNbM<< "\n";
           ELISE_ASSERT(false,"Odd size of point ");
       }
-      for (int aKM=0 ; aKM<aNbM ; aKM+=2)
-      {
+	   
+	  line_number += aNbM/2;
+		
+      for (int aKM=0 ; aKM<aNbM ; aKM+=2){
+		  
           std::string aPref1,aPref2,aPost1,aPost2;
 
           SplitIn2ArroundCar(aVMes[aKM].NamePt()  ,'_',aPref1,aPost1,false);
           SplitIn2ArroundCar(aVMes[aKM+1].NamePt(),'_',aPref2,aPost2,false);
-
-
+		 
           ELISE_ASSERT(aPref1==aPref2,"Prefix different");
           ELISE_ASSERT(aPost1=="1","Bad postfix");
           ELISE_ASSERT(aPost2=="2","Bad postfix");
+		    
+		  x1 = aVMes[aKM].PtIm().x;
+		  y1 = aVMes[aKM].PtIm().y;
+		  
+		  x2 = aVMes[aKM+1].PtIm().x;
+		  y2 = aVMes[aKM+1].PtIm().y;
+		  		  
+		  mesure.P1() = Pt2dr(x1,y1);
+		  mesure.P2() = Pt2dr(x2,y2);
+		  mesure.NameLine3D() = aPref1;
+		  
+		  mesureInImage.Measures().push_back(mesure);
 
-          std::cout << aPref1 << "\n";
       }
-      // std::cout << aItIm.NameIm() << "\n\n";
+	  
+	  if (aNbM > 0){
+		  image_number += 1;
+		  mesureInImage.NameIm() = aItIm.NameIm();
+		  mesureInAllImages.AllMeasures().push_back(mesureInImage);
+		  mesureInImage.Measures().clear();
+	  	  std::cout << aItIm.NameIm() << " " << aNbM/2 << " line(s)" << std::endl;
+	  }
+    
    }
+		
+   MakeFileXML(mesureInAllImages, aNameLine3GCP);
+	
+   std::cout << "-------------------------------------------------------------------------------" << std::endl;	
+   std::cout << aNameFileGCP << ": " << line_number << " line(s) found in " << image_number << " image(s) -> " << aNameLine3GCP <<  std::endl; 
+   std::cout << "-------------------------------------------------------------------------------" << std::endl;	
+	
    return EXIT_SUCCESS;
 }
 

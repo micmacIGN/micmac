@@ -289,6 +289,10 @@ int AnalysePxFrac_Main(int argc,char ** argv);
 int CPP_YannEstimHomog(int argc,char ** argv);
 int CPP_YannApplyHomog(int argc,char ** argv);
 int CPP_YannInvHomolHomog(int argc,char ** argv);
+int CPP_YannExcludeSats(int argc,char ** argv);
+int CPP_YannSetTimestamps(int argc,char ** argv);
+int CPP_YannSkyMask(int argc,char ** argv);
+int CPP_YannScript(int argc,char ** argv);
 
 int CPP_GCP2MeasureLine3D(int argc,char ** argv);
 
@@ -594,7 +598,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("PIMs", MPI_main, "Per Image Matchings"));
 		aRes.push_back(cMMCom("PIMs2Ply", MPI2Ply_main, "Generate Ply from Per Image Matchings"));
 		aRes.push_back(cMMCom("PIMs2Mnt", MPI2Mnt_main, "Generate Mnt from Per Image Matchings"));
-		aRes.push_back(cMMCom("SAT4GEO", Sat3D_main, "Satellite 3D pipeline"));
+		aRes.push_back(cMMCom("SAT4GEO", Sat3D_main, "Satellite 3D pipeline",cArgLogCom(2)));
 
 
 		aRes.push_back(cMMCom("AllDev", DoAllDev_main, "Force development of all tif/xif file"));
@@ -962,7 +966,12 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	if (aRes.empty())
 	{
 
-            aRes.push_back(cMMCom("TestLulin", TestLulin_main, "Explaination: TestLulin "));
+        aRes.push_back(cMMCom("TestLulin", TestLulin_main, "Explaination: TestLulin "));
+		
+		aRes.push_back(cMMCom("Script",CPP_YannScript, "Fonction de script pour les tests "));		
+		aRes.push_back(cMMCom("ExcludeSats",CPP_YannExcludeSats, "Excludes GNSS satellites from raw observations based on sky masks "));
+		aRes.push_back(cMMCom("SkyMask",CPP_YannSkyMask, "Sky mask estimation with neural network "));
+		aRes.push_back(cMMCom("SetTimestamps",CPP_YannSetTimestamps, "Add timestamps tag in image exif "));
 
 		aRes.push_back(cMMCom("Exo0", TD_Exo0, "Some stuff "));
 		aRes.push_back(cMMCom("Exo1", TD_Exo1, "Some stuff "));

@@ -116,6 +116,10 @@ class cCommonAppliSat3D
         int     mZoomF;
         bool    mCMS;
         bool    mDoPly;
+		bool    mEZA;
+		bool    mHasVeg;
+		bool    mHasSBG;
+		double  mSigmaP;
         double  mRegul;
         double  mDefCor;
         bool    ExpTxt;
