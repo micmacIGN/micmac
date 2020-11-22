@@ -112,7 +112,7 @@ class cApply_CreateEpip_main
       bool   mDebug;
       std::string mPostMasq;
       std::string mPostIm;
-	  std::string mNameHom;
+      std::string mNameHom;
       bool mExpTxt;
 	  
       cBasicGeomCap3D *  mGenI1;
@@ -243,14 +243,6 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
 
     if (!EAMIsInit(&mIProf))
        mIProf = aG1->GetVeryRoughInterProf() / 100.0;
-
-/*
-if (MPD_MM())
-{
-    std::cout << "aIProfaIProf " << aIProf << "\n";
-    aIProf = 1/ 10000.0;
-}
-*/
 
 
     // aEps avoid points to be too close to limits
@@ -969,6 +961,7 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       }
       else
       {
+          // MPD : c'est la qu'on intervient pour le calcul du modele epipolaiez
           aPack = mICNM->StdPackHomol(mNameHom,mName1,mName2);
           if (EAMIsInit(&mNbCalcAutoDir))
           {
