@@ -1323,7 +1323,7 @@ if (!MMVisualMode)
                     *aCam2,mName2
                );
 
-     const char * aCarHom = 0;
+     const char * aCarHom = 0; // Because ImEpip requires a char * with 0 defaulta value as argument
      if (EAMIsInit(&mNameHom))
         aCarHom = mNameHom.c_str();
 
