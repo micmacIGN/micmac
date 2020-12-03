@@ -294,7 +294,9 @@ int CPP_YannSetTimestamps(int argc,char ** argv);
 int CPP_YannSkyMask(int argc,char ** argv);
 int CPP_YannScript(int argc,char ** argv);
 
-int CPP_GCP2MeasureLine3D(int argc,char ** argv);
+int CPP_GCP2MeasureLine2D(int argc,char ** argv);
+int CPP_MeasureL2D2L3D(int argc,char ** argv);
+int CPP_L3D2Ply(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -556,8 +558,14 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("SEL", SEL_main, " Tool to visualize tie points"));
 		aRes.push_back(cMMCom("MICMACSaisieLiaisons", MICMACSaisieLiaisons_main, " Low level version of SEL, not recommended"));
 
-		aRes.push_back(cMMCom("GCP2MeasuresL3D", CPP_GCP2MeasureLine3D, " Convert a set of GCP in measure of 3D lines using convention NameLine_x with x={1,2}",cArgLogCom(2)));
+		aRes.push_back(cMMCom("GCP2MeasuresL2D", CPP_GCP2MeasureLine2D, " Convert a set of GCP in measure of 2D lines using convention NameLine_x with x={1,2}",cArgLogCom(2)));
+		aRes.push_back(cMMCom("MeasuresL2D2L3D", CPP_MeasureL2D2L3D, " Convert a set of images measures of 2D lines to 3D lines in space",cArgLogCom(2)));
+		aRes.push_back(cMMCom("L3D2Ply", CPP_L3D2Ply, " Convert a set of 3D lines in space to a ply file",cArgLogCom(2)));
 
+
+
+		
+		
 #ifdef ETA_POLYGON
 		aRes.push_back(cMMCom("HackToF", HackToF,"Hack ToF format "));
 
