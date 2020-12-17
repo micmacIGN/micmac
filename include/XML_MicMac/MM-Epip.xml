@@ -82,6 +82,8 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
         <eSymb> DbleZPas=* 2 ${ZPas} </eSymb>
 
            <!-- Ici * joue le role de && --> 
+        <eSymb> WZ256=* Sup ${Zoom0} 256  InfEq  ${ZoomF} 256  </eSymb>
+        <eSymb> WZ128=* Sup ${Zoom0} 128  InfEq  ${ZoomF} 128  </eSymb>
         <eSymb> WZ64=* Sup ${Zoom0} 64  InfEq  ${ZoomF} 64  </eSymb>
         <eSymb> WZ32=* Sup ${Zoom0} 32  InfEq  ${ZoomF} 32  </eSymb>
         <eSymb> WZ16=* Sup ${Zoom0} 16  InfEq  ${ZoomF} 16  </eSymb>
@@ -356,6 +358,36 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-Epip.xml WorkDir=/media/dat
 	             <ZDilatPlani>  ${HUGEDilatePLANI}  </ZDilatPlani>
                  </#WHEN>
         </EtapeMEC>	
+
+        <#WHEN VTEST=${WZ256}>
+        <EtapeMEC>
+                  <DeZoom> 256 </DeZoom>
+                 <#WHEN VTEST=${DoEpi}>
+                     <Px1DilatAlti>  ${HUGEDilateALTI}  </Px1DilatAlti>
+                 <Px1DilatPlani> ${HUGEDilatePLANI}  </Px1DilatPlani>
+                 </#WHEN>
+                 <#WHEN VTEST=${NotEpi}>
+                     <ZDilatAlti>  ${HUGEDilateALTI}  </ZDilatAlti>
+                 <ZDilatPlani>  ${HUGEDilatePLANI}  </ZDilatPlani>
+                 </#WHEN>
+            </EtapeMEC>
+        </#WHEN>
+
+
+		<#WHEN VTEST=${WZ128}>
+        <EtapeMEC>
+                  <DeZoom> 128 </DeZoom>
+                 <#WHEN VTEST=${DoEpi}>
+                     <Px1DilatAlti>  ${HUGEDilateALTI}  </Px1DilatAlti>
+                 <Px1DilatPlani> ${HUGEDilatePLANI}  </Px1DilatPlani>
+                 </#WHEN>
+                 <#WHEN VTEST=${NotEpi}>
+                     <ZDilatAlti>  ${HUGEDilateALTI}  </ZDilatAlti>
+                 <ZDilatPlani>  ${HUGEDilatePLANI}  </ZDilatPlani>
+                 </#WHEN>
+            </EtapeMEC>
+        </#WHEN>
+
 
         <#WHEN VTEST=${WZ64}>
 	    <EtapeMEC> 
