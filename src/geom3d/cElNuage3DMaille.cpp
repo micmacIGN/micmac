@@ -249,6 +249,7 @@ cElNuage3DMaille::cElNuage3DMaille
    mVoisImDef     (mImDef),
    mTVoisImDef    (mVoisImDef),
    mNormByCenter  (0),
+   mDistCenter    (0),
    m2RepGlob      (0),
    m2RepLoc       (0),
    mAnam          (0),
@@ -321,6 +322,11 @@ void cElNuage3DMaille::SetVoisImDef(Im2D_Bits<1> anIm)
 void cElNuage3DMaille::SetNormByCenter(int val)
 {
     mNormByCenter = val;
+}
+
+void cElNuage3DMaille::SetDistCenter(double val)
+{
+    mDistCenter = val;
 }
 
 bool cElNuage3DMaille::IsEmpty()
@@ -1178,6 +1184,12 @@ Pt3dr cElNuage3DMaille::NormaleOfIndex(const tIndex2D& anI1, int wSize, const Pt
                 else if (mNormByCenter==2)
                 {
                     Pt3dr aCentreOptique = mCam->OrigineProf() - anOffset;
+
+                    if(aCentreOptique.z==0) //On est probablement en mode grille, donc il faut calculer un pseudo centre...
+                    {
+                        std::cout<<"Be carefull, GRID orientation -> it's not the real center. Camera distance set to "<<mDistCenter<<"m (DistC"<<std::endl;
+                        aCentreOptique = aV.P0()+aTgt*mDistCenter - anOffset;
+                    }
                     return aCentreOptique;
                 }
 

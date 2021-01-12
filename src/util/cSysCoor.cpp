@@ -403,7 +403,7 @@ std::vector<Pt3dr> cProj4::Chang(const std::vector<Pt3dr> & aPtsIn, bool Sens2Ge
    {
          Pt3dr aP;
          int aNb = sscanf(aLine,"%lf %lf %lf",&aP.x,&aP.y,&aP.z);
-         std::cout << " ap " << aNb << " " << aP << std::endl;
+         //std::cout << " ap " << aNb << " " << aP << std::endl;
          ELISE_ASSERT(aNb==3,"Bad Nb value in cProj4::Chang, internal error");
          if (Sens2GeoC)
          {

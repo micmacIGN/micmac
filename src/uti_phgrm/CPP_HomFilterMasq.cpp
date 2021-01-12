@@ -333,10 +333,13 @@ std::cout << aNameIm1  << " # " << aNameIm2 << "\n";
                                    Pt3dr aC1 = aCam1->PseudoOpticalCenter();
                                    Pt3dr aC2 = aCam2->PseudoOpticalCenter();
 
-                                   double aDZ1   =  aC1.z-aPTer.z;
+                                   // double aDZ1   =  aC1.z-aPTer.z; MODIF MPD/Yann => ca semble plus logique dans l'autre sens
+								   double aDZ1   =  aPTer.z-aC1.z;
                                    double aDist1 =  euclid(aC1-aPTer);
-                                   double aDZ2   =  aC2.z-aPTer.z;
+                                   // double aDZ2   =  aC2.z-aPTer.z;
+								   double aDZ2   =  aPTer.z-aC2.z;
                                    double aDist2 =  euclid(aC2-aPTer);
+								   
                                    if (  
                                            ((aDZ1<aDZMin) &&  (aDZ2<aDZMin))
                                         || ((aDZ2>aDZMax) &&  (aDZ2>aDZMax))

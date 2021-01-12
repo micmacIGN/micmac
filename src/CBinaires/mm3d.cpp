@@ -295,6 +295,12 @@ int AnalysePxFrac_Main(int argc,char ** argv);
 int CPP_YannEstimHomog(int argc,char ** argv);
 int CPP_YannApplyHomog(int argc,char ** argv);
 int CPP_YannInvHomolHomog(int argc,char ** argv);
+int CPP_YannExcludeSats(int argc,char ** argv);
+int CPP_YannSetTimestamps(int argc,char ** argv);
+int CPP_YannSkyMask(int argc,char ** argv);
+int CPP_YannScript(int argc,char ** argv);
+
+int CPP_GCP2MeasureLine3D(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -557,6 +563,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("SEL", SEL_main, " Tool to visualize tie points"));
 		aRes.push_back(cMMCom("MICMACSaisieLiaisons", MICMACSaisieLiaisons_main, " Low level version of SEL, not recommended"));
 
+		aRes.push_back(cMMCom("GCP2MeasuresL3D", CPP_GCP2MeasureLine3D, " Convert a set of GCP in measure of 3D lines using convention NameLine_x with x={1,2}",cArgLogCom(2)));
+
 #ifdef ETA_POLYGON
 		aRes.push_back(cMMCom("HackToF", HackToF,"Hack ToF format "));
 
@@ -597,6 +605,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("PIMs", MPI_main, "Per Image Matchings"));
 		aRes.push_back(cMMCom("PIMs2Ply", MPI2Ply_main, "Generate Ply from Per Image Matchings"));
 		aRes.push_back(cMMCom("PIMs2Mnt", MPI2Mnt_main, "Generate Mnt from Per Image Matchings"));
+		aRes.push_back(cMMCom("SAT4GEO", Sat3D_main, "Satellite 3D pipeline",cArgLogCom(2)));
 
 
 		aRes.push_back(cMMCom("AllDev", DoAllDev_main, "Force development of all tif/xif file"));
@@ -971,6 +980,12 @@ extern int ConvTiePointPix4DMM_main(int argc,char ** argv);
 extern int OrthoDirectFromDenseCloud_main(int argc,char ** argv);
 extern int TiepGraphByCamDist_main(int argc,char ** argv);
 
+extern int GraphHomSat_main(int argc,char ** argv);
+extern int CPP_AppliCreateEpi_main(int argc,char ** argv);
+extern int CPP_AppliMM1P_main(int argc,char ** argv);
+extern int CPP_AppliRecalRPC_main(int argc,char ** argv);
+extern int CPP_AppliFusion_main(int argc,char ** argv);
+extern int CPP_TransformGeom_main(int argc,char ** argv);
 
 const std::vector<cMMCom> & TestLibAvailableCommands()
 {
@@ -978,7 +993,12 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	if (aRes.empty())
 	{
 
-            aRes.push_back(cMMCom("TestLulin", TestLulin_main, "Explaination: TestLulin "));
+        aRes.push_back(cMMCom("TestLulin", TestLulin_main, "Explaination: TestLulin "));
+		
+		aRes.push_back(cMMCom("Script",CPP_YannScript, "Fonction de script pour les tests "));		
+		aRes.push_back(cMMCom("ExcludeSats",CPP_YannExcludeSats, "Excludes GNSS satellites from raw observations based on sky masks "));
+		aRes.push_back(cMMCom("SkyMask",CPP_YannSkyMask, "Sky mask estimation with neural network "));
+		aRes.push_back(cMMCom("SetTimestamps",CPP_YannSetTimestamps, "Add timestamps tag in image exif "));
 
 		aRes.push_back(cMMCom("Exo0", TD_Exo0, "Some stuff "));
 		aRes.push_back(cMMCom("Exo1", TD_Exo1, "Some stuff "));
@@ -1286,6 +1306,14 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 
 
         aRes.push_back(cMMCom("AC_CQ",CPP_AutoCorr_CensusQuant,"Auto correl for Census Quant"));
+
+        aRes.push_back(cMMCom("SAT4GEO_Pairs",GraphHomSat_main,"Calculate overlapping image pairs (case satellite)"));
+        aRes.push_back(cMMCom("SAT4GEO_CreateEpip",CPP_AppliCreateEpi_main,"Calculate the epipolar geometry (case satellite)"));
+        aRes.push_back(cMMCom("SAT4GEO_MM1P",CPP_AppliMM1P_main,"Do dense image matching in epipolar geometry (case satellite)"));
+        aRes.push_back(cMMCom("SAT4GEO_EpiRPC",CPP_AppliRecalRPC_main,"Recalculate RPC for epipolar geometry images (case satellite)"));
+        aRes.push_back(cMMCom("SAT4GEO_Fuse",CPP_AppliFusion_main,"Fusion of individual depth maps (case satellite)"));
+		aRes.push_back(cMMCom("TransGeom", CPP_TransformGeom_main, "Transform geometry of depth map to eGeomMNTFaisceauIm1ZTerrain_Px1D"));
+
 
    }
 

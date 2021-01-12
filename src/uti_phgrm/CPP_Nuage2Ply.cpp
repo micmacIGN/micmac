@@ -91,6 +91,7 @@ int Nuage2Ply_main(int argc,char ** argv)
 
     std::string  aNeighMask;
     int NormByC = 0;
+    double DistCentre = 0;
     std::vector<string> aVNormName;
     bool ForceRGB=true;
 
@@ -112,6 +113,7 @@ int Nuage2Ply_main(int argc,char ** argv)
                     << EAM(DoXYZ,"DoXYZ",true,"Do XYZ, export as RGB image where R=X,G=Y,B=Z")
                     << EAM(DoNrm,"Normale",true,"Add normale (Def=false, usable for Poisson)")
                     << EAM(NormByC,"NormByC",true,"Replace normal (Def=0, 2=optical center 1=point to center vector)",eSAM_InternalUse)
+                    << EAM(DistCentre,"DistC",true,"Factor to set the distance of the camera (Altitude of pleiades : 694000)",eSAM_InternalUse)
                     << EAM(aVNormName,"NormName",true,"Replace normal name (Def=nx,ny,nz)", eSAM_NoInit )
                     << EAM(aExagZ,"ExagZ",true,"To exagerate the depth, Def=1.0")
                     << EAM(aRatio,"RatioAttrCarte",true,"")
@@ -135,6 +137,7 @@ int Nuage2Ply_main(int argc,char ** argv)
       aNameOut = StdPrefix(aNameNuage) + ".ply";
 
     cElNuage3DMaille *  aNuage = cElNuage3DMaille::FromFileIm(aNameNuage,"XML_ParamNuage3DMaille","",aExagZ);
+
     if (aMask !="")
     {
          Im2D_Bits<1> aMaskN= aNuage->ImDef();
@@ -244,6 +247,12 @@ int Nuage2Ply_main(int argc,char ** argv)
         if (! EAMIsInit(&DoNrm)) DoNrm = 5;
         aRes->SetNormByCenter(NormByC);
         aLComment.push_back("Norm is camera origin - NormByC : "+ToString(NormByC));
+    }
+
+    if (DistCentre && (NormByC==2))
+    {
+        aRes->SetDistCenter(DistCentre);
+        aLComment.push_back("Center of camera set to a distance of : "+ToString(DistCentre));
     }
 
     std::list<std::string > aLNormName(aVNormName.begin(), aVNormName.end());

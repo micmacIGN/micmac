@@ -770,7 +770,12 @@
                 <PatternTransform> (.*)%(.*)%(.*) </PatternTransform>
                 <CalcName> EpipAppuis-$1-$2-$3.xml  </CalcName>
                 <Separateur > % </Separateur>
-             </Direct>
+			</Direct>
+			<Inverse>
+					<PatternTransform> EpipAppuis-(.*)-(.*)-(.*).xml </PatternTransform>
+					<CalcName> $2 </CalcName>
+					<CalcName> $3 </CalcName>
+			</Inverse>
         </Calcs>
         <Key>  NKS-Assoc-NameAppuiEpip </Key>
     </KeyedNamesAssociations>
@@ -2658,6 +2663,22 @@
         </Calcs>
         <Key> Key-Assoc-Nuage-Ply </Key>
     </KeyedNamesAssociations>
+
+<!-- 
+	MEC - decompose image name from MEC2Im-XXX
+-->
+
+    <KeyedNamesAssociations>
+        <Calcs>
+            <Arrite>  2 1 </Arrite>
+            <Direct>
+                <PatternTransform> (.*)@(.*) </PatternTransform>
+				<CalcName>  MEC2Im-$1-$2/  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key> Key-Assoc-MEC-Dir </Key>
+    </KeyedNamesAssociations>
+
 
 
 <!--

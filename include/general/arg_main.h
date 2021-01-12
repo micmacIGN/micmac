@@ -757,7 +757,7 @@ int MPI2Ply_main(int argc,char ** argv);
 int MPI2Mnt_main(int argc,char ** argv);
 int CCL_main(int argc,char ** argv);
 int TDEpip_main(int argc, char **argv);
-
+int Sat3D_main(int argc, char **argv);
 
 int TestNewOriImage_main(int argc,char ** argv);
 int TestAllNewOriImage_main(int argc,char ** argv);

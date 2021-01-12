@@ -1934,7 +1934,9 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
 
          std::string aNameType = ThePattSatelit.KIemeExprPar(1);
     
-	 eTypeImporGenBundle aTrueType = Str2eTypeImporGenBundle(aNameType);
+	 eTypeImporGenBundle aTrueType = eTIGB_Unknown;
+	 AutoDetermineTypeTIGB(aTrueType,aName);//ER modif to look inside the file rather than reason from the filename: eTypeImporGenBundle aTrueType = Str2eTypeImporGenBundle(aNameType);
+
          aIntType =  aTrueType;
 
          switch (aTrueType)
