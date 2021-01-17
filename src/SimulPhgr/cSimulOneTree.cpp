@@ -40,6 +40,290 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
 
+namespace NS_SimulIm
+{
+
+/*  
+    Classes for trees
+    *  A trees is made of tree-balls  
+    * a tree-balls can me made of other tree-balls, or of
+*/
+class cSphere;
+class cEllips3Dxy;
+class cTreeBall;
+static Pt3df   GenerateRandomPointInsSphereUnite();
+
+class cSphere
+{
+   public :
+      cSphere(const Pt3df & aP,float aR);
+      float  Distance(const cSphere &) const;
+      float  Interaction(const cSphere &) const;
+      const Pt3df  & C() const {return mC;}
+
+   private :
+      Pt3df  mC;
+      float  mR;
+};
+
+
+// An ellipsoid where
+class cEllips3Dxy
+{
+   public :
+      cEllips3Dxy(const Pt3df & aP,Pt3df aRay);
+      float  MulR() const {return mR.Vol();}
+      Pt3df  GeneratePointInside() const;
+      void GenerateNSphere 
+           (
+               std::vector<cSphere>  & aResult, 
+               double aPropVol, int aNbPts, int aNbTest
+           ) const;
+      void GenerateNEllips
+           (
+                std::vector<cEllips3Dxy>  & aResult,
+                int                         aNbPts,
+                double                      aDensite,
+                int                         aNbTest
+           ) const;
+      double Ray2NbPts(double aPropVol,int aNbPts) const ;
+      double NbPts2Ray(double aPropVol,double aRay ) const ;
+
+   private :
+      Pt3df  FromNormalCoord(const Pt3df & aP) const;  /// [-1,1]^3 => Ellips
+      Pt3df  ToNormalCoord(const Pt3df & aP) const;  /// [-1,1]^3 => Ellips
+
+      // bool   IsInside(const Pt3df & aP);  /// Standard belonging to object
+
+
+      float  Interaction(const cEllips3Dxy &) const;
+      Pt3df  mC;
+      Pt3df  mR;
+};
+
+
+
+
+class cTreeBall
+{
+   public :
+      cTreeBall(const cEllips3Dxy & aEllips,std::vector<int>,int aLevel);
+   private :
+      // if terminal contains leafs, else contains tree balls
+      std::list<cTreeBall>      mLSubB;
+      std::vector<cSphere>  mVLeafs;
+};
+
+
+/***********************************************************/
+/*                                                         */
+/*                  ::NS_SimulIm                           */
+/*                                                         */
+/***********************************************************/
+
+Pt3df   GenerateRandomPointInsSphereUnite()
+{
+   while (1)
+   {
+       // Pt3df aRes(NRrandC(),NRrandC(),NRrandC());
+       Pt3df aRes = Pt3df::RandC();
+       if (euclid(aRes)<=1)
+          return aRes;
+   }
+   ELISE_ASSERT(false,"Sould not be here");
+   return Pt3df(0,0,0);
+}
+
+/***********************************************************/
+/*                                                         */
+/*                     cSphere                             */
+/*                                                         */
+/***********************************************************/
+
+float  cSphere::Distance(const cSphere & aS2) const
+{
+    return euclid(mC-aS2.mC) / (mR + aS2.mR);
+}
+
+float  cSphere::Interaction(const cSphere & aS2) const
+{
+    double aD = Distance(aS2);
+    if (aD> 1) return 0;
+    return ElSquare(1-aD);
+}
+
+/***********************************************************/
+/*                                                         */
+/*                     cEllips3Dxy                         */
+/*                                                         */
+/***********************************************************/
+
+double cEllips3Dxy::Ray2NbPts(double aPropVol,int aNbPts) const 
+{
+    return pow((MulR()*aPropVol)/aNbPts,1/3.0);
+}
+
+double cEllips3Dxy::NbPts2Ray(double aPropVol,double aRay ) const 
+{
+   return  round_ni((MulR()*aPropVol) / pow(aRay,3.0));
+}
+
+void cEllips3Dxy::GenerateNSphere
+     (
+         std::vector<cSphere>  & aResult,
+         double aPropVol,
+         int aNbPts,
+         int aNbTest
+      ) const
+{
+   static double aEpsNorm = 0.1;
+   static double aEpsZ    = 0.1;
+
+   aResult.clear();
+   double aRay = Ray2NbPts(aPropVol,aNbTest);
+
+   for (int aKP = 0 ; aKP<aNbPts ; aKP++)
+   {
+       // Look for point that maximize distance to all selected in aResult
+       double aScoreMax = -1;
+       Pt3df  aPMaxScore(0,0,0);
+
+       // Make several test on a random init
+       for (int aKTest=0 ; aKTest<aNbTest; aKTest++)
+       {
+            Pt3df  aPTest= GeneratePointInside();
+            // Compute de min distance
+            float aDMin = 1e30; 
+            for (int aKP=0 ; aKP<int(aResult.size()) ; aKP++)
+            {
+                ElSetMin(aDMin, square_euclid(aPTest,aResult[aKP].C()));
+            }
+            double aScore = aDMin;
+            Pt3df aPNorm =ToNormalCoord(aPTest);
+            aScore *=  (aEpsNorm + euclid(aPNorm)) * (aEpsZ + (1+aPNorm.z));
+            if (aScoreMax<aScore)
+            {
+               aScoreMax = aScore;
+               aPMaxScore = aPTest;
+            }
+       }
+       aResult.push_back(cSphere(aPMaxScore,aRay));
+   }
+}
+
+/*
+void cEllips3Dxy::GenerateNEllips
+     (
+         std::vector<cEllips3Dxy>  & aResult,
+         int                         aNbPts,
+         double                      aDensite,
+         int                         aNbTest
+      ) const
+{
+   static const float aEpsInterv = 1e-2; // To avoid empty volume
+
+   aResult.clear();
+
+   float aVolTotal  =  MulR() ;
+   float aVolTarget =  aVolTotal * aDensite;
+   float aVolMoy    =  aVolTarget / aNbPts;
+   float aVolDone   =  0.0;
+
+   while (aVolDone < aVolTarget)
+   {
+       float aVol = aVolMoy * NRrandInterv(aEpsInterv,2-aEpsInterv);
+       Pt3df aRay =  Pt3df::Rand3().PVolTarget(aVol);
+
+       double aDMax = -1;
+       Pt3df  aPMaxD(0,0,0);
+
+       // Make several test on a random init
+       for (int aKTest=0 ; aKTest<aNbTest; aKTest++)
+       {
+            Pt3df  aPTest= GeneratePointInside();
+            // Compute de min distance
+            float aDMin = 1e30; 
+            cEllips3Dxy anE(aPTest,aRay);
+            for (int aKP=0 ; aKP<int(aResult.size()) ; aKP++)
+            {
+                ElSetMin(aDMin, square_euclid(aPTest,aResult[aKP].C()));
+            }
+            if (aDMax<aDMin)
+            {
+               aDMax = aDMin;
+               aPMaxD = aPTest;
+            }
+       }
+  
+   }
+      
+}
+*/
+/*
+*/
+
+
+float  cEllips3Dxy::Interaction(const cEllips3Dxy & anE2) const
+{
+
+    // Difference of centers, normalised par by sum of ray
+    Pt3df aDif  = (mC-anE2.mC).dcbyc(mR + anE2.mR);
+    double aD = euclid(aDif);
+   
+    if (aD> 1) return 0;
+    return ElSquare(1-aD);
+}
+Pt3df  cEllips3Dxy::GeneratePointInside() const
+{
+    return FromNormalCoord(GenerateRandomPointInsSphereUnite());
+}
+
+Pt3df  cEllips3Dxy::FromNormalCoord(const Pt3df & aP) const
+{
+   return mC + aP.mcbyc(mR); 
+}
+
+Pt3df  cEllips3Dxy::ToNormalCoord(const Pt3df & aP) const
+{
+   return (aP-mC).dcbyc(mR);
+}
+
+};
+
+/***********************************************************/
+/*                                                         */
+/*                  ::                                     */
+/*                                                         */
+/***********************************************************/
+
+using namespace NS_SimulIm;
+
+int  CPP_SimulOneEllips(int argc,char **argv)
+{
+    Pt3dr aC(0,0,0);
+    Pt3dr aR(0,0,0);
+    int  aNbPts;
+
+    ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aR,"Ray")
+                    << EAMC(aNbPts,"Number Pts")
+        ,
+        LArgMain()
+                    << EAM(aC,"Center", true, "Center of tree")
+
+    );
+
+    cEllips3Dxy anE(Pt3df::P3ToThisT(aC),Pt3df::P3ToThisT(aR));
+
+
+    // cPlyCloud  aPlyC;
+
+    return EXIT_SUCCESS;
+}
+
+
 /*
 
 class cArbreSimule

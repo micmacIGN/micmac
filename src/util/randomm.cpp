@@ -87,6 +87,7 @@ int  NRrandom3 (int aN)
    return ElMax(0,ElMin(aN-1,round_ni(NRrandom3()*aN)));
 }
 
+
 REAL cElRanGen::cNRrandC() 
 {
     return 2*(cNRrandom3()-0.5);
@@ -192,6 +193,10 @@ void ResetNRrand()
 REAL NRrandC() {return  aRG.cNRrandC();}
 
 
+REAL NRrandInterv(double aV0,double aV1) 
+{
+   return aV0 + (aV1-aV0) * NRrandom3();
+}
 
 
 
