@@ -146,8 +146,7 @@ std::string cCommonAppliSat3D::ComParamRPC_Basic()
 std::string cCommonAppliSat3D::ComParamRPC()
 {
 	std::string aCom = ComParamRPC_Basic();
-
-	if (EAMIsInit(&mOutRPC))     aCom += " OutRPC=" + mOutRPC;
+	aCom += " OutRPC=" + mOutRPC;
 
 	return aCom;
 }
@@ -177,7 +176,7 @@ std::string cCommonAppliSat3D::ComParamMatch()
 std::string cCommonAppliSat3D::ComParamFuse()
 {
 	std::string aCom;
-	if (EAMIsInit(&mOutRPC))     aCom += " OutRPC=" + mOutRPC;
+	aCom += " OutRPC=" + mOutRPC;
 
 
 	return aCom;
