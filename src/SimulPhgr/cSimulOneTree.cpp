@@ -51,6 +51,8 @@ namespace NS_SimulIm
 class cSphere;
 class cEllips3Dxy;
 class cTreeBall;
+
+// Generate a point randomly distributed in the unit sphere
 static Pt3df   GenerateRandomPointInsSphereUnite();
 
 class cSphere
@@ -74,7 +76,7 @@ class cEllips3Dxy
       cEllips3Dxy(const Pt3df & aP,Pt3df aRay);
       float  MulR() const {return mR.Vol();}
       Pt3df  GeneratePointInside() const;
-      void GenerateNSphere 
+      void GenerateNSphereInside
            (
                std::vector<cSphere>  & aResult, 
                double aPropVol, int aNbPts, int aNbTest
@@ -168,7 +170,7 @@ double cEllips3Dxy::NbPts2Ray(double aPropVol,double aRay ) const
    return  round_ni((MulR()*aPropVol) / pow(aRay,3.0));
 }
 
-void cEllips3Dxy::GenerateNSphere
+void cEllips3Dxy::GenerateNSphereInside
      (
          std::vector<cSphere>  & aResult,
          double aPropVol,
@@ -200,7 +202,11 @@ void cEllips3Dxy::GenerateNSphere
             }
             double aScore = aDMin;
             Pt3df aPNorm =ToNormalCoord(aPTest);
-            aScore *=  (aEpsNorm + euclid(aPNorm)) * (aEpsZ + (1+aPNorm.z));
+            // Add a penalization favorizing point at high distance
+            aScore *=  (aEpsNorm + euclid(aPNorm)) ;
+            // Add a penalization favorizing point at high altitude
+            aScore *=  (aEpsZ + (1+aPNorm.z));
+
             if (aScoreMax<aScore)
             {
                aScoreMax = aScore;
@@ -210,6 +216,7 @@ void cEllips3Dxy::GenerateNSphere
        aResult.push_back(cSphere(aPMaxScore,aRay));
    }
 }
+
 
 /*
 void cEllips3Dxy::GenerateNEllips
@@ -226,12 +233,14 @@ void cEllips3Dxy::GenerateNEllips
 
    float aVolTotal  =  MulR() ;
    float aVolTarget =  aVolTotal * aDensite;
-   float aVolMoy    =  aVolTarget / aNbPts;
-   float aVolDone   =  0.0;
+   float aVolAvg    =  aVolTarget / aNbPts; ///< Average volume in each test
+   float aVolDone   =  0.0;  ///< Volume filled untill now
 
+   /// While the targeted volume is not reached
    while (aVolDone < aVolTarget)
    {
-       float aVol = aVolMoy * NRrandInterv(aEpsInterv,2-aEpsInterv);
+       // Generate a random volume
+       float aVol = aVolAvg * NRrandInterv(aEpsInterv,2-aEpsInterv);
        Pt3df aRay =  Pt3df::Rand3().PVolTarget(aVol);
 
        double aDMax = -1;
@@ -258,6 +267,10 @@ void cEllips3Dxy::GenerateNEllips
    }
       
 }
+*/
+
+
+/*
 */
 /*
 */

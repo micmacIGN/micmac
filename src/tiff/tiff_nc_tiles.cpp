@@ -200,7 +200,8 @@ void Tiff_Tiles_NC::w_new_tile(class Fich_Im2d * f2d)
 
 void Tiff_Tiles_NC::seek_pack_line (Fich_Im2d *,INT y0,INT y1,bool)
 {
-     _pfob->Rseek((y1-y0)*_sz_tile_phys);
+  tLowLevelFileOffset anOffset = tLowLevelFileOffset(y1-y0)* tLowLevelFileOffset(_sz_tile_phys);
+  _pfob->Rseek(anOffset);
 }
 
 
