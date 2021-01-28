@@ -196,6 +196,19 @@ Pt3dr cCEM_OneIm_Nuage::To3d(const Pt2di & anI,const Pt3dr *) const
 /*                                                                 */
 /*******************************************************************/
 
+/*
+static Box2di  ShowBox(const Box2di & aBox)
+{
+    std::cout << "BBBB=" << aBox._p0 << " " << aBox._p1 << "\n";
+    return aBox;
+}
+static Pt2di  ShowPt(const Pt2di & aPt)
+{
+    std::cout << "PPPPP=" << aPt << "\n";
+    return aPt;
+}
+*/
+
 cCEM_OneIm::cCEM_OneIm
 (
     cCoherEpi_main *       aCoher,
@@ -359,11 +372,11 @@ void cCEM_OneIm::SetConj(cCEM_OneIm * aConj)
    mConj->mConj = this;
 }
 
-Box2dr cCEM_OneIm::BoxIm2(const Pt2di & aSzIm2)
+Box2dr cCEM_OneIm::BoxIm2(const Pt2di & aSzIm2,bool & OneOk)
 {
    Pt2dr aP0(1e9,1e9);
    Pt2dr aP1(-1e9,-1e9);
-   bool OneOk = false;
+   OneOk = false;
 
    Pt2di aPIm;
    for (aPIm.x=0 ; aPIm.x<mSz.x ; aPIm.x++)
@@ -388,6 +401,11 @@ Box2dr cCEM_OneIm::BoxIm2(const Pt2di & aSzIm2)
       return I2R(Inf(mBox,Box2di(Pt2di(0,0),aSzIm2)));
 
    return Box2dr(aP0,aP1);
+}
+Box2dr cCEM_OneIm::BoxIm2(const Pt2di & aSzIm2)
+{
+   bool OneOk;
+   return BoxIm2(aSzIm2,OneOk);
 }
 
 static Pt2di PBUG(180,418);
@@ -785,6 +803,7 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
    else
    {
 
+
    // Cas on fait le calcul
 
        if (mWithEpi)
@@ -793,19 +812,32 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
           mIm1 = new cCEM_OneIm_Nuage(this,mNameIm1,mNameIm2,mBoxIm1,mVisu,true);
 
 
-       Box2di aBoxIm2 = R2ISup(mIm1->BoxIm2(aSzIm2));
-       if (mWithEpi)
+       bool  OneOk2;
+       Box2di aBoxIm2 = R2ISup(mIm1->BoxIm2(aSzIm2,OneOk2));
+       if (MPD_MM()) std::cout << "OneOk : " << OneOk2 << "\n";
+
+       if (OneOk2)
        {
-          mIm2 = new cCEM_OneIm_Epip(this,mNameIm2,aBoxIm2,mVisu,false,mFinal);
+           if (mWithEpi)
+           {
+              mPIm2 = new cCEM_OneIm_Epip(this,mNameIm2,aBoxIm2,mVisu,false,mFinal);
+           }
+           else
+           {
+              mPIm2 = new cCEM_OneIm_Nuage(this,mNameIm2,mNameIm1,aBoxIm2,mVisu,false);
+           }
        }
        else
        {
-          mIm2 = new cCEM_OneIm_Nuage(this,mNameIm2,mNameIm1,aBoxIm2,mVisu,false);
+            mPIm2 = nullptr;
        }
 
-       mIm1->SetConj(mIm2);
-       mIm1->PostInit();
-       mIm2->PostInit();
+       if (mPIm2)
+       {
+           mIm1->SetConj(mPIm2);
+           mIm1->PostInit();
+           mPIm2->PostInit();
+       }
 
        if (HasHom)
        {
@@ -965,9 +997,10 @@ cCoherEpi_main::cCoherEpi_main (int argc,char ** argv) :
 
            if (mDoMasqSym)
            {
+                 ELISE_ASSERT(mPIm2!=nullptr,"Need adapation 4 MasqSym with empty data");
                  ELISE_COPY(aISol.all_pts(),cont_vect(aISol.in(),this,true),Output::onul());
                  std::sort(mConts.begin(),mConts.end());
-                 Im2D_U_INT1 aMasq2(mIm2->Sz().x,mIm2->Sz().y,0);
+                 Im2D_U_INT1 aMasq2(mPIm2->Sz().x,mPIm2->Sz().y,0);
                  for (int aK=0 ; aK<int(mConts.size()) ; aK++)
                  {
                      ELISE_COPY(polygone(*(mConts[aK].mL)),mConts[aK].mExt ? 1 : 0 , aMasq2.out());
