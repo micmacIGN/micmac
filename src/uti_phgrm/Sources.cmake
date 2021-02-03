@@ -163,6 +163,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_XYZ2Im.cpp
     ${UTI_PHGRM_DIR}/CPP_GrapheHom.cpp
     ${UTI_PHGRM_DIR}/CPP_MMOnePair.cpp
+    ${UTI_PHGRM_DIR}/CPP_BasicEpip.cpp
     ${UTI_PHGRM_DIR}/CPP_VisuCoupeEpip.cpp
     ${UTI_PHGRM_DIR}/CPP_HomFilterMasq.cpp
     ${UTI_PHGRM_DIR}/CPP_InitCamFromAppuis.cpp

@@ -298,6 +298,8 @@ int CPP_GCP2MeasureLine2D(int argc,char ** argv);
 int CPP_MeasureL2D2L3D(int argc,char ** argv);
 int CPP_L3D2Ply(int argc,char ** argv);
 int CPP_DebugAI4GeoMasq (int argc,char ** argv);
+int CPP_MMBasic4IGeo(int argc,char ** argv);
+int CPP_MMBasicTestDeep(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -425,6 +427,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 		aRes.push_back(cMMCom("MMByP", MMByPair_main, " Matching By Pair of images", cArgLogCom(2)));
 		aRes.push_back(cMMCom("MM1P", MMOnePair_main, " Matching One Pair of images", cArgLogCom(2)));
+		aRes.push_back(cMMCom("MMAI4Geo", CPP_MMBasic4IGeo," Basic Matching for AI4Geo Satellite", cArgLogCom(2)));
+		aRes.push_back(cMMCom("MMTestMMVII",CPP_MMBasicTestDeep,"Basic Matching for insert in testing MMVII ", cArgLogCom(2)));
 
 		aRes.push_back(cMMCom("ChantierClip", ChantierClip_main, " Clip Chantier", cArgLogCom(2)));
 		aRes.push_back(cMMCom("ClipIm", ClipIm_main, " Clip Chantier", cArgLogCom(2)));
