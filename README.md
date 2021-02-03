@@ -77,7 +77,7 @@ or build your own image from scratch using the existing Dockerfile:
 
 # Installation test
 
-The [Datasets](https://micmac.ensg.eu/index.php/Datasets) and [data](https://micmac.ensg.eu/data/) pages at the [ensg.eu]() site provide test datasets, including `boudha_dataset-2.zip`, which contains images and configuration files needed to compute the *Boudha* example from Micmac's documentation. By calling the script this way :
+The [Datasets](https://micmac.ensg.eu/index.php/Datasets) and [data](https://micmac.ensg.eu/data/) pages at the [ensg.eu](https://micmac.ensg.eu/index.php/Accueil) site provide test datasets, including `boudha_dataset-2.zip`, which contains images and configuration files needed to compute the *Boudha* example from Micmac's documentation. By calling the script this way :
 
 `./boudha_test.sh my_micmac_bin/`
 
