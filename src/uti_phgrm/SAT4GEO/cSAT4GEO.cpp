@@ -51,16 +51,25 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 	mOutRPC("EpiRPC"),
 	mDegreRPC(0),
 	mZoom0(64),
-	mZoomF(1),
-	mHasVeg(true),
-	mHasSBG(false),
+	//mZoomF(1),
+	//mHasVeg(true),
+	//mHasSBG(false),
 	mNameEpiLOF("EpiListOfFile.xml"),
 	mOutSMDM("Fusion/"),
-	mArgCommon(new LArgMain)
+	mArgBasic(new LArgMain),
+	mArgEpip(new LArgMain),
+	mArgRPC(new LArgMain),
+	mArgMM1P(new LArgMain),
+	mArgFuse(new LArgMain)
+
 {
-	*mArgCommon
+	*mArgBasic
 			<< EAM(mDir,"Dir",true,"Current directory, Def=./")
-			<< EAM(mFilePairs,"Pairs",true,"File with overlapping pairs, Def=Pairs.xml")
+			<< EAM(mExe,"Exe",true,"Execute all, Def=true")
+			<< EAM(mFilePairs,"Pairs",true,"File with overlapping pairs, Def=Pairs.xml");
+	
+
+	*mArgEpip
 			<< EAM(mDoIm,"DoEpi",true,"Epipolar rectification, Def=true")
 			<< EAM(mDegreEpi,"DegreeEpi",true,"Epipolar rectification: polynomial degree, Def=9")
 			<< EAM(mDir1,"Dir1",true,"Epipolar rectification: Direction of Epip one (when Ori=NONE)")
@@ -73,35 +82,62 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 			<< EAM(mNbXY,"NbXY",true,"Epipolar rectification: Number of point / line or col, def=100")
 			<< EAM(mNbCalcDir,"NbCalcDir",true,"Epipolar rectification: Calc directions : Nbts / NbEchDir")
 			<< EAM(mExpCurve,"ExpCurve",true,"Epipolar rectification: 0-SzIm ,1-Number of Line,2- Larg (in [0 1]),3-Exag deform,4-ShowOut")
-			<< EAM(mOhP,"OhP",true,"Epipolar rectification: Oh's method test parameter")
-			<< EAM(mOutRPC,"OutRPC",true,"RPC recalculation: Output RPC orientation directory (after rectification)")
+			<< EAM(mOhP,"OhP",true,"Epipolar rectification: Oh's method test parameter");
+
+
+
+	*mArgRPC
 			<< EAM(mDegreRPC,"DegreRPC",true,"RPC recalculation: Degree of RPC polynomial correction, Def=0")
-			<< EAM(mChSys,"ChSys",true,"RPC recalculation: File specifying a euclidean projection system of your zone")
+			<< EAM(mChSys,"ChSys",true,"RPC recalculation: File specifying a euclidean projection system of your zone");
+
+
+	*mArgMM1P
 			<< EAM(mZoom0,"Zoom0",true,"Image matching: Zoom Init (Def=64)")
-			<< EAM(mZoomF,"ZoomF",true,"Image matching: Zoom Final (Def=1)")
-			<< EAM(mCMS,"CMS",true,"Image matching: Multi Scale Correl (Def=ByEpip)")
-			<< EAM(mHasVeg,"HasVeg",true,"Image matching: Has vegetation, Def= false")
-			<< EAM(mHasSBG,"HasSBG",true,"Image matching: Has Sky Background , Def= true")
+//			<< EAM(mZoomF,"ZoomF",true,"Image matching: Zoom Final (Def=1)")
+//			<< EAM(mCMS,"CMS",true,"Image matching: Multi Scale Correl (Def=ByEpip)")
+//			<< EAM(mHasVeg,"HasVeg",true,"Image matching: Has vegetation, Def= false")
+//			<< EAM(mHasSBG,"HasSBG",true,"Image matching: Has Sky Background , Def= true")
 			<< EAM(mEZA,"EZA",true,"Image matching: Export Z absolute (Def=false)")
 			<< EAM(mDoPly,"DoPly",true,"Image matching: Generate Ply")
-			<< EAM(mSigmaP,"SigmaP",true,"Image matching: Sigma Pixel for coherence (Def=1.5)")
-			<< EAM(mDefCor,"DefCor",true,"Image matching: Def cor (Def=0.5)")
-			<< EAM(mRegul,"ZReg",true,"Image matching: Regularisation factor (Def=0.05)")
-			<< EAM(mDefCor,"DefCor",true,"Image matching: Def cor (Def=0.5)")
-			<< EAM(mSzW0,"SzW0",true,"Image matching: Sz first Windows, def depend of NbS (1 MS, 2 no MS)")
-			<< EAM(mCensusQ,"CensusQ",true,"Image matching: Use Census Quantitative")
-			<< EAM(mOutSMDM,"OutSMDM",true,"Depth map fusion: Name of the output folder, Def=Fusion/")
-			<< EAM(mExe,"Exe",true,"Execute all, Def=true")
+			<< EAM(mInc,"Inc",true,"Image matching: Sigma Pixel for coherence (Def=1.5)")
+//			<< EAM(mRegul,"ZReg",true,"Image matching: Regularisation factor (Def=0.05)")
+//			<< EAM(mDefCor,"DefCor",true,"Image matching: Def cor (Def=0.5)")
+//			<< EAM(mSzW0,"SzW0",true,"Image matching: Sz first Windows, def depend of NbS (1 MS, 2 no MS)")
+//			<< EAM(mCensusQ,"CensusQ",true,"Image matching: Use Census Quantitative")
 			;
+
+	*mArgFuse
+			<< EAM(mOutRPC,"OutRPC",true,"RPC recal/Depth map fusion: RPC orientation directory (corresp. to epipolar images)")
+			<< EAM(mOutSMDM,"OutSMDM",true,"Depth map fusion: Name of the output folder, Def=Fusion/");
 
 	mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
 
 	StdCorrecNameOrient(mOutRPC,mDir,true);
 }
 
-LArgMain & cCommonAppliSat3D::ArgCom()
+LArgMain & cCommonAppliSat3D::ArgFuse()
 {
-	return * mArgCommon;
+	return * mArgFuse;
+}
+
+LArgMain & cCommonAppliSat3D::ArgBasic()
+{
+	return * mArgBasic;
+}
+
+LArgMain & cCommonAppliSat3D::ArgEpip()
+{
+	return * mArgEpip;
+}
+
+LArgMain & cCommonAppliSat3D::ArgRPC()
+{
+	return * mArgRPC;
+}
+
+LArgMain & cCommonAppliSat3D::ArgMM1P()
+{
+	return * mArgMM1P;
 }
 
 
@@ -157,18 +193,18 @@ std::string cCommonAppliSat3D::ComParamMatch()
 	std::string aCom;
     if (EAMIsInit(&mExpTxt))  aCom += aCom  + " ExpTxt=" + ToString(mExpTxt);
     if (EAMIsInit(&mZoom0))   aCom +=  " Zoom0=" + ToString(mZoom0);
-    if (EAMIsInit(&mZoomF))   aCom +=  " ZoomF=" + ToString(mZoomF);
-    if (EAMIsInit(&mCMS))     aCom +=  " CMS=" + ToString(mCMS);
+    //if (EAMIsInit(&mZoomF))   aCom +=  " ZoomF=" + ToString(mZoomF);
+    //if (EAMIsInit(&mCMS))     aCom +=  " CMS=" + ToString(mCMS);
     if (EAMIsInit(&mEZA))     aCom +=  " EZA=" + ToString(mEZA);
-	if (EAMIsInit(&mHasVeg))  aCom +=  " HasVeg=" + ToString(mHasVeg);
-	if (EAMIsInit(&mHasSBG))  aCom +=  " HasSBG=" + ToString(mHasSBG);
-    if (EAMIsInit(&mSigmaP))  aCom +=  " SigmaP=" + ToString(mSigmaP);
+	//if (EAMIsInit(&mHasVeg))  aCom +=  " HasVeg=" + ToString(mHasVeg);
+	//if (EAMIsInit(&mHasSBG))  aCom +=  " HasSBG=" + ToString(mHasSBG);
+    if (EAMIsInit(&mInc))  aCom +=  " Inc=" + ToString(mInc);
     if (EAMIsInit(&mDoPly))   aCom +=  " DoPly=" + ToString(mDoPly);
-    if (EAMIsInit(&mDefCor))  aCom +=  " DefCor=" + ToString(mDefCor);
-    if (EAMIsInit(&mRegul))   aCom +=  " ZReg=" + ToString(mRegul);
-    if (EAMIsInit(&mDefCor))  aCom +=  " DefCor=" + ToString(mDefCor);
-    if (EAMIsInit(&mSzW0))    aCom +=  " SzW0=" + ToString(mSzW0);
-    if (EAMIsInit(&mCensusQ)) aCom +=  " CensusQ=" + ToString(mCensusQ);
+    //if (EAMIsInit(&mDefCor))  aCom +=  " DefCor=" + ToString(mDefCor);
+    //if (EAMIsInit(&mRegul))   aCom +=  " ZReg=" + ToString(mRegul);
+    //if (EAMIsInit(&mDefCor))  aCom +=  " DefCor=" + ToString(mDefCor);
+    //if (EAMIsInit(&mSzW0))    aCom +=  " SzW0=" + ToString(mSzW0);
+    //if (EAMIsInit(&mCensusQ)) aCom +=  " CensusQ=" + ToString(mCensusQ);
 
 	return aCom;
 }
@@ -316,7 +352,8 @@ cAppliCreateEpi::cAppliCreateEpi(int argc, char** argv)
          LArgMain()  << EAMC(mFilePairs,"List of overlapping image pairs",eSAM_IsExistFile)
                      << EAMC(mOri,"Orientation directory, (NONE if rectification from tie-points)",eSAM_IsDir),
          LArgMain()
-                     << mCAS3D.ArgCom()
+                     << mCAS3D.ArgBasic()
+                     << mCAS3D.ArgEpip()
     );
 
 	
@@ -367,7 +404,9 @@ cAppliRecalRPC::cAppliRecalRPC(int argc, char** argv)
 					 //mOri needed to recover the names of the Epi images
 
          LArgMain()
-                     << mCAS3D.ArgCom()
+                     << mCAS3D.ArgBasic()
+                     << mCAS3D.ArgRPC()
+                     << mCAS3D.ArgFuse()
     );
 
 	StdCorrecNameOrient(mOri,mCAS3D.mDir,true);
@@ -450,7 +489,8 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
          LArgMain()  << EAMC(mFilePairs,"List of overlapping image pairs",eSAM_IsExistFile),
          LArgMain()  << EAM(mOri,"Ori",true,"RPC original orientation")
 					 //mOri maye be needed to recover the names of the Epi images
-                     << mCAS3D.ArgCom()
+                     << mCAS3D.ArgBasic()
+                     << mCAS3D.ArgMM1P()
     );
 
 	if (EAMIsInit(&mOri))
@@ -510,7 +550,8 @@ cAppliFusion::cAppliFusion(int argc,char ** argv)
          LArgMain()  << EAMC(mFilePairs,"List of overlapping image pairs",eSAM_IsExistFile),
          LArgMain()  << EAM(mOri,"Ori",true,"RPC original orientation")
                      //mOri may be needed to recover the names of the Epi images
-                     << mCAS3D.ArgCom()
+                     << mCAS3D.ArgBasic()
+                     << mCAS3D.ArgFuse()
     );
 
 	if (EAMIsInit(&mOri))
@@ -747,7 +788,11 @@ cAppliSat3DPipeline::cAppliSat3DPipeline(int argc,char** argv) :
         LArgMain()
 
                     << EAM(mDebug, "Debug", true, "Debug mode, def false")
-					<< mCAS3D.ArgCom()
+                    << mCAS3D.ArgBasic()
+					<< mCAS3D.ArgEpip()
+					<< mCAS3D.ArgRPC()
+					<< mCAS3D.ArgMM1P()
+					<< mCAS3D.ArgFuse()
    );
 
 	StdCorrecNameOrient(mOri,mCAS3D.mDir,true);
@@ -850,8 +895,10 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 	bool InParal = true;
 	bool CalleByP = false;
 	int aSzDecoup = 2000;
+	int aMaxNbProc = 24;
 	Box2di aBoxOut;
 	bool aExe=true;
+
 
 	ElInitArgMain
    	(
@@ -863,6 +910,8 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 	   				<< EAMC(aNuageName,"XML NuageImProf file")
 					<< EAMC(aPostFix,"New file PostFix"),
         LArgMain()  << EAM(InParal,"InParal",true,"Compute in parallel (Def=true)")
+					<< EAM(aSzDecoup,"SzDec",true,"Max size of the tile for parallel proc (Def=2000)")
+					<< EAM(aMaxNbProc,"NbProc",true,"Max nb of parallel processes (Def=24)")
                     << EAM(CalleByP,"CalleByP",true,"Internal Use", eSAM_InternalUse)
                     << EAM(aBoxOut,"BoxOut",true,"Internal Use", eSAM_InternalUse)
 					<< EAM(aExe,"Exe",true,"Execute, def=true")
@@ -1050,8 +1099,17 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 	}
 	else
 	{
+	
 		cDecoupageInterv2D aDecoup  = cDecoupageInterv2D::SimpleDec(aSz,aSzDecoup,0);
 		
+		// To avoid occupying too many cluster nodes
+		if (aDecoup.NbInterv()>aMaxNbProc)
+		{
+			aSzDecoup = sqrt(ceil(aSz.x*aSz.y/aMaxNbProc));
+
+			aDecoup  = cDecoupageInterv2D::SimpleDec(aSz,aSzDecoup,0);
+		}
+
 		std::list<std::string> aLCom;
 
 		std::string aComBase = MMBinFile(MM3DStr) + "TestLib TransGeom "

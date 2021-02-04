@@ -69,7 +69,11 @@ class cCommonAppliSat3D
 
         cCommonAppliSat3D();
 
-        LArgMain &     ArgCom();
+        LArgMain &     ArgBasic();
+        LArgMain &     ArgEpip();
+        LArgMain &     ArgRPC();
+        LArgMain &     ArgMM1P();
+        LArgMain &     ArgFuse();
         std::string    ComParamPairs();
         std::string    ComParamEpip();
         std::string    ComParamRPC_Basic();
@@ -113,18 +117,18 @@ class cCommonAppliSat3D
 
         /* Match param */
         int     mZoom0;
-        int     mZoomF;
-        bool    mCMS;
+        //int     mZoomF;
+        //bool    mCMS;
         bool    mDoPly;
 		bool    mEZA;
-		bool    mHasVeg;
-		bool    mHasSBG;
-		double  mSigmaP;
-        double  mRegul;
-        double  mDefCor;
+		//bool    mHasVeg;
+		//bool    mHasSBG;
+		double  mInc;
+        //double  mRegul;
+        //double  mDefCor;
         bool    ExpTxt;
-        Pt2di   mSzW0;
-        bool    mCensusQ;
+        //Pt2di   mSzW0;
+        //bool    mCensusQ;
 
         /* Bascule param */
         // Malt UrbanMNE to create destination frame
@@ -135,7 +139,11 @@ class cCommonAppliSat3D
         std::string mOutSMDM;
 
     private:
-        LArgMain * mArgCommon;
+        LArgMain * mArgBasic;
+		LArgMain * mArgEpip;
+		LArgMain * mArgRPC;
+		LArgMain * mArgMM1P;
+        LArgMain * mArgFuse;
 
         cCommonAppliSat3D(const cCommonAppliSat3D&) ; // N.I.
 
