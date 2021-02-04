@@ -382,10 +382,7 @@ INT BitsPacked_PFOB::_Rseek(INT nb_el)
 //   en effet lorsque _i_buf=0 mod _nb_pp, la premier
 //   chose que l'on fait dans fread est de lire un octet
 
-/* */
-
-// bool DebugRseek = false;
-
+/*
 tRelFileOffset BitsPacked_PFOB::_Rseek(tRelFileOffset nb_elo) 
 {
       int nb_el = nb_elo.CKK_IntBasicLLO();
@@ -404,7 +401,41 @@ tRelFileOffset BitsPacked_PFOB::_Rseek(tRelFileOffset nb_elo)
 
      return nb_el;
 }
+*/
 
+// bool DebugRseek = false;
+
+// MODIF MPD 28/01/21 pour overflow dans CKK_IntBasicLLO()
+
+tRelFileOffset BitsPacked_PFOB::_Rseek(tRelFileOffset nb_rfo) 
+{
+     // On va parcourir par paquet, de taille sz buf
+     tLowLevelFileOffset SzBuf = 1<<30;
+     tLowLevelFileOffset nb_elo =  nb_rfo.BasicLLO() ;
+     tLowLevelFileOffset aSign = (nb_elo >=0) ? 1 : - 1;  // on va decouper la valeur absolue
+     tLowLevelFileOffset nb_abs_elo =  nb_elo * aSign;
+
+     for (tLowLevelFileOffset aOffset = 0 ; aOffset<nb_abs_elo ; aOffset+=SzBuf)
+     {
+          // ensuite une fois qu'on a decoupe en paquet suffisement petit on le gere comme avant en int
+          int nb_el = ElMin(nb_abs_elo-aOffset,SzBuf) * aSign;
+          // _i_buf += nb_el;
+          int aNbSeek = Elise_div(_i_buf+nb_el-1,_nb_pb)-Elise_div(_i_buf-1,_nb_pb);
+         _i_buf = mod(_i_buf+nb_el,_nb_pb);
+
+          // Il faut si _i_buf !=0 que l'octet de bufferisation soit remplis, donc
+          // on avance de 1 de moins et read ensuite
+         if ( _i_buf !=0)
+             aNbSeek--;
+         _pfob->Rseek(aNbSeek);
+         if ( _i_buf !=0)
+            _pfob->Read(&_v_buf,1);
+     }
+
+     return nb_rfo;
+}
+/*
+*/
 
 
 tRelFileOffset BitsPacked_PFOB::Rseek(tRelFileOffset nb) 

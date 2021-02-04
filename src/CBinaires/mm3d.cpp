@@ -297,6 +297,9 @@ int CPP_YannScript(int argc,char ** argv);
 int CPP_GCP2MeasureLine2D(int argc,char ** argv);
 int CPP_MeasureL2D2L3D(int argc,char ** argv);
 int CPP_L3D2Ply(int argc,char ** argv);
+int CPP_DebugAI4GeoMasq (int argc,char ** argv);
+int CPP_MMBasic4IGeo(int argc,char ** argv);
+int CPP_MMBasicTestDeep(int argc,char ** argv);
 
 const std::vector<cMMCom> & getAvailableCommands()
 {
@@ -424,6 +427,8 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 		aRes.push_back(cMMCom("MMByP", MMByPair_main, " Matching By Pair of images", cArgLogCom(2)));
 		aRes.push_back(cMMCom("MM1P", MMOnePair_main, " Matching One Pair of images", cArgLogCom(2)));
+		aRes.push_back(cMMCom("MMAI4Geo", CPP_MMBasic4IGeo," Basic Matching for AI4Geo Satellite", cArgLogCom(2)));
+		aRes.push_back(cMMCom("MMTestMMVII",CPP_MMBasicTestDeep,"Basic Matching for insert in testing MMVII ", cArgLogCom(2)));
 
 		aRes.push_back(cMMCom("ChantierClip", ChantierClip_main, " Clip Chantier", cArgLogCom(2)));
 		aRes.push_back(cMMCom("ClipIm", ClipIm_main, " Clip Chantier", cArgLogCom(2)));
@@ -549,6 +554,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 #if (ELISE_X11)
 		aRes.push_back(cMMCom("MPDtest", MPDtest_main, " My own test"));
+		aRes.push_back(cMMCom("DebugAI4GeoMasq", CPP_DebugAI4GeoMasq, " For debuging masq problem appeard with AI4Geo"));
 		aRes.push_back(cMMCom("SaisieAppuisInit", SaisieAppuisInit_main, " Interactive tool for initial capture of GCP", cArgLogCom(2)));
 		aRes.push_back(cMMCom("SaisieAppuisPredic", SaisieAppuisPredic_main, " Interactive tool for assisted capture of GCP"));
 		aRes.push_back(cMMCom("SaisieBasc", SaisieBasc_main, " Interactive tool to capture information on the scene"));
