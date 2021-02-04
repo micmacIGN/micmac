@@ -476,8 +476,8 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
 			aNI2 = itP.N2();
 		}
 
-		std::string aComTmp = MMBinFile(MM3DStr) + "MM1P "
-                              + aNI1 + BLANK + aNI2 + " NONE "
+		std::string aComTmp = MMBinFile(MM3DStr) + "MMAI4Geo " + mCAS3D.mDir + BLANK
+                              + aNI1 + BLANK + aNI2 
                               + mCAS3D.ComParamMatch();
 
         aLCom.push_back(aComTmp);
@@ -625,10 +625,10 @@ void cAppliFusion::DoAll()
 
 	for (auto itP : aLP)
     {
-		std::string aMECDir1to2 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.first,itP.second,true);
-		std::string aMECDir2to1 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.second,itP.first,true);
-
-
+		//std::string aMECDir1to2 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.first,itP.second,true);
+		//std::string aMECDir2to1 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.second,itP.first,true);
+		std::string aMECBasic = "MEC-BasicEpip/";
+	
 
 		//collect cmd to do conversion in parallel
 		std::string aCTG1to2 = MMBinFile(MM3DStr) + "TestLib TransGeom "
@@ -636,23 +636,23 @@ void cAppliFusion::DoAll()
 						 + itP.first + " "
 						 + itP.second + " " 
 						 + mCAS3D.mOutRPC + " "
-						 + aMECDir1to2+aNuageInName + " "
+						 + aMECBasic+aNuageInName + " "
 						 + AddFilePostFix() + " "
 						 + "Exe=" + ToString(mCAS3D.mExe);
 
-		std::string aCTG2to1 = MMBinFile(MM3DStr) + "TestLib TransGeom "
+		/*std::string aCTG2to1 = MMBinFile(MM3DStr) + "TestLib TransGeom "
 				         + mCAS3D.mDir + " " 
 						 + itP.second + " " 
 						 + itP.first + " "
 						 + mCAS3D.mOutRPC + " "
 						 + aMECDir2to1+aNuageInName + " "
 						 + AddFilePostFix() + " "
-						 + "Exe=" + ToString(mCAS3D.mExe);
+						 + "Exe=" + ToString(mCAS3D.mExe);*/
 
 
 
 		aLCTG.push_back(aCTG1to2);
-		aLCTG.push_back(aCTG2to1);
+		//aLCTG.push_back(aCTG2to1);
 
 	}
 
@@ -678,26 +678,27 @@ void cAppliFusion::DoAll()
 
 	for (auto itP : aLP)
 	{
-		std::string aMECDir1to2 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.first,itP.second,true);
-		std::string aMECDir2to1 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.second,itP.first,true);
+		//std::string aMECDir1to2 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.first,itP.second,true);
+		//std::string aMECDir2to1 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.second,itP.first,true);
+		std::string aMECBasic = "MEC-BasicEpip/";
 		
 		std::string aComFuse1to2 = MMBinFile(MM3DStr) + "NuageBascule " 
-				                 + aMECDir1to2 + StdPrefix(aNuageInName) + AddFilePostFix() + ".xml" + " " 
+				                 + aMECBasic + StdPrefix(aNuageInName) + AddFilePostFix() + ".xml" + " " 
 							     + "MEC-Malt/" + aNuageOutName + " " 
 							     + mCAS3D.mOutSMDM + aPref + ToString(aCpt) + ".xml"; 
 		aCpt++;
 		
-		std::string aComFuse2to1 = MMBinFile(MM3DStr) + "NuageBascule " 
+		/*std::string aComFuse2to1 = MMBinFile(MM3DStr) + "NuageBascule " 
 				                 + aMECDir2to1 + StdPrefix(aNuageInName) + AddFilePostFix() + ".xml" + " " 
 							     + "MEC-Malt/" + aNuageOutName + " " 
 							     + mCAS3D.mOutSMDM + aPref + ToString(aCpt) + ".xml"; 
-		aCpt++;
+		aCpt++;*/
 
 
 
 
 		aLCom.push_back(aComFuse1to2);
-		aLCom.push_back(aComFuse2to1);
+		//aLCom.push_back(aComFuse2to1);
 	}	
 
     if (mCAS3D.mExe)
