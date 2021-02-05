@@ -113,6 +113,7 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 	mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
 
 	StdCorrecNameOrient(mOutRPC,mDir,true);
+
 }
 
 LArgMain & cCommonAppliSat3D::ArgFuse()
@@ -867,9 +868,16 @@ void cAppliSat3DPipeline::DoAll()
 	/* 5- Transform the per-pair reconstructions to a commont reference frame 
 	 *    and do the 3D fusion */
 	/**************************************************************************/
-	StdCom("TestLib SAT4GEO_Fuse", mCAS3D.mFilePairs + BLANK + "Ori=" + mOri 
-								 + mCAS3D.ComParamFuse());  
+	//Initialise nb of pairs (no fusion of =1)
+    cSauvegardeNamedRel aPairs = StdGetFromPCP(mCAS3D.mDir+mFilePairs,SauvegardeNamedRel);
 
+	if (aPairs.Cple().size()>1)
+	{
+		StdCom("TestLib SAT4GEO_Fuse", mCAS3D.mFilePairs + BLANK + "Ori=" + mOri 
+									 + mCAS3D.ComParamFuse());  
+	}
+	else
+		std::cout << "TestLib SAT4GEO_Fuse nothing to fuse, only 1 image pair" << "\n";
 
 
 }
