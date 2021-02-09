@@ -191,6 +191,9 @@ class cElNuage3DMaille : public cCapture3D
         void Save(const std::string & Name);  // Name+Prof.tif   Name+Masq.tif
         virtual cElNuage3DMaille * Clone() const = 0;
         virtual void ProfBouchePPV() = 0;
+        void SetNbPts(int val);
+        int GetNbPts();
+
    // Parcourt par des iterateurs
 
         typedef Pt2di tIndex2D;
