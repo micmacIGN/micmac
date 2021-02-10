@@ -75,6 +75,8 @@ class cAppliEpiBasic
           bool        mExe;     // Do we execute or only print command
           int         mZoom0;   // Zoom first step
           int         mInc;     // Inc Px
+		  double      mRegul;
+		  int         mSzW;
           float       mNbPix0;
           float       mCsteInc;
           float       mRatioInc;
@@ -107,6 +109,8 @@ cAppliEpiBasic::cAppliEpiBasic(int argc,char ** argv,bool aModeTestDeep) :
      mDirTmpMEC    ("MEC-BasicEpip/"),
      mExe          (true),
      mZoom0        (1),
+	 mRegul		   (0.1),
+	 mSzW          (2),
      mNbPix0       (400),
      mCsteInc      (200),
      mRatioInc     (0.1),
@@ -121,7 +125,10 @@ cAppliEpiBasic::cAppliEpiBasic(int argc,char ** argv,bool aModeTestDeep) :
                     << EAMC(mIm1,"Name Im1", eSAM_IsExistFile)
                     << EAMC(mIm2,"Name Im2", eSAM_IsExistFile),
         LArgMain()  << EAM(mExe,"Exe",true,"Execute Commands, else only print them (Def=true)", eSAM_IsBool)
-                    << EAM(mZoom0,"Zoom0",true,"Initial zoom")
+                    << EAM(mDirTmpMEC,"DirMEC",true,"Name of output dir (Def=MEC-BasicEpip)")
+					<< EAM(mZoom0,"Zoom0",true,"Initial zoom")
+					<< EAM(mRegul,"Regul",true,"Regularisation coefficient")
+					<< EAM(mSzW,"SzW",true,"Matching window size")
                     << EAM(mInc,"Inc",true,"Uncertaincy on pixel")
                     << EAM(mNbProc,"NbP",true,"Number of process to allocate")
      );
@@ -140,6 +147,8 @@ cAppliEpiBasic::cAppliEpiBasic(int argc,char ** argv,bool aModeTestDeep) :
                           + " +Im1="      +  mIm1
                           + " +Im2="      +  mIm2
                           + " +ZoomInit=" +  ToString(mZoom0)
+						  + " +Regul="    +  ToString(mRegul)
+						  + " +SzW="       +  ToString(mSzW)
                           + " +Inc="      +  ToString(mInc)
                           + " +DirMEC="   +  mDirTmpMEC
                           + " +NbProc="   +  ToString(mNbProc)

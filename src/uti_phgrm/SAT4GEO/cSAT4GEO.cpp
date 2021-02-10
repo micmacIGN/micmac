@@ -47,10 +47,13 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 	mSH(""),
 	mExpTxt(false),
 	mFilePairs("Pairs.xml"),
+	mFPairsDirMEC("PairsDirMEC.xml"),
 	mDoIm(true),
 	mOutRPC("EpiRPC"),
 	mDegreRPC(0),
 	mZoom0(64),
+	mRegul(0.1),
+	mSzW(2),
 	//mZoomF(1),
 	//mHasVeg(true),
 	//mHasSBG(false),
@@ -66,7 +69,8 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 	*mArgBasic
 			<< EAM(mDir,"Dir",true,"Current directory, Def=./")
 			<< EAM(mExe,"Exe",true,"Execute all, Def=true")
-			<< EAM(mFilePairs,"Pairs",true,"File with overlapping pairs, Def=Pairs.xml");
+			<< EAM(mFilePairs,"Pairs",true,"File with overlapping pairs, Def=Pairs.xml")
+			<< EAM(mFPairsDirMEC,"PairsDirMEC",true,"File with DirMECc of overlapping pairs, Def=PairsDirMEC.xml");
 	
 
 	*mArgEpip
@@ -100,7 +104,8 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 			<< EAM(mEZA,"EZA",true,"Image matching: Export Z absolute (Def=false)")
 			<< EAM(mDoPly,"DoPly",true,"Image matching: Generate Ply")
 			<< EAM(mInc,"Inc",true,"Image matching: Sigma Pixel for coherence (Def=1.5)")
-//			<< EAM(mRegul,"ZReg",true,"Image matching: Regularisation factor (Def=0.05)")
+			<< EAM(mRegul,"Regul",true,"Image matching: Regularisation factor (Def=0.1)")
+			<< EAM(mSzW,"SzW",true,"Image matching: matching window size (Def=2)")
 //			<< EAM(mDefCor,"DefCor",true,"Image matching: Def cor (Def=0.5)")
 //			<< EAM(mSzW0,"SzW0",true,"Image matching: Sz first Windows, def depend of NbS (1 MS, 2 no MS)")
 //			<< EAM(mCensusQ,"CensusQ",true,"Image matching: Use Census Quantitative")
@@ -146,6 +151,7 @@ std::string cCommonAppliSat3D::ComParamPairs()
 {
 	std::string aCom;
 	aCom += aCom + " Out=" + mFilePairs;
+	aCom += " PairsDirMEC=" + mFPairsDirMEC;  
 
 	return aCom;
 }
@@ -202,7 +208,8 @@ std::string cCommonAppliSat3D::ComParamMatch()
     if (EAMIsInit(&mInc))  aCom +=  " Inc=" + ToString(mInc);
     if (EAMIsInit(&mDoPly))   aCom +=  " DoPly=" + ToString(mDoPly);
     //if (EAMIsInit(&mDefCor))  aCom +=  " DefCor=" + ToString(mDefCor);
-    //if (EAMIsInit(&mRegul))   aCom +=  " ZReg=" + ToString(mRegul);
+    if (EAMIsInit(&mRegul))   aCom +=  " Regul=" + ToString(mRegul);
+    if (EAMIsInit(&mSzW))    aCom +=  " SzW=" + ToString(mSzW);
     //if (EAMIsInit(&mDefCor))  aCom +=  " DefCor=" + ToString(mDefCor);
     //if (EAMIsInit(&mSzW0))    aCom +=  " SzW0=" + ToString(mSzW0);
     //if (EAMIsInit(&mCensusQ)) aCom +=  " CensusQ=" + ToString(mCensusQ);
@@ -245,7 +252,7 @@ cGraphHomSat::cGraphHomSat(int argc,char ** argv) :
 	  mBtoHLim   (Pt2dr(0.01,0.3))
 {
 
-	
+	std::string aFPairsDirMEC = "PairsDirMEC.xml";
 
     ElInitArgMain
     (
@@ -256,6 +263,7 @@ cGraphHomSat::cGraphHomSat(int argc,char ** argv) :
         LArgMain()  << EAM(mAltiSol,"AltiSol",true, "Ground altitutde")
 					<< EAM(mBtoHLim,"BH",true,"Base to height ratio limits, def=[0.01,0.3]")
                     << EAM(mOut,"Out",true,"Output file name")
+					<< EAM(aFPairsDirMEC,"PairsDirMEC",true,"File with DirMECc of overlapping pairs, Def=PairsDirMEC.xml")
 
     );
     if (!MMVisualMode)
@@ -297,6 +305,8 @@ cGraphHomSat::cGraphHomSat(int argc,char ** argv) :
 		 *  + verify if images intersect in 3D
 		 *  + check if within bh limits 	 *  */
 		cSauvegardeNamedRel aRel;
+		cListOfName         aLDirMEC;
+		std::list< std::string >  aLDM;
         for (int aK1=0 ; aK1<mNbSom ; aK1++)
         {
             for (int aK2=aK1+1 ; aK2<mNbSom ; aK2++)
@@ -306,14 +316,18 @@ cGraphHomSat::cGraphHomSat(int argc,char ** argv) :
 					double aBH = CalcBtoH(mVC[aK1]->mCam,mVC[aK2]->mCam);
 				
 					if ( (aBH>mBtoHLim.x) && (aBH<mBtoHLim.y))
+					{
                     	aRel.Cple().push_back(cCpleString(mVC[aK1]->mName,mVC[aK2]->mName));
+						aLDM.push_back("MEC-Cple_" + ToString(aK1) + "-" + ToString(aK2) + "/");
+					}
                  }
 
             }
             std::cout << "Graphe : remain " << (mNbSom-aK1) << " to do\n";
         }
+		aLDirMEC.Name() = aLDM;
         MakeFileXML(aRel,mDir+mOut);
-
+		MakeFileXML(aLDirMEC,mDir+aFPairsDirMEC);
 
 	}
 }
@@ -498,8 +512,14 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
 		StdCorrecNameOrient(mOri,mCAS3D.mDir,true);
     
 	cSauvegardeNamedRel aPairs = StdGetFromPCP(mCAS3D.mDir+mFilePairs,SauvegardeNamedRel);
+	cListOfName         aLDirMec = StdGetFromPCP(mCAS3D.mFPairsDirMEC,ListOfName);
+
+	ELISE_ASSERT(int(aPairs.Cple().size())==(int)aLDirMec.Name().size(),"In TestLib SAT4GEO_MM1P the PairsDirMEC.xml must contain as many elements as there are the matching couples in Pairs.xml!")
+
 
     std::list<std::string> aLCom;
+
+	auto aDir_it = aLDirMec.Name().begin();
 
     for (auto itP : aPairs.Cple())
     {
@@ -518,10 +538,12 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
 		}
 
 		std::string aComTmp = MMBinFile(MM3DStr) + "MMAI4Geo " + mCAS3D.mDir + BLANK
-                              + aNI1 + BLANK + aNI2 
+                              + aNI1 + BLANK + aNI2 + BLANK
+							  + "DirMEC=" + (*aDir_it++)
                               + mCAS3D.ComParamMatch();
 
         aLCom.push_back(aComTmp);
+
     }
 
     if (mCAS3D.mExe)
@@ -590,7 +612,14 @@ std::string cAppliFusion::AddFilePostFix()
  * */
 void cAppliFusion::DoAll()
 {
+	/* List of pairs */
 	cSauvegardeNamedRel aPairs = StdGetFromPCP(mCAS3D.mDir+mFilePairs,SauvegardeNamedRel);
+
+	/* List of MEC-Dirs*/
+    cListOfName         aLDirMec = StdGetFromPCP(mCAS3D.mFPairsDirMEC,ListOfName);
+    ELISE_ASSERT(int(aPairs.Cple().size())==(int)aLDirMec.Name().size(),"In TestLib SAT4GEO_MM1P the PairsDirMEC.xml must contain as many elements as there are the matching couples in Pairs.xml!")
+    auto aDir_it = aLDirMec.Name().begin();
+
 
 	/* Key to retrieve MEC2Im directory name */
 	std::string aKeyMEC2Im = "Key-Assoc-MEC-Dir";
@@ -651,7 +680,10 @@ void cAppliFusion::DoAll()
 		aCom += " EZA=" + ToString(mCAS3D.mEZA);
 	
     if (mCAS3D.mExe)
-		System(aCom);
+		if ((int)aLP.size()>1)
+			System(aCom);
+		else
+			std::cout << "TestLib SAT4GEO_Fuse, there is only 1 image pair, I'm not defining the global frame.";
     else
     {
         std::cout << "SUBCOM1= " << aCom << "\n";
@@ -669,7 +701,7 @@ void cAppliFusion::DoAll()
     {
 		//std::string aMECDir1to2 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.first,itP.second,true);
 		//std::string aMECDir2to1 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.second,itP.first,true);
-		std::string aMECBasic = "MEC-BasicEpip/";
+		std::string aMECBasic = (*aDir_it++); 
 	
 
 		//collect cmd to do conversion in parallel
@@ -699,7 +731,10 @@ void cAppliFusion::DoAll()
 	}
 
     if (mCAS3D.mExe)
-		cEl_GPAO::DoComInSerie(aLCTG);
+		if ((int)aLP.size()>1)
+			cEl_GPAO::DoComInSerie(aLCTG);
+		else
+			std::cout << "TestLib SAT4GEO_Fuse, there is only 1 image pair. I'm not transforming depths to Z.";
     else
     {
         for (auto iCmd : aLCTG)
@@ -714,15 +749,18 @@ void cAppliFusion::DoAll()
 	std::string aNuageOutName = "MMLastNuage.xml";
 	std::string aPref = "DSM_Pair";
 	if (mCAS3D.mExe)
+		if ((int)aLP.size()>1)
 			ELISE_fp::MkDirSvp(mCAS3D.mOutSMDM);	
 	aCpt=0;
 
+	// reset the iterator to MECDirs
+    aDir_it = aLDirMec.Name().begin();
 
 	for (auto itP : aLP)
 	{
 		//std::string aMECDir1to2 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.first,itP.second,true);
 		//std::string aMECDir2to1 = mCAS3D.mICNM->Assoc1To2(aKeyMEC2Im,itP.second,itP.first,true);
-		std::string aMECBasic = "MEC-BasicEpip/";
+		std::string aMECBasic = (*aDir_it++);
 		
 		std::string aComFuse1to2 = MMBinFile(MM3DStr) + "NuageBascule " 
 				                 + aMECBasic + StdPrefix(aNuageInName) + AddFilePostFix() + ".xml" + " " 
@@ -744,7 +782,10 @@ void cAppliFusion::DoAll()
 	}	
 
     if (mCAS3D.mExe)
-		cEl_GPAO::DoComInSerie(aLCom);
+		if ((int)aLP.size()>1)
+			cEl_GPAO::DoComInSerie(aLCom);
+		else
+			std::cout << "TestLib SAT4GEO_Fuse, there is only 1 image pair. I'm not transforming from image to reference frame.";
     else
     {
         for (auto iCmd : aLCom)
@@ -759,7 +800,10 @@ void cAppliFusion::DoAll()
 
 
     if (mCAS3D.mExe)
-		System(aComMerge);
+		if ((int)aLP.size()>1)
+			System(aComMerge);
+		else
+			std::cout << "TestLib SAT4GEO_Fuse, there is only 1 image pair, and there is nothing to fuse.";
     else
     {
         std::cout << "SUBCOM4= " << aComMerge << "\n";
@@ -860,7 +904,9 @@ void cAppliSat3DPipeline::DoAll()
 	/* 4- Perform dense image matching per pair of images */
 	/******************************************************/
 	StdCom("TestLib SAT4GEO_MM1P", 
-			mCAS3D.mFilePairs + BLANK + "Ori=" + mOri + BLANK + mCAS3D.ComParamMatch());
+			mCAS3D.mFilePairs + BLANK + "Ori=" + mOri 
+			                  + BLANK + mCAS3D.ComParamMatch() 
+			                  + BLANK + "PairsDirMEC=" + mCAS3D.mFPairsDirMEC);
 
 
 
@@ -868,17 +914,10 @@ void cAppliSat3DPipeline::DoAll()
 	/* 5- Transform the per-pair reconstructions to a commont reference frame 
 	 *    and do the 3D fusion */
 	/**************************************************************************/
-	//Initialise nb of pairs (no fusion of =1)
-    cSauvegardeNamedRel aPairs = StdGetFromPCP(mCAS3D.mDir+mFilePairs,SauvegardeNamedRel);
 
-	if (aPairs.Cple().size()>1)
-	{
-		StdCom("TestLib SAT4GEO_Fuse", mCAS3D.mFilePairs + BLANK + "Ori=" + mOri 
-									 + mCAS3D.ComParamFuse());  
-	}
-	else
-		std::cout << "TestLib SAT4GEO_Fuse nothing to fuse, only 1 image pair" << "\n";
-
+	StdCom("TestLib SAT4GEO_Fuse", mCAS3D.mFilePairs + BLANK + "Ori=" + mOri 
+		  				           + mCAS3D.ComParamFuse()
+								   + BLANK + "PairsDirMEC=" + mCAS3D.mFPairsDirMEC);
 
 }
 

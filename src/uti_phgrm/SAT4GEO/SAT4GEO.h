@@ -94,6 +94,7 @@ class cCommonAppliSat3D
 
         /* Pairs param */
         std::string mFilePairs;
+        std::string mFPairsDirMEC;
 
         /* Epip param */
         bool                mDoIm;
@@ -123,9 +124,10 @@ class cCommonAppliSat3D
 		//bool    mHasVeg;
 		//bool    mHasSBG;
 		double  mInc;
-        //double  mRegul;
+        double  mRegul;
         //double  mDefCor;
         bool    ExpTxt;
+        int     mSzW;
         //Pt2di   mSzW0;
         //bool    mCensusQ;
 
