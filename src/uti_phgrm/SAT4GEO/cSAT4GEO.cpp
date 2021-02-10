@@ -52,8 +52,8 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 	mOutRPC("EpiRPC"),
 	mDegreRPC(0),
 	mZoom0(64),
-	mRegul(0.1),
-	mSzW(2),
+	mRegul(0.2),
+	mSzW(3),
 	//mZoomF(1),
 	//mHasVeg(true),
 	//mHasSBG(false),
@@ -104,8 +104,8 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 			<< EAM(mEZA,"EZA",true,"Image matching: Export Z absolute (Def=false)")
 			<< EAM(mDoPly,"DoPly",true,"Image matching: Generate Ply")
 			<< EAM(mInc,"Inc",true,"Image matching: Sigma Pixel for coherence (Def=1.5)")
-			<< EAM(mRegul,"Regul",true,"Image matching: Regularisation factor (Def=0.1)")
-			<< EAM(mSzW,"SzW",true,"Image matching: matching window size (Def=2)")
+			<< EAM(mRegul,"Regul",true,"Image matching: Regularisation factor (Def=0.2)")
+			<< EAM(mSzW,"SzW",true,"Image matching: matching window size (Def=3)")
 //			<< EAM(mDefCor,"DefCor",true,"Image matching: Def cor (Def=0.5)")
 //			<< EAM(mSzW0,"SzW0",true,"Image matching: Sz first Windows, def depend of NbS (1 MS, 2 no MS)")
 //			<< EAM(mCensusQ,"CensusQ",true,"Image matching: Use Census Quantitative")
