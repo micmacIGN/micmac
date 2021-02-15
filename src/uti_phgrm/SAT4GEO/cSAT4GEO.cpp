@@ -46,6 +46,7 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 	mDir("./"),
 	mSH(""),
 	mExpTxt(false),
+	mNbProc(8),
 	mFilePairs("Pairs.xml"),
 	mFPairsDirMEC("PairsDirMEC.xml"),
 	mDoIm(true),
@@ -69,6 +70,7 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 	*mArgBasic
 			<< EAM(mDir,"Dir",true,"Current directory, Def=./")
 			<< EAM(mExe,"Exe",true,"Execute all, Def=true")
+			<< EAM(mNbProc,"NbP",true,"Num of parallel processes, Def=8")
 			<< EAM(mFilePairs,"Pairs",true,"File with overlapping pairs, Def=Pairs.xml")
 			<< EAM(mFPairsDirMEC,"PairsDirMEC",true,"File with DirMECc of overlapping pairs, Def=PairsDirMEC.xml");
 	
@@ -213,6 +215,7 @@ std::string cCommonAppliSat3D::ComParamMatch()
     //if (EAMIsInit(&mDefCor))  aCom +=  " DefCor=" + ToString(mDefCor);
     //if (EAMIsInit(&mSzW0))    aCom +=  " SzW0=" + ToString(mSzW0);
     //if (EAMIsInit(&mCensusQ)) aCom +=  " CensusQ=" + ToString(mCensusQ);
+    if (EAMIsInit(&mNbProc))    aCom +=  " NbP=" + ToString(mNbProc);
 
 	return aCom;
 }
@@ -221,6 +224,7 @@ std::string cCommonAppliSat3D::ComParamFuse()
 {
 	std::string aCom;
 	aCom += " OutRPC=" + mOutRPC;
+    if (EAMIsInit(&mNbProc))    aCom +=  " NbP=" + ToString(mNbProc);
 
 
 	return aCom;
@@ -711,7 +715,8 @@ void cAppliFusion::DoAll()
 						 + itP.second + " " 
 						 + mCAS3D.mOutRPC + " "
 						 + aMECBasic+aNuageInName + " "
-						 + AddFilePostFix() + " "
+						 + AddFilePostFix() + " " 
+						 + "NbP=" + ToString(mCAS3D.mNbProc) + " "
 						 + "Exe=" + ToString(mCAS3D.mExe);
 
 		/*std::string aCTG2to1 = MMBinFile(MM3DStr) + "TestLib TransGeom "
@@ -942,7 +947,7 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 	bool InParal = true;
 	bool CalleByP = false;
 	int aSzDecoup = 2000;
-	int aMaxNbProc = 24;
+	int aMaxNbProc = 8;
 	Box2di aBoxOut;
 	bool aExe=true;
 
@@ -958,7 +963,7 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 					<< EAMC(aPostFix,"New file PostFix"),
         LArgMain()  << EAM(InParal,"InParal",true,"Compute in parallel (Def=true)")
 					<< EAM(aSzDecoup,"SzDec",true,"Max size of the tile for parallel proc (Def=2000)")
-					<< EAM(aMaxNbProc,"NbProc",true,"Max nb of parallel processes (Def=24)")
+					<< EAM(aMaxNbProc,"NbP",true,"Max nb of parallel processes (Def=8)")
                     << EAM(CalleByP,"CalleByP",true,"Internal Use", eSAM_InternalUse)
                     << EAM(aBoxOut,"BoxOut",true,"Internal Use", eSAM_InternalUse)
 					<< EAM(aExe,"Exe",true,"Execute, def=true")
@@ -1039,6 +1044,7 @@ int CPP_TransformGeom_main(int argc, char ** argv)
         );
   
     
+
     
 		/* Read the mask */
 		Im2D_Bits<1> aMasq(aSzOut.x,aSzOut.y,1);
@@ -1052,10 +1058,14 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 		}
 		TIm2DBits<1> aTMasq(aMasq);
     
+
     
 		/* Create the depth map & mask to which we will write */
-		TIm2D<float,double> aTImProfZ(aSz);
-  		Im2D_Bits<1>        aTMasqZ(aSz.x,aSz.y,0);
+		//TIm2D<float,double> aTImProfZ(aSz);
+  		//Im2D_Bits<1>        aTMasqZ(aSz.x,aSz.y,0);
+		TIm2D<float,double> aTImProfZ(aSzOut);
+  		Im2D_Bits<1>        aTMasqZ(aSzOut.x,aSzOut.y,0);
+
 
 		/* Read cameras */
 		cBasicGeomCap3D * aCamI1 = aICNM->StdCamGenerikOfNames(aOri,aIm1);	
@@ -1089,9 +1099,11 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 					
 					Pt3dr aRes =  ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
 
-					aTImProfZ.oset(aPt1InFul,aRes.z/aResolPlaniEquiAlt);
+					//aTImProfZ.oset(aPt1InFul,aRes.z/aResolPlaniEquiAlt);
+					aTImProfZ.oset(aPt1,aRes.z/aResolPlaniEquiAlt);
 				
-					aTMasqZ.set(aPt1InFul.x,aPt1InFul.y,1);
+					//aTMasqZ.set(aPt1InFul.x,aPt1InFul.y,1);
+					aTMasqZ.set(aPt1.x,aPt1.y,1);
 				}
 			}
 		}
@@ -1099,21 +1111,34 @@ int CPP_TransformGeom_main(int argc, char ** argv)
     
 
 		/* Write box to new depth map */
-        ELISE_COPY
+        /*ELISE_COPY
         (
             rectangle(aBoxOut._p0,aBoxOut._p1), 
             //trans(aTImProfZ.in(),aBoxOut._p0),
             aTImProfZ.in(),
             aImProfZTif.out()
+        );*/
+        ELISE_COPY
+        (
+            rectangle(aBoxOut._p0,aBoxOut._p1), 
+            trans(aTImProfZ.in(),-aBoxOut._p0),
+            aImProfZTif.out()
         );
    	
 		/* Write box to the new mask */
-		ELISE_COPY
+		/*ELISE_COPY
 		(
 			rectangle(aBoxOut._p0,aBoxOut._p1),
 			aTMasqZ.in(),
 			aImMasqZTif.out()	
+		);*/
+		ELISE_COPY
+		(
+			rectangle(aBoxOut._p0,aBoxOut._p1),
+			trans(aTMasqZ.in(),-aBoxOut._p0),
+			aImMasqZTif.out()	
 		);
+
 
 
 
@@ -1148,14 +1173,19 @@ int CPP_TransformGeom_main(int argc, char ** argv)
 	{
 	
 		cDecoupageInterv2D aDecoup  = cDecoupageInterv2D::SimpleDec(aSz,aSzDecoup,0);
+
 		
 		// To avoid occupying too many cluster nodes
-		if (aDecoup.NbInterv()>aMaxNbProc)
+		int aReduCPU=1;
+		while (aDecoup.NbInterv()>(aMaxNbProc))
 		{
-			aSzDecoup = sqrt(ceil(aSz.x*aSz.y/aMaxNbProc));
+			aSzDecoup = ceil(sqrt(double(aSz.x)*double(aSz.y)/(aMaxNbProc-(aReduCPU++))));
 
 			aDecoup  = cDecoupageInterv2D::SimpleDec(aSz,aSzDecoup,0);
+
 		}
+
+
 
 		std::list<std::string> aLCom;
 

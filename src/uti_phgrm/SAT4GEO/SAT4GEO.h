@@ -90,7 +90,7 @@ class cCommonAppliSat3D
         std::string                       mDir;
         std::string                       mSH;
         bool                              mExpTxt;
-
+		int								  mNbProc;
 
         /* Pairs param */
         std::string mFilePairs;
