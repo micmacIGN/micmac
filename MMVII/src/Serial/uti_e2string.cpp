@@ -141,8 +141,10 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
            {
                 {eTA2007::DirProject,"DP"},
                 {eTA2007::FileDirProj,"FDP"},
-                {eTA2007::MPatIm,"MPI"},
+                {eTA2007::FileImage,"Im"},
+                {eTA2007::MPatFile,"MPF"},
                 {eTA2007::Internal,"##Intern"},
+                {eTA2007::Tuning,"##Tune"},
                 {eTA2007::Global,"##Glob"},
                 {eTA2007::Shared,"##Shar"},
                 {eTA2007::HDV,"##HDV"},

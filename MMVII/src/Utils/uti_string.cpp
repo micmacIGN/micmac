@@ -423,6 +423,30 @@ void CopyFile(const std::string & aName,const std::string & aDest)
    boost::filesystem::copy_file(aName,aDest,boost::filesystem::copy_option::overwrite_if_exists);
 }
 
+void ActionDir(const std::string & aName,eModeCreateDir aMode)
+{
+   switch(aMode)
+   {
+      case eModeCreateDir::DoNoting :
+      break;
+
+      case eModeCreateDir::CreateIfNew :
+           CreateDirectories(aName,false);
+      break;
+
+      case eModeCreateDir::CreatePurge :
+           RemoveRecurs(aName,true,false);
+      break;
+
+      case eModeCreateDir::ErrorIfExist :
+           MMVII_INTERNAL_ASSERT_strong(!ExistFile(aName),"File was not expected to exist:" + aName);
+           CreateDirectories(aName,false);
+      break;
+
+      case eModeCreateDir::eNbVals : break;  // Because warning
+   }
+}
+
 
 
     /* =========================================== */

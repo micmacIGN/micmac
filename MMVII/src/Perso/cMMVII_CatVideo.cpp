@@ -47,7 +47,7 @@ cCollecSpecArg2007 & cAppli_CatVideo::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
    return 
       anArgObl  
-         << Arg2007(mPat,"Pattern for input files",{{eTA2007::MPatIm,"0"},eTA2007::FileDirProj})
+         << Arg2007(mPat,"Pattern for input files",{{eTA2007::MPatFile,"0"},eTA2007::FileDirProj})
 
    ;
 }
