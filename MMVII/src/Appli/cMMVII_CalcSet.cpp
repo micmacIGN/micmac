@@ -55,7 +55,7 @@ cCollecSpecArg2007 & cAppli_EditSet::ArgObl(cCollecSpecArg2007 & anArgObl)
       anArgObl 
          << Arg2007(mNameXmlIn,"Full Name of Xml in/out",{eTA2007::FileDirProj})
          << Arg2007(mOp,"Operator in ("+StrAllVall<eOpAff>()+")" )
-         << Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatIm,"0"}})
+         << Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatFile,"0"}})
       ;
 }
 
@@ -330,7 +330,7 @@ cCollecSpecArg2007 & cAppli_EditRel::ArgObl(cCollecSpecArg2007 & anArgObl)
       anArgObl 
          << Arg2007(mNameXmlIn,"Full Name of Xml in/out",{eTA2007::FileDirProj})
          << Arg2007(mOp,"Operator in ("+StrAllVall<eOpAff>()+")" )
-         << Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatIm,"0"}})
+         << Arg2007(mPat,"Pattern or Xml for modifying",{{eTA2007::MPatFile,"0"}})
       ;
 }
 
@@ -339,7 +339,7 @@ cCollecSpecArg2007 & cAppli_EditRel::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return 
       anArgOpt
-         << AOpt2007(mPat2,"Pat2","Second Pattern or Xml for modifying, def=first",{{eTA2007::MPatIm,"1"}})
+         << AOpt2007(mPat2,"Pat2","Second Pattern or Xml for modifying, def=first",{{eTA2007::MPatFile,"1"}})
          << AOpt2007(mAllPair,"AllP","Put all pair",{{eTA2007::HDV}})
          << AOpt2007(mLine,"Line","\"Linear graph\" : for k, add [k-l,k+l]")
          << AOpt2007(mCirc,"Circ","\"Circular\" in line mode",{{eTA2007::HDV}} )
