@@ -483,7 +483,7 @@ class cExeParalByPaquets
 
 CamStenope * DefaultCamera(const std::string & aName);
 
-
+void TestEllips_3D();
 
 
 #endif // _ELISE_NEW_ORI_H
