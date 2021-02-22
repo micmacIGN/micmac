@@ -64,6 +64,24 @@ class GPSTime {
 			new (this) GPSTime(t);
 
 		}
+	
+	
+		// Lecture d'une chaîne de caractères
+        // Format : "dd*MM*yyyy*hh*mm*ss
+        GPSTime(std::string time) {
+
+            int day = std::stoi(time.substr(0,2));
+            int mon = std::stoi(time.substr(3,2));
+            int yea = std::stoi(time.substr(6,4));
+            int hou = std::stoi(time.substr(11,2));
+            int min = std::stoi(time.substr(14,2));
+            int sec = std::stoi(time.substr(17,2));
+
+            new (this)  GPSTime(yea, mon, day, hou, min, sec);
+
+        }
+
+
 
 		double convertToAbsTime();
 

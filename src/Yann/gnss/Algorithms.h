@@ -43,6 +43,10 @@ class Algorithms{
 
         // Calcul d'un fichier complet
         static Trajectory estimateTrajectory(ObservationData, NavigationData);
+	
+		// Calcul de la position par la phase
+        static Solution triple_difference_kalman(ObservationData, ObservationData, NavigationDataSet, ECEFCoords);
+		static ElMatrix<REAL> makeTripleDifferenceMatrix(int, int);
 
 };
 
