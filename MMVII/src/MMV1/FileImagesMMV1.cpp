@@ -32,6 +32,12 @@ cDataFileIm2D::cDataFileIm2D(const std::string & aName,eTyNums aType,const cPt2d
 {
 }
 
+cDataFileIm2D cDataFileIm2D::Empty()
+{
+   return cDataFileIm2D( MMVII_NONE, eTyNums::eNbVals, cPt2di(1,1), -1);
+}
+
+
 cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,bool aForceGray)
 {
     // required because with jpg/raw mm1 may call itself, need some special stuff

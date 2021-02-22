@@ -38,104 +38,46 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 
 #include "StdAfx.h"
-#include "TpPPMD.h"
-
-// mm3d ElDcraw -t 0  -d -T -4   IMG_1364-CL1.CR2 
-
-/********************************************************************/
-/*                                                                  */
-/*         cTD_Camera                                               */
-/*                                                                  */
-/********************************************************************/
 
 
-/*
-   Par exemple :
+/************************************************************/
+/*                                                          */
+/*                                                          */
+/*                                                          */
+/************************************************************/
 
-       mm3d TestLib TD_Test Orientation-IMG_0016.CR2.xml AppuisTest-IMG_0016.CR2.xml
-*/
-
-int TD_Exo0(int argc,char ** argv)
+class cEqDroiteInconnue
 {
-    std::string aNameIm;
+    public :
+       // Appellee avec 0 et 1 pour les extrem, appelable aussi pour des points interm
+       void GenerateParamLambdaIm(double aLambdaIm);
+       cEqDroiteInconnue(const Pt3dr & aPTer1,const Pt3dr &  aPTer2);
+    private :
+       Pt3dr mPTter1;
+       Pt3dr mPTter2;
+       Pt3dr mU;
+       Pt3dr mV;
+       Pt3dr mW;
+       // Cette partie est variable car utilisable sur plusieurs images
+       Pt2dr        mPIm1;
+       Pt2dr        mPIm2;
+       CamStenope * mCam;
 
-    ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  << EAMC(aNameIm,"Name of image"),
-        LArgMain()  
-    );
-
-    cTD_Im aIm = cTD_Im::FromString(aNameIm);
-
-    std::cout << "Bonjour , NameIm=" << aNameIm  
-              << " Sz=" <<  aIm.Sz().x 
-              << " : " <<  aIm.Sz().y << "\n";
-
-    cTD_Im aImRes(aIm.Sz().x,aIm.Sz().y);
-
-    double aVMax = (1<<16) -1;
-    for (int aX=0 ; aX<aIm.Sz().x ; aX++)
-    {
-        for (int aY=0 ; aY<aIm.Sz().y ; aY++)
-        {
-            double aVal = aIm.GetVal(aX,aY);
-            aImRes.SetVal(aX,aY,aVMax-aVal);
-        }
-    }
-    aImRes.Save("Neg.tif");
+};
 
 
-    return EXIT_SUCCESS;
-}
-
-int TD_Exo1(int argc,char ** argv)
+void cEqDroiteInconnue::GenerateParamLambdaIm(double aLambdaIm)
 {
-    return EXIT_SUCCESS;
-}
-
-int TD_Exo2(int argc,char ** argv)
-{
-    return EXIT_SUCCESS;
-}
-
-int TD_Exo3(int argc,char ** argv)
-{
-    return EXIT_SUCCESS;
 }
 
 
-
-int TD_Exo4(int argc,char ** argv)
+cEqDroiteInconnue::cEqDroiteInconnue(const Pt3dr & aPTer1,const Pt3dr &  aPTer2) :
+   mPTter1 (aPTer1),
+   mPTter2 (aPTer2),
+   mW      (vunit(mPTter2-mPTter1))
 {
-    return EXIT_SUCCESS;
+   MakeRONWith1Vect(mW,mV,mU);
 }
-
-int TD_Exo5(int argc,char ** argv)
-{
-    return EXIT_SUCCESS;
-}
-
-int TD_Exo6(int argc,char ** argv)
-{
-    return EXIT_SUCCESS;
-}
-
-int TD_Exo7(int argc,char ** argv)
-{
-    return EXIT_SUCCESS;
-}
-
-int TD_Exo8(int argc,char ** argv)
-{
-    return EXIT_SUCCESS;
-}
-
-int TD_Exo9(int argc,char ** argv)
-{
-    return EXIT_SUCCESS;
-}
-
 
 
 /*Footer-MicMac-eLiSe-25/06/2007

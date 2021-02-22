@@ -128,29 +128,24 @@ bool HeadOrTail()
 }
 
 
-/*
-class cFctrRR
-{
-   public :
-      virtual  double F (double) const;
-      static cFctrRR  TheOne;
-};
-*/
 
 cFctrRR cFctrRR::TheOne;
 double cFctrRR::F(double) const {return 1.0;}
 
-std::vector<int> RandSet(int aK,int aN,cFctrRR & aBias )
+std::vector<int> RandSet(int aSzSubSet,int aSzSetGlob,cFctrRR & aBias )
 {
-    MMVII_INTERNAL_ASSERT_strong(aK<=aN,"RandSet");
+    MMVII_INTERNAL_ASSERT_strong(aSzSubSet<=aSzSetGlob,"RandSet");
+   //  in VP : x->K , y -> priority
     std::vector<cPt2dr> aVP;
-    for (int aK=0; aK<aN ; aK++)
+    for (int aK=0; aK<aSzSetGlob ; aK++)
        aVP.push_back(cPt2dr(aK,aBias.F(aK)*RandUnif_0_1()));
+
     // Sort on y()
     std::sort(aVP.begin(),aVP.end(),CmpCoord<double,2,1>);
   
+    // Extract the aSzSubSet "best" values
     std::vector<int> aRes;
-    for (int aJ=0 ; aJ<aK ; aJ++)
+    for (int aJ=0 ; aJ<aSzSubSet ; aJ++)
        aRes.push_back(round_ni(aVP.at(aJ).x()));
     return aRes;
 }

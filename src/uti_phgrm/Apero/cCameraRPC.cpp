@@ -309,7 +309,7 @@ Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
 bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInImage *) const
 {
     // (1) Check if aP is within the RPC validity zone
-	if((aP.z < mRPC->GetGrC31()) || (aP.z > mRPC->GetGrC32()))
+    if((aP.z < mRPC->GetGrC31()) || (aP.z > mRPC->GetGrC32()))
         return false;
 
     // (2) Project 3D-2D with RPC and see if within ImSz

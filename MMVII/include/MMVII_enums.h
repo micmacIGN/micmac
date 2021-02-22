@@ -25,13 +25,15 @@ enum class eTA2007
             // ---------- Printed --------------
                 DirProject,    ///< Exact Dir of Proj
                 FileDirProj,   ///< File of Dir Proj
-                MPatIm,        ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
+                FileImage,       ///< File containing an image
+                MPatFile,        ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
             // ---------- Not Printed -----------
             // !!!!! Shared must be first UNPRINTED  !!! because of test in Name4Help()
                 Shared,        ///< Parameter  Shared by many (several) command
                 Global,        ///< Parameter  Common to all commands
                 Internal,      ///< Reserved to internall use by MMVII
+                Tuning,        ///< Used for testing/tuning command but not targeted for user
                 HDV,           ///< Has Default Value, will be printed on help
                 ISizeV,        ///< Interval size vect, print on help
                 eNbVals        ///< Tag for number of value
@@ -65,6 +67,16 @@ enum class eApDT
               FileSys,      ///< Input is the file system (list of file)
               Media,      ///< Input is the file system (list of file)
               eNbVals       ///< Tag for number of value
+           };
+
+/// Mode of creation of folder
+enum class eModeCreateDir    
+           {
+              DoNoting,      ///< do nothing 
+              CreateIfNew,   ///< create the folder and
+              CreatePurge,   ///< create the folder and purge it
+              ErrorIfExist,  ///< create the folder if new, error else
+              eNbVals        ///< Tag for number of value
            };
 
 

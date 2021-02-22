@@ -708,7 +708,9 @@ int TestER_hom_main(int argc,char ** argv)
 //test export of a CamStenope into bundles of rays
 int TestER_main2(int argc,char ** argv)
 {
-/*    cInterfChantierNameManipulateur * aICNM;
+
+	TestEllips_3D();
+		/*    cInterfChantierNameManipulateur * aICNM;
     std::string aFullName;
     std::string aDir;
     std::string aNameOri;
