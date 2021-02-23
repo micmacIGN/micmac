@@ -33,6 +33,10 @@ check: $(OBJ_FILES) $(WRAP_O_FILES) test_exe.cpp
 	$(CXX) -c $(CXXFlags) test_exe.cpp -o test_exe.o 
 	$(CXX) $(OBJ_FILES) $(WRAP_O_FILES) test_exe.o $(LFLAGS) -o test  $(QTLINK)
 
+ewelina: $(OBJ_FILES) $(WRAP_O_FILES) test_er.cpp
+	$(CXX) -c $(CXXFlags) test_er.cpp -o test_er.o
+	$(CXX) $(OBJ_FILES) $(WRAP_O_FILES) test_er.o $(LFLAGS) -o test_er  $(QTLINK)
+
 all: swig check doc
 
 doc:

@@ -2,6 +2,7 @@
 #define API_MM3D_H
 
 #include "StdAfx.h"
+#include "../src/uti_phgrm/NewOri/NewOri.h"
 /**
 @file
 @brief New methods for python API and existing classes
@@ -37,5 +38,8 @@ cXml_TopoTriplet StdGetFromSI_Xml_TopoTriplet(const std::string & aNameFileObj);
 
 //! Get the triplet orientations
 cXml_Ori3ImInit  StdGetFromSI_Xml_Ori3ImInit(const std::string & aNameFileObj);
+
+//! Bundle intersection
+Pt3dr ElSeg3D_L2InterFaisceaux_wrapper(std::vector<ElSeg3D> aVSeg);
 
 #endif //API_MM3D_H

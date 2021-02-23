@@ -133,3 +133,8 @@ cXml_Ori3ImInit  StdGetFromSI_Xml_Ori3ImInit(const std::string & aNameFileObj)
 	return StdGetObjFromFile<cXml_Ori3ImInit>(aNameFileObj,StdGetFileXMLSpec("SuperposImage.xml"),
             "Xml_Ori3ImInit", "Xml_Ori3ImInit");
 }
+
+Pt3dr ElSeg3D_L2InterFaisceaux_wrapper(std::vector<ElSeg3D> aVSeg)
+{
+	return ElSeg3D::L2InterFaisceaux(0,aVSeg,0);
+}

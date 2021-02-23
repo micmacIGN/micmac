@@ -9,6 +9,7 @@
 #include "general/util.h"
 #include "general/bitm.h"
 #include "general/ptxd.h"
+#include "general/geom_vecteur.h"
 #include "private/files.h"
 #include "XML_GEN/SuperposImage.h"
 #include "XML_GEN/ParamChantierPhotogram.h"
@@ -39,6 +40,7 @@ namespace std {
     %template(HomolList)    list<cNupletPtsHomologues>;
     %template(CpleStringVector) vector<cCpleString>;
     %template(cXml_OneTripletList) list< cXml_OneTriplet >;
+    %template(ElSeg3DVector)  vector<ElSeg3D>;
 }
  
 //def REAL etc to be able to use them in python
@@ -108,7 +110,12 @@ namespace std {
 %ignore cProjListHom;
 %ignore cDbleGrid::Name;
 %ignore TestMEPCoCentrik;
-
+%ignore TestInterPolyCercle;
+%ignore cElTriangleComp::Test;
+%ignore cMailageSphere::DirMoyH;
+%ignore cGridNuageP3D;
+%ignore cElNuageLaser::Debug;
+%ignore cElNuageLaser::SauvCur;
 //misc
 %ignore Test_DBL;
 
@@ -119,6 +126,7 @@ namespace std {
 %include "general/util.h"
 %include "general/bitm.h"
 %include "general/ptxd.h"
+%include "general/geom_vecteur.h"
 %include "general/photogram.h"
 %include "../src/uti_phgrm/NewOri/NewOri.h"
 //%include "XML_GEN/xml_gen2_mmByp.h"
