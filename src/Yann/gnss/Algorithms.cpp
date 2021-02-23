@@ -870,7 +870,7 @@ Solution Algorithms::triple_difference_kalman(ObservationData rover,
         solution.setPosition(SOL);
 
 		
-		usleep(50000);
+		//usleep(50000);
         std::cout << "EPOCH " << t1 << "  ";
         std::cout << SOL << "  NSAT = " << N;
         std::cout <<  "   ERR = " << SOL.distanceTo(rover.getApproxAntennaPosition()) << std::endl;
