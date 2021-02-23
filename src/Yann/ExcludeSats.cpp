@@ -988,6 +988,9 @@ cAppli_YannSkyMask::cAppli_YannSkyMask(int argc, char ** argv){
 			std::cout << std::endl;
 		}
 		
+		// Down-grading h5py to earlier version
+		System("pip install 'h5py==2.10.0' --force-reinstall");
+		
 		return;
 		
 	}
@@ -1076,6 +1079,34 @@ cAppli_YannSkyMask::cAppli_YannSkyMask(int argc, char ** argv){
 // --------------------------------------------------------------------------------------
 cAppli_YannScript::cAppli_YannScript(int argc, char ** argv){
 	
+	
+	
+	ElInitArgMain(argc,argv,
+        LArgMain()  <<  EAMC(ImPattern,"Rinex rover station observation file")
+				    <<  EAMC(aPostIn,"Rinex navigation file"),
+        LArgMain()  <<  EAM(mOut,"Ref", "file.o", "Rinex base station observation file"));
+	
+	
+	ObservationData rover = RinexReader::readObsFile(ImPattern);
+    ObservationData base = RinexReader::readObsFile(mOut);
+    NavigationData nav  = RinexReader::readNavFile(aPostIn);
+
+    rover.removeSatellite("G24");
+    base.removeSatellite("G24");
+    base.removeSatellite("G10");
+    base.removeSatellite("G19");
+
+    NavigationDataSet eph = NavigationDataSet();
+    eph.addGpsEphemeris(nav);
+
+    Solution solution = Algorithms::triple_difference_kalman(rover, base, eph, base.getApproxAntennaPosition());
+
+    std::cout << "------------------------------------------------------------------------------" << std::endl;
+    std::cout << rover.getApproxAntennaPosition() << std::endl;
+    std::cout << solution.getPosition() - rover.getApproxAntennaPosition() << std::endl;
+    std::cout << "------------------------------------------------------------------------------" << std::endl;
+
+
 	/*
 	std::string prn;
 	std::string dec;
@@ -1121,6 +1152,9 @@ cAppli_YannScript::cAppli_YannScript(int argc, char ** argv){
 	
 	*/
 	
+	
+	
+	/*
 	
 	 ElInitArgMain(argc,argv,
         LArgMain()  <<  EAMC(ImPattern,"Rinex rover station observation file")
@@ -1179,11 +1213,11 @@ cAppli_YannScript::cAppli_YannScript(int argc, char ** argv){
 	std::cout << "Mean position: " << Statistics::mean(position).toENUCoords(ground_truth) << std::endl;
 	std::cout << "Std pos: " << Statistics::sd(position) << std::endl;
 	std::cout << "Mean position error: " << Statistics::mean(position).distanceTo(ground_truth) << std::endl;
-	std::cout << "Mean pos: " << Statistics::mean(position).toGeoCoords() << std::endl;
-	
+	std::cout << "Mean pos: " << Statistics::mean(position).toGeoCoords() << std::endl; 
 	
 		
 	//std::cout << GeoCoords::makeWKT(trajectory) << std::endl;
+	*/
 	
 	
 
