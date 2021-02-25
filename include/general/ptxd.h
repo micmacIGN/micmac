@@ -178,6 +178,8 @@ template <class Type> class Pt2d : public  ElStdTypeScal<Type>
      typedef Pt2d<Type>  TypeEff;
      static Pt2d  El0 () {return Pt2d(0,0);}
 
+     typename ElStdTypeScal<Type>::TypeScalReel Vol() const{return x*this->T2R(y);}
+
      typedef Pt2d<typename ElStdTypeScal<Type>::TypeVarProvReel> TypeProvPtScalR;
 
      typedef Type (& t2)[2] ;
@@ -855,7 +857,13 @@ template <class Type> class Pt3d : public  ElStdTypeScal<Type>
 
      Pt3d<Type>(const Pt2d<Type>&,Type z); // to please visual
 
+     Pt3d<Type> mcbyc(const Pt3d<Type> & p2) const
+                {return Pt3d(x*p2.x,y*p2.y,z*p2.z);}
+     Pt3d<Type> dcbyc(const Pt3d<Type> & p2) const
+                {return Pt3d(x/p2.x,y/p2.y,z/p2.z);}
 
+     static Pt3d<Type> RandC() {return Pt3d<Type>(NRrandC(),NRrandC(),NRrandC());}
+     static Pt3d<Type> Rand3() {return Pt3d<Type>(NRrandom3(),NRrandom3(),NRrandom3());}
 
      Pt3d(Type X,Type Y,Type Z);
      Pt3d<Type> operator + (const Pt3d<Type> & p2) const;
@@ -865,6 +873,9 @@ template <class Type> class Pt3d : public  ElStdTypeScal<Type>
 
      Pt3d<Type> operator - (const Pt3d & p2) const;
      Pt3d<Type> operator - () const;
+     typename ElStdTypeScal<Type>::TypeScalReel Vol() const{return x*(y*this->T2R(z));}
+     Pt3d<Type> PVolTarget(double aVolTarget) const {return (*this) * pow(aVolTarget/Vol(),1/3.0);}
+     Pt3d<Type> PVolUnite() const {return PVolTarget(1.0);}
 
      typename ElStdTypeScal<Type>::TypeBool  operator == (const Pt3d<Type> & p2) const {return (x==p2.x) && (y==p2.y) && (z==p2.z);}
 

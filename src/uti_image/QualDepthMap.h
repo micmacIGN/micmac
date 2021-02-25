@@ -81,6 +81,7 @@ class cCEM_OneIm
           bool Empty() const;
           cCEM_OneIm (cCoherEpi_main * ,const std::string &,const Box2di & aBox,bool Visu,bool IsFirstIm);
           Box2dr BoxIm2(const Pt2di & aSzIm2);
+          Box2dr BoxIm2(const Pt2di & aSzIm2,bool & OneOk);
           void SetConj(cCEM_OneIm *);
           virtual void UsePack(const ElPackHomologue &) ;
 
@@ -297,7 +298,7 @@ class cCoherEpi_main : public Cont_Vect_Action
         std::string   mPrefix;
         std::string   mPostfixP;
         cCEM_OneIm  * mIm1;
-        cCEM_OneIm  * mIm2;
+        cCEM_OneIm  * mPIm2;  // Renomed mPIm2 as it can be 0 when empty zone
 
         int           mDeZoom;
         int           mNumPx;

@@ -263,7 +263,7 @@ cCollecSpecArg2007 & cAppliCalcDescPCar::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
  return
       anArgObl
-          <<   Arg2007(mNameIm,"Name of input file",{{eTA2007::MPatIm,"0"}})
+          <<   Arg2007(mNameIm,"Name of input file",{{eTA2007::MPatFile,"0"}})
    ;
 }
 
@@ -299,7 +299,7 @@ int cAppliCalcDescPCar::Exe()
 
       if (aVSetIm.size() != 1)  // Multiple image, run in parall 
       {
-         ExeMultiAutoRecallMMVII("0",aVSetIm);
+         ExeMultiAutoRecallMMVII("0",aVSetIm); // Recall with substitute recall itself
          return EXIT_SUCCESS;
       }
    }

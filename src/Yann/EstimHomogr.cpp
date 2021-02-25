@@ -57,7 +57,6 @@ class cAppli_YannEstimHomog{
        std::string mName2D;                        // fichier des mesures 2D
        std::string mNameImRef;                     // Image référence (optionnelle)
        std::string mDirOri;                        // Direction d'orientation
-	   std::string mResolution;                    // Resolution images de sortie
 	   std::string mMargeRel;                      // Marge relative des bords
 	   std::string aNameCam;					   // Chemin calibration interne
 	   bool mCamRot;                               // Camera frame rotation
@@ -77,6 +76,9 @@ class cAppli_YannApplyHomog{
        std::string mNameHomog;                     // Fichier d'homographie
 	   std::string mDir;                           // Répertoire d'images
 	   std::string mDirOut;                        // Répertoire de sortie
+	   std::string mResolution;                    // Resolution images de sortie
+	   std::string mCalib;						   // Calibration interne xml
+	   std::string mInterpType;					   // Interpolation sub-px
        cElemAppliSetFile  mEASF;                   // Pour gerer un ensemble d'images
        cInterfChantierNameManipulateur * mICNM;    // Name manipulateur
 };
@@ -95,13 +97,33 @@ class cAppli_YannInvHomolHomog{
 	   std::string exportTxtIn;                    // Entrée en binaire ou txt
 	   std::string exportTxtOut;                   // Sortie en binaire ou txt
        std::string mDir;                           // Directory of data
+	   std::string mCalib;						   // Calibration interne xml
 	   std::string mDirOri;                        // Répertoire d'orientation
 	   std::string mRawFolder;					   // Dossier des images bruts
 	   cElemAppliSetFile mEASF;                    // Pour gerer un ensemble d'images
+	   cElemAppliSetFile mEASF2;                   // Pour gerer un ensemble d'images
 	   cInterfChantierNameManipulateur * mICNM;    // Name manipulateur
+	   cInterfChantierNameManipulateur * mICNM2;    // Name manipulateur
 
 };
 
+
+// --------------------------------------------------------------------------------------
+// Fonction de calcul des résolutions Nx et Ny en fonction d'un paramètre de maximal
+// --------------------------------------------------------------------------------------
+// Inputs :
+//   - Nx et Ny (par référence)
+//   - Résolution maximale en x et en y
+//   - Extension de la zone d'étude
+// --------------------------------------------------------------------------------------
+void setResolution(int& Nx, int& Ny, int resol_max, double xmin, double xmax, double ymin, double ymax){
+	Nx = resol_max;
+	Ny = (ymax-ymin)/(xmax-xmin)*Nx;
+	if (Ny > Nx){
+		Ny = resol_max;
+		Nx = (xmax-xmin)/(ymax-ymin)*Ny;
+	}
+} 
 
 // --------------------------------------------------------------------------------------
 // Fonction de lecture du fichier d'homographie
@@ -111,9 +133,10 @@ class cAppli_YannInvHomolHomog{
 //   - matrice des paramètres d'homographie
 //   - emprise xmin, ymin, xmax, ymax
 //   - nombre de pixels en x de l'image
+//   - résolution souhaitée en x
 // --------------------------------------------------------------------------------------
 void readHomogFile(std::string mHomogFile, ElMatrix<REAL> &H, double &xmin, double &ymin, double &xmax, 
-				   double &ymax, int &Nx_org, int &Ny_org, int &Nx, int &Ny, std::string &dirOri){
+				   double &ymax, int &Nx_org, int &Ny_org, std::string &dirOri){
 
 	std::string line;
 	std::ifstream infile(mHomogFile);
@@ -170,14 +193,7 @@ void readHomogFile(std::string mHomogFile, ElMatrix<REAL> &H, double &xmin, doub
 	
 	std::getline(infile, line);
 	std::getline(infile, line);
-	
-	std::getline(infile, line);
-	Nx = std::stof(line.substr(6,line.size()-10));
-	std::getline(infile, line);
-	Ny = std::stof(line.substr(6,line.size()-10));
-	
-	std::getline(infile, line);
-	std::getline(infile, line);
+
 	dirOri = line.substr(7,line.size()-15);
 	
 	infile.close();
@@ -204,7 +220,8 @@ cAppli_YannInvHomolHomog::cAppli_YannInvHomolHomog(int argc, char ** argv){
         LArgMain()  <<  EAMC(ImPattern,"Rectified images pattern")  
 				    <<  EAMC(mRawFolder,"Raw images folder")
 				    <<  EAMC(mHomogFile,"Homography parameters file"),
-        LArgMain()  <<  EAM(mFolderOut,"Out", "NONE", "Homol output folder")
+	   LArgMain()	<<  EAM(mCalib,"Calib", "NONE", "Calibration xml file")
+          			<<  EAM(mFolderOut,"Out", "InvHomog", "Homol output folder")
 				    <<  EAM(exportTxtIn, "ExpTxtIn", "0", "Input in txt")
 				    <<  EAM(exportTxtOut, "ExpTxtOut", "0", "Output in txt")
 		        	<<  EAM(mExt, "Ext", "NONE", "Target image extension"));
@@ -228,20 +245,38 @@ cAppli_YannInvHomolHomog::cAppli_YannInvHomolHomog(int argc, char ** argv){
 	double xmax; double ymax;
 	std::string aNameCam;
 	
-	readHomogFile(mHomogFile, H, xmin, ymin, xmax, ymax, Nx_org, Ny_org, Nx, Ny, aNameCam);
+	readHomogFile(mHomogFile, H, xmin, ymin, xmax, ymax, Nx_org, Ny_org, aNameCam);
+	
+	// ---------------------------------------------------------------
+	// Récupération de la taille (en x) des images redressées
+	// ---------------------------------------------------------------
+	mEASF2.Init(ImPattern);
+    mICNM2 = mEASF2.mICNM;
+    std::string mDir = mEASF2.mDir;
+	Tiff_Im aTF = Tiff_Im::StdConvGen(mEASF2.SetIm()[0][0],3,false);
+	Pt2di im_size = aTF.sz();
+	
+	Nx = im_size.x;
+	Ny = im_size.y;
 	
 	double resolution = (xmax-xmin)/(Nx-1);
 	
+	setResolution(Nx, Ny, resolution, xmin, xmax, ymin, ymax);
+
 	// ---------------------------------------------------------------
 	// Correction éventuelle de la distorsion
 	// ---------------------------------------------------------------
+
 	
 	CamStenope * aCam = 0;
 	
-	if (aNameCam.size() > 0){
-    	cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
-    	aCam = CamOrientGenFromFile(mRawFolder+"/"+aNameCam,anICNM);
+
+	if ((aNameCam.size() > 0) && (EAMIsInit(&mCalib))){
+    	//cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+    	//aCam = CamOrientGenFromFile(mRawFolder+"/"+aNameCam, anICNM);
+		aCam = Std_Cal_From_File(mCalib);
 	}
+	
 	
 	// ---------------------------------------------------------------
 	// Gestion du répertoire de sortie
@@ -261,6 +296,10 @@ cAppli_YannInvHomolHomog::cAppli_YannInvHomolHomog(int argc, char ** argv){
 	printf ("GENERATED IMAGE SIZE: [%i x %i]   RAW IMAGE SIZE:  [%i x %i] \n", Nx, Ny, Nx_org, Ny_org);
 	
 	std::cout << sep << std::endl;
+	
+	// ---------------------------------------------------------------
+	// Corps du module
+	// ---------------------------------------------------------------
 	
 	cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
 	
@@ -349,7 +388,7 @@ cAppli_YannInvHomolHomog::cAppli_YannInvHomolHomog(int argc, char ** argv){
 					Pt2dr pt2 = Pt2dr(x2h,y2h);
 					
 					// Distorsion
-					if (aNameCam.size() > 0){
+					if (aCam != 0){
 						pt1 = aCam->DistDirecte(pt1);
 						pt2 = aCam->DistDirecte(pt2);
 					}
@@ -388,6 +427,7 @@ cAppli_YannInvHomolHomog::cAppli_YannInvHomolHomog(int argc, char ** argv){
 //   - string: Pattern d'images sur lesquelles appliquer la transformation
 //   - string: Fichier des paramètres d'homographie
 //   - string: Répertoire de sortie (optionnel) pour la création des images
+//   - string: Résolution (maximale) des images générées
 // --------------------------------------------------------------------------------------
 // Outputs :
 //   - Les images transformées par l'homographie
@@ -397,7 +437,10 @@ cAppli_YannApplyHomog::cAppli_YannApplyHomog(int argc, char ** argv){
 	 ElInitArgMain(argc,argv,
         LArgMain()  <<  EAMC(mNameIm,"Images pattern")
 				    <<  EAMC(mNameHomog,"Homography parameters file"),
-        LArgMain()  <<  EAM(mDirOut,"Out", "./", "Output folder"));
+        LArgMain()  <<  EAM(mDirOut,"Out", "Homog", "Output folder") 
+				    <<  EAM(mCalib,"Calib", "NONE", "Calibration xml file") 
+				   	<<  EAM(mResolution,"ImRes", "2000", "Output resolution of images")
+				    <<  EAM(mInterpType, "Interp", "bilin", "Interpolation method (ppv/bilin)"));
 
 	
 	std::string sep =  "-----------------------------------------------------------------------";
@@ -415,15 +458,27 @@ cAppli_YannApplyHomog::cAppli_YannApplyHomog(int argc, char ** argv){
         mDir = mEASF.mDir;
 	}
 	
-	unsigned N = mEASF.SetIm()->size();
+	size_t N = mEASF.SetIm()->size();
+	
+	bool hasCalib = false;
 	
 	// ---------------------------------------------------------------
 	// Gestion du répertoire de sortie
 	// ---------------------------------------------------------------
-	std::string output_folder = "./";
+	std::string output_folder = "Homog";
 	if (EAMIsInit(&mDirOut)){
 		output_folder = mDirOut;
+	}
+	if (output_folder != "./"){
 		ELISE_fp::MkDir(output_folder);
+	}
+	
+	// ---------------------------------------------------------------
+	// Gestion de la résolution de sortie
+	// ---------------------------------------------------------------
+	int resolution = 2000;
+	if (EAMIsInit(&mResolution)){
+		resolution = std::stoi(mResolution);
 	}
 
 	// ---------------------------------------------------------------
@@ -437,7 +492,8 @@ cAppli_YannApplyHomog::cAppli_YannApplyHomog(int argc, char ** argv){
 	double xmax; double ymax;
 	std::string aNameCam;
 	
-	readHomogFile(mNameHomog, H, xmin, ymin, xmax, ymax, Nx_org, Ny_org, Nx, Ny, aNameCam);
+	readHomogFile(mNameHomog, H, xmin, ymin, xmax, ymax, Nx_org, Ny_org, aNameCam);
+	setResolution(Nx, Ny, resolution, xmin, xmax, ymin, ymax);
 
 	// ---------------------------------------------------------------
 	// Impression console pour confirmation des paramètres
@@ -446,6 +502,14 @@ cAppli_YannApplyHomog::cAppli_YannApplyHomog(int argc, char ** argv){
 	printf ("    %10.3f %10.3f %10.3f           %7.2f %7.2f \n", H(0,3), H(0,4), H(0,5), ymin, ymax);
 	printf ("    %10.3f %10.3f %10.3f      \n", H(0,6), H(0,7), 1.0);
 	printf ("GENERATED IMAGE SIZE: [%i x %i]   RAW IMAGE SIZE:  [%i x %i] \n", Nx, Ny, Nx_org, Ny_org);
+	
+	std::cout << "INTERPOLATION METHOD: ";
+	if (EAMIsInit(&mInterpType) && mInterpType == "ppv"){
+		std::cout << "Nearest Neighbor Interpolation" << std::endl;
+	}else{
+		std::cout << "Bilinear Interpolation" << std::endl;
+	}
+	
 	std::cout << sep << std::endl;
 	
 	// ---------------------------------------------------------------
@@ -460,11 +524,18 @@ cAppli_YannApplyHomog::cAppli_YannApplyHomog(int argc, char ** argv){
 	CamStenope * aCam = 0;
 	
 	// Correction éventuelle de la distorsion
-	if (aNameCam.size() > 0){
-    	cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
-    	aCam = CamOrientGenFromFile(aNameCam,anICNM);
+	if (mCalib.size() > 0){
+		aCam = Std_Cal_From_File(mCalib);
+		hasCalib = true;
+	}else{
+		if (aNameCam.size() > 0){
+    		cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+    		aCam = CamOrientGenFromFile(aNameCam,anICNM);
+			hasCalib = true;
+		}
 	}
 	
+		
 	ElMatrix<REAL> PATTERN_X(Nx,Ny,0.0);
 	ElMatrix<REAL> PATTERN_Y(Nx,Ny,0.0);
 	
@@ -476,14 +547,14 @@ cAppli_YannApplyHomog::cAppli_YannApplyHomog(int argc, char ** argv){
 		Y = ymax - iy*(ymax-ymin)/Ny;
         for (int ix=0; ix<Nx; ix++) {
 			X = xmin + ix*(xmax-xmin)/Nx;
-			
+	
 			// Homographie
             D = H(0,6)*X + H(0,7)*Y + 1.0;
 			PATTERN_X(ix,iy) = (H(0,0)*X + H(0,1)*Y + H(0,2))/D;
 			PATTERN_Y(ix,iy) = (H(0,3)*X + H(0,4)*Y + H(0,5))/D;
 			
 			// Distorsion éventuelle
-			if (aNameCam.size() > 0){
+			if (hasCalib){
 				Pt2dr aCenterOut = aCam->DistDirecte(Pt2dr(PATTERN_X(ix,iy), PATTERN_Y(ix,iy)));
 				PATTERN_X(ix,iy) = aCenterOut.x;
 				PATTERN_Y(ix,iy) = aCenterOut.y;	
@@ -522,21 +593,43 @@ cAppli_YannApplyHomog::cAppli_YannApplyHomog(int argc, char ** argv){
 	
 		
 		Pt2dr ptIn; 
-				
+
    	 	for (int iy=0; iy<Ny; iy++) {
         	for (int ix=0; ix<Nx; ix++) {
 				
 				ptIn.x = PATTERN_X(ix,iy);
 				ptIn.y = PATTERN_Y(ix,iy);
 				
-				// Interpolation bilinéaire
-            	aDataROut[iy][ix] = Reechantillonnage::biline(aDataR, im_size.y, im_size.x, ptIn);
-            	aDataGOut[iy][ix] = Reechantillonnage::biline(aDataG, im_size.y, im_size.x, ptIn);
-            	aDataBOut[iy][ix] = Reechantillonnage::biline(aDataB, im_size.y, im_size.x, ptIn);
+				int px = (int) ptIn.x;
+				int py = (int) ptIn.y;
 				
+				if (px < 0){continue;}
+				if (py < 0){continue;}
+				if (px >= im_size.x-1){continue;}
+				if (py >= im_size.y-1){continue;}
+				
+				if (EAMIsInit(&mInterpType) && mInterpType == "ppv"){
+				
+					// ----------------------------------------------
+					// Interpolation plus proche voisin
+					// ----------------------------------------------
+					aDataROut[iy][ix] = aDataR[py][px];
+					aDataGOut[iy][ix] = aDataG[py][px];
+					aDataBOut[iy][ix] = aDataB[py][px];
+				
+				}else{
+				
+					// ----------------------------------------------
+					// Interpolation bilinéaire
+					// ----------------------------------------------
+            		aDataROut[iy][ix] = Reechantillonnage::biline(aDataR, im_size.y, im_size.x, ptIn);
+            		aDataGOut[iy][ix] = Reechantillonnage::biline(aDataG, im_size.y, im_size.x, ptIn);
+            		aDataBOut[iy][ix] = Reechantillonnage::biline(aDataB, im_size.y, im_size.x, ptIn);
+				
+				}
        	 	}
     	}
-		
+
 		// Impression image
 		Pt2di aSzOut = Pt2di(Nx, Ny);
 		Tiff_Im aTOut(aNameOut.c_str(), aSzOut, GenIm::u_int1, Tiff_Im::No_Compr, Tiff_Im::RGB);
@@ -560,7 +653,6 @@ cAppli_YannApplyHomog::cAppli_YannApplyHomog(int argc, char ** argv){
 //   - string: Fichier de type "mesure-S2D.xml" de points mesurés dans plusieurs images
 //   - string: Répertoire d'orientation (optionnel) pour rotation dans un repère caméra
 //   - string: Nom de l'image centrale (optionnel) pour forcer le choix de la référence
-//   - int: Résolution en x des images (défaut: 2000)
 //   - double: marge (entre 0 et 1) à appliquer sur les bords (défaut: 0.3))
 // --------------------------------------------------------------------------------------
 // Outputs :
@@ -579,17 +671,16 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
                     <<  EAMC(mName2D,"Image 2D points measurement file"),
         LArgMain()  <<  EAM(mDirOri,"Ori", "NONE", "Orientation folder")
 				    <<  EAM(mNameImRef,"ImRef", "NONE", "Name of reference image")
-				  	<<  EAM(mResolution,"ImRes", "2000", "Output resolution of images")
 				    <<  EAM(mMargeRel,"Margin", "0.3", "Ground 3D points margin")
 				    <<  EAM(mCamRot,"CamRot", "True", "Camera frame rotation"));
-
-
+	
 	
 	std::string sep =  "-----------------------------------------------------------------------";
 	
 	std::cout << "-----------------------------------------------------------------------" << std::endl;
 	std::cout << "                        HOMOGRAPHIE ESTIMATION                         " << std::endl;
 	std::cout << "-----------------------------------------------------------------------" << std::endl;
+	
 	
 	// ---------------------------------------------------------------
 	// Si l'image de référence est définie
@@ -610,10 +701,10 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	// Cohérence dossier d'orientation
 	// ---------------------------------------------------------------
 	if (EAMIsInit(&mCamRot)){
-		ELISE_ASSERT(EAMIsInit(&mDirOri), "No orientation folder for camera frame rotation")
+		ELISE_ASSERT(EAMIsInit(&mDirOri), "No orientation folder provided for camera frame rotation")
 	}
 	
-		
+			
 	// ---------------------------------------------------------------
 	// Gestion de la marge
 	// ---------------------------------------------------------------
@@ -621,16 +712,7 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	if (EAMIsInit(&mMargeRel)){
 		marge = std::stof(mMargeRel);
 	}
-	
-	// ---------------------------------------------------------------
-	// Gestion de la résolution de sortie
-	// ---------------------------------------------------------------
-	int resolution = 2000;
-	if (EAMIsInit(&mResolution)){
-		resolution = std::stoi(mResolution);
-	}
-	
-	
+		
 	// ---------------------------------------------------------------
 	// Récupération des points dans le repère image (2D)
 	// ---------------------------------------------------------------
@@ -652,8 +734,8 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	// Recherche de l'image ayant le plus de points
 	// ---------------------------------------------------------------
 	
-	unsigned max = 0;
-	unsigned val = 0;
+	size_t val = 0;
+	size_t max = 0;
 	unsigned argmax = 0;
 	int selected = -1;
 
@@ -701,7 +783,7 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	int Ny_org = im_size_origin.y;
 
 	// Test nombre de points suffisant
-	const int N = MESURE_IMAGES[selected].OneMesureAF1I().size();
+	const size_t N = MESURE_IMAGES[selected].OneMesureAF1I().size();
 	std::string tmp = "ERROR: not enough points in image measurement file (" + std::to_string(N) + ")";
 
 	ELISE_ASSERT(N >= 4, tmp.c_str());
@@ -747,7 +829,7 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	// ---------------------------------------------------------------
 	std::vector<double> P2D[2];
 	std::vector<double> P3D[3];
-	
+	std::vector<string> NAME_PT_SELECTED;
 	for (unsigned i=0; i<X3D.size(); i++){
 		for (unsigned j=0; j<X2D.size(); j++){
 			if (NAME3D[i] == NAME2D[j]){
@@ -756,8 +838,9 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 				P3D[0].push_back(X3D[i]);
 				P3D[1].push_back(Y3D[i]);
 				P3D[2].push_back(Z3D[i]);
+				NAME_PT_SELECTED.push_back(NAME3D[i]);
 				printf ("IMAGE: %9.3f %9.3f     ", X2D[j], Y2D[j]);
-				printf ("TERRAIN: %5.3f %5.3f %5.3f\n", X3D[i], Y3D[i], Z3D[i]);
+				printf ("TERRAIN: %7.3f %7.3f %7.3f\n", X3D[i], Y3D[i], Z3D[i]);
 			}
 		}
 	}
@@ -765,92 +848,159 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	std::cout << sep << std::endl;
 	
 	// ---------------------------------------------------------------
-	// Rotation de la prise de vue + distorsions + coplanarisation
-	// ---------------------------------------------------------------
-	if (EAMIsInit(&mDirOri)){
+    // Correction des distorsions
+    // ---------------------------------------------------------------
+    if (EAMIsInit(&mDirOri)){
+       
+        StdCorrecNameOrient(mDirOri,mDir);
+       
+        // Correction de la distorsion
+        aNameCam="Ori-"+mDirOri+"/Orientation-"+mNameImRef+".xml";
+        cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
+        CamStenope * aCam = CamOrientGenFromFile(aNameCam,anICNM);
+        std::cout << "Distorsion correction ";
+       
+        for (unsigned i=0; i<P2D[0].size(); i++){
+            Pt2dr aCenterOut = aCam->DistInverse(Pt2dr(P2D[0][i], P2D[1][i]));
+            P2D[0][i] = aCenterOut.x;
+            P2D[1][i] = aCenterOut.y;
+        }
 		
-		StdCorrecNameOrient(mDirOri,mDir);
-		
-		// Correction de la distorsion
-		aNameCam="Ori-"+mDirOri+"/Orientation-"+mNameImRef+".xml";
-    	cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
-    	CamStenope * aCam = CamOrientGenFromFile(aNameCam,anICNM);
-		std::cout << "Distorsion correction and rotation in camera frame from file: ";
-		std::cout << aNameCam << std::endl;
-		
-		for (unsigned i=0; i<P2D[0].size(); i++){
-			Pt2dr aCenterOut = aCam->DistInverse(Pt2dr(P2D[0][i], P2D[1][i]));
-			P2D[0][i] = aCenterOut.x;
-			P2D[1][i] = aCenterOut.y;
-		}
-		
-		
-		// Rotation + coplanarisation
-		ElMatrix<REAL> ROT(3,3,0.0);
-		if ((!EAMIsInit(&mCamRot)) || (mCamRot)){
-			cOrientationConique aOriConique=StdGetFromPCP(aNameCam,OrientationConique); 
-
-			ROT = MatFromCol(
-				aOriConique.Externe().ParamRotation().CodageMatr().Val().L1(),
-				aOriConique.Externe().ParamRotation().CodageMatr().Val().L2(),
-				aOriConique.Externe().ParamRotation().CodageMatr().Val().L3()
-			).transpose();
-			
-			// Rotation des points du repère terrain
-			for (unsigned i=0; i<P3D[0].size(); i++){
-				ElMatrix<REAL> P(1,3,0.0);
-				ElMatrix<REAL> P_ROT(1,3,0.0);
-				P(0,0) = P3D[0][i]; P(0,1) = P3D[1][i];P(0,2) = P3D[2][i];
-				P_ROT = ROT*P;
-				P3D[0][i] = P_ROT(0,0); P3D[1][i] = P_ROT(0,1); P3D[2][i] = P_ROT(0,2);
-			}
-		
-			// ---------------------------------------------------------------
-			// "Co-planarisation" des points par moindres carrés
-			// ---------------------------------------------------------------
-
-			ElMatrix<REAL> Aplan(3,N,0.0);
-			ElMatrix<REAL> Bplan(1,N,1.0);
-			for (int i=0; i<N; i++){
-				Aplan(0,i) = P3D[0][i];
-				Aplan(1,i) = P3D[1][i];
-				Aplan(2,i) = P3D[2][i];
-			}
-
-			// Régression du plan
-			ElMatrix<REAL> Xplan = gaussj(Aplan.transpose()*Aplan)*(Aplan.transpose()*Bplan);
-
-			// Calcul de la matrice de rotation
-			ElMatrix<REAL> normale = Xplan*(-1.0/sqrt(Xplan.L2()));
-			Pt3dr rot_axis(-normale(0,2), 0.0, normale(0,0));
-			ElMatrix<REAL> VR = MatProVect(rot_axis).transpose();
-			ElMatrix<REAL> Id(3,3,0); Id(0,0) = Id(1,1) = Id(2,2) = 1;
-			ElMatrix<REAL> R = Id + VR + VR*VR*(1.0/(1.0+normale(0,1)));
-
-			// Rotation
-			for (unsigned i=0; i<P3D[0].size(); i++){
-				for (unsigned j=0; j<3; j++){
-					P3D[j][i] = R(j,0)*P3D[0][i] + R(j,1)*P3D[1][i] + R(j,2)*P3D[2][i];
-				}
-			}
-
-			// Résidus et rmse
-			ElMatrix<REAL> ERR_PLAN = Aplan*Xplan - Bplan;
-			printf ("Point planarization: RMSE = %4.2f GROUND UNITS\n", sqrt(ERR_PLAN.L2()/N));
-			std::cout << sep << std::endl;
-			
-		}
+		std::cout << "from orientation: [";
+        std::cout << mDirOri << "]" << std::endl;
+		std::cout << sep << std::endl;
+   
+    }
 	
+	// ---------------------------------------------------------------
+	// Rotation des points du repère terrain dans l'espace caméra
+	// ---------------------------------------------------------------
+    ElMatrix<REAL> ROT(3,3,0.0);
+    if ((EAMIsInit(&mCamRot)) && (mCamRot)){
+			
+		std::cout << "Rotation in camera frame: " << mNameImRef << std::endl;
+		std::cout << sep << std::endl;
+			
+        cOrientationConique aOriConique=StdGetFromPCP(aNameCam,OrientationConique);
+
+        ROT = MatFromCol(
+           aOriConique.Externe().ParamRotation().CodageMatr().Val().L1(),
+           aOriConique.Externe().ParamRotation().CodageMatr().Val().L2(),
+           aOriConique.Externe().ParamRotation().CodageMatr().Val().L3()
+        ).transpose();
+           
+		ElMatrix<REAL> C(1,3,0.0);
+		C(0,0) = aOriConique.Externe().Centre().x;
+		C(0,1) = aOriConique.Externe().Centre().y;
+		C(0,2) = aOriConique.Externe().Centre().z;
+		
+		ElMatrix<REAL> P(1,3,0.0);
+        for (unsigned i=0; i<P3D[0].size(); i++){ 
+            P(0,0) = P3D[0][i]; P(0,1) = P3D[1][i];P(0,2) = P3D[2][i];
+            ElMatrix<REAL> P_ROT = ROT.transpose()*(P-C);
+            P3D[0][i] = -P_ROT(0,2); P3D[1][i] = P_ROT(0,0); P3D[2][i] = P_ROT(0,1);
+        }
+    }
+	
+	// ---------------------------------------------------------------
+	// "Co-planarisation" des points par moindres carrés
+	// ---------------------------------------------------------------
+	
+	ElMatrix<REAL> Aplan(3,N,0.0);
+	ElMatrix<REAL> Bplan(1,N,1.0);
+	for (unsigned i=0; i<N; i++){
+		Aplan(0,i) = P3D[0][i];
+		Aplan(1,i) = P3D[1][i];
+		Aplan(2,i) = P3D[2][i];
+	}
+
+	// Régression du plan
+	ElMatrix<REAL> Xplan = gaussj(Aplan.transpose()*Aplan)*(Aplan.transpose()*Bplan);
+	
+	double a = Xplan(0,0);
+	double b = Xplan(0,1);
+	double c = Xplan(0,2);
+	double d = -1;
+	
+	// Résidus et rmse
+	double rmse_plan = 0;
+	std::cout << "Point planarization";
+	double abc_norm = sqrt(Xplan.L2());
+	for (unsigned i=0; i<N; i++){
+		std::cout << std::endl;
+		double val = abs(Xplan(0,0)*P3D[0][i] + Xplan(0,1)*P3D[1][i] + Xplan(0,2)*P3D[2][i] - 1)/abc_norm;
+		rmse_plan += val*val;
+		printf ("RESIDUAL POINT %s %7.3f", NAME_PT_SELECTED[i].c_str(), val);
+	}
+	rmse_plan = sqrt(rmse_plan/N);
+	printf("     RMSE = %4.3f GROUND UNITS\n", rmse_plan);
+
+		
+	a /= abc_norm;
+	b /= abc_norm;
+	c /= abc_norm;
+	d /= abc_norm;
+	
+	
+	// Rotation
+	double xp = 0; double yp = 0; double zp = -d/c;
+	double xq = 1; double yq = 0; double zq = -(a + d)/c;
+	double pq_norm = sqrt((xq-xp)*(xq-xp) +  (yq-yp)*(yq-yp) + (zq-zp)*(zq-zp));
+	
+	double vpqx = (xq-xp)/pq_norm; 
+	double vpqy = (yq-yp)/pq_norm; 
+	double vpqz = (zq-zp)/pq_norm;
+	
+	double wx = b*vpqz - c*vpqy;
+	double wy = c*vpqx - a*vpqz;
+	double wz = a*vpqx - b*vpqy;
+	
+	double w_norm = sqrt(wx*wx +  wy*wy + wz*wz);
+	wx /= w_norm;
+	wy /= w_norm;
+	wz /= w_norm;
+	
+	ElMatrix<REAL> RP(3,3,0.0);
+	
+	RP(0,0) = vpqx;  RP(1,0) = vpqy;  RP(2,0) = vpqz;
+	RP(0,1) = wx;    RP(1,1) = wy;    RP(2,1) = wz;
+	RP(0,2) = a;     RP(1,2) = b;     RP(2,2) = c;
+
+	
+	ElMatrix<REAL> P(1,3,0.0);
+	for (unsigned i=0; i<P3D[0].size(); i++){
+		P(0,0) = P3D[0][i]; 
+		P(0,1) = P3D[1][i];
+		P(0,2) = P3D[2][i] - zp;
+		ElMatrix<REAL> P_ROT = RP*P;
+		P3D[0][i] = P_ROT(0,0); 
+		P3D[1][i] = P_ROT(0,1); 
+		P3D[2][i] = P_ROT(0,2);
 	}
 	
+
+	std::cout << sep << std::endl;
+		
+	// ---------------------------------------------------------------	
+	// Creation du jeu de points 3D final
+	// ---------------------------------------------------------------
+	std::vector<double> X3DF;
+	std::vector<double> Y3DF;
+	std::cout << "Corrected ground points: " << std::endl;
+	for (unsigned i=0; i<P3D[0].size(); i++){
+		X3DF.push_back(P3D[1][i]);
+		Y3DF.push_back(-P3D[0][i]);
+		printf ("X = %7.3f   Y = %7.3f   Z = %7.3f\n", P3D[0][i], P3D[1][i], P3D[2][i]);
+	}
+	std::cout << sep << std::endl;
 	
 	// ---------------------------------------------------------------	
 	// Emprise de la zone
 	// ---------------------------------------------------------------
-	auto xmin = min_element(std::begin(P3D[0]), std::end(P3D[0]));
-	auto xmax = max_element(std::begin(P3D[0]), std::end(P3D[0]));
-	auto ymin = min_element(std::begin(P3D[2]), std::end(P3D[2]));
-	auto ymax = max_element(std::begin(P3D[2]), std::end(P3D[2]));
+	auto xmin = min_element(std::begin(X3DF), std::end(X3DF));
+	auto xmax = max_element(std::begin(X3DF), std::end(X3DF));
+	auto ymin = min_element(std::begin(Y3DF), std::end(Y3DF));
+	auto ymax = max_element(std::begin(Y3DF), std::end(Y3DF));
 
 	std::cout << "Bounding box:" << std::endl;
 	printf ("xmin: %6.2f  xmax: %6.2f\n", *xmin, *xmax);
@@ -864,12 +1014,12 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	
 	L2SysSurResol  system(8);               // Solveur moindres carrés
 
-	for (int i=0; i<N; i++){
+	for (unsigned i=0; i<N; i++){
 		
 		double eq1_coeff[8];
 		double eq2_coeff[8];
-		double x = P3D[0][i];
-		double y = P3D[2][i];
+		double x = X3DF[i];
+		double y = Y3DF[i];
 		double xp = P2D[0][i];
 		double yp = P2D[1][i];
 
@@ -903,13 +1053,30 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	}
 	
 	// Résidu
-	double residu = sqrt(system.ResiduAfterSol()/(2.0*N));
+	std::cout << "Solving least squares";
+	double residu = 0;
+	double Z, xp_predict, yp_predict;
+	double er2, residu_x, residu_y;
+	for (unsigned i=0; i<N; i++){
+		std::cout << std::endl;
+		Z = (H(0,6)*X3DF[i] + H(0,7)*Y3DF[i] + 1);
+		xp_predict = (H(0,0)*X3DF[i] + H(0,1)*Y3DF[i] + H(0,2))/Z;
+		yp_predict = (H(0,3)*X3DF[i] + H(0,4)*Y3DF[i] + H(0,5))/Z;
+		residu_x = xp_predict-P2D[0][i];
+		residu_y = yp_predict-P2D[1][i];
+		er2 = sqrt(residu_x*residu_x + residu_y*residu_y);
+		residu += er2;
+		printf ("RESIDUAL POINT %s %7.3f PX", NAME_PT_SELECTED[i].c_str(), sqrt(er2));
+	}
+	residu = sqrt(residu/N);
+	printf ("     RMSE = %4.2f PX\n", residu);
+	
+	std::cout << sep << std::endl;
 		
 	// Sortie console
 	printf ("H =  %10.3f %10.3f %10.3f\n", H(0,0), H(0,1), H(0,2));
 	printf ("     %10.3f %10.3f %10.3f\n", H(0,3), H(0,4), H(0,5));
-	printf ("     %10.3f %10.3f %10.3f", H(0,6), H(0,7), 1.0);
-	printf ("     RMSE = %4.2f PX\n", residu);
+	printf ("     %10.3f %10.3f %10.3f\n", H(0,6), H(0,7), 1.0);
 	
 	std::cout << sep << std::endl;
 	
@@ -941,10 +1108,7 @@ cAppli_YannEstimHomog::cAppli_YannEstimHomog(int argc, char ** argv){
 	aFileXML.PutPt2dr(pt_min,"MinCoords");
 	aFileXML.PutPt2dr(pt_max,"MaxCoords");
 	
-	int Nx = resolution;
-	int Ny = (*ymax-*ymin)/(*xmax-*xmin)*Nx;
 	aFileXML.PutPt2dr(Pt2dr(Nx_org, Ny_org), "Input_resolution");
-	aFileXML.PutPt2dr(Pt2dr(Nx, Ny), "Output_resolution");
 	aFileXML.PutString(aNameCam, "Calib");
 	
 	std::cout << "Homography parameters written in [homog.xml] file" << std::endl;

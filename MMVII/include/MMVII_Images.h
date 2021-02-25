@@ -391,12 +391,14 @@ class cDataFileIm2D : public cRect2
         /// Create the file before returning the descriptor
         static cDataFileIm2D Create(const std::string & aName,eTyNums,const cPt2di & aSz,int aNbChan=1);
 
+        static cDataFileIm2D Empty();
 
         virtual ~cDataFileIm2D();
         
      private :
         cDataFileIm2D(const std::string &,eTyNums,const cPt2di & aSz,int aNbChannel) ;
 
+        cMemCheck    mMemCheck;  ///< Inheritage may be multiple, member will have the same effect
         std::string  mName;      ///< Name on the disk
         eTyNums      mType;      ///< Type of value for pixel
         int          mNbChannel; ///< Number of channels

@@ -131,7 +131,7 @@ cMMVII_Appli::~cMMVII_Appli()
 
    if (mGlobalMainAppli)
    {
-      LogCommandOut(MVII_LogFile,true);
+      LogCommandOut(mFileLogTop,true);
    }
   
    msInDstructor = (TheStackAppli.size()<=1);  // avoid problem with StdOut 
@@ -256,7 +256,7 @@ void TestMainSet(const cCollecSpecArg2007 & aVSpec,bool &aMain0,bool & aMain1)
     for (int aK=0 ; aK<int(aVSpec.size()) ; aK++)
     {
         std::string aNumPat;
-        if (aVSpec[aK]->HasType(eTA2007::MPatIm,&aNumPat))
+        if (aVSpec[aK]->HasType(eTA2007::MPatFile,&aNumPat))
         {
              int aNum =   cStrIO<int>::FromStr(aNumPat);
              if (aNum==0)  aMain0 = true;
@@ -331,6 +331,7 @@ void cMMVII_Appli::InitParam()
       // <<  AOpt2007(mIntervFilterMS[1],GOP_Int1,"File Filter Interval, Second Set",{eTA2007::Common,{eTA2007::FFI,"1"}})
       <<  AOpt2007(mNumOutPut,GOP_NumVO,"Num version for output format (1 or 2)",aGlob)
       <<  AOpt2007(mSeedRand,GOP_SeedRand,"Seed for random,if <=0 init from time",aGlob)
+      <<  AOpt2007(mNbProcAllowed,GOP_NbProc,"Number of process allowed in parallelisation",aGlob)
       <<  AOpt2007(aDP ,GOP_DirProj,"Project Directory",{eTA2007::DirProject,eTA2007::Global})
       <<  AOpt2007(mParamStdOut,GOP_StdOut,"Redirection of Ouput (+File for add,"+ MMVII_NONE + "for no out)",aGlob)
       <<  AOpt2007(mLevelCall,GIP_LevCall,"Internal : Don't Use !! Level Of Call",aInternal)
@@ -338,6 +339,7 @@ void cMMVII_Appli::InitParam()
       <<  AOpt2007(mPrefixGMA,GIP_PGMA,"Internal : Don't Use !! Prefix Global Main Appli",aInternal)
       <<  AOpt2007(mDirProjGMA,GIP_DirProjGMA,"Internal : Don't Use !! Folder Project Global Main Appli",aInternal)
   ;
+  mNbProcAllowed = std::min(mNbProcAllowed,mNbProcSystem); ///< avoid greedy/gluton user
 
   // Check that names of optionnal parameters begin with alphabetic caracters
   for (const auto & aSpec : mArgFac.Vec())
@@ -474,21 +476,29 @@ void cMMVII_Appli::InitParam()
      }
 
   
-     for (size_t aK=0 ; aK<aNbArgTot; aK++)
      {
-        if (aVSpec[aK]->HasType(eTA2007::FileDirProj))
-        {
-           if (!HasDirProj)
-              mDirProject = DirOfPath(aVValues[aK],false);
-           else
-           {
-              aVValues[aK] = mDirProject + aVValues[aK];
-           }
-        }
+         bool HasFileDirProj = false;
+         for (size_t aK=0 ; aK<aNbArgTot; aK++)
+         {
+            if (aVSpec[aK]->HasType(eTA2007::FileDirProj))
+            {
+               MMVII_INTERNAL_ASSERT_always(!HasFileDirProj,"Multiple file dir project");
+               if (!HasDirProj)
+                  mDirProject = DirOfPath(aVValues[aK],false);
+               else
+               {
+                  // More or less a limit case, dont know really what must be accepted
+                  aVValues[aK] = mDirProject + aVValues[aK];
+                  mDirProject = DirOfPath(aVValues[aK],false);
+               }
+               HasFileDirProj = true;
+            }
+         }
      }
   }
+  mFileLogTop = mDirProject + MMVII_LogFile;
 
-  // Add a / if necessary
+  // Add a "/" at end  if necessary
   MakeNameDir(mDirProject);
 
   //  Initialize the paramaters
@@ -501,7 +511,6 @@ void cMMVII_Appli::InitParam()
   mGlobalMainAppli = mMainProcess && mMainAppliInsideP;
   // Compute an Id , unique and (more or less ;-) understandable
   // tINT4 aIT0 = round_ni(mT0);
-// std::cout << "Tttttt " << mT0 << " " << aIT0 << "\n";
   mPrefixNameAppli =   std::string("MMVII")
                      + std::string("_Tim")  + StrIdTime()
                      + std::string("_Num")  + ToStr(mNumCallInsideP) 
@@ -584,7 +593,7 @@ void cMMVII_Appli::InitParam()
   {
       std::string aNumPat;
       // Test the semantic
-      if (aVSpec[aK]->HasType(eTA2007::MPatIm,&aNumPat))
+      if (aVSpec[aK]->HasType(eTA2007::MPatFile,&aNumPat))
       {
          int aNum =   cStrIO<int>::FromStr(aNumPat);
          // Check range
@@ -793,7 +802,7 @@ void cMMVII_Appli::InitProject()
    {
       aDir += mPrefixNameAppli;
       CreateDirectories(aDir,true);
-      LogCommandIn(MVII_LogFile,true);
+      LogCommandIn(mFileLogTop,true);
    }
 }
 
@@ -813,6 +822,8 @@ void cMMVII_Appli::LogCommandOut(const std::string & aName,bool MainLogFile)
    aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur() << "\n\n";
    aOfs.Ofs().close();
 }
+
+
 
 
     // ========== Help ============
@@ -842,25 +853,33 @@ void cMMVII_Appli::GenerateHelp()
 
    HelpOut() << "\n";
    HelpOut() << " == Optional named args : ==\n";
+   //  Help to write only once the #### XXXX ###
    bool InternalMet = false;
    bool GlobalMet   = false;
+   bool TuningMet   = false;
    for (const auto & Arg : mArgFac.Vec())
    {
        const std::string & aNameA = Arg->Name();
        if (aSelName.Match(aNameA))
        {
           bool IsIinternal = Arg->HasType(eTA2007::Internal);
-          if ((! IsIinternal) || mDoInternalHelp)
+          bool IsTuning = Arg->HasType(eTA2007::Tuning);
+          if ((! (IsIinternal || IsTuning)) || mDoInternalHelp)
           {
-             bool isGlobHelp = Arg->HasType(eTA2007::Global);
-             if ((!isGlobHelp) || mDoGlobHelp)
+             bool IsGlobHelp = Arg->HasType(eTA2007::Global);
+             if ((!IsGlobHelp) || mDoGlobHelp)
              {
-                if (IsIinternal && (!InternalMet)) 
+                if (IsTuning && (!TuningMet)) 
+                {
+                   HelpOut() << "       ####### TUNING #######\n" ; 
+                   TuningMet = true;
+                }
+                else if (IsIinternal && (!InternalMet)) 
                 {
                    HelpOut() << "       ####### INTERNAL #######\n" ; 
                    InternalMet = true;
                 }
-                else if (isGlobHelp && (!GlobalMet)) 
+                else if (IsGlobHelp && (!GlobalMet)) 
                 {
                    HelpOut() << "       ####### GLOBAL   #######\n" ; 
                    GlobalMet = true;
@@ -874,6 +893,16 @@ void cMMVII_Appli::GenerateHelp()
                 }
 
                 HelpOut()  << "\n";
+
+                // Check tuning comes at end =  when tuning is reached, we have non standard param
+                if (TuningMet)
+                {
+                   MMVII_INTERNAL_ASSERT_always
+                   (
+                       (IsIinternal||IsGlobHelp||IsTuning),
+                       "Tuning parameter must comes at end"
+                   );
+                }
              }
           }
        }
@@ -999,6 +1028,15 @@ void cMMVII_Appli::MMVII_WARNING(const std::string & aMes)
 const std::string & cMMVII_Appli::TmpDirTestMMVII()   const {return mTmpDirTestMMVII;}
 const std::string & cMMVII_Appli::InputDirTestMMVII() const {return mInputDirTestMMVII;}
 const std::string & cMMVII_Appli::TopDirMMVII()       const {return mTopDirMMVII;}
+const std::string & cMMVII_Appli::DirProject()       const {return mDirProject;}
+
+std::string  cMMVII_Appli::DirTmpOfCmd(eModeCreateDir aMode) const
+{
+   std::string aRes = DirProject() + TmpMMVIIDirPrefix + mSpecs.Name() + DirSeparator();
+   ActionDir(aRes,aMode);
+   return aRes;
+}
+//  std::string  cMMVII_Appli::DirTmpOfProcess(eModeCreateDir) const;
 
 
 void cMMVII_Appli::InitOutFromIn(std::string &aFileOut,const std::string& aFileIn)
@@ -1191,10 +1229,66 @@ int cMMVII_Appli::ExeComSerial(const std::list<cParamCallSys> & aL)
     return EXIT_SUCCESS;
 }
 
-int cMMVII_Appli::ExeComParal(const std::list<cParamCallSys> & aL)
+int  cMMVII_Appli::ExeOnePackComParal(const std::list<std::string> & aLCom)
 {
-    MMVII_WARNING("No Parallisation for now in MMVII, run serially");
-    return ExeComSerial(aL);
+   if (aLCom.empty()) return EXIT_SUCCESS;
+   std::string aNameMk = "MkFile_" + mPrefixNameAppli ;
+ 
+   std::string aName  = NameFileLog(false);
+   {
+      cMMVII_Ofs  aOfs(aName,true);
+      aOfs.Ofs() <<  "<<=============== Execute " << aLCom.size() << " in paral in file " << aNameMk << "\n";
+      for (const auto & aCom : aLCom)
+          aOfs.Ofs() <<  "   Com=" << aCom << "\n";
+      aOfs.Ofs().close();
+   }
+
+   int aResult =  GlobParalSysCallByMkF(aNameMk,aLCom,mNbProcAllowed);
+   {
+      cMMVII_Ofs  aOfs(aName,true);
+      if (aResult == EXIT_SUCCESS)
+         aOfs.Ofs() <<  ">>======== Done correctly paral in ===== \n";
+      else
+         aOfs.Ofs() <<  "!!!!!!!!!!!!  Failure in one of the commands !!!!!!!! \n";
+      aOfs.Ofs().close();
+   }
+   RemoveFile(aNameMk,true);
+   return aResult;
+}
+
+int  cMMVII_Appli::ExeComParal(const std::list<std::string> & aGlobLCom)
+{
+    int aNbMaxInFile =  round_up(mNbProcSystem * mMulNbInMk); // Size of allow task
+
+    std::list<std::string> aSubList; // List that will contain a limited size of task
+    int aNb=0;
+
+    for (const auto & aCom : aGlobLCom)
+    {
+        aSubList.push_back(aCom);
+        aNb++;
+        if (aNb == aNbMaxInFile) // if we have reached the limit exec an clear
+        {
+            int aResult = ExeOnePackComParal(aSubList); 
+            if (aResult != EXIT_SUCCESS)
+               return aResult;
+            aSubList.clear();
+            aNb = 0;
+        }
+    }
+    // It may remain some command
+    return ExeOnePackComParal(aSubList);
+
+    // return aResult;
+}
+
+int cMMVII_Appli::ExeComParal(const std::list<cParamCallSys> & aLParam)
+{
+    std::list<std::string> aLCom;
+    for (const auto & aParam : aLParam)
+       aLCom.push_back(aParam.Com());
+
+    return ExeComParal(aLCom);
 }
 
 void cMMVII_Appli::InitColFromVInit()
@@ -1252,7 +1346,7 @@ void   cMMVII_Appli::ExeMultiAutoRecallMMVII
     }
     else
     {
-           ExeComSerial(aLPCS);
+       ExeComSerial(aLPCS);
     }
 }
 

@@ -32,11 +32,12 @@ double RandUnif_C();   ///<  Uniform distribution in  -1 1
 bool   HeadOrTail();   ///< 1/2 , french "Pile ou Face"
 double RandUnif_N(int aN); ///< Uniform disrtibution in [0,N[ 
 
+/** Class for mapping object R->R */
 class cFctrRR
 {  
    public :
-      virtual  double F (double) const;
-      static cFctrRR  TheOne;
+      virtual  double F (double) const;  ///< Default return 1.0
+      static cFctrRR  TheOne;  ///< the object return always 1
 };
 /// Random permutation , Higer Bias => Higer average rank
 std::vector<int> RandPerm(int aN,cFctrRR & aBias =cFctrRR::TheOne);

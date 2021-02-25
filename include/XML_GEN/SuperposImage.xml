@@ -1985,6 +1985,41 @@
      <Maps Nb="*" RefType="Xml_Map2DElem"> </Maps>
 </Xml_Map2D>
 
+<!-- ------------------------------------------------------------------------------- -->	
+<!-- Classes to represent measures used for projection of unknown 3D lines in images -->
+<!-- ------------------------------------------------------------------------------- -->	
+<!-- Nb, Class and ToRef must be present on "top" class -->
+<Xml_OneMeasure3DLineInIm  Nb="1" Class="true" ToReference="true">
+    <!-- std::string and Pt2dr are atomic types eligible to generate code -->
+    <NameLine3D Nb="1" Type="std::string"> </NameLine3D>
+    <P1 Nb="1" Type="Pt2dr"> </P1>
+    <P2 Nb="1" Type="Pt2dr"> </P2>
+</Xml_OneMeasure3DLineInIm>
+
+<Xml_SetMeasure3DLineInOneIm  Nb="1" Class="true" ToReference="true">
+    <NameIm Nb="1" Type="std::string"> </NameIm>
+    <!-- We use RefType because it's not an atomic but one xml previously  created -->
+    <Measures Nb="*" RefType="Xml_OneMeasure3DLineInIm"> </Measures>
+</Xml_SetMeasure3DLineInOneIm>
+
+<Xml_SetMeasureGlob3DLine Nb="1" Class="true" ToReference="true">
+    <AllMeasures Nb="*" RefType="Xml_SetMeasure3DLineInOneIm"> </AllMeasures>
+</Xml_SetMeasureGlob3DLine>
+<!-- ------------------------------------------------------------------------------- -->
+	
+<!-- ------------------------------------------------------------------------------- -->	
+<!-- Classes to represent 3D lines in space -->
+<!-- ------------------------------------------------------------------------------- -->	
+<Xml_One3DLine Nb="1" Class="true" ToReference="true">
+	<NameLine3D Nb="1" Type="std::string"> </NameLine3D>
+	<Pt  Nb="1" Type="Pt3dr"> </Pt>    <!-- "Origin" point -->
+	<Vec Nb="1" Type="Pt3dr"> </Vec>   <!-- Direction vector -->
+</Xml_One3DLine>
+	
+<Xml_Set3DLine Nb="1" Class="true" ToReference="true">
+	<AllLines Nb="*" RefType="Xml_One3DLine"> </AllLines>   <!-- List of 3D lines -->
+</Xml_Set3DLine>
+<!-- ------------------------------------------------------------------------------- -->
 
 <Verbatim File=".h.cpp">
 // };

@@ -1661,7 +1661,9 @@ int OriExport_main(int argc,char ** argv)
            aCO = eConvAngPhotoMDegre;
         else if (aModeH==eEO_AMM)
            aCO = eConvApero_DistM2C;
-    else
+	else if (aModeEO==eEO_MMM)
+		aCO = eConvApero_DistM2C;
+	else
     {
         ELISE_ASSERT(false,"unsupported mode of conv or");
     }
@@ -1680,22 +1682,52 @@ int OriExport_main(int argc,char ** argv)
             const std::string & aNameCam =  (*aEASF.SetIm())[aK];
             std::string aNameIm = aEASF.mICNM->Assoc1To1("NKS-Assoc-Ori2ImGen",aNameCam,true);
             CamStenope * aCS =  CamOrientGenFromFile(aNameCam,aEASF.mICNM);
-            // std::cout << "IM = " << aNameCam  << " " << aCS->Focale() << "\n";
-            Pt3dr aA = TestInvAngles(aCO,aCS->Orient().Mat());
-            Pt3dr aC = aCS->PseudoOpticalCenter();
-			if(!onlyC && onlyA)
-				fprintf(aFP,"%s %lf %lf %lf\n",aNameIm.c_str(),aA.x,aA.y,aA.z);
-			else if(onlyC && !onlyA)
-				fprintf(aFP,"%s %lf %lf %lf\n",aNameIm.c_str(),aC.x,aC.y,aC.z);
-            else if (EAMIsInit(&LA)){
+            //	std::cout << "IM = " << aNameCam  << " " << aCS->Focale() << " " << aModeEO <<"\n";
 
-                Pt3dr aCla; // center corrected for Lever-Arm
-                aCla=aC-aCS->Orient().Mat()*LA;
-                fprintf(aFP,"%s %lf %lf %lf %lf %lf %f %f %f %f\n",aNameIm.c_str(),aA.x,aA.y,aA.z,aC.x,aC.y,aC.z,aCla.x,aCla.y,aCla.z);
-            }
-            else
-				fprintf(aFP,"%s %lf %lf %lf %lf %lf %f\n",aNameIm.c_str(),aA.x,aA.y,aA.z,aC.x,aC.y,aC.z);
-        }
+
+			if (aModeEO==eEO_WPK)
+			{
+				Pt3dr aA = TestInvAngles(aCO,aCS->Orient().Mat());
+                Pt3dr aC = aCS->PseudoOpticalCenter();
+				if(!onlyC && onlyA)
+					fprintf(aFP,"%s %lf %lf %lf\n",aNameIm.c_str(),aA.x,aA.y,aA.z);
+				else if(onlyC && !onlyA)
+					fprintf(aFP,"%s %lf %lf %lf\n",aNameIm.c_str(),aC.x,aC.y,aC.z);
+                else if (EAMIsInit(&LA)){
+    
+                    Pt3dr aCla; // center corrected for Lever-Arm
+                    aCla=aC-aCS->Orient().Mat()*LA;
+                    fprintf(aFP,"%s %lf %lf %lf %lf %lf %f %f %f %f\n",aNameIm.c_str(),aA.x,aA.y,aA.z,aC.x,aC.y,aC.z,aCla.x,aCla.y,aCla.z);
+                }
+                else
+					fprintf(aFP,"%s %lf %lf %lf %lf %lf %f\n",aNameIm.c_str(),aA.x,aA.y,aA.z,aC.x,aC.y,aC.z);
+        
+			}
+			else if (aModeEO==eEO_MMM)
+			{
+				Pt3dr aC = aCS->PseudoOpticalCenter();
+				
+				if(onlyC && !onlyA)
+				{
+					fprintf(aFP,"%s %lf %lf %lf\n",aNameIm.c_str(),aC.x,aC.y,aC.z);
+				}
+				else if (!onlyC && onlyA)
+				{
+					fprintf(aFP,"%s\n",aNameIm.c_str());
+					fprintf(aFP,"%.9f %.9f %.9f\n",aCS->Orient().Mat()(0,0),aCS->Orient().Mat()(0,1),aCS->Orient().Mat()(0,2));
+					fprintf(aFP,"%.9f %.9f %.9f\n",aCS->Orient().Mat()(1,0),aCS->Orient().Mat()(1,1),aCS->Orient().Mat()(1,2));
+					fprintf(aFP,"%.9f %.9f %.9f\n",aCS->Orient().Mat()(2,0),aCS->Orient().Mat()(2,1),aCS->Orient().Mat()(2,2));
+				
+				}	
+				else
+				{
+					fprintf(aFP,"%s %lf %lf %lf\n",aNameIm.c_str(),aC.x,aC.y,aC.z);
+					fprintf(aFP,"%.9f %.9f %.9f\n",aCS->Orient().Mat()(0,0),aCS->Orient().Mat()(0,1),aCS->Orient().Mat()(0,2));
+					fprintf(aFP,"%.9f %.9f %.9f\n",aCS->Orient().Mat()(1,0),aCS->Orient().Mat()(1,1),aCS->Orient().Mat()(1,2));
+					fprintf(aFP,"%.9f %.9f %.9f\n",aCS->Orient().Mat()(2,0),aCS->Orient().Mat()(2,1),aCS->Orient().Mat()(2,2));
+				}
+			}
+		}
 
         fclose(aFP);
 

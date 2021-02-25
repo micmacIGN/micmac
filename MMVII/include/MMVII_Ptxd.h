@@ -111,7 +111,20 @@ template <class Type> inline cPtxd<Type,2>  MulCByC (const cPtxd<Type,2> & aP1,c
 template <class Type> inline cPtxd<Type,3> MulCByC (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 { return cPtxd<Type,3>(aP1.x() * aP2.x(),aP1.y() * aP2.y(),aP1.z()*aP2.z()); }
 
+///  DivCByC division coordinates by coordinates !! => INT Division; see also RDivCByC
+template <class Type> inline cPtxd<Type,1>  DivCByC (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
+{ return cPtxd<Type,1>(aP1.x() / aP2.x()); }
+template <class Type> inline cPtxd<Type,2>  DivCByC (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
+{ return cPtxd<Type,2>(aP1.x() / aP2.x(),aP1.y() / aP2.y()); }
+template <class Type> inline cPtxd<Type,3> DivCByC (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
+{ return cPtxd<Type,3>(aP1.x() / aP2.x(),aP1.y() / aP2.y(),aP1.z()/aP2.z()); }
 
+
+/// Some time int division is not what is wanted !!
+template <class T,const int Dim> inline cPtxd<double,Dim> RDivCByC(const cPtxd<T,Dim> & aP1,const cPtxd<T,Dim> & aP2) 
+{
+   return DivCByC(ToR(aP1),ToR(aP2));
+}
 
 ///  unary operator - on points
 template <class Type> inline cPtxd<Type,1> operator - (const cPtxd<Type,1> & aP) {return  cPtxd<Type,1>(-aP.x());}
@@ -293,6 +306,10 @@ inline cPt2dr FromPolar(const cPt2dr & aP)
     return FromPolar(aP.x(),aP.y());
 }
 
+template <class T,const int Dim> inline double RatioMax(const cPtxd<T,Dim> & aP1,const cPtxd<T,Dim> & aP2)
+{
+   return NormInf(RDivCByC(aP1,aP2));
+}
 
 
 // cPt2dr operator / (const cPt2dr &aP1,const cPt2dr & aP2) {return (aP1*conj(aP)
@@ -355,7 +372,7 @@ template <class Type,const int Dim> void MakeBox(cPtxd<Type,Dim> & aP0,cPtxd<Typ
         OrderMinMax(aP0[aK],aP1[aK]);
 }
 
-/// Return pixel between two radius, the order make them as sparse as possible (slow method in N^3) => To implement
+/// Return pixel between two radius, the order make them as sparse as possible (slow method in N^3) => To implement ???? No longer know what I wanted to do ???
 std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
 /// Implemented
 std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1

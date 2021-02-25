@@ -313,6 +313,14 @@ cElNuage3DMaille::cElNuage3DMaille
     }
 }
 
+void cElNuage3DMaille::SetNbPts(int val)
+{
+    mNbPts = val;
+}
+int cElNuage3DMaille::GetNbPts()
+{
+    return mNbPts;
+}
 void cElNuage3DMaille::SetVoisImDef(Im2D_Bits<1> anIm)
 {
     mVoisImDef = anIm;

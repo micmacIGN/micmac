@@ -71,7 +71,7 @@ To compile, select "WITH_APIPYTHON" in cmake interface, then:
     make apipy
 (if elise is to be updated, you have to run "make elise" first)
 
-mm3d for python is automatically available to the user from an directory.
+mm3d for python is automatically available to the user from any directory.
 The files to distribute are in swig_mmv1/build/lib.linux-x86_64-3.x/ (the .so file must be renamed _mm3d.so)
 
 To create documentation:

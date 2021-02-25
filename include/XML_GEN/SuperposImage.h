@@ -8990,5 +8990,145 @@ std::string  Mangling( cXml_Map2D *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_OneMeasure3DLineInIm
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_OneMeasure3DLineInIm & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameLine3D();
+        const std::string & NameLine3D()const ;
+
+        Pt2dr & P1();
+        const Pt2dr & P1()const ;
+
+        Pt2dr & P2();
+        const Pt2dr & P2()const ;
+    private:
+        std::string mNameLine3D;
+        Pt2dr mP1;
+        Pt2dr mP2;
+};
+cElXMLTree * ToXMLTree(const cXml_OneMeasure3DLineInIm &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_OneMeasure3DLineInIm &);
+
+void  BinaryUnDumpFromFile(cXml_OneMeasure3DLineInIm &,ELISE_fp &);
+
+std::string  Mangling( cXml_OneMeasure3DLineInIm *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_SetMeasure3DLineInOneIm
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_SetMeasure3DLineInOneIm & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameIm();
+        const std::string & NameIm()const ;
+
+        std::list< cXml_OneMeasure3DLineInIm > & Measures();
+        const std::list< cXml_OneMeasure3DLineInIm > & Measures()const ;
+    private:
+        std::string mNameIm;
+        std::list< cXml_OneMeasure3DLineInIm > mMeasures;
+};
+cElXMLTree * ToXMLTree(const cXml_SetMeasure3DLineInOneIm &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_SetMeasure3DLineInOneIm &);
+
+void  BinaryUnDumpFromFile(cXml_SetMeasure3DLineInOneIm &,ELISE_fp &);
+
+std::string  Mangling( cXml_SetMeasure3DLineInOneIm *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_SetMeasureGlob3DLine
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_SetMeasureGlob3DLine & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXml_SetMeasure3DLineInOneIm > & AllMeasures();
+        const std::list< cXml_SetMeasure3DLineInOneIm > & AllMeasures()const ;
+    private:
+        std::list< cXml_SetMeasure3DLineInOneIm > mAllMeasures;
+};
+cElXMLTree * ToXMLTree(const cXml_SetMeasureGlob3DLine &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_SetMeasureGlob3DLine &);
+
+void  BinaryUnDumpFromFile(cXml_SetMeasureGlob3DLine &,ELISE_fp &);
+
+std::string  Mangling( cXml_SetMeasureGlob3DLine *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_One3DLine
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_One3DLine & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameLine3D();
+        const std::string & NameLine3D()const ;
+
+        Pt3dr & Pt();
+        const Pt3dr & Pt()const ;
+
+        Pt3dr & Vec();
+        const Pt3dr & Vec()const ;
+    private:
+        std::string mNameLine3D;
+        Pt3dr mPt;
+        Pt3dr mVec;
+};
+cElXMLTree * ToXMLTree(const cXml_One3DLine &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_One3DLine &);
+
+void  BinaryUnDumpFromFile(cXml_One3DLine &,ELISE_fp &);
+
+std::string  Mangling( cXml_One3DLine *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_Set3DLine
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Set3DLine & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXml_One3DLine > & AllLines();
+        const std::list< cXml_One3DLine > & AllLines()const ;
+    private:
+        std::list< cXml_One3DLine > mAllLines;
+};
+cElXMLTree * ToXMLTree(const cXml_Set3DLine &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Set3DLine &);
+
+void  BinaryUnDumpFromFile(cXml_Set3DLine &,ELISE_fp &);
+
+std::string  Mangling( cXml_Set3DLine *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotSupIm

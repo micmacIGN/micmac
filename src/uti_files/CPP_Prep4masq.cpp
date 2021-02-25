@@ -121,7 +121,7 @@ int Prep4masq_main(int argc,char ** argv)
 
 int CPP_SetExif(int argc,char **argv)
 {
-    std::string aPat,aCam;
+    std::string aPat,aCam,aTps;
     double aFoc,aF35;
     bool aPurge=true;
 
@@ -132,6 +132,7 @@ int CPP_SetExif(int argc,char **argv)
         LArgMain()  << EAM(aFoc,"F",true,"Focal lenght")
                     << EAM(aF35,"F35",true,"Focal lenght equiv 35mm")
                     << EAM(aCam,"Cam",true,"Camera model")
+					<< EAM(aTps,"Tps",true,"Image timestamp")
                     << EAM(aPurge,"Purge",true,"Purge created exiv2 command file (Def=true)")
     );
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -153,6 +154,9 @@ int CPP_SetExif(int argc,char **argv)
 
     if (EAMIsInit(&aCam))
          fprintf(aFP,"set Exif.Image.Model  Ascii  \"%s\"\n",aCam.c_str());
+	
+	if (EAMIsInit(&aTps))
+         fprintf(aFP,"set Exif.Photo.DateTimeOriginal  Ascii  \"%s\"\n", aTps.c_str());
 
     fclose(aFP);
 
