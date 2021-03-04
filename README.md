@@ -27,7 +27,7 @@ is needed, this directory is always scanned whatever the value of PATH.
 
 ## Additionnal notes for Windows
 
-You will need [Visual C++ 2010 runtime redistribuables](http://www.microsoft.com/fr-fr/download/details.aspx?id=5555) to run pre-compiled binaries of micmac.
+You will need [Visual C++ 2010 runtime redistributables](http://www.microsoft.com/fr-fr/download/details.aspx?id=5555) to run pre-compiled binaries of micmac.
 Both pre-compiled and compiled from source executables will need :
 - [Visual C++ 2005 runtime redistribuables](http://www.microsoft.com/fr-fr/download/details.aspx?id=3387),
 - and [Net Framework 2.0](http://www.microsoft.com/fr-fr/download/details.aspx?id=1639).
