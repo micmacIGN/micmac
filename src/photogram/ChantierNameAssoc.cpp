@@ -473,6 +473,11 @@ static std::string CurrentProgramFullName;
 static std::string CurrentProgramSubcommand = "unknown";
 std::string MM3DFixeByMMVII ="";
 
+void setArgvMMDir(std::string path)
+{
+    ArgvMMDir = path;
+}
+
 void MMD_InitArgcArgv(int argc,char ** argv,int aNbMin)
 {
     static bool First=true;

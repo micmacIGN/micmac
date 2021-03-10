@@ -7,6 +7,7 @@ setup.py file for SWIG example
 from distutils.core import setup, Extension
 
 import sys
+import glob
 
 libs=[]
 if "USEQT=ON" in sys.argv:
@@ -31,12 +32,18 @@ mm3d_module = Extension('_mm3d',
            extra_compile_args=['-std=c++11']
        )
 
+#https://docs.python.org/3.8/distutils/setupscript.html#installing-additional-files
+xml_micmac_Files = glob.glob('../include/XML_MicMac/*.xml')
+xml_gen_Files = glob.glob('../include/XML_GEN/*.xml')
+
 setup (name = 'mm3d',
        version = '0.1',
        author      = "IGN",
        description = """MicMac Python API""",
        ext_modules = [mm3d_module],
        py_modules = ["mm3d"],
+       data_files = [("mm3d/include/XML_MicMac", xml_micmac_Files),
+                     ("mm3d/include/XML_GEN", xml_gen_Files)],
        )
 
 #https://docs.python.org/3/extending/building.html

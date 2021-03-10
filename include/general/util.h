@@ -51,6 +51,7 @@ extern const  std::string  TheFileMMDIR;  // MicMacInstalDir
 #endif
 
 void AnalyseContextCom(int argc,char ** argv);
+void setArgvMMDir(std::string path);
 void MMD_InitArgcArgv(int argc,char ** argv,int aNbArgMin=-1);
 int NbProcSys();
 

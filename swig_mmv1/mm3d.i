@@ -28,7 +28,6 @@ typedef ElAffin2D tOrIntIma ; //mandatory because only declared in cBasicGeomCap
 %include <cpointer.i>
 %include stl.i
 
-
 //----------------------------------------------------------------------
 //templates (has to be before %include "api/api_mm3d.h")
 //used to make them usable as python lists
@@ -133,7 +132,6 @@ namespace std {
 %include "../src/uti_phgrm/NewOri/NewOri.h"
 
 //%include "XML_GEN/xml_gen2_mmByp.h"
-
 
 //----------------------------------------------------------------------
 %template(Pt2di) Pt2d<INT>;

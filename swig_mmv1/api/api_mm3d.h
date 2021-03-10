@@ -9,7 +9,6 @@
 **/
 
 class CamStenope;
-
 //-------------------- Nouvelles methodes ---------------------
 
 //!internal usage
