@@ -612,6 +612,11 @@ const cMMUserEnvironment & MMUserEnv()
     {
         std::string aName = XML_User_Or_MicMac("MM-Environment.xml");
 
+//#ifdef API_MM3D_H
+		aName = "/" + aName;
+		aName = PROJECT_SOURCE_DIR + aName;
+//#endif
+		std::cout << "eeeeeeeeeeee " << aName << " " << PROJECT_SOURCE_DIR << "\n";
         if ( !ELISE_fp::exist_file(aName) )
              aRes = new cMMUserEnvironment;
         else

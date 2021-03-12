@@ -15,6 +15,8 @@
 typedef ElAffin2D tOrIntIma ; //mandatory because only declared in cBasicGeomCap3D in general/photogram.h?
 #include "../src/TpMMPD/TpPPMD.h"
 #include "../src/uti_phgrm/NewOri/NewOri.h"
+#include "../src/uti_phgrm/NewOri/NewO_PyWrapper.h"
+#include "../src/uti_phgrm/TiepTri/MultTieP.h"
 //#include "XML_GEN/xml_gen2_mmByp.h"
 #include <sstream>
 %}
@@ -24,6 +26,7 @@ typedef ElAffin2D tOrIntIma ; //mandatory because only declared in cBasicGeomCap
 #define ElTmplSpecNull template <>
 %include <std_string.i>
 %include <std_vector.i>
+%include <std_map.i>
 %include <std_list.i>
 %include <cpointer.i>
 %include stl.i
@@ -35,11 +38,13 @@ typedef ElAffin2D tOrIntIma ; //mandatory because only declared in cBasicGeomCap
 namespace std {
     %template(IntVector)    vector<int>;
     %template(DoubleVector) vector<double>;
+    %template(FloatVector)  vector<float>;
     %template(StringVector) vector<string>;
     %template(HomolList)    list<cNupletPtsHomologues>;
     %template(CpleStringVector) vector<cCpleString>;
     %template(cXml_OneTripletList) list< cXml_OneTriplet >;
     %template(ElSeg3DVector)  vector<ElSeg3D>;
+    %template(RelMVec) vector<RelMotion>;
 }
  
 //def REAL etc to be able to use them in python
@@ -131,6 +136,8 @@ namespace std {
 %include "general/geom_vecteur.h"
 %include "general/photogram.h" //45s
 %include "../src/uti_phgrm/NewOri/NewOri.h"
+%include "../src/uti_phgrm/NewOri/NewO_PyWrapper.h"
+%include "../src/uti_phgrm/TiepTri/MultTieP.h"
 
 //%include "XML_GEN/xml_gen2_mmByp.h"
 
@@ -141,8 +148,13 @@ namespace std {
 %template(Pt3dr) Pt3d<REAL>;
 %template(ElRotation3D) TplElRotation3D<REAL>;
 %template(ElMatrixr) ElMatrix<REAL>;
-
 %template(MakeFileXML_cSauvegardeNamedRel) MakeFileXML<cSauvegardeNamedRel>;
+
+namespace std {
+    %template(PtVec) vector<Pt2dr>;
+    %template(Pt3drVec) vector<Pt3dr>;
+    %template(FeatureMap) map<int,vector<Pt2dr > >;
+}
 
 
 //check python version

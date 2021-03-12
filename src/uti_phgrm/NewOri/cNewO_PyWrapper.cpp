@@ -42,7 +42,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 RelMotion::RelMotion(cNewO_NameManager *aNM,std::string& aN1,std::string& aN2,std::string& aN3) :
 	mCam1(0),
 	mCam2(0),
-	mCam3(0)
+	mCam3(0),
+	mN1(aN1),
+	mN2(aN2),
+	mN3(aN3)
 {
     std::string  aName3R = aNM->NameOriOptimTriplet(true,aN1,aN2,aN3);
 
@@ -64,14 +67,53 @@ RelMotion::RelMotion(cNewO_NameManager *aNM,std::string& aN1,std::string& aN2,st
     mCam2->SetOrientation(aP2.inv());
     mCam3->SetOrientation(aP2.inv());
 
+	InitFMap(aNM);
 }
 
-std::vector<RelMotion> RelMotionsPyWrapper(const std::string& aImPat,const std::string& aSH,const std::string& aDir,const std::string& InCal)
+void RelMotion::InitFMap(cNewO_NameManager *aNM)
+{
+	// intermediary map to get the tracks
+	tMapM aMap(3,false);	
+
+	ElPackHomologue aPack12 = aNM->PackOfName(mN1,mN2);
+	ElPackHomologue aPack13 = aNM->PackOfName(mN1,mN3);
+	ElPackHomologue aPack23 = aNM->PackOfName(mN2,mN3);
+
+	AddVPts2Map(aMap,aPack12,0,1);
+	AddVPts2Map(aMap,aPack13,0,2);
+	AddVPts2Map(aMap,aPack23,1,2);
+
+	aMap.DoExport();
+
+	const tListM aLM =  aMap.ListMerged();
+
+	// save to map to read in python
+	int Cpt=0;
+	for (tListM::const_iterator itM=aLM.begin() ; itM!=aLM.end() ; itM++)
+    {
+		mFMap[Cpt] = std::vector<Pt2dr>{(*itM)->GetVal(0),
+				                        (*itM)->GetVal(1),
+					  				    (*itM)->GetVal(2)};
+		Cpt++;
+	}
+
+}
+
+void RelMotion::AddVPts2Map(tMapM & aMap,ElPackHomologue& aPack,int anInd1,int anInd2)
+{
+
+    for (ElPackHomologue::const_iterator itP=aPack.begin(); itP!=aPack.end() ; itP++)
+    {
+        aMap.AddArc(itP->P1(),anInd1,itP->P2(),anInd2,cCMT_NoVal());
+    }
+}
+
+
+std::vector<RelMotion> RelMotionsPyWrapper(const std::string& aImPat,const std::string& aSH,const std::string& aDir,const std::string& InCal, bool aExpTxt)
 {
 	
 	std::vector<RelMotion> aRes;
 
-    bool aExpTxt = false;
 
 
     //file managers
