@@ -44,21 +44,41 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "NewOri.h"
 
 class RelMotion;
+extern std::vector<RelMotion> RelMotionsPyWrapper(const std::string& aImPat,const std::string& aSH,const std::string& aDir,const std::string& InCal,bool aExpTxt=false);
+
+typedef  cFixedSizeMergeTieP<3,Pt2dr,cCMT_NoVal>                     tElM;
+typedef  cStructMergeTieP<cFixedSizeMergeTieP<3,Pt2dr,cCMT_NoVal> >  tMapM;
+typedef  std::list<tElM *>                                           tListM;
 
 class RelMotion
 {
     public:
-        //RelMotion(){}
+        RelMotion(){}
         RelMotion(cNewO_NameManager *aNM,std::string& aN1,std::string& aN2,std::string& aN3);
+
+		void InitFMap(cNewO_NameManager *);
+		void AddVPts2Map(tMapM &, ElPackHomologue&, int, int);
 
         CamStenope& Cam1() {return *mCam1;}
         CamStenope& Cam2() {return *mCam2;}
         CamStenope& Cam3() {return *mCam3;}
 
+		std::string Name1() {return mN1;}
+		std::string Name2() {return mN2;}
+		std::string Name3() {return mN3;}
+
+		std::map< int,std::vector<Pt2dr> > MapFeat() {return mFMap;}
+
     private:
         CamStenope* mCam1;
         CamStenope* mCam2;
         CamStenope* mCam3;
+
+		std::string mN1;
+		std::string mN2;
+		std::string mN3;
+
+		std::map< int,std::vector<Pt2dr> > mFMap;
 };
 
 #endif // _ELISE_NEW_ORI_PYW_H
