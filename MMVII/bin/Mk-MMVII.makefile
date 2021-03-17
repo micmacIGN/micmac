@@ -138,7 +138,7 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #== CFLAGS etc...
 #
 CXX=g++
-CFlags= "-fopenmp" "-std=c++14" "-Wall"  "-Werror" "-O4" "-march=native" -I${MMV2Dir} -I${MMDir}/include/ -I${MMDir}
+CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-march=native" -I${MMV2Dir} -I${MMDir}/include/ -I${MMDir}
 BOOST_LIBS= -lboost_system -lboost_serialization -lboost_regex -lboost_filesystem
 QTAnnLibs= -lXext /usr/lib/x86_64-linux-gnu/libQt5Core.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so -lGLU -lGL  -ldl -lpthread /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5Concurrent.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so ../../lib/libANN.a
 LibsFlags= ${MMV2ElisePath} -lX11  ${BOOST_LIBS}  ${QTAnnLibs}
