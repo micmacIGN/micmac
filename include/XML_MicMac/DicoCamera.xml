@@ -218,7 +218,13 @@ See https://en.wikipedia.org/wiki/Image_sensor_format#Table_of_sensor_formats_an
         <SzCaptMm>   15.7 23.6 </SzCaptMm>
         <ShortName> NKCA  </ShortName>
    </CameraEntry>
-   
+	
+   <CameraEntry>
+        <Name>  COOLPIX W300 </Name>
+        <SzCaptMm>  4.55 6.17</SzCaptMm>
+        <ShortName> COOLPIX W300  </ShortName>
+   </CameraEntry>
+	
 <!-- Ricoh -->
 
    <CameraEntry>
