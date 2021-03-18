@@ -47,21 +47,7 @@ std::string  eToString(const eTypeTopolPt & anObj)
 
 std::string  eToString_eTypeTopolPt(const eTypeTopolPt & anObj)
 {
-   if (anObj==eTtpSommet)
-      return  "eTtpSommet";
-   if (anObj==eTtpCuvette)
-      return  "eTtpCuvette";
-   if (anObj==eTtpCol)
-      return  "eTtpCol";
-   if (anObj==eTtpCorner)
-      return  "eTtpCorner";
-   if (anObj==eSiftMaxDog)
-      return  "eSiftMaxDog";
-   if (anObj==eSiftMinDog)
-      return  "eSiftMinDog";
- std::cout << "Enum = eTypeTopolPt\n";
-   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
-   return "";
+   return eToString(anObj);
 }
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeTopolPt & anObj)
@@ -71,7 +57,7 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeTopolPt & anObj)
 
 cElXMLTree * ToXMLTree_eTypeTopolPt(const std::string & aNameTag,const eTypeTopolPt & anObj)
 {
-      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+   return ToXMLTree(aNameTag, anObj);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeTopolPt & anObj)
@@ -81,7 +67,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeTopolPt & anObj)
 
 void  BinaryDumpInFile_eTypeTopolPt(ELISE_fp & aFp,const eTypeTopolPt & anObj)
 {
-   BinaryDumpInFile(aFp,int(anObj));
+   BinaryDumpInFile(aFp, anObj);
 }
 
 void  BinaryUnDumpFromFile(eTypeTopolPt & anObj,ELISE_fp & aFp)
@@ -93,14 +79,12 @@ void  BinaryUnDumpFromFile(eTypeTopolPt & anObj,ELISE_fp & aFp)
 
 void  BinaryUnDumpFromFile_eTypeTopolPt(eTypeTopolPt & anObj,ELISE_fp & aFp)
 {
-   int aIVal;
-   BinaryUnDumpFromFile(aIVal,aFp);
-   anObj=(eTypeTopolPt) aIVal;
+   BinaryUnDumpFromFile(anObj, aFp);
 }
 
-std::string  Mangling( eTypeTopolPt *) {return "CC0F34E54BDAE3A5FE3F";};
+std::string  Mangling( eTypeTopolPt *) { return "CC0F34E54BDAE3A5FE3F"; }
 
-std::string  Mangling_eTypeTopolPt( eTypeTopolPt *) {return "CC0F34E54BDAE3A5FE3F";};
+std::string  Mangling_eTypeTopolPt( eTypeTopolPt *p) { return Mangling(p); }
 
 eReducDemiImage  Str2eReducDemiImage(const std::string & aName)
 {
@@ -136,15 +120,7 @@ std::string  eToString(const eReducDemiImage & anObj)
 
 std::string  eToString_eReducDemiImage(const eReducDemiImage & anObj)
 {
-   if (anObj==eRDI_121)
-      return  "eRDI_121";
-   if (anObj==eRDI_010)
-      return  "eRDI_010";
-   if (anObj==eRDI_11)
-      return  "eRDI_11";
- std::cout << "Enum = eReducDemiImage\n";
-   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
-   return "";
+   return eToString(anObj);
 }
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eReducDemiImage & anObj)
@@ -154,7 +130,7 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eReducDemiImage & anOb
 
 cElXMLTree * ToXMLTree_eReducDemiImage(const std::string & aNameTag,const eReducDemiImage & anObj)
 {
-      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+   return ToXMLTree(aNameTag, anObj);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const eReducDemiImage & anObj)
@@ -164,7 +140,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const eReducDemiImage & anObj)
 
 void  BinaryDumpInFile_eReducDemiImage(ELISE_fp & aFp,const eReducDemiImage & anObj)
 {
-   BinaryDumpInFile(aFp,int(anObj));
+   BinaryDumpInFile(aFp, anObj);
 }
 
 void  BinaryUnDumpFromFile(eReducDemiImage & anObj,ELISE_fp & aFp)
@@ -176,14 +152,12 @@ void  BinaryUnDumpFromFile(eReducDemiImage & anObj,ELISE_fp & aFp)
 
 void  BinaryUnDumpFromFile_eReducDemiImage(eReducDemiImage & anObj,ELISE_fp & aFp)
 {
-   int aIVal;
-   BinaryUnDumpFromFile(aIVal,aFp);
-   anObj=(eReducDemiImage) aIVal;
+   BinaryUnDumpFromFile(anObj, aFp);
 }
 
-std::string  Mangling( eReducDemiImage *) {return "AB929125A8D1908BFF3F";};
+std::string  Mangling( eReducDemiImage *) { return "AB929125A8D1908BFF3F"; }
 
-std::string  Mangling_eReducDemiImage( eReducDemiImage *) {return "AB929125A8D1908BFF3F";};
+std::string  Mangling_eReducDemiImage( eReducDemiImage *p) { return Mangling(p); }
 
 ePointRefinement  Str2ePointRefinement(const std::string & aName)
 {
@@ -219,15 +193,7 @@ std::string  eToString(const ePointRefinement & anObj)
 
 std::string  eToString_ePointRefinement(const ePointRefinement & anObj)
 {
-   if (anObj==eRefine2D)
-      return  "eRefine2D";
-   if (anObj==eRefine3D)
-      return  "eRefine3D";
-   if (anObj==eRefineNone)
-      return  "eRefineNone";
- std::cout << "Enum = ePointRefinement\n";
-   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
-   return "";
+   return eToString(anObj);
 }
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const ePointRefinement & anObj)
@@ -237,7 +203,7 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const ePointRefinement & anO
 
 cElXMLTree * ToXMLTree_ePointRefinement(const std::string & aNameTag,const ePointRefinement & anObj)
 {
-      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+   return ToXMLTree(aNameTag, anObj);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const ePointRefinement & anObj)
@@ -247,7 +213,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const ePointRefinement & anObj)
 
 void  BinaryDumpInFile_ePointRefinement(ELISE_fp & aFp,const ePointRefinement & anObj)
 {
-   BinaryDumpInFile(aFp,int(anObj));
+   BinaryDumpInFile(aFp, anObj);
 }
 
 void  BinaryUnDumpFromFile(ePointRefinement & anObj,ELISE_fp & aFp)
@@ -259,14 +225,12 @@ void  BinaryUnDumpFromFile(ePointRefinement & anObj,ELISE_fp & aFp)
 
 void  BinaryUnDumpFromFile_ePointRefinement(ePointRefinement & anObj,ELISE_fp & aFp)
 {
-   int aIVal;
-   BinaryUnDumpFromFile(aIVal,aFp);
-   anObj=(ePointRefinement) aIVal;
+   BinaryUnDumpFromFile(anObj, aFp);
 }
 
-std::string  Mangling( ePointRefinement *) {return "00F2FE9D1EAAAAD9FE3F";};
+std::string  Mangling( ePointRefinement *) { return "00F2FE9D1EAAAAD9FE3F"; }
 
-std::string  Mangling_ePointRefinement( ePointRefinement *) {return "00F2FE9D1EAAAAD9FE3F";};
+std::string  Mangling_ePointRefinement( ePointRefinement *p) { return Mangling(p); }
 
 
 cTplValGesInit< double > & cImageDigeo::ResolInit()

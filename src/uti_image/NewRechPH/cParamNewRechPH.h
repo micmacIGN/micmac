@@ -1,7 +1,7 @@
 #ifndef Define_NotRechNewPH
 #define Define_NotRechNewPH
 // NOMORE ...
-typedef enum
+enum eTypePtRemark
 {
   eTPR_LaplMax,
   eTPR_LaplMin,
@@ -12,21 +12,26 @@ typedef enum
   eTPR_NoLabel,
   eTPR_GraySadl,
   eTPR_BifurqSadl
-} eTypePtRemark;
+};
 void xml_init(eTypePtRemark & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypePtRemark & aVal);
+std::string  eToString_eTypePtRemark(const eTypePtRemark & aVal);
 
 eTypePtRemark  Str2eTypePtRemark(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypePtRemark & anObj);
+cElXMLTree * ToXMLTree_eTypePtRemark(const std::string & aNameTag,const eTypePtRemark & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypePtRemark &);
+void  BinaryDumpInFile_eTypePtRemark(ELISE_fp &,const eTypePtRemark &);
 
 std::string  Mangling( eTypePtRemark *);
+std::string  Mangling_eTypePtRemark( eTypePtRemark *);
 
 void  BinaryUnDumpFromFile(eTypePtRemark &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypePtRemark(eTypePtRemark &,ELISE_fp &);
 
-typedef enum
+enum eTypeVecInvarR
 {
   eTVIR_Curve,
   eTVIR_ACR0,
@@ -34,21 +39,26 @@ typedef enum
   eTVIR_ACGR,
   eTVIR_LogPol,
   eTVIR_NoLabel
-} eTypeVecInvarR;
+};
 void xml_init(eTypeVecInvarR & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeVecInvarR & aVal);
+std::string  eToString_eTypeVecInvarR(const eTypeVecInvarR & aVal);
 
 eTypeVecInvarR  Str2eTypeVecInvarR(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeVecInvarR & anObj);
+cElXMLTree * ToXMLTree_eTypeVecInvarR(const std::string & aNameTag,const eTypeVecInvarR & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeVecInvarR &);
+void  BinaryDumpInFile_eTypeVecInvarR(ELISE_fp &,const eTypeVecInvarR &);
 
 std::string  Mangling( eTypeVecInvarR *);
+std::string  Mangling_eTypeVecInvarR( eTypeVecInvarR *);
 
 void  BinaryUnDumpFromFile(eTypeVecInvarR &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeVecInvarR(eTypeVecInvarR &,ELISE_fp &);
 
-typedef enum
+enum eTypeInvRad
 {
   eTIR_Radiom,
   eTIR_GradRad,
@@ -84,19 +94,24 @@ typedef enum
   eTIR_Cub_DiffOpposePi,
   eTIR_Cub_DiffOpposePiS2,
   eTIR_NoLabel
-} eTypeInvRad;
+};
 void xml_init(eTypeInvRad & aVal,cElXMLTree * aTree);
 std::string  eToString(const eTypeInvRad & aVal);
+std::string  eToString_eTypeInvRad(const eTypeInvRad & aVal);
 
 eTypeInvRad  Str2eTypeInvRad(const std::string & aName);
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeInvRad & anObj);
+cElXMLTree * ToXMLTree_eTypeInvRad(const std::string & aNameTag,const eTypeInvRad & anObj);
 
 void  BinaryDumpInFile(ELISE_fp &,const eTypeInvRad &);
+void  BinaryDumpInFile_eTypeInvRad(ELISE_fp &,const eTypeInvRad &);
 
 std::string  Mangling( eTypeInvRad *);
+std::string  Mangling_eTypeInvRad( eTypeInvRad *);
 
 void  BinaryUnDumpFromFile(eTypeInvRad &,ELISE_fp &);
+void  BinaryUnDumpFromFile_eTypeInvRad(eTypeInvRad &,ELISE_fp &);
 
 class cPtSc
 {

@@ -57,14 +57,29 @@ std::string  eToString(const eTypePtRemark & anObj)
    return "";
 }
 
+std::string  eToString_eTypePtRemark(const eTypePtRemark & anObj)
+{
+   return eToString(anObj);
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypePtRemark & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eTypePtRemark(const std::string & aNameTag,const eTypePtRemark & anObj)
+{
+   return ToXMLTree(aNameTag, anObj);
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eTypePtRemark & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eTypePtRemark(ELISE_fp & aFp,const eTypePtRemark & anObj)
+{
+   BinaryDumpInFile(aFp, anObj);
 }
 
 void  BinaryUnDumpFromFile(eTypePtRemark & anObj,ELISE_fp & aFp)
@@ -74,7 +89,14 @@ void  BinaryUnDumpFromFile(eTypePtRemark & anObj,ELISE_fp & aFp)
    anObj=(eTypePtRemark) aIVal;
 }
 
-std::string  Mangling( eTypePtRemark *) {return "26AA66D133691995FF3F";};
+void  BinaryUnDumpFromFile_eTypePtRemark(eTypePtRemark & anObj,ELISE_fp & aFp)
+{
+   BinaryUnDumpFromFile(anObj, aFp);
+}
+
+std::string  Mangling( eTypePtRemark *) { return "26AA66D133691995FF3F"; }
+
+std::string  Mangling_eTypePtRemark( eTypePtRemark *p) { return Mangling(p); }
 
 eTypeVecInvarR  Str2eTypeVecInvarR(const std::string & aName)
 {
@@ -120,14 +142,29 @@ std::string  eToString(const eTypeVecInvarR & anObj)
    return "";
 }
 
+std::string  eToString_eTypeVecInvarR(const eTypeVecInvarR & anObj)
+{
+   return eToString(anObj);
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeVecInvarR & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eTypeVecInvarR(const std::string & aNameTag,const eTypeVecInvarR & anObj)
+{
+   return ToXMLTree(aNameTag, anObj);
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeVecInvarR & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eTypeVecInvarR(ELISE_fp & aFp,const eTypeVecInvarR & anObj)
+{
+   BinaryDumpInFile(aFp, anObj);
 }
 
 void  BinaryUnDumpFromFile(eTypeVecInvarR & anObj,ELISE_fp & aFp)
@@ -137,7 +174,14 @@ void  BinaryUnDumpFromFile(eTypeVecInvarR & anObj,ELISE_fp & aFp)
    anObj=(eTypeVecInvarR) aIVal;
 }
 
-std::string  Mangling( eTypeVecInvarR *) {return "76F9B402C27F2998FF3F";};
+void  BinaryUnDumpFromFile_eTypeVecInvarR(eTypeVecInvarR & anObj,ELISE_fp & aFp)
+{
+   BinaryUnDumpFromFile(anObj, aFp);
+}
+
+std::string  Mangling( eTypeVecInvarR *) { return "76F9B402C27F2998FF3F"; }
+
+std::string  Mangling_eTypeVecInvarR( eTypeVecInvarR *p) { return Mangling(p); }
 
 eTypeInvRad  Str2eTypeInvRad(const std::string & aName)
 {
@@ -295,14 +339,29 @@ std::string  eToString(const eTypeInvRad & anObj)
    return "";
 }
 
+std::string  eToString_eTypeInvRad(const eTypeInvRad & anObj)
+{
+   return eToString(anObj);
+}
+
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypeInvRad & anObj)
 {
       return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
 }
 
+cElXMLTree * ToXMLTree_eTypeInvRad(const std::string & aNameTag,const eTypeInvRad & anObj)
+{
+   return ToXMLTree(aNameTag, anObj);
+}
+
 void  BinaryDumpInFile(ELISE_fp & aFp,const eTypeInvRad & anObj)
 {
    BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryDumpInFile_eTypeInvRad(ELISE_fp & aFp,const eTypeInvRad & anObj)
+{
+   BinaryDumpInFile(aFp, anObj);
 }
 
 void  BinaryUnDumpFromFile(eTypeInvRad & anObj,ELISE_fp & aFp)
@@ -312,7 +371,14 @@ void  BinaryUnDumpFromFile(eTypeInvRad & anObj,ELISE_fp & aFp)
    anObj=(eTypeInvRad) aIVal;
 }
 
-std::string  Mangling( eTypeInvRad *) {return "BBD3C3ECAADC55CAFE3F";};
+void  BinaryUnDumpFromFile_eTypeInvRad(eTypeInvRad & anObj,ELISE_fp & aFp)
+{
+   BinaryUnDumpFromFile(anObj, aFp);
+}
+
+std::string  Mangling( eTypeInvRad *) { return "BBD3C3ECAADC55CAFE3F"; }
+
+std::string  Mangling_eTypeInvRad( eTypeInvRad *p) { return Mangling(p); }
 
 
 Pt2dr & cPtSc::Pt()

@@ -46,21 +46,7 @@ std::string  eToString(const eTypePts & anObj)
 
 std::string  eToString_eTypePts(const eTypePts & anObj)
 {
-   if (anObj==eNSM_GeoCube)
-      return  "eNSM_GeoCube";
-   if (anObj==eNSM_Plaquette)
-      return  "eNSM_Plaquette";
-   if (anObj==eNSM_Pts)
-      return  "eNSM_Pts";
-   if (anObj==eNSM_MaxLoc)
-      return  "eNSM_MaxLoc";
-   if (anObj==eNSM_MinLoc)
-      return  "eNSM_MinLoc";
-   if (anObj==eNSM_NonValue)
-      return  "eNSM_NonValue";
- std::cout << "Enum = eTypePts\n";
-   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
-   return "";
+   return eToString(anObj);
 }
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypePts & anObj)
@@ -70,7 +56,7 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eTypePts & anObj)
 
 cElXMLTree * ToXMLTree_eTypePts(const std::string & aNameTag,const eTypePts & anObj)
 {
-      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+   return ToXMLTree(aNameTag, anObj);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const eTypePts & anObj)
@@ -80,7 +66,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const eTypePts & anObj)
 
 void  BinaryDumpInFile_eTypePts(ELISE_fp & aFp,const eTypePts & anObj)
 {
-   BinaryDumpInFile(aFp,int(anObj));
+   BinaryDumpInFile(aFp, anObj);
 }
 
 void  BinaryUnDumpFromFile(eTypePts & anObj,ELISE_fp & aFp)
@@ -92,14 +78,12 @@ void  BinaryUnDumpFromFile(eTypePts & anObj,ELISE_fp & aFp)
 
 void  BinaryUnDumpFromFile_eTypePts(eTypePts & anObj,ELISE_fp & aFp)
 {
-   int aIVal;
-   BinaryUnDumpFromFile(aIVal,aFp);
-   anObj=(eTypePts) aIVal;
+   BinaryUnDumpFromFile(anObj, aFp);
 }
 
-std::string  Mangling( eTypePts *) {return "50A137A783D946ABFC3F";};
+std::string  Mangling( eTypePts *) { return "50A137A783D946ABFC3F"; }
 
-std::string  Mangling_eTypePts( eTypePts *) {return "50A137A783D946ABFC3F";};
+std::string  Mangling_eTypePts( eTypePts *p) { return Mangling(p); }
 
 eEtatPointeImage  Str2eEtatPointeImage(const std::string & aName)
 {
@@ -151,23 +135,7 @@ std::string  eToString(const eEtatPointeImage & anObj)
 
 std::string  eToString_eEtatPointeImage(const eEtatPointeImage & anObj)
 {
-   if (anObj==eEPI_NonSaisi)
-      return  "eEPI_NonSaisi";
-   if (anObj==eEPI_Refute)
-      return  "eEPI_Refute";
-   if (anObj==eEPI_Douteux)
-      return  "eEPI_Douteux";
-   if (anObj==eEPI_Valide)
-      return  "eEPI_Valide";
-   if (anObj==eEPI_NonValue)
-      return  "eEPI_NonValue";
-   if (anObj==eEPI_Disparu)
-      return  "eEPI_Disparu";
-   if (anObj==eEPI_Highlight)
-      return  "eEPI_Highlight";
- std::cout << "Enum = eEtatPointeImage\n";
-   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
-   return "";
+   return eToString(anObj);
 }
 
 cElXMLTree * ToXMLTree(const std::string & aNameTag,const eEtatPointeImage & anObj)
@@ -177,7 +145,7 @@ cElXMLTree * ToXMLTree(const std::string & aNameTag,const eEtatPointeImage & anO
 
 cElXMLTree * ToXMLTree_eEtatPointeImage(const std::string & aNameTag,const eEtatPointeImage & anObj)
 {
-      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+   return ToXMLTree(aNameTag, anObj);
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const eEtatPointeImage & anObj)
@@ -187,7 +155,7 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const eEtatPointeImage & anObj)
 
 void  BinaryDumpInFile_eEtatPointeImage(ELISE_fp & aFp,const eEtatPointeImage & anObj)
 {
-   BinaryDumpInFile(aFp,int(anObj));
+   BinaryDumpInFile(aFp, anObj);
 }
 
 void  BinaryUnDumpFromFile(eEtatPointeImage & anObj,ELISE_fp & aFp)
@@ -199,14 +167,12 @@ void  BinaryUnDumpFromFile(eEtatPointeImage & anObj,ELISE_fp & aFp)
 
 void  BinaryUnDumpFromFile_eEtatPointeImage(eEtatPointeImage & anObj,ELISE_fp & aFp)
 {
-   int aIVal;
-   BinaryUnDumpFromFile(aIVal,aFp);
-   anObj=(eEtatPointeImage) aIVal;
+   BinaryUnDumpFromFile(anObj, aFp);
 }
 
-std::string  Mangling( eEtatPointeImage *) {return "D3AE890CE8E04AD0FE3F";};
+std::string  Mangling( eEtatPointeImage *) { return "D3AE890CE8E04AD0FE3F"; }
 
-std::string  Mangling_eEtatPointeImage( eEtatPointeImage *) {return "D3AE890CE8E04AD0FE3F";};
+std::string  Mangling_eEtatPointeImage( eEtatPointeImage *p) { return Mangling(p); }
 
 
 cTplValGesInit< std::string > & cContenuPt::None()
