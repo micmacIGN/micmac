@@ -698,7 +698,6 @@ extern int  PPMD_Appariement_main(int argc, char ** argv);
 extern int TD_Match1_main(int argc, char ** argv);
 extern int TD_Match2_main(int argc, char ** argv);
 extern int TD_Match3_main(int argc, char ** argv);
-extern int CPP_RelMotionTest_main(int argc, char ** argv);
 extern int TestER_main(int argc, char ** argv);
 extern int TestER_main2(int argc, char ** argv);
 extern int TestER_grille_main(int argc, char ** argv);
@@ -1029,7 +1028,6 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 		aRes.push_back(cMMCom("Idem", Idem_main, "Interpolate DEM on GCP & CP"));
 		aRes.push_back(cMMCom("TestSI", Matthieu_main, "Test SelectionInfos"));
 		aRes.push_back(cMMCom("TestJB", TestJB_main, "random stuff"));
-		aRes.push_back(cMMCom("TestER", CPP_RelMotionTest_main, "ER test workplace"));
 
 		aRes.push_back(cMMCom("TestER2", TestER_hom_main, "ER test hom"));
 		aRes.push_back(cMMCom("Tif2Pfm", PFM2Tiff_main, "Tif to pfm or the other way around"));

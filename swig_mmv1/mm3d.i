@@ -5,6 +5,8 @@
 #define SWIG_FILE_WITH_INIT
 #include "StdAfx.h"
 #include "api/api_mm3d.h"
+#include "../src/uti_phgrm/NewOri/NewOri.h"
+#include "api/NewO_PyWrapper.h"
 #include "general/photogram.h"
 #include "general/util.h"
 #include "general/bitm.h"
@@ -14,8 +16,6 @@
 #include "XML_GEN/ParamChantierPhotogram.h"
 typedef ElAffin2D tOrIntIma ; //mandatory because only declared in cBasicGeomCap3D in general/photogram.h?
 #include "../src/TpMMPD/TpPPMD.h"
-#include "../src/uti_phgrm/NewOri/NewOri.h"
-#include "../src/uti_phgrm/NewOri/NewO_PyWrapper.h"
 #include "../src/uti_phgrm/TiepTri/MultTieP.h"
 //#include "XML_GEN/xml_gen2_mmByp.h"
 #include <sstream>
@@ -31,21 +31,6 @@ typedef ElAffin2D tOrIntIma ; //mandatory because only declared in cBasicGeomCap
 %include <cpointer.i>
 %include stl.i
 
-//----------------------------------------------------------------------
-//templates (has to be before %include "api/api_mm3d.h")
-//used to make them usable as python lists
-namespace std {
-    %template(IntVector)    vector<int>;
-    %template(DoubleVector) vector<double>;
-    %template(FloatVector)  vector<float>;
-    %template(StringVector) vector<string>;
-    %template(HomolList)    list<cNupletPtsHomologues>;
-    %template(CpleStringVector) vector<cCpleString>;
-    %template(cXml_OneTripletList) list< cXml_OneTriplet >;
-    %template(ElSeg3DVector)  vector<ElSeg3D>;
-    %template(RelMVec) vector<RelMotion>;
-}
- 
 //def REAL etc to be able to use them in python
 %include "general/CMake_defines.h"
 %include "general/sys_dep.h"
@@ -122,25 +107,15 @@ namespace std {
 //misc
 %ignore Test_DBL;
 
+
 //----------------------------------------------------------------------
-//classes to export
-%include "api/api_mm3d.h"
-%include "api/SuperposImage_extract.h"
-%include "api/files_extract.h"
-%include "api/ParamChantierPhotogram_extract.h"
-%include "../src/TpMMPD/TpPPMD.h"
-%include "general/util.h"
-%include "general/bitm.h"
+//templates (has to be before %include "api/api_mm3d.h")
+//used to make them usable as python lists
+//first, expose templates
 %include "general/ptxd.h"
-%include "general/geom_vecteur.h"
-%include "general/photogram.h" //45s
-%include "../src/uti_phgrm/NewOri/NewOri.h"
-%include "../src/uti_phgrm/NewOri/NewO_PyWrapper.h"
-%include "../src/uti_phgrm/TiepTri/MultTieP.h"
-
-//%include "XML_GEN/xml_gen2_mmByp.h"
-
-//----------------------------------------------------------------------
+%include "general/bitm.h"
+%include "api/files_extract.h"
+//then, name templates implementations
 %template(Pt2di) Pt2d<INT>;
 %template(Pt2dr) Pt2d<REAL>;
 %template(Pt3dr) Pt3d<REAL>;
@@ -149,18 +124,43 @@ namespace std {
 %template(MakeFileXML_cSauvegardeNamedRel) MakeFileXML<cSauvegardeNamedRel>;
 
 namespace std {
-    %template(PtVec) vector<Pt2dr>;
-    %template(Pt3drVec) vector<Pt3dr>;
+    %template(IntVector)    vector<int>;
+    %template(DoubleVector) vector<double>;
+    %template(FloatVector)  vector<float>;
+    %template(StringVector) vector<string>;
+    %template(HomolList)    list<cNupletPtsHomologues>;
+    %template(CpleStringVector) vector<cCpleString>;
+    %template(cXml_OneTripletList) list< cXml_OneTriplet >;
+    %template(ElSeg3DVector)  vector<ElSeg3D>;
+    %template(RelMVector) vector<RelMotion>;
+    %template(PtVector) vector<Pt2dr>;
+    %template(Pt3drVector) vector<Pt3dr>;
     %template(FeatureMap) map<int,vector<Pt2dr > >;
 }
+ 
 
+//----------------------------------------------------------------------
+//classes to export
+%include "api/api_mm3d.h"
+%include "api/SuperposImage_extract.h"
+%include "api/ParamChantierPhotogram_extract.h"
+%include "../src/uti_phgrm/NewOri/NewOri.h"
+%include "api/NewO_PyWrapper.h"
+%include "../src/TpMMPD/TpPPMD.h"
+%include "general/util.h"
+%include "general/geom_vecteur.h"
+%include "general/photogram.h" //45s
+%include "../src/uti_phgrm/TiepTri/MultTieP.h"
+
+//%include "XML_GEN/xml_gen2_mmByp.h"
+
+//----------------------------------------------------------------------
 
 //check python version
 %pythoncode %{
 print("MicMac Python3 API")
 mm3d_init();
 %}
-
 
 //----------------------------------------------------------------------
 /*%extend cPackNupletsHom {

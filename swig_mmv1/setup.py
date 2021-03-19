@@ -21,20 +21,22 @@ for arg in sys.argv[:]:
     if arg.startswith("USEQT"):
         sys.argv.remove(arg)
 
+all_cpp_api_files = ['mm3d_wrap.cxx'] + glob.glob('api/*.cpp')
+
 mm3d_module = Extension('_mm3d',
            define_macros = [('FORSWIG','')],
-           sources=['mm3d_wrap.cxx', 'api/api_mm3d.cpp'],
+           sources = all_cpp_api_files,
            libraries = ['X11', 'Xext', 'm', 'dl', 'pthread']+libs,
            library_dirs = [],
            include_dirs = ['/usr/local/include', '.', '../include/'],
-           language="c++",
-           extra_objects=["../lib/libelise.a", "../lib/libANN.a"],
-           extra_compile_args=['-std=c++11']
+           language = "c++",
+           extra_objects = ["../lib/libelise.a", "../lib/libANN.a"],
+           extra_compile_args = ['-std=c++11']
        )
 
 #https://docs.python.org/3.8/distutils/setupscript.html#installing-additional-files
-xml_micmac_Files = glob.glob('../include/XML_MicMac/*.xml')
-xml_gen_Files = glob.glob('../include/XML_GEN/*.xml')
+xml_micmac_files = glob.glob('../include/XML_MicMac/*.xml')
+xml_gen_files = glob.glob('../include/XML_GEN/*.xml')
 
 setup (name = 'mm3d',
        version = '0.1',
@@ -42,8 +44,8 @@ setup (name = 'mm3d',
        description = """MicMac Python API""",
        ext_modules = [mm3d_module],
        py_modules = ["mm3d"],
-       data_files = [("mm3d/include/XML_MicMac", xml_micmac_Files),
-                     ("mm3d/include/XML_GEN", xml_gen_Files)],
+       data_files = [("mm3d/include/XML_MicMac", xml_micmac_files),
+                     ("mm3d/include/XML_GEN", xml_gen_files)],
        )
 
 #https://docs.python.org/3/extending/building.html

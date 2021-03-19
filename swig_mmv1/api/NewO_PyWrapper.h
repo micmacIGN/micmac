@@ -41,7 +41,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _ELISE_NEW_ORI_PYW_H
 
 #include "StdAfx.h"
-#include "NewOri.h"
+#include "../src/uti_phgrm/NewOri/NewOri.h"
 
 class RelMotion;
 extern std::vector<RelMotion> RelMotionsPyWrapper(const std::string& aImPat,const std::string& aSH,const std::string& aDir,const std::string& InCal,bool aExpTxt=false);

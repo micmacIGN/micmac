@@ -159,36 +159,6 @@ std::vector<RelMotion> RelMotionsPyWrapper(const std::string& aImPat,const std::
 	return aRes;
 }
 
-int CPP_RelMotionTest_main(int argc,char ** argv)
-{
-	std::cout << "Snooping around? This is yet another ewelinas test;\n";
-
-
-    std::string aImPat;
-    std::string aDir;
-    std::string InCal;
-    std::string aSH="";
-
-
-    ElInitArgMain
-    (
-        argc, argv,
-        LArgMain() << EAMC(aDir,"Working directory")
-                   << EAMC(aImPat,"Pattern of images"),
-        LArgMain() << EAM (InCal,"Calib",true,"Input calibration")
-                   << EAM (aSH,"SH",true,"Homol postfix, Def=false")
-    );
-
-
-	std::vector<RelMotion> aRMVec = RelMotionsPyWrapper(aImPat,aSH,aDir,InCal);
-
-	for (auto it_motion : aRMVec)
-	{
-		std::cout << "+ " << it_motion.Cam1().Focale() << "\n";
-	}
-
-	return EXIT_SUCCESS;
-}
 		
 /*Footer-MicMac-eLiSe-25/06/2007
 

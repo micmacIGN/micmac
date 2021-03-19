@@ -6,13 +6,6 @@ Introduction
 
 This is an API to a small part of MicMac for Python 3.
 
-
-Download
---------
-
-  * [2019/12/17 binary version for Python 3.6 with Ubuntu 18.04](../../bin/swig_mmv1_20191217.tar.bz2)
-
-
 Usage
 -----
 
@@ -69,7 +62,9 @@ On debian:
 
 To compile, select "WITH_APIPYTHON" in cmake interface, then:
     make apipy
-(if elise is to be updated, you have to run "make elise" first)
+
+Elise has to be compiled with "WITH_APIPYTHON" option to be able to compile the API.
+If elise is to be updated, you have to run "make elise" first.
 
 mm3d for python is automatically available to the user from any directory.
 The files to distribute are in swig_mmv1/build/lib.linux-x86_64-3.x/ (the .so file must be renamed _mm3d.so)
@@ -93,6 +88,8 @@ To check if everything is correct:
     make -f Makefile_swig_linux clean && make -f Makefile_swig_linux swig check
 
 This way you can see every undefined references that you have to fix (by adding other files or hiding it with #ifndef SWIG).
+
+PIP package tutorial: https://packaging.python.org/tutorials/packaging-projects/
 
 
 TODO

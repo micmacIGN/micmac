@@ -1,0 +1,4 @@
+api/*.o
+cpl.xml
+mm3d.py
+mm3d_wrap.*
