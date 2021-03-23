@@ -814,14 +814,14 @@ inline void OneBenchFastTreeDist(int aNbSom,int aNbCC,bool Show)
        std::cout << "DONNE  "<<  aNbSom << " " << aNbCC << "\n";
 }
 
-inline void AllBenchFastTreeDist(bool Show)
+inline void AllBenchFastTreeDist(bool Show,int aNbTest)
 {
-    for (int aNb=1 ; aNb<=15 ; aNb++)
+    for (int aKTest=1 ; aKTest<=aNbTest ; aKTest++)
     {
         // We want to test various size , including high size, but to go relatively faste
         // test only square 1 4 9 ... 225
-        int aNb2 = aNb*aNb;
-        // We test we various number of connected components
+        int aNb2 = aKTest*aKTest;
+        // We test with various number of connected components
         OneBenchFastTreeDist(aNb2,1,Show);
         OneBenchFastTreeDist(aNb2+1,2,Show);
         OneBenchFastTreeDist(aNb2+2,3,Show);

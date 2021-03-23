@@ -95,8 +95,6 @@ template <class TypeEnum> class cE2Str
      static tMapE2Str                   mE2S;
      static std::unique_ptr<tMapStr2E > mS2E;
 };
-// template<class TypeEnum>  TypeEnum cE2Str<TypeEnum>::E2s
-
 
 #define TPL_ENUM_2_STRING(TypeEnum)\
 template<> std::unique_ptr<cE2Str<TypeEnum>::tMapStr2E > cE2Str<TypeEnum>::mS2E = nullptr;\
@@ -116,6 +114,11 @@ template <> std::vector<TypeEnum> SubOfPat<TypeEnum>(const std::string & aPat,bo
 {\
    return cE2Str<TypeEnum>::VecOfPat(aPat,AcceptEmpty);\
 }\
+template <> tSemA2007  AC_ListVal<TypeEnum>()\
+{\
+   return {eTA2007::AddCom,"Allowed values for this enum:{"+StrAllVall<TypeEnum>()+"}"};\
+}\
+
 
 
 // This part must be redefined for each
@@ -143,6 +146,7 @@ template<> cE2Str<eTA2007>::tMapE2Str cE2Str<eTA2007>::mE2S
                 {eTA2007::FileDirProj,"FDP"},
                 {eTA2007::FileImage,"Im"},
                 {eTA2007::MPatFile,"MPF"},
+                {eTA2007::AddCom,"AddCom"},
                 {eTA2007::Internal,"##Intern"},
                 {eTA2007::Tuning,"##Tune"},
                 {eTA2007::Global,"##Glob"},
@@ -166,7 +170,8 @@ template<> cE2Str<eTyNums>::tMapE2Str cE2Str<eTyNums>::mE2S
                 {eTyNums::eTN_INT8,"INT8"},
                 {eTyNums::eTN_REAL4,"REAL4"},
                 {eTyNums::eTN_REAL8,"REAL8"},
-                {eTyNums::eTN_REAL16,"REAL16"}
+                {eTyNums::eTN_REAL16,"REAL16"},
+                {eTyNums::eTN_UnKnown,"Unknown"}
            };
 TPL_ENUM_2_STRING(eTyNums);
 
@@ -182,6 +187,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::eWriteFile,"WriteFile"},
                 {eTyUEr::eReadFile,"ReadFile"},
                 {eTyUEr::eBadBool,"BadBool"},
+                {eTyUEr::eBadInt,"BadInt"},
                 {eTyUEr::eBadEnum,"BadEnum"},
                 {eTyUEr::eMulOptParam,"MultOptP"},
                 {eTyUEr::eBadOptParam,"BadOptP"},
@@ -217,6 +223,13 @@ template<> cE2Str<eTyPyrTieP>::tMapE2Str cE2Str<eTyPyrTieP>::mE2S
            };
 TPL_ENUM_2_STRING(eTyPyrTieP);
 
+template<> cE2Str<eModeEpipMatch>::tMapE2Str cE2Str<eModeEpipMatch>::mE2S
+           {
+                {eModeEpipMatch::eMEM_MMV1,"MMV1"},
+           };
+TPL_ENUM_2_STRING(eModeEpipMatch);
+
+
 
 /****************************  BENCH **************************/
 
@@ -234,8 +247,10 @@ template<class TypeEnum> void TplBenchEnum()
 }
 
 /// Bench enum
-void BenchEnum()
+void BenchEnum(cParamExeBench & aParam)
 {
+    if (! aParam.NewBench("Enum")) return;
+
     TplBenchEnum<eOpAff>();
     TplBenchEnum<eTySC>();
     TplBenchEnum<eTA2007>();
@@ -243,6 +258,9 @@ void BenchEnum()
     TplBenchEnum<eTyNums>();
     TplBenchEnum<eTyInvRad>();
     TplBenchEnum<eTyPyrTieP>();
+    TplBenchEnum<eModeEpipMatch>();
+
+    aParam.EndBench();
 }
 
 

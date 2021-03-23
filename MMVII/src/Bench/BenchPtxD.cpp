@@ -42,8 +42,9 @@ void  Bench_cPt2dr()
    }
 }
 
-void  Bench_0000_Ptxd()
+void  Bench_0000_Ptxd(cParamExeBench & aParam)
 {
+    if (! aParam.NewBench("Ptxd")) return;
     
     Bench_cPt2dr();
     cPt1dr aA1(1);
@@ -89,9 +90,7 @@ void  Bench_0000_Ptxd()
     MMVII_INTERNAL_ASSERT_bench(aR.Proj(cPt2di(11,19)) == cPt2di(11,20),"Bench_0000_Ptxd");
     MMVII_INTERNAL_ASSERT_bench(aR.Proj(cPt2di(100,100)) == cPt2di(49,39),"Bench_0000_Ptxd");
 
-
-
-    StdOut() << "done Bench_0000_Ptxd \n";
+    aParam.EndBench();
 }
 
 };

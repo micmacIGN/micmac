@@ -516,6 +516,11 @@ template <class TypeIndex,class TypeVal> class cWhitchMinMax
          cWhitchMax<TypeIndex,TypeVal> mMax;
 };
 
+// This rather "strange" function returns a value true at frequence  as close as possible
+// to aFreq, and with the warantee that it is true for last index
+
+bool SignalAtFrequence(tREAL8 anIndex,tREAL8 aFreq,tREAL8  aCenterPhase);
+
 
 
 

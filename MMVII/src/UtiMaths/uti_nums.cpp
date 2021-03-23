@@ -85,6 +85,7 @@ static const cVirtualTypeNum & SwitchFromEnum(eTyNums aTy)
       case eTyNums::eTN_REAL4 :  return tNumTrait<tREAL4>::TheOnlyOne;
       case eTyNums::eTN_REAL8 :  return tNumTrait<tREAL8>::TheOnlyOne;
       case eTyNums::eTN_REAL16 : return tNumTrait<tREAL16>::TheOnlyOne;
+      // case eTyNums::eTN_UnKnown : return tNumTrait<eTN_UnKnown>::TheOnlyOne;
 
       default : ;
    }
@@ -97,7 +98,8 @@ const cVirtualTypeNum & cVirtualTypeNum::FromEnum(eTyNums aTy)
     static std::vector<const cVirtualTypeNum *> aV;
     if (aV.empty())
     {
-        for (int aK=0 ; aK<int(eTyNums::eNbVals) ; aK++)
+        // for (int aK=0 ; aK<int(eTyNums::eNbVals) ; aK++)
+        for (int aK=0 ; aK<int(eTyNums::eTN_UnKnown) ; aK++)
         {
             aV.push_back(&SwitchFromEnum(eTyNums(aK)));
         }
@@ -110,7 +112,8 @@ const cVirtualTypeNum & cVirtualTypeNum::FromEnum(eTyNums aTy)
 template <class Type> void TplBenchTraits()
 {
     //typename tNumTrait<Type>::tBase aVal=0;
-    StdOut()  << E2Str(tNumTrait<Type>::TyNum() )
+    StdOut()  << "    "
+              << E2Str(tNumTrait<Type>::TyNum() )
               << " Max=" << tNumTrait<Type>::MaxValue() 
               << " Min=" <<  tNumTrait<Type>::MinValue() 
               << " IsInt=" <<  tNumTrait<Type>::IsInt() 
@@ -126,7 +129,7 @@ void BenchTraits()
    TplBenchTraits<tINT2>();
    TplBenchTraits<tINT4>();
    TplBenchTraits<tREAL4>();
-   for (int aK=0 ; aK<int(eTyNums::eNbVals) ; aK++)
+   for (int aK=0 ; aK<int(eTyNums::eTN_UnKnown) ; aK++)
    {
        const cVirtualTypeNum & aVTN =  cVirtualTypeNum::FromEnum(eTyNums(aK));
        MMVII_INTERNAL_ASSERT_bench (int(aVTN.V_TyNum())==aK,"Bench cVirtualTypeNum::FromEnum");
@@ -216,9 +219,11 @@ void BenchMinMax()
    }
 }
 
-void Bench_Nums()
+void Bench_Nums(cParamExeBench & aParam)
 {
-     BenchMinMax();
+   if (! aParam.NewBench("BasicNum")) return;
+
+   BenchMinMax();
 
    //for (
    MMVII_INTERNAL_ASSERT_bench (BinomialCoeff(2,10)==45,"Bench binom");
@@ -230,9 +235,10 @@ void Bench_Nums()
       }
       MMVII_INTERNAL_ASSERT_bench (aS==(1<<10),"Bench binom");
    }
-   BenchTraits(); 
+   // This function dont make test, but prints value on numerical types
+   if (aParam.Show())
+      BenchTraits(); 
 
-   StdOut() << "Bench_NumsBench_NumsBench_NumsBench_Nums\n";
    MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL4)==4,"Bench size tREAL4");
    MMVII_INTERNAL_ASSERT_bench (sizeof(tREAL8)==8,"Bench size tREAL8");
 
@@ -306,6 +312,8 @@ void Bench_Nums()
         MMVII_INTERNAL_ASSERT_bench( std::abs(aR12-aRM12)<1e-5,"Bench NormRat");
         MMVII_INTERNAL_ASSERT_bench( aR1G2>aR12,"Bench NormRat");
    }
+
+   aParam.EndBench();
 }
 
 template <class Type> Type  NonConstMediane(std::vector<Type> & aV)
@@ -322,6 +330,16 @@ template <class Type> Type  ConstMediane(const std::vector<Type> & aV)
 
 template  double NonConstMediane(std::vector<double> &);
 template  double ConstMediane(const std::vector<double> &);
+
+
+bool SignalAtFrequence(tREAL8 anIndex,tREAL8 aFreq,tREAL8  aCenterPhase)
+{
+   tREAL8 aCoord0 = 0.5 + (anIndex-aCenterPhase + 0.5) * aFreq;
+   tREAL8 aCoord1 = 0.5 + (anIndex-aCenterPhase - 0.5) * aFreq;
+
+   return lround_ni(aCoord0) != lround_ni(aCoord1);
+}
+
 
 };
 

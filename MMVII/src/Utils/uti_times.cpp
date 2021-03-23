@@ -117,8 +117,10 @@ void Bench_Duration_Daisy(double aT,const std::string & aStr)
     }
 }
 
-void Bench_Duration()
+void Bench_Duration(cParamExeBench & aParam)
 {
+   if (! aParam.NewBench("Duration")) return;
+
    Bench_Duration_Daisy(0.0101,"00.01");
    Bench_Duration_Daisy(1.0101,"01.01");
    Bench_Duration_Daisy(10.0101,"10.01");
@@ -128,6 +130,7 @@ void Bench_Duration()
    Bench_Duration_Daisy(3700.0101,"01:01:40.01");
    Bench_Duration_Daisy(24*3600 + 2 *3600 + 17*60 + 32.0401,"01:02:17:32.04");
 
+   aParam.EndBench();
 }
 
 

@@ -1,10 +1,23 @@
 #include "include/V1VII.h"
 
 
-extern std::string MM3DFixeByMMVII;
+extern std::string MM3DFixeByMMVII; // Declared in MMV1 for its own stuff
 
 namespace MMVII
 {
+
+
+std::string V1NameMasqOfIm(const std::string & aName)
+{
+   return LastPrefix(aName) + "_Masq.tif";
+}
+
+
+const std::string & MMV1Bin()  // Use this old trick to avoid order dependancy
+{
+   static std::string aRes (DirBin2007 + "../../bin/mm3d");
+   return aRes;
+}
 
 void Init_mm3d_In_MMVII()
 {
@@ -14,9 +27,9 @@ void Init_mm3d_In_MMVII()
    First = false;
 
    // Compute mm3d location from relative position to MMVII
-   std::string CA0 =  DirBin2007 + "../../bin/mm3d";
-   char * A0= const_cast<char *>(CA0.c_str());
-   MM3DFixeByMMVII= CA0;
+   // static std::string CA0 =  DirBin2007 + "../../bin/mm3d";
+   char * A0= const_cast<char *>(MMV1Bin().c_str());
+   MM3DFixeByMMVII = MMV1Bin();
    MMD_InitArgcArgv(1,&A0);
 }
 
@@ -63,6 +76,18 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
    {
       MMVII_INTERNAL_ASSERT_strong(false,"Incoherent channel number");
    }
+                     
+   bool IsModified;
+   Tiff_Im::CreateIfNeeded
+   (
+      IsModified,
+      aName,
+      ToMMV1(aSz),
+      ToMMV1(aType),
+      Tiff_Im::No_Compr,
+      aPIT
+   );
+/*
    Tiff_Im
    (
       aName.c_str(),
@@ -71,6 +96,7 @@ cDataFileIm2D  cDataFileIm2D::Create(const std::string & aName,eTyNums aType,con
       Tiff_Im::No_Compr,
       aPIT
    );
+*/
    return Create(aName,false);
 }
 
@@ -127,6 +153,7 @@ template <class Type> void cMMV1_Conv<Type>::ReadWrite
                                const cRect2& aR2Init
                            )
 {
+   Init_mm3d_In_MMVII();
    // C'est une image en originie (0,0) necessairement en MMV1
    tImMMV1 aImV1 = ImToMMV1(aImV2);
    cRect2 aRectFullIm (cPt2di(0,0),aImV2.Sz());
@@ -247,8 +274,28 @@ eTyNums ToMMVII( GenIm::type_el aV1 )
 
         default: ;
     }
+    return eTyNums::eTN_UnKnown ;
+/*
     MMVII_INTERNAL_ASSERT_bench(false,"eTyNums ToMMVII( GenIm::type_el aV1 )");
     return eTyNums::eTN_INT1 ;
+*/
+}
+
+double DifAbsInVal(const std::string & aN1,const std::string & aN2,double aDef)
+{
+   Tiff_Im aF1(aN1.c_str());
+   Tiff_Im aF2(aN2.c_str());
+   double aSom;
+
+   if (aF1.sz()!=aF2.sz())
+   {
+       MMVII_INTERNAL_ASSERT_always(aDef!=0.0,"Diff sz and bad def in DifAbsInVal");
+       return aDef;
+   }
+
+   ELISE_COPY(aF1.all_pts(),Abs(aF1.in()-aF2.in()),sigma(aSom));
+
+   return aSom;
 }
 
 

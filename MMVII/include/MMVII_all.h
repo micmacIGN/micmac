@@ -45,8 +45,6 @@
 
 // Les class cPtxd, cPt1d, cPt2d
 #include "MMVII_Ptxd.h"
-#include "MMVII_Mappings.h"
-#include "MMVII_Sensor.h"
 
 // Les classe lies aux conversion vers des chaines, fichier ...
 #include "MMVII_Stringifier.h"
@@ -65,6 +63,9 @@
 
 #include "MMVII_AimeTieP.h"
 // #include "MMVII_Tpl_Images.h"
+
+#include "MMVII_Mappings.h"
+#include "MMVII_Sensor.h"
 
 #include "MMVII_DeclareAllCmd.h"
 // communication MMVII/MMv1

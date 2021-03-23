@@ -180,6 +180,12 @@ template <const int Dim> tINT8  cPixBox<Dim>::IndexeLinear(const tPt & aP) const
    return aRes;
 }
 
+template <const int Dim> bool  cPixBox<Dim>::SignalAtFrequence(const tPt & anIndex,double aFreq) const
+{
+   return MMVII::SignalAtFrequence(IndexeLinear(anIndex),aFreq,this->mNbElem-1);
+}
+
+
 template <const int Dim> cPtxd<int,Dim>  cPixBox<Dim>::FromIndexeLinear(tINT8  anIndexe) const
 {
    tPt aRes;
@@ -328,6 +334,15 @@ template <class Type,const int Dim>
     }
 }
 
+template <class Type,const int Dim>   
+   cTplBox<Type,Dim>::cTplBox
+   (
+       const cPtxd<Type,Dim> & aSz,
+       bool AllowEmpty
+   ) :
+     cTplBox<Type,Dim>(tPt::PCste(0),aSz,AllowEmpty)
+{
+}
 
 
 template <class Type,const int Dim> bool  cTplBox<Type,Dim>::IsEmpty() const
@@ -335,6 +350,10 @@ template <class Type,const int Dim> bool  cTplBox<Type,Dim>::IsEmpty() const
    return mNbElem == 0;
 }
 
+template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Empty()
+{
+   return  cTplBox<Type,Dim>(tPt::PCste(0),true);
+}
 
 template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Inter(const tBox & aBox)const
 {
@@ -440,6 +459,23 @@ template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Genera
     return cTplBox<Type,Dim>(aP0,aP1);
 }
 
+cBox2dr ToR(const cBox2di & aBox)
+{
+   return cBox2dr(ToR(aBox.P0()),ToR(aBox.P1()));
+}
+
+cBox2di ToI(const cBox2dr & aBox)
+{
+    return cBox2di(Pt_round_down(aBox.P0()),Pt_round_up(aBox.P1()));
+}
+
+cBox2dr operator * (const cBox2dr & aBox,double aScale)
+{
+    return cBox2dr(aBox.P0()*aScale,aBox.P1()*aScale);
+}
+
+
+
 /* ========================== */
 /*       cTpxBoxOfPts         */
 /* ========================== */
@@ -485,11 +521,28 @@ template <class Type,const int Dim>  void  cTplBoxOfPts<Type,Dim>::Add(const tPt
    mNbPts++;
 }
 
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_down(const cPtxd<Type,Dim>  aP)
+{
+   return ICByC1P(aP,round_down);
+}
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_up(const cPtxd<Type,Dim>  aP)
+{
+   return ICByC1P(aP,round_up);
+}
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_ni(const cPtxd<Type,Dim>  aP)
+{
+   return ICByC1P(aP,round_ni);
+}
+
+
 /* ========================== */
 /*       INSTANTIATION        */
 /* ========================== */
 
 #define MACRO_INSTATIATE_PRECT_DIM(DIM)\
+template cPtxd<int,DIM> Pt_round_down(const cPtxd<double,DIM>  aP);\
+template cPtxd<int,DIM> Pt_round_up(const cPtxd<double,DIM>  aP);\
+template cPtxd<int,DIM> Pt_round_ni(const cPtxd<double,DIM>  aP);\
 template class cBorderPixBoxIterator<DIM>;\
 template class cBorderPixBox<DIM>;\
 template class cTplBox<tINT4,DIM>;\

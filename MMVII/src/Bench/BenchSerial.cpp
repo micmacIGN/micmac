@@ -117,10 +117,12 @@ template <class Type> void BenchSerialIm2D(const std::string & aDirOut)
 
 void BenchSerialization
     (
+        cParamExeBench & aParam,
         const std::string & aDirOut,  ///< For write-read temp file
         const std::string & aDirIn  ///< For readin existing file (as Xml with comments)
     )
 {
+    if (! aParam.NewBench("Serial")) return;
     // std::string aDir= DirCur();
     {
         BenchSerialIm2D<tREAL4>(aDirOut);
@@ -223,7 +225,8 @@ SaveInFile(aT2,"DEBUG."+PostF_XmlFiles);
        MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirIn+"PBF2."+PostF_XmlFiles,"TS0"),"cAppli_MMVII_TestSerial");
     }
 
-    StdOut() << "DONE SERIAL\n";
+    aParam.EndBench();
+    //StdOut() << "DONE SERIAL\n";
 
     // return EXIT_SUCCESS;
 }

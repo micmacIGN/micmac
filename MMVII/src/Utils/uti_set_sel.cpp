@@ -474,8 +474,10 @@ tNameSelector  BoostAllocRegex(const std::string& aPat)
 
 
 
-void BenchSelector(const std::string & aDir)
+void BenchSelector(cParamExeBench & aParam,const std::string & aDir)
 {
+    if (! aParam.NewBench("Selector")) return;
+
     int aLow = 5;
     int aUp = 9;
     cSelector<int> aSII_59 = GenIntervalSelector<int>(aLow,aUp,true,true);
@@ -557,6 +559,7 @@ void BenchSelector(const std::string & aDir)
         MMVII_INTERNAL_ASSERT_bench(aS6.Match(aK)==aSet6.Match(aK),"Selector");
         MMVII_INTERNAL_ASSERT_bench(aS6.Match(aK)==aSet6.In(aK),"Selector");
     }
+    aParam.EndBench();
 }
 
 
@@ -1103,8 +1106,10 @@ template <class Type> void TplBenchSet(const std::string & aDir)
    }
 }
 
-void BenchSet(const std::string & aDir)
+void BenchSet(cParamExeBench & aParam,const std::string & aDir)
 {
+    if (! aParam.NewBench("Set")) return;
+
     cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
 
     TplBenchSet<int>        (aDir);
@@ -1128,6 +1133,7 @@ void BenchSet(const std::string & aDir)
        MMVII_INTERNAL_ASSERT_bench(aT2.size()==2,"BenchSet");
        MMVII_INTERNAL_ASSERT_bench(aT2.Equal(aTest),"BenchSet");
     }
+    aParam.EndBench();
 }
 
 };

@@ -30,8 +30,9 @@ void AssertIsSetKN(int aK,int aN,const std::vector<int> &aSet)
   }
 }
 
-void Bench_Random()
+void OneBench_Random(cParamExeBench & aParam)
 {
+   // Generate subset at K element among N, check they are that
    for (int aTime=0 ; aTime< 100 ; aTime++)
    {
        int aNb = 10 + aTime/10;
@@ -40,18 +41,19 @@ void Bench_Random()
        AssertIsSetKN(aK,aNb,aSet);
        for (int aD=1 ; aD<=3 ; aD++)
        {
-          aSet = RandNeighSet(aD,aNb,aSet);
+          aSet = RandNeighSet(aD,aNb,aSet);  // Generate a set at distance D
           AssertIsSetKN(aK,aNb,aSet);
        }
    }
-   StdOut() << "Begin Bench_Random\n";
+   // StdOut() << "Begin Bench_Random\n";
    {
-      int aNb = 1e6;
-      std::vector<double> aVR;
+      int aNb = std::min(3e6,1e6 *(1+pow(aParam.Level(),1.5)));
+      std::vector<double> aVInit;
       for (int aK=0 ; aK< aNb ; aK++)
-          aVR.push_back(RandUnif_0_1());
+          aVInit.push_back(RandUnif_0_1());
 
-      std::sort(aVR.begin(),aVR.end());
+      std::vector<double> aVSorted = aVInit;
+      std::sort(aVSorted.begin(),aVSorted.end());
 
       double aDistMoy=0;
       double aDistMax=0;
@@ -59,24 +61,39 @@ void Bench_Random()
       double aCorrel10 = 0;
       for (int aK=0 ; aK< aNb ; aK++)
       {
-          double aD = std::abs(aVR[aK] - aK/double(aNb));
+          // Theoretically VSorted should converd to distrib X (cumul of uniform dist)
+          double aD = std::abs(aVSorted[aK] - aK/double(aNb));
           aDistMoy += aD;
           aDistMax = std::max(aD,aDistMax);
           if (aK!=0)
-             aCorrel += (aVR[aK]-0.5) * (aVR[aK-1]-0.5);
+             aCorrel += (aVInit[aK]-0.5) * (aVInit[aK-1]-0.5);
           if (aK>=10)
-             aCorrel10 += (aVR[aK]-0.5) * (aVR[aK-10]-0.5);
+             aCorrel10 += (aVInit[aK]-0.5) * (aVInit[aK-10]-0.5);
       }
       aDistMoy /= aNb;
       aCorrel /= aNb-1;
       aCorrel10 /= aNb-10;
+//    std::cout << "CORREL " << aCorrel << " " << aCorrel10 << " " << 1/sqrt(aNb) << "\n";
       // Purely heuristique bound, on very unlikely day may fail
       MMVII_INTERNAL_ASSERT_bench(aDistMoy<1.0/sqrt(aNb),"Random Moy Test");
       MMVII_INTERNAL_ASSERT_bench(aDistMax<4.0/sqrt(aNb),"Random Moy Test");
+      MMVII_INTERNAL_ASSERT_bench(std::abs(aCorrel)  <0.5/sqrt(aNb),"Random Correl1 Test");
+      MMVII_INTERNAL_ASSERT_bench(std::abs(aCorrel10)<0.5/sqrt(aNb),"Random Correl10 Test");
 
       // => Apparently correlation is very high : 0.08 !! maybe change the generator ?
       
    }
+}
+
+void Bench_Random(cParamExeBench & aParam)
+{
+    if (! aParam.NewBench("Random")) return;
+
+    int aNb = std::min(5,1+aParam.Level()*2);
+    for (int aK=0 ; aK<aNb  ; aK++)
+       OneBench_Random(aParam);
+
+    aParam.EndBench();
 }
 
 

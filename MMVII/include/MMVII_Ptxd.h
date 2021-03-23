@@ -344,6 +344,25 @@ cPtxd<Type,Dim> CByC1P
     return aRes;
 }
 
+/** Idem CByC when we need to change & force to int the result */
+template <class Type,const int Dim,class TypeFctr>
+cPtxd<int,Dim>  ICByC1P
+                (
+                   const cPtxd<Type,Dim>  & aP1,
+                   const TypeFctr &         aFctr
+                )
+{
+    cPtxd<int,Dim> aRes;
+    for (int aK=0 ; aK<Dim ; aK++)
+        aRes[aK] = aFctr(aP1[aK]);
+    return aRes;
+}
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_down(const cPtxd<Type,Dim>  aP);
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_up(const cPtxd<Type,Dim>  aP);
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_ni(const cPtxd<Type,Dim>  aP);
+
+
+
 /**  CByC version with 2 points */
 template <class Type,const int Dim,class TypeFctr>
 cPtxd<Type,Dim> CByC2P
@@ -398,6 +417,9 @@ template <class Type,const int Dim>  class cTplBox
         typedef cPtxd<tBigNum,Dim>               tBigPt;
 
         cTplBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty=false);
+        cTplBox(const tPt & aSz,bool AllowEmpty=false); // Create a box with origin in 0,0,..
+        static cTplBox Empty();
+        
 
 
         const tPt & P0() const {return mP0;} ///< Origin of object
@@ -461,9 +483,16 @@ template <class Type,const int Dim>  class cTplBox
 
 typedef cTplBox<int,2>  cBox2di; 
 typedef cTplBox<double,2>  cBox2dr; 
+cBox2dr ToR(const cBox2di &);  ///< Basic conversion
+cBox2di ToI(const cBox2dr &);  ///< Convert in englobing mode
+cBox2dr operator * (const cBox2dr & aBox,double aScale); ///< just multiply each coord
 
-/**  Class for computing box of points, handles empty case, can be converted to a
-     "regular" box (cTplBox)
+template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cTplBox<Type,Dim> &aBox)
+{ return  OS << "{" << aBox.P0() <<   " :: " << aBox.P1()<< "}"; }
+
+/**  Class for computing box of a set of points by iteratively adding them.
+     Is ok with empty case (!= cTplBox) 
+     Can be converted to a "regular" box (cTplBox)
 */
 
 template <class Type,const int Dim>  class cTplBoxOfPts

@@ -285,8 +285,10 @@ template <class Type> void TestVarFilterExp(cPt2di aSz,double aStdDev,int aNbIte
    MMVII_INTERNAL_ASSERT_bench(std::abs(aMat.S22()-Square(aStdDev))<aEps,"Std dev");
 }
 
-void BenchStat()
+void BenchStat(cParamExeBench & aParam)
 {
+   if (! aParam.NewBench("ImageStatFilter")) return;
+
    TestVarFilterExp<double>(cPt2di(-2,2),cPt2di(400,375),2.0,0.6,0.67,1);
    TestVarFilterExp<double>(cPt2di(-2,2),cPt2di(400,375),2.0,0.6,0.67,3);
 
@@ -309,6 +311,8 @@ void BenchStat()
 
    TestVarFilterExp<double>(cPt2di(300,300),2.0,2,1e-6);
    TestVarFilterExp<float>(cPt2di(300,300),5.0,3,1e-3);
+
+   aParam.EndBench();
 }
 
 

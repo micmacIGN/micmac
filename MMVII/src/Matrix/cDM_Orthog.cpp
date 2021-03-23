@@ -11,6 +11,56 @@ using namespace Eigen;
 namespace MMVII
 {
 
+
+template <class Type> cResulSVDDecomp<Type> cDenseMatrix<Type>::SVD() const
+{
+   this->CheckSquare(*this);  // this for scope, method is static
+   int aNb = Sz().x();
+   cResulSVDDecomp<Type> aRes(aNb);
+
+   tConst_EW aWrap(*this);
+   JacobiSVD<typename tNC_EW::tEigenMat > aJacSVD(aWrap.EW(),ComputeThinU | ComputeThinV);
+
+   cNC_EigenMatWrap<Type> aWrap_U(aRes.mMatU);
+   aWrap_U.EW() = aJacSVD.matrixU();
+
+   cNC_EigenMatWrap<Type> aWrap_V(aRes.mMatV);
+   aWrap_V.EW() = aJacSVD.matrixV();
+
+   cNC_EigenColVectWrap<Type>  aWrapSVal(aRes.mSingularValues);
+   aWrapSVal.EW() =  aJacSVD.singularValues();
+
+   return aRes;
+}
+
+template <class Type> cResulSVDDecomp<Type>::cResulSVDDecomp(int aNb) :
+   mSingularValues (aNb),
+   mMatU           (aNb,aNb),
+   mMatV           (aNb,aNb)
+{
+}
+
+template <class Type> const cDenseVect<Type> & cResulSVDDecomp<Type>::SingularValues() const
+{
+   return mSingularValues;
+}
+
+template <class Type> const cDenseMatrix<Type> & cResulSVDDecomp<Type>::MatU() const
+{
+   return mMatU;
+}
+template <class Type> const cDenseMatrix<Type> & cResulSVDDecomp<Type>::MatV() const
+{
+   return mMatV;
+}
+
+template <class Type> cDenseMatrix<Type>  cResulSVDDecomp<Type>::OriMatr() const
+{
+  return mMatU * cDenseMatrix<Type>::Diag(mSingularValues) * mMatV.Transpose();
+}
+
+
+
 /* ============================================= */
 /*      cResulSymEigenValue<Type>                */
 /* ============================================= */
@@ -348,6 +398,7 @@ template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Typ
 
 
 #define INSTANTIATE_ORTHOG_DENSE_MATRICES(Type)\
+template  class  cResulSVDDecomp<Type>;\
 template  class  cStrStat2<Type>;\
 template  class  cDenseMatrix<Type>;\
 template  class  cResulSymEigenValue<Type>;\

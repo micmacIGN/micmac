@@ -476,6 +476,8 @@ cIm2D<tINT2> ImageBenchExtrem(const cPt2di aSz,int aNbVal,int aSzMaj)
     // regularize it with majority-filter
     SelfLabMaj(aRes,cRect2::BoxWindow(aSzMaj));
 
+    // std::cout << "IIIII " << aDRes.GetV(cPt2di(0,0)) << " " <<  aDRes.GetV(cPt2di(4,2)) << "\n";
+
     return aRes;
 }
 
@@ -516,10 +518,9 @@ void TestEqual_RE(cResultExtremum & aR1,cResultExtremum & aR2)
 /**  Test extremum with different parameters simulation
 */
 
-void OneBenchExtrem(int aNbLab,int aSzMaj,double aRay)
+void OneBenchExtrem(const cPt2di & aSz,int aNbLab,int aSzMaj,double aRay)
 {
     // Create images
-    cPt2di aSz(150,200);
 
     cIm2D<tINT2> aI1 = ImageBenchExtrem(aSz,aNbLab,aSzMaj);  // Center image
     cDataIm2D<tINT2> & aDI1(aI1.DIm());
@@ -634,8 +635,9 @@ void OneBenchExtrem(int aNbLab,int aSzMaj,double aRay)
                StdOut() << "Difff " << aP << "\n";
        }
     }
-    // Before all, be reasonnably sure it's the same set
+    // Before all, be reasonnably sure it's the same set by couting pts inside
     MMVII_INTERNAL_ASSERT_bench(aNbIn==aCEI.NbIn() ,"Set in Bench Extre ");
+
 
     TestEqual_RE(aTestE1,aExtr1);
     TestEqual_RE(aTestE3,aExtr3);
@@ -718,15 +720,19 @@ void BenchAffineExtre()
 }
 
 
-void BenchExtre()
+void BenchExtre(cParamExeBench & aParam)
 {
+     if (! aParam.NewBench("ImagesExtrem")) return;
      for (int aNbLab=2 ; aNbLab<5 ; aNbLab+=2)
      {
          for (int aSzW=2 ; aSzW<5 ; aSzW+=2)
          {
-             OneBenchExtrem(aNbLab,aSzW,3.1);
-             OneBenchExtrem(aNbLab,aSzW,3.0);
-             OneBenchExtrem(aNbLab,aSzW,2.9);
+// cPt2di aSz(150,200);
+             double aMul = std::min(4.0,1+aParam.Level()*0.3);
+             cPt2di aSz(40*aMul,50*aMul);
+             OneBenchExtrem(aSz,aNbLab,aSzW,3.1);
+             OneBenchExtrem(aSz,aNbLab,aSzW,3.0);
+             OneBenchExtrem(aSz,aNbLab,aSzW,2.9);
          }
      }
      BenchAffineExtre();
@@ -748,7 +754,8 @@ void BenchExtre()
          MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-5, "Interpol Extr d1");
      }
      // boost::optional<double>  InterpoleExtr(double V1,double V2,double V3)
-     StdOut() << "Bench Extremmum\n";
+     // StdOut() << "Bench Extremmum\n";
+     aParam.EndBench();
 }
 
 

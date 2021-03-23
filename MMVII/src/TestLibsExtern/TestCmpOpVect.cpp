@@ -149,12 +149,16 @@ template <class Type,const int SzTEigen> void cTestOperationVector<Type,SzTEigen
 }
 
 
-void   BenchCmpOpVect()
+void   BenchCmpOpVect(cParamExeBench & aParam)
 {
+    if (! aParam.NewBench("CompareVectOperator",true)) return;
+
    // Run TestRatkoswky with static obsevation an inital guess 
     cTestOperationVector<float,90>::DoIt();
     cTestOperationVector<float,128>::DoIt();
     cTestOperationVector<double,128>::DoIt();
+
+    aParam.EndBench();
 }
 
 };// namespace MMVII

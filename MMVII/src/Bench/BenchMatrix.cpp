@@ -319,9 +319,17 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
            MMVII_INTERNAL_ASSERT_bench(aCheckEV.DIm().L2Dist(aSim.DIm())<1e-5,"Bench unitarity EigenValue");
 
         }
+  
 
         double aDTest = 1e-4 * pow(10,-(4-sizeof(Type))/2.0) * pow(aNb,1.0) ;  // Accuracy expectbale vary with tREAL4, tREAL8 ...
     
+        // Singular value decomposition
+        {
+             cResulSVDDecomp<Type>  aSVD = aM.SVD();
+             MMVII_INTERNAL_ASSERT_bench(aSVD.MatU().Unitarity()<aDTest,"SVD-U Unit");
+             MMVII_INTERNAL_ASSERT_bench(aSVD.MatV().Unitarity()<aDTest,"SVD-V Unit");
+             MMVII_INTERNAL_ASSERT_bench(aM.DIm().L2Dist(aSVD.OriMatr().DIm())<aDTest,"SVD Reconstr");
+        }
         
         cDenseMatrix<Type> aId(aNb,eModeInitImage::eMIA_MatrixId);
         cDenseMatrix<Type> aMInv = aM.Inverse();
@@ -436,8 +444,8 @@ void BenchStatCov(int aSz,int aNb)
 void BenchStatCov()
 {
     BenchStatCov(3,2);
-    BenchStatCov(3,3);
     BenchStatCov(3,4);
+    BenchStatCov(3,5);
     BenchStatCov(3,300);
 }
 
@@ -525,7 +533,7 @@ template <class Type> void BenchSysSur(cSysSurResolu<Type>& aSys,bool Exact)
              Type aRN = Residual(aSys,aNewV,aLWeight,aLVec,aLVal);
              // StdOut() << "RRRRR  " << aRN-aR0 << "\n";
 
-             MMVII_INTERNAL_ASSERT_bench(aRN>=aR0-1e-7,"Bench residual ");
+             MMVII_INTERNAL_ASSERT_bench(aRN>=aR0-1e-5,"Bench residual ");
 
              // double aD = aSol.DIm().L2Dist(aNewV.DIm());
              // StdOut() << " D=" << aD << "Dif " << (aRN-aR0) /Square(aD) << "\n";
@@ -601,8 +609,10 @@ void BenchLsq()
      TplBenchLsq<tREAL16,cLeasSqtAA<tREAL16> >();
 }
 
-void BenchDenseMatrix0()
+void BenchDenseMatrix0(cParamExeBench & aParam)
 {
+    if (! aParam.NewBench("Matrix0")) return;
+
     BenchLsq();
     BenchStatCov();
     {
@@ -687,6 +697,8 @@ void BenchDenseMatrix0()
     TplBenchDenseMatr<tREAL4>(100,100);
     TplBenchDenseMatr<tREAL8>(100,100);
     TplBenchDenseMatr<tREAL16>(100,100);
+
+    aParam.EndBench();
 }
 
 };

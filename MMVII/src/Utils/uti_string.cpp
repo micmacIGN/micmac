@@ -22,6 +22,7 @@ using namespace boost::filesystem;
 namespace MMVII
 {
 
+
 char ToHexacode(int aK)
 {
     MMVII_INTERNAL_ASSERT_tiny((aK>=0)&&(aK<16),"ToHexacode");
@@ -139,6 +140,11 @@ std::string Prefix(const std::string & aStr,char aSep,bool SVP,bool PrivPref)
     return aBefore;
 }
 
+std::string LastPrefix(const std::string & aStr,char aSep)
+{
+    return Prefix(aStr,aSep,true,true);
+}
+
 std::string Postfix(const std::string & aStr,char aSep,bool SVP,bool PrivPref)
 {
     std::string aBefore,aAfter;
@@ -220,6 +226,12 @@ std::string AbsoluteName(const std::string & aName)
      return absolute(aName).c_str();
 }
 
+std::string AddBefore(const std::string & aPath,const std::string & ToAdd)
+{
+   return DirOfPath(aPath,false) + ToAdd + FileOfPath(aPath,false);
+}
+
+
 
 
 /*
@@ -238,6 +250,37 @@ std::string BUD(const std::string & aDir)
    return aPath.c_str();
 }
 */
+std::string OneUpStd(const std::string & aDir)
+{
+   const char * aC = aDir.c_str();
+   int aL = strlen(aC);
+
+   // Supress all the finishing  /
+   while ((aL>0) && (aC[aL-1] == path::preferred_separator)) 
+          aL--;
+
+   // Supress all the not /
+   while ((aL>0) && (aC[aL-1]!= path::preferred_separator))
+       aL--;
+
+   int aL0 = aL;
+   // Supress all the  /
+   while ((aL>0) && (aC[aL-1] == path::preferred_separator)) 
+         aL--;
+
+    // Add the last /
+    if (aL0!=aL) 
+        aL++;
+    return  aDir.substr(0,aL);
+}
+
+
+std::string OneUpDir(const std::string & aDir)
+{
+   std::string aRes = OneUpStd(aDir);
+   if (aRes!="") return aRes;
+   return  aDir + std::string("..") +  path::preferred_separator;
+}
 
 /** Basic but seems to work untill now
 */
@@ -248,7 +291,8 @@ std::string UpDir(const std::string & aDir,int aNb)
    {
       // aRes += std::string("..") +  path::preferred_separator;
       // aRes += ".." +  path::preferred_separator;
-      aRes = aRes + std::string("..") +  path::preferred_separator;
+      // aRes = aRes + std::string("..") +  path::preferred_separator;
+      aRes = OneUpDir(aRes);
    }
    return aRes;
 }

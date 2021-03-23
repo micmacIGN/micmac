@@ -25,9 +25,11 @@ enum class eTA2007
             // ---------- Printed --------------
                 DirProject,    ///< Exact Dir of Proj
                 FileDirProj,   ///< File of Dir Proj
-                FileImage,       ///< File containing an image
-                MPatFile,        ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
+                FileImage,     ///< File containing an image
+                MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
+            // !!!!! AddCom must be last UNPRINTED  !!! because of test in Name4Help()
+                AddCom,        ///< Not an attribute, used to embed additionnal comment in Help mode
             // ---------- Not Printed -----------
             // !!!!! Shared must be first UNPRINTED  !!! because of test in Name4Help()
                 Shared,        ///< Parameter  Shared by many (several) command
@@ -119,6 +121,7 @@ enum class eTyUEr
               eWriteFile,
               eReadFile,
               eBadBool,
+              eBadInt,
               eBadEnum,
               eMulOptParam,
               eBadOptParam,
@@ -158,6 +161,7 @@ enum class eTyNums
               eTN_REAL4,
               eTN_REAL8,
               eTN_REAL16,
+              eTN_UnKnown,  // Used because for MMV1 Bits Type, we need to handle file, but dont have Bits Images
               eNbVals
            };
 
@@ -235,6 +239,13 @@ enum class eModeOutPCar
      eNbVals          ///< Tag End of Vals
 };
 
+/** Mode "Matcher" callable in DenseMatchEpipGen */
+
+enum class eModeEpipMatch
+{
+   eMEM_MMV1,  // Mode MicMac V1
+   eNbVals
+};
 
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         
@@ -243,11 +254,24 @@ const std::string & E2Str(const eTyUEr &);
 const std::string & E2Str(const eTyNums &);         
 const std::string & E2Str(const eTyInvRad &);         
 const std::string & E2Str(const eTyPyrTieP &);         
+const std::string & E2Str(const eModeEpipMatch &);         
 
 template <class Type> const Type & Str2E(const std::string &); 
 template <class Type> std::string   StrAllVall();
 template <class Type> std::vector<Type> SubOfPat(const std::string & aPat,bool AcceptEmpty=false);
 
+template <class TypeEnum> class cEnumAttr;
+typedef cEnumAttr<eTA2007> tSemA2007;
+template <class Type> tSemA2007  AC_ListVal();  ///< Additional comm giving list of possible values
+
+/* To use fully automatic in specif, need to add :
+Serial/cReadOneArgCL.cpp:MACRO_INSTANTIATE_ARG2007 =>  For Additional commentary
+Serial/cStrIO.cpp:MACRO_INSTANTITATE_STRIO_ENUM => For creating ToStr/FromStr like other type
+
+Serial/uti_e2string.cpp: ..::tMapE2Str cE2Str<eModeEpipMatch>::mE2S
+Serial/uti_e2string.cpp:TPL_ENUM_2_STRING
+=>  for creating the 2 dictionnaries enum <=> strings
+*/
 
 
 };

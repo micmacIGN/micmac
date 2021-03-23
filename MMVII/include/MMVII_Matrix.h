@@ -263,8 +263,10 @@ template <class Type> class cUnOptDenseMatrix : public cMatrix<Type>
 
 template <class Type> class cResulSymEigenValue;
 template <class Type> class cConst_EigenMatWrap;
+template <class Type> class cStrStat2;
 template <class Type> class cNC_EigenMatWrap;
 template <class Type> class cResulQR_Decomp;
+template <class Type> class cResulSVDDecomp;
 
 /**  Dense Matrix, probably one single class. 
      Targeted to be instantiated with 4-8-16 byte floating point
@@ -333,6 +335,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
         double Unitarity() const; ///< test the fact that M is unatiry, basic : distance of Id to tM M
         cResulSymEigenValue<Type> SymEigenValue() const;
+        cResulSVDDecomp<Type>  SVD() const;
 
         cResulQR_Decomp<Type>  QR_Decomposition() const;
 
@@ -375,8 +378,8 @@ template <class Type> class cResulSymEigenValue
 {
     public :
         friend class cDenseMatrix<Type>;
+        friend class cStrStat2<Type>;
 
-        cResulSymEigenValue(int aNb);
         cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix
 
         const cDenseVect<Type>   &  EigenValues() const ; ///< Eigen values
@@ -385,22 +388,47 @@ template <class Type> class cResulSymEigenValue
         Type  Cond(Type Def=Type(-1)) const ; ///< Conditioning, def value is when all 0, if all0 and Def<0 : Error
 
     private :
+        cResulSymEigenValue(int aNb);
         cDenseVect<Type>    mEigenValues;  ///< Eigen values
         cDenseMatrix<Type>  mEigenVectors; ///< Eigen vector
 };
+
+
+template <class Type> class cResulSVDDecomp
+{
+    public :
+        friend class cDenseMatrix<Type>;
+
+        cDenseMatrix<Type>  OriMatr() const; ///< Check the avability to reconstruct original matrix
+
+        const cDenseVect<Type>   &  SingularValues() const ; ///< Eigen values
+        const cDenseMatrix<Type> &  MatU()const ; ///< Eigen vector
+        const cDenseMatrix<Type> &  MatV()const ; ///< Eigen vector
+        // void  SetKthEigenValue(int aK,const Type & aVal) ;  ///< Eigen values
+        // Type  Cond(Type Def=Type(-1)) const ; ///< Conditioning, def value is when all 0, if all0 and Def<0 : Error
+
+    private :
+        cResulSVDDecomp(int aNb);
+        cDenseVect<Type>    mSingularValues;  ///< Eigen values
+        cDenseMatrix<Type>  mMatU; ///< Eigen vector
+        cDenseMatrix<Type>  mMatV; ///< Eigen vector
+
+};
+
+
 
 template <class Type> class cResulQR_Decomp
 {
     public :
         friend class cDenseMatrix<Type>;
 
-        cResulQR_Decomp(int aSzX,int aSzY);
         cDenseMatrix<Type>  OriMatr() const;
 
         const cDenseMatrix<Type> &  Q_Matrix() const; ///< Unitary
         const cDenseMatrix<Type> &  R_Matrix() const; ///< Triang
 
     private :
+        cResulQR_Decomp(int aSzX,int aSzY);
         cDenseMatrix<Type>  mQ_Matrix; ///< Unitary Matrix
         cDenseMatrix<Type>  mR_Matrix; ///< Triangular superior
 

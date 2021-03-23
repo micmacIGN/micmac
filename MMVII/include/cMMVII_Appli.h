@@ -17,6 +17,9 @@ class cMMVII_Appli;
 class cColStrAObl;
 class cColStrAOpt;
 typedef std::pair<std::string,std::string> t2S;
+class cAppliBenchAnswer; // With this class, an Appli indicate how it deal with Bench
+
+
 
 
 
@@ -345,6 +348,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static bool        OutV2Format() ;  ///<  Do we write in V2 Format
 
         void InitParam();  ///< Parse the parameter list
+        void SetNot4Exe(); ///< Indicate that the appli was not fully initialized
 
         const std::string & DirProject()   const;   ///<  Accessor to directoy of project
         const std::string & TopDirMMVII()   const;   ///<  main directory of MMVII , upon include,src ..
@@ -369,7 +373,10 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         int   LevelCall() const;     ///< Accessor to mLevelCall
 
+        virtual cAppliBenchAnswer BenchAnswer() const; ///< Has it a bench, default : no
+        virtual int  ExecuteBench(cParamExeBench &) ; ///< Execute bench, higher lev, higher test, Default Error, Appli is not benchable
     protected :
+
         /// Constructor, essenntially memorize command line and specifs
         cMMVII_Appli(const std::vector<std::string> & aVArgcv, const cSpecMMVII_Appli &,tVSPO=EmptyVSPO);
         /// Second step of construction, parse the command line and initialize values
@@ -410,6 +417,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
                                  ); ///< MMVII reccall the same command itself
 
         void                                      GenerateHelp(); ///< In Help mode print the help
+        void PrintAdditionnalComments(tPtrArg2007 anArg); ///< Print the optional comm in mode glob help
+
         void                                      InitProject();  ///< Create Dir (an other ressources) that may be used by all processe
         void                                      LogCommandIn(const std::string&,bool Main);  ///< Log command begin
         void                                      LogCommandOut(const std::string&,bool Main); ///< Log command end
@@ -427,6 +436,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::vector<std::string>                  mArgv;      ///< copy of local copy ArgArgv to be safe
         int                                       mArgc;          ///< memo argc
         const cSpecMMVII_Appli &                  mSpecs;         ///< The basic specs
+        bool                                      mForExe; ///< To distinguish not fully initialized in X::~X()
 
         std::string                               mDirBinMMVII;   ///< where is the binary
         std::string                               mTopDirMMVII;   ///< directory  mother of src/ bin/ ...

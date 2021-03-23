@@ -7,7 +7,7 @@ namespace MMVII
 
 void BenchFilterImage_000()
 {
-    StdOut() << "BenchFilterImage1BenchFilterImage1BenchFilterImage1\n";
+    // StdOut() << "BenchFilterImage1BenchFilterImage1BenchFilterImage1\n";
     cPt2di  aSzInd(6,9);
     cPt2di  aSz10 = aSzInd * 10;
     cPt2di  aSz = aSz10 - cPt2di(1,1);
@@ -160,9 +160,13 @@ void BenchFilterImage_000()
    
 }
 
-void BenchFilterImage1()
+void BenchFilterImage1(cParamExeBench & aParam)
 {
+     if (! aParam.NewBench("ImageFilter1")) return;
+
      BenchFilterImage_000();
+
+     aParam.EndBench();
 }
 
 
