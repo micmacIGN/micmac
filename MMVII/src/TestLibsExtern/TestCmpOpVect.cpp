@@ -1,6 +1,6 @@
 #include "include/MMVII_all.h"
-// #include "ExternalInclude/Eigen/Dense"  
-#include "/usr/local/include/Eigen/Dense"
+#include "ExternalInclude/Eigen/Dense"
+//#include "/usr/local/include/Eigen/Dense"
 #include "ceres/jet.h"
 
 using ceres::Jet;
