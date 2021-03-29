@@ -608,11 +608,12 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # DEFINITION : des preprocesseurs G++
 
 if(CMAKE_COMPILER_IS_GNUCC)
-	#~ add_compile_options(-O2 -Wall) // pas gere par le cmake de la forge
+	#~ add_compile_options(-O2 -Wall -fPIC) // pas gere par le cmake de la forge
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 if (${WERROR})
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -Werror")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -fPIC -Werror")
 else ()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -Wall -fPIC")
 endif()
 endif()
 

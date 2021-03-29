@@ -1,0 +1,5 @@
+api/*.o
+cpl.xml
+mmv2.py
+mmv2_wrap.*
+__pycache__/
