@@ -1,5 +1,6 @@
 #ifndef  _MMVII_Matrix_H_
 #define  _MMVII_Matrix_H_
+//  409f4b409c59f839284900ee5791302913d1abad
 namespace MMVII
 {
 
