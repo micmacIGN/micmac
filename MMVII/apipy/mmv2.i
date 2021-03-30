@@ -56,6 +56,7 @@
 
 //templates have to be named to be exported
 %template(cIm2Du8) MMVII::cIm2D<tU_INT1>;
+%template(cDataIm2Du8) MMVII::cDataIm2D<tU_INT1>;
 
 //used to make them usable as python lists
 namespace std {
