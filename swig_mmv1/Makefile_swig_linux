@@ -2,47 +2,35 @@ MMDir=..
 CXX=g++
 INCLUDEDIRS = -I. -I${MMDir}/include/
 DOCDIR = doc/
-CXXFlags= -std=c++11 -fPIC -Wall -Werror  -O2  -march=native ${INCLUDEDIRS} -DFORSWIG
+CXXFlags= -std=c++11 -fPIC -Wall -Werror -O2 -march=native ${INCLUDEDIRS} -DFORSWIG
 CXX_WRAP_FLAGS = ${CXXFlags} `pkg-config --cflags python3` ${INCLUDEDIRS}
 
-LFLAGS = ${MMDir}/lib/libelise.a -lX11 -lXext -lm -ldl -lpthread ${MMDir}/lib/libANN.a `pkg-config --libs python3-embed` `pkg-config --libs python3` -Wl,--warn-unresolved-symbols
 SO = _mm3d.so
 
 ifeq ($(USEQT), ON)
     QTLINK= -lGL -lGLU  -lQt5Core -lQt5Gui -lQt5Widgets -lQt5Concurrent -lQt5OpenGL -lQt5Xml
 endif
 
-CXX_SRCS = $(wildcard ./api/*.cpp)
-
-OBJ_FILES = $(CXX_SRCS:.cpp=.o)
-
 I_SRCS = $(wildcard *.i)
 PY_FILES = $(I_SRCS:.i=.py)
 WRAP_CXX_FILES = $(I_SRCS:.i=_wrap.cxx)
 WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 
-.PHONY: clean doc swig check
+.PHONY: clean doc swig
 
 .SECONDARY: $(WRAP_CXX_FILES)
 
 swig: $(OBJ_FILES) $(WRAP_O_FILES)
 	python3 setup.py install --user USEQT=$(USEQT)
+	python3 -c "import mm3d"
 
-check: $(OBJ_FILES) $(WRAP_O_FILES) test_exe.cpp
-	$(CXX) -c $(CXXFlags) test_exe.cpp -o test_exe.o 
-	$(CXX) $(OBJ_FILES) $(WRAP_O_FILES) test_exe.o $(LFLAGS) -o test  $(QTLINK)
-
-ewelina: $(OBJ_FILES) $(WRAP_O_FILES) test_er.cpp
-	$(CXX) -c $(CXXFlags) test_er.cpp -o test_er.o
-	$(CXX) $(OBJ_FILES) $(WRAP_O_FILES) test_er.o $(LFLAGS) -o test_er  $(QTLINK)
-
-all: swig check doc
+all: swig doc
 
 doc:
 	cd $(DOCDIR) && doxygen
 
 clean:
-	rm -f $(OBJ_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES) $(PY_FILES) $(SO) *.so *.o test test_er
+	rm -f $(WRAP_CXX_FILES) $(WRAP_O_FILES) $(PY_FILES) $(SO) *.so *.o
 	rm -Rf $(DOCDIR)/html build/
 	python3 setup.py clean
 
@@ -52,6 +40,6 @@ clean:
 %_wrap.o: %_wrap.cxx
 	$(CXX) -c  $(CXX_WRAP_FLAGS) $< -o $@
 
-%_wrap.cxx: %.i $(OBJ_FILES)
+%_wrap.cxx: %.i
 	swig -python -py3 -DFORSWIG -c++ ${INCLUDEDIRS} $<
 
