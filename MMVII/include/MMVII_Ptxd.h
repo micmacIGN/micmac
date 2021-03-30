@@ -19,13 +19,18 @@ namespace MMVII
 
 template <class Type,const int Dim> class cPtxd;
 
+template <class Type> class cDenseMatrix;
+template <class Type> class cDenseVect;
 
 
 ///  template class for Points
 
+
 template <class Type,const int Dim> class cPtxd
 {
     public :
+       typedef typename  tNumTrait<Type>::tBig  tBigNum ;
+
        static const int TheDim = Dim;
        /// Maybe some function will require generic access to data
        Type * PtRawData() {return mCoords;}
@@ -47,20 +52,34 @@ template <class Type,const int Dim> class cPtxd
        /// Some function requires default constructor (serialization ?)
        cPtxd() {}
 
+       /* I would prefer not inline but : cannot make work explicit instance of a 
+          a specific method,  and explicit of the whole class create problem
+         with the static asser ; 
+       */
+       // static cPtxd<Type,Dim> T_PCste(const Type & aVal) ;
+
        /// Initialisation with constants
-       static cPtxd<Type,Dim>  PCste(const Type & aVal) 
-       { 
-           cPtxd<Type,Dim> aRes;
-           for (int aK=0 ; aK<Dim; aK++) 
-               aRes.mCoords[aK]= aVal;
-           return aRes;
-       }
+       static cPtxd<Type,Dim>  PCste(const Type & aVal) ;
+       /// Initialisation random
+       static cPtxd<Type,Dim>  PRand();
+       /// Initialisation random VUnit
+       static cPtxd<Type,Dim>  PRandUnit();
+       /// Initialisation random VUnit not too close to P1
+       static cPtxd<Type,Dim>  PRandUnitDiff(const cPtxd<Type,Dim>&,const Type &aDist = 1e-2);
+
+        static cPtxd<Type,Dim> Col(const cDenseMatrix<Type>&,int aCol);  ///< Init with colum of matrix
+        static cPtxd<Type,Dim> Line(int aLine,const cDenseMatrix<Type>&); ///< Init with line of matrix
+        static cPtxd<Type,Dim> FromVect(const cDenseVect<Type>&); ///< Init with line of matrix
+
        /// Contructor for 1 dim point, statically checked
        explicit cPtxd(const Type & x) :  mCoords{x} {static_assert(Dim==1,"bad dim in cPtxd initializer");}
        /// Contructor for 2 dim point, statically checked
        cPtxd(const Type & x,const Type &y) :  mCoords{x,y} {static_assert(Dim==2,"bad dim in cPtxd initializer");}
        /// Contructor for 3 dim point, statically checked
        cPtxd(const Type & x,const Type &y,const Type &z) :  mCoords{x,y,z} {static_assert(Dim==3,"bad dim in cPtxd initializer");}
+       /// Contructor for 4 dim point, statically checked
+       cPtxd(const Type & x,const Type &y,const Type &z,const Type &t) :  mCoords{x,y,z,t} {static_assert(Dim==4,"bad dim in cPtxd initializer");}
+
 
         inline Type & x()             {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
         inline const Type & x() const {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
@@ -68,8 +87,13 @@ template <class Type,const int Dim> class cPtxd
         inline Type & y()             {static_assert(Dim>=2,"bad dim in cPtxd initializer");return mCoords[1];}
         inline const Type & y() const {static_assert(Dim>=2,"bad dim in cPtxd initializer");return mCoords[1];}
 
-        inline Type & z()             {static_assert(Dim>=2,"bad dim in cPtxd initializer");return mCoords[2];}
-        inline const Type & z() const {static_assert(Dim>=2,"bad dim in cPtxd initializer");return mCoords[2];}
+        inline Type & z()             {static_assert(Dim>=3,"bad dim in cPtxd initializer");return mCoords[2];}
+        inline const Type & z() const {static_assert(Dim>=3,"bad dim in cPtxd initializer");return mCoords[2];}
+
+        inline Type & t()             {static_assert(Dim>=4,"bad dim in cPtxd initializer");return mCoords[3];}
+        inline const Type & t() const {static_assert(Dim>=4,"bad dim in cPtxd initializer");return mCoords[3];}
+
+        cDenseVect<Type> ToVect() const; ///< conversion
 
     protected :
        Type mCoords[Dim];
@@ -94,6 +118,8 @@ template <class Type> inline cPtxd<Type,2> operator + (const cPtxd<Type,2> & aP1
 { return cPtxd<Type,2>(aP1.x() + aP2.x(),aP1.y() + aP2.y()); }
 template <class Type> inline cPtxd<Type,3> operator + (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 { return cPtxd<Type,3>(aP1.x() + aP2.x(),aP1.y() + aP2.y(),aP1.z()+aP2.z()); }
+template <class Type> inline cPtxd<Type,4> operator + (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{ return cPtxd<Type,4>(aP1.x() + aP2.x(),aP1.y() + aP2.y(),aP1.z()+aP2.z(),aP1.t()+aP2.t()); }
 
 ///  binary operator - on points
 template <class Type> inline cPtxd<Type,1> operator - (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
@@ -102,6 +128,8 @@ template <class Type> inline cPtxd<Type,2> operator - (const cPtxd<Type,2> & aP1
 { return cPtxd<Type,2>(aP1.x() - aP2.x(),aP1.y() - aP2.y()); }
 template <class Type> inline cPtxd<Type,3> operator - (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 { return cPtxd<Type,3>(aP1.x() - aP2.x(),aP1.y() - aP2.y(),aP1.z()-aP2.z()); }
+template <class Type> inline cPtxd<Type,4> operator - (const cPtxd<Type,4> & aP1,const cPtxd<Type,4> & aP2) 
+{ return cPtxd<Type,4>(aP1.x() - aP2.x(),aP1.y() - aP2.y(),aP1.z()-aP2.z(),aP1.t()-aP2.t()); }
 
 ///  MulCByC multiplication coordinates by coordinates
 template <class Type> inline cPtxd<Type,1>  MulCByC (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
@@ -148,23 +176,49 @@ template <class Type> inline cPtxd<Type,3> operator * (const cPtxd<Type,3> & aP,
 
 ///  operator /  points-scalar
 template <class Type> inline cPtxd<Type,1> operator / (const cPtxd<Type,1> & aP,const Type & aVal) 
-{return  cPtxd<Type,1>(aP.x()/aVal);}
+{
+   MMVII_INTERNAL_ASSERT_NotNul(aVal);
+   return  cPtxd<Type,1>(aP.x()/aVal);
+}
 template <class Type> inline cPtxd<Type,2> operator / (const cPtxd<Type,2> & aP,const Type & aVal) 
-{return  cPtxd<Type,2>(aP.x()/aVal,aP.y()/aVal);}
+{
+    MMVII_INTERNAL_ASSERT_NotNul(aVal);
+    return  cPtxd<Type,2>(aP.x()/aVal,aP.y()/aVal);
+}
 template <class Type> inline cPtxd<Type,3> operator / (const cPtxd<Type,3> & aP,const Type & aVal) 
-{return  cPtxd<Type,3>(aP.x()/aVal,aP.y()/aVal,aP.z()/aVal);}
+{
+    MMVII_INTERNAL_ASSERT_NotNul(aVal);
+    return  cPtxd<Type,3>(aP.x()/aVal,aP.y()/aVal,aP.z()/aVal);
+}
+template <class Type> inline cPtxd<Type,4> operator / (const cPtxd<Type,4> & aP,const Type & aVal) 
+{
+    MMVII_INTERNAL_ASSERT_NotNul(aVal);
+    return  cPtxd<Type,4>(aP.x()/aVal,aP.y()/aVal,aP.z()/aVal,aP.t()/aVal);
+}
 
 
-///  operator == on points
+///  Norms on points
+template <class T,const int Dim> double NormK(const cPtxd<T,Dim> & aP,double anExp) ;
+template <class T,const int Dim> T Norm1(const cPtxd<T,Dim> & aP);
+template <class T,const int Dim> T NormInf(const cPtxd<T,Dim> & aP);
+template <class T,const int Dim> double Norm2(const cPtxd<T,Dim> & aP);
+
+template <class T,const int Dim> typename  tNumTrait<T>::tBig Scal(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
+
+template <class T,const int Dim> T Cos(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
+
+
+/*
+template <class T,const int Dim> inline T Norm2(const cPtxd<T,Dim> & aP) {return std::sqrt(SqN2(aP));}
 template <class T> inline T Norm1(const cPtxd<T,1> & aP) {return std::abs(aP.x());}
 template <class T> inline T Norm1(const cPtxd<T,2> & aP) {return std::abs(aP.x())+std::abs(aP.y());}
 template <class T> inline T NormInf(const cPtxd<T,1> & aP) {return std::abs(aP.x());}
 template <class T> inline T NormInf(const cPtxd<T,2> & aP) {return std::max(std::abs(aP.x()),std::abs(aP.y()));}
 // template <class T> inline T SqN2(const cPtxd<T,1> & aP) {return Square(aP.x());}
+*/
    /// Currently, the L2 norm is used for comparaison, no need to extract square root
 template <class T> inline T SqN2(const cPtxd<T,1> & aP) {return Square(aP.x());}
 template <class T> inline T SqN2(const cPtxd<T,2> & aP) {return Square(aP.x())+Square(aP.y());}
-template <class T,const int Dim> inline T Norm2(const cPtxd<T,Dim> & aP) {return std::sqrt(SqN2(aP));}
 /// Sort vector by norm, typically dont need to compute square root
 template <class Type,const int Dim> bool CmpN2(const cPtxd<Type,Dim> &aP1,const  cPtxd<Type,Dim> & aP2) 
 {
@@ -249,16 +303,14 @@ template <class Type> inline bool InfEq  (const cPtxd<Type,3> & aP1,const cPtxd<
 {return  (aP1.x()<=aP2.x()) && (aP1.y()<=aP2.y()) && (aP1.z()<=aP2.z());}
 
 
+template<class T,const int Dim> cPtxd<T,Dim>  VUnit(const cPtxd<T,Dim> & aP);
+// template<const int Dim> cPtxd<tREAL8 ,Dim>  VUnit(const cPtxd<tREAL8 ,Dim> & aP);
+// template<const int Dim> cPtxd<tREAL16,Dim>  VUnit(const cPtxd<tREAL16,Dim> & aP);
+
+
 ///  operator << 
-template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,1> &aP)
-{ return  OS << "[" << aP.x() << "]"; }
-template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,2> &aP)
-{ return  OS << "[" << aP.x() << "," << aP.y() << "]"; }
-template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,3> &aP)
-{ return  OS << "[" << aP.x() << "," << aP.y() << "," << aP.z()<< "]"; }
+template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,Dim> &aP);
 
-
-template <class Type> inline cPtxd<Type,2> PSymXY (const cPtxd<Type,2> & aP) { return cPtxd<Type,2>(aP.y(),aP.x()); }
 
     ///  1 dimension specializatio,
 typedef cPtxd<double,1>  cPt1dr ;
@@ -270,41 +322,7 @@ typedef cPtxd<double,2>  cPt2dr ;
 typedef cPtxd<int,2>     cPt2di ;
 typedef cPtxd<float,2>   cPt2df ;
 
-// extern const cPt2di  ThePSupImage;  ///< Very "big" point, can be used as initiallizatiion of min point of boxes
-// extern const cPt2di  ThePInfImage;  ///< Very "small" point, can be used as initiallizatiion of min point of boxes
 
-      // Complex and  polar function dedicatde
-///   Complex multiplication 
-inline cPt2dr operator * (const cPt2dr &aP1,const cPt2dr & aP2) 
-{ 
-   return cPt2dr(aP1.x()*aP2.x()-aP1.y()*aP2.y(),aP1.x()*aP2.y()+aP1.y()*aP2.x());
-}
-inline cPt2dr conj  (const cPt2dr &aP1) {return cPt2dr(aP1.x(),-aP1.y());}
-inline cPt2dr inv   (const cPt2dr &aP1) 
-{
-   AssertNonNul(aP1);
-   return conj(aP1) / SqN2(aP1);
-}
-inline cPt2dr operator / (const cPt2dr &aP1,const cPt2dr & aP2) {return aP1 * inv(aP2);}
-
-
-inline cPt2dr ToPolar(const cPt2dr & aP1)  ///<  From x,y to To rho,teta
-{
-   AssertNonNul(aP1);
-   return  cPt2dr(hypot(aP1.x(),aP1.y()),atan2(aP1.y(),aP1.x()));
-}
-inline cPt2dr ToPolar(const cPt2dr & aP1,double aDefTeta)  ///<  With Def value 4 teta
-{
-    return IsNotNull(aP1) ? ToPolar(aP1) : cPt2dr(0,aDefTeta);
-}
-inline cPt2dr FromPolar(const double & aRho,const double & aTeta)
-{
-    return cPt2dr(aRho*cos(aTeta),aRho*sin(aTeta));
-}
-inline cPt2dr FromPolar(const cPt2dr & aP)
-{
-    return FromPolar(aP.x(),aP.y());
-}
 
 template <class T,const int Dim> inline double RatioMax(const cPtxd<T,Dim> & aP1,const cPtxd<T,Dim> & aP2)
 {
@@ -360,7 +378,7 @@ cPtxd<int,Dim>  ICByC1P
 template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_down(const cPtxd<Type,Dim>  aP);
 template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_up(const cPtxd<Type,Dim>  aP);
 template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_ni(const cPtxd<Type,Dim>  aP);
-
+// template <class Type,const int Dim>  cPtxd<Type,Dim> PCste(const Type & aVal);
 
 
 /**  CByC version with 2 points */
@@ -470,6 +488,7 @@ template <class Type,const int Dim>  class cTplBox
         static cPtxd<double,Dim>  RandomNormalised() ;     ///<  Random point in "hyper cube" [0,1] ^ Dim
         tPt   GeneratePointInside() const;   ///< Random point in integer rect
         tBox  GenerateRectInside(double aPowSize=1.0) const; ///< Hig Power generate "small" rect, never empty
+
 
 
     protected :

@@ -659,7 +659,7 @@ void OneBenchAffineExtre()
     double aVC = aSign *(RandUnif_0_1() * 0.1); 
 
    
-    cDenseMatrix<double>  aMatReg = cDenseMatrix<double>::RandomSquareRegMatrix(2,true,1.0,0.1);
+    cDenseMatrix<double>  aMatReg = cDenseMatrix<double>::RandomSquareRegMatrix(cPt2di(2,2),true,1.0,0.1);
     aVA = aMatReg(0,0);
     aVB = aMatReg(0,1);
     aVC = aMatReg(1,1);

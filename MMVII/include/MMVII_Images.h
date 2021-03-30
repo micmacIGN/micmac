@@ -20,8 +20,8 @@ template <const int Dim>  class cPixBoxIterator
         typedef cPixBox<Dim>          tPB;
         friend class cPixBox<Dim>;
 
-        bool operator == (const tIter& aIt2) {return  mPCur==aIt2.mPCur;}  ///< Equal iff current point are =
-        bool operator != (const tIter& aIt2) {return  mPCur!=aIt2.mPCur;}  ///< !Equal iif not equal ...
+        bool operator == (const tIter& aIt2) const {return  mPCur==aIt2.mPCur;}  ///< Equal iff current point are =
+        bool operator != (const tIter& aIt2) const {return  mPCur!=aIt2.mPCur;}  ///< !Equal iif not equal ...
         tPt & operator * () {return mPCur;}         ///< classic operator dereference
         tPt & operator * () const {return mPCur;}   ///< classic operator dereference
         tPt * operator ->() {return &mPCur;}        ///< classic operator dereference
@@ -51,8 +51,9 @@ template <const int Dim>  class cPixBoxIterator
 template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
 {
     public : 
-        typedef cPtxd<int,Dim>        tPt;
-        typedef cTplBox<int,Dim>      tBox;
+        typedef int                   tScalPt;
+        typedef cPtxd<tScalPt,Dim>        tPt;
+        typedef cTplBox<tScalPt,Dim>      tBox;
         typedef cPixBoxIterator<Dim> iterator; ///< For auto ...
         static const cPixBox<Dim>    TheEmptyBox;
         //  --- Iterator ----------------
@@ -239,6 +240,7 @@ template <> inline cPixBoxIterator<1> &  cPixBoxIterator<1>::operator ++()
 }
 template <> inline cPixBoxIterator<2> &  cPixBoxIterator<2>::operator ++() 
 {
+    // std::cout << "OPPPPPP " << mPCur << " " << mRO->P0() << mRO->P1() << "\n";
     mPCur.x()++; 
     if (mPCur.x() == mRO->P1().x())
     {

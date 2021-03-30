@@ -134,6 +134,14 @@ double RandUnif_C()
    return (RandUnif_0_1()-0.5) * 2.0;
 }
 
+double RandUnif_C_NotNull(double aEps)
+{
+   double aRes = RandUnif_C();
+   while (std::abs(aRes)>aEps)
+         aRes = RandUnif_C();
+   return aRes;
+}
+
 double RandUnif_N(int aN)
 {
    return cRandGenerator::TheOne()->Unif_N(aN);

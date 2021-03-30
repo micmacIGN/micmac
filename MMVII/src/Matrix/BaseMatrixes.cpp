@@ -68,6 +68,27 @@ template <class Type> double cDenseVect<Type>::L2Dist(const cDenseVect<Type> & a
 {
    return mIm.DIm().L2Dist(aV.mIm.DIm());
 }
+
+template <class Type> double cDenseVect<Type>::L1Norm() const
+{
+   return mIm.DIm().L1Norm();
+}
+template <class Type> double cDenseVect<Type>::L2Norm() const
+{
+   return mIm.DIm().L2Norm();
+}
+template <class Type> double cDenseVect<Type>::LInfNorm() const
+{
+   return mIm.DIm().LInfNorm();
+}
+
+
+// double L1Norm() const;   ///< Norm som abs double L2Norm() const;   ///< Norm square double LInfNorm() const; ///< Nomr max
+
+
+
+
+
 template <class Type> double cDenseVect<Type>::DotProduct(const cDenseVect<Type> & aV) const
 {
    return MMVII::DotProduct(DIm(),aV.DIm());
@@ -98,6 +119,16 @@ template <class Type> std::ostream & operator << (std::ostream & OS,const cDense
    }
    OS << "]";
    return OS;
+}
+
+
+template <class Type> Type  cDenseVect<Type>::ProdElem() const
+{
+   Type aRes = (*this)(0);
+   for (int aK=1 ; aK<Sz() ; aK++)
+        aRes *= (*this)(aK);
+
+   return aRes;
 }
 
 
@@ -454,6 +485,7 @@ template <class Type> std::ostream & operator << (std::ostream & OS,const cMatri
    OS << "]\n";
    return OS;
 }
+
 
 
 /* ===================================================== */

@@ -76,6 +76,11 @@ template <class Type> class  cDenseVect
         double L1Dist(const cDenseVect<Type> & aV) const;
         double L2Dist(const cDenseVect<Type> & aV) const;
 
+        double L1Norm() const;   ///< Norm som abs
+        double L2Norm() const;   ///< Norm square
+        double LInfNorm() const; ///< Nomr max
+
+
         Type * RawData();
         const Type * RawData() const;
 
@@ -85,6 +90,8 @@ template <class Type> class  cDenseVect
 
         tIM & Im(){return mIm;}
         const tIM & Im() const {return mIm;}
+
+        Type ProdElem() const; ///< Mul of all element, usefull for det computation
 
         // operator -= 
         double DotProduct(const cDenseVect &) const;
@@ -219,6 +226,8 @@ template <class Type> class cMatrix  : public cRect2
      private :
 };
 
+
+
 template <class Type> cDenseVect<Type> operator * (const cDenseVect<Type> &,const cMatrix<Type>&);
 template <class Type> cDenseVect<Type> operator * (const cMatrix<Type>&,const cDenseVect<Type> &);
 
@@ -283,6 +292,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         typedef cDenseVect<Type> tDV;
         typedef cDataIm2D<Type> tDIm;
         typedef cIm2D<Type> tIm;
+        typedef cResulSVDDecomp<Type> tRSVD;
 
         typedef  cMatrix<Type>           tMat;
         typedef  cUnOptDenseMatrix<Type> tUO_DM;
@@ -302,7 +312,18 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
             usefull for bench as when the random matrix is close to singular, it may instability that fail
             the numerical test.
         */
-        static tDM RandomSquareRegMatrix(int aSz,bool IsSym,double aAmplAcc,double aCondMinAccept);
+        static tDM RandomSquareRegMatrix(const cPt2di&aSz,bool IsSym,double aAmplAcc,double aCondMinAccept);
+        static tRSVD RandomSquareRegSVD(const cPt2di&aSz,bool IsSym,double aAmplAcc,double aCondMinAccept);
+
+        /* Generate a matrix rank deficient, where aSzK is the size of the kernel */
+        static tRSVD RandomSquareRankDefSVD(const cPt2di & aSz,int aSzK);
+        static tDM RandomSquareRankDefMatrix(const cPt2di & aSz,int aSzK);
+
+        /** Compute the kernel of the matrix, due to numeric rounding, we dont have exactly M*K=0,
+            so VP indicate how close we are from that, made using SVD */
+        tDV Kernel(Type * aVP=nullptr) const;
+        /// More general version of Kernel, apply to any eigen value
+        tDV EigenVect(const Type & aVal,Type * aVP=nullptr) const;
 
         // To contourn borring new template scope ....
         const tDIm & DIm() const {return tUO_DM::DIm();}
@@ -335,7 +356,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
         double Unitarity() const; ///< test the fact that M is unatiry, basic : distance of Id to tM M
         cResulSymEigenValue<Type> SymEigenValue() const;
-        cResulSVDDecomp<Type>  SVD() const;
+        tRSVD  SVD() const;
 
         cResulQR_Decomp<Type>  QR_Decomposition() const;
 
@@ -358,6 +379,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         tDM  Transpose() const;  ///< Put transposate in M2
          
         double Diagonalicity() const; ///< how much close to a diagonal matrix, square only , 
+        Type   Det() const;  ///< compute the determinant, not sur optimise
 
         //  =====   Overridng of cMatrix classe  ==== 
         void  MulColInPlace(tDV &,const tDV &) const override;
@@ -373,6 +395,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
         // ====  Sparse vector 
         void  Weighted_Add_tAA(Type aWeight,const tSpV & aColLine,bool OnlySup=true) override;
 };
+
 
 template <class Type> class cResulSymEigenValue
 {
@@ -563,6 +586,36 @@ template <class Type>  class cComputeStdDev
          Type mStdDev; 
 };
 
+/* ============================================== */
+/*                                                */
+/*         Point/Matrix                           */
+/*                                                */
+/* ============================================== */
+
+// Operation with points,  as points have fixed size contrarily to matrix, the syntax is not
+// as fluent as I would like
+
+#define CHECK_SZMAT_COL(aMAT,aPT) MMVII_INTERNAL_ASSERT_tiny(aMAT.Sz().y()==aPT.TheDim,"Bad size in Col Pt")
+#define CHECK_SZMAT_LINE(aMAT,aPT) MMVII_INTERNAL_ASSERT_tiny(aMAT.Sz().x()==aPT.TheDim,"Bad size in Line Pt")
+#define CHECK_SZMAT_SQ(aMAT,aPT) MMVII_INTERNAL_ASSERT_tiny((aMAT.Sz().x()==aPT.TheDim) &&(aMAT.sz().y()==aPt.TheDim),"Bad size Sq Pt")
+
+#define CHECK_SZPT_VECT(aMAT,aPT) MMVII_INTERNAL_ASSERT_tiny(aMAT.Sz()==aPT.TheDim,"Bad size in Vec/Pt")
+
+
+template <class Type,int Dim> void GetCol(cPtxd<Type,Dim> &,const cDenseMatrix<Type> &,int aCol);
+// template <class Type,int Dim> cPtxd<Type,Dim> GetCol(const cDenseMatrix<Type> &,int aCol);
+template <class Type,int Dim> void SetCol(cDenseMatrix<Type> &,int aCol,const cPtxd<Type,Dim> &);
+
+template <class Type,int Dim> void GetLine(cPtxd<Type,Dim> &,int aLine,const cDenseMatrix<Type> &);
+// template <class Type,int Dim> cPtxd<Type,Dim> GetLine(int aLine,const cDenseMatrix<Type> &);
+template <class Type,int Dim> void SetLine(int aLine,cDenseMatrix<Type> &,const cPtxd<Type,Dim> &);
+
+// Mutiplication by a square Matrix only, do we know size
+template <class Type,const int Dim>  cPtxd<Type,Dim> operator * (const cPtxd<Type,Dim> &,const cDenseMatrix<Type> &);
+template <class Type,const int Dim>  cPtxd<Type,Dim> operator * (const cDenseMatrix<Type> &,const cPtxd<Type,Dim> &);
+
+template<class Type,const int DimOut,const int DimIn>void MulCol(cPtxd<Type,DimOut>&,const cDenseMatrix<Type>&,const cPtxd<Type,DimIn>&);
+template<class Type,const int DimOut,const int DimIn>void MulLine(cPtxd<Type,DimOut>&,const cPtxd<Type,DimIn>&aLine,const cDenseMatrix<Type>&);
 
 
 };

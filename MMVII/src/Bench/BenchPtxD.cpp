@@ -42,9 +42,33 @@ void  Bench_cPt2dr()
    }
 }
 
+template <class TypePt> void  TestDist(TypePt aPt,double aN1,double aN2,double aNInf)
+{
+   MMVII_INTERNAL_ASSERT_bench(std::abs(Norm1(aPt)-aN1)<1e-10,"Norm2");
+   MMVII_INTERNAL_ASSERT_bench(std::abs(NormK(aPt,1.0)-aN1)<1e-10,"Norm2");
+   MMVII_INTERNAL_ASSERT_bench(std::abs(Norm2(aPt)-aN2)<1e-10,"Norm2");
+   MMVII_INTERNAL_ASSERT_bench(std::abs(NormK(aPt,2.0)-aN2)<1e-10,"Norm2");
+   MMVII_INTERNAL_ASSERT_bench(std::abs(NormInf(aPt)-aNInf)<1e-10,"Norm2");
+
+   // As it only an approx a inf, low threshold
+   // std::cout << "DIFF= " <<  NormK(aPt,100.0)-aNInf << "\n";
+   MMVII_INTERNAL_ASSERT_bench(std::abs(NormK(aPt,100.0)-aNInf)<1e-5,"Norm2");
+
+
+   MMVII_INTERNAL_ASSERT_bench(std::abs(Square(Norm2(aPt))- Scal(aPt,aPt))<1e-5,"Norm2");
+
+}
+
 void  Bench_0000_Ptxd(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Ptxd")) return;
+    
+    {
+        TestDist(cPt1dr (-8),8,8,8);
+        TestDist(cPt2dr (-3,4),7,5,4);
+        TestDist(cPt3dr (-3,0,4),7,5,4);
+        TestDist(cPtxd<float,4> (1,1,1,2),5,sqrt(7),2);
+    }
     
     Bench_cPt2dr();
     cPt1dr aA1(1);
@@ -89,6 +113,8 @@ void  Bench_0000_Ptxd(cParamExeBench & aParam)
     MMVII_INTERNAL_ASSERT_bench(aR.Proj(cPt2di(1,22)) == cPt2di(10,22),"Bench_0000_Ptxd");
     MMVII_INTERNAL_ASSERT_bench(aR.Proj(cPt2di(11,19)) == cPt2di(11,20),"Bench_0000_Ptxd");
     MMVII_INTERNAL_ASSERT_bench(aR.Proj(cPt2di(100,100)) == cPt2di(49,39),"Bench_0000_Ptxd");
+
+
 
     aParam.EndBench();
 }

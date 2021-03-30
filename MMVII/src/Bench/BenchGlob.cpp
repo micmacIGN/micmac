@@ -480,6 +480,9 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         // Test vector operation efficiency (using 4 eigen and others)
         BenchCmpOpVect(aParam);
 
+        // Test geometric basic
+        BenchGeom(aParam);
+
         // Apparently this bench do not succeed; to see later ?
         if (mDoBUSD)
         {
@@ -916,6 +919,8 @@ int cAppli_MPDTest::Exe()
        F("bbbb");
     }
     F("ccccc");
+    cRotation3D<double>::RandomRot();
+
    
 /*
    cSparseVect<float>  aSV;

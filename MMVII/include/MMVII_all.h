@@ -64,6 +64,9 @@
 #include "MMVII_AimeTieP.h"
 // #include "MMVII_Tpl_Images.h"
 
+#include "MMVII_Geom2D.h"
+#include "MMVII_Geom3D.h"
+
 #include "MMVII_Mappings.h"
 #include "MMVII_Sensor.h"
 

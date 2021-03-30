@@ -131,12 +131,19 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::AntiSymetrize() co
 
 template <class Type>  void cDenseMatrix<Type>::TransposeIn(tDM & aM2) const
 {
-     MMVII_INTERNAL_ASSERT_medium(aM2.Sz() == cPt2di(Sz().y(),Sz().x()) ,"Bad size for in place transposition")
-     MMVII_INTERNAL_ASSERT_medium(&aM2 != this ,"Use TransposeIn with same matrix");
+     MMVII_INTERNAL_ASSERT_medium(aM2.Sz() == PSymXY(Sz()) ,"Bad size for in place transposition")
+     MMVII_INTERNAL_ASSERT_medium(&(aM2.DIm()) != &(this->DIm()) ,"Use TransposeIn with same matrix");
+
+     // Rest du bug bizarre sur :RandomSquareRegMatrix
+     // cPixBox<2> aBox = *this;
+     // for (const auto & aP : aBox)
      for (const auto & aP : *this)
+     // for (auto & aP  = this->begin() ;aP!=this->end() ; aP++)
      {
-         aM2.SetElem(aP.y(),aP.x(),GetElem(aP));
+
+          aM2.SetElem(aP.y(),aP.x(),GetElem(aP));
      }
+
 }
 
 template <class Type>  void cDenseMatrix<Type>::SelfTransposeIn()

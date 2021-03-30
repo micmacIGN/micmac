@@ -66,6 +66,7 @@ void MMVII_RestoreDefaultHandle();
 #endif
 
 
+#define MMVII_INTERNAL_ASSERT_NotNul(aVal)  MMVII_INTERNAL_ASSERT_tiny((aVal!=0),"Unexpected null value")
 
 #define MMVII_INTERNAL_ASSERT_medium(aTest,aMes)\
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_medium ) && (!(aTest)))\
