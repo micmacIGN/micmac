@@ -1031,7 +1031,11 @@ int System(const std::string & aComOri,bool aSVP,bool AddOptGlob,bool UseTheNbIt
      return aRes;
 }
 
+#ifndef __GNUC__
 void ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
+#else
+void __attribute__((weak)) ElExit(int aLine,const char * aFile,int aCode,const std::string & aMessage)
+#endif
 {
    cFileDebug::TheOne.Close(aCode);
 
