@@ -448,7 +448,7 @@ template <class Type,const int Dim>  class cTplBox
 
         const tBigNum & NbElem() const {return mNbElem;}  ///< Surface  / Volume
 
-        const tPt & SzCum() const; ///< Cumulated size, rather internal use
+        //const tPt & SzCum() const; ///< Cumulated size, rather internal use
 
         // Boolean operators
            /// Is this point/pixel/voxel  inside
