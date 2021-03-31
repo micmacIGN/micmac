@@ -126,11 +126,19 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PRand()
    return aRes;
 }
 
+template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PRandC()
+{
+   cPtxd<Type,Dim> aRes;
+   for (int aK=0 ; aK<Dim; aK++)
+       aRes.mCoords[aK]= RandUnif_C();
+   return aRes;
+}
+
 template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PRandUnit()
 {
-   cPtxd<Type,Dim> aRes = PRand();
+   cPtxd<Type,Dim> aRes = PRandC();
    while (NormInf(aRes)<1e-2)
-        aRes = PRand();
+        aRes = PRandC();
    return VUnit(aRes);
 }
 
@@ -644,6 +652,7 @@ template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_ni(const cPtxd<Type
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRand();\
+template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandC();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandUnit();\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitDiff(const cPtxd<TYPE,DIM>& ,const TYPE&);\
 template  double NormK(const cPtxd<TYPE,DIM> & aPt,double anExp);\

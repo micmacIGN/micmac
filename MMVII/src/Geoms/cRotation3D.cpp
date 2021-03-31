@@ -61,6 +61,13 @@ template <class Type> void cRotation3D<Type>::ExtractAxe(tPt & anAxe,Type & aTet
     cDenseVect<Type> aDVAxe =  mMat.EigenVect(1.0);
     anAxe =  cPtxd<Type,3>::FromVect(aDVAxe);
 
+/*
+{
+Type aVer;
+   std::cout << "VVV " << aVer << "AAAA " << anAxe << " " << mMat * anAxe << "\n";
+}
+*/
+
     cRotation3D<Type> aRep = CompleteRON(anAxe);
     cPtxd<Type,3> aP1 = cPtxd<Type,3>::Col(aRep.mMat,1);
     cPtxd<Type,3> aP2 = cPtxd<Type,3>::Col(aRep.mMat,2);

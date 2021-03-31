@@ -62,6 +62,8 @@ template <class Type,const int Dim> class cPtxd
        static cPtxd<Type,Dim>  PCste(const Type & aVal) ;
        /// Initialisation random
        static cPtxd<Type,Dim>  PRand();
+       /// Initialisation random
+       static cPtxd<Type,Dim>  PRandC();
        /// Initialisation random VUnit
        static cPtxd<Type,Dim>  PRandUnit();
        /// Initialisation random VUnit not too close to P1

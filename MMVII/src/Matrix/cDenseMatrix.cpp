@@ -156,16 +156,16 @@ template<class Type> cDenseMatrix<Type>
 }
 
 
-template<class Type> cDenseVect<Type> cDenseMatrix<Type>::EigenVect(const Type & aVal,Type * aVp) const
+template<class Type> cDenseVect<Type> cDenseMatrix<Type>::Kernel(Type * aVp) const
 {
     /*   U D tV K  =>  tV K = Dk     => K = V Dk */
 
     cResulSVDDecomp<Type> aSVDD = SVD();
     cDenseVect<Type>  aVDiag = aSVDD.SingularValues();
 
-    cWhitchMin<int,Type> aWMin(0,std::abs(aVal-aVDiag(0)));
+    cWhitchMin<int,Type> aWMin(0,std::abs(aVDiag(0)));
     for (int aK=1 ; aK<aVDiag.Sz() ; aK++)
-        aWMin.Add(aK,std::abs(aVal-aVDiag(aK)));
+        aWMin.Add(aK,std::abs(aVDiag(aK)));
 
     if (aVp) 
        *aVp = aVDiag(aWMin.Index());
@@ -173,9 +173,14 @@ template<class Type> cDenseVect<Type> cDenseMatrix<Type>::EigenVect(const Type &
     return aSVDD.MatV().ReadCol(aWMin.Index());
 }
 
-template<class Type> cDenseVect<Type> cDenseMatrix<Type>::Kernel(Type * aVp) const
+template<class Type> cDenseVect<Type> cDenseMatrix<Type>::EigenVect(const Type & aVal,Type * aVp) const
 {
-    return EigenVect(0,aVp);
+    this->CheckSquare(*this);
+    cDenseMatrix<Type> aM = Dup();
+    for (int aK=0 ; aK<Sz().x() ; aK++)
+        aM.SetElem(aK,aK,aM.GetElem(aK,aK) - aVal);
+     
+    return aM.Kernel(aVp);
 }
 
 

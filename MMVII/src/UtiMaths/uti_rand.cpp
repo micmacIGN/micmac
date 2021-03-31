@@ -137,7 +137,7 @@ double RandUnif_C()
 double RandUnif_C_NotNull(double aEps)
 {
    double aRes = RandUnif_C();
-   while (std::abs(aRes)>aEps)
+   while (std::abs(aRes)<aEps)
          aRes = RandUnif_C();
    return aRes;
 }
