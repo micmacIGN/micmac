@@ -51,5 +51,8 @@ PIP package tutorial: https://packaging.python.org/tutorials/packaging-projects/
 
 TODO
 ----
- - matrices with numpy
+ - test shared pointers behavior in python between cIm2D and cDataIm2D
+ - test memory AllocExecuteDestruct, check Restoration
+ - matrices with numpy (cRotation3d)
+ - re-create benchs in py
 

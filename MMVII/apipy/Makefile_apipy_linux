@@ -24,7 +24,7 @@ WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 apipy: $(WRAP_O_FILES)
 	python3 setup.py install --user USEQT=$(USEQT)
 	python3 -c "import mmv2"
-	echo "All is Ok"
+	$(info "All is Ok")
 
 all: apipy doc
 

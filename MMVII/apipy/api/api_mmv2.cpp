@@ -7,9 +7,20 @@
 const std::string MMVII::DirBin2007 = std::string(getenv("HOME"))+"/.local/mmv2/include/XML_GEN/";
 extern bool TheExitOnBrkp;
 
+static void ErrHanlderPy(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
+{
+    MMVII::ErrOut() << "\n\n ######################################""\n\n";
+    MMVII::ErrOut() << "\n\n ###### Python API error handler ######""\n\n";
+    MMVII::ErrOut() << "Level=[" << aType << "]\n";
+    MMVII::ErrOut() << "Mes=[" << aMes << "]\n";
+    if (aFile)
+       MMVII::ErrOut() << "at line  " << aLine << " of file " << aFile  << "\n";
+}
+
 void mmv2_init()
 {
 	TheExitOnBrkp =true;
+	MMVII::MMVII_SetErrorHandler(ErrHanlderPy);
 	
 	std::cout<<"mmv2 initialized."<<std::endl;
 }
