@@ -1,7 +1,7 @@
 #include "include/MMVII_all.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
 #include <boost/optional/optional_io.hpp>
-#include <boost/regex.hpp>
+#include <regex>
 #include <unordered_set>
 #include <unordered_map>
 
@@ -444,15 +444,15 @@ template class cSelector<void *>; // required by cExtSet<Type>::Filter
 
 /* ======================================== */
 /*                                          */
-/*     cBoostRegex                          */
+/*     cStdtRegex                           */
 /*                                          */
 /* ======================================== */
 
-/// Boost implementation of Regex expression
-class cDataBoostRegex : public  cDataSelector<std::string>
+/// std implementation of Regex expression
+class cDataStdRegex : public  cDataSelector<std::string>
 {
     public :
-        cDataBoostRegex(const std::string & aName):
+        cDataStdRegex(const std::string & aName):
             mRegex (aName)
         {
         }
@@ -461,14 +461,14 @@ class cDataBoostRegex : public  cDataSelector<std::string>
              return regex_match(aStr,mRegex);
         }
     private :
-        boost::regex mRegex;
+        std::regex mRegex;
 };
 
-tNameSelector  BoostAllocRegex(const std::string& aPat)
+tNameSelector  AllocRegex(const std::string& aPat)
 {
    if (aPat=="")
       return  CsteSelector<std::string>(true);
-   return cSelector<std::string>(new cDataBoostRegex(aPat));
+   return cSelector<std::string>(new cDataStdRegex(aPat));
 }
 
 
@@ -981,7 +981,7 @@ tNameSet SetNameFromPat(const std::string& aFullPat)
      std::vector<std::string> aV;
      tNameSet aRes;
 
-     GetFilesFromDir(aV,aDir,BoostAllocRegex(aPat));
+     GetFilesFromDir(aV,aDir,AllocRegex(aPat));
      for (const auto & el : aV)
         aRes.Add(el);
      return aRes;
