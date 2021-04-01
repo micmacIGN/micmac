@@ -412,7 +412,7 @@ template <class Type,const int Dim> void MakeBox(cPtxd<Type,Dim> & aP0,cPtxd<Typ
 }
 
 /// Return pixel between two radius, the order make them as sparse as possible (slow method in N^3) => To implement ???? No longer know what I wanted to do ???
-std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
+//std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
 /// Implemented
 std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
 
@@ -448,7 +448,7 @@ template <class Type,const int Dim>  class cTplBox
 
         const tBigNum & NbElem() const {return mNbElem;}  ///< Surface  / Volume
 
-        const tPt & SzCum() const; ///< Cumulated size, rather internal use
+        //const tPt & SzCum() const; ///< Cumulated size, rather internal use
 
         // Boolean operators
            /// Is this point/pixel/voxel  inside

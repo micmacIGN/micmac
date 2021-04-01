@@ -114,8 +114,9 @@ template <> inline  bool cPixBox<3>::InsideBL(const cPtxd<double,3> & aP) const
     ;
 }
 
-
+#ifndef FORSWIG
 extern template const cPixBox<2>     cPixBox<2>::TheEmptyBox;  // Pb Clang, requires explicit declaration
+#endif
 
 typedef  cPixBox<1> cRect1;
 typedef  cPixBox<2> cRect2;
