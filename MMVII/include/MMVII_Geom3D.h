@@ -13,6 +13,25 @@ template <class T>  cPtxd<T,3> operator ^ (const cPtxd<T,3> & aP1,const cPtxd<T,
 // Return one vector orthog, as the choice is not univoque just avoid degenerency
 template<class T> cPtxd<T,3>  VOrthog(const cPtxd<T,3> & aP);
 
+// ===============================================================================
+//  Quaternion part  : I use them essentially for interface with other library,
+//  BTW, I implement a bit of elementary quat-algebra that allow to check the
+//  correctness . I dont create a new class, it's just an interpration of 
+//  4D points. 
+// ===============================================================================
+
+/// Quaternion multiplication
+template<class T> cPtxd<T,4>  operator * (const cPtxd<T,4> & aP1,const cPtxd<T,4> & aP2); 
+/// Quaternion => Rotation
+template<class T> cDenseMatrix<T>  Quat2MatrRot  (const cPtxd<T,4> & aPt);
+///  Rotation => Quaternion
+template<class T> cPtxd<T,4>  MatrRot2Quat  (const cDenseMatrix<T> &);
+/*
+/// Quaternion => Matrix 4x4 , with isomorphisme between * on both
+template<class T> cDenseMatrix<T>  Quat2Matr4x4  (const cPtxd<T,4> & aPt);
+///  Matrix 4x4 => Quaternion
+template<class T> cPtxd<T,4>  Matr4x42Quat  (const cDenseMatrix<T>&);
+*/
 
 
 /** \file MMVII_Geom3D.h

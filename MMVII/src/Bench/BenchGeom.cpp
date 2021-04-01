@@ -1,4 +1,5 @@
 #include "include/MMVII_all.h"
+//#include "include/MMVII_Tpl_Images.h"
 
 namespace MMVII
 {
@@ -61,6 +62,56 @@ template<class Type> void TplBenchRotation3D(cParamExeBench & aParam)
 
            MMVII_INTERNAL_ASSERT_bench(Norm2(aAxe2-aP0)<AccAxe,"Axe from Rot"); // P0 is its axe
            MMVII_INTERNAL_ASSERT_bench(std::abs(aTeta- aTeta2)<AccAngle,"Angle from Rot"); // P0 is its axe
+       }
+
+       // Bench quaternions
+       {
+           cPtxd<Type,4> aP1 = cPtxd<Type,4>::PRandUnit();
+           {
+              //  check order on computing neutral element
+              cPtxd<Type,4> aQId = cPtxd<Type,4>(1,0,0,0);
+              MMVII_INTERNAL_ASSERT_bench(Norm2(aP1-aQId*aP1)<1e-5,"Quat assoc"); // Check (1,0,0,0) is neutral
+           }
+
+           {
+               //  check associativity
+               cPtxd<Type,4> aP2 = cPtxd<Type,4>::PRandUnit();
+               cPtxd<Type,4> aP3 = cPtxd<Type,4>::PRandUnit();
+
+               cPtxd<Type,4> aP12_3 = (aP1*aP2) * aP3;
+               cPtxd<Type,4> aP1_23 = aP1*(aP2 * aP3);
+               MMVII_INTERNAL_ASSERT_bench(Norm2(aP12_3-aP1_23)<1e-5,"Quat assoc"); // Is it associative
+           }
+
+           // Matr to Rot
+           cDenseMatrix<Type> aM1 =Quat2MatrRot(aP1);
+           MMVII_INTERNAL_ASSERT_bench(aM1.Unitarity()<1e-5,"Quat assoc"); // Check its a rotation
+
+           // Check morphism  Quat -> Rot
+           {
+              cPtxd<Type,4> aP2 = cPtxd<Type,4>::PRandUnit();
+              cDenseMatrix<Type> aMp1p2 = aM1 * Quat2MatrRot(aP2);
+              cDenseMatrix<Type> aMp12 =  Quat2MatrRot(aP1*aP2);
+              MMVII_INTERNAL_ASSERT_bench(aMp1p2.DIm().L2Dist(aMp12.DIm())<1e-5,"Morphism Quat/Rot");
+           }
+
+           // Check "pseudo invertibility",  in fact Quat -> Rot is a proj  
+           //    Quat -> Rot ->Quat  does not give identity
+           {
+              cPtxd<Type,4> aPM1 =MatrRot2Quat(aM1);
+              cDenseMatrix<Type> aMPM1 =Quat2MatrRot(aPM1);
+              MMVII_INTERNAL_ASSERT_bench(std::abs(Norm2(aPM1)-1)<1e-5,"Morphism Quat/Rot"); // PM1 is unit
+              // MMVII_INTERNAL_ASSERT_bench(NormInf(aP1-aPM1)<1e-5,"??"); DOES NOT WORK
+
+           }
+           //    Rot -> Quat -> Rot   do  give identity
+           {
+                cDenseMatrix<Type> aM1 = cRotation3D<Type>::RandomRot().Mat();
+                cPtxd<Type,4> aPM1 =MatrRot2Quat(aM1);
+                cDenseMatrix<Type> aMPM1 =Quat2MatrRot(aPM1);
+                Type aDist =  aM1.DIm().L2Dist(aMPM1.DIm()) ;
+                MMVII_INTERNAL_ASSERT_bench(aDist<1e-5,"Rot->Quat->Rot"); // Inversion this way
+           }
        }
    }
 }
