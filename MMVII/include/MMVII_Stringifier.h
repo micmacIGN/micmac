@@ -287,7 +287,7 @@ struct cRawData4Serial
 void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal); ///< for cRawData4Serial
 
 /// Serialization for optional
-// template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,boost::optional<Type> & aL);
+// template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,std::optional<Type> & aL);
 
 
 void DeleteAr(cAr2007 *); /// call delete, don't want to export a type only to delete it!

@@ -20,7 +20,7 @@
 #include <ctime>
 #include <chrono>
 // #include <algorithm> => put it in file requiring it as it seem to slow down compilation
-#include<boost/optional.hpp>
+#include <optional>
 #include <cmath>
 
 
