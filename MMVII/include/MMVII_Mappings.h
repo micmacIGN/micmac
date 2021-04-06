@@ -12,6 +12,17 @@ namespace MMVII
 
 */
 
+template <class Type,const int Dim> class cBoundedSet : public cMemCheck
+{
+    public :
+      typedef  cPtxd<Type,Dim>  tPt;
+
+      /// Does it belong to the set;  default true
+      virtual bool Inside(const tPt &) const;
+       
+    private :
+       cTplBox<Type,Dim> mBox;
+};
 
 /// Class that represent a continous mapping R^k -> R^n
 
@@ -20,17 +31,32 @@ template <class Type,const int DimIn,const int DimOut> class cMapping : public c
     public :
       typedef  cPtxd<Type,DimOut> tPtOut;
       typedef  cPtxd<Type,DimIn>  tPtIn;
+      typedef  cDenseMatrix<Type> tGrad;  ///< For each 
 
+      /// Compute image in direct sens
       virtual  tPtOut  Direct(const tPtIn &) const = 0;
+
+      /// Has it a diffenrentiable method : default false
+      virtual  bool    HasValAndGrad() const;
+      /// compute diffenrentiable method , default = erreur
+      virtual  std::pair<tPtOut,tGrad>  ComputeValAndGrad(const tPtIn &) const;
+    public :
+      cDenseMatrix<Type> mGrad;
 };
 
 
+/**  We coul expect that DimIn=DimOut, but in fact in can be used
+to represent a mapping from a part of the plane to a part of the sphere */
 
-template <class Type,const int Dim> class cBijMapping : public cMapping<Type,Dim,Dim>
+
+template <class Type,const int DimIn,const int DimOut> 
+         class cInvertibleMapping : public cMapping<Type,DimIn,DimOut>
 {
     public :
-      typedef  cPtxd<Type,Dim>  tPt;
-      virtual  tPt  Inverse(const tPt &) const = 0;
+      typedef  cPtxd<Type,DimOut> tPtOut;
+      typedef  cPtxd<Type,DimIn>  tPtIn;
+      typedef  cDenseMatrix<Type> tGrad;  ///< For each 
+      virtual  tPtOut  Inverse(const tPtOut &) const = 0;
 };
 
 template <class Type> class  cImageSensor : public  cMapping<Type,3,2>
@@ -38,7 +64,7 @@ template <class Type> class  cImageSensor : public  cMapping<Type,3,2>
     public :
 };
 
-template <class Type> class cImagePose : public cBijMapping<Type,3>
+template <class Type> class cImagePose : public cInvertibleMapping<Type,3,3>
 {
     public :
       typedef  cPtxd<Type,3>  tPt;
@@ -74,8 +100,12 @@ Avec R=N(x,y,z) et r=N(x,y)
 
       Autre method   ATC(A,B) = atan2(A,B)/A     =>  ATC(r,z) * (x,y)
 
-     Si r<z  (Asin(r/R)*R/r) (x/R,y/R)
-     Si r>z  (Acos(z/R)*z/r) (x/R,y/R)
+     Encore une autre :
+          Si z>r     (Asin(r/R)*R/r) (x/R,y/R)
+          Si r>z>-r  (Acos(z/R) (x/r,y/r)
+          Si -r>     (Asin(r/R)*R/r) (x/R,y/R)
+      Cela fait intervenir les fonc
+           *  AsinC pronlogeable en 0 , et
 
 */
 

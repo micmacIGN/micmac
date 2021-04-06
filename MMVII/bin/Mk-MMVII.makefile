@@ -88,6 +88,11 @@ SrcMatrix=$(wildcard ${MMV2DirMatrix}*.cpp)
 ObjMatrix=$(SrcMatrix:.cpp=.o) 
 #
 #
+MMV2DirMappings=${MMV2DirSrc}Mappings/
+SrcMappings=$(wildcard ${MMV2DirMappings}*.cpp)
+ObjMappings=$(SrcMappings:.cpp=.o) 
+#
+#
 MMV2DirDIB=${MMV2DirSrc}DescIndexBinaire/
 SrcDIB=$(wildcard ${MMV2DirDIB}*.cpp)
 ObjDIB=$(SrcDIB:.cpp=.o)
@@ -126,7 +131,7 @@ ObjGeoms=$(SrcGeoms:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjGeoms}
+OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjGeoms} ${ObjMappings} 
 #
 #=========  Header ========
 #
@@ -188,6 +193,8 @@ ${MMV2DirImagesFiltrLinear}%.o :  ${MMV2DirImagesFiltrLinear}%.cpp   ${HEADER}
 ${MMV2DirImagesInfoExtract}%.o :  ${MMV2DirImagesInfoExtract}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirMatrix}%.o :  ${MMV2DirMatrix}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirMappings}%.o :  ${MMV2DirMappings}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirDIB}%.o :  ${MMV2DirDIB}%.cpp   ${HEADER} ${MMV2DirDIB}*.h
 	${CXX} -c  $< ${CFlags} -o $@
