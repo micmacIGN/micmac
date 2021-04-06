@@ -107,7 +107,7 @@ bool IsDirectory(const std::string & aName);
 
 
 /// Create a selector associated to a regular expression, by convention return Cste-true selector if string=""
-tNameSelector  BoostAllocRegex(const std::string& aRegEx);
+tNameSelector  AllocRegex(const std::string& aRegEx);
 
 /// Exract name of files located in the directory, by return value
 std::vector<std::string>  GetFilesFromDir(const std::string & aDir,const tNameSelector& ,bool OnlyRegular=true);

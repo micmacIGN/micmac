@@ -5,7 +5,7 @@
 namespace MMVII
 {
 
-boost::optional<double>  InterpoleExtr(double V1,double V2,double V3)
+std::optional<double>  InterpoleExtr(double V1,double V2,double V3)
 {
     //   AX2 + BX + C 
     // -1:   A - B + C  = V1
@@ -18,17 +18,17 @@ boost::optional<double>  InterpoleExtr(double V1,double V2,double V3)
     // ArgMin = -B/2A  = - ((V3-V1)/2 ) /  (2*  (V1+V3)/2 - V2) = (V1-V3)/2 / (V1+V3-2V2)
 
     double aDiv = (V1+V3-2*V2);
-    if (aDiv==0.0) return boost::optional<double>();
+    if (aDiv==0.0) return std::optional<double>();
 
-    return boost::optional<double> ((V1-V3) /(2*aDiv));
+    return std::optional<double> ((V1-V3) /(2*aDiv));
 }
 
 double  StableInterpoleExtr(double V1,double V2,double V3)
 {
-    boost::optional<double>  aVOpt =  InterpoleExtr(V1,V2,V3);
+    std::optional<double>  aVOpt =  InterpoleExtr(V1,V2,V3);
     if (aVOpt)
     {
-       double aV = aVOpt.get();
+       double aV = *aVOpt;
        if ((aV>=-1) && (aV<=1))
           return aV;
        return 0.0;
@@ -749,11 +749,11 @@ void BenchExtre(cParamExeBench & aParam)
              double aVal = aCX2*Square(aK-aRoot) + aCste;
              aVV.push_back(aVal);
          }
-         boost::optional<double> aExtrem =  InterpoleExtr(aVV.at(0),aVV.at(1),aVV.at(2));
-         double aDif=  aRoot - aExtrem.get() ;
+         std::optional<double> aExtrem =  InterpoleExtr(aVV.at(0),aVV.at(1),aVV.at(2));
+         double aDif=  aRoot - *aExtrem ;
          MMVII_INTERNAL_ASSERT_bench(std::abs(aDif)<1e-5, "Interpol Extr d1");
      }
-     // boost::optional<double>  InterpoleExtr(double V1,double V2,double V3)
+     // std::optional<double>  InterpoleExtr(double V1,double V2,double V3)
      // StdOut() << "Bench Extremmum\n";
      aParam.EndBench();
 }
