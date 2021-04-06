@@ -4,7 +4,7 @@
 #include <assert.h>     
 #include <iostream>
 
-#include <filesystem>
+#include <boost/filesystem.hpp>
 
 
 
@@ -15,7 +15,7 @@ FILE * FopenNN(const std::string & aName,const char * aMode)
    return aFp;
 }
 
-using namespace std::filesystem;
+using namespace boost::filesystem;
 
 
 int main(int,char **)

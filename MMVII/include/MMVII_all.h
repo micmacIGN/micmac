@@ -20,8 +20,9 @@
 #include <ctime>
 #include <chrono>
 // #include <algorithm> => put it in file requiring it as it seem to slow down compilation
-#include <optional>
-#include <cmath>
+#include<boost/optional.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
+
 
 
 //========== LIB EXTEN==============

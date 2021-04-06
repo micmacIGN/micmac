@@ -4,7 +4,7 @@
     \brief Implementation of utilitary services
 
 
-    Use std::filesystem and home made stuff for :
+    Use boost and home made stuff for :
 
       - split names
       - separate directories from files
@@ -13,11 +13,11 @@
 */
 
 
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
 
-using namespace std::filesystem;
+using namespace boost::filesystem;
 
 namespace MMVII
 {
@@ -399,17 +399,12 @@ void SkeepWhite(const char * & aC)
 
 bool CreateDirectories(const std::string & aDir,bool SVP)
 {
-    bool Ok = std::filesystem::create_directories(aDir);
+    bool Ok = boost::filesystem::create_directories(aDir);
 
     if ((! Ok) && (!SVP))
     {
         // There is something I dont understand with boost on error with create_directories,
         // for me it works but it return false, to solve later ....
-	// Ch. M.: My understanrdfing is :
-	//   - if directory is created, return true
-	//   - if directory not created because already existing, return false
-	//   - if directory not created because of error, exception is throwed
-	//          (use create_directories(aDir, errorCode) to have the noexcept version)
         if (ExistFile(aDir))
         {
             MMVII_INTERNAL_ASSERT_Unresolved(false,"Cannot create directory for arg " + aDir);
@@ -424,7 +419,7 @@ bool CreateDirectories(const std::string & aDir,bool SVP)
 
 bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP)
 {
-    std::filesystem::remove_all(aDir);
+    boost::filesystem::remove_all(aDir);
     if (ReMkDir)
     {
         bool aRes = CreateDirectories(aDir,SVP);
@@ -435,7 +430,7 @@ bool RemoveRecurs(const  std::string & aDir,bool ReMkDir,bool SVP)
 
 bool RemoveFile(const  std::string & aFile,bool SVP)
 {
-   bool Ok = std::filesystem::remove(aFile);
+   bool Ok = boost::filesystem::remove(aFile);
    MMVII_INTERNAL_ASSERT_User(  Ok||SVP  , eTyUEr::eRemoveFile,"Cannot remove file for arg " + aFile);
    return Ok;
 }
@@ -460,16 +455,16 @@ bool  RemovePatternFile(const  std::string & aPat,bool SVP)
 
 void RenameFiles(const std::string & anOldName, const std::string & aNewName)
 {
-    std::filesystem::rename(anOldName,aNewName);
+    boost::filesystem::rename(anOldName,aNewName);
 }
 
 
-/** copy a file on another , use std::filesystem
+/** copy a file on another , use boost
 */
 
 void CopyFile(const std::string & aName,const std::string & aDest)
 {
-   std::filesystem::copy_file(aName,aDest,std::filesystem::copy_options::overwrite_existing);
+   boost::filesystem::copy_file(aName,aDest,boost::filesystem::copy_option::overwrite_if_exists);
 }
 
 void ActionDir(const std::string & aName,eModeCreateDir aMode)
@@ -506,7 +501,7 @@ void ActionDir(const std::string & aName,eModeCreateDir aMode)
 
 
 /**
-   Implementation of GetFilesFromDir, by adresse use std::filesystem
+   Implementation of GetFilesFromDir, by adresse use boost
 */
 
 
@@ -542,13 +537,13 @@ std::vector<std::string> GetSubDirFromDir(const std::string & aDir,const tNameSe
 }
 
 /**
-   Implementation of RecGetFilesFromDir, by adress, use std::filesystem
+   Implementation of RecGetFilesFromDir, by adress, use boost
 */
 void RecGetFilesFromDir( std::vector<std::string> & aRes, const std::string & aDir,tNameSelector  aNS,int aLevMin, int aLevMax)
 {
     for (recursive_directory_iterator itr(aDir); itr!=        recursive_directory_iterator(); ++itr)
     {
-        int aLev = itr.depth();
+        int aLev = itr.level();
         if ((aLev>=aLevMin) && (aLev<aLevMax))
         {
            std::string aName(itr->path().c_str());
@@ -587,9 +582,9 @@ std::vector<std::string>  GetFilesFromDirAndER(const std::string & aDir,const st
 void TestBooostIter()
 {
 
-   std:: cout <<  std::filesystem::absolute("./MMVII") << '\n';
-   std:: cout <<  std::filesystem::absolute("MMVII") << '\n';
-   std:: cout <<  std::filesystem::absolute("./") << '\n';
+   std:: cout <<  boost::filesystem::absolute("./MMVII") << '\n';
+   std:: cout <<  boost::filesystem::absolute("MMVII") << '\n';
+   std:: cout <<  boost::filesystem::absolute("./") << '\n';
 getchar();
 
 for (        recursive_directory_iterator itr("./"); itr!=        recursive_directory_iterator(); ++itr)

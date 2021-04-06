@@ -67,7 +67,7 @@ template <class TypeEnum> class cE2Str
      static std::vector<TypeEnum> VecOfPat(const std::string & aPat,bool AcceptEmpy)
      {
           std::vector<TypeEnum> aRes;
-          tNameSelector  aSel =  AllocRegex(aPat);
+          tNameSelector  aSel =  BoostAllocRegex(aPat);
           for (const auto & it : mE2S)
           {
               if (aSel.Match(it.second))

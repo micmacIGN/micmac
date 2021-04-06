@@ -107,7 +107,7 @@ cDataOneInvRad::cDataOneInvRad(cAppli_ComputeParamIndexBinaire & anAppli,cDataOn
     // This code make the selection
     {
        std::vector<std::string>  aVS0;  //! Get all file corresponding to regular expression
-       GetFilesFromDir(aVS0,mAppli.DirCurPC() +  E2Str(mTIR)  ,AllocRegex("Cple.*tif"));
+       GetFilesFromDir(aVS0,mAppli.DirCurPC() +  E2Str(mTIR)  ,BoostAllocRegex("Cple.*tif"));
 
        //  Select a subset with a given proportion (parametre PropF of command)
        double aProp = mAppli.PropFile();

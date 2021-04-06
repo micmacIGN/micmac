@@ -17,7 +17,7 @@ namespace MMVII
 
 /**  Given three consecutive value interpole the extremum assumming a parabol, no value if alligned
 */
-std::optional<double>  InterpoleExtr(double V1,double V2,double V3);
+boost::optional<double>  InterpoleExtr(double V1,double V2,double V3);
 /**  Given three consecutive value interpole the extremum assumming a parabol
 */
 double  StableInterpoleExtr(double V1,double V2,double V3);

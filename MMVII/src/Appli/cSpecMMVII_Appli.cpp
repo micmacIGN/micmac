@@ -125,6 +125,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
    {    
         TheVecAll.push_back(&TheSpecBench);
         TheVecAll.push_back(&TheSpecTestCpp11);
+        TheVecAll.push_back(&TheSpec_TestBoostSerial);
         TheVecAll.push_back(&TheSpecMPDTest);
         TheVecAll.push_back(&TheSpecEditSet);
         TheVecAll.push_back(&TheSpecEditRel);
