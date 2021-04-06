@@ -1,8 +1,10 @@
 #include "include/MMVII_all.h"
 #include "include/MMVII_Class4Bench.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
+#include <boost/algorithm/cxx14/equal.hpp>
 
 
+// #include <boost/optional/optional_io.hpp>
 
 
 /** \file BenchSerial.cpp
@@ -33,7 +35,7 @@ void AddData(const cAuxAr2007 & anAux, cTestSerial0 &    aTS0)
 
 template <class Type> bool EqualCont(const Type &aV1,const Type & aV2)
 {
-    return  std::equal(aV1.begin(),aV1.end(),aV2.begin(),aV2.end());
+    return  boost::algorithm::equal(aV1.begin(),aV1.end(),aV2.begin(),aV2.end());
 }
 
 

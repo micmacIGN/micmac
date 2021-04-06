@@ -7,7 +7,7 @@ namespace MMVII
 template <class Type> bool ValidFloatValue(const Type & aV)
 {
    // return ! (   ((boost::math::isnan)(aV)) ||   ((boost::math::isinf)(aV)));
-   return (std::isfinite)(aV) ;
+   return (boost::math::isfinite)(aV) ;
 }
 template <class Type> bool ValidInvertibleFloatValue(const Type & aV)
 {

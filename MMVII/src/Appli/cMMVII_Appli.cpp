@@ -889,7 +889,7 @@ void cMMVII_Appli::GenerateHelp()
        PrintAdditionnalComments(Arg);
    }
 
-   tNameSelector  aSelName =  AllocRegex(mPatHelp);
+   tNameSelector  aSelName =  BoostAllocRegex(mPatHelp);
 
    HelpOut() << "\n";
    HelpOut() << " == Optional named args : ==\n";

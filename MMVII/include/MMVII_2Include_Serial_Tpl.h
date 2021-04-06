@@ -54,7 +54,7 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,cExtSet<Type> & aSet
 
 */
 
-template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,std::optional<Type> & aL)
+template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,boost::optional<Type> & aL)
 {
     // put the tag as <Opt::Tag0>,
     //  Not mandatory, but optionality being an important feature I thought usefull to see it in XML file
@@ -80,12 +80,12 @@ template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string
         }
         // If no just put it initilized
         else
-           aL = std::nullopt;
+           aL = boost::none;
         return;
     }
 
     // Now in writing mode
-    int aNb =  aL.has_value() ? 1 : 0;
+    int aNb =  aL.is_initialized() ? 1 : 0;
     // Tagged format (xml) is a special case
     if (anAux.Tagged())
     {

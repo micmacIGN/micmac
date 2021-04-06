@@ -121,7 +121,7 @@ int cAppli_ComputeParamIndexBinaire::Exe()
    // Transform inout pattern into a vector  of enum radial  invariant
    mVecTyIR = SubOfPat<eTyInvRad>(mPatInvRad,false);
   // Extract list of folder of  Pts carac corresponding to input pattern
-   mLDirPC = GetSubDirFromDir(mDirGlob,AllocRegex(mPatPCar));
+   mLDirPC = GetSubDirFromDir(mDirGlob,BoostAllocRegex(mPatPCar));
 
 
    // If only one p carac process it
