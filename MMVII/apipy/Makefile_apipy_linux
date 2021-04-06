@@ -1,10 +1,6 @@
 MMv2Dir=..
-CXX=g++
 INCLUDEDIRS = -I. -I${MMv2Dir}/include/
 DOCDIR = doc/
-CXXFlags= -std=c++17 -fopenmp -fPIC -Wall -Werror -O2 -march=native ${INCLUDEDIRS} -DFORSWIG
-CXX_WRAP_FLAGS = ${CXXFlags} `pkg-config --cflags python3` ${INCLUDEDIRS}
-BOOST_LIBS= -lboost_system -lboost_serialization -lboost_regex -lboost_filesystem
 
 SO = _mmv2.so
 
@@ -21,7 +17,7 @@ WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 
 .SECONDARY: $(WRAP_CXX_FILES)
 
-apipy: $(WRAP_O_FILES)
+apipy: $(WRAP_CXX_FILES)
 	python3 setup.py install --user USEQT=$(USEQT)
 	python3 -c "import mmv2"
 	$(info "All is Ok")
@@ -36,12 +32,6 @@ clean:
 	rm -Rf $(DOCDIR)/html build/
 	python3 setup.py clean
 
-%.o: %.cpp
-	$(CXX) -c $(CXXFlags) $< -o $@
-
-%_wrap.o: %_wrap.cxx
-	$(CXX) -c  $(CXX_WRAP_FLAGS) $< -o $@
-
 %_wrap.cxx: %.i
-	swig -python -py3 -DFORSWIG -c++ ${INCLUDEDIRS} $<
+	swig -python -py3 -DFORSWIG -Wall -c++ ${INCLUDEDIRS} $<
 

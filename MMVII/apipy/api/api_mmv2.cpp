@@ -1,5 +1,6 @@
 #include "api_mmv2.h"
 #include <iostream>
+#include <sstream>
 #include <cstdlib>
 #include "MMVII_all.h"
 #include <stdexcept>

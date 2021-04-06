@@ -42,7 +42,7 @@ cParamExeBench::cParamExeBench(const std::string & aPattern,const std::string &a
    mShow        (Show),
    mNbExe       (0),
    mName        (aPattern),
-   mPattern     (BoostAllocRegex(aPattern)),
+   mPattern     (AllocRegex(aPattern)),
    mBugKey      (aBugKey)
 {
 }

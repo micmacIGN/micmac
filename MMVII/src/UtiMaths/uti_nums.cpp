@@ -1,5 +1,4 @@
 #include "include/MMVII_all.h"
-#include <boost/math/special_functions/fpclassify.hpp>
 
 namespace MMVII
 {
