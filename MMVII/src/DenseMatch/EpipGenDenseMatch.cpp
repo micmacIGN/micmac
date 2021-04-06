@@ -4,23 +4,8 @@
 // using namespace MMVII;
 namespace MMVII
 {
-
-/// With this class, an Appli indicate how it deal with Bench
-/*
-class cAppliBenchAnswer
-{
-    public :
-         cAppliBenchAnswer(bool HasBench,double Time,int aPrio);
-    private :
-         bool   mHasBench;  ///< Has the apply  a Bench method ?
-         double mTime;      ///< Time to execute, just an order of magnitude
-         int    mPrio;      ///<  is >=0, The smaller, the highest priority
-};
-*/
-
-
   // Put all the stuff that dont vocate to be exported in namespce
-namespace EpipGenDenseMatch
+namespace NS_EpipGenDenseMatch
 {
 
 class cAppli ;  // class for main application
@@ -728,7 +713,7 @@ tMMVII_UnikPApli Alloc_EpipGenDenseMatch(const std::vector<std::string> &  aVArg
 cSpecMMVII_Appli  TheSpecEpipGenDenseMatch
 (
      "DenseMatchEpipGen",
-      EpipGenDenseMatch::Alloc_EpipGenDenseMatch,
+      NS_EpipGenDenseMatch::Alloc_EpipGenDenseMatch,
       "Generik epipolar dense matching",
       {eApF::Match},
       {eApDT::Image},
