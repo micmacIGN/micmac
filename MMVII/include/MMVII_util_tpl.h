@@ -1,6 +1,8 @@
 #ifndef  _MMVII_Util_TPL_H_
 #define  _MMVII_Util_TPL_H_
 
+#include <algorithm>
+
 namespace MMVII
 {
 
@@ -49,8 +51,8 @@ template<class Type> cSelector<Type> operator !  (const cSelector<Type> &); ///<
 
      (none,V2,true,false)  =>  ]-infinity,V2[ 
 */
-template<class Type> cSelector<Type> GenIntervalSelector( const boost::optional<Type> & aV1,
-                                                       const boost::optional<Type> & aV2,
+template<class Type> cSelector<Type> GenIntervalSelector( const std::optional<Type> & aV1,
+                                                       const std::optional<Type> & aV2,
                                                        bool aInclLow,bool InclUp);
 
 /// Facilty to GenIntervalSelector : left interval  ]-infinity,...

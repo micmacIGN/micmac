@@ -12,8 +12,10 @@
 namespace MMVII
 {
 
-void BenchSupport()
+void BenchSTL_Support(cParamExeBench & aParam)
 {
+   if (! aParam.NewBench("STL_Support")) return;
+
    // Test eraseif
    {
         int aNb=20;
@@ -27,6 +29,7 @@ void BenchSupport()
         for (int aK=0 ; aK<int(aVI.size()) ; aK++) // contains all int
             MMVII_INTERNAL_ASSERT_bench(aVI.at(aK)==(2*aK),"erase_if");
    }
+   aParam.EndBench();
 }
 
 };

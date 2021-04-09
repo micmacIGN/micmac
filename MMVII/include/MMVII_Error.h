@@ -32,7 +32,8 @@ namespace MMVII
 #define The_MMVII_DebugLevel The_MMVII_DebugLevel_InternalError_tiny
 // #define The_MMVII_DebugLevel The_MMVII_DebugLevel_UserError
 
-/**  The error handler can be change , so its a function Ptr of type PtrMMVII_Error_Handler
+/**  The error handler can be change , so its a function Ptr of type PtrMMVII_Error_Handler,
+     This can be used for example when in bench, we want to test the error handling
 */
 
 typedef void (* PtrMMVII_Error_Handler) (const std::string & aType,const std::string &  aMes,const char * aFile,int aLine);
@@ -46,41 +47,39 @@ void MMVII_SetErrorHandler(PtrMMVII_Error_Handler);
 void MMVII_RestoreDefaultHandle();
 
 
+#define MMVII_INTERNAL_ERROR(aMes)\
+{ MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
 
 
 // void MMVVI_Error(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine);
 
 #define MMVII_INTERNAL_ASSERT_Unresolved(aTest,aMes)\
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_Unresoved ) && (!(aTest)))\
-{ MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
+{MMVII_INTERNAL_ERROR(aMes);}
 
-/*
-#define MMVII_INTERNAL_ASSERT_tiny(aTest,aMes)\
- if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny ) && (!(aTest)))\
-{ MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
-*/
-// Version less friendly but sure at 100% that has no impact on performance
+// Version not friendly but sure at 100% that has no impact on performance
 #if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
 #define MMVII_INTERNAL_ASSERT_tiny(aTest,aMes)\
- if (!(aTest)) { MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
+ if (!(aTest)) {MMVII_INTERNAL_ERROR(aMes);}
 #else
 #define MMVII_INTERNAL_ASSERT_tiny(aTest,aMes) {}
 #endif
 
 
+#define MMVII_INTERNAL_ASSERT_NotNul(aVal)  MMVII_INTERNAL_ASSERT_tiny((aVal!=0),"Unexpected null value")
 
 #define MMVII_INTERNAL_ASSERT_medium(aTest,aMes)\
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_medium ) && (!(aTest)))\
-{ MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
+{MMVII_INTERNAL_ERROR(aMes);}
 
 #define MMVII_INTERNAL_ASSERT_strong(aTest,aMes)\
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_strong ) && (!(aTest)))\
-{ MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
+{MMVII_INTERNAL_ERROR(aMes);}
 
 
 #define MMVII_INTERNAL_ASSERT_bench(aTest,aMes)\
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_BenchError ) && (!(aTest)))\
-{ MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
+{MMVII_INTERNAL_ERROR(aMes);}
 
 void MMVII_UsersErrror(const eTyUEr &,const std::string & aMes);
 #define MMVII_INTERNAL_ASSERT_User(aTest,aRef,aMes)\
@@ -91,7 +90,7 @@ void MMVII_UnclasseUsEr(const std::string & aMes);
 
 #define MMVII_INTERNAL_ASSERT_always(aTest,aMes)\
  if  (!(aTest))\
-{ MMVVI_Error("Internal Error",aMes,__FILE__,__LINE__);}
+{MMVII_INTERNAL_ERROR(aMes);}
 
 
 ////====================  SPECIFIC ASSERTION ON NUMERICAL VALUE ================

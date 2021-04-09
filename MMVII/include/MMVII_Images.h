@@ -20,8 +20,8 @@ template <const int Dim>  class cPixBoxIterator
         typedef cPixBox<Dim>          tPB;
         friend class cPixBox<Dim>;
 
-        bool operator == (const tIter& aIt2) {return  mPCur==aIt2.mPCur;}  ///< Equal iff current point are =
-        bool operator != (const tIter& aIt2) {return  mPCur!=aIt2.mPCur;}  ///< !Equal iif not equal ...
+        bool operator == (const tIter& aIt2) const {return  mPCur==aIt2.mPCur;}  ///< Equal iff current point are =
+        bool operator != (const tIter& aIt2) const {return  mPCur!=aIt2.mPCur;}  ///< !Equal iif not equal ...
         tPt & operator * () {return mPCur;}         ///< classic operator dereference
         tPt & operator * () const {return mPCur;}   ///< classic operator dereference
         tPt * operator ->() {return &mPCur;}        ///< classic operator dereference
@@ -51,8 +51,9 @@ template <const int Dim>  class cPixBoxIterator
 template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
 {
     public : 
-        typedef cPtxd<int,Dim>        tPt;
-        typedef cTplBox<int,Dim>      tBox;
+        typedef int                   tScalPt;
+        typedef cPtxd<tScalPt,Dim>        tPt;
+        typedef cTplBox<tScalPt,Dim>      tBox;
         typedef cPixBoxIterator<Dim> iterator; ///< For auto ...
         static const cPixBox<Dim>    TheEmptyBox;
         //  --- Iterator ----------------
@@ -86,6 +87,8 @@ template <const int Dim>  class cPixBox : public cTplBox<int,Dim>
         {
              MMVII_INTERNAL_ASSERT_tiny(InsideBL(aP),"Outside image in bilinear mode");
         }
+        // Call SignalAtFrequence with linear index
+        bool SignalAtFrequence(const tPt & anIndex,double aFreq) const;
 
     private :
         iterator  mBegin; ///< Beging iterator
@@ -111,8 +114,9 @@ template <> inline  bool cPixBox<3>::InsideBL(const cPtxd<double,3> & aP) const
     ;
 }
 
-
+#ifndef FORSWIG
 extern template const cPixBox<2>     cPixBox<2>::TheEmptyBox;  // Pb Clang, requires explicit declaration
+#endif
 
 typedef  cPixBox<1> cRect1;
 typedef  cPixBox<2> cRect2;
@@ -216,6 +220,7 @@ template <const int Dim>  class cParseBoxInOut
         tBox  BoxIn(const tPt & anIndex,const tPt& anOverlap) const;  ///< Idem but add an overlap
         tBox  BoxIn(const tPt & anIndex,const int anOverlap) const;   ///< Add a constant overlap in all direction
 
+
      private :
         cParseBoxInOut(const tBox & aBoxGlob,const tBox & aBoxIndexe); ///< Create from given indexe box
         tPt Index2Glob(const tPt &) const; ///< Map mBoxIndex  to mBoxGlob
@@ -236,6 +241,7 @@ template <> inline cPixBoxIterator<1> &  cPixBoxIterator<1>::operator ++()
 }
 template <> inline cPixBoxIterator<2> &  cPixBoxIterator<2>::operator ++() 
 {
+    // std::cout << "OPPPPPP " << mPCur << " " << mRO->P0() << mRO->P1() << "\n";
     mPCur.x()++; 
     if (mPCur.x() == mRO->P1().x())
     {
@@ -404,6 +410,10 @@ class cDataFileIm2D : public cRect2
         int          mNbChannel; ///< Number of channels
 };
 
+cPt2di DifInSz(const std::string & aN1,const std::string & aN2);
+double DifAbsInVal(const std::string & aN1,const std::string & aN2,double aDef=-1);
+
+
 ///  Class for 2D image in Ram of a given type :
 /**  Class for 2D image in Ram of a given type :
         * there is no copy constructor, and only shared pointer can be allocated
@@ -429,7 +439,8 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
 
         //========= fundamental access to values ============
 
-       inline double GetVBL(const cPt2dr & aP) const
+       /// Bilinear valie
+       inline double GetVBL(const cPt2dr & aP) const 
        {
            tPB::AssertInsideBL(aP);
            return  ValueBL(aP);
@@ -466,6 +477,15 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         { 
             tPB::AssertInside(aP);
             Value(aP) = tNumTrait<Type>::Trunc(aV);
+        }
+
+        /// Increment Value, check acces and overflow
+        const Type & AddVal(const cPt2di & aP,const Type & aValAdd )  
+        {
+            tPB::AssertInside(aP);
+            tBase aRes = Value(aP) + aValAdd;
+            tBI::AssertValueOk(aRes);
+            return (Value(aP) = aRes);
         }
 
           // Interface as generic image
@@ -562,6 +582,10 @@ template <class Type>  class cIm2D
        cIm2D(const cPt2di & aP0,const cPt2di & aP1, Type * DataLin=nullptr,eModeInitImage=eModeInitImage::eMIA_NoInit); 
        /// Image with origin on (0,0)
        cIm2D(const cPt2di & aSz,Type * DataLin=0,eModeInitImage=eModeInitImage::eMIA_NoInit);
+
+       /// Create an image and initialize it with the file
+       cIm2D(const cBox2di & aSz,const cDataFileIm2D & aDataF);
+
 
 
        tDIM & DIm() {return *(mPIm);}  ///< return raw pointer

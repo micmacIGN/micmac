@@ -9,3 +9,35 @@
 \label{HelpCmd}
 
 
+\section{Bench command}
+
+
+\begin{itemize}
+    \item {\tt  MMVII Bench 2 }  : standard mode  for execuring all bench at level 2
+
+    \item {\tt MMVII Bench 2 PatBench=.*Der.* Show=0}  : execute benches matchin {\tt ".*Der.*"},
+          {\tt  Show} is explicite as, by default, it is set to {\tt  true} 
+          when {\tt  PatBench} is set;
+   
+    \item {\tt MMVII Bench 1 PatBench=XXX} : pattern specified but no match, print all benche existing
+
+
+    \item {\tt MMVII Bench 2 KeyBug=Debord\_M1 }  : force the generation of  a given error
+
+    \item {\tt MMVII Bench 1 KeyBug=XXXX }  : will print all possible value for explicit error generation
+
+
+    \item {\tt MMVII Bench 1 PatBench=InspectCube }  : as InspectCube is not a bench function, but 
+         only print information, exact name must be set with {\tt PatBench}
+
+\end{itemize}
+
+
+
+
+
+
+{\tt MMVII Bench 2 KeyBug=XXX }  : standard mode  for execuring all bench at level 2
+
+{\tt MMVII Bench 1 PatBench=MemoryOperation KeyBug} : pattern specified but no match, print all benche existing
+

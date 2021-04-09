@@ -3,6 +3,21 @@
 
 namespace MMVII
 {
+
+cAppliBenchAnswer cMMVII_Appli::BenchAnswer() const
+{
+   return cAppliBenchAnswer(false,0.0);
+}
+
+
+int  cMMVII_Appli::ExecuteBench(cParamExeBench &)
+{
+    MMVII_INTERNAL_ERROR("No Bench for"+ mSpecs.Name());
+    return EXIT_FAILURE;
+}
+
+
+
 #define MSD_DEGUG()  StdOut() << "MSD_DEGUGMSD_DEGUG " << __LINE__ << " of " << __FILE__ << "\n";
 
 /*  ============================================== */
@@ -120,26 +135,34 @@ template <class Type> Type PrintArg(const Type & aVal,const std::string & aName)
 //        cMMVII_Appli::cMMVII_Appli ( int argc, char ** argv, const cSpecMMVII_Appli & aSpec) 
 //        void cMMVII_Appli::InitParam() => main initialisation must be done after Cstrctor as call virtual methods
 
+#define DEBUGKILLAPP()\
+std::cout << "HERE " << __LINE__ << "\n";
 
 cMMVII_Appli::~cMMVII_Appli()
 {
-   if (! mModeHelp)
+   if (mForExe)
    {
-      RenameFiles(NameFileLog(false),NameFileLog(true));
-      LogCommandOut(NameFileLog(true),false);
+      if (! mModeHelp)
+      {
+         RenameFiles(NameFileLog(false),NameFileLog(true));
+         LogCommandOut(NameFileLog(true),false);
+      }
+
+      if (mGlobalMainAppli)
+      {
+         LogCommandOut(mFileLogTop,true);
+      }
    }
 
-   if (mGlobalMainAppli)
-   {
-      LogCommandOut(mFileLogTop,true);
-   }
-  
    msInDstructor = (TheStackAppli.size()<=1);  // avoid problem with StdOut 
    if (msInDstructor) FreeRandom();   // Free memory only top called do it
-   AssertInitParam();
-   // ======= delete mSetInit;
-   mArgObl.clear();
-   mArgFac.clear();
+   if(mForExe)
+   {
+      AssertInitParam();
+      // ======= delete mSetInit;
+      mArgObl.clear();
+      mArgFac.clear();
+   }
 
 
    MMVII_INTERNAL_ASSERT_strong(ExistAppli(),"check in Appli Destructor");
@@ -178,6 +201,7 @@ cMMVII_Appli::cMMVII_Appli
    mArgv          (aVArgcv),
    mArgc          (mArgv.size()),
    mSpecs         (aSpec),
+   mForExe        (true),
    mDirBinMMVII   (DirBin2007),
    mTopDirMMVII   (UpDir(mDirBinMMVII,1)),
    mFullBin       (mDirBinMMVII + Bin2007),
@@ -272,6 +296,10 @@ bool   cMMVII_Appli::HasSharedSPO(eSharedPO aV) const
 
 
 
+void cMMVII_Appli::SetNot4Exe()
+{
+   mForExe = false;
+}
 
 void cMMVII_Appli::InitParam()
 {
@@ -292,8 +320,8 @@ void cMMVII_Appli::InitParam()
                    // becauser  InitParam, it may change the correct value 
 
   // Add common optional parameters
-  cSpecOneArg2007::tVSem aInternal{eTA2007::Internal,eTA2007::Global}; // just to make shorter lines
-  cSpecOneArg2007::tVSem aGlob{eTA2007::Global}; // just to make shorter lines
+  cSpecOneArg2007::tAllSemPL aInternal{eTA2007::Internal,eTA2007::Global}; // just to make shorter lines
+  cSpecOneArg2007::tAllSemPL aGlob{eTA2007::Global}; // just to make shorter lines
 
 
   /*  Decoding AOpt2007(mIntervFilterMS[0],GOP_Int0,"File Filter Interval, Main Set"  ,{eTA2007::Common,{eTA2007::FFI,"0"}})
@@ -828,6 +856,17 @@ void cMMVII_Appli::LogCommandOut(const std::string & aName,bool MainLogFile)
 
     // ========== Help ============
 
+void cMMVII_Appli::PrintAdditionnalComments(tPtrArg2007 anArg)
+{
+   if (mDoGlobHelp)
+   {
+      for (const auto  & aCom : anArg->AddComs())
+      {
+          HelpOut() << "    - " << aCom << "\n";
+      }
+   }
+}
+
 void cMMVII_Appli::GenerateHelp()
 {
    HelpOut() << "\n";
@@ -847,9 +886,10 @@ void cMMVII_Appli::GenerateHelp()
    for (const auto & Arg : mArgObl.Vec())
    {
        HelpOut() << "  * " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com()  << "\n";
+       PrintAdditionnalComments(Arg);
    }
 
-   tNameSelector  aSelName =  BoostAllocRegex(mPatHelp);
+   tNameSelector  aSelName =  AllocRegex(mPatHelp);
 
    HelpOut() << "\n";
    HelpOut() << " == Optional named args : ==\n";
@@ -906,6 +946,7 @@ void cMMVII_Appli::GenerateHelp()
              }
           }
        }
+       PrintAdditionnalComments(Arg);
    }
    HelpOut() << "\n";
 }

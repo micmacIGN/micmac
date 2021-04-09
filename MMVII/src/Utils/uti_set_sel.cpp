@@ -1,7 +1,6 @@
 #include "include/MMVII_all.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
-#include <boost/optional/optional_io.hpp>
-#include <boost/regex.hpp>
+#include <regex>
 #include <unordered_set>
 #include <unordered_map>
 
@@ -129,7 +128,7 @@ template <class Type> bool  cSelector<Type>::Match(const Type & aV) const
 template <class Type> class cDataIntervSelector : public  cDataSelector<Type>
 {   
     public :
-       typedef boost::optional<Type> tOObj;
+       typedef std::optional<Type> tOObj;
        typedef const  tOObj *        tCOOPtr;
 
        cDataIntervSelector(tCOOPtr aV1,tCOOPtr aV2,bool aInclLow,bool InclUp) :
@@ -190,8 +189,8 @@ template <class Type> class cDataIntervSelector : public  cDataSelector<Type>
        bool              mInclUp;    ///< Is it open upper bound 
 };
 
-template<class Type> cSelector<Type> GenIntervalSelector( const boost::optional<Type> & aV1, 
-                                                         const boost::optional<Type> & aV2,
+template<class Type> cSelector<Type> GenIntervalSelector( const std::optional<Type> & aV1, 
+                                                         const std::optional<Type> & aV2,
                                                          bool aInclLow,bool InclUp)
 {
    return cSelector<Type>(new cDataIntervSelector<Type>(&aV1,&aV2,aInclLow,InclUp));
@@ -200,23 +199,23 @@ template<class Type> cSelector<Type> GenIntervalSelector( const boost::optional<
 ///  ]<- ,V] or ]<-,V[
 template<class Type> cSelector<Type> LeftHalfIntervalSelector(const Type & aV, bool aIncl)
 {
-   boost::optional<Type> aOptV(aV);
-   boost::optional<Type> aNone = boost::none;
+   std::optional<Type> aOptV(aV);
+   std::optional<Type> aNone = std::nullopt;
    return cSelector<Type>(new cDataIntervSelector<Type>(&aNone,&aOptV,aIncl,aIncl));
 }
 
 ///  ]V,->[ or [V,->[
 template<class Type> cSelector<Type> RightHalfIntervalSelector(const Type & aV, bool aIncl)
 {
-   boost::optional<Type> aOptV(aV);
-   boost::optional<Type> aNone = boost::none;
+   std::optional<Type> aOptV(aV);
+   std::optional<Type> aNone = std::nullopt;
    return cSelector<Type>(new cDataIntervSelector<Type>(&aOptV,&aNone,aIncl,aIncl));
 }
 
 template<class Type> cSelector<Type> IntervalSelector(const Type&aV1,const Type&aV2,bool aInclLow,bool InclUp)
 {
-   boost::optional<Type> aOptV1(aV1);
-   boost::optional<Type> aOptV2(aV2);
+   std::optional<Type> aOptV1(aV1);
+   std::optional<Type> aOptV2(aV2);
    return cSelector<Type>(new cDataIntervSelector<Type>(&aOptV1,&aOptV2,aInclLow,InclUp));
 }
 
@@ -404,8 +403,8 @@ template <class Type> cSelector<Type> Str2Interv(const std::string & aStr)
 
     for (size_t aK=0  ; aK<aVI.size() ; aK+=2)
     {
-         boost::optional<Type> aV1 = boost::none;
-         boost::optional<Type> aV2 = boost::none;
+         std::optional<Type> aV1 = std::nullopt;
+         std::optional<Type> aV2 = std::nullopt;
          if (aVI[aK].first!="")
             aV1 = cStrIO<Type>::FromStr(aVI[aK].first);
          if (aVI[aK+1].first!="")
@@ -419,7 +418,7 @@ template <class Type> cSelector<Type> Str2Interv(const std::string & aStr)
 
 
 #define MACRO_INSTANTIATE_SELECTOR(Type)\
-template cSelector<Type> GenIntervalSelector(const boost::optional<Type> & aV1, const boost::optional<Type> & aV2, bool aInclLow,bool InclUp);\
+template cSelector<Type> GenIntervalSelector(const std::optional<Type> & aV1, const std::optional<Type> & aV2, bool aInclLow,bool InclUp);\
 template cSelector<Type> LeftHalfIntervalSelector(const Type & aV, bool aIncl);\
 template cSelector<Type> RightHalfIntervalSelector(const Type & aV, bool aIncl);\
 template cSelector<Type> IntervalSelector(const Type&aV1,const Type&aV2,bool aInclLow,bool InclUp);\
@@ -444,15 +443,15 @@ template class cSelector<void *>; // required by cExtSet<Type>::Filter
 
 /* ======================================== */
 /*                                          */
-/*     cBoostRegex                          */
+/*     cStdtRegex                           */
 /*                                          */
 /* ======================================== */
 
-/// Boost implementation of Regex expression
-class cDataBoostRegex : public  cDataSelector<std::string>
+/// std implementation of Regex expression
+class cDataStdRegex : public  cDataSelector<std::string>
 {
     public :
-        cDataBoostRegex(const std::string & aName):
+        cDataStdRegex(const std::string & aName):
             mRegex (aName)
         {
         }
@@ -461,21 +460,23 @@ class cDataBoostRegex : public  cDataSelector<std::string>
              return regex_match(aStr,mRegex);
         }
     private :
-        boost::regex mRegex;
+        std::regex mRegex;
 };
 
-tNameSelector  BoostAllocRegex(const std::string& aPat)
+tNameSelector  AllocRegex(const std::string& aPat)
 {
    if (aPat=="")
       return  CsteSelector<std::string>(true);
-   return cSelector<std::string>(new cDataBoostRegex(aPat));
+   return cSelector<std::string>(new cDataStdRegex(aPat));
 }
 
 
 
 
-void BenchSelector(const std::string & aDir)
+void BenchSelector(cParamExeBench & aParam,const std::string & aDir)
 {
+    if (! aParam.NewBench("Selector")) return;
+
     int aLow = 5;
     int aUp = 9;
     cSelector<int> aSII_59 = GenIntervalSelector<int>(aLow,aUp,true,true);
@@ -486,10 +487,10 @@ void BenchSelector(const std::string & aDir)
     cSelector<int> aSIEBis_59 = GenIntervalSelector<int>(aLow,aUp,true,false);
     cSelector<int> aSEI_59    = IntervalSelector<int>(aLow,aUp,false,true);
 
-    cSelector<int> aSE_X9 = GenIntervalSelector<int>(boost::none,aUp ,false,false);
+    cSelector<int> aSE_X9 = GenIntervalSelector<int>(std::nullopt,aUp ,false,false);
     cSelector<int> aSEBis_X9 = LeftHalfIntervalSelector<int>(aUp ,false);
 
-    cSelector<int> aSI_5X = GenIntervalSelector<int>(aLow,boost::none,true,true);
+    cSelector<int> aSI_5X = GenIntervalSelector<int>(aLow,std::nullopt,true,true);
     cSelector<int> aSIBis_5X = RightHalfIntervalSelector<int>(aLow,true);
 
 
@@ -557,6 +558,7 @@ void BenchSelector(const std::string & aDir)
         MMVII_INTERNAL_ASSERT_bench(aS6.Match(aK)==aSet6.Match(aK),"Selector");
         MMVII_INTERNAL_ASSERT_bench(aS6.Match(aK)==aSet6.In(aK),"Selector");
     }
+    aParam.EndBench();
 }
 
 
@@ -978,7 +980,7 @@ tNameSet SetNameFromPat(const std::string& aFullPat)
      std::vector<std::string> aV;
      tNameSet aRes;
 
-     GetFilesFromDir(aV,aDir,BoostAllocRegex(aPat));
+     GetFilesFromDir(aV,aDir,AllocRegex(aPat));
      for (const auto & el : aV)
         aRes.Add(el);
      return aRes;
@@ -1103,8 +1105,10 @@ template <class Type> void TplBenchSet(const std::string & aDir)
    }
 }
 
-void BenchSet(const std::string & aDir)
+void BenchSet(cParamExeBench & aParam,const std::string & aDir)
 {
+    if (! aParam.NewBench("Set")) return;
+
     cMMVII_Appli &  anAp = cMMVII_Appli::CurrentAppli();
 
     TplBenchSet<int>        (aDir);
@@ -1128,6 +1132,7 @@ void BenchSet(const std::string & aDir)
        MMVII_INTERNAL_ASSERT_bench(aT2.size()==2,"BenchSet");
        MMVII_INTERNAL_ASSERT_bench(aT2.Equal(aTest),"BenchSet");
     }
+    aParam.EndBench();
 }
 
 };

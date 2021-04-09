@@ -13,13 +13,23 @@
 static std::vector<std::string> includesNames;
 
 template<typename FORMULA>
-void GenerateCode()
+void GenerateCode(bool WithDerivative)
 {
+    std::string aPost = WithDerivative ? "_ValAndDer" : "_Val";
+
+{ //  A voir avec Jo pk ca plante apres si aPost!="" =>JO?
+  aPost="";
+// aPost="x";
+}
+
     NS_SymbolicDerivative::cCoordinatorF<double>
-            mCFD1(FORMULA::FormulaName(),0,FORMULA::VNamesUnknowns(),FORMULA::VNamesObs());
+            mCFD1(FORMULA::FormulaName()+aPost,0,FORMULA::VNamesUnknowns(),FORMULA::VNamesObs());
 
     auto aVFormula = FORMULA::formula(mCFD1.VUk(),mCFD1.VObs());
-    mCFD1.SetCurFormulasWithDerivative(aVFormula);
+    if (WithDerivative) 
+       mCFD1.SetCurFormulasWithDerivative(aVFormula);
+    else
+       mCFD1.SetCurFormulas(aVFormula);
     auto name = mCFD1.GenerateCode();
     includesNames.push_back(name);
     name = mCFD1.GenCodeLonExpr();
@@ -29,12 +39,20 @@ void GenerateCode()
 
 int main(int , char **)
 {
-    GenerateCode<cFraserCamColinear>();
-    GenerateCode<cPrimitivesTest>();
-    GenerateCode<cRatkowskyResidual>();
-    GenerateCode<cEqCoLinearity<cTplFraserDist>>();
-    GenerateCode<cEqCoLinearity<cTplPolDist<7>>>();
-    GenerateCode<cEqCoLinearity<cTplPolDist<2>>>();
+    for (int aTime=0 ; aTime<1 ; aTime++)
+    {
+         bool WithDer = (aTime==0);
+         // GenerateCode<cEqCoLinearity<cTplFraserDist<3>>>(WithDer);
+         GenerateCode<cEqDist<cTplFraserDist<3>>>(WithDer);
+         GenerateCode<cFraserCamColinear>(WithDer);
+         GenerateCode<cPrimitivesTest>(WithDer);
+         GenerateCode<cRatkowskyResidual>(WithDer);
+         GenerateCode<cEqCoLinearity<cTplFraserDist<4>>>(WithDer);
+         GenerateCode<cEqCoLinearity<cTplPolDist<7>>>(WithDer);
+         GenerateCode<cEqCoLinearity<cTplPolDist<2>>>(WithDer);
+/*
+*/
+    }
 
     std::ofstream os(std::string("CodeGen_IncludeAll.h"));
     for (auto &include : includesNames )

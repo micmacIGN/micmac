@@ -1,0 +1,37 @@
+MMv2Dir=..
+INCLUDEDIRS = -I. -I${MMv2Dir}/include/
+DOCDIR = doc/
+
+SO = _mmv2.so
+
+ifeq ($(USEQT), ON)
+    QTLINK= -lGL -lGLU  -lQt5Core -lQt5Gui -lQt5Widgets -lQt5Concurrent -lQt5OpenGL -lQt5Xml
+endif
+
+I_SRCS = $(wildcard *.i)
+PY_FILES = $(I_SRCS:.i=.py)
+WRAP_CXX_FILES = $(I_SRCS:.i=_wrap.cxx)
+WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
+
+.PHONY: clean doc swig
+
+.SECONDARY: $(WRAP_CXX_FILES)
+
+apipy: $(WRAP_CXX_FILES)
+	python3 setup.py install --user USEQT=$(USEQT)
+	python3 -c "import mmv2"
+	$(info "All is Ok")
+
+all: apipy doc
+
+doc:
+	cd $(DOCDIR) && doxygen
+
+clean:
+	rm -f $(WRAP_CXX_FILES) $(WRAP_O_FILES) $(PY_FILES) $(SO) *.so *.o
+	rm -Rf $(DOCDIR)/html build/
+	python3 setup.py clean
+
+%_wrap.cxx: %.i
+	swig -python -py3 -DFORSWIG -Wall -c++ ${INCLUDEDIRS} $<
+

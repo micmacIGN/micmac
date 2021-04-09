@@ -1,3 +1,9 @@
+Dependences :
+-------------
+
+libceres-dev
+
+
 To compile :
 ------------
 

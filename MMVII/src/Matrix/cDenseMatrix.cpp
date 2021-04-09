@@ -1,10 +1,10 @@
 #include "include/MMVII_all.h"
 
 
-#include "MMVII_EigenWrap.h"
+//#include "MMVII_EigenWrap.h"
 
 
-using namespace Eigen;
+// using namespace Eigen;
 
 namespace MMVII
 {
@@ -13,7 +13,7 @@ namespace MMVII
 
 
 /* ============================================= */
-/*      cDenseMatrix<Type>                   */
+/*      cDenseMatrix<Type>                       */
 /* ============================================= */
 
 template <class Type> cDenseMatrix<Type>::cDenseMatrix(int aX,int aY,eModeInitImage aMode) :
@@ -45,53 +45,48 @@ template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::Diag(const cDenseVe
     return aRes;
 }
 
-
-template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::RandomSquareRegMatrix
+template <class Type> cResulSVDDecomp<Type>  cDenseMatrix<Type>::RandomSquareRegSVD
                     (
-                        int    aSz,
+                        const cPt2di&aSz,
                         bool   IsSym,
                         double AmplAcc,
                         double aCondMinAccept
                     )
 {
-    cDenseMatrix<Type>  aRes(aSz,eModeInitImage::eMIA_RandCenter);
-    cResulSymEigenValue<Type> aRSEV(1);
+    cDenseMatrix<Type>  aMatRand(aSz.x(),aSz.y(),eModeInitImage::eMIA_RandCenter);
+
+    // For simplicity purpose, do SVD and not jacobi, even when sym
     if (IsSym)
     {
-       aRes.SelfSymetrize();
-       aRSEV = aRes.SymEigenValue();
+       aMatRand.SelfSymetrize();
     }
-    else
-    {
-       // Still need to write non self adjoint interface to Eigen ....
-       MMVII_INTERNAL_ASSERT_always(false,"RandomSquareRegMatrix do not handle unsym");
-    }
+    cResulSVDDecomp<Type> aSVDD = aMatRand.SVD();
+    cDenseVect<Type>  aVDiag = aSVDD.SingularValues();
+    int aNb = aVDiag.Sz();
 
-    const cDenseVect<Type> &  aVEV =  aRSEV.EigenValues();
-
-    // Set global amplitude 
+    // Set global amplitude  to avoid almost all avoid values
     {
        Type aSom = 0;  // Average of eigen value
-       for (int aK=0 ; aK<aSz  ; aK++)
+       for (int aK=0 ; aK<aNb  ; aK++)
        {
-          aSom += std::abs(aVEV(aK));
+          aSom += std::abs(aVDiag(aK));
        }
-       aSom /= aSz;
+       aSom /= aNb;
        if (aSom<AmplAcc)
        {
           if (aSom==0)  // Case 0 , put any value non degenerate
           {
-             for (int aK=0 ; aK<aSz  ; aK++)
+             for (int aK=0 ; aK<aNb  ; aK++)
              {
-                aRSEV.SetKthEigenValue(aK,(1+aK)*(HeadOrTail() ? -1 : 1) );
+                aVDiag(aK) = (1+aK)*(HeadOrTail() ? -1 : 1);
              }
           }
           else // else multiply to have the given amplitude
           {
              double aMul = AmplAcc/aSom;
-             for (int aK=0 ; aK<aSz  ; aK++)
+             for (int aK=0 ; aK<aNb  ; aK++)
              {
-                aRSEV.SetKthEigenValue(aK,aMul*aVEV(aK));
+                aVDiag(aK) *= aMul;
              }
           }
        }
@@ -99,65 +94,103 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::RandomSquareRegMat
 
     // Set conditionning
     {
-       cWhitchMinMax<int,Type> aIMM(0,std::abs(aVEV(0)));
-       for (int aK=0 ; aK<aSz  ; aK++)
+       // Compute max & min of all ABS values (whitch one get it is of no interest)
+       cWhitchMinMax<int,Type> aIMM(0,std::abs(aVDiag(0)));
+       for (int aK=0 ; aK<aNb  ; aK++)
        {
-          aIMM.Add(aK,std::abs(aVEV(aK)));
+          aIMM.Add(aK,std::abs(aVDiag(aK)));
        }
        double aCond = aIMM.Min().Val() / aIMM.Max().Val() ;
+       // if conditionning is too low
        if (aCond <aCondMinAccept)
        {
             //  (ToAdd + VMin) / (Vmax +ToAdd) = Cond : simplify by supresse VMin 
             //  ToAdd = Cond (VMax+ ToAdd)   =>  ToAdd = Cond * VMax (1-Cond)  + Some precuatio,
 
+            // Compute a value  to add to all, in worst case 
+            //  Max =  Max (1+ C/(1-C))
+            //  Min =  Max * C/(1-C)           
+            //  and cond is equal to C !
             Type AbsToAdd = (1.01 * aIMM.Max().Val() * aCondMinAccept) / (1-aCondMinAccept);
-            for (int aK=0 ; aK<aSz  ; aK++)
+            for (int aK=0 ; aK<aNb  ; aK++)
             {
-               Type ToAdd = AbsToAdd * SignSupEq0(aVEV(aK));
-               aRSEV.SetKthEigenValue(aK,aVEV(aK) + ToAdd);
+               aVDiag(aK) += AbsToAdd * SignSupEq0(aVDiag(aK)); // 1 or -1
+               // aRSEV.SetKthEigenValue(aK,aVEV(aK) + ToAdd);
             }
        }
     }
 
-    return aRSEV.OriMatr();
+    return aSVDD;
 }
 
-
-
-
-template <class Type>  void  cDenseMatrix<Type>::Show() const
+template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::RandomSquareRegMatrix
+                    (
+                        const cPt2di&aSz,
+                        bool   IsSym,
+                        double AmplAcc,
+                        double aCondMinAccept
+                    )
 {
-    cConst_EigenMatWrap<Type> aMapThis(*this);
-    StdOut() << aMapThis.EW() << "\n";
+    cResulSVDDecomp<Type>  aSVDD = RandomSquareRegSVD(aSz,IsSym,AmplAcc,aCondMinAccept);
+    return aSVDD.OriMatr();
 }
 
-
-
-   //  ========= Mul and Inverse ========
-
-
-template <class Type> void cDenseMatrix<Type>::MatMulInPlace(const tDM & aM1,const tDM & aM2)
+template <class Type> cResulSVDDecomp<Type>  
+    cDenseMatrix<Type>::RandomSquareRankDefSVD(const cPt2di & aSz,int aSzKer)
 {
-    tMat::CheckSizeMulInPlace(aM1,aM2);
-    cNC_EigenMatWrap<Type> aMapThis(*this);
-    cConst_EigenMatWrap<Type> aMap1(aM1);
-    cConst_EigenMatWrap<Type> aMap2(aM2);
+    cResulSVDDecomp<Type>  aSVDD = RandomSquareRegSVD(aSz,false,1e-2,1e-3);
+    cDenseVect<Type>  aVDiag = aSVDD.SingularValues();
+    std::vector<int>  aVInd0 = RandSet(aSzKer,aVDiag.Sz());
 
-    aMapThis.EW()  = aMap1.EW() * aMap2.EW();
+    for (const auto & aInd0 : aVInd0)
+        aVDiag(aInd0) = 0;
+
+    return aSVDD;
 }
 
-template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse() const
+template<class Type> cDenseMatrix<Type> 
+    cDenseMatrix<Type>::RandomSquareRankDefMatrix(const cPt2di & aSz,int aSzK)
 {
-   tMat::CheckSquare(*this);
-   cDenseMatrix<Type> aRes(Sz().x(),Sz().y());
-
-   cConst_EigenMatWrap<Type> aMapThis(*this);
-   cNC_EigenMatWrap<Type> aMapRes(aRes);
-
-   aMapRes.EW() = aMapThis.EW().inverse();
-
-   return aRes;
+    cResulSVDDecomp<Type>  aSVDD = RandomSquareRankDefSVD(aSz,aSzK);
+    return aSVDD.OriMatr();
 }
+
+
+template<class Type> cDenseVect<Type> cDenseMatrix<Type>::Kernel(Type * aVp) const
+{
+    /*   U D tV K  =>  tV K = Dk     => K = V Dk */
+
+    cResulSVDDecomp<Type> aSVDD = SVD();
+    cDenseVect<Type>  aVDiag = aSVDD.SingularValues();
+
+    cWhitchMin<int,Type> aWMin(0,std::abs(aVDiag(0)));
+    for (int aK=1 ; aK<aVDiag.Sz() ; aK++)
+        aWMin.Add(aK,std::abs(aVDiag(aK)));
+
+    if (aVp) 
+       *aVp = aVDiag(aWMin.Index());
+    
+    return aSVDD.MatV().ReadCol(aWMin.Index());
+}
+
+template<class Type> cDenseVect<Type> cDenseMatrix<Type>::EigenVect(const Type & aVal,Type * aVp) const
+{
+    this->CheckSquare(*this);
+    cDenseMatrix<Type> aM = Dup();
+    for (int aK=0 ; aK<Sz().x() ; aK++)
+        aM.SetElem(aK,aK,aM.GetElem(aK,aK) - aVal);
+     
+    return aM.Kernel(aVp);
+}
+
+
+// template <class Type> cResulSVDDecomp<Type>  
+// tDM RandomSquareRankDefMatrix(const cPt2di & aSz,int aSzK);
+
+
+
+
+
 
 /** Iterative inverse seem to be useless with eigen.  In the best case it divide by two the residual
     I let it hower just in case I have doubt.
@@ -214,124 +247,6 @@ template <class Type> cDenseMatrix<Type>  cDenseMatrix<Type>::Inverse(double Eps
    }
    getchar();
    return Ap;
-}
-
-
-// ===============  Line ================
-
-/**  Version where T1 != T2, cannot use Eigen, so do it by hand */
-template <class T1,class T2> static
-      void  TplMulLine(cDenseVect<T2> &aVRes,const cDenseMatrix<T1> & aMat, const cDenseVect<T2> & aVIn)
-{
-   aMat.TplCheckSizeYandX(aVIn,aVRes);
-
-   for (int aX=0 ; aX<aMat.Sz().x() ; aX++)
-   {
-       typename tMergeF<T1,T2>::tMax aRes = 0.0; // Create a temporary having max accuracy  of T1/T2
-       for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
-           aRes += aVIn(aY) * aMat.GetElem(aX,aY);
-       aVRes(aX) =  aRes; // TplMulLineElem(aX,aVIn);
-   }
-}
-
-/** Version with same type, use eigen */
-
-template <class T> static  
-        void  TplMulLine(cDenseVect<T> & aVRes,const cDenseMatrix<T> & aMat, const cDenseVect<T> & aVIn)
-{
-   aMat.TplCheckSizeYandX(aVIn,aVRes);
-
-   cConst_EigenMatWrap<T> aMapM(aMat);
-   cConst_EigenLineVectWrap<T> aMapI(aVIn);
-   cNC_EigenLineVectWrap<T> aMapR(aVRes);
-
-   aMapR.EW() = aMapI.EW() * aMapM.EW();
-}
-
-/** Mul Col X with line vector VIn */
-
-template <class T1,class T2> static  typename tMergeF<T1,T2>::tMax TplMulLineElem(int aX,const cDenseMatrix<T1> & aMat, const cDenseVect<T2> & aVIn)
-{
-   aMat.TplCheckSizeY(aVIn);
-   typename tMergeF<T1,T2>::tMax aRes = 0.0;
-   for (int aY=0 ; aY<aMat.Sz().y() ; aY++)
-       aRes += aVIn(aY) * aMat.GetElem(aX,aY);
-   return aRes;
-}
-
-
-/*  MulLineInPlace / MulLineElem for REAL4, REAL8, REAL16 : call template functions */
-
-template <class Type> void  cDenseMatrix<Type>::MulLineInPlace(tDV &aVRes,const tDV &aVIn) const 
-{
-   TplMulLine(aVRes,*this,aVIn);
-}
-template <class Type> Type  cDenseMatrix<Type>::MulLineElem(int  aX,const tDV & aVIn) const 
-{
-   return TplMulLineElem(aX,*this,aVIn);
-}
-
-
-// ===============  Column ================
-
-    /* I cannot make eigen wrapper work on different type of matrix (float/double, ...) so
-        create two template, on specialized with same type, using eigen, posibly more efficient ? (use //isation)
-        and other using hand craft mult
-    */
-
-
-template <class T1,class T2> static
-         void  TplMulCol(cDenseVect<T2> &aVRes,const cDenseMatrix<T1> & aMat, const cDenseVect<T2> & aVIn)
-{
-   aMat.TplCheckSizeYandX(aVRes,aVIn);
-   /*  A conserver, verif Merge Type
-       StdOut() << "Txxxxxx "  
-                 << " " << E2Str(tNumTrait<T1>::TyNum())  
-                 << " " << E2Str(tNumTrait<T2>::TyNum())  
-                 << " => " << E2Str(tNumTrait<typename tMergeF<T1,T2>::tMax>::TyNum())  
-                 << "\n";
-   */
-
-   for (int aY= 0 ; aY <aMat.Sz().y() ; aY++)
-   {
-       typename tMergeF<T1,T2>::tMax aRes = 0.0;
-       for (int aX=0 ; aX<aMat.Sz().x() ; aX++)
-           aRes += aVIn(aX) * aMat.GetElem(aX,aY);
-       aVRes(aY) = aRes;
-   }
-}
-
-    /** Mul Col,  With same type , use eigen */
-
-template <class T> static  
-        void  TplMulCol(cDenseVect<T> & aVRes,const cDenseMatrix<T> & aMat, const cDenseVect<T> & aVIn)
-{
-   aMat.TplCheckSizeYandX(aVRes,aVIn);
-   
-   cConst_EigenMatWrap<T>  aMapM(aMat);
-   cConst_EigenColVectWrap<T> aMapI(aVIn);
-   cNC_EigenColVectWrap<T> aMapR(aVRes);
-   aMapR.EW() =  aMapM.EW() * aMapI.EW();
-}
-
-   /** Mul Line aY with col vector VIn */
-template <class T1,class T2> static typename tMergeF<T1,T2>::tMax TplMulColElem(int aY,const cDenseMatrix<T1> & aMat, const cDenseVect<T2> & aVIn)
-{
-   aMat.TplCheckSizeX(aVIn);
-   typename tMergeF<T1,T2>::tMax aRes = 0.0;
-   for (int aX=0 ; aX<aMat.Sz().x() ; aX++)
-       aRes += aVIn(aX) * aMat.GetElem(aX,aY);
-   return aRes;
-}
-
-
-template <class Type> void  cDenseMatrix<Type>::MulColInPlace(tDV &aVRes,const tDV &aVIn) const 
-{
-   TplMulCol(aVRes,*this,aVIn);
-}
-template <class Type> Type  cDenseMatrix<Type>::MulColElem(int  aY,const tDV & aVIn) const 
-{
-   return TplMulColElem(aY,*this,aVIn);
 }
 
 

@@ -1,10 +1,8 @@
 #include "include/MMVII_all.h"
 #include "include/MMVII_Class4Bench.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
-#include <boost/algorithm/cxx14/equal.hpp>
 
 
-// #include <boost/optional/optional_io.hpp>
 
 
 /** \file BenchSerial.cpp
@@ -35,7 +33,7 @@ void AddData(const cAuxAr2007 & anAux, cTestSerial0 &    aTS0)
 
 template <class Type> bool EqualCont(const Type &aV1,const Type & aV2)
 {
-    return  boost::algorithm::equal(aV1.begin(),aV1.end(),aV2.begin(),aV2.end());
+    return  std::equal(aV1.begin(),aV1.end(),aV2.begin(),aV2.end());
 }
 
 
@@ -117,10 +115,12 @@ template <class Type> void BenchSerialIm2D(const std::string & aDirOut)
 
 void BenchSerialization
     (
+        cParamExeBench & aParam,
         const std::string & aDirOut,  ///< For write-read temp file
         const std::string & aDirIn  ///< For readin existing file (as Xml with comments)
     )
 {
+    if (! aParam.NewBench("Serial")) return;
     // std::string aDir= DirCur();
     {
         BenchSerialIm2D<tREAL4>(aDirOut);
@@ -223,7 +223,8 @@ SaveInFile(aT2,"DEBUG."+PostF_XmlFiles);
        MMVII_INTERNAL_ASSERT_bench(!IsFileXmlOfGivenTag(true,aDirIn+"PBF2."+PostF_XmlFiles,"TS0"),"cAppli_MMVII_TestSerial");
     }
 
-    StdOut() << "DONE SERIAL\n";
+    aParam.EndBench();
+    //StdOut() << "DONE SERIAL\n";
 
     // return EXIT_SUCCESS;
 }

@@ -13,7 +13,8 @@ namespace MMVII
     (3) services for serialization
 */
 
-class  cSpecOneArg2007 ;
+template <class TypeEnum> class cEnumAttr;   ///< cEnumAttr<eTA2007> -> One "semantic" attribute of one specif
+class  cSpecOneArg2007 ;  ///< The complete specif made of several tSemA2007
 class cCollecSpecArg2007;
 class cAr2007;             ///< Mother class of archive, do not need to export
 class cAuxAr2007;          ///< Auxilary class, only neccessry
@@ -81,6 +82,8 @@ template  <class Type> void FromS(const std::string & aStr,Type & aV) { aV= cStr
 
 /// Semantic of cSpecOneArg2007
 /**
+   => generalized to templates as it will be usefull for different enums
+
    This "semantic" are usefull to have a finer process
    od the parameter in the global constructor. For example
    indicate that a parameter is  internal (dont show) or
@@ -88,26 +91,42 @@ template  <class Type> void FromS(const std::string & aStr,Type & aV) { aV= cStr
 
    Many parameter are at a low level just string , those indicating
    pattern of file or those indicatif 
-
-     
 */
-class cSemA2007
+
+template <class TypeEnum> class cEnumAttr
 {
    public :
-      cSemA2007(eTA2007 aType,const std::string & anAux);
-      cSemA2007(eTA2007 aType);
+      cEnumAttr(TypeEnum aType,const std::string & anAux);
+      cEnumAttr(TypeEnum aType);
 
-      eTA2007 Type()            const;  ///< Accessor
-      const std::string & AuxA2007() const;  ///< Accessor
-      std::string  Name4Help() const;   ///< Use  E2Str(const eTA2007 &) but filter to usefull, add Aux
+      TypeEnum Type()            const;  ///< Accessor
+      const std::string & Aux() const;  ///< Accessor
 
     private :
 
-      eTA2007      mType;
-      std::string  mAuxA2007;
+      TypeEnum       mType;
+      std::string    mAux;
 };
 
+///  Enum-String Property-liste (using the old fashioned LISP naming )
+template <class TypeEnum> class cES_PropertyList
+{
+    public :
+        typedef cEnumAttr<TypeEnum>     tOnePair;
+        typedef std::vector<tOnePair>   tAllPairs;
+        cES_PropertyList(const tAllPairs & aAllPairs);
+        const tAllPairs & AllPairs() const;
+    private :
+        tAllPairs   mAllPairs;
+};
 
+typedef cES_PropertyList<eTA2007> tSemA2007PL;
+
+
+// typedef cEnumAttr<eTA2007> tSemA2007;
+
+/// Use  E2Str(const eTA2007 &) but filter to usefull, add Aux
+std::string  Name4Help(const tSemA2007 & aSem) ;  
 
 /// Base class  to describe one paramater specification
 /**  The job will be done by template inheriting classes
@@ -116,13 +135,13 @@ class cSemA2007
 class  cSpecOneArg2007 : public cMemCheck
 {
      public :
-        typedef std::vector<cSemA2007> tVSem;
+        typedef  tSemA2007PL::tAllPairs  tAllSemPL;
 
         /// Default empty semantique
-        static const tVSem   TheEmptySem;
+        static const tAllSemPL   TheEmptySem;
         ///  Name + comment  + semantic
-        cSpecOneArg2007(const std::string & aName,const std::string & aCom,const tVSem & = TheEmptySem);
-        virtual ~cSpecOneArg2007(); ///< Virtual method, so add it 
+        cSpecOneArg2007(const std::string & aName,const std::string & aCom,const tAllSemPL & = TheEmptySem);
+        virtual ~cSpecOneArg2007(); ///< There is already virtual method, so why not add it 
 
         /// Memoize then call type specific V_InitParam
         void InitParam(const std::string & aStr) ;
@@ -135,7 +154,7 @@ class  cSpecOneArg2007 : public cMemCheck
         /// Does any of  mVSem contains aType
         bool HasType(const eTA2007 & aType,std::string * aValue=0)            const;
 
-        const tVSem & VSem() const;         ///< Accessor
+        const tAllSemPL & SemPL() const;         ///< Accessor
         const std::string  & Name() const;  ///< Accessor
         const std::string  & Value() const;  ///< Accessor
         const std::string  & Com() const;   ///< Accessor
@@ -143,6 +162,7 @@ class  cSpecOneArg2007 : public cMemCheck
         void IncrNbMatch() ;
 
         std::string  Name4Help() const;   ///< concat and format the different Name4Help of tVSem
+        std::list<std::string>  AddComs() const;   ///< The list of additionnal commentary , e.q of type AddCom
 
         void ReInit(); /// The same may be used several with in process call, need initialize again
 
@@ -153,12 +173,12 @@ class  cSpecOneArg2007 : public cMemCheck
          std::string     mValue;  ///< memorize Value used in init (command parameter)
          std::string     mName; ///< Name for optionnal
          std::string     mCom;  ///< Comment for all
-         tVSem           mVSem;    ///< Vector of semantic
+         tSemA2007PL     mSemPL;    ///< Vector of semantic
          int             mNbMatch;  ///< Number of match, to generate error on multiple names
 };
 
 typedef std::shared_ptr<cSpecOneArg2007>  tPtrArg2007;
-typedef std::vector<tPtrArg2007>        tVecArg2007;
+typedef std::vector<tPtrArg2007>          tVecArg2007;
 
 
 /// Collection of arg spec
@@ -172,7 +192,7 @@ class cCollecSpecArg2007
 {
    public :
       friend class cMMVII_Appli; ///< only authorizd to construct
-      friend void   Bench_0000_Param(); ///< authorized for bench
+      friend void   Bench_0000_Param(class cParamExeBench & aParam); ///< authorized for bench
       size_t size() const;
       tPtrArg2007 operator [] (int) const;
       void clear() ;
@@ -187,9 +207,9 @@ class cCollecSpecArg2007
 
 
 ///  Two auxilary fonction to create easily cSpecOneArg2007 , one for mandatory
-template <class Type> tPtrArg2007 Arg2007(Type &, const std::string & aCom, const std::vector<cSemA2007> & = cSpecOneArg2007::TheEmptySem);
+template <class Type> tPtrArg2007 Arg2007(Type &, const std::string & aCom, const cSpecOneArg2007::tAllSemPL & = cSpecOneArg2007::TheEmptySem);
 ///  One for optional args
-template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string & aName, const std::string & aCom,const std::vector<cSemA2007> & = cSpecOneArg2007::TheEmptySem);
+template <class Type> tPtrArg2007 AOpt2007(Type &,const std::string & aName, const std::string & aCom,const std::vector<tSemA2007> & = cSpecOneArg2007::TheEmptySem);
 
 
 
@@ -267,7 +287,7 @@ struct cRawData4Serial
 void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal); ///< for cRawData4Serial
 
 /// Serialization for optional
-// template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,boost::optional<Type> & aL);
+// template <class Type> void AddOptData(const cAuxAr2007 & anAux,const std::string & aTag0,std::optional<Type> & aL);
 
 
 void DeleteAr(cAr2007 *); /// call delete, don't want to export a type only to delete it!

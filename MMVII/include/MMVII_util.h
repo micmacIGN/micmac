@@ -65,9 +65,9 @@ std::vector<std::string> SplitString(const std::string & aStr,const std::string 
 // Si PrivPref  "a" => (aaa,)  (a.b.c)  => (a.b,c)
 void  SplitStringArround(std::string & aBefore,std::string & aAfter,const std::string & aStr,char aSep,bool SVP=false,bool PrivPref=true);
 std::string Prefix(const std::string & aStr,char aSep='.',bool SVP=false,bool PrivPref=true);
+std::string LastPrefix(const std::string & aStr,char aSep='.'); ///< No error:  a=> ""  a.b.c => "c"
 std::string Postfix(const std::string & aStr,char aSep='.',bool SVP=false,bool PrivPref=true);
-
-std::string LastPostfix(const std::string & aStr,char aSep='.'); ///< No error:  a=> ""  a.b.c => "c"
+std::string LastPostfix(const std::string & aStr,char aSep='.'); ///< No error:  a=> ""  a.b.c => "a.b"
 
 
 // Direcytory and files names, Rely on boost
@@ -78,7 +78,12 @@ bool SplitDirAndFile(std::string & aDir,std::string & aFile,const std::string & 
 std::string DirCur(); // as "./" on Unix
 std::string DirOfPath(const std::string & aPath,bool ErroNonExist=true);
 std::string FileOfPath(const std::string & aPath,bool ErroNonExist=true);
-std::string UpDir(const std::string & aDir,int aNb=1);
+
+
+std::string OneUpStd(const std::string & aDir);  ///< Try to supress the as a/B => a/
+std::string OneUpDir(const std::string & aDir);  ///< If OneUpStd fail add /../
+std::string UpDir(const std::string & aDir,int aNb);
+
 // std::string AbsoluteName(const std::string &); ///< Get absolute name of path; rather pwd than unalias, no good
 bool UCaseEqual(const std::string & ,const std::string & ); ///< Case unsensitive equality
 bool UCaseBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case UN-sensitive premisse of aStr ?
@@ -90,6 +95,7 @@ void CopyFile(const std::string & aName,const std::string & aDest);
 bool  RemovePatternFile(const  std::string & aPat,bool SVP); ///< Remove all file corresponding to pattern
 void ActionDir(const std::string &,eModeCreateDir);
 
+std::string AddBefore(const std::string & aPath,const std::string & ToAdd); // A/B/C.tif,@  =>  A/B/@C.tif
 
 
 
@@ -101,7 +107,7 @@ bool IsDirectory(const std::string & aName);
 
 
 /// Create a selector associated to a regular expression, by convention return Cste-true selector if string=""
-tNameSelector  BoostAllocRegex(const std::string& aRegEx);
+tNameSelector  AllocRegex(const std::string& aRegEx);
 
 /// Exract name of files located in the directory, by return value
 std::vector<std::string>  GetFilesFromDir(const std::string & aDir,const tNameSelector& ,bool OnlyRegular=true);
@@ -249,7 +255,6 @@ class cMMVII_Duration
         tINT8 mNbSec;
         tREAL8 mFrac;   // in second
 };
-void Bench_Duration();
 
 
 };

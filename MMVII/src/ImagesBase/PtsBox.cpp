@@ -110,19 +110,127 @@ template <const int Dim> int NbPixVign(const cPtxd<int,Dim> & aVign)
 
 cPt2di  TAB4Corner[4] = {{1,1},{-1,1},{-1,-1},{1,-1}};
 
+template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PCste(const Type & aVal)
+{
+   cPtxd<Type,Dim> aRes;
+   for (int aK=0 ; aK<Dim; aK++)
+       aRes.mCoords[aK]= aVal;
+   return aRes;
+}
 
+template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PRand()
+{
+   cPtxd<Type,Dim> aRes;
+   for (int aK=0 ; aK<Dim; aK++)
+       aRes.mCoords[aK]= tNumTrait<Type>::RandomValue();
+   return aRes;
+}
+
+template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PRandC()
+{
+   cPtxd<Type,Dim> aRes;
+   for (int aK=0 ; aK<Dim; aK++)
+       aRes.mCoords[aK]= RandUnif_C();
+   return aRes;
+}
+
+template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PRandUnit()
+{
+   cPtxd<Type,Dim> aRes = PRandC();
+   while (NormInf(aRes)<1e-2)
+        aRes = PRandC();
+   return VUnit(aRes);
+}
+
+template <class Type,const int Dim> cPtxd<Type,Dim>  
+      cPtxd<Type,Dim>::PRandUnitDiff(const cPtxd<Type,Dim>& aP0,const Type & aDist)
+{
+   cPtxd<Type,Dim> aRes = PRandUnit();
+   while (NormInf(aRes-aP0)<aDist)
+        aRes = PRandUnit();
+   return aRes;
+}
+
+
+
+
+
+template <class Type,const int Dim> double NormK(const cPtxd<Type,Dim> & aPt,double anExp) 
+{
+   double aRes = pow(std::abs(aPt[0]),anExp);
+   for (int aD=1 ; aD<Dim; aD++)
+      aRes += pow(std::abs(aPt[aD]),anExp);
+   return pow(aRes,1/anExp);
+}
+
+template <class Type,const int Dim> double Norm2(const cPtxd<Type,Dim> & aPt)
+{
+   double aRes = Square(aPt[0]);
+   for (int aD=1 ; aD<Dim; aD++)
+      aRes += Square(aPt[aD]);
+   return sqrt(aRes);
+}
+
+template <class Type,const int Dim> Type Norm1(const cPtxd<Type,Dim> & aPt)
+{
+   Type aRes = std::abs(aPt[0]);
+   for (int aD=1 ; aD<Dim; aD++)
+      aRes += std::abs(aPt[aD]);
+   return aRes;
+}
+
+template <class Type,const int Dim> Type NormInf(const cPtxd<Type,Dim> & aPt)
+{
+   Type aRes = std::abs(aPt[0]);
+   for (int aD=1 ; aD<Dim; aD++)
+      aRes = std::max(aRes,std::abs(aPt[aD]));
+   return aRes;
+}
+
+template <class T,const int Dim>  
+   typename  tNumTrait<T>::tBig Scal(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
+{
+   typename tNumTrait<T>::tBig  aRes = aP1[0]*aP2[0];
+   for (int aD=1 ; aD<Dim; aD++)
+      aRes +=  aP1[aD]*aP2[aD];
+   return aRes;
+}
+
+template <class T,const int Dim>  T Cos(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
+{
+   return T(Scal(aP1,aP2)) / (Norm2(aP1)*Norm2(aP2));
+}
+
+
+template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,Dim> &aP)
+{
+    OS << "[" << aP.x();
+    for (int aD=1; aD<Dim; aD++)
+       OS << "," << aP[aD];
+    OS << "]" ;
+    return OS;
+}
+
+template<class T,const int Dim> cPtxd<T,Dim>  VUnit(const cPtxd<T,Dim> & aP)
+{
+   return aP / T(Norm2(aP));  // Check by 0 is made in operator
+}
 
 
 
 /*
-template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PCste(const Type & aVal)
-{
-    cPtxd<Type,Dim> aRes;
-    for (int aK=0 ; aK<Dim; aK++)
-        aRes.mCoords[aK]= aVal;
-    return aRes;
-}
+template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,1> &aP)
+{ return  OS << "[" << aP.x() << "]"; }
+template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,2> &aP)
+{ return  OS << "[" << aP.x() << "," << aP.y() << "]"; }
+template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,3> &aP)
+{ return  OS << "[" << aP.x() << "," << aP.y() << "," << aP.z()<< "]"; }
+template <class Type> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,4> &aP)
+{ return  OS << "[" << aP.x() << "," << aP.y() << "," << aP.z() << "," << aP.t() << "]"; }
 */
+
+
+
 
 
 /* ========================== */
@@ -179,6 +287,12 @@ template <const int Dim> tINT8  cPixBox<Dim>::IndexeLinear(const tPt & aP) const
       aRes += tINT8(aP[aK]-tBox::mP0[aK]) * tINT8(tBox::mSzCum[aK]);
    return aRes;
 }
+
+template <const int Dim> bool  cPixBox<Dim>::SignalAtFrequence(const tPt & anIndex,double aFreq) const
+{
+   return MMVII::SignalAtFrequence(IndexeLinear(anIndex),aFreq,this->mNbElem-1);
+}
+
 
 template <const int Dim> cPtxd<int,Dim>  cPixBox<Dim>::FromIndexeLinear(tINT8  anIndexe) const
 {
@@ -328,6 +442,15 @@ template <class Type,const int Dim>
     }
 }
 
+template <class Type,const int Dim>   
+   cTplBox<Type,Dim>::cTplBox
+   (
+       const cPtxd<Type,Dim> & aSz,
+       bool AllowEmpty
+   ) :
+     cTplBox<Type,Dim>(tPt::PCste(0),aSz,AllowEmpty)
+{
+}
 
 
 template <class Type,const int Dim> bool  cTplBox<Type,Dim>::IsEmpty() const
@@ -335,6 +458,10 @@ template <class Type,const int Dim> bool  cTplBox<Type,Dim>::IsEmpty() const
    return mNbElem == 0;
 }
 
+template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Empty()
+{
+   return  cTplBox<Type,Dim>(tPt::PCste(0),true);
+}
 
 template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Inter(const tBox & aBox)const
 {
@@ -440,6 +567,23 @@ template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Genera
     return cTplBox<Type,Dim>(aP0,aP1);
 }
 
+cBox2dr ToR(const cBox2di & aBox)
+{
+   return cBox2dr(ToR(aBox.P0()),ToR(aBox.P1()));
+}
+
+cBox2di ToI(const cBox2dr & aBox)
+{
+    return cBox2di(Pt_round_down(aBox.P0()),Pt_round_up(aBox.P1()));
+}
+
+cBox2dr operator * (const cBox2dr & aBox,double aScale)
+{
+    return cBox2dr(aBox.P0()*aScale,aBox.P1()*aScale);
+}
+
+
+
 /* ========================== */
 /*       cTpxBoxOfPts         */
 /* ========================== */
@@ -485,11 +629,53 @@ template <class Type,const int Dim>  void  cTplBoxOfPts<Type,Dim>::Add(const tPt
    mNbPts++;
 }
 
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_down(const cPtxd<Type,Dim>  aP)
+{
+   return ICByC1P(aP,round_down);
+}
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_up(const cPtxd<Type,Dim>  aP)
+{
+   return ICByC1P(aP,round_up);
+}
+template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_ni(const cPtxd<Type,Dim>  aP)
+{
+   return ICByC1P(aP,round_ni);
+}
+
+
 /* ========================== */
 /*       INSTANTIATION        */
 /* ========================== */
 
+
+#define MACRO_INSTATIATE_PTXD(TYPE,DIM)\
+template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
+template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);\
+template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRand();\
+template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandC();\
+template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandUnit();\
+template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitDiff(const cPtxd<TYPE,DIM>& ,const TYPE&);\
+template  double NormK(const cPtxd<TYPE,DIM> & aPt,double anExp);\
+template  double Norm2(const cPtxd<TYPE,DIM> & aPt);\
+template  TYPE Norm1(const cPtxd<TYPE,DIM> & aPt);\
+template  TYPE NormInf(const cPtxd<TYPE,DIM> & aPt);\
+template  typename  tNumTrait<TYPE>::tBig Scal(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
+template  TYPE Cos(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
+template  cPtxd<TYPE,DIM>  VUnit(const cPtxd<TYPE,DIM> & aP);
+
+// template  cPtxd<TYPE,DIM>  PCste(const DIM & aVal);
+
+#define MACRO_INSTATIATE_POINT(DIM)\
+MACRO_INSTATIATE_PTXD(tINT4,DIM)\
+MACRO_INSTATIATE_PTXD(tREAL4,DIM)\
+MACRO_INSTATIATE_PTXD(tREAL8,DIM)\
+MACRO_INSTATIATE_PTXD(tREAL16,DIM)
+
 #define MACRO_INSTATIATE_PRECT_DIM(DIM)\
+MACRO_INSTATIATE_POINT(DIM)\
+template cPtxd<int,DIM> Pt_round_down(const cPtxd<double,DIM>  aP);\
+template cPtxd<int,DIM> Pt_round_up(const cPtxd<double,DIM>  aP);\
+template cPtxd<int,DIM> Pt_round_ni(const cPtxd<double,DIM>  aP);\
 template class cBorderPixBoxIterator<DIM>;\
 template class cBorderPixBox<DIM>;\
 template class cTplBox<tINT4,DIM>;\
@@ -503,10 +689,17 @@ template class cDataGenUnTypedIm<DIM>;\
 template <> const cPixBox<DIM> cPixBox<DIM>::TheEmptyBox(cPtxd<int,DIM>::PCste(0),cPtxd<int,DIM>::PCste(0),true);
 
 
+/*
+void F()
+{
+   cPtxd<tINT4,2>::T_PCste(2);
+}
+*/
 
 MACRO_INSTATIATE_PRECT_DIM(1)
 MACRO_INSTATIATE_PRECT_DIM(2)
 MACRO_INSTATIATE_PRECT_DIM(3)
+MACRO_INSTATIATE_POINT(4)
 
 
 

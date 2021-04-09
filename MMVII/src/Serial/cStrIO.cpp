@@ -5,8 +5,14 @@ namespace MMVII
 
 /**
     This file contains the implemenation of conversion between strings and 
-   atomic object
+   atomic and some non atomic object
 */
+
+/* ==================================== */
+/*                                      */
+/*         std::vector<T>               */
+/*                                      */
+/* ==================================== */
 
 static char BufStrIO[1000];
 
@@ -66,6 +72,12 @@ template <>  const std::string cStrIO<std::vector<TYPE>>::msNameType = "std::vec
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(std::string)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(int)
 MACRO_INSTANTITATE_STRIO_VECT_TYPE(double)
+
+/* ==================================== */
+/*                                      */
+/*         cPtxd                        */
+/*                                      */
+/* ==================================== */
 
                           //   - - cPtxd  - -
 
@@ -130,8 +142,9 @@ void OneBenchStrIO(std::string aStr,const  std::vector<std::string> & aV)
    }
 }
 
-void BenchStrIO()
+void BenchStrIO(cParamExeBench & aParam)
 {
+   if (! aParam.NewBench("StrIO")) return;
    OneBenchStrIO("[1,2,3]",{"1","2","3"});
    OneBenchStrIO("[1]",{"1"});
    OneBenchStrIO("[]",{});
@@ -146,7 +159,31 @@ void BenchStrIO()
    //    OneBenchStrIO("[",{});
    //    OneBenchStrIO("[1,2",{});
    // getchar();
+   aParam.EndBench();
 }
+
+/* ==================================== */
+/*                                      */
+/*          Enumerated type             */
+/*    eOpAff,                           */
+/*                                      */
+/* ==================================== */
+
+#define MACRO_INSTANTITATE_STRIO_ENUM(ETYPE,ENAME)\
+template <>  std::string cStrIO<ETYPE>::ToStr(const ETYPE & anEnum) { return  E2Str(anEnum); }\
+template <>  ETYPE cStrIO<ETYPE>::FromStr(const std::string & aStr) { return Str2E<ETYPE>(aStr); }\
+template <>  const std::string cStrIO<ETYPE>::msNameType = ENAME;
+
+MACRO_INSTANTITATE_STRIO_ENUM(eOpAff,"OpAff")
+
+MACRO_INSTANTITATE_STRIO_ENUM(eModeEpipMatch,"ModeEpiMatch")
+
+/* ==================================== */
+/*                                      */
+/*         Atomic native type           */
+/*  bool, int, double, std::string      */
+/*                                      */
+/* ==================================== */
 
    // ================  bool ==============================================
 
@@ -179,7 +216,9 @@ template <>  int cStrIO<int>::FromStr(const std::string & aStr)
     if (aStr.empty())
        return 0;
     int anI;
-    sscanf(aStr.c_str(),"%d",&anI);
+    int aNb= sscanf(aStr.c_str(),"%d",&anI);
+
+    MMVII_INTERNAL_ASSERT_User((aNb!=0),eTyUEr::eBadInt,"String is not a valid int")
     return anI;
 }
 template <>  const std::string cStrIO<int>::msNameType = "int";

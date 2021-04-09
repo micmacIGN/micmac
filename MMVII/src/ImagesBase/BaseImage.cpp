@@ -30,7 +30,7 @@ template <const int Dim> cDataGenUnTypedIm<Dim>::cDataGenUnTypedIm
 
 static std::string MesNegSz="Negative size in rect object";
 static std::string  TestErHandler;
-void TestBenchRectObjError(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
+static void TestBenchRectObjError(const std::string & aType,const std::string &  aMes,const char * aFile,int aLine)
 {
    TestErHandler = aMes;
 }

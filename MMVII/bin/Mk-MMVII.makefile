@@ -88,6 +88,11 @@ SrcMatrix=$(wildcard ${MMV2DirMatrix}*.cpp)
 ObjMatrix=$(SrcMatrix:.cpp=.o) 
 #
 #
+MMV2DirMappings=${MMV2DirSrc}Mappings/
+SrcMappings=$(wildcard ${MMV2DirMappings}*.cpp)
+ObjMappings=$(SrcMappings:.cpp=.o) 
+#
+#
 MMV2DirDIB=${MMV2DirSrc}DescIndexBinaire/
 SrcDIB=$(wildcard ${MMV2DirDIB}*.cpp)
 ObjDIB=$(SrcDIB:.cpp=.o)
@@ -117,11 +122,16 @@ MMV2DirDenseMatch=${MMV2DirSrc}DenseMatch/
 SrcDenseMatch=$(wildcard ${MMV2DirDenseMatch}*.cpp)
 ObjDenseMatch=$(SrcDenseMatch:.cpp=.o) 
 #
+#
+MMV2DirGeoms=${MMV2DirSrc}Geoms/
+SrcGeoms=$(wildcard ${MMV2DirGeoms}*.cpp)
+ObjGeoms=$(SrcGeoms:.cpp=.o) 
+#
 #    => Le Main
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch}
+OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjGeoms} ${ObjMappings} 
 #
 #=========  Header ========
 #
@@ -133,10 +143,11 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #== CFLAGS etc...
 #
 CXX=g++
-CFlags= "-fopenmp" "-std=c++14" "-Wall"  "-Werror" "-O4" "-march=native" -I${MMV2Dir} -I${MMDir}/include/ -I${MMDir}
-BOOST_LIBS= -lboost_system -lboost_serialization -lboost_regex -lboost_filesystem
+CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-march=native" "-fPIC" -I${MMV2Dir} -I${MMV2Dir}/ExternalInclude -I${MMDir}/include/ -I${MMDir}
+BOOST_LIBS=
 QTAnnLibs= -lXext /usr/lib/x86_64-linux-gnu/libQt5Core.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so -lGLU -lGL  -ldl -lpthread /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5Concurrent.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so ../../lib/libANN.a
-LibsFlags= ${MMV2ElisePath} -lX11  ${BOOST_LIBS}  ${QTAnnLibs}
+## MacOS : may be -lstdc++fs should be replaced by -lc++experimental
+LibsFlags= ${MMV2ElisePath} -lX11  ${BOOST_LIBS}  ${QTAnnLibs}  -lstdc++fs
 #
 ${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ResultInstal} ${MMV2ElisePath}
 	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe} 
@@ -145,7 +156,7 @@ ${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ResultInstal} ${MMV2ElisePath}
 # ==========    INSTALLATION =================
 #
 ${MMV2ResultInstal} : ${MMV2SrcInstal}
-	${CXX} ${MMV2SrcInstal} -o ${MMV2BinInstal} ${BOOST_LIBS}
+	${CXX} -std=c++17 ${MMV2SrcInstal} -o ${MMV2BinInstal}
 	mkdir -p `dirname ${MMV2ResultInstal}`
 	${MMV2BinInstal}
 	rm ${MMV2BinInstal}
@@ -184,11 +195,15 @@ ${MMV2DirImagesInfoExtract}%.o :  ${MMV2DirImagesInfoExtract}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirMatrix}%.o :  ${MMV2DirMatrix}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirMappings}%.o :  ${MMV2DirMappings}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirDIB}%.o :  ${MMV2DirDIB}%.cpp   ${HEADER} ${MMV2DirDIB}*.h
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirGraphs}%.o :  ${MMV2DirGraphs}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirDenseMatch}%.o :  ${MMV2DirDenseMatch}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirGeoms}%.o :  ${MMV2DirGeoms}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 #
 #       ===== TEST ========================================
