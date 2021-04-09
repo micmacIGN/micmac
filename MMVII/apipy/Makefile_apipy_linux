@@ -8,7 +8,7 @@ ifeq ($(USEQT), ON)
     QTLINK= -lGL -lGLU  -lQt5Core -lQt5Gui -lQt5Widgets -lQt5Concurrent -lQt5OpenGL -lQt5Xml
 endif
 
-I_SRCS = $(wildcard *.i)
+I_SRCS = mmv2.i
 PY_FILES = $(I_SRCS:.i=.py)
 WRAP_CXX_FILES = $(I_SRCS:.i=_wrap.cxx)
 WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
@@ -19,8 +19,7 @@ WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 
 apipy: $(WRAP_CXX_FILES)
 	python3 setup.py install --user USEQT=$(USEQT)
-	python3 -c "import mmv2"
-	$(info "All is Ok")
+	if python3 -c "import mmv2" ; then echo "APIPY OK" ; else echo "APIPY error!" ; fi
 
 all: apipy doc
 
