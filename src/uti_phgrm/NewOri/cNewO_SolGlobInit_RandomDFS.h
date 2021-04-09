@@ -42,6 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 //#include "general/CMake_defines.h"
 #include "graphes/cNewO_BuildOptions.h"
 #include <random>
+#include  "../../../MMVII/include/TreeDist.h"
 
 #ifdef GRAPHVIZ_ENABLED
 	#include  <graphviz/gvc.h>
@@ -51,7 +52,9 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 namespace SolGlobInit_DFS {
 
-
+#define MIN_WEIGHT 0.5
+#define MAX_WEIGHT 10.0
+#define IFLAG -1.0
 #define MIN_LNK_SEED 4
 #define MAX_SAMPLE_SEED 50
 		
@@ -80,7 +83,8 @@ class cNOSolIn_AttrSom
          cNOSolIn_AttrSom() :
              mCurRot (ElRotation3D::Id),
              mTestRot (ElRotation3D::Id),
-	   		 mNumCC (-1)	{}
+	   		 mNumCC (IFLAG),
+	         mNumId(IFLAG) {}
          cNOSolIn_AttrSom(const std::string & aName,cSolGlobInit_NRandom & anAppli);
 
 
@@ -91,6 +95,7 @@ class cNOSolIn_AttrSom
 
          std::vector<cLinkTripl>  & Lnk3() {return mLnk3;}
 		 int & NumCC() {return mNumCC;}
+		 int & NumId() {return mNumId;}
 
     private:
          std::string                      mName;
@@ -105,6 +110,7 @@ class cNOSolIn_AttrSom
 		 //which built/included this node in the solution;
 		 //mNumCC is used in the graph-based incoherence computation
 		 int 							  mNumCC;
+		 int                              mNumId;
 };
 
 
@@ -164,8 +170,8 @@ class cNOSolIn_Triplet
 		  float&  CostArc() {return mCostArc;}
 		  float   CostArcMed() const {return mCostArcMed;}
 		  float&  CostArcMed() {return mCostArcMed;}
-		  std::vector<float>& CostArcPerSample() {return mCostArcPerSample;};
-          std::vector<int>& DistArcPerSample() {return mDistArcPerSample;};
+		  std::vector<double>& CostArcPerSample() {return mCostArcPerSample;};
+          std::vector<double>& DistArcPerSample() {return mDistArcPerSample;};
           double   PdsSum() const {return mPdsSum;}
 		  double&  PdsSum() {return mPdsSum;}
           double   CostPdsSum() const {return mCostPdsSum;}
@@ -183,8 +189,8 @@ class cNOSolIn_Triplet
           tArcNSI *           mArcs[3];
 		  float               mCostArc;
           float               mCostArcMed;
-		  std::vector<float>  mCostArcPerSample;
-          std::vector<int>    mDistArcPerSample;
+		  std::vector<double>  mCostArcPerSample;
+          std::vector<double>    mDistArcPerSample;
           double mPdsSum;//sum of Pds for the computation of the weighted mean
           double mCostPdsSum;//sum of cost times pds for the computation of the weighted mean
 
@@ -360,7 +366,7 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 		void CoherTriplets();
 		void CoherTriplets(std::vector<cNOSolIn_Triplet *>& aV3);
 		void CoherTripletsGraphBased(std::vector<cNOSolIn_Triplet *>& aV3);
-		void CoherTripletsGraphBasedV2(std::vector<cNOSolIn_Triplet *>& aV3,int);
+		void CoherTripletsGraphBasedV2(std::vector<cNOSolIn_Triplet *>& aV3,int,int);
 		void CoherTripletsAllSamples();
         void CoherTripletsAllSamplesMesPond();
 		void HeapPerEdge();
@@ -404,7 +410,7 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
         int             		mNbSamples;
         ElTimer         		mChrono;
 		int                     mIterCur;
-		//bool                    mGraphCoher;
+		bool                    mGraphCoher;
 
 #ifdef GRAPHVIZ_ENABLED
 		GVC_t *GRAPHVIZ_GVCInit(const std::string& aGName);
@@ -437,7 +443,8 @@ class cSolGlobInit_NRandom : public cCommonMartiniAppli
 
         double mDistThresh;
         bool   mApplyCostPds;
-        double mAlphaProb;
+        double mAlphaProb; 
+
 
 };
 

@@ -43,12 +43,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 using namespace SolGlobInit_DFS ;
 
 
-#define MIN_WEIGHT 0.5
-#define MAX_WEIGHT 10.0
-#define IFLAG -1.0
 
 extern double DistBase(Pt3dr  aB1,Pt3dr  aB2);
 extern double DistanceRot(const ElRotation3D & aR1,const ElRotation3D & aR2,double aBSurH);
+extern double PropPond(std::vector<Pt2df> &  aV,double aProp,int * aKMed=0);
 
 void PrintRotation(const ElMatrix<double> Mat,const std::string Msg)
 {
@@ -378,7 +376,9 @@ cNOSolIn_Triplet::cNOSolIn_Triplet(cSolGlobInit_NRandom *anAppli,tSomNSI * aS1,t
 	mNumTT (IFLAG),
 	mR2on1 (Xml2El(aTrip.Ori2On1())),
     mR3on1 (Xml2El(aTrip.Ori3On1())),
-    mBOnH  (aTrip.BSurH())
+    mBOnH  (0.0)// => in DostRot the translation error will not be taken into account
+    //mBOnH  (aTrip.BSurH())// => not always updated
+    //mBOnH  (0.01) //(aTrip.BSurH()) => not always updated
 {
    mSoms[0] = aS1;
    mSoms[1] = aS2;
@@ -393,7 +393,8 @@ double cNOSolIn_Triplet::CoherTest() const
     for (int aK=0 ; aK<3 ; aK++)
     {
          aVRLoc.push_back(RotOfK(aK));
-         aVRAbs.push_back(mSoms[aK]->attr().TestRot());
+         aVRAbs.push_back(mSoms[aK]->attr().CurRot());
+         //aVRAbs.push_back(mSoms[aK]->attr().TestRot());
     }
 
     //
@@ -408,6 +409,7 @@ double cNOSolIn_Triplet::CoherTest() const
 
           double aD = DistanceRot(aRAbs,aRA2,mBOnH);
           aRes += aD;
+		  //std::cout << "RES=" << aRes  << " " << aD <<  " "<< mBOnH << "\n";
     }
     aRes = aRes / 3.0;
 
@@ -523,7 +525,7 @@ cSolGlobInit_NRandom::cSolGlobInit_NRandom(int argc,char ** argv) :
 	mDebug(false),
 	mNbSamples(1000),
 	mIterCur(0),
-	//mGraphCoher(false),
+	mGraphCoher(true),
 	mGraphName(""),
 	mHeapTriAll(TheCmp3Sol),
 	mHeapTriDyn(TheCmp3),
@@ -540,7 +542,7 @@ cSolGlobInit_NRandom::cSolGlobInit_NRandom(int argc,char ** argv) :
          LArgMain() << EAMC(mFullPat,"Pattern"),
          LArgMain() << EAM(mDebug,"Debug",true,"Print some stuff, Def=false")
                     << EAM(mNbSamples,"Nb",true,"Number of samples, Def=1000")
-                   // << EAM(mGraphCoher,"GraphCoh",true,"Graph-based incoherence, Def=false")
+                    << EAM(mGraphCoher,"GraphCoh",true,"Graph-based incoherence, Def=true")
 				    << EAM(mApplyCostPds,"CostPds",true,"Apply Pds to cost, Def=false")
 					<< EAM(mDistThresh,"DistThresh",true,"Aply distance threshold when computing incoh on samples")
 					<< EAM(aModeBin,"Bin",true,"Binaries file, def = true",eSAM_IsBool)
@@ -667,6 +669,7 @@ void cSolGlobInit_NRandom::NumeroteCC()
             aCC3->push_back(aTri0);  // Add triplet T0
             aTri0->Flag().set_kth_true(mFlag3CC);// Mark it as explored
             aTri0->NumCC() = aNumCC;  // Put  right num to T0
+            aTri0->NumId() = aNumId++;  // 
             int aKCur = 0;
             // Traditional loop of CC : while  no new inexplored neighboor
             while (aKCur!=int(aCC3->size()))
@@ -686,6 +689,7 @@ void cSolGlobInit_NRandom::NumeroteCC()
                           aLnk[aKL].m3->NumId() = aNumId;
             			  aNumId++;
                      }
+
                   }
                }
                aKCur++;
@@ -876,7 +880,7 @@ void cSolGlobInit_NRandom::EstimRt(cLinkTripl * aLnk)
     Pt3dr aT3 = T0 + aRL2M * aC3ToL.tr() * Lambda;
 
     // 4- Set R3,t3
-    aS3->attr().CurRot() = ElRotation3D(aT3,aRL2M*aC3ToL.Mat(),true);
+    aS3->attr().CurRot()  = ElRotation3D(aT3,aRL2M*aC3ToL.Mat(),true);
     aS3->attr().TestRot() = ElRotation3D(aT3,aRL2M*aC3ToL.Mat(),true);//used in coherence
 	
 
@@ -921,6 +925,8 @@ void  cSolGlobInit_NRandom::RandomSolOneCC(cNOSolIn_Triplet * aSeed,int NbSomCC)
 		// Mark the concatenation order of the node;
 		// the first three nodes arise from the same triplet therefore the same order 
 		aSeed->KSom(aK)->attr().NumCC() = aNumCCSom;
+		// Id per sommet to know from which triplet it was generated => Fast Tree Dist util
+		aSeed->KSom(aK)->attr().NumId() = aSeed->NumId();
 
 
 	}
@@ -946,6 +952,10 @@ void  cSolGlobInit_NRandom::RandomSolOneCC(cNOSolIn_Triplet * aSeed,int NbSomCC)
 		// Flag the concatenation order of the node
 		// = order of the "builder" triplet 
 		aTri->S3()->attr().NumCC() = aTri->m3->NumTT();
+
+		// Id per sommet to know from which triplet it was generated => Fast Tree Dist util
+		aTri->S3()->attr().NumId() = aTri->m3->NumId();
+
 
 		// Propagate R,t and flag sommet as visited
 		EstimRt(aTri);	
@@ -986,7 +996,10 @@ void  cSolGlobInit_NRandom::RandomSolOneCC(cNO_CC_TripSom * aCC)
      cNOSolIn_Triplet * aTri0 = aCC->mTri[aSeed];
      std::cout << "Seed triplet " << aTri0->KSom(0)->attr().Im()->Name() << " "
                                   << aTri0->KSom(1)->attr().Im()->Name() << " "
-                                  << aTri0->KSom(2)->attr().Im()->Name() << "\n";
+                                  << aTri0->KSom(2)->attr().Im()->Name() << " " 
+								  << aTri0->KSom(0)->attr().NumId() << " "
+								  << aTri0->KSom(1)->attr().NumId() << " "
+								  << aTri0->KSom(2)->attr().NumId() << "\n";
 
 
 	 // Flag as visited
@@ -997,11 +1010,11 @@ void  cSolGlobInit_NRandom::RandomSolOneCC(cNO_CC_TripSom * aCC)
 	 // Build the initial solution in this CC
      RandomSolOneCC(aTri0,aCC->mSoms.size());
 
+
 	 // Calculate coherence scores within this CC
-	 //if (! mGraphCoher)
-	 //CoherTripletsGraphBasedV2(aCC->mTri,aCC->mSoms.size());
-     CoherTriplets(aCC->mTri);
+	 CoherTripletsGraphBasedV2(aCC->mTri,aCC->mSoms.size(),aTri0->NumId());
 	   
+
 
 	 // Free flags
 	 FreeAllFlag(aCC->mSoms,mFlagS);
@@ -1429,33 +1442,122 @@ double cNOSolIn_Triplet::CalcDistArc()
  *    
  *   This function will also store the graph distances per each 
  * */
-void cSolGlobInit_NRandom::CoherTripletsGraphBasedV2(std::vector<cNOSolIn_Triplet *>& aV3,int NbSom) 
+void cSolGlobInit_NRandom::CoherTripletsGraphBasedV2(std::vector<cNOSolIn_Triplet *>& aV3,int NbSom,int TriSeedId) 
 {
-	//double a1 = (MAX_WEIGHT - MIN_WEIGHT)/ElMax(NbSom-1,1);
-	double a1 = (MAX_WEIGHT - MIN_WEIGHT)/(ElSquare(NbSom)*(NbSom-1));
-    double a2 = (MIN_WEIGHT*NbSom - MAX_WEIGHT)/ElMax(NbSom-1,1);
+
+	std::cout << "Nb of sommets" << NbSom << " seed=" << TriSeedId << "\n";
+
+	// ==== Fast Tree Distance ===
+	std::vector<int> aFTV1;
+    std::vector<int> aFTV2;
+
+	std::map<int,int> aCCGlob2Loc;
+
+    NS_MMVII_FastTreeDist::cFastTreeDist aFTD(NbSom-1);
+    NS_MMVII_FastTreeDist::cAdjGraph     aAdjG(NbSom-1);
+
+	// re-name to consecutive CC (necessary for Fast Tree Dist)
+	int aItTriActive=0;
+	for (int aT=0; aT<int(aV3.size()); aT++)
+    {
+        if ((aV3[aT]->NumTT() != IFLAG) && (aV3[aT]->NumId()!= IFLAG))
+        {
+			aCCGlob2Loc[aV3[aT]->NumId()] = aItTriActive;
+			aItTriActive++;
+		}
+
+	}
+
 
 	for (int aT=0; aT<int(aV3.size()); aT++)
+    {
+		if ((aV3[aT]->NumTT() != IFLAG) && (aV3[aT]->NumId()!= IFLAG))
+		{
+			// 
+			if (!((aV3[aT]->KSom(0)->attr().NumId() == TriSeedId) && (aV3[aT]->KSom(1)->attr().NumId() == TriSeedId) && (aV3[aT]->KSom(2)->attr().NumId() == TriSeedId))   )
+			{
+				int aS1 = aV3[aT]->KSom(0)->attr().NumId();
+		    	if (aS1==aV3[aT]->NumId())
+					aS1=aV3[aT]->KSom(1)->attr().NumId();
+
+
+				aFTV1.push_back(aCCGlob2Loc[aS1]);
+				aFTV2.push_back(aCCGlob2Loc[aV3[aT]->NumId()]);
+				
+				//std::cout << " Renamed=" << aCCGlob2Loc[aS1] << "-" << aCCGlob2Loc[aV3[aT]->NumId()] << " S1 " << aS1 << "*" << aV3[aT]->NumId() << " " << aV3[aT]->NumTT() << " ! " << aV3[aT]->KSom(0)->attr().NumCC() << "," << aV3[aT]->KSom(1)->attr().NumCC() << "," << aV3[aT]->KSom(2)->attr().NumCC() << " ========= " << aV3[aT]->KSom(0)->attr().NumId() << " " << aV3[aT]->KSom(1)->attr().NumId() << " " << aV3[aT]->KSom(2)->attr().NumId()  << "\n";
+			}
+			//else std::cout << "== seed triplet == " << aV3[aT]->NumId() <<  "=" <<  aV3[aT]->KSom(0)->attr().NumId() << " " <<  aV3[aT]->KSom(1)->attr().NumId() << " " <<  aV3[aT]->KSom(2)->attr().NumId() << "\n";
+
+			
+
+		}
+
+	}
+
+
+	aFTD.MakeDist(aFTV1,aFTV2);
+	aAdjG.InitAdj(aFTV1,aFTV2);
+
+	//int aCntFlags=0;
+	for (int aT=0; aT<int(aV3.size()); aT++)
 	{
+
+		int aD1= aFTD.Dist(aCCGlob2Loc[TriSeedId],aCCGlob2Loc[aV3[aT]->KSom(0)->attr().NumId()]); 
+		int aD2= aFTD.Dist(aCCGlob2Loc[TriSeedId],aCCGlob2Loc[aV3[aT]->KSom(1)->attr().NumId()]); 
+		int aD3= aFTD.Dist(aCCGlob2Loc[TriSeedId],aCCGlob2Loc[aV3[aT]->KSom(2)->attr().NumId()]); 
+		
+		//std::cout << "TriNumId=" << aV3[aT]->NumId() << " | SomNumId=" << aV3[aT]->KSom(0)->attr().NumId() << " " << aV3[aT]->KSom(1)->attr().NumId() << " " << aV3[aT]->KSom(2)->attr().NumId() << "\n";
+		//std::cout << "FTD= " << aD1 << " " << aD2 << " " << aD3 << "\n";
+
 		/*std::cout << "[" 
-                  << aV3[aT]->KSom(0)->attr().NumCC() << "," 
-                  << aV3[aT]->KSom(1)->attr().NumCC() << ","
-                  << aV3[aT]->KSom(2)->attr().NumCC() << "] NumTT="
+                  << aV3[aT]->KSom(0)->attr().NumId() << "," 
+                  << aV3[aT]->KSom(1)->attr().NumId() << ","
+                  << aV3[aT]->KSom(2)->attr().NumId() << "] NumTT="
                   << aV3[aT]->NumTT() << " "  
                   << aV3[aT]->KSom(0)->attr().Im()->Name() << " " 
                   << aV3[aT]->KSom(1)->attr().Im()->Name() << " "
                   << aV3[aT]->KSom(2)->attr().Im()->Name() << " ";*/
 
-		double aDist = aV3[aT]->CalcDistArc();
+		//double aDist = aV3[aT]->CalcDistArc();
+		double aDist = std::ceil((aD1+aD2+aD3)/3.0);
 
-		double aCostCur = ElMin(abs(aV3[aT]->CoherTest()),1e9);
-
-        //std::cout << ",Dist=" << aDist << ",CostN=" <<  aCostCur << ",CPds=" << aCostCur/aDist << "\n";  
+		if (aDist<mDistThresh)
+        {
+			double aCostCur = ElMin(abs(aV3[aT]->CoherTest()),1e3);
+            
+            
+            //std::cout << ",Dist=" << aDist << " CohTest(à=" << aV3[aT]->CoherTest() << ",CostN=" <<  aCostCur << ",CPds=" << aCostCur/sqrt(aDist) << "\n";  
+			//std::cout << aTri->m3->Flag().set_kth_true(mFlag3CC);
 		
-		//aV3[aT]->CostArcPerSample().push_back(aCostCur/sqrt(aDist));
-		//aV3[aT]->CostArcPerSample().push_back(aCostCur/(a1*aDist+a2));
-		aV3[aT]->CostArcPerSample().push_back(aCostCur/(a1*aDist*aDist*aDist +a2));
-		aV3[aT]->DistArcPerSample().push_back(aDist);
+			// Take into account the non-visited triplets
+			if (! ValFlag(*(aV3[aT]),0))
+			{
+				//std::cout << "Flag0 OK " << aCntFlags++ << "\n";
+                
+				if (aDist==0)
+					aDist=1;
+                
+		    
+				double aPds = 1.0;
+                
+           	   	if (mGraphCoher)
+				{	
+					//aPds = std::pow(0.5,aDist);
+					//aPds = std::pow(0.7,aDist); 
+					aPds = 1.0/sqrt(aDist);
+				}
+                
+				// Mean
+                aV3[aT]->CostPdsSum() += aCostCur*aPds;
+                aV3[aT]->PdsSum() += aPds;
+                //Median
+                aV3[aT]->CostArcPerSample().push_back(aCostCur*aPds);
+                aV3[aT]->DistArcPerSample().push_back(aPds);
+                
+				// Plot coherence vs sample vs distance
+				std::cout << "==PLOT== " << aCostCur*aPds << " " << aDist << " " << aPds << "\n"; 
+			}
+		}
 	
 
 	}
@@ -1492,13 +1594,14 @@ void cSolGlobInit_NRandom::CoherTripletsGraphBased(std::vector<cNOSolIn_Triplet 
 
 }
 
-/* Pure incoherence/cost calculated as a function of rotational and translation discrepancy 
+/* obsolete 
+ * Pure incoherence/cost calculated as a function of rotational and translation discrepancy 
    # stores a N vector where N is the number of samples 
    # stores only the sum of Pds*Incoh and sum of Pds 
 */
 void cSolGlobInit_NRandom::CoherTriplets(std::vector<cNOSolIn_Triplet *>& aV3)
 {
-	//double alpha = 0.5;
+
     for (int aT=0; aT<int(aV3.size()); aT++)
     {
 		// Calculate the distance in the graph
@@ -1508,8 +1611,8 @@ void cSolGlobInit_NRandom::CoherTriplets(std::vector<cNOSolIn_Triplet *>& aV3)
         double aCostCur = ElMin(abs(aV3[aT]->CoherTest()),1e3);
 
 		// Apply Pds to Cost
-		if (mApplyCostPds)
-			aCostCur /=  sqrt(aDist);//Pds= sqrt(aDist)
+		//if (mApplyCostPds)
+		//	aCostCur /=  sqrt(aDist);//Pds= sqrt(aDist)
 			//aCostCur /= (1.0/std::pow(0.5,aDist) -1);//Pds=(1/0.5^d) -1
 	
 		
@@ -1561,24 +1664,28 @@ void cSolGlobInit_NRandom::CoherTripletsAllSamples()
    - optionally takes into account only triplets with distance < threshold */
 void cSolGlobInit_NRandom::CoherTripletsAllSamplesMesPond()
 {
-	//double alpha = 0.5;
+
 	for (int aT=0; aT<int(mV3.size()); aT++)
     { 
 		/* Weighted mean */
 		mV3[aT]->CostArc() = mV3[aT]->CostPdsSum() / mV3[aT]->PdsSum();
-		//std::cout << "CostPdsSum()/PdsSum() " << mV3[aT]->CostPdsSum() << " " << mV3[aT]->PdsSum() 
-		//          << " Nb=" <<  mV3[aT]->DistArcPerSample().size() << "\n";
 
 		std::vector<Pt2df> aVCostPds;
 		for (int aS=0; aS<int(mV3[aT]->CostArcPerSample().size()); aS++ )
 		{
-			aVCostPds.push_back (Pt2df(mV3[aT]->CostArcPerSample()[aS], std::pow(mAlphaProb,mV3[aT]->DistArcPerSample()[aS])));
+			aVCostPds.push_back (Pt2df(mV3[aT]->CostArcPerSample()[aS], mV3[aT]->DistArcPerSample()[aS]));
+			//aVCostPds.push_back (Pt2df(mV3[aT]->CostArcPerSample()[aS], 0));
+			/*std::cout << std::setprecision(10);
+			std::cout << " Cost|Dist|SQRTdist= " << mV3[aT]->CostArcPerSample()[aS] << "|" 
+					                             << mV3[aT]->DistArcPerSample()[aS] << "|"
+												 << std::sqrt(mV3[aT]->DistArcPerSample()[aS]) << "\n";*/
 		}
 
 		/* Weighted median */
-		mV3[aT]->CostArcMed() =  MedianPond(aVCostPds,0);
+		mV3[aT]->CostArcMed() =  PropPond(aVCostPds,0.1,0);//MedianPond(aVCostPds,0);
 
 	}	
+
 
 }
 
@@ -1704,8 +1811,8 @@ void cSolGlobInit_NRandom::ShowTripletCostPerSample()
 			           	 << aTri->KSom(1)->attr().Im()->Name() << ","
                          << aTri->KSom(2)->attr().Im()->Name() << "],\n";
 
-		std::vector<float> aCostV = aTri->CostArcPerSample();
-		std::vector<int>   aDistV = aTri->DistArcPerSample();
+		std::vector<double> aCostV = aTri->CostArcPerSample();
+		std::vector<double>   aDistV = aTri->DistArcPerSample();
 
 		int aNb = int(aDistV.size());
 		for (int aS=0; aS<aNb; aS++)
@@ -1986,7 +2093,83 @@ int CPP_GenOptTriplets(int argc,char ** argv)
 	return EXIT_SUCCESS;
 }
 
+int TestFastTreeDist(int argc,char ** argv)
+{
+	
+	int aNbSom=8;
+	int aNbCC=1;
 
+	RandUnifQuick * TheRandUnif = new RandUnifQuick(100);
+
+	NS_MMVII_FastTreeDist::cOneBenchFastTreeDist aBFTD(aNbSom,aNbCC);
+	aBFTD.MakeOneTest(true,true);
+
+	// --- Label the CC ---
+	std::vector<std::vector<int>> aVCC(aNbCC);
+    for (int aK=0 ; aK<aNbSom ; aK++)
+    {
+        int aNum = NRrandom3(aNbCC);
+        aVCC.at(aNum).push_back(aK);  // Add a summit inside the CC aNum
+		std::cout << "Num " << aNum << ", " << aK << "\n";
+    }
+
+	//  ----  1.2 generate the graph -------------
+    std::vector<int> aV1;
+    std::vector<int> aV2;
+
+	for (auto & aCC : aVCC) // For each CC
+    {
+        // order randomly the CC
+        std::vector<double> aVR;
+        for (int aK=0 ; aK<int(aCC.size()) ; aK++)
+        {
+            aVR.push_back(TheRandUnif->Unif_0_1());
+        }
+		for (int aK=0 ; aK<int(aCC.size()) ; aK++)
+        	std::cout << "VR " << aVR[aK] << "==";
+        std::sort
+        (
+            aCC.begin(),aCC.end(),
+            [aVR](int i1,int i2) {return aVR[i1]<aVR[i1];}
+        );
+		for (int aK=0 ; aK<int(aCC.size()) ; aK++)
+        	std::cout << "VR " << aVR[aK] << " ";
+		std::cout << "\n";
+        for (int aK1=1 ; aK1<int(aCC.size()) ; aK1++)
+        {
+             // We add CC[aK] to  the already created tree we select
+             // randomly a summit inside this tree
+             double aPds = sqrt(TheRandUnif->Unif_0_1());  // Bias to have longer chain
+             int aK2 = floor(aPds*aK1);  // we rattach K1 to K2
+             aK2 = std::max(0,std::min(aK2,aK1-1));  // to be sure that index is correct
+             aV1.push_back(aCC[aK1]);
+             aV2.push_back(aCC[aK2]);
+			 
+        	 std::cout << "+ " << aK1 << " " << aK2 << " " << aCC[aK1] << " " << aCC[aK2] << "\n";
+        }
+    }
+	
+	NS_MMVII_FastTreeDist::cFastTreeDist aFTD(aNbSom);
+	NS_MMVII_FastTreeDist::cAdjGraph aAdjG(aNbSom);
+	
+	aFTD.MakeDist(aV1,aV2);  // Create Dist with this graph
+    aAdjG.InitAdj(aV1,aV2);  // Make a copy of the same graph for checking
+
+    for (int aS1=0 ; aS1<aNbSom ; aS1++)
+    {
+        for (int aS2=0 ; aS2<aNbSom ; aS2++)
+        {
+            int aD= aFTD.Dist(aS1,aS2);  // Fast distance
+            int aD2= aAdjG.RawDist(aS1,aS2);  // Easy algorihtm to check
+            assert(aD==aD2);
+
+			std::cout << "* " << aS1 << "-" << aS2 << " => D1=" << aD << ", D2=" << aD2 << "\n";
+        }
+    }
+
+
+	return EXIT_SUCCESS;
+}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
