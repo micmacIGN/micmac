@@ -53,6 +53,7 @@
 %include "api/api_mmv2.h"
 %include "MMVII_Ptxd.h"
 %include "MMVII_Images.h"
+%include "MMVII_memory.h"
 
 //templates have to be named to be exported
 %template(cIm2Du8) MMVII::cIm2D<tU_INT1>;
