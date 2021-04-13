@@ -5,12 +5,12 @@
 
 namespace NS_SymbolicDerivative {
 
-class cEqDist_Dist_Rad3_Dec1_XY1 : public cCalculator<double>
+class cEqDist_Dist_Rad3_Dec1_XY1Val : public cCalculator<double>
 {
 public:
     typedef cCalculator<double> Super;
-    cEqDist_Dist_Rad3_Dec1_XY1(size_t aSzBuf) : 
-      Super("EqDist_Dist_Rad3_Dec1_XY1", aSzBuf,2,10,0,1),
+    cEqDist_Dist_Rad3_Dec1_XY1Val(size_t aSzBuf) : 
+      Super("EqDist_Dist_Rad3_Dec1_XY1Val", aSzBuf,2,10,0,1),
       mVUk(aSzBuf),mVObs(aSzBuf)
     {
       this->mNbElem = 2;
@@ -21,7 +21,7 @@ public:
       for (auto& aObs : this->mVObs)
         aObs.resize(this->NbObs());
     }
-    static std::string FormulaName() { return "EqDist_Dist_Rad3_Dec1_XY1";}
+    static std::string FormulaName() { return "EqDist_Dist_Rad3_Dec1_XY1Val";}
 protected:
     virtual void SetNewUks(const std::vector<double> & aVUks) override
     {

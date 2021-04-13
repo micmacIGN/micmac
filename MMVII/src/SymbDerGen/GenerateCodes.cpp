@@ -133,8 +133,10 @@ template <typename tDist> void cAppli::GenCodesDist(const tDist & aDist,bool Wit
    int SzBuf=0;
    cEqDist<tDist> anEq(aDist); 
 
+   std::string aNF = anEq.FormulaName() +   std::string(WithDerive ?"VDer":"Val");
+
    NS_SymbolicDerivative::cCoordinatorF<double> 
-   aCEq(anEq.FormulaName(),SzBuf,anEq.VNamesUnknowns(),anEq.VNamesObs());
+   aCEq(aNF,SzBuf,anEq.VNamesUnknowns(),anEq.VNamesObs());
 
    // Set header in a place to compilation path of MMVII
    aCEq.SetHeaderIncludeSymbDer("include/SymbDer/SymbDer_Common.h"); 
@@ -146,7 +148,7 @@ template <typename tDist> void cAppli::GenCodesDist(const tDist & aDist,bool Wit
       aCEq.SetCurFormulasWithDerivative(aXY);
    else
       aCEq.SetCurFormulas(aXY);
-   aCEq.GenerateCode("CodeGen" + std::string(WithDerive ?"VDer":"Val")+"_");
+   aCEq.GenerateCode("CodeGen_");
 };
 
 

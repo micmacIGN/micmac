@@ -1,8 +1,8 @@
-#include "CodeGenVDer_cEqDist_Dist_Rad3_Dec1_XY1.h"
+#include "CodeGen_cEqDist_Dist_Rad3_Dec1_XY1VDer.h"
 
 namespace NS_SymbolicDerivative {
 
-void cEqDist_Dist_Rad3_Dec1_XY1::DoEval()
+void cEqDist_Dist_Rad3_Dec1_XY1VDer::DoEval()
 {
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -124,11 +124,11 @@ void cEqDist_Dist_Rad3_Dec1_XY1::DoEval()
   }
 }
 
-cCalculator<double> * Alloc_EqDist_Dist_Rad3_Dec1_XY1(int aSzBuf)
+cCalculator<double> * Alloc_EqDist_Dist_Rad3_Dec1_XY1VDer(int aSzBuf)
 {
-   return new cEqDist_Dist_Rad3_Dec1_XY1(aSzBuf);
+   return new cEqDist_Dist_Rad3_Dec1_XY1VDer(aSzBuf);
 }
 
-cName2Calc<double> TheNameAlloc_EqDist_Dist_Rad3_Dec1_XY1("EqDist_Dist_Rad3_Dec1_XY1",Alloc_EqDist_Dist_Rad3_Dec1_XY1);
+cName2Calc<double> TheNameAlloc_EqDist_Dist_Rad3_Dec1_XY1VDer("EqDist_Dist_Rad3_Dec1_XY1VDer",Alloc_EqDist_Dist_Rad3_Dec1_XY1VDer);
 
 } // namespace NS_SymbolicDerivative
