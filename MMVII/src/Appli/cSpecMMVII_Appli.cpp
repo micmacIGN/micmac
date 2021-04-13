@@ -162,6 +162,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecMatchTieP);
         TheVecAll.push_back(&TheSpecEpipGenDenseMatch);
         TheVecAll.push_back(&TheSpecGenSymbDer);
+        TheVecAll.push_back(&TheSpecKapture);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

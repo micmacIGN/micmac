@@ -9,6 +9,7 @@ set(UTI_PHGRM_OriTieRed_DIR ${UTI_PHGRM_DIR}/OriTiepRed)
 set(UTI_PHGRM_TieGeo_DIR ${UTI_PHGRM_DIR}/TiepGeoref)
 
 set(UTI_PHGRM_TiePTri_DIR ${UTI_PHGRM_DIR}/TiepTri)
+set(UTI_PHGRM_TiePHisto_DIR ${UTI_PHGRM_DIR}/TiePHistorical)
 
 set(UTI_PHGRM_PORTO_DIR ${UTI_PHGRM_DIR}/Porto)
 set(UTI_PHGRM_SAISIEPTS_DIR ${UTI_PHGRM_DIR}/SaisiePts)
@@ -46,6 +47,7 @@ include(${UTI_PHGRM_SAT_PHYS_MOD}/Sources.cmake)
 include(${UTI_PHGRM_TEXT_DIR}/Sources.cmake)
 include(${UTI_PHGRM_TiePTri_DIR}/Sources.cmake)
 include(${UTI_PHGRM_SAT4GEO_DIR}/Sources.cmake)
+include(${UTI_PHGRM_TiePHisto_DIR}/Sources.cmake)
 
 #define __CUDA_API_VERSION 0x5050
 
@@ -178,6 +180,7 @@ set( Applis_phgrm_Src_Files
     ${UTI_PHGRM_DIR}/CPP_MMToAerial.cpp
     ${UTI_PHGRM_DIR}/CPP_Sat3DP.cpp
     ${UTI_PHGRM_DIR}/CPP_Line3D.cpp
+    ${UTI_PHGRM_DIR}/CPP_TiePHistoP.cpp
 )
 
 

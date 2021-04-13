@@ -76,6 +76,6 @@
 //  #include "MMVII_Derivatives.h" => not include by default now, requires <Eigen/Dense> => time consuming
 
 #include "SymbDer/SymbDer_Common.h"
-
+#include "../kapture/kapture.h"
 
 #endif //  _MMVII_ALL_H_
