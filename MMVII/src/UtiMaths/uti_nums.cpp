@@ -120,6 +120,7 @@ template <class Type> void TplBenchTraits()
 
 }
 
+
 void BenchTraits()
 {
    TplBenchTraits<tU_INT1>();
@@ -218,9 +219,52 @@ void BenchMinMax()
    }
 }
 
+template <class Type> void BenchFuncAnalytique(int aNb,double aEps,double EpsDer)
+{
+   for (int aK=0 ; aK< aNb ; aK++)
+   {
+       Type aEps = 1e-2;
+       // Generate smal teta in [-2E,2E] , avoid too small teta for explicite atan/x
+       Type Teta =  2 * aEps * RandUnif_C_NotNull(1e-3);
+       // generate also big teta
+       if ((aK%4)==0)
+          Teta =  3.0 * RandUnif_C_NotNull(1e-3);
+       Type aRho = std::max(EpsDer*10,10*RandUnif_0_1());
+
+       Type aX = aRho * std::sin(Teta);
+       Type aY = aRho * std::cos(Teta);
+
+       Type aTeta2Sx = AtanXsY_sX(aX,aY,aEps);
+       Type aTeta1Sx = Teta / aX;
+
+       // std::cout << RelativeDifference(aTeta2Sx,aTeta1Sx) << " " << (aTeta2Sx-aTeta1Sx)*1e10  << "\n";
+       MMVII_INTERNAL_ASSERT_bench(std::abs(aTeta2Sx-aTeta1Sx)<aEps,"Bench binom");
+
+       Type aDDif = aRho * 3e-3;
+       Type aDerDifX = (AtanXsY_sX(aX+aDDif,aY,aEps)-AtanXsY_sX(aX-aDDif,aY,aEps)) / (2*aDDif);
+       Type aDerX = DerXAtanXsY_sX(aX,aY,aEps);
+
+       MMVII_INTERNAL_ASSERT_bench(RelativeDifference(aDerDifX,aDerX) <EpsDer,"Der AtanXsY_SX");
+
+       Type aDerDifY = (AtanXsY_sX(aX,aY+aDDif,aEps)-AtanXsY_sX(aX,aY-aDDif,aEps)) / (2*aDDif);
+       Type aDerY = DerYAtanXsY_sX(aX,aY);
+       // std::cout << "DDyyy " << RelativeDifference(aDerDifY,aDerY) << "\n";
+       MMVII_INTERNAL_ASSERT_bench(RelativeDifference(aDerDifY,aDerY) <EpsDer,"Der AtanXsY_SX");
+   }
+   // std::cout << atan2(0,1)  << " " << atan2(1,0) << "\n";
+   // getchar();
+}
+
 void Bench_Nums(cParamExeBench & aParam)
 {
    if (! aParam.NewBench("BasicNum")) return;
+
+   {
+      int aNb=10000;
+      BenchFuncAnalytique<tREAL4> (aNb,1e-3,100);
+      BenchFuncAnalytique<tREAL8> (aNb,1e-5,1e-2);
+      BenchFuncAnalytique<tREAL16>(aNb,1e-7,1e-2);
+   }
 
    BenchMinMax();
 

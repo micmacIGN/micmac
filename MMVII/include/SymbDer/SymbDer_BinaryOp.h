@@ -23,7 +23,7 @@ namespace  NS_SymbolicDerivative
             /*  ----------------------------------------------------------
                Class implementing binary operation on formula
                   MOTHER CLASS : cBinaryF
-                  DERIVED :   cSumF / cMulF / cSubF / cDivF / cPowF
+                  DERIVED :   cSumF / cMulF / cSubF / cDivF / cPowF /
              ----------------------------------------------------------------*/
 
 template <class TypeElem> class cBinaryF : public cImplemF<TypeElem>
@@ -651,6 +651,21 @@ inline cFormula<TypeElem>  pow (const cFormula<TypeElem> & aF,const int & aVal )
    return pow(aF,TypeElem(aVal));
 }
 
+/*  *************************************************************** */
+/*                                                                  */
+/*          MACRO PART                                              */
+/*                                                                  */
+/*  *************************************************************** */
+
+/**  This function is used when dont wish to define derivation, because with ad hoc
+  function one may "obliged" to define a derivate even when dont use it */
+
+template <class TypeElem> cFormula <TypeElem>
+         UndefinedOperBin(const cFormula <TypeElem> & aF1 ,const cFormula <TypeElem> & aF2)
+{
+    UserSError("UndefinedOperBin",aF1->Name()+aF2->Name());
+    return aF1; // must return something
+}
 
 
 } //   NS_Symbolic_Derivative

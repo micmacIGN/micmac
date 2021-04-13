@@ -106,15 +106,13 @@ class cRandGenerator : public cMemCheck
        virtual double Unif_0_1() = 0;
        virtual int    Unif_N(int aN) = 0;
        static cRandGenerator * TheOne();
-       virtual ~cRandGenerator(){};
+       static void Close();
+       static void Open();
+       virtual ~cRandGenerator() {};
     private :
        static cRandGenerator * msTheOne;
 };
 
-void FreeRandom() 
-{
-   delete cRandGenerator::TheOne();
-}
 double RandUnif_0_1()
 {
    return cRandGenerator::TheOne()->Unif_0_1();
@@ -267,16 +265,39 @@ int    cRand19937::Unif_N(int aN)
 }
 
 
-
 cRandGenerator * cRandGenerator::msTheOne = nullptr;
+
+// This variable allow to check that no random is allocated before the main appli is created
+void cRandGenerator::Open()
+{
+    static bool FirstCall=true;
+    MMVII_INTERNAL_ASSERT_bench(FirstCall,"Multiple Open Random");
+    msTheOne = new cRand19937(cMMVII_Appli::SeedRandom());
+    FirstCall = false;
+}
+void OpenRandom()
+{
+    cRandGenerator::Open();
+}
+
+// static int aCPT = 0; 
 
 cRandGenerator * cRandGenerator::TheOne()
 {
-   if (msTheOne==0)
-      msTheOne = new cRand19937(cMMVII_Appli::SeedRandom());
+   MMVII_INTERNAL_ASSERT_bench(msTheOne!=nullptr,"Not Open Random");
    return msTheOne;
 }
 
+void cRandGenerator::Close()
+{
+   MMVII_INTERNAL_ASSERT_bench(msTheOne!=nullptr,"Multiple Close Random");
+   delete msTheOne;
+   msTheOne = nullptr;
+}
+void CloseRandom()
+{
+    cRandGenerator::Close();
+}
 
 };
 

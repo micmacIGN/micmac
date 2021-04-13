@@ -1,6 +1,7 @@
 #include "include/MMVII_all.h"
 #include <cmath>
 
+using namespace NS_SymbolicDerivative ;
 /** \file BenchGlob.cpp
     \brief Main bench
 
@@ -887,6 +888,13 @@ void ShowAdr(double & anAdr)
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+   if (true)
+   {
+     std::cout << "T0:" << cName2Calc<double>::CalcFromName("toto",10,true) << "\n";
+     std::cout << "T1:" << cName2Calc<double>::CalcFromName("EqDist_Dist_Rad3_Dec1_XY1",10) << "\n";
+      return EXIT_SUCCESS;
+   }
+
    if (mMMV1_GenCodeTestCam)
    {
        //StdOut() << "kkk=[" << mTopDirMMVII <<"]\n";

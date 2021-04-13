@@ -128,6 +128,11 @@ SrcSymbDerGen=$(wildcard ${MMV2DirSymbDerGen}*.cpp)
 ObjSymbDerGen=$(SrcSymbDerGen:.cpp=.o) 
 #
 #
+MMV2DirGeneratedCodes=${MMV2DirSrc}GeneratedCodes/
+SrcGeneratedCodes=$(wildcard ${MMV2DirGeneratedCodes}*.cpp)
+ObjGeneratedCodes=$(SrcGeneratedCodes:.cpp=.o) 
+#
+#
 MMV2DirGeoms=${MMV2DirSrc}Geoms/
 SrcGeoms=$(wildcard ${MMV2DirGeoms}*.cpp)
 ObjGeoms=$(SrcGeoms:.cpp=.o) 
@@ -136,7 +141,7 @@ ObjGeoms=$(SrcGeoms:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjSymbDerGen} ${ObjGeoms} ${ObjMappings} 
+OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjSymbDerGen} ${ObjGeneratedCodes} ${ObjGeoms} ${ObjMappings} 
 #
 #=========  Header ========
 #
@@ -209,6 +214,8 @@ ${MMV2DirGraphs}%.o :  ${MMV2DirGraphs}%.cpp   ${HEADER}
 ${MMV2DirDenseMatch}%.o :  ${MMV2DirDenseMatch}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirSymbDerGen}%.o :  ${MMV2DirSymbDerGen}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirGeneratedCodes}%.o :  ${MMV2DirGeneratedCodes}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirGeoms}%.o :  ${MMV2DirGeoms}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@

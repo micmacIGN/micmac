@@ -155,7 +155,7 @@ cMMVII_Appli::~cMMVII_Appli()
    }
 
    msInDstructor = (TheStackAppli.size()<=1);  // avoid problem with StdOut 
-   if (msInDstructor) FreeRandom();   // Free memory only top called do it
+   // if (msInDstructor) FreeRandom();   // Free memory only top called do it
    if(mForExe)
    {
       AssertInitParam();

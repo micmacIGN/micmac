@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <vector>
 #include <string>
+#include <map>
 // ===================== MPD  error: call of overloaded ‘abs(const double&)’ is ambiguous ===============
 #include <math.h>
 #include <cmath>
@@ -38,7 +39,7 @@ static inline void InternalError(const std::string & aMes, const std::string& aC
 {
    Error(aMes,"Internal Error of the Library",aContext);
 }
-     /// Error probably due to bas usage of the library (typically out limit vector access)
+     /// Error probably due to bad usage of the library (typically out limit vector access)
 static inline void UserSError(const std::string & aMes, const std::string& aContext)
 {
    Error(aMes,"Probable error on user's side due to unapropriate usage of the library",aContext);
@@ -166,6 +167,56 @@ const std::vector<std::vector<T> *> & cCalculator<T>::EvalAndClear()
     this->mNbInBuf = 0;
     return mBufRes;
 }
+
+template <class Type>  class cName2Calc
+{
+  public :
+    typedef  cCalculator<double>  tCalc;
+    typedef  tCalc * (* tAllocator) (int aSzBuf);
+
+    /// That's what we want : alloc an object from its name
+    static tCalc * CalcFromName(const std::string & aName,int aSzBuf,bool SVP=false)
+    {
+        tAllocator anAlloc =  Name2Alloc(aName,nullptr,SVP);
+        if (anAlloc==nullptr)
+        {
+            if (SVP) return nullptr;
+            UserSError("Cannot create Calculator,",aName);
+        }
+        return anAlloc(aSzBuf);
+    }
+
+    /// The constructor is used to store the association that allow to create unknow object
+    cName2Calc(const std::string & aName,tAllocator anAlloc)
+    {
+         Name2Alloc(aName,anAlloc,false);
+    }
+  private :
+    /// if tAllocator=0 return Alloc associated to name, else store the association
+    static tAllocator  Name2Alloc(const std::string & aName,tAllocator anAlloc,bool SVP=false)
+    {
+       static std::map<std::string,tAllocator> TheMap;
+       auto anIter = TheMap.find(aName);
+
+       // If no allocator, we are in the mode where we want to retrieve it
+       if (anAlloc==nullptr)
+       {
+           if(anIter==TheMap.end()) // There must be something associated
+           {
+             if (SVP) return nullptr;
+             UserSError("Cannot extract allocator,",aName);
+           }
+           return anIter->second;
+       }
+
+       if (anIter!=TheMap.end()) // We should not override
+          UserSError("Allocator already exist,",aName);
+       TheMap[aName] = anAlloc;
+
+       return nullptr;
+    }
+};
+
 
 
 } // namespace NS_SymbolicDerivative

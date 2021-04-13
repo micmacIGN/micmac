@@ -72,6 +72,7 @@ template <class Type,const int Dim> class cPtxd
         static cPtxd<Type,Dim> Col(const cDenseMatrix<Type>&,int aCol);  ///< Init with colum of matrix
         static cPtxd<Type,Dim> Line(int aLine,const cDenseMatrix<Type>&); ///< Init with line of matrix
         static cPtxd<Type,Dim> FromVect(const cDenseVect<Type>&); ///< Init with line of matrix
+        static cPtxd<Type,Dim> FromStdVector(const std::vector<Type>&); ///< Init with line of matrix
 
        /// Contructor for 1 dim point, statically checked
        explicit cPtxd(const Type & x) :  mCoords{x} {static_assert(Dim==1,"bad dim in cPtxd initializer");}
@@ -96,6 +97,7 @@ template <class Type,const int Dim> class cPtxd
         inline const Type & t() const {static_assert(Dim>=4,"bad dim in cPtxd initializer");return mCoords[3];}
 
         cDenseVect<Type> ToVect() const; ///< conversion
+        std::vector<Type> ToStdVector() const; ///< conversion
 
     protected :
        Type mCoords[Dim];
