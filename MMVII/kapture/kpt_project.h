@@ -2,10 +2,10 @@
 #define KPY_PROJECT_H
 
 #include <algorithm>
+#include <functional>
 #include "kpt_common.h"
-#include "kpt_sensor.h"
+#include "kpt_sensors.h"
 #include "kpt_features.h"
-#include "kpt_imagerecords.h"
 
 
 namespace Kapture {
@@ -26,7 +26,7 @@ inline void setProject(const Project& project);
 
 
 enum PathType {
-    SENSORS_FILE, TRAJECTORIES_FILE, RECORDS_CAMERA_FILE,
+    SENSORS_FILE, TRAJECTORIES_FILE, RIGS_FILE, RECORDS_CAMERA_FILE,
     POINTS3D_FILE,
     RECORDS_DIR,
     KEYPOINTS_DIR, KEYPOINTS_FILE,
@@ -55,36 +55,24 @@ public:
     void setRoot(const Path rootPath);
     Path root() const {return mRoot;}
 
-    // Get full path of a file or dir inside dataset: return rootPath / relPath
-    Path path(const Path& relPath) const;
-    // Same for conventional path : path(SENSORS_FILE) return rootPath / "sensors/sensors.txt"
-    Path path(PathType pathType) const;
+    void load();
+
+    const CameraList& cameras() const { return mCameras;}
+    const Camera* camera(const std::string& device) ;
+    const TrajectoryList& trajectories() const { return mTrajectories;}
+    const Trajectory* trajectory(timestamp_t timestamp, const std::string& device);
+    const RigList& rigs() const { return mRigs;}
+    const Rig rig(const std::string rigID);
+
+    const ImageRecordList& imageRecords() const { return mImageRecords;}
 
     // Kapture version of the dataset
     std::string version();
-    // Is dataset a supported kapture version ?
-    bool checkVersion();
-
     // Last supported version of the kapture format
     static std::string currentVersion();
 
-    // Return all sensors present in sensors.txt (device, name, type, params)
-    SensorList readSensors() const;
-    // Return sensors matching id, name and type (regex). Empty string match all
-    SensorList readSensors(const std::string& id,  const std::string& name,  const std::string& type) const;
-
-    // Return all cameras present in sensors.txt (device, name, CAMERA, model, modelParams)
-    CameraList readCameras() const;
-    // Filter by regex
-    CameraList readCameras(const std::string &id, const std::string &name, const std::string &model) const;
-
-    // Return all image records (timestamp, device, imageName)
-    ImageRecordList readImageRecords() const;
-    // Return image records filtered by regex or by min/max timetamp
-    ImageRecordList readImageRecords(const std::string &device, const std::string &path,int64_t min=-1, int64_t max=-1) const;
-
     // Return full pathname (relative to rootPath/records_data) of all images matching (regex) name.
-    PathList imagesMatch(const std::string &name) const;
+    PathList imagesMatch(const std::string &name="") const;
     // Return full relative pathname of the image matching (regex) name.
     // If none or several match, return empty path
     Path     imageName(const std::string &name) const;
@@ -98,6 +86,9 @@ public:
 
 
     // Homologous points
+
+    std::vector<std::pair<std::string,std::string>> allCoupleMatches();
+
     // MATCH is a class which must have a constructor accepting 4 numbers (float/double) : MATCH(float x1, float y1, float x2, float y2)
     // image path must be relative to rootPath / records_data (use imageName() or returns from readImageRecords() )
     template<typename MATCH>
@@ -131,15 +122,51 @@ private:
     void keypointsDefCheck();
     bool readKeypointDef();
 
+    // Is dataset a supported kapture version ?
+    bool checkVersion();
+
+    // Get full path of a file or dir inside dataset: return rootPath / relPath
+    Path path(const Path& relPath) const;
+    // Same for conventional path : path(SENSORS_FILE) return rootPath / "sensors/sensors.txt"
+    Path path(PathType pathType) const;
+
+
     static StringList parseLine(const std::string line);
 
-    static bool csvParse(const Path &path, unsigned nbMinValue,
+    static void csvParse(const Path &path, unsigned nbMinValue,
                          const std::vector<std::pair<unsigned, std::string> > matches,
                          std::function<bool(const StringList& values, const std::string& fName, unsigned line)> f);
-    bool csvParse(PathType pType, unsigned nbMinValue,
+    void csvParse(PathType pType, unsigned nbMinValue,
                          const std::vector<std::pair<unsigned, std::string> > matches,
                          std::function<bool(const StringList& values, const std::string& fName, unsigned line)> f) const;
 
+    // Return all sensors present in sensors.txt (device, name, type, params)
+    SensorList readSensors() const;
+    // Return sensors matching id, name and type (regex). Empty string match all
+    SensorList readSensors(const std::string& id,  const std::string& name,  const std::string& type) const;
+
+    // Return all cameras present in sensors.txt (device, name, CAMERA, model, modelParams)
+    CameraList readCameras() const;
+    // Filter by regex
+    CameraList readCameras(const std::string &id, const std::string &name, const std::string &model) const;
+
+    // Return all trajectories (timestamp, device, quaternion, pos)
+    TrajectoryList readTrajectories() const;
+    // Return trajectories filtered by regex device or by min/max timetamp
+    TrajectoryList readTrajectories(const std::string &device, int64_t min=-1, int64_t max=-1) const;
+
+    // Return all rigs (name, device, quaternion, pos)
+    RigList readRigs() const;
+    // Return rigs matching name and device (regex)
+    RigList readRigs(const std::string &name, const std::string &device) const;
+
+    // Return all image records (timestamp, device, imageName)
+    ImageRecordList readImageRecords() const;
+    // Return image records filtered by regex or by min/max timetamp
+    ImageRecordList readImageRecords(const std::string &device, const std::string &path,int64_t min=-1, int64_t max=-1) const;
+
+
+    Path matchPath(Path img1, Path img2) const;
     void prepareReadMatches(const Path& image1, const Path& image2, std::ifstream& mStream, std::ifstream& kpt1, std::ifstream& kpt2, bool& swapImg);
 
     template<typename T, typename M>
@@ -156,6 +183,11 @@ private:
     Path mRoot;
     KeypointsDef mKeypointsDef;
     std::string mVersion;
+
+    CameraList mCameras;
+    ImageRecordList mImageRecords;
+    TrajectoryList mTrajectories;
+    RigList mRigs;
 };
 
 

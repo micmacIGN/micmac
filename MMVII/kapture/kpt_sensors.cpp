@@ -1,4 +1,4 @@
-#include "kpt_sensor.h"
+#include "kpt_sensors.h"
 #include "kpt_project.h"
 #include "kpt_internal.h"
 #include <array>
@@ -40,7 +40,7 @@ static EnumAndStr<Camera::Model> cameraModelNames = {
 
 Sensor::Sensor(const std::string &id, const std::string &name, const std::string &typeStr,
                StringList::const_iterator first, StringList::const_iterator last)
-    : mDeviceId(id), mName(name),mType(typeFromStr(typeStr))
+    : mDevice(id), mName(name),mType(typeFromStr(typeStr))
 {
     if (mType == UNKNOWN_TYPE)
         mTypeStr = typeStr;
@@ -72,7 +72,7 @@ Camera::Camera(const std::string &id, const std::string &name, const StringList:
 Camera::Camera(const Sensor &sensor) : Sensor(sensor)
 {
     if (params().size() < 1 || type() != CAMERA)
-        errorf(Error,"Can't convert sensor '%s', type '%s' to Camera", sensor.deviceId().c_str(), sensor.typeStr().c_str());
+        errorf(Error,"Can't convert sensor '%s', type '%s' to Camera", sensor.device().c_str(), sensor.typeStr().c_str());
     mModel = modelFromStr(params()[0]);
     PosixLocale setPosix;
     for (size_t i=1; i< params().size(); i++)

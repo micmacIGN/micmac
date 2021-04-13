@@ -75,5 +75,6 @@
 #include "MMVII_MMV1Compat.h"
 //  #include "MMVII_Derivatives.h" => not include by default now, requires <Eigen/Dense> => time consuming
 
+#include "../kapture/kapture.h"
 
 #endif //  _MMVII_ALL_H_

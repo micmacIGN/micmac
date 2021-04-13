@@ -4,38 +4,35 @@ LD=g++
 
 ifdef DEBUG
   LIB=libkapture_debug.a
-  PGM=kpttest_debug
   CXXFLAGS += -g
   OBJDIR=debug/
 else
   LIB=libkapture.a
-  PGM=kpttest
   TARGET=libkapture.a kpttest
   CXXFLAGS += -O3
   OBJDIR=release/
 endif
 
-OBJS=$(addprefix $(OBJDIR),$(filter-out kpt_test.o,$(SOURCES:%.cpp=%.o)))
+OBJS:=$(filter-out kpt_mmv2.o,$(SOURCES:%.cpp=%.o))
+
+OBJS:=$(addprefix $(OBJDIR),$(OBJS))
 INCLUDES +=
 
 .phony: all clean
 
 
-all: $(LIB) $(PGM)
+all: $(LIB)
 
 $(LIB): $(OBJS)
 	ar crs $@ $^
 
-$(PGM): $(OBJDIR)kpt_test.o $(LIB)
-	$(LD) $(LDFLAGS) -o $@ $^
-
 
 clean:
-	rm -f $(PGM) $(LIB)
+	rm -f $(LIB) *.o
 	rm -fr $(OBJDIR)
 
 cleanall:
-	rm -f  *.a kpttest kpttest_debug
+	rm -f *.o *.a 
 	rm -fr release debug
 
 $(OBJDIR):

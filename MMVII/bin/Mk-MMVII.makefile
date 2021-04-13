@@ -11,6 +11,7 @@ MMV2ElisePath=${MMDir}/lib/libelise.a
 MMV2Exe=MMVII
 
 MMSymbDerHeader=$(wildcard ${MMV2DirIncl}/SymbDer/*.h)
+MMKaptureHeader=$(wildcard ${MMV2Dir}/kapture/*.h)
 
 all : ${MMV2DirBin}${MMV2Exe}
 
@@ -127,11 +128,17 @@ MMV2DirGeoms=${MMV2DirSrc}Geoms/
 SrcGeoms=$(wildcard ${MMV2DirGeoms}*.cpp)
 ObjGeoms=$(SrcGeoms:.cpp=.o) 
 #
+#
+MMV2DirKapture=${MMV2Dir}kapture/
+#SrcKapture=$(fiter-out ${MMV2DirKapture}kpt_test.cpp $(wildcard ${MMV2DirKapture}*.cpp))
+SrcKapture=$(filter-out ${MMV2DirKapture}kpt_test.cpp, $(wildcard ${MMV2DirKapture}*.cpp))
+ObjKapture=$(SrcKapture:.cpp=.o)
+#
 #    => Le Main
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjGeoms} ${ObjMappings} 
+OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjGeoms} ${ObjMappings} ${ObjKapture}
 #
 #=========  Header ========
 #
@@ -205,6 +212,8 @@ ${MMV2DirGraphs}%.o :  ${MMV2DirGraphs}%.cpp   ${HEADER}
 ${MMV2DirDenseMatch}%.o :  ${MMV2DirDenseMatch}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirGeoms}%.o :  ${MMV2DirGeoms}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirKapture}%.o :  ${MMV2DirKapture}%.cpp   ${MMKaptureHeader}
 	${CXX} -c  $< ${CFlags} -o $@
 #
 #       ===== TEST ========================================
