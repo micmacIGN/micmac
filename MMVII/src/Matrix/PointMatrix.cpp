@@ -33,6 +33,16 @@ template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromVect(co
    return aRes;
 }
 
+template <class Type,const int Dim> cPtxd<Type,Dim> cPtxd<Type,Dim>::FromStdVector(const std::vector<Type>& aV) 
+{
+   cPtxd<Type,Dim> aRes;
+   MMVII_INTERNAL_ASSERT_tiny(aV.size()==Dim,"Bad size in Vec/Pt");
+   for (int aK=0 ; aK<Dim ; aK++)
+        aRes.mCoords[aK]  = aV.at(aK);
+
+   return aRes;
+}
+
 template <class Type,const int Dim> cDenseVect<Type> cPtxd<Type,Dim>::ToVect() const
 {
    cDenseVect<Type> aRes(Dim);
@@ -41,6 +51,16 @@ template <class Type,const int Dim> cDenseVect<Type> cPtxd<Type,Dim>::ToVect() c
 
    return aRes;
 }
+
+template <class Type,const int Dim> std::vector<Type> cPtxd<Type,Dim>::ToStdVector() const
+{
+   std::vector<Type> aRes;
+   for (int aK=0 ; aK<Dim ; aK++)
+        aRes.push_back(mCoords[aK]);
+
+   return aRes;
+}
+
 
 
 // X => Col ;;   Y => Line
@@ -128,7 +148,9 @@ template void MulLine(cPtxd<TYPE,DIMOUT>&,const cPtxd<TYPE,DIMIN>&,const cDenseM
 
 #define INSTANT_PT_MAT_TYPE_DIM(TYPE,DIM)\
 template  cDenseVect<TYPE> cPtxd<TYPE,DIM>::ToVect() const;\
+template  std::vector<TYPE> cPtxd<TYPE,DIM>::ToStdVector() const;\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromVect(const cDenseVect<TYPE>& aV);\
+template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromStdVector(const std::vector<TYPE>& aV);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::Col(const cDenseMatrix<TYPE> &,int);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::Line(int,const cDenseMatrix<TYPE> &);\
 INSTANT_MUL_MATVECT(TYPE,DIM,1);\

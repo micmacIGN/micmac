@@ -2,25 +2,20 @@
 #include "include/V1VII.h"
 
 // using namespace MMVII;
-namespace MMVII
-{
-
-/// With this class, an Appli indicate how it deal with Bench
 /*
-class cAppliBenchAnswer
-{
-    public :
-         cAppliBenchAnswer(bool HasBench,double Time,int aPrio);
-    private :
-         bool   mHasBench;  ///< Has the apply  a Bench method ?
-         double mTime;      ///< Time to execute, just an order of magnitude
-         int    mPrio;      ///<  is >=0, The smaller, the highest priority
-};
+using namespace MMVII;
+using MMVII::BLANK;
+using MMVII::round_ni;
+using MMVII::round_up;
 */
 
-
+// It's a bit strange to put local thing also in MMVII namespace, but else there is
+// many conflicts between  MMV1 (include here because MicMac)  and MMVII.
+// I realized that lately ....  so let it like that for now
+namespace MMVII
+{
   // Put all the stuff that dont vocate to be exported in namespce
-namespace EpipGenDenseMatch
+namespace NS_EpipGenDenseMatch
 {
 
 class cAppli ;  // class for main application
@@ -723,12 +718,16 @@ tMMVII_UnikPApli Alloc_EpipGenDenseMatch(const std::vector<std::string> &  aVArg
    return tMMVII_UnikPApli(new cAppli(aVArgs,aSpec));
 }
 
-};
+}; //  NS_EpipGenDenseMatch
+}
 
+
+namespace MMVII
+{
 cSpecMMVII_Appli  TheSpecEpipGenDenseMatch
 (
      "DenseMatchEpipGen",
-      EpipGenDenseMatch::Alloc_EpipGenDenseMatch,
+      NS_EpipGenDenseMatch::Alloc_EpipGenDenseMatch,
       "Generik epipolar dense matching",
       {eApF::Match},
       {eApDT::Image},

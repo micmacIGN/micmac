@@ -8,8 +8,19 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <filesystem>
+#include <experimental/filesystem>
 #include <stdexcept>
+
+#define KAPTURE_USE_EIGEN
+
+#ifdef KAPTURE_USE_EIGEN
+#include <Eigen/Geometry>
+#endif
+
+
+namespace std {
+using namespace experimental;
+}
 
 
 namespace Kapture {
@@ -25,6 +36,7 @@ const std::string KAPTURE_FORMAT_PARSING_RE = "# kapture format\\s*:\\s*(\\d+\\.
 typedef std::filesystem::path Path;
 typedef std::vector<Path> PathList;
 typedef std::vector<std::string> StringList;
+typedef uint32_t timestamp_t;
 
 enum class DType{Unknown,UINT8,UINT16,UINT32,UINT64,FLOAT32,FLOAT64};
 
@@ -33,6 +45,42 @@ DType dtypeFromStr(const std::string &s);
 
 std::vector<char> readBinaryFile(std::istream& is);
 std::vector<char> readBinaryFile(const Path& p);
+
+#ifdef KAPTURE_USE_EIGEN
+typedef Eigen::Quaternion<double> QRot;
+#else
+struct QRot {
+public:
+    QRot() : mW(0),mX(0),mY(0),mZ(0) {};
+    QRot(double w, double x, double y, double z) : mW(w),mX(x),mY(y),mZ(z) {}
+    double w() const { return mW; }
+    double x() const { return mX; }
+    double y() const { return mY; }
+    double z() const { return mZ; }
+    double& w() { return mW; }
+    double& x() { return mX; }
+    double& y() { return mY; }
+    double& z() { return mZ; }
+
+private:
+    double mW,mX,mY,mZ;
+};
+#endif
+
+struct Vec3D {
+public:
+    Vec3D() : mX(0),mY(0),mZ(0) {};
+    Vec3D(double x, double y, double z) : mX(x),mY(y),mZ(z) {}
+    double x() const { return mX; }
+    double y() const { return mY; }
+    double z() const { return mZ; }
+    double& x() { return mX; }
+    double& y() { return mY; }
+    double& z() { return mZ; }
+
+private:
+    double mX,mY,mZ;
+};
 
 class Error : public std::runtime_error
 {

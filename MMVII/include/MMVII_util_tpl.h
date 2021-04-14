@@ -218,6 +218,19 @@ template <class TV,class TF> void erase_if(TV & aVec,const TF& aFonc)
 
 template <class Type> int LexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2);
 
+template <class Type> void Append(std::vector<Type> & aRes, const std::vector<Type> & aV1,const std::vector<Type> & aV2)
+{
+   aRes = aV1;
+   for (const auto & aVal : aV2)
+       aRes.push_back(aVal);
+}
+template <class Type> std::vector<Type> Append(const std::vector<Type> & aV1,const std::vector<Type> & aV2)
+{
+    std::vector<Type> aRes;
+    Append(aRes,aV1,aV2);
+    return aRes;
+}
+
 
 
 

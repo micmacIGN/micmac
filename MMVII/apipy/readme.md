@@ -16,6 +16,7 @@ Usage
 
 More usage examples can be found in apipy/examples_py
 
+
 Documentation
 -------------
 See doc/
@@ -29,15 +30,26 @@ Dependencies:
  - SWIG
  - pkg-config
  - Python 3 headers
+ - PIP for Python 3
+ - Wheel for Python3
  - for documentation: doxygen, GraphViz
 
 On debian:
-    apt install swig python3-dev doxygen graphviz pkg-config
+    apt install swig python3-dev pkg-config python3-pip python3-wheel
+    apt install doxygen graphviz
 
 Compilation:
     make -f Makefile_apipy_linux
 
-The module is automatically copied in ~/.local/lib/python3.*/site-packages/ and the xml files in ~/.local/mmv2/.
+
+Distribution
+------------
+Distribute file dist/mmv2-*.whl.
+User can install it with
+    pip3 install mmv2-*.whl
+
+Update pip if needed:
+    python3 -m pip install --upgrade pip
 
 Developement
 ------------
@@ -47,7 +59,7 @@ Tu be able to use templates classes, use %template.
 If you want to be able to use python lists for objects of these classes, use %template.
 
 PIP package tutorial: https://packaging.python.org/tutorials/packaging-projects/
-
+https://realpython.com/python-wheels/
 
 TODO
 ----

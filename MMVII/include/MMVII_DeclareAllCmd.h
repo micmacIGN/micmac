@@ -25,6 +25,8 @@ extern cSpecMMVII_Appli  TheSpecCalcDiscIm;
 extern cSpecMMVII_Appli  TheSpecCalcDescPCar;
 extern cSpecMMVII_Appli  TheSpecMatchTieP;
 extern cSpecMMVII_Appli  TheSpecEpipGenDenseMatch;
+extern cSpecMMVII_Appli  TheSpecGenSymbDer;
+extern cSpecMMVII_Appli  TheSpecKapture;
 
 };
 

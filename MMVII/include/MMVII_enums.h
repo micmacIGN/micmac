@@ -44,15 +44,16 @@ enum class eTA2007
 /// Appli Features
 enum class eApF
            {
-               Project, ///< Project Managenent
-               Test,    ///< Test
-               ImProc,  ///< Image processing
-               Ori,     ///< Orientation
-               Match,   ///< Dense Matching
-               TieP,    ///< Tie-Point processing
+               ManMMVII,   ///< Managenent of MMVII
+               Project,    ///< Project Managenent (user's)
+               Test,       ///< Test
+               ImProc,     ///< Image processing
+               Ori,        ///< Orientation
+               Match,      ///< Dense Matching
+               TieP,       ///< Tie-Point processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
-               Perso,   ///< Personnal
-               eNbVals  ///< Tag for number of value
+               Perso,      ///< Personnal
+               eNbVals     ///< Tag for number of value
            };
 
 /// Appli Data Type
@@ -64,7 +65,8 @@ enum class eApDT
               Image,   ///< Image
               Ply,    ///< Ply file
               None,     ///< Nothing 
-              Console,  ///< Console 
+              ToDef,     ///< still unclassed
+              Console,  ///< Console , (i.e printed message have values)
               Xml,      ///< Xml-files
               FileSys,      ///< Input is the file system (list of file)
               Media,      ///< Input is the file system (list of file)

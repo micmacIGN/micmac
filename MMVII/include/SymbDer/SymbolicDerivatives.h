@@ -357,6 +357,13 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
              return GenCodeCommon(aFilePrefix, aTypeName, false);
          }
 
+         // =========== Parametrisation of the generated code =========
+
+         /// The default value is not always adequate "SymbDer/SymbDer_Common.h"
+         void SetHeaderIncludeSymbDer(const std::string &aH) {mHeaderIncludeSymbDer= aH;}
+         void SetDirGenCode(const std::string &aDir) {mDirGenCode= aDir;}
+         void SetUseAllocByName(bool aUse) {mUseAllocByName= aUse;}
+
     private :  // END-USER
          /*   =================================================================================
              ABOVE WAS THE REAL PUBLIC PART OF cCoordinatorF FOR USER OF LIBRARY.  THE REST
@@ -428,6 +435,9 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
         std::vector<tFormula>          mVCurF;       ///< Current evaluted formulas
         std::vector<tFormula>          mVReachedF;   ///< Formula "reachable" i.e. necessary to comput mVCurF
 
+        std::string  mHeaderIncludeSymbDer;  ///< Compilation environment may want to change it
+        std::string  mDirGenCode;   ///< Want to put generated code in a fixed folde ?
+        bool         mUseAllocByName;   ///< Do we generated code for allocatin frpm name (with cName2Calc)
 };
 
 /* ************************************************** 
@@ -861,8 +871,10 @@ cCoordinatorF<TypeElem>::cCoordinatorF
     mNbCste     (0),
     mCste0      (CsteOfVal(0.0)),
     mCste1      (CsteOfVal(1.0)),
-    mCste2      (CsteOfVal(2.0))
-    
+    mCste2      (CsteOfVal(2.0)),
+    mHeaderIncludeSymbDer ("SymbDer/SymbDer_Common.h"),
+    mDirGenCode           (""),
+    mUseAllocByName       (false)  // For strict compatibility with previous Jo's code
 {
     // Generate all the function corresponding to unknown
     for (size_t aNumUK=0 ; aNumUK<this->mNbUK ; aNumUK++)
@@ -1096,7 +1108,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
     std::string aParentClass = "cCalculator<" + aTypeName + ">";
 
     std::string aFileName  = aPrefix + aClassName;
-    std::ofstream aOs(aFileName + ".h");
+    std::ofstream aOs(mDirGenCode + aFileName + ".h");
     if (!aOs)
         return "";
 
@@ -1104,7 +1116,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
     aOs << "#ifdef _OPENMP\n"
            "#include <omp.h>\n"
            "#endif\n"
-           "#include \"SymbDer/SymbDer_Common.h\"\n"
+           "#include \"" << mHeaderIncludeSymbDer << "\"\n"
            "\n"
            "namespace NS_SymbolicDerivative {\n\n";
     if (isTemplated) {
@@ -1150,7 +1162,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
 
     if (! isTemplated) {
         aOs << "} // namespace NS_SymbolicDerivative\n";
-        aOs = std::ofstream(aFileName + ".cpp");
+        aOs = std::ofstream(mDirGenCode+aFileName + ".cpp");
         if (!aOs)
             return "";
         aOs << "#include \"" + aFileName + ".h\"\n"
@@ -1192,8 +1204,19 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
     }
 
     aOs << "  }\n"
-           "}\n\n"
-           "} // namespace NS_SymbolicDerivative\n";
+           "}\n\n";
+
+    if (mUseAllocByName)
+    {
+      aOs << "cCalculator<" << aTypeName << "> * Alloc_" << aName << "(int aSzBuf)\n"
+          << "{\n"
+          << "   return new c" << aName  << "(aSzBuf);\n"
+          << "}\n\n"
+          << "cName2Calc<" << aTypeName << "> TheNameAlloc_" << aName <<"(\""<< aName <<"\",Alloc_" << aName<< ");\n\n";
+    }
+
+
+     aOs << "} // namespace NS_SymbolicDerivative\n";
 
     return aFileName;
 }

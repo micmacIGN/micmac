@@ -4,6 +4,7 @@
 setup.py file for SWIG example
 """
 
+import setuptools
 from distutils.core import setup, Extension
 
 import sys
@@ -39,13 +40,18 @@ xml_micmac_files = glob.glob('../../include/XML_MicMac/*.xml')
 xml_gen_files = glob.glob('../../include/XML_GEN/*.xml')
 
 setup (name = 'mmv2',
-       version = '0.1',
+       version = '0.0.1',
+       license = 'CeCILL-B',
+       author_email = 'jean-michael.muller@ign.fr',
+       url = 'https://github.com/micmacIGN',
        author      = "IGN",
        description = """MicMac Python API""",
+       long_description = "MicMac v2 Python API",
        ext_modules = [mmv2_module],
        py_modules = ["mmv2"],
        data_files = [("mmv2/include/XML_MicMac", xml_micmac_files),
                      ("mmv2/include/XML_GEN", xml_gen_files)],
+       platforms  = ['x86_64'],
        )
 
 #https://docs.python.org/3/extending/building.html
