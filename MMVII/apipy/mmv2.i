@@ -65,8 +65,9 @@
 %ignore MMVII::cPtxd::Col;
 %ignore MMVII::cPtxd::Line;
 %ignore MMVII::cPtxd::ToVect;
+%ignore MMVII::cPtxd<int,2>::ToStdVector;
 %ignore MMVII::cPtxd::FromVect;
-
+%ignore MMVII::cPtxd<int,2>::FromStdVector;
 //----------------------------------------------------------------------
 //classes to export
 %nodefaultctor;
