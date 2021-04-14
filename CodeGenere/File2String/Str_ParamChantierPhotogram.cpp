@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamChantierPhotogram[2164] = {
+const char * theNameVar_ParamChantierPhotogram[2171] = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -2150,6 +2150,13 @@ const char * theNameVar_ParamChantierPhotogram[2164] = {
 "    </GS_SectionOverlapingTraj>\n",
 "\n",
 "</Xml_ParamGraphStereopolis>\n",
+"\n",
+"<enum Name=\"eRANSAC_HistoP\">\n",
+"    <eR3D>      </eR3D>\n",
+"    <eR2D>      </eR2D>\n",
+"    <eNbTypeRHP></eNbTypeRHP>\n",
+"</enum>\n",
+"\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
 "// };\n",
