@@ -10,6 +10,7 @@ WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 .PHONY: clean doc apipy
 
 apipy: clean
+	python3 setup.py build
 	python3 setup.py bdist_wheel USEQT=$(USEQT)
 	pip3 install --user dist/*.whl
 	#python3 setup.py install --user USEQT=$(USEQT)
