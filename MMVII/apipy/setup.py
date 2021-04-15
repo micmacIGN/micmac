@@ -22,11 +22,12 @@ for arg in sys.argv[:]:
     if arg.startswith("USEQT"):
         sys.argv.remove(arg)
 
-all_cpp_api_files = ['mmv2_wrap.cxx'] + glob.glob('api/*.cpp')
+all_cpp_api_files =  glob.glob('api/*.cpp')
 
 mmv2_module = Extension('_mmv2',
            define_macros = [('FORSWIG','')],
-           sources = all_cpp_api_files,
+           sources = ['mmv2.i'] + all_cpp_api_files,
+           swig_opts=['-python', '-py3',  '-DFORSWIG', '-Wall', '-c++', '-I.','-I../include/'],
            libraries = ['X11', 'Xext', 'm', 'dl', 'pthread', 'stdc++fs', 'gomp']+libs,
            library_dirs = [],
            include_dirs = ['/usr/local/include', '.', '../include/', '../ExternalInclude/'],

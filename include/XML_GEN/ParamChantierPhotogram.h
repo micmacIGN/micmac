@@ -8133,5 +8133,24 @@ std::string  Mangling( cXml_ParamGraphStereopolis *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+typedef enum
+{
+  eR3D,
+  eR2D,
+  eNbTypeRHP
+} eRANSAC_HistoP;
+void xml_init(eRANSAC_HistoP & aVal,cElXMLTree * aTree);
+std::string  eToString(const eRANSAC_HistoP & aVal);
+
+eRANSAC_HistoP  Str2eRANSAC_HistoP(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eRANSAC_HistoP & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eRANSAC_HistoP &);
+
+std::string  Mangling( eRANSAC_HistoP *);
+
+void  BinaryUnDumpFromFile(eRANSAC_HistoP &,ELISE_fp &);
+
 // };
 #endif // Define_NotPCP

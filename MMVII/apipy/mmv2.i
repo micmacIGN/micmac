@@ -26,10 +26,11 @@
 //----------------------------------------------------------------------
 //rename overloaded methods to avoid shadowing
 
-//True is a reserved name in python3
+//Reserved names in python3
 %rename(_True) FBool::True;
 %rename(_MayBe) FBool::MayBe;
 %rename(_False) FBool::False;
+%rename(_None) MMVII::eApDT::None;
 
 //----------------------------------------------------------------------
 //be able to use python exceptions
@@ -65,7 +66,9 @@
 %ignore MMVII::cPtxd::Col;
 %ignore MMVII::cPtxd::Line;
 %ignore MMVII::cPtxd::ToVect;
+%ignore MMVII::cPtxd<int,2>::ToStdVector;
 %ignore MMVII::cPtxd::FromVect;
+%ignore MMVII::cPtxd<int,2>::FromStdVector;
 
 //----------------------------------------------------------------------
 //classes to export
@@ -82,7 +85,7 @@ namespace MMVII {
   %template(cIm2Dr4) cIm2D<tREAL4>;
   %template(cDataIm2Du1) cDataIm2D<tU_INT1>;
   %template(cDataIm2Dr4) cDataIm2D<tREAL4>;
-  %template(cBox2di) cTplBox<int,2>;
+  //%template(cBox2di) cTplBox<int,2>;
 
   //%template(Pt1dr) cPtxd<double,1>   ;
   //%template(Pt1di) cPtxd<int,1>      ;
@@ -103,14 +106,39 @@ namespace std {
     %template(StringVector) vector<string>;
     
 }
- 
+
 
 //----------------------------------------------------------------------
-
-//check python version
+//run on import
 %pythoncode %{
 print("MicMacV2 Python3 API")
 mmv2_init();
 %}
+
+
+//----------------------------------------------------------------------
+//add functions to classes
+%extend MMVII::cPtxd<int,2> {
+  char *__repr__() {
+    static char tmp[1024];
+    sprintf(tmp, "[%d, %d]", $self->x(), $self->y());
+    return tmp;
+  }
+};
+%extend MMVII::cPtxd<double,2> {
+  char *__repr__() {
+    static char tmp[1024];
+    sprintf(tmp, "[%f, %f]", $self->x(), $self->y());
+    return tmp;
+  }
+};
+%extend MMVII::cPtxd<double,3> {
+  char *__repr__() {
+    static char tmp[1024];
+    sprintf(tmp, "[%f, %f, %f]", $self->x(), $self->y(), $self->z());
+    return tmp;
+  }
+};
+
 
 

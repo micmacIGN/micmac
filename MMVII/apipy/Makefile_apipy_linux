@@ -1,28 +1,20 @@
 MMv2Dir=..
-INCLUDEDIRS = -I. -I${MMv2Dir}/include/
 DOCDIR = doc/
 
-SO = _mmv2.so
-
-ifeq ($(USEQT), ON)
-    QTLINK= -lGL -lGLU  -lQt5Core -lQt5Gui -lQt5Widgets -lQt5Concurrent -lQt5OpenGL -lQt5Xml
-endif
-
-I_SRCS = mmv2.i
+MODULE_NAME = mmv2
+I_SRCS = $(MODULE_NAME).i
 PY_FILES = $(I_SRCS:.i=.py)
-WRAP_CXX_FILES = $(I_SRCS:.i=_wrap.cxx)
+WRAP_CXX_FILES = $(I_SRCS:.i=_wrap.cpp)
 WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 
-.PHONY: clean doc swig
+.PHONY: clean doc apipy
 
-.SECONDARY: $(WRAP_CXX_FILES)
-
-apipy: $(WRAP_CXX_FILES)
-	#python3 setup.py install --user USEQT=$(USEQT)
-	rm -Rf dist/
+apipy: clean
+	python3 setup.py build
 	python3 setup.py bdist_wheel USEQT=$(USEQT)
 	pip3 install --user dist/*.whl
-	if python3 -c "import mmv2" ; then echo "APIPY OK" ; else echo "APIPY error!" ; fi
+	#python3 setup.py install --user USEQT=$(USEQT)
+	if python3 -c "import mmv2" ; then echo "APIPY OK" ; else echo "APIPY error! Use c++filt to demangle symbol." ; fi
 
 all: apipy doc
 
@@ -30,10 +22,8 @@ doc:
 	cd $(DOCDIR) && doxygen
 
 clean:
-	rm -f $(WRAP_CXX_FILES) $(WRAP_O_FILES) $(PY_FILES) $(SO) *.so *.o
-	rm -Rf $(DOCDIR)/html build/ dist/ mmv2.egg-info/ __pycache__/ mmv2/
+	rm -f $(PY_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES)
+	rm -Rf $(DOCDIR)/html build/ dist/ mmv2.egg-info/ __pycache__/
 	python3 setup.py clean
-
-%_wrap.cxx: %.i
-	swig -python -py3 -DFORSWIG -Wall -c++ ${INCLUDEDIRS} $<
+	pip3 uninstall -y $(MODULE_NAME)
 
