@@ -12,7 +12,7 @@ namespace MMVII
 
 */
 
-template <class Type,const int Dim> class cBoundedSet : public cMemCheck
+template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
 {
     public :
       typedef  cPtxd<Type,Dim>  tPt;
@@ -26,28 +26,37 @@ template <class Type,const int Dim> class cBoundedSet : public cMemCheck
 
 /// Class that represent a continous mapping R^k -> R^n
 
-template <class Type,const int DimIn,const int DimOut> class cMapping : public cMemCheck
+template <class Type,const int DimIn,const int DimOut> class cDataMapping : public cMemCheck
 {
     public :
       typedef  cPtxd<Type,DimOut> tPtOut;
       typedef  cPtxd<Type,DimIn>  tPtIn;
+      typedef  std::vector<tPtIn> tVecIn;
       typedef  cDenseMatrix<Type> tGrad;  ///< For each 
 
-      /// Compute image in direct sens
-      virtual  tPtOut  Direct(const tPtIn &) const = 0;
-
+      cDataMapping(int aSzBuf);
       /// Has it a diffenrentiable method : default false
       virtual  bool    HasValAndGrad() const;
+           // ========== Bufferized mode ==============
+      void     AddBufIn(const tPtIn &) const;
+      virtual  void  ComputeDirect() const;
+      virtual  void ComputeValAndGrad() const;
+      /// Compute image in direct sens
+      virtual  const std::pair<tPtOut,tGrad> &  ComputeValAndGrad(const tPtIn &) const;
+      virtual  const tPtOut &  Val(const tPtIn &) const;
+
       /// compute diffenrentiable method , default = erreur
-      virtual  std::pair<tPtOut,tGrad>  ComputeValAndGrad(const tPtIn &) const;
     public :
-      cDenseMatrix<Type> mGrad;
+       tVecIn              mBufIn;
+       tVecIn              mBufOut;
+       std::vector<tGrad>  mGrads;
 };
 
 
 /**  We coul expect that DimIn=DimOut, but in fact in can be used
 to represent a mapping from a part of the plane to a part of the sphere */
 
+/*
 
 template <class Type,const int DimIn,const int DimOut> 
          class cInvertibleMapping : public cMapping<Type,DimIn,DimOut>
@@ -78,6 +87,7 @@ template <class Type> class cImagePose : public cInvertibleMapping<Type,3,3>
        cDenseMatrix<Type>  mOrient;
        tPt                 mC;
 };
+*/
 
 /*
 Avec R=N(x,y,z) et r=N(x,y)

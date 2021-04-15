@@ -9,6 +9,40 @@ using namespace MMVII;
 namespace NS_GenerateCode
 {
 
+template <typename TypeFormula> std::string NameFormula(const TypeFormula & anEq,bool WithDerive)
+{
+   return  anEq.FormulaName() +  std::string(WithDerive ?"VDer":"Val");
+}
+
+std::string  NameEqDist(const cPt3di & aDeg,bool WithDerive)
+{
+   cMMVIIUnivDist aDist(aDeg.x(),aDeg.y(),aDeg.z());
+   cEqDist<cMMVIIUnivDist> anEq(aDist); 
+
+   return NameFormula(anEq,WithDerive);
+}
+
+cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf)
+{
+    return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,WithDerive),aSzBuf);
+}
+
+/*
+template <const int DimIn,const int DimOut> class cFormulaMapping : public cMapping<double,DimIn,DimOut>
+{
+   public :
+       /// Compute image in direct sens
+      tPtOut  Direct(const tPtIn &) const override;
+
+      /// Has it a diffenrentiable method : default false
+      bool    HasValAndGrad() const override;
+      /// compute diffenrentiable method , default = erreur
+      std::pair<tPtOut,tGrad>  ComputeValAndGrad(const tPtIn &) const override;
+
+};
+*/
+
+
 /* **************************** */
 /*      BENCH  PART             */
 /* **************************** */
@@ -81,7 +115,7 @@ class cAppli : public cMMVII_Appli
         cAppliBenchAnswer BenchAnswer() const override ; ///< Has it a bench, default : no
         int  ExecuteBench(cParamExeBench &) override ;
 
-     private :
+//      private :
         template <typename tDist> void GenCodesDist(const tDist & aDist,bool WithDerive,bool PP);
 
        // =========== Data ========
@@ -133,7 +167,8 @@ template <typename tDist> void cAppli::GenCodesDist(const tDist & aDist,bool Wit
    int SzBuf=0;
    cEqDist<tDist> anEq(aDist); 
 
-   std::string aNF = anEq.FormulaName() +   std::string(WithDerive ?"VDer":"Val");
+   // std::string aNF = anEq.FormulaName() +   std::string(WithDerive ?"VDer":"Val");
+   std::string aNF =  NameFormula(anEq,WithDerive);
 
    NS_SymbolicDerivative::cCoordinatorF<double> 
    aCEq(aNF,SzBuf,anEq.VNamesUnknowns(),anEq.VNamesObs());

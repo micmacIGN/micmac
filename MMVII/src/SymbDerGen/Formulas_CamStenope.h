@@ -281,12 +281,12 @@ class cMMVIIUnivDist
 {
     public :
        
-       const int DegRad()  {return mTheDegRad;}
-       const int DegDec()  {return mTheDegDec;}
-       const int DegUniv() {return mTheDegUniv;}
+       const int & DegRad()  const  {return mTheDegRad;}
+       const int & DegDec()  const {return mTheDegDec;}
+       const int & DegUniv() const {return mTheDegUniv;}
 
        /// Usable for message, also for name generation in formulas
-       std::string  NameModel() 
+       std::string  NameModel()  const
        {
            return    std::string("Dist")
                    + std::string("_Rad") + std::to_string(DegRad())
@@ -840,7 +840,7 @@ template <typename TypeDist>  class cEqDist
        return mVNamesObs;
     }
      
-    std::string FormulaName() { return "EqDist_" + mDist.NameModel();}
+    std::string FormulaName() const { return "EqDist_" + mDist.NameModel();}
 
        /*  Capital letter for 3D variable/formulas and small for 2D */
     template <typename tUk, typename tObs>
