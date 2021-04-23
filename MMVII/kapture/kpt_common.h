@@ -11,7 +11,7 @@
 #include <experimental/filesystem>
 #include <stdexcept>
 
-#define KAPTURE_USE_EIGEN
+// #define KAPTURE_USE_EIGEN
 
 #ifdef KAPTURE_USE_EIGEN
 #include <Eigen/Geometry>

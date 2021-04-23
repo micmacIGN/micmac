@@ -103,6 +103,8 @@ void BenchGlobImage(cParamExeBench & aParam); ///< Global bench on image
 void BenchFilterImage1(cParamExeBench & aParam);
 void BenchFilterLinear(cParamExeBench & aParam);
 void BenchGeom(cParamExeBench & aParam);
+void BenchMapping(cParamExeBench & aParam);
+
 
 
 /* Called by BenchGlobImage */

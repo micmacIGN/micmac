@@ -396,6 +396,9 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
         // ====  Sparse vector 
         void  Weighted_Add_tAA(Type aWeight,const tSpV & aColLine,bool OnlySup=true) override;
+
+        // === method implemente with DIm
+        Type L2Dist(const cDenseMatrix<Type> & aV) const;
 };
 
 

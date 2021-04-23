@@ -59,7 +59,7 @@ par le correlateur
         </Images>
         <MasqImageIn>
              <OneMasqueImage>
-                <PatternSel>  (.*)\.tif  </PatternSel>
+                <PatternSel>  (.*)\.(tif|png|jpg|...)  </PatternSel>
                 <NomMasq>  $1_Masq.tif     </NomMasq>
              </OneMasqueImage>
              <AcceptNonExistingFile> false </AcceptNonExistingFile>

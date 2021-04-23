@@ -216,7 +216,7 @@ std::string cOneLevel::StdFullName(const std::string & aName) const
 {
     return  (mLevel==0)                                                      ?
             mIm.mAppli.DirProject()+ aName                                   :
-            mIm.mAppli.DirTmpOfCmd() + "Lev" + ToStr(mLevel) + "_" + aName   ;
+            mIm.mAppli.DirTmpOfCmd() + "Lev" + ToStr(mLevel) + "_" + ChgPostix(aName,"tif")   ;
 }
 
 cOneLevel::cOneLevel(cOneIm &anIm,int aLevel) :
@@ -227,7 +227,7 @@ cOneLevel::cOneLevel(cOneIm &anIm,int aLevel) :
     mDownLev  (nullptr),
     mNameIm   (StdFullName(mIm.mNameIm)),
     mNameMasq (StdFullName(mIm.mNameMasq)),
-    mNamePx   (AddBefore(mNameIm,"Px_"))
+    mNamePx   (AddBefore(ChgPostix(mNameIm,"tif"),"Px_"))
 {
    if (aLevel==0)
       mAppli.SetOutPut(mNamePx);
@@ -260,7 +260,7 @@ std::string  cOneLevel::NameClip(const std::string & aPrefix,const cPt2di & aInd
 {
      return     mIm.mAppli.DirTmpOfCmd() 
             +   aPrefix + Index2Str(aInd)
-            +   FileOfPath(mNameIm)
+            +   ChgPostix(FileOfPath(mNameIm),"tif")
      ;
 }
 
@@ -596,6 +596,7 @@ void  cAppli::MatchOneLevel(int aLevel)
         if (aParam.mCanDoMatch)
         {
            aLComMatch.push_back(ComMatch(aParam));
+
 
            // We must create clipped images for both images and masqs
            aLComClip.push_back(aILev1.StrComClipIm(true ,anIndex,aParam.mBoxIn1));

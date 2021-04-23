@@ -92,7 +92,10 @@ static const unsigned int  rubbish  = 0xFEDCBAEF;
 int32_t
 */
 
-static const int32_t  maj_32A = 0xF98A523F;
+// Two majic value at the same place to pass a message=> Use or not counting
+static const int32_t  maj_32A1 = 0xF98A523F;  // Count Active
+static const int32_t  maj_32A0 = 0xF98A524F;  // Count UnActivated
+
 static const int32_t  maj_32B = 0xC158E6B1;
 static const int32_t  maj_32C = 0xA57EF39D;
 static const int32_t  maj_32D = 0x7089AE99;
@@ -100,6 +103,16 @@ static const int32_t  rubbish  = 0xFEDCBAEF;
 
 static const unsigned char maj_octet = 0xE7;
 
+// Because some object are never destroyed
+bool cMemManager::TheActiveMemoryCount = true;
+void cMemManager::SetActiveMemoryCount(bool aVal)
+{
+    TheActiveMemoryCount = aVal;
+}
+bool cMemManager::IsActiveMemoryCount()
+{
+    return TheActiveMemoryCount;
+}
 
 void * cMemManager::Calloc(size_t nmemb, size_t size)
 {
@@ -119,7 +132,7 @@ void * cMemManager::Calloc(size_t nmemb, size_t size)
          rubbish;
 
      aRes64 [-2]  = aNbOct;     // Taille de la zone en  octet
-     aRes32[-2]   = maj_32A;   // majic nunmber
+     aRes32[-2]   = TheActiveMemoryCount ? maj_32A1 : maj_32A0 ;   // majic nunmber
      aRes32[-1]   = maj_32B;   // majic nunmber
      aRes32[aNb4]  = maj_32C;   // majic number
      aRes32[aNb4+1] = maj_32D;
@@ -134,9 +147,12 @@ void * cMemManager::Calloc(size_t nmemb, size_t size)
           }
      }
 
-     mState.mCheckNb ++;
-     mState.mCheckSize +=  aNbOct;
-     mState.mCheckPtr  ^=  reinterpret_cast<int64_t> (aRes64);
+     if (TheActiveMemoryCount)
+     {
+         mState.mCheckNb ++;
+         mState.mCheckSize +=  aNbOct;
+         mState.mCheckPtr  ^=  reinterpret_cast<int64_t> (aRes64);
+     }
      mState.mNbObjCreated ++;
 
      return aRes64;
@@ -150,7 +166,9 @@ void   cMemManager::Free(void * aPtr)
      size_t aNbOct =  aPtr64[-2];
 
      const char * aMesDebord = "cMemManager::Free write out memory detected";
-     MMVII_INTERNAL_ASSERT_always((aPtr32[-2] == maj_32A),aMesDebord);
+     bool CountActivated =  (aPtr32[-2] == maj_32A1);
+     if (!CountActivated)
+        MMVII_INTERNAL_ASSERT_always((aPtr32[-2] == maj_32A0),aMesDebord);
      MMVII_INTERNAL_ASSERT_always((aPtr32[-1] == maj_32B),aMesDebord);
 
      size_t aNb8 = (int) ((aNbOct + 7)/8); // Assume 8 is ok as universal allignment constant
@@ -168,9 +186,12 @@ void   cMemManager::Free(void * aPtr)
           }
      }
 
-     mState.mCheckNb --;
-     mState.mCheckSize -=  aNbOct;
-     mState.mCheckPtr  ^=  reinterpret_cast<int64_t> (aPtr64);
+     if (CountActivated)
+     {
+        mState.mCheckNb --;
+        mState.mCheckSize -=  aNbOct;
+        mState.mCheckPtr  ^=  reinterpret_cast<int64_t> (aPtr64);
+     }
 
      free(aPtr64-2);
 }

@@ -3,6 +3,8 @@
 
 namespace MMVII
 {
+template <class Type,const int Dim> class cDataBoundedSet ;
+template <class Type,const int DimIn,const int DimOut> class cDataMapping;
 
 /** \file MMVII_Mappings.h
     \brief contain interface class for continuous mapping
@@ -11,6 +13,19 @@ namespace MMVII
   phases. 
 
 */
+
+template <class Type,const int DimIn,const int DimOut> class cMapping
+{
+    public :
+      typedef cDataMapping<Type,DimIn,DimOut> tDataMap;
+      cMapping(tDataMap * aDM);
+      tDataMap & DM() {return  *mRawPtr;}
+      const tDataMap & DM() const {return  *mRawPtr;}
+
+    private :
+      std::shared_ptr<tDataMap>   mPtr; 
+      tDataMap*                   mRawPtr;
+};
 
 template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
 {
@@ -26,32 +41,92 @@ template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
 
 /// Class that represent a continous mapping R^k -> R^n
 
+
+
 template <class Type,const int DimIn,const int DimOut> class cDataMapping : public cMemCheck
 {
     public :
-      typedef  cPtxd<Type,DimOut> tPtOut;
-      typedef  cPtxd<Type,DimIn>  tPtIn;
-      typedef  std::vector<tPtIn> tVecIn;
-      typedef  cDenseMatrix<Type> tGrad;  ///< For each 
+      typedef  cMapping<Type,DimIn,DimOut> tMap;
+      typedef  cPtxd<Type,DimOut>          tPtOut;
+      typedef  cPtxd<Type,DimIn>           tPtIn;
+      typedef  std::vector<tPtIn>          tVecIn;
+      typedef  std::vector<tPtOut>         tVecOut;
+      typedef  cDenseMatrix<Type>          tJac;  ///< jacobian (DimIn DimOut); DimOut=1 =>line vector/linear form
+      typedef  std::vector<tJac>         tVecJac;
+      typedef std::pair<tPtOut ,tJac>                    tResJac;
+      typedef std::pair<const tVecOut *,const tVecJac*>  tResVecJac;
 
-      cDataMapping(int aSzBuf);
-      /// Has it a diffenrentiable method : default false
-      virtual  bool    HasValAndGrad() const;
-           // ========== Bufferized mode ==============
-      void     AddBufIn(const tPtIn &) const;
-      virtual  void  ComputeDirect() const;
-      virtual  void ComputeValAndGrad() const;
+
+           // ========== Computation of values ==============
+      virtual  const  tVecOut &  Direct(const tVecIn & ) const;
+      virtual  tPtOut Direct(const tPtIn &) const;
+
+      virtual tResVecJac  Jacobian(const tVecIn &) const;
+      virtual tResJac     Jacobian(const tPtIn &) const;
+
+
+      // virtual  void ComputeValAndJac() const;
       /// Compute image in direct sens
-      virtual  const std::pair<tPtOut,tGrad> &  ComputeValAndGrad(const tPtIn &) const;
-      virtual  const tPtOut &  Val(const tPtIn &) const;
+      // virtual  const std::pair<tPtOut,tJac> &  ComputeValAndGrad(const tPtIn &) const;
 
       /// compute diffenrentiable method , default = erreur
-    public :
-       tVecIn              mBufIn;
-       tVecIn              mBufOut;
-       std::vector<tGrad>  mGrads;
+    protected :
+       /// This one can compute jacobian
+       cDataMapping();
+       /**  EpsJac is used to compute the jacobian by finite difference, */
+       cDataMapping(const tPtIn & aEps);
+
+       tPtIn               mEpsJac;
+       bool                mJacByFiniteDif;
+       // std::vector<tJac>   mGrads;
+       // std::vector<tJac>   mResGrads;
+
+       mutable tVecOut  mBufOut;
+       mutable tVecOut  mJBufOut;
+       mutable tVecIn   mBufIn;
+       mutable tVecIn   mBufIn1Val;
+       mutable tVecJac  mJacReserve;
+       mutable tVecJac  mJacResult;
+
+       inline tVecOut&  BufOut()    const {return mBufOut;}
+       inline tVecOut&  JBufOut()   const {return mJBufOut;}
+       inline tVecIn&   BufIn()     const {return mBufIn;}
+       inline tVecIn &  BufIn1Val() const {return mBufIn1Val;}
+       tVecJac & BufJac(tU_INT4 aSz) const ; /// Sz<0 => means clear buf
 };
 
+template <class Type,const int Dim> class cDataInvertibleMapping :  public cDataMapping<Type,Dim,Dim>
+{
+    public :
+      typedef cDataMapping<Type,Dim,Dim> tDataMap;
+      typedef cMapping<Type,Dim,Dim>     tMap;
+      typedef typename  tDataMap::tPtIn  tPt;
+      typedef typename  tDataMap::tVecIn tVecPt;
+
+      void SetRoughInv(tMap,const Type& aDistTol,int aNbIterMax);
+      virtual  const  tVecPt &  ComputeInverse(const tVecPt &) const;
+    protected :
+      cDataInvertibleMapping();
+
+      tMap                mRoughInv;
+      Type                mDTolInv;
+      int                 mNbIterMaxInv;
+};
+/*
+*/
+
+template <class Type,const int Dim> class cMappingIdentity :  public cDataMapping<Type,Dim,Dim>
+{
+    public :
+      typedef cDataMapping<Type,Dim,Dim> tDataMap;
+      typedef typename  tDataMap::tPtIn  tPt;
+      typedef typename  tDataMap::tVecIn tVecPt;
+      tPt Direct(const tPt &) const override;
+      const  tVecPt &  Direct(const tVecPt & ) const override;
+};
+
+/*
+*/
 
 /**  We coul expect that DimIn=DimOut, but in fact in can be used
 to represent a mapping from a part of the plane to a part of the sphere */

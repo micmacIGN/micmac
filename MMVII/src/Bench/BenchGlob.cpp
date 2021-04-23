@@ -484,6 +484,9 @@ int  cAppli_MMVII_Bench::ExecuteBench(cParamExeBench & aParam)
         // Test geometric basic
         BenchGeom(aParam);
 
+        // Test mapping Buf/NotBuf  Jacob  Inverse ...
+        BenchMapping(aParam);
+
         // Apparently this bench do not succeed; to see later ?
         if (mDoBUSD)
         {

@@ -322,6 +322,7 @@ typedef cPtxd<int,1>     cPt1di ;
 typedef cPtxd<float,1>   cPt1df ;
 
     ///  2 dimension specialization
+typedef cPtxd<tREAL16,2> cPt2dLR ;
 typedef cPtxd<double,2>  cPt2dr ;
 typedef cPtxd<int,2>     cPt2di ;
 typedef cPtxd<float,2>   cPt2df ;
@@ -337,6 +338,7 @@ template <class T,const int Dim> inline double RatioMax(const cPtxd<T,Dim> & aP1
 // cPt2dr operator / (const cPt2dr &aP1,const cPt2dr & aP2) {return (aP1*conj(aP)
 
     ///  3 dimension specialization
+typedef cPtxd<tREAL16,3> cPt3dLR ;
 typedef cPtxd<double,3>  cPt3dr ;
 typedef cPtxd<int,3>     cPt3di ;
 typedef cPtxd<float,3>   cPt3df ;

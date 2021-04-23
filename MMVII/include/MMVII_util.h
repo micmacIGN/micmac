@@ -96,6 +96,7 @@ bool  RemovePatternFile(const  std::string & aPat,bool SVP); ///< Remove all fil
 void ActionDir(const std::string &,eModeCreateDir);
 
 std::string AddBefore(const std::string & aPath,const std::string & ToAdd); // A/B/C.tif,@  =>  A/B/@C.tif
+std::string ChgPostix(const std::string & aPath,const std::string & aPost); // A/B/C.png,tif  =>  A/B/C.tif
 
 
 

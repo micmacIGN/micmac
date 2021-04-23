@@ -163,7 +163,10 @@ std::string LastPostfix(const std::string & aStr,char aSep)
     return Postfix(aStr,aSep,true,true);
 }
 
-
+std::string ChgPostix(const std::string & aPath,const std::string & aPost)
+{
+    return LastPrefix(aPath,'.') + "." + aPost;
+}
 
 bool UCaseEqual(const std::string & aStr1 ,const std::string & aStr2)
 {

@@ -45,6 +45,12 @@ template <class Type> cDenseMatrix<Type> cDenseMatrix<Type>::Diag(const cDenseVe
     return aRes;
 }
 
+template <class Type> Type  cDenseMatrix<Type>::L2Dist(const cDenseMatrix<Type> & aV) const
+{
+   return DIm().L2Dist(aV.DIm());
+}
+
+
 template <class Type> cResulSVDDecomp<Type>  cDenseMatrix<Type>::RandomSquareRegSVD
                     (
                         const cPt2di&aSz,
