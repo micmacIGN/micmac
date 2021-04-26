@@ -19,8 +19,8 @@ template <class Type,const int DimIn,const int DimOut> class cMapping
     public :
       typedef cDataMapping<Type,DimIn,DimOut> tDataMap;
       cMapping(tDataMap * aDM);
-      tDataMap & DM() {return  *mRawPtr;}
-      const tDataMap & DM() const {return  *mRawPtr;}
+      tDataMap * DM() {return  mRawPtr;}
+      const tDataMap * DM() const {return  mRawPtr;}
 
     private :
       std::shared_ptr<tDataMap>   mPtr; 
@@ -89,21 +89,30 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
        mutable tVecJac  mJacResult;
 
        inline tVecOut&  BufOut()    const {return mBufOut;}
+       inline tVecOut&  BufOutCleared()    const {mBufOut.clear();return mBufOut;}
        inline tVecOut&  JBufOut()   const {return mJBufOut;}
+       inline tVecOut&  JBufOutCleared()   const {mJBufOut.clear();return mJBufOut;}
        inline tVecIn&   BufIn()     const {return mBufIn;}
+       inline tVecIn&   BufInCleared()  const {mBufIn.clear(); return mBufIn;}
        inline tVecIn &  BufIn1Val() const {return mBufIn1Val;}
        tVecJac & BufJac(tU_INT4 aSz) const ; /// Sz<0 => means clear buf
 };
 
+template <class Type,const int Dim> class cInvertDIMByIter;
+
 template <class Type,const int Dim> class cDataInvertibleMapping :  public cDataMapping<Type,Dim,Dim>
 {
     public :
-      typedef cDataMapping<Type,Dim,Dim> tDataMap;
-      typedef cMapping<Type,Dim,Dim>     tMap;
-      typedef typename  tDataMap::tPtIn  tPt;
-      typedef typename  tDataMap::tVecIn tVecPt;
+      friend class cInvertDIMByIter <Type,Dim>;
+
+      typedef cDataMapping<Type,Dim,Dim>     tDataMap;
+      typedef cMapping<Type,Dim,Dim>         tMap;
+      typedef typename  tDataMap::tPtIn      tPt;
+      typedef typename  tDataMap::tVecIn     tVecPt;
+      typedef typename  tDataMap::tResVecJac tResVecJac;
 
       void SetRoughInv(tMap,const Type& aDistTol,int aNbIterMax);
+      const tDataMap *    RoughInv() const ;
       virtual  const  tVecPt &  ComputeInverse(const tVecPt &) const;
     protected :
       cDataInvertibleMapping();

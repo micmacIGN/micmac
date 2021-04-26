@@ -139,6 +139,22 @@ template <class Type,const int Dim>
     return aRes;
 }
 
+template<class Type,const int Dim>
+    cPtxd<Type,Dim> SolveCol(const cDenseMatrix<Type>& aMat,const cPtxd<Type,Dim>& aPCol)
+{
+    cDenseVect<Type> aVCol = aPCol.ToVect();
+    cDenseVect<Type> aVRes = aMat.Solve(aVCol);
+    return  cPtxd<Type,Dim>::FromVect(aVRes);
+}
+template<class Type,const int Dim>
+    cPtxd<Type,Dim> SolveLine(const cPtxd<Type,Dim>& aPLine,const cDenseMatrix<Type>& aMat)
+{
+    cDenseVect<Type> aVLine = aPLine.ToVect();
+    cDenseVect<Type> aVRes = aMat.SolveLine(aVLine);
+    return  cPtxd<Type,Dim>::FromVect(aVRes);
+}
+
+
 
 #define INSTANT_MUL_MATVECT(TYPE,DIMOUT,DIMIN)\
 template void MulCol(cPtxd<TYPE,DIMOUT>&,const cDenseMatrix<TYPE>&,const cPtxd<TYPE,DIMIN>&);\
@@ -147,6 +163,8 @@ template void MulLine(cPtxd<TYPE,DIMOUT>&,const cPtxd<TYPE,DIMIN>&,const cDenseM
 
 
 #define INSTANT_PT_MAT_TYPE_DIM(TYPE,DIM)\
+template cPtxd<TYPE,DIM> SolveCol(const cDenseMatrix<TYPE>&,const cPtxd<TYPE,DIM>&);\
+template cPtxd<TYPE,DIM> SolveLine(const cPtxd<TYPE,DIM>&,const cDenseMatrix<TYPE>&);\
 template  cDenseVect<TYPE> cPtxd<TYPE,DIM>::ToVect() const;\
 template  std::vector<TYPE> cPtxd<TYPE,DIM>::ToStdVector() const;\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::FromVect(const cDenseVect<TYPE>& aV);\

@@ -239,6 +239,35 @@ template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::Solve(const tDV & aV
     return aRes;
 }
 
+template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::SolveLine(const tDV & aVect,eTyEigenDec aTED) const
+{
+    tMat::CheckSquare(*this);
+    tMat::TplCheckSizeY(aVect.Sz());
+
+    tDV aRes(aVect.Sz());
+
+    cConst_EigenTransposeMatWrap aWThis(*this);
+    cConst_EigenColVectWrap<Type> aWVect(aVect);
+    cNC_EigenColVectWrap<Type> aWRes(aRes);
+
+    if (aTED == eTyEigenDec::eTED_PHQR)
+    {
+       aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWVect.EW());
+    }
+    else if (aTED == eTyEigenDec::eTED_LLDT)
+    {
+       aWRes.EW() = aWThis.EW().ldlt().solve(aWVect.EW());
+    }
+    else
+    {
+        MMVII_INTERNAL_ASSERT_always(false,"Unkown type eigen decomposition");
+    }
+
+    return aRes;
+}
+
+
+
 
 
 /*

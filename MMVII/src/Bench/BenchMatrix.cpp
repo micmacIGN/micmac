@@ -374,6 +374,10 @@ template <class Type>  void TplBenchDenseMatr(int aSzX,int aSzY)
            cDenseVect<Type> aVSol = aM.Solve(aV);
            cDenseVect<Type> aVCheck = aM * aVSol;
            MMVII_INTERNAL_ASSERT_bench( aVCheck.L2Dist(aV) < aDTest ,"Bench Solve Vect  Matrixes");
+           // Check transpose
+           aVSol = aM.SolveLine(aV);
+           aVCheck = aVSol * aM;
+           MMVII_INTERNAL_ASSERT_bench( aVCheck.L2Dist(aV) < aDTest ,"Bench SolveLine Vect  Matrixes");
         }
         {  // Bench Solve Mat
            cDenseMatrix<Type> aMTest(3,aNb,eModeInitImage::eMIA_Rand);
@@ -709,15 +713,26 @@ template <class Type,const int DimX,const int DimY> void BenchMatPt()
             MMVII_INTERNAL_ASSERT_bench(NormInf(aCol0 - cPtxd<Type,DimX>::Col (aSq01,aK))<1e-5,"Mat*Pt");
          }
      }
+
+     // Chek solve,  COL :   Mat * ? = C   , LINE : ? * Mat = L
+     {
+         cDenseMatrix<Type> aSqM = cDenseMatrix<Type>::RandomSquareRegMatrix(cPt2di(DimX,DimX),false,1e-5,1e-2);
+         cPtxd<Type,DimX> aPt = cPtxd<Type,DimX>::PRandC();
+         cPtxd<Type,DimX> aSCol = SolveCol(aSqM,aPt);
+         cPtxd<Type,DimX> aSLine = SolveLine(aPt,aSqM);
+
+         MMVII_INTERNAL_ASSERT_bench(Norm1(aPt-aSqM*aSCol) <1e-5,"Solev Mat*?");
+         MMVII_INTERNAL_ASSERT_bench(Norm1(aPt-aSLine*aSqM)<1e-5,"Solve ?*Mat");
+     }
      
      // std::cout << "DLLLLCC " << aDL << " " << aDC << "\n";
-
 }
 
 void BenchDenseMatrix0(cParamExeBench & aParam)
 {
     if (! aParam.NewBench("Matrix0")) return;
 
+    for (int aK=0 ; aK<100 ; aK++)
     {
        BenchMatPt<tREAL4,3,2>();
        BenchMatPt<tREAL8,4,3>();

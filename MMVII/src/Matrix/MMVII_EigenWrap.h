@@ -48,6 +48,27 @@ template <class Type> class cConst_EigenMatWrap
        tEigenWrap mMat;
 };
 
+template <class Type> class cConst_EigenTransposeMatWrap
+{
+   public :
+       typedef  const Matrix<Type,Dynamic,Dynamic,ColMajor>  tEigenMat;
+       typedef  Map<tEigenMat >                              tEigenWrap;
+       // typedef  Map<const Matrix<Type,Dynamic,Dynamic,RowMajor> > tEigenWrap;
+
+
+       cConst_EigenTransposeMatWrap (const cDenseMatrix<Type> & aDM) :
+          mMat (aDM.DIm().RawDataLin(),aDM.Sz().x(),aDM.Sz().y())
+       {
+       }
+       const tEigenWrap & EW() {return mMat;}
+   private :
+       tEigenWrap mMat;
+};
+
+
+
+
+
      //   ---  Line Vector Wrapper --- 
 
 template <class Type> class cNC_EigenLineVectWrap

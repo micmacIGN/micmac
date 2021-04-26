@@ -352,6 +352,7 @@ template <class Type> class cDenseMatrix : public cUnOptDenseMatrix<Type>
 
         tDM  Solve(const tDM &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
         tDV  Solve(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
+        tDV  SolveLine(const tDV &,eTyEigenDec aType=eTyEigenDec::eTED_PHQR) const;
 
 
         //  ====  Orthognal matrix
@@ -619,9 +620,13 @@ template <class Type,int Dim> void SetLine(int aLine,cDenseMatrix<Type> &,const 
 template <class Type,const int Dim>  cPtxd<Type,Dim> operator * (const cPtxd<Type,Dim> &,const cDenseMatrix<Type> &);
 template <class Type,const int Dim>  cPtxd<Type,Dim> operator * (const cDenseMatrix<Type> &,const cPtxd<Type,Dim> &);
 
+
+
 template<class Type,const int DimOut,const int DimIn>void MulCol(cPtxd<Type,DimOut>&,const cDenseMatrix<Type>&,const cPtxd<Type,DimIn>&);
 template<class Type,const int DimOut,const int DimIn>void MulLine(cPtxd<Type,DimOut>&,const cPtxd<Type,DimIn>&aLine,const cDenseMatrix<Type>&);
 
+template<class Type,const int Dim> cPtxd<Type,Dim> SolveCol(const cDenseMatrix<Type>&,const cPtxd<Type,Dim>&);
+template<class Type,const int Dim> cPtxd<Type,Dim> SolveLine(const cPtxd<Type,Dim>&,const cDenseMatrix<Type>&);
 
 };
 
