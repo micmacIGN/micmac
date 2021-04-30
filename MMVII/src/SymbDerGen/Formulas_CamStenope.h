@@ -478,7 +478,7 @@ class cMMVIIUnivDist
            }
            // auto 
 
-           tScal aDR2   =  aC0; ///< will contain K1 R^2 + K2 R ^4 + ...
+           tScal aDR2   =  aC0; ///< will contain 1 + K1 R^2 + K2 R ^4 + ...
            tScal aDecX  =  aC0; ///< will contain X component of decentric distorsion
            tScal aDecY  =  aC0; ///< will contain Y component of decentric distorsion
            tScal aPolX  =  aC0; ///< will contain X component of polynomial distorsion

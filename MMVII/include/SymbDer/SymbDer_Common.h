@@ -71,6 +71,7 @@ public:
     bool BufIsFull() const {return mNbInBuf == mSzBuf;} ///< Can we push more value ?
     size_t SzBuf() const  {return mSzBuf;}  ///< Total Number of value we can push
     size_t FreeSzBuf() const  {return mSzBuf - mNbInBuf;}  ///< Number of value we can still add
+    size_t NbInBuf() const  {return  mNbInBuf;}  ///< Number of value already in buf
 
 
     ///  Add a new set of vals (unknown + Obs) inside de evaluation "queue"
@@ -94,10 +95,12 @@ public:
         return  mBufRes.at(aNumPush)->at(mSzInterval*aKElem +1 + aKVarDer);
     }
 
+    const bool   WithDer() const { return mWithDer; }           // With derive ? Usable for checking
     const size_t NbUk() const { return mNbUK; }                 // Nb of unknowns
     const size_t NbObs() const { return mNbObs; }               // Nb of Observations
     const size_t NbElem() const { return mNbElem; }             // Nb of primary values returned by formula (w/o counting derivatives)
     const std::vector<tOneRes*> & Result() const { return mBufRes; }
+    
 
 protected:
     cCalculator(const std::string& aName, int aSzBuf, size_t aNbUk, size_t aNbObs, bool aWithDer=false, int aSzInterval=1) :

@@ -49,6 +49,31 @@ template <class Type> inline cPtxd<Type,2> PSymXY (const cPtxd<Type,2> & aP)
 }
 
 
+template <class Type>  class cSim2D
+{
+      public :
+          typedef Type  TheType;
+          static constexpr int TheDim=2;
+
+          typedef cPtxd<Type,2> tPt;
+
+          cSim2D(const tPt & aTr,const tPt & aSc)  :
+              mTr (aTr),
+              mSc (aSc)
+          {
+          }
+          static const int NbDOF() {return 4;}
+
+          inline tPt  Value(const tPt & aP) const {return mTr + aP * mSc;}
+          inline tPt  Inverse(const tPt & aP) const {return (aP-mTr)/mSc  ;}
+
+          cSim2D<Type>  MapInverse() const {return cSim2D<Type>(-mTr/mSc,tPt(1.0,0.0)/mSc);}
+                
+      private :
+          tPt mTr;
+          tPt mSc;
+};
+
 
 };
 

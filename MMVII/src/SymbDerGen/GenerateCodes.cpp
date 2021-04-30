@@ -22,10 +22,6 @@ std::string  NameEqDist(const cPt3di & aDeg,bool WithDerive)
    return NameFormula(anEq,WithDerive);
 }
 
-cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf)
-{
-    return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,WithDerive),aSzBuf);
-}
 
 /*
 template <const int DimIn,const int DimOut> class cFormulaMapping : public cMapping<double,DimIn,DimOut>
@@ -223,8 +219,14 @@ tMMVII_UnikPApli Alloc_GenCode(const std::vector<std::string> &  aVArgs,const cS
 }
 
 } // NS_GenerateCode
+
+using namespace NS_GenerateCode;
 namespace MMVII
 {
+cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf)
+{ 
+    return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,WithDerive),aSzBuf);
+}
 
 
 cSpecMMVII_Appli  TheSpecGenSymbDer
