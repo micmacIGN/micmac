@@ -203,39 +203,6 @@ namespace MMVII
 
 */
 
-/**  Indicate the nature of each coefficient of the distorsion
-*/
-enum class eTypeFuncDist
-           {
-              eRad,  ///<  Coefficient for radial distorsion 
-              eDecX, ///< Coefficient for decentric distorsion x mean derived by Cx (it has X and Y components)
-              eDecY, ///< Coefficient for decentric distorsion y mean derived by Cy (it has X and Y components)
-              eMonX, ///< Coefficient for a monom in X, of the polynomial distorsion
-              eMonY, ///< Coefficient for a monom in Y, of the polynomial distorsion
-              eNbVals        ///< Tag for number of value
-           };
-
-/**  This class store a complete description of each parameters of the distorsion,
-     it is used for computing the formula, the vector of name and (later) automatize
-     conversion, print understandable values ....
-
-     It's rather bad design with the same classe coding different things, and some fields
-     used of not according to the others, but as it internal/final classes, quick and dirty
-     exceptionnaly allowed ...
-*/
-
-class cDescOneFuncDist
-{
-    public :
-      cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDeg);
-        
-      eTypeFuncDist mType;   ///< Type of dist (Rad, DecX ....)
-      std::string   mName;   ///< Name : used as id for code gen & prety print
-      cPt2di        mDegMon;  ///< Degree for a polynomial
-      int           mNum;     ///< Order for radial and decentric
-      int           mDegTot;  ///< Total degree of the polynome
-};
-
 cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY) :
    mType    (aType),
    mDegMon  (-1,-1),
@@ -295,9 +262,9 @@ class cMMVIIUnivDist
 
        }
        /// Used to indicate reason why monom sould be removes. To maintain for debug  ?
-       void ShowElim(const std::string aMesWhy, bool isX,  int aDegX, int aDegY )
+       void ShowElim(const std::string aMesWhy, bool isX,  int aDegX, int aDegY ) const
        {
-          // std::cout << aMesWhy << " " << (isX?"x":"y")    << " " << aDegX  << " " << aDegY << "\n";
+          // StdOut() << aMesWhy << " " << (isX?"x":"y")    << " " << aDegX  << " " << aDegY << "\n";
        }
 
 
@@ -316,7 +283,7 @@ class cMMVIIUnivDist
                        bool isX,  // Is it x component of distorsion
                        int aDegX, // Degree in x
                        int aDegY  // Degree in y
-                   )
+                   ) const
        {
             // degre 0 : avoid, it's already modelized by PP
             if ((aDegX ==0) && (aDegY==0)) 
@@ -369,7 +336,7 @@ class cMMVIIUnivDist
             //   supress X^n Y^n, not X^0Y^0 (already PP) and 
             if ( (aDegX==aDegY) && (aDegX>=1) && (aDegX<=DegDec()))
             {
-               // std::cout << "DEC " << (isX?"x":"y")    << " " << aDegX  << " " << aDegY << "\n";
+               // StdOut() << "DEC " << (isX?"x":"y")    << " " << aDegX  << " " << aDegY << "\n";
                ShowElim("DEC",isX,aDegX,aDegY);
                return false;
             }
@@ -385,7 +352,7 @@ class cMMVIIUnivDist
                 *  generating description or accessing parameters by names
        */
 
-       const std::vector<cDescOneFuncDist> & VDescParams()
+       const std::vector<cDescOneFuncDist> & VDescParams() const
        {
            // static_assert(DegRad>=DegDec(),"Too much decentrik");
            static std::vector<cDescOneFuncDist>  VDesc;
@@ -426,7 +393,7 @@ class cMMVIIUnivDist
         }
 
        /**  Names of all param, used to automatize symbolic derivation */
-        const std::vector<std::string> & VNamesParams()
+        const std::vector<std::string> & VNamesParams() const
         {
            static std::vector<std::string>  VNames;
            if (VNames.empty())
@@ -446,7 +413,7 @@ class cMMVIIUnivDist
                      const tScal & xIn,const tScal & yIn,
                      const std::vector<tScal> &  aVParam, 
                      unsigned int              aK0P
-                )
+                ) const
        {
            tScal aC0 = CreateCste(0.0,xIn);
            tScal aC1 = CreateCste(1.0,xIn);
@@ -822,25 +789,44 @@ template <typename tScal>
 template <typename TypeDist>  class cEqDist
 {
   public :
-    cEqDist(const TypeDist & aDist) :
+    cEqDist(const TypeDist & aDist) : mDist      (aDist) { }
+    static std::vector<std::string>  VNamesUnknowns() {return {"xPi","yPi"}; }
+    const std::vector<std::string> & VNamesObs() const {return mDist.VNamesParams();}
+     
+    std::string FormulaName() const { return "EqDist_" + mDist.NameModel();}
+
+    template <typename tUk, typename tObs>
+             std::vector<tUk> formula
+                  (
+                      const std::vector<tUk> & aVUk,
+                      const std::vector<tObs> & aVObs
+                  ) const
+    {
+        return  mDist.PProjToImNorm(aVUk.at(0),aVUk.at(1),aVObs,0);
+    }
+  private :
+    TypeDist                 mDist;
+};
+
+
+
+
+template <typename TypeDist>  class cEqIntr
+{
+  public :
+    cEqIntr(const TypeDist & aDist) :
        mDist      (aDist),
        mVNamesObs (Append({"PPx","PPy","PPz"},mDist.VNamesParams()))
     {
     }
 
-    static const std::vector<std::string>& VNamesUnknowns() 
-    {
-         static std::vector<std::string>  TheV {"xPi","yPi"};
-         return TheV;
-    }
-
-
-    const std::vector<std::string> & VNamesObs() 
+    static const std::vector<std::string> VNamesUnknowns() { return {"xPi","yPi"}; }
+    const std::vector<std::string> & VNamesObs()  const
     { 
        return mVNamesObs;
     }
      
-    std::string FormulaName() const { return "EqDist_" + mDist.NameModel();}
+    std::string FormulaName() const { return "EqIntr_" + mDist.NameModel();}
 
        /*  Capital letter for 3D variable/formulas and small for 2D */
     template <typename tUk, typename tObs>
@@ -848,13 +834,14 @@ template <typename TypeDist>  class cEqDist
                   (
                       const std::vector<tUk> & aVUk,
                       const std::vector<tObs> & aVObs
-                  )
+                  ) const
     {
 
         // Now compute the distorsion
-        auto   aVDist = mDist.PProjToImNorm(aVUk.at(0),aVUk.at(1),aVObs,3);
+        auto XY = mDist.PProjToImNorm(aVUk.at(0),aVUk.at(1),aVObs,3);
 
-        return TransformPPxyz(aVDist,aVObs,0);
+        return {  aVObs[0] + aVObs[2] * XY[0],
+                  aVObs[1] + aVObs[2] * XY[1]    };
      }
   private :
     TypeDist                 mDist;

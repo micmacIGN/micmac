@@ -333,6 +333,30 @@ template <class Type,const int Dim> class cDataIterInvertMapping :  public cData
       int                 mNbIterMaxInv;
 };
 
+/** When we have an existing mapping, we want to invert it by iteration, we cannot inherit
+if we cannot modify, so we make it member .  The methods just call method of mMap...
+*/
+
+template <class Type,const int Dim> class cDataIIMFromMap : public cDataIterInvertMapping<Type,Dim>
+{
+    public :
+      typedef cDataIterInvertMapping<Type,Dim> tDataIIMap;
+      typedef cMapping<Type,Dim,Dim>         tMap;
+
+      using typename tDataIIMap::tPt;
+      using typename tDataIIMap::tVecPt;
+      using typename tDataIIMap::tCsteResVecJac;
+      using typename tDataIIMap::tResVecJac;
+
+      cDataIIMFromMap(tMap aMap,const tPt &,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
+      cDataIIMFromMap(tMap aMap,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
+
+      const  tVecPt &  Values(tVecPt &,const tVecPt & ) const override;  //V2
+      tCsteResVecJac  Jacobian(tResVecJac,const tVecPt &) const override;  //J2
+    private :
+      tMap                mMap;
+};
+
 /** Represntation of identity as a mapping */
 
 template <class Type,const int Dim> class cMappingIdentity :  public cDataMapping<Type,Dim,Dim>

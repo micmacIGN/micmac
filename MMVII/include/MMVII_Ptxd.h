@@ -66,6 +66,9 @@ template <class Type,const int Dim> class cPtxd
        static cPtxd<Type,Dim>  PRandC();
        /// Initialisation random VUnit
        static cPtxd<Type,Dim>  PRandUnit();
+       /// Pt random in sphere
+       static cPtxd<Type,Dim>  PRandInSphere();
+
        /// Initialisation random VUnit not too close to P1
        static cPtxd<Type,Dim>  PRandUnitDiff(const cPtxd<Type,Dim>&,const Type &aDist = 1e-2);
 

@@ -142,6 +142,16 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PRandUnit(
    return VUnit(aRes);
 }
 
+template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PRandInSphere()
+{
+   cPtxd<Type,Dim> aRes = PRandC();
+   while (Norm2(aRes)>1.0)
+        aRes = PRandC();
+   return aRes;
+}
+
+
+
 template <class Type,const int Dim> cPtxd<Type,Dim>  
       cPtxd<Type,Dim>::PRandUnitDiff(const cPtxd<Type,Dim>& aP0,const Type & aDist)
 {
@@ -654,6 +664,7 @@ template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRand();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandC();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandUnit();\
+template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandInSphere();\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitDiff(const cPtxd<TYPE,DIM>& ,const TYPE&);\
 template  double NormK(const cPtxd<TYPE,DIM> & aPt,double anExp);\
 template  double Norm2(const cPtxd<TYPE,DIM> & aPt);\

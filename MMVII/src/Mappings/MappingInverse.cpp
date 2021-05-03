@@ -3,6 +3,8 @@
 namespace MMVII
 {
 
+// extern bool BUGINVMAP;
+
 /* ============================================= */
 /*        cDataInvertibleMapping<Type,Dim>       */
 /* ============================================= */
@@ -87,7 +89,7 @@ template <class Type,const int Dim>  struct cStrPtInvDIM
         cPtxd<Type,Dim>  mPTarget;
 };
 
-template <class Type,const int Dim> class cInvertDIMByIter
+template <class Type,const int Dim> class cInvertDIMByIter : public cMemCheck
 {
     public :
       typedef cDataIterInvertMapping<Type,Dim>     tDIM;
@@ -301,6 +303,7 @@ template <class Type,const int Dim>
        aStr.mNum = aKPt;
        aStr.mPTarget = aVTarget[aKPt];
        aStr.mBestInv = aVInit[aKPt];
+       // aStr.mBestErr = 1e
        mVSubSet.push_back(aKPt);
        mVInv.push_back(aStr);
     }
@@ -379,9 +382,60 @@ template <class Type,const int Dim>
     return aVRes;
 }
 
+/* ============================================= */
+/*      cDataIterInvertMapping<Type>             */
+/* ============================================= */
+/*
+template <class Type,const int Dim> class cDataIIMFroMap : public cDataIterInvertMapping<Type,Dim>
+{
+    public :
+      cDataIIMFroMap(tMap aMap,const tPt &,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
+      cDataIIMFroMap(tMap aMap,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
+
+      tCsteResVecJac  Jacobian(tResVecJac,const tVecIn &) const override;  //J2
+    private :
+      tMap                mMap;
+};
+*/
+
+template <class Type,const int Dim> 
+      cDataIIMFromMap<Type,Dim>::cDataIIMFromMap
+           (tMap aMap,const tPt & aEps,tMap aRoughInv,const Type& aDistTol,int aNbIterMax) :
+              tDataIIMap   (aEps,aRoughInv,aDistTol,aNbIterMax),
+              mMap(aMap)
+{
+}
+
+template <class Type,const int Dim> 
+      cDataIIMFromMap<Type,Dim>::cDataIIMFromMap
+           (tMap aMap,tMap aRoughInv,const Type& aDistTol,int aNbIterMax) :
+              tDataIIMap   (aRoughInv,aDistTol,aNbIterMax),
+              mMap         (aMap)
+{
+}
+
+
+
+
+
+template <class Type,const int Dim> 
+      const  typename cDataIIMFromMap<Type,Dim>::tVecPt &  
+            cDataIIMFromMap<Type,Dim>::Values(tVecPt & aVecOut,const tVecPt & aVecIn) const
+{
+    return mMap.DM()->Values(aVecOut,aVecIn);
+}
+
+template <class Type,const int Dim> 
+      typename cDataIIMFromMap<Type,Dim>::tCsteResVecJac 
+            cDataIIMFromMap<Type,Dim>::Jacobian(tResVecJac aResJac,const tVecPt & aVecIn) const
+{
+    return mMap.DM()->Jacobian(aResJac,aVecIn);
+}
+
 
 
 #define INSTANCE_INVERT_MAPPING(DIM)\
+template class cDataIIMFromMap<double,DIM>;\
 template class cDataInvertibleMapping<double,DIM>;\
 template class cDataIterInvertMapping<double,DIM>;\
 template class cInvertDIMByIter<double,DIM>;
@@ -500,7 +554,6 @@ void BenchInvertMapping(cParamExeBench & aParam)
            {
               double aD = Norm2(aVIn[aKP] - aVInv[aKP]);
               MMVII_INTERNAL_ASSERT_bench(aD<10*aEpsInv,"elem inverse");
-// std::cout << "NNN: " << Norm2(aVIn[aKP] - aVInv[aKP]) << "\n";
            }
        }
     }

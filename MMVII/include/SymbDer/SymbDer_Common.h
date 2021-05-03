@@ -53,6 +53,34 @@ static inline void AssertAlmostEqual(const double & aV1,const double & aV2,const
       InternalError("Test equality failed","");
 }
 
+class cConvStrRange
+{
+   public :
+     cConvStrRange(const std::vector<std::string> & aVName) :
+       mRange2Name  (aVName)
+     {
+        for (size_t aRange=0 ; aRange<mRange2Name.size() ; aRange++)
+            mName2Range[mRange2Name[aRange]] = aRange;
+     }
+     int RangeOfName(const std::string & aName,bool SVP) const
+     {
+         const auto & anIter = mName2Range.find(aName);
+         if (anIter== mName2Range.end())
+         {
+              if (! SVP)  UserSError("Name dont exist",aName);
+              return -1;
+         }
+         return anIter->second;
+     }
+     const std::string & NameOfRange(int aRange) const
+     {
+         return mRange2Name.at(aRange);
+     }
+     const std::vector<std::string> & Names() const {return mRange2Name;}
+   private :
+     std::vector<std::string>      mRange2Name;
+     std::map<std::string,size_t>  mName2Range;
+};
 
 template<typename T>
 class cCalculator
@@ -101,19 +129,37 @@ public:
     const size_t NbElem() const { return mNbElem; }             // Nb of primary values returned by formula (w/o counting derivatives)
     const std::vector<tOneRes*> & Result() const { return mBufRes; }
     
+    int RangeOfUk(const std::string & aName,bool SVP=false) const
+    {return mConvNamesUk.RangeOfName(aName,SVP);}
+    const std::vector<std::string> & NamesUk() const {return mConvNamesUk.Names();}
+    
+
+    int RangeOfObs(const std::string & aName,bool SVP=false) const
+    {return mConvNamesObs.RangeOfName(aName,SVP);}
+    const std::vector<std::string> & NamesObs() const {return mConvNamesObs.Names();}
 
 protected:
-    cCalculator(const std::string& aName, int aSzBuf, size_t aNbUk, size_t aNbObs, bool aWithDer=false, int aSzInterval=1) :
-    mName       (aName),
-    mSzBuf      (aSzBuf),
-    mNbUK       (aNbUk),
-    mNbObs      (aNbObs),
-    mNbElem     (0),
-    mNbInBuf    (0),
-    mWithDer    (aWithDer),
-    mSzInterval (aSzInterval),
-    mBufLineRes (mSzBuf),
-    mBufRes     ()
+    cCalculator
+    (
+         const std::string& aName, 
+         int aSzBuf, 
+         const std::vector<std::string> & aVNUk,  // Variable, fix Dim In
+         const std::vector<std::string> & aVNObs,
+         bool aWithDer=false, 
+         int aSzInterval=1
+     ) :
+        mName         (aName),
+        mSzBuf        (aSzBuf),
+        mNbUK         (aVNUk.size()),
+        mConvNamesUk  (aVNUk),
+        mNbObs        (aVNObs.size()),
+        mConvNamesObs (aVNObs),
+        mNbElem       (0),
+        mNbInBuf      (0),
+        mWithDer      (aWithDer),
+        mSzInterval   (aSzInterval),
+        mBufLineRes   (mSzBuf),
+        mBufRes       ()
     {
         mBufRes.reserve(mSzBuf);
     }
@@ -125,17 +171,20 @@ protected:
     // Do actual caluculus. Just store resulst in mBurLineRes. This class manages mBufRes
     virtual void DoEval() = 0;
 
-
     std::string                    mName;
     size_t                         mSzBuf;       ///< Capacity of bufferirsation
-    size_t                         mNbUK;        ///< Dim=number of unkown
+    size_t                         mNbUK;        ///< DimIn=number of unkown
+    cConvStrRange                  mConvNamesUk;    ///< Names of unknonw, used as a helper
     size_t                         mNbObs;       ///< Number of obserbation variable
-    size_t                         mNbElem;      ///< Number of elements returned by the formula (w/o derivative)
+    cConvStrRange                  mConvNamesObs;   ///< Names of observation, used as a helper
+    size_t                         mNbElem;      ///< DimOut=Number of elements returned by the formula (w/o derivative)
     size_t                         mNbInBuf;     ///< Number of Unknown/Obs vect currenlty loaded in buf
     bool                           mWithDer;     ///< Done With Derivate
     int                            mSzInterval;  ///< Size between two val, depends if computation done with deriv
-    std::vector<tOneRes>           mBufLineRes;  ///< Reserve memory for each line
-    std::vector<tOneRes*>          mBufRes;      ///< Reserve memory for result itself
+    std::vector<tOneRes>           mBufLineRes;  ///< Reserve memory for each line, make the allocation at init
+    std::vector<tOneRes*>          mBufRes;      ///< Reserve memory for result itself, point on mBufLineRes to limit allocation
+
+
 };
 
 template<typename T>
@@ -171,10 +220,56 @@ const std::vector<std::vector<T> *> & cCalculator<T>::EvalAndClear()
     return mBufRes;
 }
 
+/** Specilisation for calculator opering generated code  (v.s dynamic just after formula)
+*/
+template<typename T> class cCompiledCalculator : public cCalculator<T>
+{
+   public :
+
+      cCompiledCalculator
+      (
+         const std::string& aName, 
+         size_t aSzBuf, 
+         size_t aNbElem,   // Dim out
+         size_t aSzLine,   // should be aNbElem * aSzInterval
+         const std::vector<std::string> & aVNUk,  // Variable, fix Dim In
+         const std::vector<std::string> & aVNObs,
+         bool aWithDer,
+         size_t aSzInterval
+      ) :
+         cCalculator<T> (aName,aSzBuf,aVNUk,aVNObs,aWithDer,aSzInterval) ,
+         mVUk  (aSzBuf),
+         mVObs (aSzBuf)
+      {
+         this->mNbElem = aNbElem;
+         for (auto& line : this->mBufLineRes)
+             line.resize(aSzLine); 
+         for (auto& aUk : this->mVUk)
+             aUk.resize(this->NbUk());
+         for (auto& aObs : this->mVObs)
+             aObs.resize(this->NbObs());
+
+      }
+   protected :
+      virtual void SetNewUks(const std::vector<T> & aVUks) override
+      {
+          for (size_t i=0; i<this->NbUk(); i++)
+            this->mVUk[this->mNbInBuf][i] = aVUks[i];
+      }
+      virtual void SetNewObs(const std::vector<T> & aVObs) override
+      {
+          for (size_t i=0; i<this->NbObs(); i++)
+            this->mVObs[this->mNbInBuf][i] = aVObs[i];
+      }
+      std::vector<std::vector<T>> mVUk;
+      std::vector<std::vector<T>> mVObs;
+};
+
+
 template <class Type>  class cName2Calc
 {
   public :
-    typedef  cCalculator<double>  tCalc;
+    typedef  cCompiledCalculator<double>  tCalc;
     typedef  tCalc * (* tAllocator) (int aSzBuf);
 
     /// That's what we want : alloc an object from its name

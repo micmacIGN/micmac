@@ -5,37 +5,26 @@
 
 namespace NS_SymbolicDerivative {
 
-class cEqDist_Dist_Rad3_Dec1_XY1VDer : public cCalculator<double>
+class cEqDist_Dist_Rad3_Dec1_XY1VDer : public cCompiledCalculator<double>
 {
 public:
-    typedef cCalculator<double> Super;
+    typedef cCompiledCalculator<double> Super;
     cEqDist_Dist_Rad3_Dec1_XY1VDer(size_t aSzBuf) : 
-      Super("EqDist_Dist_Rad3_Dec1_XY1VDer", aSzBuf,2,10,1,3),
-      mVUk(aSzBuf),mVObs(aSzBuf)
+      Super(
+          "EqDist_Dist_Rad3_Dec1_XY1VDer",
+           aSzBuf,//SzBuf
+          2,//NbElement
+          6,//SzOfLine
+          {"xPi","yPi"},// Name Unknowns
+          {"K1","K2","K3","p1","p2","b2","b1"},// Name Observations
+          1,//With derivative ?
+          3//Size of interv
+      )
     {
-      this->mNbElem = 2;
-      for (auto& line : this->mBufLineRes)
-        line.resize(6);
-      for (auto& aUk : this->mVUk)
-        aUk.resize(this->NbUk());
-      for (auto& aObs : this->mVObs)
-        aObs.resize(this->NbObs());
     }
     static std::string FormulaName() { return "EqDist_Dist_Rad3_Dec1_XY1VDer";}
 protected:
-    virtual void SetNewUks(const std::vector<double> & aVUks) override
-    {
-      for (size_t i=0; i<this->NbUk(); i++)
-        this->mVUk[this->mNbInBuf][i] = aVUks[i];
-    }
-    virtual void SetNewObs(const std::vector<double> & aVObs) override
-    {
-      for (size_t i=0; i<this->NbObs(); i++)
-        this->mVObs[this->mNbInBuf][i] = aVObs[i];
-    }
     virtual void DoEval() override;
-    std::vector<std::vector<double>> mVUk;
-    std::vector<std::vector<double>> mVObs;
 };
 
 } // namespace NS_SymbolicDerivative

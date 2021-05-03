@@ -11,6 +11,7 @@
 #include "memory.h"
 #include <memory>
 #include <iostream>
+#include <iomanip> 
 #include <fstream>
 #include <string>
 #include <typeinfo>
@@ -77,12 +78,7 @@
 
 #include "SymbDer/SymbDer_Common.h"
 #include "../kapture/kapture.h"
-
-namespace MMVII
-{
-//  used for bench now To put elsewhere later,
-NS_SymbolicDerivative::cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf);
-};
+#include "MMVII_PhgrDist.h"
 
 
 #endif //  _MMVII_ALL_H_

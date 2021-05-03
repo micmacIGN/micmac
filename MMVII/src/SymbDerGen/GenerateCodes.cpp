@@ -43,7 +43,7 @@ template <const int DimIn,const int DimOut> class cFormulaMapping : public cMapp
 /*      BENCH  PART             */
 /* **************************** */
 
-template<class TyProj> void OneBenchProjToDirBundle()
+template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
 {
    // Just to force compile with these tricky classes
    if (NeverHappens())
@@ -70,22 +70,25 @@ template<class TyProj> void OneBenchProjToDirBundle()
           aK++;
        }
    }
-   std::cout << "NAME=" << TyProj::NameProj() << "\n";
+   if (aParam.Show())
+   {
+      StdOut() << "NAME=" << TyProj::NameProj() << "\n";
+   }
 }
 
-void BenchProjToDirBundle()
+void BenchProjToDirBundle(cParamExeBench & aParam)
 {
-   if (true)
+   if (aParam.Show())
    {
-     std::cout << "T0:" << cName2Calc<double>::CalcFromName("toto",10,true) << "\n";
-     std::cout << "T1:" << cName2Calc<double>::CalcFromName("EqDistDist_Rad3_Dec1_XY1",10,true) << "\n";
+       StdOut()<<"cName2Calc T0:"<<cName2Calc<double>::CalcFromName("toto",10,true)<<"\n";
+       StdOut()<<"cName2Calc T1:"<<cName2Calc<double>::CalcFromName("EqDistDist_Rad3_Dec1_XY1",10,true)<<"\n";
    }
 
-   OneBenchProjToDirBundle<cProjStenope> ();
-   OneBenchProjToDirBundle<cProjFE_EquiDist> ();
-   OneBenchProjToDirBundle<cProjStereroGraphik> ();
-   OneBenchProjToDirBundle<cProjOrthoGraphic> ();
-   OneBenchProjToDirBundle<cProjFE_EquiSolid> ();
+   OneBenchProjToDirBundle<cProjStenope> (aParam);
+   OneBenchProjToDirBundle<cProjFE_EquiDist> (aParam);
+   OneBenchProjToDirBundle<cProjStereroGraphik> (aParam);
+   OneBenchProjToDirBundle<cProjOrthoGraphic> (aParam);
+   OneBenchProjToDirBundle<cProjFE_EquiSolid> (aParam);
 }
 
 
@@ -112,7 +115,7 @@ class cAppli : public cMMVII_Appli
         int  ExecuteBench(cParamExeBench &) override ;
 
 //      private :
-        template <typename tDist> void GenCodesDist(const tDist & aDist,bool WithDerive,bool PP);
+        template <typename tDist> void GenCodesFormula(const tDist & aDist,bool WithDerive);
 
        // =========== Data ========
             // Mandatory args
@@ -157,29 +160,28 @@ cCollecSpecArg2007 & cAppli::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 
 
-template <typename tDist> void cAppli::GenCodesDist(const tDist & aDist,bool WithDerive,bool PP)
+template <typename tFormula> void cAppli::GenCodesFormula(const tFormula & aFormula,bool WithDerive)
 {
-
-   int SzBuf=0;
-   cEqDist<tDist> anEq(aDist); 
-
+   int aSzBuf=1;
    // std::string aNF = anEq.FormulaName() +   std::string(WithDerive ?"VDer":"Val");
-   std::string aNF =  NameFormula(anEq,WithDerive);
+   std::string aNF =  NameFormula(aFormula,WithDerive);
 
    NS_SymbolicDerivative::cCoordinatorF<double> 
-   aCEq(aNF,SzBuf,anEq.VNamesUnknowns(),anEq.VNamesObs());
+   aCEq(aNF,aSzBuf,aFormula.VNamesUnknowns(),aFormula.VNamesObs()); // Gives the liste of names
 
    // Set header in a place to compilation path of MMVII
    aCEq.SetHeaderIncludeSymbDer("include/SymbDer/SymbDer_Common.h"); 
-   aCEq.SetUseAllocByName(true);
+   aCEq.SetUseAllocByName(true);  // generate allocators
    aCEq.SetDirGenCode(mDirGenCode);
 
-   auto aXY= anEq.formula(aCEq.VUk(),aCEq.VObs());
+   auto aXY= aFormula.formula(aCEq.VUk(),aCEq.VObs()); // Give ths list of atomic formula
    if (WithDerive)
       aCEq.SetCurFormulasWithDerivative(aXY);
    else
       aCEq.SetCurFormulas(aXY);
    aCEq.GenerateCode("CodeGen_");
+/*
+*/
 };
 
 
@@ -188,10 +190,15 @@ template <typename tDist> void cAppli::GenCodesDist(const tDist & aDist,bool Wit
 int cAppli::Exe()
 {
    mDirGenCode = TopDirMMVII() + "src/GeneratedCodes/";
-   cMMVIIUnivDist aDist(3,1,1);
+   cMMVIIUnivDist           aDist(3,1,1);
+   cEqDist<cMMVIIUnivDist>  anEqDist(aDist);
+   cEqIntr<cMMVIIUnivDist>  anEqIntr(aDist);
 
-   GenCodesDist<cMMVIIUnivDist>(aDist,false,false);
-   GenCodesDist<cMMVIIUnivDist>(aDist,true,false);
+   GenCodesFormula(anEqDist,false);
+   GenCodesFormula(anEqDist,true);
+   GenCodesFormula(anEqIntr,false);
+   GenCodesFormula(anEqIntr,true);
+   // GenCodesFormula<cMMVIIUnivDist>(aDist,true,false);
    return EXIT_SUCCESS;
 }
 
@@ -202,7 +209,7 @@ cAppliBenchAnswer cAppli::BenchAnswer() const
 
 int  cAppli::ExecuteBench(cParamExeBench & aParam) 
 {
-   BenchProjToDirBundle();
+   BenchProjToDirBundle(aParam);
    return EXIT_SUCCESS;
 }
 
@@ -223,9 +230,40 @@ tMMVII_UnikPApli Alloc_GenCode(const std::vector<std::string> &  aVArgs,const cS
 using namespace NS_GenerateCode;
 namespace MMVII
 {
+
+double cDescOneFuncDist::MajNormJacOfRho(double aRho) const
+{
+   switch(mType)
+   {
+       case eTypeFuncDist::eRad :
+           return mDegTot * pow(aRho,mDegTot-1);
+       case eTypeFuncDist::eDecX :
+       case eTypeFuncDist::eDecY :
+            return mDegTot*(mDegTot+1) * pow(aRho,mDegTot-1);
+
+       case eTypeFuncDist::eMonX :
+       case eTypeFuncDist::eMonY :
+            return Norm2(mDegMon) * pow(aRho,mDegTot-1);
+       default :
+          ;
+   }
+   
+   MMVII_INTERNAL_ERROR("Bad num in cDescOneFuncDist::MajNormJacOfRho");
+   return 0.0;
+}
+
+
 cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf)
 { 
     return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,WithDerive),aSzBuf);
+}
+
+const std::vector<cDescOneFuncDist> &  DescDist(const cPt3di & aDeg)
+{
+   cMMVIIUnivDist  aDist(aDeg.x(),aDeg.y(),aDeg.z());
+
+   return aDist.VDescParams();
+ 
 }
 
 

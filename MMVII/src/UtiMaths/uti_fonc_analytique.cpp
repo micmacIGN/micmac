@@ -36,9 +36,7 @@ template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y,const Typ
 {
    if (std::abs(X) > aEps * std::abs(Y))
       return std::atan2(X,Y) / X;
-   // atan(X,Y) = X/Y -1/3 (X/Y) ^3 + 1/5 (X/Y) ^5 - 1/7 ....
 
-// std::cout << "HHHHHHHHhhhhhhh\n";
 
    Type XsY2 = Square(X/Y);
    Type XsY4 = XsY2 * XsY2;
