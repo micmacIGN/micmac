@@ -203,42 +203,6 @@ namespace MMVII
 
 */
 
-cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY) :
-   mType    (aType),
-   mDegMon  (-1,-1),
-   mNum     (-1)
-{
-   int aNum = aDegXY.x();
-   if (mType==eTypeFuncDist::eRad)
-   {
-       mName = "K" + ToStr(aNum);  //  K1 K2 K3 ...
-       mDegTot = 1 + 2 * (aNum);   //  X (X^2+Y^2) ^N
-       mNum = aNum;
-   }
-   else if ((mType==eTypeFuncDist::eDecX) ||  (mType==eTypeFuncDist::eDecY))
-   {
-       int aDec = (mType==eTypeFuncDist::eDecX)?-1:0;
-       // p1,p2  as usual, and by generalization p3 p4 p5 ...
-       mName = "p" + ToStr(2*aNum+aDec);
-       mDegTot =  2 * (aNum);  // Derivates of X (X^2+Y^2) ^N
-       mNum = aNum;
-   }
-   else
-   {
-      mDegMon = aDegXY;
-      mDegTot = mDegMon.x() + mDegMon.y();
-      if ((mType==eTypeFuncDist::eMonX) && (mDegTot==1))
-      {
-          mName = ( mDegMon.x() == 1) ? "b1" : "b2";  // Usual convention
-      }
-      else
-      {
-          mName =  std::string((mType==eTypeFuncDist::eMonX) ? "x" : "y") 
-                 + "_" + ToStr(mDegMon.x()) 
-                 + "_" + ToStr(mDegMon.y()) ;
-      }
-   }
-}
 
 /**  This class aims to be the universol model of distorsion in MicMac, it is templ
 */

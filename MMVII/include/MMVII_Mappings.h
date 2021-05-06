@@ -115,10 +115,20 @@ template <class Type,const int DimIn,const int DimOut> class cMapping
 template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
 {
     public :
-      typedef  cPtxd<Type,Dim>  tPt;
+      typedef  cPtxd<Type,Dim>   tPt;
+      typedef  std::vector<tPt>  tVecPt;
+      typedef  cTplBox<Type,Dim> tBox;
 
-      /// Does it belong to the set;  default true
+      cDataBoundedSet(const tBox &);
+      /// Does it belong to the set;  default =belong to box
+      virtual bool InsideWithBox(const tPt &) const;
+      /// Does it belong to the set;  default =true
       virtual bool Inside(const tPt &) const;
+
+       const tBox & Box() const;
+
+       void GridPointInsideAtStep(tVecPt&,Type aStepMoy) const;
+       void GridPointInsideOfNbPoints(tVecPt&,int aStepMoy) const;
        
     private :
        cTplBox<Type,Dim> mBox;

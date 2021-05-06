@@ -3,6 +3,80 @@
 namespace MMVII
 {
 
+/* ============================================= */
+/*      cDataBoundedSet<Type>                    */
+/* ============================================= */
+
+template <class Type,const int Dim>
+    cDataBoundedSet<Type,Dim>::cDataBoundedSet(const tBox & aBox) :
+       mBox(aBox)
+{
+}
+
+template <class Type,const int Dim>
+    bool cDataBoundedSet<Type,Dim>::InsideWithBox(const tPt & aPt) const
+{
+   return mBox.Inside(aPt);
+}
+
+template <class Type,const int Dim>
+    bool cDataBoundedSet<Type,Dim>::Inside(const tPt & aPt) const
+{
+   return true;
+}
+
+template <class Type,const int Dim>
+    const typename cDataBoundedSet<Type,Dim>::tBox & cDataBoundedSet<Type,Dim>::Box() const
+{
+   return mBox;
+}
+
+template <class Type,const int Dim>
+    void cDataBoundedSet<Type,Dim>::GridPointInsideAtStep(tVecPt& aRes,Type aStepMoy) const
+{
+     cPtxd<int,Dim>  aNb =  Pt_round_up(mBox.Sz()/aStepMoy);
+     cPixBox<Dim>  aPixB (aNb+cPtxd<int,Dim>::PCste(1));
+     tPt   aStep  = DivCByC(mBox.Sz(),ToR(aNb));
+
+     for (const auto & aPix : aPixB)
+     {
+          tPt  aPt = mBox.P0() + MulCByC(ToR(aPix),aStep);
+          if (Inside(aPt))
+             aRes.push_back(aPt);
+     }
+}
+
+template <class Type,const int Dim>
+    void cDataBoundedSet<Type,Dim>::GridPointInsideOfNbPoints(tVecPt& aRes,int aNbPts) const
+{
+     Type aVolMoy = mBox.NbElem() / double(aNbPts);
+     Type aStepMoy = pow(aVolMoy,1/double(Dim));
+
+     GridPointInsideAtStep(aRes,aStepMoy);
+}
+
+/*
+template <class Type,int Dim>
+     cCalcMapLinearRoughIn(verse<Type,Dim>::cCalcMapLinearRoughInverse(const tSet & aSet,int aNbPts) :
+         mSet   (aSet),
+         mBoxIm (aSet.Box())
+{
+     Type aVolMoy = mBoxIm.NbElem() / double(aNbPts);
+     Type aStepMoy = pow(aVolMoy,1/double(Dim));
+     tPtI  aNb =  Pt_round_up(mBoxIm.Sz()/aStepMoy);
+     cPixBox<Dim>  aPixB (aNb+tPtI::PCste(1));
+     // tPt   aStep  = mBoxIm.Sz().DivCByC(aNb);
+     tPt   aStep  = DivCByC(mBoxIm.Sz(),ToR(aNb));
+
+     for (const auto & aPix : aPixB)
+     {
+          tPt  aPtOut0 = mBoxIm.P0() + MulCByC(ToR(aPix),aStep);
+FakeUseIt(aPtOut0);
+     }
+
+}
+*/
+
 
 /* ============================================= */
 /*      cDataMapping<Type>                       */
@@ -232,6 +306,7 @@ template class cDataMapping<double,DIM1,DIM2>;\
 template class cMapping<double,DIM1,DIM2>;
 
 #define INSTANCE_ONE_DIM_MAPPING(DIM)\
+template class cDataBoundedSet<double,DIM>;\
 template class cMappingIdentity<double,DIM>;\
 INSTANCE_TWO_DIM_MAPPING(DIM,2);\
 INSTANCE_TWO_DIM_MAPPING(DIM,3);

@@ -23,21 +23,6 @@ std::string  NameEqDist(const cPt3di & aDeg,bool WithDerive)
 }
 
 
-/*
-template <const int DimIn,const int DimOut> class cFormulaMapping : public cMapping<double,DimIn,DimOut>
-{
-   public :
-       /// Compute image in direct sens
-      tPtOut  Direct(const tPtIn &) const override;
-
-      /// Has it a diffenrentiable method : default false
-      bool    HasValAndGrad() const override;
-      /// compute diffenrentiable method , default = erreur
-      std::pair<tPtOut,tGrad>  ComputeValAndGrad(const tPtIn &) const override;
-
-};
-*/
-
 
 /* **************************** */
 /*      BENCH  PART             */
@@ -230,28 +215,6 @@ tMMVII_UnikPApli Alloc_GenCode(const std::vector<std::string> &  aVArgs,const cS
 using namespace NS_GenerateCode;
 namespace MMVII
 {
-
-double cDescOneFuncDist::MajNormJacOfRho(double aRho) const
-{
-   switch(mType)
-   {
-       case eTypeFuncDist::eRad :
-           return mDegTot * pow(aRho,mDegTot-1);
-       case eTypeFuncDist::eDecX :
-       case eTypeFuncDist::eDecY :
-            return mDegTot*(mDegTot+1) * pow(aRho,mDegTot-1);
-
-       case eTypeFuncDist::eMonX :
-       case eTypeFuncDist::eMonY :
-            return Norm2(mDegMon) * pow(aRho,mDegTot-1);
-       default :
-          ;
-   }
-   
-   MMVII_INTERNAL_ERROR("Bad num in cDescOneFuncDist::MajNormJacOfRho");
-   return 0.0;
-}
-
 
 cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf)
 { 

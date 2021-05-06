@@ -1,6 +1,28 @@
 #ifndef _SymbDer_Common_H_
 #define _SymbDer_Common_H_
 
+
+#define SYMBDER_WITH_MMVII true
+
+namespace NS_SymbolicDerivative 
+{
+template<typename T> class cCalculator;
+template<typename T> class cCompiledCalculator;
+};
+
+
+#if (SYMBDER_WITH_MMVII)
+#include "include/MMVII_all.h"
+#include "include/MMVII_Derivatives.h"
+#define SYMBDER_cMemCheck  MMVII::cMemCheck
+#else             //========================================================== WITH_MMVI
+class SYMBDER_cMemCheck
+{
+};
+#endif
+
+
+
 #include <iostream>
 #include <assert.h>
 #include <vector>
@@ -9,6 +31,7 @@
 // ===================== MPD  error: call of overloaded ‘abs(const double&)’ is ambiguous ===============
 #include <math.h>
 #include <cmath>
+
 
 namespace NS_SymbolicDerivative {
 
@@ -53,10 +76,10 @@ static inline void AssertAlmostEqual(const double & aV1,const double & aV2,const
       InternalError("Test equality failed","");
 }
 
-class cConvStrRange
+class cConvStrRank 
 {
    public :
-     cConvStrRange(const std::vector<std::string> & aVName) :
+     cConvStrRank (const std::vector<std::string> & aVName) :
        mRange2Name  (aVName)
      {
         for (size_t aRange=0 ; aRange<mRange2Name.size() ; aRange++)
@@ -83,7 +106,7 @@ class cConvStrRange
 };
 
 template<typename T>
-class cCalculator
+class cCalculator  : public SYMBDER_cMemCheck
 {
 public:
     typedef T                      TypeElem;
@@ -174,9 +197,9 @@ protected:
     std::string                    mName;
     size_t                         mSzBuf;       ///< Capacity of bufferirsation
     size_t                         mNbUK;        ///< DimIn=number of unkown
-    cConvStrRange                  mConvNamesUk;    ///< Names of unknonw, used as a helper
+    cConvStrRank                   mConvNamesUk;    ///< Names of unknonw, used as a helper
     size_t                         mNbObs;       ///< Number of obserbation variable
-    cConvStrRange                  mConvNamesObs;   ///< Names of observation, used as a helper
+    cConvStrRank                   mConvNamesObs;   ///< Names of observation, used as a helper
     size_t                         mNbElem;      ///< DimOut=Number of elements returned by the formula (w/o derivative)
     size_t                         mNbInBuf;     ///< Number of Unknown/Obs vect currenlty loaded in buf
     bool                           mWithDer;     ///< Done With Derivate

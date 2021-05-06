@@ -226,6 +226,7 @@ template <class T> inline T NormInf(const cPtxd<T,2> & aP) {return std::max(std:
    /// Currently, the L2 norm is used for comparaison, no need to extract square root
 template <class T> inline T SqN2(const cPtxd<T,1> & aP) {return Square(aP.x());}
 template <class T> inline T SqN2(const cPtxd<T,2> & aP) {return Square(aP.x())+Square(aP.y());}
+template <class T> inline T SqN2(const cPtxd<T,3> & aP) {return Square(aP.x())+Square(aP.y())+Square(aP.z());}
 /// Sort vector by norm, typically dont need to compute square root
 template <class Type,const int Dim> bool CmpN2(const cPtxd<Type,Dim> &aP1,const  cPtxd<Type,Dim> & aP2) 
 {
@@ -349,6 +350,8 @@ typedef cPtxd<float,3>   cPt3df ;
 // Most frequent conversion
 inline cPt2di ToI(const cPt2dr & aP) {return cPt2di(round_ni(aP.x()),round_ni(aP.y()));}
 inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
+inline cPt3di ToI(const cPt3dr & aP) {return cPt3di(round_ni(aP.x()),round_ni(aP.y()),round_ni(aP.z()));}
+inline cPt3dr ToR(const cPt3di & aP) {return cPt3dr(aP.x(),aP.y(),aP.z());}
 
 template <class Type,int Dim,int aKth> bool  CmpCoord(const cPtxd<Type,Dim> & aP1,const cPtxd<Type,Dim> & aP2)
 {
@@ -437,11 +440,13 @@ extern cPt2di  TAB4Corner[4] ; ///< {{1,1},{-1,1},{-1,-1},{1,-1}};
 template <class Type,const int Dim>  class cTplBox 
 {
     public : 
+        
         typedef Type                             tNum ;
         typedef typename  tNumTrait<Type>::tBig  tBigNum ;
         typedef cTplBox<Type,Dim>                tBox;
         typedef cPtxd<Type,Dim>                  tPt;
         typedef cPtxd<tBigNum,Dim>               tBigPt;
+        typedef tPt   tCorner[1<<Dim];
 
         cTplBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty=false);
         cTplBox(const tPt & aSz,bool AllowEmpty=false); // Create a box with origin in 0,0,..
@@ -497,8 +502,8 @@ template <class Type,const int Dim>  class cTplBox
         static cPtxd<double,Dim>  RandomNormalised() ;     ///<  Random point in "hyper cube" [0,1] ^ Dim
         tPt   GeneratePointInside() const;   ///< Random point in integer rect
         tBox  GenerateRectInside(double aPowSize=1.0) const; ///< Hig Power generate "small" rect, never empty
-
-
+        void Corners(tCorner & aRes) const;
+        Type Dist2Corners(const tPt&) const;
 
     protected :
         tPt       mP0;         ///< "smallest"
@@ -508,6 +513,11 @@ template <class Type,const int Dim>  class cTplBox
         tBigNum   mNbElem;     ///< Number of pixel = Cum[Dim-1]
     private :
 };
+
+/** Function computing corner of box, this one is specific to dim=1 because it respect
+trigonometric order, a notion not generalisable */
+
+template <class Type> void CornersTrigo(typename cTplBox<Type,2>::tCorner & aRes,const cTplBox<Type,2>&);
 
 typedef cTplBox<int,2>  cBox2di; 
 typedef cTplBox<double,2>  cBox2dr; 

@@ -528,6 +528,16 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cTplBox<Type,Dim>::FromNorm
     // return Proj(aRes);
 }
 
+template <class Type,const int Dim> void  cTplBox<Type,Dim>::Corners(tCorner & aRes) const
+{
+    for (size_t aKpt=0; aKpt<(1<<Dim)  ; aKpt++)
+    {
+        for (size_t aD=0 ; aD<Dim ; aD++)
+        {
+            aRes[aKpt][aD] = (aKpt & (1<<aD)) ? mP0[aD] : mP1[aD];
+        }
+    }
+}
 
 template <class Type,const int Dim> cPtxd<double,Dim>  cTplBox<Type,Dim>::ToNormaliseCoord(const cPtxd<Type,Dim> & aP) const 
 {
@@ -591,6 +601,19 @@ cBox2dr operator * (const cBox2dr & aBox,double aScale)
 {
     return cBox2dr(aBox.P0()*aScale,aBox.P1()*aScale);
 }
+
+//        x0,y1        x1,y1
+//        x0,y0        x1,y0     
+
+template <class Type> 
+    void CornersTrigo(typename cTplBox<Type,2>::tCorner & aRes,const  cTplBox<Type,2>& aBox)
+{
+   aRes[0] = cPtxd<Type,2>(aBox.P1().x(),aBox.P1().y());
+   aRes[1] = cPtxd<Type,2>(aBox.P0().x(),aBox.P1().y());
+   aRes[2] = cPtxd<Type,2>(aBox.P0().x(),aBox.P0().y());
+   aRes[3] = cPtxd<Type,2>(aBox.P1().x(),aBox.P0().y());
+}
+
 
 
 
@@ -657,6 +680,8 @@ template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_ni(const cPtxd<Type
 /*       INSTANTIATION        */
 /* ========================== */
 
+template void CornersTrigo(typename cTplBox<tREAL8,2>::tCorner & aRes,const  cTplBox<tREAL8,2>&);
+template void CornersTrigo(typename cTplBox<tINT4,2>::tCorner & aRes,const  cTplBox<tINT4,2>&);
 
 #define MACRO_INSTATIATE_PTXD(TYPE,DIM)\
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\

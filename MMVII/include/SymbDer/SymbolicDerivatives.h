@@ -7,11 +7,11 @@ using namespace std;
 #endif
 
 
-#define WITH_MMVII true
-#define WITH_EIGEN false
+// #define SYMBDER_WITH_MMVII true
+#define SYMBDER_WITH_EIGEN false
 
 
-#if WITH_EIGEN
+#if SYMBDER_WITH_EIGEN
 #include "ExternalInclude/Eigen/Dense"  // TODO => replace with standard eigen file
 #define EIGEN_ALLIGNMENT_IN_MMVII EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 #else
@@ -87,14 +87,22 @@ using namespace std;
 
 #include "SymbDer_Common.h"
 
-#if (WITH_MMVII)
+/*
+#if (SYMBDER_WITH_MMVII)
 #include "include/MMVII_all.h"
 #include "include/MMVII_Derivatives.h"
-using namespace MMVII;
+#define SYMBDER_cMemCheck  MMVII::cMemCheck
 #else             //========================================================== WITH_MMVI
-class cMemCheck
+class SYMBDER_cMemCheck
 {
 };
+#endif
+*/
+
+
+
+#if (SYMBDER_WITH_MMVII)
+#else
 #include <memory>
 #include <map>
 #include <iostream> 
@@ -293,7 +301,7 @@ template <class Type> Type powI(const Type & aV,const int & aExp)
 
     // -------- Declaration of Coordinator class  ----------------
 
-template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,public cMemCheck
+template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // , public SYMBDER_cMemCheck
 {
     public :
  
@@ -494,7 +502,7 @@ template <class TypeElem> class cPowF ;     ///< Class for division of 2 functio
             //      cFormula  / cImplemF 
             // ----------------------------------------------------------------
 
-template <class TypeElem> class cImplemF  : public cMemCheck
+template <class TypeElem> class cImplemF  : public SYMBDER_cMemCheck
 {
     public :
       // See eigen documentation,  this macro is mandatory for alignment reason
