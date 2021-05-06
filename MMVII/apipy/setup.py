@@ -32,7 +32,7 @@ mmv2_module = Extension('_mmv2',
            library_dirs = [],
            include_dirs = ['/usr/local/include', '.', '../include/', '../ExternalInclude/'],
            language = 'c++',
-           extra_objects = ['../bin/P2007.a', '../../lib/libelise.a', '../../lib/libANN.a'],
+           extra_objects = ['../bin/libP2007.a', '../../lib/libelise.a', '../../lib/libANN.a'],
            extra_compile_args = ['-std=c++17', '-fopenmp']
        )
 

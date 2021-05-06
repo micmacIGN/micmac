@@ -7,3 +7,8 @@ include/CodeGen_*.h
 *.toc
 MMVII/MMVII-TestDir/Input/Files/RelTest.xml
 MMVII/MMVII-TestDir/Input/Files/RelTest_0-5.xml
+.*.d
+!bin/
+bin/*
+!bin/Makefile
+!bin/Mk-MMVII.makefile
