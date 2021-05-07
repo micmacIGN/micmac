@@ -22,7 +22,7 @@ EXT_LIBS=-lpthread -lX11 ${QT_LIBS} -lstdc++fs
 # =========== Compiler & Flags
 CXX=g++
 LD=g++
-CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O4 -fPIC ${MMV2_INCLUDES} ${MMV1_INCLUDES}
+CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O4 -fPIC -march=native ${MMV2_INCLUDES} ${MMV1_INCLUDES} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
 LDFLAGS=-fopenmp
 
 
@@ -56,13 +56,6 @@ ${MMV2_LIB}: ${LIB_OBJS}
 
 # ========== Build Main
 MAIN_OBJ=${MMV2_SRCDIR}/main.o
-MMV2_RESULT_INSTALL=${MMV2_SRCDIR}/ResultInstall/ResultInstall.cpp
-
-${MMV2_RESULT_INSTALL}:
-	mkdir -p ${dir ${MMV2_RESULT_INSTALL}}
-	echo '#include <string>\nnamespace MMVII {\nconst std::string DirBin2007="${MMV2_INSTALL_PATH}";\n};\n' > ${MMV2_RESULT_INSTALL}
-
-${MAIN_OBJ}: ${MMV2_RESULT_INSTALL}
 
 ${MMV2_EXE}: ${MAIN_OBJ} ${MMV2_LIB} ${MMV1_LIBS}
 	${CXX} ${LDFLAGS} $^ ${EXT_LIBS}  -o $@
