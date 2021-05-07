@@ -22,8 +22,8 @@ EXT_LIBS=-lpthread -lX11 ${QT_LIBS} -lstdc++fs
 # =========== Compiler & Flags
 CXX=g++
 LD=g++
-CXXFLAGS= -std=c++17 -Wall  -Werror -O4 -fPIC -march=native ${MMV2_INCLUDES} ${MMV1_INCLUDES}
-LDFLAGS=
+CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O4 -fPIC ${MMV2_INCLUDES} ${MMV1_INCLUDES}
+LDFLAGS=-fopenmp
 
 
 # ===========  Use ccache if found
