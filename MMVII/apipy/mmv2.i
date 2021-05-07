@@ -19,7 +19,7 @@
 %include <std_map.i>
 %include <std_list.i>
 %include <cpointer.i>
-%include stl.i
+%include <stl.i>
 
 
 
@@ -79,34 +79,42 @@
 %include "MMVII_Images.h"
 %include "MMVII_memory.h"
 
+//HERE typedefs are mandatory. include MMVII_nums.h is not working...
+typedef float       tREAL4;
+typedef double      tREAL8;
+typedef long double tREAL16;
+typedef signed char  tINT1;
+typedef signed short tINT2;
+typedef signed int   tINT4;
+typedef long int     tINT8;
+typedef unsigned char  tU_INT1;
+typedef unsigned short tU_INT2;
+typedef unsigned int   tU_INT4;
+typedef int    tStdInt;  ///< "natural" int
+typedef double tStdDouble;  ///< "natural" int
+
 //templates have to be named to be exported
-namespace MMVII {
-  %template(cIm2Du1) cIm2D<tU_INT1>;
-  %template(cIm2Dr4) cIm2D<tREAL4>;
-  %template(cDataIm2Du1) cDataIm2D<tU_INT1>;
-  %template(cDataIm2Dr4) cDataIm2D<tREAL4>;
-  //%template(cBox2di) cTplBox<int,2>;
+%template(cIm2Du1) MMVII::cIm2D<tU_INT1>;
+%template(cIm2Dr4) MMVII::cIm2D<tREAL4>;
+%template(cDataIm2Du1) MMVII::cDataIm2D<tU_INT1>;
+%template(cDataIm2Dr4) MMVII::cDataIm2D<tREAL4>;
+//%template(cBox2di) MMVII::cTplBox<int,2>;
 
-  //%template(Pt1dr) cPtxd<double,1>   ;
-  //%template(Pt1di) cPtxd<int,1>      ;
-  //%template(Pt1df) cPtxd<float,1>    ;
-  %template(Pt2dr) cPtxd<double,2>   ;
-  %template(Pt2di) cPtxd<int,2>      ;
-  //%template(Pt2df) cPtxd<float,2>    ;
-  %template(Pt3dr) cPtxd<double,3>   ;
-  //%template(Pt3di) cPtxd<int,3>      ;
-  //%template(Pt3df) cPtxd<float,3>    ;
-}
+//%template(Pt1dr) MMVII::cPtxd<double,1>   ;
+//%template(Pt1di) MMVII::cPtxd<int,1>      ;
+//%template(Pt1df) MMVII::cPtxd<float,1>    ;
+%template(Pt2dr) MMVII::cPtxd<double,2>   ;
+%template(Pt2di) MMVII::cPtxd<int,2>      ;
+//%template(Pt2df) MMVII::cPtxd<float,2>    ;
+%template(Pt3dr) MMVII::cPtxd<double,3>   ;
+//%template(Pt3di) MMVII::cPtxd<int,3>      ;
+//%template(Pt3df) MMVII::cPtxd<float,3>    ;
 
-//used to make them usable as python lists
-namespace std {
-    %template(IntVector)    vector<int>;
-    %template(DoubleVector) vector<double>;
-    %template(FloatVector)  vector<float>;
-    %template(StringVector) vector<string>;
-    
-}
-
+%template(tU_INT1Vector) std::vector<tU_INT1>;
+%template(IntVector)     std::vector<int>;
+%template(DoubleVector)  std::vector<double>;
+%template(FloatVector)   std::vector<float>;
+%template(StringVector)  std::vector<std::string>;
 
 //----------------------------------------------------------------------
 //run on import
@@ -121,24 +129,49 @@ mmv2_init();
 %extend MMVII::cPtxd<int,2> {
   char *__repr__() {
     static char tmp[1024];
-    sprintf(tmp, "[%d, %d]", $self->x(), $self->y());
+    sprintf(tmp, "Pt [%d, %d]", $self->x(), $self->y());
     return tmp;
   }
-};
+}
 %extend MMVII::cPtxd<double,2> {
   char *__repr__() {
     static char tmp[1024];
-    sprintf(tmp, "[%f, %f]", $self->x(), $self->y());
+    sprintf(tmp, "Pt [%f, %f]", $self->x(), $self->y());
     return tmp;
   }
-};
+}
 %extend MMVII::cPtxd<double,3> {
   char *__repr__() {
     static char tmp[1024];
-    sprintf(tmp, "[%f, %f, %f]", $self->x(), $self->y(), $self->z());
+    sprintf(tmp, "Pt [%f, %f, %f]", $self->x(), $self->y(), $self->z());
     return tmp;
   }
-};
+}
 
+%extend MMVII::cIm2D<tU_INT1> {
+  char *__repr__() {
+    static char tmp[1024];
+    sprintf(tmp, "Im2D [%d, %d]", $self->DIm().SzX(), $self->DIm().SzY());
+    return tmp;
+  }
+}
+
+%extend MMVII::cDataIm2D<tU_INT1> {
+  char *__repr__() {
+    static char tmp[1024];
+    sprintf(tmp, "DataIm2D [%d, %d]", $self->SzX(), $self->SzY());
+    return tmp;
+  }
+}
+
+//must redefine virtual functions to access base class methods, when base class is abstract and template?
+%extend MMVII::cDataIm2D<tU_INT1> {
+  std::vector<tU_INT1> rawData() {
+    int size = $self->SzX()*$self->SzY();
+    tU_INT1* data = $self->cDataTypedIm<tU_INT1,2>::RawDataLin();
+    std::vector<tU_INT1> out(data ,data + size);    
+    return out;
+  }
+}
 
 

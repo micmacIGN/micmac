@@ -42,4 +42,14 @@ def imageScale():
   aFileOut = mmv2.cDataFileIm2D_Create("ex/out.tif",aFileIn.Type(),aImOut.DIm().Sz(),1)
   aImOut.Write(aFileOut,mmv2.Pt2di(0,0))
 
+def imgNumpyRawData():
+  im=mmv2.cIm2Du1.FromFile("ex/image.tif")
+  d=im.DIm()
+  v=d.rawData()
+  from PIL import Image
+  import numpy as np
+  array = np.array(v, dtype=np.uint8)
+  array = array.reshape((d.SzY(), d.SzX()))
+  img = Image.fromarray(array)
+  img.show()
 
