@@ -16,6 +16,7 @@ static void ErrHanlderPy(const std::string & aType,const std::string &  aMes,con
     MMVII::ErrOut() << "Mes=[" << aMes << "]\n";
     if (aFile)
        MMVII::ErrOut() << "at line  " << aLine << " of file " << aFile  << "\n";
+    throw std::runtime_error(aType + " " + aMes);
 }
 
 void mmv2_init()
