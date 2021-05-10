@@ -5,6 +5,8 @@ include/CodeGen_*.h
 *.log
 *.out
 *.toc
+*.ilg
+*.ind
 MMVII/MMVII-TestDir/Input/Files/RelTest.xml
 MMVII/MMVII-TestDir/Input/Files/RelTest_0-5.xml
 .*.d
@@ -12,3 +14,6 @@ MMVII/MMVII-TestDir/Input/Files/RelTest_0-5.xml
 bin/*
 !bin/Makefile
 !bin/Mk-MMVII.makefile
+html/
+latex/
+doxygen/

@@ -9,20 +9,13 @@ MMV2Objects=${MMV2Dir}object/
 MMV2DirIncl=${MMV2Dir}include/
 MMV2ElisePath=${MMDir}/lib/libelise.a
 MMV2Exe=MMVII
+MMV2_INSTALL_PATH=${abspath ${MMV2DirBin}}
 
 MMSymbDerHeader=$(wildcard ${MMV2DirIncl}/SymbDer/*.h)
 MMKaptureHeader=$(wildcard ${MMV2Dir}/kapture/*.h)
 
 all : ${MMV2DirBin}${MMV2Exe}
 
-#
-#
-#       ===== INSTALLATION ========================================
-#       => for setting MMVII directory
-#
-MMV2ResultInstal=${MMV2DirSrc}ResultInstall/ResultInstall.cpp
-MMV2SrcInstal=${MMV2DirSrc}BinaireInstall/InstalMM.cpp
-MMV2BinInstal=../Instal2007
 #
 #=========== Sous directory des sources
 #
@@ -160,24 +153,18 @@ HEADER=$(wildcard ${MMV2DirIncl}*.h)
 #== CFLAGS etc...
 #
 CXX=g++
-CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-march=native" "-fPIC" -I${MMV2Dir} -I${MMV2Dir}/ExternalInclude -I${MMDir}/include/ -I${MMDir}
+CFlags= "-fopenmp" "-std=c++17" "-Wall"  "-Werror" "-O4" "-march=native" "-fPIC" -I${MMV2Dir} -I${MMV2Dir}/ExternalInclude -I${MMDir}/include/ -I${MMDir} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
+
+
 BOOST_LIBS=
 QTAnnLibs= -lXext /usr/lib/x86_64-linux-gnu/libQt5Core.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so -lGLU -lGL  -ldl -lpthread /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5Concurrent.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Core.so ../../lib/libANN.a
 ## MacOS : may be -lstdc++fs should be replaced by -lc++experimental
 LibsFlags= ${MMV2ElisePath} -lX11  ${BOOST_LIBS}  ${QTAnnLibs}  -lstdc++fs
 #
-${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ResultInstal} ${MMV2ElisePath}
+${MMV2DirBin}${MMV2Exe} :  ${OBJ} ${MAIN} ${MMV2ElisePath}
 	${CXX}  ${MAIN} ${CFlags}  ${OBJ}  ${LibsFlags}  -o ${MMV2DirBin}${MMV2Exe} 
-	rm -f P2007.a
-	ar rvs P2007.a    ${OBJ}  
-#
-# ==========    INSTALLATION =================
-#
-${MMV2ResultInstal} : ${MMV2SrcInstal}
-	${CXX} -std=c++17 ${MMV2SrcInstal} -o ${MMV2BinInstal}
-	mkdir -p `dirname ${MMV2ResultInstal}`
-	${MMV2BinInstal}
-	rm ${MMV2BinInstal}
+	rm -f libP2007.a
+	ar rvs libP2007.a    ${OBJ}  
 #
 # ================ Objects ==================
 #

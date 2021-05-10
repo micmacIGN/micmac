@@ -121,12 +121,15 @@ MMVII EditSet help
 
  == Mandatory unnamed args : ==
   * string [FDP] :: Full Name of Xml in/out
-  * string :: Operator in (+= *= -= = =0)
-  * string [MPI0] :: Pattern or Xml for modifying
+  * OpAff :: Operator 
+  * string [MPF0] :: Pattern or Xml for modifying
 
  == Optional named args : ==
-  * [Name=Show] int :: Show detail of set before/after , (def) 0->none, (1) modif, (2) all
+  * [Name=Show] int :: Show detail of set before/after, 0->none, (1) modif, (2) all ,[Default=0]
   * [Name=Out] string :: Destination, def=Input, no save for NONE
+  * [Name=FFI0] string [FFI0] :: File Filter Interval, Main Set
+
+
 \end{verbatim}
 
 We get three part :
@@ -137,7 +140,7 @@ We get three part :
           the entry point of the command is implemented (may be of interest to programmers);
 
    \item  second part contains the description of mandatory args, we see that here we
-          have three mandatory args;  for each args is indicated the type (here all strings),
+          have three mandatory args;  for each args is indicated the type (string for the first),
           and  after {\tt ::}, the semantic of the parameter;
           sometime it is inserted  inside square bracket (like {\tt [FDP]}) some "predefined semantics"
           that will be described later (~\ref{Param:Pred:Sem});
@@ -218,7 +221,7 @@ cat File.xml
 
 As always when  a regular expression is used to specify set of file,
 it is understood as a filter on existing file. So if one had used {\tt "F([0-3]|[a-z]).txt"},
-given the file present in  {\tt {\MMVIDIR}MMVII-TestDir/Input/Files}, we woul have
+given the file present in \texttt{{\MMVIDIR}MMVII-TestDir/Input/Files}, we would have
 obtained exactly the same result.
 
 \subsubsection{Exercices}
@@ -239,7 +242,7 @@ MMVII EditSet File.xml =0 ".*"
 \subsubsection{{\tt Out} paramater}
 
 Optional parameter are given after  the  mandary one in a list of 
-string {\tt Name=Value}. For example until now we have use
+string {\tt Name=Value}. For example until now we have used
 the file {\tt File.xml} both as input and output, but sometime
 we don't want to modify the input file, we can the use the optionnal
 {\tt Out} parameter. For example if we enter :
@@ -249,7 +252,7 @@ MMVII EditSet File.xml = "F[0-3].txt"
 MMVII EditSet File.xml += "F[7-9].txt"  Out=File2.xml
 \end{verbatim}
 
-After first line {\tt File.xml} contains t$4$ names.
+After first line {\tt File.xml} contains $4$ names.
 After second line, the  {\tt File.xml} is unchanged
 while  {\tt File2.xml} contains $7$ names.
 
