@@ -9,7 +9,7 @@ WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 
 .PHONY: clean doc apipy
 
-apipy: clean
+apipy: clean typemaps.i
 	python3 setup.py build
 	python3 setup.py bdist_wheel USEQT=$(USEQT)
 	pip3 install --user dist/*.whl
@@ -18,11 +18,14 @@ apipy: clean
 
 all: apipy doc
 
+typemaps.i:
+	python3 gen_typemaps.py > typemaps.i
+
 doc:
 	cd $(DOCDIR) && doxygen
 
 clean:
-	rm -f $(PY_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES)
+	rm -f $(PY_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES) typemaps.i
 	rm -Rf $(DOCDIR)/html build/ dist/ mmv2.egg-info/ __pycache__/
 	python3 setup.py clean
 	pip3 uninstall -y $(MODULE_NAME)

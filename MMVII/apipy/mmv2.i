@@ -46,6 +46,11 @@
 }
 
 //----------------------------------------------------------------------
+//add typemaps
+%include typemaps.i
+
+
+//----------------------------------------------------------------------
 //things to ignore in next includes to be able to compile
 //must ignore forbidden cPtxd methods according to dim
 %ignore MMVII::cPtxd<double,2>::cPtxd(const double & x);
@@ -173,5 +178,4 @@ mmv2_init();
     return out;
   }
 }
-
 
