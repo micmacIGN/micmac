@@ -78,5 +78,7 @@ write_typemap_point('MMVII::cPt2di', 'SWIGTYPE_p_MMVII__cPtxdT_int_2_t', 2, Fals
 write_typemap_point('MMVII::cPt2di', 'SWIGTYPE_p_MMVII__cPtxdT_int_2_t', 2, True)
 write_typemap_point('MMVII::cPt2dr', 'SWIGTYPE_p_MMVII__cPtxdT_double_2_t', 2, False)
 write_typemap_point('MMVII::cPt2dr', 'SWIGTYPE_p_MMVII__cPtxdT_double_2_t', 2, True)
+write_typemap_point('MMVII::cPt3di', 'SWIGTYPE_p_MMVII__cPtxdT_int_3_t', 3, False)
+write_typemap_point('MMVII::cPt3di', 'SWIGTYPE_p_MMVII__cPtxdT_int_3_t', 3, True)
 write_typemap_point('MMVII::cPt3dr', 'SWIGTYPE_p_MMVII__cPtxdT_double_3_t', 3, False)
 write_typemap_point('MMVII::cPt3dr', 'SWIGTYPE_p_MMVII__cPtxdT_double_3_t', 3, True)
