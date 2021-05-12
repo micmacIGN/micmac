@@ -1,8 +1,9 @@
 #ifndef _SymbDer_Common_H_
 #define _SymbDer_Common_H_
 
-
+#ifndef SYMBDER_WITH_MMVII
 #define SYMBDER_WITH_MMVII true
+#endif
 
 namespace NS_SymbolicDerivative 
 {
