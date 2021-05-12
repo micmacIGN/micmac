@@ -9,7 +9,7 @@ MMV2Objects=${MMV2Dir}object/
 MMV2DirIncl=${MMV2Dir}include/
 MMV2ElisePath=${MMDir}/lib/libelise.a
 MMV2Exe=MMVII
-MMV2_INSTALL_PATH=${abspath ${MMV2DirBin}}
+MMV2_INSTALL_PATH=${abspath ${MMV2DirBin}}/
 
 MMSymbDerHeader=$(wildcard ${MMV2DirIncl}/SymbDer/*.h)
 MMKaptureHeader=$(wildcard ${MMV2Dir}/kapture/*.h)
