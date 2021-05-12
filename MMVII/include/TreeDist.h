@@ -22,7 +22,10 @@
 
 // Set false for external use, set true inside MMMVII to benefit from functionality
 // with additionnal correctness checking
+
+#ifndef TREEDIST_WITH_MMVII
 #define TREEDIST_WITH_MMVII true
+#endif
 
 
 #if (TREEDIST_WITH_MMVII)
