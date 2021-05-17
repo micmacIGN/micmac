@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 dimNames = ['x', 'y', 'z']
 debug = False
