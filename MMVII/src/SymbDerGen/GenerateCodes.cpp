@@ -16,7 +16,7 @@ template <typename TypeFormula> std::string NameFormula(const TypeFormula & anEq
 
 std::string  NameEqDist(const cPt3di & aDeg,bool WithDerive)
 {
-   cMMVIIUnivDist aDist(aDeg.x(),aDeg.y(),aDeg.z());
+   cMMVIIUnivDist aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
    cEqDist<cMMVIIUnivDist> anEq(aDist); 
 
    return NameFormula(anEq,WithDerive);
@@ -175,15 +175,22 @@ template <typename tFormula> void cAppli::GenCodesFormula(const tFormula & aForm
 int cAppli::Exe()
 {
    mDirGenCode = TopDirMMVII() + "src/GeneratedCodes/";
-   cMMVIIUnivDist           aDist(3,1,1);
+   cMMVIIUnivDist           aDist(3,1,1,false);
    cEqDist<cMMVIIUnivDist>  anEqDist(aDist);
    cEqIntr<cMMVIIUnivDist>  anEqIntr(aDist);
+
 
    GenCodesFormula(anEqDist,false);
    GenCodesFormula(anEqDist,true);
    GenCodesFormula(anEqIntr,false);
    GenCodesFormula(anEqIntr,true);
    // GenCodesFormula<cMMVIIUnivDist>(aDist,true,false);
+
+   cMMVIIUnivDist           aDistBase(3,1,1,true);
+   cEqDist<cMMVIIUnivDist>  anEqBase(aDistBase);
+   GenCodesFormula(anEqBase,false);
+/*
+*/
    return EXIT_SUCCESS;
 }
 
@@ -221,9 +228,9 @@ cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf)
     return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,WithDerive),aSzBuf);
 }
 
-const std::vector<cDescOneFuncDist> &  DescDist(const cPt3di & aDeg)
+std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)
 {
-   cMMVIIUnivDist  aDist(aDeg.x(),aDeg.y(),aDeg.z());
+   cMMVIIUnivDist  aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
 
    return aDist.VDescParams();
  
