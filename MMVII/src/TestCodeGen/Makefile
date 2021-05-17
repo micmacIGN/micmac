@@ -1,5 +1,5 @@
-INCDIR=../../include/
-CXXFLAGS=-fopenmp -std=c++14 -Wall -Werror -O4 -march=native -I$(INCDIR)
+INCDIR=-I ../../ -I../../include
+CXXFLAGS=-fopenmp -std=c++17 -Wall -Werror -O4 -march=native $(INCDIR) -D"SYMBDER_WITH_MMVII=false"
 SYMBDER_INCLUDES=$(wildcard $(INCDIR)/SymbDer/*.h)
 
 all: CodeGen_IncludeAll.h TestCodeGen

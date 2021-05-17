@@ -24,7 +24,7 @@
 
 
 //----------------------------------------------------------------------
-//rename overloaded methods to avoid shadowing
+
 
 //Reserved names in python3
 %rename(_True) FBool::True;
@@ -46,6 +46,11 @@
 }
 
 //----------------------------------------------------------------------
+//add typemaps
+%include typemaps.i
+
+
+//----------------------------------------------------------------------
 //things to ignore in next includes to be able to compile
 //must ignore forbidden cPtxd methods according to dim
 %ignore MMVII::cPtxd<double,2>::cPtxd(const double & x);
@@ -62,13 +67,61 @@
 %ignore MMVII::cPtxd<double,3>::cPtxd(const double & x,const double &y);
 %ignore MMVII::cPtxd<double,3>::cPtxd(const double & x,const double &y,const double &z,const double &t);
 %ignore MMVII::cPtxd<double,3>::t;
+%ignore MMVII::cPtxd<int,3>::cPtxd(const int & x);
+%ignore MMVII::cPtxd<int,3>::cPtxd(const int & x,const int &y);
+%ignore MMVII::cPtxd<int,3>::cPtxd(const int & x,const int &y,const int &z,const int &t);
+%ignore MMVII::cPtxd<int,3>::t;
 //not implemented
 %ignore MMVII::cPtxd::Col;
 %ignore MMVII::cPtxd::Line;
 %ignore MMVII::cPtxd::ToVect;
 %ignore MMVII::cPtxd<int,2>::ToStdVector;
+%ignore MMVII::cPtxd<int,3>::ToStdVector;
+%ignore MMVII::cPtxd<double,2>::ToStdVector;
+%ignore MMVII::cPtxd<double,3>::ToStdVector;
 %ignore MMVII::cPtxd::FromVect;
 %ignore MMVII::cPtxd<int,2>::FromStdVector;
+%ignore MMVII::cPtxd<int,3>::FromStdVector;
+%ignore MMVII::cPtxd<double,2>::FromStdVector;
+%ignore MMVII::cPtxd<double,3>::FromStdVector;
+//ignore const overloading
+%ignore MMVII::cPtxd<double,2>::x() const;
+%ignore MMVII::cPtxd<double,2>::y() const;
+%ignore MMVII::cPtxd<double,2>::PtRawData() const;
+%ignore MMVII::cPtxd<int,2>::x() const;
+%ignore MMVII::cPtxd<int,2>::y() const;
+%ignore MMVII::cPtxd<int,2>::PtRawData() const;
+%ignore MMVII::cPtxd<double,3>::x() const;
+%ignore MMVII::cPtxd<double,3>::y() const;
+%ignore MMVII::cPtxd<double,3>::z() const;
+%ignore MMVII::cPtxd<double,3>::PtRawData() const;
+%ignore MMVII::cPtxd<int,3>::x() const;
+%ignore MMVII::cPtxd<int,3>::y() const;
+%ignore MMVII::cPtxd<int,3>::z() const;
+%ignore MMVII::cPtxd<int,3>::PtRawData() const;
+
+%ignore MMVII::cIm2D<tU_INT1>::DIm() const;
+%ignore MMVII::cIm2D<tREAL4>::DIm() const;
+%ignore MMVII::cDataIm2D<tU_INT1>::ExtractRawData2D() const;
+%ignore MMVII::cDataIm2D<tU_INT1>::GetLine(int) const;
+%ignore MMVII::cDataIm2D<tREAL4>::ExtractRawData2D() const;
+%ignore MMVII::cDataIm2D<tREAL4>::GetLine(int) const;
+//remove warnings
+
+//rename overloaded methods to avoid shadowing
+//here params must appread exactly as in source (no MMVII::...)
+%rename(ToI2) ToI(const cPt2dr &);
+%rename(ToI3) ToI(const cPt3dr &);
+%rename(ToR2) ToR(const cPt2di &);
+%rename(ToR3) ToR(const cPt3di &);
+%rename(E2Str_TySC)          MMVII::E2Str(const eTySC &);
+%rename(E2Str_OpAff)         MMVII::E2Str(const eOpAff &);
+%rename(E2Str_TA2007)        MMVII::E2Str(const eTA2007 &);
+%rename(E2Str_TyUEr)         MMVII::E2Str(const eTyUEr &);
+%rename(E2Str_TyNums)        MMVII::E2Str(const eTyNums &);
+%rename(E2Str_TyInvRad)      MMVII::E2Str(const eTyInvRad &);
+%rename(E2Str_TyPyrTieP)     MMVII::E2Str(const eTyPyrTieP &);
+%rename(E2Str_ModeEpipMatch) MMVII::E2Str(const eModeEpipMatch &);
 
 //----------------------------------------------------------------------
 //classes to export
@@ -107,7 +160,7 @@ typedef double tStdDouble;  ///< "natural" int
 %template(Pt2di) MMVII::cPtxd<int,2>      ;
 //%template(Pt2df) MMVII::cPtxd<float,2>    ;
 %template(Pt3dr) MMVII::cPtxd<double,3>   ;
-//%template(Pt3di) MMVII::cPtxd<int,3>      ;
+%template(Pt3di) MMVII::cPtxd<int,3>      ;
 //%template(Pt3df) MMVII::cPtxd<float,3>    ;
 
 %template(tU_INT1Vector) std::vector<tU_INT1>;
@@ -115,6 +168,7 @@ typedef double tStdDouble;  ///< "natural" int
 %template(DoubleVector)  std::vector<double>;
 %template(FloatVector)   std::vector<float>;
 %template(StringVector)  std::vector<std::string>;
+
 
 //----------------------------------------------------------------------
 //run on import
@@ -147,6 +201,13 @@ mmv2_init();
     return tmp;
   }
 }
+%extend MMVII::cPtxd<int,3> {
+  char *__repr__() {
+    static char tmp[1024];
+    sprintf(tmp, "Pt [%d, %d, %d]", $self->x(), $self->y(), $self->z());
+    return tmp;
+  }
+}
 
 %extend MMVII::cIm2D<tU_INT1> {
   char *__repr__() {
@@ -164,14 +225,14 @@ mmv2_init();
   }
 }
 
-//must redefine virtual functions to access base class methods, when base class is abstract and template?
+//must redefine virtual functions to access base class methods,
+//when base class is abstract and template?
 %extend MMVII::cDataIm2D<tU_INT1> {
   std::vector<tU_INT1> rawData() {
     int size = $self->SzX()*$self->SzY();
-    tU_INT1* data = $self->cDataTypedIm<tU_INT1,2>::RawDataLin();
+    tU_INT1* data = $self->RawDataLin();
     std::vector<tU_INT1> out(data ,data + size);    
     return out;
   }
 }
-
 
