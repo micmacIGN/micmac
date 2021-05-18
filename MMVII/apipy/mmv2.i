@@ -12,6 +12,11 @@
 %}
 
 //----------------------------------------------------------------------
+%include "numpy.i"
+%init %{
+import_array();
+%}
+
 #define ElSTDNS  std::
 #define ElTmplSpecNull template <>
 %include <std_string.i>
@@ -225,14 +230,22 @@ mmv2_init();
   }
 }
 
+
 //must redefine virtual functions to access base class methods,
 //when base class is abstract and template?
 %extend MMVII::cDataIm2D<tU_INT1> {
-  std::vector<tU_INT1> rawData() {
+  std::vector<tU_INT1> getRawData() {
     int size = $self->SzX()*$self->SzY();
     tU_INT1* data = $self->RawDataLin();
     std::vector<tU_INT1> out(data ,data + size);    
     return out;
   }
+  //here tU_INT1* IN_ARRAY2 is not recognized
+  void setRawData(unsigned char* IN_ARRAY2, int DIM1, int DIM2) {
+    $self->Resize( MMVII::cPtxd<int,2>(0,0), MMVII::cPtxd<int,2>(DIM2,DIM1) );
+    for (long i=0;i<DIM1*DIM2;i++)
+        $self->RawDataLin()[i] = IN_ARRAY2[i];
+  }
 }
+
 
