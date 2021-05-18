@@ -379,6 +379,50 @@ template <class Type,const int Dim> class cMappingIdentity :  public cDataMappin
       const  tVecPt &  Values(tVecPt &,const tVecPt & ) const override;
 };
 
+template <class Type,const int DimIn,const int DimOut>
+    class cDataMapCalcSymbDer : public cDataMapping<Type,DimIn,DimOut>
+{   
+    public :
+      typedef typename NS_SymbolicDerivative::cCalculator<Type> tCalc;
+      typedef cDataMapping<Type,DimIn,DimOut> tDataMap;
+
+      using typename tDataMap::tVecIn;
+      using typename tDataMap::tVecOut;
+      using typename tDataMap::tCsteResVecJac;
+      using typename tDataMap::tResVecJac;
+      using typename tDataMap::tVecJac;
+      using typename tDataMap::tPtIn;
+      using typename tDataMap::tPtOut;
+
+       const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;  //V2
+       tCsteResVecJac  Jacobian(tResVecJac,const tVecIn &) const override;  //J2
+
+       cDataMapCalcSymbDer(tCalc  * aCalcVal,tCalc  * aCalcDer,const std::vector<Type> & aVObs);
+       void SetObs(const std::vector<Type> &);
+
+    private  :
+       void CheckDim(tCalc *,bool Derive);
+       tCalc  *           mCalcVal;
+       tCalc  *           mCalcDer;
+       std::vector<Type>  mVObs;
+};
+
+/**
+    Sometime we want to manipulate "small" maping directly, with no virtual interface,
+  an after reuse these code in global mappings, this is possible if the "small" mapping
+  complies with the following "contract" :
+
+      define the type :    typedef Type  TheType;
+      degines its dimension :    static constexpr int TheDim=2;
+      defines its degree of freedom :    static const int NbDOF() {return 4;}
+      defiens direct mapping :    inline tPt  Value(const tPt & aP) 
+      defines inverst mapping for a point :    inline tPt  Inverse(const tPt & aP) 
+      defines global invert map :    cSim2D<Type>  MapInverse() const
+
+   See class cSim2D<Type> for an example of  elementary mapping.
+
+*/
+
 template <class cMapElem,class cIMapElem> class cInvertMappingFromElem :  public 
        cDataInvertibleMapping<typename cMapElem::TheType,cMapElem::TheDim>
 {
@@ -402,6 +446,35 @@ template <class cMapElem,class cIMapElem> class cInvertMappingFromElem :  public
          cMapElem   mMap;  // Map
          cIMapElem  mIMap; // Map inverse
 };
+
+/**
+     We have a set of function F1,  .. Fp     R^k => R ^n
+
+     We have samples      Km , Nm 
+
+     We want to solve by  lest square  :
+            Sum   Al Fl (Km) = Nm
+*/
+template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMaps
+{
+     public :
+         typedef  cPtxd<Type,DimOut>          tPtOut;
+         typedef  cPtxd<Type,DimIn>           tPtIn;
+         typedef  std::vector<tPtIn>          tVecIn;
+         typedef  std::vector<tPtOut>         tVecOut;
+
+         cLeastSqComputeMaps(size_t aNbFunc);
+         void AddObs(const tPtIn & aPt,const tPtOut & aValue,const tPtOut & aPds);
+         void AddObs(const tPtIn & aPt,const tPtOut & aValue,const Type & aPds);
+         void AddObs(const tPtIn & aPt,const tPtOut & aValue);
+     private :
+         virtual void ComputeValFuncsBase(tVecOut &,const tPtIn & aPt) = 0;
+         size_t             mNbFunc;
+         cLeasSqtAA<Type>   mLSQ;
+         cDenseVect<Type>   mCoeffs;
+         tVecOut            mBufPOut;
+};
+
 
 
 

@@ -7,44 +7,9 @@ namespace MMVII
 {
 
 /* ============================================= */
-/*      cDataMapping<Type>                       */
+/*      cDataMapCalcSymbDer<Type>                */
 /* ============================================= */
 
-template <class Type,const int DimIn,const int DimOut> 
-    class cDataMapCalcSymbDer : public cDataMapping<Type,DimIn,DimOut>
-{
-    public :
-      typedef cCalculator<Type> tCalc;
-      typedef cDataMapping<Type,DimIn,DimOut> tDataMap;
-
-      using typename tDataMap::tVecIn;
-      using typename tDataMap::tVecOut;
-      using typename tDataMap::tCsteResVecJac;
-      using typename tDataMap::tResVecJac;
-      using typename tDataMap::tVecJac;
-      using typename tDataMap::tPtIn;
-      using typename tDataMap::tPtOut;
-/*
-      typedef typename tDataMap::tVecIn       tVecIn;
-      typedef typename tDataMap::tPtIn        tPtIn;
-      typedef typename tDataMap::tPtOut       tPtOut;
-      typedef typename tDataMap::tVecOut      tVecOut;
-      typedef typename tDataMap::tCsteResVecJac  tCsteResVecJac;
-      typedef typename tDataMap::tResVecJac      tResVecJac;
-*/
-
-       const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;  //V2
-       tCsteResVecJac  Jacobian(tResVecJac,const tVecIn &) const override;  //J2
-
-       cDataMapCalcSymbDer(tCalc  * aCalcVal,tCalc  * aCalcDer,const std::vector<Type> & aVObs);
-       void SetObs(const std::vector<Type> &);
-
-    private  :
-       void CheckDim(tCalc *,bool Derive);
-       tCalc  *           mCalcVal;
-       tCalc  *           mCalcDer;
-       std::vector<Type>  mVObs;
-};
 
 template <class Type,const int DimIn,const int DimOut> 
   void  cDataMapCalcSymbDer<Type,DimIn,DimOut>::CheckDim(tCalc  * aCalc,bool Derive)
@@ -163,6 +128,11 @@ template <class Type,const int Dim> class  cDataDistCloseId : cDataIterInvertMap
      private :
 };
 */
+
+
+/* ============================================= */
+/*                   TEST                        */
+/* ============================================= */
 
 bool BUGINVMAP =false;
 

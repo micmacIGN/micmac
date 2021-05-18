@@ -42,6 +42,8 @@
 #include "MMVII_util.h"
 
 
+// Must be here : after general class, used in case WITH_MMVII, before class using cCalculator 
+#include "SymbDer/SymbDer_Common.h"
 
 // Les class cPtxd, cPt1d, cPt2d
 #include "MMVII_Ptxd.h"
@@ -76,7 +78,6 @@
 #include "MMVII_MMV1Compat.h"
 //  #include "MMVII_Derivatives.h" => not include by default now, requires <Eigen/Dense> => time consuming
 
-#include "SymbDer/SymbDer_Common.h"
 #include "../kapture/kapture.h"
 #include "MMVII_PhgrDist.h"
 
