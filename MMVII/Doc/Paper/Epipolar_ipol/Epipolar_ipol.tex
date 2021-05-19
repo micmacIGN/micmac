@@ -1068,27 +1068,27 @@ of epipolar ressampling with degree $0$ \mpd{TO CHECK !!!} , using a $L1$ norm (
 
 \section{Experiments}\label{sec:experiments}
 
-Datasets:
-\begin{itemize}
-\item Corona, +MPD, les courbes (teorique fait par Benjamin)
-\item Pleiades, residu 
-\item Spot
-\end{itemize}
-
-\begin{itemize}
-\item nous
-\item Oh
-\end{itemize}
+We demonstrate the performance of the algorithm in two scenarios: with and without the geometric model of the camera. In the first scenario, we use high resolution satellite images acquired with the Pl\'eiades-1A satellite. We form pairs of images of varying base-to-height ratios ($\sfrac{B}{H}$), and differentiate between \textit{single orbit} and \textit{multiple orbit} acquisitions. The results are evaluated in terms of the remaining \textit{y-parallaxes}, and compared to a competetive method by Oh~\cite{Oh2011}.
+ 
+In the second scenario, we do not dispose of the camera geometry, and the epipolar resampling is based on image correspondences (i.e., SIFT~\cite{lowe2004distinctive}). \er{ bla bla how we evaluate it and on which datasets}
+ 
 
 Exemple de résultats avec résidus. + qq crop d'images rectifiees.
 
-\subsection{Satellite images}
+\paragraph{Pl\'eiade-1A images with known geometry}
+% 
+The geometries of 5 images with their corresponding RPC coefficients are first refined in a RPC-bundle adjustment~\cite{rupnika2016refined}. We then combine them in pairs of $\sfrac{B}{H}$ range $\in \left< 0.1,0.45 \right> $. Table~\ref{tab:PHR1mono} shows the remaining y-parallaxes 
 
-C'est la que c'est vraiment utile .... 
 
+about $Z_buff$, what is that we want from it
+
+hyperparms:
+- grid XY for estimation, 100x100
+- NbZRand equal to 1
+- NbZ equal to 1 (three layers)
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%ù
-\begin{table}
+\begin{table}[h!]
 
 \begin{center}
 \begin{tabular}{|c|c|c|c|c||c|c|c|c|}
@@ -1112,7 +1112,7 @@ C'est la que c'est vraiment utile ....
 \caption{Maximum value of the remaining y-parallax [pix] for acquisitions from a \textbf{single orbit}. $Z_{buff}$ corresponds to half the depth of the volumne used in the resampling calculation.}\label{tab:PHR1mono}
 \end{table}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{table}
+\begin{table}[h!]
 
 \begin{center}
 \begin{tabular}{|c|c|c|c|c||c|c|c|c|}
@@ -1136,7 +1136,7 @@ C'est la que c'est vraiment utile ....
 \caption{Maximum value of the remaining y-parallax [pix] for acquisitions from \textbf{multiple orbits}. $Z_{buff}$ corresponds to half the depth of the volumne used in the resampling calculation.}\label{tab:PHR1multi}
 \end{table}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{table}[t!]
+\begin{table}[h!]
 
 \begin{center}
 \begin{tabular}{|c|c|c|c|c||c|c|c|c|}
@@ -1160,16 +1160,15 @@ C'est la que c'est vraiment utile ....
 \caption{Epipolarability indices for acquisitions from a single and {multiple orbits}.}\label{tab:PHR1indices}
 \end{table}
 
-\subsection{Radar images}
+%\subsection{Radar images}
 
-? 
+ 
 
 %\subsection{Use with pinhole camera}
 %Permet de faire des test supplémentaire.
 
-\subsection{Images without the geometric model}
-
-\paragraph{Corona KH-4B images}
+ 
+\paragraph{Corona KH-4B images without the geometric model}
 Exposé precis avec modele analytique:
 
     * calcul des points homologues, en 3D => direction moyenne
@@ -1190,7 +1189,7 @@ Exposé precis avec modele analytique:
 \end{figure}
     
     
-\paragraph{Pl\'eiades images}
+%\paragraph{Pl\'eiades images}
 %---------------------------------------------
 %---------------------------------------------
 

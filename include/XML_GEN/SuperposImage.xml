@@ -1985,8 +1985,9 @@
      <Maps Nb="*" RefType="Xml_Map2DElem"> </Maps>
 </Xml_Map2D>
 
+<!-- ------------------------------------------------------------------------------- -->	
 <!-- Classes to represent measures used for projection of unknown 3D lines in images -->
-
+<!-- ------------------------------------------------------------------------------- -->	
 <!-- Nb, Class and ToRef must be present on "top" class -->
 <Xml_OneMeasure3DLineInIm  Nb="1" Class="true" ToReference="true">
     <!-- std::string and Pt2dr are atomic types eligible to generate code -->
@@ -2004,7 +2005,37 @@
 <Xml_SetMeasureGlob3DLine Nb="1" Class="true" ToReference="true">
     <AllMeasures Nb="*" RefType="Xml_SetMeasure3DLineInOneIm"> </AllMeasures>
 </Xml_SetMeasureGlob3DLine>
+<!-- ------------------------------------------------------------------------------- -->
+	
+<!-- ------------------------------------------------------------------------------- -->	
+<!-- Classes to represent 3D lines in space -->
+<!-- ------------------------------------------------------------------------------- -->	
+<Xml_One3DLine Nb="1" Class="true" ToReference="true">
+	<NameLine3D Nb="1" Type="std::string"> </NameLine3D>
+	<Pt  Nb="1" Type="Pt3dr"> </Pt>    <!-- "Origin" point -->
+	<Vec Nb="1" Type="Pt3dr"> </Vec>   <!-- Direction vector -->
+</Xml_One3DLine>
+	
+<Xml_Set3DLine Nb="1" Class="true" ToReference="true">
+	<AllLines Nb="*" RefType="Xml_One3DLine"> </AllLines>   <!-- List of 3D lines -->
+</Xml_Set3DLine>
+<!-- ------------------------------------------------------------------------------- -->
 
+
+<!--  ******************** BEGIN HistoricalTiep ******************************* -->
+<SetOfPatches Nb="1" Class="true" ToReference="true">
+   <Mes1Im Nb="*" Class="true">
+      <NameIm Nb="1" Type="std::string"> </NameIm>
+      <PrecPointeByIm Nb="?" Type="double"> </PrecPointeByIm>
+      <OnePatch1I Nb="*">
+         <PrecH Nb="?" Type="double"> </PrecH>
+         <NamePatch Nb="1" Type="std::string"> </NamePatch>
+         <PatchH   Nb="1" RefType="XmlHomogr"> </PatchH>
+      </OnePatch1I>
+   </Mes1Im>
+</SetOfPatches>
+
+<!--  ******************** END   HistoricalTiep ******************************* -->
 
 
 <Verbatim File=".h.cpp">

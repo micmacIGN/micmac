@@ -37,7 +37,7 @@ English :
 
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
-#include "../src/uti_phgrm/MICMAC/MICMAC.h"
+#include "MICMAC.h"
 extern void  t(Im2DGen I,int,int);
 
 

@@ -29008,4 +29008,377 @@ void xml_init(cXml_SetMeasureGlob3DLine & anObj,cElXMLTree * aTree)
 
 std::string  Mangling( cXml_SetMeasureGlob3DLine *) {return "958417229DFA6093FF3F";};
 
+
+std::string & cXml_One3DLine::NameLine3D()
+{
+   return mNameLine3D;
+}
+
+const std::string & cXml_One3DLine::NameLine3D()const 
+{
+   return mNameLine3D;
+}
+
+
+Pt3dr & cXml_One3DLine::Pt()
+{
+   return mPt;
+}
+
+const Pt3dr & cXml_One3DLine::Pt()const 
+{
+   return mPt;
+}
+
+
+Pt3dr & cXml_One3DLine::Vec()
+{
+   return mVec;
+}
+
+const Pt3dr & cXml_One3DLine::Vec()const 
+{
+   return mVec;
+}
+
+void  BinaryUnDumpFromFile(cXml_One3DLine & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameLine3D(),aFp);
+    BinaryUnDumpFromFile(anObj.Pt(),aFp);
+    BinaryUnDumpFromFile(anObj.Vec(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_One3DLine & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameLine3D());
+    BinaryDumpInFile(aFp,anObj.Pt());
+    BinaryDumpInFile(aFp,anObj.Vec());
+}
+
+cElXMLTree * ToXMLTree(const cXml_One3DLine & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_One3DLine",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameLine3D"),anObj.NameLine3D())->ReTagThis("NameLine3D"));
+   aRes->AddFils(::ToXMLTree(std::string("Pt"),anObj.Pt())->ReTagThis("Pt"));
+   aRes->AddFils(::ToXMLTree(std::string("Vec"),anObj.Vec())->ReTagThis("Vec"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_One3DLine & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NameLine3D(),aTree->Get("NameLine3D",1)); //tototo 
+
+   xml_init(anObj.Pt(),aTree->Get("Pt",1)); //tototo 
+
+   xml_init(anObj.Vec(),aTree->Get("Vec",1)); //tototo 
+}
+
+std::string  Mangling( cXml_One3DLine *) {return "6A59CC6DA2BCBF8CFD3F";};
+
+
+std::list< cXml_One3DLine > & cXml_Set3DLine::AllLines()
+{
+   return mAllLines;
+}
+
+const std::list< cXml_One3DLine > & cXml_Set3DLine::AllLines()const 
+{
+   return mAllLines;
+}
+
+void  BinaryUnDumpFromFile(cXml_Set3DLine & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_One3DLine aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.AllLines().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_Set3DLine & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.AllLines().size());
+    for(  std::list< cXml_One3DLine >::const_iterator iT=anObj.AllLines().begin();
+         iT!=anObj.AllLines().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_Set3DLine & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_Set3DLine",eXMLBranche);
+  for
+  (       std::list< cXml_One3DLine >::const_iterator it=anObj.AllLines().begin();
+      it !=anObj.AllLines().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("AllLines"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_Set3DLine & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.AllLines(),aTree->GetAll("AllLines",false,1));
+}
+
+std::string  Mangling( cXml_Set3DLine *) {return "E0E02402F87744C2FE3F";};
+
+
+cTplValGesInit< double > & cOnePatch1I::PrecH()
+{
+   return mPrecH;
+}
+
+const cTplValGesInit< double > & cOnePatch1I::PrecH()const 
+{
+   return mPrecH;
+}
+
+
+std::string & cOnePatch1I::NamePatch()
+{
+   return mNamePatch;
+}
+
+const std::string & cOnePatch1I::NamePatch()const 
+{
+   return mNamePatch;
+}
+
+
+cXmlHomogr & cOnePatch1I::PatchH()
+{
+   return mPatchH;
+}
+
+const cXmlHomogr & cOnePatch1I::PatchH()const 
+{
+   return mPatchH;
+}
+
+void  BinaryUnDumpFromFile(cOnePatch1I & anObj,ELISE_fp & aFp)
+{
+   { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PrecH().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PrecH().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PrecH().SetNoInit();
+  } ;
+    BinaryUnDumpFromFile(anObj.NamePatch(),aFp);
+    BinaryUnDumpFromFile(anObj.PatchH(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cOnePatch1I & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.PrecH().IsInit());
+    if (anObj.PrecH().IsInit()) BinaryDumpInFile(aFp,anObj.PrecH().Val());
+    BinaryDumpInFile(aFp,anObj.NamePatch());
+    BinaryDumpInFile(aFp,anObj.PatchH());
+}
+
+cElXMLTree * ToXMLTree(const cOnePatch1I & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"OnePatch1I",eXMLBranche);
+   if (anObj.PrecH().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PrecH"),anObj.PrecH().Val())->ReTagThis("PrecH"));
+   aRes->AddFils(::ToXMLTree(std::string("NamePatch"),anObj.NamePatch())->ReTagThis("NamePatch"));
+   aRes->AddFils(ToXMLTree(anObj.PatchH())->ReTagThis("PatchH"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cOnePatch1I & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.PrecH(),aTree->Get("PrecH",1)); //tototo 
+
+   xml_init(anObj.NamePatch(),aTree->Get("NamePatch",1)); //tototo 
+
+   xml_init(anObj.PatchH(),aTree->Get("PatchH",1)); //tototo 
+}
+
+std::string  Mangling( cOnePatch1I *) {return "16BD181D0206B1E5FE3F";};
+
+
+std::string & cMes1Im::NameIm()
+{
+   return mNameIm;
+}
+
+const std::string & cMes1Im::NameIm()const 
+{
+   return mNameIm;
+}
+
+
+cTplValGesInit< double > & cMes1Im::PrecPointeByIm()
+{
+   return mPrecPointeByIm;
+}
+
+const cTplValGesInit< double > & cMes1Im::PrecPointeByIm()const 
+{
+   return mPrecPointeByIm;
+}
+
+
+std::list< cOnePatch1I > & cMes1Im::OnePatch1I()
+{
+   return mOnePatch1I;
+}
+
+const std::list< cOnePatch1I > & cMes1Im::OnePatch1I()const 
+{
+   return mOnePatch1I;
+}
+
+void  BinaryUnDumpFromFile(cMes1Im & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameIm(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.PrecPointeByIm().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.PrecPointeByIm().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.PrecPointeByIm().SetNoInit();
+  } ;
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cOnePatch1I aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.OnePatch1I().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cMes1Im & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameIm());
+    BinaryDumpInFile(aFp,anObj.PrecPointeByIm().IsInit());
+    if (anObj.PrecPointeByIm().IsInit()) BinaryDumpInFile(aFp,anObj.PrecPointeByIm().Val());
+    BinaryDumpInFile(aFp,(int)anObj.OnePatch1I().size());
+    for(  std::list< cOnePatch1I >::const_iterator iT=anObj.OnePatch1I().begin();
+         iT!=anObj.OnePatch1I().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cMes1Im & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Mes1Im",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameIm"),anObj.NameIm())->ReTagThis("NameIm"));
+   if (anObj.PrecPointeByIm().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("PrecPointeByIm"),anObj.PrecPointeByIm().Val())->ReTagThis("PrecPointeByIm"));
+  for
+  (       std::list< cOnePatch1I >::const_iterator it=anObj.OnePatch1I().begin();
+      it !=anObj.OnePatch1I().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("OnePatch1I"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cMes1Im & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NameIm(),aTree->Get("NameIm",1)); //tototo 
+
+   xml_init(anObj.PrecPointeByIm(),aTree->Get("PrecPointeByIm",1)); //tototo 
+
+   xml_init(anObj.OnePatch1I(),aTree->GetAll("OnePatch1I",false,1));
+}
+
+std::string  Mangling( cMes1Im *) {return "06A8A77ADD2861C9FD3F";};
+
+
+std::list< cMes1Im > & cSetOfPatches::Mes1Im()
+{
+   return mMes1Im;
+}
+
+const std::list< cMes1Im > & cSetOfPatches::Mes1Im()const 
+{
+   return mMes1Im;
+}
+
+void  BinaryUnDumpFromFile(cSetOfPatches & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cMes1Im aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Mes1Im().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cSetOfPatches & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.Mes1Im().size());
+    for(  std::list< cMes1Im >::const_iterator iT=anObj.Mes1Im().begin();
+         iT!=anObj.Mes1Im().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cSetOfPatches & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"SetOfPatches",eXMLBranche);
+  for
+  (       std::list< cMes1Im >::const_iterator it=anObj.Mes1Im().begin();
+      it !=anObj.Mes1Im().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Mes1Im"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cSetOfPatches & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Mes1Im(),aTree->GetAll("Mes1Im",false,1));
+}
+
+std::string  Mangling( cSetOfPatches *) {return "CFF6AF33D27B94C1FD3F";};
+
 // };

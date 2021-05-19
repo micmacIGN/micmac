@@ -112,7 +112,7 @@ class cApply_CreateEpip_main
       bool   mDebug;
       std::string mPostMasq;
       std::string mPostIm;
-	  std::string mNameHom;
+      std::string mNameHom;
       bool mExpTxt;
 	  
       cBasicGeomCap3D *  mGenI1;
@@ -212,10 +212,23 @@ void  cApply_CreateEpip_main::IntervZAddIm(cBasicGeomCap3D * aGeom)
 {
     if (aGeom->AltisSolMinMaxIsDef())
     {
-        mIntervZIsDef = true;
         Pt2dr aPZ =aGeom->GetAltiSolMinMax();
-        mZMin= ElMin(mZMin,aPZ.x);
-        mZMax= ElMax(mZMax,aPZ.y);
+        if (mIntervZIsDef)
+        {
+           // mZMin= ElMin(mZMin,aPZ.x);
+           // mZMax= ElMax(mZMax,aPZ.y);
+
+           // Modif MPD : sinon interv Z par union depasse 
+           mZMin= ElMax(mZMin,aPZ.x);
+           mZMax= ElMin(mZMax,aPZ.y);
+           ELISE_ASSERT(mZMin<mZMax,"Empty Z Intervall");
+        }
+        else
+        {
+           mZMin= aPZ.x;
+           mZMax= aPZ.y;
+        }
+        mIntervZIsDef = true;
     }
 }
 
@@ -243,14 +256,6 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
 
     if (!EAMIsInit(&mIProf))
        mIProf = aG1->GetVeryRoughInterProf() / 100.0;
-
-/*
-if (MPD_MM())
-{
-    std::cout << "aIProfaIProf " << aIProf << "\n";
-    aIProf = 1/ 10000.0;
-}
-*/
 
 
     // aEps avoid points to be too close to limits
@@ -303,6 +308,9 @@ if (MPD_MM())
                           double aPds = (aKZ+mNbZ) / double(2*mNbZ);  // Standard weithin, betwen 0 and 1
                           if (isZRand)  // if additionnal add a random
                               aPds = NRrandom3();
+                           // To avoid border of interval and pb with PIsVisibleInImage
+                          double aEps = 1e-3;
+                          aPds = ElMax(aEps,ElMin(1-aEps,aPds));
                           aPT2 = aG1->ImEtZ2Terrain(aPIm1,mZMin*aPds + mZMax * (1-aPds));
                      }
                      else
@@ -969,6 +977,7 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       }
       else
       {
+          // MPD : c'est la qu'on intervient pour le calcul du modele epipolaiez
           aPack = mICNM->StdPackHomol(mNameHom,mName1,mName2);
           if (EAMIsInit(&mNbCalcAutoDir))
           {
@@ -1163,7 +1172,7 @@ void cApply_CreateEpip_main::MakeAppuis
 
 cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mDegre     (-1),
-   mNbZ       (1),
+   mNbZ       (2),  // One more precaution ...
    mNbXY      (100),
    mNbZRand   (1),
    mForceGen  (false),

@@ -17,6 +17,9 @@ class cMMVII_Appli;
 class cColStrAObl;
 class cColStrAOpt;
 typedef std::pair<std::string,std::string> t2S;
+class cAppliBenchAnswer; // With this class, an Appli indicate how it deal with Bench
+
+
 
 
 
@@ -241,7 +244,9 @@ class cMMVII_Ap_CPU
     protected :
          tTime         mT0 ;       ///< More or less creation time
          int           mPid;       ///< Processus id
-         int           mNbProcSys; ///< Number of processor on the system
+         int           mNbProcSystem; ///< Number of processor on the system
+         int           mNbProcAllowed; ///< Number of processor really allowed
+         float         mMulNbInMk; ///< in a Mkfile we will allow "mNbProcSys * mMulNbInMk" task
          std::string   mStrIdTime;   ///< Make more a less a unique id  Sec + 1O-4 sec for hour 0
          cTimerSegm                                mTimeSegm;  ///<  To have a global time Segm
 };
@@ -308,22 +313,25 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cMultipleOfs & HelpOut();
         cMultipleOfs & ErrOut();
 
-        ///< External call sys : use GlobalSysCall + register the command in log files
+        /// External call sys : use GlobalSysCall + register the command in log files
         int ExtSysCall(const std::string & aCom, bool SVP);
 
 
         /// MMVII call itself
         int   ExeCallMMVII(const cSpecMMVII_Appli & aCom,const cColStrAObl&,const cColStrAOpt&,bool ByLineCom=true); 
         void  ExeMultiAutoRecallMMVII
-                                (  const std::string & aNameOpt  ,  //!  Name of parameter to substitue
+                                (  const std::string & aNameOpt  ,  //!  Name of parameter to substitue, if mandatory "0", "1" ....
                                    const std::vector<std::string> &  LVals, //! List of value for each process
                                    const cColStrAOpt &  aLSubst = cColStrAOpt::Empty,
                                    eTyModeRecall = eTyModeRecall::eTMR_Parall
                                  ); ///< MMVII reccall the same command itself
 
 
-        int ExeComSerial(const std::list<cParamCallSys> &);  ///< 1 after 1
-        int ExeComParal(const std::list<cParamCallSys> &);   ///< 4 now serial, soon paral with Make ?
+        int ExeComSerial(const std::list<cParamCallSys> &);    ///< 1 after 1
+        int ExeComParal(const std::list<cParamCallSys> &);     ///< soon paral with Make for now (other to see ...)
+        int ExeComParal(const std::list<std::string> & aLCom); ///< in paral for any command; cut in pack and call ExeOnePackComParal
+        int ExeOnePackComParal(const std::list<std::string> & aLCom); ///< really run in paral for any command
+
 
 
         cColStrAObl& StrObl();
@@ -340,11 +348,17 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static bool        OutV2Format() ;  ///<  Do we write in V2 Format
 
         void InitParam();  ///< Parse the parameter list
+        void SetNot4Exe(); ///< Indicate that the appli was not fully initialized
 
+        const std::string & DirProject()   const;   ///<  Accessor to directoy of project
         const std::string & TopDirMMVII()   const;   ///<  main directory of MMVII , upon include,src ..
         const std::string & TmpDirTestMMVII()   const;   ///< where to put binary file for bench, Export for global bench funtion
         const std::string & InputDirTestMMVII() const;   ///<  where are input files for bench   , Export for global bench funtion
 
+        ///  Name of folder specific to the command
+        std::string  DirTmpOfCmd(eModeCreateDir=eModeCreateDir::CreateIfNew) const;   
+        ///  Name of folder specific to the process
+        std::string  DirTmpOfProcess(eModeCreateDir=eModeCreateDir::ErrorIfExist) const; 
 
         //  ===========  Name for Caracteristique points files  , Tile -1,-1 mean no tile
   
@@ -359,7 +373,10 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         int   LevelCall() const;     ///< Accessor to mLevelCall
 
+        virtual cAppliBenchAnswer BenchAnswer() const; ///< Has it a bench, default : no
+        virtual int  ExecuteBench(cParamExeBench &) ; ///< Execute bench, higher lev, higher test, Default Error, Appli is not benchable
     protected :
+
         /// Constructor, essenntially memorize command line and specifs
         cMMVII_Appli(const std::vector<std::string> & aVArgcv, const cSpecMMVII_Appli &,tVSPO=EmptyVSPO);
         /// Second step of construction, parse the command line and initialize values
@@ -400,6 +417,8 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
                                  ); ///< MMVII reccall the same command itself
 
         void                                      GenerateHelp(); ///< In Help mode print the help
+        void PrintAdditionnalComments(tPtrArg2007 anArg); ///< Print the optional comm in mode glob help
+
         void                                      InitProject();  ///< Create Dir (an other ressources) that may be used by all processe
         void                                      LogCommandIn(const std::string&,bool Main);  ///< Log command begin
         void                                      LogCommandOut(const std::string&,bool Main); ///< Log command end
@@ -417,6 +436,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::vector<std::string>                  mArgv;      ///< copy of local copy ArgArgv to be safe
         int                                       mArgc;          ///< memo argc
         const cSpecMMVII_Appli &                  mSpecs;         ///< The basic specs
+        bool                                      mForExe; ///< To distinguish not fully initialized in X::~X()
 
         std::string                               mDirBinMMVII;   ///< where is the binary
         std::string                               mTopDirMMVII;   ///< directory  mother of src/ bin/ ...
@@ -427,6 +447,7 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         std::string                               mDirMicMacv1;   ///< Dir where is located MicMac V1
         std::string                               mDirMicMacv2;   ///< Dir where is located MicMac V2
         std::string                               mDirProject;    ///< Directory of the project (./ if no way to find it)
+        std::string                               mFileLogTop;    ///< File for login the top command 
         std::string                               mDirTestMMVII;  ///< Directory for read/write bench files
         std::string                               mTmpDirTestMMVII;  ///< Tmp files (not versionned)
         std::string                               mInputDirTestMMVII;  ///< Input files (versionned on git)

@@ -1663,12 +1663,14 @@ cLoadedImage::cLoadedImage
    mTImPC           (mImPC)
 {
 
+
    ELISE_COPY
    (
        mMasqIm.all_pts(),
        trans(aFMasq,aBoxIm._p0),
        mMasqIm.out()
    );
+
 
    const cEtapeMEC & anEt = anAppli.CurEtape()->EtapeMEC();
    for 

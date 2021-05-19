@@ -2,6 +2,8 @@
 
 namespace MMVII
 {
+bool NeverHappens() {return false;}
+
 
 int GlobSysCall(const std::string & aCom, bool SVP) 
 {
@@ -12,6 +14,34 @@ int GlobSysCall(const std::string & aCom, bool SVP)
    }
    return aResult;
 }
+
+
+int GlobParalSysCallByMkF(const std::string & aNameMkF,const std::list<std::string> & aListCom,int aNbProcess,bool SVP)
+{
+   //RemoveFile(const  std::string & aFile,bool SVP)
+
+   cMMVII_Ofs  aOfs(aNameMkF,false);
+   int aNumTask=0;
+   std::string aStrAllTask = "all : ";
+   for (const auto & aNameCom : aListCom)
+   {
+       std::string aNameTask = "Task_" + ToStr(aNumTask);
+       aStrAllTask += BLANK  + aNameTask;
+       aOfs.Ofs() << aNameTask << " :\n";
+       aOfs.Ofs() << "\t" << aNameCom << "\n";
+       aNumTask++;
+   }
+   aOfs.Ofs() << aStrAllTask << "\n";
+   aOfs.Ofs() << "\t\n";
+   aOfs.Ofs().close();
+
+   std::string aComMake = "make all -f " +  aNameMkF + " -j" + ToStr(aNbProcess);
+
+   return GlobSysCall(aComMake,false);
+}
+
+
+
 
 #if   (THE_MACRO_MMVII_SYS==MMVII_SYS_L)
 const std::string TheMMVII_SysName = "Gnu/Linux";

@@ -2149,6 +2149,13 @@
 
 </Xml_ParamGraphStereopolis>
 
+<enum Name="eRANSAC_HistoP">
+    <eR3D>      </eR3D>
+    <eR2D>      </eR2D>
+    <eNbTypeRHP></eNbTypeRHP>
+</enum>
+
+
 <Verbatim File=".h.cpp">
 // };
 </Verbatim>

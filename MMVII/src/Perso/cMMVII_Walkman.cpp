@@ -152,10 +152,10 @@ int cAppli_Walkman::Exe()
 {
    cSaveWalkman aSW;
    ReadFromFileWithDef(aSW,mDirProject+mNameSauv);
-   // std::vector<std::string> aVN = RecGetFilesFromDir(mDirProject,BoostAllocRegex(mPat),0,10);
+   // std::vector<std::string> aVN = RecGetFilesFromDir(mDirProject,AllocRegex(mPat),0,10);
 
    // Create mMapE from file read on folder
-   for (const auto & aName :  RecGetFilesFromDir(mDirProject,BoostAllocRegex(mPat),0,10))
+   for (const auto & aName :  RecGetFilesFromDir(mDirProject,AllocRegex(mPat),0,10))
    {
        cOneEntryWalkMan anEntry(aName,SizeFile(aName));
        mMapE[FileOfPath(aName)] = anEntry;

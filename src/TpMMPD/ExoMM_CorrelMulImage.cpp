@@ -360,7 +360,8 @@ void cMCI_Ima::CalculImOrthoOfProf(double aProf,cMCI_Ima * aMaster)
         }
     }
 
-    if ( 0 &&  (mName=="Abbey-IMG_0250.jpg"))
+    //if ( 0 &&  (mName=="Abbey-IMG_0250.jpg"))
+	if (1)
     {
         static Video_Win * aW = Video_Win::PtrWStd(Pt2di(1200,800));
         ELISE_COPY(mImOrtho.all_pts(),mImOrtho.in(),aW->ogray());

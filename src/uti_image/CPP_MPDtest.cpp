@@ -1662,6 +1662,34 @@ int SysCall_main (int argc,char** argv)
 }
 
 
+int CPP_DebugAI4GeoMasq (int argc,char** argv)
+{
+   std::string aName("./Pyram/MasqIm_Dz1_M56685x56681_EpipIm-RPC-deg1-Renamed-adj-22APR15WV03.tif-19DEC15WV03.tif_Masq.tif");
+   Tiff_Im aTifM(aName.c_str());
+
+   double aV0;
+   Pt2di aSz(1060,1129), aP0(0,38037);
+   ElInitArgMain
+   (
+        argc,argv,
+        LArgMain()  ,
+        LArgMain()  <<  EAM(aSz,"Sz",true,"Sz of rect, def=1060,1129")
+                    <<  EAM(aP0,"P0",true,"P0 of Box, def = 0,38037")
+   );
+
+   std::cout << "Sz of file " << aTifM.sz() << "\n";
+
+   ELISE_COPY
+   (
+       rectangle(Pt2di(0,0),aSz),
+       trans(aTifM.in(),aP0),
+       sigma(aV0)
+   );
+
+
+    return EXIT_SUCCESS;
+}
+
 
 /*Footer-MicMac-eLiSe-25/06/2007
 

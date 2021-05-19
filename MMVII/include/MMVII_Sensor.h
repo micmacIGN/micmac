@@ -15,6 +15,7 @@ namespace MMVII
 */
 
 /// Base class for all image geometry, laser
+/*
 class cGeomSensor : public cMapping<3,2>
 {
    public :
@@ -38,6 +39,7 @@ class cPoseStenope : public cGeomSensor
    private :
        cPt3dr  mC;
 };
+*/
 
 
 };

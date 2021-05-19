@@ -1,0 +1,161 @@
+<!--
+    A Pattern file for using MicMac in post-sismic deformation
+-->
+<ParamMICMAC>
+    <DicoLoc>
+         <Symb> Im1=Epi_Im1_Left_DSC_3115_DSC_3116.tif  </Symb>
+         <Symb> Im2=Epi_Im2_Right_DSC_3115_DSC_3116.tif  </Symb>
+
+         <Symb> DirMEC=MEC-BasicEpip/</Symb>
+         <Symb> Pyr=Pyram/</Symb>
+         <Symb> UseDequant=false </Symb>
+
+         <Symb> Purge=true </Symb>
+         <Symb> SzW=2 </Symb>
+         <Symb> NbDir=7 </Symb>
+         <Symb> Inc=800  </Symb>
+         <Symb> Regul= 0.1 </Symb>
+         <Symb> Px1Moy=0 </Symb>
+         <Symb> PenteMax=1 </Symb>
+         <Symb> DefCor=0.3 </Symb>
+         <Symb> Interpolateur=eInterpolBiLin </Symb>
+
+         <Symb>  NbProc= ${MMNbProc} </Symb>
+
+         <eSymb>  WithZ512= SupEq ${ZoomInit} 512 </eSymb>
+         <eSymb>  WithZ256= SupEq ${ZoomInit} 256 </eSymb>
+         <eSymb>  WithZ128= SupEq ${ZoomInit} 128 </eSymb>
+         <eSymb>  WithZ64= SupEq ${ZoomInit}  64  </eSymb>
+         <eSymb>  WithZ32= SupEq ${ZoomInit}  32  </eSymb>
+         <eSymb>  WithZ16= SupEq ${ZoomInit}  16  </eSymb>
+         <eSymb>  WithZ8= SupEq ${ZoomInit}   8   </eSymb>
+         <eSymb>  WithZ4= SupEq ${ZoomInit}   4   </eSymb>
+         <eSymb>  WithZ2= SupEq ${ZoomInit}   2   </eSymb>
+
+    </DicoLoc>
+<!-- *************************************************************
+Parametres lies au terrain "physique", independamment de la prise de vue
+  *************************************************************-->
+    <Section_Terrain>
+      <IntervParalaxe>
+        <Px1IncCalc>  ${Inc}  </Px1IncCalc>
+        <Px1Moy >  ${Px1Moy}    </Px1Moy>
+      </IntervParalaxe>
+
+      <Planimetrie>
+      </Planimetrie>
+
+    </Section_Terrain>
+
+ <!-- *************************************************************
+Parametres lies a la prise de vue, independamment de son exploitation
+par le correlateur
+    ************************************************************* -->
+    <Section_PriseDeVue>
+        <GeomImages> eGeomImage_EpipolairePure </GeomImages>
+        <Images>
+            <Im1> ${Im1} </Im1>
+            <Im2> ${Im2} </Im2>
+        </Images>
+        <MasqImageIn>
+             <OneMasqueImage>
+                <PatternSel>  (.*)\.(tif|png|jpg|...)  </PatternSel>
+                <NomMasq>  $1_Masq.tif     </NomMasq>
+             </OneMasqueImage>
+             <AcceptNonExistingFile> false </AcceptNonExistingFile>
+        </MasqImageIn>
+
+    </Section_PriseDeVue>
+
+<!--  *************************************************************
+Parametres reglant le comportement de l'algo de mise en correspondance
+
+La premiere etape doit obligatoirement avoir le champs
+resolution a -1. Elle donne les valeurs par defaut et ne
+sera pas executee.
+
+L'ordre des resolutions : les plus basses aux plus grandes.
+************************************************************* -->
+    <Section_MEC>
+        <ChantierFullImage1> true </ChantierFullImage1>
+
+
+        <EtapeMEC><!-- Etape de Mise En Correspondance -->
+            <DeZoom > -1 </DeZoom> <!-- le seul fils obligatoire a toutes les etapes-->
+            <SzW> ${SzW}   </SzW> <!-- la taille de la fenetre de correlation [-4,4]x[-4,4]-->
+
+
+            <AlgoRegul> eAlgo2PrgDyn </AlgoRegul>
+            <ModulationProgDyn Portee="Globale">
+                <EtapeProgDyn>
+                    <ModeAgreg>    ePrgDAgrSomme   </ModeAgreg>
+                    <NbDir>      ${NbDir}     </NbDir>
+                </EtapeProgDyn>
+                <Px1PenteMax> ${PenteMax} </Px1PenteMax>
+                <ArgMaskAuto>
+                   <ValDefCorrel> ${DefCor} </ValDefCorrel>
+                   <CostTrans> 2.0 </CostTrans>
+                   <ReInjectMask> false </ReInjectMask>
+                </ArgMaskAuto>
+            </ModulationProgDyn>
+            <Px1Regul>  ${Regul}    </Px1Regul>
+
+            <GenImagesCorrel> true </GenImagesCorrel>
+
+            <ModeInterpolation> ${Interpolateur} </ModeInterpolation>
+
+            <Px1DilatAlti>  2    </Px1DilatAlti>
+            <Px1DilatPlani> 2    </Px1DilatPlani>
+            <Px1Pas>        1  </Px1Pas>
+        </EtapeMEC>
+
+        <#WHEN  VTEST=${WithZ512}> <EtapeMEC> <DeZoom > 512 </DeZoom> </EtapeMEC> </#WHEN>
+        <#WHEN  VTEST=${WithZ256}> <EtapeMEC> <DeZoom > 256 </DeZoom> </EtapeMEC> </#WHEN>
+        <#WHEN  VTEST=${WithZ128}> <EtapeMEC> <DeZoom > 128 </DeZoom> </EtapeMEC> </#WHEN>
+        <#WHEN  VTEST=${WithZ64}> <EtapeMEC> <DeZoom >  64 </DeZoom> </EtapeMEC> </#WHEN>
+        <#WHEN  VTEST=${WithZ32}> <EtapeMEC> <DeZoom >  32 </DeZoom> </EtapeMEC> </#WHEN>
+        <#WHEN  VTEST=${WithZ16}> <EtapeMEC> <DeZoom >  16 </DeZoom> </EtapeMEC> </#WHEN>
+        <#WHEN  VTEST=${WithZ8}>  <EtapeMEC> <DeZoom >  8  </DeZoom> </EtapeMEC> </#WHEN>
+        <#WHEN  VTEST=${WithZ4}>  <EtapeMEC> <DeZoom >  4  </DeZoom> </EtapeMEC> </#WHEN>
+        <#WHEN  VTEST=${WithZ2}>  <EtapeMEC> <DeZoom >  2  </DeZoom> </EtapeMEC> </#WHEN>
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+        </EtapeMEC>
+
+        <EtapeMEC>
+           <DeZoom > 1 </DeZoom>
+           <Px1Pas>   0.5  </Px1Pas>
+        </EtapeMEC>
+
+        <EtapeMEC>
+            <DeZoom >  1  </DeZoom>
+            <Px1Pas>   1.0     </Px1Pas>
+            <AlgoRegul> eAlgoDequant </AlgoRegul>
+        </EtapeMEC>
+    </Section_MEC>
+
+
+    <Section_Results >
+        <GeomMNT> eGeomPxBiDim </GeomMNT>
+    </Section_Results>
+
+   <Section_WorkSpace >
+      <WorkDir >  ./ </WorkDir>
+      <PurgeMECResultBefore>  ${Purge} </PurgeMECResultBefore>
+      <TmpMEC>    ${DirMEC} </TmpMEC>
+      <TmpResult> ${DirMEC} </TmpResult>
+      <TmpPyr>  ${Pyr}  </TmpPyr>
+      <ByProcess>  ${NbProc} </ByProcess>
+
+      <NbCelluleMax> 8e7 </NbCelluleMax>
+      <SzRecouvrtDalles> 50 </SzRecouvrtDalles>
+      <SzDalleMin> 500 </SzDalleMin>
+      <DefTileFile>100000</DefTileFile>
+  </Section_WorkSpace>
+
+    <Section_Vrac> </Section_Vrac>
+
+
+
+</ParamMICMAC>

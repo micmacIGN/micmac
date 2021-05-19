@@ -9044,5 +9044,146 @@ std::string  Mangling( cXml_SetMeasureGlob3DLine *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_One3DLine
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_One3DLine & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameLine3D();
+        const std::string & NameLine3D()const ;
+
+        Pt3dr & Pt();
+        const Pt3dr & Pt()const ;
+
+        Pt3dr & Vec();
+        const Pt3dr & Vec()const ;
+    private:
+        std::string mNameLine3D;
+        Pt3dr mPt;
+        Pt3dr mVec;
+};
+cElXMLTree * ToXMLTree(const cXml_One3DLine &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_One3DLine &);
+
+void  BinaryUnDumpFromFile(cXml_One3DLine &,ELISE_fp &);
+
+std::string  Mangling( cXml_One3DLine *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_Set3DLine
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_Set3DLine & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXml_One3DLine > & AllLines();
+        const std::list< cXml_One3DLine > & AllLines()const ;
+    private:
+        std::list< cXml_One3DLine > mAllLines;
+};
+cElXMLTree * ToXMLTree(const cXml_Set3DLine &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_Set3DLine &);
+
+void  BinaryUnDumpFromFile(cXml_Set3DLine &,ELISE_fp &);
+
+std::string  Mangling( cXml_Set3DLine *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cOnePatch1I
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cOnePatch1I & anObj,cElXMLTree * aTree);
+
+
+        cTplValGesInit< double > & PrecH();
+        const cTplValGesInit< double > & PrecH()const ;
+
+        std::string & NamePatch();
+        const std::string & NamePatch()const ;
+
+        cXmlHomogr & PatchH();
+        const cXmlHomogr & PatchH()const ;
+    private:
+        cTplValGesInit< double > mPrecH;
+        std::string mNamePatch;
+        cXmlHomogr mPatchH;
+};
+cElXMLTree * ToXMLTree(const cOnePatch1I &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cOnePatch1I &);
+
+void  BinaryUnDumpFromFile(cOnePatch1I &,ELISE_fp &);
+
+std::string  Mangling( cOnePatch1I *);
+
+class cMes1Im
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cMes1Im & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameIm();
+        const std::string & NameIm()const ;
+
+        cTplValGesInit< double > & PrecPointeByIm();
+        const cTplValGesInit< double > & PrecPointeByIm()const ;
+
+        std::list< cOnePatch1I > & OnePatch1I();
+        const std::list< cOnePatch1I > & OnePatch1I()const ;
+    private:
+        std::string mNameIm;
+        cTplValGesInit< double > mPrecPointeByIm;
+        std::list< cOnePatch1I > mOnePatch1I;
+};
+cElXMLTree * ToXMLTree(const cMes1Im &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cMes1Im &);
+
+void  BinaryUnDumpFromFile(cMes1Im &,ELISE_fp &);
+
+std::string  Mangling( cMes1Im *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cSetOfPatches
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cSetOfPatches & anObj,cElXMLTree * aTree);
+
+
+        std::list< cMes1Im > & Mes1Im();
+        const std::list< cMes1Im > & Mes1Im()const ;
+    private:
+        std::list< cMes1Im > mMes1Im;
+};
+cElXMLTree * ToXMLTree(const cSetOfPatches &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cSetOfPatches &);
+
+void  BinaryUnDumpFromFile(cSetOfPatches &,ELISE_fp &);
+
+std::string  Mangling( cSetOfPatches *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 // };
 #endif // Define_NotSupIm

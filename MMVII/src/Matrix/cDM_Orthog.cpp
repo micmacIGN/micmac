@@ -11,6 +11,56 @@ using namespace Eigen;
 namespace MMVII
 {
 
+
+template <class Type> cResulSVDDecomp<Type> cDenseMatrix<Type>::SVD() const
+{
+   this->CheckSquare(*this);  // this for scope, method is static
+   int aNb = Sz().x();
+   cResulSVDDecomp<Type> aRes(aNb);
+
+   tConst_EW aWrap(*this);
+   JacobiSVD<typename tNC_EW::tEigenMat > aJacSVD(aWrap.EW(),ComputeThinU | ComputeThinV);
+
+   cNC_EigenMatWrap<Type> aWrap_U(aRes.mMatU);
+   aWrap_U.EW() = aJacSVD.matrixU();
+
+   cNC_EigenMatWrap<Type> aWrap_V(aRes.mMatV);
+   aWrap_V.EW() = aJacSVD.matrixV();
+
+   cNC_EigenColVectWrap<Type>  aWrapSVal(aRes.mSingularValues);
+   aWrapSVal.EW() =  aJacSVD.singularValues();
+
+   return aRes;
+}
+
+template <class Type> cResulSVDDecomp<Type>::cResulSVDDecomp(int aNb) :
+   mSingularValues (aNb),
+   mMatU           (aNb,aNb),
+   mMatV           (aNb,aNb)
+{
+}
+
+template <class Type> const cDenseVect<Type> & cResulSVDDecomp<Type>::SingularValues() const
+{
+   return mSingularValues;
+}
+
+template <class Type> const cDenseMatrix<Type> & cResulSVDDecomp<Type>::MatU() const
+{
+   return mMatU;
+}
+template <class Type> const cDenseMatrix<Type> & cResulSVDDecomp<Type>::MatV() const
+{
+   return mMatV;
+}
+
+template <class Type> cDenseMatrix<Type>  cResulSVDDecomp<Type>::OriMatr() const
+{
+  return mMatU * cDenseMatrix<Type>::Diag(mSingularValues) * mMatV.Transpose();
+}
+
+
+
 /* ============================================= */
 /*      cResulSymEigenValue<Type>                */
 /* ============================================= */
@@ -189,6 +239,35 @@ template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::Solve(const tDV & aV
     return aRes;
 }
 
+template <class Type> cDenseVect<Type>  cDenseMatrix<Type>::SolveLine(const tDV & aVect,eTyEigenDec aTED) const
+{
+    tMat::CheckSquare(*this);
+    tMat::TplCheckSizeY(aVect.Sz());
+
+    tDV aRes(aVect.Sz());
+
+    cConst_EigenTransposeMatWrap aWThis(*this);
+    cConst_EigenColVectWrap<Type> aWVect(aVect);
+    cNC_EigenColVectWrap<Type> aWRes(aRes);
+
+    if (aTED == eTyEigenDec::eTED_PHQR)
+    {
+       aWRes.EW() = aWThis.EW().colPivHouseholderQr().solve(aWVect.EW());
+    }
+    else if (aTED == eTyEigenDec::eTED_LLDT)
+    {
+       aWRes.EW() = aWThis.EW().ldlt().solve(aWVect.EW());
+    }
+    else
+    {
+        MMVII_INTERNAL_ASSERT_always(false,"Unkown type eigen decomposition");
+    }
+
+    return aRes;
+}
+
+
+
 
 
 /*
@@ -348,6 +427,7 @@ template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Typ
 
 
 #define INSTANTIATE_ORTHOG_DENSE_MATRICES(Type)\
+template  class  cResulSVDDecomp<Type>;\
 template  class  cStrStat2<Type>;\
 template  class  cDenseMatrix<Type>;\
 template  class  cResulSymEigenValue<Type>;\

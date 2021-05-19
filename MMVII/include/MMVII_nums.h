@@ -7,7 +7,7 @@ namespace MMVII
 template <class Type> bool ValidFloatValue(const Type & aV)
 {
    // return ! (   ((boost::math::isnan)(aV)) ||   ((boost::math::isinf)(aV)));
-   return (boost::math::isfinite)(aV) ;
+   return (std::isfinite)(aV) ;
 }
 template <class Type> bool ValidInvertibleFloatValue(const Type & aV)
 {
@@ -31,12 +31,14 @@ std::vector<double> VRandUnif_0_1(int aNb); ///<  Uniform distribution in 0-1
 double RandUnif_C();   ///<  Uniform distribution in  -1 1
 bool   HeadOrTail();   ///< 1/2 , french "Pile ou Face"
 double RandUnif_N(int aN); ///< Uniform disrtibution in [0,N[ 
+double RandUnif_C_NotNull(double aEps);   ///<  Uniform distribution in  -1 1, but abs > aEps
 
+/** Class for mapping object R->R */
 class cFctrRR
 {  
    public :
-      virtual  double F (double) const;
-      static cFctrRR  TheOne;
+      virtual  double F (double) const;  ///< Default return 1.0
+      static cFctrRR  TheOne;  ///< the object return always 1
 };
 /// Random permutation , Higer Bias => Higer average rank
 std::vector<int> RandPerm(int aN,cFctrRR & aBias =cFctrRR::TheOne);
@@ -47,11 +49,6 @@ std::vector<int> RandNeighSet(int aK,int aN,const std::vector<int> & aSet);
 /// Complement of aSet in [0,1...., N[    ;  ]]
 std::vector<int> ComplemSet(int aN,const std::vector<int> & aSet);
 
-
-
-
-/// Eventualy free memory allocated for random generation
-void FreeRandom();
 
 /* ============ Definition of numerical type ================*/
 
@@ -252,6 +249,7 @@ template <> class tElemNumTrait<tINT8> : public tBaseNumTrait<tStdInt>
 template <> class tElemNumTrait<tREAL4> : public tBaseNumTrait<tStdDouble>
 {
     public :
+        static tREAL4 Accuracy() {return 1e-2;} 
         static bool   Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL4;}
         typedef tREAL4   tFloatAssoc;
@@ -259,6 +257,7 @@ template <> class tElemNumTrait<tREAL4> : public tBaseNumTrait<tStdDouble>
 template <> class tElemNumTrait<tREAL8> : public tBaseNumTrait<tStdDouble>
 {
     public :
+        static tREAL8 Accuracy() {return 1e-4;} 
         static bool   Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL8;}
         typedef tREAL8   tFloatAssoc;
@@ -266,6 +265,7 @@ template <> class tElemNumTrait<tREAL8> : public tBaseNumTrait<tStdDouble>
 template <> class tElemNumTrait<tREAL16> : public tBaseNumTrait<tREAL16>
 {
     public :
+        static tREAL16 Accuracy() {return 1e-6;} 
         static bool      Signed() {return true;} ///< Not usefull but have same interface
         static eTyNums   TyNum() {return eTyNums::eTN_REAL16;}
         typedef tREAL16  tFloatAssoc;
@@ -514,6 +514,34 @@ template <class TypeIndex,class TypeVal> class cWhitchMinMax
          cWhitchMin<TypeIndex,TypeVal> mMin;
          cWhitchMax<TypeIndex,TypeVal> mMax;
 };
+
+// This rather "strange" function returns a value true at frequence  as close as possible
+// to aFreq, and with the warantee that it is true for last index
+
+bool SignalAtFrequence(tREAL8 anIndex,tREAL8 aFreq,tREAL8  aCenterPhase);
+
+/*  ****************************************** */
+/*       Analytical function used with fisheye */
+/* ******************************************* */
+
+// Sinus cardinal with caution on tiny values
+template <typename Type> Type sinC(const Type & aTeta);
+template <typename Type> Type sinC(const Type & aTeta,const Type & aEps);
+
+  //  ----- Function used for equilinear fisheye ----
+
+   /// Arctan(x,y)/x  but stable when x->0,  !!! NOT C++ CONVENTION WHICH ARE atan2(y,x)
+template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y);
+  /// Derivate upon x of AtanXY_sX(x,y),  stable when x->0
+template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y);
+  /// Derivate upon y of AtanXY_sX(x,y),  noting to care  when x->0
+template <typename Type> Type DerYAtanXsY_sX(const Type & X,const Type & Y);
+
+   /// Same as AtanXY_sX but user fix the "tiny" value, used for bench
+template <typename Type> Type AtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
+   /// Same as DerXAtanXY_sX ...  ... bench
+template <typename Type> Type DerXAtanXsY_sX(const Type & X,const Type & Y,const Type & aEps);
+
 
 
 

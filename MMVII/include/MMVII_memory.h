@@ -104,10 +104,15 @@ class cMemManager
                aPtr = aPtr + aX0Prec-aX0New;
            return false;
         }
+        static void SetActiveMemoryCount(bool aVal);
+        static bool IsActiveMemoryCount();
     private :
 
         static cMemState mState;
+        static bool TheActiveMemoryCount;
 };
+
+
 
 
 /**
@@ -121,9 +126,23 @@ class  cMemCheck
          void * operator new    (size_t sz);
          void operator delete   (void * ptr) ;
 #if (The_MMVII_DebugLevel >= The_MMVII_DebugLevel_InternalError_tiny)
-         cMemCheck()  {TheNbObjLive++;}
-         cMemCheck(const cMemCheck &)  {TheNbObjLive++;}
-         ~cMemCheck() {TheNbObjLive--;  }
+         cMemCheck()  
+         {
+              mActiveNbObj=   cMemManager::IsActiveMemoryCount();
+              if (mActiveNbObj)
+              {
+                 TheNbObjLive++;
+              }
+         }
+         cMemCheck(const cMemCheck &)  : cMemCheck () {}
+         ~cMemCheck() 
+         {
+            if (mActiveNbObj)
+            {
+                 TheNbObjLive--;
+            }
+         }
+         bool mActiveNbObj; 
 #endif
          static int    NbObjLive();
       private :

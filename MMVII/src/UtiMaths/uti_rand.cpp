@@ -30,8 +30,9 @@ void AssertIsSetKN(int aK,int aN,const std::vector<int> &aSet)
   }
 }
 
-void Bench_Random()
+void OneBench_Random(cParamExeBench & aParam)
 {
+   // Generate subset at K element among N, check they are that
    for (int aTime=0 ; aTime< 100 ; aTime++)
    {
        int aNb = 10 + aTime/10;
@@ -40,18 +41,19 @@ void Bench_Random()
        AssertIsSetKN(aK,aNb,aSet);
        for (int aD=1 ; aD<=3 ; aD++)
        {
-          aSet = RandNeighSet(aD,aNb,aSet);
+          aSet = RandNeighSet(aD,aNb,aSet);  // Generate a set at distance D
           AssertIsSetKN(aK,aNb,aSet);
        }
    }
-   StdOut() << "Begin Bench_Random\n";
+   // StdOut() << "Begin Bench_Random\n";
    {
-      int aNb = 1e6;
-      std::vector<double> aVR;
+      int aNb = std::min(3e6,1e6 *(1+pow(aParam.Level(),1.5)));
+      std::vector<double> aVInit;
       for (int aK=0 ; aK< aNb ; aK++)
-          aVR.push_back(RandUnif_0_1());
+          aVInit.push_back(RandUnif_0_1());
 
-      std::sort(aVR.begin(),aVR.end());
+      std::vector<double> aVSorted = aVInit;
+      std::sort(aVSorted.begin(),aVSorted.end());
 
       double aDistMoy=0;
       double aDistMax=0;
@@ -59,13 +61,14 @@ void Bench_Random()
       double aCorrel10 = 0;
       for (int aK=0 ; aK< aNb ; aK++)
       {
-          double aD = std::abs(aVR[aK] - aK/double(aNb));
+          // Theoretically VSorted should converd to distrib X (cumul of uniform dist)
+          double aD = std::abs(aVSorted[aK] - aK/double(aNb));
           aDistMoy += aD;
           aDistMax = std::max(aD,aDistMax);
           if (aK!=0)
-             aCorrel += (aVR[aK]-0.5) * (aVR[aK-1]-0.5);
+             aCorrel += (aVInit[aK]-0.5) * (aVInit[aK-1]-0.5);
           if (aK>=10)
-             aCorrel10 += (aVR[aK]-0.5) * (aVR[aK-10]-0.5);
+             aCorrel10 += (aVInit[aK]-0.5) * (aVInit[aK-10]-0.5);
       }
       aDistMoy /= aNb;
       aCorrel /= aNb-1;
@@ -73,10 +76,23 @@ void Bench_Random()
       // Purely heuristique bound, on very unlikely day may fail
       MMVII_INTERNAL_ASSERT_bench(aDistMoy<1.0/sqrt(aNb),"Random Moy Test");
       MMVII_INTERNAL_ASSERT_bench(aDistMax<4.0/sqrt(aNb),"Random Moy Test");
+      MMVII_INTERNAL_ASSERT_bench(std::abs(aCorrel)  <0.5/sqrt(aNb),"Random Correl1 Test");
+      MMVII_INTERNAL_ASSERT_bench(std::abs(aCorrel10)<0.5/sqrt(aNb),"Random Correl10 Test");
 
       // => Apparently correlation is very high : 0.08 !! maybe change the generator ?
       
    }
+}
+
+void Bench_Random(cParamExeBench & aParam)
+{
+    if (! aParam.NewBench("Random")) return;
+
+    int aNb = std::min(5,1+aParam.Level()*2);
+    for (int aK=0 ; aK<aNb  ; aK++)
+       OneBench_Random(aParam);
+
+    aParam.EndBench();
 }
 
 
@@ -89,15 +105,13 @@ class cRandGenerator : public cMemCheck
        virtual double Unif_0_1() = 0;
        virtual int    Unif_N(int aN) = 0;
        static cRandGenerator * TheOne();
-       virtual ~cRandGenerator(){};
+       static void Close();
+       static void Open();
+       virtual ~cRandGenerator() {};
     private :
        static cRandGenerator * msTheOne;
 };
 
-void FreeRandom() 
-{
-   delete cRandGenerator::TheOne();
-}
 double RandUnif_0_1()
 {
    return cRandGenerator::TheOne()->Unif_0_1();
@@ -117,6 +131,14 @@ double RandUnif_C()
    return (RandUnif_0_1()-0.5) * 2.0;
 }
 
+double RandUnif_C_NotNull(double aEps)
+{
+   double aRes = RandUnif_C();
+   while (std::abs(aRes)<aEps)
+         aRes = RandUnif_C();
+   return aRes;
+}
+
 double RandUnif_N(int aN)
 {
    return cRandGenerator::TheOne()->Unif_N(aN);
@@ -128,29 +150,24 @@ bool HeadOrTail()
 }
 
 
-/*
-class cFctrRR
-{
-   public :
-      virtual  double F (double) const;
-      static cFctrRR  TheOne;
-};
-*/
 
 cFctrRR cFctrRR::TheOne;
 double cFctrRR::F(double) const {return 1.0;}
 
-std::vector<int> RandSet(int aK,int aN,cFctrRR & aBias )
+std::vector<int> RandSet(int aSzSubSet,int aSzSetGlob,cFctrRR & aBias )
 {
-    MMVII_INTERNAL_ASSERT_strong(aK<=aN,"RandSet");
+    MMVII_INTERNAL_ASSERT_strong(aSzSubSet<=aSzSetGlob,"RandSet");
+   //  in VP : x->K , y -> priority
     std::vector<cPt2dr> aVP;
-    for (int aK=0; aK<aN ; aK++)
+    for (int aK=0; aK<aSzSetGlob ; aK++)
        aVP.push_back(cPt2dr(aK,aBias.F(aK)*RandUnif_0_1()));
+
     // Sort on y()
     std::sort(aVP.begin(),aVP.end(),CmpCoord<double,2,1>);
   
+    // Extract the aSzSubSet "best" values
     std::vector<int> aRes;
-    for (int aJ=0 ; aJ<aK ; aJ++)
+    for (int aJ=0 ; aJ<aSzSubSet ; aJ++)
        aRes.push_back(round_ni(aVP.at(aJ).x()));
     return aRes;
 }
@@ -247,16 +264,39 @@ int    cRand19937::Unif_N(int aN)
 }
 
 
-
 cRandGenerator * cRandGenerator::msTheOne = nullptr;
+
+// This variable allow to check that no random is allocated before the main appli is created
+void cRandGenerator::Open()
+{
+    static bool FirstCall=true;
+    MMVII_INTERNAL_ASSERT_bench(FirstCall,"Multiple Open Random");
+    msTheOne = new cRand19937(cMMVII_Appli::SeedRandom());
+    FirstCall = false;
+}
+void OpenRandom()
+{
+    cRandGenerator::Open();
+}
+
+// static int aCPT = 0; 
 
 cRandGenerator * cRandGenerator::TheOne()
 {
-   if (msTheOne==0)
-      msTheOne = new cRand19937(cMMVII_Appli::SeedRandom());
+   MMVII_INTERNAL_ASSERT_bench(msTheOne!=nullptr,"Not Open Random");
    return msTheOne;
 }
 
+void cRandGenerator::Close()
+{
+   MMVII_INTERNAL_ASSERT_bench(msTheOne!=nullptr,"Multiple Close Random");
+   delete msTheOne;
+   msTheOne = nullptr;
+}
+void CloseRandom()
+{
+    cRandGenerator::Close();
+}
 
 };
 

@@ -31,8 +31,9 @@ const std::string TmpMMVIIDirPCar        = TmpMMVIIDirPrefix + "-PCar/";
 const std::string MMVIITestDir       = "MMVII-TestDir/";
 const std::string TmpMMVIIProcSubDir = "Process/";
 
+const std::string BLANK = " ";
 // Files
-const std::string MVII_LogFile = "MMVII-LogFile.txt";
+const std::string MMVII_LogFile = "MMVII-LogFile.txt";
 
 // Name of common parameters
       // -- Current
@@ -44,6 +45,7 @@ const std::string GOP_Int0     = "FFI0";
 const std::string GOP_Int1     = "FFI1";
 const std::string GOP_StdOut   = "StdOut";
 const std::string GOP_SeedRand = "SeedRand";
+const std::string GOP_NbProc   = "NbProc";
       // -- Internal
 const std::string GIP_LevCall = "LevCall";
 const std::string GIP_ShowAll = "ShowAll";

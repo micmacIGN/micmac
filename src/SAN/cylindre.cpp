@@ -1151,6 +1151,8 @@ void cPlyCloud::PutFile(const std::string & aName)
 
 }
 
+
+
 const cPlyCloud::tCol cPlyCloud::White   (255,255,255);
 const cPlyCloud::tCol cPlyCloud::Black   (  0,  0,  0);
 const cPlyCloud::tCol cPlyCloud::Red     (255,  0,  0);
@@ -1163,6 +1165,9 @@ cPlyCloud::tCol cPlyCloud::Gray(const double & aGr)
 {
    int Igr = ElMax(0,ElMin(255,round_ni(255*aGr)));
    return tCol(Igr,Igr,Igr);
+}
+cPlyCloud::tCol cPlyCloud::RandomColor() {
+   return tCol(rand() % 256, rand() % 256, rand() % 256);
 }
 
 

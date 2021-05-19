@@ -1,6 +1,8 @@
 #ifndef  _MMVII_Util_TPL_H_
 #define  _MMVII_Util_TPL_H_
 
+#include <algorithm>
+
 namespace MMVII
 {
 
@@ -49,8 +51,8 @@ template<class Type> cSelector<Type> operator !  (const cSelector<Type> &); ///<
 
      (none,V2,true,false)  =>  ]-infinity,V2[ 
 */
-template<class Type> cSelector<Type> GenIntervalSelector( const boost::optional<Type> & aV1,
-                                                       const boost::optional<Type> & aV2,
+template<class Type> cSelector<Type> GenIntervalSelector( const std::optional<Type> & aV1,
+                                                       const std::optional<Type> & aV2,
                                                        bool aInclLow,bool InclUp);
 
 /// Facilty to GenIntervalSelector : left interval  ]-infinity,...
@@ -215,6 +217,19 @@ template <class TV,class TF> void erase_if(TV & aVec,const TF& aFonc)
 }
 
 template <class Type> int LexicoCmp(const std::vector<Type> & aV1,const std::vector<Type> & aV2);
+
+template <class Type> void Append(std::vector<Type> & aRes, const std::vector<Type> & aV1,const std::vector<Type> & aV2)
+{
+   aRes = aV1;
+   for (const auto & aVal : aV2)
+       aRes.push_back(aVal);
+}
+template <class Type> std::vector<Type> Append(const std::vector<Type> & aV1,const std::vector<Type> & aV2)
+{
+    std::vector<Type> aRes;
+    Append(aRes,aV1,aV2);
+    return aRes;
+}
 
 
 

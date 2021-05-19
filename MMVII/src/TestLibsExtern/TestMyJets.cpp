@@ -1,7 +1,6 @@
 #include "include/MMVII_all.h"
 #include "include/MMVII_Derivatives.h"
 
-extern void   BenchFormalDer();
 
 namespace MMVII
 {
@@ -129,9 +128,10 @@ template <const int Nb> void  TplBenchDifJets()
 
 
 
-void BenchMyJets()
+void BenchMyJets(cParamExeBench & aParam)
 {
-   BenchFormalDer();
+   if (! aParam.NewBench("JetsDerivatives")) return;
+
    {
        Eigen::Matrix<double, 1, 10> aVec;
        double * aD0 = & aVec(0);
@@ -145,7 +145,6 @@ void BenchMyJets()
        }
    }
 
-   BenchJetsCam();
 
    for (int aK=0 ; aK<1000 ; aK++)
    {
@@ -175,7 +174,8 @@ void BenchMyJets()
    cPtxd<cEpsNum<20>,3> aP3 = aP1+aP2;
    
    IgnoreUnused(aP3);
-
+   
+   aParam.EndBench();
 }
 bool NEVER=false;
 

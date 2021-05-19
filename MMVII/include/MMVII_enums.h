@@ -25,13 +25,17 @@ enum class eTA2007
             // ---------- Printed --------------
                 DirProject,    ///< Exact Dir of Proj
                 FileDirProj,   ///< File of Dir Proj
-                MPatIm,        ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
+                FileImage,     ///< File containing an image
+                MPatFile,      ///< Major PaternIm => "" or "0" in sem for set1, "1" or other for set2
                 FFI,           ///< File Filter Interval
+            // !!!!! AddCom must be last UNPRINTED  !!! because of test in Name4Help()
+                AddCom,        ///< Not an attribute, used to embed additionnal comment in Help mode
             // ---------- Not Printed -----------
             // !!!!! Shared must be first UNPRINTED  !!! because of test in Name4Help()
                 Shared,        ///< Parameter  Shared by many (several) command
                 Global,        ///< Parameter  Common to all commands
                 Internal,      ///< Reserved to internall use by MMVII
+                Tuning,        ///< Used for testing/tuning command but not targeted for user
                 HDV,           ///< Has Default Value, will be printed on help
                 ISizeV,        ///< Interval size vect, print on help
                 eNbVals        ///< Tag for number of value
@@ -40,15 +44,16 @@ enum class eTA2007
 /// Appli Features
 enum class eApF
            {
-               Project, ///< Project Managenent
-               Test,    ///< Test
-               ImProc,  ///< Image processing
-               Ori,     ///< Orientation
-               Match,   ///< Dense Matching
-               TieP,    ///< Tie-Point processing
+               ManMMVII,   ///< Managenent of MMVII
+               Project,    ///< Project Managenent (user's)
+               Test,       ///< Test
+               ImProc,     ///< Image processing
+               Ori,        ///< Orientation
+               Match,      ///< Dense Matching
+               TieP,       ///< Tie-Point processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
-               Perso,   ///< Personnal
-               eNbVals  ///< Tag for number of value
+               Perso,      ///< Personnal
+               eNbVals     ///< Tag for number of value
            };
 
 /// Appli Data Type
@@ -60,11 +65,22 @@ enum class eApDT
               Image,   ///< Image
               Ply,    ///< Ply file
               None,     ///< Nothing 
-              Console,  ///< Console 
+              ToDef,     ///< still unclassed
+              Console,  ///< Console , (i.e printed message have values)
               Xml,      ///< Xml-files
               FileSys,      ///< Input is the file system (list of file)
               Media,      ///< Input is the file system (list of file)
               eNbVals       ///< Tag for number of value
+           };
+
+/// Mode of creation of folder
+enum class eModeCreateDir    
+           {
+              DoNoting,      ///< do nothing 
+              CreateIfNew,   ///< create the folder and
+              CreatePurge,   ///< create the folder and purge it
+              ErrorIfExist,  ///< create the folder if new, error else
+              eNbVals        ///< Tag for number of value
            };
 
 
@@ -107,6 +123,7 @@ enum class eTyUEr
               eWriteFile,
               eReadFile,
               eBadBool,
+              eBadInt,
               eBadEnum,
               eMulOptParam,
               eBadOptParam,
@@ -146,6 +163,7 @@ enum class eTyNums
               eTN_REAL4,
               eTN_REAL8,
               eTN_REAL16,
+              eTN_UnKnown,  // Used because for MMV1 Bits Type, we need to handle file, but dont have Bits Images
               eNbVals
            };
 
@@ -223,6 +241,13 @@ enum class eModeOutPCar
      eNbVals          ///< Tag End of Vals
 };
 
+/** Mode "Matcher" callable in DenseMatchEpipGen */
+
+enum class eModeEpipMatch
+{
+   eMEM_MMV1,  // Mode MicMac V1
+   eNbVals
+};
 
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         
@@ -231,11 +256,24 @@ const std::string & E2Str(const eTyUEr &);
 const std::string & E2Str(const eTyNums &);         
 const std::string & E2Str(const eTyInvRad &);         
 const std::string & E2Str(const eTyPyrTieP &);         
+const std::string & E2Str(const eModeEpipMatch &);         
 
 template <class Type> const Type & Str2E(const std::string &); 
 template <class Type> std::string   StrAllVall();
 template <class Type> std::vector<Type> SubOfPat(const std::string & aPat,bool AcceptEmpty=false);
 
+template <class TypeEnum> class cEnumAttr;
+typedef cEnumAttr<eTA2007> tSemA2007;
+template <class Type> tSemA2007  AC_ListVal();  ///< Additional comm giving list of possible values
+
+/* To use fully automatic in specif, need to add :
+Serial/cReadOneArgCL.cpp:MACRO_INSTANTIATE_ARG2007 =>  For Additional commentary
+Serial/cStrIO.cpp:MACRO_INSTANTITATE_STRIO_ENUM => For creating ToStr/FromStr like other type
+
+Serial/uti_e2string.cpp: ..::tMapE2Str cE2Str<eModeEpipMatch>::mE2S
+Serial/uti_e2string.cpp:TPL_ENUM_2_STRING
+=>  for creating the 2 dictionnaries enum <=> strings
+*/
 
 
 };

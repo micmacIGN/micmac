@@ -604,8 +604,47 @@ void NormEllips(cXml_Elips2D & anEl)
    anEl.Sxy() = anEl.Sxy() / (aPds) - aCdg.x * aCdg.y;
 }
 
-
 void TestEllips_3D()
+{
+
+	std::vector<Pt3dr> aPVec;
+
+	std::string aFName = "/home/er/Documents/d_development/structureless_BA/ellipses/demo/Im_70-71-72.txt";
+    ELISE_fp aFIn(aFName.c_str(),ELISE_fp::READ);
+    char * aLine;
+
+    while ((aLine = aFIn.std_fgets()))
+    {
+		 Pt3dr aP1;
+         int aNb=sscanf(aLine,"%lf %lf %lf",&aP1.x , &aP1.y, &aP1.z);
+         ELISE_ASSERT(aNb==3,"Could not read 3 double values");
+
+         //std::cout << aP1 << " " << "\n";
+
+		 aPVec.push_back(aP1);
+    }
+
+	cXml_Elips3D aEl;
+    RazEllips(aEl);
+	for (auto Pt : aPVec)
+	{
+		AddEllips(aEl,Pt,1.0);
+	}
+	NormEllips(aEl);
+
+	std::cout << "Ellipsoid: " << aEl.Sxx() << " " << aEl.Syy() << " " << aEl.Szz() << " " 
+			                   << aEl.Sxy() << " " << aEl.Sxz() << " " << aEl.Syz() << "\n";
+
+	cGenGaus3D aGG(aEl);
+
+	std::cout << "EigVal: \n" << aGG.ValP(0) << " " << aGG.ValP(1) << " " << aGG.ValP(2) << "\n";
+	std::cout << "EigVec: \n" << aGG.VecP(0) << "\n" << aGG.VecP(1) << "\n" << aGG.VecP(2) << "\n";
+	std::cout << "CDG: "    << aGG.CDG() << "\n";
+	
+}
+
+
+void TestEllips_3D_()
 {
     while (1)
     {

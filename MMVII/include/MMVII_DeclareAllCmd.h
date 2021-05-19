@@ -11,7 +11,6 @@ namespace MMVII
 
 extern cSpecMMVII_Appli  TheSpecBench;
 extern cSpecMMVII_Appli  TheSpecTestCpp11;
-extern cSpecMMVII_Appli  TheSpec_TestBoostSerial;
 extern cSpecMMVII_Appli  TheSpecMPDTest;
 extern cSpecMMVII_Appli  TheSpecEditSet;
 extern cSpecMMVII_Appli  TheSpecEditRel;
@@ -25,6 +24,9 @@ extern cSpecMMVII_Appli  TheSpecScaleImage;
 extern cSpecMMVII_Appli  TheSpecCalcDiscIm;
 extern cSpecMMVII_Appli  TheSpecCalcDescPCar;
 extern cSpecMMVII_Appli  TheSpecMatchTieP;
+extern cSpecMMVII_Appli  TheSpecEpipGenDenseMatch;
+extern cSpecMMVII_Appli  TheSpecGenSymbDer;
+extern cSpecMMVII_Appli  TheSpecKapture;
 
 };
 

@@ -345,7 +345,24 @@ template <class TypeImage,class tBase,class TypeFile>  void TplBenchFileImage(co
              TypeImage aV2= tNumTrait<TypeImage>::Trunc( aDImDup.GetV(aP+aP0) *aDyn);
              MMVII_INTERNAL_ASSERT_bench(aV1==aV2,"Bench image error");
          }
-        
+    }
+
+    // Lecture avec des image avec origine variable
+    for (int aK=0 ; aK<20 ; aK++)
+    {
+         double aDyn = (1/aDyn0) * 2.0 * RandUnif_0_1();
+         cRect2 aR (aFileIm.GenerateRectInside(3.0));
+         cPt2di aP0Tot = aR.P0();
+         cPt2di aP0Im = aP0Tot/2;
+         cPt2di aP0File = aP0Tot - aP0Im;
+         cIm2D<TypeImage> aIW(aP0Im,aP0Im+aR.Sz());
+         aIW.Read(aFileIm,aP0File,aDyn);
+         for (const auto & aP : aIW.DIm())
+         {
+             TypeImage aV1= aIW.DIm().GetV(aP) ;
+             TypeImage aV2= tNumTrait<TypeImage>::Trunc( aDImDup.GetV(aP+aP0File) *aDyn);
+             MMVII_INTERNAL_ASSERT_bench(aV1==aV2,"Bench image error");
+         }
     }
 }
 
@@ -428,8 +445,10 @@ void BenchIm1D()
 /* ========================== */
 
 
-void BenchGlobImage()
+void BenchGlobImage(cParamExeBench & aParam)
 {
+    if (! aParam.NewBench("ImageGlob")) return;
+
     cIm2D<double> aI(cPt2di(1,1));
     if (1)
     {
@@ -441,6 +460,8 @@ void BenchGlobImage()
     BenchRectObj();
     BenchBaseImage();
     BenchGlobImage2d();
+
+    aParam.EndBench();
 }
 
 

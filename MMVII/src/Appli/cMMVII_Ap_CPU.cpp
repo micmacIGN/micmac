@@ -20,10 +20,12 @@ std::string timePointAsString(const std::chrono::system_clock::time_point& tp)
 /***********************************/
 
 cMMVII_Ap_CPU::cMMVII_Ap_CPU() :
-   mT0          (std::chrono::system_clock::now())     ,
-   mPid         (mmvii_GetPId())   ,
-   mNbProcSys   (mmvii_NbProcSys()),
-   mTimeSegm    (this)
+   mT0             (std::chrono::system_clock::now())     ,
+   mPid            (mmvii_GetPId())   ,
+   mNbProcSystem   (mmvii_NbProcSys()),
+   mNbProcAllowed  (mNbProcSystem),
+   mMulNbInMk      (10.0),
+   mTimeSegm       (this)
 {
   // Very tricky and dirty, but I dont have courage for now to understand time/clok in C++
   // To change one day ....

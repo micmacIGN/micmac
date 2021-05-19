@@ -7,11 +7,11 @@ using namespace std;
 #endif
 
 
-#define WITH_MMVII false
-#define WITH_EIGEN false
+// #define SYMBDER_WITH_MMVII true
+#define SYMBDER_WITH_EIGEN false
 
 
-#if WITH_EIGEN
+#if SYMBDER_WITH_EIGEN
 #include "ExternalInclude/Eigen/Dense"  // TODO => replace with standard eigen file
 #define EIGEN_ALLIGNMENT_IN_MMVII EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 #else
@@ -87,14 +87,22 @@ using namespace std;
 
 #include "SymbDer_Common.h"
 
-#if (WITH_MMVII)
+/*
+#if (SYMBDER_WITH_MMVII)
 #include "include/MMVII_all.h"
 #include "include/MMVII_Derivatives.h"
-using namespace MMVII;
+#define SYMBDER_cMemCheck  MMVII::cMemCheck
 #else             //========================================================== WITH_MMVI
-class cMemCheck
+class SYMBDER_cMemCheck
 {
 };
+#endif
+*/
+
+
+
+#if (SYMBDER_WITH_MMVII)
+#else
 #include <memory>
 #include <map>
 #include <iostream> 
@@ -206,6 +214,8 @@ template <class TypeElem> class cFormula ;
 
 /** Class for managing the "context", i.e. coordinating all the  formula 
     and their derivative corresponding to a single use .
+ 
+    A coordinator is also a calculator, as it make computation on formulas
 */
 template <class TypeElem> class cCoordinatorF;  
 
@@ -291,7 +301,7 @@ template <class Type> Type powI(const Type & aV,const int & aExp)
 
     // -------- Declaration of Coordinator class  ----------------
 
-template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,public cMemCheck
+template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // , public SYMBDER_cMemCheck
 {
     public :
  
@@ -356,6 +366,13 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
          {
              return GenCodeCommon(aFilePrefix, aTypeName, false);
          }
+
+         // =========== Parametrisation of the generated code =========
+
+         /// The default value is not always adequate "SymbDer/SymbDer_Common.h"
+         void SetHeaderIncludeSymbDer(const std::string &aH) {mHeaderIncludeSymbDer= aH;}
+         void SetDirGenCode(const std::string &aDir) {mDirGenCode= aDir;}
+         void SetUseAllocByName(bool aUse) {mUseAllocByName= aUse;}
 
     private :  // END-USER
          /*   =================================================================================
@@ -428,6 +445,9 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem>,pub
         std::vector<tFormula>          mVCurF;       ///< Current evaluted formulas
         std::vector<tFormula>          mVReachedF;   ///< Formula "reachable" i.e. necessary to comput mVCurF
 
+        std::string  mHeaderIncludeSymbDer;  ///< Compilation environment may want to change it
+        std::string  mDirGenCode;   ///< Want to put generated code in a fixed folde ?
+        bool         mUseAllocByName;   ///< Do we generated code for allocatin frpm name (with cName2Calc)
 };
 
 /* ************************************************** 
@@ -482,7 +502,7 @@ template <class TypeElem> class cPowF ;     ///< Class for division of 2 functio
             //      cFormula  / cImplemF 
             // ----------------------------------------------------------------
 
-template <class TypeElem> class cImplemF  : public cMemCheck
+template <class TypeElem> class cImplemF  : public SYMBDER_cMemCheck
 {
     public :
       // See eigen documentation,  this macro is mandatory for alignment reason
@@ -857,12 +877,14 @@ cCoordinatorF<TypeElem>::cCoordinatorF
         const std::vector<std::string> & aVNameUK,
         const std::vector<std::string> & aVNameObs
 ) :
-    cCalculator<TypeElem>(aName,aSzBuf,aVNameUK.size(),aVNameObs.size()),
+    cCalculator<TypeElem>(aName,aSzBuf,aVNameUK,aVNameObs),
     mNbCste     (0),
     mCste0      (CsteOfVal(0.0)),
     mCste1      (CsteOfVal(1.0)),
-    mCste2      (CsteOfVal(2.0))
-    
+    mCste2      (CsteOfVal(2.0)),
+    mHeaderIncludeSymbDer ("SymbDer/SymbDer_Common.h"),
+    mDirGenCode           (""),
+    mUseAllocByName       (false)  // For strict compatibility with previous Jo's code
 {
     // Generate all the function corresponding to unknown
     for (size_t aNumUK=0 ; aNumUK<this->mNbUK ; aNumUK++)
@@ -1072,6 +1094,19 @@ void cCoordinatorF<TypeElem>::ShowStackFunc() const
     std::cout << "\n";
 }
 
+// return 
+inline std::string VStr2CPP(const std::vector<std::string> & aVS)
+{
+   std::string aRes = "{";
+   for (size_t aK=0 ; aK<aVS.size() ; aK++)
+   {
+       if (aK!=0) 
+          aRes = aRes + "," ;
+       aRes =  aRes + "\""+ aVS[aK] + "\"" ;
+   }
+   return aRes+ "}";
+}
+
 template <class TypeElem>
 std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, std::string aTypeName, bool isShortExpr) const
 {
@@ -1093,10 +1128,10 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
 
     if (! isShortExpr)
         aClassName = aClassName + "LongExpr";
-    std::string aParentClass = "cCalculator<" + aTypeName + ">";
+    std::string aParentClass = "cCompiledCalculator<" + aTypeName + ">";
 
     std::string aFileName  = aPrefix + aClassName;
-    std::ofstream aOs(aFileName + ".h");
+    std::ofstream aOs(mDirGenCode + aFileName + ".h");
     if (!aOs)
         return "";
 
@@ -1104,7 +1139,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
     aOs << "#ifdef _OPENMP\n"
            "#include <omp.h>\n"
            "#endif\n"
-           "#include \"SymbDer/SymbDer_Common.h\"\n"
+           "#include \"" << mHeaderIncludeSymbDer << "\"\n"
            "\n"
            "namespace NS_SymbolicDerivative {\n\n";
     if (isTemplated) {
@@ -1114,43 +1149,30 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
            "{\n"
            "public:\n"
            "    typedef " << aParentClass << " Super;\n"
-           "    " << aClassName  << "(size_t aSzBuf) : \n"
-           "      Super(\"" << aName << "\", aSzBuf,"
-                  << this->mNbUK << ","
-                  << this->mNbObs << ","
-                  << this->mWithDer << ","
-                  << this->mSzInterval << "),\n"
-           "      mVUk(aSzBuf),mVObs(aSzBuf)\n"
+           "    " << aClassName  << "(size_t aSzBuf) : \n";
+    aOs 
+        << "      Super(\n" 
+        << "          \"" << aName << "\",\n"
+        << "          " << " aSzBuf,//SzBuf\n"
+        << "          " << this->mNbElem << ",//NbElement\n"
+        << "          " <<  mVCurF.size() << ",//SzOfLine\n"
+        << "          " << VStr2CPP(this->NamesUk()) << ",// Name Unknowns\n"
+        << "          " << VStr2CPP(this->NamesObs()) << ",// Name Observations\n"
+        << "          " << this->mWithDer << ",//With derivative ?\n"
+        << "          " << this->mSzInterval << "//Size of interv\n"
+        << "      )\n";
+     aOs<<
            "    {\n"
-           "      this->mNbElem = " << this->mNbElem << ";\n"
-           "      for (auto& line : this->mBufLineRes)\n"
-           "        line.resize(" << mVCurF.size() << ");\n"
-           "      for (auto& aUk : this->mVUk)\n"
-           "        aUk.resize(this->NbUk());\n"
-           "      for (auto& aObs : this->mVObs)\n"
-           "        aObs.resize(this->NbObs());\n"
            "    }\n"
            "    static std::string FormulaName() { return \"" << aName << "\";}\n"
            "protected:\n"
-           "    virtual void SetNewUks(const " << aVectorName << " & aVUks) override\n"
-           "    {\n"
-           "      for (size_t i=0; i<this->NbUk(); i++)\n"
-           "        this->mVUk[this->mNbInBuf][i] = aVUks[i];\n"
-           "    }\n"
-           "    virtual void SetNewObs(const " << aVectorName << " & aVObs) override\n"
-           "    {\n"
-           "      for (size_t i=0; i<this->NbObs(); i++)\n"
-           "        this->mVObs[this->mNbInBuf][i] = aVObs[i];\n"
-           "    }\n"
            "    virtual void DoEval() override;\n"
-           "    std::vector<" << aVectorName << "> mVUk;\n"
-           "    std::vector<" << aVectorName << "> mVObs;\n"
            "};\n"
            "\n";
 
     if (! isTemplated) {
         aOs << "} // namespace NS_SymbolicDerivative\n";
-        aOs = std::ofstream(aFileName + ".cpp");
+        aOs = std::ofstream(mDirGenCode+aFileName + ".cpp");
         if (!aOs)
             return "";
         aOs << "#include \"" + aFileName + ".h\"\n"
@@ -1192,8 +1214,19 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
     }
 
     aOs << "  }\n"
-           "}\n\n"
-           "} // namespace NS_SymbolicDerivative\n";
+           "}\n\n";
+
+    if (mUseAllocByName)
+    {
+      aOs << "cCompiledCalculator<" << aTypeName << "> * Alloc_" << aName << "(int aSzBuf)\n"
+          << "{\n"
+          << "   return new c" << aName  << "(aSzBuf);\n"
+          << "}\n\n"
+          << "cName2Calc<" << aTypeName << "> TheNameAlloc_" << aName <<"(\""<< aName <<"\",Alloc_" << aName<< ");\n\n";
+    }
+
+
+     aOs << "} // namespace NS_SymbolicDerivative\n";
 
     return aFileName;
 }
