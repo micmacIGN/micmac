@@ -56,8 +56,9 @@ void Apero_Banniere()
 
 extern const char * theNameVar_ParamApero[];
 
+
 int Apero_main(int argc,char ** argv)
-{
+{ 
    MMD_InitArgcArgv(argc,argv);
 
    AddEntryStringifie
@@ -90,6 +91,7 @@ int Apero_main(int argc,char ** argv)
 
    L2SYM = aP2.mObj->AllMatSym().Val();
    cAppliApero   anAppli (aP2);
+
 
    if (anAppli.ModeMaping())
    {

@@ -55,6 +55,8 @@ class cL2EqObsBascult;
 /*                                                                           */
 /*****************************************************************************/
 
+extern bool DEBUG_GCP_BASCULE;
+
 class cSolBasculeRig : public cTransfo3D
 {
     public :

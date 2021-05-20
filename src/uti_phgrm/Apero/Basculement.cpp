@@ -1309,9 +1309,11 @@ void cAppliApero::BasculePlan
      //---------------------------------------------
 
 
+  
 
 void cAppliApero::Bascule(const cBasculeOrientation & aBO,bool CalledAfter)
 {
+
    if (CalledAfter != aBO.AfterCompens().Val()) return;
    // cElRegex aSelectorEstim(aBO.PatternNameEstim().Val(),10);
    cSetName *  aSelectorEstim = mICNM->KeyOrPatSelector(aBO.PatternNameEstim().Val());
