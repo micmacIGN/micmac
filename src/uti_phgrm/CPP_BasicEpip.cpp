@@ -121,7 +121,7 @@ cAppliEpiBasic::cAppliEpiBasic(int argc,char ** argv,bool aModeTestDeep) :
      mRatioInc     (0.1),
      mNbProc       (aModeTestDeep ? 1 :  NbProcSys() ),
      mFileExp      ("PxBasic.tif"),
-     mPyr          ("Pyr")
+     mPyr          ("Pyr/")
 {
     MMD_InitArgcArgv(argc,argv,2);
 
