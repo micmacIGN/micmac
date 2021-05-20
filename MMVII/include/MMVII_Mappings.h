@@ -38,7 +38,6 @@ template <class Type,const int Dim> class cDataIIMFromMap ; // : public cDataIte
 template <class Type,const int Dim> class cMappingIdentity ; // :  public cDataMapping<Type,Dim,Dim>
 template <class Type,const int DimIn,const int DimOut> class cDataMapCalcSymbDer ;// : public cDataMapping<Type,DimIn,DimOut>
 template <class cMapElem,class cIMapElem> class cInvertMappingFromElem ;// :  public cDataInvertibleMapping<typename cMapElem::TheType,cMapElem::TheDim>
-{   
 
 /** \file MMVII_Mappings.h
     \brief contain interface class for continuous mapping

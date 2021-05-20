@@ -52,13 +52,13 @@ template <class Type,const int  DimIn,const int DimOut>
 /* ============================================= */
 
 
+/*
 template <class Type,const int DimIn,const int DimOut>
     class cLeastSqCompMapCalcSymb : public cLeastSqCompMapCalcSymb<Type,DimIn,DimOut>
 {
     public :
       typedef typename NS_SymbolicDerivative::cCalculator<Type> tCalc;
 };
-/*
 */
 
 /* ===================================================== */
