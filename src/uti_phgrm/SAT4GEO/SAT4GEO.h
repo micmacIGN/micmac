@@ -95,6 +95,7 @@ class cCommonAppliSat3D
         /* Pairs param */
         std::string mFilePairs;
         std::string mFPairsDirMEC;
+		Pt2dr       mBtoHLim;
 
         /* Epip param */
         bool                mDoIm;

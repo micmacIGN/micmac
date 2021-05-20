@@ -49,6 +49,7 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 	mNbProc(8),
 	mFilePairs("Pairs.xml"),
 	mFPairsDirMEC("PairsDirMEC.xml"),
+	mBtoHLim   (Pt2dr(0.01,0.3)),
 	mDoIm(true),
 	mOutRPC("EpiRPC"),
 	mDegreRPC(0),
@@ -72,7 +73,8 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 			<< EAM(mExe,"Exe",true,"Execute all, Def=true")
 			<< EAM(mNbProc,"NbP",true,"Num of parallel processes, Def=8")
 			<< EAM(mFilePairs,"Pairs",true,"File with overlapping pairs, Def=Pairs.xml")
-			<< EAM(mFPairsDirMEC,"PairsDirMEC",true,"File with DirMECc of overlapping pairs, Def=PairsDirMEC.xml");
+			<< EAM(mFPairsDirMEC,"PairsDirMEC",true,"File with DirMECc of overlapping pairs, Def=PairsDirMEC.xml")
+			<< EAM(mBtoHLim,"BH",true,"Base to height ratio limits, def=[0.01,0.3]");
 	
 
 	*mArgEpip
@@ -154,6 +156,7 @@ std::string cCommonAppliSat3D::ComParamPairs()
 	std::string aCom;
 	aCom += aCom + " Out=" + mFilePairs;
 	aCom += " PairsDirMEC=" + mFPairsDirMEC;  
+	aCom += " BH=" + ToString(mBtoHLim); 
 
 	return aCom;
 }
