@@ -47,6 +47,19 @@ template <class Type,const int  DimIn,const int DimOut>
      AddObs(aPtIn,aValue,1.0);
 }
 
+/* ============================================= */
+/*      cLeastSqCompMapCalcSymb<Type>            */
+/* ============================================= */
+
+
+template <class Type,const int DimIn,const int DimOut>
+    class cLeastSqCompMapCalcSymb : public cLeastSqCompMapCalcSymb<Type,DimIn,DimOut>
+{
+    public :
+      typedef typename NS_SymbolicDerivative::cCalculator<Type> tCalc;
+};
+/*
+*/
 
 /* ===================================================== */
 /* =====              INSTANTIATION                ===== */
@@ -56,6 +69,7 @@ template <class Type,const int  DimIn,const int DimOut>
 template class cLeastSqComputeMaps<TYPE,DIMIN,DIMOUT>;
 
 INSTANTIATE_LSQMAP(tREAL8,3,2)
+INSTANTIATE_LSQMAP(tREAL8,2,2)
 
 /*
 #define INSTANTIATE_OPMulMatVect(T1,T2)\

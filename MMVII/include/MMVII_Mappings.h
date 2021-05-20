@@ -29,7 +29,16 @@
 namespace MMVII
 {
 template <class Type,const int Dim> class cDataBoundedSet ;
+template <class Type,const int DimIn,const int DimOut> class cMapping;
 template <class Type,const int DimIn,const int DimOut> class cDataMapping;
+template <class Type,const int Dim> class cDataInvertibleMapping ;// :  public cDataMapping<Type,Dim,Dim>
+template <class Type,const int Dim> class cDataIterInvertMapping ;// :  public cDataInvertibleMapping<Type,Dim>
+template <class Type,const int Dim> class cDataIIMFromMap ; // : public cDataIterInvertMapping<Type,Dim>
+
+template <class Type,const int Dim> class cMappingIdentity ; // :  public cDataMapping<Type,Dim,Dim>
+template <class Type,const int DimIn,const int DimOut> class cDataMapCalcSymbDer ;// : public cDataMapping<Type,DimIn,DimOut>
+template <class cMapElem,class cIMapElem> class cInvertMappingFromElem ;// :  public cDataInvertibleMapping<typename cMapElem::TheType,cMapElem::TheDim>
+{   
 
 /** \file MMVII_Mappings.h
     \brief contain interface class for continuous mapping
@@ -448,13 +457,19 @@ template <class cMapElem,class cIMapElem> class cInvertMappingFromElem :  public
 };
 
 /**
-     We have a set of function F1,  .. Fp     R^k => R ^n
-
+     We have a set of function F1,  .. Fp     R^k => R ^n, we want to estimate F  as a linear combination:
+           F =  Sum   Al Fl 
      We have samples      Km , Nm 
+     We want to solve by  lest square  :   F (Km) = Nm
 
-     We want to solve by  lest square  :
-            Sum   Al Fl (Km) = Nm
+     The computation is not optimized (not parallized) as it would add a complexity important for
+     a probable low gain :
+         * there is not so many samples
+         * we dont compute the derivative
+         * the filling of matrix is however a cost not parallized
 */
+
+
 template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMaps
 {
      public :
@@ -464,6 +479,7 @@ template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMap
          typedef  std::vector<tPtOut>         tVecOut;
 
          cLeastSqComputeMaps(size_t aNbFunc);
+         /// Add obs 
          void AddObs(const tPtIn & aPt,const tPtOut & aValue,const tPtOut & aPds);
          void AddObs(const tPtIn & aPt,const tPtOut & aValue,const Type & aPds);
          void AddObs(const tPtIn & aPt,const tPtOut & aValue);
