@@ -22,14 +22,17 @@
 
 // Set false for external use, set true inside MMMVII to benefit from functionality
 // with additionnal correctness checking
-#define WITH_MMVII false
+
+#ifndef TREEDIST_WITH_MMVII
+#define TREEDIST_WITH_MMVII true
+#endif
 
 
-#if (WITH_MMVII)
+#if (TREEDIST_WITH_MMVII)
 #include "include/MMVII_all.h"
-using namespace MMVII;
+#define TREEDIST_cMemCheck MMVII::cMemCheck
 #else             //========================================================== WITH_MMVI
-class cMemCheck
+class TREEDIST_cMemCheck
 {
 };
 #include <typeinfo>
@@ -114,7 +117,7 @@ mEndNeigh              0  1       2       3   4
 
 */
 
-class cAdjGraph  : public cMemCheck
+class cAdjGraph  : public TREEDIST_cMemCheck
 {
     public :
        /// We dont want unvolontar copy
@@ -150,7 +153,7 @@ class cAdjGraph  : public cMemCheck
 /** A cFastTreeDist will make several recursive split and store
    the computation of the corresponing level in cOneLevFTD
 */
-class cOneLevFTD : public cMemCheck
+class cOneLevFTD : public TREEDIST_cMemCheck
 {
     public :
         friend class cFastTreeDist;
@@ -652,12 +655,10 @@ int cFastTreeDist::Dist(int aI1,int aI2) const
 /* |   cOneBenchFastTreeDist        | */
 /* ---------------------------------- */
 
-#if (! WITH_MMVII)
 // Some basic rand function defined in MMVII, used to generated random tree
-inline int RandUnif_N(int aNb) { return rand() % aNb; }
-#define NB_RAND_UNIF 1000000
-inline float RandUnif_0_1() { return RandUnif_N(NB_RAND_UNIF) / float(NB_RAND_UNIF); }
-#endif
+inline int TREEDIST_RandUnif_N(int aNb) { return rand() % aNb; }
+#define TREEDIST_NB_RAND_UNIF 1000000
+inline float TREEDIST_RandUnif_0_1() { return TREEDIST_RandUnif_N(TREEDIST_NB_RAND_UNIF) / float(TREEDIST_NB_RAND_UNIF); }
 
 
 /** Class to check correctness of implemantion. Basically, the serice offered in
@@ -710,7 +711,7 @@ void cOneBenchFastTreeDist::MakeOneTest(bool Show,bool CheckDist)
     std::vector<std::vector<int>> aVCC(mNbCC); // set of connected components
     for (int aK=0 ; aK<mNbSom ; aK++)
     {
-        int aNum = RandUnif_N(mNbCC); 
+        int aNum = TREEDIST_RandUnif_N(mNbCC); 
         aVCC.at(aNum).push_back(aK);  // Add a summit inside the CC aNum
     }
 
@@ -723,7 +724,7 @@ void cOneBenchFastTreeDist::MakeOneTest(bool Show,bool CheckDist)
         std::vector<double> aVR;
         for (int aK=0 ; aK<int(aCC.size()) ; aK++)
         {
-            aVR.push_back(RandUnif_0_1());
+            aVR.push_back(TREEDIST_RandUnif_0_1());
         }
         std::sort
         (
@@ -734,7 +735,7 @@ void cOneBenchFastTreeDist::MakeOneTest(bool Show,bool CheckDist)
         {
              // We add CC[aK] to  the already created tree we select
              // randomly a summit inside this tree
-             double aPds = sqrt(RandUnif_0_1());  // Bias to have longer chain
+             double aPds = sqrt(TREEDIST_RandUnif_0_1());  // Bias to have longer chain
              int aK2 = floor(aPds*aK1);  // we rattach K1 to K2
              aK2 = std::max(0,std::min(aK2,aK1-1));  // to be sure that index is correct
              aV1.push_back(aCC[aK1]);

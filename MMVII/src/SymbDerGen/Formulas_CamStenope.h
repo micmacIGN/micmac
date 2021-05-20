@@ -203,75 +203,6 @@ namespace MMVII
 
 */
 
-/**  Indicate the nature of each coefficient of the distorsion
-*/
-enum class eTypeFuncDist
-           {
-              eRad,  ///<  Coefficient for radial distorsion 
-              eDecX, ///< Coefficient for decentric distorsion x mean derived by Cx (it has X and Y components)
-              eDecY, ///< Coefficient for decentric distorsion y mean derived by Cy (it has X and Y components)
-              eMonX, ///< Coefficient for a monom in X, of the polynomial distorsion
-              eMonY, ///< Coefficient for a monom in Y, of the polynomial distorsion
-              eNbVals        ///< Tag for number of value
-           };
-
-/**  This class store a complete description of each parameters of the distorsion,
-     it is used for computing the formula, the vector of name and (later) automatize
-     conversion, print understandable values ....
-
-     It's rather bad design with the same classe coding different things, and some fields
-     used of not according to the others, but as it internal/final classes, quick and dirty
-     exceptionnaly allowed ...
-*/
-
-class cDescOneFuncDist
-{
-    public :
-      cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDeg);
-        
-      eTypeFuncDist mType;   ///< Type of dist (Rad, DecX ....)
-      std::string   mName;   ///< Name : used as id for code gen & prety print
-      cPt2di        mDegMon;  ///< Degree for a polynomial
-      int           mNum;     ///< Order for radial and decentric
-      int           mDegTot;  ///< Total degree of the polynome
-};
-
-cDescOneFuncDist::cDescOneFuncDist(eTypeFuncDist aType,const cPt2di aDegXY) :
-   mType    (aType),
-   mDegMon  (-1,-1),
-   mNum     (-1)
-{
-   int aNum = aDegXY.x();
-   if (mType==eTypeFuncDist::eRad)
-   {
-       mName = "K" + ToStr(aNum);  //  K1 K2 K3 ...
-       mDegTot = 1 + 2 * (aNum);   //  X (X^2+Y^2) ^N
-       mNum = aNum;
-   }
-   else if ((mType==eTypeFuncDist::eDecX) ||  (mType==eTypeFuncDist::eDecY))
-   {
-       int aDec = (mType==eTypeFuncDist::eDecX)?-1:0;
-       // p1,p2  as usual, and by generalization p3 p4 p5 ...
-       mName = "p" + ToStr(2*aNum+aDec);
-       mDegTot =  2 * (aNum);  // Derivates of X (X^2+Y^2) ^N
-       mNum = aNum;
-   }
-   else
-   {
-      mDegMon = aDegXY;
-      mDegTot = mDegMon.x() + mDegMon.y();
-      if ((mType==eTypeFuncDist::eMonX) && (mDegTot==1))
-      {
-          mName = ( mDegMon.x() == 1) ? "b1" : "b2";  // Usual convention
-      }
-      else
-      {
-          mName =  std::string((mType==eTypeFuncDist::eMonX) ? "x" : "y") 
-                 + "_" + ToStr(mDegMon.x()) 
-                 + "_" + ToStr(mDegMon.y()) ;
-      }
-   }
-}
 
 /**  This class aims to be the universol model of distorsion in MicMac, it is templ
 */
@@ -289,15 +220,17 @@ class cMMVIIUnivDist
        std::string  NameModel()  const
        {
            return    std::string("Dist")
+                   + std::string(mForBase?"_Base" : "")
                    + std::string("_Rad") + std::to_string(DegRad())
                    + std::string("_Dec") + std::to_string(DegDec())
-                   + std::string("_XY") + std::to_string(DegUniv());
+                   + std::string("_XY") + std::to_string(DegUniv())
+           ;
 
        }
        /// Used to indicate reason why monom sould be removes. To maintain for debug  ?
-       void ShowElim(const std::string aMesWhy, bool isX,  int aDegX, int aDegY )
+       void ShowElim(const std::string aMesWhy, bool isX,  int aDegX, int aDegY ) const
        {
-          // std::cout << aMesWhy << " " << (isX?"x":"y")    << " " << aDegX  << " " << aDegY << "\n";
+          // StdOut() << aMesWhy << " " << (isX?"x":"y")    << " " << aDegX  << " " << aDegY << "\n";
        }
 
 
@@ -316,7 +249,7 @@ class cMMVIIUnivDist
                        bool isX,  // Is it x component of distorsion
                        int aDegX, // Degree in x
                        int aDegY  // Degree in y
-                   )
+                   ) const
        {
             // degre 0 : avoid, it's already modelized by PP
             if ((aDegX ==0) && (aDegY==0)) 
@@ -369,7 +302,7 @@ class cMMVIIUnivDist
             //   supress X^n Y^n, not X^0Y^0 (already PP) and 
             if ( (aDegX==aDegY) && (aDegX>=1) && (aDegX<=DegDec()))
             {
-               // std::cout << "DEC " << (isX?"x":"y")    << " " << aDegX  << " " << aDegY << "\n";
+               // StdOut() << "DEC " << (isX?"x":"y")    << " " << aDegX  << " " << aDegY << "\n";
                ShowElim("DEC",isX,aDegX,aDegY);
                return false;
             }
@@ -385,12 +318,10 @@ class cMMVIIUnivDist
                 *  generating description or accessing parameters by names
        */
 
-       const std::vector<cDescOneFuncDist> & VDescParams()
+       std::vector<cDescOneFuncDist>  VDescParams() const
        {
            // static_assert(DegRad>=DegDec(),"Too much decentrik");
-           static std::vector<cDescOneFuncDist>  VDesc;
-           if (VDesc.empty())
-           {
+              std::vector<cDescOneFuncDist>  VDesc;
               // Generate description of radial parameters, x used for num, y not used => -1
               for (int aDR=1 ; aDR<=DegRad() ; aDR++)
               {
@@ -421,15 +352,14 @@ class cMMVIIUnivDist
                       }
                   }
               }
-           }
-           return VDesc;
+              return VDesc;
         }
 
        /**  Names of all param, used to automatize symbolic derivation */
-        const std::vector<std::string> & VNamesParams()
+        const std::vector<std::string>  VNamesParams() const
         {
-           static std::vector<std::string>  VNames;
-           if (VNames.empty())
+           std::vector<std::string>  VNames;
+           if (VNames.empty() && (!mForBase))
            {
                for (const auto & aDesc : VDescParams())
                {
@@ -446,10 +376,12 @@ class cMMVIIUnivDist
                      const tScal & xIn,const tScal & yIn,
                      const std::vector<tScal> &  aVParam, 
                      unsigned int              aK0P
-                )
+                ) const
        {
            tScal aC0 = CreateCste(0.0,xIn);
            tScal aC1 = CreateCste(1.0,xIn);
+           std::vector<tScal>  aVBaseX;
+           std::vector<tScal>  aVBaseY;
 
            int aPowR2 = std::max(DegRad(),DegDec());
            int aPowMon = std::max(2,DegUniv());
@@ -478,14 +410,16 @@ class cMMVIIUnivDist
            }
            // auto 
 
-           tScal aDR2   =  aC0; ///< will contain K1 R^2 + K2 R ^4 + ...
+           tScal aDR2   =  aC0; ///< will contain 1 + K1 R^2 + K2 R ^4 + ...
            tScal aDecX  =  aC0; ///< will contain X component of decentric distorsion
            tScal aDecY  =  aC0; ///< will contain Y component of decentric distorsion
            tScal aPolX  =  aC0; ///< will contain X component of polynomial distorsion
            tScal aPolY  =  aC0; ///< will contain Y component of polynomial distorsion
            for (const auto & aDesc : VDescParams())
            {
-              tScal aParam = aVParam.at(aK0P++);
+              tScal aParam = mForBase ? aC0 : aVParam.at(aK0P++); // If for base, Param empty
+              tScal aBaseX = aC0;  //  because must init, init ok for monoms
+              tScal aBaseY = aC0;  //  because must init, init ok for monoms
               if (aDesc.mType <= eTypeFuncDist::eDecY)
               {
                  int aNum = aDesc.mNum;
@@ -494,50 +428,72 @@ class cMMVIIUnivDist
                  if (aDesc.mType==eTypeFuncDist::eRad)
                  {
                     aDR2 = aDR2 + aParam * aR2N  ;
+                    aBaseX = xIn*aR2N;
+                    aBaseY = yIn*aR2N;
                  }
                  //  [R2^N+2NX^2R2^(N-1),2NXYR2^(N-1)] :N=1=>[R2+2X^2,2XY]=[3X2+Y2,2XY]
                  else if (aDesc.mType==eTypeFuncDist::eDecX)
                  {
-                    aDecX = aDecX + aParam*(aR2N + aX2*(2.0*aNum*aR2Nm1));
-                    aDecY = aDecY + aParam*(aXY*(2.0*aNum*aR2Nm1));
+                    aBaseX = aR2N + aX2*(2.0*aNum*aR2Nm1);
+                    aBaseY = aXY*(2.0*aNum*aR2Nm1);
+                    aDecX = aDecX + aParam* aBaseX;
+                    aDecY = aDecY + aParam* aBaseY;
                  }
                  // [2XYNR2^(N-1), R2^N+2NY^2R^(N-1)  ] :N=1=>[2XY,R2+2Y^2]=[2XY,X2+3Y2]
                  else if (aDesc.mType==eTypeFuncDist::eDecY)
                  {
-                    aDecX = aDecX + aParam*(aXY*(2.0*aNum*aR2Nm1));
-                    aDecY = aDecY + aParam*(aR2N + aY2*(2.0*aNum*aR2Nm1));
+                    aBaseX = aXY*(2.0*aNum*aR2Nm1);
+                    aBaseY = aR2N + aY2*(2.0*aNum*aR2Nm1);
+                    aDecX = aDecX + aParam* aBaseX;
+                    aDecY = aDecY + aParam* aBaseY;
                  }
               }
               else
               {
                  cPt2di aD = aDesc.mDegMon;
-                 tScal aMon   = aParam * aVMonX.at(aD.x()) * aVMonY.at(aD.y());
+                 tScal aMon   =  aVMonX.at(aD.x()) * aVMonY.at(aD.y());
                  if (aDesc.mType==eTypeFuncDist::eMonX)
-                    aPolX = aPolX + aMon;
+                 {
+                    aPolX = aPolX + aParam* aMon;
+                    aBaseX = aMon;
+                 }
                  else
-                    aPolY = aPolY + aMon;
+                 {
+                    aPolY = aPolY + aParam* aMon;
+                    aBaseY = aMon;
+                 }
+              }
+              if (mForBase)
+              {
+                 aVBaseX.push_back(aBaseX);
+                 aVBaseY.push_back(aBaseY);
               }
            }
            tScal xDist =  xIn + xIn*aDR2 + aDecX + aPolX;
            tScal yDist =  yIn + yIn*aDR2 + aDecY + aPolY;
            MMVII_INTERNAL_ASSERT_always(aK0P==aVParam.size(),"Inconsistent param number");
 
-           return {xDist,yDist};
+           if (mForBase) 
+              return Append(aVBaseX,aVBaseY) ;
+
+           return        {xDist,yDist}  ;
        }
 
-       cMMVIIUnivDist(const int & aDegRad,const int & aDegDec,const int & aDegUniv) :
+       cMMVIIUnivDist(const int & aDegRad,const int & aDegDec,const int & aDegUniv,bool ForBase) :
           mTheDegRad  (aDegRad),
           mTheDegDec  (aDegDec),
-          mTheDegUniv (aDegUniv)
+          mTheDegUniv (aDegUniv),
+          mForBase    (ForBase)
        {
        }
 
 
 
     private :
-       int mTheDegRad;
-       int mTheDegDec;
-       int mTheDegUniv;
+       int    mTheDegRad;
+       int    mTheDegDec;
+       int    mTheDegUniv;
+       bool   mForBase;   // If true, generate the base of function and not the sum
 };
 
 
@@ -822,25 +778,44 @@ template <typename tScal>
 template <typename TypeDist>  class cEqDist
 {
   public :
-    cEqDist(const TypeDist & aDist) :
+    cEqDist(const TypeDist & aDist) : mDist      (aDist) { }
+    static std::vector<std::string>  VNamesUnknowns() {return {"xPi","yPi"}; }
+    const std::vector<std::string>    VNamesObs() const {return mDist.VNamesParams();}
+     
+    std::string FormulaName() const { return "EqDist_" + mDist.NameModel();}
+
+    template <typename tUk, typename tObs>
+             std::vector<tUk> formula
+                  (
+                      const std::vector<tUk> & aVUk,
+                      const std::vector<tObs> & aVObs
+                  ) const
+    {
+        return  mDist.PProjToImNorm(aVUk.at(0),aVUk.at(1),aVObs,0);
+    }
+  private :
+    TypeDist                 mDist;
+};
+
+
+
+
+template <typename TypeDist>  class cEqIntr
+{
+  public :
+    cEqIntr(const TypeDist & aDist) :
        mDist      (aDist),
        mVNamesObs (Append({"PPx","PPy","PPz"},mDist.VNamesParams()))
     {
     }
 
-    static const std::vector<std::string>& VNamesUnknowns() 
-    {
-         static std::vector<std::string>  TheV {"xPi","yPi"};
-         return TheV;
-    }
-
-
-    const std::vector<std::string> & VNamesObs() 
+    static const std::vector<std::string> VNamesUnknowns() { return {"xPi","yPi"}; }
+    const std::vector<std::string> & VNamesObs()  const
     { 
        return mVNamesObs;
     }
      
-    std::string FormulaName() const { return "EqDist_" + mDist.NameModel();}
+    std::string FormulaName() const { return "EqIntr_" + mDist.NameModel();}
 
        /*  Capital letter for 3D variable/formulas and small for 2D */
     template <typename tUk, typename tObs>
@@ -848,13 +823,14 @@ template <typename TypeDist>  class cEqDist
                   (
                       const std::vector<tUk> & aVUk,
                       const std::vector<tObs> & aVObs
-                  )
+                  ) const
     {
 
         // Now compute the distorsion
-        auto   aVDist = mDist.PProjToImNorm(aVUk.at(0),aVUk.at(1),aVObs,3);
+        auto XY = mDist.PProjToImNorm(aVUk.at(0),aVUk.at(1),aVObs,3);
 
-        return TransformPPxyz(aVDist,aVObs,0);
+        return {  aVObs[0] + aVObs[2] * XY[0],
+                  aVObs[1] + aVObs[2] * XY[1]    };
      }
   private :
     TypeDist                 mDist;

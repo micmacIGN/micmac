@@ -237,7 +237,6 @@ template <class Type> void BenchFuncAnalytique(int aNb,double aEps,double EpsDer
        Type aTeta2Sx = AtanXsY_sX(aX,aY,aEps);
        Type aTeta1Sx = Teta / aX;
 
-       // std::cout << RelativeDifference(aTeta2Sx,aTeta1Sx) << " " << (aTeta2Sx-aTeta1Sx)*1e10  << "\n";
        MMVII_INTERNAL_ASSERT_bench(std::abs(aTeta2Sx-aTeta1Sx)<aEps,"Bench binom");
 
        Type aDDif = aRho * 3e-3;
@@ -248,10 +247,8 @@ template <class Type> void BenchFuncAnalytique(int aNb,double aEps,double EpsDer
 
        Type aDerDifY = (AtanXsY_sX(aX,aY+aDDif,aEps)-AtanXsY_sX(aX,aY-aDDif,aEps)) / (2*aDDif);
        Type aDerY = DerYAtanXsY_sX(aX,aY);
-       // std::cout << "DDyyy " << RelativeDifference(aDerDifY,aDerY) << "\n";
        MMVII_INTERNAL_ASSERT_bench(RelativeDifference(aDerDifY,aDerY) <EpsDer,"Der AtanXsY_SX");
    }
-   // std::cout << atan2(0,1)  << " " << atan2(1,0) << "\n";
    // getchar();
 }
 

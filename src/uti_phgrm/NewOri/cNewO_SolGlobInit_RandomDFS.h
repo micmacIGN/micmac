@@ -42,6 +42,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 //#include "general/CMake_defines.h"
 #include "graphes/cNewO_BuildOptions.h"
 #include <random>
+#define TREEDIST_WITH_MMVII false
 #include  "../../../MMVII/include/TreeDist.h"
 
 #ifdef GRAPHVIZ_ENABLED

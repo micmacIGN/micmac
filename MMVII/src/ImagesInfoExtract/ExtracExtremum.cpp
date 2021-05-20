@@ -476,7 +476,6 @@ cIm2D<tINT2> ImageBenchExtrem(const cPt2di aSz,int aNbVal,int aSzMaj)
     // regularize it with majority-filter
     SelfLabMaj(aRes,cRect2::BoxWindow(aSzMaj));
 
-    // std::cout << "IIIII " << aDRes.GetV(cPt2di(0,0)) << " " <<  aDRes.GetV(cPt2di(4,2)) << "\n";
 
     return aRes;
 }

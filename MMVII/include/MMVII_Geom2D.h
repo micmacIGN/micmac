@@ -48,6 +48,57 @@ template <class Type> inline cPtxd<Type,2> PSymXY (const cPtxd<Type,2> & aP)
     return cPtxd<Type,2>(aP.y(),aP.x()); 
 }
 
+/** This class represent 2D Homotetie , it can aussi be used for an non
+   distorted camera with :
+       * mTr -> principal point
+       * mSc -> focale
+*/
+
+template <class Type>  class cHomot2D
+{
+      public :
+          static constexpr int TheDim=2;
+          typedef Type  TheType;
+          typedef cPtxd<Type,2> tPt;
+
+          static const int NbDOF() {return 3;}
+          cHomot2D(const tPt & aTr,const Type & aSc)  :
+              mTr (aTr),
+              mSc (aSc)
+          {
+          }
+          inline tPt  Value(const tPt & aP) const   {return mTr + aP * mSc;}
+          inline tPt  Inverse(const tPt & aP) const {return (aP-mTr)/mSc  ;}
+          cHomot2D<Type>  MapInverse() const {return cHomot2D<Type>(-mTr/mSc,1.0/mSc);}
+      private :
+          tPt mTr;
+          Type mSc;
+};
+
+template <class Type>  class cSim2D
+{
+      public :
+          typedef Type  TheType;
+          static constexpr int TheDim=2;
+
+          typedef cPtxd<Type,2> tPt;
+
+          cSim2D(const tPt & aTr,const tPt & aSc)  :
+              mTr (aTr),
+              mSc (aSc)
+          {
+          }
+          static const int NbDOF() {return 4;}
+
+          inline tPt  Value(const tPt & aP) const {return mTr + aP * mSc;}
+          inline tPt  Inverse(const tPt & aP) const {return (aP-mTr)/mSc  ;}
+
+          cSim2D<Type>  MapInverse() const {return cSim2D<Type>(-mTr/mSc,tPt(1.0,0.0)/mSc);}
+                
+      private :
+          tPt mTr;
+          tPt mSc;
+};
 
 
 };

@@ -30,6 +30,7 @@ namespace MMVII
       - substract a new set (-=)
       - intersect a new set (*=)
       - overwrite with a new set (=)
+      - empty (=0)
 
     Most command take as input a set of file, single case can be pattern,
   but more complex require Xml file that can be edited.
@@ -44,6 +45,8 @@ class cAppli_EditSet : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override; ///< return spec of optional args
         cAppliBenchAnswer BenchAnswer() const override ; ///< Has it a bench, default : no
         int  ExecuteBench(cParamExeBench &) override ;
+     protected :
+        bool AcceptEmptySet(int aK) const override;
      private :
          std::string mNameXmlIn;  ///< Save Input file, generally in-out
          std::string mNameXmlOut; ///< Output file, when != Input
@@ -57,6 +60,10 @@ cAppliBenchAnswer cAppli_EditSet::BenchAnswer() const
    return cAppliBenchAnswer(true,1e-5);
 }
 
+bool cAppli_EditSet::AcceptEmptySet(int) const
+{
+    return (mOp==eOpAff::eReset); //accept empty set only if operator is =0
+}
 
 static void OneBenchEditSet
     (
@@ -194,7 +201,7 @@ cCollecSpecArg2007 & cAppli_EditSet::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return 
       anArgOpt
-         << AOpt2007(mShow,"Show","Show detail of set before/after , (def) 0->none, (1) modif, (2) all",{{eTA2007::HDV}})
+         << AOpt2007(mShow,"Show","Show detail of set before/after, 0->none, (1) modif, (2) all",{{eTA2007::HDV}})
          << AOpt2007(mNameXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{})
       ;
 }
@@ -282,6 +289,7 @@ cSpecMMVII_Appli  TheSpecEditSet
       - substract a new set (-=)
       - intersect a new set (*=)
       - overwrite with a new set (=)
+      - empty (=0)
 */
 class cAppli_EditRel : public cMMVII_Appli
 {
@@ -354,7 +362,7 @@ cCollecSpecArg2007 & cAppli_EditRel::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
       ;
 /*
-         // << AOpt2007(mShow,"Show","Show detail of set before/after , (def) 0->none, (1) modif, (2) all",{})
+         // << AOpt2007(mShow,"Show","Show detail of set before/after, 0->none, (1) modif, (2) all",{})
          << AOpt2007(mNameXmlOut,"Out","Destination, def=Input, no save for " + MMVII_NONE,{});
 */
 }

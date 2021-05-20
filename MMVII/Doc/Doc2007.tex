@@ -44,6 +44,25 @@
 \setcounter{secnumdepth}{4}
 
 
+%allow to break on / in texttt
+\usepackage{xparse}
+\ExplSyntaxOn
+\NewDocumentCommand{\replace}{mmm}
+ {
+  \marian_replace:nnn {#1} {#2} {#3}
+ }
+\tl_new:N \l_marian_input_text_tl
+\cs_new_protected:Npn \marian_replace:nnn #1 #2 #3
+ {
+  \tl_set:Nn \l_marian_input_text_tl { #1 }
+  \tl_replace_all:Nnn \l_marian_input_text_tl { #2 } { #3 }
+  \tl_use:N \l_marian_input_text_tl
+ }
+\ExplSyntaxOff
+\let\OldTexttt\texttt
+\renewcommand{\texttt}[1]{\OldTexttt{\replace{#1}{/}{/\allowbreak}}}
+\let\Oldtt\tt
+\renewcommand{\tt}[1]{\Oldtt{\replace{#1}{/}{/\allowbreak}}}
 
 %---------------------------------------------
 \newcommand{\CPP}{\mbox{\tt C\hspace{-0.05cm}\raisebox{0.2ex}{\small ++} }}

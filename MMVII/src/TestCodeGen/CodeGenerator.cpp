@@ -17,11 +17,6 @@ void GenerateCode(bool WithDerivative)
 {
     std::string aPost = WithDerivative ? "_ValAndDer" : "_Val";
 
-{ //  A voir avec Jo pk ca plante apres si aPost!="" =>JO?
-  aPost="";
-// aPost="x";
-}
-
     NS_SymbolicDerivative::cCoordinatorF<double>
             mCFD1(FORMULA::FormulaName()+aPost,0,FORMULA::VNamesUnknowns(),FORMULA::VNamesObs());
 
@@ -39,7 +34,7 @@ void GenerateCode(bool WithDerivative)
 
 int main(int , char **)
 {
-    for (int aTime=0 ; aTime<1 ; aTime++)
+    for (int aTime=0 ; aTime<2 ; aTime++)
     {
          bool WithDer = (aTime==0);
          // GenerateCode<cEqCoLinearity<cTplFraserDist<3>>>(WithDer);
@@ -50,8 +45,6 @@ int main(int , char **)
          GenerateCode<cEqCoLinearity<cTplFraserDist<4>>>(WithDer);
          GenerateCode<cEqCoLinearity<cTplPolDist<7>>>(WithDer);
          GenerateCode<cEqCoLinearity<cTplPolDist<2>>>(WithDer);
-/*
-*/
     }
 
     std::ofstream os(std::string("CodeGen_IncludeAll.h"));

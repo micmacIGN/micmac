@@ -156,21 +156,6 @@ void Bench_0000_SysDepString(cParamExeBench & aParam)
 #endif
 
 void TestDir(const std::string & aDir);
-/*
-{
-   std::cout << "DDDD=[" << aDir << "]\n";
-   const char * aC = aDir.c_str();
-   int aL = strlen(aC);
-
-   if ((aL>0) && (aC[aL-1] == path::preferred_separator)) aL--;
-   aL--;
-
-   if (aL>0)
-   {
-       std::cout << "C=" <<  aC[aL]  << "\n";
-   }
-}
-*/
 
 void Bench_0000_String(cParamExeBench & aParam)
 {
@@ -879,7 +864,11 @@ void TestVectBool()
     StdOut() << "END TBYTE \n"; getchar();
 }
 
-bool F(const std::string & aMes) {std::cout <<"FFFFF=" << aMes << "\n"; return true;}
+bool PrintAndTrue(const std::string & aMes) 
+{
+    StdOut() <<"FFFFF=" << aMes << "\n"; 
+    return true;
+}
 #define UN 1
 #define DEUX 2 
 
@@ -925,11 +914,11 @@ int cAppli_MPDTest::Exe()
       printf("VVVVV=%05.2f\n",aV);
    
    }
-    if ((UN>DEUX) && F("aaaa"))
+    if ((UN>DEUX) && PrintAndTrue("aaaa"))
     {
-       F("bbbb");
+       PrintAndTrue("bbbb");
     }
-    F("ccccc");
+    PrintAndTrue("ccccc");
     cRotation3D<double>::RandomRot();
 
    

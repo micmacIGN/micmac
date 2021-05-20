@@ -75,6 +75,10 @@ or build your own image from scratch using the existing Dockerfile:
 
 [![Docker Status](https://dockeri.co/image/rupnike/micmac)](https://hub.docker.com/r/rupnike/micmac/)
 
+## Install MicMac in WinOS subsystem
+
+You can also use MicMac on Windows 10 through the Windows Subsystem for Linux (WSL). WSL allows you to run a Linux distribution (e.g. Ubuntu) directly on Windows, unmodified, without the overhead of a traditional virtual machine or dualboot setup. For further information please refer to the instructions in this [WSL tutorial](https://micmac.ensg.eu/index.php/Install_MicMac_in_Windows_Subsystem_for_Linux).
+
 # Installation test
 
 The website [logiciels.ign.fr](http://logiciels.ign.fr/?Telechargement,20) also provides a test dataset called `Boudha_dataset.zip`.
