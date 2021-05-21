@@ -25219,4 +25219,56 @@ void  BinaryUnDumpFromFile(eRANSAC_HistoP & anObj,ELISE_fp & aFp)
 
 std::string  Mangling( eRANSAC_HistoP *) {return "B8F97832255E9CE1FBBF";};
 
+
+eGetPatchPair_HistoP  Str2eGetPatchPair_HistoP(const std::string & aName)
+{
+   if (aName=="eBruteForce")
+      return eBruteForce;
+   else if (aName=="eGuided")
+      return eGuided;
+   else if (aName=="eNbTypePPHP")
+      return eNbTypePPHP;
+  else
+  {
+      cout << aName << " is not a correct value for enum eGetPatchPair_HistoP\n" ;
+      ELISE_ASSERT(false,"XML enum value error");
+  }
+  return (eGetPatchPair_HistoP) 0;
+}
+void xml_init(eGetPatchPair_HistoP & aVal,cElXMLTree * aTree)
+{
+   aVal= Str2eGetPatchPair_HistoP(aTree->Contenu());
+}
+std::string  eToString(const eGetPatchPair_HistoP & anObj)
+{
+   if (anObj==eBruteForce)
+      return  "eBruteForce";
+   if (anObj==eGuided)
+      return  "eGuided";
+   if (anObj==eNbTypePPHP)
+      return  "eNbTypePPHP";
+ std::cout << "Enum = eGetPatchPair_HistoP\n";
+   ELISE_ASSERT(false,"Bad Value in eToString for enum value ");
+   return "";
+}
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eGetPatchPair_HistoP & anObj)
+{
+      return  cElXMLTree::ValueNode(aNameTag,eToString(anObj));
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const eGetPatchPair_HistoP & anObj)
+{
+   BinaryDumpInFile(aFp,int(anObj));
+}
+
+void  BinaryUnDumpFromFile(eGetPatchPair_HistoP & anObj,ELISE_fp & aFp)
+{
+   int aIVal;
+   BinaryUnDumpFromFile(aIVal,aFp);
+   anObj=(eGetPatchPair_HistoP) aIVal;
+}
+
+std::string  Mangling( eGetPatchPair_HistoP *) {return "EB3B00183EC773D3FE3F";};
+
 // };

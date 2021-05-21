@@ -8152,5 +8152,28 @@ std::string  Mangling( eRANSAC_HistoP *);
 
 void  BinaryUnDumpFromFile(eRANSAC_HistoP &,ELISE_fp &);
 
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+typedef enum
+{
+  eBruteForce,
+  eGuided,
+  eNbTypePPHP
+} eGetPatchPair_HistoP;
+void xml_init(eGetPatchPair_HistoP & aVal,cElXMLTree * aTree);
+std::string  eToString(const eGetPatchPair_HistoP & aVal);
+
+eGetPatchPair_HistoP  Str2eGetPatchPair_HistoP(const std::string & aName);
+
+cElXMLTree * ToXMLTree(const std::string & aNameTag,const eGetPatchPair_HistoP & anObj);
+
+void  BinaryDumpInFile(ELISE_fp &,const eGetPatchPair_HistoP &);
+
+std::string  Mangling( eGetPatchPair_HistoP *);
+
+void  BinaryUnDumpFromFile(eGetPatchPair_HistoP &,ELISE_fp &);
+
 // };
 #endif // Define_NotPCP

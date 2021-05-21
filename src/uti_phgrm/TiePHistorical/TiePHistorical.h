@@ -42,10 +42,292 @@ Header-MicMac-eLiSe-25/06/2007*/
 #define _TiePHisto_
 
 #include "StdAfx.h"
+#include <algorithm>
 
 
+
+
+class cAppliTiepHistoricalPipeline; // class managing the pipeline
+class cCommonAppliTiepHistorical; // class managing parameters common to all stages of the pipeline
+
+/****************************************/
+/****** cCommonAppliTiepHistorical ******/
+/****************************************/
+/*
+typedef enum
+{
+  e2D,
+  e3D,
+  eNbTypeRHP
+} eRANSAC_HistoPipe;
+*/
+class cCommonAppliTiepHistorical
+{
+    public:
+
+        cCommonAppliTiepHistorical();
+
+        /* Common parameters */
+//        bool                              mExe;
+        std::string                       mDir;
+
+        //std::string mDir;
+        std::string mPat;
+        std::string mOri;
+
+        /* Parameters for rough co-registration */
+        std::string                       mOriIn1;
+        std::string                       mOriIn2;
+//        std::string                       mDSMDirL;
+//        std::string                       mDSMDirR;
+        std::string                       mOriOut;
+
+        /* Parameters for rough DSM_Equalization */
+        //std::string                       mOutImg;
+        double                            mSTDRange;
+
+        /* Parameters for SuperGlue */
+        //std::string                       input_pairs;
+        std::string                       mInput_dir;
+        std::string                       mOutput_dir;
+        std::string                       mSpGlueOutSH;
+        Pt2di                             mResize;
+        std::string                       mModel;
+        int                               mMax_keypoints;
+        bool                              mViz;
+        bool                              mKeepNpzFile;
+
+        /* Parameters for GetPatchPair */ 
+        Pt2dr                             mPatchSz;
+        Pt2dr                             mBufferSz;
+        std::string                       mSubPatchXml;
+        std::string                       mImgPair;
+        std::string                       mOutDir;
+//        std::string                       mOutImg1;
+//        std::string                       mOutImg2;
+
+        /* Parameters for MergeTiePt */   
+        std::string                       mMergeTiePtInSH;
+        std::string                       mMergeTiePtOutSH;
+        std::string                       mHomoXml;
+
+        /* Parameters for RANSAC */       
+        std::string                       mRANSACInSH;
+        std::string                       mRANSACOutSH;
+        int                               mR3DIteration;
+        int                               mR2DIteration;
+        double                            mR2DThreshold;
+        double                            mR3DThreshold;
+//        std::string                       mDSMFileL;
+//        std::string                       mDSMFileR;
+
+        /* Parameters for CreateGCPs */
+        std::string                       mCreateGCPsInSH;
+        std::string                       mOut2DXml1;
+        std::string                       mOut2DXml2;
+        std::string                       mOut3DXml1;
+        std::string                       mOut3DXml2;
+
+        /* Parameters for GetOverlappedImages */
+        std::string                       mOutPairXml;
+
+        /* Parameters for GuidedSIFT */   
+        std::string                       mGuidedSIFTOutSH;
+        bool                              mSkipSIFT;
+        double                            mSearchSpace;
+        bool                              mMutualNN;
+        bool                              mRatioT;
+        bool                              mRootSift;
+        bool                              mCheckScale;
+        bool                              mCheckAngle;
+        bool                              mPredict;
+        double                            mScale;
+        double                            mAngle;
+
+        /* Parameters for CrossCorrelation */
+        std::string                       mCrossCorrelationInSH;
+        std::string                       mCrossCorrelationOutSH;
+        int                               mWindowSize;
+        double                            mCrossCorrThreshold;
+
+        LArgMain &     ArgBasic();
+        LArgMain &     ArgRough();
+        LArgMain &     ArgSuperGlue();
+        LArgMain &     ArgMergeTiePt();
+        LArgMain &     ArgGetPatchPair();
+        LArgMain &     ArgCreateGCPs();
+        LArgMain &     ArgGetOverlappedImages();
+        LArgMain &     Arg2DRANSAC();
+        LArgMain &     Arg3DRANSAC();
+        LArgMain &     ArgGuidedSIFT();
+        LArgMain &     ArgDSM_Equalization();
+        LArgMain &     ArgCrossCorrelation();
+
+        cInterfChantierNameManipulateur * mICNM;
+
+        std::string GetFolderName(std::string strIn);
+        void ExtractSIFT(std::string aFullName, std::string aDir);
+
+        std::string ComParamDSM_Equalization();
+        std::string ComParamGetPatchPair();
+        std::string ComParamSuperGlue();
+        std::string ComParamMergeTiePt();
+        std::string ComParamRANSAC2D();
+        std::string ComParamCreateGCPs();
+        std::string ComParamGetOverlappedImages();
+        std::string ComParamGuidedSIFTMatch();
+
+
+private:
+    LArgMain * mArgBasic;
+    LArgMain * mArgRough;
+    LArgMain * mArgSuperGlue;
+    LArgMain * mArgMergeTiePt;
+    LArgMain * mArgGetPatchPair;
+    LArgMain * mArgGetOverlappedImages;
+    LArgMain * mArg2DRANSAC;
+    LArgMain * mArg3DRANSAC;
+    LArgMain * mArgGuidedSIFT;
+    LArgMain * mArgDSM_Equalization;
+    LArgMain * mArgCrossCorrelation;
+    LArgMain * mArgCreateGCPs;
+    /*
+
+            LArgMain * mArgRPC;
+            LArgMain * mArgMM1P;
+    LArgMain * mArgFuse;
+    */
+};
+
+
+/*******************************************/
+/****** cTransform3DHelmert  ******/
+/*******************************************/
+class cTransform3DHelmert
+{
+    public:
+
+        cTransform3DHelmert(std::string aFileName);
+
+        Pt3dr Transform3Dcoor(Pt3dr aPt);
+
+private:
+        bool mApplyTrans;
+        cXml_ParamBascRigide  *  mTransf;
+        double mScl;
+        Pt3dr mTr;
+        //cTypeCodageMatr mRot;
+
+};
+
+
+/*******************************************/
+/****** cGet3Dcoor  ******/
+/*******************************************/
+
+class cGet3Dcoor
+{
+    public:
+
+        cGet3Dcoor(std::string aNameOri, std::string aDir="./");
+
+        TIm2D<float,double> SetDSMInfo(std::string aDSMFile, std::string aDSMDir);
+
+        Pt2di GetDSMSz(std::string aDSMFile, std::string aDSMDir);
+
+        Pt3dr Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> mTImProfPx, bool& bValid, double dThres=0.0001);
+
+        Pt3dr GetRough3Dcoor(Pt2dr aPt1);
+
+        Pt2dr Get2Dcoor(Pt3dr aTer);
+
+private:
+        ElCamera * mCam1;
+        cInterfChantierNameManipulateur * mICNM;
+        bool         bDSM;
+        Pt2di        mDSMSz;
+        cFileOriMnt  mFOM;
+        Pt2dr mOriPlani;
+        Pt2dr mResolPlani;
+        //Im2D<float,double>   mImIn;
+        //TIm2D<float,double> mTImProfPx;
+};
+
+/*******************************************/
+/****** cAppliTiepHistoricalPipeline  ******/
+/*******************************************/
+
+
+class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
+{
+    public:
+        cAppliTiepHistoricalPipeline(int argc, char** argv);
+
+        void DoAll();
+
+    private:
+        std::string GetImage_Profondeur(std::string aDSMDir, std::string aDSMFile);
+        std::string StdCom(const std::string & aCom,const std::string & aPost="", bool aExe=false);
+        int GetTiePtNum(std::string aDir, std::string aImg1, std::string aImg2, std::string aSH);
+        int GetOverlappedImgPair(std::string aName, std::vector<std::string>& aResL, std::vector<std::string>& aResR);
+        std::string GetImgList(std::string aDir, std::string aFileName);
+
+
+        bool        mDebug;
+        cCommonAppliTiepHistorical mCAS3D;
+
+        std::string mFeature;
+
+        std::string mDSMDirL;
+        std::string mDSMDirR;
+        std::string mDSMFileL;
+        std::string mDSMFileR;
+
+        std::string mOri1;
+        std::string mOri2;
+        std::string mImgList1;
+        std::string mImgList2;
+
+        std::string mCoRegOri;
+
+        ElTimer     mChrono;
+
+        bool mSkipCoReg;
+
+
+        bool                              mExe;
+        /*
+
+
+        std::string mPat;
+        std::string mOri;
+
+
+
+        ElTimer     mChrono;
+        */
+};
+
+
+
+
+/****************************************/
+/****** cInterEp_RoughCoReg ******/
+/****************************************/
+/*
+class cInterEp_RoughCoReg
+{
+    public:
+
+        cInterEp_RoughCoReg();
+
+        void DSM2Gray();
+
+private:
+
+};
+*/
 #endif //  _TiePHisto_
-
 /*Footer-MicMac-eLiSe-25/06/2007
 
 Ce logiciel est un programme informatique servant à la mise en

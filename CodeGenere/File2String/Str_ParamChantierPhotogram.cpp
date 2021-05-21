@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamChantierPhotogram[2171] = {
+const char * theNameVar_ParamChantierPhotogram[2176] = {
 "<GenCpp>\n",
 "\n",
 "\n",
@@ -2157,6 +2157,11 @@ const char * theNameVar_ParamChantierPhotogram[2171] = {
 "    <eNbTypeRHP></eNbTypeRHP>\n",
 "</enum>\n",
 "\n",
+"<enum Name=\"eGetPatchPair_HistoP\">\n",
+"    <eBruteForce>      </eBruteForce>\n",
+"    <eGuided>      </eGuided>\n",
+"    <eNbTypePPHP></eNbTypePPHP>\n",
+"</enum>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
 "// };\n",
