@@ -558,7 +558,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
 
     std::string aType;
 
-    bool bRotate;
+    bool bRotate = false;
 
     ElInitArgMain
      (
@@ -568,7 +568,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
                      << EAMC(aImg1,"First image name")
                      << EAMC(aImg2,"Second image name"),
          LArgMain()
-                     << EAM(bRotate,"Rotate",true,"Rotate the left image by 90 degree 4 times for methods not invariant to rotation (e.g. SuperGlue)")
+                     << EAM(bRotate,"Rotate",true,"Rotate the left image by 90 degree 4 times for methods not invariant to rotation (e.g. SuperGlue), Def=false")
                      << aCAS3D.ArgBasic()
                      << aCAS3D.ArgGetPatchPair()
      );

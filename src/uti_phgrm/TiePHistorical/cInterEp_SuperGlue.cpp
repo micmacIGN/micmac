@@ -162,10 +162,11 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
         //break;
 
         //cout<<"nValidMatchNum: "<<nValidMatchNum<<endl;
-/*
+
         std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+SH;
         cout<<aCom<<endl;
-*/
+        cout<<"tie point number: "<<nValidMatchNum<<endl;
+
         std::string aSHDir = input_dir + "/Homol" + SH+"/";
         ELISE_fp::MkDir(aSHDir);
         std::string aNewDir = aSHDir + "Pastis" + aImg1;
@@ -222,6 +223,11 @@ int SuperGlue_main(int argc,char ** argv)
 
    std::string input_pairs;
 
+   std::string strMicMacDir = MMBinFile(MM3DStr);
+   strMicMacDir = strMicMacDir.substr(0, strMicMacDir.length()-9) + "src/uti_phgrm/TiePHistorical/SuperGluePretrainedNetwork-master/match_pairs.py";
+
+   std::string strOpt = "";
+
    ElInitArgMain
     (
         argc,argv,
@@ -229,24 +235,27 @@ int SuperGlue_main(int argc,char ** argv)
         LArgMain()
                     //<< aCAS3D.ArgBasic()
                     << aCAS3D.ArgSuperGlue()
+               << EAM(strMicMacDir, "EntSpG", true, "The SuperGlue program entry, Def=../micmac/src/uti_phgrm/TiePHistorical/SuperGluePretrainedNetwork-master/match_pairs.py")
+               << EAM(strOpt, "opt", true, "Other options for SuperGlue (for debug only), Def=none")
     );
 
 
    if(true)
    {
-       std::string strMicMacDir = MMBinFile(MM3DStr);
-       strMicMacDir = strMicMacDir.substr(0, strMicMacDir.length()-9);
-       std::string cmmd = strMicMacDir + "/src/uti_phgrm/TiePHistorical/SuperGluePretrainedNetwork-master/match_pairs.py --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
+       std::string cmmd = strMicMacDir + " --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
 
        //std::string cmmd = "/home/lulin/Documents/ThirdParty/SuperGluePretrainedNetwork-master/match_pairs.py --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
        if(aCAS3D.mViz == true)
            cmmd += " --viz";
        if(aCAS3D.mModel == "indoor")
-           cmmd += " --model indoor";
+           cmmd += " --superglue indoor";
+       else
+           cmmd += " --superglue outdoor";
        if(aCAS3D.mResize.x > 0 && aCAS3D.mResize.y > 0)
            cmmd += " --resize " + std::to_string(aCAS3D.mResize.x) + " " + std::to_string(aCAS3D.mResize.y);
        else
            cmmd += " --resize -1";
+       cmmd += strOpt;
 
        printf("%s\n", cmmd.c_str());
        System(cmmd);

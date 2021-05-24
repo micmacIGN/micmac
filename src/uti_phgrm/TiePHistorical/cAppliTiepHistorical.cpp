@@ -180,7 +180,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     *mArgSuperGlue
             //<< EAM(input_pairs, "input_pairs", true, "txt file that listed the image pairs")
             << EAM(mInput_dir, "InDir", true, "The input directory of the images for SuperGlue, Def=./")
-            << EAM(mSpGlueOutSH, "SGOutSH", true, "Homologue extenion for NB/NT mode of SuperGlue, Def=-SuperGlue")
+            << EAM(mSpGlueOutSH, "SpGOutSH", true, "Homologue extenion for NB/NT mode of SuperGlue, Def=-SuperGlue")
             << EAM(mOutput_dir, "OutDir", true, "The output directory of the match results of SuperGlue, Def=./")
             << EAM(mResize, "Resize", true, "The goal size to resize the input image for SuperGlue, Def=[640, 480], if you don't want to resize, please set to [-1, -1]")
             << EAM(mViz, "Viz", true, "Visualize the matches and dump the plots of SuperGlue, Def=false")
@@ -351,7 +351,7 @@ std::string cCommonAppliTiepHistorical::ComParamSuperGlue()
     std::string aCom ="";
     if (EAMIsInit(&mInput_dir))   aCom +=  " InDir=" + mDir + "/" + mInput_dir;
     if (EAMIsInit(&mOutput_dir))   aCom +=  " OutDir=" + mDir + "/" + mOutput_dir;
-    if (EAMIsInit(&mSpGlueOutSH))   aCom +=  " SGOutSH=" + mSpGlueOutSH;
+    if (EAMIsInit(&mSpGlueOutSH))   aCom +=  " SpGOutSH=" + mSpGlueOutSH;
     if (EAMIsInit(&mResize))    aCom += " Resize=[" + ToString(mResize.x) + "," + ToString(mResize.y) + "]";
     if (EAMIsInit(&mViz))       aCom += " mViz=" + ToString(mViz);
     if (EAMIsInit(&mModel))  aCom +=  " Model=" + mModel;
