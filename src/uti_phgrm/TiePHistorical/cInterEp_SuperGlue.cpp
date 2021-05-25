@@ -100,9 +100,13 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
         Pt2dr ptScaleL = Pt2dr(1.0, 1.0);
         Pt2dr ptScaleR = Pt2dr(1.0, 1.0);
 
-        Tiff_Im aRGBIm1((input_dir+aImg1).c_str());
+        //Tiff_Im aRGBIm1((input_dir+aImg1).c_str());
+        //Tiff_Im aRGBIm1 = Tiff_Im::BasicConvStd((input_dir+aImg1).c_str());
+        Tiff_Im aRGBIm1 = Tiff_Im::UnivConvStd((input_dir+aImg1).c_str());
         Pt2di ImgSzL = aRGBIm1.sz();
-        Tiff_Im aRGBIm2((input_dir+aImg2).c_str());
+        //Tiff_Im aRGBIm2((input_dir+aImg2).c_str());
+        //Tiff_Im aRGBIm2 = Tiff_Im::BasicConvStd((input_dir+aImg2).c_str());
+        Tiff_Im aRGBIm2 = Tiff_Im::UnivConvStd((input_dir+aImg2).c_str());
         Pt2di ImgSzR = aRGBIm2.sz();
 
         //cout<<"Left img size: "<<ImgSzL.x<<", "<<ImgSzL.y<<endl;
