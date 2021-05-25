@@ -34,12 +34,17 @@ Dependencies:
  - Wheel for Python3
  - for documentation: doxygen, GraphViz
 
+Compile MMv1 and MMv2.
+
 On debian:
-    apt install swig python3-dev pkg-config python3-pip python3-wheel
+    apt install swig python3-dev pkg-config python3-pip python3-numpy python3-wheel
     apt install doxygen graphviz
 
 Compilation:
     make -f Makefile_apipy_linux
+
+If MMv1 was compiled with Qt:
+    make -f Makefile_apipy_linux USEQT=ON
 
 
 Distribution

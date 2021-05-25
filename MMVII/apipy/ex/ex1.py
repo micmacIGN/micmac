@@ -58,11 +58,14 @@ def PIL2mmv2Img():
   import numpy as np
   path="ex/png.png"
   pil_image = Image.open(path).convert('L')
-  pil_image_array=np.array(pil_image)
-  im=mmv2.cIm2Du1( (5,5) )
-  im.DIm().setRawData( pil_image_array )
-  d=im.DIm()
-  v=d.getRawData()
+  pil_image_array = np.array(pil_image)
+  
+  im = mmv2.cIm2Du1( (5,5) )
+  d = im.DIm()
+  d.setRawData(pil_image_array)
+  d.ToFile("ex/out.tif")
+  
+  v = d.getRawData()
   array = np.array(v, dtype=np.uint8)
   array = array.reshape((d.SzY(), d.SzX()))
   img = Image.fromarray(array)
