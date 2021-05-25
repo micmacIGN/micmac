@@ -1,6 +1,5 @@
 #ifndef _SymbolicDerivatives_H_
 #define _SymbolicDerivatives_H_
-using namespace std;
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -310,9 +309,9 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
 
       // ---------------------------  Constructors / Destructor -------------------
         /// Constructor with explicit Id for Unknown/Observation. Used if we want to analyze the generated code
-        inline cCoordinatorF(const string &aName, int SzBuf, const std::vector<std::string> & aVecUK, const std::vector<std::string> & aVecObs);
+        inline cCoordinatorF(const std::string &aName, int SzBuf, const std::vector<std::string> & aVecUK, const std::vector<std::string> & aVecObs);
         /// Constructor with basic Id (used if we dont generate code, or dont want to analyse it by human)
-        inline cCoordinatorF(const string &aName, int SzBuf,int aNbUnknown,int aNbObservation);
+        inline cCoordinatorF(const std::string &aName, int SzBuf,int aNbUnknown,int aNbObservation);
         /// Destructeur will free allocated formulas
         virtual ~cCoordinatorF();
         /// Copies are not allowed on this kind of object.
@@ -429,7 +428,7 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
         /// Used to generate automatically Id for Unknown/Observatio, when we dont need to control them explicitely
         static std::vector<std::string>   MakeAutomId(const std::string & aPrefix,int aNb);
 
-        std::string GenCodeCommon(const string &aPrefix, string aTypeName, bool isShortExpr) const;
+        std::string GenCodeCommon(const std::string &aPrefix, std::string aTypeName, bool isShortExpr) const;
 
         std::string TypeElemName() const;
 
@@ -904,7 +903,7 @@ cCoordinatorF<TypeElem>::cCoordinatorF
 }
 
 template <class TypeElem> 
-cCoordinatorF<TypeElem>::cCoordinatorF(const string &aName, int aSzBuf, int aNbUK, int aNbObs) :
+cCoordinatorF<TypeElem>::cCoordinatorF(const std::string &aName, int aSzBuf, int aNbUK, int aNbObs) :
          cCoordinatorF<TypeElem>(aName,aSzBuf,MakeAutomId("X",aNbUK),MakeAutomId("V",aNbObs))
 {
 }
