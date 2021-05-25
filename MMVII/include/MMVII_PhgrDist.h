@@ -41,7 +41,7 @@ class cDescOneFuncDist
 
 
 
-//  used for bench now To put elsewhere later,
+///  Allocate a calculator
 NS_SymbolicDerivative::cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf);
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg);

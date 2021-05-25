@@ -699,7 +699,8 @@ CpleEpipolaireCoord  * CpleEpipolaireCoord::PolynomialFromHomologue
           Pt2dr aQ2 = aSolApprox->EPI2().Direct(itC->P2());
 
           REAL aResidu = ElAbs(aQ1.y-aQ2.y);
-          aPdsResidu =  1/sqrt(ElSquare(aResidu)+ElSquare(aResiduMin));
+          // aPdsResidu =  1/sqrt(ElSquare(aResidu)+ElSquare(aResiduMin));
+          aPdsResidu =  1/(ElSquare(aResidu)+ElSquare(aResiduMin));
       }
       Pt2dr aP1 = ( itC->P1() -aStat.Cdg1()) / aDir1;
       Pt2dr aP2 = ( itC->P2() -aStat.Cdg2()) / aDir2;
