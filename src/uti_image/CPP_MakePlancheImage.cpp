@@ -48,6 +48,8 @@ int MakePlancheImage_main(int argc,char ** argv)
    int  aForceGray = 0;
    double aScale =  10;
    std::string aRes = "Panel.tif";
+   Pt2di  aSz;
+   Pt2di  aSzImgt;
 
    std::vector<int> aColF;
 
@@ -60,6 +62,7 @@ int MakePlancheImage_main(int argc,char ** argv)
                     <<  EAM(aNbLine,"NbL",true,"Number of line (def to have NbLine=NbCol)")
                     <<  EAM(aRes,"Res",true,"Result, default Panel.tif")
                     <<  EAM(aScale,"Scale",true,"Scale of Image, def=10 ")
+                    <<  EAM(aSzImgt,"Sz",true,"Sz instead of scale ")
                     <<  EAM(aColF,"Fond",true,"Background colour", eSAM_NoInit)
                     <<  EAM(aForceGray,"Gray",true,"Force result to gray image")
    );
@@ -85,6 +88,8 @@ int MakePlancheImage_main(int argc,char ** argv)
         aSzMax.SetSup(aVT.back().sz());
         aNbCh = ElMax(aNbCh,aVT.back().nb_chan());
    }
+   if (EAMIsInit(&aSzImgt))
+      aSzMax = aSzImgt;
 
    if (aColF.size()==0)
       aColF = std::vector<int>(aNbCh,128);
@@ -97,10 +102,13 @@ int MakePlancheImage_main(int argc,char ** argv)
 
 
 
-    Pt2di aSz (
+   if (! EAMIsInit(&aSzImgt))
+     aSz = Pt2di (
                  round_up((aSzMax.x * aNbCol) / aScale),
                  round_up((aSzMax.y * aNbLine) / aScale)
               );
+   else
+     aSz = Pt2di(aSzImgt.x*aNbLine,aSzImgt.y*aNbCol);
 
    std::cout << "SZ = " << aSz << " :: " << aNbCol << " X " << aNbLine  << "\n";
 
@@ -127,6 +135,13 @@ int MakePlancheImage_main(int argc,char ** argv)
 
    for (int aK=0 ; aK<int(aVT.size()) ; aK++)
    {
+        double aScaleLoc = aScale;
+        if (EAMIsInit(&aSzImgt))
+        {
+             Pt2di aSzLoc = aVT[aK].sz();
+             aScaleLoc = ElMax(double(aSzLoc.x)/aSzImgt.x,double(aSzLoc.y)/aSzImgt.y);
+// aScaleLoc = 1/aScaleLoc;
+        }
         std::cout << "WRITE " << aVT[aK].name() << "\n";
         int aKX = aK % aNbCol;
         int aKY = aK / aNbCol;
@@ -145,7 +160,7 @@ int MakePlancheImage_main(int argc,char ** argv)
        while (aF.dimf_out() < aNbCh)
               aF = Virgule(aF0,aF);
 
-       aF = StdFoncChScale(aF,Pt2dr(-aP0.x,-aP0.y)*aScale ,Pt2dr(aScale,aScale));
+       aF = StdFoncChScale(aF,Pt2dr(-aP0.x,-aP0.y)*aScaleLoc ,Pt2dr(aScaleLoc,aScaleLoc));
 
 
         ELISE_COPY
