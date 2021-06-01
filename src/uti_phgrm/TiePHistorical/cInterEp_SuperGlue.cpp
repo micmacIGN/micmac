@@ -227,8 +227,8 @@ int SuperGlue_main(int argc,char ** argv)
 
    std::string input_pairs;
 
-   std::string strMicMacDir = MMBinFile(MM3DStr);
-   strMicMacDir = strMicMacDir.substr(0, strMicMacDir.length()-9) + "src/uti_phgrm/TiePHistorical/SuperGluePretrainedNetwork-master/match_pairs.py";
+   std::string strMicMacDirBin = MMBinFile(MM3DStr);
+   std::string strMicMacDirTPHisto = strMicMacDirBin.substr(0, strMicMacDirBin.length()-9) + "src/uti_phgrm/TiePHistorical/";
 
    std::string strOpt = "";
 
@@ -239,16 +239,17 @@ int SuperGlue_main(int argc,char ** argv)
         LArgMain()
                     //<< aCAS3D.ArgBasic()
                     << aCAS3D.ArgSuperGlue()
-               << EAM(strMicMacDir, "EntSpG", true, "The SuperGlue program entry, Def=../micmac/src/uti_phgrm/TiePHistorical/SuperGluePretrainedNetwork-master/match_pairs.py")
+               //<< EAM(strMicMacDir, "EntSpG", true, "The SuperGlue program entry, Def="+strMicMacDir)
                << EAM(strOpt, "opt", true, "Other options for SuperGlue (for debug only), Def=none")
     );
 
 
    if(true)
    {
-       std::string cmmd = strMicMacDir + " --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
 
-       //std::string cmmd = "/home/lulin/Documents/ThirdParty/SuperGluePretrainedNetwork-master/match_pairs.py --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
+       std::string cmmd = "bash " + strMicMacDirTPHisto + "run.sh --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
+
+
        if(aCAS3D.mViz == true)
            cmmd += " --viz";
        if(aCAS3D.mModel == "indoor")
@@ -261,10 +262,12 @@ int SuperGlue_main(int argc,char ** argv)
            cmmd += " --resize -1";
        cmmd += strOpt;
 
-       printf("%s\n", cmmd.c_str());
-       System(cmmd);
-   }
+	   printf("%s\n", cmmd.c_str());
+	   
 
+       System(cmmd);
+
+   }
    //todefine(aCAS3D.input_dir, aCAS3D.output_dir, input_pairs);
    //ReadImgPairs(aCAS3D.input_dir, input_pairs);
    Npz2Homol(aCAS3D.mResize, aCAS3D.mInput_dir, aCAS3D.mSpGlueOutSH, input_pairs, aCAS3D.mKeepNpzFile);
