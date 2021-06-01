@@ -290,11 +290,23 @@ template<typename T> class cCompiledCalculator : public cCalculator<T>
 };
 
 
+// This function must be defined somewhere and initialize Name/Alloc association
+// by calling cName2Calc<>::Register(Name,&Alloc) multiple times.
+// File "cName2CalcRegisterAll.cpp.tmpl" is a template file for such an empty function.
+// This template must be compiled/linked in if this function is not defined elsewhere.
+// cGenNameAlloc::generateRFile() can create such a file for auto generated code
+void cName2CalcRegisterAll(void);
+
+
 template <class Type>  class cName2Calc
 {
   public :
-    typedef  cCompiledCalculator<double>  tCalc;
+    typedef  cCompiledCalculator<Type>  tCalc;
     typedef  tCalc * (* tAllocator) (int aSzBuf);
+
+
+    // It's actually more a namespace than a class
+    cName2Calc() = delete;
 
     /// That's what we want : alloc an object from its name
     static tCalc * CalcFromName(const std::string & aName,int aSzBuf,bool SVP=false)
@@ -308,16 +320,24 @@ template <class Type>  class cName2Calc
         return anAlloc(aSzBuf);
     }
 
-    /// The constructor is used to store the association that allow to create unknow object
-    cName2Calc(const std::string & aName,tAllocator anAlloc)
+    void static Register(const std::string & aName,tAllocator anAlloc)
     {
          Name2Alloc(aName,anAlloc,false);
     }
+
   private :
     /// if tAllocator=0 return Alloc associated to name, else store the association
+    /// At first call, will try to initialize Name/Alloc associating map by calling InitMapAllocator()
+    ///   (see bellow)
     static tAllocator  Name2Alloc(const std::string & aName,tAllocator anAlloc,bool SVP=false)
     {
        static std::map<std::string,tAllocator> TheMap;
+       static bool firstCall = true;
+
+       if (firstCall) {
+           firstCall=false;
+           cName2CalcRegisterAll();
+       }
        auto anIter = TheMap.find(aName);
 
        // If no allocator, we are in the mode where we want to retrieve it
@@ -337,9 +357,8 @@ template <class Type>  class cName2Calc
 
        return nullptr;
     }
+
 };
-
-
 
 } // namespace NS_SymbolicDerivative
 

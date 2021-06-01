@@ -122,9 +122,16 @@ SrcSymbDerGen=$(wildcard ${MMV2DirSymbDerGen}*.cpp)
 ObjSymbDerGen=$(SrcSymbDerGen:.cpp=.o) 
 #
 #
+SRC_REGGEN=${MMV2DirGeneratedCodes}cName2CalcRegisterAll.cpp
 MMV2DirGeneratedCodes=${MMV2DirSrc}GeneratedCodes/
-SrcGeneratedCodes=$(wildcard ${MMV2DirGeneratedCodes}*.cpp)
-ObjGeneratedCodes=$(SrcGeneratedCodes:.cpp=.o) 
+SrcGeneratedCodes:=$(wildcard ${MMV2DirGeneratedCodes}*.cpp)
+## Force ${REGEN} to be built, but assure only once in SrcGeneratedCodes :
+SrcGeneratedCodes:=${filter-out ${SRC_REGGEN},${SrcGeneratedCodes}} ${SRC_REGGEN}
+ObjGeneratedCodes=$(SrcGeneratedCodes:.cpp=.o)
+
+${SRC_REGGEN}:
+	mkdir -p ${MMV2DirGeneratedCodes}
+	cp  ${MMV2DirIncl}/SymbDer/cName2CalcRegisterAll.cpp.tmpl $@
 #
 #
 MMV2DirGeoms=${MMV2DirSrc}Geoms/
@@ -225,7 +232,11 @@ Show:
 	echo ObjCalcDescriptPCar : ${ObjCalcDescriptPCar}
 	echo SrcCalcDescriptPCar: ${SrcCalcDescriptPCar}
 	echo MMV2DirCalcDescriptPCar: ${MMV2DirCalcDescriptPCar}
+
 clean :
 	rm -f ${OBJ}
+
+distclean: clean
+	-rm -f ${MMV2DirGeneratedCodes}*
 #
 #

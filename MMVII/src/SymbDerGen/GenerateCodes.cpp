@@ -1,10 +1,10 @@
 #include "include/MMVII_all.h"
 #include "include/SymbDer/SymbolicDerivatives.h"
+#include "include/SymbDer/SymbDer_GenNameAlloc.h"
 #include "Formulas_CamStenope.h"
 
 using namespace NS_SymbolicDerivative;
 using namespace MMVII;
-
 
 namespace NS_GenerateCode
 {
@@ -144,7 +144,6 @@ cCollecSpecArg2007 & cAppli::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 }
 
 
-
 template <typename tFormula> void cAppli::GenCodesFormula(const tFormula & aFormula,bool WithDerive)
 {
    int aSzBuf=1;
@@ -156,7 +155,6 @@ template <typename tFormula> void cAppli::GenCodesFormula(const tFormula & aForm
 
    // Set header in a place to compilation path of MMVII
    aCEq.SetHeaderIncludeSymbDer("include/SymbDer/SymbDer_Common.h"); 
-   aCEq.SetUseAllocByName(true);  // generate allocators
    aCEq.SetDirGenCode(mDirGenCode);
 
    auto aXY= aFormula.formula(aCEq.VUk(),aCEq.VObs()); // Give ths list of atomic formula
@@ -164,13 +162,9 @@ template <typename tFormula> void cAppli::GenCodesFormula(const tFormula & aForm
       aCEq.SetCurFormulasWithDerivative(aXY);
    else
       aCEq.SetCurFormulas(aXY);
-   aCEq.GenerateCode("CodeGen_");
-/*
-*/
+   auto [aClassName,aFileName] = aCEq.GenerateCode("CodeGen_");
+   cGenNameAlloc::Add(aClassName,aFileName);
 };
-
-
-
 
 int cAppli::Exe()
 {
@@ -179,6 +173,7 @@ int cAppli::Exe()
    cEqDist<cMMVIIUnivDist>  anEqDist(aDist);
    cEqIntr<cMMVIIUnivDist>  anEqIntr(aDist);
 
+   cGenNameAlloc::Reset();
 
    GenCodesFormula(anEqDist,false);
    GenCodesFormula(anEqDist,true);
@@ -189,8 +184,8 @@ int cAppli::Exe()
    cMMVIIUnivDist           aDistBase(3,1,1,true);
    cEqDist<cMMVIIUnivDist>  anEqBase(aDistBase);
    GenCodesFormula(anEqBase,false);
-/*
-*/
+   cGenNameAlloc::GenerateFile(mDirGenCode+"cName2CalcRegisterAll.cpp","include/SymbDer/SymbDer_Common.h","");
+
    return EXIT_SUCCESS;
 }
 
@@ -198,6 +193,7 @@ cAppliBenchAnswer cAppli::BenchAnswer() const
 {
    return cAppliBenchAnswer(true,1.0);
 }
+
 
 int  cAppli::ExecuteBench(cParamExeBench & aParam) 
 {
