@@ -118,26 +118,9 @@ template class cLeastSqCompMapCalcSymb<TYPE,DIMIN,DIMOUT>;
 INSTANTIATE_LSQMAP(tREAL8,3,2)
 INSTANTIATE_LSQMAP(tREAL8,2,2)
 
-/*
-#define INSTANTIATE_OPMulMatVect(T1,T2)\
-template  cDenseVect<T1> operator * (const cDenseVect<T1> & aVL,const cUnOptDenseMatrix<T2>& aMat);\
-template  cDenseVect<T1> operator * (const cUnOptDenseMatrix<T2>& aVC,const cDenseVect<T1> & aMat);\
-template  cDenseVect<T1> operator * (const cDenseVect<T1> & aVL,const cDenseMatrix<T2>& aMat);\
-template  cDenseVect<T1> operator * (const cDenseMatrix<T2>& aVC,const cDenseVect<T1> & aMat);\
 
 
-#define INSTANTIATE_DENSE_MATRICES(Type)\
-template  class  cUnOptDenseMatrix<Type>;\
-template  class  cDenseMatrix<Type>;\
-template  cDenseMatrix<Type> operator * (const cDenseMatrix<Type> &,const cDenseMatrix<Type>&);\
-template  cUnOptDenseMatrix<Type> operator * (const cUnOptDenseMatrix<Type> &,const cUnOptDenseMatrix<Type>&);\
-INSTANTIATE_OPMulMatVect(Type,Type)\
 
-
-INSTANTIATE_DENSE_MATRICES(tREAL4)
-INSTANTIATE_DENSE_MATRICES(tREAL8)
-INSTANTIATE_DENSE_MATRICES(tREAL16)
-*/
 
 
 };
