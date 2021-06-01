@@ -716,13 +716,29 @@ template <class Type,const int DimX,const int DimY> void BenchMatPt()
 
      // Chek solve,  COL :   Mat * ? = C   , LINE : ? * Mat = L
      {
+         static int aCpt=0; aCpt++;
+         Type Eps = tNumTrait<Type>::Eps();  // Accurracy depends of the type
+         Type aAccur = sqrt(Eps);
+         
+
          cDenseMatrix<Type> aSqM = cDenseMatrix<Type>::RandomSquareRegMatrix(cPt2di(DimX,DimX),false,1e-5,1e-2);
          cPtxd<Type,DimX> aPt = cPtxd<Type,DimX>::PRandC();
          cPtxd<Type,DimX> aSCol = SolveCol(aSqM,aPt);
          cPtxd<Type,DimX> aSLine = SolveLine(aPt,aSqM);
 
-         MMVII_INTERNAL_ASSERT_bench(Norm1(aPt-aSqM*aSCol) <1e-5,"Solev Mat*?");
-         MMVII_INTERNAL_ASSERT_bench(Norm1(aPt-aSLine*aSqM)<1e-5,"Solve ?*Mat");
+         Type aCheckCol =  Norm1(aPt-aSqM*aSCol);
+         Type aChekLine = Norm1(aPt-aSLine*aSqM);
+
+         if (NeverHappens()) // (aCpt==-1) 
+         {
+
+            StdOut() << "BENCH MATRIX " << aCpt << " " << tNumTrait<Type>::NameType() 
+                     << " " << tNumTrait<Type>::Eps()
+                     <<  " " << aCheckCol << " " << aChekLine<< "\n";
+         }
+
+         MMVII_INTERNAL_ASSERT_bench(aCheckCol<aAccur,"Solev Mat*?");
+         MMVII_INTERNAL_ASSERT_bench(aChekLine<aAccur,"Solve ?*Mat");
      }
      
      // std::cout << "DLLLLCC " << aDL << " " << aDC << "\n";
@@ -736,6 +752,7 @@ void BenchDenseMatrix0(cParamExeBench & aParam)
     {
        BenchMatPt<tREAL4,3,2>();
        BenchMatPt<tREAL8,4,3>();
+       BenchMatPt<tREAL16,4,3>();
     }
 
     BenchLsq();
