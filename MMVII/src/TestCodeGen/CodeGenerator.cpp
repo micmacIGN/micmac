@@ -25,10 +25,10 @@ void GenerateCode(bool WithDerivative)
        mCFD1.SetCurFormulasWithDerivative(aVFormula);
     else
        mCFD1.SetCurFormulas(aVFormula);
-    auto name = mCFD1.GenerateCode();
-    includesNames.push_back(name);
-    name = mCFD1.GenCodeLonExpr();
-    includesNames.push_back(name);
+    auto [name,file] = mCFD1.GenerateCode();
+    includesNames.push_back(file);
+    auto [nameLE,fileLE] = mCFD1.GenCodeLonExpr();
+    includesNames.push_back(fileLE);
 }
 
 
