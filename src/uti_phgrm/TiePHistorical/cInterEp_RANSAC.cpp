@@ -120,6 +120,8 @@ void RANSAC3D(std::string aIm1OriFile, std::string aIm2OriFile, std::string inpu
 
     std::vector<Pt3dr> aV1;
     std::vector<Pt3dr> aV2;
+    std::vector<Pt2dr> a2dV1;
+    std::vector<Pt2dr> a2dV2;
     cGet3Dcoor a3DCoorL(aIm1OriFile);
     TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
     cGet3Dcoor a3DCoorR(aIm2OriFile);
@@ -144,6 +146,8 @@ void RANSAC3D(std::string aIm1OriFile, std::string aIm2OriFile, std::string inpu
        {
            aV1.push_back(pTerr1);
            aV2.push_back(pTerr2);
+           a2dV1.push_back(p1);
+           a2dV2.push_back(p2);
            aPackInsideBorder.Cple_Add(cple);
            aValidPt.push_back(nOriPtNum);
        }
@@ -153,6 +157,12 @@ void RANSAC3D(std::string aIm1OriFile, std::string aIm2OriFile, std::string inpu
                cout<<nOriPtNum<<"th tie pt out of border of the DSM hence skipped"<<endl;
        }
        nOriPtNum++;
+    }
+
+    if(nOriPtNum<3)
+    {
+        printf("nOriPtNum (%d) is less than 3, hence skipped.\n", nOriPtNum);
+        return;
     }
 
     int nPtNum = aV1.size();
@@ -189,14 +199,14 @@ void RANSAC3D(std::string aIm1OriFile, std::string aIm2OriFile, std::string inpu
                 if((fabs(aDiff.x) < aEpslon) && (fabs(aDiff.y) < aEpslon) && (fabs(aDiff.z) < aEpslon))
                 {
                     bDupPt = true;
-                    printf("Duplicated 3D pt seed: %d, %d; Original index of 2D pt: %d %d\n ", res[i], res[i+1], aValidPt[res[i]], aValidPt[res[i+1]]);
+                    //printf("Duplicated 3D pt seed: %d, %d; Original index of 2D pt: %d %d\n ", res[i], res[i+1], aValidPt[res[i]], aValidPt[res[i+1]]);
                     break;
                 }
                 aDiff = aV2[res[i]] - aV2[res[(i+1)%3]];
                 if((fabs(aDiff.x) < aEpslon) && (fabs(aDiff.y) < aEpslon) && (fabs(aDiff.z) < aEpslon))
                 {
                     bDupPt = true;
-                    printf("Duplicated 3D pt seed: %d, %d; Original index of 2D pt: %d %d\n ", res[i], res[i+1], aValidPt[res[i]], aValidPt[res[i+1]]);
+                    //printf("Duplicated 3D pt seed: %d, %d; Original index of 2D pt: %d %d\n ", res[i], res[i+1], aValidPt[res[i]], aValidPt[res[i+1]]);
                     break;
                 }
             }
@@ -204,13 +214,16 @@ void RANSAC3D(std::string aIm1OriFile, std::string aIm2OriFile, std::string inpu
         while(bDupPt == true);
 
         for(i=0; i<3; i++)
+        {
             aRBR.AddExemple(aV1[res[i]],aV2[res[i]],0,"");
+            inlierCur.push_back(ElCplePtsHomologues(a2dV1[res[i]], a2dV2[res[i]]));
+        }
 
         aRBR.CloseWithTrGlob();
         aRBR.ExploreAllRansac();
         aSBR = aRBR.BestSol();
 
-        int nInlier =0;
+        int nInlier =3;
         ElPackHomologue::iterator itCpl=aPackInsideBorder.begin();
         for(i=0; i<nPtNum; i++)
         {
@@ -610,36 +623,3 @@ int RANSAC_main(int argc,char ** argv)
    return EXIT_SUCCESS;
 }
 */
-
-/*Footer-MicMac-eLiSe-25/06/2007
-
-Ce logiciel est un programme informatique servant à la mise en
-correspondances d'images pour la reconstruction du relief.
-
-Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
-respectant les principes de diffusion des logiciels libres. Vous pouvez
-utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
-sur le site "http://www.cecill.info".
-
-En contrepartie de l'accessibilité au code source et des droits de copie,
-de modification et de redistribution accordés par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-seule une responsabilité restreinte pèse sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concédants successifs.
-
-A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à
-manipuler et qui le réserve donc à des développeurs et des professionnels
-avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
-
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
-pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
-termes.
-Footer-MicMac-eLiSe-25/06/2007*/

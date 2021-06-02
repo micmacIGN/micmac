@@ -96,6 +96,8 @@ class cCommonAppliTiepHistorical
         int                               mMax_keypoints;
         bool                              mViz;
         bool                              mKeepNpzFile;
+        std::string                       mStrEntSpG;
+        std::string                       mStrOpt;
 
         /* Parameters for GetPatchPair */ 
         Pt2dr                             mPatchSz;
@@ -293,9 +295,17 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
         ElTimer     mChrono;
 
         bool mSkipCoReg;
+        bool mSkipPrecise;
+        bool mSkipGetPatchPair;
+        bool mSkipTentativeMatch;
+        bool mSkipRANSAC3D;
+        bool mSkipCrossCorr;
 
 
         bool                              mExe;
+        bool                              mUseDepth;
+        bool                              mCheckFile;
+        int                               mRotateDSM;
         /*
 
 

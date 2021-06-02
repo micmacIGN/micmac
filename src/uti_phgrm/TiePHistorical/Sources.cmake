@@ -10,6 +10,7 @@ set(uti_image_TiePHisto
 		${UTI_PHGRM_TiePHisto_DIR}/cInterEp_CrossCorrelation.cpp
 		${UTI_PHGRM_TiePHisto_DIR}/cInterEp_RANSAC.cpp
 		${UTI_PHGRM_TiePHisto_DIR}/cInterEp_WallisFilter.cpp
+		${UTI_PHGRM_TiePHisto_DIR}/cInterEp_TiePtEvaluation.cpp
 )
 
 list( APPEND uti_phgrm_Src_Files

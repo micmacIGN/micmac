@@ -157,8 +157,15 @@ void WriteXml(std::string aImg1, std::string aImg2, std::string aSubPatchXml, st
 
 //simply clip images to get left patches (m patches), and resample images to get right patches (m patches). The number of pairs to be matched will be m.
 //mainly used for precise matching
-void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg2, std::string aImg1, std::string aImg2, std::string aIm1OriFile, std::string aIm2OriFile, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aImgPair, std::string aDir, std::string aSubPatchXml, cTransform3DHelmert aTrans3DH, std::string aDSMFileL, std::string aDSMDirL, bool bPrint=false)
+void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg2, std::string aImg1, std::string aImg2, std::string aIm1OriFile, std::string aIm2OriFile, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aImgPair, std::string aDir, std::string aSubPatchXml, cTransform3DHelmert aTrans3DH, std::string aDSMFileL, std::string aDSMDirL, bool bPrint=false, std::string aPrefix="")
 {
+    std::string aOriginImg1 = aImg1;
+
+    aImg1 = aPrefix + aImg1;
+    aImg2 = aPrefix + aImg2;
+    aOutImg1 = aPrefix + aOutImg1;
+    aOutImg2 = aPrefix + aOutImg2;
+
     if (ELISE_fp::exist_file(aDir+aImg1) == false || ELISE_fp::exist_file(aDir+aImg2) == false)
     {
         cout<<aDir+aImg1<<" or "<<aDir+aImg2<<" didn't exist, hence skipped"<<endl;
@@ -225,14 +232,14 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
     {
         for(n=0; n<PatchNum.y; n++)
         {
-            std::string aSubImg1 = aOutImg1.substr(0, aOutImg1.rfind(".")) + "_" + std::to_string(m) + "_" + std::to_string(n) + aOutImg1.substr(aOutImg1.rfind("."), aOutImg1.length());
+            std::string aSubImg1 = StdPrefix(aOutImg1) + "_" + std::to_string(m) + "_" + std::to_string(n) + "." + StdPostfix(aOutImg1);
 
             origin.x = m*CoreaPatchSz.x - aBufferSz.x;
             origin.y = n*CoreaPatchSz.y - aBufferSz.y;
 
             // 1. use ClipIm command to clip first image into patches
             std::string aComClipFirstImg = aComBaseClip + " ["+std::to_string(int(origin.x))+","+std::to_string(int(origin.y))+"] " + aClipSz + " Out="+aOutDir+"/"+aSubImg1;
-            //cout<<aComClipFirstImg<<endl;
+            cout<<aComClipFirstImg<<endl;
             aLComClip.push_back(aComClipFirstImg);
 
             cElComposHomographie aFstHX(1, 0, origin.x);
@@ -284,7 +291,7 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
                     }
                 }
 
-                std::string aNameSave = aOutImg2.substr(0, aOutImg2.rfind(".")) + "_" + StdPrefix(aImg1) + "_" + std::to_string(m) + "_" + std::to_string(n);
+                std::string aNameSave = StdPrefix(aOutImg2) + "_" + StdPrefix(aOriginImg1) + "_" + std::to_string(m) + "_" + std::to_string(n);
                 std::string aSubImg2 = aNameSave + "." + StdPostfix(aOutImg2);
                 aNameSave += ".txt";
                 //cout<<aNameSave<<endl;
@@ -392,7 +399,7 @@ Pt2dr ClipImg(std::string aOutImg1, std::string aImg1, Pt2di ImgSzL, Pt2dr aPatc
     {
         for(n=0; n<PatchNum.y; n++)
         {
-            std::string aSubImg1 = aOutImg1.substr(0,  aOutImg1.rfind(".")) + "_" + std::to_string(m) + "_" + std::to_string(n) + aOutImg1.substr(aOutImg1.rfind("."), aOutImg1.length());
+            std::string aSubImg1 = StdPrefix(aOutImg1) + "_" + std::to_string(m) + "_" + std::to_string(n) + "." + StdPostfix(aOutImg1);
 
             origin.x = m*CoreaPatchSz.x - aBufferSz.x;
             origin.y = n*CoreaPatchSz.y - aBufferSz.y;
@@ -683,6 +690,7 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
     std::string aDSMDirL = "";
     std::string aDSMFileL;
     aDSMFileL = "MMLastNuage.xml";
+    std::string aPrefix = "";
 
     ElInitArgMain
      (
@@ -700,6 +708,7 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
                 << EAM(bPrint, "Print", false, "Print corner coordinate, Def=false")
                 << EAM(aDSMDirL, "DSMDirL", true, "DSM directory of first image, Def=none")
                 << EAM(aDSMFileL, "DSMFileL", true, "DSM File of first image, Def=MMLastNuage.xml")
+                << EAM(aPrefix, "Prefix", true, "The prefix for the name of images (for debug only), Def=none")
 
      );
 
@@ -720,7 +729,7 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
 
     std::string aOutImg1 = GetFileName(aImg1);
     std::string aOutImg2 = GetFileName(aImg2);
-    GetPatchPair(aCAS3D.mOutDir, aOutImg1, aOutImg2, aImg1, aImg2, aIm1OriFile, aIm2OriFile, aCAS3D.mPatchSz, aCAS3D.mBufferSz, aCAS3D.mImgPair, aCAS3D.mDir, aCAS3D.mSubPatchXml, aTrans3DH, aDSMFileL, aDSMDirL, bPrint);
+    GetPatchPair(aCAS3D.mOutDir, aOutImg1, aOutImg2, aImg1, aImg2, aIm1OriFile, aIm2OriFile, aCAS3D.mPatchSz, aCAS3D.mBufferSz, aPrefix + aCAS3D.mImgPair, aCAS3D.mDir, aPrefix + aCAS3D.mSubPatchXml, aTrans3DH, aDSMFileL, aDSMDirL, bPrint, aPrefix);
 
     return 0;
 }

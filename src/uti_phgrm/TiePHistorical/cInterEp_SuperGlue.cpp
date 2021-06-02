@@ -76,6 +76,34 @@ pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
+bool CheckFile(std::string input_dir, std::string SH, std::string input_pairs)
+{
+    ifstream in(input_dir+input_pairs);
+    std::string s;
+
+    while(getline(in,s))
+    {
+        std::string aImg1,aImg2;
+        std::stringstream is(s);
+        is>>aImg1>>aImg2;
+
+        std::string aSHDir = input_dir + "/Homol" + SH+"/";
+        ELISE_fp::MkDir(aSHDir);
+        std::string aNewDir = aSHDir + "Pastis" + aImg1;
+        ELISE_fp::MkDir(aNewDir);
+        std::string aNameFile1 = aNewDir + "/"+aImg2+".txt";
+
+        aNewDir = aSHDir + "Pastis" + aImg2;
+        ELISE_fp::MkDir(aNewDir);
+        std::string aNameFile2 = aNewDir + "/"+aImg1+".txt";
+
+        if (ELISE_fp::exist_file(aNameFile1) == false || ELISE_fp::exist_file(aNameFile2) == false)
+        {
+            return false;
+        }
+    }
+    return true;
+}
 
 void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string input_pairs, bool keepNpzFile)
 {
@@ -100,13 +128,9 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
         Pt2dr ptScaleL = Pt2dr(1.0, 1.0);
         Pt2dr ptScaleR = Pt2dr(1.0, 1.0);
 
-        //Tiff_Im aRGBIm1((input_dir+aImg1).c_str());
-        //Tiff_Im aRGBIm1 = Tiff_Im::BasicConvStd((input_dir+aImg1).c_str());
-        Tiff_Im aRGBIm1 = Tiff_Im::UnivConvStd((input_dir+aImg1).c_str());
+        Tiff_Im aRGBIm1((input_dir+aImg1).c_str());
         Pt2di ImgSzL = aRGBIm1.sz();
-        //Tiff_Im aRGBIm2((input_dir+aImg2).c_str());
-        //Tiff_Im aRGBIm2 = Tiff_Im::BasicConvStd((input_dir+aImg2).c_str());
-        Tiff_Im aRGBIm2 = Tiff_Im::UnivConvStd((input_dir+aImg2).c_str());
+        Tiff_Im aRGBIm2((input_dir+aImg2).c_str());
         Pt2di ImgSzR = aRGBIm2.sz();
 
         //cout<<"Left img size: "<<ImgSzL.x<<", "<<ImgSzL.y<<endl;
@@ -175,13 +199,14 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
         ELISE_fp::MkDir(aSHDir);
         std::string aNewDir = aSHDir + "Pastis" + aImg1;
         ELISE_fp::MkDir(aNewDir);
-        std::string aNameFile = aNewDir + "/"+aImg2+".txt";
-        FILE * fpTiePt1 = fopen(aNameFile.c_str(), "w");
+        std::string aNameFile1 = aNewDir + "/"+aImg2+".txt";
 
         aNewDir = aSHDir + "Pastis" + aImg2;
         ELISE_fp::MkDir(aNewDir);
-        aNameFile = aNewDir + "/"+aImg1+".txt";
-        FILE * fpTiePt2 = fopen(aNameFile.c_str(), "w");
+        std::string aNameFile2 = aNewDir + "/"+aImg1+".txt";
+
+        FILE * fpTiePt1 = fopen(aNameFile1.c_str(), "w");
+        FILE * fpTiePt2 = fopen(aNameFile2.c_str(), "w");
         for (ElPackHomologue::iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
         {
             ElCplePtsHomologues tiept = itCpl->ToCple();
@@ -227,10 +252,7 @@ int SuperGlue_main(int argc,char ** argv)
 
    std::string input_pairs;
 
-   std::string strMicMacDirBin = MMBinFile(MM3DStr);
-   std::string strMicMacDirTPHisto = strMicMacDirBin.substr(0, strMicMacDirBin.length()-9) + "src/uti_phgrm/TiePHistorical/";
-
-   std::string strOpt = "";
+   bool bCheckFile = false;
 
    ElInitArgMain
     (
@@ -239,17 +261,43 @@ int SuperGlue_main(int argc,char ** argv)
         LArgMain()
                     //<< aCAS3D.ArgBasic()
                     << aCAS3D.ArgSuperGlue()
-               //<< EAM(strMicMacDir, "EntSpG", true, "The SuperGlue program entry, Def="+strMicMacDir)
-               << EAM(strOpt, "opt", true, "Other options for SuperGlue (for debug only), Def=none")
+                    << EAM(bCheckFile, "CheckFile", true, "Check if the result files exist (if so, skip), Def=false")
+
     );
 
-
-   if(true)
+   std::string strOpt = aCAS3D.mStrOpt;
+   std::string strMicMacDirBin = aCAS3D.mStrEntSpG;
+   std::string cmmd;
+   if(strMicMacDirBin.length()==0)
    {
+       //strMicMacDir = MMBinFile(MM3DStr);
+       //strMicMacDirBin = strMicMacDirBin.substr(0, strMicMacDir.length()-9) + "src/uti_phgrm/TiePHistorical/SuperGluePretrainedNetwork-master/match_pairs.py";
+       strMicMacDirBin = MMBinFile(MM3DStr);
+       std::string strMicMacDirTPHisto = strMicMacDirBin.substr(0, strMicMacDirBin.length()-9) + "src/uti_phgrm/TiePHistorical/";
+       cmmd = "bash " + strMicMacDirTPHisto + "run.sh --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
 
-       std::string cmmd = "bash " + strMicMacDirTPHisto + "run.sh --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
+   }
+   else
+   {
+       cmmd = strMicMacDirBin + " --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
+   }
+
+   bool bExe = true;
+   if(bCheckFile == true)
+   {
+       bool bFileExist = CheckFile(aCAS3D.mInput_dir, aCAS3D.mSpGlueOutSH, input_pairs);
+       if(bFileExist == true)
+       {
+           printf("%s: Result files already exist, hence skipped\n", input_pairs.c_str());
+           bExe = false;
+       }
+   }
 
 
+   if(bExe)
+   {
+        //std::string cmmd = strMicMacDir + " --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
+       //std::string cmmd = "/home/lulin/Documents/ThirdParty/SuperGluePretrainedNetwork-master/match_pairs.py --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
        if(aCAS3D.mViz == true)
            cmmd += " --viz";
        if(aCAS3D.mModel == "indoor")
@@ -260,17 +308,15 @@ int SuperGlue_main(int argc,char ** argv)
            cmmd += " --resize " + std::to_string(aCAS3D.mResize.x) + " " + std::to_string(aCAS3D.mResize.y);
        else
            cmmd += " --resize -1";
-       cmmd += strOpt;
+       cmmd += " " + strOpt;
 
-	   printf("%s\n", cmmd.c_str());
-	   
-
+       printf("%s\n", cmmd.c_str());
        System(cmmd);
 
-   }
-   //todefine(aCAS3D.input_dir, aCAS3D.output_dir, input_pairs);
-   //ReadImgPairs(aCAS3D.input_dir, input_pairs);
-   Npz2Homol(aCAS3D.mResize, aCAS3D.mInput_dir, aCAS3D.mSpGlueOutSH, input_pairs, aCAS3D.mKeepNpzFile);
 
+       //todefine(aCAS3D.input_dir, aCAS3D.output_dir, input_pairs);
+       //ReadImgPairs(aCAS3D.input_dir, input_pairs);
+       Npz2Homol(aCAS3D.mResize, aCAS3D.mInput_dir, aCAS3D.mSpGlueOutSH, input_pairs, aCAS3D.mKeepNpzFile);
+    }
    return EXIT_SUCCESS;
 }

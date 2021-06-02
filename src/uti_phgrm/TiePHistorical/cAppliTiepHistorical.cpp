@@ -144,6 +144,8 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     mOut3DXml2 = "OutGCP3D_epoch2.xml";
     //mSubPatchLXml = "SubPL.xml";
     //mSubPatchRXml = "SubPR.xml";
+    mStrEntSpG = "";
+    mStrOpt = "";
 
         *mArgBasic
             //                        << EAM(mExe,"Exe",true,"Execute all, Def=true")
@@ -186,8 +188,9 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
             << EAM(mViz, "Viz", true, "Visualize the matches and dump the plots of SuperGlue, Def=false")
             << EAM(mModel, "Model", true, "Pretrained indoor or outdoor model of SuperGlue, Def=outdoor")
             << EAM(mMax_keypoints, "MaxPt", true, "Maximum number of keypoints detected by Superpoint, Def=1024")
-            << EAM(mKeepNpzFile, "KeepNpzFile", true, "Keep the original npz file that SuperGlue outputed, Def=false");
-
+            << EAM(mKeepNpzFile, "KeepNpzFile", true, "Keep the original npz file that SuperGlue outputed, Def=false")
+            << EAM(mStrEntSpG, "EntSpG", true, "The SuperGlue program entry, Def=../micmac/src/uti_phgrm/TiePHistorical/SuperGluePretrainedNetwork-master/match_pairs.py")
+            << EAM(mStrOpt, "opt", true, "Other options for SuperGlue (for debug only), Def=none");
 
     *mArgMergeTiePt
         << EAM(mMergeTiePtInSH,"MergeInSH",true,"Input Homologue extenion for NB/NT mode for MergeTiePt, Def=none")
@@ -357,6 +360,8 @@ std::string cCommonAppliTiepHistorical::ComParamSuperGlue()
     if (EAMIsInit(&mModel))  aCom +=  " Model=" + mModel;
     if (EAMIsInit(&mMax_keypoints))    aCom +=  " MaxPt=" + ToString(mMax_keypoints);
     if (EAMIsInit(&mKeepNpzFile))   aCom +=  " KeepNpzFile=" + ToString(mKeepNpzFile);
+    if (EAMIsInit(&mStrEntSpG))  aCom +=  " EntSpG=" + mStrEntSpG;
+    if (EAMIsInit(&mStrOpt))  aCom +=  " opt=\" " + mStrOpt + "\"";
 
     return aCom;
 }
@@ -487,7 +492,7 @@ std::string cAppliTiepHistoricalPipeline::StdCom(const std::string & aCom,const 
 */
     if (aExe)
     {
-        std::cout << "---------->>>>  " << aFullCom << "\n";
+       //std::cout << "---------->>>>  " << aFullCom << "\n";
        System(aFullCom);
     }
     else
@@ -583,6 +588,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
 
     if(mSkipCoReg == false)
     {
+        printf("**************************************1- rough co-registration************************************\n");
         /********************1- rough co-registration******************/
 
         aOutDir = aBaseOutDir + "-CoReg";
@@ -621,7 +627,17 @@ void cAppliTiepHistoricalPipeline::DoAll()
         //Rotate the left DSM 4 times and apply superGlue
         for(int i=0; i<4; i++)
         {
-
+            if(mRotateDSM != -1)
+            {
+                std::string aRotateDSMStr = "_R" + ToString(mRotateDSM);
+                if(mRotateDSM == 0)
+                    aRotateDSMStr = "";
+                if(aRotate[i] != aRotateDSMStr)
+                {
+                    printf("%dth attempt with \"%s\" doesn't match with \"%s\", hence skipped\n", i, aRotate[i].c_str(), aRotateDSMStr.c_str());
+                    continue;
+                }
+            }
             /**************************************/
             /* 1.3 - SuperGlue for rough co-registration */
             /**************************************/
@@ -683,6 +699,10 @@ void cAppliTiepHistoricalPipeline::DoAll()
         */
     }
 
+
+    if(mSkipPrecise == false)
+    {
+        printf("**************************************2- precise matching************************************\n");
     /********************2- precise matching******************/
     aOutDir = aBaseOutDir + "-Precise";
 
@@ -691,6 +711,12 @@ void cAppliTiepHistoricalPipeline::DoAll()
     /**************************************/
     //StdCom("TestLib GetOverlappedImages", mCoRegOri + BLANK + mCoRegOri + BLANK + mImgList1 + BLANK + mImgList2 + BLANK + mCAS3D.ComParamGetOverlappedImages(), mExe);
     StdCom("TestLib GetOverlappedImages", mOri1 + BLANK + mOri2 + BLANK + mImgList1 + BLANK + mImgList2 + BLANK + mCAS3D.ComParamGetOverlappedImages() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+aOri2+".xml", mExe);
+
+    if (ELISE_fp::exist_file(mCAS3D.mOutPairXml) == false)
+    {
+        cout<<mCAS3D.mOutPairXml<<" didn't exist because the pipeline is not executed, hence the precise matching commands are not shown here."<<endl;
+        return;
+    }
 
     bool aExe = false;
     std::vector<std::string> aOverlappedImgL;
@@ -702,6 +728,9 @@ void cAppliTiepHistoricalPipeline::DoAll()
     /**************************************/
     /* 2.2 - GetPatchPair for precise matching */
     /**************************************/
+    cout<<"-------GetPatchPair-------"<<endl;
+    //if(mSkipGetPatchPair == false)
+    {
     for(int i=0; i<nPairNum; i++)
     {
         std::string aImg1 = aOverlappedImgL[i];
@@ -719,25 +748,36 @@ void cAppliTiepHistoricalPipeline::DoAll()
         //printf("%s\t%s\n", aOri1.c_str(), mOri1.c_str());
         aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+aOri2+".xml" + BLANK + "DSMDirL="+mDSMDirL, aExe);
         aComList.push_back(aComSingle);
+
+        if(mUseDepth == true)
+        {
+            aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+aOri2+".xml" + BLANK + "DSMDirL="+mDSMDirL + BLANK + "Prefix=Depth_", aExe);
+            aComList.push_back(aComSingle);
+        }
     }
-    cout<<"-------GetPatchPair-------"<<endl;
+    /*
     for(list<std::string>::iterator it=aComList.begin();it!=aComList.end();it++)
     {
         cout<<(*it)<<endl;
     }
-    if(mExe)
+    */
+    if(mExe && (!mSkipGetPatchPair))
         //cEl_GPAO::DoComInParal(aComList);
         //because "mm3d TestLib GetPatchPair Guided" is parallized itself, if DoComInParal here, terminal will show "make[1]: warning: -jN forced in submake: disabling jobserver mode."
         cEl_GPAO::DoComInSerie(aComList);
+    }
 
     std::string aFeatureOutSH;
 
+    //if(mSkipTentativeMatch == false)
+    {
     /**************************************/
     /* 2.3: option 1 - SuperGlue for precise matching */
     /**************************************/
     aComList.clear();
     if(mFeature == "SuperGlue")
     {
+        cout<<"-------SuperGlue-------"<<endl;
         for(int i=0; i<nPairNum; i++)
         {
             std::string aImg1 = aOverlappedImgL[i];
@@ -752,18 +792,23 @@ void cAppliTiepHistoricalPipeline::DoAll()
             aCom = "";
             if (!EAMIsInit(&mCAS3D.mInput_dir))    aCom +=  " InDir=" + aOutDir+"/";
             if (!EAMIsInit(&mCAS3D.mOutput_dir))   aCom +=  " OutDir=" + aOutDir+"/";
+            aCom +=  "  CheckFile=" + ToString(mCheckFile);
             aComSingle = StdCom("TestLib SuperGlue", aImgPair + BLANK + aCom + BLANK + mCAS3D.ComParamSuperGlue(), aExe);
             aComList.push_back(aComSingle);
         }
-        cout<<"-------SuperGlue-------"<<endl;
+        /*
         for(list<std::string>::iterator it=aComList.begin();it!=aComList.end();it++)
         {
             cout<<(*it)<<endl;
         }
-        if(mExe)
-            cEl_GPAO::DoComInParal(aComList);
-
+        */
+        if(mExe && (!mSkipTentativeMatch))
+        {
+            //cEl_GPAO::DoComInParal(aComList);
+            cEl_GPAO::DoComInSerie(aComList);
+        }
         aComList.clear();
+        cout<<"-------MergeTiePt-------"<<endl;
         for(int i=0; i<nPairNum; i++)
         {
             std::string aImg1 = aOverlappedImgL[i];
@@ -780,20 +825,21 @@ void cAppliTiepHistoricalPipeline::DoAll()
             if (!EAMIsInit(&mCAS3D.mMergeTiePtInSH))   aCom +=  " MergeInSH=" + mCAS3D.mSpGlueOutSH;
             if (!EAMIsInit(&mCAS3D.mMergeTiePtOutSH))
             {
-                aCom +=  " MergeOutSH=-SuperGlue";
-                aFeatureOutSH = "-SuperGlue";
+                aCom +=  " MergeOutSH="+mCAS3D.mSpGlueOutSH;
+                aFeatureOutSH = mCAS3D.mSpGlueOutSH;
             }
             else
                 aFeatureOutSH = mCAS3D.mMergeTiePtOutSH;
             aComSingle = StdCom("TestLib MergeTiePt", aOutDir+"/" + BLANK + aCom + BLANK + "OutDir=" + mCAS3D.mDir + BLANK + mCAS3D.ComParamMergeTiePt(), aExe);
             aComList.push_back(aComSingle);
         }
-        cout<<"-------MergeTiePt-------"<<endl;
+        /*
         for(list<std::string>::iterator it=aComList.begin();it!=aComList.end();it++)
         {
             cout<<(*it)<<endl;
         }
-        if(mExe)
+        */
+        if(mExe && (!mSkipTentativeMatch))
             cEl_GPAO::DoComInParal(aComList);
     }
     /**************************************/
@@ -801,8 +847,9 @@ void cAppliTiepHistoricalPipeline::DoAll()
     /**************************************/
     else if(mFeature == "SIFT")
     {
+        cout<<"-------Guided SIFT-------"<<endl;
         // Extract SIFT if SkipSIFT is set to false
-        if(mExe == true && mCAS3D.mSkipSIFT == false)
+        if(mExe == true && (!mSkipTentativeMatch) && mCAS3D.mSkipSIFT == false)
         {
             std::string aImgName;
             ifstream in1(mCAS3D.mDir+mImgList1);
@@ -834,12 +881,13 @@ void cAppliTiepHistoricalPipeline::DoAll()
             aFeatureOutSH = mCAS3D.mGuidedSIFTOutSH;
             aComList.push_back(aComSingle);
         }
-        cout<<"-------Guided SIFT-------"<<endl;
+        /*
         for(list<std::string>::iterator it=aComList.begin();it!=aComList.end();it++)
         {
             cout<<(*it)<<endl;
         }
-        if(mExe)
+        */
+        if(mExe && (!mSkipTentativeMatch))
             cEl_GPAO::DoComInParal(aComList);
     }
     else
@@ -848,10 +896,14 @@ void cAppliTiepHistoricalPipeline::DoAll()
         return;
     }
     cout<<"aFeatureOutSH: "<<aFeatureOutSH<<endl;
+    }
 
     /**************************************/
     /* 2.4 - RANSAC R3D for precise matching */
     /**************************************/
+    //if(mSkipRANSAC3D == false)
+    {
+        cout<<"-------RANSAC R3D-------"<<endl;
     aComList.clear();
     for(int i=0; i<nPairNum; i++)
     {
@@ -870,17 +922,22 @@ void cAppliTiepHistoricalPipeline::DoAll()
         aComSingle = StdCom("TestLib RANSAC R3D", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + "Dir=" + mCAS3D.mDir + BLANK + aCom, aExe);
         aComList.push_back(aComSingle);
     }
-    cout<<"-------RANSAC R3D-------"<<endl;
+    /*
     for(list<std::string>::iterator it=aComList.begin();it!=aComList.end();it++)
     {
         cout<<(*it)<<endl;
     }
-    if(mExe)
+    */
+    if(mExe && (!mSkipRANSAC3D))
         cEl_GPAO::DoComInParal(aComList);
+    }
 
+    //if(mSkipCrossCorr == false)
+    {
         /**************************************/
         /* 2.5 - CrossCorrelation for precise matching */
         /**************************************/
+        cout<<"-------CrossCorrelation-------"<<endl;
     aComList.clear();
     for(int i=0; i<nPairNum; i++)
     {
@@ -898,16 +955,22 @@ void cAppliTiepHistoricalPipeline::DoAll()
         aCom += " BufferSz=[" + ToString(mCAS3D.mBufferSz.x) + "," + ToString(mCAS3D.mBufferSz.y) + "]";
         aCom +=  " PatchDir=" + aOutDir;
         aCom +=  " SubPXml=" + aPrefix + mCAS3D.mSubPatchXml;
+        //cout<<aCom<<endl;
+        aCom +=  "  CheckFile=" + ToString(mCheckFile);
+        //cout<<aCom<<endl;
         aComSingle = StdCom("TestLib CrossCorrelation", aImg1 + BLANK + aImg2 + BLANK + aCom, aExe);
         aComList.push_back(aComSingle);
     }
-    cout<<"-------CrossCorrelation-------"<<endl;
+    /*
     for(list<std::string>::iterator it=aComList.begin();it!=aComList.end();it++)
     {
         cout<<(*it)<<endl;
     }
-    if(mExe)
+    */
+    if(mExe && (!mSkipCrossCorr))
         cEl_GPAO::DoComInParal(aComList);
+    }
+    }
 }
 
 cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv) :
@@ -915,11 +978,19 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
 
 {
     mExe = true;
+    mUseDepth = false;
     mDSMFileL = "MMLastNuage.xml";
     mDSMFileR = "MMLastNuage.xml";
     mFeature = "SuperGlue";
     //mCoRegOri = "Co-reg";
     mSkipCoReg = false;
+    mSkipPrecise = false;
+    mSkipGetPatchPair = false;
+    mSkipTentativeMatch = false;
+    mSkipRANSAC3D = false;
+    mSkipCrossCorr = false;
+    mRotateDSM = -1;
+    mCheckFile = false;
    ElInitArgMain
    (
         argc,argv,
@@ -930,10 +1001,18 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << EAMC(mImgList2,"The RGB image list of epoch2")
                << EAMC(mDSMDirL, "DSM directory of epoch1")
                << EAMC(mDSMDirR, "DSM directory of epoch2"),
-        LArgMain()
 
+        LArgMain()
                << EAM(mExe,"Exe",true,"Execute all, Def=true")
+               << EAM(mCheckFile, "CheckFile", true, "Check if the result files exist (if so, skip), Def=false")
+               << EAM(mUseDepth,"UseDep",true,"Use depth to improve perfomance, Def=false")
+               << EAM(mRotateDSM,"RotateDSM",true,"The angle of rotation from the first DSM to the second DSM for rough co-registration (only 4 options available: 0, 90, 180, 270), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
                << EAM(mSkipCoReg, "SkipCoReg", true, "Skip the step of rough co-registration, when the input orientations of epoch1 and epoch 2 are already co-registrated, Def=false")
+               << EAM(mSkipPrecise, "SkipPrecise", true, "Skip the step of the whole precise matching pipeline, Def=false")
+               << EAM(mSkipGetPatchPair, "SkipGetPatchPair", true, "Skip the step of \"GetPatchPair\" in precise matching (for debug only), Def=false")
+               << EAM(mSkipTentativeMatch, "SkipTentativeMatch", true, "Skip the step of SuperGlue or SIFT matching (for debug only), Def=false")
+               << EAM(mSkipRANSAC3D, "SkipRANSAC3D", true, "Skip the step of 3D RANSAC (for debug only), Def=false")
+               << EAM(mSkipCrossCorr, "SkipCrossCorr", true, "Skip the step of cross correlation (for debug only), Def=false")
                << EAM(mFeature,"Feature",true,"Feature matching method used for precise matching (SuperGlue or SIFT), Def=SuperGlue")
                //<< EAM(mCoRegOri,"CoRegOri",true,"Output of Co-registered orientation, Def=Co-reg")
                << mCAS3D.ArgBasic()
