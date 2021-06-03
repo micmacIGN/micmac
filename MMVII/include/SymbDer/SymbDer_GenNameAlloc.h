@@ -5,6 +5,8 @@
 #include <vector>
 #include <fstream>
 
+#include "SymbolicDerivatives.h"
+
 namespace  NS_SymbolicDerivative
 {
 
@@ -53,15 +55,18 @@ private:
             generatedFuncs.clear();
             return;
         case ADD:
-            // FIXME:CM: tester si deja existant ...
+            for (const auto &[name,file] : generatedFuncs) {
+                if (name == aArg1)
+                    UserSError("In cGenNameAlloc::Add() : Function name '" + name + "' already registered","");
+                if (file == aArg2)
+                    UserSError("In cGenNameAlloc::Add() : File name '" + file + "' already used for '" + name + "'","");
+            }
             generatedFuncs.emplace_back(std::make_pair(aArg1,aArg2));
             return;
         case GEN_FILE:
             std::ofstream aOs(aArg1);
             if (!aOs)
-                // FIXME:CM: Gerer erreur !
-                ;
-
+                UserSError("In cGenNameAlloc::GenerateFile() : Can't create file '" + aArg1 +"'","");
             if (aArg3 != "" && aArg3[aArg3.size() -1] != '/')
                 aArg3 += "/";
             aOs << "#include \"" << aArg2 << "\"\n";
@@ -81,6 +86,8 @@ private:
                 aOs << "  " << f.first << "::Register();\n";
             aOs << "}\n";
             aOs << "}\n  // namespace NS_SymbolicDerivative";
+            if (!aOs)
+                UserSError("In cGenNameAlloc::GenerateFile() : Error in writing file '" + aArg1 +"'","");
             return;
         }
     }
