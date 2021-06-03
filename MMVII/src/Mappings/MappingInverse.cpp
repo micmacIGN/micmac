@@ -383,20 +383,8 @@ template <class Type,const int Dim>
 }
 
 /* ============================================= */
-/*      cDataIterInvertMapping<Type>             */
+/*          cDataIIMFromMap<Type>                */
 /* ============================================= */
-/*
-template <class Type,const int Dim> class cDataIIMFroMap : public cDataIterInvertMapping<Type,Dim>
-{
-    public :
-      cDataIIMFroMap(tMap aMap,const tPt &,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
-      cDataIIMFroMap(tMap aMap,tMap aRoughInv,const Type& aDistTol,int aNbIterMax);
-
-      tCsteResVecJac  Jacobian(tResVecJac,const tVecIn &) const override;  //J2
-    private :
-      tMap                mMap;
-};
-*/
 
 template <class Type,const int Dim> 
       cDataIIMFromMap<Type,Dim>::cDataIIMFromMap
@@ -433,8 +421,41 @@ template <class Type,const int Dim>
 }
 
 
+/* ============================================= */
+/*          Compute MapInverse                   */
+/* ============================================= */
+
+template <class Type,const int Dim> class  cComputeMapInverse
+{
+    public :
+        typedef cLeastSqComputeMaps<Type,Dim,Dim> tLSQ;
+        typedef cDataBoundedSet<Type,Dim>         tSet;
+        typedef cPtxd<Type,Dim>                   tPtR;
+        typedef cPtxd<int,Dim>                    tPtI;
+       
+
+        cComputeMapInverse();
+        void  DoIt();
+    private :
+        tPtI ToPix(const tPtR&) const;
+        tPtR FromPix(const tPtI&) const;
+
+        tLSQ &        mLSQ;
+        tSet &        mSet;
+        
+        cPixBox<Dim>  mBoxPix;
+};
+
+
+// template <class Type,const int Dim> void  cComputeMapInverse
+
+
+/* ============================================= */
+/*          INSTANTIATION                        */
+/* ============================================= */
 
 #define INSTANCE_INVERT_MAPPING(DIM)\
+template class cComputeMapInverse<double,DIM>;\
 template class cDataIIMFromMap<double,DIM>;\
 template class cDataInvertibleMapping<double,DIM>;\
 template class cDataIterInvertMapping<double,DIM>;\
@@ -442,6 +463,8 @@ template class cInvertDIMByIter<double,DIM>;
 
 INSTANCE_INVERT_MAPPING(2)
 INSTANCE_INVERT_MAPPING(3)
+
+
 
 
 /* ============================================= */

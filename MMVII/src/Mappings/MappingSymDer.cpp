@@ -178,6 +178,15 @@ cDataMapCalcSymbDer<double,2,2> * cRandInvertibleDist::MapDerSymb()
    return new cDataMapCalcSymbDer<double,2,2>(mEqVal,mEqDer,mVParam);
 }
 
+const std::vector<double> & cRandInvertibleDist::VParam() const
+{
+   return mVParam;
+}
+
+
+cCalculator<double> &  cRandInvertibleDist::EqVal() {return *mEqVal;}
+cCalculator<double> &  cRandInvertibleDist::EqDer() {return *mEqDer;}
+
 
 /* ============================================= */
 /*                   TEST                        */
@@ -189,10 +198,10 @@ void TestJacob(cDataMapCalcSymbDer<double,2,2> * aMCS,const cPt2dr & aP)
 {
 double aEps= 1e-5;
 // cPt2dr aP0 = aMCS->cDataMapping<double,2,2>::Value(aP) ;
-cPt2dr aPPx = aMCS->cDataMapping<double,2,2>::Value(aP +cPt2dr(aEps,0.0)) ;
-cPt2dr aPmx = aMCS->cDataMapping<double,2,2>::Value(aP +cPt2dr(-aEps,0.0)) ;
-cPt2dr aPPy = aMCS->cDataMapping<double,2,2>::Value(aP +cPt2dr(0.0,aEps)) ;
-cPt2dr aPmy = aMCS->cDataMapping<double,2,2>::Value(aP +cPt2dr(0.0,-aEps)) ;
+   cPt2dr aPPx = aMCS->Value(aP +cPt2dr(aEps,0.0)) ;
+   cPt2dr aPmx = aMCS->Value(aP +cPt2dr(-aEps,0.0)) ;
+   cPt2dr aPPy = aMCS->Value(aP +cPt2dr(0.0,aEps)) ;
+   cPt2dr aPmy = aMCS->Value(aP +cPt2dr(0.0,-aEps)) ;
 
 double aRho = Norm2(aP);
 StdOut() << " GX: " << (aPPx-aPmx)/(2*aEps)
@@ -235,7 +244,7 @@ void BenchSymDerMap(cParamExeBench & aParam)
        double aMaxDisto=0.0;  // Max | Map-1(aP) -P| , in case we need to evaluate the dist
        for (int aKPts=0 ; aKPts<int(aVIn.size()) ; aKPts++)
        {
-           cPt2dr aDif =  aVIn[aKPts] - aMCS->cDataMapping<double,2,2>::Value(aVInv[aKPts]) ;
+           cPt2dr aDif =  aVIn[aKPts] - aMCS->Value(aVInv[aKPts]) ;
            aMaxD = std::max(aMaxD,Norm2(aDif));
            aMaxDisto = std::max(aMaxDisto,Norm2(aVIn[aKPts]-aVInv[aKPts]));
  

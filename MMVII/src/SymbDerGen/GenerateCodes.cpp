@@ -14,9 +14,10 @@ template <typename TypeFormula> std::string NameFormula(const TypeFormula & anEq
    return  anEq.FormulaName() +  std::string(WithDerive ?"VDer":"Val");
 }
 
-std::string  NameEqDist(const cPt3di & aDeg,bool WithDerive)
+// EqBaseFuncDist
+std::string  NameEqDist(const cPt3di & aDeg,bool WithDerive,bool ForBase )
 {
-   cMMVIIUnivDist aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
+   cMMVIIUnivDist aDist(aDeg.x(),aDeg.y(),aDeg.z(),ForBase);
    cEqDist<cMMVIIUnivDist> anEq(aDist); 
 
    return NameFormula(anEq,WithDerive);
@@ -221,7 +222,12 @@ namespace MMVII
 
 cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf)
 { 
-    return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,WithDerive),aSzBuf);
+    return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,WithDerive,false),aSzBuf);
+}
+
+cCalculator<double> * EqBaseFuncDist(const cPt3di & aDeg,int aSzBuf)
+{ 
+    return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,false,true),aSzBuf);
 }
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)

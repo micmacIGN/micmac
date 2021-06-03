@@ -151,6 +151,12 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::DupIn(cDataTyp
     // MMVII_INTERNAL_ASSERT_strong(mSz[aK]>=0,"");
 }
 
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::DupInVect(std::vector<Type> & aVec) const
+{
+    aVec.resize(NbElem());
+    MemCopy(aVec.data(),RawDataLin(),NbElem());
+    // MMVII_INTERNAL_ASSERT_strong(mSz[aK]>=0,"");
+}
 
 
 

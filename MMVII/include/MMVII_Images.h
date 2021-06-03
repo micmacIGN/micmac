@@ -356,6 +356,7 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         double L2Norm() const;   ///< Norm square
         double LInfNorm() const; ///< Nomr max
         void DupIn(cDataTypedIm<Type,Dim> &) const;  ///< Duplicate raw data
+        void DupInVect(std::vector<Type> &) const;  ///< Duplicate raw data in a vect
     protected :
         void Resize(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,eModeInitImage=eModeInitImage::eMIA_NoInit);
 

@@ -426,8 +426,6 @@ class cBugRecMap : public cDataMapping<tREAL8,2,2>
     public :
 };
 
-void BenchInvertMapping(cParamExeBench & aParam);
-void BenchSymDerMap(cParamExeBench & aParam);
 
 void BenchMapping(cParamExeBench & aParam)
 {
@@ -440,6 +438,7 @@ void BenchMapping(cParamExeBench & aParam)
        aMap.Value(cPt2dr(2,2));
     }
 
+    BenchLeastSqMap(aParam);
     BenchInvertMapping(aParam);
     BenchSymDerMap(aParam);
 

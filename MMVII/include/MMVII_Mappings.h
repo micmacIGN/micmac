@@ -37,7 +37,11 @@ template <class Type,const int Dim> class cDataIIMFromMap ; // : public cDataIte
 
 template <class Type,const int Dim> class cMappingIdentity ; // :  public cDataMapping<Type,Dim,Dim>
 template <class Type,const int DimIn,const int DimOut> class cDataMapCalcSymbDer ;// : public cDataMapping<Type,DimIn,DimOut>
-template <class cMapElem,class cIMapElem> class cInvertMappingFromElem ;// :  public cDataInvertibleMapping<typename cMapElem::TheType,cMapElem::TheDim>
+template <class cMapElem,class cIMapElem> class cInvertMappingFromElem ;
+    // :  public cDataInvertibleMapping<typename cMapElem::TheType,cMapElem::TheDim>
+template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMaps;
+template <class Type,const int DimIn,const int DimOut> class cLeastSqCompMapCalcSymb; 
+    //  : public cLeastSqComputeMaps<Type,DimIn,DimOut>
 
 /** \file MMVII_Mappings.h
     \brief contain interface class for continuous mapping
@@ -490,6 +494,9 @@ template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMap
          void AddObs(const tPtIn & aPt,const tPtOut & aValue);
          // =========== ACCESSOR ==============
          const size_t &  NbFunc() const {return mNbFunc;}
+
+         void ComputeSol(std::vector<Type>&);
+         void ComputeSolNotClear(std::vector<Type>&) ;
      private :
          virtual void ComputeValFuncsBase(tVecOut &,const tPtIn & aPt) = 0;
          size_t             mNbFunc;
@@ -497,6 +504,28 @@ template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMap
          cDenseVect<Type>   mCoeffs;
          tVecOut            mBufPOut;
 };
+
+template <class Type,const int DimIn,const int DimOut>
+    class cLeastSqCompMapCalcSymb : public cLeastSqComputeMaps<Type,DimIn,DimOut>
+{
+    public :
+         typedef  cLeastSqComputeMaps<Type,DimIn,DimOut>  tSuper;
+         using typename tSuper::tPtOut;
+         using typename tSuper::tPtIn;
+         using typename tSuper::tVecIn;
+         using typename tSuper::tVecOut;
+
+         typedef typename NS_SymbolicDerivative::cCalculator<Type> tCalc;
+         cLeastSqCompMapCalcSymb(tCalc *);
+         void ComputeValFuncsBase(tVecOut &,const tPtIn & aPt) override;
+    private :
+         cLeastSqCompMapCalcSymb(const cLeastSqCompMapCalcSymb<Type,DimIn,DimOut>&)=delete;
+
+         tCalc * mCalc;
+         std::vector<Type> mVUk;
+         std::vector<Type> mVObs;
+};
+
 
 
 

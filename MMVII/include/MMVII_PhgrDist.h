@@ -54,7 +54,10 @@ class cRandInvertibleDist
               double aTargetSomJac   ///< Target majoration of jacobian
        );
        cDataMapCalcSymbDer<double,2,2> *  MapDerSymb();
+       const std::vector<double> & VParam() const;  ///< Accessor to parameters
        ~cRandInvertibleDist();
+       tCalc & EqVal();
+       tCalc & EqDer();
    private :
        cRandInvertibleDist(const cRandInvertibleDist &) = delete;
 
