@@ -226,6 +226,7 @@ TPL_ENUM_2_STRING(eTyPyrTieP);
 template<> cE2Str<eModeEpipMatch>::tMapE2Str cE2Str<eModeEpipMatch>::mE2S
            {
                 {eModeEpipMatch::eMEM_MMV1,"MMV1"},
+                {eModeEpipMatch::eMEM_PSMNet,"PSMNet"},
            };
 TPL_ENUM_2_STRING(eModeEpipMatch);
 
