@@ -514,6 +514,7 @@ std::string cAppli::ComMatch (cParam1Match & aParam) const
    switch (mModeMatch)
    {
        case  eModeEpipMatch::eMEM_MMV1 :
+	   {
           return    "mm3d MMTestMMVII"
                  +  BLANK  +  DirTmpOfCmd()
                  +  BLANK  +  aParam.mClipNameIm1
@@ -522,7 +523,21 @@ std::string cAppli::ComMatch (cParam1Match & aParam) const
                  +  BLANK  +  "DirMEC=" + aParam.mClipDirTmp  // 
                  +  BLANK  +  "FileExp=" + aParam.mClipNamePx  // 
           ;
-       break;
+       	  break;
+	   }
+	   case eModeEpipMatch::eMEM_PSMNet :
+       {
+		  std::string aDenseMDir = TopDirMMVII() + "src/DenseMatch/";
+          std::string aCom = "bash " + aDenseMDir + "run.sh " 
+				             //+ BLANK + "--loadmodel"  + BLANK + mTrainedModel
+                             + BLANK + "--leftimg"  + BLANK + DirTmpOfCmd() + aParam.mClipNameIm1
+                             + BLANK + "--rightimg" + BLANK + DirTmpOfCmd() + aParam.mClipNameIm2
+                             + BLANK + "--result"     + BLANK + DirTmpOfCmd() + aParam.mClipNamePx;
+				  
+          
+		  return aCom;
+          break;
+       }
 
        default : break;
    }

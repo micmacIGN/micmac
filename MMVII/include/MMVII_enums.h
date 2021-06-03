@@ -246,6 +246,7 @@ enum class eModeOutPCar
 enum class eModeEpipMatch
 {
    eMEM_MMV1,  // Mode MicMac V1
+   eMEM_PSMNet,// Mode PSMNet
    eNbVals
 };
 
