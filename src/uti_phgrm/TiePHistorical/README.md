@@ -14,7 +14,7 @@ The algorithm uses a python implementation of the [SuperGlue](https://github.com
 
 2. Create virtualenv, clone SuperGluePretrainedNetwork and install depedencies:
 
-    ```./install.sh```
+    ```bash ./install.sh```
 
 Virtualenv files are stored in python_env/, remove the directory to remove the virtualenv.
 
