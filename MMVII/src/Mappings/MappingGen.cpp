@@ -14,9 +14,14 @@ template <class Type,const int Dim>
 }
 
 template <class Type,const int Dim>
+    cDataBoundedSet<Type,Dim>::~cDataBoundedSet()
+{
+}
+
+template <class Type,const int Dim>
     bool cDataBoundedSet<Type,Dim>::InsideWithBox(const tPt & aPt) const
 {
-   return mBox.Inside(aPt);
+   return mBox.Inside(aPt) && Inside(aPt);
 }
 
 template <class Type,const int Dim>
@@ -29,6 +34,15 @@ template <class Type,const int Dim>
     const typename cDataBoundedSet<Type,Dim>::tBox & cDataBoundedSet<Type,Dim>::Box() const
 {
    return mBox;
+}
+
+template <class Type,const int Dim>
+    typename cDataBoundedSet<Type,Dim>::tPt  cDataBoundedSet<Type,Dim>::GeneratePointInside() const
+{
+   tPt aRes = mBox.GeneratePointInside();
+   while (! Inside(aRes))
+         aRes = mBox.GeneratePointInside();
+   return aRes;
 }
 
 template <class Type,const int Dim>
@@ -53,6 +67,24 @@ template <class Type,const int Dim>
      Type aStepMoy = pow(aVolMoy,1/double(Dim));
 
      GridPointInsideAtStep(aRes,aStepMoy);
+}
+
+/* ============================================= */
+/*      cSphereBoundedSet<Type>                  */
+/* ============================================= */
+
+template <class Type,const int Dim> 
+     cSphereBoundedSet<Type,Dim>::cSphereBoundedSet(const tBox & aBox,const tPt& aC,const Type & aRadius) :
+        cDataBoundedSet<Type,Dim> (aBox),
+        mCenter  (aC),
+        mR2      (Square(aRadius))
+{
+}
+
+template <class Type,const int Dim> 
+   bool   cSphereBoundedSet<Type,Dim>::Inside(const tPt & aPt) const
+{
+   return SqN2(aPt-mCenter) <= mR2;
 }
 
 /*
@@ -110,6 +142,10 @@ template <class Type,const int DimIn,const int DimOut>
 {
 }
 
+template <class Type,const int DimIn,const int DimOut> 
+    cDataMapping<Type,DimIn,DimOut>::~cDataMapping()
+{
+}
 
 
 
@@ -262,6 +298,51 @@ template <class Type,const int DimIn,const int DimOut>
    return tResJac(aResVec.first->at(0),aResVec.second->at(0));
 }
 
+
+template <class Type,const int DimIn,const int DimOut>
+      cTplBox<Type,DimOut> cDataMapping<Type,DimIn,DimOut>::BoxOfCorners(const cTplBox<Type,DimIn>& aBoxIn) const
+{
+   typename cTplBox<Type,DimIn>::tCorner aCornersIn;
+   aBoxIn.Corners(aCornersIn);
+   std::vector<tPtIn> aVIn(&(aCornersIn[0]),&(aCornersIn[0]) + cTplBox<Type,DimIn>::NbCorners);
+   const std::vector<tPtOut> & aVOut = Values(aVIn);
+
+   cTplBoxOfPts<Type,DimOut> aBoxOfPts;
+   for (const auto & aP : aVOut)
+       aBoxOfPts.Add(aP);
+
+   return  cTplBox<Type,DimOut>(aBoxOfPts.P0(),aBoxOfPts.P1());
+   
+}
+
+/* ============================================= */
+/*      cDataMapping<Type>                       */
+/* ============================================= */
+
+template <class Type,const int Dim>
+      cBijAffMapElem<Type,Dim> cDataNxNMapping<Type,Dim>::Linearize(const tPt & aPtIn) const
+{
+    tResJac   aRJ = this->Jacobian(aPtIn);
+
+    tPt& aImP = aRJ.first;
+    tJac&  aMat = aRJ.second;
+
+    return cBijAffMapElem<Type,Dim>(aMat.Dup(),aImP-aMat*aPtIn);
+}
+
+template <class Type,const int Dim>
+      cDataNxNMapping<Type,Dim>::cDataNxNMapping() :
+           cDataMapping<Type,Dim,Dim> ()
+{
+}
+
+template <class Type,const int Dim>
+      cDataNxNMapping<Type,Dim>::cDataNxNMapping(const tPt &  aEps) :
+           cDataMapping<Type,Dim,Dim> (aEps)
+{
+}
+
+
 /* ============================================= */
 /*                cMapping<Type>                 */
 /* ============================================= */
@@ -306,6 +387,8 @@ template class cDataMapping<double,DIM1,DIM2>;\
 template class cMapping<double,DIM1,DIM2>;
 
 #define INSTANCE_ONE_DIM_MAPPING(DIM)\
+template class cDataNxNMapping<double,DIM>;\
+template class cSphereBoundedSet<double,DIM>;\
 template class cDataBoundedSet<double,DIM>;\
 template class cMappingIdentity<double,DIM>;\
 INSTANCE_TWO_DIM_MAPPING(DIM,2);\

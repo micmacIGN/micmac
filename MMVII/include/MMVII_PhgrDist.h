@@ -53,7 +53,7 @@ class cRandInvertibleDist
               double aProbaNotNul,   ///< Probability for a coefficient to be not 0
               double aTargetSomJac   ///< Target majoration of jacobian
        );
-       cDataMapCalcSymbDer<double,2,2> *  MapDerSymb();
+       cDataNxNMapCalcSymbDer<double,2> *  MapDerSymb();
        const std::vector<double> & VParam() const;  ///< Accessor to parameters
        ~cRandInvertibleDist();
        tCalc & EqVal();
@@ -78,6 +78,8 @@ class cRandInvertibleDist
 NS_SymbolicDerivative::cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf);
 /// Allocate a calculator computing the base familly of a distorsion
 NS_SymbolicDerivative::cCalculator<double> * EqBaseFuncDist(const cPt3di & aDeg,int aSzBuf);
+/// Alloc a map corresponding to  distorsions
+cDataNxNMapCalcSymbDer<double,2> * NewMapOfDist(const cPt3di & aDeg,const std::vector<double> & aVObs,int aSzBuf);
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg);
 

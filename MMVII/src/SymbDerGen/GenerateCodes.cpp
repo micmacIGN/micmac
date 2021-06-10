@@ -3,6 +3,17 @@
 #include "include/SymbDer/SymbDer_GenNameAlloc.h"
 #include "Formulas_CamStenope.h"
 
+/*
+La compil:
+
+    make distclean
+    make -j x
+    ./MMVII GenCodeSymDer
+    make -j x
+    ./MMVII Bench 5
+
+*/
+
 using namespace NS_SymbolicDerivative;
 using namespace MMVII;
 
@@ -106,6 +117,7 @@ class cAppli : public cMMVII_Appli
        // =========== Data ========
             // Mandatory args
         std::string mDirGenCode;
+        void GenerateOneDist(const cPt3di & aDeg) ;
 };
 
 
@@ -167,9 +179,38 @@ template <typename tFormula> void cAppli::GenCodesFormula(const tFormula & aForm
    cGenNameAlloc::Add(aClassName,aFileName);
 };
 
+void cAppli::GenerateOneDist(const cPt3di & aDeg) 
+{
+   cMMVIIUnivDist           aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
+   cEqDist<cMMVIIUnivDist>  anEqDist(aDist);
+   cEqIntr<cMMVIIUnivDist>  anEqIntr(aDist);
+
+
+   GenCodesFormula(anEqDist,false);
+   GenCodesFormula(anEqDist,true);
+   GenCodesFormula(anEqIntr,false);
+   GenCodesFormula(anEqIntr,true);
+   // GenCodesFormula<cMMVIIUnivDist>(aDist,true,false);
+
+   // GenCodesFormula<cMMVIIUnivDist>(aDist,true,false);
+
+   cMMVIIUnivDist           aDistBase(aDeg.x(),aDeg.y(),aDeg.z(),true);
+   cEqDist<cMMVIIUnivDist>  anEqBase(aDistBase);
+   GenCodesFormula(anEqBase,false);
+}
+
+
 int cAppli::Exe()
 {
+   cGenNameAlloc::Reset();
    mDirGenCode = TopDirMMVII() + "src/GeneratedCodes/";
+
+   {
+       GenerateOneDist(cPt3di(3,1,1));
+       GenerateOneDist(cPt3di(2,0,0));
+       GenerateOneDist(cPt3di(5,1,1));
+   }
+/*
    cMMVIIUnivDist           aDist(3,1,1,false);
    cEqDist<cMMVIIUnivDist>  anEqDist(aDist);
    cEqIntr<cMMVIIUnivDist>  anEqIntr(aDist);
@@ -186,7 +227,9 @@ int cAppli::Exe()
    cEqDist<cMMVIIUnivDist>  anEqBase(aDistBase);
    GenCodesFormula(anEqBase,false);
    cGenNameAlloc::GenerateFile(mDirGenCode+"cName2CalcRegisterAll.cpp","include/SymbDer/SymbDer_Common.h","");
+*/
 
+   cGenNameAlloc::GenerateFile(mDirGenCode+"cName2CalcRegisterAll.cpp","include/SymbDer/SymbDer_Common.h","");
    return EXIT_SUCCESS;
 }
 

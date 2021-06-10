@@ -30,11 +30,13 @@ template <class Type,const int DimIn,const int DimOut>
   (
          tCalc  * aCalcVal,
          tCalc  * aCalcDer,
-         const std::vector<Type> & aVObs
+         const std::vector<Type> & aVObs,
+         bool  ToDelete
   ) :
-     mCalcVal  (aCalcVal),
-     mCalcDer  (aCalcDer),
-     mVObs     (aVObs)
+     mCalcVal    (aCalcVal),
+     mCalcDer    (aCalcDer),
+     mVObs       (aVObs),
+     mDeleteCalc (ToDelete)
 {
     CheckDim(mCalcVal,false);
     CheckDim(mCalcDer,true);
@@ -116,24 +118,75 @@ template <class Type,const int DimIn,const int DimOut>
    return tCsteResVecJac(aVecOut,aVecJac);
 }
 
-template class cDataMapCalcSymbDer<tREAL8,2,2> ;
- // cDataIIMFromMap<Type,Dim>;
-
-
-/*
-template <class Type,const int Dim> class  cDataDistCloseId : cDataIterInvertMapping<Type,Dim>
+template <class Type,const int DimIn,const int DimOut> 
+  cDataMapCalcSymbDer<Type,DimIn,DimOut>::~cDataMapCalcSymbDer()
 {
-     public :
-       cDataDistCloseId(
-     private :
-};
-*/
+    if (mDeleteCalc)
+    {
+        delete mCalcVal;
+        delete mCalcDer;
+    }
+}
+
+
+
+template class cDataMapCalcSymbDer<tREAL8,2,2> ;
+
+
+
+/* ============================================= */
+/*      cDataNxNMapCalcSymbDer<Type>             */
+/* ============================================= */
+
+
+template <class Type,int Dim> cDataNxNMapCalcSymbDer<Type,Dim>:: cDataNxNMapCalcSymbDer(tCalc  * aCalcVal,tCalc  * aCalcDer,const std::vector<Type> & aVObs,bool DeleteCalc) :
+     cDataNxNMapping<Type,Dim>(),
+     mDMS (aCalcVal,aCalcDer,aVObs,DeleteCalc)
+{
+}
+
+template <class Type,int Dim> 
+     const typename cDataNxNMapCalcSymbDer<Type,Dim>::tVecOut &  
+           cDataNxNMapCalcSymbDer<Type,Dim>::Values(tVecOut & aVecOut,const tVecIn &  aVecIn) const 
+{
+    return mDMS.Values(aVecOut,aVecIn);
+}
+
+template <class Type,int Dim> 
+     typename cDataNxNMapCalcSymbDer<Type,Dim>::tCsteResVecJac 
+           cDataNxNMapCalcSymbDer<Type,Dim>::Jacobian(tResVecJac aRVJ,const tVecIn &  aVecIn) const 
+{
+    return mDMS.Jacobian(aRVJ,aVecIn);
+}
+
+
+template <class Type,int Dim> 
+     void cDataNxNMapCalcSymbDer<Type,Dim>::SetObs(const std::vector<Type> & aVObs)
+{
+    mDMS.SetObs(aVObs);
+}
+
+template class cDataNxNMapCalcSymbDer<tREAL8,2> ;
+
+
+cDataNxNMapCalcSymbDer<double,2> * NewMapOfDist(const cPt3di & aDeg,const std::vector<double> &aVObs,int aSzBuf)
+{
+   return new cDataNxNMapCalcSymbDer<double,2>
+              (
+                   EqDist(aDeg,false,aSzBuf),
+                   EqDist(aDeg, true,aSzBuf),
+                   aVObs,
+                   true
+              );
+}
+
+
 
 
 
 
 /* ============================================= */
-/*      cDataMapCalcSymbDer<Type>                */
+/*          cRandInvertibleDist                  */
 /* ============================================= */
 cRandInvertibleDist::~cRandInvertibleDist()
 {
@@ -173,9 +226,9 @@ cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,doub
    }
 }
 
-cDataMapCalcSymbDer<double,2,2> * cRandInvertibleDist::MapDerSymb()
+cDataNxNMapCalcSymbDer<double,2> * cRandInvertibleDist::MapDerSymb()
 {
-   return new cDataMapCalcSymbDer<double,2,2>(mEqVal,mEqDer,mVParam);
+   return new cDataNxNMapCalcSymbDer<double,2>(mEqVal,mEqDer,mVParam,false);
 }
 
 const std::vector<double> & cRandInvertibleDist::VParam() const
@@ -222,7 +275,7 @@ void BenchSymDerMap(cParamExeBench & aParam)
        double aProbaNotNul = 0.1 + (0.4 *RandUnif_0_1());
        double aTargetSomJac = 0.2;
        cRandInvertibleDist aRID(aDeg,aRhoMax,aProbaNotNul,aTargetSomJac) ;
-       cDataMapCalcSymbDer<double,2,2> * aMCS = aRID.MapDerSymb();
+       cDataNxNMapCalcSymbDer<double,2> * aMCS = aRID.MapDerSymb();
        cMapping<double,2,2>            aMapCS(aMCS);
 
        auto aDId = new cMappingIdentity<double,2> ;

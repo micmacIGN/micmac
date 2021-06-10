@@ -3,8 +3,19 @@
 namespace MMVII
 {
 
+
 void  Bench_cPt2dr()
 {
+
+   {
+      std::vector<cPt3di> & aV31 = AllocNeighbourhood<3>(1);
+      MMVII_INTERNAL_ASSERT_bench((&AllocNeighbourhood<3>(2)==&AllocNeighbourhood<3>(2)),"Alloc Neighbour");
+      MMVII_INTERNAL_ASSERT_bench((&AllocNeighbourhood<3>(1)==&aV31),"Alloc Neighbour");
+      MMVII_INTERNAL_ASSERT_bench((&AllocNeighbourhood<3>(2)!=&aV31),"Alloc Neighbour");
+      MMVII_INTERNAL_ASSERT_bench((aV31.size()==6),"Alloc Neighbour");
+      MMVII_INTERNAL_ASSERT_bench((AllocNeighbourhood<3>(2).size()==18),"Alloc Neighbour");
+      MMVII_INTERNAL_ASSERT_bench((AllocNeighbourhood<3>(3).size()==26),"Alloc Neighbour");
+   }
    // Bench Polar function is correct on some test values
    MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(1,1)-FromPolar(sqrt(2.0),M_PI/4.0))<1e-5,"cPt2r Bench");
    MMVII_INTERNAL_ASSERT_bench(Norm2(cPt2dr(-2,0)-FromPolar(2,-M_PI))<1e-5,"cPt2r Bench");

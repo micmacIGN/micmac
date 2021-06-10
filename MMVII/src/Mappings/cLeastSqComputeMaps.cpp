@@ -110,10 +110,6 @@ template <class Type,const int  DimIn,const int DimOut>
 /* ===================================================== */
 
 /*
-     * JR
-     * Mohamed
-     * Arthur
-     * MMVII -> Generation de code avec disto pour utiliser kapture
 */
 
 void BenchLeastSqMap(cParamExeBench & aParam)
@@ -132,7 +128,7 @@ void BenchLeastSqMap(cParamExeBench & aParam)
        
            //1-2 Make a Map of it
        int aNbParam = aRID.EqVal().NbObs();
-       cDataMapCalcSymbDer<double,2,2> aMapDist(&aRID.EqVal(),&aRID.EqDer(),aRID.VParam());
+       cDataMapCalcSymbDer<double,2,2> aMapDist(&aRID.EqVal(),&aRID.EqDer(),aRID.VParam(),false);
 
        // ======== 2  Compunte the least square estimation of MapDist
            // 2-1  initialise data for compunting
@@ -156,7 +152,7 @@ void BenchLeastSqMap(cParamExeBench & aParam)
        aLsqSymb.ComputeSol(aParamCalc);
        cCalculator<double> * aCalcEqVal = EqDist(aDeg,false,aNbPts);  // Calculator for Vals  
        cCalculator<double> * aCalcEqDer = EqDist(aDeg,true ,aNbPts);   // Calculator for Der
-       cDataMapCalcSymbDer<double,2,2> aMapCalc(aCalcEqVal,aCalcEqDer,aParamCalc);  // Map from computed vals
+       cDataMapCalcSymbDer<double,2,2> aMapCalc(aCalcEqVal,aCalcEqDer,aParamCalc,false);  // Map from computed vals
 
           // 3 Test solution
        
@@ -186,6 +182,7 @@ template class cLeastSqCompMapCalcSymb<TYPE,DIMIN,DIMOUT>;
 
 INSTANTIATE_LSQMAP(tREAL8,3,2)
 INSTANTIATE_LSQMAP(tREAL8,2,2)
+INSTANTIATE_LSQMAP(tREAL8,3,3)
 
 
 

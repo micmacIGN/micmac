@@ -159,7 +159,6 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::DupInVect(std:
 }
 
 
-
 template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitCste(const Type & aVal)
 {
    if (aVal==0)
@@ -172,6 +171,31 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitCste(const
            mRawDataLin[aK] = aVal;
    }
 }
+
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitBorder(const Type & aVal)
+{
+   int aLarg = 1;
+   if (MinAbsCoord(tPB::Sz()) > (2*aLarg))
+   {
+      cBorderPixBox<Dim> aBorder(this->RO(),aLarg);
+
+      for (const auto & aP : aBorder)
+      {
+          mRawDataLin[tPB::IndexeLinear(aP)] = aVal;
+      }
+   }
+   else
+   {
+      InitCste(aVal);
+   }
+}
+
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitInteriorAndBorder(const Type & aVInt,const Type & aVB) 
+{
+   InitCste(aVInt);
+   InitBorder(aVB);
+}
+
 
 template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitRandom()
 {
@@ -245,6 +269,29 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::Init(eModeInit
     }
 }
 
+
+template <class Type,const int Dim> int  cDataTypedIm<Type,Dim>::VI_GetV(const cPtxd<int,Dim> & aP)  const 
+{
+    tPB::AssertInside(aP);
+    return round_ni(mRawDataLin[tPB::IndexeLinear(aP)]);
+}
+template <class Type,const int Dim> double  cDataTypedIm<Type,Dim>::VD_GetV(const cPtxd<int,Dim> & aP)  const 
+{
+    tPB::AssertInside(aP);
+    return mRawDataLin[tPB::IndexeLinear(aP)];
+}
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::VI_SetV(const cPtxd<int,Dim> & aP,const int & aV)  
+{
+    tPB::AssertInside(aP);
+    mRawDataLin[tPB::IndexeLinear(aP)] = tNumTrait<Type>::Trunc(aV);
+}
+
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::VD_SetV(const cPtxd<int,Dim> & aP,const double & aV)  
+{
+    tPB::AssertInside(aP);
+    MMVII_INTERNAL_ASSERT_tiny(tNumTrait<Type>::ValueOk(aV),"Bad Value in VD_SetV");
+    mRawDataLin[tPB::IndexeLinear(aP)] = tNumTrait<Type>::RoundNearestToType(aV);
+}
 
 /*
 template class cDataTypedIm<tREAL4,1>;
