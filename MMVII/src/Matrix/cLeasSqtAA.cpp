@@ -80,6 +80,7 @@ template<class Type> Type  cLeasSq<Type>::Residual
 /* ========================== */
 
 
+
 template<class Type>  cLeasSqtAA<Type>::cLeasSqtAA(int aNbVar):
    cLeasSq<Type>   (aNbVar),
    mtAA            (aNbVar,aNbVar,eModeInitImage::eMIA_Null),

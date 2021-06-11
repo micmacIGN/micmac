@@ -58,7 +58,10 @@ template <class Type>  class cHomot2D
 {
       public :
           static constexpr int TheDim=2;
-          typedef Type  TheType;
+          typedef Type  tTypeElem;
+          typedef cHomot2D<Type>  tTypeMap;
+          typedef cHomot2D<Type>  tTypeMapInv;
+
           typedef cPtxd<Type,2> tPt;
 
           static const int NbDOF() {return 3;}
@@ -69,7 +72,7 @@ template <class Type>  class cHomot2D
           }
           inline tPt  Value(const tPt & aP) const   {return mTr + aP * mSc;}
           inline tPt  Inverse(const tPt & aP) const {return (aP-mTr)/mSc  ;}
-          cHomot2D<Type>  MapInverse() const {return cHomot2D<Type>(-mTr/mSc,1.0/mSc);}
+          tTypeMapInv MapInverse() const {return cHomot2D<Type>(-mTr/mSc,1.0/mSc);}
       private :
           tPt mTr;
           Type mSc;
@@ -78,8 +81,10 @@ template <class Type>  class cHomot2D
 template <class Type>  class cSim2D
 {
       public :
-          typedef Type  TheType;
           static constexpr int TheDim=2;
+          typedef Type          tTypeElem;
+          typedef cSim2D<Type>  tTypeMap;
+          typedef cSim2D<Type>  tTypeMapInv;
 
           typedef cPtxd<Type,2> tPt;
 
@@ -93,7 +98,7 @@ template <class Type>  class cSim2D
           inline tPt  Value(const tPt & aP) const {return mTr + aP * mSc;}
           inline tPt  Inverse(const tPt & aP) const {return (aP-mTr)/mSc  ;}
 
-          cSim2D<Type>  MapInverse() const {return cSim2D<Type>(-mTr/mSc,tPt(1.0,0.0)/mSc);}
+          tTypeMapInv  MapInverse() const {return cSim2D<Type>(-mTr/mSc,tPt(1.0,0.0)/mSc);}
                 
       private :
           tPt mTr;
