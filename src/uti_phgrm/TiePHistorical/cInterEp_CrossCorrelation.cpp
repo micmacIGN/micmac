@@ -201,7 +201,7 @@ double CalcCorssCorr(std::vector<int> aPxVal1, std::vector<int> aPxVal2)
     return dCorr;
 }
 
-void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std::string aSubPatchXml, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aPatchDir, int aWindowSize, double aThreshold)
+void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std::string aSubPatchXml, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aPatchDir, int aWindowSize, double aThreshold, bool bCheckFile)
 {
     if(aPatchSz.x < aWindowSize || aPatchSz.y < aWindowSize)
     {
@@ -214,6 +214,27 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
     std::vector<cElHomographie> vHomoL, vHomoR;
 
     ReadXml1(aImg1, aImg2, aPatchDir+"/"+aSubPatchXml, vPatchesL, vPatchesR, vHomoL, vHomoR);
+
+    // Save tie pt
+    std::string aSHDir = aDir + "/Homol" + outSH + "/";
+    ELISE_fp::MkDir(aSHDir);
+    std::string aNewDir = aSHDir + "Pastis" + aImg1;
+    ELISE_fp::MkDir(aNewDir);
+    std::string aNameFile1 = aNewDir + "/"+aImg2+".txt";
+
+    aNewDir = aSHDir + "Pastis" + aImg2;
+    ELISE_fp::MkDir(aNewDir);
+    std::string aNameFile2 = aNewDir + "/"+aImg1+".txt";
+
+    std::string aCom = "mm3d SEL" + BLANK + aDir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
+    cout<<aCom<<endl;
+
+    if (bCheckFile == true && ELISE_fp::exist_file(aNameFile1) == true && ELISE_fp::exist_file(aNameFile2) == true)
+    {
+        cout<<aNameFile1<<" already exist, hence skipped"<<endl;
+        return;
+    }
+
 
     Tiff_Im aRGBIm1((aDir+"/"+aImg1).c_str());
     Pt2di ImgSzL = aRGBIm1.sz();
@@ -329,83 +350,37 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
 */
 
         std::vector<int> aPxVal1, aPxVal2;
-        bool bRes1 = GetPxVal(aPatchDir, vPatchesL[aIdxL], aWindowSize, aP1InPatch, aPxVal1);
-        bool bRes2 = GetPxVal(aPatchDir, vPatchesR[aIdxR], aWindowSize, aP2InPatch, aPxVal2);
-
-        if(bRes1 == false || bRes2 == false)
+        if (ELISE_fp::exist_file(aPatchDir+"/"+vPatchesL[aIdxL]) == true && ELISE_fp::exist_file(aPatchDir+"/"+vPatchesR[aIdxR]) == true)
         {
-            printf("------Out of border-------\n %dth pt, Original coor: %lf %lf %lf %lf\n", nPtNum, aP1.x, aP1.y, aP2.x, aP2.y);
-            printf("new coor: %lf %lf %lf %lf\n", aP1InPatch.x, aP1InPatch.y, aP2InPatch.x, aP2InPatch.y);
-            cout<<aPatchDir+"/"+vPatchesL[aIdxL]<<", "<<aPatchDir+"/"+vPatchesR[aIdxR]<<endl;
-            continue;
+            bool bRes1 = GetPxVal(aPatchDir, vPatchesL[aIdxL], aWindowSize, aP1InPatch, aPxVal1);
+            bool bRes2 = GetPxVal(aPatchDir, vPatchesR[aIdxR], aWindowSize, aP2InPatch, aPxVal2);
+
+            if(bRes1 == false || bRes2 == false)
+            {
+                printf("------Out of border-------\n %dth pt, Original coor: %lf %lf %lf %lf\n", nPtNum, aP1.x, aP1.y, aP2.x, aP2.y);
+                printf("new coor: %lf %lf %lf %lf\n", aP1InPatch.x, aP1InPatch.y, aP2InPatch.x, aP2InPatch.y);
+                cout<<aPatchDir+"/"+vPatchesL[aIdxL]<<", "<<aPatchDir+"/"+vPatchesR[aIdxR]<<endl;
+                continue;
+            }
+
+            double dCorr = CalcCorssCorr(aPxVal1, aPxVal2);
+
+            //cout<<nPtNum<<"th dCorr: "<<dCorr<<endl;
+
+            if(dCorr >= aThreshold)
+            {
+                inlier.push_back(ElCplePtsHomologues(aP1, aP2));
+            }
         }
-
-        double dCorr = CalcCorssCorr(aPxVal1, aPxVal2);
-
-        //cout<<nPtNum<<"th dCorr: "<<dCorr<<endl;
-
-        if(dCorr >= aThreshold)
-        {
-            inlier.push_back(ElCplePtsHomologues(aP1, aP2));
-        }
-        //break;
-
-
-        /*
-
-        TIm2D<U_INT1,INT> aTImProfPx(Pt2di(aWindowSize, aWindowSize));
-
-        ELISE_COPY
-        (
-        aTImProfPx.all_pts(),
-        aRGBPatch1.in(0)[Virgule(FX-aP1InPatch.x-int(aWindowSize/2),FY-aP1InPatch.y-int(aWindowSize/2))],
-        aTImProfPx.out()
-        );
-
-        std::string aNameOut = "/home/lulin/Documents/zll/TestLulinCodeInMicMac/pipeline/555_R90.tif";
-        Tiff_Im TiffOut  =     Tiff_Im
-                               (
-                                  aNameOut.c_str(),
-                                  Pt2di(aWindowSize, aWindowSize),
-                                  aRGBPatch1.type_el(),
-                                  Tiff_Im::No_Compr,
-                                  aRGBPatch1.phot_interp(),
-                                  Tiff_Im::Empty_ARG
-                              );
-        ELISE_COPY
-        (
-        TiffOut.all_pts(),
-        aTImProfPx.in,
-        TiffOut.out()
-        );
-        //Tiff_Im aRGBIm2((aPatchDir+"/"+vPatchesR[aIdx]).c_str());
-
-
-        int i, j;
-        i= 2;
-        j = 3;
-
-        //aTImProfPx.getr(i,j);
-*/
+        else
+            printf("%s or %s didn't exist, hence skipped.\n", vPatchesL[aIdxL].c_str(), vPatchesR[aIdxR].c_str());
     }
 
-    // Save tie pt
-    std::string aSHDir = aDir + "/Homol" + outSH + "/";
-    ELISE_fp::MkDir(aSHDir);
-    std::string aNewDir = aSHDir + "Pastis" + aImg1;
-    ELISE_fp::MkDir(aNewDir);
-    std::string aNameFile = aNewDir + "/"+aImg2+".txt";
-    FILE * fpTiePt1 = fopen(aNameFile.c_str(), "w");
 
-    aNewDir = aSHDir + "Pastis" + aImg2;
-    ELISE_fp::MkDir(aNewDir);
-    aNameFile = aNewDir + "/"+aImg1+".txt";
-    FILE * fpTiePt2 = fopen(aNameFile.c_str(), "w");
+    FILE * fpTiePt1 = fopen(aNameFile1.c_str(), "w");
+    FILE * fpTiePt2 = fopen(aNameFile2.c_str(), "w");
 
     cout<<"original correspondences: "<<nPtNum<<"; survived correspondences: "<<inlier.size()<<endl;
-
-    std::string aCom = "mm3d SEL" + BLANK + aDir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-    cout<<aCom<<endl;
 
     for (unsigned int i=0; i<inlier.size(); i++)
     {
@@ -433,6 +408,8 @@ int CrossCorrelation_main(int argc,char ** argv)
    Pt2dr aPatchSz(640, 480);
    Pt2dr aBufferSz(30, 60);
 
+   bool bCheckFile = false;
+
    ElInitArgMain
     (
         argc,argv,
@@ -441,10 +418,11 @@ int CrossCorrelation_main(int argc,char ** argv)
         LArgMain()
                     << aCAS3D.ArgBasic()
                     << aCAS3D.ArgCrossCorrelation()
-               << EAM(aPatchSz, "PatchSz", true, "Patch size, Def=[640, 480]")
-               << EAM(aBufferSz, "BufferSz", true, "Buffer sie, Def=[30, 60]")
+                   << EAM(aPatchSz, "PatchSz", true, "Patch size, Def=[640, 480]")
+                   << EAM(aBufferSz, "BufferSz", true, "Buffer sie, Def=[30, 60]")
                     << EAM(aSubPatchXml, "SubPXml", true, "The xml file name to record the homography between the patch and original image, Def=SubPatch.xml")
-               << EAM(aPatchDir, "PatchDir", true, "The input directory of patches, Def=./Tmp_Patches")
+                   << EAM(aPatchDir, "PatchDir", true, "The input directory of patches, Def=./Tmp_Patches")
+                   << EAM(bCheckFile, "CheckFile", true, "Check if the result files exist (if so, skip), Def=false")
 
     );
 /*
@@ -454,7 +432,7 @@ int CrossCorrelation_main(int argc,char ** argv)
    if(aCAS3D.mCrossCorrelationOutSH.length() == 0)
        aCAS3D.mCrossCorrelationOutSH = aCAS3D.mCrossCorrelationInSH + "-CrossCorrelation";
 
-   CrossCorrelation(aCAS3D.mDir, aCAS3D.mCrossCorrelationOutSH, aCAS3D.mCrossCorrelationInSH, aSubPatchXml, aPatchSz, aBufferSz, aPatchDir, aCAS3D.mWindowSize, aCAS3D.mCrossCorrThreshold);
+   CrossCorrelation(aCAS3D.mDir, aCAS3D.mCrossCorrelationOutSH, aCAS3D.mCrossCorrelationInSH, aSubPatchXml, aPatchSz, aBufferSz, aPatchDir, aCAS3D.mWindowSize, aCAS3D.mCrossCorrThreshold, bCheckFile);
 
    return EXIT_SUCCESS;
 }

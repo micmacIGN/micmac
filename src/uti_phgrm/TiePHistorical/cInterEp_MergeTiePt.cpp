@@ -199,14 +199,18 @@ void MergeTiePt(std::string input_dir, std::string output_dir, std::string inSH,
         }
     }
 
+    int nTotalTiePtNum = 0;
     for (ElPackHomologue::iterator itCpl=aPackMerged.begin();itCpl!=aPackMerged.end() ; itCpl++)
     {
         ElCplePtsHomologues tiept = itCpl->ToCple();
         fprintf(fpTiePt1, "%lf %lf %lf %lf\n", tiept.P1().x, tiept.P1().y, tiept.P2().x, tiept.P2().y);
         fprintf(fpTiePt2, "%lf %lf %lf %lf\n", tiept.P2().x, tiept.P2().y, tiept.P1().x, tiept.P1().y);
+        nTotalTiePtNum++;
     }
     fclose(fpTiePt1);
     fclose(fpTiePt2);
+
+    cout<<"Tie point number after merged: "<<nTotalTiePtNum<<endl;
 }
 
 int MergeTiePt_main(int argc,char ** argv)
