@@ -491,7 +491,17 @@ template <class Type,const int Dim> class  cComputeMapInverse
         typedef typename tMap::tCsteResVecJac     tCsteResVecJac;
        
 
-        cComputeMapInverse(const Type & aThreshJac,const tPtR& aSeed,const int & aNbPtsIn,tSet &,tMap&,tLSQ&,bool Test=false);
+        /// Constructor, essentially memorize parameters
+        cComputeMapInverse
+        (
+             const Type & aThreshJac, ///< Threshold on jacobian to ensure inversability
+             const tPtR& aSeed,       ///< Seed point, in input space
+             const int & aNbPtsIn,    ///< Approximate number of point (in the biggest size)
+             tSet &,  ///< Set of validity, in output space
+             tMap&,   ///< Maping to invert : InputSpace -> OutputSpace
+             tLSQ&,  ///< Structure for computing the invert on base of function using least square   
+             bool Test=false
+        );
         void  DoAll(std::vector<Type> & aVSol);
 
         static int constexpr  TheNbIterByStep = 3;
@@ -499,7 +509,7 @@ template <class Type,const int Dim> class  cComputeMapInverse
         static void OneBench(double aCMaxRel);
     private :
         cComputeMapInverse(const cComputeMapInverse<Type,Dim> &) = delete;
-        /** Compute an approximation of Input box as reciproque of output box, use jacobian in see as,
+        /** Compute an approximation of Input box as reciproque of output box, use jacobian as
             we dont know inverse (else we would not be here ...) */
         tBoxR  BoxInByJacobian() const;
         /** From input real space to grid space */
@@ -512,7 +522,7 @@ template <class Type,const int Dim> class  cComputeMapInverse
         {
               return  mBoxMaj.P0() + tPtR::FromPtInt(aPI)*mStep;
         }
-        /// Is the jacobian sufficently close to its value on seed
+        /// Is the jacobian sufficently close to its value on seed ?
         bool ValideJac(const cDenseMatrix<Type> & aMat) const;
 
         /// Add a Pixel in the queue if has not already be visited
@@ -520,33 +530,35 @@ template <class Type,const int Dim> class  cComputeMapInverse
         /// Filters pixel geometrically OK (Jac+domain) and add them as obs for least square
         void FilterAndAddPixelsGeom();
 
+        /// Make on iteration, at given step, to have point closer to the frontier
         void OneStepFront(const Type & aStepFront);
 
+        /// Validate (POut/Jac) if in domain and jacobian is OK
         bool ValidateK(const tCsteResVecJac & aVecPJ,int aKp)
         {
             return mSet.InsideWithBox((*aVecPJ.first)[aKp]) && ValideJac((*aVecPJ.second)[aKp]);
         }
+        /// Add one observtion for computing inverse, IsFront used for memo in test mode
         void AddObsMapDirect(const tPtR & aPIn,const tPtR & aPOut,bool IsFront);
 
          // Copy of parameters
-        Type          mThresholdJac;
+        Type          mThresholdJac; 
         tPtR          mPSeed;
         tSet &        mSet;   // Definition set of Output space
         tMap &        mMap;
         tLSQ &        mLSQ;
-        tBoxR         mBoxByJac; // Box computed assuming that Map is equal to its jacobian in PSeed
-        tBoxR         mBoxMaj;  // Majoration of box, taking into account possible instability
-        Type          mStep;
-
           // Created members 
-        cPixBox<Dim>              mBoxPix;
-        cDataTypedIm<tU_INT1,Dim> mMarker;
-        std::vector<tPtI>         mNextGen;
-        cDenseMatrix<Type>        mJacInv0;
-        cDenseMatrix<Type>        mMatId;
-        std::vector<tPtI> &       mNeigh;
-        std::vector<tExtent>      mVExt;
-        bool                      mTest;
+        tBoxR         mBoxByJac; ///< Box computed assuming that Map is equal to its jacobian in PSeed
+        tBoxR         mBoxMaj;  ///< Majoration of box, taking into account possible instability
+        Type          mStep;    ///< Step on the grid
+        cPixBox<Dim>              mBoxPix;  ///< Pixel box to make image processing stuff
+        cDataTypedIm<tU_INT1,Dim> mMarker;  ///< Marker image to make growing
+        std::vector<tPtI>         mNextGen; ///< Next generation of pixel in growing region
+        cDenseMatrix<Type>        mJacInv0; ///< Matrix invert of Jacobian in PSeed
+        cDenseMatrix<Type>        mMatId;   ///< Id Matrix, helper for computing Jacobian criteria
+        std::vector<tPtI> &       mNeigh; ///< Neighbourhood for image-morpho-operation
+        std::vector<tExtent>      mVExt; ///< Vector of "extension" to the frontier
+        bool                      mTest; ///< Are we in test mode ?
     public :
         Type                      mStepFrontLim; // TheStepFrontLim
         std::vector<tPtR>         mVPtsInt; ///< For test, memo point interior
@@ -554,14 +566,15 @@ template <class Type,const int Dim> class  cComputeMapInverse
 
 };
 
+
 template <class Type,const int Dim> 
     cTplBox<Type,Dim>   cComputeMapInverse<Type,Dim>::BoxInByJacobian() const
 {
-    cBijAffMapElem<Type,Dim>  aDif = mMap.Linearize (mPSeed);
+    cBijAffMapElem<Type,Dim>  aDif = mMap.Linearize (mPSeed); // Compute linear application at PSeed
 
-    cInvertMappingFromElem<cBijAffMapElem<Type,Dim> > aMap(aDif.MapInverse());
+    cInvertMappingFromElem<cBijAffMapElem<Type,Dim> > aMap(aDif.MapInverse()); // Copput inverse mapping
 
-    cTplBox<Type,Dim> aRes=  aMap.BoxOfCorners(mSet.Box());
+    cTplBox<Type,Dim> aRes=  aMap.BoxOfCorners(mSet.Box());  // compute recripoque image of box out
     return aRes;
 
 }
@@ -569,7 +582,7 @@ template <class Type,const int Dim>
 template <class Type,const int Dim> 
    void  cComputeMapInverse<Type,Dim>::AddObsMapDirect(const tPtR & aPIn,const tPtR & aPOut,bool IsFront)
 {
-     mLSQ.AddObs(aPOut,aPIn-aPOut); // put is as as sample  Out => In 
+     mLSQ.AddObs(aPOut,aPIn-aPOut); // put is as as sample  Out => Map-Identity  = PIn-POut
      if (mTest)
      {
         if (IsFront)
@@ -587,7 +600,7 @@ template <class Type,const int Dim>
     for (int aK=0 ; aK<int(mVExt.size()) ; aK++)
         aVSel.push_back(aK);  // Initially put all indexes
 
-    // Fix a limit number of step
+    // Fix a limit number of step, and stop when empty
     for (int aKStep=0 ; (aKStep<TheNbIterByStep) && (!aVSel.empty()) ; aKStep++)
     {
         std::vector<int> aNextVSel;
@@ -738,14 +751,12 @@ template <class Type,const int Dim> void
             // Now its frontier, make it a real point
             if (isFront)
             {
-//StdOut()  << "PIX " << aPix << "\n";
                 tPtR aPR = FromPix(aPix);
                 tPtR aDir = VUnit(aPR-mPSeed) * mStep;  // Direction * by step to be ~ to a pixel lenght
                 mVExt.push_back(tExtent(aPR,aDir));
             }
          }
      }
-//StdOut()  << "PIX " << aPix << "\n";
 
 
          // 2-2 Make extension at degrowing step
@@ -807,16 +818,16 @@ void  OneBench_CMI(double aCMaxRel)
     cDataNxNMapCalcSymbDer<double,2> *  aMapInv = NewMapOfDist(aDegMapInv,aVParam,100);
 
     bool CaseDiskInclude = (aCMaxRel>1.0);
-    // bool CaseDiskExclude = (aCMaxRel<sqrt(0.5));
+    bool CaseDiskExclude = (aCMaxRel<sqrt(0.5));
     // Disk is include in Box, all point front should be on the disk
     double aPrecFr = aCMI.mStepFrontLim*aCMI.mStep;
     // Case disk include in 
-    if (CaseDiskInclude)
+    if (CaseDiskInclude || CaseDiskExclude)
     {
-       // Check that all point of the frontier are almost on the circle
+       // Check that all point of the frontier are almost on the circle/square
        for (const auto & aP : aCMI.mVPtsFr)
        {
-          double aPrec = std::abs(Norm2(aP)  -aRho) ;
+          double aPrec =  CaseDiskInclude ? std::abs(Norm2(aP)  -aRho)  : std::abs(NormInf(aP)  - aCMax);
           if (aPrec>aPrecFr*4)
           {
              StdOut() << "FFRRRRr " << aPrec / aPrecFr << "\n";
@@ -824,6 +835,7 @@ void  OneBench_CMI(double aCMaxRel)
           }
        }
     }
+
 
     if (true) // CaseDiskInclude || CaseDiskExclude)
     {
