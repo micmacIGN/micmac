@@ -248,6 +248,7 @@ enum class eModeEpipMatch
 {
    eMEM_MMV1,  // Mode MicMac V1
    eMEM_PSMNet,// Mode PSMNet
+   eMEM_NoMatch,  // Do no match, used for debuging
    eNbVals
 };
 

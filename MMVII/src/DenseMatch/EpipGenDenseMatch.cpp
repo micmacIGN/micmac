@@ -128,7 +128,7 @@ class cAppli : public cMMVII_Appli
                  // --- Others 
         void MakePyramid(); ///< Generate the pyramid of image
         void MatchOneLevel(int aLevel);  ///< Compute the matching a given level of the pyramid
-        std::string ComMatch (cParam1Match &) const; ///< Command for match, depend of selected method
+        std::string ComMatch (cParam1Match &) ; ///< Command for match, depend of selected method
         void SetOutPut(std::string & aNamePx);  ///< Fix to same value aNamePx and mOutPx
 
        // =========== Inline Definition ========
@@ -206,6 +206,7 @@ struct cParam1Match
          int               mPxMax;   ///< Max compted paralax
          int               mOffsetPx; ///< Offset between cliped px and global px, due Box1 != Box2
          bool              mCanDoMatch;  ///< Is there enough point to do the match
+         bool              mEnforceSzEq;
 };
 
 
@@ -320,6 +321,7 @@ void cOneLevel::EstimateIntervPx
           bool EnforceSzEq
      ) const
 {
+   aParam.mEnforceSzEq = EnforceSzEq;
    if (mDownLev==nullptr)
    {
       // Make a rough estimation using a constant steep hypothesis
@@ -407,13 +409,14 @@ void cOneLevel::EstimateIntervPx
       aSzImX = std::min(aSzImX,aBoxFile1.Sz().x()-aParam.mBoxIn1.P0().x());
       aSzImX = std::min(aSzImX,aBoxFile2.Sz().x()-aParam.mBoxIn2.P0().x());
       // Finnaly set value to this common size
-      aParam.mBoxIn1.P1().x() = aParam.mBoxIn1.P0().x() + aSzImX;
-      aParam.mBoxIn2.P1().x() = aParam.mBoxIn2.P0().x() + aSzImX;
+      aParam.mBoxIn1 = cBox2di(aParam.mBoxIn1.P0(),cPt2di(aParam.mBoxIn1.P0().x() + aSzImX,aParam.mBoxIn1.P1().y()));
+      aParam.mBoxIn2 = cBox2di(aParam.mBoxIn2.P0(),cPt2di(aParam.mBoxIn2.P0().x() + aSzImX,aParam.mBoxIn2.P1().y()));
    }
 
    // in genral X2 = X1 +PxMin,  Offset =  X1-X2 = -PxMin , and finally PxMin=0
    // a long comptation for a basic result , but we cannot set it directly like that 
    // because intersection with aBoxFile2 can change it
+
 
    aParam.mPxMin = aParam.mBoxIn2.P0().x() + aParam.mOffsetPx;
    aParam.mPxMax = aParam.mBoxIn2.P1().x() + aParam.mOffsetPx;
@@ -536,12 +539,12 @@ void cAppli::SetOutPut(std::string & aNamePx)
      mOutPx = aNamePx;
 }
 
-std::string cAppli::ComMatch (cParam1Match & aParam) const
+std::string cAppli::ComMatch (cParam1Match & aParam) 
 {
    switch (mModeMatch)
    {
        case  eModeEpipMatch::eMEM_MMV1 :
-	   {
+       {
           return    "mm3d MMTestMMVII"
                  +  BLANK  +  DirTmpOfCmd()
                  +  BLANK  +  aParam.mClipNameIm1
@@ -551,8 +554,8 @@ std::string cAppli::ComMatch (cParam1Match & aParam) const
                  +  BLANK  +  "FileExp=" + aParam.mClipNamePx  // 
           ;
        	  break;
-	   }
-	   case eModeEpipMatch::eMEM_PSMNet :
+       }
+       case eModeEpipMatch::eMEM_PSMNet :
        {
 		  std::string aDenseMDir = TopDirMMVII() + "src/DenseMatch/";
           std::string aCom = "bash " + aDenseMDir + "run.sh " 
@@ -564,6 +567,23 @@ std::string cAppli::ComMatch (cParam1Match & aParam) const
           
 		  return aCom;
           break;
+       }
+       case eModeEpipMatch::eMEM_NoMatch :
+       {
+             std::string aNamePx = DirTmpOfCmd() + aParam.mClipNamePx;
+             cPt2di aSzBox1 =  aParam.mBoxIn1.Sz();
+             cPt2di aSzBox2 =  aParam.mBoxIn2.Sz();
+
+             if (aParam.mEnforceSzEq && (aSzBox1!=aSzBox2))
+             {
+                  StdOut() << "EXECUCTE Eq: " <<  aParam.mEnforceSzEq << " " << aSzBox1 << aSzBox2 << "\n"; getchar();
+                  MMVII_INTERNAL_ASSERT_always(false,"Sz of boxes should be equal");
+             }
+
+
+             cDataFileIm2D::Create(aNamePx,eTyNums::eTN_INT1,aParam.mBoxIn1.Sz(),1);
+
+             return "";
        }
 
        default : break;

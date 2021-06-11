@@ -483,8 +483,8 @@ template <class Type,const int Dim>  class cTplBox
         
 
 
-        tPt & P0() {return mP0;} ///< Origin of object
-        tPt & P1() {return mP1;} ///< End of object
+        // tPt & P0() {return mP0;} !!!!! BUUUG : CANNOT LET MODIFY BECAUSE OTHER FIELD NOT UP TO DATE
+        // tPt & P1() {return mP1;} !!!!! BUUUG : CANNOT LET MODIFY BECAUSE OTHER FIELD NOT UP TO DATE
         const tPt & P0() const {return mP0;} ///< Origin of object
         const tPt & P1() const {return mP1;} ///< End of object
         const tPt & Sz() const {return mSz;} ///< Size of object
