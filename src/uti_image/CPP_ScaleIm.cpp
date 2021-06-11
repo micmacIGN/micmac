@@ -69,6 +69,7 @@ int ScaleIm_main(int argc,char ** argv)
 
     bool aModeMasq   = false;
     bool Arg2IsWidth = false;
+    
 
 
     ElInitArgMain
@@ -107,7 +108,7 @@ int ScaleIm_main(int argc,char ** argv)
     Tiff_Im tiff = Tiff_Im::StdConvGen(aNameIn.c_str(),aForceGray ? 1 :-1,!aForce8B ,true);
     if (Arg2IsWidth)
     {
-        aScX =   tiff.sz().x / double(aScX);
+        aScX =   dist8(tiff.sz()) / double(aScX);
     }
     if (aScY==0)
         aScY= aScX;

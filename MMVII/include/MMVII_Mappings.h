@@ -139,6 +139,7 @@ template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
        void GridPointInsideOfNbPoints(tVecPt&,int aStepMoy) const;
        
     private :
+       cDataBoundedSet(const cDataBoundedSet<Type,Dim> & ) = delete;
        cTplBox<Type,Dim> mBox;
 };
 
@@ -251,6 +252,7 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
        static tVecJac & BufJac(tU_INT4 aSz) ; 
 #else  // !MAP_STATIC_BUF
     private :
+       cDataMapping(const cDataMapping<Type,DimIn,DimOut> & ) = delete;
        mutable tVecOut  mBufOut;
        mutable tVecOut  mJBufOut;
        mutable tVecIn   mBufIn;
@@ -296,6 +298,7 @@ template <class Type,const int Dim> class cDataInvertibleMapping :  public cData
       virtual  tPt Inverse(const tPt &) const;
 
     private :
+      cDataInvertibleMapping(const cDataInvertibleMapping<Type,Dim> & ) = delete;
 #if (MAP_STATIC_BUF)
        static tVecPt&  BufInvOut()         {static tVecPt aRes; return aRes;}
        static tVecPt&  BufInvOutCleared()  { BufInvOut().clear() ; return  BufInvOut();}
@@ -343,6 +346,7 @@ template <class Type,const int Dim> class cDataIterInvertMapping :  public cData
       cDataIterInvertMapping(tMap,const Type& aDistTol,int aNbIterMax);
 
     private :
+      cDataIterInvertMapping(const cDataIterInvertMapping<Type,Dim> & ) = delete;
       tHelperInvertIter *  StrInvertIter() const;
 
       mutable std::shared_ptr<tHelperInvertIter> mStrInvertIter;
@@ -372,6 +376,7 @@ template <class Type,const int Dim> class cDataIIMFromMap : public cDataIterInve
       const  tVecPt &  Values(tVecPt &,const tVecPt & ) const override;  //V2
       tCsteResVecJac  Jacobian(tResVecJac,const tVecPt &) const override;  //J2
     private :
+      cDataIIMFromMap(const cDataIIMFromMap<Type,Dim> & ) = delete;
       tMap                mMap;
 };
 
@@ -409,6 +414,7 @@ template <class Type,const int DimIn,const int DimOut>
        void SetObs(const std::vector<Type> &);
 
     private  :
+       cDataMapCalcSymbDer(const cDataMapCalcSymbDer<Type,DimIn,DimOut> & ) = delete;
        void CheckDim(tCalc *,bool Derive);
        tCalc  *           mCalcVal;
        tCalc  *           mCalcDer;
@@ -482,6 +488,8 @@ template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMap
          void AddObs(const tPtIn & aPt,const tPtOut & aValue,const tPtOut & aPds);
          void AddObs(const tPtIn & aPt,const tPtOut & aValue,const Type & aPds);
          void AddObs(const tPtIn & aPt,const tPtOut & aValue);
+         // =========== ACCESSOR ==============
+         const size_t &  NbFunc() const {return mNbFunc;}
      private :
          virtual void ComputeValFuncsBase(tVecOut &,const tPtIn & aPt) = 0;
          size_t             mNbFunc;

@@ -130,6 +130,55 @@ template <class Type,const int Dim> class  cDataDistCloseId : cDataIterInvertMap
 */
 
 
+
+
+/* ============================================= */
+/*      cDataMapCalcSymbDer<Type>                */
+/* ============================================= */
+cRandInvertibleDist::~cRandInvertibleDist()
+{
+   delete mEqVal;
+   delete mEqDer;
+}
+
+cRandInvertibleDist::cRandInvertibleDist(const cPt3di & aDeg,double aRhoMax,double aProbaNotNul,double aTargetSomJac) :
+   mRhoMax  (aRhoMax),
+   mDeg     (aDeg),
+   mEqVal   (EqDist(aDeg,false,1+RandUnif_N(50))),  // Random for size buf
+   mEqDer   (EqDist(aDeg,true,1+RandUnif_N(50))),
+   mNbParam (mEqVal->NbObs()),
+   mVParam  (mNbParam,0.0),
+   mVecDesc (DescDist(mDeg))
+{
+   // 1- Initialize, without precautions
+
+   double aSomJac=0.0;  //  sum of jacobian
+   while (aSomJac==0.0)
+   {
+      for (int aKPar=0 ; aKPar<mNbParam ;aKPar++)
+      {
+         double aMajNorm =  mVecDesc.at(aKPar).MajNormJacOfRho(mRhoMax);
+         double aV = RandUnif_C() * (RandUnif_0_1() < aProbaNotNul) /aMajNorm;
+         mVParam[aKPar] = aV;
+         aSomJac += std::abs(aV) * aMajNorm;
+      }
+   }
+   aSomJac = std::max(aSomJac,1e-5) ; // dont divide 0 if allmost null
+
+   for (int aKPar=0 ; aKPar<mNbParam ;aKPar++)
+   {
+       mVParam[aKPar] *=  aTargetSomJac / aSomJac;
+       if (false) // Print params
+          std::cout << "KPar " << mEqVal->NamesObs().at(aKPar) << " : "  << mVParam[aKPar] << "\n";
+   }
+}
+
+cDataMapCalcSymbDer<double,2,2> * cRandInvertibleDist::MapDerSymb()
+{
+   return new cDataMapCalcSymbDer<double,2,2>(mEqVal,mEqDer,mVParam);
+}
+
+
 /* ============================================= */
 /*                   TEST                        */
 /* ============================================= */
@@ -156,78 +205,49 @@ StdOut() << " GX: " << (aPPx-aPmx)/(2*aEps)
 void BenchSymDerMap(cParamExeBench & aParam)
 {
    cPt3di aDeg(3,1,1);
-   const std::vector<cDescOneFuncDist>  & aVecD =  DescDist(aDeg);
+   // const std::vector<cDescOneFuncDist>  & aVecD =  DescDist(aDeg);
 
    for (int aKTest=0 ; aKTest<100 ; aKTest++)
    {
-       cCalculator<double> * anEqVal =  EqDist(aDeg,false,1+RandUnif_N(50));
-       cCalculator<double> * anEqDer =  EqDist(aDeg, true,1+RandUnif_N(50));
-       int aNbPar = anEqVal->NbObs();
-       std::vector<double> aVParam(aNbPar,0.0);
-
-       // Basic Test, with all param=0, distortion=identity
-       {
-           cDataMapCalcSymbDer<double,2,2> aMCS(anEqVal,anEqDer,aVParam);
-           cPt2dr aP = cPt2dr::PRandC();
-           cPt2dr aQ = aMCS.Value(aP);
-           MMVII_INTERNAL_ASSERT_bench(Norm2(aP-aQ)<1e-5,"Value in MCS");
-       }
-
-       // compute a distortion with random value
-       double aSomJac=0;
-       for (int aKPar=0 ; aKPar<aNbPar ;aKPar++)
-       {
-           double aV = (RandUnif_C() * HeadOrTail()) / aVecD.at(aKPar).MajNormJacOfRho(1.0);
-           aVParam[aKPar] = aV;
-           aSomJac += std::abs(aV) * aVecD.at(aKPar).MajNormJacOfRho(1.0) ;
-       }
-       aSomJac = std::max(aSomJac,1e-5) ; // dont divide 0 if all null
-       for (int aKPar=0 ; aKPar<aNbPar ;aKPar++)
-       {
-           aVParam[aKPar] = 0.2* (aVParam[aKPar]/ aSomJac);
-           if (false) // Print params
-              std::cout << "KPar " << anEqVal->NamesObs().at(aKPar) << " : "  << aVParam[aKPar] << "\n";
-       }
-
-       // cDataMapCalcSymbDer<double,2,2> aMCS(anEqVal,anEqDer,aVParam);
-       auto aMCS = new cDataMapCalcSymbDer<double,2,2>(anEqVal,anEqDer,aVParam);
+       double aRhoMax = 5 * (0.01 +  RandUnif_0_1());
+       double aProbaNotNul = 0.1 + (0.4 *RandUnif_0_1());
+       double aTargetSomJac = 0.2;
+       cRandInvertibleDist aRID(aDeg,aRhoMax,aProbaNotNul,aTargetSomJac) ;
+       cDataMapCalcSymbDer<double,2,2> * aMCS = aRID.MapDerSymb();
        cMapping<double,2,2>            aMapCS(aMCS);
 
        auto aDId = new cMappingIdentity<double,2> ;
        cMapping<double,2,2>            aMapId(aDId);
 
-       cDataIIMFromMap aIMap(aMapCS,aMapId,1e-6,5);
+       cDataIIMFromMap<double,2> aIMap(aMapCS,aMapId,1e-6,15);
 
+       // Generate in VIn a random set, with random size, of points in disk of radius aRhoMax
        int aNbPts  = 1+RandUnif_N(100);
        std::vector<cPt2dr> aVIn;
        for (int aKPts=0 ; aKPts<aNbPts ; aKPts++)
        {
-           aVIn.push_back(cPt2dr::PRandInSphere());
+           aVIn.push_back(cPt2dr::PRandInSphere() * aRhoMax );
        }
-       aIMap.cDataMapping<double,2,2>::Values(aVIn);
 
-
-       const std::vector<cPt2dr> & aVOut = aIMap.cDataInvertibleMapping<double,2>::Inverses(aVIn);
-       double aMaxD=0.0;
-       double aMaxDisto=0.0;
+       // Check that Map(Map-1(P)) = P
+       const std::vector<cPt2dr> & aVInv = aIMap.cDataInvertibleMapping<double,2>::Inverses(aVIn);
+       double aMaxD=0.0;  //  Max | Map(Map-1(P)) -P|
+       double aMaxDisto=0.0;  // Max | Map-1(aP) -P| , in case we need to evaluate the dist
        for (int aKPts=0 ; aKPts<int(aVIn.size()) ; aKPts++)
        {
-           cPt2dr aDif =  aVIn[aKPts] - aMCS->cDataMapping<double,2,2>::Value(aVOut[aKPts]) ;
+           cPt2dr aDif =  aVIn[aKPts] - aMCS->cDataMapping<double,2,2>::Value(aVInv[aKPts]) ;
            aMaxD = std::max(aMaxD,Norm2(aDif));
-           aMaxDisto = std::max(aMaxDisto,Norm2(aVIn[aKPts]-aVOut[aKPts]));
+           aMaxDisto = std::max(aMaxDisto,Norm2(aVIn[aKPts]-aVInv[aKPts]));
  
            // StdOut() << "Kp: " << aKPts << " PTS "<< aVIn[aKPts]<< " Dif " << aDif << "\n";
-           // TestJacob(aMCS,aVOut[aKPts]);
+           // TestJacob(aMCS,aVInv[aKPts]);
 
        }
-       // StdOut() << "MOYD " << aMaxD  << " " << aMaxDisto << "\n";
-       MMVII_INTERNAL_ASSERT_bench(aMaxD<1e-5,"Distorsion inverse");
-       // getchar();
-
-       // StdOut() << aP << aQ << aP - aQ <<   " NBPAR " << aNbPar << "\n";
-
-       delete anEqVal;
-       delete anEqDer;
+       if (aMaxD>1e-5)
+       {
+            StdOut() << "MOYD " << aMaxD  << " " << aMaxDisto << "\n";
+            MMVII_INTERNAL_ASSERT_bench(false,"Distorsion inverse");
+       }
    }
 
 }

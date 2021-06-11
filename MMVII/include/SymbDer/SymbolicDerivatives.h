@@ -1,6 +1,5 @@
 #ifndef _SymbolicDerivatives_H_
 #define _SymbolicDerivatives_H_
-using namespace std;
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -310,9 +309,9 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
 
       // ---------------------------  Constructors / Destructor -------------------
         /// Constructor with explicit Id for Unknown/Observation. Used if we want to analyze the generated code
-        inline cCoordinatorF(const string &aName, int SzBuf, const std::vector<std::string> & aVecUK, const std::vector<std::string> & aVecObs);
+        inline cCoordinatorF(const std::string &aName, int SzBuf, const std::vector<std::string> & aVecUK, const std::vector<std::string> & aVecObs);
         /// Constructor with basic Id (used if we dont generate code, or dont want to analyse it by human)
-        inline cCoordinatorF(const string &aName, int SzBuf,int aNbUnknown,int aNbObservation);
+        inline cCoordinatorF(const std::string &aName, int SzBuf,int aNbUnknown,int aNbObservation);
         /// Destructeur will free allocated formulas
         virtual ~cCoordinatorF();
         /// Copies are not allowed on this kind of object.
@@ -333,36 +332,36 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
 
          // ---------- Code generator ---------------
          /** Generate code, class cName  , file cName.h, cName.cpp. Return filename w/o ext, or "" if error */
-         std::string GenerateCode(const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenerateCode(const std::string &aFilePrefix="CodeGen_") const
          { return GenCodeShortExpr(aFilePrefix);
          }
-         std::string GenerateCodeTemplate(const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenerateCodeTemplate(const std::string &aFilePrefix="CodeGen_") const
          { return GenCodeShortExprTemplate(aFilePrefix);
          }
-         std::string GenerateCodeForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenerateCodeForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
          { return GenCodeShortExprForType(aTypeName,aFilePrefix);
          }
-         std::string GenCodeShortExpr(const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenCodeShortExpr(const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, "", true);
          }
-         std::string GenCodeLonExpr(const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenCodeLonExpr(const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, "", false);
          }
-         std::string GenCodeShortExprTemplate(const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenCodeShortExprTemplate(const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, "template<>", true);
          }
-         std::string GenCodeLonExprTemplate(const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenCodeLonExprTemplate(const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, "template<>", false);
          }
-         std::string GenCodeShortExprForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenCodeShortExprForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, aTypeName, true);
          }
-         std::string GenCodeLonExprForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
+         std::pair<std::string,std::string> GenCodeLonExprForType(const std::string& aTypeName, const std::string &aFilePrefix="CodeGen_") const
          {
              return GenCodeCommon(aFilePrefix, aTypeName, false);
          }
@@ -372,7 +371,6 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
          /// The default value is not always adequate "SymbDer/SymbDer_Common.h"
          void SetHeaderIncludeSymbDer(const std::string &aH) {mHeaderIncludeSymbDer= aH;}
          void SetDirGenCode(const std::string &aDir) {mDirGenCode= aDir;}
-         void SetUseAllocByName(bool aUse) {mUseAllocByName= aUse;}
 
     private :  // END-USER
          /*   =================================================================================
@@ -429,7 +427,7 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
         /// Used to generate automatically Id for Unknown/Observatio, when we dont need to control them explicitely
         static std::vector<std::string>   MakeAutomId(const std::string & aPrefix,int aNb);
 
-        std::string GenCodeCommon(const string &aPrefix, string aTypeName, bool isShortExpr) const;
+        std::pair<std::string,std::string> GenCodeCommon(const std::string &aPrefix, std::string aTypeName, bool isShortExpr) const;
 
         std::string TypeElemName() const;
 
@@ -447,7 +445,6 @@ template <class TypeElem> class cCoordinatorF : public cCalculator<TypeElem> // 
 
         std::string  mHeaderIncludeSymbDer;  ///< Compilation environment may want to change it
         std::string  mDirGenCode;   ///< Want to put generated code in a fixed folde ?
-        bool         mUseAllocByName;   ///< Do we generated code for allocatin frpm name (with cName2Calc)
 };
 
 /* ************************************************** 
@@ -883,8 +880,7 @@ cCoordinatorF<TypeElem>::cCoordinatorF
     mCste1      (CsteOfVal(1.0)),
     mCste2      (CsteOfVal(2.0)),
     mHeaderIncludeSymbDer ("SymbDer/SymbDer_Common.h"),
-    mDirGenCode           (""),
-    mUseAllocByName       (false)  // For strict compatibility with previous Jo's code
+    mDirGenCode           ("")
 {
     // Generate all the function corresponding to unknown
     for (size_t aNumUK=0 ; aNumUK<this->mNbUK ; aNumUK++)
@@ -904,7 +900,7 @@ cCoordinatorF<TypeElem>::cCoordinatorF
 }
 
 template <class TypeElem> 
-cCoordinatorF<TypeElem>::cCoordinatorF(const string &aName, int aSzBuf, int aNbUK, int aNbObs) :
+cCoordinatorF<TypeElem>::cCoordinatorF(const std::string &aName, int aSzBuf, int aNbUK, int aNbObs) :
          cCoordinatorF<TypeElem>(aName,aSzBuf,MakeAutomId("X",aNbUK),MakeAutomId("V",aNbObs))
 {
 }
@@ -1107,8 +1103,9 @@ inline std::string VStr2CPP(const std::vector<std::string> & aVS)
    return aRes+ "}";
 }
 
+
 template <class TypeElem>
-std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, std::string aTypeName, bool isShortExpr) const
+std::pair<std::string,std::string> cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, std::string aTypeName, bool isShortExpr) const
 {
     std::string aName = this->Name();
 
@@ -1133,8 +1130,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
     std::string aFileName  = aPrefix + aClassName;
     std::ofstream aOs(mDirGenCode + aFileName + ".h");
     if (!aOs)
-        return "";
-
+        return std::make_pair(std::string(),std::string());
 
     aOs << "#ifdef _OPENMP\n"
            "#include <omp.h>\n"
@@ -1167,6 +1163,10 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
            "    static std::string FormulaName() { return \"" << aName << "\";}\n"
            "protected:\n"
            "    virtual void DoEval() override;\n"
+           "private:\n"
+           "    static Super* Alloc(int aSzBuf) {return new " << aClassName << "(aSzBuf); }\n"
+           "    friend void cName2CalcRegisterAll(void);\n"
+           "    static void Register() {cName2Calc<TypeElem>::Register(FormulaName()," << aClassName << "::Alloc);}\n"
            "};\n"
            "\n";
 
@@ -1174,7 +1174,7 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
         aOs << "} // namespace NS_SymbolicDerivative\n";
         aOs = std::ofstream(mDirGenCode+aFileName + ".cpp");
         if (!aOs)
-            return "";
+            return std::make_pair(std::string(),std::string());
         aOs << "#include \"" + aFileName + ".h\"\n"
                "\n"
                "namespace NS_SymbolicDerivative {\n"
@@ -1216,19 +1216,9 @@ std::string cCoordinatorF<TypeElem>::GenCodeCommon(const std::string& aPrefix, s
     aOs << "  }\n"
            "}\n\n";
 
-    if (mUseAllocByName)
-    {
-      aOs << "cCompiledCalculator<" << aTypeName << "> * Alloc_" << aName << "(int aSzBuf)\n"
-          << "{\n"
-          << "   return new c" << aName  << "(aSzBuf);\n"
-          << "}\n\n"
-          << "cName2Calc<" << aTypeName << "> TheNameAlloc_" << aName <<"(\""<< aName <<"\",Alloc_" << aName<< ");\n\n";
-    }
+    aOs << "} // namespace NS_SymbolicDerivative\n";
 
-
-     aOs << "} // namespace NS_SymbolicDerivative\n";
-
-    return aFileName;
+    return std::make_pair(aClassName, aFileName);
 }
 
 

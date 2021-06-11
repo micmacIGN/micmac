@@ -101,6 +101,8 @@ class cApply_CreateEpip_main
 
 
       int    mDegre;
+      std::vector<int>  mVecIterDeg; 
+      double  mPropIterDeg; 
       int    mNbZ ;
       int    mNbXY ;
       int    mNbZRand ;
@@ -994,32 +996,40 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       }
 
       std::cout << "Compute Epip ; D1=" << mDir1 << " ,D2=" << mDir2 << "\n";
-      CpleEpipolaireCoord * aCple = CpleEpipolaireCoord::PolynomialFromHomologue(false,aPack,mDegre,mDir1,mDir2,mDegSupInv);
-
-      // Save the result of epipolar in (relatively) raw format, containg polynoms+ name of orent
-      //  in case we want to do a Cap3D=> nuage from them
-      if (1)
-      {
-          aCple->SaveOrientCpleEpip(mOri,mICNM,mName1,mName2);
-      }
-
-
-      EpipolaireCoordinate & e1 = aCple->EPI1();
-      EpipolaireCoordinate & e2 = aCple->EPI2();
+      CpleEpipolaireCoord * aCpleEpi = nullptr;
+      EpipolaireCoordinate * aEpi1 = nullptr;
+      EpipolaireCoordinate * aEpi2 = nullptr;
 
       Pt2dr aInf1(1e20,1e20),aSup1(-1e20,-1e20);
       Pt2dr aInf2(1e20,1e20),aSup2(-1e20,-1e20);
-      double aX2mX1 ;
+      double aX2mX1 =0.0 ;
 
-      for (int aKTime=0 ; aKTime<2 ; aKTime++)
+      bool WithCheck = (aPackCheck.size()!=0);
+      int aNbTimes = mVecIterDeg.size();
+      if (WithCheck)
+         aNbTimes ++;
+
+      double aSigma=0.0;
+      for (int aKTime=0 ; aKTime<aNbTimes ; aKTime++)
       {
+             if ((aCpleEpi==nullptr) || (!mWithOri))
+             {
+                int aKDeg = std::min(aKTime,int(mVecIterDeg.size())-1);
+                aCpleEpi = CpleEpipolaireCoord::PolynomialFromHomologue
+                                       (false,aCpleEpi,aSigma,aPack,mVecIterDeg.at(aKDeg),mDir1,mDir2,mDegSupInv);
+                aEpi1 = &(aCpleEpi->EPI1());
+                aEpi2 = &(aCpleEpi->EPI2());
+             }
+            // For check at first iter :
+            //    * necessary because many value to export at last
+            //    * possible as called only with geom model with no iteration, no need to refine
+            bool ForCheck = (aKTime==0) && WithCheck ;
             aX2mX1 = 0.0;
             aInf1=Pt2dr(1e20,1e20);
             aSup1=Pt2dr(-1e20,-1e20);
             aInf2=Pt2dr(1e20,1e20);
             aSup2=Pt2dr(-1e20,-1e20);
 
-            bool ForCheck = (aKTime==0);
             ElPackHomologue * aPackK = ForCheck ? &aPackCheck  : & aPack;
 
             double aBias = 0.0;
@@ -1030,12 +1040,13 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
             Pt2dr  aCIm1(0,0);
 
             // Compute accuracy, bounding box 
+            std::vector<double> aVResid;
             for (ElPackHomologue::const_iterator itC=aPackK->begin() ; itC!= aPackK->end() ; itC++)
             {
                  aCIm1 = aCIm1 + itC->P1() ;
                  // Images of P1 and P2 by epipolar transforms
-                 Pt2dr aP1 = e1.Direct(itC->P1());
-                 Pt2dr aP2 = e2.Direct(itC->P2());
+                 Pt2dr aP1 = aEpi1->Direct(itC->P1());
+                 Pt2dr aP2 = aEpi2->Direct(itC->P2());
                  // Update bounding boxes
                  aInf1 = Inf(aInf1,aP1);
                  aSup1 = Sup(aSup1,aP1);
@@ -1047,11 +1058,13 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 
                  double aDifY = aP1.y-aP2.y; // Should be 0
                  double anErr = ElAbs(aDifY);
+                 aVResid.push_back(anErr);
                  mNbP++;
                  aErrMax = ElMax(anErr,aErrMax);
                  aErrMoy += anErr;
                  aBias   += aDifY;
             }
+            aSigma = KthValProp(aVResid,mPropIterDeg);
 
             aX2mX1 /= mNbP;
             aCIm1 = aCIm1/mNbP;
@@ -1070,6 +1083,13 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
                       << " Center:" << aCIm1 << " NbC:" << mNbP
                       << "\n";
 
+            std::cout <<  "Prop/Err : ";
+            for (const auto & aP : {0.5,0.75,0.85,0.95})
+            {
+                 std::cout <<  "["  << aP << " -> " <<  KthValProp(aVResid,aP)  << "]";
+            }
+            std::cout <<  "\n";
+
             if (! ForCheck)
             {
                 std::cout << "DIR " << mDir1 << " " << mDir2 << " X2-X1 " << aX2mX1<< "\n";
@@ -1077,8 +1097,16 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
             }
             if (EAMIsInit(&mParamTestOh) && (!ForCheck))
             {
-                 DoOh(aCIm1,aPackCheck,aCple);
+                 DoOh(aCIm1,aPackCheck,aCpleEpi);
             }
+
+
+      }
+      // Save the result of epipolar in (relatively) raw format, containg polynoms+ name of orent
+      //  in case we want to do a Cap3D=> nuage from them
+      if (1)
+      {
+          aCpleEpi->SaveOrientCpleEpip(mOri,mICNM,mName1,mName2);
       }
       std::cout  << "===================================\n";
       std::cout  << "BOX1 " << aInf1 << " " <<  aSup1 << "\n";
@@ -1103,9 +1131,9 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 
       if (DoIm)
       {
-         cTmpReechEpip aReech1(aConsChan,mName1,aBIn1,&e1,aBOut1,mStepReech,aNI1,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
+         cTmpReechEpip aReech1(aConsChan,mName1,aBIn1,aEpi1,aBOut1,mStepReech,aNI1,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
          std::cout << "DONE IM1 \n";
-         cTmpReechEpip aReech2(aConsChan,mName2,aBIn2,&e2,aBOut2,mStepReech,aNI2,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
+         cTmpReechEpip aReech2(aConsChan,mName2,aBIn2,aEpi2,aBOut2,mStepReech,aNI2,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
          std::cout << "DONE IM2 \n";
 
          std::cout << "DONNE REECH TMP \n";
@@ -1115,14 +1143,14 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 
       if (mMakeAppuis)
       {
-           MakeAppuis(true ,aLT1,e1,aInf1,aSup1);
-           MakeAppuis(false,aLT2,e2,aInf2,aSup2);
+           MakeAppuis(true ,aLT1,*aEpi1,aInf1,aSup1);
+           MakeAppuis(false,aLT2,*aEpi2,aInf2,aSup2);
       }
 
       if (EAMIsInit(&mParamEICE))
       {
-         ExportImCurveEpip(e1,aBIn1,aBOut1,"ImLineEpip1.tif",e2,aBIn2,aX2mX1);
-         ExportImCurveEpip(e2,aBIn2,aBOut2,"ImLineEpip2.tif",e1,aBIn1,-aX2mX1);
+         ExportImCurveEpip(*aEpi1,aBIn1,aBOut1,"ImLineEpip1.tif",*aEpi2,aBIn2,aX2mX1);
+         ExportImCurveEpip(*aEpi2,aBIn2,aBOut2,"ImLineEpip2.tif",*aEpi1,aBIn1,-aX2mX1);
       }
          
 }
@@ -1172,6 +1200,7 @@ void cApply_CreateEpip_main::MakeAppuis
 
 cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mDegre     (-1),
+   mPropIterDeg  (0.85),
    mNbZ       (2),  // One more precaution ...
    mNbXY      (100),
    mNbZRand   (1),
@@ -1218,6 +1247,8 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
                     << EAM(DoIm,"DoIm",true,"Compute image (def=true !!)", eSAM_IsBool)
                     << EAM(mNameHom,"NameH",true,"Extension to compute Hom point in epi coord (def=none)", eSAM_NoInit)
                     << EAM(mDegre,"Degre",true,"Degre of polynom to correct epi (def=9)")
+                    << EAM(mVecIterDeg,"VecIterDeg",true,"Vector of degree in case of iterative approach")
+                    << EAM(mPropIterDeg,"PropIterDeg",true,"Prop to compute sigma in cas of iterative degre")
                     << EAM(mForceGen,"FG",true,"Force generik epip even with stenope cam")
                     << EAM(mNumKer,"Kern",true,"Kernel of interpol,0 Bilin, 1 Bicub, other SinC (fix size of apodisation window), Def=5")
                     << EAM(mPostMasq,"AttrMasq",true,"Atribut for masq toto-> toto_AttrMasq.tif, NONE if unused, Def=Ori")
@@ -1292,10 +1323,23 @@ if (!MMVisualMode)
          if (!EAMIsInit(&mMakeAppuis))
             mMakeAppuis = true;
 
-         if (! EAMIsInit(&mDegre))
+         if (EAMIsInit(&mVecIterDeg))
+         {
+            // No meaning to have only one degree
+            ELISE_ASSERT(mVecIterDeg.size()>=2,"Bad size for Iter Degree");
+            ELISE_ASSERT(! EAMIsInit(&mDegre),"Degree and VecIterDeg both init");
+            mDegre = mVecIterDeg.back();
+         }
+         else if (EAMIsInit(&mDegre))
+         {
+            mVecIterDeg = std::vector<int>({mDegre});
+         }
+         else 
          {
             mDegre = mWithOri ? 9 : 2;
          }
+                    // << EAM(mVecIterDeg,"VecIterDeg",true,"Vector of degree in case of iterative approach")
+                    // << EAM(mPropIterDeg,"PropIterDeg",true,"Prop to compute sigma in cas of iterative degre")
          std::cout << "DDDDDD " << mDegre << " " << mWithOri << "\n";
          DoEpipGen(DoIm);
          return;
