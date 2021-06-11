@@ -145,6 +145,40 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
     MMVII_INTERNAL_ASSERT_bench(std::abs(aSomFonc-aSomFonc3)<1e-10,"Bench image iterator");
     MMVII_INTERNAL_ASSERT_bench(std::abs(aSomFonc-aSomFonc4)<1e-10,"Bench image iterator");
 
+    {
+        cDataTypedIm<Type,2> aDTI_I(aP0,aP1);
+        cDataTypedIm<Type,2> aDTI_D(aP0,aP1);
+
+        // Test border init on multi dim image
+        {
+            cDataTypedIm<Type,2> aDTInit(aP0,aP1);
+            aDTInit.InitInteriorAndBorder(4,2);
+            for (const auto & aP : aIm)
+            {
+                bool InRect =   (aP.x() >= aP0.x()+1) &&   (aP.x() < aP1.x()-1)
+                             && (aP.y() >= aP0.y()+1) &&   (aP.y() < aP1.y()-1) ;
+                int aVTest =  InRect ? 4 : 2;
+                int aVal =   aDTInit.VI_GetV(aP);
+                MMVII_INTERNAL_ASSERT_bench((aVal==aVTest),"Bench border init");
+            }
+        }
+
+        // Test read/write int/double on multi dim image
+        for (const auto & aP : aIm)
+        {
+           int aVal = std::abs((aP.x()+7*aP.y())%3);
+           aDTI_I.VI_SetV(aP,aVal);
+           aDTI_D.VD_SetV(aP,aVal);
+        }
+        for (const auto & aP : aIm)
+        {
+           int aIV    = aDTI_I.VI_GetV(aP);
+           double aDV = aDTI_D.VD_GetV(aP);
+           int aVal = std::abs((aP.x()+7*aP.y())%3);
+           MMVII_INTERNAL_ASSERT_bench(std::abs(aIV-aVal)<1e-10,"Bench image iterator");
+           MMVII_INTERNAL_ASSERT_bench(std::abs(aDV-aVal)<1e-10,"Bench image iterator");
+        }
+    }
 }
 
     // Make test on operator, do not want to process overflow , just use  real types

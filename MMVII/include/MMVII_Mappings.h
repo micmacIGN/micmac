@@ -37,7 +37,15 @@ template <class Type,const int Dim> class cDataIIMFromMap ; // : public cDataIte
 
 template <class Type,const int Dim> class cMappingIdentity ; // :  public cDataMapping<Type,Dim,Dim>
 template <class Type,const int DimIn,const int DimOut> class cDataMapCalcSymbDer ;// : public cDataMapping<Type,DimIn,DimOut>
-template <class cMapElem,class cIMapElem> class cInvertMappingFromElem ;// :  public cDataInvertibleMapping<typename cMapElem::TheType,cMapElem::TheDim>
+template <class cMapElem> class cInvertMappingFromElem ;
+    // :  public cDataInvertibleMapping<typename cMapElem::TheType,cMapElem::TheDim>
+template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMaps;
+template <class Type,const int DimIn,const int DimOut> class cLeastSqCompMapCalcSymb; 
+
+template <class Type,const int Dim> class cBijAffMapElem;
+
+
+    //  : public cLeastSqComputeMaps<Type,DimIn,DimOut>
 
 /** \file MMVII_Mappings.h
     \brief contain interface class for continuous mapping
@@ -128,13 +136,18 @@ template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
       typedef  cTplBox<Type,Dim> tBox;
 
       cDataBoundedSet(const tBox &);
+      virtual ~cDataBoundedSet<Type,Dim>();
       /// Does it belong to the set;  default =belong to box
-      virtual bool InsideWithBox(const tPt &) const;
+      bool InsideWithBox(const tPt &) const;
       /// Does it belong to the set;  default =true
       virtual bool Inside(const tPt &) const;
 
-       const tBox & Box() const;
+      const tBox & Box() const;
 
+      /// Generate random point inside 
+      tPt GeneratePointInside() const;
+
+       /// Generate grid, not used for now
        void GridPointInsideAtStep(tVecPt&,Type aStepMoy) const;
        void GridPointInsideOfNbPoints(tVecPt&,int aStepMoy) const;
        
@@ -144,6 +157,18 @@ template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
 };
 
 
+template <class Type,const int Dim> class cSphereBoundedSet : public cDataBoundedSet<Type,Dim>
+{
+     public :
+         typedef  cTplBox<Type,Dim> tBox;
+         typedef  cPtxd<Type,Dim>   tPt;
+         cSphereBoundedSet(const tBox & aBox,const tPt & , const Type & aRadius);
+         bool Inside(const tPt &) const override;
+     private :
+         tPt  mCenter;
+         Type mR2;
+
+};
 
 /**   Mother base classe for defining a mapping  R^k => R^n with k=DimIn and n=DimOut
 
@@ -200,6 +225,7 @@ template <class Type,const int Dim> class cDataBoundedSet : public cMemCheck
 template <class Type,const int DimIn,const int DimOut> class cDataMapping : public cMemCheck
 {
     public :
+      virtual ~cDataMapping<Type,DimIn,DimOut>();
       typedef  cMapping<Type,DimIn,DimOut> tMap;
       typedef  cPtxd<Type,DimOut>          tPtOut;
       typedef  cPtxd<Type,DimIn>           tPtIn;
@@ -217,10 +243,13 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
       const  tVecOut &  Values(const tVecIn & ) const;   //  V1
       virtual  tPtOut Value(const tPtIn &) const;
 
+      /// PRE ALLOCATED VALUES ;  Pts is clear and must be pushed back, Jacob contain already the matrixes
       virtual tCsteResVecJac  Jacobian(tResVecJac,const tVecIn &) const;  //J2
       tCsteResVecJac  Jacobian(const tVecIn &) const;  //J1
       virtual tResJac     Jacobian(const tPtIn &) const;
 
+      /// 
+      cTplBox<Type,DimOut> BoxOfCorners(const cTplBox<Type,DimIn>&) const;
 
 
       /// compute diffenrentiable method , default = erreur
@@ -275,12 +304,26 @@ template <class Type,const int DimIn,const int DimOut> class cDataMapping : publ
 #endif // MAP_STATIC_BUF
 };
 
+template <class Type,const int Dim> class cDataNxNMapping : public cDataMapping<Type,Dim,Dim>
+{
+    public :
+      typedef  cDataMapping<Type,Dim,Dim> tDMap;
+      typedef  cPtxd<Type,Dim>            tPt;
+      using typename tDMap::tResJac;
+      using typename tDMap::tJac;
+
+      cDataNxNMapping(const tPt &);
+      cDataNxNMapping();
+      /// return bijective differential application 
+      cBijAffMapElem<Type,Dim>  Linearize(const tPt & aPt) const;
+};
+
 /**   This is the mother class of maping that can compute the inverse of a point.
 
       The method comptuing the inverse are "Inverse(s)", and we have the same behaviour as with Value(s).
 */
 
-template <class Type,const int Dim> class cDataInvertibleMapping :  public cDataMapping<Type,Dim,Dim>
+template <class Type,const int Dim> class cDataInvertibleMapping :  public cDataNxNMapping<Type,Dim>
 {
     public :
       typedef cDataMapping<Type,Dim,Dim>     tDataMap;
@@ -297,9 +340,10 @@ template <class Type,const int Dim> class cDataInvertibleMapping :  public cData
       const  tVecPt &  Inverses(const tVecPt & ) const;
       virtual  tPt Inverse(const tPt &) const;
 
+
     private :
       cDataInvertibleMapping(const cDataInvertibleMapping<Type,Dim> & ) = delete;
-#if (MAP_STATIC_BUF)
+#if (MAP_STATIC_BUF) 
        static tVecPt&  BufInvOut()         {static tVecPt aRes; return aRes;}
        static tVecPt&  BufInvOutCleared()  { BufInvOut().clear() ; return  BufInvOut();}
 #else  // !MAP_STATIC_BUF
@@ -396,6 +440,7 @@ template <class Type,const int DimIn,const int DimOut>
     class cDataMapCalcSymbDer : public cDataMapping<Type,DimIn,DimOut>
 {   
     public :
+      virtual ~cDataMapCalcSymbDer<Type,DimIn,DimOut>();
       typedef typename NS_SymbolicDerivative::cCalculator<Type> tCalc;
       typedef cDataMapping<Type,DimIn,DimOut> tDataMap;
 
@@ -410,8 +455,9 @@ template <class Type,const int DimIn,const int DimOut>
        const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;  //V2
        tCsteResVecJac  Jacobian(tResVecJac,const tVecIn &) const override;  //J2
 
-       cDataMapCalcSymbDer(tCalc  * aCalcVal,tCalc  * aCalcDer,const std::vector<Type> & aVObs);
+       cDataMapCalcSymbDer(tCalc  * aCalcVal,tCalc  * aCalcDer,const std::vector<Type> & aVObs,bool ToDelete);
        void SetObs(const std::vector<Type> &);
+       // void SetDeleteCalc(bool);
 
     private  :
        cDataMapCalcSymbDer(const cDataMapCalcSymbDer<Type,DimIn,DimOut> & ) = delete;
@@ -419,7 +465,33 @@ template <class Type,const int DimIn,const int DimOut>
        tCalc  *           mCalcVal;
        tCalc  *           mCalcDer;
        std::vector<Type>  mVObs;
+       bool               mDeleteCalc;
 };
+
+/** Sometime we need to have type where DimIn=DimOut */
+template <class Type,int Dim> class  cDataNxNMapCalcSymbDer  : public cDataNxNMapping<Type,Dim>
+{
+    public :
+      typedef typename NS_SymbolicDerivative::cCalculator<Type> tCalc;
+      typedef cDataMapping<Type,Dim,Dim> tDataMap;
+
+      using typename tDataMap::tVecIn;
+      using typename tDataMap::tVecOut;
+      using typename tDataMap::tCsteResVecJac;
+      using typename tDataMap::tResVecJac;
+      using typename tDataMap::tVecJac;
+      using typename tDataMap::tPtIn;
+      using typename tDataMap::tPtOut; 
+      const  tVecOut &  Values(tVecOut &,const tVecIn & ) const override;  //V2
+      tCsteResVecJac  Jacobian(tResVecJac,const tVecIn &) const override;  //J2
+
+      cDataNxNMapCalcSymbDer(tCalc  * aCalcVal,tCalc  * aCalcDer,const std::vector<Type> & aVObs,bool DeleteCalc);
+      void SetObs(const std::vector<Type> &);
+    public :
+       cDataMapCalcSymbDer<Type,Dim,Dim>  mDMS;
+
+};
+
 
 /**
     Sometime we want to manipulate "small" maping directly, with no virtual interface,
@@ -437,15 +509,19 @@ template <class Type,const int DimIn,const int DimOut>
 
 */
 
-template <class cMapElem,class cIMapElem> class cInvertMappingFromElem :  public 
-       cDataInvertibleMapping<typename cMapElem::TheType,cMapElem::TheDim>
+template <class cMapElem> class cInvertMappingFromElem :  public 
+       cDataInvertibleMapping<typename cMapElem::tTypeElem,cMapElem::TheDim>
 {
     public :
          static constexpr int     Dim=cMapElem::TheDim;
-         typedef typename  cMapElem::TheType TheType;
-         static_assert(cMapElem::TheDim==cIMapElem::TheDim);
+         typedef typename  cMapElem::tTypeElem  tTypeElem;
+         typedef cMapElem                       tMap;
+         typedef typename cMapElem::tTypeMapInv tMapInv;
 
-         typedef cDataInvertibleMapping<TheType,Dim>  tDataIMap;
+
+         static_assert(cMapElem::TheDim==tMapInv::TheDim);
+
+         typedef cDataInvertibleMapping<tTypeElem,Dim>  tDataIMap;
          typedef typename  tDataIMap::tPt             tPt;
          typedef typename  tDataIMap::tVecPt          tVecPt;
 
@@ -454,11 +530,37 @@ template <class cMapElem,class cIMapElem> class cInvertMappingFromElem :  public
          const  tVecPt &  Inverses(tVecPt & aRes,const tVecPt & aVIn ) const override;
          tPt  Inverse(const tPt &) const override;
 
-         cInvertMappingFromElem(const cMapElem & aMap,const cIMapElem & aIMap); 
+         cInvertMappingFromElem(const cMapElem & aMap,const tMapInv & aIMap); 
          cInvertMappingFromElem(const cMapElem & aMap);  // requires that aMap can compute its inverse
     private :
          cMapElem   mMap;  // Map
-         cIMapElem  mIMap; // Map inverse
+         tMapInv  mIMap; // Map inverse
+};
+
+/** Specialization when cMapElem is linear => constant jacobian */
+
+template <class cMapElem> class cIMElemLinear :  public 
+           cInvertMappingFromElem<cMapElem>
+{
+    public :
+         typedef cInvertMappingFromElem<cMapElem> tIMap;
+         typedef typename  tIMap::tTypeElem  tTypeElem;
+         static constexpr int     Dim=tIMap::Dim;
+         typedef cDataMapping<tTypeElem,Dim,Dim>  tDataMap;
+         typedef cDenseMatrix<tTypeElem> tMat;
+         using typename tDataMap::tDataMap;
+         using typename tDataMap::tVecIn;
+         using typename tDataMap::tCsteResVecJac;
+         using typename tDataMap::tResVecJac;
+         using typename tDataMap::tResJac;
+         using typename tDataMap::tPtIn;
+
+
+         cIMElemLinear(const cMapElem & aMap,tMat & aMat);  // requires that aMap can compute its inverse
+         tCsteResVecJac  Jacobian(tResVecJac,const tVecIn &) const override;  //J2
+         tResJac     Jacobian(const tPtIn &) const override;
+    private :
+         tMat  mMat;
 };
 
 /**
@@ -490,12 +592,64 @@ template <class Type,const int  DimIn,const int DimOut> class cLeastSqComputeMap
          void AddObs(const tPtIn & aPt,const tPtOut & aValue);
          // =========== ACCESSOR ==============
          const size_t &  NbFunc() const {return mNbFunc;}
+
+         void ComputeSol(std::vector<Type>&);
+         void ComputeSolNotClear(std::vector<Type>&) ;
      private :
-         virtual void ComputeValFuncsBase(tVecOut &,const tPtIn & aPt) = 0;
+         /// Must indicate for point Pt the value on all elements of bases by filling VOut, which is already sized
+         virtual void ComputeValFuncsBase(tVecOut & aVOut,const tPtIn & aPt) = 0;
          size_t             mNbFunc;
          cLeasSqtAA<Type>   mLSQ;
          cDenseVect<Type>   mCoeffs;
          tVecOut            mBufPOut;
+};
+
+template <class Type,const int DimIn,const int DimOut>
+    class cLeastSqCompMapCalcSymb : public cLeastSqComputeMaps<Type,DimIn,DimOut>
+{
+    public :
+         typedef  cLeastSqComputeMaps<Type,DimIn,DimOut>  tSuper;
+         using typename tSuper::tPtOut;
+         using typename tSuper::tPtIn;
+         using typename tSuper::tVecIn;
+         using typename tSuper::tVecOut;
+
+         typedef typename NS_SymbolicDerivative::cCalculator<Type> tCalc;
+         cLeastSqCompMapCalcSymb(tCalc *);
+         void ComputeValFuncsBase(tVecOut &,const tPtIn & aPt) override;
+    private :
+         cLeastSqCompMapCalcSymb(const cLeastSqCompMapCalcSymb<Type,DimIn,DimOut>&)=delete;
+
+         tCalc * mCalc;
+         std::vector<Type> mVUk;
+         std::vector<Type> mVObs;
+};
+
+
+
+/**  Bijective Affine Mapping Elementary */
+
+template <class Type,const int Dim> class cBijAffMapElem
+{
+     public :
+        typedef Type  tTypeElem;
+        static constexpr int TheDim=Dim;
+        typedef cBijAffMapElem<Type,Dim> tTypeMapInv;
+        static constexpr int NbDOF() {return Dim * (1+Dim);}
+
+        typedef cDenseMatrix<Type> tMat;
+        typedef cPtxd<Type,Dim>    tPt;
+        cBijAffMapElem(const tMat & aMat ,const tPt& aTr) ;
+
+        tPt  Value(const tPt & aP)   const;
+        tPt  Inverse(const tPt & aP) const;
+
+        cBijAffMapElem<Type,Dim>  MapInverse() const;
+
+     private :
+        tMat  mMat;
+        tPt   mTr;
+        tMat  mMatInv;
 };
 
 

@@ -311,6 +311,9 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
 template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedIm<Dim>
 {
     public :
+        // tINT8     IndexeLinear(const tPt &) const; ///< Num of pixel when we iterate
+        //    tPB::AssertInside(aP);
+        
 
      // ======================================
 
@@ -334,6 +337,9 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         void InitRandom(const Type &aV0,const Type & aV1);  ///< uniform float in [V0, V2[
         void InitRandomCenter();    ///< uniform, float in [-1,1], integer in [Min,Max] of Type
         void InitCste(const Type & aV); ///< Constant value
+        void InitBorder(const Type & aV); ///< Set Value on Border 1 pixel
+        void InitInteriorAndBorder(const Type & aVInterior,const Type & aVBorder); ///< Init Inter + Init Border
+
         void InitId();                  ///< Identity, only avalaible for 2D-squares images
         void InitNull();                ///< Null, faster than InitCste(0)
         void InitDirac(const cPtxd<int,Dim> & aP,const Type &  aVal=1);  ///<  Create aDirac Image, 0 execpt 1 in P, used in test
@@ -356,6 +362,17 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         double L2Norm() const;   ///< Norm square
         double LInfNorm() const; ///< Nomr max
         void DupIn(cDataTypedIm<Type,Dim> &) const;  ///< Duplicate raw data
+        void DupInVect(std::vector<Type> &) const;  ///< Duplicate raw data in a vect
+
+        // Defaults values quitt slow but may be usefull
+        int VI_GetV(const cPtxd<int,Dim> & aP)  const override;
+                /// Pixel -> float Value
+        double VD_GetV(const cPtxd<int,Dim> & aP)  const override;
+           // Set Value, integer coordinates
+                /// Set Pixel Integrer Value
+        void VI_SetV(const  cPtxd<int,Dim> & aP,const int & aV) override;
+                /// Set Pixel Float Value
+        void VD_SetV(const  cPtxd<int,Dim> & aP,const double & aV)override;
     protected :
         void Resize(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,eModeInitImage=eModeInitImage::eMIA_NoInit);
 

@@ -43,7 +43,7 @@ class cOneLevel
        void Purge(); ///< Remove file unused after each match
 
        /// Estimate interval of paralax in a given box
-       void EstimateIntervPx(cParam1Match & aParam,const cBox2di & aBoxFile2) const;
+       void EstimateIntervPx(cParam1Match &,const cBox2di & aBF1,const cBox2di & aBF2,bool ForceSameBoxes) const;
        /// Once clipped match was done, save in global file
        void SaveGlobPx(const cParam1Match & aParam) const;
 
@@ -128,7 +128,7 @@ class cAppli : public cMMVII_Appli
                  // --- Others 
         void MakePyramid(); ///< Generate the pyramid of image
         void MatchOneLevel(int aLevel);  ///< Compute the matching a given level of the pyramid
-        std::string ComMatch (cParam1Match &) const; ///< Command for match, depend of selected method
+        std::string ComMatch (cParam1Match &) ; ///< Command for match, depend of selected method
         void SetOutPut(std::string & aNamePx);  ///< Fix to same value aNamePx and mOutPx
 
        // =========== Inline Definition ========
@@ -143,6 +143,7 @@ class cAppli : public cMMVII_Appli
         std::string     mNameIm2;  ///< Name second image
 
             // Optional args
+        bool           mEnforceSzEq; ///< Force Same size for clipped image as required by some progs
         cPt2di         mSzTile;    ///< Size of tiles for matching
         std::string    mOutPx;     ///< Output file
         cPt2di         mSzOverL;   ///< Size of overlap between tile to limit sides effect
@@ -178,6 +179,7 @@ struct cParam1Match
               const cOneLevel & aILev2
          )  :
              mBoxIn1      (aBoxIn1),
+             mBoxUtiIn1   (aBoxIn1),
              mBoxIn2      (cBox2di::Empty()), // Must be computed with Paralacx interval
              mBoxOut      (aBoxOut), 
              mIndex       (anIndex),
@@ -192,6 +194,7 @@ struct cParam1Match
          };
 
          cBox2di           mBoxIn1; ///< Box input for image 1
+         cBox2di           mBoxUtiIn1; ///< May differ from BoxIn1, in case BoxIn1 was elarged to equal sz of Box2
          cBox2di           mBoxIn2; ///< Box input for image 2
          cBox2di           mBoxOut;  ///< Box out to save computatio,
          cPt2di            mIndex;   ///< Index of the tile
@@ -203,6 +206,7 @@ struct cParam1Match
          int               mPxMax;   ///< Max compted paralax
          int               mOffsetPx; ///< Offset between cliped px and global px, due Box1 != Box2
          bool              mCanDoMatch;  ///< Is there enough point to do the match
+         bool              mEnforceSzEq;
 };
 
 
@@ -309,8 +313,15 @@ void cOneLevel::SaveGlobPx(const cParam1Match & aParam) const
    aImClipPx.Write(cDataFileIm2D::Create(mNamePx,false),aParam.mBoxOut.P0());
 }
 
-void cOneLevel::EstimateIntervPx(cParam1Match & aParam,const cBox2di & aBoxFile2) const
+void cOneLevel::EstimateIntervPx
+     (
+          cParam1Match & aParam,
+          const cBox2di & aBoxFile1,
+          const cBox2di & aBoxFile2,
+          bool EnforceSzEq
+     ) const
 {
+   aParam.mEnforceSzEq = EnforceSzEq;
    if (mDownLev==nullptr)
    {
       // Make a rough estimation using a constant steep hypothesis
@@ -387,12 +398,29 @@ void cOneLevel::EstimateIntervPx(cParam1Match & aParam,const cBox2di & aBoxFile2
    // Once images loaded in a box, the px will have to be offseted
    aParam.mOffsetPx = aParam.mBoxIn1.P0().x() -aParam.mBoxIn2.P0().x();
 
+   // Save initial size, in case we use it to add zero in added images
+   aParam.mBoxUtiIn1 = aParam.mBoxIn1;
+   if (EnforceSzEq)
+   {
+      // That's here we must do something for modifying boxes for method requiring same size
+      // First compute a sz that contains both images
+      int aSzImX = std::max(aParam.mBoxIn1.Sz().x(),aParam.mBoxIn2.Sz().x());
+      // Then ensure it does not go out of files
+      aSzImX = std::min(aSzImX,aBoxFile1.Sz().x()-aParam.mBoxIn1.P0().x());
+      aSzImX = std::min(aSzImX,aBoxFile2.Sz().x()-aParam.mBoxIn2.P0().x());
+      // Finnaly set value to this common size
+      aParam.mBoxIn1 = cBox2di(aParam.mBoxIn1.P0(),cPt2di(aParam.mBoxIn1.P0().x() + aSzImX,aParam.mBoxIn1.P1().y()));
+      aParam.mBoxIn2 = cBox2di(aParam.mBoxIn2.P0(),cPt2di(aParam.mBoxIn2.P0().x() + aSzImX,aParam.mBoxIn2.P1().y()));
+   }
+
    // in genral X2 = X1 +PxMin,  Offset =  X1-X2 = -PxMin , and finally PxMin=0
    // a long comptation for a basic result , but we cannot set it directly like that 
    // because intersection with aBoxFile2 can change it
 
+
    aParam.mPxMin = aParam.mBoxIn2.P0().x() + aParam.mOffsetPx;
    aParam.mPxMax = aParam.mBoxIn2.P1().x() + aParam.mOffsetPx;
+
 }
 
 void cOneLevel::Purge()
@@ -460,6 +488,7 @@ cAppli::cAppli
     const cSpecMMVII_Appli &          aSpec
 )  :
    cMMVII_Appli(aVArgs,aSpec),
+   mEnforceSzEq (false),
    mSzTile     (2000,1500),
    mSzOverL    (50,30),
    mIncPxProp  (0.05),
@@ -493,6 +522,7 @@ cCollecSpecArg2007 & cAppli::ArgOpt(cCollecSpecArg2007 & anArgOpt)
       anArgOpt
          << AOpt2007(mSzTile,"SzTile","Size of tiling used to split computation",{eTA2007::HDV})
          << AOpt2007(mOutPx,CurOP_Out,"Name of Out file, def=Px_+$Im1")
+         << AOpt2007(mEnforceSzEq,"SzEq","Force sz of clipped image to be equal")
          // -- Tuning
          << AOpt2007(mDoPyram,"DoPyram","Compute the pyramid",{eTA2007::HDV,eTA2007::Tuning})
          << AOpt2007(mDoClip,"DoClip","Compute the clip of images",{eTA2007::HDV,eTA2007::Tuning})
@@ -509,11 +539,12 @@ void cAppli::SetOutPut(std::string & aNamePx)
      mOutPx = aNamePx;
 }
 
-std::string cAppli::ComMatch (cParam1Match & aParam) const
+std::string cAppli::ComMatch (cParam1Match & aParam) 
 {
    switch (mModeMatch)
    {
        case  eModeEpipMatch::eMEM_MMV1 :
+       {
           return    "mm3d MMTestMMVII"
                  +  BLANK  +  DirTmpOfCmd()
                  +  BLANK  +  aParam.mClipNameIm1
@@ -522,7 +553,38 @@ std::string cAppli::ComMatch (cParam1Match & aParam) const
                  +  BLANK  +  "DirMEC=" + aParam.mClipDirTmp  // 
                  +  BLANK  +  "FileExp=" + aParam.mClipNamePx  // 
           ;
-       break;
+       	  break;
+       }
+       case eModeEpipMatch::eMEM_PSMNet :
+       {
+		  std::string aDenseMDir = TopDirMMVII() + "src/DenseMatch/";
+          std::string aCom = "bash " + aDenseMDir + "run.sh " 
+				             //+ BLANK + "--loadmodel"  + BLANK + mTrainedModel
+                             + BLANK + "--leftimg"  + BLANK + DirTmpOfCmd() + aParam.mClipNameIm1
+                             + BLANK + "--rightimg" + BLANK + DirTmpOfCmd() + aParam.mClipNameIm2
+                             + BLANK + "--result"     + BLANK + DirTmpOfCmd() + aParam.mClipNamePx;
+				  
+          
+		  return aCom;
+          break;
+       }
+       case eModeEpipMatch::eMEM_NoMatch :
+       {
+             std::string aNamePx = DirTmpOfCmd() + aParam.mClipNamePx;
+             cPt2di aSzBox1 =  aParam.mBoxIn1.Sz();
+             cPt2di aSzBox2 =  aParam.mBoxIn2.Sz();
+
+             if (aParam.mEnforceSzEq && (aSzBox1!=aSzBox2))
+             {
+                  StdOut() << "EXECUCTE Eq: " <<  aParam.mEnforceSzEq << " " << aSzBox1 << aSzBox2 << "\n"; getchar();
+                  MMVII_INTERNAL_ASSERT_always(false,"Sz of boxes should be equal");
+             }
+
+
+             cDataFileIm2D::Create(aNamePx,eTyNums::eTN_INT1,aParam.mBoxIn1.Sz(),1);
+
+             return "";
+       }
 
        default : break;
    }
@@ -590,7 +652,7 @@ void  cAppli::MatchOneLevel(int aLevel)
                      );
 
         // The master level must compute the paralax interval  to complete param
-        aILev1.EstimateIntervPx(aParam,aCurBoxFile2);
+        aILev1.EstimateIntervPx(aParam,aCurBoxFile1,aCurBoxFile2,mEnforceSzEq);
         // Now Param ix complete
         aLParam.push_back(aParam);
         if (aParam.mCanDoMatch)

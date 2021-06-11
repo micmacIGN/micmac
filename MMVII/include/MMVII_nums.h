@@ -175,6 +175,10 @@ template <> class tBaseNumTrait<tStdDouble>
 template <> class tBaseNumTrait<tREAL16>
 {
     public :
+        // By default rounding has no meaning
+        static double RoundDownToType(const double & aV) {return aV;}
+        static double RoundNearestToType(const double & aV) {return aV;}
+
         static bool IsInt() {return false;}
         typedef tREAL16  tBase;
         typedef tREAL16  tBig;
@@ -295,6 +299,8 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
                                         public cVirtualTypeNum
 {
     public :
+
+
  
       // ===========================
          typedef Type  tVal;
@@ -307,6 +313,9 @@ template <class Type> class tNumTrait : public tElemNumTrait<Type> ,
          int  V_Size()   const override {return  sizeof(Type);}
          eTyNums  V_TyNum() const override {return  tETrait::TyNum();}
 
+        // For these type rounding mean something
+        static int RoundDownToType(const double & aV) {return tBaseNumTrait<tBase>::RoundDownToType(aV);}
+        static int RoundNearestToType(const double & aV) {return tBaseNumTrait<tBase>::RoundNearestToType(aV);}
       //==============
          static const tBase MaxValue() {return  std::numeric_limits<tVal>::max();}
          static const tBase MinValue() {return  std::numeric_limits<tVal>::min();}
