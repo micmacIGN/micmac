@@ -2155,6 +2155,11 @@
     <eNbTypeRHP></eNbTypeRHP>
 </enum>
 
+<enum Name="eGetPatchPair_HistoP">
+    <eBruteForce>      </eBruteForce>
+    <eGuided>      </eGuided>
+    <eNbTypePPHP></eNbTypePPHP>
+</enum>
 
 <Verbatim File=".h.cpp">
 // };

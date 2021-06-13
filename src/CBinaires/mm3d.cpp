@@ -925,6 +925,18 @@ int UnionFiltragePHom_Main(int argc, char ** argv);
 int TestYZ_main(int argc, char ** argv);
 
 extern int TestLulin_main(int argc, char ** argv);
+extern int SuperGlue_main(int argc, char ** argv);
+extern int MergeTiePt_main(int argc, char ** argv);
+extern int GetPatchPair_main(int argc, char ** argv);
+extern int RANSAC_main(int argc, char ** argv);
+extern int CrossCorrelation_main(int argc, char ** argv);
+extern int GuidedSIFTMatch_main(int argc, char ** argv);
+extern int GetOverlappedImages_main(int argc, char ** argv);
+extern int DSM_Equalization_main(int argc, char ** argv);
+extern int CreateGCPs_main(int argc, char ** argv);
+extern int WallisFilter_main(int argc, char ** argv);
+extern int TiePtEvaluation_main(int argc, char ** argv);
+
 
 extern int ReechHomol_main(int argc, char ** argv);
 extern int DeformAnalyse_main(int argc, char ** argv);
@@ -985,6 +997,19 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
 	{
 
         aRes.push_back(cMMCom("TestLulin", TestLulin_main, "Explaination: TestLulin "));
+        aRes.push_back(cMMCom("SuperGlue", SuperGlue_main, "Use SuperGlue to extract tie points"));
+        aRes.push_back(cMMCom("MergeTiePt", MergeTiePt_main, "Merge tie points of sub images into integrated one"));
+        aRes.push_back(cMMCom("GetPatchPair", GetPatchPair_main, "Divide an image pair to a number of patch pairs in order to apply learned feature matching"));
+
+        aRes.push_back(cMMCom("RANSAC", RANSAC_main, "Tie point filter based on 2D or 3D RANSAC "));
+        aRes.push_back(cMMCom("CrossCorrelation", CrossCorrelation_main, "Tie point filter based on Cross Correlation "));
+        aRes.push_back(cMMCom("GuidedSIFTMatch", GuidedSIFTMatch_main, "Nearest neighbour SIFT matching, with search space narrowed down by co-registered orientation "));
+        aRes.push_back(cMMCom("GetOverlappedImages", GetOverlappedImages_main, "Get Overlapped Image Pairs "));
+        aRes.push_back(cMMCom("DSM_Equalization", DSM_Equalization_main, "DSM Equalization and output gray image "));
+        aRes.push_back(cMMCom("CreateGCPs", CreateGCPs_main, "Create GCPs based on tie points on DSMs of 2 epochs "));
+        aRes.push_back(cMMCom("Wallis", WallisFilter_main, "Apply Wallis Filter on one image"));
+        aRes.push_back(cMMCom("TiePtEvaluation", TiePtEvaluation_main, "Evaluate the accuracy of tie points with ground truth DSM"));
+
 		
 		aRes.push_back(cMMCom("Script",CPP_YannScript, "Fonction de script pour les tests "));		
 		aRes.push_back(cMMCom("ExcludeSats",CPP_YannExcludeSats, "Excludes GNSS satellites from raw observations based on sky masks "));

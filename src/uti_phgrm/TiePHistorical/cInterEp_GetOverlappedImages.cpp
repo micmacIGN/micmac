@@ -1,0 +1,278 @@
+/*Header-MicMac-eLiSe-25/06/2007
+
+    MicMac : Multi Image Correspondances par Methodes Automatiques de Correlation
+    eLiSe  : ELements of an Image Software Environnement
+
+    www.micmac.ign.fr
+
+
+    Copyright : Institut Geographique National
+    Author : Marc Pierrot Deseilligny
+    Contributors : Gregoire Maillet, Didier Boldo.
+
+[1] M. Pierrot-Deseilligny, N. Paparoditis.
+    "A multiresolution and optimization-based image matching approach:
+    An application to surface reconstruction from SPOT5-HRS stereo imagery."
+    In IAPRS vol XXXVI-1/W41 in ISPRS Workshop On Topographic Mapping From Space
+    (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
+
+[2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
+    d'images, adapte au contexte geograhique" to appears in
+    Bulletin d'information de l'Institut Geographique National, 2007.
+
+Francais :
+
+   MicMac est un logiciel de mise en correspondance d'image adapte
+   au contexte de recherche en information geographique. Il s'appuie sur
+   la bibliotheque de manipulation d'image eLiSe. Il est distibue sous la
+   licences Cecill-B.  Voir en bas de fichier et  http://www.cecill.info.
+
+
+English :
+
+    MicMac is an open source software specialized in image matching
+    for research in geographic information. MicMac is built on the
+    eLiSe image library. MicMac is governed by the  "Cecill-B licence".
+    See below and http://www.cecill.info.
+
+Header-MicMac-eLiSe-25/06/2007*/
+
+#include "TiePHistorical.h"
+
+
+
+/*Footer-MicMac-eLiSe-25/06/2007
+
+Ce logiciel est un programme informatique servant à la mise en
+correspondances d'images pour la reconstruction du relief.
+
+Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
+respectant les principes de diffusion des logiciels libres. Vous pouvez
+utiliser, modifier et/ou redistribuer ce programme sous les conditions
+de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
+sur le site "http://www.cecill.info".
+
+En contrepartie de l'accessibilité au code source et des droits de copie,
+de modification et de redistribution accordés par cette licence, il n'est
+offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
+seule une responsabilité restreinte pèse sur l'auteur du programme,  le
+titulaire des droits patrimoniaux et les concédants successifs.
+
+A cet égard  l'attention de l'utilisateur est attirée sur les risques
+associés au chargement,  à l'utilisation,  à la modification et/ou au
+développement et à la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe à
+manipuler et qui le réserve donc à des développeurs et des professionnels
+avertis possédant  des  connaissances  informatiques approfondies.  Les
+utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
+logiciel à leurs besoins dans des conditions permettant d'assurer la
+sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+
+Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
+pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
+termes.
+aooter-MicMac-eLiSe-25/06/2007*/
+
+
+void GetBoundingBox(Pt3dr* ptTerrCorner, int nLen, Pt3dr& minPt, Pt3dr& maxPt)
+{
+    minPt = ptTerrCorner[0];
+    maxPt = ptTerrCorner[0];
+    for(int i=1; i<nLen; i++){
+        Pt3dr ptCur = ptTerrCorner[i];
+
+        if(minPt.x > ptCur.x)
+            minPt.x = ptCur.x;
+        if(maxPt.x < ptCur.x)
+            maxPt.x = ptCur.x;
+
+        if(minPt.y > ptCur.y)
+            minPt.y = ptCur.y;
+        if(maxPt.y < ptCur.y)
+            maxPt.y = ptCur.y;
+
+        if(minPt.z > ptCur.z)
+            minPt.z = ptCur.z;
+        if(maxPt.z < ptCur.z)
+            maxPt.z = ptCur.z;
+    }
+}
+
+bool IsOverlapped(std::string aImg1, std::string aImg2, std::string aIm1OriFile, std::string aIm2OriFile, std::string aDir, cTransform3DHelmert aTrans3DHL, bool bPrint)
+{
+    if (ELISE_fp::exist_file(aImg1) == false || ELISE_fp::exist_file(aImg2) == false)
+    {
+        cout<<aImg1<<" or "<<aImg2<<" didn't exist, hence skipped"<<endl;
+        return false;
+    }
+
+
+    Tiff_Im aRGBIm1(aImg1.c_str());
+    Pt2di ImgSzL = aRGBIm1.sz();
+    Tiff_Im aRGBIm2(aImg2.c_str());
+    Pt2di ImgSzR = aRGBIm2.sz();
+
+    //cout<<"Left img size: "<<ImgSzL.x<<", "<<ImgSzL.y<<endl;
+    //cout<<"Right img size: "<<ImgSzR.x<<", "<<ImgSzR.y<<endl;
+
+    Pt2dr origin = Pt2dr(0,0);
+
+    Pt2dr aPCornerL[4];
+    aPCornerL[0] = origin;
+    aPCornerL[1] = Pt2dr(origin.x+ImgSzL.x, origin.y);
+    aPCornerL[2] = Pt2dr(origin.x, origin.y+ImgSzL.y);
+    aPCornerL[3] = Pt2dr(origin.x+ImgSzL.x, origin.y+ImgSzL.y);
+
+    Pt2dr aPCornerR[4];
+    aPCornerR[0] = origin;
+    aPCornerR[1] = Pt2dr(origin.x+ImgSzR.x, origin.y);
+    aPCornerR[2] = Pt2dr(origin.x, origin.y+ImgSzR.y);
+    aPCornerR[3] = Pt2dr(origin.x+ImgSzR.x, origin.y+ImgSzR.y);
+
+/*
+    std::string aNameOriL = aOri +"/Orientation-"+aImg1+".xml";
+    std::string aNameOriR = aOri +"/Orientation-"+aImg2+".xml";
+    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
+*/
+    ElCamera * aCamL = BasicCamOrientGenFromFile(aIm1OriFile);
+    ElCamera * aCamR = BasicCamOrientGenFromFile(aIm2OriFile);
+
+    double prof_dL = aCamL->GetProfondeur();
+    double prof_dR = aCamR->GetProfondeur();
+
+    Pt3dr aCornerTerrL[4];
+    Pt3dr aCornerTerrR[4];
+    for(int i=0; i<4; i++)
+    {
+        Pt2dr aP1 = aPCornerL[i];
+        Pt3dr Pt_H_d = aCamL->ImEtProf2Terrain(aP1, prof_dL);
+        Pt_H_d = aTrans3DHL.Transform3Dcoor(Pt_H_d);
+        aCornerTerrL[i] = Pt_H_d;
+
+        aP1 = aPCornerR[i];
+        Pt_H_d = aCamR->ImEtProf2Terrain(aP1, prof_dR);
+        aCornerTerrR[i] = Pt_H_d;
+    }
+
+    bool bRes = true;
+
+    Pt3dr minPtL, maxPtL;
+    GetBoundingBox(aCornerTerrL, 4, minPtL, maxPtL);
+    Pt3dr minPtR, maxPtR;
+    GetBoundingBox(aCornerTerrR, 4, minPtR, maxPtR);
+    if(minPtL.x > maxPtR.x ||maxPtL.x < minPtR.x || minPtL.y > maxPtR.y ||maxPtL.y < minPtR.y){
+        if(bPrint==true)
+            printf("The 2 images have no overlapped area in Terr.\n");
+        bRes = false;
+    }
+
+    if(bPrint==true)
+    {
+        printf("************%s\n", aIm1OriFile.c_str());
+        printf("************%s\n", aIm2OriFile.c_str());
+        printf("bRes: %d\n", bRes);
+        for(int i=0; i<4; i++)
+        {
+            Pt3dr Pt_H_d = aCornerTerrL[i];
+            printf("Left: %ith corner: %lf, %lf, %lf\n", i, Pt_H_d.x, Pt_H_d.y, Pt_H_d.z);
+
+            Pt_H_d = aCornerTerrR[i];
+            printf("Right: %ith corner: %lf, %lf, %lf\n", i, Pt_H_d.x, Pt_H_d.y, Pt_H_d.z);
+        }
+    }
+
+    return bRes;
+}
+
+void GetOverlappedImages(std::string mImgList1, std::string mImgList2, std::string aOri1, std::string aOri2, std::string aDir, std::string aOut, cInterfChantierNameManipulateur * aICNM, cTransform3DHelmert aTrans3DHL, bool bPrint)
+{
+    std::vector<string> vImgList1;
+    std::vector<string> vImgList2;
+
+    std::string s;
+
+    ifstream in1(aDir+mImgList1);
+    while(getline(in1,s))
+    {
+        vImgList1.push_back(s);
+    }
+
+    ifstream in2(aDir+mImgList2);
+    while(getline(in2,s))
+    {
+        vImgList2.push_back(s);
+    }
+
+    std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
+    std::string aKeyOri2 = "NKS-Assoc-Im2Orient@-" + aOri2;
+
+    unsigned int m, n;
+    cSauvegardeNamedRel aRel;
+    for(m=0; m<vImgList1.size(); m++)
+    {
+        std::string aImg1 = vImgList1[m];
+        std::string aIm1OriFile = aICNM->Assoc1To1(aKeyOri1,aImg1,true);
+        for(n=0; n<vImgList2.size(); n++)
+        {
+            std::string aImg2 = vImgList2[n];
+            std::string aIm2OriFile = aICNM->Assoc1To1(aKeyOri2,aImg2,true);
+
+            if(IsOverlapped(aImg1, aImg2, aIm1OriFile, aIm2OriFile, aDir, aTrans3DHL, bPrint) == true)
+            {
+                aRel.Cple().push_back(cCpleString(aImg1, aImg2));
+            }
+        }
+    }
+    MakeFileXML(aRel,aDir+aOut);
+    cout<<"xdg-open "<<aDir+aOut<<endl;
+}
+
+int GetOverlappedImages_main(int argc,char ** argv)
+{
+   cCommonAppliTiepHistorical aCAS3D;
+
+   std::string aImgList1;
+   std::string aImgList2;
+   std::string aOri1;
+   std::string aOri2;
+//   std::string aDir;
+
+   std::string aPara3DH = "";
+
+   bool bPrint = false;
+
+   ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()
+               << EAMC(aOri1,"Orientation of first image")
+               << EAMC(aOri2,"Orientation of second image")
+               //<< EAMC(aDir,"Work directory")
+               << EAMC(aImgList1,"Input Image List of Epoch 1")
+               << EAMC(aImgList2,"Input Image List of Epoch 2"),
+        LArgMain()
+                    << aCAS3D.ArgBasic()
+                    << aCAS3D.ArgGetOverlappedImages()
+               << EAM(aPara3DH, "Para3DH", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of first image to second image, Def=none")
+               << EAM(bPrint, "Print", false, "Print corner coordinate, Def=false")
+
+    );
+
+   StdCorrecNameOrient(aOri1,"./",true);
+   StdCorrecNameOrient(aOri2,"./",true);
+
+   /*
+    std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
+    std::string aKeyOri2 = "NKS-Assoc-Im2Orient@-" + aOri2;
+
+    std::string aIm1OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri1,aImg1,true);
+    std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
+*/
+
+   cTransform3DHelmert aTrans3DH(aPara3DH);
+
+   GetOverlappedImages(aImgList1, aImgList2, aOri1, aOri2, aCAS3D.mDir, aCAS3D.mOutPairXml, aCAS3D.mICNM, aTrans3DH, bPrint);
+
+   return EXIT_SUCCESS;
+}

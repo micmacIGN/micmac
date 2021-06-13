@@ -45,7 +45,10 @@ int TiePHistoP_main(int argc, char ** argv)
 {
 
 	//historical pipeline to be implemnted
-	std::cout << "historical pipeline to be implemnted" << "\n";
+        //std::cout << "historical pipeline to be implemnted" << "\n";
+
+        cAppliTiepHistoricalPipeline aAppliTiepHisto(argc,argv);
+        aAppliTiepHisto.DoAll();
 
 	return EXIT_SUCCESS;
 }
