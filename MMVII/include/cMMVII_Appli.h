@@ -344,6 +344,11 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
         bool    IsInit(void *);             ///< indicate for each variable if it was initiazed by argc/argv
+        template <typename T> inline void SetIfNotInit(T & aVar,const T & aValue)
+        {
+            if (! IsInit(&aVar))
+               aVar = aValue;
+        }
         static void SignalInputFormat(int); ///< indicate that a xml file was read in the given version
         static bool        OutV2Format() ;  ///<  Do we write in V2 Format
 

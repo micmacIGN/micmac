@@ -43,7 +43,7 @@ class cOneLevel
        void Purge(); ///< Remove file unused after each match
 
        /// Estimate interval of paralax in a given box
-       void EstimateIntervPx(cParam1Match &,const cBox2di & aBF1,const cBox2di & aBF2,bool ForceSameBoxes) const;
+       void EstimateIntervPx(cParam1Match &,const cBox2di & aBF1,const cBox2di & aBF2,bool ForceSameBoxes,bool ForcePxPos) const;
        /// Once clipped match was done, save in global file
        void SaveGlobPx(const cParam1Match & aParam) const;
 
@@ -54,7 +54,7 @@ class cOneLevel
        std::string  StdFullName(const std::string & aName) const;
                  //  ------  Generate Commands
                    /// Generate the clipped images
-       std::string StrComClipIm(bool ModeIm,const cPt2di & aInd,const cBox2di & aBox) const;
+       std::string StrComClipIm(bool ModeIm,const cPt2di & aInd,const cBox2di & aBox,int XMaxUti=-1) const;
        std::string StrComReduce(bool ModeIm=true) const; ///< Generate the string for computing reduced images
                  //  ------  Generate name for cliped images
        std::string  NameClip(const std::string & aPrefix,const cPt2di & aInd) const; ///< Genreik name
@@ -144,6 +144,7 @@ class cAppli : public cMMVII_Appli
 
             // Optional args
         bool           mEnforceSzEq; ///< Force Same size for clipped image as required by some progs
+        bool           mEnforcePxPos; ///< Force Px to be >=0 (assuming the interval prevision on paralax is right)
         cPt2di         mSzTile;    ///< Size of tiles for matching
         std::string    mOutPx;     ///< Output file
         cPt2di         mSzOverL;   ///< Size of overlap between tile to limit sides effect
@@ -288,14 +289,19 @@ std::string  cOneLevel::NameClipDirTmp(const cPt2di & aInd) const
 }
   
 
-std::string  cOneLevel::StrComClipIm(bool ModeIm,const cPt2di & aInd,const cBox2di & aBox) const
+std::string  cOneLevel::StrComClipIm(bool ModeIm,const cPt2di & aInd,const cBox2di & aBox,int XMaxUti) const
 {
-   return "mm3d ClipIm" 
+   std::string aCom =
+         "mm3d ClipIm" 
           + BLANK +  NameImOrMasq(ModeIm)
           + BLANK +  ToStrComMMV1(aBox.P0())
           + BLANK +  ToStrComMMV1(aBox.Sz())
           + BLANK +  "Out=" + (ModeIm ? NameClipIm(aInd) : NameClipMasq(aInd))
    ;
+   if (XMaxUti>=0)
+      aCom = aCom + BLANK + "XMaxNot0=" + ToStr(XMaxUti);
+
+   return aCom;
 }
 
 void cOneLevel::SaveGlobPx(const cParam1Match & aParam) const
@@ -318,7 +324,8 @@ void cOneLevel::EstimateIntervPx
           cParam1Match & aParam,
           const cBox2di & aBoxFile1,
           const cBox2di & aBoxFile2,
-          bool EnforceSzEq
+          bool EnforceSzEq,
+          bool EnforcePxPos
      ) const
 {
    aParam.mEnforceSzEq = EnforceSzEq;
@@ -392,8 +399,14 @@ void cOneLevel::EstimateIntervPx
                          cPt2di(aP0.x()+aParam.mPxMin,aP0.y()),
                          cPt2di(aP1.x()+aParam.mPxMax,aP1.y())
                     );
-   // Of course this box must be included in the box of image 2 
-   aParam.mBoxIn2 = aParam.mBoxIn2.Inter(aBoxFile2);
+   // Of course, generally, this box must be included in the box of image 2 
+   {
+      cBox2di aBoxForInter = aBoxFile2;
+      // But if we want Px computed to be >0 (as required by some deep prog) , in case Im2.P0.x<0, we must not set it to 0
+      if (EnforcePxPos)
+          aBoxForInter = cBox2di(aParam.mBoxIn2.P0(),aBoxFile2.P1());  // Maintain initial value at begining, not at end
+      aParam.mBoxIn2 = aParam.mBoxIn2.Inter(aBoxForInter);
+   }
    
    // Once images loaded in a box, the px will have to be offseted
    aParam.mOffsetPx = aParam.mBoxIn1.P0().x() -aParam.mBoxIn2.P0().x();
@@ -406,8 +419,11 @@ void cOneLevel::EstimateIntervPx
       // First compute a sz that contains both images
       int aSzImX = std::max(aParam.mBoxIn1.Sz().x(),aParam.mBoxIn2.Sz().x());
       // Then ensure it does not go out of files
+/*
+      In fact not necessary  ClipIm will pad with 0 if we are over file
       aSzImX = std::min(aSzImX,aBoxFile1.Sz().x()-aParam.mBoxIn1.P0().x());
       aSzImX = std::min(aSzImX,aBoxFile2.Sz().x()-aParam.mBoxIn2.P0().x());
+*/
       // Finnaly set value to this common size
       aParam.mBoxIn1 = cBox2di(aParam.mBoxIn1.P0(),cPt2di(aParam.mBoxIn1.P0().x() + aSzImX,aParam.mBoxIn1.P1().y()));
       aParam.mBoxIn2 = cBox2di(aParam.mBoxIn2.P0(),cPt2di(aParam.mBoxIn2.P0().x() + aSzImX,aParam.mBoxIn2.P1().y()));
@@ -523,6 +539,7 @@ cCollecSpecArg2007 & cAppli::ArgOpt(cCollecSpecArg2007 & anArgOpt)
          << AOpt2007(mSzTile,"SzTile","Size of tiling used to split computation",{eTA2007::HDV})
          << AOpt2007(mOutPx,CurOP_Out,"Name of Out file, def=Px_+$Im1")
          << AOpt2007(mEnforceSzEq,"SzEq","Force sz of clipped image to be equal")
+         << AOpt2007(mEnforcePxPos,"PxPos","Force px to be >=0")
          // -- Tuning
          << AOpt2007(mDoPyram,"DoPyram","Compute the pyramid",{eTA2007::HDV,eTA2007::Tuning})
          << AOpt2007(mDoClip,"DoClip","Compute the clip of images",{eTA2007::HDV,eTA2007::Tuning})
@@ -652,7 +669,7 @@ void  cAppli::MatchOneLevel(int aLevel)
                      );
 
         // The master level must compute the paralax interval  to complete param
-        aILev1.EstimateIntervPx(aParam,aCurBoxFile1,aCurBoxFile2,mEnforceSzEq);
+        aILev1.EstimateIntervPx(aParam,aCurBoxFile1,aCurBoxFile2,mEnforceSzEq,mEnforcePxPos);
         // Now Param ix complete
         aLParam.push_back(aParam);
         if (aParam.mCanDoMatch)
@@ -661,9 +678,12 @@ void  cAppli::MatchOneLevel(int aLevel)
 
 
            // We must create clipped images for both images and masqs
-           aLComClip.push_back(aILev1.StrComClipIm(true ,anIndex,aParam.mBoxIn1));
+           int aXMax=-1;
+           if (mEnforceSzEq)  // If Image 1 was elarged, pad with 0 the image and masq
+              aXMax = aParam.mBoxUtiIn1.P1().x();
+           aLComClip.push_back(aILev1.StrComClipIm(true ,anIndex,aParam.mBoxIn1,aXMax));
+           aLComClip.push_back(aILev1.StrComClipIm(false,anIndex,aParam.mBoxIn1,aXMax));
            aLComClip.push_back(aILev2.StrComClipIm(true ,anIndex,aParam.mBoxIn2));
-           aLComClip.push_back(aILev1.StrComClipIm(false,anIndex,aParam.mBoxIn1));
            aLComClip.push_back(aILev2.StrComClipIm(false,anIndex,aParam.mBoxIn2));
         }
 
@@ -713,6 +733,9 @@ void  cAppli::MatchOneLevel(int aLevel)
 
 int cAppli::Exe()
 {
+   SetIfNotInit(mEnforceSzEq  , mModeMatch!= eModeEpipMatch::eMEM_MMV1);
+   SetIfNotInit(mEnforcePxPos , mModeMatch!= eModeEpipMatch::eMEM_PSMNet);
+
    // Now the appli is completely initialized, it can be used to create object
    mIms.push_back(tPtrIm (new cOneIm (*this,mNameIm1,true )));
    mIms.push_back(tPtrIm (new cOneIm (*this,mNameIm2,false)));

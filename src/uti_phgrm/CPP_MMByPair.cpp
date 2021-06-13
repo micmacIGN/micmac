@@ -1227,14 +1227,16 @@ int ClipIm_main(int argc,char ** argv)
     std::string aNameOut;
     Pt2di P0(0,0);
     Pt2di Sz(0,0);
+    int  XMaxNot0 = 100000000;
 
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAM(aNameIn)
-                    << EAMC(P0,"P0")
-                    << EAMC(Sz,"SZ")  ,
-        LArgMain()  << EAM(aNameOut,"Out",true)
+        LArgMain()  << EAMC(aNameIn,"Name of Image")
+                    << EAMC(P0,"P0, origin of clip")
+                    << EAMC(Sz,"SZ, size of clip")  ,
+        LArgMain()  << EAM(aNameOut,"Out",true,"Name of output file")
+                    << EAM(XMaxNot0,"XMaxNot0",true,"Value will be zeroed fo x over this coord (given in unclip file)")
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -1275,10 +1277,14 @@ int ClipIm_main(int argc,char ** argv)
                               aLArg
                           );
 
+    Fonc_Num aFoncIn = tiff.in(0);
+    if (EAMIsInit(&XMaxNot0))
+       aFoncIn = aFoncIn * (FX<XMaxNot0);
+
     ELISE_COPY
     (
          TiffOut.all_pts(),
-         trans(tiff.in(0),P0),
+         trans(aFoncIn,P0),
          TiffOut.out()
     );
 
