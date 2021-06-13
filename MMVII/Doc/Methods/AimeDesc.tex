@@ -1,0 +1,29 @@
+
+\chapter{Description de la méthode Aim\'e}
+
+\section{Introduction}
+
+Aim\'e vise à être une m\'éthode de calcul de points homologues qui sera  intégrée dans MMVII. 
+Son architecture est fortement inspirée par SIFT qui a fait ses preuves depuis de longues
+années en tant que méthode \emph{analytique}\footnote{"analytique" par opposition à méthode d'apprentissage,
+les ayatolah du deep dirait handcrafted} de référence. Elle vise aussi à tirer parti de $10$ années
+d'expérience d'utilisation de SIFT en photogrammétrie pour corriger les principaux point faibles
+de SIFT dans ce contexte.  Notemment les principaux points qui handicapant :
+
+
+\begin{itemize}
+   \item SIFT passe difficilement à l'échelle lorsque  l'on l'utilise sur des très grands jeux de données,
+         notamment il ne permet pas de détecter rapidement les paires potentiellement homologues;
+
+   \item lorsque l'on en dispose SIFT n'utilise pas d'information  de spatialisation approchée qui permetrait
+         de faciliter l'appariement (plus robuste et plus rapide), voir de se passer dans ce contexte d'invaroant
+\end{itemize}
+
+
+\section{VRAC}
+
+\begin{itemize}
+   \item indexe binaire
+    \item critère rapide de détection de paires
+\end{itemize}
+
