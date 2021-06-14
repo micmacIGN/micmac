@@ -54,7 +54,7 @@ class cOneLevel
        std::string  StdFullName(const std::string & aName) const;
                  //  ------  Generate Commands
                    /// Generate the clipped images
-       std::string StrComClipIm(bool ModeIm,const cPt2di & aInd,const cBox2di & aBox,int XMaxUti=-1) const;
+       std::string StrComClipIm(bool ModeIm,const cPt2di & aInd,const cBox2di & aBox,int XMaxUti=-1,bool RandOut=false) const;
        std::string StrComReduce(bool ModeIm=true) const; ///< Generate the string for computing reduced images
                  //  ------  Generate name for cliped images
        std::string  NameClip(const std::string & aPrefix,const cPt2di & aInd) const; ///< Genreik name
@@ -145,6 +145,7 @@ class cAppli : public cMMVII_Appli
             // Optional args
         bool           mEnforceSzEq; ///< Force Same size for clipped image as required by some progs
         bool           mEnforcePxPos; ///< Force Px to be >=0 (assuming the interval prevision on paralax is right)
+        bool           mRandPaded; ///< Force Px to be >=0 (assuming the interval prevision on paralax is right)
         cPt2di         mSzTile;    ///< Size of tiles for matching
         std::string    mOutPx;     ///< Output file
         cPt2di         mSzOverL;   ///< Size of overlap between tile to limit sides effect
@@ -289,7 +290,7 @@ std::string  cOneLevel::NameClipDirTmp(const cPt2di & aInd) const
 }
   
 
-std::string  cOneLevel::StrComClipIm(bool ModeIm,const cPt2di & aInd,const cBox2di & aBox,int XMaxUti) const
+std::string  cOneLevel::StrComClipIm(bool ModeIm,const cPt2di & aInd,const cBox2di & aBox,int XMaxUti,bool RandOut) const
 {
    std::string aCom =
          "mm3d ClipIm" 
@@ -300,6 +301,9 @@ std::string  cOneLevel::StrComClipIm(bool ModeIm,const cPt2di & aInd,const cBox2
    ;
    if (XMaxUti>=0)
       aCom = aCom + BLANK + "XMaxNot0=" + ToStr(XMaxUti);
+
+   if (RandOut)
+      aCom = aCom + " AmplRandVout=255";
 
    return aCom;
 }
@@ -506,6 +510,7 @@ cAppli::cAppli
    cMMVII_Appli(aVArgs,aSpec),
    mEnforceSzEq (false),
    mEnforcePxPos(false),
+   mRandPaded    (false),
    mSzTile     (2000,1500),
    mSzOverL    (50,30),
    mIncPxProp  (0.05),
@@ -541,6 +546,7 @@ cCollecSpecArg2007 & cAppli::ArgOpt(cCollecSpecArg2007 & anArgOpt)
          << AOpt2007(mOutPx,CurOP_Out,"Name of Out file, def=Px_+$Im1")
          << AOpt2007(mEnforceSzEq,"SzEq","Force sz of clipped image to be equal")
          << AOpt2007(mEnforcePxPos,"PxPos","Force px to be >=0")
+         << AOpt2007(mRandPaded,"RandPaded","Generate random value for added pixel")
          // -- Tuning
          << AOpt2007(mDoPyram,"DoPyram","Compute the pyramid",{eTA2007::HDV,eTA2007::Tuning})
          << AOpt2007(mDoClip,"DoClip","Compute the clip of images",{eTA2007::HDV,eTA2007::Tuning})
@@ -682,9 +688,9 @@ void  cAppli::MatchOneLevel(int aLevel)
            int aXMax=-1;
            if (mEnforceSzEq)  // If Image 1 was elarged, pad with 0 the image and masq
               aXMax = aParam.mBoxUtiIn1.P1().x();
-           aLComClip.push_back(aILev1.StrComClipIm(true ,anIndex,aParam.mBoxIn1,aXMax));
+           aLComClip.push_back(aILev1.StrComClipIm(true ,anIndex,aParam.mBoxIn1,aXMax,mRandPaded));
            aLComClip.push_back(aILev1.StrComClipIm(false,anIndex,aParam.mBoxIn1,aXMax));
-           aLComClip.push_back(aILev2.StrComClipIm(true ,anIndex,aParam.mBoxIn2));
+           aLComClip.push_back(aILev2.StrComClipIm(true ,anIndex,aParam.mBoxIn2,-1,mRandPaded));
            aLComClip.push_back(aILev2.StrComClipIm(false,anIndex,aParam.mBoxIn2));
         }
 
@@ -736,6 +742,7 @@ int cAppli::Exe()
 {
    SetIfNotInit(mEnforceSzEq  , mModeMatch!= eModeEpipMatch::eMEM_MMV1);
    SetIfNotInit(mEnforcePxPos , mModeMatch== eModeEpipMatch::eMEM_PSMNet);
+   SetIfNotInit(mRandPaded , mModeMatch!= eModeEpipMatch::eMEM_MMV1);
 
    // Now the appli is completely initialized, it can be used to create object
    mIms.push_back(tPtrIm (new cOneIm (*this,mNameIm1,true )));

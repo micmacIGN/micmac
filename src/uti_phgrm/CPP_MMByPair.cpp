@@ -1228,6 +1228,7 @@ int ClipIm_main(int argc,char ** argv)
     Pt2di P0(0,0);
     Pt2di Sz(0,0);
     int  XMaxNot0 = 100000000;
+    int  AmplRandValOut =0;
 
     ElInitArgMain
     (
@@ -1237,6 +1238,7 @@ int ClipIm_main(int argc,char ** argv)
                     << EAMC(Sz,"SZ, size of clip")  ,
         LArgMain()  << EAM(aNameOut,"Out",true,"Name of output file")
                     << EAM(XMaxNot0,"XMaxNot0",true,"Value will be zeroed fo x over this coord (given in unclip file)")
+                    << EAM(AmplRandValOut,"AmplRandVout",true,"Generate random value for out, give amplitude")
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -1277,9 +1279,22 @@ int ClipIm_main(int argc,char ** argv)
                               aLArg
                           );
 
-    Fonc_Num aFoncIn = tiff.in(0);
+    
+    bool RandOut = EAMIsInit(&AmplRandValOut);
+    Fonc_Num aFoncIn = tiff.in(RandOut ? -1 : 0);
     if (EAMIsInit(&XMaxNot0))
+    {
        aFoncIn = aFoncIn * (FX<XMaxNot0);
+       if (RandOut) 
+          aFoncIn = aFoncIn - (FX>=XMaxNot0);  // Add -1 in this out rect
+    }
+
+ 
+    if (RandOut)
+    {
+       Symb_FNum aFIn(aFoncIn);
+       aFoncIn =  aFIn * (aFIn>=0)  +  (aFIn<0) * frandr() * AmplRandValOut;
+    }
 
     ELISE_COPY
     (
