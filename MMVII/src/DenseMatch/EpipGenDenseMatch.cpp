@@ -505,6 +505,7 @@ cAppli::cAppli
 )  :
    cMMVII_Appli(aVArgs,aSpec),
    mEnforceSzEq (false),
+   mEnforcePxPos(false),
    mSzTile     (2000,1500),
    mSzOverL    (50,30),
    mIncPxProp  (0.05),
@@ -734,7 +735,7 @@ void  cAppli::MatchOneLevel(int aLevel)
 int cAppli::Exe()
 {
    SetIfNotInit(mEnforceSzEq  , mModeMatch!= eModeEpipMatch::eMEM_MMV1);
-   SetIfNotInit(mEnforcePxPos , mModeMatch!= eModeEpipMatch::eMEM_PSMNet);
+   SetIfNotInit(mEnforcePxPos , mModeMatch== eModeEpipMatch::eMEM_PSMNet);
 
    // Now the appli is completely initialized, it can be used to create object
    mIms.push_back(tPtrIm (new cOneIm (*this,mNameIm1,true )));
