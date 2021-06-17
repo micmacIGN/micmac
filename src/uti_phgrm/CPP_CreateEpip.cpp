@@ -1337,6 +1337,8 @@ if (!MMVisualMode)
          else 
          {
             mDegre = mWithOri ? 9 : 2;
+            // fix nbellaiche 2021/06/17: initialisation du vecteur
+            if (mVecIterDeg.empty())  mVecIterDeg = std::vector<int>({mDegre});
          }
                     // << EAM(mVecIterDeg,"VecIterDeg",true,"Vector of degree in case of iterative approach")
                     // << EAM(mPropIterDeg,"PropIterDeg",true,"Prop to compute sigma in cas of iterative degre")
