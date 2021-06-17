@@ -43,7 +43,7 @@ class cOneLevel
        void Purge(); ///< Remove file unused after each match
 
        /// Estimate interval of paralax in a given box
-       void EstimateIntervPx(cParam1Match &,const cBox2di & aBF1,const cBox2di & aBF2,bool ForceSameBoxes,bool ForcePxPos) const;
+       void EstimateIntervPx(cParam1Match &,const cBox2di & aBF1,const cBox2di & aBF2) const;
        /// Once clipped match was done, save in global file
        void SaveGlobPx(const cParam1Match & aParam) const;
 
@@ -54,7 +54,7 @@ class cOneLevel
        std::string  StdFullName(const std::string & aName) const;
                  //  ------  Generate Commands
                    /// Generate the clipped images
-       std::string StrComClipIm(bool ModeIm,const cPt2di & aInd,const cBox2di & aBox,int XMaxUti=-1,bool RandOut=false) const;
+       std::string StrComClipIm(bool ModeIm,const cPt2di & aInd,const cBox2di & aBox,int XMaxUti=-1) const;
        std::string StrComReduce(bool ModeIm=true) const; ///< Generate the string for computing reduced images
                  //  ------  Generate name for cliped images
        std::string  NameClip(const std::string & aPrefix,const cPt2di & aInd) const; ///< Genreik name
@@ -145,6 +145,7 @@ class cAppli : public cMMVII_Appli
             // Optional args
         bool           mEnforceSzEq; ///< Force Same size for clipped image as required by some progs
         bool           mEnforcePxPos; ///< Force Px to be >=0 (assuming the interval prevision on paralax is right)
+        bool           mEnforcePxNeg; ///< Force Px to be <=0 (assuming the interval prevision on paralax is right)
         bool           mRandPaded; ///< Force Px to be >=0 (assuming the interval prevision on paralax is right)
         cPt2di         mSzTile;    ///< Size of tiles for matching
         std::string    mOutPx;     ///< Output file
@@ -290,7 +291,7 @@ std::string  cOneLevel::NameClipDirTmp(const cPt2di & aInd) const
 }
   
 
-std::string  cOneLevel::StrComClipIm(bool ModeIm,const cPt2di & aInd,const cBox2di & aBox,int XMaxUti,bool RandOut) const
+std::string  cOneLevel::StrComClipIm(bool ModeIm,const cPt2di & aInd,const cBox2di & aBox,int XMaxUti) const
 {
    std::string aCom =
          "mm3d ClipIm" 
@@ -302,7 +303,7 @@ std::string  cOneLevel::StrComClipIm(bool ModeIm,const cPt2di & aInd,const cBox2
    if (XMaxUti>=0)
       aCom = aCom + BLANK + "XMaxNot0=" + ToStr(XMaxUti);
 
-   if (RandOut)
+   if (ModeIm &&   mAppli.mRandPaded)
       aCom = aCom + " AmplRandVout=255";
 
    return aCom;
@@ -327,11 +328,13 @@ void cOneLevel::EstimateIntervPx
      (
           cParam1Match & aParam,
           const cBox2di & aBoxFile1,
-          const cBox2di & aBoxFile2,
-          bool EnforceSzEq,
-          bool EnforcePxPos
+          const cBox2di & aBoxFile2
      ) const
 {
+
+   bool EnforceSzEq = mAppli.mEnforceSzEq;
+   bool EnforcePxPos =  mAppli.mEnforcePxPos;
+   bool EnforcePxNeg =  mAppli.mEnforcePxNeg;
    aParam.mEnforceSzEq = EnforceSzEq;
    if (mDownLev==nullptr)
    {
@@ -408,7 +411,13 @@ void cOneLevel::EstimateIntervPx
       cBox2di aBoxForInter = aBoxFile2;
       // But if we want Px computed to be >0 (as required by some deep prog) , in case Im2.P0.x<0, we must not set it to 0
       if (EnforcePxPos)
+      {
           aBoxForInter = cBox2di(aParam.mBoxIn2.P0(),aBoxFile2.P1());  // Maintain initial value at begining, not at end
+      }
+      if (EnforcePxNeg)
+      {
+FakeUseIt(EnforcePxNeg);
+      }
       aParam.mBoxIn2 = aParam.mBoxIn2.Inter(aBoxForInter);
    }
    
@@ -676,7 +685,7 @@ void  cAppli::MatchOneLevel(int aLevel)
                      );
 
         // The master level must compute the paralax interval  to complete param
-        aILev1.EstimateIntervPx(aParam,aCurBoxFile1,aCurBoxFile2,mEnforceSzEq,mEnforcePxPos);
+        aILev1.EstimateIntervPx(aParam,aCurBoxFile1,aCurBoxFile2);
         // Now Param ix complete
         aLParam.push_back(aParam);
         if (aParam.mCanDoMatch)
@@ -688,9 +697,9 @@ void  cAppli::MatchOneLevel(int aLevel)
            int aXMax=-1;
            if (mEnforceSzEq)  // If Image 1 was elarged, pad with 0 the image and masq
               aXMax = aParam.mBoxUtiIn1.P1().x();
-           aLComClip.push_back(aILev1.StrComClipIm(true ,anIndex,aParam.mBoxIn1,aXMax,mRandPaded));
+           aLComClip.push_back(aILev1.StrComClipIm(true ,anIndex,aParam.mBoxIn1,aXMax));
            aLComClip.push_back(aILev1.StrComClipIm(false,anIndex,aParam.mBoxIn1,aXMax));
-           aLComClip.push_back(aILev2.StrComClipIm(true ,anIndex,aParam.mBoxIn2,-1,mRandPaded));
+           aLComClip.push_back(aILev2.StrComClipIm(true ,anIndex,aParam.mBoxIn2,-1));
            aLComClip.push_back(aILev2.StrComClipIm(false,anIndex,aParam.mBoxIn2));
         }
 

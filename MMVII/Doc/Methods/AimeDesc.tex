@@ -1,29 +1,178 @@
 
-\chapter{Description de la méthode Aim\'e}
+\chapter{Description de la m\'ethode Aim\'e}
 
 \section{Introduction}
 
-Aim\'e vise à être une m\'éthode de calcul de points homologues qui sera  intégrée dans MMVII. 
-Son architecture est fortement inspirée par SIFT qui a fait ses preuves depuis de longues
-années en tant que méthode \emph{analytique}\footnote{"analytique" par opposition à méthode d'apprentissage,
-les ayatolah du deep dirait handcrafted} de référence. Elle vise aussi à tirer parti de $10$ années
-d'expérience d'utilisation de SIFT en photogrammétrie pour corriger les principaux point faibles
-de SIFT dans ce contexte.  Notemment les principaux points qui handicapant :
+Aim\'e vise à \^etre une m\'ethode de calcul de points homologues qui sera  int\'egr\'ee dans MMVII. 
+Son architecture est fortement inspir\'ee par SIFT qui a fait ses preuves depuis de longues
+ann\'ees en tant que m\'ethode \emph{analytique}\footnote{"analytique" par opposition à m\'ethode d'apprentissage,
+les ayatolah du deep dirait handcrafted} de r\'ef\'erence. Elle vise aussi à tirer parti de $10$ ann\'ees
+d'exp\'erience d'utilisation de SIFT en photogramm\'etrie pour corriger les principaux point faibles
+de SIFT dans ce contexte.  Notemment les principaux points  sur lesquels on souhaite am\'eliorer sont :
 
 
 \begin{itemize}
-   \item SIFT passe difficilement à l'échelle lorsque  l'on l'utilise sur des très grands jeux de données,
-         notamment il ne permet pas de détecter rapidement les paires potentiellement homologues;
+   \item SIFT passe difficilement à l'\'echelle lorsque  l'on l'utilise sur des tr\`es grands jeux de donn\'ees,
+         notamment il ne permet pas de d\'etecter rapidement les paires potentiellement homologues;
 
-   \item lorsque l'on en dispose SIFT n'utilise pas d'information  de spatialisation approchée qui permetrait
-         de faciliter l'appariement (plus robuste et plus rapide), voir de se passer dans ce contexte d'invaroant
+   \item lorsque l'on en dispose, SIFT n'utilise pas d'information  de spatialisation approch\'ee qui permetrait
+         de faciliter l'appariement (plus robuste et plus rapide), voir de se passer dans ce contexte d'invariance
+         inutile (i.e ne pas normaliser à l'\'echelle ou à la rotation si on a des information permettant de
+         connaitres ces infos);
+
+   \item tirer parti des m\'ethodes d'apprentissage pour avoir un appariement meilleurs (quoique veuille dire
+         ceci); une contrainte pour tirer parti des m\'ethodes d'apprentissage est de disposer de  jeux de
+         donn\'es de v\'erit\'e suffisemment denses; or cela est possible, au moins pour la phase d'appariement 
+         en utilisant des jeux de donn\'ees trait\'es par des cha\^ines photogramm\'etriques automatiques.
+
+   \item prendre en compte que les probl\`emes d'appariement rencontr\'es en photogramm\'etrie sont
+         suffisement vari\'es pour qu'il soit n\'ecessaire de viser \'a une m\'ethode fortement param\'etrable
+         pour pouvoir s'adapter \`a cette vari\'et\'e de probl\`emes.
+
+
 \end{itemize}
+
+    % ==================================================================================
+    % ==================================================================================
+    % ==================================================================================
+
+\section{Architecture g\'en\'erale d'Aim\'e}
+
+L'architecture est la suivante :
+
+\begin{itemize}
+   \item calcul de points caract\'eristiques, cette partie est celle qui resssemble le plus \'a SIFT;
+
+   \item calcul de descripteurs, le descripteur est fait d'un (ou plusieurs) descripteurs binaires
+         permettant de faire une pr\'e-s\'election rapide des couples potentiellement appariables et
+         d'un descripteurs plus complets , ces descripteurs sont bas\'es sur un r\'e\'echantillonage
+         log-polaire de du voisinage de chaque point;
+
+   \item appariement en plusieurs \'etapes, on commence par des filtres relativement peu s\'electifs
+        mais rapides et l'on compl\`ete par des calcul plus s\'electif sur les descripteurs complets;
+
+   \item filtrage spatial imposant une coh\'erence spatiale sur le principe "les homologues de mes voisins
+         sont les voisins de mes homologues"; \'eventuellement la phase d'appariement a pu \^etre volontairement
+         ambigu\"e (chaque point a un ensemble d'homologues potentiels) , parce que  certaines ambigu\"it\'es ne
+         peuvent  pas \^etres r\'esolues au niveau individuel, et la phase de filtrage cherchera \`a r\'esoudre
+         ces ambigu\"it\'es par une approche de type relaxtion.
+
+   \item \'eventuellement, am\'elioration de la pr\'ecision de localisation par des m\'ethodes basiques 
+         de corr\'elation.
+
+\end{itemize}
+
+Le degr\'e d'impl\'ementation actuel est tr\`es in\'egal et diminue lorsque l'on avance dans le processus.
+Sch\'ematiquement ;
+
+\begin{itemize}
+   \item pour les points caract\'eristiques, il existe un prototype complet que l'on peut consid\'erer comme 
+         pr\'e-op\'erationnel; il est surement perfectible \'a terme, mais ce n'est pas une priorit\'e; 
+
+   \item le descripteur en log-polaire est implant\'es, des descripteurs binaires ont \'et\'e prototyp\'es de
+         mani\`ers handcrafted (par une ACP),  mais gagneraient problement \'a \^etre con\c{c}u avec une 
+         approche bas\'ee sur de l'apprentissage;
+
+   \item l'appariement a \'et\'e impl\'emnt\'e de mani\`ere basique, essentiellement pour valider les deux
+         \'etapes pr\'c\'dentes;  une voie d'am\'elioration majeure (en tout cas esp\'er\'ee comme telle)
+         serait de faire de l'apprentissage sur les paires de descripteur complets;
+
+   \item rien n'a \'et\'e fait sur le filtrage spatial, il aussi esp\'er\'e  que l'approche 
+         "appariement ambigue/filtrage spatial avec relaxation" soit une source d'am\'elioration importante
+         dans certain cas , notamment le cas de sc\`enes avec des structures partiellement r\'ep\'etitives;
+
+   \item enfin le raffinement par corr\'elation, least square matching n'a pas \'et\'e test\'e, il s'agit
+         d'une option a priori facile, qui donnerait une plus value op\'erationnelle sans avoir de valorisation
+         en recherche (c'est assez classique).
+
+\end{itemize}
+
+
+    % ==================================================================================
+    % ==================================================================================
+    % ==================================================================================
+
+\section{Calcul des points caract\'eristiques}
+
+
+\subsection{Multi-\'echelle}
+
+\subsubsection{Pr\'esentation g\'en\'erale}
+
+Comme indiqu\'e pr\'ec\'edemment, cette partie est celle qui s'inspire le plus directement de SIFT.
+Notamment, comme dans SIFT :
+
+\begin{itemize}
+    \item on calcule une pyramide d'image d'echelle d\'ecroissante suivant une loi exponentielle, 
+          on note $I_0$ l'image initiale, et $I_k$ la $k^{ieme}$ image, entre $I_k$ et $I_{k+1}$
+          il y a un rapport d'\`echelle $\sigma$, donc par it\'erations successive entre $I_0$
+          et $I_k$ il y a un rapport d'\'echelle $\sigma^k$;
+
+    \item comme dans SIFT, $\sigma$ est choisi tel que $\sigma^n=2$ ou $n$ est un entier, et
+          tous les $n$ l'image est d\'ecim\'e d'un facteur $2$ pour gagner un facteur important de temps
+          de calcul, sachant que quand l'image est devenu suffisement floue, l'auto-corr\'élation entre un
+          pixel et son voisin fait que l'on perd peu d'information avec cette d\'ecimation;
+
+    \item  la pyramide d'\'echelle permet d'avoir plus de point quand cela est n\'ecessaire, et surtout
+           permet d'obtenir l'invariance \`a l'\'echelle (pour deux images $I$ et $J$ prises \`a deux
+           \'echelles diff\'erentes de rapport $R$, si un point $p$ est d\'etect\'e sur $I_k$, il pourra aussi
+           \^etre d\'etect\'e sur $J_{k'}$ avec $R = \sigma^{k-k'}$ )
+
+    \item  la convolution par une gaussienne est isotrope ce qui  est n\'ecessaire pour l'invariance par rotation;
+
+
+\end{itemize}
+
+
+\subsubsection{Imp\'ementation dans MMVII de la pyramide}
+
+\emph{Il n'est pas prouv\'e que les choix d'impl\'ementation d\'ecrit ici soit judicieux, cette description
+vise à comprendre le code. Des tests de performance \'a une impl\'ementation basique reste \`a effectuer.}
+
+L'impl\'ementation repose sur deux remarques :
+
+\begin{itemize}
+    \item en vertu du th\'eor\`eme central limite , si on convolue avec suffisement de fois avec des fonctions r\'eguli\`eres,
+          on converge vers la convolution avec une gaussienne;
+    \item convoluer avec deux gaussiennes sucessive d'\'ecart type $a$ et $b$, a exactement le même effet que
+          de convoluer avec une seule gaussienne d'\'ecart type $\sqrt{a^2+b^2}$;
+  
+\end{itemize}
+
+Le calcul se fait en iterant une convolution par $e^{-a|x|}$ qui est une fonction 
+"smooth" et dont le produit de convolution peut \^etre calcul\'e rapidement (algorithme r\'ecursif classique).
+La fonction est impl\'ement\'ee dans {\tt ExpFilterOfStdDev}.  Cette fonction prend
+en param\`etre un $\sigma$ et un nombre d'it\'eration $N$, elle calcule la valeur
+$a$ qui donnera un \'ecart type de $\frac{\sigma}{\sqrt{N}}$,
+
+A chaque octave  :
+
+\begin{itemize}
+   \item  pour $I_0$ le calcule se fait avec un nombre relativement important d'it\'eration pour
+          bien approximer la gaussienne
+
+   \item  ensuite le calcul de $I_{k+1}$ se fait \`a partir $I_k$ (en tenant compte du flou d\'ej\'a pr\'esent
+          en $I_k$, on convolue par $\sigma^k \sqrt{\sigma^2-1}$), comme $I_k$ est d\'ej\'a le r\'esultat de plusieurs
+          convolution, on peut faire moins d'it\'ération (MMVII en fait $4$ pour $I_0$, $3$ pour $I_1$, et $2$ ensuite);
+\end{itemize}
+
+Il y a un cas particulier pour la premi\`ere it\'eration, si on veut que la pyramide soit r\'eguli\`ere en \'echelle.
+Typiquement si l'image initiale est tr\`e floue, il faudrait la d\'econvoluer, inversement si elle est tr\`es piqu\'ee,
+il faudra la flouter.  Je ne vois pas d'autre solution que de faire une hypothèse sur la largeur de la t\^ache image.
+
+
+
+
+
+\begin{equation}
+     I_k = I_0  \circledast G(\sigma^k)
+\end{equation}
 
 
 \section{VRAC}
 
 \begin{itemize}
    \item indexe binaire
-    \item critère rapide de détection de paires
+    \item crit\`ere rapide de d\'etection de paires
 \end{itemize}
 
