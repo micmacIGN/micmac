@@ -252,6 +252,20 @@ enum class eModeEpipMatch
    eNbVals
 };
 
+
+/** Mode "Padding" callable in DenseMatchEpipGen */
+
+enum class eModePaddingEpip
+{
+   eMPE_NoPad,  // No padding, natural size MicMac V1
+   eMPE_PxPos,  // Padding force positive paralax
+   eMPE_PxNeg,  // Padding force negative paralax
+   eMPE_SzEq,  //  Centerd padding, size equal
+   eNbVals
+};
+
+
+
 const std::string & E2Str(const eTySC &);         
 const std::string & E2Str(const eOpAff &);         
 const std::string & E2Str(const eTA2007 &);         
@@ -260,6 +274,7 @@ const std::string & E2Str(const eTyNums &);
 const std::string & E2Str(const eTyInvRad &);         
 const std::string & E2Str(const eTyPyrTieP &);         
 const std::string & E2Str(const eModeEpipMatch &);         
+const std::string & E2Str(const eModePaddingEpip &);         
 
 template <class Type> const Type & Str2E(const std::string &); 
 template <class Type> std::string   StrAllVall();
@@ -267,7 +282,7 @@ template <class Type> std::vector<Type> SubOfPat(const std::string & aPat,bool A
 
 template <class TypeEnum> class cEnumAttr;
 typedef cEnumAttr<eTA2007> tSemA2007;
-template <class Type> tSemA2007  AC_ListVal();  ///< Additional comm giving list of possible values
+template <class Type> tSemA2007  AC_ListVal();  ///< Additional comm giving list of possible values, tagged with eTA2007::AddCom as they are printed only with Help mode
 
 /* To use fully automatic in specif, need to add :
 Serial/cReadOneArgCL.cpp:MACRO_INSTANTIATE_ARG2007 =>  For Additional commentary
