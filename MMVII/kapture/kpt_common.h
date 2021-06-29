@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 #include <iostream>
 #include <experimental/filesystem>
 #include <stdexcept>
@@ -19,32 +20,82 @@
 
 
 namespace std {
-using namespace experimental;
+namespace filesystem = std::experimental::filesystem;
 }
 
 
+// FIXME CM: Faire les write
+// FIXME CM: Plus de verif sur la presence/type des donnes dans fichiers .txt (ex: float, int, ...)
+// FIXME CM: Verif si Vect = read(..) est aussi rapide que read(&Vect,...)
+// FIXME CM: Keypoints, features, ... : faire container pseudo std::vector
+
 namespace Kapture {
-
-extern bool debugOn;
-
-const std::string KAPTURE_FORMAT_1_0 = "1.0";
-
-const std::string KAPTURE_FORMAT_CURRENT = KAPTURE_FORMAT_1_0;
-const std::string KAPTURE_FORMAT_HEADER = "# kapture format: " + KAPTURE_FORMAT_CURRENT;
-const std::string KAPTURE_FORMAT_PARSING_RE = "# kapture format\\s*:\\s*(\\d+\\.\\d+)\\s*";
 
 typedef std::filesystem::path Path;
 typedef std::vector<Path> PathList;
 typedef std::vector<std::string> StringList;
 typedef uint32_t timestamp_t;
 
+
+const std::string KAPTURE_FORMAT_1_0 = "1.0";
+const std::string KAPTURE_FORMAT_1_1 = "1.1";
+
+const std::string KAPTURE_FORMAT_CURRENT = KAPTURE_FORMAT_1_1;
+const std::string KAPTURE_FORMAT_HEADER = "# kapture format: " + KAPTURE_FORMAT_CURRENT;
+const std::string KAPTURE_FORMAT_PARSING_RE = "# kapture format\\s*:\\s*(\\d+\\.\\d+)\\s*";
+
+const std::set<std::string> KAPTURE_FORMAT_SUPPORTED = {KAPTURE_FORMAT_1_0, KAPTURE_FORMAT_1_1};
+
+
+std::vector<char> readBinaryFile(std::istream& is);
+std::vector<char> readBinaryFile(const Path& p);
+
+
+inline Path sensorsDir() { return "sensors"; }
+inline Path sensorsPath() { return  sensorsDir() / "sensors.txt"; }
+inline Path trajectoriesPath() { return  sensorsDir() / "trajectories.txt"; }
+inline Path rigsPath() { return  sensorsDir() / "rigs.txt"; }
+inline Path recordsCameraPath() { return  sensorsDir() / "records_camera.txt"; }
+inline Path recordsDataDir() { return  sensorsDir() / "records_data"; }
+
+inline Path reconstructionDir() {return "reconstruction"; }
+
+inline Path keypointsDir(const std::string& keypoints_type) {return reconstructionDir() / "keypoints" / keypoints_type; }
+inline Path keypointsTypePath(const std::string& keypoints_type) {return keypointsDir(keypoints_type) / "keypoints.txt"; }
+inline Path keypointsPath(const Path& imagePath, const std::string& keypoints_type) {
+    Path p = keypointsDir(keypoints_type) / imagePath;
+    p += ".kpt";
+    return p;
+}
+
+inline Path matchesDir(const std::string& match_type) {return reconstructionDir() / "matches" / match_type; }
+inline Path matchesPath(Path img1, Path img2,const std::string& matchType)
+{
+    if (img1 > img2)
+        std::swap(img1,img2);
+    img1 += ".overlapping";
+    img2 += ".matches";
+    return matchesDir(matchType) / img1 / img2;
+}
+
+
+
+
+
 enum class DType{Unknown,UINT8,UINT16,UINT32,UINT64,FLOAT32,FLOAT64};
 
 const char *dtypeToStr(DType t);
 DType dtypeFromStr(const std::string &s);
 
-std::vector<char> readBinaryFile(std::istream& is);
-std::vector<char> readBinaryFile(const Path& p);
+template <typename T>
+constexpr DType DTypeEnum() { return DType::Unknown;}
+
+template<>
+constexpr DType DTypeEnum<float>() { return DType::FLOAT32;}
+
+template<>
+constexpr DType DTypeEnum<double>() { return DType::FLOAT64;}
+
 
 #ifdef KAPTURE_USE_EIGEN
 typedef Eigen::Quaternion<double> QRot;
@@ -94,10 +145,10 @@ public:
     size_t line() const { return mLine; }
 
 private:
-    const std::string& mErrorMsg;
-    const std::string& mFile;
+    const std::string mErrorMsg;
+    const std::string mFile;
     size_t mLine;
-    const std::string& mFunc;
+    const std::string mFunc;
 };
 
 

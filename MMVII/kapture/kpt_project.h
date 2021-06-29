@@ -2,10 +2,9 @@
 #define KPY_PROJECT_H
 
 #include <algorithm>
-#include <functional>
 #include "kpt_common.h"
 #include "kpt_sensors.h"
-#include "kpt_features.h"
+#include "kpt_reconstruction.h"
 
 
 namespace Kapture {
@@ -24,27 +23,6 @@ inline void setProject(const Path& path);
 inline void setProject(const Project& project);
 
 
-
-enum PathType {
-    SENSORS_FILE, TRAJECTORIES_FILE, RIGS_FILE, RECORDS_CAMERA_FILE,
-    POINTS3D_FILE,
-    RECORDS_DIR,
-    KEYPOINTS_DIR, KEYPOINTS_FILE,
-    DESCRIPTOR_DIR, DESCRIPTORS_FILE,
-    GLOBAL_FEATURES_FILE,
-    OBSERVATIONS_FILE,
-    MATCHES_DIR
-};
-
-struct KeypointsDef {
-    std::string name;
-    DType type;
-    int size;
-    KeypointsDef() : type(DType::Unknown),size(-1) {}
-    bool hasBeenRead() const { return size>=0;}
-};
-
-
 class Project
 {
 public:
@@ -56,124 +34,75 @@ public:
     Path root() const {return mRoot;}
 
     void load();
+    void save(const Path& rpath);
 
-    const CameraList& cameras() const { return mCameras;}
+    const Camera::List& cameras() const { return mCameras;}
+    const Trajectory::List& trajectories() const { return mTrajectories;}
+    const Rig::List& rigs() const { return mRigs;}
+    const RecordsCamera::List& imageRecords() const { return mRecordsCamera;}
+
+    Sensor::List readSensors() const { return Sensor::read(localPath(sensorsPath())); }
+    Camera::List readCameras() const { return Camera::read(localPath(sensorsPath())); };
+    Trajectory::List readTrajectories() const { return Trajectory::read( localPath(trajectoriesPath())); }
+    Rig::List readRigs() const { return Rig::read( localPath(rigsPath())); }
+    RecordsCamera::List readRecordsCamera() const { return RecordsCamera::read( localPath(recordsCameraPath())); }
+
     const Camera* camera(const std::string& device) ;
-    const TrajectoryList& trajectories() const { return mTrajectories;}
     const Trajectory* trajectory(timestamp_t timestamp, const std::string& device);
-    const RigList& rigs() const { return mRigs;}
     const Rig rig(const std::string rigID);
 
-    const ImageRecordList& imageRecords() const { return mImageRecords;}
 
     // Kapture version of the dataset
     std::string version();
     // Last supported version of the kapture format
     static std::string currentVersion();
 
-    // Return full pathname (relative to rootPath/records_data) of all images matching (regex) name.
-    PathList imagesMatch(const std::string &name="") const;
-    // Return full relative pathname of the image matching (regex) name.
+    // Return pathname relative to rootPath/records_data of all images matching re(regex) .
+    PathList imagesMatch(const std::string &re="") const;
+    // Return pathname relative to rootPath/records_data of the unique image matching re(regex).
     // If none or several match, return empty path
-    Path     imageName(const std::string &name) const;
+    Path     imageMatch(const std::string &re) const;
 
-    // Return "absolute path" of an image path : rootPath / records_data / path
+    // Return absolute path of an image path : rootPath / records_data / path
     Path     imagePath(const Path &path) const;
 
-    // Return "absolute path" of an image name (regex) : rootpath / records_data / imageName(name)
-    Path     imagePath(const std::string &name) const;
-    Path     imagePath(const char *name) const;
+    // Return absolute path of an image re (regex) : rootpath / records_data / imageMatch(name)
+    Path     imagePath(const std::string &re) const;
+    Path     imagePath(const char *re) const;
 
 
     // Homologous points
-
-    std::vector<std::pair<std::string,std::string>> allCoupleMatches();
+    std::vector<std::pair<std::string,std::string>> allCoupleMatches(const std::string &match_type);
 
     // MATCH is a class which must have a constructor accepting 4 numbers (float/double) : MATCH(float x1, float y1, float x2, float y2)
     // image path must be relative to rootPath / records_data (use imageName() or returns from readImageRecords() )
-    template<typename MATCH>
-    void readMatches(const Path& image1, const Path& image2,std::vector<MATCH>& matches);
+    template<typename PAIR>
+    void readMatches(const Path& image1, const Path& image2, const std::string& keypoint_type, std::vector<PAIR>& pairs);
 
     // Same, can be used as :  auto matchList = readMatches<MyMatchType>(img1,img2)
-    template<typename MATCH>
-    std::vector<MATCH> readMatches(const Path& image1, const Path& image2);
+    template<typename PAIR>
+    std::vector<PAIR> readMatches(const Path& image1, const Path& image2, const std::string& keypoint_type);
 
     // Return a std::vector<Kapture::Match>,  Kapture::Match is a simple struct of 4 floats: x1,y1,x2,y2 (see: kpt_features.h)
-    MatchList readMatches(const Path& image1, const Path& image2)
+    Pair::List readMatches(const Path& image1, const Path& image2, const std::string& keypoint_type)
     {
-        return readMatches<Match> (image1,image2);
+        return readMatches<Pair> (image1,image2,keypoint_type);
     }
 
-
-    // Homologous points, "slow" API: don't load full keypoints file in memory
-    template<typename MATCH>
-    void readMatchesSlow(const Path& image1, const Path& image2,std::vector<MATCH>& matches);
-
-    template<typename MATCH>
-    std::vector<MATCH> readMatchesSlow(const Path& image1, const Path& image2);
-
-    MatchList readMatchesSlow(const Path& image1, const Path& image2)
-    {
-        return readMatchesSlow<Match> (image1,image2);
-    }
 
 private:
-    const KeypointsDef &keypointsDef();
-    void keypointsDefCheck();
-    bool readKeypointDef();
-
     // Is dataset a supported kapture version ?
     bool checkVersion();
 
-    // Get full path of a file or dir inside dataset: return rootPath / relPath
-    Path path(const Path& relPath) const;
-    // Same for conventional path : path(SENSORS_FILE) return rootPath / "sensors/sensors.txt"
-    Path path(PathType pathType) const;
+    Path localPath(const Path& path) const { return root() / path; }
 
 
-    static StringList parseLine(const std::string line);
-
-    static void csvParse(const Path &path, unsigned nbMinValue,
-                         const std::vector<std::pair<unsigned, std::string> > matches,
-                         std::function<bool(const StringList& values, const std::string& fName, unsigned line)> f);
-    void csvParse(PathType pType, unsigned nbMinValue,
-                         const std::vector<std::pair<unsigned, std::string> > matches,
-                         std::function<bool(const StringList& values, const std::string& fName, unsigned line)> f) const;
-
-    // Return all sensors present in sensors.txt (device, name, type, params)
-    SensorList readSensors() const;
-    // Return sensors matching id, name and type (regex). Empty string match all
-    SensorList readSensors(const std::string& id,  const std::string& name,  const std::string& type) const;
-
-    // Return all cameras present in sensors.txt (device, name, CAMERA, model, modelParams)
-    CameraList readCameras() const;
-    // Filter by regex
-    CameraList readCameras(const std::string &id, const std::string &name, const std::string &model) const;
-
-    // Return all trajectories (timestamp, device, quaternion, pos)
-    TrajectoryList readTrajectories() const;
-    // Return trajectories filtered by regex device or by min/max timetamp
-    TrajectoryList readTrajectories(const std::string &device, int64_t min=-1, int64_t max=-1) const;
-
-    // Return all rigs (name, device, quaternion, pos)
-    RigList readRigs() const;
-    // Return rigs matching name and device (regex)
-    RigList readRigs(const std::string &name, const std::string &device) const;
-
-    // Return all image records (timestamp, device, imageName)
-    ImageRecordList readImageRecords() const;
-    // Return image records filtered by regex or by min/max timetamp
-    ImageRecordList readImageRecords(const std::string &device, const std::string &path,int64_t min=-1, int64_t max=-1) const;
-
-
-    Path matchPath(Path img1, Path img2) const;
     void prepareReadMatches(const Path& image1, const Path& image2, std::ifstream& mStream, std::ifstream& kpt1, std::ifstream& kpt2, bool& swapImg);
 
     template<typename T, typename M>
-    static void doReadMatches(std::istream& mStream, std::istream& kpt1, std::istream& kpt2, unsigned featureSize, bool swapImg, std::vector<M>& matches);
-
-    template<typename T, typename M>
-    static void doReadMatchesSlow(std::istream& mStream, std::istream& kpt1, std::istream& kpt2, unsigned featureSize, bool swapImg, std::vector<M>& matches);
+    void doReadMatches(Path image1, Path image2,  const std::string& keypoints_type,
+                       const KeypointsType& kType,
+                       std::vector<M>& pairs);
 
     friend Project& project();
     friend void setProject(const Path& path);
@@ -181,13 +110,12 @@ private:
 
     static Project theProject;
     Path mRoot;
-    KeypointsDef mKeypointsDef;
     std::string mVersion;
 
-    CameraList mCameras;
-    ImageRecordList mImageRecords;
-    TrajectoryList mTrajectories;
-    RigList mRigs;
+    Camera::List mCameras;
+    RecordsCamera::List mRecordsCamera;
+    Trajectory::List mTrajectories;
+    Rig::List mRigs;
 };
 
 
@@ -201,104 +129,56 @@ inline void setProject(const Project& project) { Project::theProject = project ;
 // Impl
 
 template<typename T, typename M>
-void Project::doReadMatches(std::istream& mStream, std::istream& kpt1, std::istream& kpt2, unsigned featureSize, bool swapImg, std::vector<M>& matches)
+void Project::doReadMatches(Path image1, Path image2,  const std::string& keypoints_type,
+                            const KeypointsType& kType,
+                            std::vector<M>& pairs)
 {
-    matches.clear();
-    struct {
-        double key1,key2,score;
-    } match;
+    bool swapImg = false;
+    pairs.clear();
+    if (image2 < image1) {
+        swap(image1,image2);
+        swapImg = true;
+    }
 
-    auto kpt1Vector = readBinaryFile(kpt1);
-    auto kpt2Vector = readBinaryFile(kpt2);
+    Path kpt1Path = localPath(keypointsPath(image1,keypoints_type));
+    Path kpt2Path = localPath(keypointsPath(image2,keypoints_type));
+    Path matchFile = localPath(matchesPath(image1,image2,keypoints_type));
 
-    Keypoint<MappedStorage<T>> k1(featureSize);
-    Keypoint<MappedStorage<T>> k2(featureSize);
+    auto kpt1 = Keypoints<T>::read(kpt1Path,kType.dsize());
+    auto kpt2 = Keypoints<T>::read(kpt1Path,kType.dsize());
+    auto matches = Matches::read(matchFile);
 
-    while (mStream.read((char*)&match, sizeof match)) {
-        k1.remap(kpt1Vector.data() + (int)match.key1 * k1.bytes());
-        k2.remap(kpt2Vector.data() + (int)match.key2 * k2.bytes());
+    for (const auto &match : matches) {
         if (swapImg) {
-            matches.emplace_back(k2.x(),k2.y(),k1.x(),k1.y());
+            pairs.emplace_back(kpt2.x(match.idx2()),kpt2.y(match.idx2()),kpt1.x(match.idx1()),kpt1.y(match.idx1()));
         } else {
-            matches.emplace_back(k1.x(),k1.y(),k2.x(),k2.y());
+            pairs.emplace_back(kpt1.x(match.idx1()),kpt1.y(match.idx1()),kpt2.x(match.idx2()),kpt2.y(match.idx2()));
         }
     }
 }
 
 
 
-template<typename MATCH>
-void Project::readMatches(const Path& image1, const Path& image2,std::vector<MATCH>& matches)
+template<typename PAIR>
+void Project::readMatches(const Path& image1, const Path& image2, const std::string& keypoint_type, std::vector<PAIR>& pairs)
 {
-    bool swapImg;
-    std::ifstream mStream,kpt1,kpt2;
+    auto kType = KeypointsType::read(localPath(keypointsTypePath(keypoint_type)));
 
-    prepareReadMatches(image1, image2, mStream, kpt1, kpt2, swapImg);
-
-    switch (keypointsDef().type) {
-    case DType::FLOAT32: doReadMatches<float>(mStream,kpt1,kpt2,keypointsDef().size,swapImg, matches); break;
-    case DType::FLOAT64: doReadMatches<double>(mStream,kpt1,kpt2,keypointsDef().size,swapImg, matches); break;
-    default: throw Error(std::string("Unsupported data type ") + dtypeToStr(keypointsDef().type) + " for keypoints", __FILE__,__LINE__, __func__);
+    switch (kType.dtype()) {
+    case DType::FLOAT32: doReadMatches<float>(image1,image2,keypoint_type,kType, pairs); break;
+    case DType::FLOAT64: doReadMatches<double>(image1,image2,keypoint_type,kType, pairs); break;
+    default: throw Error(std::string("Unsupported data type ") + dtypeToStr(kType.dtype()) + " for keypoints", __FILE__,__LINE__, __func__);
     }
 }
 
 
-template<typename MATCH>
-std::vector<MATCH> Project::readMatches(const Path& image1, const Path& image2)
+template<typename PAIR>
+std::vector<PAIR> Project::readMatches(const Path& image1, const Path& image2, const std::string& keypoint_type)
 {
-    std::vector<MATCH> matches;
-    this->readMatches(image1,image2,matches);
-    return matches;
+    std::vector<PAIR> pairs;
+    this->readMatches(image1,image2,keypoint_type,pairs);
+    return pairs;
 }
-
-
-template<typename T, typename M>
-void Project::doReadMatchesSlow(std::istream& mStream, std::istream& kpt1, std::istream& kpt2, unsigned featureSize, bool swapImg, std::vector<M>& matches)
-{
-    matches.clear();
-    struct {
-        double key1,key2,score;
-    } match;
-    Keypoint<std::vector<T>> k1(featureSize);
-    Keypoint<std::vector<T>> k2(featureSize);
-
-    while (mStream.read((char*)&match, sizeof match)) {
-        kpt1.seekg(match.key1 * k1.bytes());
-        kpt1.read((char*)k1.data(), k1.bytes());
-        kpt2.seekg(match.key2 * k2.bytes());
-        kpt2.read((char*)k2.data(), k2.bytes());
-        if (swapImg) {
-            matches.emplace_back(k2.x(),k2.y(),k1.x(),k1.y());
-        } else {
-            matches.emplace_back(k1.x(),k1.y(),k2.x(),k2.y());
-        }
-    }
-}
-
-
-template<typename MATCH>
-void Project::readMatchesSlow(const Path& image1, const Path& image2, std::vector<MATCH>& matches)
-{
-    bool swapImg;
-    std::ifstream mStream,kpt1,kpt2;
-
-    prepareReadMatches(image1, image2, mStream, kpt1, kpt2, swapImg);
-
-    switch (keypointsDef().type) {
-    case DType::FLOAT32: return doReadMatchesSlow<float>(mStream,kpt1,kpt2,keypointsDef().size,swapImg,matches);
-    case DType::FLOAT64: return doReadMatchesSlow<double>(mStream,kpt1,kpt2,keypointsDef().size,swapImg,matches);
-    default: throw Error(std::string("Unsupported data type ") + dtypeToStr(keypointsDef().type) + " for keypoints", __FILE__,__LINE__, __func__);
-    }
-}
-
-template<typename MATCH>
-std::vector<MATCH> Project::readMatchesSlow(const Path& image1, const Path& image2)
-{
-    std::vector<MATCH> matches;
-    this->readMatchesSlow(image1,image2,matches);
-    return matches;
-}
-
 
 } // namespace Kapture
 
