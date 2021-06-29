@@ -369,7 +369,7 @@ cGP_Params::cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOve
    mNbIter1      (4),
    mNbIterMin    (2),
    mConvolC0     (1.0),
-   mScaleDirOrig (4.0),
+   mScaleDirOrig (10.0),
    mEstimSigmInitIm0  (DefStdDevImWellSample)
 {
 }

@@ -559,6 +559,7 @@ cCollecSpecArg2007 & cAppli::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    return
       anArgOpt
          << AOpt2007(mSzTile,"SzTile","Size of tiling used to split computation",{eTA2007::HDV})
+         << AOpt2007(mSzOverL,"SzOverL","Size of overlap between tiles",{eTA2007::HDV})
          << AOpt2007(mOutPx,CurOP_Out,"Name of Out file, def=Px_+$Im1")
          << AOpt2007(mModePad,"ModePad","Type of padding, default depend of match mode",{AC_ListVal<eModePaddingEpip>()})
          << AOpt2007(mRandPaded,"RandPaded","Generate random value for added pixel")
