@@ -5,6 +5,8 @@
 #include <vector>
 #include <chrono>
 #include <ostream>
+#include <functional>
+
 #include "kpt_common.h"
 
 #define dbg             if (Kapture::debugOn) fprintf(stderr,"%d\n",__LINE__)
@@ -107,6 +109,11 @@ const char *EnumAndStr<T>::toStr(T n) const
 
 #define MAKE_ENUM_STR(x)    {x,#x}
 #define MAKE_TENUM_STR(t,x) {t::x,#x}
+
+
+void csvParse(const Path &path, std::vector<int> nbValues,
+              std::function<bool(const StringList& values, const std::string& fName, unsigned line)> f);
+
 
 
 } // namespace Kapture

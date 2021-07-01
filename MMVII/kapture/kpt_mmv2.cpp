@@ -1,5 +1,5 @@
 #include "include/MMVII_all.h"
-
+#include "kapture.h"
 
 namespace MMVII
 {
@@ -11,9 +11,6 @@ namespace MMVII
 /*                                                      */
 /* ==================================================== */
 
-/// An application for random selection of music
-/**
-*/
 
 std::ostream& operator<<(std::ostream& os, const Kapture::QRot& rot)
 {
@@ -33,7 +30,7 @@ std::ostream& operator<<(std::ostream& os, const Kapture::Orientation& o)
         os << o.q();
     os << ":";
     if (o.hasVec())
-        os << o.v();
+        os << o.t();
     return os;
 }
 
@@ -110,15 +107,24 @@ int cAppli_Kapture::Exe()
 {
     Kapture::setProject(mProjectPath);
     Kapture::Project &p = Kapture::project();
-    p.load();
 
     std::cout << "Project version     : " << p.version() << "\n";
     std::cout << "Current API version : " << Kapture::Project::currentVersion() << "\n";
 
+    p.load();
+
+    if (mCommand == "save") {
+        if (mCmdArg1 == "") {
+            std::cerr  << "cmd 'save' needs a directory arg.\n";
+            exit (1);
+        }
+        p.save(mCmdArg1);
+    }
+
     if (mCommand == "cameras") {
         for (const auto& c : p.cameras()) {
-            std::cout << c.device() << ":" << c.name() << ":" << c.modelStr() << ":";
-            for (const auto& p : c.modelParams())
+            std::cout << c.sensor_device_id() << ":" << c.name() << ":" << c.modelStr() << ":";
+            for (const auto& p : c.model_params())
                 std::cout << p << ",";
             std::cout << "\n";
         }
@@ -127,14 +133,14 @@ int cAppli_Kapture::Exe()
 
     if (mCommand == "records") {
         for (const auto& record : p.imageRecords()) {
-            std::cout << record.timestamp() << ":" << record.device() << ":" << record.image() << ":";
+            std::cout << record.timestamp() << ":" << record.device_id() << ":" << record.image_path() << ":";
             if (record.trajectory())
                 std::cout << *record.trajectory();
             else
                 std::cout << ":";
             std::cout << ":";
             if (record.camera())
-                std::cout << record.camera()->device() << ":" << record.camera()->modelParams();
+                std::cout << record.camera()->sensor_device_id() << ":" << record.camera()->model_params();
             else
                 std::cout << ":";
             std::cout << "\n";
@@ -150,7 +156,7 @@ int cAppli_Kapture::Exe()
 
     if (mCommand == "traj") {
         for (const auto &t : p.trajectories()) {
-            std::cout << t.timestamp() << ":" << t.device() << ":" ;
+            std::cout << t.timestamp() << ":" << t.device_id() << ":" ;
             std::cout << t << "\n";
         }
         exit(EXIT_SUCCESS);
@@ -158,27 +164,27 @@ int cAppli_Kapture::Exe()
 
     if (mCommand == "rigs") {
         for (const auto &r : p.rigs()) {
-            std::cout << r.name() << ":" << r.device() << ":" ;
+            std::cout << r.rig_device_id() << ":" << r.sensor_device_id() << ":" ;
             std::cout << r << "\n";
         }
         exit(EXIT_SUCCESS);
     }
 
     if (mCommand == "matches") {
-        auto allMatches = p.allCoupleMatches();
-        for (const auto&[img1, img2] : p.allCoupleMatches())
+        auto allMatches = p.allCoupleMatches(mCmdArg1);
+        for (const auto&[img1, img2] : allMatches)
             std::cout <<  img1 << ":" << img2<< "\n";
         std::cout << allMatches.size() << " homologous files\n";
         exit(EXIT_SUCCESS);
     }
 
     if (mCommand == "match") {
-        auto img1 = p.imageName(mCmdArg1);
-        auto img2 = p.imageName(mCmdArg2);
+        auto img1 = p.imageMatch(mCmdArg1);
+        auto img2 = p.imageMatch(mCmdArg2);
 
-        auto myMatch = p.readMatches<Homol>(img1,img2);
-        for (const auto& m: myMatch)
-            std::cout << "(" << m.p1.x << "," << m.p1.y << "),(" << m.p2.x << "," << m.p2.y << ")\n";
+//        auto myMatch = p.readMatches<Homol>(img1,img2);
+//        for (const auto& m: myMatch)
+//            std::cout << "(" << m.p1.x << "," << m.p1.y << "),(" << m.p2.x << "," << m.p2.y << ")\n";
 
 //        auto matches = p.readMatches(img1,img2);
 //        for (const auto& m: matches)
