@@ -503,14 +503,14 @@ Une solution qui semble n'avoir aucun des $2$ inconv\'enient est la suivante :
    \item on se donne plusieurs estimateurs $\theta_0$, $\theta_1$ , $\theta_2$ \dots 
 
    \item les pr\'e appariement rapides li\'es aux index binaires (voir \RefFantome)  sont
-         fait sur les différents estimateurs, et ensuite les appariement plus fin sont
+         fait sur les diff\'erents estimateurs, et ensuite les appariement plus fin sont
          fait uniquement sur le meilleur pr\'e-appariment rapide (dans l'hypoth\`ese o\`u
          deux points sont pr\'e-appari\'es  plusieurs fois);
 
    \item  un compl\'ement \`a cette approche, prometteuse mais non encore impl\'ement\'ee, est de se donner
           pour chaque estimateur  direction un estimateur de sa stablilit\`e , c'est assez facile
          \`a d\'efinir avec les estimateurs bas\'es sur les histogrammes; 
-          par exemple si  le maximum est réalise en $v_m$ une formule bas\'ee sur la d\'eriv\'e logarithique
+          par exemple si  le maximum est r\'ealise en $v_m$ une formule bas\'ee sur la d\'eriv\'e logarithique
           tel~\ref{DerLogH}
 % est  second x situ\'es en $v_1$ et $v_2$,
           % on peut envisager $\frac{M_1+M_2}{M_1-M_2}
@@ -657,19 +657,96 @@ Pour donner un peu plus de concret, donnons quelques chiffres invent\'es mais r\
 \end{itemize}
 
         %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-\subsubsection{Gestion des directions}
+
+\subsubsection{Descripteur binaire et gestion des orientations}
+
+Concernant l'invariance par rotation et la gestion avec plusieurs estimateurs de directions
+principales, la solution retenues dans {\tt MMVII} est d'avoir pour chaque estimateur une
+duplication des descripteur binaires.
+
+Cette solution est retenue car le coût de stockage de ces descripteur reste faible par rapport
+\`a $\LP$, et cette solution est prudente par rapport 
 
         %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
     % ==================================================================================
 \subsection{Descripteurs index\'es}
-
 \label{DescIndex}
+
+\subsubsection{Principe g\'en\'eral}
+
+Une indexation des descripteur permet de retrouver instantan\'ement, parmi
+un ensemble de point carac\'estique, ceux dont le decripteur binaire se trouve
+\`a une distance de hamming inf\'erieure \`a un seuil donn\'e d'un autre point.
+
+Le principe g\'en\'eral est le suivant :
+
+\begin{itemize}
+   \item on consid\`ere un "petit" descripteur sur $N$ bits;
+   \item on cr\'ee une table de liste de pointeur sur les points caract\'éristiques,
+         de taille $2^N$, 
+   \item soit $d$ le seuil en distance de Hamming que l'on souhaite utiliser, et $S_d$
+         l'ensemble des entiers sur $N$ bits, ayant au maximum $d$ bits \`a $1$;
+   \item pour chaque point caract\'eristque $P$, soit $\ChBit$ le code binaire de $P$,
+         on rajoute le pointeur sur $P$ aux indexes $\ChBit \hat s$ pour tous les  $s \in S_d$;
+\end{itemize}
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Utilisation}
+
+Pour factoriser le co\^ut de construction de la table, l'usage typique est le suivant :
+on construit les tables pour une image $I_0$ et ensuite on l'utilise pour toutes les images $I_k$
+sur lesquelles on doit effectuer un appariement avec $I_0$.
+
+Concernant les  directions multiples, une fa\c{c}on de l'utiliser est :
+
+\begin{itemize}
+    \item on construit autant de table que d'estimateur de direction;
+    \item dans la phase de construction, pour chaque point de $I_0$, 
+          on prend son estimateur direction correspondant au meilleur estimateur 
+          de stabilit\'e  et on le rentre dans la table correspondante;
+    \item dans la phase d'utilisation, pour un point $I_k$, on va exlporer
+          chaque estimateur de direction avec sa table correspondante;
+\end{itemize}
+
+D'autres strat\'egies sont possibles : avoir tous les estimateurs dans $I_0$ et
+$I_k$ (couteux, couples pr\'esent plusieurs fois), n'avoir que les estimateurs les plus tables dans $I_0$ et $I_k$
+(\'economique mais risque d'omettre des points lorsque plusieurs estimateurs donnent des r\'eponses proches).
+
+
+Celle ci a l'avantage d'avoir une taille totale
+des tables : qui est ind\'ependante du nombre d'estimateur (chaque point est pr\'esent exactement dans
+une seule table) , chaque couple est repr\'esent\'e par un seul de ses estimateurs qui est
+le plus stable pour un des points, dans les cas limite o\`u plusieurs estimateur de direction
+ont quasimment la m\^eme valeur de stabilit\'e
+
+
 
     % ==================================================================================
     % ==================================================================================
     % ==================================================================================
 \section{Programme par Apprentissage}
+
+
+\subsection{G\'en\'eralit\'es}
+
+Les techniques par apprentissages ont montr\'e des performances int\'eressante lorsque 
+l'on est capable de leur fournir des jeux d'entrainement suffisemment massifs.
+Or dans le contexte des points de liaisons ces donn\'ees massives peuvent venir de trois 
+origines :
+
+\begin{itemize}
+    \item donn\'ees issue d'aquisition conjointe lidar/photogramm\'etrique, les point lidar
+          permettant de g\'en\'erer des homologues semi-denses;  
+
+    \item donn\'ees issue d'acquisition photogramm\'etrique, le mod\`eles $3D$ dense
+          permettant  de valider les homologues;
+
+    \item donn\'ees de simulations, r\'ealistes ou non ;
+\end{itemize}
+
+
 
 
     % ==================================================================================
@@ -685,6 +762,27 @@ Seulement les echelles hautes
     % ==================================================================================
 \section{Filtrage spatiales}
 
+Notamment relaxation apr\`es appariement multiple.
+
+    % ==================================================================================
+    % ==================================================================================
+    % ==================================================================================
+\section{Affinement g\'eom\'etrique-densification}
+
+    % ==================================================================================
+    % ==================================================================================
+    % ==================================================================================
+
+\section{Road map propos\'ee}
+
+Il reste beaucoup de chose \`a faire, il s'agit de proposer une strat\'egie/ordonnancement de d\'eveloppement
+prenant en compte des crit\`eres diff\'erents et parfois contradictoire :  valorisation
+op\'erationnelle dans {\tt MMVII}, valorisation en recherche et publication acad\'emique,
+besoin IGN, d\'ependance entre les diff\'erentes \'étapes, degr\'e d'incertitude sur des hypoth\`ese
+\`a v\'erifier \dots 
+
+
+
 
 
 \begin{equation}
@@ -698,12 +796,6 @@ Seulement les echelles hautes
    \item indexe binaire
     \item crit\`ere rapide de d\'etection de paires
 \end{itemize}
-
-
-\subsection{Descripteurs index\'es}
-
-
-\subsection{Programme par Apprentissage}
 
 
 
