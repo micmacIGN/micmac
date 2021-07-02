@@ -77,6 +77,7 @@ class cAppliCalcDescPCar : public cMMVII_Appli
         int         mSzTile;    ///<  sz of tiles for spliting in sub processe
         int         mOverlap;   ///< sz of  overlap between tiles
         int         mNbOct;
+        int         mSzMinOct;  ///< Avoid too small octave who generate bugs
         int         mNbLevByOct;
         int         mNbOverLapByO;
         bool        mSaveIms;
@@ -108,6 +109,13 @@ template<class Type> cTplAppliCalcDescPCar<Type>::cTplAppliCalcDescPCar(cAppliCa
    mBoxIn     (cRect2::TheEmptyBox),
    mBoxOut    (cRect2::TheEmptyBox)
 {
+   if (! anAppli.IsInit(&anAppli.mNbOct))
+   {
+      double aRatioLarg = MinAbsCoord(mDFI.Sz()) / double(anAppli.mSzMinOct) ;
+      double aLog2Larg = std::log(aRatioLarg) / std::log(2);
+
+      anAppli.mNbOct = std::min(anAppli.mNbOct,round_down(aLog2Larg));
+   }
 }
 
 template<class Type> void cTplAppliCalcDescPCar<Type>::ExeGlob()
@@ -246,6 +254,7 @@ cAppliCalcDescPCar:: cAppliCalcDescPCar(const std::vector<std::string> &  aVArgs
   mSzTile       (7000),
   mOverlap      (300),
   mNbOct        (7),
+  mSzMinOct     (20),
   mNbLevByOct   (5),
   mNbOverLapByO (3),
   mSaveIms      (false),
@@ -274,6 +283,7 @@ cCollecSpecArg2007 & cAppliCalcDescPCar::ArgOpt(cCollecSpecArg2007 & anArgOpt)
        << AOpt2007(mSzTile,"TileSz","Size of tile for spliting computation",{eTA2007::HDV})
        << AOpt2007(mOverlap,"TileOL","Overlao of tile to limit sides effects",{eTA2007::HDV})
        << AOpt2007(mNbOct,"PyrNbO","Number of octaves in Pyramid",{eTA2007::HDV})
+       << AOpt2007(mSzMinOct,"SzMinOct","Minimal size for an octave",{eTA2007::HDV})
        << AOpt2007(mNbLevByOct,"PyrNbL","Number of level/Octaves in Pyramid",{eTA2007::HDV})
        << AOpt2007(mNbOverLapByO,"PyrNbOverL","Number of overlap  in Pyram(change only for Save Image)",{eTA2007::HDV})
        << AOpt2007(mSaveIms,"SaveIms","Save images (tuning/debuging/teaching)",{eTA2007::HDV})
