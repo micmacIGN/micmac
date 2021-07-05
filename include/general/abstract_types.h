@@ -812,6 +812,12 @@ Fonc_Num CosRx(Fonc_Num);  // cos sqrt x
 double SinCardRx(double);  // cos sqrt x
 Fonc_Num SinCardRx(Fonc_Num);  // cos sqrt x
 
+double IsInf(double);  // boolean is it inf ?
+Fonc_Num IsInf(Fonc_Num);  
+double IsNan(double);  // boolean is it nan ?
+Fonc_Num IsNan(Fonc_Num);  
+double IsBadNum(double);  // boolean is it inf or nan ?
+Fonc_Num IsBadNum(Fonc_Num);  
 
 
     // Operateur utile a la fonction de conversion des Fish Eye Linear

@@ -552,6 +552,90 @@ std::string  Mangling( cGpsRelativeWeighting *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_OneObsPlane
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_OneObsPlane & anObj,cElXMLTree * aTree);
+
+
+        double & Sigma();
+        const double & Sigma()const ;
+
+        double & Cste();
+        const double & Cste()const ;
+
+        Pt3dr & Vect();
+        const Pt3dr & Vect()const ;
+    private:
+        double mSigma;
+        double mCste;
+        Pt3dr mVect;
+};
+cElXMLTree * ToXMLTree(const cXml_OneObsPlane &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_OneObsPlane &);
+
+void  BinaryUnDumpFromFile(cXml_OneObsPlane &,ELISE_fp &);
+
+std::string  Mangling( cXml_OneObsPlane *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_ObsPlaneOnPose
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_ObsPlaneOnPose & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameIm();
+        const std::string & NameIm()const ;
+
+        std::list< cXml_OneObsPlane > & Obs1Plane();
+        const std::list< cXml_OneObsPlane > & Obs1Plane()const ;
+    private:
+        std::string mNameIm;
+        std::list< cXml_OneObsPlane > mObs1Plane;
+};
+cElXMLTree * ToXMLTree(const cXml_ObsPlaneOnPose &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_ObsPlaneOnPose &);
+
+void  BinaryUnDumpFromFile(cXml_ObsPlaneOnPose &,ELISE_fp &);
+
+std::string  Mangling( cXml_ObsPlaneOnPose *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_FileObsPlane
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_FileObsPlane & anObj,cElXMLTree * aTree);
+
+
+        std::list< cXml_ObsPlaneOnPose > & Obs1Im();
+        const std::list< cXml_ObsPlaneOnPose > & Obs1Im()const ;
+    private:
+        std::list< cXml_ObsPlaneOnPose > mObs1Im;
+};
+cElXMLTree * ToXMLTree(const cXml_FileObsPlane &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_FileObsPlane &);
+
+void  BinaryUnDumpFromFile(cXml_FileObsPlane &,ELISE_fp &);
+
+std::string  Mangling( cXml_FileObsPlane *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cAperoPointeStereo
 {
     public:

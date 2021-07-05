@@ -274,6 +274,23 @@
 </GpsRelativeWeighting>
 
 
+<Xml_OneObsPlane  Nb="1" Class="true" ToReference="true">
+     <!-- Code  (P.Vect-Cste)/Sigma=0 , Vects sera calcule comme unitaire -->
+     <Sigma Type="double" Nb="1">  </Sigma>
+     <Cste  Type="double" Nb="1"> </Cste>
+     <Vect  Type="Pt3dr" Nb="1"> </Vect>
+</Xml_OneObsPlane>
+
+<Xml_ObsPlaneOnPose  Nb="1" Class="true" ToReference="true">
+      <NameIm Nb="1" Type="std::string"> </NameIm>
+      <Obs1Plane Nb="+" RefType="Xml_OneObsPlane">  </Obs1Plane>
+</Xml_ObsPlaneOnPose>
+
+<Xml_FileObsPlane Nb="1" Class="true" ToReference="true">
+      <Obs1Im Nb="+" RefType="Xml_ObsPlaneOnPose">  </Obs1Im>
+</Xml_FileObsPlane>
+
+
 
 <AperoPointeStereo Nb="1" Class="true" ToReference="true">
       <P1 Nb="1" Type="Pt2dr"> </P1>

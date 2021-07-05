@@ -350,6 +350,7 @@ void cSetAimePCAR::InitFromFile(const std::string & aName)
 
 void cSetAimePCAR::SaveInFile(const std::string & aName) const
 {
+ //  StdOut() << "MMPPPDD " << aName << " "  << (const_cast<cSetAimePCAR *>(this))->VPC().size()  << "\n";
      MMVII::SaveInFile(*this,aName);
 
      if (0)

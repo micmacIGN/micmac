@@ -317,7 +317,7 @@ void cFilterPCar::FinishAC(double aVal)
     for (int aK=1 ; aK< 3 ; aK++)
     {
         if (int(mAutoC.size()) == aK)
-           mAutoC.push_back(mAutoC.back()-0.05);
+           mAutoC.push_back(mAutoC.back()-aVal);
     }
 }
 

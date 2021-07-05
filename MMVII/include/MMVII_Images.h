@@ -462,6 +462,12 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
            tPB::AssertInsideBL(aP);
            return  ValueBL(aP);
        }
+       inline double DefGetVBL(const cPt2dr & aP,double aDef) const
+       {
+            if (tPB::InsideBL(aP))
+               return ValueBL(aP);
+            return aDef;
+       }
 
            /// Get Value, check access in non release mode
         const Type & GetV(const cPt2di & aP)  const

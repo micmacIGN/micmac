@@ -1763,6 +1763,213 @@ void xml_init(cGpsRelativeWeighting & anObj,cElXMLTree * aTree)
 std::string  Mangling( cGpsRelativeWeighting *) {return "26A929420A8405AAFF3F";};
 
 
+double & cXml_OneObsPlane::Sigma()
+{
+   return mSigma;
+}
+
+const double & cXml_OneObsPlane::Sigma()const 
+{
+   return mSigma;
+}
+
+
+double & cXml_OneObsPlane::Cste()
+{
+   return mCste;
+}
+
+const double & cXml_OneObsPlane::Cste()const 
+{
+   return mCste;
+}
+
+
+Pt3dr & cXml_OneObsPlane::Vect()
+{
+   return mVect;
+}
+
+const Pt3dr & cXml_OneObsPlane::Vect()const 
+{
+   return mVect;
+}
+
+void  BinaryUnDumpFromFile(cXml_OneObsPlane & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.Sigma(),aFp);
+    BinaryUnDumpFromFile(anObj.Cste(),aFp);
+    BinaryUnDumpFromFile(anObj.Vect(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_OneObsPlane & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.Sigma());
+    BinaryDumpInFile(aFp,anObj.Cste());
+    BinaryDumpInFile(aFp,anObj.Vect());
+}
+
+cElXMLTree * ToXMLTree(const cXml_OneObsPlane & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_OneObsPlane",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("Sigma"),anObj.Sigma())->ReTagThis("Sigma"));
+   aRes->AddFils(::ToXMLTree(std::string("Cste"),anObj.Cste())->ReTagThis("Cste"));
+   aRes->AddFils(::ToXMLTree(std::string("Vect"),anObj.Vect())->ReTagThis("Vect"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_OneObsPlane & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Sigma(),aTree->Get("Sigma",1)); //tototo 
+
+   xml_init(anObj.Cste(),aTree->Get("Cste",1)); //tototo 
+
+   xml_init(anObj.Vect(),aTree->Get("Vect",1)); //tototo 
+}
+
+std::string  Mangling( cXml_OneObsPlane *) {return "ACFEC39587E769E0FDBF";};
+
+
+std::string & cXml_ObsPlaneOnPose::NameIm()
+{
+   return mNameIm;
+}
+
+const std::string & cXml_ObsPlaneOnPose::NameIm()const 
+{
+   return mNameIm;
+}
+
+
+std::list< cXml_OneObsPlane > & cXml_ObsPlaneOnPose::Obs1Plane()
+{
+   return mObs1Plane;
+}
+
+const std::list< cXml_OneObsPlane > & cXml_ObsPlaneOnPose::Obs1Plane()const 
+{
+   return mObs1Plane;
+}
+
+void  BinaryUnDumpFromFile(cXml_ObsPlaneOnPose & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.NameIm(),aFp);
+  { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_OneObsPlane aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Obs1Plane().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_ObsPlaneOnPose & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.NameIm());
+    BinaryDumpInFile(aFp,(int)anObj.Obs1Plane().size());
+    for(  std::list< cXml_OneObsPlane >::const_iterator iT=anObj.Obs1Plane().begin();
+         iT!=anObj.Obs1Plane().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_ObsPlaneOnPose & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_ObsPlaneOnPose",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("NameIm"),anObj.NameIm())->ReTagThis("NameIm"));
+  for
+  (       std::list< cXml_OneObsPlane >::const_iterator it=anObj.Obs1Plane().begin();
+      it !=anObj.Obs1Plane().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Obs1Plane"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_ObsPlaneOnPose & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.NameIm(),aTree->Get("NameIm",1)); //tototo 
+
+   xml_init(anObj.Obs1Plane(),aTree->GetAll("Obs1Plane",false,1));
+}
+
+std::string  Mangling( cXml_ObsPlaneOnPose *) {return "1CA76FB81F4F68A2FF3F";};
+
+
+std::list< cXml_ObsPlaneOnPose > & cXml_FileObsPlane::Obs1Im()
+{
+   return mObs1Im;
+}
+
+const std::list< cXml_ObsPlaneOnPose > & cXml_FileObsPlane::Obs1Im()const 
+{
+   return mObs1Im;
+}
+
+void  BinaryUnDumpFromFile(cXml_FileObsPlane & anObj,ELISE_fp & aFp)
+{
+   { int aNb;
+    BinaryUnDumpFromFile(aNb,aFp);
+        for(  int aK=0 ; aK<aNb ; aK++)
+        {
+             cXml_ObsPlaneOnPose aVal;
+              BinaryUnDumpFromFile(aVal,aFp);
+              anObj.Obs1Im().push_back(aVal);
+        }
+  } ;
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cXml_FileObsPlane & anObj)
+{
+    BinaryDumpInFile(aFp,(int)anObj.Obs1Im().size());
+    for(  std::list< cXml_ObsPlaneOnPose >::const_iterator iT=anObj.Obs1Im().begin();
+         iT!=anObj.Obs1Im().end();
+          iT++
+    )
+        BinaryDumpInFile(aFp,*iT);
+}
+
+cElXMLTree * ToXMLTree(const cXml_FileObsPlane & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Xml_FileObsPlane",eXMLBranche);
+  for
+  (       std::list< cXml_ObsPlaneOnPose >::const_iterator it=anObj.Obs1Im().begin();
+      it !=anObj.Obs1Im().end();
+      it++
+  ) 
+      aRes->AddFils(ToXMLTree((*it))->ReTagThis("Obs1Im"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cXml_FileObsPlane & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.Obs1Im(),aTree->GetAll("Obs1Im",false,1));
+}
+
+std::string  Mangling( cXml_FileObsPlane *) {return "C0F6D9111FC4D588FC3F";};
+
+
 Pt2dr & cAperoPointeStereo::P1()
 {
    return mP1;

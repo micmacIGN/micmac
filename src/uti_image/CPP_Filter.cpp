@@ -367,7 +367,7 @@ static Fonc_Num FOperBin(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
     return anOper(anArg.mVIn.at(0),anArg.mVIn.at(1));
 }
 
-static std::string TheStrOpB="-|/|pow|>=|>|<|<=|==|!=|&|&&|(\\|)|(\\|\\|)|\\^|%|mod|>>|<<";
+static std::string TheStrOpB="-|/|pow|>=|>|<|<=|==|!=|&|&&|(\\|)|(\\|\\|)|\\^|%|mod|>>|<<|f1f2bn";
 static cFilterImPolI  OperBin(FOperBin,2,2,0,0,TheStrOpB,false,"pow F1 F2");
   //----------------------------------------------------------------
 
@@ -378,7 +378,7 @@ static Fonc_Num FOperUn(cFilterImPolI & aFIPI,const cArgFilterPolI & anArg)
     return anOper(anArg.mVIn.at(0));
 }
 
-static std::string TheStrOpU="u-|~|!|signed_frac|ecart_frac|cos|sin|tan|log|log2|exp|square|cube|abs|atan|sqrt|erfcc";
+static std::string TheStrOpU="u-|~|!|signed_frac|ecart_frac|cos|sin|tan|log|log2|exp|square|cube|abs|atan|sqrt|erfcc|isbadnum";
 static cFilterImPolI  OperUn(FOperUn,1,1,0,0,TheStrOpU,false,"cos F");
 
 
@@ -388,7 +388,7 @@ static Fonc_Num FTif(cFilterImPolI &,const cArgFilterPolI & anArg)
    return  Tiff_Im::StdConvGen(anArg.mNameIn,-1,true).in_proj();
 }
 // static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|Tif|Tiff|TIF|TIFF|jpg|jpeg|Jpg|Jpeg|JPG|JPEG)",false);
-static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|jpg|jpeg|cr2|arw|png)",false,"MyFile.tif");
+static cFilterImPolI  OperTif(FTif,0,0,0,0,".*\\.(tif|tiff|jpg|jpeg|cr2|arw|png|pfm|pgm)",false,"MyFile.tif");
 
   //----------------------------------------------------------------
 
@@ -414,7 +414,7 @@ static Fonc_Num FDoubleCste(cFilterImPolI &,const cArgFilterPolI & anArg)
 {
    return   Fonc_Num(ToDouble(anArg.mNameIn));
 }
-static cFilterImPolI  OperDoubleCste(FDoubleCste,0,0,0,0,"-?[0-9]+\\.[0-9]*",false,"3.14");
+static cFilterImPolI  OperDoubleCste(FDoubleCste,0,0,0,0,"-?[0-9]+\\.[0-9]*([eE]-?[0-9]+)?",false,"3.14");
 
 static Fonc_Num FIntCste(cFilterImPolI &,const cArgFilterPolI & anArg)
 {
@@ -898,6 +898,10 @@ cResFilterPolI RecParseStrFNPolI(tCPtr & aStr,cCtxtFoncPolI * aCtx)
 
             return  cResFilterPolI(aPolI.mCalc(aPolI,anArg),anArg.mBox);
         }
+        else
+        {
+             // std::cout << "SYMB NOT MATCHED= " << aIdSymb << "\n";
+        }
     }
 
     std::cout << "For symb=[" << aSymb << "]\n";
@@ -1003,13 +1007,17 @@ for (int ak=0 ; ak<argc ; ak++)
           if (aNbOut>1)
              aNameK = "Nkrp-" + ToString(aK) + aNameOut;
 
+          L_Arg_Opt_Tiff aL;
+          aL = aL+Arg_Tiff(Tiff_Im::ANoStrip());
+
           Tiff_Im aTifOut
                  (
                     aNameK.c_str(),
                     aSzOut,
                     aType,
                     Tiff_Im::No_Compr,
-                    aPIT
+                    aPIT,
+                    aL
                  );
           Output anOutK = aTifOut.out();
 
@@ -1163,6 +1171,7 @@ int Contrast_main(int argc,char ** argv)
 int TournIm_main(int argc,char ** argv)
 {
     std::string aNameIm;
+    std::string aNameOut;
     int  aNumGeom = 1;
     ElInitArgMain
     (
@@ -1170,6 +1179,7 @@ int TournIm_main(int argc,char ** argv)
          LArgMain()  << EAMC(aNameIm,"Name of Input image", eSAM_IsExistFile),
          LArgMain()
                      << EAM(aNumGeom,"NumGeom",true,"0=>Id,1=>90(def), 2=>180,3=>270,[4-7]=>Sym", eSAM_NoInit)
+                     << EAM(aNameOut,"Out",true,"Destination")
     );
 
     Tiff_Im aTif =  Tiff_Im::StdConvGen(aNameIm,-1,true);
@@ -1214,7 +1224,9 @@ int TournIm_main(int argc,char ** argv)
         ELISE_ASSERT(false,"Unhandled value for NumGeom");
     }
 
-    std::string aNameOut = DirOfFile(aNameIm) + aPref+ StdPrefix(NameWithoutDir(aNameIm))+".tif";
+    if (!EAMIsInit(&aNameOut))
+        aNameOut = DirOfFile(aNameIm) + aPref+ StdPrefix(NameWithoutDir(aNameIm))+".tif";
+
     L_Arg_Opt_Tiff aLarg;
     aLarg = aLarg+  Arg_Tiff(Tiff_Im::ANoStrip());
     Tiff_Im aTifOut

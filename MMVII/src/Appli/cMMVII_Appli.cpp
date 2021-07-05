@@ -220,6 +220,8 @@ cMMVII_Appli::cMMVII_Appli
    mSetInit       (cExtSet<void *>(eTySC::US)),
    mInitParamDone (false),
    mVMainSets     (NbMaxMainSets,tNameSet(eTySC::NonInit)),
+   mResulMultiS   (EXIT_FAILURE),
+   mRMSWasUsed    (false),
    mNumOutPut     (0),
    mOutPutV1      (false),
    mOutPutV2      (false),
@@ -1370,6 +1372,30 @@ std::list<cParamCallSys>  cMMVII_Appli::ListStrAutoRecallMMVII
     }
     return aRes;
 }
+
+bool cMMVII_Appli::RunMultiSet(int aKParam,int aKSet)
+{
+    const std::vector<std::string> &  aVSetIm = VectMainSet(aKSet);
+
+    if (aVSetIm.size() != 1)  // Multiple image, run in parall 
+    {
+         ExeMultiAutoRecallMMVII(ToStr(aKParam),aVSetIm); // Recall with substitute recall itself
+         mResulMultiS = (aVSetIm.empty()) ? EXIT_FAILURE : EXIT_SUCCESS;
+         mRMSWasUsed = true;
+         return true;
+    }
+
+    mRMSWasUsed = false;
+    return false;
+}
+
+int cMMVII_Appli::ResultMultiSet() const
+{
+   MMVII_INTERNAL_ASSERT_strong(mRMSWasUsed,"MultiSet not executed, ResultMultiSet required");
+
+   return mResulMultiS;
+}
+
 
 void   cMMVII_Appli::ExeMultiAutoRecallMMVII
        ( 

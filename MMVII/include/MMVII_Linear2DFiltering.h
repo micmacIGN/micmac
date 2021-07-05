@@ -182,7 +182,7 @@ struct cFilterPCar
 {
      public :
          cFilterPCar();
-         void FinishAC(double = 0.1); ///< Complete AC Value if needed
+         void FinishAC(double  aDecStep=0.05); ///< Complete Auto Correlation Treshold to have at leas 3Val Value if needed
 
          std::vector<double>  mAutoC;  ///< Threshold for auto correlation
          const double & AC_Threshold() const;  ///< Final Threshold

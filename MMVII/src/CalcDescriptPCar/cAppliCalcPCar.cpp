@@ -303,7 +303,11 @@ cCollecSpecArg2007 & cAppliCalcDescPCar::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 
 int cAppliCalcDescPCar::Exe() 
 {
-   mFPC.FinishAC(0.1);
+   mFPC.FinishAC(0.05);
+
+   if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself
+      return ResultMultiSet();
+/*
    {
       const std::vector<std::string> &  aVSetIm = VectMainSet(0);
 
@@ -313,6 +317,7 @@ int cAppliCalcDescPCar::Exe()
          return EXIT_SUCCESS;
       }
    }
+*/
    CreateDirectories(PrefixPCar(mNameIm,""),true);
    mPrefixOut = PrefixPCarOut(mNameIm);
 
