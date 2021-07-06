@@ -13,6 +13,7 @@ apipy: clean typemaps.i
 	python3 setup.py build USEQT=$(USEQT)
 	python3 setup.py bdist_wheel USEQT=$(USEQT)
 	pip3 install --user dist/*.whl
+	touch ~/.local/mmv2/include/XML_GEN/MMVII #~/.local/mmv2/include/XML_GEN/ is DirBin2007
 	#python3 setup.py install --user USEQT=$(USEQT)
 	@if python3 -c "import mmv2" ; then echo "APIPY OK" ; else echo "APIPY error! Use c++filt to demangle missing symbols." ; fi
 

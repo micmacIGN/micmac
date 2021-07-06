@@ -27,7 +27,6 @@ import_array();
 %include <stl.i>
 
 
-
 //----------------------------------------------------------------------
 
 
@@ -136,6 +135,8 @@ import_array();
 %include "MMVII_Ptxd.h"
 %include "MMVII_Images.h"
 %include "MMVII_memory.h"
+%include "MMVII_nums.h"
+%include "MMVII_AimeTieP.h"
 
 //HERE typedefs are mandatory. include MMVII_nums.h is not working...
 typedef float       tREAL4;
@@ -174,6 +175,7 @@ typedef double tStdDouble;  ///< "natural" int
 %template(FloatVector)   std::vector<float>;
 %template(StringVector)  std::vector<std::string>;
 
+%template(cWhitchMinIntDouble) MMVII::cWhitchMin<int, double>;
 
 //----------------------------------------------------------------------
 //run on import
@@ -181,6 +183,13 @@ typedef double tStdDouble;  ///< "natural" int
 print("MicMacV2 Python3 API")
 mmv2_init();
 %}
+
+
+//----------------------------------------------------------------------
+//add default constructors just for swig
+%extend MMVII::cWhitchMin  <int, double> {
+  cWhitchMin():  	mIndexMin(-1), mVMin(1e60)  {}
+}
 
 
 //----------------------------------------------------------------------

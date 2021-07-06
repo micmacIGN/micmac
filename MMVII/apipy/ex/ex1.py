@@ -74,3 +74,10 @@ def to8Bit():
   imOut = mmv2.cIm2Du1( im.DIm().Sz() )
   imOut.DIm().setRawData(mat2)
   imOut.DIm().ToFile("ex/to8bits.tif")
+
+def testAime():
+  aSetPC=mmv2.cSetAimePCAR()
+  aSetPC.InitFromFile("STD-V2AimePCar-Corner-Max.dmp")
+  print(aSetPC.IsMax())
+  print(aSetPC.Ampl2N()) #pb with non-const ref output
+  return aSetPC
