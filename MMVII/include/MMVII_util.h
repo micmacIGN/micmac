@@ -124,6 +124,8 @@ char ToHexacode(int aK);
 int  FromHexaCode(char aC);
 
 
+std::string replaceFirstOccurrence(const std::string& s,const std::string& toRep,const std::string& Rep,bool SVP=false);
+
 
 
 /*=============================================*/

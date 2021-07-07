@@ -107,6 +107,12 @@ for (int aK=0 ; aK<aNbIter; aK++)
        AddObservationsCentres(anSO.ObsCentrePDV(),IsLastIter,aSO);
    }
 
+   {
+       for (const auto & aOCIP : anSO.ObsCenterInPlane())
+       {
+           AddObservationsPlane(*GetDOPOfName(aOCIP.Id()));
+       }
+   }
 
    {
         AddObservationsRelGPS(anSO.ObsRelGPS());

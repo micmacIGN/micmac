@@ -618,6 +618,7 @@ template <class Type>  class cIm2D
        void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
 
        static cIm2D<Type> FromFile(const std::string& aName);  ///< Allocate and init from file
+       static cIm2D<Type> FromFile(const std::string& aName,const cBox2di & );  ///< Allocate and init from file
 
        // void Read(const cDataFileIm2D &,cPt2di & aP0,cPt3dr Dyn /* RGB*/);  // 3 to 1
        // void Read(const cDataFileIm2D &,cPt2di & aP0,cIm2D<Type> aI2,cIm2D<Type> aI3);  // 3 to 3

@@ -181,34 +181,42 @@ template <class Type> class cGP_OneOctave : public cMemCheck
 struct cFilterPCar
 {
      public :
+         //cFilterPCar(const std::vector<double> & = std::vector<double>({1,2}));
          cFilterPCar();
          void FinishAC(double  aDecStep=0.05); ///< Complete Auto Correlation Treshold to have at leas 3Val Value if needed
 
-         std::vector<double>  mAutoC;  ///< Threshold for auto correlation
+         std::vector<double> &  AutoC();  ///< Threshold for auto correlation
          const double & AC_Threshold() const;  ///< Final Threshold
          const double & AC_CutReal() const;    ///< Cut if < this Threshold
          const double & AC_CutInt() const;     ///< Cut if integer correl < this threshold
 
-         std::vector<double>  mPSF; ///< Param Spatial Filtering  [Dist,MulRAy,PropNoFS]
+         std::vector<double> &  PSF();  ///< Param Spatial Filtering  [Dist,MulRAy,PropNoFS]
          const double & DistSF() const;     ///< Targeted Average dist between points
          const double & MulDistSF() const;  ///< Mult * DistSF = influence zone of an added point
          const double & PropNoSF() const;   ///< Propoption of quality that do not depend of space filter
 
-         std::vector<double>  mEQsf; ///< Exposant for quality of point before spatial filter [AutoC,Var,Scale]
+         std::vector<double> & EQsf(); ///< Exposant for quality of point before spatial filter [AutoC,Var,Scale]
          const double & PowAC() const;        ///< Exposant for (1-AutoCorrel)
          const double & PowVar() const;       ///< Exposant for Variance
          const double & PowScale() const;     ///< Exposant for scaling
 
-         std::vector<double>  mLPCirc;  ///< Circles of Log Pol param [Rho0,DeltaSI0,DeltaI]
+         std::vector<double> & LPCirc();  ///< Circles of Log Pol param [Rho0,DeltaSI0,DeltaI]
          const double &  LPC_Rho0() const ;  ///< Radius of first circle
          int             LPC_DeltaI0() const ;  ///< Shit in pyramid (typcally -1 to gain a bit in resol)
          int             LPC_DeltaIm() const ;  ///< Delta between 2 images
 
-         std::vector<double>  mLPSample;  ///< Sampling Mode for LogPol [NbTeta,NbRho,Multiplier,CensusNorm]
+         std::vector<double> &  LPSample();  ///< Sampling Mode for LogPol [NbTeta,NbRho,Multiplier,CensusNorm]
          int               LPS_NbTeta()     const;   ///< Number of sample in teta
          int               LPS_NbRho()      const;   ///< Number of sample in rho
          const double &    LPS_Mult()       const;   ///< Multiplier before making it integer
          bool              LPS_CensusMode() const;   ///< Do Normalization in census mode
+
+     private :
+         std::vector<double>  mAutoC;  ///< Threshold for auto correlation
+         std::vector<double>  mPSF; ///< Param Spatial Filtering  [Dist,MulRAy,PropNoFS]
+         std::vector<double>  mEQsf; ///< Exposant for quality of point before spatial filter [AutoC,Var,Scale]
+         std::vector<double>  mLPCirc;  ///< Circles of Log Pol param [Rho0,DeltaSI0,DeltaI]
+         std::vector<double>  mLPSample;  ///< Sampling Mode for LogPol [NbTeta,NbRho,Multiplier,CensusNorm]
 }; 
 
 /// Struct for parametrization of Gaussian Pyramid

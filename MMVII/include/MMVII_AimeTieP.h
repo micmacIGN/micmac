@@ -21,7 +21,11 @@ template <class Type> struct cProtoAimeTieP : public cMemCheck
         bool  FillAPC(const cFilterPCar&,cAimePCar &,bool ForTest);
         bool  TestFillAPC(const cFilterPCar&); // Just to know if the point is OK for filling it
         // cProtoAimeTieP(const cPt2dr & aP,int aNumOct,int aNumIm,float aScaleInO,float aScaleAbs);
+
+        // With Integer P, used in Aime
         cProtoAimeTieP(cGP_OneImage<Type> *,const cPt2di & aPImInit,bool ChgMaj);
+        // With Real P, used in dense match, we directly have the "refined" point
+        cProtoAimeTieP(cGP_OneImage<Type> *,const cPt2dr & aPImInit);
 
         // void SetPt(const cPt2dr & );
         // const cPt2dr & Pt() const;

@@ -524,6 +524,15 @@ template <class TypeIndex,class TypeVal> class cWhitchMinMax
          cWhitchMax<TypeIndex,TypeVal> mMax;
 };
 
+template <class TypeVal> void UpdateMin(TypeVal & aVar,const TypeVal & aValue) {if (aValue<aVar) aVar = aValue;}
+template <class TypeVal> void UpdateMax(TypeVal & aVar,const TypeVal & aValue) {if (aValue>aVar) aVar = aValue;}
+
+template <class TypeVal> void UpdateMinMax(TypeVal & aVarMin,TypeVal & aVarMax,const TypeVal & aValue) 
+{
+    // The two test are required (No else if ...) because initially we may have VarMin>VarMax
+    if (aValue<aVarMin) aVarMin = aValue;
+    if (aValue>aVarMax) aVarMax = aValue;
+}
 // This rather "strange" function returns a value true at frequence  as close as possible
 // to aFreq, and with the warantee that it is true for last index
 

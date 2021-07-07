@@ -321,23 +321,28 @@ void cFilterPCar::FinishAC(double aVal)
     }
 }
 
+std::vector<double> &  cFilterPCar::AutoC() {return mAutoC;}
 const double & cFilterPCar::AC_Threshold() const {return mAutoC.at(0);}
 const double & cFilterPCar::AC_CutReal()   const  {return mAutoC.at(1);}
 const double & cFilterPCar::AC_CutInt()    const {return mAutoC.at(2);}
 
+std::vector<double> &  cFilterPCar::PSF() {return mPSF;}
 const double & cFilterPCar::DistSF()       const {return mPSF.at(0);}
 const double & cFilterPCar::MulDistSF()    const {return mPSF.at(1);}
 const double & cFilterPCar::PropNoSF()     const {return mPSF.at(2);}
 
+std::vector<double> &  cFilterPCar::EQsf() {return mEQsf;}
 const double & cFilterPCar::PowAC()        const {return mEQsf.at(0);}
 const double & cFilterPCar::PowVar()       const {return mEQsf.at(1);}
 const double & cFilterPCar::PowScale()     const {return mEQsf.at(2);}
 
 
+std::vector<double> &  cFilterPCar::LPCirc() {return mLPCirc;}
 const double &  cFilterPCar::LPC_Rho0() const     {return mLPCirc.at(0);}
 int             cFilterPCar::LPC_DeltaI0() const  {return EmbeddedIntVal(mLPCirc.at(1));}
 int             cFilterPCar::LPC_DeltaIm() const  {return EmbeddedIntVal(mLPCirc.at(2));}
 
+std::vector<double> &  cFilterPCar::LPSample() {return mLPSample;}
 int  cFilterPCar::LPS_NbTeta()           const {return EmbeddedIntVal(mLPSample.at(0));}
 int  cFilterPCar::LPS_NbRho()            const {return EmbeddedIntVal(mLPSample.at(1));}
 const double &  cFilterPCar::LPS_Mult()  const {return mLPSample.at(2);}

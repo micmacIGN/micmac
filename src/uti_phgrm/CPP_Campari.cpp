@@ -454,6 +454,9 @@ class cAppli_Campari : public cAppli_Tapas_Campari
 
        int  mNumPtsAttrNewF;
        std::vector<std::string>  mROP;
+
+       std::string  mFileObsPlane;
+       double       mWeigthObsPlane;
 };
 
 
@@ -461,7 +464,8 @@ class cAppli_Campari : public cAppli_Tapas_Campari
 cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
     AeroOut          (""),
     mNameRTA         ("SauvRTA.xml"),
-    mNumPtsAttrNewF  (-1)
+    mNumPtsAttrNewF  (-1),
+    mWeigthObsPlane  (1.0)
 {
     mStr0 = MakeStrFromArgcARgv(argc,argv,true);
     MMD_InitArgcArgv(argc,argv);
@@ -582,7 +586,8 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
 
                     << EAM(mNumPtsAttrNewF,"NAWNF",true,"Num Attribute for Weigthing in New Format")
                     << EAM(mROP,"ROP",true,"Rappel On Pose [IdOr,SigmaC,SigmaOr,Pattern]")
-
+                    << EAM(mFileObsPlane,"FOP",true,"File for plane observation on centers")
+                    << EAM(mWeigthObsPlane,"WOP",true,"File for plane observation on centers")
     );
 
 
@@ -893,6 +898,13 @@ cAppli_Campari::cAppli_Campari (int argc,char ** argv) :
                         + std::string(" +RegDistSeuil=") + ToString(aSeuilNbPts);
         }
 
+        if (EAMIsInit(&mFileObsPlane))
+        {
+          mCom =    mCom 
+                 +   std::string(" +WithObsPlane=true")
+                 +   std::string(" +FileObsPlane=") + mFileObsPlane
+                 +   std::string(" +WeightObsPlane=") + ToString(mWeigthObsPlane);
+        }
 
         mExe = (! EAMIsInit(&mMulRTA)) || (EAMIsInit(&GCPRTA));
 

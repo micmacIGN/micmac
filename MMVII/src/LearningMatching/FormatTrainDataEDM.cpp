@@ -1,54 +1,87 @@
 #include "include/MMVII_all.h"
 #include "include/V1VII.h"
+#include "LearnDM.h"
 
 namespace MMVII
 {
+
 namespace NS_FormatTDEDM
 {
-
 
 class cAppliFormatTDEDM ;  // format 4 training data on epipolar dense matching
 class cWT_AppliFormatTDEDM ;  // format 4 training data on epipolar dense matching
 
 
-class cNameFormatTDEDM 
+/*  ============================================== */
+/*                                                 */
+/*       cBEFROST_AppliFormatTDEDM                    */
+/*                                                 */
+/*  ============================================== */
+
+
+/*
+
+class cBEFROST_AppliFormatTDEDM : public cMMVII_Appli,
+                                  public cNameFormatTDEDM 
 {
-    protected :
-        static std::string  PrefixAll()   {return "DMTrain_";}
+     public :
 
-        static std::string  Im1()   {return "Im1";}
-        static std::string  Im2()   {return "Im2";}
-        static std::string  Px1()   {return "Pax1";}
-        static std::string  Px2()   {return "Pax2";}
-        static std::string  Masq1() {return "Masq1";}
-        static std::string  Masq2() {return "Masq2";}
+       // =========== Declaration ========
+                 // --- Method to be a MMVII application
+        cBEFROST_AppliFormatTDEDM(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
 
-        static std::string MakeName(const std::string & aName,const std::string & aPref) 
-        {
-             return PrefixAll() + aName + "_" + aPref + ".tif";
-        }
+        // cIm2D<tU_INT1> ComputeAR(double aAmpl,int aK);
+        //  void  MakeMaskAR(double aPixThresh,int aK);
+        // void  DoRectifiedImage(int aK);
+     private :
+       // =========== Data ========
+            // Mandatory args
+            std::string mPatDir;
+            bool mDoRectif;  ///< Do rectification of images
+            // std::string mCurPref;
 
-        static void GenConvertIm(const std::string & aInput, const std::string & aOutput)
-        {
-            std::string aCom =   "convert -colorspace Gray -compress none " + aInput + " " + aOutput;
-            GlobSysCall(aCom);
-        }
-
-        static std::string NameIm1(const std::string & aName) {return MakeName(aName,Im1());}
-        static std::string NameIm2(const std::string & aName) {return MakeName(aName,Im2());}
-        static std::string NamePx1(const std::string & aName) {return MakeName(aName,Px1());}
-        static std::string NamePx2(const std::string & aName) {return MakeName(aName,Px2());}
-        static std::string NameMasq1(const std::string & aName) {return MakeName(aName,Masq1());}
-        static std::string NameMasq2(const std::string & aName) {return MakeName(aName,Masq2());}
-
-        static std::string NameRedrIm1(const std::string & aName) {return MakeName(aName,"REDRIn_"+Im1());}
-        static std::string NameRedrIm2(const std::string & aName) {return MakeName(aName,"REDRIn_"+Im2());}
-
-        static void ConvertIm1(const std::string & aInput,const std::string & aName) {GenConvertIm(aInput,NameIm1(aName));}
-        static void ConvertIm2(const std::string & aInput,const std::string & aName) {GenConvertIm(aInput,NameIm2(aName));}
+            std::string mNameIm[2];
+            std::string mNamePx[2];
 };
 
+cBEFROST_AppliFormatTDEDM::cBEFROST_AppliFormatTDEDM
+(
+        const std::vector<std::string> &  aVArgs,
+        const cSpecMMVII_Appli & aSpec
+) :
+    cMMVII_Appli(aVArgs,aSpec),
+    mNameIm ({"left_epipolar_image.tif","right_epipolar_image.tif"}),
+    mNamePx ({"left_epipolar_disparity.tif","right_epipolar_disparity.tif"})
+{
+}
 
+cCollecSpecArg2007 & cBEFROST_AppliFormatTDEDM:::ArgObl(cCollecSpecArg2007 & anArgObl)
+{
+   return 
+      anArgObl  
+         << Arg2007(mPatDir,"Directory of file")
+   ;
+}
+
+cCollecSpecArg2007 & cBEFROST_AppliFormatTDEDM:::ArgOpt(cCollecSpecArg2007 & anArgOpt)
+{
+   return anArgOpt
+         << AOpt2007(mDoRectif,"DoRectif","Compute rectified images, for check",{eTA2007::HDV})
+   ;
+}
+int cBEFROST_AppliFormatTDEDM::Exe()
+{
+   std::vector<std::string>  aVS = RecGetFilesFromDir("./",AllocRegex(mPatDir+DirSeparator()+mNameIm[0]),1,2);
+   for (auto aFullName : aVS)
+   {
+   }
+
+    return EXIT_SUCCESS;
+}
+*/
 
 /*  ============================================== */
 /*                                                 */
@@ -84,6 +117,8 @@ class cMDLB_AppliFormatTDEDM : public cMMVII_Appli,
 
             std::string mNameIm[2];
             std::string mNamePx[2];
+            std::string mNameMasq[2];
+            bool mBeeFrost;
 
 
             // std::string mTmpPxSym[2];
@@ -102,7 +137,8 @@ cMDLB_AppliFormatTDEDM::cMDLB_AppliFormatTDEDM
     const cSpecMMVII_Appli &          aSpec
 )  :
    cMMVII_Appli (aVArgs,aSpec),
-   mDoRectif    (false)
+   mDoRectif    (false),
+   mBeeFrost    (false)
 {
 }
 
@@ -111,7 +147,7 @@ cCollecSpecArg2007 & cMDLB_AppliFormatTDEDM::ArgObl(cCollecSpecArg2007 & anArgOb
    return 
       anArgObl  
          << Arg2007(mPatDir,"Directory of file")
-         << Arg2007(mYear,"Year of midlebury dataset")
+         << Arg2007(mYear,"Year of midlebury dataset,100=BEFROST")
    ;
 }
 
@@ -213,30 +249,100 @@ int cMDLB_AppliFormatTDEDM::Exe()
            mNamePx[1]  = "disp1.pfm";
         break;
 
+        case 100 :
+           mBeeFrost = true;
+           mNameIm[0]   = "left_epipolar_image.tif";
+           mNamePx[0]   = "left_epipolar_disparity.tif";
+           mNameMasq[0] = "left_epipolar_disparity_mask.tif";
+           mNameIm[1]   = "right_epipolar_image.tif";
+           mNamePx[1]   = "right_epipolar_disparity.tif";
+           mNameMasq[1] = "right_epipolar_disparity_mask.tif";
+        break;
+
         default :
               MMVII_UsersErrror(eTyUEr::eUnClassedError,"Year specified not avalaible");
         break;
    }
 
-   std::vector<std::string>  aVS = RecGetFilesFromDir("./",AllocRegex(mPatDir+DirSeparator()+mNameIm[0]),1,2);
+   std::vector<std::string>  aVS = RecGetFilesFromDir("./",AllocRegex(mPatDir+DirSeparator()+mNameIm[0]),1,20);
    for (auto aFullName : aVS)
    {
        std::vector<std::string> aVSep = SplitString(aFullName,"/");
        std::string aNameIm  = aVSep.at(aVSep.size()-2);
-       mCurPref  = "MDLB" + ToStr(mYear) + "-" + aNameIm;
        std::string aDir =  DirOfPath(aFullName);
 
-       ConvertIm1(aDir+mNameIm[0],mCurPref);
-       ConvertIm2(aDir+mNameIm[1],mCurPref);
+       if (mBeeFrost)
+          mCurPref  =  "BeeFrost-" + aNameIm;
+       else 
+          mCurPref  =  "MDLB" + ToStr(mYear) + "-" + aNameIm;
 
-       if (mYear==2014)
+       if (mBeeFrost)
        {
-           MakePxSym(aDir,0);
-           MakePxSym(aDir,1);
+          std::vector<cBox2di> aVBox;
+          for (int aKIm=0; aKIm<2 ; aKIm++)
+          {
+              cIm2D<tU_INT1>  aImMasq = cIm2D<tU_INT1>::FromFile(aDir+mNameMasq[aKIm]);
+              cTplBoxOfPts<int,2> aBox;
+              for (const auto & aPix : aImMasq.DIm())
+                  if (aImMasq.DIm().GetV(aPix) < 128)
+                  {
+                     aBox.Add(aPix);
+                  }
 
-           MakeMaskAR(2.0,0);
-           MakeMaskAR(2.0,1);
+              aVBox.push_back(aBox.CurBox());
+              StdOut() << aBox.CurBox() << "\n";
+if (aKIm==0)
+{
+   aVBox[aKIm] = cBox2di(aVBox[aKIm].P0() -cPt2di(50,0),aVBox[aKIm].P1());
+for (int aK=0 ; aK<20 ; aK++)
+   std::cout << "MOOOOOODDDDDDDDDDDDDIFYY  Boooooooooooooooooooooox\n";
+}
+          }
+          int aY0 = std::max(aVBox[0].P0().y(),aVBox[1].P0().y());
+          int aY1 = std::min(aVBox[0].P1().y(),aVBox[1].P1().y());
+          StdOut() << "YY " << aY0 << " " << aY1 << "\n";
+          for (int aKIm=0; aKIm<2 ; aKIm++)
+          {
+              aVBox[aKIm] = cBox2di(cPt2di(aVBox[aKIm].P0().x(),aY0),cPt2di(aVBox[aKIm].P1().x(),aY1));
+          }
+          int aDPx =  aVBox[0].P0().x() - aVBox[1].P0().x();
 
+          for (int aKIm=0; aKIm<2 ; aKIm++)
+          {
+              // in case image trans, aDPx would the Px before clip, its void after
+              int aSDPx = (aKIm==0) ? -aDPx : aDPx;
+              std::string  aStrBox =  " Box=" + ToStrComMMV1(aVBox[aKIm]);
+              std::string aComIm = " mm3d Nikrup  \"/ (+ v0 =F " +  aDir + mNameIm[aKIm] +  " v1 @F v2 @F) 3\" " 
+                                   + NameIm(aKIm) + aStrBox ;
+              GlobSysCall(aComIm);
+
+              std::string aComMasq = " mm3d Nikrup  \"* 255 > 128 " + aDir + mNameMasq[aKIm] + "\" "
+                                   + NameMasq(aKIm) + aStrBox  + " Type=u_int1";
+              GlobSysCall(aComMasq);
+
+              std::string aComPx = " mm3d Nikrup  \"+ " + aDir + mNamePx[aKIm] + " " + ToStr(aSDPx) + "\" "
+                                   + NamePx(aKIm) + aStrBox ;
+              GlobSysCall(aComPx);
+          }
+
+          StdOut() << "BBbbBB " << aVBox[0] << " ;;; " << aVBox[1] << " DPx: " << aDPx<< "\n";
+
+          getchar();
+       }
+       else
+       {
+           ConvertIm1(aDir+mNameIm[0],mCurPref);
+           ConvertIm2(aDir+mNameIm[1],mCurPref);
+
+           if (mYear==2014)
+           {
+               MakePxSym(aDir,0);
+               MakePxSym(aDir,1);
+
+               MakeMaskAR(2.0,0);
+               MakeMaskAR(2.0,1);
+
+           }
        }
        if (mDoRectif)
        {

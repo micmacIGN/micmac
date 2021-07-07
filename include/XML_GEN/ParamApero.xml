@@ -287,7 +287,11 @@
 </Xml_ObsPlaneOnPose>
 
 <Xml_FileObsPlane Nb="1" Class="true" ToReference="true">
-      <Obs1Im Nb="+" RefType="Xml_ObsPlaneOnPose">  </Obs1Im>
+      <Obs1Im Nb="*" RefType="Xml_ObsPlaneOnPose"  Container="std::map" 
+                     KeyType="std::string" 
+                     KeyGetVal="NameIm"
+     >  
+     </Obs1Im>
 </Xml_FileObsPlane>
 
 
@@ -642,6 +646,13 @@
                   <!-- Si pas d'incertitude, aucun rappel sur la valeur initiale -->
                   <Inc Nb="?" Type="Pt3dr"> </Inc>
               </GpsOffset>
+
+              <DataObsPlane Nb="*">
+                  <Id Nb="1" Type="std::string"> </Id>
+                  <NameFile Nb="1" Type="std::string"> </NameFile>
+                  <Weight  Nb="?"  Type="double"  Def="1.0"> </Weight>
+                  <Data Nb="1"   RefType="Xml_FileObsPlane">  </Data>
+              </DataObsPlane>
 
               <CalibrationCameraInc Nb="*">
 	           <Name Nb="1" Type="std::string"> </Name>
@@ -1405,6 +1416,10 @@ normalises en echelle et/ou en translation -->
                          <RelTimeDistPond Nb="?" RefType="RigidBlockWeighting"> </RelTimeDistPond>
 
                      </ObsBlockCamRig>
+
+                     <ObsCenterInPlane Nb="*">
+                         <Id Nb="1" Type="std::string"> </Id>
+                     </ObsCenterInPlane>
 
                       <!-- Ici il s'agit de point d'appuis "sur", -->
 		      <ObsAppuis Nb="*">

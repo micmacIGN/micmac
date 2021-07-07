@@ -115,6 +115,23 @@ template<class Type>
 {
 }
 
+template<class Type> 
+   cProtoAimeTieP<Type>::cProtoAimeTieP
+   (
+        cGP_OneImage<Type> * aGPI,
+        const cPt2dr & aPInit
+   ) :
+   mGPI          (aGPI),
+   mChgMaj       (false),
+   mPImInit      (ToI(aPInit)),
+   mPFileInit    (mGPI->Im2File(aPInit)),
+   mPFileRefined (mPFileInit),
+   mNumAPC       (-1)
+{
+}
+
+
+
 template<class Type> int   cProtoAimeTieP<Type>::NumOct()   const {return mGPI->Oct()->NumInPyr();}
 template<class Type> int   cProtoAimeTieP<Type>::NumIm()    const {return mGPI->NumInOct();}
 template<class Type> float cProtoAimeTieP<Type>::ScaleInO() const {return mGPI->ScaleInO();}
@@ -257,7 +274,7 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
         }
         IndRhoLP++;
    }
-   // Now, in test mode, we now that all the circle will be inside, OK then ...
+   // Now, in test mode, we know that all the circle will be inside, OK then ...
    if (ForTest)
    {
        return true;

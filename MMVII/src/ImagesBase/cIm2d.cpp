@@ -124,6 +124,15 @@ template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aNa
    return aRes;
 }
 
+template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aName,const cBox2di & aBox)
+{
+   cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,true);
+   cIm2D<Type> aRes(aBox.Sz());
+   aRes.Read(aFileIm,aBox.P0());
+
+   return aRes;
+}
+
 
 template <class Type>  cIm2D<Type>  cIm2D<Type>::Dup() const
 {
