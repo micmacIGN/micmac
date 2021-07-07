@@ -88,22 +88,22 @@ import_array();
 %ignore MMVII::cPtxd<int,3>::FromStdVector;
 %ignore MMVII::cPtxd<double,2>::FromStdVector;
 %ignore MMVII::cPtxd<double,3>::FromStdVector;
+//ignore non-const overloading (the functions will be read-only, we add setter methods in extend part
+%ignore MMVII::cPtxd<double,2>::x() ;
+%ignore MMVII::cPtxd<double,2>::y() ;
+%ignore MMVII::cPtxd<double,2>::PtRawData() ;
+%ignore MMVII::cPtxd<int,2>::x() ;
+%ignore MMVII::cPtxd<int,2>::y() ;
+%ignore MMVII::cPtxd<int,2>::PtRawData();
+%ignore MMVII::cPtxd<double,3>::x();
+%ignore MMVII::cPtxd<double,3>::y();
+%ignore MMVII::cPtxd<double,3>::z();
+%ignore MMVII::cPtxd<double,3>::PtRawData();
+%ignore MMVII::cPtxd<int,3>::x();
+%ignore MMVII::cPtxd<int,3>::y();
+%ignore MMVII::cPtxd<int,3>::z();
+%ignore MMVII::cPtxd<int,3>::PtRawData();
 //ignore const overloading
-%ignore MMVII::cPtxd<double,2>::x() const;
-%ignore MMVII::cPtxd<double,2>::y() const;
-%ignore MMVII::cPtxd<double,2>::PtRawData() const;
-%ignore MMVII::cPtxd<int,2>::x() const;
-%ignore MMVII::cPtxd<int,2>::y() const;
-%ignore MMVII::cPtxd<int,2>::PtRawData() const;
-%ignore MMVII::cPtxd<double,3>::x() const;
-%ignore MMVII::cPtxd<double,3>::y() const;
-%ignore MMVII::cPtxd<double,3>::z() const;
-%ignore MMVII::cPtxd<double,3>::PtRawData() const;
-%ignore MMVII::cPtxd<int,3>::x() const;
-%ignore MMVII::cPtxd<int,3>::y() const;
-%ignore MMVII::cPtxd<int,3>::z() const;
-%ignore MMVII::cPtxd<int,3>::PtRawData() const;
-
 %ignore MMVII::cIm2D<tU_INT1>::DIm() const;
 %ignore MMVII::cIm2D<tREAL4>::DIm() const;
 %ignore MMVII::cDataIm2D<tU_INT1>::ExtractRawData2D() const;
@@ -176,6 +176,7 @@ typedef double tStdDouble;  ///< "natural" int
 %template(StringVector)  std::vector<std::string>;
 
 %template(cWhitchMinIntDouble) MMVII::cWhitchMin<int, double>;
+%template(cAimePCarVector)     std::vector<MMVII::cAimePCar>;
 
 //----------------------------------------------------------------------
 //run on import
@@ -188,7 +189,7 @@ mmv2_init();
 //----------------------------------------------------------------------
 //add default constructors just for swig
 %extend MMVII::cWhitchMin  <int, double> {
-  cWhitchMin():  	mIndexMin(-1), mVMin(1e60)  {}
+  cWhitchMin(): mIndexMin(-1), mVMin(1e60) {}
 }
 
 
@@ -200,13 +201,17 @@ mmv2_init();
     sprintf(tmp, "Pt [%d, %d]", $self->x(), $self->y());
     return tmp;
   }
+  void setX(int x) { $self->x()=x; }
+  void setY(int y) { $self->y()=y; }
 }
 %extend MMVII::cPtxd<double,2> {
-  char *__repr__() {
+  /*char *__repr__() {
     static char tmp[1024];
     sprintf(tmp, "Pt [%f, %f]", $self->x(), $self->y());
     return tmp;
-  }
+  }*/
+  void setX(double x) { $self->x()=x; }
+  void setY(double y) { $self->y()=y; }
 }
 %extend MMVII::cPtxd<double,3> {
   char *__repr__() {
@@ -214,6 +219,9 @@ mmv2_init();
     sprintf(tmp, "Pt [%f, %f, %f]", $self->x(), $self->y(), $self->z());
     return tmp;
   }
+  void setX(double x) { $self->x()=x; }
+  void setY(double y) { $self->y()=y; }
+  void setZ(double z) { $self->z()=z; }
 }
 %extend MMVII::cPtxd<int,3> {
   char *__repr__() {
@@ -221,6 +229,9 @@ mmv2_init();
     sprintf(tmp, "Pt [%d, %d, %d]", $self->x(), $self->y(), $self->z());
     return tmp;
   }
+  void setX(int x) { $self->x()=x; }
+  void setY(int y) { $self->y()=y; }
+  void setZ(int z) { $self->z()=z; }
 }
 
 %extend MMVII::cIm2D<tU_INT1> {
