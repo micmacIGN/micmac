@@ -23,7 +23,9 @@ typemaps.i:
 	python3 gen_typemaps.py > typemaps.i
 
 doc:
-	cd $(DOCDIR) && doxygen
+	@doxygen -v 2> /dev/null && (cd $(DOCDIR) && doxygen) || echo "Doxygen not detected!"
+	@pdoc3 --version 2> /dev/null && (cd $(DOCDIR) && pdoc3 -f --html ../mmv2.py) || echo "Pdoc3 not detected!"
+
 
 clean:
 	rm -f $(PY_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES) typemaps.i

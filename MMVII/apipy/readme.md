@@ -32,13 +32,16 @@ Dependencies:
  - Python 3 headers
  - PIP for Python 3
  - Wheel for Python3
- - for documentation: doxygen, GraphViz
+ - for documentation: doxygen and GraphViz, or pdoc3
 
 Compile MMv1 and MMv2.
 
 On debian:
     apt install swig python3-dev pkg-config python3-pip python3-numpy python3-wheel
+For doc:
     apt install doxygen graphviz
+or
+    pip3 install pdoc3
 
 Compilation:
     make -f Makefile_apipy_linux
