@@ -75,9 +75,30 @@ def to8Bit():
   imOut.DIm().setRawData(mat2)
   imOut.DIm().ToFile("ex/to8bits.tif")
 
-def testAime():
+def testAime(dmp_path):
   aSetPC=mmv2.cSetAimePCAR()
-  aSetPC.InitFromFile("STD-V2AimePCar-Corner-Max.dmp")
+  aSetPC.InitFromFile(dmp_path)
   print(aSetPC.IsMax())
   print(aSetPC.Ampl2N()) #pb with non-const ref output
+  print("Found",len(aSetPC.VPC()),"points")
+  if (len(aSetPC.VPC())>0):
+    print(aSetPC.VPC()[0].Desc().ILP().DIm().toArray())
   return aSetPC
+
+def plotAime(img_paths, dmp_paths):
+  if (len(img_paths)!=len(dmp_paths)):
+    print("Number of images must be the same as number of dmp!")
+    return
+  import matplotlib.pyplot as plt
+  import matplotlib.image as mpimg
+  plt.figure()
+  for i in range(len(img_paths)):
+    aSetPC=mmv2.cSetAimePCAR()
+    aSetPC.InitFromFile(dmp_paths[i])
+    x1 = [p.Pt().x() for p in aSetPC.VPC()]
+    y1 = [p.Pt().y() for p in aSetPC.VPC()]
+    img = mpimg.imread(img_paths[i])
+    plt.subplot(1,len(img_paths),i+1)
+    plt.imshow(img)
+    plt.scatter(x1, y1, c='r')
+  plt.show()
