@@ -78,6 +78,7 @@ void mmv2_init()
 	      __FILE__
 	);
 	MMVII::cAppli_Py *appli = new MMVII::cAppli_Py({},TheSpecPy);
+	(void) appli;
 
 	std::cout<<"mmv2 initialized."<<std::endl;
 	//delete appli; //the fake apply must exist during module usage

@@ -116,6 +116,9 @@ import_array();
 %ignore MMVII::cPtxd<int,3>::y();
 %ignore MMVII::cPtxd<int,3>::z();
 %ignore MMVII::cPtxd<int,3>::PtRawData();
+%ignore MMVII::cAimeDescriptor::DirPrinc();
+%ignore MMVII::cSetAimePCAR::Census();
+%ignore MMVII::cSetAimePCAR::Ampl2N();
 //ignore const overloading
 %ignore MMVII::cIm2D<tU_INT1>::DIm() const;
 %ignore MMVII::cIm2D<tREAL4>::DIm() const;
@@ -197,13 +200,6 @@ typedef double tStdDouble;  ///< "natural" int
 print("MicMacV2 Python3 API")
 mmv2_init();
 %}
-
-
-//----------------------------------------------------------------------
-//add default constructors just for swig
-%extend MMVII::cWhitchMin  <int, double> {
-  cWhitchMin(): mIndexMin(-1), mVMin(1e60) {}
-}
 
 
 //----------------------------------------------------------------------
