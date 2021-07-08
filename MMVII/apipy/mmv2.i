@@ -53,6 +53,19 @@ import_array();
 //add typemaps
 %include typemaps.i
 
+//----------------------------------------------------------------------
+//add .value(), new_... etc. to manipulate pointers
+%pointer_class(unsigned char, ucharp);
+%pointer_class(char, charp);
+%pointer_class(unsigned short, ushortp);
+%pointer_class(short, shortp);
+%pointer_class(unsigned int, uintp);
+%pointer_class(int, intp);
+%pointer_class(unsigned long, ulongp);
+%pointer_class(long, longp);
+%pointer_class(bool, boolp);
+%pointer_class(float, floatp);
+%pointer_class(double, doublep);
 
 //----------------------------------------------------------------------
 //things to ignore in next includes to be able to compile
