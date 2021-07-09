@@ -106,7 +106,9 @@ class cAimePCar : public cMemCheck
 {
      public :
         cAimeDescriptor & Desc();
+        const cAimeDescriptor & Desc() const;
         cPt2dr&         Pt();
+        const cPt2dr&         Pt() const;
      private :
         cAimeDescriptor mDesc;  ///< Descriptor
         cPt2dr          mPt;    ///<  Localization
@@ -121,8 +123,10 @@ class cSetAimePCAR : public cMemCheck
         cSetAimePCAR(eTyPyrTieP aType,bool IsMax); ///< "Real" constructor
         cSetAimePCAR(); ///< Sometime need a default constructor
         int &                   IType();
+        const int &             IType() const;
         eTyPyrTieP              Type();
         bool&                   IsMax();
+        const bool&             IsMax() const;
         bool&                   Census();
         const bool&             Census() const;
         double&                 Ampl2N();

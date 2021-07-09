@@ -101,7 +101,8 @@ import_array();
 %ignore MMVII::cPtxd<int,3>::FromStdVector;
 %ignore MMVII::cPtxd<double,2>::FromStdVector;
 %ignore MMVII::cPtxd<double,3>::FromStdVector;
-//ignore non-const overloading (the functions will be read-only, we add setter methods in extend part
+//ignore non-const overloading to get direct access to simple types
+//(the functions will be read-only, we add setter methods in extend part)
 %ignore MMVII::cPtxd<double,2>::x() ;
 %ignore MMVII::cPtxd<double,2>::y() ;
 %ignore MMVII::cPtxd<double,2>::PtRawData() ;
@@ -119,6 +120,10 @@ import_array();
 %ignore MMVII::cAimeDescriptor::DirPrinc();
 %ignore MMVII::cSetAimePCAR::Census();
 %ignore MMVII::cSetAimePCAR::Ampl2N();
+%ignore MMVII::cSetAimePCAR::IsMax();
+%ignore MMVII::cSetAimePCAR::IType();
+%ignore MMVII::cAimePCar::Desc();
+%ignore MMVII::cAimePCar::Pt();
 //ignore const overloading
 %ignore MMVII::cIm2D<tU_INT1>::DIm() const;
 %ignore MMVII::cIm2D<tREAL4>::DIm() const;

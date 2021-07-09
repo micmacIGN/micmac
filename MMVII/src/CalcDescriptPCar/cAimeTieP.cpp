@@ -88,7 +88,9 @@ void AddData(const cAuxAr2007 & anAux,cAimeDescriptor & aDesc)
 
 
 cAimeDescriptor & cAimePCar::Desc() {return mDesc; }
+const cAimeDescriptor & cAimePCar::Desc() const {return mDesc; }
 cPt2dr&           cAimePCar::Pt()   {return mPt;}
+const cPt2dr&           cAimePCar::Pt()  const {return mPt;}
 
 void AddData(const cAuxAr2007 & anAux,cAimePCar & aPC)
 {
@@ -325,7 +327,9 @@ cSetAimePCAR::cSetAimePCAR():
 
 eTyPyrTieP              cSetAimePCAR::Type()   {return eTyPyrTieP(mType);}
 int &                   cSetAimePCAR::IType()  {return mType;}
+const int &             cSetAimePCAR::IType() const {return mType;}
 bool&                   cSetAimePCAR::IsMax()  {return mIsMax;}
+const bool&             cSetAimePCAR::IsMax() const {return mIsMax;}
 std::vector<cAimePCar>& cSetAimePCAR::VPC()    {return mVPC;}
 bool&          cSetAimePCAR::Census()       {return mCensus;}
 const bool&    cSetAimePCAR::Census() const {return mCensus;}
