@@ -138,7 +138,7 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
     mBoxIn = aPBI.BoxIn(anIndex,mAppli.mOverlap);
     mSzIn = mBoxIn.Sz();
     mBoxOut = aPBI.BoxOut(anIndex);
-    cGP_Params aGP(mSzIn,mAppli.mNbOct,mAppli.mNbLevByOct,mAppli.mNbOverLapByO,&mAppli);
+    cGP_Params aGP(mSzIn,mAppli.mNbOct,mAppli.mNbLevByOct,mAppli.mNbOverLapByO,&mAppli,true);
 
     // Value cPt2di(-1,-1) : special value indicating that tiles must not be written at end
     aGP.mNumTile    = (mNbTiles==1) ? cPt2di(-1,-1)  : anIndex;
@@ -264,7 +264,7 @@ cAppliCalcDescPCar:: cAppliCalcDescPCar(const std::vector<std::string> &  aVArgs
   mSDON         (20.0),
   mCI0          (0.7),
   mCC0          (0.7),
-  mFPC          ()
+  mFPC          (true) // 4 TieP
 {
 }
 
@@ -304,6 +304,7 @@ cCollecSpecArg2007 & cAppliCalcDescPCar::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 int cAppliCalcDescPCar::Exe() 
 {
    mFPC.FinishAC(0.05);
+   mFPC.Check();
 
    if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself
       return ResultMultiSet();

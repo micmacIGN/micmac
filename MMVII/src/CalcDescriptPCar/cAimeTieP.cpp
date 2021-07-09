@@ -15,7 +15,14 @@ cAimeDescriptor::cAimeDescriptor() :
 {
 }
 
-cIm2D<tU_INT1>   cAimeDescriptor::ILP() {return mILP;}
+cAimeDescriptor cAimeDescriptor::DupLPIm()
+{
+   cAimeDescriptor aRes;
+   aRes.mILP = mILP.Dup();
+   return aRes;
+}
+
+cIm2D<tU_INT1>   cAimeDescriptor::ILP() const {return mILP;}
 const std::vector<double> &  cAimeDescriptor::DirPrinc() const {return mDirPrinc;}
 std::vector<double> &  cAimeDescriptor::DirPrinc() {return mDirPrinc;}
 
@@ -95,6 +102,20 @@ void AddData(const cAuxAr2007 & anAux,cAimePCar & aPC)
      AddData(cAuxAr2007("Pt",anAux),aPC.Pt());
      AddData(cAuxAr2007("Desc",anAux),aPC.Desc());
 }
+
+cAimePCar cAimePCar::DupLPIm()
+{
+   cAimePCar aRes;
+   aRes.mPt = mPt;
+   aRes.mDesc = mDesc.DupLPIm();
+   return aRes;
+}
+
+double  cAimePCar::L1Dist(const cAimePCar& aP2) const
+{
+   return mDesc.ILP().DIm().L1Dist(aP2.mDesc.ILP().DIm());
+}
+
 
 /* ================================= */
 /*          cProtoAimeTieP           */
@@ -191,6 +212,9 @@ double CalcOrient(const cDataIm2D<tREAL4>&  aDIm,eModeNormOr aMode)
 
 template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFPC,cAimePCar & aPC,bool ForTest)
 {
+// static int aCpt=0; aCpt++;  StdOut() << "BUG cProtoAimeTieP " << aCpt << " " << ForTest << "\n";
+// bool Bug=(aCpt==65);
+
    int aNbTeta = aFPC.LPS_NbTeta();
    int aNbRho = aFPC.LPS_NbRho();
    double aMulV = aFPC.LPS_Mult();
@@ -217,11 +241,9 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
     
    cPt2dr aCenter =  mPFileRefined;  // Center 
    cPt2di aSzLP(aNbTeta,aNbRho); // Sz of Log Pol image
-   std::vector<cPt2dr> aVDirTeta;   // vector of direction
-   for (int aKTeta=0 ; aKTeta<aNbTeta ; aKTeta++)
-   {
-       aVDirTeta.push_back(FromPolar(1.0,(2*M_PI*aKTeta)/aNbTeta));
-   }
+   const std::vector<cPt2dr> & aVDirTeta0 = aFPC.VDirTeta0();   // vector of direction
+   const std::vector<cPt2dr> & aVDirTeta1 = aFPC.VDirTeta1();   // other vector of direction, may be interlaced
+
    cIm2D<tREAL4>       aILPr(aSzLP);  // Real Log Pol images
    cDataIm2D<tREAL4>&  aDILPr = aILPr.DIm(); // Data real log pol im
 
@@ -237,16 +259,6 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
         double  aRhok =  aRho0 * anIk.ScaleInO();  // Rho in fact R0 * ScaleAbs / ScaleOfOct
         cDataIm2D<Type> &  aDImk (anIk.ImG().DIm());  // Data Image at level
 
-        // Memorize central value 4 census
-        if (aCensusMode && (aKIm==aK0))
-        {
-             aVCentral = aDImk.GetVBL(aCk);
-             if (ForTest && (aVCentral==0))
-             {
-                return false;
-             }
-        }
-
         if (ForTest)
         {
              // Check if all corner are inside
@@ -259,11 +271,22 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
                  }
              }
         }
-        else
+        // Memorize central value 4 census
+        if (aCensusMode && (aKIm==aK0))
+        {
+             aVCentral = aDImk.GetVBL(aCk);
+             if (ForTest && (aVCentral==0))
+             {
+                return false;
+             }
+        }
+
+        if (!ForTest)
         {
              for (int aKTeta=0 ; aKTeta<aNbTeta ; aKTeta++)
              {
-                 cPt2dr aP = aCk + aVDirTeta.at(aKTeta) * aRhok; // Point in LogPol
+                 const cPt2dr & aDir = (aKIm%2) ? aVDirTeta1.at(aKTeta) : aVDirTeta0.at(aKTeta);
+                 cPt2dr aP = aCk + aDir * aRhok; // Point in LogPol
                  double aV = aDImk.GetVBL(aP);
                  aDILPr.SetV(cPt2di(aKTeta,IndRhoLP),aV);
                  if (! aCensusMode)
@@ -281,9 +304,12 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
    }
 
    // Compute the main orientations from real image
-   for (int aK=0 ; aK<int(eModeNormOr::eNbVals) ; aK++)
+   if (aFPC.IsForTieP())
    {
-      aPC.Desc().DirPrinc().push_back(CalcOrient(aDILPr,eModeNormOr(aK))) ;
+      for (int aK=0 ; aK<int(eModeNormOr::eNbVals) ; aK++)
+      {
+         aPC.Desc().DirPrinc().push_back(CalcOrient(aDILPr,eModeNormOr(aK))) ;
+      }
    }
   
    // Memorize the localization

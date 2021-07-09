@@ -181,9 +181,14 @@ template <class Type> class cGP_OneOctave : public cMemCheck
 struct cFilterPCar
 {
      public :
+         typedef std::vector<double> tVD;
+
          //cFilterPCar(const std::vector<double> & = std::vector<double>({1,2}));
-         cFilterPCar();
+         cFilterPCar(bool isForTieP);  // Eparse / Dense
+         ~cFilterPCar();
+         void Check();
          void FinishAC(double  aDecStep=0.05); ///< Complete Auto Correlation Treshold to have at leas 3Val Value if needed
+         bool IsForTieP() const;
 
          std::vector<double> &  AutoC();  ///< Threshold for auto correlation
          const double & AC_Threshold() const;  ///< Final Threshold
@@ -201,22 +206,33 @@ struct cFilterPCar
          const double & PowScale() const;     ///< Exposant for scaling
 
          std::vector<double> & LPCirc();  ///< Circles of Log Pol param [Rho0,DeltaSI0,DeltaI]
+         void SetLPCirc(const std::vector<double> &);
          const double &  LPC_Rho0() const ;  ///< Radius of first circle
          int             LPC_DeltaI0() const ;  ///< Shit in pyramid (typcally -1 to gain a bit in resol)
          int             LPC_DeltaIm() const ;  ///< Delta between 2 images
 
          std::vector<double> &  LPSample();  ///< Sampling Mode for LogPol [NbTeta,NbRho,Multiplier,CensusNorm]
+         void SetLPSample(const std::vector<double> &);
          int               LPS_NbTeta()     const;   ///< Number of sample in teta
          int               LPS_NbRho()      const;   ///< Number of sample in rho
          const double &    LPS_Mult()       const;   ///< Multiplier before making it integer
          bool              LPS_CensusMode() const;   ///< Do Normalization in census mode
+         bool              LPS_Interlaced() const;   ///< Interlace teta at each step of rho
+
+         const std::vector<cPt2dr> & VDirTeta0() const;
+         const std::vector<cPt2dr> & VDirTeta1() const;
 
      private :
+         void InitDirTeta() const;
+         bool                 mIsForTieP;
          std::vector<double>  mAutoC;  ///< Threshold for auto correlation
          std::vector<double>  mPSF; ///< Param Spatial Filtering  [Dist,MulRAy,PropNoFS]
          std::vector<double>  mEQsf; ///< Exposant for quality of point before spatial filter [AutoC,Var,Scale]
          std::vector<double>  mLPCirc;  ///< Circles of Log Pol param [Rho0,DeltaSI0,DeltaI]
          std::vector<double>  mLPSample;  ///< Sampling Mode for LogPol [NbTeta,NbRho,Multiplier,CensusNorm]
+
+         mutable std::vector<cPt2dr>  mVDirTeta0;
+         mutable std::vector<cPt2dr>  mVDirTeta1;
 }; 
 
 /// Struct for parametrization of Gaussian Pyramid
@@ -229,7 +245,7 @@ struct cGP_Params
 {
      public :
          /// Appli is usefull for name computation
-         cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,cMMVII_Appli *);
+         cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,cMMVII_Appli *,bool is4TieP);
 
       // Parameters having no def values
          cPt2di mSzIm0;    ///< Sz of Image at full resol

@@ -119,6 +119,8 @@ class cMDLB_AppliFormatTDEDM : public cMMVII_Appli,
             std::string mNamePx[2];
             std::string mNameMasq[2];
             bool mBeeFrost;
+            bool mMDLB;
+            bool mTEST;
 
 
             // std::string mTmpPxSym[2];
@@ -138,7 +140,9 @@ cMDLB_AppliFormatTDEDM::cMDLB_AppliFormatTDEDM
 )  :
    cMMVII_Appli (aVArgs,aSpec),
    mDoRectif    (false),
-   mBeeFrost    (false)
+   mBeeFrost    (false),
+   mMDLB        (false),
+   mTEST        (false)
 {
 }
 
@@ -236,6 +240,7 @@ int cMDLB_AppliFormatTDEDM::Exe()
    switch(mYear)
    {
         case 2006 :
+           mMDLB = true;
            mNameIm[0]  = "view1.png";
            mNameIm[1]  = "view5.png";
            mNamePx[0]  = "disp1.png";
@@ -243,6 +248,7 @@ int cMDLB_AppliFormatTDEDM::Exe()
         break;
 
         case 2014 :
+           mMDLB = true;
            mNameIm[0]  = "im0.png";
            mNameIm[1]  = "im1.png";
            mNamePx[0]  = "disp0.pfm";
@@ -259,6 +265,11 @@ int cMDLB_AppliFormatTDEDM::Exe()
            mNameMasq[1] = "right_epipolar_disparity_mask.tif";
         break;
 
+        case 1000 :
+           mNameIm[0]   = "left_epipolar_image.tif";
+           mTEST = true;
+        break;
+
         default :
               MMVII_UsersErrror(eTyUEr::eUnClassedError,"Year specified not avalaible");
         break;
@@ -267,6 +278,7 @@ int cMDLB_AppliFormatTDEDM::Exe()
    std::vector<std::string>  aVS = RecGetFilesFromDir("./",AllocRegex(mPatDir+DirSeparator()+mNameIm[0]),1,20);
    for (auto aFullName : aVS)
    {
+       std::cout << "Fuulll " << aFullName << "\n";
        std::vector<std::string> aVSep = SplitString(aFullName,"/");
        std::string aNameIm  = aVSep.at(aVSep.size()-2);
        std::string aDir =  DirOfPath(aFullName);
@@ -291,12 +303,14 @@ int cMDLB_AppliFormatTDEDM::Exe()
 
               aVBox.push_back(aBox.CurBox());
               StdOut() << aBox.CurBox() << "\n";
+/*
 if (aKIm==0)
 {
    aVBox[aKIm] = cBox2di(aVBox[aKIm].P0() -cPt2di(50,0),aVBox[aKIm].P1());
 for (int aK=0 ; aK<20 ; aK++)
    std::cout << "MOOOOOODDDDDDDDDDDDDIFYY  Boooooooooooooooooooooox\n";
 }
+*/
           }
           int aY0 = std::max(aVBox[0].P0().y(),aVBox[1].P0().y());
           int aY1 = std::min(aVBox[0].P1().y(),aVBox[1].P1().y());
@@ -306,11 +320,11 @@ for (int aK=0 ; aK<20 ; aK++)
               aVBox[aKIm] = cBox2di(cPt2di(aVBox[aKIm].P0().x(),aY0),cPt2di(aVBox[aKIm].P1().x(),aY1));
           }
           int aDPx =  aVBox[0].P0().x() - aVBox[1].P0().x();
-
           for (int aKIm=0; aKIm<2 ; aKIm++)
           {
-              // in case image trans, aDPx would the Px before clip, its void after
-              int aSDPx = (aKIm==0) ? -aDPx : aDPx;
+//   X1-------         :  DPx >0 et hom X0 >0 donc S=1
+//          X0
+              int aSDPx = (aKIm==0) ? aDPx : -aDPx;
               std::string  aStrBox =  " Box=" + ToStrComMMV1(aVBox[aKIm]);
               std::string aComIm = " mm3d Nikrup  \"/ (+ v0 =F " +  aDir + mNameIm[aKIm] +  " v1 @F v2 @F) 3\" " 
                                    + NameIm(aKIm) + aStrBox ;
@@ -325,11 +339,10 @@ for (int aK=0 ; aK<20 ; aK++)
               GlobSysCall(aComPx);
           }
 
-          StdOut() << "BBbbBB " << aVBox[0] << " ;;; " << aVBox[1] << " DPx: " << aDPx<< "\n";
-
-          getchar();
+          // StdOut() << "BBbbBB " << aVBox[0] << " ;;; " << aVBox[1] << " DPx: " << aDPx<< "\n";
+          // getchar();
        }
-       else
+       else if (mMDLB)
        {
            ConvertIm1(aDir+mNameIm[0],mCurPref);
            ConvertIm2(aDir+mNameIm[1],mCurPref);

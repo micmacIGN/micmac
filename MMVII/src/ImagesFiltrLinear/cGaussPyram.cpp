@@ -303,13 +303,56 @@ template <class Type> const  std::vector<std::shared_ptr<cGP_OneImage<Type>>> & 
 /*                                                      */
 /* ==================================================== */
 
-cFilterPCar::cFilterPCar() :
+typedef std::vector<double> tVD;
+
+
+cFilterPCar::cFilterPCar(bool is4TieP) :
+   mIsForTieP (is4TieP),
    mAutoC    ({0.9}),
    mPSF      ({35,3.0,0.2}),
    mEQsf     ({2,1,1}),
-   mLPCirc   ({2.5,-1.0,2.0}),
-   mLPSample ({16,8,32.0,0})
+   mLPCirc   (is4TieP ? tVD({2.5,-1.0,2.0}) :  tVD({2.0,0.0,1.0})),
+   mLPSample (is4TieP ? tVD{16,8,32.0,1,0}  :  tVD({6,6,32.0,1,1}))
 {
+}
+
+bool cFilterPCar::IsForTieP() const
+{
+   return mIsForTieP;
+}
+
+cFilterPCar::~cFilterPCar() 
+{
+   Check();
+}
+
+void cFilterPCar::SetLPSample(const std::vector<double> & aVS)
+{
+   mLPSample = aVS;
+}
+
+void cFilterPCar::SetLPCirc(const std::vector<double> & aVC)
+{
+   mLPCirc = aVC;
+}
+
+void cFilterPCar::Check()
+{
+    if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_strong)
+    {
+         MMVII_INTERNAL_ASSERT_strong(AutoC().size()   ==3,"Bad size for cFilterPCar::AutoC");
+         MMVII_INTERNAL_ASSERT_strong(PSF().size()     ==3,"Bad size for cFilterPCar::PSF");
+         MMVII_INTERNAL_ASSERT_strong(EQsf().size()    ==3,"Bad size for cFilterPCar::EQsf");
+         MMVII_INTERNAL_ASSERT_strong(LPCirc().size()  ==3,"Bad size for cFilterPCar::LPCirc");
+         MMVII_INTERNAL_ASSERT_strong(LPSample().size()==5,"Bad size for cFilterPCar::LPSample");
+
+         LPC_DeltaI0();
+         LPC_DeltaIm();
+         LPS_NbTeta();
+         LPS_NbRho();
+         LPS_CensusMode();
+         LPS_Interlaced();
+    }
 }
 
 void cFilterPCar::FinishAC(double aVal)
@@ -319,6 +362,7 @@ void cFilterPCar::FinishAC(double aVal)
         if (int(mAutoC.size()) == aK)
            mAutoC.push_back(mAutoC.back()-aVal);
     }
+// StdOut() << "HhhhhhhHHhhhhhhh " << mAutoC.size() << " :: " << mAutoC << "\n";
 }
 
 std::vector<double> &  cFilterPCar::AutoC() {return mAutoC;}
@@ -347,6 +391,7 @@ int  cFilterPCar::LPS_NbTeta()           const {return EmbeddedIntVal(mLPSample.
 int  cFilterPCar::LPS_NbRho()            const {return EmbeddedIntVal(mLPSample.at(1));}
 const double &  cFilterPCar::LPS_Mult()  const {return mLPSample.at(2);}
 bool  cFilterPCar::LPS_CensusMode()      const {return EmbeddedBoolVal(mLPSample.at(3));}
+bool  cFilterPCar::LPS_Interlaced()      const {return EmbeddedBoolVal(mLPSample.at(4));}
 
 /*
    std::vector<double>  mLPSample;  ///< Sampling Mode for LogPol [NbTeta,NbRho,Multiplier,CensusNorm]
@@ -356,6 +401,44 @@ bool  cFilterPCar::LPS_CensusMode()      const {return EmbeddedBoolVal(mLPSample
          bool              LPS_CensusMode() const;   ///< Do Normalization in census mode
 */
 
+void cFilterPCar::InitDirTeta() const
+{
+   int aNbTeta = LPS_NbTeta();
+   if (int(mVDirTeta0.size()) == aNbTeta)
+      return;
+    mVDirTeta0.clear();
+    mVDirTeta1.clear();
+ 
+   for (int aKTeta=0 ; aKTeta<aNbTeta ; aKTeta++)
+   {
+       mVDirTeta0.push_back(FromPolar(1.0,(M_PI*(2*aKTeta))/aNbTeta));
+   }
+   if (LPS_Interlaced())
+   {
+       for (int aKTeta=0 ; aKTeta<aNbTeta ; aKTeta++)
+       {
+           mVDirTeta1.push_back(FromPolar(1.0,(M_PI*(1+2*aKTeta))/aNbTeta));
+       }
+   }
+   else
+       mVDirTeta1 = mVDirTeta0;
+}
+
+const std::vector<cPt2dr> & cFilterPCar::VDirTeta0() const
+{
+   InitDirTeta();
+
+   return mVDirTeta0;
+}
+
+const std::vector<cPt2dr> & cFilterPCar::VDirTeta1() const
+{
+   InitDirTeta();
+
+   return mVDirTeta1;
+}
+
+
 
 
 /* ==================================================== */
@@ -364,12 +447,13 @@ bool  cFilterPCar::LPS_CensusMode()      const {return EmbeddedBoolVal(mLPSample
 /*                                                      */
 /* ==================================================== */
 
-cGP_Params::cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,cMMVII_Appli * aPtrAppli) :
+cGP_Params::cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,cMMVII_Appli * aPtrAppli,bool is4TieP) :
    mSzIm0        (aSzIm0),
    mNbOct        (aNbOct),
    mNbLevByOct   (aNbLevByOct),
    mNbOverlap    (aOverlap),
    mAppli        (aPtrAppli),
+   mFPC          (is4TieP),
    mConvolIm0    (0.0),
    mNbIter1      (4),
    mNbIterMin    (2),
