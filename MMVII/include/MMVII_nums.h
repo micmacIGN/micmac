@@ -39,6 +39,7 @@ class cFctrRR
    public :
       virtual  double F (double) const;  ///< Default return 1.0
       static cFctrRR  TheOne;  ///< the object return always 1
+      virtual ~cFctrRR() = default;
 };
 /// Random permutation , Higer Bias => Higer average rank
 std::vector<int> RandPerm(int aN,cFctrRR & aBias =cFctrRR::TheOne);
@@ -286,6 +287,7 @@ template <> class tElemNumTrait<tREAL16> : public tBaseNumTrait<tREAL16>
 class cVirtualTypeNum
 {
     public :
+       virtual ~cVirtualTypeNum() = default;
        virtual bool V_IsInt()  const = 0;
        virtual bool V_Signed() const = 0;
        virtual int  V_Size()   const = 0;
