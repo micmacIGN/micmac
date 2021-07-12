@@ -80,6 +80,7 @@ int CPP_GCP2D3D2Xml_main(int argc,char ** argv)
 	cElemAppliSetFile aEASF;
 	std::string aFormat;
 	char aCom = '#';
+	std::string aChSys = "";
 
 	ElInitArgMain
     (
@@ -88,6 +89,7 @@ int CPP_GCP2D3D2Xml_main(int argc,char ** argv)
 		              << EAMC(aImNamePat,"Image file pattern", eSAM_IsPatFile)
                       << EAMC(aGCPNamePat,"GCP file pattern", eSAM_IsPatFile),
            LArgMain() << EAM(aGCPOut,"Out","Output filename,Def=GCP-S2D.xml and GCP-S3D.xml")
+		              << EAM(aChSys,"ChSys","File defininf conversion between coordinate frames")
     );
 
 
@@ -194,7 +196,7 @@ int CPP_GCP2D3D2Xml_main(int argc,char ** argv)
 	aFp.close();
 
 	//save 3d observations aGCPMap to xml file
-	aSysCom = "mm3d GCPConvert AppInFile " + aFileGCP3d;
+	aSysCom = "mm3d GCPConvert AppInFile " + aFileGCP3d + (aChSys=="" ? "" : " ChSys="+aChSys);
 	System(aSysCom);
 
 	return EXIT_SUCCESS;
