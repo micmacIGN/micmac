@@ -19,69 +19,7 @@ class cWT_AppliFormatTDEDM ;  // format 4 training data on epipolar dense matchi
 /*  ============================================== */
 
 
-/*
 
-class cBEFROST_AppliFormatTDEDM : public cMMVII_Appli,
-                                  public cNameFormatTDEDM 
-{
-     public :
-
-       // =========== Declaration ========
-                 // --- Method to be a MMVII application
-        cBEFROST_AppliFormatTDEDM(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli &);
-        int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
-
-        // cIm2D<tU_INT1> ComputeAR(double aAmpl,int aK);
-        //  void  MakeMaskAR(double aPixThresh,int aK);
-        // void  DoRectifiedImage(int aK);
-     private :
-       // =========== Data ========
-            // Mandatory args
-            std::string mPatDir;
-            bool mDoRectif;  ///< Do rectification of images
-            // std::string mCurPref;
-
-            std::string mNameIm[2];
-            std::string mNamePx[2];
-};
-
-cBEFROST_AppliFormatTDEDM::cBEFROST_AppliFormatTDEDM
-(
-        const std::vector<std::string> &  aVArgs,
-        const cSpecMMVII_Appli & aSpec
-) :
-    cMMVII_Appli(aVArgs,aSpec),
-    mNameIm ({"left_epipolar_image.tif","right_epipolar_image.tif"}),
-    mNamePx ({"left_epipolar_disparity.tif","right_epipolar_disparity.tif"})
-{
-}
-
-cCollecSpecArg2007 & cBEFROST_AppliFormatTDEDM:::ArgObl(cCollecSpecArg2007 & anArgObl)
-{
-   return 
-      anArgObl  
-         << Arg2007(mPatDir,"Directory of file")
-   ;
-}
-
-cCollecSpecArg2007 & cBEFROST_AppliFormatTDEDM:::ArgOpt(cCollecSpecArg2007 & anArgOpt)
-{
-   return anArgOpt
-         << AOpt2007(mDoRectif,"DoRectif","Compute rectified images, for check",{eTA2007::HDV})
-   ;
-}
-int cBEFROST_AppliFormatTDEDM::Exe()
-{
-   std::vector<std::string>  aVS = RecGetFilesFromDir("./",AllocRegex(mPatDir+DirSeparator()+mNameIm[0]),1,2);
-   for (auto aFullName : aVS)
-   {
-   }
-
-    return EXIT_SUCCESS;
-}
-*/
 
 /*  ============================================== */
 /*                                                 */
@@ -324,7 +262,7 @@ for (int aK=0 ; aK<20 ; aK++)
           {
 //   X1-------         :  DPx >0 et hom X0 >0 donc S=1
 //          X0
-              int aSDPx = (aKIm==0) ? aDPx : -aDPx;
+              int aSDPx = ((aKIm==0) ? aDPx : -aDPx) * 1;
               std::string  aStrBox =  " Box=" + ToStrComMMV1(aVBox[aKIm]);
               std::string aComIm = " mm3d Nikrup  \"/ (+ v0 =F " +  aDir + mNameIm[aKIm] +  " v1 @F v2 @F) 3\" " 
                                    + NameIm(aKIm) + aStrBox ;
@@ -338,6 +276,7 @@ for (int aK=0 ; aK<20 ; aK++)
                                    + NamePx(aKIm) + aStrBox ;
               GlobSysCall(aComPx);
           }
+          StdOut() << "DPX= " << aDPx << "\n";
 
           // StdOut() << "BBbbBB " << aVBox[0] << " ;;; " << aVBox[1] << " DPx: " << aDPx<< "\n";
           // getchar();
