@@ -5,7 +5,7 @@
 TrainedModelFile="/home/er/Documents/d_development/stereo_matching/Vaih/models/finetune_PSMnet.tar"
 
 # disparity scale of the trained model
-DispScale=256.0
+DispScale=-256.0
 ########
 
 EnvName=psmnet_env
