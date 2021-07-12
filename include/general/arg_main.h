@@ -523,6 +523,7 @@ class cReadObject
          void AddDouble(const std::string & aS,double * anAdr,bool Required);
          void AddDouble(char aC,double * anAdr,bool Required);
          void AddPt3dr(const std::string & aS,Pt3dr * aP,bool Required);
+         void AddPt2dr(const std::string & aS,Pt2dr * aP,bool Required);
          void AddString(const std::string & aS,std::string * aName,bool Required);
 
 

@@ -203,6 +203,7 @@ int Vino_Main(int argc, char ** argv);
 int XifDate2Txt_main(int argc, char ** argv);
 int XifGps2Xml_main(int argc, char ** argv);
 int XifGps2Txt_main(int argc, char ** argv);
+int CPP_GCP2D3D2Xml_main(int argc, char ** argv);
 int RedTieP_main(int argc, char **argv);
 int OriRedTie_main(int argc, char **argv);
 int HomFusionPDVUnik_main(int argc, char **argv);
@@ -401,6 +402,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 
 		aRes.push_back(cMMCom("AnalyseTrajStereopolis", AnalyseTrajStereopolis_main,"Analyse trajectory of Stereopolis-like acquisition", cArgLogCom(2)));
 
+		aRes.push_back(cMMCom("GCP2d3dConvert", CPP_GCP2D3D2Xml_main, "Convert GCP 2d and 3d in Txt 2 XML", cArgLogCom(3)));
 		aRes.push_back(cMMCom("GCPConvert", GCP_Txt2Xml_main, "Convert GCP from Txt 2 XML", cArgLogCom(3)));
 		aRes.push_back(cMMCom("OriConvert", Ori_Txt2Xml_main, "Convert Orientation from Txt 2 XML", cArgLogCom(3)));
 		aRes.push_back(cMMCom("OriExport", OriExport_main, "Export orientation from XML to XML or TXT with specified convention", cArgLogCom(3)));
