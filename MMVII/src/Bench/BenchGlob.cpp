@@ -876,10 +876,12 @@ void ShowAdr(double & anAdr)
 {
        StdOut () <<  "ADDDDDr " << &(anAdr) << "\n";
 }
+void TTT();
 
 // #include <limits>
 int cAppli_MPDTest::Exe()
 {
+   TTT ();
    if (true)
    {
      std::cout << "T0:" << cName2Calc<double>::CalcFromName("toto",10,true) << "\n";

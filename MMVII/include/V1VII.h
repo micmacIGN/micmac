@@ -17,6 +17,11 @@ template <class Type> cPtxd<Type,2> ToMMVII(const Pt2d<Type> &  aP) {return cPtx
 template <class Type> Box2d<Type>  ToMMV1(const cTplBox<Type,2> &  aBox) {return  Box2d<Type>(ToMMV1(aBox.P0()),ToMMV1(aBox.P1()));}
 
 template <class Type> std::string ToStrComMMV1(const cPtxd<Type,2> & aP) {return "["+ToStr(aP.x()) + "," + ToStr(aP.y()) + "]";}
+template <class Type> std::string ToStrComMMV1(const cTplBox<Type,2> & aBox) 
+{
+  return "["+ToStr(aBox.P0().x()) + "," + ToStr(aBox.P0().y()) + "," + ToStr(aBox.P1().x()) + "," + ToStr(aBox.P1().y()) +  "]";
+}
+
 
 
 GenIm::type_el ToMMV1(eTyNums aV2);

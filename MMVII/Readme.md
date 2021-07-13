@@ -1,6 +1,7 @@
 Dependences :
 -------------
 
+libboost-all-dev
 libceres-dev
 
 

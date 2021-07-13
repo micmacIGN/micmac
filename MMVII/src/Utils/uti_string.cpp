@@ -610,6 +610,28 @@ for (        recursive_directory_iterator itr("./"); itr!=        recursive_dire
 }
 }
 */
+std::string replaceFirstOccurrence
+            (
+                const std::string& s,
+                const std::string& toReplace,
+                const std::string& replaceWith,
+                bool  SVP
+            )
+{
+    std::size_t pos = s.find(toReplace);
+    if (pos == std::string::npos)
+    {
+        if (!SVP)
+        {
+           StdOut() << "REPLACE ["<< toReplace << "] by : [" << replaceWith << "\n";
+           StdOut() << "in [" << s << "]\n";
+           MMVII_INTERNAL_ASSERT_always(false,"Cannot make subs");
+        }
+        return "";
+    }
+    std::string aDup = s;
+    return aDup.replace(pos, toReplace.length(), replaceWith);
+}
 
 };
 

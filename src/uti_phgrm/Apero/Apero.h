@@ -643,6 +643,7 @@ class cPoseCam : public cGenPoseCam
           int DifBlocInf1(const cPoseCam &) const; // Return "Many" if not initialized
           void SetNumTimeBloc(int aNum);
 
+          void AddObsPlaneOneCentre(const cXml_ObsPlaneOnPose & ,const double & aWeight);
      private  :
 
           void AssertHasObsCentre() const;
@@ -2179,6 +2180,9 @@ class cAppliApero : public NROptF1vND
         cObserv1Im<cTypeEnglob_Centre> & ObsCentre(const std::string& anId,const std::string & aName);
         bool HasObsCentre(const std::string& anId,const std::string & aName);
 	cPackObsLiaison * GetPackOfName(const std::string&);
+
+        cDataObsPlane *  GetDOPOfName(const std::string& Id);
+        void AddObservationsPlane(const cDataObsPlane &);
 
 
         // Dans le cas "particulier" ou on ajoute toutes les images connexes a une images

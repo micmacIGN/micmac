@@ -462,6 +462,12 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
            tPB::AssertInsideBL(aP);
            return  ValueBL(aP);
        }
+       inline double DefGetVBL(const cPt2dr & aP,double aDef) const
+       {
+            if (tPB::InsideBL(aP))
+               return ValueBL(aP);
+            return aDef;
+       }
 
            /// Get Value, check access in non release mode
         const Type & GetV(const cPt2di & aP)  const
@@ -612,6 +618,7 @@ template <class Type>  class cIm2D
        void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
 
        static cIm2D<Type> FromFile(const std::string& aName);  ///< Allocate and init from file
+       static cIm2D<Type> FromFile(const std::string& aName,const cBox2di & );  ///< Allocate and init from file
 
        // void Read(const cDataFileIm2D &,cPt2di & aP0,cPt3dr Dyn /* RGB*/);  // 3 to 1
        // void Read(const cDataFileIm2D &,cPt2di & aP0,cIm2D<Type> aI2,cIm2D<Type> aI3);  // 3 to 3
@@ -755,6 +762,27 @@ template <class Type>  class cIm1D
        std::shared_ptr<tDIM> mSPtr;  ///< shared pointer to real image
        tDIM *                mPIm;
 };
+
+class cTabulFonc1D : public cFctrRR
+{
+     public  :
+       double F (double) const override;  ///< Virtual usable as cFctRR
+
+       cTabulFonc1D(const cFctrRR & aFctr,double XMin,double XMax,int aNbStep);
+     private  :
+       inline int    ToIntCoord(double aX) const;
+       inline double ToRealCoord(int   aI) const;
+
+       double  mXMin;
+       double  mXMax;
+       int     mNbStep;
+       double  mStep;
+       double  mValXMin;
+       double  mValXMax;  
+       cIm1D<double>      mIm;
+       cDataIm1D<double>* mDIm;
+};
+
 
 
 };
