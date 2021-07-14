@@ -321,7 +321,7 @@ Fonc_Num GamCor(const cArgMpDCRaw & anArg,Fonc_Num aF,const std::string & aNameF
 
 void  cArgMpDCRaw::DevJpg()
 {
-     std::cout << " MpDcraw with JPEG : use convert (http://doc.ubuntu-fr.org/imagemagick)\n";
+     //std::cout << " MpDcraw with JPEG : use convert (http://doc.ubuntu-fr.org/imagemagick)\n";
 
 
 
@@ -364,7 +364,7 @@ void  cArgMpDCRaw::DevJpg()
                         Tiff_Im::No_Compr,
                         Tiff_Im::RGB
                     );
-// �Tiff_Im::Tiff_Im(const char*, Pt2di, Tiff_Im::COMPR_TYPE, GenIm::type_el, Tiff_Im::PH_INTER_TYPE)�
+// �Tiff_Im::Tiff_Im(const char*, Pt2di, Tiff_Im::COMPR_TYPE, GenIm::type_el, Tiff_Im::PH_INTER_TYPE)�
 // Tiff_Im::Tiff_Im(const char*, Pt2di, GenIm::type_el, Tiff_Im::COMPR_TYPE, Tiff_Im::PH_INTER_TYPE, L_Arg_Opt_Tiff)
 
              ELISE_COPY(aTFCol.all_pts(),Virgule(aTF.in(),aTF.in(),aTF.in()),aTFCol.out());
@@ -673,7 +673,7 @@ const Pt2di & cArgMpDCRaw::SpliMargeExt() const {return mSplitMargeExt;}
 
 /*Footer-MicMac-eLiSe-25/06/2007
 
-Ce logiciel est un programme informatique servant �  la mise en
+Ce logiciel est un programme informatique servant �  la mise en
 correspondances d'images pour la reconstruction du relief.
 
 Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
@@ -689,17 +689,17 @@ seule une responsabilité restreinte pèse sur l'auteur du programme,  le
 titulaire des droits patrimoniaux et les concédants successifs.
 
 A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  �  l'utilisation,  �  la modification et/ou au
-développement et �  la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe �
-manipuler et qui le réserve donc �  des développeurs et des professionnels
+associés au chargement,  �  l'utilisation,  �  la modification et/ou au
+développement et �  la reproduction du logiciel par l'utilisateur étant
+donné sa spécificité de logiciel libre, qui peut le rendre complexe �
+manipuler et qui le réserve donc �  des développeurs et des professionnels
 avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
-logiciel �  leurs besoins dans des conditions permettant d'assurer la
+utilisateurs sont donc invités �  charger  et  tester  l'adéquation  du
+logiciel �  leurs besoins dans des conditions permettant d'assurer la
 sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
+�  l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
+Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/

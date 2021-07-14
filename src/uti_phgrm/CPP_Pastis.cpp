@@ -76,14 +76,14 @@ Autres options possibles :
  --levels=S            Number of levels per octave
  --first-octave=MINO   Index of the first octave
  --threshold=THR       Keypoint strength threshold : les points pour
-lesquels la fonction différence de gaussienne est inférieure �  ce seuil
+lesquels la fonction différence de gaussienne est inférieure �  ce seuil
 sont éliminés
  --edge-threshold=THR  On-edge threshold : c'est pour l'élimination des
 candidats situés sur des arêtes
 
 J'avais testé des solutions du type de celle que tu proposais au tout
 début des tests (alors que l'appariement "brut" prenait près de 5h par
-couple d'images aériennes). Il faudrait que je rejette un oeil l�
+couple d'images aériennes). Il faudrait que je rejette un oeil l�
 dessus. Ca pourrait notamment être utile pour de grandes images avec de
 très grandes quantités de points (cf images satellites voire images
 Marseille 10 cm...).
@@ -773,7 +773,7 @@ void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
           SplitDirAndFile(aD,aN,mNameHomXML);
           mNameHomXML = aD + "Failed_" + aN;
       }
-      std::cout << "OK GLOB " <<  OKGlob << " " << mNameHomXML << "\n";
+      //std::cout << "OK GLOB " <<  OKGlob << " " << mNameHomXML << "\n";
    }
 
    double aSFH = mSeuilFHom;
@@ -786,11 +786,11 @@ void cAppliPastis::GenerateXML(std::pair<cCompileCAPI,cCompileCAPI> & aPair)
    {
       aLCple = FiltrageHomogr(aLCple,aSFH);
    }
-   std::cout << "Apres Hom  " << aLCple.size() << "\n";
+   //std::cout << "Apres Hom  " << aLCple.size() << "\n";
 
    aLCple = FiltrageRot(aLCple,1.0);
 
-   std::cout << "Apres Rot  " << aLCple.size() << "\n";
+   //std::cout << "Apres Rot  " << aLCple.size() << "\n";
 
    if (int(aLCple.size())>=mNbMinPtsExp)
    {
