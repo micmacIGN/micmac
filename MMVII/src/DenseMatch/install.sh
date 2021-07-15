@@ -1,15 +1,17 @@
-#!/usr/bin/env bash
+!/usr/bin/env bash
 
 #Introduction: https://www.youtube.com/watch?v=N5vscPTWKOk
 
-PYTHON_PATH=/etc/opt/anaconda3/bin/python
 PYTHON_ENV=python_env
 THIS_ENV=psmnet_env
+
+MODELPATH=models/finetune_PSMnet.tar
+
 
 #dependances
 pip3 install virtualenv
 
-#Clone PSMNet
+#clone PSMNet
 git clone https://github.com/erupnik/PSMNet.git
 cd PSMNet
 
@@ -17,13 +19,16 @@ cd PSMNet
 git checkout -b test
 git reset --hard 9ba1e36903f3ba2c99e5be8f03d31d2751a2cb33
 
+#download a trained model
+wget https://drive.google.com/uc?id=16acK5nqgglNSBhCmvqEmhOZQwChNOm2n -O ${MODELPATH}
+
 #create dir to store virtual env
 cd ..
 mkdir ${PYTHON_ENV}
 cd ${PYTHON_ENV}
 
 #create a new virtualenv named psmnet_env
-virtualenv -p ${PYTHON_PATH} ${THIS_ENV}
+virtualenv -p python3 ${THIS_ENV}
 
 #enter new virtual env
 echo source ${THIS_ENV}/bin/activate

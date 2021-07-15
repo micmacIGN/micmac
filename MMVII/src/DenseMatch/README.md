@@ -17,10 +17,9 @@ MicMac allows you to replace its native SGM algorithm rwith learning-based appro
 <details>
   <summary>PSMNet [Click to expand]</summary>
 
-1. Modify the variables inside ```install.sh```:
-* ```PYTHON_PATH```
-* ```TrainedModelFile```
-* ```DispScale```
+1. Modify the variables inside ```install.sh``` and ```run.sh```:
+* ```MODELPATH```
+* ```DISPSCALE```
 
 2. Create virtualenv, clone a modified version of PSMNet and install depedencies:
 
