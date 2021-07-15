@@ -71,6 +71,9 @@ class cAppliCalcDescPCar : public cMMVII_Appli
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+        ~cAppliCalcDescPCar(); ///< Because of bench
+   
      private :
         std::string               mNameIm;                ///< Input image pattern/name 
         bool        mIntPyram;  ///< Impose integer  image
@@ -247,6 +250,12 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
 /*               cAppliCalcDescPCar                */
 /*                                                 */
 /* =============================================== */
+
+cAppliCalcDescPCar::~cAppliCalcDescPCar()
+{
+   // Because of bench case, else do not success in X::~X() of mFPC
+   mFPC.FinishAC(0.05);
+}
 
 cAppliCalcDescPCar:: cAppliCalcDescPCar(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
   cMMVII_Appli  (aVArgs,aSpec,{eSharedPO::eSPO_CarPO}),

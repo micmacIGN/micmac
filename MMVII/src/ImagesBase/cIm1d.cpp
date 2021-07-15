@@ -3,6 +3,52 @@
 namespace MMVII
 {
 
+/** Class for "tabulating" a 1D fonction in a given interval.
+    The value are memorized in a tab, and returned when needed
+*/
+
+/* ========================== */
+/*       cTabulFonc1D         */
+/* ========================== */
+
+double cTabulFonc1D::F(double aX) const 
+{
+   int aK = ToIntCoord(aX);
+   if (aK<0) return mValXMin;
+   if (aK>mNbStep) return mValXMax;
+   return mDIm->GetV(aK);
+}
+
+double cTabulFonc1D::ToRealCoord(int   aI) const
+{
+   return mXMin + aI * mStep;
+}
+
+int    cTabulFonc1D::ToIntCoord(double aX) const
+{
+   return round_ni((aX-mXMin)/mStep);
+}
+
+
+cTabulFonc1D::cTabulFonc1D
+(
+    const cFctrRR & aFctr,
+    double aXMin,
+    double aXMax,
+    int aNbStep
+) :
+    mXMin    (aXMin),
+    mXMax    (aXMax),
+    mNbStep  (aNbStep),
+    mStep    ((mXMax-mXMin)/mNbStep),
+    mValXMin (aFctr.F(mXMin)),
+    mValXMax (aFctr.F(mXMax)),
+    mIm      (mNbStep+1),
+    mDIm     (&mIm.DIm())
+{
+    for (int aK=0 ; aK<=mNbStep ; aK++)
+        mDIm->SetV(aK,aFctr.F(ToRealCoord(aK)));
+}
 
 /* ========================== */
 /*          cDataIm2D         */

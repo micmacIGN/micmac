@@ -763,6 +763,27 @@ template <class Type>  class cIm1D
        tDIM *                mPIm;
 };
 
+class cTabulFonc1D : public cFctrRR
+{
+     public  :
+       double F (double) const override;  ///< Virtual usable as cFctRR
+
+       cTabulFonc1D(const cFctrRR & aFctr,double XMin,double XMax,int aNbStep);
+     private  :
+       inline int    ToIntCoord(double aX) const;
+       inline double ToRealCoord(int   aI) const;
+
+       double  mXMin;
+       double  mXMax;
+       int     mNbStep;
+       double  mStep;
+       double  mValXMin;
+       double  mValXMax;  
+       cIm1D<double>      mIm;
+       cDataIm1D<double>* mDIm;
+};
+
+
 
 };
 

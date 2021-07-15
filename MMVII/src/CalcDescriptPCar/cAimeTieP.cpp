@@ -6,6 +6,82 @@
 namespace MMVII
 {
 
+/** Map the interval [-1,1] to itself, the parameter :
+    * Steep fix the derivate in 0
+    * Exp fix the power and hence concavity/convexity
+
+*/
+
+class cConcavexMapP1M1 : public cFctrRR
+{
+   public :
+      double NVF (double) const; 
+      virtual  double F (double) const override ;
+      void Show() const;
+      // static cFctrRR  TheOne;  ///< the object return always 1
+
+      cConcavexMapP1M1(double aSteep,double aExp);
+    private :
+      double mShift;
+      double mFact;
+      double mSteep;
+      double mExp;
+};
+
+double cConcavexMapP1M1::F (double aX) const {return NVF(aX);}
+
+double cConcavexMapP1M1::NVF (double aX) const 
+{
+    if (aX<0) return -NVF(-aX);
+    return mFact * (pow(aX+mShift,mExp) - pow(mShift,mExp));
+}
+
+cConcavexMapP1M1::cConcavexMapP1M1(double aSteep,double aExp) :
+    mSteep (aSteep),
+    mExp   (aExp)
+{
+    MMVII_INTERNAL_ASSERT_medium((mExp!=1)||(mSteep==1),"cConcavexMapP1M1");
+    MMVII_INTERNAL_ASSERT_medium((mExp>=1)||(mSteep>1),"cConcavexMapP1M1");
+    MMVII_INTERNAL_ASSERT_medium((mExp<=1)||(mSteep<1),"cConcavexMapP1M1");
+
+
+    {
+        mFact = 1;
+        for (int aK= 0 ; aK<20 ; aK++)
+        {
+            mShift = pow(mSteep /(mFact*mExp),1/(mExp-1));
+            mFact = 1/(pow(1+mShift,mExp) - pow(mShift,mExp));
+            // StdOut() << "cConcavexMapP1M1::  SHF" << mShift << " FACT " << mFact << "\n";
+        }
+        // Show();
+    }
+}
+
+void cConcavexMapP1M1::Show() const
+{
+   double aEps= 1e-4;
+   StdOut()  << " V0 " << NVF(0) 
+             << " V1 " << NVF(-1) 
+             << " VM1 " << NVF(-1) 
+             << " D0 " << (NVF(aEps)-NVF(-aEps)) / (2*aEps) << "\n";
+   for (int aK=0 ; aK<=10 ; aK++)
+   {
+        double aV = aK/10.0;
+        StdOut()  << "  * " << aV << " => " << NVF(aV) << "\n";
+   }
+   getchar();
+}
+
+void TTT()
+{
+    cConcavexMapP1M1 aCM(5.0,0.5);
+    aCM.Show();
+    exit(EXIT_SUCCESS);
+    // cConcavexMapP1M1(10.0,0.5);
+    // cConcavexMapP1M1(2.0,0.5);
+    // cConcavexMapP1M1(0.5,2);
+    // cConcavexMapP1M1(1.0,1.0);
+}
 
 /* ================================= */
 /*          cAimePCar                */
@@ -327,7 +403,19 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
         if (aCensusMode)
         {
             // double aVN  = aV0/aVCentral;
-            aValRes = 128 + cSetAimePCAR::TheCensusMult * NormalisedRatio(aV0,aVCentral);
+            double aRatio =  NormalisedRatio(aV0,aVCentral);
+            // As census as not so much dynamique we enhance it with this function
+            // if (aFPC.IsForTieP())
+            {
+                // Unactivate this memory because static object will not be freed
+                cMemManager::SetActiveMemoryCount(false);
+                static cConcavexMapP1M1 aCM(5.0,0.5);
+                static cTabulFonc1D aTF(aCM,-1,1,5000);
+                cMemManager::SetActiveMemoryCount(true);
+                aRatio = aTF.F(aRatio);
+            }
+            aValRes = 128 + cSetAimePCAR::TheCensusMult * aRatio;
+
         }
         else
         {
