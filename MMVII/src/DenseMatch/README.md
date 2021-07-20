@@ -7,6 +7,8 @@ MicMac allows you to replace its native SGM algorithm rwith learning-based appro
 
 ## Set-up
 
+Compile MMVII by following the [README](https://github.com/micmacIGN/micmac/blob/master/MMVII/Readme.md#to-compile-) instructions.
+
 <details>
   <summary>MMVII [Click to expand]</summary>
 
@@ -31,6 +33,12 @@ Virtualenv files are stored in python_env/, remove the directory to remove the v
 
 </details>
 
+<details>
+  <summary>Use with Docker [Click to expand]</summary>
+
+When using the pluggable image correlators in docker environment, you no longer need to create the python virtual environment. In this case, use the files ```install_docker.sh``` and ```run_docker.sh```.
+
+</details>
 
 ## Contents
 
