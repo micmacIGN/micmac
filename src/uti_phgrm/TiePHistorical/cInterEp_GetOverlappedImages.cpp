@@ -187,22 +187,33 @@ bool IsOverlapped(std::string aImg1, std::string aImg2, std::string aIm1OriFile,
 
 void GetOverlappedImages(std::string mImgList1, std::string mImgList2, std::string aOri1, std::string aOri2, std::string aDir, std::string aOut, cInterfChantierNameManipulateur * aICNM, cTransform3DHelmert aTrans3DHL, bool bPrint)
 {
+    if (ELISE_fp::exist_file(mImgList1) == false)
+        printf("File %s does not exist.\n", mImgList1.c_str());
+    if (ELISE_fp::exist_file(mImgList2) == false)
+        printf("File %s does not exist.\n", mImgList2.c_str());
+
     std::vector<string> vImgList1;
     std::vector<string> vImgList2;
 
     std::string s;
 
     ifstream in1(aDir+mImgList1);
+    printf("Images in %s:\n", mImgList1.c_str());
     while(getline(in1,s))
     {
         vImgList1.push_back(s);
+        printf("%s\n", s.c_str());
     }
+    //printf("%d images in %s\n", int(vImgList1.size()), mImgList1.c_str());
 
     ifstream in2(aDir+mImgList2);
+    printf("Images in %s:\n", mImgList2.c_str());
     while(getline(in2,s))
     {
         vImgList2.push_back(s);
+        printf("%s\n", s.c_str());
     }
+    //printf("%d images in %s\n", int(vImgList2.size()), mImgList2.c_str());
 
     std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
     std::string aKeyOri2 = "NKS-Assoc-Im2Orient@-" + aOri2;
@@ -270,6 +281,11 @@ int GetOverlappedImages_main(int argc,char ** argv)
     std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
 */
 
+   if (ELISE_fp::exist_file(aPara3DH) == false)
+   {
+       printf("File %s does not exist.\n", aPara3DH.c_str());
+        return 0;
+    }
    cTransform3DHelmert aTrans3DH(aPara3DH);
 
    GetOverlappedImages(aImgList1, aImgList2, aOri1, aOri2, aCAS3D.mDir, aCAS3D.mOutPairXml, aCAS3D.mICNM, aTrans3DH, bPrint);
