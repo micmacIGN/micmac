@@ -289,6 +289,8 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
         std::string mOri2;
         std::string mImgList1;
         std::string mImgList2;
+        std::string mImg4MatchList1;
+        std::string mImg4MatchList2;
 
         std::string mCoRegOri;
 
