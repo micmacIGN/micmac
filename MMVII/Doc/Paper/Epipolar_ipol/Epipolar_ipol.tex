@@ -20,6 +20,7 @@
 \usepackage{algorithmic}  
 \usepackage{amsthm}
 \usepackage[normalem]{ulem}
+%\usepackage{subfigure}
 
 \ipolSetTitle{Epipolar rectification of a generic camera}
 \ipolSetAuthors{Marc Pierrot Deseilligny\ipolAuthorMark{1},
@@ -1043,30 +1044,49 @@ To use the resampling method with tie-points, we need a way to estimate the glob
 
 \section{Experiments}\label{sec:experiments}
 
-We demonstrate the performance of the algorithm in two scenarios: with and without the geometric model of the camera. In the first scenario, we use high resolution satellite images acquired with the Pl\'eiades-1A satellite. We form pairs of images of varying base-to-height ratios ($\sfrac{B}{H}$), and differentiate between \textit{single orbit} and \textit{multiple orbit} acquisitions. The results are evaluated in terms of the remaining \textit{y-parallaxes}, and compared to a competetive method by Oh~\cite{Oh2011}. 
- 
-In the second scenario, we do not dispose of the camera geometry, and the epipolar resampling is based on image correspondences (i.e., SIFT~\cite{lowe2004distinctive}). \er{ bla bla how we evaluate it and on which datasets}
+We demonstrate the performance of the algorithm in two scenarios: with and without the geometric model of the camera. The results are evaluated in terms of the remaining \textit{y-parallaxes}, and compared to competetitors: the method by Oh~\cite{Oh2011} for pushbroom geometries, and a resampling method implemented in MicMac for calibrated central perspective geometries. The latter is equivalent of the resampling proposed by Fusiello~\cite{fusiello2000epi} with the exception that it takes into account camera distortion parameters.
+%
+
+To generate points correspondences in Algorithm~\ref{AlgoGenData}, when the camera geometry is known, the points in the image space are defined as a grid of $100 \times 100$. The $Z$ is the mean depth of the scene, and the step $\delta_Z$ is set such that 3 evenly distributed depths spaning the 3D space are obtained. Additionally, each image point is assigned a $4^{th}$, random depth.  The min/max depths representing the envelope of the 3D scene, can be inferred from the RPCs or from  depths of the sparse structure (see $Z_{buff}$ in Table~\ref{tabs:pleiSingleMulti}).  
  
 
-Exemple de résultats avec résidus. + qq crop d'images rectifiees.
-
-\paragraph{Pl\'eiade-1A images with known geometry}
+\paragraph{Influence of different geometries of acquisition.}
 % 
-The geometries of 5 images with their corresponding RPC coefficients are first refined in a RPC-bundle adjustment~\cite{rupnika2016refined}. We then combine them in pairs of $\sfrac{B}{H}$ range $\in \left< 0.1,0.45 \right> $. Table~\ref{tab:PHR1mono} shows the remaining y-parallaxes 
-
-
-about $Z_buff$, what is that we want from it
-
-hyperparms:
-- grid XY for estimation, 100x100
-- NbZRand equal to 1
-- NbZ equal to 1 (three layers)
+Five Pl\'eiade-1A  images with their corresponding RPC geolocations are first refined in a RPC-bundle adjustment~\cite{rupnika2016refined}. We then form pairs of images of varying base-to-height ratios ($\sfrac{B}{H}$) in the range $\in \left< 0.1,0.45 \right> $, and carry out epipolar resampling with \textit{Ours} and Oh's methods. We also distinguish between \textit{single orbit} and \textit{multiple orbit} configurations. In Table~\ref{tabs:pleiSingleMulti} the maximum values of the remaining y-parallax are reported. The y-parallax is computed on a grid of image points generated with Algorithm~\ref{AlgoGenData}. Note that these points are non-overlapping with the grid used for estimating the resampling polynomials. We can see that \textit{Our} method outperforms the method by Oh in all instances and is insensitive to the acquisition geometry. \er{The \textit{epipolarability index} given in Table~\ref{tab:PHR1indices} classifies all pairs as suitable for resampling and manifests better scores for larger $B/H$ - but why er is asking?}
  
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%ù
-\begin{table}[h!]
+\paragraph{Comparison of resampling with and without the camera geometry.}
+To evaluate the performance of the proposed method on images without known camera geometry, we run epipolar resampling twice: with the camera model, and using SIFT tie-points~\cite{lowe2004distinctive}. In the latter scenario, the resampling polynomial was found across 6 iterations by progressively increasing the degree (the final polynomial being of $6^{th}$ degree). The comparison is done on a pair of Pl\'eiade-1A images. In Figure~\ref{fig:modelNomodelCmp} the per-pixel y-parallaxes are given. In all three scenarios the remaining parallax is of the same magnitude, $error_{y}< |0.05|$ pixel. The \textit{Oh} and \textit{Ours} method with the camera model give comparable results, while the approach with SIFT correspondences is clearly the best. The experiments with the camera model reveal a correlation between the remaining y-parallax and the 3D scene geometry. We believe this is caused by the fact that when computing the resampling polynomial, the 3D space is sampled within a cuboid, instead of within a envelope around the actual scene surface. The approach based on SIFT correspondences uses points that are actually on the surface hence no systematic error is present in the y-parallax map.
+%
+\paragraph{Epipolar resampling of panoramic pushbroom camera}
+%
+Corona KH-4B images are analog images captured by the american reconnaissance satellites in the Cold War period~\cite{madden1996corona}. Since 1995 many Corona images are declassified and available to the public. Image processing and photogrammetry with Corona images remains difficult because the camera geometry is complex~\cite{sohn2004mathematical}, and camera calibration certificates are rarely provided. In the absence of the known camera parameters, epipolar rectification with tie-points is an interesting alternative to allow for stereo-reconstruction. Figure~\ref{ExpCoronaSIFT} shows the image pair in its native geometry (i.e., panoramic pushbroom), the SIFT tie-points extracted on the full resolution images, as well as the epipolar curves. The resampling polynomial was found across 4 iterations by progressively increasing its degree (the final polynomial being of $4^{th}$ degree). As no ground truth is available, we evaluate the dataset visually in Figure~\ref{ExpCoronaEpi} by providing a semi-global matching stereo-reconstruction and by drawing some epipolar lines.  
 
-\begin{center}
-\begin{tabular}{|c|c|c|c|c||c|c|c|c|}
+
+%Exposé precis avec modele analytique:
+%    * calcul des points homologues, en 3D => direction moyenne
+%    * resolution par moindres carress avec degres élevé, degré sup pour l'inverse
+%    * Utilité du 3D, precision en fonction de la nappes, possibilité d'utiliser un modèle 3D grossier .
+
+\paragraph{Epipolar resampling of central perspective camera}
+
+ 
+\section{Discussion and perspective}
+%
+We have presented a method for epipolar resampling of a generic camera. The method computes the resampling functions by fitting an analytical model that minimises both the deformations induced in the image space and the y-parallax (\er{qu'elle minimise les résiduus, je comprens, mais les deformation?}). We have demonstrated that the approach performs well on various camera geometries (central perspective, pushbroom, pushbroom panoramic). Experiments also showed suitability of the approach to resampling images with only image correspondences, when camera geometry is unknown. Note that the proposed method is not suitable for resampling images with large variations in the epipolar line directions. Future works include: applying the method to multi-modal images, e.g. optical and radar; adapting the data generation algorithm to take into account the scene surface (as opposed to generating data points within a cuboid).
+%
+%Avantage de la methode : modeles analyique, minimise deformation et residu , peut être appliquee  si on a que les points homologues (photo escalier ?).
+%
+%Inconvenient ? Cas comme Fig.\ref{BadGoodEpip} pas gere, peut être le sont il par Oh ?
+%
+%Future work => use MNT ? Test sur configuration plus compliquées : orbites differentes ? Radar ? Radar/visible ?
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}%[h!]
+	\begin{center}
+		\begin{subfigure}[b]{1.0\textwidth}
+			\begin{minipage}[t]{1\textwidth}
+				\centering
+				\begin{tabular}{|c|c|c|c|c||c|c|c|c|}
 
 %\cline{2-5} 
 \multicolumn{1}{c}{}  & \multicolumn{4}{c}{Oh~\cite{Oh2011}} & \multicolumn{4}{c}{Ours}   \\
@@ -1076,21 +1096,19 @@ hyperparms:
  \multicolumn{1}{c|}{$Z_{buff}$ [m]}  &  0.1 &  0.15   & 0.25  &  0.45 &  0.1 &  0.15   & 0.25  &  0.45   \\
  \cline{1-9}
   
- 50 & 0.0070  & 0.0142    & 0.0156   &  0.0084   &  0.0017   &  0.0017  & 0.0017  & 0.0012\\
-100 & 0.0065  & 0.0144    & 0.0157   &  0.0092   &  0.0019   &  0.0018  & 0.0017  & 0.0012\\
-200 & 0.0057  & 0.0151    & 0.0164   &  0.0098   &  0.0027   &  0.0022  & 0.0022  & 0.0014\\
+% 50 & 0.0070  & 0.0142    & 0.0156   &  0.0084   &  0.0017   &  0.0017  & 0.0017  & 0.0012\\
+%100 & 0.0065  & 0.0144    & 0.0157   &  0.0092   &  0.0019   &  0.0018  & 0.0017  & 0.0012\\
+%200 & 0.0057  & 0.0151    & 0.0164   &  0.0098   &  0.0027   &  0.0022  & 0.0022  & 0.0014\\
 270 & 0.0055  & 0.0156    & 0.0144   &  0.0010   &  0.0036   &  0.0026  & 0.0026  & 0.0020\\
 \hline 
 
-\end{tabular}
-\end{center}
-\caption{Maximum value of the remaining y-parallax [pix] for acquisitions from a \textbf{single orbit}. $Z_{buff}$ corresponds to half the depth of the volumne used in the resampling calculation.}\label{tab:PHR1mono}
-\end{table}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{table}[h!]
-
-\begin{center}
-\begin{tabular}{|c|c|c|c|c||c|c|c|c|}
+\end{tabular}\caption{Acquisitions from a \textbf{single orbit}}
+			\end{minipage}%
+		\end{subfigure}
+		\begin{subfigure}[b]{\textwidth}
+		\begin{minipage}[t]{\textwidth}
+			\centering
+			\begin{tabular}{|c|c|c|c|c||c|c|c|c|}
 
 %\cline{2-5} 
 \multicolumn{1}{c}{}  & \multicolumn{4}{c}{Oh~\cite{Oh2011}} & \multicolumn{4}{c}{Ours}   \\
@@ -1100,18 +1118,21 @@ hyperparms:
  \multicolumn{1}{c|}{$Z_{buff}$ [m]}  &  0.13 &  0.2   & 0.3  &  0.4 &  0.13 &  0.2   & 0.3  &  0.4   \\
  \cline{1-9}
   
- 50  &  0.0297    &  0.0059   & 0.0178   & 0.0112 & 0.0021   & 0.0021     & 0.0021    &  0.0021   \\
-100  &  0.0284    &  0.0088   & 0.0183   & 0.0134 & 0.0029   & 0.0037     & 0.0034    &  0.0034   \\
-200  &  0.0325    &  0.0196   & 0.0252   & 0.0232 & 0.0064   & 0.0010     & 0.0086    &  0.0088   \\
+% 50  &  0.0297    &  0.0059   & 0.0178   & 0.0112 & 0.0021   & 0.0021     & 0.0021    &  0.0021   \\
+%100  &  0.0284    &  0.0088   & 0.0183   & 0.0134 & 0.0029   & 0.0037     & 0.0034    &  0.0034   \\
+%200  &  0.0325    &  0.0196   & 0.0252   & 0.0232 & 0.0064   & 0.0010     & 0.0086    &  0.0088   \\
 270  &  0.0381    &  0.0311   & 0.0343   & 0.0340 & 0.0101   & 0.0171     & 0.0143    &  0.0154   \\
 \hline 
 
-\end{tabular}
-\end{center}
-\caption{Maximum value of the remaining y-parallax [pix] for acquisitions from \textbf{multiple orbits}. $Z_{buff}$ corresponds to half the depth of the volumne used in the resampling calculation.}\label{tab:PHR1multi}
-\end{table}
+\end{tabular}\caption{Acquisitions from \textbf{multiple orbits}.}
+		\end{minipage}
+		\end{subfigure}
+		\caption{Maximum value of the remaining y-parallax [pix]. $Z_{buff}$ corresponds to half the depth of the volumne used in the resampling calculation.}
+		\label{tabs:pleiSingleMulti}
+	\end{center}
+\end{figure*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{table}[h!]
+\begin{table}%[h!]
 
 \begin{center}
 \begin{tabular}{|c|c|c|c|c||c|c|c|c|}
@@ -1124,7 +1145,8 @@ hyperparms:
  \multicolumn{1}{c|}{$Z_{buff}$ [m]}  &  0.1 &  0.15   & 0.25  &  0.45 &  0.13 &  0.2   & 0.3  &  0.4   \\
  \cline{1-9}
   
- 50-270  &   1.6$e^{-5}$    &  0.8$e^{-5}$  &  0.3$e^{-5}$  &  0.1$e^{-5}$   &   2.0$e^{-5}$  &     0.7$e^{-5}$  &  0.5$e^{-5}$   &    0.2$e^{-5}$   \\
+% 50-270  &   1.6$e^{-5}$    &  0.8$e^{-5}$  &  0.3$e^{-5}$  &  0.1$e^{-5}$   &   2.0$e^{-5}$  &     0.7$e^{-5}$  &  0.5$e^{-5}$   &    0.2$e^{-5}$   \\
+270  &   1.6$e^{-5}$    &  0.8$e^{-5}$  &  0.3$e^{-5}$  &  0.1$e^{-5}$   &   2.0$e^{-5}$  &     0.7$e^{-5}$  &  0.5$e^{-5}$   &    0.2$e^{-5}$ \\
 %100  &       &      &       &     &     &      &     &       \\
 %200  &       &      &       &     &     &      &     &       \\
 %270  &       &      &       &     &     &      &     &       \\
@@ -1135,6 +1157,11 @@ hyperparms:
 \caption{Epipolarability indices for acquisitions from a single and {multiple orbits}.}\label{tab:PHR1indices}
 \end{table}
 
+
+\begin{figure}%[h!]
+\centering
+\includegraphics[width=\textwidth]{FIGS/chilli_epi_px1_px2_cmp.jpg}\caption{Comparison of epipolar resampling with and without the camera geometry. (c)-(d) correspond to the per-pixel y-parallax computed with dense image matching in the direction perpendicular to the epipolar line.}\label{fig:modelNomodelCmp}
+\end{figure}
 %\subsection{Radar images}
 
  
@@ -1142,33 +1169,38 @@ hyperparms:
 %\subsection{Use with pinhole camera}
 %Permet de faire des test supplémentaire.
 
- 
-\paragraph{Corona KH-4B images without the geometric model}
-Exposé precis avec modele analytique:
-
-    * calcul des points homologues, en 3D => direction moyenne
-    * resolution par moindres carress avec degres élevé, degré sup pour l'inverse
-    * Utilité du 3D, precision en fonction de la nappes, possibilité d'utiliser un modèle 3D grossier .
-
-
 \begin{figure}[h!]
 \centering
 \begin{tabular}{c}
 % \hline \hline
-\includegraphics[width=14cm]{FIGS/ExpCorona_lowres.png}
+\includegraphics[width=0.9\textwidth]{FIGS/corona__sift_curves.jpg}
 % \\ \hline \hline
 \end{tabular}
-\caption{Corona KH-4B steropair and the point correspondences (top); the epipolar curves in the original geometry of the stereopair (middle); and the stereopair resampled to the epipolar geometry, rotated by 90$^\circ$ (bottom).}
- 
-\label{ExpCorona}
+\caption{Corona KH-4B stereopair.}
+\label{ExpCoronaSIFT}
 \end{figure}
+%
+\begin{figure}[h!]
+\centering
+\begin{tabular}{c}
+% \hline \hline
+\includegraphics[width=\textwidth]{FIGS/Corona_epi_all.jpg}
+% \\ \hline \hline
+\end{tabular}
+\caption{Epipolar images generated from a Corona KH-4B steropair, and its stereo-reconstruction. Epipolar lines are marked in white.}
+ 
+\label{ExpCoronaEpi}
+\end{figure}
+
+
+
     
     
 %\paragraph{Pl\'eiades images}
 %---------------------------------------------
 %---------------------------------------------
 
-\paragraph{Consumer grade camera}
+
 %---------------------------------------------
 \begin{figure}[h!]
 \centering
@@ -1182,19 +1214,7 @@ Exposé precis avec modele analytique:
 \label{ExpConsumerCam}
 \end{figure}
 
-\section{Discussion and perspective}
-
-Avantage de la methode : modeles analyique, minimise deformation et residu, peut être appliquee 
-si on a que les points homologues (photo escalier ?).
-
-Inconvenient ? Cas comme \ref{BadGoodEpip} pas gere, peut être le sont il par Oh ?
-
-Future work => use MNT ? Test sur configuration plus compliquées : orbites differentes ? Radar ? Radar/visible ?
-
-
-
-
-
+ 
 
 %---------------------------------------------
 %---------------------------------------------

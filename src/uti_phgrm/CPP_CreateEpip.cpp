@@ -294,7 +294,7 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
                 // Compute bundle with origin on pseudo center
                 aG1->GetCenterAndPTerOnBundle(aC1,aPT1,aPIm1);
 
-                // std::cout << "IPROF " << aIProf * euclid(aPT1-aC1)  << " " << aPT1  << "\n";
+                 //std::cout << "IPROF " << aIProf * euclid(aPT1-aC1)  << " " << aPT1  << "\n";
 
                 std::vector<Pt2dr> aVPIm2;
                 double aNbZSup = mNbZ + mNbZRand; 
