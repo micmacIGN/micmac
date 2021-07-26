@@ -709,8 +709,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
     /**************************************/
     /* 2.1 - GetOverlappedImages */
     /**************************************/
-    //StdCom("TestLib GetOverlappedImages", mCoRegOri + BLANK + mCoRegOri + BLANK + mImgList1 + BLANK + mImgList2 + BLANK + mCAS3D.ComParamGetOverlappedImages(), mExe);
-    StdCom("TestLib GetOverlappedImages", mOri1 + BLANK + mOri2 + BLANK + mImgList1 + BLANK + mImgList2 + BLANK + mCAS3D.ComParamGetOverlappedImages() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+aOri2+".xml", mExe);
+    StdCom("TestLib GetOverlappedImages", mOri1 + BLANK + mOri2 + BLANK + mImg4MatchList1 + BLANK + mImg4MatchList2 + BLANK + mCAS3D.ComParamGetOverlappedImages() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+aOri2+".xml", mExe);
 
     if (ELISE_fp::exist_file(mCAS3D.mOutPairXml) == false)
     {
@@ -852,13 +851,13 @@ void cAppliTiepHistoricalPipeline::DoAll()
         if(mExe == true && (!mSkipTentativeMatch) && mCAS3D.mSkipSIFT == false)
         {
             std::string aImgName;
-            ifstream in1(mCAS3D.mDir+mImgList1);
+            ifstream in1(mCAS3D.mDir+mImg4MatchList1);
             while(getline(in1,aImgName))
             {
                 ExtractSIFT(aImgName, mCAS3D.mDir);
             }
 
-            ifstream in2(mCAS3D.mDir+mImgList2);
+            ifstream in2(mCAS3D.mDir+mImg4MatchList2);
             while(getline(in2,aImgName))
             {
                 ExtractSIFT(aImgName, mCAS3D.mDir);
@@ -991,19 +990,23 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
     mSkipCrossCorr = false;
     mRotateDSM = -1;
     mCheckFile = false;
+    mImg4MatchList1 = "";
+    mImg4MatchList2 = "";
    ElInitArgMain
    (
         argc,argv,
         LArgMain()
                << EAMC(mOri1,"Orientation of epoch1")
                << EAMC(mOri2,"Orientation of epoch2")
-               << EAMC(mImgList1,"The RGB image list of epoch1")
-               << EAMC(mImgList2,"The RGB image list of epoch2")
+               << EAMC(mImgList1,"ImgList1: The list that contains all the RGB images of epoch1")
+               << EAMC(mImgList2,"ImgList2: The list that contains all the RGB images of epoch2")
                << EAMC(mDSMDirL, "DSM directory of epoch1")
                << EAMC(mDSMDirR, "DSM directory of epoch2"),
 
         LArgMain()
                << EAM(mExe,"Exe",true,"Execute all, Def=true")
+               << EAM(mImg4MatchList1,"I4ML1",true,"The list that contains the RGB images of epoch1 for extracting inter-epoch correspondences, Def=ImgList1")
+               << EAM(mImg4MatchList2,"I4ML2",true,"The list that contains the RGB images of epoch2 for extracting inter-epoch correspondences, Def=ImgList2")
                << EAM(mCheckFile, "CheckFile", true, "Check if the result files exist (if so, skip), Def=false")
                << EAM(mUseDepth,"UseDep",true,"Use depth to improve perfomance, Def=false")
                << EAM(mRotateDSM,"RotateDSM",true,"The angle of rotation from the first DSM to the second DSM for rough co-registration (only 4 options available: 0, 90, 180, 270), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
@@ -1036,7 +1039,13 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                );
    mCoRegOri = mOri2;
 
-        StdCorrecNameOrient(mOri,mCAS3D.mDir,true);
+   if(mImg4MatchList1.length() == 0)
+       mImg4MatchList1 = mImgList1;
+
+   if(mImg4MatchList2.length() == 0)
+       mImg4MatchList2 = mImgList2;
+
+   StdCorrecNameOrient(mOri,mCAS3D.mDir,true);
 }
 
 

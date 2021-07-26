@@ -156,6 +156,9 @@ void DSM_Equalization(std::string aDSMDir, std::string aDSMFile, std::string aOu
 
     if(aOutImg.length()==0)
         aOutImg = StdPrefix(aImName) + "_gray.tif";
+    else
+        aOutImg = aDSMDir + aOutImg;
+    //cout<<aOutImg<<endl;
 
     //cout<<dScale<<",,,"<<dTranslation<<endl;
     //cout<<aOutImg<<endl;
@@ -208,7 +211,7 @@ int DSM_Equalization_main(int argc,char ** argv)
         argc,argv,
         LArgMain()  << EAMC(aDSMDir, "DSM directory"),
         LArgMain()
-                    << aCAS3D.ArgBasic()
+                    //<< aCAS3D.ArgBasic()
                     << aCAS3D.ArgDSM_Equalization()
                     << EAM(aDSMFile, "DSMFile", true, "DSM File, Def=MMLastNuage.xml")
                     << EAM(aOutImg, "OutImg", true, "Output image name")
