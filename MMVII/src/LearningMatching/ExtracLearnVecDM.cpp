@@ -301,9 +301,6 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex)
             AddLearn(aAP1,aHom,0);
             AddLearn(aAP1,aCloseHom,1);
             AddLearn(aAP1,aCloseHom,2);
-            /*aSD0 += aV1[aK].L1Dist(aV2[aK]);
-            aSD1 += aV1[aK].L1Dist(aV2.at(std::min(aK+1,aNbDesc-1)));
-            aSDK += aV1[aK].L1Dist(aV2.at((aK+aNbDesc/2)%aNbDesc));*/
             aNbSD++;
        }
        if (aNbSD && (aPixIm1.y()%20==0))
