@@ -114,14 +114,7 @@ We propose a generic method for epipolar resampling that is not tied to a specif
 \ipolKeywords{epipolar rectification, generic camera, pushbroom sensor, central perspective}
 
 %-------------------------------------------------------------------------------
-\er{
-TODO :
-\begin{enumerate}
-\item res on tie-pts, y-parallax
-%   \item  décrire méthode de calcul automatique des directions dans le cas sans modèle;
-%   \item Allégation :  marche aussi sans modèle, minimise globalement le critère d'erreur,         formulation théorique de l'ambiguité et des condition d'existence d'un crière épipolaire;        mesure de "l'épipolarabilité" d'un couple;
- %
-\end{enumerate}}
+
 
 \section{Introduction}
 The epipolar geometry of images plays a central role in many applications in the field of photogrammetry and computer vision. In the stereo-reconstruction pipeline, it is used twice:
@@ -610,7 +603,7 @@ If the epipolar geometry exists, there exists a unique epipolar resampling $\phi
 \includegraphics[width=10cm]{FIGS/AmbigEpip.png}
 % \\ \hline \hline
 \end{tabular}
-\caption{Ambiguity of the epipolar geometry: two possible epipolar resamplings for a single stereopair.}
+\caption{Ambiguity of the epipolar geometry: two possible epipolar resamplings for a single stereo pair.}
 \label{FigAmbigEpip}
 \end{figure}
 
@@ -811,7 +804,7 @@ $\mathcal{C}^{\infty}$ and, according to the Stone-Weierstrass theorem \cite{Wei
 degree we will be able to accurately approximate any continuous function. A~possible
 limitation of selecting high degree polynomial is over-fitting, which may lead to
 unwanted high frequency behavior. In our case, this problem should never arise as the measurements  are synthesized from the projection functions $\pi_1,\pi_2$, which provides sufficient redundancy (for instance,
- hundreds of times more measurements than constraints). {Note, however, that some precautions must be taken with respect to the polynomial degree when using our method with tie-points, without the geometric model (see Section~\ref{EpipTieP})}.
+ hundreds of times more measurements than constraints). {Note, however, that some precautions must be taken with respect to the polynomial degree when using our method with image correspondences, without the geometric model (see Section~\ref{EpipTieP})}.
 
 If $d$ is the selected degree, the two vectors of unknowns $C^1_{a,b},C^2_{a,b}$, 
 corresponding to coefficients of the polynomials are:
@@ -925,13 +918,13 @@ to the "real" inverse, we can increase the polynomial's degree (in our implement
 
 \subsection{Epipolar resampling without the geometric model}
 
-\subsubsection{Resampling with tie-points only}
+\subsubsection{Resampling with image correspondences only}
 
 \label{EpipTieP}
 
 \emph{"Is it possible to use
 the proposed method to compute the epipolar geometry
-if we have image point correspondences (i.e., tie-points) between the image pairs but we don't know their geometric models?"} There is {NO}
+if we have image point correspondences (i.e., image features) between the image pairs but we don't know their geometric models?"} There is {NO}
  straightforward answer to whether it is possible or not. In general, it is not possible,
 but it becomes possible when the relief (i.e., the 3D scene) is not smooth and we constraint the resampling be more or less smooth.
  %As elaborated in the following pros and cons arguments, the
@@ -1031,7 +1024,7 @@ we have the polynomial $W_2=Id$, which shows the uniqueness of the solution.
 
 \subsubsection{Estimating the directions without model}
 %
-To use the resampling method with tie-points, we need a way to estimate the global directions of the epipolar lines, as it is done in Section~\ref{EstCenterDir} with the help of the geometric model. In the provided implementation we allow the user to provide the directions, or else the directions are computed automatically. For instance, in satellite along-track acquisitions, the user can easily deduce the directions, and it is certainly the "safer" option. The automated option is based in discretizing a number of directions in each image of a stereo-pair, followed by a combinatorial exploration of all possible pairs of directions. For each direction pair, epipolar resamplings with polynomials of degree $0$ are computed. The residuals (i.e., the y-parallax) calculated on all tie-points (after the basic resampling) serves as quality criterion in choosing the final global directions. Since the tie-points may contain outliers, an iterative $L1$ approach is used \er{faut expliquer un peu l'approche iterative}
+To use the resampling method with image features, we need a way to estimate the global directions of the epipolar lines, as it is done in Section~\ref{EstCenterDir} with the help of the geometric model. In the provided implementation we allow the user to provide the directions, or else the directions are computed automatically. For instance, in satellite along-track acquisitions, the user can easily deduce the directions, and it is certainly the "safer" option. The automated option is based in discretizing a number of directions in each image of a stereo pair, followed by a combinatorial exploration of all possible pairs of directions. For each direction pair, epipolar resamplings with polynomials of degree $0$ are computed. The residuals (i.e., the y-parallax) calculated on all image features (after the basic resampling) serves as quality criterion in choosing the final global directions. Since the image features may contain outliers, an iterative $L1$ approach is used \er{faut expliquer un peu l'approche iterative}
 
 %In the implemantation we provide, we give two options to the user : provide it or let the programm compute it automatically.  Obviously the providing option can be safer when the user has  sufficient knowledge on the acquisition; it can be used for examle with like satellite  along the track , like in the example we provide with Corona acquisition. The automatic option is based on a  discretization of possible directions and combinatorial exploration of all the pair  of possible direction ; for a given pair, a quality  criterion is computed  on residual of epipolar ressampling with degree $0$ \mpd{TO CHECK !!!} , using a $L1$ norm (to be more robust to outliers).
 
@@ -1044,7 +1037,7 @@ To use the resampling method with tie-points, we need a way to estimate the glob
 
 \section{Experiments}\label{sec:experiments}
 
-We demonstrate the performance of the algorithm in two scenarios: with and without the geometric model of the camera. The results are evaluated in terms of the remaining \textit{y-parallaxes}, and compared to competetitors: the method by Oh~\cite{Oh2011} for pushbroom geometries, and a resampling method implemented in MicMac for calibrated central perspective geometries. The latter is equivalent of the resampling proposed by Fusiello~\cite{fusiello2000epi} with the exception that it takes into account camera distortion parameters.
+We demonstrate the performance of the algorithm in two scenarios: with and without the geometric model of the camera. The results are evaluated in terms of the remaining \textit{y-parallaxes}, and compared to competetitors: the method by Oh~\cite{Oh2011} for pushbroom geometries, and a resampling method implemented in MicMac for calibrated central perspective geometries (we refer to it as the \textit{classical} method). The latter is equivalent of the epipolar resampling proposed by Fusiello~\cite{fusiello2000epi} with the exception that it handles camera distortion parameters, hence, it does not require the undistorting of the images prior to the rectification.
 %
 
 To generate points correspondences in Algorithm~\ref{AlgoGenData}, when the camera geometry is known, the points in the image space are defined as a grid of $100 \times 100$. The $Z$ is the mean depth of the scene, and the step $\delta_Z$ is set such that 3 evenly distributed depths spaning the 3D space are obtained. Additionally, each image point is assigned a $4^{th}$, random depth.  The min/max depths representing the envelope of the 3D scene, can be inferred from the RPCs or from  depths of the sparse structure (see $Z_{buff}$ in Table~\ref{tabs:pleiSingleMulti}).  
@@ -1055,11 +1048,11 @@ To generate points correspondences in Algorithm~\ref{AlgoGenData}, when the came
 Five Pl\'eiade-1A  images with their corresponding RPC geolocations are first refined in a RPC-bundle adjustment~\cite{rupnika2016refined}. We then form pairs of images of varying base-to-height ratios ($\sfrac{B}{H}$) in the range $\in \left< 0.1,0.45 \right> $, and carry out epipolar resampling with \textit{Ours} and Oh's methods. We also distinguish between \textit{single orbit} and \textit{multiple orbit} configurations. In Table~\ref{tabs:pleiSingleMulti} the maximum values of the remaining y-parallax are reported. The y-parallax is computed on a grid of image points generated with Algorithm~\ref{AlgoGenData}. Note that these points are non-overlapping with the grid used for estimating the resampling polynomials. We can see that \textit{Our} method outperforms the method by Oh in all instances and is insensitive to the acquisition geometry. \er{The \textit{epipolarability index} given in Table~\ref{tab:PHR1indices} classifies all pairs as suitable for resampling and manifests better scores for larger $B/H$ - but why er is asking?}
  
 \paragraph{Comparison of resampling with and without the camera geometry.}
-To evaluate the performance of the proposed method on images without known camera geometry, we run epipolar resampling twice: with the camera model, and using SIFT tie-points~\cite{lowe2004distinctive}. In the latter scenario, the resampling polynomial was found across 6 iterations by progressively increasing the degree (the final polynomial being of $6^{th}$ degree). The comparison is done on a pair of Pl\'eiade-1A images. In Figure~\ref{fig:modelNomodelCmp} the per-pixel y-parallaxes are given. In all three scenarios the remaining parallax is of the same magnitude, $error_{y}< |0.05|$ pixel. The \textit{Oh} and \textit{Ours} method with the camera model give comparable results, while the approach with SIFT correspondences is clearly the best. The experiments with the camera model reveal a correlation between the remaining y-parallax and the 3D scene geometry. We believe this is caused by the fact that when computing the resampling polynomial, the 3D space is sampled within a cuboid, instead of within a envelope around the actual scene surface. The approach based on SIFT correspondences uses points that are actually on the surface hence no systematic error is present in the y-parallax map.
+To evaluate the performance of the proposed method on images without known camera geometry, we run epipolar resampling twice: with the camera model, and using SIFT features~\cite{lowe2004distinctive}. In the latter scenario, the resampling polynomial was found across 6 iterations by progressively increasing the degree (the final polynomial being of $6^{th}$ degree). The comparison is done on a pair of Pl\'eiade-1A images. In Figure~\ref{fig:modelNomodelCmp} the per-pixel y-parallaxes are given. In all three scenarios the remaining parallax is of the same magnitude, $error_{y}< |0.05|$ pixel. The \textit{Oh} and \textit{Ours} method with the camera model give comparable results, while the approach with SIFT correspondences is clearly the best. The experiments with the camera model reveal a correlation between the remaining y-parallax and the 3D scene geometry. We believe this is due to unmodelled errors in RPC camera model. The approach based on SIFT correspondences uses points and is independent of the camera model hence no systematic error is present in the y-parallax map. 
 %
 \paragraph{Epipolar resampling of panoramic pushbroom camera}
 %
-Corona KH-4B images are analog images captured by the american reconnaissance satellites in the Cold War period~\cite{madden1996corona}. Since 1995 many Corona images are declassified and available to the public. Image processing and photogrammetry with Corona images remains difficult because the camera geometry is complex~\cite{sohn2004mathematical}, and camera calibration certificates are rarely provided. In the absence of the known camera parameters, epipolar rectification with tie-points is an interesting alternative to allow for stereo-reconstruction. Figure~\ref{ExpCoronaSIFT} shows the image pair in its native geometry (i.e., panoramic pushbroom), the SIFT tie-points extracted on the full resolution images, as well as the epipolar curves. The resampling polynomial was found across 4 iterations by progressively increasing its degree (the final polynomial being of $4^{th}$ degree). As no ground truth is available, we evaluate the dataset visually in Figure~\ref{ExpCoronaEpi} by providing a semi-global matching stereo-reconstruction and by drawing some epipolar lines.  
+Corona KH-4B images are analog images captured by the american reconnaissance satellites in the Cold War period~\cite{madden1996corona}. Since 1995 many Corona images are declassified and available to the public. Image processing and photogrammetry with Corona images remains difficult because the camera geometry is complex~\cite{sohn2004mathematical}, and camera calibration certificates are rarely provided. In the absence of the known camera parameters, epipolar rectification with image features is an interesting alternative to allow for stereo-reconstruction. Figure~\ref{ExpCoronaSIFT} shows the image pair in its native geometry (i.e., panoramic pushbroom), the SIFT features extracted on the full resolution images, as well as the epipolar curves. The resampling polynomial was found across 9 iterations by progressively increasing its degree (the final polynomial being of $9^{th}$ degree). As no ground truth is available, we evaluate the dataset visually in Figure~\ref{ExpCoronaEpi} by providing a semi-global matching stereo-reconstruction and by drawing some epipolar lines. Because the images are subject to, e.g., scanning artifacts as explained in \cite{gheyle2011scan}, the remaining y-parallax in Figure~\ref{fig:modelNomodelCmp}(c) manifests systematic errors up to $|0.5|$ pix. Such errors cannot be modelled with the chosen polynomial functions.
 
 
 %Exposé precis avec modele analytique:
@@ -1068,11 +1061,14 @@ Corona KH-4B images are analog images captured by the american reconnaissance sa
 %    * Utilité du 3D, precision en fonction de la nappes, possibilité d'utiliser un modèle 3D grossier .
 
 \paragraph{Epipolar resampling of central perspective camera}
+%
+The experiments with the central perspective camera have a double objective. First we show that the proposed method works with pinhole cameras, and second we demonstrate the ambiguity of epipolar resampling when the scene can be represented by a smooth function, e.g., when it is flat (see Section~\ref{EpipTieP}). In Figure~\ref{ExpConsumerCam} the experiments are referred to as \textit{Stairs} and \textit{Floor}. The \textit{Stairs} is an image pair of a staircase, so it is not flat. The \textit{Floor}, as the name suggests, corresponds to the image pair of a floor, which is globally planar. We can observe that the epipolar resamplings computed with the camera models are comparable to the epipolar resampling with the \textit{classical} method. The method based on the SIFT features works well when the scene has a relief, and as expected fails on the planar scene (see the deformed epipolar image pair and the respective epipolar curves in Figure~\ref{ExpConsumerCam}(c),(f)).
 
+%Two experiments with \ref{ExpConsumerCam}
  
 \section{Discussion and perspective}
 %
-We have presented a method for epipolar resampling of a generic camera. The method computes the resampling functions by fitting an analytical model that minimises both the deformations induced in the image space and the y-parallax (\er{qu'elle minimise les résiduus, je comprens, mais les deformation?}). We have demonstrated that the approach performs well on various camera geometries (central perspective, pushbroom, pushbroom panoramic). Experiments also showed suitability of the approach to resampling images with only image correspondences, when camera geometry is unknown. Note that the proposed method is not suitable for resampling images with large variations in the epipolar line directions. Future works include: applying the method to multi-modal images, e.g. optical and radar; adapting the data generation algorithm to take into account the scene surface (as opposed to generating data points within a cuboid).
+We have presented a method for epipolar resampling of a generic camera. The method computes the resampling functions by fitting an analytical model that minimises both the deformations induced in the image space and the y-parallax (\er{qu'elle minimise les résiduus, je comprens, mais les deformation?}). We have demonstrated that the approach performs well on various camera geometries (central perspective, pushbroom, pushbroom panoramic). Experiments also showed suitability of the approach to resampling images with only image correspondences, when camera geometry is unknown. Note that the proposed method is not suitable for resampling images with large variations in the epipolar line directions. Future works include applying the method to multi-modal images, e.g. optical and radar.
 %
 %Avantage de la methode : modeles analyique, minimise deformation et residu , peut être appliquee  si on a que les points homologues (photo escalier ?).
 %
@@ -1169,25 +1165,25 @@ We have presented a method for epipolar resampling of a generic camera. The meth
 %\subsection{Use with pinhole camera}
 %Permet de faire des test supplémentaire.
 
-\begin{figure}[h!]
+\begin{figure}%[h!]
 \centering
 \begin{tabular}{c}
 % \hline \hline
 \includegraphics[width=0.9\textwidth]{FIGS/corona__sift_curves.jpg}
 % \\ \hline \hline
 \end{tabular}
-\caption{Corona KH-4B stereopair.}
+\caption{Corona KH-4B stereo pair.}
 \label{ExpCoronaSIFT}
 \end{figure}
 %
-\begin{figure}[h!]
+\begin{figure}%[h!]
 \centering
 \begin{tabular}{c}
 % \hline \hline
 \includegraphics[width=\textwidth]{FIGS/Corona_epi_all.jpg}
 % \\ \hline \hline
 \end{tabular}
-\caption{Epipolar images generated from a Corona KH-4B steropair, and its stereo-reconstruction. Epipolar lines are marked in white.}
+\caption{Epipolar images generated from a Corona KH-4B stereo pair, its stereo-reconstruction and the remaining y-parallax. Epipolar lines are marked in white.}
  
 \label{ExpCoronaEpi}
 \end{figure}
@@ -1202,14 +1198,14 @@ We have presented a method for epipolar resampling of a generic camera. The meth
 
 
 %---------------------------------------------
-\begin{figure}[h!]
+\begin{figure}%[h!]
 \centering
 \begin{tabular}{c}
 % \hline \hline
-\includegraphics[width=14cm]{FIGS/escalier_sol.jpeg}
+\includegraphics[width=\textwidth]{FIGS/floor_stairs_epi.jpg}
 % \\ \hline \hline
 \end{tabular}
-\caption{dddd consumer grade cam}
+\caption{Two experiments (\textit{Staircase} and \textit{Floor}) with the consumer grade camera. Epipolar pairs are obtained with three methods: the \textit{classical} being equivalent of the resampling proposed by Fusiello~\cite{fusiello2000epi} for calibrated cameras, \textit{Ours} with the camera model, and \textit{Ours} with the SIFT features. In (e) and (f) the black background corresponds to the overlapping zones in the image pairs.}
  
 \label{ExpConsumerCam}
 \end{figure}
