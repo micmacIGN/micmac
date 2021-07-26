@@ -85,6 +85,29 @@ template <class Type> void cMatIner2Var<Type>::Add(const double & aPds,const Typ
     mS22 += aPds * aV2 * aV2 ;
 }
 
+template <class Type> 
+       void  cMatIner2Var<Type>::Add(const cMatIner2Var& aM2)
+{
+    mS0  +=  aM2.mS0;
+    mS1  +=  aM2.mS1;
+    mS11 +=  aM2.mS11;
+    mS2  +=  aM2.mS2;
+    mS12 +=  aM2.mS12;
+    mS22 +=  aM2.mS22;
+}
+
+template <class Type> 
+       void  cMatIner2Var<Type>::Add(const cMatIner2Var& aM2,const Type & aPds) 
+{
+    mS0  += aPds * aM2.mS0;
+    mS1  += aPds * aM2.mS1;
+    mS11 += aPds * aM2.mS11;
+    mS2  += aPds * aM2.mS2;
+    mS12 += aPds * aM2.mS12;
+    mS22 += aPds * aM2.mS22;
+}
+
+
 template <class Type> void cMatIner2Var<Type>::Normalize()
 {
      MMVII_ASSERT_INVERTIBLE_VALUE(mS0);
@@ -99,6 +122,34 @@ template <class Type> void cMatIner2Var<Type>::Normalize()
      mS22 -= mS2 * mS2;
 }
 
+template <class Type> Type cMatIner2Var<Type>::Correl(const Type & aEps) const
+{
+   cMatIner2Var<Type> aDup(*this);
+   aDup.Normalize();
+
+   Type aSqDenominator = std::max(aEps,aDup.mS11*aDup.mS22);
+   MMVII_ASSERT_STRICT_POS_VALUE(aSqDenominator);
+
+   return aDup.mS11  / std::sqrt(aSqDenominator);
+}
+
+template <class Type> inline Type StdDev(const Type & aS0,const Type & aS1,const Type & aS11)
+{
+   MMVII_ASSERT_INVERTIBLE_VALUE(aS0);
+
+   Type aEc2 = aS11/aS0 - Square(aS1/aS0);
+   return std::sqrt(std::max(Type(0.0),aEc2));
+}
+
+template <class Type> Type cMatIner2Var<Type>::StdDev1() const
+{
+   return StdDev(mS0,mS1,mS11);
+}
+template <class Type> Type cMatIner2Var<Type>::StdDev2() const
+{
+   return StdDev(mS0,mS2,mS22);
+}
+
 template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm)
 {
     cMatIner2Var<double> aRes;
@@ -110,15 +161,32 @@ template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Typ
     return aRes;
 }
 
-#define INSTANTIATE_MAT_INER(TYPE)\
-template class cMatIner2Var<TYPE>;\
-template  class cComputeStdDev<TYPE>;\
-template  cMatIner2Var<double> StatFromImageDist(const cDataIm2D<TYPE> & aIm);
+/* *********************************************** */
+/*                                                 */
+/*          cWeightAv<Type>                        */
+/*                                                 */
+/* *********************************************** */
+
+template <class Type> cWeightAv<Type>::cWeightAv() :
+   mSW(0),
+   mSV(0)
+{
+}
+
+template <class Type> void cWeightAv<Type>::Add(const Type & aWeight,const Type & aVal)
+{
+   mSW += aWeight;
+   mSV += aVal;
+}
+
+template <class Type> Type cWeightAv<Type>::Average() const
+{
+    MMVII_ASSERT_INVERTIBLE_VALUE(mSW);
+    return mSV / mSW;
+}
 
 
-INSTANTIATE_MAT_INER(tREAL4)
-INSTANTIATE_MAT_INER(tREAL8)
-INSTANTIATE_MAT_INER(tREAL16)
+
 
 /* *********************************************** */
 /*                                                 */
@@ -314,7 +382,22 @@ void BenchStat(cParamExeBench & aParam)
    aParam.EndBench();
 }
 
+/* *********************************************** */
+/*                                                 */
+/*                INSTANTIATION                    */
+/*                                                 */
+/* *********************************************** */
 
+#define INSTANTIATE_MAT_INER(TYPE)\
+template class cMatIner2Var<TYPE>;\
+template  class cComputeStdDev<TYPE>;\
+template class cWeightAv<TYPE>;\
+template  cMatIner2Var<double> StatFromImageDist(const cDataIm2D<TYPE> & aIm);
+
+
+INSTANTIATE_MAT_INER(tREAL4)
+INSTANTIATE_MAT_INER(tREAL8)
+INSTANTIATE_MAT_INER(tREAL16)
 
 };
 

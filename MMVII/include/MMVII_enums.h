@@ -264,6 +264,63 @@ enum class eModePaddingEpip
    eNbVals
 };
 
+/** Mode  caracteristic for matching */
+
+enum class eModeCaracMatch
+{
+     // ----------  Census Quantitatif ------------
+   eMCM_CQ1,    ///< Census Quantitatif 1 pixel (~ 3x3)
+   eMCM_CQ2,    ///< Census Quantitatif 2 pixel (~ 5x5)
+   eMCM_CQ3,    ///< Census Quantitatif 3 pixel (~ 7x7)
+   eMCM_CQ4,    ///< Census Quantitatif 4 pixel (~ 9x9)
+   eMCM_CQA,    ///< Census Quantitatif all window
+   eMCM_CQW,    ///< Census Quantitatif all window, weihted
+     // ----------  "Basic" Census, not conived it is usefull, but it's popular ------------
+   eMCM_Cen1,    ///< Census  1 pixel (~ 3x3)
+   eMCM_Cen2,    ///< Census  2 pixel (~ 5x5)
+   eMCM_Cen3,    ///< Census  3 pixel (~ 7x7)
+   eMCM_Cen4,    ///< Census  4 pixel (~ 9x9)
+   eMCM_CenA,    ///< Census  All
+   eMCM_CenW,    ///< Census  weighted
+     // ----------  Normalized Cross Correlation ------------
+   eMCM_Cor1,    ///< Correl 1 pixel (~ 3x3)
+   eMCM_Cor2,    ///< Correl 2 pixel (~ 5x5)
+   eMCM_Cor3,    ///< Correl 3 pixel (~ 7x7)
+   eMCM_Cor4,    ///< Correl 4 pixel (~ 9x9)
+   eMCM_CorA,    ///< Correl  all window
+   eMCM_CorW,    ///< Correl  all window, weihted
+     // ---------- "Corner", select only best average, correl probably   ------------
+   eMCM_CornW180,   ///< Corner, 180 of average
+   eMCM_CornW90,    ///< Corner, 90  of average
+     // ----------  Best/Worst score on a given neighboor  ------------
+     // For best we use correl as, being quite strict, if it is good, then is has signification even with optimi best
+     // For worst we use CQ as being "laxist" (good with any homogeneous), if has signifcation even with pessimistic worst
+   eMCM_WorstCorrel2,   ///< Worst weighted correl on all window <= 2 (5x5) 
+   eMCM_WorstCorrel3,   ///< Worst weighted correl on all window <= 3 (7x7)
+   eMCM_BestCorrel2,   ///< Best weighted correl on all window <= 2 (5x5) 
+   eMCM_BestCorrel3,   ///< Best weighted correl on all window <= 3 (7x7)
+   eMCM_BestCorrel4,   ///< Best weighted correl on all window <= 4 (9x9)
+   eMCM_BestCorrel5,   ///< Best weighted correl on all window <= 5 (11x11)
+          // ----
+   eMCM_BestCQ2,    ///< Best Census quantitative on all windows <= 2 (5x5)
+   eMCM_BestCQ3,    ///< Best Census quantitative on all windows <= 3 (7x7)
+   eMCM_WorstCQ2,    ///< Worst Census quantitative on all windows <= 2 (5x5)
+   eMCM_WorstCQ3,    ///< Worst Census quantitative on all windows <= 3 (7x7)
+   eMCM_WorstCQ4,    ///< Worst Census quantitative on all windows <= 4 (9x9)
+   eMCM_WorstCQ5,    ///< Worst Census quantitative on all windows <= 5 (11x11)
+
+     // ----------  Using gray level  ------------
+   eMCM_DifGray,    ///< Different of gray Gray Level ,
+   eMCM_MinGray,    ///<  Min of 2 Gray Level , may indicate fiability
+   eMCM_MinStdDev1,  ///< Min a both std dev
+   eMCM_MinStdDev2,  ///< Min a both std dev
+   eMCM_MinStdDev3,  ///< Min a both std dev
+   eMCM_MinStdDev4,  ///< Min a both std dev
+   eMCM_MinStdDevW,  ///< Min a both std dev
+
+
+   eNbVals
+};
 
 
 const std::string & E2Str(const eTySC &);         
@@ -275,6 +332,7 @@ const std::string & E2Str(const eTyInvRad &);
 const std::string & E2Str(const eTyPyrTieP &);         
 const std::string & E2Str(const eModeEpipMatch &);         
 const std::string & E2Str(const eModePaddingEpip &);         
+const std::string & E2Str(const eModeCaracMatch &);         
 
 template <class Type> const Type & Str2E(const std::string &); 
 template <class Type> std::string   StrAllVall();

@@ -13,6 +13,10 @@ template <class Type> bool ValidInvertibleFloatValue(const Type & aV)
 {
     return ValidFloatValue(aV) && (aV!=0.0);
 }
+template <class Type> bool ValidStrictPosFloatValue(const Type & aV)
+{
+    return ValidFloatValue(aV) && (aV > 0.0);
+}
 
 
 /** \file MMVII_nums.h
@@ -398,6 +402,9 @@ inline tREAL8 mod_real(tREAL8 a,tREAL8 b)
    return (aRes<0) ? aRes+b : aRes;
 }
 
+template <class Type> Type diff_circ(const Type & a,const Type & b,const Type & aPer);
+
+///  Return division superior : a <= d*b < a+b
 template<class Type> Type DivSup(const Type & a,const Type & b) 
 {
     MMVII_INTERNAL_ASSERT_tiny(b>0,"DivSup");

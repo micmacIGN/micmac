@@ -241,6 +241,55 @@ template<> cE2Str<eModePaddingEpip>::tMapE2Str cE2Str<eModePaddingEpip>::mE2S
 TPL_ENUM_2_STRING(eModePaddingEpip);
 
 
+template<> cE2Str<eModeCaracMatch>::tMapE2Str cE2Str<eModeCaracMatch>::mE2S
+           {
+                {eModeCaracMatch::eMCM_CQ1,"CQ1"},
+                {eModeCaracMatch::eMCM_CQ2,"CQ2"},
+                {eModeCaracMatch::eMCM_CQ3,"CQ3"},
+                {eModeCaracMatch::eMCM_CQ4,"CQ4"},
+                {eModeCaracMatch::eMCM_CQW,"CQW"},
+                {eModeCaracMatch::eMCM_CQA,"CQA"},
+             //---------------------------------------
+                {eModeCaracMatch::eMCM_Cen1,"Cen1"},
+                {eModeCaracMatch::eMCM_Cen2,"Cen2"},
+                {eModeCaracMatch::eMCM_Cen3,"Cen3"},
+                {eModeCaracMatch::eMCM_Cen4,"Cen4"},
+                {eModeCaracMatch::eMCM_CenW,"CenW"},
+                {eModeCaracMatch::eMCM_CenA,"CenA"},
+             //---------------------------------------
+                {eModeCaracMatch::eMCM_Cor1,"Cor1"},
+                {eModeCaracMatch::eMCM_Cor2,"Cor2"},
+                {eModeCaracMatch::eMCM_Cor3,"Cor3"},
+                {eModeCaracMatch::eMCM_Cor4,"Cor4"},
+                {eModeCaracMatch::eMCM_CorW,"CorW"},
+                {eModeCaracMatch::eMCM_CorA,"CorA"},
+             //---------------------------------------
+                {eModeCaracMatch::eMCM_WorstCorrel2,"WorstCor2"},
+                {eModeCaracMatch::eMCM_WorstCorrel3,"WorstCor3"},
+                {eModeCaracMatch::eMCM_BestCorrel2,"BestCor2"},
+                {eModeCaracMatch::eMCM_BestCorrel3,"BestCor3"},
+                {eModeCaracMatch::eMCM_BestCorrel4,"BestCor4"},
+                {eModeCaracMatch::eMCM_BestCorrel5,"BestCor5"},
+             //---------------------------------------
+                {eModeCaracMatch::eMCM_BestCQ2,"BestCQ2"},
+                {eModeCaracMatch::eMCM_BestCQ3,"BestCQ3"},
+                {eModeCaracMatch::eMCM_WorstCQ2,"WorstCQ2"},
+                {eModeCaracMatch::eMCM_WorstCQ3,"WorstCQ3"},
+                {eModeCaracMatch::eMCM_WorstCQ4,"WorstCQ4"},
+                {eModeCaracMatch::eMCM_WorstCQ5,"WorstCQ5"},
+             //---------------------------------------
+                {eModeCaracMatch::eMCM_CornW180,"CornW180"},
+                {eModeCaracMatch::eMCM_CornW90 ,"CornW90"},
+             //---------------------------------------
+                {eModeCaracMatch::eMCM_DifGray,"DifGray"},
+                {eModeCaracMatch::eMCM_MinGray,"MinGray"},
+                {eModeCaracMatch::eMCM_MinStdDev1,"MinStdDev1"},
+                {eModeCaracMatch::eMCM_MinStdDev2,"MinStdDev2"},
+                {eModeCaracMatch::eMCM_MinStdDev3,"MinStdDev3"},
+                {eModeCaracMatch::eMCM_MinStdDev4,"MinStdDev4"},
+                {eModeCaracMatch::eMCM_MinStdDevW,"MinStdDevW"}
+           };
+TPL_ENUM_2_STRING(eModeCaracMatch);
 /****************************  BENCH **************************/
 
 /// Bench enum, template
@@ -270,6 +319,7 @@ void BenchEnum(cParamExeBench & aParam)
     TplBenchEnum<eTyPyrTieP>();
     TplBenchEnum<eModeEpipMatch>();
     TplBenchEnum<eModePaddingEpip>();
+    TplBenchEnum<eModeCaracMatch>();
 
     aParam.EndBench();
 }
