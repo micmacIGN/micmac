@@ -177,6 +177,7 @@ template <>  const std::string cStrIO<ETYPE>::msNameType = ENAME;
 MACRO_INSTANTITATE_STRIO_ENUM(eOpAff,"OpAff")
 MACRO_INSTANTITATE_STRIO_ENUM(eModeEpipMatch,"ModeEpiMatch")
 MACRO_INSTANTITATE_STRIO_ENUM(eModePaddingEpip,"ModePadEpip")
+MACRO_INSTANTITATE_STRIO_ENUM(eModeCaracMatch,"ModeCaracMatch")
 
 /* ==================================== */
 /*                                      */

@@ -65,5 +65,23 @@ class cNameFormatTDEDM
              return replaceFirstOccurrence(aIm1,"_"+Im1()+".tif","_"+Masq1()+".tif");
         }
 };
+
+class cVecCaracMatch
+{
+     public :
+        void SetValue(eModeCaracMatch aCarac,const float & aVal) {mVecCarac.at(int(aCarac)) = aVal;}
+        const float & Value(eModeCaracMatch aCarac) const ;
+
+        cVecCaracMatch
+        (
+             float aScaleRho,float aGrayLev1,float aGrayLev2,
+             const cAimePCar &,const cAimePCar &
+       );
+     private :
+        static constexpr float UnDefVal = -1e10;
+        cVecCaracMatch() ;
+        std::vector<float>  mVecCarac;
+};
+
 };
 

@@ -171,7 +171,9 @@ void AddData(const cAuxAr2007 & anAux,cAimeDescriptor & aDesc)
 
 
 cAimeDescriptor & cAimePCar::Desc() {return mDesc; }
+const cAimeDescriptor & cAimePCar::Desc() const {return mDesc; }
 cPt2dr&           cAimePCar::Pt()   {return mPt;}
+const cPt2dr&     cAimePCar::Pt() const  {return mPt;}
 
 void AddData(const cAuxAr2007 & anAux,cAimePCar & aPC)
 {

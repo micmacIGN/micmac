@@ -518,6 +518,7 @@ template <class Type> class cMatIner2Var
 {
     public :
        cMatIner2Var ();
+       cMatIner2Var(const cMatIner2Var<Type> &) = default;
        void Add(const double & aPds,const Type & aV1,const Type & aV2);
        const Type & S0()  const {return mS0;}
        const Type & S1()  const {return mS1;}
@@ -526,6 +527,11 @@ template <class Type> class cMatIner2Var
        const Type & S12() const {return mS12;}
        const Type & S22() const {return mS22;}
        void Normalize();
+       void Add(const cMatIner2Var&);
+       void Add(const cMatIner2Var&,const Type & aMul) ;
+       Type Correl(const Type &aEpsilon=1e-10) const;
+       Type StdDev1() const;
+       Type StdDev2() const;
     private :
         Type  mS0;   ///< Som of    W
         Type  mS1;   ///< Som of    W * V1
@@ -534,6 +540,19 @@ template <class Type> class cMatIner2Var
         Type  mS12;  ///< Som of    W * V1 * V2
         Type  mS22;  ///< Som of    W * V2 * V2
 };
+
+/** Class for averaging with weight */
+template <class Type> class cWeightAv
+{
+     public :
+        cWeightAv();
+        void Add(const Type & aWeight,const Type & aVal);
+        Type Average() const;
+    private :
+        Type  mSW;   ///< Som of    W
+        Type  mSV;   ///< Som of    V
+};
+
 
 /// A function rather specific to bench, assimilate image to a distribution on var X,Y and compute it 0,1,2 moments
 template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Type> & aIm);

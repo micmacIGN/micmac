@@ -24,12 +24,18 @@ class cAppliExtractLearnVecDM : public cMMVII_Appli,
         typedef cIm2D<tREAL4>              tImPx;
         typedef cDataIm2D<tU_INT1>         tDataImMasq;
         typedef cDataIm2D<tREAL4>          tDataImPx;
+        typedef cIm2D<tREAL4>              tImFiltred;
+        typedef cDataIm2D<tREAL4>          tDataImF;
         typedef cGaussianPyramid<tREAL4>   tPyr;
         typedef std::shared_ptr<tPyr>      tSP_Pyr;
 
         cAppliExtractLearnVecDM(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
+        // 0 Hom , 1 close , 2 Non Hom
+        void AddLearn(const cAimePCar & aAP1,const cAimePCar & aAP2,int aLevHom);
+
      private :
+        tImFiltred & ImF(bool IsIm1 ) {return IsIm1 ? mImF1 : mImF2;}
         tSP_Pyr CreatePyr(bool IsIm1);
         const cBox2di &     CurBoxIn(bool IsIm1) const {return   IsIm1 ? mCurBoxIn1 : mCurBoxIn2 ;}
         const std::string & NameIm(bool IsIm1) const {return   IsIm1 ? mNameIm1 : mNameIm2 ;}
@@ -61,6 +67,10 @@ class cAppliExtractLearnVecDM : public cMMVII_Appli,
         int          mNbOverLapByO;
         tSP_Pyr      mPyr1;
         tSP_Pyr      mPyr2;
+        tImFiltred   mImF1;
+        tImFiltred   mImF2;
+        bool         mSaveImFilter;
+
         cFilterPCar  mFPC;  ///< Used to compute Pts
 
         bool  CalculAimeDesc(bool Im1,const cPt2dr & aPt);
@@ -83,6 +93,9 @@ cAppliExtractLearnVecDM::cAppliExtractLearnVecDM(const std::vector<std::string> 
    mNbOverLapByO (1),                 // 1 overlap is required for junction at decimation
    mPyr1         (nullptr),
    mPyr2         (nullptr),
+   mImF1         (cPt2di(1,1)),
+   mImF2         (cPt2di(1,1)),
+   mSaveImFilter (false),
    mFPC          (false)
 {
     mFPC.FinishAC();
@@ -103,6 +116,7 @@ cCollecSpecArg2007 & cAppliExtractLearnVecDM::ArgOpt(cCollecSpecArg2007 & anArgO
    return anArgOpt
           << AOpt2007(mSzTile, "TileSz","Size of tile for spliting computation",{eTA2007::HDV})
           << AOpt2007(mOverlap,"TileOL","Overlao of tile to limit sides effects",{eTA2007::HDV})
+          << AOpt2007(mSaveImFilter,"SIF","Save Image Filter",{eTA2007::HDV}) // ,eTA2007::Tuning})
    ;
 }
 
@@ -122,6 +136,14 @@ bool  cAppliExtractLearnVecDM::CalculAimeDesc(bool Im1,const cPt2dr & aPt)
     return true;
 }
 
+void cAppliExtractLearnVecDM::AddLearn(const cAimePCar & aAP1,const cAimePCar & aAP2,int aLevHom)
+{
+   tREAL4 aV1 = ImF(true).DIm().GetVBL(aAP1.Pt());
+   tREAL4 aV2 = ImF(false).DIm().GetVBL(aAP2.Pt());
+
+   cVecCaracMatch aVCM(mPyr1->MulScale(),aV1,aV2,aAP1,aAP2);
+FakeUseIt(aVCM);
+}
 
 
 int  cAppliExtractLearnVecDM::Exe()
@@ -169,6 +191,32 @@ cAppliExtractLearnVecDM::tSP_Pyr cAppliExtractLearnVecDM::CreatePyr(bool IsIm1)
     tSP_Pyr aPyr =  tPyr::Alloc(aGP,aName,CurBoxIn(IsIm1),mCurBoxOut);
     aPyr->ImTop().Read(cDataFileIm2D::Create(aName,true),aBox.P0());
     aPyr->ComputGaussianFilter();
+
+    // Compute the filtered images used for having "invariant" gray level
+    tImFiltred & aImF = ImF(IsIm1);
+    aImF = aPyr->ImTop().Dup(); 
+    float aFact = 20.0;
+    ExpFilterOfStdDev(aImF.DIm(),5,aFact);
+
+    tDataImF &aDIF = aImF.DIm();
+    tDataImF &aDI0 =  aPyr->ImTop().DIm();
+    for (const auto & aP : aDIF)
+        aDIF.SetV(aP,aDI0.GetV(aP)/std::max(tREAL4(1e-5), aDIF.GetV(aP)));
+
+    if (mSaveImFilter)
+    {
+        std::string  aName = "FILTRED-" + (IsIm1 ? mNameIm1  : mNameIm2);
+        cIm2D<tU_INT1> aImS(aDIF.Sz());
+        for (const auto & aP : aDIF)
+        {
+            int aVal = std::min(255,round_ni(aDIF.GetV(aP)*100.0));
+            aImS.DIm().SetV(aP,aVal);
+        }
+        aImS.DIm().ToFile(aName); //  Ok
+        // aImF.DIm().ToFile(aName);
+    }
+
+    ///aIm
 
     return  aPyr;
 }
@@ -241,15 +289,30 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex)
        int aNbDesc = aV1.size();
        for (int aK=0 ; aK<aNbDesc ; aK++)
        {
-            aSD0 += aV1[aK].L1Dist(aV2[aK]);
+            const cAimePCar & aAP1 = aV1[aK];
+            const cAimePCar & aHom = aV2[aK];
+            const cAimePCar & aCloseHom = aV2.at(std::min(aK+1,aNbDesc-1));
+            const cAimePCar & aNonHom = aV2.at((aK+aNbDesc/2)%aNbDesc);
+
+            aSD0 += aAP1.L1Dist(aHom);
+            aSD1 += aAP1.L1Dist(aCloseHom);
+            aSDK += aAP1.L1Dist(aNonHom);
+
+            AddLearn(aAP1,aHom,0);
+            AddLearn(aAP1,aCloseHom,1);
+            AddLearn(aAP1,aCloseHom,2);
+            /*aSD0 += aV1[aK].L1Dist(aV2[aK]);
             aSD1 += aV1[aK].L1Dist(aV2.at(std::min(aK+1,aNbDesc-1)));
-            aSDK += aV1[aK].L1Dist(aV2.at((aK+aNbDesc/2)%aNbDesc));
+            aSDK += aV1[aK].L1Dist(aV2.at((aK+aNbDesc/2)%aNbDesc));*/
             aNbSD++;
        }
-       StdOut() << "Y=== " << mSzIm1.y() - aPixIm1.y()  
-                << " " << aSD0/aNbSD 
-                << " " << aSD1/aNbSD 
-                << " " << aSDK/aNbSD<< "\n";
+       if (aNbSD && (aPixIm1.y()%20==0))
+       {
+           StdOut() << "Y=== " << mSzIm1.y() - aPixIm1.y()  
+                    << " " << aSD0/aNbSD 
+                    << " " << aSD1/aNbSD 
+                    << " " << aSDK/aNbSD<< "\n";
+       }
    }
 }
 
