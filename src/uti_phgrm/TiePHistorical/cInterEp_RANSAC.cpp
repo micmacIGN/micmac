@@ -70,33 +70,8 @@ void GetRandomNum(int nMin, int nMax, int nNum, std::vector<int> & res)
         res.push_back(idx);
     }
 }
-/*
-Pt3dr Get3Dcoor(Pt2dr keyPt, std::string aNameOri, std::string aDir)
-{
-    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    ElCamera * aCam1 = ElCamera::StdCamFromFile(true,aNameOri,anICNM);
 
-    Pt3dr aTer;
-    Pt2dr ptPrj;
-
-    double dThres = 0.3;
-    double dZ = aCam1->GetAltiSol();
-    double dDis;
-    do
-    {
-        aTer = aCam1->ImEtZ2Terrain(keyPt, dZ);
-        ptPrj = aCam1->Ter2Capteur(aTer);
-
-        dDis = pow(pow(keyPt.x-ptPrj.x, 2) + pow(keyPt.y-ptPrj.y, 2), 0.5);
-
-        //dZ = aTer.z;
-    }
-    while(dDis > dThres);
-
-    return aTer;
-}
-*/
-void RANSAC3D(std::string aIm1OriFile, std::string aIm2OriFile, std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double threshold, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR)
+void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double threshold, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR)
 {
     //printf("iteration number: %d; thresh: %lf\n", aNbTir, threshold);
 
@@ -122,10 +97,20 @@ void RANSAC3D(std::string aIm1OriFile, std::string aIm2OriFile, std::string inpu
     std::vector<Pt3dr> aV2;
     std::vector<Pt2dr> a2dV1;
     std::vector<Pt2dr> a2dV2;
+    std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
+    std::string aIm2OriFile = aICNM->StdNameCamGenOfNames(aOri2, aImg2);
     cGet3Dcoor a3DCoorL(aIm1OriFile);
     TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
     cGet3Dcoor a3DCoorR(aIm2OriFile);
     TIm2D<float,double> aTImProfPxR = a3DCoorR.SetDSMInfo(aDSMFileR, aDSMDirR);
+
+    double dGSD1 = a3DCoorL.GetGSD();
+    double dGSD2 = a3DCoorR.GetGSD();
+     cout<<"GSD of first image: "<<dGSD1<<endl;
+     cout<<"GSD of second image: "<<dGSD2<<endl;
+
+     if(threshold < 0)
+         threshold = 10*dGSD2;
 
     int nOriPtNum = 0;
     std::vector<int> aValidPt;
@@ -139,8 +124,8 @@ void RANSAC3D(std::string aIm1OriFile, std::string aIm2OriFile, std::string inpu
        //cout<<nTodel<<"th tie pt: "<<p1.x<<" "<<p1.y<<" "<<p2.x<<" "<<p2.y<<endl;
 
        bool bValidL, bValidR;
-       Pt3dr pTerr1 = a3DCoorL.Get3Dcoor(p1, aTImProfPxL, bValidL);
-       Pt3dr pTerr2 = a3DCoorR.Get3Dcoor(p2, aTImProfPxR, bValidR);
+       Pt3dr pTerr1 = a3DCoorL.Get3Dcoor(p1, aTImProfPxL, bValidL, dGSD1);
+       Pt3dr pTerr2 = a3DCoorR.Get3Dcoor(p2, aTImProfPxR, bValidR, dGSD2);
 
        if(bValidL == true && bValidR == true)
        {
@@ -159,15 +144,15 @@ void RANSAC3D(std::string aIm1OriFile, std::string aIm2OriFile, std::string inpu
        nOriPtNum++;
     }
 
-    if(nOriPtNum<3)
-    {
-        printf("nOriPtNum (%d) is less than 3, hence skipped.\n", nOriPtNum);
-        return;
-    }
-
     int nPtNum = aV1.size();
     cout<<"nOriPtNum: "<<nOriPtNum<<";  InsideBorderPtNum:  "<<nPtNum;
     printf(";  iteration number: %d; thresh: %lf\n", aNbTir, threshold);
+
+    if(nPtNum<3)
+    {
+        printf("InsideBorderPtNum (%d) is less than 3, hence skipped.\n", nPtNum);
+        return;
+    }
 
     cSolBasculeRig aSBR = cSolBasculeRig::Id();
     cSolBasculeRig aSBRBest = cSolBasculeRig::Id();
@@ -464,18 +449,19 @@ int R2D(int argc,char ** argv, const std::string &aArg="")
 
     return 0;
 }
-
-double GetGSD(std::string aIm1OriFile)
+/*
+double GetGSD(std::string aImg1, std::string aOri1, cInterfChantierNameManipulateur * aICNM)
 {
-    ElCamera * aCam1 = BasicCamOrientGenFromFile(aIm1OriFile);
-
-    double prof_d = aCam1->GetProfondeur();
+    int aType = eTIGB_Unknown;
+    std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
+    cBasicGeomCap3D * aCam1 = cBasicGeomCap3D::StdGetFromFile(aIm1OriFile,aType);
+    double dZL = aCam1->GetAltiSol();
 
     Pt2dr aCent(double(aCam1->SzBasicCapt3D().x)/2,double(aCam1->SzBasicCapt3D().y)/2);
     Pt2dr aCentNeigbor(aCent.x+1, aCent.y);
 
-    Pt3dr aCentTer = aCam1->ImEtProf2Terrain(aCent, prof_d);
-    Pt3dr aCentNeigborTer = aCam1->ImEtProf2Terrain(aCentNeigbor, prof_d);
+    Pt3dr aCentTer = aCam1->ImEtZ2Terrain(aCent, dZL);
+    Pt3dr aCentNeigborTer = aCam1->ImEtZ2Terrain(aCentNeigbor, dZL);
 
 
     //double dist = pow(pow(aCentTer.x-aCentNeigborTer.x,2) + pow(aCentTer.y-aCentNeigborTer.y,2) + pow(aCentTer.z-aCentNeigborTer.z,2), 0.5);
@@ -483,13 +469,8 @@ double GetGSD(std::string aIm1OriFile)
     double dist = pow(pow(aCentTer.x-aCentNeigborTer.x,2) + pow(aCentTer.y-aCentNeigborTer.y,2), 0.5);
 
     return dist;
-
-    /*
-    Pt3dr aTer        = aCam1->ImEtZ2Terrain(aCentIm1, aCam1->GetAltiSol());
-    Pt3dr aCenter1Ter = aCam1->OpticalCenterOfPixel(aCentIm1);
-*/
 }
-
+*/
 int R3D(int argc,char ** argv, const std::string &aArg="")
 {
     cCommonAppliTiepHistorical aCAS3D;
@@ -535,20 +516,15 @@ int R3D(int argc,char ** argv, const std::string &aArg="")
 
     StdCorrecNameOrient(aOri1,"./",true);
     StdCorrecNameOrient(aOri2,"./",true);
-
+/*
      std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
      std::string aKeyOri2 = "NKS-Assoc-Im2Orient@-" + aOri2;
 
      std::string aIm1OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri1,aImg1,true);
      std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
+*/
 
-     cout<<GetGSD(aIm1OriFile)<<";;;;;;"<<GetGSD(aIm2OriFile)<<endl;
-
-     double aR3DThreshold = aCAS3D.mR3DThreshold;
-     if(aR3DThreshold < 0)
-         aR3DThreshold = 10*GetGSD(aIm2OriFile);
-
-    RANSAC3D(aIm1OriFile, aIm2OriFile, aCAS3D.mDir, aImg1, aImg2, aCAS3D.mRANSACInSH, aCAS3D.mRANSACOutSH, aCAS3D.mR3DIteration, aR3DThreshold, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR);
+    RANSAC3D(aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mDir, aImg1, aImg2, aCAS3D.mRANSACInSH, aCAS3D.mRANSACOutSH, aCAS3D.mR3DIteration, aCAS3D.mR3DThreshold, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR);
 
     return 0;
 }

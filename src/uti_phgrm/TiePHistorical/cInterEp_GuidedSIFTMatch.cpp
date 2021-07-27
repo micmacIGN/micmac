@@ -90,6 +90,9 @@ void PredictKeyPt(std::vector<Pt2dr>& aVPredL, std::vector<Siftator::SiftPoint> 
 
     int nSizeL = aVSiftL.size();
 
+    double dGSD1 = a3DL.GetGSD();
+     cout<<"GSD of first image: "<<dGSD1<<endl;
+
     //printf("---------------------\n");
     for(int i=0; i<nSizeL; i++)
     {
@@ -98,7 +101,7 @@ void PredictKeyPt(std::vector<Pt2dr>& aVPredL, std::vector<Siftator::SiftPoint> 
         if(bDSM == true)
         {
             bool bPreciseL;
-            aPTer1 = a3DL.Get3Dcoor(aPL, aTImProfPxL, bPreciseL);
+            aPTer1 = a3DL.Get3Dcoor(aPL, aTImProfPxL, bPreciseL, dGSD1);
         }
         else
         {
@@ -111,13 +114,14 @@ void PredictKeyPt(std::vector<Pt2dr>& aVPredL, std::vector<Siftator::SiftPoint> 
         aPTer1 = aTrans3DH.Transform3Dcoor(aPTer1);
         if(i>0.45*nSizeL && i<0.46*nSizeL)
             printf("%lf, %lf, %lf; ", aPTer1.x, aPTer1.y, aPTer1.z);
-*/
+
         if(i == 49139)
             printf("%lf, %lf, %lf; ", aPTer1.x, aPTer1.y, aPTer1.z);
+*/
         aPTer1 = aTrans3DH.Transform3Dcoor(aPTer1);
         Pt2dr aPLPred = a3DR.Get2Dcoor(aPTer1);
 
-
+/*
         //if(i>0.45*nSizeL && i<0.46*nSizeL)
         //if(aPLPred.x >0 && aPLPred.x<1700 && aPLPred.y >0 && aPLPred.y<1700)
         if(i == 49139)
@@ -126,7 +130,7 @@ void PredictKeyPt(std::vector<Pt2dr>& aVPredL, std::vector<Siftator::SiftPoint> 
             printf("%lf, %lf, %lf; ", aPTer1.x, aPTer1.y, aPTer1.z);
             printf("%lf, %lf, %lf, %lf\n", aPL.x, aPL.y, aPLPred.x, aPLPred.y);
         }
-/*
+
         //pick a subregion for test, in order to be faster
         if(i<0.4*nSizeL || i>0.6*nSizeL)
             aPLPred = Pt2dr(-1,-1);
@@ -313,7 +317,7 @@ void AmendSIFTKeyPt(std::vector<Siftator::SiftPoint>& aVSiftL, bool aRootSift)
     }
 }
 
-void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std::string outSH, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string aNameOriL, std::string aNameOriR, bool bRootSift, double aSearchSpace, bool bPredict, bool bRatioT, bool bMutualNN, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, bool bCheckScale, bool bCheckAngle, double dScale=1, double dAngle=0)
+void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std::string outSH, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, bool bRootSift, double aSearchSpace, bool bPredict, bool bRatioT, bool bMutualNN, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, bool bCheckScale, bool bCheckAngle, double dScale=1, double dAngle=0)
 {
     if (ELISE_fp::exist_file(aImg1) == false || ELISE_fp::exist_file(aImg2) == false)
     {
@@ -347,6 +351,8 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     //*********** 2. Predict SIFT key-pts
     std::vector<Pt2dr> aVPredL;
     std::vector<Pt2dr> aVPredR;
+    std::string aNameOriL = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
+    std::string aNameOriR = aICNM->StdNameCamGenOfNames(aOri2, aImg2);
     PredictKeyPt(aVPredL, aVSiftL, aDSMFileL, aDSMDirL, aNameOriL, aNameOriR, aTrans3DHL);
     PredictKeyPt(aVPredR, aVSiftR, aDSMFileR, aDSMDirR, aNameOriR, aNameOriL, aTrans3DHR);
 
@@ -491,7 +497,7 @@ int GuidedSIFTMatch_main(int argc,char ** argv)
     );
     StdCorrecNameOrient(aOri1,"./",true);
     StdCorrecNameOrient(aOri2,"./",true);
-
+/*
     std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
     std::string aKeyOri2 = "NKS-Assoc-Im2Orient@-" + aOri2;
 
@@ -500,7 +506,7 @@ int GuidedSIFTMatch_main(int argc,char ** argv)
 
     cout<<aNameOriL<<endl;
     cout<<aNameOriR<<endl;
-/*
+
     std::string aFullName = aImg2;
     cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aFullName));
     cout<<aFullName<<endl;
@@ -540,7 +546,7 @@ int GuidedSIFTMatch_main(int argc,char ** argv)
    cTransform3DHelmert aTrans3DHL(aPara3DHL);
    cTransform3DHelmert aTrans3DHR(aPara3DHR);
 
-   GuidedSIFTMatch( aCAS3D.mDir, aImg1,  aImg2,  aCAS3D.mGuidedSIFTOutSH, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR,  aNameOriL,  aNameOriR, aCAS3D.mRootSift, aCAS3D.mSearchSpace, aCAS3D.mPredict, aCAS3D.mRatioT, aCAS3D.mMutualNN, aTrans3DHL, aTrans3DHR, aCAS3D.mCheckScale, aCAS3D.mCheckAngle, aCAS3D.mScale, aCAS3D.mAngle);
+   GuidedSIFTMatch( aCAS3D.mDir, aImg1,  aImg2,  aCAS3D.mGuidedSIFTOutSH, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR,  aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mRootSift, aCAS3D.mSearchSpace, aCAS3D.mPredict, aCAS3D.mRatioT, aCAS3D.mMutualNN, aTrans3DHL, aTrans3DHR, aCAS3D.mCheckScale, aCAS3D.mCheckAngle, aCAS3D.mScale, aCAS3D.mAngle);
 
    return EXIT_SUCCESS;
 }

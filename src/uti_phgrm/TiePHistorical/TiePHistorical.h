@@ -231,7 +231,9 @@ class cGet3Dcoor
 {
     public:
 
-        cGet3Dcoor(std::string aNameOri, std::string aDir="./");
+        cGet3Dcoor(std::string aNameOri);
+
+        double GetGSD();
 
         TIm2D<float,double> SetDSMInfo(std::string aDSMFile, std::string aDSMDir);
 
@@ -244,8 +246,7 @@ class cGet3Dcoor
         Pt2dr Get2Dcoor(Pt3dr aTer);
 
 private:
-        ElCamera * mCam1;
-        cInterfChantierNameManipulateur * mICNM;
+        cBasicGeomCap3D * mCam1;
         bool         bDSM;
         Pt2di        mDSMSz;
         cFileOriMnt  mFOM;
