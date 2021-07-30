@@ -318,7 +318,7 @@ int GetOverlappedImages_main(int argc,char ** argv)
     std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
 */
 
-   if (ELISE_fp::exist_file(aPara3DH) == false)
+   if (aPara3DH.length() > 0 && ELISE_fp::exist_file(aPara3DH) == false)
    {
        printf("File %s does not exist.\n", aPara3DH.c_str());
         return 0;

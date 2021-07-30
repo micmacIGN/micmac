@@ -191,7 +191,7 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
     if(aTypeIm1 == 2)
     {
         aImgRef1 = aImg1 + "_to8Bits.tif";
-        std::string aComto8Bits = MMBinFile(MM3DStr) + "to8Bits " + aImg1 + " Out=" + aImgRef1;
+        std::string aComto8Bits = MMBinFile(MM3DStr) + "to8Bits " + aImg1 + " Out=" + aImgRef1 + " Dyn=0.1";
         cout<<aComto8Bits<<endl;
         System(aComto8Bits);
         bTo8Bits1 = true;
@@ -295,7 +295,7 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
                         cGet3Dcoor a3DCoorL(aIm1OriFile);
                         TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
                         bool bValidL;
-                        aPTer1 = a3DCoorL.Get3Dcoor(aP1, aTImProfPxL, bValidL);
+                        aPTer1 = a3DCoorL.Get3Dcoor(aP1, aTImProfPxL, bValidL, a3DCoorL.GetGSD());
                     }
                     else
                     {
@@ -765,6 +765,11 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
      std::string aIm1OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri1,aImg1,true);
      std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
 */
+    if (aPara3DH.length() > 0 && ELISE_fp::exist_file(aPara3DH) == false)
+    {
+        printf("File %s does not exist.\n", aPara3DH.c_str());
+         return 0;
+     }
 
     cTransform3DHelmert aTrans3DH(aPara3DH);
 

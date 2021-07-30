@@ -239,7 +239,7 @@ class cGet3Dcoor
 
         Pt2di GetDSMSz(std::string aDSMFile, std::string aDSMDir);
 
-        Pt3dr Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> mTImProfPx, bool& bValid, double dThres=0.0001);
+        Pt3dr Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> mTImProfPx, bool& bValid, double dThres);
 
         Pt3dr GetRough3Dcoor(Pt2dr aPt1);
 

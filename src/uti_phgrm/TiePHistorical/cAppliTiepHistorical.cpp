@@ -1214,7 +1214,7 @@ Pt3dr cGet3Dcoor::Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> aTImDSM, bool& bPrec
         if(nIter > 100)
         {
             printf("%lf %lf %lf %lf\n", aPt1.x,ptPrj.x,aPt1.y,ptPrj.y);
-            printf("nIter: %d, dZ: %lf, aTer.x: %lf, aTer.y: %lf, aTer.z: %lf, dDis: %lf\n", nIter, dZ, aTer.x, aTer.y, aTer.z, dDis);
+            printf("nIter: %d, dZ: %lf, aTer.x: %lf, aTer.y: %lf, aTer.z: %lf, dDis: %lf, dThres: %lf\n", nIter, dZ, aTer.x, aTer.y, aTer.z, dDis, dThres);
         }
 
         Pt2di aPt2;

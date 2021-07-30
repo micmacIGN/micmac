@@ -543,6 +543,17 @@ int GuidedSIFTMatch_main(int argc,char ** argv)
        */
    }
 
+   if (aPara3DHL.length() > 0 && ELISE_fp::exist_file(aPara3DHL) == false)
+   {
+       printf("File %s does not exist.\n", aPara3DHL.c_str());
+        return 0;
+    }
+   if (aPara3DHR.length() > 0 && ELISE_fp::exist_file(aPara3DHR) == false)
+   {
+       printf("File %s does not exist.\n", aPara3DHR.c_str());
+        return 0;
+    }
+
    cTransform3DHelmert aTrans3DHL(aPara3DHL);
    cTransform3DHelmert aTrans3DHR(aPara3DHR);
 
