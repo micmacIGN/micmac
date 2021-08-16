@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import mmv2
 
 def checkMem():
@@ -85,20 +88,24 @@ def testAime(dmp_path):
     print(aSetPC.VPC()[0].Desc().ILP().DIm().toArray())
   return aSetPC
 
-def plotAime(img_paths, dmp_paths):
-  if (len(img_paths)!=len(dmp_paths)):
-    print("Number of images must be the same as number of dmp!")
-    return
+def plotAime(*img_paths):
   import matplotlib.pyplot as plt
   import matplotlib.image as mpimg
+  import os
   plt.figure()
-  for i in range(len(img_paths)):
-    aSetPC=mmv2.cSetAimePCAR()
-    aSetPC.InitFromFile(dmp_paths[i])
-    x1 = [p.Pt().x() for p in aSetPC.VPC()]
-    y1 = [p.Pt().y() for p in aSetPC.VPC()]
-    img = mpimg.imread(img_paths[i])
+  p_types = ["STD-V2AimePCar-Corner-Max.dmp","STD-V2AimePCar-Corner-Min.dmp",
+             "STD-V2AimePCar-LaplG-Max.dmp","STD-V2AimePCar-LaplG-Min.dmp",
+             "STD-V2AimePCar-OriNorm-Max.dmp","STD-V2AimePCar-OriNorm-Min.dmp"]
+  for i,img_path in enumerate(img_paths):
+    img = mpimg.imread(img_path)
+    tmp = os.path.split(img_path)
     plt.subplot(1,len(img_paths),i+1)
     plt.imshow(img)
-    plt.scatter(x1, y1, c='r')
+    for pt in p_types:
+      dmp_path = os.path.join(tmp[0], "Tmp-2007-Dir-PCar",tmp[1],pt)
+      aSetPC=mmv2.cSetAimePCAR()
+      aSetPC.InitFromFile(dmp_path)
+      x1 = [p.Pt().x() for p in aSetPC.VPC()]
+      y1 = [p.Pt().y() for p in aSetPC.VPC()]
+      plt.scatter(x1, y1, 3)
   plt.show()

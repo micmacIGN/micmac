@@ -20,9 +20,12 @@ static void ErrHanlderPy(const std::string & aType,const std::string &  aMes,con
 }
 
 
-
 namespace MMVII
 {
+
+void ShowArgsMain()
+{
+}
 
 cAppli_Py::cAppli_Py(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
   cMMVII_Appli (aVArgs,aSpec)

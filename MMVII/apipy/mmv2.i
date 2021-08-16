@@ -124,6 +124,7 @@ import_array();
 %ignore MMVII::cSetAimePCAR::IType();
 %ignore MMVII::cAimePCar::Desc();
 %ignore MMVII::cAimePCar::Pt();
+%ignore MMVII::cSetAimePCAR::VPC();
 //ignore const overloading
 %ignore MMVII::cIm2D<tU_INT1>::DIm() const;
 %ignore MMVII::cIm2D<tREAL4>::DIm() const;

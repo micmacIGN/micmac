@@ -139,6 +139,7 @@ class cSetAimePCAR : public cMemCheck
         double&                 Ampl2N();
         const double&           Ampl2N() const;
         std::vector<cAimePCar>& VPC();
+        const std::vector<cAimePCar>& VPC() const;
         void SaveInFile(const std::string &) const;
         void InitFromFile(const std::string &) ;
         // For census, as the value are strictly in [-1,1] we can use a universall value for normalize
