@@ -764,13 +764,13 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
 
      std::string aIm1OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri1,aImg1,true);
      std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
-*/
+
     if (aPara3DH.length() > 0 && ELISE_fp::exist_file(aPara3DH) == false)
     {
         printf("File %s does not exist.\n", aPara3DH.c_str());
          return 0;
      }
-
+*/
     cTransform3DHelmert aTrans3DH(aPara3DH);
 
     std::string aOutImg1 = GetFileName(aImg1);

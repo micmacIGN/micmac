@@ -316,13 +316,15 @@ int GetOverlappedImages_main(int argc,char ** argv)
 
     std::string aIm1OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri1,aImg1,true);
     std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
-*/
+
 
    if (aPara3DH.length() > 0 && ELISE_fp::exist_file(aPara3DH) == false)
    {
        printf("File %s does not exist.\n", aPara3DH.c_str());
         return 0;
     }
+    */
+
    cTransform3DHelmert aTrans3DH(aPara3DH);
 
    GetOverlappedImages(aImgList1, aImgList2, aOri1, aOri2, aCAS3D.mDir, aCAS3D.mOutPairXml, aCAS3D.mICNM, aTrans3DH, bPrint);

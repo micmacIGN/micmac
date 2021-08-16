@@ -1055,8 +1055,12 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
 
 cTransform3DHelmert::cTransform3DHelmert(std::string aFileName)
 {
-    if(aFileName.length() == 0)
+    //if(aFileName.length() == 0)
+    if(ELISE_fp::exist_file(aFileName) == false)
+    {
+        printf("File %s does not exist, hence will use unit matrix instead.\n", aFileName.c_str());
         mApplyTrans = false;
+    }
     else
     {
         mApplyTrans = true;
