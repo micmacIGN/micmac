@@ -103,7 +103,6 @@ template <class Type,int Dim>
      for (const auto & aPix : aPixB)
      {
           tPt  aPtOut0 = mBoxIm.P0() + MulCByC(ToR(aPix),aStep);
-FakeUseIt(aPtOut0);
      }
 
 }

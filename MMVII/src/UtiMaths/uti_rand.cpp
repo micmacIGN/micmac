@@ -74,8 +74,8 @@ void OneBench_Random(cParamExeBench & aParam)
       aCorrel /= aNb-1;
       aCorrel10 /= aNb-10;
       // Purely heuristique bound, on very unlikely day may fail
-      MMVII_INTERNAL_ASSERT_bench(aDistMoy<1.0/sqrt(aNb),"Random Moy Test");
-      MMVII_INTERNAL_ASSERT_bench(aDistMax<4.0/sqrt(aNb),"Random Moy Test");
+      MMVII_INTERNAL_ASSERT_bench(aDistMoy<2.0/sqrt(aNb),"Random Moy Test");
+      MMVII_INTERNAL_ASSERT_bench(aDistMax<8.0/sqrt(aNb),"Random Moy Test");
       MMVII_INTERNAL_ASSERT_bench(std::abs(aCorrel)  <0.5/sqrt(aNb),"Random Correl1 Test");
       MMVII_INTERNAL_ASSERT_bench(std::abs(aCorrel10)<0.5/sqrt(aNb),"Random Correl10 Test");
 

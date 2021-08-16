@@ -35,6 +35,19 @@ double  RelativeDifference(const double & aV1,const double & aV2,bool * aResOk)
     return std::abs(aV1-aV2) / aSom;
 }
 
+template <class Type> Type diff_circ(const Type & a,const Type & b,const Type & aPer)
+{
+   Type aRes = mod_real(std::abs(a-b),aPer);
+   return std::min(aRes,aPer-aRes);
+};
+
+#define INSTANTIATE_TYPE_REAL(TYPE)\
+template  TYPE diff_circ(const TYPE & a,const TYPE & b,const TYPE & aPer);
+
+
+INSTANTIATE_TYPE_REAL(tREAL4);
+INSTANTIATE_TYPE_REAL(tREAL8);
+
 
 tINT4 HCF(tINT4 a,tINT4 b)
 {
@@ -218,6 +231,8 @@ void BenchMinMax()
        TplBenchMinMax<tREAL4>(1+aK);
    }
 }
+
+
 
 template <class Type> void BenchFuncAnalytique(int aNb,double aEps,double EpsDer)
 {

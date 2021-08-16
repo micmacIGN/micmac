@@ -75,8 +75,11 @@ termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
 
-void WallisFilter(std::string aDir, std::string aImg)
+void WallisFilter(std::string aDir, std::string aImg, std::string aOutImg)
 {
+    if(aOutImg.length()==0)
+        aOutImg = aImg+"_sfs.tif";
+
     aDir += "/";
     std::string aTmpDir = aDir + "Tmp_Wallis/";
     ELISE_fp::MkDir(aTmpDir);
@@ -103,7 +106,7 @@ void WallisFilter(std::string aDir, std::string aImg)
     cout<<aComm<<endl;
     System(aComm);
 
-    aComm = "cp " + aTmpDir+"Tmp-MM-Dir/"+aImg+"_sfs.tif" + " " + aDir+aImg+"_sfs.tif";
+    aComm = "cp " + aTmpDir+"Tmp-MM-Dir/"+aImg+"_sfs.tif" + " " + aDir+ aOutImg;
     cout<<aComm<<endl;
     System(aComm);
 
@@ -120,6 +123,7 @@ int WallisFilter_main(int argc,char ** argv)
    std::string aDir = "./";
 
    std::string aImg;
+   std::string aOutImg;
 
    ElInitArgMain
     (
@@ -128,10 +132,11 @@ int WallisFilter_main(int argc,char ** argv)
         LArgMain()
                     //<< aCAS3D.ArgBasic()
                << EAM(aDir, "Dir", true, "Work directory")
+               << EAM(aOutImg, "OutImg", true, "Output image name")
                     //<< aCAS3D.ArgMergeTiePt()
     );
 
-   WallisFilter(aDir, aImg);
+   WallisFilter(aDir, aImg, aOutImg);
 
 /*
    if(aOutDir.length() == 0)

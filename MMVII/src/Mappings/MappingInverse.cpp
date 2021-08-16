@@ -776,8 +776,6 @@ template <class Type,const int Dim> void
          AddObsMapDirect(aVFrontIn[aKp],aVFrontOut[aKp],true); // put is as as sample  Out => In 
      }
      
-     // FakeUseIt(aPJ);
-
       mLSQ.ComputeSol(aVSol);
 }
 

@@ -2,7 +2,8 @@
 
 #Introduction: https://www.youtube.com/watch?v=N5vscPTWKOk
 
-PYTHON_PATH=/etc/opt/anaconda3/bin/python
+PYTHON_PATH=$1 
+echo $PYTHON_PATH
 PYTHON_ENV=python_env
 MAGICLEAP_ENV=magicleap_env
 

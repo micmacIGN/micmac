@@ -84,6 +84,8 @@ template <class Type> class cInterf_ExportAimeTiep : public cMemCheck
 class cAimeDescriptor : public cMemCheck
 {
      public :
+         //  aDILPr.SetV(cPt2di(aKTeta,IndRhoLP),aV);
+
          cAimeDescriptor DupLPIm();  // Duplicate only LP IM
          cAimeDescriptor();  ///< Need a default descriptor (serialization ...)
          cIm2D<tU_INT1>   ILP() const;   ///< Accesor to log pol image
@@ -113,7 +115,7 @@ class cAimePCar : public cMemCheck
         cAimeDescriptor & Desc();
         const cAimeDescriptor & Desc() const;
         cPt2dr&         Pt();
-        const cPt2dr&         Pt() const;
+        const cPt2dr&   Pt() const;
         cAimePCar       DupLPIm(); // Duplicate only LP IM
         double          L1Dist(const cAimePCar&) const;
      private :

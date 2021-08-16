@@ -116,6 +116,8 @@ void DSM_Equalization(std::string aDSMDir, std::string aDSMFile, std::string aOu
 
     int i, j;
     double dMean = 0;
+    double dMax = -99999;
+    double dMin = 99999;
     for(i=0; i<aDSMSz.x; i++)
     {
         for(j=0; j<aDSMSz.y; j++)
@@ -126,6 +128,11 @@ void DSM_Equalization(std::string aDSMDir, std::string aDSMFile, std::string aOu
                 double dZ =  aTImDSM.get(Pt2di(i, j));
                 dMean += dZ;
                 nValidPxNum++;
+
+                if(dZ > dMax)
+                    dMax = dZ;
+                if(dZ < dMin)
+                    dMin = dZ;
             }
         }
     }
@@ -147,6 +154,7 @@ void DSM_Equalization(std::string aDSMDir, std::string aDSMFile, std::string aOu
     dSTD = pow(dSTD/nValidPxNum, 0.5);
 
     cout<<"dMean: "<<dMean<<"; dSTD: "<<dSTD<<endl;
+    cout<<"dMax: "<<dMax<<"; dMin: "<<dMin<<endl;
 
     double aMaxAlti = dMean+dSTD*dSTDRange;
     double aMinAlti = dMean-dSTD*dSTDRange;
@@ -154,15 +162,24 @@ void DSM_Equalization(std::string aDSMDir, std::string aDSMFile, std::string aOu
     double dScale = 255/(aMaxAlti-aMinAlti);
     double dTranslation = aMinAlti;
 
+    printf("dSTDRange: %.2lf, dSTD*dSTDRange: %.2lf\n", dSTDRange, dSTD*dSTDRange);
+    printf("aMaxAlti(dMean+dSTD*dSTDRange): %.2lf, aMinAlti(dMean-dSTD*dSTDRange): %.2lf, dScale(255/(aMaxAlti-aMinAlti)): %.2lf, dTranslation(aMinAlti): %.2lf\n", aMaxAlti, aMinAlti, dScale, dTranslation);
+
     if(aOutImg.length()==0)
         aOutImg = StdPrefix(aImName) + "_gray.tif";
+    else
+        aOutImg = aDSMDir + aOutImg;
+    //cout<<aOutImg<<endl;
 
     //cout<<dScale<<",,,"<<dTranslation<<endl;
     //cout<<aOutImg<<endl;
 
-    std::string aSubStr = " - " + std::to_string(dTranslation);
+    std::string aSubStr; // = " + (" + std::to_string(dTranslation);
+//    std::string aSubStr = " - " + std::to_string(dTranslation);
     if(dTranslation < 0)
         aSubStr = " + " + std::to_string(fabs(dTranslation));
+    else
+        aSubStr = " + (-" + std::to_string(dTranslation) + ")";
     std::string aComNikrup = MMBinFile(MM3DStr) + "Nikrup \"* "  + std::to_string(dScale) + aSubStr + " " + aImName + "\" " + aOutImg;
     std::string aComTo8Bits = MMBinFile(MM3DStr) + "to8Bits " + aOutImg + " UseSigne=false";
 
@@ -208,7 +225,7 @@ int DSM_Equalization_main(int argc,char ** argv)
         argc,argv,
         LArgMain()  << EAMC(aDSMDir, "DSM directory"),
         LArgMain()
-                    << aCAS3D.ArgBasic()
+                    //<< aCAS3D.ArgBasic()
                     << aCAS3D.ArgDSM_Equalization()
                     << EAM(aDSMFile, "DSMFile", true, "DSM File, Def=MMLastNuage.xml")
                     << EAM(aOutImg, "OutImg", true, "Output image name")
