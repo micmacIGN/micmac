@@ -50,6 +50,9 @@ template<class T2,class T3>   cDenseMatrix<T2> operator * (const  T3 & aV3,const
 template<class T1,class T2,int Dim>  void DivCsteIn(cDataTypedIm<T1,Dim> & aI1,const T2 & aV2); // I1 /= V2
     // -------------------------- Copy -------------------------
 template<class T1,class T2,int Dim>  void CopyIn(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2); // I1 = I2
+    // -------------------------- Convert -------------------------
+
+template<class T1,class T2>  cIm2D<T1>  Convert(T1*,const cDataIm2D<T2>&);  // T1 => trick to easy force type
 
 
        //===========   Substraction ===========
@@ -203,6 +206,13 @@ template<class T1,class T2,int Dim>
 
     for (int aK=0 ; aK<aI1.NbElem() ; aK++)
         aI1.GetRDL(aK) = aI2.GetRDL(aK) ;
+}
+
+template<class T1,class T2>  cIm2D<T1>  Convert(T1*,const cDataIm2D<T2>& aDIm2)
+{
+     cIm2D<T1> aIm1(aDIm2.Sz());
+     CopyIn(aIm1.DIm(),aDIm2);
+     return aIm1;
 }
 
 

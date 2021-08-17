@@ -129,6 +129,7 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,std::list<Type>   & 
 /// std::vector interface  AddData -> StdContAddData
 template <class Type> void AddData(const cAuxAr2007 & anAux,std::vector<Type> & aL) { StdContAddData(anAux,aL); }
 
+/*
 template <class Type> void AddData(const cAuxAr2007 & anAux,cDataIm2D<Type> & aIm)
 {
     cPt2di aSz = aIm.Sz();
@@ -138,10 +139,45 @@ template <class Type> void AddData(const cAuxAr2007 & anAux,cDataIm2D<Type> & aI
       aIm.Resize(aSz);
     }
 
-    cRawData4Serial aRDS(aIm.RawDataLin(),aIm.NbElem()*sizeof(Type));
+    // cRawData4Serial aRDS(aIm.RawDataLin(),aIm.NbElem()*sizeof(Type));
+    cRawData4Serial aRDS = cRawData4Serial::Tpl(aIm.RawDataLin(),aIm.NbElem());
+    AddData(cAuxAr2007("Data",anAux),aRDS);
+}
+*/
+template <class Type,const int Dim> void AddData(const cAuxAr2007 & anAux,cDataTypedIm<Type,Dim> & aIm)
+{
+    cPtxd<int,Dim> aSz = aIm.Sz();
+    AddData(cAuxAr2007("Sz",anAux),aSz);
+    if (anAux.Input())
+    { 
+      aIm.Resize(cPtxd<int,Dim>::PCste(0),aSz);
+    }
+
+    // cRawData4Serial aRDS(aIm.RawDataLin(),aIm.NbElem()*sizeof(Type));
+    cRawData4Serial aRDS = cRawData4Serial::Tpl(aIm.RawDataLin(),aIm.NbElem());
     AddData(cAuxAr2007("Data",anAux),aRDS);
 }
 
+template <class TypeH,class TypeCumul> void cHistoCumul<TypeH,TypeCumul>::AddData(const cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("Hist",anAux),*mDH);
+    MMVII::AddData(cAuxAr2007("HCOk",anAux),mHCOk);
+    if (anAux.Input())
+    {
+        mNbVal = mDH->Sz();
+        mDHC->Resize(mNbVal);
+        if (mHCOk)
+        {
+           MakeCumul();
+        }
+    }
+}
+
+
+template <class TypeH,class TypeCumul> void AddData(const cAuxAr2007 & anAux,cHistoCumul<TypeH,TypeCumul> & aHC)
+{
+    aHC.AddData(anAux);
+}
 
 /// Save the value in an archive, not proud of the const_cast ;-)
 /**  SaveInFile :

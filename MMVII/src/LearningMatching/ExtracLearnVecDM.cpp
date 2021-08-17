@@ -1,4 +1,5 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_2Include_Serial_Tpl.h"
 #include "LearnDM.h"
 //#include "include/MMVII_Tpl_Images.h"
 
@@ -32,7 +33,7 @@ class cAppliExtractLearnVecDM : public cMMVII_Appli,
         cAppliExtractLearnVecDM(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
         // 0 Hom , 1 close , 2 Non Hom
-        void AddLearn(const cAimePCar & aAP1,const cAimePCar & aAP2,int aLevHom);
+        void AddLearn(cFileVecCaracMatch &,const cAimePCar & aAP1,const cAimePCar & aAP2,int aLevHom);
 
      private :
         tImFiltred & ImF(bool IsIm1 ) {return IsIm1 ? mImF1 : mImF2;}
@@ -44,17 +45,28 @@ class cAppliExtractLearnVecDM : public cMMVII_Appli,
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
-        void MakeOneBox(const cPt2di & anIndex);
+        void MakeOneBox(const cPt2di & anIndex,const cParseBoxInOut<2> &);
+        std::string NameHom(int aNumHom) {return HomFromIm1(mNameIm1,aNumHom,Index(mNumIndex)+mExtSave);}
 
+           // --- Mandatory ----
         std::string  mPatIm1;
+
+           // --- Optionnal ----
+        int          mSzTile;
+        int          mOverlap;
+        std::string  mExtSave;
+        std::string  mPatShowCarac;
+        int          mNb2Select;  ///< In case we want only a max number of points
+        int          mFlagRand;
+
+           // --- Internal variables ----
         std::string  mNameIm1;
         std::string  mNameIm2;
         std::string  mNamePx1;
         std::string  mNameMasq1;
 
 
-        int          mSzTile;
-        int          mOverlap;
+
         cBox2di      mCurBoxIn1;
         cPt2di       mSzIm1;
         cBox2di      mCurBoxIn2;
@@ -70,6 +82,10 @@ class cAppliExtractLearnVecDM : public cMMVII_Appli,
         tImFiltred   mImF1;
         tImFiltred   mImF2;
         bool         mSaveImFilter;
+        bool         mShowCarac;
+        tNameSelector mSelShowCarac;
+        int           mNumIndex;
+
 
         cFilterPCar  mFPC;  ///< Used to compute Pts
 
@@ -83,6 +99,8 @@ cAppliExtractLearnVecDM::cAppliExtractLearnVecDM(const std::vector<std::string> 
    cMMVII_Appli  (aVArgs,aSpec),
    mSzTile       (3000),
    mOverlap      (200),
+   mExtSave      ("Std"),
+   mFlagRand     (0),
    mCurBoxIn1    (cBox2di::Empty()),  // To have a default value
    mCurBoxIn2    (cBox2di::Empty()),  // To have a default value
    mCurBoxOut    (cBox2di::Empty()),  // To have a default value
@@ -96,6 +114,8 @@ cAppliExtractLearnVecDM::cAppliExtractLearnVecDM(const std::vector<std::string> 
    mImF1         (cPt2di(1,1)),
    mImF2         (cPt2di(1,1)),
    mSaveImFilter (false),
+   mShowCarac    (false),
+   mSelShowCarac (AllocRegex(".*")),
    mFPC          (false)
 {
     mFPC.FinishAC();
@@ -107,7 +127,7 @@ cCollecSpecArg2007 & cAppliExtractLearnVecDM::ArgObl(cCollecSpecArg2007 & anArgO
 {
  return
       anArgObl
-          <<   Arg2007(mPatIm1,"Name of input(s) file(s)",{{eTA2007::MPatFile,"0"}})
+          <<   Arg2007(mPatIm1,"Name of input(s) file(s), Im1",{{eTA2007::MPatFile,"0"}})
    ;
 }
 
@@ -115,8 +135,13 @@ cCollecSpecArg2007 & cAppliExtractLearnVecDM::ArgOpt(cCollecSpecArg2007 & anArgO
 {
    return anArgOpt
           << AOpt2007(mSzTile, "TileSz","Size of tile for spliting computation",{eTA2007::HDV})
-          << AOpt2007(mOverlap,"TileOL","Overlao of tile to limit sides effects",{eTA2007::HDV})
-          << AOpt2007(mSaveImFilter,"SIF","Save Image Filter",{eTA2007::HDV}) // ,eTA2007::Tuning})
+          << AOpt2007(mOverlap,"TileOL","Overlap of tile to limit sides effects",{eTA2007::HDV})
+          << AOpt2007(mPatShowCarac,"PSC","Pattern for Showing Caracteristics")
+          << AOpt2007(mNb2Select,"Nb2S","Number of point to select, def=all in masq")
+          << AOpt2007(mExtSave,"ExtOut","Ext for save file",{eTA2007::HDV})
+          << AOpt2007(mSaveImFilter,"SIF","Save Image Filter",{eTA2007::HDV,eTA2007::Tuning})
+          << AOpt2007(mFlagRand,"FlagRand","Images to randomizes (1 or 2), bit of flag [0-3]",{eTA2007::HDV,eTA2007::Tuning})
+          // << AOpt2007(mSaveImFilter,"SIF","Save Image Filter",{eTA2007::HDV})
    ;
 }
 
@@ -136,13 +161,21 @@ bool  cAppliExtractLearnVecDM::CalculAimeDesc(bool Im1,const cPt2dr & aPt)
     return true;
 }
 
-void cAppliExtractLearnVecDM::AddLearn(const cAimePCar & aAP1,const cAimePCar & aAP2,int aLevHom)
+void cAppliExtractLearnVecDM::AddLearn(cFileVecCaracMatch & aFVCM,const cAimePCar & aAP1,const cAimePCar & aAP2,int aLevHom)
 {
    tREAL4 aV1 = ImF(true).DIm().GetVBL(aAP1.Pt());
    tREAL4 aV2 = ImF(false).DIm().GetVBL(aAP2.Pt());
 
    cVecCaracMatch aVCM(mPyr1->MulScale(),aV1,aV2,aAP1,aAP2);
-FakeUseIt(aVCM);
+   aFVCM.AddCarac(aVCM);
+
+   if (mShowCarac)
+   {
+       //SaveInFile(aVCM,"XXXXTest.xml");
+       //SaveInFile(aVCM,"XXXXTest.dmp");
+       aVCM.Show(mSelShowCarac);
+       StdOut() << "LLLLLLlevvvv " << aLevHom << "PPPp==="  << aAP1.Pt() << " " << aAP2.Pt() << "\n";
+   }
 }
 
 
@@ -151,6 +184,10 @@ int  cAppliExtractLearnVecDM::Exe()
    // If a multiple pattern, run in // by recall
    if (RunMultiSet(0,0))
       return ResultMultiSet();
+
+   mShowCarac = IsInit(&mPatShowCarac);
+   if (mShowCarac)
+      mSelShowCarac = AllocRegex(mPatShowCarac);
 
    // If we are here, single image, because user specified 1, or by recall of the pattern
 
@@ -168,13 +205,15 @@ int  cAppliExtractLearnVecDM::Exe()
 
    cParseBoxInOut<2> aPBI = cParseBoxInOut<2>::CreateFromSizeCste(aDFIm1,mSzTile);
 
+   mNumIndex=0;
    for (const auto & anIndex : aPBI.BoxIndex())
    {
        // Store Boxes as members
        mCurBoxIn1  = aPBI.BoxIn(anIndex,mOverlap);
        mSzIm1 = mCurBoxIn1.Sz();
        mCurBoxOut = aPBI.BoxOut(anIndex);
-       MakeOneBox(anIndex);
+       MakeOneBox(anIndex,aPBI);
+       mNumIndex++;
    }
 
    return EXIT_SUCCESS;
@@ -189,19 +228,29 @@ cAppliExtractLearnVecDM::tSP_Pyr cAppliExtractLearnVecDM::CreatePyr(bool IsIm1)
     aGP.mFPC = mFPC;
 
     tSP_Pyr aPyr =  tPyr::Alloc(aGP,aName,CurBoxIn(IsIm1),mCurBoxOut);
-    aPyr->ImTop().Read(cDataFileIm2D::Create(aName,true),aBox.P0());
+
+    int aNumIm = (IsIm1 ? 1 : 2);
+    if (mFlagRand & aNumIm)
+    {
+        aPyr->ImTop().DIm().InitRandom(0.0,100.0);
+    }
+    else 
+    {
+        aPyr->ImTop().Read(cDataFileIm2D::Create(aName,true),aBox.P0());
+    }
     aPyr->ComputGaussianFilter();
 
     // Compute the filtered images used for having "invariant" gray level
     tImFiltred & aImF = ImF(IsIm1);
     aImF = aPyr->ImTop().Dup(); 
-    float aFact = 20.0;
+    float aFact = 50.0;
     ExpFilterOfStdDev(aImF.DIm(),5,aFact);
 
     tDataImF &aDIF = aImF.DIm();
     tDataImF &aDI0 =  aPyr->ImTop().DIm();
     for (const auto & aP : aDIF)
-        aDIF.SetV(aP,aDI0.GetV(aP)/std::max(tREAL4(1e-5), aDIF.GetV(aP)));
+        aDIF.SetV(aP,(1+NormalisedRatio(aDI0.GetV(aP),aDIF.GetV(aP))) / 2.0);
+
 
     if (mSaveImFilter)
     {
@@ -209,11 +258,10 @@ cAppliExtractLearnVecDM::tSP_Pyr cAppliExtractLearnVecDM::CreatePyr(bool IsIm1)
         cIm2D<tU_INT1> aImS(aDIF.Sz());
         for (const auto & aP : aDIF)
         {
-            int aVal = std::min(255,round_ni(aDIF.GetV(aP)*100.0));
+            int aVal = round_ni(aDIF.GetV(aP)*255.0);
             aImS.DIm().SetV(aP,aVal);
         }
         aImS.DIm().ToFile(aName); //  Ok
-        // aImF.DIm().ToFile(aName);
     }
 
     ///aIm
@@ -222,13 +270,46 @@ cAppliExtractLearnVecDM::tSP_Pyr cAppliExtractLearnVecDM::CreatePyr(bool IsIm1)
 }
 
 
-void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex)
+void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex,const cParseBoxInOut<2> & aPBI)
 {
+
    // Read Px & Masq
    mImMasq1 = tImMasq::FromFile(mNameMasq1,mCurBoxIn1);
    mImPx1   =   tImPx::FromFile(  mNamePx1,mCurBoxIn1);
-   const tDataImMasq & aDIMasq1 = mImMasq1.DIm();
+   tDataImMasq & aDIMasq1 = mImMasq1.DIm();
    const tDataImPx   & aDImPx1  = mImPx1.DIm();
+
+   int aNbInMasq = 0;
+   for (const auto & aPix : aDIMasq1)
+       if (aDIMasq1.GetV(aPix)) 
+          aNbInMasq++;
+
+
+   if (IsInit(&mNb2Select))
+   {
+       int aNbLoc2Sel  =  mNb2Select / aPBI.BoxIndex().NbElem();
+       int aKMasq = 0;
+       int aNbInMasqInit = aNbInMasq;
+       aNbInMasq = 0;
+       for (const auto & aPix : aDIMasq1)
+       {
+          if (aDIMasq1.GetV(aPix)) 
+          {
+             if (SelectQAmongN(aKMasq,aNbLoc2Sel,aNbInMasqInit))
+             {
+                 aNbInMasq ++;
+                //static int aCpt=0; aCpt++;
+                //StdOut() << "CCCCcc   " << aCpt << "\n";
+             }
+             else
+             {
+                 aDIMasq1.SetV(aPix,0) ;
+             }
+             aKMasq++;
+          }
+       }
+   }
+
 
    {
       //  Compute  Px intervall min and max to compute   Box2
@@ -268,6 +349,9 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex)
    double aSD1=0;
    double aSDK=0;
    int    aNbSD=0;
+   cFileVecCaracMatch aFVC_Hom(mFPC,aNbInMasq);
+   cFileVecCaracMatch aFVC_CloseHom(mFPC,aNbInMasq);
+   cFileVecCaracMatch aFVC_NonHom(mFPC,aNbInMasq);
    for (aPixIm1.y()=0 ; aPixIm1.y()<mSzIm1.y()  ; aPixIm1.y()++)
    {
        std::vector<cAimePCar> aV1;
@@ -298,12 +382,16 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex)
             aSD1 += aAP1.L1Dist(aCloseHom);
             aSDK += aAP1.L1Dist(aNonHom);
 
-            AddLearn(aAP1,aHom,0);
-            AddLearn(aAP1,aCloseHom,1);
-            AddLearn(aAP1,aCloseHom,2);
+            AddLearn(aFVC_Hom      , aAP1,aHom     ,0);
+            AddLearn(aFVC_CloseHom , aAP1,aCloseHom,1);
+            AddLearn(aFVC_NonHom   , aAP1,aNonHom,2);
+            // AddLearn(aAP1,aCloseHom,1);
+            // AddLearn(aAP1,aNonHom,2);
+            if (mShowCarac)
+               getchar();
             aNbSD++;
        }
-       if (aNbSD && (aPixIm1.y()%20==0))
+       if (0&&aNbSD && (aPixIm1.y()%20==0))
        {
            StdOut() << "Y=== " << mSzIm1.y() - aPixIm1.y()  
                     << " " << aSD0/aNbSD 
@@ -311,7 +399,12 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex)
                     << " " << aSDK/aNbSD<< "\n";
        }
    }
+   SaveInFile(aFVC_Hom      ,  NameHom(0));
+   SaveInFile(aFVC_CloseHom ,  NameHom(1));
+   SaveInFile(aFVC_NonHom   ,  NameHom(2));
 }
+
+
 
 
 /* =============================================== */
@@ -327,7 +420,7 @@ tMMVII_UnikPApli Alloc_ExtractLearnVecDM(const std::vector<std::string> &  aVArg
 
 cSpecMMVII_Appli  TheSpecExtractLearnVecDM
 (
-     "DMExtractVecLearn",
+     "DM1ExtractVecLearn",
       Alloc_ExtractLearnVecDM,
       "Extract ground truch vector to learn Dense Matching",
       {eApF::Match},

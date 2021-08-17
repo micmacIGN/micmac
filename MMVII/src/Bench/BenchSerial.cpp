@@ -113,6 +113,45 @@ template <class Type> void BenchSerialIm2D(const std::string & aDirOut)
     }
 }
 
+/// Test both Cumul and its Read/Write mode
+template <class TypeH,class TypeCumul> void BenchHistoAndSerial(const std::string & aDirOut)
+{
+    for (int aK=0 ;aK<10 ; aK++)
+    {
+        bool isXml = ((aK%2)==0);
+        std::string aNameFile = aDirOut + "Histo." + StdPostF_ArMMVII(isXml);
+        int  aSz =  1+RandUnif_N(10);
+         
+        cHistoCumul<TypeH,TypeCumul> aH(aSz);
+        // We add 1 2 3  ... , in cumul we must have  N(N+1)/2
+        for (int aX=0 ; aX<aSz ; aX++)
+        {
+             aH.AddV(aX,3.0);   // Add it in two time, just for test 
+             aH.AddV(aX,aX-2.0);
+        }
+        aH.MakeCumul();
+
+        SaveInFile(aH,aNameFile);
+        cHistoCumul<TypeH,TypeCumul> aH2;
+        ReadFromFileWithDef(aH2,aNameFile);
+        
+        
+        MMVII_INTERNAL_ASSERT_bench(aH2.H().Sz()==aSz,"BenchHistoAndSerial");
+
+        int aPTot = ((1+aSz) * aSz)/2;
+        for (int aX=0 ; aX<aSz ; aX++)
+        {
+            double aProp = (((2+aX) * (1+aX))/2) / double(aPTot);
+            double aDif = RelativeDifference(aProp,aH2.PropCumul(aX));
+            MMVII_INTERNAL_ASSERT_bench(aDif<1e-7,"BenchHistoAndSerial");
+        }
+/*
+StdOut() << "WwwwwwwwWWWWWWwwww " << aNameFile << " " << aH2.H().Sz() << "\n";
+getchar();
+*/
+    }
+}
+
 void BenchSerialization
     (
         cParamExeBench & aParam,
@@ -125,6 +164,7 @@ void BenchSerialization
     {
         BenchSerialIm2D<tREAL4>(aDirOut);
         BenchSerialIm2D<tU_INT1>(aDirOut);
+        BenchHistoAndSerial<tINT4,tREAL8>(aDirOut);
     }
 
     SaveInFile(cTestSerial1(),aDirOut+"F1."+PostF_XmlFiles);

@@ -206,9 +206,16 @@ bool CaseSBegin(const char * aBegin,const char * aStr)
     /*                                             */
     /* =========================================== */
 
-char DirSeparator()
+char CharDirSeparator()
 {
    return  path::preferred_separator;
+}
+
+const std::string & StringDirSeparator()
+{
+   static std::string aRes{path::preferred_separator};
+   
+   return  aRes;
 }
 
 std::string DirCur()

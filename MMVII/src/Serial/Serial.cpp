@@ -32,6 +32,10 @@ cRawData4Serial::cRawData4Serial(void * aAdr,int aNbElem) :
 {
 }
 
+void * cRawData4Serial::Adr()    const {return mAdr   ;}
+int    cRawData4Serial::NbElem() const {return mNbElem;}
+
+
 /* ========================================================= */
 /*                                                           */
 /*            cAr2007                                        */
@@ -88,6 +92,7 @@ class cAr2007 : public cMemCheck
          virtual void RawAddDataTerm(std::string &    anI) =  0; ///< Heriting class descrine how they serialze string
          virtual void RawAddDataTerm(cRawData4Serial  &    aRDS) =  0; ///< Heriting class descrine how they serialze string
          void RawAddDataTerm(bool &    anI) ; ///< use int to do it
+         virtual void RawAddDataTerm(tU_INT2 &    anI) ; ///< use int to do it
       // Final non atomic type for serialization
 };
 
@@ -110,6 +115,14 @@ void cAr2007::RawAddDataTerm(bool &    aBool)
     RawAddDataTerm(aI);
     aBool = aI;
 }
+void cAr2007::RawAddDataTerm(tU_INT2 &    aUI2)
+{
+    int aI = aUI2;
+    RawAddDataTerm(aI);
+    aUI2 = aI;
+}
+
+
 
 void cAr2007::Separator()
 {
@@ -144,17 +157,26 @@ void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) {anAux.Ar().TplAdd
 void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
 void AddData(const  cAuxAr2007 & anAux, bool  &  aVal) {anAux.Ar().TplAddDataTerm(anAux,aVal); }
 
-template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aVal) 
+template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int aNbVal)
 {
-    Type * aVD = aVal.PtRawData() ;
-    AddData(anAux,aVD[0]);
-    // AddData(anAux,aVal[0]);
-    for (int aK=1 ; aK<Dim ; aK++)
+    // A precaution, probably it work but need to test
+    MMVII_INTERNAL_ASSERT_always(aNbVal,"Not Sur AddTabData work for NbVal=0, check....");
+    if (aNbVal)
+       AddData(anAux,aVD[0]);
+    for (int aK=1 ; aK<aNbVal ; aK++)
     {
         anAux.Ar().Separator();
         AddData(anAux,aVD[aK]);
     }
 }
+
+template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aPt) 
+{
+   AddTabData(anAux,aPt.PtRawData(),Dim);
+}
+
+
+
 
 #define MACRO_INSTANTIATE_AddDataPtxD(DIM)\
 template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,DIM>  &  aVal) ;\
@@ -329,8 +351,8 @@ void cIXml_Ar2007::RawAddDataTerm(std::string &    aS)
 
 void cIXml_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
 {
-   tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.mAdr);
-   for (int aK=0 ; aK< aRDS.mNbElem ; aK++)
+   tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
+   for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
    {
        int aC1= FromHexaCode(GetNotEOF());
        int aC2= FromHexaCode(GetNotEOF());
@@ -562,8 +584,8 @@ void cOXml_Ar2007::RawAddDataTerm(std::string &  anS)
 
 void cOXml_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
 {
-   tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.mAdr);
-   for (int aK=0 ; aK< aRDS.mNbElem ; aK++)
+   tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
+   for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
    {
        int aICar = aPtr[aK];
        Ofs() << ToHexacode(aICar/16) << ToHexacode(aICar%16) ;
@@ -625,8 +647,8 @@ class  cHashValue_Ar2007 : public cAr2007
 
 void cHashValue_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS)
 {
-   tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.mAdr);
-   for (int aK=0 ; aK< aRDS.mNbElem ; aK++)
+   tU_INT1 * aPtr = static_cast<tU_INT1*>(aRDS.Adr());
+   for (int aK=0 ; aK< aRDS.NbElem() ; aK++)
    {
        int aICar = aPtr[aK];
        RawAddDataTerm(aICar);
@@ -679,6 +701,7 @@ class  cOBin_Ar2007 : public cAr2007
             mMMOs  (aName,false)
         {
         }
+        void RawAddDataTerm(tU_INT2 &    anI) override ; 
         void RawAddDataTerm(int &    anI)  override;
         void RawAddDataTerm(double &    anI)  override;
         void RawAddDataTerm(std::string &    anI)  override;
@@ -688,13 +711,14 @@ class  cOBin_Ar2007 : public cAr2007
          cMMVII_Ofs     mMMOs;
 };
 
+void cOBin_Ar2007::RawAddDataTerm(tU_INT2 &    anI) { mMMOs.Write(anI); }
 void cOBin_Ar2007::RawAddDataTerm(int &    anI) { mMMOs.Write(anI); }
 void cOBin_Ar2007::RawAddDataTerm(double &    anI) { mMMOs.Write(anI); }
 void cOBin_Ar2007::RawAddDataTerm(std::string &    anI) { mMMOs.Write(anI); }
 
 void cOBin_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
 {
-   mMMOs.VoidWrite(aRDS.mAdr,aRDS.mNbElem);
+   mMMOs.VoidWrite(aRDS.Adr(),aRDS.NbElem());
 }
 
 
@@ -722,11 +746,13 @@ class  cIBin_Ar2007 : public cAr2007
         void RawAddDataTerm(double &    anI)  override;
         void RawAddDataTerm(std::string &    anI)  override;
         void RawAddDataTerm(cRawData4Serial  &    anI) override;
+        void RawAddDataTerm(tU_INT2 &    anI) override ; 
         
     private :
          cMMVII_Ifs     mMMIs;
 };
 
+void cIBin_Ar2007::RawAddDataTerm(tU_INT2 &    anI) { mMMIs.Read(anI); }
 void cIBin_Ar2007::RawAddDataTerm(int &    anI) { mMMIs.Read(anI); }
 void cIBin_Ar2007::RawAddDataTerm(double &    anI) { mMMIs.Read(anI); }
 void cIBin_Ar2007::RawAddDataTerm(std::string &    anI) { mMMIs.Read(anI); }
@@ -738,7 +764,7 @@ int cIBin_Ar2007::NbNextOptionnal(const std::string &)
 
 void cIBin_Ar2007::RawAddDataTerm(cRawData4Serial  &    aRDS) 
 {
-   mMMIs.VoidRead(aRDS.mAdr,aRDS.mNbElem);
+   mMMIs.VoidRead(aRDS.Adr(),aRDS.NbElem());
 }
 
 /*============================================================*/

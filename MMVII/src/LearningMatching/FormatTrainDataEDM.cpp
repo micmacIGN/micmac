@@ -2,6 +2,9 @@
 #include "include/V1VII.h"
 #include "LearnDM.h"
 
+//  MMVII  DMFormatTD_MDLB ".*JAX_022_004_002_.*" 100 DoRectif=1
+
+
 namespace MMVII
 {
 
@@ -213,7 +216,7 @@ int cMDLB_AppliFormatTDEDM::Exe()
         break;
    }
 
-   std::vector<std::string>  aVS = RecGetFilesFromDir("./",AllocRegex(mPatDir+DirSeparator()+mNameIm[0]),1,20);
+   std::vector<std::string>  aVS = RecGetFilesFromDir("./",AllocRegex(mPatDir+StringDirSeparator()+mNameIm[0]),1,20);
    for (auto aFullName : aVS)
    {
        std::cout << "Fuulll " << aFullName << "\n";
@@ -382,7 +385,7 @@ int cWT_AppliFormatTDEDM::Exe()
        std::string aDir =  DirOfPath(aFullName);
        std::string aFile =  FileOfPath(aFullName);
 
-       std::string aPref =  mNameBatch + "-" +  Prefix(aFile);
+       std::string aPref =  mNameBatch + "-" +  MMVII::Prefix(aFile);
        ConvertIm1(aFullName,aPref);
        ConvertIm2(aDir+"../colored_1/"+aFile,aPref);
 
@@ -419,7 +422,7 @@ namespace MMVII
 
 cSpecMMVII_Appli  TheSpecFormatTDEDM_WT
 (
-     "DMFormatTD_WT",
+     "DM0FormatTD_WT",
       NS_FormatTDEDM::Alloc_Format_WT_TDEDM,
       "Dense Match: Format Training data from Wu-Teng to MMVII",
       {eApF::Match},
@@ -430,7 +433,7 @@ cSpecMMVII_Appli  TheSpecFormatTDEDM_WT
 
 cSpecMMVII_Appli  TheSpecFormatTDEDM_MDLB
 (
-     "DMFormatTD_MDLB",
+     "DM0FormatTD_MDLB",
       NS_FormatTDEDM::Alloc_Format_MDLB_TDEDM,
       "Dense Match: Format Training data from Middelburry to MMVII, run in Mdlb-xxx/",
       {eApF::Match},

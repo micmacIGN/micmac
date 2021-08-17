@@ -26,7 +26,7 @@ cMetaDataOneFileInvRad::cMetaDataOneFileInvRad
 )  :
    mDOIR (&aDOIR),
    mName (aName),
-   mDFIm (cDataFileIm2D::Create(aDOIR.Dir() + DirSeparator() + mName,true))
+   mDFIm (cDataFileIm2D::Create(aDOIR.Dir() + StringDirSeparator() + mName,true))
 {
 }
 
@@ -96,7 +96,7 @@ void  cMetaDataOneFileInvRad::AddPCar()
 cDataOneInvRad::cDataOneInvRad(cAppli_ComputeParamIndexBinaire & anAppli,cDataOneInvRad * aPrev,eTyInvRad aTIR) :
     mAppli (anAppli),
     mTIR   (aTIR),
-    mDir   (anAppli.DirCurPC() + E2Str(aTIR) + DirSeparator()),
+    mDir   (anAppli.DirCurPC() + E2Str(aTIR) + StringDirSeparator()),
     mSzP0Init(-1,-1),
     mSzP0Final(-1,-1),
     mNbPixTot (0.0),

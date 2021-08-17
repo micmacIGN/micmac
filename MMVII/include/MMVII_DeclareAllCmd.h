@@ -30,6 +30,8 @@ extern cSpecMMVII_Appli  TheSpecKapture;
 extern cSpecMMVII_Appli  TheSpecFormatTDEDM_WT;  // Wu Teng
 extern cSpecMMVII_Appli  TheSpecFormatTDEDM_MDLB; // Middleburry
 extern cSpecMMVII_Appli  TheSpecExtractLearnVecDM; 
+extern cSpecMMVII_Appli  TheSpecCalcHistoCarac; 
+extern cSpecMMVII_Appli  TheSpecCalcHistoNDim; 
 
 };
 

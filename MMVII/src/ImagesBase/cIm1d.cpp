@@ -51,7 +51,7 @@ cTabulFonc1D::cTabulFonc1D
 }
 
 /* ========================== */
-/*          cDataIm2D         */
+/*          cDataIm1D         */
 /* ========================== */
 
 template <class Type>  void cDataIm1D<Type>::PostInit()
@@ -75,6 +75,11 @@ template <class Type>  void cDataIm1D<Type>::Resize ( const cPt1di & aP0, const 
 {
    cDataTypedIm<Type,1>::Resize(aP0,aP1,aModeInit);
    PostInit();
+}
+
+template <class Type>  void cDataIm1D<Type>::Resize ( int aSz, eModeInitImage aModeInit)  
+{
+    Resize(cPt1di(0),cPt1di(aSz),aModeInit);
 }
 
 template <class Type>  cDataIm1D<Type>::~cDataIm1D()
@@ -101,7 +106,7 @@ template <class Type> void  cDataIm1D<Type>::VD_SetV(const cPt1di& aP,const doub
 
 
 /* ========================== */
-/*          cIm1D         */
+/*          cIm1D             */
 /* ========================== */
 
 template <class Type>  cIm1D<Type>::cIm1D(const int & aP0,const int & aP1,Type * aRawDataLin,eModeInitImage aModeInit) :
@@ -122,6 +127,69 @@ template <class Type>  cIm1D<Type>  cIm1D<Type>::Dup() const
    return aRes;
 }
 
+
+/* ========================== */
+/*        cHistoCumul         */
+/* ========================== */
+
+template <class TypeH,class TypeCumul>  cHistoCumul<TypeH,TypeCumul>::cHistoCumul(int aNbVal) :
+    mNbVal  (aNbVal),
+    mH      (aNbVal,nullptr,eModeInitImage::eMIA_Null),
+    mDH     (&mH.DIm()),
+    mHC     (aNbVal,nullptr,eModeInitImage::eMIA_Null),
+    mDHC    (&mHC.DIm()),
+    mHCOk   (false),
+    mPopTot (0.0)
+{
+}
+
+template <class TypeH,class TypeCumul>  cHistoCumul<TypeH,TypeCumul>::cHistoCumul() :
+    cHistoCumul<TypeH,TypeCumul>(1)
+{
+}
+
+template <class TypeH,class TypeCumul> void cHistoCumul<TypeH,TypeCumul>::AddV(const int & aP,const TypeH & aV2Add)
+{
+    mHCOk = false;
+    mDH->AddV(aP,aV2Add);
+}
+
+template <class TypeH,class TypeCumul> void cHistoCumul<TypeH,TypeCumul>::MakeCumul()
+{
+    mHCOk = true;
+    mPopTot = 0.0;
+    const TypeH * aDataH = mDH->RawDataLin();
+    TypeCumul * aDataHC = mDHC->RawDataLin();
+    for (int aKV=0 ; aKV<mNbVal; aKV++)
+    {
+        mPopTot += aDataH[aKV];
+        aDataHC[aKV] = mPopTot;
+    }
+}
+
+template <class TypeH,class TypeCumul> tREAL8 cHistoCumul<TypeH,TypeCumul>::PropCumul(const int & aP) const
+{
+   MMVII_INTERNAL_ASSERT_tiny(mHCOk,"PropCumul  , Cumul Not Ok");
+   return mDHC->GetV(aP) / mPopTot;
+}
+
+template <class TypeH,class TypeCumul>  const cDataIm1D<TypeH>& cHistoCumul<TypeH,TypeCumul>::H() const
+{
+    return *mDH;
+}
+
+    
+#define INSTANTIATE_HCUMUL(TYPE_H,TYPE_C)\
+template  class cHistoCumul<TYPE_H,TYPE_C>;
+
+
+INSTANTIATE_HCUMUL(tREAL4,tREAL8);
+INSTANTIATE_HCUMUL(tINT4,tREAL8);
+INSTANTIATE_HCUMUL(tINT8,tINT8);
+
+
+
+
 #define INSTANTIATE_IM1D(Type)\
 template  class cIm1D<Type>;\
 template  class cDataIm1D<Type>;
@@ -129,6 +197,7 @@ template  class cDataIm1D<Type>;
 INSTANTIATE_IM1D(tINT1)
 INSTANTIATE_IM1D(tINT2)
 INSTANTIATE_IM1D(tINT4)
+INSTANTIATE_IM1D(tINT8)
 
 INSTANTIATE_IM1D(tU_INT1)
 INSTANTIATE_IM1D(tU_INT2)

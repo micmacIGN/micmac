@@ -70,6 +70,8 @@ template <class Type> class  cDenseVect
 
         cDenseVect(int aSz, eModeInitImage=eModeInitImage::eMIA_NoInit);
         cDenseVect(tIM anIm);
+        static cDenseVect<Type>  Cste(int aSz,const Type & aVal);
+        cDenseVect<Type>  Dup() const;
 
         const Type & operator() (int aK) const {return DIm().GetV(aK);}
         Type & operator() (int aK) {return DIm().GetV(aK);}
@@ -550,7 +552,7 @@ template <class Type> class cWeightAv
         Type Average() const;
     private :
         Type  mSW;   ///< Som of    W
-        Type  mSV;   ///< Som of    V
+        Type  mSVW;   ///< Som of    VW
 };
 
 
@@ -646,6 +648,47 @@ template<class Type,const int DimOut,const int DimIn>void MulLine(cPtxd<Type,Dim
 
 template<class Type,const int Dim> cPtxd<Type,Dim> SolveCol(const cDenseMatrix<Type>&,const cPtxd<Type,Dim>&);
 template<class Type,const int Dim> cPtxd<Type,Dim> SolveLine(const cPtxd<Type,Dim>&,const cDenseMatrix<Type>&);
+
+
+/** Class for image of any dimension, relatively slow probably */
+
+template <class Type> class cDataGenDimTypedIm : public cMemCheck
+{
+    public :
+        typedef Type  tVal;
+        typedef tNumTrait<Type> tTraits;
+        typedef typename tTraits::tBase  tBase;
+        typedef cDenseVect<int>          tIndex;
+
+        const Type &  GetV(const tIndex&) const;
+        void SetV(const tIndex&,const tBase & aVal) ;
+        void AddV(const tIndex&,const tBase & aVal) ;
+
+        cDataGenDimTypedIm(const tIndex& aSz);
+        cDataGenDimTypedIm();
+        ~cDataGenDimTypedIm();
+        cDataGenDimTypedIm(const cDataGenDimTypedIm<Type> &) = delete;
+        void Resize(const tIndex &);
+
+        Type *   RawDataLin() const; 
+        int      NbElem() const; 
+        int Adress(const tIndex&) const;
+    protected  :
+        void PrivateAssertOk(const tIndex&) const;
+# if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+        void AssertOk(const tIndex& anIndex) const {PrivateAssertOk(anIndex);}
+#else
+        void AssertOk(const tIndex&) { } const
+#endif
+
+        int      mDim;
+        int      mNbElem;
+        tIndex   mSz;
+        tIndex   mMulSz;
+        Type *   mRawDataLin; ///< raw data containing pixel values
+};
+
+
 
 };
 

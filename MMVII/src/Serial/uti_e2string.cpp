@@ -80,7 +80,7 @@ template <class TypeEnum> class cE2Str
              MMVII_UsersErrror
              (
                 eTyUEr::eEmptyPattern,
-                "No value for enum, allowed are :"+StrAllVall<eTyInvRad>()
+                "No value for enum, allowed are :"+StrAllVall<TypeEnum>()
              );
 
           }

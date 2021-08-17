@@ -53,6 +53,10 @@ std::vector<int> RandNeighSet(int aK,int aN,const std::vector<int> & aSet);
 /// Complement of aSet in [0,1...., N[    ;  ]]
 std::vector<int> ComplemSet(int aN,const std::vector<int> & aSet);
 
+/// K is the numbre to select, it will be selected regularly with a proportion aProp
+bool SelectWithProp(int aK,double aProp);
+bool SelectQAmongN(int aK,int aQ,int aN);
+
 
 /* ============ Definition of numerical type ================*/
 
@@ -244,7 +248,7 @@ template <> class tElemNumTrait<tINT4> : public tBaseNumTrait<tStdInt>
         static eTyNums   TyNum() {return eTyNums::eTN_INT4;}
         typedef tREAL8   tFloatAssoc;
 };
-template <> class tElemNumTrait<tINT8> : public tBaseNumTrait<tStdInt>
+template <> class tElemNumTrait<tINT8> : public tBaseNumTrait<tINT8>
 {
     public :
         static bool      Signed() {return true;}

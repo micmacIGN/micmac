@@ -269,21 +269,38 @@ size_t  HashValFromAr(cAr2007&); /// defined only for Hash archive
 
 void AddData(const  cAuxAr2007 & anAux, bool  &  aVal); ///< for int
 void AddData(const  cAuxAr2007 & anAux, int  &  aVal); ///< for int
+void AddData(const  cAuxAr2007 & anAux, tU_INT2  &  aVal); ///< for unsigned short
 void AddData(const  cAuxAr2007 & anAux, double  &  aVal) ; ///< for double
 void AddData(const  cAuxAr2007 & anAux, std::string  &  aVal) ; ///< for string
 void AddData(const  cAuxAr2007 & anAux, tNamePair  &  aVal) ;  ///< for Pair of string
 void AddData(const  cAuxAr2007 & anAux, tNameOCple  &  aVal) ;  ///< for Ordered Cple of string
 
 template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type,Dim>  &  aVal) ;  ///<for cPt2dr
+template <class Type> void AddTabData(const  cAuxAr2007 & anAux, Type *  aVD,int aNbVal);
+
 
 /** This class is used to embed the information necessary to a raw/hardcopy serialization */
-struct cRawData4Serial
+class cRawData4Serial
 {
      public :
+        template <class Type> static cRawData4Serial Tpl(Type *Adr,int aNb) 
+        {
+            return cRawData4Serial(Adr,aNb*sizeof(Type));
+        }
+        void * Adr() const;
+        int   NbElem() const;
+     private :
         cRawData4Serial(void * aAdr,int aNbElem);
         void * mAdr;
         int mNbElem;
 };
+/*
+template <class Type> cRawData4Serial TplRawData4Serial(Type *Adr,int aNb) 
+{
+   return cRawData4Serial(Adr,aNb*sizeof(Type));
+}
+*/
+
 void AddData(const  cAuxAr2007 & anAux, cRawData4Serial  &  aVal); ///< for cRawData4Serial
 
 /// Serialization for optional

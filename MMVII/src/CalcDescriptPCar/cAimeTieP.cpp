@@ -20,13 +20,53 @@ class cConcavexMapP1M1 : public cFctrRR
       void Show() const;
       // static cFctrRR  TheOne;  ///< the object return always 1
 
-      cConcavexMapP1M1(double aSteep,double aExp);
+      cConcavexMapP1M1(double aSteep,double aExp,bool Shift0Is0);
     private :
       double mShift;
       double mFact;
       double mSteep;
       double mExp;
 };
+
+static const cTabulFonc1D & AllocTabConCavex(double aSteep,double aExp,int aNbDig)
+{
+   cPt3dr aParam(aSteep,aExp,aNbDig);
+   static int aCpt=0;
+   static cPt3dr aLastParam(-1,-1,-1);
+   static cTabulFonc1D * aRes = nullptr;
+   if ((aRes == nullptr) || (aParam!=aLastParam))
+   {
+      cMemManager::SetActiveMemoryCount(false);  // Will not unaloccate Res ...
+
+      aCpt++;
+      if (aCpt==100)
+      {
+           cMMVII_Appli::CurrentAppli().MMVII_WARNING("Susicious many alloc in AllocTabConCavex");
+      }
+      aLastParam = aParam;
+      delete aRes;
+      cConcavexMapP1M1 aCM(aSteep,aExp,(aSteep<0));
+      aRes = new cTabulFonc1D (aCM,-1,1,5000);
+      
+      cMemManager::SetActiveMemoryCount(true);
+   }
+   return *aRes;
+
+/*
+    typedef std::map<cPt3dr,cTabulFonc1D *>  tMap;
+    cMemManager::SetActiveMemoryCount(false);
+    // static std::map<cTabulFonc1D,cPt3dr> aBufRes;
+    static tMap aMap;
+                // static cConcavexMapP1M1 aCM(1e9,0.5,true);
+
+                // static cConcavexMapP1M1 aCM(10,0.5);
+                // static cTabulFonc1D aTF(aCM,-1,1,5000);
+    cMemManager::SetActiveMemoryCount(true);
+
+    return  *(aMap[cPt3dr(0.0,0.0,0.0)]);
+*/
+}
+
 
 double cConcavexMapP1M1::F (double aX) const {return NVF(aX);}
 
@@ -36,34 +76,46 @@ double cConcavexMapP1M1::NVF (double aX) const
     return mFact * (pow(aX+mShift,mExp) - pow(mShift,mExp));
 }
 
-cConcavexMapP1M1::cConcavexMapP1M1(double aSteep,double aExp) :
+cConcavexMapP1M1::cConcavexMapP1M1(double aSteep,double aExp,bool Shift0Is0) :
     mSteep (aSteep),
     mExp   (aExp)
 {
-    MMVII_INTERNAL_ASSERT_medium((mExp!=1)||(mSteep==1),"cConcavexMapP1M1");
-    MMVII_INTERNAL_ASSERT_medium((mExp>=1)||(mSteep>1),"cConcavexMapP1M1");
-    MMVII_INTERNAL_ASSERT_medium((mExp<=1)||(mSteep<1),"cConcavexMapP1M1");
-
-
+    if (Shift0Is0)
     {
-        mFact = 1;
-        for (int aK= 0 ; aK<20 ; aK++)
-        {
-            mShift = pow(mSteep /(mFact*mExp),1/(mExp-1));
-            mFact = 1/(pow(1+mShift,mExp) - pow(mShift,mExp));
-            // StdOut() << "cConcavexMapP1M1::  SHF" << mShift << " FACT " << mFact << "\n";
-        }
-        // Show();
+       mFact = 1.0;
+       mShift = 0.0;
+    }
+    else
+    {
+       MMVII_INTERNAL_ASSERT_medium((mExp!=1)||(mSteep==1),"cConcavexMapP1M1");
+       MMVII_INTERNAL_ASSERT_medium((mExp>=1)||(mSteep>1),"cConcavexMapP1M1");
+       MMVII_INTERNAL_ASSERT_medium((mExp<=1)||(mSteep<1),"cConcavexMapP1M1");
+
+
+       {
+           mFact = 1;
+           for (int aK= 0 ; aK<20 ; aK++)
+           {
+               mShift = pow(mSteep /(mFact*mExp),1/(mExp-1));
+               mFact = 1/(pow(1+mShift,mExp) - pow(mShift,mExp));
+               // StdOut() << "cConcavexMapP1M1::  SHF" << mShift << " FACT " << mFact << "\n";
+           }
+           // Show();
+       }
     }
 }
 
 void cConcavexMapP1M1::Show() const
 {
    double aEps= 1e-4;
+   StdOut()  << " STEEP0 " << mSteep << " EXP " << mExp << "\n";
    StdOut()  << " V0 " << NVF(0) 
              << " V1 " << NVF(-1) 
              << " VM1 " << NVF(-1) 
-             << " D0 " << (NVF(aEps)-NVF(-aEps)) / (2*aEps) << "\n";
+             << " D0 " << (NVF(aEps)-NVF(-aEps)) / (2*aEps) 
+             << " D1 " << (NVF(1+aEps)-NVF(1-aEps)) / (2*aEps) 
+             << " DM1 " << (NVF(-1+aEps)-NVF(-1-aEps)) / (2*aEps) 
+             << "\n";
    for (int aK=0 ; aK<=10 ; aK++)
    {
         double aV = aK/10.0;
@@ -74,8 +126,14 @@ void cConcavexMapP1M1::Show() const
 
 void TTT()
 {
-    cConcavexMapP1M1 aCM(5.0,0.5);
-    aCM.Show();
+    {
+       cConcavexMapP1M1 aCM(5.0,0.5,false);
+       aCM.Show();
+    }
+    {
+       cConcavexMapP1M1 aCM(10.0,0.5,false);
+       aCM.Show();
+    }
     exit(EXIT_SUCCESS);
     // cConcavexMapP1M1(10.0,0.5);
     // cConcavexMapP1M1(2.0,0.5);
@@ -93,7 +151,7 @@ cAimeDescriptor::cAimeDescriptor() :
 
 cAimeDescriptor cAimeDescriptor::DupLPIm()
 {
-   cAimeDescriptor aRes;
+   cAimeDescriptor aRes(*this);
    aRes.mILP = mILP.Dup();
    return aRes;
 }
@@ -398,6 +456,7 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
    aDILPi.Resize(aSzLP);
    cComputeStdDev<double> aStat = aCensusMode ? aRawStat :  aRawStat.Normalize();
 
+   const cTabulFonc1D &  aTFD  = AllocTabConCavex(aFPC.LPQ_Steep0(),aFPC.LPQ_Exp(),5000);
    for (const auto & aP : aDILPi)
    {
         double aV0 = aDILPr.GetV(aP);
@@ -406,18 +465,8 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
         {
             // double aVN  = aV0/aVCentral;
             double aRatio =  NormalisedRatio(aV0,aVCentral);
-            // As census as not so much dynamique we enhance it with this function
-            // if (aFPC.IsForTieP())
-            {
-                // Unactivate this memory because static object will not be freed
-                cMemManager::SetActiveMemoryCount(false);
-                static cConcavexMapP1M1 aCM(5.0,0.5);
-                static cTabulFonc1D aTF(aCM,-1,1,5000);
-                cMemManager::SetActiveMemoryCount(true);
-                aRatio = aTF.F(aRatio);
-            }
+            aRatio = aTFD.F(aRatio);
             aValRes = 128 + cSetAimePCAR::TheCensusMult * aRatio;
-
         }
         else
         {

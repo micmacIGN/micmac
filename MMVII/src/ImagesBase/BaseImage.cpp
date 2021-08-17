@@ -143,6 +143,33 @@ template <class Type,const int Dim>
    return aRes;
 }
 
+template <class Type,const int Dim>  Type     cDataTypedIm<Type,Dim>::MinVal() const
+{
+    Type aRes = mRawDataLin[0];
+    for (int aK=1 ; aK<NbElem() ; aK++)
+        UpdateMin(aRes,mRawDataLin[aK]);
+   return aRes;
+}
+template <class Type,const int Dim>  Type     cDataTypedIm<Type,Dim>::MaxVal() const
+{
+    Type aRes = mRawDataLin[0];
+    for (int aK=1 ; aK<NbElem() ; aK++)
+        UpdateMax(aRes,mRawDataLin[aK]);
+   return aRes;
+}
+template <class Type,const int Dim>  tREAL16     cDataTypedIm<Type,Dim>::SomVal() const
+{
+    tREAL16 aRes = mRawDataLin[0];
+    for (int aK=1 ; aK<NbElem() ; aK++)
+        aRes += mRawDataLin[aK];
+   return aRes;
+}
+template <class Type,const int Dim>  tREAL16     cDataTypedIm<Type,Dim>::MoyVal() const
+{
+   return SomVal() / NbElem();
+}
+
+
 
 template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::DupIn(cDataTypedIm<Type,Dim> & aIm) const
 {
@@ -264,6 +291,7 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::Init(eModeInit
        case eModeInitImage::eMIA_Rand        : InitRandom(); return;
        case eModeInitImage::eMIA_RandCenter  : InitRandomCenter(); return;
        case eModeInitImage::eMIA_Null        : InitNull(); return;
+       case eModeInitImage::eMIA_V1          : InitCste(1); return;
        case eModeInitImage::eMIA_MatrixId    : InitId(); return;
        case eModeInitImage::eMIA_NoInit      : ;
     }
@@ -308,6 +336,7 @@ template class cDataTypedIm<aType,3>;
 MACRO_INSTANTIATE_cDataTypedIm(tINT1)
 MACRO_INSTANTIATE_cDataTypedIm(tINT2)
 MACRO_INSTANTIATE_cDataTypedIm(tINT4)
+MACRO_INSTANTIATE_cDataTypedIm(tINT8)
 
 MACRO_INSTANTIATE_cDataTypedIm(tU_INT1)
 MACRO_INSTANTIATE_cDataTypedIm(tU_INT2)

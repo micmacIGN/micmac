@@ -269,6 +269,7 @@ template <> inline cPixBoxIterator<3> &  cPixBoxIterator<3>::operator ++()
 }
 
 
+
 ///  Abstract class allowing to manipulate images independanlty of their type
 
 /**  This class define an interface that allow to manipulate any image
@@ -299,6 +300,7 @@ template <const int Dim> class cDataGenUnTypedIm : public cPixBox<Dim>,
                 /// Set Pixel Float Value
         virtual void VD_SetV(const  cPtxd<int,Dim> & aP,const double & aV)=0 ;
 };
+
 
 ///  Classes for   ram-image containg a given type of pixel
 /**  Classes for   ram-image containg a given type of pixel
@@ -361,6 +363,12 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         double L1Norm() const;   ///< Norm som abs
         double L2Norm() const;   ///< Norm square
         double LInfNorm() const; ///< Nomr max
+
+        Type     MinVal() const;
+        Type     MaxVal() const;
+        tREAL16  SomVal() const;
+        tREAL16  MoyVal() const;
+
         void DupIn(cDataTypedIm<Type,Dim> &) const;  ///< Duplicate raw data
         void DupInVect(std::vector<Type> &) const;  ///< Duplicate raw data in a vect
 
@@ -373,8 +381,8 @@ template <class Type,const int Dim> class cDataTypedIm : public cDataGenUnTypedI
         void VI_SetV(const  cPtxd<int,Dim> & aP,const int & aV) override;
                 /// Set Pixel Float Value
         void VD_SetV(const  cPtxd<int,Dim> & aP,const double & aV)override;
-    protected :
         void Resize(const cPtxd<int,Dim> & aP0,const cPtxd<int,Dim> & aP1,eModeInitImage=eModeInitImage::eMIA_NoInit);
+    protected :
 
         ///< Test 4 writing
         void AssertValueOk(const tBase & aV) const
@@ -427,7 +435,9 @@ class cDataFileIm2D : public cRect2
         int          mNbChannel; ///< Number of channels
 };
 
+/// Size differnce of associated file images
 cPt2di DifInSz(const std::string & aN1,const std::string & aN2);
+/// Total diff of values of associated file images
 double DifAbsInVal(const std::string & aN1,const std::string & aN2,double aDef=-1);
 
 
@@ -453,6 +463,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         typedef cDataTypedIm<Type,2>   tBI;
         typedef cPixBox<2>               tPB;
         typedef typename tBI::tBase  tBase;
+        typedef cDataIm2D<Type>      tIm;
 
         //========= fundamental access to values ============
 
@@ -545,9 +556,11 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         void Read(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox);  
         ///  Write file image 1 channel to 1 channel
         void Write(const cDataFileIm2D &,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
+        void Write(const cDataFileIm2D &,const tIm &aIG,const tIm &aIB,const cPt2di & aP0,double aDyn=1,const cRect2& =cRect2::TheEmptyBox) const;  // 1 to 1
         virtual ~cDataIm2D();  ///< will delete mRawData2D
 
         void ToFile(const std::string& aName) const; ///< Create a File having same size/type ...
+        void ToFile(const std::string& aName,const tIm &aIG,const tIm &aIB) const; ///< Create a File having same size/type ...
         
         /// Raw image, lost all waranty is you use it...
         tVal ** ExtractRawData2D() {return mRawData2D;}
@@ -763,12 +776,35 @@ template <class Type>  class cIm1D
        tDIM *                mPIm;
 };
 
+template <class TypeH,class TypeCumul>  class cHistoCumul
+{
+    public :
+         cHistoCumul();  ///< For case where default constructor are required
+         cHistoCumul(int aNbVal);
+         void AddV(const int & aP,const TypeH & aV2Add);
+         void MakeCumul();
+         tREAL8  PropCumul(const int & aP) const; 
+         const cDataIm1D<TypeH>&   H() const;
+         void AddData(const cAuxAr2007 & anAux);
+    private :
+        // void AddV(const int & aP,const tBase & aV2Add)
+         int                 mNbVal;
+         cIm1D<TypeH>        mH;
+         cDataIm1D<TypeH>*   mDH;
+         cIm1D<TypeCumul>      mHC;
+         cDataIm1D<TypeCumul>* mDHC;
+         bool                mHCOk;
+         tREAL8              mPopTot;
+    
+};
+
 class cTabulFonc1D : public cFctrRR
 {
      public  :
        double F (double) const override;  ///< Virtual usable as cFctRR
 
        cTabulFonc1D(const cFctrRR & aFctr,double XMin,double XMax,int aNbStep);
+       virtual ~ cTabulFonc1D() = default;
      private  :
        inline int    ToIntCoord(double aX) const;
        inline double ToRealCoord(int   aI) const;

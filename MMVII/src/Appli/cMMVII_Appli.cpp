@@ -719,7 +719,7 @@ std::string cMMVII_Appli::NameFileLog(bool Finished) const
                mDirProjGMA
              + TmpMMVIIDirGlob
              + TmpMMVIIProcSubDir 
-             + mPrefixGMA + DirSeparator()
+             + mPrefixGMA + StringDirSeparator()
              + mPrefixNameAppli 
              + std::string(Finished ? "_Ok" : "_InProcess")
              + std::string(".txt")
@@ -899,44 +899,49 @@ void cMMVII_Appli::GenerateHelp()
    bool InternalMet = false;
    bool GlobalMet   = false;
    bool TuningMet   = false;
-   for (const auto & Arg : mArgFac.Vec())
+   for (int aKTime=0 ; aKTime<=2; aKTime++)
    {
-       const std::string & aNameA = Arg->Name();
-       if (aSelName.Match(aNameA))
-       {
-          bool IsIinternal = Arg->HasType(eTA2007::Internal);
-          bool IsTuning = Arg->HasType(eTA2007::Tuning);
-          if ((! (IsIinternal || IsTuning)) || mDoInternalHelp)
+      for (const auto & Arg : mArgFac.Vec())
+      {
+          const std::string & aNameA = Arg->Name();
+          if (aSelName.Match(aNameA))
           {
-             bool IsGlobHelp = Arg->HasType(eTA2007::Global);
-             if ((!IsGlobHelp) || mDoGlobHelp)
+             bool IsIinternal = Arg->HasType(eTA2007::Internal);
+             bool IsTuning = Arg->HasType(eTA2007::Tuning);
+             if ((! (IsIinternal || IsTuning)) || mDoInternalHelp)
              {
-                if (IsTuning && (!TuningMet)) 
+                bool IsGlobHelp = Arg->HasType(eTA2007::Global);
+                // First time do std args, second time to others (tune,glob,inter ...)
+                bool DoIt = (aKTime==0) ^  (IsIinternal || IsTuning || IsGlobHelp);
+                if (DoIt && ((!IsGlobHelp) || mDoGlobHelp))
                 {
-                   HelpOut() << "       ####### TUNING #######\n" ; 
-                   TuningMet = true;
-                }
-                else if (IsIinternal && (!InternalMet)) 
-                {
-                   HelpOut() << "       ####### INTERNAL #######\n" ; 
-                   InternalMet = true;
-                }
-                else if (IsGlobHelp && (!GlobalMet)) 
-                {
-                   HelpOut() << "       ####### GLOBAL   #######\n" ; 
-                   GlobalMet = true;
-                }
+                   if (IsTuning && (!TuningMet)) 
+                   {
+                      HelpOut() << "       ####### TUNING #######\n" ; 
+                      TuningMet = true;
+                   }
+                   else if (IsIinternal && (!InternalMet)) 
+                   {
+                      HelpOut() << "       ####### INTERNAL #######\n" ; 
+                      InternalMet = true;
+                   }
+                   else if (IsGlobHelp && (!GlobalMet)) 
+                   {
+                      HelpOut() << "       ####### GLOBAL   #######\n" ; 
+                      GlobalMet = true;
+                   }
 
-                HelpOut() << "  * [Name=" <<  Arg->Name()   << "] " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com() ;
-                bool HasDefVal = Arg->HasType(eTA2007::HDV);
-                if (HasDefVal)
-                {
-                   HelpOut() << " ,[Default="  << Arg->NameValue() << "]"; 
-                }
+                   HelpOut() << "  * [Name=" <<  Arg->Name()   << "] " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com() ;
+                   bool HasDefVal = Arg->HasType(eTA2007::HDV);
+                   if (HasDefVal)
+                   {
+                      HelpOut() << " ,[Default="  << Arg->NameValue() << "]"; 
+                   }
 
-                HelpOut()  << "\n";
+                   HelpOut()  << "\n";
 
-                // Check tuning comes at end =  when tuning is reached, we have non standard param
+                   // Check tuning comes at end =  when tuning is reached, we have non standard param
+/*
                 if (TuningMet)
                 {
                    MMVII_INTERNAL_ASSERT_always
@@ -945,10 +950,12 @@ void cMMVII_Appli::GenerateHelp()
                        "Tuning parameter must comes at end"
                    );
                 }
+*/
+                }
              }
           }
-       }
-       PrintAdditionnalComments(Arg);
+          PrintAdditionnalComments(Arg);
+      }
    }
    HelpOut() << "\n";
 }
@@ -1075,7 +1082,7 @@ const std::string & cMMVII_Appli::DirProject()       const {return mDirProject;}
 
 std::string  cMMVII_Appli::DirTmpOfCmd(eModeCreateDir aMode) const
 {
-   std::string aRes = DirProject() + TmpMMVIIDirPrefix + mSpecs.Name() + DirSeparator();
+   std::string aRes = DirProject() + TmpMMVIIDirPrefix + mSpecs.Name() + StringDirSeparator();
    ActionDir(aRes,aMode);
    return aRes;
 }

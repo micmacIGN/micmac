@@ -130,7 +130,7 @@ template <class Type> Type cMatIner2Var<Type>::Correl(const Type & aEps) const
    Type aSqDenominator = std::max(aEps,aDup.mS11*aDup.mS22);
    MMVII_ASSERT_STRICT_POS_VALUE(aSqDenominator);
 
-   return aDup.mS11  / std::sqrt(aSqDenominator);
+   return aDup.mS12  / std::sqrt(aSqDenominator);
 }
 
 template <class Type> inline Type StdDev(const Type & aS0,const Type & aS1,const Type & aS11)
@@ -169,20 +169,20 @@ template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Typ
 
 template <class Type> cWeightAv<Type>::cWeightAv() :
    mSW(0),
-   mSV(0)
+   mSVW(0)
 {
 }
 
 template <class Type> void cWeightAv<Type>::Add(const Type & aWeight,const Type & aVal)
 {
    mSW += aWeight;
-   mSV += aVal;
+   mSVW += aVal * aWeight;
 }
 
 template <class Type> Type cWeightAv<Type>::Average() const
 {
     MMVII_ASSERT_INVERTIBLE_VALUE(mSW);
-    return mSV / mSW;
+    return mSVW / mSW;
 }
 
 

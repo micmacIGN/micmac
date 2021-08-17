@@ -171,7 +171,8 @@ enum class eModeInitImage
            {
                eMIA_Rand,        ///< Rand  in [0..1]
                eMIA_RandCenter,        ///< Rand  in [-1 1]
-               eMIA_Null,
+               eMIA_Null,  ///<  0 everywere
+               eMIA_V1,   ///<   1 everywhere
                eMIA_MatrixId,    ///<  Only for square  Matrix  : Identite, 
                eMIA_NoInit
            };

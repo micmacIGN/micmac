@@ -488,6 +488,8 @@ void BenchGlobImage(cParamExeBench & aParam)
     {
         aI.DIm().SetV(cPt2di(0,0),1);
     }
+
+    BenchImNDim();
  
     BenchIm1D();
     BenchFileImage();

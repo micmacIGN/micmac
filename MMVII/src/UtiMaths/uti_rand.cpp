@@ -216,6 +216,19 @@ std::vector<int> RandNeighSet(int aK,int aN,const std::vector<int> & aSet)
    return aRes;
 }
 
+/*  Random or deterministic selectors */
+
+bool SelectWithProp(int aK,double aProp)
+{
+    double aPH1 =  aK * aProp;
+    double aPH2 =  (aK+1) * aProp;
+    return  round_ni(aPH1) != round_ni(aPH2);
+}
+
+bool SelectQAmongN(int aK,int aQ,int aN)
+{
+    return SelectWithProp(aK,double(aQ)/double(aN));
+}
 
 
 
