@@ -157,7 +157,7 @@ void WriteXml(std::string aImg1, std::string aImg2, std::string aSubPatchXml, st
 
 //simply clip images to get left patches (m patches), and resample images to get right patches (m patches). The number of pairs to be matched will be m.
 //mainly used for precise matching
-void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg2, std::string aImg1, std::string aImg2, std::string aIm1OriFile, std::string aIm2OriFile, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aImgPair, std::string aDir, std::string aSubPatchXml, cTransform3DHelmert aTrans3DH, std::string aDSMFileL, std::string aDSMDirL, bool bPrint=false, std::string aPrefix="")
+void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg2, std::string aImg1, std::string aImg2, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aImgPair, std::string aDir, std::string aSubPatchXml, cTransform3DHelmert aTrans3DH, std::string aDSMFileL, std::string aDSMDirL, bool bPrint=false, std::string aPrefix="")
 {
     std::string aOriginImg1 = aImg1;
 
@@ -177,6 +177,36 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
     Tiff_Im aRGBIm2((aDir+aImg2).c_str());
     Pt2di ImgSzR = aRGBIm2.sz();
 
+    GenIm::type_el aTypeIm1 = aRGBIm1.type_el();
+    GenIm::type_el aTypeIm2 = aRGBIm2.type_el();
+
+    cout<<"type of "<<aImg1<<": "<<aTypeIm1<<endl;
+    cout<<"type of "<<aImg2<<": "<<aTypeIm2<<endl;
+
+    std::string aImgRef1 = aImg1;
+    std::string aImgRef2 = aImg2;
+    bool bTo8Bits1 = false;
+    bool bTo8Bits2 = false;
+
+    if(aTypeIm1 == 2)
+    {
+        aImgRef1 = aImg1 + "_to8Bits.tif";
+        std::string aComto8Bits = MMBinFile(MM3DStr) + "to8Bits " + aImg1 + " Out=" + aImgRef1 + " Dyn=0.1";
+        cout<<aComto8Bits<<endl;
+        System(aComto8Bits);
+        bTo8Bits1 = true;
+        //cout<<aImg1<<" transformed to "<<aImgRef1<<endl;
+    }
+    if(aTypeIm2 == 2)
+    {
+        aImgRef2 = aImg2 + "_to8Bits.tif";
+        std::string aComto8Bits = MMBinFile(MM3DStr) + "to8Bits " + aImg2 + " Out=" + aImgRef2 + " Dyn=0.1";
+        cout<<aComto8Bits<<endl;
+        System(aComto8Bits);
+        bTo8Bits2 = true;
+        //cout<<aImg2<<" transformed to "<<aImgRef2<<endl;
+    }
+
     Pt2dr CoreaPatchSz;
     CoreaPatchSz.x = aPatchSz.x - aBufferSz.x*2;
     CoreaPatchSz.y = aPatchSz.y - aBufferSz.y*2;
@@ -185,25 +215,18 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
     PatchNum.x = ceil(ImgSzL.x*1.0/CoreaPatchSz.x);
     PatchNum.y = ceil(ImgSzL.y*1.0/CoreaPatchSz.y);
 
+    int aType = eTIGB_Unknown;
+    std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
+    std::string aIm2OriFile = aICNM->StdNameCamGenOfNames(aOri2, aImg2);
+    cBasicGeomCap3D * aCamL = cBasicGeomCap3D::StdGetFromFile(aIm1OriFile,aType);
+    cBasicGeomCap3D * aCamR = cBasicGeomCap3D::StdGetFromFile(aIm2OriFile,aType);
+    double dZL = aCamL->GetAltiSol();
 
-    //cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
-
-
-    //ElCamera * aCamL = CamOrientGenFromFile(aNameOriL+"/Orientation-"+aImg1+".xml", anICNM);
-    //ElCamera * aCamR = CamOrientGenFromFile(aNameOriR+"/Orientation-"+aImg2+".xml", anICNM);
-
-    //ElCamera * aCamL = BasicCamOrientGenFromFile(aIm1OriFile);
-    ElCamera * aCamR = BasicCamOrientGenFromFile(aIm2OriFile);
-
-
-    ElCamera * aCamL = BasicCamOrientGenFromFile(aIm1OriFile);
-    double prof_d = aCamL->GetProfondeur();
-    double altiSol = aCamL->GetAltiSol();
     if(bPrint)
     {
-        printf("GetProfondeur: %.2lf, GetAltiSol: %.2lf\n", prof_d, altiSol);
+        //printf("GetProfondeur: %.2lf, GetAltiSol: %.2lf\n", prof_d, altiSol);
+        printf("GetAltiSol: %.2lf\n", dZL);
     }
-
 
     Pt2dr aPCornerPatch[4];
     Pt2dr origin = Pt2dr(0, 0);
@@ -219,7 +242,7 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
     std::vector<string> vaImgPair;
     int m, n;
     std::list<std::string> aLComClip, aLComResample;
-    std::string aComBaseClip = MMBinFile(MM3DStr) + "ClipIm " + aImg1 + " ";
+    std::string aComBaseClip = MMBinFile(MM3DStr) + "ClipIm " + aImgRef1 + " ";
     std::string aComBaseResample = MMBinFile(MM3DStr) + "TestLib OneReechFromAscii ";
     std::string aClipSz = " ["+std::to_string(int(aPatchSz.x))+","+std::to_string(int(aPatchSz.y))+"] ";
 
@@ -272,15 +295,20 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
                         cGet3Dcoor a3DCoorL(aIm1OriFile);
                         TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
                         bool bValidL;
-                        aPTer1 = a3DCoorL.Get3Dcoor(aP1, aTImProfPxL, bValidL);
+                        aPTer1 = a3DCoorL.Get3Dcoor(aP1, aTImProfPxL, bValidL, a3DCoorL.GetGSD());
                     }
                     else
-                        aPTer1 = aCamL->ImEtProf2Terrain(aP1, prof_d);
-                    //Pt3dr Pt_H_sol = aCamL->ImEtZ2Terrain(aP1, altiSol);
+                    {
+                        //aPTer1 = aCamL->ImEtProf2Terrain(aP1, prof_d);
+                        aPTer1 = aCamL->ImEtZ2Terrain(aP1, dZL);
+                    }
+                    //Pt2dr aP2 = aCamL->Ter2Capteur(aPTer1);
+                    //printf("%.2lf\t%.2lf\t%.2lf\t%.2lf\n", aP1.x, aP1.y, aP2.x, aP2.y);
 
                     aPTer1 = aTrans3DH.Transform3Dcoor(aPTer1);
 
-                    aPCornerR[i] = aCamR->R3toF2(aPTer1);
+                    //aPCornerR[i] = aCamR->R3toF2(aPTer1);
+                    aPCornerR[i] = aCamR->Ter2Capteur(aPTer1);
                     aPCornerR[i].x = aPCornerR[i].x/dScaleL/dScaleR;
                     aPCornerR[i].y = aPCornerR[i].y/dScaleL/dScaleR;
 
@@ -306,7 +334,7 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
                     }
                     fclose(fpOutput);
 
-                    std::string aComResampleSndImg = aComBaseResample + aImg2  + " " + aNameSave + " Out="+aSubImg2 + " Show=true";
+                    std::string aComResampleSndImg = aComBaseResample + aImgRef2  + " " + aNameSave + " Out="+aSubImg2 + " Show=true";
                     cout<<aComResampleSndImg<<endl;
                     aLComResample.push_back(aComResampleSndImg);
 
@@ -360,6 +388,18 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
     cEl_GPAO::DoComInSerie(aLComResample);
     cEl_GPAO::DoComInParal(aComMv);
 
+    if(bTo8Bits1 == true)
+    {
+        std::string aComRemove ="rm -r " + aImgRef1;
+        System(aComRemove);
+        cout<<aComRemove<<endl;
+    }
+    if(bTo8Bits2 == true)
+    {
+        std::string aComRemove ="rm -r " + aImgRef2;
+        System(aComRemove);
+        cout<<aComRemove<<endl;
+    }
     /* if use cEl_GPAO::DoComInParal(aLComResample), something like this will happen:
     Error while file reading |
     FILE = ./Tmp-MM-Dir/14FRPCAB35x00014_01036.tif_Ch1.tif  pos = 20971528|
@@ -718,18 +758,24 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
     StdCorrecNameOrient(aOri1,"./",true);
     StdCorrecNameOrient(aOri2,"./",true);
 
+/*
      std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
      std::string aKeyOri2 = "NKS-Assoc-Im2Orient@-" + aOri2;
 
      std::string aIm1OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri1,aImg1,true);
      std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
 
-
+    if (aPara3DH.length() > 0 && ELISE_fp::exist_file(aPara3DH) == false)
+    {
+        printf("File %s does not exist.\n", aPara3DH.c_str());
+         return 0;
+     }
+*/
     cTransform3DHelmert aTrans3DH(aPara3DH);
 
     std::string aOutImg1 = GetFileName(aImg1);
     std::string aOutImg2 = GetFileName(aImg2);
-    GetPatchPair(aCAS3D.mOutDir, aOutImg1, aOutImg2, aImg1, aImg2, aIm1OriFile, aIm2OriFile, aCAS3D.mPatchSz, aCAS3D.mBufferSz, aPrefix + aCAS3D.mImgPair, aCAS3D.mDir, aPrefix + aCAS3D.mSubPatchXml, aTrans3DH, aDSMFileL, aDSMDirL, bPrint, aPrefix);
+    GetPatchPair(aCAS3D.mOutDir, aOutImg1, aOutImg2, aImg1, aImg2, aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mPatchSz, aCAS3D.mBufferSz, aPrefix + aCAS3D.mImgPair, aCAS3D.mDir, aPrefix + aCAS3D.mSubPatchXml, aTrans3DH, aDSMFileL, aDSMDirL, bPrint, aPrefix);
 
     return 0;
 }

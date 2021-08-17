@@ -156,7 +156,7 @@ void GetIm2DCoorFromDSM(std::vector<Pt2dr>& vPt2D, std::vector<Pt3dr> vPt3D, std
 }
 */
 
-bool GetBoundingBox(std::string aRGBImgDir, std::string aImg1, ElCamera * aCamL, Pt3dr& minPt, Pt3dr& maxPt)
+bool GetBoundingBox(std::string aRGBImgDir, std::string aImg1, cBasicGeomCap3D * aCamL, Pt3dr& minPt, Pt3dr& maxPt)
 {
     if (ELISE_fp::exist_file(aRGBImgDir+"/"+aImg1) == false)
     {
@@ -174,19 +174,25 @@ bool GetBoundingBox(std::string aRGBImgDir, std::string aImg1, ElCamera * aCamL,
     aPCorner[2] = Pt2dr(origin.x+aImgSz.x, origin.y+aImgSz.y);
     aPCorner[3] = Pt2dr(origin.x, origin.y+aImgSz.y);
 
-    double prof_d = aCamL->GetProfondeur();
+    //double prof_d = aCamL->GetVeryRoughInterProf();
+    //prof_d = 11.9117;
+    //double prof_d = aCamL->GetProfondeur();
+    double dZ = aCamL->GetAltiSol();
+    //cout<<"dZ: "<<dZ<<endl;
 
     Pt3dr ptTerrCorner[4];
     for(int i=0; i<4; i++)
     {
         Pt2dr aP1 = aPCorner[i];
-        ptTerrCorner[i] = aCamL->ImEtProf2Terrain(aP1, prof_d);
+        //ptTerrCorner[i] = aCamL->ImEtProf2Terrain(aP1, prof_d);
+        ptTerrCorner[i] = aCamL->ImEtZ2Terrain(aP1, dZ);
     }
 
     minPt = ptTerrCorner[0];
     maxPt = ptTerrCorner[0];
-    for(int i=1; i<4; i++){
+    for(int i=0; i<4; i++){
         Pt3dr ptCur = ptTerrCorner[i];
+        //cout<<i<<": "<<ptCur.x<<"; "<<ptCur.y<<"; "<<ptCur.z<<endl;
         if(minPt.x > ptCur.x)
             minPt.x = ptCur.x;
         if(maxPt.x < ptCur.x)
@@ -209,14 +215,19 @@ void Get2DCoor(std::string aRGBImgDir, std::vector<string> vImgList1, std::vecto
 {
     StdCorrecNameOrient(aOri1,"./",true);
 
-    std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
+    //std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
 
     cSetOfMesureAppuisFlottants aSOMAFout;
     for(unsigned int i=0; i<vImgList1.size(); i++)
     {
         std::string aImg1 = vImgList1[i];
-        std::string aIm1OriFile = aICNM->Assoc1To1(aKeyOri1,aImg1,true);
-        ElCamera * aCamL = BasicCamOrientGenFromFile(aIm1OriFile);
+        //cout<<aKeyOri1<<endl;
+        //std::string aIm1OriFile = aICNM->Assoc1To1(aKeyOri1,aImg1,true);
+        std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1); //aICNM->Assoc1To1(aKeyOri1,aImg1,true);
+        //cout<<aIm1OriFile<<endl;
+
+        int aType = eTIGB_Unknown;
+        cBasicGeomCap3D * aCamL = cBasicGeomCap3D::StdGetFromFile(aIm1OriFile,aType);
 
         Pt3dr minPt, maxPt;
         GetBoundingBox(aRGBImgDir, aImg1, aCamL, minPt, maxPt);

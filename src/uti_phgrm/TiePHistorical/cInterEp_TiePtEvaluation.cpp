@@ -105,7 +105,7 @@ std::vector<int> TiePtEvaluation(std::string aIm1OriFile, std::string aIm2OriFil
        //cout<<nTodel<<"th tie pt: "<<p1.x<<" "<<p1.y<<" "<<p2.x<<" "<<p2.y<<endl;
 
        bool bValidL;
-       Pt3dr aPTer1 = a3DCoorL.Get3Dcoor(p1, aTImProfPxL, bValidL);
+       Pt3dr aPTer1 = a3DCoorL.Get3Dcoor(p1, aTImProfPxL, bValidL, a3DCoorL.GetGSD());
 
        aPTer1 = aTrans3DH.Transform3Dcoor(aPTer1);
        Pt2dr aPLPred = a3DCoorR.Get2Dcoor(aPTer1);

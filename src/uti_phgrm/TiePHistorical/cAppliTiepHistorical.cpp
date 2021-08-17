@@ -163,7 +163,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
 
     *mArgDSM_Equalization
         //<< EAM(mDSMFileL, "DSMFile", true, "DSM File, Def=MMLastNuage.xml")
-        << EAM(mSTDRange, "STDRange", true, "Only pixels with their value within STDRange times of std will be considered (in order to ignore altitude outliers), Def=2");
+        << EAM(mSTDRange, "STDRange", true, "Only pixels with their value within STDRange times of std will be considered (in order to ignore altitude outliers), Def=5");
         //<< EAM(mOutImg, "OutImg", true, "Output image name");
 
 
@@ -225,7 +225,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
         << EAM(mRANSACInSH,"3DRANInSH",true,"Input Homologue extenion for NB/NT mode for 3D RANSAC, Def=none")
         << EAM(mRANSACOutSH,"3DRANOutSH",true,"Output Homologue extenion for NB/NT mode of 3D RANSAC, Def='RANSACInSH'-3DRANSAC")
         << EAM(mR3DIteration,"3DIter",true,"3D RANSAC iteration, Def=1000")
-        << EAM(mR3DThreshold,"3DRANTh",true,"3D RANSAC threshold, Def=10*GSD");
+        << EAM(mR3DThreshold,"3DRANTh",true,"3D RANSAC threshold, Def=10*(GSD of second image)");
            /*
         << EAM(mDSMDirL, "DSMDirL", true, "DSM directory of first image, Def=none")
         << EAM(mDSMDirR, "DSMDirR", true, "DSM directory of second image, Def=none")
@@ -1055,8 +1055,12 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
 
 cTransform3DHelmert::cTransform3DHelmert(std::string aFileName)
 {
-    if(aFileName.length() == 0)
+    //if(aFileName.length() == 0)
+    if(ELISE_fp::exist_file(aFileName) == false)
+    {
+        printf("File %s does not exist, hence will use unit matrix instead.\n", aFileName.c_str());
         mApplyTrans = false;
+    }
     else
     {
         mApplyTrans = true;
@@ -1087,19 +1091,27 @@ Pt3dr cTransform3DHelmert::Transform3Dcoor(Pt3dr aPt)
 /****** cGet3Dcoor  ******/
 /*******************************************/
 
-cGet3Dcoor::cGet3Dcoor(std::string aNameOri, std::string aDir) /*:
-    mICNM (cInterfChantierNameManipulateur::BasicAlloc(aDir)),
-    mCam1 (ElCamera::StdCamFromFile(true,aNameOri,mICNM))*/
-
+cGet3Dcoor::cGet3Dcoor(std::string aNameOri)
 {
-/*
-    cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    mCam1 = ElCamera::StdCamFromFile(true,aNameOri,anICNM);
-*/
-
-    mCam1 = BasicCamOrientGenFromFile(aNameOri);
+    int aType = eTIGB_Unknown;
+    mCam1 = cBasicGeomCap3D::StdGetFromFile(aNameOri,aType);
 
     bDSM = false;
+}
+
+double cGet3Dcoor::GetGSD()
+{
+    double dZL = mCam1->GetAltiSol();
+
+    Pt2dr aCent(double(mCam1->SzBasicCapt3D().x)/2,double(mCam1->SzBasicCapt3D().y)/2);
+    Pt2dr aCentNeigbor(aCent.x+1, aCent.y);
+
+    Pt3dr aCentTer = mCam1->ImEtZ2Terrain(aCent, dZL);
+    Pt3dr aCentNeigborTer = mCam1->ImEtZ2Terrain(aCentNeigbor, dZL);
+
+    double dist = pow(pow(aCentTer.x-aCentNeigborTer.x,2) + pow(aCentTer.y-aCentNeigborTer.y,2), 0.5);
+
+    return dist;
 }
 
 Pt2di cGet3Dcoor::GetDSMSz(std::string aDSMFile, std::string aDSMDir)
@@ -1166,10 +1178,6 @@ TIm2D<float,double> cGet3Dcoor::SetDSMInfo(std::string aDSMFile, std::string aDS
 //get rough 3D coor with mean altitude
 Pt3dr cGet3Dcoor::GetRough3Dcoor(Pt2dr aPt1)
 {
-    double prof_d = mCam1->GetProfondeur();
-    Pt3dr aPTer1 = mCam1->ImEtProf2Terrain(aPt1, prof_d);
-    return aPTer1;
-
     double dZ = mCam1->GetAltiSol();
     return mCam1->ImEtZ2Terrain(aPt1, dZ);
 }
@@ -1187,8 +1195,6 @@ Pt2dr cGet3Dcoor::Get2Dcoor(Pt3dr aTer)
 Pt3dr cGet3Dcoor::Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> aTImDSM, bool& bPrecise, double dThres)
 {
     bPrecise = true;
-    //cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc(aDir);
-    //ElCamera * aCam1 = ElCamera::StdCamFromFile(true,aNameOri,anICNM);
 
     Pt3dr aTer(0,0,0);
     Pt2dr ptPrj;
@@ -1208,17 +1214,16 @@ Pt3dr cGet3Dcoor::Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> aTImDSM, bool& bPrec
         ptPrj = mCam1->Ter2Capteur(aTer);
 
         dDis = pow(pow(aPt1.x-ptPrj.x, 2) + pow(aPt1.y-ptPrj.y, 2), 0.5);
-/*
-        if(nIter > 1)
+
+        if(nIter > 100)
         {
             printf("%lf %lf %lf %lf\n", aPt1.x,ptPrj.x,aPt1.y,ptPrj.y);
-            printf("nIter: %d, dZ: %lf, aTer.x: %lf, aTer.y: %lf, aTer.z: %lf, dDis: %lf\n", nIter, dZ, aTer.x, aTer.y, aTer.z, dDis);
+            printf("nIter: %d, dZ: %lf, aTer.x: %lf, aTer.y: %lf, aTer.z: %lf, dDis: %lf, dThres: %lf\n", nIter, dZ, aTer.x, aTer.y, aTer.z, dDis, dThres);
         }
-*/
+
         Pt2di aPt2;
         aPt2.x = int((aTer.x - mOriPlani.x)/mResolPlani.x + 0.5);
         aPt2.y = int((aTer.y - mOriPlani.y)/mResolPlani.y + 0.5);
-
         //out of border of the DSM
         if(aPt2.x<0 || aPt2.y<0 || aPt2.x >= mDSMSz.x || aPt2.y >= mDSMSz.y)
         {

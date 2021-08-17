@@ -231,21 +231,22 @@ class cGet3Dcoor
 {
     public:
 
-        cGet3Dcoor(std::string aNameOri, std::string aDir="./");
+        cGet3Dcoor(std::string aNameOri);
+
+        double GetGSD();
 
         TIm2D<float,double> SetDSMInfo(std::string aDSMFile, std::string aDSMDir);
 
         Pt2di GetDSMSz(std::string aDSMFile, std::string aDSMDir);
 
-        Pt3dr Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> mTImProfPx, bool& bValid, double dThres=0.0001);
+        Pt3dr Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> mTImProfPx, bool& bValid, double dThres);
 
         Pt3dr GetRough3Dcoor(Pt2dr aPt1);
 
         Pt2dr Get2Dcoor(Pt3dr aTer);
 
 private:
-        ElCamera * mCam1;
-        cInterfChantierNameManipulateur * mICNM;
+        cBasicGeomCap3D * mCam1;
         bool         bDSM;
         Pt2di        mDSMSz;
         cFileOriMnt  mFOM;
