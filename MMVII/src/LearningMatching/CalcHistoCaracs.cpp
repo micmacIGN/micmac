@@ -13,8 +13,7 @@ struct cSaveCalcHistoCarac
     private :
 };
 
-class cAppliCalcHistoCarac : public cMMVII_Appli,
-                              public cNameFormatTDEDM
+class cAppliCalcHistoCarac : public cAppliLearningMatch
 {
      public :
         cAppliCalcHistoCarac(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
@@ -25,7 +24,7 @@ class cAppliCalcHistoCarac : public cMMVII_Appli,
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
-        void AddOneFile(const std::string&);
+        void AddOneFile(const std::string&,int aKFile,int aNbFile);
 
          // -- Mandatory args ----
         std::string       mPatHom0;
@@ -42,9 +41,9 @@ class cAppliCalcHistoCarac : public cMMVII_Appli,
 
 
 cAppliCalcHistoCarac::cAppliCalcHistoCarac(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli  (aVArgs,aSpec),
-   mWithCr       (true),
-   mStats        (nullptr)
+   cAppliLearningMatch  (aVArgs,aSpec),
+   mWithCr              (true),
+   mStats               (nullptr)
 {
 }
 
@@ -74,9 +73,9 @@ cCollecSpecArg2007 & cAppliCalcHistoCarac::ArgOpt(cCollecSpecArg2007 & anArgOpt)
    ;
 }
 
-void cAppliCalcHistoCarac::AddOneFile(const std::string& aStr0)
+void cAppliCalcHistoCarac::AddOneFile(const std::string& aStr0,int aKFile,int aNbFile)
 {
-    StdOut() << "****** "   << aStr0  << "   *******\n"; 
+    StdOut() << "****** "   << aStr0  << " : " << aKFile << "/" << aNbFile <<  "   *******\n"; 
     cFileVecCaracMatch aFCV0(HomFromHom0(aStr0,0));
     mStats->AddOneFile(0,aFCV0);
     StdOut() << "   -------------------------------\n";
@@ -106,14 +105,17 @@ void cAppliCalcHistoCarac::AddOneFile(const std::string& aStr0)
 
 int  cAppliCalcHistoCarac::Exe()
 {
-   cNameFormatTDEDM::SetNamesProject("",mNameResult);
+   SetNamesProject("",mNameResult);
    CreateDirectories(DirVisu(),true);
    CreateDirectories(DirResult(),true);
 
    mStats = new cStatAllVecCarac(mWithCr);
+   int aKFile=0;
+   int aNbFile = MainSet0().size();
    for (const auto & aStr : ToVect(MainSet0()))
    {
-       AddOneFile(aStr);
+       AddOneFile(aStr,aKFile,aNbFile);
+       aKFile++;
    }
    mStats->SaveHisto(250,DirVisu());
    if (mWithCr)
@@ -122,14 +124,9 @@ int  cAppliCalcHistoCarac::Exe()
    }
    mStats->MakeCumul();
 
-   // Textual report
    {
-       std::string aNameReport = DirResult() + "ReportHisto1_" +  StrIdTime() + ".txt";
-       cMMVII_Ofs aOfs(aNameReport,false);
-       cMultipleOfs  aMulOfs(aOfs.Ofs());
-
+       cMultipleOfs  aMulOfs(NameReport());
        aMulOfs << "COM=[" << Command() << "]\n\n";
-
        mStats->ShowSepar(".*",aMulOfs);
    }
 

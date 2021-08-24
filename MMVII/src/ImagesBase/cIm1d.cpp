@@ -1,4 +1,5 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_2Include_Serial_Tpl.h"
 
 namespace MMVII
 {
@@ -49,6 +50,23 @@ cTabulFonc1D::cTabulFonc1D
     for (int aK=0 ; aK<=mNbStep ; aK++)
         mDIm->SetV(aK,aFctr.F(ToRealCoord(aK)));
 }
+
+
+template <class TypeH,class TypeCumul> void cHistoCumul<TypeH,TypeCumul>::AddData(const cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("Hist",anAux),*mDH);
+    MMVII::AddData(cAuxAr2007("HCOk",anAux),mHCOk);
+    if (anAux.Input())
+    {
+        mNbVal = mDH->Sz();
+        mDHC->Resize(mNbVal);
+        if (mHCOk)
+        {
+           MakeCumul();
+        }
+    }
+}
+
 
 /* ========================== */
 /*          cDataIm1D         */

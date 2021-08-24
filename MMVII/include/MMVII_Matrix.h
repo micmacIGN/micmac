@@ -673,6 +673,8 @@ template <class Type> class cDataGenDimTypedIm : public cMemCheck
         Type *   RawDataLin() const; 
         int      NbElem() const; 
         int Adress(const tIndex&) const;
+        const tIndex & Sz() const;
+        void AddData(const cAuxAr2007 &);
     protected  :
         void PrivateAssertOk(const tIndex&) const;
 # if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )

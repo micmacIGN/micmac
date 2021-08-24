@@ -464,7 +464,7 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
         if (aCensusMode)
         {
             // double aVN  = aV0/aVCentral;
-            double aRatio =  NormalisedRatio(aV0,aVCentral);
+            double aRatio =  NormalisedRatioPos(aV0,aVCentral);
             aRatio = aTFD.F(aRatio);
             aValRes = 128 + cSetAimePCAR::TheCensusMult * aRatio;
         }

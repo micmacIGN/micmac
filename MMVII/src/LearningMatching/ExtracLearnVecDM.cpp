@@ -17,8 +17,7 @@ class cBiPyramMatch
         std::vector<tSP_Pyr>   mVPyr;
 };
 
-class cAppliExtractLearnVecDM : public cMMVII_Appli,
-                                public cNameFormatTDEDM
+class cAppliExtractLearnVecDM : public cAppliLearningMatch
 {
      public :
         typedef cIm2D<tU_INT1>             tImMasq;
@@ -96,7 +95,7 @@ class cAppliExtractLearnVecDM : public cMMVII_Appli,
 };
 
 cAppliExtractLearnVecDM::cAppliExtractLearnVecDM(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli  (aVArgs,aSpec),
+   cAppliLearningMatch  (aVArgs,aSpec),
    mSzTile       (3000),
    mOverlap      (200),
    mExtSave      ("Std"),
@@ -165,6 +164,18 @@ void cAppliExtractLearnVecDM::AddLearn(cFileVecCaracMatch & aFVCM,const cAimePCa
 {
    tREAL4 aV1 = ImF(true).DIm().GetVBL(aAP1.Pt());
    tREAL4 aV2 = ImF(false).DIm().GetVBL(aAP2.Pt());
+
+/*
+{
+// 73410
+   static int aCpt=0; aCpt++;
+   bool BUG = (aCpt==73410);
+   if (BUG)
+   {
+       std::cout << "Cccc= " << aCpt << " Val=" << aV1 << " " << aV2  << " Pts=" << aAP1.Pt() << " " << aAP2.Pt() << "\n";
+   }
+}
+*/
 
    cVecCaracMatch aVCM(mPyr1->MulScale(),aV1,aV2,aAP1,aAP2);
    aFVCM.AddCarac(aVCM);
@@ -249,7 +260,9 @@ cAppliExtractLearnVecDM::tSP_Pyr cAppliExtractLearnVecDM::CreatePyr(bool IsIm1)
     tDataImF &aDIF = aImF.DIm();
     tDataImF &aDI0 =  aPyr->ImTop().DIm();
     for (const auto & aP : aDIF)
-        aDIF.SetV(aP,(1+NormalisedRatio(aDI0.GetV(aP),aDIF.GetV(aP))) / 2.0);
+    {
+        aDIF.SetV(aP,(1+NormalisedRatioPos(aDI0.GetV(aP),aDIF.GetV(aP))) / 2.0);
+    }
 
 
     if (mSaveImFilter)

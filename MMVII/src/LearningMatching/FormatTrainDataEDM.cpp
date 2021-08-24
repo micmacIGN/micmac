@@ -32,8 +32,9 @@ class cWT_AppliFormatTDEDM ;  // format 4 training data on epipolar dense matchi
 
 
 
-class cMDLB_AppliFormatTDEDM : public cMMVII_Appli,
-                              public cNameFormatTDEDM 
+
+
+class cMDLB_AppliFormatTDEDM : public cAppliLearningMatch 
 {
      public :
 
@@ -43,6 +44,7 @@ class cMDLB_AppliFormatTDEDM : public cMMVII_Appli,
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override;
+        std::vector<std::string>  Samples() const  override;
 
         void MakePxSym(const std::string & aDir,int aK);
         cIm2D<tU_INT1> ComputeAR(double aAmpl,int aK);
@@ -79,12 +81,20 @@ cMDLB_AppliFormatTDEDM::cMDLB_AppliFormatTDEDM
     const std::vector<std::string> &  aVArgs,
     const cSpecMMVII_Appli &          aSpec
 )  :
-   cMMVII_Appli (aVArgs,aSpec),
+   cAppliLearningMatch (aVArgs,aSpec),
    mDoRectif    (false),
    mBeeFrost    (false),
    mMDLB        (false),
    mTEST        (false)
 {
+}
+
+std::vector<std::string>  cMDLB_AppliFormatTDEDM::Samples() const
+{
+   return std::vector<std::string>
+          (
+            {" MMVII  DMFormatTD_MDLB \".*JAX_022_004_002_.*\" 100 DoRectif=1"}
+          );
 }
 
 cCollecSpecArg2007 & cMDLB_AppliFormatTDEDM::ArgObl(cCollecSpecArg2007 & anArgObl)
@@ -327,8 +337,7 @@ tMMVII_UnikPApli Alloc_Format_MDLB_TDEDM(const std::vector<std::string> &  aVArg
 /*  ============================================== */
 
 
-class cWT_AppliFormatTDEDM : public cMMVII_Appli,
-                             public cNameFormatTDEDM 
+class cWT_AppliFormatTDEDM : public cAppliLearningMatch
 {
      public :
 
@@ -353,7 +362,7 @@ cWT_AppliFormatTDEDM::cWT_AppliFormatTDEDM
     const std::vector<std::string> &  aVArgs,
     const cSpecMMVII_Appli &          aSpec
 )  :
-   cMMVII_Appli(aVArgs,aSpec)
+   cAppliLearningMatch(aVArgs,aSpec)
 {
 }
 

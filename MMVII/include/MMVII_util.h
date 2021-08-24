@@ -197,10 +197,21 @@ class cMMVII_Ifs : public cMemCheck
 class cMultipleOfs  : public  std::ostream
 {
     public :
-        cMultipleOfs(std::ostream & aOfs)
+        cMultipleOfs(std::ostream & aOfs) :
+            mOfsCreated(nullptr)
         {
            Add(aOfs);
         }
+        cMultipleOfs(const std::string & aS,bool ModeAppend = false)
+        {
+             mOfsCreated = new cMMVII_Ofs(aS,ModeAppend);
+             Add(mOfsCreated->Ofs());
+        }
+        ~cMultipleOfs()
+        {
+            delete mOfsCreated;
+        }
+
         void Add(std::ostream & aOfs) {mVOfs.push_back(&aOfs);}
         void Clear() {mVOfs.clear();}
 
@@ -231,6 +242,8 @@ class cMultipleOfs  : public  std::ostream
              return *this;
         }
     private :
+        
+        cMMVII_Ofs *                mOfsCreated;
         std::vector<std::ostream *> mVOfs;
 };
 

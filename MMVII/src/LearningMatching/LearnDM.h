@@ -15,6 +15,9 @@
 namespace MMVII
 {
 
+void AddData(const cAuxAr2007 & anAux,eModeCaracMatch & aMCM); 
+
+
 typedef std::vector<eModeCaracMatch> tVecCar;
 std::string  NameVecCar(const tVecCar &);
 
@@ -31,87 +34,59 @@ class cComputeSeparDist
 template <class Type> double ComputeSep(const Type * aD1,const Type * aD2,int aNb);
 template <class Type,int Dim> double ComputeSep(const cDataTypedIm<Type,Dim> &,const cDataTypedIm<Type,Dim> &);
 
-class cNameFormatTDEDM 
+class cAppliLearningMatch : public cMMVII_Appli
 {
     protected :
-        void SetNamesProject (const std::string & aNameInput,const std::string & aNameOutput) 
-        {
-           mNameInput  = aNameInput;
-           mNameOutput = aNameOutput;
-        }
-        std::string Prefix(bool isIn) {return isIn ? mNameInput : mNameOutput;}
-        std::string Post(bool isXml) {return isXml ? ".xml":".dmp" ; }
-        cNameFormatTDEDM () {SetNamesProject("","");}
-        inline std::string  DirVisu()   {return "DirVisu" + mNameOutput +  StringDirSeparator() ;}
-        inline std::string  DirResult()   { return std::string("Result") + StringDirSeparator(); }
-        inline std::string  FileHisto1Carac(bool isIn,bool isXml=false)   {return DirResult() + "Histo1Carac" + Prefix(isIn) + Post(isXml);}
+        cAppliLearningMatch(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
+
+        void SetNamesProject (const std::string & aNameInput,const std::string & aNameOutput) ;
+        std::string Prefix(bool isIn) const;
+        static std::string Post(bool isXml)  ;
+        std::string  DirVisu()  const;
+        std::string  DirResult()  const;
+        std::string  SubDirResult(bool isIn)  const;
+        std::string  FileHisto1Carac(bool isIn,bool isXml=false)  const ;
+        std::string  NameReport() const;
+        std::string  FileHistoNDIm(const std::string &,bool IsIn) const;
 
 
-        static inline std::string  PrefixAll()   {return "DMTrain_";}
-
-        static inline std::string  Im1()   {return "Im1";}
-        static inline std::string  Im2()   {return "Im2";}
-        static inline std::string  Px1()   {return "Pax1";}
-        static inline std::string  Px2()   {return "Pax2";}
-        static inline std::string  Masq1() {return "Masq1";}
-        static inline std::string  Masq2() {return "Masq2";}
-
-
-        static inline std::string MakeName(const std::string & aName,const std::string & aPref) 
-        {
-             return PrefixAll() + aName + "_" + aPref + ".tif";
-        }
-
-        static inline void GenConvertIm(const std::string & aInput, const std::string & aOutput)
-        {
-            std::string aCom =   "convert -colorspace Gray -compress none " + aInput + " " + aOutput;
-            GlobSysCall(aCom);
-        }
-
-        static inline std::string NameIm1(const std::string & aName) {return MakeName(aName,Im1());}
-        static inline std::string NameIm2(const std::string & aName) {return MakeName(aName,Im2());}
-        static inline std::string NamePx1(const std::string & aName) {return MakeName(aName,Px1());}
-        static inline std::string NamePx2(const std::string & aName) {return MakeName(aName,Px2());}
-        static inline std::string NameMasq1(const std::string & aName) {return MakeName(aName,Masq1());}
-        static inline std::string NameMasq2(const std::string & aName) {return MakeName(aName,Masq2());}
-
-        static inline std::string NameRedrIm1(const std::string & aName) {return MakeName(aName,"REDRIn_"+Im1());}
-        static inline std::string NameRedrIm2(const std::string & aName) {return MakeName(aName,"REDRIn_"+Im2());}
-
-        static inline void ConvertIm1(const std::string & aInput,const std::string & aName) {GenConvertIm(aInput,NameIm1(aName));}
-        static inline void ConvertIm2(const std::string & aInput,const std::string & aName) {GenConvertIm(aInput,NameIm2(aName));}
+        static std::string  PrefixAll();
+        static std::string  Im1();
+        static std::string  Im2();
+        static std::string  Px1();
+        static std::string  Px2();
+        static std::string  Masq1();
+        static std::string  Masq2();
 
 
-        static inline std::string Im2FromIm1(const std::string & aIm1)
-        {
-             return replaceFirstOccurrence(aIm1,"_"+Im1()+".tif","_"+Im2()+".tif");
-        }
-        static inline std::string Px1FromIm1(const std::string & aIm1)
-        {
-             return replaceFirstOccurrence(aIm1,"_"+Im1()+".tif","_"+Px1()+".tif");
-        }
-        static inline std::string Masq1FromIm1(const std::string & aIm1)
-        {
-             return replaceFirstOccurrence(aIm1,"_"+Im1()+".tif","_"+Masq1()+".tif");
-        }
+        static std::string MakeName(const std::string & aName,const std::string & aPref) ;
+        static void GenConvertIm(const std::string & aInput, const std::string & aOutput);
+
+        static std::string NameIm1(const std::string & aName); 
+        static std::string NameIm2(const std::string & aName);
+        static std::string NamePx1(const std::string & aName);
+        static std::string NamePx2(const std::string & aName);
+        static std::string NameMasq1(const std::string & aName);
+        static std::string NameMasq2(const std::string & aName);
+
+        static std::string NameRedrIm1(const std::string & aName); 
+        static std::string NameRedrIm2(const std::string & aName);
+
+        static void ConvertIm1(const std::string & aInput,const std::string & aName);
+        static void ConvertIm2(const std::string & aInput,const std::string & aName);
 
 
-        static inline std::string  Ext(bool isXml)  {return isXml ? "xml" : "dmp";}
-        static inline std::string  PrefixHom()    {return "LDHAime";}  // Learn Dense Home
-        static inline std::string  Hom(int aNum)  {return PrefixHom() +ToStr(aNum);}
-        static inline std::string  Index(int aNum)  {return "Box" +ToStr(aNum);}
-        /*static inline std::string  TrueHom()  {return Hom(0);}
-        static inline std::string  CloseHom() {return Hom(1);}
-        static inline std::string  NonHom()   {return Hom(2);} */
-        static inline std::string HomFromIm1(const std::string & aIm1,int aNumHom,std::string anExt,bool isXml=false)
-        {
-             std::string aPost =  "_" + anExt+ "_" + Hom(aNumHom) + "." + Ext(isXml);
-             return replaceFirstOccurrence(aIm1,"_"+Im1()+".tif",aPost);
-        }
-        static inline std::string HomFromHom0(const std::string & aName,int aNumHom)
-        {
-             return replaceFirstOccurrence(aName,Hom(0),Hom(aNumHom));
-        }
+        static std::string Im2FromIm1(const std::string & aIm1);
+        static std::string Px1FromIm1(const std::string & aIm1);
+        static std::string Masq1FromIm1(const std::string & aIm1);
+
+
+        // static std::string  Ext(bool isXml);
+        static std::string  PrefixHom();
+        static std::string  Hom(int aNum);
+        static std::string  Index(int aNum);
+        static std::string HomFromIm1(const std::string & aIm1,int aNumHom,std::string anExt,bool isXml=false);
+        static std::string HomFromHom0(const std::string & aName,int aNumHom);
        
     private :
         std::string mNameInput;

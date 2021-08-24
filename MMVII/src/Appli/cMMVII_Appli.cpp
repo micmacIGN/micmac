@@ -899,7 +899,7 @@ void cMMVII_Appli::GenerateHelp()
    bool InternalMet = false;
    bool GlobalMet   = false;
    bool TuningMet   = false;
-   for (int aKTime=0 ; aKTime<=2; aKTime++)
+   for (int aKTime=0 ; aKTime<2; aKTime++)
    {
       for (const auto & Arg : mArgFac.Vec())
       {
@@ -931,7 +931,7 @@ void cMMVII_Appli::GenerateHelp()
                       GlobalMet = true;
                    }
 
-                   HelpOut() << "  * [Name=" <<  Arg->Name()   << "] " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com() ;
+                   HelpOut()  << "  * [Name=" <<  Arg->Name()   << "] " << Arg->NameType() << Arg->Name4Help() << " :: " << Arg->Com() ;
                    bool HasDefVal = Arg->HasType(eTA2007::HDV);
                    if (HasDefVal)
                    {
@@ -958,6 +958,21 @@ void cMMVII_Appli::GenerateHelp()
       }
    }
    HelpOut() << "\n";
+
+   // Eventually, print samples of "good" uses , only with Help
+   if (mDoGlobHelp)
+   {
+       std::vector<std::string> aVS = Samples ();
+       if (! aVS.empty())
+       {
+          HelpOut() << " ############## ----  EXAMPLES --------- ##########\n" ; 
+          for (const auto & aStr : aVS)
+          {
+              HelpOut() << " - " <<  aStr  << "\n";
+          }
+       }
+       HelpOut() << "\n";
+   }
 }
 
 bool cMMVII_Appli::ModeHelp() const
@@ -1435,6 +1450,11 @@ std::string  cMMVII_Appli::Command() const
         aRes += mArgv[aK];
     }
     return aRes;
+}
+
+std::vector<std::string>  cMMVII_Appli::Samples() const
+{
+   return std::vector<std::string>();
 }
 
 

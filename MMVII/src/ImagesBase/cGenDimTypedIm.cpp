@@ -1,4 +1,5 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_2Include_Serial_Tpl.h"
 // #include "include/MMVII_Tpl_Images.h"
 
 namespace MMVII
@@ -50,6 +51,15 @@ template <class Type> cDataGenDimTypedIm<Type>::~cDataGenDimTypedIm()
    delete mRawDataLin;
 }
 
+template <class Type> void cDataGenDimTypedIm<Type>::AddData(const cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("Sz",anAux),mSz);
+    if (anAux.Input())
+       Resize(mSz.Dup()); // Dup : else size effet in re-init
+
+   TplAddRawData(anAux,mRawDataLin,mNbElem);
+}
+
 /*
 template <class Type> cDataGenDimTypedIm<Type>::cDataGenDimTypedIm(const tIndex& aSz) :
    mDim    (aSz.Sz()),
@@ -93,6 +103,10 @@ template <class Type> void cDataGenDimTypedIm<Type>::AddV(const tIndex& anIndex,
 }
 
 
+template <class Type> const cDenseVect<int> & cDataGenDimTypedIm<Type>::Sz() const
+{
+    return mSz;
+}
 
 
 template <class Type> int cDataGenDimTypedIm<Type>::Adress(const tIndex& anIndex) const
