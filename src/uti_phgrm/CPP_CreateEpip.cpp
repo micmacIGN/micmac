@@ -137,7 +137,8 @@ class cApply_CreateEpip_main
       Pt2dr              mIntZ;             
       std::vector<double> mParamEICE;
 
-      double ComputeEpipolarability(const Pt3dr & aP1) const;
+      double SignedComputeEpipolarability(const Pt3dr & aP1) const;
+      double AbsComputeEpipolarability(const Pt3dr & aP1) const;
       Pt3dr Tang(bool IsI1,const Pt3dr & aP1,double & aDist) const;
 
       void DoEpipGen(bool DoIm);
@@ -157,14 +158,9 @@ class cApply_CreateEpip_main
       std::vector<double>  mParamTestOh;
 };
 
-/*
-double cApply_CreateEpip_main::ComputeEpipolarability(const Pt3dr & aP1);
-{
-}
-*/
+static  const  double aDZ = 1; // "Small" value to compute derivative
 Pt3dr  cApply_CreateEpip_main::Tang(bool IsI1,const Pt3dr & aPTer,double & aDist) const
 {
-    double aDZ = 1e-2; // "Small" value to compute derivative
 
     // Swap G1/G2
     cBasicGeomCap3D *  aG1 = IsI1 ?  mGenI1 : mGenI2; 
@@ -179,32 +175,46 @@ Pt3dr  cApply_CreateEpip_main::Tang(bool IsI1,const Pt3dr & aPTer,double & aDist
 
     aDist = euclid (aQIm2-aOIm2)/(2*aDZ); // Compute sensibility to dist
 
+// std::cout << "OooQQqq : " << aOTer << aQTer << (aQTer-aOTer) / (2*aDZ) << "\n";
     return (aQTer-aOTer) / (2*aDZ);
 }
 
-double  cApply_CreateEpip_main::ComputeEpipolarability(const Pt3dr & aPTer) const
+double  cApply_CreateEpip_main::SignedComputeEpipolarability(const Pt3dr & aPTer) const
 {
-    double aDZ = 1e-2; // "Small" value to compute derivative
+    // double aDZ = 1e-2; // "Small" value to compute derivative
     double aD1, aD2,aD1P,aD2P;
 
     Pt3dr aT1 = Tang(true ,aPTer,aD1);
     Pt3dr aT2 = Tang(false,aPTer,aD2);
 
-    Pt3dr aT1P = Tang(true ,aPTer+aT2*aDZ,aD1P);
-    Pt3dr aT2P = Tang(false,aPTer+aT1*aDZ,aD2P);
+    Pt3dr aT1Plus = Tang(true ,aPTer+aT2*aDZ,aD1P);
+    Pt3dr aT1Minus = Tang(true,aPTer-aT2*aDZ,aD1P);
+
+    Pt3dr aT2Plus =  Tang(false,aPTer+aT1*aDZ,aD2P);
+    Pt3dr aT2Minus = Tang(false,aPTer-aT1*aDZ,aD2P);
 
     // std::cout  << "DIFF " <<  (aD1-aD1P)/(aD1+aD1P)  << " " << (aD2-aD2P)/(aD2+aD2P) << " " << aD1 << " " << aD2<< "\n";
 
-    Pt3dr  aDerT1 = (aT1P-aT1) / aDZ;
-    Pt3dr  aDerT2 = (aT2P-aT2) / aDZ;
-    Pt3dr  aDifDer = (aDerT1-aDerT2) / (aD1*aD2);
+    Pt3dr  aDerT1 = (aT1Plus-aT1Minus) / (2*aDZ);
+    Pt3dr  aDerT2 = (aT2Plus-aT2Minus) / (2*aDZ);
+    // Pt3dr  aDifDer = (aDerT1-aDerT2) / (aD1*aD2);
+    Pt3dr  aDifDer = (aDerT1-aDerT2) / (euclid(aDerT1)+euclid(aDerT2));
+
 
     Pt3dr  aVect = vunit(aT1^aT2);
 
-    double aRes = ElAbs(scal(aVect,aDifDer));
+    double aRes = scal(aVect,aDifDer);
 
+
+std::cout << "Ttt " << aT1 << aT2 << "\n";
+std::cout << aDerT1 << aDerT2 << aDifDer  << " RRR " << aRes << "\n"; // getchar();
     //  std::cout << "RRRRR " << aRes << "\n";
     return aRes;
+}
+
+double  cApply_CreateEpip_main::AbsComputeEpipolarability(const Pt3dr & aPTer) const
+{
+   return ElAbs(SignedComputeEpipolarability(aPTer));
 }
 
 /*
@@ -273,6 +283,8 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
 
 
      
+    Im2D<float,double> aImEpipAbs(aNbX+1,aNbY+1);
+    Im2D<float,double> aImEpipSigned(aNbX+1,aNbY+1);
 
     int aNbTens=0;
     for (int aKX=0 ; aKX<= aNbX ; aKX++)
@@ -329,9 +341,13 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
                         Pt2dr aPIm2 = aG2->Ter2Capteur(aPT2);
                         if (aG2->CaptHasData(aPIm2))
                         {
-                            if (DoCompEp)
+                            if (DoCompEp && (aKZ==0))
                             {
-                                 aStatEp.AddErreur(ComputeEpipolarability(aPT2));
+                                double aSignEpip = SignedComputeEpipolarability(aPT2);
+                                double aAbsEpip = std::abs(aSignEpip);
+                                aStatEp.AddErreur(aAbsEpip);
+                                aImEpipAbs.SetR(Pt2di(aKX,aKY),aAbsEpip*1e4);
+                                aImEpipSigned.SetR(Pt2di(aKX,aKY),aSignEpip*1e4);
                             }
                             aL23.push_back(Appar23(aPIm1,aPT2));
 
@@ -363,6 +379,8 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
     {
        std::cout << "====================  Epipolarability ============================ \n";
        std::cout << " Avg=" << aStatEp.Avg() << " Med=" << aStatEp.Erreur(0.5) << " Ect=" << aStatEp.Ect() << "\n";
+       std::cout << " Min=" << aStatEp.Erreur(0.0) << " Max=" << aStatEp.Erreur(1.0) << "\n";
+       Tiff_Im::CreateFromIm(aImEpipAbs,"EpipolaribityAbs.tif");
     }
     Pt2dr aRT = Pt2dr::polar(aSomTens2,0.0);
     return Pt2dr::FromPolar(1.0,aRT.y/2.0); // Divide angle as it was multiplied
