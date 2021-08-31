@@ -113,7 +113,36 @@ template <class Type,const int Dim> class cPtxd
        Type mCoords[Dim];
 };
 
-template <const int Dim>  std::vector<cPtxd<int,Dim>> & AllocNeighbourhood(int aNbVois);
+    ///  1 dimension specializatio,
+typedef cPtxd<double,1>  cPt1dr ;
+typedef cPtxd<int,1>     cPt1di ;
+typedef cPtxd<float,1>   cPt1df ;
+
+    ///  2 dimension specialization
+typedef cPtxd<tREAL16,2> cPt2dLR ;
+typedef cPtxd<double,2>  cPt2dr ;
+typedef cPtxd<int,2>     cPt2di ;
+typedef cPtxd<float,2>   cPt2df ;
+
+
+
+// Create the neighboord, ie pixel not nul, with coord in [-1,0,1]  having a  number of value  !=0  <= to aNbVois
+// If dim =2 aNbVois->1 create the 4 neigh, NbVois-> 2 create the 8 neigh
+// If Dim=3   1-> 6  2->    3->26 ( 3^3 -1)
+template <const int Dim>  const std::vector<cPtxd<int,Dim>> & AllocNeighbourhood(int aNbVois);
+
+//  Create a tab where K entrie represent vectors having NormInf equal to K
+//  !! =>  Entry go from 0 to aDistMax included
+//  !! =>   the size can be larger (but obviously not smaller) than dist required, as function remumber previous calls ....
+template <const int Dim>  const std::vector<std::vector<cPtxd<int,Dim>>> & TabGrowNeigh(int aDistMax);
+
+/// Return pixel between two radius, the order make them as sparse as possible (slow method in N^3) => To implement ???? No longer know what I wanted to do ???
+//std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
+/// Implemented
+std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
+
+
+
 
 
 /** "Strange" function, because require DimIn=DimOut, but sometime we need to do this cast, 
@@ -347,18 +376,6 @@ template<class T,const int Dim> cPtxd<T,Dim>  VUnit(const cPtxd<T,Dim> & aP);
 template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,Dim> &aP);
 
 
-    ///  1 dimension specializatio,
-typedef cPtxd<double,1>  cPt1dr ;
-typedef cPtxd<int,1>     cPt1di ;
-typedef cPtxd<float,1>   cPt1df ;
-
-    ///  2 dimension specialization
-typedef cPtxd<tREAL16,2> cPt2dLR ;
-typedef cPtxd<double,2>  cPt2dr ;
-typedef cPtxd<int,2>     cPt2di ;
-typedef cPtxd<float,2>   cPt2df ;
-
-
 
 template <class T,const int Dim> inline double RatioMax(const cPtxd<T,Dim> & aP1,const cPtxd<T,Dim> & aP2)
 {
@@ -448,11 +465,6 @@ template <class Type,const int Dim> void MakeBox(cPtxd<Type,Dim> & aP0,cPtxd<Typ
     for (int aK=0 ; aK<Dim ; aK++)
         OrderMinMax(aP0[aK],aP1[aK]);
 }
-
-/// Return pixel between two radius, the order make them as sparse as possible (slow method in N^3) => To implement ???? No longer know what I wanted to do ???
-//std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
-/// Implemented
-std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
 
 
 //  === TABULATION OF NEIGHBOORING

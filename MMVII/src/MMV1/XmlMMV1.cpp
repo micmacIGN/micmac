@@ -435,6 +435,7 @@ template <class Type> void cImplem_ExportAimeTiep<Type>::FiltrageSpatialPts()
                 aPLast = aPNext;
             }
           
+            aPATP.mPRImRefined     = aPLast;
             aPATP.mPFileRefined =   aPATP.mGPI->Im2File(aPLast);
             aPATP.mStable = ! IsInstable;
          }

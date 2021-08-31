@@ -122,6 +122,18 @@ template <class Type> void cMatIner2Var<Type>::Normalize()
      mS22 -= mS2 * mS2;
 }
 
+template <class Type> Type cMatIner2Var<Type>::CorrelNotC(const Type & aEps) const
+{
+    Type  aS11 = mS11/mS0;
+    Type  aS12 = mS12/mS0;
+    Type  aS22 = mS22/mS0;
+
+    Type  aSqDenominator = std::max(aEps,aS11*aS22);
+    MMVII_ASSERT_STRICT_POS_VALUE(aSqDenominator);
+
+    return aS12  / std::sqrt(aSqDenominator);
+}
+
 template <class Type> Type cMatIner2Var<Type>::Correl(const Type & aEps) const
 {
    cMatIner2Var<Type> aDup(*this);

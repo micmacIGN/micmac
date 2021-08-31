@@ -14,6 +14,9 @@
 
 namespace MMVII
 {
+bool TESTPT(const cPt2dr & aPt,int aLine,const std::string& aFile);
+#define TPT(AP) TESTPT(AP,__LINE__,__FILE__)
+
 
 void AddData(const cAuxAr2007 & anAux,eModeCaracMatch & aMCM); 
 
@@ -58,6 +61,8 @@ class cAppliLearningMatch : public cMMVII_Appli
         static std::string  Masq1();
         static std::string  Masq2();
 
+        static const int SzMaxStdNeigh() {return 8;}
+
 
         static std::string MakeName(const std::string & aName,const std::string & aPref) ;
         static void GenConvertIm(const std::string & aInput, const std::string & aOutput);
@@ -96,6 +101,7 @@ class cAppliLearningMatch : public cMMVII_Appli
 class cVecCaracMatch : public cMemCheck
 {
      public :
+        typedef cDataIm2D<tREAL4>   tDataIm;
         static constexpr int TheDynSave = 1000;
         static constexpr int TheUnDefVal = TheDynSave +1;
         static constexpr int TheNbVals = int (eModeCaracMatch::eNbVals);
@@ -106,14 +112,23 @@ class cVecCaracMatch : public cMemCheck
 
         cVecCaracMatch
         (
+             float aScaleRho,
+             const tDataIm & aImInit1,const tDataIm & aImInit2,
+             const tDataIm & aImNorm1,const tDataIm & aImNorm2,
+             const cAimePCar &,const cAimePCar &
+        );
+/*
+        cVecCaracMatch
+        (
              float aScaleRho,float aGrayLev1,float aGrayLev2,
              const cAimePCar &,const cAimePCar &
-       );
-       cVecCaracMatch() ;
-       void AddData(const cAuxAr2007 & anAux);
-       void Show(tNameSelector);
+        );
+*/
+        cVecCaracMatch() ;
+        void AddData(const cAuxAr2007 & anAux);
+        void Show(tNameSelector);
 
-       void FillVect(cDenseVect<tINT4> &,const tVecCar &) const;
+        void FillVect(cDenseVect<tINT4> &,const tVecCar &) const;
      private :
         
         tSaveValues   mVecCarac[TheNbVals];

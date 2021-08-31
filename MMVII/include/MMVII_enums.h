@@ -269,56 +269,98 @@ enum class eModePaddingEpip
 
 enum class eModeCaracMatch
 {
+   //#################  MULTI SCALE CRITERIA ##################
+
      // ----------  Census Quantitatif ------------
-   eMCM_CQ1,    ///< Census Quantitatif 1 pixel (~ 3x3)
-   eMCM_CQ2,    ///< Census Quantitatif 2 pixel (~ 5x5)
-   eMCM_CQ3,    ///< Census Quantitatif 3 pixel (~ 7x7)
-   eMCM_CQ4,    ///< Census Quantitatif 4 pixel (~ 9x9)
-   eMCM_CQA,    ///< Census Quantitatif all window
-   eMCM_CQW,    ///< Census Quantitatif all window, weihted
+   eMS_CQ1,    ///< Census Quantitatif 1 pixel (~ 3x3)
+   eMS_CQ2,    ///< Census Quantitatif 2 pixel (~ 5x5)
+   eMS_CQ3,    ///< Census Quantitatif 3 pixel (~ 7x7)
+   eMS_CQ4,    ///< Census Quantitatif 4 pixel (~ 9x9)
+   eMS_CQA,    ///< Census Quantitatif all window
+   eMS_CQW,    ///< Census Quantitatif all window, weihted
      // ----------  "Basic" Census, not conived it is usefull, but it's popular ------------
-   eMCM_Cen1,    ///< Census  1 pixel (~ 3x3)
-   eMCM_Cen2,    ///< Census  2 pixel (~ 5x5)
-   eMCM_Cen3,    ///< Census  3 pixel (~ 7x7)
-   eMCM_Cen4,    ///< Census  4 pixel (~ 9x9)
-   eMCM_CenA,    ///< Census  All
-   eMCM_CenW,    ///< Census  weighted
+   eMS_Cen1,    ///< Census  1 pixel (~ 3x3)
+   eMS_Cen2,    ///< Census  2 pixel (~ 5x5)
+   eMS_Cen3,    ///< Census  3 pixel (~ 7x7)
+   eMS_Cen4,    ///< Census  4 pixel (~ 9x9)
+   eMS_CenA,    ///< Census  All
+   eMS_CenW,    ///< Census  weighted
      // ----------  Normalized Cross Correlation ------------
-   eMCM_Cor1,    ///< Correl 1 pixel (~ 3x3)
-   eMCM_Cor2,    ///< Correl 2 pixel (~ 5x5)
-   eMCM_Cor3,    ///< Correl 3 pixel (~ 7x7)
-   eMCM_Cor4,    ///< Correl 4 pixel (~ 9x9)
-   eMCM_CorA,    ///< Correl  all window
-   eMCM_CorW,    ///< Correl  all window, weihted
+   eMS_Cor1,    ///< Correl 1 pixel (~ 3x3)
+   eMS_Cor2,    ///< Correl 2 pixel (~ 5x5)
+   eMS_Cor3,    ///< Correl 3 pixel (~ 7x7)
+   eMS_Cor4,    ///< Correl 4 pixel (~ 9x9)
+   eMS_CorA,    ///< Correl  all window
+   eMS_CorW,    ///< Correl  all window, weihted
      // ---------- "Corner", select only best average, correl probably   ------------
-   eMCM_CornW180,   ///< Corner, 180 of average
-   eMCM_CornW90,    ///< Corner, 90  of average
+   eMS_CornW180,   ///< Corner, 180 of average
+   eMS_CornW90,    ///< Corner, 90  of average
      // ----------  Best/Worst score on a given neighboor  ------------
      // For best we use correl as, being quite strict, if it is good, then is has signification even with optimi best
      // For worst we use CQ as being "laxist" (good with any homogeneous), if has signifcation even with pessimistic worst
-   eMCM_WorstCorrel2,   ///< Worst weighted correl on all window <= 2 (5x5) 
-   eMCM_WorstCorrel3,   ///< Worst weighted correl on all window <= 3 (7x7)
-   eMCM_BestCorrel2,   ///< Best weighted correl on all window <= 2 (5x5) 
-   eMCM_BestCorrel3,   ///< Best weighted correl on all window <= 3 (7x7)
-   eMCM_BestCorrel4,   ///< Best weighted correl on all window <= 4 (9x9)
-   eMCM_BestCorrel5,   ///< Best weighted correl on all window <= 5 (11x11)
+   eMS_WorstCorrel2,   ///< Worst weighted correl on all window <= 2 (5x5) 
+   eMS_WorstCorrel3,   ///< Worst weighted correl on all window <= 3 (7x7)
+   eMS_BestCorrel2,   ///< Best weighted correl on all window <= 2 (5x5) 
+   eMS_BestCorrel3,   ///< Best weighted correl on all window <= 3 (7x7)
+   eMS_BestCorrel4,   ///< Best weighted correl on all window <= 4 (9x9)
+   eMS_BestCorrel5,   ///< Best weighted correl on all window <= 5 (11x11)
           // ----
-   eMCM_BestCQ2,    ///< Best Census quantitative on all windows <= 2 (5x5)
-   eMCM_BestCQ3,    ///< Best Census quantitative on all windows <= 3 (7x7)
-   eMCM_WorstCQ2,    ///< Worst Census quantitative on all windows <= 2 (5x5)
-   eMCM_WorstCQ3,    ///< Worst Census quantitative on all windows <= 3 (7x7)
-   eMCM_WorstCQ4,    ///< Worst Census quantitative on all windows <= 4 (9x9)
-   eMCM_WorstCQ5,    ///< Worst Census quantitative on all windows <= 5 (11x11)
+   eMS_BestCQ2,    ///< Best Census quantitative on all windows <= 2 (5x5)
+   eMS_BestCQ3,    ///< Best Census quantitative on all windows <= 3 (7x7)
+   eMS_WorstCQ2,    ///< Worst Census quantitative on all windows <= 2 (5x5)
+   eMS_WorstCQ3,    ///< Worst Census quantitative on all windows <= 3 (7x7)
+   eMS_WorstCQ4,    ///< Worst Census quantitative on all windows <= 4 (9x9)
+   eMS_WorstCQ5,    ///< Worst Census quantitative on all windows <= 5 (11x11)
 
      // ----------  Using gray level  ------------
-   eMCM_DifGray,    ///< Different of gray Gray Level ,
-   eMCM_MinGray,    ///<  Min of 2 Gray Level , may indicate fiability
-   eMCM_MinStdDev1,  ///< Min a both std dev
-   eMCM_MinStdDev2,  ///< Min a both std dev
-   eMCM_MinStdDev3,  ///< Min a both std dev
-   eMCM_MinStdDev4,  ///< Min a both std dev
-   eMCM_MinStdDevW,  ///< Min a both std dev
+   eMS_MinStdDev1,  ///< Min a both std dev
+   eMS_MinStdDev2,  ///< Min a both std dev
+   eMS_MinStdDev3,  ///< Min a both std dev
+   eMS_MinStdDev4,  ///< Min a both std dev
+   eMS_MinStdDevW,  ///< Min a both std dev
 
+   //#################  CRITERIA ON NORMALIZED IMAGES ##################
+
+   eNI_DifGray,    ///< Different of gray Gray Level ,
+   eNI_MinGray,    ///<  Min of 2 Gray Level , may indicate fiability (low contrast=> means pb ?)
+
+   eNI_Diff1,    ///< Som Diff 1 pixel (~ 3x3)
+   eNI_Diff2,    ///< Som Diff 2 pixel (~ 3x3)
+   eNI_Diff3,    ///< Som Diff 3 pixel (~ 3x3)
+   eNI_Diff5,    ///< Som Diff 4 pixel (~ 3x3)
+   eNI_Diff7,    ///< Som Diff 4 pixel (~ 3x3)
+
+   //#################  CRITERIA ON STD IMAGES ##################
+
+     // ----------  Normalized Cross Correlation ------------
+   eSTD_Cor1,    ///< Correl 1 pixel (~ 3x3)
+   eSTD_Cor2,    ///< Correl 2 pixel (~ 5x5)
+   eSTD_Cor3,    ///< Correl 3 pixel (~ 7x7)
+   eSTD_Cor4,    ///< Correl 4 pixel (~ 9x9)
+
+     // ---------- Non centered  Normalized Cross Correlation ------------
+   eSTD_NCCor1,    ///< Correl 1 pixel (~ 3x3)
+   eSTD_NCCor2,    ///< Correl 2 pixel (~ 5x5)
+   eSTD_NCCor3,    ///< Correl 3 pixel (~ 7x7)
+   eSTD_NCCor4,    ///< Correl 4 pixel (~ 9x9)
+
+     // ----------  Normalized Cross Correlation ------------
+   eSTD_Diff1,    ///< Correl 1 pixel (~ 3x3)
+   eSTD_Diff2,    ///< Correl 1 pixel (~ 3x3)
+   eSTD_Diff3,    ///< Correl 1 pixel (~ 3x3)
+   eSTD_Diff5,    ///< Correl 1 pixel (~ 3x3)
+   eSTD_Diff7,    ///< Correl 1 pixel (~ 3x3)
+
+     // ----------  Census quant ------------
+   eSTD_CQ2,    ///< Census Quantitatif 2 pixel (~ 3x3)
+   eSTD_CQ4,    ///< Census Quantitatif 4 pixel (~ 3x3)
+   eSTD_CQ6,    ///< Census Quantitatif 6 pixel (~ 3x3)
+   eSTD_CQ8,    ///< Census Quantitatif 8 pixel (~ 3x3)
+     // ----------  Census "normal" ------------
+   eSTD_Cen2,    ///< Census 2 pixel (~ 3x3)
+   eSTD_Cen4,    ///< Census 4 pixel (~ 3x3)
+   eSTD_Cen6,    ///< Census 6 pixel (~ 3x3)
+   eSTD_Cen8,    ///< Census 8 pixel (~ 3x3)
 
    eNbVals
 };

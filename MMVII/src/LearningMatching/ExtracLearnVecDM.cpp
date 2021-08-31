@@ -88,7 +88,7 @@ class cAppliExtractLearnVecDM : public cAppliLearningMatch
 
         cFilterPCar  mFPC;  ///< Used to compute Pts
 
-        bool  CalculAimeDesc(bool Im1,const cPt2dr & aPt);
+        bool  CalculAimeDesc(bool Im1,const cPt2dr & aPt,bool deBug);
 
         cAimePCar    mPC1;
         cAimePCar    mPC2;
@@ -145,27 +145,53 @@ cCollecSpecArg2007 & cAppliExtractLearnVecDM::ArgOpt(cCollecSpecArg2007 & anArgO
 }
 
 
-bool  cAppliExtractLearnVecDM::CalculAimeDesc(bool Im1,const cPt2dr & aPt)
+bool TESTPT(const cPt2dr & aPt,int aLine,const std::string& aFile)
+{
+    cPt2dr aPTEST(778.357,261);
+    if (Norm2(aPTEST-aPt)>1e-2) return false;
+    StdOut() << "TEST PT Line=" << aLine << " " << aFile << "\n";
+    return true;
+}
+
+
+bool  cAppliExtractLearnVecDM::CalculAimeDesc(bool Im1,const cPt2dr & aPt,bool deBug)
 {
  
     cAimePCar & aAPC = Im1 ?  mPC1 : mPC2;
     tPyr * aPyr = Im1 ? mPyr1.get() : mPyr2.get();
+    {
+       cPt2dr aSzV(SzMaxStdNeigh(),SzMaxStdNeigh());
+       cPt2dr aP1 = aPt - aSzV;
+       cPt2dr aP2 = aPt + aSzV;
+       tDataImF & aImPyr = aPyr->ImTop().DIm();
+       if (!(aImPyr.InsideBL(aP1) && aImPyr.InsideBL(aP2)))
+          return false;
+       tDataImF & aDImF = ImF(Im1).DIm();
+       if (!(aDImF.InsideBL(aP1) && aDImF.InsideBL(aP2)))
+          return false;
+    }
+
+if (deBug) StdOut() << " VecDM::Calcul-1 " << aPt << "\n";
+    
     cProtoAimeTieP<tREAL4> aPAT(aPyr->GPImTop(),aPt);
 
     if (! aPAT.FillAPC(mFPC,aAPC,true))
        return false;
 
+if (deBug) StdOut() << " VecDM::Calcul-2 " << aPAT.mPImInit << " " << aPAT.mPFileInit << " " << aPAT.mPFileRefined << "\n";
+
     aPAT.FillAPC(mFPC,aAPC,false);
 
+if (deBug) StdOut() << " VecDM::Calcul-3 " << aAPC.Pt() << "\n";
     return true;
 }
 
 void cAppliExtractLearnVecDM::AddLearn(cFileVecCaracMatch & aFVCM,const cAimePCar & aAP1,const cAimePCar & aAP2,int aLevHom)
 {
+/*
    tREAL4 aV1 = ImF(true).DIm().GetVBL(aAP1.Pt());
    tREAL4 aV2 = ImF(false).DIm().GetVBL(aAP2.Pt());
 
-/*
 {
 // 73410
    static int aCpt=0; aCpt++;
@@ -177,7 +203,14 @@ void cAppliExtractLearnVecDM::AddLearn(cFileVecCaracMatch & aFVCM,const cAimePCa
 }
 */
 
-   cVecCaracMatch aVCM(mPyr1->MulScale(),aV1,aV2,aAP1,aAP2);
+   //cVecCaracMatch aVCM(mPyr1->MulScale(),aV1,aV2,aAP1,aAP2);
+   cVecCaracMatch aVCM
+   (
+        mPyr1->MulScale(),
+        mPyr1->ImTop().DIm(),mPyr2->ImTop().DIm(),
+        mImF1.DIm(),mImF2.DIm(),
+        aAP1,aAP2
+   );
    aFVCM.AddCarac(aVCM);
 
    if (mShowCarac)
@@ -373,12 +406,28 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex,const cParseBoxI
        {
           if (aDIMasq1.GetV(aPixIm1))
           {
+static int aCpt=0; aCpt++;
+bool BUG = 0&&(aCpt==161631);
+
               double aPx = aDImPx1.GetV(aPixIm1)+mDeltaPx;
               cPt2dr aP2(aPixIm1.x()+aPx,aPixIm1.y());
-              if (CalculAimeDesc(true,ToR(aPixIm1)) && CalculAimeDesc(false,aP2))
+if (BUG) StdOut() << "P22222 " << aP2 << "\n";
+//TPT(aP2);
+              if (CalculAimeDesc(true,ToR(aPixIm1),false) && CalculAimeDesc(false,aP2,BUG))
               {
                   aV1.push_back(mPC1.DupLPIm());
                   aV2.push_back(mPC2.DupLPIm());
+if (BUG)
+{
+   StdOut() << "P22222 " << aP2 << " " << aV2.back().Pt() << " " << mPC2.Pt()  << mPC2.PtIm() << "\n";
+   getchar();
+}
+/*TPT(aV1.back().Pt());
+if (TPT(aV2.back().Pt()))
+{
+    StdOut() << "GGGGgg " << aV2.back().Pt() << " " << aP2 << " CPT=" << aCpt << "\n";
+}
+*/
               }
           }
        }

@@ -232,6 +232,8 @@ cAimeDescriptor & cAimePCar::Desc() {return mDesc; }
 const cAimeDescriptor & cAimePCar::Desc() const {return mDesc; }
 cPt2dr&           cAimePCar::Pt()   {return mPt;}
 const cPt2dr&     cAimePCar::Pt() const  {return mPt;}
+cPt2dr&           cAimePCar::PtIm()   {return mPtIm;}
+const cPt2dr&     cAimePCar::PtIm() const  {return mPtIm;}
 
 void AddData(const cAuxAr2007 & anAux,cAimePCar & aPC)
 {
@@ -243,6 +245,7 @@ cAimePCar cAimePCar::DupLPIm()
 {
    cAimePCar aRes;
    aRes.mPt = mPt;
+   aRes.mPtIm = mPtIm;
    aRes.mDesc = mDesc.DupLPIm();
    return aRes;
 }
@@ -267,6 +270,7 @@ template<class Type>
    mGPI        (aGPI),
    mChgMaj     (ChgMaj),
    mPImInit    (aPInit),
+   mPRImRefined   (ToR(mPImInit)),
    mPFileInit  (mGPI->Im2File(ToR(mPImInit))),
    mNumAPC     (-1)
 {
@@ -281,6 +285,7 @@ template<class Type>
    mGPI          (aGPI),
    mChgMaj       (false),
    mPImInit      (ToI(aPInit)),
+   mPRImRefined  (aPInit),
    mPFileInit    (mGPI->Im2File(aPInit)),
    mPFileRefined (mPFileInit),
    mNumAPC       (-1)
@@ -432,7 +437,9 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
              }
         }
         IndRhoLP++;
+// StdOut() << "RoohhhhK " << aRhok << " ABS=" << anIk.ScaleAbs()<< "\n";
    }
+// StdOut() << "xxxxxRoohhhhK NBT=" << aNbTeta << " \n"; getchar();
    // Now, in test mode, we know that all the circle will be inside, OK then ...
    if (ForTest)
    {
@@ -450,6 +457,7 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
   
    // Memorize the localization
    aPC.Pt() = aCenter;
+   aPC.PtIm() = mPRImRefined;
  
    //  Now convert the image to a 8 bit unsigned one
    cDataIm2D<tU_INT1> & aDILPi =  aPC.Desc().ILP().DIm();

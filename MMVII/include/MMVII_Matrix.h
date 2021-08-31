@@ -532,6 +532,7 @@ template <class Type> class cMatIner2Var
        void Add(const cMatIner2Var&);
        void Add(const cMatIner2Var&,const Type & aMul) ;
        Type Correl(const Type &aEpsilon=1e-10) const;
+       Type CorrelNotC(const Type &aEpsilon=1e-10) const; // Non centered correl
        Type StdDev1() const;
        Type StdDev2() const;
     private :

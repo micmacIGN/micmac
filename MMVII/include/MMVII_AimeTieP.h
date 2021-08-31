@@ -40,6 +40,7 @@ template <class Type> struct cProtoAimeTieP : public cMemCheck
         tGPI *               mGPI;
         bool                 mChgMaj;  ///< Image changed to major, tuning
         cPt2di               mPImInit;      ///<  in image octave coordinate (comes from extrema detection)
+        cPt2dr               mPRImRefined;      ///<  Real point 
         cPt2dr               mPFileInit;    ///< idem, but global file coordinate
         cPt2dr               mPFileRefined; ///< after refinement
         int                  mId;           ///< For debug essentially
@@ -116,12 +117,15 @@ class cAimePCar : public cMemCheck
         const cAimeDescriptor & Desc() const;
         cPt2dr&         Pt();
         const cPt2dr&   Pt() const;
+        cPt2dr&         PtIm();
+        const cPt2dr&   PtIm() const;
 
         cAimePCar       DupLPIm(); // Duplicate only LP IM
         double          L1Dist(const cAimePCar&) const;
      private :
         cAimeDescriptor mDesc;  ///< Descriptor
         cPt2dr          mPt;    ///<  Localization
+        cPt2dr          mPtIm;    ///<  Localization in image (offseted), not realy usefull as Tie-P, but required in dense match
 };
 
 /**  Class to store  aSet of AimePcar = vector<PC> + some common caracteritic on type
