@@ -282,6 +282,22 @@ template<class T1,int Dim>
 }
 
 
+template<class T1> typename cDataIm1D<T1>::tBase cDataIm1D<T1>::SomInterv(int aX0,int aX1) const
+{
+    tPB::AssertInside(aX0);
+    tPB::AssertInside(aX1-1);
+    tBase aRes = 0;
+    for (int aX=aX0; aX<aX1; aX++)
+        aRes += mRawData1D[aX];
+    return aRes;
+}
+
+template<class T1> tREAL8  cDataIm1D<T1>::AvgInterv(int aX0,int aX1) const
+{
+   MMVII_INTERNAL_ASSERT_medium((aX1>aX0),"Bad lim in Avg");
+   return SomInterv(aX0,aX1) / double(aX1-aX0);
+}
+
 
 };
 

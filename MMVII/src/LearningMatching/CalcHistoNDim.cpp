@@ -2,6 +2,7 @@
 #include "include/MMVII_2Include_Serial_Tpl.h"
 #include "LearnDM.h"
 #include "include/MMVII_util_tpl.h"
+#include "include/MMVII_Tpl_Images.h"
 
 //#include "include/MMVII_Tpl_Images.h"
 
@@ -17,6 +18,7 @@ void AddData(const cAuxAr2007 & anAux,eModeCaracMatch & aMCM)  {EnumAddData(anAu
 /*                                                  */
 /* ************************************************ */
 
+/*
 class cHistoCarNDim  : public cMemCheck
 {
     public :
@@ -26,7 +28,7 @@ class cHistoCarNDim  : public cMemCheck
        typedef cHistoCumul<tINT4,tREAL8>    tHisto1;
        typedef cDenseVect<tINT4>            tIndex;
         
-       cHistoCarNDim(int aSzH,const tVecCar &,const cStatAllVecCarac &);
+       cHistoCarNDim(int aSzH,const tVecCar &,const cStatAllVecCarac &,bool genVis2DI);
        cHistoCarNDim();  // Used for AddData requiring default cstrc
        cHistoCarNDim(const std::string&);  // Used for AddData requiring default cstrc
        ~cHistoCarNDim();  // Used for AddData requiring default cstrc
@@ -38,7 +40,11 @@ class cHistoCarNDim  : public cMemCheck
 
        double ScoreCr(const cVecCaracMatch &) const;
        void   UpDateCr(const cVecCaracMatch & aHom,const cVecCaracMatch & aNotHom);
+       void  GenerateVisu(const std::string & aDir);
+       void  GenerateVis2DInit(const std::string & aDir);
     private :
+       void  GenerateVisuOneIm(const std::string & aDir,const std::string & aPrefix,const tHistND &);
+       void  GenerateVis2DInitOneInit(const std::string & aDir,const std::string & aPrefix,cIm2D<double>,const tHistND&);
        void  ComputePts(const cVecCaracMatch &) const;
        cHistoCarNDim(const cHistoCarNDim &) = delete;
 
@@ -47,6 +53,7 @@ class cHistoCarNDim  : public cMemCheck
        tIndex                    mSz;
        tVecCar                   mVCar;
        mutable tIndex                    mPts;
+       mutable tIndex                    mPtsInit;
        
        std::vector<const tHisto1*>     mHd1_0;
        tHistND                   mHist0;  // Homolog
@@ -54,7 +61,11 @@ class cHistoCarNDim  : public cMemCheck
        std::string               mName;
        double                    mNbOk;
        double                    mNbNotOk;
+       bool                      mGV2I;
+       cIm2D<double>             mHistoI0;
+       cIm2D<double>             mHistoI2;
 };
+*/
 
 
 void cHistoCarNDim::AddData(const cAuxAr2007 & anAux)
@@ -65,13 +76,14 @@ void cHistoCarNDim::AddData(const cAuxAr2007 & anAux)
      MMVII::AddData(cAuxAr2007("Sz",anAux),mSz);
      MMVII::AddData(cAuxAr2007("Hd1",anAux),mHd1_0);
      MMVII::AddData(cAuxAr2007("HN0",anAux),mHist0);
-     MMVII::AddData(cAuxAr2007("HN0",anAux),mHist2);
+     MMVII::AddData(cAuxAr2007("HN2",anAux),mHist2);
      if (anAux.Input())
      {
          mName = NameVecCar(mVCar);
          mSz = mHist0.Sz().Dup();
          mDim = mSz.Sz();
          mPts = tIndex(mDim);
+         mPtsInit = tIndex(mDim);
      }
 }
 
@@ -81,17 +93,21 @@ void AddData(const cAuxAr2007 & anAux,cHistoCarNDim & aHND)
 }
 
 cHistoCarNDim::cHistoCarNDim()  :
-   mIP      (false),
-   mDim     (1),
-   mSz      (tIndex::Cste(mDim,1)),
-   mVCar    (),
-   mPts     (1),
-   mHd1_0   (),
-   mHist0   (mSz),
-   mHist2   (mSz),
-   mName    (""),
-   mNbOk    (0.0),
-   mNbNotOk (0.0)
+   mIP        (false),
+   mDim       (1),
+   mSz        (tIndex::Cste(mDim,1)),
+   mVCar      (),
+   mPts       (1),
+   mPtsInit   (1),
+   mHd1_0     (),
+   mHist0     (mSz),
+   mHist2     (mSz),
+   mName      (""),
+   mNbOk      (0.0),
+   mNbNotOk   (0.0),
+   mGV2I      (false),
+   mHistoI0   (cPt2di(1,1)),
+   mHistoI2   (cPt2di(1,1))
 {
 }
 
@@ -108,21 +124,26 @@ cHistoCarNDim::~cHistoCarNDim()
 }
 
 
-cHistoCarNDim::cHistoCarNDim(int aSzH,const tVecCar & aVCar,const cStatAllVecCarac & aStat) :
+cHistoCarNDim::cHistoCarNDim(int aSzH,const tVecCar & aVCar,const cStatAllVecCarac & aStat,bool genVis2DI) :
    mIP      (true),
    mDim     (aVCar.size()),
    mSz      (tIndex::Cste(mDim,aSzH)),
    mVCar    (aVCar),
    mPts     (mDim),
+   mPtsInit (mDim),
    mHd1_0   (),
    mHist0   (mSz),
    mHist2   (mSz),
    mName    (NameVecCar(aVCar)),
    mNbOk    (0.0),
-   mNbNotOk (0.0)
+   mNbNotOk (0.0),
+   mGV2I    (genVis2DI && (mDim==2)),
+   mHistoI0 (cPt2di(1,1) * (mGV2I  ? cVecCaracMatch::TheDyn4Visu : 1),nullptr,eModeInitImage::eMIA_Null),
+   mHistoI2 (cPt2di(1,1) * (mGV2I  ? cVecCaracMatch::TheDyn4Visu : 1),nullptr,eModeInitImage::eMIA_Null)
 {
     for (const auto & aLabel : aVCar)
-        mHd1_0.push_back(&(aStat.OneStat(aLabel).Hist(0)));
+        mHd1_0.push_back(&(aStat.OneStat(aLabel).HistSom(7)));
+        //mHd1_0.push_back(&(aStat.OneStat(aLabel).Hist(0)));
 }
 
 double cHistoCarNDim::CarSep() const
@@ -149,6 +170,8 @@ void  cHistoCarNDim::Show(cMultipleOfs & anOfs,bool WithCr) const
 void cHistoCarNDim::ComputePts(const cVecCaracMatch & aVCM) const
 {
      aVCM.FillVect(mPts,mVCar);
+     if (mGV2I)
+        mPtsInit = mPts.Dup();
 
      for (int aK=0 ; aK<mDim ; aK++)
      {
@@ -157,25 +180,37 @@ void cHistoCarNDim::ComputePts(const cVecCaracMatch & aVCM) const
 
          mPts(aK) = std::min(aV,aSzK-1);
      }
+
 }
+
 
 void cHistoCarNDim::Add(const cVecCaracMatch & aVCM,bool isH0)
 {
     ComputePts(aVCM);
     tHistND & aHist = (isH0  ? mHist0 : mHist2);
     aHist.AddV(mPts,1);
+
+    if (mGV2I)
+    {
+       cPt2di aPt = cVecCaracMatch::ToVisu(cPt2di::FromVect(mPtsInit));
+       if (isH0)
+           mHistoI0.DIm().AddVal(aPt,1);
+       else
+           mHistoI2.DIm().AddVal(aPt,1);
+    }
+}
+
+template <class Type>  double ScoreHnH(const Type & aV0,const Type & aV2)
+{
+    if ((aV0==0) && (aV2==0)) 
+       return 0.5;
+    return aV0 / double(aV0+aV2);
 }
 
 double  cHistoCarNDim::ScoreCr(const cVecCaracMatch & aVCM) const
 {
     ComputePts(aVCM);
-    tDataNd aV0 = mHist0.GetV(mPts);
-    tDataNd aV2 = mHist2.GetV(mPts);
-
-    if ((aV0==0) && (aV2==0)) 
-       return 0.5;
-
-    return aV0 / double(aV0+aV2);
+    return ScoreHnH(mHist0.GetV(mPts),mHist2.GetV(mPts));
 }
 
 void   cHistoCarNDim::UpDateCr(const cVecCaracMatch & aHom,const cVecCaracMatch & aNotHom)
@@ -197,6 +232,78 @@ const std::string & cHistoCarNDim::Name() const
 {
     return mName;
 }
+
+void  cHistoCarNDim::GenerateVisuOneIm(const std::string & aDir,const std::string & aPrefix,const tHistND & aHist)
+{
+     // cIm2D<tDataNd> anIm = aHist.ToIm2D();
+     cIm2D<float> anIm = Convert((float*)nullptr,aHist.ToIm2D().DIm());
+     
+     std::string aName = aDir + "Histo-" + aPrefix +  mName + ".tif";
+     anIm.DIm().ToFile(aName);
+}
+
+void  cHistoCarNDim::GenerateVisu(const std::string & aDir)
+{
+  if (mDim==2)
+  {
+      GenerateVisuOneIm(aDir,"Hom",mHist0);
+      GenerateVisuOneIm(aDir,"NonH",mHist2);
+
+      cIm2D<tDataNd> aI0 = mHist0.ToIm2D();
+      cIm2D<tDataNd> aI2 = mHist2.ToIm2D();
+      cIm2D<tREAL4>  aImSc(aI0.DIm().Sz());
+      cIm2D<tREAL4>  aImPop(aI0.DIm().Sz());
+      for (const auto & aP : aImSc.DIm())
+      {
+          tINT4 aV0 = aI0.DIm().GetV(aP);
+          tINT4 aV2 = aI2.DIm().GetV(aP);
+          aImSc.DIm().SetV(aP,ScoreHnH(aV0,aV2));
+          aImPop.DIm().SetV(aP,aV0+aV2);
+      }
+      std::string aName = aDir + "HistoScore-"+  mName + ".tif";
+      aImSc.DIm().ToFile(aName);
+      aName = aDir + "HistoPop-"+  mName + ".tif";
+      aImPop.DIm().ToFile(aName);
+  }
+}
+
+void  cHistoCarNDim::GenerateVis2DInitOneInit(const std::string & aDir,const std::string & aPrefix,cIm2D<double> aH,const tHistND& aHN)
+{
+     std::string aName = aDir + "HistoInit-" + aPrefix +  mName + ".tif";
+     aH.DIm().ToFile(aName);
+
+/*
+     int aTx = mSz(0);
+     int aTy = mSz(1);
+     cIm1D<double> aH1D(aTy,nullptr,eModeInitImage::eMIA_Null);
+     double aSomV=0.0;
+     for (int aX=0 ; aX<aTx ;aX++)
+     {
+         for (int aY=0 ; aY<aTy ;aY++)
+         {
+             cPt2di aP(aX,aY);
+             double aV = aHN.GetV(aP.ToVect());
+             aH1D.DIm().AddV(aY,aV);
+             aSomV += aV;
+         }
+     }
+     for (int aY=0 ; aY<aTy ;aY++)
+     {
+         StdOut() << "Y=" << aY << " V=" << aH1D.DIm().GetV(aY) * (aTy/aSomV) << "\n";
+     }
+     getchar();
+*/
+}
+
+void  cHistoCarNDim::GenerateVis2DInit(const std::string & aDir)
+{
+     if (mGV2I)
+     {
+         GenerateVis2DInitOneInit(aDir,"Hom" ,mHistoI0,mHist0);
+         GenerateVis2DInitOneInit(aDir,"NonH",mHistoI2,mHist2);
+     }
+}
+
 
 /* ************************************************ */
 /*                                                  */
@@ -234,6 +341,8 @@ class cAppliCalcHistoNDim : public cAppliLearningMatch
          bool                    mAddPrefixSeq;
          bool                    mInitialProcess; // Post Processing
          bool                    mCloseH;
+         bool                    mGenerateVisu; // Do we generate visual (Image for 2d, later ply for 3d)
+         bool                    mGenVis2DInit; // Do we generate visual init (w/o equal)
              //  std::string       mPatShowSep;
              //  bool              mWithCr;
 
@@ -250,6 +359,8 @@ cAppliCalcHistoNDim::cAppliCalcHistoNDim(const std::vector<std::string> & aVArgs
    mAddPrefixSeq        (false),
    mInitialProcess      (true),
    mCloseH              (false),
+   mGenerateVisu        (false),
+   mGenVis2DInit        (false),
    mMaxSzH              (50),
    mStats               (false)
 {
@@ -274,6 +385,8 @@ cCollecSpecArg2007 & cAppliCalcHistoNDim::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mAddPrefixSeq, "APS","Add Prefix subseq of carac(i.e abc=>a,ab,abc)",{eTA2007::HDV})
           << AOpt2007(mInitialProcess, "IP","Initial processing. If not , read previous histo, more stat, post proc",{eTA2007::HDV})
           << AOpt2007(mCloseH, "CloseH","Use close homologs, instead of random",{eTA2007::HDV})
+          << AOpt2007(mGenerateVisu, "GeneVisu","Generate visualisation",{eTA2007::HDV})
+          << AOpt2007(mGenVis2DInit, "GV2DI","Generate vis 2D w/o equalization",{eTA2007::HDV,eTA2007::Tuning})
    ;
 }
 
@@ -326,6 +439,19 @@ void cAppliCalcHistoNDim::ShowCarSep(cMultipleOfs & anOfs) const
 
 int  cAppliCalcHistoNDim::Exe()
 {
+   if (mGenerateVisu)
+   {
+      if (IsInit(&mInitialProcess)) { MMVII_INTERNAL_ASSERT_strong(!mInitialProcess,"IP Specified with Visu ..."); }
+      else { mInitialProcess = false; }
+   }
+
+   if (mGenVis2DInit)
+   {
+      if (IsInit(&mInitialProcess)) { MMVII_INTERNAL_ASSERT_strong(mInitialProcess,"IP false with Vis2DI"); }
+      else { mInitialProcess = true; }
+   }
+
+
    SetNamesProject(mNameInput,mNameOutput);
    mDim = mPatsCar.size();
 
@@ -401,7 +527,7 @@ int  cAppliCalcHistoNDim::Exe()
    {
        if ( mInitialProcess)
        {
-          mVHistN.push_back(new cHistoCarNDim(mSzH1,aPair.second,mStats));
+          mVHistN.push_back(new cHistoCarNDim(mSzH1,aPair.second,mStats,mGenVis2DInit));
        }
        else
        { 
@@ -432,29 +558,43 @@ int  cAppliCalcHistoNDim::Exe()
    //   4 ----------  Parse the files of veccar      --------------------------------
    //  ------------------------------------------------------------------------------
 
-   int aKFile =0 ;
-   int aNbFile = MainSet0().size();
-   for (const auto & aStr : ToVect(MainSet0()))
+   if (mGenerateVisu)
    {
-         AddHistoOneFile(aStr,aKFile,aNbFile);
-         ShowCarSep(StdOut());
-         aKFile++;
+      for (const auto & aPtrH :  mVHistN)
+      {
+            aPtrH->GenerateVisu(DirVisu());
+      }
+   }
+   else
+   {
+       int aKFile =0 ;
+       int aNbFile = MainSet0().size();
+       for (const auto & aStr : ToVect(MainSet0()))
+       {
+             AddHistoOneFile(aStr,aKFile,aNbFile);
+             ShowCarSep(StdOut());
+             aKFile++;
+       }
    }
 
    //  ------------------------------------------------------------------------------
    //   5 ----------   Save the results     --------------------------------
    //  ------------------------------------------------------------------------------
 
-   cMultipleOfs  aMulOfs(NameReport(),true);
-   aMulOfs << "\n========================================\n\n";
-   ShowCarSep(aMulOfs);
-
-   if (mInitialProcess)
+   if (! mGenerateVisu)
    {
-       for (const auto & aPtrH :  mVHistN)
+       cMultipleOfs  aMulOfs(NameReport(),true);
+       aMulOfs << "\n========================================\n\n";
+       ShowCarSep(aMulOfs);
+
+       if (mInitialProcess)
        {
-           // std::string aNameSave = FileHistoNDIm(aPtrH->Name(),false);
-           SaveInFile(*aPtrH,NameSaveH(*aPtrH,false));
+           for (const auto & aPtrH :  mVHistN)
+           {
+               // std::string aNameSave = FileHistoNDIm(aPtrH->Name(),false);
+               SaveInFile(*aPtrH,NameSaveH(*aPtrH,false));
+               aPtrH->GenerateVis2DInit(DirVisu());
+           }
        }
    }
 

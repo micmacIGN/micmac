@@ -1617,8 +1617,8 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
 
 
 
-    void cAppliMICMAC::DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax,int aNbScaleIm)
-    {
+void cAppliMICMAC::DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax,int aNbScaleIm)
+{
         if (mEBI) // Etiq Best Image
         {
             if (mNbIm>1)
@@ -1664,7 +1664,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
                 (isOk) ? mStatGlob->CorrelToCout(aRes) : mAhDefCost
                 );
         }
-    }
+}
 
 
 

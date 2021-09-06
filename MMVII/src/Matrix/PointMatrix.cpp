@@ -160,6 +160,14 @@ template<class Type,const int Dim>
 template void MulCol(cPtxd<TYPE,DIMOUT>&,const cDenseMatrix<TYPE>&,const cPtxd<TYPE,DIMIN>&);\
 template void MulLine(cPtxd<TYPE,DIMOUT>&,const cPtxd<TYPE,DIMIN>&,const cDenseMatrix<TYPE>&);
 
+#define INSTANT_PT_MAT_int_DIM(DIM)\
+template  cDenseVect<int> cPtxd<int,DIM>::ToVect() const;\
+template  cPtxd<int,DIM> cPtxd<int,DIM>::FromVect(const cDenseVect<int>& aV);
+
+INSTANT_PT_MAT_int_DIM(1)
+INSTANT_PT_MAT_int_DIM(2)
+INSTANT_PT_MAT_int_DIM(3)
+INSTANT_PT_MAT_int_DIM(4)
 
 
 #define INSTANT_PT_MAT_TYPE_DIM(TYPE,DIM)\

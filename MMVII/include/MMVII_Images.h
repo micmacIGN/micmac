@@ -467,6 +467,11 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
 
         //========= fundamental access to values ============
 
+        void  AddVBL(const cPt2dr & aP,const double & aVal)  
+        {
+           tPB::AssertInsideBL(aP);
+           AddValueBL(aP,aVal);
+        }
        /// Bilinear valie
        inline double GetVBL(const cPt2dr & aP) const 
        {
@@ -591,6 +596,26 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
 
             return  (1-aWeightY1) * (aWeightX0*aL0[0]  + aWeigthX1*aL0[1])
                   +     aWeightY1 * (aWeightX0*aL1[0]  + aWeigthX1*aL1[1])  ;
+        } 
+
+        void  AddValueBL(const cPt2dr & aP,const double & aVal)  ///< Bilinear interpolation
+        {
+            int aX0 = round_down(aP.x());  ///<  "Left" limit of  pixel
+            int aY0 = round_down(aP.y());  ///<  "Up" limit of pixel
+
+            double aWeigthX1 = aP.x() - aX0;
+            double aWeightX0 = 1-aWeigthX1;
+            double aWeightY1 = aP.y() - aY0;
+            double aWeightY0 = 1 - aWeightY1;
+
+            Type  * aL0 = mRawData2D[aY0  ] + aX0;
+            Type  * aL1 = mRawData2D[aY0+1] + aX0;
+
+            aL0[0] += aWeightY0  * aWeightX0 *  aVal;
+            aL0[1] += aWeightY0  * aWeigthX1 *  aVal;
+            aL1[0] += aWeightY1  * aWeightX0 *  aVal;
+            aL1[1] += aWeightY1  * aWeigthX1 *  aVal;
+
         } 
 
         void AssertYInside(int Y) const
@@ -730,6 +755,9 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         virtual ~cDataIm1D();
         /// Raw image, lost all waranty is you use it...
         tVal * ExtractRawData1D() {return mRawData1D;}
+
+        inline tBase  SomInterv(int aX0,int aX1) const;
+        inline tREAL8  AvgInterv(int aX0,int aX1) const;
 
     protected :
     private :

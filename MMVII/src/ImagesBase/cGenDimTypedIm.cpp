@@ -121,6 +121,74 @@ template <class Type> int cDataGenDimTypedIm<Type>::Adress(const tIndex& anIndex
    return aAdr;
 }
 
+
+template <class Type> void cDataGenDimTypedIm<Type>::RecAddNLinearVal
+    (const tRIndex& aRIndex,const double & aVal,tIndex& aIIndex,int aDim) 
+{
+   tREAL4 aCoord = aRIndex(aDim);
+   int    aICoord = round_down(aCoord);
+   tREAL4 aP1 =  (aCoord-aICoord);
+   tREAL4 aP0 =  1-aP1;
+
+   tREAL4 aV0 =  aP0 * aVal;
+   tREAL4 aV1 =  aP1 * aVal;
+   bool isEnd = (aDim==mDim-1);
+
+   aIIndex(aDim) = aICoord;
+   if (isEnd)
+      AddV(aIIndex,aV0);
+   else
+      RecAddNLinearVal(aRIndex,aV0,aIIndex,aDim+1);
+
+
+   if (aP1>0) 
+   {
+      aIIndex(aDim) = aICoord+1;
+      if (isEnd)
+         AddV(aIIndex,aV1);
+      else
+         RecAddNLinearVal(aRIndex,aV1,aIIndex,aDim+1);
+   }
+
+}
+
+
+template <class Type>  tREAL4   cDataGenDimTypedIm<Type>::RecGetNLinearVal(const tRIndex& aRIndex,tIndex& aIIndex,int aDim) const
+{
+   tREAL4 aCoord = aRIndex(aDim);
+   int    aICoord = round_down(aCoord);
+   tREAL4 aP1 =  (aCoord-aICoord);
+   tREAL4 aP0 =  1-aP1;
+
+   aIIndex(aDim) = aICoord;
+   bool isEnd = (aDim==mDim-1);
+
+   tREAL4 aRes =  aP0 * (isEnd ? GetV(aIIndex)  : RecGetNLinearVal(aRIndex,aIIndex,aDim+1));
+
+   if (aP1>0) 
+   {
+      aIIndex(aDim) = aICoord+1;
+      aRes +=  aP1 * (isEnd ? GetV(aIIndex)  : RecGetNLinearVal(aRIndex,aIIndex,aDim+1));
+   }
+
+   return aRes;
+}
+
+template <class Type>  tREAL4   cDataGenDimTypedIm<Type>::GetNLinearVal(const tRIndex& aRI) const
+{
+    tIndex aII(mDim);
+    return RecGetNLinearVal(aRI,aII,0);
+}
+
+template <class Type>  void   cDataGenDimTypedIm<Type>::AddNLinearVal(const tRIndex& aRI,const double & aVal) 
+{
+    tIndex aII(mDim);
+    RecAddNLinearVal(aRI,aVal,aII,0);
+}
+
+
+
+
 template <class Type> void cDataGenDimTypedIm<Type>::PrivateAssertOk(const tIndex& anIndex) const
 {
     MMVII_INTERNAL_ASSERT_always(anIndex.Sz()==mDim,"Bad dim for cDataGenDimTypedIm");
@@ -129,6 +197,12 @@ template <class Type> void cDataGenDimTypedIm<Type>::PrivateAssertOk(const tInde
         int aVal = anIndex(aDim);
         MMVII_INTERNAL_ASSERT_always((aVal>=0) && (aVal<mSz(aDim)),"Out pts in cDataGenDimTypedIm");
     }
+}
+
+template <class Type> cIm2D<Type>  cDataGenDimTypedIm<Type>::ToIm2D() const
+{
+    MMVII_INTERNAL_ASSERT_always(mDim==2,"Bad dim for cDataGenDimTypedIm");
+    return cIm2D<Type>(cPt2di::FromVect(mSz),mRawDataLin);
 }
 
 /* ========================== */
@@ -229,6 +303,13 @@ template <class Type>
         aVCoord.push_back(aCoord);
         aNbElem /=  aCoord;
     }
+    // Favorize 2D vect because we can check with 2D Image
+    cPt2di aSz2;
+    if (RandUnif_0_1() < 0.3)
+    {
+       aSz2 = cPt2di(10+RandUnif_N(50),10+RandUnif_N(50));
+       aVCoord = std::vector<int>({aSz2.x(),aSz2.y()});
+    }
     mDim = aVCoord.size();
     mSz =  tIndex(mDim);
 
@@ -248,6 +329,39 @@ template <class Type>
 
     ExploreRec(anIndex,0,2);
     ExploreRec(anIndex,0,3);
+
+    if (mDim==2)
+    {
+        cIm2D<Type> aIm2(aSz2);
+        cDataIm2D<Type> & aDIm2 = aIm2.DIm();
+        for (const auto & aP : aDIm2)
+        {
+           Type aVal =  RandUnif_C();
+           aDIm2.SetV(aP,aVal);
+           mIm.SetV(aP.ToVect(),aVal);
+        }
+        for (int aK=0 ; aK< 100 ; aK++)
+        {
+             double aX = std::min(aSz2.x() * RandUnif_0_1(),aSz2.x()-1.01);
+             double aY = std::min(aSz2.y() * RandUnif_0_1(),aSz2.y()-1.01);
+             cPt2df aP2R(aX,aY);
+             double aV1 = aDIm2.GetVBL(ToR(aP2R));
+             double aV2 = mIm.GetNLinearVal(aP2R.ToVect());
+             bool Ok0 = true;
+             MMVII_INTERNAL_ASSERT_bench(RelativeDifference(aV1,aV2,&Ok0)<1e-3,"Interpol Im N DIM");
+
+             double aVal = RandUnif_0_1();
+             aDIm2.AddVBL(ToR(aP2R),aVal);
+             mIm.AddNLinearVal(aP2R.ToVect(),aVal);
+        }
+        for (const auto & aP : aDIm2)
+        {
+           Type aV1= aDIm2.GetV(aP);
+           Type aV2= mIm.GetV(aP.ToVect());
+           MMVII_INTERNAL_ASSERT_bench(std::abs(aV1-aV2)<1e-3,"Interpol Im N DIM");
+        }
+    }
+// template <class Type>  void   cDataGenDimTypedIm<Type>::AddNLinearVal(const tRIndex& aRI,const double & aVal) 
 }
 
 template <class Type>  

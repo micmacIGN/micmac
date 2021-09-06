@@ -75,6 +75,26 @@ const cStatOneVecCarac::tHisto  & cStatOneVecCarac::Hist(int aNum) const
    return mHist[aNum];
 }
 
+const cStatOneVecCarac::tHisto  & cStatOneVecCarac::HistSom(int aFlag) const
+{
+   int aSzH = Hist(0).H().Sz();
+   mHistSom = tHisto(aSzH);
+
+   for (int aKF=0 ; aKF<TheNbH ; aKF++)
+   {
+       if (aFlag & (1<<aKF))
+       {
+           const cDataIm1D<tINT4>&  aH = Hist(aKF).H();
+           for (int aV=0 ; aV<aSzH ; aV++)
+           {
+              mHistSom.AddV(aV,aH.GetV(aV));
+           }
+       }
+   }
+   mHistSom.MakeCumul();
+   return mHistSom;
+}
+
 void cStatOneVecCarac::PackForSave()
 {
    mImCr01.DIm().Resize(cPt2di(1,1));
@@ -85,8 +105,16 @@ cStatOneVecCarac::cStatOneVecCarac(const cPt2di & aSzCr)  :
    mImCr01  (aSzCr,nullptr,eModeInitImage::eMIA_Null),
    mImCr02  (aSzCr,nullptr,eModeInitImage::eMIA_Null)
 {
+/*
+{
+static int aCpt = 0;
+aCpt++;
+double aSz = (TheDynSave*TheDynSave) *((double) aCpt) * sizeof(tINT4) *2;
+StdOut() << "SSZZZZ " << aSz << " ; Cpt " << aCpt << "\n";
+}
+*/
    for (int aKH=0 ; aKH<TheNbH ; aKH++)
-       mHist[aKH] = tHisto(TheDynSave);
+       mHist[aKH] = tHisto(TheDyn4Save);
 }
 
 double  cStatOneVecCarac::Separ(int aN1,int aN2) const
@@ -157,13 +185,14 @@ void  cStatOneVecCarac::SaveHisto(int aSzVisu,const std::string & aName)
     std::vector<cIm2D<tU_INT1> > aVIm;
     for (int aKH=0 ; aKH<TheNbH ; aKH++)  // Parse 3 histogramme
     {
-         cIm2D<tU_INT1>  aIm(cPt2di(TheDynSave,aSzVisu));
+         cIm2D<tU_INT1>  aIm(cPt2di(TheDyn4Visu,aSzVisu));
          aVIm.push_back(aIm);
          cDataIm2D<tU_INT1>& aDIm = aIm.DIm();
          const cDataIm1D<tINT4>&  aH = Hist(aKH).H();
-         for (int aX=0 ; aX<TheDynSave ; aX++)   // Parse X , absice of histo
+         for (int aX=0 ; aX<TheDyn4Visu ; aX++)   // Parse X , absice of histo
          {
-             int aLim = round_ni(aH.GetV(aX)*aScale); // Size of bar proportional to value
+             tREAL8 aAvg = aH.AvgInterv(cVecCaracMatch::FromVisu(aX),cVecCaracMatch::FromVisu(aX+1));
+             int aLim = round_ni(aAvg*aScale); // Size of bar proportional to value
              for (int aY=0 ; aY<aSzVisu ; aY++)
              {
                   bool  inH = (aSzVisu-aY-1) <= aLim;  // Invert Y to have standard visu (Y-up)
@@ -203,8 +232,9 @@ void  cStatOneVecCarac::MakeCumul()
 
 cStatAllVecCarac::cStatAllVecCarac(bool WithCr) :
    mWithCr (WithCr),
-   mSzCr   (WithCr ? cPt2di(TheDynSave,TheDynSave):cPt2di(1,1))
+   mSzCr   (WithCr ? cPt2di(TheDyn4Visu,TheDyn4Visu):cPt2di(1,1))
 {
+
    for (int aK=0 ; aK<TheNbVals ; aK++)
       mStats.push_back(cStatOneVecCarac(mSzCr));
 }
@@ -237,7 +267,7 @@ void cStatAllVecCarac::AddCr(const cFileVecCaracMatch & aFVCM1,const cFileVecCar
           {
                int aVal1 = aVec1.at(aKVal).Value(aLabel);
                int aVal2 = aVec2.at(aKVal).Value(aLabel);
-               aImCr.AddVal(cPt2di(aVal1,aVal2),1);
+               aImCr.AddVal(cVecCaracMatch::ToVisu(cPt2di(aVal1,aVal2)),1);
           }
     }
 }

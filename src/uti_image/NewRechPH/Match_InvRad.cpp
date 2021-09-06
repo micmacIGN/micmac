@@ -185,6 +185,13 @@ double ScoreTestMatchInvRad(const std::vector<cOnePCarac> & aVH,const cOnePCarac
 }
 
 #if (0)
+
+class cInterfNapp3D
+{
+    public :
+        virtual void SetVal(const Pt2di &,const double & aZ,double aVal) = 0;
+    private :
+};
 #endif
 
 

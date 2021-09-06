@@ -102,8 +102,13 @@ class cVecCaracMatch : public cMemCheck
 {
      public :
         typedef cDataIm2D<tREAL4>   tDataIm;
-        static constexpr int TheDynSave = 1000;
-        static constexpr int TheUnDefVal = TheDynSave +1;
+        static constexpr int TheDyn4Save = 20000;
+        static constexpr int TheDyn4Visu = 1000;
+        static int ToVisu(int aVal) {return std::min(TheDyn4Visu-1,(aVal*TheDyn4Visu)/TheDyn4Save);}
+        static int FromVisu(int aVal) {return std::min(TheDyn4Save-1,(aVal*TheDyn4Save)/TheDyn4Visu);}
+        static cPt2di ToVisu(const cPt2di & aPt) {return cPt2di(ToVisu(aPt.x()),ToVisu(aPt.y()));}
+
+        static constexpr int TheUnDefVal = TheDyn4Save +1;
         static constexpr int TheNbVals = int (eModeCaracMatch::eNbVals);
         typedef tU_INT2 tSaveValues;
 
@@ -161,7 +166,8 @@ class cStatOneVecCarac : public cMemCheck
 {
     public :
        typedef cHistoCumul<tINT4,tREAL8>  tHisto;
-       static constexpr int TheDynSave = cVecCaracMatch::TheDynSave;
+       static constexpr int TheDyn4Save = cVecCaracMatch::TheDyn4Save;
+       static constexpr int TheDyn4Visu = cVecCaracMatch::TheDyn4Visu;
        static constexpr int TheNbH = 3;
        cStatOneVecCarac(const cPt2di & aSzCr = cPt2di(1,1));
        void Add(int aNum,int aVal)
@@ -183,8 +189,10 @@ class cStatOneVecCarac : public cMemCheck
 
        tHisto  & Hist(int aNum);
        const tHisto  & Hist(int aNum) const;
+       const tHisto  & HistSom(int aFlag) const;
     private :
        tHisto  mHist[TheNbH];
+       mutable tHisto  mHistSom;
        cIm2D<tINT4>                   mImCr01;  // Contain stat of Hom/CloseHom
        cIm2D<tINT4>                   mImCr02;  // Contain stat of Hom/NonHom
 };
@@ -195,7 +203,8 @@ class cStatAllVecCarac : public cMemCheck
 {
      public :
         static constexpr int TheNbVals = int (eModeCaracMatch::eNbVals);
-        static constexpr int TheDynSave = cVecCaracMatch::TheDynSave;
+        static constexpr int TheDyn4Save = cVecCaracMatch::TheDyn4Save;
+        static constexpr int TheDyn4Visu = cVecCaracMatch::TheDyn4Visu;
 
         cStatAllVecCarac(bool WithCrois);
         void AddOneFile(int aNum,const cFileVecCaracMatch &);
@@ -214,6 +223,60 @@ class cStatAllVecCarac : public cMemCheck
         std::vector<cStatOneVecCarac>  mStats;
 };
 void AddData(const cAuxAr2007 & anAux,cStatAllVecCarac&);
+
+
+class cHistoCarNDim  : public cMemCheck
+{
+    public :
+
+       typedef tINT4                        tDataNd;
+       typedef cDataGenDimTypedIm<tDataNd>  tHistND;
+       typedef cHistoCumul<tINT4,tREAL8>    tHisto1;
+       typedef cDenseVect<tINT4>            tIndex;
+
+       cHistoCarNDim(int aSzH,const tVecCar &,const cStatAllVecCarac &,bool genVis2DI);
+       cHistoCarNDim();  // Used for AddData requiring default cstrc
+       cHistoCarNDim(const std::string&);  // Used for AddData requiring default cstrc
+       ~cHistoCarNDim();  // Used for AddData requiring default cstrc
+       void  Add(const cVecCaracMatch &,bool isH0);
+       void  Show(cMultipleOfs &,bool WithCr) const;
+       double CarSep() const;
+       void AddData(const cAuxAr2007 &);
+       const std::string & Name() const;
+
+       double ScoreCr(const cVecCaracMatch &) const;
+       void   UpDateCr(const cVecCaracMatch & aHom,const cVecCaracMatch & aNotHom);
+       void  GenerateVisu(const std::string & aDir);
+       void  GenerateVis2DInit(const std::string & aDir);
+
+    private :
+       void  GenerateVisuOneIm(const std::string & aDir,const std::string & aPrefix,const tHistND &);
+       void  GenerateVis2DInitOneInit(const std::string & aDir,const std::string & aPrefix,cIm2D<double>,const tHistND&);
+       void  ComputePts(const cVecCaracMatch &) const;
+       cHistoCarNDim(const cHistoCarNDim &) = delete;
+
+       bool                      mIP;
+       int                       mDim;
+       tIndex                    mSz;
+       tVecCar                   mVCar;
+       mutable tIndex                    mPts;
+       mutable tIndex                    mPtsInit;
+
+       std::vector<const tHisto1*>     mHd1_0;
+       tHistND                   mHist0;  // Homolog
+       tHistND                   mHist2;  //  Non (or close) Homolog
+       std::string               mName;
+       double                    mNbOk;
+       double                    mNbNotOk;
+       bool                      mGV2I;
+       cIm2D<double>             mHistoI0;
+       cIm2D<double>             mHistoI2;
+};
+void AddData(const cAuxAr2007 & anAux,cHistoCarNDim & aHND);
+
+
+
+
 
 };
 

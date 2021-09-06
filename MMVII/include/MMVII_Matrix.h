@@ -660,10 +660,18 @@ template <class Type> class cDataGenDimTypedIm : public cMemCheck
         typedef tNumTrait<Type> tTraits;
         typedef typename tTraits::tBase  tBase;
         typedef cDenseVect<int>          tIndex;
+        typedef cDenseVect<tREAL4>       tRIndex;
 
         const Type &  GetV(const tIndex&) const;
         void SetV(const tIndex&,const tBase & aVal) ;
         void AddV(const tIndex&,const tBase & aVal) ;
+
+
+        tREAL4   GetNLinearVal(const tRIndex&) const; // Get value by N-Linear interpolation
+        void     AddNLinearVal(const tRIndex&,const double & aVal) ; // Get value by N-Linear interpolation
+
+        tREAL4   RecGetNLinearVal(const tRIndex& aRIndex,tIndex& aIIndex,int aDim) const; // slow but easy version
+        void RecAddNLinearVal(const tRIndex& aRIndex,const double &,tIndex& aIIndex,int aDim) ; // slow but easy version
 
         cDataGenDimTypedIm(const tIndex& aSz);
         cDataGenDimTypedIm();
@@ -676,6 +684,7 @@ template <class Type> class cDataGenDimTypedIm : public cMemCheck
         int Adress(const tIndex&) const;
         const tIndex & Sz() const;
         void AddData(const cAuxAr2007 &);
+        cIm2D<Type>  ToIm2D() const;  // If 2 d, return a standard image , sharing same date. If not=>ERROR ...
     protected  :
         void PrivateAssertOk(const tIndex&) const;
 # if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )

@@ -1753,7 +1753,11 @@ template cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<INT1,INT
 template void xml_init(Im2D<INT1,INT>  & anIm,cElXMLTree * aTree);
 
 
+template cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<INT2,INT> & anIm);
+template void xml_init(Im2D<INT2,INT>  & anIm,cElXMLTree * aTree);
 
+template cElXMLTree * ToXMLTree(const std::string & aNameTag,const Im2D<INT4,INT> & anIm); // MMVII
+template void xml_init(Im2D<INT4,INT>  & anIm,cElXMLTree * aTree); // MMVII
 //       TypeSubst
 
 template <class Type> TypeSubst<Type>::TypeSubst() :

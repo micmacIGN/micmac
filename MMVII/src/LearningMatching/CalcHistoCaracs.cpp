@@ -6,13 +6,6 @@
 namespace MMVII
 {
 
-struct cSaveCalcHistoCarac
-{    
-    public :
-         std::string mCom;
-    private :
-};
-
 class cAppliCalcHistoCarac : public cAppliLearningMatch
 {
      public :

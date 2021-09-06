@@ -465,7 +465,7 @@ void cVecCaracMatch::SetValue(eModeCaracMatch aCarac,const float & aVal)
        MMVII_INTERNAL_ASSERT_always (false,"Value out interval [0,1]");
     }
 
-    mVecCarac[int(aCarac)] = std::min(TheDynSave-1,round_down(TheDynSave * AjdustStdCost(aVal)));
+    mVecCarac[int(aCarac)] = std::min(TheDyn4Save-1,round_down(TheDyn4Save * AjdustStdCost(aVal)));
 }
 
 cVecCaracMatch::cVecCaracMatch
@@ -496,7 +496,7 @@ void cVecCaracMatch::Show(tNameSelector aNameSel)
         std::string aName =  E2Str(aMode);
         if (aNameSel.Match(aName))
         {
-            StdOut() << "[" << aName << "] : " <<  mVecCarac[aK] /double(TheDynSave) << "\n";
+            StdOut() << "[" << aName << "] : " <<  mVecCarac[aK] /double(TheDyn4Save) << "\n";
         }
     }
 

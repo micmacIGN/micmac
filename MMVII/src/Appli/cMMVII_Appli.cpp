@@ -849,7 +849,8 @@ void cMMVII_Appli::LogCommandIn(const std::string & aName,bool MainLogFile)
 void cMMVII_Appli::LogCommandOut(const std::string & aName,bool MainLogFile)
 {
    cMMVII_Ofs  aOfs(aName,true);
-   aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur() << "\n\n";
+   // Add id, if several process were throw in // there is a mix and we no longer know which was closed
+   aOfs.Ofs() << "  ending correctly at : " <<  StrDateCur()  << "(Id=" << mPrefixNameAppli << ")\n\n";
    aOfs.Ofs().close();
 }
 

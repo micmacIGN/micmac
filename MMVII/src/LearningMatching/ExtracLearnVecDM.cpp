@@ -6,6 +6,7 @@
 namespace MMVII
 {
 
+/*
 class cBiPyramMatch
 {
     public :
@@ -16,6 +17,7 @@ class cBiPyramMatch
     private :
         std::vector<tSP_Pyr>   mVPyr;
 };
+*/
 
 class cAppliExtractLearnVecDM : public cAppliLearningMatch
 {
@@ -35,17 +37,22 @@ class cAppliExtractLearnVecDM : public cAppliLearningMatch
         void AddLearn(cFileVecCaracMatch &,const cAimePCar & aAP1,const cAimePCar & aAP2,int aLevHom);
 
      private :
+        int Exe() override;
+        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
+        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+    
         tImFiltred & ImF(bool IsIm1 ) {return IsIm1 ? mImF1 : mImF2;}
         tSP_Pyr CreatePyr(bool IsIm1);
         const cBox2di &     CurBoxIn(bool IsIm1) const {return   IsIm1 ? mCurBoxIn1 : mCurBoxIn2 ;}
         const std::string & NameIm(bool IsIm1) const {return   IsIm1 ? mNameIm1 : mNameIm2 ;}
 
-        int Exe() override;
-        cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
-        cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
         void MakeOneBox(const cPt2di & anIndex,const cParseBoxInOut<2> &);
         std::string NameHom(int aNumHom) {return HomFromIm1(mNameIm1,aNumHom,Index(mNumIndex)+mExtSave);}
+
+        void MakeCut(int aY,const std::vector<bool> & Ok1,const std::vector<cAimePCar> & aVPC1,
+                            const std::vector<bool> & Ok2,const std::vector<cAimePCar> & aVPC2);
+              // MakeCut(aPixIm1.y(),aVOk1,aV1,aVOk2,aV2);   std::vector<cAimePCar> std::vector<bool> 
 
            // --- Mandatory ----
         std::string  mPatIm1;
@@ -58,11 +65,23 @@ class cAppliExtractLearnVecDM : public cAppliLearningMatch
         int          mNb2Select;  ///< In case we want only a max number of points
         int          mFlagRand;
 
+        std::string       mCutsNameH;
+        std::vector<int>  mCutsParam;
+        int               mCutsFreqPx;  // 1/ Steps of Px 
+        double            mCutsExp;  // 1/ Steps of Px 
+        std::string       mCutsPrefix;
+
            // --- Internal variables ----
-        std::string  mNameIm1;
-        std::string  mNameIm2;
-        std::string  mNamePx1;
-        std::string  mNameMasq1;
+
+        bool            mDoCuts;
+        bool            m4Learn;  // when 4Learn, load Px, Masq ...
+        cHistoCarNDim   mCutHND;
+        int             mCutPxMin;
+        int             mCutPxMax;
+        std::string     mNameIm1;
+        std::string     mNameIm2;
+        std::string     mNamePx1;
+        std::string     mNameMasq1;
 
 
 
@@ -88,7 +107,7 @@ class cAppliExtractLearnVecDM : public cAppliLearningMatch
 
         cFilterPCar  mFPC;  ///< Used to compute Pts
 
-        bool  CalculAimeDesc(bool Im1,const cPt2dr & aPt,bool deBug);
+        bool  CalculAimeDesc(bool Im1,const cPt2dr & aPt);
 
         cAimePCar    mPC1;
         cAimePCar    mPC2;
@@ -100,6 +119,12 @@ cAppliExtractLearnVecDM::cAppliExtractLearnVecDM(const std::vector<std::string> 
    mOverlap      (200),
    mExtSave      ("Std"),
    mFlagRand     (0),
+   mCutsFreqPx   (1),
+   mCutsExp      (1.0),
+   mCutsPrefix   ("Cut"),
+   mDoCuts       (false),
+   m4Learn       (true),
+   // mCutHND        (nullptr),
    mCurBoxIn1    (cBox2di::Empty()),  // To have a default value
    mCurBoxIn2    (cBox2di::Empty()),  // To have a default value
    mCurBoxOut    (cBox2di::Empty()),  // To have a default value
@@ -140,10 +165,15 @@ cCollecSpecArg2007 & cAppliExtractLearnVecDM::ArgOpt(cCollecSpecArg2007 & anArgO
           << AOpt2007(mExtSave,"ExtOut","Ext for save file",{eTA2007::HDV})
           << AOpt2007(mSaveImFilter,"SIF","Save Image Filter",{eTA2007::HDV,eTA2007::Tuning})
           << AOpt2007(mFlagRand,"FlagRand","Images to randomizes (1 or 2), bit of flag [0-3]",{eTA2007::HDV,eTA2007::Tuning})
+          << AOpt2007(mCutsNameH,"CutNamH","Name of Histo to create similarity cuts")
+          << AOpt2007(mCutsParam,"CutParam","Interval Pax + Line of cuts[PxMin,PxMax,Y0,Y1,....]",{{eTA2007::ISizeV,"[3,10000]"}})
+          << AOpt2007(mCutsFreqPx,"CutStep"," Step in px for the cuts",{eTA2007::HDV})
+          << AOpt2007(mCutsPrefix,"CutPref"," Name to add to results",{eTA2007::HDV})
+          << AOpt2007(mCutsExp,"CutExp","Exposant to set dynamic of view ",{eTA2007::HDV})
+          << AOpt2007(mNameIm2,"Im2","Name Im2, Def .*Im1.tif => .*Im2.tif ")
           // << AOpt2007(mSaveImFilter,"SIF","Save Image Filter",{eTA2007::HDV})
    ;
 }
-
 
 bool TESTPT(const cPt2dr & aPt,int aLine,const std::string& aFile)
 {
@@ -154,7 +184,7 @@ bool TESTPT(const cPt2dr & aPt,int aLine,const std::string& aFile)
 }
 
 
-bool  cAppliExtractLearnVecDM::CalculAimeDesc(bool Im1,const cPt2dr & aPt,bool deBug)
+bool  cAppliExtractLearnVecDM::CalculAimeDesc(bool Im1,const cPt2dr & aPt)
 {
  
     cAimePCar & aAPC = Im1 ?  mPC1 : mPC2;
@@ -170,19 +200,15 @@ bool  cAppliExtractLearnVecDM::CalculAimeDesc(bool Im1,const cPt2dr & aPt,bool d
        if (!(aDImF.InsideBL(aP1) && aDImF.InsideBL(aP2)))
           return false;
     }
-
-if (deBug) StdOut() << " VecDM::Calcul-1 " << aPt << "\n";
     
     cProtoAimeTieP<tREAL4> aPAT(aPyr->GPImTop(),aPt);
 
     if (! aPAT.FillAPC(mFPC,aAPC,true))
        return false;
 
-if (deBug) StdOut() << " VecDM::Calcul-2 " << aPAT.mPImInit << " " << aPAT.mPFileInit << " " << aPAT.mPFileRefined << "\n";
 
     aPAT.FillAPC(mFPC,aAPC,false);
 
-if (deBug) StdOut() << " VecDM::Calcul-3 " << aAPC.Pt() << "\n";
     return true;
 }
 
@@ -225,9 +251,21 @@ void cAppliExtractLearnVecDM::AddLearn(cFileVecCaracMatch & aFVCM,const cAimePCa
 
 int  cAppliExtractLearnVecDM::Exe()
 {
+
    // If a multiple pattern, run in // by recall
    if (RunMultiSet(0,0))
       return ResultMultiSet();
+
+   mDoCuts = IsInit(&mCutsNameH);
+   if (mDoCuts)
+   {
+      ReadFromFile(mCutHND,mCutsNameH);
+      MMVII_INTERNAL_ASSERT_strong(IsInit(&mCutsParam),"Px interv and line cut non initialezd in cut mode");
+      mCutPxMin = mCutsParam.at(0);
+      mCutPxMax = mCutsParam.at(1);
+      m4Learn = false;
+   }
+
 
    mShowCarac = IsInit(&mPatShowCarac);
    if (mShowCarac)
@@ -237,9 +275,13 @@ int  cAppliExtractLearnVecDM::Exe()
 
       // ---- Compute name of images from Im1 -----
    mNameIm1 = mPatIm1;                   // To  homogenize naming 
-   mNameIm2 = Im2FromIm1(mNameIm1);
-   mNamePx1  = Px1FromIm1(mNameIm1);
-   mNameMasq1  = Masq1FromIm1(mNameIm1);
+   if (!IsInit(&mNameIm2))
+       mNameIm2 = Im2FromIm1(mNameIm1);
+   if (m4Learn)
+   {
+       mNamePx1  = Px1FromIm1(mNameIm1);
+       mNameMasq1  = Masq1FromIm1(mNameIm1);
+   }
 
 
    cDataFileIm2D aDFIm1 = cDataFileIm2D::Create(mNameIm1,false);
@@ -315,72 +357,124 @@ cAppliExtractLearnVecDM::tSP_Pyr cAppliExtractLearnVecDM::CreatePyr(bool IsIm1)
     return  aPyr;
 }
 
+void cAppliExtractLearnVecDM::MakeCut
+     (
+          int aY,
+          const std::vector<bool> & aVOk1,const std::vector<cAimePCar> & aVPC1,
+          const std::vector<bool> & aVOk2,const std::vector<cAimePCar> & aVPC2
+     )
+{
+   StdOut() << "LINECUT " << aY << "\n";
+   int aNbPix = aVOk1.size();
+   int aNbPax = mCutsFreqPx * (mCutPxMax-mCutPxMin);
+   cIm2D<tU_INT1>  aResult(cPt2di(aNbPix,aNbPax),nullptr,eModeInitImage::eMIA_Null);
+
+   for (int aX=0; aX<aNbPix ; aX++)
+   {
+       if (aVOk1.at(aX))
+       {
+           int aXMinTh = (aX+mCutPxMin)*mCutsFreqPx;
+           int aXHom0 = std::max(0,aXMinTh);
+           int aXHom1 = std::min(int(aVPC2.size()),(aX+mCutPxMax)*mCutsFreqPx);
+           for(int aXH=aXHom0 ; aXH<aXHom1 ; aXH++)
+           {
+               if (aVOk2.at(aXH))
+               {
+                   cVecCaracMatch aVCM
+                   (
+                        mPyr1->MulScale(),
+                        mPyr1->ImTop().DIm(),mPyr2->ImTop().DIm(),
+                        mImF1.DIm(),mImF2.DIm(),
+                        aVPC1.at(aX),aVPC2.at(aXH)
+                   );
+                   double aScore = mCutHND.ScoreCr(aVCM);
+                   int aPax = aXH-aXMinTh;
+                   aResult.DIm().SetV(cPt2di(aX,aPax),1+round_ni((254.0)*(1-pow(1-aScore,mCutsExp))));
+               }
+           }
+        }
+   }
+   std::string aNameRes =    DirVisu() +  mCutsPrefix + "_L" + ToStr(aY) 
+                          + "_" + MMVII::Prefix(mNameIm1) + "_" +  mCutHND.Name() + ".tif";
+
+   aResult.DIm().ToFile(aNameRes); //  Ok
+}
 
 void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex,const cParseBoxInOut<2> & aPBI)
 {
 
    // Read Px & Masq
-   mImMasq1 = tImMasq::FromFile(mNameMasq1,mCurBoxIn1);
-   mImPx1   =   tImPx::FromFile(  mNamePx1,mCurBoxIn1);
-   tDataImMasq & aDIMasq1 = mImMasq1.DIm();
-   const tDataImPx   & aDImPx1  = mImPx1.DIm();
-
    int aNbInMasq = 0;
-   for (const auto & aPix : aDIMasq1)
-       if (aDIMasq1.GetV(aPix)) 
-          aNbInMasq++;
-
-
-   if (IsInit(&mNb2Select))
+   tDataImMasq * aDIMasq1 = nullptr;
+   const tDataImPx   * aDImPx1  = nullptr;
+   if (m4Learn)
    {
-       int aNbLoc2Sel  =  mNb2Select / aPBI.BoxIndex().NbElem();
-       int aKMasq = 0;
-       int aNbInMasqInit = aNbInMasq;
-       aNbInMasq = 0;
-       for (const auto & aPix : aDIMasq1)
-       {
-          if (aDIMasq1.GetV(aPix)) 
-          {
-             if (SelectQAmongN(aKMasq,aNbLoc2Sel,aNbInMasqInit))
-             {
-                 aNbInMasq ++;
-                //static int aCpt=0; aCpt++;
-                //StdOut() << "CCCCcc   " << aCpt << "\n";
-             }
-             else
-             {
-                 aDIMasq1.SetV(aPix,0) ;
-             }
-             aKMasq++;
-          }
-       }
-   }
+      mImMasq1 = tImMasq::FromFile(mNameMasq1,mCurBoxIn1);
+      mImPx1   =   tImPx::FromFile(  mNamePx1,mCurBoxIn1);
+      aDIMasq1 = & mImMasq1.DIm();
+      aDImPx1  = & mImPx1.DIm();
+
+      for (const auto & aPix : *aDIMasq1)
+          if (aDIMasq1->GetV(aPix)) 
+             aNbInMasq++;
 
 
-   {
-      //  Compute  Px intervall min and max to compute   Box2
-      tREAL4 aPxMin = 1e10;
-      tREAL4 aPxMax = -1e10;
-      for (const auto & aPix : aDIMasq1)
+      if (IsInit(&mNb2Select))
       {
-          if (aDIMasq1.GetV(aPix))
+          int aNbLoc2Sel  =  mNb2Select / aPBI.BoxIndex().NbElem();
+          int aKMasq = 0;
+          int aNbInMasqInit = aNbInMasq;
+          aNbInMasq = 0;
+          for (const auto & aPix : *aDIMasq1)
           {
-              UpdateMinMax(aPxMin,aPxMax,aDImPx1.GetV(aPix));
+             if (aDIMasq1->GetV(aPix)) 
+             {
+                if (SelectQAmongN(aKMasq,aNbLoc2Sel,aNbInMasqInit))
+                {
+                    aNbInMasq ++;
+                   //static int aCpt=0; aCpt++;
+                   //StdOut() << "CCCCcc   " << aCpt << "\n";
+                }
+                else
+                {
+                    aDIMasq1->SetV(aPix,0) ;
+                }
+                aKMasq++;
+             }
           }
       }
-      cPt2di aP0 = mCurBoxIn1.P0();
-      cPt2di aP1 = mCurBoxIn1.P1();
-      // Compute box of image2 taking into account Px 
-      mCurBoxIn2 = cBox2di
-                   (
-                       cPt2di(aP0.x()+round_down(aPxMin),aP0.y()),
-                       cPt2di(aP1.x()+round_up(aPxMax)  ,aP1.y())
-                   );
 
-      cDataFileIm2D  aFile2 = cDataFileIm2D::Create(mNameIm2,true);
-      mCurBoxIn2 = mCurBoxIn2.Inter(cBox2di(cPt2di(0,0),aFile2.Sz()));
 
-      StdOut() << "INDEX " << anIndex << " PX=[" << aPxMin << " : "<< aPxMax << "] B=" <<  mCurBoxIn2 << "\n";
+      {
+         //  Compute  Px intervall min and max to compute   Box2
+         tREAL4 aPxMin = 1e10;
+         tREAL4 aPxMax = -1e10;
+         for (const auto & aPix : *aDIMasq1)
+         {
+             if (aDIMasq1->GetV(aPix))
+             {
+                 UpdateMinMax(aPxMin,aPxMax,aDImPx1->GetV(aPix));
+             }
+         }
+         cPt2di aP0 = mCurBoxIn1.P0();
+         cPt2di aP1 = mCurBoxIn1.P1();
+         // Compute box of image2 taking into account Px 
+         mCurBoxIn2 = cBox2di
+                      (
+                          cPt2di(aP0.x()+round_down(aPxMin),aP0.y()),
+                          cPt2di(aP1.x()+round_up(aPxMax)  ,aP1.y())
+                      );
+
+         cDataFileIm2D  aFile2 = cDataFileIm2D::Create(mNameIm2,true);
+         mCurBoxIn2 = mCurBoxIn2.Inter(cBox2di(cPt2di(0,0),aFile2.Sz()));
+
+         StdOut() << "INDEX " << anIndex << " PX=[" << aPxMin << " : "<< aPxMax << "] B=" <<  mCurBoxIn2 << "\n";
+      }
+   }
+   else
+   {
+      mCurBoxIn2 = mCurBoxIn1;
+      aNbInMasq = mCurBoxIn1.Sz().x() * (mCutPxMax - mCutPxMin);
    }
    // Now we have the boxes we can create the pyramid
    mPyr1 = CreatePyr(true);
@@ -402,68 +496,81 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex,const cParseBoxI
    {
        std::vector<cAimePCar> aV1;
        std::vector<cAimePCar> aV2;
-       for (aPixIm1.x()=0 ; aPixIm1.x()<mSzIm1.x()  ; aPixIm1.x()++)
+       if (mDoCuts)
        {
-          if (aDIMasq1.GetV(aPixIm1))
-          {
-static int aCpt=0; aCpt++;
-bool BUG = 0&&(aCpt==161631);
-
-              double aPx = aDImPx1.GetV(aPixIm1)+mDeltaPx;
-              cPt2dr aP2(aPixIm1.x()+aPx,aPixIm1.y());
-if (BUG) StdOut() << "P22222 " << aP2 << "\n";
-//TPT(aP2);
-              if (CalculAimeDesc(true,ToR(aPixIm1),false) && CalculAimeDesc(false,aP2,BUG))
+           bool DoThisCut = (std::find(mCutsParam.begin()+2, mCutsParam.end(), aPixIm1.y()) != mCutsParam.end());
+           if (DoThisCut)
+           {
+              std::vector<bool> aVOk1;
+              std::vector<bool> aVOk2;
+              for (aPixIm1.x()=0 ; aPixIm1.x()<mSzIm1.x()  ; aPixIm1.x()++)
               {
+                  aVOk1.push_back(CalculAimeDesc(true,ToR(aPixIm1))); 
                   aV1.push_back(mPC1.DupLPIm());
-                  aV2.push_back(mPC2.DupLPIm());
-if (BUG)
-{
-   StdOut() << "P22222 " << aP2 << " " << aV2.back().Pt() << " " << mPC2.Pt()  << mPC2.PtIm() << "\n";
-   getchar();
-}
-/*TPT(aV1.back().Pt());
-if (TPT(aV2.back().Pt()))
-{
-    StdOut() << "GGGGgg " << aV2.back().Pt() << " " << aP2 << " CPT=" << aCpt << "\n";
-}
-*/
+                  for (int aK=0 ; aK<mCutsFreqPx ; aK++)
+                  {
+                      cPt2dr aP2(aPixIm1.x()+ double(aK/mCutsFreqPx),aPixIm1.y());
+                      aVOk2.push_back( CalculAimeDesc(false,aP2));
+                      aV2.push_back(mPC2.DupLPIm());
+                  }
               }
-          }
+              MakeCut(aPixIm1.y(),aVOk1,aV1,aVOk2,aV2);
+                 //  if (CalculAimeDesc(true,ToR(aPixIm1)) && CalculAimeDesc(false,aP2))
+           }
        }
-
-       int aNbDesc = aV1.size();
-       for (int aK=0 ; aK<aNbDesc ; aK++)
+       else
        {
-            const cAimePCar & aAP1 = aV1[aK];
-            const cAimePCar & aHom = aV2[aK];
-            const cAimePCar & aCloseHom = aV2.at(std::min(aK+1,aNbDesc-1));
-            const cAimePCar & aNonHom = aV2.at((aK+aNbDesc/2)%aNbDesc);
+           for (aPixIm1.x()=0 ; aPixIm1.x()<mSzIm1.x()  ; aPixIm1.x()++)
+           {
+              if (aDIMasq1->GetV(aPixIm1))
+              {
 
-            aSD0 += aAP1.L1Dist(aHom);
-            aSD1 += aAP1.L1Dist(aCloseHom);
-            aSDK += aAP1.L1Dist(aNonHom);
+                  double aPx = aDImPx1->GetV(aPixIm1)+mDeltaPx;
+                  cPt2dr aP2(aPixIm1.x()+aPx,aPixIm1.y());
+                  if (CalculAimeDesc(true,ToR(aPixIm1)) && CalculAimeDesc(false,aP2))
+                  {
+                      aV1.push_back(mPC1.DupLPIm());
+                      aV2.push_back(mPC2.DupLPIm());
+                  }
+              }
+           }
 
-            AddLearn(aFVC_Hom      , aAP1,aHom     ,0);
-            AddLearn(aFVC_CloseHom , aAP1,aCloseHom,1);
-            AddLearn(aFVC_NonHom   , aAP1,aNonHom,2);
+           int aNbDesc = aV1.size();
+           for (int aK=0 ; aK<aNbDesc ; aK++)
+           {
+                const cAimePCar & aAP1 = aV1[aK];
+                const cAimePCar & aHom = aV2[aK];
+                const cAimePCar & aCloseHom = aV2.at(std::min(aK+1,aNbDesc-1));
+                const cAimePCar & aNonHom = aV2.at((aK+aNbDesc/2)%aNbDesc);
+
+                aSD0 += aAP1.L1Dist(aHom);
+                aSD1 += aAP1.L1Dist(aCloseHom);
+                aSDK += aAP1.L1Dist(aNonHom);
+
+                AddLearn(aFVC_Hom      , aAP1,aHom     ,0);
+                AddLearn(aFVC_CloseHom , aAP1,aCloseHom,1);
+                AddLearn(aFVC_NonHom   , aAP1,aNonHom,2);
             // AddLearn(aAP1,aCloseHom,1);
             // AddLearn(aAP1,aNonHom,2);
-            if (mShowCarac)
-               getchar();
-            aNbSD++;
-       }
-       if (0&&aNbSD && (aPixIm1.y()%20==0))
-       {
-           StdOut() << "Y=== " << mSzIm1.y() - aPixIm1.y()  
-                    << " " << aSD0/aNbSD 
-                    << " " << aSD1/aNbSD 
-                    << " " << aSDK/aNbSD<< "\n";
-       }
+                if (mShowCarac)
+                   getchar();
+                aNbSD++;
+           }
+           if (0&&aNbSD && (aPixIm1.y()%20==0))
+           {
+               StdOut() << "Y=== " << mSzIm1.y() - aPixIm1.y()  
+                        << " " << aSD0/aNbSD 
+                        << " " << aSD1/aNbSD 
+                        << " " << aSDK/aNbSD<< "\n";
+           }
+      }
    }
-   SaveInFile(aFVC_Hom      ,  NameHom(0));
-   SaveInFile(aFVC_CloseHom ,  NameHom(1));
-   SaveInFile(aFVC_NonHom   ,  NameHom(2));
+   if (! mDoCuts)
+   {
+       SaveInFile(aFVC_Hom      ,  NameHom(0));
+       SaveInFile(aFVC_CloseHom ,  NameHom(1));
+       SaveInFile(aFVC_NonHom   ,  NameHom(2));
+    }
 }
 
 
