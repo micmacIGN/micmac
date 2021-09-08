@@ -1,10 +1,18 @@
 #include "include/SymbDer/SymbolicDerivatives.h"
-#include "ceres/jet.h"
 
+double TimeElapsFromT0()
+{
+    static auto BeginOfTime = std::chrono::steady_clock::now();
+    auto now = std::chrono::steady_clock::now();
+    return std::chrono::duration_cast<std::chrono::microseconds>(now - BeginOfTime).count() / 1e6;
+}
 
 namespace  SD = NS_SymbolicDerivative;
-using ceres::Jet;
 
+
+#if (MMVII_WITH_CERES)
+#include "ceres/jet.h"
+using ceres::Jet;
 
 // ========= Define on Jets some function that make them work like formula and nums
 // and also may optimize the computation so that comparison is fair
@@ -37,18 +45,12 @@ template <class T,const int N> Jet<T, N>  CreateCste(const T & aV,const Jet<T, N
     return Jet<T, N>(aV);
 }
 
-
+#else
+#endif
 
 //=========================================
 
 //=========================================
-
-double TimeElapsFromT0()
-{
-    static auto BeginOfTime = std::chrono::steady_clock::now();
-    auto now = std::chrono::steady_clock::now();
-    return std::chrono::duration_cast<std::chrono::microseconds>(now - BeginOfTime).count() / 1e6;
-}
 
 
 /** \file TestDynCompDerivatives.cpp
@@ -873,8 +875,9 @@ cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,int aLevel,bool ShowGlob,bool ShowAll
    const std::vector<double> & aVObs =  VObs(0.101,0.2); 
    
    // Make the computation with jets
-   typedef Jet<double,TheNbUk> tJets;
    double TimeJets = TimeElapsFromT0();
+#if (MMVII_WITH_CERES)
+   typedef Jet<double,TheNbUk> tJets;
    std::vector<tJets> aJetRes;
    {
         std::vector<tJets>  aVJetUk;
@@ -888,19 +891,6 @@ cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,int aLevel,bool ShowGlob,bool ShowAll
         TimeJets = TimeElapsFromT0() - TimeJets;
    }
 
-   // Make the computation with formal deriv buffered
-   double TimeBuf = TimeElapsFromT0();
-   {
-       for (int aK=0 ; aK<aNbTestWithBuf ; aK++)
-       {
-           // Fill the buffers with data
-           for (int aKInBuf=0 ; aKInBuf<aSzBuf ; aKInBuf++)
-               mCFD.PushNewEvals(aVUk,aVObs);
-           // Evaluate the derivate once buffer is full
-           mCFD.EvalAndClear();
-       }
-       TimeBuf = TimeElapsFromT0() - TimeBuf;
-   }
 
    for (int aKVal=0 ; aKVal<int(aJetRes.size()) ; aKVal++)
    {
@@ -923,6 +913,21 @@ cTestEqCoL<FORMULA>::cTestEqCoL(int aSzBuf,int aLevel,bool ShowGlob,bool ShowAll
            SD::AssertAlmostEqual(aDVJ,aDVF,1e-5);
       //  std::cout << "  dJ:" << aDVJ <<  " dE:" << aDVE <<  " dF:" << aDVF << "\n";
       }
+   }
+#endif
+   
+   // Make the computation with formal deriv buffered
+   double TimeBuf = TimeElapsFromT0();
+   {
+       for (int aK=0 ; aK<aNbTestWithBuf ; aK++)
+       {
+           // Fill the buffers with data
+           for (int aKInBuf=0 ; aKInBuf<aSzBuf ; aKInBuf++)
+               mCFD.PushNewEvals(aVUk,aVObs);
+           // Evaluate the derivate once buffer is full
+           mCFD.EvalAndClear();
+       }
+       TimeBuf = TimeElapsFromT0() - TimeBuf;
    }
 
    if (ShowGlob)
@@ -1001,6 +1006,8 @@ void   Bench_powI(bool Show,int aLevel)
         double aP2= SD::powI(aV,aK);
         SD::AssertAlmostEqual(aP1,aP2,1e-8);
 
+        //TestDerNumJetBasic();
+#if (MMVII_WITH_CERES)
         Jet<double,1> aJ0= powI(Jet<double,1> (aV,0),aK);
         SD::AssertAlmostEqual(aP1,aJ0.a,1e-8);
 
@@ -1009,6 +1016,8 @@ void   Bench_powI(bool Show,int aLevel)
         double aP1Plus  = pow(aV+aEps,double(aK));
         double aNumDer = (aP1Plus-aP1Minus) / (2.0*aEps);
         SD::AssertAlmostEqual(aNumDer,aJ0.v[0],1e-8);
+#endif
+
     } 
 
     // Bench on time performance
