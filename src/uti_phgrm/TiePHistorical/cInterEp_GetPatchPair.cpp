@@ -260,17 +260,17 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
             origin.x = m*CoreaPatchSz.x - aBufferSz.x;
             origin.y = n*CoreaPatchSz.y - aBufferSz.y;
 
-            // 1. use ClipIm command to clip first image into patches
-            std::string aComClipFirstImg = aComBaseClip + " ["+std::to_string(int(origin.x))+","+std::to_string(int(origin.y))+"] " + aClipSz + " Out="+aOutDir+"/"+aSubImg1;
-            cout<<aComClipFirstImg<<endl;
-            aLComClip.push_back(aComClipFirstImg);
+            // 1. use ClipIm command to clip master image into patches
+            std::string aComClipMasterImg = aComBaseClip + " ["+std::to_string(int(origin.x))+","+std::to_string(int(origin.y))+"] " + aClipSz + " Out="+aOutDir+"/"+aSubImg1;
+            cout<<aComClipMasterImg<<endl;
+            aLComClip.push_back(aComClipMasterImg);
 
             cElComposHomographie aFstHX(1, 0, origin.x);
             cElComposHomographie aFstHY(0, 1, origin.y);
             cElComposHomographie aFstHZ(0, 0,        1);
             cElHomographie  aFstH =  cElHomographie(aFstHX,aFstHY,aFstHZ);
 
-            // 2. use "TestLib OneReechFromAscii" command to clip second image into patches by reprojecting the first patches to the second image
+            // 2. use "TestLib OneReechFromAscii" command to clip secondary image into patches by reprojecting the master patches to the secondary image
             if(true)
             {
                 double dScaleL = 1;
@@ -444,10 +444,10 @@ Pt2dr ClipImg(std::string aOutImg1, std::string aImg1, Pt2di ImgSzL, Pt2dr aPatc
             origin.x = m*CoreaPatchSz.x - aBufferSz.x;
             origin.y = n*CoreaPatchSz.y - aBufferSz.y;
 
-            // 1. use ClipIm command to clip first image into patches
-            std::string aComClipFirstImg = aComBaseClip + " ["+std::to_string(int(origin.x))+","+std::to_string(int(origin.y))+"] " + aClipSz + "Out="+aOutDir+"/"+aSubImg1;
-            //cout<<aComClipFirstImg<<endl;
-            aLComClip.push_back(aComClipFirstImg);
+            // 1. use ClipIm command to clip master image into patches
+            std::string aComClipMasterImg = aComBaseClip + " ["+std::to_string(int(origin.x))+","+std::to_string(int(origin.y))+"] " + aClipSz + "Out="+aOutDir+"/"+aSubImg1;
+            //cout<<aComClipMasterImg<<endl;
+            aLComClip.push_back(aComClipMasterImg);
 
             cElComposHomographie aFstHX(1, 0, origin.x);
             cElComposHomographie aFstHY(0, 1, origin.y);
@@ -612,10 +612,10 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
          argc,argv,
          LArgMain()
                 << EAMC(aType,"BruteForce or Guided")
-                     << EAMC(aImg1,"First image name")
-                     << EAMC(aImg2,"Second image name"),
+                     << EAMC(aImg1,"Master image name")
+                     << EAMC(aImg2,"Secondary image name"),
          LArgMain()
-                     << EAM(bRotate,"Rotate",true,"Rotate the left image by 90 degree 4 times for methods not invariant to rotation (e.g. SuperGlue), Def=false")
+                     << EAM(bRotate,"Rotate",true,"Rotate the left image by 90 degree 4 times for matching methods which are not invariant to rotation (e.g. SuperGlue), Def=false")
                      << aCAS3D.ArgBasic()
                      << aCAS3D.ArgGetPatchPair()
      );
@@ -737,17 +737,17 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
          argc,argv,
          LArgMain()
                 << EAMC(aType,"BruteForce or Guided")
-                     << EAMC(aImg1,"First image name")
-                     << EAMC(aImg2,"Second image name")
-                     << EAMC(aOri1,"Orientation of first image")
-                     << EAMC(aOri2,"Orientation of second image"),
+                     << EAMC(aImg1,"Master image name")
+                     << EAMC(aImg2,"Secondary image name")
+                     << EAMC(aOri1,"Orientation of master image")
+                     << EAMC(aOri2,"Orientation of secondary image"),
          LArgMain()
                      << aCAS3D.ArgBasic()
                      << aCAS3D.ArgGetPatchPair()
-                << EAM(aPara3DH, "Para3DH", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of first image to second image, Def=none")
+                << EAM(aPara3DH, "Para3DH", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
                 << EAM(bPrint, "Print", false, "Print corner coordinate, Def=false")
-                << EAM(aDSMDirL, "DSMDirL", true, "DSM directory of first image, Def=none")
-                << EAM(aDSMFileL, "DSMFileL", true, "DSM File of first image, Def=MMLastNuage.xml")
+                << EAM(aDSMDirL, "DSMDirL", true, "DSM directory of master image, Def=none")
+                << EAM(aDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
                 << EAM(aPrefix, "Prefix", true, "The prefix for the name of images (for debug only), Def=none")
 
      );

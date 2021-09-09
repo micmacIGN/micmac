@@ -91,7 +91,7 @@ void PredictKeyPt(std::vector<Pt2dr>& aVPredL, std::vector<Siftator::SiftPoint> 
     int nSizeL = aVSiftL.size();
 
     double dGSD1 = a3DL.GetGSD();
-     cout<<"GSD of first image: "<<dGSD1<<endl;
+     cout<<"GSD of master image: "<<dGSD1<<endl;
 
     //printf("---------------------\n");
     for(int i=0; i<nSizeL; i++)
@@ -139,7 +139,7 @@ void PredictKeyPt(std::vector<Pt2dr>& aVPredL, std::vector<Siftator::SiftPoint> 
     }
 }
 
-//for the key points in one image (first or second image), find their nearest neighbor in another image and record it
+//for the key points in one image (master or secondary image), find their nearest neighbor in another image and record it
 void MatchOneWay(std::vector<int>& matchIDL, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, std::vector<Pt2dr> aVPredL, Pt2di ImgSzR, double dScale, double dAngle, double threshScale, double threshAngle, bool bCheckScale, bool bCheckAngle, double aSearchSpace, bool bPredict, bool bRatioT)
 {
     int nSIFT_DESCRIPTOR_SIZE = 128;
@@ -227,7 +227,7 @@ void MatchOneWay(std::vector<int>& matchIDL, std::vector<Siftator::SiftPoint> aV
             }
             dDis = pow(dDis, 1.0/alpha);
 
-            //save first and second nearest neigbor
+            //save master and secondary nearest neigbor
             if(dDis < dEuDisMin)
             {
                 dEuDisMin = dDis;
@@ -342,8 +342,8 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
         return;
     }
 
-    cout<<"Key point number of first image: "<<aVSiftL.size()<<endl;
-    cout<<"Key point number of second image: "<<aVSiftR.size()<<endl;
+    cout<<"Key point number of master image: "<<aVSiftL.size()<<endl;
+    cout<<"Key point number of secondary image: "<<aVSiftR.size()<<endl;
 
     AmendSIFTKeyPt(aVSiftL, bRootSift);
     AmendSIFTKeyPt(aVSiftR, bRootSift);
@@ -480,19 +480,19 @@ int GuidedSIFTMatch_main(int argc,char ** argv)
    ElInitArgMain
     (
         argc,argv,
-        LArgMain()   << EAMC(aImg1,"First image name")
-               << EAMC(aImg2,"Second image name")
-               << EAMC(aOri1,"Orientation of first image")
-               << EAMC(aOri2,"Orientation of second image"),
+        LArgMain()   << EAMC(aImg1,"Master image name")
+               << EAMC(aImg2,"Secondary image name")
+               << EAMC(aOri1,"Orientation of master image")
+               << EAMC(aOri2,"Orientation of secondary image"),
         LArgMain()
                     << aCAS3D.ArgBasic()
                     << aCAS3D.ArgGuidedSIFT()
-               << EAM(aDSMDirL, "DSMDirL", true, "DSM of first image (for improving the reprojecting accuracy), Def=none")
-               << EAM(aDSMDirR, "DSMDirR", true, "DSM of second image (for improving the reprojecting accuracy), Def=none")
-               << EAM(aDSMFileL, "DSMFileL", true, "DSM File of first image, Def=MMLastNuage.xml")
-               << EAM(aDSMFileR, "DSMFileR", true, "DSM File of second image, Def=MMLastNuage.xml")
-               << EAM(aPara3DHL, "Para3DHL", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of first image to second image, Def=none")
-               << EAM(aPara3DHR, "Para3DHR", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of second image to first image, Def=none")
+               << EAM(aDSMDirL, "DSMDirL", true, "DSM of master image (for improving the reprojecting accuracy), Def=none")
+               << EAM(aDSMDirR, "DSMDirR", true, "DSM of secondary image (for improving the reprojecting accuracy), Def=none")
+               << EAM(aDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
+               << EAM(aDSMFileR, "DSMFileR", true, "DSM File of secondary image, Def=MMLastNuage.xml")
+               << EAM(aPara3DHL, "Para3DHL", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
+               << EAM(aPara3DHR, "Para3DHR", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of secondary image to master image, Def=none")
 
     );
     StdCorrecNameOrient(aOri1,"./",true);

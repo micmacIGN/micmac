@@ -168,14 +168,14 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
 
 
     *mArgGetPatchPair
-            << EAM(mPatchSz, "PatchSz", true, "Patch size, Def=[640, 480]")
-            << EAM(mBufferSz, "BufferSz", true, "Buffer zone size around the patch, Def=[30, 60]")
-            << EAM(mSubPatchXml, "SubPXml", true, "The output xml file name to record the homography between the patch and original image, Def=SubPatch.xml")
-            //<< EAM(mDSMDirL, "DSMDirL", true, "DSM of first image (for improving the reprojecting accuracy), Def=none")
-            //<< EAM(mDSMDirR, "DSMDirR", true, "DSM of second image (for improving the reprojecting accuracy), Def=none")
+            << EAM(mPatchSz, "PatchSz", true, "Patch size of the tiling scheme, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
+            << EAM(mBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=[30, 60]")
+            << EAM(mSubPatchXml, "SubPXml", true, "The output xml file name to record the homography between the patches and original image, Def=SubPatch.xml")
+            //<< EAM(mDSMDirL, "DSMDirL", true, "DSM of master image (for improving the reprojecting accuracy), Def=none")
+            //<< EAM(mDSMDirR, "DSMDirR", true, "DSM of secondary image (for improving the reprojecting accuracy), Def=none")
             << EAM(mOutDir, "OutDir", true, "Output direcotry of the patches, Def=./Tmp_Patches")
-            //<< EAM(mOutImg1, "OutImg1", true, "Name of the main part of the output patches from first image, Def=first image name")
-            //<< EAM(mOutImg2, "OutImg2", true, "Name of the main part of the output patches from second image, Def=second image name")
+            //<< EAM(mOutImg1, "OutImg1", true, "Name of the main part of the output patches from master image, Def=master image name")
+            //<< EAM(mOutImg2, "OutImg2", true, "Name of the main part of the output patches from secondary image, Def=secondary image name")
             << EAM(mImgPair, "ImgPair", true, "Output txt file that records the patch pairs, Def=SuperGlueInput.txt");
 
 
@@ -184,17 +184,17 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
             << EAM(mInput_dir, "InDir", true, "The input directory of the images for SuperGlue, Def=./")
             << EAM(mSpGlueOutSH, "SpGOutSH", true, "Homologue extenion for NB/NT mode of SuperGlue, Def=-SuperGlue")
             << EAM(mOutput_dir, "OutDir", true, "The output directory of the match results of SuperGlue, Def=./")
-            << EAM(mResize, "Resize", true, "The goal size to resize the input image for SuperGlue, Def=[640, 480], if you don't want to resize, please set to [-1, -1]")
+            << EAM(mResize, "Resize", true, "The goal size for resizing the input image for SuperGlue, Def=[640, 480], if you don't want to resize, please set to [-1, -1]")
             << EAM(mViz, "Viz", true, "Visualize the matches and dump the plots of SuperGlue, Def=false")
             << EAM(mModel, "Model", true, "Pretrained indoor or outdoor model of SuperGlue, Def=outdoor")
             << EAM(mMax_keypoints, "MaxPt", true, "Maximum number of keypoints detected by Superpoint, Def=1024")
             << EAM(mKeepNpzFile, "KeepNpzFile", true, "Keep the original npz file that SuperGlue outputed, Def=false")
-            << EAM(mStrEntSpG, "EntSpG", true, "The SuperGlue program entry, Def=../micmac/src/uti_phgrm/TiePHistorical/SuperGluePretrainedNetwork-master/match_pairs.py")
-            << EAM(mStrOpt, "opt", true, "Other options for SuperGlue (for debug only), Def=none");
+            << EAM(mStrEntSpG, "EntSpG", true, "The SuperGlue program entry (this option is only used for developper), Def=../micmac/src/uti_phgrm/TiePHistorical/SuperGluePretrainedNetwork-master/match_pairs.py")
+            << EAM(mStrOpt, "opt", true, "Other options for SuperGlue (this option is only used for developper), Def=none");
 
     *mArgMergeTiePt
         << EAM(mMergeTiePtInSH,"MergeInSH",true,"Input Homologue extenion for NB/NT mode for MergeTiePt, Def=none")
-        << EAM(mHomoXml,"HomoXml",true,"Input xml file that recorded the homograhpy from patch to original image for MergeTiePt, Def=SubPatch.xml")
+        << EAM(mHomoXml,"HomoXml",true,"Input xml file that recorded the homograhpy from patches to original image for MergeTiePt, Def=SubPatch.xml")
            //the name of MergeOutSH will be set as the same name of HomoXml, if not set by users
         << EAM(mMergeTiePtOutSH,"MergeOutSH",true,"Output Homologue extenion for NB/NT mode of MergeTiePt, Def=-SubPatch");
 
@@ -217,47 +217,47 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
 
     *mArg2DRANSAC
         << EAM(mRANSACInSH,"2DRANInSH",true,"Input Homologue extenion for NB/NT mode for 2D RANSAC, Def=none")
-        << EAM(mRANSACOutSH,"2DRANOutSH",true,"Output Homologue extenion for NB/NT mode of 2D RANSAC, Def='RANSACInSH'-2DRANSAC")
+        << EAM(mRANSACOutSH,"2DRANOutSH",true,"Output Homologue extenion for NB/NT mode of 2D RANSAC, Def='2DRANInSH'-2DRANSAC")
         << EAM(mR2DIteration,"2DIter",true,"2D RANSAC iteration, Def=1000")
         << EAM(mR2DThreshold,"2DRANTh",true,"2D RANSAC threshold, Def=10");
 
     *mArg3DRANSAC
         << EAM(mRANSACInSH,"3DRANInSH",true,"Input Homologue extenion for NB/NT mode for 3D RANSAC, Def=none")
-        << EAM(mRANSACOutSH,"3DRANOutSH",true,"Output Homologue extenion for NB/NT mode of 3D RANSAC, Def='RANSACInSH'-3DRANSAC")
+        << EAM(mRANSACOutSH,"3DRANOutSH",true,"Output Homologue extenion for NB/NT mode of 3D RANSAC, Def='3DRANInSH'-3DRANSAC")
         << EAM(mR3DIteration,"3DIter",true,"3D RANSAC iteration, Def=1000")
-        << EAM(mR3DThreshold,"3DRANTh",true,"3D RANSAC threshold, Def=10*(GSD of second image)");
+        << EAM(mR3DThreshold,"3DRANTh",true,"3D RANSAC threshold, Def=10*(GSD of secondary image)");
            /*
-        << EAM(mDSMDirL, "DSMDirL", true, "DSM directory of first image, Def=none")
-        << EAM(mDSMDirR, "DSMDirR", true, "DSM directory of second image, Def=none")
-        << EAM(mDSMFileL, "DSMFileL", true, "DSM File of first image, Def=MMLastNuage.xml")
-        << EAM(mDSMFileR, "DSMFileR", true, "DSM File of second image, Def=MMLastNuage.xml");
+        << EAM(mDSMDirL, "DSMDirL", true, "DSM directory of master image, Def=none")
+        << EAM(mDSMDirR, "DSMDirR", true, "DSM directory of secondary image, Def=none")
+        << EAM(mDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
+        << EAM(mDSMFileR, "DSMFileR", true, "DSM File of secondary image, Def=MMLastNuage.xml");
                */
 
 
     *mArgGuidedSIFT
             /*
-    << EAM(mDSMDirL, "DSMDirL", true, "DSM of first image (for improving the reprojecting accuracy), Def=none")
-    << EAM(mDSMDirR, "DSMDirR", true, "DSM of second image (for improving the reprojecting accuracy), Def=none")
-    << EAM(mDSMFileL, "DSMFileL", true, "DSM File of first image, Def=MMLastNuage.xml")
-    << EAM(mDSMFileR, "DSMFileR", true, "DSM File of second image, Def=MMLastNuage.xml")
+    << EAM(mDSMDirL, "DSMDirL", true, "DSM of master image (for improving the reprojecting accuracy), Def=none")
+    << EAM(mDSMDirR, "DSMDirR", true, "DSM of secondary image (for improving the reprojecting accuracy), Def=none")
+    << EAM(mDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
+    << EAM(mDSMFileR, "DSMFileR", true, "DSM File of secondary image, Def=MMLastNuage.xml")
             */
     << EAM(mGuidedSIFTOutSH,"GSIFTOutSH",true,"Output Homologue extenion for NB/NT mode of Guided SIFT, Def=-GuidedSIFT")
     << EAM(mSkipSIFT,"SkipSIFT",true,"Skip extracting SIFT key points in case it is already done, Def=false")
     << EAM(mSearchSpace,"SearchSpace",true,"Radius of the search space for GuidedSIFT (the search space is the circle with the center on the predicted point), Def=100")
-    << EAM(mMutualNN, "MutualNN",true, "Apply mutual nearest neighbor or not on GuidedSIFT, Def=true")
-    << EAM(mRatioT, "RatioT",true, "Apply ratio test or not on GuidedSIFT, Def=true")
-    << EAM(mRootSift, "RootSift",true, "Use RootSIFT as descriptor or not on GuidedSIFT, Def=true")
-    << EAM(mCheckScale, "CheckScale",true, "Check the scale of the candidate tie points or not on GuidedSIFT, Def=true")
-    << EAM(mCheckAngle, "CheckAngle",true, "Check the angle of the candidate tie points or not on GuidedSIFT, Def=true")
-    << EAM(mPredict, "Predict",true, "Use the predicted key points to guide the matching or not, Def=true")
-    << EAM(mScale, "Scale",true, "The scale used for checking the candidate tie points on GuidedSIFT, Def=1")
-    << EAM(mAngle, "Angle",true, "The angle used for checking the candidate tie points on GuidedSIFT, Def=0");
+    << EAM(mMutualNN, "MutualNN",true, "Apply mutual nearest neighbor on GuidedSIFT, Def=true")
+    << EAM(mRatioT, "RatioT",true, "Apply ratio test on GuidedSIFT, Def=true")
+    << EAM(mRootSift, "RootSift",true, "Use RootSIFT as descriptor on GuidedSIFT, Def=true")
+    << EAM(mCheckScale, "CheckScale",true, "Check the scale of the candidate tie points on GuidedSIFT, Def=true")
+    << EAM(mCheckAngle, "CheckAngle",true, "Check the angle of the candidate tie points on GuidedSIFT, Def=true")
+    << EAM(mPredict, "Predict",true, "Use the predicted key points to guide the matching, Def=true")
+    << EAM(mScale, "Scale",true, "The scale ratio used for checking the candidate tie points on GuidedSIFT, Def=1")
+    << EAM(mAngle, "Angle",true, "The angle difference used for checking the candidate tie points on GuidedSIFT, Def=0");
 
     *mArgCrossCorrelation
 //            << EAM(mPatchSz, "PatchSz", true, "Patch size, Def=[640, 480]")
 //            << EAM(mBufferSz, "BufferSz", true, "Buffer sie, Def=[30, 60]")
             << EAM(mCrossCorrelationInSH,"CCInSH",true,"Input Homologue extenion for NB/NT mode for cross correlation, Def=none")
-            << EAM(mCrossCorrelationOutSH,"CCOutSH",true,"Output Homologue extenion for NB/NT mode of cross correlation, Def='CrossCorrelationInSH'-CrossCorrelation")
+            << EAM(mCrossCorrelationOutSH,"CCOutSH",true,"Output Homologue extenion for NB/NT mode of cross correlation, Def='CCInSH'-CrossCorrelation")
                //<< EAM(mSubPatchXml, "SubPatchXml", true, "The xml file name to record the homography between the patch and original image, Def=SubPatch.xml")
             << EAM(mWindowSize, "SzW",true, "Window size of cross correlation, Def=32")
             << EAM(mCrossCorrThreshold, "CCTh",true, "Corss correlation threshold, Def=0.6");
@@ -998,24 +998,24 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
         LArgMain()
                << EAMC(mOri1,"Orientation of epoch1")
                << EAMC(mOri2,"Orientation of epoch2")
-               << EAMC(mImgList1,"ImgList1: The list that contains all the RGB images of epoch1")
-               << EAMC(mImgList2,"ImgList2: The list that contains all the RGB images of epoch2")
+               << EAMC(mImgList1,"ImgList1: The list that contains all the RGB images of epoch1, this parameter is used for creating GCPs for rough co-registration ")
+               << EAMC(mImgList2,"ImgList2: The list that contains all the RGB images of epoch2, this parameter is used for creating GCPs for rough co-registration ")
                << EAMC(mDSMDirL, "DSM directory of epoch1")
                << EAMC(mDSMDirR, "DSM directory of epoch2"),
 
         LArgMain()
-               << EAM(mExe,"Exe",true,"Execute all, Def=true")
+               << EAM(mExe,"Exe",true,"Execute all, Def=true. If this parameter is set to false, the pipeline will not be executed and the command of all the submodules will be printed.")
                << EAM(mImg4MatchList1,"I4ML1",true,"The list that contains the RGB images of epoch1 for extracting inter-epoch correspondences, Def=ImgList1")
                << EAM(mImg4MatchList2,"I4ML2",true,"The list that contains the RGB images of epoch2 for extracting inter-epoch correspondences, Def=ImgList2")
-               << EAM(mCheckFile, "CheckFile", true, "Check if the result files exist (if so, skip), Def=false")
-               << EAM(mUseDepth,"UseDep",true,"Use depth to improve perfomance, Def=false")
-               << EAM(mRotateDSM,"RotateDSM",true,"The angle of rotation from the first DSM to the second DSM for rough co-registration (only 4 options available: 0, 90, 180, 270), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
+               << EAM(mCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
+               << EAM(mUseDepth,"UseDep",true,"GetPatchPair for depth maps as well (this option is only used for developper), Def=false")
+               << EAM(mRotateDSM,"RotateDSM",true,"The angle of rotation from the master DSM to the secondary DSM for rough co-registration (only 4 options available: 0, 90, 180, 270), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
                << EAM(mSkipCoReg, "SkipCoReg", true, "Skip the step of rough co-registration, when the input orientations of epoch1 and epoch 2 are already co-registrated, Def=false")
                << EAM(mSkipPrecise, "SkipPrecise", true, "Skip the step of the whole precise matching pipeline, Def=false")
-               << EAM(mSkipGetPatchPair, "SkipGetPatchPair", true, "Skip the step of \"GetPatchPair\" in precise matching (for debug only), Def=false")
-               << EAM(mSkipTentativeMatch, "SkipTentativeMatch", true, "Skip the step of SuperGlue or SIFT matching (for debug only), Def=false")
-               << EAM(mSkipRANSAC3D, "SkipRANSAC3D", true, "Skip the step of 3D RANSAC (for debug only), Def=false")
-               << EAM(mSkipCrossCorr, "SkipCrossCorr", true, "Skip the step of cross correlation (for debug only), Def=false")
+               << EAM(mSkipGetPatchPair, "SkipGetPatchPair", true, "Skip the step of \"GetPatchPair\" in precise matching (this option is used when the results of \"GetPatchPair\" already exist), Def=false")
+               << EAM(mSkipTentativeMatch, "SkipTentativeMatch", true, "Skip the step of \"SuperGlue\" or SIFT matching (this option is used when the results of \"SuperGlue\" or SIFT matching already exist), Def=false")
+               << EAM(mSkipRANSAC3D, "SkipRANSAC3D", true, "Skip the step of \"3D RANSAC\" (this option is used when the results of \"3D RANSAC\" already exist), Def=false")
+               << EAM(mSkipCrossCorr, "SkipCrossCorr", true, "Skip the step of \"cross correlation\" (this option is used when the results of \"cross correlation\" already exist), Def=false")
                << EAM(mFeature,"Feature",true,"Feature matching method used for precise matching (SuperGlue or SIFT), Def=SuperGlue")
                //<< EAM(mCoRegOri,"CoRegOri",true,"Output of Co-registered orientation, Def=Co-reg")
                << mCAS3D.ArgBasic()

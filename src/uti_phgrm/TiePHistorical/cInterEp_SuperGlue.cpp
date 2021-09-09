@@ -261,7 +261,7 @@ int SuperGlue_main(int argc,char ** argv)
         LArgMain()
                     //<< aCAS3D.ArgBasic()
                     << aCAS3D.ArgSuperGlue()
-                    << EAM(bCheckFile, "CheckFile", true, "Check if the result files exist (if so, skip), Def=false")
+                    << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
 
     );
 

@@ -106,8 +106,8 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
 
     double dGSD1 = a3DCoorL.GetGSD();
     double dGSD2 = a3DCoorR.GetGSD();
-     cout<<"GSD of first image: "<<dGSD1<<endl;
-     cout<<"GSD of second image: "<<dGSD2<<endl;
+     cout<<"GSD of master image: "<<dGSD1<<endl;
+     cout<<"GSD of secondary image: "<<dGSD2<<endl;
 
      if(threshold < 0)
          threshold = 10*dGSD2;
@@ -435,8 +435,8 @@ int R2D(int argc,char ** argv, const std::string &aArg="")
      (
          argc,argv,
          LArgMain()  << EAMC(aStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeRHP))
-                << EAMC(aImg1,"First image name")
-                << EAMC(aImg2,"Second image name"),
+                << EAMC(aImg1,"Master image name")
+                << EAMC(aImg2,"Secondary image name"),
          LArgMain()
                      << aCAS3D.ArgBasic()
                      << aCAS3D.Arg2DRANSAC()
@@ -495,17 +495,17 @@ int R3D(int argc,char ** argv, const std::string &aArg="")
      (
          argc,argv,
          LArgMain()  << EAMC(aStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeRHP))
-                << EAMC(aImg1,"First image name")
-                << EAMC(aImg2,"Second image name")
-                << EAMC(aOri1,"Orientation of first image")
-                << EAMC(aOri2,"Orientation of second image"),
+                << EAMC(aImg1,"Master image name")
+                << EAMC(aImg2,"Secondary image name")
+                << EAMC(aOri1,"Orientation of master image")
+                << EAMC(aOri2,"Orientation of secondary image"),
          LArgMain()
                      << aCAS3D.ArgBasic()
                      << aCAS3D.Arg3DRANSAC()
-                << EAM(aDSMDirL, "DSMDirL", true, "DSM directory of first image, Def=none")
-                << EAM(aDSMDirR, "DSMDirR", true, "DSM directory of second image, Def=none")
-                << EAM(aDSMFileL, "DSMFileL", true, "DSM File of first image, Def=MMLastNuage.xml")
-                << EAM(aDSMFileR, "DSMFileR", true, "DSM File of second image, Def=MMLastNuage.xml")
+                << EAM(aDSMDirL, "DSMDirL", true, "DSM directory of master image, Def=none")
+                << EAM(aDSMDirR, "DSMDirR", true, "DSM directory of secondary image, Def=none")
+                << EAM(aDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
+                << EAM(aDSMFileR, "DSMFileR", true, "DSM File of secondary image, Def=MMLastNuage.xml")
 
      );
 

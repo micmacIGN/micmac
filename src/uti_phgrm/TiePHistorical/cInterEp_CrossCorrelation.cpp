@@ -413,16 +413,16 @@ int CrossCorrelation_main(int argc,char ** argv)
    ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aImg1,"First image name")
-               << EAMC(aImg2,"Second image name"),
+        LArgMain()  << EAMC(aImg1,"Master image name")
+               << EAMC(aImg2,"Secondary image name"),
         LArgMain()
                     << aCAS3D.ArgBasic()
                     << aCAS3D.ArgCrossCorrelation()
-                   << EAM(aPatchSz, "PatchSz", true, "Patch size, Def=[640, 480]")
-                   << EAM(aBufferSz, "BufferSz", true, "Buffer sie, Def=[30, 60]")
+                   << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme (since we use the patches resulted from \"GetPatchPair\" to calculate the cross correlation, this parameter should be set the same as the PatchSz in command GetPatchPair), Def=[640, 480]")
+                   << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme (since we use the patches resulted from \"GetPatchPair\" to calculate the cross correlation, this parameter should be set the same as the BufferSz in command GetPatchPair), Def=[30, 60]")
                     << EAM(aSubPatchXml, "SubPXml", true, "The xml file name to record the homography between the patch and original image, Def=SubPatch.xml")
                    << EAM(aPatchDir, "PatchDir", true, "The input directory of patches, Def=./Tmp_Patches")
-                   << EAM(bCheckFile, "CheckFile", true, "Check if the result files exist (if so, skip), Def=false")
+                   << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
 
     );
 /*

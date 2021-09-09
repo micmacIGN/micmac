@@ -294,15 +294,15 @@ int GetOverlappedImages_main(int argc,char ** argv)
     (
         argc,argv,
         LArgMain()
-               << EAMC(aOri1,"Orientation of first image")
-               << EAMC(aOri2,"Orientation of second image")
+               << EAMC(aOri1,"Orientation of master image")
+               << EAMC(aOri2,"Orientation of secondary image")
                //<< EAMC(aDir,"Work directory")
-               << EAMC(aImgList1,"Input Image List of Epoch 1")
-               << EAMC(aImgList2,"Input Image List of Epoch 2"),
+               << EAMC(aImgList1,"ImgList1: The list that contains all the RGB images of epoch1, this parameter is used for creating GCPs for rough co-registration")
+               << EAMC(aImgList2,"ImgList2: The list that contains all the RGB images of epoch2, this parameter is used for creating GCPs for rough co-registration"),
         LArgMain()
                     << aCAS3D.ArgBasic()
                     << aCAS3D.ArgGetOverlappedImages()
-               << EAM(aPara3DH, "Para3DH", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of first image to second image, Def=none")
+               << EAM(aPara3DH, "Para3DH", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
                << EAM(bPrint, "Print", false, "Print corner coordinate, Def=false")
 
     );
