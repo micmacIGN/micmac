@@ -227,8 +227,8 @@ int DSM_Equalization_main(int argc,char ** argv)
         LArgMain()
                     //<< aCAS3D.ArgBasic()
                     << aCAS3D.ArgDSM_Equalization()
-                    << EAM(aDSMFile, "DSMFile", true, "DSM File, Def=MMLastNuage.xml")
-                    << EAM(aOutImg, "OutImg", true, "Output image name")
+                    << EAM(aDSMFile, "DSMFile", true, "The xml file that recorded the structure information of the DSM, Def=MMLastNuage.xml")
+                    << EAM(aOutImg, "OutImg", true, "Output image name, Def='input'_gray.tif")
 
     );
 

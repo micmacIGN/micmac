@@ -624,7 +624,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         std::string aRotate[4] = {"", "_R90", "_R180", "_R270"};
         std::string aFinalOutSH;
         int nMaxinlier = 0;
-        //Rotate the left DSM 4 times and apply superGlue
+        //Rotate the master DSM 4 times and apply superGlue
         for(int i=0; i<4; i++)
         {
             if(mRotateDSM != -1)

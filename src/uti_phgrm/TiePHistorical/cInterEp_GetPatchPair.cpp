@@ -155,7 +155,7 @@ void WriteXml(std::string aImg1, std::string aImg2, std::string aSubPatchXml, st
     MakeFileXML(aDAFout, aSubPatchXml);
 }
 
-//simply clip images to get left patches (m patches), and resample images to get right patches (m patches). The number of pairs to be matched will be m.
+//simply clip images to get master patches (m patches), and resample images to get secondary patches (m patches). The number of pairs to be matched will be m.
 //mainly used for precise matching
 void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg2, std::string aImg1, std::string aImg2, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aImgPair, std::string aDir, std::string aSubPatchXml, cTransform3DHelmert aTrans3DH, std::string aDSMFileL, std::string aDSMDirL, bool bPrint=false, std::string aPrefix="")
 {
@@ -461,9 +461,9 @@ Pt2dr ClipImg(std::string aOutImg1, std::string aImg1, Pt2di ImgSzL, Pt2dr aPatc
     return PatchNum;
 }
 
-//simply clip images to get left patches (m patches) and right patches (n patches).  The number of pairs to be matched will be m*n.
+//simply clip images to get master patches (m patches) and secondary patches (n patches).  The number of pairs to be matched will be m*n.
 //mainly used for rough co-registration
-//aOriImg1 is the orginal left image, aImg1 could be the same as aOriImg1 (in this case aIm1_OriImg1 is unit matrix), or rotated image based on aOriImg1
+//aOriImg1 is the orginal master image, aImg1 could be the same as aOriImg1 (in this case aIm1_OriImg1 is unit matrix), or rotated image based on aOriImg1
 void GetTilePair(std::string aOutDir, std::string aOriOutImg1, std::string aRotateOutImg1, std::string aOutImg2, std::string aImg1, std::string aImg2, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aImgPair, std::string aDir, std::string aSubPatchXml, std::string aOriImg1, cElHomographie aIm1_OriImg1)
 {
     //cout<<aDir<<endl;
@@ -615,7 +615,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
                      << EAMC(aImg1,"Master image name")
                      << EAMC(aImg2,"Secondary image name"),
          LArgMain()
-                     << EAM(bRotate,"Rotate",true,"Rotate the left image by 90 degree 4 times for matching methods which are not invariant to rotation (e.g. SuperGlue), Def=false")
+                     << EAM(bRotate,"Rotate",true,"Rotate the master image by 90 degree 4 times for matching methods which are not invariant to rotation (e.g. SuperGlue), Def=false")
                      << aCAS3D.ArgBasic()
                      << aCAS3D.ArgGetPatchPair()
      );

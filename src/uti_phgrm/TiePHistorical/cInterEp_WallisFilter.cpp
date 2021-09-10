@@ -131,8 +131,8 @@ int WallisFilter_main(int argc,char ** argv)
         LArgMain()  << EAMC(aImg, "Input image"),
         LArgMain()
                     //<< aCAS3D.ArgBasic()
-               << EAM(aDir, "Dir", true, "Work directory")
-               << EAM(aOutImg, "OutImg", true, "Output image name")
+               << EAM(aDir, "Dir", true, "Work directory, Def=./")
+               << EAM(aOutImg, "OutImg", true, "Output image name, Def='input'_sfs.tif")
                     //<< aCAS3D.ArgMergeTiePt()
     );
 
