@@ -2046,7 +2046,11 @@ void cAppliMICMAC::DoCorrelAdHoc
 
         mCC = aTC.CensusCost().PtrVal();
 
-        if (aTC.GPU_Correl().IsInit())
+	if (aTC.ScoreLearnedMMVII().IsInit())
+        {
+            DoCostLearnedMMVII(aBox,aTC.ScoreLearnedMMVII().Val());
+        }
+        else if (aTC.GPU_Correl().IsInit())
         {
             DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0,0);
         }

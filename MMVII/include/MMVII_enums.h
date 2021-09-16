@@ -135,6 +135,7 @@ enum class eTyUEr
               e2PatInModeLineEditRel,
               eParseError,
               eBadDimForPt,
+              eBadDimForBox,
               eBadSize4Vect,
               eMultiplePostifx,
               eUnClassedError,

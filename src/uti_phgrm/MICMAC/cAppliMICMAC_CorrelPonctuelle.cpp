@@ -40,6 +40,136 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "../src/uti_phgrm/MICMAC/MICMAC.h"
 
 
+//  DoOneBloc fixe  mBoxIn mBoxOut, peut se rappeler recursivement
+//      mBoxIn/ mBoxOut  voir void cAppliMICMAC::SauvFileChantier(Fonc_Num aF,Tiff_Im aFile) const
+//   call => GlobDoCorrelAdHoc
+
+
+//  GlobDoCorrelAdHoc
+//      =>   cDecoupageInterv2D aDecInterv = cDecoupageInterv2D::SimpleDec ( aBoxIn.sz(), aSzDecoupe, 0);
+//      =>   DoCorrelAdHoc(aDecInterv.KthIntervOut(aKBox));
+//
+
+void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMVII &aCPC)
+{
+//	        std::string NameFilePyr(const std::string &,int) const;
+//	        NameFileOfResol
+
+   Im2D_INT2  aImZMin = mLTer->KthNap(0).mImPxMin;
+   Im2D_INT2  aImZMax = mLTer->KthNap(0).mImPxMax;
+   TIm2D<INT2,INT4>  aTImZMin(aImZMin);
+   TIm2D<INT2,INT4>  aTImZMax(aImZMax);
+
+   int aDZIm = mCurEtape->DeZoomIm() ;
+   std::string aN1 =  PDV1()->IMIL()->NameFileOfResol(aDZIm);
+   std::string aN2 =  PDV2()->IMIL()->NameFileOfResol(aDZIm);
+
+   double aStepZ = GeomDFPx().PasPxRel0();
+
+   Pt2di aSz = aBox.sz() ;
+
+   ELISE_ASSERT(aBox.P0() == Pt2di(0,0),"Learn, Box origin  expected in (0,0)");
+   ELISE_ASSERT( aSz == mBoxIn.sz(),"Sz incoh Box/Min BoxMax");
+   ELISE_ASSERT( aSz == aImZMin.sz(),"Learn, Box origin  expected in (0,0)");
+   ELISE_ASSERT( aSz == aImZMax.sz(),"Learn, Box origin  expected in (0,0)");
+   // ELISE_ASSERT( aSz == mMasqImTer.sz(),"Learn, Box origin  expected in (0,0)");
+
+   std::cout << "PPPP " << PDV1()->Name() << " " << PDV2()->Name() << "\n";
+   // Version where we just test the interface
+   int aZMin = 1e9;
+   int aZMax = -1e9;
+   {
+       for (int aX=0 ; aX<aSz.x ; aX++)
+       {
+           for (int aY=0 ; aY<aSz.y ; aY++)
+           {
+               if ( IsInTer(aX,aY))
+	       {
+                  ElSetMin(aZMin,aTImZMin.Val(aX,aY));
+                  ElSetMax(aZMax,aTImZMax.Val(aX,aY));
+	       }	       
+           }
+       }
+       aZMin = round_down(aZMin*aStepZ);
+       aZMax = round_up  (aZMax*aStepZ);
+   }
+   
+   if (1)
+   {
+       int aSzW = 3;
+
+       Tiff_Im aF2(aN2.c_str());
+
+       int aX0In2 = ElMax(mBoxIn.P0().x-aSzW+aZMin,  0);
+       int aY0In2 = ElMax(mBoxIn.P0().y-aSzW      ,  0);
+       int aX1In2 = ElMin(mBoxIn.P1().x+aSzW+aZMax,  aF2.sz().x);
+       int aY1In2 = ElMin(mBoxIn.P1().y+aSzW      ,  aF2.sz().y);
+       Box2di aBoxIn2(Pt2di(aX0In2,aY0In2),Pt2di(aX1In2,aY1In2));
+       Pt2di aSzIm2 = aBoxIn2.sz();
+       Im2D_REAL4  aIm2(aSzIm2.x,aSzIm2.y);
+       ELISE_COPY(aIm2.all_pts(),trans(aF2.in(),aBoxIn2.P0()),aIm2.out());
+       TIm2D<REAL4,REAL8> aTI2(aIm2);
+
+
+       Tiff_Im aF1(aN1.c_str());
+       int aX0In1 = ElMax(mBoxIn.P0().x-aSzW,  0);
+       int aY0In1 = ElMax(mBoxIn.P0().y-aSzW,  0);
+       int aX1In1 = ElMin(mBoxIn.P1().x+aSzW,  aF1.sz().x);
+       int aY1In1 = ElMin(mBoxIn.P1().y+aSzW,  aF1.sz().y);
+       Box2di aBoxIn1(Pt2di(aX0In1,aY0In1),Pt2di(aX1In1,aY1In1));
+       Pt2di aSzIm1 = aBoxIn1.sz();
+       Im2D_REAL4  aIm1(aSzIm1.x,aSzIm1.y);
+       TIm2D<REAL4,REAL8> aTI1(aIm1);
+       ELISE_COPY(aIm1.all_pts(),trans(aF1.in(),aBoxIn1.P0()),aIm1.out());
+
+if (0)
+{
+	std::cout <<  "FILES 1 " << aF1.sz() << " " << aF2.sz()  <<"\n";
+	std::cout <<  "BOX x1:" <<  aX1In1 -aX0In1  << " x2 : " << aX1In2-aX0In2  <<"\n";
+	std::cout << " I1: "  << aN1 << " " << aN2 << "\n";
+	std::cout << " ZZz: "  << mCurEtape->DeZoomIm() << "\n";
+	getchar();
+}
+
+
+       Pt2di aPLoc;
+       for (aPLoc.x=0 ; aPLoc.x<aSz.x ; aPLoc.x++)
+       {
+           for (aPLoc.y=0 ; aPLoc.y<aSz.y ; aPLoc.y++)
+           {
+               Pt2di aPAbs = aPLoc +mBoxIn.P0();
+               Pt2di aPLoc1 = aPAbs -Pt2di(aX0In1,aY0In1);
+               for (int aZ= aTImZMin.Val(aPLoc.x,aPLoc.y) ; aZ<aTImZMax.Val(aPLoc.x,aPLoc.y) ; aZ++)
+               {
+	           Pt2dr aPPx(aZ*aStepZ,0);
+		   Pt2dr aPLoc2 = Pt2dr(aPAbs -Pt2di(aX0In2,aY0In2)) + aPPx;
+		   Pt2di aPVois;
+                   RMat_Inertie  aMatI;
+
+                   for (aPVois.x=-aSzW ; aPVois.x<=aSzW ; aPVois.x++)
+                   {
+                       for (aPVois.y=-aSzW ; aPVois.y<=aSzW ; aPVois.y++)
+                       {
+                           Pt2di aPV1 = aPLoc1+aPVois;
+                           Pt2dr aPV2 = aPLoc2+Pt2dr(aPVois);
+                           if (IsInTer(aPLoc.x,aPLoc.y) &&  aTI1.inside(aPV1) && aTI2.Rinside_bilin(aPV2))
+                           {
+                                aMatI.add_pt_en_place(aTI1.get(aPV1),aTI2.getr(aPV2));
+                           }
+                       }
+                   }
+		   double aCost = 0.5;
+		   if (aMatI.s()>0)
+                      aCost=1-aMatI.correlation(1e-5);
+                   mSurfOpt->SetCout(aPLoc,&aZ,aCost);
+	       }
+           }
+       }
+   }
+
+}
+
+
 #define NbMaxIm 100
 
 void cAppliMICMAC::StatResultat 

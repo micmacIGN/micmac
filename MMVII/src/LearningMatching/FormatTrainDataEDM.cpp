@@ -93,7 +93,11 @@ std::vector<std::string>  cMDLB_AppliFormatTDEDM::Samples() const
 {
    return std::vector<std::string>
           (
-            {" MMVII  DMFormatTD_MDLB \".*JAX_022_004_002_.*\" 100 DoRectif=1"}
+            {
+	        "MMVII  DMFormatTD_MDLB \".*JAX_022_004_002_.*\" 100 DoRectif=1"
+               ,"MMVII DM0FormatTD_MDLB \".*Pl.*\" 2014 "
+	    }
+
           );
 }
 

@@ -199,6 +199,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::e2PatInModeLineEditRel,"2PatInModeLineEditRel"},
                 {eTyUEr::eParseError,"ParseError"},
                 {eTyUEr::eBadDimForPt,"BadDimension4Pts"},
+                {eTyUEr::eBadDimForBox,"BadDimension4Box"},
                 {eTyUEr::eBadSize4Vect,"BadSize4Vector"},
                 {eTyUEr::eMultiplePostifx,"MultiplePostifx"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}

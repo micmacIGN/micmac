@@ -502,6 +502,10 @@ template <class Type,const int Dim>  class cTplBox
         const tPt & P1() const {return mP1;} ///< End of object
         const tPt & Sz() const {return mSz;} ///< Size of object
 
+	 // SEE BELLOW, IF USE RESYNCRONIZE OBJECT AFTER  , GIVE COMPLICATED NAME ON PURPOSE
+        tPt & P0ByRef() {return mP0;} ///< Origin of object
+        tPt & P1ByRef() {return mP1;} ///< End of object
+
         const tBigNum & NbElem() const {return mNbElem;}  ///< Surface  / Volume
 
         //const tPt & SzCum() const; ///< Cumulated size, rather internal use
@@ -559,6 +563,7 @@ template <class Type,const int Dim>  class cTplBox
     private :
 };
 
+
 /** Function computing corner of box, this one is specific to dim=1 because it respect
 trigonometric order, a notion not generalisable */
 
@@ -566,9 +571,15 @@ template <class Type> void CornersTrigo(typename cTplBox<Type,2>::tCorner & aRes
 
 typedef cTplBox<int,2>  cBox2di; 
 typedef cTplBox<double,2>  cBox2dr; 
+typedef cTplBox<int,3>  cBox3di; 
+typedef cTplBox<double,3>  cBox3dr; 
 cBox2dr ToR(const cBox2di &);  ///< Basic conversion
 cBox2di ToI(const cBox2dr &);  ///< Convert in englobing mode
 cBox2dr operator * (const cBox2dr & aBox,double aScale); ///< just multiply each coord
+
+
+// Is window inside the box taking into account bilinear interpol ?
+template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW);
 
 template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cTplBox<Type,Dim> &aBox)
 { return  OS << "{" << aBox.P0() <<   " :: " << aBox.P1()<< "}"; }

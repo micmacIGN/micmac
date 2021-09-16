@@ -261,7 +261,7 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
     Pt2dr aSz =  Pt2dr(aG1->SzBasicCapt3D());
  
 
-    Pt2dr aSomTens2(0,0);
+    Pt2dr aSomDir(0,0);
     // On le met tres petit, ce qui a priori n'est pas genant et evite 
     // d'avoir des point hors zone
     //  GetVeryRoughInterProf est une proportion
@@ -364,7 +364,9 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
                 if (aVPIm2.size() >=2)
                 {
                     Pt2dr aDir2 = vunit(aVPIm2.back()-aVPIm2[0]);
-                    aSomTens2 = aSomTens2 + aDir2 * aDir2; // On double l'angle pour en faire un tenseur
+                    aSomDir = aSomDir +  aDir2; 
+                    //aSomTens2 = aSomTens2 + aDir2 * aDir2; // On double l'angle pour en faire un tenseur
+		    ELISE_ASSERT(scal(aSomDir,aDir2)>0,"Incoherent direction in dirs estimate");
                     aNbTens++;
                 }
             }
@@ -382,8 +384,19 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
        std::cout << " Min=" << aStatEp.Erreur(0.0) << " Max=" << aStatEp.Erreur(1.0) << "\n";
        Tiff_Im::CreateFromIm(aImEpipAbs,"EpipolaribityAbs.tif");
     }
+    // 4 check there was no point computed
+    if (ForCheck) 
+       return aSomDir;
+    if (0)
+    {
+	    std::cout << "aSomDir BRUTE " << aSomDir <<  " P1:" << AddToP1 << "\n";
+	    getchar();
+    }
+    return vunit(aSomDir) * (AddToP1 ? 1.0:-1.0);  // There is an inversion 
+    /*
     Pt2dr aRT = Pt2dr::polar(aSomTens2,0.0);
     return Pt2dr::FromPolar(1.0,aRT.y/2.0); // Divide angle as it was multiplied
+    */
 }
 
 class cTmpReechEpip
@@ -994,6 +1007,13 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 
          mDir2 =  DirEpipIm2(mGenI1,mGenI2,aPack,false,true,aLT1);  // Dont Swap
          mDir1 =  DirEpipIm2(mGenI2,mGenI1,aPack,false,false,aLT2); // Swap Pt
+
+	 // If we are alredy almost in epip, we dont want a 180 deg rotation
+	 if ((mDir2.x+mDir1.x) <0)
+         {
+             mDir1 = -mDir1;
+             mDir2 = -mDir2;
+	 }
       }
       else
       {

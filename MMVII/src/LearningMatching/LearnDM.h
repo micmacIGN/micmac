@@ -61,6 +61,12 @@ class cAppliLearningMatch : public cMMVII_Appli
         static std::string  Masq1();
         static std::string  Masq2();
 
+	static bool  IsFromType(const std::string & aName,const std::string & aPost);
+	static bool  IsIm1(const std::string & aName);
+	static bool  IsIm2(const std::string & aName);
+	static bool  Im1OrIm2(const std::string & aName); // Generate an error if none
+
+
         static const int SzMaxStdNeigh() {return 8;}
 
 
@@ -84,7 +90,11 @@ class cAppliLearningMatch : public cMMVII_Appli
         static std::string Im2FromIm1(const std::string & aIm1);
         static std::string Px1FromIm1(const std::string & aIm1);
         static std::string Masq1FromIm1(const std::string & aIm1);
+        static std::string Px2FromIm2(const std::string & aIm2);
+        static std::string Masq2FromIm2(const std::string & aIm2);
 
+        static std::string PxFromIm(const std::string & aIm12);
+        static std::string MasqFromIm(const std::string & aIm12);
 
         // static std::string  Ext(bool isXml);
         static std::string  PrefixHom();

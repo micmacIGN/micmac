@@ -77,6 +77,25 @@ std::string cAppliLearningMatch::NameRedrIm2(const std::string & aName) {return 
 void cAppliLearningMatch::ConvertIm1(const std::string & aInput,const std::string & aName) {GenConvertIm(aInput,NameIm1(aName));}
 void cAppliLearningMatch::ConvertIm2(const std::string & aInput,const std::string & aName) {GenConvertIm(aInput,NameIm2(aName));}
 
+bool cAppliLearningMatch::IsFromType(const std::string & aName,const std::string & aPost)
+{
+    std::string   aPattern = PrefixAll() + ".*" +  aPost +".tif";
+    tNameSelector aSel =   AllocRegex(aPattern);
+    return aSel.Match(aName);
+}
+
+bool cAppliLearningMatch::IsIm1(const std::string & aName) { return IsFromType(aName,Im1()); }
+bool cAppliLearningMatch::IsIm2(const std::string & aName) { return IsFromType(aName,Im2()); }
+
+bool cAppliLearningMatch::Im1OrIm2(const std::string & aName)
+{
+    if (IsIm1(aName)) return true;
+
+    MMVII_INTERNAL_ASSERT_strong(IsIm2(aName),"Nor Im1, nor Im2");
+
+    return false;
+}
+
 std::string cAppliLearningMatch::Im2FromIm1(const std::string & aIm1)
 {
   return replaceFirstOccurrence(aIm1,"_"+Im1()+".tif","_"+Im2()+".tif");
@@ -89,7 +108,24 @@ std::string cAppliLearningMatch::Masq1FromIm1(const std::string & aIm1)
 {
    return replaceFirstOccurrence(aIm1,"_"+Im1()+".tif","_"+Masq1()+".tif");
 }
+std::string cAppliLearningMatch::Px2FromIm2(const std::string & aIm2)
+{
+   return replaceFirstOccurrence(aIm2,"_"+Im2()+".tif","_"+Px2()+".tif");
+}
+std::string cAppliLearningMatch::Masq2FromIm2(const std::string & aIm2)
+{
+   return replaceFirstOccurrence(aIm2,"_"+Im2()+".tif","_"+Masq2()+".tif");
+}
 
+std::string cAppliLearningMatch::PxFromIm(const std::string & aIm12)
+{
+  return Im1OrIm2(aIm12) ? Px1FromIm1(aIm12) : Px2FromIm2(aIm12);
+}
+
+std::string cAppliLearningMatch::MasqFromIm(const std::string & aIm12)
+{
+  return Im1OrIm2(aIm12) ? Masq1FromIm1(aIm12) : Masq2FromIm2(aIm12);
+}
 
 std::string  cAppliLearningMatch::PrefixHom()    {return "LDHAime";}  // Learn Dense Home
 std::string  cAppliLearningMatch::Hom(int aNum)  {return PrefixHom() +ToStr(aNum);}

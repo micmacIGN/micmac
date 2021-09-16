@@ -801,12 +801,25 @@ template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_ni(const cPtxd<Type
 }
 
 
+template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW)
+{
+   return
+	   (aPt.x() >= aBox.P0().x() + aSzW.x())
+       &&  (aPt.y() >= aBox.P0().y() + aSzW.y())
+       &&  (aPt.x() <  aBox.P1().x() - aSzW.x()-1)
+       &&  (aPt.y() <  aBox.P1().y() - aSzW.y()-1) ;
+}
+
+
 /* ========================== */
 /*       INSTANTIATION        */
 /* ========================== */
 
 template void CornersTrigo(typename cTplBox<tREAL8,2>::tCorner & aRes,const  cTplBox<tREAL8,2>&);
 template void CornersTrigo(typename cTplBox<tINT4,2>::tCorner & aRes,const  cTplBox<tINT4,2>&);
+
+template  bool WindInside4BL(const cBox2di & aBox,const cPtxd<tINT4,2> & aPt,const  cPt2di & aSzW);
+template  bool WindInside4BL(const cBox2di & aBox,const cPtxd<tREAL8,2> & aPt,const  cPt2di & aSzW);
 
 #define MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIMIN,DIMOUT)\
 template  cPtxd<TYPE,DIMOUT> CastDim<TYPE,DIMOUT,DIMIN>(const cPtxd<TYPE,DIMIN> & aPt);

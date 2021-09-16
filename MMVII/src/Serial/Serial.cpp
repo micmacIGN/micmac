@@ -175,12 +175,21 @@ template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cPtxd<Type
    AddTabData(anAux,aPt.PtRawData(),Dim);
 }
 
+template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cTplBox<Type,Dim>  &  aBox) 
+{
+   AddData(cAuxAr2007("P0",anAux),aBox.P0ByRef());
+   AddData(cAuxAr2007("P1",anAux),aBox.P1ByRef());
+   // Need to recreate a coherent object
+   if (anAux.Input())
+      aBox = cTplBox<Type,Dim>(aBox.P0(),aBox.P1());
+}
 
 
 
 #define MACRO_INSTANTIATE_AddDataPtxD(DIM)\
 template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tREAL8,DIM>  &  aVal) ;\
 template  void AddData(const  cAuxAr2007 & anAux, cPtxd<tINT4,DIM>  &  aVal) ;\
+template  void AddData(const  cAuxAr2007 & anAux, cTplBox<tINT4,DIM>  &  aVal) ;\
 
 MACRO_INSTANTIATE_AddDataPtxD(1)
 MACRO_INSTANTIATE_AddDataPtxD(2)
