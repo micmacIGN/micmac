@@ -3,21 +3,107 @@
 #include "LearnDM.h"
 //#include "include/MMVII_Tpl_Images.h"
 
+
+/*
+   Name = STD_Diff7_MS_CorA_NI_DifGray Sep: 0.157327 Cr: 0.00968117
+   Name = STD_Diff7_MS_CorA_NI_Diff7 Sep: 0.147952 Cr: 0.00959853
+   Name = STD_Diff7_MS_CorA_STD_Diff1 Sep: 0.157396 Cr: 0.00965061
+
+   NI_DifGray|NI_Diff7|STD_Diff1
+*/
+
 namespace MMVII
 {
 
-/*
-class cBiPyramMatch
-{
-    public :
-        typedef cIm2D<tU_INT1>             tImMasq;
-        typedef cGaussianPyramid<tREAL4>   tPyr;
-        typedef std::shared_ptr<tREAL4>    tSP_Pyr;
 
-    private :
-        std::vector<tSP_Pyr>   mVPyr;
-};
-*/
+cPyr1ImLearnMatch::cPyr1ImLearnMatch
+(
+      const cBox2di &       aBox,
+      const cBox2di &       aBoxOut,
+      const std::string &   aName,
+      cAppliLearningMatch & anAppli,
+      const cFilterPCar&    aFPC,
+      bool  initRand
+) :
+    mBox    (aBox),
+    mNameIm (aName),
+    mAppli  (anAppli),
+    mGP     (mBox.Sz(),mAppli.NbOct(),mAppli.NbLevByOct(),mAppli.NbOverLapByO(),&mAppli,false),
+    mPyr    (nullptr),
+    mImF    (cPt2di(1,1))
+{
+    mGP.mFPC = aFPC;
+    mPyr =  tPyr::Alloc(mGP,mNameIm,mBox,aBoxOut);
+    if (initRand)
+        mPyr->ImTop().DIm().InitRandom(0.0,100.0);
+    else
+        mPyr->ImTop().Read(cDataFileIm2D::Create(mNameIm,true),mBox.P0());
+
+    mPyr->ComputGaussianFilter();
+
+    // Compute the filtered images used for having "invariant" gray level
+        // Filter to have a local average
+    mImF =  mPyr->ImTop().Dup();
+    float aFact = 50.0;
+    ExpFilterOfStdDev(mImF.DIm(),5,aFact);
+
+       //   make a ratio image
+    {
+        tDataImF &aDIF = mImF.DIm();
+        tDataImF &aDI0 =  mPyr->ImTop().DIm();
+        for (const auto & aP : aDIF)
+        {
+            aDIF.SetV(aP,(1+NormalisedRatioPos(aDI0.GetV(aP),aDIF.GetV(aP))) / 2.0);
+        }
+    }
+}
+void cPyr1ImLearnMatch::SaveImFiltered() const
+{
+   std::string  aName = "FILTRED-" + mNameIm;
+   const tDataImF &aDIF = mImF.DIm();
+   cIm2D<tU_INT1> aImS(aDIF.Sz());
+   for (const auto & aP : aDIF)
+   {
+       int aVal = round_ni(aDIF.GetV(aP)*255.0);
+       aImS.DIm().SetV(aP,aVal);
+   }
+   aImS.DIm().ToFile(aName); //  Ok
+}
+
+double cPyr1ImLearnMatch::MulScale() const  {return mPyr->MulScale();}
+const cPyr1ImLearnMatch::tDataImF &  cPyr1ImLearnMatch::ImInit() const {return mPyr->ImTop().DIm();}
+const cPyr1ImLearnMatch::tDataImF &  cPyr1ImLearnMatch::ImFiltered() const {return mImF.DIm();}
+          // const tDataImF &  ImFiltered() const;
+
+
+bool  cPyr1ImLearnMatch::CalculAimeDesc(const cPt2dr & aPt)
+{
+    {
+       cPt2dr aSzV(mAppli.SzMaxStdNeigh(),mAppli.SzMaxStdNeigh());
+       cPt2dr aP1 = aPt - aSzV;
+       cPt2dr aP2 = aPt + aSzV;
+       tDataImF & aImPyr = mPyr->ImTop().DIm();
+       if (!(aImPyr.InsideBL(aP1) && aImPyr.InsideBL(aP2)))
+          return false;
+       tDataImF & aDImF = mImF.DIm();
+       if (!(aDImF.InsideBL(aP1) && aDImF.InsideBL(aP2)))
+          return false;
+    }
+    
+    cProtoAimeTieP<tREAL4> aPAT(mPyr->GPImTop(),aPt);
+
+    if (! aPAT.FillAPC(mGP.mFPC,mPC,true))
+       return false;
+
+
+    aPAT.FillAPC(mGP.mFPC,mPC,false);
+
+    return true;
+}
+cAimePCar   cPyr1ImLearnMatch::DupLPIm() const { return mPC.DupLPIm(); }
+
+
+
 
 class cAppliExtractLearnVecDM : public cAppliLearningMatch
 {
@@ -41,8 +127,6 @@ class cAppliExtractLearnVecDM : public cAppliLearningMatch
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
     
-        tImFiltred & ImF(bool IsIm1 ) {return IsIm1 ? mImF1 : mImF2;}
-        tSP_Pyr CreatePyr(bool IsIm1);
         const cBox2di &     CurBoxIn(bool IsIm1) const {return   IsIm1 ? mCurBoxIn1 : mCurBoxIn2 ;}
         const std::string & NameIm(bool IsIm1) const {return   IsIm1 ? mNameIm1 : mNameIm2 ;}
 
@@ -92,25 +176,16 @@ class cAppliExtractLearnVecDM : public cAppliLearningMatch
         int          mDeltaPx ; // To Add to Px1 to take into account difference of boxe
         tImMasq      mImMasq1;
         tImPx        mImPx1;
-        int          mNbOct;
-        int          mNbLevByOct;
-        int          mNbOverLapByO;
-        tSP_Pyr      mPyr1;
-        tSP_Pyr      mPyr2;
-        tImFiltred   mImF1;
-        tImFiltred   mImF2;
+
+	cPyr1ImLearnMatch * mPyrL1;
+	cPyr1ImLearnMatch * mPyrL2;
+
         bool         mSaveImFilter;
         bool         mShowCarac;
         tNameSelector mSelShowCarac;
         int           mNumIndex;
 
-
         cFilterPCar  mFPC;  ///< Used to compute Pts
-
-        bool  CalculAimeDesc(bool Im1,const cPt2dr & aPt);
-
-        cAimePCar    mPC1;
-        cAimePCar    mPC2;
 };
 
 cAppliExtractLearnVecDM::cAppliExtractLearnVecDM(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -130,13 +205,8 @@ cAppliExtractLearnVecDM::cAppliExtractLearnVecDM(const std::vector<std::string> 
    mCurBoxOut    (cBox2di::Empty()),  // To have a default value
    mImMasq1      (cPt2di(1,1)),       // To have a default value
    mImPx1        (cPt2di(1,1)),       // To have a default value
-   mNbOct        (5),                 // 3 octave for window , maybe add 2 learning multiscale 
-   mNbLevByOct   (2),                 // 
-   mNbOverLapByO (1),                 // 1 overlap is required for junction at decimation
-   mPyr1         (nullptr),
-   mPyr2         (nullptr),
-   mImF1         (cPt2di(1,1)),
-   mImF2         (cPt2di(1,1)),
+   mPyrL1         (nullptr),
+   mPyrL2         (nullptr),
    mSaveImFilter (false),
    mShowCarac    (false),
    mSelShowCarac (AllocRegex(".*")),
@@ -184,59 +254,10 @@ bool TESTPT(const cPt2dr & aPt,int aLine,const std::string& aFile)
 }
 
 
-bool  cAppliExtractLearnVecDM::CalculAimeDesc(bool Im1,const cPt2dr & aPt)
-{
- 
-    cAimePCar & aAPC = Im1 ?  mPC1 : mPC2;
-    tPyr * aPyr = Im1 ? mPyr1.get() : mPyr2.get();
-    {
-       cPt2dr aSzV(SzMaxStdNeigh(),SzMaxStdNeigh());
-       cPt2dr aP1 = aPt - aSzV;
-       cPt2dr aP2 = aPt + aSzV;
-       tDataImF & aImPyr = aPyr->ImTop().DIm();
-       if (!(aImPyr.InsideBL(aP1) && aImPyr.InsideBL(aP2)))
-          return false;
-       tDataImF & aDImF = ImF(Im1).DIm();
-       if (!(aDImF.InsideBL(aP1) && aDImF.InsideBL(aP2)))
-          return false;
-    }
-    
-    cProtoAimeTieP<tREAL4> aPAT(aPyr->GPImTop(),aPt);
-
-    if (! aPAT.FillAPC(mFPC,aAPC,true))
-       return false;
-
-
-    aPAT.FillAPC(mFPC,aAPC,false);
-
-    return true;
-}
-
 void cAppliExtractLearnVecDM::AddLearn(cFileVecCaracMatch & aFVCM,const cAimePCar & aAP1,const cAimePCar & aAP2,int aLevHom)
 {
-/*
-   tREAL4 aV1 = ImF(true).DIm().GetVBL(aAP1.Pt());
-   tREAL4 aV2 = ImF(false).DIm().GetVBL(aAP2.Pt());
 
-{
-// 73410
-   static int aCpt=0; aCpt++;
-   bool BUG = (aCpt==73410);
-   if (BUG)
-   {
-       std::cout << "Cccc= " << aCpt << " Val=" << aV1 << " " << aV2  << " Pts=" << aAP1.Pt() << " " << aAP2.Pt() << "\n";
-   }
-}
-*/
-
-   //cVecCaracMatch aVCM(mPyr1->MulScale(),aV1,aV2,aAP1,aAP2);
-   cVecCaracMatch aVCM
-   (
-        mPyr1->MulScale(),
-        mPyr1->ImTop().DIm(),mPyr2->ImTop().DIm(),
-        mImF1.DIm(),mImF2.DIm(),
-        aAP1,aAP2
-   );
+   cVecCaracMatch aVCM (*mPyrL1,*mPyrL2,aAP1,aAP2);
    aFVCM.AddCarac(aVCM);
 
    if (mShowCarac)
@@ -306,57 +327,6 @@ int  cAppliExtractLearnVecDM::Exe()
 }
 
 
-cAppliExtractLearnVecDM::tSP_Pyr cAppliExtractLearnVecDM::CreatePyr(bool IsIm1)
-{
-    const cBox2di & aBox = CurBoxIn(IsIm1);
-    const std::string & aName = NameIm(IsIm1);
-    cGP_Params aGP(aBox.Sz(),mNbOct,mNbLevByOct,mNbOverLapByO,this,false);
-    aGP.mFPC = mFPC;
-
-    tSP_Pyr aPyr =  tPyr::Alloc(aGP,aName,CurBoxIn(IsIm1),mCurBoxOut);
-
-    int aNumIm = (IsIm1 ? 1 : 2);
-    if (mFlagRand & aNumIm)
-    {
-        aPyr->ImTop().DIm().InitRandom(0.0,100.0);
-    }
-    else 
-    {
-        aPyr->ImTop().Read(cDataFileIm2D::Create(aName,true),aBox.P0());
-    }
-    aPyr->ComputGaussianFilter();
-
-    // Compute the filtered images used for having "invariant" gray level
-    tImFiltred & aImF = ImF(IsIm1);
-    aImF = aPyr->ImTop().Dup(); 
-    float aFact = 50.0;
-    ExpFilterOfStdDev(aImF.DIm(),5,aFact);
-
-    tDataImF &aDIF = aImF.DIm();
-    tDataImF &aDI0 =  aPyr->ImTop().DIm();
-    for (const auto & aP : aDIF)
-    {
-        aDIF.SetV(aP,(1+NormalisedRatioPos(aDI0.GetV(aP),aDIF.GetV(aP))) / 2.0);
-    }
-
-
-    if (mSaveImFilter)
-    {
-        std::string  aName = "FILTRED-" + (IsIm1 ? mNameIm1  : mNameIm2);
-        cIm2D<tU_INT1> aImS(aDIF.Sz());
-        for (const auto & aP : aDIF)
-        {
-            int aVal = round_ni(aDIF.GetV(aP)*255.0);
-            aImS.DIm().SetV(aP,aVal);
-        }
-        aImS.DIm().ToFile(aName); //  Ok
-    }
-
-    ///aIm
-
-    return  aPyr;
-}
-
 void cAppliExtractLearnVecDM::MakeCut
      (
           int aY,
@@ -380,13 +350,7 @@ void cAppliExtractLearnVecDM::MakeCut
            {
                if (aVOk2.at(aXH))
                {
-                   cVecCaracMatch aVCM
-                   (
-                        mPyr1->MulScale(),
-                        mPyr1->ImTop().DIm(),mPyr2->ImTop().DIm(),
-                        mImF1.DIm(),mImF2.DIm(),
-                        aVPC1.at(aX),aVPC2.at(aXH)
-                   );
+                   cVecCaracMatch aVCM ( *mPyrL1,*mPyrL2, aVPC1.at(aX),aVPC2.at(aXH));
                    double aScore = mCutHND.ScoreCr(aVCM);
                    int aPax = aXH-aXMinTh;
                    aResult.DIm().SetV(cPt2di(aX,aPax),1+round_ni((254.0)*(1-pow(1-aScore,mCutsExp))));
@@ -477,8 +441,8 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex,const cParseBoxI
       aNbInMasq = mCurBoxIn1.Sz().x() * (mCutPxMax - mCutPxMin);
    }
    // Now we have the boxes we can create the pyramid
-   mPyr1 = CreatePyr(true);
-   mPyr2 = CreatePyr(false);
+   mPyrL1 = new cPyr1ImLearnMatch(mCurBoxIn1,mCurBoxOut,mNameIm1,*this,mFPC,(mFlagRand&1)!=0);
+   mPyrL2 = new cPyr1ImLearnMatch(mCurBoxIn2,mCurBoxOut,mNameIm2,*this,mFPC,(mFlagRand&2)!=0);
  
    // ex : X0=10; X1=0; homologous of P0=0  will be 10
    mDeltaPx =  mCurBoxIn1.P0().x() -  mCurBoxIn2.P0().x();
@@ -505,17 +469,17 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex,const cParseBoxI
               std::vector<bool> aVOk2;
               for (aPixIm1.x()=0 ; aPixIm1.x()<mSzIm1.x()  ; aPixIm1.x()++)
               {
-                  aVOk1.push_back(CalculAimeDesc(true,ToR(aPixIm1))); 
-                  aV1.push_back(mPC1.DupLPIm());
+                  aVOk1.push_back(mPyrL1->CalculAimeDesc(ToR(aPixIm1))); 
+                  aV1.push_back(mPyrL1->DupLPIm());
+
                   for (int aK=0 ; aK<mCutsFreqPx ; aK++)
                   {
                       cPt2dr aP2(aPixIm1.x()+ double(aK/mCutsFreqPx),aPixIm1.y());
-                      aVOk2.push_back( CalculAimeDesc(false,aP2));
-                      aV2.push_back(mPC2.DupLPIm());
+                      aVOk2.push_back(mPyrL2->CalculAimeDesc(aP2));
+                      aV2.push_back(mPyrL2->DupLPIm());
                   }
               }
               MakeCut(aPixIm1.y(),aVOk1,aV1,aVOk2,aV2);
-                 //  if (CalculAimeDesc(true,ToR(aPixIm1)) && CalculAimeDesc(false,aP2))
            }
        }
        else
@@ -527,10 +491,10 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex,const cParseBoxI
 
                   double aPx = aDImPx1->GetV(aPixIm1)+mDeltaPx;
                   cPt2dr aP2(aPixIm1.x()+aPx,aPixIm1.y());
-                  if (CalculAimeDesc(true,ToR(aPixIm1)) && CalculAimeDesc(false,aP2))
+                  if (mPyrL1->CalculAimeDesc(ToR(aPixIm1)) && mPyrL2->CalculAimeDesc(aP2))
                   {
-                      aV1.push_back(mPC1.DupLPIm());
-                      aV2.push_back(mPC2.DupLPIm());
+                      aV1.push_back(mPyrL1->DupLPIm());
+                      aV2.push_back(mPyrL2->DupLPIm());
                   }
               }
            }
@@ -571,6 +535,9 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex,const cParseBoxI
        SaveInFile(aFVC_CloseHom ,  NameHom(1));
        SaveInFile(aFVC_NonHom   ,  NameHom(2));
     }
+
+   delete mPyrL1;
+   delete mPyrL2;
 }
 
 

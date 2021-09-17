@@ -85,6 +85,16 @@ template <class Type> void cMatIner2Var<Type>::Add(const double & aPds,const Typ
     mS22 += aPds * aV2 * aV2 ;
 }
 
+template <class Type> void cMatIner2Var<Type>::Add(const Type & aV1,const Type & aV2)
+{
+    mS0  += 1.0;
+    mS1  += aV1;
+    mS11 += aV1 * aV1 ;
+    mS2  += aV2;
+    mS12 += aV1 * aV2 ;
+    mS22 += aV2 * aV2 ;
+}
+
 template <class Type> 
        void  cMatIner2Var<Type>::Add(const cMatIner2Var& aM2)
 {

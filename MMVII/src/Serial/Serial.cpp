@@ -180,6 +180,7 @@ template <class Type,int Dim> void AddData(const  cAuxAr2007 & anAux, cTplBox<Ty
    AddData(cAuxAr2007("P0",anAux),aBox.P0ByRef());
    AddData(cAuxAr2007("P1",anAux),aBox.P1ByRef());
    // Need to recreate a coherent object
+// StdOut() << "AddDataAddDataBox " << aBox.P0ByRef() << " " << aBox.P1ByRef() << "\n";
    if (anAux.Input())
       aBox = cTplBox<Type,Dim>(aBox.P0(),aBox.P1());
 }

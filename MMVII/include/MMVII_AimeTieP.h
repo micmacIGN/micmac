@@ -87,7 +87,7 @@ class cAimeDescriptor : public cMemCheck
      public :
          //  aDILPr.SetV(cPt2di(aKTeta,IndRhoLP),aV);
 
-         cAimeDescriptor DupLPIm();  // Duplicate only LP IM
+         cAimeDescriptor DupLPIm() const;  // Duplicate only LP IM
          cAimeDescriptor();  ///< Need a default descriptor (serialization ...)
          cIm2D<tU_INT1>   ILP() const;   ///< Accesor to log pol image
 
@@ -120,7 +120,7 @@ class cAimePCar : public cMemCheck
         cPt2dr&         PtIm();
         const cPt2dr&   PtIm() const;
 
-        cAimePCar       DupLPIm(); // Duplicate only LP IM
+        cAimePCar       DupLPIm() const; // Duplicate only LP IM
         double          L1Dist(const cAimePCar&) const;
      private :
         cAimeDescriptor mDesc;  ///< Descriptor

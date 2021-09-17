@@ -85,8 +85,9 @@ MACRO_INSTANTITATE_STRIO_VECT_TYPE(double)
 #define MACRO_INSTANTITATE_STRIO_CPTXD(TYPE,DIM)\
 template <>  std::string cStrIO<cTplBox<TYPE,DIM> >::ToStr(const cTplBox<TYPE,DIM>  & aV)\
 {\
-  std::vector<TYPE> aVec(aV.P0().PtRawData(),aV.P0().PtRawData()+cPtxd<TYPE,DIM>::TheDim);\
-  for (int aD=0; aD<DIM; aD++)  aVec.push_back(aV.P1()[aD]);\
+  std::vector<TYPE> aVec;\
+  for (int aD=0; aD<DIM; aD++) aVec.push_back(aV.P0()[aD]);\
+  for (int aD=0; aD<DIM; aD++) aVec.push_back(aV.P1()[aD]);\
   return Vect2Str(aVec);\
 }\
 template <>  std::string cStrIO<cPtxd<TYPE,DIM> >::ToStr(const cPtxd<TYPE,DIM>  & aV)\
@@ -110,8 +111,8 @@ template <>  cTplBox<TYPE,DIM> cStrIO<cTplBox<TYPE,DIM> >::FromStr(const std::st
        MMVII_UsersErrror(eTyUEr::eBadDimForBox,"Expect="+ MMVII::ToStr(2*DIM) + " Got=" + MMVII::ToStr(int(aV.size())) );\
     cPtxd<TYPE,DIM> aP0,aP1;\
     for (int aK=0 ; aK<DIM ; aK++){\
-        aP0[aK] = aV[2*aK];\
-        aP1[aK] = aV[2*aK+1];\
+        aP0[aK] = aV[aK];\
+        aP1[aK] = aV[aK+DIM];\
     }\
     return cTplBox<TYPE,DIM>(aP0,aP1);\
 }\

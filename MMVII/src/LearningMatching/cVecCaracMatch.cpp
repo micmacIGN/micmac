@@ -479,6 +479,22 @@ cVecCaracMatch::cVecCaracMatch
 {
    cComputecVecCaracMatch(*this,aScaleRho,aImInit1,aImInit2,aImNorm1,aImNorm2,aAPC1,aAPC2);
 }
+
+cVecCaracMatch::cVecCaracMatch
+(
+     const cPyr1ImLearnMatch  & aPyr1,const cPyr1ImLearnMatch  & aPyr2,
+     const cAimePCar & aAPC1,const cAimePCar & aAPC2
+)  :
+    cVecCaracMatch
+    (
+         aPyr1.MulScale(),
+         aPyr1.ImInit()     , aPyr2.ImInit(),
+         aPyr1.ImFiltered() , aPyr2.ImFiltered(),
+	 aAPC1,aAPC2
+    )
+{
+}
+
 /*
 */
 
@@ -572,6 +588,7 @@ void AddData(const cAuxAr2007 & anAux, cFileVecCaracMatch &    aVCM)
 {
    aVCM.AddData(anAux);
 }
+
 
 
 };

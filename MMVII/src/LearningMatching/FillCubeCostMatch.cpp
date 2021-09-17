@@ -30,9 +30,13 @@ class cAppliFillCubeCost : public cAppliLearningMatch
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
+	double ComputCorrel(const cPt2di & aPI1,const cPt2dr & aPI2,int mSzW) const;
+	void PushCost(double aCost);
+
 	// -------------- Mandatory args -------------------
 	std::string   mNameI1;
 	std::string   mNameI2;
+	std::string   mModele;
 	cPt2di        mP0Z;  // Pt corresponding in Im1 to (0,0)
 	cBox2di       mBoxI1;  // Box to Load, taking into account siwe effect
 	cBox2di       mBoxI2;
@@ -49,11 +53,14 @@ class cAppliFillCubeCost : public cAppliLearningMatch
         std::string mNameZMin;
         std::string mNameZMax;
         std::string mNameCube;
+        cMMVII_Ofs* mFileCube;
 
 	tImZ        mImZMin;
 	tImZ        mImZMax;
 	tImRad      mIm1;
+	tDataImRad  *mDI1;
 	tImRad      mIm2;
+	tDataImRad  *mDI2;
 };
 
 cAppliFillCubeCost::cAppliFillCubeCost(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -61,10 +68,13 @@ cAppliFillCubeCost::cAppliFillCubeCost(const std::vector<std::string> & aVArgs,c
    mBoxI1               (cBox2di::Empty()),
    mBoxI2               (cBox2di::Empty()),
    mStepZ               (1.0),
+   mFileCube            (nullptr),
    mImZMin              (cPt2di(1,1)),
    mImZMax              (cPt2di(1,1)),
    mIm1                 (cPt2di(1,1)),
-   mIm2                 (cPt2di(1,1))
+   mDI1                 (nullptr),
+   mIm2                 (cPt2di(1,1)),
+   mDI2                 (nullptr)
 {
 }
 
@@ -75,6 +85,7 @@ cCollecSpecArg2007 & cAppliFillCubeCost::ArgObl(cCollecSpecArg2007 & anArgObl)
       anArgObl
           <<   Arg2007(mNameI1,"Name of first image")
           <<   Arg2007(mNameI2,"Name of second image")
+          <<   Arg2007(mModele,"Name for modele : .*dmp|Compare|MMVIICorrel")
           <<   Arg2007(mP0Z,"Origin in first image")
           <<   Arg2007(mBoxI1,"Box to read 4 Im1")
           <<   Arg2007(mBoxI2,"Box to read 4 Im2")
@@ -94,12 +105,41 @@ std::string cAppliFillCubeCost::StdName(const std::string & aPre,const std::stri
 	return aPre + "_" + mNamePost + "." + aPost;
 }
 
+double cAppliFillCubeCost::ComputCorrel(const cPt2di & aPCI1,const cPt2dr & aPCI2,int aSzW) const
+{
+   cMatIner2Var<tREAL4> aMat;
+
+   for (int aDx=-aSzW ; aDx<=aSzW  ; aDx++)
+   {
+       for (int aDy=-aSzW ; aDy<=aSzW  ; aDy++)
+       {
+            aMat.Add
+            (
+                mDI1->GetV  (aPCI1+cPt2di(aDx,aDy)),
+                mDI2->GetVBL(aPCI2+cPt2dr(aDx,aDy))
+            );
+       }
+   }
+
+   return aMat.Correl();
+}
+
+void cAppliFillCubeCost::PushCost(double aCost)
+{
+   tU_INT2 aICost = round_ni(1e4*(std::max(0.0,std::min(1.0,aCost))));
+   mFileCube->Write(aICost);
+}
+
 int  cAppliFillCubeCost::Exe()
 {
    // Compute names
    mNameZMin = StdName("ZMin","tif");
    mNameZMax = StdName("ZMax","tif");
    mNameCube = StdName("MatchingCube","data");
+
+   mFileCube = new cMMVII_Ofs(mNameCube,false);
+
+   bool Correl = (mModele=="Compare") ||(mModele=="MMVIICorrel");
 
    //  Read images 
    mImZMin = tImZ::FromFile(mNameZMin);
@@ -108,19 +148,20 @@ int  cAppliFillCubeCost::Exe()
    tDataImZ & aDZMax = mImZMax.DIm();
 
    mIm1 = tImRad::FromFile(mNameI1,mBoxI1);
-   tDataImRad & aDI1 = mIm1.DIm();
-   mIm2 = tImRad::FromFile(mNameI1,mBoxI2);
-   tDataImRad & aDI2 = mIm2.DIm();
+   mDI1 = &(mIm1.DIm());
+   mIm2 = tImRad::FromFile(mNameI2,mBoxI2);
+   mDI2 = &(mIm2.DIm());
 
    cPt2di aSz = aDZMin.Sz();
    cPt2di aPix;
 
    int aSzW=3;
    cPt2di aPSzW(aSzW,aSzW);
+   int aCpt=0;
 
-   for (aPix.x()=0 ; aPix.x()<aSz.x() ; aPix.x()++)
+   for (aPix.y()=0 ; aPix.y()<aSz.y() ; aPix.y()++)
    {
-       for (aPix.y()=0 ; aPix.y()<aSz.y() ; aPix.y()++)
+       for (aPix.x()=0 ; aPix.x()<aSz.x() ; aPix.x()++)
        {
             cPt2di aPAbs = aPix + mP0Z;
             cPt2di aPC1  = aPAbs-mBoxI1.P0();
@@ -128,23 +169,22 @@ int  cAppliFillCubeCost::Exe()
             for (int aDz=aDZMin.GetV(aPix) ; aDz<aDZMax.GetV(aPix) ; aDz++)
             {
                cPt2dr aPC2Z(aPC20.x()+aDz*mStepZ,aPC20.y());
-               if (WindInside4BL(aDI1,aPC1,aPSzW) && WindInside4BL(aDI2,aPC2Z,aPSzW))
- 	       {
+
+	       if (Correl)
+	       {
+	           double aCorrel = 0.0;
+                   if (WindInside4BL(*mDI1,aPC1,aPSzW) && WindInside4BL(*mDI2,aPC2Z,aPSzW))
+ 	           {
+                       aCorrel = ComputCorrel(aPC1,aPC2Z,aSzW);
+	           }
+                   PushCost((1-aCorrel)/2.0);
 	       }
-// template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW);
-
-
+               aCpt++;
             }
        }
    }
 
-FakeUseIt(aDI1);
-FakeUseIt(aDI2);
-
-   // Compute ZMin/Max
-
-
-
+   delete mFileCube;
 
    return EXIT_SUCCESS;
 }

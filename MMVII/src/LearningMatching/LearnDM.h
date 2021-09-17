@@ -39,6 +39,11 @@ template <class Type,int Dim> double ComputeSep(const cDataTypedIm<Type,Dim> &,c
 
 class cAppliLearningMatch : public cMMVII_Appli
 {
+    public :
+	int &  NbOct();
+	int &  NbLevByOct();
+	int &  NbOverLapByO();
+        static const int SzMaxStdNeigh() {return 8;}
     protected :
         cAppliLearningMatch(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
@@ -67,7 +72,6 @@ class cAppliLearningMatch : public cMMVII_Appli
 	static bool  Im1OrIm2(const std::string & aName); // Generate an error if none
 
 
-        static const int SzMaxStdNeigh() {return 8;}
 
 
         static std::string MakeName(const std::string & aName,const std::string & aPref) ;
@@ -106,7 +110,47 @@ class cAppliLearningMatch : public cMMVII_Appli
     private :
         std::string mNameInput;
         std::string mNameOutput;
+
+	int   mNbOct;       // 3 octave for window , maybe add 2 learning multiscale
+	int   mNbLevByOct;  // more or less minimalist
+	int   mNbOverLapByO; // 1 overlap is required for junction at decimation
 };
+
+class cPyr1ImLearnMatch : public cMemCheck
+{
+      public :
+          typedef cGaussianPyramid<tREAL4>   tPyr;
+          typedef std::shared_ptr<tPyr>      tSP_Pyr;
+          typedef cIm2D<tREAL4>              tImFiltred;
+          typedef cDataIm2D<tREAL4>          tDataImF;
+
+          cPyr1ImLearnMatch
+          (
+                const cBox2di & aBox,
+                const cBox2di & aBoxOut, // Required by pyram but apparently not used
+                const std::string & aName,
+                cAppliLearningMatch &,
+                const cFilterPCar&,
+                bool  initRand
+          );
+          cPyr1ImLearnMatch(const cPyr1ImLearnMatch &) = delete;
+          void SaveImFiltered() const;
+          bool  CalculAimeDesc(const cPt2dr & aPt);
+	  double  MulScale() const;
+	  const tDataImF &  ImInit() const;
+	  const tDataImF &  ImFiltered() const;
+	  cAimePCar   DupLPIm() const;
+          // ~cPyr1ImLearnMatch();
+      private :
+          cBox2di               mBox;
+          std::string           mNameIm;
+          cAppliLearningMatch & mAppli;
+          cGP_Params            mGP;
+          tSP_Pyr               mPyr;
+          tImFiltred            mImF;
+	  cAimePCar             mPC;
+};
+
 
 class cVecCaracMatch : public cMemCheck
 {
@@ -130,6 +174,11 @@ class cVecCaracMatch : public cMemCheck
              float aScaleRho,
              const tDataIm & aImInit1,const tDataIm & aImInit2,
              const tDataIm & aImNorm1,const tDataIm & aImNorm2,
+             const cAimePCar &,const cAimePCar &
+        );
+        cVecCaracMatch
+        (
+             const cPyr1ImLearnMatch  & aPyr1,const cPyr1ImLearnMatch  & aPyr2,
              const cAimePCar &,const cAimePCar &
         );
 /*

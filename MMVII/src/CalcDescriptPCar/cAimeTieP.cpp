@@ -149,7 +149,7 @@ cAimeDescriptor::cAimeDescriptor() :
 {
 }
 
-cAimeDescriptor cAimeDescriptor::DupLPIm()
+cAimeDescriptor cAimeDescriptor::DupLPIm() const
 {
    cAimeDescriptor aRes(*this);
    aRes.mILP = mILP.Dup();
@@ -241,7 +241,7 @@ void AddData(const cAuxAr2007 & anAux,cAimePCar & aPC)
      AddData(cAuxAr2007("Desc",anAux),aPC.Desc());
 }
 
-cAimePCar cAimePCar::DupLPIm()
+cAimePCar cAimePCar::DupLPIm() const
 {
    cAimePCar aRes;
    aRes.mPt = mPt;

@@ -5,10 +5,18 @@ namespace MMVII
 {
 
 cAppliLearningMatch::cAppliLearningMatch(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-    cMMVII_Appli(aVArgs,aSpec)
+    cMMVII_Appli   (aVArgs,aSpec),
+    mNbOct         (5),
+    mNbLevByOct    (2),
+    mNbOverLapByO  (1)
 {
     SetNamesProject("","");
 }
+
+int &  cAppliLearningMatch::NbOct()        {return mNbOct;}
+int &  cAppliLearningMatch::NbLevByOct()   {return mNbLevByOct;}
+int &  cAppliLearningMatch::NbOverLapByO() {return mNbOverLapByO;}
+
 
 std::string  cAppliLearningMatch::NameReport() const
 {

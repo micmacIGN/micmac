@@ -522,6 +522,7 @@ template <class Type> class cMatIner2Var
        cMatIner2Var ();
        cMatIner2Var(const cMatIner2Var<Type> &) = default;
        void Add(const double & aPds,const Type & aV1,const Type & aV2);
+       void Add(const Type & aV1,const Type & aV2);
        const Type & S0()  const {return mS0;}
        const Type & S1()  const {return mS1;}
        const Type & S11() const {return mS11;}
