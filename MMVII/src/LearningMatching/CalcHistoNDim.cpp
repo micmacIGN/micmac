@@ -18,54 +18,6 @@ void AddData(const cAuxAr2007 & anAux,eModeCaracMatch & aMCM)  {EnumAddData(anAu
 /*                                                  */
 /* ************************************************ */
 
-/*
-class cHistoCarNDim  : public cMemCheck
-{
-    public :
-       
-       typedef tINT4                        tDataNd;
-       typedef cDataGenDimTypedIm<tDataNd>  tHistND;
-       typedef cHistoCumul<tINT4,tREAL8>    tHisto1;
-       typedef cDenseVect<tINT4>            tIndex;
-        
-       cHistoCarNDim(int aSzH,const tVecCar &,const cStatAllVecCarac &,bool genVis2DI);
-       cHistoCarNDim();  // Used for AddData requiring default cstrc
-       cHistoCarNDim(const std::string&);  // Used for AddData requiring default cstrc
-       ~cHistoCarNDim();  // Used for AddData requiring default cstrc
-       void  Add(const cVecCaracMatch &,bool isH0);
-       void  Show(cMultipleOfs &,bool WithCr) const;
-       double CarSep() const;
-       void AddData(const cAuxAr2007 &);
-       const std::string & Name() const;
-
-       double ScoreCr(const cVecCaracMatch &) const;
-       void   UpDateCr(const cVecCaracMatch & aHom,const cVecCaracMatch & aNotHom);
-       void  GenerateVisu(const std::string & aDir);
-       void  GenerateVis2DInit(const std::string & aDir);
-    private :
-       void  GenerateVisuOneIm(const std::string & aDir,const std::string & aPrefix,const tHistND &);
-       void  GenerateVis2DInitOneInit(const std::string & aDir,const std::string & aPrefix,cIm2D<double>,const tHistND&);
-       void  ComputePts(const cVecCaracMatch &) const;
-       cHistoCarNDim(const cHistoCarNDim &) = delete;
-
-       bool                      mIP;
-       int                       mDim;
-       tIndex                    mSz;
-       tVecCar                   mVCar;
-       mutable tIndex                    mPts;
-       mutable tIndex                    mPtsInit;
-       
-       std::vector<const tHisto1*>     mHd1_0;
-       tHistND                   mHist0;  // Homolog
-       tHistND                   mHist2;  //  Non (or close) Homolog
-       std::string               mName;
-       double                    mNbOk;
-       double                    mNbNotOk;
-       bool                      mGV2I;
-       cIm2D<double>             mHistoI0;
-       cIm2D<double>             mHistoI2;
-};
-*/
 
 
 void cHistoCarNDim::AddData(const cAuxAr2007 & anAux)
@@ -235,7 +187,7 @@ const std::string & cHistoCarNDim::Name() const
 
 void  cHistoCarNDim::GenerateVisuOneIm(const std::string & aDir,const std::string & aPrefix,const tHistND & aHist)
 {
-     // cIm2D<tDataNd> anIm = aHist.ToIm2D();
+     // make a float image, of the int image, for Vino ...
      cIm2D<float> anIm = Convert((float*)nullptr,aHist.ToIm2D().DIm());
      
      std::string aName = aDir + "Histo-" + aPrefix +  mName + ".tif";

@@ -284,6 +284,10 @@ class cStatAllVecCarac : public cMemCheck
 void AddData(const cAuxAr2007 & anAux,cStatAllVecCarac&);
 
 
+// Class to represent statistic of conbination of criterion,
+// memorize the histogramm of Hom & Nom Hom, for each dimension the value
+// are resampled according to some histogramm equalization 
+//
 class cHistoCarNDim  : public cMemCheck
 {
     public :
@@ -305,11 +309,16 @@ class cHistoCarNDim  : public cMemCheck
 
        double ScoreCr(const cVecCaracMatch &) const;
        void   UpDateCr(const cVecCaracMatch & aHom,const cVecCaracMatch & aNotHom);
+       // Generate 4 Visu :
+       //     Hom, Non Hom, Score, Pop
        void  GenerateVisu(const std::string & aDir);
+       // Generate 2 Visu in initial dynamic : hom & non hom
        void  GenerateVis2DInit(const std::string & aDir);
 
     private :
+       //  Generarte visu of one Histogramme
        void  GenerateVisuOneIm(const std::string & aDir,const std::string & aPrefix,const tHistND &);
+       //  
        void  GenerateVis2DInitOneInit(const std::string & aDir,const std::string & aPrefix,cIm2D<double>,const tHistND&);
        void  ComputePts(const cVecCaracMatch &) const;
        cHistoCarNDim(const cHistoCarNDim &) = delete;
