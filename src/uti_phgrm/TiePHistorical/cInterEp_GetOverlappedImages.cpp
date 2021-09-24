@@ -75,29 +75,7 @@ termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
 
-void GetBoundingBox(Pt3dr* ptTerrCorner, int nLen, Pt3dr& minPt, Pt3dr& maxPt)
-{
-    minPt = ptTerrCorner[0];
-    maxPt = ptTerrCorner[0];
-    for(int i=1; i<nLen; i++){
-        Pt3dr ptCur = ptTerrCorner[i];
 
-        if(minPt.x > ptCur.x)
-            minPt.x = ptCur.x;
-        if(maxPt.x < ptCur.x)
-            maxPt.x = ptCur.x;
-
-        if(minPt.y > ptCur.y)
-            minPt.y = ptCur.y;
-        if(maxPt.y < ptCur.y)
-            maxPt.y = ptCur.y;
-
-        if(minPt.z > ptCur.z)
-            minPt.z = ptCur.z;
-        if(maxPt.z < ptCur.z)
-            maxPt.z = ptCur.z;
-    }
-}
 
 bool IsOverlapped(std::string aImg1, std::string aImg2, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, cTransform3DHelmert aTrans3DHL, bool bPrint)
 {
@@ -284,11 +262,10 @@ int GetOverlappedImages_main(int argc,char ** argv)
    std::string aImgList2;
    std::string aOri1;
    std::string aOri2;
-//   std::string aDir;
 
    std::string aPara3DH = "";
 
-   bool bPrint = false;
+   //bool bPrint = false;
 
    ElInitArgMain
     (
@@ -303,31 +280,16 @@ int GetOverlappedImages_main(int argc,char ** argv)
                     << aCAS3D.ArgBasic()
                     << aCAS3D.ArgGetOverlappedImages()
                << EAM(aPara3DH, "Para3DH", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
-               << EAM(bPrint, "Print", false, "Print corner coordinate, Def=false")
+               //<< EAM(bPrint, "Print", false, "Print corner coordinate, Def=false")
 
     );
 
    StdCorrecNameOrient(aOri1,"./",true);
    StdCorrecNameOrient(aOri2,"./",true);
 
-   /*
-    std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
-    std::string aKeyOri2 = "NKS-Assoc-Im2Orient@-" + aOri2;
-
-    std::string aIm1OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri1,aImg1,true);
-    std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
-
-
-   if (aPara3DH.length() > 0 && ELISE_fp::exist_file(aPara3DH) == false)
-   {
-       printf("File %s does not exist.\n", aPara3DH.c_str());
-        return 0;
-    }
-    */
-
    cTransform3DHelmert aTrans3DH(aPara3DH);
 
-   GetOverlappedImages(aImgList1, aImgList2, aOri1, aOri2, aCAS3D.mDir, aCAS3D.mOutPairXml, aCAS3D.mICNM, aTrans3DH, bPrint);
+   GetOverlappedImages(aImgList1, aImgList2, aOri1, aOri2, aCAS3D.mDir, aCAS3D.mOutPairXml, aCAS3D.mICNM, aTrans3DH, aCAS3D.mPrint);
 
    return EXIT_SUCCESS;
 }

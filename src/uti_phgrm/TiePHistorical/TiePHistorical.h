@@ -69,6 +69,7 @@ class cCommonAppliTiepHistorical
 
         /* Common parameters */
 //        bool                              mExe;
+        bool                              mPrint;
         std::string                       mDir;
 
         //std::string mDir;
@@ -239,11 +240,15 @@ class cGet3Dcoor
 
         Pt2di GetDSMSz(std::string aDSMFile, std::string aDSMDir);
 
-        Pt3dr Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> mTImProfPx, bool& bValid, double dThres);
+        Pt3dr Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> mTImProfPx, bool& bValid, bool bPrint = false, double dThres = 2);
 
         Pt3dr GetRough3Dcoor(Pt2dr aPt1);
 
         Pt2dr Get2Dcoor(Pt3dr aTer);
+
+        Pt2dr Get2DcoorInDSM(Pt3dr aTer);
+
+        std::string GetDSMName(std::string aDSMFile, std::string aDSMDir);
 
 private:
         cBasicGeomCap3D * mCam1;
@@ -322,7 +327,11 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
 };
 
 
-
+bool FallInBox(Pt2dr* aPCorner, Pt2dr aLeftTop, Pt2di aRightLower);
+void GetRandomNum(int nMin, int nMax, int nNum, std::vector<int> & res);
+void ReadXml(std::string & aImg1, std::string & aImg2, std::string aSubPatchXml, std::vector<std::string>& vPatchesL, std::vector<std::string>& vPatchesR, std::vector<cElHomographie>& vHomoL, std::vector<cElHomographie>& vHomoR);
+void GetBoundingBox(Pt3dr* ptTerrCorner, int nLen, Pt3dr& minPt, Pt3dr& maxPt);
+bool CheckRange(int nMin, int nMax, double & value);
 
 /****************************************/
 /****** cInterEp_RoughCoReg ******/

@@ -44,34 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 extern ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir);
 
-void GetRandomNum(int nMin, int nMax, int nNum, std::vector<int> & res)
-{
-    //srand((int)time(0));
-    int idx = 0;
-    for(int i=0; i<nNum; i++)
-    {
-        bool bRepeat = false;
-        int nIter = 0;
-        do
-        {
-            bRepeat = false;
-            nIter++;
-            idx = rand() % (nMax - nMin) + nMin;
-            //printf("For %dth seed, %dth generation, random value: %d\n", i, nIter, idx);
-            for(int j=0; j<int(res.size()); j++)
-            {
-                if(idx == res[j]){
-                    bRepeat = true;
-                    break;
-                }
-            }
-        }
-        while(bRepeat == true);
-        res.push_back(idx);
-    }
-}
-
-void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double threshold, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR)
+void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double threshold, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, bool bPrint, bool bCheckFile)
 {
     //printf("iteration number: %d; thresh: %lf\n", aNbTir, threshold);
 
@@ -93,6 +66,11 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
     ELISE_fp::MkDir(aDir_outSH);
     std::string aNameOut = aDir_outSH + "/"+aImg2+".txt";
 
+    if (bCheckFile == true && ELISE_fp::exist_file(aNameOut) == true)
+    {
+        cout<<aNameOut<<" already exist, hence skipped"<<endl;
+        return;
+    }
     std::vector<Pt3dr> aV1;
     std::vector<Pt3dr> aV2;
     std::vector<Pt2dr> a2dV1;
@@ -121,11 +99,12 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
        Pt2dr p1 = cple.P1();
        Pt2dr p2 = cple.P2();
 
-       //cout<<nTodel<<"th tie pt: "<<p1.x<<" "<<p1.y<<" "<<p2.x<<" "<<p2.y<<endl;
+       if(bPrint)
+           cout<<nOriPtNum<<"th tie pt: "<<p1.x<<" "<<p1.y<<" "<<p2.x<<" "<<p2.y<<endl;
 
        bool bValidL, bValidR;
-       Pt3dr pTerr1 = a3DCoorL.Get3Dcoor(p1, aTImProfPxL, bValidL, dGSD1);
-       Pt3dr pTerr2 = a3DCoorR.Get3Dcoor(p2, aTImProfPxR, bValidR, dGSD2);
+       Pt3dr pTerr1 = a3DCoorL.Get3Dcoor(p1, aTImProfPxL, bValidL, bPrint);//, dGSD1);
+       Pt3dr pTerr2 = a3DCoorR.Get3Dcoor(p2, aTImProfPxR, bValidR, bPrint);//, dGSD2);
 
        if(bValidL == true && bValidR == true)
        {
@@ -142,6 +121,11 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
                cout<<nOriPtNum<<"th tie pt out of border of the DSM hence skipped"<<endl;
        }
        nOriPtNum++;
+    }
+
+    if(bPrint)
+    {
+        printf("Finished transforming %d tie points into 3D.\n", nOriPtNum);
     }
 
     int nPtNum = aV1.size();
@@ -260,8 +244,6 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
 
 void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double thresh)
 {
-    double aPropRan = 0.8;
-
     printf("iteration number: %d; thresh: %lf\n", aNbTir, thresh);
 
     std::string aDir_inSH = input_dir + "/Homol" + inSH+"/";
@@ -313,25 +295,15 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
         //in case duplicated points
         while((fabs(aDiff1.x) < aEpslon && fabs(aDiff1.y) < aEpslon) || (fabs(aDiff2.x) < aEpslon && fabs(aDiff2.y) < aEpslon));
         //while{(aV1[res[0]].x - aV1[res[1]].x)};
+        //printf("%dth seed: %d, %d\n", j, res[0], res[1]);
 
         Pt2dr tr, sc;
-/*
-        res[0] = 427;
-        res[1] = 449;
-        tr = aV1[res[0]];
-        sc = aV1[res[1]];
-        printf("inter: %d; translation: %lf  %lf  %lf  %lf\n", j, tr.x, tr.y, sc.x, sc.y);
-        tr = aV2[res[0]];
-        sc = aV2[res[1]];
-        printf("inter: %d; translation: %lf  %lf  %lf  %lf\n", j, tr.x, tr.y, sc.x, sc.y);
 
-        Pt2dr ttt = aV1[res[0]] - aV1[res[1]];
-        cout<<ttt.x<<",,,,,"<<ttt.y<<endl;
-*/
         for(i=0; i<2; i++)
         {
             aPackSeed.Cple_Add(ElCplePtsHomologues(aV1[res[i]],aV2[res[i]]));
         }
+        double aPropRan = 0.8;
         ElSimilitude aSimCur = SimilRobustInit(aPackSeed,aPropRan,1);
 
         tr = aSimCur.tr();
@@ -449,28 +421,7 @@ int R2D(int argc,char ** argv, const std::string &aArg="")
 
     return 0;
 }
-/*
-double GetGSD(std::string aImg1, std::string aOri1, cInterfChantierNameManipulateur * aICNM)
-{
-    int aType = eTIGB_Unknown;
-    std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
-    cBasicGeomCap3D * aCam1 = cBasicGeomCap3D::StdGetFromFile(aIm1OriFile,aType);
-    double dZL = aCam1->GetAltiSol();
 
-    Pt2dr aCent(double(aCam1->SzBasicCapt3D().x)/2,double(aCam1->SzBasicCapt3D().y)/2);
-    Pt2dr aCentNeigbor(aCent.x+1, aCent.y);
-
-    Pt3dr aCentTer = aCam1->ImEtZ2Terrain(aCent, dZL);
-    Pt3dr aCentNeigborTer = aCam1->ImEtZ2Terrain(aCentNeigbor, dZL);
-
-
-    //double dist = pow(pow(aCentTer.x-aCentNeigborTer.x,2) + pow(aCentTer.y-aCentNeigborTer.y,2) + pow(aCentTer.z-aCentNeigborTer.z,2), 0.5);
-
-    double dist = pow(pow(aCentTer.x-aCentNeigborTer.x,2) + pow(aCentTer.y-aCentNeigborTer.y,2), 0.5);
-
-    return dist;
-}
-*/
 int R3D(int argc,char ** argv, const std::string &aArg="")
 {
     cCommonAppliTiepHistorical aCAS3D;
@@ -491,6 +442,8 @@ int R3D(int argc,char ** argv, const std::string &aArg="")
     aDSMFileL = "MMLastNuage.xml";
     aDSMFileR = "MMLastNuage.xml";
 
+    bool bCheckFile = false;
+
     ElInitArgMain
      (
          argc,argv,
@@ -506,7 +459,7 @@ int R3D(int argc,char ** argv, const std::string &aArg="")
                 << EAM(aDSMDirR, "DSMDirR", true, "DSM directory of secondary image, Def=none")
                 << EAM(aDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
                 << EAM(aDSMFileR, "DSMFileR", true, "DSM File of secondary image, Def=MMLastNuage.xml")
-
+                   << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
      );
 
     if(aCAS3D.mRANSACOutSH.length() == 0)
@@ -524,7 +477,7 @@ int R3D(int argc,char ** argv, const std::string &aArg="")
      std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
 */
 
-    RANSAC3D(aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mDir, aImg1, aImg2, aCAS3D.mRANSACInSH, aCAS3D.mRANSACOutSH, aCAS3D.mR3DIteration, aCAS3D.mR3DThreshold, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR);
+    RANSAC3D(aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mDir, aImg1, aImg2, aCAS3D.mRANSACInSH, aCAS3D.mRANSACOutSH, aCAS3D.mR3DIteration, aCAS3D.mR3DThreshold, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aCAS3D.mPrint, bCheckFile);
 
     return 0;
 }
@@ -551,51 +504,3 @@ int RANSAC_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
-/*
-int RANSAC_main(int argc,char ** argv)
-{
-   cCommonAppliTiepHistorical aCAS3D;
-
-   std::string aImg1;
-   std::string aImg2;
-
-
-   std::string aStrType;
-
-   if(argc < 2)
-   {
-       cout<<"not enough parameters"<<endl;
-       return 0;
-   }
-
-   //cout<<argv[1]<<endl;
-
-   //ReadType(argv[1]);
-   bool aModeHelp=true;
-   eRANSAC_HistoP aType=eNbTypeRHP;
-   StdReadEnum(aModeHelp,aType,argv[1],eNbTypeRHP);
-
-   ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  << EAMC(aStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeRHP))
-               << EAMC(aImg1,"First image name")
-               << EAMC(aImg2,"Second image name"),
-        LArgMain()
-                    << aCAS3D.ArgBasic()
-               //???
-                    << aCAS3D.ArgRANSAC()
-    );
-
-   if(aCAS3D.mRANSACOutSH.length() == 0)
-       aCAS3D.mRANSACOutSH = aCAS3D.mRANSACInSH + "-RANSAC";
-
-   if(aStrType == "R2D")
-       RANSAC2D(aCAS3D.mDir, aImg1, aImg2, aCAS3D.mRANSACInSH, aCAS3D.mRANSACOutSH, aCAS3D.mIteration, aCAS3D.mRANSACThreshold);
-
-   if(aStrType == "R3D")
-       RANSAC3D(aCAS3D.mOri, aCAS3D.mDir, aImg1, aImg2, aCAS3D.mRANSACInSH, aCAS3D.mRANSACOutSH, aCAS3D.mIteration, aCAS3D.mRANSACThreshold, aCAS3D.mDSMFileL, aCAS3D.mDSMFileR, aCAS3D.mDSMDirL, aCAS3D.mDSMDirR);
-
-   return EXIT_SUCCESS;
-}
-*/

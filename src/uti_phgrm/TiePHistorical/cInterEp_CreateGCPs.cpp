@@ -149,13 +149,6 @@ void Save3DTxt(std::vector<Pt3dr> vPt3D, std::string aOutTxt)
     fclose(fpOutput);
 }
 
-/*
-void GetIm2DCoorFromDSM(std::vector<Pt2dr>& vPt2D, std::vector<Pt3dr> vPt3D, std::string aDSMDirL, std::string aDSMFileL)
-{
-
-}
-*/
-
 bool GetBoundingBox(std::string aRGBImgDir, std::string aImg1, cBasicGeomCap3D * aCamL, Pt3dr& minPt, Pt3dr& maxPt)
 {
     if (ELISE_fp::exist_file(aRGBImgDir+"/"+aImg1) == false)
@@ -188,6 +181,8 @@ bool GetBoundingBox(std::string aRGBImgDir, std::string aImg1, cBasicGeomCap3D *
         ptTerrCorner[i] = aCamL->ImEtZ2Terrain(aP1, dZ);
     }
 
+    GetBoundingBox(ptTerrCorner, 4, minPt, maxPt);
+    /*
     minPt = ptTerrCorner[0];
     maxPt = ptTerrCorner[0];
     for(int i=0; i<4; i++){
@@ -208,6 +203,7 @@ bool GetBoundingBox(std::string aRGBImgDir, std::string aImg1, cBasicGeomCap3D *
         if(maxPt.z < ptCur.z)
             maxPt.z = ptCur.z;
     }
+    */
     return true;
 }
 

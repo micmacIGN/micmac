@@ -11,6 +11,9 @@ set(uti_image_TiePHisto
 		${UTI_PHGRM_TiePHisto_DIR}/cInterEp_RANSAC.cpp
 		${UTI_PHGRM_TiePHisto_DIR}/cInterEp_WallisFilter.cpp
 		${UTI_PHGRM_TiePHisto_DIR}/cInterEp_TiePtEvaluation.cpp
+		${UTI_PHGRM_TiePHisto_DIR}/cInterEp_MakeTrainingData.cpp
+		${UTI_PHGRM_TiePHisto_DIR}/cInterEp_VisuTiePtIn3D.cpp
+		${UTI_PHGRM_TiePHisto_DIR}/cInterEp_TiePtAddWeight.cpp
 )
 
 list( APPEND uti_phgrm_Src_Files

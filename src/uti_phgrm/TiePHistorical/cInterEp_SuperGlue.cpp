@@ -238,14 +238,7 @@ void ReadImgPairs(std::string input_dir, std::string input_pairs)
 
     }
 }
-/*
-void todefine(std::string input_dir, std::string output_dir, std::string input_pairs)
-{
-    std::string cmmd = "/home/lulin/Documents/ThirdParty/SuperGluePretrainedNetwork-master/match_pairs.py --input_pairs "+input_dir+input_pairs+" --input_dir "+input_dir+" --output_dir "+output_dir;
-    printf("%s\n", cmmd.c_str());
-    System(cmmd);
-}
-*/
+
 int SuperGlue_main(int argc,char ** argv)
 {
    cCommonAppliTiepHistorical aCAS3D;

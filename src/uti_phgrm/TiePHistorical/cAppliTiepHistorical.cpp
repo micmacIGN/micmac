@@ -112,10 +112,11 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     mGuidedSIFTOutSH = "-GuidedSIFT";
     mMergeTiePtOutSH = "";
     mRANSACOutSH = "";
+    mCrossCorrelationOutSH = "";
     mMergeTiePtInSH = "";
     mRANSACInSH = "";
     mCreateGCPsInSH = "";
-    mCrossCorrelationOutSH = "";
+    mCrossCorrelationInSH = "";
     mPatchSz = Pt2dr(640, 480);
     mPredict = true;
     mRatioT = true;
@@ -146,9 +147,11 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     //mSubPatchRXml = "SubPR.xml";
     mStrEntSpG = "";
     mStrOpt = "";
+    mPrint = false;
 
         *mArgBasic
             //                        << EAM(mExe,"Exe",true,"Execute all, Def=true")
+                        << EAM(mPrint, "Print", false, "Print supplementary information, Def=false")
                         << EAM(mDir,"Dir",true,"Work directory, Def=./");
 
 
@@ -243,15 +246,15 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
             */
     << EAM(mGuidedSIFTOutSH,"GSIFTOutSH",true,"Output Homologue extenion for NB/NT mode of Guided SIFT, Def=-GuidedSIFT")
     << EAM(mSkipSIFT,"SkipSIFT",true,"Skip extracting SIFT key points in case it is already done, Def=false")
-    << EAM(mSearchSpace,"SearchSpace",true,"Radius of the search space for GuidedSIFT (the search space is the circle with the center on the predicted point), Def=100")
+    << EAM(mSearchSpace,"SearchSpace",true,"Radius of the search space for GuidedSIFT (the search space is the circle with the center on the predicted point), Def=100 (this value is based on master image, the search space on secondary image will multiply the scale difference if mCheckScale is set to true)")
     << EAM(mMutualNN, "MutualNN",true, "Apply mutual nearest neighbor on GuidedSIFT, Def=true")
     << EAM(mRatioT, "RatioT",true, "Apply ratio test on GuidedSIFT, Def=true")
     << EAM(mRootSift, "RootSift",true, "Use RootSIFT as descriptor on GuidedSIFT, Def=true")
     << EAM(mCheckScale, "CheckScale",true, "Check the scale of the candidate tie points on GuidedSIFT, Def=true")
     << EAM(mCheckAngle, "CheckAngle",true, "Check the angle of the candidate tie points on GuidedSIFT, Def=true")
-    << EAM(mPredict, "Predict",true, "Use the predicted key points to guide the matching, Def=true")
-    << EAM(mScale, "Scale",true, "The scale ratio used for checking the candidate tie points on GuidedSIFT, Def=1")
-    << EAM(mAngle, "Angle",true, "The angle difference used for checking the candidate tie points on GuidedSIFT, Def=0");
+    //<< EAM(mScale, "Scale",true, "The scale ratio used for checking the candidate tie points on GuidedSIFT, Def=1")
+    //<< EAM(mAngle, "Angle",true, "The angle difference used for checking the candidate tie points on GuidedSIFT, Def=0")
+    << EAM(mPredict, "Predict",true, "Use the predicted key points to guide the matching, Def=true");
 
     *mArgCrossCorrelation
 //            << EAM(mPatchSz, "PatchSz", true, "Patch size, Def=[640, 480]")
@@ -390,7 +393,7 @@ std::string cCommonAppliTiepHistorical::ComParamRANSAC2D()
 std::string cCommonAppliTiepHistorical::ComParamCreateGCPs()
 {
     std::string aCom = "";
-    if (EAMIsInit(&mCreateGCPsInSH))          aCom +=  " CreateGCPsInSH=" + mCreateGCPsInSH;
+    if (EAMIsInit(&mCreateGCPsInSH))     aCom +=  " CreateGCPsInSH=" + mCreateGCPsInSH;
     if (EAMIsInit(&mOut2DXml1))          aCom +=  " Out2DXml1=" + mOut2DXml1;
     if (EAMIsInit(&mOut2DXml2))          aCom +=  " Out2DXml2=" + mOut2DXml2;
     if (EAMIsInit(&mOut3DXml1))          aCom +=  " Out3DXml1=" + mOut3DXml1;
@@ -875,6 +878,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
             aCom +=  " DSMDirR=" + mDSMDirR;
             if (EAMIsInit(&mDSMFileL))   aCom +=  " DSMFileL=" + mDSMFileL;
             if (EAMIsInit(&mDSMFileR))   aCom +=  " DSMFileR=" + mDSMFileR;
+            aCom +=  "  CheckFile=" + ToString(mCheckFile);
             aComSingle = StdCom("TestLib GuidedSIFTMatch", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGuidedSIFTMatch() + BLANK + "Para3DHL=Basc-"+aOri1+"-2-"+aOri2+".xml" + BLANK + "Para3DHR=Basc-"+aOri2+"-2-"+aOri1+".xml", aExe);
 
             aFeatureOutSH = mCAS3D.mGuidedSIFTOutSH;
@@ -912,12 +916,15 @@ void cAppliTiepHistoricalPipeline::DoAll()
         aCom = "";
         aCom +=  " DSMDirL=" + mDSMDirL;
         aCom +=  " DSMDirR=" + mDSMDirR;
-        if (!EAMIsInit(&mDSMFileL))   aCom +=  " DSMFileL=" + mDSMFileL;
-        if (!EAMIsInit(&mDSMFileR))   aCom +=  " DSMFileR=" + mDSMFileR;
-        if (!EAMIsInit(&mCAS3D.mRANSACInSH))   aCom +=  " 3DRANInSH=" + aFeatureOutSH;
+        if (EAMIsInit(&mDSMFileL))   aCom +=  " DSMFileL=" + mDSMFileL;
+        if (EAMIsInit(&mDSMFileR))   aCom +=  " DSMFileR=" + mDSMFileR;
+        if (!EAMIsInit(&mCAS3D.mRANSACInSH))    aCom +=  " 3DRANInSH=" + aFeatureOutSH;
+        else                                    aCom += " 3DRANInSH=" + mCAS3D.mRANSACInSH;
         if (!EAMIsInit(&mCAS3D.mRANSACOutSH))   aCom +=  " 3DRANOutSH=" + aFeatureOutSH+"-3DRANSAC";
+        else                                    aCom += " 3DRANOutSH=" + mCAS3D.mRANSACOutSH;
         if (EAMIsInit(&mCAS3D.mR3DIteration))   aCom +=  " 3DIter=" + ToString(mCAS3D.mR3DIteration);
         if (EAMIsInit(&mCAS3D.mR3DThreshold))   aCom +=  " 3DRANTh=" + ToString(mCAS3D.mR3DThreshold);
+        aCom +=  "  CheckFile=" + ToString(mCheckFile);
         aComSingle = StdCom("TestLib RANSAC R3D", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + "Dir=" + mCAS3D.mDir + BLANK + aCom, aExe);
         aComList.push_back(aComSingle);
     }
@@ -947,9 +954,11 @@ void cAppliTiepHistoricalPipeline::DoAll()
 
         aCom = "";
         if (!EAMIsInit(&mCAS3D.mCrossCorrelationInSH))   aCom +=  " CCInSH=" + aFeatureOutSH+"-3DRANSAC";
-        if (!EAMIsInit(&mCAS3D.mCrossCorrelationOutSH))   aCom +=  " CCOutSH=" + aFeatureOutSH+"-3DRANSAC-CrossCorrelation";
-        if (!EAMIsInit(&mCAS3D.mWindowSize))   aCom +=  " SzW=" + ToString(mCAS3D.mWindowSize);
-        if (!EAMIsInit(&mCAS3D.mCrossCorrThreshold))   aCom +=  " CCTh=" + ToString(mCAS3D.mCrossCorrThreshold);
+        else                                             aCom +=  " CCInSH=" + mCAS3D.mCrossCorrelationInSH;
+        if (!EAMIsInit(&mCAS3D.mCrossCorrelationOutSH))  aCom +=  " CCOutSH=" + aFeatureOutSH+"-3DRANSAC-CrossCorrelation";
+        else                                             aCom +=  " CCOutSH=" + mCAS3D.mCrossCorrelationOutSH;
+        aCom +=  " SzW=" + ToString(mCAS3D.mWindowSize);
+        aCom +=  " CCTh=" + ToString(mCAS3D.mCrossCorrThreshold);
         aCom += " PatchSz=[" + ToString(mCAS3D.mPatchSz.x) + "," + ToString(mCAS3D.mPatchSz.y) + "]";
         aCom += " BufferSz=[" + ToString(mCAS3D.mBufferSz.x) + "," + ToString(mCAS3D.mBufferSz.y) + "]";
         aCom +=  " PatchDir=" + aOutDir;
@@ -1133,6 +1142,24 @@ Pt2di cGet3Dcoor::GetDSMSz(std::string aDSMFile, std::string aDSMDir)
     return aNuageIn.NbPixel();
 }
 
+std::string cGet3Dcoor::GetDSMName(std::string aDSMFile, std::string aDSMDir)
+{
+    if(aDSMDir.length() == 0)
+        return "";
+    aDSMDir += "/";
+    cXML_ParamNuage3DMaille aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
+    (
+    aDSMDir + aDSMFile,
+    StdGetFileXMLSpec("SuperposImage.xml"),
+    "XML_ParamNuage3DMaille",
+    "XML_ParamNuage3DMaille"
+    );
+
+    cImage_Profondeur aImDSM = aNuageIn.Image_Profondeur().Val();
+
+    return aImDSM.Image();
+}
+
 TIm2D<float,double> cGet3Dcoor::SetDSMInfo(std::string aDSMFile, std::string aDSMDir)
 {
     //if(aDSMFile.length() > 0)
@@ -1193,48 +1220,65 @@ Pt2dr cGet3Dcoor::Get2Dcoor(Pt3dr aTer)
 }
 
 //get 3d coordinate from DSM, if no DSM, get rough 3D coor with mean altitude
-Pt3dr cGet3Dcoor::Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> aTImDSM, bool& bPrecise, double dThres)
+Pt3dr cGet3Dcoor::Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> aTImDSM, bool& bPrecise, bool bPrint, double dThres)
 {
     bPrecise = true;
 
     Pt3dr aTer(0,0,0);
     Pt2dr ptPrj;
 
+    if(bPrint)
+        cout<<"dThres: "<<dThres<<endl;
+
     //double dThres = 0.3;
     //tempo, check prof+dZ=posZ?
     double dZ = mCam1->GetAltiSol();
-    double dDis;
+    double dDis = 0;
     int nIter = 0;
     //printf("--------\nIter: %d, dZ: %lf, aTer.x: %lf, aTer.y: %lf, aTer.z: %lf\n", nIter, dZ, aTer.x, aTer.y, aTer.z);
 //    cout<<"nIter: "<<nIter<<"; dZ: "<<dZ<<"; aTer: "<<aTer.x<<", "<<aTer.y<<", "<<aTer.z<<endl;
     do
     {
-        nIter++;
-
         aTer = mCam1->ImEtZ2Terrain(aPt1, dZ);
-        ptPrj = mCam1->Ter2Capteur(aTer);
-
-        dDis = pow(pow(aPt1.x-ptPrj.x, 2) + pow(aPt1.y-ptPrj.y, 2), 0.5);
-
-        if(nIter > 100)
-        {
-            printf("%lf %lf %lf %lf\n", aPt1.x,ptPrj.x,aPt1.y,ptPrj.y);
-            printf("nIter: %d, dZ: %lf, aTer.x: %lf, aTer.y: %lf, aTer.z: %lf, dDis: %lf, dThres: %lf\n", nIter, dZ, aTer.x, aTer.y, aTer.z, dDis, dThres);
-        }
 
         Pt2di aPt2;
         aPt2.x = int((aTer.x - mOriPlani.x)/mResolPlani.x + 0.5);
         aPt2.y = int((aTer.y - mOriPlani.y)/mResolPlani.y + 0.5);
+
         //out of border of the DSM
         if(aPt2.x<0 || aPt2.y<0 || aPt2.x >= mDSMSz.x || aPt2.y >= mDSMSz.y)
         {
             bPrecise = false;
             aTer = GetRough3Dcoor(aPt1);
+            if(bPrint == true)
+                printf("Point (%.2lf, %.2lf) out of border of the DSM (Projected px in DSM: %d, %d; DSM size: %d, %d), hence use average altitude instead.\n", aPt1.x, aPt1.y, aPt2.x, aPt2.y, mDSMSz.x, mDSMSz.y);
+            return aTer;
+        }
+
+        //out of border of the DSM
+        if(nIter > 100)
+        {
+            bPrecise = false;
+            aTer = GetRough3Dcoor(aPt1);
+            if(bPrint == true){
+                printf("Iteration > 100, hence use average altitude instead. ");
+                printf("aTer: %.2lf, %.2lf, %.2lf\n", aTer.x, aTer.y, aTer.z);
+            }
             return aTer;
         }
 
         dZ =  aTImDSM.get(aPt2);
         aTer.z = dZ;
+
+        ptPrj = mCam1->Ter2Capteur(aTer);
+        dDis = pow(pow(aPt1.x-ptPrj.x, 2) + pow(aPt1.y-ptPrj.y, 2), 0.5);
+
+        if(bPrint == true)
+        {
+            printf("nIter: %d, dZ: %.2lf, aTer.x: %.2lf, aTer.y: %.2lf, aTer.z: %.2lf, dDis: %.2lf, dThres: %.2lf\n", nIter, dZ, aTer.x, aTer.y, aTer.z, dDis, dThres);
+            printf("ptOri: %.2lf %.2lf; ptReproj: %.2lf %.2lf\n", aPt1.x,aPt1.y,ptPrj.x,ptPrj.y);
+        }
+        nIter++;
     }
     while(dDis > dThres);
 
@@ -1243,3 +1287,120 @@ Pt3dr cGet3Dcoor::Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> aTImDSM, bool& bPrec
     return aTer;
 }
 
+//get 3d coordinate from DSM, if no DSM, get rough 3D coor with mean altitude
+Pt2dr cGet3Dcoor::Get2DcoorInDSM(Pt3dr aTer)
+{
+    Pt2dr aPt2;
+    aPt2.x = (aTer.x - mOriPlani.x)/mResolPlani.x + 0.5;
+    aPt2.y = (aTer.y - mOriPlani.y)/mResolPlani.y + 0.5;
+
+    return aPt2;
+}
+
+void GetRandomNum(int nMin, int nMax, int nNum, std::vector<int> & res)
+{
+    //srand((int)time(0));
+    int idx = 0;
+    for(int i=0; i<nNum; i++)
+    {
+        bool bRepeat = false;
+        int nIter = 0;
+        do
+        {
+            bRepeat = false;
+            nIter++;
+            idx = rand() % (nMax - nMin) + nMin;
+            //printf("For %dth seed, %dth generation, random value: %d\n", i, nIter, idx);
+            for(int j=0; j<int(res.size()); j++)
+            {
+                if(idx == res[j]){
+                    bRepeat = true;
+                    break;
+                }
+            }
+        }
+        while(bRepeat == true);
+        res.push_back(idx);
+    }
+}
+
+bool FallInBox(Pt2dr* aPCorner, Pt2dr aLeftTop, Pt2di aRightLower)
+{
+    if((aPCorner[0].x < aLeftTop.x) && (aPCorner[1].x < aLeftTop.x) && (aPCorner[2].x < aLeftTop.x) && (aPCorner[3].x < aLeftTop.x))
+        return false;
+
+    if((aPCorner[0].y < aLeftTop.y) && (aPCorner[1].y < aLeftTop.y) && (aPCorner[2].y < aLeftTop.y) && (aPCorner[3].y < aLeftTop.y))
+        return false;
+
+    if((aPCorner[0].x > aRightLower.x) && (aPCorner[1].x > aRightLower.x) && (aPCorner[2].x > aRightLower.x) && (aPCorner[3].x > aRightLower.x))
+        return false;
+
+    if((aPCorner[0].y > aRightLower.y) && (aPCorner[1].y > aRightLower.y) && (aPCorner[2].y > aRightLower.y) && (aPCorner[3].y > aRightLower.y))
+        return false;
+
+    return true;
+}
+
+void ReadXml(std::string & aImg1, std::string & aImg2, std::string aSubPatchXml, std::vector<std::string>& vPatchesL, std::vector<std::string>& vPatchesR, std::vector<cElHomographie>& vHomoL, std::vector<cElHomographie>& vHomoR)
+{
+    cout<<aSubPatchXml<<endl;
+    cSetOfPatches aSOMAF = StdGetFromSI(aSubPatchXml, SetOfPatches);
+
+    std::list<cMes1Im>::const_iterator itIms = aSOMAF.Mes1Im().begin();
+
+    cMes1Im aIms1 = * itIms;
+    itIms++;
+    cMes1Im aIms2 = * itIms;
+
+    aImg1 = aIms1.NameIm();
+    aImg2 = aIms2.NameIm();
+
+    for(std::list<cOnePatch1I>::const_iterator itF = aIms1.OnePatch1I().begin() ; itF != aIms1.OnePatch1I().end() ; itF++)
+    {
+        cOnePatch1I aMAF = *itF;
+        vPatchesL.push_back(aMAF.NamePatch());
+        vHomoL.push_back(aMAF.PatchH());
+    }
+
+    for(std::list<cOnePatch1I>::const_iterator itF = aIms2.OnePatch1I().begin() ; itF != aIms2.OnePatch1I().end() ; itF++)
+    {
+        cOnePatch1I aMAF = *itF;
+        vPatchesR.push_back(aMAF.NamePatch());
+        vHomoR.push_back(aMAF.PatchH());
+    }
+}
+
+void GetBoundingBox(Pt3dr* ptTerrCorner, int nLen, Pt3dr& minPt, Pt3dr& maxPt)
+{
+    minPt = ptTerrCorner[0];
+    maxPt = ptTerrCorner[0];
+    for(int i=0; i<nLen; i++){
+        Pt3dr ptCur = ptTerrCorner[i];
+
+        if(minPt.x > ptCur.x)
+            minPt.x = ptCur.x;
+        if(maxPt.x < ptCur.x)
+            maxPt.x = ptCur.x;
+
+        if(minPt.y > ptCur.y)
+            minPt.y = ptCur.y;
+        if(maxPt.y < ptCur.y)
+            maxPt.y = ptCur.y;
+
+        if(minPt.z > ptCur.z)
+            minPt.z = ptCur.z;
+        if(maxPt.z < ptCur.z)
+            maxPt.z = ptCur.z;
+    }
+}
+
+bool CheckRange(int nMin, int nMax, double & value)
+{
+    if(nMax < nMin)
+        return false;
+    if(value < nMin)
+        value = nMin;
+    if(value > nMax)
+        value = nMax;
+    return true;
+}
