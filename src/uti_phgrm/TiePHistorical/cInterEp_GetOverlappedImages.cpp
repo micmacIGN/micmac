@@ -235,6 +235,7 @@ void GetOverlappedImages(std::string mImgList1, std::string mImgList2, std::stri
 
     unsigned int m, n;
     cSauvegardeNamedRel aRel;
+    int nOverlappedPair = 0;
     for(m=0; m<vImgList1.size(); m++)
     {
         std::string aImg1 = vImgList1[m];
@@ -247,10 +248,12 @@ void GetOverlappedImages(std::string mImgList1, std::string mImgList2, std::stri
             if(IsOverlapped(aImg1, aImg2, aOri1, aOri2, aICNM, aTrans3DHL, bPrint) == true)
             {
                 aRel.Cple().push_back(cCpleString(aImg1, aImg2));
+                nOverlappedPair++;
             }
         }
     }
     MakeFileXML(aRel,aDir+aOut);
+    cout<<"Overlapped image pairs: "<<nOverlappedPair<<endl;
     cout<<"xdg-open "<<aDir+aOut<<endl;
 }
 

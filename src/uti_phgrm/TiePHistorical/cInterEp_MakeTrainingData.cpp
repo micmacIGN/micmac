@@ -176,7 +176,7 @@ void CropPatch(Pt2dr aPtOri, Pt2dr aPatchSz, std::string aImg2, std::string aOut
     System(aComClipMasterImg);
 }
 
-std::string GetDSMPatch(std::string aImg, std::string aDSMDir, std::string aDSMFile, Pt2dr* ImgCorner, Pt2dr PatchSz, cGet3Dcoor a3DL, TIm2D<float,double> aTImProfPxL, bool bDSM, bool bPrint, std::string aOutDirDSM, std::string aOutDirTxt)
+std::string GetDSMPatch(std::string aImg, std::string aDSMDir, std::string aDSMFile, Pt2dr* ImgCorner, Pt2dr PatchSz, cGet3Dcoor a3DL, cDSMInfo aDSMInfoL, bool bPrint, std::string aOutDirDSM, std::string aOutDirTxt)
 //, std::vector<Pt2dr> & DSMCoor
 {
     Pt2dr PatchCorner[4];
@@ -186,7 +186,7 @@ std::string GetDSMPatch(std::string aImg, std::string aDSMDir, std::string aDSMF
     PatchCorner[2] = Pt2dr(origin.x+PatchSz.x, origin.y+PatchSz.y);
     PatchCorner[3] = Pt2dr(origin.x, origin.y+PatchSz.y);
 
-    std::string aDSMName = a3DL.GetDSMName(aDSMFile, aDSMDir);
+    std::string aDSMName = aDSMInfoL.GetDSMName(aDSMFile, aDSMDir);
     std::string aDSMImgName = StdPrefix(aDSMName) + "_gray.tif_sfs." + StdPostfix(aDSMName);
     std::string aNameSave = StdPrefix(aImg) + "_DSM";
     std::string aSubImg2 = aNameSave + "." + StdPostfix(aImg);
@@ -197,18 +197,18 @@ std::string GetDSMPatch(std::string aImg, std::string aDSMDir, std::string aDSMF
     {
         Pt2dr aPL = ImgCorner[i];
         Pt3dr aPTer1;
-        if(bDSM == true)
-        {
+        /*if(bDSM == true)
+        {*/
             bool bPreciseL;
-            aPTer1 = a3DL.Get3Dcoor(aPL, aTImProfPxL, bPreciseL, bPrint);//, a3DL.GetGSD(), true);
+            aPTer1 = a3DL.Get3Dcoor(aPL, aDSMInfoL, bPreciseL, bPrint);//, a3DL.GetGSD(), true);
             //Pt2dr ptPred = a3DL.Get2Dcoor(aPTer1);
             //printf("aPL.x, aPL.y, ptPred.x, ptPred.y: %.2lf\t%.2lf, %.2lf\t%.2lf\n", aPL.x, aPL.y, ptPred.x, ptPred.y);
-        }
+        /*}
         else
         {
             aPTer1 = a3DL.GetRough3Dcoor(aPL);
-        }
-        Pt2dr aPtInDSM = a3DL.Get2DcoorInDSM(aPTer1);
+        }*/
+        Pt2dr aPtInDSM = aDSMInfoL.Get2DcoorInDSM(aPTer1);
         //DSMCoor.push_back(aPtInDSM);
         fprintf(fpOutput, "%lf %lf %lf %lf\n", PatchCorner[i].x, PatchCorner[i].y, aPtInDSM.x, aPtInDSM.y);
     }
@@ -238,7 +238,7 @@ std::string GetDSMPatch(std::string aImg, std::string aDSMDir, std::string aDSMF
 
 
 //std::string GetDSMPatch(std::string aImg, std::string aDSMDir, std::string aDSMFile, Pt2dr aPtCenter, Pt2dr PatchSz, cGet3Dcoor a3DL, TIm2D<float,double> aTImProfPxL, bool bDSM)
-void GetSecondaryPatch(Pt2dr* aPCornerL, Pt2dr* aPCornerR, Pt2di ImgSzR, Pt2dr PatchSz, cTransform3DHelmert aTrans3DH, cBasicGeomCap3D * aCamR, cGet3Dcoor a3DL, TIm2D<float,double> aTImProfPxL, bool bDSM, std::string aOutImg2, std::string aOriginImg1, int m, int n, bool bPrint, std::string aOutDirImg, std::string aOutDirTxt)
+void GetSecondaryPatch(Pt2dr* aPCornerL, Pt2dr* aPCornerR, Pt2di ImgSzR, Pt2dr PatchSz, cTransform3DHelmert aTrans3DH, cBasicGeomCap3D * aCamR, cGet3Dcoor a3DL, cDSMInfo aDSMInfoL, std::string aOutImg2, std::string aOriginImg1, int m, int n, bool bPrint, std::string aOutDirImg, std::string aOutDirTxt)
 {
     double dScaleL = 1;
     double dScaleR = 1;
@@ -247,15 +247,15 @@ void GetSecondaryPatch(Pt2dr* aPCornerL, Pt2dr* aPCornerR, Pt2di ImgSzR, Pt2dr P
     {
         Pt2dr aPL = aPCornerL[i];
         Pt3dr aPTer1;
-        if(bDSM == true)
-        {
+        /*if(bDSM == true)
+        {*/
             bool bPreciseL;
-            aPTer1 = a3DL.Get3Dcoor(aPL, aTImProfPxL, bPreciseL, bPrint);//, a3DL.GetGSD(), true);
-        }
+            aPTer1 = a3DL.Get3Dcoor(aPL, aDSMInfoL, bPreciseL, bPrint);//, a3DL.GetGSD(), true);
+        /*}
         else
         {
             aPTer1 = a3DL.GetRough3Dcoor(aPL);
-        }
+        }*/
         aPTer1 = aTrans3DH.Transform3Dcoor(aPTer1);
 
         aPCornerR[i] = aCamR->Ter2Capteur(aPTer1);
@@ -323,21 +323,23 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
     std::string aNameOriL = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
     std::string aNameOriR = aICNM->StdNameCamGenOfNames(aOri2, aImg2);
     cGet3Dcoor a3DL(aNameOriL);
-    TIm2D<float,double> aTImProfPxL(a3DL.GetDSMSz(aDSMFileL, aDSMDirL));
+    cDSMInfo aDSMInfoL = a3DL.SetDSMInfo(aDSMFileL, aDSMDirL);
+    /*TIm2D<float,double> aTImProfPxL(a3DL.GetDSMSz(aDSMFileL, aDSMDirL));
     bool bDSML = false;
     if(aDSMDirL.length() > 0)
     {
         bDSML = true;
         aTImProfPxL = a3DL.SetDSMInfo(aDSMFileL, aDSMDirL);
-    }
+    }*/
     cGet3Dcoor a3DR(aNameOriR);
-    TIm2D<float,double> aTImProfPxR(a3DR.GetDSMSz(aDSMFileR, aDSMDirR));
+    cDSMInfo aDSMInfoR = a3DR.SetDSMInfo(aDSMFileR, aDSMDirR);
+    /*TIm2D<float,double> aTImProfPxR(a3DR.GetDSMSz(aDSMFileR, aDSMDirR));
     bool bDSMR = false;
     if(aDSMDirR.length() > 0)
     {
         bDSMR = true;
         aTImProfPxR = a3DR.SetDSMInfo(aDSMFileR, aDSMDirR);
-    }
+    }*/
 
     Pt2dr aPCornerL[4];
     Pt2dr origin = Pt2dr(0, 0);
@@ -351,15 +353,15 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
     {
         Pt2dr aPL = aPCornerL[i];
         Pt3dr aPTer1;
-        if(bDSML == true)
-        {
+        /*if(bDSML == true)
+        {*/
             bool bPreciseL;
-            aPTer1 = a3DL.Get3Dcoor(aPL, aTImProfPxL, bPreciseL, bPrint);//, a3DL.GetGSD());
-        }
+            aPTer1 = a3DL.Get3Dcoor(aPL, aDSMInfoL, bPreciseL, bPrint);//, a3DL.GetGSD());
+        /*}
         else
         {
             aPTer1 = a3DL.GetRough3Dcoor(aPL);
-        }
+        }*/
 
         aPTer1 = aTrans3DHL.Transform3Dcoor(aPTer1);
         Pt2dr ptPred = a3DR.Get2Dcoor(aPTer1);
@@ -442,22 +444,22 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
     aPatchCornerR[1] = Pt2dr(origin.x+aPatchSz.x, origin.y);
     aPatchCornerR[2] = Pt2dr(origin.x+aPatchSz.x, origin.y+aPatchSz.y);
     aPatchCornerR[3] = Pt2dr(origin.x, origin.y+aPatchSz.y);
-    GetDSMPatch(aImg2, aDSMDirR, aDSMFileR, aPatchCornerR, aPatchSz, a3DR, aTImProfPxR, bDSMR, bPrint, aOutDirDSM, aOutDirTxt);
+    GetDSMPatch(aImg2, aDSMDirR, aDSMFileR, aPatchCornerR, aPatchSz, a3DR, aDSMInfoR, bPrint, aOutDirDSM, aOutDirTxt);
 
     //Same center, keep GSD and rotation difference
     if(false)
     {
         //Crop master patch
         Pt3dr aPTer1;
-        if(bDSMR == true)
-        {
+        /*if(bDSMR == true)
+        {*/
             bool bPreciseR;
-            aPTer1 = a3DR.Get3Dcoor(aPCenterR, aTImProfPxR, bPreciseR, bPrint);//, a3DR.GetGSD());
-        }
+            aPTer1 = a3DR.Get3Dcoor(aPCenterR, aDSMInfoR, bPreciseR, bPrint);//, a3DR.GetGSD());
+        /*}
         else
         {
             aPTer1 = a3DR.GetRough3Dcoor(aPCenterR);
-        }
+        }*/
 
         aPTer1 = aTrans3DHR.Transform3Dcoor(aPTer1);
         Pt2dr aPCenterL = a3DL.Get2Dcoor(aPTer1);
@@ -473,7 +475,7 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
         aPatchCornerL[1] = Pt2dr(origin.x+aPatchSz.x, origin.y);
         aPatchCornerL[2] = Pt2dr(origin.x+aPatchSz.x, origin.y+aPatchSz.y);
         aPatchCornerL[3] = Pt2dr(origin.x, origin.y+aPatchSz.y);
-        GetDSMPatch(aImg1, aDSMDirL, aDSMFileL, aPatchCornerL, aPatchSz, a3DL, aTImProfPxL, bDSML, bPrint, aOutDirDSM, aOutDirTxt);
+        GetDSMPatch(aImg1, aDSMDirL, aDSMFileL, aPatchCornerL, aPatchSz, a3DL, aDSMInfoL, bPrint, aOutDirDSM, aOutDirTxt);
         //RotateImgBy90Deg1("Tmp_Patches", aDSML, aDSML+"_90.tif");
         //RotateImgBy90Deg1("./", aImg1, aImg1+"_90.tif");
     }
@@ -484,10 +486,10 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
         int aType = eTIGB_Unknown;
         cBasicGeomCap3D * aCamL = cBasicGeomCap3D::StdGetFromFile(aNameOriL,aType);
         Pt2dr aPatchCornerL[4];
-        GetSecondaryPatch(aPatchCornerR, aPatchCornerL, ImgSzR, aPatchSz, aTrans3DHR, aCamL, a3DR, aTImProfPxR, bDSMR, aImg1, aImg2, m, n, bPrint, aOutDirImg, aOutDirTxt);
+        GetSecondaryPatch(aPatchCornerR, aPatchCornerL, ImgSzR, aPatchSz, aTrans3DHR, aCamL, a3DR, aDSMInfoR, aImg1, aImg2, m, n, bPrint, aOutDirImg, aOutDirTxt);
         for(int k=0; k<4; k++)
             printf("%dth: CornerL: [%.2lf\t%.2lf]\n", k, aPatchCornerL[k].x, aPatchCornerL[k].y);
-        GetDSMPatch(aImg1, aDSMDirL, aDSMFileL, aPatchCornerL, aPatchSz, a3DL, aTImProfPxL, bDSML, bPrint, aOutDirDSM, aOutDirTxt);
+        GetDSMPatch(aImg1, aDSMDirL, aDSMFileL, aPatchCornerL, aPatchSz, a3DL, aDSMInfoL, bPrint, aOutDirDSM, aOutDirTxt);
     }
 }
 

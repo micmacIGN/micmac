@@ -285,18 +285,19 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
                     aP1.y = aP1.y*dScaleL;
 
                     Pt3dr aPTer1;
-                    if(aDSMDirL.length() > 0)
-                    {
+                    /*if(aDSMDirL.length() > 0)
+                    {*/
                         cGet3Dcoor a3DCoorL(aIm1OriFile);
-                        TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+                        cDSMInfo aDSMInfoL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+                        //TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
                         bool bValidL;
-                        aPTer1 = a3DCoorL.Get3Dcoor(aP1, aTImProfPxL, bValidL, bPrint, aThres);//, a3DCoorL.GetGSD());
-                    }
+                        aPTer1 = a3DCoorL.Get3Dcoor(aP1, aDSMInfoL, bValidL, bPrint, aThres);//, a3DCoorL.GetGSD());
+                    /*}
                     else
                     {
                         //aPTer1 = aCamL->ImEtProf2Terrain(aP1, prof_d);
                         aPTer1 = aCamL->ImEtZ2Terrain(aP1, dZL);
-                    }
+                    }*/
                     //Pt2dr aP2 = aCamL->Ter2Capteur(aPTer1);
                     //printf("%.2lf\t%.2lf\t%.2lf\t%.2lf\n", aP1.x, aP1.y, aP2.x, aP2.y);
 
@@ -614,6 +615,9 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
 
     bool bRotate = false;
 
+    Pt2dr aPatchSz(640, 480);
+    Pt2dr aBufferSz(0, 0);
+
     ElInitArgMain
      (
          argc,argv,
@@ -622,7 +626,9 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
                      << EAMC(aImg1,"Master image name")
                      << EAMC(aImg2,"Secondary image name"),
          LArgMain()
-                     << EAM(bRotate,"Rotate",true,"Rotate the master image by 90 degree 4 times for matching methods which are not invariant to rotation (e.g. SuperGlue), Def=false")
+                << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
+                << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=[0, 0]")
+                << EAM(bRotate,"Rotate",true,"Rotate the master image by 90 degree 4 times for matching methods which are not invariant to rotation (e.g. SuperGlue), Def=false")
                      << aCAS3D.ArgBasic()
                      << aCAS3D.ArgGetPatchPair()
      );
@@ -641,7 +647,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
        cElHomographie  aUnitH =  cElHomographie(aUnitHX,aUnitHY,aUnitHZ);
 
        //no rotation
-       GetTilePair(aCAS3D.mOutDir, aOutImg1, aOutImg1, aOutImg2, aImg1, aImg2, aCAS3D.mPatchSz, aCAS3D.mBufferSz, aCAS3D.mImgPair, aCAS3D.mDir, aCAS3D.mSubPatchXml, aImg1, aUnitH, aCAS3D.mPrint);
+       GetTilePair(aCAS3D.mOutDir, aOutImg1, aOutImg1, aOutImg2, aImg1, aImg2, aPatchSz, aBufferSz, aCAS3D.mImgPair, aCAS3D.mDir, aCAS3D.mSubPatchXml, aImg1, aUnitH, aCAS3D.mPrint);
    }
 
    if(bRotate == true)
@@ -672,7 +678,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
            //cout<<aImg1_Rotate<<",,,"<<aSubPatchXml<<",,,"<<aImgPair<<endl;
 
            RotateImgBy90Deg(aCAS3D.mDir, aImgBase, aImg1_Rotate);
-           GetTilePair(aCAS3D.mOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aCAS3D.mPatchSz, aCAS3D.mBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint);
+           GetTilePair(aCAS3D.mOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint);
        }
 
        //rotate 180 degree
@@ -692,7 +698,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
            //cout<<aImg1_Rotate<<",,,"<<aSubPatchXml<<",,,"<<aImgPair<<endl;
 
            RotateImgBy90DegNTimes(aCAS3D.mDir, aImgBase, aImg1_Rotate, 2);
-           GetTilePair(aCAS3D.mOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aCAS3D.mPatchSz, aCAS3D.mBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint);
+           GetTilePair(aCAS3D.mOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint);
        }
 
        //rotate 270 degree
@@ -712,7 +718,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
            //cout<<aImg1_Rotate<<",,,"<<aSubPatchXml<<",,,"<<aImgPair<<endl;
 
            RotateImgBy90DegNTimes(aCAS3D.mDir, aImgBase, aImg1_Rotate, 3);
-           GetTilePair(aCAS3D.mOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aCAS3D.mPatchSz, aCAS3D.mBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint);
+           GetTilePair(aCAS3D.mOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint);
        }
     }
 
@@ -741,6 +747,9 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
 
     double aThres = 2;
 
+    Pt2dr aPatchSz(640, 480);
+    Pt2dr aBufferSz(30, 60);
+
     ElInitArgMain
      (
          argc,argv,
@@ -753,6 +762,8 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
          LArgMain()
                      << aCAS3D.ArgBasic()
                      << aCAS3D.ArgGetPatchPair()
+                << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
+                << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=[30, 60]")
                 << EAM(aPara3DH, "Para3DH", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
                 //<< EAM(bPrint, "Print", false, "Print corner coordinate, Def=false")
                 << EAM(aDSMDirL, "DSMDirL", true, "DSM directory of master image, Def=none")
@@ -784,7 +795,7 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
 
     std::string aOutImg1 = GetFileName(aImg1);
     std::string aOutImg2 = GetFileName(aImg2);
-    GetPatchPair(aCAS3D.mOutDir, aOutImg1, aOutImg2, aImg1, aImg2, aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mPatchSz, aCAS3D.mBufferSz, aPrefix + aCAS3D.mImgPair, aCAS3D.mDir, aPrefix + aCAS3D.mSubPatchXml, aTrans3DH, aDSMFileL, aDSMDirL, aThres, aCAS3D.mPrint, aPrefix);
+    GetPatchPair(aCAS3D.mOutDir, aOutImg1, aOutImg2, aImg1, aImg2, aOri1, aOri2, aCAS3D.mICNM, aPatchSz, aBufferSz, aPrefix + aCAS3D.mImgPair, aCAS3D.mDir, aPrefix + aCAS3D.mSubPatchXml, aTrans3DH, aDSMFileL, aDSMDirL, aThres, aCAS3D.mPrint, aPrefix);
 
     return 0;
 }

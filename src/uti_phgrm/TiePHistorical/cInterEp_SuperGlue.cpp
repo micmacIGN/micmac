@@ -105,7 +105,7 @@ bool CheckFile(std::string input_dir, std::string SH, std::string input_pairs)
     return true;
 }
 
-void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string input_pairs, bool keepNpzFile)
+void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string input_pairs, bool keepNpzFile, double aCheckNb, bool bPrint)
 {
     ifstream in(input_dir+input_pairs);
     std::string s;
@@ -183,6 +183,11 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
                     continue;
                 Pt2dr ptL = Pt2dr(arr_keypt0[i*2]*ptScaleL.x, arr_keypt0[i*2+1]*ptScaleL.y);
                 Pt2dr ptR = Pt2dr(arr_keypt1[nMatchVal*2]*ptScaleR.x, arr_keypt1[nMatchVal*2+1]*ptScaleR.y);
+                if(aCheckNb > 0 && (pow((ptL.x-ptR.x),2)+pow((ptL.y-ptR.y),2) > aCheckNb*aCheckNb)){
+                    if(bPrint)
+                        printf("Correspondence ([%lf,%lf], [%lf,%lf]) out of search space, hence removed.\n", ptL.x, ptL.y, ptR.x, ptR.y);
+                    continue;
+                }
                 aPack.Cple_Add(ElCplePtsHomologues(ptL, ptR));
                 nValidMatchNum++;
             }
@@ -247,15 +252,17 @@ int SuperGlue_main(int argc,char ** argv)
 
    bool bCheckFile = false;
 
+   double aCheckNb = -1;
+
    ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(input_pairs, "txt file that listed the image pairs"),
         LArgMain()
-                    //<< aCAS3D.ArgBasic()
+                    << aCAS3D.ArgBasic()
                     << aCAS3D.ArgSuperGlue()
                     << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
-
+               << EAM(aCheckNb,"CheckNb",true,"Radius of the search space for SuperGlue (remove correspondence [(xL, yL), (xR, yR)] if (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb), Def=-1 (means don't check search space)")
     );
 
    std::string strOpt = aCAS3D.mStrOpt;
@@ -309,7 +316,7 @@ int SuperGlue_main(int argc,char ** argv)
 
        //todefine(aCAS3D.input_dir, aCAS3D.output_dir, input_pairs);
        //ReadImgPairs(aCAS3D.input_dir, input_pairs);
-       Npz2Homol(aCAS3D.mResize, aCAS3D.mInput_dir, aCAS3D.mSpGlueOutSH, input_pairs, aCAS3D.mKeepNpzFile);
+       Npz2Homol(aCAS3D.mResize, aCAS3D.mInput_dir, aCAS3D.mSpGlueOutSH, input_pairs, aCAS3D.mKeepNpzFile, aCheckNb, aCAS3D.mPrint);
     }
    return EXIT_SUCCESS;
 }

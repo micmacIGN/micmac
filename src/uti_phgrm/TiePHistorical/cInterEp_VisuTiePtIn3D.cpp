@@ -11,12 +11,15 @@ void Write3DCoor(std::string aNameSaveL, std::vector<Pt3dr> Pt3dL)
     fclose(fpOutput);
 }
 
-int Get3DCoors(ElPackHomologue aPackFull, bool bReverse, std::string aDSMDirL, std::string aDSMDirR, std::string aDSMFileL, std::string aDSMFileR, std::string aIm1OriFile, std::string aIm2OriFile, std::vector<Pt3dr> & Pt3dL, std::vector<Pt3dr> & Pt3dR, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, bool bPrint, double aThres)
+int Get3DCoors(ElPackHomologue aPackFull, bool bReverse, std::string aDSMDirL, std::string aDSMDirR, std::string aDSMFileL, std::string aDSMFileR, std::string aIm1OriFile, std::string aIm2OriFile, std::vector<Pt3dr> & Pt3dL, std::vector<Pt3dr> & Pt3dR, std::vector<bool> & vecPreciseL, std::vector<bool> & vecPreciseR, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, bool bPrint, double aThres)
 {
     cGet3Dcoor a3DCoorL(aIm1OriFile);
-    TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+    //TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+    cDSMInfo aDSMInfoL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
     cGet3Dcoor a3DCoorR(aIm2OriFile);
-    TIm2D<float,double> aTImProfPxR = a3DCoorR.SetDSMInfo(aDSMFileR, aDSMDirR);
+    //TIm2D<float,double> aTImProfPxR = a3DCoorR.SetDSMInfo(aDSMFileR, aDSMDirR);
+    cDSMInfo aDSMInfoR = a3DCoorR.SetDSMInfo(aDSMFileR, aDSMDirR);
+
 
     int nTiePtNum = 0;
     for (ElPackHomologue::iterator itCpl=aPackFull.begin();itCpl!=aPackFull.end(); itCpl++)
@@ -34,28 +37,56 @@ int Get3DCoors(ElPackHomologue aPackFull, bool bReverse, std::string aDSMDirL, s
        Pt3dr pTerr1, pTerr2;
        if(bReverse == true)
        {
-           pTerr1 = a3DCoorL.Get3Dcoor(p2, aTImProfPxL, bValidL, bPrint, aThres);//, dGSD1);
-           pTerr2 = a3DCoorR.Get3Dcoor(p1, aTImProfPxR, bValidR, bPrint, aThres);//, dGSD2);
+           pTerr1 = a3DCoorL.Get3Dcoor(p2, aDSMInfoL, bValidL, bPrint, aThres);//, dGSD1);
+           pTerr2 = a3DCoorR.Get3Dcoor(p1, aDSMInfoR, bValidR, bPrint, aThres);//, dGSD2);
            pTerr1 = aTrans3DHR.Transform3Dcoor(pTerr1);
            pTerr2 = aTrans3DHL.Transform3Dcoor(pTerr2);
        }
        else
        {
-           pTerr1 = a3DCoorL.Get3Dcoor(p1, aTImProfPxL, bValidL, bPrint, aThres);//, dGSD1);
-           pTerr2 = a3DCoorR.Get3Dcoor(p2, aTImProfPxR, bValidR, bPrint, aThres);//, dGSD2);
+           pTerr1 = a3DCoorL.Get3Dcoor(p1, aDSMInfoL, bValidL, bPrint, aThres);//, dGSD1);
+           pTerr2 = a3DCoorR.Get3Dcoor(p2, aDSMInfoR, bValidR, bPrint, aThres);//, dGSD2);
            pTerr1 = aTrans3DHL.Transform3Dcoor(pTerr1);
            pTerr2 = aTrans3DHR.Transform3Dcoor(pTerr2);
        }
        Pt3dL.push_back(pTerr1);
        Pt3dR.push_back(pTerr2);
+       vecPreciseL.push_back(bValidL);
+       vecPreciseR.push_back(bValidR);
 
        nTiePtNum++;
     }
     return nTiePtNum;
 }
 
+void CalcDiff(std::vector<Pt3dr> Pt3dL, std::vector<Pt3dr> Pt3dR, std::vector<bool> vecPreciseL, std::vector<bool> vecPreciseR, std::string aNameSave)
+{
+    Pt3dr Pt3dDiff;
+    double dNorm;
+    double dNormMax = 0;
+    int nIDNormMax = 0;
+    Pt3dr Pt3dDiffMax = Pt3dr(0,0,0);
+
+    FILE * fpOutput = fopen((aNameSave).c_str(), "w");
+    fprintf(fpOutput, "PtID x y z Norm bPreciseL bPreciseR\n");
+    for(unsigned int i=0; i<Pt3dL.size(); i++)
+    {
+        Pt3dDiff = Pt3dL[i] - Pt3dR[i];
+        dNorm = pow((pow(Pt3dDiff.x,2) + pow(Pt3dDiff.y,2) + pow(Pt3dDiff.z,2)), 0.5);
+        if(dNorm > dNormMax){
+            dNormMax = dNorm;
+            nIDNormMax = int(i);
+            Pt3dDiffMax = Pt3dDiff;
+        }
+
+        fprintf(fpOutput, "%d %lf %lf %lf %lf %d %d\n", i, Pt3dDiff.x, Pt3dDiff.y, Pt3dDiff.z, dNorm, int(vecPreciseL[i]), int(vecPreciseR[i]));
+    }
+    fprintf(fpOutput, "NormMax: %d %lf %lf %lf %lf", nIDNormMax, Pt3dDiffMax.x, Pt3dDiffMax.y, Pt3dDiffMax.z, dNormMax);
+    fclose(fpOutput);
+}
+
 //void VisuTiePtIn3D(std::string input_dir, std::string output_dir, std::string inSH, std::string outSH, std::string aSubPatchXml, bool bPrint)
-void VisuTiePtIn3D(std::string aDir, std::string aImgList1, std::string aImgList2, std::string aInSH, std::string aOri1, std::string aOri2, std::string aDSMDirL, std::string aDSMDirR, std::string aDSMFileL, std::string aDSMFileR, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, std::string aNameSave, cInterfChantierNameManipulateur * aICNM, bool bPrint, double aThres)
+void VisuTiePtIn3D(std::string aDir, std::string aImgList1, std::string aImgList2, std::string aInSH, std::string aOri1, std::string aOri2, std::string aDSMDirL, std::string aDSMDirR, std::string aDSMFileL, std::string aDSMFileR, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, std::string aNameSave, cInterfChantierNameManipulateur * aICNM, bool bPrint, double aThres, bool bSaveDif)
 {
     std::vector<string> vImgList1;
     std::vector<string> vImgList2;
@@ -83,6 +114,8 @@ void VisuTiePtIn3D(std::string aDir, std::string aImgList1, std::string aImgList
 
     std::vector<Pt3dr> Pt3dL;
     std::vector<Pt3dr> Pt3dR;
+    std::vector<bool> vecPreciseL;
+    std::vector<bool> vecPreciseR;
     for(unsigned int i=0; i<vImgList1.size(); i++)
     {
         std::string aImg1 = vImgList1[i];
@@ -107,11 +140,15 @@ void VisuTiePtIn3D(std::string aDir, std::string aImgList1, std::string aImgList
             std::string aIm2OriFile = aICNM->StdNameCamGenOfNames(aOri2, aImg2);
             //cout<<aOri1<<"; "<<aImg1<<"; "<<aIm1OriFile<<endl;
             //cout<<aOri2<<"; "<<aImg2<<"; "<<aIm2OriFile<<endl;
+            int pos1 = aNameIn.find("Homol")+5;
+            int pos2 = aNameIn.find("Pastis")-1;
+            std::string outSH = aNameIn.substr(pos1, pos2-pos1);
+            std::string aCom = "mm3d SEL" + BLANK + aDir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
 
             ElPackHomologue aPackInLoc =  ElPackHomologue::FromFile(aNameIn);
-            int nTiePtNum = Get3DCoors(aPackInLoc, bReverse, aDSMDirL, aDSMDirR, aDSMFileL, aDSMFileR, aIm1OriFile, aIm2OriFile, Pt3dL, Pt3dR, aTrans3DHL, aTrans3DHR, bPrint, aThres);
-            printf("%d tie points in %s\n", nTiePtNum, aNameIn.c_str());
+            int nTiePtNum = Get3DCoors(aPackInLoc, bReverse, aDSMDirL, aDSMDirR, aDSMFileL, aDSMFileR, aIm1OriFile, aIm2OriFile, Pt3dL, Pt3dR, vecPreciseL, vecPreciseR, aTrans3DHL, aTrans3DHR, bPrint, aThres);
             nTiePtNumTotal += nTiePtNum;
+            printf("%s\n%s: %d tie points. Total tie points: %d\n", aCom.c_str(), aNameIn.c_str(), nTiePtNum, nTiePtNumTotal);
         }
     }
 
@@ -124,6 +161,12 @@ void VisuTiePtIn3D(std::string aDir, std::string aImgList1, std::string aImgList
     std::string aNameSaveR = StdPrefix(aNameSave) + "_R." + StdPostfix(aNameSave);
     Write3DCoor(aNameSaveR, Pt3dR);
     cout<<"Tie points in secondary images saved in "<<aNameSaveR<<endl;
+
+    if(bSaveDif){
+        std::string aNameSaveDif = StdPrefix(aNameSave) + "_Diff." + StdPostfix(aNameSave);
+        CalcDiff(Pt3dL, Pt3dR, vecPreciseL, vecPreciseR, aNameSaveDif);
+        cout<<"Tie points difference saved in "<<aNameSaveDif<<endl;
+    }
 }
 
 int VisuTiePtIn3D_main(int argc,char ** argv)
@@ -144,7 +187,7 @@ int VisuTiePtIn3D_main(int argc,char ** argv)
    std::string aImgList1;
    std::string aImgList2;
 
-   std::string aNameSave = "VisuTiePtIn3D.txt";
+   std::string aNameSave = "";
 
    std::string aInSH = "";
 
@@ -152,6 +195,8 @@ int VisuTiePtIn3D_main(int argc,char ** argv)
 
    std::string aPara3DHL = "";
    std::string aPara3DHR = "";
+
+   bool bSaveDif = true;
 
    ElInitArgMain
     (
@@ -164,7 +209,7 @@ int VisuTiePtIn3D_main(int argc,char ** argv)
         LArgMain()
                << aCAS3D.ArgBasic()
                << EAM(aInSH,"InSH",true,"Input Homologue extenion for NB/NT mode, Def=none")
-               << EAM(aNameSave,"OutFile",true,"Output file name of 3D points, Def=VisuTiePtIn3D.txt")
+               << EAM(aNameSave,"OutFile",true,"Output file name of 3D points, Def=VisuTiePtIn3D-InSH.txt")
           << EAM(aDSMDirL, "DSMDirL", true, "DSM of master image (for improving the reprojecting accuracy), Def=none")
           << EAM(aDSMDirR, "DSMDirR", true, "DSM of secondary image (for improving the reprojecting accuracy), Def=none")
           << EAM(aDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
@@ -172,7 +217,11 @@ int VisuTiePtIn3D_main(int argc,char ** argv)
           << EAM(aThres, "Thres", true, "The threshold of reprojection error (unit: pixel) when prejecting patch corner to DSM, Def=2")
                << EAM(aPara3DHL, "Para3DHL", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation for points in master images, Def=none")
                << EAM(aPara3DHR, "Para3DHR", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation for points in secondary images, Def=none")
+               << EAM(bSaveDif, "SaveDif", false, "Save the difference of the 3D points in master and secondary images, Def=true")
      );
+
+   if(aNameSave.length() == 0)
+       aNameSave = "VisuTiePtIn3D-Homol"+aInSH+".txt";
 
    StdCorrecNameOrient(aOri1,"./",true);
    StdCorrecNameOrient(aOri2,"./",true);
@@ -181,7 +230,7 @@ int VisuTiePtIn3D_main(int argc,char ** argv)
    cTransform3DHelmert aTrans3DHR(aPara3DHR);
 
    //cout<<aDir<<",,,"<<aCAS3D.mHomoXml<<endl;
-   VisuTiePtIn3D(aCAS3D.mDir, aImgList1, aImgList2, aInSH, aOri1, aOri2, aDSMDirL, aDSMDirR, aDSMFileL, aDSMFileR, aTrans3DHL, aTrans3DHR, aNameSave, aCAS3D.mICNM, aCAS3D.mPrint, aThres);
+   VisuTiePtIn3D(aCAS3D.mDir, aImgList1, aImgList2, aInSH, aOri1, aOri2, aDSMDirL, aDSMDirR, aDSMFileL, aDSMFileR, aTrans3DHL, aTrans3DHR, aNameSave, aCAS3D.mICNM, aCAS3D.mPrint, aThres, bSaveDif);
 
    return EXIT_SUCCESS;
 }

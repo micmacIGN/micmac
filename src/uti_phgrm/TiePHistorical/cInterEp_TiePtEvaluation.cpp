@@ -91,7 +91,8 @@ std::vector<int> TiePtEvaluation(std::string aIm1OriFile, std::string aIm2OriFil
     std::vector<Pt2dr> a2dPR;
     std::vector<double> aReproj;
     cGet3Dcoor a3DCoorL(aIm1OriFile);
-    TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+    //TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+    cDSMInfo aDSMInfoL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
     cGet3Dcoor a3DCoorR(aIm2OriFile);
     //TIm2D<float,double> aTImProfPxR = a3DCoorR.SetDSMInfo(aDSMFileR, aDSMDirR);
 
@@ -105,7 +106,7 @@ std::vector<int> TiePtEvaluation(std::string aIm1OriFile, std::string aIm2OriFil
        //cout<<nTodel<<"th tie pt: "<<p1.x<<" "<<p1.y<<" "<<p2.x<<" "<<p2.y<<endl;
 
        bool bValidL;
-       Pt3dr aPTer1 = a3DCoorL.Get3Dcoor(p1, aTImProfPxL, bValidL, bPrint);//, a3DCoorL.GetGSD());
+       Pt3dr aPTer1 = a3DCoorL.Get3Dcoor(p1, aDSMInfoL, bValidL, bPrint);//, a3DCoorL.GetGSD());
 
        aPTer1 = aTrans3DH.Transform3Dcoor(aPTer1);
        Pt2dr aPLPred = a3DCoorR.Get2Dcoor(aPTer1);
@@ -143,7 +144,7 @@ std::vector<int> TiePtEvaluation(std::string aIm1OriFile, std::string aIm2OriFil
 
     if(true)
     {
-        printf("%s\n%s\n", aImg1.c_str(), aImg2.c_str());
+        printf("%s\t%s\n", aImg1.c_str(), aImg2.c_str());
         printf("The point number with reprojection error under %d is: %d; TotalPtNum: %d\n", nThreshMax, nNb, nOriPtNum);
     }
     return aStat;

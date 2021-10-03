@@ -111,10 +111,12 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     mSpGlueOutSH = "-SuperGlue";
     mGuidedSIFTOutSH = "-GuidedSIFT";
     mMergeTiePtOutSH = "";
-    mRANSACOutSH = "";
+    mR2DInSH = "";
+    mR2DOutSH = "";
+    mR3DInSH = "";
+    mR3DOutSH = "";
     mCrossCorrelationOutSH = "";
     mMergeTiePtInSH = "";
-    mRANSACInSH = "";
     mCreateGCPsInSH = "";
     mCrossCorrelationInSH = "";
     mPatchSz = Pt2dr(640, 480);
@@ -148,6 +150,9 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     mStrEntSpG = "";
     mStrOpt = "";
     mPrint = false;
+    mThreshScale = 0.2;
+    mThreshAngle = 30;
+    mMinPt = 10;
 
         *mArgBasic
             //                        << EAM(mExe,"Exe",true,"Execute all, Def=true")
@@ -171,8 +176,8 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
 
 
     *mArgGetPatchPair
-            << EAM(mPatchSz, "PatchSz", true, "Patch size of the tiling scheme, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
-            << EAM(mBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=[30, 60]")
+            //<< EAM(mPatchSz, "PatchSz", true, "Patch size of the tiling scheme, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
+            //<< EAM(mBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=[30, 60]")
             << EAM(mSubPatchXml, "SubPXml", true, "The output xml file name to record the homography between the patches and original image, Def=SubPatch.xml")
             //<< EAM(mDSMDirL, "DSMDirL", true, "DSM of master image (for improving the reprojecting accuracy), Def=none")
             //<< EAM(mDSMDirR, "DSMDirR", true, "DSM of secondary image (for improving the reprojecting accuracy), Def=none")
@@ -219,16 +224,17 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
 
 
     *mArg2DRANSAC
-        << EAM(mRANSACInSH,"2DRANInSH",true,"Input Homologue extenion for NB/NT mode for 2D RANSAC, Def=none")
-        << EAM(mRANSACOutSH,"2DRANOutSH",true,"Output Homologue extenion for NB/NT mode of 2D RANSAC, Def='2DRANInSH'-2DRANSAC")
+        << EAM(mR2DInSH,"2DRANInSH",true,"Input Homologue extenion for NB/NT mode for 2D RANSAC, Def=none")
+        << EAM(mR2DOutSH,"2DRANOutSH",true,"Output Homologue extenion for NB/NT mode of 2D RANSAC, Def='2DRANInSH'-2DRANSAC")
         << EAM(mR2DIteration,"2DIter",true,"2D RANSAC iteration, Def=1000")
         << EAM(mR2DThreshold,"2DRANTh",true,"2D RANSAC threshold, Def=10");
 
     *mArg3DRANSAC
-        << EAM(mRANSACInSH,"3DRANInSH",true,"Input Homologue extenion for NB/NT mode for 3D RANSAC, Def=none")
-        << EAM(mRANSACOutSH,"3DRANOutSH",true,"Output Homologue extenion for NB/NT mode of 3D RANSAC, Def='3DRANInSH'-3DRANSAC")
+        << EAM(mR3DInSH,"3DRANInSH",true,"Input Homologue extenion for NB/NT mode for 3D RANSAC, Def=none")
+        << EAM(mR3DOutSH,"3DRANOutSH",true,"Output Homologue extenion for NB/NT mode of 3D RANSAC, Def='3DRANInSH'-3DRANSAC")
         << EAM(mR3DIteration,"3DIter",true,"3D RANSAC iteration, Def=1000")
-        << EAM(mR3DThreshold,"3DRANTh",true,"3D RANSAC threshold, Def=10*(GSD of secondary image)");
+        << EAM(mR3DThreshold,"3DRANTh",true,"3D RANSAC threshold, Def=10*(GSD of secondary image)")
+        << EAM(mMinPt,"MinPt",true,"Minimun number of input correspondences required, Def=10");
            /*
         << EAM(mDSMDirL, "DSMDirL", true, "DSM directory of master image, Def=none")
         << EAM(mDSMDirR, "DSMDirR", true, "DSM directory of secondary image, Def=none")
@@ -246,7 +252,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
             */
     << EAM(mGuidedSIFTOutSH,"GSIFTOutSH",true,"Output Homologue extenion for NB/NT mode of Guided SIFT, Def=-GuidedSIFT")
     << EAM(mSkipSIFT,"SkipSIFT",true,"Skip extracting SIFT key points in case it is already done, Def=false")
-    << EAM(mSearchSpace,"SearchSpace",true,"Radius of the search space for GuidedSIFT (the search space is the circle with the center on the predicted point), Def=100 (this value is based on master image, the search space on secondary image will multiply the scale difference if mCheckScale is set to true)")
+    << EAM(mSearchSpace,"SearchSpace",true,"Radius of the search space for GuidedSIFT (the search space is the circle with the center on the predicted point), Def=100 (this value is based on master image, the search space on secondary image will multiply the scale difference if \"CheckScale\" is set to true)")
     << EAM(mMutualNN, "MutualNN",true, "Apply mutual nearest neighbor on GuidedSIFT, Def=true")
     << EAM(mRatioT, "RatioT",true, "Apply ratio test on GuidedSIFT, Def=true")
     << EAM(mRootSift, "RootSift",true, "Use RootSIFT as descriptor on GuidedSIFT, Def=true")
@@ -254,6 +260,8 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     << EAM(mCheckAngle, "CheckAngle",true, "Check the angle of the candidate tie points on GuidedSIFT, Def=true")
     //<< EAM(mScale, "Scale",true, "The scale ratio used for checking the candidate tie points on GuidedSIFT, Def=1")
     //<< EAM(mAngle, "Angle",true, "The angle difference used for checking the candidate tie points on GuidedSIFT, Def=0")
+    << EAM(mThreshScale, "ScaleTh",true, "The threshold for checking scale ratio, Def=0.2; (0.2 means the ratio of master and secondary SIFT scale between [(1-0.2)*Ref, (1+0.2)*Ref] is considered valide. Ref is automatically calculated by reprojection.)")
+    << EAM(mThreshAngle, "AngleTh",true, "The threshold for checking angle difference, Def=30; (30 means the difference of master and secondary SIFT angle between [Ref - 30 degree, Ref + 30 degree] is considered valide. Ref is automatically calculated by reprojection.)")
     << EAM(mPredict, "Predict",true, "Use the predicted key points to guide the matching, Def=true");
 
     *mArgCrossCorrelation
@@ -343,8 +351,8 @@ std::string cCommonAppliTiepHistorical::ComParamGetPatchPair()
 {
     std::string aCom = "";
     if (EAMIsInit(&mDir))  aCom +=  " Dir=" + mDir;
-    if (EAMIsInit(&mPatchSz))    aCom += " PatchSz=[" + ToString(mPatchSz.x) + "," + ToString(mPatchSz.y) + "]";
-    if (EAMIsInit(&mBufferSz))    aCom += " BufferSz=[" + ToString(mBufferSz.x) + "," + ToString(mBufferSz.y) + "]";
+    //if (EAMIsInit(&mPatchSz))    aCom += " PatchSz=[" + ToString(mPatchSz.x) + "," + ToString(mPatchSz.y) + "]";
+    //if (EAMIsInit(&mBufferSz))    aCom += " BufferSz=[" + ToString(mBufferSz.x) + "," + ToString(mBufferSz.y) + "]";
     if (EAMIsInit(&mSubPatchXml))  aCom +=  " SubPXml=" + mSubPatchXml;
     if (EAMIsInit(&mOutDir))  aCom +=  " OutDir=" + mOutDir;
     if (EAMIsInit(&mImgPair))  aCom +=  " ImgPair=" + mImgPair;
@@ -382,8 +390,8 @@ std::string cCommonAppliTiepHistorical::ComParamMergeTiePt()
 std::string cCommonAppliTiepHistorical::ComParamRANSAC2D()
 {
     std::string aCom = "";
-    if (EAMIsInit(&mRANSACInSH))   aCom +=  " 2DRANInSH=" + mRANSACInSH;
-    if (EAMIsInit(&mRANSACOutSH))  aCom +=  " 2DRANOutSH=" + mRANSACOutSH;
+    if (EAMIsInit(&mR2DInSH))   aCom +=  " 2DRANInSH=" + mR2DInSH;
+    if (EAMIsInit(&mR2DOutSH))  aCom +=  " 2DRANOutSH=" + mR2DOutSH;
     if (EAMIsInit(&mR2DIteration))          aCom +=  " 2DIter=" + ToString(mR2DIteration);
     if (EAMIsInit(&mR2DThreshold))          aCom +=  " 2DRANTh=" + ToString(mR2DThreshold);
 
@@ -619,6 +627,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
         std::string aDSMImgWallisNameR = aDSMImgGrayNameR+"_sfs.tif";
         aCom = "";
         if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
+        if (EAMIsInit(&mCoRegPatchSz))  aCom += " PatchSz=[" + ToString(mCoRegPatchSz.x) + "," + ToString(mCoRegPatchSz.y) + "]";
+        if (EAMIsInit(&mCoRegBufferSz))  aCom += " BufferSz=[" + ToString(mCoRegBufferSz.x) + "," + ToString(mCoRegBufferSz.y) + "]";
         StdCom("TestLib GetPatchPair BruteForce", mDSMDirL+"/"+aDSMImgWallisNameL + BLANK + mDSMDirR+"/"+aDSMImgWallisNameR + BLANK + aCom + BLANK + "Rotate=1" + BLANK + mCAS3D.ComParamGetPatchPair(), mExe);
 
         std::string aDSMImgGrayNameRenamedL = mCAS3D.GetFolderName(mDSMDirL) + "." + StdPostfix(aDSMImgNameL);
@@ -648,6 +658,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
             aCom = "";
             if (!EAMIsInit(&mCAS3D.mInput_dir))    aCom +=  " InDir=" + aOutDir+"/";
             if (!EAMIsInit(&mCAS3D.mOutput_dir))   aCom +=  " OutDir=" + aOutDir+"/";
+            aCom +=  " CheckNb=\" " + ToString(mCheckNbCoReg) + "\"";
             StdCom("TestLib SuperGlue", aImgPair + BLANK + aCom + BLANK + mCAS3D.ComParamSuperGlue(), mExe);
 
 
@@ -665,7 +676,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
             /* 1.5 - RANSAC R2D for rough co-registration */
             /**************************************/
             aCom = "";
-            if (!EAMIsInit(&mCAS3D.mRANSACInSH))   aCom +=  " 2DRANInSH=-" + StdPrefix(aHomoXml);
+            if (!EAMIsInit(&mCAS3D.mR2DInSH))   aCom +=  " 2DRANInSH=-" + StdPrefix(aHomoXml);
             std::string aRANSACOutSH = "-" + StdPrefix(aHomoXml) + "-2DRANSAC";
             StdCom("TestLib RANSAC R2D", aDSMImgGrayNameRenamedL + BLANK + aDSMImgGrayNameRenamedR + BLANK + "Dir=" + aOutDir+"/" + BLANK + aCom + BLANK + mCAS3D.ComParamRANSAC2D(), mExe);
             int nInlier = GetTiePtNum(aOutDir, aDSMImgGrayNameRenamedL, aDSMImgGrayNameRenamedR, aRANSACOutSH);
@@ -746,6 +757,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
         if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
         if (!EAMIsInit(&mCAS3D.mSubPatchXml))  aCom +=  " SubPXml=" + aPrefix + mCAS3D.mSubPatchXml;
         if (!EAMIsInit(&mCAS3D.mImgPair))  aCom +=  " ImgPair=" + aPrefix + mCAS3D.mImgPair;
+        if (EAMIsInit(&mPrecisePatchSz))  aCom += " PatchSz=[" + ToString(mPrecisePatchSz.x) + "," + ToString(mPrecisePatchSz.y) + "]";
+        if (EAMIsInit(&mPreciseBufferSz))  aCom += " BufferSz=[" + ToString(mPreciseBufferSz.x) + "," + ToString(mPreciseBufferSz.y) + "]";
         //aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mCoRegOri + BLANK + mCoRegOri + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair(), aExe);
         //printf("%s\t%s\n", aOri1.c_str(), mOri1.c_str());
         aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+aOri2+".xml" + BLANK + "DSMDirL="+mDSMDirL, aExe);
@@ -769,7 +782,9 @@ void cAppliTiepHistoricalPipeline::DoAll()
         cEl_GPAO::DoComInSerie(aComList);
     }
 
-    std::string aFeatureOutSH;
+    std::string aRANSACInSH;
+    std::string aCrossCorrInSH;
+    std::string aCrossCorrOutSH;
 
     //if(mSkipTentativeMatch == false)
     {
@@ -795,6 +810,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
             if (!EAMIsInit(&mCAS3D.mInput_dir))    aCom +=  " InDir=" + aOutDir+"/";
             if (!EAMIsInit(&mCAS3D.mOutput_dir))   aCom +=  " OutDir=" + aOutDir+"/";
             aCom +=  "  CheckFile=" + ToString(mCheckFile);
+            aCom +=  " CheckNb=\" " + ToString(mCheckNbPrecise) + "\"";
             aComSingle = StdCom("TestLib SuperGlue", aImgPair + BLANK + aCom + BLANK + mCAS3D.ComParamSuperGlue(), aExe);
             aComList.push_back(aComSingle);
         }
@@ -828,10 +844,10 @@ void cAppliTiepHistoricalPipeline::DoAll()
             if (!EAMIsInit(&mCAS3D.mMergeTiePtOutSH))
             {
                 aCom +=  " MergeOutSH="+mCAS3D.mSpGlueOutSH;
-                aFeatureOutSH = mCAS3D.mSpGlueOutSH;
+                aRANSACInSH = mCAS3D.mSpGlueOutSH;
             }
             else
-                aFeatureOutSH = mCAS3D.mMergeTiePtOutSH;
+                aRANSACInSH = mCAS3D.mMergeTiePtOutSH;
             aComSingle = StdCom("TestLib MergeTiePt", aOutDir+"/" + BLANK + aCom + BLANK + "OutDir=" + mCAS3D.mDir + BLANK + mCAS3D.ComParamMergeTiePt(), aExe);
             aComList.push_back(aComSingle);
         }
@@ -881,7 +897,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
             aCom +=  "  CheckFile=" + ToString(mCheckFile);
             aComSingle = StdCom("TestLib GuidedSIFTMatch", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGuidedSIFTMatch() + BLANK + "Para3DHL=Basc-"+aOri1+"-2-"+aOri2+".xml" + BLANK + "Para3DHR=Basc-"+aOri2+"-2-"+aOri1+".xml", aExe);
 
-            aFeatureOutSH = mCAS3D.mGuidedSIFTOutSH;
+            aRANSACInSH = mCAS3D.mGuidedSIFTOutSH;
             aComList.push_back(aComSingle);
         }
         /*
@@ -898,7 +914,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         cout<<"Please set Feature to SuperGlue or SIFT"<<endl;
         return;
     }
-    cout<<"aFeatureOutSH: "<<aFeatureOutSH<<endl;
+    //cout<<"aRANSACInSH: "<<aRANSACInSH<<endl;
     }
 
     /**************************************/
@@ -918,12 +934,27 @@ void cAppliTiepHistoricalPipeline::DoAll()
         aCom +=  " DSMDirR=" + mDSMDirR;
         if (EAMIsInit(&mDSMFileL))   aCom +=  " DSMFileL=" + mDSMFileL;
         if (EAMIsInit(&mDSMFileR))   aCom +=  " DSMFileR=" + mDSMFileR;
-        if (!EAMIsInit(&mCAS3D.mRANSACInSH))    aCom +=  " 3DRANInSH=" + aFeatureOutSH;
-        else                                    aCom += " 3DRANInSH=" + mCAS3D.mRANSACInSH;
-        if (!EAMIsInit(&mCAS3D.mRANSACOutSH))   aCom +=  " 3DRANOutSH=" + aFeatureOutSH+"-3DRANSAC";
-        else                                    aCom += " 3DRANOutSH=" + mCAS3D.mRANSACOutSH;
+        if (EAMIsInit(&mCAS3D.mR3DInSH))
+            aRANSACInSH = mCAS3D.mR3DInSH;
+        if (EAMIsInit(&mCAS3D.mR3DOutSH))
+            aCrossCorrInSH = mCAS3D.mR3DOutSH;
+        else
+            aCrossCorrInSH = aRANSACInSH+"-3DRANSAC";
+        aCom +=  " 3DRANInSH=" + aRANSACInSH;
+        aCom +=  " 3DRANOutSH=" + aCrossCorrInSH;
+        /*
+        if (!EAMIsInit(&mCAS3D.mR3DInSH)){
+            aCom +=  " 3DRANInSH=" + aRANSACInSH;
+            aCrossCorrInSH = aRANSACInSH+"-3DRANSAC";
+        }
+        else                                    aCom += " 3DRANInSH=" + mCAS3D.mR3DInSH;
+        if (!EAMIsInit(&mCAS3D.mR3DOutSH))   aCom +=  " 3DRANOutSH=" + aCrossCorrInSH;
+        else                                    aCom += " 3DRANOutSH=" + mCAS3D.mR3DOutSH;
+        */
         if (EAMIsInit(&mCAS3D.mR3DIteration))   aCom +=  " 3DIter=" + ToString(mCAS3D.mR3DIteration);
         if (EAMIsInit(&mCAS3D.mR3DThreshold))   aCom +=  " 3DRANTh=" + ToString(mCAS3D.mR3DThreshold);
+        if (EAMIsInit(&mCAS3D.mMinPt))   aCom +=  " MinPt=" + ToString(mCAS3D.mMinPt);
+        //aCom +=  " Para3DHL=Basc-"+aOri1+"-2-"+aOri2+".xml";
         aCom +=  "  CheckFile=" + ToString(mCheckFile);
         aComSingle = StdCom("TestLib RANSAC R3D", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + "Dir=" + mCAS3D.mDir + BLANK + aCom, aExe);
         aComList.push_back(aComSingle);
@@ -953,14 +984,27 @@ void cAppliTiepHistoricalPipeline::DoAll()
         std::string aPrefix = StdPrefix(aImg1) + "_" + StdPrefix(aImg2) + "_" ;
 
         aCom = "";
-        if (!EAMIsInit(&mCAS3D.mCrossCorrelationInSH))   aCom +=  " CCInSH=" + aFeatureOutSH+"-3DRANSAC";
+        if (EAMIsInit(&mCAS3D.mCrossCorrelationInSH))
+            aCrossCorrInSH = mCAS3D.mCrossCorrelationInSH;
+        if (EAMIsInit(&mCAS3D.mCrossCorrelationOutSH))
+            aCrossCorrOutSH = mCAS3D.mCrossCorrelationOutSH;
+        else
+            aCrossCorrOutSH = aCrossCorrInSH+"-CrossCorrelation";
+        aCom +=  " CCInSH=" + aCrossCorrInSH;
+        aCom +=  " CCOutSH=" + aCrossCorrOutSH;
+        /*
+        if (!EAMIsInit(&mCAS3D.mCrossCorrelationInSH)){
+            aCom +=  " CCInSH=" + aRANSACInSH+"-3DRANSAC";
+            aCrossCorrOutSH = aRANSACInSH+"-3DRANSAC-CrossCorrelation";
+        }
         else                                             aCom +=  " CCInSH=" + mCAS3D.mCrossCorrelationInSH;
-        if (!EAMIsInit(&mCAS3D.mCrossCorrelationOutSH))  aCom +=  " CCOutSH=" + aFeatureOutSH+"-3DRANSAC-CrossCorrelation";
+        if (!EAMIsInit(&mCAS3D.mCrossCorrelationOutSH))  aCom +=  " CCOutSH=" + aCrossCorrOutSH;
         else                                             aCom +=  " CCOutSH=" + mCAS3D.mCrossCorrelationOutSH;
+        */
         aCom +=  " SzW=" + ToString(mCAS3D.mWindowSize);
         aCom +=  " CCTh=" + ToString(mCAS3D.mCrossCorrThreshold);
-        aCom += " PatchSz=[" + ToString(mCAS3D.mPatchSz.x) + "," + ToString(mCAS3D.mPatchSz.y) + "]";
-        aCom += " BufferSz=[" + ToString(mCAS3D.mBufferSz.x) + "," + ToString(mCAS3D.mBufferSz.y) + "]";
+        if (EAMIsInit(&mPrecisePatchSz))  aCom += " PatchSz=[" + ToString(mPrecisePatchSz.x) + "," + ToString(mPrecisePatchSz.y) + "]";
+        if (EAMIsInit(&mPreciseBufferSz))  aCom += " BufferSz=[" + ToString(mPreciseBufferSz.x) + "," + ToString(mPreciseBufferSz.y) + "]";
         aCom +=  " PatchDir=" + aOutDir;
         aCom +=  " SubPXml=" + aPrefix + mCAS3D.mSubPatchXml;
         //cout<<aCom<<endl;
@@ -1001,6 +1045,15 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
     mCheckFile = false;
     mImg4MatchList1 = "";
     mImg4MatchList2 = "";
+    mCoRegPatchSz = Pt2dr(640, 480);
+    mCoRegBufferSz = Pt2dr(0, 0);
+
+    mPrecisePatchSz = Pt2dr(640, 480);
+    mPreciseBufferSz = Pt2dr(30, 60);
+
+    mCheckNbCoReg = -1;
+    mCheckNbPrecise = 100;
+
    ElInitArgMain
    (
         argc,argv,
@@ -1018,7 +1071,7 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << EAM(mImg4MatchList2,"I4ML2",true,"The list that contains the RGB images of epoch2 for extracting inter-epoch correspondences, Def=ImgList2")
                << EAM(mCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
                << EAM(mUseDepth,"UseDep",true,"GetPatchPair for depth maps as well (this option is only used for developper), Def=false")
-               << EAM(mRotateDSM,"RotateDSM",true,"The angle of rotation from the master DSM to the secondary DSM for rough co-registration (only 4 options available: 0, 90, 180, 270), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
+               << EAM(mRotateDSM,"RotateDSM",true,"The angle of rotation from the master DSM to the secondary DSM for rough co-registration (only 4 options available: 0, 90, 180, 270, as the rough co-registration method is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
                << EAM(mSkipCoReg, "SkipCoReg", true, "Skip the step of rough co-registration, when the input orientations of epoch1 and epoch 2 are already co-registrated, Def=false")
                << EAM(mSkipPrecise, "SkipPrecise", true, "Skip the step of the whole precise matching pipeline, Def=false")
                << EAM(mSkipGetPatchPair, "SkipGetPatchPair", true, "Skip the step of \"GetPatchPair\" in precise matching (this option is used when the results of \"GetPatchPair\" already exist), Def=false")
@@ -1027,12 +1080,18 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << EAM(mSkipCrossCorr, "SkipCrossCorr", true, "Skip the step of \"cross correlation\" (this option is used when the results of \"cross correlation\" already exist), Def=false")
                << EAM(mFeature,"Feature",true,"Feature matching method used for precise matching (SuperGlue or SIFT), Def=SuperGlue")
                //<< EAM(mCoRegOri,"CoRegOri",true,"Output of Co-registered orientation, Def=Co-reg")
-               << mCAS3D.ArgBasic()
+               //<< mCAS3D.ArgBasic()
                << EAM(mDSMFileL, "DSMFileL", true, "DSM File of epoch1, Def=MMLastNuage.xml")
                << EAM(mDSMFileR, "DSMFileR", true, "DSM File of epoch2, Def=MMLastNuage.xml")
+               << EAM(mCoRegPatchSz, "CoRegPatchSz", true, "Patch size of the tiling scheme in rough co-registration part, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
+               << EAM(mCoRegBufferSz, "CoRegBufferSz", true, "Buffer zone size around the patch of the tiling scheme in rough co-registration part, Def=[0, 0]")
+               << EAM(mPrecisePatchSz, "PrecisePatchSz", true, "Patch size of the tiling scheme in precise matching part, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
+               << EAM(mPreciseBufferSz, "PreciseBufferSz", true, "Buffer zone size around the patch of the tiling scheme in precise matching part, Def=[30, 60]")
                << mCAS3D.ArgDSM_Equalization()
                << mCAS3D.ArgGetPatchPair()
                << mCAS3D.ArgSuperGlue()
+               << EAM(mCheckNbCoReg,"CheckNbCoReg",true,"Radius of the search space for SuperGlue in rough co-registration step (remove correspondence [(xL, yL), (xR, yR)] if (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb), Def=-1 (means don't check search space)")
+               << EAM(mCheckNbPrecise,"CheckNbPrecise",true,"Radius of the search space for SuperGlue in precise matching step (remove correspondence [(xL, yL), (xR, yR)] if (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb), Def=100")
                << mCAS3D.ArgMergeTiePt()
                << mCAS3D.Arg2DRANSAC()
                << mCAS3D.ArgCreateGCPs()
@@ -1070,6 +1129,8 @@ cTransform3DHelmert::cTransform3DHelmert(std::string aFileName)
         if(aFileName.length() > 0)
             printf("File %s does not exist, hence will use unit matrix instead.\n", aFileName.c_str());
         mApplyTrans = false;
+        mScl = 1;
+        mTr = Pt3dr(0,0,0);
     }
     else
     {
@@ -1079,6 +1140,16 @@ cTransform3DHelmert::cTransform3DHelmert(std::string aFileName)
         mTr = mTransf->Trans();
         //mRot = mTransf->ParamRotation();
     }
+}
+
+bool cTransform3DHelmert::GetApplyTrans()
+{
+    return mApplyTrans;
+}
+
+double cTransform3DHelmert::GetScale()
+{
+    return mScl;
 }
 
 Pt3dr cTransform3DHelmert::Transform3Dcoor(Pt3dr aPt)
@@ -1095,6 +1166,164 @@ Pt3dr cTransform3DHelmert::Transform3Dcoor(Pt3dr aPt)
 
         return aPtBasc;
     }
+}
+
+/*******************************************/
+/****** cDSMInfo  ******/
+/*******************************************/
+
+cDSMInfo::cDSMInfo(Pt2di aDSMSz, std::string aDSMFile, std::string aDSMDir) :
+mTImDSM  (aDSMSz),
+mTImMask (aDSMSz)
+{
+    mDSMSz = aDSMSz;
+    bDSM = true;
+
+    if(true)
+    {
+        aDSMDir += "/";
+
+        if (ELISE_fp::exist_file(aDSMDir + aDSMFile) == false)
+        {
+            printf("%s didn't exist\n", (aDSMDir + aDSMFile).c_str());
+            bDSM = false;
+        }
+        else
+        {
+            cXML_ParamNuage3DMaille aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
+            (
+            aDSMDir + aDSMFile,
+            StdGetFileXMLSpec("SuperposImage.xml"),
+            "XML_ParamNuage3DMaille",
+            "XML_ParamNuage3DMaille"
+            );
+
+            mDSMSz = aNuageIn.NbPixel();
+
+            cImage_Profondeur aImDSM = aNuageIn.Image_Profondeur().Val();
+
+            mDSMName = aImDSM.Image();
+            std::string aDSMFullName = aDSMDir + mDSMName;
+            Tiff_Im aImDSMTif(aDSMFullName.c_str());
+            ELISE_COPY
+            (
+            mTImDSM.all_pts(),
+            aImDSMTif.in(),
+            mTImDSM.out()
+            );
+
+            mMaskName = aImDSM.Masq();
+            std::string aMaskFullName = aDSMDir + mMaskName;
+            Tiff_Im aImMaskTif(aMaskFullName.c_str());
+            ELISE_COPY
+            (
+            mTImMask.all_pts(),
+            aImMaskTif.in(),
+            mTImMask.out()
+            );
+
+            mFOM = StdGetFromPCP(aDSMDir+StdPrefix(mDSMName)+".xml",FileOriMnt);
+
+            mOriPlani = mFOM.OriginePlani();
+            mResolPlani = mFOM.ResolutionPlani();
+        }
+    }
+}
+
+double cDSMInfo::GetDSMValue(Pt2di aPt2)
+{
+    if(bDSM == false)
+        return 0;
+
+    return mTImDSM.get(aPt2);
+}
+
+double cDSMInfo::GetMasqValue(Pt2di aPt2)
+{
+    if(bDSM == false)
+        return 0;
+
+    return mTImMask.get(aPt2);
+}
+
+//get 2d coordinate in DSM
+Pt2dr cDSMInfo::Get2DcoorInDSM(Pt3dr aTer)
+{
+    if(bDSM == false)
+        return Pt2dr(0,0);
+
+    Pt2dr aPt2;
+    aPt2.x = (aTer.x - mOriPlani.x)/mResolPlani.x + 0.5;
+    aPt2.y = (aTer.y - mOriPlani.y)/mResolPlani.y + 0.5;
+
+    return aPt2;
+}
+
+Pt2di cDSMInfo::GetDSMSz(std::string aDSMFile, std::string aDSMDir)
+{
+    if(aDSMDir.length() == 0)
+        return Pt2di(0,0);
+    aDSMDir += "/";
+
+    cXML_ParamNuage3DMaille aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
+    (
+    aDSMDir + aDSMFile,
+    StdGetFileXMLSpec("SuperposImage.xml"),
+    "XML_ParamNuage3DMaille",
+    "XML_ParamNuage3DMaille"
+    );
+
+    return aNuageIn.NbPixel();
+}
+
+std::string cDSMInfo::GetDSMName(std::string aDSMFile, std::string aDSMDir)
+{
+    if(bDSM == false)
+        return "";
+
+    if(aDSMDir.length() == 0)
+        return "";
+    aDSMDir += "/";
+    cXML_ParamNuage3DMaille aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
+    (
+    aDSMDir + aDSMFile,
+    StdGetFileXMLSpec("SuperposImage.xml"),
+    "XML_ParamNuage3DMaille",
+    "XML_ParamNuage3DMaille"
+    );
+
+    cImage_Profondeur aImDSM = aNuageIn.Image_Profondeur().Val();
+
+    return aImDSM.Image();
+}
+
+Pt2dr cDSMInfo::GetOriPlani()
+{
+    if(bDSM == false)
+        return Pt2dr(0,0);
+
+    return mOriPlani;
+}
+
+Pt2dr cDSMInfo::GetResolPlani()
+{
+    if(bDSM == false)
+        return Pt2dr(0,0);
+
+    return mResolPlani;
+}
+
+Pt2di cDSMInfo::GetDSMSz()
+{
+    if(bDSM == false)
+        return Pt2di(0,0);
+
+    return mDSMSz;
+}
+
+bool cDSMInfo::GetIfDSMIsValid()
+{
+    return bDSM;
 }
 
 /*******************************************/
@@ -1124,42 +1353,15 @@ double cGet3Dcoor::GetGSD()
     return dist;
 }
 
-Pt2di cGet3Dcoor::GetDSMSz(std::string aDSMFile, std::string aDSMDir)
+cDSMInfo cGet3Dcoor::SetDSMInfo(std::string aDSMFile, std::string aDSMDir)
 {
-    if(aDSMDir.length() == 0)
-        return Pt2di(0,0);
-    aDSMDir += "/";
-    bDSM = true;
-
-    cXML_ParamNuage3DMaille aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
-    (
-    aDSMDir + aDSMFile,
-    StdGetFileXMLSpec("SuperposImage.xml"),
-    "XML_ParamNuage3DMaille",
-    "XML_ParamNuage3DMaille"
-    );
-
-    return aNuageIn.NbPixel();
+    Pt2di aDSMSz = cDSMInfo::GetDSMSz(aDSMFile, aDSMDir);
+    cDSMInfo aDSMInfo(aDSMSz, aDSMFile, aDSMDir);
+    bDSM = aDSMInfo.GetIfDSMIsValid();
+    return aDSMInfo;
 }
 
-std::string cGet3Dcoor::GetDSMName(std::string aDSMFile, std::string aDSMDir)
-{
-    if(aDSMDir.length() == 0)
-        return "";
-    aDSMDir += "/";
-    cXML_ParamNuage3DMaille aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
-    (
-    aDSMDir + aDSMFile,
-    StdGetFileXMLSpec("SuperposImage.xml"),
-    "XML_ParamNuage3DMaille",
-    "XML_ParamNuage3DMaille"
-    );
-
-    cImage_Profondeur aImDSM = aNuageIn.Image_Profondeur().Val();
-
-    return aImDSM.Image();
-}
-
+/*
 TIm2D<float,double> cGet3Dcoor::SetDSMInfo(std::string aDSMFile, std::string aDSMDir)
 {
     //if(aDSMFile.length() > 0)
@@ -1194,15 +1396,11 @@ TIm2D<float,double> cGet3Dcoor::SetDSMInfo(std::string aDSMFile, std::string aDS
 
         mOriPlani = mFOM.OriginePlani();
         mResolPlani = mFOM.ResolutionPlani();
-/*
-        cout<<aDSMDir<<StdPrefix(aImDSM.Image())+".xml"<<endl;
-        cout<<mOriPlani.x<<", "<<mOriPlani.y<<endl;
-        cout<<mResolPlani.x<<", "<<mResolPlani.y<<endl;
-*/
+
         return aTImDSM;
     }
 }
-
+*/
 //get rough 3D coor with mean altitude
 Pt3dr cGet3Dcoor::GetRough3Dcoor(Pt2dr aPt1)
 {
@@ -1220,81 +1418,80 @@ Pt2dr cGet3Dcoor::Get2Dcoor(Pt3dr aTer)
 }
 
 //get 3d coordinate from DSM, if no DSM, get rough 3D coor with mean altitude
-Pt3dr cGet3Dcoor::Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> aTImDSM, bool& bPrecise, bool bPrint, double dThres)
+Pt3dr cGet3Dcoor::Get3Dcoor(Pt2dr aPt1, cDSMInfo aDSMInfo, bool& bPrecise, bool bPrint, double dThres)
 {
     bPrecise = true;
 
     Pt3dr aTer(0,0,0);
     Pt2dr ptPrj;
 
-    if(bPrint)
-        cout<<"dThres: "<<dThres<<endl;
-
-    //double dThres = 0.3;
-    //tempo, check prof+dZ=posZ?
     double dZ = mCam1->GetAltiSol();
     double dDis = 0;
     int nIter = 0;
-    //printf("--------\nIter: %d, dZ: %lf, aTer.x: %lf, aTer.y: %lf, aTer.z: %lf\n", nIter, dZ, aTer.x, aTer.y, aTer.z);
-//    cout<<"nIter: "<<nIter<<"; dZ: "<<dZ<<"; aTer: "<<aTer.x<<", "<<aTer.y<<", "<<aTer.z<<endl;
-    do
+
+    if(bPrint)
+        printf("--->>>AltiSol: %.2lf\n", dZ);
+
+    if(bDSM == true)
     {
-        aTer = mCam1->ImEtZ2Terrain(aPt1, dZ);
-
-        Pt2di aPt2;
-        aPt2.x = int((aTer.x - mOriPlani.x)/mResolPlani.x + 0.5);
-        aPt2.y = int((aTer.y - mOriPlani.y)/mResolPlani.y + 0.5);
-
-        //out of border of the DSM
-        if(aPt2.x<0 || aPt2.y<0 || aPt2.x >= mDSMSz.x || aPt2.y >= mDSMSz.y)
+        Pt2dr aOriPlani = aDSMInfo.GetOriPlani();
+        Pt2dr aResolPlani = aDSMInfo.GetResolPlani();
+        Pt2di aDSMSz = aDSMInfo.GetDSMSz();
+        do
         {
-            bPrecise = false;
-            aTer = GetRough3Dcoor(aPt1);
-            if(bPrint == true)
-                printf("Point (%.2lf, %.2lf) out of border of the DSM (Projected px in DSM: %d, %d; DSM size: %d, %d), hence use average altitude instead.\n", aPt1.x, aPt1.y, aPt2.x, aPt2.y, mDSMSz.x, mDSMSz.y);
-            return aTer;
-        }
+            aTer = mCam1->ImEtZ2Terrain(aPt1, dZ);
 
-        //out of border of the DSM
-        if(nIter > 100)
-        {
-            bPrecise = false;
-            aTer = GetRough3Dcoor(aPt1);
-            if(bPrint == true){
-                printf("Iteration > 100, hence use average altitude instead. ");
-                printf("aTer: %.2lf, %.2lf, %.2lf\n", aTer.x, aTer.y, aTer.z);
+            Pt2di aPt2;
+            aPt2.x = int((aTer.x - aOriPlani.x)/aResolPlani.x + 0.5);
+            aPt2.y = int((aTer.y - aOriPlani.y)/aResolPlani.y + 0.5);
+
+            //out of border of the DSM
+            if(aPt2.x<0 || aPt2.y<0 || aPt2.x >= aDSMSz.x || aPt2.y >= aDSMSz.y)
+            {
+                bPrecise = false;
+                if(bPrint == true)
+                    printf("Point (%.2lf, %.2lf) out of border of the DSM (Projected px in DSM: %d, %d; DSM size: %d, %d), hence use average altitude %.2lf instead.\n", aPt1.x, aPt1.y, aPt2.x, aPt2.y, aDSMSz.x, aDSMSz.y, mCam1->GetAltiSol());
             }
-            return aTer;
+            else if(aDSMInfo.GetMasqValue(aPt2) < 0.0001){
+                bPrecise = false;
+                if(bPrint == true)
+                    printf("Point (%.2lf, %.2lf) out of mask of the DSM (Projected px in DSM: %d, %d), hence use average altitude %.2lf instead.\n", aPt1.x, aPt1.y, aPt2.x, aPt2.y, mCam1->GetAltiSol());
+            }
+
+            //don't converge
+            if(nIter > 100){
+                bPrecise = false;
+                if(bPrint == true){
+                    printf("Iteration > 100, hence use average altitude instead. ");
+                    printf("aTer: %.2lf, %.2lf, %.2lf\n", aTer.x, aTer.y, aTer.z);
+                }
+            }
+
+            if(bPrecise == false)
+            {
+                aTer = GetRough3Dcoor(aPt1);
+                return aTer;
+            }
+
+            dZ =  aDSMInfo.GetDSMValue(aPt2);
+            aTer.z = dZ;
+
+            ptPrj = mCam1->Ter2Capteur(aTer);
+            dDis = pow(pow(aPt1.x-ptPrj.x, 2) + pow(aPt1.y-ptPrj.y, 2), 0.5);
+
+            if(bPrint == true)
+            {
+                printf("nIter: %d; PxInDSM: [%d, %d], dZ: %.2lf, aTer.x: %.2lf, aTer.y: %.2lf, aTer.z: %.2lf, dDis: %.2lf, dThres: %.2lf\n", nIter, aPt2.x, aPt2.y, dZ, aTer.x, aTer.y, aTer.z, dDis, dThres);
+                printf("ptOri: %.2lf %.2lf; ptReproj: %.2lf %.2lf\n", aPt1.x,aPt1.y,ptPrj.x,ptPrj.y);
+            }
+            nIter++;
         }
-
-        dZ =  aTImDSM.get(aPt2);
-        aTer.z = dZ;
-
-        ptPrj = mCam1->Ter2Capteur(aTer);
-        dDis = pow(pow(aPt1.x-ptPrj.x, 2) + pow(aPt1.y-ptPrj.y, 2), 0.5);
-
-        if(bPrint == true)
-        {
-            printf("nIter: %d, dZ: %.2lf, aTer.x: %.2lf, aTer.y: %.2lf, aTer.z: %.2lf, dDis: %.2lf, dThres: %.2lf\n", nIter, dZ, aTer.x, aTer.y, aTer.z, dDis, dThres);
-            printf("ptOri: %.2lf %.2lf; ptReproj: %.2lf %.2lf\n", aPt1.x,aPt1.y,ptPrj.x,ptPrj.y);
-        }
-        nIter++;
+        while(dDis > dThres);
     }
-    while(dDis > dThres);
-
-    //printf("Final 3D: aTer.x: %lf, aTer.y: %lf, aTer.z: %lf\n", aTer.x, aTer.y, aTer.z);
+    else
+        aTer = GetRough3Dcoor(aPt1);
 
     return aTer;
-}
-
-//get 3d coordinate from DSM, if no DSM, get rough 3D coor with mean altitude
-Pt2dr cGet3Dcoor::Get2DcoorInDSM(Pt3dr aTer)
-{
-    Pt2dr aPt2;
-    aPt2.x = (aTer.x - mOriPlani.x)/mResolPlani.x + 0.5;
-    aPt2.y = (aTer.y - mOriPlani.y)/mResolPlani.y + 0.5;
-
-    return aPt2;
 }
 
 void GetRandomNum(int nMin, int nMax, int nNum, std::vector<int> & res)

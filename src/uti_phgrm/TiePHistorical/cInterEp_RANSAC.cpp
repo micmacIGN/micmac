@@ -44,7 +44,7 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 extern ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir);
 
-void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double threshold, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, bool bPrint, bool bCheckFile)
+void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double threshold, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, bool bPrint, bool bCheckFile, cTransform3DHelmert aTrans3DHL, int nMinPt)
 {
     //printf("iteration number: %d; thresh: %lf\n", aNbTir, threshold);
 
@@ -78,13 +78,17 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
     std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
     std::string aIm2OriFile = aICNM->StdNameCamGenOfNames(aOri2, aImg2);
     cGet3Dcoor a3DCoorL(aIm1OriFile);
-    TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+    //TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+    cDSMInfo aDSMInfoL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
     cGet3Dcoor a3DCoorR(aIm2OriFile);
-    TIm2D<float,double> aTImProfPxR = a3DCoorR.SetDSMInfo(aDSMFileR, aDSMDirR);
+    //TIm2D<float,double> aTImProfPxR = a3DCoorR.SetDSMInfo(aDSMFileR, aDSMDirR);
+    cDSMInfo aDSMInfoR = a3DCoorR.SetDSMInfo(aDSMFileR, aDSMDirR);
 
     double dGSD1 = a3DCoorL.GetGSD();
     double dGSD2 = a3DCoorR.GetGSD();
-     cout<<"GSD of master image: "<<dGSD1<<endl;
+    cout<<"GSD of master image: "<<dGSD1<<endl;
+    if(aTrans3DHL.GetApplyTrans() == true)
+         cout<<"GSD of master image after transformation: "<<dGSD1*aTrans3DHL.GetScale()<<endl;
      cout<<"GSD of secondary image: "<<dGSD2<<endl;
 
      if(threshold < 0)
@@ -93,6 +97,7 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
     int nOriPtNum = 0;
     std::vector<int> aValidPt;
     ElPackHomologue aPackInsideBorder;
+    //transform 2D tie points into 3D
     for (ElPackHomologue::iterator itCpl=aPackFull.begin();itCpl!=aPackFull.end(); itCpl++)
     {
        ElCplePtsHomologues cple = itCpl->ToCple();
@@ -103,8 +108,9 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
            cout<<nOriPtNum<<"th tie pt: "<<p1.x<<" "<<p1.y<<" "<<p2.x<<" "<<p2.y<<endl;
 
        bool bValidL, bValidR;
-       Pt3dr pTerr1 = a3DCoorL.Get3Dcoor(p1, aTImProfPxL, bValidL, bPrint);//, dGSD1);
-       Pt3dr pTerr2 = a3DCoorR.Get3Dcoor(p2, aTImProfPxR, bValidR, bPrint);//, dGSD2);
+       Pt3dr pTerr1 = a3DCoorL.Get3Dcoor(p1, aDSMInfoL, bValidL, bPrint);//, dGSD1);
+       pTerr1 = aTrans3DHL.Transform3Dcoor(pTerr1);
+       Pt3dr pTerr2 = a3DCoorR.Get3Dcoor(p2, aDSMInfoR, bValidR, bPrint);//, dGSD2);
 
        if(bValidL == true && bValidR == true)
        {
@@ -132,9 +138,9 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
     cout<<"nOriPtNum: "<<nOriPtNum<<";  InsideBorderPtNum:  "<<nPtNum;
     printf(";  iteration number: %d; thresh: %lf\n", aNbTir, threshold);
 
-    if(nPtNum<3)
+    if(nPtNum<nMinPt)
     {
-        printf("InsideBorderPtNum (%d) is less than 3, hence skipped.\n", nPtNum);
+        printf("InsideBorderPtNum (%d) is less than %d, hence skipped.\n", nPtNum, nMinPt);
         return;
     }
 
@@ -414,10 +420,10 @@ int R2D(int argc,char ** argv, const std::string &aArg="")
                      << aCAS3D.Arg2DRANSAC()
      );
 
-    if(aCAS3D.mRANSACOutSH.length() == 0)
-        aCAS3D.mRANSACOutSH = aCAS3D.mRANSACInSH + "-2DRANSAC";
+    if(aCAS3D.mR2DOutSH.length() == 0)
+        aCAS3D.mR2DOutSH = aCAS3D.mR2DInSH + "-2DRANSAC";
 
-    RANSAC2D(aCAS3D.mDir, aImg1, aImg2, aCAS3D.mRANSACInSH, aCAS3D.mRANSACOutSH, aCAS3D.mR2DIteration, aCAS3D.mR2DThreshold);
+    RANSAC2D(aCAS3D.mDir, aImg1, aImg2, aCAS3D.mR2DInSH, aCAS3D.mR2DOutSH, aCAS3D.mR2DIteration, aCAS3D.mR2DThreshold);
 
     return 0;
 }
@@ -442,6 +448,7 @@ int R3D(int argc,char ** argv, const std::string &aArg="")
     aDSMFileL = "MMLastNuage.xml";
     aDSMFileR = "MMLastNuage.xml";
 
+    std::string aPara3DHL = "";
     bool bCheckFile = false;
 
     ElInitArgMain
@@ -459,13 +466,14 @@ int R3D(int argc,char ** argv, const std::string &aArg="")
                 << EAM(aDSMDirR, "DSMDirR", true, "DSM directory of secondary image, Def=none")
                 << EAM(aDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
                 << EAM(aDSMFileR, "DSMFileR", true, "DSM File of secondary image, Def=MMLastNuage.xml")
+                << EAM(aPara3DHL, "Para3DHL", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
                    << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
      );
 
-    if(aCAS3D.mRANSACOutSH.length() == 0)
-        aCAS3D.mRANSACOutSH = aCAS3D.mRANSACInSH + "-3DRANSAC";
+    if(aCAS3D.mR3DOutSH.length() == 0)
+        aCAS3D.mR3DOutSH = aCAS3D.mR3DInSH + "-3DRANSAC";
 
-    //RANSAC3D(aCAS3D.mOri, aCAS3D.mDir, aImg1, aImg2, aCAS3D.mRANSACInSH, aCAS3D.mRANSACOutSH, aCAS3D.mIteration, aR3DThreshold, aCAS3D.mDSMFileL, aCAS3D.mDSMFileR, aCAS3D.mDSMDirL, aCAS3D.mDSMDirR);
+    //RANSAC3D(aCAS3D.mOri, aCAS3D.mDir, aImg1, aImg2, aCAS3D.mR3DInSH, aCAS3D.mR3DOutSH, aCAS3D.mIteration, aR3DThreshold, aCAS3D.mDSMFileL, aCAS3D.mDSMFileR, aCAS3D.mDSMDirL, aCAS3D.mDSMDirR);
 
     StdCorrecNameOrient(aOri1,"./",true);
     StdCorrecNameOrient(aOri2,"./",true);
@@ -477,7 +485,8 @@ int R3D(int argc,char ** argv, const std::string &aArg="")
      std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
 */
 
-    RANSAC3D(aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mDir, aImg1, aImg2, aCAS3D.mRANSACInSH, aCAS3D.mRANSACOutSH, aCAS3D.mR3DIteration, aCAS3D.mR3DThreshold, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aCAS3D.mPrint, bCheckFile);
+    cTransform3DHelmert aTrans3DHL(aPara3DHL);
+    RANSAC3D(aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mDir, aImg1, aImg2, aCAS3D.mR3DInSH, aCAS3D.mR3DOutSH, aCAS3D.mR3DIteration, aCAS3D.mR3DThreshold, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aCAS3D.mPrint, bCheckFile, aTrans3DHL, aCAS3D.mMinPt);
 
     return 0;
 }

@@ -76,8 +76,10 @@ aooter-MicMac-eLiSe-25/06/2007*/
 
 
 
-void TiePtAddWeight(std::string aDir, std::string aInSH, std::string aOutSH, int nWeight)
+void TiePtAddWeight(std::string aDir, std::string aInSH, std::string aOutSH, int nWeight, double dScaleL)
 {
+    if(dScaleL > 1 || dScaleL < 1)
+        printf("The points in master images will be scaled by factor %.2lf\n", dScaleL);
     std::string aDir_inSH = aDir + "/Homol" + aInSH + "/";
     std::string aFileList = "FileList" + aInSH + ".txt";
     std::string cmmd = "find " + aDir_inSH + " > " + aFileList;
@@ -95,10 +97,7 @@ void TiePtAddWeight(std::string aDir, std::string aInSH, std::string aOutSH, int
     cout<<aFileList<<endl;
     while(getline(in1,s))
     {
-        cout<<s<<endl;
         int nLen = s.length();
-        if(nLen >= 4)
-            cout<<s.substr(nLen-3, nLen)<<endl;
         if(nLen<4 || s.substr(nLen-3, nLen) != "txt")
             continue;
 
@@ -118,11 +117,13 @@ void TiePtAddWeight(std::string aDir, std::string aInSH, std::string aOutSH, int
         int pos1 = aFile.rfind("/");
         int pos2 = aFile.substr(0,pos1).rfind("/");
 
+        /*
         cout<<pos1<<endl;
         cout<<pos2<<endl;
         cout<<aFile.length()<<endl;
         cout<<aFile.substr(0,pos1)<<endl;
         cout<<aFile.substr(pos2,pos1-pos2)<<endl;
+        */
 
         std::string aDirPastis = aDir_outSH + "/" + aFile.substr(pos2,pos1-pos2);
         if (ELISE_fp::exist_file(aDirPastis) == false)
@@ -137,7 +138,7 @@ void TiePtAddWeight(std::string aDir, std::string aInSH, std::string aOutSH, int
            Pt2dr p1 = cple.P1();
            Pt2dr p2 = cple.P2();
 
-            fprintf(fpOutput, "%lf %lf %lf %lf %d\n", p1.x, p1.y, p2.x, p2.y, nWeight);
+            fprintf(fpOutput, "%lf %lf %lf %lf %d\n", p1.x*dScaleL, p1.y*dScaleL, p2.x, p2.y, nWeight);
             nTiePtNum++;
         }
         fclose(fpOutput);
@@ -156,6 +157,7 @@ int TiePtAddWeight_main(int argc,char ** argv)
    std::string aOutSH = "";
 
    int nWeight = 1;
+   double dScaleL = 1;
 
    ElInitArgMain
     (
@@ -165,12 +167,13 @@ int TiePtAddWeight_main(int argc,char ** argv)
                     << aCAS3D.ArgBasic()
                << EAM(aInSH,"InSH",true,"Input Homologue extenion for NB/NT mode, Def=none")
                << EAM(aOutSH,"OutSH",true,"Output Homologue extenion for NB/NT mode, Def=InSH-WN (N means the weight)")
-    );
+               << EAM(dScaleL,"ScaleL",true,"The factor used to scale the points in master images (for developpers only), Def=1")
+               );
 
    if(aOutSH.length() == 0)
        aOutSH = aInSH + "-W" + std::to_string(nWeight);
 
-   TiePtAddWeight(aCAS3D.mDir, aInSH, aOutSH, nWeight);
+   TiePtAddWeight(aCAS3D.mDir, aInSH, aOutSH, nWeight, dScaleL);
 
    return EXIT_SUCCESS;
 }
