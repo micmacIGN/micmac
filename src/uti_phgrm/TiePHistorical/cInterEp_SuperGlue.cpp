@@ -262,7 +262,7 @@ int SuperGlue_main(int argc,char ** argv)
                     << aCAS3D.ArgBasic()
                     << aCAS3D.ArgSuperGlue()
                     << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
-               << EAM(aCheckNb,"CheckNb",true,"Radius of the search space for SuperGlue (remove correspondence [(xL, yL), (xR, yR)] if (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb), Def=-1 (means don't check search space)")
+               << EAM(aCheckNb,"CheckNb",true,"Radius of the search space for SuperGlue (which means correspondence [(xL, yL), (xR, yR)] with (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb will be removed afterwards), Def=-1 (means don't check search space)")
     );
 
    std::string strOpt = aCAS3D.mStrOpt;
