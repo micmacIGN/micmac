@@ -758,7 +758,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         if (!EAMIsInit(&mCAS3D.mSubPatchXml))  aCom +=  " SubPXml=" + aPrefix + mCAS3D.mSubPatchXml;
         if (!EAMIsInit(&mCAS3D.mImgPair))  aCom +=  " ImgPair=" + aPrefix + mCAS3D.mImgPair;
         if (EAMIsInit(&mPrecisePatchSz))  aCom += " PatchSz=[" + ToString(mPrecisePatchSz.x) + "," + ToString(mPrecisePatchSz.y) + "]";
-        if (EAMIsInit(&mPreciseBufferSz))  aCom += " BufferSz=[" + ToString(mPreciseBufferSz.x) + "," + ToString(mPreciseBufferSz.y) + "]";
+        aCom += " BufferSz=[" + ToString(mPreciseBufferSz.x) + "," + ToString(mPreciseBufferSz.y) + "]";
         //aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mCoRegOri + BLANK + mCoRegOri + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair(), aExe);
         //printf("%s\t%s\n", aOri1.c_str(), mOri1.c_str());
         aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+aOri2+".xml" + BLANK + "DSMDirL="+mDSMDirL, aExe);
@@ -1004,7 +1004,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         aCom +=  " SzW=" + ToString(mCAS3D.mWindowSize);
         aCom +=  " CCTh=" + ToString(mCAS3D.mCrossCorrThreshold);
         if (EAMIsInit(&mPrecisePatchSz))  aCom += " PatchSz=[" + ToString(mPrecisePatchSz.x) + "," + ToString(mPrecisePatchSz.y) + "]";
-        if (EAMIsInit(&mPreciseBufferSz))  aCom += " BufferSz=[" + ToString(mPreciseBufferSz.x) + "," + ToString(mPreciseBufferSz.y) + "]";
+        aCom += " BufferSz=[" + ToString(mPreciseBufferSz.x) + "," + ToString(mPreciseBufferSz.y) + "]";
         aCom +=  " PatchDir=" + aOutDir;
         aCom +=  " SubPXml=" + aPrefix + mCAS3D.mSubPatchXml;
         //cout<<aCom<<endl;
@@ -1049,7 +1049,7 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
     mCoRegBufferSz = Pt2dr(0, 0);
 
     mPrecisePatchSz = Pt2dr(640, 480);
-    mPreciseBufferSz = Pt2dr(30, 60);
+    mPreciseBufferSz = Pt2dr(-1, -1);
 
     mCheckNbCoReg = -1;
     mCheckNbPrecise = 100;
@@ -1086,7 +1086,7 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << EAM(mCoRegPatchSz, "CoRegPatchSz", true, "Patch size of the tiling scheme in rough co-registration part, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
                << EAM(mCoRegBufferSz, "CoRegBufferSz", true, "Buffer zone size around the patch of the tiling scheme in rough co-registration part, Def=[0, 0]")
                << EAM(mPrecisePatchSz, "PrecisePatchSz", true, "Patch size of the tiling scheme in precise matching part, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
-               << EAM(mPreciseBufferSz, "PreciseBufferSz", true, "Buffer zone size around the patch of the tiling scheme in precise matching part, Def=[30, 60]")
+               << EAM(mPreciseBufferSz, "PreciseBufferSz", true, "Buffer zone size around the patch of the tiling scheme in precise matching part, Def=10%*PrecisePatchSz")
                << mCAS3D.ArgDSM_Equalization()
                << mCAS3D.ArgGetPatchPair()
                << mCAS3D.ArgSuperGlue()
@@ -1106,6 +1106,11 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
 */
                );
    mCoRegOri = mOri2;
+
+   if(mPreciseBufferSz.x < 0 && mPreciseBufferSz.y < 0){
+       mPreciseBufferSz.x = int(0.1*mPrecisePatchSz.x);
+       mPreciseBufferSz.y = int(0.1*mPrecisePatchSz.y);
+   }
 
    if(mImg4MatchList1.length() == 0)
        mImg4MatchList1 = mImgList1;
