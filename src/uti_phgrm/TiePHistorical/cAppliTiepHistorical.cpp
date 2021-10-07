@@ -119,7 +119,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     mMergeTiePtInSH = "";
     mCreateGCPsInSH = "";
     mCrossCorrelationInSH = "";
-    mPatchSz = Pt2dr(640, 480);
+    //mPatchSz = Pt2dr(640, 480);
     mPredict = true;
     mRatioT = true;
     mResize = Pt2di(640, 480);
