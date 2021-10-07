@@ -36,6 +36,7 @@ double RandUnif_C();   ///<  Uniform distribution in  -1 1
 bool   HeadOrTail();   ///< 1/2 , french "Pile ou Face"
 double RandUnif_N(int aN); ///< Uniform disrtibution in [0,N[ 
 double RandUnif_C_NotNull(double aEps);   ///<  Uniform distribution in  -1 1, but abs > aEps
+double RandInInterval(double a,double b); ///<  Uniform distribution in [a,b]
 
 /** Class for mapping object R->R */
 class cFctrRR
@@ -444,6 +445,18 @@ template <class Type> void OrderMinMax(Type & aV1,Type & aV2)
 // 4 now use sort, will enhance with boost or home made
 template <class Type> Type NonConstMediane(std::vector<Type> & aV);
 template <class Type> Type ConstMediane(const std::vector<Type> & aV);
+
+
+/*  ******************************************* */
+/*   Some basic operation, tested in debug mode */
+/*  ******************************************* */
+
+template<class Type> Type SafeDiv(const Type & aNumerator,const Type & aDenominator)
+{
+    MMVII_INTERNAL_ASSERT_NotNul(aDenominator);
+    return aNumerator / aDenominator;
+}
+
 
 /*  ********************************* */
 /*       Kernels                      */

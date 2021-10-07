@@ -4,6 +4,8 @@
 namespace MMVII
 {
 
+bool DEBUG_LM = false;
+
 cAppliLearningMatch::cAppliLearningMatch(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
     cMMVII_Appli   (aVArgs,aSpec),
     mNbOct         (5),

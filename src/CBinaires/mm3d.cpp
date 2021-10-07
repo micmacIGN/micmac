@@ -380,7 +380,7 @@ const std::vector<cMMCom> & getAvailableCommands()
 		aRes.push_back(cMMCom("cod", cod_main, " Do some stuff"));
 		aRes.push_back(cMMCom("vic", vicod_main, " Do some stuff"));
 		aRes.push_back(cMMCom("genmail", genmail_main, " Do some stuff"));
-		aRes.push_back(cMMCom("CreateEpip", CreateEpip_main, " Create epipolar images"));
+		aRes.push_back(cMMCom("CreateEpip", CreateEpip_main, " Create epipolar images",cArgLogCom(2)));
 		aRes.push_back(cMMCom("CoherEpip", CoherEpi_main, " Test coherence between conjugate epipolar depth-map"));
 		aRes.push_back(cMMCom("Dequant", Dequant_main, " Tool for dequantifying an image"));
 		aRes.push_back(cMMCom("Devlop", Devlop_main, " Do some stuff"));

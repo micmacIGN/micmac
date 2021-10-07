@@ -290,6 +290,7 @@ class cAppliCalcHistoNDim : public cAppliLearningMatch
 
          // -- Optionnal args ----
          int                     mSzH1;
+	 std::string             mSerialSeparator;
          bool                    mAddPrefixSeq;
          bool                    mInitialProcess; // Post Processing
          bool                    mCloseH;
@@ -334,6 +335,7 @@ cCollecSpecArg2007 & cAppliCalcHistoNDim::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 {
    return anArgOpt
           << AOpt2007(mSzH1, "SzH","Size of histogramm in each dim")
+          << AOpt2007(mSerialSeparator, "SerSep","Serial Separator, if no pattern, e.q [a@b,c@d@e] with \"@ \"")
           << AOpt2007(mAddPrefixSeq, "APS","Add Prefix subseq of carac(i.e abc=>a,ab,abc)",{eTA2007::HDV})
           << AOpt2007(mInitialProcess, "IP","Initial processing. If not , read previous histo, more stat, post proc",{eTA2007::HDV})
           << AOpt2007(mCloseH, "CloseH","Use close homologs, instead of random",{eTA2007::HDV})
@@ -417,42 +419,59 @@ int  cAppliCalcHistoNDim::Exe()
    //  ------------------------------------------------------------------------------
    //   1 ----------  Compute the sequence of caracteristique matched by pattern ----
    //  ------------------------------------------------------------------------------
-
-          //  --- 1.1  compute rough cartersian product
-   std::vector<tVecCar> aVPatExt;
-   for (const auto & aPat: mPatsCar)
-   {
-        aVPatExt.push_back(SubOfPat<eModeCaracMatch>(aPat,false));
-   }
-   
-   std::vector<tVecCar>  aVSeqCarInit = ProdCart(aVPatExt);
-
-   if (mAddPrefixSeq)
-   {
-       std::vector<tVecCar> aVSeqSub;
-       for (const auto & aSeq : aVSeqCarInit)
-       {
-           for (int aK=1 ; aK<=int(aSeq.size()) ; aK++)
-           {
-                aVSeqSub.push_back(tVecCar(aSeq.begin(),aSeq.begin()+aK));
-           }
-       }
-       aVSeqCarInit  = aVSeqSub;
-   }
    std::map<tVecCar,tVecCar>  aMapSeq;  // Used to select unique sequence on set criteria but maintain initial order
+   if (! IsInit(&mSerialSeparator))
+   {
+          //  --- 1.1  compute rough cartersian product
+      std::vector<tVecCar> aVPatExt;
+      for (const auto & aPat: mPatsCar)
+      {
+           aVPatExt.push_back(SubOfPat<eModeCaracMatch>(aPat,false));
+      }
+   
+      std::vector<tVecCar>  aVSeqCarInit = ProdCart(aVPatExt);
+
+      if (mAddPrefixSeq)
+      {
+          std::vector<tVecCar> aVSeqSub;
+          for (const auto & aSeq : aVSeqCarInit)
+          {
+              for (int aK=1 ; aK<=int(aSeq.size()) ; aK++)
+              {
+                   aVSeqSub.push_back(tVecCar(aSeq.begin(),aSeq.begin()+aK));
+              }
+          }
+          aVSeqCarInit  = aVSeqSub;
+      }
 
           //  --- 1.2  order is not important in the sequence
-   for (const auto & aSeq : aVSeqCarInit)
-   {
-       tVecCar aSeqId = aSeq;
-       std::sort ( aSeqId.begin(), aSeqId.end());
+      for (const auto & aSeq : aVSeqCarInit)
+      {
+          tVecCar aSeqId = aSeq;
+          std::sort ( aSeqId.begin(), aSeqId.end());
        // Supress the possible duplicate carac
-       aSeqId.erase( unique( aSeqId.begin(), aSeqId.end() ), aSeqId.end() );
+          aSeqId.erase( unique( aSeqId.begin(), aSeqId.end() ), aSeqId.end() );
        // For now, supress those where there were duplicates
-       if (aSeqId.size() == aSeq.size())
-       {
-          aMapSeq[aSeqId] = aSeq;
-       }
+          if (aSeqId.size() == aSeq.size())
+          {
+             aMapSeq[aSeqId] = aSeq;
+          }
+      }
+   }
+   else
+   {
+      for (const auto & aPat: mPatsCar)
+      {
+          tVecCar aVCar;
+	  for (const auto & aStr : SplitString(aPat,mSerialSeparator))
+	  {
+              aVCar.push_back(Str2E<eModeCaracMatch>(aStr));
+              StdOut() << aStr << "///";
+	  }
+	  StdOut() << "\n";
+          aMapSeq[aVCar] = aVCar;
+      }
+      // BREAK_POINT("Test Separe");
    }
 
 

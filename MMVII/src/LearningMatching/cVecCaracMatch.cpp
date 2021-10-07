@@ -534,7 +534,16 @@ void AddData(const cAuxAr2007 & anAux, cVecCaracMatch &    aVCM)
 void cVecCaracMatch::FillVect(cDenseVect<tINT4> & aVec,const tVecCar &  aVC) const
 {
     for (int aK=0 ; aK<int(aVC.size()) ; aK++)
+    {
         aVec(aK) = mVecCarac[(int)aVC[aK]];
+        if (false  && DEBUG_LM)
+        {
+           StdOut() << " K="  << aK
+		    <<  " LAB=" <<  E2Str(aVC[aK])
+		    <<  " COST=" <<  aVec(aK) / double(TheDyn4Save)
+		   << "\n";
+        }
+    }
 }
 
 

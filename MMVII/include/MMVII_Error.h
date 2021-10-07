@@ -70,6 +70,7 @@ void MMVII_RestoreDefaultHandle();
 
 #define MMVII_INTERNAL_ASSERT_NotNul(aVal)  MMVII_INTERNAL_ASSERT_tiny((aVal!=0),"Unexpected null value")
 
+
 #define MMVII_INTERNAL_ASSERT_medium(aTest,aMes)\
  if ((The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_medium ) && (!(aTest)))\
 {MMVII_INTERNAL_ERROR(aMes);}
@@ -106,6 +107,9 @@ MMVII_INTERNAL_ASSERT_tiny(ValidStrictPosFloatValue(VALUE),"Non strict positive 
 
 template<class T> void IgnoreUnused( const T& ) { }; /// To avoid some warning on TEMPORARILY unused variable 
 void DoNothingWithIt(void *);  /// Used to avoid compiler optimization, make believe it can be used
+
+#define BREAK_POINT(MSG)  {StdOut() << MSG << "; BREAK POINT at " << __LINE__ << " of " << __FILE__ << "\n";getchar();}
+
 
 };
 

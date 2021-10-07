@@ -37,6 +37,8 @@ class cComputeSeparDist
 template <class Type> double ComputeSep(const Type * aD1,const Type * aD2,int aNb);
 template <class Type,int Dim> double ComputeSep(const cDataTypedIm<Type,Dim> &,const cDataTypedIm<Type,Dim> &);
 
+extern bool DEBUG_LM;
+
 class cAppliLearningMatch : public cMMVII_Appli
 {
     public :

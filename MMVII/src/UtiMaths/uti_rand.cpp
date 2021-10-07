@@ -131,6 +131,12 @@ double RandUnif_C()
    return (RandUnif_0_1()-0.5) * 2.0;
 }
 
+double RandInInterval(double a,double b)
+{
+   return b+ (a-b) * RandUnif_0_1() ;
+}
+
+
 double RandUnif_C_NotNull(double aEps)
 {
    double aRes = RandUnif_C();

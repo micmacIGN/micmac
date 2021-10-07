@@ -39,9 +39,11 @@ class cAppliExtractLearnVecDM : public cAppliLearningMatch
         void MakeOneBox(const cPt2di & anIndex,const cParseBoxInOut<2> &);
         std::string NameHom(int aNumHom) {return HomFromIm1(mNameIm1,aNumHom,Index(mNumIndex)+mExtSave);}
 
-        void MakeCut(int aY,const std::vector<bool> & Ok1,const std::vector<cAimePCar> & aVPC1,
+        void MakeCutHisto(int aY,const std::vector<bool> & Ok1,const std::vector<cAimePCar> & aVPC1,
                             const std::vector<bool> & Ok2,const std::vector<cAimePCar> & aVPC2);
               // MakeCut(aPixIm1.y(),aVOk1,aV1,aVOk2,aV2);   std::vector<cAimePCar> std::vector<bool> 
+	cIm2D<tU_INT1> OneCutRadiom(cPyr1ImLearnMatch *,int aY,bool Im1);
+        void MakeCutRadiom(int aY);
 
            // --- Mandatory ----
         std::string  mPatIm1;
@@ -63,6 +65,8 @@ class cAppliExtractLearnVecDM : public cAppliLearningMatch
            // --- Internal variables ----
 
         bool            mDoCuts;
+        bool            mCutsHisto; // Do Cuts 4 Histo
+        bool            mCutsRadiom; // Do Cut 4 Radiom
         bool            m4Learn;  // when 4Learn, load Px, Masq ...
         cHistoCarNDim   mCutHND;
         int             mCutPxMin;
@@ -140,7 +144,7 @@ cCollecSpecArg2007 & cAppliExtractLearnVecDM::ArgOpt(cCollecSpecArg2007 & anArgO
           << AOpt2007(mExtSave,"ExtOut","Ext for save file",{eTA2007::HDV})
           << AOpt2007(mSaveImFilter,"SIF","Save Image Filter",{eTA2007::HDV,eTA2007::Tuning})
           << AOpt2007(mFlagRand,"FlagRand","Images to randomizes (1 or 2), bit of flag [0-3]",{eTA2007::HDV,eTA2007::Tuning})
-          << AOpt2007(mCutsNameH,"CutNamH","Name of Histo to create similarity cuts")
+          << AOpt2007(mCutsNameH,"CutNamH","Name of Histo to create similarity cuts (NONE if radiom)")
           << AOpt2007(mCutsParam,"CutParam","Interval Pax + Line of cuts[PxMin,PxMax,Y0,Y1,....]",{{eTA2007::ISizeV,"[3,10000]"}})
           << AOpt2007(mCutsFreqPx,"CutStep"," Step in px for the cuts",{eTA2007::HDV})
           << AOpt2007(mCutsPrefix,"CutPref"," Name to add to results",{eTA2007::HDV})
@@ -185,11 +189,28 @@ int  cAppliExtractLearnVecDM::Exe()
    mDoCuts = IsInit(&mCutsNameH);
    if (mDoCuts)
    {
-      ReadFromFile(mCutHND,mCutsNameH);
-      MMVII_INTERNAL_ASSERT_strong(IsInit(&mCutsParam),"Px interv and line cut non initialezd in cut mode");
-      mCutPxMin = mCutsParam.at(0);
-      mCutPxMax = mCutsParam.at(1);
-      m4Learn = false;
+     m4Learn = false;
+     if (mCutsNameH==MMVII_NONE)
+     {
+         mCutsRadiom = true;
+         SetIfNotInit(mCutsHisto,false);
+     }
+
+
+     if ((mCutsNameH!=MMVII_NONE) || (mCutsHisto))
+     {
+	 mCutsHisto = true;
+         SetIfNotInit(mCutsRadiom,false);
+         ReadFromFile(mCutHND,mCutsNameH);
+         MMVII_INTERNAL_ASSERT_strong(IsInit(&mCutsParam),"Px interv and line cut non initialezd in cut mode");
+         mCutPxMin = mCutsParam.at(0);
+         mCutPxMax = mCutsParam.at(1);
+     }
+   }
+   else
+   {
+      mCutsHisto = false;
+      mCutsRadiom = false;
    }
 
 
@@ -231,8 +252,32 @@ int  cAppliExtractLearnVecDM::Exe()
    return EXIT_SUCCESS;
 }
 
+// cIm2D<tU_INT1>
+cIm2D<tU_INT1> cAppliExtractLearnVecDM::OneCutRadiom(cPyr1ImLearnMatch * aPyr,int aY,bool Im1)
+{
+    const tDataImF & aIm = aPyr-> ImInit() ;
+    cIm2D<tU_INT1> aImCut(cPt2di(aIm.Sz().x(),256));
 
-void cAppliExtractLearnVecDM::MakeCut
+    for (int aX=0 ; aX<aIm.Sz().x() ; aX++)
+    {
+         int aRad = aIm.GetV(cPt2di(aX,aY));
+	 for (int aY=0 ; aY<256 ; aY++)
+	 {
+             aImCut.DIm().SetV(cPt2di(aX,255-aY),255*(aY<aRad));
+	 }
+    }
+    std::string aNameRes =    DirVisu() +  mCutsPrefix + "_RadL" + ToStr(aY) 
+                          + "_" + MMVII::Prefix(NameIm(Im1)) + ".tif";
+    aImCut.DIm().ToFile(aNameRes);
+    return aImCut;
+}
+void cAppliExtractLearnVecDM::MakeCutRadiom(int aY)
+{
+    OneCutRadiom(mPyrL1,aY,true);
+    OneCutRadiom(mPyrL2,aY,false);
+}
+
+void cAppliExtractLearnVecDM::MakeCutHisto
      (
           int aY,
           const std::vector<bool> & aVOk1,const std::vector<cAimePCar> & aVPC1,
@@ -375,21 +420,28 @@ void cAppliExtractLearnVecDM::MakeOneBox(const cPt2di & anIndex,const cParseBoxI
            bool DoThisCut = (std::find(mCutsParam.begin()+2, mCutsParam.end(), aPixIm1.y()) != mCutsParam.end());
            if (DoThisCut)
            {
-              std::vector<bool> aVOk1;
-              std::vector<bool> aVOk2;
-              for (aPixIm1.x()=0 ; aPixIm1.x()<mSzIm1.x()  ; aPixIm1.x()++)
+              if (mCutsHisto)
               {
-                  aVOk1.push_back(mPyrL1->CalculAimeDesc(ToR(aPixIm1))); 
-                  aV1.push_back(mPyrL1->DupLPIm());
+                 std::vector<bool> aVOk1;
+                 std::vector<bool> aVOk2;
+                 for (aPixIm1.x()=0 ; aPixIm1.x()<mSzIm1.x()  ; aPixIm1.x()++)
+                 {
+                     aVOk1.push_back(mPyrL1->CalculAimeDesc(ToR(aPixIm1))); 
+                     aV1.push_back(mPyrL1->DupLPIm());
 
-                  for (int aK=0 ; aK<mCutsFreqPx ; aK++)
-                  {
-                      cPt2dr aP2(aPixIm1.x()+ double(aK/mCutsFreqPx),aPixIm1.y());
-                      aVOk2.push_back(mPyrL2->CalculAimeDesc(aP2));
-                      aV2.push_back(mPyrL2->DupLPIm());
-                  }
+                     for (int aK=0 ; aK<mCutsFreqPx ; aK++)
+                     {
+                         cPt2dr aP2(aPixIm1.x()+ double(aK/mCutsFreqPx),aPixIm1.y());
+                         aVOk2.push_back(mPyrL2->CalculAimeDesc(aP2));
+                         aV2.push_back(mPyrL2->DupLPIm());
+                     }
+                 }
+                 MakeCutHisto(aPixIm1.y(),aVOk1,aV1,aVOk2,aV2);
               }
-              MakeCut(aPixIm1.y(),aVOk1,aV1,aVOk2,aV2);
+              if (mCutsRadiom)
+	      {
+                  MakeCutRadiom(aPixIm1.y());
+              }
            }
        }
        else

@@ -34,6 +34,7 @@ extern cSpecMMVII_Appli  TheSpecExtractLearnVecDM;
 extern cSpecMMVII_Appli  TheSpecCalcHistoCarac; 
 extern cSpecMMVII_Appli  TheSpecCalcHistoNDim; 
 extern cSpecMMVII_Appli  TheSpecFillCubeCost; 
+extern cSpecMMVII_Appli  TheSpecDMEvalRef; 
 
 };
 

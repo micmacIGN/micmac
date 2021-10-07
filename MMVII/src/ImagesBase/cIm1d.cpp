@@ -185,16 +185,109 @@ template <class TypeH,class TypeCumul> void cHistoCumul<TypeH,TypeCumul>::MakeCu
     }
 }
 
-template <class TypeH,class TypeCumul> tREAL8 cHistoCumul<TypeH,TypeCumul>::PropCumul(const int & aP) const
+template <class TypeH,class TypeCumul> void cHistoCumul<TypeH,TypeCumul>::AssertCumulDone() const
 {
    MMVII_INTERNAL_ASSERT_tiny(mHCOk,"PropCumul  , Cumul Not Ok");
+}
+
+template <class TypeH,class TypeCumul> int cHistoCumul<TypeH,TypeCumul>::IndexeLowerProp(const double  aProp) const
+{
+    MMVII_INTERNAL_ASSERT_tiny((aProp>=0.0) && (aProp<=1.0),"Out in IndexeLowerProp");
+    TypeCumul aVal = aProp * mPopTot;
+    const TypeCumul * aDataHC = mDHC->RawDataLin();
+
+    if (aVal<aDataHC[0]) return -1;
+    if (aVal>=aDataHC[mNbVal-1]) return mNbVal-1;
+
+    const TypeCumul * anIt = std::lower_bound(aDataHC,aDataHC+ mNbVal ,aVal);
+    if (*anIt> aVal) anIt--;
+    return  anIt - aDataHC;
+}
+
+template <class TypeH,class TypeCumul> double cHistoCumul<TypeH,TypeCumul>::QuantilValue(const double  aQuantil) const
+{
+     double aProp = aQuantil / 100.0;
+     int ilp = IndexeLowerProp(aProp);
+
+     if (ilp==-1)
+     {
+        if (mPopTot==0.0) return 0;
+        return  ( aProp/ ((mDHC->GetV(0)/mPopTot) )) ;
+     }
+
+     if (ilp==(mNbVal-1))
+        return mNbVal;
+
+     double aCumul0 =   mDHC->GetV(ilp);
+     double aCumul1 =   mDHC->GetV(ilp+1);
+     double aCumulTarget = aProp * mPopTot;
+
+     if (aCumul0==aCumul1)
+        return ilp;
+
+     return 1+ilp + (aCumulTarget-aCumul0) / (aCumul1-aCumul0);
+}
+
+
+template <class TypeH,class TypeCumul> tREAL8 cHistoCumul<TypeH,TypeCumul>::PropCumul(const int & aP) const
+{
+   AssertCumulDone();
    return mDHC->GetV(aP) / mPopTot;
 }
+
+
+template <class TypeH,class TypeCumul> tREAL8 cHistoCumul<TypeH,TypeCumul>::PropCumul(const double & aP) const
+{
+   AssertCumulDone();
+   const TypeCumul * aDataHC = mDHC->RawDataLin();
+   if (aP<=0.0) return 0;
+   if (aP<=1.0)
+      return (double(aDataHC[0])) * (aP / mPopTot);
+   if (aP>= mNbVal) 
+      return 1.0;
+   return mDHC->GetVBL(aP-1) / mPopTot;
+}
+
+template <class TypeH,class TypeCumul> double  cHistoCumul<TypeH,TypeCumul>::PercBads(double aThr) const
+{
+   return 100.0 * (1.0-PropCumul(aThr));
+}
+
+template <class TypeH,class TypeCumul> double  cHistoCumul<TypeH,TypeCumul>::AvergBounded(double aThr,bool Apod) const
+{
+   double aSumW = 0;
+   double aSumWVal = 0;
+
+   for (const auto & aPts : *mDH)
+   {
+      double aW = mDH->GetV(aPts);
+      aSumW    += aW;
+      double aVal = double(aPts.x());
+      // Apod mode, formula-> : 0 in 0, Thr as limit at infty, derivative 1 in 0
+      if (Apod)
+         aVal = aThr * (1 - aThr/(aVal+aThr));
+      else
+         aVal = std::min(aVal,aThr);
+      aSumWVal += aW * aVal;
+   }
+
+   return SafeDiv(aSumWVal,aSumW);
+}
+
+template <class TypeH,class TypeCumul> double  cHistoCumul<TypeH,TypeCumul>::ApodAverg(double aThr) const
+{
+	return  AvergBounded(aThr,true);
+}
+
+
+
+//template <class TypeH,class TypeCumul> double  cHistoCumul<TypeH,TypeCumul>::AvergBounded(double aThr) const
 
 template <class TypeH,class TypeCumul>  const cDataIm1D<TypeH>& cHistoCumul<TypeH,TypeCumul>::H() const
 {
     return *mDH;
 }
+
 
     
 #define INSTANTIATE_HCUMUL(TYPE_H,TYPE_C)\
@@ -202,6 +295,7 @@ template  class cHistoCumul<TYPE_H,TYPE_C>;
 
 
 INSTANTIATE_HCUMUL(tREAL4,tREAL8);
+INSTANTIATE_HCUMUL(tREAL8,tREAL8);
 INSTANTIATE_HCUMUL(tINT4,tREAL8);
 INSTANTIATE_HCUMUL(tINT8,tINT8);
 

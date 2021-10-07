@@ -1,7 +1,8 @@
 #include "include/MMVII_all.h"
-//#include "include/MMVII_2Include_Serial_Tpl.h"
+#include "include/MMVII_2Include_Serial_Tpl.h"
 #include "LearnDM.h"
 //#include "include/MMVII_Tpl_Images.h"
+
 
 namespace MMVII
 {
@@ -32,11 +33,16 @@ class cAppliFillCubeCost : public cAppliLearningMatch
 
 	double ComputCorrel(const cPt2di & aPI1,const cPt2dr & aPI2,int mSzW) const;
 	void PushCost(double aCost);
+        bool Ok(int aX,const std::vector<bool> &  aV)
+	{
+            return (aX>=0) && (aX<int(aV.size())) && (aV.at(aX)) ;
+	}
 
+	void MakeLinePC(int aYLoc,bool Im1);
 	// -------------- Mandatory args -------------------
 	std::string   mNameI1;
 	std::string   mNameI2;
-	std::string   mModele;
+	std::string   mNameModele;
 	cPt2di        mP0Z;  // Pt corresponding in Im1 to (0,0)
 	cBox2di       mBoxI1;  // Box to Load, taking into account siwe effect
 	cBox2di       mBoxI2;
@@ -61,6 +67,17 @@ class cAppliFillCubeCost : public cAppliLearningMatch
 	tDataImRad  *mDI1;
 	tImRad      mIm2;
 	tDataImRad  *mDI2;
+
+
+	cHistoCarNDim       mModele;
+	bool         mModeCorrel;
+        cPyr1ImLearnMatch * mPyrL1;
+        cPyr1ImLearnMatch * mPyrL2;
+        cFilterPCar  mFPC;  ///< Used to compute Pts
+        std::vector<bool>         mVOk1;
+        std::vector<cAimePCar>    mVPC1;
+        std::vector<bool>         mVOk2;
+        std::vector<cAimePCar>    mVPC2;
 };
 
 cAppliFillCubeCost::cAppliFillCubeCost(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
@@ -74,8 +91,13 @@ cAppliFillCubeCost::cAppliFillCubeCost(const std::vector<std::string> & aVArgs,c
    mIm1                 (cPt2di(1,1)),
    mDI1                 (nullptr),
    mIm2                 (cPt2di(1,1)),
-   mDI2                 (nullptr)
+   mDI2                 (nullptr),
+   mPyrL1               (nullptr),
+   mPyrL2               (nullptr),
+   mFPC                 (false)
 {
+    mFPC.FinishAC();
+    mFPC.Check();
 }
 
 
@@ -85,7 +107,7 @@ cCollecSpecArg2007 & cAppliFillCubeCost::ArgObl(cCollecSpecArg2007 & anArgObl)
       anArgObl
           <<   Arg2007(mNameI1,"Name of first image")
           <<   Arg2007(mNameI2,"Name of second image")
-          <<   Arg2007(mModele,"Name for modele : .*dmp|Compare|MMVIICorrel")
+          <<   Arg2007(mNameModele,"Name for modele : .*dmp|Compare|MMVIICorrel")
           <<   Arg2007(mP0Z,"Origin in first image")
           <<   Arg2007(mBoxI1,"Box to read 4 Im1")
           <<   Arg2007(mBoxI2,"Box to read 4 Im2")
@@ -130,8 +152,34 @@ void cAppliFillCubeCost::PushCost(double aCost)
    mFileCube->Write(aICost);
 }
 
+void cAppliFillCubeCost::MakeLinePC(int aYLoc,bool Im1)
+{
+   if (mModeCorrel) 
+      return;
+   MMVII_INTERNAL_ASSERT_strong(mStepZ==1.0,"For now do not handle StepZ!=1 with model");
+
+   std::vector<bool>     & aVOK  = Im1 ? mVOk1   : mVOk2;
+   std::vector<cAimePCar>& aVPC  = Im1 ? mVPC1   : mVPC2;
+   const cBox2di         & aBox  = Im1 ? mBoxI1  : mBoxI2;
+   cPyr1ImLearnMatch     & aPyrL = Im1 ? *mPyrL1 : *mPyrL2;
+
+   aVOK.clear();
+   aVPC.clear();
+
+   for (int aX=aBox.P0().x() ; aX<=aBox.P1().x()  ; aX++)
+   {
+       cPt2di aPAbs (aX,aYLoc+mP0Z.y());
+       cPt2di aPLoc = aPAbs - aBox.P0();
+       aVOK.push_back(aPyrL.CalculAimeDesc(ToR(aPLoc)));
+       aVPC.push_back(aPyrL.DupLPIm());
+   }
+}
+            // cPt2di aPAbs = aPix + mP0Z;
+            // cPt2di aPC1  = aPAbs-mBoxI1.P0();
+
 int  cAppliFillCubeCost::Exe()
 {
+
    // Compute names
    mNameZMin = StdName("ZMin","tif");
    mNameZMax = StdName("ZMax","tif");
@@ -139,7 +187,8 @@ int  cAppliFillCubeCost::Exe()
 
    mFileCube = new cMMVII_Ofs(mNameCube,false);
 
-   bool Correl = (mModele=="Compare") ||(mModele=="MMVIICorrel");
+   mModeCorrel = (mNameModele=="Compare") ||(mNameModele=="MMVIICorrel");
+
 
    //  Read images 
    mImZMin = tImZ::FromFile(mNameZMin);
@@ -159,10 +208,23 @@ int  cAppliFillCubeCost::Exe()
    cPt2di aPSzW(aSzW,aSzW);
    int aCpt=0;
 
+   if (! mModeCorrel)
+   {
+      ReadFromFile(mModele,mNameModele);
+      mPyrL1 = new cPyr1ImLearnMatch(mBoxI1,mBoxI1,mNameI1,*this,mFPC,false);
+      mPyrL2 = new cPyr1ImLearnMatch(mBoxI2,mBoxI2,mNameI2,*this,mFPC,false);
+      // mPyrL2;
+   }
+
    for (aPix.y()=0 ; aPix.y()<aSz.y() ; aPix.y()++)
    {
+       StdOut() << "Line " << aPix.y() << " on " << aSz.y()  << "\n";
+       MakeLinePC(aPix.y(),true );
+       MakeLinePC(aPix.y(),false);
        for (aPix.x()=0 ; aPix.x()<aSz.x() ; aPix.x()++)
        {
+DEBUG_LM = false && (aPix.x()== aSz.x()/2) && (aPix.y()==20);	     
+
             cPt2di aPAbs = aPix + mP0Z;
             cPt2di aPC1  = aPAbs-mBoxI1.P0();
             cPt2di aPC20 = aPAbs-mBoxI2.P0();
@@ -170,7 +232,7 @@ int  cAppliFillCubeCost::Exe()
             {
                cPt2dr aPC2Z(aPC20.x()+aDz*mStepZ,aPC20.y());
 
-	       if (Correl)
+	       if (mModeCorrel)
 	       {
 	           double aCorrel = 0.0;
                    if (WindInside4BL(*mDI1,aPC1,aPSzW) && WindInside4BL(*mDI2,aPC2Z,aPSzW))
@@ -179,12 +241,31 @@ int  cAppliFillCubeCost::Exe()
 	           }
                    PushCost((1-aCorrel)/2.0);
 	       }
+	       else
+	       {
+                   int aX1 =  aPC1.x();
+                   int aX2 =  aPC20.x() + aDz;
+		   double aCost = 0.5;
+		   if (Ok(aX1,mVOk1) && Ok(aX2,mVOk2))
+                   {
+                       cVecCaracMatch aVCM(*mPyrL1,*mPyrL2,mVPC1.at(aX1),mVPC2.at(aX2));
+		       aCost = 1-mModele.ScoreCr(aVCM);
+                   }
+if (DEBUG_LM )
+{
+	StdOut()  << "COST " << aCost << "\n";
+}
+                   PushCost(aCost);
+	       }
                aCpt++;
             }
+if (DEBUG_LM )  {BREAK_POINT("");}
        }
    }
 
    delete mFileCube;
+   delete mPyrL1;
+   delete mPyrL2;
 
    return EXIT_SUCCESS;
 }

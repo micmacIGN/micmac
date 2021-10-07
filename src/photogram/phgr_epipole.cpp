@@ -78,6 +78,21 @@ void EpipolaireCoordinate::SaveOrientEpip
 }
 
 
+void EpipolaireCoordinate::XFitHom(const ElPackHomologue &,bool aL2,EpipolaireCoordinate *)
+{
+   ELISE_ASSERT(false,"No def val for XFitHom");
+}
+
+bool EpipolaireCoordinate::HasXFitHom() const
+{
+    return false;
+}
+
+std::vector<double>  EpipolaireCoordinate::ParamFitHom() const 
+{
+   ELISE_ASSERT(false,"No ParamFitHom");
+   return std::vector<double>();
+}
 
 
 void EpipolaireCoordinate::HeriteChScale(EpipolaireCoordinate & anEC,REAL aChSacle)
@@ -334,7 +349,12 @@ void  EpipolaireCoordinate::Diff(ElMatrix<REAL> &,Pt2dr) const
 
 Pt2dr PolynomialEpipolaireCoordinate::ToCoordEpipol(Pt2dr aPInit) const
 {
-   return Pt2dr(aPInit.x,aPInit.y + (mPolToYEpip(aPInit)-aPInit.y) * mExagEpip);
+   ELISE_ASSERT((mExagEpip==1.0)||  (!mCorCalc) ,"Dont handle Exag + mCorCalc");
+
+   Pt2dr aRes (aPInit.x,aPInit.y + (mPolToYEpip(aPInit)-aPInit.y) * mExagEpip);
+   double aX = mCorCalc ?  (mNum0 + mNumx*aRes.x+mNumy*aRes.y)/(1.0+mDenx*aRes.x+mDeny*aRes.y) : aRes.x;
+
+   return Pt2dr(aX,aRes.y);
 }
 
 Pt2dr PolynomialEpipolaireCoordinate::ToCoordInit(Pt2dr aP) const
@@ -342,7 +362,8 @@ Pt2dr PolynomialEpipolaireCoordinate::ToCoordInit(Pt2dr aP) const
    if (mExagEpip!=1.0)
    {
        static double aErMax = 0.0;
-       ELISE_ASSERT(mApproxInvExagEpip,"Can Invert Epip with mExagEpip");
+       ELISE_ASSERT(mApproxInvExagEpip ,"Can Invert Epip with mExagEpip");
+       ELISE_ASSERT((!mCorCalc) ,"Can Invert Epip iwth Exag + CorCalc");
        double aY = aP.y;
        double aG =  aY;
        int aNb=10;
@@ -364,6 +385,9 @@ Pt2dr PolynomialEpipolaireCoordinate::ToCoordInit(Pt2dr aP) const
        }
        return Pt2dr(aP.x,aG);
    }
+   aP.x = mCorCalc                                                                  ?  
+	  (mNum0 + mNumy * aP.y - aP.x - mDeny *aP.y *aP.x) / (mDenx*aP.x -mNumx)   :
+	  aP.x                                                                      ;
    return Pt2dr(aP.x,mPolToYInit(aP));
 }
 
@@ -400,9 +424,102 @@ PolynomialEpipolaireCoordinate::PolynomialEpipolaireCoordinate
 ) :
    EpipolaireCoordinate(aP0,aDirX,aTrFin),
    mPolToYEpip (aPolY),
-   mPolToYInit (aPolInvY ? *aPolInvY : (InvPolY(aPolY,aDom,aPolY.DMax()+DeltaDegreInv)))
+   mPolToYInit (aPolInvY ? *aPolInvY : (InvPolY(aPolY,aDom,aPolY.DMax()+DeltaDegreInv))),
+   mNum0    (0.0),
+   mNumx    (1.0),
+   mNumy    (0.0),
+   mDenx    (0.0),
+   mDeny    (0.0),
+   mCorCalc (false)
 {
 }
+
+bool  PolynomialEpipolaireCoordinate::HasXFitHom() const
+{
+    return mCorCalc;
+}
+
+std::vector<double>  PolynomialEpipolaireCoordinate::ParamFitHom() const 
+{
+   return std::vector<double>({mNum0,mNumx,mNumy,mDenx,mDeny});
+}
+
+#define NBCOEFXFIT 5
+
+void  PolynomialEpipolaireCoordinate::XFitHom(const ElPackHomologue & aPack,bool aL2,EpipolaireCoordinate *anEpi2)
+{
+   ELISE_ASSERT((!HasXFitHom()) && (!anEpi2->HasXFitHom()),"Multiple XFitHom");
+
+   cGenSysSurResol * aSys =  nullptr;
+   if (aL2)
+      aSys = new L2SysSurResol(NBCOEFXFIT) ;
+   else
+      aSys = new SystLinSurResolu(NBCOEFXFIT,aPack.size()) ;
+
+   aSys->SetPhaseEquation(nullptr);
+
+    double aDx0 = 0.0;
+    double aDy0 = 0.0;
+
+    for (const auto & aCple : aPack)
+    {
+        Pt2dr aQ1 = Direct(aCple.P1());
+        Pt2dr aQ2 = anEpi2->Direct(aCple.P2());
+
+	/*std::cout<< "ElSwap(aQ1,aQ2)ElSwap(aQ1,aQ2)\n";
+	ElSwap(aQ1,aQ2);*/
+
+	// mC0 + mCx aQ1.x + mCy aQ1.y = aQ2.x
+	// void V_GSSR_AddNewEquation(REAL aPds,REAL * aCoeff,REAL aB);
+	double aCoeff[NBCOEFXFIT];
+	aCoeff[0] = 1.0;
+	aCoeff[1] = aQ1.x ;
+	aCoeff[2] = aQ1.y;
+	aCoeff[3] = -aQ1.x * aQ2.x;
+	aCoeff[4] = -aQ1.y * aQ2.x;
+
+	aDx0 += ElAbs(aQ1.x -aQ2.x);
+	aDy0 += ElAbs(aQ1.y -aQ2.y);
+
+	aSys->GSSR_AddNewEquation(1.0,aCoeff,aQ2.x,nullptr);
+    }
+    Im1D_REAL8 aSol = aSys->GSSR_Solve(nullptr);
+    mNum0 = aSol.data()[0];
+    mNumx = aSol.data()[1];
+    mNumy = aSol.data()[2];
+    mDenx = aSol.data()[3];
+    mDeny = aSol.data()[4];
+    mCorCalc = true;
+
+    {
+       double aDx1 = 0.0;
+       double aDy1 = 0.0;
+       double aDCoh1 = 0.0;
+       double aDCoh2 = 0.0;
+       for (const auto & aCple : aPack)
+       {
+           Pt2dr aQ1 = Direct(aCple.P1());
+           Pt2dr aQ2 = anEpi2->Direct(aCple.P2());
+
+	   aDx1 += ElAbs(aQ1.x -aQ2.x);
+	   aDy1 += ElAbs(aQ1.y -aQ2.y);
+
+	   aDCoh1 += euclid(aCple.P1()-Inverse(aQ1));
+	   aDCoh2 += euclid(aCple.P2()-anEpi2->Inverse(aQ2));
+	}
+
+	// mC0 + mCx aQ1.x + mCy aQ1.y = aQ2.x
+	int aNb = aPack.size();
+	std::cout << "  XFITTTTTTTTTTTTTTTTTTTTTTTTT\n";
+	std::cout << "BEFORE Dx:" << aDx0/aNb << " Dy:" << aDy0/aNb << "  \n";
+	std::cout << "  AFTR Dx:" << aDx1/aNb << " Dy:" << aDy1/aNb << "  \n";
+	std::cout << "  COHER 1:" << aDCoh1/aNb << " 2:" << aDCoh2/aNb << "  \n";
+	// getchar();
+    }
+
+    delete aSys;
+}
+
 
 
 Polynome2dReal PolynomialEpipolaireCoordinate::PolToYEpip()

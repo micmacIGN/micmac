@@ -705,6 +705,11 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
             tPB::AssertInside(aP);
             return  Value(aP);
         }
+        inline double GetVBL(const double & aP) const 
+        {
+           tPB::AssertInsideBL(cPt1dr(aP));
+           return  ValueBL(aP);
+        }
         const Type & GetV(const cPt1di & aP)  const {return GetV(aP.x());}
         /// Used by matrix/vector interface 
         Type & GetV(const int & aP) { tPB::AssertInside(aP); return  Value(aP); }
@@ -772,6 +777,17 @@ template <class Type>  class cDataIm1D  : public cDataTypedIm<Type,1>
         Type & Value(const int & aX)   {return mRawData1D[aX];} ///< Data Access
         const Type & Value(const int & aX) const   {return mRawData1D[aX];} /// Cont Data Access
 
+        double  ValueBL(const double & aX)  const ///< Bilinear interpolation
+        {
+            int aX0 = round_down(aX);  ///<  "Left" limit of  pixel
+            double aWeigthX1 = aX - aX0;
+            double aWeightX0 = 1-aWeigthX1;
+            const Type  * aL = mRawData1D + aX0;
+
+            return   (aWeightX0*aL[0]  + aWeigthX1*aL[1]);
+        } 
+
+
         Type * mRawData1D;  ///< Offset vs DataLin
 };
 
@@ -812,9 +828,20 @@ template <class TypeH,class TypeCumul>  class cHistoCumul
          void AddV(const int & aP,const TypeH & aV2Add);
          void MakeCumul();
          tREAL8  PropCumul(const int & aP) const; 
+         tREAL8  PropCumul(const tREAL8 & aP) const; 
          const cDataIm1D<TypeH>&   H() const;
          void AddData(const cAuxAr2007 & anAux);
+	 
+          //  Different stats on the distribution of errors
+          double  PercBads(double aThr) const;     // Classical % of  bads value over a threshold
+          double  AvergBounded(double aThr,bool Apod=false) const; // Average of value bounded by a threshold  Min(T,X)
+          double  ApodAverg(double aThr) const; //  Appodised bounded  T - T^2/(T+x)
+          double  QuantilValue(double aThr) const; //  Value Over given quantille
+
+	  int IndexeLowerProp(const double  aProp) const;
+
     private :
+	 void AssertCumulDone() const;
         // void AddV(const int & aP,const tBase & aV2Add)
          int                 mNbVal;
          cIm1D<TypeH>        mH;
@@ -833,6 +860,7 @@ class cTabulFonc1D : public cFctrRR
 
        cTabulFonc1D(const cFctrRR & aFctr,double XMin,double XMax,int aNbStep);
        virtual ~ cTabulFonc1D() = default;
+
      private  :
        inline int    ToIntCoord(double aX) const;
        inline double ToRealCoord(int   aI) const;
