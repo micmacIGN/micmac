@@ -144,11 +144,12 @@ void VisuTiePtIn3D(std::string aDir, std::string aImgList1, std::string aImgList
             int pos2 = aNameIn.find("Pastis")-1;
             std::string outSH = aNameIn.substr(pos1, pos2-pos1);
             std::string aCom = "mm3d SEL" + BLANK + aDir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
+            std::string aComInv = "mm3d SEL" + BLANK + aDir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
 
             ElPackHomologue aPackInLoc =  ElPackHomologue::FromFile(aNameIn);
             int nTiePtNum = Get3DCoors(aPackInLoc, bReverse, aDSMDirL, aDSMDirR, aDSMFileL, aDSMFileR, aIm1OriFile, aIm2OriFile, Pt3dL, Pt3dR, vecPreciseL, vecPreciseR, aTrans3DHL, aTrans3DHR, bPrint, aThres);
             nTiePtNumTotal += nTiePtNum;
-            printf("%s\n%s: %d tie points. Total tie points: %d\n", aCom.c_str(), aNameIn.c_str(), nTiePtNum, nTiePtNumTotal);
+            printf("%s\n%s\n%s: %d tie points. Total tie points: %d\n", aCom.c_str(), aComInv.c_str(), aNameIn.c_str(), nTiePtNum, nTiePtNumTotal);
         }
     }
 

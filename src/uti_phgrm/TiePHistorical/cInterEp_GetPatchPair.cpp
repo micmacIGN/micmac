@@ -616,7 +616,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
     bool bRotate = false;
 
     Pt2dr aPatchSz(640, 480);
-    Pt2dr aBufferSz(0, 0);
+    Pt2dr aBufferSz(0,0);
 
     ElInitArgMain
      (
@@ -627,7 +627,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
                      << EAMC(aImg2,"Secondary image name"),
          LArgMain()
                 << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
-                << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=[0, 0]")
+                << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=[0,0]")
                 << EAM(bRotate,"Rotate",true,"Rotate the master image by 90 degree 4 times for matching methods which are not invariant to rotation (e.g. SuperGlue), Def=false")
                      << aCAS3D.ArgBasic()
                      << aCAS3D.ArgGetPatchPair()
@@ -748,7 +748,7 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
     double aThres = 2;
 
     Pt2dr aPatchSz(640, 480);
-    Pt2dr aBufferSz(30, 60);
+    Pt2dr aBufferSz(-1,-1);
 
     ElInitArgMain
      (
@@ -763,7 +763,7 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
                      << aCAS3D.ArgBasic()
                      << aCAS3D.ArgGetPatchPair()
                 << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
-                << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=[30, 60]")
+                << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=10%*PatchSz")
                 << EAM(aPara3DH, "Para3DH", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
                 //<< EAM(bPrint, "Print", false, "Print corner coordinate, Def=false")
                 << EAM(aDSMDirL, "DSMDirL", true, "DSM directory of master image, Def=none")
@@ -771,6 +771,11 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
                 << EAM(aPrefix, "Prefix", true, "The prefix for the name of images (for debug only), Def=none")
                 << EAM(aThres, "Thres", true, "The threshold of reprojection error (unit: pixel) when prejecting patch corner to DSM, Def=2")
      );
+
+    if(aBufferSz.x < 0 && aBufferSz.y < 0){
+        aBufferSz.x = int(0.1*aPatchSz.x);
+        aBufferSz.y = int(0.1*aPatchSz.y);
+    }
 
     aCAS3D.mOutDir += "/";
     ELISE_fp::MkDir(aCAS3D.mOutDir);

@@ -57,9 +57,6 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
         }
         ElPackHomologue aPackFull =  ElPackHomologue::FromFile(aNameIn);
 
-        std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-        cout<<aCom<<endl;
-
     std::string aDir_outSH = input_dir + "/Homol" + outSH+"/";
     ELISE_fp::MkDir(aDir_outSH);
     aDir_outSH = aDir_outSH + "Pastis" + aImg1;
@@ -243,7 +240,9 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
     }
     fclose(fpOutput);
 
-    cout<<"nOriPtNum: "<<nOriPtNum<<";  InsideBorderPtNum:  "<<nPtNum<<";  nFilteredPtNum: "<<inlierFinal.size()<<endl;
+    std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
+    std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
+    cout<<aCom<<endl<<aComInv<<endl<<"nOriPtNum: "<<nOriPtNum<<";  InsideBorderPtNum:  "<<nPtNum<<";  nFilteredPtNum: "<<inlierFinal.size()<<endl;
 
     return;
 }
@@ -349,10 +348,11 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
     }
     /******************************end random perform**********/
 
-    /****************Save points****************/
     std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-    cout<<aCom<<endl;
+    std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
+    printf("%s\n%s\n", aCom.c_str(), aComInv.c_str());
 
+    /****************Save points****************/
     std::string aDir_outSH = input_dir + "/Homol" + outSH+"/";
     ELISE_fp::MkDir(aDir_outSH);
     aDir_outSH = aDir_outSH + "Pastis" + aImg1;

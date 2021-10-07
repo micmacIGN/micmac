@@ -93,7 +93,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
 {
     mDir = "./";
     mAngle = 0;
-    mBufferSz = Pt2dr(30, 60);
+    //mBufferSz = Pt2dr(30, 60);
     mCheckAngle = true;
     mCheckScale = true;
     mHomoXml = "SubPatch.xml";
@@ -628,7 +628,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         aCom = "";
         if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
         if (EAMIsInit(&mCoRegPatchSz))  aCom += " PatchSz=[" + ToString(mCoRegPatchSz.x) + "," + ToString(mCoRegPatchSz.y) + "]";
-        if (EAMIsInit(&mCoRegBufferSz))  aCom += " BufferSz=[" + ToString(mCoRegBufferSz.x) + "," + ToString(mCoRegBufferSz.y) + "]";
+        aCom += " BufferSz=[" + ToString(mCoRegBufferSz.x) + "," + ToString(mCoRegBufferSz.y) + "]";
         StdCom("TestLib GetPatchPair BruteForce", mDSMDirL+"/"+aDSMImgWallisNameL + BLANK + mDSMDirR+"/"+aDSMImgWallisNameR + BLANK + aCom + BLANK + "Rotate=1" + BLANK + mCAS3D.ComParamGetPatchPair(), mExe);
 
         std::string aDSMImgGrayNameRenamedL = mCAS3D.GetFolderName(mDSMDirL) + "." + StdPostfix(aDSMImgNameL);
@@ -669,6 +669,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
             aCom = "";
             if (!EAMIsInit(&mCAS3D.mHomoXml))   aCom +=  " HomoXml=" + aHomoXml;
             if (!EAMIsInit(&mCAS3D.mMergeTiePtInSH))   aCom +=  " MergeInSH=" + mCAS3D.mSpGlueOutSH;
+            aCom +=  " PatchSz=[" + ToString(mCoRegPatchSz.x) + "," + ToString(mCoRegPatchSz.y) + "]";
+            aCom +=  " BufferSz=[" + ToString(mCoRegBufferSz.x) + "," + ToString(mCoRegBufferSz.y) + "]";
             StdCom("TestLib MergeTiePt", aOutDir+"/" + BLANK + aCom + BLANK + mCAS3D.ComParamMergeTiePt(), mExe);
 
 
@@ -848,6 +850,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
             }
             else
                 aRANSACInSH = mCAS3D.mMergeTiePtOutSH;
+            aCom +=  " PatchSz=[" + ToString(mPrecisePatchSz.x) + "," + ToString(mPrecisePatchSz.y) + "]";
+            aCom +=  " BufferSz=[" + ToString(mPreciseBufferSz.x) + "," + ToString(mPreciseBufferSz.y) + "]";
             aComSingle = StdCom("TestLib MergeTiePt", aOutDir+"/" + BLANK + aCom + BLANK + "OutDir=" + mCAS3D.mDir + BLANK + mCAS3D.ComParamMergeTiePt(), aExe);
             aComList.push_back(aComSingle);
         }
@@ -1067,8 +1071,8 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
 
         LArgMain()
                << EAM(mExe,"Exe",true,"Execute all, Def=true. If this parameter is set to false, the pipeline will not be executed and the command of all the submodules will be printed.")
-               << EAM(mImg4MatchList1,"I4ML1",true,"The list that contains the RGB images of epoch1 for extracting inter-epoch correspondences, Def=ImgList1")
-               << EAM(mImg4MatchList2,"I4ML2",true,"The list that contains the RGB images of epoch2 for extracting inter-epoch correspondences, Def=ImgList2")
+               << EAM(mImg4MatchList1,"IL1",true,"The list that contains the RGB images of epoch1 for extracting inter-epoch correspondences, Def=ImgList1")
+               << EAM(mImg4MatchList2,"IL2",true,"The list that contains the RGB images of epoch2 for extracting inter-epoch correspondences, Def=ImgList2")
                << EAM(mCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
                << EAM(mUseDepth,"UseDep",true,"GetPatchPair for depth maps as well (this option is only used for developper), Def=false")
                << EAM(mRotateDSM,"RotateDSM",true,"The angle of rotation from the master DSM to the secondary DSM for rough co-registration (only 4 options available: 0, 90, 180, 270, as the rough co-registration method is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
