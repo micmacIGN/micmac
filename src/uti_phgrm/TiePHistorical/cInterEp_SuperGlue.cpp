@@ -197,8 +197,8 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
         //cout<<"nValidMatchNum: "<<nValidMatchNum<<endl;
 
         std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+SH;
-        cout<<aCom<<endl;
-        cout<<"tie point number: "<<nValidMatchNum<<endl;
+        std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+SH;
+        printf("%s\n%s\ntie point number: %d\n", aCom.c_str(), aComInv.c_str(), nValidMatchNum);
 
         std::string aSHDir = input_dir + "/Homol" + SH+"/";
         ELISE_fp::MkDir(aSHDir);

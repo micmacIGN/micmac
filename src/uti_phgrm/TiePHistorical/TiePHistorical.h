@@ -101,8 +101,8 @@ class cCommonAppliTiepHistorical
         std::string                       mStrOpt;
 
         /* Parameters for GetPatchPair */ 
-        Pt2dr                             mPatchSz;
-        Pt2dr                             mBufferSz;
+        //Pt2dr                             mPatchSz;
+        //Pt2dr                             mBufferSz;
         std::string                       mSubPatchXml;
         std::string                       mImgPair;
         std::string                       mOutDir;

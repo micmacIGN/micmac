@@ -346,7 +346,8 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
     fclose(fpTiePt2);
 
     std::string aCom = "mm3d SEL" + BLANK + aDir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-    printf("%s\nOriginal correspondences: %d; survived correspondences: %d\nCorrespondences out of border: %d\n", aCom.c_str(), nPtNum, int(inlier.size()), nOutOfBorder);
+    std::string aComInv = "mm3d SEL" + BLANK + aDir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
+    printf("%s\n%s\nOriginal correspondences: %d; survived correspondences: %d\nCorrespondences out of border: %d\n", aCom.c_str(), aComInv.c_str(), nPtNum, int(inlier.size()), nOutOfBorder);
     //cout<<aCom<<endl;
 
     if(bPrint)
@@ -364,7 +365,7 @@ int CrossCorrelation_main(int argc,char ** argv)
    std::string aPatchDir = "./Tmp_Patches";
 
    Pt2dr aPatchSz(640, 480);
-   Pt2dr aBufferSz(30, 60);
+   Pt2dr aBufferSz(-1, -1);
 
    bool bCheckFile = false;
 
@@ -376,13 +377,19 @@ int CrossCorrelation_main(int argc,char ** argv)
         LArgMain()
                     << aCAS3D.ArgBasic()
                     << aCAS3D.ArgCrossCorrelation()
-                   << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme (since we use the patches resulted from \"GetPatchPair\" to calculate the cross correlation, this parameter should be set the same as the PatchSz in command GetPatchPair), Def=[640, 480]")
-                   << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme (since we use the patches resulted from \"GetPatchPair\" to calculate the cross correlation, this parameter should be set the same as the BufferSz in command GetPatchPair), Def=[30, 60]")
+                   << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme (since we use the patches resulted from \"GetPatchPair\" to calculate the cross correlation, this parameter should be set the same as the PatchSz in command GetPatchPair), Def=[640, 480]")             
+                   << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme (since we use the patches resulted from \"GetPatchPair\" to calculate the cross correlation, this parameter should be set the same as the BufferSz in command GetPatchPair), Def=10%*PatchSz")
                     << EAM(aSubPatchXml, "SubPXml", true, "The xml file name to record the homography between the patch and original image, Def=SubPatch.xml")
                    << EAM(aPatchDir, "PatchDir", true, "The input directory of patches, Def=./Tmp_Patches")
                    << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
 
     );
+
+   if(aBufferSz.x < 0 && aBufferSz.y < 0){
+       aBufferSz.x = int(0.1*aPatchSz.x);
+       aBufferSz.y = int(0.1*aPatchSz.y);
+   }
+
 /*
    if(aSubPatchXml.length() == 0)
        aSubPatchXml = StdPrefix(aImg1) + "_" + StdPrefix(aImg2) + "_SubPatch.xml";

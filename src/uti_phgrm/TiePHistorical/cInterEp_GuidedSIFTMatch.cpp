@@ -563,10 +563,7 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     //*********** 4. Save tie pt
     FILE * fpTiePt1 = fopen(aNameFile1.c_str(), "w");
     FILE * fpTiePt2 = fopen(aNameFile2.c_str(), "w");
-/*
-    std::string comSEL = "mm3d SEL " + aDir + " " + aImg1 + " " + aImg2 + " KH=NT SzW=[600,600] SH=" + outSH;
-    cout<<comSEL<<endl;
-*/
+
     int nTiePtNum = match.size();
     for(int i = 0; i < nTiePtNum; i++)
     {
@@ -589,7 +586,8 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     cout<<"Extracted tie point number: "<<match.size()<<endl;
 
     std::string aCom = "mm3d SEL" + BLANK + aDir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-    cout<<aCom<<endl;
+    std::string aComInv = "mm3d SEL" + BLANK + aDir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
+    printf("%s\n%s\n", aCom.c_str(), aComInv.c_str());
 }
 
 void ExtractSIFT(std::string aFullName, std::string aDir)
