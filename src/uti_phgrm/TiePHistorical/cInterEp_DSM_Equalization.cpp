@@ -192,26 +192,7 @@ void DSM_Equalization(std::string aDSMDir, std::string aDSMFile, std::string aOu
 
     cout<<"xdg-open "<<aOutImg<<endl;
 }
-/*
-void TransformDSM(std::string aFileOut)
-{
-    cXml_Map2D aMap;
-    std::list<cXml_Map2DElem> aLMEL;
-    cXml_Map2DElem aMapEL;
-    cXmlHomogr Hom;
 
-    //double aSc3= aSc1 * aSc2;
-    Hom.X() =2.0;
-       Hom.Tr() = Pt2dr(500,500);
-
-       aMapEL.Homot() = Hom;
-
-      aLMEL.push_back(aMapEL);
-      aMap.Maps() = aLMEL;
-
-      MakeFileXML(aMap, aFileOut);
-}
-*/
 int DSM_Equalization_main(int argc,char ** argv)
 {
    cCommonAppliTiepHistorical aCAS3D;
@@ -231,8 +212,6 @@ int DSM_Equalization_main(int argc,char ** argv)
                     << EAM(aOutImg, "OutImg", true, "Output image name, Def='input'_gray.tif")
 
     );
-
-   //TransformDSM("/home/lulin/Documents/zll/TestLulinCodeInMicMac/pipeline/map.xml");
 
    DSM_Equalization(aDSMDir, aDSMFile, aOutImg, aCAS3D.mSTDRange);
 

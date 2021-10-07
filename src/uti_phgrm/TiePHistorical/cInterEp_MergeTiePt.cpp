@@ -74,43 +74,34 @@ pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
-
-void ReadXml(std::string & aImg1, std::string & aImg2, std::string aSubPatchXml, std::vector<std::string>& vPatchesL, std::vector<std::string>& vPatchesR, std::vector<cElHomographie>& vHomoL, std::vector<cElHomographie>& vHomoR)
+bool CheckBetween(double value, double dMin, double dMax)
 {
-    //cout<<aSubPatchXml<<endl;
-    cSetOfPatches aSOMAF = StdGetFromSI(aSubPatchXml, SetOfPatches);
-
-    std::list<cMes1Im>::const_iterator itIms = aSOMAF.Mes1Im().begin();
-
-    cMes1Im aIms1 = * itIms;
-    itIms++;
-    cMes1Im aIms2 = * itIms;
-
-    aImg1 = aIms1.NameIm();
-    aImg2 = aIms2.NameIm();
-
-    for(std::list<cOnePatch1I>::const_iterator itF = aIms1.OnePatch1I().begin() ; itF != aIms1.OnePatch1I().end() ; itF++)
-    {
-        cOnePatch1I aMAF = *itF;
-        vPatchesL.push_back(aMAF.NamePatch());
-        vHomoL.push_back(aMAF.PatchH());
-    }
-
-    for(std::list<cOnePatch1I>::const_iterator itF = aIms2.OnePatch1I().begin() ; itF != aIms2.OnePatch1I().end() ; itF++)
-    {
-        cOnePatch1I aMAF = *itF;
-        vPatchesR.push_back(aMAF.NamePatch());
-        vHomoR.push_back(aMAF.PatchH());
-    }
+    if(value > dMin && value < dMax)
+        return true;
+    else
+        return false;
 }
 
-void MergeTiePt(std::string input_dir, std::string output_dir, std::string inSH, std::string outSH, std::string aSubPatchXml)
+void MergeTiePt(std::string input_dir, std::string output_dir, std::string inSH, std::string outSH, std::string aSubPatchXml, bool bPrint)
 {
     std::string aImg1, aImg2;
     std::vector<std::string> vPatchesL, vPatchesR;
     std::vector<cElHomographie> vHomoL, vHomoR;
 
     ReadXml(aImg1, aImg2, input_dir+"/"+aSubPatchXml, vPatchesL, vPatchesR, vHomoL, vHomoR);
+
+    std::string aImg1WithDir = output_dir+"/"+aImg1;
+    std::string aImg2WithDir = output_dir+"/"+aImg2;
+    if (ELISE_fp::exist_file(aImg1WithDir) == false || ELISE_fp::exist_file(aImg2WithDir) == false)
+    {
+        cout<<aImg1WithDir<<" or "<<aImg2WithDir<<" didn't exist, hence skipped"<<endl;
+        return;
+    }
+
+    Tiff_Im aRGBIm1(aImg1WithDir.c_str());
+    Pt2di ImgSzL = aRGBIm1.sz();
+    Tiff_Im aRGBIm2(aImg2WithDir.c_str());
+    Pt2di ImgSzR = aRGBIm2.sz();
 
     //cout<<vPatchesL.size()<<", "<<vPatchesR.size()<<", "<<vHomoL.size()<<", "<<vHomoR.size()<<"\n";
 
@@ -138,6 +129,7 @@ void MergeTiePt(std::string input_dir, std::string output_dir, std::string inSH,
     while(getline(in,s))
     {
     */
+    int nOutofBorder = 0;
     for(unsigned int i=0; i<vPatchesL.size(); i++)
     {
         std::string aPatch1 = vPatchesL[i];
@@ -158,7 +150,8 @@ void MergeTiePt(std::string input_dir, std::string output_dir, std::string inSH,
                 aNameIn = aDir_inSH +"Pastis" + aPatch2 + "/"+aPatch1+".txt";
                 if (ELISE_fp::exist_file(aNameIn) == false)
                 {
-                    //cout<<aNameIn<<"didn't exist hence skipped."<<endl;
+                    if(bPrint)
+                        printf("%s didn't exist hence skipped.\n", aNameIn.c_str());
                     continue;
                 }
             }
@@ -172,6 +165,7 @@ void MergeTiePt(std::string input_dir, std::string output_dir, std::string inSH,
                 printf("ori:  %lf %lf %lf %lf\n", tiept.P1().x, tiept.P1().y, tiept.P2().x, tiept.P2().y);
 */
                 Pt2dr aP1, aP2;
+                Pt2dr aP1New, aP2New;
                 if(bReverse == false)
                 {
                     aP1 = itCpl->ToCple().P1();
@@ -182,13 +176,21 @@ void MergeTiePt(std::string input_dir, std::string output_dir, std::string inSH,
                     aP2 = itCpl->ToCple().P1();
                     aP1 = itCpl->ToCple().P2();
                 }
-                aP1 = aFstH(aP1);
-                aP2 = aSndH(aP2);
-                //printf("merged:  %lf %lf %lf %lf\n", aP1.x, aP1.y, aP2.x, aP2.y);
+                aP1New = aFstH(aP1);
+                aP2New = aSndH(aP2);
+                if(bPrint)
+                    printf("%.2lf, %.2lf;  %.2lf, %.2lf  ->  %.2lf, %.2lf;  %.2lf, %.2lf\n", aP1.x, aP1.y, aP2.x, aP2.y, aP1New.x, aP1New.y, aP2New.x, aP2New.y);
 
-                aPackMerged.Cple_Add(ElCplePtsHomologues(aP1,aP2,1.0));
-                nTiePtNum++;
+                if(CheckBetween(aP1New.x, 0, ImgSzL.x) == true && CheckBetween(aP1New.y, 0, ImgSzL.y) == true && CheckBetween(aP2New.x, 0, ImgSzR.x) == true && CheckBetween(aP2New.y, 0, ImgSzR.y) == true){
+                    aPackMerged.Cple_Add(ElCplePtsHomologues(aP1New,aP2New,1.0));
+                    nTiePtNum++;
+                }
+                else
+                    nOutofBorder++;
             }
+
+            printf("%s: %d tie pt.\n", aNameIn.c_str(), nTiePtNum);
+
             /*
             cout<<aNameIn<<endl;
             cout<<"nTiePtNum: "<<nTiePtNum<<";  ";
@@ -211,6 +213,7 @@ void MergeTiePt(std::string input_dir, std::string output_dir, std::string inSH,
     fclose(fpTiePt2);
 
     cout<<"Tie point number after merged: "<<nTotalTiePtNum<<endl;
+    cout<<"Tie point out of border: "<<nOutofBorder<<endl;
 }
 
 int MergeTiePt_main(int argc,char ** argv)
@@ -221,6 +224,8 @@ int MergeTiePt_main(int argc,char ** argv)
 
    std::string aOutDir = "";
 
+   bool aPrint = false;
+
    ElInitArgMain
     (
         argc,argv,
@@ -229,6 +234,7 @@ int MergeTiePt_main(int argc,char ** argv)
                     //<< aCAS3D.ArgBasic()
                << EAM(aOutDir, "OutDir", true, "Output directory of the merged tie points, Def=Work directory")
                     << aCAS3D.ArgMergeTiePt()
+               << EAM(aPrint, "Print", false, "Print supplementary information, Def=false")
     );
 
    if(aOutDir.length() == 0)
@@ -239,7 +245,7 @@ int MergeTiePt_main(int argc,char ** argv)
 
    //cout<<aDir<<",,,"<<aCAS3D.mHomoXml<<endl;
 
-   MergeTiePt(aDir, aOutDir, aCAS3D.mMergeTiePtInSH, aCAS3D.mMergeTiePtOutSH, aCAS3D.mHomoXml);
+   MergeTiePt(aDir, aOutDir, aCAS3D.mMergeTiePtInSH, aCAS3D.mMergeTiePtOutSH, aCAS3D.mHomoXml, aPrint);
 
    return EXIT_SUCCESS;
 }

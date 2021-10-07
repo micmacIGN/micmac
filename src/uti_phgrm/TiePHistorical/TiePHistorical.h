@@ -69,6 +69,7 @@ class cCommonAppliTiepHistorical
 
         /* Common parameters */
 //        bool                              mExe;
+        bool                              mPrint;
         std::string                       mDir;
 
         //std::string mDir;
@@ -114,12 +115,15 @@ class cCommonAppliTiepHistorical
         std::string                       mHomoXml;
 
         /* Parameters for RANSAC */       
-        std::string                       mRANSACInSH;
-        std::string                       mRANSACOutSH;
+        std::string                       mR2DInSH;
+        std::string                       mR2DOutSH;
+        std::string                       mR3DInSH;
+        std::string                       mR3DOutSH;
         int                               mR3DIteration;
         int                               mR2DIteration;
         double                            mR2DThreshold;
         double                            mR3DThreshold;
+        int                               mMinPt;
 //        std::string                       mDSMFileL;
 //        std::string                       mDSMFileR;
 
@@ -145,6 +149,8 @@ class cCommonAppliTiepHistorical
         bool                              mPredict;
         double                            mScale;
         double                            mAngle;
+        double                            mThreshScale;
+        double                            mThreshAngle;
 
         /* Parameters for CrossCorrelation */
         std::string                       mCrossCorrelationInSH;
@@ -212,6 +218,8 @@ class cTransform3DHelmert
         cTransform3DHelmert(std::string aFileName);
 
         Pt3dr Transform3Dcoor(Pt3dr aPt);
+        double GetScale();
+        bool GetApplyTrans();
 
 private:
         bool mApplyTrans;
@@ -222,6 +230,44 @@ private:
 
 };
 
+
+/*******************************************/
+/****** cDSMInfo  ******/
+/*******************************************/
+
+class cDSMInfo
+{
+    public:
+
+        cDSMInfo(Pt2di aDSMSz, std::string aDSMFile, std::string aDSMDir);
+
+        Pt2dr Get2DcoorInDSM(Pt3dr aTer);
+
+        static Pt2di GetDSMSz(std::string aDSMFile, std::string aDSMDir);
+        std::string GetDSMName(std::string aDSMFile, std::string aDSMDir);
+
+        double GetDSMValue(Pt2di aPt2);
+        double GetMasqValue(Pt2di aPt2);
+
+        Pt2dr GetOriPlani();
+        Pt2dr GetResolPlani();
+        Pt2di GetDSMSz();
+
+        bool GetIfDSMIsValid();
+
+private:
+        bool         bDSM;
+        Pt2di        mDSMSz;
+        cFileOriMnt  mFOM;
+        Pt2dr mOriPlani;
+        Pt2dr mResolPlani;
+
+        std::string mDSMName;
+        std::string mMaskName;
+
+        TIm2D<float,double> mTImDSM;
+        TIm2D<float,double> mTImMask;
+};
 
 /*******************************************/
 /****** cGet3Dcoor  ******/
@@ -235,23 +281,30 @@ class cGet3Dcoor
 
         double GetGSD();
 
-        TIm2D<float,double> SetDSMInfo(std::string aDSMFile, std::string aDSMDir);
+        //TIm2D<float,double> SetDSMInfo(std::string aDSMFile, std::string aDSMDir);
 
-        Pt2di GetDSMSz(std::string aDSMFile, std::string aDSMDir);
+        cDSMInfo SetDSMInfo(std::string aDSMFile, std::string aDSMDir);
 
-        Pt3dr Get3Dcoor(Pt2dr aPt1, TIm2D<float,double> mTImProfPx, bool& bValid, double dThres);
+        //Pt2di GetDSMSz(std::string aDSMFile, std::string aDSMDir);
+
+        Pt3dr Get3Dcoor(Pt2dr aPt1, cDSMInfo aDSMInfo, bool& bValid, bool bPrint = false, double dThres = 2);
 
         Pt3dr GetRough3Dcoor(Pt2dr aPt1);
 
         Pt2dr Get2Dcoor(Pt3dr aTer);
 
+        //Pt2dr Get2DcoorInDSM(Pt3dr aTer);
+
+        //std::string GetDSMName(std::string aDSMFile, std::string aDSMDir);
+
 private:
         cBasicGeomCap3D * mCam1;
         bool         bDSM;
-        Pt2di        mDSMSz;
+        /*Pt2di        mDSMSz;
         cFileOriMnt  mFOM;
         Pt2dr mOriPlani;
-        Pt2dr mResolPlani;
+        Pt2dr mResolPlani;*/
+        //cDSMInfo mDSMInfo;
         //Im2D<float,double>   mImIn;
         //TIm2D<float,double> mTImProfPx;
 };
@@ -304,11 +357,18 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
         bool mSkipRANSAC3D;
         bool mSkipCrossCorr;
 
+        Pt2dr mCoRegPatchSz;
+        Pt2dr mCoRegBufferSz;
+
+        Pt2dr mPrecisePatchSz;
+        Pt2dr mPreciseBufferSz;
 
         bool                              mExe;
         bool                              mUseDepth;
         bool                              mCheckFile;
         int                               mRotateDSM;
+        double                            mCheckNbCoReg;
+        double                            mCheckNbPrecise;
         /*
 
 
@@ -322,7 +382,11 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
 };
 
 
-
+bool FallInBox(Pt2dr* aPCorner, Pt2dr aLeftTop, Pt2di aRightLower);
+void GetRandomNum(int nMin, int nMax, int nNum, std::vector<int> & res);
+void ReadXml(std::string & aImg1, std::string & aImg2, std::string aSubPatchXml, std::vector<std::string>& vPatchesL, std::vector<std::string>& vPatchesR, std::vector<cElHomographie>& vHomoL, std::vector<cElHomographie>& vHomoR);
+void GetBoundingBox(Pt3dr* ptTerrCorner, int nLen, Pt3dr& minPt, Pt3dr& maxPt);
+bool CheckRange(int nMin, int nMax, double & value);
 
 /****************************************/
 /****** cInterEp_RoughCoReg ******/
