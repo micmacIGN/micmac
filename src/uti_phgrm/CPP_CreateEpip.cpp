@@ -1402,11 +1402,11 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 		    << EAM(mNbCalcAutoDir,"NbCalcDir",false,"Calc directions : Nbts / NbEchDir")
 		    << EAM(mParamEICE,"ExpCurve",false,"0-SzIm ,1-Number of Line,2- Larg (in [0 1]),3-Exag deform,4-ShowOut")
 		    << EAM(mParamTestOh,"OhP",false,"Oh's method test parameter(none for now)")
-		    /*
 		    << EAM(mXFitHom,"XCorrecHom",false,"Correct X-Pax using homologous point")
 		    << EAM(mXFitModele,"XCorrecOri",false,"Correct X-Pax using orient and Z=average")
 		    << EAM(mXFitL2,"XCorrecL2",false,"L1/L2 Correction for X-Pax")
 		    << EAM(mNameOut,"Out",false,"To spcecify names of results")
+		    /*
 		    */
     );
 
