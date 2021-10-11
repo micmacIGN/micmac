@@ -83,13 +83,18 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
 
     double dGSD1 = a3DCoorL.GetGSD();
     double dGSD2 = a3DCoorR.GetGSD();
+    double dRefGSD = dGSD2;
     cout<<"GSD of master image: "<<dGSD1<<endl;
-    if(aTrans3DHL.GetApplyTrans() == true)
+    if(aTrans3DHL.GetApplyTrans() == true){
          cout<<"GSD of master image after transformation: "<<dGSD1*aTrans3DHL.GetScale()<<endl;
+         //dRefGSD = (dGSD1*aTrans3DHL.GetScale()+dGSD2)*0.5;
+    }
      cout<<"GSD of secondary image: "<<dGSD2<<endl;
 
-     if(threshold < 0)
-         threshold = 10*dGSD2;
+     if(threshold < 0){
+         threshold = 10*dRefGSD;
+         //printf("GSD1: %.2lf, GSD2: %.2lf, RefGSD: %.2lf, 3DRANTh: %.2lf\n", dGSD1*aTrans3DHL.GetScale(), dGSD2, dRefGSD, threshold);
+     }
 
     int nOriPtNum = 0;
     std::vector<int> aValidPt;

@@ -131,7 +131,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     mSubPatchXml = "SubPatch.xml";
     mR2DThreshold = 10;
     mR3DThreshold = -1;
-    mCrossCorrThreshold = 0.6;
+    mCrossCorrThreshold = 0.5;
     mWindowSize = 32;
     mViz = false;
 //    mDSMFileL = "MMLastNuage.xml";
@@ -233,8 +233,9 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
         << EAM(mR3DInSH,"3DRANInSH",true,"Input Homologue extenion for NB/NT mode for 3D RANSAC, Def=none")
         << EAM(mR3DOutSH,"3DRANOutSH",true,"Output Homologue extenion for NB/NT mode of 3D RANSAC, Def='3DRANInSH'-3DRANSAC")
         << EAM(mR3DIteration,"3DIter",true,"3D RANSAC iteration, Def=1000")
+        //<< EAM(mR3DThreshold,"3DRANTh",true,"3D RANSAC threshold, Def=10*RefGSD (if \"Para3DHL\" is valid, RefGSD is the average GSD of master and secondary image, otherwise RefGSD is the GSD of secondary image)")
         << EAM(mR3DThreshold,"3DRANTh",true,"3D RANSAC threshold, Def=10*(GSD of secondary image)")
-        << EAM(mMinPt,"MinPt",true,"Minimun number of input correspondences required, Def=10");
+                << EAM(mMinPt,"MinPt",true,"Minimun number of input correspondences required, Def=10");
            /*
         << EAM(mDSMDirL, "DSMDirL", true, "DSM directory of master image, Def=none")
         << EAM(mDSMDirR, "DSMDirR", true, "DSM directory of secondary image, Def=none")
@@ -271,7 +272,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
             << EAM(mCrossCorrelationOutSH,"CCOutSH",true,"Output Homologue extenion for NB/NT mode of cross correlation, Def='CCInSH'-CrossCorrelation")
                //<< EAM(mSubPatchXml, "SubPatchXml", true, "The xml file name to record the homography between the patch and original image, Def=SubPatch.xml")
             << EAM(mWindowSize, "SzW",true, "Window size of cross correlation, Def=32")
-            << EAM(mCrossCorrThreshold, "CCTh",true, "Corss correlation threshold, Def=0.6");
+            << EAM(mCrossCorrThreshold, "CCTh",true, "Corss correlation threshold, Def=0.5");
 
         //StdCorrecNameOrient(mOutRPC,mDir,true);
 
