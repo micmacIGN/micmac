@@ -368,7 +368,7 @@ std::string cCommonAppliTiepHistorical::ComParamSuperGlue()
     if (EAMIsInit(&mOutput_dir))   aCom +=  " OutDir=" + mDir + "/" + mOutput_dir;
     if (EAMIsInit(&mSpGlueOutSH))   aCom +=  " SpGOutSH=" + mSpGlueOutSH;
     if (EAMIsInit(&mResize))    aCom += " Resize=[" + ToString(mResize.x) + "," + ToString(mResize.y) + "]";
-    if (EAMIsInit(&mViz))       aCom += " mViz=" + ToString(mViz);
+    if (EAMIsInit(&mViz))       aCom += " Viz=" + ToString(mViz);
     if (EAMIsInit(&mModel))  aCom +=  " Model=" + mModel;
     if (EAMIsInit(&mMax_keypoints))    aCom +=  " MaxPt=" + ToString(mMax_keypoints);
     if (EAMIsInit(&mKeepNpzFile))   aCom +=  " KeepNpzFile=" + ToString(mKeepNpzFile);
