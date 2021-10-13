@@ -363,6 +363,10 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
         Pt2dr mPrecisePatchSz;
         Pt2dr mPreciseBufferSz;
 
+        double mDyn;
+        double mScaleL;
+        double mScaleR;
+
         bool                              mExe;
         bool                              mUseDepth;
         bool                              mCheckFile;

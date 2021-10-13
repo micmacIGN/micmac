@@ -761,6 +761,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         if (!EAMIsInit(&mCAS3D.mSubPatchXml))  aCom +=  " SubPXml=" + aPrefix + mCAS3D.mSubPatchXml;
         if (!EAMIsInit(&mCAS3D.mImgPair))  aCom +=  " ImgPair=" + aPrefix + mCAS3D.mImgPair;
         if (EAMIsInit(&mPrecisePatchSz))  aCom += " PatchSz=[" + ToString(mPrecisePatchSz.x) + "," + ToString(mPrecisePatchSz.y) + "]";
+        if (EAMIsInit(&mDyn))  aCom += " Dyn=" + ToString(mDyn);
         aCom += " BufferSz=[" + ToString(mPreciseBufferSz.x) + "," + ToString(mPreciseBufferSz.y) + "]";
         //aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mCoRegOri + BLANK + mCoRegOri + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair(), aExe);
         //printf("%s\t%s\n", aOri1.c_str(), mOri1.c_str());
@@ -899,6 +900,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
             aCom +=  " DSMDirR=" + mDSMDirR;
             if (EAMIsInit(&mDSMFileL))   aCom +=  " DSMFileL=" + mDSMFileL;
             if (EAMIsInit(&mDSMFileR))   aCom +=  " DSMFileR=" + mDSMFileR;
+            if (EAMIsInit(&mScaleL))   aCom +=  " ScaleL=" + ToString(mScaleL);
+            if (EAMIsInit(&mScaleR))   aCom +=  " ScaleR=" + ToString(mScaleR);
             aCom +=  "  CheckFile=" + ToString(mCheckFile);
             aComSingle = StdCom("TestLib GuidedSIFTMatch", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGuidedSIFTMatch() + BLANK + "Para3DHL=Basc-"+aOri1+"-2-"+aOri2+".xml" + BLANK + "Para3DHR=Basc-"+aOri2+"-2-"+aOri1+".xml", aExe);
 
@@ -1059,6 +1062,10 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
     mCheckNbCoReg = -1;
     mCheckNbPrecise = 100;
 
+    mDyn = 0.1;
+    mScaleL = 1;
+    mScaleR = 1;
+
    ElInitArgMain
    (
         argc,argv,
@@ -1094,6 +1101,7 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << EAM(mPreciseBufferSz, "PreciseBufferSz", true, "Buffer zone size around the patch of the tiling scheme in precise matching part, Def=10%*PrecisePatchSz")
                << mCAS3D.ArgDSM_Equalization()
                << mCAS3D.ArgGetPatchPair()
+               << EAM(mDyn, "Dyn", true, "The Dyn parameter in \"to8Bits\" if the input RGB images are 16 bits, Def=0.1")
                << mCAS3D.ArgSuperGlue()
                << EAM(mCheckNbCoReg,"CheckNbCoReg",true,"Radius of the search space for SuperGlue in rough co-registration step (which means correspondence [(xL, yL), (xR, yR)] with (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb will be removed afterwards), Def=-1 (means don't check search space)")
                << EAM(mCheckNbPrecise,"CheckNbPrecise",true,"Radius of the search space for SuperGlue in precise matching step (which means correspondence [(xL, yL), (xR, yR)] with (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb will be removed afterwards), Def=100")
@@ -1102,6 +1110,8 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << mCAS3D.ArgCreateGCPs()
                << mCAS3D.ArgGetOverlappedImages()
                << mCAS3D.ArgGuidedSIFT()
+               << EAM(mScaleL, "ScaleL", true, "Min scale of master image for extracting key points, Def=1")
+               << EAM(mScaleR, "ScaleR", true, "Min scale of secondary image for extracting key points, Def=1")
                << mCAS3D.Arg3DRANSAC()
                << mCAS3D.ArgCrossCorrelation()
 /*

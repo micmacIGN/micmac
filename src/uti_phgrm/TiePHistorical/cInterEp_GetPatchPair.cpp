@@ -152,7 +152,7 @@ void WriteXml(std::string aImg1, std::string aImg2, std::string aSubPatchXml, st
 
 //simply clip images to get master patches (m patches), and resample images to get secondary patches (m patches). The number of pairs to be matched will be m.
 //mainly used for precise matching
-void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg2, std::string aImg1, std::string aImg2, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aImgPair, std::string aDir, std::string aSubPatchXml, cTransform3DHelmert aTrans3DH, std::string aDSMFileL, std::string aDSMDirL, double aThres, bool bPrint=false, std::string aPrefix="")
+void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg2, std::string aImg1, std::string aImg2, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aImgPair, std::string aDir, std::string aSubPatchXml, cTransform3DHelmert aTrans3DH, std::string aDSMFileL, std::string aDSMDirL, double aThres, double dDyn, bool bPrint=false, std::string aPrefix="")
 {
     std::string aOriginImg1 = aImg1;
 
@@ -186,7 +186,7 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
     if(aTypeIm1 == 2)
     {
         aImgRef1 = aImg1 + "_to8Bits.tif";
-        std::string aComto8Bits = MMBinFile(MM3DStr) + "to8Bits " + aImg1 + " Out=" + aImgRef1 + " Dyn=0.1";
+        std::string aComto8Bits = MMBinFile(MM3DStr) + "to8Bits " + aImg1 + " Out=" + aImgRef1 + " Dyn=" + ToString(dDyn);
         cout<<aComto8Bits<<endl;
         System(aComto8Bits);
         bTo8Bits1 = true;
@@ -195,7 +195,7 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
     if(aTypeIm2 == 2)
     {
         aImgRef2 = aImg2 + "_to8Bits.tif";
-        std::string aComto8Bits = MMBinFile(MM3DStr) + "to8Bits " + aImg2 + " Out=" + aImgRef2 + " Dyn=0.1";
+        std::string aComto8Bits = MMBinFile(MM3DStr) + "to8Bits " + aImg2 + " Out=" + aImgRef2 + " Dyn=" + ToString(dDyn);
         cout<<aComto8Bits<<endl;
         System(aComto8Bits);
         bTo8Bits2 = true;
@@ -747,6 +747,8 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
 
     double aThres = 2;
 
+    double dDyn = 0.1;
+
     Pt2dr aPatchSz(640, 480);
     Pt2dr aBufferSz(-1,-1);
 
@@ -770,6 +772,7 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
                 << EAM(aDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
                 << EAM(aPrefix, "Prefix", true, "The prefix for the name of images (for debug only), Def=none")
                 << EAM(aThres, "Thres", true, "The threshold of reprojection error (unit: pixel) when prejecting patch corner to DSM, Def=2")
+                << EAM(dDyn, "Dyn", true, "The Dyn parameter in \"to8Bits\" if the input RGB images are 16 bits, Def=0.1")
      );
 
     if(aBufferSz.x < 0 && aBufferSz.y < 0){
@@ -800,7 +803,7 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
 
     std::string aOutImg1 = GetFileName(aImg1);
     std::string aOutImg2 = GetFileName(aImg2);
-    GetPatchPair(aCAS3D.mOutDir, aOutImg1, aOutImg2, aImg1, aImg2, aOri1, aOri2, aCAS3D.mICNM, aPatchSz, aBufferSz, aPrefix + aCAS3D.mImgPair, aCAS3D.mDir, aPrefix + aCAS3D.mSubPatchXml, aTrans3DH, aDSMFileL, aDSMDirL, aThres, aCAS3D.mPrint, aPrefix);
+    GetPatchPair(aCAS3D.mOutDir, aOutImg1, aOutImg2, aImg1, aImg2, aOri1, aOri2, aCAS3D.mICNM, aPatchSz, aBufferSz, aPrefix + aCAS3D.mImgPair, aCAS3D.mDir, aPrefix + aCAS3D.mSubPatchXml, aTrans3DH, aDSMFileL, aDSMDirL, aThres, dDyn, aCAS3D.mPrint, aPrefix);
 
     return 0;
 }

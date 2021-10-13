@@ -472,7 +472,7 @@ Pt2dr GetScaleRotate(std::string aImg1, std::string aImg2, std::string aDSMFileL
     return aRes;
 }
 
-void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std::string outSH, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, bool bRootSift, double dSearchSpace, bool bPredict, bool bRatioT, bool bMutualNN, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, bool bCheckScale, bool bCheckAngle, bool bPrint, bool bCheckFile, double threshScale, double threshAngle)//, double dScale=1, double dAngle=0)
+void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std::string outSH, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, bool bRootSift, double dSearchSpace, bool bPredict, bool bRatioT, bool bMutualNN, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, bool bCheckScale, bool bCheckAngle, bool bPrint, bool bCheckFile, double threshScale, double threshAngle, double dScaleL, double dScaleR)//, double dScale=1, double dAngle=0)
 {
     if(bRatioT == true)
         printf("Ratio test applied.\n");
@@ -539,18 +539,25 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
         return;
     }
 
-    double dMinScaleL, dMaxScaleL;
+    double dMinScaleL;
+    double dMaxScaleL;
     GetMinMaxScale(aVSiftOriL, dMinScaleL, dMaxScaleL);
-    double dMinScaleR, dMaxScaleR;
+    double dMinScaleR;
+    double dMaxScaleR;
     GetMinMaxScale(aVSiftOriR, dMinScaleR, dMaxScaleR);
 
-
+    //filter key points that are out of the range
+    double dScale = (dScaleL > dScaleR) ? dScaleL : dScaleR; //the scales of 2 images are linked together by "CheckScale", so we only need to choose the bigger scale for filter
     std::vector<Siftator::SiftPoint> aVSiftL;
-    FilterKeyPt(aVSiftOriL, aVSiftL, dMinScaleR*ScaleRotateR.x*(1-threshScale), dMaxScaleR*ScaleRotateR.x*(1+threshScale));
+    double dMinGoalScaleL = dMinScaleR*ScaleRotateR.x*(1-threshScale)*dScale;
+    double dMaxGoalScaleL = dMaxScaleR*ScaleRotateR.x*(1+threshScale)*dScale;
+    FilterKeyPt(aVSiftOriL, aVSiftL, dMinGoalScaleL, dMaxGoalScaleL);
     std::vector<Siftator::SiftPoint> aVSiftR;
-    FilterKeyPt(aVSiftOriR, aVSiftR, dMinScaleL*ScaleRotateL.x*(1-threshScale), dMaxScaleL*ScaleRotateL.x*(1+threshScale));
+    double dMinGoalScaleR = dMinScaleL*ScaleRotateL.x*(1-threshScale)*dScale;
+    double dMaxGoalScaleR = dMaxScaleL*ScaleRotateL.x*(1+threshScale)*dScale;
+    FilterKeyPt(aVSiftOriR, aVSiftR, dMinGoalScaleR, dMaxGoalScaleR);
 
-    printf("Original key point number of master image: %d. (With scales between [%.2lf, %.2lf].)\nOriginal key point number of secondary image: %d. (With scales between [%.2lf, %.2lf].)\nFiltered key point number of master image: %d. (Only key points with scale between [%.2lf, %.2lf] are kept.)\niltered key point number of secondary image: %d. (Only key points with scale between [%.2lf, %.2lf] are kept.)\n", int(aVSiftOriL.size()), dMinScaleL, dMaxScaleL, int(aVSiftOriR.size()), dMinScaleR, dMaxScaleR, int(aVSiftL.size()), dMinScaleR*ScaleRotateR.x*(1-threshScale), dMaxScaleR*ScaleRotateR.x*(1+threshScale), int(aVSiftR.size()), dMinScaleL*ScaleRotateL.x*(1-threshScale), dMaxScaleL*ScaleRotateL.x*(1+threshScale));
+    printf("Original key point number of master image: %d. (With scales between [%.2lf, %.2lf].)\nOriginal key point number of secondary image: %d. (With scales between [%.2lf, %.2lf].)\nFiltered key point number of master image: %d. (Only key points with scale between [%.2lf, %.2lf] are kept.)\niltered key point number of secondary image: %d. (Only key points with scale between [%.2lf, %.2lf] are kept.)\n", int(aVSiftOriL.size()), dMinScaleL, dMaxScaleL, int(aVSiftOriR.size()), dMinScaleR, dMaxScaleR, int(aVSiftL.size()), dMinGoalScaleL, dMaxGoalScaleL, int(aVSiftR.size()), dMinGoalScaleR, dMaxGoalScaleR);
 /*
     printf("Original key point number of master image: %d. (With scales between [%.2lf, %.2lf].)\n", int(aVSiftOriL.size()), dMinScaleL, dMaxScaleL);
     printf("Original key point number of secondary image: %d. (With scales between [%.2lf, %.2lf].)\n", int(aVSiftOriR.size()), dMinScaleR, dMaxScaleR);
@@ -696,6 +703,8 @@ int GuidedSIFTMatch_main(int argc,char ** argv)
    std::string aPara3DHR = "";
 
    bool bCheckFile = false;
+   double dScaleL = 1;
+   double dScaleR = 1;
 
    ElInitArgMain
     (
@@ -714,7 +723,8 @@ int GuidedSIFTMatch_main(int argc,char ** argv)
                << EAM(aPara3DHL, "Para3DHL", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
                << EAM(aPara3DHR, "Para3DHR", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of secondary image to master image, Def=none")
                << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
-
+               << EAM(dScaleL, "ScaleL", true, "Min scale of master image for extracting key points, Def=1")
+               << EAM(dScaleR, "ScaleR", true, "Min scale of secondary image for extracting key points, Def=1")
     );
     StdCorrecNameOrient(aOri1,"./",true);
     StdCorrecNameOrient(aOri2,"./",true);
@@ -728,7 +738,9 @@ int GuidedSIFTMatch_main(int argc,char ** argv)
    cTransform3DHelmert aTrans3DHL(aPara3DHL);
    cTransform3DHelmert aTrans3DHR(aPara3DHR);
 
-   GuidedSIFTMatch( aCAS3D.mDir, aImg1,  aImg2,  aCAS3D.mGuidedSIFTOutSH, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR,  aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mRootSift, aCAS3D.mSearchSpace, aCAS3D.mPredict, aCAS3D.mRatioT, aCAS3D.mMutualNN, aTrans3DHL, aTrans3DHR, aCAS3D.mCheckScale, aCAS3D.mCheckAngle, aCAS3D.mPrint, bCheckFile, aCAS3D.mThreshScale, aCAS3D.mThreshAngle);//, aCAS3D.mScale, aCAS3D.mAngle);
+   double dThreshAngle = aCAS3D.mThreshAngle*3.14/180;
+
+   GuidedSIFTMatch( aCAS3D.mDir, aImg1,  aImg2,  aCAS3D.mGuidedSIFTOutSH, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR,  aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mRootSift, aCAS3D.mSearchSpace, aCAS3D.mPredict, aCAS3D.mRatioT, aCAS3D.mMutualNN, aTrans3DHL, aTrans3DHR, aCAS3D.mCheckScale, aCAS3D.mCheckAngle, aCAS3D.mPrint, bCheckFile, aCAS3D.mThreshScale, dThreshAngle, dScaleL, dScaleR);//, aCAS3D.mScale, aCAS3D.mAngle);
 
    return EXIT_SUCCESS;
 }
