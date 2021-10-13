@@ -512,13 +512,15 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     double d2PI = 3.1415926*2;
     Pt2dr ScaleRotateL = Pt2dr(1, 0);
     Pt2dr ScaleRotateR = Pt2dr(1, 0);
+
+    ScaleRotateL = GetScaleRotate(aImg1, aImg2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aOri1, aOri2, aICNM, aTrans3DHL, aTrans3DHR, bPrint);
+    SetAngleToValidRange(ScaleRotateL.y, d2PI);
+    ScaleRotateR.x = 1.0/ScaleRotateL.x;
+    ScaleRotateR.y = d2PI-ScaleRotateL.y;
+    SetAngleToValidRange(ScaleRotateR.y, d2PI);
+
     if(bCheckScale == true || bCheckAngle == true)
     {
-        ScaleRotateL = GetScaleRotate(aImg1, aImg2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aOri1, aOri2, aICNM, aTrans3DHL, aTrans3DHR, bPrint);
-        SetAngleToValidRange(ScaleRotateL.y, d2PI);
-        ScaleRotateR.x = 1.0/ScaleRotateL.x;
-        ScaleRotateR.y = d2PI-ScaleRotateL.y;
-        SetAngleToValidRange(ScaleRotateR.y, d2PI);
         printf("From master image to secondary image (for CheckScale and CheckAngle): \n");
         printf("    Reference of scale: [%.2lf], ScaleTh: [%.2lf]; Range of valid scale ratio: [%.2lf, %.2lf]\n", ScaleRotateL.x, threshScale, ScaleRotateL.x*(1-threshScale), ScaleRotateL.x*(1+threshScale));
         printf("    Reference of angle: [%.2lf], AngleTh: [%.2lf]; Range of valid angle difference: [%.2lf, %.2lf]\n", ScaleRotateL.y, threshAngle, ScaleRotateL.y-threshAngle, ScaleRotateL.y+threshAngle);
@@ -557,7 +559,7 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     double dMaxGoalScaleR = dMaxScaleL*ScaleRotateL.x*(1+threshScale)*dScale;
     FilterKeyPt(aVSiftOriR, aVSiftR, dMinGoalScaleR, dMaxGoalScaleR);
 
-    printf("Original key point number of master image: %d. (With scales between [%.2lf, %.2lf].)\nOriginal key point number of secondary image: %d. (With scales between [%.2lf, %.2lf].)\nFiltered key point number of master image: %d. (Only key points with scale between [%.2lf, %.2lf] are kept.)\niltered key point number of secondary image: %d. (Only key points with scale between [%.2lf, %.2lf] are kept.)\n", int(aVSiftOriL.size()), dMinScaleL, dMaxScaleL, int(aVSiftOriR.size()), dMinScaleR, dMaxScaleR, int(aVSiftL.size()), dMinGoalScaleL, dMaxGoalScaleL, int(aVSiftR.size()), dMinGoalScaleR, dMaxGoalScaleR);
+    printf("Original key point number of master image: %d. (With scales between [%.2lf, %.2lf].)\nOriginal key point number of secondary image: %d. (With scales between [%.2lf, %.2lf].)\nFiltered key point number of master image: %d. (Only key points with scale between [%.2lf, %.2lf] are kept.)\nFiltered key point number of secondary image: %d. (Only key points with scale between [%.2lf, %.2lf] are kept.)\n", int(aVSiftOriL.size()), dMinScaleL, dMaxScaleL, int(aVSiftOriR.size()), dMinScaleR, dMaxScaleR, int(aVSiftL.size()), dMinGoalScaleL, dMaxGoalScaleL, int(aVSiftR.size()), dMinGoalScaleR, dMaxGoalScaleR);
 /*
     printf("Original key point number of master image: %d. (With scales between [%.2lf, %.2lf].)\n", int(aVSiftOriL.size()), dMinScaleL, dMaxScaleL);
     printf("Original key point number of secondary image: %d. (With scales between [%.2lf, %.2lf].)\n", int(aVSiftOriR.size()), dMinScaleR, dMaxScaleR);
@@ -580,7 +582,6 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     PredictKeyPt(aImg2, aVPredR, aVSiftR, aDSMFileR, aDSMDirR, aNameOriR, aNameOriL, aTrans3DHR, bPrint);
 
     //*********** 3. match SIFT key-pts
-    threshAngle = 3.14*threshAngle/180;
     /*
     double threshScale, threshAngle;
     threshScale = 0.2;//0.05;
