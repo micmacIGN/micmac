@@ -90,7 +90,7 @@ class cCommonAppliTiepHistorical
         /* Parameters for SuperGlue */
         //std::string                       input_pairs;
         std::string                       mInput_dir;
-        std::string                       mOutput_dir;
+//        std::string                       mOutput_dir;
         std::string                       mSpGlueOutSH;
         Pt2di                             mResize;
         std::string                       mModel;
@@ -105,7 +105,7 @@ class cCommonAppliTiepHistorical
         //Pt2dr                             mBufferSz;
         std::string                       mSubPatchXml;
         std::string                       mImgPair;
-        std::string                       mOutDir;
+//        std::string                       mOutDir;
 //        std::string                       mOutImg1;
 //        std::string                       mOutImg2;
 

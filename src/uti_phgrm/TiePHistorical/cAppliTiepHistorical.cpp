@@ -107,7 +107,6 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     mMutualNN = true;
     //mOutImg = "";
     mOutPairXml = "OverlappedImages.xml";
-    mOutput_dir = "./";
     mSpGlueOutSH = "-SuperGlue";
     mGuidedSIFTOutSH = "-GuidedSIFT";
     mMergeTiePtOutSH = "";
@@ -138,7 +137,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
 //    mDSMFileR = "MMLastNuage.xml";
 //    mDSMDirL = "";
 //    mDSMDirR = "";
-    mOutDir = "./Tmp_Patches";
+//    mOutDir = "./Tmp_Patches";
 //    mOutImg1 = "";
 //    mOutImg2 = "";
     mOut2DXml1 = "OutGCP2D_epoch1.xml";
@@ -181,7 +180,6 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
             << EAM(mSubPatchXml, "SubPXml", true, "The output xml file name to record the homography between the patches and original image, Def=SubPatch.xml")
             //<< EAM(mDSMDirL, "DSMDirL", true, "DSM of master image (for improving the reprojecting accuracy), Def=none")
             //<< EAM(mDSMDirR, "DSMDirR", true, "DSM of secondary image (for improving the reprojecting accuracy), Def=none")
-            << EAM(mOutDir, "OutDir", true, "Output direcotry of the patches, Def=./Tmp_Patches")
             //<< EAM(mOutImg1, "OutImg1", true, "Name of the main part of the output patches from master image, Def=master image name")
             //<< EAM(mOutImg2, "OutImg2", true, "Name of the main part of the output patches from secondary image, Def=secondary image name")
             << EAM(mImgPair, "ImgPair", true, "Output txt file that records the patch pairs, Def=SuperGlueInput.txt");
@@ -191,7 +189,6 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
             //<< EAM(input_pairs, "input_pairs", true, "txt file that listed the image pairs")
             << EAM(mInput_dir, "InDir", true, "The input directory of the images for SuperGlue, Def=./")
             << EAM(mSpGlueOutSH, "SpGOutSH", true, "Homologue extenion for NB/NT mode of SuperGlue, Def=-SuperGlue")
-            << EAM(mOutput_dir, "OutDir", true, "The output directory of the match results of SuperGlue, Def=./")
             << EAM(mResize, "Resize", true, "The goal size for resizing the input image for SuperGlue, Def=[640, 480], if you don't want to resize, please set to [-1, -1]")
             << EAM(mViz, "Viz", true, "Visualize the matches and dump the plots of SuperGlue, Def=false")
             << EAM(mModel, "Model", true, "Pretrained indoor or outdoor model of SuperGlue, Def=outdoor")
@@ -355,7 +352,7 @@ std::string cCommonAppliTiepHistorical::ComParamGetPatchPair()
     //if (EAMIsInit(&mPatchSz))    aCom += " PatchSz=[" + ToString(mPatchSz.x) + "," + ToString(mPatchSz.y) + "]";
     //if (EAMIsInit(&mBufferSz))    aCom += " BufferSz=[" + ToString(mBufferSz.x) + "," + ToString(mBufferSz.y) + "]";
     if (EAMIsInit(&mSubPatchXml))  aCom +=  " SubPXml=" + mSubPatchXml;
-    if (EAMIsInit(&mOutDir))  aCom +=  " OutDir=" + mOutDir;
+    //if (EAMIsInit(&mOutDir))    aCom +=  " PatchOutDir=" + mOutDir;
     if (EAMIsInit(&mImgPair))  aCom +=  " ImgPair=" + mImgPair;
 
     return aCom;
@@ -365,7 +362,7 @@ std::string cCommonAppliTiepHistorical::ComParamSuperGlue()
 {
     std::string aCom ="";
     if (EAMIsInit(&mInput_dir))   aCom +=  " InDir=" + mDir + "/" + mInput_dir;
-    if (EAMIsInit(&mOutput_dir))   aCom +=  " OutDir=" + mDir + "/" + mOutput_dir;
+    //if (EAMIsInit(&mOutput_dir))   aCom +=  " SpGOutDir=" + mDir + "/" + mOutput_dir;
     if (EAMIsInit(&mSpGlueOutSH))   aCom +=  " SpGOutSH=" + mSpGlueOutSH;
     if (EAMIsInit(&mResize))    aCom += " Resize=[" + ToString(mResize.x) + "," + ToString(mResize.y) + "]";
     if (EAMIsInit(&mViz))       aCom += " Viz=" + ToString(mViz);
@@ -588,7 +585,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
 {
     std::string aCom;
 
-    std::string aBaseOutDir = mCAS3D.mOutDir;
+    std::string aBaseOutDir = "./Tmp_Patches";
     if(aBaseOutDir.find("/") == aBaseOutDir.length()-1)
         aBaseOutDir = aBaseOutDir.substr(0, aBaseOutDir.length()-1);
     std::string aOutDir = aBaseOutDir;
@@ -627,7 +624,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         std::string aDSMImgWallisNameL = aDSMImgGrayNameL+"_sfs.tif";
         std::string aDSMImgWallisNameR = aDSMImgGrayNameR+"_sfs.tif";
         aCom = "";
-        if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
+        //if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
         if (EAMIsInit(&mCoRegPatchSz))  aCom += " PatchSz=[" + ToString(mCoRegPatchSz.x) + "," + ToString(mCoRegPatchSz.y) + "]";
         aCom += " BufferSz=[" + ToString(mCoRegBufferSz.x) + "," + ToString(mCoRegBufferSz.y) + "]";
         StdCom("TestLib GetPatchPair BruteForce", mDSMDirL+"/"+aDSMImgWallisNameL + BLANK + mDSMDirR+"/"+aDSMImgWallisNameR + BLANK + aCom + BLANK + "Rotate=1" + BLANK + mCAS3D.ComParamGetPatchPair(), mExe);
@@ -658,7 +655,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
             std::string aImgPair = StdPrefix(mCAS3D.mImgPair) + aRotate[i] + "." + StdPostfix(mCAS3D.mImgPair);
             aCom = "";
             if (!EAMIsInit(&mCAS3D.mInput_dir))    aCom +=  " InDir=" + aOutDir+"/";
-            if (!EAMIsInit(&mCAS3D.mOutput_dir))   aCom +=  " OutDir=" + aOutDir+"/";
+            //if (!EAMIsInit(&mCAS3D.mOutput_dir))   aCom +=  " SpGOutDir=" + aOutDir+"/";
             aCom +=  " CheckNb=\" " + ToString(mCheckNbCoReg) + "\"";
             StdCom("TestLib SuperGlue", aImgPair + BLANK + aCom + BLANK + mCAS3D.ComParamSuperGlue(), mExe);
 
@@ -757,7 +754,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
 */
         std::string aPrefix = StdPrefix(aImg1) + "_" + StdPrefix(aImg2) + "_" ;
         aCom = "";
-        if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
+        //if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
         if (!EAMIsInit(&mCAS3D.mSubPatchXml))  aCom +=  " SubPXml=" + aPrefix + mCAS3D.mSubPatchXml;
         if (!EAMIsInit(&mCAS3D.mImgPair))  aCom +=  " ImgPair=" + aPrefix + mCAS3D.mImgPair;
         if (EAMIsInit(&mPrecisePatchSz))  aCom += " PatchSz=[" + ToString(mPrecisePatchSz.x) + "," + ToString(mPrecisePatchSz.y) + "]";
@@ -812,7 +809,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
             std::string aImgPair = aPrefix + mCAS3D.mImgPair;
             aCom = "";
             if (!EAMIsInit(&mCAS3D.mInput_dir))    aCom +=  " InDir=" + aOutDir+"/";
-            if (!EAMIsInit(&mCAS3D.mOutput_dir))   aCom +=  " OutDir=" + aOutDir+"/";
+            //if (!EAMIsInit(&mCAS3D.mOutput_dir))   aCom +=  " SpGOutDir=" + aOutDir+"/";
             aCom +=  "  CheckFile=" + ToString(mCheckFile);
             aCom +=  " CheckNb=\" " + ToString(mCheckNbPrecise) + "\"";
             aComSingle = StdCom("TestLib SuperGlue", aImgPair + BLANK + aCom + BLANK + mCAS3D.ComParamSuperGlue(), aExe);
