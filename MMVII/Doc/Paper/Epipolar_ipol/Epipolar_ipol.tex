@@ -94,6 +94,8 @@
 \newcommand{\er}[1]{\textcolor{orange}{#1}} 
 \definecolor{magenta}{rgb}{1,0,1} 
 \newcommand{\mpd}[1]{\textcolor{magenta}{#1}} 
+\newcommand{\ChangeMPD}[2]{\textcolor{blue}{#2}} 
+
 \definecolor{blue}{rgb}{0,0,1} 
 \newcommand{\ermpdok}[1]{{\bf \textcolor{blue}{#1}} }
 
@@ -175,7 +177,7 @@ We provide a theoretical derivation and demonstrate the effectiveness of the app
 The method resembles Oh's~\cite{Oh2011} approach in that it exploits the point correspondences to find the polynomial mapping to epipolar geometry. However, unlike the work of Oh~\cite{Oh2011}, we do not require that the camera geometric model is known. We demonstrate that in some circumstances, point correspondences obtained from an image processing routine, e.g. SIFT~\cite{lowe2004distinctive}, can serve to find the epipolar resampling. 
 Finally, we formally derive the ambiguity of the epipolar geometry, and propose an \textit{epipolarability index} that quantitatively describes the existence of epipolar geometry between a pair of images.
 
-In the remainder of this publication, we first outlay the mathematical background of the epipolar geometry and identify cases when epipolar geometry does not exist or is ambiguous  (Section~\ref{sec:math}). Then, we introduce our method (Section~\ref{sec:method}), and conclude with experiments on different datasets, with and without the geometric model (Section~\ref{sec:experiments}). 
+In the remainder of this publication, we first outlay the mathematical background of the epipolar geometry{, identify conditions required for its existence and establish its degree of ambiguity}  (Section~\ref{sec:math}). Then, we introduce our method (Section~\ref{sec:method}), and conclude with experiments on different datasets, with and without the geometric model (Section~\ref{sec:experiments}). 
  
 \section{The mathematics of epipolar geometry in the generic case}\label{sec:math}
 
@@ -226,7 +228,7 @@ we note identically  $\BundK(P)$, where $P\in \RR^3$,
 bijective mapping of $\RR^3$ and compute its inverse.
 
 \begin{definition}[Quasi-vertical camera model]  
-We say that the projection is quasi-vertical if the following mapping $\PiVert$ is a diffeomophism of $\RR^3$:
+We say that the projection is quasi-vertical if the following mapping $\PiVert$ is a diffeomophism of $\RR^3$: \label{DefQuasiVert}
 \begin{equation}
   \PiVert :  \RR^3  \rightarrow \RR^3  ,  (X,Y,Z)  \rightarrow (i,j,Z) = \PiVert(X,Y,Z)  , with (i,j) = \pi(X,Y,Z). \label{PiInvert}
 \end{equation}
@@ -288,7 +290,7 @@ can provide an elegant solution by separating the problem in two independent one
 \emph{Illustrated in Figures~\ref{FigDefEpip} and~\ref{FigAmbigEpip}.}
 
 Let $\pi_1,\pi_2$ be two cameras and let $\phi_1,\phi_2$  be two diffeomorphisms
-of $\RR^2$. We say that $\phi_1,\phi_2$ are epipolar resamplings iff:
+of $\RR^2$. We say that $\phi_1,\phi_2$ are an epipolar resamplings iff:
 
 \begin{equation}
   \forall e_1=(u_1,v_1) , e_2=(u_2,v_2) : (v_1=v_2)   \Leftrightarrow  (\phi_1^{-1}(e_1) \HComp \phi_2^{-1}(e_2)).
@@ -329,8 +331,8 @@ curve of $I_k$ defined by $\CurveK(v) = \phi_k^{-1}(\LineK(v))$
 %<<<<<<< HEAD
 \subsection{Existence of the epipolar geometry}\label{ExistEpip} 
 
-We now discuss the existence of the {epipolar geometry}. As you will see, the epipolar geometry generally does not exist, and when it does, it is not
-unique. We know that for any image pair following the {central projection}, there exists an epipolar geometry. However, with e.g. a cylindrical projection specific to many pushbroom satellites, the epipolar resampling is impossible.
+We now discuss the existence of the {epipolar geometry}. As it will be seen, the epipolar geometry generally does not exist, and when it does, it is not
+unique. We know that for any image pair following the {central projection}, there exists an epipolar geometry. However, with e.g. a cylindrical projection specific to many pushbroom satellites, the {rigorous} epipolar resampling is impossible {(but close approximation generally exists)}.
 
 % It is well known that:
 %
@@ -350,14 +352,15 @@ Following the definition of {epipolar geometry} above, it can be seen that $\Sv^
 \begin{equation}
    \Sv^1 = \Sv^2 = \Sv.
 \end{equation}
-For any $P\in\Sv^1$, set  $e_1=\phi_1(\pi_1(P))=(u_1,v)$
+
+In fact, for any $P\in\Sv^1$, set  $e_1=\phi_1(\pi_1(P))=(u_1,v)$
 and $e_2=\phi_2(\pi_2(P))=(u_2,{v_2})$. We then have $\pi_1(P) \HComp \pi_2(P)$ because they are projections
 of the same point. Then, $v_2=v$ according to Definition~\ref{EqEpiEgalY}, and $P \in \Sv^2$. Furthermore, the $\Sv$ defines a foliation of $\RR^3$, and it can be seen that:
 
 \begin{equation}
    \forall v \forall P \in \Sv :  \BundO(P) \subset \Sv , \BundT \subset \Sv, \label{ClothureBundle}
 \end{equation}
-which also leads directly from the definitions above. If $P \in \Sv$ then $\pi_k^{-1}(P) \in \CurveK(v)$
+which also leads directly from the definitions above because if $P \in \Sv$ then $\pi_k^{-1}(P) \in \CurveK(v)$
 (see Equation~\eqref{Svk}), and $\pi_k^{-1}(\pi_k(P)) = \BundK(P) \subset \Sv$.
 %
 However, in general, the existence of a stable foliation for the two bundle sets, as expressed in Equation~\eqref{ClothureBundle},
@@ -400,21 +403,28 @@ can be omitted by readers mainly interested in practical applications.
 
 Analogously to the proof in Section~\ref{ExistEpip}, we will make a  computation of two-way paths, $\BundO$ then $\BundT$,
 as well as $\BundT$ then  $\BundO$. Then, we express the Taylor expansion
-of the intersection distance between these two paths. Let's suppose that we are in a quasi-nadir acquisition geometry\footnote{Note that we could use
+of the intersection distance between these two paths. For sake of simplicity, let's suppose that we are in a quasi-vertical acquisition geometry stated in definition \ref{DefQuasiVert}\footnote{Note that we could use
           curvilinear abscissa  when this assumption is not be satisfied.}, and in Figure~\ref{EqDifEpip}, the point $P$ is any point in $\RR^3$. We then denote:
 \begin{itemize}
 %   \item Make the quasi-vertical assumption \er{tu veux dire acquisition en nadir?} (note that we could use curvilinear abscissa   when this assumption can not  be satisfied);
 %   \item Let $P$ be any point in $\RR^3$;
-   \item the first path $(P,P_1,Q_1)$ following  $\BundO$ then $\BundT$, making a
-         progression $d_{z_1}$ on $\BundO$ and  $d_{z_2}$ on $\BundT$ ;
-   \item a second path $(P,P_2,Q_2)$ following  $\BundT$ then $\BundO$, making a
-         progression $d_{z'_2}$ on $\BundO$ and  $d_{z'_1}$ on $\BundT$ ;
+   \item the first path $(P,P_1,Q_1)$ following  $\BundO(P)$ then $\BundT(P_1)$, making a
+         progression $\delta_1$ on $\BundO(P)$ and  $\delta_2$ on $\BundT(P_1)$ ;
+   \item a second path $(P,P_2,Q_2)$ following  $\BundT(P)$ then $\BundO(P_2)$, making a
+         progression $\delta'_2$ on $\BundT(P)$ and  $\delta'_1$ on $\BundO(P_2)$ ;
    \item $\overrightarrow{t_1(P)}=(x,y,1)$ as the tangent to the bundle  $\BundO$  in point $P$
          (and similarly $\overrightarrow{t_2}(P)$);
    \item and write  $\DerPart{F}{z_1}$ to refer to the coordinate system $(i_1,j_1,z) = \PiVert_1^{-1}(x,y,z)$,
          idem for  $\DerPart{F}{z_2}$, and obviously as they are two different coordinate systems, we have in general
         $\DerPart{F}{z_1}  \neq \DerPart{F}{z_2}$.
 \end{itemize}
+
+%\mpd{CHANNGEEEEEE    NOTATION DELTA}
+
+%\mpd{CHANNGEEEEEE    NOTATION DELTA}
+
+%\mpd{CHANNGEEEEEE    NOTATION DELTA}
+
 
 \begin{figure}
 \centering
@@ -515,8 +525,8 @@ The epipolar geometry exists iff the following determinant is null:
 As an illustration on an easy case, we can see that this condition is trivially 
 satisfied for a pair of central perspective cameras as we have the canceling of both terms as shown
 in Equation~\eqref{EqEpipConik}. This is because for a given point $P$,
-and any point $P_1$ on $\BundO(P)$, $\TanT{P_1}$ belongs to the epipolar
-plane $\mathcal{P}$. We have $\TanT{P_1} \in \mathcal{P}$, so $\DerPart { \TanT{}}{z_1} \in \mathcal{P}$,
+and any point $P_1$ on $\BundO(P)$, $\TanT{(P_1)}$ belongs to the epipolar
+plane $\mathcal{P}$. We have $\TanT{(P_1)} \in \mathcal{P}$, so $\DerPart { \TanT{}}{z_1} \in \mathcal{P}$,
 and as we have also $\TanO{(P)} \in  \mathcal{P}, \TanT{(P)} \in  \mathcal{P}$, the collinearity
 between $\TanO{(P)}$ , $\TanT{(P)}$ and $\DerPart { \TanT{}}{z_1}(P)$ is thus proven:
 
@@ -651,7 +661,7 @@ In this paper, the examples processed by our method are pushbroom satellite mode
 \end{itemize}
 %
 Figure~\ref{BadGoodEpip} illustrates the latter constraint. The left image presents a set
-of epipolar lines with too large direction variations. The right image represents a pair of epipolar lines whose directions change within a small range, therefore suitable for the proposed resampling method. 
+of epipolar lines with too large direction variations. The right images represent  pairs of epipolar lines whose directions change within a small range, therefore suitable for the proposed resampling method. 
 %
 \begin{figure}[h!]
 \centering
@@ -745,8 +755,8 @@ $p_1$ and $p_2$, as $p_1=F(p_2)$,  an infinity of solutions
 for $(V_1,V_2)$ would exist, because   for any function $V: \RR^2 \rightarrow \RR $ we can generate a solution $(V,V\circ F)$.
 
 However, note that due to {the $3$D aspect} of $p_1$ and $p_2$, there is
-\emph{no} functional relationship between them and, consequently,
-there are more constraints on $(V_1,V_2)$ (\er{what do you mean by more constriants?}). Instead of a functional relationship,
+\emph{no} functional relationship between them which conduct to a more constrained system
+of equations. Instead of a functional relationship,
 we can generate  "one to many" (and  "many to one") correspondences as illustrated in Figure~\ref{NonFuncCorresp}.
 For example, for a given  point $p_1$, following the curve $\pi_2(\BundO(p_1))$, we can generate
 several points on the bundle (potentially an infinity) which results in many correspondences.
@@ -788,7 +798,7 @@ method can work even with configurations different than those depicted in Figure
 %---------------------------------------------
 
 
-\subsection{Detailed implementation}
+\subsection{Detailed implementation}\label{subsec:implement}
 
 
 \subsubsection{Choice of a parametric functional space}
@@ -824,8 +834,7 @@ we have $i=0$, hence we can suppress all terms  $i^a$ for $a\neq 0$}. The constr
     V_1(0,j) =  j =   \sum\limits_{\substack{b=0}}^{N}  C^1_{0,b}  j^b  \label{CstrV1:0}
 \end{equation}
 
-In the equation above, $j$ on the left and the  sum on the right are both polynomials. If their functions are equal on a segment, they
-must be equal term by term (\er{I'm nto sure I fully understand this reasoning}). This constraint fixes a number of unknowns $C^1_{0,k}$ that take $1$ for $C^1_{0,1}$ and $0$ otherwise.
+In the equation above, $j$ on the left and the  sum on the right are both polynomials. If the two polynoms are equal on a interval, their coefficient must be equal . This constraint fixes the $C^1_{0,k}$ : $C^1_{0,1}=1$ and $C^1_{0,k}=0$ otherwise.
 %The constraint then comes to force a number the unknowns $C^1_{0,k}$ which have known values: $1$ for $C^1_{0,1}$ and $0$ otherwise.
 Using the Kronecker delta, we can write:
 
@@ -917,6 +926,7 @@ to the "real" inverse, we can increase the polynomial's degree (in our implement
 
 
 \subsection{Epipolar resampling without the geometric model}
+\label{SecEpipNoModel}
 
 \subsubsection{Resampling with image correspondences only}
 
@@ -933,7 +943,7 @@ but it becomes possible when the relief (i.e., the 3D scene) is not smooth and w
 %In fact there is \er{easy yes/no answer as there pro and cons arguments to solve this question} and, as we will see, the precise answer depends of the tie points (it is in fact a trade-off between the nature of the relief and complexity of the model).
 %
 
-The rationale behind trying to use exclusively image correspondences comes directly from Algorithm~\ref{AlgoGlob}. As you can see, it does not matter if the point correspondences are extracted with the help of some geometric model (as with Algorithm~\ref{AlgoGenData}) or from an image processing method not requiring any
+The rationale behind trying to use exclusively image correspondences comes directly from Algorithm~\ref{AlgoGlob}. As one can see, it does not matter if the point correspondences are extracted with the help of some geometric model (as with Algorithm~\ref{AlgoGenData}) or from an image processing method not requiring any
 \emph{a priori} information on image geometry, e.g. SIFT \cite{lowe2004distinctive}. Hence, as long as we know the directions of the epipolar lines, our method is applicable.
 
 However, when the point correspondences are computed with an image processing routine,
@@ -1024,7 +1034,21 @@ we have the polynomial $W_2=Id$, which shows the uniqueness of the solution.
 
 \subsubsection{Estimating the directions without model}
 %
-To use the resampling method with image features, we need a way to estimate the global directions of the epipolar lines, as it is done in Section~\ref{EstCenterDir} with the help of the geometric model. In the provided implementation we allow the user to provide the directions, or else the directions are computed automatically. For instance, in satellite along-track acquisitions, the user can easily deduce the directions, and it is certainly the "safer" option. The automated option is based in discretizing a number of directions in each image of a stereo pair, followed by a combinatorial exploration of all possible pairs of directions. For each direction pair, epipolar resamplings with polynomials of degree $0$ are computed. The residuals (i.e., the y-parallax) calculated on all image features (after the basic resampling) serves as quality criterion in choosing the final global directions. Since the image features may contain outliers, an iterative $L1$ approach is used \er{faut expliquer un peu l'approche iterative}
+To use the resampling method with image features, we need a way to estimate the global directions of the epipolar lines, as it is done in Section~\ref{EstCenterDir} with the help of the geometric model. In the provided implementation we allow the user to provide the directions, or else the directions are computed automatically. For instance, in satellite along-track acquisitions, the user can easily deduce the directions, and it is certainly the "safer" option. The automated option is based in discretizing a number of directions in each image of a stereo pair, followed by a combinatorial exploration of all possible pairs of directions. For each direction pair, epipolar models (c.f., Section~\ref{subsec:implement}) with polynomials of degree $0$ are computed. The residuals (i.e., the y-parallax) calculated on all image features serve as quality criterion in choosing the final global directions. { Since the image features may contain outliers, residuals are evaluated using $L1$ norm .}
+
+
+{Once the directions are known, the resampling polynomial is robustly calculated with a weighted iterative least-square approach as follows :}
+
+{
+\begin{enumerate}
+   \item start with $1^{st}$ degree polynomial and evaluate it with $L1$ norms;
+   \item then, use the previous solution to weight the observations and evaluate $3^{rd}$ degree polynomial with the weighted least-squares method;
+   \item then, use the previous solution to weight the observations and evaluate $5^{th}$ degree polynomial with the weighted least-square method;
+   \item  etc. 
+\end{enumerate}}
+
+
+
 
 %In the implemantation we provide, we give two options to the user : provide it or let the programm compute it automatically.  Obviously the providing option can be safer when the user has  sufficient knowledge on the acquisition; it can be used for examle with like satellite  along the track , like in the example we provide with Corona acquisition. The automatic option is based on a  discretization of possible directions and combinatorial exploration of all the pair  of possible direction ; for a given pair, a quality  criterion is computed  on residual of epipolar ressampling with degree $0$ \mpd{TO CHECK !!!} , using a $L1$ norm (to be more robust to outliers).
 
@@ -1037,15 +1061,18 @@ To use the resampling method with image features, we need a way to estimate the 
 
 \section{Experiments}\label{sec:experiments}
 
-We demonstrate the performance of the algorithm in two scenarios: with and without the geometric model of the camera. The results are evaluated in terms of the remaining \textit{y-parallaxes}, and compared to competetitors: the method by Oh~\cite{Oh2011} for pushbroom geometries, and a resampling method implemented in MicMac for calibrated central perspective geometries (we refer to it as the \textit{classical} method). The latter is equivalent of the epipolar resampling proposed by Fusiello~\cite{fusiello2000epi} with the exception that it handles camera distortion parameters, hence, it does not require the undistorting of the images prior to the rectification.
+We demonstrate the performance of the algorithm in two scenarios: with and without the geometric model of the camera. The results are evaluated in terms of the remaining \textit{y-parallaxes}, and compared to competetitors: the method by Oh~\cite{Oh2011} for pushbroom geometries, and a resampling method implemented in MicMac for calibrated central perspective geometries (we refer to it as the \textit{classical} method). The latter is equivalent of the epipolar resampling proposed by Fusiello~\cite{fusiello2000epi} with the exception that it handles camera distortion parameters, hence, it does not require the undistorting of the images prior to the rectification. {We evaluate our method against the central perspective geometry only for comparison purposes, because we dispose of ground truth epipolar geometries for this camera model. In practice, the classical method, which is founded on physical modeling with a minimal number of unknown, should be preferred.}
+
 %
 
-To generate points correspondences in Algorithm~\ref{AlgoGenData}, when the camera geometry is known, the points in the image space are defined as a grid of $100 \times 100$. The $Z$ is the mean depth of the scene, and the step $\delta_Z$ is set such that 3 evenly distributed depths spaning the 3D space are obtained. Additionally, each image point is assigned a $4^{th}$, random depth.  The min/max depths representing the envelope of the 3D scene, can be inferred from the RPCs or from  depths of the sparse structure (see $Z_{buff}$ in Table~\ref{tabs:pleiSingleMulti}).  
+To generate points correspondences in Algorithm~\ref{AlgoGenData}, when the camera geometry is known, the points in the image space are defined as a grid of $100 \times 100$. The $Z$ is the mean depth of the scene, and the step $\delta_Z$ is set such that 3 evenly distributed depths spaning the 3D space are obtained. Additionally, each image point is assigned a $4^{th}$, random depth {for evaluation}.  The min/max depths representing the envelope of the 3D scene, can be inferred from the RPCs or from  depths of the sparse structure (see $Z_{buff}$ in Table~\ref{tabs:pleiSingleMulti}).  
  
 
 \paragraph{Influence of different geometries of acquisition.}
 % 
-Five Pl\'eiade-1A  images with their corresponding RPC geolocations are first refined in a RPC-bundle adjustment~\cite{rupnika2016refined}. We then form pairs of images of varying base-to-height ratios ($\sfrac{B}{H}$) in the range $\in \left< 0.1,0.45 \right> $, and carry out epipolar resampling with \textit{Ours} and Oh's methods. We also distinguish between \textit{single orbit} and \textit{multiple orbit} configurations. In Table~\ref{tabs:pleiSingleMulti} the maximum values of the remaining y-parallax are reported. The y-parallax is computed on a grid of image points generated with Algorithm~\ref{AlgoGenData}. Note that these points are non-overlapping with the grid used for estimating the resampling polynomials. We can see that \textit{Our} method outperforms the method by Oh in all instances and is insensitive to the acquisition geometry. \er{The \textit{epipolarability index} given in Table~\ref{tab:PHR1indices} classifies all pairs as suitable for resampling and manifests better scores for larger $B/H$ - but why er is asking?}
+Five Pl\'eiade-1A  images with their corresponding RPC geolocations are first refined in a RPC-bundle adjustment~\cite{rupnika2016refined}. We then form pairs of images of varying base-to-height ratios ($\sfrac{B}{H}$) in the range $\in \left< 0.1,0.45 \right> $, and carry out epipolar resampling with \textit{Ours} and Oh's methods. We also distinguish between \textit{single orbit} and \textit{multiple orbit} configurations. In Table~\ref{tabs:pleiSingleMulti} the maximum values of the remaining y-parallax are reported. The y-parallax is computed on a grid of image points generated with Algorithm~\ref{AlgoGenData}. Note that these points are non-overlapping with the grid used for estimating the resampling polynomials. We can see that \textit{Our} method outperforms the method by Oh in all instances and is insensitive to the acquisition geometry.
+
+%% \er{The \textit{epipolarability index} given in Table~\ref{tab:PHR1indices} classifies all pairs as suitable for resampling and manifests better scores for larger $B/H$ - but why er is asking?}
  
 \paragraph{Comparison of resampling with and without the camera geometry.}
 To evaluate the performance of the proposed method on images without known camera geometry, we run epipolar resampling twice: with the camera model, and using SIFT features~\cite{lowe2004distinctive}. In the latter scenario, the resampling polynomial was found across 6 iterations by progressively increasing the degree (the final polynomial being of $6^{th}$ degree). The comparison is done on a pair of Pl\'eiade-1A images. In Figure~\ref{fig:modelNomodelCmp} the per-pixel y-parallaxes are given. In all three scenarios the remaining parallax is of the same magnitude, $error_{y}< |0.05|$ pixel. The \textit{Oh} and \textit{Ours} method with the camera model give comparable results, while the approach with SIFT correspondences is clearly the best. The experiments with the camera model reveal a correlation between the remaining y-parallax and the 3D scene geometry. We believe this is due to unmodelled errors in RPC camera model. The approach based on SIFT correspondences uses points and is independent of the camera model hence no systematic error is present in the y-parallax map. 
@@ -1062,13 +1089,16 @@ Corona KH-4B images are analog images captured by the american reconnaissance sa
 
 \paragraph{Epipolar resampling of central perspective camera}
 %
-The experiments with the central perspective camera have a double objective. First we show that the proposed method works with pinhole cameras, and second we demonstrate the ambiguity of epipolar resampling when the scene can be represented by a smooth function, e.g., when it is flat (see Section~\ref{EpipTieP}). In Figure~\ref{ExpConsumerCam} the experiments are referred to as \textit{Stairs} and \textit{Floor}. The \textit{Stairs} is an image pair of a staircase, so it is not flat. The \textit{Floor}, as the name suggests, corresponds to the image pair of a floor, which is globally planar. We can observe that the epipolar resamplings computed with the camera models are comparable to the epipolar resampling with the \textit{classical} method. The method based on the SIFT features works well when the scene has a relief, and as expected fails on the planar scene (see the deformed epipolar image pair and the respective epipolar curves in Figure~\ref{ExpConsumerCam}(c),(f)).
+The experiments with the central perspective camera have a double objective. First we show that the proposed method works with pinhole cameras, and second we demonstrate the ambiguity of epipolar resampling when the scene can be represented by a smooth function, e.g., when it is flat (see Section~\ref{EpipTieP}). In Figure~\ref{ExpConsumerCam} the experiments are referred to as \textit{Stairs} and \textit{Floor}. The \textit{Stairs} is an image pair of a staircase, so it is not flat. The \textit{Floor}, as the name suggests, corresponds to the image pair of a floor, which is globally planar. We can observe that the epipolar resamplings computed with the camera models are comparable to the epipolar resampling with the \textit{classical} method. 
+
+The experiment with the SIFT features  is a confirmation of the theoretical analysis developped in \ref{SecEpipNoModel} :  with tie point only, it is possible to recover the epipolar geometry  \emph{if and only if} the relief contains high frequencies. Here method based on the SIFT features works well when the scene has a relief, and as expected fails on the planar scene (see the deformed epipolar image pair and the respective epipolar curves in Figure~\ref{ExpConsumerCam}(c),(f)).
 
 %Two experiments with \ref{ExpConsumerCam}
  
 \section{Discussion and perspective}
 %
-We have presented a method for epipolar resampling of a generic camera. The method computes the resampling functions by fitting an analytical model that minimises both the deformations induced in the image space and the y-parallax (\er{qu'elle minimise les résiduus, je comprens, mais les deformation?}). We have demonstrated that the approach performs well on various camera geometries (central perspective, pushbroom, pushbroom panoramic). Experiments also showed suitability of the approach to resampling images with only image correspondences, when camera geometry is unknown. Note that the proposed method is not suitable for resampling images with large variations in the epipolar line directions. Future works include applying the method to multi-modal images, e.g. optical and radar.
+
+{We have presented of rigorous mathematical analysis of the epipolar resampling problem. In particular, we  established the necessary and sufficient condition for the existence of an exact epipolar resampling and, when this condition is satisfied, established the degree of ambiguity of epipolar resampling. From this analysis we have derived a method for epipolar resampling of a generic pair of sensors that works as long a the existence criteria is approximately satisfied. The method computes the resampling functions by fitting  analytical models which induce no deformation along the $x$-axis, and minimizes the $y$-parallax .} We have demonstrated that the approach performs well on various camera geometries (central perspective, pushbroom, pushbroom panoramic). Experiments also showed suitability of the approach to resampling images with only image correspondences, when camera geometry is unknown. Note that the proposed method is not suitable for resampling images with large variations in the epipolar line directions. Future works include applying the method to multi-modal images, e.g. optical and radar.
 %
 %Avantage de la methode : modeles analyique, minimise deformation et residu , peut être appliquee  si on a que les points homologues (photo escalier ?).
 %
@@ -1128,6 +1158,7 @@ We have presented a method for epipolar resampling of a generic camera. The meth
 	\end{center}
 \end{figure*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\COM{
 \begin{table}%[h!]
 
 \begin{center}
@@ -1152,7 +1183,7 @@ We have presented a method for epipolar resampling of a generic camera. The meth
 \end{center}
 \caption{Epipolarability indices for acquisitions from a single and {multiple orbits}.}\label{tab:PHR1indices}
 \end{table}
-
+} %%%   END COM
 
 \begin{figure}%[h!]
 \centering
