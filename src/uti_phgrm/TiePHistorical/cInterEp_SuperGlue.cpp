@@ -105,7 +105,7 @@ bool CheckFile(std::string input_dir, std::string SH, std::string input_pairs)
     return true;
 }
 
-void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string input_pairs, bool keepNpzFile)
+void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string input_pairs, bool keepNpzFile, double aCheckNb, bool bPrint)
 {
     ifstream in(input_dir+input_pairs);
     std::string s;
@@ -183,6 +183,11 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
                     continue;
                 Pt2dr ptL = Pt2dr(arr_keypt0[i*2]*ptScaleL.x, arr_keypt0[i*2+1]*ptScaleL.y);
                 Pt2dr ptR = Pt2dr(arr_keypt1[nMatchVal*2]*ptScaleR.x, arr_keypt1[nMatchVal*2+1]*ptScaleR.y);
+                if(aCheckNb > 0 && (pow((ptL.x-ptR.x),2)+pow((ptL.y-ptR.y),2) > aCheckNb*aCheckNb)){
+                    if(bPrint)
+                        printf("Correspondence ([%lf,%lf], [%lf,%lf]) out of search space, hence removed.\n", ptL.x, ptL.y, ptR.x, ptR.y);
+                    continue;
+                }
                 aPack.Cple_Add(ElCplePtsHomologues(ptL, ptR));
                 nValidMatchNum++;
             }
@@ -192,8 +197,8 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
         //cout<<"nValidMatchNum: "<<nValidMatchNum<<endl;
 
         std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+SH;
-        cout<<aCom<<endl;
-        cout<<"tie point number: "<<nValidMatchNum<<endl;
+        std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+SH;
+        printf("%s\n%s\ntie point number: %d\n", aCom.c_str(), aComInv.c_str(), nValidMatchNum);
 
         std::string aSHDir = input_dir + "/Homol" + SH+"/";
         ELISE_fp::MkDir(aSHDir);
@@ -238,14 +243,7 @@ void ReadImgPairs(std::string input_dir, std::string input_pairs)
 
     }
 }
-/*
-void todefine(std::string input_dir, std::string output_dir, std::string input_pairs)
-{
-    std::string cmmd = "/home/lulin/Documents/ThirdParty/SuperGluePretrainedNetwork-master/match_pairs.py --input_pairs "+input_dir+input_pairs+" --input_dir "+input_dir+" --output_dir "+output_dir;
-    printf("%s\n", cmmd.c_str());
-    System(cmmd);
-}
-*/
+
 int SuperGlue_main(int argc,char ** argv)
 {
    cCommonAppliTiepHistorical aCAS3D;
@@ -254,16 +252,26 @@ int SuperGlue_main(int argc,char ** argv)
 
    bool bCheckFile = false;
 
+   double aCheckNb = -1;
+
+   std::string aOutput_dir = "";
+
    ElInitArgMain
     (
         argc,argv,
         LArgMain()  << EAMC(input_pairs, "txt file that listed the image pairs"),
         LArgMain()
-                    //<< aCAS3D.ArgBasic()
+                    << aCAS3D.ArgBasic()
                     << aCAS3D.ArgSuperGlue()
-                    << EAM(bCheckFile, "CheckFile", true, "Check if the result files exist (if so, skip), Def=false")
-
+               << EAM(aOutput_dir, "OutDir", true, "The output directory of the match results of SuperGlue, Def=InDir")
+                    << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
+               << EAM(aCheckNb,"CheckNb",true,"Radius of the search space for SuperGlue (which means correspondence [(xL, yL), (xR, yR)] with (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb will be removed afterwards), Def=-1 (means don't check search space)")
     );
+
+   if(aOutput_dir.length() == 0)
+   {
+       aOutput_dir = aCAS3D.mInput_dir;
+   }
 
    std::string strOpt = aCAS3D.mStrOpt;
    std::string strMicMacDirBin = aCAS3D.mStrEntSpG;
@@ -274,12 +282,12 @@ int SuperGlue_main(int argc,char ** argv)
        //strMicMacDirBin = strMicMacDirBin.substr(0, strMicMacDir.length()-9) + "src/uti_phgrm/TiePHistorical/SuperGluePretrainedNetwork-master/match_pairs.py";
        strMicMacDirBin = MMBinFile(MM3DStr);
        std::string strMicMacDirTPHisto = strMicMacDirBin.substr(0, strMicMacDirBin.length()-9) + "src/uti_phgrm/TiePHistorical/";
-       cmmd = "bash " + strMicMacDirTPHisto + "run.sh --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
+       cmmd = "bash " + strMicMacDirTPHisto + "run.sh --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
 
    }
    else
    {
-       cmmd = strMicMacDirBin + " --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
+       cmmd = strMicMacDirBin + " --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
    }
 
    bool bExe = true;
@@ -296,8 +304,8 @@ int SuperGlue_main(int argc,char ** argv)
 
    if(bExe)
    {
-        //std::string cmmd = strMicMacDir + " --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
-       //std::string cmmd = "/home/lulin/Documents/ThirdParty/SuperGluePretrainedNetwork-master/match_pairs.py --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
+        //std::string cmmd = strMicMacDir + " --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
+       //std::string cmmd = "/home/lulin/Documents/ThirdParty/SuperGluePretrainedNetwork-master/match_pairs.py --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
        if(aCAS3D.mViz == true)
            cmmd += " --viz";
        if(aCAS3D.mModel == "indoor")
@@ -316,7 +324,7 @@ int SuperGlue_main(int argc,char ** argv)
 
        //todefine(aCAS3D.input_dir, aCAS3D.output_dir, input_pairs);
        //ReadImgPairs(aCAS3D.input_dir, input_pairs);
-       Npz2Homol(aCAS3D.mResize, aCAS3D.mInput_dir, aCAS3D.mSpGlueOutSH, input_pairs, aCAS3D.mKeepNpzFile);
+       Npz2Homol(aCAS3D.mResize, aCAS3D.mInput_dir, aCAS3D.mSpGlueOutSH, input_pairs, aCAS3D.mKeepNpzFile, aCheckNb, aCAS3D.mPrint);
     }
    return EXIT_SUCCESS;
 }

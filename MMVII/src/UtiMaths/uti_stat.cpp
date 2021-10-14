@@ -85,6 +85,16 @@ template <class Type> void cMatIner2Var<Type>::Add(const double & aPds,const Typ
     mS22 += aPds * aV2 * aV2 ;
 }
 
+template <class Type> void cMatIner2Var<Type>::Add(const Type & aV1,const Type & aV2)
+{
+    mS0  += 1.0;
+    mS1  += aV1;
+    mS11 += aV1 * aV1 ;
+    mS2  += aV2;
+    mS12 += aV1 * aV2 ;
+    mS22 += aV2 * aV2 ;
+}
+
 template <class Type> 
        void  cMatIner2Var<Type>::Add(const cMatIner2Var& aM2)
 {
@@ -122,6 +132,18 @@ template <class Type> void cMatIner2Var<Type>::Normalize()
      mS22 -= mS2 * mS2;
 }
 
+template <class Type> Type cMatIner2Var<Type>::CorrelNotC(const Type & aEps) const
+{
+    Type  aS11 = mS11/mS0;
+    Type  aS12 = mS12/mS0;
+    Type  aS22 = mS22/mS0;
+
+    Type  aSqDenominator = std::max(aEps,aS11*aS22);
+    MMVII_ASSERT_STRICT_POS_VALUE(aSqDenominator);
+
+    return aS12  / std::sqrt(aSqDenominator);
+}
+
 template <class Type> Type cMatIner2Var<Type>::Correl(const Type & aEps) const
 {
    cMatIner2Var<Type> aDup(*this);
@@ -130,7 +152,7 @@ template <class Type> Type cMatIner2Var<Type>::Correl(const Type & aEps) const
    Type aSqDenominator = std::max(aEps,aDup.mS11*aDup.mS22);
    MMVII_ASSERT_STRICT_POS_VALUE(aSqDenominator);
 
-   return aDup.mS11  / std::sqrt(aSqDenominator);
+   return aDup.mS12  / std::sqrt(aSqDenominator);
 }
 
 template <class Type> inline Type StdDev(const Type & aS0,const Type & aS1,const Type & aS11)
@@ -169,20 +191,20 @@ template <class Type> cMatIner2Var<double> StatFromImageDist(const cDataIm2D<Typ
 
 template <class Type> cWeightAv<Type>::cWeightAv() :
    mSW(0),
-   mSV(0)
+   mSVW(0)
 {
 }
 
 template <class Type> void cWeightAv<Type>::Add(const Type & aWeight,const Type & aVal)
 {
    mSW += aWeight;
-   mSV += aVal;
+   mSVW += aVal * aWeight;
 }
 
 template <class Type> Type cWeightAv<Type>::Average() const
 {
     MMVII_ASSERT_INVERTIBLE_VALUE(mSW);
-    return mSV / mSW;
+    return mSVW / mSW;
 }
 
 

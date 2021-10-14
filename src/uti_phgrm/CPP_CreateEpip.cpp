@@ -101,6 +101,10 @@ class cApply_CreateEpip_main
 
 
       int    mDegre;
+      bool   mXFitHom;
+      bool   mXFitModele;
+      bool   mXFitL2;
+      bool   mXFit;
       std::vector<int>  mVecIterDeg; 
       double  mPropIterDeg; 
       int    mNbZ ;
@@ -135,16 +139,18 @@ class cApply_CreateEpip_main
       double             mZMax;
       double             mIProf;
       Pt2dr              mIntZ;             
+      std::string        mNameOut;
       std::vector<double> mParamEICE;
 
-      double ComputeEpipolarability(const Pt3dr & aP1) const;
+      double SignedComputeEpipolarability(const Pt3dr & aP1) const;
+      double AbsComputeEpipolarability(const Pt3dr & aP1) const;
       Pt3dr Tang(bool IsI1,const Pt3dr & aP1,double & aDist) const;
 
       void DoEpipGen(bool DoIm);
       void DoOh(Pt2dr aC1,const ElPackHomologue & aPackCheck,CpleEpipolaireCoord * aChekEpi);
       Pt2dr  OhNextPOnCurvE(const Pt2dr aP1,bool Im1,bool Forward);
 
-      Pt2dr DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D * aG2,ElPackHomologue & aPack,bool ForCheck,bool AddToP1, std::list<Appar23> &   aL23);
+      Pt2dr DirEpipIm2(cBasicGeomCap3D * aG1,cBasicGeomCap3D * aG2,ElPackHomologue & aPack,bool ForCheck,bool AddToP1, std::list<Appar23> &   aL23,bool OnlyZCentr=false);
 
       void Ressample(cBasicGeomCap3D * aG1,EpipolaireCoordinate & E1,double aStep);
 
@@ -157,14 +163,9 @@ class cApply_CreateEpip_main
       std::vector<double>  mParamTestOh;
 };
 
-/*
-double cApply_CreateEpip_main::ComputeEpipolarability(const Pt3dr & aP1);
-{
-}
-*/
+static  const  double aDZ = 1; // "Small" value to compute derivative
 Pt3dr  cApply_CreateEpip_main::Tang(bool IsI1,const Pt3dr & aPTer,double & aDist) const
 {
-    double aDZ = 1e-2; // "Small" value to compute derivative
 
     // Swap G1/G2
     cBasicGeomCap3D *  aG1 = IsI1 ?  mGenI1 : mGenI2; 
@@ -179,32 +180,46 @@ Pt3dr  cApply_CreateEpip_main::Tang(bool IsI1,const Pt3dr & aPTer,double & aDist
 
     aDist = euclid (aQIm2-aOIm2)/(2*aDZ); // Compute sensibility to dist
 
+// std::cout << "OooQQqq : " << aOTer << aQTer << (aQTer-aOTer) / (2*aDZ) << "\n";
     return (aQTer-aOTer) / (2*aDZ);
 }
 
-double  cApply_CreateEpip_main::ComputeEpipolarability(const Pt3dr & aPTer) const
+double  cApply_CreateEpip_main::SignedComputeEpipolarability(const Pt3dr & aPTer) const
 {
-    double aDZ = 1e-2; // "Small" value to compute derivative
+    // double aDZ = 1e-2; // "Small" value to compute derivative
     double aD1, aD2,aD1P,aD2P;
 
     Pt3dr aT1 = Tang(true ,aPTer,aD1);
     Pt3dr aT2 = Tang(false,aPTer,aD2);
 
-    Pt3dr aT1P = Tang(true ,aPTer+aT2*aDZ,aD1P);
-    Pt3dr aT2P = Tang(false,aPTer+aT1*aDZ,aD2P);
+    Pt3dr aT1Plus = Tang(true ,aPTer+aT2*aDZ,aD1P);
+    Pt3dr aT1Minus = Tang(true,aPTer-aT2*aDZ,aD1P);
+
+    Pt3dr aT2Plus =  Tang(false,aPTer+aT1*aDZ,aD2P);
+    Pt3dr aT2Minus = Tang(false,aPTer-aT1*aDZ,aD2P);
 
     // std::cout  << "DIFF " <<  (aD1-aD1P)/(aD1+aD1P)  << " " << (aD2-aD2P)/(aD2+aD2P) << " " << aD1 << " " << aD2<< "\n";
 
-    Pt3dr  aDerT1 = (aT1P-aT1) / aDZ;
-    Pt3dr  aDerT2 = (aT2P-aT2) / aDZ;
-    Pt3dr  aDifDer = (aDerT1-aDerT2) / (aD1*aD2);
+    Pt3dr  aDerT1 = (aT1Plus-aT1Minus) / (2*aDZ);
+    Pt3dr  aDerT2 = (aT2Plus-aT2Minus) / (2*aDZ);
+    // Pt3dr  aDifDer = (aDerT1-aDerT2) / (aD1*aD2);
+    Pt3dr  aDifDer = (aDerT1-aDerT2) / (euclid(aDerT1)+euclid(aDerT2));
+
 
     Pt3dr  aVect = vunit(aT1^aT2);
 
-    double aRes = ElAbs(scal(aVect,aDifDer));
+    double aRes = scal(aVect,aDifDer);
 
+
+// std::cout << "Ttt " << aT1 << aT2 << "\n";
+// std::cout << aDerT1 << aDerT2 << aDifDer  << " RRR " << aRes << "\n"; // getchar();
     //  std::cout << "RRRRR " << aRes << "\n";
     return aRes;
+}
+
+double  cApply_CreateEpip_main::AbsComputeEpipolarability(const Pt3dr & aPTer) const
+{
+   return ElAbs(SignedComputeEpipolarability(aPTer));
 }
 
 /*
@@ -242,16 +257,18 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
             ElPackHomologue &      aPack,
             bool                   ForCheck,
             bool                   AddToP1,
-            std::list<Appar23> &   aL23
+            std::list<Appar23> &   aL23,
+	    bool                   ForXFitHom
        )
 {
+std::cout << "XXXX  " << aG1->AltisSolIsDef() << " " <<  ForXFitHom << "\n";
     bool DoCompEp = ForCheck;
     cElStatErreur aStatEp(10);
    
     Pt2dr aSz =  Pt2dr(aG1->SzBasicCapt3D());
  
 
-    Pt2dr aSomTens2(0,0);
+    Pt2dr aSomDir(0,0);
     // On le met tres petit, ce qui a priori n'est pas genant et evite 
     // d'avoir des point hors zone
     //  GetVeryRoughInterProf est une proportion
@@ -273,6 +290,8 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
 
 
      
+    Im2D<float,double> aImEpipAbs(aNbX+1,aNbY+1);
+    Im2D<float,double> aImEpipSigned(aNbX+1,aNbY+1);
 
     int aNbTens=0;
     for (int aKX=0 ; aKX<= aNbX ; aKX++)
@@ -297,8 +316,14 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
                  //std::cout << "IPROF " << aIProf * euclid(aPT1-aC1)  << " " << aPT1  << "\n";
 
                 std::vector<Pt2dr> aVPIm2;
-                double aNbZSup = mNbZ + mNbZRand; 
-                for (int aKZ = -mNbZ ; aKZ <= aNbZSup  ; aKZ++)
+                int aNbZSup = mNbZ + mNbZRand; 
+                int aNbZInf = -mNbZ;
+		if (ForXFitHom)
+		{
+                    aNbZSup =0 ;
+                    aNbZInf =0 ;
+		}
+                for (int aKZ = aNbZInf ; aKZ <= aNbZSup  ; aKZ++)
                 {
                      bool isZRand =  (aKZ > mNbZ)  || ForCheck ;
                      // Compute P Ground on bundle
@@ -313,8 +338,13 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
                            // To avoid border of interval and pb with PIsVisibleInImage
                           double aEps = 1e-3;
                           aPds = ElMax(aEps,ElMin(1-aEps,aPds));
-                          aPT2 = aG1->ImEtZ2Terrain(aPIm1,mZMin*aPds + mZMax * (1-aPds));
+			  double aZ = mZMin*aPds + mZMax * (1-aPds);
+                          aPT2 = aG1->ImEtZ2Terrain(aPIm1,aZ);
                      }
+		     else if (aG1->AltisSolIsDef() && ForXFitHom)
+		     {
+                          aPT2 = aG1->ImEtZ2Terrain(aPIm1,aG1->GetAltiSol());
+		     }
                      else
                      {
                           double aPds = aKZ / double(mNbZ);
@@ -329,9 +359,13 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
                         Pt2dr aPIm2 = aG2->Ter2Capteur(aPT2);
                         if (aG2->CaptHasData(aPIm2))
                         {
-                            if (DoCompEp)
+                            if (DoCompEp && (aKZ==0))
                             {
-                                 aStatEp.AddErreur(ComputeEpipolarability(aPT2));
+                                double aSignEpip = SignedComputeEpipolarability(aPT2);
+                                double aAbsEpip = std::abs(aSignEpip);
+                                aStatEp.AddErreur(aAbsEpip);
+                                aImEpipAbs.SetR(Pt2di(aKX,aKY),aAbsEpip*1e4);
+                                aImEpipSigned.SetR(Pt2di(aKX,aKY),aSignEpip*1e4);
                             }
                             aL23.push_back(Appar23(aPIm1,aPT2));
 
@@ -348,13 +382,15 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
                 if (aVPIm2.size() >=2)
                 {
                     Pt2dr aDir2 = vunit(aVPIm2.back()-aVPIm2[0]);
-                    aSomTens2 = aSomTens2 + aDir2 * aDir2; // On double l'angle pour en faire un tenseur
+                    aSomDir = aSomDir +  aDir2; 
+                    //aSomTens2 = aSomTens2 + aDir2 * aDir2; // On double l'angle pour en faire un tenseur
+		    ELISE_ASSERT(scal(aSomDir,aDir2)>0,"Incoherent direction in dirs estimate");
                     aNbTens++;
                 }
             }
         }
     }
-    if (!ForCheck)
+    if (!(ForCheck || ForXFitHom))
     {
        std::cout << "Number points for tensor " << aNbTens << "\n";
        ELISE_ASSERT(aNbTens!=0,"Cannot compute direction no valide point");
@@ -363,9 +399,22 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
     {
        std::cout << "====================  Epipolarability ============================ \n";
        std::cout << " Avg=" << aStatEp.Avg() << " Med=" << aStatEp.Erreur(0.5) << " Ect=" << aStatEp.Ect() << "\n";
+       std::cout << " Min=" << aStatEp.Erreur(0.0) << " Max=" << aStatEp.Erreur(1.0) << "\n";
+       Tiff_Im::CreateFromIm(aImEpipAbs,"EpipolaribityAbs.tif");
     }
+    // 4 check there was no point computed
+    if (ForCheck || ForXFitHom) 
+       return aSomDir;
+    if (0)
+    {
+	    std::cout << "aSomDir BRUTE " << aSomDir <<  " P1:" << AddToP1 << "\n";
+	    getchar();
+    }
+    return vunit(aSomDir) * (AddToP1 ? 1.0:-1.0);  // There is an inversion 
+    /*
     Pt2dr aRT = Pt2dr::polar(aSomTens2,0.0);
     return Pt2dr::FromPolar(1.0,aRT.y/2.0); // Divide angle as it was multiplied
+    */
 }
 
 class cTmpReechEpip
@@ -384,7 +433,9 @@ class cTmpReechEpip
                 int aNumKer,
                 bool aDebug,
                 int  aNbBloc,
-                double aEpsChekInv = 1e-2 // Check accuracy of inverse
+                double aEpsChekInv = 1e-2, // Check accuracy of inverse,
+		const ElPackHomologue * aPackCheck = nullptr,
+                const ElDistortion22_Gen * aEpiCheck=nullptr
         );
      private :
         Box2dr                 mBoxImIn;
@@ -443,7 +494,9 @@ cTmpReechEpip::cTmpReechEpip
         int aNumKer ,
         bool Debug,
         int  aNbBloc,
-        double aEpsCheckInv
+        double aEpsCheckInv,
+        const ElPackHomologue * aPackCheck,
+        const ElDistortion22_Gen * aEpiCheck
 ) :
     mBoxImIn(aBoxImIn),
     mEpi    (anEpi),
@@ -468,6 +521,7 @@ cTmpReechEpip::cTmpReechEpip
     cInterpolateurIm2D<REAL4> * aPtrSCI = 0;
 
 
+    // Calcul de l'interpolateur
     if (aNumKer==0)
     {
         aPtrSCI = new cInterpolBilineaire<REAL4>;
@@ -476,11 +530,10 @@ cTmpReechEpip::cTmpReechEpip
     {
       
        cKernelInterpol1D * aKer = 0;
-if (0)
-{
+       if (0)
+       {
            aKer  =  cKernelInterpol1D::StdInterpCHC(1.5);
-
-}
+       }
        if (aNumKer==1)
           aKer = new cCubicInterpKernel(-0.5);
        else
@@ -493,6 +546,38 @@ if (0)
 
     cInterpolateurIm2D<REAL4> & aSCI = *aPtrSCI;
 
+    // Si aPackCheck, calcul des statistique de px sur X et Y apres correction
+    if (aPackCheck && aPackCheck->size())
+    {
+        {
+            EpipolaireCoordinate * anEE = static_cast<EpipolaireCoordinate *> (anEpi);
+            std::cout << "HHHaass " << anEE->HasXFitHom() << "\n";
+	    if (anEE->HasXFitHom())
+               std::cout << "   XFITH  " << anEE->ParamFitHom() << "\n";
+        }
+
+	double aDXD=0.0;
+	double aDYD=0.0;
+	double aDI1=0.0;
+	double aDI2=0.0;
+	for (const auto & aCple : *aPackCheck)
+	{
+            Pt2dr aP1 = aCple.P1();
+            Pt2dr aP2 = aCple.P2();
+            Pt2dr aQ1 = anEpi->Direct(aP1);
+            Pt2dr aQ2 = aEpiCheck->Direct(aP2);
+	    aDXD += ElAbs(aQ1.x-aQ2.x);
+	    aDYD += ElAbs(aQ1.y-aQ2.y);
+
+            Pt2dr aI1 = anEpi->Inverse(aQ1);
+            Pt2dr aI2 = aEpiCheck->Inverse(aQ2);
+	    aDI1 += euclid(aP1-aI1);
+	    aDI2 += euclid(aP2-aI2);
+	}
+	int aNb = aPackCheck->size();
+        std::cout << "COH  x:" <<aDXD/aNb  << " y:" << aDYD/aNb << "\n";
+        std::cout << "    i1:" <<aDI1/aNb  << " i2:" << aDI2/aNb << "\n";
+    }
 
 
     Pt2di aPInd;
@@ -963,6 +1048,7 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
       ElPackHomologue aPackCheck;
       std::list<Appar23>  aLT1,aLT2;
 
+
       // Compute the direction  and the set of homologous points
       if (mWithOri)
       {
@@ -976,6 +1062,13 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 
          mDir2 =  DirEpipIm2(mGenI1,mGenI2,aPack,false,true,aLT1);  // Dont Swap
          mDir1 =  DirEpipIm2(mGenI2,mGenI1,aPack,false,false,aLT2); // Swap Pt
+
+	 // If we are alredy almost in epip, we dont want a 180 deg rotation
+	 if ((mDir2.x+mDir1.x) <0)
+         {
+             mDir1 = -mDir1;
+             mDir2 = -mDir2;
+	 }
       }
       else
       {
@@ -994,6 +1087,23 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
               );
           }
       }
+
+      ElPackHomologue aPackXFitH;
+      if (mXFitHom)
+      {
+	 aPackXFitH = mICNM->StdPackHomol(mNameHom,mName1,mName2);
+      }
+      else if (mXFitModele)
+      {
+          std::list<Appar23>  aLTCheck;
+          DirEpipIm2(mGenI1,mGenI2,aPackXFitH,true,true,aLTCheck,true); 
+
+	      /*std::cout << "mXFitModelemXFitModelemXFitModelemXFitModele \n"; 
+	 aPackXFitH = mICNM->StdPackHomol(mNameHom,mName1,mName2);
+	      getchar();
+	      */
+      }
+
 
       std::cout << "Compute Epip ; D1=" << mDir1 << " ,D2=" << mDir2 << "\n";
       CpleEpipolaireCoord * aCpleEpi = nullptr;
@@ -1019,6 +1129,10 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
                                        (false,aCpleEpi,aSigma,aPack,mVecIterDeg.at(aKDeg),mDir1,mDir2,mDegSupInv);
                 aEpi1 = &(aCpleEpi->EPI1());
                 aEpi2 = &(aCpleEpi->EPI2());
+                if (mXFit)
+                {
+                   aEpi1->XFitHom(aPackXFitH,mXFitL2,aEpi2);
+                }
              }
             // For check at first iter :
             //    * necessary because many value to export at last
@@ -1073,6 +1187,13 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
             double aSupY = ElMax(aSup1.y,aSup2.y);
             aInf1.y = aInf2.y = aInfY;
             aSup1.y = aSup2.y = aSupY;
+	    if (mXFit)
+	    {
+                double aInfX = ElMax(aInf1.x,aInf2.x);
+                double aSupX = ElMax(aSup1.x,aSup2.x);
+                aInf1.x = aInf2.x = aInfX;
+                aSup1.x = aSup2.x = aSupX;
+	    }
 
 
             std::cout  << "======================= " << (ForCheck ? " CONTROL" : "LEARNING DATA") << " ========\n";
@@ -1109,8 +1230,8 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
           aCpleEpi->SaveOrientCpleEpip(mOri,mICNM,mName1,mName2);
       }
       std::cout  << "===================================\n";
-      std::cout  << "BOX1 " << aInf1 << " " <<  aSup1 << "\n";
-      std::cout  << "BOX2 " << aInf2 << " " <<  aSup2 << "\n";
+      std::cout  << "BOX1 " << aInf1 << " " <<  aSup1 <<  " SZ=" << aSup1-aInf1<< "\n";
+      std::cout  << "BOX2 " << aInf2 << " " <<  aSup2 <<  " SZ=" << aSup2-aInf2<< "\n";
 
 
       bool aConsChan = true;
@@ -1123,6 +1244,11 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 
       std::string aNI1 = mICNM->NameImEpip(mOri,mName1,mName2);
       std::string aNI2 = mICNM->NameImEpip(mOri,mName2,mName1);
+      if (EAMIsInit(&mNameOut))
+      {
+          aNI1 = mNameOut + "_1.tif";
+          aNI2 = mNameOut + "_2.tif";
+      }
 
       Box2dr aBIn1(Pt2dr(0,0),Pt2dr(aSzI1));
       Box2dr aBOut1(aInf1,aSup1);
@@ -1131,9 +1257,14 @@ void cApply_CreateEpip_main::DoEpipGen(bool DoIm)
 
       if (DoIm)
       {
-         cTmpReechEpip aReech1(aConsChan,mName1,aBIn1,aEpi1,aBOut1,mStepReech,aNI1,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
+{
+	std::cout << "HAS XFIT H " << aEpi1->HasXFitHom() << " " << aEpi2->HasXFitHom() << "\n";
+}
+         cTmpReechEpip aReech1(aConsChan,mName1,aBIn1,aEpi1,aBOut1,mStepReech,aNI1,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv,&aPackXFitH,aEpi2);
          std::cout << "DONE IM1 \n";
-         cTmpReechEpip aReech2(aConsChan,mName2,aBIn2,aEpi2,aBOut2,mStepReech,aNI2,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv);
+         ElPackHomologue aPSym = aPackXFitH;
+	 aPSym.SelfSwap();
+         cTmpReechEpip aReech2(aConsChan,mName2,aBIn2,aEpi2,aBOut2,mStepReech,aNI2,mPostMasq,mNumKer,mDebug,mNbBloc,mEpsCheckInv,&aPSym,aEpi1);
          std::cout << "DONE IM2 \n";
 
          std::cout << "DONNE REECH TMP \n";
@@ -1200,6 +1331,9 @@ void cApply_CreateEpip_main::MakeAppuis
 
 cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mDegre     (-1),
+   mXFitHom   (false),
+   mXFitModele  (false),
+   mXFitL2      (false),
    mPropIterDeg  (0.85),
    mNbZ       (2),  // One more precaution ...
    mNbXY      (100),
@@ -1268,7 +1402,18 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 		    << EAM(mNbCalcAutoDir,"NbCalcDir",false,"Calc directions : Nbts / NbEchDir")
 		    << EAM(mParamEICE,"ExpCurve",false,"0-SzIm ,1-Number of Line,2- Larg (in [0 1]),3-Exag deform,4-ShowOut")
 		    << EAM(mParamTestOh,"OhP",false,"Oh's method test parameter(none for now)")
+		    << EAM(mXFitHom,"XCorrecHom",false,"Correct X-Pax using homologous point")
+		    << EAM(mXFitModele,"XCorrecOri",false,"Correct X-Pax using orient and Z=average")
+		    << EAM(mXFitL2,"XCorrecL2",false,"L1/L2 Correction for X-Pax")
+		    << EAM(mNameOut,"Out",false,"To spcecify names of results")
+		    /*
+		    */
     );
+
+
+    mXFit = (mXFitHom||mXFitModele);
+    if (! EAMIsInit(&mXFitL2))
+      mXFitL2  = mXFitModele;
 
 
 if (!MMVisualMode)

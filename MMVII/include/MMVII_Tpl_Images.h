@@ -50,6 +50,9 @@ template<class T2,class T3>   cDenseMatrix<T2> operator * (const  T3 & aV3,const
 template<class T1,class T2,int Dim>  void DivCsteIn(cDataTypedIm<T1,Dim> & aI1,const T2 & aV2); // I1 /= V2
     // -------------------------- Copy -------------------------
 template<class T1,class T2,int Dim>  void CopyIn(cDataTypedIm<T1,Dim> & aI1,const cDataTypedIm<T2,Dim> & aI2); // I1 = I2
+    // -------------------------- Convert -------------------------
+
+template<class T1,class T2>  cIm2D<T1>  Convert(T1*,const cDataIm2D<T2>&);  // T1 => trick to easy force type
 
 
        //===========   Substraction ===========
@@ -205,6 +208,13 @@ template<class T1,class T2,int Dim>
         aI1.GetRDL(aK) = aI2.GetRDL(aK) ;
 }
 
+template<class T1,class T2>  cIm2D<T1>  Convert(T1*,const cDataIm2D<T2>& aDIm2)
+{
+     cIm2D<T1> aIm1(aDIm2.Sz());
+     CopyIn(aIm1.DIm(),aDIm2);
+     return aIm1;
+}
+
 
 template<class T1,class T2,int Dim>  
    void WeightedAddIn(cDataTypedIm<T1,Dim> & aI1,const T2 & aV,const cDataTypedIm<T2,Dim> & aI2)
@@ -271,6 +281,22 @@ template<class T1,int Dim>
      return WhitchMinMax([](const T1&aV1,const T1&aV2){return aV1>aV2;},aIm);
 }
 
+
+template<class T1> typename cDataIm1D<T1>::tBase cDataIm1D<T1>::SomInterv(int aX0,int aX1) const
+{
+    tPB::AssertInside(aX0);
+    tPB::AssertInside(aX1-1);
+    tBase aRes = 0;
+    for (int aX=aX0; aX<aX1; aX++)
+        aRes += mRawData1D[aX];
+    return aRes;
+}
+
+template<class T1> tREAL8  cDataIm1D<T1>::AvgInterv(int aX0,int aX1) const
+{
+   MMVII_INTERNAL_ASSERT_medium((aX1>aX0),"Bad lim in Avg");
+   return SomInterv(aX0,aX1) / double(aX1-aX0);
+}
 
 
 };

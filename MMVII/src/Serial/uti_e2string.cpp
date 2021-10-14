@@ -80,7 +80,7 @@ template <class TypeEnum> class cE2Str
              MMVII_UsersErrror
              (
                 eTyUEr::eEmptyPattern,
-                "No value for enum, allowed are :"+StrAllVall<eTyInvRad>()
+                "No value for enum, allowed are :"+StrAllVall<TypeEnum>()
              );
 
           }
@@ -199,6 +199,7 @@ template<> cE2Str<eTyUEr>::tMapE2Str cE2Str<eTyUEr>::mE2S
                 {eTyUEr::e2PatInModeLineEditRel,"2PatInModeLineEditRel"},
                 {eTyUEr::eParseError,"ParseError"},
                 {eTyUEr::eBadDimForPt,"BadDimension4Pts"},
+                {eTyUEr::eBadDimForBox,"BadDimension4Box"},
                 {eTyUEr::eBadSize4Vect,"BadSize4Vector"},
                 {eTyUEr::eMultiplePostifx,"MultiplePostifx"},
                 {eTyUEr::eUnClassedError,"UnClassedError"}
@@ -243,51 +244,96 @@ TPL_ENUM_2_STRING(eModePaddingEpip);
 
 template<> cE2Str<eModeCaracMatch>::tMapE2Str cE2Str<eModeCaracMatch>::mE2S
            {
-                {eModeCaracMatch::eMCM_CQ1,"CQ1"},
-                {eModeCaracMatch::eMCM_CQ2,"CQ2"},
-                {eModeCaracMatch::eMCM_CQ3,"CQ3"},
-                {eModeCaracMatch::eMCM_CQ4,"CQ4"},
-                {eModeCaracMatch::eMCM_CQW,"CQW"},
-                {eModeCaracMatch::eMCM_CQA,"CQA"},
+                {eModeCaracMatch::eMS_CQ1,"MS_CQ1"},
+                {eModeCaracMatch::eMS_CQ2,"MS_CQ2"},
+                {eModeCaracMatch::eMS_CQ3,"MS_CQ3"},
+                {eModeCaracMatch::eMS_CQ4,"MS_CQ4"},
+                {eModeCaracMatch::eMS_CQW,"MS_CQW"},
+                {eModeCaracMatch::eMS_CQA,"MS_CQA"},
              //---------------------------------------
-                {eModeCaracMatch::eMCM_Cen1,"Cen1"},
-                {eModeCaracMatch::eMCM_Cen2,"Cen2"},
-                {eModeCaracMatch::eMCM_Cen3,"Cen3"},
-                {eModeCaracMatch::eMCM_Cen4,"Cen4"},
-                {eModeCaracMatch::eMCM_CenW,"CenW"},
-                {eModeCaracMatch::eMCM_CenA,"CenA"},
+                {eModeCaracMatch::eMS_Cen1,"MS_Cen1"},
+                {eModeCaracMatch::eMS_Cen2,"MS_Cen2"},
+                {eModeCaracMatch::eMS_Cen3,"MS_Cen3"},
+                {eModeCaracMatch::eMS_Cen4,"MS_Cen4"},
+                {eModeCaracMatch::eMS_CenW,"MS_CenW"},
+                {eModeCaracMatch::eMS_CenA,"MS_CenA"},
              //---------------------------------------
-                {eModeCaracMatch::eMCM_Cor1,"Cor1"},
-                {eModeCaracMatch::eMCM_Cor2,"Cor2"},
-                {eModeCaracMatch::eMCM_Cor3,"Cor3"},
-                {eModeCaracMatch::eMCM_Cor4,"Cor4"},
-                {eModeCaracMatch::eMCM_CorW,"CorW"},
-                {eModeCaracMatch::eMCM_CorA,"CorA"},
+                {eModeCaracMatch::eMS_Cor1,"MS_Cor1"},
+                {eModeCaracMatch::eMS_Cor2,"MS_Cor2"},
+                {eModeCaracMatch::eMS_Cor3,"MS_Cor3"},
+                {eModeCaracMatch::eMS_Cor4,"MS_Cor4"},
+                {eModeCaracMatch::eMS_CorW,"MS_CorW"},
+                {eModeCaracMatch::eMS_CorA,"MS_CorA"},
              //---------------------------------------
-                {eModeCaracMatch::eMCM_WorstCorrel2,"WorstCor2"},
-                {eModeCaracMatch::eMCM_WorstCorrel3,"WorstCor3"},
-                {eModeCaracMatch::eMCM_BestCorrel2,"BestCor2"},
-                {eModeCaracMatch::eMCM_BestCorrel3,"BestCor3"},
-                {eModeCaracMatch::eMCM_BestCorrel4,"BestCor4"},
-                {eModeCaracMatch::eMCM_BestCorrel5,"BestCor5"},
+                {eModeCaracMatch::eMS_WorstCorrel2,"MS_WorstCor2"},
+                {eModeCaracMatch::eMS_WorstCorrel3,"MS_WorstCor3"},
+                {eModeCaracMatch::eMS_BestCorrel2,"MS_BestCor2"},
+                {eModeCaracMatch::eMS_BestCorrel3,"MS_BestCor3"},
+                {eModeCaracMatch::eMS_BestCorrel4,"MS_BestCor4"},
+                {eModeCaracMatch::eMS_BestCorrel5,"MS_BestCor5"},
              //---------------------------------------
-                {eModeCaracMatch::eMCM_BestCQ2,"BestCQ2"},
-                {eModeCaracMatch::eMCM_BestCQ3,"BestCQ3"},
-                {eModeCaracMatch::eMCM_WorstCQ2,"WorstCQ2"},
-                {eModeCaracMatch::eMCM_WorstCQ3,"WorstCQ3"},
-                {eModeCaracMatch::eMCM_WorstCQ4,"WorstCQ4"},
-                {eModeCaracMatch::eMCM_WorstCQ5,"WorstCQ5"},
+                {eModeCaracMatch::eMS_BestCQ2,"MS_BestCQ2"},
+                {eModeCaracMatch::eMS_BestCQ3,"MS_BestCQ3"},
+                {eModeCaracMatch::eMS_WorstCQ2,"MS_WorstCQ2"},
+                {eModeCaracMatch::eMS_WorstCQ3,"MS_WorstCQ3"},
+                {eModeCaracMatch::eMS_WorstCQ4,"MS_WorstCQ4"},
+                {eModeCaracMatch::eMS_WorstCQ5,"MS_WorstCQ5"},
              //---------------------------------------
-                {eModeCaracMatch::eMCM_CornW180,"CornW180"},
-                {eModeCaracMatch::eMCM_CornW90 ,"CornW90"},
+                {eModeCaracMatch::eMS_CornW180,"MS_CornW180"},
+                {eModeCaracMatch::eMS_CornW90 ,"MS_CornW90"},
              //---------------------------------------
-                {eModeCaracMatch::eMCM_DifGray,"DifGray"},
-                {eModeCaracMatch::eMCM_MinGray,"MinGray"},
-                {eModeCaracMatch::eMCM_MinStdDev1,"MinStdDev1"},
-                {eModeCaracMatch::eMCM_MinStdDev2,"MinStdDev2"},
-                {eModeCaracMatch::eMCM_MinStdDev3,"MinStdDev3"},
-                {eModeCaracMatch::eMCM_MinStdDev4,"MinStdDev4"},
-                {eModeCaracMatch::eMCM_MinStdDevW,"MinStdDevW"}
+                {eModeCaracMatch::eMS_MinStdDev1,"MS_MinStdDev1"},
+                {eModeCaracMatch::eMS_MinStdDev2,"MS_MinStdDev2"},
+                {eModeCaracMatch::eMS_MinStdDev3,"MS_MinStdDev3"},
+                {eModeCaracMatch::eMS_MinStdDev4,"MS_MinStdDev4"},
+                {eModeCaracMatch::eMS_MinStdDevW,"MS_MinStdDevW"},
+
+      // -----########## NORMALIZED IMAGES ##############
+
+             //---------------------------------------
+                {eModeCaracMatch::eNI_DifGray,"NI_DifGray"},
+                {eModeCaracMatch::eNI_MinGray,"NI_MinGray"},
+
+             //---------------------------------------
+                {eModeCaracMatch::eNI_Diff1,"NI_Diff1"}, // 5
+                {eModeCaracMatch::eNI_Diff2,"NI_Diff2"},
+                {eModeCaracMatch::eNI_Diff3,"NI_Diff3"},
+                {eModeCaracMatch::eNI_Diff5,"NI_Diff5"},
+                {eModeCaracMatch::eNI_Diff7,"NI_Diff7"},
+
+      // -----########## STD IMAGES ##############
+
+             //---------------------------------------
+                {eModeCaracMatch::eSTD_Cor1,"STD_Cor1"}, // 5 + 4 = 9
+                {eModeCaracMatch::eSTD_Cor2,"STD_Cor2"},
+                {eModeCaracMatch::eSTD_Cor3,"STD_Cor3"},
+                {eModeCaracMatch::eSTD_Cor4,"STD_Cor4"},
+
+             //---------------------------------------
+                {eModeCaracMatch::eSTD_NCCor1,"STD_NCCor1"}, // 9 + 4 = 13
+                {eModeCaracMatch::eSTD_NCCor2,"STD_NCCor2"},
+                {eModeCaracMatch::eSTD_NCCor3,"STD_NCCor3"},
+                {eModeCaracMatch::eSTD_NCCor4,"STD_NCCor4"},
+
+             //---------------------------------------
+                {eModeCaracMatch::eSTD_Diff1,"STD_Diff1"}, // 13 + 5 = 18
+                {eModeCaracMatch::eSTD_Diff2,"STD_Diff2"},
+                {eModeCaracMatch::eSTD_Diff3,"STD_Diff3"},
+                {eModeCaracMatch::eSTD_Diff5,"STD_Diff5"},
+                {eModeCaracMatch::eSTD_Diff7,"STD_Diff7"},
+
+             //---------------------------------------
+                {eModeCaracMatch::eSTD_CQ2,"STD_CQ2"},  // 18 + 4 = 22
+                {eModeCaracMatch::eSTD_CQ4,"STD_CQ4"},
+                {eModeCaracMatch::eSTD_CQ6,"STD_CQ6"},
+                {eModeCaracMatch::eSTD_CQ8,"STD_CQ8"},
+
+             //---------------------------------------
+                {eModeCaracMatch::eSTD_Cen2,"STD_Cen2"},  // 22 + 4 = 26
+                {eModeCaracMatch::eSTD_Cen4,"STD_Cen4"},
+                {eModeCaracMatch::eSTD_Cen6,"STD_Cen6"},
+                {eModeCaracMatch::eSTD_Cen8,"STD_Cen8"}
+
            };
 TPL_ENUM_2_STRING(eModeCaracMatch);
 /****************************  BENCH **************************/
@@ -326,4 +372,6 @@ void BenchEnum(cParamExeBench & aParam)
 
 
 };
+
+
 

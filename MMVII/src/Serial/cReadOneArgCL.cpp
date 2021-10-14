@@ -289,6 +289,11 @@ MACRO_INSTANTIATE_ARG2007(eModeEpipMatch)
 MACRO_INSTANTIATE_ARG2007(eModePaddingEpip)
 MACRO_INSTANTIATE_ARG2007(eModeCaracMatch)
 
+MACRO_INSTANTIATE_ARG2007(cBox2di)
+MACRO_INSTANTIATE_ARG2007(cBox2dr)
+MACRO_INSTANTIATE_ARG2007(cBox3di)
+MACRO_INSTANTIATE_ARG2007(cBox3dr)
+
 /*
 template <> tPtrArg2007 AOpt2007<int>(int &,const std::string & aName, const std::string & aCom);
 

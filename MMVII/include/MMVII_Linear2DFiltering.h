@@ -219,9 +219,15 @@ struct cFilterPCar
          bool              LPS_CensusMode() const;   ///< Do Normalization in census mode
          bool              LPS_Interlaced() const;   ///< Interlace teta at each step of rho
 
+         std::vector<double> &  LPQuantif();  ///< Parameter for quantif , float -> U_INT1
+         const double &         LPQ_Steep0() const; ///< Value of steep in 0, -1 mean infinty
+         const double &         LPQ_Exp() const;    ///< Exposant
+
+
          const std::vector<cPt2dr> & VDirTeta0() const;
          const std::vector<cPt2dr> & VDirTeta1() const;
 
+         void AddData(const cAuxAr2007 & anAux);
      private :
          void InitDirTeta() const;
          bool                 mIsForTieP;
@@ -230,10 +236,14 @@ struct cFilterPCar
          std::vector<double>  mEQsf; ///< Exposant for quality of point before spatial filter [AutoC,Var,Scale]
          std::vector<double>  mLPCirc;  ///< Circles of Log Pol param [Rho0,DeltaSI0,DeltaI]
          std::vector<double>  mLPSample;  ///< Sampling Mode for LogPol [NbTeta,NbRho,Multiplier,CensusNorm]
+         std::vector<double>  mLPQuantif;  ///< Quantification Mode after Census Quant [Steep,Exp]
 
          mutable std::vector<cPt2dr>  mVDirTeta0;
          mutable std::vector<cPt2dr>  mVDirTeta1;
 }; 
+
+void AddData(const cAuxAr2007 & anAux, cFilterPCar &    aFPC);
+
 
 /// Struct for parametrization of Gaussian Pyramid
 

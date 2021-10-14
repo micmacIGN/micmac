@@ -2407,6 +2407,31 @@ void  BinaryUnDumpFromFile(cMultiCorrelPonctuel &,ELISE_fp &);
 
 std::string  Mangling( cMultiCorrelPonctuel *);
 
+class cScoreLearnedMMVII
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cScoreLearnedMMVII & anObj,cElXMLTree * aTree);
+
+
+        std::string & FileModeleCost();
+        const std::string & FileModeleCost()const ;
+
+        double & DynCost();
+        const double & DynCost()const ;
+    private:
+        std::string mFileModeleCost;
+        double mDynCost;
+};
+cElXMLTree * ToXMLTree(const cScoreLearnedMMVII &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cScoreLearnedMMVII &);
+
+void  BinaryUnDumpFromFile(cScoreLearnedMMVII &,ELISE_fp &);
+
+std::string  Mangling( cScoreLearnedMMVII *);
+
 class cCorrel_Ponctuel2ImGeomI
 {
     public:
@@ -2805,6 +2830,9 @@ class cTypeCAH
         cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel();
         const cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel()const ;
 
+        cTplValGesInit< cScoreLearnedMMVII > & ScoreLearnedMMVII();
+        const cTplValGesInit< cScoreLearnedMMVII > & ScoreLearnedMMVII()const ;
+
         cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI();
         const cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI()const ;
 
@@ -2828,6 +2856,7 @@ class cTypeCAH
         cTplValGesInit< cGPU_Correl > mGPU_Correl;
         cTplValGesInit< cGPU_CorrelBasik > mGPU_CorrelBasik;
         cTplValGesInit< cMultiCorrelPonctuel > mMultiCorrelPonctuel;
+        cTplValGesInit< cScoreLearnedMMVII > mScoreLearnedMMVII;
         cTplValGesInit< cCorrel_Ponctuel2ImGeomI > mCorrel_Ponctuel2ImGeomI;
         cTplValGesInit< cCorrel_PonctuelleCroisee > mCorrel_PonctuelleCroisee;
         cTplValGesInit< cCorrel_MultiFen > mCorrel_MultiFen;
@@ -2892,6 +2921,9 @@ class cCorrelAdHoc
 
         cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel();
         const cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel()const ;
+
+        cTplValGesInit< cScoreLearnedMMVII > & ScoreLearnedMMVII();
+        const cTplValGesInit< cScoreLearnedMMVII > & ScoreLearnedMMVII()const ;
 
         cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI();
         const cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI()const ;
@@ -4398,6 +4430,9 @@ class cEtapeMEC
 
         cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel();
         const cTplValGesInit< cMultiCorrelPonctuel > & MultiCorrelPonctuel()const ;
+
+        cTplValGesInit< cScoreLearnedMMVII > & ScoreLearnedMMVII();
+        const cTplValGesInit< cScoreLearnedMMVII > & ScoreLearnedMMVII()const ;
 
         cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI();
         const cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & Correl_Ponctuel2ImGeomI()const ;

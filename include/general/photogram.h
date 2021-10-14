@@ -1238,6 +1238,11 @@ class EpipolaireCoordinate : public ElDistortion22_Gen
         //     P ->  aChSacle * Pol(P/aChSacle)
              virtual EpipolaireCoordinate *
              MapingChScale(REAL aChSacle) const = 0;
+	     // Def => fatal error
+	     virtual void  XFitHom(const ElPackHomologue &,bool aL2,EpipolaireCoordinate *);
+	     virtual bool  HasXFitHom() const;
+	     virtual std::vector<double>  ParamFitHom() const;
+
 
              // Fait heriter les parametre globaux aP0, aDirX, aTrFin
                void HeriteChScale(EpipolaireCoordinate &,REAL aChSacle);
@@ -1343,6 +1348,11 @@ class PolynomialEpipolaireCoordinate : public EpipolaireCoordinate
               EpipolaireCoordinate * MapingChScale(REAL aChSacle) const;
               PolynomialEpipolaireCoordinate * PolMapingChScale(REAL aChSacle) const;
 
+	      // Create new Pol, fixing mC0.., so to mimimize the global paralax
+	      void  XFitHom(const ElPackHomologue &,bool aL2,EpipolaireCoordinate *) override;
+	      bool  HasXFitHom() const override;
+	      std::vector<double>  ParamFitHom() const override;
+
       private :
 
           INT DeltaDegre() const;
@@ -1353,6 +1363,15 @@ class PolynomialEpipolaireCoordinate : public EpipolaireCoordinate
 
           Pt2dr ToCoordEpipol(Pt2dr aPInit) const;
           Pt2dr ToCoordInit(Pt2dr aPEpi) const;
+
+	  //  X' = (mNum0 + mNumx X + mNumy Y) / (1 + mDenx X + mDeny Y)
+	  //  X  = 
+	  double mNum0;
+	  double mNumx;
+	  double mNumy;
+	  double mDenx;
+	  double mDeny;
+	  bool   mCorCalc;
 };
 
 

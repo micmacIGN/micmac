@@ -1,6 +1,10 @@
 #ifndef _SymbolicDerivatives_H_
 #define _SymbolicDerivatives_H_
 
+// If true, this directive require CERES installed, then it allows a comparison with CERES/Jet (for a potential publication) ..
+#define MMVII_WITH_CERES false
+
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif

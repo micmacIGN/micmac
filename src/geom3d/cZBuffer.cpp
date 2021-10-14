@@ -158,15 +158,6 @@ bool ERupnik_MM();
 
 static Pt2di ORIG_BoxBug(735,484);
 
-/*
-Im2D_REAL4 cZBuffer::BasculerAndInterpoleInverse
-           (
-               Pt2di & aOffset_Out_00,
-               Pt2di aP0In,
-               Pt2di aP1In,
-               float aDef
-           )
-*/
 
 Im2D_REAL4 cZBuffer::Basculer
            (
@@ -887,11 +878,22 @@ Im2D_REAL4 cZBuffer::BasculerAndInterpoleInverse
                Pt2di & aOffset_Out_00,
                Pt2di aP0In,
                Pt2di aP1In,
-               float aDef
+               float aDef,
+	       bool * OkRes
            )
 
 {
-    Im2D_REAL4 aRes = Basculer(aOffset_Out_00,aP0In,aP1In,aDef);
+    bool OkBasc;
+    Im2D_REAL4 aRes = Basculer(aOffset_Out_00,aP0In,aP1In,aDef,&OkBasc);
+
+    if (OkRes) 
+       *OkRes = OkBasc;
+
+    if (! OkBasc)
+    {
+        ELISE_ASSERT(OkRes,"Cannot do cZBuffer::BasculerAndInterpoleInverse");
+	return aRes;
+    }
 
 int aNBC = 0;
     Pt2di aP;

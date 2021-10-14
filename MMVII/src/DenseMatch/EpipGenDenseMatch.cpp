@@ -288,7 +288,7 @@ std::string  cOneLevel::NameClipPx(const cPt2di & aInd) const
 
 std::string  cOneLevel::NameClipDirTmp(const cPt2di & aInd) const
 {
-     return     "ClipDirTmp_" + Index2Str(aInd) + DirSeparator();
+     return     "ClipDirTmp_" + Index2Str(aInd) + StringDirSeparator();
 }
   
 

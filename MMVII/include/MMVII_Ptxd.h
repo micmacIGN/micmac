@@ -113,7 +113,36 @@ template <class Type,const int Dim> class cPtxd
        Type mCoords[Dim];
 };
 
-template <const int Dim>  std::vector<cPtxd<int,Dim>> & AllocNeighbourhood(int aNbVois);
+    ///  1 dimension specializatio,
+typedef cPtxd<double,1>  cPt1dr ;
+typedef cPtxd<int,1>     cPt1di ;
+typedef cPtxd<float,1>   cPt1df ;
+
+    ///  2 dimension specialization
+typedef cPtxd<tREAL16,2> cPt2dLR ;
+typedef cPtxd<double,2>  cPt2dr ;
+typedef cPtxd<int,2>     cPt2di ;
+typedef cPtxd<float,2>   cPt2df ;
+
+
+
+// Create the neighboord, ie pixel not nul, with coord in [-1,0,1]  having a  number of value  !=0  <= to aNbVois
+// If dim =2 aNbVois->1 create the 4 neigh, NbVois-> 2 create the 8 neigh
+// If Dim=3   1-> 6  2->    3->26 ( 3^3 -1)
+template <const int Dim>  const std::vector<cPtxd<int,Dim>> & AllocNeighbourhood(int aNbVois);
+
+//  Create a tab where K entrie represent vectors having NormInf equal to K
+//  !! =>  Entry go from 0 to aDistMax included
+//  !! =>   the size can be larger (but obviously not smaller) than dist required, as function remumber previous calls ....
+template <const int Dim>  const std::vector<std::vector<cPtxd<int,Dim>>> & TabGrowNeigh(int aDistMax);
+
+/// Return pixel between two radius, the order make them as sparse as possible (slow method in N^3) => To implement ???? No longer know what I wanted to do ???
+//std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
+/// Implemented
+std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
+
+
+
 
 
 /** "Strange" function, because require DimIn=DimOut, but sometime we need to do this cast, 
@@ -347,18 +376,6 @@ template<class T,const int Dim> cPtxd<T,Dim>  VUnit(const cPtxd<T,Dim> & aP);
 template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,Dim> &aP);
 
 
-    ///  1 dimension specializatio,
-typedef cPtxd<double,1>  cPt1dr ;
-typedef cPtxd<int,1>     cPt1di ;
-typedef cPtxd<float,1>   cPt1df ;
-
-    ///  2 dimension specialization
-typedef cPtxd<tREAL16,2> cPt2dLR ;
-typedef cPtxd<double,2>  cPt2dr ;
-typedef cPtxd<int,2>     cPt2di ;
-typedef cPtxd<float,2>   cPt2df ;
-
-
 
 template <class T,const int Dim> inline double RatioMax(const cPtxd<T,Dim> & aP1,const cPtxd<T,Dim> & aP2)
 {
@@ -377,6 +394,7 @@ typedef cPtxd<float,3>   cPt3df ;
 // Most frequent conversion
 inline cPt2di ToI(const cPt2dr & aP) {return cPt2di(round_ni(aP.x()),round_ni(aP.y()));}
 inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
+inline cPt2dr ToR(const cPt2df & aP) {return cPt2dr(aP.x(),aP.y());}
 inline cPt3di ToI(const cPt3dr & aP) {return cPt3di(round_ni(aP.x()),round_ni(aP.y()),round_ni(aP.z()));}
 inline cPt3dr ToR(const cPt3di & aP) {return cPt3dr(aP.x(),aP.y(),aP.z());}
 
@@ -449,11 +467,6 @@ template <class Type,const int Dim> void MakeBox(cPtxd<Type,Dim> & aP0,cPtxd<Typ
         OrderMinMax(aP0[aK],aP1[aK]);
 }
 
-/// Return pixel between two radius, the order make them as sparse as possible (slow method in N^3) => To implement ???? No longer know what I wanted to do ???
-//std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
-/// Implemented
-std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
-
 
 //  === TABULATION OF NEIGHBOORING
 
@@ -488,6 +501,10 @@ template <class Type,const int Dim>  class cTplBox
         const tPt & P0() const {return mP0;} ///< Origin of object
         const tPt & P1() const {return mP1;} ///< End of object
         const tPt & Sz() const {return mSz;} ///< Size of object
+
+	 // SEE BELLOW, IF USE RESYNCRONIZE OBJECT AFTER  , GIVE COMPLICATED NAME ON PURPOSE
+        tPt & P0ByRef() {return mP0;} ///< Origin of object
+        tPt & P1ByRef() {return mP1;} ///< End of object
 
         const tBigNum & NbElem() const {return mNbElem;}  ///< Surface  / Volume
 
@@ -546,6 +563,7 @@ template <class Type,const int Dim>  class cTplBox
     private :
 };
 
+
 /** Function computing corner of box, this one is specific to dim=1 because it respect
 trigonometric order, a notion not generalisable */
 
@@ -553,9 +571,15 @@ template <class Type> void CornersTrigo(typename cTplBox<Type,2>::tCorner & aRes
 
 typedef cTplBox<int,2>  cBox2di; 
 typedef cTplBox<double,2>  cBox2dr; 
+typedef cTplBox<int,3>  cBox3di; 
+typedef cTplBox<double,3>  cBox3dr; 
 cBox2dr ToR(const cBox2di &);  ///< Basic conversion
 cBox2di ToI(const cBox2dr &);  ///< Convert in englobing mode
 cBox2dr operator * (const cBox2dr & aBox,double aScale); ///< just multiply each coord
+
+
+// Is window inside the box taking into account bilinear interpol ?
+template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW);
 
 template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cTplBox<Type,Dim> &aBox)
 { return  OS << "{" << aBox.P0() <<   " :: " << aBox.P1()<< "}"; }

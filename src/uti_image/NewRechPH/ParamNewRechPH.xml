@@ -103,6 +103,16 @@
        <Scale   Nb="1" Type="double">  </Scale>
    </PtSc>
 
+   <Xml_TestDMP  Nb="1" Class="true" ToReference="true">
+         <PxMin  Nb="1" Type="Im2D_INT2"> </PxMin>
+         <PxMax  Nb="1" Type="Im2D_INT2"> </PxMax>
+         <ImCpt  Nb="1" Type="Im2D_INT4"> </ImCpt>
+         <DataIm  Nb="1" Type="Im2D_U_INT2"> </DataIm>
+
+         <StepPx Nb="1" Type="double"> </StepPx>
+         <DynPx  Nb="1" Type="double"> </DynPx>
+   </Xml_TestDMP>
+
    <OneInvRad  Nb="1" Class="true" ToReference="true">
          <!-- y :  NumVect , x : Rho -->
          <ImRad Nb="1" Type="Im2D_INT1"> </ImRad>

@@ -153,7 +153,7 @@ int cAppli_ComputeParamIndexBinaire::Exe()
 void  cAppli_ComputeParamIndexBinaire::ProcessOneDir(const std::string & aDir)
 {
     StdOut() << "================== " << mPatPCar << " ===========\n";
-    mDirCurPC = mDirGlob + aDir + DirSeparator(); // Compute full name of folder for data
+    mDirCurPC = mDirGlob + aDir + StringDirSeparator(); // Compute full name of folder for data
 
     cDataOneInvRad * aLast = nullptr;
     // For all type of invariant create a structure from the folder

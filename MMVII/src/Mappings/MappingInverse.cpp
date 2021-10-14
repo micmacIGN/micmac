@@ -556,7 +556,7 @@ template <class Type,const int Dim> class  cComputeMapInverse
         std::vector<tPtI>         mNextGen; ///< Next generation of pixel in growing region
         cDenseMatrix<Type>        mJacInv0; ///< Matrix invert of Jacobian in PSeed
         cDenseMatrix<Type>        mMatId;   ///< Id Matrix, helper for computing Jacobian criteria
-        std::vector<tPtI> &       mNeigh; ///< Neighbourhood for image-morpho-operation
+        const std::vector<tPtI> &       mNeigh; ///< Neighbourhood for image-morpho-operation
         std::vector<tExtent>      mVExt; ///< Vector of "extension" to the frontier
         bool                      mTest; ///< Are we in test mode ?
     public :

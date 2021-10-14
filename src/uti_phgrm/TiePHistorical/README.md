@@ -1,8 +1,9 @@
 # *Historical pipeline* - tie-points extraction in diachronic images
 
-The algorithm uses a python implementation of the [SuperGlue](https://github.com/magicleap/SuperGluePretrainedNetwork) sparse point detector and matcher. For more details please see:
-* the full paper - add ref
-* the tutorial - add ref
+The algorithm uses a python implementation of the [SuperGlue](https://github.com/magicleap/SuperGluePretrainedNetwork) ([paper](https://arxiv.org/abs/1911.11763)) sparse point detector and matcher (see the license below). For more details please see:
+* Zhang, L., Rupnik, E., Pierrot-Deseilligny, M. (2021). Feature matching for multi-epoch historical aerial images. ISPRS Journal of Photogrammetry and Remote Sensing.
+* [Tutorial using historical aerial images](https://colab.research.google.com/drive/1poEXIeKbPcJT_2hyQOBhzcj1EEhO8OgD)
+* [Tutorial using aerial and satellite images](https://colab.research.google.com/drive/14okQ8bBhEZmy6EGRIQvazTqrN39oc_K5)
 
 <p align="center">
   <img src="TiePHisto_pipeline.png" width="500">
@@ -21,3 +22,7 @@ Virtualenv files are stored in python_env/, remove the directory to remove the v
 The pipeline is accessible via 
 
 ```mm3d TiePHistoP -help```
+
+## License
+
+This code uses third-party code that is not permitted for commercial use. Please refer to [SuperGlue license](https://github.com/magicleap/SuperGluePretrainedNetwork/blob/master/LICENSE) for more information.

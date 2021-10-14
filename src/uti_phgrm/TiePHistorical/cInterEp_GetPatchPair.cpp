@@ -78,23 +78,6 @@ pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
-bool FallInBox(Pt2dr* aPCorner, Pt2dr aLeftTop, Pt2di aRightLower)
-{
-    if((aPCorner[0].x < aLeftTop.x) && (aPCorner[1].x < aLeftTop.x) && (aPCorner[2].x < aLeftTop.x) && (aPCorner[3].x < aLeftTop.x))
-        return false;
-
-    if((aPCorner[0].y < aLeftTop.y) && (aPCorner[1].y < aLeftTop.y) && (aPCorner[2].y < aLeftTop.y) && (aPCorner[3].y < aLeftTop.y))
-        return false;
-
-    if((aPCorner[0].x > aRightLower.x) && (aPCorner[1].x > aRightLower.x) && (aPCorner[2].x > aRightLower.x) && (aPCorner[3].x > aRightLower.x))
-        return false;
-
-    if((aPCorner[0].y > aRightLower.y) && (aPCorner[1].y > aRightLower.y) && (aPCorner[2].y > aRightLower.y) && (aPCorner[3].y > aRightLower.y))
-        return false;
-
-    return true;
-}
-
 std::string GetFileName(std::string strIn)
 {
     std::string strOut = strIn;
@@ -117,7 +100,7 @@ std::string GetFolderName(std::string strIn)
     return strOut;
 }
 
-void WriteXml(std::string aImg1, std::string aImg2, std::string aSubPatchXml, std::vector<std::string> vPatchesL, std::vector<std::string> vPatchesR, std::vector<cElHomographie> vHomoL, std::vector<cElHomographie> vHomoR)
+void WriteXml(std::string aImg1, std::string aImg2, std::string aSubPatchXml, std::vector<std::string> vPatchesL, std::vector<std::string> vPatchesR, std::vector<cElHomographie> vHomoL, std::vector<cElHomographie> vHomoR, bool bPrint)
 {
     //cout<<aSubPatchXml<<endl;
     cSetOfPatches aDAFout;
@@ -139,6 +122,12 @@ void WriteXml(std::string aImg1, std::string aImg2, std::string aSubPatchXml, st
         patch1.NamePatch() = vPatchesL[i];
         patch1.PatchH() = vHomoL[i].ToXml();
         aIms1.OnePatch1I().push_back(patch1);
+
+        if(bPrint)
+        {
+            printf("%d, %s: \n", i, vPatchesL[i].c_str());
+            vHomoL[i].Show();
+        }
     }
 
     for(int i=0; i < nPatchNumR; i++)
@@ -147,6 +136,12 @@ void WriteXml(std::string aImg1, std::string aImg2, std::string aSubPatchXml, st
         patch2.NamePatch() = vPatchesR[i];
         patch2.PatchH() = vHomoR[i].ToXml();
         aIms2.OnePatch1I().push_back(patch2);
+
+        if(bPrint)
+        {
+            printf("%d, %s: \n", i, vPatchesR[i].c_str());
+            vHomoR[i].Show();
+        }
     }
 
     aDAFout.Mes1Im().push_back(aIms1);
@@ -155,9 +150,9 @@ void WriteXml(std::string aImg1, std::string aImg2, std::string aSubPatchXml, st
     MakeFileXML(aDAFout, aSubPatchXml);
 }
 
-//simply clip images to get left patches (m patches), and resample images to get right patches (m patches). The number of pairs to be matched will be m.
+//simply clip images to get master patches (m patches), and resample images to get secondary patches (m patches). The number of pairs to be matched will be m.
 //mainly used for precise matching
-void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg2, std::string aImg1, std::string aImg2, std::string aIm1OriFile, std::string aIm2OriFile, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aImgPair, std::string aDir, std::string aSubPatchXml, cTransform3DHelmert aTrans3DH, std::string aDSMFileL, std::string aDSMDirL, bool bPrint=false, std::string aPrefix="")
+void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg2, std::string aImg1, std::string aImg2, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aImgPair, std::string aDir, std::string aSubPatchXml, cTransform3DHelmert aTrans3DH, std::string aDSMFileL, std::string aDSMDirL, double aThres, double dDyn, bool bPrint=false, std::string aPrefix="")
 {
     std::string aOriginImg1 = aImg1;
 
@@ -177,6 +172,36 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
     Tiff_Im aRGBIm2((aDir+aImg2).c_str());
     Pt2di ImgSzR = aRGBIm2.sz();
 
+    GenIm::type_el aTypeIm1 = aRGBIm1.type_el();
+    GenIm::type_el aTypeIm2 = aRGBIm2.type_el();
+
+    cout<<"type of "<<aImg1<<": "<<aTypeIm1<<endl;
+    cout<<"type of "<<aImg2<<": "<<aTypeIm2<<endl;
+
+    std::string aImgRef1 = aImg1;
+    std::string aImgRef2 = aImg2;
+    bool bTo8Bits1 = false;
+    bool bTo8Bits2 = false;
+
+    if(aTypeIm1 == 2)
+    {
+        aImgRef1 = aImg1 + "_to8Bits.tif";
+        std::string aComto8Bits = MMBinFile(MM3DStr) + "to8Bits " + aImg1 + " Out=" + aImgRef1 + " Dyn=" + ToString(dDyn);
+        cout<<aComto8Bits<<endl;
+        System(aComto8Bits);
+        bTo8Bits1 = true;
+        //cout<<aImg1<<" transformed to "<<aImgRef1<<endl;
+    }
+    if(aTypeIm2 == 2)
+    {
+        aImgRef2 = aImg2 + "_to8Bits.tif";
+        std::string aComto8Bits = MMBinFile(MM3DStr) + "to8Bits " + aImg2 + " Out=" + aImgRef2 + " Dyn=" + ToString(dDyn);
+        cout<<aComto8Bits<<endl;
+        System(aComto8Bits);
+        bTo8Bits2 = true;
+        //cout<<aImg2<<" transformed to "<<aImgRef2<<endl;
+    }
+
     Pt2dr CoreaPatchSz;
     CoreaPatchSz.x = aPatchSz.x - aBufferSz.x*2;
     CoreaPatchSz.y = aPatchSz.y - aBufferSz.y*2;
@@ -185,25 +210,18 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
     PatchNum.x = ceil(ImgSzL.x*1.0/CoreaPatchSz.x);
     PatchNum.y = ceil(ImgSzL.y*1.0/CoreaPatchSz.y);
 
+    int aType = eTIGB_Unknown;
+    std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
+    std::string aIm2OriFile = aICNM->StdNameCamGenOfNames(aOri2, aImg2);
+    cBasicGeomCap3D * aCamL = cBasicGeomCap3D::StdGetFromFile(aIm1OriFile,aType);
+    cBasicGeomCap3D * aCamR = cBasicGeomCap3D::StdGetFromFile(aIm2OriFile,aType);
+    double dZL = aCamL->GetAltiSol();
 
-    //cInterfChantierNameManipulateur * anICNM = cInterfChantierNameManipulateur::BasicAlloc("./");
-
-
-    //ElCamera * aCamL = CamOrientGenFromFile(aNameOriL+"/Orientation-"+aImg1+".xml", anICNM);
-    //ElCamera * aCamR = CamOrientGenFromFile(aNameOriR+"/Orientation-"+aImg2+".xml", anICNM);
-
-    //ElCamera * aCamL = BasicCamOrientGenFromFile(aIm1OriFile);
-    ElCamera * aCamR = BasicCamOrientGenFromFile(aIm2OriFile);
-
-
-    ElCamera * aCamL = BasicCamOrientGenFromFile(aIm1OriFile);
-    double prof_d = aCamL->GetProfondeur();
-    double altiSol = aCamL->GetAltiSol();
     if(bPrint)
     {
-        printf("GetProfondeur: %.2lf, GetAltiSol: %.2lf\n", prof_d, altiSol);
+        //printf("GetProfondeur: %.2lf, GetAltiSol: %.2lf\n", prof_d, altiSol);
+        printf("GetAltiSol: %.2lf\n", dZL);
     }
-
 
     Pt2dr aPCornerPatch[4];
     Pt2dr origin = Pt2dr(0, 0);
@@ -219,7 +237,7 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
     std::vector<string> vaImgPair;
     int m, n;
     std::list<std::string> aLComClip, aLComResample;
-    std::string aComBaseClip = MMBinFile(MM3DStr) + "ClipIm " + aImg1 + " ";
+    std::string aComBaseClip = MMBinFile(MM3DStr) + "ClipIm " + aImgRef1 + " ";
     std::string aComBaseResample = MMBinFile(MM3DStr) + "TestLib OneReechFromAscii ";
     std::string aClipSz = " ["+std::to_string(int(aPatchSz.x))+","+std::to_string(int(aPatchSz.y))+"] ";
 
@@ -237,17 +255,17 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
             origin.x = m*CoreaPatchSz.x - aBufferSz.x;
             origin.y = n*CoreaPatchSz.y - aBufferSz.y;
 
-            // 1. use ClipIm command to clip first image into patches
-            std::string aComClipFirstImg = aComBaseClip + " ["+std::to_string(int(origin.x))+","+std::to_string(int(origin.y))+"] " + aClipSz + " Out="+aOutDir+"/"+aSubImg1;
-            cout<<aComClipFirstImg<<endl;
-            aLComClip.push_back(aComClipFirstImg);
+            // 1. use ClipIm command to clip master image into patches
+            std::string aComClipMasterImg = aComBaseClip + " ["+std::to_string(int(origin.x))+","+std::to_string(int(origin.y))+"] " + aClipSz + " Out="+aOutDir+"/"+aSubImg1;
+            cout<<aComClipMasterImg<<endl;
+            aLComClip.push_back(aComClipMasterImg);
 
             cElComposHomographie aFstHX(1, 0, origin.x);
             cElComposHomographie aFstHY(0, 1, origin.y);
             cElComposHomographie aFstHZ(0, 0,        1);
             cElHomographie  aFstH =  cElHomographie(aFstHX,aFstHY,aFstHZ);
 
-            // 2. use "TestLib OneReechFromAscii" command to clip second image into patches by reprojecting the first patches to the second image
+            // 2. use "TestLib OneReechFromAscii" command to clip secondary image into patches by reprojecting the master patches to the secondary image
             if(true)
             {
                 double dScaleL = 1;
@@ -267,20 +285,26 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
                     aP1.y = aP1.y*dScaleL;
 
                     Pt3dr aPTer1;
-                    if(aDSMDirL.length() > 0)
-                    {
+                    /*if(aDSMDirL.length() > 0)
+                    {*/
                         cGet3Dcoor a3DCoorL(aIm1OriFile);
-                        TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+                        cDSMInfo aDSMInfoL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+                        //TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
                         bool bValidL;
-                        aPTer1 = a3DCoorL.Get3Dcoor(aP1, aTImProfPxL, bValidL);
-                    }
+                        aPTer1 = a3DCoorL.Get3Dcoor(aP1, aDSMInfoL, bValidL, bPrint, aThres);//, a3DCoorL.GetGSD());
+                    /*}
                     else
-                        aPTer1 = aCamL->ImEtProf2Terrain(aP1, prof_d);
-                    //Pt3dr Pt_H_sol = aCamL->ImEtZ2Terrain(aP1, altiSol);
+                    {
+                        //aPTer1 = aCamL->ImEtProf2Terrain(aP1, prof_d);
+                        aPTer1 = aCamL->ImEtZ2Terrain(aP1, dZL);
+                    }*/
+                    //Pt2dr aP2 = aCamL->Ter2Capteur(aPTer1);
+                    //printf("%.2lf\t%.2lf\t%.2lf\t%.2lf\n", aP1.x, aP1.y, aP2.x, aP2.y);
 
                     aPTer1 = aTrans3DH.Transform3Dcoor(aPTer1);
 
-                    aPCornerR[i] = aCamR->R3toF2(aPTer1);
+                    //aPCornerR[i] = aCamR->R3toF2(aPTer1);
+                    aPCornerR[i] = aCamR->Ter2Capteur(aPTer1);
                     aPCornerR[i].x = aPCornerR[i].x/dScaleL/dScaleR;
                     aPCornerR[i].y = aPCornerR[i].y/dScaleL/dScaleR;
 
@@ -306,7 +330,7 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
                     }
                     fclose(fpOutput);
 
-                    std::string aComResampleSndImg = aComBaseResample + aImg2  + " " + aNameSave + " Out="+aSubImg2 + " Show=true";
+                    std::string aComResampleSndImg = aComBaseResample + aImgRef2  + " " + aNameSave + " Out="+aSubImg2 + " Show=true";
                     cout<<aComResampleSndImg<<endl;
                     aLComResample.push_back(aComResampleSndImg);
 
@@ -326,17 +350,29 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
                     //aPack = ElPackHomologue::FromFile(aNameSave);
                     for(int i=0; i<4; i++)
                     {
-                        aPack.Cple_Add(ElCplePtsHomologues(aPCornerPatch[i], aPCornerR[i]));
+                        //aPack.Cple_Add(ElCplePtsHomologues(aPCornerPatch[i], aPCornerR[i]));
+                        if(bPrint)
+                            printf("aPCornerPatch[%d], aPCornerR[%d]: %.2lf\t%.2lf\t%.2lf\t%.2lf\n", i, i, aPCornerPatch[i].x, aPCornerPatch[i].y, aPCornerR[i].x, aPCornerR[i].y);
                     }
+                    if(ELISE_fp::exist_file(aNameSave))
+                        aPack = ElPackHomologue::FromFile(aNameSave);
+                    else
+                        for(int i=0; i<4; i++)
+                            aPack.Cple_Add(ElCplePtsHomologues(aPCornerPatch[i], aPCornerR[i]));
 
                     double anEcart,aQuality;
                     bool Ok;
                     cElHomographie aSndH = cElHomographie::RobustInit(anEcart,&aQuality,aPack,Ok,50,80.0,2000);
+                    std::cout << "Ecart " << anEcart << " ; Quality " << aQuality    << " \n";
 
                     vPatchesL.push_back(aSubImg1);
                     vHomoL.push_back(aFstH);
                     vPatchesR.push_back(aSubImg2);
                     vHomoR.push_back(aSndH);
+                    if(bPrint){
+                        aFstH.Show();
+                        aSndH.Show();
+                    }
             }
             //end
         }
@@ -354,12 +390,24 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
     }
     fclose(fpOutput);
 
-    WriteXml(aImg1, aImg2, aOutDir+aSubPatchXml, vPatchesL, vPatchesR, vHomoL, vHomoR);
+    WriteXml(aImg1, aImg2, aOutDir+aSubPatchXml, vPatchesL, vPatchesR, vHomoL, vHomoR, bPrint);
 
     cEl_GPAO::DoComInParal(aLComClip);
     cEl_GPAO::DoComInSerie(aLComResample);
     cEl_GPAO::DoComInParal(aComMv);
 
+    if(bTo8Bits1 == true)
+    {
+        std::string aComRemove ="rm -r " + aImgRef1;
+        System(aComRemove);
+        cout<<aComRemove<<endl;
+    }
+    if(bTo8Bits2 == true)
+    {
+        std::string aComRemove ="rm -r " + aImgRef2;
+        System(aComRemove);
+        cout<<aComRemove<<endl;
+    }
     /* if use cEl_GPAO::DoComInParal(aLComResample), something like this will happen:
     Error while file reading |
     FILE = ./Tmp-MM-Dir/14FRPCAB35x00014_01036.tif_Ch1.tif  pos = 20971528|
@@ -404,10 +452,10 @@ Pt2dr ClipImg(std::string aOutImg1, std::string aImg1, Pt2di ImgSzL, Pt2dr aPatc
             origin.x = m*CoreaPatchSz.x - aBufferSz.x;
             origin.y = n*CoreaPatchSz.y - aBufferSz.y;
 
-            // 1. use ClipIm command to clip first image into patches
-            std::string aComClipFirstImg = aComBaseClip + " ["+std::to_string(int(origin.x))+","+std::to_string(int(origin.y))+"] " + aClipSz + "Out="+aOutDir+"/"+aSubImg1;
-            //cout<<aComClipFirstImg<<endl;
-            aLComClip.push_back(aComClipFirstImg);
+            // 1. use ClipIm command to clip master image into patches
+            std::string aComClipMasterImg = aComBaseClip + " ["+std::to_string(int(origin.x))+","+std::to_string(int(origin.y))+"] " + aClipSz + "Out="+aOutDir+"/"+aSubImg1;
+            //cout<<aComClipMasterImg<<endl;
+            aLComClip.push_back(aComClipMasterImg);
 
             cElComposHomographie aFstHX(1, 0, origin.x);
             cElComposHomographie aFstHY(0, 1, origin.y);
@@ -421,10 +469,10 @@ Pt2dr ClipImg(std::string aOutImg1, std::string aImg1, Pt2di ImgSzL, Pt2dr aPatc
     return PatchNum;
 }
 
-//simply clip images to get left patches (m patches) and right patches (n patches).  The number of pairs to be matched will be m*n.
+//simply clip images to get master patches (m patches) and secondary patches (n patches).  The number of pairs to be matched will be m*n.
 //mainly used for rough co-registration
-//aOriImg1 is the orginal left image, aImg1 could be the same as aOriImg1 (in this case aIm1_OriImg1 is unit matrix), or rotated image based on aOriImg1
-void GetTilePair(std::string aOutDir, std::string aOriOutImg1, std::string aRotateOutImg1, std::string aOutImg2, std::string aImg1, std::string aImg2, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aImgPair, std::string aDir, std::string aSubPatchXml, std::string aOriImg1, cElHomographie aIm1_OriImg1)
+//aOriImg1 is the orginal master image, aImg1 could be the same as aOriImg1 (in this case aIm1_OriImg1 is unit matrix), or rotated image based on aOriImg1
+void GetTilePair(std::string aOutDir, std::string aOriOutImg1, std::string aRotateOutImg1, std::string aOutImg2, std::string aImg1, std::string aImg2, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aImgPair, std::string aDir, std::string aSubPatchXml, std::string aOriImg1, cElHomographie aIm1_OriImg1, bool bPrint)
 {
     //cout<<aDir<<endl;
     if (ELISE_fp::exist_file(aDir+aImg1) == false || ELISE_fp::exist_file(aDir+aImg2) == false)
@@ -486,7 +534,7 @@ void GetTilePair(std::string aOutDir, std::string aOriOutImg1, std::string aRota
         vHomoL[i] = aIm1_OriImg1*vHomoL[i];
     }
 
-    WriteXml(aOriOutImg1, aOutImg2, aOutDir+aSubPatchXml, vPatchesL, vPatchesR, vHomoL, vHomoR);
+    WriteXml(aOriOutImg1, aOutImg2, aOutDir+aSubPatchXml, vPatchesL, vPatchesR, vHomoL, vHomoR, bPrint);
 
     cEl_GPAO::DoComInParal(aLComClip);
     cEl_GPAO::DoComInParal(aRComClip);
@@ -567,21 +615,29 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
 
     bool bRotate = false;
 
+    Pt2dr aPatchSz(640, 480);
+    Pt2dr aBufferSz(0,0);
+
+    std::string aOutDir = "./Tmp_Patches-CoReg";
+
     ElInitArgMain
      (
          argc,argv,
          LArgMain()
                 << EAMC(aType,"BruteForce or Guided")
-                     << EAMC(aImg1,"First image name")
-                     << EAMC(aImg2,"Second image name"),
+                     << EAMC(aImg1,"Master image name")
+                     << EAMC(aImg2,"Secondary image name"),
          LArgMain()
-                     << EAM(bRotate,"Rotate",true,"Rotate the left image by 90 degree 4 times for methods not invariant to rotation (e.g. SuperGlue), Def=false")
+                << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
+                << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=[0,0]")
+                << EAM(bRotate,"Rotate",true,"Rotate the master image by 90 degree 4 times for matching methods which are not invariant to rotation (e.g. SuperGlue), Def=false")
+                << EAM(aOutDir, "OutDir", true, "Output direcotry of the patches, Def=./Tmp_Patches-CoReg")
                      << aCAS3D.ArgBasic()
                      << aCAS3D.ArgGetPatchPair()
      );
 
-    aCAS3D.mOutDir += "/";
-    ELISE_fp::MkDir(aCAS3D.mOutDir);
+    aOutDir += "/";
+    ELISE_fp::MkDir(aOutDir);
 
     std::string aOutImg1 = GetFolderName(aImg1) + "." + StdPostfix(aImg1);
     std::string aOutImg2 = GetFolderName(aImg2) + "." + StdPostfix(aImg2);
@@ -594,7 +650,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
        cElHomographie  aUnitH =  cElHomographie(aUnitHX,aUnitHY,aUnitHZ);
 
        //no rotation
-       GetTilePair(aCAS3D.mOutDir, aOutImg1, aOutImg1, aOutImg2, aImg1, aImg2, aCAS3D.mPatchSz, aCAS3D.mBufferSz, aCAS3D.mImgPair, aCAS3D.mDir, aCAS3D.mSubPatchXml, aImg1, aUnitH);
+       GetTilePair(aOutDir, aOutImg1, aOutImg1, aOutImg2, aImg1, aImg2, aPatchSz, aBufferSz, aCAS3D.mImgPair, aCAS3D.mDir, aCAS3D.mSubPatchXml, aImg1, aUnitH, aCAS3D.mPrint);
    }
 
    if(bRotate == true)
@@ -625,7 +681,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
            //cout<<aImg1_Rotate<<",,,"<<aSubPatchXml<<",,,"<<aImgPair<<endl;
 
            RotateImgBy90Deg(aCAS3D.mDir, aImgBase, aImg1_Rotate);
-           GetTilePair(aCAS3D.mOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aCAS3D.mPatchSz, aCAS3D.mBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH);
+           GetTilePair(aOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint);
        }
 
        //rotate 180 degree
@@ -645,7 +701,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
            //cout<<aImg1_Rotate<<",,,"<<aSubPatchXml<<",,,"<<aImgPair<<endl;
 
            RotateImgBy90DegNTimes(aCAS3D.mDir, aImgBase, aImg1_Rotate, 2);
-           GetTilePair(aCAS3D.mOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aCAS3D.mPatchSz, aCAS3D.mBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH);
+           GetTilePair(aOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint);
        }
 
        //rotate 270 degree
@@ -665,7 +721,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
            //cout<<aImg1_Rotate<<",,,"<<aSubPatchXml<<",,,"<<aImgPair<<endl;
 
            RotateImgBy90DegNTimes(aCAS3D.mDir, aImgBase, aImg1_Rotate, 3);
-           GetTilePair(aCAS3D.mOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aCAS3D.mPatchSz, aCAS3D.mBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH);
+           GetTilePair(aOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint);
        }
     }
 
@@ -685,51 +741,75 @@ int Guided(int argc,char ** argv, const std::string &aArg="")
 
     std::string aPara3DH = "";
 
-    bool bPrint = false;
+    //bool bPrint = false;
 
     std::string aDSMDirL = "";
     std::string aDSMFileL;
     aDSMFileL = "MMLastNuage.xml";
     std::string aPrefix = "";
 
+    double aThres = 2;
+
+    double dDyn = 0.1;
+
+    Pt2dr aPatchSz(640, 480);
+    Pt2dr aBufferSz(-1,-1);
+
+    std::string aOutDir = "./Tmp_Patches-Precise";
+
     ElInitArgMain
      (
          argc,argv,
          LArgMain()
                 << EAMC(aType,"BruteForce or Guided")
-                     << EAMC(aImg1,"First image name")
-                     << EAMC(aImg2,"Second image name")
-                     << EAMC(aOri1,"Orientation of first image")
-                     << EAMC(aOri2,"Orientation of second image"),
+                     << EAMC(aImg1,"Master image name")
+                     << EAMC(aImg2,"Secondary image name")
+                     << EAMC(aOri1,"Orientation of master image")
+                     << EAMC(aOri2,"Orientation of secondary image"),
          LArgMain()
                      << aCAS3D.ArgBasic()
                      << aCAS3D.ArgGetPatchPair()
-                << EAM(aPara3DH, "Para3DH", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of first image to second image, Def=none")
-                << EAM(bPrint, "Print", false, "Print corner coordinate, Def=false")
-                << EAM(aDSMDirL, "DSMDirL", true, "DSM directory of first image, Def=none")
-                << EAM(aDSMFileL, "DSMFileL", true, "DSM File of first image, Def=MMLastNuage.xml")
+                << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
+                << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=10%*PatchSz")
+                << EAM(aPara3DH, "Para3DH", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
+                //<< EAM(bPrint, "Print", false, "Print corner coordinate, Def=false")
+                << EAM(aDSMDirL, "DSMDirL", true, "DSM directory of master image, Def=none")
+                << EAM(aDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
                 << EAM(aPrefix, "Prefix", true, "The prefix for the name of images (for debug only), Def=none")
-
+                << EAM(aThres, "Thres", true, "The threshold of reprojection error (unit: pixel) when prejecting patch corner to DSM, Def=2")
+                << EAM(aOutDir, "OutDir", true, "Output direcotry of the patches, Def=./Tmp_Patches-Precise")
+                << EAM(dDyn, "Dyn", true, "The Dyn parameter in \"to8Bits\" if the input RGB images are 16 bits, Def=0.1")
      );
 
-    aCAS3D.mOutDir += "/";
-    ELISE_fp::MkDir(aCAS3D.mOutDir);
+    if(aBufferSz.x < 0 && aBufferSz.y < 0){
+        aBufferSz.x = int(0.1*aPatchSz.x);
+        aBufferSz.y = int(0.1*aPatchSz.y);
+    }
+
+    aOutDir += "/";
+    ELISE_fp::MkDir(aOutDir);
 
     StdCorrecNameOrient(aOri1,"./",true);
     StdCorrecNameOrient(aOri2,"./",true);
 
+/*
      std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
      std::string aKeyOri2 = "NKS-Assoc-Im2Orient@-" + aOri2;
 
      std::string aIm1OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri1,aImg1,true);
      std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
 
-
+    if (aPara3DH.length() > 0 && ELISE_fp::exist_file(aPara3DH) == false)
+    {
+        printf("File %s does not exist.\n", aPara3DH.c_str());
+         return 0;
+     }
+*/
     cTransform3DHelmert aTrans3DH(aPara3DH);
 
     std::string aOutImg1 = GetFileName(aImg1);
     std::string aOutImg2 = GetFileName(aImg2);
-    GetPatchPair(aCAS3D.mOutDir, aOutImg1, aOutImg2, aImg1, aImg2, aIm1OriFile, aIm2OriFile, aCAS3D.mPatchSz, aCAS3D.mBufferSz, aPrefix + aCAS3D.mImgPair, aCAS3D.mDir, aPrefix + aCAS3D.mSubPatchXml, aTrans3DH, aDSMFileL, aDSMDirL, bPrint, aPrefix);
+    GetPatchPair(aOutDir, aOutImg1, aOutImg2, aImg1, aImg2, aOri1, aOri2, aCAS3D.mICNM, aPatchSz, aBufferSz, aPrefix + aCAS3D.mImgPair, aCAS3D.mDir, aPrefix + aCAS3D.mSubPatchXml, aTrans3DH, aDSMFileL, aDSMDirL, aThres, dDyn, aCAS3D.mPrint, aPrefix);
 
     return 0;
 }

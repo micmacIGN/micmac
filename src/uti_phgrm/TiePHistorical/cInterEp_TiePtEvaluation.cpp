@@ -74,7 +74,7 @@ pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
-std::vector<int> TiePtEvaluation(std::string aIm1OriFile, std::string aIm2OriFile, std::string aDir,std::string aImg1, std::string aImg2, std::string inSH, std::string aDSMFileL, std::string aDSMDirL, cTransform3DHelmert aTrans3DH, int nThreshMax)
+std::vector<int> TiePtEvaluation(std::string aIm1OriFile, std::string aIm2OriFile, std::string aDir,std::string aImg1, std::string aImg2, std::string inSH, std::string aDSMFileL, std::string aDSMDirL, cTransform3DHelmert aTrans3DH, int nThreshMax, bool bPrint)
 {
     std::vector<int> aStat;
 
@@ -91,7 +91,8 @@ std::vector<int> TiePtEvaluation(std::string aIm1OriFile, std::string aIm2OriFil
     std::vector<Pt2dr> a2dPR;
     std::vector<double> aReproj;
     cGet3Dcoor a3DCoorL(aIm1OriFile);
-    TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+    //TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+    cDSMInfo aDSMInfoL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
     cGet3Dcoor a3DCoorR(aIm2OriFile);
     //TIm2D<float,double> aTImProfPxR = a3DCoorR.SetDSMInfo(aDSMFileR, aDSMDirR);
 
@@ -105,7 +106,7 @@ std::vector<int> TiePtEvaluation(std::string aIm1OriFile, std::string aIm2OriFil
        //cout<<nTodel<<"th tie pt: "<<p1.x<<" "<<p1.y<<" "<<p2.x<<" "<<p2.y<<endl;
 
        bool bValidL;
-       Pt3dr aPTer1 = a3DCoorL.Get3Dcoor(p1, aTImProfPxL, bValidL);
+       Pt3dr aPTer1 = a3DCoorL.Get3Dcoor(p1, aDSMInfoL, bValidL, bPrint);//, a3DCoorL.GetGSD());
 
        aPTer1 = aTrans3DH.Transform3Dcoor(aPTer1);
        Pt2dr aPLPred = a3DCoorR.Get2Dcoor(aPTer1);
@@ -143,7 +144,7 @@ std::vector<int> TiePtEvaluation(std::string aIm1OriFile, std::string aIm2OriFil
 
     if(true)
     {
-        printf("%s\n%s\n", aImg1.c_str(), aImg2.c_str());
+        printf("%s\t%s\n", aImg1.c_str(), aImg2.c_str());
         printf("The point number with reprojection error under %d is: %d; TotalPtNum: %d\n", nThreshMax, nNb, nOriPtNum);
     }
     return aStat;
@@ -180,18 +181,18 @@ int TiePtEvaluation_main(int argc,char ** argv)
     (
         argc,argv,
         LArgMain()
-               << EAMC(aFullPattern1,"First image name (Dir+Pattern)")
-               << EAMC(aFullPattern2,"Second image name (Dir+Pattern)")
-               << EAMC(aOri1,"Orientation of first image")
-               << EAMC(aOri2,"Orientation of second image")
-               << EAMC(aDSMDirL,"DSM of first image"),
+               << EAMC(aFullPattern1,"Master image name (Dir+Pattern)")
+               << EAMC(aFullPattern2,"Secondary image name (Dir+Pattern)")
+               << EAMC(aOri1,"Orientation of master image")
+               << EAMC(aOri2,"Orientation of secondary image")
+               << EAMC(aDSMDirL,"DSM of master image"),
         LArgMain()
                << aCAS3D.ArgBasic()
                //<< EAM(aDir,"Dir",true,"Work directory, Def=./")
-               << EAM(aDSMFileL, "DSMFileL", true, "DSM File of first image, Def=MMLastNuage.xml")
-//               << EAM(aDSMDirR, "DSMDirR", true, "DSM of second image, Def=\"DSM of first image\"")
+               << EAM(aDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
+//               << EAM(aDSMDirR, "DSMDirR", true, "DSM of secondary image, Def=\"DSM of master image\"")
 //               << EAM(aD    int nSize = aReproj.size();
-               << EAM(aPara3DHL, "Para3DHL", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of first image to second image, Def=unit matrix")
+               << EAM(aPara3DHL, "Para3DHL", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=unit matrix")
                << EAM(aInSH,"InSH",true, "Input Homologue extenion for NB/NT mode, Def=none")
                << EAM(nThreshMax, "Thres", true, "The max threshold of reprojection error, Def=10")
                << EAM(aNameOut,"NameOut",true, "Output txt file that records the accuracy, Def=TiePtAccuracy-InSH.txt")
@@ -242,7 +243,7 @@ int TiePtEvaluation_main(int argc,char ** argv)
             std::string aIm1OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri1,aImg1,true);
             std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
 
-           std::vector<int> aStat = TiePtEvaluation(aIm1OriFile, aIm2OriFile, aCAS3D.mDir, aImg1, aImg2, aInSH, aDSMFileL, aDSMDirL, aTrans3DHL, nThreshMax);
+           std::vector<int> aStat = TiePtEvaluation(aIm1OriFile, aIm2OriFile, aCAS3D.mDir, aImg1, aImg2, aInSH, aDSMFileL, aDSMDirL, aTrans3DHL, nThreshMax, aCAS3D.mPrint);
 
            if(int(aStat.size()) > nThreshMax)
                for(int k=0; k<nThreshMax+1; k++)

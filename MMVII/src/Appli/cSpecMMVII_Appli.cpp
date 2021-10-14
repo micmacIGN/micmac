@@ -142,7 +142,6 @@ bool CmpCmd(cSpecMMVII_Appli * aCM1,cSpecMMVII_Appli * aCM2)
 
 std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
 {
-   
    if (TheVecAll.size() == 0)
    {    
         TheVecAll.push_back(&TheSpecBench);
@@ -166,6 +165,11 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecFormatTDEDM_WT);
         TheVecAll.push_back(&TheSpecFormatTDEDM_MDLB);
         TheVecAll.push_back(&TheSpecExtractLearnVecDM);
+        TheVecAll.push_back(&TheSpecCalcHistoCarac);
+        TheVecAll.push_back(&TheSpecCalcHistoNDim);
+        TheVecAll.push_back(&TheSpecTestHypStep);
+        TheVecAll.push_back(&TheSpecFillCubeCost);
+        TheVecAll.push_back(&TheSpecDMEvalRef);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

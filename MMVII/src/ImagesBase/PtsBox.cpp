@@ -279,9 +279,23 @@ template <const int Dim>  class cAllocNeighourhood
    public :
       typedef  cPtxd<int,Dim>    tPt;
       typedef  std::vector<tPt>  tVecPt;
+      typedef  std::vector<tVecPt>  tVVPt;
+
+      static  const tVVPt & AllocTabGrowNeigh(int aDMax)
+      {
+           static  tVVPt aRes;;
+           if (int(aRes.size()) > aDMax) return aRes;
+
+           aRes = tVVPt(1+aDMax,tVecPt());
+           
+           for (const auto & aP :  cPixBox(tPt::PCste(-aDMax),tPt::PCste(aDMax+1)))
+               aRes.at(NormInf(aP)).push_back(aP);
+
+           return aRes;
+      }
 
 
-      static tVecPt &  Alloc(int aNbPix)
+      static const tVecPt &  Alloc(int aNbPix)
       {
 // StdOut() <<  "----------------======================\n";
             static  std::vector<tVecPt> aBufRes(Dim);
@@ -307,10 +321,17 @@ template <const int Dim>  class cAllocNeighourhood
       }
 };
 
-template <const int Dim>  std::vector<cPtxd<int,Dim>> & AllocNeighbourhood(int aNbVois)
+template <const int Dim>  const std::vector<cPtxd<int,Dim>> & AllocNeighbourhood(int aNbVois)
 {
    return  cAllocNeighourhood<Dim>::Alloc(aNbVois);
 }
+
+
+template <const int Dim>  const std::vector<std::vector<cPtxd<int,Dim>>> & TabGrowNeigh(int aDistMax)
+{
+   return  cAllocNeighourhood<Dim>::AllocTabGrowNeigh(aDistMax);
+}
+
 
 
 
@@ -780,12 +801,25 @@ template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_ni(const cPtxd<Type
 }
 
 
+template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW)
+{
+   return
+	   (aPt.x() >= aBox.P0().x() + aSzW.x())
+       &&  (aPt.y() >= aBox.P0().y() + aSzW.y())
+       &&  (aPt.x() <  aBox.P1().x() - aSzW.x()-1)
+       &&  (aPt.y() <  aBox.P1().y() - aSzW.y()-1) ;
+}
+
+
 /* ========================== */
 /*       INSTANTIATION        */
 /* ========================== */
 
 template void CornersTrigo(typename cTplBox<tREAL8,2>::tCorner & aRes,const  cTplBox<tREAL8,2>&);
 template void CornersTrigo(typename cTplBox<tINT4,2>::tCorner & aRes,const  cTplBox<tINT4,2>&);
+
+template  bool WindInside4BL(const cBox2di & aBox,const cPtxd<tINT4,2> & aPt,const  cPt2di & aSzW);
+template  bool WindInside4BL(const cBox2di & aBox,const cPtxd<tREAL8,2> & aPt,const  cPt2di & aSzW);
 
 #define MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIMIN,DIMOUT)\
 template  cPtxd<TYPE,DIMOUT> CastDim<TYPE,DIMOUT,DIMIN>(const cPtxd<TYPE,DIMIN> & aPt);
@@ -823,7 +857,8 @@ MACRO_INSTATIATE_PTXD(tREAL16,DIM)
 
 #define MACRO_INSTATIATE_PRECT_DIM(DIM)\
 MACRO_INSTATIATE_POINT(DIM)\
-template std::vector<cPtxd<int,DIM>> & AllocNeighbourhood(int);\
+template const std::vector<std::vector<cPtxd<int,DIM>>> & TabGrowNeigh(int);\
+template const std::vector<cPtxd<int,DIM>> & AllocNeighbourhood(int);\
 template cPtxd<int,DIM> Pt_round_down(const cPtxd<double,DIM>  aP);\
 template cPtxd<int,DIM> Pt_round_up(const cPtxd<double,DIM>  aP);\
 template cPtxd<int,DIM> Pt_round_ni(const cPtxd<double,DIM>  aP);\

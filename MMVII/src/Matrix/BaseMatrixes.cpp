@@ -53,6 +53,23 @@ template <class Type> cDenseVect<Type>::cDenseVect(int aSz,eModeInitImage aModeI
 {
 }
 
+template <class Type> cDenseVect<Type> cDenseVect<Type>::Dup() const
+{
+    return cDenseVect<Type>(mIm.Dup());
+}
+
+template <class Type> cDenseVect<Type>   cDenseVect<Type>::Cste(int aSz,const Type & aVal)
+{
+    cDenseVect<Type> aRes(aSz);
+
+    Type * aRD = aRes.RawData();
+    for (int aK=0 ; aK<aSz ; aK++)
+        aRD[aK] = aVal;
+
+    return aRes;
+}
+
+
 /*
 template <class Type> cDenseVect<Type>::cDenseVect(int aSz,eModeInitImage aModeInit) :
    mIm  (aSz,nullptr,aModeInit)
@@ -492,14 +509,17 @@ template <class Type> std::ostream & operator << (std::ostream & OS,const cMatri
 /* ===================================================== */
 /* ===================================================== */
 
-#define INSTANTIATE_BASE_MATRICES(Type)\
-template  class  cSparseVect<Type>;\
+#define INSTANTIATE_DENSE_VECT(Type)\
 template  class  cDenseVect<Type>;\
+template  std::ostream & operator << (std::ostream & OS,const cDenseVect<Type> &aV);\
+
+#define INSTANTIATE_BASE_MATRICES(Type)\
+INSTANTIATE_DENSE_VECT(Type)\
+template  class  cSparseVect<Type>;\
 template  class  cMatrix<Type>;\
 template  cDenseVect<Type> operator * (const cDenseVect<Type> & aLine,const cMatrix<Type> & aMat);\
 template  cDenseVect<Type> operator * (const cMatrix<Type> & aMat ,const cDenseVect<Type> & aCol);\
 template  std::ostream & operator << (std::ostream & OS,const cMatrix<Type> &aMat);\
-template  std::ostream & operator << (std::ostream & OS,const cDenseVect<Type> &aV);\
 
 
 
@@ -507,6 +527,11 @@ template  std::ostream & operator << (std::ostream & OS,const cDenseVect<Type> &
 INSTANTIATE_BASE_MATRICES(tREAL4)
 INSTANTIATE_BASE_MATRICES(tREAL8)
 INSTANTIATE_BASE_MATRICES(tREAL16)
+
+// INSTANTIATE_DENSE_VECT(tU_INT1)
+INSTANTIATE_DENSE_VECT(tINT4)
+
+
 
 };
 
