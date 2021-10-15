@@ -29,7 +29,7 @@ The pipeline is accessible via
 
 ```mm3d TiePHistoP -help```
 
-The command "TiePHistoP" will launch the whole pipeline by automatically calling several subcommands. You can set the "Exe=0" to print all the subcommands instead of executing it.
+The command "TiePHistoP" will launch the whole pipeline by automatically calling several subcommands. You can set "Exe=0" to print all the subcommands instead of executing it.
 
 ## License
 
