@@ -41,135 +41,10 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <ctime>
 
 
-
-/*Footer-MicMac-eLiSe-25/06/2007
-
-Ce logiciel est un programme informatique servant à la mise en
-correspondances d'images pour la reconstruction du relief.
-
-Ce logiciel est régi par la licence CeCILL-B soumise au droit français et
-respectant les principes de diffusion des logiciels libres. Vous pouvez
-utiliser, modifier et/ou redistribuer ce programme sous les conditions
-de la licence CeCILL-B telle que diffusée par le CEA, le CNRS et l'INRIA
-sur le site "http://www.cecill.info".
-
-En contrepartie de l'accessibilité au code source et des droits de copie,
-de modification et de redistribution accordés par cette licence, il n'est
-offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,
-seule une responsabilité restreinte pèse sur l'auteur du programme,  le
-titulaire des droits patrimoniaux et les concédants successifs.
-
-A cet égard  l'attention de l'utilisateur est attirée sur les risques
-associés au chargement,  à l'utilisation,  à la modification et/ou au
-développement et à la reproduction du logiciel par l'utilisateur étant
-donné sa spécificité de logiciel libre, qui peut le rendre complexe à
-manipuler et qui le réserve donc à des développeurs et des professionnels
-avertis possédant  des  connaissances  informatiques approfondies.  Les
-utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
-logiciel à leurs besoins dans des conditions permettant d'assurer la
-sécurité de leurs systèmes et ou de leurs données et, plus généralement,
-à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
-
-Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
-pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
-termes.
-aooter-MicMac-eLiSe-25/06/2007*/
-
-/*
-void RotateImgBy90Deg1(std::string aDir, std::string aImg1, std::string aNameOut)
-{
-    Tiff_Im aIm1((aDir+"/"+aImg1).c_str());
-    Pt2di ImgSzL = aIm1.sz();
-
-    aNameOut = aDir+"/"+aNameOut;
-
-    //std::string aNameOut = aDir+"/"+StdPrefix(aImg1)+"_R90.tif";
-
-    L_Arg_Opt_Tiff aLArg = Tiff_Im::Empty_ARG;
-    aLArg = aLArg + Arg_Tiff(Tiff_Im::ANoStrip());
-
-    cout<<aImg1<<": "<<aIm1.phot_interp()<<", "<<Tiff_Im::RGBPalette<<";"<<(aIm1.phot_interp() == Tiff_Im::RGBPalette)<<endl;
-    //cout<<aIm1.pal()<<endl;
-    Tiff_Im TiffOut  =     (aIm1.phot_interp() == Tiff_Im::RGBPalette)  ?
-                           Tiff_Im
-                           (
-                              aNameOut.c_str(),
-                              Pt2di(ImgSzL.y, ImgSzL.x),
-                              aIm1.type_el(),
-                              Tiff_Im::No_Compr,
-                              aIm1.pal(),
-                              aLArg
-                          )                    :
-                           Tiff_Im
-                           (
-                              aNameOut.c_str(),
-                              Pt2di(ImgSzL.y, ImgSzL.x),
-                              aIm1.type_el(),
-                              Tiff_Im::No_Compr,
-                              aIm1.phot_interp(),
-                              aLArg
-                          );
-
-    TIm2D<float, double> aTImProfPx(ImgSzL);
-    ELISE_COPY
-    (
-    aTImProfPx.all_pts(),
-    aIm1.in(),
-    aTImProfPx.out()
-    );
-
-    TIm2D<float, double> aTImProfPxTmp(Pt2di(ImgSzL.y, ImgSzL.x));
-    ELISE_COPY
-    (
-    aTImProfPxTmp.all_pts(),
-    aTImProfPx.in()[Virgule(FY,FX)],
-    aTImProfPxTmp.out()
-    );
-
-    //flip
-    ELISE_COPY
-    (
-    TiffOut.all_pts(),
-    aTImProfPxTmp.in(0)[Virgule(ImgSzL.y-FX,FY)],
-    TiffOut.out()
-    );
-}
-*/
-
-/*
-bool GetRandomCenter(Pt2dr* aPLPredinR, std::vector<int> & centerX, std::vector<int> & centerY)
-{
-    double dMaxX = max(max(aPLPredinR[0].x, aPLPredinR[1].x), max(aPLPredinR[2].x, aPLPredinR[3].x));
-    double dMinX = min(min(aPLPredinR[0].x, aPLPredinR[1].x), min(aPLPredinR[2].x, aPLPredinR[3].x));
-    double dMaxY = max(max(aPLPredinR[0].y, aPLPredinR[1].y), max(aPLPredinR[2].y, aPLPredinR[3].y));
-    double dMinY = min(min(aPLPredinR[0].y, aPLPredinR[1].y), min(aPLPredinR[2].y, aPLPredinR[3].y));
-    printf("dMaxX: %lf\tdMaxX: %lf\tdMaxX: %lf\tdMaxX: %lf\n", dMaxX, dMinX, dMaxY, dMinY);
-
-    if(dMaxX < dMinX || dMaxY < dMinY)
-        return false;
-
-    srand((int)time(0));
-    GetRandomNum(dMinX, dMaxX, 1, centerX);
-    GetRandomNum(dMinY, dMaxY, 1, centerY);
-    return true;
-}
-
-void CheckRange(int nMin, int nMax, int & value)
-{
-    if(value < nMin)
-        value = nMin;
-    if(value > nMax)
-        value = nMax;
-}
-*/
-
-
-
-void CropPatch(Pt2dr aPtOri, Pt2dr aPatchSz, std::string aImg2, std::string aOutDir, int m, int n)
+void CropPatch(Pt2dr aPtOri, Pt2dr aPatchSz, std::string aImg2, std::string aOutDir, std::string aSubImg1)
 {
     std::string aClipSz = " ["+std::to_string(int(aPatchSz.x))+","+std::to_string(int(aPatchSz.y))+"] ";
 
-    std::string aSubImg1 = StdPrefix(aImg2) + "_" + std::to_string(m) + "_" + std::to_string(n) + "." + StdPostfix(aImg2);
     std::string aComBaseClip = MMBinFile(MM3DStr) + "ClipIm " + aImg2 + " ";
     std::string aComClipMasterImg = aComBaseClip + " ["+std::to_string(int(aPtOri.x))+","+std::to_string(int(aPtOri.y))+"] " + aClipSz + " Out="+aOutDir+"/"+aSubImg1;
     cout<<aComClipMasterImg<<endl;
@@ -188,6 +63,17 @@ std::string GetDSMPatch(std::string aImg, std::string aDSMDir, std::string aDSMF
 
     std::string aDSMName = aDSMInfoL.GetDSMName(aDSMFile, aDSMDir);
     std::string aDSMImgName = StdPrefix(aDSMName) + "_gray.tif_sfs." + StdPostfix(aDSMName);
+
+    if (ELISE_fp::exist_file(aDSMDir + "/" + aDSMImgName) == false){
+        cout<<"aDSMImgName: "<<aDSMImgName<<endl;
+        std::string cmmd = "mm3d TestLib DSM_Equalization "+aDSMDir+" DSMFile="+aDSMFile;
+        cout<<cmmd<<endl;
+        System(cmmd);
+        cmmd = "mm3d TestLib Wallis "+StdPrefix(aDSMName)+"_gray.tif Dir="+aDSMDir;
+        cout<<cmmd<<endl;
+        System(cmmd);
+    }
+
     std::string aNameSave = StdPrefix(aImg) + "_DSM";
     std::string aSubImg2 = aNameSave + "." + StdPostfix(aImg);
     aNameSave += ".txt";
@@ -197,19 +83,9 @@ std::string GetDSMPatch(std::string aImg, std::string aDSMDir, std::string aDSMF
     {
         Pt2dr aPL = ImgCorner[i];
         Pt3dr aPTer1;
-        /*if(bDSM == true)
-        {*/
-            bool bPreciseL;
-            aPTer1 = a3DL.Get3Dcoor(aPL, aDSMInfoL, bPreciseL, bPrint);//, a3DL.GetGSD(), true);
-            //Pt2dr ptPred = a3DL.Get2Dcoor(aPTer1);
-            //printf("aPL.x, aPL.y, ptPred.x, ptPred.y: %.2lf\t%.2lf, %.2lf\t%.2lf\n", aPL.x, aPL.y, ptPred.x, ptPred.y);
-        /*}
-        else
-        {
-            aPTer1 = a3DL.GetRough3Dcoor(aPL);
-        }*/
+        bool bPreciseL;
+        aPTer1 = a3DL.Get3Dcoor(aPL, aDSMInfoL, bPreciseL, bPrint);//, a3DL.GetGSD(), true);
         Pt2dr aPtInDSM = aDSMInfoL.Get2DcoorInDSM(aPTer1);
-        //DSMCoor.push_back(aPtInDSM);
         fprintf(fpOutput, "%lf %lf %lf %lf\n", PatchCorner[i].x, PatchCorner[i].y, aPtInDSM.x, aPtInDSM.y);
     }
     fclose(fpOutput);
@@ -235,10 +111,81 @@ std::string GetDSMPatch(std::string aImg, std::string aDSMDir, std::string aDSMF
     return aSubImg2;
 }
 
+void GetGTTiePts(Pt2dr aPtOriR, Pt2dr PatchSz, Pt2di ImgSz1, cTransform3DHelmert aTrans3DHR, cBasicGeomCap3D * aCamL, cGet3Dcoor a3DL, cDSMInfo aDSMInfoL, cBasicGeomCap3D * aCamR, cGet3Dcoor a3DR, cDSMInfo aDSMInfoR, bool bPrint, cElHomographie aHomo, std::string input_dir, std::string aImg1, std::string aImg2, std::string SH, int nGap, double dThres)
+{
+    ElPackHomologue aPack;
+    Pt2dr aPtL, aPtR, aPtRinPatch;
+    int i, j;
+    //int nGap = 20;
+    int nWid = int(PatchSz.x/nGap);
+    int nHei = int(PatchSz.y/nGap);
+
+    Pt3dr aPTer1, aPTer2;
+
+    //double dThres = 3;
+
+    for(i=0; i<nWid; i++){
+        aPtRinPatch.x = i*nGap;
+        aPtR.x = aPtOriR.x + aPtRinPatch.x;
+        for(j=0; j<nHei; j++){
+            aPtRinPatch.y = j*nGap;
+            aPtR.y = aPtOriR.y + aPtRinPatch.y;
+
+            //compute tie point in left image
+            bool bPrecise;
+            aPTer1 = a3DR.Get3Dcoor(aPtR, aDSMInfoR, bPrecise, bPrint);//, a3DL.GetGSD(), true);
+            aPTer1 = aTrans3DHR.Transform3Dcoor(aPTer1);
+            aPtL = aCamL->Ter2Capteur(aPTer1);
+
+            //check out of border
+            if(aPtL.x < 0 || aPtL.y < 0 || aPtL.x >= ImgSz1.x || aPtL.y >= ImgSz1.y)
+            {
+                continue;
+            }
 
 
-//std::string GetDSMPatch(std::string aImg, std::string aDSMDir, std::string aDSMFile, Pt2dr aPtCenter, Pt2dr PatchSz, cGet3Dcoor a3DL, TIm2D<float,double> aTImProfPxL, bool bDSM)
-void GetSecondaryPatch(Pt2dr* aPCornerL, Pt2dr* aPCornerR, Pt2di ImgSzR, Pt2dr PatchSz, cTransform3DHelmert aTrans3DH, cBasicGeomCap3D * aCamR, cGet3Dcoor a3DL, cDSMInfo aDSMInfoL, std::string aOutImg2, std::string aOriginImg1, int m, int n, bool bPrint, std::string aOutDirImg, std::string aOutDirTxt)
+            //check depth
+            aPTer2 = a3DL.Get3Dcoor(aPtL, aDSMInfoL, bPrecise, bPrint);
+            double dDis = pow((pow((aPTer1.x-aPTer2.x), 2), pow((aPTer1.y-aPTer2.y), 2), pow((aPTer1.z-aPTer2.z), 2)), 0.5);
+            if(dDis > dThres)
+                continue;
+
+            //transform pt in left image to pt in left patch
+            aPtL = aHomo(aPtL);
+            aPack.Cple_Add(ElCplePtsHomologues(aPtL, aPtRinPatch));
+        }
+    }
+
+    std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+SH;
+    std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+SH;
+    printf("%s\n%s\n", aCom.c_str(), aComInv.c_str());
+
+    std::string aSHDir = input_dir + "/Homol" + SH+"/";
+    if (ELISE_fp::exist_file(aSHDir) == false)
+        ELISE_fp::MkDir(aSHDir);
+    std::string aNewDir = aSHDir + "Pastis" + aImg1;
+    if (ELISE_fp::exist_file(aNewDir) == false)
+        ELISE_fp::MkDir(aNewDir);
+    std::string aNameFile1 = aNewDir + "/"+aImg2+".txt";
+
+    aNewDir = aSHDir + "Pastis" + aImg2;
+    if (ELISE_fp::exist_file(aNewDir) == false)
+        ELISE_fp::MkDir(aNewDir);
+    std::string aNameFile2 = aNewDir + "/"+aImg1+".txt";
+
+    FILE * fpTiePt1 = fopen(aNameFile1.c_str(), "w");
+    FILE * fpTiePt2 = fopen(aNameFile2.c_str(), "w");
+    for (ElPackHomologue::iterator itCpl=aPack.begin();itCpl!=aPack.end() ; itCpl++)
+    {
+        ElCplePtsHomologues tiept = itCpl->ToCple();
+        fprintf(fpTiePt1, "%lf %lf %lf %lf\n", tiept.P1().x, tiept.P1().y, tiept.P2().x, tiept.P2().y);
+        fprintf(fpTiePt2, "%lf %lf %lf %lf\n", tiept.P2().x, tiept.P2().y, tiept.P1().x, tiept.P1().y);
+    }
+    fclose(fpTiePt1);
+    fclose(fpTiePt2);
+}
+
+cElHomographie GetSecondaryPatch(Pt2dr* aPCornerL, Pt2dr* aPCornerR, Pt2di ImgSzR, Pt2dr PatchSz, cTransform3DHelmert aTrans3DH, cBasicGeomCap3D * aCamR, cGet3Dcoor a3DL, cDSMInfo aDSMInfoL, std::string aOutImg2, std::string aSubImg1, bool bPrint, std::string aOutDirImg, std::string aOutDirTxt)
 {
     double dScaleL = 1;
     double dScaleR = 1;
@@ -247,15 +194,8 @@ void GetSecondaryPatch(Pt2dr* aPCornerL, Pt2dr* aPCornerR, Pt2di ImgSzR, Pt2dr P
     {
         Pt2dr aPL = aPCornerL[i];
         Pt3dr aPTer1;
-        /*if(bDSM == true)
-        {*/
-            bool bPreciseL;
-            aPTer1 = a3DL.Get3Dcoor(aPL, aDSMInfoL, bPreciseL, bPrint);//, a3DL.GetGSD(), true);
-        /*}
-        else
-        {
-            aPTer1 = a3DL.GetRough3Dcoor(aPL);
-        }*/
+        bool bPreciseL;
+        aPTer1 = a3DL.Get3Dcoor(aPL, aDSMInfoL, bPreciseL, bPrint);//, a3DL.GetGSD(), true);
         aPTer1 = aTrans3DH.Transform3Dcoor(aPTer1);
 
         aPCornerR[i] = aCamR->Ter2Capteur(aPTer1);
@@ -265,7 +205,6 @@ void GetSecondaryPatch(Pt2dr* aPCornerL, Pt2dr* aPCornerR, Pt2di ImgSzR, Pt2dr P
         if(bPrint)
         {
             printf("%dth: CornerL: [%.2lf\t%.2lf], ImEtProf2Terrain: [%.2lf\t%.2lf\t%.2lf], CornerR: [%.2lf\t%.2lf]\n", i, aPCornerL[i].x, aPCornerL[i].y, aPTer1.x, aPTer1.y, aPTer1.z, aPCornerR[i].x, aPCornerR[i].y);
-            //printf("ImEtZ2Terrain: [%.2lf\t%.2lf\t%.2lf]\n", Pt_H_sol.x, Pt_H_sol.y, Pt_H_sol.z);
         }
     }
 
@@ -276,10 +215,8 @@ void GetSecondaryPatch(Pt2dr* aPCornerL, Pt2dr* aPCornerR, Pt2di ImgSzR, Pt2dr P
     aPCornerPatch[2] = Pt2dr(origin.x+PatchSz.x, origin.y+PatchSz.y);
     aPCornerPatch[3] = Pt2dr(origin.x, origin.y+PatchSz.y);
 
-    std::string aNameSave = StdPrefix(aOutImg2) + "_" + StdPrefix(aOriginImg1) + "_" + std::to_string(m) + "_" + std::to_string(n);
-    std::string aSubImg2 = aNameSave + "." + StdPostfix(aOutImg2);
-    aNameSave += ".txt";
-    //cout<<aNameSave<<endl;
+    std::string aNameSave = StdPrefix(aSubImg1) + ".txt";
+    //if the patch is not out of the image border
     if(FallInBox(aPCornerR, Pt2dr(0,0), ImgSzR) == true)
     {
         FILE * fpOutput = fopen((aNameSave).c_str(), "w");
@@ -288,26 +225,36 @@ void GetSecondaryPatch(Pt2dr* aPCornerL, Pt2dr* aPCornerR, Pt2di ImgSzR, Pt2dr P
             fprintf(fpOutput, "%lf %lf %lf %lf\n", aPCornerPatch[i].x, aPCornerPatch[i].y, aPCornerR[i].x, aPCornerR[i].y);
         }
         fclose(fpOutput);
+        //cout<<aNameSave<<" saved"<<endl;
 
         std::string aComBaseResample = MMBinFile(MM3DStr) + "TestLib OneReechFromAscii ";
-        std::string aComResampleSndImg = aComBaseResample + aOutImg2  + " " + aNameSave + " Out="+aSubImg2 + " Show=true";
+        std::string aComResampleSndImg = aComBaseResample + aOutImg2  + " " + aNameSave + " Out="+aSubImg1 + " Show=true";
         cout<<aComResampleSndImg<<endl;
         System(aComResampleSndImg);
 
-        //std::string aOutDir = "./Tmp_Patches";
-        std::string aMvTxt = "mv "+aNameSave + " "+aOutDirTxt+aNameSave;
-        std::string aMvTif = "mv "+aSubImg2 + " "+aOutDirImg+aSubImg2;
-        System(aMvTxt);
+        std::string aMvTif = "mv "+aSubImg1 + " "+aOutDirImg+aSubImg1;
+        cout<<aMvTif<<endl;
         System(aMvTif);
+        /*
+        std::string aMvTxt = "mv "+aNameSave + " "+aOutDirTxt+aNameSave;
+        cout<<aMvTxt<<endl;
+        System(aMvTxt);*/
     }
     else
     {
         if(bPrint)
             cout<<aNameSave<<" out of border, hence the current patch is not saved"<<endl;
     }
+
+    ElPackHomologue aPack = ElPackHomologue::FromFile(aNameSave);
+    double anEcart,aQuality;
+    bool Ok;
+    cElHomographie aHomo = cElHomographie::RobustInit(anEcart,&aQuality,aPack,Ok,50,80.0,2000);
+    std::cout << "Ecart " << anEcart << " ; Quality " << aQuality    << " \n";
+    return aHomo.Inverse();
 }
 
-void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, bool bPrint, Pt2dr aPatchSz, Pt2di seed)
+void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, bool bPrint, Pt2dr aPatchSz, Pt2di seed, int nGap, double dThres, std::string SH)
 {
     if (ELISE_fp::exist_file(aImg1) == false || ELISE_fp::exist_file(aImg2) == false)
     {
@@ -322,24 +269,13 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
 
     std::string aNameOriL = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
     std::string aNameOriR = aICNM->StdNameCamGenOfNames(aOri2, aImg2);
+    int aType = eTIGB_Unknown;
+    cBasicGeomCap3D * aCamL = cBasicGeomCap3D::StdGetFromFile(aNameOriL,aType);
+    cBasicGeomCap3D * aCamR = cBasicGeomCap3D::StdGetFromFile(aNameOriR,aType);
     cGet3Dcoor a3DL(aNameOriL);
     cDSMInfo aDSMInfoL = a3DL.SetDSMInfo(aDSMFileL, aDSMDirL);
-    /*TIm2D<float,double> aTImProfPxL(a3DL.GetDSMSz(aDSMFileL, aDSMDirL));
-    bool bDSML = false;
-    if(aDSMDirL.length() > 0)
-    {
-        bDSML = true;
-        aTImProfPxL = a3DL.SetDSMInfo(aDSMFileL, aDSMDirL);
-    }*/
     cGet3Dcoor a3DR(aNameOriR);
     cDSMInfo aDSMInfoR = a3DR.SetDSMInfo(aDSMFileR, aDSMDirR);
-    /*TIm2D<float,double> aTImProfPxR(a3DR.GetDSMSz(aDSMFileR, aDSMDirR));
-    bool bDSMR = false;
-    if(aDSMDirR.length() > 0)
-    {
-        bDSMR = true;
-        aTImProfPxR = a3DR.SetDSMInfo(aDSMFileR, aDSMDirR);
-    }*/
 
     Pt2dr aPCornerL[4];
     Pt2dr origin = Pt2dr(0, 0);
@@ -348,20 +284,13 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
     aPCornerL[2] = Pt2dr(origin.x+ImgSzL.x, origin.y+ImgSzL.y);
     aPCornerL[3] = Pt2dr(origin.x, origin.y+ImgSzL.y);
 
-    Pt2dr aPLPredinR[4];
+    Pt2dr aPLPredinR[4];  //to Save zone in secondary image which is overlapping with left image
     for(int i=0; i<4; i++)
     {
         Pt2dr aPL = aPCornerL[i];
         Pt3dr aPTer1;
-        /*if(bDSML == true)
-        {*/
-            bool bPreciseL;
-            aPTer1 = a3DL.Get3Dcoor(aPL, aDSMInfoL, bPreciseL, bPrint);//, a3DL.GetGSD());
-        /*}
-        else
-        {
-            aPTer1 = a3DL.GetRough3Dcoor(aPL);
-        }*/
+        bool bPreciseL;
+        aPTer1 = a3DL.Get3Dcoor(aPL, aDSMInfoL, bPreciseL, bPrint);//, a3DL.GetGSD());
 
         aPTer1 = aTrans3DHL.Transform3Dcoor(aPTer1);
         Pt2dr ptPred = a3DR.Get2Dcoor(aPTer1);
@@ -391,6 +320,7 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
     }
 
     srand((int)time(0));
+    //randomly get the coordinate in secondary image which will be used as center for cropping patch
     GetRandomNum(dMinX, dMaxX, 1, centerX);
     GetRandomNum(dMinY, dMaxY, 1, centerY);
 
@@ -436,7 +366,8 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
         return;
     }
     Pt2dr aPtOriR = Pt2dr(aPCenterR.x-aPatchSz.x/2, aPCenterR.y-aPatchSz.y/2);
-    CropPatch(aPtOriR, aPatchSz, aImg2, aOutDirImg, m, n);
+    std::string aSubImg1 = StdPrefix(aImg2) + "_" + StdPrefix(aImg1) + "_" + std::to_string(m) + "_" + std::to_string(n) + "_L." + StdPostfix(aImg2);
+    CropPatch(aPtOriR, aPatchSz, aImg2, aOutDirImg, aSubImg1);
 
     Pt2dr aPatchCornerR[4];
     origin = aPtOriR;
@@ -444,7 +375,10 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
     aPatchCornerR[1] = Pt2dr(origin.x+aPatchSz.x, origin.y);
     aPatchCornerR[2] = Pt2dr(origin.x+aPatchSz.x, origin.y+aPatchSz.y);
     aPatchCornerR[3] = Pt2dr(origin.x, origin.y+aPatchSz.y);
-    GetDSMPatch(aImg2, aDSMDirR, aDSMFileR, aPatchCornerR, aPatchSz, a3DR, aDSMInfoR, bPrint, aOutDirDSM, aOutDirTxt);
+    //Crop secondary DSM patch
+    GetDSMPatch(aSubImg1, aDSMDirR, aDSMFileR, aPatchCornerR, aPatchSz, a3DR, aDSMInfoR, bPrint, aOutDirDSM, aOutDirTxt);
+
+    std::string aSubImg2 = StdPrefix(aImg2) + "_" + StdPrefix(aImg1) + "_" + std::to_string(m) + "_" + std::to_string(n) + "_R." + StdPostfix(aImg2);
 
     //Same center, keep GSD and rotation difference
     if(false)
@@ -467,7 +401,7 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
         printf("CenterMatch in secondary image: %.0lf\t%.0lf\n", aPCenterR.x, aPCenterR.y);
 
         Pt2dr aPtOriL = Pt2dr(aPCenterL.x-aPatchSz.x/2, aPCenterL.y-aPatchSz.y/2);
-        CropPatch(aPtOriL, aPatchSz, aImg1, aOutDirImg, m, n);
+        CropPatch(aPtOriL, aPatchSz, aImg1, aOutDirImg, aSubImg2);
 
         Pt2dr aPatchCornerL[4];
         origin = aPtOriL;
@@ -475,21 +409,21 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
         aPatchCornerL[1] = Pt2dr(origin.x+aPatchSz.x, origin.y);
         aPatchCornerL[2] = Pt2dr(origin.x+aPatchSz.x, origin.y+aPatchSz.y);
         aPatchCornerL[3] = Pt2dr(origin.x, origin.y+aPatchSz.y);
-        GetDSMPatch(aImg1, aDSMDirL, aDSMFileL, aPatchCornerL, aPatchSz, a3DL, aDSMInfoL, bPrint, aOutDirDSM, aOutDirTxt);
+        GetDSMPatch(aSubImg1, aDSMDirL, aDSMFileL, aPatchCornerL, aPatchSz, a3DL, aDSMInfoL, bPrint, aOutDirDSM, aOutDirTxt);
         //RotateImgBy90Deg1("Tmp_Patches", aDSML, aDSML+"_90.tif");
         //RotateImgBy90Deg1("./", aImg1, aImg1+"_90.tif");
     }
 
-    //roughly aligned patches
+    //Crop roughly aligned patches in master image
     if(true)
     {
-        int aType = eTIGB_Unknown;
-        cBasicGeomCap3D * aCamL = cBasicGeomCap3D::StdGetFromFile(aNameOriL,aType);
         Pt2dr aPatchCornerL[4];
-        GetSecondaryPatch(aPatchCornerR, aPatchCornerL, ImgSzR, aPatchSz, aTrans3DHR, aCamL, a3DR, aDSMInfoR, aImg1, aImg2, m, n, bPrint, aOutDirImg, aOutDirTxt);
+        cElHomographie aHomo = GetSecondaryPatch(aPatchCornerR, aPatchCornerL, ImgSzR, aPatchSz, aTrans3DHR, aCamL, a3DR, aDSMInfoR, aImg1, aSubImg2, bPrint, aOutDirImg, aOutDirTxt);
         for(int k=0; k<4; k++)
             printf("%dth: CornerL: [%.2lf\t%.2lf]\n", k, aPatchCornerL[k].x, aPatchCornerL[k].y);
-        GetDSMPatch(aImg1, aDSMDirL, aDSMFileL, aPatchCornerL, aPatchSz, a3DL, aDSMInfoL, bPrint, aOutDirDSM, aOutDirTxt);
+        GetDSMPatch(aSubImg2, aDSMDirL, aDSMFileL, aPatchCornerL, aPatchSz, a3DL, aDSMInfoL, bPrint, aOutDirDSM, aOutDirTxt);
+
+        GetGTTiePts(aPtOriR, aPatchSz, ImgSzL, aTrans3DHR, aCamL, a3DL, aDSMInfoL, aCamR, a3DR, aDSMInfoR, bPrint, aHomo, aOutDirImg, aSubImg1, aSubImg2, SH, nGap, dThres);
     }
 }
 
@@ -513,6 +447,10 @@ int MakeTrainingData_main(int argc,char ** argv)
     std::string aPara3DHL = "";
     std::string aPara3DHR = "";
 
+    std::string SH = "-GT";
+
+    int nGap = 5;
+    double dThres = 3;
     Pt2dr aPatchSz = Pt2dr(640, 480);
     Pt2di seed = Pt2di(-1, -1);
     ElInitArgMain
@@ -531,8 +469,10 @@ int MakeTrainingData_main(int argc,char ** argv)
                 << EAM(aPara3DHL, "Para3DHL", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
                 << EAM(aPara3DHR, "Para3DHR", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of secondary image to master image, Def=none")
                 << EAM(aPatchSz, "PatchSz", true, "Patch size, which means the input images will be croped into patches of this size, Def=[640, 480]")
-                << EAM(seed, "CenterMatch", true, "the coordinate in master image which will be used as center for cropping patch (for debugging), Def=[-1, -1]")
-                //<< EAM(bPrint, "Print", false, "Print corner coordinate, Def=false")
+                << EAM(seed, "CenterMatch", true, "the coordinate in secondary image which will be used as center for cropping patch (for developpers only), Def=[-1, -1]")
+                << EAM(nGap, "Gap", false, "Gap for extracting GT tie pts (for developpers only), Def=5")
+                << EAM(dThres, "Thres", false, "Threshold for checking 3D distance for GT tie pts (for developpers only), Def=3")
+                << EAM(SH,"OutSH",true,"Output Homologue extenion for NB/NT mode of GT tie points, Def=-GT")
      );
      StdCorrecNameOrient(aOri1,"./",true);
      StdCorrecNameOrient(aOri2,"./",true);
@@ -540,7 +480,7 @@ int MakeTrainingData_main(int argc,char ** argv)
      cTransform3DHelmert aTrans3DHL(aPara3DHL);
      cTransform3DHelmert aTrans3DHR(aPara3DHR);
 
-     MakeTrainingData( aCAS3D.mDir, aImg1,  aImg2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR,  aOri1, aOri2, aCAS3D.mICNM, aTrans3DHL, aTrans3DHR, aCAS3D.mPrint, aPatchSz, seed);
+     MakeTrainingData( aCAS3D.mDir, aImg1,  aImg2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR,  aOri1, aOri2, aCAS3D.mICNM, aTrans3DHL, aTrans3DHR, aCAS3D.mPrint, aPatchSz, seed, nGap, dThres, SH);
 
    return EXIT_SUCCESS;
 }

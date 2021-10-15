@@ -107,7 +107,6 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     mMutualNN = true;
     //mOutImg = "";
     mOutPairXml = "OverlappedImages.xml";
-    mOutput_dir = "./";
     mSpGlueOutSH = "-SuperGlue";
     mGuidedSIFTOutSH = "-GuidedSIFT";
     mMergeTiePtOutSH = "";
@@ -131,14 +130,14 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     mSubPatchXml = "SubPatch.xml";
     mR2DThreshold = 10;
     mR3DThreshold = -1;
-    mCrossCorrThreshold = 0.6;
+    mCrossCorrThreshold = 0.5;
     mWindowSize = 32;
     mViz = false;
 //    mDSMFileL = "MMLastNuage.xml";
 //    mDSMFileR = "MMLastNuage.xml";
 //    mDSMDirL = "";
 //    mDSMDirR = "";
-    mOutDir = "./Tmp_Patches";
+//    mOutDir = "./Tmp_Patches";
 //    mOutImg1 = "";
 //    mOutImg2 = "";
     mOut2DXml1 = "OutGCP2D_epoch1.xml";
@@ -181,7 +180,6 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
             << EAM(mSubPatchXml, "SubPXml", true, "The output xml file name to record the homography between the patches and original image, Def=SubPatch.xml")
             //<< EAM(mDSMDirL, "DSMDirL", true, "DSM of master image (for improving the reprojecting accuracy), Def=none")
             //<< EAM(mDSMDirR, "DSMDirR", true, "DSM of secondary image (for improving the reprojecting accuracy), Def=none")
-            << EAM(mOutDir, "OutDir", true, "Output direcotry of the patches, Def=./Tmp_Patches")
             //<< EAM(mOutImg1, "OutImg1", true, "Name of the main part of the output patches from master image, Def=master image name")
             //<< EAM(mOutImg2, "OutImg2", true, "Name of the main part of the output patches from secondary image, Def=secondary image name")
             << EAM(mImgPair, "ImgPair", true, "Output txt file that records the patch pairs, Def=SuperGlueInput.txt");
@@ -191,7 +189,6 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
             //<< EAM(input_pairs, "input_pairs", true, "txt file that listed the image pairs")
             << EAM(mInput_dir, "InDir", true, "The input directory of the images for SuperGlue, Def=./")
             << EAM(mSpGlueOutSH, "SpGOutSH", true, "Homologue extenion for NB/NT mode of SuperGlue, Def=-SuperGlue")
-            << EAM(mOutput_dir, "OutDir", true, "The output directory of the match results of SuperGlue, Def=./")
             << EAM(mResize, "Resize", true, "The goal size for resizing the input image for SuperGlue, Def=[640, 480], if you don't want to resize, please set to [-1, -1]")
             << EAM(mViz, "Viz", true, "Visualize the matches and dump the plots of SuperGlue, Def=false")
             << EAM(mModel, "Model", true, "Pretrained indoor or outdoor model of SuperGlue, Def=outdoor")
@@ -233,8 +230,9 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
         << EAM(mR3DInSH,"3DRANInSH",true,"Input Homologue extenion for NB/NT mode for 3D RANSAC, Def=none")
         << EAM(mR3DOutSH,"3DRANOutSH",true,"Output Homologue extenion for NB/NT mode of 3D RANSAC, Def='3DRANInSH'-3DRANSAC")
         << EAM(mR3DIteration,"3DIter",true,"3D RANSAC iteration, Def=1000")
+        //<< EAM(mR3DThreshold,"3DRANTh",true,"3D RANSAC threshold, Def=10*RefGSD (if \"Para3DHL\" is valid, RefGSD is the average GSD of master and secondary image, otherwise RefGSD is the GSD of secondary image)")
         << EAM(mR3DThreshold,"3DRANTh",true,"3D RANSAC threshold, Def=10*(GSD of secondary image)")
-        << EAM(mMinPt,"MinPt",true,"Minimun number of input correspondences required, Def=10");
+                << EAM(mMinPt,"MinPt",true,"Minimun number of input correspondences required, Def=10");
            /*
         << EAM(mDSMDirL, "DSMDirL", true, "DSM directory of master image, Def=none")
         << EAM(mDSMDirR, "DSMDirR", true, "DSM directory of secondary image, Def=none")
@@ -271,7 +269,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
             << EAM(mCrossCorrelationOutSH,"CCOutSH",true,"Output Homologue extenion for NB/NT mode of cross correlation, Def='CCInSH'-CrossCorrelation")
                //<< EAM(mSubPatchXml, "SubPatchXml", true, "The xml file name to record the homography between the patch and original image, Def=SubPatch.xml")
             << EAM(mWindowSize, "SzW",true, "Window size of cross correlation, Def=32")
-            << EAM(mCrossCorrThreshold, "CCTh",true, "Corss correlation threshold, Def=0.6");
+            << EAM(mCrossCorrThreshold, "CCTh",true, "Corss correlation threshold, Def=0.5");
 
         //StdCorrecNameOrient(mOutRPC,mDir,true);
 
@@ -354,7 +352,7 @@ std::string cCommonAppliTiepHistorical::ComParamGetPatchPair()
     //if (EAMIsInit(&mPatchSz))    aCom += " PatchSz=[" + ToString(mPatchSz.x) + "," + ToString(mPatchSz.y) + "]";
     //if (EAMIsInit(&mBufferSz))    aCom += " BufferSz=[" + ToString(mBufferSz.x) + "," + ToString(mBufferSz.y) + "]";
     if (EAMIsInit(&mSubPatchXml))  aCom +=  " SubPXml=" + mSubPatchXml;
-    if (EAMIsInit(&mOutDir))  aCom +=  " OutDir=" + mOutDir;
+    //if (EAMIsInit(&mOutDir))    aCom +=  " PatchOutDir=" + mOutDir;
     if (EAMIsInit(&mImgPair))  aCom +=  " ImgPair=" + mImgPair;
 
     return aCom;
@@ -364,10 +362,10 @@ std::string cCommonAppliTiepHistorical::ComParamSuperGlue()
 {
     std::string aCom ="";
     if (EAMIsInit(&mInput_dir))   aCom +=  " InDir=" + mDir + "/" + mInput_dir;
-    if (EAMIsInit(&mOutput_dir))   aCom +=  " OutDir=" + mDir + "/" + mOutput_dir;
+    //if (EAMIsInit(&mOutput_dir))   aCom +=  " SpGOutDir=" + mDir + "/" + mOutput_dir;
     if (EAMIsInit(&mSpGlueOutSH))   aCom +=  " SpGOutSH=" + mSpGlueOutSH;
     if (EAMIsInit(&mResize))    aCom += " Resize=[" + ToString(mResize.x) + "," + ToString(mResize.y) + "]";
-    if (EAMIsInit(&mViz))       aCom += " mViz=" + ToString(mViz);
+    if (EAMIsInit(&mViz))       aCom += " Viz=" + ToString(mViz);
     if (EAMIsInit(&mModel))  aCom +=  " Model=" + mModel;
     if (EAMIsInit(&mMax_keypoints))    aCom +=  " MaxPt=" + ToString(mMax_keypoints);
     if (EAMIsInit(&mKeepNpzFile))   aCom +=  " KeepNpzFile=" + ToString(mKeepNpzFile);
@@ -587,7 +585,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
 {
     std::string aCom;
 
-    std::string aBaseOutDir = mCAS3D.mOutDir;
+    std::string aBaseOutDir = "./Tmp_Patches";
     if(aBaseOutDir.find("/") == aBaseOutDir.length()-1)
         aBaseOutDir = aBaseOutDir.substr(0, aBaseOutDir.length()-1);
     std::string aOutDir = aBaseOutDir;
@@ -626,7 +624,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         std::string aDSMImgWallisNameL = aDSMImgGrayNameL+"_sfs.tif";
         std::string aDSMImgWallisNameR = aDSMImgGrayNameR+"_sfs.tif";
         aCom = "";
-        if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
+        //if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
         if (EAMIsInit(&mCoRegPatchSz))  aCom += " PatchSz=[" + ToString(mCoRegPatchSz.x) + "," + ToString(mCoRegPatchSz.y) + "]";
         aCom += " BufferSz=[" + ToString(mCoRegBufferSz.x) + "," + ToString(mCoRegBufferSz.y) + "]";
         StdCom("TestLib GetPatchPair BruteForce", mDSMDirL+"/"+aDSMImgWallisNameL + BLANK + mDSMDirR+"/"+aDSMImgWallisNameR + BLANK + aCom + BLANK + "Rotate=1" + BLANK + mCAS3D.ComParamGetPatchPair(), mExe);
@@ -657,7 +655,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
             std::string aImgPair = StdPrefix(mCAS3D.mImgPair) + aRotate[i] + "." + StdPostfix(mCAS3D.mImgPair);
             aCom = "";
             if (!EAMIsInit(&mCAS3D.mInput_dir))    aCom +=  " InDir=" + aOutDir+"/";
-            if (!EAMIsInit(&mCAS3D.mOutput_dir))   aCom +=  " OutDir=" + aOutDir+"/";
+            //if (!EAMIsInit(&mCAS3D.mOutput_dir))   aCom +=  " SpGOutDir=" + aOutDir+"/";
             aCom +=  " CheckNb=\" " + ToString(mCheckNbCoReg) + "\"";
             StdCom("TestLib SuperGlue", aImgPair + BLANK + aCom + BLANK + mCAS3D.ComParamSuperGlue(), mExe);
 
@@ -756,10 +754,11 @@ void cAppliTiepHistoricalPipeline::DoAll()
 */
         std::string aPrefix = StdPrefix(aImg1) + "_" + StdPrefix(aImg2) + "_" ;
         aCom = "";
-        if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
+        //if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
         if (!EAMIsInit(&mCAS3D.mSubPatchXml))  aCom +=  " SubPXml=" + aPrefix + mCAS3D.mSubPatchXml;
         if (!EAMIsInit(&mCAS3D.mImgPair))  aCom +=  " ImgPair=" + aPrefix + mCAS3D.mImgPair;
         if (EAMIsInit(&mPrecisePatchSz))  aCom += " PatchSz=[" + ToString(mPrecisePatchSz.x) + "," + ToString(mPrecisePatchSz.y) + "]";
+        if (EAMIsInit(&mDyn))  aCom += " Dyn=" + ToString(mDyn);
         aCom += " BufferSz=[" + ToString(mPreciseBufferSz.x) + "," + ToString(mPreciseBufferSz.y) + "]";
         //aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mCoRegOri + BLANK + mCoRegOri + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair(), aExe);
         //printf("%s\t%s\n", aOri1.c_str(), mOri1.c_str());
@@ -810,7 +809,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
             std::string aImgPair = aPrefix + mCAS3D.mImgPair;
             aCom = "";
             if (!EAMIsInit(&mCAS3D.mInput_dir))    aCom +=  " InDir=" + aOutDir+"/";
-            if (!EAMIsInit(&mCAS3D.mOutput_dir))   aCom +=  " OutDir=" + aOutDir+"/";
+            //if (!EAMIsInit(&mCAS3D.mOutput_dir))   aCom +=  " SpGOutDir=" + aOutDir+"/";
             aCom +=  "  CheckFile=" + ToString(mCheckFile);
             aCom +=  " CheckNb=\" " + ToString(mCheckNbPrecise) + "\"";
             aComSingle = StdCom("TestLib SuperGlue", aImgPair + BLANK + aCom + BLANK + mCAS3D.ComParamSuperGlue(), aExe);
@@ -898,6 +897,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
             aCom +=  " DSMDirR=" + mDSMDirR;
             if (EAMIsInit(&mDSMFileL))   aCom +=  " DSMFileL=" + mDSMFileL;
             if (EAMIsInit(&mDSMFileR))   aCom +=  " DSMFileR=" + mDSMFileR;
+            if (EAMIsInit(&mScaleL))   aCom +=  " ScaleL=" + ToString(mScaleL);
+            if (EAMIsInit(&mScaleR))   aCom +=  " ScaleR=" + ToString(mScaleR);
             aCom +=  "  CheckFile=" + ToString(mCheckFile);
             aComSingle = StdCom("TestLib GuidedSIFTMatch", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGuidedSIFTMatch() + BLANK + "Para3DHL=Basc-"+aOri1+"-2-"+aOri2+".xml" + BLANK + "Para3DHR=Basc-"+aOri2+"-2-"+aOri1+".xml", aExe);
 
@@ -1058,6 +1059,10 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
     mCheckNbCoReg = -1;
     mCheckNbPrecise = 100;
 
+    mDyn = 0.1;
+    mScaleL = 1;
+    mScaleR = 1;
+
    ElInitArgMain
    (
         argc,argv,
@@ -1093,6 +1098,7 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << EAM(mPreciseBufferSz, "PreciseBufferSz", true, "Buffer zone size around the patch of the tiling scheme in precise matching part, Def=10%*PrecisePatchSz")
                << mCAS3D.ArgDSM_Equalization()
                << mCAS3D.ArgGetPatchPair()
+               << EAM(mDyn, "Dyn", true, "The Dyn parameter in \"to8Bits\" if the input RGB images are 16 bits, Def=0.1")
                << mCAS3D.ArgSuperGlue()
                << EAM(mCheckNbCoReg,"CheckNbCoReg",true,"Radius of the search space for SuperGlue in rough co-registration step (which means correspondence [(xL, yL), (xR, yR)] with (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb will be removed afterwards), Def=-1 (means don't check search space)")
                << EAM(mCheckNbPrecise,"CheckNbPrecise",true,"Radius of the search space for SuperGlue in precise matching step (which means correspondence [(xL, yL), (xR, yR)] with (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb will be removed afterwards), Def=100")
@@ -1101,6 +1107,8 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << mCAS3D.ArgCreateGCPs()
                << mCAS3D.ArgGetOverlappedImages()
                << mCAS3D.ArgGuidedSIFT()
+               << EAM(mScaleL, "ScaleL", true, "Min scale of master image for extracting key points, Def=1")
+               << EAM(mScaleR, "ScaleR", true, "Min scale of secondary image for extracting key points, Def=1")
                << mCAS3D.Arg3DRANSAC()
                << mCAS3D.ArgCrossCorrelation()
 /*

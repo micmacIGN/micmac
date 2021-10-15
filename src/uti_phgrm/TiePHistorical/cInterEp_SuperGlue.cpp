@@ -254,6 +254,8 @@ int SuperGlue_main(int argc,char ** argv)
 
    double aCheckNb = -1;
 
+   std::string aOutput_dir = "";
+
    ElInitArgMain
     (
         argc,argv,
@@ -261,9 +263,15 @@ int SuperGlue_main(int argc,char ** argv)
         LArgMain()
                     << aCAS3D.ArgBasic()
                     << aCAS3D.ArgSuperGlue()
+               << EAM(aOutput_dir, "OutDir", true, "The output directory of the match results of SuperGlue, Def=InDir")
                     << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
                << EAM(aCheckNb,"CheckNb",true,"Radius of the search space for SuperGlue (which means correspondence [(xL, yL), (xR, yR)] with (xL-xR)*(xL-xR)+(yL-yR)*(yL-yR) > CheckNb*CheckNb will be removed afterwards), Def=-1 (means don't check search space)")
     );
+
+   if(aOutput_dir.length() == 0)
+   {
+       aOutput_dir = aCAS3D.mInput_dir;
+   }
 
    std::string strOpt = aCAS3D.mStrOpt;
    std::string strMicMacDirBin = aCAS3D.mStrEntSpG;
@@ -274,12 +282,12 @@ int SuperGlue_main(int argc,char ** argv)
        //strMicMacDirBin = strMicMacDirBin.substr(0, strMicMacDir.length()-9) + "src/uti_phgrm/TiePHistorical/SuperGluePretrainedNetwork-master/match_pairs.py";
        strMicMacDirBin = MMBinFile(MM3DStr);
        std::string strMicMacDirTPHisto = strMicMacDirBin.substr(0, strMicMacDirBin.length()-9) + "src/uti_phgrm/TiePHistorical/";
-       cmmd = "bash " + strMicMacDirTPHisto + "run.sh --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
+       cmmd = "bash " + strMicMacDirTPHisto + "run.sh --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
 
    }
    else
    {
-       cmmd = strMicMacDirBin + " --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
+       cmmd = strMicMacDirBin + " --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
    }
 
    bool bExe = true;
@@ -296,8 +304,8 @@ int SuperGlue_main(int argc,char ** argv)
 
    if(bExe)
    {
-        //std::string cmmd = strMicMacDir + " --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
-       //std::string cmmd = "/home/lulin/Documents/ThirdParty/SuperGluePretrainedNetwork-master/match_pairs.py --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aCAS3D.mOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
+        //std::string cmmd = strMicMacDir + " --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
+       //std::string cmmd = "/home/lulin/Documents/ThirdParty/SuperGluePretrainedNetwork-master/match_pairs.py --input_pairs "+aCAS3D.mInput_dir+input_pairs+" --input_dir "+aCAS3D.mInput_dir+" --output_dir "+aOutput_dir + " --max_keypoints "+std::to_string(aCAS3D.mMax_keypoints);
        if(aCAS3D.mViz == true)
            cmmd += " --viz";
        if(aCAS3D.mModel == "indoor")

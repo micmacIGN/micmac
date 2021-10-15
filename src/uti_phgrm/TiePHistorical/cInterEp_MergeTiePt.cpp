@@ -238,7 +238,7 @@ int MergeTiePt_main(int argc,char ** argv)
    bool aPrint = false;
 
    Pt2dr aPatchSz(640, 480);
-   Pt2dr aBufferSz(-1,-1);
+   Pt2dr aBufferSz(0,0);
 
    ElInitArgMain
     (
@@ -249,14 +249,9 @@ int MergeTiePt_main(int argc,char ** argv)
                << EAM(aOutDir, "OutDir", true, "Output directory of the merged tie points, Def=Work directory")
                     << aCAS3D.ArgMergeTiePt()
                    << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme (since we use the patches resulted from \"GetPatchPair\", this parameter should be set the same as the PatchSz in command GetPatchPair), Def=[640, 480]")
-               << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme (since we use the patches resulted from \"GetPatchPair\", this parameter should be set the same as the BufferSz in command GetPatchPair), Def=10%*PatchSz")
+               << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme (since we use the patches resulted from \"GetPatchPair\", this parameter should be set the same as the BufferSz in command GetPatchPair), Def=[0,0]")
                << EAM(aPrint, "Print", false, "Print supplementary information, Def=false")
     );
-
-   if(aBufferSz.x < 0 && aBufferSz.y < 0){
-       aBufferSz.x = int(0.1*aPatchSz.x);
-       aBufferSz.y = int(0.1*aPatchSz.y);
-   }
 
    if(aOutDir.length() == 0)
        aOutDir = aDir;

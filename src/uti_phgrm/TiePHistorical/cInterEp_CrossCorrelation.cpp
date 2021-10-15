@@ -347,7 +347,7 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
 
     std::string aCom = "mm3d SEL" + BLANK + aDir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
     std::string aComInv = "mm3d SEL" + BLANK + aDir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-    printf("%s\n%s\nOriginal correspondences: %d; survived correspondences: %d\nCorrespondences out of border: %d\n", aCom.c_str(), aComInv.c_str(), nPtNum, int(inlier.size()), nOutOfBorder);
+    printf("%s\n%s\nOriginal correspondences: %d; survived correspondences: %d; suirvied ratio: %.2lf\nCorrespondences out of border: %d\n", aCom.c_str(), aComInv.c_str(), nPtNum, int(inlier.size()), int(inlier.size())*1.0/nPtNum, nOutOfBorder);
     //cout<<aCom<<endl;
 
     if(bPrint)
