@@ -1316,6 +1316,8 @@ void cApply_CreateEpip_main::MakeAppuis
     std::string aN2 = Is1 ? mName2 : mName1 ;
 
     std::string aNameAp = mICNM->NameAppuiEpip(mOri,aN1,aN2);
+    if (EAMIsInit(&mNameOut))
+       aNameAp =  "Appuis_" + mNameOut + (Is1 ? "_1.xml": "_2.xml" );
 
 
     cListeAppuis1Im  aLAp =  El2Xml(aLCor,aN1);
