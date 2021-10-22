@@ -299,7 +299,9 @@ void CreateGCPs(std::string aDSMGrayImgDir, std::string aRGBImgDir, std::string 
 
     std::vector<string> vImgList1;
     std::vector<string> vImgList2;
-
+    GetImgListVec(aImgList1, vImgList1);
+    GetImgListVec(aImgList2, vImgList2);
+    /*
     std::string s;
     ifstream in1(aRGBImgDir+"/"+aImgList1);
     while(getline(in1,s))
@@ -312,6 +314,7 @@ void CreateGCPs(std::string aDSMGrayImgDir, std::string aRGBImgDir, std::string 
     {
         vImgList2.push_back(s);
     }
+    */
 
     Get2DCoor(aRGBImgDir, vImgList1, vPt3DL, aOri1, aICNM,  aOut2DXml1);
     Get2DCoor(aRGBImgDir, vImgList2, vPt3DR, aOri2, aICNM,  aOut2DXml2);
@@ -346,8 +349,8 @@ int CreateGCPs_main(int argc,char ** argv)
                     << EAMC(aDSMGrayImg1,"The gray image of DSM of epoch1")
                     << EAMC(aDSMGrayImg2,"The gray image of DSM of epoch2")
                     << EAMC(aRGBImgDir,"The directory of RGB image")
-                    << EAMC(aImgList1,"ImgList1: The list that contains all the RGB images of epoch1")
-                    << EAMC(aImgList2,"ImgList2: The list that contains all the RGB images of epoch2")
+                    << EAMC(aImgList1,"ImgList1: All RGB images in epoch1 (Dir+Pattern, or txt file of image list)")
+                    << EAMC(aImgList2,"ImgList2: All RGB images in epoch2 (Dir+Pattern, or txt file of image list)")
                << EAMC(aOri1,"Orientation of images in epoch1")
                << EAMC(aOri2,"Orientation of images in epoch2")
                << EAMC(aDSMDirL,"DSM direcotry of epoch1")

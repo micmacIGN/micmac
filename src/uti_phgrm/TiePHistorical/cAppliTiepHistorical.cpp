@@ -565,18 +565,24 @@ int cAppliTiepHistoricalPipeline::GetOverlappedImgPair(std::string aName, std::v
     return num;
 }
 
-std::string cAppliTiepHistoricalPipeline::GetImgList(std::string aDir, std::string aFileName)
+std::string cAppliTiepHistoricalPipeline::GetImgList(std::string aDir, std::string aFileName, bool bExe)
 {
-    std::string aRes = "\"";
+    std::string aRes;
 
-    std::string s;
-    ifstream in1(aDir+aFileName);
-    while(getline(in1,s))
+    std::vector<std::string> aVIm;
+    bool bTxt = GetImgListVec(aFileName, aVIm, bExe);
+    if(bTxt == true)
     {
-        aRes += s+"|";
+        aRes = "\"";
+        for(int i=0; i<int(aVIm.size()); i++)
+        {
+            aRes += aVIm[i]+"|";
+        }
+        aRes = aRes.substr(0, aRes.length()-1) + "\"";
     }
+    else
+        aRes = aFileName;
 
-    aRes = aRes.substr(0, aRes.length()-1) + "\"";
 
     return aRes;
 }
@@ -703,7 +709,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         /* 1.7 - GCPBascule for rough co-registration */
         /**************************************/
         aCom = "";
-        std::string aImgListL = GetImgList(mCAS3D.mDir, mImgList1);
+        std::string aImgListL = GetImgList(mCAS3D.mDir, mImgList1, mExe);
         StdCom("GCPBascule", aImgListL + BLANK + mOri1 + BLANK + mCoRegOri.substr(4,mCoRegOri.length()) + BLANK + mCAS3D.mOut3DXml2 + BLANK + mCAS3D.mOut2DXml1, mExe);
         /*
         aCom = "/home/lulin/Documents/ThirdParty/oldMicmac/micmac_old/bin/mm3d GCPBascule " + aImgListL + BLANK + mOri1 + BLANK + mCoRegOri.substr(4,mCoRegOri.length()) + BLANK + mCAS3D.mOut3DXml2 + BLANK + mCAS3D.mOut2DXml1;
@@ -1069,15 +1075,15 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
         LArgMain()
                << EAMC(mOri1,"Orientation of epoch1")
                << EAMC(mOri2,"Orientation of epoch2")
-               << EAMC(mImgList1,"ImgList1: The list that contains all the RGB images of epoch1, this parameter is used for creating GCPs for rough co-registration ")
-               << EAMC(mImgList2,"ImgList2: The list that contains all the RGB images of epoch2, this parameter is used for creating GCPs for rough co-registration ")
+               << EAMC(mImgList1,"ImgList1: All RGB images in epoch1 (Dir+Pattern, or txt file of image list)")
+               << EAMC(mImgList2,"ImgList2: All RGB images in epoch2 (Dir+Pattern, or txt file of image list)")
                << EAMC(mDSMDirL, "DSM directory of epoch1")
                << EAMC(mDSMDirR, "DSM directory of epoch2"),
 
         LArgMain()
                << EAM(mExe,"Exe",true,"Execute all, Def=true. If this parameter is set to false, the pipeline will not be executed and the command of all the submodules will be printed.")
-               << EAM(mImg4MatchList1,"IL1",true,"The list that contains the RGB images of epoch1 for extracting inter-epoch correspondences, Def=ImgList1")
-               << EAM(mImg4MatchList2,"IL2",true,"The list that contains the RGB images of epoch2 for extracting inter-epoch correspondences, Def=ImgList2")
+               << EAM(mImg4MatchList1,"IL1",true,"RGB images in epoch1 for extracting inter-epoch correspondences (Dir+Pattern, or txt file of image list), Def=ImgList1")
+               << EAM(mImg4MatchList2,"IL2",true,"RGB images in epoch2 for extracting inter-epoch correspondences (Dir+Pattern, or txt file of image list), Def=ImgList2")
                << EAM(mCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
                << EAM(mUseDepth,"UseDep",true,"GetPatchPair for depth maps as well (this option is only used for developper), Def=false")
                << EAM(mRotateDSM,"RotateDSM",true,"The angle of rotation from the master DSM to the secondary DSM for rough co-registration (only 4 options available: 0, 90, 180, 270, as the rough co-registration method is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
@@ -1536,6 +1542,79 @@ void GetRandomNum(int nMin, int nMax, int nNum, std::vector<int> & res)
         while(bRepeat == true);
         res.push_back(idx);
     }
+}
+
+void GetRandomNum(double dMin, double dMax, int nNum, std::vector<double> & res)
+{
+    //srand((int)time(0));
+    int idx = 0;
+    for(int i=0; i<nNum; i++)
+    {
+        bool bRepeat = false;
+        int nIter = 0;
+        do
+        {
+            bRepeat = false;
+            nIter++;
+            idx = (rand()*1.0/RAND_MAX)*(dMax-dMin) + dMin;
+            //printf("For %dth seed, %dth generation, random value: %d\n", i, nIter, idx);
+            /*
+            for(int j=0; j<int(res.size()); j++)
+            {
+                if(fabs(idx - res[j]) < 0.00001){
+                    bRepeat = true;
+                    break;
+                }
+            }
+            */
+        }
+        while(bRepeat == true);
+        res.push_back(idx);
+    }
+}
+
+bool GetImgListVec(std::string aFullPattern, std::vector<std::string>& aVIm, bool bPrint)
+{
+    bool bTxt = false;
+    //image list
+    if(aFullPattern.substr(aFullPattern.length()-4,4) == ".txt")
+    {
+        if (ELISE_fp::exist_file(aFullPattern) == false)
+            printf("File %s does not exist.\n", aFullPattern.c_str());
+
+        std::string s;
+
+        ifstream in1(aFullPattern);
+        if(bPrint)
+            printf("Images in %s:\n", aFullPattern.c_str());
+        while(getline(in1,s))
+        {
+            aVIm.push_back(s);
+            if(bPrint)
+                printf(" - %s\n", s.c_str());
+        }
+        bTxt = true;
+    }
+    //image pattern
+    else
+    {
+        // Initialize name manipulator & files
+        std::string aDirImages,aPatIm;
+        SplitDirAndFile(aDirImages,aPatIm,aFullPattern);
+
+        cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
+        const std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
+
+        if(bPrint)
+            std::cout<<"Selected files:"<<std::endl;
+        for (unsigned int i=0;i<aSetIm.size();i++)
+        {
+            if(bPrint)
+                std::cout<<" - "<<aSetIm[i]<<std::endl;
+            aVIm.push_back(aSetIm[i]);
+        }
+    }
+    return bTxt;
 }
 
 bool FallInBox(Pt2dr* aPCorner, Pt2dr aLeftTop, Pt2di aRightLower)
