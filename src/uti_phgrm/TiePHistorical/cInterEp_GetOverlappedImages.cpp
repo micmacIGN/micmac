@@ -280,8 +280,8 @@ int GetOverlappedImages_main(int argc,char ** argv)
                << EAMC(aOri1,"Orientation of master image")
                << EAMC(aOri2,"Orientation of secondary image")
                //<< EAMC(aDir,"Work directory")
-               << EAMC(aImgList1,"ImgList1: All RGB images in epoch1 (Dir+Pattern, or txt file of image list)")
-               << EAMC(aImgList2,"ImgList2: All RGB images in epoch2 (Dir+Pattern, or txt file of image list)"),
+               << EAMC(aImgList1,"ImgList1: RGB images in epoch1 for extracting inter-epoch correspondences (Dir+Pattern, or txt file of image list)")
+               << EAMC(aImgList2,"ImgList2: RGB images in epoch2 for extracting inter-epoch correspondences (Dir+Pattern, or txt file of image list)"),
         LArgMain()
                     << aCAS3D.ArgBasic()
                     << aCAS3D.ArgGetOverlappedImages()
