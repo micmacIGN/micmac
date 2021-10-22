@@ -796,7 +796,7 @@ int MakeTrainingData_main(int argc,char ** argv)
     bool bTile = false;
     bool bSaveHomol = false;
 
-    double dRandomShift = 50;
+    double dRandomShift = 25;
 
     std::string aScene = "0001";
 
@@ -834,7 +834,7 @@ int MakeTrainingData_main(int argc,char ** argv)
                 << EAM(aDSMDirGTR, "DSMDirGTR", true, "GT DSM of secondary image (for generating GT tie points), Def=DSMDirR")
                 << EAM(aDSMFileGTL, "DSMFileGTL", true, "GT DSM File of master image (for generating GT tie points), Def=DSMFileL")
                 << EAM(aDSMFileGTR, "DSMFileGTR", true, "GT DSM File of secondary image (for generating GT tie points), Def=DSMFileL")
-                << EAM(dRandomShift,"RanShift",true,"Use GT Orientation and DSM combined with random shift within \"RanShift\" to synthesize the roughly aligned RGB and DSM patches, Def=50 (use rough orientation and DSM without random shift)")
+                << EAM(dRandomShift,"RanShift",true,"Use GT Orientation and DSM combined with random shift within \"RanShift\" to synthesize the roughly aligned RGB and DSM patches, Def=25 (use rough orientation and DSM without random shift)")
                 << EAM(aScene, "Scene", true, "Output folder name of scene, Def=0001")
                 << EAM(bClean,"Clean",true,"Remove txt files that recorded the resampling homographies, Def=false")
      );

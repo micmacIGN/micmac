@@ -174,7 +174,6 @@ class cCommonAppliTiepHistorical
         cInterfChantierNameManipulateur * mICNM;
 
         std::string GetFolderName(std::string strIn);
-        void ExtractSIFT(std::string aFullName, std::string aDir);
 
         std::string ComParamDSM_Equalization();
         std::string ComParamGetPatchPair();
@@ -393,6 +392,8 @@ bool GetImgListVec(std::string aFullPattern, std::vector<std::string>& aVIm, boo
 void ReadXml(std::string & aImg1, std::string & aImg2, std::string aSubPatchXml, std::vector<std::string>& vPatchesL, std::vector<std::string>& vPatchesR, std::vector<cElHomographie>& vHomoL, std::vector<cElHomographie>& vHomoR);
 void GetBoundingBox(Pt3dr* ptTerrCorner, int nLen, Pt3dr& minPt, Pt3dr& maxPt);
 bool CheckRange(int nMin, int nMax, double & value);
+std::string GetScaledImgName(std::string aImgName, Pt2di ImgSz, double dScale);
+void ExtractSIFT(std::string aImgName, std::string aDir, double dScale=1);
 
 /****************************************/
 /****** cInterEp_RoughCoReg ******/
