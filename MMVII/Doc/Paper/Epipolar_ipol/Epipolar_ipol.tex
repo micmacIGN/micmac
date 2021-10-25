@@ -73,6 +73,7 @@
 \newcommand{\BigV}[1]{\ensuremath{\overrightarrow{#1}}}
 \newcommand{\TanO}[1]{\BigV{t_1#1}}
 \newcommand{\TanT}[1]{\BigV{t_2#1}}
+\newcommand{\TanOT}[1]{\BigV{t_{1,2}#1}}
 
 \newcommand{\Negl}[1]{\ensuremath{\mathcal{O}(#1)}}
 
@@ -516,6 +517,7 @@ The epipolar geometry exists iff the following determinant is null:
 \TanO{} & \TanT{}  & \DerPart { \TanT{}}{z_1}  -\DerPart { \TanO{}}{z_2}  
 \end{array} \right]  
 =0
+\label{EpiplabEq}
 \end{equation}
 
 \end{theorem}
@@ -540,6 +542,56 @@ between $\TanO{(P)}$ , $\TanT{(P)}$ and $\DerPart { \TanT{}}{z_1}(P)$ is thus pr
 \label{EqEpipConik}
 \end{equation}
 \end{remark}
+
+%---------------------------------------------
+
+\subsection{Une autre approche de l'index d'epipolaribilit\'e}
+
+Cette section pr\'esente une approche totalement diff\'erente de la caract\'erisation de l'epipolaribilit\'e.
+Cette approche permet de montrer que l'\'equation~\ref{EpiplabEq}  est n\'ecessaire et suffisante .
+Elle consiste \`a faire des changements de variables qui sont invariant a l'existence des \'epipolaire
+afin de simplifier le probl`eme.
+
+On dit qu'un   diph\'eomorphisme  $\phi$ est stable pour les faisceau de $\PiVert$,
+ssi $\forall(i,j) B=\pi^{-1}(i,j) ,\phi (B) = B$.
+On commence par deux remarques "triviale" puisque la notion d'epipolaribilit\'e est essentiellement 
+(statbilit\'e des faisceau pour un certain feuilletage) :
+
+\begin{itemize}
+    \item  qq soit le diph\'eomorphisme $\phi$ de   $\RR^3$,  $\PiVert_1$  et $\PiVert_2$ 
+	    sont \'epipolarisables ssi $\phi \circ \PiVert_1$  et $\phi \circ \PiVert_2$ le sont;
+
+    \item  qq soit le diph\'eomorphisme  $\phi_{B2}$  stable  pour les faisceaux de $\PiVert_2$,
+	    $\PiVert_1$  et $\PiVert_2$ sont \'epipolarisables ssi $\PiVert_1$  et $\phi_{B2} \circ \PiVert_2$
+            le sont.
+\end{itemize}
+
+On utilise la premi\`ere remarque avec $\phi = \PiVert_1^{-1}$, on s'int\'eresse donc \`a
+$Id =  \PiVert_1^{-1} \circ \PiVert_1$ et $\PiVert_{1,2} = \PiVert_1^{-1} \circ \PiVert_2$.
+
+Les bundle de l'image $1$ sont les droites de direction $\BigV{k}$,
+soit $P$ un point quelconque ,  $\Bund{1,2}(P)$ son faisceau pour  $\PiVert_{1,2}$,
+la surface \'epipolaire $\Sv{(P)}$ est n\'ecessairement le cylindre de g\'eneratrice $\BigV{k}$ et
+port\'e par  $\Bund{1,2}(P)$.  Le plan port\'e par  $\TanOT{P}$ et $\BigV{k}$ est donc tangent 
+\`a la surface, et pour tout point $P'$ sur la doite  $P,\BigV{k}$ on a :
+
+
+\begin{equation}
+      \TanOT{P'} = \alpha \TanOT(P) + \beta \BigV{k}
+\end{equation}
+
+Par passage \`a la limite on obtient donc :
+
+\begin{equation}
+\left[ \begin{array}{c|c|c}
+	\BigV{k} & \TanOT{}  & \DerPart { \TanOT{}}{z_{1,2}}  
+\end{array} \right]  
+=0
+\label{EpiplabEq}
+\end{equation}
+
+
+
 
 
 %---------------------------------------------
