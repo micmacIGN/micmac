@@ -939,6 +939,7 @@ extern int DSM_Equalization_main(int argc, char ** argv);
 extern int CreateGCPs_main(int argc, char ** argv);
 extern int WallisFilter_main(int argc, char ** argv);
 extern int TiePtEvaluation_main(int argc, char ** argv);
+extern int MakeOneTrainingData_main(int argc, char ** argv);
 extern int MakeTrainingData_main(int argc, char ** argv);
 extern int VisuTiePtIn3D_main(int argc, char ** argv);
 extern int TiePtAddWeight_main(int argc, char ** argv);
@@ -1015,6 +1016,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("CreateGCPs", CreateGCPs_main, "Create GCPs based on tie points on DSMs of 2 epochs "));
         aRes.push_back(cMMCom("Wallis", WallisFilter_main, "Apply Wallis Filter on one image"));
         aRes.push_back(cMMCom("TiePtEvaluation", TiePtEvaluation_main, "Evaluate the accuracy of tie points with ground truth DSM"));
+        aRes.push_back(cMMCom("MakeOneTrainingData", MakeOneTrainingData_main, "Make training data of one patch pair for SuperGlue 512D"));
         aRes.push_back(cMMCom("MakeTrainingData", MakeTrainingData_main, "Make training data for SuperGlue 512D"));
         aRes.push_back(cMMCom("VisuTiePtIn3D", VisuTiePtIn3D_main, "Visulize tie points in image pairs together in 3D"));
         aRes.push_back(cMMCom("TiePtAddWeight", TiePtAddWeight_main, "Add weight for tie points"));

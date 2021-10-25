@@ -445,45 +445,6 @@ std::string cCommonAppliTiepHistorical::GetFolderName(std::string strIn)
     return strOut;
 }
 
-void cCommonAppliTiepHistorical::ExtractSIFT(std::string aFullName, std::string aDir)
-{
-    cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aFullName));
-    cout<<aFullName<<endl;
-
-    //Tiff_Im::StdConvGen(aFullName,1,true,true);
-    Tiff_Im::StdConvGen(aFullName,1,false,true);
-
-    std::string aGrayImgName = aFullName + "_Ch1.tif";
-
-    //if RGB image
-    if( ELISE_fp::exist_file(aDir + "/Tmp-MM-Dir/" + aGrayImgName) == true)
-    {
-        std::string aComm;
-        aComm = "mv " + aDir + "/Tmp-MM-Dir/" + aGrayImgName + " " + aGrayImgName;
-        cout<<aComm<<endl;
-        System(aComm);
-
-        aComm = MMBinFile(MM3DStr) + "SIFT " + aGrayImgName;
-        cout<<aComm<<endl;
-        System(aComm);
-
-        aComm = "mv " + StdPrefix(aGrayImgName)+".key" + " "+StdPrefix(aFullName)+".key";
-        cout<<aComm<<endl;
-        System(aComm);
-
-        aComm = "rm " + aGrayImgName;
-        cout<<aComm<<endl;
-        System(aComm);
-    }
-    //gray image
-    else
-    {
-        std::string aCom = MMBinFile(MM3DStr) + "SIFT " + aFullName;
-        cout<<aCom<<endl;
-        System(aCom);
-    }
-}
-
 /*******************************************/
 /****** cAppliTiepHistoricalPipeline  ******/
 /*******************************************/
@@ -565,18 +526,24 @@ int cAppliTiepHistoricalPipeline::GetOverlappedImgPair(std::string aName, std::v
     return num;
 }
 
-std::string cAppliTiepHistoricalPipeline::GetImgList(std::string aDir, std::string aFileName)
+std::string cAppliTiepHistoricalPipeline::GetImgList(std::string aDir, std::string aFileName, bool bExe)
 {
-    std::string aRes = "\"";
+    std::string aRes;
 
-    std::string s;
-    ifstream in1(aDir+aFileName);
-    while(getline(in1,s))
+    std::vector<std::string> aVIm;
+    bool bTxt = GetImgListVec(aFileName, aVIm, bExe);
+    if(bTxt == true)
     {
-        aRes += s+"|";
+        aRes = "\"";
+        for(int i=0; i<int(aVIm.size()); i++)
+        {
+            aRes += aVIm[i]+"|";
+        }
+        aRes = aRes.substr(0, aRes.length()-1) + "\"";
     }
+    else
+        aRes = aFileName;
 
-    aRes = aRes.substr(0, aRes.length()-1) + "\"";
 
     return aRes;
 }
@@ -703,7 +670,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         /* 1.7 - GCPBascule for rough co-registration */
         /**************************************/
         aCom = "";
-        std::string aImgListL = GetImgList(mCAS3D.mDir, mImgList1);
+        std::string aImgListL = GetImgList(mCAS3D.mDir, mImgList1, mExe);
         StdCom("GCPBascule", aImgListL + BLANK + mOri1 + BLANK + mCoRegOri.substr(4,mCoRegOri.length()) + BLANK + mCAS3D.mOut3DXml2 + BLANK + mCAS3D.mOut2DXml1, mExe);
         /*
         aCom = "/home/lulin/Documents/ThirdParty/oldMicmac/micmac_old/bin/mm3d GCPBascule " + aImgListL + BLANK + mOri1 + BLANK + mCoRegOri.substr(4,mCoRegOri.length()) + BLANK + mCAS3D.mOut3DXml2 + BLANK + mCAS3D.mOut2DXml1;
@@ -872,18 +839,14 @@ void cAppliTiepHistoricalPipeline::DoAll()
         // Extract SIFT if SkipSIFT is set to false
         if(mExe == true && (!mSkipTentativeMatch) && mCAS3D.mSkipSIFT == false)
         {
-            std::string aImgName;
-            ifstream in1(mCAS3D.mDir+mImg4MatchList1);
-            while(getline(in1,aImgName))
-            {
-                ExtractSIFT(aImgName, mCAS3D.mDir);
-            }
-
-            ifstream in2(mCAS3D.mDir+mImg4MatchList2);
-            while(getline(in2,aImgName))
-            {
-                ExtractSIFT(aImgName, mCAS3D.mDir);
-            }
+            std::vector<std::string> aVIm1;
+            std::vector<std::string> aVIm2;
+            GetImgListVec(mCAS3D.mDir+mImg4MatchList1, aVIm1, mExe);
+            GetImgListVec(mCAS3D.mDir+mImg4MatchList2, aVIm2, mExe);
+            for(unsigned int k=0; k<aVIm1.size(); k++)
+                ExtractSIFT(aVIm1[k], mCAS3D.mDir, mScaleL);
+            for(unsigned int k=0; k<aVIm2.size(); k++)
+                ExtractSIFT(aVIm2[k], mCAS3D.mDir, mScaleR);
         }
 
         for(int i=0; i<nPairNum; i++)
@@ -1069,15 +1032,15 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
         LArgMain()
                << EAMC(mOri1,"Orientation of epoch1")
                << EAMC(mOri2,"Orientation of epoch2")
-               << EAMC(mImgList1,"ImgList1: The list that contains all the RGB images of epoch1, this parameter is used for creating GCPs for rough co-registration ")
-               << EAMC(mImgList2,"ImgList2: The list that contains all the RGB images of epoch2, this parameter is used for creating GCPs for rough co-registration ")
+               << EAMC(mImgList1,"ImgList1: All RGB images in epoch1 (Dir+Pattern, or txt file of image list)")
+               << EAMC(mImgList2,"ImgList2: All RGB images in epoch2 (Dir+Pattern, or txt file of image list)")
                << EAMC(mDSMDirL, "DSM directory of epoch1")
                << EAMC(mDSMDirR, "DSM directory of epoch2"),
 
         LArgMain()
                << EAM(mExe,"Exe",true,"Execute all, Def=true. If this parameter is set to false, the pipeline will not be executed and the command of all the submodules will be printed.")
-               << EAM(mImg4MatchList1,"IL1",true,"The list that contains the RGB images of epoch1 for extracting inter-epoch correspondences, Def=ImgList1")
-               << EAM(mImg4MatchList2,"IL2",true,"The list that contains the RGB images of epoch2 for extracting inter-epoch correspondences, Def=ImgList2")
+               << EAM(mImg4MatchList1,"IL1",true,"RGB images in epoch1 for extracting inter-epoch correspondences (Dir+Pattern, or txt file of image list), Def=ImgList1")
+               << EAM(mImg4MatchList2,"IL2",true,"RGB images in epoch2 for extracting inter-epoch correspondences (Dir+Pattern, or txt file of image list), Def=ImgList2")
                << EAM(mCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
                << EAM(mUseDepth,"UseDep",true,"GetPatchPair for depth maps as well (this option is only used for developper), Def=false")
                << EAM(mRotateDSM,"RotateDSM",true,"The angle of rotation from the master DSM to the secondary DSM for rough co-registration (only 4 options available: 0, 90, 180, 270, as the rough co-registration method is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
@@ -1107,8 +1070,8 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << mCAS3D.ArgCreateGCPs()
                << mCAS3D.ArgGetOverlappedImages()
                << mCAS3D.ArgGuidedSIFT()
-               << EAM(mScaleL, "ScaleL", true, "Min scale of master image for extracting key points, Def=1")
-               << EAM(mScaleR, "ScaleR", true, "Min scale of secondary image for extracting key points, Def=1")
+               << EAM(mScaleL, "ScaleL", true, "Extract SIFT points on master images downsampled with a factor of \"ScaleL\", Def=1")
+               << EAM(mScaleR, "ScaleR", true, "Extract SIFT points on secondary images downsampled with a factor of \"ScaleR\", Def=1")
                << mCAS3D.Arg3DRANSAC()
                << mCAS3D.ArgCrossCorrelation()
 /*
@@ -1538,6 +1501,79 @@ void GetRandomNum(int nMin, int nMax, int nNum, std::vector<int> & res)
     }
 }
 
+void GetRandomNum(double dMin, double dMax, int nNum, std::vector<double> & res)
+{
+    //srand((int)time(0));
+    int idx = 0;
+    for(int i=0; i<nNum; i++)
+    {
+        bool bRepeat = false;
+        int nIter = 0;
+        do
+        {
+            bRepeat = false;
+            nIter++;
+            idx = (rand()*1.0/RAND_MAX)*(dMax-dMin) + dMin;
+            //printf("For %dth seed, %dth generation, random value: %d\n", i, nIter, idx);
+            /*
+            for(int j=0; j<int(res.size()); j++)
+            {
+                if(fabs(idx - res[j]) < 0.00001){
+                    bRepeat = true;
+                    break;
+                }
+            }
+            */
+        }
+        while(bRepeat == true);
+        res.push_back(idx);
+    }
+}
+
+bool GetImgListVec(std::string aFullPattern, std::vector<std::string>& aVIm, bool bPrint)
+{
+    bool bTxt = false;
+    //image list
+    if(aFullPattern.substr(aFullPattern.length()-4,4) == ".txt")
+    {
+        if (ELISE_fp::exist_file(aFullPattern) == false)
+            printf("File %s does not exist.\n", aFullPattern.c_str());
+
+        std::string s;
+
+        ifstream in1(aFullPattern);
+        if(bPrint)
+            printf("Images in %s:\n", aFullPattern.c_str());
+        while(getline(in1,s))
+        {
+            aVIm.push_back(s);
+            if(bPrint)
+                printf(" - %s\n", s.c_str());
+        }
+        bTxt = true;
+    }
+    //image pattern
+    else
+    {
+        // Initialize name manipulator & files
+        std::string aDirImages,aPatIm;
+        SplitDirAndFile(aDirImages,aPatIm,aFullPattern);
+
+        cInterfChantierNameManipulateur * aICNM=cInterfChantierNameManipulateur::BasicAlloc(aDirImages);
+        const std::vector<std::string> aSetIm = *(aICNM->Get(aPatIm));
+
+        if(bPrint)
+            std::cout<<"Selected files:"<<std::endl;
+        for (unsigned int i=0;i<aSetIm.size();i++)
+        {
+            if(bPrint)
+                std::cout<<" - "<<aSetIm[i]<<std::endl;
+            aVIm.push_back(aSetIm[i]);
+        }
+    }
+    return bTxt;
+}
+
 bool FallInBox(Pt2dr* aPCorner, Pt2dr aLeftTop, Pt2di aRightLower)
 {
     if((aPCorner[0].x < aLeftTop.x) && (aPCorner[1].x < aLeftTop.x) && (aPCorner[2].x < aLeftTop.x) && (aPCorner[3].x < aLeftTop.x))
@@ -1618,3 +1654,84 @@ bool CheckRange(int nMin, int nMax, double & value)
         value = nMax;
     return true;
 }
+
+std::string GetScaledImgName(std::string aImgName, Pt2di ImgSz, double dScale)
+{
+    int nSz1 = int(max(ImgSz.x, ImgSz.y)*1.0/dScale);
+
+    //cout<<max(ImgSz.x, ImgSz.y)*1.0/nSz1<<endl;
+    double dScaleNm = max(ImgSz.x, ImgSz.y)*1.0/nSz1;
+    int nScaleNm = int(dScaleNm  + 0.5);
+    if(nScaleNm < 10)
+        nScaleNm *= 10;
+
+    std::string aImgScaledName = "Resol" + ToString(nScaleNm) + "_Teta0_" + aImgName;
+
+    return aImgScaledName;
+}
+
+void ExtractSIFT(std::string aImgName, std::string aDir, double dScale)
+{
+    std::string aImgNameWithDir = aDir+"/"+aImgName;
+    if (ELISE_fp::exist_file(aImgNameWithDir) == false)
+    {
+        cout<<aImgNameWithDir<<" didn't exist, hence skipped"<<endl;
+        return;
+    }
+
+    Tiff_Im aRGBIm1(aImgNameWithDir.c_str());
+    Pt2di ImgSz = aRGBIm1.sz();
+    int nSz1 = int(max(ImgSz.x, ImgSz.y)*1.0/dScale);
+
+    std::string aComm;
+    aComm = MMBinFile(MM3DStr) + "PastDevlop " + aImgName + " Sz1=" + ToString(nSz1) +" Sz2=-1";
+    cout<<aComm<<endl;
+    System(aComm);
+
+    std::string aImgScaledName = GetScaledImgName(aImgName, ImgSz, dScale);
+
+    aComm = MMBinFile(MM3DStr) + "SIFT " + aDir+"/Pastis/"+aImgScaledName + " -o " + aDir+"/Pastis/LBPp"+aImgScaledName+".dat";
+    cout<<aComm<<endl;
+    System(aComm);
+}
+
+/*
+void ExtractSIFT(std::string aFullName, std::string aDir)
+{
+    cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aFullName));
+    cout<<aFullName<<endl;
+
+    //Tiff_Im::StdConvGen(aFullName,1,true,true);
+    Tiff_Im::StdConvGen(aFullName,1,false,true);
+
+    std::string aGrayImgName = aFullName + "_Ch1.tif";
+
+    //if RGB image
+    if( ELISE_fp::exist_file(aDir + "/Tmp-MM-Dir/" + aGrayImgName) == true)
+    {
+        std::string aComm;
+        aComm = "mv " + aDir + "/Tmp-MM-Dir/" + aGrayImgName + " " + aGrayImgName;
+        cout<<aComm<<endl;
+        System(aComm);
+
+        aComm = MMBinFile(MM3DStr) + "SIFT " + aGrayImgName;
+        cout<<aComm<<endl;
+        System(aComm);
+
+        aComm = "mv " + StdPrefix(aGrayImgName)+".key" + " "+StdPrefix(aFullName)+".key";
+        cout<<aComm<<endl;
+        System(aComm);
+
+        aComm = "rm " + aGrayImgName;
+        cout<<aComm<<endl;
+        System(aComm);
+    }
+    //gray image
+    else
+    {
+        std::string aCom = MMBinFile(MM3DStr) + "SIFT " + aFullName;
+        cout<<aCom<<endl;
+        System(aCom);
+    }
+}
+*/

@@ -76,6 +76,18 @@ aooter-MicMac-eLiSe-25/06/2007*/
 
 extern ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir);
 
+void ScaleKeyPt(std::vector<Siftator::SiftPoint>& aVSIFTPt, double dScale)
+{
+    int nSizeL = aVSIFTPt.size();
+
+    for(int i=0; i<nSizeL; i++)
+    {
+        aVSIFTPt[i].x *= dScale;
+        aVSIFTPt[i].y *= dScale;
+        aVSIFTPt[i].scale *= dScale;
+    }
+}
+
 void FilterKeyPt(std::vector<Siftator::SiftPoint> aVSIFTPt, std::vector<Siftator::SiftPoint>& aVSIFTPtNew, double dMinScale, double dMaxScale)
 {
     int nSizeL = aVSIFTPt.size();
@@ -505,8 +517,10 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     Tiff_Im aRGBIm2(aImg2.c_str());
     Pt2di ImgSzR = aRGBIm2.sz();
 
-    std::string aImg1Key = aImg1.substr(0, aImg1.rfind(".")) + ".key";
-    std::string aImg2Key = aImg2.substr(0, aImg2.rfind(".")) + ".key";
+    std::string aImgScaledName1 = GetScaledImgName(aImg1, ImgSzL, dScaleL);
+    std::string aImgScaledName2 = GetScaledImgName(aImg2, ImgSzR, dScaleR);
+    std::string aImg1Key = aDir + "/Pastis/LBPp" + aImgScaledName1+".dat"; //aImg1.substr(0, aImg1.rfind(".")) + ".key";
+    std::string aImg2Key = aDir + "/Pastis/LBPp" + aImgScaledName2+".dat"; //aImg2.substr(0, aImg2.rfind(".")) + ".key";
 
     //*********** 0. calculate ScaleTh and AngleTh for CheckScale and CheckAngle
     double d2PI = 3.1415926*2;
@@ -541,6 +555,9 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
         return;
     }
 
+    ScaleKeyPt(aVSiftOriL, dScaleL);
+    ScaleKeyPt(aVSiftOriR, dScaleR);
+
     double dMinScaleL;
     double dMaxScaleL;
     GetMinMaxScale(aVSiftOriL, dMinScaleL, dMaxScaleL);
@@ -549,7 +566,7 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     GetMinMaxScale(aVSiftOriR, dMinScaleR, dMaxScaleR);
 
     //filter key points that are out of the range
-    double dScale = (dScaleL > dScaleR) ? dScaleL : dScaleR; //the scales of 2 images are linked together by "CheckScale", so we only need to choose the bigger scale for filter
+    double dScale = 1; //(dScaleL > dScaleR) ? dScaleL : dScaleR; //the scales of 2 images are linked together by "CheckScale", so we only need to choose the bigger scale for filter
     std::vector<Siftator::SiftPoint> aVSiftL;
     double dMinGoalScaleL = dMinScaleR*ScaleRotateR.x*(1-threshScale)*dScale;
     double dMaxGoalScaleL = dMaxScaleR*ScaleRotateR.x*(1+threshScale)*dScale;
@@ -644,45 +661,6 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     printf("%s\n%s\n", aCom.c_str(), aComInv.c_str());
 }
 
-void ExtractSIFT(std::string aFullName, std::string aDir)
-{
-    cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aFullName));
-    cout<<aFullName<<endl;
-
-    //Tiff_Im::StdConvGen(aFullName,1,true,true);
-    Tiff_Im::StdConvGen(aFullName,1,false,true);
-
-    std::string aGrayImgName = aFullName + "_Ch1.tif";
-
-    //if RGB image
-    if( ELISE_fp::exist_file(aDir + "/Tmp-MM-Dir/" + aGrayImgName) == true)
-    {
-        std::string aComm;
-        aComm = "mv " + aDir + "/Tmp-MM-Dir/" + aGrayImgName + " " + aGrayImgName;
-        cout<<aComm<<endl;
-        System(aComm);
-
-        aComm = MMBinFile(MM3DStr) + "SIFT " + aGrayImgName;
-        cout<<aComm<<endl;
-        System(aComm);
-
-        aComm = "mv " + StdPrefix(aGrayImgName)+".key" + " "+StdPrefix(aFullName)+".key";
-        cout<<aComm<<endl;
-        System(aComm);
-
-        aComm = "rm " + aGrayImgName;
-        cout<<aComm<<endl;
-        System(aComm);
-    }
-    //gray image
-    else
-    {
-        std::string aCom = MMBinFile(MM3DStr) + "SIFT " + aFullName;
-        cout<<aCom<<endl;
-        System(aCom);
-    }
-}
-
 int GuidedSIFTMatch_main(int argc,char ** argv)
 {
    cCommonAppliTiepHistorical aCAS3D;
@@ -724,8 +702,8 @@ int GuidedSIFTMatch_main(int argc,char ** argv)
                << EAM(aPara3DHL, "Para3DHL", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
                << EAM(aPara3DHR, "Para3DHR", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of secondary image to master image, Def=none")
                << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
-               << EAM(dScaleL, "ScaleL", true, "Min scale of master image for extracting key points, Def=1")
-               << EAM(dScaleR, "ScaleR", true, "Min scale of secondary image for extracting key points, Def=1")
+               << EAM(dScaleL, "ScaleL", true, "Extract SIFT points on master images downsampled with a factor of \"ScaleL\", Def=1")
+               << EAM(dScaleR, "ScaleR", true, "Extract SIFT points on secondary images downsampled with a factor of \"ScaleR\", Def=1")
     );
     StdCorrecNameOrient(aOri1,"./",true);
     StdCorrecNameOrient(aOri2,"./",true);

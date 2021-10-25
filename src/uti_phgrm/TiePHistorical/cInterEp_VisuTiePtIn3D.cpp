@@ -89,8 +89,10 @@ void CalcDiff(std::vector<Pt3dr> Pt3dL, std::vector<Pt3dr> Pt3dR, std::vector<bo
 void VisuTiePtIn3D(std::string aDir, std::string aImgList1, std::string aImgList2, std::string aInSH, std::string aOri1, std::string aOri2, std::string aDSMDirL, std::string aDSMDirR, std::string aDSMFileL, std::string aDSMFileR, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, std::string aNameSave, cInterfChantierNameManipulateur * aICNM, bool bPrint, double aThres, bool bSaveDif)
 {
     std::vector<string> vImgList1;
-    std::vector<string> vImgList2;
-
+    std::vector<string> vImgList2;    
+    GetImgListVec(aImgList1, vImgList1);
+    GetImgListVec(aImgList2, vImgList2);
+    /*
     std::string s;
     ifstream in1(aDir+"/"+aImgList1);
     cout<<"Images in "<<aDir+"/"+aImgList1<<":"<<endl;
@@ -107,6 +109,7 @@ void VisuTiePtIn3D(std::string aDir, std::string aImgList1, std::string aImgList
         vImgList2.push_back(s);
         cout<<s<<endl;
     }
+    */
 
     std::string aDir_inSH = aDir + "/Homol" + aInSH + "/";
 
@@ -203,8 +206,8 @@ int VisuTiePtIn3D_main(int argc,char ** argv)
     (
         argc,argv,
         LArgMain()
-               << EAMC(aImgList1,"ImgList1: The list that contains all the master images")
-               << EAMC(aImgList2,"ImgList2: The list that contains all the secondary images")
+               << EAMC(aImgList1,"ImgList1: All master images (Dir+Pattern, or txt file of image list)")
+               << EAMC(aImgList2,"ImgList2: All secondary images (Dir+Pattern, or txt file of image list)")
                << EAMC(aOri1,"Orientation of ImgList1")
                << EAMC(aOri2,"Orientation of ImgList2"),
         LArgMain()

@@ -200,38 +200,41 @@ bool IsOverlapped(std::string aImg1, std::string aImg2, std::string aOri1, std::
     return bRes;
 }
 
-void GetOverlappedImages(std::string mImgList1, std::string mImgList2, std::string aOri1, std::string aOri2, std::string aDir, std::string aOut, cInterfChantierNameManipulateur * aICNM, cTransform3DHelmert aTrans3DHL, bool bPrint)
+void GetOverlappedImages(std::string aImgList1, std::string aImgList2, std::string aOri1, std::string aOri2, std::string aDir, std::string aOut, cInterfChantierNameManipulateur * aICNM, cTransform3DHelmert aTrans3DHL, bool bPrint)
 {
-    if (ELISE_fp::exist_file(mImgList1) == false)
-        printf("File %s does not exist.\n", mImgList1.c_str());
-    if (ELISE_fp::exist_file(mImgList2) == false)
-        printf("File %s does not exist.\n", mImgList2.c_str());
-
     std::vector<string> vImgList1;
     std::vector<string> vImgList2;
+    GetImgListVec(aImgList1, vImgList1);
+    GetImgListVec(aImgList2, vImgList2);
+    /*
+    if (ELISE_fp::exist_file(aImgList1) == false)
+        printf("File %s does not exist.\n", aImgList1.c_str());
+    if (ELISE_fp::exist_file(aImgList2) == false)
+        printf("File %s does not exist.\n", aImgList2.c_str());
 
     std::string s;
 
-    ifstream in1(aDir+mImgList1);
-    printf("Images in %s:\n", mImgList1.c_str());
+    ifstream in1(aDir+aImgList1);
+    printf("Images in %s:\n", aImgList1.c_str());
     while(getline(in1,s))
     {
         vImgList1.push_back(s);
         printf("%s\n", s.c_str());
     }
-    //printf("%d images in %s\n", int(vImgList1.size()), mImgList1.c_str());
+    //printf("%d images in %s\n", int(vImgList1.size()), aImgList1.c_str());
 
-    ifstream in2(aDir+mImgList2);
-    printf("Images in %s:\n", mImgList2.c_str());
+    ifstream in2(aDir+aImgList2);
+    printf("Images in %s:\n", aImgList2.c_str());
     while(getline(in2,s))
     {
         vImgList2.push_back(s);
         printf("%s\n", s.c_str());
     }
-    //printf("%d images in %s\n", int(vImgList2.size()), mImgList2.c_str());
+    //printf("%d images in %s\n", int(vImgList2.size()), aImgList2.c_str());
 
     //std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
     //std::string aKeyOri2 = "NKS-Assoc-Im2Orient@-" + aOri2;
+    */
 
     unsigned int m, n;
     cSauvegardeNamedRel aRel;
@@ -277,8 +280,8 @@ int GetOverlappedImages_main(int argc,char ** argv)
                << EAMC(aOri1,"Orientation of master image")
                << EAMC(aOri2,"Orientation of secondary image")
                //<< EAMC(aDir,"Work directory")
-               << EAMC(aImgList1,"ImgList1: The list that contains all the RGB images of epoch1, this parameter is used for creating GCPs for rough co-registration")
-               << EAMC(aImgList2,"ImgList2: The list that contains all the RGB images of epoch2, this parameter is used for creating GCPs for rough co-registration"),
+               << EAMC(aImgList1,"ImgList1: RGB images in epoch1 for extracting inter-epoch correspondences (Dir+Pattern, or txt file of image list)")
+               << EAMC(aImgList2,"ImgList2: RGB images in epoch2 for extracting inter-epoch correspondences (Dir+Pattern, or txt file of image list)"),
         LArgMain()
                     << aCAS3D.ArgBasic()
                     << aCAS3D.ArgGetOverlappedImages()
