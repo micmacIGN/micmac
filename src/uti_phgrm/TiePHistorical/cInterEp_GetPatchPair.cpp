@@ -207,8 +207,9 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
     CoreaPatchSz.y = aPatchSz.y - aBufferSz.y*2;
 
     Pt2di PatchNum;
-    PatchNum.x = ceil(ImgSzL.x*1.0/CoreaPatchSz.x);
-    PatchNum.y = ceil(ImgSzL.y*1.0/CoreaPatchSz.y);
+    //"-2*aBufferSz.x" to avoid left-top patch having margin, and to avoid unnecessary right-lower patches
+    PatchNum.x = ceil((ImgSzL.x-2*aBufferSz.x)*1.0/CoreaPatchSz.x);
+    PatchNum.y = ceil((ImgSzL.y-2*aBufferSz.y)*1.0/CoreaPatchSz.y);
 
     int aType = eTIGB_Unknown;
     std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
@@ -252,8 +253,9 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
         {
             std::string aSubImg1 = StdPrefix(aOutImg1) + "_" + std::to_string(m) + "_" + std::to_string(n) + "." + StdPostfix(aOutImg1);
 
-            origin.x = m*CoreaPatchSz.x - aBufferSz.x;
-            origin.y = n*CoreaPatchSz.y - aBufferSz.y;
+            //to avoid left-top patch having margin, and to avoid unnecessary right-lower patches
+            origin.x = m*CoreaPatchSz.x;
+            origin.y = n*CoreaPatchSz.y;
 
             // 1. use ClipIm command to clip master image into patches
             std::string aComClipMasterImg = aComBaseClip + " ["+std::to_string(int(origin.x))+","+std::to_string(int(origin.y))+"] " + aClipSz + " Out="+aOutDir+"/"+aSubImg1;
