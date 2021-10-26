@@ -42,26 +42,43 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "cnpy.h"
 //#include "cnpy.cpp"
 
-void CropPatch(Pt2dr aPtOri, Pt2dr aPatchSz, std::string aImg2, std::string aOutDir, std::string aSubImgR)
-{
-    std::string aClipSz = " ["+std::to_string(int(aPatchSz.x))+","+std::to_string(int(aPatchSz.y))+"] ";
 
-    std::string aComBaseClip = MMBinFile(MM3DStr) + "ClipIm " + aImg2 + " ";
-    std::string aComClipMasterImg = aComBaseClip + " ["+std::to_string(int(aPtOri.x))+","+std::to_string(int(aPtOri.y))+"] " + aClipSz + " Out="+aOutDir+"/"+aSubImgR;
-    cout<<aComClipMasterImg<<endl;
-    System(aComClipMasterImg);
+void GetCorners(Pt2dr aOriPt, Pt2dr aSz, Pt2dr* aCorners)
+{
+    aCorners[0] = aOriPt;
+    aCorners[1] = Pt2dr(aOriPt.x+aSz.x, aOriPt.y);
+    aCorners[2] = Pt2dr(aOriPt.x+aSz.x, aOriPt.y+aSz.y);
+    aCorners[3] = Pt2dr(aOriPt.x, aOriPt.y+aSz.y);
+    /*
+    for(int i=0; i<4; i++){
+        aCorners[i].x *= dScale;
+        aCorners[i].y *= dScale;
+    }
+    */
 }
 
+void SaveResampleTxt(std::string aNameSave, Pt2dr* aPtL, Pt2dr* aPtR, double dScaleL = 1, double dScaleR = 1)
+{
+    FILE * fpOutput = fopen((aNameSave).c_str(), "w");
+    for(int i=0; i<4; i++)
+    {
+        fprintf(fpOutput, "%lf %lf %lf %lf\n", aPtL[i].x*dScaleL, aPtL[i].y*dScaleL, aPtR[i].x*dScaleR, aPtR[i].y*dScaleR);
+    }
+    fclose(fpOutput);
+}
 
 bool CheckInDSMBorder(Pt2dr* ImgCorner, Pt2dr PatchSz, cGet3Dcoor a3DL, cDSMInfo aDSMInfoL, bool bPrint)
 //, std::vector<Pt2dr> & DSMCoor
 {
     Pt2dr PatchCorner[4];
+    GetCorners(Pt2dr(0, 0), PatchSz, PatchCorner);
+    /*
     Pt2dr origin = Pt2dr(0, 0);
     PatchCorner[0] = origin;
     PatchCorner[1] = Pt2dr(origin.x+PatchSz.x, origin.y);
     PatchCorner[2] = Pt2dr(origin.x+PatchSz.x, origin.y+PatchSz.y);
     PatchCorner[3] = Pt2dr(origin.x, origin.y+PatchSz.y);
+    */
 
     for(int i=0; i<4; i++)
     {
@@ -107,55 +124,6 @@ void RemoveDSM(std::string aDSMImgName)
     std::string cmmd = "rm " + aDSMImgName;
     cout<<cmmd<<endl;
     System(cmmd);
-
-}
-
-bool GetDSMPatch(std::string aImg, std::string aDSMDir, std::string aDSMFile, Pt2dr* ImgCorner, Pt2dr PatchSz, cGet3Dcoor a3DL, cDSMInfo aDSMInfoL, bool bPrint, std::string aOutDirDSM, std::string aOutDirDSMTxt)
-//, std::vector<Pt2dr> & DSMCoor
-{
-    Pt2dr PatchCorner[4];
-    Pt2dr origin = Pt2dr(0, 0);
-    PatchCorner[0] = origin;
-    PatchCorner[1] = Pt2dr(origin.x+PatchSz.x, origin.y);
-    PatchCorner[2] = Pt2dr(origin.x+PatchSz.x, origin.y+PatchSz.y);
-    PatchCorner[3] = Pt2dr(origin.x, origin.y+PatchSz.y);
-
-    std::string aDSMName = aDSMInfoL.GetDSMName(aDSMFile, aDSMDir);
-    std::string aDSMImgName = aDSMDir + "_" + StdPrefix(aDSMName) + "_gray.tif_sfs." + StdPostfix(aDSMName);
-
-    std::string aNameSave = StdPrefix(aImg); // + "_DSM";
-    std::string aSubImg = aNameSave + "." + StdPostfix(aImg);
-    aNameSave += ".txt";
-
-    Pt2dr aPtInDSM[4];
-    for(int i=0; i<4; i++)
-    {
-        Pt2dr aPL = ImgCorner[i];
-        Pt3dr aPTer1;
-        bool bPreciseL;
-        aPTer1 = a3DL.Get3Dcoor(aPL, aDSMInfoL, bPreciseL, bPrint);//, a3DL.GetGSD(), true);
-
-        aPtInDSM[i] = aDSMInfoL.Get2DcoorInDSM(aPTer1);
-    }
-
-    FILE * fpOutput = fopen((aNameSave).c_str(), "w");
-    for(int i=0; i<4; i++)
-        fprintf(fpOutput, "%lf %lf %lf %lf\n", PatchCorner[i].x, PatchCorner[i].y, aPtInDSM[i].x, aPtInDSM[i].y);
-    fclose(fpOutput);
-
-    std::string aComBaseResample = MMBinFile(MM3DStr) + "TestLib OneReechFromAscii ";
-    std::string aComResampleSndImg = aComBaseResample + aDSMImgName + " " + aNameSave + " Out="+aSubImg + " Show=true";
-    cout<<aComResampleSndImg<<endl;
-    System(aComResampleSndImg);
-
-    std::string cmmd = "mv " + aSubImg + " " + aOutDirDSM + aSubImg;
-    cout<<cmmd<<endl;
-    System(cmmd);
-    cmmd = "mv " + aNameSave + " " + aOutDirDSMTxt + aNameSave;
-    cout<<cmmd<<endl;
-    System(cmmd);
-
-    return true;
 }
 
 //For no matches in GT tie point file, save point (-100,-100) for the convenience of look-up
@@ -250,7 +218,7 @@ void GetGTTiePts(Pt2dr aPtOriL, Pt2dr PatchSzL, Pt2dr PatchSzR, Pt2di ImgSzR, cT
     if(bSaveHomol)
     {
         std::string aCom = "mm3d SEL" + BLANK + aOutDirImg + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+SH;
-        printf("%s\n", aCom.c_str());
+        printf("*************************\n%s\n", aCom.c_str());
 
         std::string aSHDir = aOutDirImg + "/Homol" + SH+"/";
         if (ELISE_fp::exist_file(aSHDir) == false)
@@ -322,25 +290,23 @@ void ReProjection(Pt2dr* aPCornerL, Pt2dr* aPCornerR, cTransform3DHelmert aTrans
     }
 }
 
-cElHomographie GetSecondaryPatch(Pt2dr* aPCornerR, Pt2dr PatchSz, std::string aImg2, std::string aSubImgR, bool bPrint, std::string aOutDirImg, std::string aOutDirRGBTxt)
+cElHomographie GetSecondaryPatch(Pt2dr* aPCornerR, Pt2dr PatchSz, std::string aImg2, std::string aSubImgR, bool bPrint, std::string aOutDirImg, std::string aOutDirRGBTxt, bool bKeepPatch, double dScaleR)
 {
     Pt2dr aPCornerPatch[4];
+    GetCorners(Pt2dr(0, 0), PatchSz, aPCornerPatch);
+    /*
     Pt2dr origin = Pt2dr(0, 0);
     aPCornerPatch[0] = origin;
     aPCornerPatch[1] = Pt2dr(origin.x+PatchSz.x, origin.y);
     aPCornerPatch[2] = Pt2dr(origin.x+PatchSz.x, origin.y+PatchSz.y);
     aPCornerPatch[3] = Pt2dr(origin.x, origin.y+PatchSz.y);
+    */
 
     std::string aNameSave = StdPrefix(aSubImgR) + ".txt";
+    SaveResampleTxt(aNameSave, aPCornerPatch, aPCornerR, 1, dScaleR);
 
-        FILE * fpOutput = fopen((aNameSave).c_str(), "w");
-        for(int i=0; i<4; i++)
-        {
-            fprintf(fpOutput, "%lf %lf %lf %lf\n", aPCornerPatch[i].x, aPCornerPatch[i].y, aPCornerR[i].x, aPCornerR[i].y);
-        }
-        fclose(fpOutput);
-        //cout<<aNameSave<<" saved"<<endl;
-
+    if(bKeepPatch == true)
+    {
         std::string aComBaseResample = MMBinFile(MM3DStr) + "TestLib OneReechFromAscii ";
         std::string aComResampleSndImg = aComBaseResample + aImg2  + " " + aNameSave + " Out="+aSubImgR + " Show=true";
         cout<<aComResampleSndImg<<endl;
@@ -348,9 +314,13 @@ cElHomographie GetSecondaryPatch(Pt2dr* aPCornerR, Pt2dr PatchSz, std::string aI
 
         std::string aMvTif = "mv "+aSubImgR + " "+aOutDirImg+aSubImgR;
         cout<<aMvTif<<endl;
-        System(aMvTif);        
+        System(aMvTif);
+    }
 
-    ElPackHomologue aPack = ElPackHomologue::FromFile(aNameSave);
+    ElPackHomologue aPack;
+    //aPack = ElPackHomologue::FromFile(aNameSave);
+    for(int i=0; i<4; i++)
+        aPack.Cple_Add(ElCplePtsHomologues(aPCornerPatch[i], aPCornerR[i]));
     double anEcart,aQuality;
     bool Ok;
     cElHomographie aHomo = cElHomographie::RobustInit(anEcart,&aQuality,aPack,Ok,50,80.0,2000);
@@ -363,7 +333,88 @@ cElHomographie GetSecondaryPatch(Pt2dr* aPCornerR, Pt2dr PatchSz, std::string aI
     return aHomo.Inverse();
 }
 
-void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string aOri1, std::string aOri2, std::string aDSMFileGTL, std::string aDSMFileGTR, std::string aDSMDirGTL, std::string aDSMDirGTR, std::string aOriGT1, std::string aOriGT2, cInterfChantierNameManipulateur * aICNM, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, bool bPrint, Pt2dr aPatchSz, Pt2di seed, int nGap, double dThres, std::string SH, bool bTile, bool bSaveHomol, double dRandomShift, std::string aScene)
+void CropPatch(Pt2dr aPtOri, Pt2dr aPatchSz, std::string aImg2, std::string aOutDir, std::string aSubImgR, std::string aOutDirRGBTxt, bool bKeepPatch, double dScaleL)
+{
+    Pt2dr aCornersL[4];
+    GetCorners(Pt2dr(0, 0), aPatchSz, aCornersL);
+    Pt2dr aCornersR[4];
+    GetCorners(aPtOri, aPatchSz, aCornersR);
+    std::string aNameSave = StdPrefix(aSubImgR) + ".txt";
+    SaveResampleTxt(aNameSave, aCornersL, aCornersR, 1, dScaleL);
+
+    std::string aMvTxt = "mv "+aNameSave + " "+aOutDirRGBTxt+aNameSave;
+    cout<<aMvTxt<<endl;
+    System(aMvTxt);
+
+    if(bKeepPatch == true)
+    {
+        std::string aClipSz = " ["+std::to_string(int(aPatchSz.x*dScaleL))+","+std::to_string(int(aPatchSz.y*dScaleL))+"] ";
+        std::string aComBaseClip = MMBinFile(MM3DStr) + "ClipIm " + aImg2 + " ";
+        std::string aComClipMasterImg = aComBaseClip + " ["+std::to_string(int(aPtOri.x*dScaleL))+","+std::to_string(int(aPtOri.y*dScaleL))+"] " + aClipSz + " Out="+aOutDir+"/"+aSubImgR;
+        cout<<aComClipMasterImg<<endl;
+        System(aComClipMasterImg);
+    }
+}
+
+bool GetDSMPatch(std::string aImg, std::string aDSMDir, std::string aDSMFile, Pt2dr* ImgCorner, Pt2dr PatchSz, cGet3Dcoor a3DL, cDSMInfo aDSMInfoL, bool bPrint, std::string aOutDirDSM, std::string aOutDirDSMTxt, bool bKeepPatch)
+//, std::vector<Pt2dr> & DSMCoor
+{
+    Pt2dr PatchCorner[4];
+    GetCorners(Pt2dr(0, 0), PatchSz, PatchCorner);
+    /*
+    Pt2dr origin = Pt2dr(0, 0);
+    PatchCorner[0] = origin;
+    PatchCorner[1] = Pt2dr(origin.x+PatchSz.x, origin.y);
+    PatchCorner[2] = Pt2dr(origin.x+PatchSz.x, origin.y+PatchSz.y);
+    PatchCorner[3] = Pt2dr(origin.x, origin.y+PatchSz.y);
+    */
+
+    std::string aDSMName = aDSMInfoL.GetDSMName(aDSMFile, aDSMDir);
+    std::string aDSMImgName = aDSMDir + "_" + StdPrefix(aDSMName) + "_gray.tif_sfs." + StdPostfix(aDSMName);
+
+    std::string aNameSave = StdPrefix(aImg); // + "_DSM";
+    std::string aSubImg = aNameSave + "." + StdPostfix(aImg);
+    aNameSave += ".txt";
+
+    Pt2dr aPtInDSM[4];
+    for(int i=0; i<4; i++)
+    {
+        Pt2dr aPL = ImgCorner[i];
+        Pt3dr aPTer1;
+        bool bPreciseL;
+        aPTer1 = a3DL.Get3Dcoor(aPL, aDSMInfoL, bPreciseL, bPrint);//, a3DL.GetGSD(), true);
+
+        aPtInDSM[i] = aDSMInfoL.Get2DcoorInDSM(aPTer1);
+    }
+
+    SaveResampleTxt(aNameSave, PatchCorner, aPtInDSM);
+    /*
+    FILE * fpOutput = fopen((aNameSave).c_str(), "w");
+    for(int i=0; i<4; i++)
+        fprintf(fpOutput, "%lf %lf %lf %lf\n", PatchCorner[i].x, PatchCorner[i].y, aPtInDSM[i].x, aPtInDSM[i].y);
+    fclose(fpOutput);
+    */
+
+    if(bKeepPatch == true)
+    {
+        std::string aComBaseResample = MMBinFile(MM3DStr) + "TestLib OneReechFromAscii ";
+        std::string aComResampleSndImg = aComBaseResample + aDSMImgName + " " + aNameSave + " Out="+aSubImg + " Show=true";
+        cout<<aComResampleSndImg<<endl;
+        System(aComResampleSndImg);
+
+        std::string cmmd = "mv " + aSubImg + " " + aOutDirDSM + aSubImg;
+        cout<<cmmd<<endl;
+        System(cmmd);
+    }
+
+    std::string cmmd = "mv " + aNameSave + " " + aOutDirDSMTxt + aNameSave;
+    cout<<cmmd<<endl;
+    System(cmmd);
+
+    return true;
+}
+
+void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string aOri1, std::string aOri2, std::string aDSMFileGTL, std::string aDSMFileGTR, std::string aDSMDirGTL, std::string aDSMDirGTR, std::string aOriGT1, std::string aOriGT2, cInterfChantierNameManipulateur * aICNM, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, bool bPrint, Pt2dr aPatchSz, Pt2di seed, int nGap, double dThres, std::string SH, bool bTile, bool bSaveHomol, double dRandomShift, std::string aScene, bool bKeepPatch, double dScaleL, double dScaleR)
 {
     if (ELISE_fp::exist_file(aImg1) == false || ELISE_fp::exist_file(aImg2) == false)
     {
@@ -373,8 +424,13 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
 
     Tiff_Im aRGBIm1(aImg1.c_str());
     Pt2di ImgSzL = aRGBIm1.sz();
+    ImgSzL.x /= dScaleL;
+    ImgSzL.y /= dScaleL;
     Tiff_Im aRGBIm2(aImg2.c_str());
     Pt2di ImgSzR = aRGBIm2.sz();
+    ImgSzR.x /= dScaleR;
+    ImgSzR.y /= dScaleR;
+    printf("%s: %d, %d\n%s: %d, %d\n", aImg1.c_str(), ImgSzL.x, ImgSzL.y, aImg2.c_str(), ImgSzR.x, ImgSzR.y);
 
     int aType = eTIGB_Unknown;
     std::string aNameOriL = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
@@ -396,11 +452,14 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
     cDSMInfo aDSMInfoGTR = a3DGTR.SetDSMInfo(aDSMFileGTR, aDSMDirGTR);
 
     Pt2dr aPCornerR[4];
+    GetCorners(Pt2dr(0, 0), Pt2dr(ImgSzR.x, ImgSzR.y), aPCornerR);
+    /*
     Pt2dr origin = Pt2dr(0, 0);
     aPCornerR[0] = origin;
     aPCornerR[1] = Pt2dr(origin.x+ImgSzR.x, origin.y);
     aPCornerR[2] = Pt2dr(origin.x+ImgSzR.x, origin.y+ImgSzR.y);
     aPCornerR[3] = Pt2dr(origin.x, origin.y+ImgSzR.y);
+    */
 
     Pt2dr aPCornerRinL[4];  //to Save zone in master image which is overlapping with secondary image
     for(int i=0; i<4; i++)
@@ -443,10 +502,10 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
     if (ELISE_fp::exist_file(aSceneDir) == false)
         ELISE_fp::MkDir(aSceneDir);
     std::string aOutDirDSM = aSceneDir + "DSM/";
-    if (ELISE_fp::exist_file(aOutDirDSM) == false)
+    if (ELISE_fp::exist_file(aOutDirDSM) == false && bKeepPatch==true)
         ELISE_fp::MkDir(aOutDirDSM);
-    std::string aOutDirImg = aSceneDir + "Img/";
-    if (ELISE_fp::exist_file(aOutDirImg) == false)
+    std::string aOutDirImg = aSceneDir + "RGB/";
+    if (ELISE_fp::exist_file(aOutDirImg) == false && bKeepPatch==true)
         ELISE_fp::MkDir(aOutDirImg);
     std::string aOutDirNpz = aSceneDir + "HomolNpz/";
     if (ELISE_fp::exist_file(aOutDirNpz) == false)
@@ -504,6 +563,7 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
         }
     }
 
+    printf("************************************************\n%s, %s\n", aImg1.c_str(), aImg2.c_str());
     //std::vector<std::string> aMvTxtCmmd;
     for(int m=0; m<int(centerX.size()); m++)
     {
@@ -523,30 +583,37 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
             //printf("aPtOriL: %.2lf, %.2lf, %.2lf, %.2lf, %.2lf\n", aPtOriL.x, aPtOriL.y, aPCenterL.x, aPCenterL.y, aPatchSz.x);
 
             Pt2dr aPatchCornerL[4];
+            GetCorners(aPtOriL, aPatchSz, aPatchCornerL);
+            /*
             origin = aPtOriL;
             aPatchCornerL[0] = origin;
             aPatchCornerL[1] = Pt2dr(origin.x+aPatchSz.x, origin.y);
             aPatchCornerL[2] = Pt2dr(origin.x+aPatchSz.x, origin.y+aPatchSz.y);
             aPatchCornerL[3] = Pt2dr(origin.x, origin.y+aPatchSz.y);
+            */
 
             Pt2dr aPatchCornerR[4];
             ReProjection(aPatchCornerL, aPatchCornerR, aTrans3DHL, aCamR, a3DL, aDSMInfoL, bPrint, dRandomShift);
             bool bOutOfBorder = false;
             for(int k=0; k<4; k++){
-                printf("%dth: PatchCornerL: [%.2lf\t%.2lf]  PatchCornerR: [%.2lf\t%.2lf]\n", k, aPatchCornerL[k].x, aPatchCornerL[k].y, aPatchCornerR[k].x, aPatchCornerR[k].y);
                 if(aPatchCornerR[k].x<0 || aPatchCornerR[k].x>= ImgSzR.x || aPatchCornerR[k].y<0 || aPatchCornerR[k].y>= ImgSzR.y)
                     bOutOfBorder = true;
+                if(bPrint)
+                    printf("%dth: PatchCornerL: [%.2lf\t%.2lf]  PatchCornerR: [%.2lf\t%.2lf]\n", k, aPatchCornerL[k].x, aPatchCornerL[k].y, aPatchCornerR[k].x, aPatchCornerR[k].y);
             }
             //if(FallInBox(aPatchCornerR, Pt2dr(0,0), ImgSzR) == false)
             if(bOutOfBorder == true)
             {
-                printf("Reprojected RGB patch out of border, hence skipped.\n");
-                printf("patch: ");
-                for(int i=0; i<4; i++)
+                if(bPrint)
                 {
-                    printf("[%.2lf,%.2lf] ", aPatchCornerR[i].x, aPatchCornerR[i].y);
+                    printf("Reprojected RGB patch out of border, hence skipped.\n");
+                    printf("patch: ");
+                    for(int i=0; i<4; i++)
+                    {
+                        printf("[%.2lf,%.2lf] ", aPatchCornerR[i].x, aPatchCornerR[i].y);
+                    }
+                    printf("out of border:\n[%d,%d] [%d,%d]\n", 0, 0, ImgSzR.x, ImgSzR.y);
                 }
-                printf("out of border:\n[%d,%d] [%d,%d]\n", 0, 0, ImgSzR.x, ImgSzR.y);
                 continue;
             }
 
@@ -559,20 +626,16 @@ void MakeTrainingData(std::string aDir,std::string aImg1, std::string aImg2, std
             }
 
             //crop master RGB patch
-            CropPatch(aPtOriL, aPatchSz, aImg1, aOutDirImg, aSubImgL);
+            CropPatch(aPtOriL, aPatchSz, aImg1, aOutDirImg, aSubImgL, aOutDirRGBTxt, bKeepPatch, dScaleL);
 
             //Crop roughly aligned patches in secondary image
-            cElHomographie aHomo = GetSecondaryPatch(aPatchCornerR, aPatchSz, aImg2, aSubImgR, bPrint, aOutDirImg, aOutDirRGBTxt);
-            /*
-            std::string aNameSave = StdPrefix(aSubImgR) + ".txt";
-            std::string aMvTxt = "mv "+aNameSave + " "+aOutDirRGBTxt+aNameSave;
-            aMvTxtCmmd.push_back(aMvTxt);*/
+            cElHomographie aHomo = GetSecondaryPatch(aPatchCornerR, aPatchSz, aImg2, aSubImgR, bPrint, aOutDirImg, aOutDirRGBTxt, bKeepPatch, dScaleR);
 
             //Crop master DSM patch
-            GetDSMPatch(aSubImgL, aDSMDirL, aDSMFileL, aPatchCornerL, aPatchSz, a3DL, aDSMInfoL, bPrint, aOutDirDSM, aOutDirDSMTxt);
+            GetDSMPatch(aSubImgL, aDSMDirL, aDSMFileL, aPatchCornerL, aPatchSz, a3DL, aDSMInfoL, bPrint, aOutDirDSM, aOutDirDSMTxt, bKeepPatch);
 
             //Crop secondary DSM patch
-            GetDSMPatch(aSubImgR, aDSMDirR, aDSMFileR, aPatchCornerR, aPatchSz, a3DR, aDSMInfoR, bPrint, aOutDirDSM, aOutDirDSMTxt);
+            GetDSMPatch(aSubImgR, aDSMDirR, aDSMFileR, aPatchCornerR, aPatchSz, a3DR, aDSMInfoR, bPrint, aOutDirDSM, aOutDirDSMTxt, bKeepPatch);
 
             //get tie points in patch pair
             //GetGTTiePts(aPtOriL, aPatchSz, aPatchSz, ImgSzR, aTrans3DHL, aCamR, a3DR, aDSMInfoR, aCamL, a3DL, aDSMInfoL, bPrint, aHomo, aOutDirImg, aSubImgL, aSubImgR, SH, nGap, dThres, bSaveHomol);
@@ -659,7 +722,11 @@ int MakeOneTrainingData_main(int argc,char ** argv)
 
     std::string aScene = "0001";
 
-    bool bClean = false;
+    bool bKeepPatch = false;
+    bool bKeepTxt = true;
+
+    double dScaleL = 1;
+    double dScaleR = 1;
 
     int nGap = 5;
     double dThres = 3;
@@ -696,8 +763,14 @@ int MakeOneTrainingData_main(int argc,char ** argv)
                 << EAM(bPrepareDSM,"PrepareDSM",true,"copy DSM equalized image to the work directory and remove it after processing, Def=true")
                 << EAM(dRandomShift,"RanShift",true,"Use GT Orientation and DSM combined with random shift within \"RanShift\" to synthesize the roughly aligned RGB and DSM patches, Def=0 (use rough orientation and DSM without random shift)")
                 << EAM(aScene, "Scene", true, "Output folder name of scene, Def=0001")
-                << EAM(bClean,"Clean",true,"Remove txt files that recorded the resampling homographies, Def=false")
+                << EAM(bKeepPatch,"KeepPatch",true,"Keep the RGB and DSM patches, Def=false")
+                << EAM(bKeepTxt,"KeepTxt",true,"Keep the txt files for resampling RGB and DSM patches, Def=true")
+                << EAM(dScaleL,"ScaleL",true,"The factor used to scale the master images (for developpers only, when you want to use images with higher resolution instead), Def=1")
+                << EAM(dScaleR,"ScaleR",true,"The factor used to scale the master images (for developpers only, when you want to use images with higher resolution instead), Def=1")
      );
+
+    if(bKeepPatch==false)
+        bSaveHomol = false;
 
      if(aOriGT1.length() == 0)
          aOriGT1 = aOri1;
@@ -738,14 +811,14 @@ int MakeOneTrainingData_main(int argc,char ** argv)
          aDSMImgNameR = PrepareDSM(aDSMDirR, aDSMFileR);
      }
 
-     MakeTrainingData( aCAS3D.mDir, aImg1,  aImg2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR,  aOri1, aOri2, aDSMFileGTL, aDSMFileGTR, aDSMDirGTL, aDSMDirGTR,  aOriGT1, aOriGT2, aCAS3D.mICNM, aTrans3DHL, aTrans3DHR, aCAS3D.mPrint, aPatchSz, seed, nGap, dThres, SH, bTile, bSaveHomol, dRandomShift, aScene);
+     MakeTrainingData( aCAS3D.mDir, aImg1,  aImg2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR,  aOri1, aOri2, aDSMFileGTL, aDSMFileGTR, aDSMDirGTL, aDSMDirGTR,  aOriGT1, aOriGT2, aCAS3D.mICNM, aTrans3DHL, aTrans3DHR, aCAS3D.mPrint, aPatchSz, seed, nGap, dThres, SH, bTile, bSaveHomol, dRandomShift, aScene, bKeepPatch, dScaleL, dScaleR);
 
      if(bPrepareDSM == true){
          RemoveDSM(aDSMImgNameL);
          RemoveDSM(aDSMImgNameR);
      }
 
-     if(bClean == true){
+     if(bKeepTxt == false){
          std::string aOutDirDSMTxt = aCAS3D.mDir + "/Tmp_TrainingPatches/"+aScene+"/DSMTxt/";
          if (ELISE_fp::exist_file(aOutDirDSMTxt) == true){
              std::string cmmd = "rm -r " + aOutDirDSMTxt;
@@ -798,9 +871,14 @@ int MakeTrainingData_main(int argc,char ** argv)
 
     double dRandomShift = 25;
 
-    std::string aScene = "0001";
+    std::string aScene = "";
+    std::string aScenePostFix = "";
 
-    bool bClean = false;
+    bool bKeepPatch = false;
+    bool bKeepTxt = true;
+
+    double dScaleL = 1;
+    double dScaleR = 1;
 
     int nGap = 5;
     double dThres = 3;
@@ -835,8 +913,12 @@ int MakeTrainingData_main(int argc,char ** argv)
                 << EAM(aDSMFileGTL, "DSMFileGTL", true, "GT DSM File of master image (for generating GT tie points), Def=DSMFileL")
                 << EAM(aDSMFileGTR, "DSMFileGTR", true, "GT DSM File of secondary image (for generating GT tie points), Def=DSMFileL")
                 << EAM(dRandomShift,"RanShift",true,"Use GT Orientation and DSM combined with random shift within \"RanShift\" to synthesize the roughly aligned RGB and DSM patches, Def=25 (use rough orientation and DSM without random shift)")
-                << EAM(aScene, "Scene", true, "Output folder name of scene, Def=0001")
-                << EAM(bClean,"Clean",true,"Remove txt files that recorded the resampling homographies, Def=false")
+                << EAM(aScene, "Scene", true, "Output folder name of scene, Def=MasterImageName")
+                << EAM(aScenePostFix, "ScenePostFix", true, "PostFix of scene, Def=none")
+                << EAM(bKeepPatch,"KeepPatch",true,"Keep the RGB and DSM patches, Def=false")
+                << EAM(bKeepTxt,"KeepTxt",true,"Keep the txt files for resampling RGB and DSM patches, Def=true")
+                << EAM(dScaleL,"ScaleL",true,"The factor used to scale the master images (for developpers only, when you want to use images with higher resolution instead), Def=1")
+                << EAM(dScaleR,"ScaleR",true,"The factor used to scale the master images (for developpers only, when you want to use images with higher resolution instead), Def=1")
      );
 
      std::vector<std::string> aVIm1;
@@ -895,8 +977,11 @@ int MakeTrainingData_main(int argc,char ** argv)
      if (EAMIsInit(&aDSMDirGTR))         aOptPara += " DSMDirGTR=" + aDSMDirGTR;
      if (EAMIsInit(&aDSMFileGTL))        aOptPara += " DSMFileGTL=" + aDSMFileGTL;
      if (EAMIsInit(&aDSMFileGTR))        aOptPara += " DSMFileGTR=" + aDSMFileGTR;
-     if (EAMIsInit(&aScene))             aOptPara += " Scene=" + aScene;
-     aOptPara += " Clean=false";        //avoid to remove the same buffer folder in each single command
+     if (EAMIsInit(&dScaleL))        aOptPara += " ScaleL=" + ToString(dScaleL);
+     if (EAMIsInit(&dScaleR))        aOptPara += " ScaleR=" + ToString(dScaleR);
+     //if (EAMIsInit(&aScene))             aOptPara += " Scene=" + aScene;
+     if (bKeepTxt == false)               aOptPara += " KeepTxt=true";        //avoid to remove the same buffer folder in each single command
+     if (EAMIsInit(&bKeepPatch))           aOptPara += " KeepPatch="+ToString(int(bKeepPatch));
      aOptPara += " PrepareDSM=false";   //avoid to prepare and remove the same DSM in each single command
      aOptPara += " RanShift=" + ToString(dRandomShift);
 
@@ -910,12 +995,16 @@ int MakeTrainingData_main(int argc,char ** argv)
          for(int j=0; j<int(aVIm2.size()); j++)
          {
              aImg2 = aVIm2[j];
+             /*
              printf("*********************************%d********************************\n", nIdx);
              printf("%s, %s\n", aImg1.c_str(), aImg2.c_str());
              //MakeTrainingData( aCAS3D.mDir, aImg1,  aImg2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR,  aOri1, aOri2, aDSMFileGTL, aDSMFileGTR, aDSMDirGTL, aDSMDirGTR,  aOriGT1, aOriGT2, aCAS3D.mICNM, aTrans3DHL, aTrans3DHR, aCAS3D.mPrint, aPatchSz, seed, nGap, dThres, SH, bTile, bSaveHomol);
+             */
 
              std::string aOneComm = MMBinFile(MM3DStr) + "TestLib MakeOneTrainingData " + aImg1 + BLANK + aImg2 + BLANK + aOri1 + BLANK + aOri2 + aOptPara;
-             cout<<aOneComm<<endl;
+             if(aScene.length() == 0)
+                 aOneComm += " Scene=" + StdPrefix(aImg1) + aScenePostFix;
+             //cout<<aOneComm<<endl;
              aComm.push_back(aOneComm);
              nIdx++;
          }
@@ -926,8 +1015,7 @@ int MakeTrainingData_main(int argc,char ** argv)
      RemoveDSM(aDSMImgNameL);
      RemoveDSM(aDSMImgNameR);
 
-     cout<<bClean<<endl;
-     if(bClean == true){
+     if(bKeepTxt == false){
          std::string cmmd;
          std::string aOutDirDSMTxt = aCAS3D.mDir + "/Tmp_TrainingPatches/"+aScene+"/DSMTxt/";
          //if (ELISE_fp::exist_file(aOutDirDSMTxt) == true){
@@ -946,6 +1034,10 @@ int MakeTrainingData_main(int argc,char ** argv)
          else
              printf("%s did not exist.\n", aOutDirRGBTxt.c_str());*/
      }
+
+     std::string cmmd = "python3 /home/lulin/Documents/Code/Txt2Npz.py --DirName "+aCAS3D.mDir+"/Tmp_TrainingPatches/"+aScene+"/HomolNpz/ --RemoveOriFile 1";
+     cout<<cmmd<<endl;
+
 
    return EXIT_SUCCESS;
 }
