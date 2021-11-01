@@ -3,7 +3,7 @@
 The algorithm uses a python implementation of the [SuperGlue](https://github.com/magicleap/SuperGluePretrainedNetwork) ([Full paper](https://arxiv.org/abs/1911.11763)) sparse point detector and matcher (see the license below). 
 
 For more details about our algorithm, please see our publication, video, blog and tutorials:
-* Zhang, L., Rupnik, E., Pierrot-Deseilligny, M. (2021). [Feature matching for multi-epoch historical aerial images](https://linktobeadded). ISPRS Journal of Photogrammetry and Remote Sensing.
+* Zhang, L., Rupnik, E., Pierrot-Deseilligny, M. (2021). [Feature matching for multi-epoch historical aerial images](https://www.sciencedirect.com/science/article/pii/S0924271621002707). ISPRS Journal of Photogrammetry and Remote Sensing.
 * [YouTube: Introduction video for "Feature matching for multi-epoch historical aerial images"](https://youtu.be/Pk0Tvpr5UmQ)
 * [Blog for "Feature matching for multi-epoch historical aerial images"](https://github.com/LulinZhang/Feature-matching-for-multi-epoch-historical-images)
 * [Tutorial using historical aerial images](https://colab.research.google.com/drive/1poEXIeKbPcJT_2hyQOBhzcj1EEhO8OgD)
