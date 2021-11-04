@@ -4,8 +4,8 @@ The algorithm uses a python implementation of the [SuperGlue](https://github.com
 
 For more details about our algorithm, please see our publication, video, blog and tutorials:
 * L. Zhang, E. Rupnik, M. Pierrot-Deseilligny, [Feature matching for multi-epoch historical aerial images](https://www.sciencedirect.com/science/article/pii/S0924271621002707), ISPRS journal of photogrammetry and remote sensing, 182 (2021), pp. 176-189
-* [YouTube: Introduction video for "Feature matching for multi-epoch historical aerial images"](https://youtu.be/YnF-F0UJaSM)
-* [Blog for "Feature matching for multi-epoch historical aerial images"](https://github.com/LulinZhang/Feature-matching-for-multi-epoch-historical-images)
+* Introduction video: [Feature matching for multi-epoch historical aerial images](https://youtu.be/YnF-F0UJaSM)
+* Blog: [Feature matching for multi-epoch historical aerial images](https://github.com/LulinZhang/Feature-matching-for-multi-epoch-historical-images)
 * [Tutorial using historical aerial images](https://colab.research.google.com/drive/1poEXIeKbPcJT_2hyQOBhzcj1EEhO8OgD)
 * [Tutorial using aerial and satellite images](https://colab.research.google.com/drive/14okQ8bBhEZmy6EGRIQvazTqrN39oc_K5)
 
