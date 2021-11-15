@@ -1393,7 +1393,7 @@ extern int RPC_main(int argc, char ** argv);
 extern int NewRefineModel_main(int argc, char **argv);
 extern int RefineModel_main(int argc, char **argv);
 extern int RefineJitter_main(int argc, char **argv);
-extern int ApplyParralaxCor_main(int argc, char **argv);
+extern int ApplyParallaxCor_main(int argc, char **argv);
 extern int Dimap2Grid_main(int argc, char **argv);
 extern int DimapUseRPC_main(int argc, char **argv);
 extern int DigitalGlobe2Grid_main(int argc, char **argv);
@@ -1434,7 +1434,7 @@ const std::vector<cMMCom> & SateLibAvailableCommands()
 	aRes.push_back(cMMCom("ASTERStrip2MM", ASTERGT_strip_2_MM_main, "Convert a strip of ASTER geoTiff format to MicMac Xml, also destrip images"));
 	aRes.push_back(cMMCom("ASTERProjAngle", ASTERProjAngle_main, "Compute the orbit angle for each point in DEM"));
 	aRes.push_back(cMMCom("ASTERProjAngle2OtherBand", ASTERProjAngle2OtherBand_main, "Compute the orbit angle for each point in another band"));
-	aRes.push_back(cMMCom("ApplyParralaxCor", ApplyParralaxCor_main, "Apply parralax correction from MMTestOrient to an image"));
+	aRes.push_back(cMMCom("ApplyParallaxCor", ApplyParallaxCor_main, "Apply parallax correction from MMTestOrient to an image"));
 	aRes.push_back(cMMCom("RefineModel", RefineModel_main, "Refine an approximate model "));
 	aRes.push_back(cMMCom("Refine", NewRefineModel_main, "Refine an approximate model "));
 	aRes.push_back(cMMCom("RefineJitter", RefineJitter_main, "/!\\ V0.01 Highly experimental /!\\ Refine a grid with Affine + jitter model based on SIFT obs"));

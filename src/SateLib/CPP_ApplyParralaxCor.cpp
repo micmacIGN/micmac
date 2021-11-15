@@ -419,7 +419,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 		std::cout << "Writing file for 'polynomial' fit......";
 		beginTimer = clock();
 		string aNameOut = "GeoI-Px/Px2_Num16_DeZoom1_Geom-Im_adjMM1.tif";
-		Tiff_Im  aTparralaxFitOut
+		Tiff_Im  aTparallaxFitOut
 		(
 			aNameOut.c_str(),
 			aSz,
@@ -430,9 +430,9 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 
 		ELISE_COPY
 		(
-			aTparralaxFitOut.all_pts(),
+			aTparallaxFitOut.all_pts(),
 			aParFit.in(),
-			aTparralaxFitOut.out()
+			aTparallaxFitOut.out()
 		);
 
 		endTimer = clock();
@@ -518,7 +518,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 		std::cout << "Writing file for 'polynomial' fit......";
 		beginTimer = clock();
 		string aNameOut = "GeoI-Px/Px2_Num16_DeZoom1_Geom-Im_adjMM1.tif";
-		Tiff_Im  aTparralaxFitOut
+		Tiff_Im  aTparallaxFitOut
 		(
 			aNameOut.c_str(),
 			aSz,
@@ -529,9 +529,9 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 
 		ELISE_COPY
 		(
-			aTparralaxFitOut.all_pts(),
+			aTparallaxFitOut.all_pts(),
 			aParFit.in(),
-			aTparralaxFitOut.out()
+			aTparallaxFitOut.out()
 		);
 
 		endTimer = clock();
@@ -700,7 +700,7 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 		cout << "Writing file for 'polynomial and sum of sins' fit......";
 		beginTimer = clock();
 		string aNameOut2 = "GeoI-Px/Px2_Num16_DeZoom1_Geom-Im_adjMM2.tif";
-		Tiff_Im  aTparralaxFit2Out
+		Tiff_Im  aTparallaxFit2Out
 		(
 			aNameOut2.c_str(),
 			aSz,
@@ -711,9 +711,9 @@ Im2D_REAL8 FitASTERv2(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit, 
 
 		ELISE_COPY
 		(
-			aTparralaxFit2Out.all_pts(),
+			aTparallaxFit2Out.all_pts(),
 			aParFit2.in(),
-			aTparralaxFit2Out.out()
+			aTparallaxFit2Out.out()
 		);
 		endTimer = clock();
 		elapsed_secs = double(endTimer - beginTimer) / CLOCKS_PER_SEC;
@@ -993,7 +993,7 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	if (writeFit) {
 		cout << "Writing file for polynomial fit" << endl;
 		string aNameOut = "GeoI-Px/Px2_Num16_DeZoom1_Geom-Im_adjMM1.tif";
-		Tiff_Im  aTparralaxFitOut
+		Tiff_Im  aTparallaxFitOut
 		(
 			aNameOut.c_str(),
 			aSz,
@@ -1004,9 +1004,9 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 
 		ELISE_COPY
 		(
-			aTparralaxFitOut.all_pts(),
+			aTparallaxFitOut.all_pts(),
 			aParFit.in(),
-			aTparralaxFitOut.out()
+			aTparallaxFitOut.out()
 		);
 	}
 
@@ -1357,7 +1357,7 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 	if (writeFit) {
 		cout << "Writing file for polynomial and sum of sins fit" << endl;
 		string aNameOut2 = "GeoI-Px/Px2_Num16_DeZoom1_Geom-Im_adjMM2.tif";
-		Tiff_Im  aTparralaxFit2Out
+		Tiff_Im  aTparallaxFit2Out
 		(
 			aNameOut2.c_str(),
 			aSz,
@@ -1368,16 +1368,16 @@ Im2D_REAL8 FitASTERv1(REAL8 ** aParOrig, string aDir, Pt2di aSz, bool writeFit)
 
 		ELISE_COPY
 		(
-			aTparralaxFit2Out.all_pts(),
+			aTparallaxFit2Out.all_pts(),
 			aParFit2.in(),
-			aTparralaxFit2Out.out()
+			aTparallaxFit2Out.out()
 		);
 	}
 	return aParFit2;
 }
 
 
-int ApplyParralaxCor_main(int argc, char ** argv)
+int ApplyParallaxCor_main(int argc, char ** argv)
 {
 	//std::string aNameIm, aNameIm2, aNameParallax, aNameDEM;
 	std::string aNameIm, aNameParallax, aASTERSceneName;
@@ -1390,7 +1390,7 @@ int ApplyParralaxCor_main(int argc, char ** argv)
 		argc, argv,
 		LArgMain()
 		<< EAMC(aNameIm, "Image to be corrected", eSAM_IsPatFile)
-		<< EAMC(aNameParallax, "Paralax correction file", eSAM_IsPatFile),
+		<< EAMC(aNameParallax, "Parallax correction file", eSAM_IsPatFile),
 		LArgMain()
 		<< EAM(aNameOut, "Out", true, "Name of output image (Def=ImName_corrected.tif)")
 		<< EAM(aFitASTER, "FitASTER", true, "Fit functions appropriate for ASTER L1A processing (input '1' or '2' : version number)")
