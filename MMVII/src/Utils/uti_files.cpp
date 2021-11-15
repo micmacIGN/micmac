@@ -82,6 +82,7 @@ void cMMVII_Ofs::VoidWrite(const void * aPtr,size_t aNb)
 #endif
 }
 
+void cMMVII_Ofs::Write(const tU_INT2 & aVal){ VoidWrite(&aVal,sizeof(aVal)); }
 void cMMVII_Ofs::Write(const int & aVal)    { VoidWrite(&aVal,sizeof(aVal)); }
 void cMMVII_Ofs::Write(const double & aVal) { VoidWrite(&aVal,sizeof(aVal)); }
 void cMMVII_Ofs::Write(const size_t & aVal) { VoidWrite(&aVal,sizeof(aVal)); }
@@ -149,9 +150,10 @@ void cMMVII_Ifs::VoidRead(void * aPtr,size_t aNb)
 #endif
 }
 
-void cMMVII_Ifs::Read(int & aVal)    { VoidRead(&aVal,sizeof(aVal)); }
-void cMMVII_Ifs::Read(double & aVal) { VoidRead(&aVal,sizeof(aVal)); }
-void cMMVII_Ifs::Read(size_t & aVal) { VoidRead(&aVal,sizeof(aVal)); }
+void cMMVII_Ifs::Read(tU_INT2 & aVal) { VoidRead(&aVal,sizeof(aVal)); }
+void cMMVII_Ifs::Read(int & aVal)     { VoidRead(&aVal,sizeof(aVal)); }
+void cMMVII_Ifs::Read(double & aVal)  { VoidRead(&aVal,sizeof(aVal)); }
+void cMMVII_Ifs::Read(size_t & aVal)  { VoidRead(&aVal,sizeof(aVal)); }
 
 void cMMVII_Ifs::Read(std::string & aVal )
 { 

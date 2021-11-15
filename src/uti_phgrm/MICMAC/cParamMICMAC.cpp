@@ -8071,6 +8071,63 @@ void xml_init(cMultiCorrelPonctuel & anObj,cElXMLTree * aTree)
 std::string  Mangling( cMultiCorrelPonctuel *) {return "74A694492496F5B7FE3F";};
 
 
+std::string & cScoreLearnedMMVII::FileModeleCost()
+{
+   return mFileModeleCost;
+}
+
+const std::string & cScoreLearnedMMVII::FileModeleCost()const 
+{
+   return mFileModeleCost;
+}
+
+
+double & cScoreLearnedMMVII::DynCost()
+{
+   return mDynCost;
+}
+
+const double & cScoreLearnedMMVII::DynCost()const 
+{
+   return mDynCost;
+}
+
+void  BinaryUnDumpFromFile(cScoreLearnedMMVII & anObj,ELISE_fp & aFp)
+{
+     BinaryUnDumpFromFile(anObj.FileModeleCost(),aFp);
+    BinaryUnDumpFromFile(anObj.DynCost(),aFp);
+}
+
+void  BinaryDumpInFile(ELISE_fp & aFp,const cScoreLearnedMMVII & anObj)
+{
+    BinaryDumpInFile(aFp,anObj.FileModeleCost());
+    BinaryDumpInFile(aFp,anObj.DynCost());
+}
+
+cElXMLTree * ToXMLTree(const cScoreLearnedMMVII & anObj)
+{
+  XMLPushContext(anObj.mGXml);
+  cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ScoreLearnedMMVII",eXMLBranche);
+   aRes->AddFils(::ToXMLTree(std::string("FileModeleCost"),anObj.FileModeleCost())->ReTagThis("FileModeleCost"));
+   aRes->AddFils(::ToXMLTree(std::string("DynCost"),anObj.DynCost())->ReTagThis("DynCost"));
+  aRes->mGXml = anObj.mGXml;
+  XMLPopContext(anObj.mGXml);
+  return aRes;
+}
+
+void xml_init(cScoreLearnedMMVII & anObj,cElXMLTree * aTree)
+{
+   if (aTree==0) return;
+   anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.FileModeleCost(),aTree->Get("FileModeleCost",1)); //tototo 
+
+   xml_init(anObj.DynCost(),aTree->Get("DynCost",1)); //tototo 
+}
+
+std::string  Mangling( cScoreLearnedMMVII *) {return "ECED83CD466B959CFF3F";};
+
+
 cTplValGesInit< double > & cCorrel_Ponctuel2ImGeomI::RatioI1I2()
 {
    return mRatioI1I2;
@@ -9500,6 +9557,17 @@ const cTplValGesInit< cMultiCorrelPonctuel > & cTypeCAH::MultiCorrelPonctuel()co
 }
 
 
+cTplValGesInit< cScoreLearnedMMVII > & cTypeCAH::ScoreLearnedMMVII()
+{
+   return mScoreLearnedMMVII;
+}
+
+const cTplValGesInit< cScoreLearnedMMVII > & cTypeCAH::ScoreLearnedMMVII()const 
+{
+   return mScoreLearnedMMVII;
+}
+
+
 cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & cTypeCAH::Correl_Ponctuel2ImGeomI()
 {
    return mCorrel_Ponctuel2ImGeomI;
@@ -9610,6 +9678,14 @@ void  BinaryUnDumpFromFile(cTypeCAH & anObj,ELISE_fp & aFp)
   { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.ScoreLearnedMMVII().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ScoreLearnedMMVII().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ScoreLearnedMMVII().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.Correl_Ponctuel2ImGeomI().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.Correl_Ponctuel2ImGeomI().ValForcedForUnUmp(),aFp);
         }
@@ -9669,6 +9745,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cTypeCAH & anObj)
     if (anObj.GPU_CorrelBasik().IsInit()) BinaryDumpInFile(aFp,anObj.GPU_CorrelBasik().Val());
     BinaryDumpInFile(aFp,anObj.MultiCorrelPonctuel().IsInit());
     if (anObj.MultiCorrelPonctuel().IsInit()) BinaryDumpInFile(aFp,anObj.MultiCorrelPonctuel().Val());
+    BinaryDumpInFile(aFp,anObj.ScoreLearnedMMVII().IsInit());
+    if (anObj.ScoreLearnedMMVII().IsInit()) BinaryDumpInFile(aFp,anObj.ScoreLearnedMMVII().Val());
     BinaryDumpInFile(aFp,anObj.Correl_Ponctuel2ImGeomI().IsInit());
     if (anObj.Correl_Ponctuel2ImGeomI().IsInit()) BinaryDumpInFile(aFp,anObj.Correl_Ponctuel2ImGeomI().Val());
     BinaryDumpInFile(aFp,anObj.Correl_PonctuelleCroisee().IsInit());
@@ -9697,6 +9775,8 @@ cElXMLTree * ToXMLTree(const cTypeCAH & anObj)
       aRes->AddFils(ToXMLTree(anObj.GPU_CorrelBasik().Val())->ReTagThis("GPU_CorrelBasik"));
    if (anObj.MultiCorrelPonctuel().IsInit())
       aRes->AddFils(ToXMLTree(anObj.MultiCorrelPonctuel().Val())->ReTagThis("MultiCorrelPonctuel"));
+   if (anObj.ScoreLearnedMMVII().IsInit())
+      aRes->AddFils(ToXMLTree(anObj.ScoreLearnedMMVII().Val())->ReTagThis("ScoreLearnedMMVII"));
    if (anObj.Correl_Ponctuel2ImGeomI().IsInit())
       aRes->AddFils(ToXMLTree(anObj.Correl_Ponctuel2ImGeomI().Val())->ReTagThis("Correl_Ponctuel2ImGeomI"));
    if (anObj.Correl_PonctuelleCroisee().IsInit())
@@ -9729,6 +9809,8 @@ void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.MultiCorrelPonctuel(),aTree->Get("MultiCorrelPonctuel",1)); //tototo 
 
+   xml_init(anObj.ScoreLearnedMMVII(),aTree->Get("ScoreLearnedMMVII",1)); //tototo 
+
    xml_init(anObj.Correl_Ponctuel2ImGeomI(),aTree->Get("Correl_Ponctuel2ImGeomI",1)); //tototo 
 
    xml_init(anObj.Correl_PonctuelleCroisee(),aTree->Get("Correl_PonctuelleCroisee",1)); //tototo 
@@ -9742,7 +9824,7 @@ void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
    xml_init(anObj.MasqueAutoByTieP(),aTree->Get("MasqueAutoByTieP",1)); //tototo 
 }
 
-std::string  Mangling( cTypeCAH *) {return "5853D24975B823D5FC3F";};
+std::string  Mangling( cTypeCAH *) {return "52893C8EB5AC40CEFE3F";};
 
 
 cTplValGesInit< double > & cCorrelAdHoc::EpsilonAddMoyenne()
@@ -9896,6 +9978,17 @@ cTplValGesInit< cMultiCorrelPonctuel > & cCorrelAdHoc::MultiCorrelPonctuel()
 const cTplValGesInit< cMultiCorrelPonctuel > & cCorrelAdHoc::MultiCorrelPonctuel()const 
 {
    return TypeCAH().MultiCorrelPonctuel();
+}
+
+
+cTplValGesInit< cScoreLearnedMMVII > & cCorrelAdHoc::ScoreLearnedMMVII()
+{
+   return TypeCAH().ScoreLearnedMMVII();
+}
+
+const cTplValGesInit< cScoreLearnedMMVII > & cCorrelAdHoc::ScoreLearnedMMVII()const 
+{
+   return TypeCAH().ScoreLearnedMMVII();
 }
 
 
@@ -10059,7 +10152,7 @@ void xml_init(cCorrelAdHoc & anObj,cElXMLTree * aTree)
    xml_init(anObj.TypeCAH(),aTree->Get("TypeCAH",1)); //tototo 
 }
 
-std::string  Mangling( cCorrelAdHoc *) {return "6E14933A50ECE897FE3F";};
+std::string  Mangling( cCorrelAdHoc *) {return "E6E62B89BA72A8BDFD3F";};
 
 
 cTplValGesInit< double > & cDoImageBSurH::Dyn()
@@ -15779,6 +15872,17 @@ const cTplValGesInit< cMultiCorrelPonctuel > & cEtapeMEC::MultiCorrelPonctuel()c
 }
 
 
+cTplValGesInit< cScoreLearnedMMVII > & cEtapeMEC::ScoreLearnedMMVII()
+{
+   return CorrelAdHoc().Val().TypeCAH().ScoreLearnedMMVII();
+}
+
+const cTplValGesInit< cScoreLearnedMMVII > & cEtapeMEC::ScoreLearnedMMVII()const 
+{
+   return CorrelAdHoc().Val().TypeCAH().ScoreLearnedMMVII();
+}
+
+
 cTplValGesInit< cCorrel_Ponctuel2ImGeomI > & cEtapeMEC::Correl_Ponctuel2ImGeomI()
 {
    return CorrelAdHoc().Val().TypeCAH().Correl_Ponctuel2ImGeomI();
@@ -19344,7 +19448,7 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePredicteur(),aTree->Get("NuagePredicteur",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeMEC *) {return "CFECB046330A4888FF3F";};
+std::string  Mangling( cEtapeMEC *) {return "CEA9674F9D79C284FE3F";};
 
 
 int & cTypePyramImage::Resol()
@@ -20509,7 +20613,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
 
-std::string  Mangling( cSection_MEC *) {return "D8245B35627976B9FD3F";};
+std::string  Mangling( cSection_MEC *) {return "F0C0B5220DB710A2FD3F";};
 
 
 cTplValGesInit< bool > & cDoNothingBut::ButDoPyram()
@@ -29539,6 +29643,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "203BEDA19CB3AC9EF9BF";};
+std::string  Mangling( cParamMICMAC *) {return "46028884D96E698FFE3F";};
 
 // Quelque chose

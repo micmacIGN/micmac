@@ -91,6 +91,12 @@ template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName) c
     Write(aDFI,P0());
 }
 
+template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName,const tIm &aIG,const tIm &aIB) const
+{
+    cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,tElemNumTrait<Type>::TyNum(),Sz(),3);
+    Write(aDFI,aIG,aIB,P0());
+}
+
 
 /* ========================== */
 /*          cIm2D         */
@@ -120,6 +126,15 @@ template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aNa
    cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,true);
    cIm2D<Type> aRes(aFileIm.Sz());
    aRes.Read(aFileIm,cPt2di(0,0));
+
+   return aRes;
+}
+
+template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aName,const cBox2di & aBox)
+{
+   cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,true);
+   cIm2D<Type> aRes(aBox.Sz());
+   aRes.Read(aFileIm,aBox.P0());
 
    return aRes;
 }

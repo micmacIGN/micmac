@@ -1740,8 +1740,8 @@ int CPP_XmlOriRel2OriAbs_main(int argc,char ** argv)
                 //    aC2 = aC1->Dupl();
  
                 //update poses
-                aC1->SetOrientation(aP1);//.inv()
-                aC2->SetOrientation(aP2);//.inv()
+                aC1->SetOrientation(aP1); //.inv()
+                aC2->SetOrientation(aP2); //.inv()
  
                 cOrientationConique aOri1 = aC1->StdExportCalibGlob();
                 cOrientationConique aOri2 = aC2->StdExportCalibGlob();

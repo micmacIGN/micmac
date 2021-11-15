@@ -552,6 +552,90 @@ std::string  Mangling( cGpsRelativeWeighting *);
 /******************************************************/
 /******************************************************/
 /******************************************************/
+class cXml_OneObsPlane
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_OneObsPlane & anObj,cElXMLTree * aTree);
+
+
+        double & Sigma();
+        const double & Sigma()const ;
+
+        double & Cste();
+        const double & Cste()const ;
+
+        Pt3dr & Vect();
+        const Pt3dr & Vect()const ;
+    private:
+        double mSigma;
+        double mCste;
+        Pt3dr mVect;
+};
+cElXMLTree * ToXMLTree(const cXml_OneObsPlane &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_OneObsPlane &);
+
+void  BinaryUnDumpFromFile(cXml_OneObsPlane &,ELISE_fp &);
+
+std::string  Mangling( cXml_OneObsPlane *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_ObsPlaneOnPose
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_ObsPlaneOnPose & anObj,cElXMLTree * aTree);
+
+
+        std::string & NameIm();
+        const std::string & NameIm()const ;
+
+        std::list< cXml_OneObsPlane > & Obs1Plane();
+        const std::list< cXml_OneObsPlane > & Obs1Plane()const ;
+    private:
+        std::string mNameIm;
+        std::list< cXml_OneObsPlane > mObs1Plane;
+};
+cElXMLTree * ToXMLTree(const cXml_ObsPlaneOnPose &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_ObsPlaneOnPose &);
+
+void  BinaryUnDumpFromFile(cXml_ObsPlaneOnPose &,ELISE_fp &);
+
+std::string  Mangling( cXml_ObsPlaneOnPose *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
+class cXml_FileObsPlane
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cXml_FileObsPlane & anObj,cElXMLTree * aTree);
+
+
+        std::map< std::string,cXml_ObsPlaneOnPose > & Obs1Im();
+        const std::map< std::string,cXml_ObsPlaneOnPose > & Obs1Im()const ;
+    private:
+        std::map< std::string,cXml_ObsPlaneOnPose > mObs1Im;
+};
+cElXMLTree * ToXMLTree(const cXml_FileObsPlane &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cXml_FileObsPlane &);
+
+void  BinaryUnDumpFromFile(cXml_FileObsPlane &,ELISE_fp &);
+
+std::string  Mangling( cXml_FileObsPlane *);
+
+/******************************************************/
+/******************************************************/
+/******************************************************/
 class cAperoPointeStereo
 {
     public:
@@ -1708,6 +1792,39 @@ void  BinaryDumpInFile(ELISE_fp &,const cGpsOffset &);
 void  BinaryUnDumpFromFile(cGpsOffset &,ELISE_fp &);
 
 std::string  Mangling( cGpsOffset *);
+
+class cDataObsPlane
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cDataObsPlane & anObj,cElXMLTree * aTree);
+
+
+        std::string & Id();
+        const std::string & Id()const ;
+
+        std::string & NameFile();
+        const std::string & NameFile()const ;
+
+        cTplValGesInit< double > & Weight();
+        const cTplValGesInit< double > & Weight()const ;
+
+        cXml_FileObsPlane & Data();
+        const cXml_FileObsPlane & Data()const ;
+    private:
+        std::string mId;
+        std::string mNameFile;
+        cTplValGesInit< double > mWeight;
+        cXml_FileObsPlane mData;
+};
+cElXMLTree * ToXMLTree(const cDataObsPlane &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cDataObsPlane &);
+
+void  BinaryUnDumpFromFile(cDataObsPlane &,ELISE_fp &);
+
+std::string  Mangling( cDataObsPlane *);
 
 class cCalibAutomNoDist
 {
@@ -2967,6 +3084,9 @@ class cSectionInconnues
         std::list< cGpsOffset > & GpsOffset();
         const std::list< cGpsOffset > & GpsOffset()const ;
 
+        std::list< cDataObsPlane > & DataObsPlane();
+        const std::list< cDataObsPlane > & DataObsPlane()const ;
+
         std::list< cCalibrationCameraInc > & CalibrationCameraInc();
         const std::list< cCalibrationCameraInc > & CalibrationCameraInc()const ;
 
@@ -2999,6 +3119,7 @@ class cSectionInconnues
         cTplValGesInit< cMapName2Name > mMapMaskHom;
         cTplValGesInit< bool > mSauvePMoyenOnlyWithMasq;
         std::list< cGpsOffset > mGpsOffset;
+        std::list< cDataObsPlane > mDataObsPlane;
         std::list< cCalibrationCameraInc > mCalibrationCameraInc;
         cTplValGesInit< int > mSeuilL1EstimMatrEss;
         std::list< cBlockCamera > mBlockCamera;
@@ -5017,6 +5138,27 @@ void  BinaryUnDumpFromFile(cObsBlockCamRig &,ELISE_fp &);
 
 std::string  Mangling( cObsBlockCamRig *);
 
+class cObsCenterInPlane
+{
+    public:
+        cGlobXmlGen mGXml;
+
+        friend void xml_init(cObsCenterInPlane & anObj,cElXMLTree * aTree);
+
+
+        std::string & Id();
+        const std::string & Id()const ;
+    private:
+        std::string mId;
+};
+cElXMLTree * ToXMLTree(const cObsCenterInPlane &);
+
+void  BinaryDumpInFile(ELISE_fp &,const cObsCenterInPlane &);
+
+void  BinaryUnDumpFromFile(cObsCenterInPlane &,ELISE_fp &);
+
+std::string  Mangling( cObsCenterInPlane *);
+
 class cROA_FichierImg
 {
     public:
@@ -5469,6 +5611,9 @@ class cSectionObservations
         std::list< cObsBlockCamRig > & ObsBlockCamRig();
         const std::list< cObsBlockCamRig > & ObsBlockCamRig()const ;
 
+        std::list< cObsCenterInPlane > & ObsCenterInPlane();
+        const std::list< cObsCenterInPlane > & ObsCenterInPlane()const ;
+
         std::list< cObsAppuis > & ObsAppuis();
         const std::list< cObsAppuis > & ObsAppuis()const ;
 
@@ -5496,6 +5641,7 @@ class cSectionObservations
         cTplValGesInit< cContrCamConseq > mContrCamConseq;
         std::list< cContrCamGenInc > mContrCamGenInc;
         std::list< cObsBlockCamRig > mObsBlockCamRig;
+        std::list< cObsCenterInPlane > mObsCenterInPlane;
         std::list< cObsAppuis > mObsAppuis;
         std::list< cObsAppuisFlottant > mObsAppuisFlottant;
         std::list< cObsLiaisons > mObsLiaisons;
@@ -6864,6 +7010,9 @@ class cEtapeCompensation
         std::list< cObsBlockCamRig > & ObsBlockCamRig();
         const std::list< cObsBlockCamRig > & ObsBlockCamRig()const ;
 
+        std::list< cObsCenterInPlane > & ObsCenterInPlane();
+        const std::list< cObsCenterInPlane > & ObsCenterInPlane()const ;
+
         std::list< cObsAppuis > & ObsAppuis();
         const std::list< cObsAppuis > & ObsAppuis()const ;
 
@@ -7140,6 +7289,9 @@ class cParamApero
 
         std::list< cGpsOffset > & GpsOffset();
         const std::list< cGpsOffset > & GpsOffset()const ;
+
+        std::list< cDataObsPlane > & DataObsPlane();
+        const std::list< cDataObsPlane > & DataObsPlane()const ;
 
         std::list< cCalibrationCameraInc > & CalibrationCameraInc();
         const std::list< cCalibrationCameraInc > & CalibrationCameraInc()const ;

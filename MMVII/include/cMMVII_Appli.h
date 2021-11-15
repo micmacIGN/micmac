@@ -341,9 +341,15 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         static bool   ExistAppli();         ///< Return if the appli exist, no error
         static cMMVII_Appli & CurrentAppli();   ///< Return the unique appli, error if not
         virtual int Exe() = 0;              ///< Do the "real" job
+        virtual std::vector<std::string>  Samples() const; ///< For help, gives samples of "good" use
         bool ModeHelp() const;              ///< If we are in help mode, don't execute
         virtual ~cMMVII_Appli();            ///< Always virtual Dstrctr for "big" classes
         bool    IsInit(void *);             ///< indicate for each variable if it was initiazed by argc/argv
+        template <typename T> inline void SetIfNotInit(T & aVar,const T & aValue)
+        {
+            if (! IsInit(&aVar))
+               aVar = aValue;
+        }
         static void SignalInputFormat(int); ///< indicate that a xml file was read in the given version
         static bool        OutV2Format() ;  ///<  Do we write in V2 Format
 
@@ -394,6 +400,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
 
         void                                      Warning(const std::string & aMes,eTyW,int line,const std::string & File);
         std::string  Command() const; ///< Glob command by aggregation of ArgcArgv
+
+        bool RunMultiSet(int aKParam,int aKSet);  /// If VectMainSet > 1 => Call itsef in // , result indicates if was executed
+        int  ResultMultiSet() const; /// Iff RunMultiSet was execute
 
     private :
         cMMVII_Appli(const cMMVII_Appli&) = delete ; ///< New C++11 feature , forbid copy 
@@ -466,6 +475,9 @@ class cMMVII_Appli : public cMMVII_Ap_NameManip,
         cCollecSpecArg2007                        mArgFac;        ///< Optional args
         static const int                          NbMaxMainSets=3; ///< seems sufficient, Do not hesitate to increase if one command requires more
         std::vector<tNameSet>                     mVMainSets;  ///< For a many commands probably
+        int                                       mResulMultiS;///< Save Result of Mutlti Set Recall in //
+        bool                                      mRMSWasUsed; ///< Indicate if MultiCall was used
+
         std::string                               mIntervFilterMS[NbMaxMainSets];  ///< Filterings interval
 
         // Variable for setting num of mm version for output

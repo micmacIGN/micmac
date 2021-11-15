@@ -103,13 +103,21 @@ void BenchGlobImage(cParamExeBench & aParam); ///< Global bench on image
 void BenchFilterImage1(cParamExeBench & aParam);
 void BenchFilterLinear(cParamExeBench & aParam);
 void BenchGeom(cParamExeBench & aParam);
+
 void BenchMapping(cParamExeBench & aParam);
+void BenchInvertMapping(cParamExeBench & aParam);
+void BenchSymDerMap(cParamExeBench & aParam);
+void BenchLeastSqMap(cParamExeBench & aParam);
+
+
 
 
 
 /* Called by BenchGlobImage */
 void BenchRectObj(); ///< Global bench on image
 void BenchBaseImage(); ///< Global bench on image
+void BenchImNDim();
+
 void BenchGlobImage2d(); ///< Global bench on image
 void BenchFileImage(); ///< Global bench on image
 

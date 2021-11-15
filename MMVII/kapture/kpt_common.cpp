@@ -4,8 +4,6 @@
 
 namespace Kapture {
 
-bool debugOn=false;
-
 locale_t PosixLocale::posixLocale = (locale_t) 0;
 
 
@@ -34,8 +32,8 @@ DType dtypeFromStr(const std::string &s)
 }
 
 Error::Error(const std::string &errorMsg, const std::string &file, size_t line, const std::string &func)
-    : std::runtime_error(std::string("In function ") + func + ", at " + std::string(file) + ": " + std::to_string(line) + ":\n" + errorMsg),
-      mErrorMsg(errorMsg),mFile(file),mLine(line),mFunc(func)
+    : std::runtime_error(std::string("In function ") + func + ", at " + Path(file).filename().string() + ": " + std::to_string(line) + ": " + errorMsg),
+      mErrorMsg(errorMsg),mFile(Path(file).string()),mLine(line),mFunc(func)
 {
     std::cout.flush();
 }

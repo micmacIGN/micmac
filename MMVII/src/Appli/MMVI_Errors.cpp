@@ -3,6 +3,9 @@
 namespace MMVII
 {
 
+extern void ShowArgsMain();
+
+
 /**
      Default Error Function
 */
@@ -13,6 +16,8 @@ void Default_MMVVI_Error(const std::string & aType,const std::string &  aMes,con
     ErrOut() << "Mes=[" << aMes << "]\n";
     if (aFile)
        ErrOut() << "at line  " << aLine << " of file " << aFile  << "\n";
+    
+    ShowArgsMain();
 
     if (!cMMVII_Appli::ExistAppli())
     {

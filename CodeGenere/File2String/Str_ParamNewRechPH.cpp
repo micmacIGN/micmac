@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamNewRechPH[316] = {
+const char * theNameVar_ParamNewRechPH[326] = {
 "\n",
 "<GenCpp  Difndef=\"Define_NotRechNewPH\">\n",
 "\n",
@@ -104,6 +104,16 @@ const char * theNameVar_ParamNewRechPH[316] = {
 "       <Pt   Nb=\"1\" Type=\"Pt2dr\">     </Pt>\n",
 "       <Scale   Nb=\"1\" Type=\"double\">  </Scale>\n",
 "   </PtSc>\n",
+"\n",
+"   <Xml_TestDMP  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
+"         <PxMin  Nb=\"1\" Type=\"Im2D_INT2\"> </PxMin>\n",
+"         <PxMax  Nb=\"1\" Type=\"Im2D_INT2\"> </PxMax>\n",
+"         <ImCpt  Nb=\"1\" Type=\"Im2D_INT4\"> </ImCpt>\n",
+"         <DataIm  Nb=\"1\" Type=\"Im2D_U_INT2\"> </DataIm>\n",
+"\n",
+"         <StepPx Nb=\"1\" Type=\"double\"> </StepPx>\n",
+"         <DynPx  Nb=\"1\" Type=\"double\"> </DynPx>\n",
+"   </Xml_TestDMP>\n",
 "\n",
 "   <OneInvRad  Nb=\"1\" Class=\"true\" ToReference=\"true\">\n",
 "         <!-- y :  NumVect , x : Rho -->\n",

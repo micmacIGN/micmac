@@ -37,6 +37,7 @@ template <class Type> bool EqualCont(const Type &aV1,const Type & aV2)
 }
 
 
+
 cTestSerial1::cTestSerial1() : 
     mS("Hello"), 
     mP3(3.1,3.2) ,
@@ -45,6 +46,8 @@ cTestSerial1::cTestSerial1() :
     mO2 (cPt2dr(100,1000))
 {
 }
+
+ 
 
 bool cTestSerial1::operator ==   (const cTestSerial1 & aT1) const 
 {
@@ -80,6 +83,7 @@ class cTestSerial2 : public cTestSerial1
 {
 };
 
+
 void AddData(const cAuxAr2007 & anAux, cTestSerial2 &    aTS2) 
 {
     AddData(cAuxAr2007("TS0:P1",anAux),aTS2.mTS0.mP1);
@@ -92,8 +96,100 @@ void AddData(const cAuxAr2007 & anAux, cTestSerial2 &    aTS2)
     AddOptData(anAux,"O2",aTS2.mO2);
 }
 
+/* --------------- cTestSerial3 --------------------*/
+
+template <class Type> bool EqualPtr(const Type *aPtr1,const Type * aPtr2)
+{
+   if ((aPtr1==nullptr) && (aPtr2==nullptr)) return true;
+   if ((aPtr1!=nullptr) && (aPtr2!=nullptr)) return (*aPtr1==*aPtr2);
+   return false;
+}
+class cTestSerial3  : public  cMemCheck
+{
+     public :
+        cTestSerial3(int aVal)  :
+           mPtrI  ( (aVal==-1) ? nullptr : (new int(aVal)))   ,
+           mPtrS1 ( (aVal==-1) ? nullptr : (new cTestSerial1))
+        {
+            mS1.mLI.push_back(aVal);
+            mS1B.mLI.push_back(aVal+1);
+            if (mPtrS1) mPtrS1->mLI.push_back(aVal+12);
+        }
+        ~cTestSerial3() 
+        {
+            delete mPtrI;
+            delete mPtrS1;
+        }
+        cTestSerial3(const cTestSerial3 & aS3) :
+           mS1   ( aS3.mS1),
+           mPtrI (  (aS3.mPtrI) ? new int(*aS3.mPtrI) : nullptr),
+           mS1B  ( aS3.mS1B)
+        {
+        }
+
+        cTestSerial1            mS1;
+        int *                   mPtrI;
+        cTestSerial1 *          mPtrS1;
+        cTestSerial1            mS1B;
+};
+
+bool operator ==   (const cTestSerial3 & aT1,const cTestSerial3 & aT2)
+{
+    return      EqualPtr(aT1.mPtrI,aT2.mPtrI)
+            &&  EqualPtr(aT1.mPtrS1,aT2.mPtrS1)
+            &&  (aT1.mS1  == aT2.mS1)
+            &&  (aT1.mS1B == aT2.mS1B)
+    ;
+}
+
+void AddData(const cAuxAr2007 & anAux, cTestSerial3 &    aTS3) 
+{
+   AddData(anAux,aTS3.mS1);
+   OnePtrAddData(anAux,aTS3.mPtrI);
+   OnePtrAddData(anAux,aTS3.mPtrS1);
+   AddData(anAux,aTS3.mS1B);
+}
+
+
+
 template <class Type> void BenchSerialIm2D(const std::string & aDirOut)
 {
+    // Check if vector of ptr are iniatialized to null
+    {
+        std::vector<cTestSerial1 *> aVPtr;
+        for (int aK=0 ; aK< 3 ; aK++)
+        {
+            aVPtr = std::vector<cTestSerial1 *>(2);
+            MMVII_INTERNAL_ASSERT_bench((aVPtr.at(0)==nullptr),"BenchSerial3-Ptr");
+            MMVII_INTERNAL_ASSERT_bench((aVPtr.at(1)==nullptr),"BenchSerial3-Ptr");
+            aVPtr.clear();
+            cTestSerial1 aS1;
+            for (int aK=0 ; aK< 3; aK++)
+                aVPtr.push_back(&aS1);
+        }
+    }
+    {
+         cTestSerial3 aT1(-1);
+         cTestSerial3 aT2(-1);
+         cTestSerial3 aT3( 1);
+         cTestSerial3 aT4( 1);
+         cTestSerial3 aT5( 2);
+         MMVII_INTERNAL_ASSERT_bench((aT1==aT2),"BenchSerial3-Ptr");
+         MMVII_INTERNAL_ASSERT_bench((aT3==aT4),"BenchSerial3-Ptr");
+         MMVII_INTERNAL_ASSERT_bench(!(aT3==aT5),"BenchSerial3-Ptr");
+         MMVII_INTERNAL_ASSERT_bench(!(aT1==aT5),"BenchSerial3-Ptr");
+
+         cTestSerial3 aT44(44);
+         std::string aNameFile = aDirOut + "S3.dmp";
+
+         SaveInFile(aT1,aNameFile);
+         ReadFromFile(aT44,aNameFile);
+         MMVII_INTERNAL_ASSERT_bench((aT1==aT44),"BenchSerial3-Ptr");
+
+         SaveInFile(aT3,aNameFile);
+         ReadFromFile(aT44,aNameFile);
+         MMVII_INTERNAL_ASSERT_bench((aT3==aT44),"BenchSerial3-Ptr");
+    }
     for (int aK=0 ;aK<10 ; aK++)
     {
         bool isXml = ((aK%2)==0);
@@ -113,6 +209,45 @@ template <class Type> void BenchSerialIm2D(const std::string & aDirOut)
     }
 }
 
+/// Test both Cumul and its Read/Write mode
+template <class TypeH,class TypeCumul> void BenchHistoAndSerial(const std::string & aDirOut)
+{
+    for (int aK=0 ;aK<10 ; aK++)
+    {
+        bool isXml = ((aK%2)==0);
+        std::string aNameFile = aDirOut + "Histo." + StdPostF_ArMMVII(isXml);
+        int  aSz =  1+RandUnif_N(10);
+         
+        cHistoCumul<TypeH,TypeCumul> aH(aSz);
+        // We add 1 2 3  ... , in cumul we must have  N(N+1)/2
+        for (int aX=0 ; aX<aSz ; aX++)
+        {
+             aH.AddV(aX,3.0);   // Add it in two time, just for test 
+             aH.AddV(aX,aX-2.0);
+        }
+        aH.MakeCumul();
+
+        SaveInFile(aH,aNameFile);
+        cHistoCumul<TypeH,TypeCumul> aH2;
+        ReadFromFileWithDef(aH2,aNameFile);
+        
+        
+        MMVII_INTERNAL_ASSERT_bench(aH2.H().Sz()==aSz,"BenchHistoAndSerial");
+
+        int aPTot = ((1+aSz) * aSz)/2;
+        for (int aX=0 ; aX<aSz ; aX++)
+        {
+            double aProp = (((2+aX) * (1+aX))/2) / double(aPTot);
+            double aDif = RelativeDifference(aProp,aH2.PropCumul(aX));
+            MMVII_INTERNAL_ASSERT_bench(aDif<1e-7,"BenchHistoAndSerial");
+        }
+/*
+StdOut() << "WwwwwwwwWWWWWWwwww " << aNameFile << " " << aH2.H().Sz() << "\n";
+getchar();
+*/
+    }
+}
+
 void BenchSerialization
     (
         cParamExeBench & aParam,
@@ -125,6 +260,7 @@ void BenchSerialization
     {
         BenchSerialIm2D<tREAL4>(aDirOut);
         BenchSerialIm2D<tU_INT1>(aDirOut);
+        BenchHistoAndSerial<tINT4,tREAL8>(aDirOut);
     }
 
     SaveInFile(cTestSerial1(),aDirOut+"F1."+PostF_XmlFiles);

@@ -42,13 +42,13 @@ static bool DebugNuageBasc = false;
 
 void NuageBascRmFile(const std::string & aName)
 {
-    if (DebugNuageBasc)
+    if (!DebugNuageBasc)
        ELISE_fp::RmFile(aName);
 }
 
 void NuageBascRmFileIfExist(const std::string & aName)
 {
-    if (DebugNuageBasc)
+    if (!DebugNuageBasc)
        ELISE_fp::RmFileIfExist(aName);
 }
 

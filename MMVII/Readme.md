@@ -1,6 +1,7 @@
 Dependences :
 -------------
 
+libboost-all-dev
 libceres-dev
 
 
@@ -11,7 +12,14 @@ Compile MicMac V1, then in MMVII directory :
 
 cd bin/
 make -f Mk-MMVII.makefile
+or 
+make ....
 
+First time :
+-----------
+make
+./MMVII  GenCodeSymDer
+make
 
 To generate html doc :
 ----------------------

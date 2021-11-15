@@ -71,12 +71,16 @@ class cAppliCalcDescPCar : public cMMVII_Appli
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+        ~cAppliCalcDescPCar(); ///< Because of bench
+   
      private :
         std::string               mNameIm;                ///< Input image pattern/name 
         bool        mIntPyram;  ///< Impose integer  image
         int         mSzTile;    ///<  sz of tiles for spliting in sub processe
         int         mOverlap;   ///< sz of  overlap between tiles
         int         mNbOct;
+        int         mSzMinOct;  ///< Avoid too small octave who generate bugs
         int         mNbLevByOct;
         int         mNbOverLapByO;
         bool        mSaveIms;
@@ -108,6 +112,13 @@ template<class Type> cTplAppliCalcDescPCar<Type>::cTplAppliCalcDescPCar(cAppliCa
    mBoxIn     (cRect2::TheEmptyBox),
    mBoxOut    (cRect2::TheEmptyBox)
 {
+   if (! anAppli.IsInit(&anAppli.mNbOct))
+   {
+      double aRatioLarg = MinAbsCoord(mDFI.Sz()) / double(anAppli.mSzMinOct) ;
+      double aLog2Larg = std::log(aRatioLarg) / std::log(2);
+
+      anAppli.mNbOct = std::min(anAppli.mNbOct,round_down(aLog2Larg));
+   }
 }
 
 template<class Type> void cTplAppliCalcDescPCar<Type>::ExeGlob()
@@ -130,7 +141,7 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
     mBoxIn = aPBI.BoxIn(anIndex,mAppli.mOverlap);
     mSzIn = mBoxIn.Sz();
     mBoxOut = aPBI.BoxOut(anIndex);
-    cGP_Params aGP(mSzIn,mAppli.mNbOct,mAppli.mNbLevByOct,mAppli.mNbOverLapByO,&mAppli);
+    cGP_Params aGP(mSzIn,mAppli.mNbOct,mAppli.mNbLevByOct,mAppli.mNbOverLapByO,&mAppli,true);
 
     // Value cPt2di(-1,-1) : special value indicating that tiles must not be written at end
     aGP.mNumTile    = (mNbTiles==1) ? cPt2di(-1,-1)  : anIndex;
@@ -240,12 +251,19 @@ template<class Type>  void cTplAppliCalcDescPCar<Type>::ExeOneBox(const cPt2di &
 /*                                                 */
 /* =============================================== */
 
+cAppliCalcDescPCar::~cAppliCalcDescPCar()
+{
+   // Because of bench case, else do not success in X::~X() of mFPC
+   mFPC.FinishAC(0.05);
+}
+
 cAppliCalcDescPCar:: cAppliCalcDescPCar(const std::vector<std::string> &  aVArgs,const cSpecMMVII_Appli & aSpec) :
   cMMVII_Appli  (aVArgs,aSpec,{eSharedPO::eSPO_CarPO}),
   mIntPyram     (false),
   mSzTile       (7000),
   mOverlap      (300),
   mNbOct        (7),
+  mSzMinOct     (20),
   mNbLevByOct   (5),
   mNbOverLapByO (3),
   mSaveIms      (false),
@@ -255,7 +273,7 @@ cAppliCalcDescPCar:: cAppliCalcDescPCar(const std::vector<std::string> &  aVArgs
   mSDON         (20.0),
   mCI0          (0.7),
   mCC0          (0.7),
-  mFPC          ()
+  mFPC          (true) // 4 TieP
 {
 }
 
@@ -274,6 +292,7 @@ cCollecSpecArg2007 & cAppliCalcDescPCar::ArgOpt(cCollecSpecArg2007 & anArgOpt)
        << AOpt2007(mSzTile,"TileSz","Size of tile for spliting computation",{eTA2007::HDV})
        << AOpt2007(mOverlap,"TileOL","Overlao of tile to limit sides effects",{eTA2007::HDV})
        << AOpt2007(mNbOct,"PyrNbO","Number of octaves in Pyramid",{eTA2007::HDV})
+       << AOpt2007(mSzMinOct,"SzMinOct","Minimal size for an octave",{eTA2007::HDV})
        << AOpt2007(mNbLevByOct,"PyrNbL","Number of level/Octaves in Pyramid",{eTA2007::HDV})
        << AOpt2007(mNbOverLapByO,"PyrNbOverL","Number of overlap  in Pyram(change only for Save Image)",{eTA2007::HDV})
        << AOpt2007(mSaveIms,"SaveIms","Save images (tuning/debuging/teaching)",{eTA2007::HDV})
@@ -283,17 +302,22 @@ cCollecSpecArg2007 & cAppliCalcDescPCar::ArgOpt(cCollecSpecArg2007 & anArgOpt)
        << AOpt2007(mDoOriNorm,"DON","Do Original Normalized images, experimental",{eTA2007::HDV})
        << AOpt2007(mDoCorner,"DOC","Do corner images",{eTA2007::HDV})
        << AOpt2007(mEstSI0,"ESI0","Estimation of sigma of first image, by default suppose a well sampled image")
-       << AOpt2007(mFPC.mAutoC,"AC","Param 4 AutoCorrel [Val,?LowVal,?LowValIntCor]",{eTA2007::HDV,{eTA2007::ISizeV,"[1,3]"}})
-       << AOpt2007(mFPC.mPSF,"PSF","Param 4 Spatial Filtering [Dist,MulRay,PropNoFS]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
-       << AOpt2007(mFPC.mEQsf,"EQ","Exposant 4  Quality [AutoC,Var,Scale]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
-       << AOpt2007(mFPC.mLPCirc,"LPC","Circles of Log Pol [Rho0,DeltaI0,DeltaIm]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
-       << AOpt2007(mFPC.mLPSample,"LPS","Sampling Log Pol [NbTeta,NbRho,Mult,Census]",{eTA2007::HDV,{eTA2007::ISizeV,"[4,4]"}})
+       << AOpt2007(mFPC.AutoC(),"AC","Param 4 AutoCorrel [Val,?LowVal,?LowValIntCor]",{eTA2007::HDV,{eTA2007::ISizeV,"[1,3]"}})
+       << AOpt2007(mFPC.PSF(),"PSF","Param 4 Spatial Filtering [Dist,MulRay,PropNoFS]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
+       << AOpt2007(mFPC.EQsf(),"EQ","Exposant 4  Quality [AutoC,Var,Scale]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
+       << AOpt2007(mFPC.LPCirc(),"LPC","Circles of Log Pol [Rho0,DeltaI0,DeltaIm]",{eTA2007::HDV,{eTA2007::ISizeV,"[3,3]"}})
+       << AOpt2007(mFPC.LPSample(),"LPS","Sampling Log Pol [NbTeta,NbRho,Mult,Census]",{eTA2007::HDV,{eTA2007::ISizeV,"[4,4]"}})
    ;
 }
 
 int cAppliCalcDescPCar::Exe() 
 {
-   mFPC.FinishAC(0.1);
+   mFPC.FinishAC(0.05);
+   mFPC.Check();
+
+   if (RunMultiSet(0,0))  // If a pattern was used, run in // by a recall to itself
+      return ResultMultiSet();
+/*
    {
       const std::vector<std::string> &  aVSetIm = VectMainSet(0);
 
@@ -303,6 +327,7 @@ int cAppliCalcDescPCar::Exe()
          return EXIT_SUCCESS;
       }
    }
+*/
    CreateDirectories(PrefixPCar(mNameIm,""),true);
    mPrefixOut = PrefixPCarOut(mNameIm);
 

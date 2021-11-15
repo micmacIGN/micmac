@@ -155,6 +155,10 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
             SetSqueezeDOCOAC();
      }
 
+     for (auto & aDOP  : mParam.DataObsPlane())
+     {
+         aDOP.Data() = StdGetFromAp(aDOP.NameFile(),Xml_FileObsPlane);
+     }
 
      if ( !mModeMaping)
      {
@@ -704,6 +708,17 @@ cCalibCam * cAppliApero::CalibFromName(const std::string & aName,cPoseCam * aPC)
 }
 
 
+
+cDataObsPlane *  cAppliApero::GetDOPOfName(const std::string& anId)
+{
+     for (auto & aDOP  : mParam.DataObsPlane())
+         if (aDOP.Id() == anId)
+            return & aDOP;
+
+    std::cout << "Name Of required Id : " << anId << "\n";
+    ELISE_ASSERT(false,"GetDOPOfName Id don't exist");
+    return nullptr;
+}
 
 
 

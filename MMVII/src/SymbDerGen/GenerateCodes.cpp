@@ -1,10 +1,21 @@
 #include "include/MMVII_all.h"
 #include "include/SymbDer/SymbolicDerivatives.h"
+#include "include/SymbDer/SymbDer_GenNameAlloc.h"
 #include "Formulas_CamStenope.h"
+
+/*
+La compil:
+
+    make distclean
+    make -j x
+    ./MMVII GenCodeSymDer
+    make -j x
+    ./MMVII Bench 5
+
+*/
 
 using namespace NS_SymbolicDerivative;
 using namespace MMVII;
-
 
 namespace NS_GenerateCode
 {
@@ -14,9 +25,10 @@ template <typename TypeFormula> std::string NameFormula(const TypeFormula & anEq
    return  anEq.FormulaName() +  std::string(WithDerive ?"VDer":"Val");
 }
 
-std::string  NameEqDist(const cPt3di & aDeg,bool WithDerive)
+// EqBaseFuncDist
+std::string  NameEqDist(const cPt3di & aDeg,bool WithDerive,bool ForBase )
 {
-   cMMVIIUnivDist aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
+   cMMVIIUnivDist aDist(aDeg.x(),aDeg.y(),aDeg.z(),ForBase);
    cEqDist<cMMVIIUnivDist> anEq(aDist); 
 
    return NameFormula(anEq,WithDerive);
@@ -105,6 +117,7 @@ class cAppli : public cMMVII_Appli
        // =========== Data ========
             // Mandatory args
         std::string mDirGenCode;
+        void GenerateOneDist(const cPt3di & aDeg) ;
 };
 
 
@@ -144,7 +157,6 @@ cCollecSpecArg2007 & cAppli::ArgOpt(cCollecSpecArg2007 & anArgOpt)
 }
 
 
-
 template <typename tFormula> void cAppli::GenCodesFormula(const tFormula & aFormula,bool WithDerive)
 {
    int aSzBuf=1;
@@ -156,7 +168,6 @@ template <typename tFormula> void cAppli::GenCodesFormula(const tFormula & aForm
 
    // Set header in a place to compilation path of MMVII
    aCEq.SetHeaderIncludeSymbDer("include/SymbDer/SymbDer_Common.h"); 
-   aCEq.SetUseAllocByName(true);  // generate allocators
    aCEq.SetDirGenCode(mDirGenCode);
 
    auto aXY= aFormula.formula(aCEq.VUk(),aCEq.VObs()); // Give ths list of atomic formula
@@ -164,18 +175,13 @@ template <typename tFormula> void cAppli::GenCodesFormula(const tFormula & aForm
       aCEq.SetCurFormulasWithDerivative(aXY);
    else
       aCEq.SetCurFormulas(aXY);
-   aCEq.GenerateCode("CodeGen_");
-/*
-*/
+   auto [aClassName,aFileName] = aCEq.GenerateCode("CodeGen_");
+   cGenNameAlloc::Add(aClassName,aFileName);
 };
 
-
-
-
-int cAppli::Exe()
+void cAppli::GenerateOneDist(const cPt3di & aDeg) 
 {
-   mDirGenCode = TopDirMMVII() + "src/GeneratedCodes/";
-   cMMVIIUnivDist           aDist(3,1,1,false);
+   cMMVIIUnivDist           aDist(aDeg.x(),aDeg.y(),aDeg.z(),false);
    cEqDist<cMMVIIUnivDist>  anEqDist(aDist);
    cEqIntr<cMMVIIUnivDist>  anEqIntr(aDist);
 
@@ -186,11 +192,44 @@ int cAppli::Exe()
    GenCodesFormula(anEqIntr,true);
    // GenCodesFormula<cMMVIIUnivDist>(aDist,true,false);
 
+   // GenCodesFormula<cMMVIIUnivDist>(aDist,true,false);
+
+   cMMVIIUnivDist           aDistBase(aDeg.x(),aDeg.y(),aDeg.z(),true);
+   cEqDist<cMMVIIUnivDist>  anEqBase(aDistBase);
+   GenCodesFormula(anEqBase,false);
+}
+
+
+int cAppli::Exe()
+{
+   cGenNameAlloc::Reset();
+   mDirGenCode = TopDirMMVII() + "src/GeneratedCodes/";
+
+   {
+       GenerateOneDist(cPt3di(3,1,1));
+       GenerateOneDist(cPt3di(2,0,0));
+       GenerateOneDist(cPt3di(5,1,1));
+   }
+/*
+   cMMVIIUnivDist           aDist(3,1,1,false);
+   cEqDist<cMMVIIUnivDist>  anEqDist(aDist);
+   cEqIntr<cMMVIIUnivDist>  anEqIntr(aDist);
+
+   cGenNameAlloc::Reset();
+
+   GenCodesFormula(anEqDist,false);
+   GenCodesFormula(anEqDist,true);
+   GenCodesFormula(anEqIntr,false);
+   GenCodesFormula(anEqIntr,true);
+   // GenCodesFormula<cMMVIIUnivDist>(aDist,true,false);
+
    cMMVIIUnivDist           aDistBase(3,1,1,true);
    cEqDist<cMMVIIUnivDist>  anEqBase(aDistBase);
    GenCodesFormula(anEqBase,false);
-/*
+   cGenNameAlloc::GenerateFile(mDirGenCode+"cName2CalcRegisterAll.cpp","include/SymbDer/SymbDer_Common.h","");
 */
+
+   cGenNameAlloc::GenerateFile(mDirGenCode+"cName2CalcRegisterAll.cpp","include/SymbDer/SymbDer_Common.h","");
    return EXIT_SUCCESS;
 }
 
@@ -198,6 +237,7 @@ cAppliBenchAnswer cAppli::BenchAnswer() const
 {
    return cAppliBenchAnswer(true,1.0);
 }
+
 
 int  cAppli::ExecuteBench(cParamExeBench & aParam) 
 {
@@ -225,7 +265,12 @@ namespace MMVII
 
 cCalculator<double> * EqDist(const cPt3di & aDeg,bool WithDerive,int aSzBuf)
 { 
-    return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,WithDerive),aSzBuf);
+    return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,WithDerive,false),aSzBuf);
+}
+
+cCalculator<double> * EqBaseFuncDist(const cPt3di & aDeg,int aSzBuf)
+{ 
+    return cName2Calc<double>::CalcFromName(NameEqDist(aDeg,false,true),aSzBuf);
 }
 
 std::vector<cDescOneFuncDist>   DescDist(const cPt3di & aDeg)

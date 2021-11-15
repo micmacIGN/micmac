@@ -1227,14 +1227,20 @@ int ClipIm_main(int argc,char ** argv)
     std::string aNameOut;
     Pt2di P0(0,0);
     Pt2di Sz(0,0);
+    int  XMaxNot0 = 100000000;
+    int  XMinNot0 = -100000000;
+    int  AmplRandValOut =0;
 
     ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAM(aNameIn)
-                    << EAMC(P0,"P0")
-                    << EAMC(Sz,"SZ")  ,
-        LArgMain()  << EAM(aNameOut,"Out",true)
+        LArgMain()  << EAMC(aNameIn,"Name of Image")
+                    << EAMC(P0,"P0, origin of clip")
+                    << EAMC(Sz,"SZ, size of clip")  ,
+        LArgMain()  << EAM(aNameOut,"Out",true,"Name of output file")
+                    << EAM(XMaxNot0,"XMaxNot0",true,"Value will be zeroed fo x > this coord (given in unclip file)")
+                    << EAM(XMinNot0,"XMinNot0",true,"Value will be zeroed fo x <=  this coord (given in unclip file)")
+                    << EAM(AmplRandValOut,"AmplRandVout",true,"Generate random value for out, give amplitude")
     );
 
     if (MMVisualMode) return EXIT_SUCCESS;
@@ -1275,10 +1281,33 @@ int ClipIm_main(int argc,char ** argv)
                               aLArg
                           );
 
+    
+    bool RandOut = EAMIsInit(&AmplRandValOut);
+    Fonc_Num aFoncIn = tiff.in(RandOut ? -1 : 0);
+    if (EAMIsInit(&XMaxNot0))
+    {
+       aFoncIn = aFoncIn * (FX<XMaxNot0);
+       if (RandOut) 
+          aFoncIn = aFoncIn - (FX>=XMaxNot0);  // Add -1 in this out rect
+    }
+    if (EAMIsInit(&XMinNot0))
+    {
+       aFoncIn = aFoncIn * (FX>=XMinNot0);
+       if (RandOut) 
+          aFoncIn = aFoncIn - (FX<XMinNot0);  // Add -1 in this out rect
+    }
+
+ 
+    if (RandOut)
+    {
+       Symb_FNum aFIn(aFoncIn);
+       aFoncIn =  aFIn * (aFIn>=0)  +  (aFIn<0) * frandr() * AmplRandValOut;
+    }
+
     ELISE_COPY
     (
          TiffOut.all_pts(),
-         trans(tiff.in(0),P0),
+         trans(aFoncIn,P0),
          TiffOut.out()
     );
 

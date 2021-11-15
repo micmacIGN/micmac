@@ -118,6 +118,22 @@ template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PCste(cons
    return aRes;
 }
 
+template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::FromPtInt(const cPtxd<int,Dim> & aPInt)
+{
+   cPtxd<Type,Dim> aRes;
+   for (int aK=0 ; aK<Dim; aK++)
+       aRes.mCoords[aK]= aPInt[aK];
+   return aRes;
+}
+
+/*
+void ff()
+{
+    cPtxd<double,3>::FromPtInt(cPt3di(0,0,0));
+}
+*/
+
+
 template <class Type,const int Dim> cPtxd<Type,Dim>  cPtxd<Type,Dim>::PRand()
 {
    cPtxd<Type,Dim> aRes;
@@ -162,7 +178,19 @@ template <class Type,const int Dim> cPtxd<Type,Dim>
 }
 
 
-
+template <class Type,const int Dim> 
+   typename cPtxd<Type,Dim>::tBigNum cPtxd<Type,Dim>::MinSqN2(const std::vector<tPt> & aVecPts,bool SVP) const
+{
+   if (aVecPts.empty())
+   {
+       MMVII_INTERNAL_ASSERT_medium(SVP,"MinSqN2 on empty vect, no def");
+       return -1;
+   }
+   tBigNum aRes = SqN2(aVecPts[0]-*this);
+   for (size_t  aKPts=1 ; aKPts<aVecPts.size() ; aKPts++)
+       aRes = std::min(aRes, SqN2(aVecPts[aKPts]-*this));
+   return aRes;
+}
 
 
 template <class Type,const int Dim> double NormK(const cPtxd<Type,Dim> & aPt,double anExp) 
@@ -197,6 +225,15 @@ template <class Type,const int Dim> Type NormInf(const cPtxd<Type,Dim> & aPt)
    return aRes;
 }
 
+template <class Type,const int Dim> Type MinAbsCoord(const cPtxd<Type,Dim> & aPt)
+{
+   Type aRes = std::abs(aPt[0]);
+   for (int aD=1 ; aD<Dim; aD++)
+      aRes = std::min(aRes,std::abs(aPt[aD]));
+   return aRes;
+}
+
+
 template <class T,const int Dim>  
    typename  tNumTrait<T>::tBig Scal(const cPtxd<T,Dim> &aP1,const cPtxd<T,Dim> & aP2)
 {
@@ -225,6 +262,78 @@ template<class T,const int Dim> cPtxd<T,Dim>  VUnit(const cPtxd<T,Dim> & aP)
 {
    return aP / T(Norm2(aP));  // Check by 0 is made in operator
 }
+
+template <class Type,const int DimOut,const int DimIn> cPtxd<Type,DimOut> CastDim(const cPtxd<Type,DimIn> & aPt)
+{
+    MMVII_INTERNAL_ASSERT_tiny(DimIn==DimOut,"CastDim : different dim");
+
+    return  cPtxd<Type,DimOut>(aPt.PtRawData());
+   
+}
+
+
+
+template <const int Dim>  class cAllocNeighourhood
+{
+
+   public :
+      typedef  cPtxd<int,Dim>    tPt;
+      typedef  std::vector<tPt>  tVecPt;
+      typedef  std::vector<tVecPt>  tVVPt;
+
+      static  const tVVPt & AllocTabGrowNeigh(int aDMax)
+      {
+           static  tVVPt aRes;;
+           if (int(aRes.size()) > aDMax) return aRes;
+
+           aRes = tVVPt(1+aDMax,tVecPt());
+           
+           for (const auto & aP :  cPixBox(tPt::PCste(-aDMax),tPt::PCste(aDMax+1)))
+               aRes.at(NormInf(aP)).push_back(aP);
+
+           return aRes;
+      }
+
+
+      static const tVecPt &  Alloc(int aNbPix)
+      {
+// StdOut() <<  "----------------======================\n";
+            static  std::vector<tVecPt> aBufRes(Dim);
+            MMVII_INTERNAL_ASSERT_tiny((aNbPix>0)&&(aNbPix<=Dim),"Bad Nb in neighbourhood");
+
+            // If alreay computed all fine
+            tVecPt & aRes = aBufRes[aNbPix-1];
+            if (! aRes.empty()) return aRes;
+
+            // Usee full neighboor
+            cPixBox<Dim> aPB(tPt::PCste(-1),tPt::PCste(2));
+            for (const auto & aP : aPB)
+            {
+                int aN = Norm1(aP);
+                if ((aN>0) && (aN<=aNbPix))
+                {
+                    aRes.push_back(aP);
+                    // StdOut() << aP << "\n";
+                }
+            }
+
+            return aRes;
+      }
+};
+
+template <const int Dim>  const std::vector<cPtxd<int,Dim>> & AllocNeighbourhood(int aNbVois)
+{
+   return  cAllocNeighourhood<Dim>::Alloc(aNbVois);
+}
+
+
+template <const int Dim>  const std::vector<std::vector<cPtxd<int,Dim>>> & TabGrowNeigh(int aDistMax)
+{
+   return  cAllocNeighourhood<Dim>::AllocTabGrowNeigh(aDistMax);
+}
+
+
+
 
 
 
@@ -489,6 +598,14 @@ template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Dilate
    return Dilate(tPt::PCste(aVal));
 }
 
+template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::ScaleCentered(const Type & aVal) const
+{
+   tPt aMil = (mP0+mP1)/Type(2.0);
+   tPt anAmpl = (mP1-mP0)* Type(aVal/2.0);
+   return tBox(aMil-anAmpl,aMil+anAmpl);
+}
+
+
 template <class Type,const int Dim> void cTplBox<Type,Dim>::AssertSameArea(const cTplBox<Type,Dim> & aR2) const
 {
     MMVII_INTERNAL_ASSERT_strong((*this)==aR2,"Rect obj were expected to have identic area");
@@ -562,6 +679,14 @@ template <class Type,const int Dim>  cPtxd<double,Dim>  cTplBox<Type,Dim>::Rando
 
 template <class Type,const int Dim> cPtxd<Type,Dim>   cTplBox<Type,Dim>::GeneratePointInside() const
 {
+/*
+   cPtxd<double,Dim> aP0 = RandomNormalised();
+   cPtxd<Type,Dim>  aP1 = FromNormaliseCoord(aP0);
+   cPtxd<Type,Dim> aP2 = Proj(aP1);
+StdOut() << "BOX " << mP0 << " " << mP1 << "\n";
+StdOut() <<  aP0 << aP1 << aP2 << "\n"; getchar();
+   return aP2;
+*/
    return Proj(FromNormaliseCoord(RandomNormalised()));
 }
 
@@ -676,6 +801,16 @@ template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_ni(const cPtxd<Type
 }
 
 
+template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW)
+{
+   return
+	   (aPt.x() >= aBox.P0().x() + aSzW.x())
+       &&  (aPt.y() >= aBox.P0().y() + aSzW.y())
+       &&  (aPt.x() <  aBox.P1().x() - aSzW.x()-1)
+       &&  (aPt.y() <  aBox.P1().y() - aSzW.y()-1) ;
+}
+
+
 /* ========================== */
 /*       INSTANTIATION        */
 /* ========================== */
@@ -683,21 +818,34 @@ template <class Type,const int Dim>  cPtxd<int,Dim> Pt_round_ni(const cPtxd<Type
 template void CornersTrigo(typename cTplBox<tREAL8,2>::tCorner & aRes,const  cTplBox<tREAL8,2>&);
 template void CornersTrigo(typename cTplBox<tINT4,2>::tCorner & aRes,const  cTplBox<tINT4,2>&);
 
+template  bool WindInside4BL(const cBox2di & aBox,const cPtxd<tINT4,2> & aPt,const  cPt2di & aSzW);
+template  bool WindInside4BL(const cBox2di & aBox,const cPtxd<tREAL8,2> & aPt,const  cPt2di & aSzW);
+
+#define MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIMIN,DIMOUT)\
+template  cPtxd<TYPE,DIMOUT> CastDim<TYPE,DIMOUT,DIMIN>(const cPtxd<TYPE,DIMIN> & aPt);
+
 #define MACRO_INSTATIATE_PTXD(TYPE,DIM)\
+MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,1);\
+MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,2);\
+MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,3);\
+MACRO_INSTATIATE_PTXD_2DIM(TYPE,DIM,4);\
 template  std::ostream & operator << (std::ostream & OS,const cPtxd<TYPE,DIM> &aP);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PCste(const TYPE&);\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRand();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandC();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandUnit();\
 template  cPtxd<TYPE,DIM> cPtxd<TYPE,DIM>::PRandInSphere();\
+template typename cPtxd<TYPE,DIM>::tBigNum cPtxd<TYPE,DIM>::MinSqN2(const std::vector<tPt> &,bool SVP) const;\
 template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::PRandUnitDiff(const cPtxd<TYPE,DIM>& ,const TYPE&);\
 template  double NormK(const cPtxd<TYPE,DIM> & aPt,double anExp);\
 template  double Norm2(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE Norm1(const cPtxd<TYPE,DIM> & aPt);\
 template  TYPE NormInf(const cPtxd<TYPE,DIM> & aPt);\
+template  TYPE MinAbsCoord(const cPtxd<TYPE,DIM> & aPt);\
 template  typename  tNumTrait<TYPE>::tBig Scal(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
 template  TYPE Cos(const cPtxd<TYPE,DIM> &,const cPtxd<TYPE,DIM> &);\
-template  cPtxd<TYPE,DIM>  VUnit(const cPtxd<TYPE,DIM> & aP);
+template  cPtxd<TYPE,DIM>  VUnit(const cPtxd<TYPE,DIM> & aP);\
+template  cPtxd<TYPE,DIM>  cPtxd<TYPE,DIM>::FromPtInt(const cPtxd<int,DIM> & aPInt);
 
 // template  cPtxd<TYPE,DIM>  PCste(const DIM & aVal);
 
@@ -709,6 +857,8 @@ MACRO_INSTATIATE_PTXD(tREAL16,DIM)
 
 #define MACRO_INSTATIATE_PRECT_DIM(DIM)\
 MACRO_INSTATIATE_POINT(DIM)\
+template const std::vector<std::vector<cPtxd<int,DIM>>> & TabGrowNeigh(int);\
+template const std::vector<cPtxd<int,DIM>> & AllocNeighbourhood(int);\
 template cPtxd<int,DIM> Pt_round_down(const cPtxd<double,DIM>  aP);\
 template cPtxd<int,DIM> Pt_round_up(const cPtxd<double,DIM>  aP);\
 template cPtxd<int,DIM> Pt_round_ni(const cPtxd<double,DIM>  aP);\

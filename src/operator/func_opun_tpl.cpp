@@ -1024,6 +1024,16 @@ Fonc_Num CosRx  (Fonc_Num f)
 }
 
 
+          // ==========  BadNum  ===============
+void  tab_IsBadNum(REAL * out, const REAL * in,INT nb)
+{
+   for (INT i=0 ; i<nb ; i++)
+       out[i] = IsBadNum(in[i]);
+}
+Fonc_Num IsBadNum  (Fonc_Num f)
+{
+     return Op_Un_Math::New(f,tab_IsBadNum,"IsBadNum",IsBadNum,NoDeriv,NoValDeriv);
+}
 
 
           // ==========  AtRxSRx ===============
@@ -1306,28 +1316,6 @@ Fonc_Num operator ~  (Fonc_Num f)
      return new Op_Un_Integer(f,tab_not_bit_by_bit,"~",VNotBB);
 }
 
-/*
-Fonc_Num Pow7-4  (Fonc_Num f)
-Fonc_Num f4S2AtRxS2  (Fonc_Num f)
-Fonc_Num Der4S2AtRxS2  (Fonc_Num f)
-Fonc_Num f2SAtRxS2SRx  (Fonc_Num f)
-Fonc_Num Der2SAtRxS2SRx  (Fonc_Num f)
-Fonc_Num SinCardRx  (Fonc_Num f)
-Fonc_Num CosRx  (Fonc_Num f)
-Fonc_Num DerAtRxSRx  (Fonc_Num f)
-Fonc_Num DerAt2Rx  (Fonc_Num f)
-Fonc_Num At2Rx  (Fonc_Num f)
-
-
-Fonc_Num Iconv(Fonc_Num f)
-Fonc_Num round_up(Fonc_Num f)
-Fonc_Num round_down(Fonc_Num f)
-Fonc_Num Rconv(Fonc_Num f)
-Fonc_Num round_ni(Fonc_Num f)
-Fonc_Num round_ni_inf(Fonc_Num f)
-Fonc_Num operator -  (Fonc_Num f)
-Fonc_Num erfcc  (Fonc_Num f)
-*/
 
 tOperFuncUnaire  OperFuncUnaireFromName(const std::string & aName)
 {
@@ -1349,6 +1337,7 @@ tOperFuncUnaire  OperFuncUnaireFromName(const std::string & aName)
    if (aName=="atan")    return atan;
    if (aName=="sqrt")    return sqrt;
    if (aName=="erfcc")   return erfcc;
+   if (aName=="IsBadNum")   return IsBadNum;
 
    std::cout << "For name =" << aName << "\n";
    ELISE_ASSERT(false,"Name is not a valid unary operator");

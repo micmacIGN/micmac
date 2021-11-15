@@ -1,0 +1,813 @@
+
+\chapter{Description de la m\'ethode Aim\'e}
+
+
+\section{Introduction}
+
+Aim\'e vise \`a \^etre une m\'ethode de calcul de points homologues qui sera  int\'egr\'ee dans MMVII. 
+Son architecture est fortement inspir\'ee par SIFT qui a fait ses preuves depuis de longues
+ann\'ees en tant que m\'ethode \emph{analytique}\footnote{"analytique" par opposition \`a  m\'ethode d'apprentissage,
+les ayatolah du deep dirait handcrafted} de r\'ef\'erence. Elle vise aussi \`a tirer parti de $10$ ann\'ees
+d'exp\'erience d'utilisation de SIFT en photogramm\'etrie pour tirer parti de ses points forts
+et corriger les principaux point faibles
+de SIFT dans ce contexte.  Notemment les principaux points  sur lesquels on souhaite am\'eliorer sont :
+
+
+\begin{itemize}
+   \item SIFT passe difficilement \`a l'\'echelle lorsque  l'on l'utilise sur des tr\`es grands jeux de donn\'ees,
+         notamment il ne permet pas de d\'etecter rapidement les paires potentiellement homologues;
+
+   \item lorsque l'on en dispose, SIFT n'utilise pas d'information  de spatialisation approch\'ee qui permetrait
+         de faciliter l'appariement (plus robuste et plus rapide), voir de se passer dans ce contexte d'invariance
+         inutile (i.e ne pas normaliser \`a l'\'echelle ou \`a la rotation si on a des information permettant de
+         connaitres ces infos);
+
+   \item tirer parti des m\'ethodes d'apprentissage pour avoir un appariement meilleurs (quoique veuille dire
+         ceci); une contrainte pour tirer parti des m\'ethodes d'apprentissage est de disposer de  jeux de
+         donn\'es de v\'erit\'e suffisemment denses; or cela est possible, au moins pour la phase d'appariement 
+         en utilisant des jeux de donn\'ees trait\'es par des cha\^ines photogramm\'etriques automatiques.
+
+   \item prendre en compte que les probl\`emes d'appariement rencontr\'es en photogramm\'etrie sont
+         suffisement vari\'es pour qu'il soit n\'ecessaire de viser \'a une m\'ethode fortement param\'etrable
+         pour pouvoir s'adapter \`a cette vari\'et\'e de probl\`emes.
+
+
+\end{itemize}
+
+    % ==================================================================================
+    % ==================================================================================
+    % ==================================================================================
+
+\section{Architecture g\'en\'erale d'Aim\'e}
+
+L'architecture est la suivante :
+
+\begin{itemize}
+   \item calcul de points caract\'eristiques, cette partie est celle qui resssemble le plus \'a SIFT;
+
+   \item calcul de descripteurs, le descripteur est fait d'un (ou plusieurs) descripteurs binaires
+         permettant de faire une pr\'e-s\'election rapide des couples potentiellement appariables et
+         d'un descripteurs plus complets , ces descripteurs sont bas\'es sur un r\'e\'echantillonage
+         log-polaire de du voisinage de chaque point;
+
+   \item appariement en plusieurs \'etapes, on commence par des filtres relativement peu s\'electifs
+        mais rapides et l'on compl\`ete par des calcul plus s\'electif sur les descripteurs complets;
+
+   \item filtrage spatial imposant une coh\'erence spatiale sur le principe "les homologues de mes voisins
+         sont les voisins de mes homologues"; \'eventuellement la phase d'appariement a pu \^etre volontairement
+         ambigu\"e (chaque point a un ensemble d'homologues potentiels) , parce que  certaines ambigu\"it\'es ne
+         peuvent  pas \^etres r\'esolues au niveau individuel, et la phase de filtrage cherchera \`a r\'esoudre
+         ces ambigu\"it\'es par une approche de type relaxtion.
+
+   \item \'eventuellement, am\'elioration de la pr\'ecision de localisation par des m\'ethodes basiques 
+         de corr\'elation.
+
+\end{itemize}
+
+Le degr\'e d'impl\'ementation actuel est tr\`es in\'egal et diminue lorsque l'on avance dans le processus.
+Sch\'ematiquement ;
+
+\begin{itemize}
+   \item pour les points caract\'eristiques, il existe un prototype complet que l'on peut consid\'erer comme 
+         pr\'e-op\'erationnel; il est surement perfectible \'a terme, mais ce n'est pas une priorit\'e; 
+
+   \item le descripteur en log-polaire est implant\'es, des descripteurs binaires ont \'et\'e prototyp\'es de
+         mani\`ers handcrafted (par une ACP),  mais gagneraient problement \'a \^etre con\c{c}u avec une 
+         approche bas\'ee sur de l'apprentissage;
+
+   \item l'appariement a \'et\'e impl\'emnt\'e de mani\`ere basique, essentiellement pour valider les deux
+         \'etapes pr\'c\'dentes;  une voie d'am\'elioration majeure (en tout cas esp\'er\'ee comme telle)
+         serait de faire de l'apprentissage sur les paires de descripteur complets;
+
+   \item rien n'a \'et\'e fait sur le filtrage spatial, il aussi esp\'er\'e  que l'approche 
+         "appariement ambigue/filtrage spatial avec relaxation" soit une source d'am\'elioration importante
+         dans certain cas , notamment le cas de sc\`enes avec des structures partiellement r\'ep\'etitives;
+
+   \item enfin le raffinement par corr\'elation, least square matching n'a pas \'et\'e test\'e, il s'agit
+         d'une option a priori facile, qui donnerait une plus value op\'erationnelle sans avoir de valorisation
+         en recherche (c'est assez classique).
+
+\end{itemize}
+
+
+    % ==================================================================================
+    % ==================================================================================
+    % ==================================================================================
+
+\section{Calcul des points caract\'eristiques}
+
+
+Ce qui est  d\'ecrit dans cette section est compl\`etement r\'ealis\'e dans  {\tt MMVII}
+par la commande {\tt TieP-AimePCar}. Notons qu'\`a plusieurs endroit cette commande
+utilise les service de {\tt MMV1}.
+
+    % ==================================================================================
+
+\subsection{Multi-\'echelle}
+
+\subsubsection{Pr\'esentation g\'en\'erale}
+
+Comme indiqu\'e pr\'ec\'edemment, cette partie est celle qui s'inspire le plus directement de SIFT.
+Notamment, comme dans SIFT :
+
+\begin{itemize}
+    \item on calcule une pyramide d'image d'echelle d\'ecroissante suivant une loi exponentielle, 
+          on note $I_0$ l'image initiale, et $I_k$ la $k^{ieme}$ image, entre $I_k$ et $I_{k+1}$
+          il y a un rapport d'\`echelle $\sigma$, donc par it\'erations successive entre $I_0$
+          et $I_k$ il y a un rapport d'\'echelle $\sigma^k$;
+
+    \item comme dans SIFT, $\sigma$ est choisi tel que $\sigma^n=2$ ou $n$ est un entier, et
+          tous les $n$ l'image est d\'ecim\'e d'un facteur $2$ pour gagner un facteur important de temps
+          de calcul, sachant que quand l'image est devenu suffisement floue, l'auto-corr\'elation entre un
+          pixel et son voisin fait que l'on perd peu d'information avec cette d\'ecimation;
+
+    \item  la pyramide d'\'echelle permet d'avoir plus de point quand cela est n\'ecessaire, et surtout
+           permet d'obtenir l'invariance \`a l'\'echelle (pour deux images $I$ et $J$ prises \`a deux
+           \'echelles diff\'erentes de rapport $R$, si un point $p$ est d\'etect\'e sur $I_k$, il pourra aussi
+           \^etre d\'etect\'e sur $J_{k'}$ avec $R = \sigma^{k-k'}$ )
+
+    \item  la convolution par une gaussienne est isotrope ce qui  est n\'ecessaire pour l'invariance par rotation;
+
+
+\end{itemize}
+
+Le fichier {\tt ImagesFiltrLinear/cGaussPyram.cpp} contient l'impl\'ementation du calcul de la pyramide.
+
+
+\subsubsection{Imp\'ementation dans MMVII de la pyramide}
+
+\emph{Il n'est pas prouv\'e que les choix d'impl\'ementation d\'ecrit ici soit judicieux, cette description
+vise \`a comprendre le code. Des tests de performance \'a une impl\'ementation basique reste \`a effectuer.}
+
+L'impl\'ementation repose sur deux remarques :
+
+\begin{itemize}
+    \item en vertu du th\'eor\`eme central limite , si on convolue avec suffisement de fois avec des fonctions r\'eguli\`eres,
+          on converge vers la convolution avec une gaussienne;
+    \item convoluer avec deux gaussiennes sucessive d'\'ecart type $a$ et $b$, a exactement le même effet que
+          de convoluer avec une seule gaussienne d'\'ecart type $\sqrt{a^2+b^2}$;
+  
+\end{itemize}
+
+Le calcul se fait en iterant une convolution par $e^{-a|x|}$ qui est une fonction 
+"smooth" et dont le produit de convolution peut \^etre calcul\'e rapidement (algorithme r\'ecursif classique).
+La fonction est impl\'ement\'ee dans {\tt ExpFilterOfStdDev}.  Cette fonction prend
+en param\`etre un $\sigma$ et un nombre d'it\'eration $N$, elle calcule la valeur
+$a$ qui donnera un \'ecart type de $\frac{\sigma}{\sqrt{N}}$,
+
+A chaque octave  :
+
+\begin{itemize}
+   \item  pour $I_0$ le calcule se fait avec un nombre relativement important d'it\'eration pour
+          bien approximer la gaussienne
+
+   \item  ensuite le calcul de $I_{k+1}$ se fait \`a partir $I_k$ (en tenant compte du flou d\'ej\'a pr\'esent
+          en $I_k$, on convolue par $\sigma^k \sqrt{\sigma^2-1}$), comme $I_k$ est d\'ej\'a le r\'esultat de plusieurs
+          convolution, on peut faire moins d'it\'eration (MMVII en fait $4$ pour $I_0$, $3$ pour $I_1$, et $2$ ensuite);
+\end{itemize}
+
+Il y a un cas particulier pour la premi\`ere it\'eration, si on veut que la pyramide soit r\'eguli\`ere en \'echelle.
+Typiquement si l'image initiale est tr\`e floue, il faudrait la d\'econvoluer, inversement si elle est tr\`es piqu\'ee,
+il faudra la flouter.  Je ne vois pas d'autre solution que de faire une hypoth\`ese sur la largeur de la t\^ache image.
+Voir chapitre suivant pour voir comment le calcul de la convolutin sur $I_0$ est g\'er\'e.
+
+    % ==================================================================================
+
+\subsection{Extraction de points caract\'eristiques}
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Approche multi-crit\`ere }
+
+L'approche dans Aim\'e est d'avoir potentiellement une grande vari\'et\'e de point caract\'eristique,
+pour permettre \`a l'utilisateur de choisir un sous-ensemble en fonction des caract\'eristiques
+sp\'ecifiques de son acquisition.
+
+Typiquement :
+
+\begin{itemize}
+   \item sur un chantier Satellitaire (ou a\'erien avec GPS/INS) , avec 
+         des tr\`es grandes images et une mise en place approch\'ee,
+         le nombre de points n'est pas dimensionnant et on pourra de limiter \'a un seul type (par exe
+         les maximum du laplacien) pour acc\'elerer tous les calculs;
+
+   \item sur un chantier peu structur\'e ayant du mal \`a se mettre en place, on pourra choisir de
+         calculer tout les types de points;
+\end{itemize}
+
+Actuellement, il y a $3$ type de points calculables, chacun pouvant être d\'eclin\'e en maxima
+ou miminima, ce qui donne $6$ \'etiquettes possibles:
+
+\begin{itemize}
+   \item les points de type laplaciens, qui sont comme dans SIFT calcul\'es par  une diff\'erence de
+         gaussienne entre niveaux successifs;
+
+   \item les points qui sont simplement un minima ou maxima du niveau de gris; l'id\'ee est que pour des
+         image pauvres en contraste et en r\'esolution (par ex images thermiques), le mieux est d'avoir le
+         minimum de filtre et qu`\^etre un maxima/minima (point chaud/point froid) est d\'ej\`a un invariant;
+
+
+   \item les points de coins qui sont calcul\'es par application d'un filtre qui impl\'emente
+          la notion de courbure de la courbe de niveau; typiquement il s'agit de calculer la valeur
+          de la hessienne dans la direction orthogonale au gradient; l'impl\'ementation actuelle
+          utilise la fonction {\tt courb\_tgt} de MMV1;
+\end{itemize}
+
+
+Le choix de ces $3$ crit\`eres est tr\`es arbirtraire et sans doute provisoire. Le principal 
+\`a court terme \'etait d'avoir une architecture de code multi-crit\`ere permettant d'\'evoluer.
+
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Extraction des extrema}
+
+Le principe d'extraction est \`a nouveau calcqu\'es sur SIFT, on s\'electionne pour chaque
+crit\`ere les point qui sont maxima (vs minima) \`a la fois en spatial et en \'echelle.
+Quelques diff\'erences mineures par rapport \`a SIFT :
+
+\begin{itemize}
+  \item pour limiter le nombre de point extraits en amont, les maxima spatiaux sont 
+        extraits sur voisinage plus grands que $1$ pixel (valeur param\'etrable)
+
+  \item l'affinage sub-pixellaire est fait en espace mais pas en \'echelle;  je n'ai pas
+        de justification \'evidente de ce choix sinon que : c'est plus simple et surtout 
+        si on a des point compris entre deux \'echelle on est en permanence en train d'aller
+        interpoller entre deux \'echelle pour lire les niveau de gris;
+
+\end{itemize}
+
+
+Le code correspondant \`a ces calcul se trouve dans le fichier {\tt ImagesInfoExtract/ExtracExtremum.cpp} :
+
+
+\begin{itemize}
+   \item  la fonction {\tt ExtractExtremum3} effectue ce calcul en prenant en argument $3$ image
+          (l'image elle m\^eme {\tt ImC} et une image du dessus et du dessous), un rayon et une 
+          structure pour enregistrer les r\'esultat;
+
+
+   \item le calcul est fait dans {\tt TestIsExtre3}, le principe est de faire tr\`es vite des tests
+         basiques qui r\'efuteront la plupart des candidats potentiels puis de faire des test plus
+         long avec des boucles de voisinage ;
+
+    \item le code est fait pour traiter rigoureusement les plateaux (zones connexes de points ayant
+          exactement la même valeur), pour avoir exactement un seul maximum sur ces plateau la r\`egle
+          qui est utilis\`e pour comparer deux pixels est de comparer par priorit\'e : leur valeur image,
+          puis leur \`echelle, puis leur $x$, puis leur $y$; ceci est r\'ealis\'e par les fonction
+          {\tt IsImCSupCurP} pour les points de m\^eme \`echelle et {\tt IsImUpSupCurP} et {\tt IsImBotSupCurP}
+          pour ceux d'\'echelles diff\'erentes.
+
+\end{itemize}
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Adaptation de la dynamique \`a l\'echelle}
+
+Si on consid\`ere les points qui sont des maximas/minima du niveau de gris,
+on voit que comparer brutalement les points avec l'echelle du dessous n'a pas
+de sens car plus on convolue plus applatit les extrema et un extrema ne sera
+jamais sup\'erieur \`a celui qui le pr\'ec\`ede en \'echelle. Pour que la comparaison
+soit \'equitable il faut donc adapater la dynamique en fonction de l'\'echelle.
+
+Intuitivement on serait tent\'e dans ce cas de simplement multiplier l'image 
+par  $\sigma$, mais cela n'est pas suffisant car si l'on ajoute une constante \`a l'image
+on voit que la multiplication par $\sigma$ va \`a nouveau biaiser le r\'esultat. L'id\'ee
+est que la multiplication doit se faire sur des images de moyenne nulle, on soustrait donc \`a
+l'image une image de moyenne locale.  Pour les autres filtres utilis\'es comme il sont
+diff\'rentiel (laplacien, coins) il n'y a pas de probl\`eme de moyenne.
+
+
+Les compensation de dynamique sont alors les suivantes :
+
+\begin{itemize}
+   \item multiplication par $\sigma^3$ pour les coins, (voir {\tt cGP\_OneImage<Type>::MakeCorner()})
+
+   \item multiplication par $\sigma$ pour les l'image initiale centr\'ee (void {\tt cGP\_OneImage<Type>::MakeOrigNorm()})
+
+   \item rien pour l'image de laplacien (parce que la diff\'erence de gaussienne n'est pas vraiment un laplacien
+         mais d\'ej\`a un laplacien multipli\'e par $\sigma^2$, voir {\tt cGP\_OneImage<Type>::MakeDiff()})
+
+\end{itemize}
+ 
+    % ==================================================================================
+
+\subsection{Filtrage a priori}
+
+Toute la difficult\'e est d'avoir suffisement de point dans les cas n\'ecessaire et pas trop
+dans les autres \dots
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Filtrage par auto corr\'elation}
+
+Supprime les point qui auto-corr\`elent avec leur voisinage.
+
+\subsubsection{Filtrage spatiale \emph{a priori}}
+
+Impose une certaine homog\'en\'eit\'e de repr\'esentation, en supprimant les point 
+qui des voisin trop proche et "meilleurs" qu'eux. Suppose une \'evaluation a priori
+de la qualit\'e. Celle-ci m\'elange : 
+
+\begin{itemize}
+   \item l'auto corr\'elation ;
+   \item l'\'echelle (a priori les point situ\'e dans les basses \'echelles sont plus stables,
+         et comme ils sont plus rares, le risque est faible \`a les privil\'egier);
+   \item  la variance locale de l'image;
+\end{itemize}
+ 
+
+    % ==================================================================================
+    % ==================================================================================
+    % ==================================================================================
+
+\section{Descripteur}
+
+    % ==================================================================================
+
+\subsection{Vignette log-polaire}
+
+
+
+Le calcul des descripteur est enti\'erement bas\'e sur un r\'eechantillonage log-polaire 
+au voisinage du point.  La justification th\'eorique est assez similaire \`a celle du descripteur
+daisy ({\tt google daisy descriptor}).  L'int\'er\^et attendu d'un  r\'eechantillonage log-polaire
+est le suivant concernant l'aspect polaire:
+
+\begin{itemize}
+   \item le  r\'eechantillonage polaire permet de convertir les rotation en translation donc
+        d'effectuer de mani\`ere plus efficace les op\'eration de rotation si elles doivent \^etre
+        nombreuses;
+   \item dans le cadre d'une d\'etection invariante \`a la rotation, le  r\'eechantillonage polaire
+        est isotrope (ne privil\'egie aucune direction particuli\`ere) contrairement \`a une vignette en $x,y$.
+\end{itemize}
+
+C'est surtout la combinaison avec l'aspect  log qui est int\'eressante vis  \`a vis des crit\`ere suivants:
+
+\begin{itemize}
+   \item on souhaite avoir une vision globale permettant d'avoir une information sur le "contexte"  du 
+         point, en concervant une taille raisonnable de  vignette;
+
+   \item compte tenu des effets de d\'eformation perspectives (dues au relief et \`a l'impr\'ecision sur la
+         normalisation par rotation), plus on s'\'eloigne du centre, plus il faut diminuer la pas d\'echantillonnage;
+
+   \item typiquement, le pas d'\'echantillonage doit \^etre  proportionnel \`a la distance, ce qui m\`ene
+         \`a une loi exponentielle pour l'\'echantillonage en distance;
+
+   \item par ailleurs pour que l'image soit bien \'echantillon\'ee, plus on s'\'eloigne en distance, plus la 
+         radiom\'etrie doit \^etre calcul\'ee en moyennant sur un grand voisinage, ce qui se fait naturellement
+         en allant lire les radiom\'etrie dans la pyramide d'image;
+\end{itemize}
+
+
+Les consid\'erations pr\'ec\'edentes m\`enent aux formules  ~\ref{NoteLP} et  \ref{DefLP}.
+Soit un point $x,y$ extrait dans une image $I_k$, on
+va calculer un image $\LP(u,v)$ d\'efinie par :
+
+
+\begin{equation}
+    \theta(u) = \frac{2\pi u}{\omega} \;\; \rho(v)= \rho_0 \sigma^{v*B} \label{NoteLP}
+\end{equation}
+
+\begin{equation}
+    \delta_x(u,v) =  \rho(v) \cos(\theta(u))  \; \;   \delta_y(u,v) =  \rho(v) \sin(\theta(u))  \label{XYLP}
+\end{equation}
+
+\begin{equation}
+     \LP(u,v) =   I_{[k+\delta_{k0}+v*B]}(x + \delta_x(u,v), y+\delta_y(u,v)) \label{DefLP}
+\end{equation}
+
+
+Les param\`etre de ce r\'e\'echantillonage, sont control\'es par  argument {\tt LPC} et {\tt LPS}
+de la commande {\tt TieP-AimePCar} :
+
+\begin{verbatim}
+ * [Name=LPC] std::vector<double> :: Circles of Log Pol [Rho0,DeltaI0,DeltaIm] ,[Default=[2.5,-1,2]]
+ * [Name=LPS] std::vector<double> :: Sampling Log Pol [NbTeta,NbRho,Mult,Census] ,[Default=[16,8,32,0]]
+\end{verbatim}
+
+Dans~\ref{DefLP} :
+
+\begin{itemize}
+   \item  $\omega$ est la fr\'equence angulaire (par d\'efaut $16$), ce param\`etre fixe \`a la fois le
+          pas et le nombre de valeurs angulaires;
+   \item  $B$ vaut $2$ par d\'efaut 
+   \item  $\delta_{k0}$ vaut $-1$ par d\'efaut, cela n'impose pas de restriction sur le calcul car
+          par construction des extrema, un point extrait a toujours une image au dessus;
+   \item  $\rho_0$ vaut $2.5$;
+   \item sinon le nombre d\'echantillonage en $\rho$ est par d\'efaut de $8$, compte tenu des autre valeurs
+         par d\'efaut cela correspond \`a \'echantilloner sur $3$ octave ($B$ vaut $2$, donc on a 
+         va regarder jusqu`a $15=8*2-1$ images au dessus, et il y a $5$ \'echelles par octaves);
+\end{itemize}
+
+
+    % ==================================================================================
+
+\subsection{Invariance par rotation}
+
+Deux approches ont \'et\'e test\'ees  : une approche par calcul descripteur
+invariant \`a la rotation, une approche par calcul de direction principale.
+On d\'ecrit les $2$, sachant que pour l'instant la premi\`ere approche est un
+peu abandonn\'ee.
+
+On note $\LP^\delta$ la translat\'ee de $\LP$ sur l'axe $u$, correspondant donc \`a une
+rotation de l'image :
+
+\begin{equation}
+    \LP^\delta(u,v) = \LP(u+\delta,v)
+\end{equation}
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Calcul d'invariant}
+
+On cherche a d\'efinir des grandeur qui soit invariante \`a une translastion
+circulaire de $\LP$. Quelques tentatives bas\'ees ur l'auto-corr\'elation  :
+
+\begin{equation}
+    AC(\delta,v) =  \int \LP * \LP^\delta
+\end{equation}
+
+\begin{equation}
+    AC_u(\delta,v) =  \int |\frac{\partial \LP}{u}| * \LP^\delta
+\end{equation}
+
+\begin{equation}
+    AC_v(\delta,v) =  \int |\frac{\partial \LP}{v}| * \LP^\delta
+\end{equation}
+
+Ces invariants sont implant\'es dans {\tt MMV1} mais pas dans {\tt MMVII}.
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Calcul d'une direction principale}
+
+Le principe est de d\'efinir un estimateur de direction $\theta(\LP)$ qui v\'erifie
+axiomatiquement :
+
+\begin{equation}
+     \theta (\LP^\delta) = \delta + \theta (\LP)
+\end{equation}
+
+Si on dispose d'un tel estimateur, on peut d\'efinir une forme invariante $\LP_\theta$ par rotation
+par la formule :
+
+
+\begin{equation}
+     \LP_\theta = \LP^{-\theta(\LP)}
+\end{equation}
+
+Quelques exemples de tels estimateurs impl\'ement\'es dans  {\tt TieP-AimePCar} :
+
+\begin{itemize}
+   \item $\theta^L$  on calcule pour chaque $u$ la somme de $H(u) = \int \LP(u,v) d_v$
+         et  $\theta^L = \argmax (H)$
+
+   \item $\theta^u$  idem mais sur un histogramme de gradient en $u$ :  $H_u(u) = \int |\frac{ \partial \LP(u,v)}{\partial u}| d_v$
+
+   \item $\theta^v$  idem mais sur un histogramme de gradient en $v$ :  $H_v(u) = \int |\frac{ \partial \LP(u,v)}{\partial v}| d_v$
+\end{itemize}
+
+
+Ces estimateurs sont implant\'es dans {\tt CalcOrient} du fichier {\tt CalcDescriptPCar/cAimeTieP.cpp}.
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Choix d'une approche par directions principales multiples}
+
+Les m\'ethodes par invariants, de type auto-corr\'elation, on \'et\'e intoduites dans {\tt MMV1}
+pour contourner l'inconv\'enient suivant , quelques soit l'estimateur de direction choisi, il existe des formes
+pour lequel celui est ind\'efini, typiquement il peut y avoir plusieurs $u$ r\'ealisant le max et $\argmax$
+est ambigu, et proche de ces situation ambigues, l'estimation est instable.
+Par ailleurs, ceci n'est pas du \`a un mauvai choix de l'estimateur, on peut montrer que c'est intrins\`eque
+au probl\`eme.
+
+
+Cependant les m\'ethodes par invariant pr\'esente d'autre inconv\'enients :
+
+\begin{itemize}
+   \item il est difficile de savoir si il sont complets au sens o\'u l'on voudrait \^etre certain
+         que deux formes auront le  m\^eme ensemble d'invariant si et seulement si elle sont identiques
+         \`a une rotation pr\`es;
+
+   \item ailleurs la m\'etrique sur ces invariants est assez \'eloign\'ee de celle sur la forme initiale;
+
+   \item  ils sont relativement  volumineux en m\'emoire, et comme ils sont incomplets ce co\^ut vient
+          s'additionner  \`a celui de $\LP$ qui  doit \^etre aussi sauvegarder.
+\end{itemize}
+
+
+Une solution qui semble n'avoir aucun des $2$ inconv\'enient est la suivante :
+
+\begin{itemize}
+   \item on se donne plusieurs estimateurs $\theta_0$, $\theta_1$ , $\theta_2$ \dots 
+
+   \item les pr\'e appariement rapides li\'es aux index binaires (voir \RefFantome)  sont
+         fait sur les diff\'erents estimateurs, et ensuite les appariement plus fin sont
+         fait uniquement sur le meilleur pr\'e-appariment rapide (dans l'hypoth\`ese o\`u
+         deux points sont pr\'e-appari\'es  plusieurs fois);
+
+   \item  un compl\'ement \`a cette approche, prometteuse mais non encore impl\'ement\'ee, est de se donner
+          pour chaque estimateur  direction un estimateur de sa stablilit\`e , c'est assez facile
+         \`a d\'efinir avec les estimateurs bas\'es sur les histogrammes; 
+          par exemple si  le maximum est r\'ealise en $v_m$ une formule bas\'ee sur la d\'eriv\'e logarithique
+          tel~\ref{DerLogH}
+% est  second x situ\'es en $v_1$ et $v_2$,
+          % on peut envisager $\frac{M_1+M_2}{M_1-M_2}
+\end{itemize}
+
+\begin{equation}
+    \min_{v!=v_m}\frac{|H(v_m)-H(v)|}{H(v_m)*|v_m-v|} \label{DerLogH}
+\end{equation}
+
+C'est a priori vers cette solution que l'on se dirige : multi estimateur, avec \'eventuellement estimateur
+de stabilit\'e. Notons que le fait d'avoir ces estimateurs de stabilit\'e ne dispense pas d'avoir
+plusieurs estimateurs d'orientation: retenir uniquement celui qui est le plus stable serait une fausse bonne id\'ee
+car dans les cas o\`u les deux estimateurs de stabilit\'es ont une valeur proche on sera \`a 
+nouveau dans une situation instable.
+
+    % ==================================================================================
+    % ==================================================================================
+    % ==================================================================================
+
+\section{Descripteurs binaires}
+
+Si le module de calcul des points caract\'eristique et des descripteur $\LP$ existe sous 
+la forme d'un prototype complet et maintenu sous {\tt MMVII}, les id\'ees d\'ecrites soient sont
+purement th\'eorique (notamment tout ce qui concerne l'apprentissage profond) soit ont
+\'et\'e \'ebauch\'ees dans des prototype qui ne sont plus maintenus (notamment les descripteurs
+binaires).
+
+    % ==================================================================================
+
+\subsection{D\'efinitions}
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Descripteur \`a un bits}
+Un desccripetur binaire/de bits est simplement une fonction qui associe \`a une forme une valeur bool\'eenne.
+Dans notre cas le descripteur:
+
+\begin{equation}
+    B(\LP) \in \{0,1\}
+\end{equation}
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{"Petits" descripteur \`a N bits}
+
+Classiquement, \`a partir de $n$ descripteur de bits,  on identifie
+le vecteur de bits $\ChBit = [B_0, B_1, \dots , B_{n-1}]$ avec les entiers en base $2$
+et on \'ecrit   :
+
+\begin{equation}
+   \ChBit(\LP)  =  \sum_{k=0}^{k<n} B_k(\LP) 2^k  =  [B_0(\LP), \dots ]
+\end{equation}
+
+L'int\'er\^et de la codification enti\`ere est que, pour les  cardinaux assez petit, les op\'eration
+peuvent \^etre faite avec un co\^ut ind\'ependant de $n$.  Notamment :
+
+\begin{itemize}
+   \item le calcul du cardinal/nombre de bit peut faite en "tabulant" ses valeurs pour tous les entiers $<n$
+         dans un tableau $C^{ard}$;
+
+   \item les op\'eration ensembliste d'intersection, union diff\'erence sym\'etrique peuvent être faite gr\^ace aux
+         op\'eration "bits \`a bits"  : {\tt \bf  \&,|,\^{}}
+
+   \item par exemple la distance de hamming entre deux champs de bit $\ChBit_1$ et $\ChBit_2$  peut \^etre 
+         calcul\'ee par $C^{ard}(\ChBit_1 \hat{~}  \ChBit_2)$
+
+\end{itemize}
+
+On appellera petit descripteur \`a $N$ bits des descripteurs qui sont tabulables de mani\`ere raisonnable,
+typiquement ce sera en pratique des descripteur pour lesquels $N$ est compris entre $16$ et $24$.
+
+Ces "petits" descripteurs ne sont en g\'en\'eral pas suffisant pour prendre un d\'ecision d\'efinitive
+avec une distance type distance de Hamming, par contre il peuvent \^etre utilis\'e pour faire une pr\'eselection
+rapide en supprimant une grande proportion de faux homologues et conservant la grand majorit\'e des vrais.
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Grand Descripteur \`a N bits}
+
+Lorsque les descripteur sont trop grands pour que l'on puisse tabuler le nombre de bits,
+il est encore possible de tirer parti du parall\'elisme de la fa\c{c}on suivante :
+
+\begin{itemize}
+    \item on d\'ecoupe le champ de $\ChBit$ de  $N$ bits en $k=\frac{N}{n}$ champs $\ChBit_1 \dots \ChBit_k$ de
+          taille $n$;
+
+     \item pour calculer la distance de Hamming $H$ entre $\ChBit$ et $\ChBit'$ on utilise
+           la formule~\ref{DistGrdCh}
+\end{itemize}
+
+\begin{equation}
+   H(\ChBit,\ChBit') = \sum_k H(\ChBit_k,\ChBit_k') = \sum_k C^{ard}(\ChBit_k \hat{~}  \ChBit_k') \label{DistGrdCh}
+\end{equation}
+
+Par exemple avec un champs de $80$ bits on peut calculer des distances de hamming par la somme de $5$
+distance de hamming sur des champs de $16$ bits, taille pour laquelle la tabulation de $ C^{ard}$
+est tout \`a fait raisonnable.
+
+    % ==================================================================================
+
+\subsection{Utilisation dans MMV1/MMVII}
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+\subsubsection{Architecture}
+
+L'architecture prototyp\'ee dans {\tt MMV1} et a priori envisag\'ee dans {\tt MMVII}
+pour faire un appariement rapide est bas\'e sur les principe suivant :
+
+\begin{itemize}
+    \item d'abord, et c'est assez trivial, on n'apparie que les points de m\^eme nature
+          (par exemple les laplacien-max entre eux), toute les structures (tables d'indices)
+          existent en autant d'exemplaires qu'il y a de type de points; 
+
+    \item on fait une premi\`ere pr\'e s\'election sur des  petits descripteurs binaires permettant
+          de cr\'eer des structures d'indexation;
+
+    \item on fait une deuxi\`eme pr\'e s\'election sur des  grands descripteurs  plus s\'electifs
+          et encore assez rapide;
+          
+    \item finalement, sur les couple qui restent, on fait un calcul qui "attaque" directement les descripteurs
+          $\LP$.
+\end{itemize}
+
+Pour donner un peu plus de concret, donnons quelques chiffres invent\'es mais r\'ealistes ;
+
+\begin{itemize}
+   \item  on doit apparier deux images contenat chacune $60 000$ points caract\'eristiques ;
+   \item  ces points correspondent \`a $6$ \'etiquettes, que l'on suppose par simplicit\'e r\'eparties de
+          mani\`eres homog\`enes en bloque de $10000$;
+
+   \item  chaque point a priori $10000$ candidat \`a tester; 
+  
+   \item  on a  cr\'e\'e pour les points de l'image $1$ , une table index\'ee (voir~\ref{DescIndex}) 
+          d'un descrpteur sur $20$ bit,
+
+   \item on peut acc\'eder directement, pour chaque point de l'image $2$ \`a la liste des point situ\'es
+         \`a une distance de Hamming de $5$ (par exemple);  cette liste ne contient en moyenne que
+         $500$ point avec une probabilit\'e de $90\%$ de contenir le vrai homologue (si il est pr\'esent);
+          
+   \item en utilisant un descripteur binaire long sur $160$ bits, et en s'electionnant que les points dont
+         la distance de hamming est inf\'erieure \`a $30$, on obtient une liste de $50$ candidats 
+         avec une probabilit\'e de $85\%$ de contenir le vrai homologue (si \dots);
+
+   \item ensuite sur les $50$ homologues \`a tester en moyenne, on peut envisager des traitements longs
+         qui attaquent directement les images $\LP$.
+
+\end{itemize}
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Descripteur binaire et gestion des orientations}
+
+Concernant l'invariance par rotation et la gestion avec plusieurs estimateurs de directions
+principales, la solution retenues dans {\tt MMVII} est d'avoir pour chaque estimateur une
+duplication des descripteur binaires.
+
+Cette solution est retenue car le coût de stockage de ces descripteur reste faible par rapport
+\`a $\LP$, et cette solution est prudente par rapport 
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+    % ==================================================================================
+\subsection{Descripteurs index\'es}
+\label{DescIndex}
+
+\subsubsection{Principe g\'en\'eral}
+
+Une indexation des descripteur permet de retrouver instantan\'ement, parmi
+un ensemble de point carac\'estique, ceux dont le decripteur binaire se trouve
+\`a une distance de hamming inf\'erieure \`a un seuil donn\'e d'un autre point.
+
+Le principe g\'en\'eral est le suivant :
+
+\begin{itemize}
+   \item on consid\`ere un "petit" descripteur sur $N$ bits;
+   \item on cr\'ee une table de liste de pointeur sur les points caract\'éristiques,
+         de taille $2^N$, 
+   \item soit $d$ le seuil en distance de Hamming que l'on souhaite utiliser, et $S_d$
+         l'ensemble des entiers sur $N$ bits, ayant au maximum $d$ bits \`a $1$;
+   \item pour chaque point caract\'eristque $P$, soit $\ChBit$ le code binaire de $P$,
+         on rajoute le pointeur sur $P$ aux indexes $\ChBit \hat s$ pour tous les  $s \in S_d$;
+\end{itemize}
+
+        %  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+\subsubsection{Utilisation}
+
+Pour factoriser le co\^ut de construction de la table, l'usage typique est le suivant :
+on construit les tables pour une image $I_0$ et ensuite on l'utilise pour toutes les images $I_k$
+sur lesquelles on doit effectuer un appariement avec $I_0$.
+
+Concernant les  directions multiples, une fa\c{c}on de l'utiliser est :
+
+\begin{itemize}
+    \item on construit autant de table que d'estimateur de direction;
+    \item dans la phase de construction, pour chaque point de $I_0$, 
+          on prend son estimateur direction correspondant au meilleur estimateur 
+          de stabilit\'e  et on le rentre dans la table correspondante;
+    \item dans la phase d'utilisation, pour un point $I_k$, on va exlporer
+          chaque estimateur de direction avec sa table correspondante;
+\end{itemize}
+
+D'autres strat\'egies sont possibles : avoir tous les estimateurs dans $I_0$ et
+$I_k$ (couteux, couples pr\'esent plusieurs fois), n'avoir que les estimateurs les plus tables dans $I_0$ et $I_k$
+(\'economique mais risque d'omettre des points lorsque plusieurs estimateurs donnent des r\'eponses proches).
+
+
+Celle ci a l'avantage d'avoir une taille totale
+des tables : qui est ind\'ependante du nombre d'estimateur (chaque point est pr\'esent exactement dans
+une seule table) , chaque couple est repr\'esent\'e par un seul de ses estimateurs qui est
+le plus stable pour un des points, dans les cas limite o\`u plusieurs estimateur de direction
+ont quasimment la m\^eme valeur de stabilit\'e
+
+
+
+    % ==================================================================================
+    % ==================================================================================
+    % ==================================================================================
+\section{Programme par Apprentissage}
+
+
+\subsection{G\'en\'eralit\'es}
+
+Les techniques par apprentissages ont montr\'e des performances int\'eressante lorsque 
+l'on est capable de leur fournir des jeux d'entrainement suffisemment massifs.
+Or dans le contexte des points de liaisons ces donn\'ees massives peuvent venir de trois 
+origines :
+
+\begin{itemize}
+    \item donn\'ees issue d'aquisition conjointe lidar/photogramm\'etrique, les point lidar
+          permettant de g\'en\'erer des homologues semi-denses;  
+
+    \item donn\'ees issue d'acquisition photogramm\'etrique, le mod\`eles $3D$ dense
+          permettant  de valider les homologues;
+
+    \item donn\'ees de simulations, r\'ealistes ou non ;
+\end{itemize}
+
+
+
+
+    % ==================================================================================
+    % ==================================================================================
+    % ==================================================================================
+\section{S\'election rapides des paires}
+
+Une seule etiquette
+Seulement les echelles hautes
+
+    % ==================================================================================
+    % ==================================================================================
+    % ==================================================================================
+\section{Filtrage spatiales}
+
+Notamment relaxation apr\`es appariement multiple.
+
+    % ==================================================================================
+    % ==================================================================================
+    % ==================================================================================
+\section{Affinement g\'eom\'etrique-densification}
+
+    % ==================================================================================
+    % ==================================================================================
+    % ==================================================================================
+
+\section{Road map propos\'ee}
+
+Il reste beaucoup de chose \`a faire, il s'agit de proposer une strat\'egie/ordonnancement de d\'eveloppement
+prenant en compte des crit\`eres diff\'erents et parfois contradictoire :  valorisation
+op\'erationnelle dans {\tt MMVII}, valorisation en recherche et publication acad\'emique,
+besoin IGN, d\'ependance entre les diff\'erentes \'étapes, degr\'e d'incertitude sur des hypoth\`ese
+\`a v\'erifier \dots 
+
+
+
+
+
+\begin{equation}
+     I_k = I_0  \circledast G(\sigma^k)
+\end{equation}
+
+
+\section{VRAC}
+
+\begin{itemize}
+   \item indexe binaire
+    \item crit\`ere rapide de d\'etection de paires
+\end{itemize}
+
+
+
+\begin{equation}
+     I_k = I_0  \circledast G(\sigma^k)
+\end{equation}
+
+
+\section{VRAC}
+
+\begin{itemize}
+   \item indexe binaire
+    \item crit\`ere rapide de d\'etection de paires
+\end{itemize}
+

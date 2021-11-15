@@ -1682,17 +1682,15 @@ cElNuage3DMaille *   cElNuage3DMaille::BasculeInThis
     if (aCoeffEtire > 0)
         aBasc.InitDynEtirement(aCoeffEtire);
     Pt2di anOfOut;
-    bool Ok;
-    // Im2D_REAL4  aMntBasc = aBasc.Basculer(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef,&Ok);
 
-//  for (int aK=0 ; aK<100 ; aK++) std::cout << "WAAArrrn BasculerAndInterpoleInverse\n";
-
-Ok=true;
-Im2D_REAL4  aMntBasc = aBasc.BasculerAndInterpoleInverse(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef);
+    bool OkBAII;
+    Im2D_REAL4  aMntBasc = aBasc.BasculerAndInterpoleInverse(anOfOut,Pt2di(0,0),aN2->SzUnique(),aBasculeDef,&OkBAII);
 
 
-    if (!Ok)
+    if (!OkBAII)
     {
+	std::cout << "Cannot asculerAndInterpoleInverse in cElNuage3DMaille::BasculeInThis";
+	//getchar();
         return 0;
     }
     cElNuage3DMaille * aNuageRes = this;

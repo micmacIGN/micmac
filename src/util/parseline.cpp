@@ -197,6 +197,13 @@ void cReadObject::AddPt3dr(const std::string & aS,Pt3dr * aP,bool Required)
      AddDouble(aS[1],&(aP->y),Required);
      AddDouble(aS[2],&(aP->z),Required);
 }
+void cReadObject::AddPt2dr(const std::string & aS,Pt2dr * aP,bool Required)
+{
+     ELISE_ASSERT(aS.size()==2,"AddPt2dr bad size");
+     AddDouble(aS[0],&(aP->x),Required);
+     AddDouble(aS[1],&(aP->y),Required);
+}
+
 void cReadObject::AddString(const std::string & aS,std::string * aName,bool Required)
 {
      VerifSymb(aS,Required);

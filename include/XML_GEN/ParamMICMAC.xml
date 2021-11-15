@@ -1003,6 +1003,10 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                                 </MCP_AttachePixel>
                         </MultiCorrelPonctuel>
 
+			<ScoreLearnedMMVII Nb="?" AccessorFils="false">
+                              <FileModeleCost Nb="1" Type="std::string"> </FileModeleCost>
+                              <DynCost        Nb="1" Type="double">      </DynCost>
+                        </ScoreLearnedMMVII>
 
                         <Correl_Ponctuel2ImGeomI Nb="?" AccessorFils="false">    
                               <RatioI1I2 Nb="?" Type="double" Def="1.0"> </RatioI1I2>

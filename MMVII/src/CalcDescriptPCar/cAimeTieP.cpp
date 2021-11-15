@@ -6,6 +6,140 @@
 namespace MMVII
 {
 
+/** Map the interval [-1,1] to itself, the parameter :
+    * Steep fix the derivate in 0
+    * Exp fix the power and hence concavity/convexity
+
+*/
+
+class cConcavexMapP1M1 : public cFctrRR
+{
+   public :
+      double NVF (double) const; 
+      virtual  double F (double) const override ;
+      void Show() const;
+      // static cFctrRR  TheOne;  ///< the object return always 1
+
+      cConcavexMapP1M1(double aSteep,double aExp,bool Shift0Is0);
+    private :
+      double mShift;
+      double mFact;
+      double mSteep;
+      double mExp;
+};
+
+static const cTabulFonc1D & AllocTabConCavex(double aSteep,double aExp,int aNbDig)
+{
+   cPt3dr aParam(aSteep,aExp,aNbDig);
+   static int aCpt=0;
+   static cPt3dr aLastParam(-1,-1,-1);
+   static cTabulFonc1D * aRes = nullptr;
+   if ((aRes == nullptr) || (aParam!=aLastParam))
+   {
+      cMemManager::SetActiveMemoryCount(false);  // Will not unaloccate Res ...
+
+      aCpt++;
+      if (aCpt==100)
+      {
+           cMMVII_Appli::CurrentAppli().MMVII_WARNING("Susicious many alloc in AllocTabConCavex");
+      }
+      aLastParam = aParam;
+      delete aRes;
+      cConcavexMapP1M1 aCM(aSteep,aExp,(aSteep<0));
+      aRes = new cTabulFonc1D (aCM,-1,1,5000);
+      
+      cMemManager::SetActiveMemoryCount(true);
+   }
+   return *aRes;
+
+/*
+    typedef std::map<cPt3dr,cTabulFonc1D *>  tMap;
+    cMemManager::SetActiveMemoryCount(false);
+    // static std::map<cTabulFonc1D,cPt3dr> aBufRes;
+    static tMap aMap;
+                // static cConcavexMapP1M1 aCM(1e9,0.5,true);
+
+                // static cConcavexMapP1M1 aCM(10,0.5);
+                // static cTabulFonc1D aTF(aCM,-1,1,5000);
+    cMemManager::SetActiveMemoryCount(true);
+
+    return  *(aMap[cPt3dr(0.0,0.0,0.0)]);
+*/
+}
+
+
+double cConcavexMapP1M1::F (double aX) const {return NVF(aX);}
+
+double cConcavexMapP1M1::NVF (double aX) const 
+{
+    if (aX<0) return -NVF(-aX);
+    return mFact * (pow(aX+mShift,mExp) - pow(mShift,mExp));
+}
+
+cConcavexMapP1M1::cConcavexMapP1M1(double aSteep,double aExp,bool Shift0Is0) :
+    mSteep (aSteep),
+    mExp   (aExp)
+{
+    if (Shift0Is0)
+    {
+       mFact = 1.0;
+       mShift = 0.0;
+    }
+    else
+    {
+       MMVII_INTERNAL_ASSERT_medium((mExp!=1)||(mSteep==1),"cConcavexMapP1M1");
+       MMVII_INTERNAL_ASSERT_medium((mExp>=1)||(mSteep>1),"cConcavexMapP1M1");
+       MMVII_INTERNAL_ASSERT_medium((mExp<=1)||(mSteep<1),"cConcavexMapP1M1");
+
+
+       {
+           mFact = 1;
+           for (int aK= 0 ; aK<20 ; aK++)
+           {
+               mShift = pow(mSteep /(mFact*mExp),1/(mExp-1));
+               mFact = 1/(pow(1+mShift,mExp) - pow(mShift,mExp));
+               // StdOut() << "cConcavexMapP1M1::  SHF" << mShift << " FACT " << mFact << "\n";
+           }
+           // Show();
+       }
+    }
+}
+
+void cConcavexMapP1M1::Show() const
+{
+   double aEps= 1e-4;
+   StdOut()  << " STEEP0 " << mSteep << " EXP " << mExp << "\n";
+   StdOut()  << " V0 " << NVF(0) 
+             << " V1 " << NVF(-1) 
+             << " VM1 " << NVF(-1) 
+             << " D0 " << (NVF(aEps)-NVF(-aEps)) / (2*aEps) 
+             << " D1 " << (NVF(1+aEps)-NVF(1-aEps)) / (2*aEps) 
+             << " DM1 " << (NVF(-1+aEps)-NVF(-1-aEps)) / (2*aEps) 
+             << "\n";
+   for (int aK=0 ; aK<=10 ; aK++)
+   {
+        double aV = aK/10.0;
+        StdOut()  << "  * " << aV << " => " << NVF(aV) << "\n";
+   }
+   getchar();
+}
+
+void TTT()
+{
+    {
+       cConcavexMapP1M1 aCM(5.0,0.5,false);
+       aCM.Show();
+    }
+    {
+       cConcavexMapP1M1 aCM(10.0,0.5,false);
+       aCM.Show();
+    }
+    exit(EXIT_SUCCESS);
+    // cConcavexMapP1M1(10.0,0.5);
+    // cConcavexMapP1M1(2.0,0.5);
+    // cConcavexMapP1M1(0.5,2);
+    // cConcavexMapP1M1(1.0,1.0);
+}
 
 /* ================================= */
 /*          cAimePCar                */
@@ -15,7 +149,14 @@ cAimeDescriptor::cAimeDescriptor() :
 {
 }
 
-cIm2D<tU_INT1>   cAimeDescriptor::ILP() {return mILP;}
+cAimeDescriptor cAimeDescriptor::DupLPIm() const
+{
+   cAimeDescriptor aRes(*this);
+   aRes.mILP = mILP.Dup();
+   return aRes;
+}
+
+cIm2D<tU_INT1>   cAimeDescriptor::ILP() const {return mILP;}
 const std::vector<double> &  cAimeDescriptor::DirPrinc() const {return mDirPrinc;}
 std::vector<double> &  cAimeDescriptor::DirPrinc() {return mDirPrinc;}
 
@@ -88,13 +229,32 @@ void AddData(const cAuxAr2007 & anAux,cAimeDescriptor & aDesc)
 
 
 cAimeDescriptor & cAimePCar::Desc() {return mDesc; }
+const cAimeDescriptor & cAimePCar::Desc() const {return mDesc; }
 cPt2dr&           cAimePCar::Pt()   {return mPt;}
+const cPt2dr&     cAimePCar::Pt() const  {return mPt;}
+cPt2dr&           cAimePCar::PtIm()   {return mPtIm;}
+const cPt2dr&     cAimePCar::PtIm() const  {return mPtIm;}
 
 void AddData(const cAuxAr2007 & anAux,cAimePCar & aPC)
 {
      AddData(cAuxAr2007("Pt",anAux),aPC.Pt());
      AddData(cAuxAr2007("Desc",anAux),aPC.Desc());
 }
+
+cAimePCar cAimePCar::DupLPIm() const
+{
+   cAimePCar aRes;
+   aRes.mPt = mPt;
+   aRes.mPtIm = mPtIm;
+   aRes.mDesc = mDesc.DupLPIm();
+   return aRes;
+}
+
+double  cAimePCar::L1Dist(const cAimePCar& aP2) const
+{
+   return mDesc.ILP().DIm().L1Dist(aP2.mDesc.ILP().DIm());
+}
+
 
 /* ================================= */
 /*          cProtoAimeTieP           */
@@ -110,10 +270,29 @@ template<class Type>
    mGPI        (aGPI),
    mChgMaj     (ChgMaj),
    mPImInit    (aPInit),
+   mPRImRefined   (ToR(mPImInit)),
    mPFileInit  (mGPI->Im2File(ToR(mPImInit))),
    mNumAPC     (-1)
 {
 }
+
+template<class Type> 
+   cProtoAimeTieP<Type>::cProtoAimeTieP
+   (
+        cGP_OneImage<Type> * aGPI,
+        const cPt2dr & aPInit
+   ) :
+   mGPI          (aGPI),
+   mChgMaj       (false),
+   mPImInit      (ToI(aPInit)),
+   mPRImRefined  (aPInit),
+   mPFileInit    (mGPI->Im2File(aPInit)),
+   mPFileRefined (mPFileInit),
+   mNumAPC       (-1)
+{
+}
+
+
 
 template<class Type> int   cProtoAimeTieP<Type>::NumOct()   const {return mGPI->Oct()->NumInPyr();}
 template<class Type> int   cProtoAimeTieP<Type>::NumIm()    const {return mGPI->NumInOct();}
@@ -174,6 +353,9 @@ double CalcOrient(const cDataIm2D<tREAL4>&  aDIm,eModeNormOr aMode)
 
 template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFPC,cAimePCar & aPC,bool ForTest)
 {
+// static int aCpt=0; aCpt++;  StdOut() << "BUG cProtoAimeTieP " << aCpt << " " << ForTest << "\n";
+// bool Bug=(aCpt==65);
+
    int aNbTeta = aFPC.LPS_NbTeta();
    int aNbRho = aFPC.LPS_NbRho();
    double aMulV = aFPC.LPS_Mult();
@@ -200,11 +382,9 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
     
    cPt2dr aCenter =  mPFileRefined;  // Center 
    cPt2di aSzLP(aNbTeta,aNbRho); // Sz of Log Pol image
-   std::vector<cPt2dr> aVDirTeta;   // vector of direction
-   for (int aKTeta=0 ; aKTeta<aNbTeta ; aKTeta++)
-   {
-       aVDirTeta.push_back(FromPolar(1.0,(2*M_PI*aKTeta)/aNbTeta));
-   }
+   const std::vector<cPt2dr> & aVDirTeta0 = aFPC.VDirTeta0();   // vector of direction
+   const std::vector<cPt2dr> & aVDirTeta1 = aFPC.VDirTeta1();   // other vector of direction, may be interlaced
+
    cIm2D<tREAL4>       aILPr(aSzLP);  // Real Log Pol images
    cDataIm2D<tREAL4>&  aDILPr = aILPr.DIm(); // Data real log pol im
 
@@ -220,16 +400,6 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
         double  aRhok =  aRho0 * anIk.ScaleInO();  // Rho in fact R0 * ScaleAbs / ScaleOfOct
         cDataIm2D<Type> &  aDImk (anIk.ImG().DIm());  // Data Image at level
 
-        // Memorize central value 4 census
-        if (aCensusMode && (aKIm==aK0))
-        {
-             aVCentral = aDImk.GetVBL(aCk);
-             if (ForTest && (aVCentral==0))
-             {
-                return false;
-             }
-        }
-
         if (ForTest)
         {
              // Check if all corner are inside
@@ -242,11 +412,22 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
                  }
              }
         }
-        else
+        // Memorize central value 4 census
+        if (aCensusMode && (aKIm==aK0))
+        {
+             aVCentral = aDImk.GetVBL(aCk);
+             if (ForTest && (aVCentral==0))
+             {
+                return false;
+             }
+        }
+
+        if (!ForTest)
         {
              for (int aKTeta=0 ; aKTeta<aNbTeta ; aKTeta++)
              {
-                 cPt2dr aP = aCk + aVDirTeta.at(aKTeta) * aRhok; // Point in LogPol
+                 const cPt2dr & aDir = (aKIm%2) ? aVDirTeta1.at(aKTeta) : aVDirTeta0.at(aKTeta);
+                 cPt2dr aP = aCk + aDir * aRhok; // Point in LogPol
                  double aV = aDImk.GetVBL(aP);
                  aDILPr.SetV(cPt2di(aKTeta,IndRhoLP),aV);
                  if (! aCensusMode)
@@ -256,27 +437,34 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
              }
         }
         IndRhoLP++;
+// StdOut() << "RoohhhhK " << aRhok << " ABS=" << anIk.ScaleAbs()<< "\n";
    }
-   // Now, in test mode, we now that all the circle will be inside, OK then ...
+// StdOut() << "xxxxxRoohhhhK NBT=" << aNbTeta << " \n"; getchar();
+   // Now, in test mode, we know that all the circle will be inside, OK then ...
    if (ForTest)
    {
        return true;
    }
 
    // Compute the main orientations from real image
-   for (int aK=0 ; aK<int(eModeNormOr::eNbVals) ; aK++)
+   if (aFPC.IsForTieP())
    {
-      aPC.Desc().DirPrinc().push_back(CalcOrient(aDILPr,eModeNormOr(aK))) ;
+      for (int aK=0 ; aK<int(eModeNormOr::eNbVals) ; aK++)
+      {
+         aPC.Desc().DirPrinc().push_back(CalcOrient(aDILPr,eModeNormOr(aK))) ;
+      }
    }
   
    // Memorize the localization
    aPC.Pt() = aCenter;
+   aPC.PtIm() = mPRImRefined;
  
    //  Now convert the image to a 8 bit unsigned one
    cDataIm2D<tU_INT1> & aDILPi =  aPC.Desc().ILP().DIm();
    aDILPi.Resize(aSzLP);
    cComputeStdDev<double> aStat = aCensusMode ? aRawStat :  aRawStat.Normalize();
 
+   const cTabulFonc1D &  aTFD  = AllocTabConCavex(aFPC.LPQ_Steep0(),aFPC.LPQ_Exp(),5000);
    for (const auto & aP : aDILPi)
    {
         double aV0 = aDILPr.GetV(aP);
@@ -284,7 +472,9 @@ template<class Type> bool   cProtoAimeTieP<Type>::FillAPC(const cFilterPCar& aFP
         if (aCensusMode)
         {
             // double aVN  = aV0/aVCentral;
-            aValRes = 128 + cSetAimePCAR::TheCensusMult * NormalisedRatio(aV0,aVCentral);
+            double aRatio =  NormalisedRatioPos(aV0,aVCentral);
+            aRatio = aTFD.F(aRatio);
+            aValRes = 128 + cSetAimePCAR::TheCensusMult * aRatio;
         }
         else
         {
@@ -350,6 +540,7 @@ void cSetAimePCAR::InitFromFile(const std::string & aName)
 
 void cSetAimePCAR::SaveInFile(const std::string & aName) const
 {
+ //  StdOut() << "MMPPPDD " << aName << " "  << (const_cast<cSetAimePCAR *>(this))->VPC().size()  << "\n";
      MMVII::SaveInFile(*this,aName);
 
      if (0)

@@ -261,8 +261,12 @@ void ElImplemDequantifier::QuickSetDist(INT aNbStep)
     }
 }
 
-
 void ElImplemDequantifier::DoDequantif(Pt2di aSzIm,Fonc_Num f2Deq,bool aVerifI)
+{
+     DoDequantifWithMasq(aSzIm,f2Deq,Fonc_Num(0),aVerifI);
+}
+
+void ElImplemDequantifier::DoDequantifWithMasq(Pt2di aSzIm,Fonc_Num f2Deq,Fonc_Num FMasqOut,bool aVerifI)
 {
 
      SetSize(aSzIm);
@@ -285,6 +289,7 @@ void ElImplemDequantifier::DoDequantif(Pt2di aSzIm,Fonc_Num f2Deq,bool aVerifI)
      }
 
      ELISE_COPY(mImQuant.border(1),eValOut, mImQuant.out());
+     ELISE_COPY(select(mImQuant.interior(1),trans( FMasqOut,Pt2di(-1,-1))), eValOut, mImQuant.out());
 
 
 

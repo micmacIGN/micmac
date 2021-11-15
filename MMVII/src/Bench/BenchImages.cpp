@@ -145,6 +145,40 @@ template <class Type> void TestOneImage2D(const cPt2di & aP0,const cPt2di & aP1)
     MMVII_INTERNAL_ASSERT_bench(std::abs(aSomFonc-aSomFonc3)<1e-10,"Bench image iterator");
     MMVII_INTERNAL_ASSERT_bench(std::abs(aSomFonc-aSomFonc4)<1e-10,"Bench image iterator");
 
+    {
+        cDataTypedIm<Type,2> aDTI_I(aP0,aP1);
+        cDataTypedIm<Type,2> aDTI_D(aP0,aP1);
+
+        // Test border init on multi dim image
+        {
+            cDataTypedIm<Type,2> aDTInit(aP0,aP1);
+            aDTInit.InitInteriorAndBorder(4,2);
+            for (const auto & aP : aIm)
+            {
+                bool InRect =   (aP.x() >= aP0.x()+1) &&   (aP.x() < aP1.x()-1)
+                             && (aP.y() >= aP0.y()+1) &&   (aP.y() < aP1.y()-1) ;
+                int aVTest =  InRect ? 4 : 2;
+                int aVal =   aDTInit.VI_GetV(aP);
+                MMVII_INTERNAL_ASSERT_bench((aVal==aVTest),"Bench border init");
+            }
+        }
+
+        // Test read/write int/double on multi dim image
+        for (const auto & aP : aIm)
+        {
+           int aVal = std::abs((aP.x()+7*aP.y())%3);
+           aDTI_I.VI_SetV(aP,aVal);
+           aDTI_D.VD_SetV(aP,aVal);
+        }
+        for (const auto & aP : aIm)
+        {
+           int aIV    = aDTI_I.VI_GetV(aP);
+           double aDV = aDTI_D.VD_GetV(aP);
+           int aVal = std::abs((aP.x()+7*aP.y())%3);
+           MMVII_INTERNAL_ASSERT_bench(std::abs(aIV-aVal)<1e-10,"Bench image iterator");
+           MMVII_INTERNAL_ASSERT_bench(std::abs(aDV-aVal)<1e-10,"Bench image iterator");
+        }
+    }
 }
 
     // Make test on operator, do not want to process overflow , just use  real types
@@ -426,8 +460,52 @@ void TestInitIm1D(int aX0, int aX1)
 
 }
 
+void BenchHisto(int aNbVal,double aIncr)
+{
+
+    cHistoCumul<double,double> aH(aNbVal);
+    for (int aK=0 ; aK <aNbVal ; aK++)
+    {
+        aH.AddV(aK,aIncr);
+    }
+    aH.MakeCumul();
+
+    for (int aK=0 ; aK <=aNbVal ; aK++)
+    {
+        MMVII_INTERNAL_ASSERT_bench(aH.IndexeLowerProp(aK/(double) aNbVal)==(aK-1),"Bench image error");
+        // StdOut() << "ILP " << aK << " " << aH.IndexeLowerProp(aK/(double) aNbVal) << "\n";
+	if (aK<aNbVal)
+	{
+            //  StdOut() << "ILP' " << aK << " " << aH.IndexeLowerProp((aK+0.5)/(double) aNbVal) << "\n";
+             MMVII_INTERNAL_ASSERT_bench(aH.IndexeLowerProp((aK+0.5)/(double) aNbVal)==(aK-1),"IndexeLowerProp");
+	}
+    }
+    
+    for (int aNb=0 ; aNb<5000 ; aNb++)
+    {
+          double aVal =  RandInInterval(-aNbVal,2*aNbVal);
+  // std::cout << "V0 " << aVal << " PT=" <<  aH.PropCumul(aNbVal-1)<< "\n";
+	  if (aNb==0) 
+             aVal=0;
+	  else if (aNb==1) 
+             aVal=aNbVal;
+	  double aValTh = std::max(0.0,std::min(aVal,double(aNbVal))) ;
+          // StdOut() << aVal << " " << aH.PropCumul(aVal) * aNbVal  << " " << aValTh << "\n";
+          MMVII_INTERNAL_ASSERT_bench(std::abs(aValTh-aH.PropCumul(aVal) * aNbVal)==0,"PropCumul");
+	  // getchar();
+
+	  double aQ = 100.0 *RandUnif_0_1();
+	  double aDifQ =  aQ/100.0 -   aH.QuantilValue(aQ)/aNbVal ;
+	  // std::cout << "Q : " << aDifQ << "\n";
+          MMVII_INTERNAL_ASSERT_bench(std::abs(aDifQ)<1e-5,"IndexeLowerProp");
+    }
+}
+
 void BenchIm1D()
 {
+    BenchHisto(8,1.0);
+    BenchHisto(8,2.0);
+    //BenchHisto(8,1.0);
     if (0)  // Not freed
     {
        new cIm1D<double>(10);
@@ -454,6 +532,8 @@ void BenchGlobImage(cParamExeBench & aParam)
     {
         aI.DIm().SetV(cPt2di(0,0),1);
     }
+
+    BenchImNDim();
  
     BenchIm1D();
     BenchFileImage();

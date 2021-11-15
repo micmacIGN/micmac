@@ -237,7 +237,7 @@ mmv2_init();
   std::vector<tU_INT1> getRawData() {
     int size = $self->SzX()*$self->SzY();
     tU_INT1* data = $self->RawDataLin();
-    std::vector<tU_INT1> out(data ,data + size);    
+    std::vector<tU_INT1> out(data ,data + size);
     return out;
   }
   //here tU_INT1* IN_ARRAY2 is not recognized
@@ -247,5 +247,29 @@ mmv2_init();
         $self->RawDataLin()[i] = IN_ARRAY2[i];
   }
 }
+%extend MMVII::cDataIm2D<tREAL4> {
+  std::vector<tREAL4> getRawData() {
+    int size = $self->SzX()*$self->SzY();
+    tREAL4* data = $self->RawDataLin();
+    std::vector<tREAL4> out(data ,data + size);
+    return out;
+  }
+  //here tREAL4* IN_ARRAY2 is not recognized
+  void setRawData(float* IN_ARRAY2, int DIM1, int DIM2) {
+    $self->Resize( MMVII::cPtxd<int,2>(0,0), MMVII::cPtxd<int,2>(DIM2,DIM1) );
+    for (long i=0;i<DIM1*DIM2;i++)
+        $self->RawDataLin()[i] = IN_ARRAY2[i];
+  }
+}
 
+//add toArray methods to images to take care of std::vector to np.array
+%pythoncode %{
+import numpy as np
+def toArray_uint8(self):
+    return np.array(self.getRawData(), dtype=np.uint8).reshape(self.SzY(), self.SzX())
+def toArray_float32(self):
+    return np.array(self.getRawData(), dtype=np.float32).reshape(self.SzY(), self.SzX())
+cDataIm2Du1.toArray = toArray_uint8
+cDataIm2Dr4.toArray = toArray_float32
+%}
 

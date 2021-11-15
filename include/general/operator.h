@@ -165,6 +165,7 @@ class OperBinMixte : public OperBin
 extern const OperBinMixte & OpDiv;
 extern const OperBinMixte & OpPow2;
 extern const OperBinMixte & OpMinus2;  // binary -
+extern const OperBinMixte & OpF1OrF2IfBadNum;  // binary -
 
 
 // +, *, max, min

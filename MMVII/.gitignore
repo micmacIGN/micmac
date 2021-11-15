@@ -17,3 +17,4 @@ bin/*
 html/
 latex/
 doxygen/
+src/GeneratedCodes/

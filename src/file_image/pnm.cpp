@@ -66,8 +66,7 @@ INT pgm_get_int(ELISE_fp fp,U_INT1 &c)
     INT res = c-'0';
     while
     (
-          ((c = fp.read_U_INT1()) >= '0')
-       && (c <= '9')
+          (((c = fp.read_U_INT1()) >= '0') && (c <= '9')) || (c=='.') || (c=='-')
     )
        res = 10*res+c-'0';
     return res;
@@ -88,11 +87,14 @@ Elise_File_Im  Elise_File_Im::pnm(const char * name)
      ASSERT_TJS_USER((aCar == 'P'),"bad magic pnm");
      INT nb_can = -1234;
      INT kind_pnm = fp.read_U_INT1();
+     bool isFloatIm = false;
      switch (kind_pnm)
      {
-           case '4' : nb_can = 1; break;
-           case '5' : nb_can = 1; break;
+           case '4' : nb_can = 1; break;  // 1 Bits  images
+           case '5' : nb_can = 1; break;  // 
            case '6' : nb_can = 3; break;
+           case 'f' : nb_can = 1; isFloatIm = true;break;
+           case 'F' : nb_can = 3; isFloatIm = true;break;
            default :  elise_fatal_error("bad magic pbm",__FILE__,__LINE__);
      }
      
@@ -117,6 +119,8 @@ Elise_File_Im  Elise_File_Im::pnm(const char * name)
      GenIm::type_el  aType = GenIm::u_int1;
      if ( kind_pnm==4)
          aType = GenIm::bits1_msbf;
+     else if (isFloatIm )
+         aType = GenIm::real4;
      else if (aNbMaxVal>=256)
          aType = GenIm::u_int2;
         
@@ -329,6 +333,7 @@ bool IsKnowImagePostFix(const std::string & aPostMix)
                     || (aPost=="pbm")
                     || (aPost=="pgm")
                     || (aPost=="ppm")
+                    || (aPost=="pfm")
              ;
 
         case 't' :

@@ -641,7 +641,8 @@ class cZBuffer
                        Pt2di & aOffset_Out_00,
                        Pt2di aP0In,
                        Pt2di aP1In,
-                       float aZDef  // aZDef doit etre suffisement bas
+                       float aZDef,  // aZDef doit etre suffisement bas
+		       bool * Ok=nullptr
                    );
 
         Im2D_Bits<1> ImOkTer() const;

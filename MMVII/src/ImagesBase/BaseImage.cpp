@@ -143,6 +143,33 @@ template <class Type,const int Dim>
    return aRes;
 }
 
+template <class Type,const int Dim>  Type     cDataTypedIm<Type,Dim>::MinVal() const
+{
+    Type aRes = mRawDataLin[0];
+    for (int aK=1 ; aK<NbElem() ; aK++)
+        UpdateMin(aRes,mRawDataLin[aK]);
+   return aRes;
+}
+template <class Type,const int Dim>  Type     cDataTypedIm<Type,Dim>::MaxVal() const
+{
+    Type aRes = mRawDataLin[0];
+    for (int aK=1 ; aK<NbElem() ; aK++)
+        UpdateMax(aRes,mRawDataLin[aK]);
+   return aRes;
+}
+template <class Type,const int Dim>  tREAL16     cDataTypedIm<Type,Dim>::SomVal() const
+{
+    tREAL16 aRes = mRawDataLin[0];
+    for (int aK=1 ; aK<NbElem() ; aK++)
+        aRes += mRawDataLin[aK];
+   return aRes;
+}
+template <class Type,const int Dim>  tREAL16     cDataTypedIm<Type,Dim>::MoyVal() const
+{
+   return SomVal() / NbElem();
+}
+
+
 
 template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::DupIn(cDataTypedIm<Type,Dim> & aIm) const
 {
@@ -151,7 +178,12 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::DupIn(cDataTyp
     // MMVII_INTERNAL_ASSERT_strong(mSz[aK]>=0,"");
 }
 
-
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::DupInVect(std::vector<Type> & aVec) const
+{
+    aVec.resize(NbElem());
+    MemCopy(aVec.data(),RawDataLin(),NbElem());
+    // MMVII_INTERNAL_ASSERT_strong(mSz[aK]>=0,"");
+}
 
 
 template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitCste(const Type & aVal)
@@ -166,6 +198,31 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitCste(const
            mRawDataLin[aK] = aVal;
    }
 }
+
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitBorder(const Type & aVal)
+{
+   int aLarg = 1;
+   if (MinAbsCoord(tPB::Sz()) > (2*aLarg))
+   {
+      cBorderPixBox<Dim> aBorder(this->RO(),aLarg);
+
+      for (const auto & aP : aBorder)
+      {
+          mRawDataLin[tPB::IndexeLinear(aP)] = aVal;
+      }
+   }
+   else
+   {
+      InitCste(aVal);
+   }
+}
+
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitInteriorAndBorder(const Type & aVInt,const Type & aVB) 
+{
+   InitCste(aVInt);
+   InitBorder(aVB);
+}
+
 
 template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::InitRandom()
 {
@@ -234,11 +291,35 @@ template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::Init(eModeInit
        case eModeInitImage::eMIA_Rand        : InitRandom(); return;
        case eModeInitImage::eMIA_RandCenter  : InitRandomCenter(); return;
        case eModeInitImage::eMIA_Null        : InitNull(); return;
+       case eModeInitImage::eMIA_V1          : InitCste(1); return;
        case eModeInitImage::eMIA_MatrixId    : InitId(); return;
        case eModeInitImage::eMIA_NoInit      : ;
     }
 }
 
+
+template <class Type,const int Dim> int  cDataTypedIm<Type,Dim>::VI_GetV(const cPtxd<int,Dim> & aP)  const 
+{
+    tPB::AssertInside(aP);
+    return round_ni(mRawDataLin[tPB::IndexeLinear(aP)]);
+}
+template <class Type,const int Dim> double  cDataTypedIm<Type,Dim>::VD_GetV(const cPtxd<int,Dim> & aP)  const 
+{
+    tPB::AssertInside(aP);
+    return mRawDataLin[tPB::IndexeLinear(aP)];
+}
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::VI_SetV(const cPtxd<int,Dim> & aP,const int & aV)  
+{
+    tPB::AssertInside(aP);
+    mRawDataLin[tPB::IndexeLinear(aP)] = tNumTrait<Type>::Trunc(aV);
+}
+
+template <class Type,const int Dim> void  cDataTypedIm<Type,Dim>::VD_SetV(const cPtxd<int,Dim> & aP,const double & aV)  
+{
+    tPB::AssertInside(aP);
+    MMVII_INTERNAL_ASSERT_tiny(tNumTrait<Type>::ValueOk(aV),"Bad Value in VD_SetV");
+    mRawDataLin[tPB::IndexeLinear(aP)] = tNumTrait<Type>::RoundNearestToType(aV);
+}
 
 /*
 template class cDataTypedIm<tREAL4,1>;
@@ -255,6 +336,7 @@ template class cDataTypedIm<aType,3>;
 MACRO_INSTANTIATE_cDataTypedIm(tINT1)
 MACRO_INSTANTIATE_cDataTypedIm(tINT2)
 MACRO_INSTANTIATE_cDataTypedIm(tINT4)
+MACRO_INSTANTIATE_cDataTypedIm(tINT8)
 
 MACRO_INSTANTIATE_cDataTypedIm(tU_INT1)
 MACRO_INSTANTIATE_cDataTypedIm(tU_INT2)

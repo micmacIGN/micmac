@@ -280,6 +280,7 @@ class ElImplemDequantifier
 
 
          // aVerifI verifie que l'image est entiere
+         void DoDequantifWithMasq(Pt2di aSzIm,Fonc_Num f2Deq,Fonc_Num fMasqOut,bool  aVerifI= false);
          void DoDequantif(Pt2di aSzIm,Fonc_Num f2Deq,bool  aVerifI= false);
 
          ElImplemDequantifier (Pt2di aSz);

@@ -117,14 +117,26 @@ SrcDenseMatch=$(wildcard ${MMV2DirDenseMatch}*.cpp)
 ObjDenseMatch=$(SrcDenseMatch:.cpp=.o) 
 #
 #
+MMV2DirLearnMatch=${MMV2DirSrc}LearningMatching/
+SrcLearnMatch=$(wildcard ${MMV2DirLearnMatch}*.cpp)
+ObjLearnMatch=$(SrcLearnMatch:.cpp=.o) 
+#
+#
 MMV2DirSymbDerGen=${MMV2DirSrc}SymbDerGen/
 SrcSymbDerGen=$(wildcard ${MMV2DirSymbDerGen}*.cpp)
 ObjSymbDerGen=$(SrcSymbDerGen:.cpp=.o) 
 #
 #
+SRC_REGGEN=${MMV2DirGeneratedCodes}cName2CalcRegisterAll.cpp
 MMV2DirGeneratedCodes=${MMV2DirSrc}GeneratedCodes/
-SrcGeneratedCodes=$(wildcard ${MMV2DirGeneratedCodes}*.cpp)
-ObjGeneratedCodes=$(SrcGeneratedCodes:.cpp=.o) 
+SrcGeneratedCodes:=$(wildcard ${MMV2DirGeneratedCodes}*.cpp)
+## Force ${REGEN} to be built, but assure only once in SrcGeneratedCodes :
+SrcGeneratedCodes:=${filter-out ${SRC_REGGEN},${SrcGeneratedCodes}} ${SRC_REGGEN}
+ObjGeneratedCodes=$(SrcGeneratedCodes:.cpp=.o)
+
+${SRC_REGGEN}:
+	mkdir -p ${MMV2DirGeneratedCodes}
+	cp  ${MMV2DirIncl}/SymbDer/cName2CalcRegisterAll.cpp.tmpl $@
 #
 #
 MMV2DirGeoms=${MMV2DirSrc}Geoms/
@@ -141,7 +153,7 @@ ObjKapture=$(SrcKapture:.cpp=.o)
 MAIN=${MMV2DirSrc}main.cpp
 #============ Calcul des objets
 #
-OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjSymbDerGen} ${ObjGeneratedCodes} ${ObjGeoms} ${ObjMappings} ${ObjKapture}
+OBJ= ${ObjMatchTieP} ${ObjCalcDescriptPCar} ${ObjImagesBase}  ${ObjMMV1}  ${ObjUtiMaths} ${ObjImagesInfoExtract} ${ObjImagesFiltrLinear} ${ObjCmdSpec} ${ObjBench} ${ObjMatrix} ${ObjAppli} ${ObjDIB}   ${ObjTLE} ${ObjMkf} ${ObjUtils} ${ObjSerial}  ${ObjPerso}  ${ObjGraphs} ${ObjDenseMatch} ${ObjSymbDerGen} ${ObjGeneratedCodes} ${ObjGeoms} ${ObjMappings} ${ObjKapture} ${ObjLearnMatch}
 #
 #=========  Header ========
 #
@@ -208,6 +220,8 @@ ${MMV2DirGraphs}%.o :  ${MMV2DirGraphs}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirDenseMatch}%.o :  ${MMV2DirDenseMatch}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
+${MMV2DirLearnMatch}%.o :  ${MMV2DirLearnMatch}%.cpp   ${HEADER}
+	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirSymbDerGen}%.o :  ${MMV2DirSymbDerGen}%.cpp   ${HEADER}
 	${CXX} -c  $< ${CFlags} -o $@
 ${MMV2DirGeneratedCodes}%.o :  ${MMV2DirGeneratedCodes}%.cpp   ${HEADER}
@@ -225,7 +239,11 @@ Show:
 	echo ObjCalcDescriptPCar : ${ObjCalcDescriptPCar}
 	echo SrcCalcDescriptPCar: ${SrcCalcDescriptPCar}
 	echo MMV2DirCalcDescriptPCar: ${MMV2DirCalcDescriptPCar}
+
 clean :
 	rm -f ${OBJ}
+
+distclean: clean
+	-rm -f ${MMV2DirGeneratedCodes}*
 #
 #

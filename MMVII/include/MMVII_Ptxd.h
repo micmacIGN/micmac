@@ -30,6 +30,7 @@ template <class Type,const int Dim> class cPtxd
 {
     public :
        typedef typename  tNumTrait<Type>::tBig  tBigNum ;
+       typedef cPtxd<Type,Dim>                  tPt;
 
        static const int TheDim = Dim;
        /// Maybe some function will require generic access to data
@@ -60,6 +61,9 @@ template <class Type,const int Dim> class cPtxd
 
        /// Initialisation with constants
        static cPtxd<Type,Dim>  PCste(const Type & aVal) ;
+      
+       /// Initialisation from PInt
+       static cPtxd<Type,Dim>  FromPtInt(const  cPtxd<int,Dim> & aVal) ;
        /// Initialisation random
        static cPtxd<Type,Dim>  PRand();
        /// Initialisation random
@@ -86,6 +90,8 @@ template <class Type,const int Dim> class cPtxd
        /// Contructor for 4 dim point, statically checked
        cPtxd(const Type & x,const Type &y,const Type &z,const Type &t) :  mCoords{x,y,z,t} {static_assert(Dim==4,"bad dim in cPtxd initializer");}
 
+       /// Contructor for 1 dim point, statically checked
+       explicit cPtxd(const Type * aV)  {MemCopy(&mCoords[0],aV,Dim);}
 
         inline Type & x()             {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
         inline const Type & x() const {static_assert(Dim>=1,"bad dim in cPtxd initializer");return mCoords[0];}
@@ -102,9 +108,47 @@ template <class Type,const int Dim> class cPtxd
         cDenseVect<Type> ToVect() const; ///< conversion
         std::vector<Type> ToStdVector() const; ///< conversion
 
+        tBigNum  MinSqN2(const std::vector<tPt> &,bool SVP=false) const; ///< if SVP & empty return 0
     protected :
        Type mCoords[Dim];
 };
+
+    ///  1 dimension specializatio,
+typedef cPtxd<double,1>  cPt1dr ;
+typedef cPtxd<int,1>     cPt1di ;
+typedef cPtxd<float,1>   cPt1df ;
+
+    ///  2 dimension specialization
+typedef cPtxd<tREAL16,2> cPt2dLR ;
+typedef cPtxd<double,2>  cPt2dr ;
+typedef cPtxd<int,2>     cPt2di ;
+typedef cPtxd<float,2>   cPt2df ;
+
+
+
+// Create the neighboord, ie pixel not nul, with coord in [-1,0,1]  having a  number of value  !=0  <= to aNbVois
+// If dim =2 aNbVois->1 create the 4 neigh, NbVois-> 2 create the 8 neigh
+// If Dim=3   1-> 6  2->    3->26 ( 3^3 -1)
+template <const int Dim>  const std::vector<cPtxd<int,Dim>> & AllocNeighbourhood(int aNbVois);
+
+//  Create a tab where K entrie represent vectors having NormInf equal to K
+//  !! =>  Entry go from 0 to aDistMax included
+//  !! =>   the size can be larger (but obviously not smaller) than dist required, as function remumber previous calls ....
+template <const int Dim>  const std::vector<std::vector<cPtxd<int,Dim>>> & TabGrowNeigh(int aDistMax);
+
+/// Return pixel between two radius, the order make them as sparse as possible (slow method in N^3) => To implement ???? No longer know what I wanted to do ???
+//std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
+/// Implemented
+std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
+
+
+
+
+
+/** "Strange" function, because require DimIn=DimOut, but sometime we need to do this cast, 
+    probably consequence of bad design ... */
+// template <class Type,const int DimOut,const int DimIn> void CastDim(cPtxd<Type,DimOut> &,const cPtxd<Type,DimIn>);
+template <class Type,const int DimOut,const int DimIn> cPtxd<Type,DimOut> CastDim(const cPtxd<Type,DimIn>&);
 
 template <class Type> inline bool IsNotNull (const cPtxd<Type,2> & aP1) { return (aP1.x() !=0) || (aP1.y()!=0);}
 
@@ -215,6 +259,8 @@ template <class T,const int Dim> typename  tNumTrait<T>::tBig Scal(const cPtxd<T
 template <class T,const int Dim> T Cos(const cPtxd<T,Dim> &,const cPtxd<T,Dim> &);
 
 
+template <class T,const int Dim> T MinAbsCoord(const cPtxd<T,Dim> & aP);
+
 /*
 template <class T,const int Dim> inline T Norm2(const cPtxd<T,Dim> & aP) {return std::sqrt(SqN2(aP));}
 template <class T> inline T Norm1(const cPtxd<T,1> & aP) {return std::abs(aP.x());}
@@ -224,9 +270,10 @@ template <class T> inline T NormInf(const cPtxd<T,2> & aP) {return std::max(std:
 // template <class T> inline T SqN2(const cPtxd<T,1> & aP) {return Square(aP.x());}
 */
    /// Currently, the L2 norm is used for comparaison, no need to extract square root
-template <class T> inline T SqN2(const cPtxd<T,1> & aP) {return Square(aP.x());}
-template <class T> inline T SqN2(const cPtxd<T,2> & aP) {return Square(aP.x())+Square(aP.y());}
-template <class T> inline T SqN2(const cPtxd<T,3> & aP) {return Square(aP.x())+Square(aP.y())+Square(aP.z());}
+template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,1> & aP) {return Square(aP.x());}
+template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,2> & aP) {return Square(aP.x())+Square(aP.y());}
+template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,3> & aP) {return Square(aP.x())+Square(aP.y())+Square(aP.z());}
+template <class T> inline typename tNumTrait<T>::tBig SqN2(const cPtxd<T,4> & aP) {return Square(aP.x())+Square(aP.y())+Square(aP.z()) + Square(aP.t()) ;}
 /// Sort vector by norm, typically dont need to compute square root
 template <class Type,const int Dim> bool CmpN2(const cPtxd<Type,Dim> &aP1,const  cPtxd<Type,Dim> & aP2) 
 {
@@ -293,11 +340,20 @@ template <class Type> inline bool InfStr  (const cPtxd<Type,3> & aP1,const cPtxd
 {return  (aP1.x()<aP2.x()) && (aP1.y()<aP2.y()) && (aP1.z()<aP2.z());}
 
 /**  PtInfSTr : bigets point beg=ing InfStr (definition valide for integer types) 
-  Warn non symetric function;  strictness is relative to P2, not P1 */
+  Warn non symetric function;  strictness is relative to P2, not P1 ;
+     For Floating point its inf as usuasl
+*/
+template <class Type> inline Type  VInfStr(const Type & aV1,const  Type & aV2) {return std::min(aV1,aV2);} 
+template <> inline int  VInfStr(const int & aV1,const  int & aV2) {return std::min(aV1,aV2-1);}
+template <> inline tINT8  VInfStr(const tINT8 & aV1,const  tINT8 & aV2) {return std::min(aV1,aV2-1);}
+
 template <class Type> inline cPtxd<Type,1> PtInfStr  (const cPtxd<Type,1> & aP1,const cPtxd<Type,1> & aP2) 
-{ return cPtxd<Type,1> (std::min(aP1.x(),aP2.x()-1)); }
+{ return cPtxd<Type,1> (VInfStr(aP1.x(),aP2.x()));}
+
+// { return cPtxd<Type,1> (std::min(aP1.x(),aP2.x()-1)); }
 template <class Type> inline cPtxd<Type,2> PtInfStr  (const cPtxd<Type,2> & aP1,const cPtxd<Type,2> & aP2) 
-{ return cPtxd<Type,2> (std::min(aP1.x(),aP2.x()-1),std::min(aP1.y(),aP2.y()-1)); }
+{ return cPtxd<Type,2> (VInfStr(aP1.x(),aP2.x()),VInfStr(aP1.y(),aP2.y()));}
+// { return cPtxd<Type,2> (std::min(aP1.x(),aP2.x()-1),std::min(aP1.y(),aP2.y()-1)); }
 template <class Type> inline cPtxd<Type,3> PtInfStr  (const cPtxd<Type,3> & aP1,const cPtxd<Type,3> & aP2) 
 { return cPtxd<Type,3> (std::min(aP1.x(),aP2.x()-1),std::min(aP1.y(),aP2.y()-1),std::min(aP1.z(),aP2.z()-1)); }
 
@@ -320,18 +376,6 @@ template<class T,const int Dim> cPtxd<T,Dim>  VUnit(const cPtxd<T,Dim> & aP);
 template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cPtxd<Type,Dim> &aP);
 
 
-    ///  1 dimension specializatio,
-typedef cPtxd<double,1>  cPt1dr ;
-typedef cPtxd<int,1>     cPt1di ;
-typedef cPtxd<float,1>   cPt1df ;
-
-    ///  2 dimension specialization
-typedef cPtxd<tREAL16,2> cPt2dLR ;
-typedef cPtxd<double,2>  cPt2dr ;
-typedef cPtxd<int,2>     cPt2di ;
-typedef cPtxd<float,2>   cPt2df ;
-
-
 
 template <class T,const int Dim> inline double RatioMax(const cPtxd<T,Dim> & aP1,const cPtxd<T,Dim> & aP2)
 {
@@ -339,7 +383,7 @@ template <class T,const int Dim> inline double RatioMax(const cPtxd<T,Dim> & aP1
 }
 
 
-// cPt2dr operator / (const cPt2dr &aP1,const cPt2dr & aP2) {return (aP1*conj(aP)
+// cPt2dr operator / (const cPt2dr &aP1,const cPt2dr & aP2) {return (aP1*conj(aP)}
 
     ///  3 dimension specialization
 typedef cPtxd<tREAL16,3> cPt3dLR ;
@@ -350,8 +394,10 @@ typedef cPtxd<float,3>   cPt3df ;
 // Most frequent conversion
 inline cPt2di ToI(const cPt2dr & aP) {return cPt2di(round_ni(aP.x()),round_ni(aP.y()));}
 inline cPt2dr ToR(const cPt2di & aP) {return cPt2dr(aP.x(),aP.y());}
+inline cPt2dr ToR(const cPt2df & aP) {return cPt2dr(aP.x(),aP.y());}
 inline cPt3di ToI(const cPt3dr & aP) {return cPt3di(round_ni(aP.x()),round_ni(aP.y()),round_ni(aP.z()));}
 inline cPt3dr ToR(const cPt3di & aP) {return cPt3dr(aP.x(),aP.y(),aP.z());}
+
 
 template <class Type,int Dim,int aKth> bool  CmpCoord(const cPtxd<Type,Dim> & aP1,const cPtxd<Type,Dim> & aP2)
 {
@@ -421,11 +467,6 @@ template <class Type,const int Dim> void MakeBox(cPtxd<Type,Dim> & aP0,cPtxd<Typ
         OrderMinMax(aP0[aK],aP1[aK]);
 }
 
-/// Return pixel between two radius, the order make them as sparse as possible (slow method in N^3) => To implement ???? No longer know what I wanted to do ???
-//std::vector<cPt2di> SparsedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
-/// Implemented
-std::vector<cPt2di> SortedVectOfRadius(const double & aR0,const double & aR1); // > R0 et <= R1
-
 
 //  === TABULATION OF NEIGHBOORING
 
@@ -446,7 +487,8 @@ template <class Type,const int Dim>  class cTplBox
         typedef cTplBox<Type,Dim>                tBox;
         typedef cPtxd<Type,Dim>                  tPt;
         typedef cPtxd<tBigNum,Dim>               tBigPt;
-        typedef tPt   tCorner[1<<Dim];
+        static constexpr int                     NbCorners = 1<<Dim;
+        typedef tPt   tCorner[NbCorners];
 
         cTplBox(const tPt & aP0,const tPt & aP1,bool AllowEmpty=false);
         cTplBox(const tPt & aSz,bool AllowEmpty=false); // Create a box with origin in 0,0,..
@@ -454,9 +496,15 @@ template <class Type,const int Dim>  class cTplBox
         
 
 
+        // tPt & P0() {return mP0;} !!!!! BUUUG : CANNOT LET MODIFY BECAUSE OTHER FIELD NOT UP TO DATE
+        // tPt & P1() {return mP1;} !!!!! BUUUG : CANNOT LET MODIFY BECAUSE OTHER FIELD NOT UP TO DATE
         const tPt & P0() const {return mP0;} ///< Origin of object
         const tPt & P1() const {return mP1;} ///< End of object
         const tPt & Sz() const {return mSz;} ///< Size of object
+
+	 // SEE BELLOW, IF USE RESYNCRONIZE OBJECT AFTER  , GIVE COMPLICATED NAME ON PURPOSE
+        tPt & P0ByRef() {return mP0;} ///< Origin of object
+        tPt & P1ByRef() {return mP1;} ///< End of object
 
         const tBigNum & NbElem() const {return mNbElem;}  ///< Surface  / Volume
 
@@ -485,6 +533,7 @@ template <class Type,const int Dim>  class cTplBox
         tBox Inter(const tBox & aBox)const; ///< Intersction handle empty case
         tBox Dilate(const tPt & aPt)const;  ///< Dilatation, as in morpho math : mP0-P mP1+P
         tBox Dilate(const Type & aVal)const;  ///< Dilatation with constant coordinate
+        tBox ScaleCentered(const Type & aVal)const;  ///< Dilatation with constant scaling
 
         /// Assert that it is inside
         template <class TypeIndex> void AssertInside(const TypeIndex & aP) const
@@ -514,6 +563,7 @@ template <class Type,const int Dim>  class cTplBox
     private :
 };
 
+
 /** Function computing corner of box, this one is specific to dim=1 because it respect
 trigonometric order, a notion not generalisable */
 
@@ -521,9 +571,15 @@ template <class Type> void CornersTrigo(typename cTplBox<Type,2>::tCorner & aRes
 
 typedef cTplBox<int,2>  cBox2di; 
 typedef cTplBox<double,2>  cBox2dr; 
+typedef cTplBox<int,3>  cBox3di; 
+typedef cTplBox<double,3>  cBox3dr; 
 cBox2dr ToR(const cBox2di &);  ///< Basic conversion
 cBox2di ToI(const cBox2dr &);  ///< Convert in englobing mode
 cBox2dr operator * (const cBox2dr & aBox,double aScale); ///< just multiply each coord
+
+
+// Is window inside the box taking into account bilinear interpol ?
+template <class Type> bool WindInside4BL(const cBox2di & aBox,const cPtxd<Type,2> & aPt,const  cPt2di & aSzW);
 
 template <class Type,const int Dim> std::ostream & operator << (std::ostream & OS,const cTplBox<Type,Dim> &aBox)
 { return  OS << "{" << aBox.P0() <<   " :: " << aBox.P1()<< "}"; }

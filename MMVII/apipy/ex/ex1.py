@@ -43,13 +43,10 @@ def imageScale():
   aImOut.Write(aFileOut,(0,0))
 
 def imgNumpyRawData():
-  im=mmv2.cIm2Du1.FromFile("ex/image.tif")
-  d=im.DIm()
-  v=d.getRawData()
   from PIL import Image
   import numpy as np
-  array = np.array(v, dtype=np.uint8)
-  array = array.reshape((d.SzY(), d.SzX()))
+  im=mmv2.cIm2Du1.FromFile("ex/image.tif")
+  array = im.DIm().toArray()
   img = Image.fromarray(array)
   img.show()
 
@@ -58,13 +55,22 @@ def PIL2mmv2Img():
   import numpy as np
   path="ex/png.png"
   pil_image = Image.open(path).convert('L')
-  pil_image_array=np.array(pil_image)
-  im=mmv2.cIm2Du1( (5,5) )
-  im.DIm().setRawData( pil_image_array )
-  d=im.DIm()
-  v=d.getRawData()
-  array = np.array(v, dtype=np.uint8)
-  array = array.reshape((d.SzY(), d.SzX()))
+  pil_image_array = np.array(pil_image)
+  
+  im = mmv2.cIm2Du1( (5,5) )
+  d = im.DIm()
+  d.setRawData(pil_image_array)
+  d.ToFile("ex/out.tif")
+  
+  array = d.toArray()
   img = Image.fromarray(array)
   img.show()
 
+def to8Bit():
+  import numpy as np
+  im = mmv2.cIm2Dr4.FromFile("ex/exfloat32.tif")
+  mat = im.DIm().toArray()
+  mat2 = (255*(mat-np.min(mat))/(np.max(mat)-np.min(mat))).astype('uint8')
+  imOut = mmv2.cIm2Du1( im.DIm().Sz() )
+  imOut.DIm().setRawData(mat2)
+  imOut.DIm().ToFile("ex/to8bits.tif")

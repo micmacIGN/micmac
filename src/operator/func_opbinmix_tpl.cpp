@@ -544,6 +544,9 @@ Fonc_Num operator - (Fonc_Num f1,Fonc_Num f2)
      return Op_Bin_Mix_Not_Comp::New(f1,f2,OpMinus2,true,"-",VMoins,DMoins,VDMoins,PlusMoinsMixDegre);
 };
 
+
+
+
 REAL CppPow(REAL x,REAL y) {return pow(x,y);}
 Fonc_Num pow (Fonc_Num f1,Fonc_Num f2)
 {
@@ -579,6 +582,15 @@ Fonc_Num Min(Fonc_Num f1,Fonc_Num f2,Fonc_Num f3,Fonc_Num f4)
 {
      return (Min(f1,Min(f2,f3,f4)));
 }
+
+
+
+double VF1OrF2IfBadNum(double aV1,double aV2) {return IsBadNum(aV1) ? aV2 : aV1;}
+
+Fonc_Num   F1OrF2IfBadNum (Fonc_Num f1,Fonc_Num f2)
+{
+     return Op_Bin_Mix_Not_Comp::New(f1,f2,OpF1OrF2IfBadNum,true,"F1F2BN",VF1OrF2IfBadNum,NoDeriv,NoValDeriv,StdMixDegre);
+};
 
 /*****************************************************/
 /*                                                   */
@@ -839,6 +851,8 @@ tOperFuncBin  OperFuncBinaireFromName(const std::string & aName)
 
    if (aName==">>") return operator >>;
    if (aName=="<<") return operator <<;
+
+   if (aName=="F1F2BN") return F1OrF2IfBadNum;
 
    std::cout << "For name=" << aName << "\n";
    ELISE_ASSERT(false,"Cannot  get operator");

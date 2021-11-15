@@ -35,6 +35,19 @@ double  RelativeDifference(const double & aV1,const double & aV2,bool * aResOk)
     return std::abs(aV1-aV2) / aSom;
 }
 
+template <class Type> Type diff_circ(const Type & a,const Type & b,const Type & aPer)
+{
+   Type aRes = mod_real(std::abs(a-b),aPer);
+   return std::min(aRes,aPer-aRes);
+};
+
+#define INSTANTIATE_TYPE_REAL(TYPE)\
+template  TYPE diff_circ(const TYPE & a,const TYPE & b,const TYPE & aPer);
+
+
+INSTANTIATE_TYPE_REAL(tREAL4);
+INSTANTIATE_TYPE_REAL(tREAL8);
+
 
 tINT4 HCF(tINT4 a,tINT4 b)
 {
@@ -172,6 +185,7 @@ void BenchMod(int A,int B,int aModb)
 
 double NormalisedRatio(double aI1,double aI2)
 {
+    MMVII_INTERNAL_ASSERT_tiny((aI1>=0)&&(aI2>=0),"NormalisedRatio on negative values");
     // X = I1/I2
     if (aI1 < aI2)   // X < 1
         return aI1/aI2 -1;   // X -1
@@ -182,6 +196,10 @@ double NormalisedRatio(double aI1,double aI2)
     }
 
     return 1-aI2/aI1;  // 1 -1/X
+}
+double NormalisedRatioPos(double aI1,double aI2)
+{
+    return NormalisedRatio(std::max(aI1,0.0),std::max(aI2,0.0));
 }
 
 
@@ -218,6 +236,8 @@ void BenchMinMax()
        TplBenchMinMax<tREAL4>(1+aK);
    }
 }
+
+
 
 template <class Type> void BenchFuncAnalytique(int aNb,double aEps,double EpsDer)
 {
