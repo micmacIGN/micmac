@@ -943,6 +943,7 @@ extern int MakeOneTrainingData_main(int argc, char ** argv);
 extern int MakeTrainingData_main(int argc, char ** argv);
 extern int VisuTiePtIn3D_main(int argc, char ** argv);
 extern int TiePtAddWeight_main(int argc, char ** argv);
+extern int EnhancedSpG_main(int argc, char ** argv);
 
 
 extern int ReechHomol_main(int argc, char ** argv);
@@ -1020,6 +1021,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("MakeTrainingData", MakeTrainingData_main, "Make training data for SuperGlue 512D"));
         aRes.push_back(cMMCom("VisuTiePtIn3D", VisuTiePtIn3D_main, "Visulize tie points in image pairs together in 3D"));
         aRes.push_back(cMMCom("TiePtAddWeight", TiePtAddWeight_main, "Add weight for tie points"));
+        aRes.push_back(cMMCom("EnhancedSpG", EnhancedSpG_main, "Use tiling scheme and rotation hypothesis to improve the matching performance of SuperGlue"));
 
 		aRes.push_back(cMMCom("Script",CPP_YannScript, "Fonction de script pour les tests "));		
 		aRes.push_back(cMMCom("ExcludeSats",CPP_YannExcludeSats, "Excludes GNSS satellites from raw observations based on sky masks "));

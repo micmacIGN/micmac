@@ -91,10 +91,10 @@ std::string GetFileName(std::string strIn)
 
 std::string GetFolderName(std::string strIn)
 {
-    std::string strOut = strIn;
+    std::string strOut = "";
 
     std::size_t found = strIn.find("/");
-    if (found!=std::string::npos)
+    if (found!=std::string::npos) //std::string::npos means postion that does not exist
         strOut = strIn.substr(0, found);
 
     return strOut;
@@ -247,6 +247,9 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
 
     cout<<"Patch number of "<<aOutImg1<<": "<<PatchNum.x<<"*"<<PatchNum.y<<"="<<PatchNum.x*PatchNum.y<<endl;
 
+    cGet3Dcoor a3DCoorL(aIm1OriFile);
+    cDSMInfo aDSMInfoL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+
     for(m=0; m<PatchNum.x; m++)
     {
         for(n=0; n<PatchNum.y; n++)
@@ -289,8 +292,6 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
                     Pt3dr aPTer1;
                     /*if(aDSMDirL.length() > 0)
                     {*/
-                        cGet3Dcoor a3DCoorL(aIm1OriFile);
-                        cDSMInfo aDSMInfoL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
                         //TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
                         bool bValidL;
                         aPTer1 = a3DCoorL.Get3Dcoor(aP1, aDSMInfoL, bValidL, bPrint, aThres);//, a3DCoorL.GetGSD());
@@ -474,7 +475,7 @@ Pt2dr ClipImg(std::string aOutImg1, std::string aImg1, Pt2di ImgSzL, Pt2dr aPatc
 //simply clip images to get master patches (m patches) and secondary patches (n patches).  The number of pairs to be matched will be m*n.
 //mainly used for rough co-registration
 //aOriImg1 is the orginal master image, aImg1 could be the same as aOriImg1 (in this case aIm1_OriImg1 is unit matrix), or rotated image based on aOriImg1
-void GetTilePair(std::string aOutDir, std::string aOriOutImg1, std::string aRotateOutImg1, std::string aOutImg2, std::string aImg1, std::string aImg2, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aImgPair, std::string aDir, std::string aSubPatchXml, std::string aOriImg1, cElHomographie aIm1_OriImg1, bool bPrint)
+void GetTilePair(std::string aOutDir, std::string aOriOutImg1, std::string aRotateOutImg1, std::string aOutImg2, std::string aImg1, std::string aImg2, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aImgPair, std::string aDir, std::string aSubPatchXml, std::string aOriImg1, cElHomographie aIm1_OriImg1, bool bPrint, double dDyn)
 {
     //cout<<aDir<<endl;
     if (ELISE_fp::exist_file(aDir+aImg1) == false || ELISE_fp::exist_file(aDir+aImg2) == false)
@@ -496,6 +497,36 @@ void GetTilePair(std::string aOutDir, std::string aOriOutImg1, std::string aRota
     Tiff_Im aDSMIm2((aDir+aImg2).c_str());
     Pt2di ImgSzR = aDSMIm2.sz();
 
+    GenIm::type_el aTypeIm1 = aDSMIm1.type_el();
+    GenIm::type_el aTypeIm2 = aDSMIm2.type_el();
+
+    cout<<"type of "<<aImg1<<": "<<aTypeIm1<<endl;
+    cout<<"type of "<<aImg2<<": "<<aTypeIm2<<endl;
+
+    std::string aImgRef1 = aImg1;
+    std::string aImgRef2 = aImg2;
+    bool bTo8Bits1 = false;
+    bool bTo8Bits2 = false;
+
+    if(aTypeIm1 == 2)
+    {
+        aImgRef1 = aImg1 + "_to8Bits.tif";
+        std::string aComto8Bits = MMBinFile(MM3DStr) + "to8Bits " + aImg1 + " Out=" + aImgRef1 + " Dyn=" + ToString(dDyn);
+        cout<<aComto8Bits<<endl;
+        System(aComto8Bits);
+        bTo8Bits1 = true;
+        //cout<<aImg1<<" transformed to "<<aImgRef1<<endl;
+    }
+    if(aTypeIm2 == 2)
+    {
+        aImgRef2 = aImg2 + "_to8Bits.tif";
+        std::string aComto8Bits = MMBinFile(MM3DStr) + "to8Bits " + aImg2 + " Out=" + aImgRef2 + " Dyn=" + ToString(dDyn);
+        cout<<aComto8Bits<<endl;
+        System(aComto8Bits);
+        bTo8Bits2 = true;
+        //cout<<aImg2<<" transformed to "<<aImgRef2<<endl;
+    }
+
     Pt2dr origin = Pt2dr(0, 0);
 
     std::vector<std::string> vPatchesL, vPatchesR;
@@ -503,8 +534,8 @@ void GetTilePair(std::string aOutDir, std::string aOriOutImg1, std::string aRota
 
     std::list<std::string> aLComClip, aRComClip;
 
-    Pt2dr aPatchNumL = ClipImg(aRotateOutImg1, aImg1, ImgSzL, aPatchSz, aBufferSz, origin, aOutDir, aLComClip, vPatchesL, vHomoL);
-    Pt2dr aPatchNumR = ClipImg(aOutImg2, aImg2, ImgSzR, aPatchSz, aBufferSz, origin, aOutDir, aRComClip, vPatchesR, vHomoR);
+    Pt2dr aPatchNumL = ClipImg(aRotateOutImg1, aImgRef1, ImgSzL, aPatchSz, aBufferSz, origin, aOutDir, aLComClip, vPatchesL, vHomoL);
+    Pt2dr aPatchNumR = ClipImg(aOutImg2, aImgRef2, ImgSzR, aPatchSz, aBufferSz, origin, aOutDir, aRComClip, vPatchesR, vHomoR);
 
     cout<<"Number of tile pairs: "<<aPatchNumL.x*aPatchNumL.y*aPatchNumR.x*aPatchNumR.y<<endl;
 
@@ -540,6 +571,19 @@ void GetTilePair(std::string aOutDir, std::string aOriOutImg1, std::string aRota
 
     cEl_GPAO::DoComInParal(aLComClip);
     cEl_GPAO::DoComInParal(aRComClip);
+
+    if(bTo8Bits1 == true)
+    {
+        std::string aComRemove ="rm -r " + aImgRef1;
+        System(aComRemove);
+        cout<<aComRemove<<endl;
+    }
+    if(bTo8Bits2 == true)
+    {
+        std::string aComRemove ="rm -r " + aImgRef2;
+        System(aComRemove);
+        cout<<aComRemove<<endl;
+    }
 }
 
 
@@ -621,6 +665,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
     Pt2dr aBufferSz(0,0);
 
     std::string aOutDir = "./Tmp_Patches-CoReg";
+    double dDyn = 0.1;
 
     ElInitArgMain
      (
@@ -636,13 +681,22 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
                 << EAM(aOutDir, "OutDir", true, "Output direcotry of the patches, Def=./Tmp_Patches-CoReg")
                      << aCAS3D.ArgBasic()
                      << aCAS3D.ArgGetPatchPair()
+                << EAM(dDyn, "Dyn", true, "The Dyn parameter in \"to8Bits\" if the input RGB images are 16 bits, Def=0.1")
      );
 
     aOutDir += "/";
     ELISE_fp::MkDir(aOutDir);
 
-    std::string aOutImg1 = GetFolderName(aImg1) + "." + StdPostfix(aImg1);
-    std::string aOutImg2 = GetFolderName(aImg2) + "." + StdPostfix(aImg2);
+    std::string aOutImg1 = GetFolderName(aImg1);
+    if(aOutImg1.length() == 0) //means there is no folder
+        aOutImg1 = aImg1;
+    else
+        aOutImg1 += "." + StdPostfix(aImg1);
+    std::string aOutImg2 = GetFolderName(aImg2);
+    if(aOutImg2.length() == 0)
+        aOutImg2 = aImg2;
+    else
+        aOutImg2 += "." + StdPostfix(aImg2);
 
    if(true)
    {
@@ -652,7 +706,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
        cElHomographie  aUnitH =  cElHomographie(aUnitHX,aUnitHY,aUnitHZ);
 
        //no rotation
-       GetTilePair(aOutDir, aOutImg1, aOutImg1, aOutImg2, aImg1, aImg2, aPatchSz, aBufferSz, aCAS3D.mImgPair, aCAS3D.mDir, aCAS3D.mSubPatchXml, aImg1, aUnitH, aCAS3D.mPrint);
+       GetTilePair(aOutDir, aOutImg1, aOutImg1, aOutImg2, aImg1, aImg2, aPatchSz, aBufferSz, aCAS3D.mImgPair, aCAS3D.mDir, aCAS3D.mSubPatchXml, aImg1, aUnitH, aCAS3D.mPrint, dDyn);
    }
 
    if(bRotate == true)
@@ -683,7 +737,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
            //cout<<aImg1_Rotate<<",,,"<<aSubPatchXml<<",,,"<<aImgPair<<endl;
 
            RotateImgBy90Deg(aCAS3D.mDir, aImgBase, aImg1_Rotate);
-           GetTilePair(aOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint);
+           GetTilePair(aOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint, dDyn);
        }
 
        //rotate 180 degree
@@ -703,7 +757,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
            //cout<<aImg1_Rotate<<",,,"<<aSubPatchXml<<",,,"<<aImgPair<<endl;
 
            RotateImgBy90DegNTimes(aCAS3D.mDir, aImgBase, aImg1_Rotate, 2);
-           GetTilePair(aOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint);
+           GetTilePair(aOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint, dDyn);
        }
 
        //rotate 270 degree
@@ -723,7 +777,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
            //cout<<aImg1_Rotate<<",,,"<<aSubPatchXml<<",,,"<<aImgPair<<endl;
 
            RotateImgBy90DegNTimes(aCAS3D.mDir, aImgBase, aImg1_Rotate, 3);
-           GetTilePair(aOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint);
+           GetTilePair(aOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint, dDyn);
        }
     }
 
