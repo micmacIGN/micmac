@@ -323,7 +323,6 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
 
     private:
         std::string GetImage_Profondeur(std::string aDSMDir, std::string aDSMFile);
-        int GetOverlappedImgPair(std::string aName, std::vector<std::string>& aResL, std::vector<std::string>& aResR);
         std::string GetImgList(std::string aDir, std::string aFileName, bool bExe);
 
 
@@ -397,6 +396,15 @@ std::string GetScaledImgName(std::string aImgName, Pt2di ImgSz, double dScale);
 void ExtractSIFT(std::string aImgName, std::string aDir, double dScale=1);
 int GetTiePtNum(std::string aDir, std::string aImg1, std::string aImg2, std::string aSH);
 std::string StdCom(const std::string & aCom,const std::string & aPost="", bool aExe=false);
+int GetOverlappedImgPair(std::string aName, std::vector<std::string>& aResL, std::vector<std::string>& aResR);
+void FilterKeyPt(std::vector<Siftator::SiftPoint> aVSIFTPt, std::vector<Siftator::SiftPoint>& aVSIFTPtNew, double dMinScale, double dMaxScale=DBL_MAX);
+int MatchOneWay(std::vector<int>& matchIDL, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, bool bRatioT, std::vector<Pt2dr> aVPredL=std::vector<Pt2dr>(), Pt2di ImgSzR=Pt2di(0,0), bool bCheckScale=0, bool bCheckAngle=0, double dSearchSpace=0, bool bPredict=0, double dScale=0, double dAngle=0, double threshScale=0, double threshAngle=0);
+void MutualNearestNeighbor(bool bMutualNN, std::vector<int> matchIDL, std::vector<int> matchIDR, std::vector<Pt2di> & match);
+void SetAngleToValidRange(double& dAngle, double d2PI);
+void SaveHomolFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<Pt2di> match, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, bool bPrint=0, double dScaleL=1, double dScaleR=1);
+void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<ElCplePtsHomologues> aPack);
+bool IsHomolFileExist(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, bool bCheckFile);
+void ScaleKeyPt(std::vector<Siftator::SiftPoint>& aVSIFTPt, double dScale);
 
 /****************************************/
 /****** cInterEp_RoughCoReg ******/

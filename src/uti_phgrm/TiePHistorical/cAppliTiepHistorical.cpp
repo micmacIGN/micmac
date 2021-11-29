@@ -510,7 +510,7 @@ int GetTiePtNum(std::string aDir, std::string aImg1, std::string aImg2, std::str
     return nPtNum;
 }
 
-int cAppliTiepHistoricalPipeline::GetOverlappedImgPair(std::string aName, std::vector<std::string>& aResL, std::vector<std::string>& aResR)
+int GetOverlappedImgPair(std::string aName, std::vector<std::string>& aResL, std::vector<std::string>& aResR)
 {
     //std::vector<tNamePair> aRes;
     int num = 0;
@@ -1700,6 +1700,289 @@ void ExtractSIFT(std::string aImgName, std::string aDir, double dScale)
     aComm = MMBinFile(MM3DStr) + "SIFT " + aDir+"/Pastis/"+aImgScaledName + " -o " + aDir+"/Pastis/LBPp"+aImgScaledName+".dat";
     cout<<aComm<<endl;
     System(aComm);
+}
+
+void FilterKeyPt(std::vector<Siftator::SiftPoint> aVSIFTPt, std::vector<Siftator::SiftPoint>& aVSIFTPtNew, double dMinScale, double dMaxScale)
+{
+    int nSizeL = aVSIFTPt.size();
+
+    for(int i=0; i<nSizeL; i++)
+    {
+        if(aVSIFTPt[i].scale < dMaxScale && aVSIFTPt[i].scale > dMinScale)
+            aVSIFTPtNew.push_back(aVSIFTPt[i]);
+    }
+}
+
+void SetAngleToValidRange(double& dAngle, double d2PI)
+{
+    while(dAngle > d2PI)
+        dAngle = dAngle - d2PI;
+    while(dAngle < 0)
+        dAngle = dAngle + d2PI;
+}
+
+bool IsHomolFileExist(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, bool bCheckFile)
+{
+    std::string aSHDir;
+    std::string aNewDir;
+    std::string aNameFile1;
+    std::string aNameFile2;
+    aSHDir = aDir + "/Homol" + CurSH + "/";
+    aNewDir = aSHDir + "Pastis" + aImg1;
+    aNameFile1 = aNewDir + "/"+aImg2+".txt";
+
+    aNewDir = aSHDir + "Pastis" + aImg2;
+    aNameFile2 = aNewDir + "/"+aImg1+".txt";
+
+    if (bCheckFile == true && ELISE_fp::exist_file(aNameFile1) == true && ELISE_fp::exist_file(aNameFile2) == true)
+    {
+        cout<<aNameFile1<<" already exist, hence skipped"<<endl;
+        return true;
+    }
+    else
+        return false;
+}
+
+void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<ElCplePtsHomologues> aPack)
+{
+    std::string aSHDir;
+    std::string aNewDir;
+    std::string aNameFile1;
+    std::string aNameFile2;
+    aSHDir = aDir + "/Homol" + CurSH + "/";
+    ELISE_fp::MkDir(aSHDir);
+    aNewDir = aSHDir + "Pastis" + aImg1;
+    ELISE_fp::MkDir(aNewDir);
+    aNameFile1 = aNewDir + "/"+aImg2+".txt";
+
+    aNewDir = aSHDir + "Pastis" + aImg2;
+    ELISE_fp::MkDir(aNewDir);
+    aNameFile2 = aNewDir + "/"+aImg1+".txt";
+
+    FILE * fpTiePt1 = fopen(aNameFile1.c_str(), "w");
+    FILE * fpTiePt2 = fopen(aNameFile2.c_str(), "w");
+
+    for (unsigned int i=0; i<aPack.size(); i++)
+    {
+        ElCplePtsHomologues cple = aPack[i];
+        Pt2dr aP1 = cple.P1();
+        Pt2dr aP2 = cple.P2();
+        fprintf(fpTiePt1, "%lf %lf %lf %lf\n", aP1.x, aP1.y, aP2.x, aP2.y);
+        fprintf(fpTiePt2, "%lf %lf %lf %lf\n", aP2.x, aP2.y, aP1.x, aP1.y);
+    }
+    fclose(fpTiePt1);
+    fclose(fpTiePt2);
+}
+
+void SaveHomolFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<Pt2di> match, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, bool bPrint, double dScaleL, double dScaleR)
+{
+    std::vector<ElCplePtsHomologues> aPack;
+
+    int nTiePtNum = match.size();
+    for(int i = 0; i < nTiePtNum; i++)
+    {
+        int idxL = match[i].x;
+        int idxR = match[i].y;
+        Pt2dr aP1, aP2;
+        aP1 = Pt2dr(dScaleL*aVSiftL[idxL].x, dScaleL*aVSiftL[idxL].y);
+        aP2 = Pt2dr(dScaleR*aVSiftR[idxR].x, dScaleR*aVSiftR[idxR].y);
+        aPack.push_back(ElCplePtsHomologues(aP1,aP2));
+        if(bPrint){
+            printf("%dth match, master and secondary scale and angle: %lf %lf %lf %lf\n", i, aVSiftL[idxL].scale, aVSiftL[idxL].angle, aVSiftR[idxR].scale, aVSiftR[idxR].angle);
+            printf("scaleDif, angleDif: %lf %lf\n", aVSiftR[idxR].scale/aVSiftL[idxL].scale,aVSiftR[idxR].angle-aVSiftL[idxL].angle);
+        }
+    }
+
+    SaveHomolTxtFile(aDir, aImg1, aImg2, CurSH, aPack);
+}
+
+//for the key points in one image (master or secondary image), find their nearest neighbor in another image and record it
+int MatchOneWay(std::vector<int>& matchIDL, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, bool bRatioT, std::vector<Pt2dr> aVPredL, Pt2di ImgSzR, bool bCheckScale, bool bCheckAngle, double dSearchSpace, bool bPredict, double dScale, double dAngle, double threshScale, double threshAngle)
+{
+    if(dScale < 0)
+        dScale = -dScale;
+    int nMatches = 0;
+    int nSIFT_DESCRIPTOR_SIZE = 128;
+    const double d2PI = 3.1415926*2;
+
+    int nSizeL = aVSiftL.size();
+    int nSizeR = aVSiftR.size();
+
+    int nStartL = 0;
+    int nStartR = 0;
+    int nEndL = nSizeL;
+    int nEndR = nSizeR;
+
+    std::time_t t1 = std::time(nullptr);
+    std::cout << std::put_time(std::localtime(&t1), "%Y-%m-%d %H:%M:%S") << std::endl;
+
+    long nSkiped = 0;
+    float alpha = 2;
+
+    int i, j, k;
+    int nProgress = nSizeL/10;
+    for(i=nStartL; i<nEndL; i++)
+    {
+        if(i%nProgress == 0)
+        {
+            printf("%.2lf%%\n", i*100.0/nSizeL);
+        }
+
+        double dBoxLeft  = 0;
+        double dBoxRight = 0;
+        double dBoxUpper = 0;
+        double dBoxLower = 0;
+
+        double dEuDisMin = DBL_MAX;
+        double dEuDisSndMin = DBL_MAX;
+        int nMatch = -1;
+
+        double x, y;
+        if(bPredict == true)
+        {
+            x = aVPredL[i].x;
+            y = aVPredL[i].y;
+
+            //if predicted point is out of the border of the other image, skip searching
+            if(x<0 || x> ImgSzR.x || y<0 || y>ImgSzR.y)
+            {
+                matchIDL.push_back(-1);
+                continue;
+            }
+
+            dBoxLeft  = x - dSearchSpace;
+            dBoxRight = x + dSearchSpace;
+            dBoxUpper = y - dSearchSpace;
+            dBoxLower = y + dSearchSpace;
+        }
+
+        for(j=nStartR; j<nEndR; j++)
+        {
+            if(bPredict == true)
+            {
+                if(aVSiftR[j].x<=dBoxLeft || aVSiftR[j].x>= dBoxRight || aVSiftR[j].y<= dBoxUpper || aVSiftR[j].y>= dBoxLower)
+                {
+                    nSkiped++;
+                    continue;
+                }
+            }
+            if(bCheckScale == true)
+            {
+                /*
+                double dScaleDif = fabs(aVSiftR[j].scale/aVSiftL[i].scale - dScale);
+                if(dScaleDif > threshScale)
+                    continue;
+                    */
+                double dScaleRatio = aVSiftR[j].scale/aVSiftL[i].scale;
+                if((dScaleRatio < dScale*(1-threshScale)) || (dScaleRatio > dScale*(1+threshScale)))
+                    continue;
+                //printf("%.2lf ", dScaleRatio);
+            }
+            if(bCheckAngle == true)
+            {
+                /*
+                double dAngleDif = fabs(aVSiftR[j].angle-aVSiftL[i].angle - dAngle);
+                if((dAngleDif > threshAngle) && (dAngleDif < d2PI-threshAngle))
+                    continue;
+                    */
+                double dAngleDif = aVSiftR[j].angle-aVSiftL[i].angle;
+                SetAngleToValidRange(dAngleDif, d2PI);
+                if((dAngleDif < dAngle-threshAngle) || (dAngleDif > dAngle+threshAngle))
+                    continue;
+                //printf("[%.2lf] ", dAngleDif);
+            }
+
+            double dDis = 0;
+            for(k=0; k<nSIFT_DESCRIPTOR_SIZE; k++)
+            {
+                double dDif = aVSiftL[i].descriptor[k] - aVSiftR[j].descriptor[k];
+                dDis += pow(dDif, alpha);
+            }
+            dDis = pow(dDis, 1.0/alpha);
+
+            //save master and secondary nearest neigbor
+            if(dDis < dEuDisMin)
+            {
+                dEuDisMin = dDis;
+                nMatch = j;
+                if(dEuDisMin > dEuDisSndMin)
+                {
+                    dEuDisSndMin = dEuDisMin;
+                }
+            }
+            else if(dDis < dEuDisSndMin)
+            {
+                dEuDisSndMin = dDis;
+            }
+        }
+
+        if(bRatioT == true && dEuDisMin/dEuDisSndMin > 0.8)
+            nMatch = -1;
+        matchIDL.push_back(nMatch);
+        if(nMatch != -1)
+            nMatches++;
+        //cout<<i<<" "<<nMatch<<endl;
+    }
+    std::time_t t2 = std::time(nullptr);
+    std::cout << std::put_time(std::localtime(&t2), "%Y-%m-%d %H:%M:%S") << std::endl;
+    return nMatches;
+}
+
+void MutualNearestNeighbor(bool bMutualNN, std::vector<int> matchIDL, std::vector<int> matchIDR, std::vector<Pt2di> & match)
+{
+    int nStartL = 0;
+    int nStartR = 0;
+    int nEndL = matchIDL.size();
+    int nEndR = matchIDR.size();
+
+    int i, j;
+    if (bMutualNN == true){
+        printf("Mutual nearest neighbor applied.\n");
+        for(i=nStartL; i<nEndL; i++)
+        {
+            j = matchIDL[i-nStartL];
+
+            if(j-nStartR < 0 || j-nStartR >= nEndR)
+                 continue;
+            if(matchIDR[j-nStartR] == i)
+            {
+                    Pt2di mPair = Pt2di(i, j);
+                    match.push_back(mPair);
+            }
+        }
+    }
+    else
+    {
+        printf("Mutual nearest neighbor NOT applied.\n");
+        for(i=nStartL; i<nEndL; i++)
+        {
+            j = matchIDL[i-nStartL];
+            if(j-nStartR < 0 || j-nStartR >= nEndR)
+                 continue;
+            Pt2di mPair = Pt2di(i, j);
+            match.push_back(mPair);
+
+            //if the current pair is not mutual, save the other pair
+            int nMatch4j = matchIDR[j-nStartR];
+            if(nMatch4j != i && nMatch4j >= nStartL && nMatch4j-nStartL<nEndL)
+            {
+                Pt2di mPair = Pt2di(i, j);
+                match.push_back(mPair);
+            }
+        }
+    }
+}
+
+void ScaleKeyPt(std::vector<Siftator::SiftPoint>& aVSIFTPt, double dScale)
+{
+    int nSizeL = aVSIFTPt.size();
+
+    for(int i=0; i<nSizeL; i++)
+    {
+        aVSIFTPt[i].x *= dScale;
+        aVSIFTPt[i].y *= dScale;
+        aVSIFTPt[i].scale *= dScale;
+    }
 }
 
 /*

@@ -59,34 +59,56 @@ int Get3DCoors(ElPackHomologue aPackFull, bool bReverse, std::string aDSMDirL, s
     return nTiePtNum;
 }
 
-void CalcDiff(std::vector<Pt3dr> Pt3dL, std::vector<Pt3dr> Pt3dR, std::vector<bool> vecPreciseL, std::vector<bool> vecPreciseR, std::string aNameSave)
+void CalcDiff(std::vector<Pt3dr> Pt3dL, std::vector<Pt3dr> Pt3dR, std::vector<bool> vecPreciseL, std::vector<bool> vecPreciseR, std::string aNameSave, double dThres)
 {
     Pt3dr Pt3dDiff;
     double dNorm;
+    double dNormAve=0;
     double dNormMax = 0;
     int nIDNormMax = 0;
     Pt3dr Pt3dDiffMax = Pt3dr(0,0,0);
+    double dNormMin = DBL_MAX;
+    int nIDNormMin = 0;
+    Pt3dr Pt3dDiffMin = Pt3dr(0,0,0);
+    int nOutlier = 0;
+    int nTotalPt = Pt3dL.size();
 
     FILE * fpOutput = fopen((aNameSave).c_str(), "w");
     fprintf(fpOutput, "PtID x y z Norm bPreciseL bPreciseR\n");
-    for(unsigned int i=0; i<Pt3dL.size(); i++)
+    for(int i=0; i<nTotalPt; i++)
     {
         Pt3dDiff = Pt3dL[i] - Pt3dR[i];
         dNorm = pow((pow(Pt3dDiff.x,2) + pow(Pt3dDiff.y,2) + pow(Pt3dDiff.z,2)), 0.5);
+        dNormAve += dNorm;
         if(dNorm > dNormMax){
             dNormMax = dNorm;
             nIDNormMax = int(i);
             Pt3dDiffMax = Pt3dDiff;
         }
+        if(dNorm < dNormMin){
+            dNormMin = dNorm;
+            nIDNormMin = int(i);
+            Pt3dDiffMin = Pt3dDiff;
+        }
 
-        fprintf(fpOutput, "%d %lf %lf %lf %lf %d %d\n", i, Pt3dDiff.x, Pt3dDiff.y, Pt3dDiff.z, dNorm, int(vecPreciseL[i]), int(vecPreciseR[i]));
+        fprintf(fpOutput, "%d %lf %lf %lf %lf %d %d", i, Pt3dDiff.x, Pt3dDiff.y, Pt3dDiff.z, dNorm, int(vecPreciseL[i]), int(vecPreciseR[i]));
+        if(dNorm > dThres){
+            nOutlier++;
+            fprintf(fpOutput, "  *Outlier*");
+        }
+        fprintf(fpOutput, "\n");
     }
+    dNormAve = dNormAve*1.0/nTotalPt;
+    fprintf(fpOutput, "------------------------------------------------\n");
+    fprintf(fpOutput, "Total tie point: %d;  Outlier: %d;  Inlier: %d\n", nTotalPt, nOutlier, nTotalPt-nOutlier);
+    fprintf(fpOutput, "NormAve: %lf\n", dNormAve);
+    fprintf(fpOutput, "NormMin: %d %lf %lf %lf %lf\n", nIDNormMin, Pt3dDiffMin.x, Pt3dDiffMin.y, Pt3dDiffMin.z, dNormMin);
     fprintf(fpOutput, "NormMax: %d %lf %lf %lf %lf", nIDNormMax, Pt3dDiffMax.x, Pt3dDiffMax.y, Pt3dDiffMax.z, dNormMax);
     fclose(fpOutput);
 }
 
 //void VisuTiePtIn3D(std::string input_dir, std::string output_dir, std::string inSH, std::string outSH, std::string aSubPatchXml, bool bPrint)
-void VisuTiePtIn3D(std::string aDir, std::string aImgList1, std::string aImgList2, std::string aInSH, std::string aOri1, std::string aOri2, std::string aDSMDirL, std::string aDSMDirR, std::string aDSMFileL, std::string aDSMFileR, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, std::string aNameSave, cInterfChantierNameManipulateur * aICNM, bool bPrint, double aThres, bool bSaveDif)
+void VisuTiePtIn3D(std::string aDir, std::string aImgList1, std::string aImgList2, std::string aInSH, std::string aOri1, std::string aOri2, std::string aDSMDirL, std::string aDSMDirR, std::string aDSMFileL, std::string aDSMFileR, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, std::string aNameSave, cInterfChantierNameManipulateur * aICNM, bool bPrint, double aThres, bool bSaveDif, double dThres)
 {
     std::vector<string> vImgList1;
     std::vector<string> vImgList2;    
@@ -168,7 +190,7 @@ void VisuTiePtIn3D(std::string aDir, std::string aImgList1, std::string aImgList
 
     if(bSaveDif){
         std::string aNameSaveDif = StdPrefix(aNameSave) + "_Diff." + StdPostfix(aNameSave);
-        CalcDiff(Pt3dL, Pt3dR, vecPreciseL, vecPreciseR, aNameSaveDif);
+        CalcDiff(Pt3dL, Pt3dR, vecPreciseL, vecPreciseR, aNameSaveDif, dThres);
         cout<<"Tie points difference saved in "<<aNameSaveDif<<endl;
     }
 }
@@ -201,7 +223,7 @@ int VisuTiePtIn3D_main(int argc,char ** argv)
    std::string aPara3DHR = "";
 
    bool bSaveDif = true;
-
+   double dThres = 10;
    ElInitArgMain
     (
         argc,argv,
@@ -222,6 +244,7 @@ int VisuTiePtIn3D_main(int argc,char ** argv)
                << EAM(aPara3DHL, "Para3DHL", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation for points in master images, Def=none")
                << EAM(aPara3DHR, "Para3DHR", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation for points in secondary images, Def=none")
                << EAM(bSaveDif, "SaveDif", false, "Save the difference of the 3D points in master and secondary images, Def=true")
+               << EAM(dThres,"Th",true,"Threshold to define outlier (correspondence projected to DSM with coordinate difference larger than this value would be labelled as outlier), Def=10")
      );
 
    if(aNameSave.length() == 0)
@@ -234,7 +257,7 @@ int VisuTiePtIn3D_main(int argc,char ** argv)
    cTransform3DHelmert aTrans3DHR(aPara3DHR);
 
    //cout<<aDir<<",,,"<<aCAS3D.mHomoXml<<endl;
-   VisuTiePtIn3D(aCAS3D.mDir, aImgList1, aImgList2, aInSH, aOri1, aOri2, aDSMDirL, aDSMDirR, aDSMFileL, aDSMFileR, aTrans3DHL, aTrans3DHR, aNameSave, aCAS3D.mICNM, aCAS3D.mPrint, aThres, bSaveDif);
+   VisuTiePtIn3D(aCAS3D.mDir, aImgList1, aImgList2, aInSH, aOri1, aOri2, aDSMDirL, aDSMDirR, aDSMFileL, aDSMFileR, aTrans3DHL, aTrans3DHR, aNameSave, aCAS3D.mICNM, aCAS3D.mPrint, aThres, bSaveDif, dThres);
 
    return EXIT_SUCCESS;
 }

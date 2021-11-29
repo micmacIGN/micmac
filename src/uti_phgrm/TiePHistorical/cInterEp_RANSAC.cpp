@@ -57,17 +57,16 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
         }
         ElPackHomologue aPackFull =  ElPackHomologue::FromFile(aNameIn);
 
-    std::string aDir_outSH = input_dir + "/Homol" + outSH+"/";
-    ELISE_fp::MkDir(aDir_outSH);
-    aDir_outSH = aDir_outSH + "Pastis" + aImg1;
-    ELISE_fp::MkDir(aDir_outSH);
-    std::string aNameOut = aDir_outSH + "/"+aImg2+".txt";
-
+    /*
     if (bCheckFile == true && ELISE_fp::exist_file(aNameOut) == true)
     {
         cout<<aNameOut<<" already exist, hence skipped"<<endl;
         return;
     }
+    */
+        if(IsHomolFileExist(input_dir, aImg1, aImg2, outSH, bCheckFile) == true)
+            return;
+
     std::vector<Pt3dr> aV1;
     std::vector<Pt3dr> aV2;
     std::vector<Pt2dr> a2dV1;
@@ -234,6 +233,12 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
         inlierCur.clear();
     }
 
+    /*
+    std::string aDir_outSH = input_dir + "/Homol" + outSH+"/";
+    ELISE_fp::MkDir(aDir_outSH);
+    aDir_outSH = aDir_outSH + "Pastis" + aImg1;
+    ELISE_fp::MkDir(aDir_outSH);
+    std::string aNameOut = aDir_outSH + "/"+aImg2+".txt";
     FILE * fpOutput = fopen(aNameOut.c_str(), "w");
     for (unsigned int i=0; i<inlierFinal.size(); i++)
     {
@@ -244,6 +249,8 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
        fprintf(fpOutput, "%lf %lf %lf %lf\n",p1.x,p1.y,p2.x,p2.y);
     }
     fclose(fpOutput);
+    */
+    SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierFinal);
 
     std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
     std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
@@ -279,6 +286,16 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
 
     int i, j;
     int nPtNum = aV1.size();
+    int nMinPt = 5;
+
+    cout<<"Input tie point number: "<<nPtNum;
+    printf(";  iteration number: %d; thresh: %lf\n", aNbTir, thresh);
+
+    if(nPtNum<nMinPt)
+    {
+        printf("Input tie point number (%d) is less than %d, hence skipped.\n", nPtNum, nMinPt);
+        return;
+    }
 
     int nMaxInlier = 0;
     srand((int)time(0));
@@ -358,6 +375,8 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
     printf("%s\n%s\n", aCom.c_str(), aComInv.c_str());
 
     /****************Save points****************/
+    SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierFinal);
+    /*
     std::string aDir_outSH = input_dir + "/Homol" + outSH+"/";
     ELISE_fp::MkDir(aDir_outSH);
     aDir_outSH = aDir_outSH + "Pastis" + aImg1;
@@ -375,6 +394,7 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
        fprintf(fpOutput, "%lf %lf %lf %lf\n",p1.x,p1.y,p2.x,p2.y);
     }
     fclose(fpOutput);
+    */
 
     /*
     //ElSimilitude aSim = SimilRobustInit(aPackFull,aPropRan,aNbTir);
