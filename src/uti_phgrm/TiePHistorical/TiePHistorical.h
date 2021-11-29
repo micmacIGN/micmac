@@ -299,6 +299,7 @@ class cGet3Dcoor
 private:
         cBasicGeomCap3D * mCam1;
         bool         bDSM;
+        double mZ;
         /*Pt2di        mDSMSz;
         cFileOriMnt  mFOM;
         Pt2dr mOriPlani;
@@ -322,8 +323,6 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
 
     private:
         std::string GetImage_Profondeur(std::string aDSMDir, std::string aDSMFile);
-        std::string StdCom(const std::string & aCom,const std::string & aPost="", bool aExe=false);
-        int GetTiePtNum(std::string aDir, std::string aImg1, std::string aImg2, std::string aSH);
         int GetOverlappedImgPair(std::string aName, std::vector<std::string>& aResL, std::vector<std::string>& aResR);
         std::string GetImgList(std::string aDir, std::string aFileName, bool bExe);
 
@@ -366,6 +365,8 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
         double mScaleL;
         double mScaleR;
 
+        double mReprojTh;
+
         bool                              mExe;
         bool                              mUseDepth;
         bool                              mCheckFile;
@@ -394,6 +395,8 @@ void GetBoundingBox(Pt3dr* ptTerrCorner, int nLen, Pt3dr& minPt, Pt3dr& maxPt);
 bool CheckRange(int nMin, int nMax, double & value);
 std::string GetScaledImgName(std::string aImgName, Pt2di ImgSz, double dScale);
 void ExtractSIFT(std::string aImgName, std::string aDir, double dScale=1);
+int GetTiePtNum(std::string aDir, std::string aImg1, std::string aImg2, std::string aSH);
+std::string StdCom(const std::string & aCom,const std::string & aPost="", bool aExe=false);
 
 /****************************************/
 /****** cInterEp_RoughCoReg ******/
