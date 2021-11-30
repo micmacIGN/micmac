@@ -114,14 +114,16 @@ class cCommonAppliTiepHistorical
         std::string                       mMergeTiePtOutSH;
         std::string                       mHomoXml;
 
-        /* Parameters for RANSAC */       
+        /* Parameters for 2DRANSAC */
         std::string                       mR2DInSH;
         std::string                       mR2DOutSH;
+        int                               mR2DIteration;
+        double                            mR2DThreshold;
+
+        /* Parameters for 3DRANSAC */
         std::string                       mR3DInSH;
         std::string                       mR3DOutSH;
         int                               mR3DIteration;
-        int                               mR2DIteration;
-        double                            mR2DThreshold;
         double                            mR3DThreshold;
         int                               mMinPt;
 //        std::string                       mDSMFileL;
@@ -180,6 +182,7 @@ class cCommonAppliTiepHistorical
         std::string ComParamSuperGlue();
         std::string ComParamMergeTiePt();
         std::string ComParamRANSAC2D();
+        std::string ComParamRANSAC3D();
         std::string ComParamCreateGCPs();
         std::string ComParamGetOverlappedImages();
         std::string ComParamGuidedSIFTMatch();

@@ -947,6 +947,7 @@ extern int EnhancedSpG_main(int argc, char ** argv);
 extern int SIFT2Step_main(int argc, char ** argv);
 extern int SIFT2StepFile_main(int argc, char ** argv);
 //extern int D2NetMatch_main(int argc, char ** argv);
+extern int Calc2DSimi_main(int argc, char ** argv);
 
 
 extern int ReechHomol_main(int argc, char ** argv);
@@ -1028,6 +1029,7 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("SIFT2Step", SIFT2Step_main, "Match an image pair by firstly applying SIFT on downsampled images without ratio test to estimate a similarity transformation, then applying SIFT on original images under guidance of the transformation"));
         aRes.push_back(cMMCom("SIFT2StepFile", SIFT2StepFile_main, "Input a xml file that contains all the image pairs to be matched, and match match with SIFT2Step method"));
         //aRes.push_back(cMMCom("D2NetMatch", D2NetMatch_main, "Input D2Net feature files \"img.d2-net\" and match them with mutual neareat neighbor"));
+        aRes.push_back(cMMCom("Calc2DSimi", Calc2DSimi_main, "Input tie point file to calculate a 2D similarity transformation between them and out the parameter file"));
 
 
 		aRes.push_back(cMMCom("Script",CPP_YannScript, "Fonction de script pour les tests "));		

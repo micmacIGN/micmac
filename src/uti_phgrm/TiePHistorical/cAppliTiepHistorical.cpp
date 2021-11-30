@@ -396,6 +396,16 @@ std::string cCommonAppliTiepHistorical::ComParamRANSAC2D()
     return aCom;
 }
 
+std::string cCommonAppliTiepHistorical::ComParamRANSAC3D()
+{
+    std::string aCom = "";
+    if (EAMIsInit(&mR3DIteration))   aCom +=  " 3DIter=" + ToString(mR3DIteration);
+    if (EAMIsInit(&mR3DThreshold))   aCom +=  " 3DRANTh=" + ToString(mR3DThreshold);
+    if (EAMIsInit(&mMinPt))   aCom +=  " MinPt=" + ToString(mMinPt);
+
+    return aCom;
+}
+
 std::string cCommonAppliTiepHistorical::ComParamCreateGCPs()
 {
     std::string aCom = "";
@@ -898,11 +908,16 @@ void cAppliTiepHistoricalPipeline::DoAll()
         std::string aImg1 = aOverlappedImgL[i];
         std::string aImg2 = aOverlappedImgR[i];
 
-        aCom = "";
-        aCom +=  " DSMDirL=" + mDSMDirL;
-        aCom +=  " DSMDirR=" + mDSMDirR;
+        aCom = mCAS3D.ComParamRANSAC3D();
+        /*
         if (EAMIsInit(&mDSMFileL))   aCom +=  " DSMFileL=" + mDSMFileL;
         if (EAMIsInit(&mDSMFileR))   aCom +=  " DSMFileR=" + mDSMFileR;
+        if (EAMIsInit(&mCAS3D.mR3DIteration))   aCom +=  " 3DIter=" + ToString(mCAS3D.mR3DIteration);
+        if (EAMIsInit(&mCAS3D.mR3DThreshold))   aCom +=  " 3DRANTh=" + ToString(mCAS3D.mR3DThreshold);
+        if (EAMIsInit(&mCAS3D.mMinPt))   aCom +=  " MinPt=" + ToString(mCAS3D.mMinPt);
+        */
+        aCom +=  " DSMDirL=" + mDSMDirL;
+        aCom +=  " DSMDirR=" + mDSMDirR;
         if (EAMIsInit(&mCAS3D.mR3DInSH))
             aRANSACInSH = mCAS3D.mR3DInSH;
         if (EAMIsInit(&mCAS3D.mR3DOutSH))
@@ -911,18 +926,6 @@ void cAppliTiepHistoricalPipeline::DoAll()
             aCrossCorrInSH = aRANSACInSH+"-3DRANSAC";
         aCom +=  " 3DRANInSH=" + aRANSACInSH;
         aCom +=  " 3DRANOutSH=" + aCrossCorrInSH;
-        /*
-        if (!EAMIsInit(&mCAS3D.mR3DInSH)){
-            aCom +=  " 3DRANInSH=" + aRANSACInSH;
-            aCrossCorrInSH = aRANSACInSH+"-3DRANSAC";
-        }
-        else                                    aCom += " 3DRANInSH=" + mCAS3D.mR3DInSH;
-        if (!EAMIsInit(&mCAS3D.mR3DOutSH))   aCom +=  " 3DRANOutSH=" + aCrossCorrInSH;
-        else                                    aCom += " 3DRANOutSH=" + mCAS3D.mR3DOutSH;
-        */
-        if (EAMIsInit(&mCAS3D.mR3DIteration))   aCom +=  " 3DIter=" + ToString(mCAS3D.mR3DIteration);
-        if (EAMIsInit(&mCAS3D.mR3DThreshold))   aCom +=  " 3DRANTh=" + ToString(mCAS3D.mR3DThreshold);
-        if (EAMIsInit(&mCAS3D.mMinPt))   aCom +=  " MinPt=" + ToString(mCAS3D.mMinPt);
         //aCom +=  " Para3DHL=Basc-"+aOri1+"-2-"+aOri2+".xml";
         aCom +=  "  CheckFile=" + ToString(mCheckFile);
         aComSingle = StdCom("TestLib RANSAC R3D", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + "Dir=" + mCAS3D.mDir + BLANK + aCom, aExe);
@@ -1762,14 +1765,31 @@ void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, st
     FILE * fpTiePt1 = fopen(aNameFile1.c_str(), "w");
     FILE * fpTiePt2 = fopen(aNameFile2.c_str(), "w");
 
+    bool bTiePt1 = true;
+    bool bTiePt2 = true;
+
+    if (NULL == fpTiePt1)
+    {
+        cout<<"Open file "<<aNameFile1<<" failed"<<endl;
+        bTiePt1 = false;
+    }
+    if (NULL == fpTiePt2)
+    {
+        cout<<"Open file "<<aNameFile2<<" failed"<<endl;
+        bTiePt2 = false;
+    }
+
     for (unsigned int i=0; i<aPack.size(); i++)
     {
         ElCplePtsHomologues cple = aPack[i];
         Pt2dr aP1 = cple.P1();
         Pt2dr aP2 = cple.P2();
-        fprintf(fpTiePt1, "%lf %lf %lf %lf\n", aP1.x, aP1.y, aP2.x, aP2.y);
-        fprintf(fpTiePt2, "%lf %lf %lf %lf\n", aP2.x, aP2.y, aP1.x, aP1.y);
+        if(bTiePt1)
+            fprintf(fpTiePt1, "%lf %lf %lf %lf\n", aP1.x, aP1.y, aP2.x, aP2.y);
+        if(bTiePt2)
+            fprintf(fpTiePt2, "%lf %lf %lf %lf\n", aP2.x, aP2.y, aP1.x, aP1.y);
     }
+
     fclose(fpTiePt1);
     fclose(fpTiePt2);
 }

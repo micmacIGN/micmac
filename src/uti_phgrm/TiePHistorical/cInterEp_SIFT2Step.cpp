@@ -77,7 +77,7 @@ termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
 
-ElSimilitude EstimateHomography(std::string aDir, std::string aImg1, std::string aImg2, std::string outSH, double dScale, bool bCheckFile, double dScaleL, double dScaleR, double aR2DThreshold, std::vector<Siftator::SiftPoint> aVSiftOriL, std::vector<Siftator::SiftPoint> aVSiftOriR, bool bPrint)
+ElSimilitude EstimateHomography(std::string aDir, std::string aImg1, std::string aImg2, std::string outSH, double dScale, bool bCheckFile, double dScaleL, double dScaleR, double aR2DThreshold, double aR2dIter, std::vector<Siftator::SiftPoint> aVSiftOriL, std::vector<Siftator::SiftPoint> aVSiftOriR, bool bPrint)
 {
     if(IsHomolFileExist(aDir, aImg1, aImg2, outSH+"-Rough", bCheckFile) == false)
     {
@@ -103,7 +103,7 @@ ElSimilitude EstimateHomography(std::string aDir, std::string aImg1, std::string
 
     if(IsHomolFileExist(aDir, aImg1, aImg2, CurSH+"-2DRANSAC", bCheckFile) == false)
     {
-        aComm = MMBinFile(MM3DStr) + "TestLib RANSAC R2D " + aImg1 + BLANK + aImg2 + BLANK + "2DRANInSH="+CurSH + BLANK + "2DRANTh="+ToString(aR2DThreshold);
+        aComm = MMBinFile(MM3DStr) + "TestLib RANSAC R2D " + aImg1 + BLANK + aImg2 + " 2DRANInSH="+CurSH + " 2DRANTh="+ToString(aR2DThreshold) + " 2DIter="+ToString(aR2dIter);
         cout<<aComm<<endl;
         System(aComm);
     }
@@ -170,7 +170,7 @@ ElSimilitude ReverseSimi(ElSimilitude aSimCur)
     return aSimRev;
 }
 */
-void SIFT2Step(std::string aDir, std::string aImg1, std::string aImg2, std::string outSH, double dScale, bool bCheckFile, double dScaleL, double dScaleR, double aR2DThreshold, ElSimilitude aSimCur, bool bSimi, double dSearchSpace, bool bPrint,  bool aCheckScale, bool aCheckAngle, double aThreshScale, double aThreshAngle)
+void SIFT2Step(std::string aDir, std::string aImg1, std::string aImg2, std::string outSH, double dScale, bool bCheckFile, double dScaleL, double dScaleR, double aR2DThreshold, double aR2dIter, ElSimilitude aSimCur, bool bSimi, double dSearchSpace, bool bPrint,  bool aCheckScale, bool aCheckAngle, double aThreshScale, double aThreshAngle)
 {
     Tiff_Im aRGBIm1(aImg1.c_str());
     Pt2di ImgSzL = aRGBIm1.sz();
@@ -199,7 +199,7 @@ void SIFT2Step(std::string aDir, std::string aImg1, std::string aImg2, std::stri
     ScaleKeyPt(aVSiftOriR, dScaleR);
 
     if(bSimi == false)
-        aSimCur = EstimateHomography(aDir, aImg1, aImg2, outSH, dScale, bCheckFile, dScaleL, dScaleR, aR2DThreshold, aVSiftOriL, aVSiftOriR, bPrint);
+        aSimCur = EstimateHomography(aDir, aImg1, aImg2, outSH, dScale, bCheckFile, dScaleL, dScaleR, aR2DThreshold, aR2dIter, aVSiftOriL, aVSiftOriR, bPrint);
 
     if(IsHomolFileExist(aDir, aImg1, aImg2, outSH, bCheckFile) == false)
     {
@@ -234,15 +234,6 @@ void SIFT2Step(std::string aDir, std::string aImg1, std::string aImg2, std::stri
     std::string aComInv = "mm3d SEL" + BLANK + aDir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
     printf("%s\n%s\n", aCom.c_str(), aComInv.c_str());
     }
-
-    if(IsHomolFileExist(aDir, aImg1, aImg2, outSH+"-2DRANSAC", bCheckFile) == false)
-    {
-        std::string CurSH = outSH;
-        std::string aComm;
-        aComm = MMBinFile(MM3DStr) + "TestLib RANSAC R2D " + aImg1 + BLANK + aImg2 + BLANK + "2DRANInSH="+CurSH + BLANK + "2DRANTh="+ToString(aR2DThreshold);
-        cout<<aComm<<endl;
-        System(aComm);
-    }
 }
 
 ElSimilitude ReadSimi(std::string aDir, std::string aFile, bool& bSimi)
@@ -275,6 +266,7 @@ int SIFT2Step_main(int argc,char ** argv)
    bool bCheckFile = false;
    double dScaleL = 1;
    double dScaleR = 1;
+   double aR2dIter = 1000;
    double aR2DThreshold = 30;
    std::string aSimiFile = "";
    double dSearchSpace = 100;
@@ -282,6 +274,17 @@ int SIFT2Step_main(int argc,char ** argv)
    bool   aCheckAngle = true;
    double aThreshScale = 0.2;
    double aThreshAngle = 30;
+
+   std::string aOri1= "";
+   std::string aOri2 = "";
+
+   std::string aDSMDirL = "";
+   std::string aDSMDirR = "";
+   std::string aDSMFileL;
+   std::string aDSMFileR;
+
+   aDSMFileL = "MMLastNuage.xml";
+   aDSMFileR = "MMLastNuage.xml";
 
    ElInitArgMain
     (
@@ -295,14 +298,31 @@ int SIFT2Step_main(int argc,char ** argv)
                << EAM(bCheckFile, "CheckFile", true, "Check if the result files of correspondences exist (if so, skip to avoid repetition), Def=false")
                << EAM(dScaleL, "ScaleL", true, "Extract SIFT points on master images downsampled with a factor of \"ScaleL\", Def=1")
                << EAM(dScaleR, "ScaleR", true, "Extract SIFT points on secondary images downsampled with a factor of \"ScaleR\", Def=1")
-               << EAM(aR2DThreshold,"2DRANTh",true,"2D RANSAC threshold, Def=30")
+               << EAM(aR2DThreshold,"2DRANTh",true,"2D RANSAC threshold for the first step, Def=30")
+               << EAM(aR2dIter,"2DIter",true,"2D RANSAC iteration for the first step, Def=1000")
                << EAM(aSimiFile,"SimiFile",true,"input file that records the similarity transformation, Def=none")
                << EAM(dSearchSpace,"SearchSpace",true,"Radius of the search space for SIFT2Step (the search space is the circle with the center on the predicted point), Def=100")
                << EAM(aCheckScale, "CheckScale",true, "Check the scale of the candidate tie points on SIFT, Def=true")
                << EAM(aCheckAngle, "CheckAngle",true, "Check the angle of the candidate tie points on SIFT, Def=true")
                << EAM(aThreshScale, "ScaleTh",true, "The threshold for checking scale ratio, Def=0.2; (0.2 means the ratio of master and secondary SIFT scale between [(1-0.2)*Ref, (1+0.2)*Ref] is considered valide.)")
                << EAM(aThreshAngle, "AngleTh",true, "The threshold for checking angle difference, Def=30; (30 means the difference of master and secondary SIFT angle between [Ref - 30 degree, Ref + 30 degree] is considered valide.)")
+
+               << aCAS3D.Arg2DRANSAC()
+
+               << EAM(aOri1, "OriL", true, "Orientation of master image (for applying 3D RANSAC. 2D RANSAC would be applied instead if this parameter is empty), Def=none")
+               << EAM(aOri2, "OriR", true, "Orientation of secondary image (for applying 3D RANSAC. 2D RANSAC would be applied instead if this parameter is empty), Def=none")
+               << EAM(aDSMDirL, "DSMDirL", true, "DSM directory of master image (for applying 3D RANSAC. 2D RANSAC would be applied instead if this parameter is empty), Def=none")
+               << EAM(aDSMDirR, "DSMDirR", true, "DSM directory of secondary image (for applying 3D RANSAC. 2D RANSAC would be applied instead if this parameter is empty), Def=none")
+               << EAM(aDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
+               << EAM(aDSMFileR, "DSMFileR", true, "DSM File of secondary image, Def=MMLastNuage.xml")
+               << aCAS3D.Arg3DRANSAC()
                );
+
+   bool bR3D = true;
+   if(aOri1.length()==0 && aOri2.length()==0 && aDSMDirL.length()==0 && aDSMDirR.length()==0)
+   {
+       bR3D = false;
+   }
 
        if (ELISE_fp::exist_file(aImg1) == false || ELISE_fp::exist_file(aImg2) == false)
        {
@@ -319,7 +339,44 @@ int SIFT2Step_main(int argc,char ** argv)
        else
            aSimCur = ReadSimi(aCAS3D.mDir, aSimiFile, bSimi);//aSimiVec[i];
 
-       SIFT2Step(aCAS3D.mDir, aImg1, aImg2, aOutSH, dScale, bCheckFile, dScaleL, dScaleR, aR2DThreshold, aSimCur, bSimi, dSearchSpace, aCAS3D.mPrint, aCheckScale, aCheckAngle, aThreshScale, aThreshAngle);
+       SIFT2Step(aCAS3D.mDir, aImg1, aImg2, aOutSH, dScale, bCheckFile, dScaleL, dScaleR, aR2DThreshold, aR2dIter, aSimCur, bSimi, dSearchSpace, aCAS3D.mPrint, aCheckScale, aCheckAngle, aThreshScale, aThreshAngle);
+
+       std::string aDir = aCAS3D.mDir;
+       if(bR3D == false)
+       {
+           if(IsHomolFileExist(aDir, aImg1, aImg2, aOutSH+"-2DRANSAC", bCheckFile) == false)
+           {
+               std::string aOptPara=aCAS3D.ComParamRANSAC2D();
+/*               if (EAMIsInit(&aCAS3D.mR2DInSH))            aOptPara += " Scale=" + ToString(dScale);
+               if (EAMIsInit(&aCAS3D.mR2DOutSH))            aOptPara += " Scale=" + ToString(dScale);
+               if (EAMIsInit(&aCAS3D.))            aOptPara += " Scale=" + ToString(dScale);
+               if (EAMIsInit(&aCAS3D.))            aOptPara += " Scale=" + ToString(dScale);
+               if (EAMIsInit(&aCAS3D.))            aOptPara += " Scale=" + ToString(dScale);
+               if (EAMIsInit(&aCAS3D.))            aOptPara += " Scale=" + ToString(dScale);
+*/
+               std::string CurSH = aOutSH;
+               std::string aComm;
+               aComm = MMBinFile(MM3DStr) + "TestLib RANSAC R2D " + aImg1 + BLANK + aImg2 + BLANK + "2DRANInSH="+CurSH + aOptPara;
+               cout<<aComm<<endl;
+               System(aComm);
+           }
+       }
+       else {
+           if(IsHomolFileExist(aDir, aImg1, aImg2, aOutSH+"-3DRANSAC", bCheckFile) == false)
+           {
+               std::string aOptPara=aCAS3D.ComParamRANSAC3D();
+               std::string CurSH = aOutSH;
+               aOptPara +=  " 3DRANInSH=" + CurSH;
+               aOptPara +=  " 3DRANOutSH=" + CurSH+"-3DRANSAC";
+               aOptPara +=  " DSMDirL=" + aDSMDirL;
+               aOptPara +=  " DSMDirR=" + aDSMDirR ;
+
+               std::string aComm;
+               aComm = MMBinFile(MM3DStr) + "TestLib RANSAC R3D " + aImg1 + BLANK + aImg2 + BLANK + aOri1 + BLANK + aOri2 + aOptPara;
+               cout<<aComm<<endl;
+               System(aComm);
+           }
+       }
 
    return EXIT_SUCCESS;
 }
@@ -335,11 +392,23 @@ int SIFT2StepFile_main(int argc,char ** argv)
    double dScaleL = 1;
    double dScaleR = 1;
    double aR2DThreshold = 30;
+   double aR2dIter = 1000;
    double dSearchSpace = 100;
    bool   aCheckScale = true;
    bool   aCheckAngle = true;
    double aThreshScale = 0.2;
    double aThreshAngle = 30;
+
+   std::string aOri1 = "";
+   std::string aOri2 = "";
+
+   std::string aDSMDirL = "";
+   std::string aDSMDirR = "";
+   std::string aDSMFileL;
+   std::string aDSMFileR;
+
+   aDSMFileL = "MMLastNuage.xml";
+   aDSMFileR = "MMLastNuage.xml";
 
    ElInitArgMain
     (
@@ -353,12 +422,23 @@ int SIFT2StepFile_main(int argc,char ** argv)
                << EAM(dScaleL, "ScaleL", true, "Extract SIFT points on master images downsampled with a factor of \"ScaleL\", Def=1")
                << EAM(dScaleR, "ScaleR", true, "Extract SIFT points on secondary images downsampled with a factor of \"ScaleR\", Def=1")
                << EAM(aR2DThreshold,"2DRANTh",true,"2D RANSAC threshold, Def=30")
+               << EAM(aR2dIter,"2DIter",true,"2D RANSAC iteration for the first step, Def=1000")
                << EAM(dSearchSpace,"SearchSpace",true,"Radius of the search space for SIFT2Step (the search space is the circle with the center on the predicted point), Def=100")
                << EAM(aCheckScale, "CheckScale",true, "Check the scale of the candidate tie points on SIFT, Def=true")
                << EAM(aCheckAngle, "CheckAngle",true, "Check the angle of the candidate tie points on SIFT, Def=true")
                << EAM(aThreshScale, "ScaleTh",true, "The threshold for checking scale ratio, Def=0.2; (0.2 means the ratio of master and secondary SIFT scale between [(1-0.2)*Ref, (1+0.2)*Ref] is considered valide.)")
                << EAM(aThreshAngle, "AngleTh",true, "The threshold for checking angle difference, Def=30; (30 means the difference of master and secondary SIFT angle between [Ref - 30 degree, Ref + 30 degree] is considered valide.)")
-    );
+
+               << aCAS3D.Arg2DRANSAC()
+
+               << EAM(aOri1, "OriL", true, "Orientation of master image (for applying 3D RANSAC. 2D RANSAC would be applied instead if this parameter is empty), Def=none")
+               << EAM(aOri2, "OriR", true, "Orientation of secondary image (for applying 3D RANSAC. 2D RANSAC would be applied instead if this parameter is empty), Def=none")
+               << EAM(aDSMDirL, "DSMDirL", true, "DSM directory of master image (for applying 3D RANSAC. 2D RANSAC would be applied instead if this parameter is empty), Def=none")
+               << EAM(aDSMDirR, "DSMDirR", true, "DSM directory of secondary image (for applying 3D RANSAC. 2D RANSAC would be applied instead if this parameter is empty), Def=none")
+               << EAM(aDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
+               << EAM(aDSMFileR, "DSMFileR", true, "DSM File of secondary image, Def=MMLastNuage.xml")
+               << aCAS3D.Arg3DRANSAC()
+               );
 
    std::vector<std::string> aOverlappedImgL;
    std::vector<std::string> aOverlappedImgR;
@@ -371,11 +451,19 @@ int SIFT2StepFile_main(int argc,char ** argv)
    if (EAMIsInit(&dScaleL))           aOptPara += " ScaleL=" + ToString(dScaleL);
    if (EAMIsInit(&dScaleR))           aOptPara += " ScaleR=" + ToString(dScaleR);
    if (EAMIsInit(&aR2DThreshold))     aOptPara += " 2DRANTh=" + ToString(aR2DThreshold);
+   if (EAMIsInit(&aR2dIter))          aOptPara += " 2DIter=" + ToString(aR2dIter);
    if (EAMIsInit(&dSearchSpace))      aOptPara += " SearchSpace=" + ToString(dSearchSpace);
    if (EAMIsInit(&aCheckScale))       aOptPara += " CheckScale=" + ToString(aCheckScale);
    if (EAMIsInit(&aCheckAngle))       aOptPara += " CheckAngle=" + ToString(aCheckAngle);
    if (EAMIsInit(&aThreshScale))      aOptPara += " ScaleTh=" + ToString(aThreshScale);
    if (EAMIsInit(&aThreshAngle))      aOptPara += " AngleTh=" + ToString(aThreshAngle);
+
+   if (EAMIsInit(&aOri1))             aOptPara += " OriL=" + aOri1;
+   if (EAMIsInit(&aOri2))             aOptPara += " OriR=" + aOri2;
+   if (EAMIsInit(&aDSMDirL))          aOptPara += " DSMDirL=" + aDSMDirL;
+   if (EAMIsInit(&aDSMDirR))          aOptPara += " DSMDirR=" + aDSMDirR;
+   if (EAMIsInit(&aDSMFileL))         aOptPara += " DSMFileL=" + aDSMFileL;
+   if (EAMIsInit(&aDSMFileR))         aOptPara += " DSMFileR=" + aDSMFileR;
 
    std::list<std::string> aComms;
    for(int i=0; i<nPairNum; i++)
@@ -450,3 +538,92 @@ int D2NetMatch_main(int argc,char ** argv)
    return EXIT_SUCCESS;
 }
 */
+
+
+int ReadTiePt(std::string aDir, std::string aFile, std::vector<Pt2dr>& aPtL, std::vector<Pt2dr>& aPtR)
+{
+    int nPtNum = 0;
+    ifstream in(aDir +"/"+ aFile);
+    if (!in) {
+        cout << "error opening file " << aDir +"/"+ aFile << endl;
+        return nPtNum;
+    }
+
+    std::string s;
+    while(getline(in,s))
+    {
+        double xL, yL, xR, yR;
+        std::stringstream is(s);
+        is>>xL>>yL>>xR>>yR;
+        aPtL.push_back(Pt2dr(xL, yL));
+        aPtR.push_back(Pt2dr(xR, yR));
+        nPtNum++;
+    }
+    return nPtNum;
+}
+
+bool SaveSimi(std::string aDir, std::string aFile, ElSimilitude aSimCur)
+{
+    FILE * fpOutput = fopen((aDir+"/"+aFile).c_str(), "w");
+
+    if (NULL == fpOutput)
+    {
+        cout<<"Open file "<<aDir+"/"+aFile<<" failed"<<endl;
+        return false;
+    }
+
+    Pt2dr tr, sc;
+    tr = aSimCur.tr();
+    sc = aSimCur.sc();
+
+    cout<<"Translation_X, Translation_Y, scale, rotation:"<<endl;
+    printf("%lf  %lf  %lf  %lf\n", tr.x, tr.y, sc.x, sc.y);
+
+
+    fprintf(fpOutput, "Translation_X, Translation_Y, scale, rotation:\n");
+    fprintf(fpOutput, "%lf  %lf  %lf  %lf\n", tr.x, tr.y, sc.x, sc.y);
+
+    return true;
+}
+
+bool Calc2DSimi(std::string aDir, std::string aTiePtFile, std::string aSimiFile)
+{
+    std::vector<Pt2dr> aPtL;
+    std::vector<Pt2dr> aPtR;
+
+    int nPtNum = ReadTiePt(aDir, aTiePtFile, aPtL, aPtR);
+
+    ElPackHomologue aPack;
+    for(int i=0; i<nPtNum; i++)
+    {
+        aPack.Cple_Add(ElCplePtsHomologues(aPtL[i],aPtR[i]));
+    }
+    double aPropRan = 0.8;
+    ElSimilitude aSimCur = SimilRobustInit(aPack,aPropRan,1);
+
+    SaveSimi(aDir, aSimiFile, aSimCur);
+    return true;
+}
+
+int Calc2DSimi_main(int argc,char ** argv)
+{
+   cCommonAppliTiepHistorical aCAS3D;
+
+   std::string aTiePtFile;
+   std::string aSimiFile = "Simi.txt";
+   //bool bRANSAC = false;
+
+   ElInitArgMain
+    (
+        argc,argv,
+               LArgMain() << EAMC(aTiePtFile,"Input tie point file"),
+        LArgMain()
+               << aCAS3D.ArgBasic()
+               << EAM(aSimiFile, "Out",true, "Name of output file that recorded the 2D similarity transformation paramters, Def=Simi.txt")
+               //<< EAM(bRANSAC, "RANSAC",true, "Apply RANSAC to estimate the similarity transformation parameters, Def=false")
+    );
+
+   Calc2DSimi(aCAS3D.mDir, aTiePtFile, aSimiFile);
+
+   return EXIT_SUCCESS;
+}
