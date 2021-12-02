@@ -2418,11 +2418,23 @@ class cScoreLearnedMMVII
         std::string & FileModeleCost();
         const std::string & FileModeleCost()const ;
 
-        double & DynCost();
-        const double & DynCost()const ;
+        cTplValGesInit< double > & CostDyn();
+        const cTplValGesInit< double > & CostDyn()const ;
+
+        cTplValGesInit< double > & CostExp();
+        const cTplValGesInit< double > & CostExp()const ;
+
+        cTplValGesInit< std::string > & Cmp_FileMC();
+        const cTplValGesInit< std::string > & Cmp_FileMC()const ;
+
+        cTplValGesInit< int > & Cmp_NbDisc();
+        const cTplValGesInit< int > & Cmp_NbDisc()const ;
     private:
         std::string mFileModeleCost;
-        double mDynCost;
+        cTplValGesInit< double > mCostDyn;
+        cTplValGesInit< double > mCostExp;
+        cTplValGesInit< std::string > mCmp_FileMC;
+        cTplValGesInit< int > mCmp_NbDisc;
 };
 cElXMLTree * ToXMLTree(const cScoreLearnedMMVII &);
 

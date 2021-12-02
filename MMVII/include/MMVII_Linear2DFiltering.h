@@ -255,14 +255,14 @@ struct cGP_Params
 {
      public :
          /// Appli is usefull for name computation
-         cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,cMMVII_Appli *,bool is4TieP);
+         cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,const cMMVII_Appli *,bool is4TieP);
 
       // Parameters having no def values
          cPt2di mSzIm0;    ///< Sz of Image at full resol
          int  mNbOct;      ///< Number of octave
          int  mNbLevByOct;  ///< Number of level per octave (dont include overlap)
          int  mNbOverlap;   ///< Number of overlap
-         cMMVII_Appli * mAppli; ///< Appli used for names construction
+         const cMMVII_Appli * mAppli; ///< Appli used for names construction
          
          cPt2di       mNumTile; ///< Tile used for computing in small tiles (memory problem) usefull as index for save
          cFilterPCar  mFPC; ///< Not really related to GP, but easier to embed 

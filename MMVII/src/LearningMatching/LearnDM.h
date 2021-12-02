@@ -29,7 +29,7 @@ class cComputeSeparDist
     public :
          cComputeSeparDist();
          void AddPops(double aPopA,double aPopB);
-         double Sep() const;
+         double Sep() const; // Something like mSomSep / mSomP
     private :
          double  mSomSep;  ///<  S(AB/(A+B))
          double  mSomP;    ///<  S(A+B)
@@ -42,9 +42,9 @@ extern bool DEBUG_LM;
 class cAppliLearningMatch : public cMMVII_Appli
 {
     public :
-	int &  NbOct();
-	int &  NbLevByOct();
-	int &  NbOverLapByO();
+	const int &  NbOct() const;
+	const int &  NbLevByOct() const;
+	const int &  NbOverLapByO() const;
         static const int SzMaxStdNeigh() {return 8;}
     protected :
         cAppliLearningMatch(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
@@ -131,7 +131,7 @@ class cPyr1ImLearnMatch : public cMemCheck
                 const cBox2di & aBox,
                 const cBox2di & aBoxOut, // Required by pyram but apparently not used
                 const std::string & aName,
-                cAppliLearningMatch &,
+                const cAppliLearningMatch &,
                 const cFilterPCar&,
                 bool  initRand
           );
@@ -144,13 +144,13 @@ class cPyr1ImLearnMatch : public cMemCheck
 	  cAimePCar   DupLPIm() const;
           // ~cPyr1ImLearnMatch();
       private :
-          cBox2di               mBox;
-          std::string           mNameIm;
-          cAppliLearningMatch & mAppli;
-          cGP_Params            mGP;
-          tSP_Pyr               mPyr;
-          tImFiltred            mImF;
-	  cAimePCar             mPC;
+          cBox2di                     mBox;
+          std::string                 mNameIm;
+          const cAppliLearningMatch & mAppli;
+          cGP_Params                  mGP;
+          tSP_Pyr                     mPyr;
+          tImFiltred                  mImF;
+	  cAimePCar                   mPC;
 };
 
 
@@ -298,6 +298,7 @@ class cHistoCarNDim  : public cMemCheck
        typedef cDataGenDimTypedIm<tDataNd>  tHistND;
        typedef cHistoCumul<tINT4,tREAL8>    tHisto1;
        typedef cDenseVect<tINT4>            tIndex;
+       typedef cDenseVect<tREAL4>           tRIndex;
 
        cHistoCarNDim(int aSzH,const tVecCar &,const cStatAllVecCarac &,bool genVis2DI);
        cHistoCarNDim();  // Used for AddData requiring default cstrc
@@ -305,12 +306,19 @@ class cHistoCarNDim  : public cMemCheck
        ~cHistoCarNDim();  // Used for AddData requiring default cstrc
        void  Add(const cVecCaracMatch &,bool isH0);
        void  Show(cMultipleOfs &,bool WithCr) const;
-       double CarSep() const;
        void AddData(const cAuxAr2007 &);
        const std::string & Name() const;
 
-       double ScoreCr(const cVecCaracMatch &) const;
-       void   UpDateCr(const cVecCaracMatch & aHom,const cVecCaracMatch & aNotHom);
+       /* Score Cr/CarSep  
+	    CarSep : separation between the 2 dist using cComputeSeparDist
+            HomologyLikelihood(V) : Likelihood that a given vector is homolog
+	    UpDateCorrectness(Hom,NHom) : update the the proba that  HomologyLikelihood(Hom) > HomologyLikelihood(NonHom)
+	    Correctness() : global proba of HomologyLikelihood(Hom) > HomologyLikelihood(NonHom)
+	*/
+       double CarSep() const;
+       double Correctness() const;
+       double HomologyLikelihood(const cVecCaracMatch &,bool Interpol) const;
+       void   UpDateCorrectness(const cVecCaracMatch & aHom,const cVecCaracMatch & aNotHom);
        // Generate 4 Visu :
        //     Hom, Non Hom, Score, Pop
        void  GenerateVisu(const std::string & aDir);
@@ -330,7 +338,8 @@ class cHistoCarNDim  : public cMemCheck
        tIndex                    mSz;
        tVecCar                   mVCar;
        mutable tIndex                    mPts;
-       mutable tIndex                    mPtsInit;
+       mutable tIndex                    mPtsInit; // Memorize Pts before Histo Equal, for visualization
+       mutable tRIndex                   mRPts;    // Real Pts
 
        std::vector<const tHisto1*>     mHd1_0;
        tHistND                   mHist0;  // Homolog

@@ -187,6 +187,11 @@ void cAppliMICMAC::DoCostLearnedMMVII(const Box2di & aBox,const cScoreLearnedMMV
                           + " " +  ToString(aBoxIn1)
                           + " " +  ToString(aBoxIn2)
 			  + " " +  aPost;
+
+       if (aCPC.Cmp_FileMC().IsInit())
+       {
+           aCom = aCom + " ModCmp=" +  aCPC.Cmp_FileMC().Val();
+       }
        System(aCom);
        ELISE_fp aFileCube(aNameCube.c_str());
        Pt2di aPLoc;

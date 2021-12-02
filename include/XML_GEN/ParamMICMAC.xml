@@ -1004,8 +1004,11 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                         </MultiCorrelPonctuel>
 
 			<ScoreLearnedMMVII Nb="?" AccessorFils="false">
-                              <FileModeleCost Nb="1" Type="std::string"> </FileModeleCost>
-                              <DynCost        Nb="1" Type="double">      </DynCost>
+                              <FileModeleCost Nb="1" Type="std::string">           </FileModeleCost>
+                              <CostDyn        Nb="?" Type="double" Def="0.3333">   </CostDyn>
+                              <CostExp        Nb="?" Type="double" Def="0.5">      </CostExp>
+                              <Cmp_FileMC     Nb="?" Type="std::string">           </Cmp_FileMC>
+                              <Cmp_NbDisc     Nb="?" Type="int"    Def="200">      </Cmp_NbDisc>
                         </ScoreLearnedMMVII>
 
                         <Correl_Ponctuel2ImGeomI Nb="?" AccessorFils="false">    

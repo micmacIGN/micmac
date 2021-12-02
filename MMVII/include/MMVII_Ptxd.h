@@ -529,7 +529,7 @@ template <class Type,const int Dim>  class cTplBox
         bool IsEmpty() const;
         tBox   Translate(const tPt & aPt)const;
 
-        // tBox Sup(const tBox & aBox)const;
+        tBox Sup(const tBox & aBox) const;
         tBox Inter(const tBox & aBox)const; ///< Intersction handle empty case
         tBox Dilate(const tPt & aPt)const;  ///< Dilatation, as in morpho math : mP0-P mP1+P
         tBox Dilate(const Type & aVal)const;  ///< Dilatation with constant coordinate
