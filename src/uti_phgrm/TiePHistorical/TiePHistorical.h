@@ -114,14 +114,16 @@ class cCommonAppliTiepHistorical
         std::string                       mMergeTiePtOutSH;
         std::string                       mHomoXml;
 
-        /* Parameters for RANSAC */       
+        /* Parameters for 2DRANSAC */
         std::string                       mR2DInSH;
         std::string                       mR2DOutSH;
+        int                               mR2DIteration;
+        double                            mR2DThreshold;
+
+        /* Parameters for 3DRANSAC */
         std::string                       mR3DInSH;
         std::string                       mR3DOutSH;
         int                               mR3DIteration;
-        int                               mR2DIteration;
-        double                            mR2DThreshold;
         double                            mR3DThreshold;
         int                               mMinPt;
 //        std::string                       mDSMFileL;
@@ -180,6 +182,7 @@ class cCommonAppliTiepHistorical
         std::string ComParamSuperGlue();
         std::string ComParamMergeTiePt();
         std::string ComParamRANSAC2D();
+        std::string ComParamRANSAC3D();
         std::string ComParamCreateGCPs();
         std::string ComParamGetOverlappedImages();
         std::string ComParamGuidedSIFTMatch();
@@ -299,6 +302,7 @@ class cGet3Dcoor
 private:
         cBasicGeomCap3D * mCam1;
         bool         bDSM;
+        double mZ;
         /*Pt2di        mDSMSz;
         cFileOriMnt  mFOM;
         Pt2dr mOriPlani;
@@ -322,9 +326,6 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
 
     private:
         std::string GetImage_Profondeur(std::string aDSMDir, std::string aDSMFile);
-        std::string StdCom(const std::string & aCom,const std::string & aPost="", bool aExe=false);
-        int GetTiePtNum(std::string aDir, std::string aImg1, std::string aImg2, std::string aSH);
-        int GetOverlappedImgPair(std::string aName, std::vector<std::string>& aResL, std::vector<std::string>& aResR);
         std::string GetImgList(std::string aDir, std::string aFileName, bool bExe);
 
 
@@ -366,6 +367,8 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
         double mScaleL;
         double mScaleR;
 
+        double mReprojTh;
+
         bool                              mExe;
         bool                              mUseDepth;
         bool                              mCheckFile;
@@ -394,6 +397,17 @@ void GetBoundingBox(Pt3dr* ptTerrCorner, int nLen, Pt3dr& minPt, Pt3dr& maxPt);
 bool CheckRange(int nMin, int nMax, double & value);
 std::string GetScaledImgName(std::string aImgName, Pt2di ImgSz, double dScale);
 void ExtractSIFT(std::string aImgName, std::string aDir, double dScale=1);
+int GetTiePtNum(std::string aDir, std::string aImg1, std::string aImg2, std::string aSH);
+std::string StdCom(const std::string & aCom,const std::string & aPost="", bool aExe=false);
+int GetOverlappedImgPair(std::string aName, std::vector<std::string>& aResL, std::vector<std::string>& aResR);
+void FilterKeyPt(std::vector<Siftator::SiftPoint> aVSIFTPt, std::vector<Siftator::SiftPoint>& aVSIFTPtNew, double dMinScale, double dMaxScale=DBL_MAX);
+int MatchOneWay(std::vector<int>& matchIDL, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, bool bRatioT, std::vector<Pt2dr> aVPredL=std::vector<Pt2dr>(), Pt2di ImgSzR=Pt2di(0,0), bool bCheckScale=0, bool bCheckAngle=0, double dSearchSpace=0, bool bPredict=0, double dScale=0, double dAngle=0, double threshScale=0, double threshAngle=0);
+void MutualNearestNeighbor(bool bMutualNN, std::vector<int> matchIDL, std::vector<int> matchIDR, std::vector<Pt2di> & match);
+void SetAngleToValidRange(double& dAngle, double d2PI);
+void SaveHomolFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<Pt2di> match, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, bool bPrint=0, double dScaleL=1, double dScaleR=1);
+void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<ElCplePtsHomologues> aPack);
+bool IsHomolFileExist(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, bool bCheckFile);
+void ScaleKeyPt(std::vector<Siftator::SiftPoint>& aVSIFTPt, double dScale);
 
 /****************************************/
 /****** cInterEp_RoughCoReg ******/

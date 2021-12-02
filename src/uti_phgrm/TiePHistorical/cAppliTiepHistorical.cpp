@@ -396,6 +396,16 @@ std::string cCommonAppliTiepHistorical::ComParamRANSAC2D()
     return aCom;
 }
 
+std::string cCommonAppliTiepHistorical::ComParamRANSAC3D()
+{
+    std::string aCom = "";
+    if (EAMIsInit(&mR3DIteration))   aCom +=  " 3DIter=" + ToString(mR3DIteration);
+    if (EAMIsInit(&mR3DThreshold))   aCom +=  " 3DRANTh=" + ToString(mR3DThreshold);
+    if (EAMIsInit(&mMinPt))   aCom +=  " MinPt=" + ToString(mMinPt);
+
+    return aCom;
+}
+
 std::string cCommonAppliTiepHistorical::ComParamCreateGCPs()
 {
     std::string aCom = "";
@@ -449,7 +459,7 @@ std::string cCommonAppliTiepHistorical::GetFolderName(std::string strIn)
 /****** cAppliTiepHistoricalPipeline  ******/
 /*******************************************/
 
-std::string cAppliTiepHistoricalPipeline::StdCom(const std::string & aCom,const std::string & aPost, bool aExe)
+std::string StdCom(const std::string & aCom,const std::string & aPost, bool aExe)
 {
     std::string  aFullCom = MMBinFile(MM3DStr) +  aCom + BLANK;
     aFullCom = aFullCom + aPost;
@@ -488,7 +498,7 @@ std::string cAppliTiepHistoricalPipeline::GetImage_Profondeur(std::string aDSMDi
     return aImDSM.Image();
 }
 
-int cAppliTiepHistoricalPipeline::GetTiePtNum(std::string aDir, std::string aImg1, std::string aImg2, std::string aSH)
+int GetTiePtNum(std::string aDir, std::string aImg1, std::string aImg2, std::string aSH)
 {
     std::string aDir_inSH = aDir + "/Homol" + aSH+"/";
     std::string aNameIn = aDir_inSH +"Pastis" + aImg1 + "/"+aImg2+".txt";
@@ -510,7 +520,7 @@ int cAppliTiepHistoricalPipeline::GetTiePtNum(std::string aDir, std::string aImg
     return nPtNum;
 }
 
-int cAppliTiepHistoricalPipeline::GetOverlappedImgPair(std::string aName, std::vector<std::string>& aResL, std::vector<std::string>& aResR)
+int GetOverlappedImgPair(std::string aName, std::vector<std::string>& aResL, std::vector<std::string>& aResR)
 {
     //std::vector<tNamePair> aRes;
     int num = 0;
@@ -727,6 +737,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         if (EAMIsInit(&mPrecisePatchSz))  aCom += " PatchSz=[" + ToString(mPrecisePatchSz.x) + "," + ToString(mPrecisePatchSz.y) + "]";
         if (EAMIsInit(&mDyn))  aCom += " Dyn=" + ToString(mDyn);
         aCom += " BufferSz=[" + ToString(mPreciseBufferSz.x) + "," + ToString(mPreciseBufferSz.y) + "]";
+        if (EAMIsInit(&mReprojTh))  aCom += " Thres=" + ToString(mReprojTh);
         //aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mCoRegOri + BLANK + mCoRegOri + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair(), aExe);
         //printf("%s\t%s\n", aOri1.c_str(), mOri1.c_str());
         aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+aOri2+".xml" + BLANK + "DSMDirL="+mDSMDirL, aExe);
@@ -897,11 +908,16 @@ void cAppliTiepHistoricalPipeline::DoAll()
         std::string aImg1 = aOverlappedImgL[i];
         std::string aImg2 = aOverlappedImgR[i];
 
-        aCom = "";
-        aCom +=  " DSMDirL=" + mDSMDirL;
-        aCom +=  " DSMDirR=" + mDSMDirR;
+        aCom = mCAS3D.ComParamRANSAC3D();
+        /*
         if (EAMIsInit(&mDSMFileL))   aCom +=  " DSMFileL=" + mDSMFileL;
         if (EAMIsInit(&mDSMFileR))   aCom +=  " DSMFileR=" + mDSMFileR;
+        if (EAMIsInit(&mCAS3D.mR3DIteration))   aCom +=  " 3DIter=" + ToString(mCAS3D.mR3DIteration);
+        if (EAMIsInit(&mCAS3D.mR3DThreshold))   aCom +=  " 3DRANTh=" + ToString(mCAS3D.mR3DThreshold);
+        if (EAMIsInit(&mCAS3D.mMinPt))   aCom +=  " MinPt=" + ToString(mCAS3D.mMinPt);
+        */
+        aCom +=  " DSMDirL=" + mDSMDirL;
+        aCom +=  " DSMDirR=" + mDSMDirR;
         if (EAMIsInit(&mCAS3D.mR3DInSH))
             aRANSACInSH = mCAS3D.mR3DInSH;
         if (EAMIsInit(&mCAS3D.mR3DOutSH))
@@ -910,18 +926,6 @@ void cAppliTiepHistoricalPipeline::DoAll()
             aCrossCorrInSH = aRANSACInSH+"-3DRANSAC";
         aCom +=  " 3DRANInSH=" + aRANSACInSH;
         aCom +=  " 3DRANOutSH=" + aCrossCorrInSH;
-        /*
-        if (!EAMIsInit(&mCAS3D.mR3DInSH)){
-            aCom +=  " 3DRANInSH=" + aRANSACInSH;
-            aCrossCorrInSH = aRANSACInSH+"-3DRANSAC";
-        }
-        else                                    aCom += " 3DRANInSH=" + mCAS3D.mR3DInSH;
-        if (!EAMIsInit(&mCAS3D.mR3DOutSH))   aCom +=  " 3DRANOutSH=" + aCrossCorrInSH;
-        else                                    aCom += " 3DRANOutSH=" + mCAS3D.mR3DOutSH;
-        */
-        if (EAMIsInit(&mCAS3D.mR3DIteration))   aCom +=  " 3DIter=" + ToString(mCAS3D.mR3DIteration);
-        if (EAMIsInit(&mCAS3D.mR3DThreshold))   aCom +=  " 3DRANTh=" + ToString(mCAS3D.mR3DThreshold);
-        if (EAMIsInit(&mCAS3D.mMinPt))   aCom +=  " MinPt=" + ToString(mCAS3D.mMinPt);
         //aCom +=  " Para3DHL=Basc-"+aOri1+"-2-"+aOri2+".xml";
         aCom +=  "  CheckFile=" + ToString(mCheckFile);
         aComSingle = StdCom("TestLib RANSAC R3D", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + "Dir=" + mCAS3D.mDir + BLANK + aCom, aExe);
@@ -1026,6 +1030,8 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
     mScaleL = 1;
     mScaleR = 1;
 
+    mReprojTh = 2;
+
    ElInitArgMain
    (
         argc,argv,
@@ -1043,7 +1049,7 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << EAM(mImg4MatchList2,"IL2",true,"RGB images in epoch2 for extracting inter-epoch correspondences (Dir+Pattern, or txt file of image list), Def=ImgList2")
                << EAM(mCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
                << EAM(mUseDepth,"UseDep",true,"GetPatchPair for depth maps as well (this option is only used for developper), Def=false")
-               << EAM(mRotateDSM,"RotateDSM",true,"The angle of rotation from the master DSM to the secondary DSM for rough co-registration (only 4 options available: 0, 90, 180, 270, as the rough co-registration method is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
+               << EAM(mRotateDSM,"RotateDSM",true,"The angle of clockwise rotation from the master DSM to the secondary DSM for rough co-registration (only 4 options available: 0, 90, 180, 270, as the rough co-registration method is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
                << EAM(mSkipCoReg, "SkipCoReg", true, "Skip the step of rough co-registration, when the input orientations of epoch1 and epoch 2 are already co-registrated, Def=false")
                << EAM(mSkipPrecise, "SkipPrecise", true, "Skip the step of the whole precise matching pipeline, Def=false")
                << EAM(mSkipGetPatchPair, "SkipGetPatchPair", true, "Skip the step of \"GetPatchPair\" in precise matching (this option is used when the results of \"GetPatchPair\" already exist), Def=false")
@@ -1072,6 +1078,7 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << mCAS3D.ArgGuidedSIFT()
                << EAM(mScaleL, "ScaleL", true, "Extract SIFT points on master images downsampled with a factor of \"ScaleL\", Def=1")
                << EAM(mScaleR, "ScaleR", true, "Extract SIFT points on secondary images downsampled with a factor of \"ScaleR\", Def=1")
+               << EAM(mReprojTh, "ReprojTh", true, "EThe threshold of reprojection error (unit: pixel) when prejecting patch corner to DSM, Def=2")
                << mCAS3D.Arg3DRANSAC()
                << mCAS3D.ArgCrossCorrelation()
 /*
@@ -1165,7 +1172,8 @@ mTImMask (aDSMSz)
 
         if (ELISE_fp::exist_file(aDSMDir + aDSMFile) == false)
         {
-            printf("%s didn't exist\n", (aDSMDir + aDSMFile).c_str());
+            if(aDSMDir.length() > 1)
+                printf("%s didn't exist\n", (aDSMDir + aDSMFile).c_str());
             bDSM = false;
         }
         else
@@ -1315,18 +1323,20 @@ cGet3Dcoor::cGet3Dcoor(std::string aNameOri)
     int aType = eTIGB_Unknown;
     mCam1 = cBasicGeomCap3D::StdGetFromFile(aNameOri,aType);
 
+    mZ = mCam1->GetAltiSol();
+
     bDSM = false;
 }
 
 double cGet3Dcoor::GetGSD()
 {
-    double dZL = mCam1->GetAltiSol();
+    //double dZL = mCam1->GetAltiSol();
 
     Pt2dr aCent(double(mCam1->SzBasicCapt3D().x)/2,double(mCam1->SzBasicCapt3D().y)/2);
     Pt2dr aCentNeigbor(aCent.x+1, aCent.y);
 
-    Pt3dr aCentTer = mCam1->ImEtZ2Terrain(aCent, dZL);
-    Pt3dr aCentNeigborTer = mCam1->ImEtZ2Terrain(aCentNeigbor, dZL);
+    Pt3dr aCentTer = mCam1->ImEtZ2Terrain(aCent, mZ);
+    Pt3dr aCentNeigborTer = mCam1->ImEtZ2Terrain(aCentNeigbor, mZ);
 
     double dist = pow(pow(aCentTer.x-aCentNeigborTer.x,2) + pow(aCentTer.y-aCentNeigborTer.y,2), 0.5);
 
@@ -1384,8 +1394,8 @@ TIm2D<float,double> cGet3Dcoor::SetDSMInfo(std::string aDSMFile, std::string aDS
 //get rough 3D coor with mean altitude
 Pt3dr cGet3Dcoor::GetRough3Dcoor(Pt2dr aPt1)
 {
-    double dZ = mCam1->GetAltiSol();
-    return mCam1->ImEtZ2Terrain(aPt1, dZ);
+    //double dZ = mCam1->GetAltiSol();
+    return mCam1->ImEtZ2Terrain(aPt1, mZ);
 }
 
 Pt2dr cGet3Dcoor::Get2Dcoor(Pt3dr aTer)
@@ -1405,7 +1415,7 @@ Pt3dr cGet3Dcoor::Get3Dcoor(Pt2dr aPt1, cDSMInfo aDSMInfo, bool& bPrecise, bool 
     Pt3dr aTer(0,0,0);
     Pt2dr ptPrj;
 
-    double dZ = mCam1->GetAltiSol();
+    double dZ = mZ;
     double dDis = 0;
     int nIter = 0;
 
@@ -1430,16 +1440,16 @@ Pt3dr cGet3Dcoor::Get3Dcoor(Pt2dr aPt1, cDSMInfo aDSMInfo, bool& bPrecise, bool 
             {
                 bPrecise = false;
                 if(bPrint == true)
-                    printf("Point (%.2lf, %.2lf) out of border of the DSM (Projected px in DSM: %d, %d; DSM size: %d, %d), hence use average altitude %.2lf instead.\n", aPt1.x, aPt1.y, aPt2.x, aPt2.y, aDSMSz.x, aDSMSz.y, mCam1->GetAltiSol());
+                    printf("Point (%.2lf, %.2lf) out of border of the DSM (Projected px in DSM: %d, %d; DSM size: %d, %d), hence use average altitude %.2lf instead.\n", aPt1.x, aPt1.y, aPt2.x, aPt2.y, aDSMSz.x, aDSMSz.y, mZ);
             }
             else if(aDSMInfo.GetMasqValue(aPt2) < 0.0001){
                 bPrecise = false;
                 if(bPrint == true)
-                    printf("Point (%.2lf, %.2lf) out of mask of the DSM (Projected px in DSM: %d, %d), hence use average altitude %.2lf instead.\n", aPt1.x, aPt1.y, aPt2.x, aPt2.y, mCam1->GetAltiSol());
+                    printf("Point (%.2lf, %.2lf) out of mask of the DSM (Projected px in DSM: %d, %d), hence use average altitude %.2lf instead.\n", aPt1.x, aPt1.y, aPt2.x, aPt2.y, mZ);
             }
 
             //don't converge
-            if(nIter > 100){
+            if(nIter > 10){
                 bPrecise = false;
                 if(bPrint == true){
                     printf("Iteration > 100, hence use average altitude instead. ");
@@ -1693,6 +1703,306 @@ void ExtractSIFT(std::string aImgName, std::string aDir, double dScale)
     aComm = MMBinFile(MM3DStr) + "SIFT " + aDir+"/Pastis/"+aImgScaledName + " -o " + aDir+"/Pastis/LBPp"+aImgScaledName+".dat";
     cout<<aComm<<endl;
     System(aComm);
+}
+
+void FilterKeyPt(std::vector<Siftator::SiftPoint> aVSIFTPt, std::vector<Siftator::SiftPoint>& aVSIFTPtNew, double dMinScale, double dMaxScale)
+{
+    int nSizeL = aVSIFTPt.size();
+
+    for(int i=0; i<nSizeL; i++)
+    {
+        if(aVSIFTPt[i].scale < dMaxScale && aVSIFTPt[i].scale > dMinScale)
+            aVSIFTPtNew.push_back(aVSIFTPt[i]);
+    }
+}
+
+void SetAngleToValidRange(double& dAngle, double d2PI)
+{
+    while(dAngle > d2PI)
+        dAngle = dAngle - d2PI;
+    while(dAngle < 0)
+        dAngle = dAngle + d2PI;
+}
+
+bool IsHomolFileExist(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, bool bCheckFile)
+{
+    std::string aSHDir;
+    std::string aNewDir;
+    std::string aNameFile1;
+    std::string aNameFile2;
+    aSHDir = aDir + "/Homol" + CurSH + "/";
+    aNewDir = aSHDir + "Pastis" + aImg1;
+    aNameFile1 = aNewDir + "/"+aImg2+".txt";
+
+    aNewDir = aSHDir + "Pastis" + aImg2;
+    aNameFile2 = aNewDir + "/"+aImg1+".txt";
+
+    if (bCheckFile == true && ELISE_fp::exist_file(aNameFile1) == true && ELISE_fp::exist_file(aNameFile2) == true)
+    {
+        cout<<aNameFile1<<" already exist, hence skipped"<<endl;
+        return true;
+    }
+    else
+        return false;
+}
+
+void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<ElCplePtsHomologues> aPack)
+{
+    std::string aSHDir;
+    std::string aNewDir;
+    std::string aNameFile1;
+    std::string aNameFile2;
+    aSHDir = aDir + "/Homol" + CurSH + "/";
+    ELISE_fp::MkDir(aSHDir);
+    aNewDir = aSHDir + "Pastis" + aImg1;
+    ELISE_fp::MkDir(aNewDir);
+    aNameFile1 = aNewDir + "/"+aImg2+".txt";
+
+    aNewDir = aSHDir + "Pastis" + aImg2;
+    ELISE_fp::MkDir(aNewDir);
+    aNameFile2 = aNewDir + "/"+aImg1+".txt";
+
+    FILE * fpTiePt1 = fopen(aNameFile1.c_str(), "w");
+    FILE * fpTiePt2 = fopen(aNameFile2.c_str(), "w");
+
+    bool bTiePt1 = true;
+    bool bTiePt2 = true;
+
+    if (NULL == fpTiePt1)
+    {
+        cout<<"Open file "<<aNameFile1<<" failed"<<endl;
+        bTiePt1 = false;
+    }
+    if (NULL == fpTiePt2)
+    {
+        cout<<"Open file "<<aNameFile2<<" failed"<<endl;
+        bTiePt2 = false;
+    }
+
+    for (unsigned int i=0; i<aPack.size(); i++)
+    {
+        ElCplePtsHomologues cple = aPack[i];
+        Pt2dr aP1 = cple.P1();
+        Pt2dr aP2 = cple.P2();
+        if(bTiePt1)
+            fprintf(fpTiePt1, "%lf %lf %lf %lf\n", aP1.x, aP1.y, aP2.x, aP2.y);
+        if(bTiePt2)
+            fprintf(fpTiePt2, "%lf %lf %lf %lf\n", aP2.x, aP2.y, aP1.x, aP1.y);
+    }
+
+    fclose(fpTiePt1);
+    fclose(fpTiePt2);
+}
+
+void SaveHomolFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<Pt2di> match, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, bool bPrint, double dScaleL, double dScaleR)
+{
+    std::vector<ElCplePtsHomologues> aPack;
+
+    int nTiePtNum = match.size();
+    for(int i = 0; i < nTiePtNum; i++)
+    {
+        int idxL = match[i].x;
+        int idxR = match[i].y;
+        Pt2dr aP1, aP2;
+        aP1 = Pt2dr(dScaleL*aVSiftL[idxL].x, dScaleL*aVSiftL[idxL].y);
+        aP2 = Pt2dr(dScaleR*aVSiftR[idxR].x, dScaleR*aVSiftR[idxR].y);
+        aPack.push_back(ElCplePtsHomologues(aP1,aP2));
+        if(bPrint){
+            printf("%dth match, master and secondary scale and angle: %lf %lf %lf %lf\n", i, aVSiftL[idxL].scale, aVSiftL[idxL].angle, aVSiftR[idxR].scale, aVSiftR[idxR].angle);
+            printf("scaleDif, angleDif: %lf %lf\n", aVSiftR[idxR].scale/aVSiftL[idxL].scale,aVSiftR[idxR].angle-aVSiftL[idxL].angle);
+        }
+    }
+
+    SaveHomolTxtFile(aDir, aImg1, aImg2, CurSH, aPack);
+}
+
+//for the key points in one image (master or secondary image), find their nearest neighbor in another image and record it
+int MatchOneWay(std::vector<int>& matchIDL, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, bool bRatioT, std::vector<Pt2dr> aVPredL, Pt2di ImgSzR, bool bCheckScale, bool bCheckAngle, double dSearchSpace, bool bPredict, double dScale, double dAngle, double threshScale, double threshAngle)
+{
+    if(dScale < 0)
+        dScale = -dScale;
+    int nMatches = 0;
+    int nSIFT_DESCRIPTOR_SIZE = 128;
+    const double d2PI = 3.1415926*2;
+
+    int nSizeL = aVSiftL.size();
+    int nSizeR = aVSiftR.size();
+
+    int nStartL = 0;
+    int nStartR = 0;
+    int nEndL = nSizeL;
+    int nEndR = nSizeR;
+
+    std::time_t t1 = std::time(nullptr);
+    std::cout << std::put_time(std::localtime(&t1), "%Y-%m-%d %H:%M:%S") << std::endl;
+
+    long nSkiped = 0;
+    float alpha = 2;
+
+    int i, j, k;
+    int nProgress = nSizeL/10;
+    for(i=nStartL; i<nEndL; i++)
+    {
+        if(i%nProgress == 0)
+        {
+            printf("%.2lf%%\n", i*100.0/nSizeL);
+        }
+
+        double dBoxLeft  = 0;
+        double dBoxRight = 0;
+        double dBoxUpper = 0;
+        double dBoxLower = 0;
+
+        double dEuDisMin = DBL_MAX;
+        double dEuDisSndMin = DBL_MAX;
+        int nMatch = -1;
+
+        double x, y;
+        if(bPredict == true)
+        {
+            x = aVPredL[i].x;
+            y = aVPredL[i].y;
+
+            //if predicted point is out of the border of the other image, skip searching
+            if(x<0 || x> ImgSzR.x || y<0 || y>ImgSzR.y)
+            {
+                matchIDL.push_back(-1);
+                continue;
+            }
+
+            dBoxLeft  = x - dSearchSpace;
+            dBoxRight = x + dSearchSpace;
+            dBoxUpper = y - dSearchSpace;
+            dBoxLower = y + dSearchSpace;
+        }
+
+        for(j=nStartR; j<nEndR; j++)
+        {
+            if(bPredict == true)
+            {
+                if(aVSiftR[j].x<=dBoxLeft || aVSiftR[j].x>= dBoxRight || aVSiftR[j].y<= dBoxUpper || aVSiftR[j].y>= dBoxLower)
+                {
+                    nSkiped++;
+                    continue;
+                }
+            }
+            if(bCheckScale == true)
+            {
+                /*
+                double dScaleDif = fabs(aVSiftR[j].scale/aVSiftL[i].scale - dScale);
+                if(dScaleDif > threshScale)
+                    continue;
+                    */
+                double dScaleRatio = aVSiftR[j].scale/aVSiftL[i].scale;
+                if((dScaleRatio < dScale*(1-threshScale)) || (dScaleRatio > dScale*(1+threshScale)))
+                    continue;
+                //printf("%.2lf ", dScaleRatio);
+            }
+            if(bCheckAngle == true)
+            {
+                /*
+                double dAngleDif = fabs(aVSiftR[j].angle-aVSiftL[i].angle - dAngle);
+                if((dAngleDif > threshAngle) && (dAngleDif < d2PI-threshAngle))
+                    continue;
+                    */
+                double dAngleDif = aVSiftR[j].angle-aVSiftL[i].angle;
+                SetAngleToValidRange(dAngleDif, d2PI);
+                if((dAngleDif < dAngle-threshAngle) || (dAngleDif > dAngle+threshAngle))
+                    continue;
+                //printf("[%.2lf] ", dAngleDif);
+            }
+
+            double dDis = 0;
+            for(k=0; k<nSIFT_DESCRIPTOR_SIZE; k++)
+            {
+                double dDif = aVSiftL[i].descriptor[k] - aVSiftR[j].descriptor[k];
+                dDis += pow(dDif, alpha);
+            }
+            dDis = pow(dDis, 1.0/alpha);
+
+            //save master and secondary nearest neigbor
+            if(dDis < dEuDisMin)
+            {
+                dEuDisMin = dDis;
+                nMatch = j;
+                if(dEuDisMin > dEuDisSndMin)
+                {
+                    dEuDisSndMin = dEuDisMin;
+                }
+            }
+            else if(dDis < dEuDisSndMin)
+            {
+                dEuDisSndMin = dDis;
+            }
+        }
+
+        if(bRatioT == true && dEuDisMin/dEuDisSndMin > 0.8)
+            nMatch = -1;
+        matchIDL.push_back(nMatch);
+        if(nMatch != -1)
+            nMatches++;
+        //cout<<i<<" "<<nMatch<<endl;
+    }
+    std::time_t t2 = std::time(nullptr);
+    std::cout << std::put_time(std::localtime(&t2), "%Y-%m-%d %H:%M:%S") << std::endl;
+    return nMatches;
+}
+
+void MutualNearestNeighbor(bool bMutualNN, std::vector<int> matchIDL, std::vector<int> matchIDR, std::vector<Pt2di> & match)
+{
+    int nStartL = 0;
+    int nStartR = 0;
+    int nEndL = matchIDL.size();
+    int nEndR = matchIDR.size();
+
+    int i, j;
+    if (bMutualNN == true){
+        printf("Mutual nearest neighbor applied.\n");
+        for(i=nStartL; i<nEndL; i++)
+        {
+            j = matchIDL[i-nStartL];
+
+            if(j-nStartR < 0 || j-nStartR >= nEndR)
+                 continue;
+            if(matchIDR[j-nStartR] == i)
+            {
+                    Pt2di mPair = Pt2di(i, j);
+                    match.push_back(mPair);
+            }
+        }
+    }
+    else
+    {
+        printf("Mutual nearest neighbor NOT applied.\n");
+        for(i=nStartL; i<nEndL; i++)
+        {
+            j = matchIDL[i-nStartL];
+            if(j-nStartR < 0 || j-nStartR >= nEndR)
+                 continue;
+            Pt2di mPair = Pt2di(i, j);
+            match.push_back(mPair);
+
+            //if the current pair is not mutual, save the other pair
+            int nMatch4j = matchIDR[j-nStartR];
+            if(nMatch4j != i && nMatch4j >= nStartL && nMatch4j-nStartL<nEndL)
+            {
+                Pt2di mPair = Pt2di(i, j);
+                match.push_back(mPair);
+            }
+        }
+    }
+}
+
+void ScaleKeyPt(std::vector<Siftator::SiftPoint>& aVSIFTPt, double dScale)
+{
+    int nSizeL = aVSIFTPt.size();
+
+    for(int i=0; i<nSizeL; i++)
+    {
+        aVSIFTPt[i].x *= dScale;
+        aVSIFTPt[i].y *= dScale;
+        aVSIFTPt[i].scale *= dScale;
+    }
 }
 
 /*

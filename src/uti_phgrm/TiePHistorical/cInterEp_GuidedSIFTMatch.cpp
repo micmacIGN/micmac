@@ -76,29 +76,6 @@ aooter-MicMac-eLiSe-25/06/2007*/
 
 extern ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir);
 
-void ScaleKeyPt(std::vector<Siftator::SiftPoint>& aVSIFTPt, double dScale)
-{
-    int nSizeL = aVSIFTPt.size();
-
-    for(int i=0; i<nSizeL; i++)
-    {
-        aVSIFTPt[i].x *= dScale;
-        aVSIFTPt[i].y *= dScale;
-        aVSIFTPt[i].scale *= dScale;
-    }
-}
-
-void FilterKeyPt(std::vector<Siftator::SiftPoint> aVSIFTPt, std::vector<Siftator::SiftPoint>& aVSIFTPtNew, double dMinScale, double dMaxScale)
-{
-    int nSizeL = aVSIFTPt.size();
-
-    for(int i=0; i<nSizeL; i++)
-    {
-        if(aVSIFTPt[i].scale < dMaxScale && aVSIFTPt[i].scale > dMinScale)
-            aVSIFTPtNew.push_back(aVSIFTPt[i]);
-    }
-}
-
 void GetMinMaxScale(std::vector<Siftator::SiftPoint> aVSIFTPt, double & dMinScale, double & dMaxScale)
 {
     int nSizeL = aVSIFTPt.size();
@@ -159,183 +136,6 @@ void PredictKeyPt(std::string aImg, std::vector<Pt2dr>& aVPredL, std::vector<Sif
         Pt2dr aPLPred = a3DR.Get2Dcoor(aPTer1);
 
         aVPredL.push_back(aPLPred);
-    }
-}
-
-void SetAngleToValidRange(double& dAngle, double d2PI)
-{
-    while(dAngle > d2PI)
-        dAngle = dAngle - d2PI;
-    while(dAngle < 0)
-        dAngle = dAngle + d2PI;
-}
-//for the key points in one image (master or secondary image), find their nearest neighbor in another image and record it
-void MatchOneWay(std::vector<int>& matchIDL, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, std::vector<Pt2dr> aVPredL, Pt2di ImgSzR, double dScale, double dAngle, double threshScale, double threshAngle, bool bCheckScale, bool bCheckAngle, double dSearchSpace, bool bPredict, bool bRatioT)
-{
-    int nSIFT_DESCRIPTOR_SIZE = 128;
-    const double d2PI = 3.1415926*2;
-
-    int nSizeL = aVSiftL.size();
-    int nSizeR = aVSiftR.size();
-
-    int nStartL = 0;
-    int nStartR = 0;
-    int nEndL = nSizeL;
-    int nEndR = nSizeR;
-
-    std::time_t t1 = std::time(nullptr);
-    std::cout << std::put_time(std::localtime(&t1), "%Y-%m-%d %H:%M:%S") << std::endl;
-
-    long nSkiped = 0;
-    float alpha = 2;
-
-    int i, j, k;
-    int nProgress = nSizeL/10;
-    for(i=nStartL; i<nEndL; i++)
-    {
-        if(i%nProgress == 0)
-        {
-            printf("%.2lf%%\n", i*100.0/nSizeL);
-        }
-
-        double dBoxLeft  = 0;
-        double dBoxRight = 0;
-        double dBoxUpper = 0;
-        double dBoxLower = 0;
-
-        double dEuDisMin = DBL_MAX;
-        double dEuDisSndMin = DBL_MAX;
-        int nMatch = -1;
-
-        double x, y;
-        if(bPredict == true)
-        {
-            x = aVPredL[i].x;
-            y = aVPredL[i].y;
-
-            //if predicted point is out of the border of the other image, skip searching
-            if(x<0 || x> ImgSzR.x || y<0 || y>ImgSzR.y)
-            {
-                matchIDL.push_back(-1);
-                continue;
-            }
-
-            dBoxLeft  = x - dSearchSpace;
-            dBoxRight = x + dSearchSpace;
-            dBoxUpper = y - dSearchSpace;
-            dBoxLower = y + dSearchSpace;
-        }
-
-        for(j=nStartR; j<nEndR; j++)
-        {
-            if(bPredict == true)
-            {
-                if(aVSiftR[j].x<=dBoxLeft || aVSiftR[j].x>= dBoxRight || aVSiftR[j].y<= dBoxUpper || aVSiftR[j].y>= dBoxLower)
-                {
-                    nSkiped++;
-                    continue;
-                }
-            }
-            if(bCheckScale == true)
-            {
-                /*
-                double dScaleDif = fabs(aVSiftR[j].scale/aVSiftL[i].scale - dScale);
-                if(dScaleDif > threshScale)
-                    continue;
-                    */
-                double dScaleRatio = aVSiftR[j].scale/aVSiftL[i].scale;
-                if((dScaleRatio < dScale*(1-threshScale)) || (dScaleRatio > dScale*(1+threshScale)))
-                    continue;
-                //printf("%.2lf ", dScaleRatio);
-            }
-            if(bCheckAngle == true)
-            {
-                /*
-                double dAngleDif = fabs(aVSiftR[j].angle-aVSiftL[i].angle - dAngle);
-                if((dAngleDif > threshAngle) && (dAngleDif < d2PI-threshAngle))
-                    continue;
-                    */
-                double dAngleDif = aVSiftR[j].angle-aVSiftL[i].angle;
-                SetAngleToValidRange(dAngleDif, d2PI);
-                if((dAngleDif < dAngle-threshAngle) || (dAngleDif > dAngle+threshAngle))
-                    continue;
-                //printf("[%.2lf] ", dAngleDif);
-            }
-
-            double dDis = 0;
-            for(k=0; k<nSIFT_DESCRIPTOR_SIZE; k++)
-            {
-                double dDif = aVSiftL[i].descriptor[k] - aVSiftR[j].descriptor[k];
-                dDis += pow(dDif, alpha);
-            }
-            dDis = pow(dDis, 1.0/alpha);
-
-            //save master and secondary nearest neigbor
-            if(dDis < dEuDisMin)
-            {
-                dEuDisMin = dDis;
-                nMatch = j;
-                if(dEuDisMin > dEuDisSndMin)
-                {
-                    dEuDisSndMin = dEuDisMin;
-                }
-            }
-            else if(dDis < dEuDisSndMin)
-            {
-                dEuDisSndMin = dDis;
-            }
-        }
-
-        if(bRatioT == true && dEuDisMin/dEuDisSndMin > 0.8)
-            nMatch = -1;
-        matchIDL.push_back(nMatch);
-    }
-    std::time_t t2 = std::time(nullptr);
-    std::cout << std::put_time(std::localtime(&t2), "%Y-%m-%d %H:%M:%S") << std::endl;
-}
-
-void MutualNearestNeighbor(bool bMutualNN, std::vector<int> matchIDL, std::vector<int> matchIDR, std::vector<Pt2di> & match)
-{
-    int nStartL = 0;
-    int nStartR = 0;
-    int nEndL = matchIDL.size();
-    int nEndR = matchIDR.size();
-
-    int i, j;
-    if (bMutualNN == true){
-        printf("Mutual nearest neighbor applied.\n");
-        for(i=nStartL; i<nEndL; i++)
-        {
-            j = matchIDL[i-nStartL];
-
-            if(j-nStartR < 0 || j-nStartR >= nEndR)
-                 continue;
-            if(matchIDR[j-nStartR] == i)
-            {
-                    Pt2di mPair = Pt2di(i, j);
-                    match.push_back(mPair);
-            }
-        }
-    }
-    else
-    {
-        printf("Mutual nearest neighbor NOT applied.\n");
-        for(i=nStartL; i<nEndL; i++)
-        {
-            j = matchIDL[i-nStartL];
-            if(j-nStartR < 0 || j-nStartR >= nEndR)
-                 continue;
-            Pt2di mPair = Pt2di(i, j);
-            match.push_back(mPair);
-
-            //if the current pair is not mutual, save the other pair
-            int nMatch4j = matchIDR[j-nStartR];
-            if(nMatch4j != i && nMatch4j >= nStartL && nMatch4j-nStartL<nEndL)
-            {
-                Pt2di mPair = Pt2di(i, j);
-                match.push_back(mPair);
-            }
-        }
     }
 }
 
@@ -496,7 +296,7 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
         cout<<aImg1<<" or "<<aImg2<<" didn't exist, hence skipped"<<endl;
         return;
     }
-
+/*
     std::string aSHDir = aDir + "/Homol" + outSH + "/";
     ELISE_fp::MkDir(aSHDir);
     std::string aNewDir = aSHDir + "Pastis" + aImg1;
@@ -511,6 +311,9 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
         cout<<aNameFile1<<" already exist, hence skipped"<<endl;
         return;
     }
+*/
+    if(IsHomolFileExist(aDir, aImg1, aImg2, outSH, bCheckFile) == true)
+        return;
 
     Tiff_Im aRGBIm1(aImg1.c_str());
     Pt2di ImgSzL = aRGBIm1.sz();
@@ -620,11 +423,11 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     printf("*****processing Left*****\n");
     if(bPredict)
         printf("SearchSpace = %.2lf when searching %s\n", dSearchSpace*ScaleRotateL.x, aImg2.c_str());
-    MatchOneWay(matchIDL, aVSiftL, aVSiftR, aVPredL, ImgSzR, ScaleRotateL.x, ScaleRotateL.y, threshScale, threshAngle, bCheckScale, bCheckAngle, dSearchSpace*ScaleRotateL.x, bPredict, bRatioT);
+    MatchOneWay(matchIDL, aVSiftL, aVSiftR, bRatioT, aVPredL, ImgSzR, bCheckScale, bCheckAngle, dSearchSpace*ScaleRotateL.x, bPredict, ScaleRotateL.x, ScaleRotateL.y, threshScale, threshAngle);
     printf("*****processing Right*****\n");
     if(bPredict)
         printf("SearchSpace = %.2lf when searching %s\n", dSearchSpace, aImg1.c_str());
-    MatchOneWay(matchIDR, aVSiftR, aVSiftL, aVPredR, ImgSzL, ScaleRotateR.x, ScaleRotateR.y, threshScale, threshAngle, bCheckScale, bCheckAngle, dSearchSpace, bPredict, bRatioT);
+    MatchOneWay(matchIDR, aVSiftR, aVSiftL, bRatioT, aVPredR, ImgSzL, bCheckScale, bCheckAngle, dSearchSpace, bPredict, ScaleRotateR.x, ScaleRotateR.y, threshScale, threshAngle);
 
     //cout<<matchIDL.size()<<",,,,"<<matchIDR.size()<<endl;
 
@@ -632,6 +435,7 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     MutualNearestNeighbor(bMutualNN, matchIDL, matchIDR, match);
 
     //*********** 4. Save tie pt
+    /*
     FILE * fpTiePt1 = fopen(aNameFile1.c_str(), "w");
     FILE * fpTiePt2 = fopen(aNameFile2.c_str(), "w");
 
@@ -653,6 +457,8 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     }
     fclose(fpTiePt1);
     fclose(fpTiePt2);
+    */
+    SaveHomolFile(aDir, aImg1, aImg2, outSH, match, aVSiftL, aVSiftR);
 
     cout<<"Extracted tie point number: "<<match.size()<<endl;
 
@@ -712,7 +518,6 @@ int GuidedSIFTMatch_main(int argc,char ** argv)
    {
        ExtractSIFT(aImg1, aCAS3D.mDir);
        ExtractSIFT(aImg2, aCAS3D.mDir);
-
    }
    cTransform3DHelmert aTrans3DHL(aPara3DHL);
    cTransform3DHelmert aTrans3DHR(aPara3DHR);

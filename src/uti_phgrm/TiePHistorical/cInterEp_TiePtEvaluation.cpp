@@ -152,8 +152,10 @@ std::vector<int> TiePtEvaluation(std::string aIm1OriFile, std::string aIm2OriFil
 
 int TiePtEvaluation_main(int argc,char ** argv)
 {
-    std::string aFullPattern1;
-    std::string aFullPattern2;
+//    std::string aFullPattern1;
+//    std::string aFullPattern2;
+    std::string aImgList1;
+    std::string aImgList2;
 
     cCommonAppliTiepHistorical aCAS3D;
     //std::string aDir = "./";
@@ -181,8 +183,10 @@ int TiePtEvaluation_main(int argc,char ** argv)
     (
         argc,argv,
         LArgMain()
-               << EAMC(aFullPattern1,"Master image name (Dir+Pattern)")
-               << EAMC(aFullPattern2,"Secondary image name (Dir+Pattern)")
+               << EAMC(aImgList1,"ImgList1: All master images (Dir+Pattern, or txt file of image list)")
+               << EAMC(aImgList2,"ImgList2: All secondary images (Dir+Pattern, or txt file of image list)")
+//               << EAMC(aFullPattern1,"Master image name (Dir+Pattern)")
+//               << EAMC(aFullPattern2,"Secondary image name (Dir+Pattern)")
                << EAMC(aOri1,"Orientation of master image")
                << EAMC(aOri2,"Orientation of secondary image")
                << EAMC(aDSMDirL,"DSM of master image"),
@@ -194,7 +198,7 @@ int TiePtEvaluation_main(int argc,char ** argv)
 //               << EAM(aD    int nSize = aReproj.size();
                << EAM(aPara3DHL, "Para3DHL", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=unit matrix")
                << EAM(aInSH,"InSH",true, "Input Homologue extenion for NB/NT mode, Def=none")
-               << EAM(nThreshMax, "Thres", true, "The max threshold of reprojection error, Def=10")
+               << EAM(nThreshMax, "Th", true, "The max threshold of reprojection error, Def=10")
                << EAM(aNameOut,"NameOut",true, "Output txt file that records the accuracy, Def=TiePtAccuracy-InSH.txt")
 
     );
@@ -206,6 +210,11 @@ int TiePtEvaluation_main(int argc,char ** argv)
 
    cTransform3DHelmert aTrans3DHL(aPara3DHL);
 
+   std::vector<std::string> aSetIm1;
+   std::vector<std::string> aSetIm2;
+   GetImgListVec(aImgList1, aSetIm1);
+   GetImgListVec(aImgList2, aSetIm2);
+   /*
    std::string aDirImages1,aPatIm1;
    SplitDirAndFile(aDirImages1,aPatIm1,aFullPattern1);
 
@@ -217,6 +226,7 @@ int TiePtEvaluation_main(int argc,char ** argv)
 
    cInterfChantierNameManipulateur * aICNM2=cInterfChantierNameManipulateur::BasicAlloc(aDirImages2);
    const std::vector<std::string> aSetIm2 = *(aICNM2->Get(aPatIm2));
+   */
 
    //std::vector<std::string> aVIm1;
    //std::vector<std::string> aVIm2;
