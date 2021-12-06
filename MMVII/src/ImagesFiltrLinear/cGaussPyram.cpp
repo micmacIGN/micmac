@@ -480,7 +480,7 @@ void AddData(const cAuxAr2007 & anAux, cFilterPCar &    aFPC)
 /*                                                      */
 /* ==================================================== */
 
-cGP_Params::cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,cMMVII_Appli * aPtrAppli,bool is4TieP) :
+cGP_Params::cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,const cMMVII_Appli * aPtrAppli,bool is4TieP) :
    mSzIm0        (aSzIm0),
    mNbOct        (aNbOct),
    mNbLevByOct   (aNbLevByOct),

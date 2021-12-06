@@ -587,6 +587,19 @@ template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Inter(
   return tBox(PtSupEq(mP0,aBox.mP0),PtInfEq(mP1,aBox.mP1),true);
 }
 
+template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Sup(const tBox & aB2)const
+{
+  if (IsEmpty() && aB2.IsEmpty()) 
+     return  Empty();
+  if (IsEmpty())     return aB2;
+  if (aB2.IsEmpty()) return *this;
+
+  return tBox(PtInfEq(mP0,aB2.mP0),PtSupEq(mP1,aB2.mP1),true);
+}
+
+
+
+
 template <class Type,const int Dim> cTplBox<Type,Dim>  cTplBox<Type,Dim>::Dilate(const tPt & aPt) const
 {
    return tBox(mP0-aPt,mP1+aPt);

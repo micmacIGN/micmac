@@ -31,6 +31,8 @@ class cAppliExtractLearnVecDM : public cAppliLearningMatch
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+	std::vector<std::string>  Samples() const  override;
+
     
         const cBox2di &     CurBoxIn(bool IsIm1) const {return   IsIm1 ? mCurBoxIn1 : mCurBoxIn2 ;}
         const std::string & NameIm(bool IsIm1) const {return   IsIm1 ? mNameIm1 : mNameIm2 ;}
@@ -178,6 +180,19 @@ void cAppliExtractLearnVecDM::AddLearn(cFileVecCaracMatch & aFVCM,const cAimePCa
    }
 }
 
+std::vector<std::string>  cAppliExtractLearnVecDM::Samples() const
+{
+    return std::vector<std::string>
+           (
+               {
+                   "MMVII DM2CalcHistoCarac DMTrain_MDLB2014-Vintage-perfect_Box0Std_LDHAime0.dmp Test",
+                   "MMVII DM2CalcHistoCarac DMTrain_MDLB2014.*LDHAime0.dmp AllMDLB2014"
+               }
+          );
+
+}
+
+
 
 int  cAppliExtractLearnVecDM::Exe()
 {
@@ -301,7 +316,7 @@ void cAppliExtractLearnVecDM::MakeCutHisto
                if (aVOk2.at(aXH))
                {
                    cVecCaracMatch aVCM ( *mPyrL1,*mPyrL2, aVPC1.at(aX),aVPC2.at(aXH));
-                   double aScore = mCutHND.ScoreCr(aVCM);
+                   double aScore = mCutHND.HomologyLikelihood(aVCM,false);
                    int aPax = aXH-aXMinTh;
                    aResult.DIm().SetV(cPt2di(aX,aPax),1+round_ni((254.0)*(1-pow(1-aScore,mCutsExp))));
                }

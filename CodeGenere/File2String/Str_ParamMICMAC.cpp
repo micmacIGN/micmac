@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamMICMAC[2173] = {
+const char * theNameVar_ParamMICMAC[2176] = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -1006,8 +1006,11 @@ const char * theNameVar_ParamMICMAC[2173] = {
 "                        </MultiCorrelPonctuel>\n",
 "\n",
 "			<ScoreLearnedMMVII Nb=\"?\" AccessorFils=\"false\">\n",
-"                              <FileModeleCost Nb=\"1\" Type=\"std::string\"> </FileModeleCost>\n",
-"                              <DynCost        Nb=\"1\" Type=\"double\">      </DynCost>\n",
+"                              <FileModeleCost Nb=\"1\" Type=\"std::string\">           </FileModeleCost>\n",
+"                              <CostDyn        Nb=\"?\" Type=\"double\" Def=\"0.3333\">   </CostDyn>\n",
+"                              <CostExp        Nb=\"?\" Type=\"double\" Def=\"0.5\">      </CostExp>\n",
+"                              <Cmp_FileMC     Nb=\"?\" Type=\"std::string\">           </Cmp_FileMC>\n",
+"                              <Cmp_NbDisc     Nb=\"?\" Type=\"int\"    Def=\"200\">      </Cmp_NbDisc>\n",
 "                        </ScoreLearnedMMVII>\n",
 "\n",
 "                        <Correl_Ponctuel2ImGeomI Nb=\"?\" AccessorFils=\"false\">    \n",
