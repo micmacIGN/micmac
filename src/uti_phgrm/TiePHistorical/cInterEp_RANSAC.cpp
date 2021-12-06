@@ -95,40 +95,11 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
          //printf("GSD1: %.2lf, GSD2: %.2lf, RefGSD: %.2lf, 3DRANTh: %.2lf\n", dGSD1*aTrans3DHL.GetScale(), dGSD2, dRefGSD, threshold);
      }
 
-    int nOriPtNum = 0;
-    std::vector<int> aValidPt;
-    ElPackHomologue aPackInsideBorder;
+    //std::vector<int> aValidPt;
+    //ElPackHomologue aPackInsideBorder;
     //transform 2D tie points into 3D
-    for (ElPackHomologue::iterator itCpl=aPackFull.begin();itCpl!=aPackFull.end(); itCpl++)
-    {
-       ElCplePtsHomologues cple = itCpl->ToCple();
-       Pt2dr p1 = cple.P1();
-       Pt2dr p2 = cple.P2();
 
-       if(bPrint)
-           cout<<nOriPtNum<<"th tie pt: "<<p1.x<<" "<<p1.y<<" "<<p2.x<<" "<<p2.y<<endl;
-
-       bool bValidL, bValidR;
-       Pt3dr pTerr1 = a3DCoorL.Get3Dcoor(p1, aDSMInfoL, bValidL, bPrint);//, dGSD1);
-       pTerr1 = aTrans3DHL.Transform3Dcoor(pTerr1);
-       Pt3dr pTerr2 = a3DCoorR.Get3Dcoor(p2, aDSMInfoR, bValidR, bPrint);//, dGSD2);
-
-       if(bValidL == true && bValidR == true)
-       {
-           aV1.push_back(pTerr1);
-           aV2.push_back(pTerr2);
-           a2dV1.push_back(p1);
-           a2dV2.push_back(p2);
-           aPackInsideBorder.Cple_Add(cple);
-           aValidPt.push_back(nOriPtNum);
-       }
-       else
-       {
-           if(false)
-               cout<<nOriPtNum<<"th tie pt out of border of the DSM hence skipped"<<endl;
-       }
-       nOriPtNum++;
-    }
+     int nOriPtNum = Get3DTiePt(aPackFull, a3DCoorL, a3DCoorR, aDSMInfoL, aDSMInfoR, aTrans3DHL, aV1, aV2, a2dV1, a2dV2, bPrint);
 
     if(bPrint)
     {
@@ -145,111 +116,10 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
         return;
     }
 
-    cSolBasculeRig aSBR = cSolBasculeRig::Id();
-    cSolBasculeRig aSBRBest = cSolBasculeRig::Id();
-    int i, j;
-    int nMaxInlier = 0;
     srand((int)time(0));
-
-    std::vector<ElCplePtsHomologues> inlierCur;
     std::vector<ElCplePtsHomologues> inlierFinal;
+    RANSAC3DCore(aNbTir, threshold, aV1, aV2, a2dV1, a2dV2, inlierFinal);
 
-    for(j=0; j<aNbTir; j++)
-    {
-        cRansacBasculementRigide aRBR(false);
-
-        std::vector<int> res;
-
-        Pt3dr aDiff;
-        double aEpslon = 0.0000001;
-        bool bDupPt;
-        //in case duplicated points
-        do
-        {
-            res.clear();
-            bDupPt = false;
-            GetRandomNum(0, nPtNum, 3, res);
-            for(i=0; i<3; i++)
-            {
-                aDiff = aV1[res[i]] - aV1[res[(i+1)%3]];
-                if((fabs(aDiff.x) < aEpslon) && (fabs(aDiff.y) < aEpslon) && (fabs(aDiff.z) < aEpslon))
-                {
-                    bDupPt = true;
-                    //printf("Duplicated 3D pt seed: %d, %d; Original index of 2D pt: %d %d\n ", res[i], res[i+1], aValidPt[res[i]], aValidPt[res[i+1]]);
-                    break;
-                }
-                aDiff = aV2[res[i]] - aV2[res[(i+1)%3]];
-                if((fabs(aDiff.x) < aEpslon) && (fabs(aDiff.y) < aEpslon) && (fabs(aDiff.z) < aEpslon))
-                {
-                    bDupPt = true;
-                    //printf("Duplicated 3D pt seed: %d, %d; Original index of 2D pt: %d %d\n ", res[i], res[i+1], aValidPt[res[i]], aValidPt[res[i+1]]);
-                    break;
-                }
-            }
-        }
-        while(bDupPt == true);
-
-        for(i=0; i<3; i++)
-        {
-            aRBR.AddExemple(aV1[res[i]],aV2[res[i]],0,"");
-            inlierCur.push_back(ElCplePtsHomologues(a2dV1[res[i]], a2dV2[res[i]]));
-        }
-
-        aRBR.CloseWithTrGlob();
-        aRBR.ExploreAllRansac();
-        aSBR = aRBR.BestSol();
-
-        int nInlier =3;
-        ElPackHomologue::iterator itCpl=aPackInsideBorder.begin();
-        for(i=0; i<nPtNum; i++)
-        {
-            Pt3dr aP1 = aV1[i];
-            Pt3dr aP2 = aV2[i];
-
-            Pt3dr aP2Pred = aSBR(aP1);
-            double dist = pow(pow(aP2Pred.x-aP2.x,2) + pow(aP2Pred.y-aP2.y,2) + pow(aP2Pred.z-aP2.z,2), 0.5);
-            //printf("%d %lf\n", i, dist);
-            if(dist < threshold)
-            {
-                inlierCur.push_back(itCpl->ToCple());
-                nInlier++;
-            }
-            itCpl++;
-        }
-        if(nInlier > nMaxInlier)
-        {
-            nMaxInlier = nInlier;
-            aSBRBest = aSBR;
-            inlierFinal = inlierCur;
-            printf("Iter: %d/%d, seed: %d, %d, %d;  ", j, aNbTir, res[0], res[1], res[2]);
-            printf(" nMaxInlier: %d, nOriPtNum: %d\n", nMaxInlier, nOriPtNum);
-        }
-        /*
-        else{
-            printf("Iter: %d/%d, seed: %d, %d, %d;  ", j, aNbTir, res[0], res[1], res[2]);
-            printf(" nMaxInlier: %d, nOriPtNum: %d\n", nMaxInlier, nOriPtNum);
-        }
-        */
-        inlierCur.clear();
-    }
-
-    /*
-    std::string aDir_outSH = input_dir + "/Homol" + outSH+"/";
-    ELISE_fp::MkDir(aDir_outSH);
-    aDir_outSH = aDir_outSH + "Pastis" + aImg1;
-    ELISE_fp::MkDir(aDir_outSH);
-    std::string aNameOut = aDir_outSH + "/"+aImg2+".txt";
-    FILE * fpOutput = fopen(aNameOut.c_str(), "w");
-    for (unsigned int i=0; i<inlierFinal.size(); i++)
-    {
-       ElCplePtsHomologues cple = inlierFinal[i];
-       Pt2dr p1 = cple.P1();
-       Pt2dr p2 = cple.P2();
-
-       fprintf(fpOutput, "%lf %lf %lf %lf\n",p1.x,p1.y,p2.x,p2.y);
-    }
-    fclose(fpOutput);
-    */
     SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierFinal);
 
     std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;

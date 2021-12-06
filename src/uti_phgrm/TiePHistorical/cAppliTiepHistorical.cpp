@@ -700,7 +700,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
     /**************************************/
     /* 2.1 - GetOverlappedImages */
     /**************************************/
-    StdCom("TestLib GetOverlappedImages", mOri1 + BLANK + mOri2 + BLANK + mImg4MatchList1 + BLANK + mImg4MatchList2 + BLANK + mCAS3D.ComParamGetOverlappedImages() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+aOri2+".xml", mExe);
+    if(mSkipGetOverlappedImages == false)
+        StdCom("TestLib GetOverlappedImages", mOri1 + BLANK + mOri2 + BLANK + mImg4MatchList1 + BLANK + mImg4MatchList2 + BLANK + mCAS3D.ComParamGetOverlappedImages() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+aOri2+".xml", mExe);
 
     if (ELISE_fp::exist_file(mCAS3D.mOutPairXml) == false)
     {
@@ -1009,6 +1010,7 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
     //mCoRegOri = "Co-reg";
     mSkipCoReg = false;
     mSkipPrecise = false;
+    mSkipGetOverlappedImages = false;
     mSkipGetPatchPair = false;
     mSkipTentativeMatch = false;
     mSkipRANSAC3D = false;
@@ -1052,6 +1054,7 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << EAM(mRotateDSM,"RotateDSM",true,"The angle of clockwise rotation from the master DSM to the secondary DSM for rough co-registration (only 4 options available: 0, 90, 180, 270, as the rough co-registration method is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
                << EAM(mSkipCoReg, "SkipCoReg", true, "Skip the step of rough co-registration, when the input orientations of epoch1 and epoch 2 are already co-registrated, Def=false")
                << EAM(mSkipPrecise, "SkipPrecise", true, "Skip the step of the whole precise matching pipeline, Def=false")
+               << EAM(mSkipGetOverlappedImages, "SkipGetOverlappedImages", true, "Skip the step of \"mGetOverlappedImages\" in precise matching (this option is used when the results of \"GetOverlappedImages\" already exist), Def=false")
                << EAM(mSkipGetPatchPair, "SkipGetPatchPair", true, "Skip the step of \"GetPatchPair\" in precise matching (this option is used when the results of \"GetPatchPair\" already exist), Def=false")
                << EAM(mSkipTentativeMatch, "SkipTentativeMatch", true, "Skip the step of \"SuperGlue\" or SIFT matching (this option is used when the results of \"SuperGlue\" or SIFT matching already exist), Def=false")
                << EAM(mSkipRANSAC3D, "SkipRANSAC3D", true, "Skip the step of \"3D RANSAC\" (this option is used when the results of \"3D RANSAC\" already exist), Def=false")
@@ -1748,6 +1751,8 @@ bool IsHomolFileExist(std::string aDir, std::string aImg1, std::string aImg2, st
 
 void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<ElCplePtsHomologues> aPack)
 {
+    if(aPack.size() <= 0)
+        return;
     std::string aSHDir;
     std::string aNewDir;
     std::string aNameFile1;
@@ -2003,6 +2008,220 @@ void ScaleKeyPt(std::vector<Siftator::SiftPoint>& aVSIFTPt, double dScale)
         aVSIFTPt[i].y *= dScale;
         aVSIFTPt[i].scale *= dScale;
     }
+}
+
+int Get3DTiePt(ElPackHomologue aPackFull, cGet3Dcoor a3DCoorL, cGet3Dcoor a3DCoorR, cDSMInfo aDSMInfoL, cDSMInfo aDSMInfoR, cTransform3DHelmert aTrans3DHL, std::vector<Pt3dr>& aV1, std::vector<Pt3dr>& aV2, std::vector<Pt2dr>& a2dV1, std::vector<Pt2dr>& a2dV2, bool bPrint)
+{
+    int nOriPtNum = 0;
+    for (ElPackHomologue::iterator itCpl=aPackFull.begin(); itCpl!=aPackFull.end(); itCpl++)
+    {
+       ElCplePtsHomologues cple = itCpl->ToCple();
+       Pt2dr p1 = cple.P1();
+       Pt2dr p2 = cple.P2();
+
+       if(bPrint)
+           cout<<nOriPtNum<<"th tie pt: "<<p1.x<<" "<<p1.y<<" "<<p2.x<<" "<<p2.y<<endl;
+
+       bool bValidL, bValidR;
+       Pt3dr pTerr1 = a3DCoorL.Get3Dcoor(p1, aDSMInfoL, bValidL, bPrint);//, dGSD1);
+       pTerr1 = aTrans3DHL.Transform3Dcoor(pTerr1);
+       Pt3dr pTerr2 = a3DCoorR.Get3Dcoor(p2, aDSMInfoR, bValidR, bPrint);//, dGSD2);
+
+       if(bValidL == true && bValidR == true)
+       {
+           aV1.push_back(pTerr1);
+           aV2.push_back(pTerr2);
+           a2dV1.push_back(p1);
+           a2dV2.push_back(p2);
+           //aPackInsideBorder.Cple_Add(cple);
+           //aValidPt.push_back(nOriPtNum);
+       }
+       else
+       {
+           if(false)
+               cout<<nOriPtNum<<"th tie pt out of border of the DSM hence skipped"<<endl;
+       }
+       nOriPtNum++;
+    }
+    return nOriPtNum;
+}
+
+cSolBasculeRig RANSAC3DCore(int aNbTir, double threshold, std::vector<Pt3dr> aV1, std::vector<Pt3dr> aV2, std::vector<Pt2dr> a2dV1, std::vector<Pt2dr> a2dV2, std::vector<ElCplePtsHomologues>& inlierFinal)
+{
+    double aEpslon = 0.0000001;
+    cSolBasculeRig aSBR = cSolBasculeRig::Id();
+    cSolBasculeRig aSBRBest = cSolBasculeRig::Id();
+    int i, j;
+    int nMaxInlier = 0;
+    std::vector<ElCplePtsHomologues> inlierCur;
+    int nPtNum = aV1.size();
+
+    for(j=0; j<aNbTir; j++)
+    {
+        cRansacBasculementRigide aRBR(false);
+
+        std::vector<int> res;
+
+        Pt3dr aDiff;
+        bool bDupPt;
+        //in case duplicated points
+        do
+        {
+            res.clear();
+            bDupPt = false;
+            GetRandomNum(0, nPtNum, 3, res);
+            for(i=0; i<3; i++)
+            {
+                aDiff = aV1[res[i]] - aV1[res[(i+1)%3]];
+                if((fabs(aDiff.x) < aEpslon) && (fabs(aDiff.y) < aEpslon) && (fabs(aDiff.z) < aEpslon))
+                {
+                    bDupPt = true;
+                    //printf("Duplicated 3D pt seed: %d, %d; Original index of 2D pt: %d %d\n ", res[i], res[i+1], aValidPt[res[i]], aValidPt[res[i+1]]);
+                    break;
+                }
+                aDiff = aV2[res[i]] - aV2[res[(i+1)%3]];
+                if((fabs(aDiff.x) < aEpslon) && (fabs(aDiff.y) < aEpslon) && (fabs(aDiff.z) < aEpslon))
+                {
+                    bDupPt = true;
+                    //printf("Duplicated 3D pt seed: %d, %d; Original index of 2D pt: %d %d\n ", res[i], res[i+1], aValidPt[res[i]], aValidPt[res[i+1]]);
+                    break;
+                }
+            }
+        }
+        while(bDupPt == true);
+
+        for(i=0; i<3; i++)
+        {
+            aRBR.AddExemple(aV1[res[i]],aV2[res[i]],0,"");
+            inlierCur.push_back(ElCplePtsHomologues(a2dV1[res[i]], a2dV2[res[i]]));
+        }
+
+        aRBR.CloseWithTrGlob();
+        aRBR.ExploreAllRansac();
+        aSBR = aRBR.BestSol();
+
+        int nInlier =3;
+        for(i=0; i<nPtNum; i++)
+        {
+            Pt3dr aP1 = aV1[i];
+            Pt3dr aP2 = aV2[i];
+
+            Pt3dr aP2Pred = aSBR(aP1);
+            double dist = pow(pow(aP2Pred.x-aP2.x,2) + pow(aP2Pred.y-aP2.y,2) + pow(aP2Pred.z-aP2.z,2), 0.5);
+            if(dist < threshold)
+            {
+                inlierCur.push_back(ElCplePtsHomologues(a2dV1[i], a2dV2[i]));
+                nInlier++;
+            }
+        }
+        if(nInlier > nMaxInlier)
+        {
+            nMaxInlier = nInlier;
+            aSBRBest = aSBR;
+            inlierFinal = inlierCur;
+            printf("Iter: %d/%d, seed: %d, %d, %d;  ", j, aNbTir, res[0], res[1], res[2]);
+            printf("nPtNum: %d, nMaxInlier: %d\n", nPtNum, nMaxInlier);
+        }
+        inlierCur.clear();
+    }
+    return aSBRBest;
+}
+
+void Save3DXml(std::vector<Pt3dr> vPt3D, std::string aOutXml)
+{
+    cDicoAppuisFlottant aDAFout;
+
+    for(unsigned int i=0; i<vPt3D.size(); i++)
+    {
+        cOneAppuisDAF anAp;
+
+        anAp.Pt() = vPt3D[i];
+        anAp.NamePt() = std::to_string(i);
+        anAp.Incertitude() = Pt3dr(1,1,1);
+        aDAFout.OneAppuisDAF().push_back(anAp);
+    }
+
+    MakeFileXML(aDAFout, aOutXml);
+}
+
+void Get2DCoor(std::string aRGBImgDir, std::vector<string> vImgList1, std::vector<Pt3dr> vPt3DL, std::string aOri1, cInterfChantierNameManipulateur * aICNM, std::string aOut2DXml)
+{
+    StdCorrecNameOrient(aOri1,"./",true);
+
+    //std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
+
+    cSetOfMesureAppuisFlottants aSOMAFout;
+    for(unsigned int i=0; i<vImgList1.size(); i++)
+    {
+        std::string aImg1 = vImgList1[i];
+        //cout<<aKeyOri1<<endl;
+        //std::string aIm1OriFile = aICNM->Assoc1To1(aKeyOri1,aImg1,true);
+        std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1); //aICNM->Assoc1To1(aKeyOri1,aImg1,true);
+        //cout<<aIm1OriFile<<endl;
+
+        int aType = eTIGB_Unknown;
+        cBasicGeomCap3D * aCamL = cBasicGeomCap3D::StdGetFromFile(aIm1OriFile,aType);
+
+        Pt3dr minPt, maxPt;
+        GetImgBoundingBox(aRGBImgDir, aImg1, aCamL, minPt, maxPt);
+
+        cMesureAppuiFlottant1Im aMAF;
+        aMAF.NameIm() = aImg1;
+        for(unsigned int j=0; j<vPt3DL.size(); j++)
+        {
+            Pt3dr ptCur = vPt3DL[j];
+            //if current 3d point is out of the border of the current image, skip
+            //because sometimes a 3d point that is out of border will get wrong 2D point from command XYZ2Im
+            if(ptCur.x<minPt.x || ptCur.y<minPt.y || ptCur.x>maxPt.x || ptCur.y>maxPt.y)
+                continue;
+
+            Pt2dr aPproj = aCamL->Ter2Capteur(ptCur);
+
+            cOneMesureAF1I anOM;
+            anOM.NamePt() = std::to_string(j);
+            anOM.PtIm() = aPproj;
+            aMAF.OneMesureAF1I().push_back(anOM);
+        }
+        aSOMAFout.MesureAppuiFlottant1Im().push_back(aMAF);
+    }
+    MakeFileXML(aSOMAFout, aOut2DXml);
+}
+
+bool GetImgBoundingBox(std::string aRGBImgDir, std::string aImg1, cBasicGeomCap3D * aCamL, Pt3dr& minPt, Pt3dr& maxPt)
+{
+    if (ELISE_fp::exist_file(aRGBImgDir+"/"+aImg1) == false)
+    {
+        cout<<aRGBImgDir+"/"+aImg1<<" didn't exist, hence skipped"<<endl;
+        return false;
+    }
+
+    Tiff_Im aRGBIm1((aRGBImgDir+"/"+aImg1).c_str());
+    Pt2di aImgSz = aRGBIm1.sz();
+
+    Pt2dr aPCorner[4];
+    Pt2dr origin = Pt2dr(0, 0);
+    aPCorner[0] = origin;
+    aPCorner[1] = Pt2dr(origin.x+aImgSz.x, origin.y);
+    aPCorner[2] = Pt2dr(origin.x+aImgSz.x, origin.y+aImgSz.y);
+    aPCorner[3] = Pt2dr(origin.x, origin.y+aImgSz.y);
+
+    //double prof_d = aCamL->GetVeryRoughInterProf();
+    //prof_d = 11.9117;
+    //double prof_d = aCamL->GetProfondeur();
+    double dZ = aCamL->GetAltiSol();
+    //cout<<"dZ: "<<dZ<<endl;
+
+    Pt3dr ptTerrCorner[4];
+    for(int i=0; i<4; i++)
+    {
+        Pt2dr aP1 = aPCorner[i];
+        //ptTerrCorner[i] = aCamL->ImEtProf2Terrain(aP1, prof_d);
+        ptTerrCorner[i] = aCamL->ImEtZ2Terrain(aP1, dZ);
+    }
+
+    GetBoundingBox(ptTerrCorner, 4, minPt, maxPt);
+
+    return true;
 }
 
 /*
