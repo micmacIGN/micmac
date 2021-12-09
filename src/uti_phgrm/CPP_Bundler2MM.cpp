@@ -621,7 +621,7 @@ void cAppliBundler::SaveOC(ElMatrix<double>& aRotZ, ElMatrix<double>& aR, Pt3dr&
 
 
 		/* There are images in Bundler solution that are NAN but exist in SfmInit */
-		if (! (isnan(aTr.x) || isnan(aTr.y) || isnan(aTr.z)))
+        if (! (std::isnan(aTr.x) || std::isnan(aTr.y) || std::isnan(aTr.z)))
 		{
 			aExtern.Centre() = aTr;//aTrMM;
 			aExtern.IncCentre() = Pt3dr(1,1,1);

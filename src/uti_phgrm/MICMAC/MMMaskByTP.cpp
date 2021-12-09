@@ -52,9 +52,11 @@ extern Im2D_Bits<1>  TestLabel(Im2D_INT2 aILabel,INT aLabelOut);
 
 //====================================================
 
+#ifdef ELISE_X11
 static Video_Win *  TheWTiePCor = 0;
 static double       TheScaleW = 1.0;
 static Pt2di TheMaxSzW(1600,1200);
+#endif
 
 void ShowPoint(Pt2dr aP,int aCoul,int aModeCoul,int aRab=0)
 {

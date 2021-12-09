@@ -1838,8 +1838,8 @@ int MatchOneWay(std::vector<int>& matchIDL, std::vector<Siftator::SiftPoint> aVS
     int nEndL = nSizeL;
     int nEndR = nSizeR;
 
-    std::time_t t1 = std::time(nullptr);
-    std::cout << std::put_time(std::localtime(&t1), "%Y-%m-%d %H:%M:%S") << std::endl;
+    //std::time_t t1 = std::time(nullptr);
+    //std::cout << std::put_time(std::localtime(&t1), "%Y-%m-%d %H:%M:%S") << std::endl;
 
     long nSkiped = 0;
     float alpha = 2;
@@ -1948,8 +1948,8 @@ int MatchOneWay(std::vector<int>& matchIDL, std::vector<Siftator::SiftPoint> aVS
             nMatches++;
         //cout<<i<<" "<<nMatch<<endl;
     }
-    std::time_t t2 = std::time(nullptr);
-    std::cout << std::put_time(std::localtime(&t2), "%Y-%m-%d %H:%M:%S") << std::endl;
+    //std::time_t t2 = std::time(nullptr);
+    //std::cout << std::put_time(std::localtime(&t2), "%Y-%m-%d %H:%M:%S") << std::endl;
     return nMatches;
 }
 
