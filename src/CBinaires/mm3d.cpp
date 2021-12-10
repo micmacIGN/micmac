@@ -949,6 +949,10 @@ extern int SIFT2StepFile_main(int argc, char ** argv);
 //extern int D2NetMatch_main(int argc, char ** argv);
 extern int Calc2DSimi_main(int argc, char ** argv);
 extern int GlobalR3D_main(int argc, char ** argv);
+extern int ExtractSIFT_main(int argc, char ** argv);
+extern int InlierRatio_main(int argc, char ** argv);
+extern int EvalOri_main(int argc, char ** argv);
+extern int CoReg_GlobalR3D_main(int argc, char ** argv);
 
 
 extern int ReechHomol_main(int argc, char ** argv);
@@ -1032,6 +1036,10 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         //aRes.push_back(cMMCom("D2NetMatch", D2NetMatch_main, "Input D2Net feature files \"img.d2-net\" and match them with mutual neareat neighbor"));
         aRes.push_back(cMMCom("Calc2DSimi", Calc2DSimi_main, "Input tie point file to calculate a 2D similarity transformation between them and out the parameter file"));
         aRes.push_back(cMMCom("GlobalR3D", GlobalR3D_main, "Filter tie points by running RANSAC in 3D to build a 3D Helmet transformation model that is globally consistent over the whole block"));
+        aRes.push_back(cMMCom("ExtractSIFT", ExtractSIFT_main, "Extract SIFT"));
+        aRes.push_back(cMMCom("InlierRatio", InlierRatio_main, "Calculate inlier ratio of tie points on DSMs or orthophotos"));
+        aRes.push_back(cMMCom("EvalOri", EvalOri_main, "Input GCPs to evaluate orientations"));
+        aRes.push_back(cMMCom("CoReg_GlobalR3D", CoReg_GlobalR3D_main, "Roughly co-register 2 epochs by matching individual RGB image pairs followed by GlobalR3D"));
 
 
 		aRes.push_back(cMMCom("Script",CPP_YannScript, "Fonction de script pour les tests "));		

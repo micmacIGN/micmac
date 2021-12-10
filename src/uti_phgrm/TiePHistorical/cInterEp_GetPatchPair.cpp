@@ -586,70 +586,6 @@ void GetTilePair(std::string aOutDir, std::string aOriOutImg1, std::string aRota
     }
 }
 
-
-void RotateImgBy90Deg(std::string aDir, std::string aImg1, std::string aNameOut)
-{
-    Tiff_Im aDSMIm1((aDir+"/"+aImg1).c_str());
-    Pt2di ImgSzL = aDSMIm1.sz();
-
-    aNameOut = aDir+"/"+aNameOut;
-
-    //std::string aNameOut = aDir+"/"+StdPrefix(aImg1)+"_R90.tif";
-
-    Tiff_Im TiffOut  =     Tiff_Im
-                           (
-                              aNameOut.c_str(),
-                              Pt2di(ImgSzL.y, ImgSzL.x),
-                              aDSMIm1.type_el(),
-                              Tiff_Im::No_Compr,
-                              aDSMIm1.phot_interp(),
-                              Tiff_Im::Empty_ARG
-                          );
-
-    TIm2D<float, double> aTImProfPx(ImgSzL);
-    ELISE_COPY
-    (
-    aTImProfPx.all_pts(),
-    aDSMIm1.in(),
-    aTImProfPx.out()
-    );
-
-    TIm2D<float, double> aTImProfPxTmp(Pt2di(ImgSzL.y, ImgSzL.x));
-    ELISE_COPY
-    (
-    aTImProfPxTmp.all_pts(),
-    aTImProfPx.in()[Virgule(FY,FX)],
-    aTImProfPxTmp.out()
-    );
-
-    //flip
-    ELISE_COPY
-    (
-    TiffOut.all_pts(),
-    aTImProfPxTmp.in(0)[Virgule(ImgSzL.y-FX,FY)],
-    TiffOut.out()
-    );
-}
-
-void RotateImgBy90DegNTimes(std::string aDir, std::string aImg1, std::string aNameOut, int nTime)
-{
-    RotateImgBy90Deg(aDir, aImg1, aNameOut);
-    nTime--;
-
-    for(int i=0; i<nTime; i++)
-    {
-        std::string aNameOutTmp = StdPrefix(aNameOut)+"_tmp."+StdPostfix(aNameOut);
-        std::string strCpImg = "mv "+aDir+aNameOut+" "+aDir+aNameOutTmp;
-        //cout<<strCpImg<<endl;
-        System(strCpImg);
-
-        RotateImgBy90Deg(aDir, aNameOutTmp, aNameOut);
-        strCpImg = "rm "+aDir+aNameOutTmp;
-        //cout<<strCpImg<<endl;
-        System(strCpImg);
-    }
-}
-
 int BruteForce(int argc,char ** argv, const std::string &aArg="")
 {
     cCommonAppliTiepHistorical aCAS3D;
@@ -659,13 +595,15 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
 
     std::string aType;
 
-    bool bRotate = false;
+    //bool bRotate = false;
 
     Pt2dr aPatchSz(640, 480);
     Pt2dr aBufferSz(0,0);
 
     std::string aOutDir = "./Tmp_Patches-CoReg";
     double dDyn = 0.1;
+
+    int aRotate = -1;
 
     ElInitArgMain
      (
@@ -677,10 +615,11 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
          LArgMain()
                 << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
                 << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=[0,0]")
-                << EAM(bRotate,"Rotate",true,"Rotate the master image by 90 degree 4 times for matching methods which are not invariant to rotation (e.g. SuperGlue), Def=false")
+                //<< EAM(bRotate,"Rotate",true,"Rotate the master image by 90 degree 4 times for matching methods which are not invariant to rotation (e.g. SuperGlue), Def=false")
+                << EAM(aRotate,"Rotate",true,"The angle of clockwise rotation from the master image to the secondary image (only 4 options available: 0, 90, 180, 270, as SuperGlue is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
                 << EAM(aOutDir, "OutDir", true, "Output direcotry of the patches, Def=./Tmp_Patches-CoReg")
-                     << aCAS3D.ArgBasic()
-                     << aCAS3D.ArgGetPatchPair()
+                << aCAS3D.ArgBasic()
+                << aCAS3D.ArgGetPatchPair()
                 << EAM(dDyn, "Dyn", true, "The Dyn parameter in \"to8Bits\" if the input RGB images are 16 bits, Def=0.1")
      );
 
@@ -698,7 +637,17 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
     else
         aOutImg2 += "." + StdPostfix(aImg2);
 
-   if(true)
+    Tiff_Im aDSMIm1((aCAS3D.mDir+aImg1).c_str());
+    Pt2di ImgSzL = aDSMIm1.sz();
+
+    std::string aImg1_Rotate;
+    std::string aOutImg1_Rotate;
+    std::string aSubPatchXml;
+    std::string aImgPair;
+    std::string aImgBase = aImg1;
+
+    //no rotation
+   if(aRotate == -1)
    {
        cElComposHomographie aUnitHX(1, 0, 0);
        cElComposHomographie aUnitHY(0, 1, 0);
@@ -708,20 +657,8 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
        //no rotation
        GetTilePair(aOutDir, aOutImg1, aOutImg1, aOutImg2, aImg1, aImg2, aPatchSz, aBufferSz, aCAS3D.mImgPair, aCAS3D.mDir, aCAS3D.mSubPatchXml, aImg1, aUnitH, aCAS3D.mPrint, dDyn);
    }
-
-   if(bRotate == true)
-   {
-       Tiff_Im aDSMIm1((aCAS3D.mDir+aImg1).c_str());
-       Pt2di ImgSzL = aDSMIm1.sz();
-
-       std::string aImg1_Rotate;
-       std::string aOutImg1_Rotate;
-       std::string aSubPatchXml;
-       std::string aImgPair;
-       std::string aImgBase = aImg1;
-
        //rotate 90 degree
-       if(true)
+       else if(aRotate == 90)
        {
            cElComposHomographie aRotateHX(0, 1, 0);
            cElComposHomographie aRotateHY(-1, 0, ImgSzL.y);
@@ -739,9 +676,8 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
            RotateImgBy90Deg(aCAS3D.mDir, aImgBase, aImg1_Rotate);
            GetTilePair(aOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint, dDyn);
        }
-
        //rotate 180 degree
-       if(true)
+       else if(aRotate == 180)
        {
            cElComposHomographie aRotateHX(-1, 0, ImgSzL.x);
            cElComposHomographie aRotateHY(0, -1, ImgSzL.y);
@@ -759,9 +695,8 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
            RotateImgBy90DegNTimes(aCAS3D.mDir, aImgBase, aImg1_Rotate, 2);
            GetTilePair(aOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint, dDyn);
        }
-
        //rotate 270 degree
-       if(true)
+       else if(aRotate == 270)
        {
            cElComposHomographie aRotateHX(0, -1, ImgSzL.x);
            cElComposHomographie aRotateHY(1, 0, 0);
@@ -779,7 +714,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
            RotateImgBy90DegNTimes(aCAS3D.mDir, aImgBase, aImg1_Rotate, 3);
            GetTilePair(aOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint, dDyn);
        }
-    }
+    //}
 
     return 0;
 }

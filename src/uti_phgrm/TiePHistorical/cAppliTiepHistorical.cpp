@@ -140,10 +140,10 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
 //    mOutDir = "./Tmp_Patches";
 //    mOutImg1 = "";
 //    mOutImg2 = "";
-    mOut2DXml1 = "OutGCP2D_epoch1.xml";
-    mOut2DXml2 = "OutGCP2D_epoch2.xml";
-    mOut3DXml1 = "OutGCP3D_epoch1.xml";
-    mOut3DXml2 = "OutGCP3D_epoch2.xml";
+    mOut2DXml1 = "";
+    mOut2DXml2 = "";
+    mOut3DXml1 = "";
+    mOut3DXml2 = "";
     //mSubPatchLXml = "SubPL.xml";
     //mSubPatchRXml = "SubPR.xml";
     mStrEntSpG = "";
@@ -175,8 +175,8 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
 
 
     *mArgGetPatchPair
-            //<< EAM(mPatchSz, "PatchSz", true, "Patch size of the tiling scheme, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
-            //<< EAM(mBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=[30, 60]")
+            //<< EAM(mPatchSz, "PatchSz", true, "Patch size of the tiling scheme, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640,480]")
+            //<< EAM(mBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme, Def=[30,60]")
             << EAM(mSubPatchXml, "SubPXml", true, "The output xml file name to record the homography between the patches and original image, Def=SubPatch.xml")
             //<< EAM(mDSMDirL, "DSMDirL", true, "DSM of master image (for improving the reprojecting accuracy), Def=none")
             //<< EAM(mDSMDirR, "DSMDirR", true, "DSM of secondary image (for improving the reprojecting accuracy), Def=none")
@@ -189,7 +189,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
             //<< EAM(input_pairs, "input_pairs", true, "txt file that listed the image pairs")
             << EAM(mInput_dir, "InDir", true, "The input directory of the images for SuperGlue, Def=./")
             << EAM(mSpGlueOutSH, "SpGOutSH", true, "Homologue extenion for NB/NT mode of SuperGlue, Def=-SuperGlue")
-            << EAM(mResize, "Resize", true, "The goal size for resizing the input image for SuperGlue, Def=[640, 480], if you don't want to resize, please set to [-1, -1]")
+            << EAM(mResize, "Resize", true, "The goal size for resizing the input image for SuperGlue, Def=[640,480], if you don't want to resize, please set to [-1,-1]")
             << EAM(mViz, "Viz", true, "Visualize the matches and dump the plots of SuperGlue, Def=false")
             << EAM(mModel, "Model", true, "Pretrained indoor or outdoor model of SuperGlue, Def=outdoor")
             << EAM(mMax_keypoints, "MaxPt", true, "Maximum number of keypoints detected by Superpoint, Def=1024")
@@ -210,10 +210,10 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
         //<< EAM(mDSMFileL, "DSMFileL", true, "DSM File of epoch1, Def=MMLastNuage.xml")
         //<< EAM(mDSMFileR, "DSMFileR", true, "DSM File of epoch2, Def=MMLastNuage.xml")
         << EAM(mCreateGCPsInSH,"CreateGCPsInSH",true,"Input Homologue extenion for NB/NT mode for CreateGCPs, Def=none")
-        << EAM(mOut2DXml1,"Out2DXml1",true,"Output xml files of 2D obersevations of the GCPs in epoch1, Def=OutGCP2D_epoch1.xml")
-        << EAM(mOut3DXml1,"Out3DXml1",true,"Output xml files of 3D obersevations of the GCPs in epoch1, Def=OutGCP3D_epoch1.xml")
-        << EAM(mOut2DXml2,"Out2DXml2",true,"Output xml files of 2D obersevations of the GCPs in epoch2, Def=OutGCP2D_epoch2.xml")
-        << EAM(mOut3DXml2,"Out3DXml2",true,"Output xml files of 3D obersevations of the GCPs in epoch2, Def=OutGCP3D_epoch2.xml");
+        << EAM(mOut2DXml1,"Out2DXml1",true,"Output xml files of 2D obersevations of the GCPs in epoch1, Def=OutGCP2D'CreateGCPsInSH'_epoch1.xml")
+        << EAM(mOut3DXml1,"Out3DXml1",true,"Output xml files of 3D obersevations of the GCPs in epoch1, Def=OutGCP2D'CreateGCPsInSH'_epoch1.xml")
+        << EAM(mOut2DXml2,"Out2DXml2",true,"Output xml files of 2D obersevations of the GCPs in epoch2, Def=OutGCP2D'CreateGCPsInSH'_epoch2.xml")
+        << EAM(mOut3DXml2,"Out3DXml2",true,"Output xml files of 3D obersevations of the GCPs in epoch2, Def=OutGCP2D'CreateGCPsInSH'_epoch2.xml");
 
 
     *mArgGetOverlappedImages
@@ -263,8 +263,8 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     << EAM(mPredict, "Predict",true, "Use the predicted key points to guide the matching, Def=true");
 
     *mArgCrossCorrelation
-//            << EAM(mPatchSz, "PatchSz", true, "Patch size, Def=[640, 480]")
-//            << EAM(mBufferSz, "BufferSz", true, "Buffer sie, Def=[30, 60]")
+//            << EAM(mPatchSz, "PatchSz", true, "Patch size, Def=[640,480]")
+//            << EAM(mBufferSz, "BufferSz", true, "Buffer sie, Def=[30,60]")
             << EAM(mCrossCorrelationInSH,"CCInSH",true,"Input Homologue extenion for NB/NT mode for cross correlation, Def=none")
             << EAM(mCrossCorrelationOutSH,"CCOutSH",true,"Output Homologue extenion for NB/NT mode of cross correlation, Def='CCInSH'-CrossCorrelation")
                //<< EAM(mSubPatchXml, "SubPatchXml", true, "The xml file name to record the homography between the patch and original image, Def=SubPatch.xml")
@@ -334,6 +334,14 @@ LArgMain & cCommonAppliTiepHistorical::ArgCrossCorrelation()
 LArgMain & cCommonAppliTiepHistorical::ArgCreateGCPs()
 {
         return * mArgCreateGCPs;
+}
+
+void cCommonAppliTiepHistorical::CorrectXmlFileName(std::string aCreateGCPsInSH)
+{
+    if(mOut2DXml1.length() == 0)			mOut2DXml1 = "OutGCP2D" + aCreateGCPsInSH + "_epoch1.xml";
+    if(mOut2DXml2.length() == 0)			mOut2DXml2 = "OutGCP2D" + aCreateGCPsInSH + "_epoch2.xml";
+    if(mOut3DXml1.length() == 0)			mOut3DXml1 = "OutGCP3D" + aCreateGCPsInSH + "_epoch1.xml";
+    if(mOut3DXml2.length() == 0)			mOut3DXml2 = "OutGCP3D" + aCreateGCPsInSH + "_epoch2.xml";
 }
 
 std::string cCommonAppliTiepHistorical::ComParamDSM_Equalization()
@@ -470,13 +478,14 @@ std::string StdCom(const std::string & aCom,const std::string & aPost, bool aExe
         return aFullCom;
     }
 */
+    std::cout << aFullCom << "\n";
+
     if (aExe)
     {
        //std::cout << "---------->>>>  " << aFullCom << "\n";
        System(aFullCom);
     }
-    else
-       std::cout << aFullCom << "\n";
+    //else
 
     return aFullCom;
 
@@ -505,7 +514,7 @@ int GetTiePtNum(std::string aDir, std::string aImg1, std::string aImg2, std::str
 
     if (ELISE_fp::exist_file(aNameIn) == false)
     {
-        cout<<aNameIn<<"didn't exist hence skipped."<<endl;
+        cout<<aNameIn<<" didn't exist hence skipped (GetTiePtNum)."<<endl;
         return 0;
     }
     ElPackHomologue aPackFull =  ElPackHomologue::FromFile(aNameIn);
@@ -520,7 +529,51 @@ int GetTiePtNum(std::string aDir, std::string aImg1, std::string aImg2, std::str
     return nPtNum;
 }
 
-int GetOverlappedImgPair(std::string aName, std::vector<std::string>& aResL, std::vector<std::string>& aResR)
+int SaveTxtImgPair(std::string aName, std::vector<std::string> aResL, std::vector<std::string> aResR)
+{
+    int num=0;
+    bool bPair = true;
+    FILE * fpPair = fopen(aName.c_str(), "w");
+
+    if (NULL == fpPair)
+    {
+        cout<<"Open file "<<aName<<" failed"<<endl;
+        bPair = false;
+    }
+
+    for(int i=0; i<int(aResL.size()); i++)
+    {
+        if(1) //for(int j=0; j<int(aResR.size()); j++)
+        {
+            if(bPair)
+                fprintf(fpPair, "%s %s\n", aResL[i].c_str(), aResR[i].c_str());
+
+            num++;
+        }
+    }
+    fclose(fpPair);
+
+    return num;
+}
+
+int SaveXmlImgPair(std::string aName, std::vector<std::string> aResL, std::vector<std::string> aResR)
+{
+    cSauvegardeNamedRel aLCpleOri;
+    int num=0;
+    for(int i=0; i<int(aResL.size()); i++)
+    {
+        for(int j=0; j<int(aResR.size()); j++)
+        {
+            cCpleString aCplCalc(aResL[i], aResR[j]);
+            aLCpleOri.Cple().push_back(aCplCalc);
+            num++;
+        }
+    }
+    MakeFileXML(aLCpleOri, aName);
+    return num;
+}
+
+int GetXmlImgPair(std::string aName, std::vector<std::string>& aResL, std::vector<std::string>& aResR)
 {
     //std::vector<tNamePair> aRes;
     int num = 0;
@@ -534,28 +587,6 @@ int GetOverlappedImgPair(std::string aName, std::vector<std::string>& aResL, std
     }
 
     return num;
-}
-
-std::string cAppliTiepHistoricalPipeline::GetImgList(std::string aDir, std::string aFileName, bool bExe)
-{
-    std::string aRes;
-
-    std::vector<std::string> aVIm;
-    bool bTxt = GetImgListVec(aFileName, aVIm, bExe);
-    if(bTxt == true)
-    {
-        aRes = "\"";
-        for(int i=0; i<int(aVIm.size()); i++)
-        {
-            aRes += aVIm[i]+"|";
-        }
-        aRes = aRes.substr(0, aRes.length()-1) + "\"";
-    }
-    else
-        aRes = aFileName;
-
-
-    return aRes;
 }
 
 void cAppliTiepHistoricalPipeline::DoAll()
@@ -572,6 +603,10 @@ void cAppliTiepHistoricalPipeline::DoAll()
     std::string aOri2 = mOri2;
     StdCorrecNameOrient(aOri2,"./",true);
 
+    bool bUseOrtho = false;
+    if (mOrthoDirL.length()>0 && mOrthoDirR.length()>0 && ELISE_fp::exist_file(mOrthoDirL+"/"+mOrthoFileL) == true && ELISE_fp::exist_file(mOrthoDirR+"/"+mOrthoFileR) == true)
+        bUseOrtho = true;
+
     if(mSkipCoReg == false)
     {
         printf("**************************************1- rough co-registration************************************\n");
@@ -587,84 +622,124 @@ void cAppliTiepHistoricalPipeline::DoAll()
         /**************************************/
         /* 1.1 - DSM_Equalization and wallis filter */
         /**************************************/
-        StdCom("TestLib DSM_Equalization", mDSMDirL + BLANK + "DSMFile="+mDSMFileL + BLANK
-                                                                    + mCAS3D.ComParamDSM_Equalization(), mExe);
-        StdCom("TestLib DSM_Equalization", mDSMDirR + BLANK + "DSMFile="+mDSMFileR + BLANK
-                                                                    + mCAS3D.ComParamDSM_Equalization(), mExe);
+        if(bUseOrtho == false){
+            StdCom("TestLib DSM_Equalization", mDSMDirL + BLANK + "DSMFile="+mDSMFileL + BLANK
+                                                                        + mCAS3D.ComParamDSM_Equalization(), mExe);
+            StdCom("TestLib DSM_Equalization", mDSMDirR + BLANK + "DSMFile="+mDSMFileR + BLANK
+                                                                        + mCAS3D.ComParamDSM_Equalization(), mExe);
 
-        StdCom("TestLib Wallis", aDSMImgGrayNameL + BLANK + "Dir="+mDSMDirL, mExe);
-        StdCom("TestLib Wallis", aDSMImgGrayNameR + BLANK + "Dir="+mDSMDirR, mExe);
+            StdCom("TestLib Wallis", aDSMImgGrayNameL + BLANK + "Dir="+mDSMDirL, mExe);
+            StdCom("TestLib Wallis", aDSMImgGrayNameR + BLANK + "Dir="+mDSMDirR, mExe);
+        }
 
-        /**************************************/
-        /* 1.2 - GetPatchPair for rough co-registration */
-        /**************************************/
+        std::string aDSMImgWallisDirL = mDSMDirL;
+        std::string aDSMImgWallisDirR = mDSMDirR;
         std::string aDSMImgWallisNameL = aDSMImgGrayNameL+"_sfs.tif";
         std::string aDSMImgWallisNameR = aDSMImgGrayNameR+"_sfs.tif";
-        aCom = "";
-        //if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
-        if (EAMIsInit(&mCoRegPatchSz))  aCom += " PatchSz=[" + ToString(mCoRegPatchSz.x) + "," + ToString(mCoRegPatchSz.y) + "]";
-        aCom += " BufferSz=[" + ToString(mCoRegBufferSz.x) + "," + ToString(mCoRegBufferSz.y) + "]";
-        StdCom("TestLib GetPatchPair BruteForce", mDSMDirL+"/"+aDSMImgWallisNameL + BLANK + mDSMDirR+"/"+aDSMImgWallisNameR + BLANK + aCom + BLANK + "Rotate=1" + BLANK + mCAS3D.ComParamGetPatchPair(), mExe);
+        if(bUseOrtho == true){
+            aDSMImgWallisDirL = mOrthoDirL;
+            aDSMImgWallisDirR = mOrthoDirR;
+            aDSMImgWallisNameL = mOrthoFileL;
+            aDSMImgWallisNameR = mOrthoFileR;
+        }
+        std::string aDSMImgGrayNameRenamedL = mCAS3D.GetFolderName(aDSMImgWallisDirL) + "." + StdPostfix(aDSMImgNameL);
+        std::string aDSMImgGrayNameRenamedR = mCAS3D.GetFolderName(aDSMImgWallisDirR) + "." + StdPostfix(aDSMImgNameR);
 
-        std::string aDSMImgGrayNameRenamedL = mCAS3D.GetFolderName(mDSMDirL) + "." + StdPostfix(aDSMImgNameL);
-        std::string aDSMImgGrayNameRenamedR = mCAS3D.GetFolderName(mDSMDirR) + "." + StdPostfix(aDSMImgNameR);
-
-        std::string aRotate[4] = {"", "_R90", "_R180", "_R270"};
         std::string aFinalOutSH;
-        int nMaxinlier = 0;
-        //Rotate the master DSM 4 times and apply superGlue
-        for(int i=0; i<4; i++)
+        if(mFeature == "SuperGlue")
         {
-            if(mRotateDSM != -1)
+            /**************************************/
+            /* 1.2 - GetPatchPair for rough co-registration */
+            /**************************************/
+            aCom = "";
+            //if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
+            if (EAMIsInit(&mCoRegPatchSz))  aCom += " PatchSz=[" + ToString(mCoRegPatchSz.x) + "," + ToString(mCoRegPatchSz.y) + "]";
+            aCom += " BufferSz=[" + ToString(mCoRegBufferSz.x) + "," + ToString(mCoRegBufferSz.y) + "]";
+            StdCom("TestLib GetPatchPair BruteForce", aDSMImgWallisDirL+"/"+aDSMImgWallisNameL + BLANK + aDSMImgWallisDirR+"/"+aDSMImgWallisNameR + BLANK + aCom + BLANK + "Rotate=" + ToString(mRotateDSM) + BLANK + mCAS3D.ComParamGetPatchPair(), mExe);
+
+
+            std::string aRotate[4] = {"", "_R90", "_R180", "_R270"};
+            int nMaxinlier = 0;
+            //Rotate the master DSM 4 times and apply superGlue
+            for(int i=0; i<4; i++)
             {
-                std::string aRotateDSMStr = "_R" + ToString(mRotateDSM);
-                if(mRotateDSM == 0)
-                    aRotateDSMStr = "";
-                if(aRotate[i] != aRotateDSMStr)
+                if(mRotateDSM != -1)
                 {
-                    printf("%dth attempt with \"%s\" doesn't match with \"%s\", hence skipped\n", i, aRotate[i].c_str(), aRotateDSMStr.c_str());
-                    continue;
+                    std::string aRotateDSMStr = "_R" + ToString(mRotateDSM);
+                    if(mRotateDSM == 0)
+                        aRotateDSMStr = "";
+                    if(aRotate[i] != aRotateDSMStr)
+                    {
+                        printf("%dth attempt with \"%s\" doesn't match with \"%s\", hence skipped\n", i, aRotate[i].c_str(), aRotateDSMStr.c_str());
+                        continue;
+                    }
+                }
+                /**************************************/
+                /* 1.3 - SuperGlue for rough co-registration */
+                /**************************************/
+                std::string aImgPair = StdPrefix(mCAS3D.mImgPair) + aRotate[i] + "." + StdPostfix(mCAS3D.mImgPair);
+                aCom = "";
+                if (!EAMIsInit(&mCAS3D.mInput_dir))    aCom +=  " InDir=" + aOutDir+"/";
+                //if (!EAMIsInit(&mCAS3D.mOutput_dir))   aCom +=  " SpGOutDir=" + aOutDir+"/";
+                aCom +=  " CheckNb=\" " + ToString(mCheckNbCoReg) + "\"";
+                StdCom("TestLib SuperGlue", aImgPair + BLANK + aCom + BLANK + mCAS3D.ComParamSuperGlue(), mExe);
+
+
+                /**************************************/
+                /* 1.4 - MergeTiePt for rough co-registration */
+                /**************************************/
+                std::string aHomoXml = StdPrefix(mCAS3D.mHomoXml) + aRotate[i] + "." + StdPostfix(mCAS3D.mHomoXml);
+                aCom = "";
+                if (!EAMIsInit(&mCAS3D.mHomoXml))   aCom +=  " HomoXml=" + aHomoXml;
+                if (!EAMIsInit(&mCAS3D.mMergeTiePtInSH))   aCom +=  " MergeInSH=" + mCAS3D.mSpGlueOutSH;
+                aCom +=  " PatchSz=[" + ToString(mCoRegPatchSz.x) + "," + ToString(mCoRegPatchSz.y) + "]";
+                aCom +=  " BufferSz=[" + ToString(mCoRegBufferSz.x) + "," + ToString(mCoRegBufferSz.y) + "]";
+                StdCom("TestLib MergeTiePt", aOutDir+"/" + BLANK + aCom + BLANK + mCAS3D.ComParamMergeTiePt(), mExe);
+
+
+                /**************************************/
+                /* 1.5 - RANSAC R2D for rough co-registration */
+                /**************************************/
+                aCom = "";
+                if (!EAMIsInit(&mCAS3D.mR2DInSH))   aCom +=  " 2DRANInSH=-" + StdPrefix(aHomoXml);
+                std::string aRANSACOutSH = "-" + StdPrefix(aHomoXml) + "-2DRANSAC";
+                StdCom("TestLib RANSAC R2D", aDSMImgGrayNameRenamedL + BLANK + aDSMImgGrayNameRenamedR + BLANK + "Dir=" + aOutDir+"/" + BLANK + aCom + BLANK + mCAS3D.ComParamRANSAC2D(), mExe);
+                int nInlier = GetTiePtNum(aOutDir, aDSMImgGrayNameRenamedL, aDSMImgGrayNameRenamedR, aRANSACOutSH);
+                cout<<i<<",,"<<aRANSACOutSH<<","<<nInlier<<endl;
+
+                if(nInlier > nMaxinlier)
+                {
+                    nMaxinlier = nInlier;
+                    aFinalOutSH = aRANSACOutSH;
                 }
             }
-            /**************************************/
-            /* 1.3 - SuperGlue for rough co-registration */
-            /**************************************/
-            std::string aImgPair = StdPrefix(mCAS3D.mImgPair) + aRotate[i] + "." + StdPostfix(mCAS3D.mImgPair);
+        }
+        else if(mFeature == "SIFT")
+        {
+            std::string strCpImg;
+            strCpImg = "cp "+aDSMImgWallisDirL+"/"+aDSMImgWallisNameL+" "+aOutDir+"/"+aDSMImgGrayNameRenamedL;
+            cout<<strCpImg<<endl;
+            if(mExe)            System(strCpImg);
+
+            strCpImg = "cp "+aDSMImgWallisDirR+"/"+aDSMImgWallisNameR+" "+aOutDir+"/"+aDSMImgGrayNameRenamedR;
+            cout<<strCpImg<<endl;
+            if(mExe)            System(strCpImg);
+
+            std::string aInSH = "-SIFT";
+            StdCom("Tapioca MulScale ", "\"" + aOutDir + "/" + aDSMImgGrayNameRenamedL + "|" + aDSMImgGrayNameRenamedR + "\" 500 2000 ExpTxt=1 PostFix="+aInSH, mExe);
+
             aCom = "";
-            if (!EAMIsInit(&mCAS3D.mInput_dir))    aCom +=  " InDir=" + aOutDir+"/";
-            //if (!EAMIsInit(&mCAS3D.mOutput_dir))   aCom +=  " SpGOutDir=" + aOutDir+"/";
-            aCom +=  " CheckNb=\" " + ToString(mCheckNbCoReg) + "\"";
-            StdCom("TestLib SuperGlue", aImgPair + BLANK + aCom + BLANK + mCAS3D.ComParamSuperGlue(), mExe);
-
-
-            /**************************************/
-            /* 1.4 - MergeTiePt for rough co-registration */
-            /**************************************/
-            std::string aHomoXml = StdPrefix(mCAS3D.mHomoXml) + aRotate[i] + "." + StdPostfix(mCAS3D.mHomoXml);
-            aCom = "";
-            if (!EAMIsInit(&mCAS3D.mHomoXml))   aCom +=  " HomoXml=" + aHomoXml;
-            if (!EAMIsInit(&mCAS3D.mMergeTiePtInSH))   aCom +=  " MergeInSH=" + mCAS3D.mSpGlueOutSH;
-            aCom +=  " PatchSz=[" + ToString(mCoRegPatchSz.x) + "," + ToString(mCoRegPatchSz.y) + "]";
-            aCom +=  " BufferSz=[" + ToString(mCoRegBufferSz.x) + "," + ToString(mCoRegBufferSz.y) + "]";
-            StdCom("TestLib MergeTiePt", aOutDir+"/" + BLANK + aCom + BLANK + mCAS3D.ComParamMergeTiePt(), mExe);
-
-
-            /**************************************/
-            /* 1.5 - RANSAC R2D for rough co-registration */
-            /**************************************/
-            aCom = "";
-            if (!EAMIsInit(&mCAS3D.mR2DInSH))   aCom +=  " 2DRANInSH=-" + StdPrefix(aHomoXml);
-            std::string aRANSACOutSH = "-" + StdPrefix(aHomoXml) + "-2DRANSAC";
+            if (!EAMIsInit(&mCAS3D.mR2DInSH))   aCom +=  " 2DRANInSH=" + aInSH;
+            std::string aRANSACOutSH = aInSH + "-2DRANSAC";
             StdCom("TestLib RANSAC R2D", aDSMImgGrayNameRenamedL + BLANK + aDSMImgGrayNameRenamedR + BLANK + "Dir=" + aOutDir+"/" + BLANK + aCom + BLANK + mCAS3D.ComParamRANSAC2D(), mExe);
             int nInlier = GetTiePtNum(aOutDir, aDSMImgGrayNameRenamedL, aDSMImgGrayNameRenamedR, aRANSACOutSH);
-            cout<<i<<",,"<<aRANSACOutSH<<","<<nInlier<<endl;
+            cout<<aRANSACOutSH<<","<<nInlier<<endl;
 
-            if(nInlier > nMaxinlier)
-            {
-                nMaxinlier = nInlier;
-                aFinalOutSH = aRANSACOutSH;
-            }
+            aFinalOutSH = aRANSACOutSH;
         }
+        else
+            printf("Please set Feature to SuperGlue or SIFT\n");
+
         cout<<"aFinalOutSH: "<<aFinalOutSH<<endl;
 
 
@@ -673,15 +748,20 @@ void cAppliTiepHistoricalPipeline::DoAll()
         /**************************************/
         aCom = "";
         if (!EAMIsInit(&mCAS3D.mCreateGCPsInSH))   aCom +=  " CreateGCPsInSH=" + aFinalOutSH;
+        if (EAMIsInit(&mOrthoDirL))               aCom +=  " OrthoDirL=" + mOrthoDirL;
+        if (EAMIsInit(&mOrthoDirR))               aCom +=  " OrthoDirR=" + mOrthoDirR;
+        if (EAMIsInit(&mOrthoFileL))              aCom +=  " OrthoFileL=" + mOrthoFileL;
+        if (EAMIsInit(&mOrthoFileR))              aCom +=  " OrthoFileR=" + mOrthoFileR;
         StdCom("TestLib CreateGCPs", aOutDir + BLANK + aDSMImgGrayNameRenamedL + BLANK + aDSMImgGrayNameRenamedR + BLANK + mCAS3D.mDir + BLANK + mImgList1 + BLANK + mImgList2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + mDSMDirL + BLANK + mDSMDirR + aCom + mCAS3D.ComParamCreateGCPs(), mExe);
 
 
+        mCAS3D.CorrectXmlFileName(aFinalOutSH);
         /**************************************/
         /* 1.7 - GCPBascule for rough co-registration */
         /**************************************/
         aCom = "";
         std::string aImgListL = GetImgList(mCAS3D.mDir, mImgList1, mExe);
-        StdCom("GCPBascule", aImgListL + BLANK + mOri1 + BLANK + mCoRegOri.substr(4,mCoRegOri.length()) + BLANK + mCAS3D.mOut3DXml2 + BLANK + mCAS3D.mOut2DXml1, mExe);
+        StdCom("GCPBascule", aImgListL + BLANK + mOri1 + BLANK + mCoRegOri1 /*mCoRegOri.substr(4,mCoRegOri.length())*/ + BLANK + mCAS3D.mOut3DXml2 + BLANK + mCAS3D.mOut2DXml1, mExe);
         /*
         aCom = "/home/lulin/Documents/ThirdParty/oldMicmac/micmac_old/bin/mm3d GCPBascule " + aImgListL + BLANK + mOri1 + BLANK + mCoRegOri.substr(4,mCoRegOri.length()) + BLANK + mCAS3D.mOut3DXml2 + BLANK + mCAS3D.mOut2DXml1;
         if(mExe==true)
@@ -712,7 +792,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
     bool aExe = false;
     std::vector<std::string> aOverlappedImgL;
     std::vector<std::string> aOverlappedImgR;
-    int nPairNum = GetOverlappedImgPair(mCAS3D.mOutPairXml, aOverlappedImgL, aOverlappedImgR);
+    int nPairNum = GetXmlImgPair(mCAS3D.mOutPairXml, aOverlappedImgL, aOverlappedImgR);
 
     std::list<std::string> aComList;
     std::string aComSingle;
@@ -1006,8 +1086,15 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
     mUseDepth = false;
     mDSMFileL = "MMLastNuage.xml";
     mDSMFileR = "MMLastNuage.xml";
+
+    mOrthoDirL = "";
+    mOrthoDirR = "";
+    mOrthoFileL = "Orthophotomosaic.tif";
+    mOrthoFileR = "Orthophotomosaic.tif";
+
     mFeature = "SuperGlue";
     //mCoRegOri = "Co-reg";
+    mCoRegOri1 = "";
     mSkipCoReg = false;
     mSkipPrecise = false;
     mSkipGetOverlappedImages = false;
@@ -1038,8 +1125,8 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
    (
         argc,argv,
         LArgMain()
-               << EAMC(mOri1,"Orientation of epoch1")
-               << EAMC(mOri2,"Orientation of epoch2")
+               << EAMC(mOri1,"Ori1: Orientation of epoch1")
+               << EAMC(mOri2,"Ori2: Orientation of epoch2")
                << EAMC(mImgList1,"ImgList1: All RGB images in epoch1 (Dir+Pattern, or txt file of image list)")
                << EAMC(mImgList2,"ImgList2: All RGB images in epoch2 (Dir+Pattern, or txt file of image list)")
                << EAMC(mDSMDirL, "DSM directory of epoch1")
@@ -1051,7 +1138,7 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << EAM(mImg4MatchList2,"IL2",true,"RGB images in epoch2 for extracting inter-epoch correspondences (Dir+Pattern, or txt file of image list), Def=ImgList2")
                << EAM(mCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
                << EAM(mUseDepth,"UseDep",true,"GetPatchPair for depth maps as well (this option is only used for developper), Def=false")
-               << EAM(mRotateDSM,"RotateDSM",true,"The angle of clockwise rotation from the master DSM to the secondary DSM for rough co-registration (only 4 options available: 0, 90, 180, 270, as the rough co-registration method is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
+               << EAM(mRotateDSM,"Rotate",true,"The angle of clockwise rotation from the master DSM/orthophoto to the secondary DSM/orthophoto for rough co-registration (only 4 options available: 0, 90, 180, 270, as the rough co-registration method is invariant to rotation smaller than 45 degree.), Def=-1 (means all the 4 options will be executed, and the one with the most inlier will be kept) ")
                << EAM(mSkipCoReg, "SkipCoReg", true, "Skip the step of rough co-registration, when the input orientations of epoch1 and epoch 2 are already co-registrated, Def=false")
                << EAM(mSkipPrecise, "SkipPrecise", true, "Skip the step of the whole precise matching pipeline, Def=false")
                << EAM(mSkipGetOverlappedImages, "SkipGetOverlappedImages", true, "Skip the step of \"mGetOverlappedImages\" in precise matching (this option is used when the results of \"GetOverlappedImages\" already exist), Def=false")
@@ -1060,10 +1147,16 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << EAM(mSkipRANSAC3D, "SkipRANSAC3D", true, "Skip the step of \"3D RANSAC\" (this option is used when the results of \"3D RANSAC\" already exist), Def=false")
                << EAM(mSkipCrossCorr, "SkipCrossCorr", true, "Skip the step of \"cross correlation\" (this option is used when the results of \"cross correlation\" already exist), Def=false")
                << EAM(mFeature,"Feature",true,"Feature matching method used for precise matching (SuperGlue or SIFT), Def=SuperGlue")
-               //<< EAM(mCoRegOri,"CoRegOri",true,"Output of Co-registered orientation, Def=Co-reg")
+               << EAM(mCoRegOri1,"CoRegOri1",true,"Output of orientation of epoch1 after rough co-registration, Def='Ori1'_CoReg_'Feature'")
                //<< mCAS3D.ArgBasic()
                << EAM(mDSMFileL, "DSMFileL", true, "DSM File of epoch1, Def=MMLastNuage.xml")
                << EAM(mDSMFileR, "DSMFileR", true, "DSM File of epoch2, Def=MMLastNuage.xml")
+
+               << EAM(mOrthoDirL, "OrthoDirL", true, "Orthophoto directory of epoch1 (if this parameter is set, the orthophotos would be used for rough co-registration instead of DSM), Def=none")
+               << EAM(mOrthoDirR, "OrthoDirR", true, "Orthophoto directory of epoch2 (if this parameter is set, the orthophotos would be used for rough co-registration instead of DSM), Def=none")
+               << EAM(mOrthoFileL, "OrthoFileL", true, "Orthophoto file of epoch1, Def=Orthophotomosaic.tif")
+               << EAM(mOrthoFileR, "OrthoFileR", true, "Orthophoto file of epoch2, Def=Orthophotomosaic.tif")
+
                << EAM(mCoRegPatchSz, "CoRegPatchSz", true, "Patch size of the tiling scheme in rough co-registration part, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
                << EAM(mCoRegBufferSz, "CoRegBufferSz", true, "Buffer zone size around the patch of the tiling scheme in rough co-registration part, Def=[0, 0]")
                << EAM(mPrecisePatchSz, "PrecisePatchSz", true, "Patch size of the tiling scheme in precise matching part, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
@@ -1090,7 +1183,13 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                     << mCAS3D.ArgRough()
 */
                );
-   mCoRegOri = mOri2;
+
+   //mCoRegOri = mOri2;
+   if(mCoRegOri1.length() == 0)
+       mCoRegOri1 = mOri1 + "_CoReg_" + mFeature;
+   StdCorrecNameOrient(mCoRegOri1,"./",true);
+   if(mCoRegOri1.substr(0,4) == "Ori-")
+       mCoRegOri1 = mCoRegOri1.substr(4, mCoRegOri1.length()-4);
 
    if(mPreciseBufferSz.x < 0 && mPreciseBufferSz.y < 0){
        mPreciseBufferSz.x = int(0.1*mPrecisePatchSz.x);
@@ -1683,29 +1782,36 @@ std::string GetScaledImgName(std::string aImgName, Pt2di ImgSz, double dScale)
     return aImgScaledName;
 }
 
-void ExtractSIFT(std::string aImgName, std::string aDir, double dScale)
+std::string ExtractSIFT(std::string aImgName, std::string aDir, double dScale)
 {
     std::string aImgNameWithDir = aDir+"/"+aImgName;
     if (ELISE_fp::exist_file(aImgNameWithDir) == false)
     {
         cout<<aImgNameWithDir<<" didn't exist, hence skipped"<<endl;
-        return;
+        return "";
     }
 
     Tiff_Im aRGBIm1(aImgNameWithDir.c_str());
     Pt2di ImgSz = aRGBIm1.sz();
     int nSz1 = int(max(ImgSz.x, ImgSz.y)*1.0/dScale);
 
+    std::string aImgScaledName = GetScaledImgName(aImgName, ImgSz, dScale);
+
+    std::string aImgKey = aDir + "/Pastis/LBPp" + aImgScaledName+".dat";
+    if (ELISE_fp::exist_file(aImgKey) == true){
+        //cout<<aImgKey<<" already exist, hence skipped"<<endl;
+        return aImgKey;
+    }
+
     std::string aComm;
     aComm = MMBinFile(MM3DStr) + "PastDevlop " + aImgName + " Sz1=" + ToString(nSz1) +" Sz2=-1";
     cout<<aComm<<endl;
     System(aComm);
 
-    std::string aImgScaledName = GetScaledImgName(aImgName, ImgSz, dScale);
-
     aComm = MMBinFile(MM3DStr) + "SIFT " + aDir+"/Pastis/"+aImgScaledName + " -o " + aDir+"/Pastis/LBPp"+aImgScaledName+".dat";
     cout<<aComm<<endl;
     System(aComm);
+    return aImgKey;
 }
 
 void FilterKeyPt(std::vector<Siftator::SiftPoint> aVSIFTPt, std::vector<Siftator::SiftPoint>& aVSIFTPtNew, double dMinScale, double dMaxScale)
@@ -1751,8 +1857,10 @@ bool IsHomolFileExist(std::string aDir, std::string aImg1, std::string aImg2, st
 
 void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<ElCplePtsHomologues> aPack)
 {
-    if(aPack.size() <= 0)
+    if(aPack.size() <= 0){
+        //printf("No tie points.\n");
         return;
+    }
     std::string aSHDir;
     std::string aNewDir;
     std::string aNameFile1;
@@ -1799,9 +1907,10 @@ void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, st
     fclose(fpTiePt2);
 }
 
-void SaveHomolFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<Pt2di> match, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, bool bPrint, double dScaleL, double dScaleR)
+void SaveSIFTHomolFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<Pt2di> match, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, bool bPrint, double dScaleL, double dScaleR, bool bSaveSclRot)
 {
     std::vector<ElCplePtsHomologues> aPack;
+    std::vector<ElCplePtsHomologues> aPackSclRot;
 
     int nTiePtNum = match.size();
     for(int i = 0; i < nTiePtNum; i++)
@@ -1812,6 +1921,12 @@ void SaveHomolFile(std::string aDir, std::string aImg1, std::string aImg2, std::
         aP1 = Pt2dr(dScaleL*aVSiftL[idxL].x, dScaleL*aVSiftL[idxL].y);
         aP2 = Pt2dr(dScaleR*aVSiftR[idxR].x, dScaleR*aVSiftR[idxR].y);
         aPack.push_back(ElCplePtsHomologues(aP1,aP2));
+
+        if(bSaveSclRot){
+            aP1 = Pt2dr(aVSiftL[idxL].scale, aVSiftL[idxL].angle);
+            aP2 = Pt2dr(aVSiftR[idxR].scale, aVSiftR[idxR].angle);
+            aPackSclRot.push_back(ElCplePtsHomologues(aP1,aP2));
+        }
         if(bPrint){
             printf("%dth match, master and secondary scale and angle: %lf %lf %lf %lf\n", i, aVSiftL[idxL].scale, aVSiftL[idxL].angle, aVSiftR[idxR].scale, aVSiftR[idxR].angle);
             printf("scaleDif, angleDif: %lf %lf\n", aVSiftR[idxR].scale/aVSiftL[idxL].scale,aVSiftR[idxR].angle-aVSiftL[idxL].angle);
@@ -1819,6 +1934,8 @@ void SaveHomolFile(std::string aDir, std::string aImg1, std::string aImg2, std::
     }
 
     SaveHomolTxtFile(aDir, aImg1, aImg2, CurSH, aPack);
+    if(bSaveSclRot)
+        SaveHomolTxtFile(aDir, aImg1, aImg2, CurSH+"_SclRot", aPackSclRot);
 }
 
 //for the key points in one image (master or secondary image), find their nearest neighbor in another image and record it
@@ -1838,8 +1955,8 @@ int MatchOneWay(std::vector<int>& matchIDL, std::vector<Siftator::SiftPoint> aVS
     int nEndL = nSizeL;
     int nEndR = nSizeR;
 
-    //std::time_t t1 = std::time(nullptr);
-    //std::cout << std::put_time(std::localtime(&t1), "%Y-%m-%d %H:%M:%S") << std::endl;
+    std::time_t t1 = std::time(nullptr);
+    std::cout << std::put_time(std::localtime(&t1), "%Y-%m-%d %H:%M:%S") << std::endl;
 
     long nSkiped = 0;
     float alpha = 2;
@@ -1948,8 +2065,8 @@ int MatchOneWay(std::vector<int>& matchIDL, std::vector<Siftator::SiftPoint> aVS
             nMatches++;
         //cout<<i<<" "<<nMatch<<endl;
     }
-    //std::time_t t2 = std::time(nullptr);
-    //std::cout << std::put_time(std::localtime(&t2), "%Y-%m-%d %H:%M:%S") << std::endl;
+    std::time_t t2 = std::time(nullptr);
+    std::cout << std::put_time(std::localtime(&t2), "%Y-%m-%d %H:%M:%S") << std::endl;
     return nMatches;
 }
 
@@ -2010,7 +2127,7 @@ void ScaleKeyPt(std::vector<Siftator::SiftPoint>& aVSIFTPt, double dScale)
     }
 }
 
-int Get3DTiePt(ElPackHomologue aPackFull, cGet3Dcoor a3DCoorL, cGet3Dcoor a3DCoorR, cDSMInfo aDSMInfoL, cDSMInfo aDSMInfoR, cTransform3DHelmert aTrans3DHL, std::vector<Pt3dr>& aV1, std::vector<Pt3dr>& aV2, std::vector<Pt2dr>& a2dV1, std::vector<Pt2dr>& a2dV2, bool bPrint)
+int Get3DTiePt(ElPackHomologue aPackFull, cGet3Dcoor a3DCoorL, cGet3Dcoor a3DCoorR, cDSMInfo aDSMInfoL, cDSMInfo aDSMInfoR, cTransform3DHelmert aTrans3DHL, std::vector<Pt3dr>& aV1, std::vector<Pt3dr>& aV2, std::vector<Pt2dr>& a2dV1, std::vector<Pt2dr>& a2dV2, bool bPrint, bool bInverse)
 {
     int nOriPtNum = 0;
     for (ElPackHomologue::iterator itCpl=aPackFull.begin(); itCpl!=aPackFull.end(); itCpl++)
@@ -2026,6 +2143,13 @@ int Get3DTiePt(ElPackHomologue aPackFull, cGet3Dcoor a3DCoorL, cGet3Dcoor a3DCoo
        Pt3dr pTerr1 = a3DCoorL.Get3Dcoor(p1, aDSMInfoL, bValidL, bPrint);//, dGSD1);
        pTerr1 = aTrans3DHL.Transform3Dcoor(pTerr1);
        Pt3dr pTerr2 = a3DCoorR.Get3Dcoor(p2, aDSMInfoR, bValidR, bPrint);//, dGSD2);
+
+       if(bInverse == true)
+       {
+           Pt3dr PtTmp = pTerr1;
+           pTerr1 = pTerr2;
+           pTerr2 = PtTmp;
+       }
 
        if(bValidL == true && bValidR == true)
        {
@@ -2222,6 +2346,139 @@ bool GetImgBoundingBox(std::string aRGBImgDir, std::string aImg1, cBasicGeomCap3
     GetBoundingBox(ptTerrCorner, 4, minPt, maxPt);
 
     return true;
+}
+
+void RotateImgBy90Deg(std::string aDir, std::string aImg1, std::string aNameOut)
+{
+    cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aImg1));
+    //cout<<aImg1<<endl;
+
+    Tiff_Im::StdConvGen(aImg1,1,false,true);
+
+    std::string aGrayImgName = aImg1 + "_Ch1.tif";
+    bool bRGB = false;
+    //if RGB image
+    if( ELISE_fp::exist_file(aDir + "/Tmp-MM-Dir/" + aGrayImgName) == true)
+    {
+        bRGB = true;
+        std::string aComm = "mv " + aDir + "/Tmp-MM-Dir/" + aGrayImgName + " " + aGrayImgName;
+        cout<<aComm<<endl;
+        System(aComm);
+        aImg1 = aGrayImgName;
+    }
+
+    Tiff_Im aDSMIm1((aDir+"/"+aImg1).c_str());
+    Pt2di ImgSzL = aDSMIm1.sz();
+
+    aNameOut = aDir+"/"+aNameOut;
+
+    //std::string aNameOut = aDir+"/"+StdPrefix(aImg1)+"_R90.tif";
+
+    Tiff_Im TiffOut  =     Tiff_Im
+                           (
+                              aNameOut.c_str(),
+                              Pt2di(ImgSzL.y, ImgSzL.x),
+                              aDSMIm1.type_el(),
+                              Tiff_Im::No_Compr,
+                              aDSMIm1.phot_interp(),
+                              Tiff_Im::Empty_ARG
+                          );
+
+    TIm2D<float, double> aTImProfPx(ImgSzL);
+    ELISE_COPY
+    (
+    aTImProfPx.all_pts(),
+    aDSMIm1.in(),
+    aTImProfPx.out()
+    );
+
+    TIm2D<float, double> aTImProfPxTmp(Pt2di(ImgSzL.y, ImgSzL.x));
+    ELISE_COPY
+    (
+    aTImProfPxTmp.all_pts(),
+    aTImProfPx.in()[Virgule(FY,FX)],
+    aTImProfPxTmp.out()
+    );
+
+    //flip
+    ELISE_COPY
+    (
+    TiffOut.all_pts(),
+    aTImProfPxTmp.in(0)[Virgule(ImgSzL.y-FX,FY)],
+    TiffOut.out()
+    );
+
+    if(bRGB == true){
+        std::string aComm = "rm " + aGrayImgName;
+        cout<<aComm<<endl;
+        System(aComm);
+    }
+}
+
+void RotateImgBy90DegNTimes(std::string aDir, std::string aImg1, std::string aNameOut, int nTime)
+{
+    RotateImgBy90Deg(aDir, aImg1, aNameOut);
+    nTime--;
+
+    for(int i=0; i<nTime; i++)
+    {
+        std::string aNameOutTmp = StdPrefix(aNameOut)+"_tmp."+StdPostfix(aNameOut);
+        std::string strCpImg = "mv "+aDir+aNameOut+" "+aDir+aNameOutTmp;
+        //cout<<strCpImg<<endl;
+        System(strCpImg);
+
+        RotateImgBy90Deg(aDir, aNameOutTmp, aNameOut);
+        strCpImg = "rm "+aDir+aNameOutTmp;
+        //cout<<strCpImg<<endl;
+        System(strCpImg);
+    }
+}
+
+void GetUniqImgList(std::vector<std::string> aInput, std::vector<std::string>& aOutput)
+{
+    for(int i=0; i<int(aInput.size()); i++)
+    {
+        std::string aImg1 = aInput[i];
+        bool bRepeat1 = false;
+        for(int j=0; j<int(aOutput.size()); j++){
+            if(aImg1 == aOutput[j]){
+                bRepeat1 = true;
+                break;
+            }
+        }
+        if(bRepeat1 == false)
+        {
+            aOutput.push_back(aImg1);
+        }
+    }
+}
+
+std::string GetImgList(std::vector<std::string> aVIm)
+{
+    std::string aRes = "\"";
+    for(int i=0; i<int(aVIm.size()); i++)
+    {
+        aRes += aVIm[i]+"|";
+    }
+    aRes = aRes.substr(0, aRes.length()-1) + "\"";
+
+    return aRes;
+}
+
+std::string GetImgList(std::string aDir, std::string aFileName, bool bExe)
+{
+    std::string aRes;
+
+    std::vector<std::string> aVIm;
+    bool bTxt = GetImgListVec(aDir+"/"+aFileName, aVIm, bExe);
+    if(bTxt == true)
+    {
+        aRes = GetImgList(aVIm);
+    }
+    else
+        aRes = aFileName;
+
+    return aRes;
 }
 
 /*
