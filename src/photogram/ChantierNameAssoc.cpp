@@ -577,7 +577,14 @@ int CalcNbProcSys()
     return sysinfo.dwNumberOfProcessors;
 #else
     // return GetValStrSys<int>("cat /proc/cpuinfo | grep processor  | wc -l");
-    return sysconf (_SC_NPROCESSORS_CONF);
+    //// MODIFIED
+    //set number of process according to env variable MICMAC_MAX_THREADS if defined.
+    if (const char* env_p = std::getenv("MICMAC_MAX_THREADS")) {
+        return atoi(env_p);
+    } else {
+        return sysconf (_SC_NPROCESSORS_CONF);
+    }
+    //// END MODIFED
 #endif
 }
 
