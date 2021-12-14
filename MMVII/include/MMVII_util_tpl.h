@@ -253,6 +253,16 @@ template <class Type>  std::vector<std::vector<Type>>  ProdCart(const std::vecto
      return aVVRes;
 }
 
+template <class TVal,class TFunc> void SortOnCriteria(std::vector<TVal> & aVec,const TFunc & aFunc)
+{   
+    std::sort
+    (
+         aVec.begin(),aVec.end(),
+         [&aFunc](const auto & aV1,const auto & aV2) {return aFunc(aV1) < aFunc(aV2);}
+    );
+}
+
+
 
 };
 

@@ -3635,6 +3635,9 @@ std::vector<ElRotation3D> OrientTomasiKanade
                              std::vector<ElRotation3D> * aVRotInit
                           );
 
+// Fix a global variable,  dirty !!!!
+void SetExtensionIntervZInApero(const double);
+
 #endif // !  _ELISE_GENERAL_PHOTOGRAM_H
 
 

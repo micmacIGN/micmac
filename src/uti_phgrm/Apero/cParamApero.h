@@ -3370,6 +3370,9 @@ class cSectionChantier
 
         cTplValGesInit< bool > & ExportMatrixMarket();
         const cTplValGesInit< bool > & ExportMatrixMarket()const ;
+
+        cTplValGesInit< double > & ExtensionIntervZ();
+        const cTplValGesInit< double > & ExtensionIntervZ()const ;
     private:
         cTplValGesInit< cRappelPose > mRappelPose;
         cTplValGesInit< int > mNumAttrPdsNewF;
@@ -3400,6 +3403,7 @@ class cSectionChantier
         cTplValGesInit< bool > mSauvAutomBasic;
         cTplValGesInit< double > mThresholdWarnPointsBehind;
         cTplValGesInit< bool > mExportMatrixMarket;
+        cTplValGesInit< double > mExtensionIntervZ;
 };
 cElXMLTree * ToXMLTree(const cSectionChantier &);
 
@@ -7445,6 +7449,9 @@ class cParamApero
 
         cTplValGesInit< bool > & ExportMatrixMarket();
         const cTplValGesInit< bool > & ExportMatrixMarket()const ;
+
+        cTplValGesInit< double > & ExtensionIntervZ();
+        const cTplValGesInit< double > & ExtensionIntervZ()const ;
 
         cSectionChantier & SectionChantier();
         const cSectionChantier & SectionChantier()const ;

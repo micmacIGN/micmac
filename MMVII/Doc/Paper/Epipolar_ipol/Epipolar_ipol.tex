@@ -584,12 +584,27 @@ Par passage \`a la limite on obtient donc :
 
 \begin{equation}
 \left[ \begin{array}{c|c|c}
-	\BigV{k} & \TanOT{}  & \DerPart { \TanOT{}}{z_{1,2}}  
+	\BigV{k} & \TanOT{}  & \DerPart {\TanOT{}}{z}  
+	%a & b & \DerPart { \TanOT{}}{z}  
 \end{array} \right]  
 =0
 \label{EpiplabEq}
 \end{equation}
 
+Avec $\TanOT = ^t[t_{x12},t_{y12},1]$ , le d\'eveloppement de l\'equation m\`ene \`a :
+
+\begin{equation}
+	t_{x12} \DerPart{t_{y12}}{z} - t_{x12} \DerPart{t_{y12}}{z}  = 0
+\end{equation}
+
+Soit :
+
+\begin{equation}
+	\DerPart{\frac{t_{x12}}{t_{y12}}}{z}   = 0
+\end{equation}
+
+Ce qui montre que le long d'une verticale, le vecteur $^t[t_{x12},t_{y12},0]$ fait un angle
+constant avec l'axe  $\BigV{k}$.
 
 
 

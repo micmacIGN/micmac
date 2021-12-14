@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamMICMAC[2173] = {
+const char * theNameVar_ParamMICMAC[2179] = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -828,6 +828,9 @@ const char * theNameVar_ParamMICMAC[2173] = {
 "-->\n",
 "     <Section_MEC Nb=\"1\">\n",
 "\n",
+"         <!-- Used to avoird too sctrict elimination of point on Z criteria -->\n",
+"        <ExtensionIntervZ Nb=\"?\" Type=\"double\"> </ExtensionIntervZ>\n",
+"\n",
 "         <!-- Option applicable a la geometrie terrain, en image c'est de touet facon\n",
 "        la cas... Permet de faire des fichiers + generiques -->\n",
 "\n",
@@ -1006,8 +1009,11 @@ const char * theNameVar_ParamMICMAC[2173] = {
 "                        </MultiCorrelPonctuel>\n",
 "\n",
 "			<ScoreLearnedMMVII Nb=\"?\" AccessorFils=\"false\">\n",
-"                              <FileModeleCost Nb=\"1\" Type=\"std::string\"> </FileModeleCost>\n",
-"                              <DynCost        Nb=\"1\" Type=\"double\">      </DynCost>\n",
+"                              <FileModeleCost Nb=\"1\" Type=\"std::string\">           </FileModeleCost>\n",
+"                              <CostDyn        Nb=\"?\" Type=\"double\" Def=\"0.3333\">   </CostDyn>\n",
+"                              <CostExp        Nb=\"?\" Type=\"double\" Def=\"0.5\">      </CostExp>\n",
+"                              <Cmp_FileMC     Nb=\"?\" Type=\"std::string\">           </Cmp_FileMC>\n",
+"                              <Cmp_NbDisc     Nb=\"?\" Type=\"int\"    Def=\"200\">      </Cmp_NbDisc>\n",
 "                        </ScoreLearnedMMVII>\n",
 "\n",
 "                        <Correl_Ponctuel2ImGeomI Nb=\"?\" AccessorFils=\"false\">    \n",

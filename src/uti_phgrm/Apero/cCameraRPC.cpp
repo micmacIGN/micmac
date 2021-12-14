@@ -306,11 +306,27 @@ Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
     return (mRPC->InverseRPC(aP));
 }
 
-bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInImage *) const
+static double  ExtIncertZ =   0.0;
+
+void SetExtensionIntervZInApero(const double aVal)
+{
+   ExtIncertZ = aVal;
+}
+
+
+bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInImage * anArg) const
 {
     // (1) Check if aP is within the RPC validity zone
-    if((aP.z < mRPC->GetGrC31()) || (aP.z > mRPC->GetGrC32()))
+    if((aP.z < mRPC->GetGrC31() - ExtIncertZ) || (aP.z > mRPC->GetGrC32() + ExtIncertZ))
+    {
+        if (anArg)
+        {
+	    anArg->mWhy =   "NotInMasq3D , z=" + ToString(aP.z) 
+		          + " IntZ=["   +  ToString(mRPC->GetGrC31()-ExtIncertZ)  + "," + ToString(mRPC->GetGrC32()+ExtIncertZ) + "]";
+        }
+
         return false;
+    }
 
     // (2) Project 3D-2D with RPC and see if within ImSz
     Pt2di aSz = SzBasicCapt3D(); 
@@ -323,7 +339,9 @@ bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInIm
 	    (aPtProj.y < aSz.y) )
     	return  true;
     else
+    {
 	    return  false;
+    }
 
     // (3) check "aller-retour"
     double aDif = 10;
@@ -3152,7 +3170,11 @@ void cRPC::ReadEUCLIDIUM(const std::string &aFile)
 void cRPC::ReadASCII(const std::string &aFile)
 {
     std::ifstream ASCIIfi(aFile.c_str());
-    ELISE_ASSERT(ASCIIfi.good(), "cRPC::ReadASCII(const std::string &aFile) ASCII file not found ");
+    if (! ASCIIfi.good())
+    {
+        std::cout << "For File=" << aFile.c_str() << "\n";
+        ELISE_ASSERT(ASCIIfi.good(), "cRPC::ReadASCII(const std::string &aFile) ASCII file not found ");
+    }
 
     std::string line;
     std::string a, b;
@@ -3612,39 +3634,58 @@ void cRPC::ReadXML(const std::string &aFile)
     cElXMLTree* aIMD;
     std::vector<double> aLongMM, aLatMM;
 
-    aIMD = aTree.GetUnique(std::string("IMD"));
-    aNodes = aIMD->GetUnique(std::string("BAND_P"));
-    aNodesFilOne = aNodes->GetUnique("ULLON");
-    aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+    aIMD = aTree.GetOneOrZero(std::string("IMD"));
 
-    aNodesFilOne = aNodes->GetUnique("URLON");
-    aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+    // IMD section is not always given, but we can deduce a default values of bound with offset & scale
+    mGrC1[0] = mGrOff[0]- mGrScal[0];
+    mGrC1[1] = mGrOff[0]+ mGrScal[0];
+    mGrC2[0] = mGrOff[1]- mGrScal[1];
+    mGrC2[1] = mGrOff[1]+ mGrScal[1];
+    mGrC3[0] = mGrOff[2]- mGrScal[2];
+    mGrC3[1] = mGrOff[2]+ mGrScal[2];
+    if (aIMD==nullptr)
+    {
+      //   ELISE_ASSERT(false, "No IMD NODE" );
+       std::cout << " =========== NOT EXPLICIT BOUND FOUND, USE OFFSET/SCALE ==============\n";
+       std::cout << "  * GrC1  " << mGrC1[0] << " " << mGrC1[1] << "\n"; 
+       std::cout << "  * GrC2  " << mGrC2[0] << " " << mGrC2[1] << "\n"; 
+       std::cout << "  * GrC2  " << mGrC3[0] << " " << mGrC3[1] << "\n"; 
+    }
+    else
+    {
+       aNodes = aIMD->GetUnique(std::string("BAND_P"));
+       aNodesFilOne = aNodes->GetUnique("ULLON");
+       aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
-    aNodesFilOne = aNodes->GetUnique("LRLON");
-    aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+       aNodesFilOne = aNodes->GetUnique("URLON");
+       aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
-    aNodesFilOne = aNodes->GetUnique("LLLON");
-    aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+       aNodesFilOne = aNodes->GetUnique("LRLON");
+       aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
-    mGrC1[0] = *std::min_element(aLongMM.begin(),aLongMM.end());
-    mGrC1[1] = *std::max_element(aLongMM.begin(),aLongMM.end());
+       aNodesFilOne = aNodes->GetUnique("LLLON");
+       aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+
+       mGrC1[0] = *std::min_element(aLongMM.begin(),aLongMM.end());
+       mGrC1[1] = *std::max_element(aLongMM.begin(),aLongMM.end());
 
     
-    aNodesFilOne = aNodes->GetUnique("ULLAT");
-    aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+       aNodesFilOne = aNodes->GetUnique("ULLAT");
+       aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
-    aNodesFilOne = aNodes->GetUnique("URLAT");
-    aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+       aNodesFilOne = aNodes->GetUnique("URLAT");
+       aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
-    aNodesFilOne = aNodes->GetUnique("LRLAT");
-    aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+       aNodesFilOne = aNodes->GetUnique("LRLAT");
+       aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
-    aNodesFilOne = aNodes->GetUnique("LLLAT");
-    aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+       aNodesFilOne = aNodes->GetUnique("LLLAT");
+       aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
-    mGrC2[0] = *std::min_element(aLatMM.begin(),aLatMM.end());
-    mGrC2[1] = *std::max_element(aLatMM.begin(),aLatMM.end());
+       mGrC2[0] = *std::min_element(aLatMM.begin(),aLatMM.end());
+       mGrC2[1] = *std::max_element(aLatMM.begin(),aLatMM.end());
 
+    }
     ISINV=true;
     
     ReconstructValidityH();
@@ -4561,6 +4602,10 @@ int CalcBsurH_main(int argc,char ** argv)
 
         std::cout << "\n";
         
+    }
+
+    if (MPD_MM())
+    {
     }
 
     /* Print out the list of images */

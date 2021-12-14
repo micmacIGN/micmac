@@ -134,6 +134,7 @@ class cApply_CreateEpip_main
       Pt2dr              mDir2;
       Pt2di              mNbCalcAutoDir;
       bool               mMakeAppuis;
+      bool               mGenereImageDirEpip;
       bool               mIntervZIsDef;
       double             mZMin;
       double             mZMax;
@@ -294,6 +295,9 @@ std::cout << "XXXX  " << aG1->AltisSolIsDef() << " " <<  ForXFitHom << "\n";
     Im2D<float,double> aImEpipSigned(aNbX+1,aNbY+1);
 
     int aNbTens=0;
+    bool aPbDirNonStable = false;
+    Im2D<float,double> aImAng(aNbX+1,aNbY+1);
+    TIm2D<float,double> aTImAng(aImAng);
     for (int aKX=0 ; aKX<= aNbX ; aKX++)
     {
         // Barrycentrik weighting, 
@@ -301,6 +305,7 @@ std::cout << "XXXX  " << aG1->AltisSolIsDef() << " " <<  ForXFitHom << "\n";
         aPdsX = ElMax(aEps,ElMin(1-aEps,aPdsX));
         for (int aKY=0 ; aKY<= aNbY ; aKY++)
         {
+            aTImAng.oset(Pt2di(aKX,aKY),0.0);
             // Barrycentrik weighting, 
             double aPdsY = ForCheck ? NRrandom3() : (aKY/double(aNbY));
             aPdsY = ElMax(aEps,ElMin(1-aEps,aPdsY));
@@ -384,11 +389,27 @@ std::cout << "XXXX  " << aG1->AltisSolIsDef() << " " <<  ForXFitHom << "\n";
                     Pt2dr aDir2 = vunit(aVPIm2.back()-aVPIm2[0]);
                     aSomDir = aSomDir +  aDir2; 
                     //aSomTens2 = aSomTens2 + aDir2 * aDir2; // On double l'angle pour en faire un tenseur
-		    ELISE_ASSERT(scal(aSomDir,aDir2)>0,"Incoherent direction in dirs estimate");
+		    if  (scal(aSomDir,aDir2)<0)
+                        aPbDirNonStable = true;
+
+		    Pt2dr aRhoTeta = Pt2dr::polar(aDir2,0.0);
+		    aTImAng.oset(Pt2di(aKX,aKY),aRhoTeta.y);
+		    // std::cout << "ooooDDDDD " << aDir2  << aRhoTeta << "\n";
                     aNbTens++;
                 }
             }
         }
+    }
+    aPbDirNonStable = aPbDirNonStable && (!(ForCheck || ForXFitHom));
+    if (aPbDirNonStable || (mGenereImageDirEpip && (!(ForCheck || ForXFitHom))))
+    {
+        std::string aNameImDir = std::string("Epip-ImageDirEpip-Im") + (AddToP1 ? "1" : "2") + std::string(".tif");
+	Tiff_Im::CreateFromIm(aImAng,aNameImDir);
+	/* Tiff_Im Create8BFromFonc ( its_to_rgb i       ); */
+    }
+    if (aPbDirNonStable)
+    {
+        ELISE_ASSERT(false,"Incoherent direction in dirs estimate");
     }
     if (!(ForCheck || ForXFitHom))
     {
@@ -1352,6 +1373,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
    mDegSupInv (4),
    mEpsCheckInv (1e-1),
    mMakeAppuis  (false),
+   mGenereImageDirEpip (false),
    mIntervZIsDef (false),
    mZMin         (1e20),
    mZMax         (-1e20)
@@ -1408,6 +1430,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 		    << EAM(mXFitModele,"XCorrecOri",false,"Correct X-Pax using orient and Z=average")
 		    << EAM(mXFitL2,"XCorrecL2",false,"L1/L2 Correction for X-Pax")
 		    << EAM(mNameOut,"Out",false,"To spcecify names of results")
+		    << EAM(mGenereImageDirEpip,"ImDir",false,"Generate image of direction of epipolar")
 		    /*
 		    */
     );
@@ -1489,7 +1512,7 @@ if (!MMVisualMode)
          }
                     // << EAM(mVecIterDeg,"VecIterDeg",true,"Vector of degree in case of iterative approach")
                     // << EAM(mPropIterDeg,"PropIterDeg",true,"Prop to compute sigma in cas of iterative degre")
-         std::cout << "DDDDDD " << mDegre << " " << mWithOri << "\n";
+         std::cout << "Deegreee: " << mDegre << " WithOri:" << mWithOri << "\n";
          DoEpipGen(DoIm);
          return;
      }

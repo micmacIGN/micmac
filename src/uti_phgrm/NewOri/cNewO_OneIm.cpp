@@ -71,7 +71,7 @@ cNewO_OneIm::cNewO_OneIm
 
     static std::set<CamStenope*> aSetSave;
 
-    if (mCS && (aSetSave.find(mCS) == aSetSave.end()))
+    if (WithOri && mCS && (aSetSave.find(mCS) == aSetSave.end()))
     {
         aSetSave.insert(mCS);
         std::string  aNameCal = mNM->ICNM()->StdNameCalib(mNM->OriOut(),aName);

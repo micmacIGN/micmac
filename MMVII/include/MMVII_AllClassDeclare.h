@@ -79,8 +79,15 @@ template <class Type,const int Dim> class cDataTypedIm ;
 class cDataFileIm2D ;
 template <class Type>  class cDataIm2D  ;
 template <class Type>  class cIm2D  ;
+template <class Type>  class cDataIm3D  ;
+template <class Type>  class cIm3D  ;
 template <class Type>  class cDataIm1D  ;
 template <class Type>  class cIm1D  ;
+
+template <class TypeObj,class TypeLayer>  class cLayerData3D ;
+template <class TypeObj,class TypeLayer>  class cLayer3D ;
+
+
 
 // MMVII_Matrix.h
 template <class Type> class  cDenseVect;

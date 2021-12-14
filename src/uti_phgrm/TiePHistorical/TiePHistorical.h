@@ -114,14 +114,16 @@ class cCommonAppliTiepHistorical
         std::string                       mMergeTiePtOutSH;
         std::string                       mHomoXml;
 
-        /* Parameters for RANSAC */       
+        /* Parameters for 2DRANSAC */
         std::string                       mR2DInSH;
         std::string                       mR2DOutSH;
+        int                               mR2DIteration;
+        double                            mR2DThreshold;
+
+        /* Parameters for 3DRANSAC */
         std::string                       mR3DInSH;
         std::string                       mR3DOutSH;
         int                               mR3DIteration;
-        int                               mR2DIteration;
-        double                            mR2DThreshold;
         double                            mR3DThreshold;
         int                               mMinPt;
 //        std::string                       mDSMFileL;
@@ -173,6 +175,8 @@ class cCommonAppliTiepHistorical
 
         cInterfChantierNameManipulateur * mICNM;
 
+        void CorrectXmlFileName(std::string aCreateGCPsInSH);
+
         std::string GetFolderName(std::string strIn);
 
         std::string ComParamDSM_Equalization();
@@ -180,6 +184,7 @@ class cCommonAppliTiepHistorical
         std::string ComParamSuperGlue();
         std::string ComParamMergeTiePt();
         std::string ComParamRANSAC2D();
+        std::string ComParamRANSAC3D();
         std::string ComParamCreateGCPs();
         std::string ComParamGetOverlappedImages();
         std::string ComParamGuidedSIFTMatch();
@@ -299,6 +304,7 @@ class cGet3Dcoor
 private:
         cBasicGeomCap3D * mCam1;
         bool         bDSM;
+        double mZ;
         /*Pt2di        mDSMSz;
         cFileOriMnt  mFOM;
         Pt2dr mOriPlani;
@@ -322,10 +328,7 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
 
     private:
         std::string GetImage_Profondeur(std::string aDSMDir, std::string aDSMFile);
-        std::string StdCom(const std::string & aCom,const std::string & aPost="", bool aExe=false);
-        int GetTiePtNum(std::string aDir, std::string aImg1, std::string aImg2, std::string aSH);
-        int GetOverlappedImgPair(std::string aName, std::vector<std::string>& aResL, std::vector<std::string>& aResR);
-        std::string GetImgList(std::string aDir, std::string aFileName, bool bExe);
+//        std::string GetImgList(std::string aDir, std::string aFileName, bool bExe);
 
 
         bool        mDebug;
@@ -338,6 +341,11 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
         std::string mDSMFileL;
         std::string mDSMFileR;
 
+        std::string mOrthoDirL;
+        std::string mOrthoDirR;
+        std::string mOrthoFileL;
+        std::string mOrthoFileR;
+
         std::string mOri1;
         std::string mOri2;
         std::string mImgList1;
@@ -345,12 +353,14 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
         std::string mImg4MatchList1;
         std::string mImg4MatchList2;
 
-        std::string mCoRegOri;
+        //std::string mCoRegOri;
+        std::string mCoRegOri1;
 
         ElTimer     mChrono;
 
         bool mSkipCoReg;
         bool mSkipPrecise;
+        bool mSkipGetOverlappedImages;
         bool mSkipGetPatchPair;
         bool mSkipTentativeMatch;
         bool mSkipRANSAC3D;
@@ -365,6 +375,8 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
         double mDyn;
         double mScaleL;
         double mScaleR;
+
+        double mReprojTh;
 
         bool                              mExe;
         bool                              mUseDepth;
@@ -393,7 +405,30 @@ void ReadXml(std::string & aImg1, std::string & aImg2, std::string aSubPatchXml,
 void GetBoundingBox(Pt3dr* ptTerrCorner, int nLen, Pt3dr& minPt, Pt3dr& maxPt);
 bool CheckRange(int nMin, int nMax, double & value);
 std::string GetScaledImgName(std::string aImgName, Pt2di ImgSz, double dScale);
-void ExtractSIFT(std::string aImgName, std::string aDir, double dScale=1);
+std::string ExtractSIFT(std::string aImgName, std::string aDir, double dScale=1);
+int GetTiePtNum(std::string aDir, std::string aImg1, std::string aImg2, std::string aSH);
+std::string StdCom(const std::string & aCom,const std::string & aPost="", bool aExe=false);
+int SaveTxtImgPair(std::string aName, std::vector<std::string> aResL, std::vector<std::string> aResR);
+int SaveXmlImgPair(std::string aName, std::vector<std::string> aResL, std::vector<std::string> aResR);
+int GetXmlImgPair(std::string aName, std::vector<std::string>& aResL, std::vector<std::string>& aResR);
+void FilterKeyPt(std::vector<Siftator::SiftPoint> aVSIFTPt, std::vector<Siftator::SiftPoint>& aVSIFTPtNew, double dMinScale, double dMaxScale=DBL_MAX);
+int MatchOneWay(std::vector<int>& matchIDL, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, bool bRatioT, std::vector<Pt2dr> aVPredL=std::vector<Pt2dr>(), Pt2di ImgSzR=Pt2di(0,0), bool bCheckScale=0, bool bCheckAngle=0, double dSearchSpace=0, bool bPredict=0, double dScale=0, double dAngle=0, double threshScale=0, double threshAngle=0);
+void MutualNearestNeighbor(bool bMutualNN, std::vector<int> matchIDL, std::vector<int> matchIDR, std::vector<Pt2di> & match);
+void SetAngleToValidRange(double& dAngle, double d2PI);
+void SaveSIFTHomolFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<Pt2di> match, std::vector<Siftator::SiftPoint> aVSiftL, std::vector<Siftator::SiftPoint> aVSiftR, bool bPrint=0, double dScaleL=1, double dScaleR=1, bool bSaveSclRot=false);
+void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<ElCplePtsHomologues> aPack);
+bool IsHomolFileExist(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, bool bCheckFile);
+void ScaleKeyPt(std::vector<Siftator::SiftPoint>& aVSIFTPt, double dScale);
+int Get3DTiePt(ElPackHomologue aPackFull, cGet3Dcoor a3DCoorL, cGet3Dcoor a3DCoorR, cDSMInfo aDSMInfoL, cDSMInfo aDSMInfoR, cTransform3DHelmert aTrans3DHL, std::vector<Pt3dr>& aV1, std::vector<Pt3dr>& aV2, std::vector<Pt2dr>& a2dV1, std::vector<Pt2dr>& a2dV2, bool bPrint, bool bInverse=0);
+cSolBasculeRig RANSAC3DCore(int aNbTir, double threshold, std::vector<Pt3dr> aV1, std::vector<Pt3dr> aV2, std::vector<Pt2dr> a2dV1, std::vector<Pt2dr> a2dV2, std::vector<ElCplePtsHomologues>& inlierFinal);
+void Save3DXml(std::vector<Pt3dr> vPt3D, std::string aOutXml);
+void Get2DCoor(std::string aRGBImgDir, std::vector<string> vImgList1, std::vector<Pt3dr> vPt3DL, std::string aOri1, cInterfChantierNameManipulateur * aICNM, std::string aOut2DXml);
+bool GetImgBoundingBox(std::string aRGBImgDir, std::string aImg1, cBasicGeomCap3D * aCamL, Pt3dr& minPt, Pt3dr& maxPt);
+void RotateImgBy90Deg(std::string aDir, std::string aImg1, std::string aNameOut);
+void RotateImgBy90DegNTimes(std::string aDir, std::string aImg1, std::string aNameOut, int nTime);
+std::string GetImgList(std::vector<std::string> aVIm);
+std::string GetImgList(std::string aDir, std::string aFileName, bool bExe);
+void GetUniqImgList(std::vector<std::string> aInput, std::vector<std::string>& aOutput);
 
 /****************************************/
 /****** cInterEp_RoughCoReg ******/

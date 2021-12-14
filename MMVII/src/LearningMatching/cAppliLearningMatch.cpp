@@ -15,9 +15,9 @@ cAppliLearningMatch::cAppliLearningMatch(const std::vector<std::string> & aVArgs
     SetNamesProject("","");
 }
 
-int &  cAppliLearningMatch::NbOct()        {return mNbOct;}
-int &  cAppliLearningMatch::NbLevByOct()   {return mNbLevByOct;}
-int &  cAppliLearningMatch::NbOverLapByO() {return mNbOverLapByO;}
+const int &  cAppliLearningMatch::NbOct()        const {return mNbOct;}
+const int &  cAppliLearningMatch::NbLevByOct()   const {return mNbLevByOct;}
+const int &  cAppliLearningMatch::NbOverLapByO() const {return mNbOverLapByO;}
 
 
 std::string  cAppliLearningMatch::NameReport() const

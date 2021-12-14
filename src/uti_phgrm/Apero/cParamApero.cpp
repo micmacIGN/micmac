@@ -11690,6 +11690,17 @@ const cTplValGesInit< bool > & cSectionChantier::ExportMatrixMarket()const
    return mExportMatrixMarket;
 }
 
+
+cTplValGesInit< double > & cSectionChantier::ExtensionIntervZ()
+{
+   return mExtensionIntervZ;
+}
+
+const cTplValGesInit< double > & cSectionChantier::ExtensionIntervZ()const 
+{
+   return mExtensionIntervZ;
+}
+
 void  BinaryUnDumpFromFile(cSectionChantier & anObj,ELISE_fp & aFp)
 {
    { bool IsInit;
@@ -11924,6 +11935,14 @@ void  BinaryUnDumpFromFile(cSectionChantier & anObj,ELISE_fp & aFp)
         }
         else  anObj.ExportMatrixMarket().SetNoInit();
   } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.ExtensionIntervZ().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ExtensionIntervZ().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ExtensionIntervZ().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionChantier & anObj)
@@ -11986,6 +12005,8 @@ void  BinaryDumpInFile(ELISE_fp & aFp,const cSectionChantier & anObj)
     if (anObj.ThresholdWarnPointsBehind().IsInit()) BinaryDumpInFile(aFp,anObj.ThresholdWarnPointsBehind().Val());
     BinaryDumpInFile(aFp,anObj.ExportMatrixMarket().IsInit());
     if (anObj.ExportMatrixMarket().IsInit()) BinaryDumpInFile(aFp,anObj.ExportMatrixMarket().Val());
+    BinaryDumpInFile(aFp,anObj.ExtensionIntervZ().IsInit());
+    if (anObj.ExtensionIntervZ().IsInit()) BinaryDumpInFile(aFp,anObj.ExtensionIntervZ().Val());
 }
 
 cElXMLTree * ToXMLTree(const cSectionChantier & anObj)
@@ -12050,6 +12071,8 @@ cElXMLTree * ToXMLTree(const cSectionChantier & anObj)
       aRes->AddFils(::ToXMLTree(std::string("ThresholdWarnPointsBehind"),anObj.ThresholdWarnPointsBehind().Val())->ReTagThis("ThresholdWarnPointsBehind"));
    if (anObj.ExportMatrixMarket().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("ExportMatrixMarket"),anObj.ExportMatrixMarket().Val())->ReTagThis("ExportMatrixMarket"));
+   if (anObj.ExtensionIntervZ().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ExtensionIntervZ"),anObj.ExtensionIntervZ().Val())->ReTagThis("ExtensionIntervZ"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -12117,9 +12140,11 @@ void xml_init(cSectionChantier & anObj,cElXMLTree * aTree)
    xml_init(anObj.ThresholdWarnPointsBehind(),aTree->Get("ThresholdWarnPointsBehind",1),double(0.01)); //tototo 
 
    xml_init(anObj.ExportMatrixMarket(),aTree->Get("ExportMatrixMarket",1),bool(false)); //tototo 
+
+   xml_init(anObj.ExtensionIntervZ(),aTree->Get("ExtensionIntervZ",1)); //tototo 
 }
 
-std::string  Mangling( cSectionChantier *) {return "4CE89E5872B0B5CFFC3F";};
+std::string  Mangling( cSectionChantier *) {return "9009C6EDC21F2DBFFE3F";};
 
 
 cTplValGesInit< bool > & cSectionSolveur::AllMatSym()
@@ -27518,6 +27543,17 @@ const cTplValGesInit< bool > & cParamApero::ExportMatrixMarket()const
 }
 
 
+cTplValGesInit< double > & cParamApero::ExtensionIntervZ()
+{
+   return SectionChantier().ExtensionIntervZ();
+}
+
+const cTplValGesInit< double > & cParamApero::ExtensionIntervZ()const 
+{
+   return SectionChantier().ExtensionIntervZ();
+}
+
+
 cSectionChantier & cParamApero::SectionChantier()
 {
    return mSectionChantier;
@@ -27910,7 +27946,7 @@ void xml_init(cParamApero & anObj,cElXMLTree * aTree)
    xml_init(anObj.SectionCompensation(),aTree->Get("SectionCompensation",1)); //tototo 
 }
 
-std::string  Mangling( cParamApero *) {return "00CAA070A1E750D5FE3F";};
+std::string  Mangling( cParamApero *) {return "867EEE42D95FAE9AFF3F";};
 
 
 std::string & cXmlSauvExportAperoOneIm::Name()

@@ -1338,6 +1338,7 @@ extern void TestPrime();
 
 int MPDtest_main (int argc,char** argv)
 {
+    std::cout << "USER "  << MMUserEnv().UserName().ValWithDef("toto")  << " MPD=" << MPD_MM() << "\n";
     {
         TestcGeneratorEqColLin();
         exit(EXIT_SUCCESS);

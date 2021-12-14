@@ -265,12 +265,25 @@ cAttSomGrRedTP::cAttSomGrRedTP(cAppliGrRedTieP & anAppli,const std::string & aNa
    mRecSelec  (0.0),
    mRecCur    (0.0),
    mMTD       (cMetaDataPhoto::CreateExiv2(mName)),
-   mSzDec     (anAppli.SzPixDec()/mMTD.FocPix()),
+   mFocPix    (anAppli.IsGBLike()? anAppli.DefFocPix() : mMTD.FocPix()),
+   mFoc35     (anAppli.IsGBLike()? anAppli.DefFoc35() : mMTD.Foc35()),
+   mSzDec     (anAppli.SzPixDec()/ mFocPix),
    mNumBox0   (-1),
    mNumBox1   (-1),
    mNumSom    (-1),
-   mCalCam    (anAppli.NoNM()->CalibrationCamera(aName))
+   mCalCam    (anAppli.IsGBLike()? nullptr : anAppli.NoNM()->CalibrationCamera(aName))
 {
+}
+
+// const cMetaDataPhoto & cAttSomGrRedTP::MTD() const {return mMTD;}
+double  cAttSomGrRedTP::FocPix() const
+{
+   return mFocPix;
+}
+
+double  cAttSomGrRedTP::Foc35()  const
+{
+  return mFoc35;
 }
 
 
@@ -282,7 +295,6 @@ Box2dr & cAttSomGrRedTP::BoxIm() {return mBoxIm;}
 double  cAttSomGrRedTP::SzDec() const {return mSzDec;}
 int & cAttSomGrRedTP::NumBox0() {return mNumBox0;}
 int & cAttSomGrRedTP::NumBox1() {return mNumBox1;}
-const cMetaDataPhoto & cAttSomGrRedTP::MTD() const {return mMTD;}
 int & cAttSomGrRedTP::NumSom() {return mNumSom;}
 
 Pt2dr cAttSomGrRedTP::Hom2Cam(const Pt2df & aP) const
@@ -497,7 +509,7 @@ void cAppliGrRedTieP::CreateBoxOfSom(tSomGRTP *aSom)
     Pt2di aNbI = round_up(aNbR);
   
 
-    if (anAtr.MTD().Foc35() < 20.0)  // Risque de Fish eye envoyant a l'infini
+    if (anAtr.Foc35() < 20.0)  // Risque de Fish eye envoyant a l'infini
     {
         aNbI = ElMin(Pt2di(2,2),aNbI);
     }
@@ -772,6 +784,9 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
     mIntOrLevel      (eLevO_ByCple),
     mQuick           (true),
     mSH              (""),
+    mGBLike          (false),
+    mDefFocPix       (10000),
+    mDefFoc35        (100),
     mNbP             (-1),
     mFlagSel         (mGr.alloc_flag_som()),
     mFlagCur         (mGr.alloc_flag_som()),
@@ -798,7 +813,8 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
          argc,argv,
          LArgMain()  << EAMC(mPatImage, "Pattern of images",  eSAM_IsPatFile),
          LArgMain()  << EAM(mCalib,"OriCalib",true,"Calibration folder if any")
-                     << EAM(mIntOrLevel,"LevelOR",true,"Level Or, 0=None,1=Pair,2=Glob, (Def=1)")
+                     << EAM(mIntOrLevel,"LevelOR",true,"Level Or, 0=None,1=Pair,2=Glob, (Def=1 or 0 (if GB))")
+                     << EAM(mGBLike,"GBLike",true,"Generik bundle or like, dont read focs")
                      << EAM(mNbP,"NbP",true,"Nb Process, def use all")
                      << EAM(mRecMax,"RecMax",true,"Max overlap acceptable in two parallely processed images")
                      << EAM(mShowPart,"ShowP",true,"Show Partition (def=false)")
@@ -815,6 +831,8 @@ cAppliGrRedTieP::cAppliGrRedTieP(int argc,char ** argv) :
 
    );
 
+   if ((!EAMIsInit(&mIntOrLevel))  && mGBLike)
+      mIntOrLevel = 0;
    mOrLevel = (eLevelOr) mIntOrLevel;
    mUseOr = (mOrLevel>=eLevO_ByCple);
 
@@ -916,14 +934,14 @@ std::cout << "MMMP Name= " <<   aS1.attr()->Name()  << "\n";
              aPInf = Inf(aPInf,aBox._p0);
              aPSup = Sup(aPSup,aBox._p1);
         }
-        double aRab = 5 / aS1.attr()->MTD().FocPix();
+        double aRab = 5 / aS1.attr()->FocPix();
         Pt2dr  aPRab(aRab,aRab);
         aS1.attr()->BoxIm() = Box2dr(aPInf-aPRab,aPSup+aPRab);
 
         // std::cout <<  aS1.attr()->Name() << " " <<  aS1.attr()->BoxIm().sz() << " " << aS1.attr()->SzDec() << " RAB=" << aPRab << "\n";
         cXml_ResOneImReducTieP aXRIT;
         aXRIT.BoxIm() = aS1.attr()->BoxIm();
-        aXRIT.Resol() = 1.0 / aS1.attr()->MTD().FocPix();
+        aXRIT.Resol() = 1.0 / aS1.attr()->FocPix();
         const std::string & aName = aS1.attr()->Name() ;
         MakeFileXML(aXRIT,mAppliTR->NameXmlOneIm(aName,true));
         MakeFileXML(aXRIT,mAppliTR->NameXmlOneIm(aName,false));
@@ -950,6 +968,27 @@ std::cout << "MMMP Name= " <<   aS1.attr()->Name()  << "\n";
     // Genere les homologue
     DoExport();
 }
+
+bool  cAppliGrRedTieP::IsGBLike()  const
+{
+   return mGBLike;
+}
+
+double  cAppliGrRedTieP::DefFocPix()  const
+{
+   ELISE_ASSERT(mGBLike,"No DefFocPix for not mGBLike");
+   return mDefFocPix;
+}
+double  cAppliGrRedTieP::DefFoc35()  const
+{
+   ELISE_ASSERT(mGBLike,"No DefFocPix for not mGBLike");
+   return mDefFoc35;
+}
+/*
+bool  DefFocPix() const;
+bool  DefFoc35()  const;
+*/
+
 
 NS_OriTiePRed_END
 

@@ -1080,8 +1080,8 @@ cAppliConvertToOldFormatHom::cAppliConvertToOldFormatHom(int argc,char ** argv) 
     cSetTiePMul * aSetOutPM = new cSetTiePMul(0);
 
 
-         cElemAppliSetFile   anEASF_Im(mPatImage);
-         aSetOutPM->SetFilter(*(anEASF_Im.SetIm()));
+    cElemAppliSetFile   anEASF_Im(mPatImage);
+    aSetOutPM->SetFilter(*(anEASF_Im.SetIm()));
 
 
     const std::vector<std::string> * aVFileH = cSetTiePMul::StdSetName(aICNM,mSH,mBin);
