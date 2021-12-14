@@ -38,7 +38,7 @@ English :
 Header-MicMac-eLiSe-25/06/2007*/
 #include "StdAfx.h"
 
-#define DEF_OFSET -12349876
+#define DEF_OFSET -13976
 
 
 int to8Bits_main(int argc,char ** argv)
@@ -52,8 +52,8 @@ int to8Bits_main(int argc,char ** argv)
     INT NbIter =-1;
     REAL Dyn = 1.0;
 
-    INT Offset = DEF_OFSET;
-    INT NewOffset = DEF_OFSET;
+    double Offset = DEF_OFSET;
+    double NewOffset = DEF_OFSET;
     INT Circ = 0;
     INT Coul  = -1;
     INT AdaptMinMax = 0;

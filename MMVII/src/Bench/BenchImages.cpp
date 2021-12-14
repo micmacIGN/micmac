@@ -398,6 +398,19 @@ template <class TypeImage,class tBase,class TypeFile>  void TplBenchFileImage(co
              MMVII_INTERNAL_ASSERT_bench(aV1==aV2,"Bench image error");
          }
     }
+
+    {
+        cPt2di aP0 = aSz/5;
+        cPt2di aP1 = aSz/2;
+        cBox2di  aBox(aP0,aP1);
+	aDImDup.ClipToFile(aNameTiff,aBox);
+	cIm2D<int>  aImCl = cIm2D<int>::FromFile(aNameTiff);
+
+	for (const auto & aP : aImCl.DIm())
+	{
+            MMVII_INTERNAL_ASSERT_bench(aImCl.DIm().GetV(aP)==aDImDup.GetV(aP+aP0),"Bench ClipToFile")
+	}
+    }
 }
 
 template <class TypeFile,class TypeImage>  void TplBenchFileImage()
@@ -533,6 +546,7 @@ void BenchGlobImage(cParamExeBench & aParam)
         aI.DIm().SetV(cPt2di(0,0),1);
     }
 
+    BenchIm3D();
     BenchImNDim();
  
     BenchIm1D();

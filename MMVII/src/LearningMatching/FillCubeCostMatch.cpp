@@ -2,6 +2,7 @@
 #include "include/MMVII_2Include_Serial_Tpl.h"
 #include "LearnDM.h"
 #include "include/MMVII_Tpl_Images.h"
+#include "include/MMVII_TplLayers3D.h"
 
 /*
    C = (1-(1-L) ^2)
@@ -50,12 +51,12 @@ static const std::string TheNameExtCorr = "ExternCorrel";
 class cAppliFillCubeCost : public cAppliLearningMatch
 {
      public :
-        typedef cIm2D<tINT2>               tImZ;
-        typedef cDataIm2D<tINT2>           tDataImZ;
+        typedef tINT2                      tElemZ;
+        typedef cIm2D<tElemZ>              tImZ;
+        typedef cDataIm2D<tElemZ>          tDataImZ;
         typedef cIm2D<tREAL4>              tImRad;
         typedef cDataIm2D<tREAL4>          tDataImRad;
-
-
+	typedef cLayer3D<float,tElemZ>     tLayerCor;
         typedef cIm2D<tREAL4>              tImPx;
         typedef cDataIm2D<tU_INT1>         tDataImMasq;
         typedef cDataIm2D<tREAL4>          tDataImPx;
@@ -70,15 +71,15 @@ class cAppliFillCubeCost : public cAppliLearningMatch
 
 	const tDataImRad & DI1() {return *mDI1;}
 	const tDataImRad & DI2() {return *mDI2;}
-        cPyr1ImLearnMatch * PyrL1 () {return PyrL(mPyrL1,mBoxI1,mNameI1);}
-        cPyr1ImLearnMatch * PyrL2 () {return PyrL(mPyrL2,mBoxI2,mNameI2);}
+        cPyr1ImLearnMatch * PyrL1 () {return PyrL(mPyrL1,mBoxGlob1,mNameI1);}
+        cPyr1ImLearnMatch * PyrL2 () {return PyrL(mPyrL2,mBoxGlob2,mNameI2);}
 	tREAL8     StepZ() const {return mStepZ;}
         bool Ok1(int aX) const {return Ok(aX,mVOk1);}
         bool Ok2(int aX) const {return Ok(aX,mVOk2);}
         const cAimePCar & PC1(int aX) const {return mVPC1.at(aX);}
         const cAimePCar & PC2(int aX) const {return mVPC2.at(aX);}
-        const cBox2di  & BoxI1() const {return mBoxI1;}  ///< Accessor
-        const cBox2di  & BoxI2() const {return mBoxI2;}  ///< Accessor
+        const cBox2di  & BoxGlob1() const {return mBoxGlob1;}  ///< Accessor
+        const cBox2di  & BoxGlob2() const {return mBoxGlob2;}  ///< Accessor
         const std::string   & NameI1() const {return mNameI1;}  ///< Accessor
         const std::string   & NameI2() const {return mNameI2;}  ///< Accessor
 
@@ -122,9 +123,8 @@ class cAppliFillCubeCost : public cAppliLearningMatch
 	std::string   mNameI2;
 	std::string   mNameModele;
 	cPt2di        mP0Z;  // Pt corresponding in Im1 to (0,0)
-	cBox2di       mBoxI1;  // Box to Load, taking into account siwe effect
-	cBox2di       mBoxI2;
-	// cBox2di       mBoxI2;
+	cBox2di       mBoxGlob1;  // Box to Load, taking into account siwe effect
+	cBox2di       mBoxGlob2;
 	std::string   mNamePost;
 
 	// -------------- Optionnal args -------------------
@@ -158,6 +158,7 @@ class cAppliFillCubeCost : public cAppliLearningMatch
 	tDataImRad  *mDINorm1;
 	tImRad      mImNorm2;
 	tDataImRad  *mDINorm2;
+	tLayerCor   mLayerCor;
 
 	double      ToCmpCost(double aCost) const;
 
@@ -207,16 +208,12 @@ cOneModele::cOneModele
 
 void cOneModele::CalcCorrelExterneTerm(const cBox2di & aBoxInitIm1,int aPxMin,int aPxMax)
 {
-     //cBox2di  aBoxIm1  = aBoxInitIm1.Dilate(mSzW);
-     //aBoxIm1  =  aBoxIm1.Inter(mAppli->BoxFile1());
-
-     // cBox2di  aBoxIm2  = aBoxInitIm1.Dilate(mSzW);
-     //cBox2di  aBoxIm2(cPt2di(
+     // cBox2di aBoxDil = aBoxInitIm1.Inter
 }
 
 void cOneModele::CalcCorrelExterneRecurs(const cBox2di & aBoxIm1)
 {
-     cPt2di aP0Glob = mAppli->BoxI1().P0();
+     cPt2di aP0Glob = mAppli->BoxGlob1().P0();
      int aMinPxMin = 1e6;
      int aMaxPxMax = -1e6;
      int aTotPx = 0;
@@ -273,13 +270,12 @@ void cOneModele::CalcCorrelExterneRecurs(const cBox2di & aBoxIm1)
              }
         }
      }
-
 }
 
 void cOneModele::CalcCorrelExterne()
 {
    mAppli->MakeNormalizedIm();
-   CalcCorrelExterneRecurs(mAppli->BoxI1());
+   CalcCorrelExterneRecurs(mAppli->BoxGlob1());
 }
 
 double cOneModele::ComputeCost(bool & Ok,const cPt2di & aPC1,const cPt2di & aPC20,int aDZ) const
@@ -325,8 +321,8 @@ double cOneModele::ComputeCost(bool & Ok,const cPt2di & aPC1,const cPt2di & aPC2
 
 cAppliFillCubeCost::cAppliFillCubeCost(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
    cAppliLearningMatch  (aVArgs,aSpec),
-   mBoxI1               (cBox2di::Empty()),
-   mBoxI2               (cBox2di::Empty()),
+   mBoxGlob1            (cBox2di::Empty()),
+   mBoxGlob2            (cBox2di::Empty()),
    mStepZ               (1.0),
    mCmpCorLearn         (true),
    mInterpolLearn       (true),
@@ -346,6 +342,7 @@ cAppliFillCubeCost::cAppliFillCubeCost(const std::vector<std::string> & aVArgs,c
    mDINorm1             (nullptr),
    mImNorm2             (cPt2di(1,1)),
    mDINorm2             (nullptr),
+   mLayerCor            (tLayerCor::Empty()),
    mPyrL1               (nullptr),
    mPyrL2               (nullptr),
    mFPC                 (false)
@@ -360,6 +357,11 @@ void cAppliFillCubeCost::MakeNormalizedIm()
 
     mImNorm1 = NormalizedAvgDev(mIm1,1e-4);
     mDINorm1 = &(mImNorm1.DIm());
+
+    mImNorm2 = NormalizedAvgDev(mIm2,1e-4);
+    mDINorm2 = &(mImNorm2.DIm());
+
+    mLayerCor  = tLayerCor(mImZMin,mImZMax);
 }
 
 
@@ -376,8 +378,8 @@ cCollecSpecArg2007 & cAppliFillCubeCost::ArgObl(cCollecSpecArg2007 & anArgObl)
           <<   Arg2007(mNameI2,"Name of second image")
           <<   Arg2007(mNameModele,"Name for modele : .*dmp|MMVIICorrel")
           <<   Arg2007(mP0Z,"Origin in first image")
-          <<   Arg2007(mBoxI1,"Box to read 4 Im1")
-          <<   Arg2007(mBoxI2,"Box to read 4 Im2")
+          <<   Arg2007(mBoxGlob1,"Box to read 4 Im1")
+          <<   Arg2007(mBoxGlob2,"Box to read 4 Im2")
           <<   Arg2007(mNamePost,"Post fix for other names (ZMin,ZMax,Cube)")
    ;
 }
@@ -427,10 +429,10 @@ void cAppliFillCubeCost::MakeLinePC(int aYLoc,bool Im1)
       return;
    MMVII_INTERNAL_ASSERT_strong(mStepZ==1.0,"For now do not handle StepZ!=1 with model");
 
-   std::vector<bool>     & aVOK  = Im1 ? mVOk1   : mVOk2;
-   std::vector<cAimePCar>& aVPC  = Im1 ? mVPC1   : mVPC2;
-   const cBox2di         & aBox  = Im1 ? mBoxI1  : mBoxI2;
-   cPyr1ImLearnMatch     & aPyrL = Im1 ? *mPyrL1 : *mPyrL2;
+   std::vector<bool>     & aVOK  = Im1 ? mVOk1      : mVOk2;
+   std::vector<cAimePCar>& aVPC  = Im1 ? mVPC1      : mVPC2;
+   const cBox2di         & aBox  = Im1 ? mBoxGlob1  : mBoxGlob2;
+   cPyr1ImLearnMatch     & aPyrL = Im1 ? *mPyrL1    : *mPyrL2;
 
    aVOK.clear();
    aVPC.clear();
@@ -443,8 +445,6 @@ void cAppliFillCubeCost::MakeLinePC(int aYLoc,bool Im1)
        aVPC.push_back(aPyrL.DupLPIm());
    }
 }
-            // cPt2di aPAbs = aPix + mP0Z;
-            // cPt2di aPC1  = aPAbs-mBoxI1.P0();
 
 int  cAppliFillCubeCost::Exe()
 {
@@ -460,9 +460,9 @@ int  cAppliFillCubeCost::Exe()
    mImZMax = tImZ::FromFile(mNameZMax);
    tDataImZ & aDZMax = mImZMax.DIm();
 
-   mIm1 = tImRad::FromFile(mNameI1,mBoxI1);
+   mIm1 = tImRad::FromFile(mNameI1,mBoxGlob1);
    mDI1 = &(mIm1.DIm());
-   mIm2 = tImRad::FromFile(mNameI2,mBoxI2);
+   mIm2 = tImRad::FromFile(mNameI2,mBoxGlob2);
    mDI2 = &(mIm2.DIm());
 
    mFileCube = new cMMVII_Ofs(mNameCube,false);
@@ -488,8 +488,8 @@ int  cAppliFillCubeCost::Exe()
        for (aPix.x()=0 ; aPix.x()<aSz.x() ; aPix.x()++)
        {
             cPt2di aPAbs = aPix + mP0Z;
-            cPt2di aPC1  = aPAbs-mBoxI1.P0();
-            cPt2di aPC20 = aPAbs-mBoxI2.P0();
+            cPt2di aPC1  = aPAbs-mBoxGlob1.P0();
+            cPt2di aPC20 = aPAbs-mBoxGlob2.P0();
             for (int aDz=aDZMin.GetV(aPix) ; aDz<aDZMax.GetV(aPix) ; aDz++)
             {
                double aTabCost[2];

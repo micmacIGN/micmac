@@ -1,234 +1,228 @@
 #include "include/MMVII_all.h"
-#include "include/MMVII_Tpl_Images.h"
+#include "include/MMVII_TplLayers3D.h"
 
 namespace MMVII
 {
 
+/**  Class used to represent "non full" 3D images (or more generally container for any
+    object) domain defined by ZMin/ZMax.
+
+    As it may be instandiated with any value, put it in header with all inline ....
+    
+    As usuall  there is the cLayerData3D / cLayer3D
+ */
+
+
 #if (0)
-
-cPt2di DifInSz(const std::string & aN1,const std::string & aN2)
+template <class TObj,class TLayer>  class cLayer3D  
 {
-    cDataFileIm2D aD1 = cDataFileIm2D::Create(aN1,false);
-    cDataFileIm2D aD2 = cDataFileIm2D::Create(aN2,false);
+       public :
+           typedef cLayerData3D<TObj,TLayer>  tLD3d;
+           typedef cIm2D<TLayer>     tIm;
 
-    return aD1.Sz() - aD2.Sz();
+           cLayer3D(const tIm & aZMin,const tIm & aZMax) :
+              mSPtr  (new tLD3d(aZMin,aZMax)),
+              mDL3d  (mSPtr.get())
+           {
+           }
+
+	   const tLD3d & LD3D() const  {return *mDL3d;}
+	   tLD3d & LD3D()              {return *mDL3d;}
+
+       private :
+            std::shared_ptr<tLD3d> mSPtr;  ///< shared pointer to real image , allow automatic deallocation
+            tLD3d *                mDL3d;   ///
+};
+#endif
+
+/* ****************************************************** */
+/*                                                        */
+/*             cDataIm3D<Type>                            */
+/*                                                        */
+/* ****************************************************** */
+
+template <class Type>  cDataIm3D<Type>::cDataIm3D(const cPt3di & aSz,Type * aRawDataLin,eModeInitImage aModeInit) : 
+    cDataTypedIm<Type,3> (cPt3di(0,0,0),aSz,aRawDataLin,aModeInit),
+    mRawData3D           (cMemManager::AllocMat<tPVal>(Sz().y(),Sz().z()))
+{
+    Type *  aRDL =  tBI::mRawDataLin ;   // Pointer to raw data, will be increased in loop
+    for (int aZ=0 ; aZ<Sz().z() ;aZ++)
+    {
+        for (int aY=0 ; aY<aSz.y() ; aY++)
+        {
+            mRawData3D[aZ][aY]  = aRDL;
+	    aRDL += Sz().x();
+        }
+    }
 }
 
-
-/* ========================== */
-/*          cDataIm2D         */
-/* ========================== */
-
-
-
-template <class Type>  cDataIm2D<Type>::cDataIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * aRawDataLin,eModeInitImage aModeInit) : 
-    cDataTypedIm<Type,2> (aP0,aP1,aRawDataLin,aModeInit),
-    mSzYMax (tPB::Sz().y())
+template <class Type>  cDataIm3D<Type>::~cDataIm3D()
 {
-    mRawData2D = cMemManager::Alloc<tVal*>(mSzYMax) -Y0();
-    PostInit();
+    cMemManager::FreeMat(mRawData3D,Sz().z());
 }
 
-template <class Type> void  cDataIm2D<Type>::PostInit()
-{
-    for (int aY=Y0() ; aY<Y1() ; aY++)
-        mRawData2D[aY] = tBI::mRawDataLin + (aY-Y0()) * SzX() - X0();
-}
+/* ************************************************** */
+/*                                                    */
+/*             cIm3D<Type>                            */
+/*                                                    */
+/* ************************************************** */
 
-
-template <class T> void  cDataIm2D<T>::Resize(const cPt2di& aP0,const cPt2di & aP1,eModeInitImage aMode) 
-{
-    int aPrevY0 = Y0();
-    cDataTypedIm<T,2>::Resize(aP0,aP1,aMode);
-    cMemManager::Resize(mRawData2D,aPrevY0,mSzYMax,Y0(),Sz().y());
-    PostInit();
-}
-
-template <class T> void cDataIm2D<T>::Resize(const cPt2di& aSz,eModeInitImage aMode)
-{
-   Resize(cPt2di(0,0),aSz,aMode);
-}
-
-
-
-template <class Type>  cDataIm2D<Type>::~cDataIm2D()
-{
-   cMemManager::Free(mRawData2D+Y0());
-}
-
-// template <class Type>  cDataIm2D<Type>::
-
-template <class Type> int     cDataIm2D<Type>::VI_GetV(const cPt2di& aP)  const
-{
-   return GetV(aP);
-}
-template <class Type> double  cDataIm2D<Type>::VD_GetV(const cPt2di& aP)  const 
-{
-   return GetV(aP);
-}
-
-template <class Type> void  cDataIm2D<Type>::VI_SetV(const cPt2di& aP,const int & aV)
-{
-   SetVTrunc(aP,aV);
-}
-template <class Type> void  cDataIm2D<Type>::VD_SetV(const cPt2di& aP,const double & aV)
-{
-   SetVTrunc(aP,aV);
-}
-
-template <class Type> const Type * cDataIm2D<Type>::GetLine(int aY)  const
-{
-   AssertYInside(aY);
-   return mRawData2D[aY];
-}
-template <class Type> Type * cDataIm2D<Type>::GetLine(int aY) 
-{
-   AssertYInside(aY);
-   return mRawData2D[aY];
-}
-
-template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName) const
-{
-    cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,tElemNumTrait<Type>::TyNum(),Sz(),1);
-    Write(aDFI,P0());
-}
-
-template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName,const tIm &aIG,const tIm &aIB) const
-{
-    cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,tElemNumTrait<Type>::TyNum(),Sz(),3);
-    Write(aDFI,aIG,aIB,P0());
-}
-
-
-/* ========================== */
-/*          cIm2D         */
-/* ========================== */
-
-template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aP0,const cPt2di & aP1,Type * aRawDataLin,eModeInitImage aModeInit) :
-   mSPtr(new cDataIm2D<Type>(aP0,aP1,aRawDataLin,aModeInit)),
+template <class Type>  cIm3D<Type>::cIm3D(const cPt3di & aSz,Type * aRawDataLin,eModeInitImage aModeInit) :
+   mSPtr(new cDataIm3D<Type>(aSz,aRawDataLin,aModeInit)),
    mPIm (mSPtr.get())
 {
 }
 
-template <class Type>  cIm2D<Type>::cIm2D(const cPt2di & aSz,Type * aRawDataLin,eModeInitImage aModeInit) :
-   cIm2D<Type> (cPt2di(0,0),aSz,aRawDataLin,aModeInit)
+template <class Type>  cIm3D<Type>::cIm3D(const cPt3di & aSz) :
+    cIm3D<Type>(aSz,nullptr,eModeInitImage::eMIA_NoInit)
 {
+}
+/* ************************************************** */
+/*                                                    */
+/*             BENCH                                  */
+/*                                                    */
+/* ************************************************** */
+
+template <class Type> Type  TestFuncXYZ(const cPt3di & aP)
+{
+    double aVal =  aP.x() - aP.y() * 2.31 +  (3.0*aP.z())/(1.5+aP.x()+aP.z());
+    return Type(aVal);
+}
+
+cPt2di   TestPtXYZ(const cPt2di & aP,const int aZ)
+{
+    return cPt2di
+	   (
+	          TestFuncXYZ<int>(cPt3di(aP.x(),aP.y(),aZ)),
+	          TestFuncXYZ<int>(cPt3di(aZ,aP.x(),aP.y()))
+	   );
+}
+
+static int  TestFuncZMin(const cPt2di & aP)
+{
+    return  1.2 + aP.x() -1.35*aP.y();
+}
+static int  TestFuncNbZ(const cPt2di & aP)
+{
+    return   (1 + aP.x() + aP.y()) % 4;
+}
+
+void TestLayer3D(const cPt2di & aSz)
+{
+   cIm2D<tINT2> aZMin(aSz);
+   cIm2D<tINT2> aZMax(aSz);
+
+   int aNbZ = 0;
+   for (const auto & aP : aZMin.DIm())
+   {
+       int aZ0 = TestFuncZMin(aP);
+       int aZ1 = aZ0 + TestFuncNbZ(aP);
+       aZMin.DIm().SetV(aP,aZ0);
+       aZMax.DIm().SetV(aP,aZ1);
+       aNbZ += aZ1-aZ0;
+   }
+   // cLayer3D<cPt2di,tINT2> aL3d(aZMin,aZMax);
+   cLayer3D<cPt2di,tINT2> aL3d = cLayer3D<cPt2di,tINT2>::Empty();
+   aL3d =  cLayer3D<cPt2di,tINT2>(aZMin,aZMax);
+   cLayerData3D<cPt2di,tINT2> & aLD = aL3d.LD3D();
+
+   cPt2di aCheckP(0,0);
+   for (const auto & aP : aZMin.DIm())
+   {
+       int aZ0 = aLD.ZMin(aP);
+       int aZ1 = aLD.ZMax(aP);
+       aNbZ -= aZ1-aZ0;
+
+       for (int aZ= aZ0 ; aZ< aZ1 ;aZ++)
+       {
+            cPt2di aVal = TestPtXYZ(aP,aZ); 
+            aLD.SetV(aP,aZ,aVal);
+	    aCheckP = aCheckP +aVal;
+       }
+   }
+
+   for (const auto & aP : aZMin.DIm())
+   {
+       int aZ0 = aLD.ZMin(aP);
+       int aZ1 = aLD.ZMax(aP);
+       for (int aZ= aZ0 ; aZ< aZ1 ;aZ++)
+       {
+            cPt2di aVal = aLD.GetV(aP,aZ);
+            MMVII_INTERNAL_ASSERT_bench(aVal==TestPtXYZ(aP,aZ),"Layer 3D Read/Write ");
+	    aCheckP = aCheckP -aVal;
+       }
+   }
+
+   MMVII_INTERNAL_ASSERT_bench(aNbZ==0,"TplBenchIm3D Nb Elem");
+   MMVII_INTERNAL_ASSERT_bench(aCheckP==cPt2di(0,0),"TplBenchIm3D Nb Elem");
 }
 
 
-template <class Type>  cIm2D<Type>::cIm2D(const cBox2di & aBox,const cDataFileIm2D & aDataF) :
-   cIm2D<Type> (aBox.Sz())
+template  class cLayerData3D<cPt2di,tINT2>;
+
+/*  Check what you write is what you read + memory alloc/unalloc + number of elem
+ */
+template <class Type> void TplBenchIm3D(const cPt3di & aSz)
 {
-    Read(aDataF,aBox.P0());
+    cIm3D<Type>     aIm(aSz);
+    cDataIm3D<Type>&aDIm = aIm.DIm();
+
+    for (const auto & aP : aDIm)
+    {
+        Type aVal = TestFuncXYZ<Type>(aP);
+        aDIm.SetV(aP,aVal);
+    }
+    int aNb = aSz.x()* aSz.y() * aSz.z();
+    for (const auto & aP : aDIm)
+    {
+        Type aVal = TestFuncXYZ<Type>(aP);
+	MMVII_INTERNAL_ASSERT_bench(aVal==aDIm.GetV(aP),"TplBenchIm3D image get/set");
+        aNb--;
+    }
+    MMVII_INTERNAL_ASSERT_bench(aNb==0,"TplBenchIm3D Nb Elem");
+}
+
+void BenchIm3D()
+{
+     cBox3di aBox(cPt3di::PCste(1),cPt3di::PCste(20));
+     for (int aK=0 ; aK<100 ; aK++)
+     {
+         cPt3di aP =  aBox.GeneratePointInside();
+         TplBenchIm3D<tU_INT1>(aP);
+         TplBenchIm3D<tINT1>(aP);
+         TplBenchIm3D<tREAL4>(aP);
+
+         TestLayer3D(cPt2di(aP.x(),aP.y()));
+     }
 }
 
 
-template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aName)
-{
-   cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,true);
-   cIm2D<Type> aRes(aFileIm.Sz());
-   aRes.Read(aFileIm,cPt2di(0,0));
+/* ************************************************** */
+/*                                                    */
+/*             INSTANCIATION                           */
+/*                                                    */
+/* ************************************************** */
 
-   return aRes;
-}
+#define INSTANTIATE_IM3D(Type)\
+template  class cIm3D<Type>;\
+template  class cDataIm3D<Type>;
 
-template <class Type>  cIm2D<Type> cIm2D<Type>::FromFile(const std::string & aName,const cBox2di & aBox)
-{
-   cDataFileIm2D  aFileIm = cDataFileIm2D::Create(aName,true);
-   cIm2D<Type> aRes(aBox.Sz());
-   aRes.Read(aFileIm,aBox.P0());
+INSTANTIATE_IM3D(tINT1)
+INSTANTIATE_IM3D(tREAL4)
 
-   return aRes;
-}
+/*
+*/
+INSTANTIATE_IM3D(tINT2)
+INSTANTIATE_IM3D(tINT4)
 
-
-template <class Type>  cIm2D<Type>  cIm2D<Type>::Dup() const
-{
-   cIm2D<Type> aRes(DIm().P0(),DIm().P1());
-   DIm().DupIn(aRes.DIm());
-   return aRes;
-}
+INSTANTIATE_IM3D(tU_INT1)
+INSTANTIATE_IM3D(tU_INT2)
+INSTANTIATE_IM3D(tU_INT4)
 
 
-template <class Type>  cIm2D<Type>  cIm2D<Type>::GaussFilter(double aStdDev,int aNbIter) const
-{
-    cIm2D<typename tElemNumTrait<Type>::tFloatAssoc> aImFloat(DIm().P0(),DIm().P1());
-    CopyIn(aImFloat.DIm(),DIm());
-    ExpFilterOfStdDev(aImFloat.DIm(),aNbIter,aStdDev);
-
-    cIm2D<Type> aRes(DIm().P0(),DIm().P1()); //  (DIm().P0(),DIm.P1());
-    CopyIn(aRes.DIm(),aImFloat.DIm());
-
-    return aRes;
-}
-
-template <class Type>  cPt2di  cIm2D<Type>::SzDecimate(int aFact) const
-{
-   return mPIm->Sz()/aFact;
-}
-
-template <class Type>  cIm2D<Type>  cIm2D<Type>::Decimate(int aFact) const
-{
-
-   cIm2D<Type> aRes(SzDecimate(aFact));
-   aRes.DecimateInThis(aFact,*this);
-   return aRes;
-}
-
-template <class Type>  void  cIm2D<Type>::DecimateInThis(int aFact,const cIm2D<Type> & aI) 
-{
-   MMVII_INTERNAL_ASSERT_strong(aI.DIm().P0()==cPt2di(0,0),"Decimate require (0,0) origin");
-   MMVII_INTERNAL_ASSERT_strong(DIm().P0()==cPt2di(0,0),"Decimate require (0,0) origin");
-   MMVII_INTERNAL_ASSERT_strong(DIm().Sz()==aI.SzDecimate(aFact),"Incoherent size in DecimateInThis");
-   const cDataIm2D<Type> & aDIn = aI.DIm();
-
-   for (const auto & aP : DIm())
-      mPIm->SetV(aP,aDIn.GetV(aP*aFact));
-}
+INSTANTIATE_IM3D(tREAL8)
+INSTANTIATE_IM3D(tREAL16)
 
 
-template <class Type>  cIm2D<Type>  cIm2D<Type>::GaussDeZoom(int aFact, int aNbIterExp,double dilate) const
-{
-    double aS0 = DefStdDevImWellSample;
-    double aSTarg = DefStdDevImWellSample * aFact;
-
-    // double aSig = sqrt(Square(aSTarg)-Square(aS0)) *dilate;
-    double aSig = DifSigm(aSTarg,aS0) *dilate;
-
-    return GaussFilter(aSig,aNbIterExp).Decimate(aFact);
-}
-
-template <class Type>  cIm2D<Type>  cIm2D<Type>::Transpose() const
-{
-    cIm2D<Type> aTr(Transp(mPIm->P0()),Transp(mPIm->P1()));
-
-    for (const auto & aP : (*mPIm))
-       aTr.mPIm->SetV(Transp(aP),mPIm->GetV(aP));
-
-    return aTr;
-}
-
-
-
-
-
-#define INSTANTIATE_IM2D(Type)\
-template  class cIm2D<Type>;\
-template  class cDataIm2D<Type>;
-
-INSTANTIATE_IM2D(tINT1)
-INSTANTIATE_IM2D(tINT2)
-INSTANTIATE_IM2D(tINT4)
-
-INSTANTIATE_IM2D(tU_INT1)
-INSTANTIATE_IM2D(tU_INT2)
-INSTANTIATE_IM2D(tU_INT4)
-
-
-INSTANTIATE_IM2D(tREAL4)
-INSTANTIATE_IM2D(tREAL8)
-INSTANTIATE_IM2D(tREAL16)
-
-#endif
 
 };

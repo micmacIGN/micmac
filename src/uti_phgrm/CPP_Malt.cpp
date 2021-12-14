@@ -248,6 +248,7 @@ class cAppliMalt
           int         mNbDirPrgD;
           bool        mPrgDReInject;
           bool        mSpatial;
+	  double      mExtenZ;
 };
 
 
@@ -495,6 +496,8 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
                     << EAM(mSpatial,"Spatial",true,"Compute the DTM with spatial optimized parameters")
                     << EAM(aDEMInitIMG,"DEMInitIMG",true,"img of the DEM used to initialise the depth research", eSAM_NoInit)
                     << EAM(aDEMInitXML,"DEMInitXML",true,"xml of the DEM used to initialise the depth research", eSAM_NoInit)
+                    << EAM(mExtenZ,"ExtIntZ",true,"Extension of Z Interval for elimination")
+
      );
 
     if (!MMVisualMode)
@@ -913,6 +916,14 @@ cAppliMalt::cAppliMalt(int argc,char ** argv) :
       {
           mCom =  mCom + " +ButDoOrtho=false";
       }
+
+      if (EAMIsInit(&mExtenZ))
+      {
+          mCom =    mCom
+                 +   std::string(" +WithExtenZ=true")
+                 +   std::string(" +ExtenZ=") + ToString(mExtenZ);
+      }
+
 
       if (EAMIsInit(&mMasqIm))
       {

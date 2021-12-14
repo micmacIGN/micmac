@@ -5173,6 +5173,9 @@ class cSection_MEC
         friend void xml_init(cSection_MEC & anObj,cElXMLTree * aTree);
 
 
+        cTplValGesInit< double > & ExtensionIntervZ();
+        const cTplValGesInit< double > & ExtensionIntervZ()const ;
+
         cTplValGesInit< bool > & PasIsInPixel();
         const cTplValGesInit< bool > & PasIsInPixel()const ;
 
@@ -5272,6 +5275,7 @@ class cSection_MEC
         cTplValGesInit< bool > & Correl16Bits();
         const cTplValGesInit< bool > & Correl16Bits()const ;
     private:
+        cTplValGesInit< double > mExtensionIntervZ;
         cTplValGesInit< bool > mPasIsInPixel;
         cTplValGesInit< Box2dr > mProportionClipMEC;
         cTplValGesInit< bool > mClipMecIsProp;
@@ -6982,6 +6986,9 @@ class cParamMICMAC
 
         cSection_PriseDeVue & Section_PriseDeVue();
         const cSection_PriseDeVue & Section_PriseDeVue()const ;
+
+        cTplValGesInit< double > & ExtensionIntervZ();
+        const cTplValGesInit< double > & ExtensionIntervZ()const ;
 
         cTplValGesInit< bool > & PasIsInPixel();
         const cTplValGesInit< bool > & PasIsInPixel()const ;

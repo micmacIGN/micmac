@@ -1076,6 +1076,9 @@ se limite a tester les 2 algo et a selectionner le meilleur. A priori peut pas f
 
              <!-- Used to test alternative solution to linear solution of least square -->
              <ExportMatrixMarket Nb="?" Type="bool" Def="false"> </ExportMatrixMarket>
+
+              <!-- Used to avoird too sctrict elimination of point on Z criteria -->
+	     <ExtensionIntervZ Nb="?" Type="double"> </ExtensionIntervZ>
         </SectionChantier>
 
 

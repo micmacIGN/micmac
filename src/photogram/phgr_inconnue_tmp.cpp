@@ -1660,9 +1660,11 @@ Pt3dr  cManipPt3TerInc::CalcPTerInterFaisceauCams
                           && (aWhy!= "DistCheck")
                        )
                     {
-                       ELISE_ASSERT(false,"Why NotVisible not handled");
+                         // ELISE_ASSERT(false,"Why NotVisible not handled");
+			//   std::cout <<  "REPPPROJjjj PB\n";
                     }
                 }
+		// if (*aMesPb =="NoPb")
                 *aMesPb = std::string("MesNotVisIm, for Im num : ") + ToString(aKPb);
              }
          }

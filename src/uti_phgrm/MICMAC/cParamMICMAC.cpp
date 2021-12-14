@@ -19617,6 +19617,17 @@ void xml_init(cTypePyramImage & anObj,cElXMLTree * aTree)
 std::string  Mangling( cTypePyramImage *) {return "8E3BA7DF9AA809A2FE3F";};
 
 
+cTplValGesInit< double > & cSection_MEC::ExtensionIntervZ()
+{
+   return mExtensionIntervZ;
+}
+
+const cTplValGesInit< double > & cSection_MEC::ExtensionIntervZ()const 
+{
+   return mExtensionIntervZ;
+}
+
+
 cTplValGesInit< bool > & cSection_MEC::PasIsInPixel()
 {
    return mPasIsInPixel;
@@ -19984,6 +19995,14 @@ void  BinaryUnDumpFromFile(cSection_MEC & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.ExtensionIntervZ().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ExtensionIntervZ().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ExtensionIntervZ().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.PasIsInPixel().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.PasIsInPixel().ValForcedForUnUmp(),aFp);
         }
@@ -20147,6 +20166,8 @@ void  BinaryUnDumpFromFile(cSection_MEC & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSection_MEC & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.ExtensionIntervZ().IsInit());
+    if (anObj.ExtensionIntervZ().IsInit()) BinaryDumpInFile(aFp,anObj.ExtensionIntervZ().Val());
     BinaryDumpInFile(aFp,anObj.PasIsInPixel().IsInit());
     if (anObj.PasIsInPixel().IsInit()) BinaryDumpInFile(aFp,anObj.PasIsInPixel().Val());
     BinaryDumpInFile(aFp,anObj.ProportionClipMEC().IsInit());
@@ -20201,6 +20222,8 @@ cElXMLTree * ToXMLTree(const cSection_MEC & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Section_MEC",eXMLBranche);
+   if (anObj.ExtensionIntervZ().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ExtensionIntervZ"),anObj.ExtensionIntervZ().Val())->ReTagThis("ExtensionIntervZ"));
    if (anObj.PasIsInPixel().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PasIsInPixel"),anObj.PasIsInPixel().Val())->ReTagThis("PasIsInPixel"));
    if (anObj.ProportionClipMEC().IsInit())
@@ -20258,6 +20281,8 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.ExtensionIntervZ(),aTree->Get("ExtensionIntervZ",1)); //tototo 
 
    xml_init(anObj.PasIsInPixel(),aTree->Get("PasIsInPixel",1),bool(false)); //tototo 
 
@@ -20697,7 +20722,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
 
-std::string  Mangling( cSection_MEC *) {return "BEFD1978CD1E19BBFD3F";};
+std::string  Mangling( cSection_MEC *) {return "78620FD38C3BB5A1FE3F";};
 
 
 cTplValGesInit< bool > & cDoNothingBut::ButDoPyram()
@@ -27601,6 +27626,17 @@ const cSection_PriseDeVue & cParamMICMAC::Section_PriseDeVue()const
 }
 
 
+cTplValGesInit< double > & cParamMICMAC::ExtensionIntervZ()
+{
+   return Section_MEC().ExtensionIntervZ();
+}
+
+const cTplValGesInit< double > & cParamMICMAC::ExtensionIntervZ()const 
+{
+   return Section_MEC().ExtensionIntervZ();
+}
+
+
 cTplValGesInit< bool > & cParamMICMAC::PasIsInPixel()
 {
    return Section_MEC().PasIsInPixel();
@@ -29727,6 +29763,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "29CBA8F4ADDF6CEAFE3F";};
+std::string  Mangling( cParamMICMAC *) {return "805C6E8BFFBE7289FE3F";};
 
 // Quelque chose

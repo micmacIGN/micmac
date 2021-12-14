@@ -826,6 +826,9 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 -->
      <Section_MEC Nb="1">
 
+         <!-- Used to avoird too sctrict elimination of point on Z criteria -->
+        <ExtensionIntervZ Nb="?" Type="double"> </ExtensionIntervZ>
+
          <!-- Option applicable a la geometrie terrain, en image c'est de touet facon
         la cas... Permet de faire des fichiers + generiques -->
 

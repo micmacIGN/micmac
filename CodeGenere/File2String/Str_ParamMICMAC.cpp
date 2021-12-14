@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamMICMAC[2176] = {
+const char * theNameVar_ParamMICMAC[2179] = {
 "<?xml version=\"1.0\" ?>\n",
 "<GenCpp>\n",
 "\n",
@@ -827,6 +827,9 @@ const char * theNameVar_ParamMICMAC[2176] = {
 "   aux plus grandes.\n",
 "-->\n",
 "     <Section_MEC Nb=\"1\">\n",
+"\n",
+"         <!-- Used to avoird too sctrict elimination of point on Z criteria -->\n",
+"        <ExtensionIntervZ Nb=\"?\" Type=\"double\"> </ExtensionIntervZ>\n",
 "\n",
 "         <!-- Option applicable a la geometrie terrain, en image c'est de touet facon\n",
 "        la cas... Permet de faire des fichiers + generiques -->\n",
