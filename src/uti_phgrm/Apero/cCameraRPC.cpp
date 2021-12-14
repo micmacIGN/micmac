@@ -2182,7 +2182,7 @@ if(0)
             aPDifMoy.y += aPDif.y;
         }
 
-		if (true || ERupnik_MM())
+		if (ERupnik_MM())
 		{
         	std::cout << "xxRPC precision: [" <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
                                        <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << "]\n";

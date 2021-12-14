@@ -48,7 +48,6 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include <algorithm>
 #include "../Apero/cCameraRPC.h"
 
-
 class cSomSat; //in conjunction with cGraphHomSat to calculate the pairs
 class cGraphHomSat; // class that calculates the pairs
 class cAppliSat3DPipeline; // class managing the pipeline
@@ -109,6 +108,9 @@ class cCommonAppliSat3D
         Pt2di               mNbCalcDir;
         std::vector<double> mExpCurve;
         std::vector<double> mOhP;
+	bool                mXCorrecHom;
+	bool                mXCorrecOri;
+	bool                mXCorrecL2;
 
         /* Convert orientation => à verifier */
         // images and Appuis generés par CreateEpip, mOutRPC, Degre, ChSys
@@ -131,6 +133,12 @@ class cCommonAppliSat3D
         int     mSzW;
         //Pt2di   mSzW0;
         //bool    mCensusQ;
+	bool   	      mMMVII;
+	std::string   mMMVII_mode;
+	std::string   mMMVII_ModePad;
+	std::string   mMMVII_ImName;
+	Pt2di         mMMVII_SzTile;
+
 
         /* Bascule param */
         // Malt UrbanMNE to create destination frame
@@ -348,4 +356,3 @@ Le fait que vous puissiez accéder �  cet en-tête signifie que vous avez
 pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 Footer-MicMac-eLiSe-25/06/2007*/
-
