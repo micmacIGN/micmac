@@ -262,6 +262,8 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
      <Symb>  ModeCensusCost=eMCC_CensusQuantitatif </Symb>
      <Symb>  DynCensusCost=1.0 </Symb>
 
+     <Symb>  WithExtenZ=false      </Symb>
+     <Symb>  ExtenZ=0.0      </Symb>
 
 <!--
         <#WHEN VTEST=${UseCensusCost}>
@@ -435,6 +437,9 @@ MICMAC /home/marc/micmac/include/XML_MicMac/Param-MNS-Ortho.xml  WorkDir=/home/m
 
 
 <Section_MEC >
+      <#WHEN VTEST=${WithExtenZ}>
+           <ExtensionIntervZ> ${ExtenZ} </ExtensionIntervZ>
+      </#WHEN>
 
       <#WHEN VTEST=${UseClip}>
           <ProportionClipMEC>  ${X0Clip} ${Y0Clip} ${X1Clip} ${Y1Clip} </ProportionClipMEC>

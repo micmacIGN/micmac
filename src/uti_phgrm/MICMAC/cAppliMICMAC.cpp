@@ -456,6 +456,11 @@ cAppliMICMAC::cAppliMICMAC
       mNameChantier = NomChantier().Val();
 
 
+    if (ExtensionIntervZ().IsInit())
+    {
+         SetExtensionIntervZInApero(ExtensionIntervZ().Val());
+    }
+
    InitDirectories();
    InitAnamSA();
    InitImages();

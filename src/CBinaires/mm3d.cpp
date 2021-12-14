@@ -971,6 +971,15 @@ extern int MakeTrainingData_main(int argc, char ** argv);
 extern int VisuTiePtIn3D_main(int argc, char ** argv);
 extern int TiePtAddWeight_main(int argc, char ** argv);
 extern int EnhancedSpG_main(int argc, char ** argv);
+extern int SIFT2Step_main(int argc, char ** argv);
+extern int SIFT2StepFile_main(int argc, char ** argv);
+//extern int D2NetMatch_main(int argc, char ** argv);
+extern int Calc2DSimi_main(int argc, char ** argv);
+extern int GlobalR3D_main(int argc, char ** argv);
+extern int ExtractSIFT_main(int argc, char ** argv);
+extern int InlierRatio_main(int argc, char ** argv);
+extern int EvalOri_main(int argc, char ** argv);
+extern int CoReg_GlobalR3D_main(int argc, char ** argv);
 
 
 extern int ReechHomol_main(int argc, char ** argv);
@@ -1049,6 +1058,16 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("VisuTiePtIn3D", VisuTiePtIn3D_main, "Visulize tie points in image pairs together in 3D"));
         aRes.push_back(cMMCom("TiePtAddWeight", TiePtAddWeight_main, "Add weight for tie points"));
         aRes.push_back(cMMCom("EnhancedSpG", EnhancedSpG_main, "Use tiling scheme and rotation hypothesis to improve the matching performance of SuperGlue"));
+        aRes.push_back(cMMCom("SIFT2Step", SIFT2Step_main, "Match an image pair by firstly applying SIFT on downsampled images without ratio test to estimate a similarity transformation, then applying SIFT on original images under guidance of the transformation"));
+        aRes.push_back(cMMCom("SIFT2StepFile", SIFT2StepFile_main, "Input a xml file that contains all the image pairs to be matched, and match match with SIFT2Step method"));
+        //aRes.push_back(cMMCom("D2NetMatch", D2NetMatch_main, "Input D2Net feature files \"img.d2-net\" and match them with mutual neareat neighbor"));
+        aRes.push_back(cMMCom("Calc2DSimi", Calc2DSimi_main, "Input tie point file to calculate a 2D similarity transformation between them and out the parameter file"));
+        aRes.push_back(cMMCom("GlobalR3D", GlobalR3D_main, "Filter tie points by running RANSAC in 3D to build a 3D Helmet transformation model that is globally consistent over the whole block"));
+        aRes.push_back(cMMCom("ExtractSIFT", ExtractSIFT_main, "Extract SIFT"));
+        aRes.push_back(cMMCom("InlierRatio", InlierRatio_main, "Calculate inlier ratio of tie points on DSMs or orthophotos"));
+        aRes.push_back(cMMCom("EvalOri", EvalOri_main, "Input GCPs to evaluate orientations"));
+        aRes.push_back(cMMCom("CoReg_GlobalR3D", CoReg_GlobalR3D_main, "Roughly co-register 2 epochs by matching individual RGB image pairs followed by GlobalR3D"));
+
 
 		aRes.push_back(cMMCom("Script",CPP_YannScript, "Fonction de script pour les tests "));		
 		aRes.push_back(cMMCom("ExcludeSats",CPP_YannExcludeSats, "Excludes GNSS satellites from raw observations based on sky masks "));

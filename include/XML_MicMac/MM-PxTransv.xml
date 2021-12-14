@@ -42,9 +42,9 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media
    <eSymb> ModeProfReel= *  ${ModeProfSouhaite}  ${Conik} </eSymb>
 
 
-
-
-
+   <Symb> UseMasqPerIm=false  </Symb>     <!-- true -->
+   <Symb> MasqPerIm=_Masq  </Symb>     <!-- true -->
+   <Symb> OkNoMasqIm=false  </Symb>     <!-- true -->
 
 
 <!-- MISE EN COMMUN DE CONSTANTES -->
@@ -119,7 +119,15 @@ MICMAC /home/mpd/MMM/culture3d/include/XML_MicMac/MM-PxTransv.xml WorkDir=/media
                 </NomsGeometrieImage>
            </#IF>
      </#IF>
-
+     <#WHEN VTEST=${UseMasqPerIm}>
+         <MasqImageIn>
+             <OneMasqueImage>
+                 <PatternSel> (.*)\.(.*)   </PatternSel>
+                 <NomMasq>  $1${MasqPerIm}.tif    </NomMasq>
+             </OneMasqueImage>
+	     <AcceptNonExistingFile> ${OkNoMasqIm} </AcceptNonExistingFile>
+        </MasqImageIn>
+     </#WHEN>
 </Section_PriseDeVue>
 <!--  *************************************************************
        Parametres fixant le comportement

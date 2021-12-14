@@ -36,6 +36,7 @@ void cHistoCarNDim::AddData(const cAuxAr2007 & anAux)
          mDim = mSz.Sz();
          mPts = tIndex(mDim);
          mPtsInit = tIndex(mDim);
+         mRPts = tRIndex(mDim);
      }
 }
 
@@ -51,6 +52,7 @@ cHistoCarNDim::cHistoCarNDim()  :
    mVCar      (),
    mPts       (1),
    mPtsInit   (1),
+   mRPts      (1),
    mHd1_0     (),
    mHist0     (mSz),
    mHist2     (mSz),
@@ -83,6 +85,7 @@ cHistoCarNDim::cHistoCarNDim(int aSzH,const tVecCar & aVCar,const cStatAllVecCar
    mVCar    (aVCar),
    mPts     (mDim),
    mPtsInit (mDim),
+   mRPts    (mDim),
    mHd1_0   (),
    mHist0   (mSz),
    mHist2   (mSz),
@@ -109,12 +112,17 @@ double cHistoCarNDim::CarSep() const
    return aCSD.Sep();
 }
 
+double cHistoCarNDim::Correctness() const
+{
+    return mNbOk / (mNbOk+mNbNotOk);
+}
+
 
 void  cHistoCarNDim::Show(cMultipleOfs & anOfs,bool WithCr) const
 {
     anOfs << "Name = " << mName  << " Sep: " << CarSep() ;
     if (WithCr)
-         anOfs  << " Cr: " <<  mNbOk / (mNbOk+mNbNotOk);
+         anOfs  << " UnCorec: " <<  1-Correctness();
     anOfs << "\n";
 }
 
@@ -128,9 +136,13 @@ void cHistoCarNDim::ComputePts(const cVecCaracMatch & aVCM) const
      for (int aK=0 ; aK<mDim ; aK++)
      {
          int aSzK = mSz(aK);
+         double  aV = mHd1_0[aK]->PropCumul(mPts(aK)) * aSzK;
+         mPts(aK) = std::min(round_down(aV),aSzK-1);
+         mRPts(aK) = std::min(aV,aSzK-1.0001);
+	 /*
          int  aV = round_down(mHd1_0[aK]->PropCumul(mPts(aK)) * aSzK);
-
          mPts(aK) = std::min(aV,aSzK-1);
+	 */
      }
 
 }
@@ -159,20 +171,29 @@ template <class Type>  double ScoreHnH(const Type & aV0,const Type & aV2)
     return aV0 / double(aV0+aV2);
 }
 
-double  cHistoCarNDim::ScoreCr(const cVecCaracMatch & aVCM) const
+//  tREAL4   GetNLinearVal(const tRIndex&) const; // Get value by N-Linear interpolation
+//  void     AddNLinearVal(const tRIndex&,const double & aVal) ; // Get value by N-Linear interpolation
+
+double  cHistoCarNDim::HomologyLikelihood(const cVecCaracMatch & aVCM,bool  Interpol) const
 {
     ComputePts(aVCM);
-    return ScoreHnH(mHist0.GetV(mPts),mHist2.GetV(mPts));
+    double aV0 = Interpol  ?  mHist0.GetNLinearVal(mRPts) : mHist0.GetV(mPts);
+    double aV2 = Interpol  ?  mHist2.GetNLinearVal(mRPts) : mHist2.GetV(mPts);
+    return ScoreHnH(aV0,aV2);
+    // return ScoreHnH(mHist0.GetV(mPts),mHist2.GetV(mPts));
 }
 
-void   cHistoCarNDim::UpDateCr(const cVecCaracMatch & aHom,const cVecCaracMatch & aNotHom)
+
+
+
+void   cHistoCarNDim::UpDateCorrectness(const cVecCaracMatch & aHom,const cVecCaracMatch & aNotHom)
 {
-    double aScH  = ScoreCr(aHom);
-    double aScNH = ScoreCr(aNotHom);
+    double aScH  = HomologyLikelihood(aHom,false);
+    double aScNH = HomologyLikelihood(aNotHom,false);
     if (aScH<aScNH)
-       mNbOk++;
-    else if (aScH>aScNH)
        mNbNotOk++;
+    else if (aScH>aScNH)
+       mNbOk++;
     else
     {
        mNbOk += 0.5;
@@ -273,8 +294,13 @@ class cAppliCalcHistoNDim : public cAppliLearningMatch
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+	std::vector<std::string>  Samples() const  override;
+
         void AddHistoOneFile(const std::string &,int aKFile,int aNbFile);
-        void  ShowCarSep(cMultipleOfs &) const;
+	// print performance : Separibility + (If computed) Correctness 
+        void  ShowPerf(cMultipleOfs &) const;
+
+
 
         std::string NameSaveH(const cHistoCarNDim & aHND,bool isInput)
         {
@@ -296,6 +322,7 @@ class cAppliCalcHistoNDim : public cAppliLearningMatch
          bool                    mCloseH;
          bool                    mGenerateVisu; // Do we generate visual (Image for 2d, later ply for 3d)
          bool                    mGenVis2DInit; // Do we generate visual init (w/o equal)
+	 bool                    mOkDuplicata;  // Do accept duplicata in sequence,
              //  std::string       mPatShowSep;
              //  bool              mWithCr;
 
@@ -314,6 +341,7 @@ cAppliCalcHistoNDim::cAppliCalcHistoNDim(const std::vector<std::string> & aVArgs
    mCloseH              (false),
    mGenerateVisu        (false),
    mGenVis2DInit        (false),
+   mOkDuplicata         (false),
    mMaxSzH              (50),
    mStats               (false)
 {
@@ -341,6 +369,7 @@ cCollecSpecArg2007 & cAppliCalcHistoNDim::ArgOpt(cCollecSpecArg2007 & anArgOpt)
           << AOpt2007(mCloseH, "CloseH","Use close homologs, instead of random",{eTA2007::HDV})
           << AOpt2007(mGenerateVisu, "GeneVisu","Generate visualisation",{eTA2007::HDV})
           << AOpt2007(mGenVis2DInit, "GV2DI","Generate vis 2D w/o equalization",{eTA2007::HDV,eTA2007::Tuning})
+          << AOpt2007(mOkDuplicata, "OkDupl","Accept duplicatas in sequences",{eTA2007::HDV,eTA2007::Tuning})
    ;
 }
 
@@ -375,18 +404,39 @@ void cAppliCalcHistoNDim::AddHistoOneFile(const std::string & aStr0,int aKFile,i
        {
            for (int aK=0 ; aK<int(aV0.size()) ; aK++)
            {
-              aPtrH->UpDateCr(aV0[aK],aV2[aK]);
+              aPtrH->UpDateCorrectness(aV0[aK],aV2[aK]);
            }
        }
     }
 }
-void cAppliCalcHistoNDim::ShowCarSep(cMultipleOfs & anOfs) const
+
+
+void cAppliCalcHistoNDim::ShowPerf(cMultipleOfs & anOfs) const
 {
-    for (const auto & aPtrH :  mVHistN)
+    std::vector<cHistoCarNDim*>  aVHSort = mVHistN;
+
+    if (mInitialProcess)
+        SortOnCriteria(aVHSort,[](const auto & aPtr){return aPtr->CarSep();});
+    else
+        SortOnCriteria(aVHSort,[](const auto & aPtr){return 1-aPtr->Correctness();});
+
+    for (const auto & aPtrH :  aVHSort)
     {
         aPtrH->Show(anOfs,!mInitialProcess);
     }
     anOfs << "-------------------------------------------------\n";
+}
+
+std::vector<std::string>  cAppliCalcHistoNDim::Samples() const
+{
+    return std::vector<std::string>
+           (
+               {
+                   "MMVII DM3CalcHistoNDim \".*\"  Test Test [xx] # Generate enum values",
+                   "MMVII DM3CalcHistoNDim DMTrain.*LDHAime0.dmp  AllMDLB2014 AllMDLB2014 [.*]"
+               }
+          );
+
 }
 
 
@@ -449,8 +499,11 @@ int  cAppliCalcHistoNDim::Exe()
       {
           tVecCar aSeqId = aSeq;
           std::sort ( aSeqId.begin(), aSeqId.end());
-       // Supress the possible duplicate carac
-          aSeqId.erase( unique( aSeqId.begin(), aSeqId.end() ), aSeqId.end() );
+       // Supress the possible duplicate carac, can be maintained for mNoDuplicata
+          if (! mOkDuplicata)
+          {
+              aSeqId.erase( unique( aSeqId.begin(), aSeqId.end() ), aSeqId.end() );
+          }
        // For now, supress those where there were duplicates
           if (aSeqId.size() == aSeq.size())
           {
@@ -543,7 +596,7 @@ int  cAppliCalcHistoNDim::Exe()
        for (const auto & aStr : ToVect(MainSet0()))
        {
              AddHistoOneFile(aStr,aKFile,aNbFile);
-             ShowCarSep(StdOut());
+             ShowPerf(StdOut());
              aKFile++;
        }
    }
@@ -556,7 +609,7 @@ int  cAppliCalcHistoNDim::Exe()
    {
        cMultipleOfs  aMulOfs(NameReport(),true);
        aMulOfs << "\n========================================\n\n";
-       ShowCarSep(aMulOfs);
+       ShowPerf(aMulOfs);
 
        if (mInitialProcess)
        {

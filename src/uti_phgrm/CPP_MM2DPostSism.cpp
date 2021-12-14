@@ -775,7 +775,7 @@ int AnalysePxFrac_Main(int argc,char ** argv)
     }
     std::cout  << "NBTOT=" << NbTot << "\n";
 
-    if (ELISE_X11)
+    #if (ELISE_X11)
     {
         Pt2di aSzW(500,800);
         int aBrd= 10;
@@ -802,6 +802,7 @@ int AnalysePxFrac_Main(int argc,char ** argv)
 
         aW.clik_in();
     }
+    #endif
 
     return EXIT_SUCCESS;
 }

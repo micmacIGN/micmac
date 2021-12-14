@@ -8082,26 +8082,97 @@ const std::string & cScoreLearnedMMVII::FileModeleCost()const
 }
 
 
-double & cScoreLearnedMMVII::DynCost()
+cTplValGesInit< double > & cScoreLearnedMMVII::CostDyn()
 {
-   return mDynCost;
+   return mCostDyn;
 }
 
-const double & cScoreLearnedMMVII::DynCost()const 
+const cTplValGesInit< double > & cScoreLearnedMMVII::CostDyn()const 
 {
-   return mDynCost;
+   return mCostDyn;
+}
+
+
+cTplValGesInit< double > & cScoreLearnedMMVII::CostExp()
+{
+   return mCostExp;
+}
+
+const cTplValGesInit< double > & cScoreLearnedMMVII::CostExp()const 
+{
+   return mCostExp;
+}
+
+
+cTplValGesInit< std::string > & cScoreLearnedMMVII::Cmp_FileMC()
+{
+   return mCmp_FileMC;
+}
+
+const cTplValGesInit< std::string > & cScoreLearnedMMVII::Cmp_FileMC()const 
+{
+   return mCmp_FileMC;
+}
+
+
+cTplValGesInit< int > & cScoreLearnedMMVII::Cmp_NbDisc()
+{
+   return mCmp_NbDisc;
+}
+
+const cTplValGesInit< int > & cScoreLearnedMMVII::Cmp_NbDisc()const 
+{
+   return mCmp_NbDisc;
 }
 
 void  BinaryUnDumpFromFile(cScoreLearnedMMVII & anObj,ELISE_fp & aFp)
 {
      BinaryUnDumpFromFile(anObj.FileModeleCost(),aFp);
-    BinaryUnDumpFromFile(anObj.DynCost(),aFp);
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.CostDyn().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.CostDyn().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.CostDyn().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.CostExp().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.CostExp().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.CostExp().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Cmp_FileMC().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Cmp_FileMC().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Cmp_FileMC().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
+             anObj.Cmp_NbDisc().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.Cmp_NbDisc().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.Cmp_NbDisc().SetNoInit();
+  } ;
 }
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cScoreLearnedMMVII & anObj)
 {
     BinaryDumpInFile(aFp,anObj.FileModeleCost());
-    BinaryDumpInFile(aFp,anObj.DynCost());
+    BinaryDumpInFile(aFp,anObj.CostDyn().IsInit());
+    if (anObj.CostDyn().IsInit()) BinaryDumpInFile(aFp,anObj.CostDyn().Val());
+    BinaryDumpInFile(aFp,anObj.CostExp().IsInit());
+    if (anObj.CostExp().IsInit()) BinaryDumpInFile(aFp,anObj.CostExp().Val());
+    BinaryDumpInFile(aFp,anObj.Cmp_FileMC().IsInit());
+    if (anObj.Cmp_FileMC().IsInit()) BinaryDumpInFile(aFp,anObj.Cmp_FileMC().Val());
+    BinaryDumpInFile(aFp,anObj.Cmp_NbDisc().IsInit());
+    if (anObj.Cmp_NbDisc().IsInit()) BinaryDumpInFile(aFp,anObj.Cmp_NbDisc().Val());
 }
 
 cElXMLTree * ToXMLTree(const cScoreLearnedMMVII & anObj)
@@ -8109,7 +8180,14 @@ cElXMLTree * ToXMLTree(const cScoreLearnedMMVII & anObj)
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"ScoreLearnedMMVII",eXMLBranche);
    aRes->AddFils(::ToXMLTree(std::string("FileModeleCost"),anObj.FileModeleCost())->ReTagThis("FileModeleCost"));
-   aRes->AddFils(::ToXMLTree(std::string("DynCost"),anObj.DynCost())->ReTagThis("DynCost"));
+   if (anObj.CostDyn().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("CostDyn"),anObj.CostDyn().Val())->ReTagThis("CostDyn"));
+   if (anObj.CostExp().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("CostExp"),anObj.CostExp().Val())->ReTagThis("CostExp"));
+   if (anObj.Cmp_FileMC().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Cmp_FileMC"),anObj.Cmp_FileMC().Val())->ReTagThis("Cmp_FileMC"));
+   if (anObj.Cmp_NbDisc().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("Cmp_NbDisc"),anObj.Cmp_NbDisc().Val())->ReTagThis("Cmp_NbDisc"));
   aRes->mGXml = anObj.mGXml;
   XMLPopContext(anObj.mGXml);
   return aRes;
@@ -8122,10 +8200,16 @@ void xml_init(cScoreLearnedMMVII & anObj,cElXMLTree * aTree)
 
    xml_init(anObj.FileModeleCost(),aTree->Get("FileModeleCost",1)); //tototo 
 
-   xml_init(anObj.DynCost(),aTree->Get("DynCost",1)); //tototo 
+   xml_init(anObj.CostDyn(),aTree->Get("CostDyn",1),double(0.3333)); //tototo 
+
+   xml_init(anObj.CostExp(),aTree->Get("CostExp",1),double(0.5)); //tototo 
+
+   xml_init(anObj.Cmp_FileMC(),aTree->Get("Cmp_FileMC",1)); //tototo 
+
+   xml_init(anObj.Cmp_NbDisc(),aTree->Get("Cmp_NbDisc",1),int(200)); //tototo 
 }
 
-std::string  Mangling( cScoreLearnedMMVII *) {return "ECED83CD466B959CFF3F";};
+std::string  Mangling( cScoreLearnedMMVII *) {return "A35B5BF6225F1883FE3F";};
 
 
 cTplValGesInit< double > & cCorrel_Ponctuel2ImGeomI::RatioI1I2()
@@ -9824,7 +9908,7 @@ void xml_init(cTypeCAH & anObj,cElXMLTree * aTree)
    xml_init(anObj.MasqueAutoByTieP(),aTree->Get("MasqueAutoByTieP",1)); //tototo 
 }
 
-std::string  Mangling( cTypeCAH *) {return "52893C8EB5AC40CEFE3F";};
+std::string  Mangling( cTypeCAH *) {return "642413B8D96483F4FA3F";};
 
 
 cTplValGesInit< double > & cCorrelAdHoc::EpsilonAddMoyenne()
@@ -10152,7 +10236,7 @@ void xml_init(cCorrelAdHoc & anObj,cElXMLTree * aTree)
    xml_init(anObj.TypeCAH(),aTree->Get("TypeCAH",1)); //tototo 
 }
 
-std::string  Mangling( cCorrelAdHoc *) {return "E6E62B89BA72A8BDFD3F";};
+std::string  Mangling( cCorrelAdHoc *) {return "0439049ACA056BCBFBBF";};
 
 
 cTplValGesInit< double > & cDoImageBSurH::Dyn()
@@ -19448,7 +19532,7 @@ void xml_init(cEtapeMEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.NuagePredicteur(),aTree->Get("NuagePredicteur",1)); //tototo 
 }
 
-std::string  Mangling( cEtapeMEC *) {return "CEA9674F9D79C284FE3F";};
+std::string  Mangling( cEtapeMEC *) {return "A3F1B5DAFD755CBAFD3F";};
 
 
 int & cTypePyramImage::Resol()
@@ -19531,6 +19615,17 @@ void xml_init(cTypePyramImage & anObj,cElXMLTree * aTree)
 }
 
 std::string  Mangling( cTypePyramImage *) {return "8E3BA7DF9AA809A2FE3F";};
+
+
+cTplValGesInit< double > & cSection_MEC::ExtensionIntervZ()
+{
+   return mExtensionIntervZ;
+}
+
+const cTplValGesInit< double > & cSection_MEC::ExtensionIntervZ()const 
+{
+   return mExtensionIntervZ;
+}
 
 
 cTplValGesInit< bool > & cSection_MEC::PasIsInPixel()
@@ -19900,6 +19995,14 @@ void  BinaryUnDumpFromFile(cSection_MEC & anObj,ELISE_fp & aFp)
    { bool IsInit;
        BinaryUnDumpFromFile(IsInit,aFp);
         if (IsInit) {
+             anObj.ExtensionIntervZ().SetInitForUnUmp();
+             BinaryUnDumpFromFile(anObj.ExtensionIntervZ().ValForcedForUnUmp(),aFp);
+        }
+        else  anObj.ExtensionIntervZ().SetNoInit();
+  } ;
+  { bool IsInit;
+       BinaryUnDumpFromFile(IsInit,aFp);
+        if (IsInit) {
              anObj.PasIsInPixel().SetInitForUnUmp();
              BinaryUnDumpFromFile(anObj.PasIsInPixel().ValForcedForUnUmp(),aFp);
         }
@@ -20063,6 +20166,8 @@ void  BinaryUnDumpFromFile(cSection_MEC & anObj,ELISE_fp & aFp)
 
 void  BinaryDumpInFile(ELISE_fp & aFp,const cSection_MEC & anObj)
 {
+    BinaryDumpInFile(aFp,anObj.ExtensionIntervZ().IsInit());
+    if (anObj.ExtensionIntervZ().IsInit()) BinaryDumpInFile(aFp,anObj.ExtensionIntervZ().Val());
     BinaryDumpInFile(aFp,anObj.PasIsInPixel().IsInit());
     if (anObj.PasIsInPixel().IsInit()) BinaryDumpInFile(aFp,anObj.PasIsInPixel().Val());
     BinaryDumpInFile(aFp,anObj.ProportionClipMEC().IsInit());
@@ -20117,6 +20222,8 @@ cElXMLTree * ToXMLTree(const cSection_MEC & anObj)
 {
   XMLPushContext(anObj.mGXml);
   cElXMLTree * aRes = new cElXMLTree((cElXMLTree *)0,"Section_MEC",eXMLBranche);
+   if (anObj.ExtensionIntervZ().IsInit())
+      aRes->AddFils(::ToXMLTree(std::string("ExtensionIntervZ"),anObj.ExtensionIntervZ().Val())->ReTagThis("ExtensionIntervZ"));
    if (anObj.PasIsInPixel().IsInit())
       aRes->AddFils(::ToXMLTree(std::string("PasIsInPixel"),anObj.PasIsInPixel().Val())->ReTagThis("PasIsInPixel"));
    if (anObj.ProportionClipMEC().IsInit())
@@ -20174,6 +20281,8 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
 {
    if (aTree==0) return;
    anObj.mGXml = aTree->mGXml;
+
+   xml_init(anObj.ExtensionIntervZ(),aTree->Get("ExtensionIntervZ",1)); //tototo 
 
    xml_init(anObj.PasIsInPixel(),aTree->Get("PasIsInPixel",1),bool(false)); //tototo 
 
@@ -20613,7 +20722,7 @@ void xml_init(cSection_MEC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Correl16Bits(),aTree->Get("Correl16Bits",1)); //tototo 
 }
 
-std::string  Mangling( cSection_MEC *) {return "F0C0B5220DB710A2FD3F";};
+std::string  Mangling( cSection_MEC *) {return "78620FD38C3BB5A1FE3F";};
 
 
 cTplValGesInit< bool > & cDoNothingBut::ButDoPyram()
@@ -27517,6 +27626,17 @@ const cSection_PriseDeVue & cParamMICMAC::Section_PriseDeVue()const
 }
 
 
+cTplValGesInit< double > & cParamMICMAC::ExtensionIntervZ()
+{
+   return Section_MEC().ExtensionIntervZ();
+}
+
+const cTplValGesInit< double > & cParamMICMAC::ExtensionIntervZ()const 
+{
+   return Section_MEC().ExtensionIntervZ();
+}
+
+
 cTplValGesInit< bool > & cParamMICMAC::PasIsInPixel()
 {
    return Section_MEC().PasIsInPixel();
@@ -29643,6 +29763,6 @@ void xml_init(cParamMICMAC & anObj,cElXMLTree * aTree)
    xml_init(anObj.Section_Vrac(),aTree->Get("Section_Vrac",1)); //tototo 
 }
 
-std::string  Mangling( cParamMICMAC *) {return "46028884D96E698FFE3F";};
+std::string  Mangling( cParamMICMAC *) {return "805C6E8BFFBE7289FE3F";};
 
 // Quelque chose

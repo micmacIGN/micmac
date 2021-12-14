@@ -117,6 +117,7 @@ void BenchLeastSqMap(cParamExeBench & aParam);
 void BenchRectObj(); ///< Global bench on image
 void BenchBaseImage(); ///< Global bench on image
 void BenchImNDim();
+void BenchIm3D(); ///<  Bench on fulll 3D Images +  "Layer" images
 
 void BenchGlobImage2d(); ///< Global bench on image
 void BenchFileImage(); ///< Global bench on image

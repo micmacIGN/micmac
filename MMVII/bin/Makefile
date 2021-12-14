@@ -1,3 +1,4 @@
+# make CC=gcc-10 CPP=g++-10 CXX=g++-10 LD=g++-10
 # =========== Directories
 MMV1_DIR=../..
 MMV1_LIBDIR=${MMV1_DIR}/lib
@@ -25,7 +26,8 @@ EXT_LIBS=-lpthread -lX11 ${QT_LIBS} -lstdc++fs
 # =========== Compiler & Flags
 CXX=g++
 LD=g++
-CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O4 -fPIC -march=native ${MMV2_INCLUDES} ${MMV1_INCLUDES} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
+CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O4 -fPIC  ${MMV2_INCLUDES} ${MMV1_INCLUDES} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
+#CXXFLAGS=-fopenmp -std=c++17 -Wall  -Werror -O4 -fPIC -march=native ${MMV2_INCLUDES} ${MMV1_INCLUDES} -D'MMVII_INSTALL_PATH="${MMV2_INSTALL_PATH}"'
 LDFLAGS=-fopenmp
 
 

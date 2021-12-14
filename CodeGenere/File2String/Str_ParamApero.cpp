@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-const char * theNameVar_ParamApero[1887] = {
+const char * theNameVar_ParamApero[1890] = {
 "<GenCpp>\n",
 "\n",
 "<Verbatim File=\".h.cpp\">\n",
@@ -1078,6 +1078,9 @@ const char * theNameVar_ParamApero[1887] = {
 "\n",
 "             <!-- Used to test alternative solution to linear solution of least square -->\n",
 "             <ExportMatrixMarket Nb=\"?\" Type=\"bool\" Def=\"false\"> </ExportMatrixMarket>\n",
+"\n",
+"              <!-- Used to avoird too sctrict elimination of point on Z criteria -->\n",
+"	     <ExtensionIntervZ Nb=\"?\" Type=\"double\"> </ExtensionIntervZ>\n",
 "        </SectionChantier>\n",
 "\n",
 "\n",

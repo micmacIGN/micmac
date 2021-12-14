@@ -236,6 +236,9 @@
            <Symb>  WithObsPlane=false      </Symb>
            <Symb>  FileObsPlane=XXXX      </Symb>
            <Symb>  WeightObsPlane=1.0      </Symb>
+
+           <Symb>  WithExtenZ=false      </Symb>
+           <Symb>  ExtenZ=0.0      </Symb>
        </DicoLoc>
 
 
@@ -520,6 +523,9 @@
              <GenereErreurOnContraineCam> false </GenereErreurOnContraineCam>
              <SauvAutom>  ${SauvAutom} </SauvAutom>
              <SauvAutomBasic>  ${DoSauvAutom} </SauvAutomBasic>
+             <#WHEN VTEST=${WithExtenZ}>
+                   <ExtensionIntervZ> ${ExtenZ} </ExtensionIntervZ>
+             </#WHEN>
         </SectionChantier>
 
         <SectionSolveur>

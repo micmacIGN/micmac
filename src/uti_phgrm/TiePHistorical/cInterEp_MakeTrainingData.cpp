@@ -1050,7 +1050,6 @@ int MakeTrainingData_main(int argc,char ** argv)
      std::string cmmd = "python3 /home/lulin/Documents/Code/Txt2Npz.py --DirName "+aCAS3D.mDir+"/Tmp_TrainingPatches/"+aScene+"/HomolNpz/ --RemoveOriFile 1";
      cout<<cmmd<<endl;
 
-
    return EXIT_SUCCESS;
 }
 

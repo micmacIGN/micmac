@@ -14,7 +14,7 @@ cPyr1ImLearnMatch::cPyr1ImLearnMatch
       const cBox2di &       aBox,
       const cBox2di &       aBoxOut,
       const std::string &   aName,
-      cAppliLearningMatch & anAppli,
+      const cAppliLearningMatch & anAppli,
       const cFilterPCar&    aFPC,
       bool  initRand
 ) :

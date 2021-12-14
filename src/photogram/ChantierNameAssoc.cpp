@@ -655,6 +655,11 @@ std::string Basic_XML_MM_File(const std::string & aFile)
 {
    return   MMDir() + std::string("include" +std::string(ELISE_STR_DIR) + "XML_MicMac" + std::string(ELISE_STR_DIR) + aFile);
 }
+std::string Specif_XML_MM_File(const std::string & aFile)
+{
+    return   aFile;
+}
+
 std::string XML_MM_File(const std::string & aFile)
 {
 

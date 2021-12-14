@@ -565,6 +565,7 @@ template <class Type>  class cDataIm2D  : public cDataTypedIm<Type,2>
         virtual ~cDataIm2D();  ///< will delete mRawData2D
 
         void ToFile(const std::string& aName) const; ///< Create a File having same size/type ...
+        void ClipToFile(const std::string& aName,const cRect2&) const; ///< Create a Clip File of Box
         void ToFile(const std::string& aName,const tIm &aIG,const tIm &aIB) const; ///< Create a File having same size/type ...
         
         /// Raw image, lost all waranty is you use it...
@@ -819,6 +820,66 @@ template <class Type>  class cIm1D
        std::shared_ptr<tDIM> mSPtr;  ///< shared pointer to real image
        tDIM *                mPIm;
 };
+
+/**  Class used to represent "full" 3D images containing *** Object
+ */
+
+
+template <class Type>  class cDataIm3D  : public cDataTypedIm<Type,3>
+{
+    public :
+        friend class cIm3D<Type>;
+
+        typedef Type   tVal;
+        typedef tVal*  tPVal;
+        typedef tPVal* tPPVal;
+        typedef cDataTypedIm<Type,3>   tBI;
+        typedef cPixBox<3>               tPB;
+        typedef typename tBI::tBase  tBase;
+        typedef cDataIm3D<Type>      tIm;
+        const   cPt3di & Sz() const {return tBI::Sz();}
+
+        const Type & GetV(const cPt3di & aP)  const
+        {
+            tPB::AssertInside(aP);
+            return  Value(aP);
+        }
+        void SetV(const cPt3di & aP,const tBase & aV)
+        {
+            tPB::AssertInside(aP);
+            tBI::AssertValueOk(aV);
+            Value(aP) = aV;
+        }
+        // Not private because called by shared_ptr ...
+        virtual ~cDataIm3D();
+
+    private :
+        cDataIm3D(const cDataIm3D &) = delete;
+        Type & Value(const cPt3di & aP)               {return mRawData3D[aP.z()][aP.y()][aP.x()];} ///< Data Access
+        const Type & Value(const cPt3di & aP) const   {return mRawData3D[aP.z()][aP.y()][aP.x()];} /// Const Data Access
+
+        cDataIm3D(const cPt3di & aSz,Type * aRawDataLin,eModeInitImage aModeInit) ;
+        tPPVal * mRawData3D;
+};
+
+/** Smart Pointer on 3d images */
+template <class Type>  class cIm3D
+{
+    public :
+        typedef cDataIm3D<Type>  tDIM;
+
+        cIm3D(const cPt3di & aSz,Type * aRawDataLin,eModeInitImage aModeInit) ;
+        cIm3D(const cPt3di & aSz);
+        tDIM & DIm() {return *(mPIm);}  ///< return raw pointer
+        const tDIM & DIm() const {return *(mPIm);} ///< const version 4 raw pointer
+        // ~cIm3D();
+
+    private :
+        std::shared_ptr<tDIM> mSPtr;  ///< shared pointer to real image , allow automatic deallocation
+        tDIM *                mPIm;   ///< raw pointer on mSPtr, a bit faster to store it ?
+};
+
+
 
 template <class TypeH,class TypeCumul>  class cHistoCumul
 {

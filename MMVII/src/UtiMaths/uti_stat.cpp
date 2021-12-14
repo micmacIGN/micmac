@@ -38,14 +38,14 @@ template <class Type> void cComputeStdDev<Type>::Add(const Type & aW,const Type 
 }
 
 
-template <class Type> void cComputeStdDev<Type>::SelfNormalize()
+template <class Type> void cComputeStdDev<Type>::SelfNormalize(const Type&  Epsilon)
 {
     MMVII_ASSERT_INVERTIBLE_VALUE(mSomW);
      
     mSomWV  /= mSomW;
     mSomWV2  /= mSomW;
     mSomWV2 -= Square(mSomWV);
-    mStdDev = std::sqrt(std::max(Type(0.0),mSomWV2));
+    mStdDev = std::sqrt(std::max(Epsilon,mSomWV2));
 }
 
 template <class Type> Type cComputeStdDev<Type>::NormalizedVal(const Type & aVal)  const
@@ -54,10 +54,10 @@ template <class Type> Type cComputeStdDev<Type>::NormalizedVal(const Type & aVal
     return (aVal-mSomWV) / mStdDev;
 }
 
-template <class Type> cComputeStdDev<Type>  cComputeStdDev<Type>::Normalize() const
+template <class Type> cComputeStdDev<Type>  cComputeStdDev<Type>::Normalize(const Type&  Epsilon) const
 {
      cComputeStdDev<Type> aRes = *this;
-     aRes.SelfNormalize();
+     aRes.SelfNormalize(Epsilon);
      return aRes;
 }
 

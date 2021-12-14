@@ -40,6 +40,8 @@ Header-MicMac-eLiSe-25/06/2007*/
 #include "RStats/cRStats.h"
 
 
+
+
 int  StatIm_main(int argc,char ** argv)
 {
 
