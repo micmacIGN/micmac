@@ -458,7 +458,7 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     fclose(fpTiePt1);
     fclose(fpTiePt2);
     */
-    SaveHomolFile(aDir, aImg1, aImg2, outSH, match, aVSiftL, aVSiftR);
+    SaveSIFTHomolFile(aDir, aImg1, aImg2, outSH, match, aVSiftL, aVSiftR);
 
     cout<<"Extracted tie point number: "<<match.size()<<endl;
 

@@ -74,6 +74,79 @@ pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
+bool Get3DCoorFromOrthoDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D, std::string aDSMDir, std::string aDSMFile, std::string aOrthoDir, std::string aOrthoFile)
+{
+    aDSMDir += "/";
+    cout<<aDSMDir + aDSMFile<<endl;
+    cXML_ParamNuage3DMaille aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
+    (
+    aDSMDir + aDSMFile,
+    StdGetFileXMLSpec("SuperposImage.xml"),
+    "XML_ParamNuage3DMaille",
+    "XML_ParamNuage3DMaille"
+    );
+
+    Pt2di aDSMSz = aNuageIn.NbPixel();
+
+    cImage_Profondeur aImProfPx = aNuageIn.Image_Profondeur().Val();
+    std::string aImName = aDSMDir + aImProfPx.Image();
+    Tiff_Im aImProfPxTif(aImName.c_str());
+
+    Pt2di aSzOut = aDSMSz;
+    TIm2D<float,double> aTImProfPx(aSzOut);
+    ELISE_COPY
+    (
+    aTImProfPx.all_pts(),
+    aImProfPxTif.in(),
+    aTImProfPx.out()
+    );
+
+    std::string tfwFile = aOrthoDir+"/"+StdPrefix(aOrthoFile)+".tfw";
+    if (ELISE_fp::exist_file(tfwFile) == false){
+        cout<<tfwFile<<" didn't exist, hence skipped."<<endl;
+        return false;
+    }
+
+    ifstream in(tfwFile);
+    std::string s;
+    double aTmp[6];
+    int idx = 0;
+    while(getline(in,s))
+    {
+        std::stringstream is(s);
+        is>>aTmp[idx];
+        idx++;
+    }
+
+    cFileOriMnt aFOM = StdGetFromPCP(aDSMDir+StdPrefix(aImProfPx.Image())+".xml",FileOriMnt);
+
+    Pt2dr aDSMOriPlani = aFOM.OriginePlani();
+    Pt2dr aDSMResolPlani = aFOM.ResolutionPlani();
+
+    Pt2dr aOrthoResolPlani = Pt2dr(aTmp[0], aTmp[3]);
+    Pt2dr aOrthoOriPlani = Pt2dr(aTmp[4], aTmp[5]);
+    printf("%s; aDSMSz: [%d, %d]; aOrthoOriPlani: [%.6lf, %.6lf]; aOrthoResolPlani: [%.6lf, %.6lf]\n", aImName.c_str(), aDSMSz.x, aDSMSz.y, aOrthoOriPlani.x, aOrthoOriPlani.y, aOrthoResolPlani.x, aOrthoResolPlani.y);
+
+    for(unsigned int i=0; i<vPt2D.size(); i++)
+    {
+        Pt2di aPt = Pt2di(vPt2D[i].x, vPt2D[i].y);
+        double dX, dY;
+        dX = aPt.x*aOrthoResolPlani.x + aOrthoOriPlani.x;
+        dY = aPt.y*aOrthoResolPlani.y + aOrthoOriPlani.y;
+
+        Pt2di aPtDSM;
+        aPtDSM.x = int((dX-aDSMOriPlani.x)*1.0/aDSMResolPlani.x);
+        aPtDSM.y = int((dY-aDSMOriPlani.y)*1.0/aDSMResolPlani.y);
+
+        //printf("[%d, %d], [%d, %d], [%.2lf, %.2lf]\n", aPt.x, aPt.y, aPtDSM.x, aPtDSM.y, dX, dY);
+
+        double dZ =  aTImProfPx.get(aPtDSM);
+
+        vPt3D.push_back(Pt3dr(dX, dY, dZ));
+    }
+    return true;
+}
+
 void Get3DCoorFromDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D, std::string aDSMDir, std::string aDSMFile)
 {
     aDSMDir += "/";
@@ -105,6 +178,7 @@ void Get3DCoorFromDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D, std:
 
     Pt2dr aOriPlani = aFOM.OriginePlani();
     Pt2dr aResolPlani = aFOM.ResolutionPlani();
+    printf("%s; aDSMSz: [%d, %d]; aOriPlani: [%.6lf, %.6lf]; aResolPlani: [%.6lf, %.6lf]\n", aImName.c_str(), aDSMSz.x, aDSMSz.y, aOriPlani.x, aOriPlani.y, aResolPlani.x, aResolPlani.y);
 
     for(unsigned int i=0; i<vPt2D.size(); i++)
     {
@@ -113,27 +187,12 @@ void Get3DCoorFromDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D, std:
         dX = aPt.x*aResolPlani.x + aOriPlani.x;
         dY = aPt.y*aResolPlani.y + aOriPlani.y;
 
+        //printf("[%d, %d], [%.2lf, %.2lf]\n", aPt.x, aPt.y, dX, dY);
+
         double dZ =  aTImProfPx.get(aPt);
 
         vPt3D.push_back(Pt3dr(dX, dY, dZ));
     }
-}
-
-void Save3DXml(std::vector<Pt3dr> vPt3D, std::string aOutXml)
-{
-    cDicoAppuisFlottant aDAFout;
-
-    for(unsigned int i=0; i<vPt3D.size(); i++)
-    {
-        cOneAppuisDAF anAp;
-
-        anAp.Pt() = vPt3D[i];
-        anAp.NamePt() = std::to_string(i);
-        anAp.Incertitude() = Pt3dr(1,1,1);
-        aDAFout.OneAppuisDAF().push_back(anAp);
-    }
-
-    MakeFileXML(aDAFout, aOutXml);
 }
 
 void Save3DTxt(std::vector<Pt3dr> vPt3D, std::string aOutTxt)
@@ -149,118 +208,12 @@ void Save3DTxt(std::vector<Pt3dr> vPt3D, std::string aOutTxt)
     fclose(fpOutput);
 }
 
-bool GetBoundingBox(std::string aRGBImgDir, std::string aImg1, cBasicGeomCap3D * aCamL, Pt3dr& minPt, Pt3dr& maxPt)
+void CreateGCPs(std::string aDSMGrayImgDir, std::string aRGBImgDir, std::string aDSMGrayImg1, std::string aDSMGrayImg2, std::string aImgList1, std::string aImgList2, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string aDSMDirL, std::string aDSMDirR, std::string aDSMFileL, std::string aDSMFileR, std::string aOut2DXml1, std::string aOut2DXml2, std::string aOut3DXml1, std::string aOut3DXml2, std::string aCreateGCPsInSH, std::string aOrthoDirL, std::string aOrthoDirR, std::string aOrthoFileL, std::string aOrthoFileR)
 {
-    if (ELISE_fp::exist_file(aRGBImgDir+"/"+aImg1) == false)
-    {
-        cout<<aRGBImgDir+"/"+aImg1<<" didn't exist, hence skipped"<<endl;
-        return false;
-    }
+    bool bUseOrtho = false;
+    if (aOrthoDirL.length()>0 && aOrthoDirR.length()>0 && ELISE_fp::exist_file(aOrthoDirL+"/"+aOrthoFileL) == true && ELISE_fp::exist_file(aOrthoDirR+"/"+aOrthoFileR) == true)
+        bUseOrtho = true;
 
-    Tiff_Im aRGBIm1((aRGBImgDir+"/"+aImg1).c_str());
-    Pt2di aImgSz = aRGBIm1.sz();
-
-    Pt2dr aPCorner[4];
-    Pt2dr origin = Pt2dr(0, 0);
-    aPCorner[0] = origin;
-    aPCorner[1] = Pt2dr(origin.x+aImgSz.x, origin.y);
-    aPCorner[2] = Pt2dr(origin.x+aImgSz.x, origin.y+aImgSz.y);
-    aPCorner[3] = Pt2dr(origin.x, origin.y+aImgSz.y);
-
-    //double prof_d = aCamL->GetVeryRoughInterProf();
-    //prof_d = 11.9117;
-    //double prof_d = aCamL->GetProfondeur();
-    double dZ = aCamL->GetAltiSol();
-    //cout<<"dZ: "<<dZ<<endl;
-
-    Pt3dr ptTerrCorner[4];
-    for(int i=0; i<4; i++)
-    {
-        Pt2dr aP1 = aPCorner[i];
-        //ptTerrCorner[i] = aCamL->ImEtProf2Terrain(aP1, prof_d);
-        ptTerrCorner[i] = aCamL->ImEtZ2Terrain(aP1, dZ);
-    }
-
-    GetBoundingBox(ptTerrCorner, 4, minPt, maxPt);
-    /*
-    minPt = ptTerrCorner[0];
-    maxPt = ptTerrCorner[0];
-    for(int i=0; i<4; i++){
-        Pt3dr ptCur = ptTerrCorner[i];
-        //cout<<i<<": "<<ptCur.x<<"; "<<ptCur.y<<"; "<<ptCur.z<<endl;
-        if(minPt.x > ptCur.x)
-            minPt.x = ptCur.x;
-        if(maxPt.x < ptCur.x)
-            maxPt.x = ptCur.x;
-
-        if(minPt.y > ptCur.y)
-            minPt.y = ptCur.y;
-        if(maxPt.y < ptCur.y)
-            maxPt.y = ptCur.y;
-
-        if(minPt.z > ptCur.z)
-            minPt.z = ptCur.z;
-        if(maxPt.z < ptCur.z)
-            maxPt.z = ptCur.z;
-    }
-    */
-    return true;
-}
-
-void Get2DCoor(std::string aRGBImgDir, std::vector<string> vImgList1, std::vector<Pt3dr> vPt3DL, std::string aOri1, cInterfChantierNameManipulateur * aICNM, std::string aOut2DXml)
-{
-    StdCorrecNameOrient(aOri1,"./",true);
-
-    //std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
-
-    cSetOfMesureAppuisFlottants aSOMAFout;
-    for(unsigned int i=0; i<vImgList1.size(); i++)
-    {
-        std::string aImg1 = vImgList1[i];
-        //cout<<aKeyOri1<<endl;
-        //std::string aIm1OriFile = aICNM->Assoc1To1(aKeyOri1,aImg1,true);
-        std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1); //aICNM->Assoc1To1(aKeyOri1,aImg1,true);
-        //cout<<aIm1OriFile<<endl;
-
-        int aType = eTIGB_Unknown;
-        cBasicGeomCap3D * aCamL = cBasicGeomCap3D::StdGetFromFile(aIm1OriFile,aType);
-
-        Pt3dr minPt, maxPt;
-        GetBoundingBox(aRGBImgDir, aImg1, aCamL, minPt, maxPt);
-
-        cMesureAppuiFlottant1Im aMAF;
-        aMAF.NameIm() = aImg1;
-        for(unsigned int j=0; j<vPt3DL.size(); j++)
-        {
-            Pt3dr ptCur = vPt3DL[j];
-            //if current 3d point is out of the border of the current image, skip
-            //because sometimes a 3d point that is out of border will get wrong 2D point from command XYZ2Im
-            if(ptCur.x<minPt.x || ptCur.y<minPt.y || ptCur.x>maxPt.x || ptCur.y>maxPt.y)
-                continue;
-
-            Pt2dr aPproj = aCamL->Ter2Capteur(ptCur);
-/*
-            if(aImg1 == "OIS-Reech_IGNF_PVA_1-0__1970__C3544-0221_1970_CDP6452_1457.tif" || aImg1 == "OIS-Reech_IGNF_PVA_1-0__1970__C3544-0221_1970_CDP6452_1405.tif")
-                printf("%s  %lf %lf\n", aImg1.c_str(), aPproj.x, aPproj.y);
-*/
-            cOneMesureAF1I anOM;
-            anOM.NamePt() = std::to_string(j);
-            anOM.PtIm() = aPproj;
-            aMAF.OneMesureAF1I().push_back(anOM);
-        }
-        aSOMAFout.MesureAppuiFlottant1Im().push_back(aMAF);
-        /*
-        std::string acmmd = aComBase + aIm1OriFile + " "+ aRGBImgDir+"/"+aOut3DTxt1 + " "+aRGBImgDir+"/"+aOut2DXml1;
-        cout<<acmmd<<endl;
-        aLComXYZ2Im.push_back(acmmd);
-        */
-    }
-    //cEl_GPAO::DoComInSerie(aLComXYZ2Im);
-    MakeFileXML(aSOMAFout, aOut2DXml);
-}
-
-void CreateGCPs(std::string aDSMGrayImgDir, std::string aRGBImgDir, std::string aDSMGrayImg1, std::string aDSMGrayImg2, std::string aImgList1, std::string aImgList2, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string aDSMDirL, std::string aDSMDirR, std::string aDSMFileL, std::string aDSMFileR, std::string aOut2DXml1, std::string aOut2DXml2, std::string aOut3DXml1, std::string aOut3DXml2, std::string aCreateGCPsInSH)
-{
     std::string aDir_inSH = aDSMGrayImgDir + "/Homol" + aCreateGCPsInSH+"/";
     std::string aNameIn = aDir_inSH +"Pastis" + aDSMGrayImg1 + "/"+aDSMGrayImg2+".txt";
         if (ELISE_fp::exist_file(aNameIn) == false)
@@ -273,7 +226,7 @@ void CreateGCPs(std::string aDSMGrayImgDir, std::string aRGBImgDir, std::string 
     std::vector<Pt2dr> vPt2DL, vPt2DR;
     std::vector<Pt3dr> vPt3DL, vPt3DR;
 
-    int nPtNum = 0;
+    int nOriPtNum = 0;
     for (ElPackHomologue::iterator itCpl=aPackFull.begin();itCpl!=aPackFull.end(); itCpl++)
     {
        ElCplePtsHomologues cple = itCpl->ToCple();
@@ -282,14 +235,22 @@ void CreateGCPs(std::string aDSMGrayImgDir, std::string aRGBImgDir, std::string 
 
        vPt2DL.push_back(p1);
        vPt2DR.push_back(p2);
-       nPtNum++;
+       nOriPtNum++;
     }
-    cout<<"Correspondences number: "<<nPtNum<<endl;
+    cout<<"Correspondences number: "<<nOriPtNum<<endl;
 
-    Get3DCoorFromDSM(vPt2DL, vPt3DL, aDSMDirL, aDSMFileL);
+    if(bUseOrtho == true)
+    {
+        Get3DCoorFromOrthoDSM(vPt2DL, vPt3DL, aDSMDirL, aDSMFileL, aOrthoDirL, aOrthoFileL);
+        Get3DCoorFromOrthoDSM(vPt2DR, vPt3DR, aDSMDirR, aDSMFileR, aOrthoDirR, aOrthoFileR);
+    }
+    else
+    {
+        Get3DCoorFromDSM(vPt2DL, vPt3DL, aDSMDirL, aDSMFileL);
+        Get3DCoorFromDSM(vPt2DR, vPt3DR, aDSMDirR, aDSMFileR);
+    }
+
     Save3DXml(vPt3DL, aRGBImgDir+"/"+aOut3DXml1);
-
-    Get3DCoorFromDSM(vPt2DR, vPt3DR, aDSMDirR, aDSMFileR);
     Save3DXml(vPt3DR, aRGBImgDir+"/"+aOut3DXml2);
 
     //std::string aOut3DTxt1 = aRGBImgDir+"/"+StdPrefix(aOut3DXml1)+".txt";
@@ -318,6 +279,10 @@ void CreateGCPs(std::string aDSMGrayImgDir, std::string aRGBImgDir, std::string 
 
     Get2DCoor(aRGBImgDir, vImgList1, vPt3DL, aOri1, aICNM,  aOut2DXml1);
     Get2DCoor(aRGBImgDir, vImgList2, vPt3DR, aOri2, aICNM,  aOut2DXml2);
+    printf("xdg-open %s\n", aOut2DXml1.c_str());
+    printf("xdg-open %s\n", aOut3DXml1.c_str());
+    printf("xdg-open %s\n", aOut2DXml2.c_str());
+    printf("xdg-open %s\n", aOut3DXml2.c_str());
 }
 
 int CreateGCPs_main(int argc,char ** argv)
@@ -342,12 +307,22 @@ int CreateGCPs_main(int argc,char ** argv)
    std::string aDSMFileL = "MMLastNuage.xml";
    std::string aDSMFileR = "MMLastNuage.xml";
 
+   std::string aOrthoDirL;
+   std::string aOrthoDirR;
+   std::string aOrthoFileL;
+   std::string aOrthoFileR;
+
+   aOrthoDirL = "";
+   aOrthoDirR = "";
+   aOrthoFileL = "Orthophotomosaic.tif";
+   aOrthoFileR = "Orthophotomosaic.tif";
+
    ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aDSMGrayImgDir,"The directory of gray image of DSM")
-                    << EAMC(aDSMGrayImg1,"The gray image of DSM of epoch1")
-                    << EAMC(aDSMGrayImg2,"The gray image of DSM of epoch2")
+        LArgMain()  << EAMC(aDSMGrayImgDir,"The directory of 'gray image of DSM' or orthophoto")
+                    << EAMC(aDSMGrayImg1,"The 'gray image of DSM' or orthophoto of epoch1")
+                    << EAMC(aDSMGrayImg2,"The 'gray image of DSM' or orthophoto of epoch2")
                     << EAMC(aRGBImgDir,"The directory of RGB image")
                     << EAMC(aImgList1,"ImgList1: All RGB images in epoch1 (Dir+Pattern, or txt file of image list)")
                     << EAMC(aImgList2,"ImgList2: All RGB images in epoch2 (Dir+Pattern, or txt file of image list)")
@@ -360,10 +335,208 @@ int CreateGCPs_main(int argc,char ** argv)
                     << aCAS3D.ArgCreateGCPs()
                     << EAM(aDSMFileL, "DSMFileL", true, "DSM File of epoch1, Def=MMLastNuage.xml")
                     << EAM(aDSMFileR, "DSMFileR", true, "DSM File of epoch2, Def=MMLastNuage.xml")
+               << EAM(aOrthoDirL, "OrthoDirL", true, "Orthophoto directory of epoch1 (if this parameter is set, it means the tie points are on orthophotos instead of DSMs), Def=none")
+               << EAM(aOrthoDirR, "OrthoDirR", true, "Orthophoto directory of epoch2 (if this parameter is set, it means the tie points are on orthophotos instead of DSMs), Def=none")
+               << EAM(aOrthoFileL, "OrthoFileL", true, "Orthophoto file of epoch1, Def=Orthophotomosaic.tif")
+               << EAM(aOrthoFileR, "OrthoFileR", true, "Orthophoto file of epoch2, Def=Orthophotomosaic.tif")
 
     );
 
-   CreateGCPs( aDSMGrayImgDir, aRGBImgDir, aDSMGrayImg1, aDSMGrayImg2, aImgList1, aImgList2, aOri1, aOri2, aCAS3D.mICNM, aDSMDirL, aDSMDirR, aDSMFileL, aDSMFileR, aCAS3D.mOut2DXml1, aCAS3D.mOut2DXml2, aCAS3D.mOut3DXml1, aCAS3D.mOut3DXml2, aCAS3D.mCreateGCPsInSH);
+   aCAS3D.CorrectXmlFileName(aCAS3D.mCreateGCPsInSH);
+
+   CreateGCPs(aDSMGrayImgDir, aRGBImgDir, aDSMGrayImg1, aDSMGrayImg2, aImgList1, aImgList2, aOri1, aOri2, aCAS3D.mICNM, aDSMDirL, aDSMDirR, aDSMFileL, aDSMFileR, aCAS3D.mOut2DXml1, aCAS3D.mOut2DXml2, aCAS3D.mOut3DXml1, aCAS3D.mOut3DXml2, aCAS3D.mCreateGCPsInSH, aOrthoDirL, aOrthoDirR, aOrthoFileL, aOrthoFileR);
 
    return EXIT_SUCCESS;
+}
+
+
+
+
+/******************************InlierRatio********************************/
+void InlierRatio(std::string aDSMGrayImgDir, std::string aTransFile, std::string aDSMGrayImg1, std::string aDSMGrayImg2, std::string aDSMDirL, std::string aDSMDirR, std::string aDSMFileL, std::string aDSMFileR, std::string aCreateGCPsInSH, std::string aOrthoDirL, std::string aOrthoDirR, std::string aOrthoFileL, std::string aOrthoFileR, double threshold)
+{
+    bool bUseOrtho = false;
+    if (aOrthoDirL.length()>0 && aOrthoDirR.length()>0 && ELISE_fp::exist_file(aOrthoDirL+"/"+aOrthoFileL) == true && ELISE_fp::exist_file(aOrthoDirR+"/"+aOrthoFileR) == true)
+        bUseOrtho = true;
+
+    std::string aDir_inSH = aDSMGrayImgDir + "/Homol" + aCreateGCPsInSH+"/";
+    std::string aNameIn = aDir_inSH +"Pastis" + aDSMGrayImg1 + "/"+aDSMGrayImg2+".txt";
+        if (ELISE_fp::exist_file(aNameIn) == false)
+        {
+            cout<<aNameIn<<"didn't exist hence skipped."<<endl;
+            return;
+        }
+        ElPackHomologue aPackFull =  ElPackHomologue::FromFile(aNameIn);
+
+    std::vector<Pt2dr> vPt2DL, vPt2DR;
+    std::vector<Pt3dr> vPt3DL, vPt3DR;
+
+    int nOriPtNum = 0;
+    for (ElPackHomologue::iterator itCpl=aPackFull.begin();itCpl!=aPackFull.end(); itCpl++)
+    {
+       ElCplePtsHomologues cple = itCpl->ToCple();
+       Pt2dr p1 = cple.P1();
+       Pt2dr p2 = cple.P2();
+
+       vPt2DL.push_back(p1);
+       vPt2DR.push_back(p2);
+       nOriPtNum++;
+    }
+    cout<<"Correspondences number: "<<nOriPtNum<<endl;
+
+    if(bUseOrtho == true)
+    {
+        Get3DCoorFromOrthoDSM(vPt2DL, vPt3DL, aDSMDirL, aDSMFileL, aOrthoDirL, aOrthoFileL);
+        Get3DCoorFromOrthoDSM(vPt2DR, vPt3DR, aDSMDirR, aDSMFileR, aOrthoDirR, aOrthoFileR);
+    }
+    else
+    {
+        Get3DCoorFromDSM(vPt2DL, vPt3DL, aDSMDirL, aDSMFileL);
+        Get3DCoorFromDSM(vPt2DR, vPt3DR, aDSMDirR, aDSMFileR);
+    }
+
+    cXml_ParamBascRigide  *  aXBR = OptStdGetFromPCP(aTransFile,Xml_ParamBascRigide);
+    cSolBasculeRig aSBR = Xml2EL(*aXBR);
+    int nPtNum = vPt3DL.size();
+    int nInlier = 0;
+    for(int i=0; i<nPtNum; i++)
+    {
+        Pt3dr aP1 = vPt3DL[i];
+        Pt3dr aP2 = vPt3DR[i];
+
+        Pt3dr aP2Pred = aSBR(aP1);
+        double dist = pow(pow(aP2Pred.x-aP2.x,2) + pow(aP2Pred.y-aP2.y,2) + pow(aP2Pred.z-aP2.z,2), 0.5);
+        if(dist < threshold)
+            nInlier++;
+    }
+    printf("--->>>Total Pt: %d; Total inlier: %d; Inlier Ratio: %.2lf%%\n", nPtNum, nInlier, nInlier*100.0/nPtNum);
+}
+
+int InlierRatio_main(int argc,char ** argv)
+{
+   std::string aDSMGrayImgDir;
+
+   std::string aDSMGrayImg1;
+   std::string aDSMGrayImg2;
+
+   //std::string aRGBImgDir;
+   std::string aTransFile;
+
+   std::string aDSMDirL;
+   std::string aDSMDirR;
+   std::string aDSMFileL = "MMLastNuage.xml";
+   std::string aDSMFileR = "MMLastNuage.xml";
+
+   std::string aOrthoDirL;
+   std::string aOrthoDirR;
+   std::string aOrthoFileL;
+   std::string aOrthoFileR;
+
+   aOrthoDirL = "";
+   aOrthoDirR = "";
+   aOrthoFileL = "Orthophotomosaic.tif";
+   aOrthoFileR = "Orthophotomosaic.tif";
+
+   double aThreshold = 30;
+   std::string aInSH = "";
+
+   ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aDSMGrayImgDir,"The directory of 'gray image of DSM' or orthophoto")
+                    << EAMC(aDSMGrayImg1,"The 'gray image of DSM' or orthophoto of epoch1")
+                    << EAMC(aDSMGrayImg2,"The 'gray image of DSM' or orthophoto of epoch2")
+                    //<< EAMC(aRGBImgDir,"The directory of RGB image")
+                    << EAMC(aTransFile, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master images to secondary images")
+                    << EAMC(aDSMDirL,"DSM direcotry of epoch1")
+                    << EAMC(aDSMDirR,"DSM direcotry of epoch2"),
+        LArgMain()
+                    //<< aCAS3D.ArgBasic()
+//                    << aCAS3D.ArgCreateGCPs()
+                   << EAM(aInSH,"InSH",true,"Input Homologue extenion for NB/NT mode, Def=none")
+                    << EAM(aThreshold,"Thres",true,"Threshold in 3D to define inlier, Def=30")
+                    << EAM(aDSMFileL, "DSMFileL", true, "DSM File of epoch1, Def=MMLastNuage.xml")
+                    << EAM(aDSMFileR, "DSMFileR", true, "DSM File of epoch2, Def=MMLastNuage.xml")
+                    << EAM(aOrthoDirL, "OrthoDirL", true, "Orthophoto directory of epoch1 (if this parameter is set, it means the tie points are on orthophotos instead of DSMs), Def=none")
+                    << EAM(aOrthoDirR, "OrthoDirR", true, "Orthophoto directory of epoch2 (if this parameter is set, it means the tie points are on orthophotos instead of DSMs), Def=none")
+                    << EAM(aOrthoFileL, "OrthoFileL", true, "Orthophoto file of epoch1, Def=Orthophotomosaic.tif")
+                    << EAM(aOrthoFileR, "OrthoFileR", true, "Orthophoto file of epoch2, Def=Orthophotomosaic.tif")
+    );
+
+   InlierRatio(aDSMGrayImgDir, aTransFile, aDSMGrayImg1, aDSMGrayImg2, aDSMDirL, aDSMDirR, aDSMFileL, aDSMFileR, aInSH, aOrthoDirL, aOrthoDirR, aOrthoFileL, aOrthoFileR, aThreshold);
+
+   return EXIT_SUCCESS;
+}
+
+/******************************EvalOri********************************/
+
+void ReadPt3D(std::string FileName, std::vector<Pt3dr>& aVPt)
+{
+    cDicoAppuisFlottant aDico = StdGetFromPCP(FileName,DicoAppuisFlottant);
+    std::list< cOneAppuisDAF > aOneAppuisDAFList= aDico.OneAppuisDAF();
+
+    for (std::list< cOneAppuisDAF >::iterator itP=aOneAppuisDAFList.begin(); itP != aOneAppuisDAFList.end(); itP ++)
+    {
+        aVPt.push_back(itP->Pt());
+    }
+    cout<<aVPt.size()<<" points in "<<FileName<<endl;
+}
+
+int EvalOri_main(int argc,char ** argv)
+{
+    std::string aImgList;
+    std::string aOri;
+    std::string a2DXml;
+    std::string a3DXml;
+
+    std::string aOut3DXml = "3DCoords.xml";
+
+    double aThreshold = 30;
+    ElInitArgMain
+    (
+         argc, argv,
+         LArgMain() << EAMC(aImgList,"images (Dir+Pattern)")
+                    << EAMC(aOri,"Orientation of images")
+                    << EAMC(a3DXml,"Xml files of 3D obersevations of the GCPs")
+                    << EAMC(a2DXml,"Xml files of 2D obersevations of the GCPs"),
+         LArgMain()
+                << EAM(aThreshold,"Thres",true,"Threshold in 3D to define inlier, Def=30")
+                //<< EAM(aOut3DXml,"Out3DXml",true,"Output name of xml file that recorded the estimated 3D obersevations of the GCPs, Def=GCP-S3D.xml")
+    );
+
+    StdCorrecNameOrient(aOri,"./",true);
+
+
+    std::string aOriTmp = aOri;
+    if(aOriTmp.substr(0,4) != "Ori-")
+        aOriTmp = "Ori-" + aOri;
+    std::string aComm = MMBinFile(MM3DStr) + "TestLib PseudoIntersect " + aImgList + BLANK + aOriTmp + BLANK + a2DXml;// + " Out="+aOut3DXml;
+    cout<<aComm<<endl;
+    System(aComm);
+
+    std::vector<Pt3dr> aVPt1, aVPt2;
+    ReadPt3D(a3DXml, aVPt1);
+    ReadPt3D(aOut3DXml, aVPt2);
+
+    int nSz = aVPt1.size();
+    if(int(aVPt2.size()) < nSz)
+        nSz = aVPt2.size();
+    Pt3dr aAve = Pt3dr(0,0,0);
+    for(int i=0; i<nSz; i++){
+        Pt3dr ptTmp = aVPt1[i];
+        printf("PtRef: [%.2lf, %.2lf, %.2lf]; ", ptTmp.x, ptTmp.y, ptTmp.z);
+        ptTmp = aVPt2[i];
+        printf("PtEstimated: [%.2lf, %.2lf, %.2lf]; ", ptTmp.x, ptTmp.y, ptTmp.z);
+        Pt3dr ptTmp1 = aVPt1[i];
+        printf("Diff: [%.2lf, %.2lf, %.2lf]\n", fabs(ptTmp.x-ptTmp1.x), fabs(ptTmp.y-ptTmp1.y), fabs(ptTmp.z-ptTmp1.z));
+        aAve.x += fabs(aVPt1[i].x-aVPt2[i].x);
+        aAve.y += fabs(aVPt1[i].y-aVPt2[i].y);
+        aAve.z += fabs(aVPt1[i].z-aVPt2[i].z);
+    }
+    printf("--------------------------\n");
+    //printf("aAve: [%.2lf, %.2lf, %.2lf]\n", aAve.x, aAve.y, aAve.z);
+    aAve = aAve/3;
+    printf("aAve: [%.2lf, %.2lf, %.2lf]  %.2lf\n", aAve.x, aAve.y, aAve.z, (aAve.x+aAve.y+aAve.z)*1.0/3);
+
+    return EXIT_SUCCESS;
 }

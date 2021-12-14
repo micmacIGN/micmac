@@ -132,6 +132,7 @@ std::string MM3dBinFile_quotes(const std::string &);
 //   MMDir() + std::string("include" ELISE_STR_DIR "XML_MicMac" ELISE_STR_DIR "Apero-Cloud.xml ")
 std::string XML_MM_File(const std::string &);
 std::string Basic_XML_MM_File(const std::string &);
+std::string Specif_XML_MM_File(const std::string &);
 std::string Basic_XML_User_File(const std::string & aName);
 std::string XML_User_Or_MicMac(const std::string & aName);
 

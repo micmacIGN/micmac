@@ -1011,7 +1011,7 @@ void cAppliImportSfmInit::SaveOC(ElMatrix<double>& aR, Pt3dr& aTr, int& aCamId)
 	std::cout << "aTrMM=" << aTrMM << "\n";
 
 	/* necessary? */
-    if (! (isnan(aTrMM.x) || isnan(aTrMM.y) || isnan(aTrMM.z)))
+    if (! (std::isnan(aTrMM.x) || std::isnan(aTrMM.y) || std::isnan(aTrMM.z)))
     {
         aExtern.Centre() = aTrMM;
         aExtern.IncCentre() = Pt3dr(1,1,1);
