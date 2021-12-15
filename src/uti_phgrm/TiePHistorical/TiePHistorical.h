@@ -429,6 +429,7 @@ void RotateImgBy90DegNTimes(std::string aDir, std::string aImg1, std::string aNa
 std::string GetImgList(std::vector<std::string> aVIm);
 std::string GetImgList(std::string aDir, std::string aFileName, bool bExe);
 void GetUniqImgList(std::vector<std::string> aInput, std::vector<std::string>& aOutput);
+void ReadTfw(std::string tfwFile, std::vector<double>& aTmp);
 
 /****************************************/
 /****** cInterEp_RoughCoReg ******/

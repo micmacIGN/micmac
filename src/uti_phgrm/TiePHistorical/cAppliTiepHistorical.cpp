@@ -1875,6 +1875,11 @@ void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, st
     ELISE_fp::MkDir(aNewDir);
     aNameFile2 = aNewDir + "/"+aImg1+".txt";
 
+    std::string aCom = "mm3d SEL" + BLANK + aDir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+CurSH;
+    std::string aComInv = "mm3d SEL" + BLANK + aDir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+CurSH;
+    if(aPack.size() >0)
+        cout<<aCom<<endl<<aComInv<<endl;
+
     FILE * fpTiePt1 = fopen(aNameFile1.c_str(), "w");
     FILE * fpTiePt2 = fopen(aNameFile2.c_str(), "w");
 
@@ -2481,6 +2486,25 @@ std::string GetImgList(std::string aDir, std::string aFileName, bool bExe)
     return aRes;
 }
 
+void ReadTfw(std::string tfwFile, std::vector<double>& aTmp)
+{
+    aTmp.resize(6, 0);
+    if (ELISE_fp::exist_file(tfwFile) == false){
+        cout<<tfwFile<<" didn't exist, hence skipped."<<endl;
+        return;
+    }
+
+    ifstream in(tfwFile);
+    std::string s;
+    //double aTmp[6];
+    int idx = 0;
+    while(getline(in,s))
+    {
+        std::stringstream is(s);
+        is>>aTmp[idx];
+        idx++;
+    }
+}
 /*
 void ExtractSIFT(std::string aFullName, std::string aDir)
 {
