@@ -132,7 +132,7 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
     cout<<"---------------------------------"<<endl;
     printf("--->>>Total OriPt: %d; Total InsideBorderPt: %d;; Total inlier: %d; Inlier Ratio (3DRANSAC): %.2lf%%\n", nOriPtNum, nPtNum, nMaxInlier, nMaxInlier*100.0/nPtNum);
 
-    SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierFinal);
+    SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierFinal, false);
 
     std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
     std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
@@ -353,16 +353,14 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
     }
     /******************************end random perform**********/
 
-    cout<<"---------------------------------"<<endl;
-    printf("--->>>Total Pt: %d; Total inlier: %d; Inlier Ratio (2DRANSAC): %.2lf%%\n", nPtNum, nMaxInlier, nMaxInlier*100.0/nPtNum);
-    //cout<<"Final: "<<aFinalMsg<<endl;
-
     std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
     std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-    printf("%s\n%s\n", aCom.c_str(), aComInv.c_str());
+    cout<<"---------------------------------"<<endl;
+    printf("%s\n%s\n--->>>Total Pt: %d; Total inlier: %d; Inlier Ratio (2DRANSAC): %.2lf%%\n", aCom.c_str(), aComInv.c_str(), nPtNum, nMaxInlier, nMaxInlier*100.0/nPtNum);
+    //cout<<"Final: "<<aFinalMsg<<endl;
 
     /****************Save points****************/
-    SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierFinal);
+    SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierFinal, false);
     /*
     std::string aDir_outSH = input_dir + "/Homol" + outSH+"/";
     ELISE_fp::MkDir(aDir_outSH);

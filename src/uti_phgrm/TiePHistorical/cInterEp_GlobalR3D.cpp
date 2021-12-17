@@ -158,7 +158,7 @@ void GetOrthoHom(std::string aOri1, std::string aOri2, cInterfChantierNameManipu
             vOrthoHom.push_back(ElCplePtsHomologues(vOrthoPtL[i], vOrthoPtR[i]));
 
         ELISE_fp::MkDir(input_dir+"/Tmp_PileImg/");
-        SaveHomolTxtFile(input_dir+"/Tmp_PileImg/", aOrthoDirL+".tif", aOrthoDirR+".tif", "-PileImg", vOrthoHom);
+        SaveHomolTxtFile(input_dir+"/Tmp_PileImg/", aOrthoDirL+".tif", aOrthoDirR+".tif", inSH+"-PileImg", vOrthoHom);
         cout<<"nPtNum: "<<vOrthoHom.size()<<endl;
     }
 }
@@ -508,9 +508,9 @@ int GlobalR3D_main(int argc,char ** argv)
 
    cout<<aVIm1.size()<<" image pairs to be processed."<<endl;
 
-   std::string aOutImgPair = "PairAll"+aInSH+"-GlobalR3D.xml";
+   std::string aOutImgPair = "PairAll"+aR3DOutSH+".xml";
    if(aImgPair != "")
-       aOutImgPair = StdPrefix(aImgPair) + aInSH + "-GlobalR3D.xml";
+       aOutImgPair = StdPrefix(aImgPair) + aR3DOutSH + ".xml";
    cout<<"Output pairs will be saved in "<<aOutImgPair<<endl;
 
    GlobalR3D(aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mDir, aVIm1, aVIm2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aInSH, aR3DOutSH, aTrans3DHL, aR3DIteration, aR3DThreshold, aMinPt, aCAS3D.mPrint, bSaveHomol, bSaveGCP, aTransFile, aOutImgPair);

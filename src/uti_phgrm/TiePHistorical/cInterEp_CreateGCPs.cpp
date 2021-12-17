@@ -132,6 +132,7 @@ bool Get3DCoorFromOrthoDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D,
 
         vPt3D.push_back(Pt3dr(dX, dY, dZ));
     }
+    printf("%d tie points processed\n", int(vPt2D.size()));
     return true;
 }
 
@@ -181,6 +182,7 @@ void Get3DCoorFromDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D, std:
 
         vPt3D.push_back(Pt3dr(dX, dY, dZ));
     }
+    printf("%d tie points processed\n", int(vPt2D.size()));
 }
 
 void Save3DTxt(std::vector<Pt3dr> vPt3D, std::string aOutTxt)
@@ -381,6 +383,11 @@ void InlierRatio(std::string aDSMGrayImgDir, std::string aTransFile, std::string
     {
         Get3DCoorFromDSM(vPt2DL, vPt3DL, aDSMDirL, aDSMFileL);
         Get3DCoorFromDSM(vPt2DR, vPt3DR, aDSMDirR, aDSMFileR);
+    }
+
+    if (ELISE_fp::exist_file(aTransFile) == false){
+        printf("%s not exist, hence skipped\n", aTransFile.c_str());
+        return;
     }
 
     cXml_ParamBascRigide  *  aXBR = OptStdGetFromPCP(aTransFile,Xml_ParamBascRigide);
