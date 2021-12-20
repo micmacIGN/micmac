@@ -430,20 +430,20 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
 */
 }
 
-Pt2dr ClipImg(std::string aOutImg1, std::string aImg1, Pt2di ImgSzL, Pt2dr aPatchSz, Pt2dr aBufferSz, Pt2dr origin, std::string aOutDir, std::list<std::string>& aLComClip, std::vector<std::string>& vPatchesL, std::vector<cElHomographie>& vHomoL)
+Pt2di ClipImg(std::string aOutImg1, std::string aImg1, Pt2di ImgSzL, Pt2dr aPatchSz, Pt2dr aBufferSz, Pt2dr origin, std::string aOutDir, std::list<std::string>& aLComClip, std::vector<std::string>& vPatchesL, std::vector<cElHomographie>& vHomoL)
 {
     Pt2dr CoreaPatchSz;
     CoreaPatchSz.x = aPatchSz.x - aBufferSz.x*2;
     CoreaPatchSz.y = aPatchSz.y - aBufferSz.y*2;
 
-    Pt2dr PatchNum;
+    Pt2di PatchNum;
     PatchNum.x = int(ImgSzL.x*1.0/CoreaPatchSz.x)+1;
     PatchNum.y = int(ImgSzL.y*1.0/CoreaPatchSz.y)+1;
 
     std::string aComBaseClip = MMBinFile(MM3DStr) + "ClipIm " + aImg1 + " ";
     std::string aClipSz = " ["+std::to_string(int(aPatchSz.x))+","+std::to_string(int(aPatchSz.y))+"] ";
 
-    cout<<"Patch number of "<<aOutImg1<<": "<<PatchNum.x<<"*"<<PatchNum.y<<"="<<PatchNum.x*PatchNum.y<<endl;
+    //cout<<"Patch number of "<<aOutImg1<<": "<<PatchNum.x<<"*"<<PatchNum.y<<"="<<PatchNum.x*PatchNum.y<<endl;
 
     int m, n;
     for(m=0; m<PatchNum.x; m++)
@@ -494,6 +494,7 @@ void GetTilePair(std::string aOutDir, std::string aOriOutImg1, std::string aRota
 
     Tiff_Im aDSMIm1((aDir+aImg1).c_str());
     Pt2di ImgSzL = aDSMIm1.sz();
+
     Tiff_Im aDSMIm2((aDir+aImg2).c_str());
     Pt2di ImgSzR = aDSMIm2.sz();
 
@@ -502,6 +503,9 @@ void GetTilePair(std::string aOutDir, std::string aOriOutImg1, std::string aRota
 
     cout<<"type of "<<aImg1<<": "<<aTypeIm1<<endl;
     cout<<"type of "<<aImg2<<": "<<aTypeIm2<<endl;
+
+    printf("---------------Size of %s: [%d, %d]\n", aImg1.c_str(), ImgSzL.x, ImgSzL.y);
+    printf("---------------Size of %s: [%d, %d]\n", aImg2.c_str(), ImgSzR.x, ImgSzR.y);
 
     std::string aImgRef1 = aImg1;
     std::string aImgRef2 = aImg2;
@@ -534,10 +538,13 @@ void GetTilePair(std::string aOutDir, std::string aOriOutImg1, std::string aRota
 
     std::list<std::string> aLComClip, aRComClip;
 
-    Pt2dr aPatchNumL = ClipImg(aRotateOutImg1, aImgRef1, ImgSzL, aPatchSz, aBufferSz, origin, aOutDir, aLComClip, vPatchesL, vHomoL);
-    Pt2dr aPatchNumR = ClipImg(aOutImg2, aImgRef2, ImgSzR, aPatchSz, aBufferSz, origin, aOutDir, aRComClip, vPatchesR, vHomoR);
+    double dScale = 1;
+    Pt2dr aPatchSzL = aPatchSz*dScale;
+    //printf("aPatchSzL: [%.2lf, %.2lf]\n", aPatchSzL.x, aPatchSzL.y);
+    Pt2di aPatchNumL = ClipImg(aRotateOutImg1, aImgRef1, ImgSzL, aPatchSzL, aBufferSz, origin, aOutDir, aLComClip, vPatchesL, vHomoL);
+    Pt2di aPatchNumR = ClipImg(aOutImg2, aImgRef2, ImgSzR, aPatchSz, aBufferSz, origin, aOutDir, aRComClip, vPatchesR, vHomoR);
 
-    cout<<"Number of tile pairs: "<<aPatchNumL.x*aPatchNumL.y*aPatchNumR.x*aPatchNumR.y<<endl;
+    printf("---------------Number of tile pairs: (%d*%d)*(%d*%d) = %d\n", aPatchNumL.x, aPatchNumL.y, aPatchNumR.x, aPatchNumR.y, aPatchNumL.x*aPatchNumL.y*aPatchNumR.x*aPatchNumR.y);
 
     std::vector<string> vaImgPair;
     for(unsigned int i=0; i<vPatchesL.size(); i++)
@@ -647,7 +654,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
     std::string aImgBase = aImg1;
 
     //no rotation
-   if(aRotate == -1)
+   if(aRotate == -1 || aRotate == 0)
    {
        cElComposHomographie aUnitHX(1, 0, 0);
        cElComposHomographie aUnitHY(0, 1, 0);
@@ -658,7 +665,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
        GetTilePair(aOutDir, aOutImg1, aOutImg1, aOutImg2, aImg1, aImg2, aPatchSz, aBufferSz, aCAS3D.mImgPair, aCAS3D.mDir, aCAS3D.mSubPatchXml, aImg1, aUnitH, aCAS3D.mPrint, dDyn);
    }
        //rotate 90 degree
-       else if(aRotate == 90)
+       if(aRotate == -1 || aRotate == 90)
        {
            cElComposHomographie aRotateHX(0, 1, 0);
            cElComposHomographie aRotateHY(-1, 0, ImgSzL.y);
@@ -677,7 +684,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
            GetTilePair(aOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint, dDyn);
        }
        //rotate 180 degree
-       else if(aRotate == 180)
+       if(aRotate == -1 || aRotate == 180)
        {
            cElComposHomographie aRotateHX(-1, 0, ImgSzL.x);
            cElComposHomographie aRotateHY(0, -1, ImgSzL.y);
@@ -696,7 +703,7 @@ int BruteForce(int argc,char ** argv, const std::string &aArg="")
            GetTilePair(aOutDir, aOutImg1, aOutImg1_Rotate, aOutImg2, aImg1_Rotate, aImg2, aPatchSz, aBufferSz, aImgPair, aCAS3D.mDir, aSubPatchXml, aImg1, aRotateH, aCAS3D.mPrint, dDyn);
        }
        //rotate 270 degree
-       else if(aRotate == 270)
+       if(aRotate == -1 || aRotate == 270)
        {
            cElComposHomographie aRotateHX(0, -1, ImgSzL.x);
            cElComposHomographie aRotateHY(1, 0, 0);

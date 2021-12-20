@@ -781,7 +781,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
     /* 2.1 - GetOverlappedImages */
     /**************************************/
     if(mSkipGetOverlappedImages == false)
-        StdCom("TestLib GetOverlappedImages", mOri1 + BLANK + mOri2 + BLANK + mImg4MatchList1 + BLANK + mImg4MatchList2 + BLANK + mCAS3D.ComParamGetOverlappedImages() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+aOri2+".xml", mExe);
+        StdCom("TestLib GetOverlappedImages", mOri1 + BLANK + mOri2 + BLANK + mImg4MatchList1 + BLANK + mImg4MatchList2 + BLANK + mCAS3D.ComParamGetOverlappedImages() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml", mExe);
 
     if (ELISE_fp::exist_file(mCAS3D.mOutPairXml) == false)
     {
@@ -821,12 +821,12 @@ void cAppliTiepHistoricalPipeline::DoAll()
         if (EAMIsInit(&mReprojTh))  aCom += " Thres=" + ToString(mReprojTh);
         //aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mCoRegOri + BLANK + mCoRegOri + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair(), aExe);
         //printf("%s\t%s\n", aOri1.c_str(), mOri1.c_str());
-        aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+aOri2+".xml" + BLANK + "DSMDirL="+mDSMDirL, aExe);
+        aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml" + BLANK + "DSMDirL="+mDSMDirL, aExe);
         aComList.push_back(aComSingle);
 
         if(mUseDepth == true)
         {
-            aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+aOri2+".xml" + BLANK + "DSMDirL="+mDSMDirL + BLANK + "Prefix=Depth_", aExe);
+            aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml" + BLANK + "DSMDirL="+mDSMDirL + BLANK + "Prefix=Depth_", aExe);
             aComList.push_back(aComSingle);
         }
     }
@@ -955,7 +955,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
             if (EAMIsInit(&mScaleL))   aCom +=  " ScaleL=" + ToString(mScaleL);
             if (EAMIsInit(&mScaleR))   aCom +=  " ScaleR=" + ToString(mScaleR);
             aCom +=  "  CheckFile=" + ToString(mCheckFile);
-            aComSingle = StdCom("TestLib GuidedSIFTMatch", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGuidedSIFTMatch() + BLANK + "Para3DHL=Basc-"+aOri1+"-2-"+aOri2+".xml" + BLANK + "Para3DHR=Basc-"+aOri2+"-2-"+aOri1+".xml", aExe);
+            aComSingle = StdCom("TestLib GuidedSIFTMatch", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGuidedSIFTMatch() + BLANK + "Para3DHL=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml" + BLANK + "Para3DHR=Basc-"+aOri2+"-2-"+aOri1+".xml", aExe);
 
             aRANSACInSH = mCAS3D.mGuidedSIFTOutSH;
             aComList.push_back(aComSingle);
@@ -1007,7 +1007,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
             aCrossCorrInSH = aRANSACInSH+"-3DRANSAC";
         aCom +=  " 3DRANInSH=" + aRANSACInSH;
         aCom +=  " 3DRANOutSH=" + aCrossCorrInSH;
-        //aCom +=  " Para3DHL=Basc-"+aOri1+"-2-"+aOri2+".xml";
+        //aCom +=  " Para3DHL=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml";
         aCom +=  "  CheckFile=" + ToString(mCheckFile);
         aComSingle = StdCom("TestLib RANSAC R3D", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + "Dir=" + mCAS3D.mDir + BLANK + aCom, aExe);
         aComList.push_back(aComSingle);
@@ -1855,7 +1855,7 @@ bool IsHomolFileExist(std::string aDir, std::string aImg1, std::string aImg2, st
         return false;
 }
 
-void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<ElCplePtsHomologues> aPack)
+void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, std::string CurSH, std::vector<ElCplePtsHomologues> aPack, bool bPrintSEL)
 {
     if(aPack.size() <= 0){
         //printf("No tie points.\n");
@@ -1874,6 +1874,11 @@ void SaveHomolTxtFile(std::string aDir, std::string aImg1, std::string aImg2, st
     aNewDir = aSHDir + "Pastis" + aImg2;
     ELISE_fp::MkDir(aNewDir);
     aNameFile2 = aNewDir + "/"+aImg1+".txt";
+
+    std::string aCom = "mm3d SEL" + BLANK + aDir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+CurSH;
+    std::string aComInv = "mm3d SEL" + BLANK + aDir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+CurSH;
+    if(bPrintSEL==true && aPack.size() >0)
+        printf("%s\n%s\ntie point number: %d\n", aCom.c_str(), aComInv.c_str(), int(aPack.size()));
 
     FILE * fpTiePt1 = fopen(aNameFile1.c_str(), "w");
     FILE * fpTiePt2 = fopen(aNameFile2.c_str(), "w");
@@ -2481,6 +2486,25 @@ std::string GetImgList(std::string aDir, std::string aFileName, bool bExe)
     return aRes;
 }
 
+void ReadTfw(std::string tfwFile, std::vector<double>& aTmp)
+{
+    aTmp.resize(6, 0);
+    if (ELISE_fp::exist_file(tfwFile) == false){
+        cout<<tfwFile<<" didn't exist, hence skipped."<<endl;
+        return;
+    }
+
+    ifstream in(tfwFile);
+    std::string s;
+    //double aTmp[6];
+    int idx = 0;
+    while(getline(in,s))
+    {
+        std::stringstream is(s);
+        is>>aTmp[idx];
+        idx++;
+    }
+}
 /*
 void ExtractSIFT(std::string aFullName, std::string aDir)
 {

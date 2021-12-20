@@ -164,7 +164,7 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
             if(bViz == true){
                 std::string aPngName = StdPrefix(aFileName) + ".png";
                 std::string aCom = "mv " + input_dir+aPngName + " " + aVizDir+aPngName;
-                cout<<aCom<<endl;
+                //cout<<aCom<<endl;
                 System(aCom);
             }
 
@@ -262,15 +262,11 @@ void Npz2Homol(Pt2di resize, std::string input_dir, std::string SH, std::string 
                 System(cmmd);
             }
         }
-        cout<<"Best match in 4 rotation hypothesis: "<<aBestMatch<<endl;
+        if(bRotHyp)
+            cout<<"Best match in 4 rotation hypothesis: "<<aBestMatch<<endl;
         //break;
 
         //cout<<"nValidMatchNum: "<<nValidMatchNum<<endl;
-
-        std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+SH;
-        std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+SH;
-        printf("%s\n%s\ntie point number: %d\n", aCom.c_str(), aComInv.c_str(), nMaxTiePtNum);
-
         SaveHomolTxtFile(input_dir, aImg1, aImg2, SH, aTiePtVecFinal);
 
 /*

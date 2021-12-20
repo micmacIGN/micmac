@@ -72,23 +72,100 @@ pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
-void GlobalR3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::vector<std::string> aVIm1, std::vector<std::string> aVIm2, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string inSH, std::string outSH, cTransform3DHelmert aTrans3DHL, int aNbTir, double threshold, int nMinPt, bool bPrint, bool bSaveHomol, bool bSaveGCP, std::string aInBascFile)
+void GetOrthoPt(std::string aOrthoDirL, std::string aOrthoFileL, std::vector<Pt3dr> vPt3DL, std::vector<Pt2dr>& vOrthoPtL, bool & bSaveOrthoHomo)
 {
-    /*
-     std::vector<std::string> aVIm1;
-     std::vector<std::string> aVIm2;
+    if(aOrthoDirL.length() > 0 && ELISE_fp::exist_file(aOrthoDirL+"/"+aOrthoFileL) == true){
+        std::vector<double> aTmp;
+        std::string aTfwFile = aOrthoDirL+"/"+StdPrefix(aOrthoFileL) + ".tfw";
+        ReadTfw(aTfwFile, aTmp);
+        Pt2dr aOrthoResolPlani = Pt2dr(aTmp[0], aTmp[3]);
+        Pt2dr aOrthoOriPlani = Pt2dr(aTmp[4], aTmp[5]);
 
-     if (ELISE_fp::exist_file(input_dir+"/"+aImgPair) == true)
-     {
-         GetXmlImgPair(input_dir+"/"+aImgPair, aVIm1, aVIm2);
-     }
-     else
-     {
-         GetImgListVec(aImgList1, aVIm1);
-         GetImgListVec(aImgList2, aVIm2);
-     }
-     */
+        for(int i=0; i<int(vPt3DL.size()); i++){
+            Pt3dr aPTer1 = vPt3DL[i];
+            Pt2dr aPtOrtho;
+            aPtOrtho.x = (aPTer1.x - aOrthoOriPlani.x)/aOrthoResolPlani.x;
+            aPtOrtho.y = (aPTer1.y - aOrthoOriPlani.y)/aOrthoResolPlani.y;
+            vOrthoPtL.push_back(aPtOrtho);
+        }
+    }
+    else
+        bSaveOrthoHomo = false;
+}
 
+void GetOrthoHom(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::vector<std::string> aVIm1, std::vector<std::string> aVIm2, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string inSH, bool bPrint, cTransform3DHelmert aTrans3DHL, std::string aOrthoDirL, std::string aOrthoDirR, std::string aOrthoFileL, std::string aOrthoFileR)
+{
+    std::vector<Pt3dr> aV1;
+    std::vector<Pt3dr> aV2;
+    std::vector<Pt2dr> a2dV1;
+    std::vector<Pt2dr> a2dV2;
+
+    std::vector<int> aOriPtNumV;
+    std::vector<int> aInsideBorderPtNumV;
+
+    int nOriPtNum = 0;
+    std::string  aImg1, aImg2;
+    aOriPtNumV.push_back(0);
+    aInsideBorderPtNumV.push_back(0);
+    for(int i=0; i<int(aVIm1.size()); i++)
+    {
+        aImg1 = aVIm1[i];
+        if(1) //for(int j=0; j<int(aVIm2.size()); j++)
+        {
+            aImg2 = aVIm2[i];
+            //cout<<i<<", "<<j<<"; "<<aImg1<<" "<<aImg2<<endl;
+            std::string aDir_inSH = input_dir + "/Homol" + inSH+"/";
+            std::string aNameIn = aDir_inSH +"Pastis" + aImg1 + "/"+aImg2+".txt";
+            if (ELISE_fp::exist_file(aNameIn) == false)
+            {
+                //cout<<aNameIn<<"didn't exist hence skipped (GlobalR3D)."<<endl;
+                aOriPtNumV.push_back(nOriPtNum);
+                aInsideBorderPtNumV.push_back(int(aV1.size()));
+                continue;
+            }
+            ElPackHomologue aPackFull =  ElPackHomologue::FromFile(aNameIn);
+            //aPackAll.push_back(aPackFull);
+
+            std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
+            std::string aIm2OriFile = aICNM->StdNameCamGenOfNames(aOri2, aImg2);
+            //cout<<aIm1OriFile<<" "<<aIm2OriFile<<endl;
+            cGet3Dcoor a3DCoorL(aIm1OriFile);
+            cDSMInfo aDSMInfoL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+            cGet3Dcoor a3DCoorR(aIm2OriFile);
+            cDSMInfo aDSMInfoR = a3DCoorR.SetDSMInfo(aDSMFileR, aDSMDirR);
+
+            //Get3DTiePt(aPackFull, a3DCoorL, a3DCoorR, aDSMInfoL, aDSMInfoR, aTrans3DHL, aV1, aV2, a2dV1, a2dV2, bPrint);
+            int nOriPtNumCur = Get3DTiePt(aPackFull, a3DCoorL, a3DCoorR, aDSMInfoL, aDSMInfoR, aTrans3DHL, aV1, aV2, a2dV1, a2dV2, bPrint);
+            nOriPtNum += nOriPtNumCur;
+            aOriPtNumV.push_back(nOriPtNum);
+            aInsideBorderPtNumV.push_back(int(aV1.size()));
+            cout<<aImg1<<" "<<aImg2<<": ";
+            cout<<"nOriPtNum: "<<nOriPtNumCur<<";  InsideBorderPtNum:  "<<aInsideBorderPtNumV[aInsideBorderPtNumV.size()-1] - aInsideBorderPtNumV[aInsideBorderPtNumV.size()-2]<<"; ";
+            double dGSD1 = a3DCoorL.GetGSD();
+            double dGSD2 = a3DCoorR.GetGSD();
+            printf("dGSD1: %.5lf; dGSD2: %.5lf\n", dGSD1, dGSD2);
+        }
+    }
+
+    bool bSaveOrthoHomo = true;
+    std::vector<Pt2dr> vOrthoPtL, vOrthoPtR;
+    GetOrthoPt(aOrthoDirL, aOrthoFileL, aV1, vOrthoPtL, bSaveOrthoHomo);
+    GetOrthoPt(aOrthoDirR, aOrthoFileR, aV2, vOrthoPtR, bSaveOrthoHomo);
+
+    if(bSaveOrthoHomo){
+        std::vector<ElCplePtsHomologues> vOrthoHom;
+        for(int i=0; i<int(vOrthoPtL.size()); i++)
+            vOrthoHom.push_back(ElCplePtsHomologues(vOrthoPtL[i], vOrthoPtR[i]));
+
+        ELISE_fp::MkDir(input_dir+"/Tmp_PileImg/");
+        SaveHomolTxtFile(input_dir+"/Tmp_PileImg/", aOrthoDirL+".tif", aOrthoDirR+".tif", inSH+"-PileImg", vOrthoHom);
+        cout<<"nPtNum: "<<vOrthoHom.size()<<endl;
+    }
+}
+
+void GlobalR3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::vector<std::string> aVIm1, std::vector<std::string> aVIm2, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string inSH, std::string outSH, cTransform3DHelmert aTrans3DHL, int aNbTir, double threshold, int nMinPt, bool bPrint, bool bSaveHomol, bool bSaveGCP, std::string aInBascFile, std::string aOut)
+{
+    aOut = aOut;
      std::vector<Pt3dr> aV1;
      std::vector<Pt3dr> aV2;
      std::vector<Pt2dr> a2dV1;
@@ -230,6 +307,8 @@ void GlobalR3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipula
      }
      */
 
+     cSauvegardeNamedRel aRel;
+
      int nTotalInlier = 0;
      for(int m=0; m<int(aVIm1.size()); m++)
      {
@@ -294,19 +373,21 @@ void GlobalR3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipula
                  }
              }
 
+             if(inlierCur.size() > 0)
+                 aRel.Cple().push_back(cCpleString(aImg1, aImg2));
+
+
              if (bSaveHomol == true)
              {
                  SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierCur);
-
-                 std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-                 std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-                 if(inlierCur.size() >0)
-                     cout<<aCom<<endl<<aComInv<<endl;
                  cout<<"nOriPtNum: "<<aOriPtNumV[nIdx+1]-aOriPtNumV[nIdx]<<" InsideBorderPtNum:  "<<nEnd-nStart<<";  nFilteredPtNum: "<<inlierCur.size()<<endl;
              }
          }
          //aSOMAFout1.MesureAppuiFlottant1Im().push_back(aMAF1);
      }
+     MakeFileXML(aRel,input_dir+"/"+aOut);
+     printf("xdg-open %s\n", (input_dir+"/"+aOut).c_str());
+
 
      /*
      for(int n=0; n<int(aVIm2.size()); n++)
@@ -369,7 +450,7 @@ int GlobalR3D_main(int argc,char ** argv)
    std::string aR3DOutSH = "";
    double aR3DThreshold = -1;
    int aMinPt = 10;
-   std::string aImgPair;
+   std::string aImgPair = "";
 
    ElInitArgMain
     (
@@ -427,7 +508,95 @@ int GlobalR3D_main(int argc,char ** argv)
 
    cout<<aVIm1.size()<<" image pairs to be processed."<<endl;
 
-   GlobalR3D(aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mDir, aVIm1, aVIm2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aInSH, aR3DOutSH, aTrans3DHL, aR3DIteration, aR3DThreshold, aMinPt, aCAS3D.mPrint, bSaveHomol, bSaveGCP, aTransFile);
+   std::string aOutImgPair = "PairAll"+aR3DOutSH+".xml";
+   if(aImgPair != "")
+       aOutImgPair = StdPrefix(aImgPair) + aR3DOutSH + ".xml";
+   cout<<"Output pairs will be saved in "<<aOutImgPair<<endl;
+
+   GlobalR3D(aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mDir, aVIm1, aVIm2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aInSH, aR3DOutSH, aTrans3DHL, aR3DIteration, aR3DThreshold, aMinPt, aCAS3D.mPrint, bSaveHomol, bSaveGCP, aTransFile, aOutImgPair);
+
+   return EXIT_SUCCESS;
+}
+
+int GetOrthoHom_main(int argc,char ** argv)
+{
+    cCommonAppliTiepHistorical aCAS3D;
+
+    std::string aImgList1;
+   std::string aImgList2;
+
+   std::string aOri1;
+   std::string aOri2;
+
+   std::string aDSMDirL;
+   std::string aDSMDirR;
+
+   std::string aDSMFileL = "MMLastNuage.xml";
+   std::string aDSMFileR = "MMLastNuage.xml";
+
+   std::string aInSH = "";
+   std::string aImgPair;
+
+   std::string aOrthoDirL;
+   std::string aOrthoDirR;
+   std::string aOrthoFileL;
+   std::string aOrthoFileR;
+
+   aOrthoDirL = "";
+   aOrthoDirR = "";
+   aOrthoFileL = "Orthophotomosaic.tif";
+   aOrthoFileR = "Orthophotomosaic.tif";
+
+   ElInitArgMain
+    (
+        argc,argv,
+               LArgMain()
+                << EAMC(aOri1,"Orientation of images in epoch1")
+                << EAMC(aOri2,"Orientation of images in epoch2")
+                << EAMC(aImgList1,"ImgList1: All RGB images in epoch1 (Dir+Pattern, or txt file of image list)")
+                << EAMC(aImgList2,"ImgList2: All RGB images in epoch2 (Dir+Pattern, or txt file of image list)")
+                << EAMC(aDSMDirL,"DSM direcotry of epoch1")
+                << EAMC(aDSMDirR,"DSM direcotry of epoch2"),
+        LArgMain()
+                    << aCAS3D.ArgBasic()
+               << EAM(aImgPair,"Pair",true,"XML-File of image pair (if this parameter is defined, the input image pairs will be defnied by this instead of ImgList1 and ImgList2 will be ), Def=none")
+               << EAM(aInSH,"InSH",true,"Input Homologue extenion for NB/NT mode, Def=none")
+
+               << EAM(aDSMFileL, "DSMFileL", true, "DSM File of epoch1, Def=MMLastNuage.xml")
+               << EAM(aDSMFileR, "DSMFileR", true, "DSM File of epoch2, Def=MMLastNuage.xml")
+               << EAM(aOrthoDirL, "OrthoDirL", true, "Orthophoto directory of epoch1 (if this parameter is set, it means the tie points are on orthophotos instead of DSMs), Def=none")
+               << EAM(aOrthoDirR, "OrthoDirR", true, "Orthophoto directory of epoch2 (if this parameter is set, it means the tie points are on orthophotos instead of DSMs), Def=none")
+               << EAM(aOrthoFileL, "OrthoFileL", true, "Orthophoto file of epoch1, Def=Orthophotomosaic.tif")
+               << EAM(aOrthoFileR, "OrthoFileR", true, "Orthophoto file of epoch2, Def=Orthophotomosaic.tif")
+    );
+
+   StdCorrecNameOrient(aOri1,"./",true);
+   StdCorrecNameOrient(aOri2,"./",true);
+
+   cTransform3DHelmert aTrans3DHL("");
+
+   std::vector<std::string> aVIm1;
+   std::vector<std::string> aVIm2;
+   if (ELISE_fp::exist_file(aCAS3D.mDir+"/"+aImgPair) == true)
+   {
+       GetXmlImgPair(aCAS3D.mDir+"/"+aImgPair, aVIm1, aVIm2);
+   }
+   else
+   {
+       std::vector<std::string> aVIm1Tmp;
+       std::vector<std::string> aVIm2Tmp;
+       GetImgListVec(aImgList1, aVIm1Tmp);
+       GetImgListVec(aImgList2, aVIm2Tmp);
+       for(int i=0; i<int(aVIm1Tmp.size()); i++){
+           for(int j=0; j<int(aVIm1Tmp.size()); j++){
+               aVIm1.push_back(aVIm1Tmp[i]);
+               aVIm2.push_back(aVIm2Tmp[j]);
+           }
+       }
+   }
+
+   GetOrthoHom(aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mDir, aVIm1, aVIm2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aInSH, aCAS3D.mPrint, aTrans3DHL, aOrthoDirL, aOrthoDirR, aOrthoFileL, aOrthoFileR);
+   cout<<aVIm1.size()<<" image pairs processed."<<endl;
 
    return EXIT_SUCCESS;
 }
@@ -458,6 +627,8 @@ int CoReg_GlobalR3D_main(int argc,char ** argv)
 
    std::string aOutput_dir = "";
 
+   double aR3DThreshold = -1;
+
    bool bRotHyp = false;
    std::string aOutSH = "-SIFT2Step";
    std::string aOriOut = "";
@@ -476,7 +647,7 @@ int CoReg_GlobalR3D_main(int argc,char ** argv)
                     << aCAS3D.ArgBasic()
                     << EAM(aFeature,"Feature",true,"Feature matching method used for matching (SuperGlue or SIFT), Def=SuperGlue")
                << EAM(aImgPair,"Pair",true,"XML-File of image pair (if this parameter is defined, the input image pairs will be defnied by this instead of ImgList1 and ImgList2 will be ), Def=none")
-
+               << EAM(aR3DThreshold,"3DRANTh",true,"3D RANSAC threshold, Def=30*(GSD of secondary image)")
                << aCAS3D.ArgSuperGlue()
                << EAM(aOutput_dir, "OutDir", true, "The output directory of the match results of SuperGlue, Def=InDir")
                << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
@@ -546,6 +717,7 @@ int CoReg_GlobalR3D_main(int argc,char ** argv)
    std::string aOptPara = " SaveGCP=1";
    aOptPara += " InSH="+aInSH;
    aOptPara += " Pair="+aImgPair;
+   aOptPara += " 3DRANTh="+ToString(aR3DThreshold);
    aComm = MMBinFile(MM3DStr) + "TestLib GlobalR3D " + aOri1 + BLANK + aOri2 + " none none " + aDSMDirL + BLANK + aDSMDirR + aOptPara;
    cout<<aComm<<endl;
    if(aExe)
@@ -564,3 +736,129 @@ int CoReg_GlobalR3D_main(int argc,char ** argv)
    return EXIT_SUCCESS;
 }
 
+void PileImgs(std::string aDir, std::vector<std::string> aVIm1, std::string aOri1, std::string aImgList, std::string aTfwFile, cInterfChantierNameManipulateur * aICNM, std::string aResDir)
+{
+    std::vector<double> aTmp;
+    ReadTfw(aTfwFile, aTmp);
+    Pt2dr aOrthoResolPlani = Pt2dr(aTmp[0], aTmp[3]);
+    Pt2dr aOrthoOriPlani = Pt2dr(aTmp[4], aTmp[5]);
+
+    FILE * fpImgList = fopen((aResDir+aImgList).c_str(), "w");
+    for(int i=0; i<int(aVIm1.size()); i++)
+    {
+        std::string aImg1 = aVIm1[i];
+        Tiff_Im aRGBIm1((aDir+aImg1).c_str());
+        Pt2di ImgSzL = aRGBIm1.sz();
+
+        std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
+        cGet3Dcoor a3DCoorL(aIm1OriFile);
+
+        Pt2dr origin = Pt2dr(0,0);
+        Pt2dr aPCornerL[4];
+        aPCornerL[0] = origin;
+        aPCornerL[1] = Pt2dr(origin.x+ImgSzL.x, origin.y);
+        aPCornerL[2] = Pt2dr(origin.x+ImgSzL.x, origin.y+ImgSzL.y);
+        aPCornerL[3] = Pt2dr(origin.x, origin.y+ImgSzL.y);
+
+        std::string aTxt = StdPrefix(aImg1)+"_PseudoOrtho.txt";
+        fprintf(fpImgList, "%s\n", (StdPrefix(aTxt)+".tif").c_str());
+
+        FILE * fpOutput = fopen((aDir+"/"+aTxt).c_str(), "w");
+        for(int j=0; j<4; j++)
+        {
+            Pt2dr aP1 = aPCornerL[j];
+
+            Pt3dr aPTer1 = a3DCoorL.GetRough3Dcoor(aP1);//, a3DCoorL.GetGSD());
+
+            Pt2dr aPtOrtho;
+            aPtOrtho.x = (aPTer1.x - aOrthoOriPlani.x)/aOrthoResolPlani.x;
+            aPtOrtho.y = (aPTer1.y - aOrthoOriPlani.y)/aOrthoResolPlani.y;
+
+            fprintf(fpOutput, "%lf %lf %lf %lf\n", aPtOrtho.x, aPtOrtho.y, aPCornerL[j].x, aPCornerL[j].y);
+        }
+        fclose(fpOutput);
+
+        std::string aTif = StdPrefix(aTxt)+".tif";
+        std::string aComm = MMBinFile(MM3DStr) + "TestLib OneReechFromAscii " + aImg1 + BLANK + aTxt + " Show=1 Out=" + aTif;
+        cout<<aComm<<endl;
+        System(aComm);
+
+        aComm = "mv "+aDir+"/"+aTxt+" "+aResDir+aTxt;
+        cout<<aComm<<endl;
+        System(aComm);
+
+        aComm = "mv "+aDir+"/"+aTif+" "+aResDir+aTif;
+        cout<<aComm<<endl;
+        System(aComm);
+    }
+    fclose(fpImgList);
+}
+
+int PileImgs_main(int argc,char ** argv)
+{
+    cCommonAppliTiepHistorical aCAS3D;
+
+    std::string aFullPattern1;
+
+    std::string aOri1;
+
+    std::string aTfwFile = "";
+    std::string aTifFile = "";
+    std::string aOrthoDir = "";
+
+    std::string aImgList = "";
+
+    ElInitArgMain
+     (
+         argc,argv,
+         LArgMain()   << EAMC(aFullPattern1,"Image name (Dir+Pattern, or txt file of image list)")
+                << EAMC(aOri1,"Orientation of images")
+                << EAMC(aOrthoDir,"OrthoDir: Orthophoto directory"),
+         LArgMain()
+                << aCAS3D.ArgBasic()
+                //<< EAM(aOrthoDir, "OrthoDir", true, "Orthophoto directory, Def=none")
+                //<< EAM(aTfwFile,"TfwFile",true,"Tfw file to transform 3D points to 2D points on pseudo orthophoto, Def=none")
+                << EAM(aImgList,"ImgList",true,"Output file name to record the output image list, Def=ImgList-'OrthoDir'.txt")
+    );
+
+    StdCorrecNameOrient(aOri1,"./",true);
+
+    if(aImgList.length() == 0)
+        aImgList = "ImgList-"+aOrthoDir+".txt";
+
+    std::string aFile = "Orthophotomosaic.tif";
+    //aTifFile = "PseudoOrtho_"+StdPrefix(aImgList)+"."+StdPostfix(aFile);
+    aTifFile = aOrthoDir+"."+StdPostfix(aFile);
+    std::string strCpImg = "cp "+aCAS3D.mDir+"/"+aOrthoDir+"/"+aFile+" "+aCAS3D.mDir+"/"+aTifFile;
+    cout<<strCpImg<<endl;
+    System(strCpImg);
+
+    aFile = "Orthophotomosaic.tfw";
+    //aTfwFile = "PseudoOrtho_"+StdPrefix(aImgList)+"."+StdPostfix(aFile);
+    aTfwFile = aOrthoDir+"."+StdPostfix(aFile);
+    strCpImg = "cp "+aCAS3D.mDir+"/"+aOrthoDir+"/"+aFile+" "+aCAS3D.mDir+"/"+aTfwFile;
+    cout<<strCpImg<<endl;
+    System(strCpImg);
+
+    std::vector<std::string> aVIm1;
+    GetImgListVec(aFullPattern1, aVIm1);
+
+    std::string aResDir = aCAS3D.mDir + "/Tmp_PileImg/";
+    if(ELISE_fp::exist_file(aResDir) == false)
+        ELISE_fp::MkDir(aResDir);
+
+    PileImgs(aCAS3D.mDir, aVIm1, aOri1, aImgList, aTfwFile,aCAS3D.mICNM, aResDir);
+
+    strCpImg = "mv "+aCAS3D.mDir+"/"+aTifFile+" "+aResDir+"/"+aTifFile;
+    cout<<strCpImg<<endl;
+    System(strCpImg);
+
+    strCpImg = "mv "+aCAS3D.mDir+"/"+aTfwFile+" "+aResDir+"/"+aTfwFile;
+    cout<<strCpImg<<endl;
+    System(strCpImg);
+
+    std::string aComm = "python3 /home/lulin/Documents/Code/PileImages.py --OutImg "+aTifFile+" --ImgList "+aImgList+" --DirName "+aResDir;
+    cout<<aComm<<endl;
+
+    return EXIT_SUCCESS;
+}

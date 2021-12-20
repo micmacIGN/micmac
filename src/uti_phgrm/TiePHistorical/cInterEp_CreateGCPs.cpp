@@ -102,29 +102,17 @@ bool Get3DCoorFromOrthoDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D,
     );
 
     std::string tfwFile = aOrthoDir+"/"+StdPrefix(aOrthoFile)+".tfw";
-    if (ELISE_fp::exist_file(tfwFile) == false){
-        cout<<tfwFile<<" didn't exist, hence skipped."<<endl;
-        return false;
-    }
-
-    ifstream in(tfwFile);
-    std::string s;
-    double aTmp[6];
-    int idx = 0;
-    while(getline(in,s))
-    {
-        std::stringstream is(s);
-        is>>aTmp[idx];
-        idx++;
-    }
+    std::vector<double> aTmp;
+    ReadTfw(tfwFile, aTmp);
+    Pt2dr aOrthoResolPlani = Pt2dr(aTmp[0], aTmp[3]);
+    Pt2dr aOrthoOriPlani = Pt2dr(aTmp[4], aTmp[5]);
 
     cFileOriMnt aFOM = StdGetFromPCP(aDSMDir+StdPrefix(aImProfPx.Image())+".xml",FileOriMnt);
 
     Pt2dr aDSMOriPlani = aFOM.OriginePlani();
     Pt2dr aDSMResolPlani = aFOM.ResolutionPlani();
 
-    Pt2dr aOrthoResolPlani = Pt2dr(aTmp[0], aTmp[3]);
-    Pt2dr aOrthoOriPlani = Pt2dr(aTmp[4], aTmp[5]);
+
     printf("%s; aDSMSz: [%d, %d]; aOrthoOriPlani: [%.6lf, %.6lf]; aOrthoResolPlani: [%.6lf, %.6lf]\n", aImName.c_str(), aDSMSz.x, aDSMSz.y, aOrthoOriPlani.x, aOrthoOriPlani.y, aOrthoResolPlani.x, aOrthoResolPlani.y);
 
     for(unsigned int i=0; i<vPt2D.size(); i++)
@@ -144,6 +132,7 @@ bool Get3DCoorFromOrthoDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D,
 
         vPt3D.push_back(Pt3dr(dX, dY, dZ));
     }
+    printf("%d tie points processed\n", int(vPt2D.size()));
     return true;
 }
 
@@ -193,6 +182,7 @@ void Get3DCoorFromDSM(std::vector<Pt2dr> vPt2D, std::vector<Pt3dr> & vPt3D, std:
 
         vPt3D.push_back(Pt3dr(dX, dY, dZ));
     }
+    printf("%d tie points processed\n", int(vPt2D.size()));
 }
 
 void Save3DTxt(std::vector<Pt3dr> vPt3D, std::string aOutTxt)
@@ -395,6 +385,11 @@ void InlierRatio(std::string aDSMGrayImgDir, std::string aTransFile, std::string
         Get3DCoorFromDSM(vPt2DR, vPt3DR, aDSMDirR, aDSMFileR);
     }
 
+    if (ELISE_fp::exist_file(aTransFile) == false){
+        printf("%s not exist, hence skipped\n", aTransFile.c_str());
+        return;
+    }
+
     cXml_ParamBascRigide  *  aXBR = OptStdGetFromPCP(aTransFile,Xml_ParamBascRigide);
     cSolBasculeRig aSBR = Xml2EL(*aXBR);
     int nPtNum = vPt3DL.size();
@@ -524,19 +519,19 @@ int EvalOri_main(int argc,char ** argv)
     Pt3dr aAve = Pt3dr(0,0,0);
     for(int i=0; i<nSz; i++){
         Pt3dr ptTmp = aVPt1[i];
-        printf("PtRef: [%.2lf, %.2lf, %.2lf]; ", ptTmp.x, ptTmp.y, ptTmp.z);
+        printf("PtRef: [%.5lf, %.5lf, %.5lf]; ", ptTmp.x, ptTmp.y, ptTmp.z);
         ptTmp = aVPt2[i];
-        printf("PtEstimated: [%.2lf, %.2lf, %.2lf]; ", ptTmp.x, ptTmp.y, ptTmp.z);
+        printf("PtEstimated: [%.5lf, %.5lf, %.5lf]; ", ptTmp.x, ptTmp.y, ptTmp.z);
         Pt3dr ptTmp1 = aVPt1[i];
-        printf("Diff: [%.2lf, %.2lf, %.2lf]\n", fabs(ptTmp.x-ptTmp1.x), fabs(ptTmp.y-ptTmp1.y), fabs(ptTmp.z-ptTmp1.z));
+        printf("Diff: [%.5lf, %.5lf, %.5lf]\n", fabs(ptTmp.x-ptTmp1.x), fabs(ptTmp.y-ptTmp1.y), fabs(ptTmp.z-ptTmp1.z));
         aAve.x += fabs(aVPt1[i].x-aVPt2[i].x);
         aAve.y += fabs(aVPt1[i].y-aVPt2[i].y);
         aAve.z += fabs(aVPt1[i].z-aVPt2[i].z);
     }
     printf("--------------------------\n");
-    //printf("aAve: [%.2lf, %.2lf, %.2lf]\n", aAve.x, aAve.y, aAve.z);
+    //printf("aAve: [%.5lf, %.5lf, %.5lf]\n", aAve.x, aAve.y, aAve.z);
     aAve = aAve/3;
-    printf("aAve: [%.2lf, %.2lf, %.2lf]  %.2lf\n", aAve.x, aAve.y, aAve.z, (aAve.x+aAve.y+aAve.z)*1.0/3);
+    printf("aAve: [%.5lf, %.5lf, %.5lf]  %.5lf\n", aAve.x, aAve.y, aAve.z, (aAve.x+aAve.y+aAve.z)*1.0/3);
 
     return EXIT_SUCCESS;
 }
