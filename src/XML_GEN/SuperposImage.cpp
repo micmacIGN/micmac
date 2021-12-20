@@ -196,6 +196,8 @@ eTypeImporGenBundle  Str2eTypeImporGenBundle(const std::string & aName)
       return eTIGB_MMOriGrille;
    else if (aName=="eTIGB_MMEuclid")
       return eTIGB_MMEuclid;
+   else if (aName=="eTIGB_MMDimap3")
+      return eTIGB_MMDimap3;
    else if (aName=="eTIGB_MMDimap2")
       return eTIGB_MMDimap2;
    else if (aName=="eTIGB_MMDimap1")
@@ -235,6 +237,8 @@ std::string  eToString(const eTypeImporGenBundle & anObj)
       return  "eTIGB_MMOriGrille";
    if (anObj==eTIGB_MMEuclid)
       return  "eTIGB_MMEuclid";
+   if (anObj==eTIGB_MMDimap3)
+      return  "eTIGB_MMDimap3";
    if (anObj==eTIGB_MMDimap2)
       return  "eTIGB_MMDimap2";
    if (anObj==eTIGB_MMDimap1)
@@ -273,7 +277,7 @@ void  BinaryUnDumpFromFile(eTypeImporGenBundle & anObj,ELISE_fp & aFp)
    anObj=(eTypeImporGenBundle) aIVal;
 }
 
-std::string  Mangling( eTypeImporGenBundle *) {return "7261BB7CC1F03DB1FE3F";};
+std::string  Mangling( eTypeImporGenBundle *) {return "00ACA8D2D86E7CEAFCBF";};
 
 eTypeModeNO  Str2eTypeModeNO(const std::string & aName)
 {
