@@ -1785,6 +1785,12 @@ void AutoDetermineTypeTIGB(eTypeImporGenBundle & aType,const std::string & aName
                             aType = eTIGB_MMDimap2;
                             return;
                         }
+                        else if (aStrVersion == "3.0")
+                        {
+                            //std::cout << "GOT DIMAP3 \n"; getchar();
+                            aType = eTIGB_MMDimap3;
+                            return;
+                        }
                         else
                         {
                             cElXMLTree * aXmlMETADATA_VERSION = aTree->Get("METADATA_VERSION");
@@ -1912,7 +1918,8 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
              return BasicCamOrientGenFromFile(aName);
         }
     }
-    else if (aType==eTIGB_MMDimap2 || 
+    else if (aType==eTIGB_MMDimap3 || 
+             aType==eTIGB_MMDimap2 || 
              aType==eTIGB_MMDGlobe || 
              aType==eTIGB_MMEuclid || 
              aType==eTIGB_MMIkonos || 
@@ -1942,6 +1949,7 @@ cBasicGeomCap3D * cBasicGeomCap3D::StdGetFromFile(const std::string & aName,int 
          switch (aTrueType)
          {
                 case eTIGB_MMDGlobe : 
+                case eTIGB_MMDimap3 :
                 case eTIGB_MMDimap2 :
                 case eTIGB_MMEuclid :
                 case eTIGB_MMIkonos :

@@ -397,6 +397,8 @@ class cRPC
                        double (&aInvSNum)[20], double (&aInvLNum)[20],
                        double (&aInvSDen)[20], double (&aInvLDen)[20]);
 
+	void SetType(const eTypeImporGenBundle& aT) { mType=aT; };
+
         bool ISDIR;
         bool ISINV;
         bool ISMETER;
@@ -425,7 +427,8 @@ class cRPC
 
         std::string mName;
 
-
+	/* RPC type */
+        eTypeImporGenBundle mType;
 };
 
 class cRPCVerf
