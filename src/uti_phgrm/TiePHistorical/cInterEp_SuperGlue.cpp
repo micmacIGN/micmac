@@ -360,8 +360,8 @@ int SuperGlue_main(int argc,char ** argv)
                is>>aImg1>>aImg2;
 
                std::string aImg2_Rotate = StdPrefix(aImg2)+aRotate[i]+"."+StdPostfix(aImg2);
-               if (ELISE_fp::exist_file(aImg2_Rotate) == false)
-                   RotateImgBy90DegNTimes(aCAS3D.mDir, aImg2, aImg2_Rotate, i+1);
+               if (ELISE_fp::exist_file(input_dir+"/"+aImg2_Rotate) == false)
+                   RotateImgBy90DegNTimes(input_dir, aImg2, aImg2_Rotate, i+1);
                CmmdRmFilesVec.push_back(aImg2_Rotate);
 
                fprintf(fpOutput, "%s %s\n", aImg1.c_str(), aImg2_Rotate.c_str());

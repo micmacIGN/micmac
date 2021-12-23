@@ -336,12 +336,14 @@ LArgMain & cCommonAppliTiepHistorical::ArgCreateGCPs()
         return * mArgCreateGCPs;
 }
 
-void cCommonAppliTiepHistorical::CorrectXmlFileName(std::string aCreateGCPsInSH)
+void cCommonAppliTiepHistorical::CorrectXmlFileName(std::string aCreateGCPsInSH, std::string aOri1, std::string aOri2)
 {
-    if(mOut2DXml1.length() == 0)			mOut2DXml1 = "OutGCP2D" + aCreateGCPsInSH + "_epoch1.xml";
-    if(mOut2DXml2.length() == 0)			mOut2DXml2 = "OutGCP2D" + aCreateGCPsInSH + "_epoch2.xml";
-    if(mOut3DXml1.length() == 0)			mOut3DXml1 = "OutGCP3D" + aCreateGCPsInSH + "_epoch1.xml";
-    if(mOut3DXml2.length() == 0)			mOut3DXml2 = "OutGCP3D" + aCreateGCPsInSH + "_epoch2.xml";
+    aOri1 = RemoveOri(aOri1);
+    aOri2 = RemoveOri(aOri2);
+    if(mOut2DXml1.length() == 0)			mOut2DXml1 = "OutGCP2D" + aCreateGCPsInSH + "_"+aOri1+ "_"+aOri2+".xml";
+    if(mOut2DXml2.length() == 0)			mOut2DXml2 = "OutGCP2D" + aCreateGCPsInSH + "_"+aOri2+ "_"+aOri1+".xml";
+    if(mOut3DXml1.length() == 0)			mOut3DXml1 = "OutGCP3D" + aCreateGCPsInSH + "_"+aOri1+ "_"+aOri2+".xml";
+    if(mOut3DXml2.length() == 0)			mOut3DXml2 = "OutGCP3D" + aCreateGCPsInSH + "_"+aOri2+ "_"+aOri1+".xml";
 }
 
 std::string cCommonAppliTiepHistorical::ComParamDSM_Equalization()
@@ -725,13 +727,23 @@ void cAppliTiepHistoricalPipeline::DoAll()
             cout<<strCpImg<<endl;
             if(mExe)            System(strCpImg);
 
-            std::string aInSH = "-SIFT";
-            StdCom("Tapioca MulScale ", "\"" + aOutDir + "/" + aDSMImgGrayNameRenamedL + "|" + aDSMImgGrayNameRenamedR + "\" 500 2000 ExpTxt=1 PostFix="+aInSH, mExe);
+            std::string aRANSACOutSH;
 
-            aCom = "";
-            if (!EAMIsInit(&mCAS3D.mR2DInSH))   aCom +=  " 2DRANInSH=" + aInSH;
-            std::string aRANSACOutSH = aInSH + "-2DRANSAC";
-            StdCom("TestLib RANSAC R2D", aDSMImgGrayNameRenamedL + BLANK + aDSMImgGrayNameRenamedR + BLANK + "Dir=" + aOutDir+"/" + BLANK + aCom + BLANK + mCAS3D.ComParamRANSAC2D(), mExe);
+            if (0){
+                std::string aInSH = "-SIFT";
+                StdCom("Tapioca MulScale ", "\"" + aOutDir + "/" + aDSMImgGrayNameRenamedL + "|" + aDSMImgGrayNameRenamedR + "\" 500 2000 ExpTxt=1 PostFix="+aInSH, mExe);
+
+                aCom = "";
+                if (!EAMIsInit(&mCAS3D.mR2DInSH))   aCom +=  " 2DRANInSH=" + aInSH;
+                aRANSACOutSH = aInSH + "-2DRANSAC";
+                StdCom("TestLib RANSAC R2D", aDSMImgGrayNameRenamedL + BLANK + aDSMImgGrayNameRenamedR + BLANK + "Dir=" + aOutDir+"/" + BLANK + aCom + BLANK + mCAS3D.ComParamRANSAC2D(), mExe);
+            }
+            else{
+                StdCom("TestLib SIFT2Step ", aDSMImgGrayNameRenamedL + BLANK + aDSMImgGrayNameRenamedR + " Skip2ndSIFT=1 Dir="+aOutDir, mExe);
+
+                aRANSACOutSH = "-SIFT2Step-Rough-2DRANSAC";
+            }
+
             int nInlier = GetTiePtNum(aOutDir, aDSMImgGrayNameRenamedL, aDSMImgGrayNameRenamedR, aRANSACOutSH);
             cout<<aRANSACOutSH<<","<<nInlier<<endl;
 
@@ -755,7 +767,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
         StdCom("TestLib CreateGCPs", aOutDir + BLANK + aDSMImgGrayNameRenamedL + BLANK + aDSMImgGrayNameRenamedR + BLANK + mCAS3D.mDir + BLANK + mImgList1 + BLANK + mImgList2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + mDSMDirL + BLANK + mDSMDirR + aCom + mCAS3D.ComParamCreateGCPs(), mExe);
 
 
-        mCAS3D.CorrectXmlFileName(aFinalOutSH);
+        mCAS3D.CorrectXmlFileName(aFinalOutSH, mOri1, mOri2);
         /**************************************/
         /* 1.7 - GCPBascule for rough co-registration */
         /**************************************/
@@ -1187,10 +1199,13 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
    //mCoRegOri = mOri2;
    if(mCoRegOri1.length() == 0)
        mCoRegOri1 = mOri1 + "_CoReg_" + mFeature;
+
+   mCoRegOri1 = RemoveOri(mCoRegOri1);
+   /*
    StdCorrecNameOrient(mCoRegOri1,"./",true);
    if(mCoRegOri1.substr(0,4) == "Ori-")
        mCoRegOri1 = mCoRegOri1.substr(4, mCoRegOri1.length()-4);
-
+    */
    if(mPreciseBufferSz.x < 0 && mPreciseBufferSz.y < 0){
        mPreciseBufferSz.x = int(0.1*mPrecisePatchSz.x);
        mPreciseBufferSz.y = int(0.1*mPrecisePatchSz.y);
@@ -1205,6 +1220,14 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
    StdCorrecNameOrient(mOri,mCAS3D.mDir,true);
 }
 
+std::string RemoveOri(std::string aOri)
+{
+    StdCorrecNameOrient(aOri,"./",true);
+    while(aOri.substr(0,4) == "Ori-")
+        aOri = aOri.substr(4, aOri.length()-4);
+
+    return aOri;
+}
 
 /*******************************************/
 /****** cTransform3DHelmert  ******/
@@ -1804,7 +1827,7 @@ std::string ExtractSIFT(std::string aImgName, std::string aDir, double dScale)
     }
 
     std::string aComm;
-    aComm = MMBinFile(MM3DStr) + "PastDevlop " + aImgName + " Sz1=" + ToString(nSz1) +" Sz2=-1";
+    aComm = MMBinFile(MM3DStr) + "PastDevlop " + aDir+"/"+aImgName + " Sz1=" + ToString(nSz1) +" Sz2=-1";
     cout<<aComm<<endl;
     System(aComm);
 
@@ -2355,10 +2378,11 @@ bool GetImgBoundingBox(std::string aRGBImgDir, std::string aImg1, cBasicGeomCap3
 
 void RotateImgBy90Deg(std::string aDir, std::string aImg1, std::string aNameOut)
 {
-    cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aImg1));
+    cout<<aDir<<endl;
+    cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aDir+"/"+aImg1));
     //cout<<aImg1<<endl;
 
-    Tiff_Im::StdConvGen(aImg1,1,false,true);
+    Tiff_Im::StdConvGen(aDir+"/"+aImg1,1,false,true);
 
     std::string aGrayImgName = aImg1 + "_Ch1.tif";
     bool bRGB = false;
@@ -2366,7 +2390,7 @@ void RotateImgBy90Deg(std::string aDir, std::string aImg1, std::string aNameOut)
     if( ELISE_fp::exist_file(aDir + "/Tmp-MM-Dir/" + aGrayImgName) == true)
     {
         bRGB = true;
-        std::string aComm = "mv " + aDir + "/Tmp-MM-Dir/" + aGrayImgName + " " + aGrayImgName;
+        std::string aComm = "mv " + aDir + "/Tmp-MM-Dir/" + aGrayImgName + " " + aDir+"/"+aGrayImgName;
         cout<<aComm<<endl;
         System(aComm);
         aImg1 = aGrayImgName;
@@ -2414,7 +2438,7 @@ void RotateImgBy90Deg(std::string aDir, std::string aImg1, std::string aNameOut)
     );
 
     if(bRGB == true){
-        std::string aComm = "rm " + aGrayImgName;
+        std::string aComm = "rm " + aDir+"/"+aGrayImgName;
         cout<<aComm<<endl;
         System(aComm);
     }
@@ -2505,6 +2529,14 @@ void ReadTfw(std::string tfwFile, std::vector<double>& aTmp)
         idx++;
     }
 }
+
+void SaveTfw(std::string tfwFile, Pt2dr aOrthoResolPlani, Pt2dr aOrthoOriPlani)
+{
+    FILE * fpOutput = fopen(tfwFile.c_str(), "w");
+    fprintf(fpOutput, "%lf\n0\n0\n%lf\n%lf\n%lf\n", aOrthoResolPlani.x, aOrthoResolPlani.y, aOrthoOriPlani.x, aOrthoOriPlani.y);
+    fclose(fpOutput);
+}
+
 /*
 void ExtractSIFT(std::string aFullName, std::string aDir)
 {

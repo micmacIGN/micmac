@@ -175,7 +175,7 @@ class cCommonAppliTiepHistorical
 
         cInterfChantierNameManipulateur * mICNM;
 
-        void CorrectXmlFileName(std::string aCreateGCPsInSH);
+        void CorrectXmlFileName(std::string aCreateGCPsInSH, std::string aOri1, std::string aOri2);
 
         std::string GetFolderName(std::string strIn);
 
@@ -430,6 +430,8 @@ std::string GetImgList(std::vector<std::string> aVIm);
 std::string GetImgList(std::string aDir, std::string aFileName, bool bExe);
 void GetUniqImgList(std::vector<std::string> aInput, std::vector<std::string>& aOutput);
 void ReadTfw(std::string tfwFile, std::vector<double>& aTmp);
+void SaveTfw(std::string tfwFile, Pt2dr aOrthoResolPlani, Pt2dr aOrthoOriPlani);
+std::string RemoveOri(std::string aOri);
 
 /****************************************/
 /****** cInterEp_RoughCoReg ******/
