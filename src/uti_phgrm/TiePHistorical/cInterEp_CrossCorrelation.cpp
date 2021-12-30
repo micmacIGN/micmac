@@ -224,6 +224,8 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
     CoreaPatchSz.x = aPatchSz.x - aBufferSz.x*2;
     CoreaPatchSz.y = aPatchSz.y - aBufferSz.y*2;
 
+    printf("PatchSz: [%.2lf, %.2lf]; BufferSz: [%.2lf, %.2lf]; CoreaPatchSz: [%.2lf, %.2lf]\n", aPatchSz.x, aPatchSz.y, aBufferSz.x, aBufferSz.y, CoreaPatchSz.x, CoreaPatchSz.y);
+
     Pt2dr PatchNum;
     PatchNum.x = ceil(ImgSzL.x*1.0/CoreaPatchSz.x);
     PatchNum.y = ceil(ImgSzL.y*1.0/CoreaPatchSz.y);
@@ -241,31 +243,48 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
     std::vector<ElCplePtsHomologues> inlier;
     int nPtNum = 0;
     int nOutOfBorder = 0;
+    int nOutlier = 0;
     for (ElPackHomologue::iterator itCpl=aPackFull.begin(); itCpl!=aPackFull.end() ; itCpl++)
     {
         Pt2dr aP1, aP2;
         aP1 = itCpl->ToCple().P1();
         aP2 = itCpl->ToCple().P2();
 
+        //first try, get a patch index simply based on corePatchSz
         int aIdxX, aIdxY, aIdxL, aIdxR;
         aIdxX = int(aP1.x/CoreaPatchSz.x);
         aIdxY = int(aP1.y/CoreaPatchSz.y);
         aIdxL = aIdxX*PatchNum.y + aIdxY;
         aIdxR = aIdxL;
+
         cElHomographie  aH1 = vHomoL[aIdxL].Inverse();
         cElHomographie  aH2 = vHomoR[aIdxR].Inverse();
 
-        Pt2dr aP1InPatch, aP2InPatch;
+        if(0){
+            printf("------------------------------------------------\n");
+            printf("PatchSz: [%.2lf, %.2lf]; BufferSz: [%.2lf, %.2lf]; CoreaPatchSz: [%.2lf, %.2lf]; PatchNum: [%.2lf, %.2lf]\n", aPatchSz.x, aPatchSz.y, aBufferSz.x, aBufferSz.y, CoreaPatchSz.x, CoreaPatchSz.y, PatchNum.x, PatchNum.y);
+            printf("Location of patch (2D Index[x,y]): [%d, %d]; 1D Index: %d\n", aIdxX, aIdxY, aIdxL);
+            cElComposHomographie aH = aH1.HX();
+            printf("%.2lf, %.2lf, %.2lf\n", aH.CoeffX(), aH.CoeffY(), aH.Coeff1());
+            aH = aH1.HY();
+            printf("%.2lf, %.2lf, %.2lf\n", aH.CoeffX(), aH.CoeffY(), aH.Coeff1());
+            aH = aH1.HZ();
+            printf("%.2lf, %.2lf, %.2lf\n", aH.CoeffX(), aH.CoeffY(), aH.Coeff1());
+        }
+
+        Pt2dr aP1InPatch, aP2InPatch, aP2InPatch1stTry;
         aP1InPatch = aH1(aP1);
         aP2InPatch = aH2(aP2);
+        aP2InPatch1stTry = aP2InPatch;
 
         nPtNum++;
-        Pt2di res = VerifyPatch(aP2InPatch, aPatchSz, aWindowSize);
+        Pt2di aMove = VerifyPatch(aP2InPatch, aPatchSz, aWindowSize);
 
-        if(res.x != 0 || res.y !=0)
+        //Move to adjecent patch if necessary
+        if(aMove.x != 0 || aMove.y !=0)
         {
-            aIdxX = aIdxX + res.x;
-            aIdxY = aIdxY + res.y;
+            aIdxX = aIdxX + aMove.x;
+            aIdxY = aIdxY + aMove.y;
             aIdxR = aIdxX*PatchNum.y + aIdxY;
             if(aIdxR<0 || aIdxR>=int(vPatchesR.size()))
                 continue;
@@ -293,6 +312,8 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
                 if(bPrint){
                     printf("------Out of border-------\n %dth pt, Original coor: %lf %lf %lf %lf\n", nPtNum, aP1.x, aP1.y, aP2.x, aP2.y);
                     printf("new coor: %lf %lf %lf %lf\n", aP1InPatch.x, aP1InPatch.y, aP2InPatch.x, aP2InPatch.y);
+                    printf("Step to move to adjecent patch: [%d, %d]\n", aMove.x, aMove.y);
+                    printf("aP2InPatch1stTry: [%.2lf, %.2lf]; aP2InPatch2ndTry: [%.2lf, %.2lf]\n", aP2InPatch1stTry.x, aP2InPatch1stTry.y, aP2InPatch.x, aP2InPatch.y);
                     cout<<aPatchDir+"/"+vPatchesL[aIdxL]<<", "<<aPatchDir+"/"+vPatchesR[aIdxR]<<endl;
                 }
                 nOutOfBorder++;
@@ -301,26 +322,15 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
 
             double dCorr = CalcCorssCorr(aPxVal1, aPxVal2, bPrint);
             if(bPrint){
-                /*
-                if(nPtNum == 47){
-                    unsigned int kk;
-                    for(kk=0; kk<aPxVal1.size(); kk++)
-                        printf("%d ", aPxVal1[kk]);
-                    printf("\n");
-                    for(kk=0; kk<aPxVal2.size(); kk++)
-                        printf("%d ", aPxVal2[kk]);
-                    printf("\n");
-                }
-                */
                 printf("%dth pt, Original coor: %.2lf %.2lf %.2lf %.2lf; Coor: %.2lf \n", nPtNum, aP1.x, aP1.y, aP2.x, aP2.y, dCorr);
             }
-
-            //cout<<nPtNum<<"th dCorr: "<<dCorr<<endl;
 
             if(dCorr >= aThreshold)
             {
                 inlier.push_back(ElCplePtsHomologues(aP1, aP2));
             }
+            else
+                nOutlier++;
         }
         else
             printf("%s or %s didn't exist, hence skipped.\n", vPatchesL[aIdxL].c_str(), vPatchesR[aIdxR].c_str());
@@ -347,7 +357,7 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
 
     std::string aCom = "mm3d SEL" + BLANK + aDir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
     std::string aComInv = "mm3d SEL" + BLANK + aDir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-    printf("%s\n%s\nOriginal correspondences: %d; survived correspondences: %d; suirvied ratio: %.2lf\nCorrespondences out of border: %d\n", aCom.c_str(), aComInv.c_str(), nPtNum, int(inlier.size()), int(inlier.size())*1.0/nPtNum, nOutOfBorder);
+    printf("%s\n%s\nOriginal correspondences: %d; survived correspondences: %d; suirvied ratio: %.2lf%%\nOutlier: %d; Correspondences out of border: %d\nInlier+Outlier+OutBorder: %d\n", aCom.c_str(), aComInv.c_str(), nPtNum, int(inlier.size()), int(inlier.size())*100.0/nPtNum, nOutlier, nOutOfBorder, int(inlier.size())+nOutlier+nOutOfBorder);
     //cout<<aCom<<endl;
 
     if(bPrint)

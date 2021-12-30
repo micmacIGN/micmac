@@ -655,8 +655,10 @@ void cAppliTiepHistoricalPipeline::DoAll()
             /**************************************/
             aCom = "";
             //if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
-            if (EAMIsInit(&mCoRegPatchSz))  aCom += " PatchSz=[" + ToString(mCoRegPatchSz.x) + "," + ToString(mCoRegPatchSz.y) + "]";
-            aCom += " BufferSz=[" + ToString(mCoRegBufferSz.x) + "," + ToString(mCoRegBufferSz.y) + "]";
+            if (EAMIsInit(&mCoRegPatchLSz))      aCom += " PatchLSz=[" + ToString(mCoRegPatchLSz.x) + "," + ToString(mCoRegPatchLSz.y) + "]";
+            if (EAMIsInit(&mCoRegBufferLSz))     aCom += " BufferLSz=[" + ToString(mCoRegBufferLSz.x) + "," + ToString(mCoRegBufferLSz.y) + "]";
+            if (EAMIsInit(&mCoRegPatchRSz))      aCom += " PatchRSz=[" + ToString(mCoRegPatchRSz.x) + "," + ToString(mCoRegPatchRSz.y) + "]";
+            if (EAMIsInit(&mCoRegBufferRSz))     aCom += " BufferRSz=[" + ToString(mCoRegBufferRSz.x) + "," + ToString(mCoRegBufferRSz.y) + "]";
             StdCom("TestLib GetPatchPair BruteForce", aDSMImgWallisDirL+"/"+aDSMImgWallisNameL + BLANK + aDSMImgWallisDirR+"/"+aDSMImgWallisNameR + BLANK + aCom + BLANK + "Rotate=" + ToString(mRotateDSM) + BLANK + mCAS3D.ComParamGetPatchPair(), mExe);
 
 
@@ -694,8 +696,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
                 aCom = "";
                 if (!EAMIsInit(&mCAS3D.mHomoXml))   aCom +=  " HomoXml=" + aHomoXml;
                 if (!EAMIsInit(&mCAS3D.mMergeTiePtInSH))   aCom +=  " MergeInSH=" + mCAS3D.mSpGlueOutSH;
-                aCom +=  " PatchSz=[" + ToString(mCoRegPatchSz.x) + "," + ToString(mCoRegPatchSz.y) + "]";
-                aCom +=  " BufferSz=[" + ToString(mCoRegBufferSz.x) + "," + ToString(mCoRegBufferSz.y) + "]";
+                aCom +=  " PatchSz=[" + ToString(mCoRegPatchLSz.x) + "," + ToString(mCoRegPatchLSz.y) + "]";
+                aCom +=  " BufferSz=[" + ToString(mCoRegBufferLSz.x) + "," + ToString(mCoRegBufferLSz.y) + "]";
                 StdCom("TestLib MergeTiePt", aOutDir+"/" + BLANK + aCom + BLANK + mCAS3D.ComParamMergeTiePt(), mExe);
 
 
@@ -739,7 +741,11 @@ void cAppliTiepHistoricalPipeline::DoAll()
                 StdCom("TestLib RANSAC R2D", aDSMImgGrayNameRenamedL + BLANK + aDSMImgGrayNameRenamedR + BLANK + "Dir=" + aOutDir+"/" + BLANK + aCom + BLANK + mCAS3D.ComParamRANSAC2D(), mExe);
             }
             else{
-                StdCom("TestLib SIFT2Step ", aDSMImgGrayNameRenamedL + BLANK + aDSMImgGrayNameRenamedR + " Skip2ndSIFT=1 Dir="+aOutDir, mExe);
+                std::string aCom = "";
+                if (EAMIsInit(&mScaleL))   aCom +=  " ScaleL=" + ToString(mScaleL);
+                if (EAMIsInit(&mScaleR))   aCom +=  " ScaleR=" + ToString(mScaleR);
+
+                StdCom("TestLib SIFT2Step ", aDSMImgGrayNameRenamedL + BLANK + aDSMImgGrayNameRenamedR + " Skip2ndSIFT=1 Dir="+aOutDir + aCom, mExe);
 
                 aRANSACOutSH = "-SIFT2Step-Rough-2DRANSAC";
             }
@@ -795,6 +801,7 @@ void cAppliTiepHistoricalPipeline::DoAll()
     if(mSkipGetOverlappedImages == false)
         StdCom("TestLib GetOverlappedImages", mOri1 + BLANK + mOri2 + BLANK + mImg4MatchList1 + BLANK + mImg4MatchList2 + BLANK + mCAS3D.ComParamGetOverlappedImages() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml", mExe);
 
+    cout<<mCAS3D.mOutPairXml<<endl;
     if (ELISE_fp::exist_file(mCAS3D.mOutPairXml) == false)
     {
         cout<<mCAS3D.mOutPairXml<<" didn't exist because the pipeline is not executed, hence the precise matching commands are not shown here."<<endl;
@@ -826,11 +833,11 @@ void cAppliTiepHistoricalPipeline::DoAll()
         aCom = "";
         //if (!EAMIsInit(&mCAS3D.mOutDir))   aCom +=  " OutDir=" + aOutDir;
         if (!EAMIsInit(&mCAS3D.mSubPatchXml))  aCom +=  " SubPXml=" + aPrefix + mCAS3D.mSubPatchXml;
-        if (!EAMIsInit(&mCAS3D.mImgPair))  aCom +=  " ImgPair=" + aPrefix + mCAS3D.mImgPair;
-        if (EAMIsInit(&mPrecisePatchSz))  aCom += " PatchSz=[" + ToString(mPrecisePatchSz.x) + "," + ToString(mPrecisePatchSz.y) + "]";
-        if (EAMIsInit(&mDyn))  aCom += " Dyn=" + ToString(mDyn);
-        aCom += " BufferSz=[" + ToString(mPreciseBufferSz.x) + "," + ToString(mPreciseBufferSz.y) + "]";
-        if (EAMIsInit(&mReprojTh))  aCom += " Thres=" + ToString(mReprojTh);
+        if (!EAMIsInit(&mCAS3D.mImgPair))   aCom +=  " ImgPair=" + aPrefix + mCAS3D.mImgPair;
+        if (EAMIsInit(&mPrecisePatchSz))    aCom += " PatchSz=[" + ToString(mPrecisePatchSz.x) + "," + ToString(mPrecisePatchSz.y) + "]";
+        if (EAMIsInit(&mDyn))               aCom += " Dyn=" + ToString(mDyn);
+        if (EAMIsInit(&mPreciseBufferSz))    aCom += " BufferSz=[" + ToString(mPreciseBufferSz.x) + "," + ToString(mPreciseBufferSz.y) + "]";
+        if (EAMIsInit(&mReprojTh))          aCom += " Thres=" + ToString(mReprojTh);
         //aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mCoRegOri + BLANK + mCoRegOri + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair(), aExe);
         //printf("%s\t%s\n", aOri1.c_str(), mOri1.c_str());
         aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml" + BLANK + "DSMDirL="+mDSMDirL, aExe);
@@ -967,7 +974,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
             if (EAMIsInit(&mScaleL))   aCom +=  " ScaleL=" + ToString(mScaleL);
             if (EAMIsInit(&mScaleR))   aCom +=  " ScaleR=" + ToString(mScaleR);
             aCom +=  "  CheckFile=" + ToString(mCheckFile);
-            aComSingle = StdCom("TestLib GuidedSIFTMatch", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGuidedSIFTMatch() + BLANK + "Para3DHL=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml" + BLANK + "Para3DHR=Basc-"+aOri2+"-2-"+aOri1+".xml", aExe);
+            //aComSingle = StdCom("TestLib GuidedSIFTMatch", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGuidedSIFTMatch() + BLANK + "Para3DHL=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml" + BLANK + "Para3DHR=Basc-"+aOri2+"-2-"+aOri1+".xml", aExe);
+            aComSingle = StdCom("TestLib GuidedSIFTMatch", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGuidedSIFTMatch() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml", aExe);
 
             aRANSACInSH = mCAS3D.mGuidedSIFTOutSH;
             aComList.push_back(aComSingle);
@@ -979,7 +987,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
         }
         */
         if(mExe && (!mSkipTentativeMatch))
-            cEl_GPAO::DoComInParal(aComList);
+            //cEl_GPAO::DoComInParal(aComList);
+            cEl_GPAO::DoComInSerie(aComList);
     }
     else
     {
@@ -1118,8 +1127,10 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
     mCheckFile = false;
     mImg4MatchList1 = "";
     mImg4MatchList2 = "";
-    mCoRegPatchSz = Pt2dr(640, 480);
-    mCoRegBufferSz = Pt2dr(0, 0);
+    mCoRegPatchLSz = Pt2dr(640, 480);
+    mCoRegBufferLSz = Pt2dr(0, 0);
+    mCoRegPatchRSz = Pt2dr(640, 480);
+    mCoRegBufferRSz = Pt2dr(0, 0);
 
     mPrecisePatchSz = Pt2dr(640, 480);
     mPreciseBufferSz = Pt2dr(-1, -1);
@@ -1169,8 +1180,11 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << EAM(mOrthoFileL, "OrthoFileL", true, "Orthophoto file of epoch1, Def=Orthophotomosaic.tif")
                << EAM(mOrthoFileR, "OrthoFileR", true, "Orthophoto file of epoch2, Def=Orthophotomosaic.tif")
 
-               << EAM(mCoRegPatchSz, "CoRegPatchSz", true, "Patch size of the tiling scheme in rough co-registration part, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
-               << EAM(mCoRegBufferSz, "CoRegBufferSz", true, "Buffer zone size around the patch of the tiling scheme in rough co-registration part, Def=[0, 0]")
+               << EAM(mCoRegPatchLSz, "CoRegPatchLSz", true, "Patch size of the tiling scheme for master image in rough co-registration part, which means the master images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
+               << EAM(mCoRegBufferLSz, "CoRegBufferLSz", true, "Buffer zone size around the patch of the tiling scheme for master image in rough co-registration part, Def=[0, 0]")
+               << EAM(mCoRegPatchRSz, "CoRegPatchRSz", true, "Patch size of the tiling scheme for secondary image in rough co-registration part, which means the secondary images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
+               << EAM(mCoRegBufferRSz, "CoRegBufferRSz", true, "Buffer zone size around the patch of the tiling scheme for secondary image in rough co-registration part, Def=[0, 0]")
+
                << EAM(mPrecisePatchSz, "PrecisePatchSz", true, "Patch size of the tiling scheme in precise matching part, which means the images to be matched by SuperGlue will be split into patches of this size, Def=[640, 480]")
                << EAM(mPreciseBufferSz, "PreciseBufferSz", true, "Buffer zone size around the patch of the tiling scheme in precise matching part, Def=10%*PrecisePatchSz")
                << mCAS3D.ArgDSM_Equalization()
@@ -1233,7 +1247,9 @@ std::string RemoveOri(std::string aOri)
 /****** cTransform3DHelmert  ******/
 /*******************************************/
 
-cTransform3DHelmert::cTransform3DHelmert(std::string aFileName)
+cTransform3DHelmert::cTransform3DHelmert(std::string aFileName):
+    mSBR(cSolBasculeRig::Id()),
+    mSBRInv(cSolBasculeRig::Id())
 {
     //if(aFileName.length() == 0)
     if(ELISE_fp::exist_file(aFileName) == false)
@@ -1251,6 +1267,9 @@ cTransform3DHelmert::cTransform3DHelmert(std::string aFileName)
         mScl = mTransf->Scale();
         mTr = mTransf->Trans();
         //mRot = mTransf->ParamRotation();
+
+        mSBR = Xml2EL(*mTransf);
+        mSBRInv = mSBR.Inv();
     }
 }
 
@@ -1264,17 +1283,29 @@ double cTransform3DHelmert::GetScale()
     return mScl;
 }
 
+cSolBasculeRig cTransform3DHelmert::GetSBR()
+{
+    return mSBR;
+}
+
+cSolBasculeRig cTransform3DHelmert::GetSBRInv()
+{
+    return mSBRInv;
+}
+
 Pt3dr cTransform3DHelmert::Transform3Dcoor(Pt3dr aPt)
 {
     if(mApplyTrans == false)
         return aPt;
     else
     {
+        /*
         Pt3dr aPtBasc(
                     scal(mTransf->ParamRotation().L1() , aPt) * mScl + mTr.x,
                     scal(mTransf->ParamRotation().L2() , aPt) * mScl + mTr.y,
                     scal(mTransf->ParamRotation().L3() , aPt) * mScl + mTr.z
-                     );
+                     );*/
+        Pt3dr aPtBasc = mSBR(aPt);
 
         return aPtBasc;
     }
@@ -1796,9 +1827,14 @@ std::string GetScaledImgName(std::string aImgName, Pt2di ImgSz, double dScale)
 
     //cout<<max(ImgSz.x, ImgSz.y)*1.0/nSz1<<endl;
     double dScaleNm = max(ImgSz.x, ImgSz.y)*1.0/nSz1;
-    int nScaleNm = int(dScaleNm  + 0.5);
-    if(nScaleNm < 10)
-        nScaleNm *= 10;
+
+
+    int nScaleNm = int(dScaleNm*10  + 0.5);
+    /*if(dScaleNm < 9.95){
+        nScaleNm = int(dScaleNm*10  + 0.5);
+    }*/
+
+    //printf("%d, %.2lf, %d\n", nSz1, dScaleNm, nScaleNm);
 
     std::string aImgScaledName = "Resol" + ToString(nScaleNm) + "_Teta0_" + aImgName;
 

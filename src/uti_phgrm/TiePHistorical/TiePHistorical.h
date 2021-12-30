@@ -221,6 +221,9 @@ class cTransform3DHelmert
 
         cTransform3DHelmert(std::string aFileName);
 
+        cSolBasculeRig GetSBR();
+        cSolBasculeRig GetSBRInv();
+
         Pt3dr Transform3Dcoor(Pt3dr aPt);
         double GetScale();
         bool GetApplyTrans();
@@ -230,6 +233,9 @@ private:
         cXml_ParamBascRigide  *  mTransf;
         double mScl;
         Pt3dr mTr;
+
+        cSolBasculeRig mSBR;
+        cSolBasculeRig mSBRInv;
         //cTypeCodageMatr mRot;
 
 };
@@ -366,8 +372,10 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
         bool mSkipRANSAC3D;
         bool mSkipCrossCorr;
 
-        Pt2dr mCoRegPatchSz;
-        Pt2dr mCoRegBufferSz;
+        Pt2dr mCoRegPatchLSz;
+        Pt2dr mCoRegBufferLSz;
+        Pt2dr mCoRegPatchRSz;
+        Pt2dr mCoRegBufferRSz;
 
         Pt2dr mPrecisePatchSz;
         Pt2dr mPreciseBufferSz;
