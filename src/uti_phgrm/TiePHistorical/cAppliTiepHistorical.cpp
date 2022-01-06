@@ -1040,8 +1040,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
     }
     */
     if(mExe && (!mSkipRANSAC3D))
-        //cEl_GPAO::DoComInParal(aComList);
-        cEl_GPAO::DoComInSerie(aComList);
+        cEl_GPAO::DoComInParal(aComList);
+        //cEl_GPAO::DoComInSerie(aComList);
     }
 
     //if(mSkipCrossCorr == false)
