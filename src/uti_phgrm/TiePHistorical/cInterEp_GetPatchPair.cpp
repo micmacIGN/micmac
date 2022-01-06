@@ -332,25 +332,63 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
                 std::string aSubImg2 = aNameSave + "." + StdPostfix(aOutImg2);
                 aNameSave += ".txt";
                 //cout<<aNameSave<<endl;
+                bool aUnValid = false;
+                cElComposHomographie aUnitHX(1, 0, 0);
+                cElComposHomographie aUnitHY(0, 1, 0);
+                cElComposHomographie aUnitHZ(0, 0, 1);
+                cElHomographie  aSndH =  cElHomographie(aUnitHX,aUnitHY,aUnitHZ);
+
                 if(FallInBox(aPCornerR, Pt2dr(0,0), ImgSzR) == true)
                 {
-                    vaImgPair.push_back(aSubImg1 + " " + aSubImg2);
                     //cout<<"fall in box"<<endl;
                     FILE * fpOutput = fopen((aNameSave).c_str(), "w");
-                    for(int i=0; i<4; i++)
+                    int aIdx[4] = {0, 1, 2, 3};
+                    for(int k=0; k<4; k++)
                     {
+                        int i = aIdx[k];
                         fprintf(fpOutput, "%lf %lf %lf %lf\n", aPCornerPatch[i].x, aPCornerPatch[i].y, aPCornerR[i].x, aPCornerR[i].y);
                     }
                     fclose(fpOutput);
 
-                    std::string aComResampleSndImg = aComBaseResample + aImgRef2  + " " + aNameSave + " Out="+aSubImg2 + " Show=true";
-                    cout<<aComResampleSndImg<<endl;
-                    aLComResample.push_back(aComResampleSndImg);
+                    ElPackHomologue aPack = ElPackHomologue::FromFile(aNameSave);
+                    double anEcart,aQuality;
+                    bool Ok;
+                    aSndH = cElHomographie::RobustInit(anEcart,&aQuality,aPack,Ok,50,80.0,2000);
+                    //cElComposHomographie aHx = aSndH.HX();
+                    double aSndHPara[6] = {aSndH.HX().CoeffX(), aSndH.HX().CoeffY(), aSndH.HX().Coeff1(), aSndH.HY().CoeffX(), aSndH.HY().CoeffY(), aSndH.HY().Coeff1()};
+                    for(int p=0; p<6; p++)
+                        aSndHPara[p] = fabs(aSndHPara[p]);
+                    if(false){
+                        for(int p=0; p<6; p++){
+                            printf("%.2lf ", aSndHPara[p]);
+                        }
+                        printf("\n");
+                    }
+                    double aBigFloat = 1000000;
+                    double aSmallFloat = 1.0/aBigFloat;
+                    if(aSndHPara[0] > aBigFloat && aSndHPara[1] > aBigFloat && aSndHPara[2] > aBigFloat && aSndHPara[3] > aBigFloat && aSndHPara[4] > aBigFloat && aSndHPara[5] > aBigFloat)
+                        aUnValid = true;
+                    else if(aSndHPara[0] < aSmallFloat && aSndHPara[1] < aSmallFloat && aSndHPara[2] < aSmallFloat && aSndHPara[3] < aSmallFloat && aSndHPara[4] < aSmallFloat && aSndHPara[5] < aSmallFloat)
+                        aUnValid = true;
 
-                    std::string aMvTxt = "mv "+aNameSave + " "+aOutDir+"/"+aNameSave;
-                    std::string aMvTif = "mv "+aSubImg2 + " "+aOutDir+"/"+aSubImg2;
-                    aComMv.push_back(aMvTxt);
-                    aComMv.push_back(aMvTif);
+                    if(aUnValid == false){
+                        vaImgPair.push_back(aSubImg1 + " " + aSubImg2);
+
+                        std::string aComResampleSndImg = aComBaseResample + aImgRef2  + " " + aNameSave + " Out="+aSubImg2 + " Show=true";
+                        cout<<aComResampleSndImg<<endl;
+                        aLComResample.push_back(aComResampleSndImg);
+
+                        std::string aMvTxt = "mv "+aNameSave + " "+aOutDir+"/"+aNameSave;
+                        std::string aMvTif = "mv "+aSubImg2 + " "+aOutDir+"/"+aSubImg2;
+                        aComMv.push_back(aMvTxt);
+                        aComMv.push_back(aMvTif);
+                    }
+                    else{
+                        printf("Skipped GetPatchPair for image pair (because the overlapping area is too limited): %s %s\n",aImg1.c_str(),aImg2.c_str());
+                        for(int p=0; p<6; p++)
+                            printf("%.2lf ", aSndHPara[p]);
+                        printf("\n");
+                    }
                 }
                 else
                 {
@@ -358,33 +396,31 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
                         cout<<aNameSave<<" out of border, hence the current patch is not saved"<<endl;
                 }
 
-                    //Save the homography, this is copied from function "cAppliReechHomogr::cAppliReechHomogr(int argc,char ** argv)  :" in src/uti_phgrm/CPP_CreateEpip.cpp, where the patch is resampled
-                    ElPackHomologue aPack;
-                    //aPack = ElPackHomologue::FromFile(aNameSave);
                     for(int i=0; i<4; i++)
                     {
                         //aPack.Cple_Add(ElCplePtsHomologues(aPCornerPatch[i], aPCornerR[i]));
                         if(bPrint)
                             printf("aPCornerPatch[%d], aPCornerR[%d]: %.2lf\t%.2lf\t%.2lf\t%.2lf\n", i, i, aPCornerPatch[i].x, aPCornerPatch[i].y, aPCornerR[i].x, aPCornerR[i].y);
                     }
-                    if(ELISE_fp::exist_file(aNameSave))
-                        aPack = ElPackHomologue::FromFile(aNameSave);
-                    else
-                        for(int i=0; i<4; i++)
-                            aPack.Cple_Add(ElCplePtsHomologues(aPCornerPatch[i], aPCornerR[i]));
 
-                    double anEcart,aQuality;
-                    bool Ok;
-                    cElHomographie aSndH = cElHomographie::RobustInit(anEcart,&aQuality,aPack,Ok,50,80.0,2000);
-                    std::cout << "Ecart " << anEcart << " ; Quality " << aQuality    << " \n";
+                    if(aUnValid == false){
+                        if(!ELISE_fp::exist_file(aNameSave)){
+                            ElPackHomologue aPack;
+                            for(int i=0; i<4; i++)
+                                aPack.Cple_Add(ElCplePtsHomologues(aPCornerPatch[i], aPCornerR[i]));
+                            double anEcart,aQuality;
+                            bool Ok;
+                            aSndH = cElHomographie::RobustInit(anEcart,&aQuality,aPack,Ok,50,80.0,2000);
+                        }
 
-                    vPatchesL.push_back(aSubImg1);
-                    vHomoL.push_back(aFstH);
-                    vPatchesR.push_back(aSubImg2);
-                    vHomoR.push_back(aSndH);
-                    if(bPrint){
-                        aFstH.Show();
-                        aSndH.Show();
+                        vPatchesL.push_back(aSubImg1);
+                        vHomoL.push_back(aFstH);
+                        vPatchesR.push_back(aSubImg2);
+                        vHomoR.push_back(aSndH);
+                        if(bPrint){
+                            aFstH.Show();
+                            aSndH.Show();
+                        }
                     }
             }
             //end

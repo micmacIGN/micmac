@@ -46,6 +46,7 @@ extern ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPr
 
 void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double threshold, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, bool bPrint, bool bCheckFile, cTransform3DHelmert aTrans3DHL, int nMinPt)
 {
+    cout<<aImg1<<" "<<aImg2<<endl;
     //printf("iteration number: %d; thresh: %lf\n", aNbTir, threshold);
 
     bool bInverse = false;

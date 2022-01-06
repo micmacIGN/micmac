@@ -987,8 +987,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
         }
         */
         if(mExe && (!mSkipTentativeMatch))
-            //cEl_GPAO::DoComInParal(aComList);
-            cEl_GPAO::DoComInSerie(aComList);
+            cEl_GPAO::DoComInParal(aComList);
+            //cEl_GPAO::DoComInSerie(aComList);
     }
     else
     {
@@ -1040,7 +1040,8 @@ void cAppliTiepHistoricalPipeline::DoAll()
     }
     */
     if(mExe && (!mSkipRANSAC3D))
-        cEl_GPAO::DoComInParal(aComList);
+        //cEl_GPAO::DoComInParal(aComList);
+        cEl_GPAO::DoComInSerie(aComList);
     }
 
     //if(mSkipCrossCorr == false)
@@ -2278,14 +2279,31 @@ cSolBasculeRig RANSAC3DCore(int aNbTir, double threshold, std::vector<Pt3dr> aV1
         }
         while(bDupPt == true);
 
+        /*
+        int aTmp[3] = {44, 49, 40};
+        res[0] = aTmp[0];
+        res[1] = aTmp[1];
+        res[2] = aTmp[2];
+        */
+
         for(i=0; i<3; i++)
         {
             aRBR.AddExemple(aV1[res[i]],aV2[res[i]],0,"");
             inlierCur.push_back(ElCplePtsHomologues(a2dV1[res[i]], a2dV2[res[i]]));
+            /*
+            printf("%dth, seed: %d; [%.2lf, %.2lf, %.2lf]; [%.2lf, %.2lf, %.2lf]\n", i,res[i], aV1[res[i]].x, aV1[res[i]].y, aV1[res[i]].z, aV2[res[i]].x, aV2[res[i]].y, aV2[res[i]].z);
+            printf("[%.2lf, %.2lf]; [%.2lf, %.2lf]\n", a2dV1[res[i]].x, a2dV1[res[i]].y, a2dV2[res[i]].x, a2dV2[res[i]].y);
+            */
         }
+
+
 
         aRBR.CloseWithTrGlob();
         aRBR.ExploreAllRansac();
+        bool aSolIsInit = aRBR.SolIsInit();
+        //printf("Iter: %d/%d, seed: %d, %d, %d; aSolIsInit: %d \n", j, aNbTir, res[0], res[1], res[2], aSolIsInit);
+        if(aSolIsInit == 0)
+            continue;
         aSBR = aRBR.BestSol();
 
         int nInlier =3;
@@ -2310,6 +2328,7 @@ cSolBasculeRig RANSAC3DCore(int aNbTir, double threshold, std::vector<Pt3dr> aV1
             printf("Iter: %d/%d, seed: %d, %d, %d;  ", j, aNbTir, res[0], res[1], res[2]);
             printf("nPtNum: %d, nMaxInlier: %d\n", nPtNum, nMaxInlier);
         }
+
         inlierCur.clear();
     }
     return aSBRBest;
