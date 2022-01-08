@@ -798,8 +798,10 @@ void cAppliTiepHistoricalPipeline::DoAll()
     /**************************************/
     /* 2.1 - GetOverlappedImages */
     /**************************************/
-    if(mSkipGetOverlappedImages == false)
-        StdCom("TestLib GetOverlappedImages", mOri1 + BLANK + mOri2 + BLANK + mImg4MatchList1 + BLANK + mImg4MatchList2 + BLANK + mCAS3D.ComParamGetOverlappedImages() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml", mExe);
+    if(mSkipGetOverlappedImages == false){
+        //StdCom("TestLib GetOverlappedImages", mOri1 + BLANK + mOri2 + BLANK + mImg4MatchList1 + BLANK + mImg4MatchList2 + BLANK + mCAS3D.ComParamGetOverlappedImages() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml", mExe);
+        StdCom("TestLib GetOverlappedImages", mOri1 + BLANK + mOri2 + BLANK + mImg4MatchList1 + BLANK + mImg4MatchList2 + BLANK + mCAS3D.ComParamGetOverlappedImages() + BLANK + "Para3DH="+mPara3DH, mExe);
+    }
 
     cout<<mCAS3D.mOutPairXml<<endl;
     if (ELISE_fp::exist_file(mCAS3D.mOutPairXml) == false)
@@ -840,12 +842,14 @@ void cAppliTiepHistoricalPipeline::DoAll()
         if (EAMIsInit(&mReprojTh))          aCom += " Thres=" + ToString(mReprojTh);
         //aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mCoRegOri + BLANK + mCoRegOri + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair(), aExe);
         //printf("%s\t%s\n", aOri1.c_str(), mOri1.c_str());
-        aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml" + BLANK + "DSMDirL="+mDSMDirL, aExe);
-        aComList.push_back(aComSingle);
+        //aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml" + BLANK + "DSMDirL="+mDSMDirL, aExe);
+        aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH="+mPara3DH + BLANK + "DSMDirL="+mDSMDirL, aExe);
+                aComList.push_back(aComSingle);
 
         if(mUseDepth == true)
         {
-            aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml" + BLANK + "DSMDirL="+mDSMDirL + BLANK + "Prefix=Depth_", aExe);
+            //aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml" + BLANK + "DSMDirL="+mDSMDirL + BLANK + "Prefix=Depth_", aExe);
+            aComSingle = StdCom("TestLib GetPatchPair Guided", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGetPatchPair() + BLANK + "Para3DH="+mPara3DH + BLANK + "DSMDirL="+mDSMDirL + BLANK + "Prefix=Depth_", aExe);
             aComList.push_back(aComSingle);
         }
     }
@@ -975,7 +979,9 @@ void cAppliTiepHistoricalPipeline::DoAll()
             if (EAMIsInit(&mScaleR))   aCom +=  " ScaleR=" + ToString(mScaleR);
             aCom +=  "  CheckFile=" + ToString(mCheckFile);
             //aComSingle = StdCom("TestLib GuidedSIFTMatch", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGuidedSIFTMatch() + BLANK + "Para3DHL=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml" + BLANK + "Para3DHR=Basc-"+aOri2+"-2-"+aOri1+".xml", aExe);
-            aComSingle = StdCom("TestLib GuidedSIFTMatch", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGuidedSIFTMatch() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml", aExe);
+            //aComSingle = StdCom("TestLib GuidedSIFTMatch", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGuidedSIFTMatch() + BLANK + "Para3DH=Basc-"+aOri1+"-2-"+mCoRegOri1+".xml", aExe);
+            aComSingle = StdCom("TestLib GuidedSIFTMatch", aImg1 + BLANK + aImg2 + BLANK + mOri1 + BLANK + mOri2 + BLANK + aCom + BLANK + mCAS3D.ComParamGuidedSIFTMatch() + BLANK + "Para3DH="+mPara3DH, aExe);
+
 
             aRANSACInSH = mCAS3D.mGuidedSIFTOutSH;
             aComList.push_back(aComSingle);
@@ -1145,6 +1151,8 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
 
     mReprojTh = 2;
 
+    mPara3DH = "";
+
    ElInitArgMain
    (
         argc,argv,
@@ -1172,6 +1180,7 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
                << EAM(mSkipCrossCorr, "SkipCrossCorr", true, "Skip the step of \"cross correlation\" (this option is used when the results of \"cross correlation\" already exist), Def=false")
                << EAM(mFeature,"Feature",true,"Feature matching method used for precise matching (SuperGlue or SIFT), Def=SuperGlue")
                << EAM(mCoRegOri1,"CoRegOri1",true,"Output of orientation of epoch1 after rough co-registration, Def='Ori1'_CoReg_'Feature'")
+               << EAM(mPara3DH, "Para3DH", true, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=Basc-'aOri1'-2-'CoRegOri1'.xml")
                //<< mCAS3D.ArgBasic()
                << EAM(mDSMFileL, "DSMFileL", true, "DSM File of epoch1, Def=MMLastNuage.xml")
                << EAM(mDSMFileR, "DSMFileR", true, "DSM File of epoch2, Def=MMLastNuage.xml")
@@ -1214,13 +1223,11 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
    //mCoRegOri = mOri2;
    if(mCoRegOri1.length() == 0)
        mCoRegOri1 = mOri1 + "_CoReg_" + mFeature;
-
    mCoRegOri1 = RemoveOri(mCoRegOri1);
-   /*
-   StdCorrecNameOrient(mCoRegOri1,"./",true);
-   if(mCoRegOri1.substr(0,4) == "Ori-")
-       mCoRegOri1 = mCoRegOri1.substr(4, mCoRegOri1.length()-4);
-    */
+
+   if(mPara3DH.length() == 0)
+       mPara3DH = "Basc-"+mOri1+"-2-"+mCoRegOri1+".xml";
+
    if(mPreciseBufferSz.x < 0 && mPreciseBufferSz.y < 0){
        mPreciseBufferSz.x = int(0.1*mPrecisePatchSz.x);
        mPreciseBufferSz.y = int(0.1*mPrecisePatchSz.y);
@@ -2632,3 +2639,68 @@ void ExtractSIFT(std::string aFullName, std::string aDir)
     }
 }
 */
+
+int TransmitHelmert_main(int argc,char ** argv)
+{
+   std::string aFile1;
+   std::string aFile2;
+
+   std::string aOutFile = "";
+
+   ElInitArgMain
+    (
+        argc,argv,
+        LArgMain()  << EAMC(aFile1,"First input of 3D Helmert transformation parameters (A->C)")
+                    << EAMC(aFile2,"Second input of 3D Helmert transformation parameters (B->C)"),
+        LArgMain()
+                    << EAM(aOutFile, "OutFile", true, "Output 3D Helmert transformation parameters (A->B)")
+    );
+
+   if(aOutFile.length() == 0){
+       aOutFile = "TransmittedHelmert.xml";
+
+       string::size_type Pos11 = aFile1.find("Basc-");
+       string::size_type Pos12 = aFile1.find("-2-");
+       string::size_type Pos21 = aFile2.find("Basc-");
+       string::size_type Pos22 = aFile2.find("-2-");
+       if (Pos11 != string::npos && Pos12 != string::npos && Pos21 != string::npos && Pos22 != string::npos){
+           int nStart1 = Pos11 + 5;
+           int nLen1 = Pos12 - Pos11 - 5;
+           int nStart2 = Pos21 + 5;
+           int nLen2 = Pos22 - Pos21 - 5;
+           aOutFile = "Basc-" + aFile1.substr(nStart1, nLen1) + "-2-" + aFile2.substr(nStart2, nLen2) + ".xml";
+           //printf("%d, %d, %d, %d. %s\n", nStart1, nLen1, nStart2, nLen2, aOutFile.c_str());
+       }
+   }
+
+   cXml_ParamBascRigide  * aTransf1 = OptStdGetFromPCP(aFile1, Xml_ParamBascRigide);
+   cSolBasculeRig aSBR1 = Xml2EL(*aTransf1);
+
+   cXml_ParamBascRigide  * aTransf2 = OptStdGetFromPCP(aFile2, Xml_ParamBascRigide);
+   cSolBasculeRig aSBR2 = Xml2EL(*aTransf2);
+   cSolBasculeRig aSBR2Inv = aSBR2.Inv();
+
+   Pt3dr aTr;
+   //ElMatrix<double> aRot;
+   double aLambda;
+
+   aTr = aSBR2Inv(aSBR1.Tr());
+   aLambda = aSBR1.Lambda()*aSBR2Inv.Lambda();
+   ElMatrix<double> aRot = aSBR2Inv.Rot()*aSBR1.Rot();
+
+   cSolBasculeRig aSBROut = cSolBasculeRig(Pt3dr(0,0,0),aTr,aRot,aLambda);
+
+   MakeFileXML(EL2Xml(aSBROut), aOutFile);
+   cout<<"xdg-open "<<aOutFile<<endl;
+    /*
+   Pt3dr aSrc = Pt3dr(100, 200, 300);
+   Pt3dr aDes = aSBR1(aSrc);
+   printf("Pred1: [%.2lf, %.2lf, %.2lf]\n", aDes.x, aDes.y, aDes.z);
+   aDes = aSBR2Inv(aDes);
+   printf("Pred2: [%.2lf, %.2lf, %.2lf]\n", aDes.x, aDes.y, aDes.z);
+   aDes = aSBROut(aSrc);
+   printf("Pred22: [%.2lf, %.2lf, %.2lf]\n", aDes.x, aDes.y, aDes.z);
+    */
+
+   return EXIT_SUCCESS;
+}

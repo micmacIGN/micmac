@@ -361,6 +361,7 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
 
         //std::string mCoRegOri;
         std::string mCoRegOri1;
+        std::string mPara3DH;
 
         ElTimer     mChrono;
 
