@@ -89,8 +89,9 @@ void GetOrthoPt(std::string aOrthoFileL, std::vector<Pt3dr> vPt3DL, std::vector<
             vOrthoPtL.push_back(aPtOrtho);
         }
     }
-    else
+    else{
         bSaveOrthoHomo = false;
+    }
 }
 
 void GetOrthoHom(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::vector<std::string> aVIm1, std::vector<std::string> aVIm2, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string inSH, bool bPrint, cTransform3DHelmert aTrans3DHL, std::string aOrthoImg1, std::string aOrthoImg2, std::string aOutImg1, std::string aOutImg2)
@@ -103,6 +104,10 @@ void GetOrthoHom(std::string aOri1, std::string aOri2, cInterfChantierNameManipu
     std::vector<int> aOriPtNumV;
     std::vector<int> aInsideBorderPtNumV;
 
+    if(ELISE_fp::exist_file(aOrthoImg1) == false || ELISE_fp::exist_file(aOrthoImg1) == false){
+        printf("%s or %s don't exist, hence skipped\n", aOrthoImg1.c_str(), aOrthoImg2.c_str());
+        return;
+    }
     int nOriPtNum = 0;
     std::string  aImg1, aImg2;
     aOriPtNumV.push_back(0);
@@ -151,6 +156,7 @@ void GetOrthoHom(std::string aOri1, std::string aOri2, cInterfChantierNameManipu
     std::vector<Pt2dr> vOrthoPtL, vOrthoPtR;
     GetOrthoPt(aOrthoImg1, aV1, vOrthoPtL, bSaveOrthoHomo);
     GetOrthoPt(aOrthoImg2, aV2, vOrthoPtR, bSaveOrthoHomo);
+    printf("aOrthoImg1: %s\naOrthoImg2: %s\n", aOrthoImg1.c_str(), aOrthoImg2.c_str());
 
     if(bSaveOrthoHomo){
         std::vector<ElCplePtsHomologues> vOrthoHom;
