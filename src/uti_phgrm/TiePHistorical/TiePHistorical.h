@@ -74,7 +74,7 @@ class cCommonAppliTiepHistorical
 
         //std::string mDir;
         std::string mPat;
-        std::string mOri;
+        //std::string mOri;
 
         /* Parameters for rough co-registration */
         std::string                       mOriIn1;

@@ -364,7 +364,7 @@ void GetPatchPair(std::string aOutDir, std::string aOutImg1, std::string aOutImg
                         }
                         printf("\n");
                     }
-                    double aBigFloat = 1000000;
+                    double aBigFloat = 50000;
                     double aSmallFloat = 1.0/aBigFloat;
                     if(aSndHPara[0] > aBigFloat && aSndHPara[1] > aBigFloat && aSndHPara[2] > aBigFloat && aSndHPara[3] > aBigFloat && aSndHPara[4] > aBigFloat && aSndHPara[5] > aBigFloat)
                         aUnValid = true;

@@ -1220,10 +1220,14 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
 */
                );
 
+   StdCorrecNameOrient(mOri1,mCAS3D.mDir,true);
+   cout<<mOri1<<endl;
+
    //mCoRegOri = mOri2;
    if(mCoRegOri1.length() == 0)
        mCoRegOri1 = mOri1 + "_CoReg_" + mFeature;
    mCoRegOri1 = RemoveOri(mCoRegOri1);
+   mOri1 = RemoveOri(mOri1);
 
    if(mPara3DH.length() == 0)
        mPara3DH = "Basc-"+mOri1+"-2-"+mCoRegOri1+".xml";
@@ -1238,8 +1242,6 @@ cAppliTiepHistoricalPipeline::cAppliTiepHistoricalPipeline(int argc,char** argv)
 
    if(mImg4MatchList2.length() == 0)
        mImg4MatchList2 = mImgList2;
-
-   StdCorrecNameOrient(mOri,mCAS3D.mDir,true);
 }
 
 std::string RemoveOri(std::string aOri)
