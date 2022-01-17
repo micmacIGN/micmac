@@ -96,7 +96,8 @@ void GetMinMaxScale(std::vector<Siftator::SiftPoint> aVSIFTPt, double & dMinScal
 }
 
 //use co-registered orientation or DSM to predict key points in another image
-void PredictKeyPt(std::string aImg, std::vector<Pt2dr>& aVPredL, std::vector<Siftator::SiftPoint> aVSiftL, std::string aDSMFileL, std::string aDSMDirL, std::string aNameOriL, std::string aNameOriR, cTransform3DHelmert aTrans3DH, bool bPrint)
+//void PredictKeyPt(std::string aImg, std::vector<Pt2dr>& aVPredL, std::vector<Siftator::SiftPoint> aVSiftL, std::string aDSMFileL, std::string aDSMDirL, std::string aNameOriL, std::string aNameOriR, cTransform3DHelmert aTrans3DH, bool bPrint)
+double PredictKeyPt(std::string aImg, std::vector<Pt2dr>& aVPredL, std::vector<Siftator::SiftPoint> aVSiftL, std::string aDSMFileL, std::string aDSMDirL, std::string aNameOriL, std::string aNameOriR, cSolBasculeRig aSBR, bool bPrint)
 {
     //bool bDSM = false;
 
@@ -115,7 +116,7 @@ void PredictKeyPt(std::string aImg, std::vector<Pt2dr>& aVPredL, std::vector<Sif
     int nSizeL = aVSiftL.size();
 
     double dGSD1 = a3DL.GetGSD();
-    printf("GSD of %s: %lf\n", aImg.c_str(), dGSD1);
+    //printf("GSD of master image %s: %lf\n", aImg.c_str(), dGSD1);
 
     //printf("---------------------\n");
     for(int i=0; i<nSizeL; i++)
@@ -132,11 +133,14 @@ void PredictKeyPt(std::string aImg, std::vector<Pt2dr>& aVPredL, std::vector<Sif
             aPTer1 = a3DL.GetRough3Dcoor(aPL);
         }*/
 
-        aPTer1 = aTrans3DH.Transform3Dcoor(aPTer1);
+        //aPTer1 = aTrans3DH.Transform3Dcoor(aPTer1);
+        aPTer1 = aSBR(aPTer1);
+
         Pt2dr aPLPred = a3DR.Get2Dcoor(aPTer1);
 
         aVPredL.push_back(aPLPred);
     }
+    return dGSD1;
 }
 
 //transform the descriptor to rootSIFT if neccessary
@@ -160,7 +164,8 @@ void AmendSIFTKeyPt(std::vector<Siftator::SiftPoint>& aVSiftL, bool aRootSift)
     }
 }
 
-Pt2dr GetScaleRotate(std::string aImg1, std::string aImg2, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, bool bPrint)
+//Pt2dr GetScaleRotate(std::string aImg1, std::string aImg2, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, bool bPrint)
+Pt2dr GetScaleRotate(std::string aImg1, std::string aImg2, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, cSolBasculeRig aSBR, cSolBasculeRig aSBRInv, bool bPrint)
 {
     if (ELISE_fp::exist_file(aImg1) == false || ELISE_fp::exist_file(aImg2) == false)
     {
@@ -221,7 +226,9 @@ Pt2dr GetScaleRotate(std::string aImg1, std::string aImg2, std::string aDSMFileL
             aPTer1 = a3DL.GetRough3Dcoor(aPL);
         }*/
 
-        aPTer1 = aTrans3DHL.Transform3Dcoor(aPTer1);
+        //aPTer1 = aTrans3DHL.Transform3Dcoor(aPTer1);
+        aPTer1 = aSBR(aPTer1);
+
         Pt2dr ptPred = a3DR.Get2Dcoor(aPTer1);
         aPLPredinR[i] = ptPred;
 
@@ -261,7 +268,9 @@ Pt2dr GetScaleRotate(std::string aImg1, std::string aImg2, std::string aDSMFileL
             aPTer1 = a3DR.GetRough3Dcoor(aPR);
         }*/
 
-        aPTer1 = aTrans3DHR.Transform3Dcoor(aPTer1);
+        //aPTer1 = aTrans3DHR.Transform3Dcoor(aPTer1);
+        aPTer1 = aSBRInv(aPTer1);
+
         Pt2dr ptPred = a3DL.Get2Dcoor(aPTer1);
         aPtL[i] = ptPred;
 
@@ -284,7 +293,7 @@ Pt2dr GetScaleRotate(std::string aImg1, std::string aImg2, std::string aDSMFileL
     return aRes;
 }
 
-void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std::string outSH, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, bool bRootSift, double dSearchSpace, bool bPredict, bool bRatioT, bool bMutualNN, cTransform3DHelmert aTrans3DHL, cTransform3DHelmert aTrans3DHR, bool bCheckScale, bool bCheckAngle, bool bPrint, bool bCheckFile, double threshScale, double threshAngle, double dScaleL, double dScaleR)//, double dScale=1, double dAngle=0)
+void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std::string outSH, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, bool bRootSift, double dSearchSpace, bool bPredict, bool bRatioT, bool bMutualNN, cTransform3DHelmert aTrans3DHL, bool bCheckScale, bool bCheckAngle, bool bPrint, bool bCheckFile, double threshScale, double threshAngle, double dScaleL, double dScaleR)//, double dScale=1, double dAngle=0)
 {
     if(bRatioT == true)
         printf("Ratio test applied.\n");
@@ -330,7 +339,8 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     Pt2dr ScaleRotateL = Pt2dr(1, 0);
     Pt2dr ScaleRotateR = Pt2dr(1, 0);
 
-    ScaleRotateL = GetScaleRotate(aImg1, aImg2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aOri1, aOri2, aICNM, aTrans3DHL, aTrans3DHR, bPrint);
+    //ScaleRotateL = GetScaleRotate(aImg1, aImg2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aOri1, aOri2, aICNM, aTrans3DHL, aTrans3DHR, bPrint);
+    ScaleRotateL = GetScaleRotate(aImg1, aImg2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aOri1, aOri2, aICNM, aTrans3DHL.GetSBR(), aTrans3DHL.GetSBRInv(), bPrint);
     SetAngleToValidRange(ScaleRotateL.y, d2PI);
     ScaleRotateR.x = 1.0/ScaleRotateL.x;
     ScaleRotateR.y = d2PI-ScaleRotateL.y;
@@ -398,8 +408,10 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     std::vector<Pt2dr> aVPredR;
     std::string aNameOriL = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
     std::string aNameOriR = aICNM->StdNameCamGenOfNames(aOri2, aImg2);
-    PredictKeyPt(aImg1, aVPredL, aVSiftL, aDSMFileL, aDSMDirL, aNameOriL, aNameOriR, aTrans3DHL, bPrint);
-    PredictKeyPt(aImg2, aVPredR, aVSiftR, aDSMFileR, aDSMDirR, aNameOriR, aNameOriL, aTrans3DHR, bPrint);
+    double dGSD1 = PredictKeyPt(aImg1, aVPredL, aVSiftL, aDSMFileL, aDSMDirL, aNameOriL, aNameOriR, aTrans3DHL.GetSBR(), bPrint);
+    double dGSD2 = PredictKeyPt(aImg2, aVPredR, aVSiftR, aDSMFileR, aDSMDirR, aNameOriR, aNameOriL, aTrans3DHL.GetSBRInv(), bPrint);
+    printf("GSD of master image %s: %lf\nGSD of secondary image %s: %lf\n", aImg1.c_str(), dGSD1, aImg2.c_str(), dGSD2);
+
 
     //*********** 3. match SIFT key-pts
     /*
@@ -461,10 +473,6 @@ void GuidedSIFTMatch(std::string aDir,std::string aImg1, std::string aImg2, std:
     SaveSIFTHomolFile(aDir, aImg1, aImg2, outSH, match, aVSiftL, aVSiftR);
 
     cout<<"Extracted tie point number: "<<match.size()<<endl;
-
-    std::string aCom = "mm3d SEL" + BLANK + aDir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-    std::string aComInv = "mm3d SEL" + BLANK + aDir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-    printf("%s\n%s\n", aCom.c_str(), aComInv.c_str());
 }
 
 int GuidedSIFTMatch_main(int argc,char ** argv)
@@ -485,7 +493,7 @@ int GuidedSIFTMatch_main(int argc,char ** argv)
    aDSMFileR = "MMLastNuage.xml";
 
    std::string aPara3DHL = "";
-   std::string aPara3DHR = "";
+   //std::string aPara3DHR = "";
 
    bool bCheckFile = false;
    double dScaleL = 1;
@@ -505,8 +513,8 @@ int GuidedSIFTMatch_main(int argc,char ** argv)
                << EAM(aDSMDirR, "DSMDirR", true, "DSM of secondary image (for improving the reprojecting accuracy), Def=none")
                << EAM(aDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
                << EAM(aDSMFileR, "DSMFileR", true, "DSM File of secondary image, Def=MMLastNuage.xml")
-               << EAM(aPara3DHL, "Para3DHL", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
-               << EAM(aPara3DHR, "Para3DHR", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of secondary image to master image, Def=none")
+               << EAM(aPara3DHL, "Para3DH", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
+               //<< EAM(aPara3DHR, "Para3DHR", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of secondary image to master image, Def=none")
                << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
                << EAM(dScaleL, "ScaleL", true, "Extract SIFT points on master images downsampled with a factor of \"ScaleL\", Def=1")
                << EAM(dScaleR, "ScaleR", true, "Extract SIFT points on secondary images downsampled with a factor of \"ScaleR\", Def=1")
@@ -516,15 +524,15 @@ int GuidedSIFTMatch_main(int argc,char ** argv)
    //if SIFT key point is not extracted before (aCAS3D.mSkipSIFT = true), extract SIFT first
    if(aCAS3D.mSkipSIFT == false)
    {
-       ExtractSIFT(aImg1, aCAS3D.mDir);
-       ExtractSIFT(aImg2, aCAS3D.mDir);
+       ExtractSIFT(aImg1, aCAS3D.mDir, dScaleL);
+       ExtractSIFT(aImg2, aCAS3D.mDir, dScaleR);
    }
    cTransform3DHelmert aTrans3DHL(aPara3DHL);
-   cTransform3DHelmert aTrans3DHR(aPara3DHR);
+   //cTransform3DHelmert aTrans3DHR(aPara3DHR);
 
    double dThreshAngle = aCAS3D.mThreshAngle*3.14/180;
 
-   GuidedSIFTMatch( aCAS3D.mDir, aImg1,  aImg2,  aCAS3D.mGuidedSIFTOutSH, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR,  aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mRootSift, aCAS3D.mSearchSpace, aCAS3D.mPredict, aCAS3D.mRatioT, aCAS3D.mMutualNN, aTrans3DHL, aTrans3DHR, aCAS3D.mCheckScale, aCAS3D.mCheckAngle, aCAS3D.mPrint, bCheckFile, aCAS3D.mThreshScale, dThreshAngle, dScaleL, dScaleR);//, aCAS3D.mScale, aCAS3D.mAngle);
+   GuidedSIFTMatch( aCAS3D.mDir, aImg1,  aImg2,  aCAS3D.mGuidedSIFTOutSH, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR,  aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mRootSift, aCAS3D.mSearchSpace, aCAS3D.mPredict, aCAS3D.mRatioT, aCAS3D.mMutualNN, aTrans3DHL, aCAS3D.mCheckScale, aCAS3D.mCheckAngle, aCAS3D.mPrint, bCheckFile, aCAS3D.mThreshScale, dThreshAngle, dScaleL, dScaleR);//, aCAS3D.mScale, aCAS3D.mAngle);
 
    return EXIT_SUCCESS;
 }

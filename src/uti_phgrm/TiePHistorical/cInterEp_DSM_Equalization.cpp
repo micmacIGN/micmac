@@ -74,23 +74,51 @@ pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
-void DSM_Equalization(std::string aDSMDir, std::string aDSMFile, std::string aOutImg, double dSTDRange)
+void DSM_Equalization(std::string aImName, std::string aDSMDir, std::string aDSMFile, std::string aOutImg, double dSTDRange)
 {
-    aDSMDir += '/';
-    cout<<aDSMDir + aDSMFile<<endl;
-    cXML_ParamNuage3DMaille aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
-    (
-    aDSMDir + aDSMFile,
-    StdGetFileXMLSpec("SuperposImage.xml"),
-    "XML_ParamNuage3DMaille",
-    "XML_ParamNuage3DMaille"
-    );
+    bool bMasq = false;
+    std::string aOutDir = "";
+    std::string aMasqName = "";
 
-    Pt2di aDSMSz = aNuageIn.NbPixel();
+    Pt2di aDSMSz = Pt2di(0,0);
 
-    cImage_Profondeur aImDSM = aNuageIn.Image_Profondeur().Val();
+    if(aImName.length() == 0){
+        aOutDir = aDSMDir;
+        aDSMDir += '/';
+        cout<<aDSMDir + aDSMFile<<endl;
+        cXML_ParamNuage3DMaille aNuageIn = StdGetObjFromFile<cXML_ParamNuage3DMaille>
+        (
+        aDSMDir + aDSMFile,
+        StdGetFileXMLSpec("SuperposImage.xml"),
+        "XML_ParamNuage3DMaille",
+        "XML_ParamNuage3DMaille"
+        );
 
-    std::string aImName = aDSMDir + aImDSM.Image();
+        aDSMSz = aNuageIn.NbPixel();
+
+        cImage_Profondeur aImDSM = aNuageIn.Image_Profondeur().Val();
+
+        aImName = aDSMDir + aImDSM.Image();
+
+        aMasqName = aDSMDir + aImDSM.Masq();
+    }
+    else{
+        Tiff_Im aIm(aImName.c_str());
+        aDSMSz = aIm.sz();
+    }
+
+    TIm2D<float,double> aTImMasq(aDSMSz);
+    if (ELISE_fp::exist_file(aMasqName) == true){
+        Tiff_Im aImMasqTif(aMasqName.c_str());
+        ELISE_COPY
+        (
+        aTImMasq.all_pts(),
+        aImMasqTif.in(),
+        aTImMasq.out()
+        );
+        bMasq = true;
+    }
+
     Tiff_Im aImDSMTif(aImName.c_str());
     TIm2D<float,double> aTImDSM(aDSMSz);
     ELISE_COPY
@@ -98,16 +126,6 @@ void DSM_Equalization(std::string aDSMDir, std::string aDSMFile, std::string aOu
     aTImDSM.all_pts(),
     aImDSMTif.in(),
     aTImDSM.out()
-    );
-
-    std::string aMasqName = aDSMDir + aImDSM.Masq();
-    Tiff_Im aImMasqTif(aMasqName.c_str());
-    TIm2D<float,double> aTImMasq(aDSMSz);
-    ELISE_COPY
-    (
-    aTImMasq.all_pts(),
-    aImMasqTif.in(),
-    aTImMasq.out()
     );
 
     //cout<<aTImMasq.get(Pt2di(0, 0))<<",,,,,,,"<<aTImMasq.get(Pt2di(1000, 800))<<"\n";
@@ -122,7 +140,9 @@ void DSM_Equalization(std::string aDSMDir, std::string aDSMFile, std::string aOu
     {
         for(j=0; j<aDSMSz.y; j++)
         {
-            int nVal =  aTImMasq.get(Pt2di(i, j));
+            int nVal =  1;
+            if(bMasq == true)
+                nVal = aTImMasq.get(Pt2di(i, j));
             if(nVal > 0)
             {
                 double dZ =  aTImDSM.get(Pt2di(i, j));
@@ -143,7 +163,9 @@ void DSM_Equalization(std::string aDSMDir, std::string aDSMFile, std::string aOu
     {
         for(j=0; j<aDSMSz.y; j++)
         {
-            int nVal =  aTImMasq.get(Pt2di(i, j));
+            int nVal =  1;
+            if(bMasq == true)
+                nVal = aTImMasq.get(Pt2di(i, j));
             if(nVal > 0)
             {
                 double dZ =  aTImDSM.get(Pt2di(i, j));
@@ -168,7 +190,7 @@ void DSM_Equalization(std::string aDSMDir, std::string aDSMFile, std::string aOu
     if(aOutImg.length()==0)
         aOutImg = StdPrefix(aImName) + "_gray.tif";
     else
-        aOutImg = aDSMDir + aOutImg;
+        aOutImg = aOutDir + aOutImg;
     //cout<<aOutImg<<endl;
 
     //cout<<dScale<<",,,"<<dTranslation<<endl;
@@ -200,6 +222,7 @@ int DSM_Equalization_main(int argc,char ** argv)
    std::string aDSMDir;
    std::string aDSMFile = "MMLastNuage.xml";
    std::string aOutImg;
+   std::string aInImg = "";
 
    ElInitArgMain
     (
@@ -208,12 +231,13 @@ int DSM_Equalization_main(int argc,char ** argv)
         LArgMain()
                     //<< aCAS3D.ArgBasic()
                     << aCAS3D.ArgDSM_Equalization()
+                    << EAM(aInImg, "InImg", true, "File name of input image to be equalized (if this parameter is set, DSM direcotry and DSMFile will be ignored), Def=none")
                     << EAM(aDSMFile, "DSMFile", true, "The xml file that recorded the structure information of the DSM, Def=MMLastNuage.xml")
                     << EAM(aOutImg, "OutImg", true, "Output image name, Def='input'_gray.tif")
 
     );
 
-   DSM_Equalization(aDSMDir, aDSMFile, aOutImg, aCAS3D.mSTDRange);
+   DSM_Equalization(aInImg, aDSMDir, aDSMFile, aOutImg, aCAS3D.mSTDRange);
 
    return EXIT_SUCCESS;
 }

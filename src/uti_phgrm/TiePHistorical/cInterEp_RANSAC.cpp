@@ -46,6 +46,7 @@ extern ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPr
 
 void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double threshold, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, bool bPrint, bool bCheckFile, cTransform3DHelmert aTrans3DHL, int nMinPt)
 {
+    cout<<aImg1<<" "<<aImg2<<endl;
     //printf("iteration number: %d; thresh: %lf\n", aNbTir, threshold);
 
     bool bInverse = false;
@@ -132,7 +133,7 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
     cout<<"---------------------------------"<<endl;
     printf("--->>>Total OriPt: %d; Total InsideBorderPt: %d;; Total inlier: %d; Inlier Ratio (3DRANSAC): %.2lf%%\n", nOriPtNum, nPtNum, nMaxInlier, nMaxInlier*100.0/nPtNum);
 
-    SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierFinal);
+    SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierFinal, false);
 
     std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
     std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
@@ -158,7 +159,7 @@ bool CheckSclRot(double aSclL, double aRotL, double aSclR, double aRotR, double 
     return true;
 }
 
-void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double thresh, bool bCheckSclRot, double threshScale, double threshAngle)
+void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double thresh, bool bCheckSclRot, double threshScale, double threshAngle, int nMinPt)
 {
     printf("iteration number: %d; thresh: %lf\n", aNbTir, thresh);
 
@@ -221,7 +222,7 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
 
     int i, j;
     int nPtNum = aV1.size();
-    int nMinPt = 5;
+    //int nMinPt = 5;
 
     cout<<"Input tie point number: "<<nPtNum;
     printf(";  iteration number: %d; thresh: %lf\n", aNbTir, thresh);
@@ -353,16 +354,14 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
     }
     /******************************end random perform**********/
 
-    cout<<"---------------------------------"<<endl;
-    printf("--->>>Total Pt: %d; Total inlier: %d; Inlier Ratio (2DRANSAC): %.2lf%%\n", nPtNum, nMaxInlier, nMaxInlier*100.0/nPtNum);
-    //cout<<"Final: "<<aFinalMsg<<endl;
-
     std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
     std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-    printf("%s\n%s\n", aCom.c_str(), aComInv.c_str());
+    cout<<"---------------------------------"<<endl;
+    printf("%s\n%s\n--->>>Total Pt: %d; Total inlier: %d; Inlier Ratio (2DRANSAC): %.2lf%%\n", aCom.c_str(), aComInv.c_str(), nPtNum, nMaxInlier, nMaxInlier*100.0/nPtNum);
+    //cout<<"Final: "<<aFinalMsg<<endl;
 
     /****************Save points****************/
-    SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierFinal);
+    SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierFinal, false);
     /*
     std::string aDir_outSH = input_dir + "/Homol" + outSH+"/";
     ELISE_fp::MkDir(aDir_outSH);
@@ -425,6 +424,7 @@ int R2D(int argc,char ** argv, const std::string &aArg="")
     double aThreshScale = 0.2;
     double aThreshAngle = 30;
 
+    int aMinPt = 3;
 
     ElInitArgMain
      (
@@ -438,6 +438,7 @@ int R2D(int argc,char ** argv, const std::string &aArg="")
                      << EAM(bCheckSclRot, "CheckSclRot", true, "Check the scale and rotation consistency (please make sure you saved the scale and rotation in \"Homol'2DRANInSH'_SclRot\" if you set this parameter to true), Def=false")
                      << EAM(aThreshScale, "ScaleTh",true, "The threshold for checking scale ratio, Def=0.2; (0.2 means the ratio of master and secondary SIFT scale between [(1-0.2)*Ref, (1+0.2)*Ref] is considered valide. Ref is automatically calculated by reprojection.)")
                      << EAM(aThreshAngle, "AngleTh",true, "The threshold for checking angle difference, Def=30; (30 means the difference of master and secondary SIFT angle between [Ref - 30 degree, Ref + 30 degree] is considered valide. Ref is automatically calculated by reprojection.)")
+                     << EAM(aMinPt,"MinPt",true,"Minimun number of input correspondences required, Def=3")
 
      );
 
@@ -446,7 +447,7 @@ int R2D(int argc,char ** argv, const std::string &aArg="")
     if(aCAS3D.mR2DOutSH.length() == 0)
         aCAS3D.mR2DOutSH = aCAS3D.mR2DInSH + "-2DRANSAC";
 
-    RANSAC2D(aCAS3D.mDir, aImg1, aImg2, aCAS3D.mR2DInSH, aCAS3D.mR2DOutSH, aCAS3D.mR2DIteration, aCAS3D.mR2DThreshold, bCheckSclRot, aThreshScale, aThreshAngle);
+    RANSAC2D(aCAS3D.mDir, aImg1, aImg2, aCAS3D.mR2DInSH, aCAS3D.mR2DOutSH, aCAS3D.mR2DIteration, aCAS3D.mR2DThreshold, bCheckSclRot, aThreshScale, aThreshAngle, aMinPt);
 
     return 0;
 }

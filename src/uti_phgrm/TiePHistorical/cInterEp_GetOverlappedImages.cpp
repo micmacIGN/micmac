@@ -184,6 +184,7 @@ bool IsOverlapped(std::string aImg1, std::string aImg2, std::string aOri1, std::
 
     if(bPrint==true)
     {
+        printf("[minPtL.x, maxPtR.x]: [%.2lf, %.2lf]\n[maxPtL.x, minPtR.x]: [%.2lf, %.2lf]\n[minPtL.y, maxPtR.y]: [%.2lf, %.2lf]\n[maxPtL.y, minPtR.y]: [%.2lf, %.2lf]\n", minPtL.x, maxPtR.x, maxPtL.x, minPtR.x, minPtL.y, maxPtR.y, maxPtL.y, minPtR.y);
         printf("bRes: %d\n", bRes);
         for(int i=0; i<4; i++)
         {
@@ -295,7 +296,12 @@ int GetOverlappedImages_main(int argc,char ** argv)
 
    cTransform3DHelmert aTrans3DH(aPara3DH);
 
-   GetOverlappedImages(aImgList1, aImgList2, aOri1, aOri2, aCAS3D.mDir, aCAS3D.mOutPairXml, aCAS3D.mICNM, aTrans3DH, aCAS3D.mPrint);
+   std::string aOutPairXml = aCAS3D.mOutPairXml;
+   if(aOutPairXml.length() == 0)
+       aOutPairXml = "OverlappedImages"+RemoveOri(aOri1)+"_"+RemoveOri(aOri2)+".xml";
+   printf("%s to be saved...\n", aOutPairXml.c_str());
+
+   GetOverlappedImages(aImgList1, aImgList2, aOri1, aOri2, aCAS3D.mDir, aOutPairXml, aCAS3D.mICNM, aTrans3DH, aCAS3D.mPrint);
 
    return EXIT_SUCCESS;
 }
