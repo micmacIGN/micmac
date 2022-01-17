@@ -20,7 +20,8 @@ git checkout -b test
 git reset --hard 9ba1e36903f3ba2c99e5be8f03d31d2751a2cb33
 
 #download a trained model
-wget https://drive.google.com/uc?id=16acK5nqgglNSBhCmvqEmhOZQwChNOm2n -O ${MODELPATH}
+#wget https://drive.google.com/uc?id=16acK5nqgglNSBhCmvqEmhOZQwChNOm2n -O ${MODELPATH}
+wget https://drive.google.com/uc?id=1AuThxU9s6ublGhgqhqF2S0ve5lV90egL -O ${MODELPATH}
 
 #create dir to store virtual env
 cd ..
