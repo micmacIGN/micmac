@@ -13,7 +13,7 @@ git checkout -b test
 git reset --hard 9ba1e36903f3ba2c99e5be8f03d31d2751a2cb33
 
 #download a trained model
-wget https://drive.google.com/uc?id=16acK5nqgglNSBhCmvqEmhOZQwChNOm2n -O ${MODELPATH}
+wget https://drive.google.com/uc?id=1JzVwoUuCdXfKmB26rPyV3vISRqgOUZxj -O ${MODELPATH}
 cd ..
 
 #add modules to the env
