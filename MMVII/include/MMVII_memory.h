@@ -135,8 +135,11 @@ class  cMemCheck
               }
          }
          cMemCheck(const cMemCheck &)  : cMemCheck () {}
-         ~cMemCheck() 
+         ~cMemCheck()
          {
+            #ifdef MEM_DEBUG
+                std::cout<<"MEM_DEBUG: ~cMemCheck()"<<std::endl;
+            #endif
             if (mActiveNbObj)
             {
                  TheNbObjLive--;
