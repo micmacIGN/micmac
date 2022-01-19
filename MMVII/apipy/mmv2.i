@@ -134,6 +134,12 @@ import_array();
 %ignore MMVII::cDataIm2D<tREAL4>::GetLine(int) const;
 //remove warnings
 
+%feature("pythonappend") MMVII::cSetAimePCAR::VPC() const %{
+   print('list')
+   return list(val)
+%}
+
+
 //rename overloaded methods to avoid shadowing
 //here params must appread exactly as in source (no MMVII::...)
 %rename(ToI2) ToI(const cPt2dr &);
@@ -203,6 +209,7 @@ typedef double tStdDouble;  ///< "natural" int
 //----------------------------------------------------------------------
 //run on import
 %pythoncode %{
+import copy
 print("MicMacV2 Python3 API")
 mmv2_init();
 %}
