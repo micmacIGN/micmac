@@ -44,54 +44,37 @@ Header-MicMac-eLiSe-25/06/2007*/
 
 extern ElSimilitude SimilRobustInit(const ElPackHomologue & aPackFull,double aPropRan,int aNbTir);
 
-void GetRandomNum(int nMin, int nMax, int nNum, std::vector<int> & res)
+void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double threshold, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, bool bPrint, bool bCheckFile, cTransform3DHelmert aTrans3DHL, int nMinPt)
 {
-    //srand((int)time(0));
-    int idx = 0;
-    for(int i=0; i<nNum; i++)
-    {
-        bool bRepeat = false;
-        int nIter = 0;
-        do
-        {
-            bRepeat = false;
-            nIter++;
-            idx = rand() % (nMax - nMin) + nMin;
-            //printf("For %dth seed, %dth generation, random value: %d\n", i, nIter, idx);
-            for(int j=0; j<int(res.size()); j++)
-            {
-                if(idx == res[j]){
-                    bRepeat = true;
-                    break;
-                }
-            }
-        }
-        while(bRepeat == true);
-        res.push_back(idx);
-    }
-}
-
-void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double threshold, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR)
-{
+    cout<<aImg1<<" "<<aImg2<<endl;
     //printf("iteration number: %d; thresh: %lf\n", aNbTir, threshold);
 
+    bool bInverse = false;
     std::string aDir_inSH = input_dir + "/Homol" + inSH+"/";
     std::string aNameIn = aDir_inSH +"Pastis" + aImg1 + "/"+aImg2+".txt";
         if (ELISE_fp::exist_file(aNameIn) == false)
         {
-            cout<<aNameIn<<"didn't exist hence skipped."<<endl;
-            return;
+            aDir_inSH = input_dir + "/Homol" + inSH+"/";
+            aNameIn = aDir_inSH +"Pastis" + aImg2 + "/"+aImg1+".txt";
+
+            if (ELISE_fp::exist_file(aNameIn) == false)
+            {
+                cout<<aNameIn<<" didn't exist hence skipped (RANSAC3D)."<<endl;
+                return;
+            }
+            bInverse = true;
         }
         ElPackHomologue aPackFull =  ElPackHomologue::FromFile(aNameIn);
 
-        std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-        cout<<aCom<<endl;
-
-    std::string aDir_outSH = input_dir + "/Homol" + outSH+"/";
-    ELISE_fp::MkDir(aDir_outSH);
-    aDir_outSH = aDir_outSH + "Pastis" + aImg1;
-    ELISE_fp::MkDir(aDir_outSH);
-    std::string aNameOut = aDir_outSH + "/"+aImg2+".txt";
+    /*
+    if (bCheckFile == true && ELISE_fp::exist_file(aNameOut) == true)
+    {
+        cout<<aNameOut<<" already exist, hence skipped"<<endl;
+        return;
+    }
+    */
+        if(IsHomolFileExist(input_dir, aImg1, aImg2, outSH, bCheckFile) == true)
+            return;
 
     std::vector<Pt3dr> aV1;
     std::vector<Pt3dr> aV2;
@@ -100,193 +83,155 @@ void RANSAC3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipulat
     std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
     std::string aIm2OriFile = aICNM->StdNameCamGenOfNames(aOri2, aImg2);
     cGet3Dcoor a3DCoorL(aIm1OriFile);
-    TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+    //TIm2D<float,double> aTImProfPxL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
+    cDSMInfo aDSMInfoL = a3DCoorL.SetDSMInfo(aDSMFileL, aDSMDirL);
     cGet3Dcoor a3DCoorR(aIm2OriFile);
-    TIm2D<float,double> aTImProfPxR = a3DCoorR.SetDSMInfo(aDSMFileR, aDSMDirR);
+    //TIm2D<float,double> aTImProfPxR = a3DCoorR.SetDSMInfo(aDSMFileR, aDSMDirR);
+    cDSMInfo aDSMInfoR = a3DCoorR.SetDSMInfo(aDSMFileR, aDSMDirR);
 
     double dGSD1 = a3DCoorL.GetGSD();
     double dGSD2 = a3DCoorR.GetGSD();
-     cout<<"GSD of first image: "<<dGSD1<<endl;
-     cout<<"GSD of second image: "<<dGSD2<<endl;
+    double dRefGSD = dGSD2;
+    cout<<"GSD of master image: "<<dGSD1<<endl;
+    if(aTrans3DHL.GetApplyTrans() == true){
+         cout<<"GSD of master image after transformation: "<<dGSD1*aTrans3DHL.GetScale()<<endl;
+         //dRefGSD = (dGSD1*aTrans3DHL.GetScale()+dGSD2)*0.5;
+    }
+     cout<<"GSD of secondary image: "<<dGSD2<<endl;
 
-     if(threshold < 0)
-         threshold = 10*dGSD2;
+     if(threshold < 0){
+         threshold = 10*dRefGSD;
+         //printf("GSD1: %.2lf, GSD2: %.2lf, RefGSD: %.2lf, 3DRANTh: %.2lf\n", dGSD1*aTrans3DHL.GetScale(), dGSD2, dRefGSD, threshold);
+     }
 
-    int nOriPtNum = 0;
-    std::vector<int> aValidPt;
-    ElPackHomologue aPackInsideBorder;
-    for (ElPackHomologue::iterator itCpl=aPackFull.begin();itCpl!=aPackFull.end(); itCpl++)
+    //std::vector<int> aValidPt;
+    //ElPackHomologue aPackInsideBorder;
+    //transform 2D tie points into 3D
+
+     int nOriPtNum = Get3DTiePt(aPackFull, a3DCoorL, a3DCoorR, aDSMInfoL, aDSMInfoR, aTrans3DHL, aV1, aV2, a2dV1, a2dV2, bPrint, bInverse);
+
+    if(bPrint)
     {
-       ElCplePtsHomologues cple = itCpl->ToCple();
-       Pt2dr p1 = cple.P1();
-       Pt2dr p2 = cple.P2();
-
-       //cout<<nTodel<<"th tie pt: "<<p1.x<<" "<<p1.y<<" "<<p2.x<<" "<<p2.y<<endl;
-
-       bool bValidL, bValidR;
-       Pt3dr pTerr1 = a3DCoorL.Get3Dcoor(p1, aTImProfPxL, bValidL, dGSD1);
-       Pt3dr pTerr2 = a3DCoorR.Get3Dcoor(p2, aTImProfPxR, bValidR, dGSD2);
-
-       if(bValidL == true && bValidR == true)
-       {
-           aV1.push_back(pTerr1);
-           aV2.push_back(pTerr2);
-           a2dV1.push_back(p1);
-           a2dV2.push_back(p2);
-           aPackInsideBorder.Cple_Add(cple);
-           aValidPt.push_back(nOriPtNum);
-       }
-       else
-       {
-           if(false)
-               cout<<nOriPtNum<<"th tie pt out of border of the DSM hence skipped"<<endl;
-       }
-       nOriPtNum++;
+        printf("Finished transforming %d tie points into 3D.\n", nOriPtNum);
     }
 
     int nPtNum = aV1.size();
     cout<<"nOriPtNum: "<<nOriPtNum<<";  InsideBorderPtNum:  "<<nPtNum;
     printf(";  iteration number: %d; thresh: %lf\n", aNbTir, threshold);
 
-    if(nPtNum<3)
+    if(nPtNum<nMinPt)
     {
-        printf("InsideBorderPtNum (%d) is less than 3, hence skipped.\n", nPtNum);
+        printf("InsideBorderPtNum (%d) is less than %d, hence skipped.\n", nPtNum, nMinPt);
         return;
     }
 
-    cSolBasculeRig aSBR = cSolBasculeRig::Id();
-    cSolBasculeRig aSBRBest = cSolBasculeRig::Id();
-    int i, j;
-    int nMaxInlier = 0;
     srand((int)time(0));
-
-    std::vector<ElCplePtsHomologues> inlierCur;
     std::vector<ElCplePtsHomologues> inlierFinal;
+    RANSAC3DCore(aNbTir, threshold, aV1, aV2, a2dV1, a2dV2, inlierFinal);
 
-    for(j=0; j<aNbTir; j++)
-    {
-        cRansacBasculementRigide aRBR(false);
+    int nMaxInlier = inlierFinal.size();
+    cout<<"---------------------------------"<<endl;
+    printf("--->>>Total OriPt: %d; Total InsideBorderPt: %d;; Total inlier: %d; Inlier Ratio (3DRANSAC): %.2lf%%\n", nOriPtNum, nPtNum, nMaxInlier, nMaxInlier*100.0/nPtNum);
 
-        std::vector<int> res;
+    SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierFinal, false);
 
-        Pt3dr aDiff;
-        double aEpslon = 0.0000001;
-        bool bDupPt;
-        //in case duplicated points
-        do
-        {
-            res.clear();
-            bDupPt = false;
-            GetRandomNum(0, nPtNum, 3, res);
-            for(i=0; i<3; i++)
-            {
-                aDiff = aV1[res[i]] - aV1[res[(i+1)%3]];
-                if((fabs(aDiff.x) < aEpslon) && (fabs(aDiff.y) < aEpslon) && (fabs(aDiff.z) < aEpslon))
-                {
-                    bDupPt = true;
-                    //printf("Duplicated 3D pt seed: %d, %d; Original index of 2D pt: %d %d\n ", res[i], res[i+1], aValidPt[res[i]], aValidPt[res[i+1]]);
-                    break;
-                }
-                aDiff = aV2[res[i]] - aV2[res[(i+1)%3]];
-                if((fabs(aDiff.x) < aEpslon) && (fabs(aDiff.y) < aEpslon) && (fabs(aDiff.z) < aEpslon))
-                {
-                    bDupPt = true;
-                    //printf("Duplicated 3D pt seed: %d, %d; Original index of 2D pt: %d %d\n ", res[i], res[i+1], aValidPt[res[i]], aValidPt[res[i+1]]);
-                    break;
-                }
-            }
-        }
-        while(bDupPt == true);
-
-        for(i=0; i<3; i++)
-        {
-            aRBR.AddExemple(aV1[res[i]],aV2[res[i]],0,"");
-            inlierCur.push_back(ElCplePtsHomologues(a2dV1[res[i]], a2dV2[res[i]]));
-        }
-
-        aRBR.CloseWithTrGlob();
-        aRBR.ExploreAllRansac();
-        aSBR = aRBR.BestSol();
-
-        int nInlier =3;
-        ElPackHomologue::iterator itCpl=aPackInsideBorder.begin();
-        for(i=0; i<nPtNum; i++)
-        {
-            Pt3dr aP1 = aV1[i];
-            Pt3dr aP2 = aV2[i];
-
-            Pt3dr aP2Pred = aSBR(aP1);
-            double dist = pow(pow(aP2Pred.x-aP2.x,2) + pow(aP2Pred.y-aP2.y,2) + pow(aP2Pred.z-aP2.z,2), 0.5);
-            //printf("%d %lf\n", i, dist);
-            if(dist < threshold)
-            {
-                inlierCur.push_back(itCpl->ToCple());
-                nInlier++;
-            }
-            itCpl++;
-        }
-        if(nInlier > nMaxInlier)
-        {
-            nMaxInlier = nInlier;
-            aSBRBest = aSBR;
-            inlierFinal = inlierCur;
-            printf("Iter: %d/%d, seed: %d, %d, %d;  ", j, aNbTir, res[0], res[1], res[2]);
-            printf(" nMaxInlier: %d, nOriPtNum: %d\n", nMaxInlier, nOriPtNum);
-        }
-        /*
-        else{
-            printf("Iter: %d/%d, seed: %d, %d, %d;  ", j, aNbTir, res[0], res[1], res[2]);
-            printf(" nMaxInlier: %d, nOriPtNum: %d\n", nMaxInlier, nOriPtNum);
-        }
-        */
-        inlierCur.clear();
-    }
-
-    FILE * fpOutput = fopen(aNameOut.c_str(), "w");
-    for (unsigned int i=0; i<inlierFinal.size(); i++)
-    {
-       ElCplePtsHomologues cple = inlierFinal[i];
-       Pt2dr p1 = cple.P1();
-       Pt2dr p2 = cple.P2();
-
-       fprintf(fpOutput, "%lf %lf %lf %lf\n",p1.x,p1.y,p2.x,p2.y);
-    }
-    fclose(fpOutput);
-
-    cout<<"nOriPtNum: "<<nOriPtNum<<";  InsideBorderPtNum:  "<<nPtNum<<";  nFilteredPtNum: "<<inlierFinal.size()<<endl;
+    std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
+    std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
+    cout<<aCom<<endl<<aComInv<<endl<<"nOriPtNum: "<<nOriPtNum<<";  InsideBorderPtNum:  "<<nPtNum<<";  nFilteredPtNum: "<<inlierFinal.size()<<endl;
 
     return;
 }
 
-void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double thresh)
+bool CheckSclRot(double aSclL, double aRotL, double aSclR, double aRotR, double dScale, double threshScale, double dAngle, double threshAngle)
 {
-    double aPropRan = 0.8;
+    const double d2PI = 3.1415926*2;
+    SetAngleToValidRange(dAngle, d2PI);
+    double dScaleRatio = aSclR/aSclL;
+    double dAngleDif = aRotR - aRotL;
+    SetAngleToValidRange(dAngleDif, d2PI);
 
+    if((dScaleRatio < dScale*(1-threshScale)) || (dScaleRatio > dScale*(1+threshScale)))
+        return false;
+
+    if((dAngleDif < dAngle-threshAngle) || (dAngleDif > dAngle+threshAngle))
+        return false;
+
+    return true;
+}
+
+void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::string inSH, std::string outSH, int aNbTir, double thresh, bool bCheckSclRot, double threshScale, double threshAngle, int nMinPt)
+{
     printf("iteration number: %d; thresh: %lf\n", aNbTir, thresh);
 
     std::string aDir_inSH = input_dir + "/Homol" + inSH+"/";
     std::string aNameIn = aDir_inSH +"Pastis" + aImg1 + "/"+aImg2+".txt";
 
+    bool bInverse = false;
     if (ELISE_fp::exist_file(aNameIn) == false)
     {
-        cout<<aNameIn<<"didn't exist hence skipped."<<endl;
-        return;
+        aDir_inSH = input_dir + "/Homol" + inSH+"/";
+        aNameIn = aDir_inSH +"Pastis" + aImg2 + "/"+aImg1+".txt";
+        if (ELISE_fp::exist_file(aNameIn) == false)
+        {
+            cout<<aNameIn<<" didn't exist hence skipped (RANSAC2D)."<<endl;
+            return;
+        }
+        bInverse = true;
     }
     ElPackHomologue aPackFull =  ElPackHomologue::FromFile(aNameIn);
 
-    /******************************random perform**********/
+    /******************************Read scale and rotation**********/
+    std::vector<Pt2dr> aSclRotV1;
+    std::vector<Pt2dr> aSclRotV2;
+    if(bCheckSclRot){
+        std::string aNameSclRot = input_dir + "/Homol" + inSH+"_SclRot"+"/" +"Pastis" + aImg1 + "/"+aImg2+".txt";
+
+        if (ELISE_fp::exist_file(aNameSclRot) == false)
+        {
+            cout<<aNameSclRot<<" didn't exist hence skipped (RANSAC2D)."<<endl;
+            return;
+        }
+
+        ElPackHomologue aPackHomoSclRot =  ElPackHomologue::FromFile(aNameSclRot);
+        for (ElPackHomologue::iterator itCpl=aPackHomoSclRot.begin();itCpl!=aPackHomoSclRot.end(); itCpl++)
+        {
+           ElCplePtsHomologues cple = itCpl->ToCple();
+           aSclRotV1.push_back(cple.P1());
+           aSclRotV2.push_back(cple.P2());
+        }
+    }
+
+    /******************************Read tie points**********/
     std::vector<Pt2dr> aV1;
     std::vector<Pt2dr> aV2;
     for (ElPackHomologue::iterator itCpl=aPackFull.begin();itCpl!=aPackFull.end(); itCpl++)
     {
        ElCplePtsHomologues cple = itCpl->ToCple();
 
-       aV1.push_back(cple.P1());
-       aV2.push_back(cple.P2());
+       if(bInverse == false)
+       {
+           aV1.push_back(cple.P1());
+           aV2.push_back(cple.P2());
+       }
+       else
+       {
+           aV2.push_back(cple.P1());
+           aV1.push_back(cple.P2());
+       }
     }
 
     int i, j;
     int nPtNum = aV1.size();
+    //int nMinPt = 5;
+
+    cout<<"Input tie point number: "<<nPtNum;
+    printf(";  iteration number: %d; thresh: %lf\n", aNbTir, thresh);
+
+    if(nPtNum<nMinPt)
+    {
+        printf("Input tie point number (%d) is less than %d, hence skipped.\n", nPtNum, nMinPt);
+        return;
+    }
 
     int nMaxInlier = 0;
     srand((int)time(0));
@@ -296,7 +241,13 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
 
     ElSimilitude aSim;
 
+    bool bConsis;
+    double dScale = 1;
+    double dAngle = 0;
+    double aSclL, aRotL, aSclR, aRotR;
+
     double aEpslon = 0.0001;
+    //std::string aFinalMsg = "";
     for(j=0; j<aNbTir; j++)
     {
         ElPackHomologue aPackSeed;
@@ -313,25 +264,42 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
         //in case duplicated points
         while((fabs(aDiff1.x) < aEpslon && fabs(aDiff1.y) < aEpslon) || (fabs(aDiff2.x) < aEpslon && fabs(aDiff2.y) < aEpslon));
         //while{(aV1[res[0]].x - aV1[res[1]].x)};
+        //printf("%dth seed: %d, %d\n", j, res[0], res[1]);
+
+        /********************Check if the 2 seed points are consistent in scale and rotation********************/
+        if(bCheckSclRot == true)
+        {
+            i = 0;
+            aSclL = aSclRotV1[res[i]].x;
+            aRotL = aSclRotV1[res[i]].y;
+            aSclR = aSclRotV2[res[i]].x;
+            aRotR = aSclRotV2[res[i]].y;
+            dScale = aSclR/aSclL;
+            dAngle = aRotR - aRotL;
+            i = 1;
+            aSclL = aSclRotV1[res[i]].x;
+            aRotL = aSclRotV1[res[i]].y;
+            aSclR = aSclRotV2[res[i]].x;
+            aRotR = aSclRotV2[res[i]].y;
+            bConsis = CheckSclRot(aSclL, aRotL, aSclR, aRotR, dScale, threshScale, dAngle, threshAngle);
+            if(bConsis == false)
+                continue;
+
+            dScale = (dScale + aSclR/aSclL)/2;
+            dAngle = (dAngle + aRotR - aRotL)/2;
+        }
 
         Pt2dr tr, sc;
-/*
-        res[0] = 427;
-        res[1] = 449;
-        tr = aV1[res[0]];
-        sc = aV1[res[1]];
-        printf("inter: %d; translation: %lf  %lf  %lf  %lf\n", j, tr.x, tr.y, sc.x, sc.y);
-        tr = aV2[res[0]];
-        sc = aV2[res[1]];
-        printf("inter: %d; translation: %lf  %lf  %lf  %lf\n", j, tr.x, tr.y, sc.x, sc.y);
 
-        Pt2dr ttt = aV1[res[0]] - aV1[res[1]];
-        cout<<ttt.x<<",,,,,"<<ttt.y<<endl;
-*/
         for(i=0; i<2; i++)
         {
             aPackSeed.Cple_Add(ElCplePtsHomologues(aV1[res[i]],aV2[res[i]]));
         }
+        double aPropRan = 0.8;
+/*
+        std::string aTmp = input_dir + "/Homol-SIFT2Step-Rough-GlobalR3D/" +"Pastis" + aImg1 + "/"+aImg2+".txt";
+        aPackSeed =  ElPackHomologue::FromFile(aTmp);
+*/
         ElSimilitude aSimCur = SimilRobustInit(aPackSeed,aPropRan,1);
 
         tr = aSimCur.tr();
@@ -347,8 +315,18 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
             Pt2dr aP2Pred = aSimCur(aP1);
             double dist = pow(pow(aP2Pred.x-aP2.x,2) + pow(aP2Pred.y-aP2.y,2), 0.5);
             //printf("%d %lf\n", i, dist);
-            if(dist < thresh)
+            bConsis = true;
+            if(bCheckSclRot == true)
             {
+                aSclL = aSclRotV1[i].x;
+                aRotL = aSclRotV1[i].y;
+                aSclR = aSclRotV2[i].x;
+                aRotR = aSclRotV2[i].y;
+                bConsis = CheckSclRot(aSclL, aRotL, aSclR, aRotR, dScale, threshScale, dAngle, threshAngle);
+            }
+            if(dist < thresh && bConsis == true)
+            {
+               // printf("%dth: %d, %.2lf  %.2lf  %.2lf  %.2lf\n", i, bConsis, aSclL, aRotL, aSclR, aRotR);
                 inlierCur.push_back(ElCplePtsHomologues(aP1, aP2));
                 nInlier++;
             }
@@ -358,8 +336,13 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
             nMaxInlier = nInlier;
             aSim = aSimCur;
             inlierFinal = inlierCur;
-            printf("Iter: %d/%d; nMaxInlier/nPtNum: %d/%d; ", j, aNbTir, nMaxInlier, nPtNum);
-            printf("translation: %lf  %lf  %lf  %lf, seed: [%d,%d]\n", tr.x, tr.y, sc.x, sc.y, res[0], res[1]);
+
+            //char aCh[1024];
+            printf("Iter: %d/%d; seed: [%d,%d]; Translation: [%.2lf, %.2lf]; Scl: %.2lf; Rot: %.2lf;  nInlier/nPtNum: %d/%d\n", j, aNbTir, res[0], res[1], tr.x, tr.y, sc.x, sc.y, nMaxInlier, nPtNum);
+            //aFinalMsg = aCh;
+            //cout<<aFinalMsg<<endl;
+            //printf("Iter: %d/%d; nMaxInlier/nPtNum: %d/%d; ", j, aNbTir, nMaxInlier, nPtNum);
+            //printf("translation: %lf  %lf  %lf  %lf, seed: [%d,%d]\n", tr.x, tr.y, sc.x, sc.y, res[0], res[1]);
         }
         /*
         else{
@@ -371,10 +354,15 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
     }
     /******************************end random perform**********/
 
-    /****************Save points****************/
     std::string aCom = "mm3d SEL" + BLANK + input_dir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-    cout<<aCom<<endl;
+    std::string aComInv = "mm3d SEL" + BLANK + input_dir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
+    cout<<"---------------------------------"<<endl;
+    printf("%s\n%s\n--->>>Total Pt: %d; Total inlier: %d; Inlier Ratio (2DRANSAC): %.2lf%%\n", aCom.c_str(), aComInv.c_str(), nPtNum, nMaxInlier, nMaxInlier*100.0/nPtNum);
+    //cout<<"Final: "<<aFinalMsg<<endl;
 
+    /****************Save points****************/
+    SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierFinal, false);
+    /*
     std::string aDir_outSH = input_dir + "/Homol" + outSH+"/";
     ELISE_fp::MkDir(aDir_outSH);
     aDir_outSH = aDir_outSH + "Pastis" + aImg1;
@@ -392,6 +380,7 @@ void RANSAC2D(std::string input_dir, std::string aImg1, std::string aImg2, std::
        fprintf(fpOutput, "%lf %lf %lf %lf\n",p1.x,p1.y,p2.x,p2.y);
     }
     fclose(fpOutput);
+    */
 
     /*
     //ElSimilitude aSim = SimilRobustInit(aPackFull,aPropRan,aNbTir);
@@ -431,46 +420,38 @@ int R2D(int argc,char ** argv, const std::string &aArg="")
 
     std::string aStrType;
 
+    bool bCheckSclRot = false;
+    double aThreshScale = 0.2;
+    double aThreshAngle = 30;
+
+    int aMinPt = 3;
+
     ElInitArgMain
      (
          argc,argv,
          LArgMain()  << EAMC(aStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeRHP))
-                << EAMC(aImg1,"First image name")
-                << EAMC(aImg2,"Second image name"),
+                << EAMC(aImg1,"Master image name")
+                << EAMC(aImg2,"Secondary image name"),
          LArgMain()
                      << aCAS3D.ArgBasic()
                      << aCAS3D.Arg2DRANSAC()
+                     << EAM(bCheckSclRot, "CheckSclRot", true, "Check the scale and rotation consistency (please make sure you saved the scale and rotation in \"Homol'2DRANInSH'_SclRot\" if you set this parameter to true), Def=false")
+                     << EAM(aThreshScale, "ScaleTh",true, "The threshold for checking scale ratio, Def=0.2; (0.2 means the ratio of master and secondary SIFT scale between [(1-0.2)*Ref, (1+0.2)*Ref] is considered valide. Ref is automatically calculated by reprojection.)")
+                     << EAM(aThreshAngle, "AngleTh",true, "The threshold for checking angle difference, Def=30; (30 means the difference of master and secondary SIFT angle between [Ref - 30 degree, Ref + 30 degree] is considered valide. Ref is automatically calculated by reprojection.)")
+                     << EAM(aMinPt,"MinPt",true,"Minimun number of input correspondences required, Def=3")
+
      );
 
-    if(aCAS3D.mRANSACOutSH.length() == 0)
-        aCAS3D.mRANSACOutSH = aCAS3D.mRANSACInSH + "-2DRANSAC";
+    aThreshAngle = aThreshAngle*3.14/180;
 
-    RANSAC2D(aCAS3D.mDir, aImg1, aImg2, aCAS3D.mRANSACInSH, aCAS3D.mRANSACOutSH, aCAS3D.mR2DIteration, aCAS3D.mR2DThreshold);
+    if(aCAS3D.mR2DOutSH.length() == 0)
+        aCAS3D.mR2DOutSH = aCAS3D.mR2DInSH + "-2DRANSAC";
+
+    RANSAC2D(aCAS3D.mDir, aImg1, aImg2, aCAS3D.mR2DInSH, aCAS3D.mR2DOutSH, aCAS3D.mR2DIteration, aCAS3D.mR2DThreshold, bCheckSclRot, aThreshScale, aThreshAngle, aMinPt);
 
     return 0;
 }
-/*
-double GetGSD(std::string aImg1, std::string aOri1, cInterfChantierNameManipulateur * aICNM)
-{
-    int aType = eTIGB_Unknown;
-    std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
-    cBasicGeomCap3D * aCam1 = cBasicGeomCap3D::StdGetFromFile(aIm1OriFile,aType);
-    double dZL = aCam1->GetAltiSol();
 
-    Pt2dr aCent(double(aCam1->SzBasicCapt3D().x)/2,double(aCam1->SzBasicCapt3D().y)/2);
-    Pt2dr aCentNeigbor(aCent.x+1, aCent.y);
-
-    Pt3dr aCentTer = aCam1->ImEtZ2Terrain(aCent, dZL);
-    Pt3dr aCentNeigborTer = aCam1->ImEtZ2Terrain(aCentNeigbor, dZL);
-
-
-    //double dist = pow(pow(aCentTer.x-aCentNeigborTer.x,2) + pow(aCentTer.y-aCentNeigborTer.y,2) + pow(aCentTer.z-aCentNeigborTer.z,2), 0.5);
-
-    double dist = pow(pow(aCentTer.x-aCentNeigborTer.x,2) + pow(aCentTer.y-aCentNeigborTer.y,2), 0.5);
-
-    return dist;
-}
-*/
 int R3D(int argc,char ** argv, const std::string &aArg="")
 {
     cCommonAppliTiepHistorical aCAS3D;
@@ -491,28 +472,32 @@ int R3D(int argc,char ** argv, const std::string &aArg="")
     aDSMFileL = "MMLastNuage.xml";
     aDSMFileR = "MMLastNuage.xml";
 
+    std::string aPara3DHL = "";
+    bool bCheckFile = false;
+
     ElInitArgMain
      (
          argc,argv,
          LArgMain()  << EAMC(aStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeRHP))
-                << EAMC(aImg1,"First image name")
-                << EAMC(aImg2,"Second image name")
-                << EAMC(aOri1,"Orientation of first image")
-                << EAMC(aOri2,"Orientation of second image"),
+                << EAMC(aImg1,"Master image name")
+                << EAMC(aImg2,"Secondary image name")
+                << EAMC(aOri1,"Orientation of master image")
+                << EAMC(aOri2,"Orientation of secondary image"),
          LArgMain()
                      << aCAS3D.ArgBasic()
                      << aCAS3D.Arg3DRANSAC()
-                << EAM(aDSMDirL, "DSMDirL", true, "DSM directory of first image, Def=none")
-                << EAM(aDSMDirR, "DSMDirR", true, "DSM directory of second image, Def=none")
-                << EAM(aDSMFileL, "DSMFileL", true, "DSM File of first image, Def=MMLastNuage.xml")
-                << EAM(aDSMFileR, "DSMFileR", true, "DSM File of second image, Def=MMLastNuage.xml")
-
+                << EAM(aDSMDirL, "DSMDirL", true, "DSM directory of master image, Def=none")
+                << EAM(aDSMDirR, "DSMDirR", true, "DSM directory of secondary image, Def=none")
+                << EAM(aDSMFileL, "DSMFileL", true, "DSM File of master image, Def=MMLastNuage.xml")
+                << EAM(aDSMFileR, "DSMFileR", true, "DSM File of secondary image, Def=MMLastNuage.xml")
+                << EAM(aPara3DHL, "Para3DHL", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
+                   << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
      );
 
-    if(aCAS3D.mRANSACOutSH.length() == 0)
-        aCAS3D.mRANSACOutSH = aCAS3D.mRANSACInSH + "-3DRANSAC";
+    if(aCAS3D.mR3DOutSH.length() == 0)
+        aCAS3D.mR3DOutSH = aCAS3D.mR3DInSH + "-3DRANSAC";
 
-    //RANSAC3D(aCAS3D.mOri, aCAS3D.mDir, aImg1, aImg2, aCAS3D.mRANSACInSH, aCAS3D.mRANSACOutSH, aCAS3D.mIteration, aR3DThreshold, aCAS3D.mDSMFileL, aCAS3D.mDSMFileR, aCAS3D.mDSMDirL, aCAS3D.mDSMDirR);
+    //RANSAC3D(aCAS3D.mOri, aCAS3D.mDir, aImg1, aImg2, aCAS3D.mR3DInSH, aCAS3D.mR3DOutSH, aCAS3D.mIteration, aR3DThreshold, aCAS3D.mDSMFileL, aCAS3D.mDSMFileR, aCAS3D.mDSMDirL, aCAS3D.mDSMDirR);
 
     StdCorrecNameOrient(aOri1,"./",true);
     StdCorrecNameOrient(aOri2,"./",true);
@@ -524,7 +509,8 @@ int R3D(int argc,char ** argv, const std::string &aArg="")
      std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
 */
 
-    RANSAC3D(aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mDir, aImg1, aImg2, aCAS3D.mRANSACInSH, aCAS3D.mRANSACOutSH, aCAS3D.mR3DIteration, aCAS3D.mR3DThreshold, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR);
+    cTransform3DHelmert aTrans3DHL(aPara3DHL);
+    RANSAC3D(aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mDir, aImg1, aImg2, aCAS3D.mR3DInSH, aCAS3D.mR3DOutSH, aCAS3D.mR3DIteration, aCAS3D.mR3DThreshold, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aCAS3D.mPrint, bCheckFile, aTrans3DHL, aCAS3D.mMinPt);
 
     return 0;
 }
@@ -551,51 +537,3 @@ int RANSAC_main(int argc,char ** argv)
     return EXIT_SUCCESS;
 }
 
-/*
-int RANSAC_main(int argc,char ** argv)
-{
-   cCommonAppliTiepHistorical aCAS3D;
-
-   std::string aImg1;
-   std::string aImg2;
-
-
-   std::string aStrType;
-
-   if(argc < 2)
-   {
-       cout<<"not enough parameters"<<endl;
-       return 0;
-   }
-
-   //cout<<argv[1]<<endl;
-
-   //ReadType(argv[1]);
-   bool aModeHelp=true;
-   eRANSAC_HistoP aType=eNbTypeRHP;
-   StdReadEnum(aModeHelp,aType,argv[1],eNbTypeRHP);
-
-   ElInitArgMain
-    (
-        argc,argv,
-        LArgMain()  << EAMC(aStrType,"Type in enumerated values", eSAM_None,ListOfVal(eNbTypeRHP))
-               << EAMC(aImg1,"First image name")
-               << EAMC(aImg2,"Second image name"),
-        LArgMain()
-                    << aCAS3D.ArgBasic()
-               //???
-                    << aCAS3D.ArgRANSAC()
-    );
-
-   if(aCAS3D.mRANSACOutSH.length() == 0)
-       aCAS3D.mRANSACOutSH = aCAS3D.mRANSACInSH + "-RANSAC";
-
-   if(aStrType == "R2D")
-       RANSAC2D(aCAS3D.mDir, aImg1, aImg2, aCAS3D.mRANSACInSH, aCAS3D.mRANSACOutSH, aCAS3D.mIteration, aCAS3D.mRANSACThreshold);
-
-   if(aStrType == "R3D")
-       RANSAC3D(aCAS3D.mOri, aCAS3D.mDir, aImg1, aImg2, aCAS3D.mRANSACInSH, aCAS3D.mRANSACOutSH, aCAS3D.mIteration, aCAS3D.mRANSACThreshold, aCAS3D.mDSMFileL, aCAS3D.mDSMFileR, aCAS3D.mDSMDirL, aCAS3D.mDSMDirR);
-
-   return EXIT_SUCCESS;
-}
-*/

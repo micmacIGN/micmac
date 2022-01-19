@@ -219,9 +219,15 @@ struct cFilterPCar
          bool              LPS_CensusMode() const;   ///< Do Normalization in census mode
          bool              LPS_Interlaced() const;   ///< Interlace teta at each step of rho
 
+         std::vector<double> &  LPQuantif();  ///< Parameter for quantif , float -> U_INT1
+         const double &         LPQ_Steep0() const; ///< Value of steep in 0, -1 mean infinty
+         const double &         LPQ_Exp() const;    ///< Exposant
+
+
          const std::vector<cPt2dr> & VDirTeta0() const;
          const std::vector<cPt2dr> & VDirTeta1() const;
 
+         void AddData(const cAuxAr2007 & anAux);
      private :
          void InitDirTeta() const;
          bool                 mIsForTieP;
@@ -230,10 +236,14 @@ struct cFilterPCar
          std::vector<double>  mEQsf; ///< Exposant for quality of point before spatial filter [AutoC,Var,Scale]
          std::vector<double>  mLPCirc;  ///< Circles of Log Pol param [Rho0,DeltaSI0,DeltaI]
          std::vector<double>  mLPSample;  ///< Sampling Mode for LogPol [NbTeta,NbRho,Multiplier,CensusNorm]
+         std::vector<double>  mLPQuantif;  ///< Quantification Mode after Census Quant [Steep,Exp]
 
          mutable std::vector<cPt2dr>  mVDirTeta0;
          mutable std::vector<cPt2dr>  mVDirTeta1;
 }; 
+
+void AddData(const cAuxAr2007 & anAux, cFilterPCar &    aFPC);
+
 
 /// Struct for parametrization of Gaussian Pyramid
 
@@ -245,14 +255,14 @@ struct cGP_Params
 {
      public :
          /// Appli is usefull for name computation
-         cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,cMMVII_Appli *,bool is4TieP);
+         cGP_Params(const cPt2di & aSzIm0,int aNbOct,int aNbLevByOct,int aOverlap,const cMMVII_Appli *,bool is4TieP);
 
       // Parameters having no def values
          cPt2di mSzIm0;    ///< Sz of Image at full resol
          int  mNbOct;      ///< Number of octave
          int  mNbLevByOct;  ///< Number of level per octave (dont include overlap)
          int  mNbOverlap;   ///< Number of overlap
-         cMMVII_Appli * mAppli; ///< Appli used for names construction
+         const cMMVII_Appli * mAppli; ///< Appli used for names construction
          
          cPt2di       mNumTile; ///< Tile used for computing in small tiles (memory problem) usefull as index for save
          cFilterPCar  mFPC; ///< Not really related to GP, but easier to embed 

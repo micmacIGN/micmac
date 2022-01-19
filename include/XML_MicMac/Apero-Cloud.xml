@@ -6,6 +6,7 @@
              
             <Symb>   LimBsH=1e-2 </Symb>
             <Symb>   KeyAssocImage=NKS-Assoc-Id  </Symb>
+            <Symb>   WithPoints=true  </Symb>
 
             <Symb>  CalPerIm=false </Symb>
             <Symb>  FocMin=0 </Symb>
@@ -36,11 +37,13 @@
        </DicoLoc>
 
        <SectionBDD_Observation>
-           <BDD_PtsLiaisons>
-                 <Id>    Id_Pastis_Hom  </Id>
-                 <KeySet> NKS-Set-Homol@${SetHom}@${Ext}  </KeySet>
-                 <KeyAssoc>  NKS-Assoc-CplIm2Hom@${SetHom}@${Ext}   </KeyAssoc>
-           </BDD_PtsLiaisons>
+           <#WHEN VTEST=${WithPoints}>
+                 <BDD_PtsLiaisons>
+                       <Id>    Id_Pastis_Hom  </Id>
+                       <KeySet> NKS-Set-Homol@${SetHom}@${Ext}  </KeySet>
+                       <KeyAssoc>  NKS-Assoc-CplIm2Hom@${SetHom}@${Ext}   </KeyAssoc>
+                 </BDD_PtsLiaisons>
+           </#WHEN>
            <BDD_Orient>
                   <Id>  Or-Init   </Id>
                   <KeySet>  NKS-Set-Orient@${AeroIn} </KeySet>
@@ -140,17 +143,19 @@
 
 
 		    <SectionObservations>
-                           <ObsLiaisons>
-                              <NameRef> Id_Pastis_Hom </NameRef>
-                              <Pond>
-                                 <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
-                                 <Show> eNSM_Paquet     </Show>
-                                 <NbMax>   100    </NbMax>
-                                  <EcartMax> 5 </EcartMax>
-                                  <SigmaPond> 2 </SigmaPond>
-                                  <ModePonderation> eL1Secured </ModePonderation>
-                              </Pond>
-                           </ObsLiaisons>
+                          <#WHEN VTEST=${WithPoints}>
+                               <ObsLiaisons>
+                                  <NameRef> Id_Pastis_Hom </NameRef>
+                                  <Pond>
+                                     <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
+                                     <Show> eNSM_Paquet     </Show>
+                                     <NbMax>   100    </NbMax>
+                                      <EcartMax> 5 </EcartMax>
+                                      <SigmaPond> 2 </SigmaPond>
+                                      <ModePonderation> eL1Secured </ModePonderation>
+                                  </Pond>
+                               </ObsLiaisons>
+		          </#WHEN>
 		    </SectionObservations>
 
                     <SectionExport>
@@ -160,7 +165,10 @@
                                    <NameOut> ${Out} </NameOut>
                                    <PlyModeBin> ${PlyBin} </PlyModeBin>
                                    <SavePtsCol> ${SavePtsCol} </SavePtsCol>
-                                   <NameRefLiaison> Id_Pastis_Hom </NameRefLiaison>
+
+                                   <#WHEN VTEST=${WithPoints}>
+                                       <NameRefLiaison> Id_Pastis_Hom </NameRefLiaison>
+                                   </#WHEN>
                                    <Pond>
                                           <EcartMesureIndiv>  1.0 </EcartMesureIndiv>
                                           <EcartMax> ${SeuilEc} </EcartMax>

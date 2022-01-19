@@ -36,6 +36,7 @@ double RandUnif_C();   ///<  Uniform distribution in  -1 1
 bool   HeadOrTail();   ///< 1/2 , french "Pile ou Face"
 double RandUnif_N(int aN); ///< Uniform disrtibution in [0,N[ 
 double RandUnif_C_NotNull(double aEps);   ///<  Uniform distribution in  -1 1, but abs > aEps
+double RandInInterval(double a,double b); ///<  Uniform distribution in [a,b]
 
 /** Class for mapping object R->R */
 class cFctrRR
@@ -53,6 +54,10 @@ std::vector<int> RandSet(int aK,int aN,cFctrRR & aBias =cFctrRR::TheOne);
 std::vector<int> RandNeighSet(int aK,int aN,const std::vector<int> & aSet);
 /// Complement of aSet in [0,1...., N[    ;  ]]
 std::vector<int> ComplemSet(int aN,const std::vector<int> & aSet);
+
+/// K is the numbre to select, it will be selected regularly with a proportion aProp
+bool SelectWithProp(int aK,double aProp);
+bool SelectQAmongN(int aK,int aQ,int aN);
 
 
 /* ============ Definition of numerical type ================*/
@@ -245,7 +250,7 @@ template <> class tElemNumTrait<tINT4> : public tBaseNumTrait<tStdInt>
         static eTyNums   TyNum() {return eTyNums::eTN_INT4;}
         typedef tREAL8   tFloatAssoc;
 };
-template <> class tElemNumTrait<tINT8> : public tBaseNumTrait<tStdInt>
+template <> class tElemNumTrait<tINT8> : public tBaseNumTrait<tINT8>
 {
     public :
         static bool      Signed() {return true;}
@@ -415,6 +420,7 @@ template<class Type> Type DivSup(const Type & a,const Type & b)
 
 /// Return a value depending only of ratio, in [-1,1], eq 0 if I1=I2, and invert sign when swap I1,I2
 double NormalisedRatio(double aI1,double aI2);
+double NormalisedRatioPos(double aI1,double aI2);
 
 
 tINT4 HCF(tINT4 a,tINT4 b); ///< = PGCD = Highest Common Factor
@@ -441,6 +447,18 @@ template <class Type> void OrderMinMax(Type & aV1,Type & aV2)
 // 4 now use sort, will enhance with boost or home made
 template <class Type> Type NonConstMediane(std::vector<Type> & aV);
 template <class Type> Type ConstMediane(const std::vector<Type> & aV);
+
+
+/*  ******************************************* */
+/*   Some basic operation, tested in debug mode */
+/*  ******************************************* */
+
+template<class Type> Type SafeDiv(const Type & aNumerator,const Type & aDenominator)
+{
+    MMVII_INTERNAL_ASSERT_NotNul(aDenominator);
+    return aNumerator / aDenominator;
+}
+
 
 /*  ********************************* */
 /*       Kernels                      */

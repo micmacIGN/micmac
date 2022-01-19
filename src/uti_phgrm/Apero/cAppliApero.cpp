@@ -219,6 +219,11 @@ cAppliApero::cAppliApero (cResultSubstAndStdGetFile<cParamApero> aParam) :
     {
        GlobExternRatioMaxDistCS = mParam.RatioMaxDistCS().Val();
     }
+
+    if (mParam.ExtensionIntervZ().IsInit())
+    {
+         SetExtensionIntervZInApero(mParam.ExtensionIntervZ().Val());
+    }
 }
 
 bool cAppliApero::CalcDebugEliminateNumTieP(int aNum) const

@@ -398,6 +398,19 @@ template <class TypeImage,class tBase,class TypeFile>  void TplBenchFileImage(co
              MMVII_INTERNAL_ASSERT_bench(aV1==aV2,"Bench image error");
          }
     }
+
+    {
+        cPt2di aP0 = aSz/5;
+        cPt2di aP1 = aSz/2;
+        cBox2di  aBox(aP0,aP1);
+	aDImDup.ClipToFile(aNameTiff,aBox);
+	cIm2D<int>  aImCl = cIm2D<int>::FromFile(aNameTiff);
+
+	for (const auto & aP : aImCl.DIm())
+	{
+            MMVII_INTERNAL_ASSERT_bench(aImCl.DIm().GetV(aP)==aDImDup.GetV(aP+aP0),"Bench ClipToFile")
+	}
+    }
 }
 
 template <class TypeFile,class TypeImage>  void TplBenchFileImage()
@@ -460,8 +473,52 @@ void TestInitIm1D(int aX0, int aX1)
 
 }
 
+void BenchHisto(int aNbVal,double aIncr)
+{
+
+    cHistoCumul<double,double> aH(aNbVal);
+    for (int aK=0 ; aK <aNbVal ; aK++)
+    {
+        aH.AddV(aK,aIncr);
+    }
+    aH.MakeCumul();
+
+    for (int aK=0 ; aK <=aNbVal ; aK++)
+    {
+        MMVII_INTERNAL_ASSERT_bench(aH.IndexeLowerProp(aK/(double) aNbVal)==(aK-1),"Bench image error");
+        // StdOut() << "ILP " << aK << " " << aH.IndexeLowerProp(aK/(double) aNbVal) << "\n";
+	if (aK<aNbVal)
+	{
+            //  StdOut() << "ILP' " << aK << " " << aH.IndexeLowerProp((aK+0.5)/(double) aNbVal) << "\n";
+             MMVII_INTERNAL_ASSERT_bench(aH.IndexeLowerProp((aK+0.5)/(double) aNbVal)==(aK-1),"IndexeLowerProp");
+	}
+    }
+    
+    for (int aNb=0 ; aNb<5000 ; aNb++)
+    {
+          double aVal =  RandInInterval(-aNbVal,2*aNbVal);
+  // std::cout << "V0 " << aVal << " PT=" <<  aH.PropCumul(aNbVal-1)<< "\n";
+	  if (aNb==0) 
+             aVal=0;
+	  else if (aNb==1) 
+             aVal=aNbVal;
+	  double aValTh = std::max(0.0,std::min(aVal,double(aNbVal))) ;
+          // StdOut() << aVal << " " << aH.PropCumul(aVal) * aNbVal  << " " << aValTh << "\n";
+          MMVII_INTERNAL_ASSERT_bench(std::abs(aValTh-aH.PropCumul(aVal) * aNbVal)==0,"PropCumul");
+	  // getchar();
+
+	  double aQ = 100.0 *RandUnif_0_1();
+	  double aDifQ =  aQ/100.0 -   aH.QuantilValue(aQ)/aNbVal ;
+	  // std::cout << "Q : " << aDifQ << "\n";
+          MMVII_INTERNAL_ASSERT_bench(std::abs(aDifQ)<1e-5,"IndexeLowerProp");
+    }
+}
+
 void BenchIm1D()
 {
+    BenchHisto(8,1.0);
+    BenchHisto(8,2.0);
+    //BenchHisto(8,1.0);
     if (0)  // Not freed
     {
        new cIm1D<double>(10);
@@ -488,6 +545,9 @@ void BenchGlobImage(cParamExeBench & aParam)
     {
         aI.DIm().SetV(cPt2di(0,0),1);
     }
+
+    BenchIm3D();
+    BenchImNDim();
  
     BenchIm1D();
     BenchFileImage();

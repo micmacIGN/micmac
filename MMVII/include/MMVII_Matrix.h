@@ -70,6 +70,8 @@ template <class Type> class  cDenseVect
 
         cDenseVect(int aSz, eModeInitImage=eModeInitImage::eMIA_NoInit);
         cDenseVect(tIM anIm);
+        static cDenseVect<Type>  Cste(int aSz,const Type & aVal);
+        cDenseVect<Type>  Dup() const;
 
         const Type & operator() (int aK) const {return DIm().GetV(aK);}
         Type & operator() (int aK) {return DIm().GetV(aK);}
@@ -520,6 +522,7 @@ template <class Type> class cMatIner2Var
        cMatIner2Var ();
        cMatIner2Var(const cMatIner2Var<Type> &) = default;
        void Add(const double & aPds,const Type & aV1,const Type & aV2);
+       void Add(const Type & aV1,const Type & aV2);
        const Type & S0()  const {return mS0;}
        const Type & S1()  const {return mS1;}
        const Type & S11() const {return mS11;}
@@ -530,6 +533,7 @@ template <class Type> class cMatIner2Var
        void Add(const cMatIner2Var&);
        void Add(const cMatIner2Var&,const Type & aMul) ;
        Type Correl(const Type &aEpsilon=1e-10) const;
+       Type CorrelNotC(const Type &aEpsilon=1e-10) const; // Non centered correl
        Type StdDev1() const;
        Type StdDev2() const;
     private :
@@ -550,7 +554,7 @@ template <class Type> class cWeightAv
         Type Average() const;
     private :
         Type  mSW;   ///< Som of    W
-        Type  mSV;   ///< Som of    V
+        Type  mSVW;   ///< Som of    VW
 };
 
 
@@ -602,9 +606,9 @@ template <class Type>  class cComputeStdDev
          const Type & SomWV()  const {return mSomWV; }
          const Type & SomWV2() const {return mSomWV2;}
          Type  NormalizedVal(const Type &) const;
-         cComputeStdDev<Type>  Normalize() const;
+         cComputeStdDev<Type>  Normalize(const Type & Epsilon = 0.0) const;
      private :
-         void  SelfNormalize();
+         void  SelfNormalize(const Type & Epsilon = 0.0);
          Type mSomW; 
          Type mSomWV; 
          Type mSomWV2; 
@@ -646,6 +650,58 @@ template<class Type,const int DimOut,const int DimIn>void MulLine(cPtxd<Type,Dim
 
 template<class Type,const int Dim> cPtxd<Type,Dim> SolveCol(const cDenseMatrix<Type>&,const cPtxd<Type,Dim>&);
 template<class Type,const int Dim> cPtxd<Type,Dim> SolveLine(const cPtxd<Type,Dim>&,const cDenseMatrix<Type>&);
+
+
+/** Class for image of any dimension, relatively slow probably */
+
+template <class Type> class cDataGenDimTypedIm : public cMemCheck
+{
+    public :
+        typedef Type  tVal;
+        typedef tNumTrait<Type> tTraits;
+        typedef typename tTraits::tBase  tBase;
+        typedef cDenseVect<int>          tIndex;
+        typedef cDenseVect<tREAL4>       tRIndex;
+
+        const Type &  GetV(const tIndex&) const;
+        void SetV(const tIndex&,const tBase & aVal) ;
+        void AddV(const tIndex&,const tBase & aVal) ;
+
+
+        tREAL4   GetNLinearVal(const tRIndex&) const; // Get value by N-Linear interpolation
+        void     AddNLinearVal(const tRIndex&,const double & aVal) ; // Get value by N-Linear interpolation
+
+        tREAL4   RecGetNLinearVal(const tRIndex& aRIndex,tIndex& aIIndex,int aDim) const; // slow but easy version
+        void RecAddNLinearVal(const tRIndex& aRIndex,const double &,tIndex& aIIndex,int aDim) ; // slow but easy version
+
+        cDataGenDimTypedIm(const tIndex& aSz);
+        cDataGenDimTypedIm();
+        ~cDataGenDimTypedIm();
+        cDataGenDimTypedIm(const cDataGenDimTypedIm<Type> &) = delete;
+        void Resize(const tIndex &);
+
+        Type *   RawDataLin() const; 
+        int      NbElem() const; 
+        int Adress(const tIndex&) const;
+        const tIndex & Sz() const;
+        void AddData(const cAuxAr2007 &);
+        cIm2D<Type>  ToIm2D() const;  // If 2 d, return a standard image , sharing same date. If not=>ERROR ...
+    protected  :
+        void PrivateAssertOk(const tIndex&) const;
+# if (The_MMVII_DebugLevel>=The_MMVII_DebugLevel_InternalError_tiny )
+        void AssertOk(const tIndex& anIndex) const {PrivateAssertOk(anIndex);}
+#else
+        void AssertOk(const tIndex&) { } const
+#endif
+
+        int      mDim;
+        int      mNbElem;
+        tIndex   mSz;
+        tIndex   mMulSz;
+        Type *   mRawDataLin; ///< raw data containing pixel values
+};
+
+
 
 };
 

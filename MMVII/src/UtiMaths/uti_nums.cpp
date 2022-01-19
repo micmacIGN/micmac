@@ -185,6 +185,7 @@ void BenchMod(int A,int B,int aModb)
 
 double NormalisedRatio(double aI1,double aI2)
 {
+    MMVII_INTERNAL_ASSERT_tiny((aI1>=0)&&(aI2>=0),"NormalisedRatio on negative values");
     // X = I1/I2
     if (aI1 < aI2)   // X < 1
         return aI1/aI2 -1;   // X -1
@@ -195,6 +196,10 @@ double NormalisedRatio(double aI1,double aI2)
     }
 
     return 1-aI2/aI1;  // 1 -1/X
+}
+double NormalisedRatioPos(double aI1,double aI2)
+{
+    return NormalisedRatio(std::max(aI1,0.0),std::max(aI2,0.0));
 }
 
 

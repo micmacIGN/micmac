@@ -102,7 +102,8 @@ std::string ChgPostix(const std::string & aPath,const std::string & aPost); // A
 
 bool CaseSBegin(const char * aBegin,const char * aStr); ///< Is aBegin the case SENS-itive premisse of aStr ?
 void SkeepWhite(const char * & aC);
-char DirSeparator();
+char CharDirSeparator();
+const std::string & StringDirSeparator();
 bool IsDirectory(const std::string & aName);
 
 
@@ -150,6 +151,7 @@ class cMMVII_Ofs : public cMemCheck
         std::ofstream & Ofs() ;
         const std::string &   Name() const;
 
+        void Write(const tU_INT2 & aVal)    ;
         void Write(const int & aVal)    ;
         void Write(const double & aVal) ;
         void Write(const size_t & aVal) ;
@@ -178,6 +180,7 @@ class cMMVII_Ifs : public cMemCheck
         const std::string &   Name() const;
 
         void Read(int & aVal)    ;
+        void Read(tU_INT2 & aVal)    ;
         void Read(double & aVal) ;
         void Read(size_t & aVal) ;
         void Read(std::string & aVal) ;
@@ -194,10 +197,21 @@ class cMMVII_Ifs : public cMemCheck
 class cMultipleOfs  : public  std::ostream
 {
     public :
-        cMultipleOfs(std::ostream & aOfs)
+        cMultipleOfs(std::ostream & aOfs) :
+            mOfsCreated(nullptr)
         {
            Add(aOfs);
         }
+        cMultipleOfs(const std::string & aS,bool ModeAppend = false)
+        {
+             mOfsCreated = new cMMVII_Ofs(aS,ModeAppend);
+             Add(mOfsCreated->Ofs());
+        }
+        ~cMultipleOfs()
+        {
+            delete mOfsCreated;
+        }
+
         void Add(std::ostream & aOfs) {mVOfs.push_back(&aOfs);}
         void Clear() {mVOfs.clear();}
 
@@ -228,6 +242,8 @@ class cMultipleOfs  : public  std::ostream
              return *this;
         }
     private :
+        
+        cMMVII_Ofs *                mOfsCreated;
         std::vector<std::ostream *> mVOfs;
 };
 

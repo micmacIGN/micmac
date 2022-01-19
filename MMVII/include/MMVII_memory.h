@@ -91,6 +91,21 @@ class cMemManager
            return  static_cast<Type *> (cMemManager::Calloc(nmemb,sizeof(Type)));
         }
 
+        template <class Type> static inline Type ** AllocMat(int aTx,int aTy)
+        {
+           Type ** aRes = Alloc<Type*>(aTy);
+	   for (int aY=0 ; aY<aTy ; aY++)
+               aRes[aY] = Alloc<Type>(aTx);
+	   return aRes;
+        }
+
+        template <class Type> static void  FreeMat(Type ** aMat,int aTy)
+	{
+            for (int aY=0 ; aY<aTy ; aY++)
+                Free(aMat[aY]);
+            Free(aMat);
+	}
+
         template <class Type> static bool Resize (Type *& aPtr,int aX0Prec,int & aSzMax,int aX0New,int aSzNew)
         {
            if (aSzNew > aSzMax)

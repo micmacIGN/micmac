@@ -826,6 +826,9 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
 -->
      <Section_MEC Nb="1">
 
+         <!-- Used to avoird too sctrict elimination of point on Z criteria -->
+        <ExtensionIntervZ Nb="?" Type="double"> </ExtensionIntervZ>
+
          <!-- Option applicable a la geometrie terrain, en image c'est de touet facon
         la cas... Permet de faire des fichiers + generiques -->
 
@@ -1003,6 +1006,13 @@ est obligatoirement un Tiff; si false ce peut etre eventuellement un raw data,
                                 </MCP_AttachePixel>
                         </MultiCorrelPonctuel>
 
+			<ScoreLearnedMMVII Nb="?" AccessorFils="false">
+                              <FileModeleCost Nb="1" Type="std::string">           </FileModeleCost>
+                              <CostDyn        Nb="?" Type="double" Def="0.3333">   </CostDyn>
+                              <CostExp        Nb="?" Type="double" Def="0.5">      </CostExp>
+                              <Cmp_FileMC     Nb="?" Type="std::string">           </Cmp_FileMC>
+                              <Cmp_NbDisc     Nb="?" Type="int"    Def="200">      </Cmp_NbDisc>
+                        </ScoreLearnedMMVII>
 
                         <Correl_Ponctuel2ImGeomI Nb="?" AccessorFils="false">    
                               <RatioI1I2 Nb="?" Type="double" Def="1.0"> </RatioI1I2>

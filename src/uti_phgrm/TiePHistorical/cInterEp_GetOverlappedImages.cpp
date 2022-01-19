@@ -75,29 +75,7 @@ termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
 
-void GetBoundingBox(Pt3dr* ptTerrCorner, int nLen, Pt3dr& minPt, Pt3dr& maxPt)
-{
-    minPt = ptTerrCorner[0];
-    maxPt = ptTerrCorner[0];
-    for(int i=1; i<nLen; i++){
-        Pt3dr ptCur = ptTerrCorner[i];
 
-        if(minPt.x > ptCur.x)
-            minPt.x = ptCur.x;
-        if(maxPt.x < ptCur.x)
-            maxPt.x = ptCur.x;
-
-        if(minPt.y > ptCur.y)
-            minPt.y = ptCur.y;
-        if(maxPt.y < ptCur.y)
-            maxPt.y = ptCur.y;
-
-        if(minPt.z > ptCur.z)
-            minPt.z = ptCur.z;
-        if(maxPt.z < ptCur.z)
-            maxPt.z = ptCur.z;
-    }
-}
 
 bool IsOverlapped(std::string aImg1, std::string aImg2, std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, cTransform3DHelmert aTrans3DHL, bool bPrint)
 {
@@ -206,6 +184,7 @@ bool IsOverlapped(std::string aImg1, std::string aImg2, std::string aOri1, std::
 
     if(bPrint==true)
     {
+        printf("[minPtL.x, maxPtR.x]: [%.2lf, %.2lf]\n[maxPtL.x, minPtR.x]: [%.2lf, %.2lf]\n[minPtL.y, maxPtR.y]: [%.2lf, %.2lf]\n[maxPtL.y, minPtR.y]: [%.2lf, %.2lf]\n", minPtL.x, maxPtR.x, maxPtL.x, minPtR.x, minPtL.y, maxPtR.y, maxPtL.y, minPtR.y);
         printf("bRes: %d\n", bRes);
         for(int i=0; i<4; i++)
         {
@@ -222,41 +201,45 @@ bool IsOverlapped(std::string aImg1, std::string aImg2, std::string aOri1, std::
     return bRes;
 }
 
-void GetOverlappedImages(std::string mImgList1, std::string mImgList2, std::string aOri1, std::string aOri2, std::string aDir, std::string aOut, cInterfChantierNameManipulateur * aICNM, cTransform3DHelmert aTrans3DHL, bool bPrint)
+void GetOverlappedImages(std::string aImgList1, std::string aImgList2, std::string aOri1, std::string aOri2, std::string aDir, std::string aOut, cInterfChantierNameManipulateur * aICNM, cTransform3DHelmert aTrans3DHL, bool bPrint)
 {
-    if (ELISE_fp::exist_file(mImgList1) == false)
-        printf("File %s does not exist.\n", mImgList1.c_str());
-    if (ELISE_fp::exist_file(mImgList2) == false)
-        printf("File %s does not exist.\n", mImgList2.c_str());
-
     std::vector<string> vImgList1;
     std::vector<string> vImgList2;
+    GetImgListVec(aImgList1, vImgList1);
+    GetImgListVec(aImgList2, vImgList2);
+    /*
+    if (ELISE_fp::exist_file(aImgList1) == false)
+        printf("File %s does not exist.\n", aImgList1.c_str());
+    if (ELISE_fp::exist_file(aImgList2) == false)
+        printf("File %s does not exist.\n", aImgList2.c_str());
 
     std::string s;
 
-    ifstream in1(aDir+mImgList1);
-    printf("Images in %s:\n", mImgList1.c_str());
+    ifstream in1(aDir+aImgList1);
+    printf("Images in %s:\n", aImgList1.c_str());
     while(getline(in1,s))
     {
         vImgList1.push_back(s);
         printf("%s\n", s.c_str());
     }
-    //printf("%d images in %s\n", int(vImgList1.size()), mImgList1.c_str());
+    //printf("%d images in %s\n", int(vImgList1.size()), aImgList1.c_str());
 
-    ifstream in2(aDir+mImgList2);
-    printf("Images in %s:\n", mImgList2.c_str());
+    ifstream in2(aDir+aImgList2);
+    printf("Images in %s:\n", aImgList2.c_str());
     while(getline(in2,s))
     {
         vImgList2.push_back(s);
         printf("%s\n", s.c_str());
     }
-    //printf("%d images in %s\n", int(vImgList2.size()), mImgList2.c_str());
+    //printf("%d images in %s\n", int(vImgList2.size()), aImgList2.c_str());
 
     //std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
     //std::string aKeyOri2 = "NKS-Assoc-Im2Orient@-" + aOri2;
+    */
 
     unsigned int m, n;
     cSauvegardeNamedRel aRel;
+    int nOverlappedPair = 0;
     for(m=0; m<vImgList1.size(); m++)
     {
         std::string aImg1 = vImgList1[m];
@@ -269,10 +252,12 @@ void GetOverlappedImages(std::string mImgList1, std::string mImgList2, std::stri
             if(IsOverlapped(aImg1, aImg2, aOri1, aOri2, aICNM, aTrans3DHL, bPrint) == true)
             {
                 aRel.Cple().push_back(cCpleString(aImg1, aImg2));
+                nOverlappedPair++;
             }
         }
     }
     MakeFileXML(aRel,aDir+aOut);
+    cout<<"Overlapped image pairs: "<<nOverlappedPair<<endl;
     cout<<"xdg-open "<<aDir+aOut<<endl;
 }
 
@@ -284,48 +269,39 @@ int GetOverlappedImages_main(int argc,char ** argv)
    std::string aImgList2;
    std::string aOri1;
    std::string aOri2;
-//   std::string aDir;
 
    std::string aPara3DH = "";
 
-   bool bPrint = false;
+   //bool bPrint = false;
 
    ElInitArgMain
     (
         argc,argv,
         LArgMain()
-               << EAMC(aOri1,"Orientation of first image")
-               << EAMC(aOri2,"Orientation of second image")
+               << EAMC(aOri1,"Orientation of master image")
+               << EAMC(aOri2,"Orientation of secondary image")
                //<< EAMC(aDir,"Work directory")
-               << EAMC(aImgList1,"Input Image List of Epoch 1")
-               << EAMC(aImgList2,"Input Image List of Epoch 2"),
+               << EAMC(aImgList1,"ImgList1: RGB images in epoch1 for extracting inter-epoch correspondences (Dir+Pattern, or txt file of image list)")
+               << EAMC(aImgList2,"ImgList2: RGB images in epoch2 for extracting inter-epoch correspondences (Dir+Pattern, or txt file of image list)"),
         LArgMain()
                     << aCAS3D.ArgBasic()
                     << aCAS3D.ArgGetOverlappedImages()
-               << EAM(aPara3DH, "Para3DH", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of first image to second image, Def=none")
-               << EAM(bPrint, "Print", false, "Print corner coordinate, Def=false")
+               << EAM(aPara3DH, "Para3DH", false, "Input xml file that recorded the paremeter of the 3D Helmert transformation from orientation of master image to secondary image, Def=none")
+               //<< EAM(bPrint, "Print", false, "Print corner coordinate, Def=false")
 
     );
 
    StdCorrecNameOrient(aOri1,"./",true);
    StdCorrecNameOrient(aOri2,"./",true);
 
-   /*
-    std::string aKeyOri1 = "NKS-Assoc-Im2Orient@-" + aOri1;
-    std::string aKeyOri2 = "NKS-Assoc-Im2Orient@-" + aOri2;
-
-    std::string aIm1OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri1,aImg1,true);
-    std::string aIm2OriFile = aCAS3D.mICNM->Assoc1To1(aKeyOri2,aImg2,true);
-*/
-
-   if (aPara3DH.length() > 0 && ELISE_fp::exist_file(aPara3DH) == false)
-   {
-       printf("File %s does not exist.\n", aPara3DH.c_str());
-        return 0;
-    }
    cTransform3DHelmert aTrans3DH(aPara3DH);
 
-   GetOverlappedImages(aImgList1, aImgList2, aOri1, aOri2, aCAS3D.mDir, aCAS3D.mOutPairXml, aCAS3D.mICNM, aTrans3DH, bPrint);
+   std::string aOutPairXml = aCAS3D.mOutPairXml;
+   if(aOutPairXml.length() == 0)
+       aOutPairXml = "OverlappedImages"+RemoveOri(aOri1)+"_"+RemoveOri(aOri2)+".xml";
+   printf("%s to be saved...\n", aOutPairXml.c_str());
+
+   GetOverlappedImages(aImgList1, aImgList2, aOri1, aOri2, aCAS3D.mDir, aOutPairXml, aCAS3D.mICNM, aTrans3DH, aCAS3D.mPrint);
 
    return EXIT_SUCCESS;
 }

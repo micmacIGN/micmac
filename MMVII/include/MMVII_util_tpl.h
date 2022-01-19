@@ -232,6 +232,36 @@ template <class Type> std::vector<Type> Append(const std::vector<Type> & aV1,con
 }
 
 
+template <class Type>  std::vector<std::vector<Type>>  ProdCart(const std::vector<std::vector<Type>>  aVV)
+{
+     std::vector<std::vector<Type>> aVVRes;
+     aVVRes.push_back(std::vector<Type>());
+     for (const auto & aVNewV : aVV)
+     {
+          std::vector<std::vector<Type>>  aNewVVRes;
+          for (const auto & aVR : aVVRes)
+          {
+              for (const auto & aNewVal : aVNewV)
+              {
+                  std::vector<Type> aNewVect = aVR;
+                  aNewVect.push_back(aNewVal);
+                  aNewVVRes.push_back(aNewVect);
+              }
+          }
+          aVVRes = aNewVVRes;
+     }
+     return aVVRes;
+}
+
+template <class TVal,class TFunc> void SortOnCriteria(std::vector<TVal> & aVec,const TFunc & aFunc)
+{   
+    std::sort
+    (
+         aVec.begin(),aVec.end(),
+         [&aFunc](const auto & aV1,const auto & aV2) {return aFunc(aV1) < aFunc(aV2);}
+    );
+}
+
 
 
 };

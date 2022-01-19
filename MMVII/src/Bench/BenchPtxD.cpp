@@ -4,11 +4,43 @@ namespace MMVII
 {
 
 
+template <const int Dim> void BenchTabGrow(const int aDMax)
+{
+     const std::vector<std::vector<cPtxd<int,Dim>>> &  aRes = TabGrowNeigh<Dim>(aDMax);
+
+     MMVII_INTERNAL_ASSERT_bench((int(aRes.size())>aDMax),"SZ BenchTabGrow");
+
+     for (int aD=0 ; aD<= aDMax ; aD++)
+     {
+          //  Test good number of points
+          int aNbTh =  (aD>0)  ? round_ni(pow(1+2*aD,Dim)-pow(-1+2*aD,Dim))  : 1;
+          MMVII_INTERNAL_ASSERT_bench((aNbTh==int(aRes.at(aD).size())),"Dist in BenchTabGrow");
+ 
+          for (const auto & aP :  aRes.at(aD))
+          {
+              // Test good inf-norm
+              MMVII_INTERNAL_ASSERT_bench((aD==NormInf(aP)),"Dist in BenchTabGrow");
+
+              // Test all diff
+              int aNbEq = 0;
+              for (const auto & aP2 :  aRes.at(aD))
+                  if (aP==aP2)
+                     aNbEq++;
+              MMVII_INTERNAL_ASSERT_bench(aNbEq==1,"Diff in BenchTabGrow");
+          }
+     }
+}
+
 void  Bench_cPt2dr()
 {
-
+   for (const int aDist : {0,1,2,3,6,2,0} )
    {
-      std::vector<cPt3di> & aV31 = AllocNeighbourhood<3>(1);
+       BenchTabGrow<1>(aDist);
+       BenchTabGrow<2>(aDist);
+       BenchTabGrow<3>(aDist);
+   }
+   {
+      const std::vector<cPt3di> & aV31 = AllocNeighbourhood<3>(1);
       MMVII_INTERNAL_ASSERT_bench((&AllocNeighbourhood<3>(2)==&AllocNeighbourhood<3>(2)),"Alloc Neighbour");
       MMVII_INTERNAL_ASSERT_bench((&AllocNeighbourhood<3>(1)==&aV31),"Alloc Neighbour");
       MMVII_INTERNAL_ASSERT_bench((&AllocNeighbourhood<3>(2)!=&aV31),"Alloc Neighbour");

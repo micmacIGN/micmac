@@ -1617,8 +1617,8 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
 
 
 
-    void cAppliMICMAC::DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax,int aNbScaleIm)
-    {
+void cAppliMICMAC::DoOneCorrelMaxMinIm1Maitre(int anX,int anY,bool aModeMax,int aNbScaleIm)
+{
         if (mEBI) // Etiq Best Image
         {
             if (mNbIm>1)
@@ -1664,7 +1664,7 @@ void cAppliMICMAC::DoOneCorrelIm1Maitre(int anX,int anY,const cMultiCorrelPonctu
                 (isOk) ? mStatGlob->CorrelToCout(aRes) : mAhDefCost
                 );
         }
-    }
+}
 
 
 
@@ -2046,7 +2046,11 @@ void cAppliMICMAC::DoCorrelAdHoc
 
         mCC = aTC.CensusCost().PtrVal();
 
-        if (aTC.GPU_Correl().IsInit())
+	if (aTC.ScoreLearnedMMVII().IsInit())
+        {
+            DoCostLearnedMMVII(aBox,aTC.ScoreLearnedMMVII().Val());
+        }
+        else if (aTC.GPU_Correl().IsInit())
         {
             DoGPU_Correl(aBox,(cMultiCorrelPonctuel*)0,0);
         }

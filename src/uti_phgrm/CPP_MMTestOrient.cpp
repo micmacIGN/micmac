@@ -79,9 +79,16 @@ class cAppliMMTestOrient
        std::string mCom;
        std::vector<std::string> mVIms;
        bool mMMV;
+
+       bool        mUseMasqPerIm;
+       std::string mMasqPerIm;
+       bool        mOkNoMasq;
 };
 
-cAppliMMTestOrient::cAppliMMTestOrient(int argc,char ** argv)
+cAppliMMTestOrient::cAppliMMTestOrient(int argc,char ** argv) :
+     mUseMasqPerIm (false),
+     mMasqPerIm    ("_Masq"),
+     mOkNoMasq     (false)
 {
     MMD_InitArgcArgv(argc,argv);
 
@@ -121,6 +128,9 @@ cAppliMMTestOrient::cAppliMMTestOrient(int argc,char ** argv)
                     << EAM(ShowCom,"ShowCom",true,"Show MicMac command (tuning purpose)")
                     << EAM(ExportDepl,"ExportDepl",true,"Export result as displacement maps")
                     << EAM(aDirMEC,"DirMEC",true,"Output directory (Def GeoI-Px/)")
+                    << EAM(mUseMasqPerIm,"UseMPI",true,"Use Masq Per Im, def=false)")
+                    << EAM(mMasqPerIm,"MasqIm",true,"Masq to use , def=\"_Masq\")")
+                    << EAM(mOkNoMasq,"OkNoM",true,"Accept that masq may not exist for one image")
     );
 
     // cInterfChantierNameManipulateur * aICNM = cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(anIm1));
@@ -208,6 +218,12 @@ cAppliMMTestOrient::cAppliMMTestOrient(int argc,char ** argv)
                      + " +ModeOriIm=" + aFullModeOri + std::string(" ")
                      + " +Px1Inc=" + ToString(aZInc) + std::string(" ")
                      + " +Px1Moy=" + ToString(aZMoy) + std::string(" ") ;
+    }
+    if (mUseMasqPerIm)
+    {
+        mCom = mCom + " +UseMasqPerIm=true "
+		    + " +MasqPerIm="  + mMasqPerIm
+		    + " +OkNoMasqIm=" + ToString(mOkNoMasq) + std::string(" ");
     }
 
     if (ShowCom) std::cout << mCom << "\n";

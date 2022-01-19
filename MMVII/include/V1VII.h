@@ -50,7 +50,14 @@ template <class Type> class cMMV1_Conv
      };
 
 
+     // For gray level
      static void ReadWrite(bool ReadMode,const tImMMVII &aImV2,const cDataFileIm2D & aDF,const cPt2di & aP0File,double aDyn,const cRect2& aR2Init);
+
+     // For RGB
+     static void ReadWrite(bool ReadMode,const tImMMVII &,const tImMMVII &,const tImMMVII &,const cDataFileIm2D & aDF,const cPt2di & aP0File,double aDyn,const cRect2& aR2Init);
+   private :
+     // Generik function, real implemantation
+     static void ReadWrite(bool ReadMode,const std::vector<const tImMMVII*>& ,const cDataFileIm2D &aDF,const cPt2di & aP0File,double aDyn,const cRect2& aR2Init);
 };
 
 std::string V1NameMasqOfIm(const std::string & aName);

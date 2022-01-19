@@ -131,6 +131,12 @@ double RandUnif_C()
    return (RandUnif_0_1()-0.5) * 2.0;
 }
 
+double RandInInterval(double a,double b)
+{
+   return b+ (a-b) * RandUnif_0_1() ;
+}
+
+
 double RandUnif_C_NotNull(double aEps)
 {
    double aRes = RandUnif_C();
@@ -216,6 +222,19 @@ std::vector<int> RandNeighSet(int aK,int aN,const std::vector<int> & aSet)
    return aRes;
 }
 
+/*  Random or deterministic selectors */
+
+bool SelectWithProp(int aK,double aProp)
+{
+    double aPH1 =  aK * aProp;
+    double aPH2 =  (aK+1) * aProp;
+    return  round_ni(aPH1) != round_ni(aPH2);
+}
+
+bool SelectQAmongN(int aK,int aQ,int aN)
+{
+    return SelectWithProp(aK,double(aQ)/double(aN));
+}
 
 
 

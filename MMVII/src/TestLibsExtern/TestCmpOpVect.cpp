@@ -1,11 +1,33 @@
 #include "include/MMVII_all.h"
 #include "ExternalInclude/Eigen/Dense"
-//#include "/usr/local/include/Eigen/Dense"
+
+#if (MMVII_WITH_CERES)
 #include "ceres/jet.h"
-
 using ceres::Jet;
+namespace MMVII
+{
+template <class Type,const int SzTEigen> 
+    void CeresTestCreate(const int aNb)
+{
+    Jet<Type, SzTEigen> aJet;
+    for (int aK=0 ; aK<aNb ; aK++)
+    {
+        aJet = aJet + aJet -Type(10.0);
+        aJet = (aJet + Type(10.0))/Type(2.0);
+    }
+    DoNothingWithIt(&aJet); // To avoid too clever compiler supress the loop 
+}
+}
 
-
+#else
+namespace MMVII
+{
+template <class Type,const int SzTEigen> 
+    void CeresTestCreate(const int aNb)
+{
+}
+}
+#endif
 
 namespace MMVII
 {
@@ -126,15 +148,7 @@ template <class Type,const int SzTEigen> void cTestOperationVector<Type,SzTEigen
         double aT8 = cMMVII_Appli::CurrentAppli().SecFromT0();
 
 
-        {
-            Jet<Type, SzTEigen> aJet;
-            for (int aK=0 ; aK<aNb ; aK++)
-            {
-                 aJet = aJet + aJet -Type(10.0);
-                 aJet = (aJet + Type(10.0))/Type(2.0);
-            }
-            DoNothingWithIt(&aJet); // To avoid too clever compiler supress the loop 
-        }
+	CeresTestCreate<Type,SzTEigen>(aNb);
         double aT9 = cMMVII_Appli::CurrentAppli().SecFromT0();
 
 

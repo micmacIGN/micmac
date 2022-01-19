@@ -74,34 +74,6 @@ pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
-void ReadXml1(std::string & aImg1, std::string & aImg2, std::string aSubPatchXml, std::vector<std::string>& vPatchesL, std::vector<std::string>& vPatchesR, std::vector<cElHomographie>& vHomoL, std::vector<cElHomographie>& vHomoR)
-{
-    cout<<aSubPatchXml<<endl;
-    cSetOfPatches aSOMAF = StdGetFromSI(aSubPatchXml, SetOfPatches);
-
-    std::list<cMes1Im>::const_iterator itIms = aSOMAF.Mes1Im().begin();
-
-    cMes1Im aIms1 = * itIms;
-    itIms++;
-    cMes1Im aIms2 = * itIms;
-
-    aImg1 = aIms1.NameIm();
-    aImg2 = aIms2.NameIm();
-
-    for(std::list<cOnePatch1I>::const_iterator itF = aIms1.OnePatch1I().begin() ; itF != aIms1.OnePatch1I().end() ; itF++)
-    {
-        cOnePatch1I aMAF = *itF;
-        vPatchesL.push_back(aMAF.NamePatch());
-        vHomoL.push_back(aMAF.PatchH());
-    }
-
-    for(std::list<cOnePatch1I>::const_iterator itF = aIms2.OnePatch1I().begin() ; itF != aIms2.OnePatch1I().end() ; itF++)
-    {
-        cOnePatch1I aMAF = *itF;
-        vPatchesR.push_back(aMAF.NamePatch());
-        vHomoR.push_back(aMAF.PatchH());
-    }
-}
 
 //if the window around the point aPt is out of the border of the current patch, move to an adjoint patch
 Pt2di VerifyPatch(Pt2dr aPt, Pt2dr aPatchSz, int aWindowSize)
@@ -122,16 +94,17 @@ Pt2di VerifyPatch(Pt2dr aPt, Pt2dr aPatchSz, int aWindowSize)
     return aRes;
 }
 
-bool GetPxVal(std::string aDir, std::string aImg, int aWindowSize, Pt2dr aPt, std::vector<int>& aPxVal1)
+bool GetPxVal(std::string aDir, std::string aImg, int aWindowSize, Pt2dr aPt, std::vector<int>& aPxVal1, bool bPrint)
 {
+    if(bPrint)
+    {
+        std::string strCorner1 = "[" + std::to_string(int(aPt.x-aWindowSize/2)) + "," + std::to_string(int(aPt.y-aWindowSize/2)) + "]";
+        std::string strCorner2 = "[" + std::to_string(aWindowSize) + "," + std::to_string(aWindowSize) + "]";
+        std::string cmmd = "mm3d ClipIm " + aDir+"/"+aImg + "  "+strCorner1+" "+strCorner2+"  Out="+aDir+"/"+aImg+"-clip.tif";
+        cout<<cmmd<<endl;
+    }
+
     Pt2di aP1InPatch(aPt.x, aPt.y);
-    /*
-    cout<<"---------------"<<endl;
-    cout<<aDir<<endl;
-    cout<<aImg<<endl;
-    cout<<aP1InPatch.x<<",,,"<<aP1InPatch.y<<endl;
-    cout<<"---------------"<<endl;
-*/
 
     int i, j;
 
@@ -173,12 +146,10 @@ double GetMean(std::vector<int> aPxVal1)
     return nMean1;
 }
 
-double CalcCorssCorr(std::vector<int> aPxVal1, std::vector<int> aPxVal2)
+double CalcCorssCorr(std::vector<int> aPxVal1, std::vector<int> aPxVal2, bool bPrint)
 {
     double aMean1 = GetMean(aPxVal1);
     double aMean2 = GetMean(aPxVal2);
-
-    //cout<<aMean1<<","<<aMean2<<endl;
 
     for(unsigned int i=0; i<aPxVal1.size(); i++)
     {
@@ -198,10 +169,13 @@ double CalcCorssCorr(std::vector<int> aPxVal1, std::vector<int> aPxVal2)
 
     double dCorr = aInter/pow(aIntraL, 0.5)/pow(aIntraR, 0.5);
 
+    if(bPrint)
+        cout<<"aMean1, aMean2, aPxVal1.size(), dCorr: "<<aMean1<<","<<aMean2<<","<<aPxVal1.size()<<","<<dCorr<<endl;
+
     return dCorr;
 }
 
-void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std::string aSubPatchXml, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aPatchDir, int aWindowSize, double aThreshold, bool bCheckFile)
+void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std::string aSubPatchXml, Pt2dr aPatchSz, Pt2dr aBufferSz, std::string aPatchDir, int aWindowSize, double aThreshold, bool bCheckFile, bool bPrint)
 {
     if(aPatchSz.x < aWindowSize || aPatchSz.y < aWindowSize)
     {
@@ -213,7 +187,17 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
     std::vector<std::string> vPatchesL, vPatchesR;
     std::vector<cElHomographie> vHomoL, vHomoR;
 
-    ReadXml1(aImg1, aImg2, aPatchDir+"/"+aSubPatchXml, vPatchesL, vPatchesR, vHomoL, vHomoR);
+    ReadXml(aImg1, aImg2, aPatchDir+"/"+aSubPatchXml, vPatchesL, vPatchesR, vHomoL, vHomoR);
+    int nPatchLNum = int(vPatchesL.size());
+    int nPatchRNum = int(vPatchesR.size());
+    printf("Left patch number: %d\n", nPatchLNum);
+    printf("Right patch number: %d\n", nPatchRNum);
+
+    if (ELISE_fp::exist_file(aDir+"/"+aImg1) == false || ELISE_fp::exist_file(aDir+"/"+aImg2) == false)
+    {
+        cout<<aImg1<<" or "<<aImg2<<" didn't exist, hence skipped"<<endl;
+        return;
+    }
 
     // Save tie pt
     std::string aSHDir = aDir + "/Homol" + outSH + "/";
@@ -226,9 +210,6 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
     ELISE_fp::MkDir(aNewDir);
     std::string aNameFile2 = aNewDir + "/"+aImg1+".txt";
 
-    std::string aCom = "mm3d SEL" + BLANK + aDir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
-    cout<<aCom<<endl;
-
     if (bCheckFile == true && ELISE_fp::exist_file(aNameFile1) == true && ELISE_fp::exist_file(aNameFile2) == true)
     {
         cout<<aNameFile1<<" already exist, hence skipped"<<endl;
@@ -238,34 +219,12 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
 
     Tiff_Im aRGBIm1((aDir+"/"+aImg1).c_str());
     Pt2di ImgSzL = aRGBIm1.sz();
-/*
-    TIm2D<U_INT1,INT> aTImProfPx(ImgSzL);
-
-    //Pt2di aSzOut = mDSMSz;
-    //TIm2D<float,double> aTImProfPx(aSzOut);
-    ELISE_COPY
-    (
-    aTImProfPx.all_pts(),
-    aRGBPatch1.in(),
-    aTImProfPx.out()
-    );
-
-
-
-    int i, j;
-    i= 2;
-    j = 3;
-
-    //aTImProfPx.getr(i,j);
-    aTImProfPx.get(Pt2di(i,j));
-
-    Tiff_Im aRGBIm2((aDir+"/"+aImg2).c_str());
-    Pt2di ImgSzR = aRGBIm2.sz();
-*/
 
     Pt2dr CoreaPatchSz;
     CoreaPatchSz.x = aPatchSz.x - aBufferSz.x*2;
     CoreaPatchSz.y = aPatchSz.y - aBufferSz.y*2;
+
+    printf("PatchSz: [%.2lf, %.2lf]; BufferSz: [%.2lf, %.2lf]; CoreaPatchSz: [%.2lf, %.2lf]\n", aPatchSz.x, aPatchSz.y, aBufferSz.x, aBufferSz.y, CoreaPatchSz.x, CoreaPatchSz.y);
 
     Pt2dr PatchNum;
     PatchNum.x = ceil(ImgSzL.x*1.0/CoreaPatchSz.x);
@@ -283,51 +242,49 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
 
     std::vector<ElCplePtsHomologues> inlier;
     int nPtNum = 0;
+    int nOutOfBorder = 0;
+    int nOutlier = 0;
     for (ElPackHomologue::iterator itCpl=aPackFull.begin(); itCpl!=aPackFull.end() ; itCpl++)
     {
         Pt2dr aP1, aP2;
         aP1 = itCpl->ToCple().P1();
         aP2 = itCpl->ToCple().P2();
 
+        //first try, get a patch index simply based on corePatchSz
         int aIdxX, aIdxY, aIdxL, aIdxR;
         aIdxX = int(aP1.x/CoreaPatchSz.x);
         aIdxY = int(aP1.y/CoreaPatchSz.y);
         aIdxL = aIdxX*PatchNum.y + aIdxY;
         aIdxR = aIdxL;
+
         cElHomographie  aH1 = vHomoL[aIdxL].Inverse();
         cElHomographie  aH2 = vHomoR[aIdxR].Inverse();
-/*
-        cout<<aIdxX<<";;;"<<aP1.x<<";;;"<<CoreaPatchSz.x<<endl;
-        cout<<aIdxY<<";;;"<<aP1.y<<";;;"<<CoreaPatchSz.y<<endl;
-        cout<<aIdxL<<",,,"<<PatchNum.x<<",,,"<<PatchNum.y<<endl;
-        cout<<"--------"<<aPatchDir+"/"+vPatchesL[aIdxL]<<", "<<aPatchDir+"/"+vPatchesR[aIdxR]<<endl;
-*/
-        Pt2dr aP1InPatch, aP2InPatch;
+
+        if(0){
+            printf("------------------------------------------------\n");
+            printf("PatchSz: [%.2lf, %.2lf]; BufferSz: [%.2lf, %.2lf]; CoreaPatchSz: [%.2lf, %.2lf]; PatchNum: [%.2lf, %.2lf]\n", aPatchSz.x, aPatchSz.y, aBufferSz.x, aBufferSz.y, CoreaPatchSz.x, CoreaPatchSz.y, PatchNum.x, PatchNum.y);
+            printf("Location of patch (2D Index[x,y]): [%d, %d]; 1D Index: %d\n", aIdxX, aIdxY, aIdxL);
+            cElComposHomographie aH = aH1.HX();
+            printf("%.2lf, %.2lf, %.2lf\n", aH.CoeffX(), aH.CoeffY(), aH.Coeff1());
+            aH = aH1.HY();
+            printf("%.2lf, %.2lf, %.2lf\n", aH.CoeffX(), aH.CoeffY(), aH.Coeff1());
+            aH = aH1.HZ();
+            printf("%.2lf, %.2lf, %.2lf\n", aH.CoeffX(), aH.CoeffY(), aH.Coeff1());
+        }
+
+        Pt2dr aP1InPatch, aP2InPatch, aP2InPatch1stTry;
         aP1InPatch = aH1(aP1);
         aP2InPatch = aH2(aP2);
+        aP2InPatch1stTry = aP2InPatch;
 
-
-        //printf("%d: original coor: %lf %lf %lf %lf\n", nPtNum, aP1.x, aP1.y, aP2.x, aP2.y);
-//        cout<<nPtNum++<<endl;
-/*
-        printf("original coor: %lf %lf %lf %lf\n", aP1.x, aP1.y, aP2.x, aP2.y);
-        printf("new coor: %lf %lf %lf %lf\n", aP1InPatch.x, aP1InPatch.y, aP2InPatch.x, aP2InPatch.y);
-        cout<<aPatchDir+"/"+vPatchesL[aIdx]<<", "<<aPatchDir+"/"+vPatchesR[aIdx]<<endl;
-*/
         nPtNum++;
-        Pt2di res = VerifyPatch(aP2InPatch, aPatchSz, aWindowSize);
-        /*
-        if(nPtNum == 453)
-        {
-            cout<<res.x<<"::::::"<<res.y<<endl;
-            printf("%d %d %d, %lf %lf\n", aIdxL, aIdxX, aIdxY, CoreaPatchSz.x, CoreaPatchSz.y);
-        }
-        */
+        Pt2di aMove = VerifyPatch(aP2InPatch, aPatchSz, aWindowSize);
 
-        if(res.x != 0 || res.y !=0)
+        //Move to adjecent patch if necessary
+        if(aMove.x != 0 || aMove.y !=0)
         {
-            aIdxX = aIdxX + res.x;
-            aIdxY = aIdxY + res.y;
+            aIdxX = aIdxX + aMove.x;
+            aIdxY = aIdxY + aMove.y;
             aIdxR = aIdxX*PatchNum.y + aIdxY;
             if(aIdxR<0 || aIdxR>=int(vPatchesR.size()))
                 continue;
@@ -339,38 +296,41 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
             aP2InPatch = aH2(aP2);
         }
 
-/*
-        std::string aCom = "mm3d ClipIm " + aPatchDir+"/"+vPatchesL[aIdxL]+ " ["+ToString(int(aP1InPatch.x-int(aWindowSize/2)))+","+ToString(int(aP1InPatch.y-int(aWindowSize/2)))+"]"+ " ["+ToString(aWindowSize)+","+ToString(aWindowSize)+"]";
-        cout<<aCom<<endl;
-        //System(aCom);
-
-        aCom = "mm3d ClipIm " + aPatchDir+"/"+vPatchesR[aIdxR]+ " ["+ToString(int(aP2InPatch.x-int(aWindowSize/2)))+","+ToString(int(aP2InPatch.y-int(aWindowSize/2)))+"]"+ " ["+ToString(aWindowSize)+","+ToString(aWindowSize)+"]";
-                cout<<aCom<<endl;
-                //System(aCom);
-*/
+        if(aIdxL >= nPatchLNum || aIdxR >= nPatchRNum){
+            printf("%dth pt located in patch [%d,%d], which exceeded the patch number [%d,%d]\n", nPtNum, aIdxL, aIdxR, nPatchLNum, nPatchRNum);
+            continue;
+        }
 
         std::vector<int> aPxVal1, aPxVal2;
         if (ELISE_fp::exist_file(aPatchDir+"/"+vPatchesL[aIdxL]) == true && ELISE_fp::exist_file(aPatchDir+"/"+vPatchesR[aIdxR]) == true)
         {
-            bool bRes1 = GetPxVal(aPatchDir, vPatchesL[aIdxL], aWindowSize, aP1InPatch, aPxVal1);
-            bool bRes2 = GetPxVal(aPatchDir, vPatchesR[aIdxR], aWindowSize, aP2InPatch, aPxVal2);
+            bool bRes1 = GetPxVal(aPatchDir, vPatchesL[aIdxL], aWindowSize, aP1InPatch, aPxVal1, bPrint);
+            bool bRes2 = GetPxVal(aPatchDir, vPatchesR[aIdxR], aWindowSize, aP2InPatch, aPxVal2, bPrint);
 
             if(bRes1 == false || bRes2 == false)
             {
-                printf("------Out of border-------\n %dth pt, Original coor: %lf %lf %lf %lf\n", nPtNum, aP1.x, aP1.y, aP2.x, aP2.y);
-                printf("new coor: %lf %lf %lf %lf\n", aP1InPatch.x, aP1InPatch.y, aP2InPatch.x, aP2InPatch.y);
-                cout<<aPatchDir+"/"+vPatchesL[aIdxL]<<", "<<aPatchDir+"/"+vPatchesR[aIdxR]<<endl;
+                if(bPrint){
+                    printf("------Out of border-------\n %dth pt, Original coor: %lf %lf %lf %lf\n", nPtNum, aP1.x, aP1.y, aP2.x, aP2.y);
+                    printf("new coor: %lf %lf %lf %lf\n", aP1InPatch.x, aP1InPatch.y, aP2InPatch.x, aP2InPatch.y);
+                    printf("Step to move to adjecent patch: [%d, %d]\n", aMove.x, aMove.y);
+                    printf("aP2InPatch1stTry: [%.2lf, %.2lf]; aP2InPatch2ndTry: [%.2lf, %.2lf]\n", aP2InPatch1stTry.x, aP2InPatch1stTry.y, aP2InPatch.x, aP2InPatch.y);
+                    cout<<aPatchDir+"/"+vPatchesL[aIdxL]<<", "<<aPatchDir+"/"+vPatchesR[aIdxR]<<endl;
+                }
+                nOutOfBorder++;
                 continue;
             }
 
-            double dCorr = CalcCorssCorr(aPxVal1, aPxVal2);
-
-            //cout<<nPtNum<<"th dCorr: "<<dCorr<<endl;
+            double dCorr = CalcCorssCorr(aPxVal1, aPxVal2, bPrint);
+            if(bPrint){
+                printf("%dth pt, Original coor: %.2lf %.2lf %.2lf %.2lf; Coor: %.2lf \n", nPtNum, aP1.x, aP1.y, aP2.x, aP2.y, dCorr);
+            }
 
             if(dCorr >= aThreshold)
             {
                 inlier.push_back(ElCplePtsHomologues(aP1, aP2));
             }
+            else
+                nOutlier++;
         }
         else
             printf("%s or %s didn't exist, hence skipped.\n", vPatchesL[aIdxL].c_str(), vPatchesR[aIdxR].c_str());
@@ -380,7 +340,8 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
     FILE * fpTiePt1 = fopen(aNameFile1.c_str(), "w");
     FILE * fpTiePt2 = fopen(aNameFile2.c_str(), "w");
 
-    cout<<"original correspondences: "<<nPtNum<<"; survived correspondences: "<<inlier.size()<<endl;
+    //cout<<"original correspondences: "<<nPtNum<<"; survived correspondences: "<<inlier.size()<<endl;
+    //cout<<"correspondences out of border: "<<nOutOfBorder<<endl;
 
     for (unsigned int i=0; i<inlier.size(); i++)
     {
@@ -393,6 +354,14 @@ void CrossCorrelation(std::string aDir, std::string outSH, std::string inSH, std
     }
     fclose(fpTiePt1);
     fclose(fpTiePt2);
+
+    std::string aCom = "mm3d SEL" + BLANK + aDir + BLANK + aImg1 + BLANK + aImg2 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
+    std::string aComInv = "mm3d SEL" + BLANK + aDir + BLANK + aImg2 + BLANK + aImg1 + BLANK + "KH=NT SzW=[600,600] SH="+outSH;
+    printf("%s\n%s\nOriginal correspondences: %d; survived correspondences: %d; suirvived ratio: %.2lf%%\nOutlier: %d; Correspondences out of border: %d\nInlier+Outlier+OutBorder: %d\n", aCom.c_str(), aComInv.c_str(), nPtNum, int(inlier.size()), int(inlier.size())*100.0/nPtNum, nOutlier, nOutOfBorder, int(inlier.size())+nOutlier+nOutOfBorder);
+    //cout<<aCom<<endl;
+
+    if(bPrint)
+        cout<<"CCTh: "<<aThreshold<<endl;
 }
 
 int CrossCorrelation_main(int argc,char ** argv)
@@ -406,25 +375,31 @@ int CrossCorrelation_main(int argc,char ** argv)
    std::string aPatchDir = "./Tmp_Patches";
 
    Pt2dr aPatchSz(640, 480);
-   Pt2dr aBufferSz(30, 60);
+   Pt2dr aBufferSz(-1, -1);
 
    bool bCheckFile = false;
 
    ElInitArgMain
     (
         argc,argv,
-        LArgMain()  << EAMC(aImg1,"First image name")
-               << EAMC(aImg2,"Second image name"),
+        LArgMain()  << EAMC(aImg1,"Master image name")
+               << EAMC(aImg2,"Secondary image name"),
         LArgMain()
                     << aCAS3D.ArgBasic()
                     << aCAS3D.ArgCrossCorrelation()
-                   << EAM(aPatchSz, "PatchSz", true, "Patch size, Def=[640, 480]")
-                   << EAM(aBufferSz, "BufferSz", true, "Buffer sie, Def=[30, 60]")
+                   << EAM(aPatchSz, "PatchSz", true, "Patch size of the tiling scheme (since we use the patches resulted from \"GetPatchPair\" to calculate the cross correlation, this parameter should be set the same as the PatchSz in command GetPatchPair), Def=[640, 480]")             
+                   << EAM(aBufferSz, "BufferSz", true, "Buffer zone size around the patch of the tiling scheme (since we use the patches resulted from \"GetPatchPair\" to calculate the cross correlation, this parameter should be set the same as the BufferSz in command GetPatchPair), Def=10%*PatchSz")
                     << EAM(aSubPatchXml, "SubPXml", true, "The xml file name to record the homography between the patch and original image, Def=SubPatch.xml")
                    << EAM(aPatchDir, "PatchDir", true, "The input directory of patches, Def=./Tmp_Patches")
-                   << EAM(bCheckFile, "CheckFile", true, "Check if the result files exist (if so, skip), Def=false")
+                   << EAM(bCheckFile, "CheckFile", true, "Check if the result files of inter-epoch correspondences exist (if so, skip to avoid repetition), Def=false")
 
     );
+
+   if(aBufferSz.x < 0 && aBufferSz.y < 0){
+       aBufferSz.x = int(0.1*aPatchSz.x);
+       aBufferSz.y = int(0.1*aPatchSz.y);
+   }
+
 /*
    if(aSubPatchXml.length() == 0)
        aSubPatchXml = StdPrefix(aImg1) + "_" + StdPrefix(aImg2) + "_SubPatch.xml";
@@ -432,7 +407,7 @@ int CrossCorrelation_main(int argc,char ** argv)
    if(aCAS3D.mCrossCorrelationOutSH.length() == 0)
        aCAS3D.mCrossCorrelationOutSH = aCAS3D.mCrossCorrelationInSH + "-CrossCorrelation";
 
-   CrossCorrelation(aCAS3D.mDir, aCAS3D.mCrossCorrelationOutSH, aCAS3D.mCrossCorrelationInSH, aSubPatchXml, aPatchSz, aBufferSz, aPatchDir, aCAS3D.mWindowSize, aCAS3D.mCrossCorrThreshold, bCheckFile);
+   CrossCorrelation(aCAS3D.mDir, aCAS3D.mCrossCorrelationOutSH, aCAS3D.mCrossCorrelationInSH, aSubPatchXml, aPatchSz, aBufferSz, aPatchDir, aCAS3D.mWindowSize, aCAS3D.mCrossCorrThreshold, bCheckFile, aCAS3D.mPrint);
 
    return EXIT_SUCCESS;
 }

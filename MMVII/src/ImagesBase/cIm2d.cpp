@@ -91,6 +91,23 @@ template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName) c
     Write(aDFI,P0());
 }
 
+template <class Type>  void cDataIm2D<Type>::ClipToFile(const std::string & aName,const cRect2& aBox) const
+{
+    cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,tElemNumTrait<Type>::TyNum(),aBox.Sz(),1);
+    Write(aDFI,-aBox.P0(),1.0,aBox);
+}
+
+
+
+
+
+
+template <class Type>  void cDataIm2D<Type>::ToFile(const std::string & aName,const tIm &aIG,const tIm &aIB) const
+{
+    cDataFileIm2D aDFI = cDataFileIm2D::Create(aName,tElemNumTrait<Type>::TyNum(),Sz(),3);
+    Write(aDFI,aIG,aIB,P0());
+}
+
 
 /* ========================== */
 /*          cIm2D         */

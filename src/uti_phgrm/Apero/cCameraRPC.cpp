@@ -306,11 +306,27 @@ Pt2dr CameraRPC::Ter2Capteur(const Pt3dr & aP) const
     return (mRPC->InverseRPC(aP));
 }
 
-bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInImage *) const
+static double  ExtIncertZ =   0.0;
+
+void SetExtensionIntervZInApero(const double aVal)
+{
+   ExtIncertZ = aVal;
+}
+
+
+bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInImage * anArg) const
 {
     // (1) Check if aP is within the RPC validity zone
-    if((aP.z < mRPC->GetGrC31()) || (aP.z > mRPC->GetGrC32()))
+    if((aP.z < mRPC->GetGrC31() - ExtIncertZ) || (aP.z > mRPC->GetGrC32() + ExtIncertZ))
+    {
+        if (anArg)
+        {
+	    anArg->mWhy =   "NotInMasq3D , z=" + ToString(aP.z) 
+		          + " IntZ=["   +  ToString(mRPC->GetGrC31()-ExtIncertZ)  + "," + ToString(mRPC->GetGrC32()+ExtIncertZ) + "]";
+        }
+
         return false;
+    }
 
     // (2) Project 3D-2D with RPC and see if within ImSz
     Pt2di aSz = SzBasicCapt3D(); 
@@ -323,7 +339,9 @@ bool CameraRPC::PIsVisibleInImage   (const Pt3dr & aP,cArgOptionalPIsVisibleInIm
 	    (aPtProj.y < aSz.y) )
     	return  true;
     else
+    {
 	    return  false;
+    }
 
     // (3) check "aller-retour"
     double aDif = 10;
@@ -1110,6 +1128,8 @@ void cRPC::Initialize(const std::string &aName,
                       const cSystemeCoord *aChSys
                       )
 {
+    /* Set rPC type */
+    SetType(aType);
 
     std::string aNameRPC=aName;
     if(AutoDetermineRPCFile(aName))
@@ -1126,7 +1146,7 @@ void cRPC::Initialize(const std::string &aName,
     if(aChSys)
         mChSys = *aChSys;
 
-    if(aType==eTIGB_MMDimap2)
+    if( (aType==eTIGB_MMDimap2) || (aType==eTIGB_MMDimap3))
     {
         ReadDimap(aNameRPC);
 	    //Show();       
@@ -2184,7 +2204,7 @@ if(0)
 
 		if (ERupnik_MM())
 		{
-        	std::cout << "RPC precision: [" <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
+        	std::cout << "xxRPC precision: [" <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << " "
                                        <<  double(aPDifMoy.x)/(aGridGroundTest.size()) << "]\n";
 		}
 
@@ -3152,7 +3172,11 @@ void cRPC::ReadEUCLIDIUM(const std::string &aFile)
 void cRPC::ReadASCII(const std::string &aFile)
 {
     std::ifstream ASCIIfi(aFile.c_str());
-    ELISE_ASSERT(ASCIIfi.good(), "cRPC::ReadASCII(const std::string &aFile) ASCII file not found ");
+    if (! ASCIIfi.good())
+    {
+        std::cout << "For File=" << aFile.c_str() << "\n";
+        ELISE_ASSERT(ASCIIfi.good(), "cRPC::ReadASCII(const std::string &aFile) ASCII file not found ");
+    }
 
     std::string line;
     std::string a, b;
@@ -3612,39 +3636,58 @@ void cRPC::ReadXML(const std::string &aFile)
     cElXMLTree* aIMD;
     std::vector<double> aLongMM, aLatMM;
 
-    aIMD = aTree.GetUnique(std::string("IMD"));
-    aNodes = aIMD->GetUnique(std::string("BAND_P"));
-    aNodesFilOne = aNodes->GetUnique("ULLON");
-    aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+    aIMD = aTree.GetOneOrZero(std::string("IMD"));
 
-    aNodesFilOne = aNodes->GetUnique("URLON");
-    aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+    // IMD section is not always given, but we can deduce a default values of bound with offset & scale
+    mGrC1[0] = mGrOff[0]- mGrScal[0];
+    mGrC1[1] = mGrOff[0]+ mGrScal[0];
+    mGrC2[0] = mGrOff[1]- mGrScal[1];
+    mGrC2[1] = mGrOff[1]+ mGrScal[1];
+    mGrC3[0] = mGrOff[2]- mGrScal[2];
+    mGrC3[1] = mGrOff[2]+ mGrScal[2];
+    if (aIMD==nullptr)
+    {
+      //   ELISE_ASSERT(false, "No IMD NODE" );
+       std::cout << " =========== NOT EXPLICIT BOUND FOUND, USE OFFSET/SCALE ==============\n";
+       std::cout << "  * GrC1  " << mGrC1[0] << " " << mGrC1[1] << "\n"; 
+       std::cout << "  * GrC2  " << mGrC2[0] << " " << mGrC2[1] << "\n"; 
+       std::cout << "  * GrC2  " << mGrC3[0] << " " << mGrC3[1] << "\n"; 
+    }
+    else
+    {
+       aNodes = aIMD->GetUnique(std::string("BAND_P"));
+       aNodesFilOne = aNodes->GetUnique("ULLON");
+       aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
-    aNodesFilOne = aNodes->GetUnique("LRLON");
-    aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+       aNodesFilOne = aNodes->GetUnique("URLON");
+       aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
-    aNodesFilOne = aNodes->GetUnique("LLLON");
-    aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+       aNodesFilOne = aNodes->GetUnique("LRLON");
+       aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
-    mGrC1[0] = *std::min_element(aLongMM.begin(),aLongMM.end());
-    mGrC1[1] = *std::max_element(aLongMM.begin(),aLongMM.end());
+       aNodesFilOne = aNodes->GetUnique("LLLON");
+       aLongMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+
+       mGrC1[0] = *std::min_element(aLongMM.begin(),aLongMM.end());
+       mGrC1[1] = *std::max_element(aLongMM.begin(),aLongMM.end());
 
     
-    aNodesFilOne = aNodes->GetUnique("ULLAT");
-    aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+       aNodesFilOne = aNodes->GetUnique("ULLAT");
+       aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
-    aNodesFilOne = aNodes->GetUnique("URLAT");
-    aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+       aNodesFilOne = aNodes->GetUnique("URLAT");
+       aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
-    aNodesFilOne = aNodes->GetUnique("LRLAT");
-    aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+       aNodesFilOne = aNodes->GetUnique("LRLAT");
+       aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
-    aNodesFilOne = aNodes->GetUnique("LLLAT");
-    aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
+       aNodesFilOne = aNodes->GetUnique("LLLAT");
+       aLatMM.push_back(std::atof((aNodesFilOne->GetUniqueVal()).c_str()));
 
-    mGrC2[0] = *std::min_element(aLatMM.begin(),aLatMM.end());
-    mGrC2[1] = *std::max_element(aLatMM.begin(),aLatMM.end());
+       mGrC2[0] = *std::min_element(aLatMM.begin(),aLatMM.end());
+       mGrC2[1] = *std::max_element(aLatMM.begin(),aLatMM.end());
 
+    }
     ISINV=true;
     
     ReconstructValidityH();
@@ -3663,61 +3706,75 @@ void cRPC::ReadDimap(const std::string &aFile)
 
     std::list<cElXMLTree*>::iterator aIt;
 
-    std::string aSNumStr;
-    std::string aSDenStr;
-    std::string aLNumStr;
-    std::string aLDenStr;
+    std::string aSNumStr_i2g, aSNumStr_g2i;
+    std::string aSDenStr_i2g, aSDenStr_g2i;
+    std::string aLNumStr_i2g, aLNumStr_g2i;
+    std::string aLDenStr_i2g, aLDenStr_g2i;
 
+
+    std::string im_to_ground;
+    std::string ground_to_im;
+    if (mType==eTIGB_MMDimap2)
     {
-        std::list<cElXMLTree*> aNoeuds = aTree.GetAll(std::string("Direct_Model"));
+ 	im_to_ground="Direct_Model";
+        ground_to_im="Inverse_Model";
 
+	aSNumStr_i2g = "SAMP_NUM_COEFF_";
+        aSDenStr_i2g = "SAMP_DEN_COEFF_";
+        aLNumStr_i2g = "LINE_NUM_COEFF_";
+        aLDenStr_i2g = "LINE_DEN_COEFF_";
+
+	aSNumStr_g2i = "SAMP_NUM_COEFF_";
+        aSDenStr_g2i = "SAMP_DEN_COEFF_";
+        aLNumStr_g2i = "LINE_NUM_COEFF_";
+        aLDenStr_g2i = "LINE_DEN_COEFF_";
+	
+    }
+    else if (mType==eTIGB_MMDimap3)
+    {
+	im_to_ground="ImagetoGround_Values";
+        ground_to_im="GroundtoImage_Values";
+
+	aSNumStr_g2i = "SAMP_NUM_COEFF_";
+        aSDenStr_g2i = "SAMP_DEN_COEFF_";
+        aLNumStr_g2i = "LINE_NUM_COEFF_";
+        aLDenStr_g2i = "LINE_DEN_COEFF_";
+
+	aSNumStr_i2g = "LON_NUM_COEFF_";
+        aSDenStr_i2g = "LON_DEN_COEFF_";
+        aLNumStr_i2g = "LAT_NUM_COEFF_";
+        aLDenStr_i2g = "LAT_DEN_COEFF_";
+    }
+    
+    {
+        std::list<cElXMLTree*> aNoeuds = aTree.GetAll(im_to_ground);
 
         for (aK=1; aK<21; aK++)
         {
-            aSNumStr = "SAMP_NUM_COEFF_";
-            aSDenStr = "SAMP_DEN_COEFF_";
-            aLNumStr = "LINE_NUM_COEFF_";
-            aLDenStr = "LINE_DEN_COEFF_";
-
-            aSNumStr = aSNumStr + ToString(aK);
-            aSDenStr = aSDenStr + ToString(aK);
-            aLNumStr = aLNumStr+ ToString(aK);
-            aLDenStr = aLDenStr+ ToString(aK);
 
             for(aIt=aNoeuds.begin(); aIt!=aNoeuds.end(); aIt++)
             {
-
-                mDirSNum[aK-1] = std::atof((*aIt)->GetUnique(aSNumStr.c_str())->GetUniqueVal().c_str());
-                mDirSDen[aK-1] = std::atof((*aIt)->GetUnique(aSDenStr.c_str())->GetUniqueVal().c_str());
-                mDirLNum[aK-1] = std::atof((*aIt)->GetUnique(aLNumStr.c_str())->GetUniqueVal().c_str());
-                mDirLDen[aK-1] = std::atof((*aIt)->GetUnique(aLDenStr.c_str())->GetUniqueVal().c_str());
+                mDirSNum[aK-1] = std::atof((*aIt)->GetUnique((aSNumStr_i2g+ToString(aK)).c_str())->GetUniqueVal().c_str());
+                mDirSDen[aK-1] = std::atof((*aIt)->GetUnique((aSDenStr_i2g+ToString(aK)).c_str())->GetUniqueVal().c_str());
+                mDirLNum[aK-1] = std::atof((*aIt)->GetUnique((aLNumStr_i2g+ToString(aK)).c_str())->GetUniqueVal().c_str());
+                mDirLDen[aK-1] = std::atof((*aIt)->GetUnique((aLDenStr_i2g+ToString(aK)).c_str())->GetUniqueVal().c_str());
             }
         }
     }
 
     {
-        std::list<cElXMLTree*> aNoeudsInv = aTree.GetAll(std::string("Inverse_Model"));
+        std::list<cElXMLTree*> aNoeudsInv = aTree.GetAll(ground_to_im);
 
         for (aK=1; aK<21; aK++)
         {
             
-            aSNumStr = "SAMP_NUM_COEFF_";
-            aSDenStr = "SAMP_DEN_COEFF_";
-            aLNumStr = "LINE_NUM_COEFF_";
-            aLDenStr = "LINE_DEN_COEFF_";
-
-            aSNumStr = aSNumStr + ToString(aK);
-            aSDenStr = aSDenStr + ToString(aK);
-            aLNumStr = aLNumStr+ ToString(aK);
-            aLDenStr = aLDenStr+ ToString(aK);
 
             for(aIt=aNoeudsInv.begin(); aIt!=aNoeudsInv.end(); aIt++)
             {
-
-                mInvSNum[aK-1] = std::atof((*aIt)->GetUnique(aSNumStr.c_str())->GetUniqueVal().c_str());
-                mInvSDen[aK-1] = std::atof((*aIt)->GetUnique(aSDenStr.c_str())->GetUniqueVal().c_str());
-                mInvLNum[aK-1] = std::atof((*aIt)->GetUnique(aLNumStr.c_str())->GetUniqueVal().c_str());
-                mInvLDen[aK-1] = std::atof((*aIt)->GetUnique(aLDenStr.c_str())->GetUniqueVal().c_str());
+                mInvSNum[aK-1] = std::atof((*aIt)->GetUnique((aSNumStr_g2i+ToString(aK)).c_str())->GetUniqueVal().c_str());
+                mInvSDen[aK-1] = std::atof((*aIt)->GetUnique((aSDenStr_g2i+ToString(aK)).c_str())->GetUniqueVal().c_str());
+                mInvLNum[aK-1] = std::atof((*aIt)->GetUnique((aLNumStr_g2i+ToString(aK)).c_str())->GetUniqueVal().c_str());
+                mInvLDen[aK-1] = std::atof((*aIt)->GetUnique((aLDenStr_g2i+ToString(aK)).c_str())->GetUniqueVal().c_str());
             }
         }
         
@@ -4561,6 +4618,10 @@ int CalcBsurH_main(int argc,char ** argv)
 
         std::cout << "\n";
         
+    }
+
+    if (MPD_MM())
+    {
     }
 
     /* Print out the list of images */

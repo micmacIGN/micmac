@@ -126,7 +126,8 @@ int AperiCloud_main(int argc,char ** argv)
 #endif
         SplitDirAndFile(aDir,aPat,aFullDir);
 
-        StdCorrecNameHomol(aSetHom,aDir);
+        if ( WithPoints)
+             StdCorrecNameHomol(aSetHom,aDir);
         StdCorrecNameOrient(AeroIn,aDir);
         if (aNameOut=="")
         {
@@ -184,7 +185,7 @@ int AperiCloud_main(int argc,char ** argv)
 
         if (! WithPoints)
         {
-            aCom = aCom + std::string(" +KeyAssocImage=NKS-Assoc-Cste@NoPoint");
+            aCom = aCom + std::string(" +KeyAssocImage=NKS-Assoc-Cste@NoPoint +WithPoints=false");
         }
 
         if (EAMIsInit(&aSetHom))

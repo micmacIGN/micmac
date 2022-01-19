@@ -14,6 +14,72 @@ using MMVII::round_up;
 // I realized that lately ....  so let it like that for now
 namespace MMVII
 {
+
+cBox2di DilateFromIntervPx(const cBox2di & aBox,int aDPx0,int aDPx1)
+{
+   cPt2di aP0 = aBox.P0();
+   cPt2di aP1 = aBox.P1();
+   return  cBox2di
+           (
+                cPt2di(aP0.x()+aDPx0,aP0.y()),
+                cPt2di(aP1.x()+aDPx1,aP1.y())
+           );
+}
+
+void  SetBoxes12FromPx
+      (
+         cBox2di &          aBoxIn1,
+         cBox2di &          aBoxIn2,
+	 int &              aPxMin,
+	 int &              aPxMax,
+	 int &              aOffsetPx,
+	 eModePaddingEpip   aModePad,
+         const cBox2di *    aBoxFile2
+      )
+{
+   cBox2di aBoxInit1(aBoxIn1);
+   // We compute the Box2 homologous of Box1, taking into account dilatation due to px-intervall
+   aBoxIn2 = DilateFromIntervPx(aBoxIn1,aPxMin,aPxMax);
+   if (aBoxFile2)
+      aBoxIn2 = aBoxIn2.Inter(*aBoxFile2);
+   
+   if (aModePad==eModePaddingEpip::eMPE_NoPad)
+   {
+   }
+   else if (aModePad==eModePaddingEpip::eMPE_PxPos)
+   {
+      aBoxIn1 = cBox2di(aBoxIn1.P0(),aBoxIn1.P0()+aBoxIn2.Sz());
+   }
+   else if (aModePad==eModePaddingEpip::eMPE_PxNeg)
+   {
+      aBoxIn1 = cBox2di(aBoxIn1.P1()-aBoxIn2.Sz(),aBoxIn1.P1());
+   }
+   else if (aModePad==eModePaddingEpip::eMPE_SzEq)
+   {
+      aBoxIn1 = aBoxIn2;
+   }
+
+    //  We want to be sure that whatever happened before BoxIn1 contain the initial value BoxUtIn1
+    //  (may creat bug if not) and also dont change the size now that it fit the possible requirements of deeps methods
+    //  Case rare bu posible with px computed from previous steps
+
+   if (aModePad!=eModePaddingEpip::eMPE_NoPad)
+   {
+      cBox2di aBoxU1 = aBoxIn1.Sup(aBoxInit1);
+      int aDX0 = aBoxU1.P0().x() - aBoxInit1.P0().x();
+      int aDX1 = aBoxU1.P1().x() - aBoxInit1.P1().x();
+
+      aBoxIn1 = DilateFromIntervPx(aBoxIn1,aDX0,aDX1);
+      aBoxIn2 = DilateFromIntervPx(aBoxIn2,aDX0,aDX1);
+   }
+
+   aOffsetPx = aBoxIn2.P0().x() - aBoxIn1.P0().x();
+   //  Offset = Delta12, if px computed in box == 0, then "real" one will be Delta12
+   aPxMin += aOffsetPx;
+   aPxMax += aOffsetPx;
+}
+
+
   // Put all the stuff that dont vocate to be exported in namespce
 namespace NS_EpipGenDenseMatch
 {
@@ -288,7 +354,7 @@ std::string  cOneLevel::NameClipPx(const cPt2di & aInd) const
 
 std::string  cOneLevel::NameClipDirTmp(const cPt2di & aInd) const
 {
-     return     "ClipDirTmp_" + Index2Str(aInd) + DirSeparator();
+     return     "ClipDirTmp_" + Index2Str(aInd) + StringDirSeparator();
 }
   
 
@@ -329,10 +395,9 @@ void cOneLevel::SaveGlobPx(const cParam1Match & aParam) const
 
    aImClipPx.Read(cDataFileIm2D::Create(NameClipPx(aParam.mIndex),false),aDecInOut);
    cDataIm2D<tREAL4> & aDIm = aImClipPx.DIm();
-
    for (const auto & aP : aDIm)
    {
-        aDIm.AddVal(aP,-aParam.mOffsetPx);
+        aDIm.AddVal(aP, aParam.mOffsetPx);
    }
    aImClipPx.Write(cDataFileIm2D::Create(mNamePx,false),aParam.mBoxOut.P0());
 }
@@ -407,6 +472,15 @@ void cOneLevel::EstimateIntervPx
        aParam.mPxMax = aPxMoy + mAppli.mIncPxMin;
    }
 
+   aParam.mBoxUtiIn1 = aParam.mBoxIn1;
+   SetBoxes12FromPx
+   (
+      aParam.mBoxIn1,aParam.mBoxIn2,
+      aParam.mPxMin,aParam.mPxMax,aParam.mOffsetPx,
+      mAppli.mModePad,&aBoxFile2
+   );
+   /*
+
    cPt2di aP0 = aParam.mBoxIn1.P0();
    cPt2di aP1 = aParam.mBoxIn1.P1();
    // We compute the Box2 homologous of Box1, taking into account dilatation due to px-intervall
@@ -447,8 +521,6 @@ void cOneLevel::EstimateIntervPx
             aB1 = cBox2di(aP1U1-aSzB1,aP1U1);
 
     }
-
-   
    // Once images loaded in a box, the px will have to be offseted
    aParam.mOffsetPx = aParam.mBoxIn1.P0().x() -aParam.mBoxIn2.P0().x();
 
@@ -456,10 +528,11 @@ void cOneLevel::EstimateIntervPx
    // a long comptation for a basic result , but we cannot set it directly like that 
    // because intersection with aBoxFile2 can change it
 
-
    aParam.mPxMin = aParam.mBoxIn2.P0().x() + aParam.mOffsetPx;
    aParam.mPxMax = aParam.mBoxIn2.P1().x() + aParam.mOffsetPx;
+   */
 }
+
 
 void cOneLevel::Purge()
 {
@@ -579,7 +652,7 @@ void cAppli::SetOutPut(std::string & aNamePx)
      mOutPx = aNamePx;
 }
 
-std::string cAppli::ComMatch (cParam1Match & aParam) 
+std::string cAppli::ComMatch(cParam1Match & aParam) 
 {
    switch (mModeMatch)
    {
@@ -738,6 +811,7 @@ void  cAppli::MatchOneLevel(int aLevel)
         }
      }
      MMVII_INTERNAL_ASSERT_always(aLComClip.empty(),"Bad size management");
+
 
      // Remove files non longer necessary
      if (mDoPurge)
