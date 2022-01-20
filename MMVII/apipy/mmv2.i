@@ -124,6 +124,7 @@ import_array();
 %ignore MMVII::cSetAimePCAR::IType();
 %ignore MMVII::cAimePCar::Desc();
 %ignore MMVII::cAimePCar::Pt();
+%ignore MMVII::cAimePCar::PtIm();
 %ignore MMVII::cSetAimePCAR::VPC();
 //ignore const overloading
 %ignore MMVII::cIm2D<tU_INT1>::DIm() const;
@@ -133,6 +134,8 @@ import_array();
 %ignore MMVII::cDataIm2D<tREAL4>::ExtractRawData2D() const;
 %ignore MMVII::cDataIm2D<tREAL4>::GetLine(int) const;
 //remove warnings
+%ignore MMVII::cPtxd::operator[];
+%ignore MMVII::cPtxd::operator[] const;
 
 %feature("pythonappend") MMVII::cSetAimePCAR::VPC() const %{
    print('list')
