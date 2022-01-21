@@ -1,4 +1,4 @@
-/* -*- C -*- */
+
 %module mmv2
 %{
   //includes to be able to compile
@@ -52,6 +52,8 @@ import_array();
 //----------------------------------------------------------------------
 //add typemaps
 %include typemaps.i
+//fix mem management for references
+%include backrefs.i
 
 //----------------------------------------------------------------------
 //add .value(), new_... etc. to manipulate pointers
@@ -136,12 +138,6 @@ import_array();
 //remove warnings
 %ignore MMVII::cPtxd::operator[];
 %ignore MMVII::cPtxd::operator[] const;
-
-%feature("pythonappend") MMVII::cSetAimePCAR::VPC() const %{
-   print('list')
-   return list(val)
-%}
-
 
 //rename overloaded methods to avoid shadowing
 //here params must appread exactly as in source (no MMVII::...)
