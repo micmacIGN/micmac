@@ -9,7 +9,7 @@ WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 
 .PHONY: clean doc apipy
 
-apipy: clean typemaps.i backrefs.i
+apipy: clean typemaps.i h_to_include.i rename_nonref.i return_nonref.i ignore_nonconst_overloading.i
 	python3 setup.py build USEQT=$(USEQT)
 	python3 setup.py bdist_wheel USEQT=$(USEQT)
 	pip3 install --user dist/*.whl
@@ -19,18 +19,18 @@ apipy: clean typemaps.i backrefs.i
 
 all: apipy doc
 
-typemaps.i:
-	python3 gen_typemaps.py > typemaps.i
+typemaps.i: gen_typemaps.py
+	python3 gen_typemaps.py
 
-backrefs.i:
-	python3 gen_backrefs.py > backrefs.i
+return_nonref.i ignore_nonconst_overloading.i h_to_include.i rename_nonref.i: gen_fix_classes.py
+	python3 gen_fix_classes.py
 
 doc:
 	@doxygen -v 2> /dev/null && (cd $(DOCDIR) && doxygen) || echo "Doxygen not detected!"
 	@pdoc3 --version 2> /dev/null && (cd $(DOCDIR) && pdoc3 -f --html ../mmv2.py) || echo "Pdoc3 not detected!"
 
 clean:
-	rm -f $(PY_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES) typemaps.i backrefs.i
+	rm -f $(PY_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES) typemaps.i return_nonref.i ignore_nonconst_overloading.i h_to_include.i rename_nonref.i
 	rm -Rf $(DOCDIR)/html build/ dist/ $(MODULE_NAME).egg-info/ __pycache__/
 	python3 setup.py clean
 	pip3 uninstall -y $(MODULE_NAME)

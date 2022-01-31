@@ -52,8 +52,7 @@ import_array();
 //----------------------------------------------------------------------
 //add typemaps
 %include typemaps.i
-//fix mem management for references
-%include backrefs.i
+%include rename_nonref.i
 
 //----------------------------------------------------------------------
 //add .value(), new_... etc. to manipulate pointers
@@ -105,6 +104,7 @@ import_array();
 %ignore MMVII::cPtxd<double,3>::FromStdVector;
 //ignore non-const overloading to get direct access to simple types
 //(the functions will be read-only, we add setter methods in extend part)
+%include ignore_nonconst_overloading.i
 %ignore MMVII::cPtxd<double,2>::x() ;
 %ignore MMVII::cPtxd<double,2>::y() ;
 %ignore MMVII::cPtxd<double,2>::PtRawData() ;
@@ -119,15 +119,7 @@ import_array();
 %ignore MMVII::cPtxd<int,3>::y();
 %ignore MMVII::cPtxd<int,3>::z();
 %ignore MMVII::cPtxd<int,3>::PtRawData();
-%ignore MMVII::cAimeDescriptor::DirPrinc();
-%ignore MMVII::cSetAimePCAR::Census();
-%ignore MMVII::cSetAimePCAR::Ampl2N();
-%ignore MMVII::cSetAimePCAR::IsMax();
-%ignore MMVII::cSetAimePCAR::IType();
-%ignore MMVII::cAimePCar::Desc();
-%ignore MMVII::cAimePCar::Pt();
-%ignore MMVII::cAimePCar::PtIm();
-%ignore MMVII::cSetAimePCAR::VPC();
+
 //ignore const overloading
 %ignore MMVII::cIm2D<tU_INT1>::DIm() const;
 %ignore MMVII::cIm2D<tREAL4>::DIm() const;
@@ -158,12 +150,7 @@ import_array();
 //classes to export
 %nodefaultctor;
 %include "api/api_mmv2.h"
-%include "MMVII_enums.h"
-%include "MMVII_Ptxd.h"
-%include "MMVII_Images.h"
-%include "MMVII_memory.h"
-%include "MMVII_nums.h"
-%include "MMVII_AimeTieP.h"
+%include h_to_include.i
 
 //HERE typedefs are mandatory. include MMVII_nums.h is not working...
 typedef float       tREAL4;
@@ -302,6 +289,8 @@ mmv2_init();
         $self->RawDataLin()[i] = IN_ARRAY2[i];
   }
 }
+
+%include return_nonref.i
 
 //add toArray methods to images to take care of std::vector to np.array
 %pythoncode %{
