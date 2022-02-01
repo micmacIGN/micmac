@@ -51,15 +51,18 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 	mFPairsDirMEC("PairsDirMEC.xml"),
 	mBtoHLim   (Pt2dr(0.01,0.3)),
 	mDoIm(true),
+        mXCorrecOri(true),
 	mOutRPC("EpiRPC"),
 	mDegreRPC(0),
 	mZoom0(64),
 	mRegul(0.2),
 	mSzW(3),
-    mMMVII(0),
+        mMMVII(0),
 	mMMVII_mode("MMV1"),
 	mMMVII_ImName("Px1_MMVII.tif"),
-	//mZoomF(1),
+	mMMVII_SzTile(Pt2di(1024,1024)),
+        mMMVII_NbProc(8),
+        //mZoomF(1),
 	//mHasVeg(true),
 	//mHasSBG(false),
 	mNameEpiLOF("EpiListOfFile.xml"),
@@ -94,7 +97,7 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 			<< EAM(mNbCalcDir,"NbCalcDir",true,"Epipolar rectification: Calc directions : Nbts / NbEchDir")
 			<< EAM(mExpCurve,"ExpCurve",true,"Epipolar rectification: 0-SzIm ,1-Number of Line,2- Larg (in [0 1]),3-Exag deform,4-ShowOut")
 			<< EAM(mOhP,"OhP",true,"Epipolar rectification: Oh's method test parameter")
-			<< EAM(mXCorrecOri,"XCorrecOri",true,"Epipolar rectification: Correct X-Pax using orient and Z=average")
+			<< EAM(mXCorrecOri,"XCorrecOri",true,"Epipolar rectification: Correct X-Pax using orient and Z=average,Def=true")
 			<< EAM(mXCorrecHom,"XCorrecHom",true,"Epipolar rectification: Correct X-Pax using homologous point")
 			<< EAM(mXCorrecL2,"XCorrecL2",true,"Epipolar rectification: L1/L2 Correction for X-Pax");
 
@@ -123,7 +126,8 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
             << EAM(mMMVII_mode,"MMVII_mode",true,"Image matching: if MMVII==1, {MMV1,PSMNet,DeepPruner} Def=MMV1")
             << EAM(mMMVII_ModePad,"MMVII_ModePad",true,"Image matching: if MMVII==1, {NoPad PxPos PxNeg SzEq}")
             << EAM(mMMVII_ImName,"MMVII_ImName",true,"Image matching: if MMVII==1, name of depth map")
-            << EAM(mMMVII_SzTile,"MMVII_SzTile",true,"Image matching: if MMVII==1, Size of tiling used to split computation, Def=[2000,1500]");
+            << EAM(mMMVII_SzTile,"MMVII_SzTile",true,"Image matching: if MMVII==1, Size of tiling used to split computation, Def=[1024,1024]")
+            << EAM(mMMVII_NbProc,"MMVII_NbProc",true,"Image matching: if MMVII==1, Nb of cores for II processing in MMVII, Def=8");
 
 	*mArgFuse
 			<< EAM(mOutRPC,"OutRPC",true,"RPC recal/Depth map fusion: RPC orientation directory (corresp. to epipolar images)")
@@ -188,7 +192,7 @@ std::string cCommonAppliSat3D::ComParamEpip()
     if (EAMIsInit(&mNbCalcDir)) aCom +=  " NbCalcDir=" + ToString(mNbCalcDir);
     if (EAMIsInit(&mExpCurve))  aCom +=  " ExpCurve=" + ToString(mExpCurve);
     if (EAMIsInit(&mOhP))       aCom +=  " Oh=" + ToString(mOhP);
-    if (EAMIsInit(&mXCorrecOri)) aCom +=  " XCorrecOri=" + ToString(mXCorrecOri);
+    aCom +=  " XCorrecOri=" + ToString(mXCorrecOri);
     if (EAMIsInit(&mXCorrecHom)) aCom +=  " XCorrecHom=" + ToString(mXCorrecHom);
     if (EAMIsInit(&mXCorrecL2)) aCom +=  " XCorrecL2=" + ToString(mXCorrecL2);
     return aCom;
@@ -214,14 +218,15 @@ std::string cCommonAppliSat3D::ComParamRPC()
 
 std::string cCommonAppliSat3D::ComParamMatch()
 {
-	std::string aCom;
+    std::string aCom;
 
     if (mMMVII)
     {
-
-        if (EAMIsInit(&mMMVII_SzTile))    aCom +=  " SzTile=" + ToString(mMMVII_SzTile);
-        if (EAMIsInit(&mMMVII_ModePad))    aCom +=  " ModePad=" + mMMVII_ModePad;
-        if (EAMIsInit(&mNbProc))    aCom +=  " NbProc=" + ToString(mNbProc); 
+        aCom += BLANK + "MMVII=" + ToString(mMMVII);
+        if (EAMIsInit(&mMMVII_mode))    aCom += BLANK + "MMVII_mode=" + mMMVII_mode;
+        if (EAMIsInit(&mMMVII_ImName))  aCom += BLANK + "MMVII_ImName=" + mMMVII_ImName;
+	if (EAMIsInit(&mMMVII_SzTile))  aCom += BLANK + "MMVII_SzTile=" + ToString(mMMVII_SzTile);
+        if (EAMIsInit(&mMMVII_NbProc))  aCom += BLANK + "MMVII_NbProc=" + ToString(mMMVII_NbProc); 
     }
     else
     {
@@ -575,7 +580,8 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
 			aComTmp = "MMVII DenseMatchEpipGen" + BLANK + mCAS3D.mMMVII_mode
                                                      + BLANK + aNI1 + BLANK + aNI2 
                                                      + BLANK + "Out=" + (*aDir_it++) + mCAS3D.mMMVII_ImName
-                                                     + mCAS3D.ComParamMatch();
+                                                     + ((EAMIsInit(&mCAS3D.mMMVII_SzTile)) ? (BLANK + "SzTile=" + ToString(mCAS3D.mMMVII_SzTile)) : "") 
+                                                     + ((EAMIsInit(&mCAS3D.mMMVII_NbProc)) ? (BLANK + "NbProc=" + ToString(mCAS3D.mMMVII_NbProc)) : ""); 
 		}
 		else
 		{
@@ -953,11 +959,12 @@ void cAppliSat3DPipeline::DoAll()
 	/******************************************************/
 	StdCom("TestLib SAT4GEO_MM1P", 
 			mCAS3D.mFilePairs + BLANK + "Ori=" + mOri
-                              + ((mCAS3D.mMMVII) ? (BLANK + "MMVII=" + ToString(mCAS3D.mMMVII)) : "")
-                              + ((mCAS3D.mMMVII) ? (BLANK + "MMVII_mode=" + mMMVII_mode) : "")
-                              + ((EAMIsInit(&mCAS3D.mMMVII_ImName)) ? (BLANK + "MMVII_ImName=" + mCAS3D.mMMVII_ImName) : "")
-			                  + mCAS3D.ComParamMatch() 
-			                  + BLANK + "PairsDirMEC=" + mCAS3D.mFPairsDirMEC);
+                              //+ ((mCAS3D.mMMVII) ? (BLANK + "MMVII=" + ToString(mCAS3D.mMMVII)) : "")
+                              //+ ((mCAS3D.mMMVII) ? (BLANK + "MMVII_mode=" + mCAS3D.mMMVII_mode) : "")
+                              //+ ((EAMIsInit(&mCAS3D.mMMVII_ImName)) ? (BLANK + "MMVII_ImName=" + mCAS3D.mMMVII_ImName) : "")
+                              //+ ((mCAS3D.mMMVII) ? (BLANK + "MMVII_SzTile=" + ToString(mCAS3D.mMMVII_SzTile)) : "")
+			      + mCAS3D.ComParamMatch() 
+			      + BLANK + "PairsDirMEC=" + mCAS3D.mFPairsDirMEC);
 
 
 
