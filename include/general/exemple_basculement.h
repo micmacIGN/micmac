@@ -157,9 +157,11 @@ class cRansacBasculementRigide
         const  std::vector<std::string> & Names()  const;
         void EstimateDelay();
         double   Delay() const;
-    private :
 
           bool SolIsInit() const;
+
+    private :
+
           void AssertSolInit() const;
 
          void  TestNewSol(const cSolBasculeRig &) ;

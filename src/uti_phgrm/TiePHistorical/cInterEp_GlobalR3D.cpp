@@ -72,11 +72,11 @@ pris connaissance de la licence CeCILL-B, et que vous en avez accepté les
 termes.
 aooter-MicMac-eLiSe-25/06/2007*/
 
-void GetOrthoPt(std::string aOrthoDirL, std::string aOrthoFileL, std::vector<Pt3dr> vPt3DL, std::vector<Pt2dr>& vOrthoPtL, bool & bSaveOrthoHomo)
+void GetOrthoPt(std::string aOrthoFileL, std::vector<Pt3dr> vPt3DL, std::vector<Pt2dr>& vOrthoPtL, bool & bSaveOrthoHomo)
 {
-    if(aOrthoDirL.length() > 0 && ELISE_fp::exist_file(aOrthoDirL+"/"+aOrthoFileL) == true){
+    if(ELISE_fp::exist_file(aOrthoFileL) == true){
         std::vector<double> aTmp;
-        std::string aTfwFile = aOrthoDirL+"/"+StdPrefix(aOrthoFileL) + ".tfw";
+        std::string aTfwFile = StdPrefix(aOrthoFileL) + ".tfw";
         ReadTfw(aTfwFile, aTmp);
         Pt2dr aOrthoResolPlani = Pt2dr(aTmp[0], aTmp[3]);
         Pt2dr aOrthoOriPlani = Pt2dr(aTmp[4], aTmp[5]);
@@ -89,11 +89,12 @@ void GetOrthoPt(std::string aOrthoDirL, std::string aOrthoFileL, std::vector<Pt3
             vOrthoPtL.push_back(aPtOrtho);
         }
     }
-    else
+    else{
         bSaveOrthoHomo = false;
+    }
 }
 
-void GetOrthoHom(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::vector<std::string> aVIm1, std::vector<std::string> aVIm2, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string inSH, bool bPrint, cTransform3DHelmert aTrans3DHL, std::string aOrthoDirL, std::string aOrthoDirR, std::string aOrthoFileL, std::string aOrthoFileR)
+void GetOrthoHom(std::string aOri1, std::string aOri2, cInterfChantierNameManipulateur * aICNM, std::string input_dir, std::vector<std::string> aVIm1, std::vector<std::string> aVIm2, std::string aDSMFileL, std::string aDSMFileR, std::string aDSMDirL, std::string aDSMDirR, std::string inSH, bool bPrint, cTransform3DHelmert aTrans3DHL, std::string aOrthoImg1, std::string aOrthoImg2, std::string aOutImg1, std::string aOutImg2)
 {
     std::vector<Pt3dr> aV1;
     std::vector<Pt3dr> aV2;
@@ -103,6 +104,10 @@ void GetOrthoHom(std::string aOri1, std::string aOri2, cInterfChantierNameManipu
     std::vector<int> aOriPtNumV;
     std::vector<int> aInsideBorderPtNumV;
 
+    if(ELISE_fp::exist_file(aOrthoImg1) == false || ELISE_fp::exist_file(aOrthoImg1) == false){
+        printf("%s or %s don't exist, hence skipped\n", aOrthoImg1.c_str(), aOrthoImg2.c_str());
+        return;
+    }
     int nOriPtNum = 0;
     std::string  aImg1, aImg2;
     aOriPtNumV.push_back(0);
@@ -149,8 +154,9 @@ void GetOrthoHom(std::string aOri1, std::string aOri2, cInterfChantierNameManipu
 
     bool bSaveOrthoHomo = true;
     std::vector<Pt2dr> vOrthoPtL, vOrthoPtR;
-    GetOrthoPt(aOrthoDirL, aOrthoFileL, aV1, vOrthoPtL, bSaveOrthoHomo);
-    GetOrthoPt(aOrthoDirR, aOrthoFileR, aV2, vOrthoPtR, bSaveOrthoHomo);
+    GetOrthoPt(aOrthoImg1, aV1, vOrthoPtL, bSaveOrthoHomo);
+    GetOrthoPt(aOrthoImg2, aV2, vOrthoPtR, bSaveOrthoHomo);
+    printf("aOrthoImg1: %s\naOrthoImg2: %s\n", aOrthoImg1.c_str(), aOrthoImg2.c_str());
 
     if(bSaveOrthoHomo){
         std::vector<ElCplePtsHomologues> vOrthoHom;
@@ -158,7 +164,7 @@ void GetOrthoHom(std::string aOri1, std::string aOri2, cInterfChantierNameManipu
             vOrthoHom.push_back(ElCplePtsHomologues(vOrthoPtL[i], vOrthoPtR[i]));
 
         ELISE_fp::MkDir(input_dir+"/Tmp_PileImg/");
-        SaveHomolTxtFile(input_dir+"/Tmp_PileImg/", aOrthoDirL+".tif", aOrthoDirR+".tif", inSH+"-PileImg", vOrthoHom);
+        SaveHomolTxtFile(input_dir+"/Tmp_PileImg/", aOutImg1, aOutImg2, inSH+"-PileImg", vOrthoHom);
         cout<<"nPtNum: "<<vOrthoHom.size()<<endl;
     }
 }
@@ -380,7 +386,8 @@ void GlobalR3D(std::string aOri1, std::string aOri2, cInterfChantierNameManipula
              if (bSaveHomol == true)
              {
                  SaveHomolTxtFile(input_dir, aImg1, aImg2, outSH, inlierCur);
-                 cout<<"nOriPtNum: "<<aOriPtNumV[nIdx+1]-aOriPtNumV[nIdx]<<" InsideBorderPtNum:  "<<nEnd-nStart<<";  nFilteredPtNum: "<<inlierCur.size()<<endl;
+                 cout<<"nOriPtNum: "<<aOriPtNumV[nIdx+1]-aOriPtNumV[nIdx]<<" InsideBorderPtNum:  "<<nEnd-nStart<<";  nFilteredPtNum: "<<inlierCur.size();
+                 printf("; Inlier Ratio: %.2lf%%\n", int(inlierCur.size())*100.0/(nEnd-nStart));
              }
          }
          //aSOMAFout1.MesureAppuiFlottant1Im().push_back(aMAF1);
@@ -478,8 +485,12 @@ int GlobalR3D_main(int argc,char ** argv)
                << EAM(bSaveGCP, "SaveGCP", true, "Save GCP files based on the inlier tie points, Def=false")
     );
 
-   if (!EAMIsInit(&aR3DOutSH))
-       aR3DOutSH = aInSH + "-GlobalR3D";
+   if (!EAMIsInit(&aR3DOutSH)){
+       if(aTransFile.length() == 0)
+           aR3DOutSH = aInSH + "-GlobalR3D";
+       else
+           aR3DOutSH = aInSH + "-GlobalR3DGT";
+   }
 
    StdCorrecNameOrient(aOri1,"./",true);
    StdCorrecNameOrient(aOri2,"./",true);
@@ -547,6 +558,9 @@ int GetOrthoHom_main(int argc,char ** argv)
    aOrthoFileL = "Orthophotomosaic.tif";
    aOrthoFileR = "Orthophotomosaic.tif";
 
+   std::string aOrthoImg1 = "";
+   std::string aOrthoImg2 = "";
+
    ElInitArgMain
     (
         argc,argv,
@@ -568,6 +582,8 @@ int GetOrthoHom_main(int argc,char ** argv)
                << EAM(aOrthoDirR, "OrthoDirR", true, "Orthophoto directory of epoch2 (if this parameter is set, it means the tie points are on orthophotos instead of DSMs), Def=none")
                << EAM(aOrthoFileL, "OrthoFileL", true, "Orthophoto file of epoch1, Def=Orthophotomosaic.tif")
                << EAM(aOrthoFileR, "OrthoFileR", true, "Orthophoto file of epoch2, Def=Orthophotomosaic.tif")
+               << EAM(aOrthoImg1, "OrthoImg1", true, "Orthophoto file of epoch1 in Tmp_PileImg folder (if this parameter is set, OrthoDirL and OrthoFileL will be ignored), Def=none")
+               << EAM(aOrthoImg2, "OrthoImg2", true, "Orthophoto file of epoch2 in Tmp_PileImg folder (if this parameter is set, OrthoDirR and OrthoFileR will be ignored), Def=none")
     );
 
    StdCorrecNameOrient(aOri1,"./",true);
@@ -595,7 +611,29 @@ int GetOrthoHom_main(int argc,char ** argv)
        }
    }
 
-   GetOrthoHom(aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mDir, aVIm1, aVIm2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aInSH, aCAS3D.mPrint, aTrans3DHL, aOrthoDirL, aOrthoDirR, aOrthoFileL, aOrthoFileR);
+   std::string aOutImg1, aOutImg2;
+   if(aOrthoImg1.length() == 0){
+       aOrthoImg1 = aOrthoDirL + "/" + aOrthoFileL;
+       aOutImg1= aOrthoDirL+".tif";
+   }
+   else{
+       aOutImg1 = aOrthoImg1;
+       aOrthoImg1 = aCAS3D.mDir+"/Tmp_PileImg/"+aOrthoImg1;
+   }
+   if(aOrthoImg2.length() == 0){
+       aOrthoImg2 = aOrthoDirR + "/" + aOrthoFileR;
+       aOutImg2= aOrthoDirR+".tif";
+   }
+   else{
+       aOutImg2 = aOrthoImg2;
+       aOrthoImg2 = aCAS3D.mDir+"/Tmp_PileImg/"+aOrthoImg2;
+   }
+   printf("aOrthoImg1: %s\n",aOrthoImg1.c_str());
+   printf("aOrthoImg2: %s\n",aOrthoImg2.c_str());
+   printf("aOutImg1: %s\n",aOutImg1.c_str());
+   printf("aOutImg2: %s\n",aOutImg2.c_str());
+
+   GetOrthoHom(aOri1, aOri2, aCAS3D.mICNM, aCAS3D.mDir, aVIm1, aVIm2, aDSMFileL, aDSMFileR, aDSMDirL, aDSMDirR, aInSH, aCAS3D.mPrint, aTrans3DHL, aOrthoImg1, aOrthoImg2, aOutImg1, aOutImg2);
    cout<<aVIm1.size()<<" image pairs processed."<<endl;
 
    return EXIT_SUCCESS;
@@ -736,12 +774,72 @@ int CoReg_GlobalR3D_main(int argc,char ** argv)
    return EXIT_SUCCESS;
 }
 
-void PileImgs(std::string aDir, std::vector<std::string> aVIm1, std::string aOri1, std::string aImgList, std::string aTfwFile, cInterfChantierNameManipulateur * aICNM, std::string aResDir)
+Pt2di PileImgs(std::string aDir, std::vector<std::string> aVIm1, std::string aOri1, std::string aImgList, std::string aTfwFile, cInterfChantierNameManipulateur * aICNM, std::string aResDir, std::string aMasq)
 {
     std::vector<double> aTmp;
     ReadTfw(aTfwFile, aTmp);
     Pt2dr aOrthoResolPlani = Pt2dr(aTmp[0], aTmp[3]);
     Pt2dr aOrthoOriPlani = Pt2dr(aTmp[4], aTmp[5]);
+
+    Pt2dr ptMax = Pt2dr(DBL_MIN, DBL_MIN);
+    Pt2dr ptMin = Pt2dr(DBL_MAX, DBL_MAX);
+    for(int i=0; i<int(aVIm1.size()); i++)
+    {
+        std::string aImg1 = aVIm1[i];
+        Tiff_Im aRGBIm1((aDir+aImg1).c_str());
+        Pt2di ImgSzL = aRGBIm1.sz();
+
+        std::string aIm1OriFile = aICNM->StdNameCamGenOfNames(aOri1, aImg1);
+        cGet3Dcoor a3DCoorL(aIm1OriFile);
+
+        Pt2dr origin = Pt2dr(0,0);
+        Pt2dr aPCornerL[4];
+        aPCornerL[0] = origin;
+        aPCornerL[1] = Pt2dr(origin.x+ImgSzL.x, origin.y);
+        aPCornerL[2] = Pt2dr(origin.x+ImgSzL.x, origin.y+ImgSzL.y);
+        aPCornerL[3] = Pt2dr(origin.x, origin.y+ImgSzL.y);
+
+        for(int j=0; j<4; j++)
+        {
+            Pt2dr aP1 = aPCornerL[j];
+
+            Pt3dr aPTer1 = a3DCoorL.GetRough3Dcoor(aP1);//, a3DCoorL.GetGSD());
+
+            if(aPTer1.x > ptMax.x)
+                ptMax.x = aPTer1.x;
+            if(aPTer1.x < ptMin.x)
+                ptMin.x = aPTer1.x;
+
+            if(aPTer1.y > ptMax.y)
+                ptMax.y = aPTer1.y;
+            if(aPTer1.y < ptMin.y)
+                ptMin.y = aPTer1.y;
+        }
+    }
+    printf("ptMin: [%.2lf, %.2lf], ptMax: [%.2lf, %.2lf]\n", ptMin.x, ptMin.y, ptMax.x, ptMax.y);
+    printf("aOrthoResolPlani: [%.2lf, %.2lf], aOrthoOriPlani: [%.2lf, %.2lf]\n", aOrthoResolPlani.x, aOrthoResolPlani.y, aOrthoOriPlani.x, aOrthoOriPlani.y);
+    if(aOrthoResolPlani.x > 0)
+        aOrthoOriPlani.x = ptMin.x;
+    else
+        aOrthoOriPlani.x = ptMax.x;
+    if(aOrthoResolPlani.y > 0)
+        aOrthoOriPlani.y = ptMin.y;
+    else
+        aOrthoOriPlani.y = ptMax.y;
+    SaveTfw(aTfwFile, aOrthoResolPlani, aOrthoOriPlani);
+    printf("aOrthoResolPlani: [%.2lf, %.2lf], aOrthoOriPlani: [%.2lf, %.2lf]\n", aOrthoResolPlani.x, aOrthoResolPlani.y, aOrthoOriPlani.x, aOrthoOriPlani.y);
+
+    if(1){
+        aTfwFile = "/mnt/e4833a33-2e75-4f51-907f-10b923e3000d/PhDFullTest/Pezenas/PileImg/Tmp_PseudoOrtho/Ortho-MEC-Malt_2015-.tfw";
+        ReadTfw(aTfwFile, aTmp);
+        aOrthoResolPlani = Pt2dr(aTmp[0], aTmp[3]);
+        aOrthoOriPlani = Pt2dr(aTmp[4], aTmp[5]);
+        printf("aOrthoResolPlani: [%.2lf, %.2lf], aOrthoOriPlani: [%.2lf, %.2lf]\n", aOrthoResolPlani.x, aOrthoResolPlani.y, aOrthoOriPlani.x, aOrthoOriPlani.y);
+    }
+    Pt2di aImgSz;
+    aImgSz.x = abs((ptMax.x -ptMin.x)/aOrthoResolPlani.x);
+    aImgSz.y = abs((ptMax.y -ptMin.y)/aOrthoResolPlani.y);
+    printf(" --ImgSz %d %d\n", aImgSz.x, aImgSz.y);
 
     FILE * fpImgList = fopen((aResDir+aImgList).c_str(), "w");
     for(int i=0; i<int(aVIm1.size()); i++)
@@ -783,15 +881,26 @@ void PileImgs(std::string aDir, std::vector<std::string> aVIm1, std::string aOri
         cout<<aComm<<endl;
         System(aComm);
 
-        aComm = "mv "+aDir+"/"+aTxt+" "+aResDir+aTxt;
+        aComm = "mv "+aDir+"/"+aTif+" "+aResDir+aTif;
+        cout<<aComm<<endl;
+        System(aComm);
+
+        aTif = StdPrefix(aTxt)+"_Masked.tif";
+        aComm = MMBinFile(MM3DStr) + "TestLib OneReechFromAscii " + aMasq + BLANK + aTxt + " Show=1 Out=" + aTif;
         cout<<aComm<<endl;
         System(aComm);
 
         aComm = "mv "+aDir+"/"+aTif+" "+aResDir+aTif;
         cout<<aComm<<endl;
         System(aComm);
+
+        aComm = "mv "+aDir+"/"+aTxt+" "+aResDir+aTxt;
+        cout<<aComm<<endl;
+        System(aComm);
     }
     fclose(fpImgList);
+
+    return aImgSz;
 }
 
 int PileImgs_main(int argc,char ** argv)
@@ -808,6 +917,8 @@ int PileImgs_main(int argc,char ** argv)
 
     std::string aImgList = "";
 
+    std::string aMasq = "Masq.tif";
+
     ElInitArgMain
      (
          argc,argv,
@@ -816,7 +927,7 @@ int PileImgs_main(int argc,char ** argv)
                 << EAMC(aOrthoDir,"OrthoDir: Orthophoto directory"),
          LArgMain()
                 << aCAS3D.ArgBasic()
-                //<< EAM(aOrthoDir, "OrthoDir", true, "Orthophoto directory, Def=none")
+                << EAM(aMasq, "Masq", true, "File name of input mask, Def=Masq.tif")
                 //<< EAM(aTfwFile,"TfwFile",true,"Tfw file to transform 3D points to 2D points on pseudo orthophoto, Def=none")
                 << EAM(aImgList,"ImgList",true,"Output file name to record the output image list, Def=ImgList-'OrthoDir'.txt")
     );
@@ -829,9 +940,20 @@ int PileImgs_main(int argc,char ** argv)
     std::string aFile = "Orthophotomosaic.tif";
     //aTifFile = "PseudoOrtho_"+StdPrefix(aImgList)+"."+StdPostfix(aFile);
     aTifFile = aOrthoDir+"."+StdPostfix(aFile);
-    std::string strCpImg = "cp "+aCAS3D.mDir+"/"+aOrthoDir+"/"+aFile+" "+aCAS3D.mDir+"/"+aTifFile;
+    std::string strCpImg;
+    /*
+    strCpImg = "cp "+aCAS3D.mDir+"/"+aOrthoDir+"/"+aFile+" "+aCAS3D.mDir+"/"+aTifFile;
     cout<<strCpImg<<endl;
     System(strCpImg);
+
+    strCpImg = "mv "+aCAS3D.mDir+"/"+aTifFile+" "+aResDir+"/"+aTifFile;
+    cout<<strCpImg<<endl;
+    System(strCpImg);
+    */
+
+    Tiff_Im aRGBIm1((aCAS3D.mDir+"/"+aOrthoDir+"/"+aFile).c_str());
+    Pt2di aImgSz = aRGBIm1.sz();
+    printf("Original orthophoto size: %d, %d\n", aImgSz.x, aImgSz.y);
 
     aFile = "Orthophotomosaic.tfw";
     //aTfwFile = "PseudoOrtho_"+StdPrefix(aImgList)+"."+StdPostfix(aFile);
@@ -843,21 +965,19 @@ int PileImgs_main(int argc,char ** argv)
     std::vector<std::string> aVIm1;
     GetImgListVec(aFullPattern1, aVIm1);
 
-    std::string aResDir = aCAS3D.mDir + "/Tmp_PileImg/";
+    std::string aResDir = aCAS3D.mDir + "/Tmp_PseudoOrtho/";
     if(ELISE_fp::exist_file(aResDir) == false)
         ELISE_fp::MkDir(aResDir);
 
-    PileImgs(aCAS3D.mDir, aVIm1, aOri1, aImgList, aTfwFile,aCAS3D.mICNM, aResDir);
+    aImgSz = PileImgs(aCAS3D.mDir, aVIm1, aOri1, aImgList, aTfwFile, aCAS3D.mICNM, aResDir, aMasq);
 
-    strCpImg = "mv "+aCAS3D.mDir+"/"+aTifFile+" "+aResDir+"/"+aTifFile;
-    cout<<strCpImg<<endl;
-    System(strCpImg);
+
 
     strCpImg = "mv "+aCAS3D.mDir+"/"+aTfwFile+" "+aResDir+"/"+aTfwFile;
     cout<<strCpImg<<endl;
     System(strCpImg);
 
-    std::string aComm = "python3 /home/lulin/Documents/Code/PileImages.py --OutImg "+aTifFile+" --ImgList "+aImgList+" --DirName "+aResDir;
+    std::string aComm = "python3 /home/lulin/Documents/Code/PileImages.py --OutImg "+aTifFile+" --ImgList "+aImgList+" --DirName "+aResDir+" --ImgSz "+ToString(aImgSz.y)+" "+ToString(aImgSz.x);
     cout<<aComm<<endl;
 
     return EXIT_SUCCESS;

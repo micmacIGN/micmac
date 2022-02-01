@@ -74,7 +74,7 @@ class cCommonAppliTiepHistorical
 
         //std::string mDir;
         std::string mPat;
-        std::string mOri;
+        //std::string mOri;
 
         /* Parameters for rough co-registration */
         std::string                       mOriIn1;
@@ -175,7 +175,7 @@ class cCommonAppliTiepHistorical
 
         cInterfChantierNameManipulateur * mICNM;
 
-        void CorrectXmlFileName(std::string aCreateGCPsInSH);
+        void CorrectXmlFileName(std::string aCreateGCPsInSH, std::string aOri1, std::string aOri2);
 
         std::string GetFolderName(std::string strIn);
 
@@ -221,6 +221,9 @@ class cTransform3DHelmert
 
         cTransform3DHelmert(std::string aFileName);
 
+        cSolBasculeRig GetSBR();
+        cSolBasculeRig GetSBRInv();
+
         Pt3dr Transform3Dcoor(Pt3dr aPt);
         double GetScale();
         bool GetApplyTrans();
@@ -230,6 +233,9 @@ private:
         cXml_ParamBascRigide  *  mTransf;
         double mScl;
         Pt3dr mTr;
+
+        cSolBasculeRig mSBR;
+        cSolBasculeRig mSBRInv;
         //cTypeCodageMatr mRot;
 
 };
@@ -355,6 +361,7 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
 
         //std::string mCoRegOri;
         std::string mCoRegOri1;
+        std::string mPara3DH;
 
         ElTimer     mChrono;
 
@@ -366,8 +373,10 @@ class cAppliTiepHistoricalPipeline : cCommonAppliTiepHistorical
         bool mSkipRANSAC3D;
         bool mSkipCrossCorr;
 
-        Pt2dr mCoRegPatchSz;
-        Pt2dr mCoRegBufferSz;
+        Pt2dr mCoRegPatchLSz;
+        Pt2dr mCoRegBufferLSz;
+        Pt2dr mCoRegPatchRSz;
+        Pt2dr mCoRegBufferRSz;
 
         Pt2dr mPrecisePatchSz;
         Pt2dr mPreciseBufferSz;
@@ -430,6 +439,8 @@ std::string GetImgList(std::vector<std::string> aVIm);
 std::string GetImgList(std::string aDir, std::string aFileName, bool bExe);
 void GetUniqImgList(std::vector<std::string> aInput, std::vector<std::string>& aOutput);
 void ReadTfw(std::string tfwFile, std::vector<double>& aTmp);
+void SaveTfw(std::string tfwFile, Pt2dr aOrthoResolPlani, Pt2dr aOrthoOriPlani);
+std::string RemoveOri(std::string aOri);
 
 /****************************************/
 /****** cInterEp_RoughCoReg ******/

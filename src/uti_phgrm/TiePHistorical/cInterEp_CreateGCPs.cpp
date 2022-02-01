@@ -332,7 +332,7 @@ int CreateGCPs_main(int argc,char ** argv)
 
     );
 
-   aCAS3D.CorrectXmlFileName(aCAS3D.mCreateGCPsInSH);
+   aCAS3D.CorrectXmlFileName(aCAS3D.mCreateGCPsInSH, aOri1, aOri2);
 
    CreateGCPs(aDSMGrayImgDir, aRGBImgDir, aDSMGrayImg1, aDSMGrayImg2, aImgList1, aImgList2, aOri1, aOri2, aCAS3D.mICNM, aDSMDirL, aDSMDirR, aDSMFileL, aDSMFileR, aCAS3D.mOut2DXml1, aCAS3D.mOut2DXml2, aCAS3D.mOut3DXml1, aCAS3D.mOut3DXml2, aCAS3D.mCreateGCPsInSH, aOrthoDirL, aOrthoDirR, aOrthoFileL, aOrthoFileR);
 
