@@ -95,6 +95,7 @@ void BenchSerialization(cParamExeBench & aParam,const std::string & aDirOut,cons
 
 
 void Bench_Random(cParamExeBench & aParam); ///< Bench on random generator
+void Bench_SetI(cParamExeBench & aParam); ///< Bench on set of int
 
 void BenchExtre(cParamExeBench & aParam);  ///< Test Extremum computations, refinement ....
 void BenchStat(cParamExeBench & aParam);

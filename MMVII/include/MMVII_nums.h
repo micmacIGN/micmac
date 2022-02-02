@@ -75,9 +75,11 @@ typedef long int     tINT8;
 typedef unsigned char  tU_INT1;
 typedef unsigned short tU_INT2;
 typedef unsigned int   tU_INT4;
+typedef unsigned long int tU_INT8;
 
 
 typedef int    tStdInt;  ///< "natural" int
+typedef unsigned int    tStdUInt;  ///< "natural" int
 typedef double tStdDouble;  ///< "natural" int
 
 /* ================= rounding  ======================= */
@@ -207,6 +209,7 @@ template <class Type> class tElemNumTrait
 template <> class tElemNumTrait<tU_INT1> : public tBaseNumTrait<tStdInt>
 {
     public :
+        static tU_INT1 MaxVal() {return 0xFF;}
         static bool   Signed() {return false;}
         static eTyNums   TyNum() {return eTyNums::eTN_U_INT1;}
         typedef tREAL4   tFloatAssoc;
@@ -214,6 +217,7 @@ template <> class tElemNumTrait<tU_INT1> : public tBaseNumTrait<tStdInt>
 template <> class tElemNumTrait<tU_INT2> : public tBaseNumTrait<tStdInt>
 {
     public :
+        static tU_INT2 MaxVal() {return 0xFFFF;}
         static bool   Signed() {return false;}
         static eTyNums   TyNum() {return eTyNums::eTN_U_INT2;}
         typedef tREAL4   tFloatAssoc;
@@ -221,6 +225,7 @@ template <> class tElemNumTrait<tU_INT2> : public tBaseNumTrait<tStdInt>
 template <> class tElemNumTrait<tU_INT4> : public tBaseNumTrait<tINT8>
 {
     public :
+        static tU_INT4 MaxVal() {return 0xFFFFFFFF;}
         static bool   Signed() {return false;}
         static eTyNums   TyNum() {return eTyNums::eTN_U_INT4;}
         typedef tREAL8   tFloatAssoc;
@@ -423,6 +428,35 @@ double NormalisedRatioPos(double aI1,double aI2);
 
 tINT4 HCF(tINT4 a,tINT4 b); ///< = PGCD = Highest Common Factor
 int BinomialCoeff(int aK,int aN);
+/* ****************  cDecomposPAdikVar *************  */
+
+//  P-adik decomposition
+//  given a b c ...
+//     x y z   ->   x + a * y +  a * b *z
+//     M  -> M%a (M/a)%b ...
+//
+class cDecomposPAdikVar
+{
+     public :
+       typedef std::vector<int> tVI;
+       cDecomposPAdikVar(const tVI &);  // Constructot from set of bases
+
+       const tVI &  Decompos(int) const; // P-Adik decomposition return internal buffer
+       const tVI &  DecomposSizeBase(int) const; // Make a decomposition using same size (push 0 is need), requires < mMumBase
+       int          FromDecompos(const tVI &) const; // P-Adik recomposition
+       static void Bench();  // Make the test on correctness of implantation
+       const int&  MulBase() const;
+     private:
+       static void Bench(const std::vector<int> & aVB);
+       void Bench(int aValue) const;
+       const int & BaseOfK(int aK) const {return mVBases.at(aK%mNbBase);}
+
+       tVI          mVBases;
+       int          mNbBase;
+       int          mMulBase;
+       mutable tVI  mRes;
+};
+
 double  RelativeDifference(const double & aV1,const double & aV2,bool * Ok=nullptr);
 
 template <class Type> int SignSupEq0(const Type & aV) {return (aV>=0) ? 1 : -1;}

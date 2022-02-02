@@ -1,5 +1,7 @@
 #include "include/MMVII_all.h"
+#include "include/MMVII_SetITpl.h"
 #include <random>
+
 
 /** \file uti_rand.cpp
     \brief Implementation of random generator
@@ -95,6 +97,28 @@ void Bench_Random(cParamExeBench & aParam)
     aParam.EndBench();
 }
 
+template <typename tSet>  void OneBenchSet()
+{
+    for (const auto &aK : {0,1,2,5,10})
+    {
+        int aN = 10;
+	std::vector<tSet>  aLSet =  SubKAmongN<tSet>(aK,aN);
+        MMVII_INTERNAL_ASSERT_bench((int)aLSet.size()==BinomialCoeff(aK,aN),"Subset Int "); // Check good number of subset
+	for (const auto & aSet : aLSet)
+	{
+            MMVII_INTERNAL_ASSERT_bench(aK==(int)aSet.Cardinality(),"Subset Int ");  // Check each subset has good number of elem
+	}
+    }
+}
+
+void Bench_SetI(cParamExeBench & aParam)
+{
+    if (! aParam.NewBench("SetInt")) return;
+
+    OneBenchSet<cSetISingleFixed<tU_INT2> >();
+
+    aParam.EndBench();
+}
 
 
 /// class cRandGenerator maybe exported later if  more sophisticated services are required
