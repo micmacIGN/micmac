@@ -138,7 +138,7 @@ class cCommonAppliSat3D
 	std::string   mMMVII_ModePad;
 	std::string   mMMVII_ImName;
 	Pt2di         mMMVII_SzTile;
-
+    int           mMMVII_NbProc;
 
         /* Bascule param */
         // Malt UrbanMNE to create destination frame

@@ -130,7 +130,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
     mSubPatchXml = "SubPatch.xml";
     mR2DThreshold = 10;
     mR3DThreshold = -1;
-    mCrossCorrThreshold = 0.5;
+    mCrossCorrThreshold = 0.6;
     mWindowSize = 32;
     mViz = false;
 //    mDSMFileL = "MMLastNuage.xml";
@@ -269,7 +269,7 @@ cCommonAppliTiepHistorical::cCommonAppliTiepHistorical() :
             << EAM(mCrossCorrelationOutSH,"CCOutSH",true,"Output Homologue extenion for NB/NT mode of cross correlation, Def='CCInSH'-CrossCorrelation")
                //<< EAM(mSubPatchXml, "SubPatchXml", true, "The xml file name to record the homography between the patch and original image, Def=SubPatch.xml")
             << EAM(mWindowSize, "SzW",true, "Window size of cross correlation, Def=32")
-            << EAM(mCrossCorrThreshold, "CCTh",true, "Corss correlation threshold, Def=0.5");
+            << EAM(mCrossCorrThreshold, "CCTh",true, "Corss correlation threshold, Def=0.6");
 
         //StdCorrecNameOrient(mOutRPC,mDir,true);
 

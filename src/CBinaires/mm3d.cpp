@@ -848,6 +848,8 @@ int OptAeroProc_main(int argc, char ** argv);
 int TestARCam_main(int argc, char ** argv);
 int CPP_TestPhysMod_Main(int argc, char ** argv);
 int MvImgsByFile_main(int argc, char** argv);
+int CPP_ReechDepl(int argc, char ** argv);
+int CPP_BatchReechDepl(int argc, char ** argv);
 int OneReechHom_main(int argc, char ** argv);
 int OneReechFromAscii_main(int argc, char ** argv);
 int AllReechFromAscii_main(int argc, char ** argv);
@@ -1278,6 +1280,8 @@ const std::vector<cMMCom> & TestLibAvailableCommands()
         aRes.push_back(cMMCom("TestPhysMod",CPP_TestPhysMod_Main,"Unitary test for new bundle gen"));
 
         aRes.push_back(cMMCom("TestParseDir",TestElParseDir_main," Test Parse Dir"));
+        aRes.push_back(cMMCom("ReechDepl",CPP_BatchReechDepl," Resample a batch of images using Px1 and Px2 displacement maps"));
+        aRes.push_back(cMMCom("OneReechDepl",CPP_ReechDepl," Resample one image using Px1 and Px2 displacement maps"));
         aRes.push_back(cMMCom("OneReechFromAscii",OneReechFromAscii_main," Resample image using homography and 4 pts"));
         aRes.push_back(cMMCom("AllReechFromAscii",AllReechFromAscii_main," Resample an image pattern using homography and 4 pts"));
         aRes.push_back(cMMCom("OneReechHom",OneReechHom_main," Resample image using homography"));
