@@ -156,11 +156,11 @@ const tBinCodeTarg & cCodesOf1Target::CodeOfNumC(int aNum) const
 /**************************************************/
 
 cParamCodedTarget::cParamCodedTarget() :
-   mNbRedond      (4),
-   mRatioBar      (1.0),
+   mNbRedond      (2),
+   mRatioBar      (0.7),
    mRhoWhite0     (1.5),
    mRhoBlack0     (2.5),
-   mNbCircle      (2),
+   mNbCircle      (1),
    mDistMarkFid   (2.5),
    mBorderMarkFid (1.5),
    mRadiusFidMark (0.3),
