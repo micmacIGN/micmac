@@ -195,7 +195,7 @@ double& cParamCodedTarget::RatioBar() {return mRatioBar;}
 void cParamCodedTarget::Finish()
 {
   if (mNbPaqFid>=0)
-     mNbPaqFid = ;
+     mNbPaqFid = mNbRedond ;
   mSz = cPt2di(mNbPixel,mNbPixel);
   mRhoCodage0  = mRhoWhite0 + mRhoBlack0;
 
