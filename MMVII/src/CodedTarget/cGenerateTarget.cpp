@@ -80,7 +80,6 @@ class cParamCodedTarget
        double    mBorderMarkFid;  // Dist between Bord & FidMark
        double    mRadiusFidMark;  // Radius of Fid Mark
        double    mTetaCenterFid;   // Teta init 
-       int       mNbPatFid,        // Number of repetition
        int       mNbFidBy4;        // Number of Fiducial by quarter
        double    mGapFid;        // Size of gab in fiducial repeat
        double    mScaleTopo;      // Scale used to create identifiable center 4 toto
