@@ -80,6 +80,7 @@ class cParamCodedTarget
        double    mBorderMarkFid;  // Dist between Bord & FidMark
        double    mRadiusFidMark;  // Radius of Fid Mark
        double    mTetaCenterFid;   // Teta init 
+       int       mNbPaqFid;        // By defaut==mNbRedond
        int       mNbFidBy4;        // Number of Fiducial by quarter
        double    mGapFid;        // Size of gab in fiducial repeat
        double    mScaleTopo;      // Scale used to create identifiable center 4 toto
@@ -165,6 +166,7 @@ cParamCodedTarget::cParamCodedTarget() :
    mBorderMarkFid (1.5),
    mRadiusFidMark (0.3),
    mTetaCenterFid (M_PI/4.0),
+   mNbPaqFid      (-1),  // Marqer of No Init
    mNbFidBy4      (2),
    mGapFid        (0.7),
    mScaleTopo     (0.25),
@@ -192,6 +194,8 @@ double& cParamCodedTarget::RatioBar() {return mRatioBar;}
 
 void cParamCodedTarget::Finish()
 {
+  if (mNbPaqFid>=0)
+     mNbPaqFid = ;
   mSz = cPt2di(mNbPixel,mNbPixel);
   mRhoCodage0  = mRhoWhite0 + mRhoBlack0;
 
