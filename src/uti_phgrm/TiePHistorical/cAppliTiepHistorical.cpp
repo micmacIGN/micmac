@@ -2442,7 +2442,7 @@ bool GetImgBoundingBox(std::string aRGBImgDir, std::string aImg1, cBasicGeomCap3
 
 void RotateImgBy90Deg(std::string aDir, std::string aImg1, std::string aNameOut)
 {
-    cout<<aDir<<endl;
+    //cout<<aDir<<endl;
     cInterfChantierNameManipulateur::BasicAlloc(DirOfFile(aDir+"/"+aImg1));
     //cout<<aImg1<<endl;
 
