@@ -1,5 +1,6 @@
 #include "include/MMVII_all.h"
 #include "include/MMVII_SetITpl.h"
+#include "include/MMVII_2Include_Serial_Tpl.h"
 
 
 namespace MMVII
@@ -65,6 +66,9 @@ class cParamCodedTarget
        cCodesOf1Target CodesOfNum(int);     // One combinaison of binary code
        tImTarget  MakeIm(const cCodesOf1Target &);  // Generate the image of 1 combinaison
 
+       void AddData(const cAuxAr2007 & anAux);
+
+
     private :
 
        cPt2dr    Pix2Norm(const cPt2di &) const;
@@ -80,10 +84,13 @@ class cParamCodedTarget
        double    mBorderMarkFid;  // Dist between Bord & FidMark
        double    mRadiusFidMark;  // Radius of Fid Mark
        double    mTetaCenterFid;   // Teta init 
-       int       mNbPaqFid;        // By defaut==mNbRedond
-       int       mNbFidBy4;        // Number of Fiducial by quarter
-       double    mGapFid;        // Size of gab in fiducial repeat
-       double    mScaleTopo;      // Scale used to create identifiable center 4 toto
+       int       mNbPaqFid;        // Number of group in "Fid Mark" By defaut==mNbRedond
+
+       int       mNbFidByPaq;        // Number of Fiducial by quarter
+       double    mGapFid;            // Size of gab in fiducial repeat
+       double    mScaleTopo;         // Scale used to create identifiable center 4 toto
+       int       mNbPixelBin;        // Number of pixel  Binary image
+
 
        std::vector<double> mTetasQ;  // Tetas of first quarter
 
@@ -91,14 +98,13 @@ class cParamCodedTarget
        double    mRhoCodage1;   // Rho when ends binarie code
        double    mRhoFidMark;   // Rho where are located Fid Mark
        double    mRhoEnd ;      // Rho where are finish the target
-       int       mNbPixel;    // Number of pixel 
 
 
        double mRho_00_TopoB   ;  // Circle for topo ident
        double mRho_000_TopoW  ;  // Circle for topo ident
        double mRho_0000_TopoB ;  // Circle for topo ident
 
-       cPt2di    mSz;
+       cPt2di    mSzBin;
        cPt2dr    mMidle;
        double    mScale;  // Sz of Pixel in normal coord
 
@@ -156,6 +162,23 @@ const tBinCodeTarg & cCodesOf1Target::CodeOfNumC(int aNum) const
 /*                                                */
 /**************************************************/
 
+void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
+{
+    MMVII::AddData(cAuxAr2007("NbRedond",anAux),mNbRedond);
+    MMVII::AddData(cAuxAr2007("RatioBar",anAux),mRatioBar);
+    MMVII::AddData(cAuxAr2007("RW0",anAux),mRhoWhite0);
+    MMVII::AddData(cAuxAr2007("RB0",anAux),mRhoBlack0);
+    MMVII::AddData(cAuxAr2007("NbC",anAux),mNbCircle);
+    MMVII::AddData(cAuxAr2007("DistFM",anAux),mDistMarkFid);
+    MMVII::AddData(cAuxAr2007("DistBorderFM",anAux),mBorderMarkFid);
+    MMVII::AddData(cAuxAr2007("RadiusFM",anAux),mRadiusFidMark);
+}
+
+void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT)
+{
+   aPCT.AddData(anAux);
+}
+
 cParamCodedTarget::cParamCodedTarget() :
    mNbRedond      (2),
    mRatioBar      (0.7),
@@ -164,13 +187,13 @@ cParamCodedTarget::cParamCodedTarget() :
    mNbCircle      (1),
    mDistMarkFid   (2.5),
    mBorderMarkFid (1.5),
-   mRadiusFidMark (0.3),
+   mRadiusFidMark (0.4),
    mTetaCenterFid (M_PI/4.0),
    mNbPaqFid      (-1),  // Marqer of No Init
-   mNbFidBy4      (2),
-   mGapFid        (0.7),
+   mNbFidByPaq    (5),
+   mGapFid        (1.0),
    mScaleTopo     (0.25),
-   mNbPixel       (1800),
+   mNbPixelBin    (1800),
    mDecP          ({1,1})  // "Fake" init 4 now
 {
 }
@@ -194,9 +217,9 @@ double& cParamCodedTarget::RatioBar() {return mRatioBar;}
 
 void cParamCodedTarget::Finish()
 {
-  if (mNbPaqFid>=0)
+  if (mNbPaqFid<=0)
      mNbPaqFid = mNbRedond ;
-  mSz = cPt2di(mNbPixel,mNbPixel);
+  mSzBin = cPt2di(mNbPixelBin,mNbPixelBin);
   mRhoCodage0  = mRhoWhite0 + mRhoBlack0;
 
   mRhoCodage1  = mRhoCodage0 + mNbCircle;
@@ -207,8 +230,8 @@ void cParamCodedTarget::Finish()
   mRho_000_TopoW  = mRho_00_TopoB * mScaleTopo;
   mRho_0000_TopoB = mRho_000_TopoW * mScaleTopo;
 
-  mMidle = ToR(mSz) / 2.0;
-  mScale = mNbPixel / (2.0 * mRhoEnd);
+  mMidle = ToR(mSzBin) / 2.0;
+  mScale = mNbPixelBin / (2.0 * mRhoEnd);
 
   std::vector<int> aVNbSub;
   for (int aKCirc = 0 ; aKCirc< mNbCircle ; aKCirc++)
@@ -231,12 +254,12 @@ void cParamCodedTarget::Finish()
   StdOut()  << " NbTarget="   << NbCodeAvalaible() << "\n";
 
 
-  for (int aK=0 ; aK< mNbFidBy4 ; aK++)
+  for (int aK=0 ; aK< mNbFidByPaq ; aK++)
   {
-      double aAmpl = mNbFidBy4 +  mGapFid;
-      double aInd = (aK+0.5- mNbFidBy4 /2.0) / aAmpl;
+      double aAmpl = mNbFidByPaq +  mGapFid;
+      double aInd = (aK+0.5- mNbFidByPaq /2.0) / aAmpl;
 
-      mTetasQ.push_back(mTetaCenterFid+aInd*(M_PI/2.0));
+      mTetasQ.push_back(mTetaCenterFid+aInd*((2*M_PI)/mNbPaqFid));
   }
 }
 
@@ -260,7 +283,7 @@ int cParamCodedTarget::NbCodeAvalaible() const
 
 tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 {
-     tImTarget aImT(mSz);
+     tImTarget aImT(mSzBin);
      tDataImT  & aDImT = aImT.DIm();
 
      for (const auto & aPix : aDImT)
@@ -322,14 +345,13 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
      }
 
 
-     for (int aKQ=0 ; aKQ<4 ; aKQ++)
+     for (int aKQ=0 ; aKQ<mNbPaqFid ; aKQ++)
      {
          for (const auto & aDTeta :mTetasQ)
 	 {
-             double aTeta = aKQ * (M_PI/2.0) + aDTeta;
+             double aTeta = aKQ * (2*M_PI/mNbPaqFid) + aDTeta;
              cPt2dr  aCenterN = FromPolar(mRhoFidMark,aTeta);
              cPt2dr  aCenterP = Norm2PixR(aCenterN);
-	     // StdOut() << "TTT " << aTeta << " " << aCenterP << "\n";
 	     double  aRadiusPix  = mRadiusFidMark * mScale;
 	     cPt2dr aPRad(aRadiusPix,aRadiusPix);
 	     cRect2 aBoxP(Pt_round_down(aCenterP-aPRad),Pt_round_up(aCenterP+aPRad));
@@ -368,15 +390,6 @@ class cAppliGenCodedTarget : public cMMVII_Appli
 
 	std::string        mPatNum;  // Pattern of numbers
 	cParamCodedTarget  mPCT;
-
-	/*
-	int       mNbRedond;  // Redundancy = number of repetition of a pattern in a circle
-	int       mNbCircle;  // Number of circles encoding information
-	double    mRhoWhite0;  // Central circle, used to compute affinity
-	double    mRhoBlack0;  // Black circle, used for detection
-	int       mNbPixel;    // Number of pixel 
-	cPt2di    mSz;
-	*/
 };
 
 
@@ -424,6 +437,9 @@ int  cAppliGenCodedTarget::Exe()
       aImT.DIm().ToFile(aName);
       // FakeUseIt(aCodes);
    }
+
+   SaveInFile(mPCT,"Target_Spec.xml");
+
 
    return EXIT_SUCCESS;
 }
