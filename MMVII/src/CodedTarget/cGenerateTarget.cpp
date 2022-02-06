@@ -1,5 +1,4 @@
-#include "include/MMVII_all.h"
-#include "include/MMVII_SetITpl.h"
+#include "CodedTarget.h"
 #include "include/MMVII_2Include_Serial_Tpl.h"
 
 
@@ -9,108 +8,6 @@ namespace MMVII
 namespace  cNS_CodedTarget
 {
 
-typedef cSetISingleFixed<tU_INT4>  tBinCodeTarg;
-typedef std::vector<tBinCodeTarg> tVSetICT;
-typedef cIm2D<tU_INT1>     tImTarget;
-typedef cDataIm2D<tU_INT1> tDataImT;
-
-
-/*  *********************************************************** */
-/*                                                              */
-/*                      cParamCodedTarget                       */
-/*                                                              */
-/*  *********************************************************** */
-
-class cSetCodeOf1Circle
-{
-    public :
-      cSetCodeOf1Circle(double aRho0,int aK,int aN);
-      int  NbSub() const;
-      const tBinCodeTarg & CodeOfNum(int aNum) const;
-      int N() const;
-      int K() const;
-    private :
-      double   mRho0;
-      int      mK;
-      int      mN;
-      tVSetICT mVSet ;
-};
-
-
-class cCodesOf1Target
-{
-   public :
-      cCodesOf1Target(int aNum);
-
-      void AddOneCode(const tBinCodeTarg &);
-      void  Show();
-      const tBinCodeTarg & CodeOfNumC(int) const;
-   private :
-      int                        mNum;
-      std::vector<tBinCodeTarg>  mCodes;
-};
-
-
-
-
-class cParamCodedTarget
-{
-    public :
-       cParamCodedTarget();
-       int &     NbRedond();  // Redundancy = number of repetition of a pattern in a circle
-       int &     NbCircle();  // Redundancy = number of repetition of a pattern in a circle
-       double &  RatioBar();  // Ratio on codin bar
-       void      Finish();
-
-       int NbCodeAvalaible() const;         // Number of different code we can generate
-       cCodesOf1Target CodesOfNum(int);     // One combinaison of binary code
-       tImTarget  MakeIm(const cCodesOf1Target &);  // Generate the image of 1 combinaison
-
-       void AddData(const cAuxAr2007 & anAux);
-
-
-    private :
-
-       cPt2dr    Pix2Norm(const cPt2di &) const;
-       cPt2dr    Norm2PixR(const cPt2dr &) const;
-       cPt2di    Norm2PixI(const cPt2dr &) const;
-
-       int       mNbRedond;  // Redundancy = number of repetition of a pattern in a circle
-       double    mRatioBar;  // Ratio H/l on coding rect, def 1, 2-> mean more bar
-       double    mRhoWhite0;  // Central circle, used to compute affinity
-       double    mRhoBlack0;  // Black circle, used for detection
-       int       mNbCircle;  // Number of circles encoding information
-       double    mDistMarkFid;    // Dist between Fid mark &  codage
-       double    mBorderMarkFid;  // Dist between Bord & FidMark
-       double    mRadiusFidMark;  // Radius of Fid Mark
-       double    mTetaCenterFid;   // Teta init 
-       int       mNbPaqFid;        // Number of group in "Fid Mark" By defaut==mNbRedond
-
-       int       mNbFidByPaq;        // Number of Fiducial by quarter
-       double    mGapFid;            // Size of gab in fiducial repeat
-       double    mScaleTopo;         // Scale used to create identifiable center 4 toto
-       int       mNbPixelBin;        // Number of pixel  Binary image
-
-
-       std::vector<double> mTetasQ;  // Tetas of first quarter
-
-       double    mRhoCodage0;   // Rho when begin binarie code
-       double    mRhoCodage1;   // Rho when ends binarie code
-       double    mRhoFidMark;   // Rho where are located Fid Mark
-       double    mRhoEnd ;      // Rho where are finish the target
-
-
-       double mRho_00_TopoB   ;  // Circle for topo ident
-       double mRho_000_TopoW  ;  // Circle for topo ident
-       double mRho_0000_TopoB ;  // Circle for topo ident
-
-       cPt2di    mSzBin;
-       cPt2dr    mMidle;
-       double    mScale;  // Sz of Pixel in normal coord
-
-       std::vector<cSetCodeOf1Circle>     mVecSetOfCode;
-       cDecomposPAdikVar                  mDecP;
-};
 
 /* ****    cSetCodeOf1Circle  ***** */
   
@@ -169,9 +66,16 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("RW0",anAux),mRhoWhite0);
     MMVII::AddData(cAuxAr2007("RB0",anAux),mRhoBlack0);
     MMVII::AddData(cAuxAr2007("NbC",anAux),mNbCircle);
+    MMVII::AddData(cAuxAr2007("ThC",anAux),mThCircle);
     MMVII::AddData(cAuxAr2007("DistFM",anAux),mDistMarkFid);
     MMVII::AddData(cAuxAr2007("DistBorderFM",anAux),mBorderMarkFid);
     MMVII::AddData(cAuxAr2007("RadiusFM",anAux),mRadiusFidMark);
+    MMVII::AddData(cAuxAr2007("Teta0FM",anAux),mTetaCenterFid);
+    MMVII::AddData(cAuxAr2007("NbPaqFM",anAux),mNbPaqFid);
+    MMVII::AddData(cAuxAr2007("NbByPaqFM",anAux),mNbFidByPaq);
+    MMVII::AddData(cAuxAr2007("NbGapFM",anAux),mGapFid);
+    MMVII::AddData(cAuxAr2007("ScaleTopo",anAux),mScaleTopo);
+    MMVII::AddData(cAuxAr2007("NbPixBin",anAux),mNbPixelBin);
 }
 
 void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT)
@@ -181,16 +85,17 @@ void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT)
 
 cParamCodedTarget::cParamCodedTarget() :
    mNbRedond      (2),
-   mRatioBar      (0.7),
-   mRhoWhite0     (1.5),
-   mRhoBlack0     (2.5),
+   mRatioBar      (1.2),
+   mRhoWhite0     (0),// (1.5),
+   mRhoBlack0     (0),// (2.5),
    mNbCircle      (1),
+   mThCircle      (4),
    mDistMarkFid   (2.5),
    mBorderMarkFid (1.5),
-   mRadiusFidMark (0.4),
+   mRadiusFidMark (0.6),
    mTetaCenterFid (M_PI/4.0),
    mNbPaqFid      (-1),  // Marqer of No Init
-   mNbFidByPaq    (5),
+   mNbFidByPaq    (3),
    mGapFid        (1.0),
    mScaleTopo     (0.25),
    mNbPixelBin    (1800),
@@ -222,7 +127,7 @@ void cParamCodedTarget::Finish()
   mSzBin = cPt2di(mNbPixelBin,mNbPixelBin);
   mRhoCodage0  = mRhoWhite0 + mRhoBlack0;
 
-  mRhoCodage1  = mRhoCodage0 + mNbCircle;
+  mRhoCodage1  = mRhoCodage0 + mNbCircle * mThCircle;
   mRhoFidMark  = mRhoCodage1  + mDistMarkFid;
   mRhoEnd      = mRhoFidMark  + mBorderMarkFid;
 
@@ -236,19 +141,21 @@ void cParamCodedTarget::Finish()
   std::vector<int> aVNbSub;
   for (int aKCirc = 0 ; aKCirc< mNbCircle ; aKCirc++)
   {
-      double aRho0 = mRhoCodage0 + aKCirc;
-      double aRho1 = aRho0 +1;
+      double aRho0 = mRhoCodage0 + aKCirc * mThCircle;
+      double aRho1 = aRho0 + mThCircle;
       double aRhoM = (aRho0 + aRho1) / 2.0;
-      int aNb = round_up((mRatioBar* 2*M_PI*aRhoM)/mNbRedond);
+      int aNb = std::max(2,round_up((mRatioBar* 2*M_PI*aRhoM)/mNbRedond));
+      /*
       double aProp = (mNbCircle-aKCirc) /  mRhoCodage1;
       int aK = round_down(aProp*aNb);
       if (mNbCircle==1)
-         aK = aNb/2;
+      */
+      int aK = aNb/2;
       aK =std::max(1,std::min(aNb-1,aK));
 
       mVecSetOfCode.push_back(cSetCodeOf1Circle(aRho0,aK,aNb));
       aVNbSub.push_back( mVecSetOfCode.back().NbSub());
-      StdOut()  << " P="   << aProp << " aK=" << aK << " N=" << aNb  << " R=" << aRhoM << " C(k,n)=" <<  aVNbSub.back() << "\n";
+      StdOut()  << " aK=" << aK << " N=" << aNb  << " R=" << aRhoM << " C(k,n)=" <<  aVNbSub.back() << "\n";
   }
   mDecP = cDecomposPAdikVar(aVNbSub);
   StdOut()  << " NbTarget="   << NbCodeAvalaible() << "\n";
@@ -301,7 +208,7 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 	        double  aTeta = aRT.y();
 		if (aTeta < 0)
                    aTeta += 2 *M_PI;
-                int aIndRho = std::max(0,std::min(mNbCircle-1,round_down(aRho-mRhoCodage0)));
+                int aIndRho = std::max(0,std::min(mNbCircle-1,round_down((aRho-mRhoCodage0)/mThCircle)));
 		const cSetCodeOf1Circle & aSet1C =  mVecSetOfCode.at(aIndRho);
 		int aN  = aSet1C.N();
 
@@ -388,7 +295,7 @@ class cAppliGenCodedTarget : public cMMVII_Appli
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
 
 
-	std::string        mPatNum;  // Pattern of numbers
+	int                mPerGen;  // Pattern of numbers
 	cParamCodedTarget  mPCT;
 };
 
@@ -409,7 +316,7 @@ cCollecSpecArg2007 & cAppliGenCodedTarget::ArgObl(cCollecSpecArg2007 & anArgObl)
 {
  return
       anArgObl
-          <<   Arg2007(mPatNum,"Pattern of numbers to generate")
+          <<   Arg2007(mPerGen,"Periode of generated, give 1 to generate all")
    ;
 }
 
@@ -427,7 +334,7 @@ int  cAppliGenCodedTarget::Exe()
 {
    mPCT.Finish();
 
-   for (int aNum=0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=11)
+   for (int aNum=0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=mPerGen)
    {
       cCodesOf1Target aCodes = mPCT.CodesOfNum(aNum);
       aCodes.Show();

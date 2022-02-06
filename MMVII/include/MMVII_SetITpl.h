@@ -12,6 +12,7 @@ namespace MMVII
 
 
 template  <typename tSet> size_t SetI_CardByNbMax(const tSet & aSet);
+template  <typename tSet> std::vector<int> SetI_ToVectNbMax(const tSet & aSet);
 template  <typename tSet> tSet  SetI_Interv(int aK1, int aK2);
 template  <typename tSet> std::vector<tSet>  SubKAmongN(int aK, int aN);
 
@@ -39,6 +40,7 @@ template <typename tVal> class cSetISingleFixed
 
          bool  IsInside(const tElem & anElem) const {return (mFlagBits & FlagSingle(anElem)) != 0;}
          size_t  Cardinality() const {return SetI_CardByNbMax(*this);}
+         std::vector<int> ToVect() const {return SetI_ToVectNbMax(*this);}
 
          void AddElem(const tElem & anElem) {mFlagBits |= FlagSingle(anElem);}
 
@@ -58,6 +60,16 @@ template  <typename tSet> size_t SetI_CardByNbMax(const tSet & aSet)
     for (size_t aK=0 ; aK<tSet::NbMax() ; aK++)
         if (aSet.IsInside(aK))
            aRes++;
+
+    return aRes;
+}
+// To Vector as SetI_CardByNbMax
+template  <typename tSet> std::vector<int> SetI_ToVectNbMax(const tSet & aSet)
+{
+    std::vector<int> aRes ;
+    for (size_t aK=0 ; aK<tSet::NbMax() ; aK++)
+        if (aSet.IsInside(aK))
+           aRes.push_back(aK);
 
     return aRes;
 }
@@ -94,7 +106,7 @@ template  <typename tSet> std::vector<tSet>  SubKAmongN(int aK, int aN)
    aRes = SubKAmongN<tSet>(aK,aN-1);  // C(K,N-1)
    for (auto & aSub : SubKAmongN<tSet>(aK-1,aN-1))
    {
-       aSub.AddElem(aN);
+       aSub.AddElem(aN-1);
        aRes.push_back(aSub);
    }
 

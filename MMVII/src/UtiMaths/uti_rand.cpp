@@ -107,6 +107,13 @@ template <typename tSet>  void OneBenchSet()
 	for (const auto & aSet : aLSet)
 	{
             MMVII_INTERNAL_ASSERT_bench(aK==(int)aSet.Cardinality(),"Subset Int ");  // Check each subset has good number of elem
+	    std::vector<int> aV = aSet.ToVect();
+            MMVII_INTERNAL_ASSERT_bench(aK==(int)aV.size(),"Card to Vect");
+
+	    for (const auto & anEl : aV)
+	    {
+                 MMVII_INTERNAL_ASSERT_bench((anEl>=0)&&(anEl<aN),"Subset Int bad el ");  // Check each subset has good number of elem
+	    }
 	}
     }
 }
