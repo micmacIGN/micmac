@@ -680,6 +680,9 @@ template <class Type>  class cIm2D
        tDIM *                mPIm;   ///< raw pointer on mSPtr, a bit faster to store it ?
 };
 
+/// Generate an image of the string, using basic font, implemanted with a call to mmv1
+cIm2D<tU_INT1> ImageOfString(const std::string & ,int aSpace);
+
 
 ///  Class for 1D image in Ram of a given type
 /**  Class for 1D image in Ram of a given type :

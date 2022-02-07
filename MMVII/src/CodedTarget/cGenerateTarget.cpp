@@ -48,10 +48,13 @@ void  cCodesOf1Target::Show()
     StdOut()  << "\n";
 }
 
-const tBinCodeTarg & cCodesOf1Target::CodeOfNumC(int aNum) const
+const tBinCodeTarg & cCodesOf1Target::CodeOfNumC(int aK) const
 {
-    return  mCodes.at(aNum);
+    return  mCodes.at(aK);
 }
+
+int cCodesOf1Target::Num() const {return mNum;}
+
 
 /**************************************************/
 /*                                                */
@@ -68,7 +71,8 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
     MMVII::AddData(cAuxAr2007("NbC",anAux),mNbCircle);
     MMVII::AddData(cAuxAr2007("ThC",anAux),mThCircle);
     MMVII::AddData(cAuxAr2007("DistFM",anAux),mDistMarkFid);
-    MMVII::AddData(cAuxAr2007("DistBorderFM",anAux),mBorderMarkFid);
+    MMVII::AddData(cAuxAr2007("BorderB",anAux),mBorderB);
+    MMVII::AddData(cAuxAr2007("BorderW",anAux),mBorderW);
     MMVII::AddData(cAuxAr2007("RadiusFM",anAux),mRadiusFidMark);
     MMVII::AddData(cAuxAr2007("Teta0FM",anAux),mTetaCenterFid);
     MMVII::AddData(cAuxAr2007("NbPaqFM",anAux),mNbPaqFid);
@@ -90,11 +94,12 @@ cParamCodedTarget::cParamCodedTarget() :
    mRhoBlack0     (0),// (2.5),
    mNbCircle      (1),
    mThCircle      (4),
-   mDistMarkFid   (2.5),
-   mBorderMarkFid (1.5),
+   mDistMarkFid   (0.5),
+   mBorderB       (0.5),
+   mBorderW       (0.1),
    mRadiusFidMark (0.6),
    mTetaCenterFid (M_PI/4.0),
-   mNbPaqFid      (-1),  // Marqer of No Init
+   mNbPaqFid      (0),  //  -1 Marqer of No Init  , 0 None
    mNbFidByPaq    (3),
    mGapFid        (1.0),
    mScaleTopo     (0.25),
@@ -122,14 +127,15 @@ double& cParamCodedTarget::RatioBar() {return mRatioBar;}
 
 void cParamCodedTarget::Finish()
 {
-  if (mNbPaqFid<=0)
+  if (mNbPaqFid<0)
      mNbPaqFid = mNbRedond ;
   mSzBin = cPt2di(mNbPixelBin,mNbPixelBin);
   mRhoCodage0  = mRhoWhite0 + mRhoBlack0;
 
   mRhoCodage1  = mRhoCodage0 + mNbCircle * mThCircle;
   mRhoFidMark  = mRhoCodage1  + mDistMarkFid;
-  mRhoEnd      = mRhoFidMark  + mBorderMarkFid;
+  mRhoBlackB =  mRhoFidMark  + mBorderB;
+  mRhoEnd      = mRhoBlackB + mBorderW;
 
   mRho_00_TopoB   = mRhoWhite0 * mScaleTopo;
   mRho_000_TopoW  = mRho_00_TopoB * mScaleTopo;
@@ -161,12 +167,15 @@ void cParamCodedTarget::Finish()
   StdOut()  << " NbTarget="   << NbCodeAvalaible() << "\n";
 
 
-  for (int aK=0 ; aK< mNbFidByPaq ; aK++)
+  if (mNbPaqFid)
   {
-      double aAmpl = mNbFidByPaq +  mGapFid;
-      double aInd = (aK+0.5- mNbFidByPaq /2.0) / aAmpl;
+      for (int aK=0 ; aK< mNbFidByPaq ; aK++)
+      {
+          double aAmpl = mNbFidByPaq +  mGapFid;
+          double aInd = (aK+0.5- mNbFidByPaq /2.0) / aAmpl;
 
-      mTetasQ.push_back(mTetaCenterFid+aInd*((2*M_PI)/mNbPaqFid));
+          mTetasQ.push_back(mTetaCenterFid+aInd*((2*M_PI)/mNbPaqFid));
+      }
   }
 }
 
@@ -192,6 +201,9 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 {
      tImTarget aImT(mSzBin);
      tDataImT  & aDImT = aImT.DIm();
+
+     int aDW = mBorderW * mScale;
+     int aDB = (mBorderW+mBorderB) * mScale;
 
      for (const auto & aPix : aDImT)
      {
@@ -244,13 +256,46 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
          }
          else
          {
-              // Outside => Only fid marks, done after
+              // Outside => border and fid marks (done after)
+	      int aDInter = aDImT.Interiority(aPix);
+	      IsW = (aDInter<aDW) || (aDInter>=aDB);
          }
 
          int aVal = IsW ? 255 : 0;
          aDImT.SetV(aPix,aVal);
      }
 
+     {
+         std::string aStr = ToStr(aSetCodesOfT.Num(),2);
+         cIm2D<tU_INT1> aImStr = ImageOfString(aStr,1);
+         cDataIm2D<tU_INT1> & aDImStr = aImStr.DIm();
+	 cPt2di aNbPixStr = aDImStr.Sz();
+	 double mHString = 0.7;
+	 double  aScaleStr =  (mHString/aNbPixStr.y()) * mScale;
+         // StdOut() << "STR=[" << aStr <<  "] ScSt " << aScaleStr << "\n";
+
+	 cPt2dr aSzStr = ToR(aNbPixStr) * aScaleStr;
+	 // cPt2di aP0 = ToI(aMidStr-aSzStr/2.0);
+	 cPt2di aP0(aDB,aDB);
+	 cPt2di aP1 = aP0 + ToI(aSzStr);
+
+	 cRect2 aBox(aP0,aP1);
+
+	 for (const auto & aPix : aBox)
+	 {
+             cPt2di aPixSym = mSzBin-aPix-cPt2di(1,1);
+
+             cPt2di aPStr =  ToI(ToR(aPix-aP0)/aScaleStr);
+	     int IsCar = aDImStr.DefGetV(aPStr,0);
+             int aCoul = IsCar ? 255 : 0;
+             aDImT.SetV(aPix,aCoul);
+             aDImT.SetV(aPixSym,aCoul);
+	 }
+
+	 // StdOut() << " MMM " << aMidStr << aP0 << aP1 << "\n";
+
+
+     }
 
      for (int aKQ=0 ; aKQ<mNbPaqFid ; aKQ++)
      {

@@ -46,6 +46,7 @@ class cCodesOf1Target
       void AddOneCode(const tBinCodeTarg &);
       void  Show();
       const tBinCodeTarg & CodeOfNumC(int) const;
+      int   Num() const;
    private :
       int                        mNum;
       std::vector<tBinCodeTarg>  mCodes;
@@ -83,7 +84,9 @@ class cParamCodedTarget
        int       mNbCircle;  // Number of circles encoding information
        double    mThCircle;  //   Thickness of each circle
        double    mDistMarkFid;    // Dist between Fid mark &  codage
-       double    mBorderMarkFid;  // Dist between Bord & FidMark
+       double    mBorderB;  // Dist between Bord & FidMark
+       double    mBorderW;  // Dist between Bord & FidMark
+
        double    mRadiusFidMark;  // Radius of Fid Mark
        double    mTetaCenterFid;   // Teta init 
        int       mNbPaqFid;        // Number of group in "Fid Mark" By defaut==mNbRedond
@@ -99,6 +102,7 @@ class cParamCodedTarget
        double    mRhoCodage0;   // Rho when begin binarie code
        double    mRhoCodage1;   // Rho when ends binarie code
        double    mRhoFidMark;   // Rho where are located Fid Mark
+       double    mRhoBlackB;   //  End of BlakB
        double    mRhoEnd ;      // Rho where are finish the target
 
 
