@@ -51,8 +51,8 @@ import_array();
 
 //----------------------------------------------------------------------
 //add typemaps
-%include typemaps.i
-%include rename_nonref.i
+%include tmp/typemaps.i
+%include tmp/rename_nonref.i
 
 //----------------------------------------------------------------------
 //add .value(), new_... etc. to manipulate pointers
@@ -104,7 +104,7 @@ import_array();
 %ignore MMVII::cPtxd<double,3>::FromStdVector;
 //ignore non-const overloading to get direct access to simple types
 //(the functions will be read-only, we add setter methods in extend part)
-%include ignore_nonconst_overloading.i
+%include tmp/ignore_nonconst_overloading.i
 %ignore MMVII::cPtxd<double,2>::x() ;
 %ignore MMVII::cPtxd<double,2>::y() ;
 %ignore MMVII::cPtxd<double,2>::PtRawData() ;
@@ -121,12 +121,12 @@ import_array();
 %ignore MMVII::cPtxd<int,3>::PtRawData();
 
 //ignore const overloading
-%ignore MMVII::cIm2D<tU_INT1>::DIm() const;
+/*%ignore MMVII::cIm2D<tU_INT1>::DIm() const;
 %ignore MMVII::cIm2D<tREAL4>::DIm() const;
 %ignore MMVII::cDataIm2D<tU_INT1>::ExtractRawData2D() const;
 %ignore MMVII::cDataIm2D<tU_INT1>::GetLine(int) const;
 %ignore MMVII::cDataIm2D<tREAL4>::ExtractRawData2D() const;
-%ignore MMVII::cDataIm2D<tREAL4>::GetLine(int) const;
+%ignore MMVII::cDataIm2D<tREAL4>::GetLine(int) const;*/
 //remove warnings
 %ignore MMVII::cPtxd::operator[];
 %ignore MMVII::cPtxd::operator[] const;
@@ -150,7 +150,7 @@ import_array();
 //classes to export
 %nodefaultctor;
 %include "api/api_mmv2.h"
-%include h_to_include.i
+%include tmp/h_to_include.i
 
 //HERE typedefs are mandatory. include MMVII_nums.h is not working...
 typedef float       tREAL4;
@@ -290,7 +290,7 @@ mmv2_init();
   }
 }
 
-%include return_nonref.i
+%include tmp/return_nonref.i
 
 //add toArray methods to images to take care of std::vector to np.array
 %pythoncode %{

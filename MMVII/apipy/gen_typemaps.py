@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 
 dimNames = ['x', 'y', 'z']
 debug = False
@@ -71,7 +72,9 @@ def write_typemap_point(f, cName, swigType, nDim, isConstRef) :
 	f.write('	}\n')
 	f.write('};\n\n')
 
-f_typemaps = open("typemaps.i", "w")
+dir_path = "tmp"
+os.makedirs(dir_path, exist_ok="True")
+f_typemaps = open(dir_path+"/typemaps.i", "w")
 f_typemaps.write("// Auto-generated file\n\n")
 
 write_typemap_point(f_typemaps, 'MMVII::cPt2di', 'SWIGTYPE_p_MMVII__cPtxdT_int_2_t', 2, False)

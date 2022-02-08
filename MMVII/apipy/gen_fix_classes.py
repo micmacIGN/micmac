@@ -8,6 +8,7 @@
 #https://github.com/tekord/Python-Clang-RTTI-Generator-Example
 #https://jonasdevlieghere.com/understanding-the-clang-ast/
 
+import os
 import clang.cindex
 from clang.cindex import CursorKind as ck
 from clang.cindex import TypeKind as tk
@@ -17,12 +18,11 @@ all_headers = [
   "MMVII_memory.h", "MMVII_nums.h", "MMVII_AimeTieP.h"
 ]
 
-#all_headers = [ "MMVII_all.h" ]
+#all_headers = [ "MMVII_Images.h" ]
 
 path = "../include"
 
-cpp_str = "#include <vector>\n"
-cpp_str += "std::vector<double> toto;\n"
+cpp_str = ""
 for h in all_headers:
   cpp_str += f'#include "{path:}/{h:}"\n'
 
@@ -38,11 +38,15 @@ def filter(nodes, kinds, recursive = False, verbose = False):
   result = []
   for i in nodes:
     if verbose:
-      print("test node ", i.spelling, i.kind)
-    if recursive:
-      result += filter(i.get_children(), kinds, True, verbose)
+      print("test node ", i.spelling, i.kind, end="")
+      if i.kind in kinds:
+        print(" selected!")
+      else:
+        print()
     if i.kind in kinds:
       result.append(i)
+    if recursive:
+      result += filter(i.get_children(), kinds, True, verbose)
   return result
 
 def typeFromTokens(cursor, name):
@@ -104,12 +108,14 @@ class CppClass(object):
 
 
 # ck.CLASS_TEMPLATE for template classes, but how to predic their used types?
-all_classes_cursor = filter(tu.cursor.get_children(), [ck.CLASS_DECL, ck.STRUCT_DECL], True)
+all_classes_cursor = filter(tu.cursor.get_children(), [ck.CLASS_DECL, ck.STRUCT_DECL, ck.CLASS_TEMPLATE], True, False)
 
-f_ignore = open("ignore_nonconst_overloading.i", "w")
-f_rename = open("rename_nonref.i", "w")
-f_nonref = open("return_nonref.i", "w")
-f_include = open("h_to_include.i", "w")
+dir_path = "tmp"
+os.makedirs(dir_path, exist_ok="True")
+f_ignore = open(dir_path+"/ignore_nonconst_overloading.i", "w")
+f_rename = open(dir_path+"/rename_nonref.i", "w")
+f_nonref = open(dir_path+"/return_nonref.i", "w")
+f_include = open(dir_path+"/h_to_include.i", "w")
 
 f_ignore.write("// Auto-generated file\n\n")
 f_rename.write("// Auto-generated file\n\n")
