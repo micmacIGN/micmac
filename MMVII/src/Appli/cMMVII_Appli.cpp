@@ -251,8 +251,14 @@ const std::vector<eSharedPO>    cMMVII_Appli::EmptyVSPO;  ///< Deafaut Vector  s
 
 cMultipleOfs & StdStdOut()
 {
+// Dont know why, destruction of static object at end fails on Mac
+#if (THE_MACRO_MMVII_SYS == MMVII_SYS_A)
+   static cMultipleOfs * aPtrMOfs = new cMultipleOfs(std::cout);
+   return *aPtrMOfs;
+#else
    static cMultipleOfs aMOfs(std::cout);
    return aMOfs;
+#endif
 }
 
 cMultipleOfs& StdOut()

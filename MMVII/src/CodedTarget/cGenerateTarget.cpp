@@ -205,19 +205,21 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
      int aDW = mBorderW * mScale;
      int aDB = (mBorderW+mBorderB) * mScale;
 
+     //  Parse all pixels of image
      for (const auto & aPix : aDImT)
      {
-         cPt2dr  aPixN =  Pix2Norm(aPix);
-         cPt2dr  aRT  = ToPolar(aPixN,0.0);
+         cPt2dr  aPixN =  Pix2Norm(aPix);     // "Nomalized" coordinate
+         cPt2dr  aRT  = ToPolar(aPixN,0.0);   // Polar then Rho teta
 	 double  aRho = aRT.x();
+         double  aTeta = aRT.y();
 
-	 bool IsW = true;
+	 bool IsW = true;  // Default is white
 
          if (aRho< mRhoCodage1)  
          {
+             // Generate the stars
 	     if (aRho>=mRhoCodage0)
 	     {
-	        double  aTeta = aRT.y();
 		if (aTeta < 0)
                    aTeta += 2 *M_PI;
                 int aIndRho = std::max(0,std::min(mNbCircle-1,round_down((aRho-mRhoCodage0)/mThCircle)));
@@ -232,6 +234,17 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 	     }
 	     else
 	     {
+                  // double  mScaleTopo
+                  double aRatio = mRhoCodage0 / std::max(1.0/mScale,aRho);  // 1/mScale => smallest pixel
+		  double aRInd = log(aRatio) / log(mScaleTopo);
+		  int aInd = round_down(aRInd);
+		  IsW = ((aInd%2) != 0);
+if (aTeta==0)
+{
+    std::cout << "RHO=" << aRho << "\n";
+}
+
+/*
 		  if (aRho<mRho_0000_TopoB)
 		  {
                       IsW= false;
@@ -252,6 +265,7 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 		  {
                       IsW= false;
 		  }
+*/
 	     }
          }
          else
