@@ -89,9 +89,9 @@ void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT)
 
 cParamCodedTarget::cParamCodedTarget() :
    mNbRedond      (2),
-   mRatioBar      (1.2),
-   mRhoWhite0     (0),// (1.5),
-   mRhoBlack0     (0),// (2.5),
+   mRatioBar      (0.8),
+   mRhoWhite0     (0.5),// (1.5),
+   mRhoBlack0     (0.5),// (2.5),
    mNbCircle      (1),
    mThCircle      (4),
    mDistMarkFid   (0.5),
@@ -102,7 +102,7 @@ cParamCodedTarget::cParamCodedTarget() :
    mNbPaqFid      (0),  //  -1 Marqer of No Init  , 0 None
    mNbFidByPaq    (3),
    mGapFid        (1.0),
-   mScaleTopo     (0.25),
+   mScaleTopo     (0.5),
    mNbPixelBin    (1800),
    mDecP          ({1,1})  // "Fake" init 4 now
 {
