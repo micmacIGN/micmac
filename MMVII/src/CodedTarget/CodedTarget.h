@@ -78,9 +78,9 @@ class cParamCodedTarget
        cPt2di    Norm2PixI(const cPt2dr &) const;
 
        int       mNbRedond;  // Redundancy = number of repetition of a pattern in a circle
+       double    mRhoTargetC;  // Size of central target
+
        double    mRatioBar;  // Ratio H/l on coding rect, def 1, 2-> mean more bar
-       double    mRhoWhite0;  // Central circle, used to compute affinity
-       double    mRhoBlack0;  // Black circle, used for detection
        int       mNbCircle;  // Number of circles encoding information
        double    mThCircle;  //   Thickness of each circle
        double    mDistMarkFid;    // Dist between Fid mark &  codage
@@ -99,16 +99,11 @@ class cParamCodedTarget
 
        std::vector<double> mTetasQ;  // Tetas of first quarter
 
-       double    mRhoCodage0;   // Rho when begin binarie code
        double    mRhoCodage1;   // Rho when ends binarie code
        double    mRhoFidMark;   // Rho where are located Fid Mark
        double    mRhoBlackB;   //  End of BlakB
        double    mRhoEnd ;      // Rho where are finish the target
 
-
-       double mRho_00_TopoB   ;  // Circle for topo ident
-       double mRho_000_TopoW  ;  // Circle for topo ident
-       double mRho_0000_TopoB ;  // Circle for topo ident
 
        cPt2di    mSzBin;
        cPt2dr    mMidle;
