@@ -66,8 +66,7 @@ void cParamCodedTarget::AddData(const cAuxAr2007 & anAux)
 {
     MMVII::AddData(cAuxAr2007("NbRedond",anAux),mNbRedond);
     MMVII::AddData(cAuxAr2007("RatioBar",anAux),mRatioBar);
-    MMVII::AddData(cAuxAr2007("RW0",anAux),mRhoWhite0);
-    MMVII::AddData(cAuxAr2007("RB0",anAux),mRhoBlack0);
+    MMVII::AddData(cAuxAr2007("RhoTargetC",anAux),mRhoTargetC);
     MMVII::AddData(cAuxAr2007("NbC",anAux),mNbCircle);
     MMVII::AddData(cAuxAr2007("ThC",anAux),mThCircle);
     MMVII::AddData(cAuxAr2007("DistFM",anAux),mDistMarkFid);
@@ -89,9 +88,8 @@ void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT)
 
 cParamCodedTarget::cParamCodedTarget() :
    mNbRedond      (2),
+   mRhoTargetC    (1.0),
    mRatioBar      (0.8),
-   mRhoWhite0     (0.5),// (1.5),
-   mRhoBlack0     (0.5),// (2.5),
    mNbCircle      (1),
    mThCircle      (4),
    mDistMarkFid   (0.5),
@@ -130,16 +128,11 @@ void cParamCodedTarget::Finish()
   if (mNbPaqFid<0)
      mNbPaqFid = mNbRedond ;
   mSzBin = cPt2di(mNbPixelBin,mNbPixelBin);
-  mRhoCodage0  = mRhoWhite0 + mRhoBlack0;
 
-  mRhoCodage1  = mRhoCodage0 + mNbCircle * mThCircle;
+  mRhoCodage1  = mRhoTargetC + mNbCircle * mThCircle;
   mRhoFidMark  = mRhoCodage1  + mDistMarkFid;
   mRhoBlackB =  mRhoFidMark  + mBorderB;
   mRhoEnd      = mRhoBlackB + mBorderW;
-
-  mRho_00_TopoB   = mRhoWhite0 * mScaleTopo;
-  mRho_000_TopoW  = mRho_00_TopoB * mScaleTopo;
-  mRho_0000_TopoB = mRho_000_TopoW * mScaleTopo;
 
   mMidle = ToR(mSzBin) / 2.0;
   mScale = mNbPixelBin / (2.0 * mRhoEnd);
@@ -147,7 +140,7 @@ void cParamCodedTarget::Finish()
   std::vector<int> aVNbSub;
   for (int aKCirc = 0 ; aKCirc< mNbCircle ; aKCirc++)
   {
-      double aRho0 = mRhoCodage0 + aKCirc * mThCircle;
+      double aRho0 = mRhoTargetC + aKCirc * mThCircle;
       double aRho1 = aRho0 + mThCircle;
       double aRhoM = (aRho0 + aRho1) / 2.0;
       int aNb = std::max(2,round_up((mRatioBar* 2*M_PI*aRhoM)/mNbRedond));
@@ -205,22 +198,24 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
      int aDW = mBorderW * mScale;
      int aDB = (mBorderW+mBorderB) * mScale;
 
+     //  Parse all pixels of image
      for (const auto & aPix : aDImT)
      {
-         cPt2dr  aPixN =  Pix2Norm(aPix);
-         cPt2dr  aRT  = ToPolar(aPixN,0.0);
+         cPt2dr  aPixN =  Pix2Norm(aPix);     // "Nomalized" coordinate
+         cPt2dr  aRT  = ToPolar(aPixN,0.0);   // Polar then Rho teta
 	 double  aRho = aRT.x();
+         double  aTeta = aRT.y();
 
-	 bool IsW = true;
+	 bool IsW = true;  // Default is white
 
          if (aRho< mRhoCodage1)  
          {
-	     if (aRho>=mRhoCodage0)
+             // Generate the stars
+	     if (aRho>=mRhoTargetC)
 	     {
-	        double  aTeta = aRT.y();
 		if (aTeta < 0)
                    aTeta += 2 *M_PI;
-                int aIndRho = std::max(0,std::min(mNbCircle-1,round_down((aRho-mRhoCodage0)/mThCircle)));
+                int aIndRho = std::max(0,std::min(mNbCircle-1,round_down((aRho-mRhoTargetC)/mThCircle)));
 		const cSetCodeOf1Circle & aSet1C =  mVecSetOfCode.at(aIndRho);
 		int aN  = aSet1C.N();
 
@@ -232,26 +227,11 @@ tImTarget  cParamCodedTarget::MakeIm(const cCodesOf1Target & aSetCodesOfT)
 	     }
 	     else
 	     {
-		  if (aRho<mRho_0000_TopoB)
-		  {
-                      IsW= false;
-		  }
-		  else if (aRho<mRho_000_TopoW)
-		  {
-                      IsW= true;
-		  }
-		  else if (aRho<mRho_00_TopoB)
-		  {
-                      IsW= false;
-		  }
-		  else if (aRho<mRhoWhite0)
-		  {
-                      IsW= true;
-		  }
-		  else
-		  {
-                      IsW= false;
-		  }
+                  // double  mScaleTopo
+                  double aRatio = mRhoTargetC / std::max(1.0/mScale,aRho);  // 1/mScale => smallest pixel
+		  double aRInd = log(aRatio) / log(mScaleTopo);
+		  int aInd = round_down(aRInd);
+		  IsW = ((aInd%2) == 0);
 	     }
          }
          else
