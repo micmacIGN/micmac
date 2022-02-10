@@ -19,7 +19,13 @@ More usage examples can be found in apipy/examples_py
 
 Documentation
 -------------
-See doc/
+See mmv2.html
+
+
+Examples
+--------
+
+[Example](ex/ex1.py)
 
 
 Compilation
@@ -38,11 +44,6 @@ Dependencies:
 On debian:
     apt install swig python3-dev pkg-config python3-pip python3-numpy python3-wheel
     pip3 install libclang
-For doc:
-    apt install doxygen graphviz
-or
-    pip3 install pdoc3
-
 
 First, compile MMv1 and MMv2.
 

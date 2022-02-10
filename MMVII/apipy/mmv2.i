@@ -1,5 +1,9 @@
+%define DOCSTRING
+"The `mmv2` module gives access to many MicMac v2 classes,
+to read MicMac files and use its functions"
+%enddef
 
-%module mmv2
+%module (docstring=DOCSTRING) mmv2
 %{
   //includes to be able to compile
   #define SWIG_FILE_WITH_INIT
@@ -177,6 +181,7 @@ typedef double tStdDouble;  ///< "natural" int
 //%template(Pt1di) MMVII::cPtxd<int,1>      ;
 //%template(Pt1df) MMVII::cPtxd<float,1>    ;
 %template(Pt2dr) MMVII::cPtxd<double,2>   ;
+
 %template(Pt2di) MMVII::cPtxd<int,2>      ;
 //%template(Pt2df) MMVII::cPtxd<float,2>    ;
 %template(Pt3dr) MMVII::cPtxd<double,3>   ;
@@ -262,6 +267,7 @@ mmv2_init();
 //must redefine virtual functions to access base class methods,
 //when base class is abstract and template?
 %extend MMVII::cDataIm2D<tU_INT1> {
+  %feature("autodoc", "Returns a copy of image data") getRawData;
   std::vector<tU_INT1> getRawData() {
     int size = $self->SzX()*$self->SzY();
     tU_INT1* data = $self->RawDataLin();
@@ -269,6 +275,7 @@ mmv2_init();
     return out;
   }
   //here tU_INT1* IN_ARRAY2 is not recognized
+  %feature("autodoc", "Set of image data from uin8 array") setRawData;
   void setRawData(unsigned char* IN_ARRAY2, int DIM1, int DIM2) {
     $self->Resize( MMVII::cPtxd<int,2>(0,0), MMVII::cPtxd<int,2>(DIM2,DIM1) );
     for (long i=0;i<DIM1*DIM2;i++)
@@ -276,6 +283,7 @@ mmv2_init();
   }
 }
 %extend MMVII::cDataIm2D<tREAL4> {
+  %feature("autodoc", "Returns a copy of image data") getRawData;
   std::vector<tREAL4> getRawData() {
     int size = $self->SzX()*$self->SzY();
     tREAL4* data = $self->RawDataLin();
@@ -283,6 +291,7 @@ mmv2_init();
     return out;
   }
   //here tREAL4* IN_ARRAY2 is not recognized
+  %feature("autodoc", "Set of image data from float32 array") setRawData;
   void setRawData(float* IN_ARRAY2, int DIM1, int DIM2) {
     $self->Resize( MMVII::cPtxd<int,2>(0,0), MMVII::cPtxd<int,2>(DIM2,DIM1) );
     for (long i=0;i<DIM1*DIM2;i++)
@@ -296,8 +305,10 @@ mmv2_init();
 %pythoncode %{
 import numpy as np
 def toArray_uint8(self):
+    """Convert to numpy uint8 array"""
     return np.array(self.getRawData(), dtype=np.uint8).reshape(self.SzY(), self.SzX())
 def toArray_float32(self):
+    """Convert to numpy float32 array"""
     return np.array(self.getRawData(), dtype=np.float32).reshape(self.SzY(), self.SzX())
 cDataIm2Du1.toArray = toArray_uint8
 cDataIm2Dr4.toArray = toArray_float32

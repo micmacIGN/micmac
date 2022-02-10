@@ -9,6 +9,8 @@ WRAP_O_FILES = $(I_SRCS:.i=_wrap.o)
 
 .PHONY: clean doc apipy
 
+all: apipy doc
+
 apipy: clean tmp/typemaps.i tmp/h_to_include.i tmp/rename_nonref.i tmp/return_nonref.i tmp/ignore_nonconst_overloading.i
 	python3 setup.py build USEQT=$(USEQT)
 	python3 setup.py bdist_wheel USEQT=$(USEQT)
@@ -17,17 +19,14 @@ apipy: clean tmp/typemaps.i tmp/h_to_include.i tmp/rename_nonref.i tmp/return_no
 	#python3 setup.py install --user USEQT=$(USEQT)
 	@if python3 -c "import mmv2" ; then echo "APIPY OK" ; else echo "APIPY error! Use c++filt to demangle missing symbols." ; fi
 
-all: apipy doc
-
 tmp/typemaps.i: gen_typemaps.py
 	python3 gen_typemaps.py
 
 tmp/return_nonref.i tmp/ignore_nonconst_overloading.i tmp/h_to_include.i tmp/rename_nonref.i: gen_fix_classes.py
 	python3 gen_fix_classes.py
 
-doc:
-	@doxygen -v 2> /dev/null && (cd $(DOCDIR) && doxygen) || echo "Doxygen not detected!"
-	@pdoc3 --version 2> /dev/null && (cd $(DOCDIR) && pdoc3 -f --html ../mmv2.py) || echo "Pdoc3 not detected!"
+doc: apipy
+	pydoc3 -w mmv2
 
 clean:
 	rm -Rf $(PY_FILES) $(WRAP_CXX_FILES) $(WRAP_O_FILES) tmp
