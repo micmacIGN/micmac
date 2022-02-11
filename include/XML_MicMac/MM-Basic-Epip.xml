@@ -22,7 +22,9 @@
 
          <Symb>  NbProc= ${MMNbProc} </Symb>
 
-         <eSymb>  WithZ512= SupEq ${ZoomInit} 512 </eSymb>
+	 <Symb> ZoomFinal=1     </Symb>
+
+	 <!--         <eSymb>  WithZ512= SupEq ${ZoomInit} 512 </eSymb>
          <eSymb>  WithZ256= SupEq ${ZoomInit} 256 </eSymb>
          <eSymb>  WithZ128= SupEq ${ZoomInit} 128 </eSymb>
          <eSymb>  WithZ64= SupEq ${ZoomInit}  64  </eSymb>
@@ -30,7 +32,27 @@
          <eSymb>  WithZ16= SupEq ${ZoomInit}  16  </eSymb>
          <eSymb>  WithZ8= SupEq ${ZoomInit}   8   </eSymb>
          <eSymb>  WithZ4= SupEq ${ZoomInit}   4   </eSymb>
-         <eSymb>  WithZ2= SupEq ${ZoomInit}   2   </eSymb>
+	 <eSymb>  WithZ2= SupEq ${ZoomInit}   2   </eSymb> -->
+
+
+        <eSymb> WithZ512=* Sup ${ZoomInit} 512  InfEq  ${ZoomFinal} 512  </eSymb>
+        <eSymb> WithZ256=* Sup ${ZoomInit} 256  InfEq  ${ZoomFinal} 256  </eSymb>
+        <eSymb> WithZ128=* Sup ${ZoomInit} 128  InfEq  ${ZoomFinal} 128  </eSymb>
+        <eSymb> WithZ64=* Sup ${ZoomInit} 64  InfEq  ${ZoomFinal} 64  </eSymb>
+        <eSymb> WithZ32=* Sup ${ZoomInit} 32  InfEq  ${ZoomFinal} 32  </eSymb>
+        <eSymb> WithZ16=* Sup ${ZoomInit} 16  InfEq  ${ZoomFinal} 16  </eSymb>
+        <eSymb> WithZ8=* Sup ${ZoomInit} 8  InfEq  ${ZoomFinal} 8  </eSymb>
+        <eSymb> WithZ4=* Sup ${ZoomInit} 4  InfEq  ${ZoomFinal} 4  </eSymb>
+        <eSymb> WithZ2=* Sup ${ZoomInit} 2  InfEq  ${ZoomFinal} 2  </eSymb>
+	
+
+	<Symb> UseResolTerrain=false </Symb>
+        <Symb> ResolTerrain=0 </Symb>
+        <Symb>   UseBoxTerrain=false </Symb>
+        <Symb>   X0Terrain=0 </Symb>
+        <Symb>   Y0Terrain=0 </Symb>
+        <Symb>   X1Terrain=1 </Symb>
+        <Symb>   Y1Terrain=1 </Symb>
 
     </DicoLoc>
 <!-- *************************************************************
@@ -43,6 +65,14 @@ Parametres lies au terrain "physique", independamment de la prise de vue
       </IntervParalaxe>
 
       <Planimetrie>
+           <#WHEN VTEST=${UseResolTerrain}>
+                  <ResolutionTerrain> ${ResolTerrain} </ResolutionTerrain>
+           </#WHEN>
+
+
+           <#WHEN VTEST=${UseBoxTerrain}>
+          <BoxTerrain>  ${X0Terrain} ${Y0Terrain} ${X1Terrain} ${Y1Terrain} </BoxTerrain>
+          </#WHEN>	      
       </Planimetrie>
 
     </Section_Terrain>
@@ -120,16 +150,16 @@ L'ordre des resolutions : les plus basses aux plus grandes.
         <#WHEN  VTEST=${WithZ2}>  <EtapeMEC> <DeZoom >  2  </DeZoom> </EtapeMEC> </#WHEN>
 
         <EtapeMEC>
-           <DeZoom > 1 </DeZoom>
+		<DeZoom > ${ZoomFinal} </DeZoom>
         </EtapeMEC>
 
         <EtapeMEC>
-           <DeZoom > 1 </DeZoom>
+           <DeZoom > ${ZoomFinal} </DeZoom>
            <Px1Pas>   0.5  </Px1Pas>
         </EtapeMEC>
 
         <EtapeMEC>
-            <DeZoom >  1  </DeZoom>
+            <DeZoom >  ${ZoomFinal}  </DeZoom>
             <Px1Pas>   1.0     </Px1Pas>
             <AlgoRegul> eAlgoDequant </AlgoRegul>
         </EtapeMEC>
