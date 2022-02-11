@@ -78,31 +78,28 @@ class cParamCodedTarget
        cPt2di    Norm2PixI(const cPt2dr &) const;
 
        int       mNbRedond;  // Redundancy = number of repetition of a pattern in a circle
-       double    mRhoTargetC;  // Size of central target
-
-       double    mRatioBar;  // Ratio H/l on coding rect, def 1, 2-> mean more bar
        int       mNbCircle;  // Number of circles encoding information
-       double    mThCircle;  //   Thickness of each circle
-       double    mDistMarkFid;    // Dist between Fid mark &  codage
-       double    mBorderB;  // Dist between Bord & FidMark
-       double    mBorderW;  // Dist between Bord & FidMark
 
-       double    mRadiusFidMark;  // Radius of Fid Mark
-       double    mTetaCenterFid;   // Teta init 
-       int       mNbPaqFid;        // Number of group in "Fid Mark" By defaut==mNbRedond
+       double    mThTargetC;  // Thickness of central target
+       double    mThStars;  //   Thickness of "star" pattern
+       double    mThBlCircExt;  //   Thickness of External Black circle
+       double    mThBrdWhiteInt;    // Thickness of white internal border
+       double    mThBrdBlack;    // Thickness of black border
+       double    mThBrdWhiteExt;    // Thickness of black border
 
-       int       mNbFidByPaq;        // Number of Fiducial by quarter
-       double    mGapFid;            // Size of gab in fiducial repeat
        double    mScaleTopo;         // Scale used to create identifiable center 4 toto
        int       mNbPixelBin;        // Number of pixel  Binary image
 
-
        std::vector<double> mTetasQ;  // Tetas of first quarter
 
-       double    mRhoCodage1;   // Rho when ends binarie code
-       double    mRhoFidMark;   // Rho where are located Fid Mark
-       double    mRhoBlackB;   //  End of BlakB
-       double    mRhoEnd ;      // Rho where are finish the target
+       double    mThRing ;      // Thickness of each ring of star : mThStars/mNbCircle
+
+       double    mRhoEndTargetC;  // Rho when central targe ends
+       double    mRhoEndStar;      // Rho when ends stars pattern
+       double    mRhoEndBlackCircle;      // Rho when ends external black circle
+       double    mRhoEnBrdWhiteInt;   // Rho where ends interior white border
+       double    mRhoEndBrdBlack;   // Rho where ends black border
+       double    mRhoEndBrdWhiteExt;   // Rho where ends white border
 
 
        cPt2di    mSzBin;
