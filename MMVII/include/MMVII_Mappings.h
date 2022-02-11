@@ -548,7 +548,8 @@ template <class cMapElem> class cIMElemLinear :  public
          static constexpr int     Dim=tIMap::Dim;
          typedef cDataMapping<tTypeElem,Dim,Dim>  tDataMap;
          typedef cDenseMatrix<tTypeElem> tMat;
-         using typename tDataMap::tDataMap;
+         // using typename tDataMap::tDataMap;
+         using tDataMap::tDataMap; // typename => pb compile MAC (ou CLANG?)
          using typename tDataMap::tVecIn;
          using typename tDataMap::tCsteResVecJac;
          using typename tDataMap::tResVecJac;

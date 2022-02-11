@@ -83,12 +83,19 @@ void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT)
    aPCT.AddData(anAux);
 }
 
+void cParamCodedTarget::InitFromFile(const std::string & aNameFile)
+{
+    ReadFromFile(*this,aNameFile);
+    Finish();
+}
+
+
 cParamCodedTarget::cParamCodedTarget() :
    mNbRedond      (2),
    mNbCircle      (1),
-   mThTargetC     (0.8),
+   mThTargetC     (0.0), // (0.8),
    mThStars       (4),
-   mThBlCircExt   (0.5),
+   mThBlCircExt   (0.0), // (0.5),
    mThBrdWhiteInt (0.7),
    mThBrdBlack    (0.4),
    mThBrdWhiteExt (0.3),

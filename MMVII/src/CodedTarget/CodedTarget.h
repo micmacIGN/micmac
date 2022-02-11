@@ -59,6 +59,8 @@ class cParamCodedTarget
 {
     public :
        cParamCodedTarget();
+       void InitFromFile(const std::string & aNameFile);
+
        int &     NbRedond();  // Redundancy = number of repetition of a pattern in a circle
        int &     NbCircle();  // Redundancy = number of repetition of a pattern in a circle
        double &  RatioBar();  // Ratio on codin bar
@@ -109,6 +111,9 @@ class cParamCodedTarget
        std::vector<cSetCodeOf1Circle>     mVecSetOfCode;
        cDecomposPAdikVar                  mDecP;
 };
+
+void AddData(const  cAuxAr2007 & anAux,cParamCodedTarget & aPCT);
+
 
 };
 };
