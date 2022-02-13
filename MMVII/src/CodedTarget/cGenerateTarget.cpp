@@ -97,8 +97,8 @@ cParamCodedTarget::cParamCodedTarget() :
    mThStars       (4),
    mThBlCircExt   (0.0), // (0.5),
    mThBrdWhiteInt (0.7),
-   mThBrdBlack    (0.4),
-   mThBrdWhiteExt (0.3),
+   mThBrdBlack    (0.7),
+   mThBrdWhiteExt (0.1),
    mScaleTopo     (0.5),
    mNbPixelBin    (1800),
    mDecP          ({1,1})  // "Fake" init 4 now

@@ -5,6 +5,63 @@
 namespace MMVII
 {
 
+
+
+template<class TypeEl> class  cAppliParseBoxIm
+{
+    public :
+    protected :
+        typedef cIm2D<TypeEl>      tIm;
+        typedef cDataIm2D<TypeEl>  tDataIm;
+
+	cAppliParseBoxIm(cMMVII_Appli & anAppli,bool IsGray) :
+	    mDFI2d    (cDataFileIm2D::Empty()),
+	    mIsGray   (IsGray),
+            mAppli    (anAppli),
+	    mIm       (cPt2di(1,1))
+	{
+	}
+
+	~cAppliParseBoxIm()
+	{
+	}
+
+        cCollecSpecArg2007 & APBI_ArgObl(cCollecSpecArg2007 & anArgObl) 
+        {
+           return
+               anArgObl
+                   <<   Arg2007(mNameIm,"Name of input file",{{eTA2007::MPatFile,"0"}})
+           ;
+        }
+
+	void APBI_PostInit()
+	{
+            mDFI2d = cDataFileIm2D::Create(mNameIm,mIsGray);
+	}
+
+	tDataIm & APBI_LoadI(const cBox2di & aBox)
+	{
+            mDFI2d.AssertNotEmpty();
+            DIm().Resize(aBox.Sz());
+	    DIm().Read(mDFI2d,aBox.P0());
+
+	    return DIm();
+	}
+
+
+	std::string   mNameIm;
+	cDataFileIm2D mDFI2d;
+    private :
+	cAppliParseBoxIm(const cAppliParseBoxIm &) = delete;
+	tDataIm & DIm() {return mIm.DIm();}
+
+	bool           mIsInit;
+	bool           mIsGray;
+        cMMVII_Appli & mAppli;
+	tIm            mIm;
+};
+
+
 namespace  cNS_CodedTarget
 {
 
@@ -15,14 +72,13 @@ namespace  cNS_CodedTarget
 /*                                                              */
 /*  *********************************************************** */
 
-class cAppliExtractCodeTarget : public cMMVII_Appli
+class cAppliExtractCodeTarget : public cMMVII_Appli,
+	                        public cAppliParseBoxIm<tREAL4>
 {
      public :
         cAppliExtractCodeTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec);
 
      private :
-
-
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
@@ -40,19 +96,24 @@ class cAppliExtractCodeTarget : public cMMVII_Appli
 /*                                                     */
 /* *************************************************** */
 
-
 cAppliExtractCodeTarget::cAppliExtractCodeTarget(const std::vector<std::string> & aVArgs,const cSpecMMVII_Appli & aSpec) :
-   cMMVII_Appli  (aVArgs,aSpec)
+   cMMVII_Appli  (aVArgs,aSpec),
+   cAppliParseBoxIm<tREAL4>(*this,true) // static_cast<cMMVII_Appli & >(*this))
 {
 }
 
 cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgObl(cCollecSpecArg2007 & anArgObl) 
 {
- return
-      anArgObl
-          <<   Arg2007(mNameIm,"Name of input file",{{eTA2007::MPatFile,"0"}})
-          <<   Arg2007(mNameTarget,"Name of target file",{{eTA2007::MPatFile,"0"}})
+   // Standard use, we put args of  cAppliParseBoxIm first
+   return
+         APBI_ArgObl(anArgObl)
+             <<   Arg2007(mNameTarget,"Name of target file")
    ;
+/* But we could also put them at the end
+ return
+         APBI_ArgObl(anArgObl <<   Arg2007(mNameTarget,"Name of target file"))
+   ;
+*/
 }
 
 cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgOpt)
@@ -70,6 +131,7 @@ int  cAppliExtractCodeTarget::Exe()
       return ResultMultiSet();
 
    mPCT.InitFromFile(mNameTarget);
+   APBI_PostInit();
 	/*
 
    for (int aNum=0 ; aNum<mPCT.NbCodeAvalaible() ; aNum+=mPerGen)

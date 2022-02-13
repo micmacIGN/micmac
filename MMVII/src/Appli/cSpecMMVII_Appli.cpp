@@ -171,6 +171,7 @@ std::vector<cSpecMMVII_Appli *> & cSpecMMVII_Appli::InternVecAll()
         TheVecAll.push_back(&TheSpecFillCubeCost);
         TheVecAll.push_back(&TheSpecDMEvalRef);
         TheVecAll.push_back(&TheSpecGenCodedTarget);
+        TheVecAll.push_back(&TheSpecExtractCodedTarget);
 
         std::sort(TheVecAll.begin(),TheVecAll.end(),CmpCmd);
    }

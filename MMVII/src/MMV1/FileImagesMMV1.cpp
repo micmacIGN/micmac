@@ -50,6 +50,18 @@ cDataFileIm2D cDataFileIm2D::Empty()
    return cDataFileIm2D( MMVII_NONE, eTyNums::eNbVals, cPt2di(1,1), -1);
 }
 
+bool cDataFileIm2D::IsEmpty() const
+{
+    return mNbChannel<=0;
+}
+
+
+void cDataFileIm2D::AssertNotEmpty() const
+{
+    MMVII_INTERNAL_ASSERT_strong((!IsEmpty()),"cDataFileIm2D was not initialized");
+}
+
+
 
 cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,bool aForceGray)
 {

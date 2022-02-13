@@ -417,6 +417,8 @@ class cDataFileIm2D : public cRect2
         const int  & NbChannel ()  const ;  ///< std accessor
         const eTyNums &   Type ()  const ;  ///< std accessor
         const std::string &  Name() const;  ///< std accessor
+	bool IsEmpty() const;
+	void AssertNotEmpty() const;
         /// Create a descriptor on existing file
         static cDataFileIm2D Create(const std::string & aName,bool ForceGray);
         /// Create the file before returning the descriptor
