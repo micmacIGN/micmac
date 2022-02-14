@@ -60,6 +60,8 @@ template<class TypeEl> class  cAppliParseBoxIm
               return IsInit(&mBoxTest);
 	}
 
+	tDataIm & APBI_LoadTestBox() {return APBI_LoadI(mBoxTest);}
+
 
 	std::string   mNameIm;  // Name of image to parse
 	cBox2di       mBoxTest; // Box for quick testing, in case we dont parse all image
@@ -95,6 +97,8 @@ class cAppliExtractCodeTarget : public cMMVII_Appli,
         int Exe() override;
         cCollecSpecArg2007 & ArgObl(cCollecSpecArg2007 & anArgObl) override ;
         cCollecSpecArg2007 & ArgOpt(cCollecSpecArg2007 & anArgOpt) override ;
+
+	void TestFilters();
 
 	std::string mNameIm;
 	std::string mNameTarget;
@@ -141,6 +145,12 @@ cCollecSpecArg2007 & cAppliExtractCodeTarget::ArgOpt(cCollecSpecArg2007 & anArgO
    ;
 }
 
+void  cAppliExtractCodeTarget::TestFilters()
+{
+     tDataIm &  aDIm = APBI_LoadTestBox();
+
+     StdOut() << "SZ "  <<  aDIm.Sz() << "\n";
+}
 
 int  cAppliExtractCodeTarget::Exe()
 {
@@ -152,6 +162,10 @@ int  cAppliExtractCodeTarget::Exe()
 
 
    if (APBI_TestMode())
+   {
+       TestFilters();
+   }
+   else
    {
    }
 

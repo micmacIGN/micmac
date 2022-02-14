@@ -1636,7 +1636,6 @@ if (!MMVisualMode)
 else return ;
 }
 
-
 int CreateEpip_main(int argc,char ** argv)
 {
      cApply_CreateEpip_main(argc,argv);
