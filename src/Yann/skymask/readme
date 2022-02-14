@@ -1,0 +1,17 @@
+- installer les dependances :
+# python3 -m venv .venv
+# source .venv/bin/activate
+pip install tensorflow==1.13.2
+pip install Keras==2.3.0
+
+- verifier que les variables correspondent :
+DATA_DIR = './data/'
+x_test_dir = os.path.join(DATA_DIR, 'yann_test')
+output_path = './out'
+
+model = sm.Unet(BACKBONE, classes=n_classes, activation=activation)
+model.load_weights('best_model.h5')
+
+python3 predict.py
+
+- le resultat est dans output_path
