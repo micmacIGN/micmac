@@ -217,7 +217,7 @@ cMMVII_Appli::cMMVII_Appli
    mDoInternalHelp(false),
    mShowAll       (false),
    mLevelCall     (0),
-   mSetInit       (cExtSet<void *>(eTySC::US)),
+   mSetInit       (cExtSet<const void *>(eTySC::US)),
    mInitParamDone (false),
    mVMainSets     (NbMaxMainSets,tNameSet(eTySC::NonInit)),
    mResulMultiS   (EXIT_FAILURE),
@@ -1085,7 +1085,7 @@ void cMMVII_Appli::AssertInitParam() const
 {
   MMVII_INTERNAL_ASSERT_always(mInitParamDone,"Init Param was forgotten");
 }
-bool  cMMVII_Appli::IsInit(void * aPtr)
+bool  cMMVII_Appli::IsInit(const void * aPtr)
 {
     return  mSetInit.In(aPtr);
 }
@@ -1462,6 +1462,11 @@ std::string  cMMVII_Appli::Command() const
 std::vector<std::string>  cMMVII_Appli::Samples() const
 {
    return std::vector<std::string>();
+}
+
+bool IsInit(const void * anAdr)
+{
+    return cMMVII_Appli::CurrentAppli().IsInit(anAdr);
 }
 
 

@@ -97,6 +97,7 @@ class cApply_CreateEpip_main
 
       cInterfChantierNameManipulateur * mICNM;
       void  IntervZAddIm(cBasicGeomCap3D *);
+      Box2dr  CalcBoxIm(cBasicGeomCap3D *);
 
 
 
@@ -143,6 +144,14 @@ class cApply_CreateEpip_main
       std::string        mNameOut;
       std::vector<double> mParamEICE;
 
+      Box2dr              mBoxTerrain;  // A box in terrain to limit computation, done for micmac manager
+      std::vector<Pt3dr>  mPtsLimTerr;  // Corner  in 3d
+      /*
+      Box2dr              mBoxIm1;      // Full image 1 or image of Boxterain in any
+      Box2dr              mBoxIm2;      // Full image 2 or image of Boxterain in any
+      */
+
+
       double SignedComputeEpipolarability(const Pt3dr & aP1) const;
       double AbsComputeEpipolarability(const Pt3dr & aP1) const;
       Pt3dr Tang(bool IsI1,const Pt3dr & aP1,double & aDist) const;
@@ -162,7 +171,42 @@ class cApply_CreateEpip_main
 
 
       std::vector<double>  mParamTestOh;
+
+
 };
+
+
+Box2dr    cApply_CreateEpip_main::CalcBoxIm(cBasicGeomCap3D * aG)
+{
+    Pt2dr aSz =  Pt2dr(aG->SzBasicCapt3D());
+
+    Box2dr aBoxFull(Pt2dr(-1,-1),aSz+Pt2dr(1,1));
+
+    if (EAMIsInit(&mBoxTerrain))
+    {
+         Pt2dr aPMin(1e20,1e20);
+         Pt2dr aPMax(-1e20,-1e20);
+	 for (const auto & aPTer : mPtsLimTerr)
+	 {
+              Pt2dr aPIm = aG->Ter2Capteur(aPTer);
+              aPMin = Inf(aPMin,aPIm);
+              aPMax = Sup(aPMax,aPIm);
+	 }
+
+	 aPMin = Sup(aPMin,aBoxFull.P0());
+	 aPMax = Inf(aPMax,aBoxFull.P1());
+
+         ELISE_ASSERT((aPMin.x<aPMax.x),"Proj of Box terrain dont intersect box image");
+         ELISE_ASSERT((aPMin.y<aPMax.y),"Proj of Box terrain dont intersect box image");
+	 
+	 return Box2dr(aPMin,aPMax);
+    }
+
+    return aBoxFull;
+}
+
+
+
 
 static  const  double aDZ = 1; // "Small" value to compute derivative
 Pt3dr  cApply_CreateEpip_main::Tang(bool IsI1,const Pt3dr & aPTer,double & aDist) const
@@ -263,6 +307,9 @@ Pt2dr  cApply_CreateEpip_main::DirEpipIm2
        )
 {
 std::cout << "XXXX  " << aG1->AltisSolIsDef() << " " <<  ForXFitHom << "\n";
+    Box2dr  aBoxIm1 =    CalcBoxIm(aG1);
+    Box2dr  aBoxIm2 =    CalcBoxIm(aG2);
+
     bool DoCompEp = ForCheck;
     cElStatErreur aStatEp(10);
    
@@ -310,7 +357,9 @@ std::cout << "XXXX  " << aG1->AltisSolIsDef() << " " <<  ForXFitHom << "\n";
             double aPdsY = ForCheck ? NRrandom3() : (aKY/double(aNbY));
             aPdsY = ElMax(aEps,ElMin(1-aEps,aPdsY));
             // Point in image 1 on regular gris
-            Pt2dr aPIm1 = aSz.mcbyc(Pt2dr(aPdsX,aPdsY));
+
+            // Pt2dr aPIm1 = aSz.mcbyc(Pt2dr(aPdsX,aPdsY));
+            Pt2dr aPIm1 = aBoxIm1.FromCoordLoc(Pt2dr(aPdsX,aPdsY));
             if (aG1->CaptHasData(aPIm1))
             {
                 Pt3dr aPT1;
@@ -358,11 +407,11 @@ std::cout << "XXXX  " << aG1->AltisSolIsDef() << " " <<  ForXFitHom << "\n";
                           aPT2 = aC1 + (aPT1-aC1) * (1+mIProf*aPds);
                      }
 
-                     if (aG1->PIsVisibleInImage(aPT2) && aG2->PIsVisibleInImage(aPT2))
+                     if (aG1->PIsVisibleInImage(aPT2) && aG2->PIsVisibleInImage(aPT2) )
                      {
                         // Add projection
                         Pt2dr aPIm2 = aG2->Ter2Capteur(aPT2);
-                        if (aG2->CaptHasData(aPIm2))
+                        if (aG2->CaptHasData(aPIm2) &&  aBoxIm2.inside(aPIm2))
                         {
                             if (DoCompEp && (aKZ==0))
                             {
@@ -1431,6 +1480,7 @@ cApply_CreateEpip_main::cApply_CreateEpip_main(int argc,char ** argv) :
 		    << EAM(mXFitL2,"XCorrecL2",false,"L1/L2 Correction for X-Pax")
 		    << EAM(mNameOut,"Out",false,"To spcecify names of results")
 		    << EAM(mGenereImageDirEpip,"ImDir",false,"Generate image of direction of epipolar")
+		    << EAM(mBoxTerrain,"BoxTer",false,"Box ter to limit size of created epip")
 		    /*
 		    */
     );
@@ -1513,6 +1563,22 @@ if (!MMVisualMode)
                     // << EAM(mVecIterDeg,"VecIterDeg",true,"Vector of degree in case of iterative approach")
                     // << EAM(mPropIterDeg,"PropIterDeg",true,"Prop to compute sigma in cas of iterative degre")
          std::cout << "Deegreee: " << mDegre << " WithOri:" << mWithOri << "\n";
+
+
+	 if (EAMIsInit(&mBoxTerrain))
+	 {
+              ELISE_ASSERT(mIntervZIsDef,"Interval Z required for box terrain");
+              ELISE_ASSERT(mGenI1&&mGenI2,"Modeles required for box terrain");
+	      Pt2dr  aTabC[4];
+              mBoxTerrain.Corners(aTabC);
+	      for (int aK=0 ; aK<4; aK++)
+	      {
+                  mPtsLimTerr.push_back(Pt3dr(aTabC[aK],mZMin));
+                  mPtsLimTerr.push_back(Pt3dr(aTabC[aK],mZMax));
+	      }
+	 }
+
+
          DoEpipGen(DoIm);
          return;
      }
@@ -1569,7 +1635,6 @@ if (!MMVisualMode)
 }
 else return ;
 }
-
 
 int CreateEpip_main(int argc,char ** argv)
 {
