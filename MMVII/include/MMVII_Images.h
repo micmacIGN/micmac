@@ -417,6 +417,8 @@ class cDataFileIm2D : public cRect2
         const int  & NbChannel ()  const ;  ///< std accessor
         const eTyNums &   Type ()  const ;  ///< std accessor
         const std::string &  Name() const;  ///< std accessor
+	bool IsEmpty() const;
+	void AssertNotEmpty() const;
         /// Create a descriptor on existing file
         static cDataFileIm2D Create(const std::string & aName,bool ForceGray);
         /// Create the file before returning the descriptor
@@ -679,6 +681,9 @@ template <class Type>  class cIm2D
        std::shared_ptr<tDIM> mSPtr;  ///< shared pointer to real image , allow automatic deallocation
        tDIM *                mPIm;   ///< raw pointer on mSPtr, a bit faster to store it ?
 };
+
+/// Generate an image of the string, using basic font, implemanted with a call to mmv1
+cIm2D<tU_INT1> ImageOfString(const std::string & ,int aSpace);
 
 
 ///  Class for 1D image in Ram of a given type

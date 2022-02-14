@@ -243,6 +243,7 @@ class cMultipleOfs  : public  std::ostream
         }
     private :
         
+        cMultipleOfs(const cMultipleOfs &) = delete;
         cMMVII_Ofs *                mOfsCreated;
         std::vector<std::ostream *> mVOfs;
 };

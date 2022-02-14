@@ -52,6 +52,7 @@ enum class eApF
                Match,      ///< Dense Matching
                TieP,       ///< Tie-Point processing
                TiePLearn,    ///< Tie-Point processing  - Learning step
+               CodedTarget,  ///< Coded target (generate, match )
                Perso,      ///< Personnal
                eNbVals     ///< Tag for number of value
            };

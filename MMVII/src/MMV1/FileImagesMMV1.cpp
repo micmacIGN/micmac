@@ -50,6 +50,18 @@ cDataFileIm2D cDataFileIm2D::Empty()
    return cDataFileIm2D( MMVII_NONE, eTyNums::eNbVals, cPt2di(1,1), -1);
 }
 
+bool cDataFileIm2D::IsEmpty() const
+{
+    return mNbChannel<=0;
+}
+
+
+void cDataFileIm2D::AssertNotEmpty() const
+{
+    MMVII_INTERNAL_ASSERT_strong((!IsEmpty()),"cDataFileIm2D was not initialized");
+}
+
+
 
 cDataFileIm2D cDataFileIm2D::Create(const std::string & aName,bool aForceGray)
 {
@@ -353,6 +365,27 @@ double DifAbsInVal(const std::string & aN1,const std::string & aN2,double aDef)
    ELISE_COPY(aF1.all_pts(),Abs(aF1.in()-aF2.in()),sigma(aSom));
 
    return aSom;
+}
+
+template <const int aNbBit>  cIm2D<tU_INT1>  BitsV1ToV2(const Im2D_Bits<aNbBit> & aImV1)
+{
+    cIm2D<tU_INT1> aImV2(ToMMVII(aImV1.sz()));
+    cDataIm2D<tU_INT1>& aDImV2 = aImV2.DIm();
+
+    for (const auto & aPixV2 : aDImV2)
+    {
+         aDImV2.SetV(aPixV2,aImV1.GetI(ToMMV1(aPixV2)));
+    }
+
+
+    return aImV2;
+}
+
+
+cIm2D<tU_INT1> ImageOfString(const std::string & aStr ,int aSpace)
+{
+    Im2D_Bits<1> aImV1 =  cElBitmFont::BasicFont_10x8().BasicImageString(aStr,aSpace);
+    return BitsV1ToV2(aImV1);
 }
 
 

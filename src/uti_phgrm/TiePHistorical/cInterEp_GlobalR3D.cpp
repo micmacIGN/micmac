@@ -829,7 +829,7 @@ Pt2di PileImgs(std::string aDir, std::vector<std::string> aVIm1, std::string aOr
     SaveTfw(aTfwFile, aOrthoResolPlani, aOrthoOriPlani);
     printf("aOrthoResolPlani: [%.2lf, %.2lf], aOrthoOriPlani: [%.2lf, %.2lf]\n", aOrthoResolPlani.x, aOrthoResolPlani.y, aOrthoOriPlani.x, aOrthoOriPlani.y);
 
-    if(1){
+    if(0){
         aTfwFile = "/mnt/e4833a33-2e75-4f51-907f-10b923e3000d/PhDFullTest/Pezenas/PileImg/Tmp_PseudoOrtho/Ortho-MEC-Malt_2015-.tfw";
         ReadTfw(aTfwFile, aTmp);
         aOrthoResolPlani = Pt2dr(aTmp[0], aTmp[3]);

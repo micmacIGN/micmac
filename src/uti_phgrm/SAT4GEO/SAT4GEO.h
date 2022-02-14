@@ -16,7 +16,7 @@
     In IAPRS vol XXXVI-1/W41 in ISPRS Workshop On Topographic Mapping From Space
     (With Special Emphasis on Small Satellites), Ankara, Turquie, 02-2006.
 
-[2] M. Pierrot-Deseilligny, "MicMac, un lociel de mise en correspondance
+[2] M. P
     d'images, adapte au contexte geograhique" to appears in
     Bulletin d'information de l'Institut Geographique National, 2007.
 
@@ -120,7 +120,10 @@ class cCommonAppliSat3D
 
         /* Match param */
         int     mZoom0;
-        //int     mZoomF;
+        int     mZoomF;
+	double      mResolTerrain;
+        Box2dr      mBoxTerrain;
+
         //bool    mCMS;
         bool    mDoPly;
 		bool    mEZA;
@@ -138,7 +141,7 @@ class cCommonAppliSat3D
 	std::string   mMMVII_ModePad;
 	std::string   mMMVII_ImName;
 	Pt2di         mMMVII_SzTile;
-
+    int           mMMVII_NbProc;
 
         /* Bascule param */
         // Malt UrbanMNE to create destination frame
@@ -291,6 +294,7 @@ class cAppliFusion
 
         std::string mFilePairs;
         std::string mOri;
+
 
 };
 

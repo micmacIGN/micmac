@@ -51,15 +51,19 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 	mFPairsDirMEC("PairsDirMEC.xml"),
 	mBtoHLim   (Pt2dr(0.01,0.3)),
 	mDoIm(true),
+        mXCorrecOri(true),
 	mOutRPC("EpiRPC"),
 	mDegreRPC(0),
 	mZoom0(64),
+	mZoomF(1),
 	mRegul(0.2),
 	mSzW(3),
-    mMMVII(0),
+        mMMVII(0),
 	mMMVII_mode("MMV1"),
 	mMMVII_ImName("Px1_MMVII.tif"),
-	//mZoomF(1),
+	mMMVII_SzTile(Pt2di(1024,1024)),
+        mMMVII_NbProc(8),
+        //mZoomF(1),
 	//mHasVeg(true),
 	//mHasSBG(false),
 	mNameEpiLOF("EpiListOfFile.xml"),
@@ -77,8 +81,9 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 			<< EAM(mNbProc,"NbP",true,"Num of parallel processes, Def=8")
 			<< EAM(mFilePairs,"Pairs",true,"File with overlapping pairs, Def=Pairs.xml")
 			<< EAM(mFPairsDirMEC,"PairsDirMEC",true,"File with DirMECc of overlapping pairs, Def=PairsDirMEC.xml")
-			<< EAM(mBtoHLim,"BH",true,"Base to height ratio limits, def=[0.01,0.3]");
-	
+			<< EAM(mBtoHLim,"BH",true,"Base to height ratio limits, def=[0.01,0.3]")
+                        << EAM(mResolTerrain,"ResolTerrain",true,"Ground Resol")
+                        << EAM(mBoxTerrain,"BoxTerrain",true,"([Xmin,Ymin,Xmax,Ymax])");	
 
 	*mArgEpip
 			<< EAM(mDoIm,"DoEpi",true,"Epipolar rectification, Def=true")
@@ -94,7 +99,7 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 			<< EAM(mNbCalcDir,"NbCalcDir",true,"Epipolar rectification: Calc directions : Nbts / NbEchDir")
 			<< EAM(mExpCurve,"ExpCurve",true,"Epipolar rectification: 0-SzIm ,1-Number of Line,2- Larg (in [0 1]),3-Exag deform,4-ShowOut")
 			<< EAM(mOhP,"OhP",true,"Epipolar rectification: Oh's method test parameter")
-			<< EAM(mXCorrecOri,"XCorrecOri",true,"Epipolar rectification: Correct X-Pax using orient and Z=average")
+			<< EAM(mXCorrecOri,"XCorrecOri",true,"Epipolar rectification: Correct X-Pax using orient and Z=average,Def=true")
 			<< EAM(mXCorrecHom,"XCorrecHom",true,"Epipolar rectification: Correct X-Pax using homologous point")
 			<< EAM(mXCorrecL2,"XCorrecL2",true,"Epipolar rectification: L1/L2 Correction for X-Pax");
 
@@ -107,7 +112,7 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
 
 	*mArgMM1P
 			<< EAM(mZoom0,"Zoom0",true,"Image matching: Zoom Init (Def=64)")
-//			<< EAM(mZoomF,"ZoomF",true,"Image matching: Zoom Final (Def=1)")
+			<< EAM(mZoomF,"ZoomF",true,"Image matching: Zoom Final (Def=1)")
 //			<< EAM(mCMS,"CMS",true,"Image matching: Multi Scale Correl (Def=ByEpip)")
 //			<< EAM(mHasVeg,"HasVeg",true,"Image matching: Has vegetation, Def= false")
 //			<< EAM(mHasSBG,"HasSBG",true,"Image matching: Has Sky Background , Def= true")
@@ -123,11 +128,12 @@ cCommonAppliSat3D::cCommonAppliSat3D() :
             << EAM(mMMVII_mode,"MMVII_mode",true,"Image matching: if MMVII==1, {MMV1,PSMNet,DeepPruner} Def=MMV1")
             << EAM(mMMVII_ModePad,"MMVII_ModePad",true,"Image matching: if MMVII==1, {NoPad PxPos PxNeg SzEq}")
             << EAM(mMMVII_ImName,"MMVII_ImName",true,"Image matching: if MMVII==1, name of depth map")
-            << EAM(mMMVII_SzTile,"MMVII_SzTile",true,"Image matching: if MMVII==1, Size of tiling used to split computation, Def=[2000,1500]");
+            << EAM(mMMVII_SzTile,"MMVII_SzTile",true,"Image matching: if MMVII==1, Size of tiling used to split computation, Def=[1024,1024]")
+            << EAM(mMMVII_NbProc,"MMVII_NbProc",true,"Image matching: if MMVII==1, Nb of cores for II processing in MMVII, Def=8");
 
 	*mArgFuse
-			<< EAM(mOutRPC,"OutRPC",true,"RPC recal/Depth map fusion: RPC orientation directory (corresp. to epipolar images)")
-			<< EAM(mOutSMDM,"OutSMDM",true,"Depth map fusion: Name of the output folder, Def=Fusion/");
+			<< EAM(mOutRPC,"OutRPC",true,"Fusion: RPC recal/Depth map fusion: RPC orientation directory (corresp. to epipolar images)")
+			<< EAM(mOutSMDM,"OutSMDM",true,"Fusion: Depth map fusion: Name of the output folder, Def=Fusion/");
 
 	mICNM = cInterfChantierNameManipulateur::BasicAlloc(mDir);
 
@@ -188,7 +194,7 @@ std::string cCommonAppliSat3D::ComParamEpip()
     if (EAMIsInit(&mNbCalcDir)) aCom +=  " NbCalcDir=" + ToString(mNbCalcDir);
     if (EAMIsInit(&mExpCurve))  aCom +=  " ExpCurve=" + ToString(mExpCurve);
     if (EAMIsInit(&mOhP))       aCom +=  " Oh=" + ToString(mOhP);
-    if (EAMIsInit(&mXCorrecOri)) aCom +=  " XCorrecOri=" + ToString(mXCorrecOri);
+    aCom +=  " XCorrecOri=" + ToString(mXCorrecOri);
     if (EAMIsInit(&mXCorrecHom)) aCom +=  " XCorrecHom=" + ToString(mXCorrecHom);
     if (EAMIsInit(&mXCorrecL2)) aCom +=  " XCorrecL2=" + ToString(mXCorrecL2);
     return aCom;
@@ -214,19 +220,34 @@ std::string cCommonAppliSat3D::ComParamRPC()
 
 std::string cCommonAppliSat3D::ComParamMatch()
 {
-	std::string aCom;
+    std::string aCom;
 
     if (mMMVII)
     {
-
-        if (EAMIsInit(&mMMVII_SzTile))    aCom +=  " SzTile=" + ToString(mMMVII_SzTile);
-        if (EAMIsInit(&mMMVII_ModePad))    aCom +=  " ModePad=" + mMMVII_ModePad;
-        if (EAMIsInit(&mNbProc))    aCom +=  " NbProc=" + ToString(mNbProc); 
+        aCom += BLANK + "MMVII=" + ToString(mMMVII);
+        if (EAMIsInit(&mMMVII_mode))    aCom += BLANK + "MMVII_mode=" + mMMVII_mode;
+        if (EAMIsInit(&mMMVII_ImName))  aCom += BLANK + "MMVII_ImName=" + mMMVII_ImName;
+	if (EAMIsInit(&mMMVII_SzTile))  aCom += BLANK + "MMVII_SzTile=" + ToString(mMMVII_SzTile);
+        if (EAMIsInit(&mMMVII_NbProc))  aCom += BLANK + "MMVII_NbProc=" + ToString(mMMVII_NbProc); 
     }
     else
     {
         if (EAMIsInit(&mExpTxt))  aCom += aCom  + " ExpTxt=" + ToString(mExpTxt);
         if (EAMIsInit(&mZoom0))   aCom +=  " Zoom0=" + ToString(mZoom0);
+        if (EAMIsInit(&mZoomF))   aCom +=  " ZoomF=" + ToString(mZoomF);
+/*	if (EAMIsInit(&mResolTerrain))
+          aCom = aCom + BLANK + "ResolTerrain=" + ToString(mResolTerrain);*/
+        if (EAMIsInit(&mBoxTerrain))
+        {
+          aCom  =  aCom + BLANK 
+		  +  std::string("BoxTerrain=")   
+                  +  std::string("[") + ToString(mBoxTerrain._p0.x)
+                  +  std::string(",") + ToString(mBoxTerrain._p0.y)
+                  +  std::string(",") + ToString(mBoxTerrain._p1.x)
+                  +  std::string(",") + ToString(mBoxTerrain._p1.y) 
+		  + std::string("]");
+        }
+
         //if (EAMIsInit(&mZoomF))   aCom +=  " ZoomF=" + ToString(mZoomF);
         //if (EAMIsInit(&mCMS))     aCom +=  " CMS=" + ToString(mCMS);
         if (EAMIsInit(&mEZA))     aCom +=  " EZA=" + ToString(mEZA);
@@ -250,7 +271,21 @@ std::string cCommonAppliSat3D::ComParamFuse()
 {
 	std::string aCom;
 	aCom += " OutRPC=" + mOutRPC;
-    if (EAMIsInit(&mNbProc))    aCom +=  " NbP=" + ToString(mNbProc);
+        if (EAMIsInit(&mNbProc))    aCom +=  " NbP=" + ToString(mNbProc);
+        
+
+	if (EAMIsInit(&mResolTerrain))
+          aCom = aCom + BLANK + "ResolTerrain=" + ToString(mResolTerrain);
+        if (EAMIsInit(&mBoxTerrain))
+        {
+          aCom  =  aCom + BLANK 
+		  +  std::string("BoxTerrain=")   
+                  +  std::string("[") + ToString(mBoxTerrain._p0.x)
+                  +  std::string(",") + ToString(mBoxTerrain._p0.y)
+                  +  std::string(",") + ToString(mBoxTerrain._p1.x)
+                  +  std::string(",") + ToString(mBoxTerrain._p1.y) 
+                  + std::string("]");
+        }
 
 
 	return aCom;
@@ -575,15 +610,65 @@ cAppliMM1P::cAppliMM1P(int argc, char** argv)
 			aComTmp = "MMVII DenseMatchEpipGen" + BLANK + mCAS3D.mMMVII_mode
                                                      + BLANK + aNI1 + BLANK + aNI2 
                                                      + BLANK + "Out=" + (*aDir_it++) + mCAS3D.mMMVII_ImName
-                                                     + mCAS3D.ComParamMatch();
+                                                     + ((EAMIsInit(&mCAS3D.mMMVII_SzTile)) ? (BLANK + "SzTile=" + ToString(mCAS3D.mMMVII_SzTile)) : "") 
+                                                     + ((EAMIsInit(&mCAS3D.mMMVII_NbProc)) ? (BLANK + "NbProc=" + ToString(mCAS3D.mMMVII_NbProc)) : ""); 
 		}
 		else
 		{
+
+                        //Update terrain box to image geometry
+			if(EAMIsInit(&mCAS3D.mBoxTerrain))
+			{
+			    /* Read cameras */
+                            cBasicGeomCap3D * aCamI1 = mCAS3D.mICNM->StdCamGenerikOfNames(mCAS3D.mOutRPC,aNI1);
+                            
+			    //Sz
+			    Pt2dr aSz = aCamI1->SzPixel();
+
+			    //Z
+			    double aZ = aCamI1->GetAltiSol();
+			    Pt3dr Pt1, Pt2, Pt3, Pt4;
+
+          		    Pt1.x = mCAS3D.mBoxTerrain._p0.x;  
+			    Pt1.y = mCAS3D.mBoxTerrain._p0.y;  
+			    Pt1.z = aZ;
+                            Pt2.x = mCAS3D.mBoxTerrain._p1.x;  
+			    Pt2.y = mCAS3D.mBoxTerrain._p1.y;  
+			    Pt2.z = aZ;
+                            Pt3.x = Pt2.x;        
+			    Pt3.y = Pt1.y;        
+			    Pt3.z = aZ;
+
+                            Pt4.x = Pt1.x;        
+			    Pt4.y = Pt2.y;        
+			    Pt4.z = aZ;
+
+			    Pt2dr PtIm1 = aCamI1->Ter2Capteur(Pt1);
+			    Pt2dr PtIm2 = aCamI1->Ter2Capteur(Pt2);
+			    Pt2dr PtIm3 = aCamI1->Ter2Capteur(Pt3);
+			    Pt2dr PtIm4 = aCamI1->Ter2Capteur(Pt4);
+			
+
+			    int Bord = 20; 
+                            mCAS3D.mBoxTerrain._p0.x = std::max(std::min(std::min(PtIm2.x,PtIm4.x), std::min(PtIm1.x,PtIm3.x))-Bord,0.0);
+                            mCAS3D.mBoxTerrain._p0.y = std::max(std::min(std::min(PtIm2.y,PtIm4.y), std::min(PtIm1.y,PtIm3.y))-Bord,0.0);
+                            mCAS3D.mBoxTerrain._p1.x= std::min(std::max(std::max(PtIm2.x,PtIm4.x), std::max(PtIm1.x,PtIm3.x))+Bord,aSz.x);
+                            mCAS3D.mBoxTerrain._p1.y = std::min(std::max(std::max(PtIm2.y,PtIm4.y), std::max(PtIm1.y,PtIm3.y))+Bord,aSz.y);
+
+                            std::cout << "IMAGE BOX : " << mCAS3D.mBoxTerrain._p0 << " " << mCAS3D.mBoxTerrain._p1 << std::endl;
+
+	    	            delete aCamI1;
+
+			}
+
 			aComTmp = MMBinFile(MM3DStr) + "MMAI4Geo " + mCAS3D.mDir + BLANK
                               + aNI1 + BLANK + aNI2 + BLANK
-							  + "DirMEC=" + (*aDir_it++)
+                              + "DirMEC=" + (*aDir_it++)
                               + mCAS3D.ComParamMatch();
+
 		}
+
+
 
         aLCom.push_back(aComTmp);
 
@@ -616,6 +701,7 @@ cAppliFusion::cAppliFusion(int argc,char ** argv)
          LArgMain()  << EAMC(mFilePairs,"List of overlapping image pairs",eSAM_IsExistFile),
          LArgMain()  << EAM(mOri,"Ori",true,"RPC original orientation")
                      //mOri may be needed to recover the names of the Epi images
+		     << EAM(mCAS3D.mZoomF,"ZoomF",true,"Final Zoom")
                      << EAM(mCAS3D.mMMVII,"MMVII",true,"True if mathing done in MMVII, Def=false")
                      << EAM(mCAS3D.mMMVII_ImName,"MMVII_ImName",true,"if MMVII==1, name of the depth map, Def=Px1_MMVII.tif")
                      << mCAS3D.ArgBasic()
@@ -719,16 +805,32 @@ void cAppliFusion::DoAll()
 	/* Define the global frame of the reconstruction */
 	std::string aCom = MMBinFile(MM3DStr) + "Malt UrbanMNE " 
 			             + "NKS-Set-OfFile@" + mCAS3D.mNameEpiLOF + BLANK 
-						 + mCAS3D.mOutRPC + " DoMEC=0";
+						 + mCAS3D.mOutRPC + BLANK + "DoMEC=0";
 
 	if (EAMIsInit(&mCAS3D.mEZA))
 		aCom += " EZA=" + ToString(mCAS3D.mEZA);
-	
+	if (EAMIsInit(&mCAS3D.mZoomF))
+		aCom += " ZoomF=" + ToString(mCAS3D.mZoomF);
+
+	if (EAMIsInit(&mCAS3D.mResolTerrain))
+          aCom = aCom + BLANK + "ResolTerrain=" + ToString(mCAS3D.mResolTerrain);
+
+	if (EAMIsInit(&mCAS3D.mBoxTerrain))
+        {
+          aCom  =  aCom + BLANK
+		  +  std::string("BoxTerrain=")  
+                  +  std::string("[") + ToString(mCAS3D.mBoxTerrain._p0.x)
+                  +  std::string(",") + ToString(mCAS3D.mBoxTerrain._p0.y)
+                  +  std::string(",") + ToString(mCAS3D.mBoxTerrain._p1.x)
+                  +  std::string(",") + ToString(mCAS3D.mBoxTerrain._p1.y)
+                  + std::string("]");
+        }
+
+
+
+
     if (mCAS3D.mExe)
-		if ((int)aLP.size()>1)
-			System(aCom);
-		else
-			std::cout << "TestLib SAT4GEO_Fuse, there is only 1 image pair, I'm not defining the global frame.";
+        System(aCom);
     else
     {
         std::cout << "SUBCOM1= " << aCom << "\n";
@@ -779,10 +881,7 @@ void cAppliFusion::DoAll()
 	}
 
     if (mCAS3D.mExe)
-		if ((int)aLP.size()>1)
-			cEl_GPAO::DoComInSerie(aLCTG);
-		else
-			std::cout << "TestLib SAT4GEO_Fuse, there is only 1 image pair. I'm not transforming depths to Z.";
+        cEl_GPAO::DoComInSerie(aLCTG);
     else
     {
         for (auto iCmd : aLCTG)
@@ -830,10 +929,7 @@ void cAppliFusion::DoAll()
 	}	
 
     if (mCAS3D.mExe)
-		if ((int)aLP.size()>1)
-			cEl_GPAO::DoComInSerie(aLCom);
-		else
-			std::cout << "TestLib SAT4GEO_Fuse, there is only 1 image pair. I'm not transforming from image to reference frame.";
+        cEl_GPAO::DoComInSerie(aLCom);
     else
     {
         for (auto iCmd : aLCom)
@@ -851,7 +947,7 @@ void cAppliFusion::DoAll()
 		if ((int)aLP.size()>1)
 			System(aComMerge);
 		else
-			std::cout << "TestLib SAT4GEO_Fuse, there is only 1 image pair, and there is nothing to fuse.";
+			std::cout << "TestLib SAT4GEO_Fuse, there is only 1 image pair, and there is nothing to fuse.\n";
     else
     {
         std::cout << "SUBCOM4= " << aComMerge << "\n";
@@ -953,11 +1049,12 @@ void cAppliSat3DPipeline::DoAll()
 	/******************************************************/
 	StdCom("TestLib SAT4GEO_MM1P", 
 			mCAS3D.mFilePairs + BLANK + "Ori=" + mOri
-                              + ((mCAS3D.mMMVII) ? (BLANK + "MMVII=" + ToString(mCAS3D.mMMVII)) : "")
-                              + ((mCAS3D.mMMVII) ? (BLANK + "MMVII_mode=" + mMMVII_mode) : "")
-                              + ((EAMIsInit(&mCAS3D.mMMVII_ImName)) ? (BLANK + "MMVII_ImName=" + mCAS3D.mMMVII_ImName) : "")
-			                  + mCAS3D.ComParamMatch() 
-			                  + BLANK + "PairsDirMEC=" + mCAS3D.mFPairsDirMEC);
+                              //+ ((mCAS3D.mMMVII) ? (BLANK + "MMVII=" + ToString(mCAS3D.mMMVII)) : "")
+                              //+ ((mCAS3D.mMMVII) ? (BLANK + "MMVII_mode=" + mCAS3D.mMMVII_mode) : "")
+                              //+ ((EAMIsInit(&mCAS3D.mMMVII_ImName)) ? (BLANK + "MMVII_ImName=" + mCAS3D.mMMVII_ImName) : "")
+                              //+ ((mCAS3D.mMMVII) ? (BLANK + "MMVII_SzTile=" + ToString(mCAS3D.mMMVII_SzTile)) : "")
+			      + mCAS3D.ComParamMatch() 
+			      + BLANK + "PairsDirMEC=" + mCAS3D.mFPairsDirMEC);
 
 
 
@@ -967,8 +1064,9 @@ void cAppliSat3DPipeline::DoAll()
 	/**************************************************************************/
 
 	StdCom("TestLib SAT4GEO_Fuse", mCAS3D.mFilePairs + BLANK + "Ori=" + mOri 
-		  				           + mCAS3D.ComParamFuse()
-								   + BLANK + "PairsDirMEC=" + mCAS3D.mFPairsDirMEC
+		  		   + mCAS3D.ComParamFuse()
+				   + BLANK + "PairsDirMEC=" + mCAS3D.mFPairsDirMEC
+				   + ((EAMIsInit(&mCAS3D.mZoomF)) ? (BLANK+"ZoomF=" + ToString(mCAS3D.mZoomF)) : "") 
                                    + ((mCAS3D.mMMVII) ? (BLANK + "MMVII=" + ToString(mCAS3D.mMMVII)) : "")
                                    + ((EAMIsInit(&mCAS3D.mMMVII_ImName)) ? (BLANK + "MMVII_ImName=" + mCAS3D.mMMVII_ImName) : ""));
 

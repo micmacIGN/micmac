@@ -13,7 +13,7 @@ class cSetAimePCAR;
      be inspected in MMV1 (as MMV2 will not have tools equivalent to X11-MMV1 before a long)
      Certainly Aime TieP will be much more complex than this proto class
 */
-template <class Type> struct cProtoAimeTieP : public cMemCheck
+template <class Type> class cProtoAimeTieP : public cMemCheck
 {
     public :
         typedef cGP_OneImage<Type> tGPI;

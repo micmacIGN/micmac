@@ -124,6 +124,11 @@ typedef cPtxd<double,2>  cPt2dr ;
 typedef cPtxd<int,2>     cPt2di ;
 typedef cPtxd<float,2>   cPt2df ;
 
+/*
+template <typename Type> cPtxd<Type,2>  ToPolar(const cPtxd<Type,2> &);   // X,Y => rho,teta  error if X,Y==0
+template <typename Type> cPtxd<Type,2>  ToPolar(const cPtxd<Type,2> &,double aTetaDef);   // X,Y => rho,teta with def value on teta  when rho==0
+template <typename Type> cPtxd<Type,2>  FromPolar(const cPtxd<Type,2> &);
+*/
 
 
 // Create the neighboord, ie pixel not nul, with coord in [-1,0,1]  having a  number of value  !=0  <= to aNbVois
