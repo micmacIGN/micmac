@@ -246,6 +246,8 @@ template <class TypeEl,class tBase> cInterpolateurIm2D<TypeEl>  * InterpoleOfEta
 
 }
 
+/* Ch.M: Add template instatiation for g++-10 */
+template  cInterpolateurIm2D<float>  * InterpoleOfEtape(const cEtapeMEC & anEt,float *,double *);
 
 template <class TypeEl>
 cTplLoadedImage<TypeEl>::cTplLoadedImage
