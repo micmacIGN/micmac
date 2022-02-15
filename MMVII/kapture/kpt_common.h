@@ -9,17 +9,7 @@
 #include <vector>
 #include <set>
 #include <iostream>
-// #include <experimental/filesystem>
-#ifdef __APPLE__   // This file is independant of MMVII, dont use THE_MACRO_MMVII_SYS
 #include <filesystem>
-#else
-#include <experimental/filesystem>
-namespace std {
-    namespace filesystem = std::experimental::filesystem;
-}
-#endif
-/*
-*/
 #include <stdexcept>
 
 // #define KAPTURE_USE_EIGEN
@@ -29,9 +19,6 @@ namespace std {
 #endif
 
 
-namespace std {
-namespace filesystem = std::experimental::filesystem;
-}
 
 
 // FIXME CM: Faire les write
