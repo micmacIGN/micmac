@@ -47,7 +47,7 @@ template<class TyProj> void OneBenchProjToDirBundle(cParamExeBench & aParam)
    {
        std::vector<double> aV;
        std::vector<cFormula<double>> aVF;
-       cPt2dr aP;
+       cPt2dr aP(0,0);
 
        TyProj::Proj(aV);
        TyProj::Proj(aVF);
