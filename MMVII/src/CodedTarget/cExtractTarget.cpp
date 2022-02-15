@@ -7,6 +7,29 @@
 namespace MMVII
 {
 
+template<class Type> class cSymMeasure
+{
+    public :
+        cSymMeasure();
+	void Add(Type  aV1,Type  aV2);
+	Type  Sym(const Type & Espilon=1e-1) const;
+    private :
+        Type                   mDif;
+	cComputeStdDev<Type >  mDev;
+};
+
+template<class Type> cSymMeasure<Type>::cSymMeasure() :
+    mDif  (0),
+    mDev()
+{
+}
+
+template<class Type> void cSymMeasure<Type>::Add(Type aV1,Type aV2)
+{
+   mDif += Square(aV1-aV2);
+   mDev.Add(1.0,aV1);
+   mDev.Add(1.0,aV2);
+}
 
 template<class TypeEl> cIm2D<TypeEl> ImSym(const  cDataIm2D<TypeEl> & aDImIn,double aR0,double aR1)
 {
@@ -15,16 +38,19 @@ template<class TypeEl> cIm2D<TypeEl> ImSym(const  cDataIm2D<TypeEl> & aDImIn,dou
     cPt2di aPW(aD,aD);
 
     cPt2di aSz = aDImIn.Sz();
-    cIm2D<TypeEl> aImOut(aSz);
+    cIm2D<TypeEl> aImOut(aSz,nullptr,eModeInitImage::eMIA_Null);
+    cDataIm2D<TypeEl> & aDImOut = aImOut.DIm();
 
     for (const auto & aP : cRect2(aPW,aSz-aPW))
     {
+          cSymMeasure<float> aSM;
           for (const auto & aV  : aVectVois)
 	  {
 		  TypeEl aV1 = aDImIn.GetV(aP+aV);
 		  TypeEl aV2 = aDImIn.GetV(aP-aV);
-		  FakeUseIt(aV1-aV2);
+		  aSM.Add(aV1,aV2);
 	  }
+	  aDImOut.SetV(aP,aSM.Sym());
     }
 
     return aImOut;
@@ -177,6 +203,11 @@ void  cAppliExtractCodeTarget::TestFilters()
      tDataIm &  aDIm = APBI_LoadTestBox();
 
      StdOut() << "SZ "  <<  aDIm.Sz() << "\n";
+
+     for (const auto & aDist :  mTestDistSym)
+     {
+          cIm2D<tREAL4>  aImS = ImSym(aDIm,0.0,aDist);
+     }
 }
 
 int  cAppliExtractCodeTarget::Exe()
