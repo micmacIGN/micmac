@@ -114,11 +114,6 @@ class cAimePCar : public cMemCheck
 {
      public :
         cAimeDescriptor & Desc();
-        virtual ~cAimePCar() {
-        #ifdef MEM_DEBUG
-            std::cout<<"MEM_DEBUG: ~cAimePCar()"<<std::endl;
-        #endif
-        }
         const cAimeDescriptor & Desc() const;
         cPt2dr&         Pt();
         const cPt2dr&   Pt() const;
@@ -141,22 +136,14 @@ class cSetAimePCAR : public cMemCheck
         // cSetAimePCAR();
         cSetAimePCAR(eTyPyrTieP aType,bool IsMax); ///< "Real" constructor
         cSetAimePCAR(); ///< Sometime need a default constructor
-        ~cSetAimePCAR() {
-        #ifdef MEM_DEBUG
-            std::cout<<"MEM_DEBUG: ~cSetAimePCAR()"<<std::endl;
-        #endif
-        }
         int &                   IType();
-        const int &             IType() const;
         eTyPyrTieP              Type();
         bool&                   IsMax();
-        const bool&             IsMax() const;
         bool&                   Census();
         const bool&             Census() const;
         double&                 Ampl2N();
         const double&           Ampl2N() const;
         std::vector<cAimePCar>& VPC();
-        const std::vector<cAimePCar>& VPC() const;
         void SaveInFile(const std::string &) const;
         void InitFromFile(const std::string &) ;
         // For census, as the value are strictly in [-1,1] we can use a universall value for normalize

@@ -149,10 +149,11 @@ for v in all_classes_cursor:
     if m.res_ref and not m.is_shadowed:
       for a in c.attributes:
         if a.name == "m"+m.name and (a.type + " &" == m.res_type or "const " + a.type + " &" == m.res_type)  :
+          str_const = "const" if m.is_const else ""
           print("Getter ref:", a, "/", m)
-          f_rename.write(f'%ignore {c.name}::{m.name}() const;\n')
-          f_rename.write(f'%rename("{m.name}") {c.name}::{m.name}_py() const;\n')
-          f_nonref.write(f'%extend {c.name} {{ {a.type} {m.name}_py() const {{ return $self->{m.name}(); }} }}\n\n')
+          f_rename.write(f'%ignore {c.name}::{m.name}() {str_const};\n')
+          f_rename.write(f'%rename("{m.name}") {c.name}::{m.name}_py() {str_const};\n')
+          f_nonref.write(f'%extend {c.name} {{ {a.type} {m.name}_py() {str_const} {{ return $self->{m.name}(); }} }}\n\n')
   print()
 
 f_ignore.close()

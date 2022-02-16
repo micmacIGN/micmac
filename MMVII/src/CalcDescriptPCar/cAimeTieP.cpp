@@ -515,11 +515,8 @@ cSetAimePCAR::cSetAimePCAR():
 
 eTyPyrTieP              cSetAimePCAR::Type()   {return eTyPyrTieP(mType);}
 int &                   cSetAimePCAR::IType()  {return mType;}
-const int &             cSetAimePCAR::IType() const {return mType;}
 bool&                   cSetAimePCAR::IsMax()  {return mIsMax;}
-const bool&             cSetAimePCAR::IsMax() const {return mIsMax;}
 std::vector<cAimePCar>& cSetAimePCAR::VPC()    {return mVPC;}
-const std::vector<cAimePCar>& cSetAimePCAR::VPC() const   {return mVPC;}
 bool&          cSetAimePCAR::Census()       {return mCensus;}
 const bool&    cSetAimePCAR::Census() const {return mCensus;}
 double&        cSetAimePCAR::Ampl2N()       {return mAmpl2N;}
