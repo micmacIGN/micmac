@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-"""
-setup.py file for SWIG example
-"""
-
 import setuptools
 from distutils.core import setup, Extension
 
@@ -27,7 +23,7 @@ all_cpp_api_files =  glob.glob('api/*.cpp')
 mmv2_module = Extension('_mmv2',
            define_macros = [('FORSWIG','')],
            sources = ['mmv2.i'] + all_cpp_api_files,
-           swig_opts=['-python', '-py3',  '-DFORSWIG', '-Wall', '-c++', '-I.','-I../include/'],
+           swig_opts=['-python', '-py3',  '-DFORSWIG', '-Wall', '-c++', '-I.', '-I../include/', '-doxygen'],
            libraries = ['X11', 'Xext', 'm', 'dl', 'pthread', 'stdc++fs', 'gomp']+libs,
            library_dirs = [],
            include_dirs = ['/usr/local/include', '.', '..', '../include/', '../ExternalInclude/'],
@@ -52,7 +48,7 @@ setup (name = 'mmv2',
        py_modules = ["mmv2"],
        data_files = [("mmv2/include/XML_MicMac", xml_micmac_files),
                      ("mmv2/include/XML_GEN", xml_gen_files)],
-       platforms  = ['x86_64'],
+       platforms  = ['x86_64']
        )
 
 #https://docs.python.org/3/extending/building.html

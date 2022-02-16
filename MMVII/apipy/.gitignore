@@ -7,3 +7,7 @@ __pycache__/
 dist/
 mmv2.egg-info/
 typemaps.i
+h_to_include.i
+rename_nonref.i
+return_nonref.i
+ignore_nonconst_overloading.i
